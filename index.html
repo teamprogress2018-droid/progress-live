@@ -25,6 +25,68 @@ input,button,textarea,select{font-family:'DM Sans',sans-serif;}
 .screen{display:none;flex-direction:column;flex:1;overflow:hidden;}
 .screen.active{display:flex;}
 
+/* DESKTOP LAYOUT */
+@media (min-width: 900px) {
+  body{overflow:hidden;}
+  .app{max-width:100%;flex-direction:row;height:100vh;}
+
+  /* Sidebar */
+  .desktop-sidebar{
+    width:260px;flex-shrink:0;background:var(--surface);
+    border-right:1px solid var(--border);
+    display:flex;flex-direction:column;height:100vh;
+  }
+  .sidebar-logo{
+    padding:20px 20px 16px;
+    font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;
+    color:var(--accent);border-bottom:1px solid var(--border);
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .sidebar-logo span{color:var(--text);}
+  .sidebar-nav{padding:12px 0;flex:1;overflow-y:auto;}
+  .sidebar-nav-btn{
+    display:flex;align-items:center;gap:12px;
+    padding:12px 20px;width:100%;background:none;border:none;
+    color:var(--muted);font-size:13px;font-family:'DM Sans',sans-serif;
+    cursor:pointer;transition:all 0.15s;text-align:left;
+    border-left:3px solid transparent;
+  }
+  .sidebar-nav-btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5;flex-shrink:0;}
+  .sidebar-nav-btn:hover{color:var(--text);background:rgba(255,255,255,0.03);}
+  .sidebar-nav-btn.active{color:var(--accent);background:rgba(200,241,53,0.06);border-left-color:var(--accent);}
+  .sidebar-footer{padding:16px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;}
+
+  /* Main content area */
+  .desktop-main{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;}
+  .desktop-topbar{
+    padding:16px 24px;border-bottom:1px solid var(--border);
+    display:flex;align-items:center;justify-content:space-between;
+    flex-shrink:0;background:rgba(8,8,8,0.97);
+  }
+  .desktop-page-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;color:var(--text);}
+  .desktop-content{flex:1;overflow-y:auto;padding:24px;}
+
+  /* Desktop grid layouts */
+  .desktop-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .desktop-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .desktop-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+
+  /* Hide mobile elements */
+  .app > .hdr{display:none;}
+  .app > .nav{display:none;}
+  .screen{max-width:100% !important;}
+  .screen > .hdr{display:none;}
+  .screen.active{display:block;overflow:hidden;}
+  .scroll{height:calc(100vh - 73px);overflow-y:auto;padding:0;}
+
+  /* Fullviews on desktop */
+  .fullview{max-width:600px;left:260px;box-shadow:-4px 0 20px rgba(0,0,0,0.5);}
+}
+@media (max-width:899px){
+  .desktop-sidebar{display:none !important;}
+  .desktop-main{display:none !important;}
+}
+
 /* HEADER */
 .hdr{padding:14px 18px 10px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:rgba(8,8,8,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
 .hdr-logo{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--accent);}
@@ -173,6 +235,49 @@ input,button,textarea,select{font-family:'DM Sans',sans-serif;}
 </head>
 <body>
 <div class="app">
+
+  <!-- DESKTOP SIDEBAR -->
+  <div class="desktop-sidebar">
+    <div class="sidebar-logo">PROGRESS<span>LIVE</span><div class="status-dot" style="width:7px;height:7px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite;"></div></div>
+    <div class="sidebar-nav">
+      <button class="sidebar-nav-btn active" onclick="goScreen('dashboard')">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Panel główny
+      </button>
+      <button class="sidebar-nav-btn" onclick="goScreen('plans')">
+        <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Plany treningowe
+      </button>
+      <button class="sidebar-nav-btn" onclick="goScreen('workout')">
+        <svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>Trening
+      </button>
+      <button class="sidebar-nav-btn" onclick="goScreen('calendar')">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Kalendarz sesji
+      </button>
+      <div style="padding:16px 20px 8px;font-size:10px;font-family:DM Mono,monospace;color:var(--muted2);letter-spacing:0.5px;">KLIENCI</div>
+      <button class="sidebar-nav-btn" onclick="openAddClient()">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Dodaj klienta
+      </button>
+      <div id="sidebar-clients" style="padding:0 8px;"></div>
+    </div>
+    <div class="sidebar-footer">
+      <div style="color:var(--accent);font-weight:600;margin-bottom:2px;">PROGRESS LIVE</div>
+      <div>Panel Trenera v1.0</div>
+    </div>
+  </div>
+
+  <!-- DESKTOP MAIN -->
+  <div class="desktop-main">
+    <div class="desktop-topbar">
+      <div class="desktop-page-title" id="desktop-title">PANEL GŁÓWNY</div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-icon" onclick="openAddClient()">+ Klient</button>
+        <button class="btn-icon" onclick="openGeneratePlan()">⚡ Plan AI</button>
+        <button class="btn-icon" onclick="openAddSession()">📅 Sesja</button>
+      </div>
+    </div>
+    <div class="desktop-content" id="desktop-content">
+      <!-- Content rendered here on desktop -->
+    </div>
+  </div>
 
   <!-- SCREEN: DASHBOARD -->
   <div class="screen active" id="screen-dashboard">
@@ -365,6 +470,81 @@ input,button,textarea,select{font-family:'DM Sans',sans-serif;}
       <label class="form-lbl">Uwagi / kontuzje / ograniczenia</label>
       <textarea class="form-textarea" id="ac-notes" rows="3" placeholder="np. ból kolana, brak ławki..."></textarea>
     </div>
+
+    <div style="font-family:Bebas Neue,sans-serif;font-size:16px;letter-spacing:1px;color:var(--accent);margin-bottom:12px;margin-top:8px;">⚙️ ANALIZA POSTAWY</div>
+
+    <!-- PRZYCISK ANALIZY ZDJĘCIA -->
+    <div style="background:rgba(200,241,53,0.04);border:1px dashed rgba(200,241,53,0.3);border-radius:12px;padding:16px;margin-bottom:16px;text-align:center;">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Wgraj zdjęcie sylwetki (przód lub bok) — AI automatycznie wykryje wady postawy i wypełni pola poniżej</div>
+      <input type="file" id="posture-photo" accept="image/*" style="display:none;" onchange="analyzePosturePhoto(this)">
+      <button onclick="document.getElementById('posture-photo').click()" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:#000;border:none;border-radius:10px;padding:12px 24px;font-size:13px;font-weight:700;cursor:pointer;width:100%;">📸 Wgraj zdjęcie i analizuj AI</button>
+      <div id="posture-photo-preview" style="margin-top:12px;"></div>
+      <div id="posture-analysis-status" style="margin-top:10px;"></div>
+    </div>
+
+    <div class="form-field">
+      <label class="form-lbl">Ogólna postawa</label>
+      <select class="form-select" id="ac-posture">
+        <option value="prawidlowa">✅ Prawidłowa</option>
+        <option value="hiperlordoza">⚠️ Hiperlordoza (przodopochylenie miednicy)</option>
+        <option value="kifoza">⚠️ Hiperkifoza (zgarbione plecy)</option>
+        <option value="plecy_plaskie">⚠️ Plecy płaskie (tyłopochylenie miednicy)</option>
+        <option value="skolioza">⚠️ Skolioza</option>
+        <option value="mieszana">⚠️ Mieszana (kilka dysfunkcji)</option>
+      </select>
+    </div>
+
+    <div class="form-field">
+      <label class="form-lbl">Barki i górna część ciała</label>
+      <select class="form-select" id="ac-shoulders">
+        <option value="prawidlowe">✅ Prawidłowe</option>
+        <option value="protrakcja">⚠️ Protrakcja barków (wysunięte do przodu)</option>
+        <option value="glowa_przod">⚠️ Głowa wysunięta do przodu</option>
+        <option value="asymetria">⚠️ Asymetria barków</option>
+        <option value="odstajace_lopatki">⚠️ Odstające łopatki</option>
+      </select>
+    </div>
+
+    <div class="form-field">
+      <label class="form-lbl">Dolna część ciała i kolana</label>
+      <select class="form-select" id="ac-knees">
+        <option value="prawidlowe">✅ Prawidłowe</option>
+        <option value="kolana_do_srodka">⚠️ Kolana do środka (valgus)</option>
+        <option value="kolana_na_zewn">⚠️ Kolana na zewnątrz (varus)</option>
+        <option value="plaskie_stopy">⚠️ Płaskostopie</option>
+        <option value="przodostopie">⚠️ Chód na przodostopiu</option>
+      </select>
+    </div>
+
+    <div class="form-field">
+      <label class="form-lbl">Słabe partie do wzmocnienia</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;" id="ac-weak-muscles">
+        <label style="display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:10px;cursor:pointer;font-size:12px;">
+          <input type="checkbox" value="posladki" style="accent-color:var(--accent);"> Pośladki
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:10px;cursor:pointer;font-size:12px;">
+          <input type="checkbox" value="kulszowe" style="accent-color:var(--accent);"> Mięśnie kulszowe
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:10px;cursor:pointer;font-size:12px;">
+          <input type="checkbox" value="tyl_barkow" style="accent-color:var(--accent);"> Tył barków
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:10px;cursor:pointer;font-size:12px;">
+          <input type="checkbox" value="trapez_dolny" style="accent-color:var(--accent);"> Trapez dolny
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:10px;cursor:pointer;font-size:12px;">
+          <input type="checkbox" value="core" style="accent-color:var(--accent);"> Core / brzuch
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:10px;cursor:pointer;font-size:12px;">
+          <input type="checkbox" value="rotatory" style="accent-color:var(--accent);"> Rotatory barku
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:10px;cursor:pointer;font-size:12px;">
+          <input type="checkbox" value="zginacze_bioder" style="accent-color:var(--accent);"> Zginacze bioder
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:10px;cursor:pointer;font-size:12px;">
+          <input type="checkbox" value="tyl_uda" style="accent-color:var(--accent);"> Tył uda
+        </label>
+      </div>
+    </div>
     <button class="btn-primary" onclick="saveClient()">✅ Zapisz klienta</button>
     <div style="height:20px;"></div>
   </div>
@@ -541,16 +721,148 @@ var workoutSeconds = 0;
 // NAVIGATION
 // ============================================================
 function goScreen(name){
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('screen-'+name).classList.add('active');
-  var navBtns = document.querySelectorAll('.nav-btn');
-  var idx = ['dashboard','plans','workout','calendar'].indexOf(name);
-  if(idx>=0) navBtns[idx].classList.add('active');
+  curScreen = name;
+  var isDesktop = window.innerWidth >= 900;
+
+  if(isDesktop){
+    // Desktop — renderuj w desktop-content
+    var titles = {dashboard:'PANEL GŁÓWNY', plans:'PLANY TRENINGOWE', workout:'TRENING', calendar:'KALENDARZ SESJI'};
+    var titleEl = document.getElementById('desktop-title');
+    if(titleEl) titleEl.textContent = titles[name]||name.toUpperCase();
+
+    document.querySelectorAll('.sidebar-nav-btn').forEach(b => b.classList.remove('active'));
+    var btns = document.querySelectorAll('.sidebar-nav-btn');
+    var idx = ['dashboard','plans','workout','calendar'].indexOf(name);
+    if(idx>=0) btns[idx].classList.add('active');
+
+    renderDesktop(name);
+  } else {
+    // Mobile
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('screen-'+name).classList.add('active');
+    var navBtns = document.querySelectorAll('.nav-btn');
+    var idx = ['dashboard','plans','workout','calendar'].indexOf(name);
+    if(idx>=0) navBtns[idx].classList.add('active');
+  }
 
   if(name==='plans') renderPlans();
   if(name==='calendar') renderCalendar();
   if(name==='workout') renderWorkoutScreen();
+}
+
+function renderDesktop(name){
+  var el = document.getElementById('desktop-content');
+  if(!el) return;
+
+  if(name==='dashboard'){
+    var clients = window.CLIENTS;
+    var today = new Date().toISOString().split('T')[0];
+    var todaySessions = (window.SESSIONS||[]).filter(s => s.date===today);
+    var alerts = clients.filter(c => c.status==='warning'||c.status==='inactive');
+
+    var html = '<div class="desktop-stats">'
+      +'<div class="stat-card"><div class="stat-val">'+clients.length+'</div><div class="stat-lbl">Klientów</div></div>'
+      +'<div class="stat-card"><div class="stat-val">'+todaySessions.length+'</div><div class="stat-lbl">Sesji dziś</div></div>'
+      +'<div class="stat-card"><div class="stat-val">'+(window.PLANS||[]).length+'</div><div class="stat-lbl">Planów</div></div>'
+      +'<div class="stat-card"><div class="stat-val">'+alerts.length+'</div><div class="stat-lbl">Alertów</div></div>'
+      +'</div>';
+
+    // Alerty
+    alerts.forEach(function(c){
+      html += '<div class="alert-box '+(c.status==='inactive'?'alert-danger':'alert-warning')+'" style="margin-bottom:8px;">'
+        +'<div class="alert-icon">'+(c.status==='inactive'?'⚠️':'📉')+'</div>'
+        +'<div class="alert-text"><strong>'+c.name+'</strong>'+(c.status==='inactive'?' — brak aktywności ponad 2 tygodnie':' — rzadsze treningi')+'</div>'
+        +'</div>';
+    });
+
+    html += '<div class="desktop-grid-2" style="margin-top:8px;">';
+
+    // Klienci
+    html += '<div><div style="font-family:Bebas Neue,sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;">KLIENCI <button class="btn-icon" onclick="openAddClient()" style="font-size:11px;">+ Dodaj</button></div>';
+    if(!clients.length){
+      html += '<div class="empty"><div class="empty-icon">👥</div><div>Brak klientów</div></div>';
+    } else {
+      html += clients.map(function(c,i){
+        var initials = c.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+        var colors = ['rgba(200,241,53,0.15)','rgba(96,165,250,0.15)','rgba(167,139,250,0.15)','rgba(249,115,22,0.15)'];
+        var textColors = ['#c8f135','#60a5fa','#a78bfa','#f97316'];
+        var ci = i%colors.length;
+        return '<div class="client-card '+(c.status==='inactive'?'danger':c.status==='warning'?'warning':'')+'" onclick="openClient(\''+c.id+'\')" style="animation-delay:'+(i*0.05)+'s">'
+          +'<div class="client-top">'
+          +'<div class="client-avatar" style="background:'+colors[ci]+';color:'+textColors[ci]+'">'+initials+'</div>'
+          +'<div class="client-info"><div class="client-name">'+c.name+'</div><div class="client-meta">'+c.goal+' · '+c.level+'</div></div>'
+          +'<div class="client-status '+(c.status==='inactive'?'status-inactive':c.status==='warning'?'status-warning':'status-active')+'">'+(c.status==='inactive'?'NIEAKTYWNY':c.status==='warning'?'UWAGA':'AKTYWNY')+'</div>'
+          +'</div></div>';
+      }).join('');
+    }
+    html += '</div>';
+
+    // Nadchodzące sesje
+    var upcoming = (window.SESSIONS||[]).filter(s=>s.date>=today).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,8);
+    html += '<div><div style="font-family:Bebas Neue,sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;">SESJE <button class="btn-icon" onclick="openAddSession()" style="font-size:11px;">+ Dodaj</button></div>';
+    if(!upcoming.length){
+      html += '<div class="empty"><div class="empty-icon">📅</div><div>Brak sesji</div></div>';
+    } else {
+      html += upcoming.map(function(s){
+        var client = window.CLIENTS.find(c=>c.id===s.clientId);
+        return '<div class="session-item">'
+          +'<div class="session-time">'+s.time+'<br><span style="font-size:9px;color:var(--muted);">'+s.date.split('-').slice(1).join('/')+'</span></div>'
+          +'<div class="session-info"><div class="session-name">'+(client?client.name:'Klient')+'</div><div class="session-meta">'+s.type+'</div></div>'
+          +'</div>';
+      }).join('');
+    }
+    html += '</div></div>';
+    el.innerHTML = html;
+
+  } else if(name==='plans'){
+    renderPlans();
+    var plans = window.PLANS||[];
+    var html2 = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">'
+      +'<div style="font-family:Bebas Neue,sans-serif;font-size:18px;letter-spacing:1px;">PLANY TRENINGOWE</div>'
+      +'<button class="btn-icon" onclick="openGeneratePlan()">⚡ Generuj AI</button>'
+      +'</div>';
+    if(!plans.length){
+      html2 += '<div class="empty"><div class="empty-icon">📋</div><div>Brak planów — wygeneruj przez AI!</div></div>';
+    } else {
+      html2 += '<div class="desktop-grid-2">'+plans.map(function(p,i){
+        return '<div class="plan-card" style="animation-delay:'+(i*0.05)+'s">'
+          +'<div class="plan-hdr"><div><div class="plan-title">'+p.name+'</div><div style="font-size:11px;color:var(--muted);margin-top:2px;">'+p.clientName+' · '+p.duration+' tyg</div></div>'
+          +'<div style="display:flex;gap:6px;"><div class="plan-badge" style="background:rgba(200,241,53,0.12);color:var(--accent);">'+p.method+'</div>'
+          +'<button onclick="startWorkout(\''+p.id+'\')" style="background:var(--accent);color:#000;border:none;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;">▶</button>'
+          +'</div></div>'
+          +'<div class="plan-body">'+(p.days||[]).map(function(d){
+            return '<div class="day-row"><div class="day-name">'+d.day+'</div>'
+              +(d.rest?'<div class="day-muscles rest-day">— Odpoczynek</div>':
+                '<div style="flex:1;"><div class="day-muscles">'+d.muscles+'</div>'
+                +(d.exercises&&d.exercises.length?'<div style="font-size:10px;color:var(--muted);margin-top:2px;">'+d.exercises.slice(0,2).join(' · ')+'</div>':'')
+                +'</div><div class="day-sets">'+(d.sets||0)+' serii</div>')
+              +'</div>';
+          }).join('')+'</div></div>';
+      }).join('')+'</div>';
+    }
+    el.innerHTML = html2;
+
+  } else if(name==='calendar'){
+    renderCalendar();
+    el.innerHTML = document.querySelector('#screen-calendar .scroll').innerHTML;
+  } else if(name==='workout'){
+    renderWorkoutScreen();
+    el.innerHTML = document.querySelector('#screen-workout .scroll').innerHTML;
+  }
+}
+
+// Update sidebar client list
+function updateSidebarClients(){
+  var el = document.getElementById('sidebar-clients');
+  if(!el) return;
+  el.innerHTML = (window.CLIENTS||[]).slice(0,8).map(function(c){
+    var initials = c.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+    return '<button class="sidebar-nav-btn" onclick="openClient(\''+c.id+'\')" style="font-size:12px;">'
+      +'<div style="width:24px;height:24px;border-radius:50%;background:rgba(200,241,53,0.15);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;">'+initials+'</div>'
+      +c.name
+      +'</button>';
+  }).join('');
 }
 
 function openFullview(id){ document.getElementById(id).classList.add('show'); }
@@ -560,6 +872,11 @@ function closeFullview(id){ document.getElementById(id).classList.remove('show')
 // DASHBOARD
 // ============================================================
 function renderDashboard(){
+  updateSidebarClients();
+  if(window.innerWidth >= 900){
+    renderDesktop('dashboard');
+    return;
+  }
   var clients = window.CLIENTS;
   var today = new Date().toISOString().split('T')[0];
   var todaySessions = (window.SESSIONS||[]).filter(s => s.date === today);
@@ -676,6 +993,31 @@ function openClient(id){
 
   if(c.notes) html += '<div style="margin-top:16px;"><div style="font-size:10px;font-family:DM Mono,monospace;color:var(--muted);margin-bottom:4px;">NOTATKI</div><div style="font-size:13px;color:rgba(240,236,232,0.7);line-height:1.5;">'+c.notes+'</div></div>';
 
+  // Postawa
+  if(c.posture&&c.posture!=='prawidlowa'){
+    var postureMap = {
+      hiperlordoza:'⚠️ Hiperlordoza',kifoza:'⚠️ Hiperkifoza',
+      plecy_plaskie:'⚠️ Plecy płaskie',skolioza:'⚠️ Skolioza',mieszana:'⚠️ Mieszana'
+    };
+    var shoulderMap = {
+      protrakcja:'⚠️ Protrakcja barków',glowa_przod:'⚠️ Głowa do przodu',
+      asymetria:'⚠️ Asymetria barków',odstajace_lopatki:'⚠️ Odstające łopatki'
+    };
+    var kneeMap = {
+      kolana_do_srodka:'⚠️ Kolana valgus',kolana_na_zewn:'⚠️ Kolana varus',
+      plaskie_stopy:'⚠️ Płaskostopie',przodostopie:'⚠️ Chód na przodostopiu'
+    };
+    html += '<div style="margin-top:16px;background:rgba(249,115,22,0.06);border:1px solid rgba(249,115,22,0.2);border-radius:10px;padding:14px;">'
+      +'<div style="font-size:10px;font-family:DM Mono,monospace;color:var(--orange);margin-bottom:8px;">⚙️ ANALIZA POSTAWY</div>'
+      +'<div style="display:flex;flex-wrap:wrap;gap:6px;">'
+      +(c.posture&&c.posture!=='prawidlowa'?'<span style="background:rgba(249,115,22,0.12);border:1px solid rgba(249,115,22,0.3);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--orange);">'+(postureMap[c.posture]||c.posture)+'</span>':'')
+      +(c.shoulders&&c.shoulders!=='prawidlowe'?'<span style="background:rgba(249,115,22,0.12);border:1px solid rgba(249,115,22,0.3);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--orange);">'+(shoulderMap[c.shoulders]||c.shoulders)+'</span>':'')
+      +(c.knees&&c.knees!=='prawidlowe'?'<span style="background:rgba(249,115,22,0.12);border:1px solid rgba(249,115,22,0.3);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--orange);">'+(kneeMap[c.knees]||c.knees)+'</span>':'')
+      +'</div>'
+      +((c.weakMuscles&&c.weakMuscles.length)?'<div style="margin-top:10px;font-size:11px;color:var(--muted);">Słabe partie: <span style="color:var(--text);">'+c.weakMuscles.join(', ')+'</span></div>':'')
+      +'</div>';
+  }
+
   html += '<div style="height:32px;"></div>';
   document.getElementById('cv-body').innerHTML = html;
   openFullview('client-view');
@@ -709,6 +1051,8 @@ async function saveClient(){
   var name = document.getElementById('ac-name').value.trim();
   if(!name){ flash('Wpisz imię i nazwisko!'); return; }
 
+  var weakMuscles = Array.from(document.querySelectorAll('#ac-weak-muscles input:checked')).map(i=>i.value);
+
   var client = {
     name: name,
     age: parseInt(document.getElementById('ac-age').value)||0,
@@ -719,6 +1063,10 @@ async function saveClient(){
     level: document.getElementById('ac-level').value,
     days: parseInt(document.getElementById('ac-days').value)||3,
     notes: document.getElementById('ac-notes').value,
+    posture: document.getElementById('ac-posture').value,
+    shoulders: document.getElementById('ac-shoulders').value,
+    knees: document.getElementById('ac-knees').value,
+    weakMuscles: weakMuscles,
     status: 'active',
     progress: 0,
     sessionsCount: 0,
@@ -767,59 +1115,105 @@ async function generatePlan(){
   // Parametry naukowe na podstawie poziomu
   var sciParams = {
     poczatkujacy: {
-      periodyzacja: 'liniowa (stałe dokładanie ciężaru co tydzień)',
+      periodyzacja: 'liniowa (+5kg przysiad/martwy, +2.5kg reszta co trening)',
       TUT: '40-60 sekund (tempo 2-0-2-0)',
-      intensywnosc: '65-75% 1RM, RPE 6-7',
-      przerwy: '90-120 sekund między seriami',
-      deload: 'co 8-12 tygodni',
-      objetosc: '10-15 serii na grupę mięśniową tygodniowo (MEV)',
-      uwagi: 'Focus na technikę, pełny zakres ruchu (ROM), progresja z treningu na trening'
+      intensywnosc: '65-75% 1RM, RPE 6-7, RIR 3-4',
+      przerwy: '3-5 min ćwiczenia złożone, 90-120s izolowane',
+      deload: 'co 8-12 tygodni (-50% objętości)',
+      objetosc: '10-15 serii/grupę/tydzień (MEV)',
+      struktura: 'FBW A/B naprzemiennie 3x/tydzień',
+      cwiczenia_glowne: '5x5 (przysiad, wyciskanie, wiosłowanie, martwy ciąg, OHP)',
+      cwiczenia_akcesoria: '3x8-12 (hip thrust, wznosy, biceps, triceps, łydki, core)',
+      progresja: 'dokładaj ciężar co trening gdy zaliczyłeś wszystkie powtórzenia z dobrą techniką',
+      reset: 'stagnacja = zdejmij 10% i progresuj od nowa',
+      uwagi: 'Focus na technikę, startuj od samej sztangi, pełny ROM'
     },
     sredni: {
-      periodyzacja: 'falowa DUP (różne zakresy powtórzeń co sesję)',
-      TUT: '30-50 sekund (tempo 3-0-1-1)',
-      intensywnosc: '70-80% 1RM, RPE 7-8',
-      przerwy: '2-3 minuty między ciężkimi seriami',
-      deload: 'co 6-8 tygodni',
-      objetosc: '15-20 serii na grupę mięśniową tygodniowo (MAV)',
-      uwagi: 'Periodyzacja falowa, manipulacja TUT, świadome RIR=2-3'
+      periodyzacja: 'falowa DUP (Dzień Siły 3-5 powt, Hipertrofia 8-12, Wytrzymałość 15+)',
+      TUT: '20-70 sekund w zależności od dnia (tempo 3-0-1-1)',
+      intensywnosc: 'Dzień siły >85% 1RM RPE 8-9, Hipertrofia 70% RPE 7-8, RIR 2-3',
+      przerwy: '3-5 min ćwiczenia ciężkie, 2 min hipertrofia, 90s wytrzymałość',
+      deload: 'co 6-8 tygodni (-50-70% objętości lub 50-60% ciężaru)',
+      objetosc: '15-20 serii/grupę/tydzień (MAV)',
+      struktura: 'PON siła, ŚR hipertrofia, PT wytrzymałość/moc',
+      cwiczenia_glowne: 'warianty bojów + personalizacja pod słabe ogniwa',
+      cwiczenia_akcesoria: '2-3 izolowane na słabe partie + Facepull, Y-raise, Hip Thrust',
+      slabe_ogniwa: 'Facepull (rotatory), Y-raise (trapez dolny), Hip Thrust (pośladki), uginanie nóg (kulszowe)',
+      progresja: 'tygodniowa - zwiększaj ciężar lub serie co tydzień, nie co trening',
+      uwagi: 'DUP, równowaga push/pull, TUT jako narzędzie progresji, personalizacja akcesoriów'
     },
     zaawansowany: {
-      periodyzacja: 'blokowa (bloki akumulacji, intensyfikacji, realizacji)',
-      TUT: '20-45 sekund (tempo 3-1-1-0 lub 4-0-1-0)',
-      intensywnosc: '75-90% 1RM, RPE 8-9',
-      przerwy: '3-5 minut między seriami wielostawowymi',
-      deload: 'co 4-6 tygodni',
-      objetosc: '18-22 serie na grupę mięśniową tygodniowo (do MRV)',
-      uwagi: 'Wysoka specyficzność, precyzyjny dobór tempa, monitorowanie RIR=1-2'
+      periodyzacja: 'blokowa (akumulacja → intensyfikacja → realizacja, 3-4 tygodniowe bloki)',
+      TUT: '20-45 sekund (tempo 4-0-1-0 lub 3-1-1-0)',
+      intensywnosc: '75-90% 1RM, RPE 8-9, RIR 1-2',
+      przerwy: '3-5 min bojów wielostawowych, 2-3 min średnie ćwiczenia',
+      deload: 'co 4-6 tygodni (obowiązkowy między blokami)',
+      objetosc: '18-22 serie/grupę/tydzień (blisko MRV)',
+      struktura: '4-6 dni split, wysoka specyficzność',
+      cwiczenia_glowne: 'specyficzne warianty pod cel (Low Bar squat, Sumo deadlift etc.)',
+      slabe_ogniwa: 'szczegółowa analiza proporcji sił (zginacze:prostowniki 2:3, rotatory 3:2)',
+      progresja: 'mikroperiodyzacja - zmiana bodźca co 3-4 tygodnie (bloki)',
+      uwagi: 'Wysoka specyficzność, monitoring RIR, precyzyjny TUT, periodyzacja blokowa'
     }
   };
 
   var params = sciParams[client.level] || sciParams.sredni;
 
-  var prompt = 'Jesteś ekspertem treningu siłowego. Stwórz naukowy plan treningowy. Odpowiedz TYLKO JSON:\n'
-    +'{"name":"nazwa planu","periodyzacja":"typ periodyzacji","tygodnie":[\n'
-    +'{"nr":1,"cel":"cel tygodnia","dni":[\n'
-    +'{"day":"PON","muscles":"Klatka + Triceps","exercises":[\n'
-    +'{"name":"Wyciskanie sztangi płaskie","serie":4,"powt":"8-10","tempo":"3-0-2-0","TUT":50,"RIR":2,"przerwa":"3 min","wskazowka":"Łopatki ściągnięte, pełny ROM"}\n'
-    +']},{"day":"WT","rest":true}]},\n'
-    +'{"nr":2,"cel":"cel tygodnia","dni":[...]}\n'
+  var prompt = 'Jesteś ekspertem treningu siłowego z pełną wiedzą naukową. Stwórz plan treningowy. Odpowiedz TYLKO JSON:\n'
+    +'{"name":"nazwa planu","tygodnie":[\n'
+    +'{"nr":1,"cel":"cel tygodnia np. nauka techniki / adaptacja","dni":[\n'
+    +'{"day":"PON","muscles":"Klatka + Triceps + Barki","exercises":[\n'
+    +'{"name":"Wyciskanie sztangi płaskie","serie":5,"powt":"5","tempo":"2-0-2-0","TUT":20,"RIR":3,"przerwa":"3-5 min","wskazowka":"Łopatki ściągnięte, pełny ROM, klatka wypięta"}\n'
+    +']},{"day":"WT","rest":true,"aktywnosc":"spacer/rozciąganie"}\n'
+    +']},{"nr":2,"cel":"progresja","dni":[...]}\n'
     +']}\n\n'
-    +'PARAMETRY NAUKOWE:\n'
-    +'- Periodyzacja: '+params.periodyzacja+'\n'
-    +'- TUT: '+params.TUT+'\n'
-    +'- Intensywność: '+params.intensywnosc+'\n'
-    +'- Przerwy: '+params.przerwy+'\n'
-    +'- Objętość: '+params.objetosc+'\n'
-    +'- Uwagi: '+params.uwagi+'\n\n'
-    +'KLIENT: '+client.name+', '+client.age+' lat, '+client.weight+'kg\n'
-    +'Cel: '+client.goal+', Poziom: '+client.level+'\n'
-    +'Metoda: '+method+', '+duration+' tygodni, '+client.days+' dni/tyg\n'
+    +'WIEDZA NAUKOWA DO ZASTOSOWANIA:\n'
+    +'Periodyzacja: '+params.periodyzacja+'\n'
+    +'Struktura: '+(params.struktura||'')+'\n'
+    +'TUT: '+params.TUT+'\n'
+    +'Intensywność: '+params.intensywnosc+'\n'
+    +'Przerwy: '+params.przerwy+'\n'
+    +'Objętość: '+params.objetosc+'\n'
+    +'Ćwiczenia główne: '+(params.cwiczenia_glowne||'')+'\n'
+    +'Ćwiczenia akcesoria: '+(params.cwiczenia_akcesoria||'')+'\n'
+    +'Słabe ogniwa do uwzględnienia: '+(params.slabe_ogniwa||'Facepull, Y-raise, Hip Thrust')+'\n'
+    +'Progresja: '+(params.progresja||'')+'\n'
+    +'Uwagi: '+params.uwagi+'\n\n'
+    +'BAZA ĆWICZEŃ:\n'
+    +'Wielostawowe: Przysiad ze sztangą, Martwy ciąg, Wyciskanie sztangi leżąc, Wiosłowanie sztangą, OHP stojąc, Podciąganie\n'
+    +'Akcesoria: Hip Thrust, Facepull, Y-raise, wznosy bokiem, uginanie nóg, zakroki, allahy, plank, wspięcia na łydki\n\n'
+    +'KLIENT:\n'
+    +'Imię: '+client.name+', Wiek: '+client.age+' lat, Waga: '+client.weight+'kg, Wzrost: '+client.height+'cm\n'
+    +'Cel: '+client.goal+'\n'
+    +'Poziom: '+client.level+'\n'
+    +'Metoda: '+method+'\n'
+    +'Plan: '+duration+' tygodni, '+client.days+' dni treningowych/tydzień\n'
     +'Sprzęt: '+equipment+'\n'
-    +'Uwagi klienta: '+(client.notes||'brak')+'\n\n'
-    +'Wygeneruj plan na PIERWSZE 2 tygodnie z pełnymi ćwiczeniami. '
-    +'Każdy dzień treningowy: 4-6 ćwiczeń. '
-    +'Uwzględnij progresję między tygodniami.';
+    +'Uwagi/kontuzje: '+(client.notes||'brak')+'\n\n'
+    +'ANALIZA POSTAWY KLIENTA:\n'
+    +'Postawa ogólna: '+(client.posture||'prawidlowa')+'\n'
+    +'Barki/górna część: '+(client.shoulders||'prawidlowe')+'\n'
+    +'Dolna część/kolana: '+(client.knees||'prawidlowe')+'\n'
+    +'Słabe partie do wzmocnienia: '+((client.weakMuscles||[]).join(', ')||'brak wskazanych')+'\n\n'
+    +'DOSTOSOWANIA DO POSTAWY:\n'
+    +(client.posture==='hiperlordoza'?'- Obowiązkowe: Hip Thrust, Plank, uginanie nóg leżąc, deska\n- Unikaj: nadmiernego wyprostu lędźwiowego\n':'')
+    +(client.posture==='kifoza'?'- Obowiązkowe: Facepull, Y-raise, wiosłowania przeważają nad wyciskaniami, retrakcja łopatek\n- Unikaj: przewagi ćwiczeń push nad pull\n':'')
+    +(client.posture==='plecy_plaskie'?'- Obowiązkowe: wznosy nóg, wzmocnienie zginaczy bioder, ćwiczenia na mobilność\n':'')
+    +(client.shoulders==='protrakcja'?'- Obowiązkowe: Facepull 3x15, Y-raise, stosunek pull:push = 2:1\n':'')
+    +(client.shoulders==='odstajace_lopatki'?'- Obowiązkowe: Push Up Plus, Scap Pull-Up, wiosłowanie\n':'')
+    +(client.knees==='kolana_do_srodka'?'- Obowiązkowe: ćwiczenia aktywacji pośladków (Hip Thrust, Clamshell), zakroki z kontrolą kolan\n':'')
+    +((client.weakMuscles||[]).includes('posladki')?'- Dodaj: Hip Thrust 4x10, Clamshell, zakroki\n':'')
+    +((client.weakMuscles||[]).includes('tyl_barkow')?'- Dodaj: Facepull 3x15, Y-raise 3x12, retrakcja łopatek\n':'')
+    +((client.weakMuscles||[]).includes('core')?'- Dodaj: Plank, allahy, deska bokiem\n':'')
+    +((client.weakMuscles||[]).includes('rotatory')?'- Dodaj: Facepull, rotacja zewnętrzna z gumą\n':'')+'\n'
+    +'ZASADY:\n'
+    +'1. Wygeneruj plan na PIERWSZE 2 tygodnie z PEŁNYMI ćwiczeniami\n'
+    +'2. Każdy dzień treningowy: 4-6 ćwiczeń (2-3 główne + 2-3 akcesoria)\n'
+    +'3. Uwzględnij słabe ogniwa (Facepull, Hip Thrust, balans push/pull)\n'
+    +'4. Tydzień 2 musi pokazywać progresję względem tygodnia 1\n'
+    +'5. Dni odpoczynku z aktywnością (spacer/rozciąganie)\n'
+    +'6. Dla FBW: wariant A i B naprzemiennie\n'
+    +'7. Każde ćwiczenie: nazwa, serie, powtórzenia, tempo, TUT, RIR, przerwa, wskazówka techniczna';
 
   try {
     var resp = await fetch(WORKER_URL, {method:'POST', headers:{'Content-Type':'application/json'},
@@ -909,8 +1303,10 @@ function renderPlans(){
       +'<div class="plan-body">'
       +(p.days||[]).map(function(d){
         return '<div class="day-row"><div class="day-name">'+d.day+'</div>'
-          +(d.rest ? '<div class="day-muscles rest-day">— Odpoczynek</div>' :
-            '<div class="day-muscles">'+d.muscles+'</div><div class="day-sets">'+(d.sets||0)+' serii</div>')
+          +(d.rest ? '<div class="day-muscles rest-day">— Odpoczynek'+(d.aktywnosc?' ('+d.aktywnosc+')':'')+'</div>' :
+            '<div style="flex:1;min-width:0;"><div class="day-muscles">'+d.muscles+'</div>'
+            +(d.exercises&&d.exercises.length?'<div style="font-size:10px;color:var(--muted);margin-top:3px;">'+(d.exercises.slice(0,2).join(' · '))+(d.exercises.length>2?' +więcej':'')+'</div>':'')
+            +'</div><div class="day-sets">'+(d.sets||0)+' serii</div>')
           +'</div>';
       }).join('')
       +'</div></div>';
@@ -1081,1052 +1477,96 @@ async function saveSession(){
 }
 
 // ============================================================
-// UTILS
+// ANALIZA POSTAWY ZE ZDJĘCIA — CLAUDE VISION
 // ============================================================
-function flash(msg){
-  var old = document.querySelector('.flash-msg');
-  if(old) old.remove();
-  var d = document.createElement('div');
-  d.className = 'flash-msg';
-  d.textContent = msg;
-  document.body.appendChild(d);
-  setTimeout(() => d.remove(), 3000);
-}
-
-// Expose functions
-window.goScreen = goScreen;
-window.openFullview = openFullview;
-window.closeFullview = closeFullview;
-window.openAddClient = openAddClient;
-window.saveClient = saveClient;
-window.openClient = openClient;
-window.deleteCurrentClient = deleteCurrentClient;
-window.openGeneratePlan = openGeneratePlan;
-window.generatePlan = generatePlan;
-window.startWorkout = startWorkout;
-window.toggleSet = toggleSet;
-window.finishWorkout = finishWorkout;
-window.openAddSession = openAddSession;
-window.saveSession = saveSession;
-window.showDaySessions = showDaySessions;
-window.flash = flash;
-window.renderDashboard = renderDashboard;
-window.renderPlans = renderPlans;
-window.renderCalendar = renderCalendar;
-window.renderWorkoutScreen = renderWorkoutScreen;
-</script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#080808">
-<title>PROGRESS LIVE</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<style>
-:root{
-  --bg:#080808;--surface:#0f0f0f;--surface2:#161616;--surface3:#1e1e1e;
-  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.12);
-  --text:#f0ece8;--muted:#666;--muted2:#444;
-  --accent:#c8f135;--accent2:#a8d420;--accent-dim:rgba(200,241,53,0.12);
-  --red:#ff4444;--blue:#60a5fa;--orange:#f97316;--purple:#a78bfa;--teal:#2dd4bf;
-  --radius:12px;--radius-sm:8px;--radius-lg:16px;
-}
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;overflow-x:hidden;}
-::-webkit-scrollbar{width:0;}
-input,button,textarea,select{font-family:'DM Sans',sans-serif;}
-
-/* APP SHELL */
-.app{display:flex;flex-direction:column;height:100dvh;max-width:520px;margin:0 auto;position:relative;}
-.screen{display:none;flex-direction:column;flex:1;overflow:hidden;}
-.screen.active{display:flex;}
-
-/* HEADER */
-.hdr{padding:14px 18px 10px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:rgba(8,8,8,0.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
-.hdr-logo{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--accent);}
-.hdr-logo span{color:var(--text);}
-.hdr-right{display:flex;gap:8px;align-items:center;}
-.status-pill{display:flex;align-items:center;gap:4px;background:rgba(200,241,53,0.1);border:1px solid rgba(200,241,53,0.25);border-radius:99px;padding:3px 10px;font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);}
-.status-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite;}
-
-/* NAV */
-.nav{display:flex;border-top:1px solid var(--border);flex-shrink:0;background:rgba(8,8,8,0.97);backdrop-filter:blur(12px);}
-.nav-btn{flex:1;padding:10px 0 8px;background:none;border:none;color:var(--muted);font-size:9px;font-family:'DM Mono',monospace;cursor:pointer;transition:color 0.15s;display:flex;flex-direction:column;align-items:center;gap:3px;letter-spacing:0.5px;}
-.nav-btn svg{width:20px;height:20px;stroke-width:1.5;stroke:currentColor;fill:none;}
-.nav-btn.active{color:var(--accent);}
-
-/* SCROLL */
-.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
-.section{padding:0 18px 16px;}
-.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
-.section-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:var(--text);}
-
-/* STATS GRID */
-.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px;}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 12px;text-align:center;position:relative;overflow:hidden;}
-.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent);}
-.stat-val{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--accent);letter-spacing:0.5px;line-height:1;}
-.stat-lbl{font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.5px;margin-top:4px;}
-.stat-trend{font-size:10px;color:var(--teal);margin-top:2px;}
-
-/* CLIENT CARDS */
-.client-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:8px;cursor:pointer;transition:border-color 0.2s,transform 0.15s;animation:fadeUp 0.3s ease both;}
-.client-card:active{transform:scale(0.98);}
-.client-card.warning{border-color:rgba(249,115,22,0.3);background:rgba(249,115,22,0.04);}
-.client-card.danger{border-color:rgba(255,68,68,0.3);background:rgba(255,68,68,0.04);}
-.client-top{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
-.client-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:18px;font-weight:700;flex-shrink:0;}
-.client-info{flex:1;min-width:0;}
-.client-name{font-size:15px;font-weight:600;color:var(--text);margin-bottom:2px;}
-.client-meta{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;}
-.client-status{font-size:10px;font-family:'DM Mono',monospace;padding:2px 8px;border-radius:99px;}
-.status-active{background:rgba(200,241,53,0.12);color:var(--accent);}
-.status-warning{background:rgba(249,115,22,0.12);color:var(--orange);}
-.status-inactive{background:rgba(255,68,68,0.12);color:var(--red);}
-.client-progress{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
-.cprog-item{text-align:center;}
-.cprog-val{font-size:13px;font-weight:700;color:var(--text);}
-.cprog-lbl{font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;}
-.progress-bar{height:3px;background:var(--border2);border-radius:99px;margin-top:8px;overflow:hidden;}
-.progress-fill{height:100%;background:var(--accent);border-radius:99px;transition:width 0.5s ease;}
-
-/* PLAN CARDS */
-.plan-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:10px;animation:fadeUp 0.3s ease both;}
-.plan-hdr{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
-.plan-title{font-size:14px;font-weight:600;color:var(--text);}
-.plan-badge{font-size:9px;font-family:'DM Mono',monospace;padding:3px 8px;border-radius:99px;font-weight:700;}
-.plan-body{padding:14px 16px;}
-.day-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
-.day-row:last-child{border-bottom:none;}
-.day-name{font-size:11px;font-family:'DM Mono',monospace;color:var(--accent);width:30px;flex-shrink:0;}
-.day-muscles{font-size:12px;color:var(--text);flex:1;}
-.day-sets{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;}
-.rest-day{color:var(--muted2);font-style:italic;}
-
-/* FULLVIEW */
-.fullview{position:fixed;inset:0;background:var(--bg);z-index:200;display:none;flex-direction:column;max-width:520px;margin:0 auto;}
-.fullview.show{display:flex;}
-.fv-hdr{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--border);flex-shrink:0;}
-.back-btn{background:var(--surface);border:1px solid var(--border2);color:var(--text);border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer;}
-.fv-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:var(--accent);}
-.fv-scroll{flex:1;overflow-y:auto;padding:20px 18px;}
-
-/* FORM */
-.form-field{margin-bottom:16px;}
-.form-lbl{font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;display:block;}
-.form-input{width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:12px 14px;color:var(--text);font-size:13px;outline:none;transition:border-color 0.15s;}
-.form-input:focus{border-color:var(--accent);}
-.form-input::placeholder{color:var(--muted2);}
-.form-select{width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:12px 14px;color:var(--text);font-size:13px;outline:none;appearance:none;cursor:pointer;}
-.form-textarea{width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:12px 14px;color:var(--text);font-size:13px;outline:none;resize:none;line-height:1.5;}
-.form-textarea:focus{border-color:var(--accent);}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-
-/* BUTTONS */
-.btn-primary{width:100%;padding:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#000;border:none;border-radius:var(--radius);font-size:14px;font-weight:700;cursor:pointer;transition:opacity 0.15s;}
-.btn-primary:disabled{opacity:0.5;cursor:not-allowed;}
-.btn-secondary{width:100%;padding:12px;background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:var(--radius);font-size:13px;font-weight:500;cursor:pointer;margin-top:8px;}
-.btn-icon{background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:8px;padding:8px 12px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;}
-
-/* AI BOX */
-.ai-box{background:var(--surface);border:1px solid rgba(200,241,53,0.2);border-radius:var(--radius);padding:20px;text-align:center;margin:16px 0;}
-.ai-icon{font-size:28px;display:inline-block;animation:spin 2s linear infinite;margin-bottom:10px;}
-.ai-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:var(--accent);margin-bottom:6px;}
-.ai-sub{font-size:12px;color:var(--muted);line-height:1.5;}
-.dot-loader{display:flex;gap:4px;align-items:center;justify-content:center;margin-top:12px;}
-.dot-loader span{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:dotPulse 1.2s ease infinite;}
-.dot-loader span:nth-child(2){animation-delay:0.2s;}
-.dot-loader span:nth-child(3){animation-delay:0.4s;}
-
-/* WORKOUT LOG */
-.exercise-row{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:8px;}
-.exercise-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;}
-.sets-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
-.set-box{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px;text-align:center;cursor:pointer;transition:all 0.15s;}
-.set-box.done{background:rgba(200,241,53,0.12);border-color:rgba(200,241,53,0.3);}
-.set-num{font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);margin-bottom:3px;}
-.set-val{font-size:12px;font-weight:600;color:var(--text);}
-
-/* CALENDAR */
-.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:16px;}
-.cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:all 0.15s;}
-.cal-day.today{background:var(--accent);color:#000;font-weight:700;}
-.cal-day.has-session{background:rgba(200,241,53,0.12);color:var(--accent);border:1px solid rgba(200,241,53,0.2);}
-.cal-day.empty{color:var(--muted2);}
-.cal-day:hover:not(.today){background:var(--surface2);}
-.session-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;}
-.session-time{font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);flex-shrink:0;text-align:center;min-width:40px;}
-.session-info{flex:1;}
-.session-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;}
-.session-meta{font-size:11px;color:var(--muted);}
-
-/* ALERT BOX */
-.alert-box{border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start;}
-.alert-warning{background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.2);}
-.alert-danger{background:rgba(255,68,68,0.08);border:1px solid rgba(255,68,68,0.2);}
-.alert-success{background:rgba(200,241,53,0.06);border:1px solid rgba(200,241,53,0.15);}
-.alert-icon{flex-shrink:0;font-size:16px;}
-.alert-text{font-size:12px;color:var(--muted);line-height:1.5;}
-.alert-text strong{color:var(--text);display:block;margin-bottom:2px;}
-
-/* TABS */
-.tabs{display:flex;gap:4px;background:var(--surface);border-radius:var(--radius-sm);padding:4px;margin-bottom:16px;}
-.tab{flex:1;padding:8px;text-align:center;font-size:11px;font-family:'DM Mono',monospace;border-radius:6px;cursor:pointer;transition:all 0.15s;color:var(--muted);border:none;background:none;}
-.tab.active{background:var(--accent);color:#000;font-weight:700;}
-
-/* EMPTY */
-.empty{text-align:center;padding:40px 20px;color:var(--muted);}
-.empty-icon{font-size:40px;margin-bottom:12px;opacity:0.3;}
-
-/* FLASH */
-.flash-msg{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--accent);color:#000;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:700;z-index:999;pointer-events:none;white-space:nowrap;}
-
-@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
-@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
-@keyframes dotPulse{0%,80%,100%{opacity:0.2;transform:scale(0.8);}40%{opacity:1;transform:scale(1);}}
-</style>
-</head>
-<body>
-<div class="app">
-
-  <!-- SCREEN: DASHBOARD -->
-  <div class="screen active" id="screen-dashboard">
-    <div class="hdr">
-      <div class="hdr-logo">PROGRESS<span>LIVE</span></div>
-      <div class="hdr-right">
-        <div class="status-pill"><div class="status-dot"></div>LIVE</div>
-      </div>
-    </div>
-    <div class="scroll">
-      <div class="section" style="padding-top:16px;">
-
-        <!-- Stats -->
-        <div class="stats-grid" id="dash-stats">
-          <div class="stat-card"><div class="stat-val" id="stat-clients">0</div><div class="stat-lbl">Klientów</div></div>
-          <div class="stat-card"><div class="stat-val" id="stat-today">0</div><div class="stat-lbl">Dziś sesji</div></div>
-          <div class="stat-card"><div class="stat-val" id="stat-alerts">0</div><div class="stat-lbl">Alerty</div></div>
-        </div>
-
-        <!-- Alerty -->
-        <div id="dash-alerts"></div>
-
-        <!-- Klienci -->
-        <div class="section-hdr">
-          <div class="section-title">KLIENCI</div>
-          <button class="btn-icon" onclick="openAddClient()">+ Dodaj</button>
-        </div>
-        <div id="clients-list">
-          <div class="empty"><div class="empty-icon">👥</div><div>Brak klientów — dodaj pierwszego!</div></div>
-        </div>
-
-      </div>
-      <div style="height:20px;"></div>
-    </div>
-  </div>
-
-  <!-- SCREEN: PLANY -->
-  <div class="screen" id="screen-plans">
-    <div class="hdr">
-      <div class="hdr-logo">PROGRESS<span>LIVE</span></div>
-      <div class="hdr-right">
-        <button class="btn-icon" onclick="openGeneratePlan()">⚡ Generuj AI</button>
-      </div>
-    </div>
-    <div class="scroll">
-      <div class="section" style="padding-top:16px;">
-        <div class="section-hdr">
-          <div class="section-title">PLANY TRENINGOWE</div>
-        </div>
-        <div id="plans-list">
-          <div class="empty"><div class="empty-icon">📋</div><div>Brak planów — wygeneruj przez AI!</div></div>
-        </div>
-      </div>
-      <div style="height:20px;"></div>
-    </div>
-  </div>
-
-  <!-- SCREEN: TRENING -->
-  <div class="screen" id="screen-workout">
-    <div class="hdr">
-      <div class="hdr-logo">PROGRESS<span>LIVE</span></div>
-      <div class="hdr-right">
-        <div id="workout-timer" style="font-family:'DM Mono',monospace;font-size:13px;color:var(--accent);">00:00</div>
-      </div>
-    </div>
-    <div class="scroll">
-      <div class="section" style="padding-top:16px;">
-        <div id="workout-content">
-          <div class="empty"><div class="empty-icon">💪</div><div>Wybierz plan i zacznij trening</div></div>
-        </div>
-      </div>
-      <div style="height:20px;"></div>
-    </div>
-  </div>
-
-  <!-- SCREEN: KALENDARZ -->
-  <div class="screen" id="screen-calendar">
-    <div class="hdr">
-      <div class="hdr-logo">PROGRESS<span>LIVE</span></div>
-      <div class="hdr-right">
-        <button class="btn-icon" onclick="openAddSession()">+ Sesja</button>
-      </div>
-    </div>
-    <div class="scroll">
-      <div class="section" style="padding-top:16px;">
-        <div class="section-hdr">
-          <div class="section-title" id="cal-month">MAJ 2026</div>
-        </div>
-        <div class="calendar-grid" id="cal-grid"></div>
-        <div class="section-hdr" style="margin-top:8px;">
-          <div class="section-title">SESJE</div>
-        </div>
-        <div id="sessions-list">
-          <div class="empty"><div class="empty-icon">📅</div><div>Brak zaplanowanych sesji</div></div>
-        </div>
-      </div>
-      <div style="height:20px;"></div>
-    </div>
-  </div>
-
-  <!-- NAV -->
-  <div class="nav">
-    <button class="nav-btn active" onclick="goScreen('dashboard')">
-      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>PANEL
-    </button>
-    <button class="nav-btn" onclick="goScreen('plans')">
-      <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>PLANY
-    </button>
-    <button class="nav-btn" onclick="goScreen('workout')">
-      <svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>TRENING
-    </button>
-    <button class="nav-btn" onclick="goScreen('calendar')">
-      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>KALENDARZ
-    </button>
-  </div>
-</div>
-
-<!-- FULLVIEW: KLIENT SZCZEGÓŁY -->
-<div class="fullview" id="client-view">
-  <div class="fv-hdr">
-    <button class="back-btn" onclick="closeFullview('client-view')">← Wróć</button>
-    <div class="fv-title" id="cv-title">KLIENT</div>
-    <button class="btn-icon" onclick="deleteCurrentClient()" style="color:var(--red);border-color:rgba(255,68,68,0.3);">🗑</button>
-  </div>
-  <div class="fv-scroll" id="cv-body"></div>
-</div>
-
-<!-- FULLVIEW: DODAJ KLIENTA -->
-<div class="fullview" id="add-client-view">
-  <div class="fv-hdr">
-    <button class="back-btn" onclick="closeFullview('add-client-view')">← Wróć</button>
-    <div class="fv-title">NOWY KLIENT</div>
-  </div>
-  <div class="fv-scroll">
-    <div class="form-field">
-      <label class="form-lbl">Imię i nazwisko</label>
-      <input type="text" class="form-input" id="ac-name" placeholder="np. Jan Kowalski">
-    </div>
-    <div class="form-grid">
-      <div class="form-field">
-        <label class="form-lbl">Wiek</label>
-        <input type="number" class="form-input" id="ac-age" placeholder="25">
-      </div>
-      <div class="form-field">
-        <label class="form-lbl">Płeć</label>
-        <select class="form-select" id="ac-gender">
-          <option value="M">Mężczyzna</option>
-          <option value="K">Kobieta</option>
-        </select>
-      </div>
-    </div>
-    <div class="form-grid">
-      <div class="form-field">
-        <label class="form-lbl">Waga (kg)</label>
-        <input type="number" class="form-input" id="ac-weight" placeholder="80">
-      </div>
-      <div class="form-field">
-        <label class="form-lbl">Wzrost (cm)</label>
-        <input type="number" class="form-input" id="ac-height" placeholder="180">
-      </div>
-    </div>
-    <div class="form-field">
-      <label class="form-lbl">Cel treningowy</label>
-      <select class="form-select" id="ac-goal">
-        <option value="masa">Budowa masy mięśniowej</option>
-        <option value="sila">Wzrost siły</option>
-        <option value="redukcja">Redukcja tkanki tłuszczowej</option>
-        <option value="kondycja">Poprawa kondycji</option>
-        <option value="zdrowie">Zdrowie i sprawność</option>
-      </select>
-    </div>
-    <div class="form-field">
-      <label class="form-lbl">Poziom zaawansowania</label>
-      <select class="form-select" id="ac-level">
-        <option value="poczatkujacy">Początkujący (0-1 rok)</option>
-        <option value="sredni">Średniozaawansowany (1-3 lata)</option>
-        <option value="zaawansowany">Zaawansowany (3+ lata)</option>
-      </select>
-    </div>
-    <div class="form-field">
-      <label class="form-lbl">Dni treningowe w tygodniu</label>
-      <select class="form-select" id="ac-days">
-        <option value="3">3 dni</option>
-        <option value="4">4 dni</option>
-        <option value="5">5 dni</option>
-        <option value="6">6 dni</option>
-      </select>
-    </div>
-    <div class="form-field">
-      <label class="form-lbl">Uwagi / kontuzje / ograniczenia</label>
-      <textarea class="form-textarea" id="ac-notes" rows="3" placeholder="np. ból kolana, brak ławki..."></textarea>
-    </div>
-    <button class="btn-primary" onclick="saveClient()">✅ Zapisz klienta</button>
-    <div style="height:20px;"></div>
-  </div>
-</div>
-
-<!-- FULLVIEW: GENERUJ PLAN AI -->
-<div class="fullview" id="gen-plan-view">
-  <div class="fv-hdr">
-    <button class="back-btn" onclick="closeFullview('gen-plan-view')">← Wróć</button>
-    <div class="fv-title">GENERUJ PLAN AI</div>
-  </div>
-  <div class="fv-scroll">
-    <div class="form-field">
-      <label class="form-lbl">Klient</label>
-      <select class="form-select" id="gp-client"></select>
-    </div>
-    <div class="form-field">
-      <label class="form-lbl">Metoda treningowa</label>
-      <select class="form-select" id="gp-method">
-        <option value="PPL">Push/Pull/Legs (PPL)</option>
-        <option value="FBW">Full Body Workout (FBW)</option>
-        <option value="Arnold">Arnold Split</option>
-        <option value="Bro Split">Bro Split</option>
-        <option value="Upper Lower">Upper/Lower Split</option>
-        <option value="HIIT">HIIT + Siłowy</option>
-      </select>
-    </div>
-    <div class="form-field">
-      <label class="form-lbl">Czas trwania planu</label>
-      <select class="form-select" id="gp-duration">
-        <option value="4">4 tygodnie</option>
-        <option value="8">8 tygodni</option>
-        <option value="12">12 tygodni</option>
-      </select>
-    </div>
-    <div class="form-field">
-      <label class="form-lbl">Sprzęt dostępny</label>
-      <select class="form-select" id="gp-equipment">
-        <option value="pełna siłownia">Pełna siłownia</option>
-        <option value="hantle i sztanga">Hantle i sztanga</option>
-        <option value="tylko hantle">Tylko hantle</option>
-        <option value="bez sprzętu">Bez sprzętu (kalistenika)</option>
-      </select>
-    </div>
-    <button class="btn-primary" id="gen-plan-btn" onclick="generatePlan()">⚡ Generuj plan przez AI</button>
-    <div id="gen-plan-status"></div>
-    <div style="height:20px;"></div>
-  </div>
-</div>
-
-<!-- FULLVIEW: DODAJ SESJĘ -->
-<div class="fullview" id="add-session-view">
-  <div class="fv-hdr">
-    <button class="back-btn" onclick="closeFullview('add-session-view')">← Wróć</button>
-    <div class="fv-title">NOWA SESJA</div>
-  </div>
-  <div class="fv-scroll">
-    <div class="form-field">
-      <label class="form-lbl">Klient</label>
-      <select class="form-select" id="as-client"></select>
-    </div>
-    <div class="form-grid">
-      <div class="form-field">
-        <label class="form-lbl">Data</label>
-        <input type="date" class="form-input" id="as-date">
-      </div>
-      <div class="form-field">
-        <label class="form-lbl">Godzina</label>
-        <input type="time" class="form-input" id="as-time">
-      </div>
-    </div>
-    <div class="form-field">
-      <label class="form-lbl">Typ sesji</label>
-      <select class="form-select" id="as-type">
-        <option value="Siłowy">Trening siłowy</option>
-        <option value="Cardio">Cardio</option>
-        <option value="FBW">Full Body</option>
-        <option value="Ocena">Ocena postępów</option>
-        <option value="Online">Konsultacja online</option>
-      </select>
-    </div>
-    <div class="form-field">
-      <label class="form-lbl">Notatki</label>
-      <textarea class="form-textarea" id="as-notes" rows="2" placeholder="np. focus na nogi..."></textarea>
-    </div>
-    <button class="btn-primary" onclick="saveSession()">✅ Zapisz sesję</button>
-    <div style="height:20px;"></div>
-  </div>
-</div>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDrbke0QdB55k_4smzhKufQ75eAluu-r_8",
-  authDomain: "progress-live-fc83d.firebaseapp.com",
-  databaseURL: "https://progress-live-fc83d-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "progress-live-fc83d",
-  storageBucket: "progress-live-fc83d.firebasestorage.app",
-  messagingSenderId: "637727410398",
-  appId: "1:637727410398:web:b8e4e2581c2e3a24a11a4f"
-};
-
-const fbApp = initializeApp(firebaseConfig);
-const db = getFirestore(fbApp);
-
-window._db = db;
-window._collection = collection;
-window._getDocs = getDocs;
-window._addDoc = addDoc;
-window._deleteDoc = deleteDoc;
-window._doc = doc;
-window._query = query;
-window._orderBy = orderBy;
-window._serverTimestamp = serverTimestamp;
-
-// Load data
-window._loadClients = async function(){
-  try {
-    const snap = await getDocs(collection(db,'clients'));
-    const clients = [];
-    snap.forEach(d => clients.push({id:d.id,...d.data()}));
-    window.CLIENTS = clients;
-    renderDashboard();
-  } catch(e) {
-    window.CLIENTS = [];
-    renderDashboard();
-  }
-};
-
-window._loadPlans = async function(){
-  try {
-    const snap = await getDocs(collection(db,'plans'));
-    const plans = [];
-    snap.forEach(d => plans.push({id:d.id,...d.data()}));
-    window.PLANS = plans;
-    renderPlans();
-  } catch(e) {
-    window.PLANS = [];
-  }
-};
-
-window._loadSessions = async function(){
-  try {
-    const snap = await getDocs(collection(db,'sessions'));
-    const sessions = [];
-    snap.forEach(d => sessions.push({id:d.id,...d.data()}));
-    window.SESSIONS = sessions;
-    renderCalendar();
-  } catch(e) {
-    window.SESSIONS = [];
-  }
-};
-
-setTimeout(() => {
-  window._loadClients();
-  window._loadPlans();
-  window._loadSessions();
-}, 300);
-</script>
-
-<script>
-const WORKER_URL = 'https://anthropic-proxy.teamprogress2018.workers.dev/';
-
-window.CLIENTS = [];
-window.PLANS = [];
-window.SESSIONS = [];
-var curClientId = null;
-var workoutTimer = null;
-var workoutSeconds = 0;
-
-// ============================================================
-// NAVIGATION
-// ============================================================
-function goScreen(name){
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('screen-'+name).classList.add('active');
-  var navBtns = document.querySelectorAll('.nav-btn');
-  var idx = ['dashboard','plans','workout','calendar'].indexOf(name);
-  if(idx>=0) navBtns[idx].classList.add('active');
-
-  if(name==='plans') renderPlans();
-  if(name==='calendar') renderCalendar();
-  if(name==='workout') renderWorkoutScreen();
-}
-
-function openFullview(id){ document.getElementById(id).classList.add('show'); }
-function closeFullview(id){ document.getElementById(id).classList.remove('show'); }
-
-// ============================================================
-// DASHBOARD
-// ============================================================
-function renderDashboard(){
-  var clients = window.CLIENTS;
-  var today = new Date().toISOString().split('T')[0];
-  var todaySessions = (window.SESSIONS||[]).filter(s => s.date === today);
-  var alerts = clients.filter(c => c.status === 'warning' || c.status === 'inactive');
-
-  document.getElementById('stat-clients').textContent = clients.length;
-  document.getElementById('stat-today').textContent = todaySessions.length;
-  document.getElementById('stat-alerts').textContent = alerts.length;
-
-  // Alerty
-  var alertsBox = document.getElementById('dash-alerts');
-  var alertsHtml = '';
-  alerts.forEach(function(c){
-    if(c.status==='inactive'){
-      alertsHtml += '<div class="alert-box alert-danger"><div class="alert-icon">⚠️</div><div class="alert-text"><strong>'+c.name+' — ZASTÓJ</strong>Brak aktywności przez ponad 2 tygodnie. Skontaktuj się z klientem.</div></div>';
-    } else if(c.status==='warning'){
-      alertsHtml += '<div class="alert-box alert-warning"><div class="alert-icon">📉</div><div class="alert-text"><strong>'+c.name+' — UWAGA</strong>Rzadsze treningi w ostatnim tygodniu.</div></div>';
-    }
-  });
-  alertsBox.innerHTML = alertsHtml;
-
-  // Klienci
-  var listEl = document.getElementById('clients-list');
-  if(!clients.length){
-    listEl.innerHTML = '<div class="empty"><div class="empty-icon">👥</div><div>Brak klientów — dodaj pierwszego!</div></div>';
-    return;
-  }
-
-  listEl.innerHTML = clients.map(function(c, i){
-    var initials = c.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
-    var colors = ['rgba(200,241,53,0.15)','rgba(96,165,250,0.15)','rgba(167,139,250,0.15)','rgba(249,115,22,0.15)','rgba(45,212,191,0.15)'];
-    var textColors = ['#c8f135','#60a5fa','#a78bfa','#f97316','#2dd4bf'];
-    var ci = i % colors.length;
-    var statusClass = c.status==='inactive' ? 'danger' : c.status==='warning' ? 'warning' : '';
-    var statusLbl = c.status==='inactive' ? 'NIEAKTYWNY' : c.status==='warning' ? 'UWAGA' : 'AKTYWNY';
-    var statusCls = c.status==='inactive' ? 'status-inactive' : c.status==='warning' ? 'status-warning' : 'status-active';
-    var progress = c.progress || 0;
-
-    return '<div class="client-card '+statusClass+'" onclick="openClient(\''+c.id+'\')" style="animation-delay:'+(i*0.05)+'s">'
-      +'<div class="client-top">'
-      +'<div class="client-avatar" style="background:'+colors[ci]+';color:'+textColors[ci]+'">'+initials+'</div>'
-      +'<div class="client-info">'
-      +'<div class="client-name">'+c.name+'</div>'
-      +'<div class="client-meta">'+c.goal+' · '+c.level+'</div>'
-      +'</div>'
-      +'<div class="client-status '+statusCls+'">'+statusLbl+'</div>'
-      +'</div>'
-      +'<div class="client-progress">'
-      +'<div class="cprog-item"><div class="cprog-val">'+(c.weight||'—')+'</div><div class="cprog-lbl">kg</div></div>'
-      +'<div class="cprog-item"><div class="cprog-val">'+(c.age||'—')+'</div><div class="cprog-lbl">lat</div></div>'
-      +'<div class="cprog-item"><div class="cprog-val">'+(c.days||'—')+'</div><div class="cprog-lbl">dni/tyg</div></div>'
-      +'<div class="cprog-item"><div class="cprog-val">'+(c.sessionsCount||0)+'</div><div class="cprog-lbl">sesji</div></div>'
-      +'</div>'
-      +'<div class="progress-bar"><div class="progress-fill" style="width:'+progress+'%"></div></div>'
-      +'</div>';
-  }).join('');
-}
-
-// ============================================================
-// KLIENT SZCZEGÓŁY
-// ============================================================
-function openClient(id){
-  var c = window.CLIENTS.find(x => x.id===id);
-  if(!c) return;
-  curClientId = id;
-  document.getElementById('cv-title').textContent = c.name.split(' ')[0].toUpperCase();
-
-  var plans = (window.PLANS||[]).filter(p => p.clientId===id);
-  var sessions = (window.SESSIONS||[]).filter(s => s.clientId===id);
-
-  var html = '<div style="margin-bottom:20px;">'
-    +'<div style="font-family:Bebas Neue,sans-serif;font-size:28px;color:var(--text);">'+c.name+'</div>'
-    +'<div style="font-size:12px;color:var(--muted);font-family:DM Mono,monospace;margin-top:4px;">'+c.goal.toUpperCase()+' · '+c.level.toUpperCase()+'</div>'
-    +'</div>'
-    +'<div class="stats-grid">'
-    +'<div class="stat-card"><div class="stat-val">'+(c.weight||'—')+'</div><div class="stat-lbl">kg</div></div>'
-    +'<div class="stat-card"><div class="stat-val">'+(c.height||'—')+'</div><div class="stat-lbl">cm</div></div>'
-    +'<div class="stat-card"><div class="stat-val">'+(sessions.length||0)+'</div><div class="stat-lbl">sesji</div></div>'
-    +'</div>';
-
-  // Plany klienta
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:16px;letter-spacing:1px;color:var(--accent);margin-bottom:10px;">PLANY TRENINGOWE</div>';
-  if(plans.length){
-    html += plans.map(function(p){
-      return '<div class="plan-card">'
-        +'<div class="plan-hdr"><div class="plan-title">'+p.name+'</div><div class="plan-badge" style="background:rgba(200,241,53,0.12);color:var(--accent);">'+p.method+'</div></div>'
-        +'<div class="plan-body">'
-        +(p.days||[]).map(function(d){
-          return '<div class="day-row"><div class="day-name">'+d.day+'</div>'
-            +(d.rest ? '<div class="day-muscles rest-day">— Odpoczynek</div>' :
-              '<div class="day-muscles">'+d.muscles+'</div><div class="day-sets">'+d.sets+' serii</div>')
-            +'</div>';
-        }).join('')
-        +'</div></div>';
-    }).join('');
-  } else {
-    html += '<div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Brak planów — wygeneruj przez AI</div>';
-  }
-
-  html += '<button class="btn-primary" onclick="closeFullview(\'client-view\');openGeneratePlan(\''+id+'\')">⚡ Generuj nowy plan AI</button>';
-
-  // Sesje
-  html += '<div style="font-family:Bebas Neue,sans-serif;font-size:16px;letter-spacing:1px;color:var(--accent);margin:20px 0 10px;">HISTORIA SESJI</div>';
-  if(sessions.length){
-    html += sessions.slice(-5).reverse().map(function(s){
-      return '<div class="session-item">'
-        +'<div class="session-time">'+s.time+'<br><span style="font-size:9px;color:var(--muted);">'+s.date+'</span></div>'
-        +'<div class="session-info"><div class="session-name">'+s.type+'</div><div class="session-meta">'+(s.notes||'')+'</div></div>'
-        +'</div>';
-    }).join('');
-  } else {
-    html += '<div style="font-size:12px;color:var(--muted);">Brak sesji</div>';
-  }
-
-  if(c.notes) html += '<div style="margin-top:16px;"><div style="font-size:10px;font-family:DM Mono,monospace;color:var(--muted);margin-bottom:4px;">NOTATKI</div><div style="font-size:13px;color:rgba(240,236,232,0.7);line-height:1.5;">'+c.notes+'</div></div>';
-
-  html += '<div style="height:32px;"></div>';
-  document.getElementById('cv-body').innerHTML = html;
-  openFullview('client-view');
-}
-
-async function deleteCurrentClient(){
-  if(!curClientId) return;
-  if(!confirm('Usunąć tego klienta?')) return;
-  try {
-    await window._deleteDoc(window._doc(window._db,'clients',curClientId));
-    window.CLIENTS = window.CLIENTS.filter(c => c.id!==curClientId);
-    closeFullview('client-view');
-    renderDashboard();
-    flash('Klient usunięty');
-  } catch(e){ flash('Błąd usuwania'); }
-}
-
-// ============================================================
-// DODAJ KLIENTA
-// ============================================================
-function openAddClient(){
-  document.getElementById('ac-name').value='';
-  document.getElementById('ac-age').value='';
-  document.getElementById('ac-weight').value='';
-  document.getElementById('ac-height').value='';
-  document.getElementById('ac-notes').value='';
-  openFullview('add-client-view');
-}
-
-async function saveClient(){
-  var name = document.getElementById('ac-name').value.trim();
-  if(!name){ flash('Wpisz imię i nazwisko!'); return; }
-
-  var client = {
-    name: name,
-    age: parseInt(document.getElementById('ac-age').value)||0,
-    gender: document.getElementById('ac-gender').value,
-    weight: parseInt(document.getElementById('ac-weight').value)||0,
-    height: parseInt(document.getElementById('ac-height').value)||0,
-    goal: document.getElementById('ac-goal').value,
-    level: document.getElementById('ac-level').value,
-    days: parseInt(document.getElementById('ac-days').value)||3,
-    notes: document.getElementById('ac-notes').value,
-    status: 'active',
-    progress: 0,
-    sessionsCount: 0,
-    createdAt: new Date().toISOString()
-  };
-
-  try {
-    var ref = await window._addDoc(window._collection(window._db,'clients'), client);
-    client.id = ref.id;
-    window.CLIENTS.push(client);
-    closeFullview('add-client-view');
-    renderDashboard();
-    flash('Klient dodany! 👤');
-  } catch(e){
-    // Offline — dodaj lokalnie
-    client.id = 'local-'+Date.now();
-    window.CLIENTS.push(client);
-    closeFullview('add-client-view');
-    renderDashboard();
-    flash('Klient dodany lokalnie');
-  }
-}
-
-// ============================================================
-// GENERUJ PLAN AI
-// ============================================================
-function openGeneratePlan(clientId){
-  var sel = document.getElementById('gp-client');
-  sel.innerHTML = window.CLIENTS.map(c => '<option value="'+c.id+'"'+(c.id===clientId?' selected':'')+'>'+c.name+'</option>').join('');
-  document.getElementById('gen-plan-status').innerHTML = '';
-  openFullview('gen-plan-view');
-}
-
-async function generatePlan(){
-  var clientId = document.getElementById('gp-client').value;
-  var method = document.getElementById('gp-method').value;
-  var duration = document.getElementById('gp-duration').value;
-  var equipment = document.getElementById('gp-equipment').value;
-  var client = window.CLIENTS.find(c => c.id===clientId);
-  if(!client){ flash('Wybierz klienta!'); return; }
-
-  var btn = document.getElementById('gen-plan-btn');
-  btn.disabled = true;
-  document.getElementById('gen-plan-status').innerHTML = '<div class="ai-box"><div class="ai-icon">⚡</div><div class="ai-title">GENERUJĘ PLAN</div><div class="ai-sub">Claude AI tworzy spersonalizowany plan...</div><div class="dot-loader"><span></span><span></span><span></span></div></div>';
-
-  var prompt = 'Stwórz plan treningowy. Odpowiedz TYLKO JSON:\n'
-    +'{"name":"nazwa planu","days":[{"day":"PON","muscles":"Klatka + Triceps","sets":16,"exercises":["Wyciskanie sztangi 4x8","Rozpiętki 3x12","Pompki 3x15","Wąskie wyciskanie 3x10","Prostowanie ramion 3x12"]},{"day":"WT","rest":true},...]}\n\n'
-    +'Klient: '+client.name+', '+client.age+' lat, '+client.weight+'kg, cel: '+client.goal+', poziom: '+client.level+'\n'
-    +'Metoda: '+method+', '+duration+' tygodni, sprzęt: '+equipment+', '+client.days+' dni/tyg\n'
-    +'Uwagi: '+( client.notes||'brak')+'\n'
-    +'Wygeneruj DOKŁADNIE '+client.days+' dni treningowych + odpowiednia liczba dni odpoczynku. Łącznie 7 dni (PON-ND).';
-
-  try {
-    var resp = await fetch(WORKER_URL, {method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:800, messages:[{role:'user',content:prompt}]})});
-    var data = await resp.json();
-    var raw = data.content.map(i=>i.text||'').join('');
-    var s = raw.indexOf('{'), e = raw.lastIndexOf('}');
-    var parsed = JSON.parse(raw.substring(s,e+1));
-
-    var plan = {
-      name: parsed.name || method+' — '+client.name,
-      method: method,
-      duration: duration,
-      clientId: clientId,
-      clientName: client.name,
-      days: parsed.days || [],
-      createdAt: new Date().toISOString()
-    };
+async function analyzePosturePhoto(input){
+  var file = input.files[0];
+  if(!file) return;
+
+  // Podgląd zdjęcia
+  var reader = new FileReader();
+  reader.onload = async function(e){
+    var base64 = e.target.result.split(',')[1];
+    var mediaType = file.type || 'image/jpeg';
+
+    document.getElementById('posture-photo-preview').innerHTML =
+      '<img src="'+e.target.result+'" style="width:100%;max-height:200px;object-fit:contain;border-radius:8px;margin-bottom:8px;">';
+
+    document.getElementById('posture-analysis-status').innerHTML =
+      '<div style="color:var(--accent);font-size:12px;font-family:DM Mono,monospace;">🔍 Claude AI analizuje postawę...</div>'
+      +'<div class="dot-loader" style="justify-content:flex-start;margin-top:6px;"><span></span><span></span><span></span></div>';
 
     try {
-      var ref = await window._addDoc(window._collection(window._db,'plans'), plan);
-      plan.id = ref.id;
-    } catch(e2){ plan.id = 'local-'+Date.now(); }
+      var prompt = 'Jesteś ekspertem od analizy postawy ciała. Przeanalizuj to zdjęcie sylwetki i określ wady postawy. Odpowiedz TYLKO JSON:\n'
+        +'{"postawa":"prawidlowa|hiperlordoza|kifoza|plecy_plaskie|skolioza|mieszana",'
+        +'"barki":"prawidlowe|protrakcja|glowa_przod|asymetria|odstajace_lopatki",'
+        +'"kolana":"prawidlowe|kolana_do_srodka|kolana_na_zewn|plaskie_stopy|przodostopie",'
+        +'"slabe_partie":["posladki","kulszowe","tyl_barkow","trapez_dolny","core","rotatory","zginacze_bioder","tyl_uda"],'
+        +'"opis":"krótki opis po polsku max 100 znaków",'
+        +'"zalecenia":["zalecenie 1","zalecenie 2","zalecenie 3"]}\n\n'
+        +'Wybierz TYLKO te słabe partie które faktycznie widać na zdjęciu. Bądź precyzyjny.';
 
-    window.PLANS.push(plan);
+      var resp = await fetch(WORKER_URL, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 500,
+          messages: [{
+            role: 'user',
+            content: [
+              {type:'image', source:{type:'base64', media_type:mediaType, data:base64}},
+              {type:'text', text:prompt}
+            ]
+          }]
+        })
+      });
 
-    document.getElementById('gen-plan-status').innerHTML = '<div style="background:rgba(200,241,53,0.06);border:1px solid rgba(200,241,53,0.2);border-radius:12px;padding:16px;margin-top:16px;">'
-      +'<div style="font-family:Bebas Neue,sans-serif;font-size:16px;color:var(--accent);margin-bottom:8px;">✅ PLAN GOTOWY: '+plan.name+'</div>'
-      +'<div style="font-size:12px;color:var(--muted);margin-bottom:12px;">'+method+' · '+duration+' tygodni · '+client.days+' dni/tyg</div>'
-      +'<button class="btn-primary" onclick="closeFullview(\'gen-plan-view\');goScreen(\'plans\')">Zobacz plan →</button>'
-      +'</div>';
+      var data = await resp.json();
+      var raw = data.content.map(i=>i.text||'').join('');
+      var s = raw.indexOf('{'), e = raw.lastIndexOf('}');
+      var result = JSON.parse(raw.substring(s,e+1));
 
-  } catch(err){
-    document.getElementById('gen-plan-status').innerHTML = '<div style="color:var(--red);font-size:12px;padding:10px;">Błąd: '+err.message+'</div>';
-  }
-  btn.disabled = false;
-}
+      // Wypełnij pola formularza
+      if(result.postawa) document.getElementById('ac-posture').value = result.postawa;
+      if(result.barki) document.getElementById('ac-shoulders').value = result.barki;
+      if(result.kolana) document.getElementById('ac-knees').value = result.kolana;
 
-// ============================================================
-// PLANY
-// ============================================================
-function renderPlans(){
-  var el = document.getElementById('plans-list');
-  var plans = window.PLANS || [];
-  if(!plans.length){
-    el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div>Brak planów — wygeneruj przez AI!</div></div>';
-    return;
-  }
+      // Zaznacz checkboxy słabych partii
+      document.querySelectorAll('#ac-weak-muscles input[type=checkbox]').forEach(cb => {
+        cb.checked = (result.slabe_partie||[]).includes(cb.value);
+      });
 
-  el.innerHTML = plans.map(function(p,i){
-    return '<div class="plan-card" style="animation-delay:'+(i*0.05)+'s">'
-      +'<div class="plan-hdr">'
-      +'<div>'
-      +'<div class="plan-title">'+p.name+'</div>'
-      +'<div style="font-size:11px;color:var(--muted);font-family:DM Mono,monospace;margin-top:2px;">'+p.clientName+' · '+p.duration+' tyg</div>'
-      +'</div>'
-      +'<div style="display:flex;gap:6px;align-items:center;">'
-      +'<div class="plan-badge" style="background:rgba(200,241,53,0.12);color:var(--accent);">'+p.method+'</div>'
-      +'<button onclick="startWorkout(\''+p.id+'\')" style="background:var(--accent);color:#000;border:none;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;">▶ START</button>'
-      +'</div>'
-      +'</div>'
-      +'<div class="plan-body">'
-      +(p.days||[]).map(function(d){
-        return '<div class="day-row"><div class="day-name">'+d.day+'</div>'
-          +(d.rest ? '<div class="day-muscles rest-day">— Odpoczynek</div>' :
-            '<div class="day-muscles">'+d.muscles+'</div><div class="day-sets">'+(d.sets||0)+' serii</div>')
-          +'</div>';
-      }).join('')
-      +'</div></div>';
-  }).join('');
-}
+      // Pokaż wynik
+      var postureLabels = {
+        prawidlowa:'✅ Prawidłowa',hiperlordoza:'⚠️ Hiperlordoza',
+        kifoza:'⚠️ Hiperkifoza',plecy_plaskie:'⚠️ Plecy płaskie',
+        skolioza:'⚠️ Skolioza',mieszana:'⚠️ Mieszana'
+      };
 
-// ============================================================
-// TRENING
-// ============================================================
-function renderWorkoutScreen(){
-  var el = document.getElementById('workout-content');
-  if(!window.PLANS||!window.PLANS.length){
-    el.innerHTML = '<div class="empty"><div class="empty-icon">💪</div><div>Brak planów treningowych.<br>Wygeneruj plan przez AI!</div><button class="btn-primary" style="margin-top:16px;" onclick="goScreen(\'plans\')">Przejdź do planów</button></div>';
-    return;
-  }
-  el.innerHTML = '<div style="margin-bottom:16px;"><div style="font-family:Bebas Neue,sans-serif;font-size:18px;letter-spacing:1px;color:var(--text);margin-bottom:10px;">WYBIERZ PLAN</div>'
-    + window.PLANS.map(function(p){
-      return '<div class="session-item" style="cursor:pointer;" onclick="startWorkout(\''+p.id+'\')">'
-        +'<div class="session-time" style="color:var(--accent);">▶</div>'
-        +'<div class="session-info"><div class="session-name">'+p.name+'</div><div class="session-meta">'+p.clientName+' · '+p.method+'</div></div>'
+      document.getElementById('posture-analysis-status').innerHTML =
+        '<div style="background:rgba(200,241,53,0.06);border:1px solid rgba(200,241,53,0.2);border-radius:10px;padding:14px;text-align:left;">'
+        +'<div style="font-family:Bebas Neue,sans-serif;font-size:14px;color:var(--accent);margin-bottom:8px;">✅ ANALIZA GOTOWA</div>'
+        +'<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">'+( result.opis||'')+'</div>'
+        +(result.zalecenia&&result.zalecenia.length ?
+          '<div style="font-size:10px;font-family:DM Mono,monospace;color:var(--accent);margin-bottom:4px;">ZALECENIA:</div>'
+          +result.zalecenia.map(z=>'<div style="font-size:11px;color:var(--muted);padding:3px 0;">→ '+z+'</div>').join('')
+        :'')
+        +'<div style="font-size:11px;color:var(--muted2);margin-top:8px;font-family:DM Mono,monospace;">Pola postawy zostały automatycznie wypełnione ↓</div>'
         +'</div>';
-    }).join('') + '</div>';
+
+      flash('Analiza postawy gotowa! Pola wypełnione ✅');
+
+    } catch(err) {
+      document.getElementById('posture-analysis-status').innerHTML =
+        '<div style="color:var(--red);font-size:12px;">❌ Błąd analizy: '+err.message+'</div>';
+    }
+  };
+  reader.readAsDataURL(file);
 }
 
-function startWorkout(planId){
-  var plan = window.PLANS.find(p => p.id===planId);
-  if(!plan) return;
-
-  goScreen('workout');
-  var today = new Date();
-  var days = ['ND','PON','WT','ŚR','CZW','PT','SOB'];
-  var todayDay = days[today.getDay()];
-  var dayPlan = (plan.days||[]).find(d => d.day===todayDay && !d.rest) || (plan.days||[]).find(d => !d.rest);
-  if(!dayPlan){ flash('Dziś dzień odpoczynku! 😴'); return; }
-
-  // Start timer
-  workoutSeconds = 0;
-  if(workoutTimer) clearInterval(workoutTimer);
-  workoutTimer = setInterval(function(){
-    workoutSeconds++;
-    var m = Math.floor(workoutSeconds/60).toString().padStart(2,'0');
-    var s = (workoutSeconds%60).toString().padStart(2,'0');
-    document.getElementById('workout-timer').textContent = m+':'+s;
-  }, 1000);
-
-  var el = document.getElementById('workout-content');
-  el.innerHTML = '<div style="margin-bottom:16px;">'
-    +'<div style="font-family:Bebas Neue,sans-serif;font-size:22px;letter-spacing:1px;color:var(--accent);">'+todayDay+' — '+dayPlan.muscles+'</div>'
-    +'<div style="font-size:11px;color:var(--muted);font-family:DM Mono,monospace;margin-top:4px;">'+plan.name+' · '+plan.clientName+'</div>'
-    +'</div>'
-    +(dayPlan.exercises||[]).map(function(ex, ei){
-      var sets = 4;
-      var reps = '8-12';
-      var match = ex.match(/(\d+)x(\d+)/);
-      if(match){ sets=parseInt(match[1]); reps=match[2]; }
-      return '<div class="exercise-row">'
-        +'<div class="exercise-name">'+ex+'</div>'
-        +'<div class="sets-grid">'
-        +Array.from({length:sets},function(_,si){
-          return '<div class="set-box" id="set-'+ei+'-'+si+'" onclick="toggleSet('+ei+','+si+')">'
-            +'<div class="set-num">SERIA '+(si+1)+'</div>'
-            +'<div class="set-val">'+reps+' pow</div>'
-            +'</div>';
-        }).join('')
-        +'</div></div>';
-    }).join('')
-    +'<button class="btn-primary" style="margin-top:20px;" onclick="finishWorkout(\''+planId+'\')">✅ Zakończ trening</button>';
-}
-
-function toggleSet(ei, si){
-  var el = document.getElementById('set-'+ei+'-'+si);
-  if(el) el.classList.toggle('done');
-}
-
-function finishWorkout(planId){
-  if(workoutTimer) clearInterval(workoutTimer);
-  var mins = Math.floor(workoutSeconds/60);
-  flash('Trening ukończony! ⏱ '+mins+' min 💪');
-  document.getElementById('workout-timer').textContent = '00:00';
-  workoutSeconds = 0;
-  renderWorkoutScreen();
-}
-
-// ============================================================
-// KALENDARZ
-// ============================================================
-function renderCalendar(){
-  var now = new Date();
-  var year = now.getFullYear();
-  var month = now.getMonth();
-  var monthNames = ['STYCZEŃ','LUTY','MARZEC','KWIECIEŃ','MAJ','CZERWIEC','LIPIEC','SIERPIEŃ','WRZESIEŃ','PAŹDZIERNIK','LISTOPAD','GRUDZIEŃ'];
-  document.getElementById('cal-month').textContent = monthNames[month]+' '+year;
-
-  var firstDay = new Date(year, month, 1).getDay();
-  var daysInMonth = new Date(year, month+1, 0).getDate();
-  var today = now.getDate();
-  var sessions = window.SESSIONS||[];
-
-  firstDay = (firstDay+6)%7; // Monday first
-
-  var grid = document.getElementById('cal-grid');
-  var html = ['PN','WT','ŚR','CZ','PT','SB','ND'].map(d => '<div style="text-align:center;font-size:9px;color:var(--muted);font-family:DM Mono,monospace;padding:4px 0;">'+d+'</div>').join('');
-
-  for(var i=0;i<firstDay;i++) html += '<div class="cal-day empty"></div>';
-  for(var d=1;d<=daysInMonth;d++){
-    var dateStr = year+'-'+(String(month+1).padStart(2,'0'))+'-'+(String(d).padStart(2,'0'));
-    var hasSession = sessions.some(s => s.date===dateStr);
-    var cls = d===today ? 'today' : hasSession ? 'has-session' : '';
-    html += '<div class="cal-day '+cls+'" onclick="showDaySessions(\''+dateStr+'\')">'+d+'</div>';
-  }
-  grid.innerHTML = html;
-
-  // Sesje listy
-  var listEl = document.getElementById('sessions-list');
-  var upcoming = sessions.filter(s => s.date >= new Date().toISOString().split('T')[0]).sort((a,b) => a.date.localeCompare(b.date));
-  if(!upcoming.length){
-    listEl.innerHTML = '<div class="empty"><div class="empty-icon">📅</div><div>Brak zaplanowanych sesji</div></div>';
-    return;
-  }
-  listEl.innerHTML = upcoming.slice(0,10).map(function(s){
-    var client = window.CLIENTS.find(c => c.id===s.clientId);
-    return '<div class="session-item">'
-      +'<div class="session-time">'+s.time+'<br><span style="font-size:9px;color:var(--muted);">'+s.date.split('-').slice(1).join('/')+'</span></div>'
-      +'<div class="session-info"><div class="session-name">'+(client?client.name:'Klient')+'</div><div class="session-meta">'+s.type+(s.notes?' · '+s.notes:'')+'</div></div>'
-      +'</div>';
-  }).join('');
-}
-
-function showDaySessions(dateStr){
-  var sessions = (window.SESSIONS||[]).filter(s => s.date===dateStr);
-  if(!sessions.length){ flash('Brak sesji w tym dniu'); return; }
-  flash(sessions.length+' sesji: '+sessions.map(s=>s.time+' '+s.type).join(', '));
-}
-
-function openAddSession(){
-  var sel = document.getElementById('as-client');
-  sel.innerHTML = window.CLIENTS.map(c => '<option value="'+c.id+'">'+c.name+'</option>').join('');
-  var today = new Date().toISOString().split('T')[0];
-  document.getElementById('as-date').value = today;
-  document.getElementById('as-time').value = '10:00';
-  openFullview('add-session-view');
-}
-
-async function saveSession(){
-  var clientId = document.getElementById('as-client').value;
-  var date = document.getElementById('as-date').value;
-  var time = document.getElementById('as-time').value;
-  var type = document.getElementById('as-type').value;
-  var notes = document.getElementById('as-notes').value;
-  if(!clientId||!date||!time){ flash('Wypełnij wszystkie pola!'); return; }
-
-  var session = { clientId, date, time, type, notes, createdAt: new Date().toISOString() };
-  try {
-    var ref = await window._addDoc(window._collection(window._db,'sessions'), session);
-    session.id = ref.id;
-  } catch(e){ session.id = 'local-'+Date.now(); }
-
-  window.SESSIONS.push(session);
-
-  // Update client sessions count
-  var client = window.CLIENTS.find(c => c.id===clientId);
-  if(client) client.sessionsCount = (client.sessionsCount||0)+1;
-
-  closeFullview('add-session-view');
-  renderCalendar();
-  renderDashboard();
-  flash('Sesja dodana! 📅');
-}
-
-// ============================================================
-// UTILS
-// ============================================================
+// Expose
+window.analyzePosturePhoto = analyzePosturePhoto;
 function flash(msg){
   var old = document.querySelector('.flash-msg');
   if(old) old.remove();
@@ -2158,6 +1598,12 @@ window.renderDashboard = renderDashboard;
 window.renderPlans = renderPlans;
 window.renderCalendar = renderCalendar;
 window.renderWorkoutScreen = renderWorkoutScreen;
+window.renderDesktop = renderDesktop;
+window.updateSidebarClients = updateSidebarClients;
+
+var curScreen = 'dashboard';
+window.addEventListener('resize', function(){ if(window.innerWidth>=900) renderDesktop(curScreen); });
+
 </script>
 </body>
 </html>
