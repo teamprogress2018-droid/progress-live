@@ -1230,16 +1230,18 @@ async function generatePlan(){
 
   var params = sciParams[client.level] || sciParams.sredni;
 
-  var prompt = 'Ekspert treningu siłowego. Stwórz plan. TYLKO JSON bez tekstu przed/po:\n'
-    +'{"name":"nazwa","tygodnie":[{"nr":1,"cel":"cel","dni":[{"day":"PON","muscles":"partie","exercises":[{"name":"ćwiczenie","serie":4,"powt":"8","tempo":"2-0-2-0","RIR":2,"przerwa":"2min","wskazowka":"wskazówka"}]},{"day":"WT","rest":true}]},{"nr":2,"cel":"progresja","dni":[...tak samo...]}]}\n\n'
-    +'PARAMETRY:\n'
-    +'Periodyzacja: '+params.periodyzacja+'\n'
-    +'Struktura: '+(params.struktura||'')+'\n'
-    +'Intensywność: '+params.intensywnosc+'\n'
-    +'Przerwy: '+params.przerwy+'\n'
-    +'Objętość: '+params.objetosc+'\n'
-    +'Słabe ogniwa: '+(params.slabe_ogniwa||'Facepull, Y-raise, Hip Thrust')+'\n'
-    +'Progresja: '+(params.progresja||'')+'\n\n'
+  var prompt = 'Stwórz plan treningowy. Odpowiedz TYLKO czystym JSON:\n'
+    +'{"name":"nazwa","tygodnie":[{"nr":1,"cel":"cel","dni":[{"day":"PON","muscles":"partie","exercises":["Ćwiczenie 4x8 RPE7","Ćwiczenie 3x12 RPE7"]},{"day":"WT","rest":true},{"day":"SR","muscles":"partie","exercises":["Ćwiczenie 4x8"]},{"day":"CZ","rest":true},{"day":"PT","muscles":"partie","exercises":["Ćwiczenie 4x8"]},{"day":"SO","rest":true},{"day":"ND","rest":true}]}]}\n\n'
+    +'KLIENT: '+client.name+', '+client.age+'lat, '+client.weight+'kg, cel:'+client.goal+', poziom:'+client.level+', dni/tydz:'+client.days+'\n'
+    +'Metoda:'+method+', sprzęt:'+equipment+'\n'
+    +'Postawa:'+( client.posture||'prawidlowa')+', barki:'+(client.shoulders||'prawidlowe')+'\n'
+    +'Słabe partie:'+((client.weakMuscles||[]).join(',')||'brak')+'\n'
+    +'Periodyzacja:'+params.periodyzacja+'\n'
+    +'Intensywność:'+params.intensywnosc+'\n'
+    +'Przerwy:'+params.przerwy+'\n'
+    +(params.slabe_ogniwa?'Słabe ogniwa:'+params.slabe_ogniwa+'\n':'')+'\n'
+    + pubmedData
+    +'ZASADY: wygeneruj DOKŁADNIE '+client.days+' dni treningowych + reszta odpoczynek (łącznie 7 dni PON-ND). Każdy dzień treningowy: 4-5 ćwiczeń. Format ćwiczenia: "Nazwa Xserii x Ypowt RPEz". Uwzględnij Facepull i Hip Thrust jako akcesoria.';
     +'KLIENT:\n'
     +'Imię: '+client.name+', Wiek: '+client.age+' lat, Waga: '+client.weight+'kg, Wzrost: '+client.height+'cm\n'
     +'Cel: '+client.goal+'\n'
@@ -1307,13 +1309,8 @@ async function generatePlan(){
     var s = raw.indexOf('{'), e = raw.lastIndexOf('}');
     var parsed = JSON.parse(raw.substring(s,e+1));
 
-    // Spłaszcz tygodnie do dni dla wyświetlania
-    var allDays = [];
-    (parsed.tygodnie||[parsed]).forEach(function(t){
-      (t.dni||t.days||[]).forEach(function(d){ allDays.push(d); });
-    });
-    // Weź unikalne dni (tydzień 1)
-    var week1 = (parsed.tygodnie&&parsed.tygodnie[0]) ? (parsed.tygodnie[0].dni||[]) : allDays.slice(0,7);
+    // Weź tydzień 1
+    var week1 = (parsed.tygodnie&&parsed.tygodnie[0]) ? (parsed.tygodnie[0].dni||[]) : (parsed.dni||[]);
 
     var plan = {
       name: parsed.name || method+' — '+client.name,
@@ -1322,18 +1319,25 @@ async function generatePlan(){
       clientId: clientId,
       clientName: client.name,
       days: week1.map(function(d){
+        // Ćwiczenia mogą być stringami lub obiektami
+        var exList = (d.exercises||[]).map(function(ex){
+          if(typeof ex === 'string') return ex;
+          return (ex.name||'')+(ex.serie?' '+ex.serie+'x'+(ex.powt||''):'')+(ex.RIR?' RPE'+(10-ex.RIR):'');
+        });
+        // Policz serie z stringów (np. "4x8" → 4)
+        var totalSets = d.rest ? 0 : exList.reduce(function(acc,ex){
+          var m = ex.match(/(\d+)x\d+/);
+          return acc + (m ? parseInt(m[1]) : 4);
+        }, 0);
         return {
           day: d.day,
           rest: d.rest||false,
           muscles: d.muscles||'',
-          sets: d.rest ? 0 : (d.exercises||[]).reduce(function(acc,ex){return acc+(ex.serie||ex.sets||4);},0),
-          exercises: (d.exercises||[]).map(function(ex){
-            return ex.name+' '+ex.serie+'x'+ex.powt+(ex.tempo?' ('+ex.tempo+')':'')+(ex.RIR?' RIR'+ex.RIR:'');
-          })
+          sets: totalSets,
+          exercises: exList
         };
       }),
       params: params,
-      weeks: parsed.tygodnie||[],
       createdAt: new Date().toISOString()
     };
 
