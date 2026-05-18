@@ -1230,29 +1230,16 @@ async function generatePlan(){
 
   var params = sciParams[client.level] || sciParams.sredni;
 
-  var prompt = 'Jesteś ekspertem treningu siłowego z pełną wiedzą naukową. Stwórz plan treningowy. Odpowiedz TYLKO JSON:\n'
-    +'{"name":"nazwa planu","tygodnie":[\n'
-    +'{"nr":1,"cel":"cel tygodnia np. nauka techniki / adaptacja","dni":[\n'
-    +'{"day":"PON","muscles":"Klatka + Triceps + Barki","exercises":[\n'
-    +'{"name":"Wyciskanie sztangi płaskie","serie":5,"powt":"5","tempo":"2-0-2-0","TUT":20,"RIR":3,"przerwa":"3-5 min","wskazowka":"Łopatki ściągnięte, pełny ROM, klatka wypięta"}\n'
-    +']},{"day":"WT","rest":true,"aktywnosc":"spacer/rozciąganie"}\n'
-    +']},{"nr":2,"cel":"progresja","dni":[...]}\n'
-    +']}\n\n'
-    +'WIEDZA NAUKOWA DO ZASTOSOWANIA:\n'
+  var prompt = 'Ekspert treningu siłowego. Stwórz plan. TYLKO JSON bez tekstu przed/po:\n'
+    +'{"name":"nazwa","tygodnie":[{"nr":1,"cel":"cel","dni":[{"day":"PON","muscles":"partie","exercises":[{"name":"ćwiczenie","serie":4,"powt":"8","tempo":"2-0-2-0","RIR":2,"przerwa":"2min","wskazowka":"wskazówka"}]},{"day":"WT","rest":true}]},{"nr":2,"cel":"progresja","dni":[...tak samo...]}]}\n\n'
+    +'PARAMETRY:\n'
     +'Periodyzacja: '+params.periodyzacja+'\n'
     +'Struktura: '+(params.struktura||'')+'\n'
-    +'TUT: '+params.TUT+'\n'
     +'Intensywność: '+params.intensywnosc+'\n'
     +'Przerwy: '+params.przerwy+'\n'
     +'Objętość: '+params.objetosc+'\n'
-    +'Ćwiczenia główne: '+(params.cwiczenia_glowne||'')+'\n'
-    +'Ćwiczenia akcesoria: '+(params.cwiczenia_akcesoria||'')+'\n'
-    +'Słabe ogniwa do uwzględnienia: '+(params.slabe_ogniwa||'Facepull, Y-raise, Hip Thrust')+'\n'
-    +'Progresja: '+(params.progresja||'')+'\n'
-    +'Uwagi: '+params.uwagi+'\n\n'
-    +'BAZA ĆWICZEŃ:\n'
-    +'Wielostawowe: Przysiad ze sztangą, Martwy ciąg, Wyciskanie sztangi leżąc, Wiosłowanie sztangą, OHP stojąc, Podciąganie\n'
-    +'Akcesoria: Hip Thrust, Facepull, Y-raise, wznosy bokiem, uginanie nóg, zakroki, allahy, plank, wspięcia na łydki\n\n'
+    +'Słabe ogniwa: '+(params.slabe_ogniwa||'Facepull, Y-raise, Hip Thrust')+'\n'
+    +'Progresja: '+(params.progresja||'')+'\n\n'
     +'KLIENT:\n'
     +'Imię: '+client.name+', Wiek: '+client.age+' lat, Waga: '+client.weight+'kg, Wzrost: '+client.height+'cm\n'
     +'Cel: '+client.goal+'\n'
@@ -1314,7 +1301,7 @@ async function generatePlan(){
 
   try {
     var resp = await fetch(WORKER_URL, {method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:1500, messages:[{role:'user',content:prompt}]})});
+      body: JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:3000, messages:[{role:'user',content:prompt}]})});
     var data = await resp.json();
     var raw = data.content.map(i=>i.text||'').join('');
     var s = raw.indexOf('{'), e = raw.lastIndexOf('}');
