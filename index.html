@@ -75,6 +75,7 @@ input,button,textarea,select{font-family:'DM Sans',sans-serif;}
   .app > .nav{display:none !important;}
   .screen{display:none !important;}
   .fullview{max-width:600px;left:260px;box-shadow:-4px 0 20px rgba(0,0,0,0.5);}
+  .fullview .fv-scroll{height:calc(100vh - 62px);overflow-y:auto;}
 }
 
 @media (max-width:899px){
@@ -1070,21 +1071,27 @@ async function saveClient(){
     createdAt: new Date().toISOString()
   };
 
+  // Pokaż loading na przycisku
+  var btn = document.querySelector('#add-client-view .btn-primary');
+  if(btn){ btn.disabled=true; btn.textContent='⏳ Zapisuję...'; }
+
   try {
-    var ref = await window._addDoc(window._collection(window._db,'clients'), client);
-    client.id = ref.id;
-    window.CLIENTS.push(client);
-    closeFullview('add-client-view');
-    renderDashboard();
-    flash('Klient dodany! 👤');
+    if(window._addDoc && window._db) {
+      var ref = await window._addDoc(window._collection(window._db,'clients'), client);
+      client.id = ref.id;
+    } else {
+      client.id = 'local-'+Date.now();
+    }
   } catch(e){
-    // Offline — dodaj lokalnie
     client.id = 'local-'+Date.now();
-    window.CLIENTS.push(client);
-    closeFullview('add-client-view');
-    renderDashboard();
-    flash('Klient dodany lokalnie');
   }
+
+  window.CLIENTS.push(client);
+  closeFullview('add-client-view');
+  renderDashboard();
+  flash('Klient dodany! 👤');
+
+  if(btn){ btn.disabled=false; btn.textContent='✅ Zapisz klienta'; }
 }
 
 // ============================================================
@@ -1262,15 +1269,39 @@ async function generatePlan(){
     +((client.weakMuscles||[]).includes('core')?'- Dodaj: Plank, allahy, deska bokiem\n':'')
     +((client.weakMuscles||[]).includes('rotatory')?'- Dodaj: Facepull, rotacja zewnętrzna z gumą\n':'')+'\n'
     + pubmedData
-    +'ZASADY:\n'
+    +'WIEDZA O RPE (Rating of Perceived Exertion):\n'
+    +'RPE 10 = max wysiłek, 0 powt w zapasie (RIR 0)\n'
+    +'RPE 9 = 1 powt w zapasie (RIR 1)\n'
+    +'RPE 8 = 2 powt w zapasie (RIR 2) — STANDARD treningu siłowego\n'
+    +'RPE 7 = 3 powt w zapasie (RIR 3) — tydzień akumulacji/objętości\n'
+    +'RPE 5-6 = lekki wysiłek, serie rozgrzewkowe\n'
+    +'RPE 1-4 = bardzo lekki, deload\n\n'
+    +'ZASTOSOWANIE RPE W PLANIE:\n'
+    +(client.level==='poczatkujacy' ?
+      '- Początkujący: NIE używaj RPE — stosuj progresję liniową z konkretnym ciężarem\n'
+      +'- Zamiast RPE podaj konkretne ciężary startowe lub % własnego ciężaru ciała\n'
+    : client.level==='sredni' ?
+      '- DUP tydzień 1: RPE 7 (RIR 3) — wysoka objętość, budowanie bazy\n'
+      +'- DUP tydzień 2: RPE 8 (RIR 2) — średnia intensywność\n'
+      +'- DUP tydzień 3: RPE 9 (RIR 1) — wysoka intensywność\n'
+      +'- Autoregulacja: dostosuj ciężar do dyspozycji dnia zachowując docelowe RPE\n'
+      +'- Seria musi przekroczyć RPE 5 żeby być efektywną serią roboczą\n'
+    :
+      '- Zaawansowany: RPE 8-9 jako standard, RPE 9-10 tylko w realizacji\n'
+      +'- Blok akumulacji: RPE 7-8 | Blok intensyfikacji: RPE 8-9 | Realizacja: RPE 9-10\n'
+      +'- Prowadź dziennik: zapisuj ciężar + osiągnięte RPE do świadomego planowania\n'
+      +'- Sygnał zmęczenia: jeśli w tygodniu RPE 7 ciężar wydaje się RPE 9 → deload\n'
+    )
+    +'\nZASADY:\n'
     +'1. Wygeneruj plan na PIERWSZE 2 tygodnie z PEŁNYMI ćwiczeniami\n'
     +'2. Każdy dzień treningowy: 4-6 ćwiczeń (2-3 główne + 2-3 akcesoria)\n'
     +'3. Uwzględnij słabe ogniwa (Facepull, Hip Thrust, balans push/pull)\n'
-    +'4. Tydzień 2 musi pokazywać progresję względem tygodnia 1\n'
+    +'4. Tydzień 2 musi pokazywać progresję — wyższe RPE lub więcej serii/powtórzeń\n'
     +'5. Dni odpoczynku z aktywnością (spacer/rozciąganie)\n'
     +'6. Dla FBW: wariant A i B naprzemiennie\n'
-    +'7. Każde ćwiczenie: nazwa, serie, powtórzenia, tempo, TUT, RIR, przerwa, wskazówka techniczna\n'
-    +'8. Uwzględnij wnioski z badań PubMed w doborze ćwiczeń i parametrów';
+    +'7. Każde ćwiczenie: nazwa, serie, powtórzenia, tempo, TUT, RIR, RPE, przerwa, wskazówka\n'
+    +'8. Uwzględnij wnioski z badań PubMed w doborze ćwiczeń i parametrów\n'
+    +'9. Seria efektywna = RPE minimum 6, optymalne 7-9 zależnie od celu';
 
   try {
     var resp = await fetch(WORKER_URL, {method:'POST', headers:{'Content-Type':'application/json'},
@@ -1363,7 +1394,7 @@ function renderPlans(){
         return '<div class="day-row"><div class="day-name">'+d.day+'</div>'
           +(d.rest ? '<div class="day-muscles rest-day">— Odpoczynek'+(d.aktywnosc?' ('+d.aktywnosc+')':'')+'</div>' :
             '<div style="flex:1;min-width:0;"><div class="day-muscles">'+d.muscles+'</div>'
-            +(d.exercises&&d.exercises.length?'<div style="font-size:10px;color:var(--muted);margin-top:3px;">'+(d.exercises.slice(0,2).join(' · '))+(d.exercises.length>2?' +więcej':'')+'</div>':'')
+        +(d.exercises&&d.exercises.length?'<div style="font-size:10px;color:var(--muted);margin-top:3px;">'+(d.exercises.slice(0,2).join(' · '))+(d.exercises.length>2?' +więcej':'')+'</div>':'')
             +'</div><div class="day-sets">'+(d.sets||0)+' serii</div>')
           +'</div>';
       }).join('')
@@ -1418,10 +1449,21 @@ function startWorkout(planId){
     +(dayPlan.exercises||[]).map(function(ex, ei){
       var sets = 4;
       var reps = '8-12';
+      var rpe = '';
+      var rir = '';
       var match = ex.match(/(\d+)x(\d+)/);
       if(match){ sets=parseInt(match[1]); reps=match[2]; }
+      var rpeMatch = ex.match(/RPE(\d+)/);
+      if(rpeMatch) rpe = rpeMatch[1];
+      var rirMatch = ex.match(/RIR(\d+)/);
+      if(rirMatch) rir = rirMatch[1];
       return '<div class="exercise-row">'
-        +'<div class="exercise-name">'+ex+'</div>'
+        +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">'
+        +'<div class="exercise-name" style="margin-bottom:0;">'+ex.replace(/\d+x\d+.*/,'').trim()+'</div>'
+        +'<div style="display:flex;gap:6px;">'
+        +(rpe?'<div style="background:rgba(200,241,53,0.12);border:1px solid rgba(200,241,53,0.25);border-radius:6px;padding:3px 8px;font-size:10px;font-family:DM Mono,monospace;color:var(--accent);">RPE '+rpe+'</div>':'')
+        +(rir?'<div style="background:rgba(96,165,250,0.12);border:1px solid rgba(96,165,250,0.25);border-radius:6px;padding:3px 8px;font-size:10px;font-family:DM Mono,monospace;color:var(--blue);">RIR '+rir+'</div>':'')
+        +'</div></div>'
         +'<div class="sets-grid">'
         +Array.from({length:sets},function(_,si){
           return '<div class="set-box" id="set-'+ei+'-'+si+'" onclick="toggleSet('+ei+','+si+')">'
