@@ -1206,76 +1206,49 @@ async function generatePlan(){
 
   var params = sciParams[client.level] || sciParams.sredni;
 
-  var prompt = 'Stwórz plan treningowy. Odpowiedz TYLKO czystym JSON:\n'
-    +'{"name":"nazwa","tygodnie":[{"nr":1,"cel":"cel","dni":[{"day":"PON","muscles":"partie","exercises":["Ćwiczenie 4x8 RPE7","Ćwiczenie 3x12 RPE7"]},{"day":"WT","rest":true},{"day":"SR","muscles":"partie","exercises":["Ćwiczenie 4x8"]},{"day":"CZ","rest":true},{"day":"PT","muscles":"partie","exercises":["Ćwiczenie 4x8"]},{"day":"SO","rest":true},{"day":"ND","rest":true}]}]}\n\n'
-    +'KLIENT: '+client.name+', '+client.age+'lat, '+client.weight+'kg, cel:'+client.goal+', poziom:'+client.level+', dni/tydz:'+client.days+'\n'
-    +'Metoda:'+method+', sprzęt:'+equipment+'\n'
-    +'Postawa:'+( client.posture||'prawidlowa')+', barki:'+(client.shoulders||'prawidlowe')+'\n'
-    +'Słabe partie:'+((client.weakMuscles||[]).join(',')||'brak')+'\n'
-    +'Periodyzacja:'+params.periodyzacja+'\n'
-    +'Intensywność:'+params.intensywnosc+'\n'
-    +'Przerwy:'+params.przerwy+'\n'
-    +(params.slabe_ogniwa?'Słabe ogniwa:'+params.slabe_ogniwa+'\n':'')+'\n'
-    + pubmedData
-    +'ZASADY: wygeneruj DOKŁADNIE '+client.days+' dni treningowych + reszta odpoczynek (łącznie 7 dni PON-ND). Każdy dzień treningowy: 4-5 ćwiczeń. Format ćwiczenia: "Nazwa Xserii x Ypowt RPEz". Uwzględnij Facepull i Hip Thrust jako akcesoria.';
-    +'KLIENT:\n'
-    +'Imię: '+client.name+', Wiek: '+client.age+' lat, Waga: '+client.weight+'kg, Wzrost: '+client.height+'cm\n'
-    +'Cel: '+client.goal+'\n'
-    +'Poziom: '+client.level+'\n'
-    +'Metoda: '+method+'\n'
-    +'Plan: '+duration+' tygodni, '+client.days+' dni treningowych/tydzień\n'
-    +'Sprzęt: '+equipment+'\n'
-    +'Uwagi/kontuzje: '+(client.notes||'brak')+'\n\n'
-    +'ANALIZA POSTAWY KLIENTA:\n'
-    +'Postawa ogólna: '+(client.posture||'prawidlowa')+'\n'
-    +'Barki/górna część: '+(client.shoulders||'prawidlowe')+'\n'
-    +'Dolna część/kolana: '+(client.knees||'prawidlowe')+'\n'
-    +'Słabe partie do wzmocnienia: '+((client.weakMuscles||[]).join(', ')||'brak wskazanych')+'\n\n'
-    +'DOSTOSOWANIA DO POSTAWY:\n'
-    +(client.posture==='hiperlordoza'?'- Obowiązkowe: Hip Thrust, Plank, uginanie nóg leżąc, deska\n- Unikaj: nadmiernego wyprostu lędźwiowego\n':'')
-    +(client.posture==='kifoza'?'- Obowiązkowe: Facepull, Y-raise, wiosłowania przeważają nad wyciskaniami, retrakcja łopatek\n- Unikaj: przewagi ćwiczeń push nad pull\n':'')
-    +(client.posture==='plecy_plaskie'?'- Obowiązkowe: wznosy nóg, wzmocnienie zginaczy bioder, ćwiczenia na mobilność\n':'')
-    +(client.shoulders==='protrakcja'?'- Obowiązkowe: Facepull 3x15, Y-raise, stosunek pull:push = 2:1\n':'')
-    +(client.shoulders==='odstajace_lopatki'?'- Obowiązkowe: Push Up Plus, Scap Pull-Up, wiosłowanie\n':'')
-    +(client.knees==='kolana_do_srodka'?'- Obowiązkowe: ćwiczenia aktywacji pośladków (Hip Thrust, Clamshell), zakroki z kontrolą kolan\n':'')
-    +((client.weakMuscles||[]).includes('posladki')?'- Dodaj: Hip Thrust 4x10, Clamshell, zakroki\n':'')
-    +((client.weakMuscles||[]).includes('tyl_barkow')?'- Dodaj: Facepull 3x15, Y-raise 3x12, retrakcja łopatek\n':'')
-    +((client.weakMuscles||[]).includes('core')?'- Dodaj: Plank, allahy, deska bokiem\n':'')
-    +((client.weakMuscles||[]).includes('rotatory')?'- Dodaj: Facepull, rotacja zewnętrzna z gumą\n':'')+'\n'
-    + pubmedData
-    +'WIEDZA O RPE (Rating of Perceived Exertion):\n'
-    +'RPE 10 = max wysiłek, 0 powt w zapasie (RIR 0)\n'
-    +'RPE 9 = 1 powt w zapasie (RIR 1)\n'
-    +'RPE 8 = 2 powt w zapasie (RIR 2) — STANDARD treningu siłowego\n'
-    +'RPE 7 = 3 powt w zapasie (RIR 3) — tydzień akumulacji/objętości\n'
-    +'RPE 5-6 = lekki wysiłek, serie rozgrzewkowe\n'
-    +'RPE 1-4 = bardzo lekki, deload\n\n'
-    +'ZASTOSOWANIE RPE W PLANIE:\n'
-    +(client.level==='poczatkujacy' ?
-      '- Początkujący: NIE używaj RPE — stosuj progresję liniową z konkretnym ciężarem\n'
-      +'- Zamiast RPE podaj konkretne ciężary startowe lub % własnego ciężaru ciała\n'
-    : client.level==='sredni' ?
-      '- DUP tydzień 1: RPE 7 (RIR 3) — wysoka objętość, budowanie bazy\n'
-      +'- DUP tydzień 2: RPE 8 (RIR 2) — średnia intensywność\n'
-      +'- DUP tydzień 3: RPE 9 (RIR 1) — wysoka intensywność\n'
-      +'- Autoregulacja: dostosuj ciężar do dyspozycji dnia zachowując docelowe RPE\n'
-      +'- Seria musi przekroczyć RPE 5 żeby być efektywną serią roboczą\n'
-    :
-      '- Zaawansowany: RPE 8-9 jako standard, RPE 9-10 tylko w realizacji\n'
-      +'- Blok akumulacji: RPE 7-8 | Blok intensyfikacji: RPE 8-9 | Realizacja: RPE 9-10\n'
-      +'- Prowadź dziennik: zapisuj ciężar + osiągnięte RPE do świadomego planowania\n'
-      +'- Sygnał zmęczenia: jeśli w tygodniu RPE 7 ciężar wydaje się RPE 9 → deload\n'
-    )
-    +'\nZASADY:\n'
-    +'1. Wygeneruj plan na PIERWSZE 2 tygodnie z PEŁNYMI ćwiczeniami\n'
-    +'2. Każdy dzień treningowy: 4-6 ćwiczeń (2-3 główne + 2-3 akcesoria)\n'
-    +'3. Uwzględnij słabe ogniwa (Facepull, Hip Thrust, balans push/pull)\n'
-    +'4. Tydzień 2 musi pokazywać progresję — wyższe RPE lub więcej serii/powtórzeń\n'
-    +'5. Dni odpoczynku z aktywnością (spacer/rozciąganie)\n'
-    +'6. Dla FBW: wariant A i B naprzemiennie\n'
-    +'7. Każde ćwiczenie: nazwa, serie, powtórzenia, tempo, TUT, RIR, RPE, przerwa, wskazówka\n'
-    +'8. Uwzględnij wnioski z badań PubMed w doborze ćwiczeń i parametrów\n'
-    +'9. Seria efektywna = RPE minimum 6, optymalne 7-9 zależnie od celu';
+  var rpeGuide = client.level==='poczatkujacy' ? 'RPE 6-7 (RIR 3-4), progresja liniowa +2.5-5kg co trening' 
+    : client.level==='sredni' ? 'RPE 7-9 (RIR 1-3), autoregulacja DUP'
+    : 'RPE 8-9 (RIR 1-2), periodyzacja blokowa';
+
+  var postureNotes = [];
+  if(client.posture==='hiperlordoza') postureNotes.push('dodaj Hip Thrust + Plank, unikaj przeprostu lędźwiowego');
+  if(client.posture==='kifoza') postureNotes.push('więcej pull niż push (2:1), obowiązkowo Facepull + Y-raise');
+  if(client.shoulders==='protrakcja') postureNotes.push('Facepull 3x15 obowiązkowo, pull:push=2:1');
+  if(client.knees==='kolana_do_srodka') postureNotes.push('aktywacja pośladków (Hip Thrust, Clamshell), zakroki z kontrolą');
+  if((client.weakMuscles||[]).includes('posladki')) postureNotes.push('Hip Thrust 4x10');
+  if((client.weakMuscles||[]).includes('core')) postureNotes.push('Plank + allahy');
+  if((client.weakMuscles||[]).includes('tyl_barkow')) postureNotes.push('Facepull + Y-raise');
+
+  var prompt = 'Jesteś elitarnym trenerem personalnym i ekspertem od periodyzacji. Stwórz spersonalizowany plan treningowy. Odpowiedz TYLKO czystym JSON.\n\n'
+    +'PROFIL KLIENTA:\n'
+    +'- Imię: '+client.name+'\n'
+    +'- Cel: '+client.goal+'\n'
+    +'- Staż: '+client.level+'\n'
+    +'- Dni treningowe: '+client.days+'/tydzień\n'
+    +'- Sprzęt: '+equipment+'\n'
+    +'- Metoda: '+method+'\n'
+    +'- Kontuzje/uwagi: '+(client.notes||'brak')+'\n'
+    +'- Postawa: '+(client.posture||'prawidłowa')+'\n'
+    +(postureNotes.length ? '- Korekty postawy: '+postureNotes.join(', ')+'\n' : '')
+    +'\nZŁOTE ZASADY EKSPERTÓW:\n'
+    +'1. Objętość: '+params.objetosc+'\n'
+    +'2. Kolejność: wielostawowe na początku, izolacje na końcu\n'
+    +'3. Progresja: '+rpeGuide+'\n'
+    +'4. Periodyzacja: '+params.periodyzacja+'\n'
+    +'5. Przerwy: '+params.przerwy+'\n'
+    +(postureNotes.length ? '6. KONTUZJE/POSTAWA: '+postureNotes.join(' | ')+'\n' : '')
+    +'\nFORMAT JSON:\n'
+    +'{"name":"nazwa planu","tygodnie":[{"nr":1,"cel":"cel tygodnia","dni":['
+    +'{"day":"PON","muscles":"Klatka+Triceps","exercises":['
+    +'{"name":"Wyciskanie sztangi","serie":4,"powt":"8","RPE":8,"wskazowka":"łopatki ściągnięte"}]}'
+    +',{"day":"WT","rest":true}'
+    +']}]}\n\n'
+    +'ZASADY:\n'
+    +'- Wygeneruj DOKŁADNIE '+client.days+' dni treningowych (łącznie 7 dni PON-ND)\n'
+    +'- Każdy dzień: 4-5 ćwiczeń (2-3 wielostawowe + 1-2 izolacje)\n'
+    +'- Uwzględnij Facepull i Hip Thrust jako akcesoria\n'
+    +'- Jeśli są kontuzje — zastąp niebezpieczne ćwiczenia bezpiecznymi alternatywami\n'
+    +'- Tylko tydzień 1';
 
   try {
     var resp = await fetch(WORKER_URL, {method:'POST', headers:{'Content-Type':'application/json'},
@@ -1298,7 +1271,7 @@ async function generatePlan(){
         // Ćwiczenia mogą być stringami lub obiektami
         var exList = (d.exercises||[]).map(function(ex){
           if(typeof ex === 'string') return ex;
-          return (ex.name||'')+(ex.serie?' '+ex.serie+'x'+(ex.powt||''):'')+(ex.RIR?' RPE'+(10-ex.RIR):'');
+          return (ex.name||'')+(ex.serie?' '+ex.serie+'x'+(ex.powt||ex.powtorzenia||''):'')+(ex.RPE?' RPE'+ex.RPE:'')+(ex.RIR?' RIR'+ex.RIR:'');
         });
         // Policz serie z stringów (np. "4x8" → 4)
         var totalSets = d.rest ? 0 : exList.reduce(function(acc,ex){
