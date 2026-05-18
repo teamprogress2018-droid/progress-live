@@ -1124,58 +1124,34 @@ async function generatePlan(){
   var btn = document.getElementById('gen-plan-btn');
   btn.disabled = true;
 
-  // KROK 1: Pobierz badania z PubMed
-  document.getElementById('gen-plan-status').innerHTML = '<div class="ai-box"><div class="ai-icon">🔬</div><div class="ai-title">SZUKAM BADAŃ NAUKOWYCH</div><div class="ai-sub">Pobieranie aktualnych badań z PubMed dotyczących '+client.goal+'...</div><div class="dot-loader"><span></span><span></span><span></span></div></div>';
+  document.getElementById('gen-plan-status').innerHTML = '<div class="ai-box"><div class="ai-icon">⚡</div><div class="ai-title">GENERUJĘ PLAN</div><div class="ai-sub">Claude AI tworzy naukowy plan treningowy...</div><div class="dot-loader"><span></span><span></span><span></span></div></div>';
 
+  // PubMed w tle (nie blokuje generowania)
   var pubmedData = '';
-  try {
-    // Dobierz tematy wyszukiwania do celu klienta
-    var searchTopics = {
-      masa: 'hypertrophy resistance training volume 2024',
-      sila: 'strength training periodization powerlifting 2024',
-      redukcja: 'fat loss resistance training caloric deficit 2024',
-      kondycja: 'HIIT cardiovascular endurance training 2024',
-      zdrowie: 'exercise health benefits resistance training 2024'
-    };
-    var topic = searchTopics[client.goal] || 'resistance training hypertrophy 2024';
-
-    // Dodaj temat specyficzny dla poziomu
-    if(client.level==='poczatkujacy') topic += ' beginners linear progression';
-    if(client.level==='sredni') topic += ' undulating periodization DUP';
-    if(client.level==='zaawansowany') topic += ' advanced block periodization';
-
-    var searchUrl = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term='+encodeURIComponent(topic)+'&retmax=5&sort=date&retmode=json';
-    var r1 = await fetch(searchUrl);
-    var d1 = await r1.json();
-    var ids = d1.esearchresult.idlist;
-
-    if(ids.length) {
-      var sumUrl = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id='+ids.join(',')+'&retmode=json';
-      var r2 = await fetch(sumUrl);
-      var d2 = await r2.json();
-
-      var studies = [];
-      ids.forEach(function(id){
-        var a = d2.result[id];
-        if(!a) return;
-        studies.push({
-          title: a.title||'',
-          journal: a.fulljournalname||a.source||'',
-          year: a.pubdate?a.pubdate.substring(0,4):'',
-          authors: a.authors&&a.authors.length ? a.authors.slice(0,2).map(x=>x.name).join(', ')+' et al.' : ''
-        });
-      });
-
-      pubmedData = '\nAKTUALNE BADANIA NAUKOWE Z PUBMED ('+topic+'):\n'
-        + studies.map((s,i) => (i+1)+'. '+s.title+' | '+s.journal+' ('+s.year+') | '+s.authors).join('\n')
-        + '\nUwzględnij wnioski z tych badań w planie treningowym.\n';
-
-      document.getElementById('gen-plan-status').innerHTML = '<div class="ai-box"><div class="ai-icon">⚡</div><div class="ai-title">GENERUJĘ PLAN</div><div class="ai-sub">Znaleziono '+studies.length+' badań naukowych. Claude AI tworzy plan...</div><div class="dot-loader"><span></span><span></span><span></span></div></div>';
-    }
-  } catch(e) {
-    // Jeśli PubMed niedostępny — kontynuuj bez badań
-    document.getElementById('gen-plan-status').innerHTML = '<div class="ai-box"><div class="ai-icon">⚡</div><div class="ai-title">GENERUJĘ PLAN</div><div class="ai-sub">Claude AI tworzy naukowy plan treningowy...</div><div class="dot-loader"><span></span><span></span><span></span></div></div>';
-  }
+  var pubmedPromise = (async function(){
+    try {
+      var searchTopics = {
+        masa: 'hypertrophy resistance training 2024',
+        sila: 'strength training periodization 2024',
+        redukcja: 'fat loss resistance training 2024',
+        kondycja: 'HIIT endurance training 2024',
+        zdrowie: 'exercise health resistance training 2024'
+      };
+      var topic = (searchTopics[client.goal]||'resistance training hypertrophy 2024');
+      var r1 = await fetch('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term='+encodeURIComponent(topic)+'&retmax=3&sort=date&retmode=json');
+      var d1 = await r1.json();
+      var ids = d1.esearchresult.idlist;
+      if(ids.length){
+        var r2 = await fetch('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id='+ids.join(',')+'&retmode=json');
+        var d2 = await r2.json();
+        var studies = ids.map(function(id){
+          var a=d2.result[id]; 
+          return a ? a.title+' ('+( a.fulljournalname||'')+', '+(a.pubdate||'').substring(0,4)+')' : '';
+        }).filter(Boolean);
+        pubmedData = 'Badania PubMed: '+studies.join(' | ')+'\n';
+      }
+    } catch(e){ /* ignoruj błąd PubMed */ }
+  })();
 
   // Parametry naukowe na podstawie poziomu
   var sciParams = {
