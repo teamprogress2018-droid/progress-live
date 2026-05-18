@@ -1219,51 +1219,19 @@ async function generatePlan(){
   if((client.weakMuscles||[]).includes('core')) postureNotes.push('Plank + allahy');
   if((client.weakMuscles||[]).includes('tyl_barkow')) postureNotes.push('Facepull + Y-raise');
 
-  var sciKnowledge = 
-    'BAZA WIEDZY NAUKOWEJ (źródła: Barbell Medicine, NASM, PTPioneer, badania peer-reviewed):\n'
-    +'1. PROGRESYWNE PRZEŁADOWANIE: +2.5-10% tygodniowo. Mięśnie adaptują się szybciej niż ścięgna!\n'
-    +'2. SPECYFICZNOŚĆ (SAID): >85% 1RM dla siły max, 60-75% dla hipertrofii, ćwiczenia eksplozywne dla mocy\n'
-    +'3. FITT-VP: 2-3x/tydzień każda partia, 10-20 serii roboczych/partia/tydzień, 60-90% 1RM\n'
-    +'4. AUTOREGULACJA RPE/RIR: RPE 8 = 2 powt w zapasie. Gorszy dzień → -5-10% ciężaru\n'
-    +'5. MEZOCYKL: 4-8 tyg, blok akumulacji (wysoka objętość 8-12 powt) → blok intensyfikacji (3-5 powt)\n'
-    +'6. DELOAD: co 4-6 tyg, -50% serii lub -10-20% ciężaru, NIEZBĘDNY dla regeneracji układu nerwowego\n'
-    +'7. PIVOT WEEK: między blokami — nowe warianty ćwiczeń, zmiana zakresów, odciążenie stawów\n'
-    +'8. ZMIENNOŚĆ: zmiana ćwiczeń co 4-6 tyg zapobiega stagnacji i przeciążeniu\n'
-    +'9. MIKROCYKL: min 48h przerwy między intensywnymi treningami tej samej partii\n'
-    +'10. PRZERWY: 2-3 min dla siły (resynteza ATP), 30-90s dla hipertrofii (stres metaboliczny)\n';
-
-  var prompt = 'Jesteś elitarnym trenerem personalnym i ekspertem od periodyzacji. Stwórz spersonalizowany plan treningowy. Odpowiedz TYLKO czystym JSON.\n\n'
-    +'PROFIL KLIENTA:\n'
-    +'- Imię: '+client.name+'\n'
-    +'- Cel: '+client.goal+'\n'
-    +'- Staż: '+client.level+'\n'
-    +'- Dni treningowe: '+client.days+'/tydzień\n'
-    +'- Sprzęt: '+equipment+'\n'
-    +'- Metoda: '+method+'\n'
-    +'- Kontuzje/uwagi: '+(client.notes||'brak')+'\n'
-    +'- Postawa: '+(client.posture||'prawidłowa')+'\n'
-    +(postureNotes.length ? '- Korekty postawy: '+postureNotes.join(', ')+'\n' : '')
-    +'\nZŁOTE ZASADY EKSPERTÓW:\n'
-    +'1. Objętość: '+params.objetosc+'\n'
-    +'2. Kolejność: wielostawowe na początku, izolacje na końcu\n'
-    +'3. Progresja: '+rpeGuide+'\n'
-    +'4. Periodyzacja: '+params.periodyzacja+'\n'
-    +'5. Przerwy: '+params.przerwy+'\n'
-    +(postureNotes.length ? '6. POSTAWA/KONTUZJE: '+postureNotes.join(' | ')+'\n' : '')
-    +'\n'+sciKnowledge
-    +'\nFORMAT JSON:\n'
-    +'{"name":"nazwa planu","tygodnie":[{"nr":1,"cel":"cel tygodnia","dni":['
-    +'{"day":"PON","muscles":"Klatka+Triceps","exercises":['
-    +'{"name":"Wyciskanie sztangi","serie":4,"powt":"8","RPE":8,"wskazowka":"łopatki ściągnięte"}]}'
-    +',{"day":"WT","rest":true}'
-    +']}]}\n\n'
-    +'ZASADY:\n'
-    +'- Wygeneruj DOKŁADNIE '+client.days+' dni treningowych (łącznie 7 dni PON-ND)\n'
-    +'- Każdy dzień: 4-5 ćwiczeń (2-3 wielostawowe + 1-2 izolacje)\n'
-    +'- Uwzględnij Facepull i Hip Thrust jako akcesoria\n'
-    +'- Przy kontuzjach — zastąp niebezpieczne ćwiczenia bezpiecznymi alternatywami\n'
-    +'- Tylko tydzień 1\n'
-    +'- Cel treningu: '+client.goal;
+  var prompt = 'Trener personalny. Stwórz plan. TYLKO JSON.\n'
+    +'Klient:'+client.name+',cel:'+client.goal+',staż:'+client.level+',dni:'+client.days+',sprzęt:'+equipment+',metoda:'+method
+    +(client.notes?',kontuzje:'+client.notes:'')
+    +(client.posture&&client.posture!=='prawidlowa'?',postawa:'+client.posture:'')
+    +(postureNotes.length?',korekty:'+postureNotes.join('|'):'')
+    +'\nPeriodyzacja:'+params.periodyzacja.split('—')[0]
+    +'\nRPE:'+rpeGuide.split(',')[0]
+    +'\nObjętość:'+params.objetosc.split(',')[0]
+    +'\n\nJSON:{"name":"nazwa","tygodnie":[{"nr":1,"cel":"cel","dni":['
+    +'{"day":"PON","muscles":"partie","exercises":[{"name":"Ćwiczenie","serie":4,"powt":"8","RPE":8,"wskazowka":"wskazówka"}]},'
+    +'{"day":"WT","rest":true}'
+    +']}]}'
+    +'\n\nZASADY: '+client.days+' dni treningowych w 7 dniach. 4-5 ćwiczeń/dzień. Uwzględnij Facepull+HipThrust. Tylko tydzień 1.';
 
   try {
     var resp = await fetch(WORKER_URL, {method:'POST', headers:{'Content-Type':'application/json'},
