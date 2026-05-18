@@ -406,7 +406,7 @@ input,button,textarea,select{font-family:'DM Sans',sans-serif;}
 <!-- FULLVIEW: DODAJ KLIENTA -->
 <div class="fullview" id="add-client-view">
   <div class="fv-hdr">
-    <button class="back-btn" onclick="closeFullview('add-client-view')">← Wróć</button>
+    <button class="back-btn" onclick="closeFullview('add-client-view');renderDashboard();">← Wróć</button>
     <div class="fv-title">NOWY KLIENT</div>
   </div>
   <div class="fv-scroll">
@@ -863,8 +863,17 @@ function updateSidebarClients(){
   }).join('');
 }
 
-function openFullview(id){ document.getElementById(id).classList.add('show'); }
-function closeFullview(id){ document.getElementById(id).classList.remove('show'); }
+function openFullview(id){ 
+  document.getElementById(id).classList.add('show'); 
+}
+function closeFullview(id){ 
+  var el = document.getElementById(id);
+  if(el) {
+    el.classList.remove('show');
+    el.style.display = 'none';
+    setTimeout(function(){ el.style.display = ''; }, 50);
+  }
+}
 
 // ============================================================
 // DASHBOARD
