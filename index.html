@@ -25,7 +25,6 @@ input,button,textarea,select{font-family:'DM Sans',sans-serif;}
 .screen{display:none;flex-direction:column;flex:1;overflow:hidden;}
 .screen.active{display:flex;}
 
-/* DESKTOP LAYOUT */
 @media (min-width: 900px) {
   body{overflow:hidden;}
   .app{max-width:100%;flex-direction:row;height:100vh;}
@@ -71,20 +70,18 @@ input,button,textarea,select{font-family:'DM Sans',sans-serif;}
   .desktop-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
   .desktop-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
 
-  /* Hide mobile elements */
-  .app > .hdr{display:none;}
-  .app > .nav{display:none;}
-  .screen{max-width:100% !important;}
-  .screen > .hdr{display:none;}
-  .screen.active{display:block;overflow:hidden;}
-  .scroll{height:calc(100vh - 73px);overflow-y:auto;padding:0;}
-
-  /* Fullviews on desktop */
+  /* UKRYJ WSZYSTKIE MOBILE ELEMENTY NA DESKTOPIE */
+  .app > .hdr{display:none !important;}
+  .app > .nav{display:none !important;}
+  .screen{display:none !important;}
   .fullview{max-width:600px;left:260px;box-shadow:-4px 0 20px rgba(0,0,0,0.5);}
 }
+
 @media (max-width:899px){
   .desktop-sidebar{display:none !important;}
   .desktop-main{display:none !important;}
+  .screen{display:none;flex-direction:column;flex:1;overflow:hidden;}
+  .screen.active{display:flex !important;}
 }
 
 /* HEADER */
