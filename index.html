@@ -1110,50 +1110,108 @@ async function generatePlan(){
 
   var btn = document.getElementById('gen-plan-btn');
   btn.disabled = true;
-  document.getElementById('gen-plan-status').innerHTML = '<div class="ai-box"><div class="ai-icon">⚡</div><div class="ai-title">GENERUJĘ PLAN</div><div class="ai-sub">Claude AI analizuje parametry i tworzy naukowy plan...</div><div class="dot-loader"><span></span><span></span><span></span></div></div>';
+
+  // KROK 1: Pobierz badania z PubMed
+  document.getElementById('gen-plan-status').innerHTML = '<div class="ai-box"><div class="ai-icon">🔬</div><div class="ai-title">SZUKAM BADAŃ NAUKOWYCH</div><div class="ai-sub">Pobieranie aktualnych badań z PubMed dotyczących '+client.goal+'...</div><div class="dot-loader"><span></span><span></span><span></span></div></div>';
+
+  var pubmedData = '';
+  try {
+    // Dobierz tematy wyszukiwania do celu klienta
+    var searchTopics = {
+      masa: 'hypertrophy resistance training volume 2024',
+      sila: 'strength training periodization powerlifting 2024',
+      redukcja: 'fat loss resistance training caloric deficit 2024',
+      kondycja: 'HIIT cardiovascular endurance training 2024',
+      zdrowie: 'exercise health benefits resistance training 2024'
+    };
+    var topic = searchTopics[client.goal] || 'resistance training hypertrophy 2024';
+
+    // Dodaj temat specyficzny dla poziomu
+    if(client.level==='poczatkujacy') topic += ' beginners linear progression';
+    if(client.level==='sredni') topic += ' undulating periodization DUP';
+    if(client.level==='zaawansowany') topic += ' advanced block periodization';
+
+    var searchUrl = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term='+encodeURIComponent(topic)+'&retmax=5&sort=date&retmode=json';
+    var r1 = await fetch(searchUrl);
+    var d1 = await r1.json();
+    var ids = d1.esearchresult.idlist;
+
+    if(ids.length) {
+      var sumUrl = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id='+ids.join(',')+'&retmode=json';
+      var r2 = await fetch(sumUrl);
+      var d2 = await r2.json();
+
+      var studies = [];
+      ids.forEach(function(id){
+        var a = d2.result[id];
+        if(!a) return;
+        studies.push({
+          title: a.title||'',
+          journal: a.fulljournalname||a.source||'',
+          year: a.pubdate?a.pubdate.substring(0,4):'',
+          authors: a.authors&&a.authors.length ? a.authors.slice(0,2).map(x=>x.name).join(', ')+' et al.' : ''
+        });
+      });
+
+      pubmedData = '\nAKTUALNE BADANIA NAUKOWE Z PUBMED ('+topic+'):\n'
+        + studies.map((s,i) => (i+1)+'. '+s.title+' | '+s.journal+' ('+s.year+') | '+s.authors).join('\n')
+        + '\nUwzględnij wnioski z tych badań w planie treningowym.\n';
+
+      document.getElementById('gen-plan-status').innerHTML = '<div class="ai-box"><div class="ai-icon">⚡</div><div class="ai-title">GENERUJĘ PLAN</div><div class="ai-sub">Znaleziono '+studies.length+' badań naukowych. Claude AI tworzy plan...</div><div class="dot-loader"><span></span><span></span><span></span></div></div>';
+    }
+  } catch(e) {
+    // Jeśli PubMed niedostępny — kontynuuj bez badań
+    document.getElementById('gen-plan-status').innerHTML = '<div class="ai-box"><div class="ai-icon">⚡</div><div class="ai-title">GENERUJĘ PLAN</div><div class="ai-sub">Claude AI tworzy naukowy plan treningowy...</div><div class="dot-loader"><span></span><span></span><span></span></div></div>';
+  }
 
   // Parametry naukowe na podstawie poziomu
   var sciParams = {
     poczatkujacy: {
-      periodyzacja: 'liniowa (+5kg przysiad/martwy, +2.5kg reszta co trening)',
-      TUT: '40-60 sekund (tempo 2-0-2-0)',
-      intensywnosc: '65-75% 1RM, RPE 6-7, RIR 3-4',
-      przerwy: '3-5 min ćwiczenia złożone, 90-120s izolowane',
+      periodyzacja: 'LINIOWA — tygodniowy wzrost obciążenia, jedna cecha na raz',
+      struktura: 'FBW A/B naprzemiennie 3x/tydzień (PON/ŚR/PT)',
+      fazy: '4 tyg objętość (10-12 powt) → 4 tyg siła (6-8 powt) → 4 tyg szczytowa (3-5 powt)',
+      TUT: '40-60 sekund, tempo 2-0-2-0',
+      intensywnosc: 'Objętość: 60-70% 1RM | Siła: 75-85% 1RM | RPE 6-7 RIR 3-4',
+      przerwy: '3-5 min złożone, 90-120s izolowane',
+      objetosc: '3-5 serii/ćwiczenie, 10-15 serii/grupę/tydzień (MEV)',
       deload: 'co 8-12 tygodni (-50% objętości)',
-      objetosc: '10-15 serii/grupę/tydzień (MEV)',
-      struktura: 'FBW A/B naprzemiennie 3x/tydzień',
-      cwiczenia_glowne: '5x5 (przysiad, wyciskanie, wiosłowanie, martwy ciąg, OHP)',
+      cwiczenia_glowne: '5x5 bojów głównych (przysiad, wyciskanie, wiosłowanie, martwy, OHP)',
       cwiczenia_akcesoria: '3x8-12 (hip thrust, wznosy, biceps, triceps, łydki, core)',
-      progresja: 'dokładaj ciężar co trening gdy zaliczyłeś wszystkie powtórzenia z dobrą techniką',
+      progresja: '+5kg przysiad/martwy, +2.5kg reszta co trening gdy zaliczyłeś wszystkie powtórzenia',
       reset: 'stagnacja = zdejmij 10% i progresuj od nowa',
-      uwagi: 'Focus na technikę, startuj od samej sztangi, pełny ROM'
+      kolejnosc: 'wielostawowe na początku gdy świeży, izolowane na końcu',
+      uwagi: 'Focus na technikę, startuj od samej sztangi, pełny ROM, eksplozywna faza koncentryczna'
     },
     sredni: {
-      periodyzacja: 'falowa DUP (Dzień Siły 3-5 powt, Hipertrofia 8-12, Wytrzymałość 15+)',
-      TUT: '20-70 sekund w zależności od dnia (tempo 3-0-1-1)',
-      intensywnosc: 'Dzień siły >85% 1RM RPE 8-9, Hipertrofia 70% RPE 7-8, RIR 2-3',
-      przerwy: '3-5 min ćwiczenia ciężkie, 2 min hipertrofia, 90s wytrzymałość',
+      periodyzacja: 'FALISTA DUP — rotacja celów co sesję (siła/hipertrofia/wytrzymałość)',
+      struktura: 'PON siła (3-5 powt 85-90% 1RM) + ŚR hipertrofia (8-12 powt 67-75% 1RM) + PT wytrzymałość (15-20 powt 55-65% 1RM)',
+      fazy: 'Ciągły cykl DUP, reset co 12-16 tygodni',
+      TUT: 'Siła: 15-25s eksplozywnie | Hipertrofia: 30-60s tempo 2-0-2-0 | Wytrzymałość: 60-90s wolna ekscentryczna',
+      intensywnosc: 'PON: 85-90% 1RM RPE 8-9 | ŚR: 67-75% 1RM RPE 7-8 RIR 2-3 | PT: 55-65% 1RM',
+      przerwy: 'Siła: 2-5 min (resynteza ATP-PC) | Hipertrofia: 30-90s (stres metaboliczny) | Wytrzymałość: 30-60s',
+      objetosc: '4 serie/ćwiczenie siłowy i hipertrofia, 3 serie wytrzymałość, 15-20 serii/grupę/tydzień (MAV)',
       deload: 'co 6-8 tygodni (-50-70% objętości lub 50-60% ciężaru)',
-      objetosc: '15-20 serii/grupę/tydzień (MAV)',
-      struktura: 'PON siła, ŚR hipertrofia, PT wytrzymałość/moc',
-      cwiczenia_glowne: 'warianty bojów + personalizacja pod słabe ogniwa',
-      cwiczenia_akcesoria: '2-3 izolowane na słabe partie + Facepull, Y-raise, Hip Thrust',
-      slabe_ogniwa: 'Facepull (rotatory), Y-raise (trapez dolny), Hip Thrust (pośladki), uginanie nóg (kulszowe)',
-      progresja: 'tygodniowa - zwiększaj ciężar lub serie co tydzień, nie co trening',
-      uwagi: 'DUP, równowaga push/pull, TUT jako narzędzie progresji, personalizacja akcesoriów'
+      cwiczenia_glowne: 'Wielostawowe na początku każdej sesji, sesja siły TYLKO wielostawowe',
+      cwiczenia_akcesoria: 'Hipertrofia: wielostawowe + izolowane | Wytrzymałość: mniejsza złożoność techniczna',
+      slabe_ogniwa: 'Facepull 3x15, Y-raise 3x12, Hip Thrust 4x10, balans push:pull = 1:1.5',
+      progresja: 'Tygodniowa — +ciężar lub +powtórzenia lub +serie co tydzień, autoregulacja RPE',
+      kolejnosc: 'Wielostawowe na początku, izolowane na końcu, siłowe przed cardio',
+      uwagi: 'DUP zapobiega stagnacji — każda sesja inny bodziec, autoregulacja przez RPE w gorsze dni'
     },
     zaawansowany: {
-      periodyzacja: 'blokowa (akumulacja → intensyfikacja → realizacja, 3-4 tygodniowe bloki)',
-      TUT: '20-45 sekund (tempo 4-0-1-0 lub 3-1-1-0)',
-      intensywnosc: '75-90% 1RM, RPE 8-9, RIR 1-2',
-      przerwy: '3-5 min bojów wielostawowych, 2-3 min średnie ćwiczenia',
-      deload: 'co 4-6 tygodni (obowiązkowy między blokami)',
-      objetosc: '18-22 serie/grupę/tydzień (blisko MRV)',
-      struktura: '4-6 dni split, wysoka specyficzność',
-      cwiczenia_glowne: 'specyficzne warianty pod cel (Low Bar squat, Sumo deadlift etc.)',
-      slabe_ogniwa: 'szczegółowa analiza proporcji sił (zginacze:prostowniki 2:3, rotatory 3:2)',
-      progresja: 'mikroperiodyzacja - zmiana bodźca co 3-4 tygodnie (bloki)',
-      uwagi: 'Wysoka specyficzność, monitoring RIR, precyzyjny TUT, periodyzacja blokowa'
+      periodyzacja: 'BLOKOWA — 4-6 tygodniowe bloki (akumulacja → intensyfikacja → realizacja)',
+      struktura: 'Blok hipertrofia (4-6 tyg 67-85% 1RM 6-12 powt) → Blok siła (3-4 tyg 85-90% 3-5 powt) → Blok realizacja (90%+ 1-3 powt)',
+      fazy: 'Akumulacja: wysoka objętość 60-75% | Intensyfikacja: 75-90% | Realizacja: 90%+ niska objętość',
+      TUT: '20-45 sekund, tempo 4-0-1-0 lub 3-1-1-0, eksplozywna koncentryczna',
+      intensywnosc: 'Hipertrofia: 67-85% 1RM 6-12 powt | Siła: 85-90% 3-5 powt | Realizacja: 90%+ 1-3 powt RPE 9',
+      przerwy: '3-5 min wielostawowe, deload obowiązkowy między blokami',
+      objetosc: '18-22 serie/grupę/tydzień (blisko MRV), 4-6 serii/ćwiczenie',
+      deload: 'co 4-6 tygodni (między blokami obowiązkowy), -60-70% objętości',
+      cwiczenia_glowne: 'Specyficzne warianty (Low Bar squat, Sumo deadlift), analiza słabych ogniw',
+      slabe_ogniwa: 'Proporcje: zginacze:prostowniki kolana 2:3 | rotatory zew:wew barku 2:3 | biceps:triceps 1:1',
+      progresja: 'Mikroperiodyzacja — zmiana bodźca co blok (3-4 tygodnie), monitoring RIR=1-2',
+      kolejnosc: 'Techniczne ćwiczenia gdy świeży, wielostawowe na początku, izolowane na końcu',
+      uwagi: 'Najwyższa specyficzność, precyzyjny TUT, periodyzacja blokowa, analiza proporcji sił'
     }
   };
 
@@ -1206,6 +1264,7 @@ async function generatePlan(){
     +((client.weakMuscles||[]).includes('tyl_barkow')?'- Dodaj: Facepull 3x15, Y-raise 3x12, retrakcja łopatek\n':'')
     +((client.weakMuscles||[]).includes('core')?'- Dodaj: Plank, allahy, deska bokiem\n':'')
     +((client.weakMuscles||[]).includes('rotatory')?'- Dodaj: Facepull, rotacja zewnętrzna z gumą\n':'')+'\n'
+    + pubmedData
     +'ZASADY:\n'
     +'1. Wygeneruj plan na PIERWSZE 2 tygodnie z PEŁNYMI ćwiczeniami\n'
     +'2. Każdy dzień treningowy: 4-6 ćwiczeń (2-3 główne + 2-3 akcesoria)\n'
@@ -1213,7 +1272,8 @@ async function generatePlan(){
     +'4. Tydzień 2 musi pokazywać progresję względem tygodnia 1\n'
     +'5. Dni odpoczynku z aktywnością (spacer/rozciąganie)\n'
     +'6. Dla FBW: wariant A i B naprzemiennie\n'
-    +'7. Każde ćwiczenie: nazwa, serie, powtórzenia, tempo, TUT, RIR, przerwa, wskazówka techniczna';
+    +'7. Każde ćwiczenie: nazwa, serie, powtórzenia, tempo, TUT, RIR, przerwa, wskazówka techniczna\n'
+    +'8. Uwzględnij wnioski z badań PubMed w doborze ćwiczeń i parametrów';
 
   try {
     var resp = await fetch(WORKER_URL, {method:'POST', headers:{'Content-Type':'application/json'},
@@ -1268,6 +1328,7 @@ async function generatePlan(){
       +'<div style="background:var(--surface2);border-radius:8px;padding:10px;"><div style="font-size:9px;color:var(--muted);font-family:DM Mono,monospace;">INTENSYWNOŚĆ</div><div style="font-size:12px;color:var(--text);margin-top:3px;">'+params.intensywnosc.split(',')[0]+'</div></div>'
       +'<div style="background:var(--surface2);border-radius:8px;padding:10px;"><div style="font-size:9px;color:var(--muted);font-family:DM Mono,monospace;">DELOAD</div><div style="font-size:12px;color:var(--text);margin-top:3px;">'+params.deload+'</div></div>'
       +'</div>'
+      +(pubmedData ? '<div style="background:rgba(96,165,250,0.06);border:1px solid rgba(96,165,250,0.2);border-radius:8px;padding:10px;margin-bottom:12px;"><div style="font-size:9px;font-family:DM Mono,monospace;color:var(--blue);margin-bottom:4px;">🔬 OPARTY NA BADANIACH PUBMED</div><div style="font-size:11px;color:var(--muted);">Plan uwzględnia najnowsze badania naukowe z zakresu '+client.goal+'</div></div>' : '')
       +'<button class="btn-primary" onclick="closeFullview(\'gen-plan-view\');goScreen(\'plans\')">Zobacz plan →</button>'
       +'</div>';
 
