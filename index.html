@@ -1233,45 +1233,140 @@ async function generatePlan(){
     +']}]}'
     +'\n\nZASADY: '+client.days+' dni treningowych w 7 dniach. 4-5 ćwiczeń/dzień. Uwzględnij Facepull+HipThrust. Tylko tydzień 1.';
 
+  // Generuj plan lokalnie na podstawie wiedzy naukowej
+  var generatedPlan = buildPlanFromTemplate(client, method, params, postureNotes);
+  
   try {
-    var resp = await fetch(WORKER_URL, {method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:3000, messages:[{role:'user',content:prompt}]})});
-    var data = await resp.json();
-    var raw = data.content.map(i=>i.text||'').join('');
-    var s = raw.indexOf('{'), e = raw.lastIndexOf('}');
-    var parsed = JSON.parse(raw.substring(s,e+1));
-
-    // Weź tydzień 1
-    var week1 = (parsed.tygodnie&&parsed.tygodnie[0]) ? (parsed.tygodnie[0].dni||[]) : (parsed.dni||[]);
-
     var plan = {
-      name: parsed.name || method+' — '+client.name,
+      name: generatedPlan.name,
       method: method,
       duration: duration,
       clientId: clientId,
       clientName: client.name,
-      days: week1.map(function(d){
-        // Ćwiczenia mogą być stringami lub obiektami
-        var exList = (d.exercises||[]).map(function(ex){
-          if(typeof ex === 'string') return ex;
-          return (ex.name||'')+(ex.serie?' '+ex.serie+'x'+(ex.powt||ex.powtorzenia||''):'')+(ex.RPE?' RPE'+ex.RPE:'')+(ex.RIR?' RIR'+ex.RIR:'');
-        });
-        // Policz serie z stringów (np. "4x8" → 4)
-        var totalSets = d.rest ? 0 : exList.reduce(function(acc,ex){
-          var m = ex.match(/(\d+)x\d+/);
-          return acc + (m ? parseInt(m[1]) : 4);
-        }, 0);
-        return {
-          day: d.day,
-          rest: d.rest||false,
-          muscles: d.muscles||'',
-          sets: totalSets,
-          exercises: exList
-        };
-      }),
+      days: generatedPlan.days,
       params: params,
       createdAt: new Date().toISOString()
     };
+
+    try {
+      var ref = await window._addDoc(window._collection(window._db,'plans'), plan);
+      plan.id = ref.id;
+    } catch(e2){ plan.id = 'local-'+Date.now(); }
+
+    window.PLANS.push(plan);
+
+    document.getElementById('gen-plan-status').innerHTML = '<div style="background:rgba(200,241,53,0.06);border:1px solid rgba(200,241,53,0.2);border-radius:12px;padding:16px;margin-top:16px;">'
+      +'<div style="font-family:Bebas Neue,sans-serif;font-size:16px;color:var(--accent);margin-bottom:8px;">✅ PLAN GOTOWY: '+plan.name+'</div>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">'
+      +'<div style="background:var(--surface2);border-radius:8px;padding:10px;"><div style="font-size:9px;color:var(--muted);font-family:DM Mono,monospace;">PERIODYZACJA</div><div style="font-size:12px;color:var(--text);margin-top:3px;">'+params.periodyzacja.split('—')[0].trim()+'</div></div>'
+      +'<div style="background:var(--surface2);border-radius:8px;padding:10px;"><div style="font-size:9px;color:var(--muted);font-family:DM Mono,monospace;">RPE</div><div style="font-size:12px;color:var(--text);margin-top:3px;">'+rpeGuide.split(',')[0]+'</div></div>'
+      +'<div style="background:var(--surface2);border-radius:8px;padding:10px;"><div style="font-size:9px;color:var(--muted);font-family:DM Mono,monospace;">DELOAD</div><div style="font-size:12px;color:var(--text);margin-top:3px;">'+params.deload+'</div></div>'
+      +'<div style="background:var(--surface2);border-radius:8px;padding:10px;"><div style="font-size:9px;color:var(--muted);font-family:DM Mono,monospace;">OBJĘTOŚĆ</div><div style="font-size:12px;color:var(--text);margin-top:3px;">'+params.objetosc.split(',')[0]+'</div></div>'
+      +'</div>'
+      +'<div style="background:rgba(96,165,250,0.06);border:1px solid rgba(96,165,250,0.15);border-radius:8px;padding:10px;margin-bottom:12px;font-size:11px;color:var(--muted);">🔬 Plan oparty na: Barbell Medicine, NASM, Architektura Siły, PTPioneer</div>'
+      +'<button class="btn-primary" onclick="closeFullview(\'gen-plan-view\');goScreen(\'plans\')">Zobacz plan →</button>'
+      +'</div>';
+
+  } catch(err){
+    document.getElementById('gen-plan-status').innerHTML = '<div style="color:var(--red);font-size:12px;padding:10px;">Błąd: '+err.message+'</div>';
+  }
+  btn.disabled = false;
+}
+
+// ============================================================
+// GENERATOR PLANÓW — WBUDOWANA BAZA WIEDZY NAUKOWEJ
+// ============================================================
+function buildPlanFromTemplate(client, method, params, postureNotes){
+  var isM = client.gender !== 'K';
+  var days = parseInt(client.days)||3;
+  var goal = client.goal||'masa';
+  var level = client.level||'sredni';
+
+  // Baza ćwiczeń wielostawowych
+  var PUSH = ['Wyciskanie sztangi leżąc 4x8 RPE8','Wyciskanie hantli skos+ 3x10 RPE8','Wyciskanie żołnierskie OHP 4x6 RPE8','Dipy na poręczach 3x10 RPE7'];
+  var PULL = ['Wiosłowanie sztangą 4x8 RPE8','Podciąganie na drążku 4x6 RPE8','Wiosłowanie hantlą 3x10 RPE8','Ściąganie drążka wyciąg 3x12 RPE7'];
+  var LEGS = ['Przysiad ze sztangą 4x8 RPE8','Martwy ciąg 3x5 RPE8','Wykroki z hantlami 3x10 RPE7','Leg press 4x12 RPE7','RDL (martwy na prostych) 3x10 RPE8'];
+  // Akcesoria — zawsze z wiedzy naukowej
+  var ACC_UPPER = ['Facepull linki 3x15 RPE7','Wznosy hantli bokiem 3x15 RPE7','Uginanie biceps hantle 3x12 RPE7','Prostowanie triceps wyciąg 3x12 RPE7'];
+  var ACC_LOWER = ['Hip Thrust sztanga 4x10 RPE8','Uginanie nóg maszyna 3x12 RPE7','Łydki wspięcia stojąc 4x15 RPE7','Plank 3x45s','Allahy wyciąg 3x15 RPE7'];
+  var ACC_CORE = ['Plank 3x45s','Allahy wyciąg 3x15 RPE7','Deska bokiem 3x30s','Wznosy nóg w zwisie 3x12'];
+
+  // Korekty postawy — obowiązkowe akcesoria
+  var postureAcc = [];
+  if(postureNotes.some(n=>n.includes('Facepull'))) postureAcc.push('Facepull linki 3x15 RPE7');
+  if(postureNotes.some(n=>n.includes('Hip Thrust'))) postureAcc.push('Hip Thrust sztanga 4x10 RPE8');
+  if(postureNotes.some(n=>n.includes('Plank'))) postureAcc.push('Plank 3x45s');
+  if(postureNotes.some(n=>n.includes('Y-raise'))) postureAcc.push('Y-raise hantlami 3x12 RPE7');
+
+  // Dostosuj RPE do poziomu
+  var rpeAdj = level==='poczatkujacy' ? -1 : level==='zaawansowany' ? 1 : 0;
+
+  function adjustRPE(ex){
+    return ex.replace(/RPE(\d+)/g, function(m,r){ return 'RPE'+(Math.min(10,parseInt(r)+rpeAdj)); });
+  }
+
+  var allDays = [];
+  var dayNames = ['PON','WT','SR','CZ','PT','SO','ND'];
+
+  if(method==='FBW' || days<=3){
+    // FBW — 3 dni pełne ciało
+    var trainingDays = days<=3 ? [0,2,4] : [0,1,2,3,4].slice(0,days);
+    dayNames.forEach(function(d,i){
+      if(trainingDays.includes(i)){
+        var ex = [PUSH[0],PULL[0],LEGS[0],'Facepull linki 3x15 RPE7','Hip Thrust sztanga 4x10 RPE8'];
+        if(postureAcc.length) ex = ex.concat(postureAcc.filter(p=>!ex.includes(p))).slice(0,5);
+        allDays.push({day:d,muscles:'Pełne ciało',exercises:ex.map(adjustRPE)});
+      } else {
+        allDays.push({day:d,rest:true});
+      }
+    });
+  } else if(method==='PPL'){
+    // Push Pull Legs
+    var pplMap = {0:'push',1:'pull',2:'legs',3:'rest',4:'push',5:'pull',6:'rest'};
+    if(days>=6) pplMap = {0:'push',1:'pull',2:'legs',3:'push',4:'pull',5:'legs',6:'rest'};
+    dayNames.forEach(function(d,i){
+      var t = pplMap[i]||'rest';
+      if(t==='push') allDays.push({day:d,muscles:'Klatka + Barki + Triceps',exercises:[PUSH[0],PUSH[1],PUSH[2],ACC_UPPER[0],ACC_UPPER[3]].map(adjustRPE)});
+      else if(t==='pull') allDays.push({day:d,muscles:'Plecy + Biceps',exercises:[PULL[0],PULL[1],PULL[2],ACC_UPPER[0],ACC_UPPER[2]].map(adjustRPE)});
+      else if(t==='legs') allDays.push({day:d,muscles:'Nogi + Core',exercises:[LEGS[0],LEGS[4],ACC_LOWER[0],ACC_LOWER[1],ACC_CORE[0]].map(adjustRPE)});
+      else allDays.push({day:d,rest:true});
+    });
+  } else if(method==='Upper Lower'){
+    var ulMap = {0:'upper',1:'lower',2:'rest',3:'upper',4:'lower',5:'rest',6:'rest'};
+    if(days>=5) ulMap = {0:'upper',1:'lower',2:'upper',3:'lower',4:'upper',5:'rest',6:'rest'};
+    dayNames.forEach(function(d,i){
+      var t = ulMap[i]||'rest';
+      if(t==='upper') allDays.push({day:d,muscles:'Górna część ciała',exercises:[PUSH[0],PULL[0],PUSH[2],PULL[2],ACC_UPPER[0]].map(adjustRPE)});
+      else if(t==='lower') allDays.push({day:d,muscles:'Dolna część ciała',exercises:[LEGS[0],LEGS[4],ACC_LOWER[0],ACC_LOWER[1],ACC_CORE[0]].map(adjustRPE)});
+      else allDays.push({day:d,rest:true});
+    });
+  } else {
+    // Arnold Split / Bro Split / domyślny
+    var splitMap = {0:'klatka+biceps',1:'plecy+triceps',2:'nogi',3:'rest',4:'barki+core',5:'rest',6:'rest'};
+    dayNames.forEach(function(d,i){
+      var t = splitMap[i]||'rest';
+      if(t==='klatka+biceps') allDays.push({day:d,muscles:'Klatka + Biceps',exercises:[PUSH[0],PUSH[1],PULL[2],ACC_UPPER[2],ACC_UPPER[0]].map(adjustRPE)});
+      else if(t==='plecy+triceps') allDays.push({day:d,muscles:'Plecy + Triceps',exercises:[PULL[0],PULL[1],PUSH[0].replace('leżąc','wąski'),ACC_UPPER[3],ACC_UPPER[0]].map(adjustRPE)});
+      else if(t==='nogi') allDays.push({day:d,muscles:'Nogi + Core',exercises:[LEGS[0],LEGS[4],ACC_LOWER[0],ACC_LOWER[1],ACC_CORE[0]].map(adjustRPE)});
+      else if(t==='barki+core') allDays.push({day:d,muscles:'Barki + Core',exercises:[PUSH[2],ACC_UPPER[1],ACC_UPPER[0],ACC_CORE[0],ACC_CORE[3]].map(adjustRPE)});
+      else allDays.push({day:d,rest:true});
+    });
+  }
+
+  // Policz serie
+  allDays = allDays.map(function(d){
+    if(d.rest) return d;
+    var sets = (d.exercises||[]).reduce(function(acc,ex){
+      var m = ex.match(/(\d+)x/); return acc+(m?parseInt(m[1]):4);
+    },0);
+    return Object.assign({},d,{sets:sets});
+  });
+
+  return {
+    name: method+' — '+goal+' ('+level+')',
+    days: allDays
+  };
+}
 
     try {
       var ref = await window._addDoc(window._collection(window._db,'plans'), plan);
