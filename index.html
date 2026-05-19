@@ -182,6 +182,23 @@ button{cursor:pointer;}
 .wb-inp{background:var(--s3);border:1px solid var(--border);border-radius:6px;padding:5px 7px;color:var(--text);font-size:12px;width:100%;}
 .wb-inp:focus{border-color:var(--accent);}
 
+/* ── PAYMENTS ── */
+.pkg-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;animation:fadeUp 0.18s ease both;}
+.pkg-card-top{height:4px;}
+.pkg-card-body{padding:16px;}
+.pkg-progress{height:6px;background:var(--s3);border-radius:99px;overflow:hidden;margin:10px 0;}
+.pkg-progress-fill{height:100%;border-radius:99px;transition:width 0.3s;}
+.pay-trans-row{display:grid;grid-template-columns:1fr 120px 100px 80px;gap:8px;padding:11px 16px;border-bottom:1px solid var(--border);font-size:12px;animation:fadeUp 0.15s ease both;}
+.pay-trans-row:last-child{border-bottom:none;}
+.pay-inv-row{display:grid;grid-template-columns:80px 1fr 120px 100px 100px 80px;gap:8px;padding:11px 16px;border-bottom:1px solid var(--border);font-size:12px;cursor:pointer;transition:background 0.1s;}
+.pay-inv-row:hover{background:rgba(255,255,255,0.02);}
+.pay-hist-row{display:grid;grid-template-columns:1fr 120px 120px 100px 100px 80px;gap:8px;padding:11px 16px;border-bottom:1px solid var(--border);font-size:12px;animation:fadeUp 0.15s ease both;}
+.pay-alert{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--s2);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;font-size:12px;}
+.pay-bar{display:flex;align-items:flex-end;gap:6px;height:100px;}
+.pay-bar-col{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;}
+.pay-bar-fill{width:100%;border-radius:4px 4px 0 0;background:var(--accent);min-height:4px;transition:height 0.3s;}
+.pay-bar-lbl{font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;text-align:center;}
+.pay-bar-val{font-size:9px;color:var(--accent);font-family:'DM Mono',monospace;}
 /* ── ON-DEMAND ── */
 .od-workout-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;cursor:pointer;transition:border-color 0.12s,transform 0.12s;animation:fadeUp 0.18s ease both;}
 .od-workout-card:hover{border-color:var(--border2);transform:translateY(-2px);}
@@ -1498,10 +1515,100 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   </div>
 </div>
 
-<!-- PAYMENTS -->
+<!-- PAYMENTS — PEŁNA SEKCJA -->
 <div class="screen" id="screen-payments">
-  <div class="topbar"><div class="topbar-title">Płatności i pakiety</div><div class="topbar-actions"><button class="btn btn-primary btn-sm" onclick="openM('m-package')">+ Pakiet</button></div></div>
-  <div class="content"><div class="card"><div style="color:var(--muted);font-size:13px;">Sekcja płatności — wkrótce rozbudowana.</div></div></div>
+  <div class="topbar">
+    <div class="topbar-title">Płatności i pakiety</div>
+    <div class="topbar-actions">
+      <div style="display:flex;gap:2px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:2px;">
+        <button class="auto-tab-btn active" id="ptab-overview" onclick="setPayTab('overview')">Przegląd</button>
+        <button class="auto-tab-btn" id="ptab-packages" onclick="setPayTab('packages')">Pakiety</button>
+        <button class="auto-tab-btn" id="ptab-invoices" onclick="setPayTab('invoices')">Faktury</button>
+        <button class="auto-tab-btn" id="ptab-history" onclick="setPayTab('history')">Historia</button>
+      </div>
+      <button class="btn btn-primary btn-sm" id="pay-add-btn" onclick="openM('m-package')">+ Nowy pakiet</button>
+    </div>
+  </div>
+
+  <!-- OVERVIEW TAB -->
+  <div id="ptab-overview-view" style="flex:1;overflow-y:auto;padding:20px 24px;">
+    <!-- statystyki top -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;">
+      <div class="stat-card"><div class="stat-val" style="color:var(--accent);" id="pay-monthly">0 zł</div><div class="stat-lbl">Przychód (mies.)</div></div>
+      <div class="stat-card" style="--accent:var(--blue);"><div class="stat-val" style="color:var(--blue);" id="pay-annual">0 zł</div><div class="stat-lbl">Przychód (rok)</div></div>
+      <div class="stat-card" style="--accent:var(--teal);"><div class="stat-val" style="color:var(--teal);" id="pay-active-pkg">0</div><div class="stat-lbl">Aktywne pakiety</div></div>
+      <div class="stat-card" style="--accent:var(--orange);"><div class="stat-val" style="color:var(--orange);" id="pay-expiring">0</div><div class="stat-lbl">Wygasa w 7 dni</div></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:16px;">
+      <!-- wykres przychodów -->
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px;margin-bottom:12px;">PRZYCHODY — OSTATNIE 6 MIESIĘCY</div>
+        <div class="card" style="padding:20px;">
+          <div id="pay-chart-svg" style="width:100%;"></div>
+        </div>
+
+        <!-- ostatnie transakcje -->
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px;margin:16px 0 12px;">OSTATNIE TRANSAKCJE</div>
+        <div class="card" style="padding:0;">
+          <div style="display:grid;grid-template-columns:1fr 120px 100px 80px;gap:8px;padding:9px 16px;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);">
+            <span>Klient / Pakiet</span><span>Data</span><span>Kwota</span><span>Status</span>
+          </div>
+          <div id="pay-transactions-list"></div>
+        </div>
+      </div>
+
+      <!-- prawa kolumna — aktywne pakiety + alerty -->
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px;margin-bottom:12px;">AKTYWNE PAKIETY</div>
+        <div id="pay-active-list" style="margin-bottom:16px;"></div>
+
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px;margin-bottom:12px;">⚠ ALERTY</div>
+        <div id="pay-alerts-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PACKAGES TAB -->
+  <div id="ptab-packages-view" style="flex:1;overflow-y:auto;padding:20px 24px;display:none;">
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;" id="pkg-client-filter-bar"></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;" id="pay-pkg-grid"></div>
+  </div>
+
+  <!-- INVOICES TAB -->
+  <div id="ptab-invoices-view" style="flex:1;overflow-y:auto;padding:20px 24px;display:none;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-size:13px;color:var(--muted);">Faktury generowane automatycznie po sprzedaży pakietu.</div>
+      <button class="btn btn-ghost btn-sm" onclick="notify('Eksport PDF — wkrótce!')">⬇ Eksportuj wszystkie</button>
+    </div>
+    <div class="card" style="padding:0;">
+      <div style="display:grid;grid-template-columns:80px 1fr 120px 100px 100px 80px;gap:8px;padding:9px 16px;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);">
+        <span>Nr faktury</span><span>Klient / Pakiet</span><span>Data</span><span>Kwota</span><span>Status</span><span></span>
+      </div>
+      <div id="pay-invoices-list"></div>
+    </div>
+  </div>
+
+  <!-- HISTORY TAB -->
+  <div id="ptab-history-view" style="flex:1;overflow-y:auto;padding:20px 24px;display:none;">
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+      <select class="form-select" style="width:auto;padding:6px 10px;font-size:12px;" id="hist-client-fil" onchange="renderPayHistory()">
+        <option value="">Wszyscy klienci</option>
+      </select>
+      <select class="form-select" style="width:auto;padding:6px 10px;font-size:12px;" id="hist-status-fil" onchange="renderPayHistory()">
+        <option value="">Wszystkie statusy</option>
+        <option value="paid">Opłacone</option>
+        <option value="pending">Oczekujące</option>
+        <option value="expired">Wygasłe</option>
+      </select>
+    </div>
+    <div class="card" style="padding:0;">
+      <div style="display:grid;grid-template-columns:1fr 120px 120px 100px 100px 80px;gap:8px;padding:9px 16px;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);">
+        <span>Pakiet</span><span>Klient</span><span>Zakup</span><span>Wygasa</span><span>Kwota</span><span>Status</span>
+      </div>
+      <div id="pay-history-list"></div>
+    </div>
+  </div>
 </div>
 
 </div><!-- /main -->
@@ -1881,15 +1988,56 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   </div>
 </div>
 
-<!-- Pakiet -->
+<!-- PAKIET MODAL — ENHANCED -->
 <div class="modal-ov" id="m-package">
-  <div class="modal">
+  <div class="modal modal-wide">
     <div class="modal-hdr"><div class="modal-title">NOWY PAKIET</div><button class="modal-close" onclick="closeM('m-package')">×</button></div>
     <div class="modal-body">
-      <div class="form-field"><label class="form-lbl">Nazwa pakietu</label><input type="text" class="form-input" id="pkg-title" placeholder="np. 10 sesji personalnych"></div>
-      <div class="form-grid"><div class="form-field"><label class="form-lbl">Liczba sesji</label><input type="number" class="form-input" id="pkg-sessions" placeholder="10"></div><div class="form-field"><label class="form-lbl">Cena (PLN)</label><input type="number" class="form-input" id="pkg-price" placeholder="1500"></div></div>
+      <div class="form-grid">
+        <div class="form-field"><label class="form-lbl">Nazwa pakietu</label><input type="text" class="form-input" id="pkg-title" placeholder="np. 10 sesji personalnych"></div>
+        <div class="form-field"><label class="form-lbl">Typ pakietu</label>
+          <select class="form-select" id="pkg-type">
+            <option value="sessions">Pakiet sesji</option>
+            <option value="monthly">Abonament miesięczny</option>
+            <option value="program">Program (jednorazowo)</option>
+            <option value="online">Coaching online</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-field"><label class="form-lbl">Liczba sesji</label><input type="number" class="form-input" id="pkg-sessions" placeholder="10" min="1"></div>
+        <div class="form-field"><label class="form-lbl">Cena (PLN)</label><input type="number" class="form-input" id="pkg-price" placeholder="1500" min="0"></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-field"><label class="form-lbl">Ważność (dni)</label><input type="number" class="form-input" id="pkg-validity" placeholder="90" min="1"></div>
+        <div class="form-field"><label class="form-lbl">Klient</label><select class="form-select" id="pkg-client"></select></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-field"><label class="form-lbl">Data zakupu</label><input type="date" class="form-input" id="pkg-date"></div>
+        <div class="form-field"><label class="form-lbl">Status płatności</label>
+          <select class="form-select" id="pkg-pay-status">
+            <option value="paid">Opłacony</option>
+            <option value="pending">Oczekujący</option>
+            <option value="partial">Częściowo opłacony</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-field"><label class="form-lbl">Notatki</label><textarea class="form-textarea" id="pkg-notes" rows="2" placeholder="Dodatkowe informacje..."></textarea></div>
     </div>
-    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-package')">Anuluj</button><button class="btn btn-primary" onclick="notify('Pakiet dodany!');closeM('m-package')">Zapisz</button></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-package')">Anuluj</button><button class="btn btn-primary" onclick="savePackage()">Zapisz pakiet</button></div>
+  </div>
+</div>
+
+<!-- FAKTURA MODAL -->
+<div class="modal-ov" id="m-invoice">
+  <div class="modal">
+    <div class="modal-hdr"><div class="modal-title" id="inv-modal-title">FAKTURA</div><button class="modal-close" onclick="closeM('m-invoice')">×</button></div>
+    <div class="modal-body" id="inv-modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeM('m-invoice')">Zamknij</button>
+      <button class="btn btn-ghost btn-sm" onclick="notify('Drukowanie — wkrótce!')">🖨 Drukuj</button>
+      <button class="btn btn-primary btn-sm" onclick="notify('Eksport PDF — wkrótce!')">⬇ PDF</button>
+    </div>
   </div>
 </div>
 
@@ -1963,6 +2111,11 @@ function goTo(n){
   if(n==='automation'){setAutoTab('onboard');}
   if(n==='resources'){renderResources();}
   if(n==='ondemand'){setODTab('browse');}
+  if(n==='payments'){
+    document.getElementById('pkg-client').innerHTML=CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
+    document.getElementById('pkg-date').value=new Date().toISOString().split('T')[0];
+    setPayTab('overview');
+  }
 }
 
 function openM(id){
@@ -3945,8 +4098,335 @@ async function askMetricAI(){
 }
 
 // ════════════════════════════════════════
-// ON-DEMAND — PORTAL NETFLIX STYLE
+// PAYMENTS — PEŁNA SEKCJA
 // ════════════════════════════════════════
+var payTab='overview';
+window.PACKAGES=[];window.INVOICES=[];
+var invoiceCounter=1000;
+
+const DEMO_PACKAGES=[
+  {id:'dp1',title:'10 sesji personalnych',type:'sessions',sessions:10,sessionsUsed:4,price:1500,validity:90,clientId:null,clientName:'Jan Kowalski',payStatus:'paid',date:'2025-03-01',expiresDate:'2025-05-30',notes:'',invoiceId:'INV-1001'},
+  {id:'dp2',title:'Miesięczny coaching online',type:'monthly',sessions:4,sessionsUsed:2,price:800,validity:30,clientId:null,clientName:'Anna Nowak',payStatus:'paid',date:'2025-04-01',expiresDate:'2025-05-01',notes:'',invoiceId:'INV-1002'},
+  {id:'dp3',title:'5 sesji — pakiet startowy',type:'sessions',sessions:5,sessionsUsed:5,price:700,validity:60,clientId:null,clientName:'Piotr Wiśniewski',payStatus:'paid',date:'2025-02-15',expiresDate:'2025-04-15',notes:'',invoiceId:'INV-1003'},
+  {id:'dp4',title:'Program 12-tygodniowy',type:'program',sessions:12,sessionsUsed:8,price:2200,validity:84,clientId:null,clientName:'Marta Kowalczyk',payStatus:'pending',date:'2025-04-10',expiresDate:'2025-07-03',notes:'Płatność ratalna',invoiceId:'INV-1004'},
+  {id:'dp5',title:'20 sesji VIP',type:'sessions',sessions:20,sessionsUsed:3,price:3500,validity:180,clientId:null,clientName:'Tomasz Mazur',payStatus:'paid',date:'2025-04-20',expiresDate:'2025-10-17',notes:'',invoiceId:'INV-1005'},
+];
+
+const DEMO_INVOICES=DEMO_PACKAGES.map((p,i)=>({
+  id:p.invoiceId,pkgId:p.id,clientName:p.clientName,
+  pkgTitle:p.title,date:p.date,amount:p.price,
+  status:p.payStatus,nr:'INV-100'+(i+1)
+}));
+
+const PAY_STATUS_PILL={paid:'pill-green',pending:'pill-orange',partial:'pill-blue',expired:'pill-red'};
+const PAY_STATUS_LABEL={paid:'Opłacony',pending:'Oczekujący',partial:'Częściowy',expired:'Wygasły'};
+const PKG_TYPE_LABEL={sessions:'Pakiet sesji',monthly:'Abonament',program:'Program',online:'Coaching online'};
+const PKG_TYPE_COLOR={sessions:'var(--accent)',monthly:'var(--blue)',program:'var(--purple)',online:'var(--teal)'};
+
+function allPackages(){return[...DEMO_PACKAGES,...(window.PACKAGES||[])];}
+function allInvoices(){return[...DEMO_INVOICES,...(window.INVOICES||[])];}
+
+function setPayTab(t){
+  payTab=t;
+  ['overview','packages','invoices','history'].forEach(tab=>{
+    const v=document.getElementById('ptab-'+tab+'-view');
+    if(v)v.style.display=tab===t?'block':'none';
+    const btn=document.getElementById('ptab-'+tab);
+    if(btn)btn.classList.toggle('active',tab===t);
+  });
+  const addBtn=document.getElementById('pay-add-btn');
+  if(addBtn)addBtn.textContent=t==='invoices'?'+ Ręczna faktura':'+ Nowy pakiet';
+  if(t==='overview')renderPayOverview();
+  if(t==='packages')renderPayPackages();
+  if(t==='invoices')renderPayInvoices();
+  if(t==='history')renderPayHistory();
+}
+
+function renderPayOverview(){
+  const all=allPackages();
+  const today=new Date();
+  const thisMonth=today.toISOString().slice(0,7);
+
+  // stats
+  const monthly=all.filter(p=>p.date&&p.date.startsWith(thisMonth)&&p.payStatus==='paid').reduce((s,p)=>s+p.price,0);
+  const annual=all.filter(p=>p.payStatus==='paid').reduce((s,p)=>s+p.price,0);
+  const active=all.filter(p=>p.expiresDate&&p.expiresDate>=today.toISOString().split('T')[0]&&p.sessionsUsed<p.sessions).length;
+  const expiring=all.filter(p=>{
+    if(!p.expiresDate)return false;
+    const d=new Date(p.expiresDate);
+    const diff=Math.ceil((d-today)/(1000*60*60*24));
+    return diff>=0&&diff<=7;
+  }).length;
+
+  document.getElementById('pay-monthly').textContent=monthly.toLocaleString('pl')+' zł';
+  document.getElementById('pay-annual').textContent=annual.toLocaleString('pl')+' zł';
+  document.getElementById('pay-active-pkg').textContent=active;
+  document.getElementById('pay-expiring').textContent=expiring;
+
+  // chart
+  renderPayChart();
+
+  // transactions
+  const tl=document.getElementById('pay-transactions-list');
+  const sorted=all.sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,8);
+  tl.innerHTML=sorted.map((p,i)=>`<div class="pay-trans-row" style="animation-delay:${i*0.03}s">
+    <div>
+      <div style="font-size:13px;font-weight:600;">${p.clientName||'—'}</div>
+      <div style="font-size:11px;color:var(--muted);">${p.title}</div>
+    </div>
+    <div style="color:var(--muted);align-self:center;">${p.date||'—'}</div>
+    <div style="font-weight:700;color:var(--accent);align-self:center;">${p.price.toLocaleString('pl')} zł</div>
+    <div style="align-self:center;"><span class="pill ${PAY_STATUS_PILL[p.payStatus]||'pill-muted'}" style="font-size:10px;">${PAY_STATUS_LABEL[p.payStatus]||p.payStatus}</span></div>
+  </div>`).join('');
+
+  // active packages
+  const pal=document.getElementById('pay-active-list');
+  const activePkgs=all.filter(p=>p.expiresDate&&p.expiresDate>=today.toISOString().split('T')[0]&&p.sessionsUsed<p.sessions).slice(0,4);
+  pal.innerHTML=activePkgs.length?activePkgs.map(p=>{
+    const pct=Math.round(p.sessionsUsed/p.sessions*100);
+    const col=PKG_TYPE_COLOR[p.type]||'var(--accent)';
+    const daysLeft=p.expiresDate?Math.ceil((new Date(p.expiresDate)-today)/(1000*60*60*24)):null;
+    return `<div class="card-sm" style="margin-bottom:8px;border-left:3px solid ${col};">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+        <div style="font-size:12px;font-weight:600;">${p.clientName}</div>
+        <div style="font-size:11px;color:var(--muted);">${daysLeft!==null?daysLeft+'d':'—'}</div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">${p.title}</div>
+      <div class="pkg-progress"><div class="pkg-progress-fill" style="width:${pct}%;background:${col};"></div></div>
+      <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${p.sessionsUsed}/${p.sessions} sesji · ${pct}%</div>
+    </div>`;
+  }).join(''):'<div style="font-size:12px;color:var(--muted);text-align:center;padding:20px;">Brak aktywnych pakietów</div>';
+
+  // alerts
+  const alerts=document.getElementById('pay-alerts-list');
+  const expPkgs=all.filter(p=>{
+    if(!p.expiresDate)return false;
+    const diff=Math.ceil((new Date(p.expiresDate)-today)/(1000*60*60*24));
+    return diff>=0&&diff<=7;
+  });
+  const pendPkgs=all.filter(p=>p.payStatus==='pending');
+  let alertsHTML='';
+  expPkgs.forEach(p=>{
+    const d=Math.ceil((new Date(p.expiresDate)-today)/(1000*60*60*24));
+    alertsHTML+=`<div class="pay-alert"><span style="font-size:18px;">⏰</span><div><div style="font-weight:600;">${p.clientName}</div><div style="color:var(--orange);">Pakiet wygasa za ${d} ${d===1?'dzień':'dni'}</div></div></div>`;
+  });
+  pendPkgs.forEach(p=>{
+    alertsHTML+=`<div class="pay-alert"><span style="font-size:18px;">💳</span><div><div style="font-weight:600;">${p.clientName}</div><div style="color:var(--red);">Oczekująca płatność — ${p.price.toLocaleString('pl')} zł</div></div></div>`;
+  });
+  alerts.innerHTML=alertsHTML||'<div style="font-size:12px;color:var(--muted);text-align:center;padding:16px;">Brak alertów ✓</div>';
+}
+
+function renderPayChart(){
+  const all=allPackages();
+  const months=['Sty','Lut','Mar','Kwi','Maj','Cze','Lip','Sie','Wrz','Paź','Lis','Gru'];
+  const now=new Date();
+  const data=[];
+  for(let i=5;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    const key=d.toISOString().slice(0,7);
+    const total=all.filter(p=>p.date&&p.date.startsWith(key)&&p.payStatus==='paid').reduce((s,p)=>s+p.price,0);
+    data.push({label:months[d.getMonth()],value:total});
+  }
+  const max=Math.max(...data.map(d=>d.value),1);
+  const el=document.getElementById('pay-chart-svg');
+  if(!el)return;
+  el.innerHTML=`<div class="pay-bar">${data.map(d=>`
+    <div class="pay-bar-col">
+      <div class="pay-bar-val">${d.value?d.value.toLocaleString('pl')+'zł':''}</div>
+      <div class="pay-bar-fill" style="height:${Math.round(d.value/max*80)+4}px;background:${d.value?'var(--accent)':'var(--s3)'};"></div>
+      <div class="pay-bar-lbl">${d.label}</div>
+    </div>`).join('')}</div>`;
+}
+
+function renderPayPackages(){
+  const all=allPackages();
+  const today=new Date().toISOString().split('T')[0];
+
+  // client filter chips
+  const bar=document.getElementById('pkg-client-filter-bar');
+  if(bar){
+    const clients=['all',...new Set(all.map(p=>p.clientName))];
+    bar.innerHTML=clients.map(c=>`<button class="wl-filter-chip${c==='all'?'active':''}" onclick="filterPkgByClient('${c}',this)">${c==='all'?'Wszyscy':c}</button>`).join('');
+  }
+
+  const grid=document.getElementById('pay-pkg-grid');
+  if(!grid)return;
+  grid.innerHTML=all.map((p,i)=>{
+    const col=PKG_TYPE_COLOR[p.type]||'var(--accent)';
+    const pct=Math.round(p.sessionsUsed/p.sessions*100);
+    const isExpired=p.expiresDate&&p.expiresDate<today;
+    const daysLeft=p.expiresDate?Math.ceil((new Date(p.expiresDate)-new Date())/(1000*60*60*24)):null;
+    return `<div class="pkg-card" style="animation-delay:${i*0.04}s">
+      <div class="pkg-card-top" style="background:${col};"></div>
+      <div class="pkg-card-body">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+          <div>
+            <div style="font-size:14px;font-weight:700;">${p.title}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;">${p.clientName} · ${PKG_TYPE_LABEL[p.type]||p.type}</div>
+          </div>
+          <span class="pill ${PAY_STATUS_PILL[p.payStatus]||'pill-muted'}" style="font-size:10px;flex-shrink:0;">${PAY_STATUS_LABEL[p.payStatus]||p.payStatus}</span>
+        </div>
+        <div style="display:flex;gap:10px;margin-bottom:10px;">
+          <div style="text-align:center;flex:1;background:var(--s3);border-radius:8px;padding:8px;">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:${col};">${p.price.toLocaleString('pl')}</div>
+            <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">PLN</div>
+          </div>
+          <div style="text-align:center;flex:1;background:var(--s3);border-radius:8px;padding:8px;">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:${isExpired?'var(--red)':daysLeft<=7?'var(--orange)':'var(--text)'};">${daysLeft!==null?(isExpired?'WYGASŁ':daysLeft+'d'):'∞'}</div>
+            <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">POZOSTAŁO</div>
+          </div>
+        </div>
+        <div class="pkg-progress"><div class="pkg-progress-fill" style="width:${pct}%;background:${col};"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:10px;">
+          <span>${p.sessionsUsed}/${p.sessions} sesji</span>
+          <span>${pct}% wykorzystano</span>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="usePackageSession('${p.id}')">+ Sesja</button>
+          <button class="btn btn-ghost btn-sm" onclick="viewInvoice('${p.invoiceId}')">🧾 Faktura</button>
+          ${p.payStatus==='pending'?`<button class="btn btn-primary btn-sm" onclick="markPaid('${p.id}')">Oznacz opłacony</button>`:''}
+        </div>
+      </div>
+    </div>`;
+  }).join('')+`<div style="border:1px dashed var(--border2);border-radius:var(--r2);display:flex;align-items:center;justify-content:center;min-height:180px;cursor:pointer;background:transparent;" onclick="openM('m-package')">
+    <div style="text-align:center;color:var(--muted);"><div style="font-size:32px;margin-bottom:8px;">+</div><div style="font-size:13px;font-weight:600;">Nowy pakiet</div></div>
+  </div>`;
+}
+
+function filterPkgByClient(name,btn){
+  document.querySelectorAll('#pkg-client-filter-bar .wl-filter-chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  // filter grid
+  document.querySelectorAll('#pay-pkg-grid .pkg-card').forEach(card=>{
+    if(name==='all'){card.style.display='block';return;}
+    const clientEl=card.querySelector('.pkg-card-body div div:last-child');
+    card.style.display=(clientEl&&clientEl.textContent.includes(name))?'block':'none';
+  });
+}
+
+function usePackageSession(id){
+  const all=allPackages();
+  const p=all.find(x=>x.id===id);
+  if(!p)return;
+  if(p.sessionsUsed>=p.sessions){notify('Pakiet wyczerpany!');return;}
+  p.sessionsUsed++;
+  renderPayPackages();
+  notify('✓ Sesja odliczona z pakietu ('+p.sessionsUsed+'/'+p.sessions+')');
+}
+
+function markPaid(id){
+  const all=allPackages();
+  const p=all.find(x=>x.id===id);
+  if(p){p.payStatus='paid';renderPayPackages();renderPayOverview();notify('✓ Pakiet oznaczony jako opłacony');}
+}
+
+function viewInvoice(invId){
+  const inv=allInvoices().find(x=>x.id===invId||x.nr===invId);
+  if(!inv){notify('Faktura nie znaleziona');return;}
+  document.getElementById('inv-modal-title').textContent='FAKTURA '+inv.nr;
+  document.getElementById('inv-modal-body').innerHTML=`
+    <div style="font-family:'DM Mono',monospace;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:20px;">
+        <div><div style="font-size:22px;font-weight:700;font-family:'Bebas Neue',sans-serif;letter-spacing:1px;">PROGRESS LIVE</div><div style="font-size:11px;color:var(--muted);">Piotr Urbaniak — Trener Personalny</div></div>
+        <div style="text-align:right;"><div style="font-size:14px;font-weight:700;">${inv.nr}</div><div style="font-size:11px;color:var(--muted);">Data: ${inv.date}</div></div>
+      </div>
+      <div style="background:var(--s3);border-radius:8px;padding:12px;margin-bottom:16px;">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Nabywca</div>
+        <div style="font-size:14px;font-weight:600;">${inv.clientName}</div>
+      </div>
+      <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:16px;">
+        <div style="display:grid;grid-template-columns:1fr 100px 100px;padding:8px 12px;background:var(--s3);font-size:10px;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);">
+          <span>Pozycja</span><span>Ilość</span><span style="text-align:right;">Kwota</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 100px 100px;padding:12px;font-size:12px;">
+          <span>${inv.pkgTitle}</span><span>1</span><span style="text-align:right;font-weight:700;">${inv.amount.toLocaleString('pl')} zł</span>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;">
+        <div style="background:var(--adim);border:1px solid rgba(200,241,53,0.2);border-radius:8px;padding:12px 20px;text-align:right;">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">RAZEM</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--accent);">${inv.amount.toLocaleString('pl')} zł</div>
+        </div>
+      </div>
+      <div style="margin-top:16px;display:flex;justify-content:space-between;align-items:center;">
+        <div style="font-size:11px;color:var(--muted);">Status płatności</div>
+        <span class="pill ${PAY_STATUS_PILL[inv.status]||'pill-muted'}">${PAY_STATUS_LABEL[inv.status]||inv.status}</span>
+      </div>
+    </div>`;
+  openM('m-invoice');
+}
+
+function renderPayInvoices(){
+  const all=allInvoices();
+  const el=document.getElementById('pay-invoices-list');
+  if(!el)return;
+  el.innerHTML=all.map((inv,i)=>`<div class="pay-inv-row" style="animation-delay:${i*0.03}s" onclick="viewInvoice('${inv.id}')">
+    <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);">${inv.nr}</div>
+    <div><div style="font-size:13px;font-weight:600;">${inv.clientName}</div><div style="font-size:11px;color:var(--muted);">${inv.pkgTitle}</div></div>
+    <div style="color:var(--muted);align-self:center;">${inv.date}</div>
+    <div style="font-weight:700;align-self:center;">${inv.amount.toLocaleString('pl')} zł</div>
+    <div style="align-self:center;"><span class="pill ${PAY_STATUS_PILL[inv.status]||'pill-muted'}" style="font-size:10px;">${PAY_STATUS_LABEL[inv.status]||inv.status}</span></div>
+    <div style="align-self:center;"><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();viewInvoice('${inv.id}')">👁</button></div>
+  </div>`).join('');
+}
+
+function renderPayHistory(){
+  const all=allPackages();
+  const hcf=(document.getElementById('hist-client-fil')||{}).value||'';
+  const hsf=(document.getElementById('hist-status-fil')||{}).value||'';
+  const hcEl=document.getElementById('hist-client-fil');
+  if(hcEl){const cur=hcEl.value;hcEl.innerHTML='<option value="">Wszyscy klienci</option>'+[...new Set(all.map(p=>p.clientName))].map(n=>'<option value="'+n+'"'+(n===cur?' selected':'')+'>'+n+'</option>').join('');}
+  let res=all;
+  if(hcf)res=res.filter(p=>p.clientName===hcf);
+  if(hsf)res=res.filter(p=>p.payStatus===hsf);
+  const el=document.getElementById('pay-history-list');
+  if(!el)return;
+  const today=new Date().toISOString().split('T')[0];
+  el.innerHTML=res.map((p,i)=>{
+    const isExpired=p.expiresDate&&p.expiresDate<today;
+    const status=isExpired?'expired':p.payStatus;
+    return `<div class="pay-hist-row" style="animation-delay:${i*0.03}s">
+      <div><div style="font-size:13px;font-weight:600;">${p.title}</div><div style="font-size:11px;color:var(--muted);">${PKG_TYPE_LABEL[p.type]||p.type}</div></div>
+      <div style="align-self:center;">${p.clientName}</div>
+      <div style="align-self:center;color:var(--muted);">${p.date||'—'}</div>
+      <div style="align-self:center;color:var(--muted);">${p.expiresDate||'—'}</div>
+      <div style="align-self:center;font-weight:700;color:var(--accent);">${p.price.toLocaleString('pl')} zł</div>
+      <div style="align-self:center;"><span class="pill ${PAY_STATUS_PILL[status]||'pill-muted'}" style="font-size:10px;">${PAY_STATUS_LABEL[status]||status}</span></div>
+    </div>`;
+  }).join('')||'<div style="padding:40px;text-align:center;color:var(--muted);">Brak wyników</div>';
+}
+
+async function savePackage(){
+  const title=document.getElementById('pkg-title').value.trim();
+  if(!title){notify('Wpisz nazwę pakietu!');return;}
+  const cid=document.getElementById('pkg-client').value;
+  const c=CL.find(x=>x.id===cid);
+  const price=parseInt(document.getElementById('pkg-price').value)||0;
+  const sessions=parseInt(document.getElementById('pkg-sessions').value)||1;
+  const validity=parseInt(document.getElementById('pkg-validity').value)||90;
+  const date=document.getElementById('pkg-date').value||new Date().toISOString().split('T')[0];
+  const expD=new Date(date);expD.setDate(expD.getDate()+validity);
+  invoiceCounter++;
+  const invId='INV-'+invoiceCounter;
+  const pkg={
+    id:'pkg'+Date.now(),title,
+    type:document.getElementById('pkg-type').value,
+    sessions,sessionsUsed:0,price,validity,
+    clientId:cid,clientName:c?c.name:'Brak klienta',
+    payStatus:document.getElementById('pkg-pay-status').value,
+    date,expiresDate:expD.toISOString().split('T')[0],
+    notes:document.getElementById('pkg-notes').value,
+    invoiceId:invId
+  };
+  const inv={id:invId,nr:invId,pkgId:pkg.id,clientName:pkg.clientName,pkgTitle:title,date,amount:price,status:pkg.payStatus};
+  window.PACKAGES.push(pkg);
+  window.INVOICES.push(inv);
+  closeM('m-package');
+  if(payTab==='overview')renderPayOverview();
+  else if(payTab==='packages')renderPayPackages();
+  else if(payTab==='invoices')renderPayInvoices();
+  notify('✓ Pakiet "'+title+'" dodany! Faktura '+invId+' wygenerowana.');
+}
 var odTab='browse';var odWorkoutFilter='all';
 window.OD_WORKOUTS=[];
 
@@ -4476,6 +4956,11 @@ window.setODTab=setODTab;window.renderODBrowse=renderODBrowse;
 window.renderODWorkouts=renderODWorkouts;window.renderODPrograms=renderODPrograms;
 window.shareODWorkout=shareODWorkout;window.shareODProgram=shareODProgram;
 window.saveODWorkout=saveODWorkout;
+window.setPayTab=setPayTab;window.renderPayOverview=renderPayOverview;
+window.renderPayPackages=renderPayPackages;window.renderPayInvoices=renderPayInvoices;
+window.renderPayHistory=renderPayHistory;window.savePackage=savePackage;
+window.usePackageSession=usePackageSession;window.markPaid=markPaid;
+window.viewInvoice=viewInvoice;window.filterPkgByClient=filterPkgByClient;
 
 updateExDl();renderWL();
 </script>
