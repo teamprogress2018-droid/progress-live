@@ -182,6 +182,19 @@ button{cursor:pointer;}
 .wb-inp{background:var(--s3);border:1px solid var(--border);border-radius:6px;padding:5px 7px;color:var(--text);font-size:12px;width:100%;}
 .wb-inp:focus{border-color:var(--accent);}
 
+/* ── ON-DEMAND ── */
+.od-workout-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;cursor:pointer;transition:border-color 0.12s,transform 0.12s;animation:fadeUp 0.18s ease both;}
+.od-workout-card:hover{border-color:var(--border2);transform:translateY(-2px);}
+.od-thumb{height:140px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.od-play-btn{width:48px;height:48px;border-radius:50%;background:rgba(200,241,53,0.9);display:flex;align-items:center;justify-content:center;font-size:18px;transition:transform 0.15s;}
+.od-workout-card:hover .od-play-btn{transform:scale(1.1);}
+.od-thumb-label{position:absolute;top:8px;left:8px;background:rgba(0,0,0,0.7);border-radius:6px;padding:3px 8px;font-size:10px;font-family:'DM Mono',monospace;color:#fff;}
+.od-thumb-time{position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.8);border-radius:4px;padding:2px 6px;font-size:10px;font-family:'DM Mono',monospace;color:#fff;}
+.od-coll-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r2);padding:18px;animation:fadeUp 0.18s ease both;cursor:pointer;transition:border-color 0.12s,transform 0.12s;}
+.od-coll-card:hover{border-color:var(--border2);transform:translateY(-2px);}
+.od-prog-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;animation:fadeUp 0.18s ease both;cursor:pointer;transition:border-color 0.12s;}
+.od-prog-card:hover{border-color:var(--border2);}
+.od-prog-thumb{height:120px;display:flex;align-items:flex-end;padding:12px;position:relative;}
 /* ── RESOURCES ── */
 .res-nav-item{display:flex;align-items:center;justify-content:space-between;padding:7px 14px;font-size:12px;color:var(--muted);cursor:pointer;border-left:2px solid transparent;transition:all 0.1s;}
 .res-nav-item:hover{color:var(--text);background:rgba(255,255,255,0.02);}
@@ -372,6 +385,7 @@ input[type=checkbox]{display:none;}
     <button class="nav-item" onclick="goTo('forms')"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Formularze</button>
     <button class="nav-item" onclick="goTo('automation')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>Automatyzacja</button>
     <button class="nav-item" onclick="goTo('resources')"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Zasoby</button>
+    <button class="nav-item" onclick="goTo('ondemand')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>On-demand</button>
     <button class="nav-item" onclick="goTo('payments')"><svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Płatności</button>
   </nav>
   <div class="sidebar-footer"><div class="av">PU</div><div><div style="font-size:13px;font-weight:600;">Piotr Urbaniak</div><div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">Trener personalny</div></div></div>
@@ -1357,6 +1371,133 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   </div>
 </div>
 
+<!-- ON-DEMAND — PORTAL NETFLIX STYLE -->
+<div class="screen" id="screen-ondemand">
+  <div class="topbar">
+    <div class="topbar-title">On-demand</div>
+    <div class="topbar-actions">
+      <div style="display:flex;gap:2px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:2px;">
+        <button class="auto-tab-btn active" id="odtab-browse" onclick="setODTab('browse')">Przeglądaj</button>
+        <button class="auto-tab-btn" id="odtab-workouts" onclick="setODTab('workouts')">Treningi</button>
+        <button class="auto-tab-btn" id="odtab-programs" onclick="setODTab('programs')">Programy</button>
+        <button class="auto-tab-btn" id="odtab-settings" onclick="setODTab('settings')">Ustawienia</button>
+      </div>
+      <button class="btn btn-primary btn-sm" id="od-add-btn" onclick="openM('m-od-workout')">+ Dodaj trening</button>
+    </div>
+  </div>
+
+  <!-- BROWSE TAB — Netflix style -->
+  <div id="odtab-browse-view" style="flex:1;overflow-y:auto;">
+    <!-- hero banner -->
+    <div style="background:linear-gradient(135deg,var(--s2) 0%,rgba(200,241,53,0.08) 100%);border-bottom:1px solid var(--border);padding:28px 24px;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;margin-bottom:4px;">PORTAL TRENINGÓW</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">Udostępnij klientom treningi i programy, do których mają dostęp o każdej porze.</div>
+        <div style="display:flex;gap:10px;">
+          <div style="background:var(--s3);border:1px solid var(--border2);border-radius:10px;padding:12px 20px;text-align:center;">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--accent);" id="od-stat-workouts">6</div>
+            <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">TRENINGÓW</div>
+          </div>
+          <div style="background:var(--s3);border:1px solid var(--border2);border-radius:10px;padding:12px 20px;text-align:center;">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--blue);" id="od-stat-programs">1</div>
+            <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">PROGRAMÓW</div>
+          </div>
+          <div style="background:var(--s3);border:1px solid var(--border2);border-radius:10px;padding:12px 20px;text-align:center;">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--teal);" id="od-stat-clients">0</div>
+            <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">KLIENTÓW</div>
+          </div>
+        </div>
+      </div>
+      <!-- podgląd mobile -->
+      <div style="background:var(--s3);border:1px solid var(--border2);border-radius:16px;padding:16px;width:200px;flex-shrink:0;">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);margin-bottom:10px;text-transform:uppercase;">Widok klienta</div>
+        <div style="display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;">
+          <span style="font-size:10px;background:var(--accent);color:#000;padding:3px 8px;border-radius:99px;white-space:nowrap;flex-shrink:0;">Wszystkie</span>
+          <span style="font-size:10px;color:var(--muted);padding:3px 8px;border-radius:99px;white-space:nowrap;flex-shrink:0;">Zasoby</span>
+          <span style="font-size:10px;color:var(--muted);padding:3px 8px;border-radius:99px;white-space:nowrap;flex-shrink:0;">Treningi</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Kolekcje zasobów</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:10px;">
+          <div style="background:var(--s2);border-radius:6px;height:36px;"></div>
+          <div style="background:var(--s2);border-radius:6px;height:36px;"></div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Treningi wideo</div>
+        <div style="background:var(--s2);border-radius:6px;height:50px;"></div>
+      </div>
+    </div>
+
+    <div style="padding:20px 24px;">
+      <!-- Kolekcje treningów -->
+      <div style="margin-bottom:28px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;">KOLEKCJE TRENINGÓW</div>
+          <button class="btn btn-ghost btn-sm" onclick="setODTab('workouts')">Wszystkie →</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;" id="od-collections-grid"></div>
+      </div>
+
+      <!-- Treningi on-demand -->
+      <div style="margin-bottom:28px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;">TRENINGI ON-DEMAND</div>
+          <button class="btn btn-ghost btn-sm" onclick="setODTab('workouts')">Wszystkie →</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;" id="od-workouts-grid"></div>
+      </div>
+
+      <!-- Programy on-demand -->
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;">PROGRAMY ON-DEMAND</div>
+          <button class="btn btn-ghost btn-sm" onclick="setODTab('programs')">Wszystkie →</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;" id="od-programs-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WORKOUTS TAB -->
+  <div id="odtab-workouts-view" style="flex:1;overflow-y:auto;padding:20px 24px;display:none;">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;" id="od-workout-filters"></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;" id="od-all-workouts-grid"></div>
+  </div>
+
+  <!-- PROGRAMS TAB -->
+  <div id="odtab-programs-view" style="flex:1;overflow-y:auto;padding:20px 24px;display:none;">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;" id="od-all-programs-grid"></div>
+  </div>
+
+  <!-- SETTINGS TAB -->
+  <div id="odtab-settings-view" style="flex:1;overflow-y:auto;padding:24px;display:none;">
+    <div style="max-width:600px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;margin-bottom:16px;">USTAWIENIA PORTALU</div>
+      <div class="card" style="margin-bottom:14px;">
+        <div style="font-size:13px;font-weight:700;margin-bottom:12px;">Nazwa portalu</div>
+        <input type="text" class="form-input" value="On-demand" placeholder="np. Trening TV" style="margin-bottom:8px;">
+        <div style="font-size:11px;color:var(--muted);">Nazwa widoczna dla klientów w aplikacji mobilnej.</div>
+      </div>
+      <div class="card" style="margin-bottom:14px;">
+        <div style="font-size:13px;font-weight:700;margin-bottom:12px;">Sekcje widoczne dla klienta</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
+            <div><div style="font-size:13px;">Zasoby (Resource Collections)</div><div style="font-size:11px;color:var(--muted);">Artykuły, podcasty, linki</div></div>
+            <input type="checkbox" checked style="accent-color:var(--accent);width:18px;height:18px;">
+          </label>
+          <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
+            <div><div style="font-size:13px;">Kolekcje treningów</div><div style="font-size:11px;color:var(--muted);">Workout Collections</div></div>
+            <input type="checkbox" checked style="accent-color:var(--accent);width:18px;height:18px;">
+          </label>
+          <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
+            <div><div style="font-size:13px;">Programy on-demand</div><div style="font-size:11px;color:var(--muted);">Klienci mogą sami startować</div></div>
+            <input type="checkbox" checked style="accent-color:var(--accent);width:18px;height:18px;">
+          </label>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="notify('✓ Ustawienia portalu zapisane!')">Zapisz ustawienia</button>
+    </div>
+  </div>
+</div>
+
 <!-- PAYMENTS -->
 <div class="screen" id="screen-payments">
   <div class="topbar"><div class="topbar-title">Płatności i pakiety</div><div class="topbar-actions"><button class="btn btn-primary btn-sm" onclick="openM('m-package')">+ Pakiet</button></div></div>
@@ -1626,6 +1767,47 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   </div>
 </div>
 
+<!-- ON-DEMAND WORKOUT MODAL -->
+<div class="modal-ov" id="m-od-workout">
+  <div class="modal modal-wide">
+    <div class="modal-hdr"><div class="modal-title">NOWY TRENING ON-DEMAND</div><button class="modal-close" onclick="closeM('m-od-workout')">×</button></div>
+    <div class="modal-body">
+      <div class="form-field"><label class="form-lbl">Nazwa treningu</label><input type="text" class="form-input" id="odw-name" placeholder="np. Full Body HIIT 30 min"></div>
+      <div class="form-grid">
+        <div class="form-field"><label class="form-lbl">Typ</label>
+          <select class="form-select" id="odw-type">
+            <option value="video">▶️ Wideo</option>
+            <option value="workout">🏋️ Plan ćwiczeń</option>
+            <option value="audio">🎧 Audio</option>
+          </select>
+        </div>
+        <div class="form-field"><label class="form-lbl">Poziom</label>
+          <select class="form-select" id="odw-level">
+            <option value="poczatkujacy">Początkujący</option>
+            <option value="sredni" selected>Średni</option>
+            <option value="zaawansowany">Zaawansowany</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-field"><label class="form-lbl">Czas (min)</label><input type="number" class="form-input" id="odw-time" placeholder="30"></div>
+        <div class="form-field"><label class="form-lbl">Kolekcja</label>
+          <select class="form-select" id="odw-coll">
+            <option value="">Brak kolekcji</option>
+            <option value="fbw">Full Body</option>
+            <option value="hiit">HIIT</option>
+            <option value="sila">Siła</option>
+            <option value="mobilnosc">Mobilność</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-field"><label class="form-lbl">URL wideo (YouTube/Vimeo)</label><input type="url" class="form-input" id="odw-url" placeholder="https://youtube.com/..."></div>
+      <div class="form-field"><label class="form-lbl">Opis</label><textarea class="form-textarea" id="odw-desc" rows="2" placeholder="Krótki opis treningu..."></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-od-workout')">Anuluj</button><button class="btn btn-primary" onclick="saveODWorkout()">Zapisz trening</button></div>
+  </div>
+</div>
+
 <!-- RESOURCE MODAL -->
 <div class="modal-ov" id="m-resource">
   <div class="modal">
@@ -1755,7 +1937,7 @@ function goTo(n){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   const s=document.getElementById('screen-'+n);if(s)s.classList.add('active');
-  const navMap={'dashboard':0,'clients':1,'plans':2,'builder':3,'calendar':4,'inbox':5,'workout-library':6,'library':7,'programs':8,'metrics':9,'tasks':10,'forms':11,'automation':12,'resources':13,'payments':14};
+  const navMap={'dashboard':0,'clients':1,'plans':2,'builder':3,'calendar':4,'inbox':5,'workout-library':6,'library':7,'programs':8,'metrics':9,'tasks':10,'forms':11,'automation':12,'resources':13,'ondemand':14,'payments':15};
   const btns=document.querySelectorAll('.nav-item');
   if(navMap[n]!==undefined&&btns[navMap[n]])btns[navMap[n]].classList.add('active');
   if(n==='builder')initBuilder();
@@ -1780,6 +1962,7 @@ function goTo(n){
   if(n==='forms'){renderForms();}
   if(n==='automation'){setAutoTab('onboard');}
   if(n==='resources'){renderResources();}
+  if(n==='ondemand'){setODTab('browse');}
 }
 
 function openM(id){
@@ -3762,8 +3945,181 @@ async function askMetricAI(){
 }
 
 // ════════════════════════════════════════
-// RESOURCES — BIBLIOTEKA ZASOBÓW
+// ON-DEMAND — PORTAL NETFLIX STYLE
 // ════════════════════════════════════════
+var odTab='browse';var odWorkoutFilter='all';
+window.OD_WORKOUTS=[];
+
+const OD_COLLECTIONS=[
+  {id:'fbw',name:'Full Body',icon:'⚡',color:'var(--accent)',desc:'Treningi angażujące całe ciało',count:2},
+  {id:'hiit',name:'HIIT / Cardio',icon:'🔥',color:'var(--red)',desc:'Intensywne interwały i cardio',count:1},
+  {id:'sila',name:'Siła',icon:'💪',color:'var(--orange)',desc:'Treningi siłowe z obciążeniem',count:2},
+  {id:'mobilnosc',name:'Mobilność',icon:'🧘',color:'var(--teal)',desc:'Stretching, mobilność i regeneracja',count:1},
+];
+
+const OD_DEMO_WORKOUTS=[
+  {id:'ow1',name:'Full Body EMOM 30 min',type:'video',level:'sredni',time:30,coll:'fbw',color:'#1a1a2e',emoji:'⚡',desc:'Klasyczny protokół EMOM dla całego ciała. Idealne na dzień FBW.',views:0,likes:12},
+  {id:'ow2',name:'HIIT Tabata — bez sprzętu',type:'video',level:'sredni',time:25,coll:'hiit',color:'#1a0a0a',emoji:'🔥',desc:'20s praca / 10s odpoczynek. Maksymalne spalanie.',views:0,likes:8},
+  {id:'ow3',name:'Push Day — Klatka & Triceps',type:'workout',level:'sredni',time:55,coll:'sila',color:'#0a1a0a',emoji:'💪',desc:'Kompleksowy trening push z objętością hipertroficzną.',views:0,likes:15},
+  {id:'ow4',name:'Pull Day — Plecy & Biceps',type:'workout',level:'sredni',time:55,coll:'sila',color:'#0a0a1a',emoji:'🏋️',desc:'Budowanie szerokości i grubości pleców.',views:0,likes:11},
+  {id:'ow5',name:'Mobilność bioder 20 min',type:'video',level:'poczatkujacy',time:20,coll:'mobilnosc',color:'#0a1a1a',emoji:'🧘',desc:'Kompleksowa sesja mobilności — idealna po treningu nóg.',views:0,likes:9},
+  {id:'ow6',name:'Lower Body — Nogi & Pośladki',type:'workout',level:'sredni',time:60,coll:'fbw',color:'#1a1000',emoji:'🦵',desc:'Pełny trening nóg z hip thrustem i przysiadem.',views:0,likes:14},
+];
+
+const OD_DEMO_PROGRAMS=[
+  {id:'op1',name:'Starting Strength — Demo',level:'poczatkujacy',duration:'4 tygodnie',color:'linear-gradient(135deg,#1a0a0a,#2a1a0a)',emoji:'🏋️',desc:'Oparty na Starting Strength Marka Rippetoe. Program siły oparty na własnej masie, stopniowo wprowadzający obciążenia.',clients:0,status:'draft'},
+];
+
+const LEVEL_MAP={poczatkujacy:'Początkujący',sredni:'Średni',zaawansowany:'Zaawansowany'};
+
+function setODTab(t){
+  odTab=t;
+  ['browse','workouts','programs','settings'].forEach(tab=>{
+    const v=document.getElementById('odtab-'+tab+'-view');
+    if(v)v.style.display=tab===t?'block':'none';
+    const btn=document.getElementById('odtab-'+tab);
+    if(btn)btn.classList.toggle('active',tab===t);
+  });
+  const addBtn=document.getElementById('od-add-btn');
+  if(addBtn){
+    if(t==='programs'){addBtn.textContent='+ Nowy program';addBtn.onclick=()=>notify('Kreator programów on-demand — wkrótce!');}
+    else{addBtn.textContent='+ Dodaj trening';addBtn.onclick=()=>openM('m-od-workout');}
+  }
+  if(t==='browse')renderODBrowse();
+  if(t==='workouts')renderODWorkouts();
+  if(t==='programs')renderODPrograms();
+}
+
+function renderODBrowse(){
+  const allW=[...OD_DEMO_WORKOUTS,...(window.OD_WORKOUTS||[])];
+  // stats
+  const sc=document.getElementById('od-stat-clients');if(sc)sc.textContent=CL.length;
+  const sw=document.getElementById('od-stat-workouts');if(sw)sw.textContent=allW.length;
+
+  // collections grid
+  const cg=document.getElementById('od-collections-grid');
+  if(cg)cg.innerHTML=OD_COLLECTIONS.map((c,i)=>`
+    <div class="od-coll-card" style="animation-delay:${i*0.05}s;border-top:3px solid ${c.color};" onclick="setODTab('workouts');odWorkoutFilter='${c.id}';renderODWorkouts()">
+      <div style="font-size:28px;margin-bottom:8px;">${c.icon}</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:4px;">${c.name}</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px);">${c.desc}</div>
+      <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);margin-top:8px;">${allW.filter(w=>w.coll===c.id).length} treningów</div>
+    </div>`).join('');
+
+  // workouts grid (first 4)
+  const wg=document.getElementById('od-workouts-grid');
+  if(wg)wg.innerHTML=allW.slice(0,4).map((w,i)=>odWorkoutCardHTML(w,i)).join('');
+
+  // programs grid
+  const pg=document.getElementById('od-programs-grid');
+  if(pg)pg.innerHTML=OD_DEMO_PROGRAMS.map((p,i)=>odProgramCardHTML(p,i)).join('');
+}
+
+function renderODWorkouts(){
+  const allW=[...OD_DEMO_WORKOUTS,...(window.OD_WORKOUTS||[])];
+  // filters
+  const fEl=document.getElementById('od-workout-filters');
+  if(fEl){
+    const filters=[{id:'all',label:'Wszystkie'},
+      ...OD_COLLECTIONS.map(c=>({id:c.id,label:c.icon+' '+c.name})),
+      {id:'poczatkujacy',label:'Początkujący'},{id:'sredni',label:'Średni'},{id:'zaawansowany',label:'Zaawansowany'}];
+    fEl.innerHTML=filters.map(f=>`<button class="wl-filter-chip${odWorkoutFilter===f.id?' active':''}" onclick="odWorkoutFilter='${f.id}';renderODWorkouts()">${f.label}</button>`).join('');
+  }
+  let res=allW;
+  if(odWorkoutFilter!=='all'){
+    if(['poczatkujacy','sredni','zaawansowany'].includes(odWorkoutFilter))res=allW.filter(w=>w.level===odWorkoutFilter);
+    else res=allW.filter(w=>w.coll===odWorkoutFilter);
+  }
+  const g=document.getElementById('od-all-workouts-grid');
+  if(!g)return;
+  g.innerHTML=res.length?res.map((w,i)=>odWorkoutCardHTML(w,i)).join('')
+    :`<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--muted);"><div style="font-size:40px;margin-bottom:12px;opacity:0.3;">▶️</div><div style="font-size:14px;font-weight:600;margin-bottom:6px;">Brak treningów</div><button class="btn btn-primary" onclick="openM('m-od-workout')">+ Dodaj trening</button></div>`;
+}
+
+function renderODPrograms(){
+  const g=document.getElementById('od-all-programs-grid');
+  if(!g)return;
+  g.innerHTML=OD_DEMO_PROGRAMS.map((p,i)=>odProgramCardHTML(p,i)).join('')
+    +`<div style="border:1px dashed var(--border2);border-radius:var(--r2);padding:18px;display:flex;align-items:center;justify-content:center;min-height:180px;cursor:pointer;background:transparent;" onclick="notify('Kreator programów — wkrótce!')"><div style="text-align:center;color:var(--muted);"><div style="font-size:32px;margin-bottom:8px;">+</div><div style="font-size:13px;font-weight:600;">Nowy program on-demand</div><div style="font-size:11px;margin-top:4px;">Klienci startują sami</div></div></div>`;
+}
+
+function odWorkoutCardHTML(w,i){
+  const coll=OD_COLLECTIONS.find(c=>c.id===w.coll);
+  const collColor=coll?coll.color:'var(--muted)';
+  return `<div class="od-workout-card" style="animation-delay:${i*0.04}s">
+    <div class="od-thumb" style="background:${w.color||'var(--s3)'};background:linear-gradient(135deg,${w.color||'var(--s3)'},var(--s3));">
+      <div class="od-thumb-label">${LEVEL_MAP[w.level]||w.level}</div>
+      <div style="font-size:40px;opacity:0.3;position:absolute;">${w.emoji||'▶️'}</div>
+      <div class="od-play-btn">▶</div>
+      <div class="od-thumb-time">${w.time} min</div>
+    </div>
+    <div style="padding:12px;">
+      <div style="font-size:13px;font-weight:700;margin-bottom:4px;">${w.name}</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.4;">${w.desc||''}</div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;">
+        ${coll?`<span class="pill" style="background:${collColor}22;color:${collColor};font-size:9px;">${coll.icon} ${coll.name}</span>`:''}
+        <span class="pill pill-muted" style="font-size:9px;">${w.type==='video'?'▶️ Wideo':w.type==='audio'?'🎧 Audio':'🏋️ Plan'}</span>
+      </div>
+      <div style="display:flex;gap:6px;" onclick="event.stopPropagation()">
+        <button class="btn btn-primary btn-sm" style="flex:1;" onclick="shareODWorkout('${w.id}')">Udostępnij klientom</button>
+        <button class="btn btn-ghost btn-sm" onclick="notify('${w.name} — podgląd')">👁</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function odProgramCardHTML(p,i){
+  return `<div class="od-prog-card" style="animation-delay:${i*0.05}s">
+    <div class="od-prog-thumb" style="background:${p.color||'var(--s3)'};">
+      <div style="font-size:36px;opacity:0.25;position:absolute;top:10px;right:10px;">${p.emoji||'🏋️'}</div>
+      <div>
+        <span style="background:rgba(0,0,0,0.6);color:${p.status==='draft'?'var(--orange)':'var(--accent)'};font-size:10px;font-family:'DM Mono',monospace;padding:2px 8px;border-radius:4px;margin-right:6px;">${p.status==='draft'?'DRAFT':'AKTYWNY'}</span>
+        <span style="background:rgba(0,0,0,0.6);color:#fff;font-size:10px;font-family:'DM Mono',monospace;padding:2px 8px;border-radius:4px;">${p.duration}</span>
+      </div>
+    </div>
+    <div style="padding:14px;">
+      <div style="font-size:14px;font-weight:700;margin-bottom:4px;">${p.name}</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:10px;">${p.desc||''}</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">Dostępny dla <strong>${p.clients}</strong> klientów</div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="notify('Edytor programów — wkrótce!')">Edytuj</button>
+        <button class="btn btn-primary btn-sm" style="flex:1;" onclick="shareODProgram('${p.id}')">Udostępnij</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function shareODWorkout(id){
+  if(!CL.length){notify('Najpierw dodaj klienta!');return;}
+  const w=[...OD_DEMO_WORKOUTS,...(window.OD_WORKOUTS||[])].find(x=>x.id===id);
+  notify('✓ Trening "'+(w?w.name:id)+'" udostępniony wszystkim klientom!');
+}
+
+function shareODProgram(id){
+  if(!CL.length){notify('Najpierw dodaj klienta!');return;}
+  const p=OD_DEMO_PROGRAMS.find(x=>x.id===id);
+  notify('✓ Program "'+(p?p.name:id)+'" udostępniony klientom!');
+}
+
+async function saveODWorkout(){
+  const name=document.getElementById('odw-name').value.trim();
+  if(!name){notify('Wpisz nazwę treningu!');return;}
+  const w={
+    id:'ow'+Date.now(),name,
+    type:document.getElementById('odw-type').value,
+    level:document.getElementById('odw-level').value,
+    time:parseInt(document.getElementById('odw-time').value)||30,
+    coll:document.getElementById('odw-coll').value,
+    url:document.getElementById('odw-url').value,
+    desc:document.getElementById('odw-desc').value,
+    color:'var(--s3)',emoji:'🏋️',views:0,likes:0
+  };
+  window.OD_WORKOUTS.push(w);
+  closeM('m-od-workout');
+  if(odTab==='browse')renderODBrowse();
+  else if(odTab==='workouts')renderODWorkouts();
+  notify('✓ Trening "'+name+'" dodany!');
+}
 var resTab='resources';var resNav='all';
 window.USER_RESOURCES=[];
 
@@ -4116,6 +4472,10 @@ window.addAFStep=addAFStep;window.saveAutoflow=saveAutoflow;
 window.setResTab=setResTab;window.setResNav=setResNav;window.renderResources=renderResources;
 window.viewCollection=viewCollection;window.shareCollection=shareCollection;
 window.sendResourceToClient=sendResourceToClient;window.saveResource=saveResource;
+window.setODTab=setODTab;window.renderODBrowse=renderODBrowse;
+window.renderODWorkouts=renderODWorkouts;window.renderODPrograms=renderODPrograms;
+window.shareODWorkout=shareODWorkout;window.shareODProgram=shareODProgram;
+window.saveODWorkout=saveODWorkout;
 
 updateExDl();renderWL();
 </script>
