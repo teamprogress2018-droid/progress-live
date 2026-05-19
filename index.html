@@ -1249,8 +1249,12 @@ async function generatePlan(){
     };
 
     try {
-      var ref = await window._addDoc(window._collection(window._db,'plans'), plan);
-      plan.id = ref.id;
+      if(window._addDoc && window._db) {
+        var ref = await window._addDoc(window._collection(window._db,'plans'), plan);
+        plan.id = ref.id;
+      } else {
+        plan.id = 'local-'+Date.now();
+      }
     } catch(e2){ plan.id = 'local-'+Date.now(); }
 
     window.PLANS.push(plan);
@@ -1366,31 +1370,6 @@ function buildPlanFromTemplate(client, method, params, postureNotes){
     name: method+' — '+goal+' ('+level+')',
     days: allDays
   };
-}
-
-    try {
-      var ref = await window._addDoc(window._collection(window._db,'plans'), plan);
-      plan.id = ref.id;
-    } catch(e2){ plan.id = 'local-'+Date.now(); }
-
-    window.PLANS.push(plan);
-
-    document.getElementById('gen-plan-status').innerHTML = '<div style="background:rgba(200,241,53,0.06);border:1px solid rgba(200,241,53,0.2);border-radius:12px;padding:16px;margin-top:16px;">'
-      +'<div style="font-family:Bebas Neue,sans-serif;font-size:16px;color:var(--accent);margin-bottom:8px;">✅ PLAN GOTOWY: '+plan.name+'</div>'
-      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">'
-      +'<div style="background:var(--surface2);border-radius:8px;padding:10px;"><div style="font-size:9px;color:var(--muted);font-family:DM Mono,monospace;">PERIODYZACJA</div><div style="font-size:12px;color:var(--text);margin-top:3px;">'+params.periodyzacja.split(' ')[0]+'</div></div>'
-      +'<div style="background:var(--surface2);border-radius:8px;padding:10px;"><div style="font-size:9px;color:var(--muted);font-family:DM Mono,monospace;">TUT</div><div style="font-size:12px;color:var(--text);margin-top:3px;">'+params.TUT.split(' ')[0]+'</div></div>'
-      +'<div style="background:var(--surface2);border-radius:8px;padding:10px;"><div style="font-size:9px;color:var(--muted);font-family:DM Mono,monospace;">INTENSYWNOŚĆ</div><div style="font-size:12px;color:var(--text);margin-top:3px;">'+params.intensywnosc.split(',')[0]+'</div></div>'
-      +'<div style="background:var(--surface2);border-radius:8px;padding:10px;"><div style="font-size:9px;color:var(--muted);font-family:DM Mono,monospace;">DELOAD</div><div style="font-size:12px;color:var(--text);margin-top:3px;">'+params.deload+'</div></div>'
-      +'</div>'
-      +(pubmedData ? '<div style="background:rgba(96,165,250,0.06);border:1px solid rgba(96,165,250,0.2);border-radius:8px;padding:10px;margin-bottom:12px;"><div style="font-size:9px;font-family:DM Mono,monospace;color:var(--blue);margin-bottom:4px;">🔬 OPARTY NA BADANIACH PUBMED</div><div style="font-size:11px;color:var(--muted);">Plan uwzględnia najnowsze badania naukowe z zakresu '+client.goal+'</div></div>' : '')
-      +'<button class="btn-primary" onclick="closeFullview(\'gen-plan-view\');goScreen(\'plans\')">Zobacz plan →</button>'
-      +'</div>';
-
-  } catch(err){
-    document.getElementById('gen-plan-status').innerHTML = '<div style="color:var(--red);font-size:12px;padding:10px;">Błąd: '+err.message+'</div>';
-  }
-  btn.disabled = false;
 }
 
 // ============================================================
