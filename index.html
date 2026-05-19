@@ -1126,33 +1126,6 @@ async function generatePlan(){
 
   document.getElementById('gen-plan-status').innerHTML = '<div class="ai-box"><div class="ai-icon">⚡</div><div class="ai-title">GENERUJĘ PLAN</div><div class="ai-sub">Claude AI tworzy naukowy plan treningowy...</div><div class="dot-loader"><span></span><span></span><span></span></div></div>';
 
-  // PubMed w tle (nie blokuje generowania)
-  var pubmedData = '';
-  var pubmedPromise = (async function(){
-    try {
-      var searchTopics = {
-        masa: 'hypertrophy resistance training 2024',
-        sila: 'strength training periodization 2024',
-        redukcja: 'fat loss resistance training 2024',
-        kondycja: 'HIIT endurance training 2024',
-        zdrowie: 'exercise health resistance training 2024'
-      };
-      var topic = (searchTopics[client.goal]||'resistance training hypertrophy 2024');
-      var r1 = await fetch('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term='+encodeURIComponent(topic)+'&retmax=3&sort=date&retmode=json');
-      var d1 = await r1.json();
-      var ids = d1.esearchresult.idlist;
-      if(ids.length){
-        var r2 = await fetch('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id='+ids.join(',')+'&retmode=json');
-        var d2 = await r2.json();
-        var studies = ids.map(function(id){
-          var a=d2.result[id]; 
-          return a ? a.title+' ('+( a.fulljournalname||'')+', '+(a.pubdate||'').substring(0,4)+')' : '';
-        }).filter(Boolean);
-        pubmedData = 'Badania PubMed: '+studies.join(' | ')+'\n';
-      }
-    } catch(e){ /* ignoruj błąd PubMed */ }
-  })();
-
   // Parametry naukowe na podstawie poziomu
   var sciParams = {
     poczatkujacy: {
@@ -1219,21 +1192,8 @@ async function generatePlan(){
   if((client.weakMuscles||[]).includes('core')) postureNotes.push('Plank + allahy');
   if((client.weakMuscles||[]).includes('tyl_barkow')) postureNotes.push('Facepull + Y-raise');
 
-  var prompt = 'Trener personalny. Stwórz plan. TYLKO JSON.\n'
-    +'Klient:'+client.name+',cel:'+client.goal+',staż:'+client.level+',dni:'+client.days+',sprzęt:'+equipment+',metoda:'+method
-    +(client.notes?',kontuzje:'+client.notes:'')
-    +(client.posture&&client.posture!=='prawidlowa'?',postawa:'+client.posture:'')
-    +(postureNotes.length?',korekty:'+postureNotes.join('|'):'')
-    +'\nPeriodyzacja:'+params.periodyzacja.split('—')[0]
-    +'\nRPE:'+rpeGuide.split(',')[0]
-    +'\nObjętość:'+params.objetosc.split(',')[0]
-    +'\n\nJSON:{"name":"nazwa","tygodnie":[{"nr":1,"cel":"cel","dni":['
-    +'{"day":"PON","muscles":"partie","exercises":[{"name":"Ćwiczenie","serie":4,"powt":"8","RPE":8,"wskazowka":"wskazówka"}]},'
-    +'{"day":"WT","rest":true}'
-    +']}]}'
-    +'\n\nZASADY: '+client.days+' dni treningowych w 7 dniach. 4-5 ćwiczeń/dzień. Uwzględnij Facepull+HipThrust. Tylko tydzień 1.';
-
-  // Generuj plan lokalnie na podstawie wiedzy naukowej
+  // Generuj plan lokalnie — natychmiast, bez API
+  // Baza wiedzy: NSCA, NASM, ACSM, Barbell Medicine, Architektura Siły
   var generatedPlan = buildPlanFromTemplate(client, method, params, postureNotes);
   
   try {
@@ -1279,7 +1239,7 @@ async function generatePlan(){
 
 // ============================================================
 // GENERATOR PLANÓW — PEŁNA BAZA WIEDZY NAUKOWEJ
-// Źródła: Barbell Medicine, NASM, Architektura Siły, SRA Cycle
+// Źródła: NSCA, NASM, ACSM, Barbell Medicine, Architektura Siły, SRA Cycle
 // ============================================================
 function buildPlanFromTemplate(client, method, params, postureNotes){
   var days = parseInt(client.days)||3;
@@ -1287,40 +1247,72 @@ function buildPlanFromTemplate(client, method, params, postureNotes){
   var level = client.level||'sredni';
   var gender = client.gender||'M';
 
-  // ===== BAZA ĆWICZEŃ =====
-  // Wielostawowe — fundament (kolejność: kolano, biodro, push, pull)
-  var SQUAT    = gender==='K' ? 'Przysiad pucharowy Goblet 4x10 RPE7' : 'Przysiad ze sztangą 4x8 RPE8';
-  var HINGE    = 'Martwy ciąg RDL 3x10 RPE7';
-  var DEAD     = 'Martwy ciąg klasyczny 3x5 RPE8';
-  var PRESS    = 'Wyciskanie sztangi leżąc 4x8 RPE8';
-  var PRESS2   = 'Wyciskanie hantli skos+ 3x10 RPE7';
-  var OHP      = 'Wyciskanie żołnierskie OHP 4x6 RPE8';
-  var ROW      = 'Wiosłowanie sztangą 4x8 RPE8';
-  var ROW2     = 'Wiosłowanie hantlem 3x10 RPE8';
-  var PULL     = 'Podciąganie na drążku 4x6 RPE8';
-  var PULLDOWN = 'Ściąganie drążka wyciąg 3x12 RPE7';
-  var LEGPRESS = 'Leg press 4x12 RPE7';
-  var LUNGE    = 'Wykroki z hantlami 3x10 RPE7';
+  // ===== BAZA ĆWICZEŃ wg NSCA/ACSM =====
+  // NSCA: Hipertrofia = 3-6 serii, 8-10 powt (ACSM), 67-85% 1RM
+  // NSCA: Siła = 2-6 serii, 1-6 powt, 85%+ 1RM
+  // NSCA: Wytrzymałość = 2-3 serie, 15+ powt, <67% 1RM
 
-  // Akcesoria obowiązkowe (słabe ogniwa — Architektura Siły)
-  var FACEPULL = 'Facepull linki 3x15 RPE7';
-  var HIPTHRUST= 'Hip Thrust sztanga 4x10 RPE8';
-  var YRASE    = 'Y-raise hantlami 3x12 RPE7';
-  var PLANK    = 'Plank 3x45s';
-  var ALLAH    = 'Allahy wyciąg 3x15 RPE7';
-  var CURL     = 'Uginanie biceps sztanga 3x12 RPE7';
-  var TRICEP   = 'Prostowanie triceps wyciąg 3x12 RPE7';
-  var LATERAL  = 'Wznosy hantli bokiem 3x15 RPE7';
-  var CALF     = 'Wspięcia na łydki 4x15 RPE7';
-  var CURL_LEG = 'Uginanie nóg maszyna 3x12 RPE7';
+  // Nowicjusz — NSCA: opanuj wzorzec ruchowy ZANIM dodasz ciężar
+  // Priorytet: Goblet Squat przed przysiadem ze sztangą
+  // Priorytet: 20 pompek przed ciężkim wyciskaniem
+  // Priorytet: RDL przed martwym ciągiem klasycznym
+
+  // Wzorce ruchowe — DOMINACJA KOLANA
+  var SQUAT_NOV  = 'Przysiad pucharowy Goblet 3x10 RPE7';      // nowicjusz — lżejszy, nauka techniki
+  var SQUAT_INT  = gender==='K' ? 'Przysiad ze sztangą 4x10 RPE8' : 'Przysiad ze sztangą 4x8 RPE8';
+  var LEGPRESS   = 'Leg press 4x12 RPE7';
+  var LUNGE      = 'Wykroki z hantlami 3x10 RPE7';             // siła jednostronna + stabilność
+
+  // Wzorce ruchowe — ZAWIASOWE (biodro)
+  var HINGE_NOV  = 'Martwy ciąg RDL hantle 3x12 RPE7';         // nowicjusz — nauka wzorca zawiasowego
+  var HINGE      = 'Martwy ciąg RDL sztanga 3x10 RPE7';
+  var DEAD       = 'Martwy ciąg klasyczny 3x5 RPE8';            // po opanowaniu RDL
+
+  // Wzorce ruchowe — WYPYCHANIE
+  var PUSHUP     = 'Pompki 3x15 RPE7';                          // NSCA: opanuj 20 pompek przed ciężkim wyciskaniem
+  var PRESS_NOV  = 'Wyciskanie hantli leżąc 3x10 RPE7';         // nowicjusz — hantle bezpieczniejsze technicznie
+  var PRESS      = 'Wyciskanie sztangi leżąc 4x8 RPE8';
+  var PRESS2     = 'Wyciskanie hantli skos+ 3x10 RPE7';
+  var OHP_NOV    = 'Wyciskanie hantli nad głowę stojąc 3x12 RPE7';
+  var OHP        = 'Wyciskanie żołnierskie OHP sztanga 4x6 RPE8';
+
+  // Wzorce ruchowe — PRZYCIĄGANIE
+  var PULLDOWN   = 'Ściąganie drążka wyciąg 3x12 RPE7';         // przygotowanie do podciągań
+  var ROW_NOV    = 'Wiosłowanie hantlem 3x12 RPE7';              // nowicjusz — lepsza kontrola
+  var ROW        = 'Wiosłowanie sztangą 4x8 RPE8';
+  var ROW2       = 'Wiosłowanie hantlem 3x10 RPE8';
+  var PULL       = 'Podciąganie na drążku 4x6 RPE8';            // po zbudowaniu bazy siły
+  var CARRY      = 'Spacer farmera hantle 3x30m RPE7';           // siła chwytu + rdzeń
+
+  // Akcesoria — NSCA obowiązkowe dla balansu i prewencji kontuzji
+  var FACEPULL   = 'Facepull linki 3x15 RPE7';                  // rotatory, tył barku — ZAWSZE
+  var HIPTHRUST  = 'Hip Thrust sztanga 4x10 RPE8';              // pośladki — ZAWSZE
+  var YRASE      = 'Y-raise hantlami 3x12 RPE7';
+  var PLANK      = 'Plank 3x45s';
+  var ALLAH      = 'Allahy wyciąg 3x15 RPE7';
+  var CURL       = 'Uginanie biceps sztanga 3x12 RPE7';
+  var TRICEP     = 'Prostowanie triceps wyciąg 3x12 RPE7';
+  var LATERAL    = 'Wznosy hantli bokiem 3x15 RPE7';
+  var CALF       = 'Wspięcia na łydki 4x15 RPE7';
+  var CURL_LEG   = 'Uginanie nóg maszyna 3x12 RPE7';
+
+  // Dobór ćwiczeń wg poziomu (NSCA/NASM)
+  var isNov = level==='poczatkujacy';
+  var isAdv = level==='zaawansowany';
+  var SQUAT_USE  = isNov ? SQUAT_NOV : SQUAT_INT;
+  var PRESS_USE  = isNov ? (gender==='K' ? PUSHUP : PRESS_NOV) : PRESS;
+  var OHP_USE    = isNov ? OHP_NOV : OHP;
+  var ROW_USE    = isNov ? ROW_NOV : ROW;
+  var PULL_USE   = isNov ? PULLDOWN : PULL;
+  var HINGE_USE  = isNov ? HINGE_NOV : HINGE;
+  var DEAD_USE   = isNov ? HINGE_NOV : DEAD;
 
   // Korekty postawy — obowiązkowe z wiedzy naukowej
   var extraAcc = [];
-  if(postureNotes.some(n=>n.includes('Facepull')||n.includes('kifoza')||n.includes('protrakcja'))) extraAcc.push(FACEPULL);
-  if(postureNotes.some(n=>n.includes('Hip Thrust')||n.includes('hiperlordoza')||n.includes('posladki'))) extraAcc.push(HIPTHRUST);
-  if(postureNotes.some(n=>n.includes('Y-raise'))) extraAcc.push(YRASE);
-  if(postureNotes.some(n=>n.includes('Plank')||n.includes('core'))) extraAcc.push(PLANK);
-  // Zawsze dodaj Facepull i HipThrust (złota zasada)
+  if(postureNotes.some(function(n){return n.includes('Facepull')||n.includes('kifoza')||n.includes('protrakcja');})) extraAcc.push(FACEPULL);
+  if(postureNotes.some(function(n){return n.includes('Hip Thrust')||n.includes('hiperlordoza')||n.includes('posladki');})) extraAcc.push(HIPTHRUST);
+  if(postureNotes.some(function(n){return n.includes('Y-raise');})) extraAcc.push(YRASE);
+  if(postureNotes.some(function(n){return n.includes('Plank')||n.includes('core');})) extraAcc.push(PLANK);
   if(!extraAcc.includes(FACEPULL)) extraAcc.push(FACEPULL);
   if(!extraAcc.includes(HIPTHRUST)) extraAcc.push(HIPTHRUST);
 
@@ -1328,35 +1320,45 @@ function buildPlanFromTemplate(client, method, params, postureNotes){
 
   // ===== TYDZIEŃ 1 — FUNDAMENT =====
   // Zasada SRA: Tydzień 1 = adaptacja, RPE 7 (RIR 3), nauka wzorców
-  // Progresja liniowa dla nowicjuszy, DUP dla średnich
+  // NSCA: Nowicjusz — adaptacje neurologiczne, technika > ciężar
+  // NSCA: Średniozaawansowany — adaptacje strukturalne, periodyzacja
   function buildWeek1(){
     var allDays = [];
 
     if(method==='FBW'){
-      // FBW A/B naprzemiennie — 3x/tydzień
-      // Trening A: focus klatka/plecy, Trening B: focus nogi/barki
-      var trainA = level==='poczatkujacy'
-        ? [SQUAT, gender==='K'?HIPTHRUST:PRESS, PULLDOWN, FACEPULL, PLANK]
-        : [PRESS, ROW, SQUAT, FACEPULL, HIPTHRUST];
-      var trainB = level==='poczatkujacy'
-        ? [LEGPRESS, OHP, ROW2, HIPTHRUST, PLANK]
-        : [OHP, PULL, HINGE, FACEPULL, LATERAL];
+      // FBW A/B naprzemiennie — NSCA: 2-3x/tydzień każda partia
+      // Trening A: Dominacja kolana + Wypychanie + Przyciąganie
+      // Trening B: Dominacja biodra + Wypychanie górą + Przyciąganie górą
+      var trainA = isNov
+        ? [SQUAT_USE, PRESS_USE, PULLDOWN, FACEPULL, PLANK]        // nowicjusz: Goblet + pompki/hantle + wyciąg
+        : [SQUAT_USE, PRESS_USE, ROW_USE, FACEPULL, HIPTHRUST];    // sredni: sztanga + wiosłowanie
+      var trainB = isNov
+        ? [HINGE_USE, OHP_USE, ROW_NOV, HIPTHRUST, PLANK]          // nowicjusz: RDL hantle + OHP hantle
+        : [DEAD_USE, OHP_USE, PULL_USE, FACEPULL, LATERAL];        // sredni: martwy + podciąganie
 
       var pattern = days<=3 ? ['A','R','B','R','A','R','R'] : ['A','B','R','A','B','A','R'];
       dayNames.forEach(function(d,i){
         var t = pattern[i]||'R';
-        if(t==='A') allDays.push({day:d,muscles:'Pełne ciało A',exercises:trainA});
-        else if(t==='B') allDays.push({day:d,muscles:'Pełne ciało B',exercises:trainB});
+        if(t==='A') allDays.push({day:d,muscles:'Pelne cialo A (Kolano+Push+Pull)',exercises:trainA});
+        else if(t==='B') allDays.push({day:d,muscles:'Pelne cialo B (Biodro+OHP+Ciaganienie)',exercises:trainB});
         else allDays.push({day:d,rest:true});
       });
 
     } else if(method==='PPL'){
-      var pushEx  = [PRESS, PRESS2, OHP, TRICEP, LATERAL];
-      var pullEx  = [ROW, PULL, ROW2, CURL, FACEPULL];
-      var legsEx  = [SQUAT, HINGE, HIPTHRUST, CURL_LEG, CALF];
-      var pattern6 = ['push','pull','legs','push','pull','legs','R'];
-      var pattern3 = ['push','R','pull','R','legs','R','R'];
-      var pat = days>=5 ? pattern6 : pattern3;
+      // PPL — NSCA: balans push:pull = min 1:1 (zalecane 1:1.5 dla korekcji postawy)
+      var pushEx = isNov
+        ? [PUSHUP, PRESS_NOV, OHP_NOV, LATERAL, FACEPULL]
+        : [PRESS, PRESS2, OHP, TRICEP, LATERAL];
+      var pullEx = isNov
+        ? [PULLDOWN, ROW_NOV, FACEPULL, CURL, YRASE]
+        : [ROW, PULL, ROW2, CURL, FACEPULL];
+      var legsEx = isNov
+        ? [SQUAT_NOV, HINGE_NOV, HIPTHRUST, CURL_LEG, PLANK]
+        : [SQUAT_USE, HINGE, HIPTHRUST, CURL_LEG, CALF];
+
+      var pat = days>=5
+        ? ['push','pull','legs','push','pull','legs','R']
+        : ['push','R','pull','R','legs','R','R'];
       dayNames.forEach(function(d,i){
         var t=pat[i]||'R';
         if(t==='push') allDays.push({day:d,muscles:'Klatka + Barki + Triceps',exercises:pushEx});
@@ -1366,26 +1368,34 @@ function buildPlanFromTemplate(client, method, params, postureNotes){
       });
 
     } else if(method==='Upper Lower'){
-      var upperEx = [PRESS, ROW, OHP, PULL, FACEPULL];
-      var lowerEx = [SQUAT, HINGE, HIPTHRUST, CURL_LEG, CALF];
-      var pat4 = ['upper','lower','R','upper','lower','R','R'];
-      var pat5 = ['upper','lower','upper','lower','upper','R','R'];
-      var pat = days>=5 ? pat5 : pat4;
+      // Upper/Lower — NSCA: min 48h regeneracji między sesjami tej samej partii
+      var upperEx = isNov
+        ? [PRESS_NOV, PULLDOWN, OHP_NOV, ROW_NOV, FACEPULL]
+        : [PRESS, ROW, OHP, PULL, FACEPULL];
+      var lowerEx = isNov
+        ? [SQUAT_NOV, HINGE_NOV, HIPTHRUST, CURL_LEG, PLANK]
+        : [SQUAT_USE, HINGE, HIPTHRUST, CURL_LEG, CALF];
+
+      var pat = days>=5
+        ? ['upper','lower','upper','lower','upper','R','R']
+        : ['upper','lower','R','upper','lower','R','R'];
       dayNames.forEach(function(d,i){
         var t=pat[i]||'R';
-        if(t==='upper') allDays.push({day:d,muscles:'Górna część ciała',exercises:upperEx});
-        else if(t==='lower') allDays.push({day:d,muscles:'Dolna część ciała',exercises:lowerEx});
+        if(t==='upper') allDays.push({day:d,muscles:'Gorna czesc ciala',exercises:upperEx});
+        else if(t==='lower') allDays.push({day:d,muscles:'Dolna czesc ciala',exercises:lowerEx});
         else allDays.push({day:d,rest:true});
       });
 
     } else {
-      // Arnold / Bro Split / domyślny
-      var klatkaEx = [PRESS, PRESS2, CURL, FACEPULL, PLANK];
-      var plecyEx  = [ROW, PULL, DEAD, TRICEP, FACEPULL];
-      var nogiEx   = [SQUAT, HINGE, HIPTHRUST, CURL_LEG, CALF];
-      var barkiEx  = [OHP, LATERAL, YRASE, FACEPULL, ALLH];
-      var pat = {0:'klatka',1:'plecy',2:'nogi',3:'R',4:'barki',5:'R',6:'R'};
-      if(days>=5) pat = {0:'klatka',1:'plecy',2:'nogi',3:'barki',4:'klatka',5:'R',6:'R'};
+      // Arnold / Bro Split
+      var klatkaEx = isNov ? [PRESS_NOV, PUSHUP, CURL, FACEPULL, PLANK] : [PRESS, PRESS2, CURL, FACEPULL, PLANK];
+      var plecyEx  = isNov ? [ROW_NOV, PULLDOWN, HINGE_NOV, TRICEP, FACEPULL] : [ROW, PULL, DEAD, TRICEP, FACEPULL];
+      var nogiEx   = isNov ? [SQUAT_NOV, HINGE_NOV, HIPTHRUST, CURL_LEG, CALF] : [SQUAT_USE, HINGE, HIPTHRUST, CURL_LEG, CALF];
+      var barkiEx  = isNov ? [OHP_NOV, LATERAL, YRASE, FACEPULL, PLANK] : [OHP, LATERAL, YRASE, FACEPULL, ALLAH];
+
+      var pat = days>=5
+        ? {0:'klatka',1:'plecy',2:'nogi',3:'barki',4:'klatka',5:'R',6:'R'}
+        : {0:'klatka',1:'plecy',2:'nogi',3:'R',4:'barki',5:'R',6:'R'};
       dayNames.forEach(function(d,i){
         var t=pat[i]||'R';
         if(t==='klatka') allDays.push({day:d,muscles:'Klatka + Biceps',exercises:klatkaEx});
