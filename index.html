@@ -1278,98 +1278,179 @@ async function generatePlan(){
 }
 
 // ============================================================
-// GENERATOR PLANÓW — WBUDOWANA BAZA WIEDZY NAUKOWEJ
+// GENERATOR PLANÓW — PEŁNA BAZA WIEDZY NAUKOWEJ
+// Źródła: Barbell Medicine, NASM, Architektura Siły, SRA Cycle
 // ============================================================
 function buildPlanFromTemplate(client, method, params, postureNotes){
-  var isM = client.gender !== 'K';
   var days = parseInt(client.days)||3;
   var goal = client.goal||'masa';
   var level = client.level||'sredni';
+  var gender = client.gender||'M';
 
-  // Baza ćwiczeń wielostawowych
-  var PUSH = ['Wyciskanie sztangi leżąc 4x8 RPE8','Wyciskanie hantli skos+ 3x10 RPE8','Wyciskanie żołnierskie OHP 4x6 RPE8','Dipy na poręczach 3x10 RPE7'];
-  var PULL = ['Wiosłowanie sztangą 4x8 RPE8','Podciąganie na drążku 4x6 RPE8','Wiosłowanie hantlą 3x10 RPE8','Ściąganie drążka wyciąg 3x12 RPE7'];
-  var LEGS = ['Przysiad ze sztangą 4x8 RPE8','Martwy ciąg 3x5 RPE8','Wykroki z hantlami 3x10 RPE7','Leg press 4x12 RPE7','RDL (martwy na prostych) 3x10 RPE8'];
-  // Akcesoria — zawsze z wiedzy naukowej
-  var ACC_UPPER = ['Facepull linki 3x15 RPE7','Wznosy hantli bokiem 3x15 RPE7','Uginanie biceps hantle 3x12 RPE7','Prostowanie triceps wyciąg 3x12 RPE7'];
-  var ACC_LOWER = ['Hip Thrust sztanga 4x10 RPE8','Uginanie nóg maszyna 3x12 RPE7','Łydki wspięcia stojąc 4x15 RPE7','Plank 3x45s','Allahy wyciąg 3x15 RPE7'];
-  var ACC_CORE = ['Plank 3x45s','Allahy wyciąg 3x15 RPE7','Deska bokiem 3x30s','Wznosy nóg w zwisie 3x12'];
+  // ===== BAZA ĆWICZEŃ =====
+  // Wielostawowe — fundament (kolejność: kolano, biodro, push, pull)
+  var SQUAT    = gender==='K' ? 'Przysiad pucharowy Goblet 4x10 RPE7' : 'Przysiad ze sztangą 4x8 RPE8';
+  var HINGE    = 'Martwy ciąg RDL 3x10 RPE7';
+  var DEAD     = 'Martwy ciąg klasyczny 3x5 RPE8';
+  var PRESS    = 'Wyciskanie sztangi leżąc 4x8 RPE8';
+  var PRESS2   = 'Wyciskanie hantli skos+ 3x10 RPE7';
+  var OHP      = 'Wyciskanie żołnierskie OHP 4x6 RPE8';
+  var ROW      = 'Wiosłowanie sztangą 4x8 RPE8';
+  var ROW2     = 'Wiosłowanie hantlem 3x10 RPE8';
+  var PULL     = 'Podciąganie na drążku 4x6 RPE8';
+  var PULLDOWN = 'Ściąganie drążka wyciąg 3x12 RPE7';
+  var LEGPRESS = 'Leg press 4x12 RPE7';
+  var LUNGE    = 'Wykroki z hantlami 3x10 RPE7';
 
-  // Korekty postawy — obowiązkowe akcesoria
-  var postureAcc = [];
-  if(postureNotes.some(n=>n.includes('Facepull'))) postureAcc.push('Facepull linki 3x15 RPE7');
-  if(postureNotes.some(n=>n.includes('Hip Thrust'))) postureAcc.push('Hip Thrust sztanga 4x10 RPE8');
-  if(postureNotes.some(n=>n.includes('Plank'))) postureAcc.push('Plank 3x45s');
-  if(postureNotes.some(n=>n.includes('Y-raise'))) postureAcc.push('Y-raise hantlami 3x12 RPE7');
+  // Akcesoria obowiązkowe (słabe ogniwa — Architektura Siły)
+  var FACEPULL = 'Facepull linki 3x15 RPE7';
+  var HIPTHRUST= 'Hip Thrust sztanga 4x10 RPE8';
+  var YRASE    = 'Y-raise hantlami 3x12 RPE7';
+  var PLANK    = 'Plank 3x45s';
+  var ALLAH    = 'Allahy wyciąg 3x15 RPE7';
+  var CURL     = 'Uginanie biceps sztanga 3x12 RPE7';
+  var TRICEP   = 'Prostowanie triceps wyciąg 3x12 RPE7';
+  var LATERAL  = 'Wznosy hantli bokiem 3x15 RPE7';
+  var CALF     = 'Wspięcia na łydki 4x15 RPE7';
+  var CURL_LEG = 'Uginanie nóg maszyna 3x12 RPE7';
 
-  // Dostosuj RPE do poziomu
-  var rpeAdj = level==='poczatkujacy' ? -1 : level==='zaawansowany' ? 1 : 0;
+  // Korekty postawy — obowiązkowe z wiedzy naukowej
+  var extraAcc = [];
+  if(postureNotes.some(n=>n.includes('Facepull')||n.includes('kifoza')||n.includes('protrakcja'))) extraAcc.push(FACEPULL);
+  if(postureNotes.some(n=>n.includes('Hip Thrust')||n.includes('hiperlordoza')||n.includes('posladki'))) extraAcc.push(HIPTHRUST);
+  if(postureNotes.some(n=>n.includes('Y-raise'))) extraAcc.push(YRASE);
+  if(postureNotes.some(n=>n.includes('Plank')||n.includes('core'))) extraAcc.push(PLANK);
+  // Zawsze dodaj Facepull i HipThrust (złota zasada)
+  if(!extraAcc.includes(FACEPULL)) extraAcc.push(FACEPULL);
+  if(!extraAcc.includes(HIPTHRUST)) extraAcc.push(HIPTHRUST);
 
-  function adjustRPE(ex){
-    return ex.replace(/RPE(\d+)/g, function(m,r){ return 'RPE'+(Math.min(10,parseInt(r)+rpeAdj)); });
-  }
-
-  var allDays = [];
   var dayNames = ['PON','WT','SR','CZ','PT','SO','ND'];
 
-  if(method==='FBW' || days<=3){
-    // FBW — 3 dni pełne ciało
-    var trainingDays = days<=3 ? [0,2,4] : [0,1,2,3,4].slice(0,days);
-    dayNames.forEach(function(d,i){
-      if(trainingDays.includes(i)){
-        var ex = [PUSH[0],PULL[0],LEGS[0],'Facepull linki 3x15 RPE7','Hip Thrust sztanga 4x10 RPE8'];
-        if(postureAcc.length) ex = ex.concat(postureAcc.filter(p=>!ex.includes(p))).slice(0,5);
-        allDays.push({day:d,muscles:'Pełne ciało',exercises:ex.map(adjustRPE)});
-      } else {
-        allDays.push({day:d,rest:true});
-      }
-    });
-  } else if(method==='PPL'){
-    // Push Pull Legs
-    var pplMap = {0:'push',1:'pull',2:'legs',3:'rest',4:'push',5:'pull',6:'rest'};
-    if(days>=6) pplMap = {0:'push',1:'pull',2:'legs',3:'push',4:'pull',5:'legs',6:'rest'};
-    dayNames.forEach(function(d,i){
-      var t = pplMap[i]||'rest';
-      if(t==='push') allDays.push({day:d,muscles:'Klatka + Barki + Triceps',exercises:[PUSH[0],PUSH[1],PUSH[2],ACC_UPPER[0],ACC_UPPER[3]].map(adjustRPE)});
-      else if(t==='pull') allDays.push({day:d,muscles:'Plecy + Biceps',exercises:[PULL[0],PULL[1],PULL[2],ACC_UPPER[0],ACC_UPPER[2]].map(adjustRPE)});
-      else if(t==='legs') allDays.push({day:d,muscles:'Nogi + Core',exercises:[LEGS[0],LEGS[4],ACC_LOWER[0],ACC_LOWER[1],ACC_CORE[0]].map(adjustRPE)});
-      else allDays.push({day:d,rest:true});
-    });
-  } else if(method==='Upper Lower'){
-    var ulMap = {0:'upper',1:'lower',2:'rest',3:'upper',4:'lower',5:'rest',6:'rest'};
-    if(days>=5) ulMap = {0:'upper',1:'lower',2:'upper',3:'lower',4:'upper',5:'rest',6:'rest'};
-    dayNames.forEach(function(d,i){
-      var t = ulMap[i]||'rest';
-      if(t==='upper') allDays.push({day:d,muscles:'Górna część ciała',exercises:[PUSH[0],PULL[0],PUSH[2],PULL[2],ACC_UPPER[0]].map(adjustRPE)});
-      else if(t==='lower') allDays.push({day:d,muscles:'Dolna część ciała',exercises:[LEGS[0],LEGS[4],ACC_LOWER[0],ACC_LOWER[1],ACC_CORE[0]].map(adjustRPE)});
-      else allDays.push({day:d,rest:true});
-    });
-  } else {
-    // Arnold Split / Bro Split / domyślny
-    var splitMap = {0:'klatka+biceps',1:'plecy+triceps',2:'nogi',3:'rest',4:'barki+core',5:'rest',6:'rest'};
-    dayNames.forEach(function(d,i){
-      var t = splitMap[i]||'rest';
-      if(t==='klatka+biceps') allDays.push({day:d,muscles:'Klatka + Biceps',exercises:[PUSH[0],PUSH[1],PULL[2],ACC_UPPER[2],ACC_UPPER[0]].map(adjustRPE)});
-      else if(t==='plecy+triceps') allDays.push({day:d,muscles:'Plecy + Triceps',exercises:[PULL[0],PULL[1],PUSH[0].replace('leżąc','wąski'),ACC_UPPER[3],ACC_UPPER[0]].map(adjustRPE)});
-      else if(t==='nogi') allDays.push({day:d,muscles:'Nogi + Core',exercises:[LEGS[0],LEGS[4],ACC_LOWER[0],ACC_LOWER[1],ACC_CORE[0]].map(adjustRPE)});
-      else if(t==='barki+core') allDays.push({day:d,muscles:'Barki + Core',exercises:[PUSH[2],ACC_UPPER[1],ACC_UPPER[0],ACC_CORE[0],ACC_CORE[3]].map(adjustRPE)});
-      else allDays.push({day:d,rest:true});
+  // ===== TYDZIEŃ 1 — FUNDAMENT =====
+  // Zasada SRA: Tydzień 1 = adaptacja, RPE 7 (RIR 3), nauka wzorców
+  // Progresja liniowa dla nowicjuszy, DUP dla średnich
+  function buildWeek1(){
+    var allDays = [];
+
+    if(method==='FBW'){
+      // FBW A/B naprzemiennie — 3x/tydzień
+      // Trening A: focus klatka/plecy, Trening B: focus nogi/barki
+      var trainA = level==='poczatkujacy'
+        ? [SQUAT, gender==='K'?HIPTHRUST:PRESS, PULLDOWN, FACEPULL, PLANK]
+        : [PRESS, ROW, SQUAT, FACEPULL, HIPTHRUST];
+      var trainB = level==='poczatkujacy'
+        ? [LEGPRESS, OHP, ROW2, HIPTHRUST, PLANK]
+        : [OHP, PULL, HINGE, FACEPULL, LATERAL];
+
+      var pattern = days<=3 ? ['A','R','B','R','A','R','R'] : ['A','B','R','A','B','A','R'];
+      dayNames.forEach(function(d,i){
+        var t = pattern[i]||'R';
+        if(t==='A') allDays.push({day:d,muscles:'Pełne ciało A',exercises:trainA});
+        else if(t==='B') allDays.push({day:d,muscles:'Pełne ciało B',exercises:trainB});
+        else allDays.push({day:d,rest:true});
+      });
+
+    } else if(method==='PPL'){
+      var pushEx  = [PRESS, PRESS2, OHP, TRICEP, LATERAL];
+      var pullEx  = [ROW, PULL, ROW2, CURL, FACEPULL];
+      var legsEx  = [SQUAT, HINGE, HIPTHRUST, CURL_LEG, CALF];
+      var pattern6 = ['push','pull','legs','push','pull','legs','R'];
+      var pattern3 = ['push','R','pull','R','legs','R','R'];
+      var pat = days>=5 ? pattern6 : pattern3;
+      dayNames.forEach(function(d,i){
+        var t=pat[i]||'R';
+        if(t==='push') allDays.push({day:d,muscles:'Klatka + Barki + Triceps',exercises:pushEx});
+        else if(t==='pull') allDays.push({day:d,muscles:'Plecy + Biceps',exercises:pullEx});
+        else if(t==='legs') allDays.push({day:d,muscles:'Nogi + Core',exercises:legsEx});
+        else allDays.push({day:d,rest:true});
+      });
+
+    } else if(method==='Upper Lower'){
+      var upperEx = [PRESS, ROW, OHP, PULL, FACEPULL];
+      var lowerEx = [SQUAT, HINGE, HIPTHRUST, CURL_LEG, CALF];
+      var pat4 = ['upper','lower','R','upper','lower','R','R'];
+      var pat5 = ['upper','lower','upper','lower','upper','R','R'];
+      var pat = days>=5 ? pat5 : pat4;
+      dayNames.forEach(function(d,i){
+        var t=pat[i]||'R';
+        if(t==='upper') allDays.push({day:d,muscles:'Górna część ciała',exercises:upperEx});
+        else if(t==='lower') allDays.push({day:d,muscles:'Dolna część ciała',exercises:lowerEx});
+        else allDays.push({day:d,rest:true});
+      });
+
+    } else {
+      // Arnold / Bro Split / domyślny
+      var klatkaEx = [PRESS, PRESS2, CURL, FACEPULL, PLANK];
+      var plecyEx  = [ROW, PULL, DEAD, TRICEP, FACEPULL];
+      var nogiEx   = [SQUAT, HINGE, HIPTHRUST, CURL_LEG, CALF];
+      var barkiEx  = [OHP, LATERAL, YRASE, FACEPULL, ALLH];
+      var pat = {0:'klatka',1:'plecy',2:'nogi',3:'R',4:'barki',5:'R',6:'R'};
+      if(days>=5) pat = {0:'klatka',1:'plecy',2:'nogi',3:'barki',4:'klatka',5:'R',6:'R'};
+      dayNames.forEach(function(d,i){
+        var t=pat[i]||'R';
+        if(t==='klatka') allDays.push({day:d,muscles:'Klatka + Biceps',exercises:klatkaEx});
+        else if(t==='plecy') allDays.push({day:d,muscles:'Plecy + Triceps',exercises:plecyEx});
+        else if(t==='nogi') allDays.push({day:d,muscles:'Nogi + Core',exercises:nogiEx});
+        else if(t==='barki') allDays.push({day:d,muscles:'Barki + Core',exercises:barkiEx});
+        else allDays.push({day:d,rest:true});
+      });
+    }
+
+    return allDays;
+  }
+
+  // Policz serie dla każdego dnia
+  function addSets(daysList){
+    return daysList.map(function(d){
+      if(d.rest) return d;
+      var sets=(d.exercises||[]).reduce(function(acc,ex){
+        var m=ex.match(/(\d+)x/); return acc+(m?parseInt(m[1]):3);
+      },0);
+      return Object.assign({},d,{sets:sets});
     });
   }
 
-  // Policz serie
-  allDays = allDays.map(function(d){
-    if(d.rest) return d;
-    var sets = (d.exercises||[]).reduce(function(acc,ex){
-      var m = ex.match(/(\d+)x/); return acc+(m?parseInt(m[1]):4);
-    },0);
-    return Object.assign({},d,{sets:sets});
-  });
+  var week1 = addSets(buildWeek1());
 
   return {
-    name: method+' — '+goal+' ('+level+')',
-    days: allDays
+    name: method+' — Tydzień 1 — '+goal+' ('+level+')',
+    method: method,
+    level: level,
+    goal: goal,
+    days: week1,
+    // Zasady periodyzacji dla kolejnych tygodni
+    progression: {
+      nowicjusz: '+2.5kg co trening gdy zaliczysz wszystkie serie z RPE≤8. Reset -10% przy stagnacji.',
+      sredni: 'Tydzień 1 RPE7 → Tydzień 2 RPE8 → Tydzień 3 RPE9 → Tydzień 4 DELOAD (-50% serii)',
+      zaawansowany: 'Bloki 4-6 tyg: Akumulacja (RPE7-8) → Intensyfikacja (RPE8-9) → Realizacja (RPE9-10) → Deload'
+    }[level]||'',
+    deload: params.deload,
+    scienceBase: 'Barbell Medicine, NASM, Architektura Siły v.01, Cykl SRA, FITT-VP'
   };
+}
+
+// Harmonogram periodyzacji na kolejne tygodnie
+function getPeriodizationSchedule(level){
+  if(level==='poczatkujacy') return [
+    {nr:1,cel:'Adaptacja — nauka wzorców ruchowych',rpe:'RPE 7 (RIR 3)',info:'Zacznij od lekkiego ciężaru. Technika > wszystko. +2.5kg gdy zalisczysz wszystkie serie.'},
+    {nr:2,cel:'Utrwalenie techniki',rpe:'RPE 7 (RIR 3)',info:'Ten sam ciężar lub +2.5kg. Ocena postępów techniki.'},
+    {nr:3,cel:'Progresja liniowa — wzrost ciężaru',rpe:'RPE 8 (RIR 2)',info:'+2.5kg przysiad/martwy, +2.5kg reszta gdy zaliczysz wszystko z dobrą techniką.'},
+    {nr:4,cel:'DELOAD — regeneracja układu nerwowego',rpe:'RPE 6 (RIR 4)',info:'-50% serii, -10% ciężaru. Niezbędny! CNS adaptuje się najszybciej ale też najszybciej się męczy.'},
+  ];
+  if(level==='sredni') return [
+    {nr:1,cel:'DUP Akumulacja — wysoka objętość',rpe:'RPE 7 (RIR 3)',info:'PON: siła 3-5 powt 85-90% 1RM · ŚR: hipertrofia 8-12 powt 67-75% 1RM · PT: wytrzymałość 15-20 powt'},
+    {nr:2,cel:'DUP Intensyfikacja',rpe:'RPE 8 (RIR 2)',info:'Zwiększ ciężar 2-5% w każdej sesji utrzymując ten sam RPE. DUP wygrywa z liniową u wytrenowanych!'},
+    {nr:3,cel:'DUP Szczyt — maksymalna intensywność',rpe:'RPE 9 (RIR 1)',info:'Bodziec musi przekroczyć RPE 6 żeby być efektywny. Autoregulacja: gorszy dzień = -5-10% ciężaru.'},
+    {nr:4,cel:'DELOAD — rozproszenie zmęczenia skumulowanego',rpe:'RPE 6 (RIR 4)',info:'-50% serii lub -10-20% ciężaru. Utrzymaj wzorce ruchowe. Tkanki miękkie adaptują się MIESIĄCAMI!'},
+  ];
+  return [
+    {nr:1,cel:'Blok Akumulacji — baza hipertroficzna',rpe:'RPE 7-8',info:'60-75% 1RM, 6-12 powt, wysoka objętość 18-22 serie/grupę/tydzień (do MRV).'},
+    {nr:2,cel:'Blok Akumulacji — wzrost objętości',rpe:'RPE 8',info:'+1 seria na kluczowe partie. Monitoruj RIR — sygnał zmęczenia: RPE7 czuje się jak RPE9 → deload!'},
+    {nr:3,cel:'Blok Intensyfikacji — siła',rpe:'RPE 8-9',info:'75-90% 1RM, 3-5 powt. Przerwy 3-5 min (pełna resynteza ATP). Prawo malejących przychodów — +2kg = wielotygodniowy plan.'},
+    {nr:4,cel:'Blok Intensyfikacji — szczyt formy',rpe:'RPE 9',info:'Specjalizacja: jedna partia dostaje 100% objętości, reszta maintenance. Analiza słabych ogniw.'},
+    {nr:5,cel:'Blok Realizacji — peak',rpe:'RPE 9-10',info:'90%+ 1RM, niska objętość, pełny wypoczynek. Test 1RM jeśli cel. VBT: zatrzymaj gdy prędkość <0.5 m/s.'},
+    {nr:6,cel:'DELOAD + Pivot Week',rpe:'RPE 6',info:'Zmień ćwiczenia na warianty (Pivot), -60% objętości. Reset mentalny i biologiczny przed nowym makrocyklem.'},
+  ];
 }
 
 // ============================================================
@@ -1379,337 +1460,41 @@ function renderPlans(){
   var el = document.getElementById('plans-list');
   var plans = window.PLANS || [];
   if(!plans.length){
-    el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div>Brak planów — wygeneruj przez AI!</div></div>';
+    el.innerHTML = '<div class="empty"><div class="empty-icon">&#128203;</div><div>Brak planow - wygeneruj!</div></div>';
     return;
   }
-
   el.innerHTML = plans.map(function(p,i){
+    var schedule = getPeriodizationSchedule(p.level||'sredni');
     return '<div class="plan-card" style="animation-delay:'+(i*0.05)+'s">'
-      +'<div class="plan-hdr">'
-      +'<div>'
-      +'<div class="plan-title">'+p.name+'</div>'
-      +'<div style="font-size:11px;color:var(--muted);font-family:DM Mono,monospace;margin-top:2px;">'+p.clientName+' · '+p.duration+' tyg</div>'
-      +'</div>'
-      +'<div style="display:flex;gap:6px;align-items:center;">'
+      +'<div class="plan-hdr"><div><div class="plan-title">'+p.name+'</div>'
+      +'<div style="font-size:11px;color:var(--muted);font-family:DM Mono,monospace;margin-top:2px;">'+p.clientName+' &middot; '+p.duration+' tyg</div>'
+      +'</div><div style="display:flex;gap:6px;align-items:center;">'
       +'<div class="plan-badge" style="background:rgba(200,241,53,0.12);color:var(--accent);">'+p.method+'</div>'
-      +'<button onclick="startWorkout(\''+p.id+'\')" style="background:var(--accent);color:#000;border:none;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;">▶ START</button>'
-      +'</div>'
-      +'</div>'
+      +'<button onclick="startWorkout(''+p.id+'')" style="background:var(--accent);color:#000;border:none;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;">&#9654; START</button>'
+      +'</div></div>'
       +'<div class="plan-body">'
       +(p.days||[]).map(function(d){
         return '<div class="day-row"><div class="day-name">'+d.day+'</div>'
-          +(d.rest ? '<div class="day-muscles rest-day">— Odpoczynek'+(d.aktywnosc?' ('+d.aktywnosc+')':'')+'</div>' :
-            '<div style="flex:1;min-width:0;"><div class="day-muscles">'+d.muscles+'</div>'
-        +(d.exercises&&d.exercises.length?'<div style="font-size:10px;color:var(--muted);margin-top:3px;">'+(d.exercises.slice(0,2).join(' · '))+(d.exercises.length>2?' +więcej':'')+'</div>':'')
-            +'</div><div class="day-sets">'+(d.sets||0)+' serii</div>')
+          +(d.rest
+            ?'<div class="day-muscles rest-day">&#8212; Odpoczynek</div>'
+            :'<div style="flex:1;min-width:0;"><div class="day-muscles">'+d.muscles+'</div>'
+              +(d.exercises&&d.exercises.length?'<div style="font-size:10px;color:var(--muted);margin-top:2px;">'+(d.exercises.slice(0,2).join(' &middot; '))+(d.exercises.length>2?' +wiecej':'')+'</div>':'')
+              +'</div><div class="day-sets">'+(d.sets||0)+' serii</div>')
           +'</div>';
       }).join('')
-      +'</div></div>';
+      +'</div>'
+      +'<div style="border-top:1px solid var(--border);padding:12px 16px;">'
+      +'<div style="font-size:10px;font-family:DM Mono,monospace;color:var(--accent);margin-bottom:8px;">&#128197; HARMONOGRAM PERIODYZACJI</div>'
+      +schedule.map(function(w){
+        var col=w.cel.includes('DELOAD')||w.cel.includes('Pivot')?'var(--orange)':w.nr===1?'var(--accent)':'var(--blue)';
+        return '<div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);align-items:flex-start;">'
+          +'<div style="font-family:DM Mono,monospace;font-size:10px;color:'+col+';flex-shrink:0;width:50px;">TYG '+w.nr+'</div>'
+          +'<div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:600;color:var(--text);">'+w.cel+'</div>'
+          +'<div style="font-size:10px;color:var(--muted);margin-top:2px;">'+w.rpe+' &middot; '+w.info+'</div>'
+          +'</div></div>';
+      }).join('')
+      +'<div style="margin-top:8px;padding:8px;background:rgba(200,241,53,0.04);border-radius:8px;border:1px solid rgba(200,241,53,0.1);">'
+      +'<div style="font-size:9px;font-family:DM Mono,monospace;color:var(--muted);">&#128302; Cykl SRA &middot; 7 Filarow &middot; FITT-VP &middot; Barbell Medicine &middot; Architektura Sily v.01</div>'
+      +'</div></div></div>';
   }).join('');
 }
-
-// ============================================================
-// TRENING
-// ============================================================
-function renderWorkoutScreen(){
-  var el = document.getElementById('workout-content');
-  if(!window.PLANS||!window.PLANS.length){
-    el.innerHTML = '<div class="empty"><div class="empty-icon">💪</div><div>Brak planów treningowych.<br>Wygeneruj plan przez AI!</div><button class="btn-primary" style="margin-top:16px;" onclick="goScreen(\'plans\')">Przejdź do planów</button></div>';
-    return;
-  }
-  el.innerHTML = '<div style="margin-bottom:16px;"><div style="font-family:Bebas Neue,sans-serif;font-size:18px;letter-spacing:1px;color:var(--text);margin-bottom:10px;">WYBIERZ PLAN</div>'
-    + window.PLANS.map(function(p){
-      return '<div class="session-item" style="cursor:pointer;" onclick="startWorkout(\''+p.id+'\')">'
-        +'<div class="session-time" style="color:var(--accent);">▶</div>'
-        +'<div class="session-info"><div class="session-name">'+p.name+'</div><div class="session-meta">'+p.clientName+' · '+p.method+'</div></div>'
-        +'</div>';
-    }).join('') + '</div>';
-}
-
-function startWorkout(planId){
-  var plan = window.PLANS.find(p => p.id===planId);
-  if(!plan) return;
-
-  goScreen('workout');
-  var today = new Date();
-  var days = ['ND','PON','WT','ŚR','CZW','PT','SOB'];
-  var todayDay = days[today.getDay()];
-  var dayPlan = (plan.days||[]).find(d => d.day===todayDay && !d.rest) || (plan.days||[]).find(d => !d.rest);
-  if(!dayPlan){ flash('Dziś dzień odpoczynku! 😴'); return; }
-
-  // Start timer
-  workoutSeconds = 0;
-  if(workoutTimer) clearInterval(workoutTimer);
-  workoutTimer = setInterval(function(){
-    workoutSeconds++;
-    var m = Math.floor(workoutSeconds/60).toString().padStart(2,'0');
-    var s = (workoutSeconds%60).toString().padStart(2,'0');
-    document.getElementById('workout-timer').textContent = m+':'+s;
-  }, 1000);
-
-  var el = document.getElementById('workout-content');
-  el.innerHTML = '<div style="margin-bottom:16px;">'
-    +'<div style="font-family:Bebas Neue,sans-serif;font-size:22px;letter-spacing:1px;color:var(--accent);">'+todayDay+' — '+dayPlan.muscles+'</div>'
-    +'<div style="font-size:11px;color:var(--muted);font-family:DM Mono,monospace;margin-top:4px;">'+plan.name+' · '+plan.clientName+'</div>'
-    +'</div>'
-    +(dayPlan.exercises||[]).map(function(ex, ei){
-      var sets = 4;
-      var reps = '8-12';
-      var rpe = '';
-      var rir = '';
-      var match = ex.match(/(\d+)x(\d+)/);
-      if(match){ sets=parseInt(match[1]); reps=match[2]; }
-      var rpeMatch = ex.match(/RPE(\d+)/);
-      if(rpeMatch) rpe = rpeMatch[1];
-      var rirMatch = ex.match(/RIR(\d+)/);
-      if(rirMatch) rir = rirMatch[1];
-      return '<div class="exercise-row">'
-        +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">'
-        +'<div class="exercise-name" style="margin-bottom:0;">'+ex.replace(/\d+x\d+.*/,'').trim()+'</div>'
-        +'<div style="display:flex;gap:6px;">'
-        +(rpe?'<div style="background:rgba(200,241,53,0.12);border:1px solid rgba(200,241,53,0.25);border-radius:6px;padding:3px 8px;font-size:10px;font-family:DM Mono,monospace;color:var(--accent);">RPE '+rpe+'</div>':'')
-        +(rir?'<div style="background:rgba(96,165,250,0.12);border:1px solid rgba(96,165,250,0.25);border-radius:6px;padding:3px 8px;font-size:10px;font-family:DM Mono,monospace;color:var(--blue);">RIR '+rir+'</div>':'')
-        +'</div></div>'
-        +'<div class="sets-grid">'
-        +Array.from({length:sets},function(_,si){
-          return '<div class="set-box" id="set-'+ei+'-'+si+'" onclick="toggleSet('+ei+','+si+')">'
-            +'<div class="set-num">SERIA '+(si+1)+'</div>'
-            +'<div class="set-val">'+reps+' pow</div>'
-            +'</div>';
-        }).join('')
-        +'</div></div>';
-    }).join('')
-    +'<button class="btn-primary" style="margin-top:20px;" onclick="finishWorkout(\''+planId+'\')">✅ Zakończ trening</button>';
-}
-
-function toggleSet(ei, si){
-  var el = document.getElementById('set-'+ei+'-'+si);
-  if(el) el.classList.toggle('done');
-}
-
-function finishWorkout(planId){
-  if(workoutTimer) clearInterval(workoutTimer);
-  var mins = Math.floor(workoutSeconds/60);
-  flash('Trening ukończony! ⏱ '+mins+' min 💪');
-  document.getElementById('workout-timer').textContent = '00:00';
-  workoutSeconds = 0;
-  renderWorkoutScreen();
-}
-
-// ============================================================
-// KALENDARZ
-// ============================================================
-function renderCalendar(){
-  var now = new Date();
-  var year = now.getFullYear();
-  var month = now.getMonth();
-  var monthNames = ['STYCZEŃ','LUTY','MARZEC','KWIECIEŃ','MAJ','CZERWIEC','LIPIEC','SIERPIEŃ','WRZESIEŃ','PAŹDZIERNIK','LISTOPAD','GRUDZIEŃ'];
-  document.getElementById('cal-month').textContent = monthNames[month]+' '+year;
-
-  var firstDay = new Date(year, month, 1).getDay();
-  var daysInMonth = new Date(year, month+1, 0).getDate();
-  var today = now.getDate();
-  var sessions = window.SESSIONS||[];
-
-  firstDay = (firstDay+6)%7; // Monday first
-
-  var grid = document.getElementById('cal-grid');
-  var html = ['PN','WT','ŚR','CZ','PT','SB','ND'].map(d => '<div style="text-align:center;font-size:9px;color:var(--muted);font-family:DM Mono,monospace;padding:4px 0;">'+d+'</div>').join('');
-
-  for(var i=0;i<firstDay;i++) html += '<div class="cal-day empty"></div>';
-  for(var d=1;d<=daysInMonth;d++){
-    var dateStr = year+'-'+(String(month+1).padStart(2,'0'))+'-'+(String(d).padStart(2,'0'));
-    var hasSession = sessions.some(s => s.date===dateStr);
-    var cls = d===today ? 'today' : hasSession ? 'has-session' : '';
-    html += '<div class="cal-day '+cls+'" onclick="showDaySessions(\''+dateStr+'\')">'+d+'</div>';
-  }
-  grid.innerHTML = html;
-
-  // Sesje listy
-  var listEl = document.getElementById('sessions-list');
-  var upcoming = sessions.filter(s => s.date >= new Date().toISOString().split('T')[0]).sort((a,b) => a.date.localeCompare(b.date));
-  if(!upcoming.length){
-    listEl.innerHTML = '<div class="empty"><div class="empty-icon">📅</div><div>Brak zaplanowanych sesji</div></div>';
-    return;
-  }
-  listEl.innerHTML = upcoming.slice(0,10).map(function(s){
-    var client = window.CLIENTS.find(c => c.id===s.clientId);
-    return '<div class="session-item">'
-      +'<div class="session-time">'+s.time+'<br><span style="font-size:9px;color:var(--muted);">'+s.date.split('-').slice(1).join('/')+'</span></div>'
-      +'<div class="session-info"><div class="session-name">'+(client?client.name:'Klient')+'</div><div class="session-meta">'+s.type+(s.notes?' · '+s.notes:'')+'</div></div>'
-      +'</div>';
-  }).join('');
-}
-
-function showDaySessions(dateStr){
-  var sessions = (window.SESSIONS||[]).filter(s => s.date===dateStr);
-  if(!sessions.length){ flash('Brak sesji w tym dniu'); return; }
-  flash(sessions.length+' sesji: '+sessions.map(s=>s.time+' '+s.type).join(', '));
-}
-
-function openAddSession(){
-  var sel = document.getElementById('as-client');
-  sel.innerHTML = window.CLIENTS.map(c => '<option value="'+c.id+'">'+c.name+'</option>').join('');
-  var today = new Date().toISOString().split('T')[0];
-  document.getElementById('as-date').value = today;
-  document.getElementById('as-time').value = '10:00';
-  openFullview('add-session-view');
-}
-
-async function saveSession(){
-  var clientId = document.getElementById('as-client').value;
-  var date = document.getElementById('as-date').value;
-  var time = document.getElementById('as-time').value;
-  var type = document.getElementById('as-type').value;
-  var notes = document.getElementById('as-notes').value;
-  if(!clientId||!date||!time){ flash('Wypełnij wszystkie pola!'); return; }
-
-  var session = { clientId, date, time, type, notes, createdAt: new Date().toISOString() };
-  try {
-    var ref = await window._addDoc(window._collection(window._db,'sessions'), session);
-    session.id = ref.id;
-  } catch(e){ session.id = 'local-'+Date.now(); }
-
-  window.SESSIONS.push(session);
-
-  // Update client sessions count
-  var client = window.CLIENTS.find(c => c.id===clientId);
-  if(client) client.sessionsCount = (client.sessionsCount||0)+1;
-
-  closeFullview('add-session-view');
-  renderCalendar();
-  renderDashboard();
-  flash('Sesja dodana! 📅');
-}
-
-// ============================================================
-// ANALIZA POSTAWY ZE ZDJĘCIA — CLAUDE VISION
-// ============================================================
-async function analyzePosturePhoto(input){
-  var file = input.files[0];
-  if(!file) return;
-
-  // Podgląd zdjęcia
-  var reader = new FileReader();
-  reader.onload = async function(e){
-    var base64 = e.target.result.split(',')[1];
-    var mediaType = file.type || 'image/jpeg';
-
-    document.getElementById('posture-photo-preview').innerHTML =
-      '<img src="'+e.target.result+'" style="width:100%;max-height:200px;object-fit:contain;border-radius:8px;margin-bottom:8px;">';
-
-    document.getElementById('posture-analysis-status').innerHTML =
-      '<div style="color:var(--accent);font-size:12px;font-family:DM Mono,monospace;">🔍 Claude AI analizuje postawę...</div>'
-      +'<div class="dot-loader" style="justify-content:flex-start;margin-top:6px;"><span></span><span></span><span></span></div>';
-
-    try {
-      var prompt = 'Jesteś ekspertem od analizy postawy ciała. Przeanalizuj to zdjęcie sylwetki i określ wady postawy. Odpowiedz TYLKO JSON:\n'
-        +'{"postawa":"prawidlowa|hiperlordoza|kifoza|plecy_plaskie|skolioza|mieszana",'
-        +'"barki":"prawidlowe|protrakcja|glowa_przod|asymetria|odstajace_lopatki",'
-        +'"kolana":"prawidlowe|kolana_do_srodka|kolana_na_zewn|plaskie_stopy|przodostopie",'
-        +'"slabe_partie":["posladki","kulszowe","tyl_barkow","trapez_dolny","core","rotatory","zginacze_bioder","tyl_uda"],'
-        +'"opis":"krótki opis po polsku max 100 znaków",'
-        +'"zalecenia":["zalecenie 1","zalecenie 2","zalecenie 3"]}\n\n'
-        +'Wybierz TYLKO te słabe partie które faktycznie widać na zdjęciu. Bądź precyzyjny.';
-
-      var resp = await fetch(WORKER_URL, {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 500,
-          messages: [{
-            role: 'user',
-            content: [
-              {type:'image', source:{type:'base64', media_type:mediaType, data:base64}},
-              {type:'text', text:prompt}
-            ]
-          }]
-        })
-      });
-
-      var data = await resp.json();
-      var raw = data.content.map(i=>i.text||'').join('');
-      var s = raw.indexOf('{'), e = raw.lastIndexOf('}');
-      var result = JSON.parse(raw.substring(s,e+1));
-
-      // Wypełnij pola formularza
-      if(result.postawa) document.getElementById('ac-posture').value = result.postawa;
-      if(result.barki) document.getElementById('ac-shoulders').value = result.barki;
-      if(result.kolana) document.getElementById('ac-knees').value = result.kolana;
-
-      // Zaznacz checkboxy słabych partii
-      document.querySelectorAll('#ac-weak-muscles input[type=checkbox]').forEach(cb => {
-        cb.checked = (result.slabe_partie||[]).includes(cb.value);
-      });
-
-      // Pokaż wynik
-      var postureLabels = {
-        prawidlowa:'✅ Prawidłowa',hiperlordoza:'⚠️ Hiperlordoza',
-        kifoza:'⚠️ Hiperkifoza',plecy_plaskie:'⚠️ Plecy płaskie',
-        skolioza:'⚠️ Skolioza',mieszana:'⚠️ Mieszana'
-      };
-
-      document.getElementById('posture-analysis-status').innerHTML =
-        '<div style="background:rgba(200,241,53,0.06);border:1px solid rgba(200,241,53,0.2);border-radius:10px;padding:14px;text-align:left;">'
-        +'<div style="font-family:Bebas Neue,sans-serif;font-size:14px;color:var(--accent);margin-bottom:8px;">✅ ANALIZA GOTOWA</div>'
-        +'<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">'+( result.opis||'')+'</div>'
-        +(result.zalecenia&&result.zalecenia.length ?
-          '<div style="font-size:10px;font-family:DM Mono,monospace;color:var(--accent);margin-bottom:4px;">ZALECENIA:</div>'
-          +result.zalecenia.map(z=>'<div style="font-size:11px;color:var(--muted);padding:3px 0;">→ '+z+'</div>').join('')
-        :'')
-        +'<div style="font-size:11px;color:var(--muted2);margin-top:8px;font-family:DM Mono,monospace;">Pola postawy zostały automatycznie wypełnione ↓</div>'
-        +'</div>';
-
-      flash('Analiza postawy gotowa! Pola wypełnione ✅');
-
-    } catch(err) {
-      document.getElementById('posture-analysis-status').innerHTML =
-        '<div style="color:var(--red);font-size:12px;">❌ Błąd analizy: '+err.message+'</div>';
-    }
-  };
-  reader.readAsDataURL(file);
-}
-
-// Expose
-window.analyzePosturePhoto = analyzePosturePhoto;
-function flash(msg){
-  var old = document.querySelector('.flash-msg');
-  if(old) old.remove();
-  var d = document.createElement('div');
-  d.className = 'flash-msg';
-  d.textContent = msg;
-  document.body.appendChild(d);
-  setTimeout(() => d.remove(), 3000);
-}
-
-// Expose functions
-window.goScreen = goScreen;
-window.openFullview = openFullview;
-window.closeFullview = closeFullview;
-window.openAddClient = openAddClient;
-window.saveClient = saveClient;
-window.openClient = openClient;
-window.deleteCurrentClient = deleteCurrentClient;
-window.openGeneratePlan = openGeneratePlan;
-window.generatePlan = generatePlan;
-window.startWorkout = startWorkout;
-window.toggleSet = toggleSet;
-window.finishWorkout = finishWorkout;
-window.openAddSession = openAddSession;
-window.saveSession = saveSession;
-window.showDaySessions = showDaySessions;
-window.flash = flash;
-window.renderDashboard = renderDashboard;
-window.renderPlans = renderPlans;
-window.renderCalendar = renderCalendar;
-window.renderWorkoutScreen = renderWorkoutScreen;
-window.renderDesktop = renderDesktop;
-window.updateSidebarClients = updateSidebarClients;
-
-var curScreen = 'dashboard';
-window.addEventListener('resize', function(){ if(window.innerWidth>=900) renderDesktop(curScreen); });
-
-</script>
-</body>
-</html>
