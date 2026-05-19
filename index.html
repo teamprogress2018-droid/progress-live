@@ -182,6 +182,20 @@ button{cursor:pointer;}
 .wb-inp{background:var(--s3);border:1px solid var(--border);border-radius:6px;padding:5px 7px;color:var(--text);font-size:12px;width:100%;}
 .wb-inp:focus{border-color:var(--accent);}
 
+/* ── FORUM ── */
+.forum-group-nav{display:flex;align-items:center;gap:8px;padding:8px 14px;cursor:pointer;border-left:2px solid transparent;transition:all 0.1s;font-size:12px;color:var(--muted);}
+.forum-group-nav:hover{color:var(--text);background:rgba(255,255,255,0.02);}
+.forum-group-nav.active{color:var(--accent);background:var(--adim);border-left-color:var(--accent);}
+.forum-post-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r2);padding:16px;margin-bottom:12px;cursor:pointer;transition:border-color 0.12s,transform 0.12s;animation:fadeUp 0.18s ease both;position:relative;}
+.forum-post-card:hover{border-color:var(--border2);transform:translateY(-1px);}
+.forum-post-card.pinned{border-color:rgba(255,140,66,0.3);background:rgba(255,140,66,0.04);}
+.forum-post-card.active{border-color:var(--accent);background:var(--adim);}
+.forum-reaction-btn{display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:99px;border:1px solid var(--border2);background:var(--s3);font-size:12px;cursor:pointer;transition:all 0.1s;color:var(--muted);}
+.forum-reaction-btn:hover,.forum-reaction-btn.active{border-color:var(--accent);background:var(--adim);color:var(--accent);}
+.forum-comment{padding:10px 0;border-bottom:1px solid var(--border);}
+.forum-comment:last-child{border-bottom:none;}
+.forum-comment-bubble{background:var(--s3);border-radius:10px;padding:8px 12px;font-size:12px;line-height:1.5;margin-top:5px;}
+.forum-badge{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-family:'DM Mono',monospace;padding:2px 7px;border-radius:99px;text-transform:uppercase;}
 /* ── DASHBOARD V2 ── */
 .dash-kpi-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r2);padding:16px;position:relative;overflow:hidden;transition:border-color 0.12s;}
 .dash-kpi-card:hover{border-color:var(--border2);}
@@ -479,6 +493,7 @@ input[type=checkbox]{display:none;}
     <button class="nav-item" onclick="goTo('ondemand')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>On-demand</button>
     <button class="nav-item" onclick="goTo('payments')"><svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Płatności</button>
     <button class="nav-item" onclick="goTo('calculator')"><svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="10" y2="18"/><line x1="14" y1="18" x2="16" y2="18"/></svg>Kalkulator</button>
+    <button class="nav-item" onclick="goTo('forum')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="13" y2="13"/></svg>Społeczność</button>
   </nav>
   <div class="sidebar-footer"><div class="av">PU</div><div><div style="font-size:13px;font-weight:600;">Piotr Urbaniak</div><div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">Trener personalny</div></div></div>
 </aside>
@@ -1854,6 +1869,64 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   </div>
 </div>
 
+<!-- FORUM — SPOŁECZNOŚĆ -->
+<div class="screen" id="screen-forum">
+  <div class="topbar">
+    <div class="topbar-title">Fora społecznościowe</div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost btn-sm" onclick="openM('m-forum-group')">+ Nowa grupa</button>
+      <button class="btn btn-primary btn-sm" id="forum-new-post-btn" onclick="openM('m-forum-post')">+ Nowy post</button>
+    </div>
+  </div>
+  <div style="display:flex;flex:1;overflow:hidden;">
+
+    <!-- lewy panel — grupy -->
+    <div style="width:240px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;">
+      <div style="padding:10px;border-bottom:1px solid var(--border);">
+        <input type="text" id="forum-search" placeholder="Szukaj postów..." oninput="renderForum()" style="width:100%;background:var(--s3);border:1px solid var(--border);border-radius:6px;padding:6px 9px;color:var(--text);font-size:12px;">
+      </div>
+      <div style="overflow-y:auto;flex:1;padding:6px 0;">
+        <div style="padding:5px 14px 3px;font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Grupy</div>
+        <div id="forum-groups-nav"></div>
+        <div style="padding:10px 14px;border-top:1px solid var(--border);margin-top:6px;">
+          <div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Statystyki</div>
+          <div style="display:flex;flex-direction:column;gap:5px;" id="forum-stats"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- środek — feed postów -->
+    <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+      <!-- toolbar -->
+      <div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;">
+        <span style="font-size:13px;font-weight:700;" id="forum-group-title">Wszystkie grupy</span>
+        <div style="display:flex;gap:5px;margin-left:auto;" id="forum-filter-chips">
+          <button class="wl-filter-chip active" onclick="setForumFilter('all',this)">Wszystkie</button>
+          <button class="wl-filter-chip" onclick="setForumFilter('pinned',this)">📌 Przypięte</button>
+          <button class="wl-filter-chip" onclick="setForumFilter('recent',this)">🕐 Najnowsze</button>
+          <button class="wl-filter-chip" onclick="setForumFilter('popular',this)">🔥 Popularne</button>
+        </div>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:16px;" id="forum-feed"></div>
+    </div>
+
+    <!-- prawy panel — szczegóły posta/komentarze -->
+    <div style="width:360px;flex-shrink:0;border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;" id="forum-detail-panel">
+      <div style="padding:14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;" id="forum-detail-title">Wybierz post</div>
+        <button id="forum-detail-close" onclick="closeForum Detail()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;display:none;">×</button>
+      </div>
+      <div style="flex:1;overflow-y:auto;" id="forum-detail-body">
+        <div style="padding:30px;text-align:center;color:var(--muted);">
+          <div style="font-size:40px;margin-bottom:12px;opacity:0.3;">💬</div>
+          <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Kliknij post</div>
+          <div style="font-size:11px;">aby zobaczyć szczegóły i komentarze</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 </div><!-- /main -->
 
 <!-- CALCULATOR — TDEE / MAKRO -->
@@ -2321,6 +2394,76 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   </div>
 </div>
 
+<!-- FORUM GROUP MODAL -->
+<div class="modal-ov" id="m-forum-group">
+  <div class="modal">
+    <div class="modal-hdr"><div class="modal-title">NOWA GRUPA</div><button class="modal-close" onclick="closeM('m-forum-group')">×</button></div>
+    <div class="modal-body">
+      <div class="form-field"><label class="form-lbl">Nazwa grupy</label><input type="text" class="form-input" id="fg-name" placeholder="np. Klienci VIP"></div>
+      <div class="form-field"><label class="form-lbl">Opis</label><textarea class="form-textarea" id="fg-desc" rows="2" placeholder="Cel i tematyka grupy..."></textarea></div>
+      <div class="form-grid">
+        <div class="form-field"><label class="form-lbl">Ikona</label>
+          <select class="form-select" id="fg-icon">
+            <option value="💪">💪 Trening</option><option value="🥗">🥗 Dieta</option>
+            <option value="🏆">🏆 Wyzwania</option><option value="📊">📊 Postępy</option>
+            <option value="🎯">🎯 Cele</option><option value="😴">😴 Regeneracja</option>
+            <option value="⭐">⭐ VIP</option><option value="🔥">🔥 Aktywni</option>
+          </select>
+        </div>
+        <div class="form-field"><label class="form-lbl">Kolor</label>
+          <select class="form-select" id="fg-color">
+            <option value="var(--accent)">🟢 Zielony</option>
+            <option value="var(--blue)">🔵 Niebieski</option>
+            <option value="var(--purple)">🟣 Fioletowy</option>
+            <option value="var(--orange)">🟠 Pomarańczowy</option>
+            <option value="var(--teal)">🩵 Teal</option>
+            <option value="var(--red)">🔴 Czerwony</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-field"><label class="form-lbl">Widoczność</label>
+        <select class="form-select" id="fg-privacy">
+          <option value="public">Publiczna — wszyscy klienci</option>
+          <option value="private">Prywatna — tylko zaproszeni</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-forum-group')">Anuluj</button><button class="btn btn-primary" onclick="saveForumGroup()">Utwórz grupę</button></div>
+  </div>
+</div>
+
+<!-- FORUM POST MODAL -->
+<div class="modal-ov" id="m-forum-post">
+  <div class="modal modal-wide">
+    <div class="modal-hdr"><div class="modal-title">NOWY POST</div><button class="modal-close" onclick="closeM('m-forum-post')">×</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field"><label class="form-lbl">Tytuł</label><input type="text" class="form-input" id="fp-title" placeholder="np. Tydzień 4 — wyniki 💪"></div>
+        <div class="form-field"><label class="form-lbl">Grupa</label><select class="form-select" id="fp-group"></select></div>
+      </div>
+      <div class="form-field"><label class="form-lbl">Treść</label><textarea class="form-textarea" id="fp-body" rows="5" placeholder="Napisz post dla swojej społeczności..."></textarea></div>
+      <div class="form-grid">
+        <div class="form-field"><label class="form-lbl">Typ posta</label>
+          <select class="form-select" id="fp-type">
+            <option value="post">📝 Post informacyjny</option>
+            <option value="challenge">🏆 Wyzwanie</option>
+            <option value="question">❓ Pytanie</option>
+            <option value="announcement">📢 Ogłoszenie</option>
+            <option value="tip">💡 Wskazówka</option>
+          </select>
+        </div>
+        <div class="form-field"><label class="form-lbl">Opcje</label>
+          <div style="display:flex;flex-direction:column;gap:6px;margin-top:5px;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;"><input type="checkbox" id="fp-pinned" style="accent-color:var(--accent);"> 📌 Przypnij post</label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;"><input type="checkbox" id="fp-notify" checked style="accent-color:var(--accent);"> 🔔 Powiadom członków</label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-forum-post')">Anuluj</button><button class="btn btn-primary" onclick="saveForumPost()">Opublikuj post</button></div>
+  </div>
+</div>
+
 <!-- AUTOFLOW BUILDER MODAL -->
 <div class="modal-ov" id="m-autoflow-builder">
   <div class="modal modal-wide">
@@ -2452,7 +2595,7 @@ function goTo(n){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   const s=document.getElementById('screen-'+n);if(s)s.classList.add('active');
-  const navMap={'dashboard':0,'clients':1,'plans':2,'builder':3,'calendar':4,'inbox':5,'workout-library':6,'library':7,'programs':8,'metrics':9,'tasks':10,'forms':11,'automation':12,'resources':13,'ondemand':14,'payments':15,'calculator':16};
+  const navMap={'dashboard':0,'clients':1,'plans':2,'builder':3,'calendar':4,'inbox':5,'workout-library':6,'library':7,'programs':8,'metrics':9,'tasks':10,'forms':11,'automation':12,'resources':13,'ondemand':14,'payments':15,'calculator':16,'forum':17};
   const btns=document.querySelectorAll('.nav-item');
   if(navMap[n]!==undefined&&btns[navMap[n]])btns[navMap[n]].classList.add('active');
   if(n==='builder')initBuilder();
@@ -2484,6 +2627,11 @@ function goTo(n){
     setPayTab('overview');
   }
   if(n==='calculator'){initCalcClients();calcTDEE();}
+  if(n==='forum'){
+    const fpg=document.getElementById('fp-group');
+    if(fpg)fpg.innerHTML=allForumGroups().map(g=>'<option value="'+g.id+'">'+g.icon+' '+g.name+'</option>').join('');
+    renderForum();
+  }
 }
 
 function openM(id){
@@ -2760,8 +2908,334 @@ async function saveWorkout(){
 }
 
 // ════════════════════════════════════════
-// DASHBOARD V2
+// FORUM — SPOŁECZNOŚĆ
 // ════════════════════════════════════════
+var forumActiveGroup='all';var forumFilter='all';var forumActivePost=null;
+window.FORUM_GROUPS=[];window.FORUM_POSTS=[];window.FORUM_COMMENTS={};
+
+const DEMO_FORUM_GROUPS=[
+  {id:'fg1',name:'Ogólna społeczność',icon:'💬',color:'var(--accent)',desc:'Przestrzeń dla wszystkich klientów',privacy:'public',members:0,createdAt:'2025-01-01'},
+  {id:'fg2',name:'Wyzwania treningowe',icon:'🏆',color:'var(--orange)',desc:'Tygodniowe i miesięczne wyzwania',privacy:'public',members:0,createdAt:'2025-01-01'},
+  {id:'fg3',name:'Postępy i pomiary',icon:'📊',color:'var(--blue)',desc:'Dzielcie się wynikami i pomiarami',privacy:'public',members:0,createdAt:'2025-01-01'},
+  {id:'fg4',name:'Przepisy i dieta',icon:'🥗',color:'var(--teal)',desc:'Zdrowe przepisy i wskazówki żywieniowe',privacy:'public',members:0,createdAt:'2025-01-01'},
+];
+
+const DEMO_FORUM_POSTS=[
+  {id:'fp1',groupId:'fg2',title:'🏆 Wyzwanie — 30 pompek dziennie przez 30 dni!',body:'Startujemy nowe wyzwanie! Przez cały miesiąc robimy minimum 30 pompek dziennie. Możecie je rozłożyć na serie, ale wszystkie muszą być w ciągu dnia. Kto daje radę?\n\nPrzypomnę — pompki to nie tylko klatka. To stabilizacja core, barki, triceps. Idealne uzupełnienie każdego planu! 💪\n\nZaznaczcie się w komentarzach jeśli dołączacie!',type:'challenge',authorName:'Piotr Urbaniak',authorRole:'trener',groupId:'fg2',pinned:true,date:'2025-05-10',likes:12,views:47,comments:8,reactions:{fire:5,strong:7,love:2}},
+  {id:'fp2',groupId:'fg1',title:'📢 Nowy harmonogram sesji na czerwiec',body:'Hej wszyscy! Czerwiec się zbliża i chciałem poinformować o kilku zmianach w harmonogramie:\n\n• Poniedziałki 7:00-9:00 — tylko online\n• Środy — normalnie w studio\n• Piątki — przerwa w 3. tydzień miesiąca\n\nJeśli macie pytania, piszcie tutaj lub bezpośrednio na czacie. Umawiamy sesje jak zawsze!',type:'announcement',authorName:'Piotr Urbaniak',authorRole:'trener',groupId:'fg1',pinned:true,date:'2025-05-14',likes:8,views:31,comments:3,reactions:{like:8,heart:3}},
+  {id:'fp3',groupId:'fg3',title:'Moje wyniki po 8 tygodniach PPL 💪',body:'Właśnie skończyłem 8-tygodniowy program PPL Masa i jestem w szoku z wynikami!\n\nStartowałem:\n• Masa: 88 kg, 22% tłuszczu\n• Przysiad 1RM: 100 kg\n• Martwy ciąg: 120 kg\n\nTeraz:\n• Masa: 83 kg, 18.8% tłuszczu (-5kg, -3.2% BF)\n• Przysiad 1RM: 120 kg (+20 kg!)\n• Martwy ciąg: 145 kg (+25 kg!)\n\nProgram jest świetny, polecam każdemu!',type:'post',authorName:'Jan Kowalski',authorRole:'klient',groupId:'fg3',pinned:false,date:'2025-05-12',likes:15,views:62,comments:6,reactions:{fire:8,strong:10,love:5}},
+  {id:'fp4',groupId:'fg4',title:'💡 Prosty przepis na shake proteinowy po treningu',body:'Dzielę się moim ulubionym shake\'m po treningu, który pomógł mi trafić w makro!\n\n**Składniki (1 porcja ~400 kcal, 40g białka):**\n• 1 miarka białka waniliowego (30g)\n• 200ml mleka 2%\n• 1 banan\n• 1 łyżka masła orzechowego\n• Szczypta cynamonu\n\nMiksujemy wszystko razem. Możecie dodać lód dla świeżości. Smacznego! 🥤',type:'tip',authorName:'Anna Nowak',authorRole:'klient',groupId:'fg4',pinned:false,date:'2025-05-11',likes:9,views:28,comments:4,reactions:{love:6,yummy:4}},
+  {id:'fp5',groupId:'fg2',title:'Tydzień 2 wyzwania — jak Wam idzie?',body:'Meldujemy się po pierwszych 2 tygodniach! Jak idzie z pompkami?\n\nJa trzymam się planu. Rozkładam na 3 serie: rano 10, po południu 10, wieczór 10. Łatwiej niż myślałem!\n\nCiekaw jestem jak reszta sobie radzi. Czy ktoś zmodyfikował metodę?',type:'question',authorName:'Piotr Wiśniewski',authorRole:'klient',groupId:'fg2',pinned:false,date:'2025-05-13',likes:6,views:22,comments:5,reactions:{strong:4,fire:3}},
+  {id:'fp6',groupId:'fg1',title:'💡 Wskazówka tygodnia — regeneracja CNS',body:'Na ten tydzień mam dla Was ważną wskazówkę o regeneracji układu nerwowego.\n\nWielu sportowców skupia się tylko na mięśniach, zapominając o CNS. Tymczasem po ciężkim treningu siłowym (RPE 9+) system nerwowy może być "zmęczony" nawet przez 48-72 godziny!\n\nObjawy przeciążonego CNS:\n• Brak motywacji do treningu\n• Słabsze wyniki mimo odpoczynku\n• Problemy ze snem\n• Drażliwość\n\nDlatego deload jest tak ważny! 🧠',type:'tip',authorName:'Piotr Urbaniak',authorRole:'trener',groupId:'fg1',pinned:false,date:'2025-05-09',likes:18,views:74,comments:7,reactions:{like:12,brain:6}},
+];
+
+const DEMO_FORUM_COMMENTS={
+  fp1:[
+    {id:'fc1',postId:'fp1',authorName:'Jan Kowalski',authorRole:'klient',body:'Dołączam! Dziś pierwsze 30 — zrobiłem 3×10 rano. Łatwo poszło 💪',date:'2025-05-10',likes:3},
+    {id:'fc2',postId:'fp1',authorName:'Anna Nowak',authorRole:'klient',body:'Jestem w drużynie! Pytanie — czy ławkowe też się liczą czy muszą być na podłodze?',date:'2025-05-10',likes:1},
+    {id:'fc3',postId:'fp1',authorName:'Piotr Urbaniak',authorRole:'trener',body:'@Anna Możecie robić na podłodze, na kolanach, na ławce — ważna jest jakość! Lepiej 30 poprawnych na kolanach niż 30 byle jakich.',date:'2025-05-10',likes:5},
+    {id:'fc4',postId:'fp1',authorName:'Marta Kowalczyk',authorRole:'klient',body:'Dołączam! 🔥 Robię 2 podejścia po 15 — rano i wieczór.',date:'2025-05-11',likes:2},
+    {id:'fc5',postId:'fp1',authorName:'Tomasz Mazur',authorRole:'klient',body:'Tydzień 1 za mną — wszystkie dni zaliczone! Pierwsze 3 dni były trudne, teraz idzie lepiej.',date:'2025-05-17',likes:4},
+  ],
+  fp3:[
+    {id:'fc6',postId:'fp3',authorName:'Piotr Urbaniak',authorRole:'trener',body:'Świetna robota Jan! Te wyniki to efekt ciężkiej pracy i dobrego odżywiania. +25 kg na martwym ciągu w 8 tygodni to naprawdę imponujące 🏆',date:'2025-05-12',likes:6},
+    {id:'fc7',postId:'fp3',authorName:'Anna Nowak',authorRole:'klient',body:'Wow, niesamowite wyniki! Mnie też interesuje PPL — mogę zapytać o szczegóły?',date:'2025-05-12',likes:2},
+    {id:'fc8',postId:'fp3',authorName:'Tomasz Mazur',authorRole:'klient',body:'Motywujące! Niedługo kończę swój cykl, zobaczymy co wyjdzie 🤞',date:'2025-05-13',likes:1},
+  ],
+};
+
+const POST_TYPE_COLORS={challenge:'var(--orange)',announcement:'var(--blue)',post:'var(--accent)',question:'var(--purple)',tip:'var(--teal)'};
+const POST_TYPE_ICONS={challenge:'🏆',announcement:'📢',post:'📝',question:'❓',tip:'💡'};
+const POST_TYPE_LABELS={challenge:'Wyzwanie',announcement:'Ogłoszenie',post:'Post',question:'Pytanie',tip:'Wskazówka'};
+const REACTIONS_MAP={'fire':'🔥','strong':'💪','love':'❤️','like':'👍','heart':'🤍','brain':'🧠','yummy':'😋'};
+
+function allForumGroups(){return[...DEMO_FORUM_GROUPS,...(window.FORUM_GROUPS||[])];}
+function allForumPosts(){return[...DEMO_FORUM_POSTS,...(window.FORUM_POSTS||[])];}
+function getPostComments(pid){return[...(DEMO_FORUM_COMMENTS[pid]||[]),...(window.FORUM_COMMENTS[pid]||[])];}
+
+function setForumFilter(f,btn){
+  forumFilter=f;
+  document.querySelectorAll('#forum-filter-chips .wl-filter-chip').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderForumFeed();
+}
+
+function renderForum(){
+  const groups=allForumGroups();
+  const posts=allForumPosts();
+
+  // sidebar nav
+  const nav=document.getElementById('forum-groups-nav');
+  if(nav){
+    const totalPosts=posts.length;
+    nav.innerHTML=`<div class="forum-group-nav${forumActiveGroup==='all'?' active':''}" onclick="setForumGroup('all')">
+      <span style="font-size:16px;">🌐</span>
+      <span style="flex:1;">Wszystkie</span>
+      <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);">${totalPosts}</span>
+    </div>`+groups.map(g=>{
+      const count=posts.filter(p=>p.groupId===g.id).length;
+      const members=CL.length;
+      return `<div class="forum-group-nav${forumActiveGroup===g.id?' active':''}" onclick="setForumGroup('${g.id}')">
+        <span style="font-size:16px;">${g.icon}</span>
+        <div style="flex:1;"><div>${g.name}</div><div style="font-size:10px;color:var(--muted);">${members} członków</div></div>
+        <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);">${count}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // stats
+  const statsEl=document.getElementById('forum-stats');
+  if(statsEl){
+    const totalComments=Object.values(DEMO_FORUM_COMMENTS).reduce((s,a)=>s+a.length,0)+Object.values(window.FORUM_COMMENTS).reduce((s,a)=>s+a.length,0);
+    statsEl.innerHTML=`
+      <div style="display:flex;justify-content:space-between;font-size:11px;"><span style="color:var(--muted);">Postów</span><span style="font-family:'DM Mono',monospace;color:var(--accent);">${posts.length}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;"><span style="color:var(--muted);">Komentarzy</span><span style="font-family:'DM Mono',monospace;color:var(--teal);">${totalComments}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;"><span style="color:var(--muted);">Grup</span><span style="font-family:'DM Mono',monospace;color:var(--blue);">${allForumGroups().length}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;"><span style="color:var(--muted);">Członków</span><span style="font-family:'DM Mono',monospace;color:var(--purple);">${CL.length}</span></div>`;
+  }
+
+  renderForumFeed();
+}
+
+function setForumGroup(gid){
+  forumActiveGroup=gid;
+  forumActivePost=null;
+  const group=allForumGroups().find(g=>g.id===gid);
+  const titleEl=document.getElementById('forum-group-title');
+  if(titleEl)titleEl.textContent=gid==='all'?'Wszystkie grupy':(group?group.icon+' '+group.name:'Grupa');
+  renderForum();
+  // reset detail panel
+  const db=document.getElementById('forum-detail-body');
+  const dt=document.getElementById('forum-detail-title');
+  if(db)db.innerHTML=`<div style="padding:30px;text-align:center;color:var(--muted);">
+    <div style="font-size:40px;margin-bottom:12px;opacity:0.3;">💬</div>
+    <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Kliknij post</div>
+    <div style="font-size:11px;">aby zobaczyć szczegóły i komentarze</div>
+  </div>`;
+  if(dt)dt.textContent='Wybierz post';
+}
+
+function renderForumFeed(){
+  const search=(document.getElementById('forum-search')||{}).value||'';
+  let posts=allForumPosts();
+  if(forumActiveGroup!=='all')posts=posts.filter(p=>p.groupId===forumActiveGroup);
+  if(search)posts=posts.filter(p=>p.title.toLowerCase().includes(search.toLowerCase())||p.body.toLowerCase().includes(search.toLowerCase()));
+  if(forumFilter==='pinned')posts=posts.filter(p=>p.pinned);
+  else if(forumFilter==='recent')posts.sort((a,b)=>b.date.localeCompare(a.date));
+  else if(forumFilter==='popular')posts.sort((a,b)=>(b.likes+b.views)-(a.likes+a.views));
+  else{posts.sort((a,b)=>{if(a.pinned&&!b.pinned)return -1;if(!a.pinned&&b.pinned)return 1;return b.date.localeCompare(a.date);});}
+
+  const feed=document.getElementById('forum-feed');if(!feed)return;
+  if(!posts.length){
+    feed.innerHTML=`<div style="text-align:center;padding:60px;color:var(--muted);">
+      <div style="font-size:40px;margin-bottom:12px;opacity:0.3;">💬</div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:6px;">Brak postów</div>
+      <div style="font-size:12px;margin-bottom:16px;">Bądź pierwszy — podziel się czymś ze społecznością!</div>
+      <button class="btn btn-primary" onclick="openM('m-forum-post')">+ Nowy post</button>
+    </div>`;
+    return;
+  }
+
+  feed.innerHTML=posts.map((p,i)=>{
+    const group=allForumGroups().find(g=>g.id===p.groupId);
+    const col=POST_TYPE_COLORS[p.type]||'var(--accent)';
+    const comments=getPostComments(p.id);
+    const isTrainer=p.authorRole==='trener';
+    const reactTotal=Object.values(p.reactions||{}).reduce((s,v)=>s+v,0);
+    return `<div class="forum-post-card${p.pinned?' pinned':''}${forumActivePost===p.id?' active':''}" style="animation-delay:${i*0.04}s;border-top:3px solid ${col};" onclick="openForumPost('${p.id}')">
+      ${p.pinned?'<div style="position:absolute;top:10px;right:12px;font-size:12px;color:var(--orange);">📌 Przypięty</div>':''}
+      <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;">
+        <div style="width:36px;height:36px;border-radius:50%;background:${isTrainer?'var(--adim)':'var(--s3)'};border:${isTrainer?'2px solid var(--accent)':'none'};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;flex-shrink:0;color:${isTrainer?'var(--accent)':'var(--text)'};">${getInit(p.authorName)}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
+            <span style="font-size:13px;font-weight:700;">${p.authorName}</span>
+            ${isTrainer?'<span class="forum-badge" style="background:var(--adim);color:var(--accent);">Trener</span>':''}
+            <span style="font-size:10px;color:var(--muted);margin-left:auto;">${p.date}</span>
+          </div>
+          <div style="display:flex;gap:5px;align-items:center;">
+            <span class="forum-badge" style="background:${col}22;color:${col};">${POST_TYPE_ICONS[p.type]} ${POST_TYPE_LABELS[p.type]||p.type}</span>
+            ${group?`<span class="forum-badge" style="background:${group.color}22;color:${group.color};">${group.icon} ${group.name}</span>`:''}
+          </div>
+        </div>
+      </div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:6px;">${p.title}</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">${p.body.replace(/\n/g,' ')}</div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;" onclick="event.stopPropagation()">
+        ${Object.entries(p.reactions||{}).map(([r,cnt])=>`<button class="forum-reaction-btn" onclick="reactToPost('${p.id}','${r}')">${REACTIONS_MAP[r]||r} ${cnt}</button>`).join('')}
+        <div style="margin-left:auto;display:flex;gap:8px;font-size:11px;color:var(--muted);">
+          <span>💬 ${comments.length}</span>
+          <span>👁 ${p.views}</span>
+          <span>❤️ ${p.likes}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openForumPost(pid){
+  forumActivePost=pid;
+  const p=allForumPosts().find(x=>x.id===pid);if(!p)return;
+  const group=allForumGroups().find(g=>g.id===p.groupId);
+  const col=POST_TYPE_COLORS[p.type]||'var(--accent)';
+  const isTrainer=p.authorRole==='trener';
+  const comments=getPostComments(pid);
+
+  const titleEl=document.getElementById('forum-detail-title');
+  if(titleEl)titleEl.textContent='💬 Komentarze ('+comments.length+')';
+
+  const db=document.getElementById('forum-detail-body');
+  if(!db)return;
+
+  db.innerHTML=`
+    <!-- post header -->
+    <div style="padding:14px;border-bottom:1px solid var(--border);">
+      <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:10px;">
+        <div style="width:32px;height:32px;border-radius:50%;background:${isTrainer?'var(--adim)':'var(--s3)'};border:${isTrainer?'2px solid var(--accent)':'none'};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:12px;flex-shrink:0;color:${isTrainer?'var(--accent)':'var(--text)'};">${getInit(p.authorName)}</div>
+        <div>
+          <div style="font-size:12px;font-weight:700;">${p.authorName} ${isTrainer?'<span style="font-size:10px;color:var(--accent);font-family:\'DM Mono\',monospace;">TRENER</span>':''}</div>
+          <div style="font-size:10px;color:var(--muted);">${p.date} · 👁 ${p.views} wyświetleń</div>
+        </div>
+      </div>
+      <div style="font-size:13px;font-weight:700;margin-bottom:8px;">${p.title}</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.7;white-space:pre-line;">${p.body}</div>
+      <!-- reakcje -->
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);">
+        ${Object.entries(p.reactions||{}).map(([r,cnt])=>`<button class="forum-reaction-btn" onclick="reactToPost('${p.id}','${r}');openForumPost('${p.id}')">${REACTIONS_MAP[r]||r} <span>${cnt}</span></button>`).join('')}
+        <button class="forum-reaction-btn" onclick="addReaction('${p.id}')">+ 😊</button>
+      </div>
+    </div>
+
+    <!-- komentarze -->
+    <div id="forum-comments-list" style="padding:10px 14px;">
+      ${!comments.length?'<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px;">Brak komentarzy — bądź pierwszy!</div>'
+      :comments.map((c,i)=>{
+        const isT=c.authorRole==='trener';
+        return `<div class="forum-comment" style="animation-delay:${i*0.03}s">
+          <div style="display:flex;gap:8px;align-items:center;">
+            <div style="width:26px;height:26px;border-radius:50%;background:${isT?'var(--adim)':'var(--s3)'};border:${isT?'1px solid var(--accent)':'none'};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:10px;flex-shrink:0;color:${isT?'var(--accent)':'var(--text)'};">${getInit(c.authorName)}</div>
+            <div style="flex:1;">
+              <span style="font-size:12px;font-weight:700;">${c.authorName}</span>
+              ${isT?'<span style="font-size:9px;color:var(--accent);font-family:\'DM Mono\',monospace;margin-left:4px;">TRENER</span>':''}
+              <span style="font-size:10px;color:var(--muted);margin-left:6px;">${c.date}</span>
+            </div>
+            <button onclick="likeComment('${c.id}','${pid}')" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;">❤️ ${c.likes}</button>
+          </div>
+          <div class="forum-comment-bubble">${c.body}</div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <!-- nowy komentarz -->
+    <div style="padding:12px 14px;border-top:1px solid var(--border);">
+      <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:8px;">DODAJ KOMENTARZ</div>
+      <textarea id="new-comment-${pid}" rows="3" placeholder="Napisz komentarz..." style="width:100%;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);font-size:12px;resize:none;line-height:1.5;font-family:'DM Sans',sans-serif;margin-bottom:8px;"></textarea>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-primary btn-sm" style="flex:1;" onclick="addComment('${pid}')">Opublikuj komentarz</button>
+        <button class="btn btn-ghost btn-sm" onclick="addCommentAs('${pid}','klient')">Jako klient</button>
+      </div>
+    </div>`;
+
+  // update post card active state
+  renderForumFeed();
+}
+
+function addComment(pid){
+  const inp=document.getElementById('new-comment-'+pid);
+  if(!inp||!inp.value.trim()){notify('Napisz komentarz!');return;}
+  if(!window.FORUM_COMMENTS[pid])window.FORUM_COMMENTS[pid]=[];
+  const c={id:'fc'+Date.now(),postId:pid,authorName:'Piotr Urbaniak',authorRole:'trener',body:inp.value.trim(),date:new Date().toISOString().split('T')[0],likes:0};
+  window.FORUM_COMMENTS[pid].push(c);
+  inp.value='';
+  openForumPost(pid);
+  renderForumFeed();
+  notify('✓ Komentarz dodany!');
+}
+
+function addCommentAs(pid,role){
+  const inp=document.getElementById('new-comment-'+pid);
+  if(!inp||!inp.value.trim()){notify('Napisz komentarz!');return;}
+  if(!window.FORUM_COMMENTS[pid])window.FORUM_COMMENTS[pid]=[];
+  const client=CL[Math.floor(Math.random()*CL.length)];
+  const c={id:'fc'+Date.now(),postId:pid,authorName:client?client.name:'Klient',authorRole:'klient',body:inp.value.trim(),date:new Date().toISOString().split('T')[0],likes:0};
+  window.FORUM_COMMENTS[pid].push(c);
+  inp.value='';
+  openForumPost(pid);
+  notify('✓ Komentarz dodany jako klient!');
+}
+
+function likeComment(cid,pid){
+  const all=[...(DEMO_FORUM_COMMENTS[pid]||[]),...(window.FORUM_COMMENTS[pid]||[])];
+  const c=all.find(x=>x.id===cid);
+  if(c){c.likes++;openForumPost(pid);}
+}
+
+function reactToPost(pid,reaction){
+  const p=allForumPosts().find(x=>x.id===pid);
+  if(!p)return;
+  if(!p.reactions)p.reactions={};
+  p.reactions[reaction]=(p.reactions[reaction]||0)+1;
+  renderForumFeed();
+  if(forumActivePost===pid)openForumPost(pid);
+}
+
+function addReaction(pid){
+  const reactions=['fire','strong','love','like','brain'];
+  const r=reactions[Math.floor(Math.random()*reactions.length)];
+  reactToPost(pid,r);
+  notify(REACTIONS_MAP[r]+' Reakcja dodana!');
+}
+
+function closeForumDetail(){
+  forumActivePost=null;
+  const db=document.getElementById('forum-detail-body');
+  const dt=document.getElementById('forum-detail-title');
+  if(db)db.innerHTML=`<div style="padding:30px;text-align:center;color:var(--muted);">
+    <div style="font-size:40px;margin-bottom:12px;opacity:0.3;">💬</div>
+    <div style="font-size:13px;font-weight:600;">Kliknij post aby zobaczyć komentarze</div>
+  </div>`;
+  if(dt)dt.textContent='Wybierz post';
+  renderForumFeed();
+}
+
+function saveForumGroup(){
+  const name=document.getElementById('fg-name').value.trim();
+  if(!name){notify('Wpisz nazwę grupy!');return;}
+  const g={
+    id:'fg'+Date.now(),name,
+    icon:document.getElementById('fg-icon').value,
+    color:document.getElementById('fg-color').value,
+    desc:document.getElementById('fg-desc').value,
+    privacy:document.getElementById('fg-privacy').value,
+    members:CL.length,
+    createdAt:new Date().toISOString().split('T')[0]
+  };
+  window.FORUM_GROUPS.push(g);
+  closeM('m-forum-group');
+  renderForum();
+  notify('✓ Grupa "'+name+'" utworzona!');
+}
+
+function saveForumPost(){
+  const title=document.getElementById('fp-title').value.trim();
+  const body=document.getElementById('fp-body').value.trim();
+  if(!title){notify('Wpisz tytuł posta!');return;}
+  if(!body){notify('Napisz treść posta!');return;}
+  const col=POST_TYPE_COLORS[document.getElementById('fp-type').value]||'var(--accent)';
+  const p={
+    id:'fp'+Date.now(),
+    title,body,
+    type:document.getElementById('fp-type').value,
+    groupId:document.getElementById('fp-group').value,
+    authorName:'Piotr Urbaniak',authorRole:'trener',
+    pinned:document.getElementById('fp-pinned').checked,
+    date:new Date().toISOString().split('T')[0],
+    likes:0,views:0,comments:0,reactions:{like:0}
+  };
+  window.FORUM_POSTS.unshift(p);
+  closeM('m-forum-post');
+  renderForum();
+  notify('✓ Post "'+title.substring(0,30)+'" opublikowany!');
+}
 var dashPeriod=7;
 
 function setDashPeriod(p){
@@ -6416,6 +6890,10 @@ window.openWLDetail=openWLDetail;window.closeWLDetail=closeWLDetail;
 window.assignWorkout=assignWorkout;window.assignWorkoutDirect=assignWorkoutDirect;
 window.addWExRow=addWExRow;window.saveWorkout=saveWorkout;
 window.setDashPeriod=setDashPeriod;
+window.renderForum=renderForum;window.setForumGroup=setForumGroup;window.setForumFilter=setForumFilter;
+window.openForumPost=openForumPost;window.addComment=addComment;window.addCommentAs=addCommentAs;
+window.likeComment=likeComment;window.reactToPost=reactToPost;window.addReaction=addReaction;
+window.closeForumDetail=closeForumDetail;window.saveForumGroup=saveForumGroup;window.saveForumPost=saveForumPost;
 window.setCalView=setCalView;window.calNav=calNav;window.calNavToday=calNavToday;
 window.calMiniNav=calMiniNav;window.calClickDay=calClickDay;window.calJumpTo=calJumpTo;
 window.quickAddSession=quickAddSession;window.openSessDetail=openSessDetail;
