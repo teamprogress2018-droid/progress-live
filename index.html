@@ -182,6 +182,21 @@ button{cursor:pointer;}
 .wb-inp{background:var(--s3);border:1px solid var(--border);border-radius:6px;padding:5px 7px;color:var(--text);font-size:12px;width:100%;}
 .wb-inp:focus{border-color:var(--accent);}
 
+/* ── INBOX ENHANCED ── */
+.inbox-tab{flex:1;padding:8px 4px;background:none;border:none;color:var(--muted);font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.1s;}
+.inbox-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.inbox-tab:hover{color:var(--text);}
+.msg-item-enhanced{padding:12px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.1s;display:flex;gap:10px;align-items:flex-start;}
+.msg-item-enhanced:hover,.msg-item-enhanced.active{background:var(--adim);}
+.msg-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;flex-shrink:0;}
+.msg-unread-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:5px;}
+.cip-note{background:var(--s3);border-radius:8px;padding:8px 10px;margin-bottom:6px;font-size:11px;line-height:1.5;position:relative;}
+.cip-note-date{font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:3px;}
+.cip-activity-item{display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px;align-items:flex-start;}
+.cip-activity-item:last-child{border-bottom:none;}
+.cip-activity-icon{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;}
+.quick-reply-btn{padding:4px 10px;background:var(--s3);border:1px solid var(--border2);border-radius:99px;font-size:11px;color:var(--muted);cursor:pointer;white-space:nowrap;transition:all 0.1s;}
+.quick-reply-btn:hover{border-color:var(--accent);color:var(--accent);}
 /* ── METRICS ── */
 .metric-group-nav{display:flex;align-items:center;gap:8px;padding:8px 14px;cursor:pointer;border-left:2px solid transparent;transition:all 0.1s;font-size:12px;color:var(--muted);}
 .metric-group-nav:hover{color:var(--text);background:rgba(255,255,255,0.02);}
@@ -412,12 +427,79 @@ button{cursor:pointer;}
   </div>
 </div>
 
-<!-- INBOX -->
+<!-- INBOX — ENHANCED -->
 <div class="screen" id="screen-inbox">
-  <div class="topbar"><div class="topbar-title">Wiadomości</div></div>
+  <div class="topbar">
+    <div class="topbar-title">Wiadomości</div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost btn-sm" onclick="openM('m-broadcast')">📢 Broadcast</button>
+    </div>
+  </div>
   <div style="display:flex;flex:1;overflow:hidden;">
-    <div class="msg-list"><div style="padding:10px 12px;border-bottom:1px solid var(--border);"><input type="text" placeholder="Szukaj..." style="width:100%;background:var(--s3);border:1px solid var(--border);border-radius:6px;padding:6px 9px;color:var(--text);font-size:12px;"></div><div id="msg-list"></div></div>
-    <div class="msg-area"><div style="padding:12px 18px;border-bottom:1px solid var(--border);font-weight:600;font-size:14px;" id="msg-to">Wybierz rozmowę</div><div class="msg-wrap" id="msg-wrap"></div><div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;gap:8px;"><input type="text" id="msg-inp" placeholder="Napisz wiadomość..." style="flex:1;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:8px 11px;color:var(--text);font-size:13px;" onkeydown="if(event.key==='Enter')sendMsg()"><button onclick="sendMsg()" class="btn btn-primary btn-sm">Wyślij</button></div></div>
+
+    <!-- lista rozmów -->
+    <div style="width:260px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;">
+      <div style="padding:10px 12px;border-bottom:1px solid var(--border);">
+        <input type="text" id="inbox-search" placeholder="Szukaj rozmowy..." oninput="renderInbox()" style="width:100%;background:var(--s3);border:1px solid var(--border);border-radius:6px;padding:6px 9px;color:var(--text);font-size:12px;">
+      </div>
+      <div style="display:flex;gap:0;border-bottom:1px solid var(--border);flex-shrink:0;">
+        <button class="inbox-tab active" id="itab-all" onclick="setInboxTab('all')">Wszystkie</button>
+        <button class="inbox-tab" id="itab-unread" onclick="setInboxTab('unread')">Nieprzeczytane</button>
+        <button class="inbox-tab" id="itab-groups" onclick="setInboxTab('groups')">Grupy</button>
+      </div>
+      <div style="flex:1;overflow-y:auto;" id="msg-list"></div>
+    </div>
+
+    <!-- obszar czatu -->
+    <div class="msg-area" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+      <!-- nagłówek czatu -->
+      <div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;" id="msg-header">
+        <div style="font-weight:600;font-size:14px;" id="msg-to">Wybierz rozmowę</div>
+        <div style="display:flex;gap:6px;" id="msg-header-actions"></div>
+      </div>
+      <!-- wiadomości -->
+      <div class="msg-wrap" id="msg-wrap" style="flex:1;overflow-y:auto;padding:16px;"></div>
+      <!-- szybkie odpowiedzi -->
+      <div style="padding:6px 14px 0;display:flex;gap:5px;flex-wrap:wrap;" id="quick-replies"></div>
+      <!-- pole wpisywania -->
+      <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:flex-end;">
+        <div style="flex:1;">
+          <textarea id="msg-inp" placeholder="Napisz wiadomość..." rows="1" style="width:100%;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:8px 11px;color:var(--text);font-size:13px;resize:none;line-height:1.4;font-family:'DM Sans',sans-serif;" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg();}" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"></textarea>
+        </div>
+        <button onclick="sendMsg()" class="btn btn-primary btn-sm" style="flex-shrink:0;">Wyślij</button>
+      </div>
+    </div>
+
+    <!-- prawy panel — info o kliencie -->
+    <div style="width:280px;flex-shrink:0;border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;" id="client-info-panel">
+      <div style="padding:14px;border-bottom:1px solid var(--border);text-align:center;" id="cip-header">
+        <div style="color:var(--muted);font-size:12px;padding:20px 0;">Wybierz rozmowę</div>
+      </div>
+      <div style="flex:1;overflow-y:auto;" id="cip-body"></div>
+    </div>
+  </div>
+</div>
+
+<!-- BROADCAST MODAL -->
+<div class="modal-ov" id="m-broadcast">
+  <div class="modal">
+    <div class="modal-hdr"><div class="modal-title">📢 BROADCAST DO KLIENTÓW</div><button class="modal-close" onclick="closeM('m-broadcast')">×</button></div>
+    <div class="modal-body">
+      <div class="form-field"><label class="form-lbl">Odbiorcy</label>
+        <select class="form-select" id="bc-target">
+          <option value="all">Wszyscy klienci ({{CL.length}})</option>
+          <option value="active">Tylko aktywni</option>
+          <option value="inactive">Nieaktywni (zastój)</option>
+        </select>
+      </div>
+      <div class="form-field"><label class="form-lbl">Wiadomość</label>
+        <textarea class="form-textarea" id="bc-msg" rows="4" placeholder="Napisz wiadomość do wszystkich...&#10;&#10;Możesz użyć {imie} aby spersonalizować."></textarea>
+      </div>
+      <div style="background:var(--adim);border:1px solid rgba(200,241,53,0.15);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--muted);">
+        Wiadomość zostanie wysłana do każdego klienta osobno jako prywatna rozmowa.
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-broadcast')">Anuluj</button><button class="btn btn-primary" onclick="sendBroadcast()">Wyślij broadcast</button></div>
   </div>
 </div>
 
@@ -1795,24 +1877,200 @@ async function saveSess(){
 // ════════════════════════════════════════
 // INBOX
 // ════════════════════════════════════════
+// ════════════════════════════════════════
+// INBOX — ENHANCED
+// ════════════════════════════════════════
+var inboxTab='all';
+const QUICK_REPLIES=['Dziękuję za informację!','Rozumiem, zajmę się tym.','Świetna robota! 💪','Pamiętaj o treningu!','Proszę wypełnić formularz postępów.','Kiedy możemy się spotkać?'];
+const CLIENT_NOTES={};// clientId -> [{text, date}]
+const CLIENT_ACTIVITY={};// clientId -> [{type, text, date, icon}]
+
+function initClientData(c){
+  if(!CLIENT_NOTES[c.id])CLIENT_NOTES[c.id]=[
+    {text:'Klient preferuje treningi rano przed 8:00',date:'14 maj, 7:36'},
+    {text:'Cel: redukcja 5kg do końca lata',date:'9 maj, 7:36'},
+  ];
+  if(!CLIENT_ACTIVITY[c.id])CLIENT_ACTIVITY[c.id]=[
+    {type:'workout',text:'Ukończył trening — Push Day',date:'dziś 9:15',icon:'💪'},
+    {type:'metric',text:'Zaktualizował pomiary (masa: -0.5kg)',date:'wczoraj 8:00',icon:'📏'},
+    {type:'form',text:'Wypełnił formularz postępów',date:'3 dni temu',icon:'📋'},
+    {type:'task',text:'Ukończył zadanie: 3 treningi w tygodniu',date:'4 dni temu',icon:'✅'},
+    {type:'message',text:'Wysłał wiadomość',date:'tydzień temu',icon:'💬'},
+  ];
+}
+
+function setInboxTab(t){
+  inboxTab=t;
+  document.querySelectorAll('.inbox-tab').forEach(el=>el.classList.remove('active'));
+  const el=document.getElementById('itab-'+t);if(el)el.classList.add('active');
+  renderInbox();
+}
+
 function renderInbox(){
+  const search=(document.getElementById('inbox-search')||{}).value||'';
+  let list=CL.filter(c=>!search||c.name.toLowerCase().includes(search.toLowerCase()));
+  if(inboxTab==='unread')list=list.filter((c,i)=>i%3===0);// simulate unread
+  if(inboxTab==='groups')list=[];// groups placeholder
+
   const el=document.getElementById('msg-list');
-  el.innerHTML=!CL.length?'<div style="padding:20px;color:var(--muted);font-size:12px;">Brak klientów</div>'
-    :CL.map(c=>'<div class="msg-item'+(curChat===c.id?' active':'')+'" onclick="openChat(\''+c.id+'\')"><div style="font-size:13px;font-weight:600;">'+c.name+'</div><div style="font-size:11px;color:var(--muted);margin-top:2px;">'+((MSGS[c.id]||[]).slice(-1)[0]||{text:'Brak wiadomości'}).text+'</div></div>').join('');
+  if(!el)return;
+
+  if(inboxTab==='groups'){
+    el.innerHTML=`<div style="padding:30px;text-align:center;color:var(--muted);">
+      <div style="font-size:32px;margin-bottom:10px;opacity:0.3;">👥</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Grupy wkrótce</div>
+      <div style="font-size:11px;">Wyślij wiadomość do grupy klientów naraz</div>
+    </div>`;
+    return;
+  }
+
+  if(!list.length){
+    el.innerHTML='<div style="padding:30px;text-align:center;color:var(--muted);font-size:12px;">Brak rozmów</div>';
+    return;
+  }
+
+  el.innerHTML=list.map((c,i)=>{
+    const msgs=MSGS[c.id]||[];
+    const last=msgs.slice(-1)[0];
+    const unread=i%3===0&&msgs.length===0;
+    const time=last?last.time:'';
+    const col=COLS[i%5];
+    return `<div class="msg-item-enhanced${curChat===c.id?' active':''}" onclick="openChat('${c.id}')">
+      <div class="msg-avatar" style="background:${col}22;color:${col};">${getInit(c.name)}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
+          <div style="font-size:13px;font-weight:${unread?700:500};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.name}</div>
+          <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;flex-shrink:0;margin-left:4px;">${time}</div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${last?last.text:(unread?'Nowa wiadomość':'Brak wiadomości')}</div>
+      </div>
+      ${unread?'<div class="msg-unread-dot"></div>':''}
+    </div>`;
+  }).join('');
 }
+
 function openChat(id){
-  curChat=id;const c=CL.find(x=>x.id===id);
-  document.getElementById('msg-to').textContent=c?c.name:'Klient';
+  curChat=id;
+  const c=CL.find(x=>x.id===id);
+  if(!c)return;
   if(!MSGS[id])MSGS[id]=[];
+  initClientData(c);
+  const ci=CL.indexOf(c);
+  const col=COLS[ci%5];
+
+  // header
+  document.getElementById('msg-to').textContent=c.name;
+  document.getElementById('msg-header-actions').innerHTML=`
+    <button class="btn btn-ghost btn-sm" onclick="openM('m-metric-entry')" title="Dodaj pomiar">📏</button>
+    <button class="btn btn-ghost btn-sm" onclick="openM('m-task')" title="Dodaj zadanie">✅</button>
+    <button class="btn btn-ghost btn-sm" onclick="openM('m-send-form')" title="Wyślij formularz">📋</button>`;
+
+  // messages
   const wrap=document.getElementById('msg-wrap');
-  wrap.innerHTML=(MSGS[id]||[]).map(m=>'<div style="margin-bottom:10px;'+(m.out?'text-align:right;':'')+'"><div class="msg-bubble '+(m.out?'msg-out':'msg-in')+'">'+m.text+'</div><div style="font-size:10px;color:var(--muted);margin-top:3px;">'+m.time+'</div></div>').join('');
-  wrap.scrollTop=wrap.scrollHeight;renderInbox();
+  wrap.innerHTML=MSGS[id].length?MSGS[id].map(m=>`
+    <div style="margin-bottom:12px;${m.out?'text-align:right;':''}">
+      <div class="msg-bubble ${m.out?'msg-out':'msg-in'}">${m.text}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:3px;">${m.time}</div>
+    </div>`).join('')
+    :`<div style="text-align:center;padding:40px 20px;color:var(--muted);">
+      <div style="font-size:32px;margin-bottom:8px;">👋</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Zacznij rozmowę z ${c.name}</div>
+      <div style="font-size:11px;">Wyślij wiadomość lub wybierz szybką odpowiedź poniżej</div>
+    </div>`;
+  wrap.scrollTop=wrap.scrollHeight;
+
+  // quick replies
+  document.getElementById('quick-replies').innerHTML=QUICK_REPLIES.map(r=>
+    `<button class="quick-reply-btn" onclick="useQuickReply('${r.replace(/'/g,"\\'")}')">${r}</button>`
+  ).join('');
+
+  // right panel
+  const cipH=document.getElementById('cip-header');
+  cipH.innerHTML=`
+    <div style="width:52px;height:52px;border-radius:50%;background:${col}22;color:${col};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:20px;margin:0 auto 10px;">${getInit(c.name)}</div>
+    <div style="font-size:14px;font-weight:700;">${c.name}</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:2px;">${c.goal||'Brak celu'} · ${c.level||''}</div>
+    <div style="display:flex;gap:5px;justify-content:center;margin-top:10px;">
+      <span class="pill ${c.status==='inactive'?'pill-red':'pill-green'}" style="font-size:10px;"><span class="pill-dot"></span>${c.status==='inactive'?'Offline':'Aktywny'}</span>
+    </div>`;
+
+  const notes=CLIENT_NOTES[id]||[];
+  const activity=CLIENT_ACTIVITY[id]||[];
+  document.getElementById('cip-body').innerHTML=`
+    <div style="padding:12px 14px;border-bottom:1px solid var(--border);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;">Notatki (${notes.length})</div>
+        <button onclick="addClientNote('${id}')" style="background:none;border:none;color:var(--accent);font-size:18px;cursor:pointer;line-height:1;">+</button>
+      </div>
+      ${notes.map(n=>`<div class="cip-note">
+        <div>${n.text}</div>
+        <div class="cip-note-date">${n.date}</div>
+      </div>`).join('')}
+      <div id="note-input-${id}" style="display:none;margin-top:6px;">
+        <textarea id="note-text-${id}" placeholder="Dodaj notatkę..." rows="2" style="width:100%;background:var(--s4);border:1px solid var(--border2);border-radius:6px;padding:6px 8px;color:var(--text);font-size:11px;resize:none;font-family:'DM Sans',sans-serif;"></textarea>
+        <div style="display:flex;gap:4px;margin-top:4px;">
+          <button onclick="saveClientNote('${id}')" class="btn btn-primary btn-sm" style="flex:1;">Zapisz</button>
+          <button onclick="document.getElementById('note-input-${id}').style.display='none'" class="btn btn-ghost btn-sm">Anuluj</button>
+        </div>
+      </div>
+    </div>
+    <div style="padding:12px 14px;">
+      <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;">Aktywność</div>
+      ${activity.map(a=>`<div class="cip-activity-item">
+        <div class="cip-activity-icon" style="background:var(--s3);">${a.icon}</div>
+        <div><div style="font-size:11px;color:var(--text);">${a.text}</div><div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:2px;">${a.date}</div></div>
+      </div>`).join('')}
+    </div>`;
+
+  renderInbox();
 }
+
+function useQuickReply(text){
+  const inp=document.getElementById('msg-inp');
+  if(inp)inp.value=text;
+  inp.focus();
+}
+
+function addClientNote(id){
+  const ni=document.getElementById('note-input-'+id);
+  if(ni)ni.style.display='block';
+  const nt=document.getElementById('note-text-'+id);
+  if(nt)nt.focus();
+}
+
+function saveClientNote(id){
+  const nt=document.getElementById('note-text-'+id);
+  if(!nt||!nt.value.trim())return;
+  if(!CLIENT_NOTES[id])CLIENT_NOTES[id]=[];
+  CLIENT_NOTES[id].unshift({text:nt.value.trim(),date:new Date().toLocaleDateString('pl',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})});
+  openChat(id);notify('Notatka zapisana ✓');
+}
+
 function sendMsg(){
-  const txt=document.getElementById('msg-inp').value.trim();if(!txt||!curChat)return;
+  const inp=document.getElementById('msg-inp');
+  const txt=inp?inp.value.trim():'';
+  if(!txt||!curChat)return;
   if(!MSGS[curChat])MSGS[curChat]=[];
   MSGS[curChat].push({text:txt,out:true,time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'})});
-  document.getElementById('msg-inp').value='';openChat(curChat);
+  inp.value='';inp.style.height='auto';
+  openChat(curChat);
+}
+
+function sendBroadcast(){
+  const msg=document.getElementById('bc-msg').value.trim();
+  if(!msg){notify('Wpisz wiadomość!');return;}
+  const target=document.getElementById('bc-target').value;
+  let targets=CL;
+  if(target==='active')targets=CL.filter(c=>c.status==='active');
+  if(target==='inactive')targets=CL.filter(c=>c.status==='inactive');
+  targets.forEach(c=>{
+    if(!MSGS[c.id])MSGS[c.id]=[];
+    const text=msg.replace(/{imie}/g,c.name.split(' ')[0]);
+    MSGS[c.id].push({text,out:true,time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'})});
+  });
+  closeM('m-broadcast');
+  renderInbox();
+  notify('✓ Broadcast wysłany do '+targets.length+' klientów');
 }
 
 // ════════════════════════════════════════
@@ -3136,6 +3394,9 @@ window.goTo=goTo;window.openM=openM;window.closeM=closeM;
 window.saveClient=saveClient;window.saveSess=saveSess;window.saveEx=saveEx;window.savePlan=savePlan;window.delPlan=delPlan;
 window.addDay=addDay;window.addRow=addRow;window.toggleR=toggleR;window.updatePeriod=updatePeriod;
 window.askAI=askAI;window.sendMsg=sendMsg;window.openChat=openChat;
+window.setInboxTab=setInboxTab;window.useQuickReply=useQuickReply;
+window.addClientNote=addClientNote;window.saveClientNote=saveClientNote;
+window.sendBroadcast=sendBroadcast;
 window.renderLib=renderLib;window.renderWL=renderWL;
 window.setWLNav=setWLNav;window.setWLView=setWLView;window.setWLSort=setWLSort;
 window.openWLDetail=openWLDetail;window.closeWLDetail=closeWLDetail;
