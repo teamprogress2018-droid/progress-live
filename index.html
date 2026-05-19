@@ -1,35 +1,3 @@
-Skip to content
-teamprogress2018-droid
-progress-live
-Repository navigation
-Code
-Issues
-Pull requests
-Agents
-Actions
-Projects
-Wiki
-Security and quality
-1
- (1)
-Insights
-Settings
-progress-live
-/progress-live (40).html
-Go to file
-t
-T
-teamprogress2018-droid
-teamprogress2018-droid
-Add files via upload
-d5d91a0
- · 
-now
-
-Code
-
-Blame
-5300 lines (4959 loc) · 368 KB
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -214,6 +182,45 @@ button{cursor:pointer;}
 .wb-inp{background:var(--s3);border:1px solid var(--border);border-radius:6px;padding:5px 7px;color:var(--text);font-size:12px;width:100%;}
 .wb-inp:focus{border-color:var(--accent);}
 
+/* ── CALENDAR V2 ── */
+.cal-week-day-hdr{padding:8px 4px;text-align:center;border-right:1px solid var(--border);position:sticky;top:0;background:var(--s1);z-index:5;}
+.cal-week-day-hdr.today{background:var(--adim);}
+.cal-hour-label{height:56px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:flex-end;padding:4px 6px 0 0;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted2);flex-shrink:0;}
+.cal-cell{height:56px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);position:relative;cursor:pointer;transition:background 0.1s;}
+.cal-cell:hover{background:rgba(200,241,53,0.03);}
+.cal-cell.today-col{background:rgba(200,241,53,0.02);}
+.cal-session-block{position:absolute;left:2px;right:2px;border-radius:6px;padding:3px 6px;font-size:10px;line-height:1.3;cursor:pointer;overflow:hidden;z-index:3;transition:opacity 0.1s,transform 0.1s;border:1px solid transparent;}
+.cal-session-block:hover{opacity:0.9;transform:scale(1.01);z-index:10;}
+.cal-mini-day{width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:11px;cursor:pointer;color:var(--muted);transition:all 0.1s;}
+.cal-mini-day:hover{background:var(--s3);color:var(--text);}
+.cal-mini-day.today{background:var(--accent);color:#000;font-weight:700;}
+.cal-mini-day.has-sess{color:var(--accent);font-weight:600;}
+.cal-mini-day.selected{background:var(--adim);border:1px solid var(--accent);color:var(--accent);}
+.cal-mini-day.other-month{opacity:0.3;}
+.cal-month-cell{min-height:80px;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:6px;cursor:pointer;transition:border-color 0.1s;}
+.cal-month-cell:hover{border-color:var(--border2);}
+.cal-month-cell.today{border-color:var(--accent);background:var(--adim);}
+.cal-month-cell.other-month{opacity:0.4;}
+.cal-month-sess{font-size:10px;padding:2px 5px;border-radius:4px;margin-bottom:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;cursor:pointer;}
+.cal-list-day{margin-bottom:20px;}
+.cal-list-day-hdr{font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
+.cal-list-sess{display:flex;gap:12px;align-items:flex-start;padding:10px 14px;background:var(--s2);border:1px solid var(--border);border-radius:10px;margin-bottom:6px;cursor:pointer;transition:border-color 0.1s;}
+.cal-list-sess:hover{border-color:var(--border2);}
+.cal-time-now{position:absolute;left:0;right:0;height:2px;background:var(--red);z-index:8;pointer-events:none;}
+.cal-time-now::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--red);position:absolute;left:-4px;top:-3px;}
+/* ── CALCULATOR ── */
+.calc-act-btn,.calc-goal-btn,.calc-macro-btn{width:100%;padding:8px 12px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;color:var(--muted);font-size:12px;text-align:left;cursor:pointer;transition:all 0.12s;font-family:'DM Sans',sans-serif;}
+.calc-act-btn:hover,.calc-goal-btn:hover,.calc-macro-btn:hover{border-color:var(--border2);color:var(--text);}
+.calc-act-btn.active,.calc-goal-btn.active,.calc-macro-btn.active{background:var(--adim);border-color:var(--accent);color:var(--accent);}
+.calc-result-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r2);padding:20px;margin-bottom:14px;animation:fadeUp 0.2s ease both;}
+.calc-big-val{font-family:'Bebas Neue',sans-serif;font-size:52px;line-height:1;color:var(--accent);}
+.calc-macro-bar{height:12px;border-radius:99px;overflow:hidden;display:flex;margin:8px 0;}
+.calc-macro-seg{height:100%;transition:width 0.3s;}
+.calc-macro-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.calc-macro-row:last-child{border-bottom:none;}
+.calc-macro-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.calc-meal-card{background:var(--s3);border-radius:10px;padding:12px 14px;margin-bottom:8px;}
+.calc-tip{background:var(--adim);border:1px solid rgba(200,241,53,0.15);border-radius:8px;padding:10px 12px;font-size:11px;line-height:1.6;margin-bottom:8px;}
 /* ── CLIENT PROFILE ── */
 .cp-drawer{position:fixed;right:0;top:0;bottom:0;width:560px;background:var(--s1);border-left:1px solid var(--border2);z-index:60;display:flex;flex-direction:column;transform:translateX(100%);transition:transform 0.28s cubic-bezier(.4,0,.2,1);}
 .cp-drawer.open{transform:translateX(0);}
@@ -452,6 +459,7 @@ input[type=checkbox]{display:none;}
     <button class="nav-item" onclick="goTo('resources')"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Zasoby</button>
     <button class="nav-item" onclick="goTo('ondemand')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>On-demand</button>
     <button class="nav-item" onclick="goTo('payments')"><svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Płatności</button>
+    <button class="nav-item" onclick="goTo('calculator')"><svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="10" y2="18"/><line x1="14" y1="18" x2="16" y2="18"/></svg>Kalkulator</button>
   </nav>
   <div class="sidebar-footer"><div class="av">PU</div><div><div style="font-size:13px;font-weight:600;">Piotr Urbaniak</div><div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">Trener personalny</div></div></div>
 </aside>
@@ -543,11 +551,81 @@ input[type=checkbox]{display:none;}
 </div>
 
 <!-- CALENDAR -->
+<!-- CALENDAR V2 — WIDOK TYGODNIOWY -->
 <div class="screen" id="screen-calendar">
-  <div class="topbar"><div class="topbar-title" id="cal-title">Kalendarz</div><div class="topbar-actions"><button class="btn btn-primary btn-sm" onclick="openM('m-session')">+ Sesja</button></div></div>
-  <div class="content" style="display:grid;grid-template-columns:1fr 280px;gap:16px;">
-    <div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px;" id="cal-dow"></div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;" id="cal-grid"></div></div>
-    <div><div style="font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px;margin-bottom:10px;">NADCHODZĄCE</div><div id="cal-upcoming"></div></div>
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="topbar-title" id="cal-title">Kalendarz</div>
+      <div style="display:flex;gap:2px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:2px;">
+        <button class="auto-tab-btn active" id="calv-week" onclick="setCalView('week')">Tydzień</button>
+        <button class="auto-tab-btn" id="calv-month" onclick="setCalView('month')">Miesiąc</button>
+        <button class="auto-tab-btn" id="calv-list" onclick="setCalView('list')">Lista</button>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost btn-sm" onclick="calNav(-1)">← Wstecz</button>
+      <button class="btn btn-ghost btn-sm" onclick="calNavToday()">Dziś</button>
+      <button class="btn btn-ghost btn-sm" onclick="calNav(1)">Dalej →</button>
+      <button class="btn btn-primary btn-sm" onclick="openM('m-session')">+ Sesja</button>
+    </div>
+  </div>
+
+  <div style="display:flex;flex:1;overflow:hidden;">
+
+    <!-- WIDOK TYGODNIOWY -->
+    <div id="cal-week-view" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+      <!-- nagłówek dni -->
+      <div style="display:grid;grid-template-columns:60px repeat(7,1fr);border-bottom:1px solid var(--border);flex-shrink:0;" id="cal-week-header"></div>
+      <!-- siatka godzin -->
+      <div style="flex:1;overflow-y:auto;position:relative;" id="cal-week-scroll">
+        <div style="display:grid;grid-template-columns:60px repeat(7,1fr);position:relative;" id="cal-week-grid"></div>
+      </div>
+    </div>
+
+    <!-- WIDOK MIESIĘCZNY -->
+    <div id="cal-month-view" style="flex:1;overflow-y:auto;display:none;padding:16px 20px;">
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px;" id="cal-month-dow"></div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;" id="cal-month-grid"></div>
+    </div>
+
+    <!-- WIDOK LISTA -->
+    <div id="cal-list-view" style="flex:1;overflow-y:auto;display:none;padding:16px 24px;">
+      <div id="cal-list-body"></div>
+    </div>
+
+    <!-- prawy panel -->
+    <div style="width:280px;flex-shrink:0;border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;">
+      <!-- mini kalendarz -->
+      <div style="padding:14px;border-bottom:1px solid var(--border);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <button onclick="calMiniNav(-1)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;">‹</button>
+          <div style="font-size:12px;font-weight:700;" id="cal-mini-title"></div>
+          <button onclick="calMiniNav(1)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;">›</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;" id="cal-mini-dow">
+          <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;padding:3px 0;">P</div>
+          <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;padding:3px 0;">W</div>
+          <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;padding:3px 0;">Ś</div>
+          <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;padding:3px 0;">C</div>
+          <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;padding:3px 0;">P</div>
+          <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;padding:3px 0;">S</div>
+          <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;padding:3px 0;">N</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;" id="cal-mini-grid"></div>
+      </div>
+
+      <!-- statystyki tygodnia -->
+      <div style="padding:12px 14px;border-bottom:1px solid var(--border);">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:var(--accent);margin-bottom:10px;">TEN TYDZIEŃ</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="cal-week-stats"></div>
+      </div>
+
+      <!-- nadchodzące sesje -->
+      <div style="flex:1;overflow-y:auto;padding:12px 14px;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:var(--accent);margin-bottom:10px;">NADCHODZĄCE</div>
+        <div id="cal-upcoming"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1661,7 +1739,95 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 
 </div><!-- /main -->
 
-<!-- CLIENT PROFILE DRAWER -->
+<!-- CALCULATOR — TDEE / MAKRO -->
+<div class="screen" id="screen-calculator">
+  <div class="topbar">
+    <div class="topbar-title">Kalkulator TDEE i Makro</div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost btn-sm" onclick="calcLoadFromClient()">📋 Wczytaj dane klienta</button>
+      <button class="btn btn-primary btn-sm" onclick="calcSendToClient()">📤 Wyślij do klienta</button>
+    </div>
+  </div>
+  <div style="display:flex;flex:1;overflow:hidden;">
+
+    <!-- lewa kolumna — dane wejściowe -->
+    <div style="width:320px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;padding:20px 18px;">
+
+      <!-- wybór klienta -->
+      <div class="form-field">
+        <label class="form-lbl">Klient (opcjonalnie)</label>
+        <select class="form-select" id="calc-client" onchange="calcLoadFromClient()">
+          <option value="">Oblicz ręcznie</option>
+        </select>
+      </div>
+
+      <!-- dane osobowe -->
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--accent);margin-bottom:10px;">DANE OSOBOWE</div>
+      <div class="form-grid">
+        <div class="form-field"><label class="form-lbl">Płeć</label>
+          <select class="form-select" id="calc-gender" onchange="calcTDEE()">
+            <option value="M">Mężczyzna</option>
+            <option value="K">Kobieta</option>
+          </select>
+        </div>
+        <div class="form-field"><label class="form-lbl">Wiek (lata)</label>
+          <input type="number" class="form-input" id="calc-age" value="25" min="16" max="80" oninput="calcTDEE()">
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-field"><label class="form-lbl">Waga (kg)</label>
+          <input type="number" class="form-input" id="calc-weight" value="80" min="40" max="200" step="0.5" oninput="calcTDEE()">
+        </div>
+        <div class="form-field"><label class="form-lbl">Wzrost (cm)</label>
+          <input type="number" class="form-input" id="calc-height" value="180" min="140" max="220" oninput="calcTDEE()">
+        </div>
+      </div>
+
+      <!-- aktywność -->
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--accent);margin-bottom:10px;margin-top:6px;">POZIOM AKTYWNOŚCI</div>
+      <div id="calc-activity-btns" style="display:flex;flex-direction:column;gap:5px;margin-bottom:16px;">
+        <button class="calc-act-btn" data-val="1.2" onclick="setCalcActivity(this,1.2)">😴 Siedzący (brak aktywności)</button>
+        <button class="calc-act-btn active" data-val="1.375" onclick="setCalcActivity(this,1.375)">🚶 Lekko aktywny (1-3 treningi/tydzień)</button>
+        <button class="calc-act-btn" data-val="1.55" onclick="setCalcActivity(this,1.55)">🏃 Umiarkowanie aktywny (3-5 treningów)</button>
+        <button class="calc-act-btn" data-val="1.725" onclick="setCalcActivity(this,1.725)">💪 Bardzo aktywny (6-7 treningów)</button>
+        <button class="calc-act-btn" data-val="1.9" onclick="setCalcActivity(this,1.9)">🏆 Ekstremalnie aktywny (2x/dzień)</button>
+      </div>
+
+      <!-- cel -->
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--accent);margin-bottom:10px;">CEL KLIENTA</div>
+      <div id="calc-goal-btns" style="display:flex;flex-direction:column;gap:5px;margin-bottom:16px;">
+        <button class="calc-goal-btn" data-val="-500" onclick="setCalcGoal(this,-500)">🔥 Agresywna redukcja (-500 kcal/dzień)</button>
+        <button class="calc-goal-btn" data-val="-300" onclick="setCalcGoal(this,-300)">📉 Łagodna redukcja (-300 kcal/dzień)</button>
+        <button class="calc-goal-btn active" data-val="0" onclick="setCalcGoal(this,0)">⚖️ Utrzymanie wagi (TDEE)</button>
+        <button class="calc-goal-btn" data-val="300" onclick="setCalcGoal(this,300)">📈 Łagodna masa (+300 kcal/dzień)</button>
+        <button class="calc-goal-btn" data-val="500" onclick="setCalcGoal(this,500)">💪 Agresywna masa (+500 kcal/dzień)</button>
+      </div>
+
+      <!-- podział makro -->
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--accent);margin-bottom:10px;">PODZIAŁ MAKROSKŁADNIKÓW</div>
+      <div id="calc-macro-presets" style="display:flex;flex-direction:column;gap:5px;margin-bottom:12px;">
+        <button class="calc-macro-btn active" data-p="35" data-f="25" data-c="40" onclick="setCalcMacro(this,35,25,40)">🏋️ Masa mięśniowa (B35 / T25 / W40)</button>
+        <button class="calc-macro-btn" data-p="40" data-f="30" data-c="30" onclick="setCalcMacro(this,40,30,30)">🔥 Redukcja (B40 / T30 / W30)</button>
+        <button class="calc-macro-btn" data-p="30" data-f="30" data-c="40" onclick="setCalcMacro(this,30,30,40)">⚖️ Utrzymanie (B30 / T30 / W40)</button>
+        <button class="calc-macro-btn" data-p="25" data-f="70" data-c="5" onclick="setCalcMacro(this,25,70,5)">🥑 Keto (B25 / T70 / W5)</button>
+        <button class="calc-macro-btn" data-p="20" data-f="25" data-c="55" onclick="setCalcMacro(this,20,25,55)">🍝 Wysokowęglowodanowa (B20 / T25 / W55)</button>
+      </div>
+
+      <!-- suwaki ręczne -->
+      <div style="display:flex;flex-direction:column;gap:8px;" id="calc-sliders">
+        <div><label class="form-lbl">Białko: <span id="sl-p-val">35</span>%</label><input type="range" id="sl-p" min="15" max="55" value="35" oninput="syncSliders('p')" style="width:100%;accent-color:var(--accent);"></div>
+        <div><label class="form-lbl">Tłuszcze: <span id="sl-f-val">25</span>%</label><input type="range" id="sl-f" min="10" max="60" value="25" oninput="syncSliders('f')" style="width:100%;accent-color:var(--orange);"></div>
+        <div><label class="form-lbl">Węglowodany: <span id="sl-c-val">40</span>%</label><input type="range" id="sl-c" min="5" max="65" value="40" oninput="syncSliders('c')" style="width:100%;accent-color:var(--blue);"></div>
+        <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;" id="sl-sum-lbl">Suma: 100%</div>
+      </div>
+    </div>
+
+    <!-- prawa kolumna — wyniki -->
+    <div style="flex:1;overflow-y:auto;padding:20px 24px;" id="calc-results-area">
+      <div id="calc-results"></div>
+    </div>
+  </div>
+</div>
 <div class="cp-overlay" id="cp-overlay" onclick="closeClientProfile()"></div>
 <div class="cp-drawer" id="cp-drawer">
   <!-- nagłówek profilu -->
@@ -1722,7 +1888,10 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
     <div class="modal-body">
       <div class="form-field"><label class="form-lbl">Klient</label><select class="form-select" id="as-client"></select></div>
       <div class="form-grid"><div class="form-field"><label class="form-lbl">Data</label><input type="date" class="form-input" id="as-date"></div><div class="form-field"><label class="form-lbl">Godzina</label><input type="time" class="form-input" id="as-time"></div></div>
-      <div class="form-field"><label class="form-lbl">Typ</label><select class="form-select" id="as-type"><option>Trening siłowy</option><option>Cardio</option><option>Full Body</option><option>Ocena postępów</option><option>Online</option></select></div>
+      <div class="form-grid">
+        <div class="form-field"><label class="form-lbl">Typ</label><select class="form-select" id="as-type"><option>Trening siłowy</option><option>Cardio</option><option>Full Body</option><option>Ocena postępów</option><option>Online</option></select></div>
+        <div class="form-field"><label class="form-lbl">Czas trwania (min)</label><input type="number" class="form-input" id="as-duration" value="60" min="15" step="15"></div>
+      </div>
       <div class="form-field"><label class="form-lbl">Notatki</label><textarea class="form-textarea" id="as-notes" rows="2"></textarea></div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-session')">Anuluj</button><button class="btn btn-primary" onclick="saveSess()">Zapisz</button></div>
@@ -2166,11 +2335,11 @@ function goTo(n){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   const s=document.getElementById('screen-'+n);if(s)s.classList.add('active');
-  const navMap={'dashboard':0,'clients':1,'plans':2,'builder':3,'calendar':4,'inbox':5,'workout-library':6,'library':7,'programs':8,'metrics':9,'tasks':10,'forms':11,'automation':12,'resources':13,'ondemand':14,'payments':15};
+  const navMap={'dashboard':0,'clients':1,'plans':2,'builder':3,'calendar':4,'inbox':5,'workout-library':6,'library':7,'programs':8,'metrics':9,'tasks':10,'forms':11,'automation':12,'resources':13,'ondemand':14,'payments':15,'calculator':16};
   const btns=document.querySelectorAll('.nav-item');
   if(navMap[n]!==undefined&&btns[navMap[n]])btns[navMap[n]].classList.add('active');
   if(n==='builder')initBuilder();
-  if(n==='calendar')renderCal();
+  if(n==='calendar'){calCurrentDate=new Date();calMiniDate=new Date();setCalView('week');}
   if(n==='plans')renderPlans();
   if(n==='library')renderLib();
   if(n==='inbox')renderInbox();
@@ -2197,6 +2366,7 @@ function goTo(n){
     document.getElementById('pkg-date').value=new Date().toISOString().split('T')[0];
     setPayTab('overview');
   }
+  if(n==='calculator'){initCalcClients();calcTDEE();}
 }
 
 function openM(id){
@@ -2532,7 +2702,7 @@ function renderClients(){
     <div style="font-size:12px;color:var(--muted);align-self:center;">—</div>
     <div style="font-size:12px;color:var(--muted);align-self:center;">${c.goal||'—'}</div>
     <div style="align-self:center;"><span class="pill ${c.status==='inactive'?'pill-red':'pill-green'}"><span class="pill-dot"></span>${c.status==='inactive'?'Offline':'Aktywny'}</span></div>
-    <div style="align-self:center;"><button class="btn btn-ghost btn-sm">Profil</button></div>
+    <div style="align-self:center;"><button class="btn btn-ghost btn-sm" onclick="openClientProfile('${c.id}')">Profil</button></div>
   </div>`).join('');
 }
 
@@ -2638,33 +2808,376 @@ async function delPlan(id){
 }
 
 // ════════════════════════════════════════
-// CALENDAR
+// CALENDAR V2 — WEEK / MONTH / LIST
 // ════════════════════════════════════════
+var calView='week';
+var calCurrentDate=new Date();
+var calMiniDate=new Date();
+var calSelectedDate=null;
+
+const CAL_HOURS=Array.from({length:24},(_,i)=>i); // 0-23
+const CAL_DAYS_PL=['Pon','Wt','Śr','Czw','Pt','Sob','Nie'];
+const CAL_MONTHS_PL=['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
+const SESS_COLORS=['var(--accent)','var(--blue)','var(--purple)','var(--teal)','var(--orange)','var(--red)'];
+
+function getWeekStart(d){
+  const dt=new Date(d);
+  const day=dt.getDay();
+  const diff=day===0?-6:1-day; // Monday = 0
+  dt.setDate(dt.getDate()+diff);
+  dt.setHours(0,0,0,0);
+  return dt;
+}
+
+function dateStr(d){return d.toISOString().split('T')[0];}
+
+function setCalView(v){
+  calView=v;
+  document.getElementById('cal-week-view').style.display=v==='week'?'flex':'none';
+  document.getElementById('cal-week-view').style.flexDirection=v==='week'?'column':'';
+  document.getElementById('cal-month-view').style.display=v==='month'?'block':'none';
+  document.getElementById('cal-list-view').style.display=v==='list'?'block':'none';
+  ['week','month','list'].forEach(t=>{
+    const btn=document.getElementById('calv-'+t);
+    if(btn)btn.classList.toggle('active',t===v);
+  });
+  renderCal();
+}
+
+function calNav(dir){
+  if(calView==='week'){calCurrentDate=new Date(calCurrentDate);calCurrentDate.setDate(calCurrentDate.getDate()+dir*7);}
+  else if(calView==='month'){calCurrentDate=new Date(calCurrentDate.getFullYear(),calCurrentDate.getMonth()+dir,1);}
+  else if(calView==='list'){calCurrentDate=new Date(calCurrentDate);calCurrentDate.setDate(calCurrentDate.getDate()+dir*14);}
+  renderCal();
+}
+
+function calNavToday(){calCurrentDate=new Date();renderCal();}
+function calMiniNav(dir){calMiniDate=new Date(calMiniDate.getFullYear(),calMiniDate.getMonth()+dir,1);renderCalMini();}
+
 function renderCal(){
-  const now=new Date();const y=now.getFullYear();const m=now.getMonth();
-  const months=['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
-  document.getElementById('cal-title').textContent=months[m]+' '+y;
-  document.getElementById('cal-dow').innerHTML=['PN','WT','ŚR','CZ','PT','SB','ND'].map(d=>'<div style="text-align:center;font-size:10px;color:var(--muted);font-family:\'DM Mono\',monospace;padding:5px 0;">'+d+'</div>').join('');
-  let fd=new Date(y,m,1).getDay();fd=(fd+6)%7;
-  const dim=new Date(y,m+1,0).getDate();const today=now.getDate();
+  updateCalTitle();
+  renderCalMini();
+  renderCalSidebar();
+  if(calView==='week')renderCalWeek();
+  else if(calView==='month')renderCalMonth();
+  else renderCalList();
+}
+
+function updateCalTitle(){
+  const el=document.getElementById('cal-title');if(!el)return;
+  const today=new Date();
+  if(calView==='week'){
+    const ws=getWeekStart(calCurrentDate);
+    const we=new Date(ws);we.setDate(we.getDate()+6);
+    const sm=ws.getMonth();const em=we.getMonth();
+    if(sm===em)el.textContent=CAL_DAYS_PL[0]+' '+ws.getDate()+' — '+CAL_DAYS_PL[6]+' '+we.getDate()+' '+CAL_MONTHS_PL[sm]+' '+ws.getFullYear();
+    else el.textContent=ws.getDate()+' '+CAL_MONTHS_PL[sm]+' — '+we.getDate()+' '+CAL_MONTHS_PL[em]+' '+ws.getFullYear();
+  } else if(calView==='month'){
+    el.textContent=CAL_MONTHS_PL[calCurrentDate.getMonth()]+' '+calCurrentDate.getFullYear();
+  } else {
+    el.textContent='Lista sesji';
+  }
+}
+
+function renderCalWeek(){
+  const ws=getWeekStart(calCurrentDate);
+  const today=new Date();today.setHours(0,0,0,0);
+  const hdr=document.getElementById('cal-week-header');
+  if(!hdr)return;
+
+  // header — dni tygodnia
+  let hdrHTML='<div style="height:48px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--s1);position:sticky;top:0;z-index:6;"></div>';
+  for(let i=0;i<7;i++){
+    const d=new Date(ws);d.setDate(d.getDate()+i);
+    const isToday=dateStr(d)===dateStr(today);
+    const dayCount=SE.filter(s=>s.date===dateStr(d)).length;
+    hdrHTML+=`<div class="cal-week-day-hdr${isToday?' today':''}" style="border-bottom:1px solid var(--border);">
+      <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${CAL_DAYS_PL[i]}</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:${isToday?'var(--accent)':'var(--text)'};">${d.getDate()}</div>
+      ${dayCount?`<div style="width:6px;height:6px;border-radius:50%;background:var(--accent);margin:0 auto;"></div>`:'<div style="width:6px;height:6px;"></div>'}
+    </div>`;
+  }
+  hdr.innerHTML=hdrHTML;
+
+  // grid — godziny × dni
+  const grid=document.getElementById('cal-week-grid');
+  let gridHTML='';
+  const nowHour=new Date().getHours();
+  const nowMin=new Date().getMinutes();
+  const todayIdx=[...Array(7)].findIndex((_,i)=>{const d=new Date(ws);d.setDate(d.getDate()+i);return dateStr(d)===dateStr(today);});
+
+  for(let h=6;h<23;h++){
+    // hour label
+    gridHTML+=`<div class="cal-hour-label">${String(h).padStart(2,'0')}:00</div>`;
+    for(let i=0;i<7;i++){
+      const d=new Date(ws);d.setDate(d.getDate()+i);
+      const ds=dateStr(d);
+      const isToday=i===todayIdx;
+      const cellSessions=SE.filter(s=>s.date===ds&&parseInt((s.time||'0:0').split(':')[0])===h);
+      const sessHTML=cellSessions.map((s,si)=>{
+        const c=CL.find(x=>x.id===s.clientId);
+        const cIdx=CL.indexOf(c);
+        const col=SESS_COLORS[cIdx%6];
+        const timeMin=parseInt((s.time||'0:0').split(':')[1]||0);
+        const topPct=(timeMin/60)*100;
+        const dur=s.duration||60;
+        const heightPx=Math.max(20,(dur/60)*56);
+        return `<div class="cal-session-block" style="background:${col}22;border-color:${col}44;color:${col};top:${topPct}%;height:${heightPx}px;" onclick="openSessDetail('${s.id}')" title="${c?c.name:'Klient'} — ${s.type||''} ${s.time||''}">
+          <div style="font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${c?c.name.split(' ')[0]:'Klient'}</div>
+          <div style="font-size:9px;opacity:0.8;">${s.time||''} ${s.type||''}</div>
+        </div>`;
+      }).join('');
+      gridHTML+=`<div class="cal-cell${isToday?' today-col':''}" onclick="quickAddSession('${ds}','${String(h).padStart(2,'0')}:00')">${sessHTML}</div>`;
+    }
+  }
+
+  // current time line
+  if(todayIdx>=0){
+    const topPx=((nowHour-6)*56)+(nowMin/60*56);
+    gridHTML+=`<div style="grid-column:${todayIdx+2};grid-row:1;display:none;"></div>`; // placeholder
+  }
+  grid.innerHTML=gridHTML;
+
+  // scroll to 8:00
+  const scroll=document.getElementById('cal-week-scroll');
+  if(scroll)setTimeout(()=>{scroll.scrollTop=2*56;},50);
+
+  // current time overlay
+  if(todayIdx>=0){
+    const topPx=((nowHour-6)*56)+(nowMin/60*56);
+    const col=grid.children[todayIdx+1+8]; // approx
+    // add absolute line
+    const line=document.createElement('div');
+    line.className='cal-time-now';
+    line.style.top=(topPx+48)+'px'; // +48 for header
+    line.style.gridColumn=(todayIdx+2)+'';
+    grid.style.position='relative';
+    grid.appendChild(line);
+  }
+}
+
+function renderCalMonth(){
+  const y=calCurrentDate.getFullYear();
+  const m=calCurrentDate.getMonth();
+  const today=new Date();
+  const firstDay=new Date(y,m,1);
+  let fd=firstDay.getDay();fd=(fd+6)%7;
+  const dim=new Date(y,m+1,0).getDate();
+
+  const dowEl=document.getElementById('cal-month-dow');
+  if(dowEl)dowEl.innerHTML=['Pon','Wt','Śr','Czw','Pt','Sob','Nie'].map(d=>`<div style="text-align:center;font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;padding:4px 0;">${d}</div>`).join('');
+
   let html='';
-  for(let i=0;i<fd;i++)html+='<div></div>';
+  for(let i=0;i<fd;i++){
+    const pd=new Date(y,m,1-fd+i);
+    html+=`<div class="cal-month-cell other-month"><div style="font-size:12px;color:var(--muted2);">${pd.getDate()}</div></div>`;
+  }
   for(let d=1;d<=dim;d++){
     const ds=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
-    const hs=SE.some(s=>s.date===ds);const it=d===today;
-    html+='<div class="cal-day'+(it?' today':hs?' has-sess':'')+'" title="'+ds+'">'+d+'</div>';
+    const daySess=SE.filter(s=>s.date===ds);
+    const isToday=ds===dateStr(today);
+    html+=`<div class="cal-month-cell${isToday?' today':''}" onclick="calClickDay('${ds}')">
+      <div style="font-size:12px;font-weight:${isToday?700:500};color:${isToday?'var(--accent)':'var(--text)'};">${d}</div>
+      ${daySess.slice(0,3).map(s=>{
+        const c=CL.find(x=>x.id===s.clientId);
+        const ci=CL.indexOf(c);
+        const col=SESS_COLORS[ci%6];
+        return `<div class="cal-month-sess" style="background:${col}22;color:${col};" onclick="event.stopPropagation();openSessDetail('${s.id}')">${s.time||''} ${c?c.name.split(' ')[0]:'Klient'}</div>`;
+      }).join('')}
+      ${daySess.length>3?`<div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">+${daySess.length-3} więcej</div>`:''}
+    </div>`;
   }
-  document.getElementById('cal-grid').innerHTML=html;
-  const up=SE.filter(s=>s.date>=new Date().toISOString().split('T')[0]).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,6);
-  document.getElementById('cal-upcoming').innerHTML=!up.length?'<div style="color:var(--muted);font-size:12px;">Brak sesji</div>'
-    :up.map(s=>{const c=CL.find(x=>x.id===s.clientId);return '<div class="card-sm" style="margin-bottom:8px;display:flex;gap:10px;align-items:center;"><div style="font-family:\'DM Mono\',monospace;font-size:11px;color:var(--accent);">'+s.time+'<br><span style="color:var(--muted);font-size:9px;">'+s.date.split('-').slice(1).join('/')+'</span></div><div><div style="font-size:13px;font-weight:600;">'+(c?c.name:'Klient')+'</div><div style="font-size:11px;color:var(--muted);">'+s.type+'</div></div></div>';}).join('');
+  const remaining=(7-((fd+dim)%7))%7;
+  for(let i=1;i<=remaining;i++){
+    html+=`<div class="cal-month-cell other-month"><div style="font-size:12px;color:var(--muted2);">${i}</div></div>`;
+  }
+  const grid=document.getElementById('cal-month-grid');
+  if(grid)grid.innerHTML=html;
+}
+
+function renderCalList(){
+  const el=document.getElementById('cal-list-body');if(!el)return;
+  const start=new Date(calCurrentDate);start.setHours(0,0,0,0);
+  const end=new Date(start);end.setDate(end.getDate()+30);
+  const startStr=dateStr(start);const endStr=dateStr(end);
+  const upcoming=SE.filter(s=>s.date>=startStr&&s.date<=endStr).sort((a,b)=>a.date.localeCompare(b.date)||((a.time||'').localeCompare(b.time||'')));
+
+  if(!upcoming.length){
+    el.innerHTML=`<div style="text-align:center;padding:60px;color:var(--muted);">
+      <div style="font-size:40px;margin-bottom:12px;opacity:0.3;">📅</div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:6px;">Brak sesji w tym okresie</div>
+      <button class="btn btn-primary" onclick="openM('m-session')">+ Dodaj sesję</button>
+    </div>`;
+    return;
+  }
+
+  // group by date
+  const groups={};
+  upcoming.forEach(s=>{if(!groups[s.date])groups[s.date]=[];groups[s.date].push(s);});
+  const today=dateStr(new Date());
+  el.innerHTML=Object.entries(groups).map(([date,sessions])=>{
+    const d=new Date(date+'T12:00:00');
+    const isToday=date===today;
+    const dayName=CAL_DAYS_PL[(d.getDay()+6)%7];
+    return `<div class="cal-list-day">
+      <div class="cal-list-day-hdr">
+        <div style="font-size:24px;color:${isToday?'var(--accent)':'var(--text)'};">${d.getDate()}</div>
+        <div>
+          <div style="font-size:12px;color:${isToday?'var(--accent)':'var(--muted)'};">${dayName}</div>
+          <div style="font-size:11px;color:var(--muted2);">${CAL_MONTHS_PL[d.getMonth()]}</div>
+        </div>
+        ${isToday?'<span class="pill pill-green" style="font-size:10px;">Dziś</span>':''}
+        <span class="pill pill-muted" style="font-size:10px;">${sessions.length} ${sessions.length===1?'sesja':sessions.length<5?'sesje':'sesji'}</span>
+      </div>
+      ${sessions.map(s=>{
+        const c=CL.find(x=>x.id===s.clientId);
+        const ci=CL.indexOf(c);
+        const col=SESS_COLORS[ci%6];
+        return `<div class="cal-list-sess" onclick="openSessDetail('${s.id}')">
+          <div style="width:4px;border-radius:2px;background:${col};flex-shrink:0;align-self:stretch;"></div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:${col};min-width:44px;line-height:1.1;">${s.time||'—'}</div>
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:700;">${c?c.name:'Klient'}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;">${s.type||'Sesja'} · ${s.duration||60} min</div>
+            ${s.notes?`<div style="font-size:11px;color:var(--muted2);margin-top:3px;font-style:italic;">${s.notes}</div>`:''}
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;align-self:center;">
+            <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();editSession('${s.id}')">✏</button>
+            <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();delSession('${s.id}')">×</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+
+function renderCalMini(){
+  const y=calMiniDate.getFullYear();
+  const m=calMiniDate.getMonth();
+  const today=new Date();
+  const titleEl=document.getElementById('cal-mini-title');
+  if(titleEl)titleEl.textContent=CAL_MONTHS_PL[m]+' '+y;
+
+  const firstDay=new Date(y,m,1);
+  let fd=firstDay.getDay();fd=(fd+6)%7;
+  const dim=new Date(y,m+1,0).getDate();
+  let html='';
+  for(let i=0;i<fd;i++){
+    const pd=new Date(y,m,1-fd+i);
+    html+=`<div class="cal-mini-day other-month">${pd.getDate()}</div>`;
+  }
+  for(let d=1;d<=dim;d++){
+    const ds=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const isToday=ds===dateStr(today);
+    const hasSess=SE.some(s=>s.date===ds);
+    const isSel=calSelectedDate===ds;
+    html+=`<div class="cal-mini-day${isToday?' today':hasSess?' has-sess':''}${isSel?' selected':''}" onclick="calJumpTo('${ds}')">${d}</div>`;
+  }
+  const grid=document.getElementById('cal-mini-grid');
+  if(grid)grid.innerHTML=html;
+}
+
+function renderCalSidebar(){
+  const today=new Date();
+  const ws=getWeekStart(calCurrentDate);
+  const we=new Date(ws);we.setDate(we.getDate()+6);
+  const wsStr=dateStr(ws);const weStr=dateStr(we);
+  const weekSess=SE.filter(s=>s.date>=wsStr&&s.date<=weStr);
+
+  const statsEl=document.getElementById('cal-week-stats');
+  if(statsEl)statsEl.innerHTML=`
+    <div style="background:var(--s3);border-radius:8px;padding:8px;text-align:center;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--accent);">${weekSess.length}</div>
+      <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">SESJI</div>
+    </div>
+    <div style="background:var(--s3);border-radius:8px;padding:8px;text-align:center;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--blue);">${new Set(weekSess.map(s=>s.clientId)).size}</div>
+      <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">KLIENTÓW</div>
+    </div>
+    <div style="background:var(--s3);border-radius:8px;padding:8px;text-align:center;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--teal);">${weekSess.reduce((s,sess)=>s+(sess.duration||60),0)}</div>
+      <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">MINUT</div>
+    </div>
+    <div style="background:var(--s3);border-radius:8px;padding:8px;text-align:center;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--orange);">${SE.filter(s=>s.date===dateStr(today)).length}</div>
+      <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">DZIŚ</div>
+    </div>`;
+
+  // upcoming
+  const nowStr=dateStr(today);
+  const up=SE.filter(s=>s.date>=nowStr).sort((a,b)=>a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||'')).slice(0,6);
+  const upEl=document.getElementById('cal-upcoming');
+  if(!upEl)return;
+  upEl.innerHTML=!up.length?'<div style="color:var(--muted);font-size:12px;text-align:center;padding:20px 0;">Brak nadchodzących sesji</div>'
+    :up.map(s=>{
+      const c=CL.find(x=>x.id===s.clientId);
+      const ci=CL.indexOf(c);
+      const col=SESS_COLORS[ci%6];
+      const d=new Date(s.date+'T12:00:00');
+      const isToday=s.date===nowStr;
+      return `<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="openSessDetail('${s.id}')">
+        <div style="text-align:center;min-width:36px;">
+          <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${isToday?'DZIŚ':CAL_DAYS_PL[(d.getDay()+6)%7]}</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:${col};">${d.getDate()}</div>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:12px;font-weight:700;">${c?c.name:'Klient'}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px;">${s.time||'—'} · ${s.type||'Sesja'}</div>
+        </div>
+      </div>`;
+    }).join('');
+}
+
+function calClickDay(ds){
+  calSelectedDate=ds;
+  calCurrentDate=new Date(ds+'T12:00:00');
+  if(calView==='month'){setCalView('week');}
+  else{renderCal();}
+}
+
+function calJumpTo(ds){
+  calSelectedDate=ds;
+  calCurrentDate=new Date(ds+'T12:00:00');
+  calMiniDate=new Date(ds+'T12:00:00');
+  renderCal();
+}
+
+function quickAddSession(date,time){
+  document.getElementById('as-client').innerHTML=CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
+  document.getElementById('as-date').value=date;
+  document.getElementById('as-time').value=time;
+  openM('m-session');
+}
+
+function openSessDetail(id){
+  const s=SE.find(x=>x.id===id);if(!s)return;
+  const c=CL.find(x=>x.id===s.clientId);
+  notify(`${c?c.name:'Klient'} · ${s.date} ${s.time||''} · ${s.type||'Sesja'}`);
+}
+
+function editSession(id){
+  const s=SE.find(x=>x.id===id);if(!s)return;
+  document.getElementById('as-client').innerHTML=CL.map(c=>'<option value="'+c.id+'"'+(c.id===s.clientId?' selected':'')+'>'+c.name+'</option>').join('');
+  document.getElementById('as-date').value=s.date;
+  document.getElementById('as-time').value=s.time||'';
+  document.getElementById('as-type').value=s.type||'';
+  document.getElementById('as-notes').value=s.notes||'';
+  openM('m-session');
+}
+
+function delSession(id){
+  if(!confirm('Usunąć sesję?'))return;
+  window.SE=SE.filter(s=>s.id!==id);
+  renderCal();renderDash();
+  notify('Sesja usunięta');
 }
 async function saveSess(){
   const cid=document.getElementById('as-client').value;
   const date=document.getElementById('as-date').value;const time=document.getElementById('as-time').value;
   const type=document.getElementById('as-type').value;const notes=document.getElementById('as-notes').value;
+  const duration=parseInt(document.getElementById('as-duration').value)||60;
   if(!date||!time){notify('Uzupełnij datę i godzinę!');return;}
-  const sess={clientId:cid,date,time,type,notes,createdAt:new Date().toISOString()};
+  const sess={clientId:cid,date,time,type,notes,duration,createdAt:new Date().toISOString()};
   try{if(window._db){const r=await window._add(window._col(window._db,'sessions'),sess);sess.id=r.id;}else sess.id='l'+Date.now();}catch(e){sess.id='l'+Date.now();}
   SE.push(sess);closeM('m-session');renderCal();renderDash();notify('Sesja dodana!');
 }
@@ -4179,8 +4692,259 @@ async function askMetricAI(){
 }
 
 // ════════════════════════════════════════
-// CLIENT PROFILE — DRAWER
+// CALCULATOR — TDEE / MAKRO
 // ════════════════════════════════════════
+var calcActivity=1.375;var calcGoalDelta=0;
+var calcMacroP=35;var calcMacroF=25;var calcMacroC=40;
+
+function initCalcClients(){
+  const sel=document.getElementById('calc-client');
+  if(!sel)return;
+  sel.innerHTML='<option value="">Oblicz ręcznie</option>'+CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
+}
+
+function calcLoadFromClient(){
+  const cid=document.getElementById('calc-client').value;
+  if(!cid){calcTDEE();return;}
+  const c=CL.find(x=>x.id===cid);
+  if(!c){calcTDEE();return;}
+  if(c.age)document.getElementById('calc-age').value=c.age;
+  if(c.weight)document.getElementById('calc-weight').value=c.weight;
+  if(c.height)document.getElementById('calc-height').value=c.height;
+  if(c.gender)document.getElementById('calc-gender').value=c.gender;
+  // set goal preset based on client goal
+  const goalMap={redukcja:-300,masa:300,sila:0,kondycja:0};
+  const delta=goalMap[c.goal]||0;
+  document.querySelectorAll('.calc-goal-btn').forEach(b=>{
+    b.classList.remove('active');
+    if(parseInt(b.dataset.val)===delta)b.classList.add('active');
+  });
+  calcGoalDelta=delta;
+  // set macro preset
+  const macroMap={masa:{p:35,f:25,c:40},redukcja:{p:40,f:30,c:30},sila:{p:35,f:25,c:40},kondycja:{p:30,f:30,c:40}};
+  const m=macroMap[c.goal]||{p:30,f:30,c:40};
+  setCalcMacroVals(m.p,m.f,m.c);
+  calcTDEE();
+  notify('✓ Dane klienta wczytane: '+c.name);
+}
+
+function setCalcActivity(btn,val){
+  calcActivity=val;
+  document.querySelectorAll('.calc-act-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  calcTDEE();
+}
+
+function setCalcGoal(btn,delta){
+  calcGoalDelta=delta;
+  document.querySelectorAll('.calc-goal-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  calcTDEE();
+}
+
+function setCalcMacro(btn,p,f,c){
+  document.querySelectorAll('.calc-macro-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  setCalcMacroVals(p,f,c);
+  calcTDEE();
+}
+
+function setCalcMacroVals(p,f,c){
+  calcMacroP=p;calcMacroF=f;calcMacroC=c;
+  document.getElementById('sl-p').value=p;
+  document.getElementById('sl-f').value=f;
+  document.getElementById('sl-c').value=c;
+  document.getElementById('sl-p-val').textContent=p;
+  document.getElementById('sl-f-val').textContent=f;
+  document.getElementById('sl-c-val').textContent=c;
+  document.getElementById('sl-sum-lbl').textContent='Suma: '+(p+f+c)+'%';
+}
+
+function syncSliders(changed){
+  let p=parseInt(document.getElementById('sl-p').value);
+  let f=parseInt(document.getElementById('sl-f').value);
+  let c=parseInt(document.getElementById('sl-c').value);
+  const sum=p+f+c;
+  // normalize to 100
+  if(sum!==100){
+    const diff=100-sum;
+    if(changed==='p'){if(f+diff>=10&&f+diff<=60){f+=diff;}else{c+=diff;}}
+    else if(changed==='f'){if(c+diff>=5&&c+diff<=65){c+=diff;}else{p+=diff;}}
+    else{if(p+diff>=15&&p+diff<=55){p+=diff;}else{f+=diff;}}
+    p=Math.max(15,Math.min(55,p));f=Math.max(10,Math.min(60,f));c=Math.max(5,Math.min(65,c));
+    const s2=p+f+c;if(s2!==100)c+=100-s2;
+    document.getElementById('sl-p').value=p;
+    document.getElementById('sl-f').value=f;
+    document.getElementById('sl-c').value=c;
+  }
+  calcMacroP=p;calcMacroF=f;calcMacroC=c;
+  document.getElementById('sl-p-val').textContent=p;
+  document.getElementById('sl-f-val').textContent=f;
+  document.getElementById('sl-c-val').textContent=c;
+  document.getElementById('sl-sum-lbl').textContent='Suma: '+(p+f+c)+'%';
+  document.querySelectorAll('.calc-macro-btn').forEach(b=>b.classList.remove('active'));
+  calcTDEE();
+}
+
+function calcTDEE(){
+  const gender=document.getElementById('calc-gender').value;
+  const age=parseInt(document.getElementById('calc-age').value)||25;
+  const weight=parseFloat(document.getElementById('calc-weight').value)||80;
+  const height=parseInt(document.getElementById('calc-height').value)||180;
+
+  // Mifflin-St Jeor BMR
+  let bmr;
+  if(gender==='M') bmr=10*weight+6.25*height-5*age+5;
+  else bmr=10*weight+6.25*height-5*age-161;
+
+  const tdee=Math.round(bmr*calcActivity);
+  const target=tdee+calcGoalDelta;
+  const proteinG=Math.round(target*(calcMacroP/100)/4);
+  const fatG=Math.round(target*(calcMacroF/100)/9);
+  const carbG=Math.round(target*(calcMacroC/100)/4);
+
+  // per kg recommendations
+  const protPerKg=(proteinG/weight).toFixed(1);
+  const isProtOk=parseFloat(protPerKg)>=1.6&&parseFloat(protPerKg)<=2.5;
+
+  // LBM (szacunkowa beztłuszczowa masa)
+  const lbm=Math.round(weight*0.82);
+
+  // meals plan
+  const meals=[
+    {name:'Śniadanie',pct:0.25},{name:'II śniadanie',pct:0.15},
+    {name:'Obiad',pct:0.30},{name:'Podwieczorek',pct:0.10},{name:'Kolacja',pct:0.20}
+  ];
+
+  const goalLabels={'-500':'Agresywna redukcja','-300':'Łagodna redukcja','0':'Utrzymanie wagi','300':'Łagodna masa','500':'Agresywna masa'};
+  const goalColors={'-500':'var(--red)','-300':'var(--orange)','0':'var(--teal)','300':'var(--blue)','500':'var(--accent)'};
+  const gc=goalColors[String(calcGoalDelta)]||'var(--accent)';
+  const gl=goalLabels[String(calcGoalDelta)]||'Cel';
+
+  const el=document.getElementById('calc-results');
+  if(!el)return;
+
+  el.innerHTML=`
+    <!-- główny wynik TDEE -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+      <div class="calc-result-card" style="text-align:center;border-top:3px solid var(--muted);">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">BMR (Metabolizm bazowy)</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:42px;color:var(--muted);line-height:1;">${Math.round(bmr)}</div>
+        <div style="font-size:11px;color:var(--muted);">kcal / dzień</div>
+        <div style="font-size:10px;color:var(--muted2);margin-top:6px;">Mifflin-St Jeor</div>
+      </div>
+      <div class="calc-result-card" style="text-align:center;border-top:3px solid var(--orange);">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--orange);text-transform:uppercase;margin-bottom:6px;">TDEE (Całkowite zapotrzebowanie)</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:42px;color:var(--orange);line-height:1;">${tdee}</div>
+        <div style="font-size:11px;color:var(--muted);">kcal / dzień</div>
+        <div style="font-size:10px;color:var(--muted2);margin-top:6px;">TDEE = BMR × ${calcActivity}</div>
+      </div>
+    </div>
+
+    <!-- cel kaloryczny -->
+    <div class="calc-result-card" style="border-top:3px solid ${gc};margin-bottom:14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div>
+          <div style="font-size:10px;font-family:'DM Mono',monospace;color:${gc};text-transform:uppercase;margin-bottom:4px;">${gl}</div>
+          <div class="calc-big-val" style="color:${gc};">${target} <span style="font-size:20px;">kcal</span></div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:12px;color:var(--muted);">Zmiana vs TDEE</div>
+          <div style="font-size:20px;font-weight:700;color:${calcGoalDelta<0?'var(--teal)':calcGoalDelta>0?'var(--orange)':'var(--muted)'};">${calcGoalDelta>0?'+':''}${calcGoalDelta} kcal</div>
+          ${calcGoalDelta!==0?`<div style="font-size:11px;color:var(--muted);">≈ ${Math.abs(calcGoalDelta/7700*7).toFixed(2)} kg/tydzień</div>`:''}
+        </div>
+      </div>
+
+      <!-- pasek makro -->
+      <div class="calc-macro-bar">
+        <div class="calc-macro-seg" style="width:${calcMacroP}%;background:var(--accent);"></div>
+        <div class="calc-macro-seg" style="width:${calcMacroF}%;background:var(--orange);"></div>
+        <div class="calc-macro-seg" style="width:${calcMacroC}%;background:var(--blue);"></div>
+      </div>
+
+      <!-- makro tabela -->
+      <div>
+        <div class="calc-macro-row">
+          <div style="display:flex;align-items:center;gap:8px;"><div class="calc-macro-dot" style="background:var(--accent);"></div><span style="font-weight:600;">Białko</span></div>
+          <div style="font-family:'DM Mono',monospace;"><span style="font-size:18px;font-weight:700;color:var(--accent);">${proteinG}g</span> <span style="font-size:11px;color:var(--muted);">(${calcMacroP}% · ${Math.round(target*calcMacroP/100)} kcal)</span></div>
+          <div style="font-size:11px;color:${isProtOk?'var(--teal)':'var(--orange)'};">${protPerKg} g/kg ${isProtOk?'✓':'⚠'}</div>
+        </div>
+        <div class="calc-macro-row">
+          <div style="display:flex;align-items:center;gap:8px;"><div class="calc-macro-dot" style="background:var(--orange);"></div><span style="font-weight:600;">Tłuszcze</span></div>
+          <div style="font-family:'DM Mono',monospace;"><span style="font-size:18px;font-weight:700;color:var(--orange);">${fatG}g</span> <span style="font-size:11px;color:var(--muted);">(${calcMacroF}% · ${Math.round(target*calcMacroF/100)} kcal)</span></div>
+          <div style="font-size:11px;color:var(--muted);">${(fatG/weight).toFixed(1)} g/kg</div>
+        </div>
+        <div class="calc-macro-row">
+          <div style="display:flex;align-items:center;gap:8px;"><div class="calc-macro-dot" style="background:var(--blue);"></div><span style="font-weight:600;">Węglowodany</span></div>
+          <div style="font-family:'DM Mono',monospace;"><span style="font-size:18px;font-weight:700;color:var(--blue);">${carbG}g</span> <span style="font-size:11px;color:var(--muted);">(${calcMacroC}% · ${Math.round(target*calcMacroC/100)} kcal)</span></div>
+          <div style="font-size:11px;color:var(--muted);">${(carbG/weight).toFixed(1)} g/kg</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- podział na posiłki -->
+    <div class="calc-result-card" style="margin-bottom:14px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:var(--accent);margin-bottom:12px;">PODZIAŁ NA POSIŁKI (5 posiłków)</div>
+      ${meals.map(m=>`<div class="calc-meal-card">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+          <div style="font-size:12px;font-weight:700;">${m.name}</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--accent);">${Math.round(target*m.pct)} kcal</div>
+        </div>
+        <div style="display:flex;gap:8px;font-size:11px;color:var(--muted);">
+          <span>B: <strong style="color:var(--accent);">${Math.round(proteinG*m.pct)}g</strong></span>
+          <span>T: <strong style="color:var(--orange);">${Math.round(fatG*m.pct)}g</strong></span>
+          <span>W: <strong style="color:var(--blue);">${Math.round(carbG*m.pct)}g</strong></span>
+        </div>
+      </div>`).join('')}
+    </div>
+
+    <!-- wskazówki i normy -->
+    <div class="calc-result-card" style="margin-bottom:14px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:var(--accent);margin-bottom:12px;">NORMY I WSKAZÓWKI</div>
+      <div class="calc-tip"><strong style="color:var(--accent);">Białko:</strong> Rekomendacja NSCA: 1.6–2.5 g/kg masy ciała. Twój wynik: ${protPerKg} g/kg — ${isProtOk?'✅ w normie':'⚠ poza normą, dostosuj'}.</div>
+      <div class="calc-tip"><strong style="color:var(--accent);">Woda:</strong> Min. ${Math.round(weight*0.035*10)/10} l/dzień (35ml/kg). Podczas treningu +500-1000ml.</div>
+      <div class="calc-tip"><strong style="color:var(--accent);">Tempo zmian:</strong> Zalecane 0.5-1% masy ciała/tydzień. Twój deficit/nadwyżka to ~${Math.abs(calcGoalDelta/7700*7).toFixed(2)} kg/tydzień.</div>
+      <div class="calc-tip"><strong style="color:var(--accent);">LBM (szacunkowa beztłuszczowa masa):</strong> ~${lbm} kg. Docelowo 1.8-2.2g białka na kg LBM = ${Math.round(lbm*1.8)}–${Math.round(lbm*2.2)}g białka.</div>
+      <div class="calc-tip"><strong style="color:var(--accent);">Okno żywieniowe po treningu:</strong> Spożyj 20-40g białka + węglowodany w ciągu 2h po treningu (okno anaboliczne).</div>
+    </div>
+
+    <!-- alternatywne scenariusze -->
+    <div class="calc-result-card">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:var(--accent);margin-bottom:12px;">ALTERNATYWNE SCENARIUSZE</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+        ${[{l:'Agresywna redukcja',d:-500,c:'var(--red)'},{l:'Łagodna redukcja',d:-300,c:'var(--orange)'},{l:'Utrzymanie',d:0,c:'var(--teal)'},{l:'Łagodna masa',d:300,c:'var(--blue)'},{l:'Agresywna masa',d:500,c:'var(--accent)'}].map(s=>`
+          <div style="background:var(--s3);border-radius:8px;padding:10px;text-align:center;${calcGoalDelta===s.d?'border:1px solid '+s.c+';':'border:1px solid transparent;'}">
+            <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">${s.l}</div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:${s.c};">${tdee+s.d}</div>
+            <div style="font-size:9px;color:var(--muted2);">kcal/dzień</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function calcSendToClient(){
+  const cid=document.getElementById('calc-client').value;
+  if(!cid){notify('Wybierz klienta!');return;}
+  const c=CL.find(x=>x.id===cid);
+  const age=document.getElementById('calc-age').value;
+  const weight=document.getElementById('calc-weight').value;
+  const height=document.getElementById('calc-height').value;
+  const gender=document.getElementById('calc-gender').value;
+  let bmr;
+  if(gender==='M')bmr=10*weight+6.25*height-5*age+5;
+  else bmr=10*weight+6.25*height-5*age-161;
+  const tdee=Math.round(bmr*calcActivity);
+  const target=tdee+calcGoalDelta;
+  const proteinG=Math.round(target*(calcMacroP/100)/4);
+  const fatG=Math.round(target*(calcMacroF/100)/9);
+  const carbG=Math.round(target*(calcMacroC/100)/4);
+  if(!MSGS[cid])MSGS[cid]=[];
+  MSGS[cid].push({
+    text:`📊 Twoje zapotrzebowanie kaloryczne:\n\nTDEE: ${tdee} kcal\nCel: ${target} kcal\n\nMakroskładniki:\n🟢 Białko: ${proteinG}g\n🟡 Tłuszcze: ${fatG}g\n🔵 Węglowodany: ${carbG}g\n\nWoda: min. ${Math.round(weight*0.035*10)/10}l/dzień`,
+    out:true,time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'})
+  });
+  notify('✓ Wyniki wysłane do '+(c?c.name:'klienta')+' w wiadomościach!');
+}
 var cpClientId=null;var cpTab='overview';
 
 function openClientProfile(id){
@@ -5284,7 +6048,10 @@ window.setWLNav=setWLNav;window.setWLView=setWLView;window.setWLSort=setWLSort;
 window.openWLDetail=openWLDetail;window.closeWLDetail=closeWLDetail;
 window.assignWorkout=assignWorkout;window.assignWorkoutDirect=assignWorkoutDirect;
 window.addWExRow=addWExRow;window.saveWorkout=saveWorkout;
-window.setTaskFilter=setTaskFilter;window.saveTask=saveTask;window.toggleTask=toggleTask;window.delTask=delTask;
+window.setCalView=setCalView;window.calNav=calNav;window.calNavToday=calNavToday;
+window.calMiniNav=calMiniNav;window.calClickDay=calClickDay;window.calJumpTo=calJumpTo;
+window.quickAddSession=quickAddSession;window.openSessDetail=openSessDetail;
+window.editSession=editSession;window.delSession=delSession;window.saveTask=saveTask;window.toggleTask=toggleTask;window.delTask=delTask;
 window.openTaskTemplates=openTaskTemplates;window.closeTaskTemplates=closeTaskTemplates;
 window.applyTemplate=applyTemplate;window.askTaskAI=askTaskAI;window.addAITask=addAITask;
 window.setClientSegment=setClientSegment;window.filterClients=filterClients;
@@ -5325,6 +6092,9 @@ window.openClientProfile=openClientProfile;window.closeClientProfile=closeClient
 window.setCPTab=setCPTab;window.saveCPEdit=saveCPEdit;window.archiveClient=archiveClient;
 // alias for old renderClients reference
 window.openClientDetail=openClientProfile;
+window.calcTDEE=calcTDEE;window.setCalcActivity=setCalcActivity;window.setCalcGoal=setCalcGoal;
+window.setCalcMacro=setCalcMacro;window.syncSliders=syncSliders;
+window.calcLoadFromClient=calcLoadFromClient;window.calcSendToClient=calcSendToClient;
 
 updateExDl();renderWL();
 </script>
