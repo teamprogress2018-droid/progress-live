@@ -182,6 +182,20 @@ button{cursor:pointer;}
 .wb-inp{background:var(--s3);border:1px solid var(--border);border-radius:6px;padding:5px 7px;color:var(--text);font-size:12px;width:100%;}
 .wb-inp:focus{border-color:var(--accent);}
 
+/* ── METRICS ── */
+.metric-group-nav{display:flex;align-items:center;gap:8px;padding:8px 14px;cursor:pointer;border-left:2px solid transparent;transition:all 0.1s;font-size:12px;color:var(--muted);}
+.metric-group-nav:hover{color:var(--text);background:rgba(255,255,255,0.02);}
+.metric-group-nav.active{color:var(--accent);background:var(--adim);border-left-color:var(--accent);}
+.metric-icon-btn{width:36px;height:36px;border-radius:8px;border:1px solid var(--border2);background:var(--s3);font-size:18px;cursor:pointer;transition:all 0.1s;display:flex;align-items:center;justify-content:center;}
+.metric-icon-btn.active{border-color:var(--accent);background:var(--adim);}
+.metric-field-row{display:flex;gap:6px;align-items:center;}
+.metric-table-row{display:grid;grid-template-columns:120px 1fr 100px 100px 80px;gap:8px;padding:11px 16px;border-bottom:1px solid var(--border);animation:fadeUp 0.15s ease both;transition:background 0.1s;}
+.metric-table-row:hover{background:rgba(255,255,255,0.02);}
+.metric-val-chip{display:inline-flex;align-items:center;gap:4px;background:var(--s3);border-radius:6px;padding:3px 8px;font-size:12px;font-family:'DM Mono',monospace;margin:2px;}
+.trend-up{color:var(--teal);}
+.trend-down{color:var(--red);}
+.trend-neutral{color:var(--muted);}
+.metric-summary-row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px;}
 /* ── FORMS ENHANCED ── */
 .form-nav-item{display:flex;align-items:center;justify-content:space-between;padding:7px 14px;font-size:12px;color:var(--muted);cursor:pointer;border-left:2px solid transparent;transition:all 0.1s;}
 .form-nav-item:hover{color:var(--text);background:rgba(255,255,255,0.02);}
@@ -293,6 +307,7 @@ button{cursor:pointer;}
     <button class="nav-item" onclick="goTo('workout-library')"><svg viewBox="0 0 24 24"><path d="M6.5 6.5h11"/><path d="M6.5 17.5h11"/><path d="M3 9.5l3.5-3 3.5 3"/><path d="M17 9.5l3.5-3L24 9.5" style="display:none"/><rect x="2" y="3" width="5" height="18" rx="1"/><rect x="17" y="3" width="5" height="18" rx="1"/><rect x="9" y="8" width="6" height="8" rx="1"/></svg>Treningi</button>
     <button class="nav-item" onclick="goTo('library')"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>Ćwiczenia</button>
     <button class="nav-item" onclick="goTo('programs')"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>Programy</button>
+    <button class="nav-item" onclick="goTo('metrics')"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Pomiary ciała</button>
     <div class="nav-sec">Narzędzia</div>
     <button class="nav-item" onclick="goTo('tasks')"><svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Zadania</button>
     <button class="nav-item" onclick="goTo('forms')"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Formularze</button>
@@ -869,6 +884,88 @@ button{cursor:pointer;}
   </div>
 </div>
 
+<!-- METRICS — BIBLIOTEKA GRUP METRYCZNYCH -->
+<div class="screen" id="screen-metrics">
+  <div class="topbar">
+    <div class="topbar-title">Pomiary ciała</div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost btn-sm" onclick="openM('m-metric-group')">+ Grupa pomiarów</button>
+      <button class="btn btn-primary btn-sm" onclick="openM('m-metric-entry')">+ Dodaj pomiar</button>
+    </div>
+  </div>
+  <div style="display:flex;flex:1;overflow:hidden;">
+
+    <!-- lewy panel — klienci + grupy -->
+    <div style="width:220px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;">
+      <div style="padding:10px;border-bottom:1px solid var(--border);">
+        <div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Klient</div>
+        <select class="form-select" style="font-size:12px;" id="metric-client-sel" onchange="renderMetrics()">
+          <option value="">Wybierz klienta...</option>
+        </select>
+      </div>
+      <div style="overflow-y:auto;flex:1;padding:4px 0;">
+        <div style="padding:6px 14px 2px;font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Grupy pomiarów</div>
+        <div id="metric-groups-nav"></div>
+      </div>
+      <div style="padding:10px 12px;border-top:1px solid var(--border);">
+        <div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Podsumowanie</div>
+        <div id="metric-summary"></div>
+      </div>
+    </div>
+
+    <!-- główna treść -->
+    <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+      <!-- toolbar -->
+      <div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;">
+        <span style="font-size:13px;font-weight:700;" id="metric-active-group-title">Wybierz grupę pomiarów</span>
+        <div style="margin-left:auto;display:flex;gap:6px;">
+          <button class="btn btn-ghost btn-sm" id="metric-view-chart-btn" onclick="setMetricView('chart')">📈 Wykres</button>
+          <button class="btn btn-primary btn-sm" id="metric-view-table-btn" onclick="setMetricView('table')">📋 Tabela</button>
+        </div>
+      </div>
+
+      <!-- wykres SVG -->
+      <div id="metric-chart-view" style="flex:1;overflow-y:auto;padding:16px;display:none;">
+        <div id="metric-chart-container"></div>
+      </div>
+
+      <!-- tabela pomiarów -->
+      <div id="metric-table-view" style="flex:1;overflow-y:auto;">
+        <div style="display:grid;grid-template-columns:120px 1fr 100px 100px 80px;gap:8px;padding:9px 16px;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);">
+          <span>Data</span><span>Wskaźniki</span><span>Zmiana</span><span>Trend</span><span></span>
+        </div>
+        <div id="metric-table-body"></div>
+      </div>
+    </div>
+
+    <!-- prawy panel — szybki wpis -->
+    <div style="width:280px;flex-shrink:0;border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;">
+      <div style="padding:12px 14px;border-bottom:1px solid var(--border);">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:var(--accent);margin-bottom:10px;">SZYBKI WPIS</div>
+        <div id="metric-quick-form">
+          <div style="font-size:12px;color:var(--muted);text-align:center;padding:20px 0;">Wybierz klienta i grupę</div>
+        </div>
+      </div>
+      <!-- AI analiza -->
+      <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;padding:12px 14px;">
+        <div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+          <div style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite;"></div>AI ANALIZA POSTĘPÓW
+        </div>
+        <div id="metric-ai-msgs" style="flex:1;overflow-y:auto;margin-bottom:8px;font-size:11px;"></div>
+        <div style="display:flex;gap:5px;">
+          <input type="text" id="metric-ai-q" placeholder="Zapytaj o postępy klienta..." style="flex:1;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:6px 8px;color:var(--text);font-size:11px;" onkeydown="if(event.key==='Enter')askMetricAI()">
+          <button onclick="askMetricAI()" style="padding:6px 10px;background:var(--accent);color:#000;border:none;border-radius:6px;font-size:12px;font-weight:700;">→</button>
+        </div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:8px;">
+          <button class="btn btn-ghost btn-sm" style="font-size:10px;" onclick="document.getElementById('metric-ai-q').value='Oceń postępy klienta';askMetricAI()">Oceń postępy</button>
+          <button class="btn btn-ghost btn-sm" style="font-size:10px;" onclick="document.getElementById('metric-ai-q').value='Czy tempo zmian jest prawidłowe?';askMetricAI()">Sprawdź tempo</button>
+          <button class="btn btn-ghost btn-sm" style="font-size:10px;" onclick="document.getElementById('metric-ai-q').value='Co powinienem zmienić w planie?';askMetricAI()">Sugestie</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- AUTOMATION -->
 <div class="screen" id="screen-automation">
   <div class="topbar"><div class="topbar-title">Automatyzacja</div></div>
@@ -1100,6 +1197,50 @@ button{cursor:pointer;}
   </div>
 </div>
 
+<!-- MODAL: GRUPA POMIARÓW -->
+<div class="modal-ov" id="m-metric-group">
+  <div class="modal">
+    <div class="modal-hdr"><div class="modal-title">NOWA GRUPA POMIARÓW</div><button class="modal-close" onclick="closeM('m-metric-group')">×</button></div>
+    <div class="modal-body">
+      <div class="form-field"><label class="form-lbl">Nazwa grupy</label><input type="text" class="form-input" id="mg-name" placeholder="np. Obwody ciała"></div>
+      <div class="form-field"><label class="form-lbl">Ikona</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;" id="mg-icon-picker">
+          <button class="metric-icon-btn active" data-icon="⚖️" onclick="selectMetricIcon(this)">⚖️</button>
+          <button class="metric-icon-btn" data-icon="📏" onclick="selectMetricIcon(this)">📏</button>
+          <button class="metric-icon-btn" data-icon="💪" onclick="selectMetricIcon(this)">💪</button>
+          <button class="metric-icon-btn" data-icon="🏃" onclick="selectMetricIcon(this)">🏃</button>
+          <button class="metric-icon-btn" data-icon="❤️" onclick="selectMetricIcon(this)">❤️</button>
+          <button class="metric-icon-btn" data-icon="🔥" onclick="selectMetricIcon(this)">🔥</button>
+          <button class="metric-icon-btn" data-icon="💧" onclick="selectMetricIcon(this)">💧</button>
+          <button class="metric-icon-btn" data-icon="📊" onclick="selectMetricIcon(this)">📊</button>
+        </div>
+      </div>
+      <div class="form-field"><label class="form-lbl">Wskaźniki w grupie</label>
+        <div id="mg-metrics-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;"></div>
+        <button onclick="addMetricField()" class="btn btn-ghost btn-sm" style="width:100%;">+ Dodaj wskaźnik</button>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-metric-group')">Anuluj</button><button class="btn btn-primary" onclick="saveMetricGroup()">Zapisz grupę</button></div>
+  </div>
+</div>
+
+<!-- MODAL: WPIS POMIARU -->
+<div class="modal-ov" id="m-metric-entry">
+  <div class="modal">
+    <div class="modal-hdr"><div class="modal-title">NOWY POMIAR</div><button class="modal-close" onclick="closeM('m-metric-entry')">×</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field"><label class="form-lbl">Klient</label><select class="form-select" id="me-client" onchange="updateMetricEntryForm()"></select></div>
+        <div class="form-field"><label class="form-lbl">Grupa pomiarów</label><select class="form-select" id="me-group" onchange="updateMetricEntryForm()"></select></div>
+      </div>
+      <div class="form-field"><label class="form-lbl">Data pomiaru</label><input type="date" class="form-input" id="me-date"></div>
+      <div id="me-fields"></div>
+      <div class="form-field"><label class="form-lbl">Notatki</label><textarea class="form-textarea" id="me-notes" rows="2" placeholder="np. Po treningu, rano na czczo..."></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-metric-entry')">Anuluj</button><button class="btn btn-primary" onclick="saveMetricEntry()">Zapisz pomiar</button></div>
+  </div>
+</div>
+
 <!-- Pakiet -->
 <div class="modal-ov" id="m-package">
   <div class="modal">
@@ -1156,7 +1297,7 @@ function goTo(n){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   const s=document.getElementById('screen-'+n);if(s)s.classList.add('active');
-  const navMap={'dashboard':0,'clients':1,'plans':2,'builder':3,'calendar':4,'inbox':5,'workout-library':6,'library':7,'programs':8,'tasks':9,'forms':10,'automation':11,'payments':12};
+  const navMap={'dashboard':0,'clients':1,'plans':2,'builder':3,'calendar':4,'inbox':5,'workout-library':6,'library':7,'programs':8,'metrics':9,'tasks':10,'forms':11,'automation':12,'payments':13};
   const btns=document.querySelectorAll('.nav-item');
   if(navMap[n]!==undefined&&btns[navMap[n]])btns[navMap[n]].classList.add('active');
   if(n==='builder')initBuilder();
@@ -1168,6 +1309,11 @@ function goTo(n){
   if(n==='dashboard')renderDash();
   if(n==='workout-library'){closeWLDetail();renderWL();}
   if(n==='programs'){renderPrograms();}
+  if(n==='metrics'){
+    const msel=document.getElementById('metric-client-sel');
+    if(msel)msel.innerHTML='<option value="">Wybierz klienta...</option>'+CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
+    renderMetrics();
+  }
   if(n==='tasks'){
     document.getElementById('task-client').innerHTML=CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
     document.getElementById('task-due').value=new Date().toISOString().split('T')[0];
@@ -1181,6 +1327,17 @@ function openM(id){
     document.getElementById('as-client').innerHTML=CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
     document.getElementById('as-date').value=new Date().toISOString().split('T')[0];
     document.getElementById('as-time').value='10:00';
+  }
+  if(id==='m-metric-entry'){
+    document.getElementById('me-client').innerHTML=CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
+    document.getElementById('me-group').innerHTML=allMetricGroups().map(g=>'<option value="'+g.id+'">'+g.icon+' '+g.name+'</option>').join('');
+    document.getElementById('me-date').value=new Date().toISOString().split('T')[0];
+    updateMetricEntryForm();
+  }
+  if(id==='m-metric-group'){
+    document.getElementById('mg-metrics-list').innerHTML='';
+    document.getElementById('mg-name').value='';
+    addMetricField();addMetricField();
   }
   if(id==='m-workout'){
     document.getElementById('w-ex-rows').innerHTML='';
@@ -2644,6 +2801,330 @@ async function saveCustomForm(){
   renderForms();notify('✓ Formularz "'+title+'" utworzony!');
 }
 
+// ════════════════════════════════════════
+// METRICS — POMIARY CIAŁA
+// ════════════════════════════════════════
+var metricActiveGroup=null;var metricView='table';var metricSelIcon='⚖️';
+window.METRIC_GROUPS=[];window.METRIC_ENTRIES=[];
+
+const DEMO_METRIC_GROUPS=[
+  {id:'mg1',name:'Masa i BMI',icon:'⚖️',color:'var(--accent)',metrics:[
+    {id:'m1',name:'Masa ciała',unit:'kg',type:'number'},
+    {id:'m2',name:'% tkanki tłuszczowej',unit:'%',type:'number'},
+    {id:'m3',name:'Masa mięśniowa',unit:'kg',type:'number'},
+    {id:'m4',name:'BMI',unit:'',type:'number'},
+  ]},
+  {id:'mg2',name:'Obwody ciała',icon:'📏',color:'var(--blue)',metrics:[
+    {id:'m1',name:'Klatka piersiowa',unit:'cm',type:'number'},
+    {id:'m2',name:'Talia',unit:'cm',type:'number'},
+    {id:'m3',name:'Biodra',unit:'cm',type:'number'},
+    {id:'m4',name:'Udo (lewe)',unit:'cm',type:'number'},
+    {id:'m5',name:'Ramię (lewe)',unit:'cm',type:'number'},
+  ]},
+  {id:'mg3',name:'Siła bazowa',icon:'💪',color:'var(--orange)',metrics:[
+    {id:'m1',name:'Przysiad 1RM',unit:'kg',type:'number'},
+    {id:'m2',name:'Martwy ciąg 1RM',unit:'kg',type:'number'},
+    {id:'m3',name:'Wyciskanie leżąc 1RM',unit:'kg',type:'number'},
+    {id:'m4',name:'OHP 1RM',unit:'kg',type:'number'},
+  ]},
+  {id:'mg4',name:'Kondycja',icon:'🏃',color:'var(--teal)',metrics:[
+    {id:'m1',name:'Tętno spoczynkowe',unit:'bpm',type:'number'},
+    {id:'m2',name:'Bieg 1km',unit:'min',type:'number'},
+    {id:'m3',name:'Pompki maks.',unit:'szt',type:'number'},
+    {id:'m4',name:'Podciągania maks.',unit:'szt',type:'number'},
+  ]},
+  {id:'mg5',name:'Samopoczucie',icon:'❤️',color:'var(--red)',metrics:[
+    {id:'m1',name:'Energia (1-10)',unit:'',type:'scale'},
+    {id:'m2',name:'Jakość snu (1-10)',unit:'',type:'scale'},
+    {id:'m3',name:'Motywacja (1-10)',unit:'',type:'scale'},
+    {id:'m4',name:'Poziom stresu (1-10)',unit:'',type:'scale'},
+  ]},
+];
+
+// demo entries for first client
+function initDemoEntries(clientId){
+  if(!clientId||METRIC_ENTRIES.some(e=>e.clientId===clientId))return;
+  const now=new Date();
+  const makeDate=(daysAgo)=>{const d=new Date(now);d.setDate(d.getDate()-daysAgo);return d.toISOString().split('T')[0];};
+  const entries=[
+    {id:'de1',clientId,groupId:'mg1',date:makeDate(60),values:{m1:88,m2:22,m3:58,m4:27.2},notes:'Pomiar startowy'},
+    {id:'de2',clientId,groupId:'mg1',date:makeDate(30),values:{m1:85.5,m2:20.5,m3:59.5,m4:26.4},notes:'Po pierwszym miesięcu'},
+    {id:'de3',clientId,groupId:'mg1',date:makeDate(0),values:{m1:83,m2:18.8,m3:61,m4:25.6},notes:'Aktualne'},
+    {id:'de4',clientId,groupId:'mg2',date:makeDate(60),values:{m1:102,m2:90,m3:100,m4:62,m5:38},notes:'Startowe'},
+    {id:'de5',clientId,groupId:'mg2',date:makeDate(30),values:{m1:100,m2:87,m3:99,m4:61,m5:39},notes:''},
+    {id:'de6',clientId,groupId:'mg2',date:makeDate(0),values:{m1:98,m2:84,m3:97,m4:60,m5:40},notes:'Aktualne'},
+    {id:'de7',clientId,groupId:'mg3',date:makeDate(60),values:{m1:100,m2:120,m3:80,m4:60},notes:'Testy startowe'},
+    {id:'de8',clientId,groupId:'mg3',date:makeDate(0),values:{m1:120,m2:145,m3:95,m4:72},notes:'Po 8 tygodniach'},
+    {id:'de9',clientId,groupId:'mg5',date:makeDate(14),values:{m1:6,m2:5,m3:7,m4:6},notes:''},
+    {id:'de10',clientId,groupId:'mg5',date:makeDate(0),values:{m1:8,m2:7,m3:8,m4:4},notes:'Aktualne'},
+  ];
+  entries.forEach(e=>METRIC_ENTRIES.push(e));
+}
+
+function allMetricGroups(){return[...DEMO_METRIC_GROUPS,...(window.METRIC_GROUPS||[])];}
+
+function renderMetrics(){
+  const cid=(document.getElementById('metric-client-sel')||{}).value||'';
+  // populate client sel
+  const csel=document.getElementById('metric-client-sel');
+  if(csel){const cur=csel.value;csel.innerHTML='<option value="">Wybierz klienta...</option>'+CL.map(c=>'<option value="'+c.id+'"'+(c.id===cur?' selected':'')+'>'+c.name+'</option>').join('');}
+  if(cid)initDemoEntries(cid);
+
+  // groups nav
+  const groups=allMetricGroups();
+  const nav=document.getElementById('metric-groups-nav');
+  if(nav){
+    nav.innerHTML=groups.map(g=>`<div class="metric-group-nav${metricActiveGroup===g.id?' active':''}" onclick="setMetricGroup('${g.id}')">
+      <span style="font-size:16px;">${g.icon}</span>
+      <span>${g.name}</span>
+      <span style="margin-left:auto;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);">${METRIC_ENTRIES.filter(e=>e.clientId===cid&&e.groupId===g.id).length}</span>
+    </div>`).join('');
+  }
+
+  // summary
+  const sumEl=document.getElementById('metric-summary');
+  if(sumEl&&cid){
+    const lastMass=METRIC_ENTRIES.filter(e=>e.clientId===cid&&e.groupId==='mg1').sort((a,b)=>b.date.localeCompare(a.date))[0];
+    const firstMass=METRIC_ENTRIES.filter(e=>e.clientId===cid&&e.groupId==='mg1').sort((a,b)=>a.date.localeCompare(b.date))[0];
+    const diff=lastMass&&firstMass&&lastMass!==firstMass?((lastMass.values.m1||0)-(firstMass.values.m1||0)).toFixed(1):null;
+    sumEl.innerHTML=lastMass?`
+      <div class="metric-summary-row"><span style="color:var(--muted);">Masa ciała</span><span style="font-weight:700;">${lastMass.values.m1||'—'} kg</span></div>
+      ${diff!==null?`<div class="metric-summary-row"><span style="color:var(--muted);">Zmiana</span><span style="font-weight:700;color:${diff<0?'var(--teal)':diff>0?'var(--red)':'var(--muted)'};">${diff>0?'+':''}${diff} kg</span></div>`:''}
+      <div class="metric-summary-row"><span style="color:var(--muted);">Pomiarów</span><span>${METRIC_ENTRIES.filter(e=>e.clientId===cid).length}</span></div>
+    `:'<div style="font-size:11px;color:var(--muted);">Brak danych</div>';
+  }
+
+  if(metricActiveGroup)renderMetricData(cid,metricActiveGroup);
+  else{
+    document.getElementById('metric-table-body').innerHTML='<div style="padding:60px;text-align:center;color:var(--muted);"><div style="font-size:32px;margin-bottom:10px;opacity:0.3;">📊</div><div style="font-size:14px;font-weight:600;margin-bottom:6px;">Wybierz grupę pomiarów</div><div style="font-size:12px;">z lewego panelu</div></div>';
+    document.getElementById('metric-chart-container').innerHTML='';
+    document.getElementById('metric-quick-form').innerHTML='<div style="font-size:12px;color:var(--muted);text-align:center;padding:20px 0;">Wybierz klienta i grupę</div>';
+  }
+}
+
+function setMetricGroup(gid){
+  metricActiveGroup=gid;
+  const cid=(document.getElementById('metric-client-sel')||{}).value||'';
+  renderMetrics();
+  renderMetricData(cid,gid);
+}
+
+function setMetricView(v){
+  metricView=v;
+  document.getElementById('metric-chart-view').style.display=v==='chart'?'block':'none';
+  document.getElementById('metric-table-view').style.display=v==='table'?'flex':'none';
+  document.getElementById('metric-table-view').style.flexDirection='column';
+  document.getElementById('metric-view-chart-btn').className='btn btn-sm '+(v==='chart'?'btn-primary':'btn-ghost');
+  document.getElementById('metric-view-table-btn').className='btn btn-sm '+(v==='table'?'btn-primary':'btn-ghost');
+}
+
+function renderMetricData(cid,gid){
+  const group=allMetricGroups().find(g=>g.id===gid);
+  if(!group)return;
+  document.getElementById('metric-active-group-title').textContent=group.icon+' '+group.name;
+
+  const entries=METRIC_ENTRIES.filter(e=>e.clientId===cid&&e.groupId===gid).sort((a,b)=>b.date.localeCompare(a.date));
+
+  // quick form
+  const qf=document.getElementById('metric-quick-form');
+  if(qf&&cid){
+    qf.innerHTML=`
+      <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">${group.icon} ${group.name}</div>
+      <div style="margin-bottom:8px;"><input type="date" id="quick-date" value="${new Date().toISOString().split('T')[0]}" style="width:100%;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:5px 8px;color:var(--text);font-size:12px;"></div>
+      ${group.metrics.map(m=>`<div style="margin-bottom:6px;">
+        <label style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;display:block;margin-bottom:3px;">${m.name}${m.unit?' ('+m.unit+')':''}</label>
+        ${m.type==='scale'
+          ?'<div style="display:flex;gap:3px;">'+(Array.from({length:10},(_,i)=>`<button onclick="this.parentElement.querySelectorAll('button').forEach(b=>b.style.background='var(--s3)');this.style.background='var(--accent)';this.style.color='#000';" style="flex:1;padding:4px 2px;background:var(--s3);border:1px solid var(--border);border-radius:4px;color:var(--muted);font-size:10px;cursor:pointer;" data-qm="${m.id}">${i+1}</button>`).join(''))+'</div>'
+          :`<input type="number" step="0.1" id="qm-${m.id}" placeholder="${m.unit||'wartość'}" style="width:100%;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:5px 8px;color:var(--text);font-size:12px;">`
+        }
+      </div>`).join('')}
+      <button onclick="saveQuickEntry('${cid}','${gid}')" class="btn btn-primary" style="width:100%;margin-top:6px;">Zapisz pomiar</button>`;
+  }
+
+  // table
+  const tbody=document.getElementById('metric-table-body');
+  if(!entries.length){
+    tbody.innerHTML='<div style="padding:60px;text-align:center;color:var(--muted);"><div style="font-size:32px;margin-bottom:10px;opacity:0.3;">${group.icon}</div><div style="font-size:14px;font-weight:600;margin-bottom:6px;">Brak pomiarów</div><div style="font-size:12px;margin-bottom:20px;">Dodaj pierwszy pomiar klikając "+ Dodaj pomiar"</div><button class="btn btn-primary btn-sm" onclick="openM(\'m-metric-entry\')">+ Dodaj pomiar</button></div>';
+  } else {
+    tbody.innerHTML=entries.map((e,i)=>{
+      const prev=entries[i+1];
+      const firstMetric=group.metrics[0];
+      const currVal=firstMetric?e.values[firstMetric.id]:null;
+      const prevVal=firstMetric&&prev?prev.values[firstMetric.id]:null;
+      const change=currVal!=null&&prevVal!=null?(currVal-prevVal).toFixed(1):null;
+      const trendUp=change&&parseFloat(change)>0;
+      const trendDown=change&&parseFloat(change)<0;
+      // for weight, down=good; for strength, up=good
+      const goodDown=['mg1','mg2'].includes(gid);
+      const trendClass=change==null?'trend-neutral':trendUp?(goodDown?'trend-down':'trend-up'):trendDown?(goodDown?'trend-up':'trend-down'):'trend-neutral';
+      return `<div class="metric-table-row" style="animation-delay:${i*0.03}s">
+        <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);">${e.date}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:3px;">
+          ${group.metrics.map(m=>`<span class="metric-val-chip">${m.name}: <strong>${e.values[m.id]!=null?e.values[m.id]+'':'—'}${m.unit?'<span style="color:var(--muted);font-size:9px;"> '+m.unit+'</span>':''}</strong></span>`).join('')}
+        </div>
+        <div style="font-size:12px;" class="${trendClass}">${change!=null?(parseFloat(change)>0?'+':'')+change+(firstMetric&&firstMetric.unit?' '+firstMetric.unit:''):'—'}</div>
+        <div style="font-size:18px;" class="${trendClass}">${change==null?'—':parseFloat(change)>0?'↑':parseFloat(change)<0?'↓':'→'}</div>
+        <div><button onclick="delMetricEntry('${e.id}')" style="background:none;border:none;color:var(--muted2);font-size:16px;cursor:pointer;">×</button></div>
+      </div>`;
+    }).join('');
+  }
+
+  // chart (SVG)
+  if(metricView==='chart')renderMetricChart(entries,group);
+}
+
+function renderMetricChart(entries,group){
+  const container=document.getElementById('metric-chart-container');
+  if(!entries.length||!group.metrics.length){container.innerHTML='<div style="padding:40px;text-align:center;color:var(--muted);">Brak danych do wykresu</div>';return;}
+  const sorted=entries.slice().sort((a,b)=>a.date.localeCompare(b.date));
+  const m=group.metrics[0];
+  const vals=sorted.map(e=>parseFloat(e.values[m.id])||0).filter(v=>v>0);
+  if(!vals.length){container.innerHTML='<div style="padding:40px;text-align:center;color:var(--muted);">Brak wartości do wykresu</div>';return;}
+  const minV=Math.min(...vals)*0.97;const maxV=Math.max(...vals)*1.03;
+  const W=600;const H=200;const pad={t:20,r:20,b:40,l:50};
+  const iW=W-pad.l-pad.r;const iH=H-pad.t-pad.b;
+  const xStep=iW/(sorted.length-1||1);
+  const yScale=(v)=>pad.t+iH-(((v-minV)/(maxV-minV||1))*iH);
+  const pts=sorted.map((e,i)=>({x:pad.l+i*xStep,y:yScale(parseFloat(e.values[m.id])||0),v:e.values[m.id],d:e.date}));
+  const col=group.color||'var(--accent)';
+  // path
+  const path='M'+pts.map(p=>`${p.x},${p.y}`).join('L');
+  // area
+  const area=path+'L'+pts[pts.length-1].x+','+(pad.t+iH)+'L'+pad.l+','+(pad.t+iH)+'Z';
+  // y axis labels
+  const yLabels=[minV,minV+(maxV-minV)*0.5,maxV].map(v=>`<text x="${pad.l-6}" y="${yScale(v)+4}" font-size="10" fill="var(--muted)" text-anchor="end">${v.toFixed(1)}</text>`).join('');
+  // x labels
+  const xLabels=pts.map((p,i)=>{if(i%Math.max(1,Math.floor(pts.length/4))!==0&&i!==pts.length-1)return'';return`<text x="${p.x}" y="${H-pad.b+14}" font-size="9" fill="var(--muted)" text-anchor="middle">${p.d.slice(5)}</text>`;}).join('');
+  // dots+tooltips
+  const dots=pts.map(p=>`<circle cx="${p.x}" cy="${p.y}" r="5" fill="${col}" stroke="var(--bg)" stroke-width="2"><title>${p.d}: ${p.v} ${m.unit||''}</title></circle>`).join('');
+  container.innerHTML=`
+    <div style="font-size:13px;font-weight:700;margin-bottom:12px;">${group.icon} ${m.name} ${m.unit?'('+m.unit+')':''} — trend</div>
+    <svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:${W}px;overflow:visible;">
+      <defs><linearGradient id="aGrad" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="${col}" stop-opacity="0.25"/><stop offset="100%" stop-color="${col}" stop-opacity="0.02"/></linearGradient></defs>
+      <line x1="${pad.l}" y1="${pad.t}" x2="${pad.l}" y2="${pad.t+iH}" stroke="var(--border)" stroke-width="1"/>
+      <line x1="${pad.l}" y1="${pad.t+iH}" x2="${pad.l+iW}" y2="${pad.t+iH}" stroke="var(--border)" stroke-width="1"/>
+      ${yLabels}${xLabels}
+      <path d="${area}" fill="url(#aGrad)"/>
+      <path d="${path}" fill="none" stroke="${col}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+      ${dots}
+    </svg>
+    <div style="margin-top:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;">
+      ${group.metrics.filter((_,i)=>i>0).map(mm=>{
+        const mv=sorted.map(e=>parseFloat(e.values[mm.id])||0).filter(v=>v>0);
+        const last=mv[mv.length-1];const first=mv[0];
+        const d=last&&first?(last-first).toFixed(1):null;
+        return `<div style="background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;">
+          <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:4px;">${mm.name}</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--text);">${last||'—'}${mm.unit?'<span style="font-size:12px;color:var(--muted);"> '+mm.unit+'</span>':''}</div>
+          ${d!=null?`<div style="font-size:11px;color:${parseFloat(d)<0?'var(--teal)':parseFloat(d)>0?'var(--orange)':'var(--muted)'};">${parseFloat(d)>0?'+':''}${d} ${mm.unit||''}</div>`:''}
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function saveQuickEntry(cid,gid){
+  const group=allMetricGroups().find(g=>g.id===gid);if(!group)return;
+  const date=document.getElementById('quick-date').value||new Date().toISOString().split('T')[0];
+  const values={};
+  group.metrics.forEach(m=>{
+    const el=document.getElementById('qm-'+m.id);
+    if(el&&el.value)values[m.id]=parseFloat(el.value);
+  });
+  if(!Object.keys(values).length){notify('Wpisz przynajmniej jedną wartość!');return;}
+  const entry={id:'qe'+Date.now(),clientId:cid,groupId:gid,date,values,notes:'',createdAt:new Date().toISOString()};
+  METRIC_ENTRIES.push(entry);
+  renderMetrics();renderMetricData(cid,gid);
+  notify('✓ Pomiar zapisany!');
+}
+
+function delMetricEntry(id){
+  window.METRIC_ENTRIES=METRIC_ENTRIES.filter(e=>e.id!==id);
+  const cid=(document.getElementById('metric-client-sel')||{}).value||'';
+  renderMetricData(cid,metricActiveGroup);
+}
+
+// Metric group creator
+function addMetricField(){
+  const list=document.getElementById('mg-metrics-list');
+  const div=document.createElement('div');div.className='metric-field-row';
+  div.innerHTML=`<input type="text" placeholder="Nazwa (np. Masa ciała)" style="flex:1;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:5px 8px;color:var(--text);font-size:12px;">
+    <input type="text" placeholder="kg" style="width:50px;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:5px 8px;color:var(--text);font-size:12px;" title="Jednostka">
+    <button onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--muted2);font-size:18px;cursor:pointer;">×</button>`;
+  list.appendChild(div);
+}
+
+function selectMetricIcon(btn){
+  document.querySelectorAll('.metric-icon-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  metricSelIcon=btn.dataset.icon;
+}
+
+function saveMetricGroup(){
+  const name=document.getElementById('mg-name').value.trim();
+  if(!name){notify('Wpisz nazwę grupy!');return;}
+  const metrics=[];
+  document.querySelectorAll('#mg-metrics-list .metric-field-row').forEach((row,i)=>{
+    const inps=row.querySelectorAll('input');
+    if(inps[0]&&inps[0].value.trim())metrics.push({id:'m'+(i+1),name:inps[0].value.trim(),unit:inps[1]?inps[1].value.trim():'',type:'number'});
+  });
+  const grp={id:'ug'+Date.now(),name,icon:metricSelIcon,color:'var(--purple)',metrics};
+  window.METRIC_GROUPS.push(grp);
+  closeM('m-metric-group');
+  document.getElementById('mg-name').value='';
+  document.getElementById('mg-metrics-list').innerHTML='';
+  renderMetrics();notify('✓ Grupa "'+name+'" utworzona!');
+}
+
+function updateMetricEntryForm(){
+  const cid=document.getElementById('me-client').value;
+  const gid=document.getElementById('me-group').value;
+  // populate group select
+  const gsel=document.getElementById('me-group');
+  const curG=gsel.value;
+  gsel.innerHTML=allMetricGroups().map(g=>'<option value="'+g.id+'"'+(g.id===curG?' selected':'')+'>'+g.icon+' '+g.name+'</option>').join('');
+  const group=allMetricGroups().find(g=>g.id===gsel.value);
+  const fields=document.getElementById('me-fields');
+  if(!fields||!group)return;
+  fields.innerHTML=group.metrics.map(m=>`<div class="form-field"><label class="form-lbl">${m.name}${m.unit?' ('+m.unit+')':''}</label><input type="number" step="0.1" class="form-input" id="mef-${m.id}" placeholder="${m.unit||'wartość'}"></div>`).join('');
+}
+
+async function saveMetricEntry(){
+  const cid=document.getElementById('me-client').value;
+  const gid=document.getElementById('me-group').value;
+  const date=document.getElementById('me-date').value;
+  if(!cid||!gid||!date){notify('Uzupełnij wszystkie pola!');return;}
+  const group=allMetricGroups().find(g=>g.id===gid);if(!group)return;
+  const values={};
+  group.metrics.forEach(m=>{const el=document.getElementById('mef-'+m.id);if(el&&el.value)values[m.id]=parseFloat(el.value);});
+  if(!Object.keys(values).length){notify('Wpisz przynajmniej jedną wartość!');return;}
+  const entry={id:'me'+Date.now(),clientId:cid,groupId:gid,date,values,notes:document.getElementById('me-notes').value,createdAt:new Date().toISOString()};
+  METRIC_ENTRIES.push(entry);
+  closeM('m-metric-entry');
+  if((document.getElementById('metric-client-sel')||{}).value===cid){renderMetrics();if(metricActiveGroup===gid)renderMetricData(cid,gid);}
+  notify('✓ Pomiar dodany!');
+}
+
+async function askMetricAI(){
+  const q=document.getElementById('metric-ai-q').value.trim();if(!q)return;
+  document.getElementById('metric-ai-q').value='';
+  const msgs=document.getElementById('metric-ai-msgs');
+  msgs.innerHTML+='<div style="text-align:right;margin-bottom:6px;"><div style="display:inline-block;background:var(--accent);color:#000;padding:5px 9px;border-radius:8px;font-size:11px;">'+q+'</div></div>';
+  msgs.innerHTML+='<div id="mai-t" style="margin-bottom:6px;"><div style="display:inline-block;background:var(--s3);border:1px solid var(--border2);padding:5px 9px;border-radius:8px;font-size:11px;opacity:0.5;">Analizuję dane...</div></div>';
+  msgs.scrollTop=msgs.scrollHeight;
+  const cid=(document.getElementById('metric-client-sel')||{}).value||'';
+  const c=CL.find(x=>x.id===cid);
+  const entries=METRIC_ENTRIES.filter(e=>e.clientId===cid);
+  const group=metricActiveGroup?allMetricGroups().find(g=>g.id===metricActiveGroup):null;
+  const ctx=`Trener personalny analizuje postępy klienta. ${c?'Klient: '+c.name+', cel: '+(c.goal||'?')+', poziom: '+(c.level||'?')+'. ':''}${group?'Grupa pomiarów: '+group.name+'. ':''}${entries.length?'Liczba pomiarów: '+entries.length+'. ':''} `;
+  const sys='Asystent trenera personalnego. Analizuj postępy klienta na podstawie danych. Odpowiadaj KRÓTKO po polsku, max 80 słów. Dawaj konkretne wskazówki i oceny. Używaj danych liczbowych gdy są dostępne.';
+  try{
+    const r=await fetch(W,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:200,system:sys,messages:[{role:'user',content:ctx+q}]})});
+    const d=await r.json();const ans=d.content.map(i=>i.text||'').join('');
+    document.getElementById('mai-t').outerHTML=`<div style="margin-bottom:6px;"><div style="display:inline-block;background:var(--s3);border:1px solid var(--border2);padding:6px 9px;border-radius:8px;font-size:11px;line-height:1.5;">${ans.replace(/\n/g,'<br>')}</div></div>`;
+  }catch(e){document.getElementById('mai-t').outerHTML=`<div style="margin-bottom:6px;"><div style="display:inline-block;background:var(--s3);padding:5px 9px;border-radius:8px;font-size:11px;color:var(--red);">Błąd połączenia</div></div>`;}
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
 function notify(msg){
   const old=document.querySelector('.notif');if(old)old.remove();
   const d=document.createElement('div');d.className='notif';d.innerHTML=msg;
@@ -2676,6 +3157,11 @@ window.openFormDetail=openFormDetail;window.closeFormDetail=closeFormDetail;
 window.openSendForm=openSendForm;window.confirmSendForm=confirmSendForm;
 window.selectScale=selectScale;window.selectYN=selectYN;
 window.addFormQ=addFormQ;window.saveCustomForm=saveCustomForm;
+window.renderMetrics=renderMetrics;window.setMetricGroup=setMetricGroup;window.setMetricView=setMetricView;
+window.saveQuickEntry=saveQuickEntry;window.delMetricEntry=delMetricEntry;
+window.addMetricField=addMetricField;window.selectMetricIcon=selectMetricIcon;
+window.saveMetricGroup=saveMetricGroup;window.updateMetricEntryForm=updateMetricEntryForm;
+window.saveMetricEntry=saveMetricEntry;window.askMetricAI=askMetricAI;
 
 updateExDl();renderWL();
 </script>
