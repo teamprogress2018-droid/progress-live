@@ -10749,12 +10749,36 @@ async function savePlan(){
 // ════════════════════════════════════════
 function renderPlans(){
   const el=document.getElementById('plans-content');
+  if(!el)return;
   if(!PL.length){el.innerHTML='<div style="text-align:center;color:var(--muted);padding:60px;">Brak planów — utwórz pierwszy!</div>';return;}
-  el.innerHTML=PL.map((p,pi)=>`<div class="plan-card" style="animation-delay:${pi*0.05}s">
-    <div class="plan-card-hdr"><div><div style="font-size:15px;font-weight:700;">${p.name}</div><div style="font-size:11px;color:var(--muted);margin-top:3px;">${p.clientName||'-'} · ${p.method} · ${p.duration} tyg</div></div>
-    <div style="display:flex;gap:6px;"><span class="pill pill-green">${p.method}</span><button class="btn btn-danger btn-sm" onclick="delPlan('${p.id}')">Usuń</button></div></div>
-    ${(p.days||[]).map(d=>`<div class="plan-day-row"><div class="plan-day-name">${d.day}</div>${d.rest?'<div style="color:var(--muted);font-size:12px;font-style:italic;">— Odpoczynek</div>':`<div style="flex:1;"><div style="font-size:13px;font-weight:600;">${d.muscles}</div><div style="font-size:11px;color:var(--muted);margin-top:2px;">${(d.exercises||[]).slice(0,3).join(' · ')}</div></div>`}</div>`).join('')}
-  </div>`).join('');
+  el.innerHTML=PL.map((p,pi)=>{
+    const client=CL.find(c=>c.id===p.clientId);
+    const clientName=client?.name||p.clientName||'Bez klienta';
+    const hasClient=!!client;
+    return `<div class="plan-card" style="animation-delay:${pi*0.05}s">
+      <div class="plan-card-hdr">
+        <div style="display:flex;align-items:center;gap:10px;flex:1;">
+          ${hasClient?`<div style="width:34px;height:34px;border-radius:9px;background:var(--adim);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:13px;color:var(--accent);flex-shrink:0;">${getInit(clientName)}</div>`:'<div style="width:34px;height:34px;border-radius:9px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">📋</div>'}
+          <div>
+            <div style="font-size:15px;font-weight:700;">${p.name}</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:3px;">
+              <span style="font-size:11px;color:${hasClient?'var(--accent)':'var(--muted)'};">${hasClient?'👤 '+clientName:'Brak klienta'}</span>
+              <span style="color:var(--border2);">·</span>
+              <span style="font-size:11px;color:var(--muted);">${p.method||'—'}</span>
+              <span style="color:var(--border2);">·</span>
+              <span style="font-size:11px;color:var(--muted);">${p.duration||'?'} tyg.</span>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <span class="pill pill-green">${p.method||'—'}</span>
+          ${hasClient?`<button class="btn btn-ghost btn-sm" onclick="openClientProfile('${client.id}')">Profil klienta</button>`:''}
+          <button class="btn btn-danger btn-sm" onclick="delPlan('${p.id}')">Usuń</button>
+        </div>
+      </div>
+      ${(p.days||[]).map(d=>`<div class="plan-day-row"><div class="plan-day-name">${d.day}</div>${d.rest?'<div style="color:var(--muted);font-size:12px;font-style:italic;">— Odpoczynek</div>':`<div style="flex:1;"><div style="font-size:13px;font-weight:600;">${d.muscles||d.name||''}</div><div style="font-size:11px;color:var(--muted);margin-top:2px;">${(d.exercises||[]).slice(0,3).join(' · ')}</div></div>`}</div>`).join('')}
+    </div>`;
+  }).join('');
 }
 async function delPlan(id){
   if(!confirm('Usunąć plan?'))return;
