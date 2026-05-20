@@ -10636,7 +10636,9 @@ function renderClients(){
 async function saveClient(){
   const name=document.getElementById('ac-name').value.trim();
   if(!name){notify('Wpisz imię!');return;}
-  const c={name,
+  const c={
+    id:'l'+Date.now(),
+    name,
     email:document.getElementById('ac-email').value,
     phone:document.getElementById('ac-phone')?.value||'',
     age:+document.getElementById('ac-age').value||0,
@@ -10649,23 +10651,22 @@ async function saveClient(){
     status:'active',
     createdAt:new Date().toISOString()
   };
-  try{
-    if(window._db){const r=await window._add(window._col(window._db,'clients'),c);c.id=r.id;}
-    else c.id='l'+Date.now();
-  }catch(e){c.id='l'+Date.now();}
+  // najpierw dodaj lokalnie — natychmiast
   CL.push(c);
   closeM('m-client');
-  // reset pól formularza
-  ['ac-name','ac-email','ac-age','ac-weight','ac-height','ac-notes'].forEach(id=>{
+  ['ac-name','ac-email','ac-phone','ac-age','ac-weight','ac-height','ac-notes'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.value='';
   });
-  try{renderAll();}catch(e){
-    // renderAll failed — re-render only clients
-    try{renderClients();}catch(e2){}
-    try{document.getElementById('nb-clients').textContent=CL.length;}catch(e2){}
-  }
-  addNotification('system','Nowy klient!',c.name+' — dodano do listy','clients');
+  try{renderAll();}catch(e){try{renderClients();}catch(e2){}}
   notify('✅ Klient '+c.name+' dodany!');
+  addNotification('system','Nowy klient!',c.name+' dodany do listy','clients');
+  // Firebase w tle — nie blokuj UI
+  if(window._db){
+    try{
+      const r=await window._add(window._col(window._db,'clients'),c);
+      if(r&&r.id)c.id=r.id;
+    }catch(e){console.warn('Firebase save failed (offline?):', e);}
+  }
 }
 
 // ════════════════════════════════════════
@@ -10738,9 +10739,9 @@ async function savePlan(){
     days.push({day:dn,muscles,exercises,sets,rest:false});
   });
   if(!days.length){notify('Dodaj przynajmniej jeden dzień!');return;}
-  const plan={name,method:document.getElementById('b-method').value,duration:document.getElementById('b-duration').value,clientId:cid,clientName:c?c.name:'',level:c?c.level:'sredni',goal:c?c.goal:'masa',days,createdAt:new Date().toISOString()};
-  try{if(window._db){const r=await window._add(window._col(window._db,'plans'),plan);plan.id=r.id;}else plan.id='l'+Date.now();}catch(e){plan.id='l'+Date.now();}
+  const plan={id:'l'+Date.now(),name,method:document.getElementById('b-method').value,duration:document.getElementById('b-duration').value,clientId:cid,clientName:c?c.name:'',level:c?c.level:'sredni',goal:c?c.goal:'masa',days,createdAt:new Date().toISOString()};
   PL.push(plan);goTo('plans');notify('Plan zapisany!');
+  if(window._db){try{const r=await window._add(window._col(window._db,'plans'),plan);if(r&&r.id)plan.id=r.id;}catch(e){console.warn('Firebase:',e);}}
 }
 
 // ════════════════════════════════════════
@@ -11127,13 +11128,19 @@ function delSession(id){
 }
 async function saveSess(){
   const cid=document.getElementById('as-client').value;
-  const date=document.getElementById('as-date').value;const time=document.getElementById('as-time').value;
-  const type=document.getElementById('as-type').value;const notes=document.getElementById('as-notes').value;
+  const date=document.getElementById('as-date').value;
+  const time=document.getElementById('as-time').value;
+  const type=document.getElementById('as-type').value;
+  const notes=document.getElementById('as-notes').value;
   const duration=parseInt(document.getElementById('as-duration').value)||60;
   if(!date||!time){notify('Uzupełnij datę i godzinę!');return;}
-  const sess={clientId:cid,date,time,type,notes,duration,createdAt:new Date().toISOString()};
-  try{if(window._db){const r=await window._add(window._col(window._db,'sessions'),sess);sess.id=r.id;}else sess.id='l'+Date.now();}catch(e){sess.id='l'+Date.now();}
-  SE.push(sess);closeM('m-session');renderCal();renderDash();notify('Sesja dodana!');
+  const sess={id:'l'+Date.now(),clientId:cid,date,time,type,notes,duration,createdAt:new Date().toISOString()};
+  SE.push(sess);
+  closeM('m-session');
+  try{renderCal();}catch(e){}
+  try{renderDash();}catch(e){}
+  notify('Sesja dodana!');
+  if(window._db){try{const r=await window._add(window._col(window._db,'sessions'),sess);if(r&&r.id)sess.id=r.id;}catch(e){console.warn('Firebase:',e);}}
 }
 
 // ════════════════════════════════════════
@@ -11572,9 +11579,9 @@ async function askExAI(){
 
 async function saveEx(){
   const name=document.getElementById('ex-name').value.trim();if(!name){notify('Wpisz nazwę!');return;}
-  const ex={name,cat:document.getElementById('ex-cat').value,eq:document.getElementById('ex-eq').value,desc:document.getElementById('ex-desc').value,tip:document.getElementById('ex-desc').value,muscle:'',nsca:'',alt:''};
-  try{if(window._db){const r=await window._add(window._col(window._db,'exercises'),ex);ex.id=r.id;}else ex.id='l'+Date.now();}catch(e){ex.id='l'+Date.now();}
+  const ex={id:'l'+Date.now(),name,cat:document.getElementById('ex-cat').value,eq:document.getElementById('ex-eq').value,desc:document.getElementById('ex-desc').value,tip:document.getElementById('ex-desc').value,muscle:'',nsca:'',alt:''};
   EX.push(ex);closeM('m-ex');renderLib();notify('Ćwiczenie dodane!');
+  if(window._db){try{const r=await window._add(window._col(window._db,'exercises'),ex);if(r&&r.id)ex.id=r.id;}catch(e){console.warn('Firebase:',e);}}
 }
 
 // ════════════════════════════════════════
@@ -11955,9 +11962,9 @@ function renderTasks(){
 async function saveTask(){
   const title=document.getElementById('task-title').value.trim();if(!title){notify('Wpisz zadanie!');return;}
   const catEl=document.getElementById('task-cat');
-  const t={title,clientId:document.getElementById('task-client').value,due:document.getElementById('task-due').value,priority:document.getElementById('task-priority').value,cat:catEl?catEl.value:'trening',desc:'',status:'open',createdAt:new Date().toISOString()};
-  try{if(window._db){const r=await window._add(window._col(window._db,'tasks'),t);t.id=r.id;}else t.id='l'+Date.now();}catch(e){t.id='l'+Date.now();}
+  const t={id:'l'+Date.now(),title,clientId:document.getElementById('task-client').value,due:document.getElementById('task-due').value,priority:document.getElementById('task-priority').value,cat:catEl?catEl.value:'trening',desc:'',status:'open',createdAt:new Date().toISOString()};
   TASKS.push(t);closeM('m-task');renderTasks();notify('Zadanie dodane!');
+  if(window._db){try{const r=await window._add(window._col(window._db,'tasks'),t);if(r&&r.id)t.id=r.id;}catch(e){console.warn('Firebase:',e);}}
 }
 function toggleTask(id){const t=TASKS.find(x=>x.id===id);if(t)t.status=t.status==='done'?'open':'done';renderTasks();}
 function delTask(id){window.TASKS=TASKS.filter(t=>t.id!==id);renderTasks();}
