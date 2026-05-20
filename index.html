@@ -3089,10 +3089,14 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   <!-- tabs -->
   <div style="display:flex;border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;">
     <button class="cp-tab active" id="cpt-overview" onclick="setCPTab('overview')">Przegląd</button>
+    <button class="cp-tab" id="cpt-training" onclick="setCPTab('training')">Treningi</button>
     <button class="cp-tab" id="cpt-plan" onclick="setCPTab('plan')">Plan</button>
     <button class="cp-tab" id="cpt-metrics" onclick="setCPTab('metrics')">Pomiary</button>
     <button class="cp-tab" id="cpt-tasks" onclick="setCPTab('tasks')">Zadania</button>
+    <button class="cp-tab" id="cpt-food" onclick="setCPTab('food')">Żywienie</button>
+    <button class="cp-tab" id="cpt-documents" onclick="setCPTab('documents')">Dokumenty</button>
     <button class="cp-tab" id="cpt-payments" onclick="setCPTab('payments')">Płatności</button>
+    <button class="cp-tab" id="cpt-settings" onclick="setCPTab('settings')">Ustawienia</button>
     <button class="cp-tab" id="cpt-edit" onclick="setCPTab('edit')">Edytuj</button>
   </div>
 
@@ -13072,10 +13076,14 @@ function setCPTab(t){
   const btn=document.getElementById('cpt-'+t);if(btn)btn.classList.add('active');
   const c=CL.find(x=>x.id===cpClientId);if(!c)return;
   if(t==='overview')renderCPOverview(c);
+  if(t==='training')renderCPTraining(c);
   if(t==='plan')renderCPPlan(c);
   if(t==='metrics')renderCPMetrics(c);
   if(t==='tasks')renderCPTasks(c);
+  if(t==='food')renderCPFood(c);
+  if(t==='documents')renderCPDocuments(c);
   if(t==='payments')renderCPPayments(c);
+  if(t==='settings')renderCPSettings(c);
   if(t==='edit')renderCPEdit(c);
 }
 
@@ -13269,7 +13277,26 @@ function renderCPMetrics(c){
         </div>
       </div>`;
     }).join('')}
-    <button class="btn btn-primary btn-sm" style="width:100%;margin-top:6px;" onclick="goTo('metrics');closeClientProfile()">📊 Pełne pomiary</button>`;
+    <div style="margin-top:16px;">
+      <div class="cp-section-title">HISTORIA POMIARÓW</div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:11px;">
+          <thead><tr style="background:var(--s3);">
+            <th style="padding:6px 10px;text-align:left;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border);">Data</th>
+            ${groups.slice(0,1).map(g=>g.metrics.map(m=>`<th style="padding:6px 10px;text-align:right;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border);">${m.name}</th>`).join('')).join('')}
+          </tr></thead>
+          <tbody>
+            ${(()=>{const g=groups[0];if(!g)return '<tr><td colspan="10" style="text-align:center;padding:16px;color:var(--muted);">Brak danych</td></tr>';
+              const ge=entries.filter(e=>e.groupId===g.id).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,6);
+              return ge.map(e=>`<tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:6px 10px;font-family:'DM Mono',monospace;color:var(--muted);">${e.date}</td>
+                ${g.metrics.map(m=>`<td style="padding:6px 10px;text-align:right;font-weight:600;">${e.values[m.id]!=null?e.values[m.id]+' '+(m.unit||''):'—'}</td>`).join('')}
+              </tr>`).join('');})()}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-sm" style="width:100%;margin-top:12px;" onclick="goTo('metrics');closeClientProfile()">📊 Zarządzaj pomiarami</button>`;
 }
 
 function renderCPTasks(c){
@@ -13335,6 +13362,275 @@ function renderCPPayments(c){
         ${p.invoiceId?`<button class="btn btn-ghost btn-sm" style="width:100%;margin-top:6px;" onclick="viewInvoice('${p.invoiceId}')">🧾 Faktura ${p.invoiceId}</button>`:''}
       </div>`;
     }).join('')}`;
+}
+
+
+// ══════════════════════════════════════════════════════
+// CP — TRAINING (kalendarz 2-tygodniowy)
+// ══════════════════════════════════════════════════════
+function renderCPTraining(c){
+  if(!c.clientSettings)c.clientSettings={};
+  const sessions=SE.filter(s=>s.clientId===c.id);
+  const today=new Date();
+  // 2 tygodnie: obecny tydzień od poniedziałku
+  const getMonday=(d)=>{const dt=new Date(d);const day=dt.getDay();const diff=day===0?-6:1-day;dt.setDate(dt.getDate()+diff);dt.setHours(0,0,0,0);return dt;};
+  const mon=getMonday(today);
+  const days2w=Array.from({length:14},(_,i)=>{const d=new Date(mon);d.setDate(mon.getDate()+i);return d;});
+  const dayNames=['Pon','Wt','Śr','Czw','Pt','Sob','Nie'];
+  const dayGrid=days2w.map(d=>{
+    const ds=d.toISOString().split('T')[0];
+    const dayName=dayNames[d.getDay()===0?6:d.getDay()-1];
+    const isToday=ds===today.toISOString().split('T')[0];
+    const sessDay=sessions.filter(s=>s.date===ds);
+    return `<div style="border:1px solid var(--border);border-radius:8px;padding:8px;min-height:80px;cursor:pointer;${isToday?'border-color:var(--accent);background:rgba(200,241,53,0.04)':''}" onclick="openAddSessionFromCP('${c.id}','${ds}')">
+      <div style="font-size:10px;color:${isToday?'var(--accent)':'var(--muted)'};font-family:'DM Mono',monospace;font-weight:600;">${dayName} ${d.getDate()}</div>
+      ${sessDay.map(s=>`<div style="margin-top:4px;background:rgba(200,241,53,0.12);border-radius:4px;padding:3px 6px;font-size:10px;color:var(--accent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">💪 ${s.title||'Sesja'}</div>`).join('')}
+      ${!sessDay.length?`<div style="margin-top:8px;text-align:center;font-size:18px;color:var(--border2);">+</div>`:''}
+    </div>`;
+  });
+  const last7=sessions.filter(s=>{const d=new Date(s.date);return(today-d)/(1000*60*60*24)<=7;}).length;
+  const last30=sessions.filter(s=>{const d=new Date(s.date);return(today-d)/(1000*60*60*24)<=30;}).length;
+  document.getElementById('cp-body').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;">
+      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--accent);">${last7}</div><div class="cp-stat-lbl">Ostatnie 7 dni</div></div>
+      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--blue);">${last30}</div><div class="cp-stat-lbl">Ostatnie 30 dni</div></div>
+      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--teal);">${sessions.length}</div><div class="cp-stat-lbl">Łącznie sesji</div></div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div class="cp-section-title" style="margin:0;">KALENDARZ TRENINGÓW (2 TYGODNIE)</div>
+      <button class="btn btn-primary btn-sm" onclick="openAddSessionFromCP('${c.id}','${today.toISOString().split('T')[0]}')">+ Sesja</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:8px;">
+      ${dayNames.map(n=>`<div style="text-align:center;font-size:10px;color:var(--muted);font-weight:600;font-family:'DM Mono',monospace;">${n}</div>`).join('')}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;">
+      ${dayGrid.join('')}
+    </div>
+    <div style="margin-top:16px;">
+      <div class="cp-section-title">HISTORIA SESJI</div>
+      ${sessions.length?sessions.sort((a,b)=>b.date.localeCompare(a.date)).slice(0,10).map(s=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+          <div style="width:32px;height:32px;border-radius:8px;background:var(--adim);display:flex;align-items:center;justify-content:center;font-size:14px;">💪</div>
+          <div style="flex:1;">
+            <div style="font-size:12px;font-weight:600;">${s.title||'Sesja'}</div>
+            <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${s.date}${s.duration?' · '+s.duration+' min':''}</div>
+          </div>
+          <span class="pill pill-green" style="font-size:9px;">${s.type||'trening'}</span>
+        </div>`).join(''):'<div style="text-align:center;padding:24px;color:var(--muted);font-size:12px;">Brak sesji — kliknij + lub dzień w kalendarzu</div>'}
+    </div>`;
+}
+function openAddSessionFromCP(clientId,date){
+  try{
+    const se=document.getElementById('se-client');if(se)se.value=clientId;
+    const sd=document.getElementById('se-date');if(sd)sd.value=date;
+    openM('m-session');
+  }catch(e){notify('Otwórz sesję z kalendarza głównego');}
+}
+
+// ══════════════════════════════════════════════════════
+// CP — FOOD JOURNAL (dziennik żywieniowy)
+// ══════════════════════════════════════════════════════
+window.CLIENT_FOOD = window.CLIENT_FOOD || {};
+function renderCPFood(c){
+  if(!window.CLIENT_FOOD[c.id]) window.CLIENT_FOOD[c.id]=[];
+  const entries=window.CLIENT_FOOD[c.id];
+  const enabled=c.clientSettings?.foodJournal!==false;
+  const today=new Date().toISOString().split('T')[0];
+  const byDate={};
+  entries.forEach(e=>{if(!byDate[e.date])byDate[e.date]=[];byDate[e.date].push(e);});
+  const dates=Object.keys(byDate).sort((a,b)=>b.localeCompare(a));
+  const mealTypes={breakfast:'🌅 Śniadanie',lunch:'☀️ Obiad',snack:'🍎 Przekąska',dinner:'🌙 Kolacja',other:'🍽️ Inne'};
+  document.getElementById('cp-body').innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div class="cp-section-title" style="margin:0;">DZIENNIK ŻYWIENIOWY</div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);cursor:pointer;">
+          <span>${enabled?'✅ Aktywny':'⛔ Wyłączony'}</span>
+          <div onclick="toggleClientFeature('${c.id}','foodJournal','food')" style="width:32px;height:18px;border-radius:9px;background:${enabled?'var(--accent)':'var(--s4)'};cursor:pointer;position:relative;transition:background 0.2s;">
+            <div style="width:14px;height:14px;border-radius:50%;background:#000;position:absolute;top:2px;left:${enabled?'16px':'2px'};transition:left 0.2s;"></div>
+          </div>
+        </label>
+        ${enabled?`<button class="btn btn-primary btn-sm" onclick="addFoodEntry('${c.id}')">+ Wpis</button>`:''}
+      </div>
+    </div>
+    ${!enabled?`<div style="text-align:center;padding:40px 20px;background:var(--s3);border-radius:12px;border:1px dashed var(--border2);">
+      <div style="font-size:32px;margin-bottom:8px;">🥗</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Dziennik Żywieniowy wyłączony</div>
+      <div style="font-size:11px;color:var(--muted);">Włącz powyżej aby klient mógł dodawać zdjęcia posiłków</div>
+    </div>`:
+    !entries.length?`<div style="text-align:center;padding:40px 20px;">
+      <div style="font-size:32px;margin-bottom:8px;">📸</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Brak wpisów</div>
+      <div style="font-size:11px;color:var(--muted);">Klient jeszcze nie dodał żadnych posiłków</div>
+      <button class="btn btn-ghost btn-sm" style="margin-top:12px;" onclick="addFoodEntry('${c.id}')">+ Dodaj przykładowy wpis</button>
+    </div>`:
+    dates.map(date=>`
+      <div style="margin-bottom:16px;">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:8px;text-transform:uppercase;">${date===today?'📅 DZIŚ':date}</div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">
+          ${byDate[date].map(e=>`
+            <div style="background:var(--s3);border-radius:10px;overflow:hidden;cursor:pointer;" onclick="viewFoodEntry('${c.id}','${e.id}')">
+              <div style="height:80px;background:linear-gradient(135deg,var(--s4),var(--s2));display:flex;align-items:center;justify-content:center;font-size:32px;">${e.emoji||'🍽️'}</div>
+              <div style="padding:8px;">
+                <div style="font-size:11px;font-weight:600;">${e.name||'Posiłek'}</div>
+                <div style="font-size:10px;color:var(--muted);">${mealTypes[e.type]||e.type||''}${e.kcal?' · '+e.kcal+' kcal':''}</div>
+                ${e.note?`<div style="font-size:10px;color:var(--muted2);margin-top:2px;font-style:italic;">${e.note}</div>`:''}
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>`).join('')}`;
+}
+function addFoodEntry(clientId){
+  const name=prompt('Nazwa posiłku:');if(!name)return;
+  const type=prompt('Typ (breakfast/lunch/snack/dinner/other):','lunch')||'other';
+  const kcal=parseInt(prompt('Kalorie (opcjonalne):',''))||null;
+  const emojis={'breakfast':'🥣','lunch':'🍲','snack':'🍎','dinner':'🌮','other':'🍽️'};
+  if(!window.CLIENT_FOOD[clientId])window.CLIENT_FOOD[clientId]=[];
+  window.CLIENT_FOOD[clientId].push({
+    id:'fe'+Date.now(),date:new Date().toISOString().split('T')[0],
+    name,type,kcal,emoji:emojis[type]||'🍽️',note:'',addedAt:new Date().toISOString()
+  });
+  const c=CL.find(x=>x.id===clientId);if(c)renderCPFood(c);
+}
+function viewFoodEntry(clientId,entryId){
+  const e=(window.CLIENT_FOOD[clientId]||[]).find(x=>x.id===entryId);
+  if(!e)return;
+  if(confirm(`${e.emoji||'🍽️'} ${e.name}\nData: ${e.date}\nKalorie: ${e.kcal||'—'}\n\nUsunąć ten wpis?`)){
+    window.CLIENT_FOOD[clientId]=(window.CLIENT_FOOD[clientId]||[]).filter(x=>x.id!==entryId);
+    const c=CL.find(x=>x.id===clientId);if(c)renderCPFood(c);
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// CP — DOCUMENTS
+// ══════════════════════════════════════════════════════
+window.CLIENT_DOCS = window.CLIENT_DOCS || {};
+function renderCPDocuments(c){
+  if(!window.CLIENT_DOCS[c.id])window.CLIENT_DOCS[c.id]=[];
+  const docs=window.CLIENT_DOCS[c.id];
+  const typeIcon={pdf:'📄',image:'🖼️',video:'🎬',other:'📁'};
+  document.getElementById('cp-body').innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div class="cp-section-title" style="margin:0;">DOKUMENTY (${docs.length})</div>
+      <button class="btn btn-primary btn-sm" onclick="addClientDoc('${c.id}')">+ Dodaj</button>
+    </div>
+    ${!docs.length?`<div style="text-align:center;padding:60px 20px;background:var(--s3);border-radius:12px;border:1px dashed var(--border2);">
+      <div style="font-size:40px;margin-bottom:12px;">📂</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Brak dokumentów</div>
+      <div style="font-size:11px;color:var(--muted);">Dokumenty przesłane przez klienta pojawią się tutaj</div>
+      <button class="btn btn-ghost btn-sm" style="margin-top:14px;" onclick="addClientDoc('${c.id}')">+ Dodaj dokument</button>
+    </div>`:
+    docs.map(d=>`
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--s3);border-radius:10px;margin-bottom:8px;">
+        <div style="width:40px;height:40px;border-radius:8px;background:var(--s4);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">${typeIcon[d.type]||'📁'}</div>
+        <div style="flex:1;overflow:hidden;">
+          <div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d.name}</div>
+          <div style="font-size:10px;color:var(--muted);">${d.date}${d.size?' · '+d.size:''}</div>
+          ${d.note?`<div style="font-size:10px;color:var(--muted2);font-style:italic;">${d.note}</div>`:''}
+        </div>
+        <button onclick="delClientDoc('${c.id}','${d.id}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;padding:4px;">🗑</button>
+      </div>`).join('')}`;
+}
+function addClientDoc(clientId){
+  const name=prompt('Nazwa dokumentu (np. "Ankieta wstępna.pdf"):');if(!name)return;
+  const type=name.endsWith('.pdf')?'pdf':name.match(/\.(jpg|png|jpeg)/i)?'image':'other';
+  const note=prompt('Notatka (opcjonalne):','')||'';
+  if(!window.CLIENT_DOCS[clientId])window.CLIENT_DOCS[clientId]=[];
+  window.CLIENT_DOCS[clientId].push({
+    id:'doc'+Date.now(),name,type,note,
+    date:new Date().toISOString().split('T')[0],
+    size:Math.round(Math.random()*900+100)+'KB'
+  });
+  const c=CL.find(x=>x.id===clientId);if(c)renderCPDocuments(c);
+}
+function delClientDoc(clientId,docId){
+  if(!confirm('Usunąć dokument?'))return;
+  window.CLIENT_DOCS[clientId]=(window.CLIENT_DOCS[clientId]||[]).filter(x=>x.id!==docId);
+  const c=CL.find(x=>x.id===clientId);if(c)renderCPDocuments(c);
+}
+
+// ══════════════════════════════════════════════════════
+// CP — SETTINGS (ustawienia per klient jak w Everfit)
+// ══════════════════════════════════════════════════════
+function toggleClientFeature(clientId,feature,tab){
+  const c=CL.find(x=>x.id===clientId);if(!c)return;
+  if(!c.clientSettings)c.clientSettings={};
+  c.clientSettings[feature]=!c.clientSettings[feature];
+  if(window._db&&c.id&&!c.id.startsWith('l')){
+    try{window._setDoc(window._doc(window._db,'clients',c.id),{clientSettings:c.clientSettings},{merge:true});}catch(e){}
+  }
+  if(tab)setCPTab(tab);
+  else renderCPSettings(c);
+  notify(feature+' '+(c.clientSettings[feature]?'włączone':'wyłączone'));
+}
+function renderCPSettings(c){
+  if(!c.clientSettings)c.clientSettings={};
+  const s=c.clientSettings;
+  const feat=[
+    {key:'training',label:'Treningi',desc:'Przypisywanie i śledzenie treningów',icon:'💪',default:true},
+    {key:'tasks',label:'Zadania',desc:'Harmonogram zadań i materiały edukacyjne',icon:'✅',default:true},
+    {key:'foodJournal',label:'Dziennik żywieniowy',desc:'Klient przesyła zdjęcia posiłków',icon:'🥗',default:false},
+    {key:'macros',label:'Makroelementy',desc:'Śledzenie kalorii i makroskładników',icon:'🔢',default:false},
+    {key:'mealPlan',label:'Plan żywieniowy',desc:'Spersonalizowane plany diety',icon:'🍽️',default:false},
+    {key:'messages',label:'Wiadomości',desc:'Czat bezpośredni z trenerem',icon:'💬',default:true},
+    {key:'progressPhoto',label:'Zdjęcia postępu',desc:'Wizualizacja efektów — przed/po',icon:'📸',default:true},
+    {key:'bodyMetrics',label:'Pomiary ciała',desc:'Monitorowanie pomiarów ciała',icon:'📏',default:true},
+  ];
+  const toggle=(key,defaultVal)=>{
+    const on=s[key]!==undefined?s[key]:defaultVal;
+    return `<div onclick="toggleClientFeature('${c.id}','${key}','settings')" style="width:40px;height:22px;border-radius:11px;background:${on?'var(--accent)':'var(--s4)'};cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0;">
+      <div style="width:16px;height:16px;border-radius:50%;background:${on?'#0a0a0a':'var(--muted)'};position:absolute;top:3px;left:${on?'21px':'3px'};transition:left 0.2s;"></div>
+    </div>`;
+  };
+  document.getElementById('cp-body').innerHTML=`
+    <div class="cp-section-title">FUNKCJE KLIENTA</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:14px;">Włącz lub wyłącz funkcje dla tego klienta. Wyłączone funkcje nie będą widoczne w aplikacji klienta.</div>
+    ${feat.map(f=>{
+      const on=s[f.key]!==undefined?s[f.key]:f.default;
+      return `<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);">
+        <div style="width:36px;height:36px;border-radius:10px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">${f.icon}</div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:600;color:${on?'var(--text)':'var(--muted)'};">${f.label}</div>
+          <div style="font-size:11px;color:var(--muted);">${f.desc}</div>
+        </div>
+        ${toggle(f.key,f.default)}
+      </div>`;
+    }).join('')}
+    
+    <div style="margin-top:20px;" class="cp-section-title">USTAWIENIA JEDNOSTEK</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
+      <div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Waga</div>
+        <select class="form-select" style="font-size:12px;" onchange="updateClientUnit('${c.id}','weightUnit',this.value)">
+          <option value="kg" ${(s.weightUnit||'kg')==='kg'?'selected':''}>kg</option>
+          <option value="lbs" ${s.weightUnit==='lbs'?'selected':''}>lbs</option>
+        </select>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Wymiary</div>
+        <select class="form-select" style="font-size:12px;" onchange="updateClientUnit('${c.id}','dimUnit',this.value)">
+          <option value="cm" ${(s.dimUnit||'cm')==='cm'?'selected':''}>cm</option>
+          <option value="in" ${s.dimUnit==='in'?'selected':''}>inch</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="cp-section-title">STREFA CZASOWA</div>
+    <select class="form-select" style="font-size:12px;margin-bottom:16px;" onchange="updateClientUnit('${c.id}','timezone',this.value)">
+      ${['Europe/Warsaw','Europe/London','America/New_York','America/Chicago','America/Los_Angeles','Asia/Tokyo','Australia/Sydney']
+        .map(tz=>`<option value="${tz}" ${(s.timezone||'Europe/Warsaw')===tz?'selected':''}>${tz.replace('_',' ')}</option>`).join('')}
+    </select>
+    
+    <button class="btn btn-danger btn-sm" style="width:100%;" onclick="archiveClient('${c.id}')">🗄 Zarchiwizuj klienta</button>`;
+}
+function updateClientUnit(clientId,key,value){
+  const c=CL.find(x=>x.id===clientId);if(!c)return;
+  if(!c.clientSettings)c.clientSettings={};
+  c.clientSettings[key]=value;
+  if(window._db&&c.id&&!c.id.startsWith('l')){
+    try{window._setDoc(window._doc(window._db,'clients',c.id),{clientSettings:c.clientSettings},{merge:true});}catch(e){}
+  }
+  notify('Zapisano');
 }
 
 function renderCPEdit(c){
@@ -14452,6 +14748,12 @@ window.usePackageSession=usePackageSession;window.markPaid=markPaid;
 window.viewInvoice=viewInvoice;window.filterPkgByClient=filterPkgByClient;
 window.openClientProfile=openClientProfile;window.closeClientProfile=closeClientProfile;
 window.setCPTab=setCPTab;window.saveCPEdit=saveCPEdit;window.archiveClient=archiveClient;
+window.renderCPTraining=renderCPTraining;window.renderCPFood=renderCPFood;
+window.renderCPDocuments=renderCPDocuments;window.renderCPSettings=renderCPSettings;
+window.toggleClientFeature=toggleClientFeature;window.updateClientUnit=updateClientUnit;
+window.addFoodEntry=addFoodEntry;window.viewFoodEntry=viewFoodEntry;
+window.addClientDoc=addClientDoc;window.delClientDoc=delClientDoc;
+window.openAddSessionFromCP=openAddSessionFromCP;
 window.delPlanFromProfile=delPlanFromProfile;window.cpAssignTemplate=cpAssignTemplate;window.liveSelectPlanForClient=liveSelectPlanForClient;
 window.cpOpenSession=cpOpenSession;window.cpOpenTask=cpOpenTask;
 // alias for old renderClients reference
