@@ -3079,6 +3079,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
     </div>
     <div style="display:flex;gap:6px;align-items:center;">
       <button class="btn btn-ghost btn-sm" onclick="openReportForClient(cpClientId)">📊 Raport</button>
+      <button class="btn btn-ghost btn-sm" onclick="openInviteModal(cpClientId)">📱 Zaproś</button>
       <button class="btn btn-primary btn-sm" onclick="cpOpenSession()">+ Sesja</button>
       <button class="btn btn-ghost btn-sm" onclick="cpOpenTask()">+ Zadanie</button>
       <button onclick="closeClientProfile()" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;">×</button>
@@ -3155,6 +3156,56 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <div class="form-field"><label class="form-lbl">Uwagi / kontuzje</label><textarea class="form-textarea" id="ac-notes" rows="2" placeholder="np. ból kolana..."></textarea></div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-client')">Anuluj</button><button class="btn btn-primary" onclick="saveClient()">Zapisz klienta</button></div>
+  </div>
+</div>
+
+<!-- MODAL: ZAPROSZENIE DO APLIKACJI -->
+<div class="modal-ov" id="m-invite">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-hdr" style="border-bottom:2px solid var(--accent);">
+      <div class="modal-title" style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:24px;">🎉</span> KLIENT DODANY!
+      </div>
+      <button class="modal-close" onclick="closeM('m-invite')">×</button>
+    </div>
+    <div class="modal-body">
+      <!-- avatar + nazwa -->
+      <div style="display:flex;flex-direction:column;align-items:center;padding:16px 0 20px;">
+        <div id="inv-avatar" style="width:64px;height:64px;border-radius:50%;background:var(--adim);border:3px solid var(--accent);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--accent);margin-bottom:10px;"></div>
+        <div style="font-size:16px;font-weight:700;" id="inv-name"></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px;" id="inv-email"></div>
+      </div>
+
+      <!-- link do aplikacji -->
+      <div style="background:var(--adim);border:1px solid rgba(200,241,53,0.25);border-radius:12px;padding:16px;margin-bottom:16px;">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">📱 Link do aplikacji klienta</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div id="inv-link" style="flex:1;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;font-size:12px;font-family:'DM Mono',monospace;color:var(--text);word-break:break-all;line-height:1.4;"></div>
+          <button onclick="copyInviteLink()" style="padding:9px 12px;background:var(--accent);color:#000;border:none;border-radius:8px;font-size:16px;cursor:pointer;flex-shrink:0;" title="Kopiuj link">📋</button>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;">Wyślij ten link klientowi — zaloguje się tym samym emailem który podałeś przy dodawaniu.</div>
+      </div>
+
+      <!-- metoda wysyłki -->
+      <div style="margin-bottom:14px;">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Wyślij zaproszenie przez</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+          <button class="inv-method-btn active" data-method="wiadomosc" onclick="selectInvMethod(this)" style="padding:10px 8px;background:var(--adim);border:1px solid var(--accent);border-radius:10px;color:var(--accent);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;">💬 Wiadomość</button>
+          <button class="inv-method-btn" data-method="email" onclick="selectInvMethod(this)" style="padding:10px 8px;background:var(--s3);border:1px solid var(--border2);border-radius:10px;color:var(--muted);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;">✉️ Email</button>
+          <button class="inv-method-btn" data-method="whatsapp" onclick="selectInvMethod(this)" style="padding:10px 8px;background:var(--s3);border:1px solid var(--border2);border-radius:10px;color:var(--muted);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;">💚 WhatsApp</button>
+        </div>
+      </div>
+
+      <!-- podgląd wiadomości -->
+      <div style="background:var(--s3);border-radius:10px;padding:12px;margin-bottom:4px;">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);margin-bottom:6px;">PODGLĄD WIADOMOŚCI</div>
+        <div id="inv-msg-preview" style="font-size:12px;line-height:1.7;color:var(--text);white-space:pre-line;"></div>
+      </div>
+    </div>
+    <div class="modal-footer" style="gap:10px;">
+      <button class="btn btn-ghost" onclick="closeM('m-invite')">Pomiń</button>
+      <button class="btn btn-primary" style="flex:1;" onclick="sendInvitation()">📤 Wyślij zaproszenie</button>
+    </div>
   </div>
 </div>
 
@@ -10624,7 +10675,10 @@ function renderClients(){
     </div>
     <div style="font-size:12px;color:var(--muted);align-self:center;">—</div>
     <div style="font-size:12px;color:var(--muted);align-self:center;">${c.goal||'—'}</div>
-    <div style="align-self:center;"><span class="pill ${c.status==='inactive'?'pill-red':'pill-green'}"><span class="pill-dot"></span>${c.status==='inactive'?'Offline':'Aktywny'}</span></div>
+    <div style="align-self:center;display:flex;gap:4px;flex-wrap:wrap;">
+      <span class="pill ${c.status==='inactive'?'pill-red':'pill-green'}"><span class="pill-dot"></span>${c.status==='inactive'?'Offline':'Aktywny'}</span>
+      ${c.inviteSent?'<span class="pill pill-blue" style="font-size:9px;">📱 Zaproszony</span>':''}
+    </div>
     <div style="align-self:center;"><button class="btn btn-ghost btn-sm" onclick="openClientProfile('${c.id}')">Profil</button></div>
   </div>`).join('');
 }
@@ -10656,6 +10710,8 @@ async function saveClient(){
   try{renderAll();}catch(e){try{renderClients();}catch(e2){}}
   notify('✅ Klient '+c.name+' dodany!');
   addNotification('system','Nowy klient!',c.name+' dodany do listy','clients');
+  // Pokaż modal zaproszenia
+  setTimeout(()=>openInviteModal(c.id), 400);
   // Firebase w tle — nie blokuj UI
   if(window._db){
     try{
@@ -14176,6 +14232,118 @@ function notify(msg){
 }
 
 // expose
+
+// ════════════════════════════════════════
+// SYSTEM ZAPROSZEŃ KLIENTÓW
+// ════════════════════════════════════════
+var inviteClientId = null;
+var inviteMethod = 'wiadomosc';
+const APP_URL = 'https://teamprogress2018-droid.github.io/progress-live/';
+
+function generateInviteLink(client) {
+  // Unikalny token oparty na email lub id
+  const base = (client.email || client.id || '').replace(/[^a-z0-9]/gi, '').toLowerCase();
+  const token = base.substring(0, 8) + btoa(client.id || client.name).replace(/[^a-zA-Z0-9]/g, '').substring(0, 6);
+  return APP_URL + '?client=' + encodeURIComponent(client.email || client.name) + '&token=' + token;
+}
+
+function openInviteModal(clientId) {
+  const c = CL.find(x => x.id === clientId);
+  if (!c) return;
+  inviteClientId = clientId;
+  inviteMethod = 'wiadomosc';
+
+  // Wypełnij avatar i dane
+  const el = id => document.getElementById(id);
+  if (el('inv-avatar')) el('inv-avatar').textContent = getInit(c.name);
+  if (el('inv-name')) el('inv-name').textContent = c.name;
+  if (el('inv-email')) el('inv-email').textContent = c.email || 'Brak emaila';
+
+  // Generuj link
+  const link = generateInviteLink(c);
+  if (el('inv-link')) el('inv-link').textContent = link;
+
+  // Reset przycisków metody
+  document.querySelectorAll('.inv-method-btn').forEach(b => {
+    const isActive = b.dataset.method === 'wiadomosc';
+    b.style.background = isActive ? 'var(--adim)' : 'var(--s3)';
+    b.style.borderColor = isActive ? 'var(--accent)' : 'var(--border2)';
+    b.style.color = isActive ? 'var(--accent)' : 'var(--muted)';
+  });
+
+  updateInvitePreview(c, link, 'wiadomosc');
+  openM('m-invite');
+}
+
+function selectInvMethod(btn) {
+  inviteMethod = btn.dataset.method;
+  document.querySelectorAll('.inv-method-btn').forEach(b => {
+    const isActive = b === btn;
+    b.style.background = isActive ? 'var(--adim)' : 'var(--s3)';
+    b.style.borderColor = isActive ? 'var(--accent)' : 'var(--border2)';
+    b.style.color = isActive ? 'var(--accent)' : 'var(--muted)';
+  });
+  const c = CL.find(x => x.id === inviteClientId);
+  const link = document.getElementById('inv-link')?.textContent || '';
+  if (c) updateInvitePreview(c, link, inviteMethod);
+}
+
+function updateInvitePreview(c, link, method) {
+  const trainerName = window.SETTINGS?.profile?.name || 'Twój trener';
+  const firstName = c.name.split(' ')[0];
+  const msgs = {
+    wiadomosc: `Cześć ${firstName}! 👋\n\nWitaj w Progress Live — Twojej aplikacji treningowej!\n\n🔗 Twój link do aplikacji:\n${link}\n\nZaloguj się emailem: ${c.email || '[Twój email]'}\nDo zobaczenia na treningu! 💪\n\n— ${trainerName}`,
+    email: `Temat: Zaproszenie do aplikacji Progress Live\n\nCześć ${firstName},\n\nZ przyjemnością zapraszam Cię do aplikacji Progress Live, gdzie znajdziesz swój plan treningowy, postępy i kontakt ze mną.\n\n➡️ Kliknij aby się zarejestrować:\n${link}\n\nPozdrawiam,\n${trainerName}`,
+    whatsapp: `Hej ${firstName}! 🏋️ Twoja aplikacja treningowa jest gotowa!\n\n👉 ${link}\n\nZaloguj się i sprawdź swój plan. Do zobaczenia! 💪`
+  };
+  const el = document.getElementById('inv-msg-preview');
+  if (el) el.textContent = msgs[method] || msgs.wiadomosc;
+}
+
+function copyInviteLink() {
+  const link = document.getElementById('inv-link')?.textContent || '';
+  navigator.clipboard.writeText(link)
+    .then(() => notify('✓ Link skopiowany do schowka!'))
+    .catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = link; document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy');
+      document.body.removeChild(ta);
+      notify('✓ Link skopiowany!');
+    });
+}
+
+function sendInvitation() {
+  const c = CL.find(x => x.id === inviteClientId);
+  if (!c) return;
+  const link = document.getElementById('inv-link')?.textContent || '';
+  const methodLabels = { wiadomosc: 'wiadomości', email: 'emaila', whatsapp: 'WhatsApp' };
+
+  // Dodaj do wiadomości
+  if (!MSGS[c.id]) MSGS[c.id] = [];
+  MSGS[c.id].push({
+    text: document.getElementById('inv-msg-preview')?.textContent || '',
+    out: true,
+    time: new Date().toLocaleTimeString('pl', { hour: '2-digit', minute: '2-digit' })
+  });
+
+  // Oznacz klienta jako zaproszony
+  c.inviteSent = true;
+  c.inviteLink = link;
+  c.inviteSentAt = new Date().toISOString();
+
+  addNotification('system', 'Zaproszenie wysłane!', c.name + ' — link do aplikacji wysłany przez ' + methodLabels[inviteMethod], 'clients');
+  closeM('m-invite');
+  notify('✅ Zaproszenie wysłane do ' + c.name + ' przez ' + methodLabels[inviteMethod] + '!');
+}
+
+window.openInviteModal = openInviteModal;
+window.selectInvMethod = selectInvMethod;
+window.copyInviteLink = copyInviteLink;
+window.sendInvitation = sendInvitation;
+window.generateInviteLink = generateInviteLink;
+// ════ KONIEC SYSTEM ZAPROSZEŃ ════
+
 window.goTo=goTo;window.openM=openM;window.closeM=closeM;
 window.saveClient=saveClient;window.saveSess=saveSess;window.saveEx=saveEx;window.savePlan=savePlan;window.delPlan=delPlan;
 window.addDay=addDay;window.addRow=addRow;window.toggleR=toggleR;window.updatePeriod=updatePeriod;
