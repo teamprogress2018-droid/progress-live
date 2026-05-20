@@ -182,6 +182,15 @@ button{cursor:pointer;}
 .wb-inp{background:var(--s3);border:1px solid var(--border);border-radius:6px;padding:5px 7px;color:var(--text);font-size:12px;width:100%;}
 .wb-inp:focus{border-color:var(--accent);}
 
+/* ── NOTIFICATIONS ── */
+.notif-item{display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.1s;position:relative;}
+.notif-item:hover{background:rgba(255,255,255,0.02);}
+.notif-item.unread{background:rgba(200,241,53,0.03);}
+.notif-item.unread::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);border-radius:0 2px 2px 0;}
+.notif-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.notif-title{font-size:12px;font-weight:700;margin-bottom:2px;line-height:1.3;}
+.notif-body{font-size:11px;color:var(--muted);line-height:1.4;}
+.notif-time{font-size:10px;color:var(--muted2);font-family:'DM Mono',monospace;margin-top:3px;}
 .rep-section-toggle{display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;padding:6px 8px;background:var(--s3);border-radius:8px;border:1px solid var(--border);}
 .rep-section-toggle:hover{border-color:var(--border2);}
 @media print{
@@ -503,7 +512,14 @@ input[type=checkbox]{display:none;}
     <button class="nav-item" onclick="goTo('forum')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="13" y2="13"/></svg>Społeczność</button>
     <button class="nav-item" onclick="openReportModal()"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Raporty</button>
   </nav>
-  <div class="sidebar-footer"><div class="av">PU</div><div><div style="font-size:13px;font-weight:600;">Piotr Urbaniak</div><div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">Trener personalny</div></div></div>
+  <div class="sidebar-footer">
+    <div class="av">PU</div>
+    <div style="flex:1;"><div style="font-size:13px;font-weight:600;">Piotr Urbaniak</div><div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">Trener personalny</div></div>
+    <button onclick="toggleNotifs()" style="position:relative;background:none;border:none;cursor:pointer;padding:6px;" title="Powiadomienia">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--muted)" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span id="notif-badge" style="display:none;position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:var(--red);border:1px solid var(--s1);"></span>
+    </button>
+  </div>
 </aside>
 
 <div class="main">
@@ -2058,6 +2074,31 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   <!-- body -->
   <div style="flex:1;overflow-y:auto;padding:16px 20px;" id="cp-body"></div>
 </div>
+<!-- NOTIFICATIONS PANEL -->
+<div id="notif-overlay" onclick="closeNotifs()" style="display:none;position:fixed;inset:0;z-index:149;"></div>
+<div id="notif-panel" style="display:none;position:fixed;bottom:70px;left:12px;width:360px;background:var(--s1);border:1px solid var(--border2);border-radius:var(--r2);z-index:150;box-shadow:0 20px 60px rgba(0,0,0,0.6);flex-direction:column;max-height:520px;overflow:hidden;">
+  <!-- header -->
+  <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;">POWIADOMIENIA</div>
+    <div style="display:flex;gap:6px;">
+      <button onclick="markAllRead()" class="btn btn-ghost btn-sm" style="font-size:10px;">✓ Wszystkie przeczytane</button>
+      <button onclick="clearAllNotifs()" style="background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;">Wyczyść</button>
+    </div>
+  </div>
+  <!-- filter tabs -->
+  <div style="display:flex;border-bottom:1px solid var(--border);flex-shrink:0;">
+    <button class="inbox-tab active" id="nt-all" onclick="setNotifTab('all')">Wszystkie</button>
+    <button class="inbox-tab" id="nt-unread" onclick="setNotifTab('unread')">Nieprzeczytane</button>
+    <button class="inbox-tab" id="nt-alerts" onclick="setNotifTab('alerts')">⚠ Alerty</button>
+  </div>
+  <!-- list -->
+  <div style="flex:1;overflow-y:auto;" id="notif-list"></div>
+  <!-- footer -->
+  <div style="padding:10px 16px;border-top:1px solid var(--border);flex-shrink:0;text-align:center;">
+    <button class="btn btn-ghost btn-sm" style="width:100%;" onclick="goTo('payments');closeNotifs()">📊 Wszystkie alerty → Płatności</button>
+  </div>
+</div>
+
 </div><!-- /app -->
 
 <!-- REPORT OVERLAY — pełnoekranowy podgląd raportu -->
@@ -2744,6 +2785,7 @@ window.renderAll=function(){
   document.getElementById('nb-clients').textContent=CL.length;
   document.getElementById('b-client').innerHTML=CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
   updateExDl();
+  generateAutoNotifs();
 };
 
 // ════════════════════════════════════════
@@ -2987,8 +3029,188 @@ async function saveWorkout(){
 }
 
 // ════════════════════════════════════════
-// REPORT GENERATOR
+// NOTIFICATIONS — CENTRUM POWIADOMIEŃ
 // ════════════════════════════════════════
+var notifPanelOpen=false;var notifTab='all';
+window.NOTIFICATIONS=[];
+
+const NOTIF_TYPES={
+  session:   {icon:'📅',color:'var(--blue)',bg:'rgba(77,159,255,0.12)'},
+  payment:   {icon:'💰',color:'var(--teal)',bg:'rgba(62,207,178,0.12)'},
+  alert:     {icon:'⚠️',color:'var(--orange)',bg:'rgba(255,140,66,0.12)'},
+  task:      {icon:'✅',color:'var(--accent)',bg:'rgba(200,241,53,0.12)'},
+  message:   {icon:'💬',color:'var(--purple)',bg:'rgba(157,124,244,0.12)'},
+  metric:    {icon:'📏',color:'var(--blue)',bg:'rgba(77,159,255,0.12)'},
+  system:    {icon:'🔔',color:'var(--muted)',bg:'var(--s3)'},
+  expiry:    {icon:'⏰',color:'var(--red)',bg:'rgba(255,77,77,0.12)'},
+};
+
+// Demo notifications
+const DEMO_NOTIFS=[
+  {id:'n1',type:'session',title:'Sesja za 1 godzinę',body:'Jan Kowalski · Trening siłowy · 10:00',time:'dziś 9:00',read:false,action:'calendar'},
+  {id:'n2',type:'expiry',title:'Pakiet wygasa za 3 dni',body:'Anna Nowak — Miesięczny coaching online',time:'dziś 8:30',read:false,action:'payments'},
+  {id:'n3',type:'payment',title:'Oczekująca płatność',body:'Marta Kowalczyk — Program 12-tygodniowy · 2 200 zł',time:'wczoraj',read:false,action:'payments'},
+  {id:'n4',type:'task',title:'Zadanie przeterminowane',body:'Tomasz Mazur — Wypełnij formularz postępów',time:'wczoraj',read:false,action:'tasks'},
+  {id:'n5',type:'message',title:'Nowa wiadomość',body:'Kristina Wilson: "Hej, będę poza miastem w przyszłym tygodniu..."',time:'2 dni temu',read:true,action:'inbox'},
+  {id:'n6',type:'alert',title:'Klient bez aktywności 14 dni',body:'Piotr Wiśniewski — ostatnia sesja 14 dni temu',time:'2 dni temu',read:true,action:'clients'},
+  {id:'n7',type:'metric',title:'Nowe pomiary klienta',body:'Jan Kowalski zaktualizował pomiary — masa: -0.5 kg',time:'3 dni temu',read:true,action:'metrics'},
+  {id:'n8',type:'session',title:'Sesja dodana do kalendarza',body:'Anna Nowak · Online · Środa 14:00',time:'3 dni temu',read:true,action:'calendar'},
+  {id:'n9',type:'payment',title:'Płatność otrzymana',body:'Tomasz Mazur — 20 sesji VIP · 3 500 zł ✓',time:'tydzień temu',read:true,action:'payments'},
+  {id:'n10',type:'system',title:'Raport wygenerowany',body:'Raport dla Jana Kowalskiego · 2 strony',time:'tydzień temu',read:true,action:null},
+];
+
+function allNotifs(){return[...DEMO_NOTIFS,...(window.NOTIFICATIONS||[])];}
+function unreadCount(){return allNotifs().filter(n=>!n.read).length;}
+
+function updateNotifBadge(){
+  const badge=document.getElementById('notif-badge');
+  const cnt=unreadCount();
+  if(badge){badge.style.display=cnt>0?'block':'none';}
+}
+
+function toggleNotifs(){
+  notifPanelOpen=!notifPanelOpen;
+  const panel=document.getElementById('notif-panel');
+  const overlay=document.getElementById('notif-overlay');
+  if(panel){panel.style.display=notifPanelOpen?'flex':'none';}
+  if(overlay){overlay.style.display=notifPanelOpen?'block':'none';}
+  if(notifPanelOpen)renderNotifs();
+}
+
+function closeNotifs(){
+  notifPanelOpen=false;
+  const panel=document.getElementById('notif-panel');
+  const overlay=document.getElementById('notif-overlay');
+  if(panel)panel.style.display='none';
+  if(overlay)overlay.style.display='none';
+}
+
+function setNotifTab(t){
+  notifTab=t;
+  ['all','unread','alerts'].forEach(x=>{
+    const btn=document.getElementById('nt-'+x);
+    if(btn)btn.classList.toggle('active',x===t);
+  });
+  renderNotifs();
+}
+
+function renderNotifs(){
+  updateNotifBadge();
+  const all=allNotifs();
+  let list=all;
+  if(notifTab==='unread')list=all.filter(n=>!n.read);
+  if(notifTab==='alerts')list=all.filter(n=>['alert','expiry','payment'].includes(n.type)&&!n.read);
+
+  const el=document.getElementById('notif-list');if(!el)return;
+
+  if(!list.length){
+    el.innerHTML=`<div style="padding:40px;text-align:center;color:var(--muted);">
+      <div style="font-size:36px;margin-bottom:10px;opacity:0.3;">🔔</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;">${notifTab==='unread'?'Wszystko przeczytane ✓':'Brak powiadomień'}</div>
+      <div style="font-size:11px;">Jesteś na bieżąco!</div>
+    </div>`;
+    return;
+  }
+
+  el.innerHTML=list.map((n,i)=>{
+    const t=NOTIF_TYPES[n.type]||NOTIF_TYPES.system;
+    return `<div class="notif-item${n.read?'':' unread'}" onclick="clickNotif('${n.id}')" style="animation-delay:${i*0.03}s">
+      <div class="notif-icon" style="background:${t.bg};">${t.icon}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="notif-title" style="color:${n.read?'var(--muted)':'var(--text)'};">${n.title}</div>
+        <div class="notif-body">${n.body}</div>
+        <div class="notif-time">${n.time}</div>
+      </div>
+      ${!n.read?`<div style="width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:4px;"></div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function clickNotif(id){
+  const all=allNotifs();
+  const n=all.find(x=>x.id===id);
+  if(!n)return;
+  n.read=true;
+  updateNotifBadge();
+  renderNotifs();
+  if(n.action){closeNotifs();goTo(n.action);}
+}
+
+function markAllRead(){
+  allNotifs().forEach(n=>n.read=true);
+  updateNotifBadge();
+  renderNotifs();
+  notify('✓ Wszystkie powiadomienia oznaczone jako przeczytane');
+}
+
+function clearAllNotifs(){
+  window.NOTIFICATIONS=[];
+  DEMO_NOTIFS.forEach(n=>n.read=true);
+  updateNotifBadge();
+  renderNotifs();
+  notify('Powiadomienia wyczyszczone');
+}
+
+// Dodaj powiadomienie programowo (używane przez inne moduły)
+function addNotification(type,title,body,action=null){
+  const n={
+    id:'n'+Date.now(),type,title,body,
+    time:'teraz',
+    read:false,
+    action,
+    createdAt:new Date().toISOString()
+  };
+  window.NOTIFICATIONS.unshift(n);
+  updateNotifBadge();
+  // flash badge
+  const badge=document.getElementById('notif-badge');
+  if(badge){
+    badge.style.transform='scale(1.5)';
+    setTimeout(()=>{badge.style.transform='scale(1)';},300);
+  }
+  return n;
+}
+
+// Auto-generate notifications from app data
+function generateAutoNotifs(){
+  const today=new Date();
+  const todayStr=dateStr(today);
+
+  // sesje dziś
+  SE.filter(s=>s.date===todayStr).forEach(s=>{
+    const c=CL.find(x=>x.id===s.clientId);
+    const existing=allNotifs().find(n=>n.id==='auto_sess_'+s.id);
+    if(!existing&&c){
+      addNotification('session','Sesja dziś!',`${c.name} · ${s.type||'Sesja'} · ${s.time||''}`, 'calendar');
+    }
+  });
+
+  // pakiety wygasające
+  allPackages().filter(p=>{
+    if(!p.expiresDate)return false;
+    const diff=Math.ceil((new Date(p.expiresDate)-today)/(1000*60*60*24));
+    return diff>=0&&diff<=7;
+  }).forEach(p=>{
+    const diff=Math.ceil((new Date(p.expiresDate)-today)/(1000*60*60*24));
+    const existing=allNotifs().find(n=>n.id==='auto_exp_'+p.id);
+    if(!existing){
+      const n=addNotification('expiry','Pakiet wygasa za '+diff+(diff===1?' dzień':' dni'),`${p.clientName} — ${p.title}`,'payments');
+      n.id='auto_exp_'+p.id;
+    }
+  });
+
+  // zadania przeterminowane
+  TASKS.filter(t=>t.status!=='done'&&t.due&&t.due<todayStr).slice(0,3).forEach(t=>{
+    const c=CL.find(x=>x.id===t.clientId);
+    const existing=allNotifs().find(n=>n.id==='auto_task_'+t.id);
+    if(!existing&&c){
+      const n=addNotification('task','Zadanie przeterminowane',`${c.name} — ${t.title}`,'tasks');
+      n.id='auto_task_'+t.id;
+    }
+  });
+
+  updateNotifBadge();
+}
 
 function openReportModal(){
   const sel=document.getElementById('rep-client');
@@ -7399,6 +7621,10 @@ window.setDashPeriod=setDashPeriod;
 window.openReportModal=openReportModal;window.openReportForClient=openReportForClient;
 window.previewReportOptions=previewReportOptions;window.generateReport=generateReport;
 window.reportClose=reportClose;window.reportPrint=reportPrint;
+window.toggleNotifs=toggleNotifs;window.closeNotifs=closeNotifs;
+window.setNotifTab=setNotifTab;window.markAllRead=markAllRead;
+window.clearAllNotifs=clearAllNotifs;window.clickNotif=clickNotif;
+window.addNotification=addNotification;window.generateAutoNotifs=generateAutoNotifs;
 window.renderForum=renderForum;window.setForumGroup=setForumGroup;window.setForumFilter=setForumFilter;
 window.openForumPost=openForumPost;window.addComment=addComment;window.addCommentAs=addCommentAs;
 window.likeComment=likeComment;window.reactToPost=reactToPost;window.addReaction=addReaction;
@@ -7452,6 +7678,8 @@ window.setCalcMacro=setCalcMacro;window.syncSliders=syncSliders;
 window.calcLoadFromClient=calcLoadFromClient;window.calcSendToClient=calcSendToClient;
 
 updateExDl();renderWL();
+// init notifications
+setTimeout(()=>{updateNotifBadge();},500);
 </script>
 </body>
 </html>
