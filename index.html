@@ -219,6 +219,13 @@ button{cursor:pointer;}
 .ci-history-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;}
 .ci-history-row:last-child{border-bottom:none;}
 .ci-trend-item{background:var(--s3);border-radius:8px;padding:10px 12px;margin-bottom:8px;}
+.tpl-filter{padding:7px 14px;font-size:12px;color:var(--muted);cursor:pointer;border-left:2px solid transparent;transition:all 0.1s;}
+.tpl-filter:hover{color:var(--text);background:rgba(255,255,255,0.02);}
+.tpl-filter.active{color:var(--accent);background:var(--adim);border-left-color:var(--accent);}
+.tpl-card{background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:18px;cursor:pointer;transition:border-color 0.12s,transform 0.12s;animation:fadeUp 0.18s ease both;}
+.tpl-card:hover{border-color:var(--border2);transform:translateY(-2px);}
+.tpl-tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:99px;font-size:9px;font-family:'DM Mono',monospace;background:var(--s3);color:var(--muted);margin-right:4px;margin-bottom:4px;}
+/* ── LIVE WORKOUT ── */
 .live-dot-wrap{width:28px;height:28px;border-radius:8px;background:rgba(255,77,77,0.15);display:flex;align-items:center;justify-content:center;}
 .live-dot{width:10px;height:10px;border-radius:50%;background:var(--red);animation:pulse 1.2s infinite;}
 .live-ex-card{background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;transition:border-color 0.15s;}
@@ -665,6 +672,7 @@ input[type=checkbox]{display:none;}
     <button class="nav-item" onclick="goTo('aiplangen')"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Generator AI</button>
     <button class="nav-item" onclick="goTo('reports')"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Raporty</button>
     <button class="nav-item" onclick="goTo('live')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>Trening Live</button>
+    <button class="nav-item" onclick="goTo('templates')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Szablony planów</button>
   </nav>
   <div class="sidebar-footer">
     <div class="av">PU</div>
@@ -2898,6 +2906,54 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   <div id="live-history-tab" style="flex:1;overflow-y:auto;padding:20px 24px;display:none;" id="live-history-content"></div>
 </div>
 
+<!-- SZABLONY PLANÓW -->
+<div class="screen" id="screen-templates">
+  <div class="topbar">
+    <div class="topbar-title">Biblioteka szablonów planów</div>
+    <div class="topbar-actions">
+      <input type="text" id="tpl-search" placeholder="Szukaj szablonu..." class="form-input" style="width:200px;font-size:12px;padding:6px 10px;" oninput="renderTemplates()">
+      <button class="btn btn-ghost btn-sm" onclick="openTplCreate()">+ Utwórz własny</button>
+    </div>
+  </div>
+
+  <div style="display:flex;flex:1;overflow:hidden;">
+    <!-- lewy — filtry -->
+    <div style="width:200px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;padding:10px 0;">
+      <div style="padding:5px 14px 3px;font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Cel</div>
+      <div class="tpl-filter active" id="tplf-all" onclick="setTplFilter('all',this)">🌐 Wszystkie</div>
+      <div class="tpl-filter" id="tplf-masa" onclick="setTplFilter('masa',this)">💪 Budowa masy</div>
+      <div class="tpl-filter" id="tplf-sila" onclick="setTplFilter('sila',this)">🏋️ Siła</div>
+      <div class="tpl-filter" id="tplf-redukcja" onclick="setTplFilter('redukcja',this)">🔥 Redukcja</div>
+      <div class="tpl-filter" id="tplf-kondycja" onclick="setTplFilter('kondycja',this)">🏃 Kondycja</div>
+      <div class="tpl-filter" id="tplf-kobieta" onclick="setTplFilter('kobieta',this)">👩 Dla kobiet</div>
+      <div class="tpl-filter" id="tplf-senior" onclick="setTplFilter('senior',this)">🧓 Senior</div>
+
+      <div style="padding:8px 14px 3px;margin-top:6px;font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;">Poziom</div>
+      <div class="tpl-filter" id="tplf-poczatkujacy" onclick="setTplFilter('poczatkujacy',this)">🌱 Początkujący</div>
+      <div class="tpl-filter" id="tplf-sredni" onclick="setTplFilter('sredni',this)">⚡ Średni</div>
+      <div class="tpl-filter" id="tplf-zaawansowany" onclick="setTplFilter('zaawansowany',this)">🔥 Zaawansowany</div>
+
+      <div style="padding:8px 14px 3px;margin-top:6px;font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;">Metoda</div>
+      <div class="tpl-filter" id="tplf-PPL" onclick="setTplFilter('PPL',this)">🔁 PPL</div>
+      <div class="tpl-filter" id="tplf-FBW" onclick="setTplFilter('FBW',this)">🏋️ FBW</div>
+      <div class="tpl-filter" id="tplf-UL" onclick="setTplFilter('UL',this)">⬆ Upper/Lower</div>
+      <div class="tpl-filter" id="tplf-531" onclick="setTplFilter('531',this)">💥 5/3/1</div>
+
+      <div style="padding:12px 14px;border-top:1px solid var(--border);margin-top:8px;">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:5px;">Moje szablony</div>
+        <div id="tpl-my-count" style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--accent);">0</div>
+        <div style="font-size:10px;color:var(--muted);">własnych szablonów</div>
+      </div>
+    </div>
+
+    <!-- środek — siatka szablonów -->
+    <div style="flex:1;overflow-y:auto;padding:16px 20px;" id="tpl-grid"></div>
+
+    <!-- prawy — szczegóły -->
+    <div id="tpl-detail" style="width:380px;flex-shrink:0;border-left:1px solid var(--border);overflow-y:auto;padding:0;transform:translateX(100%);transition:transform 0.25s;position:absolute;right:0;top:56px;bottom:0;background:var(--s1);z-index:20;"></div>
+  </div>
+</div>
+
 </div><!-- /main -->
 
 <!-- CALCULATOR — TDEE / MAKRO -->
@@ -3701,7 +3757,7 @@ function goTo(n){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   const s=document.getElementById('screen-'+n);if(s)s.classList.add('active');
-  const navMap={'dashboard':0,'clients':1,'plans':2,'builder':3,'calendar':4,'inbox':5,'workout-library':6,'library':7,'programs':8,'metrics':9,'tasks':10,'forms':11,'automation':12,'resources':13,'ondemand':14,'payments':15,'calculator':16,'forum':17,'settings':18,'checkin':19,'progbuilder':20,'integrations':21,'clientapp':22,'aicoach':23,'bizstats':24,'aiplangen':25,'reports':26,'live':27};
+  const navMap={'dashboard':0,'clients':1,'plans':2,'builder':3,'calendar':4,'inbox':5,'workout-library':6,'library':7,'programs':8,'metrics':9,'tasks':10,'forms':11,'automation':12,'resources':13,'ondemand':14,'payments':15,'calculator':16,'forum':17,'settings':18,'checkin':19,'progbuilder':20,'integrations':21,'clientapp':22,'aicoach':23,'bizstats':24,'aiplangen':25,'reports':26,'live':27,'templates':28};
   const btns=document.querySelectorAll('.nav-item');
   if(navMap[n]!==undefined&&btns[navMap[n]])btns[navMap[n]].classList.add('active');
   if(n==='builder')initBuilder();
@@ -3748,6 +3804,7 @@ function goTo(n){
   if(n==='aiplangen'){initAplangen();}
   if(n==='reports'){initReports();}
   if(n==='live'){initLive();}
+  if(n==='templates'){initTemplates();}
 }
 
 function openM(id){
@@ -4023,6 +4080,516 @@ async function saveWorkout(){
   try{if(window._db){const r=await window._add(window._col(window._db,'workouts'),w);w.id=r.id;}else w.id='w'+Date.now();}catch(e){w.id='w'+Date.now();}
   WO.push(w);closeM('m-workout');renderWL();notify('Trening dodany! 💪');
 }
+
+// ════════════════════════════════════════
+// SZABLONY PLANÓW
+// ════════════════════════════════════════
+var tplFilter='all';
+var tplDetailId=null;
+var TPL_CUSTOM=[];
+
+const PLAN_TEMPLATES=[
+  // ── MASA ──
+  {id:'t01',name:'PPL 3× — Budowa masy',goal:'masa',level:'sredni',method:'PPL',days:3,weeks:8,
+   desc:'Klasyczny Push/Pull/Legs 3 razy w tygodniu. Ideał dla osób z ograniczonym czasem, szukających solidnego wzrostu masy mięśniowej.',
+   tags:['masa','PPL','3×/tydzień','sztanga'],
+   color:'var(--accent)',popularity:98,
+   schedule:['Pon: Push','Śr: Pull','Pt: Legs'],
+   days_detail:[
+     {name:'Push — Klatka, Barki, Triceps',exercises:[
+       {n:'Wyciskanie sztangi leżąc',s:'4',r:'6-8',rest:'180s'},
+       {n:'Wyciskanie hantli skos+',s:'3',r:'10-12',rest:'90s'},
+       {n:'Rozpiętki wyciąg',s:'3',r:'12-15',rest:'60s'},
+       {n:'OHP ze sztangą',s:'4',r:'8-10',rest:'120s'},
+       {n:'Wznosy hantli bokiem',s:'4',r:'12-15',rest:'60s'},
+       {n:'Prostowanie triceps wyciąg',s:'3',r:'12-15',rest:'60s'},
+       {n:'Dipy na poręczach',s:'3',r:'10-12',rest:'90s'},
+     ]},
+     {name:'Pull — Plecy, Biceps',exercises:[
+       {n:'Martwy ciąg',s:'4',r:'5-6',rest:'240s'},
+       {n:'Podciąganie na drążku',s:'4',r:'6-10',rest:'120s'},
+       {n:'Wiosłowanie sztangą',s:'3',r:'8-10',rest:'120s'},
+       {n:'Wiosłowanie hantlą',s:'3',r:'10-12',rest:'90s'},
+       {n:'Ściąganie wyciąg górny',s:'3',r:'12-15',rest:'75s'},
+       {n:'Uginanie ramion ze sztangą',s:'3',r:'10-12',rest:'75s'},
+       {n:'Uginanie młotkowe',s:'3',r:'12',rest:'60s'},
+     ]},
+     {name:'Legs — Nogi, Pośladki',exercises:[
+       {n:'Przysiad ze sztangą',s:'4',r:'6-8',rest:'180s'},
+       {n:'Leg press',s:'3',r:'10-12',rest:'120s'},
+       {n:'Wypady z hantlami',s:'3',r:'12/stronę',rest:'90s'},
+       {n:'Prostowanie nóg maszyna',s:'3',r:'15',rest:'60s'},
+       {n:'Uginanie nóg leżąc',s:'3',r:'12-15',rest:'60s'},
+       {n:'Wspięcia na palce stojąc',s:'4',r:'15-20',rest:'60s'},
+     ]},
+   ]},
+
+  {id:'t02',name:'PPL 6× — Zaawansowana masa',goal:'masa',level:'zaawansowany',method:'PPL',days:6,weeks:12,
+   desc:'PPL 6 dni w tygodniu — każda partia trenowana 2× w tygodniu. Maksymalna częstotliwość dla szybkiego wzrostu masy.',
+   tags:['masa','PPL','6×/tydzień','zaawansowany'],
+   color:'var(--accent)',popularity:85,
+   schedule:['Pon: Push','Wt: Pull','Śr: Legs','Czw: Push','Pt: Pull','Sob: Legs'],
+   days_detail:[]},
+
+  {id:'t03',name:'FBW 3× — Początkujący',goal:'masa',level:'poczatkujacy',method:'FBW',days:3,weeks:8,
+   desc:'Full Body Workout 3 razy w tygodniu. Idealny start dla osób bez doświadczenia. Trenuje całe ciało każdego dnia.',
+   tags:['masa','FBW','3×/tydzień','początkujący'],
+   color:'var(--teal)',popularity:95,
+   schedule:['Pon: Full Body A','Śr: Full Body B','Pt: Full Body A/B'],
+   days_detail:[
+     {name:'Full Body A',exercises:[
+       {n:'Przysiad ze sztangą',s:'3',r:'5',rest:'180s'},
+       {n:'Wyciskanie sztangi leżąc',s:'3',r:'5',rest:'180s'},
+       {n:'Wiosłowanie sztangą',s:'3',r:'5',rest:'180s'},
+       {n:'OHP ze sztangą',s:'2',r:'5',rest:'120s'},
+       {n:'Martwy ciąg',s:'1',r:'5',rest:'240s'},
+     ]},
+     {name:'Full Body B',exercises:[
+       {n:'Przysiad ze sztangą',s:'3',r:'5',rest:'180s'},
+       {n:'Wyciskanie sztangi leżąc',s:'3',r:'5',rest:'180s'},
+       {n:'Podciąganie/wspomagane',s:'3',r:'5',rest:'180s'},
+       {n:'OHP ze sztangą',s:'2',r:'5',rest:'120s'},
+       {n:'Martwy ciąg',s:'1',r:'5',rest:'240s'},
+     ]},
+   ]},
+
+  {id:'t04',name:'Upper/Lower 4× — Masa',goal:'masa',level:'sredni',method:'UL',days:4,weeks:10,
+   desc:'4 dni w tygodniu — 2 treningi górne i 2 dolne. Dobry balans między częstotliwością a regeneracją.',
+   tags:['masa','Upper/Lower','4×/tydzień'],
+   color:'var(--blue)',popularity:88,
+   schedule:['Pon: Upper A','Wt: Lower A','Czw: Upper B','Pt: Lower B'],
+   days_detail:[]},
+
+  {id:'t05',name:'Stronglifts 5×5',goal:'sila',level:'poczatkujacy',method:'FBW',days:3,weeks:12,
+   desc:'Legendarny program siłowy 5×5. Trzy ćwiczenia bazowe, 5 serii po 5 powtórzeń. Progresja 2.5 kg każdy trening.',
+   tags:['siła','5×5','3×/tydzień','klasyk'],
+   color:'var(--orange)',popularity:97,
+   schedule:['Pon: Workout A','Śr: Workout B','Pt: Workout A'],
+   days_detail:[
+     {name:'Workout A',exercises:[
+       {n:'Przysiad ze sztangą',s:'5',r:'5',rest:'180s'},
+       {n:'Wyciskanie sztangi leżąc',s:'5',r:'5',rest:'180s'},
+       {n:'Wiosłowanie sztangą',s:'5',r:'5',rest:'180s'},
+     ]},
+     {name:'Workout B',exercises:[
+       {n:'Przysiad ze sztangą',s:'5',r:'5',rest:'180s'},
+       {n:'OHP ze sztangą',s:'5',r:'5',rest:'180s'},
+       {n:'Martwy ciąg',s:'1',r:'5',rest:'300s'},
+     ]},
+   ]},
+
+  {id:'t06',name:'5/3/1 Wendler — Siła',goal:'sila',level:'sredni',method:'531',days:4,weeks:16,
+   desc:'Kultowy program siłowy Jima Wendlera. Cykl 4-tygodniowy z progresją. Skupiony na 4 ćwiczeniach bazowych + praca uzupełniająca.',
+   tags:['siła','5/3/1','4×/tydzień','cykl'],
+   color:'var(--orange)',popularity:92,
+   schedule:['Pon: Przysiad','Wt: Bench','Czw: Martwy ciąg','Pt: OHP'],
+   days_detail:[
+     {name:'Tydzień 1 — Przysiad (dzień przykładowy)',exercises:[
+       {n:'Przysiad — rozgrzewka',s:'2',r:'5',rest:'120s'},
+       {n:'Przysiad 65% 1RM',s:'1',r:'5',rest:'180s'},
+       {n:'Przysiad 75% 1RM',s:'1',r:'5',rest:'180s'},
+       {n:'Przysiad 85% 1RM',s:'1',r:'5+',rest:'240s'},
+       {n:'Leg press (BBB)',s:'5',r:'10',rest:'90s'},
+       {n:'Uginanie nóg',s:'5',r:'10',rest:'60s'},
+     ]},
+   ]},
+
+  {id:'t07',name:'PHUL — Power Hypertrophy',goal:'masa',level:'zaawansowany',method:'UL',days:4,weeks:12,
+   desc:'Power Hypertrophy Upper Lower — łączy trening siłowy i hipertroficzny. 2 dni mocy + 2 dni objętościowe.',
+   tags:['masa','siła','PHUL','4×/tydzień'],
+   color:'var(--purple)',popularity:80,
+   schedule:['Pon: Upper Power','Wt: Lower Power','Czw: Upper Hyper','Pt: Lower Hyper'],
+   days_detail:[]},
+
+  // ── REDUKCJA ──
+  {id:'t08',name:'Fat Loss — FBW 4×',goal:'redukcja',level:'sredni',method:'FBW',days:4,weeks:8,
+   desc:'Full Body z deficytem kalorycznym. Wysoka częstotliwość treningu przy niskiej objętości — utrzymanie masy mięśniowej podczas redukcji.',
+   tags:['redukcja','FBW','4×/tydzień','cardio'],
+   color:'var(--red)',popularity:82,
+   schedule:['Pon: FBW','Wt: Cardio LISS','Śr: FBW','Czw: Cardio HIIT','Pt: FBW','Sob: Cardio LISS'],
+   days_detail:[
+     {name:'Full Body — Redukcja',exercises:[
+       {n:'Przysiad goblet',s:'4',r:'12-15',rest:'60s'},
+       {n:'Wyciskanie hantli leżąc',s:'3',r:'12-15',rest:'60s'},
+       {n:'Wiosłowanie hantlą',s:'3',r:'12-15',rest:'60s'},
+       {n:'Wypady z hantlami',s:'3',r:'12/stronę',rest:'60s'},
+       {n:'OHP hantlami',s:'3',r:'12-15',rest:'60s'},
+       {n:'Deski (Plank)',s:'3',r:'45s',rest:'45s'},
+       {n:'Mountain Climbers',s:'3',r:'30s',rest:'30s'},
+     ]},
+   ]},
+
+  {id:'t09',name:'HIIT + Siła — 3×',goal:'redukcja',level:'sredni',method:'FBW',days:3,weeks:6,
+   desc:'Trening obwodowy HIIT połączony z pracą siłową. Ideał dla szybkiej redukcji przy zachowaniu mięśni.',
+   tags:['redukcja','HIIT','obwód','3×/tydzień'],
+   color:'var(--red)',popularity:75,
+   schedule:['Pon/Śr/Pt: HIIT+Siła'],
+   days_detail:[]},
+
+  // ── KONDYCJA ──
+  {id:'t10',name:'Kondycja ogólna — 3×',goal:'kondycja',level:'poczatkujacy',method:'FBW',days:3,weeks:8,
+   desc:'Program dla osób chcących poprawić ogólną sprawność fizyczną. Łączy siłę, wytrzymałość i mobilność.',
+   tags:['kondycja','3×/tydzień','mobilność','dla każdego'],
+   color:'var(--blue)',popularity:79,
+   schedule:['Pon: Siła','Śr: Cardio + Core','Pt: Funkcjonalny'],
+   days_detail:[]},
+
+  {id:'t11',name:'Atletyzm — 4×',goal:'kondycja',level:'sredni',method:'UL',days:4,weeks:10,
+   desc:'Program atletyczny rozwijający siłę, moc, szybkość i wytrzymałość. Ideał dla sportowców i osób aktywnych.',
+   tags:['kondycja','atletyzm','moc','4×/tydzień'],
+   color:'var(--blue)',popularity:72,
+   schedule:['Pon: Siła górna','Wt: Moc+sprint','Czw: Siła dolna','Pt: Wytrzymałość'],
+   days_detail:[]},
+
+  // ── KOBIETY ──
+  {id:'t12',name:'Glute & Legs — 3×',goal:'kobieta',level:'sredni',method:'UL',days:3,weeks:8,
+   desc:'Dedykowany program dla kobiet skupiony na pośladkach i nogach. Progresja ciężarów, ćwiczenia izolowane i złożone.',
+   tags:['kobieta','pośladki','nogi','3×/tydzień'],
+   color:'var(--purple)',popularity:94,
+   schedule:['Pon: Glutes+Legs A','Śr: Upper Body','Pt: Glutes+Legs B'],
+   days_detail:[
+     {name:'Glutes & Legs A',exercises:[
+       {n:'Hip thrust ze sztangą',s:'4',r:'10-12',rest:'90s'},
+       {n:'Przysiad sumo',s:'4',r:'10-12',rest:'90s'},
+       {n:'RDL ze sztangą',s:'3',r:'10-12',rest:'90s'},
+       {n:'Abdukcja na maszynie',s:'4',r:'15-20',rest:'60s'},
+       {n:'Wypady bułgarskie',s:'3',r:'10/stronę',rest:'75s'},
+       {n:'Uginanie nóg leżąc',s:'3',r:'12-15',rest:'60s'},
+       {n:'Wspięcia na palce',s:'4',r:'15-20',rest:'45s'},
+     ]},
+     {name:'Upper Body — Kobiecy',exercises:[
+       {n:'Wyciskanie hantli siedząc',s:'3',r:'12-15',rest:'75s'},
+       {n:'Butterfly maszyna',s:'3',r:'12-15',rest:'60s'},
+       {n:'Ściąganie wyciąg szerokim',s:'3',r:'12-15',rest:'75s'},
+       {n:'Wiosłowanie wyciąg siedzący',s:'3',r:'12-15',rest:'75s'},
+       {n:'Wznosy ramion bokiem',s:'3',r:'15',rest:'60s'},
+       {n:'Uginanie ramion',s:'3',r:'12-15',rest:'60s'},
+       {n:'Plank + warianty',s:'3',r:'40s',rest:'30s'},
+     ]},
+   ]},
+
+  {id:'t13',name:'Full Body Kobiety — 3×',goal:'kobieta',level:'poczatkujacy',method:'FBW',days:3,weeks:8,
+   desc:'Pełne ciało dla kobiet zaczynających przygodę z siłownią. Ćwiczenia funkcjonalne, bezpieczne dla kolan i pleców.',
+   tags:['kobieta','FBW','3×/tydzień','początkujący'],
+   color:'var(--purple)',popularity:88,
+   schedule:['Pon/Śr/Pt: Full Body'],
+   days_detail:[]},
+
+  {id:'t14',name:'Tone & Sculpt — 4×',goal:'kobieta',level:'sredni',method:'UL',days:4,weeks:10,
+   desc:'Program rzeźby dla kobiet — wysoka objętość, umiarkowane ciężary. Definiuje sylwetkę bez nadmiernej masy.',
+   tags:['kobieta','rzeźba','4×/tydzień','ton'],
+   color:'var(--purple)',popularity:82,
+   schedule:['Pon: Upper A','Wt: Lower A','Czw: Upper B','Pt: Lower B'],
+   days_detail:[]},
+
+  // ── SENIOR ──
+  {id:'t15',name:'Senior Active — 3×',goal:'senior',level:'poczatkujacy',method:'FBW',days:3,weeks:8,
+   desc:'Bezpieczny program dla osób 50+. Skupiony na mobilności, sile funkcjonalnej i równowadze. Bez obciążeń osiowych.',
+   tags:['senior','3×/tydzień','mobilność','bezpieczny'],
+   color:'var(--teal)',popularity:76,
+   schedule:['Pon/Śr/Pt: Full Body + Mobilność'],
+   days_detail:[
+     {name:'Senior — Full Body',exercises:[
+       {n:'Przysiad do krzesła (BW)',s:'3',r:'10-15',rest:'90s'},
+       {n:'Wyciskanie hantli siedząc',s:'3',r:'12-15',rest:'90s'},
+       {n:'Wiosłowanie hantlą (oparcie)',s:'3',r:'12-15',rest:'90s'},
+       {n:'Step-up na podest',s:'3',r:'10/stronę',rest:'90s'},
+       {n:'Rotacje tułowia z taśmą',s:'3',r:'12/stronę',rest:'60s'},
+       {n:'Plank na kolanach',s:'3',r:'20-30s',rest:'60s'},
+       {n:'Stretching statyczny',s:'1',r:'10 min',rest:'—'},
+     ]},
+   ]},
+
+  // ── SIŁA ──
+  {id:'t16',name:'GZCLP — Siła dla każdego',goal:'sila',level:'poczatkujacy',method:'FBW',days:3,weeks:10,
+   desc:'Program GZCLP — prosta progresja dla zaczynających przygodę z treningiem siłowym. 3 poziomy ćwiczeń (T1/T2/T3).',
+   tags:['siła','GZCLP','3×/tydzień','progresja'],
+   color:'var(--orange)',popularity:83,
+   schedule:['Pon: A','Śr: B','Pt: C'],
+   days_detail:[]},
+
+  {id:'t17',name:'Texas Method — Siła',goal:'sila',level:'zaawansowany',method:'FBW',days:3,weeks:12,
+   desc:'Legendarny Texas Method. Poniedziałek: wysoka objętość, środa: regeneracja, piątek: maksymalna intensywność.',
+   tags:['siła','Texas Method','3×/tydzień','zaawansowany'],
+   color:'var(--orange)',popularity:78,
+   schedule:['Pon: Volume','Śr: Recovery','Pt: Intensity'],
+   days_detail:[]},
+
+  {id:'t18',name:'Starting Strength',goal:'sila',level:'poczatkujacy',method:'FBW',days:3,weeks:12,
+   desc:'Program Marka Rippetoe. Dwa treningi zmieniane naprzemiennie, 3 podstawowe ćwiczenia na sesję. Prosta progresja liniowa.',
+   tags:['siła','Starting Strength','3×/tydzień','klasyk'],
+   color:'var(--orange)',popularity:91,
+   schedule:['Pon: Workout A','Śr: Workout B','Pt: Workout A'],
+   days_detail:[]},
+
+  {id:'t19',name:'Nsuns 5/3/1 — 4 dni',goal:'sila',level:'zaawansowany',method:'531',days:4,weeks:16,
+   desc:'Zmodyfikowany 5/3/1 z wyższą objętością. Program nSuns — popularny na Reddit /r/fitness. Szybki przyrost siły.',
+   tags:['siła','5/3/1','nSuns','4×/tydzień'],
+   color:'var(--orange)',popularity:80,
+   schedule:['Pon: Bench+OHP','Wt: Squat+Deadlift','Czw: OHP+Bench','Pt: Deadlift+Squat'],
+   days_detail:[]},
+
+  // ── BEZ SPRZĘTU ──
+  {id:'t20',name:'Calisthenics — Bez sprzętu',goal:'masa',level:'sredni',method:'UL',days:4,weeks:10,
+   desc:'Program kalisteniki bez żadnego sprzętu. Pompki, podciągania, dipy, przysiady. Można ćwiczyć wszędzie.',
+   tags:['masa','kalistenika','bez sprzętu','4×/tydzień'],
+   color:'var(--teal)',popularity:77,
+   schedule:['Pon: Push','Wt: Pull','Czw: Push','Pt: Pull+Legs'],
+   days_detail:[
+     {name:'Push — Klatka, Barki, Triceps',exercises:[
+       {n:'Pompki szerokie',s:'4',r:'15-20',rest:'90s'},
+       {n:'Pompki skośne (nogi wyżej)',s:'3',r:'12-15',rest:'75s'},
+       {n:'Pompki diamentowe',s:'3',r:'10-15',rest:'75s'},
+       {n:'Pompki na jednej ręce (progresja)',s:'3',r:'5/stronę',rest:'90s'},
+       {n:'Dipy na krześle',s:'4',r:'12-15',rest:'75s'},
+       {n:'Pike push-ups',s:'3',r:'12',rest:'60s'},
+     ]},
+     {name:'Pull — Plecy, Biceps',exercises:[
+       {n:'Podciąganie podchwytem',s:'4',r:'6-10',rest:'120s'},
+       {n:'Podciąganie nachwytem',s:'3',r:'6-10',rest:'120s'},
+       {n:'Australian pull-ups',s:'3',r:'12-15',rest:'90s'},
+       {n:'Face pulls z taśmą',s:'3',r:'15',rest:'60s'},
+       {n:'Uginanie z taśmą',s:'3',r:'15',rest:'60s'},
+     ]},
+   ]},
+
+  {id:'t21',name:'Home Workout — Hantle',goal:'masa',level:'poczatkujacy',method:'FBW',days:3,weeks:8,
+   desc:'Program domowy z hantlami. Ideał dla osób trenujących w domu. Kompleksowy trening całego ciała.',
+   tags:['masa','hantle','dom','3×/tydzień'],
+   color:'var(--blue)',popularity:85,
+   schedule:['Pon/Śr/Pt: Full Body'],
+   days_detail:[]},
+
+  {id:'t22',name:'Crossfit-Style — 5×',goal:'kondycja',level:'sredni',method:'FBW',days:5,weeks:8,
+   desc:'Trening w stylu CrossFit — WOD (Workout of the Day). Wysoka intensywność, różnorodność ćwiczeń, codzienna zmiana.',
+   tags:['kondycja','crossfit','5×/tydzień','intensywny'],
+   color:'var(--red)',popularity:70,
+   schedule:['Pon–Pt: WOD (zmienny)'],
+   days_detail:[]},
+
+  {id:'t23',name:'Rekompo — Masa+Redukcja',goal:'masa',level:'sredni',method:'UL',days:4,weeks:12,
+   desc:'Program rekompo — jednoczesna budowa masy i redukcja tkanki tłuszczowej. Dla osób na utrzymaniu kalorycznym.',
+   tags:['masa','redukcja','rekompo','4×/tydzień'],
+   color:'var(--purple)',popularity:73,
+   schedule:['Pon: Upper','Wt: Lower','Czw: Upper','Pt: Lower'],
+   days_detail:[]},
+
+  {id:'t24',name:'3-dniowy FBW + Cardio',goal:'redukcja',level:'poczatkujacy',method:'FBW',days:3,weeks:6,
+   desc:'Idealny program na start przygody z odchudzaniem. 3 treningi siłowe + 2 sesje cardio LISS w tygodniu.',
+   tags:['redukcja','FBW','3×/tydzień','cardio','początkujący'],
+   color:'var(--red)',popularity:86,
+   schedule:['Pon: FBW','Wt: Cardio','Śr: FBW','Czw: Cardio','Pt: FBW'],
+   days_detail:[]},
+];
+
+function initTemplates(){
+  renderTemplates();
+  updateTplMyCount();
+}
+
+function setTplFilter(f,btn){
+  tplFilter=f;
+  document.querySelectorAll('.tpl-filter').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTemplates();
+}
+
+function renderTemplates(){
+  const el=document.getElementById('tpl-grid');if(!el)return;
+  const q=(document.getElementById('tpl-search')?.value||'').toLowerCase();
+  const goalMap={masa:'masa',sila:'sila',redukcja:'redukcja',kondycja:'kondycja',kobieta:'kobieta',senior:'senior'};
+  const levelMap={poczatkujacy:'poczatkujacy',sredni:'sredni',zaawansowany:'zaawansowany'};
+  const methodMap={PPL:'PPL',FBW:'FBW',UL:'Upper/Lower','531':'531'};
+
+  let list=[...PLAN_TEMPLATES,...TPL_CUSTOM];
+
+  if(tplFilter!=='all'){
+    if(goalMap[tplFilter])list=list.filter(t=>t.goal===tplFilter);
+    else if(levelMap[tplFilter])list=list.filter(t=>t.level===tplFilter);
+    else if(methodMap[tplFilter])list=list.filter(t=>t.method===methodMap[tplFilter]||t.method===tplFilter);
+  }
+  if(q)list=list.filter(t=>t.name.toLowerCase().includes(q)||t.desc.toLowerCase().includes(q)||(t.tags||[]).some(tag=>tag.toLowerCase().includes(q)));
+
+  const goalLabels={masa:'💪 Masa',sila:'🏋️ Siła',redukcja:'🔥 Redukcja',kondycja:'🏃 Kondycja',kobieta:'👩 Kobiety',senior:'🧓 Senior'};
+  const levelLabels={poczatkujacy:'🌱 Poczatkujący',sredni:'⚡ Średni',zaawansowany:'🔥 Zaawansowany'};
+
+  if(!list.length){
+    el.innerHTML=`<div style="text-align:center;padding:80px;color:var(--muted);">
+      <div style="font-size:36px;opacity:0.3;margin-bottom:12px;">📋</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:6px;">Brak szablonów</div>
+      <div style="font-size:12px;">Zmień filtry lub utwórz własny szablon.</div>
+    </div>`;return;
+  }
+
+  el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;">
+    ${list.map((t,i)=>`<div class="tpl-card" style="animation-delay:${i*0.03}s;border-top:3px solid ${t.color};" onclick="openTplDetail('${t.id}')">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+        <div style="font-size:14px;font-weight:700;line-height:1.3;flex:1;padding-right:8px;">${t.name}</div>
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);white-space:nowrap;">${t.days}×/tydzień</div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:10px;">${t.desc.slice(0,80)}${t.desc.length>80?'…':''}</div>
+      <div style="margin-bottom:10px;">
+        <span class="tpl-tag" style="background:${t.color}22;color:${t.color};">${goalLabels[t.goal]||t.goal}</span>
+        <span class="tpl-tag">${levelLabels[t.level]||t.level}</span>
+        <span class="tpl-tag">${t.method}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div style="display:flex;gap:3px;">
+          ${Array.from({length:5},(_,i)=>`<div style="height:3px;width:14px;border-radius:99px;background:${i<Math.round(t.popularity/20)?t.color:'var(--s3)'};"></div>`).join('')}
+        </div>
+        <div style="font-size:10px;color:var(--muted);">${t.weeks} tyg.</div>
+      </div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function openTplDetail(id){
+  tplDetailId=id;
+  const t=[...PLAN_TEMPLATES,...TPL_CUSTOM].find(x=>x.id===id);if(!t)return;
+  const goalLabels={masa:'💪 Budowa masy',sila:'🏋️ Siła',redukcja:'🔥 Redukcja',kondycja:'🏃 Kondycja',kobieta:'👩 Dla kobiet',senior:'🧓 Senior'};
+  const levelLabels={poczatkujacy:'🌱 Początkujący',sredni:'⚡ Średniozaawansowany',zaawansowany:'🔥 Zaawansowany'};
+
+  const el=document.getElementById('tpl-detail');
+  el.innerHTML=`
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;position:sticky;top:0;background:var(--s1);z-index:1;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px;">${t.name}</div>
+      <button onclick="closeTplDetail()" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;">×</button>
+    </div>
+    <div style="padding:20px;">
+      <!-- header info -->
+      <div style="background:linear-gradient(135deg,${t.color}15,transparent);border:1px solid ${t.color}33;border-radius:12px;padding:16px;margin-bottom:16px;">
+        <div style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px;">${t.desc}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          <span class="tpl-tag" style="background:${t.color}22;color:${t.color};">${goalLabels[t.goal]||t.goal}</span>
+          <span class="tpl-tag">${levelLabels[t.level]||t.level}</span>
+          <span class="tpl-tag">🔁 ${t.method}</span>
+          <span class="tpl-tag">📅 ${t.days}× /tydzień</span>
+          <span class="tpl-tag">📆 ${t.weeks} tygodni</span>
+        </div>
+      </div>
+
+      <!-- harmonogram -->
+      <div style="margin-bottom:16px;">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:8px;">Harmonogram tygodnia</div>
+        ${(t.schedule||[]).map(s=>`<div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;">
+          <span style="color:${t.color};">→</span><span>${s}</span>
+        </div>`).join('')}
+      </div>
+
+      <!-- przykładowe ćwiczenia -->
+      ${t.days_detail?.length?`
+      <div style="margin-bottom:16px;">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:8px;">Przykładowy dzień treningowy</div>
+        ${t.days_detail.slice(0,1).map(d=>`
+          <div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:12px;">
+            <div style="font-size:12px;font-weight:700;margin-bottom:8px;">${d.name}</div>
+            ${d.exercises.map((ex,i)=>`<div style="display:flex;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:11px;align-items:center;">
+              <span style="width:16px;height:16px;border-radius:4px;background:var(--adim);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--accent);flex-shrink:0;">${i+1}</span>
+              <span style="flex:1;">${ex.n}</span>
+              <span style="font-family:'DM Mono',monospace;color:var(--accent);">${ex.s}×${ex.r}</span>
+            </div>`).join('')}
+          </div>`).join('')}
+      </div>`:''}
+
+      <!-- popularity -->
+      <div style="margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px;">
+          <span style="color:var(--muted);">Popularność</span>
+          <span style="color:${t.color};font-weight:700;">${t.popularity}%</span>
+        </div>
+        <div style="height:5px;background:var(--s3);border-radius:99px;overflow:hidden;">
+          <div style="height:100%;background:${t.color};width:${t.popularity}%;border-radius:99px;"></div>
+        </div>
+      </div>
+
+      <!-- przypisz do klienta -->
+      <div style="margin-bottom:12px;">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:8px;">Przypisz do klienta</div>
+        <select class="form-select" id="tpl-assign-client" style="font-size:12px;margin-bottom:8px;">
+          <option value="">Wybierz klienta...</option>
+          ${CL.map(c=>`<option value="${c.id}">${c.name}</option>`).join('')}
+        </select>
+        <button class="btn btn-primary" style="width:100%;" onclick="tplAssignToClient('${t.id}')">✓ Przypisz plan klientowi</button>
+      </div>
+
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="tplStartLive('${t.id}')">▶ Użyj w treningu Live</button>
+        <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="tplDuplicate('${t.id}')">📋 Duplikuj</button>
+      </div>
+    </div>`;
+  el.style.transform='translateX(0)';
+}
+
+function closeTplDetail(){
+  document.getElementById('tpl-detail').style.transform='translateX(100%)';
+  tplDetailId=null;
+}
+
+function tplAssignToClient(tid){
+  const cid=document.getElementById('tpl-assign-client')?.value;
+  if(!cid){notify('Wybierz klienta!');return;}
+  const c=CL.find(x=>x.id===cid);
+  const t=[...PLAN_TEMPLATES,...TPL_CUSTOM].find(x=>x.id===tid);
+  if(!t||!c)return;
+  // build plan object
+  const newPlan={
+    id:'tpl_'+Date.now(),
+    name:t.name,
+    clientId:cid,
+    method:t.method,
+    duration:t.weeks,
+    days:(t.days_detail||[]).map(d=>({day:d.name,exercises:(d.exercises||[]).map(e=>({name:e.n,sets:e.s,reps:e.r}))})),
+    source:'template',
+    templateId:tid,
+    createdAt:new Date().toISOString(),
+  };
+  PL.push(newPlan);
+  if(window._db){try{window._add(window._col(window._db,'plans'),newPlan);}catch(e){}}
+  addNotification('system','Plan przypisany!','Szablon "'+t.name+'" przypisano do '+c.name,'plans');
+  notify('✅ Plan "'+t.name+'" przypisany do '+c.name+'!');
+}
+
+function tplStartLive(tid){
+  const t=[...PLAN_TEMPLATES,...TPL_CUSTOM].find(x=>x.id===tid);if(!t)return;
+  closeTplDetail();
+  goTo('live');
+  setTimeout(()=>{
+    // inject template exercises into live
+    const day=t.days_detail?.[0];
+    if(day){
+      liveExercises=(day.exercises||[]).map(ex=>({
+        name:ex.n,
+        sets:Array.from({length:parseInt(ex.s)||3},(_,i)=>({setNo:i+1,kg:'',reps:ex.r||'10',done:false})),
+        done:false,collapsed:false,
+      }));
+      renderLiveExercises();
+    }
+  },300);
+  notify('Plan "'+t.name+'" załadowany do treningu Live!');
+}
+
+function tplDuplicate(tid){
+  const t=[...PLAN_TEMPLATES,...TPL_CUSTOM].find(x=>x.id===tid);if(!t)return;
+  const copy={...JSON.parse(JSON.stringify(t)),id:'custom_'+Date.now(),name:t.name+' (kopia)',custom:true};
+  TPL_CUSTOM.push(copy);
+  updateTplMyCount();
+  renderTemplates();
+  notify('✓ Szablon zduplikowany — możesz go edytować!');
+}
+
+function openTplCreate(){
+  notify('Kreator własnych szablonów — wkrótce! Na razie użyj Generator AI lub Duplikuj istniejący.');
+}
+
+function updateTplMyCount(){
+  const el=document.getElementById('tpl-my-count');
+  if(el)el.textContent=TPL_CUSTOM.length;
+}
+
+window.initTemplates=initTemplates;window.setTplFilter=setTplFilter;
+window.renderTemplates=renderTemplates;window.openTplDetail=openTplDetail;
+window.closeTplDetail=closeTplDetail;window.tplAssignToClient=tplAssignToClient;
+window.tplStartLive=tplStartLive;window.tplDuplicate=tplDuplicate;window.openTplCreate=openTplCreate;
 
 // ════════════════════════════════════════
 // LIVE WORKOUT — TRYB LIVE
