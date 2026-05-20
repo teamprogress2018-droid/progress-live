@@ -219,6 +219,15 @@ button{cursor:pointer;}
 .ci-history-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;}
 .ci-history-row:last-child{border-bottom:none;}
 .ci-trend-item{background:var(--s3);border-radius:8px;padding:10px 12px;margin-bottom:8px;}
+.apl-opt{padding:8px 10px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;color:var(--muted);font-size:11px;cursor:pointer;transition:all 0.1s;font-family:'DM Sans',sans-serif;text-align:center;}
+.apl-opt:hover{border-color:var(--border2);color:var(--text);}
+.apl-opt.active{background:var(--adim);border-color:var(--accent);color:var(--accent);}
+.apl-opt-multi{padding:8px 10px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;color:var(--muted);font-size:11px;cursor:pointer;transition:all 0.1s;font-family:'DM Sans',sans-serif;}
+.apl-opt-multi.active{background:var(--adim);border-color:var(--accent);color:var(--accent);}
+.apl-day-block{background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;animation:fadeUp 0.2s ease both;}
+.apl-ex-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
+.apl-ex-row:last-child{border-bottom:none;}
+.apl-ex-num{width:24px;height:24px;border-radius:6px;background:var(--adim);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--accent);flex-shrink:0;}
 .stat-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r2);padding:18px 20px;}
 .stat-card-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
 .stat-card-title{font-size:13px;font-weight:700;}
@@ -639,6 +648,7 @@ input[type=checkbox]{display:none;}
     <button class="nav-item" onclick="goTo('clientapp')"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>Aplikacja klienta</button>
     <button class="nav-item" onclick="goTo('aicoach')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>AI Coach</button>
     <button class="nav-item" onclick="goTo('bizstats')"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Statystyki</button>
+    <button class="nav-item" onclick="goTo('aiplangen')"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Generator AI</button>
   </nav>
   <div class="sidebar-footer">
     <div class="av">PU</div>
@@ -2504,6 +2514,150 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   <div style="flex:1;overflow-y:auto;padding:20px 24px;" id="biz-content"></div>
 </div>
 
+<!-- AI PLAN GENERATOR -->
+<div class="screen" id="screen-aiplangen">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="width:32px;height:32px;border-radius:10px;background:var(--adim);display:flex;align-items:center;justify-content:center;font-size:16px;">⚡</div>
+      <div class="topbar-title">Generator planu AI</div>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost btn-sm" onclick="aplReset()">↺ Reset</button>
+      <button class="btn btn-primary btn-sm" id="apl-gen-btn" onclick="aplGenerate()">✨ Generuj plan</button>
+    </div>
+  </div>
+
+  <div style="display:flex;flex:1;overflow:hidden;">
+    <!-- lewy panel — formularz -->
+    <div style="width:380px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;padding:20px;">
+      <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;">Parametry planu</div>
+
+      <!-- klient -->
+      <div class="form-field">
+        <label class="form-lbl">Klient (opcjonalnie)</label>
+        <select class="form-select" id="apl-client" onchange="aplFillFromClient()" style="font-size:13px;">
+          <option value="">Nowy / ręcznie wpisz</option>
+        </select>
+      </div>
+
+      <!-- cel -->
+      <div class="form-field">
+        <label class="form-lbl">Cel treningowy *</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;" id="apl-goals">
+          <button class="apl-opt active" data-val="masa" onclick="aplToggleOpt(this,'apl-goals')">💪 Budowa masy</button>
+          <button class="apl-opt" data-val="sila" onclick="aplToggleOpt(this,'apl-goals')">🏋️ Wzrost siły</button>
+          <button class="apl-opt" data-val="redukcja" onclick="aplToggleOpt(this,'apl-goals')">🔥 Redukcja tkanki</button>
+          <button class="apl-opt" data-val="kondycja" onclick="aplToggleOpt(this,'apl-goals')">🏃 Kondycja ogólna</button>
+          <button class="apl-opt" data-val="atletyzm" onclick="aplToggleOpt(this,'apl-goals')">⚡ Atletyzm / moc</button>
+          <button class="apl-opt" data-val="rehab" onclick="aplToggleOpt(this,'apl-goals')">🩺 Rehabilitacja</button>
+        </div>
+      </div>
+
+      <!-- poziom -->
+      <div class="form-field">
+        <label class="form-lbl">Poziom zaawansowania *</label>
+        <div style="display:flex;gap:6px;" id="apl-levels">
+          <button class="apl-opt" data-val="poczatkujacy" onclick="aplToggleOpt(this,'apl-levels')" style="flex:1;">🌱 Początkujący</button>
+          <button class="apl-opt active" data-val="sredni" onclick="aplToggleOpt(this,'apl-levels')" style="flex:1;">⚡ Średni</button>
+          <button class="apl-opt" data-val="zaawansowany" onclick="aplToggleOpt(this,'apl-levels')" style="flex:1;">🔥 Zaawansowany</button>
+        </div>
+      </div>
+
+      <!-- metoda / typ planu -->
+      <div class="form-field">
+        <label class="form-lbl">Metoda treningowa *</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;" id="apl-methods">
+          <button class="apl-opt active" data-val="PPL" onclick="aplToggleOpt(this,'apl-methods')">🔁 PPL (Push/Pull/Legs)</button>
+          <button class="apl-opt" data-val="FBW" onclick="aplToggleOpt(this,'apl-methods')">🏋️ FBW (Full Body)</button>
+          <button class="apl-opt" data-val="Upper/Lower" onclick="aplToggleOpt(this,'apl-methods')">⬆ Upper/Lower</button>
+          <button class="apl-opt" data-val="531" onclick="aplToggleOpt(this,'apl-methods')">💥 5/3/1 Wendler</button>
+          <button class="apl-opt" data-val="Blokowa" onclick="aplToggleOpt(this,'apl-methods')">📦 Periodyzacja blokowa</button>
+          <button class="apl-opt" data-val="Custom" onclick="aplToggleOpt(this,'apl-methods')">✏️ Dostosowana</button>
+        </div>
+      </div>
+
+      <!-- dni w tygodniu -->
+      <div class="form-field">
+        <label class="form-lbl">Dni treningowe w tygodniu *</label>
+        <div style="display:flex;gap:6px;" id="apl-days">
+          ${[2,3,4,5,6].map(d=>`<button class="apl-opt${d===4?' active':''}" data-val="${d}" onclick="aplToggleOpt(this,'apl-days')" style="flex:1;">${d}×</button>`).join('')}
+        </div>
+      </div>
+
+      <!-- czas sesji -->
+      <div class="form-field">
+        <label class="form-lbl">Czas sesji</label>
+        <div style="display:flex;gap:6px;" id="apl-duration">
+          ${[45,60,75,90].map(d=>`<button class="apl-opt${d===60?' active':''}" data-val="${d}" onclick="aplToggleOpt(this,'apl-duration')" style="flex:1;">${d}'</button>`).join('')}
+        </div>
+      </div>
+
+      <!-- sprzęt -->
+      <div class="form-field">
+        <label class="form-lbl">Dostępny sprzęt</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;" id="apl-equipment">
+          <button class="apl-opt-multi active" data-val="Sztanga i wolne ciężary" onclick="this.classList.toggle('active')">🏋️ Sztanga + wolne</button>
+          <button class="apl-opt-multi active" data-val="Maszyny siłowe" onclick="this.classList.toggle('active')">⚙️ Maszyny</button>
+          <button class="apl-opt-multi active" data-val="Wyciągi i linki" onclick="this.classList.toggle('active')">🔗 Wyciągi</button>
+          <button class="apl-opt-multi" data-val="Hantle" onclick="this.classList.toggle('active')">💪 Hantle</button>
+          <button class="apl-opt-multi" data-val="Drążek i poręcze" onclick="this.classList.toggle('active')">🤸 Drążek</button>
+          <button class="apl-opt-multi" data-val="Bez sprzętu" onclick="this.classList.toggle('active')">🏠 Bez sprzętu</button>
+        </div>
+      </div>
+
+      <!-- dane fizyczne -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-field">
+          <label class="form-lbl">Wiek</label>
+          <input type="number" class="form-input" id="apl-age" placeholder="28" style="font-size:13px;">
+        </div>
+        <div class="form-field">
+          <label class="form-lbl">Płeć</label>
+          <select class="form-select" id="apl-gender" style="font-size:13px;">
+            <option value="mężczyzna">Mężczyzna</option>
+            <option value="kobieta">Kobieta</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-lbl">Waga (kg)</label>
+          <input type="number" class="form-input" id="apl-weight" placeholder="80" style="font-size:13px;">
+        </div>
+        <div class="form-field">
+          <label class="form-lbl">Wzrost (cm)</label>
+          <input type="number" class="form-input" id="apl-height" placeholder="178" style="font-size:13px;">
+        </div>
+      </div>
+
+      <!-- kontuzje -->
+      <div class="form-field">
+        <label class="form-lbl">Kontuzje / ograniczenia</label>
+        <input type="text" class="form-input" id="apl-injuries" placeholder="np. ból kolan, problem z barkiem..." style="font-size:13px;">
+      </div>
+
+      <!-- dodatkowe uwagi -->
+      <div class="form-field">
+        <label class="form-lbl">Dodatkowe uwagi dla AI</label>
+        <textarea class="form-input" id="apl-notes" rows="3" placeholder="np. preferuje dużo pracy na klatkę, nie lubi martwego ciągu..." style="font-size:13px;resize:none;"></textarea>
+      </div>
+
+      <!-- długość planu -->
+      <div class="form-field">
+        <label class="form-lbl">Długość planu (tygodnie)</label>
+        <div style="display:flex;gap:6px;" id="apl-weeks">
+          ${[4,6,8,12].map(w=>`<button class="apl-opt${w===8?' active':''}" data-val="${w}" onclick="aplToggleOpt(this,'apl-weeks')" style="flex:1;">${w} tyg.</button>`).join('')}
+        </div>
+      </div>
+
+      <button class="btn btn-primary" style="width:100%;margin-top:4px;" id="apl-gen-btn2" onclick="aplGenerate()">✨ Generuj plan treningowy</button>
+    </div>
+
+    <!-- prawy panel — wynik -->
+    <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+      <div style="flex:1;overflow-y:auto;padding:24px;" id="apl-result"></div>
+    </div>
+  </div>
+</div>
+
 </div><!-- /main -->
 
 <!-- CALCULATOR — TDEE / MAKRO -->
@@ -3307,7 +3461,7 @@ function goTo(n){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   const s=document.getElementById('screen-'+n);if(s)s.classList.add('active');
-  const navMap={'dashboard':0,'clients':1,'plans':2,'builder':3,'calendar':4,'inbox':5,'workout-library':6,'library':7,'programs':8,'metrics':9,'tasks':10,'forms':11,'automation':12,'resources':13,'ondemand':14,'payments':15,'calculator':16,'forum':17,'settings':18,'checkin':19,'progbuilder':20,'integrations':21,'clientapp':22,'aicoach':23,'bizstats':24};
+  const navMap={'dashboard':0,'clients':1,'plans':2,'builder':3,'calendar':4,'inbox':5,'workout-library':6,'library':7,'programs':8,'metrics':9,'tasks':10,'forms':11,'automation':12,'resources':13,'ondemand':14,'payments':15,'calculator':16,'forum':17,'settings':18,'checkin':19,'progbuilder':20,'integrations':21,'clientapp':22,'aicoach':23,'bizstats':24,'aiplangen':25};
   const btns=document.querySelectorAll('.nav-item');
   if(navMap[n]!==undefined&&btns[navMap[n]])btns[navMap[n]].classList.add('active');
   if(n==='builder')initBuilder();
@@ -3351,6 +3505,7 @@ function goTo(n){
   if(n==='clientapp'){initClientApp();}
   if(n==='aicoach'){initAICoach();}
   if(n==='bizstats'){initBizStats();}
+  if(n==='aiplangen'){initAplangen();}
 }
 
 function openM(id){
@@ -3626,6 +3781,379 @@ async function saveWorkout(){
   try{if(window._db){const r=await window._add(window._col(window._db,'workouts'),w);w.id=r.id;}else w.id='w'+Date.now();}catch(e){w.id='w'+Date.now();}
   WO.push(w);closeM('m-workout');renderWL();notify('Trening dodany! 💪');
 }
+
+// ════════════════════════════════════════
+// AI PLAN GENERATOR
+// ════════════════════════════════════════
+var aplGenerating=false;
+var aplLastPlan=null;
+
+function initAplangen(){
+  const sel=document.getElementById('apl-client');
+  if(sel){
+    sel.innerHTML='<option value="">Nowy / ręcznie wpisz</option>'+CL.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  }
+  if(!document.getElementById('apl-result').innerHTML){
+    aplShowWelcome();
+  }
+}
+
+function aplShowWelcome(){
+  document.getElementById('apl-result').innerHTML=`
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:400px;text-align:center;padding:40px;">
+      <div style="font-size:56px;margin-bottom:20px;">⚡</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px;margin-bottom:10px;">GENERATOR PLANÓW AI</div>
+      <div style="font-size:13px;color:var(--muted);max-width:440px;line-height:1.8;margin-bottom:28px;">Wypełnij formularz po lewej stronie i kliknij <strong style="color:var(--accent);">Generuj plan</strong>. AI stworzy spersonalizowany plan treningowy z ćwiczeniami, seriami, powtórzeniami i wskazówkami metodycznymi.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;max-width:500px;">
+        ${[
+          {icon:'🎯',txt:'Cel i poziom klienta'},
+          {icon:'📅',txt:'Dni i czas sesji'},
+          {icon:'🏋️',txt:'Dostępny sprzęt'},
+          {icon:'🩺',txt:'Kontuzje i limity'},
+          {icon:'📋',txt:'Metoda (PPL/FBW/531)'},
+          {icon:'✏️',txt:'Dodatkowe życzenia'},
+        ].map(i=>`<div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:11px;color:var(--muted);"><div style="font-size:20px;margin-bottom:5px;">${i.icon}</div>${i.txt}</div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function aplToggleOpt(btn,groupId){
+  const grp=document.getElementById(groupId);
+  grp.querySelectorAll('.apl-opt').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function aplFillFromClient(){
+  const sel=document.getElementById('apl-client');
+  const cid=sel.value;
+  if(!cid)return;
+  const c=CL.find(x=>x.id===cid);
+  if(!c)return;
+  if(c.age)document.getElementById('apl-age').value=c.age;
+  if(c.weight)document.getElementById('apl-weight').value=c.weight;
+  if(c.height)document.getElementById('apl-height').value=c.height;
+  if(c.gender)document.getElementById('apl-gender').value=c.gender;
+  if(c.injuries)document.getElementById('apl-injuries').value=c.injuries;
+  if(c.goal){
+    document.querySelectorAll('#apl-goals .apl-opt').forEach(b=>{
+      b.classList.toggle('active',b.dataset.val===c.goal);
+    });
+  }
+  if(c.level){
+    document.querySelectorAll('#apl-levels .apl-opt').forEach(b=>{
+      b.classList.toggle('active',b.dataset.val===c.level);
+    });
+  }
+  notify(`✓ Dane ${c.name} wczytane do formularza`);
+}
+
+function aplGetVal(groupId){
+  const active=document.querySelector(`#${groupId} .apl-opt.active`);
+  return active?.dataset?.val||'';
+}
+
+function aplGetMulti(groupId){
+  return [...document.querySelectorAll(`#${groupId} .apl-opt-multi.active`)].map(b=>b.dataset.val);
+}
+
+async function aplGenerate(){
+  if(aplGenerating)return;
+  const goal=aplGetVal('apl-goals');
+  const level=aplGetVal('apl-levels');
+  const method=aplGetVal('apl-methods');
+  const days=aplGetVal('apl-days');
+  const duration=aplGetVal('apl-duration');
+  const weeks=aplGetVal('apl-weeks');
+  const equipment=aplGetMulti('apl-equipment');
+  const age=document.getElementById('apl-age').value;
+  const weight=document.getElementById('apl-weight').value;
+  const height=document.getElementById('apl-height').value;
+  const gender=document.getElementById('apl-gender').value;
+  const injuries=document.getElementById('apl-injuries').value;
+  const notes=document.getElementById('apl-notes').value;
+  const cid=document.getElementById('apl-client').value;
+  const client=cid?CL.find(x=>x.id===cid):null;
+
+  if(!goal||!level||!method||!days){
+    notify('⚠ Uzupełnij wymagane pola!');return;
+  }
+
+  aplGenerating=true;
+  ['apl-gen-btn','apl-gen-btn2'].forEach(id=>{
+    const b=document.getElementById(id);
+    if(b){b.disabled=true;b.textContent='⏳ Generuję...';}
+  });
+
+  const res=document.getElementById('apl-result');
+  res.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:400px;gap:20px;">
+    <div style="width:56px;height:56px;border-radius:16px;background:var(--adim);display:flex;align-items:center;justify-content:center;">
+      <div class="ai-dot" style="width:16px;height:16px;"></div>
+    </div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--accent);">AI GENERUJE PLAN...</div>
+    <div style="font-size:12px;color:var(--muted);max-width:300px;text-align:center;line-height:1.7;">Analizuję parametry i tworzę spersonalizowany plan ${method} na ${weeks} tygodni...</div>
+    <div style="display:flex;gap:6px;">${[0,1,2].map(i=>`<div style="width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 1s ${i*0.2}s infinite;"></div>`).join('')}</div>
+  </div>`;
+
+  const systemPrompt=`Jesteś ekspertem programowania treningowego z certyfikatami NSCA CSCS i NASM CPT. Tworzysz szczegółowe plany treningowe w języku polskim.
+
+WAŻNE — odpowiedz TYLKO w formacie JSON (bez żadnego dodatkowego tekstu, bez markdown, bez \`\`\`):
+{
+  "planName": "Nazwa planu",
+  "summary": "Krótkie 2-zdaniowe uzasadnienie metodyczne",
+  "method": "Nazwa metody",
+  "weeks": liczba,
+  "daysPerWeek": liczba,
+  "sessionDuration": liczba_minut,
+  "periodization": "Opis periodyzacji (np. progresja liniowa 2.5kg/tyg)",
+  "deload": "Opis tygodnia deload (co ile tygodni i jak)",
+  "warmup": "Protokół rozgrzewki 5-8 min",
+  "cooldown": "Protokół cool-down",
+  "nutritionTip": "Krótka wskazówka żywieniowa dopasowana do celu",
+  "days": [
+    {
+      "dayName": "Dzień 1 — Push / Klatka, barki, triceps",
+      "focus": "Klatka piersiowa, barki, triceps",
+      "exercises": [
+        {
+          "name": "Wyciskanie sztangi leżąc (płaskie)",
+          "sets": "4",
+          "reps": "6-8",
+          "rest": "180s",
+          "tempo": "3-1-1-0",
+          "rir": "1-2 RIR",
+          "notes": "Ćwiczenie bazowe — priorytet siłowy",
+          "muscleGroup": "Klatka"
+        }
+      ]
+    }
+  ],
+  "progressionRules": ["Regułą 1", "Reguła 2"],
+  "keyExercises": ["Ćwiczenie kluczowe 1", "Ćwiczenie kluczowe 2"],
+  "weeklyVolume": {"chest":"12 serii","back":"14 serii","legs":"16 serii","shoulders":"10 serii","arms":"8 serii"}
+}
+
+Stwórz PEŁNY plan z wszystkimi dniami i minimum 6-8 ćwiczeniami na dzień.`;
+
+  const userMsg=`Stwórz plan treningowy:
+- Cel: ${goal}
+- Poziom: ${level}
+- Metoda: ${method}
+- Dni/tydzień: ${days}
+- Czas sesji: ${duration} minut
+- Długość planu: ${weeks} tygodni
+- Sprzęt: ${equipment.join(', ')||'pełna siłownia'}
+${age?`- Wiek: ${age} lat`:''}
+${gender?`- Płeć: ${gender}`:''}
+${weight?`- Waga: ${weight} kg`:''}
+${height?`- Wzrost: ${height} cm`:''}
+${injuries?`- Kontuzje/ograniczenia: ${injuries}`:''}
+${notes?`- Dodatkowe uwagi: ${notes}`:''}
+${client?`- Klient: ${client.name}, cel: ${client.goal}, poziom: ${client.level}`:''}`;
+
+  try{
+    const resp=await fetch('https://anthropic-proxy.teamprogress2018.workers.dev/',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:4000,
+        system:systemPrompt,
+        messages:[{role:'user',content:userMsg}]
+      })
+    });
+    const data=await resp.json();
+    const raw=data?.content?.[0]?.text||'';
+    const clean=raw.replace(/```json|```/g,'').trim();
+    let plan;
+    try{plan=JSON.parse(clean);}catch(e){
+      // fallback — try to extract JSON
+      const m=clean.match(/\{[\s\S]+\}/);
+      if(m)plan=JSON.parse(m[0]);
+      else throw new Error('JSON parse failed');
+    }
+    aplLastPlan=plan;
+    aplRenderPlan(plan,client,goal,method,days,weeks);
+  }catch(e){
+    res.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;gap:14px;text-align:center;padding:40px;">
+      <div style="font-size:40px;">❌</div>
+      <div style="font-size:15px;font-weight:700;color:var(--red);">Błąd generowania planu</div>
+      <div style="font-size:12px;color:var(--muted);">Sprawdź połączenie internetowe i spróbuj ponownie.</div>
+      <button class="btn btn-primary" onclick="aplGenerate()">↺ Spróbuj ponownie</button>
+    </div>`;
+  }
+
+  aplGenerating=false;
+  ['apl-gen-btn','apl-gen-btn2'].forEach(id=>{
+    const b=document.getElementById(id);
+    if(b){b.disabled=false;b.innerHTML='✨ Generuj plan';}
+  });
+}
+
+function aplRenderPlan(plan,client,goal,method,days,weeks){
+  const goalLabels={masa:'💪 Budowa masy',sila:'🏋️ Wzrost siły',redukcja:'🔥 Redukcja',kondycja:'🏃 Kondycja',atletyzm:'⚡ Atletyzm',rehab:'🩺 Rehabilitacja'};
+  const res=document.getElementById('apl-result');
+  res.innerHTML=`
+    <!-- plan header -->
+    <div style="background:linear-gradient(135deg,var(--adim),transparent);border:1px solid rgba(200,241,53,0.2);border-radius:16px;padding:20px;margin-bottom:20px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+        <div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;margin-bottom:4px;">${plan.planName||'Plan treningowy AI'}</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.6;">${plan.summary||''}</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-primary btn-sm" onclick="aplSavePlan()">💾 Zapisz plan</button>
+          <button class="btn btn-ghost btn-sm" onclick="aplExportPlan()">⬇ Eksport</button>
+          <button class="btn btn-ghost btn-sm" onclick="aplGenerate()">↺ Regeneruj</button>
+        </div>
+      </div>
+      <!-- meta pills -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <span class="pill pill-green">${goalLabels[goal]||goal}</span>
+        <span class="pill" style="background:var(--s3);color:var(--muted);">📅 ${plan.daysPerWeek||days}×/tydzień</span>
+        <span class="pill" style="background:var(--s3);color:var(--muted);">⏱ ${plan.sessionDuration||60} min</span>
+        <span class="pill" style="background:var(--s3);color:var(--muted);">📆 ${plan.weeks||weeks} tygodni</span>
+        <span class="pill" style="background:var(--s3);color:var(--muted);">🔁 ${plan.method||method}</span>
+      </div>
+    </div>
+
+    <!-- 2-col layout -->
+    <div style="display:grid;grid-template-columns:1fr 300px;gap:16px;margin-bottom:20px;">
+
+      <!-- dni treningowe -->
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:12px;color:var(--accent);">PLAN TRENINGOWY</div>
+        ${(plan.days||[]).map((d,di)=>`
+          <div class="apl-day-block" style="animation-delay:${di*0.06}s;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+              <div>
+                <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;">${d.dayName}</div>
+                <div style="font-size:11px;color:var(--muted);margin-top:1px;">${d.focus||''}</div>
+              </div>
+              <span style="font-size:11px;background:var(--adim);color:var(--accent);border-radius:6px;padding:3px 8px;font-family:'DM Mono',monospace;">${(d.exercises||[]).length} ćw.</span>
+            </div>
+            <!-- tabela ćwiczeń -->
+            <div style="overflow-x:auto;">
+              <table style="width:100%;border-collapse:collapse;font-size:11px;">
+                <thead>
+                  <tr style="border-bottom:1px solid var(--border);">
+                    <th style="padding:5px 6px;text-align:left;color:var(--muted);font-family:'DM Mono',monospace;font-weight:400;text-transform:uppercase;font-size:9px;width:24px;">#</th>
+                    <th style="padding:5px 6px;text-align:left;color:var(--muted);font-family:'DM Mono',monospace;font-weight:400;text-transform:uppercase;font-size:9px;">Ćwiczenie</th>
+                    <th style="padding:5px 6px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;font-weight:400;text-transform:uppercase;font-size:9px;">Serie</th>
+                    <th style="padding:5px 6px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;font-weight:400;text-transform:uppercase;font-size:9px;">Powt.</th>
+                    <th style="padding:5px 6px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;font-weight:400;text-transform:uppercase;font-size:9px;">Przerwa</th>
+                    <th style="padding:5px 6px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;font-weight:400;text-transform:uppercase;font-size:9px;">RIR</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${(d.exercises||[]).map((ex,ei)=>`<tr style="border-bottom:1px solid rgba(255,255,255,0.04);" onmouseover="this.style.background='rgba(200,241,53,0.03)'" onmouseout="this.style.background=''">
+                    <td style="padding:7px 6px;"><div class="apl-ex-num">${ei+1}</div></td>
+                    <td style="padding:7px 6px;">
+                      <div style="font-size:12px;font-weight:600;">${ex.name}</div>
+                      ${ex.notes?`<div style="font-size:10px;color:var(--muted);margin-top:2px;">${ex.notes}</div>`:''}
+                      ${ex.muscleGroup?`<span style="font-size:9px;background:var(--s3);color:var(--muted);border-radius:4px;padding:1px 5px;margin-top:2px;display:inline-block;">${ex.muscleGroup}</span>`:''}
+                    </td>
+                    <td style="padding:7px 6px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:var(--accent);">${ex.sets}</td>
+                    <td style="padding:7px 6px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;">${ex.reps}</td>
+                    <td style="padding:7px 6px;text-align:center;font-size:11px;color:var(--muted);">${ex.rest||'—'}</td>
+                    <td style="padding:7px 6px;text-align:center;font-size:11px;color:var(--blue);">${ex.rir||'—'}</td>
+                  </tr>`).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>`).join('')}
+      </div>
+
+      <!-- prawy sidebar -->
+      <div>
+        <!-- rozgrzewka -->
+        <div class="apl-day-block" style="margin-bottom:12px;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--orange);margin-bottom:8px;">🔥 ROZGRZEWKA</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.7;">${plan.warmup||'5-8 min cardio lekkie + mobilizacja'}</div>
+        </div>
+
+        <!-- cool-down -->
+        <div class="apl-day-block" style="margin-bottom:12px;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--blue);margin-bottom:8px;">🧊 COOL-DOWN</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.7;">${plan.cooldown||'5 min stretchingu statycznego'}</div>
+        </div>
+
+        <!-- periodyzacja -->
+        <div class="apl-day-block" style="margin-bottom:12px;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--accent);margin-bottom:8px;">📈 PERIODYZACJA</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:8px;">${plan.periodization||''}</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:1px;color:var(--purple);margin-bottom:5px;">DELOAD</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.7;">${plan.deload||'Co 4-6 tygodni: 50% objętości'}</div>
+        </div>
+
+        <!-- reguły progresji -->
+        ${plan.progressionRules?.length?`<div class="apl-day-block" style="margin-bottom:12px;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--teal);margin-bottom:8px;">⚡ PROGRESJA</div>
+          <div style="display:flex;flex-direction:column;gap:5px;">
+            ${plan.progressionRules.map(r=>`<div style="display:flex;gap:7px;font-size:11px;color:var(--muted);line-height:1.5;"><span style="color:var(--teal);flex-shrink:0;">→</span>${r}</div>`).join('')}
+          </div>
+        </div>`:''}
+
+        <!-- objętość tygodniowa -->
+        ${plan.weeklyVolume?`<div class="apl-day-block" style="margin-bottom:12px;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--accent);margin-bottom:10px;">📊 OBJĘTOŚĆ/TYDZIEŃ</div>
+          ${Object.entries(plan.weeklyVolume).map(([k,v])=>`<div style="display:flex;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border);">
+            <span style="color:var(--muted);text-transform:capitalize;">${k}</span>
+            <span style="font-family:'DM Mono',monospace;color:var(--accent);font-weight:700;">${v}</span>
+          </div>`).join('')}
+        </div>`:''}
+
+        <!-- wskazówka żywieniowa -->
+        ${plan.nutritionTip?`<div class="apl-day-block">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--orange);margin-bottom:8px;">🥗 ODŻYWIANIE</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.7;">${plan.nutritionTip}</div>
+        </div>`:''}
+      </div>
+    </div>`;
+}
+
+function aplSavePlan(){
+  if(!aplLastPlan){notify('Brak planu do zapisania!');return;}
+  const cid=document.getElementById('apl-client').value;
+  const client=cid?CL.find(x=>x.id===cid):null;
+  const newPlan={
+    id:'apl_'+Date.now(),
+    name:aplLastPlan.planName||'Plan AI',
+    clientId:cid||null,
+    method:aplLastPlan.method||'Custom',
+    duration:aplLastPlan.weeks||8,
+    days:(aplLastPlan.days||[]).map(d=>({
+      day:d.dayName,exercises:(d.exercises||[]).map(e=>({name:e.name,sets:e.sets,reps:e.reps}))
+    })),
+    source:'ai',
+    createdAt:new Date().toISOString()
+  };
+  PL.push(newPlan);
+  if(window._db){
+    try{window._add(window._col(window._db,'plans'),newPlan);}catch(e){}
+  }
+  addNotification('system','Plan AI zapisany!','"'+newPlan.name+'" dodany do planów'+(client?' klienta '+client.name:''),'plans');
+  notify(`✅ Plan "${newPlan.name}" zapisany${client?' dla '+client.name:''}!`);
+}
+
+function aplExportPlan(){
+  if(!aplLastPlan){notify('Brak planu!');return;}
+  const txt=JSON.stringify(aplLastPlan,null,2);
+  const blob=new Blob([txt],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`plan-${aplLastPlan.planName?.replace(/\s/g,'-')||'ai'}.json`;
+  a.click();
+  notify('⬇ Plan wyeksportowany jako JSON');
+}
+
+function aplReset(){
+  aplLastPlan=null;
+  aplShowWelcome();
+}
+
+window.initAplangen=initAplangen;window.aplToggleOpt=aplToggleOpt;
+window.aplFillFromClient=aplFillFromClient;window.aplGenerate=aplGenerate;
+window.aplSavePlan=aplSavePlan;window.aplExportPlan=aplExportPlan;window.aplReset=aplReset;
 
 // ════════════════════════════════════════
 // STATYSTYKI BIZNESOWE
