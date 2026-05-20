@@ -11876,14 +11876,58 @@ function openAssignProg(id){
   openM('m-assign-prog');
 }
 
-function confirmAssignProgram(){
+async function confirmAssignProgram(){
   const p=allPrograms().find(x=>x.id===progSelId);
   if(!p)return;
   const cid=document.getElementById('assign-prog-client').value;
+  const startDate=document.getElementById('assign-prog-date').value||new Date().toISOString().split('T')[0];
   const c=CL.find(x=>x.id===cid);
+  if(!c){notify('Wybierz klienta!');return;}
+
+  // Buduj pełny obiekt planu z programu
+  const newPlan={
+    id:'prog_'+Date.now(),
+    name:p.name,
+    clientId:cid,
+    clientName:c.name,
+    method:p.method||'Własna',
+    duration:p.duration||8,
+    level:p.level||'sredni',
+    goal:p.goal||'masa',
+    source:'program',
+    programId:p.id,
+    startDate,
+    createdAt:new Date().toISOString(),
+    days:(p.weeks&&p.weeks[0]&&p.weeks[0].days
+      ? p.weeks[0].days.map(d=>({
+          day:d.d||d.name||'',
+          muscles:d.name||'',
+          rest:d.name==='REST'||d.rest||false,
+          exercises:[]
+        }))
+      : [])
+  };
+
+  PL.push(newPlan);
+
+  // Zapisz do Firebase jeśli dostępne
+  if(window._db){
+    try{
+      const r=await window._add(window._col(window._db,'plans'),newPlan);
+      if(r&&r.id)newPlan.id=r.id;
+    }catch(e){console.warn('Firebase plan save:',e);}
+  }
+
   closeM('m-assign-prog');
   closeProgDetail();
-  notify('✓ Program "'+p.name+'" przypisany do: '+(c?c.name:'klienta'));
+
+  addNotification('system','Program przypisany!','"'+p.name+'" → '+c.name,'plans');
+  notify('✓ Program "'+p.name+'" przypisany do: '+c.name+'!');
+
+  // Jeśli profil klienta otwarty — odśwież zakładkę Plan
+  if(typeof cpClientId!=='undefined'&&cpClientId===cid){
+    try{setCPTab('plan');}catch(e){}
+  }
 }
 
 async function saveUserProgram(){
