@@ -182,6 +182,26 @@ button{cursor:pointer;}
 .wb-inp{background:var(--s3);border:1px solid var(--border);border-radius:6px;padding:5px 7px;color:var(--text);font-size:12px;width:100%;}
 .wb-inp:focus{border-color:var(--accent);}
 
+/* ── SETTINGS ── */
+.settings-nav{padding:9px 16px;font-size:13px;color:var(--muted);cursor:pointer;border-left:2px solid transparent;transition:all 0.1s;}
+.settings-nav:hover{color:var(--text);background:rgba(255,255,255,0.02);}
+.settings-nav.active{color:var(--accent);background:var(--adim);border-left-color:var(--accent);}
+.settings-section{max-width:640px;}
+.settings-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r2);padding:20px 24px;margin-bottom:16px;}
+.settings-card-title{font-size:14px;font-weight:700;margin-bottom:4px;}
+.settings-card-desc{font-size:11px;color:var(--muted);margin-bottom:16px;line-height:1.5;}
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);}
+.settings-row:last-child{border-bottom:none;}
+.settings-row-label{font-size:13px;font-weight:600;}
+.settings-row-desc{font-size:11px;color:var(--muted);margin-top:2px;}
+.settings-toggle{width:42px;height:24px;background:var(--s4);border-radius:99px;cursor:pointer;position:relative;transition:background 0.2s;border:1px solid var(--border2);flex-shrink:0;}
+.settings-toggle.on{background:var(--accent);}
+.settings-toggle-knob{width:18px;height:18px;background:#fff;border-radius:50%;position:absolute;top:2px;left:2px;transition:left 0.2s;}
+.settings-toggle.on .settings-toggle-knob{left:20px;background:#000;}
+.color-swatch{width:32px;height:32px;border-radius:8px;border:2px solid transparent;cursor:pointer;transition:transform 0.1s;flex-shrink:0;}
+.color-swatch:hover{transform:scale(1.1);}
+.color-swatch.active{border-color:var(--text);}
+.settings-avatar-big{width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:32px;flex-shrink:0;border:3px solid var(--accent);}
 /* ── NOTIFICATIONS ── */
 .notif-item{display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.1s;position:relative;}
 .notif-item:hover{background:rgba(255,255,255,0.02);}
@@ -511,6 +531,7 @@ input[type=checkbox]{display:none;}
     <button class="nav-item" onclick="goTo('calculator')"><svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="10" y2="18"/><line x1="14" y1="18" x2="16" y2="18"/></svg>Kalkulator</button>
     <button class="nav-item" onclick="goTo('forum')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="13" y2="13"/></svg>Społeczność</button>
     <button class="nav-item" onclick="openReportModal()"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Raporty</button>
+    <button class="nav-item" onclick="goTo('settings')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Ustawienia</button>
   </nav>
   <div class="sidebar-footer">
     <div class="av">PU</div>
@@ -1951,6 +1972,37 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   </div>
 </div>
 
+<!-- SETTINGS — USTAWIENIA -->
+<div class="screen" id="screen-settings">
+  <div class="topbar">
+    <div class="topbar-title">Ustawienia</div>
+    <div class="topbar-actions">
+      <button class="btn btn-primary btn-sm" onclick="saveSettings()">💾 Zapisz wszystko</button>
+    </div>
+  </div>
+  <div style="display:flex;flex:1;overflow:hidden;">
+
+    <!-- lewy panel — nawigacja -->
+    <div style="width:220px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;padding:8px 0;">
+      <div style="padding:6px 14px 2px;font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Profil</div>
+      <div class="settings-nav active" id="sn-profile" onclick="setSettingsTab('profile')">👤 Profil trenera</div>
+      <div class="settings-nav" id="sn-brand" onclick="setSettingsTab('brand')">🎨 Marka i wygląd</div>
+      <div class="settings-nav" id="sn-company" onclick="setSettingsTab('company')">🏢 Dane firmy</div>
+      <div style="padding:6px 14px 2px;font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:6px;">Aplikacja</div>
+      <div class="settings-nav" id="sn-notifications" onclick="setSettingsTab('notifications')">🔔 Powiadomienia</div>
+      <div class="settings-nav" id="sn-calendar" onclick="setSettingsTab('calendar')">📅 Kalendarz</div>
+      <div class="settings-nav" id="sn-payments" onclick="setSettingsTab('payments')">💰 Płatności</div>
+      <div style="padding:6px 14px 2px;font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:6px;">System</div>
+      <div class="settings-nav" id="sn-integrations" onclick="setSettingsTab('integrations')">🔗 Integracje</div>
+      <div class="settings-nav" id="sn-data" onclick="setSettingsTab('data')">🗄 Dane i eksport</div>
+      <div class="settings-nav" id="sn-about" onclick="setSettingsTab('about')">ℹ️ O aplikacji</div>
+    </div>
+
+    <!-- prawa treść -->
+    <div style="flex:1;overflow-y:auto;padding:24px;" id="settings-content"></div>
+  </div>
+</div>
+
 </div><!-- /main -->
 
 <!-- CALCULATOR — TDEE / MAKRO -->
@@ -2715,7 +2767,7 @@ function goTo(n){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   const s=document.getElementById('screen-'+n);if(s)s.classList.add('active');
-  const navMap={'dashboard':0,'clients':1,'plans':2,'builder':3,'calendar':4,'inbox':5,'workout-library':6,'library':7,'programs':8,'metrics':9,'tasks':10,'forms':11,'automation':12,'resources':13,'ondemand':14,'payments':15,'calculator':16,'forum':17};
+  const navMap={'dashboard':0,'clients':1,'plans':2,'builder':3,'calendar':4,'inbox':5,'workout-library':6,'library':7,'programs':8,'metrics':9,'tasks':10,'forms':11,'automation':12,'resources':13,'ondemand':14,'payments':15,'calculator':16,'forum':17,'settings':18};
   const btns=document.querySelectorAll('.nav-item');
   if(navMap[n]!==undefined&&btns[navMap[n]])btns[navMap[n]].classList.add('active');
   if(n==='builder')initBuilder();
@@ -2752,6 +2804,7 @@ function goTo(n){
     if(fpg)fpg.innerHTML=allForumGroups().map(g=>'<option value="'+g.id+'">'+g.icon+' '+g.name+'</option>').join('');
     renderForum();
   }
+  if(n==='settings'){setSettingsTab('profile');}
 }
 
 function openM(id){
@@ -3029,8 +3082,434 @@ async function saveWorkout(){
 }
 
 // ════════════════════════════════════════
-// NOTIFICATIONS — CENTRUM POWIADOMIEŃ
+// SETTINGS — USTAWIENIA
 // ════════════════════════════════════════
+var settingsTab='profile';
+
+window.SETTINGS={
+  profile:{
+    name:'Piotr Urbaniak',
+    title:'Trener personalny',
+    email:'piotr@progresslive.pl',
+    phone:'+48 501 234 567',
+    bio:'Certyfikowany trener personalny z 8-letnim doświadczeniem. Specjalizuję się w treningu siłowym, hipertrofii i redukcji. Certyfikaty: NSCA-CPT, FMS Level 2.',
+    avatar:'PU',
+    specialty:['Trening siłowy','Hipertrofia','Redukcja'],
+  },
+  brand:{
+    accentColor:'#c8f135',
+    theme:'dark',
+    appName:'PROGRESS LIVE',
+    logo:null,
+    font:'DM Sans',
+  },
+  company:{
+    name:'Progress Live',
+    nip:'',
+    address:'',
+    city:'',
+    country:'Polska',
+    website:'',
+    invoice_prefix:'INV',
+    invoice_footer:'Dziękuję za zaufanie!',
+  },
+  notifications:{
+    sessionReminder:true,
+    sessionReminderTime:60,
+    paymentAlert:true,
+    taskOverdue:true,
+    inactiveClient:true,
+    inactiveDays:14,
+    emailDigest:false,
+    pushNotif:true,
+  },
+  calendar:{
+    workdayStart:'07:00',
+    workdayEnd:'20:00',
+    sessionDuration:60,
+    breakBetween:15,
+    weekStart:'monday',
+    timezone:'Europe/Warsaw',
+  },
+  payments:{
+    currency:'PLN',
+    taxRate:23,
+    vatPayer:false,
+    bankAccount:'',
+    paymentMethods:['gotówka','przelew'],
+    autoInvoice:true,
+  },
+};
+
+function setSettingsTab(t){
+  settingsTab=t;
+  document.querySelectorAll('.settings-nav').forEach(el=>el.classList.remove('active'));
+  const btn=document.getElementById('sn-'+t);if(btn)btn.classList.add('active');
+  renderSettingsContent(t);
+}
+
+function renderSettingsContent(t){
+  const el=document.getElementById('settings-content');if(!el)return;
+  const S=window.SETTINGS;
+  const inp=(id,val,type='text',extra='')=>`<input type="${type}" class="form-input" id="set-${id}" value="${val||''}" ${extra} style="font-size:13px;">`;
+  const textarea=(id,val)=>`<textarea class="form-textarea" id="set-${id}" rows="3" style="font-size:13px;">${val||''}</textarea>`;
+  const toggle=(id,val,onchange='')=>`<div class="settings-toggle${val?' on':''}" id="set-${id}-toggle" onclick="toggleSetting('${id}')"><div class="settings-toggle-knob"></div></div>`;
+  const sel=(id,val,opts)=>`<select class="form-select" id="set-${id}" style="width:auto;font-size:13px;">${opts.map(([v,l])=>`<option value="${v}"${v===val?' selected':''}>${l}</option>`).join('')}</select>`;
+  const row=(label,desc,control)=>`<div class="settings-row"><div><div class="settings-row-label">${label}</div>${desc?`<div class="settings-row-desc">${desc}</div>`:''}</div>${control}</div>`;
+  const card=(title,desc,content)=>`<div class="settings-card"><div class="settings-card-title">${title}</div>${desc?`<div class="settings-card-desc">${desc}</div>`:''}<div>${content}</div></div>`;
+
+  if(t==='profile'){
+    el.innerHTML=`<div class="settings-section">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">PROFIL TRENERA</div>
+
+      ${card('Zdjęcie i dane osobowe','Informacje widoczne dla klientów w aplikacji mobilnej.',`
+        <div style="display:flex;gap:20px;align-items:center;margin-bottom:20px;">
+          <div class="settings-avatar-big" id="set-avatar-preview" style="background:rgba(200,241,53,0.12);color:var(--accent);">${S.profile.avatar}</div>
+          <div>
+            <div style="font-size:13px;font-weight:700;margin-bottom:4px;">${S.profile.name}</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">${S.profile.title}</div>
+            <button class="btn btn-ghost btn-sm" onclick="notify('Upload zdjęcia — wkrótce!')">📷 Zmień zdjęcie</button>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-field"><label class="form-lbl">Imię i nazwisko</label>${inp('profile-name',S.profile.name)}</div>
+          <div class="form-field"><label class="form-lbl">Tytuł zawodowy</label>${inp('profile-title',S.profile.title)}</div>
+        </div>
+        <div class="form-grid">
+          <div class="form-field"><label class="form-lbl">Email</label>${inp('profile-email',S.profile.email,'email')}</div>
+          <div class="form-field"><label class="form-lbl">Telefon</label>${inp('profile-phone',S.profile.phone,'tel')}</div>
+        </div>
+        <div class="form-field"><label class="form-lbl">Bio / Opis</label>${textarea('profile-bio',S.profile.bio)}</div>
+      `)}
+
+      ${card('Specjalizacje','Twoje obszary ekspertyzy widoczne w profilu.',`
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;" id="set-specialties">
+          ${S.profile.specialty.map(s=>`<span style="background:var(--adim);border:1px solid rgba(200,241,53,0.3);color:var(--accent);border-radius:99px;padding:4px 12px;font-size:12px;cursor:pointer;" onclick="removeSpecialty('${s}')">${s} ×</span>`).join('')}
+        </div>
+        <div style="display:flex;gap:8px;">
+          <input type="text" class="form-input" id="set-new-specialty" placeholder="np. Trening funkcjonalny" style="font-size:13px;">
+          <button class="btn btn-ghost btn-sm" onclick="addSpecialty()">+ Dodaj</button>
+        </div>
+      `)}
+
+      ${card('Certyfikaty i kwalifikacje','',`
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          ${['NSCA-CPT','FMS Level 2'].map(c=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--s3);border-radius:8px;">
+            <span style="font-size:16px;">🏆</span>
+            <span style="font-size:13px;">${c}</span>
+            <button onclick="notify('Usuń certyfikat — wkrótce!')" style="background:none;border:none;color:var(--muted2);font-size:16px;cursor:pointer;margin-left:auto;">×</button>
+          </div>`).join('')}
+          <button class="btn btn-ghost btn-sm" style="margin-top:4px;" onclick="notify('Dodaj certyfikat — wkrótce!')">+ Dodaj certyfikat</button>
+        </div>
+      `)}
+    </div>`;
+  }
+
+  else if(t==='brand'){
+    const colors=['#c8f135','#4d9fff','#ff8c42','#9d7cf4','#3ecfb2','#ff4d4d','#f59e0b','#ec4899'];
+    el.innerHTML=`<div class="settings-section">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">MARKA I WYGLĄD</div>
+
+      ${card('Kolor akcentu','Główny kolor aplikacji używany w przyciskach, nagłówkach i akcentach.',`
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+          ${colors.map(c=>`<div class="color-swatch${c===S.brand.accentColor?' active':''}" style="background:${c};" onclick="setAccentColor('${c}')" title="${c}"></div>`).join('')}
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <input type="color" id="set-custom-color" value="${S.brand.accentColor}" oninput="setAccentColor(this.value)" style="width:40px;height:32px;border:1px solid var(--border2);border-radius:8px;cursor:pointer;background:none;padding:2px;">
+          <span style="font-size:12px;color:var(--muted);">Własny kolor</span>
+          <span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--accent);" id="accent-color-val">${S.brand.accentColor}</span>
+        </div>
+      `)}
+
+      ${card('Motyw','',`
+        ${row('Tryb ciemny','Ciemne tło — domyślne dla Progress Live',toggle('theme',S.brand.theme==='dark'))}
+        ${row('Nazwa aplikacji','Widoczna w nagłówku i raportach',`<input type="text" class="form-input" id="set-appname" value="${S.brand.appName}" style="width:200px;font-size:13px;">`)}
+      `)}
+
+      ${card('Logo','Logo widoczne w raportach PDF i nagłówku aplikacji.',`
+        <div style="display:flex;gap:16px;align-items:center;">
+          <div style="width:80px;height:80px;background:var(--s3);border:1px solid var(--border2);border-radius:12px;display:flex;align-items:center;justify-content:center;" id="set-logo-preview">
+            <span style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--accent);">PL</span>
+          </div>
+          <div>
+            <button class="btn btn-ghost btn-sm" onclick="notify('Upload logo — wkrótce!')">📁 Wgraj logo (PNG/SVG)</button>
+            <div style="font-size:11px;color:var(--muted);margin-top:6px;">Zalecany rozmiar: 200×200 px, przezroczyste tło</div>
+          </div>
+        </div>
+      `)}
+
+      ${card('Podgląd marki','',`
+        <div id="brand-preview" style="background:var(--s3);border-radius:10px;padding:16px;display:flex;align-items:center;gap:12px;">
+          <div style="width:36px;height:36px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#000" stroke-width="2.5"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/></svg>
+          </div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;" id="brand-preview-name">PROGRESS<span style="color:var(--accent);">LIVE</span></div>
+        </div>
+      `)}
+    </div>`;
+  }
+
+  else if(t==='company'){
+    el.innerHTML=`<div class="settings-section">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">DANE FIRMY</div>
+
+      ${card('Dane podstawowe','Używane do fakturowania i raportów.',`
+        <div class="form-grid">
+          <div class="form-field"><label class="form-lbl">Nazwa firmy / działalności</label>${inp('company-name',S.company.name)}</div>
+          <div class="form-field"><label class="form-lbl">NIP</label>${inp('company-nip',S.company.nip)}</div>
+        </div>
+        <div class="form-grid">
+          <div class="form-field"><label class="form-lbl">Adres</label>${inp('company-address',S.company.address)}</div>
+          <div class="form-field"><label class="form-lbl">Miasto</label>${inp('company-city',S.company.city)}</div>
+        </div>
+        <div class="form-grid">
+          <div class="form-field"><label class="form-lbl">Kraj</label>${inp('company-country',S.company.country)}</div>
+          <div class="form-field"><label class="form-lbl">Strona internetowa</label>${inp('company-website',S.company.website,'url')}</div>
+        </div>
+      `)}
+
+      ${card('Fakturowanie','Ustawienia dla automatycznych faktur.',`
+        ${row('Prefiks numerów faktur','np. INV-1001, PL-001',`<input type="text" class="form-input" id="set-inv-prefix" value="${S.company.invoice_prefix}" style="width:100px;font-size:13px;">`)}
+        ${row('Podatnik VAT','',toggle('vat-payer',S.payments.vatPayer))}
+        ${row('Stawka VAT','',sel('tax-rate',String(S.payments.taxRate),[['0','0%'],['8','8%'],['23','23%']]))}
+        ${row('Numer konta bankowego','Pojawi się na fakturach',`<input type="text" class="form-input" id="set-bank" value="${S.payments.bankAccount}" placeholder="PL 12 3456 7890..." style="width:240px;font-size:13px;">`)}
+        <div class="form-field" style="margin-top:12px;"><label class="form-lbl">Stopka faktury</label>${textarea('inv-footer',S.company.invoice_footer)}</div>
+      `)}
+    </div>`;
+  }
+
+  else if(t==='notifications'){
+    el.innerHTML=`<div class="settings-section">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">POWIADOMIENIA</div>
+
+      ${card('Sesje','',`
+        ${row('Przypomnienie o sesji','Powiadamia przed zaplanowaną sesją',toggle('sess-reminder',S.notifications.sessionReminder))}
+        ${row('Czas przed sesją','',sel('sess-reminder-time',String(S.notifications.sessionReminderTime),[['15','15 minut'],['30','30 minut'],['60','1 godzina'],['120','2 godziny'],['1440','1 dzień']]))}
+      `)}
+
+      ${card('Klienci','',`
+        ${row('Alert — nieaktywny klient','Gdy klient nie trenuje przez X dni',toggle('inactive-alert',S.notifications.inactiveClient))}
+        ${row('Liczba dni bez aktywności','',sel('inactive-days',String(S.notifications.inactiveDays),[['7','7 dni'],['14','14 dni'],['21','21 dni'],['30','30 dni']]))}
+        ${row('Zadania przeterminowane','Powiadomienie o nieodrobionych zadaniach',toggle('task-overdue',S.notifications.taskOverdue))}
+      `)}
+
+      ${card('Płatności','',`
+        ${row('Alert o płatnościach','Oczekujące i wygasające pakiety',toggle('payment-alert',S.notifications.paymentAlert))}
+      `)}
+
+      ${card('Kanały powiadomień','',`
+        ${row('Push (w aplikacji)','Powiadomienia wewnątrz Progress Live',toggle('push-notif',S.notifications.pushNotif))}
+        ${row('Email digest','Dzienny raport na email (wkrótce)',toggle('email-digest',S.notifications.emailDigest))}
+      `)}
+    </div>`;
+  }
+
+  else if(t==='calendar'){
+    el.innerHTML=`<div class="settings-section">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">USTAWIENIA KALENDARZA</div>
+
+      ${card('Godziny pracy','',`
+        ${row('Początek dnia roboczego','',`<input type="time" class="form-input" id="set-workday-start" value="${S.calendar.workdayStart}" style="width:120px;font-size:13px;">`)}
+        ${row('Koniec dnia roboczego','',`<input type="time" class="form-input" id="set-workday-end" value="${S.calendar.workdayEnd}" style="width:120px;font-size:13px;">`)}
+        ${row('Domyślny czas sesji','',sel('sess-duration',String(S.calendar.sessionDuration),[['30','30 min'],['45','45 min'],['60','60 min'],['90','90 min'],['120','2 godz.']]))}
+        ${row('Przerwa między sesjami','',sel('break-between',String(S.calendar.breakBetween),[['0','Brak'],['10','10 min'],['15','15 min'],['30','30 min']]))}
+      `)}
+
+      ${card('Preferencje wyświetlania','',`
+        ${row('Pierwszy dzień tygodnia','',sel('week-start',S.calendar.weekStart,[['monday','Poniedziałek'],['sunday','Niedziela']]))}
+        ${row('Strefa czasowa','',`<select class="form-select" id="set-timezone" style="width:200px;font-size:13px;">
+          <option value="Europe/Warsaw" selected>Europe/Warsaw (GMT+2)</option>
+          <option value="Europe/London">Europe/London (GMT+1)</option>
+          <option value="UTC">UTC (GMT+0)</option>
+        </select>`)}
+      `)}
+    </div>`;
+  }
+
+  else if(t==='payments'){
+    el.innerHTML=`<div class="settings-section">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">USTAWIENIA PŁATNOŚCI</div>
+
+      ${card('Waluta i ceny','',`
+        ${row('Waluta',''  ,sel('currency',S.payments.currency,[['PLN','PLN — Polski złoty'],['EUR','EUR — Euro'],['USD','USD — Dolar'],['GBP','GBP — Funt']]))}
+        ${row('Automatyczne faktury','Generuj fakturę po zakupie pakietu',toggle('auto-invoice',S.payments.autoInvoice))}
+      `)}
+
+      ${card('Metody płatności','Zaznacz akceptowane formy płatności.',`
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          ${[['gotówka','💵 Gotówka'],['przelew','🏦 Przelew bankowy'],['karta','💳 Karta płatnicza'],['blik','📱 BLIK'],['stripe','🌐 Stripe (online)']].map(([v,l])=>`
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 12px;background:var(--s3);border-radius:8px;">
+              <input type="checkbox" ${S.payments.paymentMethods.includes(v)?'checked':''} style="accent-color:var(--accent);width:16px;height:16px;" data-pm="${v}">
+              <span style="font-size:13px;">${l}</span>
+            </label>`).join('')}
+        </div>
+      `)}
+    </div>`;
+  }
+
+  else if(t==='integrations'){
+    const integrations=[
+      {id:'google-cal',name:'Google Calendar',icon:'📅',desc:'Synchronizuj sesje z Google Calendar',connected:false,color:'var(--red)'},
+      {id:'stripe',name:'Stripe',icon:'💳',desc:'Przyjmuj płatności online',connected:false,color:'var(--purple)'},
+      {id:'calendly',name:'Calendly',icon:'🗓',desc:'Automatyczne umawianie wizyt',connected:false,color:'var(--blue)'},
+      {id:'zoom',name:'Zoom',icon:'🎥',desc:'Integracja z sesjami online',connected:false,color:'var(--blue)'},
+      {id:'whatsapp',name:'WhatsApp',icon:'💬',desc:'Powiadomienia przez WhatsApp',connected:false,color:'var(--teal)'},
+      {id:'myfitnesspal',name:'MyFitnessPal',icon:'🥗',desc:'Synchronizuj dane żywieniowe klientów',connected:false,color:'var(--accent)'},
+    ];
+    el.innerHTML=`<div class="settings-section" style="max-width:700px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">INTEGRACJE</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        ${integrations.map(int=>`<div class="settings-card" style="display:flex;flex-direction:column;gap:12px;border-top:3px solid ${int.color};">
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="font-size:28px;">${int.icon}</div>
+            <div style="flex:1;">
+              <div style="font-size:14px;font-weight:700;">${int.name}</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px;">${int.desc}</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <span class="pill ${int.connected?'pill-green':'pill-muted'}" style="font-size:10px;">${int.connected?'✓ Połączono':'Niepołączono'}</span>
+            <button class="btn btn-ghost btn-sm" onclick="notify('Integracja z ${int.name} — wkrótce!')">${int.connected?'Rozłącz':'Połącz'}</button>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  else if(t==='data'){
+    el.innerHTML=`<div class="settings-section">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">DANE I EKSPORT</div>
+
+      ${card('Eksport danych','Pobierz kopię swoich danych.',`
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <button class="btn btn-ghost btn-sm" style="justify-content:flex-start;" onclick="exportData('clients')">⬇ Eksportuj klientów (CSV)</button>
+          <button class="btn btn-ghost btn-sm" style="justify-content:flex-start;" onclick="exportData('sessions')">⬇ Eksportuj sesje (CSV)</button>
+          <button class="btn btn-ghost btn-sm" style="justify-content:flex-start;" onclick="exportData('payments')">⬇ Eksportuj płatności (CSV)</button>
+          <button class="btn btn-ghost btn-sm" style="justify-content:flex-start;" onclick="exportData('all')">⬇ Pełny eksport (JSON)</button>
+        </div>
+      `)}
+
+      ${card('Import danych','',`
+        <div style="border:1px dashed var(--border2);border-radius:8px;padding:20px;text-align:center;color:var(--muted);">
+          <div style="font-size:32px;margin-bottom:8px;">📂</div>
+          <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Importuj dane</div>
+          <div style="font-size:11px;margin-bottom:12px;">CSV z klientami, sesjami lub pomiarami</div>
+          <button class="btn btn-ghost btn-sm" onclick="notify('Import — wkrótce!')">Wybierz plik</button>
+        </div>
+      `)}
+
+      ${card('Niebezpieczna strefa','',`
+        <div style="background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.2);border-radius:8px;padding:14px;">
+          <div style="font-size:13px;font-weight:700;color:var(--red);margin-bottom:6px;">⚠ Usuń wszystkie dane</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">Ta operacja jest nieodwracalna. Wszystkie dane klientów, sesje i plany zostaną usunięte.</div>
+          <button class="btn btn-danger btn-sm" onclick="confirmDeleteAll()">Usuń wszystkie dane</button>
+        </div>
+      `)}
+    </div>`;
+  }
+
+  else if(t==='about'){
+    el.innerHTML=`<div class="settings-section">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">O APLIKACJI</div>
+
+      ${card('Progress Live','',`
+        <div style="display:flex;gap:16px;align-items:center;margin-bottom:20px;">
+          <div style="width:64px;height:64px;background:var(--accent);border-radius:16px;display:flex;align-items:center;justify-content:center;">
+            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#000" stroke-width="2.5"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+          </div>
+          <div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;">PROGRESS<span style="color:var(--accent);">LIVE</span></div>
+            <div style="font-size:11px;color:var(--muted);">Wersja 1.0.0 · Build 2025.05</div>
+            <div style="font-size:11px;color:var(--muted);">Platforma dla trenerów personalnych</div>
+          </div>
+        </div>
+        ${[['Klientów w bazie',CL.length],['Sesji łącznie',SE.length],['Planów treningowych',PL.length],['Ćwiczeń w bibliotece',allExercises().length],['Treningów w bibliotece',allWorkouts().length],['Wielkość JS','~305 KB']]
+          .map(([l,v])=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="color:var(--muted);">${l}</span><span style="font-family:'DM Mono',monospace;color:var(--accent);">${v}</span></div>`).join('')}
+      `)}
+
+      ${card('Technologie','',`
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          ${['Vanilla JS','Firebase Firestore','Claude AI API','HTML5/CSS3','SVG Charts'].map(t=>`<span class="pill pill-muted" style="font-size:11px;">${t}</span>`).join('')}
+        </div>
+      `)}
+    </div>`;
+  }
+}
+
+function toggleSetting(id){
+  const toggle=document.getElementById('set-'+id+'-toggle');
+  if(toggle)toggle.classList.toggle('on');
+}
+
+function setAccentColor(color){
+  window.SETTINGS.brand.accentColor=color;
+  document.documentElement.style.setProperty('--accent',color);
+  // update adim
+  const r=parseInt(color.slice(1,3),16);
+  const g=parseInt(color.slice(3,5),16);
+  const b=parseInt(color.slice(5,7),16);
+  document.documentElement.style.setProperty('--adim',`rgba(${r},${g},${b},0.1)`);
+  const valEl=document.getElementById('accent-color-val');
+  if(valEl)valEl.textContent=color;
+  document.querySelectorAll('.color-swatch').forEach(s=>s.classList.toggle('active',s.style.background===color));
+  notify('✓ Kolor akcentu zmieniony na '+color);
+}
+
+function addSpecialty(){
+  const inp=document.getElementById('set-new-specialty');
+  if(!inp||!inp.value.trim())return;
+  window.SETTINGS.profile.specialty.push(inp.value.trim());
+  inp.value='';
+  renderSettingsContent('profile');
+}
+
+function removeSpecialty(s){
+  window.SETTINGS.profile.specialty=window.SETTINGS.profile.specialty.filter(x=>x!==s);
+  renderSettingsContent('profile');
+}
+
+function exportData(type){
+  let data,filename;
+  if(type==='clients'){data=CL;filename='clients.json';}
+  else if(type==='sessions'){data=SE;filename='sessions.json';}
+  else if(type==='payments'){data=allPackages();filename='payments.json';}
+  else{data={clients:CL,sessions:SE,plans:PL,exercises:EX,workouts:WO,tasks:TASKS,settings:window.SETTINGS};filename='progress-live-export.json';}
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=filename;a.click();
+  URL.revokeObjectURL(url);
+  notify('✓ Eksport pobrany: '+filename);
+}
+
+function confirmDeleteAll(){
+  if(!confirm('UWAGA! Ta operacja usunie wszystkie dane. Czy na pewno chcesz kontynuować?'))return;
+  if(!confirm('Ostatnie ostrzeżenie — wszystkie dane zostaną utracone. Kontynuować?'))return;
+  window.CL=[];window.PL=[];window.SE=[];window.EX=[];window.WO=[];window.TASKS=[];
+  renderAll();notify('Wszystkie dane usunięte');
+}
+
+function saveSettings(){
+  // read profile
+  const S=window.SETTINGS;
+  const g=id=>document.getElementById('set-'+id);
+  if(g('profile-name'))S.profile.name=g('profile-name').value||S.profile.name;
+  if(g('profile-title'))S.profile.title=g('profile-title').value||S.profile.title;
+  if(g('profile-email'))S.profile.email=g('profile-email').value||S.profile.email;
+  if(g('profile-phone'))S.profile.phone=g('profile-phone').value||S.profile.phone;
+  if(g('profile-bio'))S.profile.bio=g('profile-bio').value||S.profile.bio;
+  if(g('appname'))S.brand.appName=g('appname').value||S.brand.appName;
+  if(g('company-name'))S.company.name=g('company-name').value||S.company.name;
+  if(g('company-nip'))S.company.nip=g('company-nip').value;
+  if(g('company-address'))S.company.address=g('company-address').value;
+  if(g('company-city'))S.company.city=g('company-city').value;
+  if(g('company-website'))S.company.website=g('company-website').value;
+  // update sidebar footer
+  const nameEl=document.querySelector('.sidebar-footer div:nth-child(2) div:first-child');
+  const roleEl=document.querySelector('.sidebar-footer div:nth-child(2) div:last-child');
+  if(nameEl)nameEl.textContent=S.profile.name;
+  if(roleEl)roleEl.textContent=S.profile.title;
+  notify('✓ Ustawienia zapisane!');
+}
 var notifPanelOpen=false;var notifTab='all';
 window.NOTIFICATIONS=[];
 
@@ -7621,6 +8100,10 @@ window.setDashPeriod=setDashPeriod;
 window.openReportModal=openReportModal;window.openReportForClient=openReportForClient;
 window.previewReportOptions=previewReportOptions;window.generateReport=generateReport;
 window.reportClose=reportClose;window.reportPrint=reportPrint;
+window.setSettingsTab=setSettingsTab;window.toggleSetting=toggleSetting;
+window.setAccentColor=setAccentColor;window.addSpecialty=addSpecialty;
+window.removeSpecialty=removeSpecialty;window.exportData=exportData;
+window.confirmDeleteAll=confirmDeleteAll;window.saveSettings=saveSettings;
 window.toggleNotifs=toggleNotifs;window.closeNotifs=closeNotifs;
 window.setNotifTab=setNotifTab;window.markAllRead=markAllRead;
 window.clearAllNotifs=clearAllNotifs;window.clickNotif=clickNotif;
