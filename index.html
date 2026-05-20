@@ -13003,7 +13003,25 @@ function renderCPOverview(c){
 
     ${c.notes?`<div style="background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.2);border-radius:8px;padding:10px 12px;margin-bottom:16px;font-size:12px;"><span style="color:var(--red);">⚠ Kontuzje/uwagi: </span>${c.notes}</div>`:''}
 
-    <!-- notatki -->
+    <!-- aktywny plan -->
+    ${plans.length?`
+    <div class="cp-section-title">AKTYWNY PLAN</div>
+    <div style="background:linear-gradient(135deg,var(--adim),transparent);border:1px solid rgba(200,241,53,0.2);border-radius:10px;padding:12px 14px;margin-bottom:16px;cursor:pointer;" onclick="setCPTab('plan')">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <div style="font-size:13px;font-weight:700;">${plans[plans.length-1].name}</div>
+        <span class="pill pill-green" style="font-size:9px;">${plans[plans.length-1].method||'—'}</span>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${plans[plans.length-1].method||'—'} · ${plans[plans.length-1].duration||'?'} tyg. · ${(plans[plans.length-1].days||[]).length} dni/tydzień</div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;">
+        ${(plans[plans.length-1].days||[]).slice(0,5).map(d=>`<span style="background:${d.rest?'var(--s3)':'rgba(200,241,53,0.12)'};color:${d.rest?'var(--muted)':'var(--accent)'};border-radius:5px;padding:2px 7px;font-size:10px;font-family:'DM Mono',monospace;">${d.day||d.dayName||'?'}${d.rest?' REST':''}</span>`).join('')}
+      </div>
+      <div style="font-size:10px;color:var(--accent);margin-top:8px;">→ Kliknij aby zobaczyć szczegóły</div>
+    </div>`:`
+    <div class="cp-section-title">AKTYWNY PLAN</div>
+    <div style="background:var(--s3);border:1px dashed var(--border2);border-radius:10px;padding:12px 14px;margin-bottom:16px;text-align:center;">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">Brak przypisanego planu</div>
+      <button class="btn btn-primary btn-sm" onclick="cpAssignTemplate('${c.id}')">📋 Przypisz szablon</button>
+    </div>`}
     <div style="display:flex;align-items:center;justify-content:space-between;">
       <div class="cp-section-title" style="margin-bottom:0;">NOTATKI (${notes.length})</div>
       <button onclick="addClientNote('${c.id}')" style="background:none;border:none;color:var(--accent);font-size:18px;cursor:pointer;">+</button>
@@ -13030,20 +13048,82 @@ function renderCPOverview(c){
 function renderCPPlan(c){
   const plans=PL.filter(p=>p.clientId===c.id);
   document.getElementById('cp-body').innerHTML=`
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
       <div class="cp-section-title" style="margin:0;">PLANY TRENINGOWE (${plans.length})</div>
-      <button class="btn btn-primary btn-sm" onclick="goTo('builder');closeClientProfile()">+ Nowy plan</button>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-ghost btn-sm" onclick="cpAssignTemplate('${c.id}')">📋 Przypisz szablon</button>
+        <button class="btn btn-primary btn-sm" onclick="goTo('builder');document.getElementById('b-client').value='${c.id}';closeClientProfile()">+ Nowy plan</button>
+      </div>
     </div>
-    ${!plans.length?'<div style="text-align:center;padding:40px;color:var(--muted);"><div style="font-size:32px;margin-bottom:10px;opacity:0.3;">📋</div><div>Brak planów treningowych</div></div>'
-    :plans.map(p=>`<div class="card-sm" style="margin-bottom:10px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-        <div><div style="font-size:13px;font-weight:700;">${p.name}</div><div style="font-size:11px;color:var(--muted);">${p.method} · ${p.duration} tyg.</div></div>
-        <span class="pill pill-green" style="font-size:10px;">${p.method}</span>
-      </div>
-      <div style="display:flex;flex-wrap:wrap;gap:4px;">
-        ${(p.days||[]).map(d=>`<span style="background:var(--s3);border-radius:6px;padding:3px 8px;font-size:10px;font-family:'DM Mono',monospace;color:${d.rest?'var(--muted)':'var(--accent)'};">${d.day}${d.rest?' REST':''}</span>`).join('')}
-      </div>
-    </div>`).join('')}`;
+    ${!plans.length
+      ?`<div style="text-align:center;padding:40px;color:var(--muted);">
+          <div style="font-size:32px;margin-bottom:10px;opacity:0.3;">📋</div>
+          <div style="margin-bottom:14px;">Brak planów treningowych</div>
+          <button class="btn btn-primary btn-sm" onclick="cpAssignTemplate('${c.id}')">📋 Przypisz szablon</button>
+        </div>`
+      :plans.map((p,pi)=>`
+        <div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;animation:fadeUp 0.15s ease ${pi*0.05}s both;">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;">
+            <div>
+              <div style="font-size:14px;font-weight:700;">${p.name}</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:3px;">${p.method||'—'} · ${p.duration||'?'} tyg. · ${(p.days||[]).length} dni</div>
+            </div>
+            <div style="display:flex;gap:5px;">
+              <span class="pill pill-green" style="font-size:9px;">${p.method||'—'}</span>
+              <button onclick="delPlanFromProfile('${p.id}','${c.id}')" style="background:none;border:none;color:var(--muted2);font-size:16px;cursor:pointer;line-height:1;" title="Usuń plan">×</button>
+            </div>
+          </div>
+          <!-- dni treningowe -->
+          <div style="display:flex;flex-direction:column;gap:5px;">
+            ${(p.days||[]).map(d=>`
+              <div style="background:var(--s3);border-radius:8px;padding:8px 10px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:${d.rest||!(d.exercises&&d.exercises.length)?0:5}px;">
+                  <span style="font-size:10px;font-family:'DM Mono',monospace;color:${d.rest?'var(--muted)':'var(--accent)'};font-weight:700;min-width:28px;">${d.day||d.dayName||'—'}</span>
+                  <span style="font-size:12px;font-weight:600;color:${d.rest?'var(--muted)':'var(--text)'};">${d.rest?'Odpoczynek':(d.muscles||d.name||d.focus||'Trening')}</span>
+                </div>
+                ${!d.rest&&(d.exercises||[]).length?`<div style="padding-left:36px;display:flex;flex-wrap:wrap;gap:3px;">
+                  ${(d.exercises||[]).slice(0,4).map(e=>`<span style="font-size:10px;color:var(--muted);background:var(--s2);border-radius:4px;padding:1px 6px;">${typeof e==='string'?e:e.name||e.n||''}</span>`).join('')}
+                  ${(d.exercises||[]).length>4?`<span style="font-size:10px;color:var(--muted2);">+${(d.exercises||[]).length-4} więcej</span>`:''}
+                </div>`:''}
+              </div>`).join('')}
+          </div>
+          <div style="margin-top:10px;display:flex;gap:6px;">
+            <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="liveSelectPlanForClient('${p.id}','${c.id}')">▶ Trenuj teraz</button>
+            <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="goTo('builder');closeClientProfile()">✏ Edytuj</button>
+          </div>
+        </div>`).join('')}`;
+}
+
+function delPlanFromProfile(planId,clientId){
+  if(!confirm('Usunąć plan?'))return;
+  window.PL=PL.filter(p=>p.id!==planId);
+  if(window._db){try{window._del(window._doc(window._db,'plans',planId));}catch(e){}}
+  const c=CL.find(x=>x.id===clientId);
+  if(c)renderCPPlan(c);
+  notify('Plan usunięty');
+}
+
+function cpAssignTemplate(clientId){
+  const c=CL.find(x=>x.id===clientId);if(!c)return;
+  // otwórz szablony i ustaw klienta
+  closeClientProfile();
+  goTo('templates');
+  setTimeout(()=>{
+    // pre-select klienta w panelu szablonów
+    const sel=document.getElementById('tpl-assign-client');
+    if(sel)sel.value=clientId;
+    notify('Wybierz szablon i kliknij "Przypisz plan klientowi" dla '+c.name);
+  },300);
+}
+
+function liveSelectPlanForClient(planId,clientId){
+  closeClientProfile();
+  goTo('live');
+  setTimeout(()=>{
+    const sel=document.getElementById('live-client-sel');
+    if(sel){sel.value=clientId;liveLoadClient();}
+    setTimeout(()=>liveSelectPlan(planId),200);
+  },300);
 }
 
 function renderCPMetrics(c){
@@ -14110,6 +14190,7 @@ window.usePackageSession=usePackageSession;window.markPaid=markPaid;
 window.viewInvoice=viewInvoice;window.filterPkgByClient=filterPkgByClient;
 window.openClientProfile=openClientProfile;window.closeClientProfile=closeClientProfile;
 window.setCPTab=setCPTab;window.saveCPEdit=saveCPEdit;window.archiveClient=archiveClient;
+window.delPlanFromProfile=delPlanFromProfile;window.cpAssignTemplate=cpAssignTemplate;window.liveSelectPlanForClient=liveSelectPlanForClient;
 // alias for old renderClients reference
 window.openClientDetail=openClientProfile;
 window.calcTDEE=calcTDEE;window.setCalcActivity=setCalcActivity;window.setCalcGoal=setCalcGoal;
