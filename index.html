@@ -10835,14 +10835,19 @@ function renderPlans(){
           <button class="btn btn-danger btn-sm" onclick="delPlan('${p.id}')">Usuń</button>
         </div>
       </div>
-      ${(p.days||[]).map(d=>`<div class="plan-day-row"><div class="plan-day-name">${d.day}</div>${d.rest?'<div style="color:var(--muted);font-size:12px;font-style:italic;">— Odpoczynek</div>':`<div style="flex:1;"><div style="font-size:13px;font-weight:600;">${d.muscles||d.name||''}</div><div style="font-size:11px;color:var(--muted);margin-top:2px;">${(d.exercises||[]).slice(0,3).join(' · ')}</div></div>`}</div>`).join('')}
+      ${(p.days||[]).map(d=>`<div class="plan-day-row"><div class="plan-day-name">${d.day||d.dayName||'—'}</div>${d.rest?'<div style="color:var(--muted);font-size:12px;font-style:italic;">— Odpoczynek</div>':`<div style="flex:1;"><div style="font-size:13px;font-weight:600;">${d.muscles||d.focus||d.name||''}</div><div style="font-size:11px;color:var(--muted);margin-top:2px;">${(d.exercises||[]).slice(0,3).map(e=>typeof e==='string'?e:(e.name||e.n||'')).filter(Boolean).join(' · ')}</div></div>`}</div>`).join('')}
     </div>`;
   }).join('');
 }
 async function delPlan(id){
+  if(!id){notify('Błąd: brak ID planu');return;}
   if(!confirm('Usunąć plan?'))return;
-  try{if(window._db)await window._del(window._doc(window._db,'plans',id));}catch(e){}
-  window.PL=PL.filter(p=>p.id!==id);renderPlans();notify('Plan usunięty');
+  try{if(window._db)await window._del(window._doc(window._db,'plans',id));}catch(e){console.warn('Firebase delPlan:',e);}
+  window.PL=PL.filter(p=>p.id!==id);
+  renderPlans();
+  // odśwież profil klienta jeśli otwarty
+  if(typeof cpClientId!=='undefined'&&cpClientId){try{setCPTab('plan');}catch(e){}}
+  notify('✓ Plan usunięty');
 }
 
 // ════════════════════════════════════════
@@ -13201,13 +13206,13 @@ function renderCPPlan(c){
         </div>`).join('')}`;
 }
 
-function delPlanFromProfile(planId,clientId){
+async function delPlanFromProfile(planId,clientId){
   if(!confirm('Usunąć plan?'))return;
   window.PL=PL.filter(p=>p.id!==planId);
-  if(window._db){try{window._del(window._doc(window._db,'plans',planId));}catch(e){}}
+  if(window._db){try{await window._del(window._doc(window._db,'plans',planId));}catch(e){console.warn('Firebase:',e);}}
   const c=CL.find(x=>x.id===clientId);
   if(c)renderCPPlan(c);
-  notify('Plan usunięty');
+  notify('✓ Plan usunięty');
 }
 
 function cpAssignTemplate(clientId){
@@ -13410,15 +13415,29 @@ function saveCPEdit(id){
   if(window._db&&c.id&&!c.id.startsWith('l')){
     try{window._setDoc(window._doc(window._db,'clients',c.id),c,{merge:true});}catch(e){console.warn('Firebase setDoc:',e);}
   }
-  try{renderAll();}catch(e){try{renderClients();}catch(e2){}}
-  openClientProfile(id);
+  // Odśwież sidebar bez zamykania drawera
+  try{renderClients();}catch(e){}
+  try{document.getElementById('nb-clients').textContent=CL.length;}catch(e){}
+  // Zaktualizuj nagłówek drawera
+  try{
+    document.getElementById('cp-name').textContent=c.name;
+    document.getElementById('cp-sub').textContent=(c.goal||'Brak celu')+' · '+(c.level||'')+(c.age?' · '+c.age+' lat':'');
+  }catch(e){}
+  // Wróć do zakładki Przegląd po zapisaniu
+  try{setCPTab('overview');}catch(e){}
   notify('✓ Profil "'+c.name+'" zaktualizowany!');
 }
 
 function archiveClient(id){
   if(!confirm('Zarchiwizować klienta?'))return;
   const c=CL.find(x=>x.id===id);
-  if(c){c.status='archived';renderAll();closeClientProfile();notify('Klient zarchiwizowany');}
+  if(c){
+    c.status='archived';
+    try{renderClients();}catch(e){}
+    try{document.getElementById('nb-clients').textContent=CL.length;}catch(e){}
+    closeClientProfile();
+    notify('✓ Klient '+c.name+' zarchiwizowany');
+  }
 }
 var payTab='overview';
 window.PACKAGES=[];window.INVOICES=[];
