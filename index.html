@@ -182,6 +182,28 @@ button{cursor:pointer;}
 .wb-inp{background:var(--s3);border:1px solid var(--border);border-radius:6px;padding:5px 7px;color:var(--text);font-size:12px;width:100%;}
 .wb-inp:focus{border-color:var(--accent);}
 
+/* ── PROGRAM BUILDER V2 ── */
+.pb-week-nav-item{display:flex;align-items:center;gap:8px;padding:8px 14px;cursor:pointer;border-left:2px solid transparent;transition:all 0.1s;font-size:12px;color:var(--muted);}
+.pb-week-nav-item:hover{color:var(--text);background:rgba(255,255,255,0.02);}
+.pb-week-nav-item.active{color:var(--accent);background:var(--adim);border-left-color:var(--accent);}
+.pb-week-nav-item.deload{color:var(--orange);}
+.pb-day-col{display:flex;flex-direction:column;border-right:1px solid var(--border);overflow:hidden;}
+.pb-day-col:last-child{border-right:none;}
+.pb-day-header{padding:8px 10px;background:var(--s3);border-bottom:1px solid var(--border);font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.pb-day-rest{flex:1;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px;}
+.pb-ex-item{display:flex;align-items:center;gap:6px;padding:5px 8px;background:var(--s2);border:1px solid var(--border);border-radius:6px;margin-bottom:4px;font-size:11px;position:relative;cursor:default;}
+.pb-ex-item:hover{border-color:var(--border2);}
+.pb-ex-remove{background:none;border:none;color:var(--muted2);font-size:14px;cursor:pointer;flex-shrink:0;padding:0 2px;line-height:1;}
+.pb-ex-remove:hover{color:var(--red);}
+.pb-ex-inputs{display:flex;gap:4px;}
+.pb-ex-inp{width:36px;background:var(--s3);border:1px solid var(--border);border-radius:4px;padding:2px 4px;color:var(--text);font-size:10px;text-align:center;font-family:'DM Mono',monospace;}
+.pb-add-ex-btn{width:100%;padding:5px;background:rgba(200,241,53,0.03);border:1px dashed rgba(200,241,53,0.2);border-radius:6px;color:var(--accent);font-size:10px;font-family:'DM Mono',monospace;cursor:pointer;margin-top:4px;}
+.pb-add-ex-btn:hover{background:var(--adim);}
+.pb-lib-item{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.1s;font-size:11px;}
+.pb-lib-item:hover{background:var(--adim);}
+.pb-lib-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.pb-period-bar{display:flex;align-items:center;gap:6px;margin-bottom:3px;}
+.pb-period-fill{height:4px;border-radius:99px;flex:1;}
 /* ── CHECK-IN ── */
 .ci-client-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.1s;}
 .ci-client-row:hover,.ci-client-row.active{background:var(--adim);}
@@ -548,6 +570,7 @@ input[type=checkbox]{display:none;}
     <button class="nav-item" onclick="openReportModal()"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Raporty</button>
     <button class="nav-item" onclick="goTo('settings')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Ustawienia</button>
     <button class="nav-item" onclick="goTo('checkin')"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Check-in</button>
+    <button class="nav-item" onclick="goTo('progbuilder')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>Program Builder</button>
   </nav>
   <div class="sidebar-footer">
     <div class="av">PU</div>
@@ -2061,6 +2084,103 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   </div>
 </div>
 
+<!-- PROGRAM BUILDER V2 -->
+<div class="screen" id="screen-progbuilder">
+  <div class="topbar">
+    <div class="topbar-title" id="pb-title">Kreator programu</div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost btn-sm" onclick="pbNewProgram()">+ Nowy program</button>
+      <button class="btn btn-ghost btn-sm" onclick="pbLoadDemo()">📋 Wczytaj demo</button>
+      <button class="btn btn-ghost btn-sm" onclick="pbAssign()">👤 Przypisz klientowi</button>
+      <button class="btn btn-primary btn-sm" onclick="pbSave()">💾 Zapisz program</button>
+    </div>
+  </div>
+  <div style="display:flex;flex:1;overflow:hidden;">
+
+    <!-- lewy panel — meta + tygodnie -->
+    <div style="width:260px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;">
+      <!-- meta -->
+      <div style="padding:12px;border-bottom:1px solid var(--border);">
+        <div class="form-field" style="margin-bottom:8px;"><input type="text" class="form-input" id="pb-name" placeholder="Nazwa programu..." style="font-size:13px;font-weight:600;"></div>
+        <div class="form-grid" style="gap:6px;">
+          <select class="form-select" id="pb-goal" style="font-size:11px;padding:5px 8px;">
+            <option value="masa">💪 Masa</option><option value="sila">🏋️ Siła</option>
+            <option value="redukcja">🔥 Redukcja</option><option value="kondycja">🏃 Kondycja</option>
+          </select>
+          <select class="form-select" id="pb-level" style="font-size:11px;padding:5px 8px;">
+            <option value="poczatkujacy">Początkujący</option>
+            <option value="sredni" selected>Średni</option>
+            <option value="zaawansowany">Zaawansowany</option>
+          </select>
+        </div>
+        <div class="form-grid" style="gap:6px;margin-top:6px;">
+          <select class="form-select" id="pb-duration" style="font-size:11px;padding:5px 8px;" onchange="pbRebuildWeeks()">
+            <option value="4">4 tygodnie</option><option value="8" selected>8 tygodni</option><option value="12">12 tygodni</option>
+          </select>
+          <select class="form-select" id="pb-days-per-week" style="font-size:11px;padding:5px 8px;" onchange="pbRebuildWeeks()">
+            <option value="3">3 dni/tyg</option><option value="4" selected>4 dni/tyg</option>
+            <option value="5">5 dni/tyg</option><option value="6">6 dni/tyg</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- lista tygodni -->
+      <div style="overflow-y:auto;flex:1;padding:6px 0;">
+        <div style="padding:5px 14px 2px;font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Tygodnie</div>
+        <div id="pb-week-nav"></div>
+      </div>
+
+      <!-- periodyzacja -->
+      <div style="padding:10px 12px;border-top:1px solid var(--border);">
+        <div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:8px;">Periodyzacja</div>
+        <div style="display:flex;flex-direction:column;gap:4px;" id="pb-period-bars"></div>
+      </div>
+    </div>
+
+    <!-- środek — widok tygodnia -->
+    <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+      <!-- tydzień header -->
+      <div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;" id="pb-week-title">TYDZIEŃ 1</div>
+        <div style="display:flex;gap:6px;" id="pb-week-meta"></div>
+        <div style="margin-left:auto;display:flex;gap:6px;">
+          <button class="btn btn-ghost btn-sm" onclick="pbCopyWeekFrom()">📋 Kopiuj z tygodnia</button>
+          <button class="btn btn-ghost btn-sm" onclick="pbAddDeload()">🔄 Ustaw deload</button>
+        </div>
+      </div>
+      <!-- dni tygodnia -->
+      <div style="flex:1;overflow:hidden;display:grid;" id="pb-days-grid"></div>
+    </div>
+
+    <!-- prawy panel — biblioteka ćwiczeń + AI -->
+    <div style="width:280px;flex-shrink:0;border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;">
+      <!-- szukaj ćwiczeń -->
+      <div style="padding:10px;border-bottom:1px solid var(--border);">
+        <input type="text" id="pb-ex-search" placeholder="Szukaj ćwiczenia..." oninput="renderPBExList()" style="width:100%;background:var(--s3);border:1px solid var(--border);border-radius:6px;padding:6px 9px;color:var(--text);font-size:12px;">
+      </div>
+      <!-- filtry kategorii -->
+      <div style="padding:6px 10px;border-bottom:1px solid var(--border);display:flex;gap:4px;flex-wrap:wrap;" id="pb-cat-chips"></div>
+      <!-- lista ćwiczeń -->
+      <div style="flex:1;overflow-y:auto;" id="pb-ex-list"></div>
+      <!-- AI asystent -->
+      <div style="border-top:1px solid var(--border);padding:10px;">
+        <div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:5px;"><div style="width:5px;height:5px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite;"></div>AI — SUGESTIE</div>
+        <div id="pb-ai-msgs" style="max-height:100px;overflow-y:auto;margin-bottom:6px;font-size:11px;"></div>
+        <div style="display:flex;gap:5px;">
+          <input type="text" id="pb-ai-q" placeholder="np. Push dla średniozaawansowanych..." style="flex:1;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:5px 8px;color:var(--text);font-size:11px;" onkeydown="if(event.key==='Enter')pbAskAI()">
+          <button onclick="pbAskAI()" style="padding:5px 9px;background:var(--accent);color:#000;border:none;border-radius:6px;font-size:12px;font-weight:700;">→</button>
+        </div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:5px;">
+          <button class="btn btn-ghost btn-sm" style="font-size:10px;" onclick="pbQuickAI('Zaproponuj ćwiczenia Push')">Push</button>
+          <button class="btn btn-ghost btn-sm" style="font-size:10px;" onclick="pbQuickAI('Zaproponuj ćwiczenia Pull')">Pull</button>
+          <button class="btn btn-ghost btn-sm" style="font-size:10px;" onclick="pbQuickAI('Zaproponuj ćwiczenia na nogi')">Nogi</button>
+          <button class="btn btn-ghost btn-sm" style="font-size:10px;" onclick="pbQuickAI('Zaproponuj ćwiczenia FBW')">FBW</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 </div><!-- /main -->
 
 <!-- CALCULATOR — TDEE / MAKRO -->
@@ -2864,7 +2984,7 @@ function goTo(n){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   const s=document.getElementById('screen-'+n);if(s)s.classList.add('active');
-  const navMap={'dashboard':0,'clients':1,'plans':2,'builder':3,'calendar':4,'inbox':5,'workout-library':6,'library':7,'programs':8,'metrics':9,'tasks':10,'forms':11,'automation':12,'resources':13,'ondemand':14,'payments':15,'calculator':16,'forum':17,'settings':18,'checkin':19};
+  const navMap={'dashboard':0,'clients':1,'plans':2,'builder':3,'calendar':4,'inbox':5,'workout-library':6,'library':7,'programs':8,'metrics':9,'tasks':10,'forms':11,'automation':12,'resources':13,'ondemand':14,'payments':15,'calculator':16,'forum':17,'settings':18,'checkin':19,'progbuilder':20};
   const btns=document.querySelectorAll('.nav-item');
   if(navMap[n]!==undefined&&btns[navMap[n]])btns[navMap[n]].classList.add('active');
   if(n==='builder')initBuilder();
@@ -2903,6 +3023,7 @@ function goTo(n){
   }
   if(n==='settings'){setSettingsTab('profile');}
   if(n==='checkin'){renderCheckin();}
+  if(n==='progbuilder'){pbInit();}
 }
 
 function openM(id){
@@ -3180,8 +3301,352 @@ async function saveWorkout(){
 }
 
 // ════════════════════════════════════════
-// CHECK-IN SYSTEM
+// PROGRAM BUILDER V2
 // ════════════════════════════════════════
+var pbActiveWeek=1;var pbCatFilter='all';
+var pbProgram={
+  name:'',goal:'masa',level:'sredni',duration:8,daysPerWeek:4,
+  weeks:[] // [{nr, label, rpe, isDeload, days:[{name,rest,exercises:[{name,sets,reps,rest,rpe}]}]}]
+};
+
+const PB_DAYS=['Pon','Wt','Śr','Czw','Pt','Sob','Nie'];
+const PB_DAY_NAMES={
+  4:['Push A','Pull A','Legs A','Push B'],
+  3:['Full Body A','Full Body B','Full Body C'],
+  5:['Push A','Pull A','Legs A','Push B','Pull B'],
+  6:['Push A','Pull A','Legs A','Push B','Pull B','Legs B'],
+};
+const PB_RPE_BY_WEEK={
+  4:[['Akumulacja I','RPE 7'],['Akumulacja I','RPE 7-8'],['Intensyfikacja','RPE 8-9'],['DELOAD','RPE 6']],
+  8:[['Akum. I','RPE 7'],['Akum. I','RPE 7'],['Akum. I','RPE 8'],['DELOAD','RPE 6'],['Akum. II','RPE 7-8'],['Akum. II','RPE 8'],['Intensyf.','RPE 8-9'],['DELOAD','RPE 6']],
+  12:[['Akum. I','RPE 7'],['Akum. I','RPE 7'],['Akum. I','RPE 8'],['DELOAD','RPE 6'],['Akum. II','RPE 7-8'],['Akum. II','RPE 8'],['Akum. II','RPE 8-9'],['DELOAD','RPE 6'],['Intensyf.','RPE 8'],['Intensyf.','RPE 9'],['Realizacja','RPE 9-10'],['DELOAD','RPE 6']],
+};
+
+const PB_DEMO_EXERCISES={
+  Push:[
+    {name:'Wyciskanie sztangi leżąc',sets:'4',reps:'8-10',rest:'90s',rpe:'8'},
+    {name:'Wyciskanie hantli skos+',sets:'3',reps:'10-12',rest:'75s',rpe:'8'},
+    {name:'Wyciskanie żołnierskie OHP',sets:'3',reps:'8-10',rest:'90s',rpe:'8'},
+    {name:'Wznosy hantli bokiem',sets:'4',reps:'15',rest:'45s',rpe:'7'},
+    {name:'Prostowanie triceps wyciąg',sets:'3',reps:'12',rest:'60s',rpe:'7'},
+  ],
+  Pull:[
+    {name:'Podciąganie na drążku',sets:'4',reps:'6-8',rest:'2min',rpe:'8'},
+    {name:'Wiosłowanie sztangą',sets:'4',reps:'8-10',rest:'90s',rpe:'8'},
+    {name:'Ściąganie drążka wyciąg',sets:'3',reps:'10-12',rest:'75s',rpe:'8'},
+    {name:'Uginanie biceps sztanga',sets:'3',reps:'10',rest:'60s',rpe:'7'},
+    {name:'Facepull',sets:'3',reps:'15',rest:'45s',rpe:'7'},
+  ],
+  Legs:[
+    {name:'Przysiad ze sztangą',sets:'4',reps:'6-8',rest:'3min',rpe:'8'},
+    {name:'Martwy ciąg RDL',sets:'3',reps:'10',rest:'2min',rpe:'8'},
+    {name:'Hip Thrust',sets:'4',reps:'12',rest:'90s',rpe:'8'},
+    {name:'Leg Press',sets:'3',reps:'12-15',rest:'90s',rpe:'7'},
+    {name:'Uginanie nóg maszyna',sets:'3',reps:'12',rest:'60s',rpe:'7'},
+  ],
+  FBW:[
+    {name:'Przysiad Goblet',sets:'3',reps:'12',rest:'90s',rpe:'7'},
+    {name:'Wiosłowanie hantlem',sets:'3',reps:'10/str',rest:'75s',rpe:'7'},
+    {name:'Pompki',sets:'3',reps:'12',rest:'60s',rpe:'7'},
+    {name:'Hip Thrust',sets:'3',reps:'15',rest:'75s',rpe:'7'},
+    {name:'Plank',sets:'3',reps:'45s',rest:'30s',rpe:'7'},
+  ],
+};
+
+function pbInit(){
+  pbRebuildWeeks();
+  pbSetWeek(1);
+  renderPBExList();
+  renderPBCatChips();
+}
+
+function pbRebuildWeeks(){
+  const dur=parseInt(document.getElementById('pb-duration').value)||8;
+  const dpw=parseInt(document.getElementById('pb-days-per-week').value)||4;
+  const rpeMap=PB_RPE_BY_WEEK[dur]||PB_RPE_BY_WEEK[8];
+  const dayNames=PB_DAY_NAMES[dpw]||PB_DAY_NAMES[4];
+  const existingWeeks=pbProgram.weeks;
+
+  pbProgram.duration=dur;pbProgram.daysPerWeek=dpw;
+  pbProgram.weeks=Array.from({length:dur},(_,i)=>{
+    const ex=existingWeeks[i];
+    const rpe=rpeMap[i]||['',''];
+    const isDeload=rpe[0].includes('DELOAD');
+    return ex?{...ex,nr:i+1,label:rpe[0],rpe:rpe[1],isDeload}:{
+      nr:i+1,label:rpe[0],rpe:rpe[1],isDeload,
+      days:Array.from({length:dpw},(_,j)=>({
+        name:dayNames[j]||'Dzień '+(j+1),
+        rest:isDeload&&j>=2,
+        exercises:isDeload?[]:[...(PB_DEMO_EXERCISES[dayNames[j]?.split(' ')[0]]||PB_DEMO_EXERCISES.FBW)]
+          .map(e=>({...e}))
+      }))
+    };
+  });
+
+  renderPBWeekNav();
+  renderPBPeriodBars();
+  if(pbActiveWeek>dur)pbActiveWeek=1;
+  pbSetWeek(pbActiveWeek);
+}
+
+function renderPBWeekNav(){
+  const nav=document.getElementById('pb-week-nav');if(!nav)return;
+  nav.innerHTML=pbProgram.weeks.map(w=>`
+    <div class="pb-week-nav-item${w.nr===pbActiveWeek?' active':''}${w.isDeload?' deload':''}" onclick="pbSetWeek(${w.nr})">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;min-width:28px;">TYG ${w.nr}</div>
+      <div style="flex:1;">
+        <div style="font-size:11px;color:${w.isDeload?'var(--orange)':w.nr===pbActiveWeek?'var(--accent)':'var(--text)'};">${w.label}</div>
+        <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">${w.rpe}</div>
+      </div>
+      ${w.isDeload?'<span style="font-size:10px;">🔄</span>':''}
+    </div>`).join('');
+}
+
+function renderPBPeriodBars(){
+  const el=document.getElementById('pb-period-bars');if(!el)return;
+  el.innerHTML=pbProgram.weeks.map(w=>{
+    const isDeload=w.isDeload;
+    const intensity=isDeload?20:Math.min(95,40+w.nr*6);
+    const col=isDeload?'var(--orange)':'var(--accent)';
+    return `<div class="pb-period-bar">
+      <span style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;min-width:24px;">T${w.nr}</span>
+      <div class="pb-period-fill" style="background:${col};opacity:${isDeload?0.5:0.7};width:${intensity}%;"></div>
+      <span style="font-size:9px;color:${col};font-family:'DM Mono',monospace;min-width:28px;">${w.rpe}</span>
+    </div>`;
+  }).join('');
+}
+
+function pbSetWeek(n){
+  pbActiveWeek=n;
+  const week=pbProgram.weeks.find(w=>w.nr===n);if(!week)return;
+
+  const titleEl=document.getElementById('pb-week-title');
+  if(titleEl)titleEl.textContent='TYDZIEŃ '+n+' — '+week.label;
+
+  const metaEl=document.getElementById('pb-week-meta');
+  if(metaEl)metaEl.innerHTML=`
+    <span class="pill ${week.isDeload?'pill-orange':'pill-green'}" style="font-size:10px;">${week.rpe}</span>
+    ${week.isDeload?'<span class="pill pill-orange" style="font-size:10px;">🔄 DELOAD</span>':''}`;
+
+  renderPBDays(week);
+  renderPBWeekNav();
+}
+
+function renderPBDays(week){
+  const grid=document.getElementById('pb-days-grid');if(!grid)return;
+  const dpw=week.days.length;
+  grid.style.gridTemplateColumns=`repeat(${dpw},1fr)`;
+
+  grid.innerHTML=week.days.map((day,di)=>`
+    <div class="pb-day-col">
+      <div class="pb-day-header" style="color:${day.rest?'var(--muted)':'var(--accent)'};">
+        <div>
+          <div>${PB_DAYS[di]}</div>
+          <input type="text" value="${day.name}" id="pb-day-name-${week.nr}-${di}" onchange="pbUpdateDayName(${week.nr},${di},this.value)" style="background:none;border:none;color:inherit;font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;width:100%;padding:0;" placeholder="Nazwa dnia...">
+        </div>
+        <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:10px;color:var(--muted);">
+          <input type="checkbox" ${day.rest?'checked':''} onchange="pbToggleRest(${week.nr},${di},this.checked)" style="accent-color:var(--accent);"> REST
+        </label>
+      </div>
+      ${day.rest
+        ?`<div class="pb-day-rest">😴 Dzień odpoczynku</div>`
+        :`<div style="flex:1;overflow-y:auto;padding:8px 8px 4px;" id="pb-ex-day-${week.nr}-${di}">
+          ${renderPBExItems(week.nr,di,day.exercises)}
+          <button class="pb-add-ex-btn" onclick="pbAddExToDay(${week.nr},${di})">+ DODAJ ĆWICZENIE</button>
+        </div>`
+      }
+    </div>`).join('');
+}
+
+function renderPBExItems(weekNr,dayIdx,exercises){
+  return exercises.map((ex,ei)=>`
+    <div class="pb-ex-item" id="pb-ex-${weekNr}-${dayIdx}-${ei}">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px;">${ex.name}</div>
+        <div class="pb-ex-inputs">
+          <input type="text" class="pb-ex-inp" value="${ex.sets||'4'}" title="Serie" placeholder="4" onchange="pbUpdateEx(${weekNr},${dayIdx},${ei},'sets',this.value)" style="width:30px;">
+          <span style="font-size:10px;color:var(--muted);align-self:center;">×</span>
+          <input type="text" class="pb-ex-inp" value="${ex.reps||'10'}" title="Powt." placeholder="10" onchange="pbUpdateEx(${weekNr},${dayIdx},${ei},'reps',this.value)" style="width:40px;">
+          <input type="text" class="pb-ex-inp" value="${ex.rest||'90s'}" title="Przerwa" placeholder="90s" onchange="pbUpdateEx(${weekNr},${dayIdx},${ei},'rest',this.value)" style="width:36px;">
+          <input type="text" class="pb-ex-inp" value="${ex.rpe||'8'}" title="RPE" placeholder="8" onchange="pbUpdateEx(${weekNr},${dayIdx},${ei},'rpe',this.value)" style="width:28px;border-color:rgba(200,241,53,0.3);">
+        </div>
+      </div>
+      <button class="pb-ex-remove" onclick="pbRemoveEx(${weekNr},${dayIdx},${ei})">×</button>
+    </div>`).join('');
+}
+
+function pbToggleRest(weekNr,dayIdx,val){
+  const w=pbProgram.weeks.find(x=>x.nr===weekNr);
+  if(w&&w.days[dayIdx]){w.days[dayIdx].rest=val;if(val)w.days[dayIdx].exercises=[];}
+  pbSetWeek(weekNr);
+}
+
+function pbUpdateDayName(weekNr,dayIdx,val){
+  const w=pbProgram.weeks.find(x=>x.nr===weekNr);
+  if(w&&w.days[dayIdx])w.days[dayIdx].name=val;
+}
+
+function pbUpdateEx(weekNr,dayIdx,exIdx,field,val){
+  const w=pbProgram.weeks.find(x=>x.nr===weekNr);
+  if(w&&w.days[dayIdx]&&w.days[dayIdx].exercises[exIdx])
+    w.days[dayIdx].exercises[exIdx][field]=val;
+}
+
+function pbRemoveEx(weekNr,dayIdx,exIdx){
+  const w=pbProgram.weeks.find(x=>x.nr===weekNr);
+  if(w&&w.days[dayIdx])w.days[dayIdx].exercises.splice(exIdx,1);
+  pbSetWeek(weekNr);
+}
+
+function pbAddExToDay(weekNr,dayIdx,exName){
+  const w=pbProgram.weeks.find(x=>x.nr===weekNr);
+  if(!w||!w.days[dayIdx])return;
+  const name=exName||prompt('Nazwa ćwiczenia:');
+  if(!name)return;
+  w.days[dayIdx].exercises.push({name,sets:'3',reps:'10',rest:'90s',rpe:'8'});
+  pbSetWeek(weekNr);
+}
+
+function pbAddExFromLib(name){
+  const w=pbProgram.weeks.find(x=>x.nr===pbActiveWeek);
+  if(!w)return;
+  // add to first non-rest day
+  const day=w.days.find(d=>!d.rest);
+  if(!day){notify('Wszystkie dni to REST!');return;}
+  day.exercises.push({name,sets:'3',reps:'10',rest:'90s',rpe:'8'});
+  pbSetWeek(pbActiveWeek);
+  notify('✓ Dodano "'+name.substring(0,25)+'" do '+day.name);
+}
+
+function pbCopyWeekFrom(){
+  const src=parseInt(prompt('Kopiuj ćwiczenia z tygodnia (1-'+pbProgram.duration+'):'));
+  if(!src||src<1||src>pbProgram.duration)return;
+  const srcW=pbProgram.weeks.find(x=>x.nr===src);
+  const dstW=pbProgram.weeks.find(x=>x.nr===pbActiveWeek);
+  if(!srcW||!dstW)return;
+  dstW.days=JSON.parse(JSON.stringify(srcW.days));
+  pbSetWeek(pbActiveWeek);
+  notify('✓ Skopiowano z Tygodnia '+src);
+}
+
+function pbAddDeload(){
+  const w=pbProgram.weeks.find(x=>x.nr===pbActiveWeek);
+  if(!w)return;
+  w.isDeload=!w.isDeload;
+  w.label=w.isDeload?'DELOAD':PB_RPE_BY_WEEK[pbProgram.duration]?.[pbActiveWeek-1]?.[0]||'Akumulacja';
+  w.rpe=w.isDeload?'RPE 6':PB_RPE_BY_WEEK[pbProgram.duration]?.[pbActiveWeek-1]?.[1]||'RPE 8';
+  if(w.isDeload)w.days.forEach(d=>{d.exercises=d.exercises.map(e=>({...e,sets:'2',rpe:'6'}));});
+  renderPBWeekNav();renderPBPeriodBars();pbSetWeek(pbActiveWeek);
+  notify(w.isDeload?'🔄 Tydzień ustawiony jako DELOAD':'Tydzień przywrócony do normalnego');
+}
+
+function renderPBCatChips(){
+  const el=document.getElementById('pb-cat-chips');if(!el)return;
+  const cats=['all','Klatka piersiowa','Plecy','Barki','Nogi','Biceps','Triceps','Core','Pośladki','Cardio'];
+  el.innerHTML=cats.map(c=>`<button class="wl-filter-chip${pbCatFilter===c?' active':''}" onclick="pbCatFilter='${c}';renderPBExList();document.querySelectorAll('#pb-cat-chips .wl-filter-chip').forEach(b=>b.classList.remove('active'));event.target.classList.add('active')" style="font-size:9px;padding:2px 7px;">${c==='all'?'Wszystkie':c}</button>`).join('');
+}
+
+function renderPBExList(){
+  const search=(document.getElementById('pb-ex-search')||{}).value||'';
+  let exs=allExercises();
+  if(pbCatFilter!=='all')exs=exs.filter(e=>e.cat===pbCatFilter);
+  if(search)exs=exs.filter(e=>e.name.toLowerCase().includes(search.toLowerCase())||( e.cat||'').toLowerCase().includes(search.toLowerCase()));
+  const el=document.getElementById('pb-ex-list');if(!el)return;
+  el.innerHTML=exs.slice(0,40).map(e=>{
+    const col=CAT_COLORS_EX[e.cat]||'var(--muted)';
+    return `<div class="pb-lib-item" onclick="pbAddExFromLib('${e.name.replace(/'/g,"\\'")}')">
+      <div class="pb-lib-dot" style="background:${col};"></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${e.name}</div>
+        <div style="font-size:10px;color:var(--muted);">${e.cat} · ${e.eq||''}</div>
+      </div>
+      <span style="font-size:14px;color:var(--accent);flex-shrink:0;">+</span>
+    </div>`;
+  }).join('');
+}
+
+async function pbAskAI(){
+  const q=document.getElementById('pb-ai-q').value.trim();if(!q)return;
+  document.getElementById('pb-ai-q').value='';
+  const msgs=document.getElementById('pb-ai-msgs');
+  msgs.innerHTML+=`<div style="text-align:right;margin-bottom:4px;"><span style="background:var(--accent);color:#000;padding:3px 8px;border-radius:6px;font-size:10px;">${q}</span></div>`;
+  msgs.innerHTML+=`<div id="pb-ai-t" style="margin-bottom:4px;"><span style="background:var(--s3);padding:3px 8px;border-radius:6px;font-size:10px;opacity:0.5;">Analizuję...</span></div>`;
+  msgs.scrollTop=msgs.scrollHeight;
+  const goal={masa:'hipertrofia/masa',sila:'siła/5RM',redukcja:'kardio+siła',kondycja:'kondycja'}[pbProgram.goal]||'hipertrofia';
+  const sys='Trener personalny i ekspert programowania. Zaproponuj 4-6 ćwiczeń jako JSON array: [{"name":"...","sets":"4","reps":"8-10","rest":"90s","rpe":"8"}]. TYLKO czysty JSON, bez markdown. Ćwiczenia po polsku. Cel: '+goal+'. NSCA.';
+  try{
+    const r=await fetch(W,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,system:sys,messages:[{role:'user',content:q}]})});
+    const d=await r.json();
+    const raw=d.content.map(i=>i.text||'').join('');
+    let exercises=[];try{exercises=JSON.parse(raw.replace(/```json|```/g,'').trim());}catch(e){}
+    if(exercises.length){
+      const html=exercises.map(e=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;font-size:10px;border-bottom:1px solid var(--border);">
+        <span style="flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${e.name}</span>
+        <span style="color:var(--muted);margin:0 4px;">${e.sets}×${e.reps}</span>
+        <button onclick="pbAddExFromLib('${e.name.replace(/'/g,"\\'")}');this.textContent='✓';this.style.color='var(--teal)'" style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;flex-shrink:0;">+</button>
+      </div>`).join('');
+      document.getElementById('pb-ai-t').outerHTML=`<div style="margin-bottom:6px;">${html}</div>`;
+    } else {
+      document.getElementById('pb-ai-t').outerHTML=`<div style="margin-bottom:4px;"><span style="background:var(--s3);padding:3px 8px;border-radius:6px;font-size:10px;">${raw.substring(0,100)}</span></div>`;
+    }
+  }catch(e){document.getElementById('pb-ai-t').outerHTML=`<div style="margin-bottom:4px;"><span style="background:var(--s3);padding:3px 8px;border-radius:6px;font-size:10px;color:var(--red);">Błąd</span></div>`;}
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+function pbQuickAI(q){document.getElementById('pb-ai-q').value=q;pbAskAI();}
+
+function pbNewProgram(){
+  pbProgram={name:'',goal:'masa',level:'sredni',duration:8,daysPerWeek:4,weeks:[]};
+  document.getElementById('pb-name').value='';
+  pbRebuildWeeks();
+  notify('Nowy program');
+}
+
+function pbLoadDemo(){
+  document.getElementById('pb-name').value='PPL Masa — 8 tygodni';
+  document.getElementById('pb-goal').value='masa';
+  document.getElementById('pb-level').value='sredni';
+  document.getElementById('pb-duration').value='8';
+  document.getElementById('pb-days-per-week').value='6';
+  pbProgram={name:'PPL Masa — 8 tygodni',goal:'masa',level:'sredni',duration:8,daysPerWeek:6,weeks:[]};
+  pbRebuildWeeks();
+  notify('✓ Demo PPL Masa wczytane!');
+}
+
+function pbAssign(){
+  if(!CL.length){notify('Najpierw dodaj klienta!');return;}
+  const name=document.getElementById('pb-name').value.trim()||'Program';
+  const cid=prompt('ID klienta (lub wpisz imię):');
+  if(!cid)return;
+  const c=CL.find(x=>x.id===cid||x.name.toLowerCase().includes(cid.toLowerCase()));
+  if(!c){notify('Nie znaleziono klienta');return;}
+  notify('✓ Program "'+name+'" przypisany do: '+c.name);
+}
+
+function pbSave(){
+  const name=document.getElementById('pb-name').value.trim();
+  if(!name){notify('Wpisz nazwę programu!');return;}
+  pbProgram.name=name;
+  pbProgram.goal=document.getElementById('pb-goal').value;
+  pbProgram.level=document.getElementById('pb-level').value;
+  // save to USER_PROGRAMS
+  const prog={
+    id:'pb'+Date.now(),type:'moje',
+    name,goal:pbProgram.goal,level:pbProgram.level,
+    duration:pbProgram.duration,daysPerWeek:pbProgram.daysPerWeek,
+    equip:'Siłownia',method:'Własna',
+    desc:'Program stworzony w Program Builder v2.',
+    highlights:[],
+    weeks:pbProgram.weeks.map(w=>({
+      nr:w.nr,label:w.label,rpe:w.rpe,
+      days:w.days.map(d=>({d:d.name.substring(0,3),name:d.rest?'REST':d.name}))
+    })),
+    createdAt:new Date().toISOString()
+  };
+  window.USER_PROGRAMS.push(prog);
+  notify('✓ Program "'+name+'" zapisany do biblioteki programów!');
+  document.getElementById('pb-title').textContent=name;
+}
 var ciFilter='all';var ciActiveClient=null;
 window.CHECKINS={};// clientId -> [{week, date, answers, score}]
 
@@ -8564,6 +9029,14 @@ window.setDashPeriod=setDashPeriod;
 window.openReportModal=openReportModal;window.openReportForClient=openReportForClient;
 window.previewReportOptions=previewReportOptions;window.generateReport=generateReport;
 window.reportClose=reportClose;window.reportPrint=reportPrint;
+window.pbNewProgram=pbNewProgram;window.pbLoadDemo=pbLoadDemo;
+window.pbAssign=pbAssign;window.pbSave=pbSave;window.pbSetWeek=pbSetWeek;
+window.pbToggleRest=pbToggleRest;window.pbUpdateDayName=pbUpdateDayName;
+window.pbUpdateEx=pbUpdateEx;window.pbRemoveEx=pbRemoveEx;
+window.pbAddExToDay=pbAddExToDay;window.pbAddExFromLib=pbAddExFromLib;
+window.pbCopyWeekFrom=pbCopyWeekFrom;window.pbAddDeload=pbAddDeload;
+window.renderPBExList=renderPBExList;window.pbAskAI=pbAskAI;window.pbQuickAI=pbQuickAI;
+window.pbRebuildWeeks=pbRebuildWeeks;
 window.renderCheckin=renderCheckin;window.setCIFilter=setCIFilter;
 window.openCIClient=openCIClient;window.openSimulateCheckin=openSimulateCheckin;
 window.sendCheckinTo=sendCheckinTo;window.sendCheckin=sendCheckin;
