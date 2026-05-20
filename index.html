@@ -219,6 +219,19 @@ button{cursor:pointer;}
 .ci-history-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;}
 .ci-history-row:last-child{border-bottom:none;}
 .ci-trend-item{background:var(--s3);border-radius:8px;padding:10px 12px;margin-bottom:8px;}
+.cap-nav-item{padding:8px 14px;font-size:12px;color:var(--muted);cursor:pointer;border-left:2px solid transparent;transition:all 0.1s;}
+.cap-nav-item:hover{color:var(--text);background:rgba(255,255,255,0.02);}
+.cap-nav-item.active{color:var(--accent);background:var(--adim);border-left-color:var(--accent);}
+.cap-section{padding:16px;}
+.cap-card{background:rgba(255,255,255,0.04);border-radius:16px;padding:14px;margin-bottom:10px;}
+.cap-btn-primary{width:100%;padding:14px;background:var(--accent);color:#000;border:none;border-radius:14px;font-size:14px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;margin-bottom:8px;}
+.cap-btn-secondary{width:100%;padding:12px;background:rgba(255,255,255,0.06);color:#fff;border:1px solid rgba(255,255,255,0.1);border-radius:14px;font-size:13px;cursor:pointer;margin-bottom:8px;}
+.cap-metric-pill{display:inline-flex;align-items:center;gap:5px;background:rgba(200,241,53,0.1);border:1px solid rgba(200,241,53,0.2);border-radius:10px;padding:8px 12px;font-size:12px;}
+.cap-progress-ring{position:relative;display:inline-flex;align-items:center;justify-content:center;}
+.cap-list-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.06);}
+.cap-list-item:last-child{border-bottom:none;}
+.cap-check-circle{width:28px;height:28px;border-radius:50%;border:2px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.cap-check-circle.done{background:var(--teal);border-color:var(--teal);}
 /* ── INTEGRATIONS ── */
 .int-nav-item{padding:8px 14px;font-size:12px;color:var(--muted);cursor:pointer;border-left:2px solid transparent;transition:all 0.1s;}
 .int-nav-item:hover{color:var(--text);background:rgba(255,255,255,0.02);}
@@ -593,6 +606,7 @@ input[type=checkbox]{display:none;}
     <button class="nav-item" onclick="goTo('checkin')"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Check-in</button>
     <button class="nav-item" onclick="goTo('progbuilder')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>Program Builder</button>
     <button class="nav-item" onclick="goTo('integrations')"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Integracje</button>
+    <button class="nav-item" onclick="goTo('clientapp')"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/></svg>Aplikacja klienta</button>
   </nav>
   <div class="sidebar-footer">
     <div class="av">PU</div>
@@ -2250,6 +2264,111 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   </div>
 </div>
 
+<!-- CLIENT APP — WIDOK KLIENTA -->
+<div class="screen" id="screen-clientapp">
+  <div class="topbar">
+    <div class="topbar-title">Aplikacja klienta — podgląd</div>
+    <div class="topbar-actions">
+      <div style="display:flex;gap:2px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:2px;">
+        <button class="auto-tab-btn active" id="cap-tab-preview" onclick="setCapTab('preview')">📱 Podgląd</button>
+        <button class="auto-tab-btn" id="cap-tab-customize" onclick="setCapTab('customize')">🎨 Personalizacja</button>
+        <button class="auto-tab-btn" id="cap-tab-access" onclick="setCapTab('access')">🔑 Dostęp klientów</button>
+      </div>
+      <select class="form-select" id="cap-client-sel" onchange="renderClientApp()" style="width:160px;font-size:12px;padding:5px 8px;">
+        <option value="">Wybierz klienta...</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- PREVIEW TAB -->
+  <div id="cap-preview-tab" style="flex:1;display:flex;overflow:hidden;">
+
+    <!-- lewy panel — lista sekcji -->
+    <div style="width:220px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;padding:10px 0;">
+      <div style="padding:5px 14px 3px;font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Ekrany klienta</div>
+      <div class="cap-nav-item active" id="capn-home" onclick="setCapScreen('home',this)">🏠 Strona główna</div>
+      <div class="cap-nav-item" id="capn-plan" onclick="setCapScreen('plan',this)">📋 Mój plan</div>
+      <div class="cap-nav-item" id="capn-calendar" onclick="setCapScreen('calendar',this)">📅 Kalendarz sesji</div>
+      <div class="cap-nav-item" id="capn-progress" onclick="setCapScreen('progress',this)">📈 Moje postępy</div>
+      <div class="cap-nav-item" id="capn-checkin" onclick="setCapScreen('checkin',this)">✅ Check-in</div>
+      <div class="cap-nav-item" id="capn-messages" onclick="setCapScreen('messages',this)">💬 Wiadomości</div>
+      <div class="cap-nav-item" id="capn-ondemand" onclick="setCapScreen('ondemand',this)">▶️ On-demand</div>
+      <div class="cap-nav-item" id="capn-resources" onclick="setCapScreen('resources',this)">📚 Zasoby</div>
+      <div class="cap-nav-item" id="capn-profile" onclick="setCapScreen('profile',this)">👤 Mój profil</div>
+
+      <div style="padding:12px 14px;border-top:1px solid var(--border);margin-top:8px;">
+        <div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Urządzenie</div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <button class="wl-filter-chip active" id="cap-dev-phone" onclick="setCapDevice('phone',this)">📱 iPhone</button>
+          <button class="wl-filter-chip" id="cap-dev-android" onclick="setCapDevice('android',this)">🤖 Android</button>
+          <button class="wl-filter-chip" id="cap-dev-tablet" onclick="setCapDevice('tablet',this)">📲 Tablet</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- środek — mockup telefonu -->
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;overflow:auto;padding:20px;background:var(--s3);">
+      <div id="cap-phone-wrapper">
+        <!-- phone frame -->
+        <div id="cap-phone-frame" style="width:375px;height:812px;background:#07080a;border-radius:50px;border:8px solid #1a1a2a;box-shadow:0 30px 80px rgba(0,0,0,0.8),inset 0 0 0 1px rgba(255,255,255,0.05);position:relative;overflow:hidden;flex-shrink:0;">
+          <!-- notch -->
+          <div style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:30px;background:#1a1a2a;border-radius:0 0 20px 20px;z-index:10;display:flex;align-items:center;justify-content:center;gap:6px;">
+            <div style="width:8px;height:8px;border-radius:50%;background:#2a2a3a;"></div>
+            <div style="width:40px;height:4px;border-radius:2px;background:#2a2a3a;"></div>
+          </div>
+          <!-- status bar -->
+          <div style="position:absolute;top:0;left:0;right:0;height:44px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 20px 4px;z-index:9;font-size:11px;font-family:'DM Mono',monospace;color:rgba(255,255,255,0.7);">
+            <span>9:41</span>
+            <span>▲▲▲ 📶 🔋</span>
+          </div>
+          <!-- screen content -->
+          <div id="cap-screen-content" style="position:absolute;top:44px;left:0;right:0;bottom:0;overflow-y:auto;overflow-x:hidden;background:#07080a;"></div>
+          <!-- bottom nav bar -->
+          <div id="cap-bottom-nav" style="position:absolute;bottom:0;left:0;right:0;height:80px;background:rgba(7,8,10,0.95);border-top:1px solid rgba(255,255,255,0.06);display:flex;align-items:flex-start;justify-content:space-around;padding:10px 0 0;z-index:9;backdrop-filter:blur(10px);">
+            <div onclick="setCapScreen('home',null)" style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;opacity:1;" id="cap-bn-home">
+              <span style="font-size:20px;">🏠</span><span style="font-size:9px;color:var(--accent);">Główna</span>
+            </div>
+            <div onclick="setCapScreen('plan',null)" style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;opacity:0.5;" id="cap-bn-plan">
+              <span style="font-size:20px;">📋</span><span style="font-size:9px;color:var(--muted);">Plan</span>
+            </div>
+            <div onclick="setCapScreen('progress',null)" style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;opacity:0.5;" id="cap-bn-progress">
+              <span style="font-size:20px;">📈</span><span style="font-size:9px;color:var(--muted);">Postępy</span>
+            </div>
+            <div onclick="setCapScreen('messages',null)" style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;opacity:0.5;" id="cap-bn-messages">
+              <span style="font-size:20px;">💬</span><span style="font-size:9px;color:var(--muted);">Czat</span>
+            </div>
+            <div onclick="setCapScreen('profile',null)" style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;opacity:0.5;" id="cap-bn-profile">
+              <span style="font-size:20px;">👤</span><span style="font-size:9px;color:var(--muted);">Profil</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- prawy panel — info o ekranie -->
+    <div style="width:260px;flex-shrink:0;border-left:1px solid var(--border);overflow-y:auto;padding:14px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--accent);margin-bottom:12px;">OPIS EKRANU</div>
+      <div id="cap-screen-info"></div>
+    </div>
+  </div>
+
+  <!-- CUSTOMIZE TAB -->
+  <div id="cap-customize-tab" style="flex:1;overflow-y:auto;padding:24px;display:none;">
+    <div style="max-width:700px;margin:0 auto;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">PERSONALIZACJA APLIKACJI KLIENTA</div>
+      <div id="cap-customize-content"></div>
+    </div>
+  </div>
+
+  <!-- ACCESS TAB -->
+  <div id="cap-access-tab" style="flex:1;overflow-y:auto;padding:24px;display:none;">
+    <div style="max-width:800px;margin:0 auto;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">DOSTĘP KLIENTÓW DO APLIKACJI</div>
+      <div id="cap-access-content"></div>
+    </div>
+  </div>
+</div>
+
 </div><!-- /main -->
 
 <!-- CALCULATOR — TDEE / MAKRO -->
@@ -3053,7 +3172,7 @@ function goTo(n){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   const s=document.getElementById('screen-'+n);if(s)s.classList.add('active');
-  const navMap={'dashboard':0,'clients':1,'plans':2,'builder':3,'calendar':4,'inbox':5,'workout-library':6,'library':7,'programs':8,'metrics':9,'tasks':10,'forms':11,'automation':12,'resources':13,'ondemand':14,'payments':15,'calculator':16,'forum':17,'settings':18,'checkin':19,'progbuilder':20,'integrations':21};
+  const navMap={'dashboard':0,'clients':1,'plans':2,'builder':3,'calendar':4,'inbox':5,'workout-library':6,'library':7,'programs':8,'metrics':9,'tasks':10,'forms':11,'automation':12,'resources':13,'ondemand':14,'payments':15,'calculator':16,'forum':17,'settings':18,'checkin':19,'progbuilder':20,'integrations':21,'clientapp':22};
   const btns=document.querySelectorAll('.nav-item');
   if(navMap[n]!==undefined&&btns[navMap[n]])btns[navMap[n]].classList.add('active');
   if(n==='builder')initBuilder();
@@ -3094,6 +3213,7 @@ function goTo(n){
   if(n==='checkin'){renderCheckin();}
   if(n==='progbuilder'){pbInit();}
   if(n==='integrations'){renderIntegrations();}
+  if(n==='clientapp'){initClientApp();}
 }
 
 function openM(id){
@@ -3371,8 +3491,586 @@ async function saveWorkout(){
 }
 
 // ════════════════════════════════════════
-// INTEGRATIONS
+// CLIENT APP — WIDOK KLIENTA
 // ════════════════════════════════════════
+var capScreen='home';var capDevice='phone';var capTab='preview';
+var capClientId=null;
+
+const CAP_ACCENT='#c8f135';
+const CAP_BG='#07080a';
+const CAP_S1='#0d0f12';
+const CAP_S2='#12151a';
+const CAP_S3='rgba(255,255,255,0.06)';
+const CAP_TEXT='#eceae6';
+const CAP_MUTED='rgba(255,255,255,0.4)';
+
+function initClientApp(){
+  const sel=document.getElementById('cap-client-sel');
+  if(sel){
+    sel.innerHTML='<option value="">Wybierz klienta...</option>'+CL.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+    if(!capClientId&&CL.length){capClientId=CL[0].id;sel.value=capClientId;}
+  }
+  renderClientApp();
+}
+
+function renderClientApp(){
+  const sel=document.getElementById('cap-client-sel');
+  if(sel&&sel.value)capClientId=sel.value;
+  setCapScreen(capScreen,null);
+  renderCapInfo();
+  if(capTab==='customize')renderCapCustomize();
+  if(capTab==='access')renderCapAccess();
+}
+
+function setCapTab(t){
+  capTab=t;
+  ['preview','customize','access'].forEach(x=>{
+    const el=document.getElementById('cap-'+x+'-tab');
+    if(el)el.style.display=x===t?'flex':'none';
+    document.getElementById('cap-tab-'+x+'')?.classList.toggle('active',x===t);
+  });
+  document.getElementById('cap-preview-tab').style.display=t==='preview'?'flex':'none';
+  if(t==='customize')renderCapCustomize();
+  if(t==='access')renderCapAccess();
+}
+
+function setCapDevice(dev,btn){
+  capDevice=dev;
+  document.querySelectorAll('#cap-dev-phone,#cap-dev-android,#cap-dev-tablet').forEach(b=>b?.classList.remove('active'));
+  btn?.classList.add('active');
+  const frame=document.getElementById('cap-phone-frame');
+  if(!frame)return;
+  if(dev==='phone'){frame.style.width='375px';frame.style.height='812px';frame.style.borderRadius='50px';}
+  else if(dev==='android'){frame.style.width='360px';frame.style.height='780px';frame.style.borderRadius='30px';}
+  else{frame.style.width='768px';frame.style.height='600px';frame.style.borderRadius='20px';}
+}
+
+function setCapScreen(scr,btn){
+  capScreen=scr;
+  // update nav items
+  document.querySelectorAll('.cap-nav-item').forEach(el=>el.classList.remove('active'));
+  const nb=document.getElementById('capn-'+scr);if(nb)nb.classList.add('active');
+  // update bottom nav
+  ['home','plan','progress','messages','profile'].forEach(s=>{
+    const bn=document.getElementById('cap-bn-'+s);
+    if(bn){
+      const isActive=s===scr;
+      bn.style.opacity=isActive?'1':'0.5';
+      const span=bn.querySelectorAll('span')[1];
+      if(span)span.style.color=isActive?CAP_ACCENT:CAP_MUTED;
+    }
+  });
+  const c=CL.find(x=>x.id===capClientId)||{name:'Jan Kowalski',goal:'masa',level:'sredni',weight:83,height:180,age:28};
+  const content=document.getElementById('cap-screen-content');
+  if(!content)return;
+  content.innerHTML=capScreenHTML(scr,c);
+  renderCapInfo();
+}
+
+function capScreenHTML(scr,c){
+  const accent=window.SETTINGS?.brand?.accentColor||CAP_ACCENT;
+  const trainerName=window.SETTINGS?.profile?.name||'Piotr Urbaniak';
+  const sessions=SE.filter(s=>s.clientId===c.id);
+  const plans=PL.filter(p=>p.clientId===c.id);
+  const tasks=TASKS.filter(t=>t.clientId===c.id&&t.status!=='done');
+  const todaySess=sessions.filter(s=>s.date===dateStr(new Date()));
+  const packages=(window.PACKAGES||[]).concat(window.PACKAGES?.length?[]:[{title:'10 sesji personalnych',sessions:10,sessionsUsed:4,price:1500,expiresDate:'2025-08-30'}]);
+
+  const h=(html)=>html; // passthrough
+
+  if(scr==='home') return `
+    <div class="cap-section" style="padding-bottom:90px;">
+      <!-- greeting -->
+      <div style="margin-bottom:20px;padding-top:8px;">
+        <div style="font-size:13px;color:${CAP_MUTED};margin-bottom:2px;">Dzień dobry 👋</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;color:${CAP_TEXT};">${c.name.split(' ')[0].toUpperCase()}</div>
+        <div style="font-size:11px;color:${CAP_MUTED};margin-top:2px;">Trener: ${trainerName}</div>
+      </div>
+
+      <!-- dziś -->
+      ${todaySess.length?`
+      <div style="background:linear-gradient(135deg,${accent}22,${accent}08);border:1px solid ${accent}44;border-radius:18px;padding:16px;margin-bottom:14px;">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:${accent};text-transform:uppercase;margin-bottom:8px;">📅 DZIŚ</div>
+        ${todaySess.map(s=>`<div style="display:flex;align-items:center;gap:12px;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;color:${accent};line-height:1;">${s.time||'10:00'}</div>
+          <div><div style="font-size:14px;font-weight:700;color:${CAP_TEXT};">${s.type||'Trening siłowy'}</div>
+          <div style="font-size:11px;color:${CAP_MUTED};">${s.duration||60} min · z ${trainerName}</div></div>
+        </div>`).join('')}
+        <button class="cap-btn-primary" style="margin-top:12px;padding:10px;font-size:13px;">✓ Potwierdzam obecność</button>
+      </div>`:`
+      <div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;text-align:center;">
+        <div style="font-size:28px;margin-bottom:6px;">😴</div>
+        <div style="font-size:13px;color:${CAP_TEXT};font-weight:600;margin-bottom:4px;">Brak sesji dziś</div>
+        <div style="font-size:11px;color:${CAP_MUTED};">Dzień regeneracji — pamiętaj o diecie!</div>
+      </div>`}
+
+      <!-- streaki i postępy -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+        <div style="background:${CAP_S2};border-radius:16px;padding:14px;text-align:center;border:1px solid ${CAP_S3};">
+          <div style="font-size:28px;margin-bottom:4px;">🔥</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--orange);line-height:1;">${sessions.length||7}</div>
+          <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-top:2px;">Sesji łącznie</div>
+        </div>
+        <div style="background:${CAP_S2};border-radius:16px;padding:14px;text-align:center;border:1px solid ${CAP_S3};">
+          <div style="font-size:28px;margin-bottom:4px;">⚡</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;color:${accent};line-height:1;">${tasks.length||3}</div>
+          <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-top:2px;">Zadań do zrobienia</div>
+        </div>
+      </div>
+
+      <!-- tygodniowy postęp -->
+      <div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};">Tydzień treningowy</div>
+          <div style="font-size:11px;color:${accent};">3/5 dni</div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          ${['Pon','Wt','Śr','Czw','Pt'].map((d,i)=>`<div style="flex:1;text-align:center;">
+            <div style="height:36px;border-radius:8px;background:${i<3?accent+'33':CAP_S3};border:1px solid ${i<3?accent+'66':'transparent'};display:flex;align-items:center;justify-content:center;font-size:14px;margin-bottom:4px;">${i<3?'✓':''}</div>
+            <div style="font-size:9px;color:${CAP_MUTED};">${d}</div>
+          </div>`).join('')}
+        </div>
+      </div>
+
+      <!-- zadania -->
+      ${tasks.length?`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
+        <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">📋 Twoje zadania</div>
+        ${tasks.slice(0,3).map(t=>`<div class="cap-list-item">
+          <div class="cap-check-circle"><div style="width:10px;height:10px;border-radius:50%;background:${accent};"></div></div>
+          <div style="flex:1;"><div style="font-size:12px;color:${CAP_TEXT};">${t.title}</div>
+          ${t.due?`<div style="font-size:10px;color:${CAP_MUTED};">Do: ${t.due}</div>`:''}
+          </div>
+        </div>`).join('')}
+      </div>`:''}
+
+      <!-- motywacja -->
+      <div style="background:linear-gradient(135deg,#1a0a2a,#0a0a1a);border:1px solid rgba(157,124,244,0.3);border-radius:18px;padding:16px;text-align:center;">
+        <div style="font-size:24px;margin-bottom:8px;">💡</div>
+        <div style="font-size:13px;color:${CAP_TEXT};font-style:italic;line-height:1.6;">"Każdy trening to inwestycja, której nie możesz stracić."</div>
+        <div style="font-size:10px;color:${CAP_MUTED};margin-top:6px;">— ${trainerName}</div>
+      </div>
+    </div>`;
+
+  if(scr==='plan') return `
+    <div class="cap-section" style="padding-bottom:90px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:16px;padding-top:8px;">MÓJ PLAN</div>
+      ${plans.length?plans.slice(0,1).map(p=>`
+        <div style="background:linear-gradient(135deg,${accent}22,${accent}08);border:1px solid ${accent}44;border-radius:18px;padding:16px;margin-bottom:14px;">
+          <div style="font-size:15px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">${p.name}</div>
+          <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:12px;">${p.method} · ${p.duration} tygodni</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            ${(p.days||[]).map(d=>`<span style="background:${d.rest?CAP_S3:accent+'22'};color:${d.rest?CAP_MUTED:accent};border-radius:8px;padding:4px 10px;font-size:11px;font-family:'DM Mono',monospace;">${d.day}${d.rest?' REST':''}</span>`).join('')}
+          </div>
+        </div>`).join(''):`
+        <div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:20px;text-align:center;margin-bottom:14px;">
+          <div style="font-size:32px;margin-bottom:8px;">📋</div>
+          <div style="font-size:14px;font-weight:700;color:${CAP_TEXT};margin-bottom:6px;">Brak planu</div>
+          <div style="font-size:11px;color:${CAP_MUTED};">Twój trener wkrótce przypisze Ci plan treningowy.</div>
+        </div>`}
+
+      <!-- dzisiajszy trening szczegółowy -->
+      <div style="font-size:14px;font-weight:700;color:${CAP_TEXT};margin-bottom:12px;">📅 TRENING NA DZIŚ</div>
+      ${[
+        {name:'Wyciskanie sztangi leżąc',sets:'4×8',rest:'90s',done:true},
+        {name:'Wyciskanie hantli skos+',sets:'3×10',rest:'75s',done:true},
+        {name:'Rozpiętki wyciąg',sets:'3×12',rest:'60s',done:false},
+        {name:'Wyciskanie OHP',sets:'3×10',rest:'90s',done:false},
+        {name:'Wznosy hantli bokiem',sets:'4×15',rest:'45s',done:false},
+        {name:'Prostowanie triceps',sets:'3×12',rest:'60s',done:false},
+      ].map((ex,i)=>`<div style="background:${ex.done?accent+'11':CAP_S2};border:1px solid ${ex.done?accent+'33':CAP_S3};border-radius:14px;padding:14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;">
+        <div style="width:32px;height:32px;border-radius:50%;background:${ex.done?accent:CAP_S3};display:flex;align-items:center;justify-content:center;font-size:${ex.done?'14px':'13px'};font-weight:700;color:${ex.done?'#000':CAP_MUTED};flex-shrink:0;">${ex.done?'✓':i+1}</div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:600;color:${ex.done?accent:CAP_TEXT};">${ex.name}</div>
+          <div style="font-size:11px;color:${CAP_MUTED};">${ex.sets} · Przerwa: ${ex.rest}</div>
+        </div>
+        ${!ex.done?`<button style="background:${accent};color:#000;border:none;border-radius:10px;padding:6px 12px;font-size:11px;font-weight:700;">Start</button>`:''}
+      </div>`).join('')}
+    </div>`;
+
+  if(scr==='calendar') return `
+    <div class="cap-section" style="padding-bottom:90px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:16px;padding-top:8px;">KALENDARZ SESJI</div>
+      <!-- mini calendar -->
+      <div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <button style="background:none;border:none;color:${CAP_MUTED};font-size:18px;cursor:pointer;">‹</button>
+          <div style="font-size:14px;font-weight:700;color:${CAP_TEXT};">Maj 2025</div>
+          <button style="background:none;border:none;color:${CAP_MUTED};font-size:18px;cursor:pointer;">›</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;margin-bottom:8px;">
+          ${['P','W','Ś','C','P','S','N'].map(d=>`<div style="font-size:9px;color:${CAP_MUTED};padding:4px 0;">${d}</div>`).join('')}
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center;">
+          ${Array.from({length:31},(_,i)=>{
+            const hasSess=[5,8,12,15,19,22,26].includes(i+1);
+            const isToday=i+1===20;
+            return `<div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:12px;background:${isToday?accent:hasSess?accent+'22':'transparent'};color:${isToday?'#000':hasSess?accent:CAP_MUTED};font-weight:${isToday||hasSess?700:400};">${i+1}</div>`;
+          }).join('')}
+        </div>
+      </div>
+      <!-- nadchodzące sesje -->
+      <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">Nadchodzące sesje</div>
+      ${[
+        {date:'Wt 21 maj',time:'10:00',type:'Trening siłowy — Push'},
+        {date:'Czw 23 maj',time:'10:00',type:'Trening siłowy — Pull'},
+        {date:'Sob 25 maj',time:'10:00',type:'Trening siłowy — Legs'},
+      ].map(s=>`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:14px;margin-bottom:8px;display:flex;gap:12px;align-items:center;">
+        <div style="background:${accent}22;border-radius:10px;padding:8px 12px;text-align:center;flex-shrink:0;">
+          <div style="font-size:11px;color:${accent};font-family:'DM Mono',monospace;">${s.date.split(' ')[0]}</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:${accent};line-height:1;">${s.date.split(' ')[1]}</div>
+        </div>
+        <div><div style="font-size:13px;font-weight:700;color:${CAP_TEXT};">${s.type}</div>
+        <div style="font-size:11px;color:${CAP_MUTED};">⏰ ${s.time} · 60 min · z ${trainerName}</div></div>
+      </div>`).join('')}
+    </div>`;
+
+  if(scr==='progress') return `
+    <div class="cap-section" style="padding-bottom:90px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:16px;padding-top:8px;">MOJE POSTĘPY</div>
+      <!-- główne KPI -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+        <div style="background:${CAP_S2};border-radius:16px;padding:14px;border:1px solid ${CAP_S3};">
+          <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:6px;">⚖️ Masa ciała</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:30px;color:${CAP_TEXT};line-height:1;">${c.weight||83}<span style="font-size:14px;color:${CAP_MUTED};"> kg</span></div>
+          <div style="font-size:11px;color:var(--teal);margin-top:4px;">↓ −5 kg od startu</div>
+        </div>
+        <div style="background:${CAP_S2};border-radius:16px;padding:14px;border:1px solid ${CAP_S3};">
+          <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:6px;">💪 Przysiad 1RM</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:30px;color:${accent};line-height:1;">120<span style="font-size:14px;color:${CAP_MUTED};"> kg</span></div>
+          <div style="font-size:11px;color:var(--teal);margin-top:4px;">↑ +20 kg od startu</div>
+        </div>
+      </div>
+      <!-- wykres masy (SVG) -->
+      <div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
+        <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:12px;">Masa ciała — ostatnie 8 tygodni</div>
+        <svg viewBox="0 0 320 80" xmlns="http://www.w3.org/2000/svg" style="width:100%;">
+          <defs><linearGradient id="grad1" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="${accent}" stop-opacity="0.3"/><stop offset="100%" stop-color="${accent}" stop-opacity="0"/></linearGradient></defs>
+          <path d="M10,60 L56,55 L102,52 L148,48 L194,44 L240,40 L286,36 L320,33 L320,80 L10,80 Z" fill="url(#grad1)"/>
+          <path d="M10,60 L56,55 L102,52 L148,48 L194,44 L240,40 L286,36 L320,33" fill="none" stroke="${accent}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+          ${[60,55,52,48,44,40,36,33].map((y,i)=>`<circle cx="${10+i*44}" cy="${y}" r="4" fill="${accent}" stroke="${CAP_BG}" stroke-width="1.5"/>`).join('')}
+          ${['T1','T2','T3','T4','T5','T6','T7','T8'].map((l,i)=>`<text x="${10+i*44}" y="78" font-size="8" fill="${CAP_MUTED}" text-anchor="middle">${l}</text>`).join('')}
+        </svg>
+      </div>
+      <!-- siła bazowa -->
+      <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">Siła bazowa</div>
+      ${[
+        {name:'Przysiad',start:100,current:120,unit:'kg',col:accent},
+        {name:'Martwy ciąg',start:120,current:145,unit:'kg',col:'var(--orange)'},
+        {name:'Wyciskanie',start:80,current:95,unit:'kg',col:'var(--blue)'},
+        {name:'OHP',start:60,current:72,unit:'kg',col:'var(--purple)'},
+      ].map(s=>`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:12px;margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:12px;font-weight:600;color:${CAP_TEXT};">${s.name}</span>
+          <span style="font-size:12px;color:${s.col};font-weight:700;">${s.current} kg <span style="font-size:10px;color:var(--teal);">↑ +${s.current-s.start}</span></span>
+        </div>
+        <div style="height:5px;background:${CAP_S3};border-radius:99px;overflow:hidden;">
+          <div style="height:100%;background:${s.col};width:${Math.round(s.current/200*100)}%;border-radius:99px;"></div>
+        </div>
+      </div>`).join('')}
+    </div>`;
+
+  if(scr==='checkin') return `
+    <div class="cap-section" style="padding-bottom:90px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:4px;padding-top:8px;">CHECK-IN TYGODNIOWY</div>
+      <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:20px;">Tydzień 20–26 maja 2025</div>
+      <!-- pytania check-in -->
+      ${[
+        {label:'Poziom energii w tym tygodniu',emoji:['😴','😪','😐','😊','⚡'],selected:3},
+        {label:'Jakość snu',emoji:['😴','😪','😐','😊','🌟'],selected:2},
+        {label:'Poziom stresu (1=niski)',emoji:['🧘','😌','😐','😰','🤯'],selected:1},
+        {label:'Odżywianie',emoji:['🍕','🌮','😐','🥗','💪'],selected:3},
+      ].map(q=>`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:10px;">
+        <div style="font-size:12px;color:${CAP_MUTED};margin-bottom:10px;">${q.label}</div>
+        <div style="display:flex;justify-content:space-between;">
+          ${q.emoji.map((e,i)=>`<div style="width:48px;height:48px;border-radius:12px;background:${i===q.selected?accent+'33':CAP_S3};border:2px solid ${i===q.selected?accent:'transparent'};display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;">${e}</div>`).join('')}
+        </div>
+      </div>`).join('')}
+      <!-- ile treningów -->
+      <div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:10px;">
+        <div style="font-size:12px;color:${CAP_MUTED};margin-bottom:10px;">Ile treningów wykonałeś/aś?</div>
+        <div style="display:flex;justify-content:space-between;">
+          ${[0,1,2,3,4,5].map(n=>`<div style="width:44px;height:44px;border-radius:12px;background:${n===3?accent:CAP_S3};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:20px;color:${n===3?'#000':CAP_MUTED};cursor:pointer;">${n}</div>`).join('')}
+        </div>
+      </div>
+      <!-- waga -->
+      <div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:10px;">
+        <div style="font-size:12px;color:${CAP_MUTED};margin-bottom:8px;">Masa ciała (opcjonalnie)</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="flex:1;background:${CAP_S3};border-radius:10px;padding:12px;text-align:center;font-family:'Bebas Neue',sans-serif;font-size:28px;color:${CAP_TEXT};">83.0</div>
+          <span style="color:${CAP_MUTED};font-size:14px;">kg</span>
+        </div>
+      </div>
+      <!-- komentarz -->
+      <div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
+        <div style="font-size:12px;color:${CAP_MUTED};margin-bottom:8px;">Komentarz dla trenera (opcjonalnie)</div>
+        <div style="background:${CAP_S3};border-radius:10px;padding:12px;font-size:12px;color:${CAP_MUTED};min-height:60px;">Świetny tydzień! Pobiłem rekord w przysiadzie 💪</div>
+      </div>
+      <button class="cap-btn-primary">✓ Wyślij check-in</button>
+    </div>`;
+
+  if(scr==='messages') return `
+    <div style="display:flex;flex-direction:column;height:100%;padding-bottom:80px;">
+      <!-- header -->
+      <div style="padding:12px 16px;border-bottom:1px solid ${CAP_S3};display:flex;align-items:center;gap:10px;flex-shrink:0;">
+        <div style="width:36px;height:36px;border-radius:50%;background:${accent}22;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;color:${accent};">PU</div>
+        <div><div style="font-size:13px;font-weight:700;color:${CAP_TEXT};">${trainerName}</div>
+        <div style="font-size:10px;color:var(--teal);">● Online</div></div>
+      </div>
+      <!-- wiadomości -->
+      <div style="flex:1;overflow-y:auto;padding:14px 12px;">
+        ${[
+          {out:false,text:`Hej ${c.name.split(' ')[0]}! Jak Ci idzie z nowym planem? 💪`,time:'Wt 9:15'},
+          {out:true,text:'Świetnie! Wczoraj pobiłem rekord w przysiadzie — 120 kg! 🎉',time:'Wt 10:32'},
+          {out:false,text:'Super robota! To efekt tych 8 tygodni ciężkiej pracy. Pamiętaj o regeneracji dziś wieczór 🧘',time:'Wt 10:45'},
+          {out:true,text:'Będę pamiętał! Mam pytanie — czy mogę dodać cardio w dni wolne od siłowni?',time:'Wt 11:00'},
+          {out:false,text:'Tak, 20-30 min lekkiego cardio w niskiej strefie (strefa 2) będzie idealne. Bieganie lub rower 👍',time:'Wt 11:05'},
+        ].map(m=>`<div style="margin-bottom:10px;${m.out?'text-align:right;':''}">
+          <div style="display:inline-block;max-width:80%;padding:10px 14px;border-radius:${m.out?'16px 4px 16px 16px':'4px 16px 16px 16px'};background:${m.out?accent:CAP_S2};color:${m.out?'#000':CAP_TEXT};font-size:12px;line-height:1.5;border:${m.out?'none':'1px solid '+CAP_S3};">${m.text}</div>
+          <div style="font-size:9px;color:${CAP_MUTED};margin-top:3px;">${m.time}</div>
+        </div>`).join('')}
+      </div>
+      <!-- input -->
+      <div style="padding:10px 12px;background:${CAP_S1};border-top:1px solid ${CAP_S3};display:flex;gap:8px;align-items:center;">
+        <div style="flex:1;background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:20px;padding:10px 14px;font-size:12px;color:${CAP_MUTED};">Napisz wiadomość...</div>
+        <div style="width:36px;height:36px;background:${accent};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;flex-shrink:0;">→</div>
+      </div>
+    </div>`;
+
+  if(scr==='ondemand') return `
+    <div class="cap-section" style="padding-bottom:90px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:16px;padding-top:8px;">ON-DEMAND</div>
+      <!-- kategorie -->
+      <div style="display:flex;gap:8px;overflow-x:auto;margin-bottom:16px;padding-bottom:4px;">
+        ${['Wszystkie','Full Body','Siła','HIIT','Mobilność'].map((cat,i)=>`<div style="padding:8px 16px;border-radius:20px;background:${i===0?accent:CAP_S2};color:${i===0?'#000':CAP_MUTED};font-size:12px;font-weight:600;white-space:nowrap;cursor:pointer;border:1px solid ${i===0?accent:CAP_S3};">${cat}</div>`).join('')}
+      </div>
+      <!-- treningi -->
+      ${[
+        {name:'Full Body EMOM 30 min',level:'Średni',time:30,emoji:'⚡',col:'#1a1a2e'},
+        {name:'HIIT Tabata — bez sprzętu',level:'Średni',time:25,emoji:'🔥',col:'#1a0a0a'},
+        {name:'Push Day — Klatka & Triceps',level:'Zaawansowany',time:55,emoji:'💪',col:'#0a1a0a'},
+        {name:'Mobilność bioder 20 min',level:'Początkujący',time:20,emoji:'🧘',col:'#0a1a1a'},
+      ].map(w=>`<div style="background:linear-gradient(135deg,${w.col},${CAP_S1});border:1px solid ${CAP_S3};border-radius:18px;overflow:hidden;margin-bottom:12px;cursor:pointer;">
+        <div style="height:110px;display:flex;align-items:center;justify-content:center;position:relative;background:linear-gradient(135deg,${w.col},transparent);">
+          <div style="font-size:50px;opacity:0.3;position:absolute;">${w.emoji}</div>
+          <div style="width:48px;height:48px;border-radius:50%;background:${accent};display:flex;align-items:center;justify-content:center;font-size:20px;z-index:1;">▶</div>
+          <div style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.7);border-radius:4px;padding:2px 7px;font-size:10px;font-family:'DM Mono',monospace;color:#fff;">${w.time} min</div>
+        </div>
+        <div style="padding:12px;">
+          <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};">${w.name}</div>
+          <div style="font-size:11px;color:${CAP_MUTED};margin-top:2px;">${w.level} · ${w.time} min</div>
+        </div>
+      </div>`).join('')}
+    </div>`;
+
+  if(scr==='resources') return `
+    <div class="cap-section" style="padding-bottom:90px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:16px;padding-top:8px;">ZASOBY</div>
+      <!-- kolekcje -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;">
+        ${[
+          {name:'Poradniki\nżywieniowe',icon:'🥗',col:'var(--teal)',count:4},
+          {name:'Muzyka do\ntreningu',icon:'🎵',col:accent,count:5},
+          {name:'Podcasty\nfitness',icon:'🎧',col:'var(--purple)',count:6},
+          {name:'Technika\nćwiczeń',icon:'📹',col:'var(--orange)',count:3},
+        ].map(col=>`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:16px;padding:14px;cursor:pointer;">
+          <div style="font-size:28px;margin-bottom:8px;">${col.icon}</div>
+          <div style="font-size:12px;font-weight:700;color:${CAP_TEXT};line-height:1.3;white-space:pre-line;">${col.name}</div>
+          <div style="font-size:10px;color:${col.col};margin-top:4px;">${col.count} zasobów</div>
+        </div>`).join('')}
+      </div>
+      <!-- ostatnio dodane -->
+      <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">Ostatnio dodane przez trenera</div>
+      ${[
+        {name:'Dobre źródła białka',type:'🔗 Link',cat:'Odżywianie'},
+        {name:'Muzyka do treningu siłowego',type:'▶️ Wideo',cat:'Trening'},
+        {name:'Podcast o regeneracji CNS',type:'🎧 Podcast',cat:'Regeneracja'},
+      ].map(r=>`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:14px;margin-bottom:8px;display:flex;gap:12px;align-items:center;">
+        <div style="width:40px;height:40px;border-radius:12px;background:${accent}22;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">${r.type.split(' ')[0]}</div>
+        <div style="flex:1;">
+          <div style="font-size:12px;font-weight:700;color:${CAP_TEXT};">${r.name}</div>
+          <div style="font-size:10px;color:${CAP_MUTED};">${r.cat} · ${r.type.split(' ')[1]}</div>
+        </div>
+        <div style="color:${accent};font-size:18px;">→</div>
+      </div>`).join('')}
+    </div>`;
+
+  if(scr==='profile') return `
+    <div class="cap-section" style="padding-bottom:90px;">
+      <div style="padding-top:8px;text-align:center;margin-bottom:20px;">
+        <div style="width:80px;height:80px;border-radius:50%;background:${accent}22;border:3px solid ${accent};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:32px;color:${accent};margin:0 auto 10px;">${getInit(c.name)}</div>
+        <div style="font-size:20px;font-weight:700;color:${CAP_TEXT};">${c.name}</div>
+        <div style="font-size:11px;color:${CAP_MUTED};margin-top:3px;">${{masa:'💪 Budowa masy',sila:'🏋️ Wzrost siły',redukcja:'🔥 Redukcja',kondycja:'🏃 Kondycja'}[c.goal]||c.goal||'Brak celu'}</div>
+      </div>
+      <!-- stats -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px;">
+        ${[
+          {label:'Sesji',val:sessions.length||12,col:accent},
+          {label:'Tygodni',val:8,col:'var(--blue)'},
+          {label:'Zadań',val:TASKS.filter(t=>t.clientId===c.id&&t.status==='done').length||5,col:'var(--teal)'},
+        ].map(s=>`<div style="background:${CAP_S2};border-radius:14px;padding:12px;text-align:center;border:1px solid ${CAP_S3};">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:${s.col};line-height:1;">${s.val}</div>
+          <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-top:2px;">${s.label}</div>
+        </div>`).join('')}
+      </div>
+      <!-- dane -->
+      <div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:12px;">
+        <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:12px;">Dane osobowe</div>
+        ${[['Wiek',c.age?c.age+' lat':'—'],['Waga',c.weight?c.weight+' kg':'—'],['Wzrost',c.height?c.height+' cm':'—'],['Poziom',{poczatkujacy:'Początkujący',sredni:'Średniozaawansowany',zaawansowany:'Zaawansowany'}[c.level]||'—']].map(([l,v])=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid ${CAP_S3};font-size:12px;">
+          <span style="color:${CAP_MUTED};">${l}</span><span style="color:${CAP_TEXT};font-weight:600;">${v}</span>
+        </div>`).join('')}
+      </div>
+      <!-- aktywny pakiet -->
+      <div style="background:linear-gradient(135deg,${accent}22,${accent}08);border:1px solid ${accent}44;border-radius:18px;padding:16px;margin-bottom:12px;">
+        <div style="font-size:10px;color:${accent};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:8px;">Aktywny pakiet</div>
+        <div style="font-size:14px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">10 sesji personalnych</div>
+        <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:10px;">6/10 sesji pozostało · Ważny do 30.08.2025</div>
+        <div style="height:6px;background:${CAP_S3};border-radius:99px;overflow:hidden;">
+          <div style="height:100%;background:${accent};width:60%;border-radius:99px;"></div>
+        </div>
+      </div>
+      <button class="cap-btn-secondary">⚙ Ustawienia konta</button>
+      <button class="cap-btn-secondary" style="color:var(--red);border-color:rgba(255,77,77,0.2);">Wyloguj się</button>
+    </div>`;
+
+  return `<div style="padding:40px;text-align:center;color:${CAP_MUTED};">Wkrótce...</div>`;
+}
+
+const CAP_SCREEN_INFO={
+  home:{title:'🏠 Strona główna',desc:'Ekran powitalny klienta — widzi swoje dzisiejsze sesje, tygodniowy postęp, zadania od trenera i motywacyjne cytaty. Personalizowany na podstawie danych z Progress Live.'},
+  plan:{title:'📋 Mój plan treningowy',desc:'Klient widzi przypisany plan i szczegółowy plan na dziś — każde ćwiczenie z seriami, powtórzeniami i przerwami. Może oznaczać ćwiczenia jako ukończone.'},
+  calendar:{title:'📅 Kalendarz sesji',desc:'Mini-kalendarz z zaznaczonymi sesjami. Klient widzi nadchodzące treningi z godziną, typem i linkiem do Google Meet (jeśli online).'},
+  progress:{title:'📈 Moje postępy',desc:'Wykresy masy ciała, siły bazowej i innych pomiarów. Klient na bieżąco widzi swoje postępy i może je porównać z punktem startowym.'},
+  checkin:{title:'✅ Check-in tygodniowy',desc:'Interaktywny formularz check-inu — emoji skale, liczba treningów, waga. Wysłany check-in trafia bezpośrednio do Twojego panelu.'},
+  messages:{title:'💬 Wiadomości',desc:'Czat z trenerem w czasie rzeczywistym. Klient widzi historię rozmów, może pisać i odbierać wiadomości. Możesz wysyłać zdjęcia, pliki i linki.'},
+  ondemand:{title:'▶️ On-demand',desc:'Portal treningów wideo i planów. Klient może samodzielnie wykonywać treningi między sesjami — filtrować po kategorii, poziomie i czasie.'},
+  resources:{title:'📚 Zasoby',desc:'Kolekcje artykułów, podcastów, wideo i linków udostępnionych przez Ciebie. Klient może je przeglądać w dowolnym czasie.'},
+  profile:{title:'👤 Mój profil',desc:'Dane osobowe klienta, statystyki aktywności, aktywny pakiet z paskiem postępu, ustawienia konta.'},
+};
+
+function renderCapInfo(){
+  const el=document.getElementById('cap-screen-info');if(!el)return;
+  const info=CAP_SCREEN_INFO[capScreen]||{title:'Ekran',desc:''};
+  const c=CL.find(x=>x.id===capClientId);
+  el.innerHTML=`
+    <div style="background:var(--adim);border:1px solid rgba(200,241,53,0.15);border-radius:10px;padding:12px;margin-bottom:14px;">
+      <div style="font-size:14px;font-weight:700;margin-bottom:6px;">${info.title}</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.6;">${info.desc}</div>
+    </div>
+    ${c?`<div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:8px;">Dane klienta</div>
+    <div style="display:flex;flex-direction:column;gap:5px;">
+      ${[['Klient',c.name],['Cel',{masa:'Masa',sila:'Siła',redukcja:'Redukcja',kondycja:'Kondycja'}[c.goal]||'—'],['Poziom',{poczatkujacy:'Początkujący',sredni:'Średni',zaawansowany:'Zaawansowany'}[c.level]||'—'],['Sesji',SE.filter(s=>s.clientId===c.id).length],['Planów',PL.filter(p=>p.clientId===c.id).length]].map(([l,v])=>`<div style="display:flex;justify-content:space-between;font-size:11px;padding:4px 0;border-bottom:1px solid var(--border);"><span style="color:var(--muted);">${l}</span><span style="font-weight:600;">${v}</span></div>`).join('')}
+    </div>`:'<div style="font-size:12px;color:var(--muted);text-align:center;padding:20px;">Wybierz klienta z listy powyżej</div>'}
+    <div style="margin-top:14px;">
+      <button class="btn btn-primary btn-sm" style="width:100%;margin-bottom:6px;" onclick="shareAppLink()">📱 Wyślij link do aplikacji</button>
+      <button class="btn btn-ghost btn-sm" style="width:100%;" onclick="goTo('clientapp');setCapTab('access')">🔑 Zarządzaj dostępem</button>
+    </div>`;
+}
+
+function renderCapCustomize(){
+  const el=document.getElementById('cap-customize-content');if(!el)return;
+  const accent=window.SETTINGS?.brand?.accentColor||'#c8f135';
+  const appName=window.SETTINGS?.brand?.appName||'PROGRESS LIVE';
+  el.innerHTML=`
+    <div class="settings-card">
+      <div class="settings-card-title">🎨 Kolor marki w aplikacji klienta</div>
+      <div class="settings-card-desc">Główny kolor akcentu widoczny przez klienta w przyciskach, postępach i elementach aktywnych.</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        ${['#c8f135','#4d9fff','#ff8c42','#9d7cf4','#3ecfb2','#ff4d4d','#f59e0b','#ec4899'].map(c=>`<div style="width:36px;height:36px;border-radius:10px;background:${c};cursor:pointer;border:3px solid ${c===accent?'white':'transparent'};" onclick="setAccentColor('${c}');renderCapCustomize()"></div>`).join('')}
+        <input type="color" value="${accent}" oninput="setAccentColor(this.value);renderCapCustomize()" style="width:36px;height:36px;border-radius:10px;cursor:pointer;border:none;padding:2px;">
+      </div>
+    </div>
+    <div class="settings-card">
+      <div class="settings-card-title">📱 Nazwa aplikacji</div>
+      <div class="settings-card-desc">Nazwa widoczna na ekranie głównym klienta i w powiadomieniach push.</div>
+      <input type="text" class="form-input" value="${appName}" id="cap-app-name" style="font-size:13px;">
+    </div>
+    <div class="settings-card">
+      <div class="settings-card-title">👁 Widoczne sekcje dla klienta</div>
+      <div class="settings-card-desc">Wybierz które sekcje są dostępne w aplikacji klienta.</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        ${[['home','🏠 Strona główna',true],['plan','📋 Mój plan',true],['calendar','📅 Kalendarz',true],['progress','📈 Postępy',true],['checkin','✅ Check-in',true],['messages','💬 Wiadomości',true],['ondemand','▶️ On-demand',true],['resources','📚 Zasoby',true]].map(([id,label,def])=>`<label style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;">
+          <span style="font-size:13px;">${label}</span>
+          <input type="checkbox" ${def?'checked':''} style="accent-color:var(--accent);width:18px;height:18px;">
+        </label>`).join('')}
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="notify('✓ Ustawienia aplikacji klienta zapisane!')">Zapisz ustawienia</button>`;
+}
+
+function renderCapAccess(){
+  const el=document.getElementById('cap-access-content');if(!el)return;
+  el.innerHTML=`
+    <div class="settings-card" style="margin-bottom:16px;">
+      <div class="settings-card-title">📩 Wyślij zaproszenie</div>
+      <div class="settings-card-desc">Wyślij klientowi link do aplikacji mobilnej i kod dostępu.</div>
+      <div class="form-grid">
+        <div class="form-field"><label class="form-lbl">Klient</label>
+          <select class="form-select" id="cap-inv-client" style="font-size:13px;">
+            <option value="">Wybierz klienta...</option>
+            ${CL.map(c=>`<option value="${c.id}">${c.name}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-field"><label class="form-lbl">Metoda</label>
+          <select class="form-select" id="cap-inv-method" style="font-size:13px;">
+            <option value="email">Email</option>
+            <option value="sms">SMS</option>
+            <option value="whatsapp">WhatsApp</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="sendAppInvite()">📤 Wyślij zaproszenie</button>
+    </div>
+
+    <div class="settings-card" style="margin-bottom:16px;">
+      <div class="settings-card-title">🔑 Link do aplikacji</div>
+      <div class="settings-card-desc">Udostępnij ten link klientom — mogą zainstalować aplikację lub otworzyć ją w przeglądarce.</div>
+      <div style="background:var(--s3);border-radius:8px;padding:12px;font-size:12px;font-family:'DM Mono',monospace;color:var(--muted);word-break:break-all;margin-bottom:8px;">https://app.progresslive.pl/client/piotr-urbaniak</div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="copyWebhook('https://app.progresslive.pl/client/piotr-urbaniak')">📋 Kopiuj link</button>
+        <button class="btn btn-primary btn-sm" style="flex:1;" onclick="notify('QR Code wygenerowany!')">📲 QR Code</button>
+      </div>
+    </div>
+
+    <div class="settings-card">
+      <div class="settings-card-title">👥 Status dostępu klientów</div>
+      <div style="margin-top:10px;">
+        <div style="display:grid;grid-template-columns:1fr 80px 80px 80px;gap:8px;padding:8px 0;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);">
+          <span>Klient</span><span>Status</span><span>Ostatnio</span><span></span>
+        </div>
+        ${CL.slice(0,8).map((c,i)=>{
+          const statuses=['active','active','inactive','active','active','never','active','inactive'];
+          const st=statuses[i%statuses.length];
+          const times=['dziś 9:15','wczoraj','5 dni temu','dziś 11:00','2 dni temu','—','wczoraj','1 tydzień'];
+          return `<div style="display:grid;grid-template-columns:1fr 80px 80px 80px;gap:8px;padding:10px 0;border-bottom:1px solid var(--border);font-size:12px;align-items:center;">
+            <div style="font-weight:600;">${c.name}</div>
+            <span class="pill ${st==='active'?'pill-green':st==='inactive'?'pill-orange':'pill-muted'}" style="font-size:9px;">${st==='active'?'Aktywny':st==='inactive'?'Nieaktywny':'Brak'}</span>
+            <span style="font-size:10px;color:var(--muted);">${times[i%times.length]}</span>
+            <button class="btn btn-ghost btn-sm" style="font-size:10px;" onclick="notify('Zaproszenie wysłane do ${c.name}')">Wyślij</button>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+function shareAppLink(){
+  const c=CL.find(x=>x.id===capClientId);
+  if(!c){notify('Wybierz klienta!');return;}
+  if(!MSGS[c.id])MSGS[c.id]=[];
+  MSGS[c.id].push({
+    text:`📱 Twoja aplikacja Progress Live jest gotowa!\n\nLink: https://app.progresslive.pl/client/${c.name.toLowerCase().replace(/\s/g,'-')}\n\nZaloguj się swoim emailem. Do zobaczenia na treningu! 💪`,
+    out:true,time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'})
+  });
+  notify(`✓ Link do aplikacji wysłany do ${c.name}!`);
+}
+
+function sendAppInvite(){
+  const cid=document.getElementById('cap-inv-client').value;
+  const method=document.getElementById('cap-inv-method').value;
+  if(!cid){notify('Wybierz klienta!');return;}
+  const c=CL.find(x=>x.id===cid);
+  const methodLabels={email:'email',sms:'SMS',whatsapp:'WhatsApp'};
+  notify(`✓ Zaproszenie wysłane do ${c?.name} przez ${methodLabels[method]}!`);
+}
 var intTab='all';var intCat='all';var intDetailId=null;
 
 const INTEGRATIONS=[
@@ -9696,6 +10394,9 @@ window.renderIntegrations=renderIntegrations;window.setIntTab=setIntTab;
 window.setIntCat=setIntCat;window.openIntDetail=openIntDetail;window.closeIntDetail=closeIntDetail;
 window.connectInt=connectInt;window.disconnectInt=disconnectInt;
 window.testIntConnection=testIntConnection;window.copyWebhook=copyWebhook;
+window.initClientApp=initClientApp;window.renderClientApp=renderClientApp;
+window.setCapTab=setCapTab;window.setCapScreen=setCapScreen;window.setCapDevice=setCapDevice;
+window.shareAppLink=shareAppLink;window.sendAppInvite=sendAppInvite;
 window.pbNewProgram=pbNewProgram;window.pbLoadDemo=pbLoadDemo;
 window.pbAssign=pbAssign;window.pbSave=pbSave;window.pbSetWeek=pbSetWeek;
 window.pbToggleRest=pbToggleRest;window.pbUpdateDayName=pbUpdateDayName;
