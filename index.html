@@ -219,6 +219,27 @@ button{cursor:pointer;}
 .ci-history-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;}
 .ci-history-row:last-child{border-bottom:none;}
 .ci-trend-item{background:var(--s3);border-radius:8px;padding:10px 12px;margin-bottom:8px;}
+/* ── INTEGRATIONS ── */
+.int-nav-item{padding:8px 14px;font-size:12px;color:var(--muted);cursor:pointer;border-left:2px solid transparent;transition:all 0.1s;}
+.int-nav-item:hover{color:var(--text);background:rgba(255,255,255,0.02);}
+.int-nav-item.active{color:var(--accent);background:var(--adim);border-left-color:var(--accent);}
+.int-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r2);padding:20px;cursor:pointer;transition:border-color 0.12s,transform 0.12s;animation:fadeUp 0.18s ease both;position:relative;overflow:hidden;}
+.int-card:hover{border-color:var(--border2);transform:translateY(-2px);}
+.int-card.connected{border-color:rgba(62,207,178,0.3);background:rgba(62,207,178,0.03);}
+.int-card-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;margin-bottom:12px;}
+.int-card-name{font-size:15px;font-weight:700;margin-bottom:4px;}
+.int-card-desc{font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:12px;}
+.int-badge-connected{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-family:'DM Mono',monospace;padding:3px 9px;border-radius:99px;background:rgba(62,207,178,0.12);color:var(--teal);}
+.int-badge-available{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-family:'DM Mono',monospace;padding:3px 9px;border-radius:99px;background:var(--s3);color:var(--muted);}
+.int-badge-error{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-family:'DM Mono',monospace;padding:3px 9px;border-radius:99px;background:rgba(255,77,77,0.12);color:var(--red);}
+.int-feature-row{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.int-feature-row:last-child{border-bottom:none;}
+.int-feature-check{width:18px;height:18px;border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;}
+.int-config-field{background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:8px 11px;color:var(--text);font-size:12px;width:100%;font-family:'DM Mono',monospace;}
+.int-config-field:focus{border-color:var(--accent);outline:none;}
+.int-webhook-url{background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:8px 11px;font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);word-break:break-all;line-height:1.5;}
+.int-log-row{display:flex;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px;}
+.int-log-row:last-child{border-bottom:none;}
 /* ── SETTINGS ── */
 .settings-nav{padding:9px 16px;font-size:13px;color:var(--muted);cursor:pointer;border-left:2px solid transparent;transition:all 0.1s;}
 .settings-nav:hover{color:var(--text);background:rgba(255,255,255,0.02);}
@@ -571,6 +592,7 @@ input[type=checkbox]{display:none;}
     <button class="nav-item" onclick="goTo('settings')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Ustawienia</button>
     <button class="nav-item" onclick="goTo('checkin')"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Check-in</button>
     <button class="nav-item" onclick="goTo('progbuilder')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>Program Builder</button>
+    <button class="nav-item" onclick="goTo('integrations')"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Integracje</button>
   </nav>
   <div class="sidebar-footer">
     <div class="av">PU</div>
@@ -2181,6 +2203,53 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   </div>
 </div>
 
+<!-- INTEGRATIONS SCREEN -->
+<div class="screen" id="screen-integrations">
+  <div class="topbar">
+    <div class="topbar-title">Integracje</div>
+    <div class="topbar-actions">
+      <div style="display:flex;gap:2px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:2px;">
+        <button class="auto-tab-btn active" id="int-tab-all" onclick="setIntTab('all')">Wszystkie</button>
+        <button class="auto-tab-btn" id="int-tab-connected" onclick="setIntTab('connected')">Połączone</button>
+        <button class="auto-tab-btn" id="int-tab-available" onclick="setIntTab('available')">Dostępne</button>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex:1;overflow:hidden;">
+
+    <!-- lewy panel — kategorie -->
+    <div style="width:200px;flex-shrink:0;border-right:1px solid var(--border);padding:10px 0;overflow-y:auto;">
+      <div style="padding:5px 14px 3px;font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Kategorie</div>
+      <div class="int-nav-item active" id="int-cat-all" onclick="setIntCat('all',this)">🌐 Wszystkie</div>
+      <div class="int-nav-item" id="int-cat-payments" onclick="setIntCat('payments',this)">💳 Płatności</div>
+      <div class="int-nav-item" id="int-cat-calendar" onclick="setIntCat('calendar',this)">📅 Kalendarz</div>
+      <div class="int-nav-item" id="int-cat-communication" onclick="setIntCat('communication',this)">💬 Komunikacja</div>
+      <div class="int-nav-item" id="int-cat-fitness" onclick="setIntCat('fitness',this)">🏋️ Fitness & Zdrowie</div>
+      <div class="int-nav-item" id="int-cat-analytics" onclick="setIntCat('analytics',this)">📊 Analityka</div>
+      <div class="int-nav-item" id="int-cat-automation" onclick="setIntCat('automation',this)">⚡ Automatyzacja</div>
+
+      <!-- status summary -->
+      <div style="padding:12px 14px;border-top:1px solid var(--border);margin-top:8px;">
+        <div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Status</div>
+        <div id="int-status-summary"></div>
+      </div>
+    </div>
+
+    <!-- główna treść -->
+    <div style="flex:1;overflow-y:auto;padding:20px 24px;" id="int-main-content"></div>
+
+    <!-- prawy panel — szczegóły integracji -->
+    <div id="int-detail-panel" style="width:380px;flex-shrink:0;border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;transform:translateX(100%);transition:transform 0.25s ease;position:absolute;right:0;top:56px;bottom:0;background:var(--s1);z-index:20;">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;" id="int-detail-title">Integracja</div>
+        <button onclick="closeIntDetail()" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;">×</button>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:20px;" id="int-detail-body"></div>
+    </div>
+  </div>
+</div>
+
 </div><!-- /main -->
 
 <!-- CALCULATOR — TDEE / MAKRO -->
@@ -2984,7 +3053,7 @@ function goTo(n){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   const s=document.getElementById('screen-'+n);if(s)s.classList.add('active');
-  const navMap={'dashboard':0,'clients':1,'plans':2,'builder':3,'calendar':4,'inbox':5,'workout-library':6,'library':7,'programs':8,'metrics':9,'tasks':10,'forms':11,'automation':12,'resources':13,'ondemand':14,'payments':15,'calculator':16,'forum':17,'settings':18,'checkin':19,'progbuilder':20};
+  const navMap={'dashboard':0,'clients':1,'plans':2,'builder':3,'calendar':4,'inbox':5,'workout-library':6,'library':7,'programs':8,'metrics':9,'tasks':10,'forms':11,'automation':12,'resources':13,'ondemand':14,'payments':15,'calculator':16,'forum':17,'settings':18,'checkin':19,'progbuilder':20,'integrations':21};
   const btns=document.querySelectorAll('.nav-item');
   if(navMap[n]!==undefined&&btns[navMap[n]])btns[navMap[n]].classList.add('active');
   if(n==='builder')initBuilder();
@@ -3024,6 +3093,7 @@ function goTo(n){
   if(n==='settings'){setSettingsTab('profile');}
   if(n==='checkin'){renderCheckin();}
   if(n==='progbuilder'){pbInit();}
+  if(n==='integrations'){renderIntegrations();}
 }
 
 function openM(id){
@@ -3301,8 +3371,601 @@ async function saveWorkout(){
 }
 
 // ════════════════════════════════════════
-// PROGRAM BUILDER V2
+// INTEGRATIONS
 // ════════════════════════════════════════
+var intTab='all';var intCat='all';var intDetailId=null;
+
+const INTEGRATIONS=[
+  // PAYMENTS
+  {
+    id:'stripe',cat:'payments',name:'Stripe',icon:'💳',color:'#635bff',
+    status:'available',
+    shortDesc:'Przyjmuj płatności online kartą i BLIK',
+    desc:'Stripe to wiodąca platforma płatności online. Przyjmuj płatności kartą, BLIK, Apple Pay, Google Pay bezpośrednio w aplikacji. Automatyczne faktury i subskrypcje.',
+    features:[
+      {name:'Płatności kartą (Visa, Mastercard, Amex)',on:true},
+      {name:'BLIK i Apple/Google Pay',on:true},
+      {name:'Automatyczne faktury PDF',on:true},
+      {name:'Subskrypcje i płatności cykliczne',on:true},
+      {name:'Zwroty i reklamacje z panelu',on:true},
+      {name:'Webhook — powiadomienia o płatnościach',on:true},
+      {name:'Raportowanie i eksport transakcji',on:true},
+    ],
+    config:[
+      {key:'publishable_key',label:'Klucz publiczny (pk_...)',placeholder:'pk_live_...'},
+      {key:'secret_key',label:'Klucz prywatny (sk_...)',placeholder:'sk_live_...'},
+      {key:'webhook_secret',label:'Webhook Secret (whsec_...)',placeholder:'whsec_...'},
+    ],
+    webhook:'https://progresslive.pl/webhooks/stripe',
+    logs:[
+      {time:'12:34',status:'ok',msg:'Płatność 1500 PLN — Jan Kowalski'},
+      {time:'11:20',status:'ok',msg:'Subskrypcja aktywowana — Anna Nowak'},
+      {time:'10:05',status:'error',msg:'Nieudana płatność — karta odrzucona'},
+    ],
+    docs:'https://stripe.com/docs'
+  },
+  {
+    id:'przelewy24',cat:'payments',name:'Przelewy24',icon:'🏦',color:'#d52b1e',
+    status:'available',
+    shortDesc:'Polskie przelewy bankowe i BLIK',
+    desc:'Przelewy24 to najpopularniejsza polska bramka płatności. Obsługuje wszystkie polskie banki, BLIK, karty. Idealna dla klientów preferujących polskie płatności.',
+    features:[
+      {name:'Wszystkie polskie banki (200+)',on:true},
+      {name:'BLIK (natychmiastowy)',on:true},
+      {name:'Karty kredytowe i debetowe',on:true},
+      {name:'Płatności cykliczne',on:false},
+      {name:'Panel transakcji w PLN',on:true},
+      {name:'Automatyczne powiadomienia',on:true},
+    ],
+    config:[
+      {key:'merchant_id',label:'Merchant ID',placeholder:'12345'},
+      {key:'crc_key',label:'Klucz CRC',placeholder:'ABC123...'},
+      {key:'api_key',label:'API Key',placeholder:'...'},
+    ],
+    webhook:'https://progresslive.pl/webhooks/p24',
+    logs:[],
+    docs:'https://developers.przelewy24.pl'
+  },
+  // CALENDAR
+  {
+    id:'google_calendar',cat:'calendar',name:'Google Calendar',icon:'📅',color:'#4285f4',
+    status:'available',
+    shortDesc:'Synchronizacja sesji z Google Calendar',
+    desc:'Dwukierunkowa synchronizacja sesji treningowych z Google Calendar. Twoje sesje automatycznie pojawiają się w kalendarzu Google — i odwrotnie.',
+    features:[
+      {name:'Dwukierunkowa sync sesji',on:true},
+      {name:'Automatyczne zaproszenia dla klientów',on:true},
+      {name:'Przypomnienia email i push',on:true},
+      {name:'Spotkania Google Meet z linkiem',on:true},
+      {name:'Blokowanie zajętych terminów',on:true},
+      {name:'Strefy czasowe (auto-detect)',on:true},
+    ],
+    config:[
+      {key:'client_id',label:'Client ID (Google OAuth)',placeholder:'xxx.apps.googleusercontent.com'},
+      {key:'calendar_id',label:'ID Kalendarza',placeholder:'primary'},
+    ],
+    webhook:null,
+    logs:[],
+    docs:'https://developers.google.com/calendar'
+  },
+  {
+    id:'calendly',cat:'calendar',name:'Calendly',icon:'🗓',color:'#006bff',
+    status:'available',
+    shortDesc:'Automatyczne umawianie wizyt przez klientów',
+    desc:'Calendly pozwala klientom samodzielnie umawiać sesje na podstawie Twojej dostępności. Zero telefonów, zero SMS — klient wybiera termin, system robi resztę.',
+    features:[
+      {name:'Link do samodzielnego umawiania',on:true},
+      {name:'Bufory czasowe między sesjami',on:true},
+      {name:'Potwierdzenia i przypomnienia SMS/email',on:true},
+      {name:'Integracja z Google/Outlook Calendar',on:true},
+      {name:'Przyjmowanie płatności przy rezerwacji',on:false},
+      {name:'Strona rezerwacji z brandingiem',on:true},
+    ],
+    config:[
+      {key:'api_key',label:'Calendly API Key',placeholder:'eyJhbGc...'},
+      {key:'event_type',label:'Event Type URL',placeholder:'https://calendly.com/piotr/sesja-60min'},
+    ],
+    webhook:'https://progresslive.pl/webhooks/calendly',
+    logs:[],
+    docs:'https://developer.calendly.com'
+  },
+  {
+    id:'outlook',cat:'calendar',name:'Microsoft Outlook',icon:'📧',color:'#0078d4',
+    status:'available',
+    shortDesc:'Synchronizacja z Outlook i Teams',
+    desc:'Synchronizuj sesje z Microsoft Outlook Calendar i Microsoft Teams. Idealne dla klientów korporacyjnych.',
+    features:[
+      {name:'Sync z Outlook Calendar',on:true},
+      {name:'Linki do spotkań Microsoft Teams',on:true},
+      {name:'Zaproszenia email przez Outlook',on:true},
+      {name:'Dostępność przez Microsoft 365',on:true},
+    ],
+    config:[
+      {key:'client_id',label:'Azure App Client ID',placeholder:'xxxxxxxx-xxxx-...'},
+      {key:'tenant_id',label:'Tenant ID',placeholder:'common'},
+    ],
+    webhook:null,
+    logs:[],
+    docs:'https://docs.microsoft.com/graph'
+  },
+  // COMMUNICATION
+  {
+    id:'whatsapp',cat:'communication',name:'WhatsApp Business',icon:'💬',color:'#25d366',
+    status:'available',
+    shortDesc:'Automatyczne wiadomości WhatsApp do klientów',
+    desc:'Wysyłaj automatyczne wiadomości WhatsApp — przypomnienia o sesjach, motywacyjne wiadomości, wyniki check-inów. Klienci je czytają (open rate 98%).',
+    features:[
+      {name:'Automatyczne przypomnienia o sesjach',on:true},
+      {name:'Powiadomienia o check-inach',on:true},
+      {name:'Broadcast do grup klientów',on:true},
+      {name:'Szablony wiadomości (pre-approved)',on:true},
+      {name:'Odpowiedzi klientów → Inbox',on:true},
+      {name:'Media: zdjęcia, PDFy, linki',on:true},
+    ],
+    config:[
+      {key:'phone_id',label:'Phone Number ID (Meta)',placeholder:'1234567890'},
+      {key:'access_token',label:'Access Token',placeholder:'EAAxxxxxxxxx...'},
+      {key:'verify_token',label:'Webhook Verify Token',placeholder:'mój_token'},
+    ],
+    webhook:'https://progresslive.pl/webhooks/whatsapp',
+    logs:[
+      {time:'9:00',status:'ok',msg:'Przypomnienie o sesji → Jan Kowalski'},
+      {time:'8:30',status:'ok',msg:'Broadcast: "Nowy plan treningowy!" → 5 klientów'},
+    ],
+    docs:'https://developers.facebook.com/docs/whatsapp'
+  },
+  {
+    id:'sms',cat:'communication',name:'SMS (Twilio)',icon:'📱',color:'#f22f46',
+    status:'available',
+    shortDesc:'Wysyłaj SMS z przypomnieniami o sesjach',
+    desc:'Automatyczne SMS-y przez Twilio. Idealne dla klientów, którzy nie używają WhatsApp. Wysokie wskaźniki otwarć.',
+    features:[
+      {name:'Przypomnienia o sesjach SMS',on:true},
+      {name:'Dwukierunkowe SMS (odpowiedzi)',on:true},
+      {name:'Szablony wiadomości PL/EN',on:true},
+      {name:'Harmonogram wysyłania',on:true},
+    ],
+    config:[
+      {key:'account_sid',label:'Account SID',placeholder:'ACxxxxxxxxxxxx...'},
+      {key:'auth_token',label:'Auth Token',placeholder:'...'},
+      {key:'phone_number',label:'Numer nadawcy',placeholder:'+48123456789'},
+    ],
+    webhook:'https://progresslive.pl/webhooks/sms',
+    logs:[],
+    docs:'https://www.twilio.com/docs/sms'
+  },
+  {
+    id:'email',cat:'communication',name:'Mailchimp / Resend',icon:'✉️',color:'#ffe01b',
+    status:'available',
+    shortDesc:'Automatyczne emaile i newsletter do klientów',
+    desc:'Wysyłaj profesjonalne emaile przez Mailchimp lub Resend. Newslettery, podsumowania postępów, oferty specjalne.',
+    features:[
+      {name:'Automatyczne emaile po dodaniu klienta',on:true},
+      {name:'Newsletter miesięczny z postępami',on:true},
+      {name:'Szablony HTML branded',on:true},
+      {name:'Statystyki otwarć i kliknięć',on:true},
+      {name:'Segmentacja klientów (cel, poziom)',on:true},
+    ],
+    config:[
+      {key:'api_key',label:'API Key (Resend/Mailchimp)',placeholder:'re_...'},
+      {key:'from_email',label:'Email nadawcy',placeholder:'piotr@progresslive.pl'},
+      {key:'audience_id',label:'Audience ID (Mailchimp)',placeholder:'...'},
+    ],
+    webhook:'https://progresslive.pl/webhooks/email',
+    logs:[],
+    docs:'https://resend.com/docs'
+  },
+  // FITNESS
+  {
+    id:'myfitnesspal',cat:'fitness',name:'MyFitnessPal',icon:'🥗',color:'#0097d5',
+    status:'available',
+    shortDesc:'Synchronizacja danych żywieniowych klientów',
+    desc:'Automatycznie pobieraj dane żywieniowe klientów z MyFitnessPal. Sprawdzaj czy trzymają się diety bez pytania.',
+    features:[
+      {name:'Dziennik kalorii → Progress Live',on:true},
+      {name:'Makroskładniki (białko/tłuszcze/węgle)',on:true},
+      {name:'Alerty gdy klient nie loguje jedzenia',on:false},
+      {name:'Historia diety w profilu klienta',on:true},
+      {name:'Porównanie z kalkulatorem TDEE',on:true},
+    ],
+    config:[
+      {key:'client_id',label:'MFP API Client ID',placeholder:'...'},
+      {key:'client_secret',label:'Client Secret',placeholder:'...'},
+    ],
+    webhook:null,
+    logs:[],
+    docs:'https://www.myfitnesspal.com/api'
+  },
+  {
+    id:'garmin',cat:'fitness',name:'Garmin Connect',icon:'⌚',color:'#007cc3',
+    status:'available',
+    shortDesc:'Dane z zegarków Garmin (tętno, kroki, sen)',
+    desc:'Pobieraj dane zdrowotne z zegarków Garmin klientów — tętno spoczynkowe, HRV, jakość snu, kroki, kcal spalonych.',
+    features:[
+      {name:'Tętno spoczynkowe i HRV',on:true},
+      {name:'Kroki i aktywność codzienna',on:true},
+      {name:'Jakość snu (REM, głęboki)',on:true},
+      {name:'Dane treningowe GPS',on:true},
+      {name:'Stres i Body Battery',on:true},
+      {name:'Auto-sync z pomiarami Progress Live',on:true},
+    ],
+    config:[
+      {key:'consumer_key',label:'Consumer Key',placeholder:'...'},
+      {key:'consumer_secret',label:'Consumer Secret',placeholder:'...'},
+    ],
+    webhook:'https://progresslive.pl/webhooks/garmin',
+    logs:[],
+    docs:'https://developer.garmin.com'
+  },
+  {
+    id:'apple_health',cat:'fitness',name:'Apple Health',icon:'🍎',color:'#ff3b30',
+    status:'available',
+    shortDesc:'Dane zdrowotne z iPhone klientów',
+    desc:'Importuj dane zdrowotne klientów z Apple Health — waga, aktywność, sen, tętno. Działa przez aplikację mobilną Progress Live.',
+    features:[
+      {name:'Waga i BMI (auto-sync)',on:true},
+      {name:'Aktywność i kcal',on:true},
+      {name:'Tętno i SpO2',on:true},
+      {name:'Sen (przez aplikację mobilną)',on:true},
+      {name:'Wymaga iOS 14+',on:true},
+    ],
+    config:[
+      {key:'bundle_id',label:'App Bundle ID',placeholder:'pl.progresslive.app'},
+    ],
+    webhook:null,
+    logs:[],
+    docs:'https://developer.apple.com/health-fitness/'
+  },
+  {
+    id:'polar',cat:'fitness',name:'Polar Flow',icon:'🔴',color:'#d0021b',
+    status:'available',
+    shortDesc:'Dane z urządzeń Polar (tętno, trening)',
+    desc:'Integracja z Polar Flow API. Pobieraj dane treningowe, tętno i obciążenie treningowe z zegarków Polar.',
+    features:[
+      {name:'Dane treningowe z zegarków',on:true},
+      {name:'Tętno i strefy HR',on:true},
+      {name:'Obciążenie treningowe (Training Load)',on:true},
+      {name:'Regeneracja (Recovery Pro)',on:false},
+    ],
+    config:[
+      {key:'client_id',label:'Polar API Client ID',placeholder:'...'},
+      {key:'client_secret',label:'Client Secret',placeholder:'...'},
+    ],
+    webhook:null,
+    logs:[],
+    docs:'https://www.polar.com/accesslink-api'
+  },
+  // ANALYTICS
+  {
+    id:'google_analytics',cat:'analytics',name:'Google Analytics 4',icon:'📊',color:'#e37400',
+    status:'available',
+    shortDesc:'Analityka użycia aplikacji i zachowań',
+    desc:'Śledź jak klienci używają aplikacji — które sekcje odwiedzają, jak długo, co ich angażuje. Optymalizuj doświadczenie.',
+    features:[
+      {name:'Śledzenie ekranów i sesji',on:true},
+      {name:'Zdarzenia niestandardowe',on:true},
+      {name:'Konwersje (zakup pakietu)',on:true},
+      {name:'Raporty użytkowników',on:true},
+    ],
+    config:[
+      {key:'measurement_id',label:'Measurement ID',placeholder:'G-XXXXXXXXXX'},
+      {key:'api_secret',label:'API Secret (dla Measurement Protocol)',placeholder:'...'},
+    ],
+    webhook:null,
+    logs:[],
+    docs:'https://developers.google.com/analytics'
+  },
+  {
+    id:'mixpanel',cat:'analytics',name:'Mixpanel',icon:'📈',color:'#7856ff',
+    status:'available',
+    shortDesc:'Zaawansowana analityka produktowa',
+    desc:'Mixpanel daje szczegółowe insighty o zachowaniu klientów — lejki, kohortyt, retencja. Dowiedz się dlaczego klienci odchodzą.',
+    features:[
+      {name:'Śledzenie zdarzeń produktowych',on:true},
+      {name:'Analiza lejków (płatności, onboarding)',on:true},
+      {name:'Kohorty i retencja klientów',on:true},
+      {name:'A/B testing',on:false},
+      {name:'Powiadomienia push z segmentów',on:true},
+    ],
+    config:[
+      {key:'project_token',label:'Project Token',placeholder:'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'},
+    ],
+    webhook:null,
+    logs:[],
+    docs:'https://developer.mixpanel.com'
+  },
+  // AUTOMATION
+  {
+    id:'zapier',cat:'automation',name:'Zapier',icon:'⚡',color:'#ff4a00',
+    status:'available',
+    shortDesc:'Automatyzuj z 5000+ aplikacjami bez kodu',
+    desc:'Zapier łączy Progress Live z tysiącami aplikacji. Automatycznie twórz klientów z formularzy, wysyłaj powiadomienia, aktualizuj arkusze — bez pisania kodu.',
+    features:[
+      {name:'Trigger: Nowy klient dodany',on:true},
+      {name:'Trigger: Płatność otrzymana',on:true},
+      {name:'Trigger: Check-in wypełniony',on:true},
+      {name:'Action: Dodaj do Google Sheets',on:true},
+      {name:'Action: Wyślij email przez Gmail',on:true},
+      {name:'Action: Utwórz zadanie w Notion/Trello',on:true},
+      {name:'Action: Powiadom na Slack/Discord',on:true},
+      {name:'5000+ integracji w katalogu Zapier',on:true},
+    ],
+    config:[
+      {key:'api_key',label:'Progress Live API Key (dla Zapier)',placeholder:'pl_live_...'},
+    ],
+    webhook:'https://progresslive.pl/webhooks/zapier',
+    logs:[
+      {time:'13:00',status:'ok',msg:'Zap uruchomiony: Nowy klient → Google Sheets'},
+    ],
+    docs:'https://zapier.com/apps/progress-live'
+  },
+  {
+    id:'make',cat:'automation',name:'Make (Integromat)',icon:'🔧',color:'#6d00cc',
+    status:'available',
+    shortDesc:'Wizualne automatyzacje bez kodu',
+    desc:'Make (dawniej Integromat) to zaawansowana platforma automatyzacji z wizualnym builderem. Bardziej elastyczna niż Zapier dla złożonych procesów.',
+    features:[
+      {name:'Wizualny builder scenariuszy',on:true},
+      {name:'Transformacje danych (JSON, XML)',on:true},
+      {name:'Iteratory i agregatory',on:true},
+      {name:'Webhooks i HTTP moduły',on:true},
+      {name:'Harmonogramy i warunki',on:true},
+    ],
+    config:[
+      {key:'api_key',label:'Progress Live API Key',placeholder:'pl_live_...'},
+      {key:'webhook_url',label:'Make Webhook URL',placeholder:'https://hook.make.com/...'},
+    ],
+    webhook:'https://progresslive.pl/api/webhooks',
+    logs:[],
+    docs:'https://www.make.com/en/integrations'
+  },
+  {
+    id:'notion',cat:'automation',name:'Notion',icon:'📝',color:'#000000',
+    status:'available',
+    shortDesc:'Synchronizuj dane klientów z Notion',
+    desc:'Automatycznie synchronizuj listę klientów, postępy i zadania z bazą danych Notion. Prowadź notatki i plany w Notion, widz wyniki w Progress Live.',
+    features:[
+      {name:'Sync klientów → baza Notion',on:true},
+      {name:'Plany treningowe jako strony Notion',on:true},
+      {name:'Zadania ↔ Notion Tasks',on:true},
+      {name:'Dwukierunkowa synchronizacja',on:false},
+      {name:'Raporty jako strony Notion',on:true},
+    ],
+    config:[
+      {key:'integration_token',label:'Notion Integration Token',placeholder:'secret_...'},
+      {key:'database_id',label:'Database ID klientów',placeholder:'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'},
+    ],
+    webhook:null,
+    logs:[],
+    docs:'https://developers.notion.com'
+  },
+];
+
+window.INT_CONNECTIONS={}; // id -> {apiKey, connected, lastSync, config:{}}
+
+function renderIntegrations(){
+  renderIntStatusSummary();
+  renderIntContent();
+}
+
+function renderIntStatusSummary(){
+  const el=document.getElementById('int-status-summary');if(!el)return;
+  const connected=INTEGRATIONS.filter(i=>window.INT_CONNECTIONS[i.id]?.connected).length;
+  const total=INTEGRATIONS.length;
+  el.innerHTML=`
+    <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px;">
+      <span style="color:var(--muted);">Połączone</span>
+      <span style="font-family:'DM Mono',monospace;color:var(--teal);">${connected}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px;">
+      <span style="color:var(--muted);">Dostępne</span>
+      <span style="font-family:'DM Mono',monospace;color:var(--muted);">${total-connected}</span>
+    </div>
+    <div style="height:4px;background:var(--s3);border-radius:99px;overflow:hidden;margin-top:8px;">
+      <div style="height:100%;background:var(--teal);width:${connected?Math.round(connected/total*100):0}%;border-radius:99px;"></div>
+    </div>`;
+}
+
+function setIntTab(t){
+  intTab=t;
+  ['all','connected','available'].forEach(x=>{
+    const btn=document.getElementById('int-tab-'+x);
+    if(btn)btn.classList.toggle('active',x===t);
+  });
+  renderIntContent();
+}
+
+function setIntCat(cat,btn){
+  intCat=cat;
+  document.querySelectorAll('.int-nav-item').forEach(el=>el.classList.remove('active'));
+  btn.classList.add('active');
+  renderIntContent();
+}
+
+function renderIntContent(){
+  const el=document.getElementById('int-main-content');if(!el)return;
+
+  let list=INTEGRATIONS;
+  if(intCat!=='all')list=list.filter(i=>i.cat===intCat);
+  if(intTab==='connected')list=list.filter(i=>window.INT_CONNECTIONS[i.id]?.connected);
+  if(intTab==='available')list=list.filter(i=>!window.INT_CONNECTIONS[i.id]?.connected);
+
+  const catLabels={payments:'💳 Płatności',calendar:'📅 Kalendarz',communication:'💬 Komunikacja',fitness:'🏋️ Fitness & Zdrowie',analytics:'📊 Analityka',automation:'⚡ Automatyzacja'};
+  const cats=[...new Set(list.map(i=>i.cat))];
+
+  if(!list.length){
+    el.innerHTML=`<div style="text-align:center;padding:80px;color:var(--muted);">
+      <div style="font-size:40px;margin-bottom:12px;opacity:0.3;">🔗</div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:6px;">Brak integracji w tej kategorii</div>
+      <div style="font-size:12px;">Zmień filtry lub sprawdź zakładkę "Wszystkie"</div>
+    </div>`;
+    return;
+  }
+
+  el.innerHTML=cats.map(cat=>{
+    const catItems=list.filter(i=>i.cat===cat);
+    return `<div style="margin-bottom:28px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px;margin-bottom:14px;color:var(--accent);">${catLabels[cat]||cat}</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;">
+        ${catItems.map((int,i)=>renderIntCard(int,i)).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderIntCard(int,i){
+  const conn=window.INT_CONNECTIONS[int.id];
+  const isConnected=conn?.connected;
+  return `<div class="int-card${isConnected?' connected':''}" style="animation-delay:${i*0.04}s;border-top:3px solid ${int.color};" onclick="openIntDetail('${int.id}')">
+    <div style="position:absolute;top:12px;right:12px;">
+      ${isConnected
+        ?'<span class="int-badge-connected">✓ Połączono</span>'
+        :'<span class="int-badge-available">Dostępne</span>'}
+    </div>
+    <div class="int-card-icon" style="background:${int.color}22;">${int.icon}</div>
+    <div class="int-card-name">${int.name}</div>
+    <div class="int-card-desc">${int.shortDesc}</div>
+    <div style="display:flex;gap:8px;margin-top:auto;">
+      ${isConnected
+        ?`<button class="btn btn-ghost btn-sm" style="flex:1;" onclick="event.stopPropagation();disconnectInt('${int.id}')">Rozłącz</button>
+           <button class="btn btn-primary btn-sm" style="flex:1;" onclick="event.stopPropagation();openIntDetail('${int.id}')">Konfiguracja</button>`
+        :`<button class="btn btn-primary btn-sm" style="flex:1;" onclick="event.stopPropagation();openIntDetail('${int.id}')">Połącz →</button>`}
+    </div>
+  </div>`;
+}
+
+function openIntDetail(id){
+  intDetailId=id;
+  const int=INTEGRATIONS.find(x=>x.id===id);if(!int)return;
+  const conn=window.INT_CONNECTIONS[id];
+  const isConnected=conn?.connected;
+
+  document.getElementById('int-detail-title').textContent=int.name;
+  const body=document.getElementById('int-detail-body');
+
+  body.innerHTML=`
+    <!-- header -->
+    <div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:20px;">
+      <div style="width:56px;height:56px;border-radius:14px;background:${int.color}22;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;">${int.icon}</div>
+      <div style="flex:1;">
+        <div style="font-size:15px;font-weight:700;margin-bottom:4px;">${int.name}</div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.6;">${int.desc}</div>
+        <div style="margin-top:8px;">
+          ${isConnected
+            ?'<span class="int-badge-connected">✓ Aktywna</span>'
+            +'<span style="font-size:10px;color:var(--muted);margin-left:8px;">Ostatnia sync: '+( conn?.lastSync||'—')+'</span>'
+            :'<span class="int-badge-available">Niepołączona</span>'}
+        </div>
+      </div>
+    </div>
+
+    <!-- funkcje -->
+    <div style="margin-bottom:20px;">
+      <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:10px;">Co zyskujesz</div>
+      ${int.features.map(f=>`<div class="int-feature-row">
+        <div class="int-feature-check" style="background:${f.on?'var(--adim)':'var(--s3)'};color:${f.on?'var(--accent)':'var(--muted)'};">${f.on?'✓':'–'}</div>
+        <span style="color:${f.on?'var(--text)':'var(--muted)'};">${f.name}</span>
+      </div>`).join('')}
+    </div>
+
+    <!-- konfiguracja -->
+    <div style="margin-bottom:20px;">
+      <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:10px;">Konfiguracja</div>
+      ${int.config.map(c=>`<div class="form-field">
+        <label class="form-lbl">${c.label}</label>
+        <input type="${c.key.includes('secret')||c.key.includes('token')||c.key.includes('key')?'password':'text'}" class="int-config-field" id="int-cfg-${int.id}-${c.key}" placeholder="${c.placeholder}" value="${conn?.config?.[c.key]||''}">
+      </div>`).join('')}
+    </div>
+
+    ${int.webhook?`
+    <div style="margin-bottom:20px;">
+      <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:8px;">Webhook URL</div>
+      <div class="int-webhook-url">${int.webhook}</div>
+      <button onclick="copyWebhook('${int.webhook}')" class="btn btn-ghost btn-sm" style="margin-top:6px;width:100%;">📋 Kopiuj URL</button>
+    </div>`:''}
+
+    <!-- logi -->
+    ${int.logs.length?`
+    <div style="margin-bottom:20px;">
+      <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:8px;">Ostatnie zdarzenia</div>
+      <div style="background:var(--s3);border-radius:8px;padding:10px 12px;">
+        ${int.logs.map(l=>`<div class="int-log-row">
+          <span style="color:var(--muted);font-family:'DM Mono',monospace;flex-shrink:0;">${l.time}</span>
+          <span style="width:8px;height:8px;border-radius:50%;background:${l.status==='ok'?'var(--teal)':'var(--red)'};flex-shrink:0;margin-top:3px;"></span>
+          <span style="flex:1;">${l.msg}</span>
+        </div>`).join('')}
+      </div>
+    </div>`:''}
+
+    <!-- dokumentacja -->
+    <div style="margin-bottom:16px;">
+      <a href="${int.docs}" target="_blank" style="font-size:12px;color:var(--accent);text-decoration:none;">📖 Dokumentacja ${int.name} →</a>
+    </div>
+
+    <!-- akcje -->
+    <div style="display:flex;gap:8px;">
+      ${isConnected
+        ?`<button class="btn btn-danger btn-sm" style="flex:1;" onclick="disconnectInt('${int.id}');closeIntDetail()">Rozłącz</button>
+           <button class="btn btn-primary" style="flex:1;" onclick="testIntConnection('${int.id}')">🔄 Testuj połączenie</button>`
+        :`<button class="btn btn-ghost btn-sm" onclick="closeIntDetail()">Anuluj</button>
+           <button class="btn btn-primary" style="flex:1;" onclick="connectInt('${int.id}')">✓ Połącz ${int.name}</button>`}
+    </div>`;
+
+  document.getElementById('int-detail-panel').style.transform='translateX(0)';
+}
+
+function closeIntDetail(){
+  document.getElementById('int-detail-panel').style.transform='translateX(100%)';
+  intDetailId=null;
+}
+
+function connectInt(id){
+  const int=INTEGRATIONS.find(x=>x.id===id);if(!int)return;
+  // collect config values
+  const config={};
+  int.config.forEach(c=>{
+    const el=document.getElementById(`int-cfg-${id}-${c.key}`);
+    if(el)config[c.key]=el.value;
+  });
+  // validate - at least one field filled
+  const hasValues=Object.values(config).some(v=>v.trim());
+  if(!hasValues){
+    notify('⚠ Wpisz dane konfiguracyjne!');
+    return;
+  }
+  // save connection
+  window.INT_CONNECTIONS[id]={connected:true,config,lastSync:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'})+' '+new Date().toLocaleDateString('pl')};
+  addNotification('system','Integracja połączona!',`${int.name} — połączono pomyślnie`,'integrations');
+  notify(`✅ ${int.name} — połączono pomyślnie!`);
+  renderIntegrations();
+  openIntDetail(id);
+}
+
+function disconnectInt(id){
+  const int=INTEGRATIONS.find(x=>x.id===id);
+  if(!confirm(`Rozłączyć ${int?.name||id}?`))return;
+  delete window.INT_CONNECTIONS[id];
+  notify(`${int?.name||id} — rozłączono`);
+  renderIntegrations();
+}
+
+function testIntConnection(id){
+  const int=INTEGRATIONS.find(x=>x.id===id);
+  // simulate test
+  notify(`🔄 Testowanie połączenia z ${int?.name||id}...`);
+  setTimeout(()=>{
+    window.INT_CONNECTIONS[id].lastSync=new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'})+' '+new Date().toLocaleDateString('pl');
+    notify(`✅ ${int?.name||id} — połączenie działa prawidłowo!`);
+    openIntDetail(id);
+  },1200);
+}
+
+function copyWebhook(url){
+  navigator.clipboard.writeText(url).then(()=>notify('✓ Webhook URL skopiowany!')).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=url;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+    notify('✓ Skopiowano!');
+  });
+}
 var pbActiveWeek=1;var pbCatFilter='all';
 var pbProgram={
   name:'',goal:'masa',level:'sredni',duration:8,daysPerWeek:4,
@@ -9029,6 +9692,10 @@ window.setDashPeriod=setDashPeriod;
 window.openReportModal=openReportModal;window.openReportForClient=openReportForClient;
 window.previewReportOptions=previewReportOptions;window.generateReport=generateReport;
 window.reportClose=reportClose;window.reportPrint=reportPrint;
+window.renderIntegrations=renderIntegrations;window.setIntTab=setIntTab;
+window.setIntCat=setIntCat;window.openIntDetail=openIntDetail;window.closeIntDetail=closeIntDetail;
+window.connectInt=connectInt;window.disconnectInt=disconnectInt;
+window.testIntConnection=testIntConnection;window.copyWebhook=copyWebhook;
 window.pbNewProgram=pbNewProgram;window.pbLoadDemo=pbLoadDemo;
 window.pbAssign=pbAssign;window.pbSave=pbSave;window.pbSetWeek=pbSetWeek;
 window.pbToggleRest=pbToggleRest;window.pbUpdateDayName=pbUpdateDayName;
