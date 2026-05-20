@@ -182,6 +182,13 @@ button{cursor:pointer;}
 .wb-inp{background:var(--s3);border:1px solid var(--border);border-radius:6px;padding:5px 7px;color:var(--text);font-size:12px;width:100%;}
 .wb-inp:focus{border-color:var(--accent);}
 
+.rep-section-toggle{display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;padding:6px 8px;background:var(--s3);border-radius:8px;border:1px solid var(--border);}
+.rep-section-toggle:hover{border-color:var(--border2);}
+@media print{
+  .sidebar,.topbar,.topbar-actions,#report-overlay>div:first-child{display:none!important;}
+  #report-container{background:white!important;overflow:visible!important;}
+  .report-page{box-shadow:none!important;margin:0!important;}
+}
 /* ── FORUM ── */
 .forum-group-nav{display:flex;align-items:center;gap:8px;padding:8px 14px;cursor:pointer;border-left:2px solid transparent;transition:all 0.1s;font-size:12px;color:var(--muted);}
 .forum-group-nav:hover{color:var(--text);background:rgba(255,255,255,0.02);}
@@ -494,6 +501,7 @@ input[type=checkbox]{display:none;}
     <button class="nav-item" onclick="goTo('payments')"><svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Płatności</button>
     <button class="nav-item" onclick="goTo('calculator')"><svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="10" y2="18"/><line x1="14" y1="18" x2="16" y2="18"/></svg>Kalkulator</button>
     <button class="nav-item" onclick="goTo('forum')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="13" y2="13"/></svg>Społeczność</button>
+    <button class="nav-item" onclick="openReportModal()"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Raporty</button>
   </nav>
   <div class="sidebar-footer"><div class="av">PU</div><div><div style="font-size:13px;font-weight:600;">Piotr Urbaniak</div><div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">Trener personalny</div></div></div>
 </aside>
@@ -2030,6 +2038,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       </div>
     </div>
     <div style="display:flex;gap:6px;align-items:center;">
+      <button class="btn btn-ghost btn-sm" onclick="openReportForClient(cpClientId)">📊 Raport</button>
       <button class="btn btn-primary btn-sm" onclick="openM('m-session')">+ Sesja</button>
       <button class="btn btn-ghost btn-sm" onclick="openM('m-task')">+ Zadanie</button>
       <button onclick="closeClientProfile()" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;">×</button>
@@ -2050,6 +2059,18 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   <div style="flex:1;overflow-y:auto;padding:16px 20px;" id="cp-body"></div>
 </div>
 </div><!-- /app -->
+
+<!-- REPORT OVERLAY — pełnoekranowy podgląd raportu -->
+<div id="report-overlay" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:200;flex-direction:column;">
+  <div style="padding:12px 20px;background:var(--s1);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;" id="report-overlay-title">RAPORT KLIENTA</div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-ghost btn-sm" onclick="reportPrint()">🖨 Drukuj / PDF</button>
+      <button class="btn btn-primary btn-sm" onclick="reportClose()">✕ Zamknij</button>
+    </div>
+  </div>
+  <div style="flex:1;overflow-y:auto;background:#f5f5f0;" id="report-container"></div>
+</div>
 
 <!-- ═══════════ MODALS ═══════════ -->
 
@@ -2391,6 +2412,64 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       </div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-resource')">Anuluj</button><button class="btn btn-primary" onclick="saveResource()">Zapisz zasób</button></div>
+  </div>
+</div>
+
+<!-- RAPORT MODAL -->
+<div class="modal-ov" id="m-report">
+  <div class="modal modal-wide">
+    <div class="modal-hdr"><div class="modal-title">📊 GENERUJ RAPORT KLIENTA</div><button class="modal-close" onclick="closeM('m-report')">×</button></div>
+    <div class="modal-body">
+      <div class="form-field">
+        <label class="form-lbl">Klient</label>
+        <select class="form-select" id="rep-client" onchange="previewReportOptions()"></select>
+      </div>
+      <div class="form-grid">
+        <div class="form-field">
+          <label class="form-lbl">Zakres dat — od</label>
+          <input type="date" class="form-input" id="rep-from">
+        </div>
+        <div class="form-field">
+          <label class="form-lbl">Zakres dat — do</label>
+          <input type="date" class="form-input" id="rep-to">
+        </div>
+      </div>
+      <div class="form-field">
+        <label class="form-lbl">Sekcje raportu</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:5px;">
+          <label class="rep-section-toggle"><input type="checkbox" id="rep-sec-overview" checked style="accent-color:var(--accent)"> 📋 Przegląd ogólny</label>
+          <label class="rep-section-toggle"><input type="checkbox" id="rep-sec-metrics" checked style="accent-color:var(--accent)"> 📏 Pomiary ciała</label>
+          <label class="rep-section-toggle"><input type="checkbox" id="rep-sec-sessions" checked style="accent-color:var(--accent)"> 📅 Historia sesji</label>
+          <label class="rep-section-toggle"><input type="checkbox" id="rep-sec-tasks" checked style="accent-color:var(--accent)"> ✅ Zadania</label>
+          <label class="rep-section-toggle"><input type="checkbox" id="rep-sec-plans" checked style="accent-color:var(--accent)"> 🏋️ Plany treningowe</label>
+          <label class="rep-section-toggle"><input type="checkbox" id="rep-sec-payments" checked style="accent-color:var(--accent)"> 💰 Płatności</label>
+          <label class="rep-section-toggle"><input type="checkbox" id="rep-sec-charts" checked style="accent-color:var(--accent)"> 📈 Wykresy postępów</label>
+          <label class="rep-section-toggle"><input type="checkbox" id="rep-sec-notes" checked style="accent-color:var(--accent)"> 📝 Notatki trenera</label>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-field">
+          <label class="form-lbl">Szablon</label>
+          <select class="form-select" id="rep-template">
+            <option value="professional">Profesjonalny (ciemny)</option>
+            <option value="light">Jasny (do druku)</option>
+            <option value="minimal">Minimalny</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-lbl">Język</label>
+          <select class="form-select" id="rep-lang">
+            <option value="pl">Polski</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+      </div>
+      <div id="rep-preview-info" style="background:var(--adim);border:1px solid rgba(200,241,53,0.15);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--muted);line-height:1.6;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeM('m-report')">Anuluj</button>
+      <button class="btn btn-primary" onclick="generateReport()">📊 Generuj raport</button>
+    </div>
   </div>
 </div>
 
@@ -2908,8 +2987,435 @@ async function saveWorkout(){
 }
 
 // ════════════════════════════════════════
-// FORUM — SPOŁECZNOŚĆ
+// REPORT GENERATOR
 // ════════════════════════════════════════
+
+function openReportModal(){
+  const sel=document.getElementById('rep-client');
+  if(sel)sel.innerHTML=CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
+  const now=new Date();
+  const from=new Date(now);from.setMonth(from.getMonth()-1);
+  const toEl=document.getElementById('rep-to');
+  const fromEl=document.getElementById('rep-from');
+  if(fromEl)fromEl.value=dateStr(from);
+  if(toEl)toEl.value=dateStr(now);
+  previewReportOptions();
+  openM('m-report');
+}
+
+function openReportForClient(id){
+  const sel=document.getElementById('rep-client');
+  if(sel){
+    sel.innerHTML=CL.map(c=>'<option value="'+c.id+'"'+(c.id===id?' selected':'')+'>'+c.name+'</option>').join('');
+  }
+  const now=new Date();
+  const from=new Date(now);from.setMonth(from.getMonth()-3);
+  const fromEl=document.getElementById('rep-from');
+  const toEl=document.getElementById('rep-to');
+  if(fromEl)fromEl.value=dateStr(from);
+  if(toEl)toEl.value=dateStr(now);
+  previewReportOptions();
+  closeClientProfile();
+  openM('m-report');
+}
+
+function previewReportOptions(){
+  const cid=document.getElementById('rep-client').value;
+  const c=CL.find(x=>x.id===cid);
+  const from=document.getElementById('rep-from').value;
+  const to=document.getElementById('rep-to').value;
+  if(!c){return;}
+  const sessions=SE.filter(s=>s.clientId===cid&&s.date>=from&&s.date<=to);
+  const tasks=TASKS.filter(t=>t.clientId===cid);
+  const plans=PL.filter(p=>p.clientId===cid);
+  const entries=METRIC_ENTRIES.filter(e=>e.clientId===cid);
+  const pkgs=allPackages().filter(p=>p.clientId===cid||p.clientName===c.name);
+  const el=document.getElementById('rep-preview-info');
+  if(el)el.innerHTML=`<strong style="color:var(--accent);">Podgląd dla: ${c.name}</strong> · Okres: ${from} — ${to}<br>
+    📅 ${sessions.length} sesji · 📏 ${entries.length} pomiarów · ✅ ${tasks.length} zadań · 🏋️ ${plans.length} planów · 💰 ${pkgs.length} pakietów`;
+}
+
+function generateReport(){
+  const cid=document.getElementById('rep-client').value;
+  const c=CL.find(x=>x.id===cid);
+  if(!c){notify('Wybierz klienta!');return;}
+  const from=document.getElementById('rep-from').value;
+  const to=document.getElementById('rep-to').value;
+  const template=document.getElementById('rep-template').value;
+  const sections={
+    overview:document.getElementById('rep-sec-overview').checked,
+    metrics:document.getElementById('rep-sec-metrics').checked,
+    sessions:document.getElementById('rep-sec-sessions').checked,
+    tasks:document.getElementById('rep-sec-tasks').checked,
+    plans:document.getElementById('rep-sec-plans').checked,
+    payments:document.getElementById('rep-sec-payments').checked,
+    charts:document.getElementById('rep-sec-charts').checked,
+    notes:document.getElementById('rep-sec-notes').checked,
+  };
+  closeM('m-report');
+  const html=buildReportHTML(c,from,to,sections,template);
+  document.getElementById('report-container').innerHTML=html;
+  document.getElementById('report-overlay-title').textContent='RAPORT — '+c.name.toUpperCase();
+  document.getElementById('report-overlay').style.display='flex';
+}
+
+function reportClose(){document.getElementById('report-overlay').style.display='none';}
+function reportPrint(){window.print();}
+
+function buildReportHTML(c,from,to,sec,template){
+  const isDark=template==='professional';
+  const bg=isDark?'#07080a':'#ffffff';
+  const surface=isDark?'#12151a':'#f8f9fa';
+  const border=isDark?'rgba(255,255,255,0.08)':'#e0e0e0';
+  const text=isDark?'#eceae6':'#1a1a2a';
+  const muted=isDark?'#5a6070':'#6b7280';
+  const accent='#c8f135';
+  const accentDark=isDark?'rgba(200,241,53,0.1)':'rgba(100,180,0,0.08)';
+  const blue=isDark?'#4d9fff':'#2563eb';
+  const orange=isDark?'#ff8c42':'#ea580c';
+  const teal=isDark?'#3ecfb2':'#0d9488';
+  const red=isDark?'#ff4d4d':'#dc2626';
+  const fontMono="'DM Mono',monospace";
+
+  const today=new Date().toLocaleDateString('pl',{day:'numeric',month:'long',year:'numeric'});
+  const ci=CL.indexOf(c);
+  const colHex=isDark?['#c8f135','#4d9fff','#9d7cf4','#ff8c42','#3ecfb2'][ci%5]:['#16a34a','#2563eb','#7c3aed','#ea580c','#0d9488'][ci%5];
+
+  // data
+  const sessions=SE.filter(s=>s.clientId===c.id&&s.date>=from&&s.date<=to).sort((a,b)=>b.date.localeCompare(a.date));
+  const allSessions=SE.filter(s=>s.clientId===c.id);
+  const tasks=TASKS.filter(t=>t.clientId===c.id);
+  const tasksDone=tasks.filter(t=>t.status==='done');
+  const plans=PL.filter(p=>p.clientId===c.id);
+  const entries=METRIC_ENTRIES.filter(e=>e.clientId===c.id);
+  const pkgs=allPackages().filter(p=>p.clientId===c.id||p.clientName===c.name);
+  const notes=CLIENT_NOTES[c.id]||[];
+  initDemoEntries(c.id);
+
+  const totalRevenue=pkgs.filter(p=>p.payStatus==='paid').reduce((s,p)=>s+p.price,0);
+
+  // session type counts
+  const sessTypes={};
+  sessions.forEach(s=>{const t=s.type||'Sesja';sessTypes[t]=(sessTypes[t]||0)+1;});
+
+  // mass progress
+  const massEntries=entries.filter(e=>e.groupId==='mg1').sort((a,b)=>a.date.localeCompare(b.date));
+  const firstMass=massEntries[0]?.values?.m1;
+  const lastMass=massEntries[massEntries.length-1]?.values?.m1;
+  const massDiff=firstMass&&lastMass?(lastMass-firstMass).toFixed(1):null;
+
+  // strength progress
+  const strEntries=entries.filter(e=>e.groupId==='mg3').sort((a,b)=>a.date.localeCompare(b.date));
+  const firstSq=strEntries[0]?.values?.m1;
+  const lastSq=strEntries[strEntries.length-1]?.values?.m1;
+  const sqDiff=firstSq&&lastSq?(lastSq-firstSq):null;
+
+  const card=(content,extra='')=>`<div style="background:${surface};border:1px solid ${border};border-radius:14px;padding:20px 24px;margin-bottom:16px;${extra}">${content}</div>`;
+
+  const sectionTitle=(t,icon,col=accent)=>`<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid ${col}40;">
+    <div style="font-size:22px;">${icon}</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1.5px;color:${col};">${t}</div>
+  </div>`;
+
+  const kpiBox=(val,lbl,col)=>`<div style="background:${bg};border:1px solid ${border};border-radius:10px;padding:14px 16px;text-align:center;">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;color:${col};line-height:1;">${val}</div>
+    <div style="font-size:10px;color:${muted};font-family:${fontMono};text-transform:uppercase;letter-spacing:0.5px;margin-top:4px;">${lbl}</div>
+  </div>`;
+
+  // SVG bar chart
+  const barChart=(data,col,unit='')=>{
+    const max=Math.max(...data.map(d=>d.v),1);
+    const W=480;const H=80;const pad=30;
+    const bw=Math.floor((W-pad)/(data.length||1))-4;
+    const bars=data.map((d,i)=>{
+      const bh=Math.round((d.v/max)*(H-10));
+      const x=pad+i*(bw+4);
+      const y=H-bh;
+      return `<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="3" fill="${col}" opacity="${d.v?0.85:0.2}"/>
+        <text x="${x+bw/2}" y="${H+12}" text-anchor="middle" font-size="9" fill="${muted}" font-family="monospace">${d.l}</text>
+        ${d.v?`<text x="${x+bw/2}" y="${y-3}" text-anchor="middle" font-size="8" fill="${col}" font-family="monospace">${d.v}${unit}</text>`:''}`;
+    }).join('');
+    return `<svg viewBox="0 0 ${W} ${H+20}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:${W}px;">${bars}</svg>`;
+  };
+
+  // line chart for metrics
+  const lineChart=(points,col)=>{
+    if(points.length<2)return '';
+    const W=480;const H=70;
+    const minV=Math.min(...points.map(p=>p.v));
+    const maxV=Math.max(...points.map(p=>p.v));
+    const range=maxV-minV||1;
+    const xs=points.map((_,i)=>20+i*(W-40)/(points.length-1));
+    const ys=points.map(p=>H-10-((p.v-minV)/range)*(H-20));
+    const path='M'+xs.map((x,i)=>`${x},${ys[i]}`).join('L');
+    const area=path+`L${xs[xs.length-1]},${H}L${xs[0]},${H}Z`;
+    const dots=xs.map((x,i)=>`<circle cx="${x}" cy="${ys[i]}" r="3.5" fill="${col}" stroke="${bg}" stroke-width="1.5"/>`).join('');
+    const labels=points.filter((_,i)=>i===0||i===points.length-1||i===Math.floor(points.length/2)).map((p,_,arr)=>{
+      const idx=points.indexOf(p);
+      return `<text x="${xs[idx]}" y="${H+14}" text-anchor="middle" font-size="8" fill="${muted}" font-family="monospace">${p.d.slice(5)}</text>
+              <text x="${xs[idx]}" y="${ys[idx]-6}" text-anchor="middle" font-size="8" fill="${col}" font-family="monospace">${p.v}</text>`;
+    }).join('');
+    return `<svg viewBox="0 0 ${W} ${H+20}" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:${W}px;">
+      <defs><linearGradient id="lg" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="${col}" stop-opacity="0.2"/><stop offset="100%" stop-color="${col}" stop-opacity="0.02"/></linearGradient></defs>
+      <path d="${area}" fill="url(#lg)"/>
+      <path d="${path}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      ${dots}${labels}
+    </svg>`;
+  };
+
+  // ── BUILD SECTIONS ──
+  let html='';
+
+  // HEADER
+  html+=`<div style="background:linear-gradient(135deg,${isDark?'#07080a':'#1a1a2a'} 0%,${isDark?'#12151a':'#2a2a4a'} 100%);padding:36px 40px;margin-bottom:0;color:#fff;position:relative;overflow:hidden;">
+    <div style="position:absolute;top:-20px;right:-20px;width:200px;height:200px;border-radius:50%;background:${accent};opacity:0.05;"></div>
+    <div style="position:absolute;bottom:-40px;right:60px;width:150px;height:150px;border-radius:50%;background:${blue};opacity:0.06;"></div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:3px;color:${accent};opacity:0.8;margin-bottom:6px;">PROGRESS LIVE · RAPORT POSTĘPÓW</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:2px;margin-bottom:4px;">${c.name.toUpperCase()}</div>
+        <div style="font-size:13px;opacity:0.6;">Okres: ${from} — ${to}</div>
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+          ${c.goal?`<span style="background:${accent}22;color:${accent};border:1px solid ${accent}44;border-radius:99px;padding:3px 10px;font-size:11px;font-family:monospace;">${{masa:'💪 Budowa masy',sila:'🏋️ Wzrost siły',redukcja:'🔥 Redukcja',kondycja:'🏃 Kondycja'}[c.goal]||c.goal}</span>`:''}
+          ${c.level?`<span style="background:${blue}22;color:${blue};border:1px solid ${blue}44;border-radius:99px;padding:3px 10px;font-size:11px;font-family:monospace;">${{poczatkujacy:'Początkujący',sredni:'Średni',zaawansowany:'Zaawansowany'}[c.level]||c.level}</span>`:''}
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <div style="width:64px;height:64px;border-radius:50%;background:${colHex}22;border:3px solid ${colHex};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:26px;color:${colHex};margin-left:auto;margin-bottom:8px;">${getInit(c.name)}</div>
+        <div style="font-size:11px;opacity:0.5;">Wygenerowano:<br>${today}</div>
+        <div style="font-size:11px;opacity:0.5;margin-top:4px;">Trener: Piotr Urbaniak</div>
+      </div>
+    </div>
+  </div>`;
+
+  // wrapper
+  html+=`<div style="max-width:900px;margin:0 auto;padding:28px 32px;">`;
+
+  // ── OVERVIEW ──
+  if(sec.overview){
+    html+=`<div style="margin-bottom:24px;">${sectionTitle('PRZEGLĄD OGÓLNY','📋',accent)}
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
+      ${kpiBox(allSessions.length,'Łącznie sesji',accent)}
+      ${kpiBox(sessions.length,'Sesji w okresie',blue)}
+      ${kpiBox(tasksDone.length+'/'+tasks.length,'Zadań ukończonych',teal)}
+      ${kpiBox(totalRevenue.toLocaleString('pl')+' zł','Łączna wartość',orange)}
+    </div>
+    ${card(`
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div>
+          <div style="font-size:11px;font-family:${fontMono};color:${muted};text-transform:uppercase;margin-bottom:10px;">Dane klienta</div>
+          ${[
+            ['Email',c.email||'—'],['Wiek',c.age?c.age+' lat':'—'],
+            ['Waga',c.weight?c.weight+' kg':'—'],['Wzrost',c.height?c.height+' cm':'—'],
+            ['Status',c.status==='active'?'✅ Aktywny':'⚠ Nieaktywny'],
+          ].map(([l,v])=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid ${border};"><span style="color:${muted};">${l}</span><span style="font-weight:600;">${v}</span></div>`).join('')}
+        </div>
+        <div>
+          <div style="font-size:11px;font-family:${fontMono};color:${muted};text-transform:uppercase;margin-bottom:10px;">Typy sesji w okresie</div>
+          ${Object.entries(sessTypes).length?Object.entries(sessTypes).map(([t,n])=>`
+            <div style="margin-bottom:8px;">
+              <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span>${t}</span><span style="font-weight:700;color:${accent};">${n}</span></div>
+              <div style="height:5px;background:${border};border-radius:99px;overflow:hidden;"><div style="height:100%;background:${accent};width:${Math.round(n/sessions.length*100)}%;border-radius:99px;"></div></div>
+            </div>`).join(''):'<div style="color:'+muted+';font-size:12px;">Brak sesji w tym okresie</div>'}
+        </div>
+      </div>`)}
+    </div>`;
+  }
+
+  // ── CHARTS ──
+  if(sec.charts){
+    html+=`<div style="margin-bottom:24px;">${sectionTitle('WYKRESY POSTĘPÓW','📈',blue)}`;
+
+    // session frequency chart — last 8 weeks
+    const now2=new Date();
+    const weekData=[];
+    for(let i=7;i>=0;i--){
+      const ws=new Date(now2);ws.setDate(ws.getDate()-i*7);
+      const we=new Date(ws);we.setDate(we.getDate()+6);
+      const cnt=allSessions.filter(s=>s.date>=dateStr(ws)&&s.date<=dateStr(we)).length;
+      weekData.push({l:'T'+(8-i),v:cnt});
+    }
+    html+=card(`<div style="font-size:12px;font-weight:700;margin-bottom:12px;color:${text};">Częstotliwość sesji (ostatnie 8 tygodni)</div>${barChart(weekData,accent)}`);
+
+    // mass progress chart
+    if(massEntries.length>=2){
+      const massPoints=massEntries.map(e=>({v:e.values.m1,d:e.date}));
+      html+=card(`<div style="font-size:12px;font-weight:700;margin-bottom:12px;color:${text};">Masa ciała — trend (kg)
+        ${massDiff!==null?`<span style="font-size:11px;color:${parseFloat(massDiff)<0?teal:orange};margin-left:8px;">${parseFloat(massDiff)>0?'+':''}${massDiff} kg</span>`:''}
+      </div>${lineChart(massPoints,parseFloat(massDiff||0)<0?teal:orange)}`);
+    }
+
+    // strength chart
+    if(strEntries.length>=2){
+      const sqPoints=strEntries.map(e=>({v:e.values.m1,d:e.date}));
+      html+=card(`<div style="font-size:12px;font-weight:700;margin-bottom:12px;color:${text};">Przysiad 1RM — trend (kg)
+        ${sqDiff!==null?`<span style="font-size:11px;color:${sqDiff>0?teal:red};margin-left:8px;">${sqDiff>0?'+':''}${sqDiff} kg</span>`:''}
+      </div>${lineChart(sqPoints,teal)}`);
+    }
+    html+='</div>';
+  }
+
+  // ── METRICS ──
+  if(sec.metrics){
+    html+=`<div style="margin-bottom:24px;">${sectionTitle('POMIARY CIAŁA','📏',teal)}`;
+    const groups=allMetricGroups();
+    if(!entries.length){
+      html+=card(`<div style="color:${muted};font-size:12px;text-align:center;padding:20px;">Brak pomiarów dla tego klienta</div>`);
+    } else {
+      groups.forEach(g=>{
+        const ge=entries.filter(e=>e.groupId===g.id).sort((a,b)=>b.date.localeCompare(a.date));
+        if(!ge.length)return;
+        const last=ge[0];const first=ge[ge.length-1];
+        html+=card(`
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+            <span style="font-size:20px;">${g.icon}</span>
+            <span style="font-size:13px;font-weight:700;">${g.name}</span>
+            <span style="font-size:10px;color:${muted};font-family:${fontMono};margin-left:auto;">Pomiarów: ${ge.length} · Ostatni: ${last.date}</span>
+          </div>
+          <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;font-size:12px;">
+              <thead><tr style="background:${bg};">${['Wskaźnik',...ge.slice(0,4).map(e=>e.date),'Zmiana'].map(h=>`<th style="padding:6px 10px;text-align:left;font-family:${fontMono};font-size:10px;color:${muted};text-transform:uppercase;border-bottom:1px solid ${border};">${h}</th>`).join('')}</tr></thead>
+              <tbody>${g.metrics.map(m=>{
+                const vals=ge.slice(0,4).map(e=>e.values[m.id]);
+                const first2=ge[ge.length-1]?.values[m.id];const last2=ge[0]?.values[m.id];
+                const diff=first2!=null&&last2!=null?(last2-first2).toFixed(1):null;
+                const goodDown=['mg1','mg2'].includes(g.id);
+                const diffColor=diff==null?muted:parseFloat(diff)<0?(goodDown?teal:red):parseFloat(diff)>0?(goodDown?red:teal):muted;
+                return `<tr style="border-bottom:1px solid ${border};">
+                  <td style="padding:7px 10px;font-weight:600;">${m.name}${m.unit?' ('+m.unit+')':''}</td>
+                  ${vals.map(v=>`<td style="padding:7px 10px;font-family:${fontMono};">${v!=null?v:'—'}</td>`).join('')}
+                  <td style="padding:7px 10px;font-weight:700;color:${diffColor};">${diff!=null?(parseFloat(diff)>0?'+':'')+diff+(m.unit?' '+m.unit:''):'—'}</td>
+                </tr>`;
+              }).join('')}</tbody>
+            </table>
+          </div>`);
+      });
+    }
+    html+='</div>';
+  }
+
+  // ── SESSIONS ──
+  if(sec.sessions){
+    html+=`<div style="margin-bottom:24px;">${sectionTitle('HISTORIA SESJI','📅',blue)}`;
+    if(!sessions.length){
+      html+=card(`<div style="color:${muted};font-size:12px;text-align:center;padding:20px;">Brak sesji w wybranym okresie</div>`);
+    } else {
+      html+=card(`
+        <table style="width:100%;border-collapse:collapse;font-size:12px;">
+          <thead><tr>${['Data','Godzina','Typ','Czas','Notatki'].map(h=>`<th style="padding:7px 10px;text-align:left;font-family:${fontMono};font-size:10px;color:${muted};text-transform:uppercase;border-bottom:1px solid ${border};">${h}</th>`).join('')}</tr></thead>
+          <tbody>${sessions.map((s,i)=>`<tr style="background:${i%2===0?'transparent':bg};border-bottom:1px solid ${border};">
+            <td style="padding:7px 10px;font-family:${fontMono};">${s.date}</td>
+            <td style="padding:7px 10px;font-family:${fontMono};color:${accent};">${s.time||'—'}</td>
+            <td style="padding:7px 10px;font-weight:600;">${s.type||'Sesja'}</td>
+            <td style="padding:7px 10px;color:${muted};">${s.duration||60} min</td>
+            <td style="padding:7px 10px;color:${muted};font-size:11px;">${s.notes||'—'}</td>
+          </tr>`).join('')}</tbody>
+        </table>`);
+    }
+    html+='</div>';
+  }
+
+  // ── TASKS ──
+  if(sec.tasks){
+    html+=`<div style="margin-bottom:24px;">${sectionTitle('REALIZACJA ZADAŃ','✅',teal)}`;
+    const pct=tasks.length?Math.round(tasksDone.length/tasks.length*100):0;
+    html+=card(`
+      <div style="display:flex;gap:16px;align-items:center;margin-bottom:16px;">
+        <div style="flex:1;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;"><span>Ukończone</span><span style="font-weight:700;color:${teal};">${tasksDone.length}/${tasks.length} (${pct}%)</span></div>
+          <div style="height:8px;background:${border};border-radius:99px;overflow:hidden;"><div style="height:100%;background:${teal};width:${pct}%;border-radius:99px;transition:width 0.3s;"></div></div>
+        </div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:${teal};">${pct}%</div>
+      </div>
+      ${tasks.length?`<table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead><tr>${['Zadanie','Kategoria','Priorytet','Termin','Status'].map(h=>`<th style="padding:6px 10px;text-align:left;font-family:${fontMono};font-size:10px;color:${muted};text-transform:uppercase;border-bottom:1px solid ${border};">${h}</th>`).join('')}</tr></thead>
+        <tbody>${tasks.map((t,i)=>{
+          const isDone=t.status==='done';
+          const catCol={trening:accent,dieta:teal,pomiary:blue,lifestyle:'#9d7cf4'}[t.cat]||muted;
+          return `<tr style="background:${i%2===0?'transparent':bg};border-bottom:1px solid ${border};">
+            <td style="padding:6px 10px;font-weight:600;${isDone?'text-decoration:line-through;color:'+muted+';':''};">${t.title}</td>
+            <td style="padding:6px 10px;"><span style="background:${catCol}22;color:${catCol};border-radius:99px;padding:1px 7px;font-size:10px;font-family:${fontMono};">${t.cat||'—'}</span></td>
+            <td style="padding:6px 10px;font-size:11px;color:${{high:red,medium:orange,low:teal}[t.priority]||muted};">${{high:'🔴 Wysoki',medium:'🟡 Średni',low:'🟢 Niski'}[t.priority]||'—'}</td>
+            <td style="padding:6px 10px;font-family:${fontMono};color:${muted};">${t.due||'—'}</td>
+            <td style="padding:6px 10px;">${isDone?`<span style="color:${teal};font-size:11px;">✓ Ukończone</span>`:`<span style="color:${orange};font-size:11px;">⏳ W toku</span>`}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>`:'<div style="color:'+muted+';font-size:12px;text-align:center;padding:16px;">Brak zadań</div>'}
+    `);
+    html+='</div>';
+  }
+
+  // ── PLANS ──
+  if(sec.plans&&plans.length){
+    html+=`<div style="margin-bottom:24px;">${sectionTitle('PLANY TRENINGOWE','🏋️',orange)}`;
+    plans.forEach(p=>{
+      html+=card(`
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+          <div><div style="font-size:14px;font-weight:700;">${p.name}</div><div style="font-size:11px;color:${muted};margin-top:2px;">${p.method} · ${p.duration} tyg. · ${p.level}</div></div>
+          <span style="background:${accent}22;color:${accent};border:1px solid ${accent}44;border-radius:99px;padding:2px 10px;font-size:11px;font-family:${fontMono};">${p.method}</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          ${(p.days||[]).map(d=>`<div style="background:${bg};border:1px solid ${border};border-radius:8px;padding:6px 10px;min-width:80px;">
+            <div style="font-size:10px;color:${d.rest?muted:accent};font-family:${fontMono};font-weight:700;margin-bottom:3px;">${d.day}${d.rest?' REST':''}</div>
+            ${!d.rest&&d.muscles?`<div style="font-size:11px;font-weight:600;">${d.muscles}</div>`:''}
+          </div>`).join('')}
+        </div>`);
+    });
+    html+='</div>';
+  }
+
+  // ── PAYMENTS ──
+  if(sec.payments&&pkgs.length){
+    html+=`<div style="margin-bottom:24px;">${sectionTitle('PŁATNOŚCI I PAKIETY','💰',teal)}`;
+    html+=card(`
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">
+        ${kpiBox(pkgs.length,'Pakietów',accent)}
+        ${kpiBox(totalRevenue.toLocaleString('pl')+' zł','Łącznie',teal)}
+        ${kpiBox(pkgs.filter(p=>p.payStatus==='paid').length,'Opłaconych',blue)}
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead><tr>${['Pakiet','Typ','Sesje','Cena','Ważny do','Status'].map(h=>`<th style="padding:6px 10px;text-align:left;font-family:${fontMono};font-size:10px;color:${muted};text-transform:uppercase;border-bottom:1px solid ${border};">${h}</th>`).join('')}</tr></thead>
+        <tbody>${pkgs.map((p,i)=>{
+          const st={paid:'✅ Opłacony',pending:'⏳ Oczekujący',expired:'❌ Wygasły'}[p.payStatus]||p.payStatus;
+          const sc={paid:teal,pending:orange,expired:red}[p.payStatus]||muted;
+          return `<tr style="background:${i%2===0?'transparent':bg};border-bottom:1px solid ${border};">
+            <td style="padding:6px 10px;font-weight:600;">${p.title}</td>
+            <td style="padding:6px 10px;color:${muted};">${{sessions:'Sesje',monthly:'Abonament',program:'Program',online:'Online'}[p.type]||p.type}</td>
+            <td style="padding:6px 10px;font-family:${fontMono};">${p.sessionsUsed}/${p.sessions}</td>
+            <td style="padding:6px 10px;font-weight:700;color:${accent};">${p.price.toLocaleString('pl')} zł</td>
+            <td style="padding:6px 10px;font-family:${fontMono};color:${muted};">${p.expiresDate||'—'}</td>
+            <td style="padding:6px 10px;color:${sc};">${st}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>`);
+    html+='</div>';
+  }
+
+  // ── NOTES ──
+  if(sec.notes&&notes.length){
+    html+=`<div style="margin-bottom:24px;">${sectionTitle('NOTATKI TRENERA','📝',blue)}`;
+    html+=card(notes.map(n=>`<div style="padding:10px 14px;background:${bg};border-radius:8px;border-left:3px solid ${accent};margin-bottom:8px;">
+      <div style="font-size:12px;line-height:1.6;">${n.text}</div>
+      <div style="font-size:10px;color:${muted};font-family:${fontMono};margin-top:4px;">${n.date}</div>
+    </div>`).join(''));
+    html+='</div>';
+  }
+
+  // FOOTER
+  html+=`<div style="margin-top:32px;padding-top:16px;border-top:1px solid ${border};display:flex;justify-content:space-between;align-items:center;">
+    <div style="font-size:11px;color:${muted};">
+      <strong style="color:${text};">Progress Live</strong> · Piotr Urbaniak — Trener Personalny<br>
+      Raport wygenerowany: ${today}
+    </div>
+    <div style="font-size:10px;color:${muted};font-family:${fontMono};text-align:right;">
+      Strona 1/1<br>POUFNE — tylko dla klienta
+    </div>
+  </div>`;
+
+  html+='</div>'; // close wrapper
+
+  return `<div class="report-page" style="font-family:'DM Sans',sans-serif;background:${bg};color:${text};min-height:100vh;padding-bottom:40px;">${html}</div>`;
+}
 var forumActiveGroup='all';var forumFilter='all';var forumActivePost=null;
 window.FORUM_GROUPS=[];window.FORUM_POSTS=[];window.FORUM_COMMENTS={};
 
@@ -6890,6 +7396,9 @@ window.openWLDetail=openWLDetail;window.closeWLDetail=closeWLDetail;
 window.assignWorkout=assignWorkout;window.assignWorkoutDirect=assignWorkoutDirect;
 window.addWExRow=addWExRow;window.saveWorkout=saveWorkout;
 window.setDashPeriod=setDashPeriod;
+window.openReportModal=openReportModal;window.openReportForClient=openReportForClient;
+window.previewReportOptions=previewReportOptions;window.generateReport=generateReport;
+window.reportClose=reportClose;window.reportPrint=reportPrint;
 window.renderForum=renderForum;window.setForumGroup=setForumGroup;window.setForumFilter=setForumFilter;
 window.openForumPost=openForumPost;window.addComment=addComment;window.addCommentAs=addCommentAs;
 window.likeComment=likeComment;window.reactToPost=reactToPost;window.addReaction=addReaction;
