@@ -219,6 +219,20 @@ button{cursor:pointer;}
 .ci-history-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;}
 .ci-history-row:last-child{border-bottom:none;}
 .ci-trend-item{background:var(--s3);border-radius:8px;padding:10px 12px;margin-bottom:8px;}
+.live-dot-wrap{width:28px;height:28px;border-radius:8px;background:rgba(255,77,77,0.15);display:flex;align-items:center;justify-content:center;}
+.live-dot{width:10px;height:10px;border-radius:50%;background:var(--red);animation:pulse 1.2s infinite;}
+.live-ex-card{background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;transition:border-color 0.15s;}
+.live-ex-card.active{border-color:var(--accent);background:rgba(200,241,53,0.03);}
+.live-ex-card.done{border-color:rgba(62,207,178,0.3);background:rgba(62,207,178,0.03);opacity:0.7;}
+.live-set-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);}
+.live-set-row:last-child{border-bottom:none;}
+.live-set-check{width:26px;height:26px;border-radius:7px;border:2px solid var(--border2);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;transition:all 0.12s;}
+.live-set-check.done{background:var(--teal);border-color:var(--teal);color:#000;}
+.live-kg-input{width:55px;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:4px 6px;color:var(--text);font-size:12px;font-family:'DM Mono',monospace;text-align:center;}
+.live-kg-input:focus{border-color:var(--accent);outline:none;}
+.btn-danger{background:rgba(255,77,77,0.15);border:1px solid rgba(255,77,77,0.3);color:var(--red);}
+.btn-danger:hover{background:rgba(255,77,77,0.25);}
+/* ── REPORTS ── */
 .apl-opt{padding:8px 10px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;color:var(--muted);font-size:11px;cursor:pointer;transition:all 0.1s;font-family:'DM Sans',sans-serif;text-align:center;}
 .apl-opt:hover{border-color:var(--border2);color:var(--text);}
 .apl-opt.active{background:var(--adim);border-color:var(--accent);color:var(--accent);}
@@ -650,6 +664,7 @@ input[type=checkbox]{display:none;}
     <button class="nav-item" onclick="goTo('bizstats')"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Statystyki</button>
     <button class="nav-item" onclick="goTo('aiplangen')"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Generator AI</button>
     <button class="nav-item" onclick="goTo('reports')"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Raporty</button>
+    <button class="nav-item" onclick="goTo('live')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>Trening Live</button>
   </nav>
   <div class="sidebar-footer">
     <div class="av">PU</div>
@@ -2778,6 +2793,111 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   <div id="rep-auto-tab" style="flex:1;overflow-y:auto;padding:20px 24px;display:none;"></div>
 </div>
 
+<!-- LIVE WORKOUT — TRYB LIVE -->
+<div class="screen" id="screen-live">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="live-dot-wrap"><div class="live-dot"></div></div>
+      <div class="topbar-title">Trening na żywo</div>
+    </div>
+    <div class="topbar-actions">
+      <select class="form-select" id="live-client-sel" onchange="liveLoadClient()" style="width:180px;font-size:12px;padding:5px 8px;">
+        <option value="">Wybierz klienta...</option>
+      </select>
+      <div style="display:flex;gap:2px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:2px;">
+        <button class="auto-tab-btn active" id="live-tab-trainer" onclick="setLiveTab('trainer')">🏋️ Widok trenera</button>
+        <button class="auto-tab-btn" id="live-tab-client" onclick="setLiveTab('client')">📱 Widok klienta</button>
+        <button class="auto-tab-btn" id="live-tab-history" onclick="setLiveTab('history')">📊 Historia</button>
+      </div>
+      <button class="btn btn-danger btn-sm" id="live-end-btn" onclick="liveEndSession()" style="display:none;">⏹ Zakończ sesję</button>
+      <button class="btn btn-primary btn-sm" id="live-start-btn" onclick="liveStartSession()">▶ Start sesji</button>
+    </div>
+  </div>
+
+  <!-- TRAINER VIEW -->
+  <div id="live-trainer-tab" style="flex:1;display:flex;overflow:hidden;">
+
+    <!-- lewy — klient i plan -->
+    <div style="width:320px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;padding:14px;">
+      <div id="live-client-card"></div>
+      <div id="live-plan-picker"></div>
+    </div>
+
+    <!-- środek — ćwiczenia live -->
+    <div style="flex:1;overflow-y:auto;padding:16px 20px;" id="live-exercises-panel">
+      <div style="text-align:center;padding:60px 20px;color:var(--muted);">
+        <div style="font-size:36px;margin-bottom:12px;opacity:0.3;">🏋️</div>
+        <div style="font-size:14px;font-weight:600;margin-bottom:6px;">Wybierz klienta i plan</div>
+        <div style="font-size:12px;">Następnie kliknij Start sesji, aby rozpocząć trening na żywo.</div>
+      </div>
+    </div>
+
+    <!-- prawy — timer i statsy -->
+    <div style="width:280px;flex-shrink:0;border-left:1px solid var(--border);padding:16px;display:flex;flex-direction:column;gap:12px;" id="live-stats-panel">
+      <!-- timer -->
+      <div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Czas sesji</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:3px;color:var(--accent);line-height:1;" id="live-timer">00:00</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:4px;" id="live-timer-status">Nieaktywny</div>
+      </div>
+
+      <!-- postęp -->
+      <div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:16px;">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:10px;">Postęp</div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-size:13px;font-weight:700;" id="live-ex-done">0</span>
+          <span style="font-size:13px;color:var(--muted);">/ <span id="live-ex-total">0</span> ćw.</span>
+        </div>
+        <div style="height:8px;background:var(--s3);border-radius:99px;overflow:hidden;">
+          <div id="live-progress-bar" style="height:100%;background:var(--accent);width:0%;border-radius:99px;transition:width 0.4s;"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;">
+          <div style="text-align:center;">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--blue);" id="live-sets-done">0</div>
+            <div style="font-size:10px;color:var(--muted);">Serii</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--orange);" id="live-volume">0</div>
+            <div style="font-size:10px;color:var(--muted);">Obj. (kg)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- przerwa timer -->
+      <div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:14px;">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Timer przerwy</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--text);text-align:center;line-height:1;margin-bottom:8px;" id="live-rest-timer">—</div>
+        <div style="display:flex;gap:5px;">
+          ${[60,90,120,180].map(s=>`<button onclick="liveStartRest(${s})" style="flex:1;padding:5px;background:var(--s3);border:1px solid var(--border2);border-radius:6px;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);cursor:pointer;">${s}s</button>`).join('')}
+        </div>
+      </div>
+
+      <!-- notatka do sesji -->
+      <div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:14px;flex:1;">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Notatka do sesji</div>
+        <textarea id="live-note" placeholder="np. klient miał problem z kolanklem, zmniejszyłem ciężar..." style="width:100%;background:none;border:none;color:var(--text);font-size:12px;resize:none;height:80px;font-family:'DM Sans',sans-serif;outline:none;line-height:1.6;"></textarea>
+      </div>
+
+      <!-- szybki feedback -->
+      <div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:14px;">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Feedback klienta</div>
+        <div style="display:flex;justify-content:space-between;">
+          ${['😓','😐','🙂','💪','🔥'].map((e,i)=>`<button onclick="liveFeedback(${i+1})" style="width:40px;height:40px;border-radius:10px;background:var(--s3);border:1px solid var(--border2);font-size:20px;cursor:pointer;" title="Poziom ${i+1}">${e}</button>`).join('')}
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin-top:6px;text-align:center;" id="live-feedback-text">Brak oceny</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLIENT VIEW (mockup) -->
+  <div id="live-client-tab" style="flex:1;overflow-y:auto;background:var(--s3);display:none;align-items:center;justify-content:center;padding:20px;">
+    <div id="live-client-mock" style="width:375px;"></div>
+  </div>
+
+  <!-- HISTORY TAB -->
+  <div id="live-history-tab" style="flex:1;overflow-y:auto;padding:20px 24px;display:none;" id="live-history-content"></div>
+</div>
+
 </div><!-- /main -->
 
 <!-- CALCULATOR — TDEE / MAKRO -->
@@ -3581,7 +3701,7 @@ function goTo(n){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   const s=document.getElementById('screen-'+n);if(s)s.classList.add('active');
-  const navMap={'dashboard':0,'clients':1,'plans':2,'builder':3,'calendar':4,'inbox':5,'workout-library':6,'library':7,'programs':8,'metrics':9,'tasks':10,'forms':11,'automation':12,'resources':13,'ondemand':14,'payments':15,'calculator':16,'forum':17,'settings':18,'checkin':19,'progbuilder':20,'integrations':21,'clientapp':22,'aicoach':23,'bizstats':24,'aiplangen':25,'reports':26};
+  const navMap={'dashboard':0,'clients':1,'plans':2,'builder':3,'calendar':4,'inbox':5,'workout-library':6,'library':7,'programs':8,'metrics':9,'tasks':10,'forms':11,'automation':12,'resources':13,'ondemand':14,'payments':15,'calculator':16,'forum':17,'settings':18,'checkin':19,'progbuilder':20,'integrations':21,'clientapp':22,'aicoach':23,'bizstats':24,'aiplangen':25,'reports':26,'live':27};
   const btns=document.querySelectorAll('.nav-item');
   if(navMap[n]!==undefined&&btns[navMap[n]])btns[navMap[n]].classList.add('active');
   if(n==='builder')initBuilder();
@@ -3627,6 +3747,7 @@ function goTo(n){
   if(n==='bizstats'){initBizStats();}
   if(n==='aiplangen'){initAplangen();}
   if(n==='reports'){initReports();}
+  if(n==='live'){initLive();}
 }
 
 function openM(id){
@@ -3902,6 +4023,431 @@ async function saveWorkout(){
   try{if(window._db){const r=await window._add(window._col(window._db,'workouts'),w);w.id=r.id;}else w.id='w'+Date.now();}catch(e){w.id='w'+Date.now();}
   WO.push(w);closeM('m-workout');renderWL();notify('Trening dodany! 💪');
 }
+
+// ════════════════════════════════════════
+// LIVE WORKOUT — TRYB LIVE
+// ════════════════════════════════════════
+var liveTab='trainer';
+var liveClientId=null;
+var livePlanId=null;
+var liveSessionActive=false;
+var liveTimerSec=0;var liveTimerInterval=null;
+var liveRestSec=0;var liveRestInterval=null;
+var liveExercises=[];  // [{name,sets:[{kg,reps,done}],done}]
+var liveFeedbackVal=0;
+var LIVE_HISTORY=[];
+
+function initLive(){
+  const sel=document.getElementById('live-client-sel');
+  if(sel){
+    sel.innerHTML='<option value="">Wybierz klienta...</option>'+CL.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+    if(!liveClientId&&CL.length){liveClientId=CL[0].id;sel.value=liveClientId;}
+  }
+  if(liveClientId)liveLoadClient();
+  renderLiveHistory();
+}
+
+function setLiveTab(t){
+  liveTab=t;
+  ['trainer','client','history'].forEach(x=>{
+    const el=document.getElementById('live-'+x+'-tab');
+    if(el)el.style.display=x===t?'flex':'none';
+    document.getElementById('live-tab-'+x)?.classList.toggle('active',x===t);
+  });
+  if(t==='client')renderLiveClientMock();
+  if(t==='history')renderLiveHistory();
+}
+
+function liveLoadClient(){
+  const sel=document.getElementById('live-client-sel');
+  liveClientId=sel?.value||null;
+  renderLiveClientCard();
+  renderLivePlanPicker();
+  renderLiveExercises();
+}
+
+function renderLiveClientCard(){
+  const el=document.getElementById('live-client-card');if(!el)return;
+  const c=CL.find(x=>x.id===liveClientId);
+  if(!c){el.innerHTML='';return;}
+  const sessCount=SE.filter(s=>s.clientId===c.id).length;
+  el.innerHTML=`<div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <div style="width:42px;height:42px;border-radius:12px;background:var(--adim);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--accent);flex-shrink:0;">${getInit(c.name)}</div>
+      <div>
+        <div style="font-size:14px;font-weight:700;">${c.name}</div>
+        <div style="font-size:11px;color:var(--muted);">${{masa:'💪 Masa',sila:'🏋️ Siła',redukcja:'🔥 Redukcja',kondycja:'🏃 Kondycja'}[c.goal]||'—'} · ${sessCount} sesji</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:11px;">
+      <div style="background:var(--s3);border-radius:8px;padding:8px;text-align:center;">
+        <div style="font-weight:700;color:var(--accent);">${c.weight||'—'}</div>
+        <div style="color:var(--muted);">kg</div>
+      </div>
+      <div style="background:var(--s3);border-radius:8px;padding:8px;text-align:center;">
+        <div style="font-weight:700;color:var(--blue);">${c.height||'—'}</div>
+        <div style="color:var(--muted);">cm</div>
+      </div>
+      <div style="background:var(--s3);border-radius:8px;padding:8px;text-align:center;">
+        <div style="font-weight:700;color:var(--orange);">${c.age||'—'}</div>
+        <div style="color:var(--muted);">lat</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderLivePlanPicker(){
+  const el=document.getElementById('live-plan-picker');if(!el)return;
+  const plans=PL.filter(p=>p.clientId===liveClientId);
+  if(!plans.length){
+    el.innerHTML=`<div style="font-size:11px;color:var(--muted);text-align:center;padding:12px;background:var(--s2);border-radius:10px;border:1px solid var(--border);">
+      Brak planów dla klienta.<br>
+      <button class="btn btn-ghost btn-sm" style="margin-top:6px;" onclick="goTo('builder')">+ Utwórz plan</button>
+    </div>`;
+    return;
+  }
+  el.innerHTML=`<div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Wybierz plan</div>
+  <div style="display:flex;flex-direction:column;gap:5px;">
+    ${plans.map(p=>`<div style="background:var(--s2);border:1px solid ${livePlanId===p.id?'var(--accent)':'var(--border)'};border-radius:10px;padding:10px 12px;cursor:pointer;transition:border-color 0.1s;" onclick="liveSelectPlan('${p.id}')">
+      <div style="font-size:12px;font-weight:700;">${p.name}</div>
+      <div style="font-size:10px;color:var(--muted);">${p.method||''} · ${p.duration||'?'} tyg. · ${(p.days||[]).length} dni</div>
+    </div>`).join('')}
+  </div>
+  <div style="margin-top:10px;">
+    <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Lub quick-add trening</div>
+    <button class="btn btn-ghost btn-sm" style="width:100%;" onclick="liveQuickAdd()">⚡ Szybki trening bez planu</button>
+  </div>`;
+  if(!livePlanId&&plans.length)liveSelectPlan(plans[0].id);
+}
+
+function liveSelectPlan(pid){
+  livePlanId=pid;
+  const p=PL.find(x=>x.id===pid);if(!p)return;
+  // build exercises from first training day
+  const day=(p.days||[])[0];
+  liveExercises=(day?.exercises||[
+    {name:'Wyciskanie sztangi leżąc',sets:'4',reps:'8'},
+    {name:'Rozpiętki na wyciągu',sets:'3',reps:'12'},
+    {name:'Wyciskanie hantli skos+',sets:'3',reps:'10'},
+    {name:'OHP ze sztangą',sets:'3',reps:'10'},
+    {name:'Wznosy hantli bokiem',sets:'4',reps:'15'},
+    {name:'Prostowanie triceps wyciąg',sets:'3',reps:'12'},
+  ]).map(ex=>({
+    name:ex.name,
+    sets:Array.from({length:parseInt(ex.sets)||3},(_,i)=>({setNo:i+1,kg:'',reps:ex.reps||'8-12',done:false})),
+    done:false,
+    collapsed:false,
+  }));
+  renderLivePlanPicker();
+  renderLiveExercises();
+}
+
+function liveQuickAdd(){
+  liveExercises=[
+    {name:'Ćwiczenie 1',sets:[{setNo:1,kg:'',reps:'10',done:false},{setNo:2,kg:'',reps:'10',done:false},{setNo:3,kg:'',reps:'10',done:false}],done:false},
+  ];
+  renderLiveExercises();
+}
+
+function renderLiveExercises(){
+  const el=document.getElementById('live-exercises-panel');if(!el)return;
+  if(!liveExercises.length){
+    el.innerHTML=`<div style="text-align:center;padding:60px 20px;color:var(--muted);">
+      <div style="font-size:36px;margin-bottom:12px;opacity:0.3;">🏋️</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:6px;">Wybierz klienta i plan</div>
+    </div>`;
+    return;
+  }
+  const doneCnt=liveExercises.filter(e=>e.done).length;
+  const total=liveExercises.length;
+  const setsDone=liveExercises.flatMap(e=>e.sets).filter(s=>s.done).length;
+  const volume=liveExercises.flatMap(e=>e.sets).filter(s=>s.done&&s.kg).reduce((a,s)=>a+parseFloat(s.kg||0)*parseFloat(s.reps||0),0);
+
+  // update stats panel
+  const setEl=v=>id=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  document.getElementById('live-ex-done').textContent=doneCnt;
+  document.getElementById('live-ex-total').textContent=total;
+  document.getElementById('live-sets-done').textContent=setsDone;
+  document.getElementById('live-volume').textContent=Math.round(volume);
+  const pb=document.getElementById('live-progress-bar');
+  if(pb)pb.style.width=(total?Math.round(doneCnt/total*100):0)+'%';
+
+  el.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;">${liveSessionActive?'TRENING W TOKU':'PLAN TRENINGU'}</div>
+        <div style="font-size:11px;color:var(--muted);">${doneCnt}/${total} ćwiczeń ukończonych</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="liveAddExercise()">+ Dodaj ćwiczenie</button>
+    </div>
+    ${liveExercises.map((ex,i)=>liveExCard(ex,i)).join('')}
+    ${liveSessionActive&&doneCnt===total&&total>0?`
+    <div style="background:linear-gradient(135deg,var(--adim),transparent);border:1px solid rgba(200,241,53,0.3);border-radius:14px;padding:20px;text-align:center;margin-top:10px;">
+      <div style="font-size:28px;margin-bottom:8px;">🎉</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:4px;">TRENING UKOŃCZONY!</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">${setsDone} serii · ${Math.round(volume)} kg objętości</div>
+      <button class="btn btn-primary" onclick="liveEndSession()">Zakończ i zapisz sesję</button>
+    </div>`:''}`;
+}
+
+function liveExCard(ex,i){
+  const setsDone=ex.sets.filter(s=>s.done).length;
+  return `<div class="live-ex-card${ex.done?' done':liveSessionActive&&!ex.done&&i===liveExercises.findIndex(e=>!e.done)?' active':''}" id="live-ex-${i}">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:${ex.collapsed?0:10}px;cursor:pointer;" onclick="liveToggleCollapse(${i})">
+      <div style="width:30px;height:30px;border-radius:8px;background:${ex.done?'var(--teal)':'var(--adim)'};display:flex;align-items:center;justify-content:center;font-size:${ex.done?'14px':'12px'};font-weight:700;color:${ex.done?'#000':'var(--accent)'};flex-shrink:0;">${ex.done?'✓':i+1}</div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:700;">${ex.name}</div>
+        <div style="font-size:10px;color:var(--muted);">${ex.sets.length} serie · ${setsDone}/${ex.sets.length} ukończono</div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        ${!ex.done?`<button onclick="event.stopPropagation();liveSkipEx(${i})" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;padding:4px 6px;">Pomiń</button>`:''}
+        <span style="color:var(--muted);font-size:14px;">${ex.collapsed?'▶':'▼'}</span>
+      </div>
+    </div>
+    ${!ex.collapsed?`
+    <div>
+      <div style="display:grid;grid-template-columns:30px 1fr 70px 70px 50px;gap:6px;padding:4px 0;font-size:9px;font-family:'DM Mono',monospace;color:var(--muted2);text-transform:uppercase;border-bottom:1px solid var(--border);">
+        <span></span><span>Seria</span><span style="text-align:center;">Ciężar</span><span style="text-align:center;">Powt.</span><span></span>
+      </div>
+      ${ex.sets.map((s,si)=>`<div class="live-set-row">
+        <div class="live-set-check${s.done?' done':''}" onclick="liveToggleSet(${i},${si})">${s.done?'✓':''}</div>
+        <div style="font-size:12px;color:var(--muted);">Seria ${s.setNo}</div>
+        <input type="number" class="live-kg-input" placeholder="kg" value="${s.kg}" oninput="liveSetKg(${i},${si},this.value)" onclick="event.stopPropagation()">
+        <input type="number" class="live-kg-input" placeholder="powt." value="${s.reps}" oninput="liveSetReps(${i},${si},this.value)" onclick="event.stopPropagation()">
+        <button onclick="liveStartRest(90)" style="background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:4px 6px;font-size:10px;color:var(--muted);cursor:pointer;">⏱</button>
+      </div>`).join('')}
+      <button onclick="liveAddSet(${i})" style="width:100%;margin-top:6px;padding:6px;background:none;border:1px dashed var(--border2);border-radius:6px;color:var(--muted);font-size:11px;cursor:pointer;">+ Dodaj serię</button>
+    </div>`:''}
+  </div>`;
+}
+
+function liveToggleCollapse(i){
+  liveExercises[i].collapsed=!liveExercises[i].collapsed;
+  renderLiveExercises();
+}
+
+function liveToggleSet(ei,si){
+  const s=liveExercises[ei].sets[si];
+  s.done=!s.done;
+  // check if all sets done
+  if(liveExercises[ei].sets.every(s=>s.done))liveExercises[ei].done=true;
+  // start rest timer if setting done
+  if(s.done)liveStartRest(90);
+  renderLiveExercises();
+}
+
+function liveSetKg(ei,si,v){liveExercises[ei].sets[si].kg=v;}
+function liveSetReps(ei,si,v){liveExercises[ei].sets[si].reps=v;}
+
+function liveAddSet(ei){
+  const ex=liveExercises[ei];
+  ex.sets.push({setNo:ex.sets.length+1,kg:'',reps:'8-12',done:false});
+  renderLiveExercises();
+}
+
+function liveSkipEx(i){
+  liveExercises[i].done=true;
+  liveExercises[i].collapsed=true;
+  renderLiveExercises();
+}
+
+function liveAddExercise(){
+  liveExercises.push({
+    name:'Nowe ćwiczenie',
+    sets:[{setNo:1,kg:'',reps:'10',done:false},{setNo:2,kg:'',reps:'10',done:false},{setNo:3,kg:'',reps:'10',done:false}],
+    done:false,collapsed:false
+  });
+  renderLiveExercises();
+}
+
+function liveStartSession(){
+  if(!liveClientId){notify('Wybierz klienta!');return;}
+  if(!liveExercises.length){notify('Wybierz plan lub dodaj ćwiczenia!');return;}
+  liveSessionActive=true;
+  liveTimerSec=0;
+  clearInterval(liveTimerInterval);
+  liveTimerInterval=setInterval(()=>{
+    liveTimerSec++;
+    const m=String(Math.floor(liveTimerSec/60)).padStart(2,'0');
+    const s=String(liveTimerSec%60).padStart(2,'0');
+    const el=document.getElementById('live-timer');
+    if(el)el.textContent=m+':'+s;
+  },1000);
+  document.getElementById('live-timer-status').textContent='W toku';
+  document.getElementById('live-start-btn').style.display='none';
+  document.getElementById('live-end-btn').style.display='';
+  notify('▶ Sesja rozpoczęta!');
+  renderLiveExercises();
+}
+
+function liveEndSession(){
+  if(!confirm('Zakończyć i zapisać sesję?'))return;
+  clearInterval(liveTimerInterval);
+  liveSessionActive=false;
+  const c=CL.find(x=>x.id===liveClientId);
+  const totalSets=liveExercises.flatMap(e=>e.sets).filter(s=>s.done).length;
+  const volume=Math.round(liveExercises.flatMap(e=>e.sets).filter(s=>s.done&&s.kg).reduce((a,s)=>a+parseFloat(s.kg||0)*parseFloat(s.reps||0),0));
+  const durationMin=Math.round(liveTimerSec/60);
+  const newSession={
+    id:'ls_'+Date.now(),
+    clientId:liveClientId,
+    date:dateStr(new Date()),
+    time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),
+    type:'Trening personalny',
+    duration:durationMin||60,
+    exercises:liveExercises.map(e=>({name:e.name,sets:e.sets.filter(s=>s.done).length})),
+    volume,feedback:liveFeedbackVal,
+    note:document.getElementById('live-note')?.value||'',
+    source:'live',
+  };
+  SE.push(newSession);
+  if(window._db){try{window._add(window._col(window._db,'sessions'),newSession);}catch(e){}}
+  LIVE_HISTORY.unshift({...newSession,clientName:c?.name||'Klient'});
+  addNotification('system','Sesja zapisana!','Trening '+c?.name+' · '+durationMin+' min · '+totalSets+' serii','clients');
+  notify('✅ Sesja zapisana! '+durationMin+' min, '+totalSets+' serii, '+volume+' kg obj.');
+  // reset
+  document.getElementById('live-timer').textContent='00:00';
+  document.getElementById('live-timer-status').textContent='Nieaktywny';
+  document.getElementById('live-start-btn').style.display='';
+  document.getElementById('live-end-btn').style.display='none';
+  liveFeedbackVal=0;
+  document.getElementById('live-feedback-text').textContent='Brak oceny';
+  liveExercises=[];
+  renderLiveExercises();
+  renderLiveHistory();
+  setLiveTab('history');
+}
+
+function liveStartRest(sec){
+  clearInterval(liveRestInterval);
+  liveRestSec=sec;
+  const el=document.getElementById('live-rest-timer');
+  const update=()=>{
+    if(!el)return;
+    if(liveRestSec<=0){
+      clearInterval(liveRestInterval);
+      el.textContent='GO!';
+      el.style.color='var(--accent)';
+      setTimeout(()=>{if(el)el.textContent='—';el.style.color='var(--text)';},2000);
+      return;
+    }
+    el.textContent=liveRestSec+'s';
+    el.style.color=liveRestSec<=10?'var(--red)':'var(--text)';
+    liveRestSec--;
+  };
+  update();
+  liveRestInterval=setInterval(update,1000);
+}
+
+function liveFeedback(v){
+  liveFeedbackVal=v;
+  const labels={1:'😓 Bardzo ciężko',2:'😐 Ciężko',3:'🙂 OK',4:'💪 Dobre',5:'🔥 Świetne!'};
+  document.getElementById('live-feedback-text').textContent=labels[v]||'';
+  notify('Feedback: '+labels[v]);
+}
+
+function renderLiveClientMock(){
+  const el=document.getElementById('live-client-mock');if(!el)return;
+  const c=CL.find(x=>x.id===liveClientId);
+  const doneCnt=liveExercises.filter(e=>e.done).length;
+  const total=liveExercises.length;
+  const pct=total?Math.round(doneCnt/total*100):0;
+  const accent=window.SETTINGS?.brand?.accentColor||'#c8f135';
+  el.innerHTML=`
+    <div style="background:#07080a;border-radius:40px;border:6px solid #1a1a2a;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.8);">
+      <!-- status bar -->
+      <div style="padding:12px 20px 6px;display:flex;justify-content:space-between;font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,0.5);">
+        <span>9:41</span><span>▲▲▲ 🔋</span>
+      </div>
+      <!-- header -->
+      <div style="padding:10px 20px 16px;border-bottom:1px solid rgba(255,255,255,0.06);">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:${accent}22;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;color:${accent};">${c?getInit(c.name):'PL'}</div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#eceae6;">${liveSessionActive?'TRENING W TOKU':'Plan treningu'}</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.4);">${c?.name||'Klient'}</div>
+          </div>
+          ${liveSessionActive?`<div style="margin-left:auto;font-family:'Bebas Neue',sans-serif;font-size:18px;color:${accent};" id="live-mock-timer">--:--</div>`:''}
+        </div>
+        <!-- progress bar -->
+        <div style="margin-top:10px;">
+          <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:4px;">
+            <span style="color:rgba(255,255,255,0.4);">Postęp</span>
+            <span style="color:${accent};font-weight:700;">${doneCnt}/${total} ćwiczeń</span>
+          </div>
+          <div style="height:6px;background:rgba(255,255,255,0.06);border-radius:99px;overflow:hidden;">
+            <div style="height:100%;background:${accent};width:${pct}%;border-radius:99px;transition:width 0.4s;"></div>
+          </div>
+        </div>
+      </div>
+      <!-- exercises list -->
+      <div style="padding:12px 16px;max-height:500px;overflow-y:auto;">
+        ${liveExercises.length?liveExercises.map((ex,i)=>`
+          <div style="margin-bottom:10px;background:${ex.done?'rgba(62,207,178,0.06)':'rgba(255,255,255,0.03)'};border:1px solid ${ex.done?'rgba(62,207,178,0.2)':'rgba(255,255,255,0.06)'};border-radius:14px;padding:12px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:${ex.done?0:8}px;">
+              <div style="width:24px;height:24px;border-radius:6px;background:${ex.done?'var(--teal)':'rgba(200,241,53,0.1)'};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:${ex.done?'#000':accent};flex-shrink:0;">${ex.done?'✓':i+1}</div>
+              <div style="font-size:12px;font-weight:700;color:#eceae6;">${ex.name}</div>
+            </div>
+            ${!ex.done?`<div style="display:flex;gap:5px;">
+              ${ex.sets.map(s=>`<div style="flex:1;height:28px;border-radius:6px;background:${s.done?accent+'33':'rgba(255,255,255,0.06)'};border:1px solid ${s.done?accent+'66':'transparent'};display:flex;align-items:center;justify-content:center;font-size:9px;font-family:'DM Mono',monospace;color:${s.done?accent:'rgba(255,255,255,0.3)'};">${s.done?'✓':s.setNo}</div>`).join('')}
+            </div>`:''}
+          </div>`).join(''):`<div style="text-align:center;padding:30px;color:rgba(255,255,255,0.3);font-size:12px;">Wybierz plan treningowy</div>`}
+      </div>
+    </div>`;
+  // sync mock timer
+  if(liveSessionActive){
+    const mt=document.getElementById('live-mock-timer');
+    if(mt){
+      const m=String(Math.floor(liveTimerSec/60)).padStart(2,'0');
+      const s=String(liveTimerSec%60).padStart(2,'0');
+      mt.textContent=m+':'+s;
+    }
+  }
+}
+
+function renderLiveHistory(){
+  const container=document.getElementById('live-history-tab');if(!container)return;
+  const all=[...LIVE_HISTORY,...SE.slice(0,8).map(s=>({...s,clientName:CL.find(c=>c.id===s.clientId)?.name||'Klient'}))];
+  container.innerHTML=`
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:16px;">HISTORIA SESJI LIVE</div>
+    ${all.length?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;">
+      ${all.slice(0,12).map(s=>`<div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:16px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:var(--adim);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;color:var(--accent);">${getInit(s.clientName||'?')}</div>
+          <div>
+            <div style="font-size:13px;font-weight:700;">${s.clientName||'Klient'}</div>
+            <div style="font-size:10px;color:var(--muted);">${s.date||''} ${s.time||''}</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:11px;">
+          <div style="background:var(--s3);border-radius:6px;padding:7px;text-align:center;">
+            <div style="font-weight:700;color:var(--accent);">${s.duration||60}</div>
+            <div style="color:var(--muted);">min</div>
+          </div>
+          <div style="background:var(--s3);border-radius:6px;padding:7px;text-align:center;">
+            <div style="font-weight:700;color:var(--blue);">${s.exercises?.length||'—'}</div>
+            <div style="color:var(--muted);">ćw.</div>
+          </div>
+          <div style="background:var(--s3);border-radius:6px;padding:7px;text-align:center;">
+            <div style="font-weight:700;color:var(--orange);">${s.volume||'—'}</div>
+            <div style="color:var(--muted);">kg obj.</div>
+          </div>
+        </div>
+        ${s.note?`<div style="font-size:11px;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--border);line-height:1.5;">${s.note}</div>`:''}
+      </div>`).join('')}
+    </div>`:`<div style="text-align:center;padding:60px;color:var(--muted);">
+      <div style="font-size:36px;opacity:0.3;margin-bottom:12px;">📊</div>
+      <div>Brak historii sesji live. Zacznij trening!</div>
+    </div>`}`;
+}
+
+window.initLive=initLive;window.setLiveTab=setLiveTab;window.liveLoadClient=liveLoadClient;
+window.liveSelectPlan=liveSelectPlan;window.liveQuickAdd=liveQuickAdd;
+window.liveStartSession=liveStartSession;window.liveEndSession=liveEndSession;
+window.liveToggleSet=liveToggleSet;window.liveToggleCollapse=liveToggleCollapse;
+window.liveSetKg=liveSetKg;window.liveSetReps=liveSetReps;
+window.liveAddSet=liveAddSet;window.liveSkipEx=liveSkipEx;window.liveAddExercise=liveAddExercise;
+window.liveStartRest=liveStartRest;window.liveFeedback=liveFeedback;
 
 // ════════════════════════════════════════
 // RAPORTY POSTĘPÓW
