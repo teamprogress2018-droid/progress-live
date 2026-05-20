@@ -182,6 +182,21 @@ button{cursor:pointer;}
 .wb-inp{background:var(--s3);border:1px solid var(--border);border-radius:6px;padding:5px 7px;color:var(--text);font-size:12px;width:100%;}
 .wb-inp:focus{border-color:var(--accent);}
 
+/* ── CHECK-IN ── */
+.ci-client-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.1s;}
+.ci-client-row:hover,.ci-client-row.active{background:var(--adim);}
+.ci-status-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.ci-score-bar{height:8px;border-radius:99px;overflow:hidden;background:var(--s3);margin:4px 0;}
+.ci-score-fill{height:100%;border-radius:99px;}
+.ci-question-card{background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
+.ci-q-label{font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
+.ci-q-value{font-size:20px;font-weight:700;font-family:'Bebas Neue',sans-serif;}
+.ci-emoji-scale{display:flex;gap:4px;flex-wrap:wrap;}
+.ci-emoji-btn{width:36px;height:36px;border-radius:8px;border:1px solid var(--border2);background:var(--s3);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.1s;}
+.ci-emoji-btn.active{border-color:var(--accent);background:var(--adim);}
+.ci-history-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.ci-history-row:last-child{border-bottom:none;}
+.ci-trend-item{background:var(--s3);border-radius:8px;padding:10px 12px;margin-bottom:8px;}
 /* ── SETTINGS ── */
 .settings-nav{padding:9px 16px;font-size:13px;color:var(--muted);cursor:pointer;border-left:2px solid transparent;transition:all 0.1s;}
 .settings-nav:hover{color:var(--text);background:rgba(255,255,255,0.02);}
@@ -532,6 +547,7 @@ input[type=checkbox]{display:none;}
     <button class="nav-item" onclick="goTo('forum')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="13" y2="13"/></svg>Społeczność</button>
     <button class="nav-item" onclick="openReportModal()"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Raporty</button>
     <button class="nav-item" onclick="goTo('settings')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Ustawienia</button>
+    <button class="nav-item" onclick="goTo('checkin')"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Check-in</button>
   </nav>
   <div class="sidebar-footer">
     <div class="av">PU</div>
@@ -2003,6 +2019,48 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   </div>
 </div>
 
+<!-- CHECK-IN SYSTEM -->
+<div class="screen" id="screen-checkin">
+  <div class="topbar">
+    <div class="topbar-title">Check-in tygodniowy</div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost btn-sm" onclick="openM('m-checkin-send')">📤 Wyślij check-in</button>
+      <button class="btn btn-primary btn-sm" onclick="openM('m-checkin-template')">⚙ Szablony</button>
+    </div>
+  </div>
+  <div style="display:flex;flex:1;overflow:hidden;">
+
+    <!-- lewy panel — klienci -->
+    <div style="width:260px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;">
+      <div style="padding:10px;border-bottom:1px solid var(--border);">
+        <input type="text" id="ci-search" placeholder="Szukaj klienta..." oninput="renderCheckin()" style="width:100%;background:var(--s3);border:1px solid var(--border);border-radius:6px;padding:6px 9px;color:var(--text);font-size:12px;">
+      </div>
+      <div style="padding:8px 12px;border-bottom:1px solid var(--border);display:flex;gap:5px;flex-wrap:wrap;">
+        <button class="wl-filter-chip active" id="ci-f-all" onclick="setCIFilter('all',this)">Wszyscy</button>
+        <button class="wl-filter-chip" id="ci-f-pending" onclick="setCIFilter('pending',this)">⏳ Oczekuje</button>
+        <button class="wl-filter-chip" id="ci-f-done" onclick="setCIFilter('done',this)">✓ Wypełnione</button>
+        <button class="wl-filter-chip" id="ci-f-overdue" onclick="setCIFilter('overdue',this)">⚠ Zaległe</button>
+      </div>
+      <div style="flex:1;overflow-y:auto;" id="ci-client-list"></div>
+    </div>
+
+    <!-- środek — szczegóły check-inu -->
+    <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+      <div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;">
+        <span style="font-size:13px;font-weight:700;" id="ci-active-client">Wybierz klienta</span>
+        <div style="margin-left:auto;display:flex;gap:6px;" id="ci-header-actions"></div>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:16px;" id="ci-detail"></div>
+    </div>
+
+    <!-- prawy panel — statystyki i trend -->
+    <div style="width:280px;flex-shrink:0;border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;padding:14px;" id="ci-stats-panel">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--accent);margin-bottom:12px;">PODSUMOWANIE</div>
+      <div id="ci-summary"></div>
+    </div>
+  </div>
+</div>
+
 </div><!-- /main -->
 
 <!-- CALCULATOR — TDEE / MAKRO -->
@@ -2508,6 +2566,45 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   </div>
 </div>
 
+<!-- CHECK-IN SEND MODAL -->
+<div class="modal-ov" id="m-checkin-send">
+  <div class="modal">
+    <div class="modal-hdr"><div class="modal-title">📤 WYŚLIJ CHECK-IN</div><button class="modal-close" onclick="closeM('m-checkin-send')">×</button></div>
+    <div class="modal-body">
+      <div class="form-field"><label class="form-lbl">Odbiorcy</label>
+        <select class="form-select" id="ci-send-target">
+          <option value="all">Wszyscy aktywni klienci</option>
+          <option value="select">Wybrani klienci</option>
+          <option value="no-checkin">Bez check-inu w tym tygodniu</option>
+        </select>
+      </div>
+      <div class="form-field"><label class="form-lbl">Szablon check-inu</label>
+        <select class="form-select" id="ci-send-template">
+          <option value="standard">Standardowy (7 pytań)</option>
+          <option value="short">Skrócony (3 pytania)</option>
+          <option value="detailed">Szczegółowy (12 pytań)</option>
+        </select>
+      </div>
+      <div class="form-field"><label class="form-lbl">Wiadomość do klienta</label>
+        <textarea class="form-textarea" id="ci-send-msg" rows="3">Hej {imie}! Czas na tygodniowy check-in 💪 Jak minął tydzień treningowy? Wypełnij formularz — zajmie 2 minuty!</textarea>
+      </div>
+      <div style="background:var(--adim);border:1px solid rgba(200,241,53,0.15);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--muted);">
+        Check-in zostanie wysłany jako wiadomość z linkiem do formularza.
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-checkin-send')">Anuluj</button><button class="btn btn-primary" onclick="sendCheckin()">Wyślij check-in</button></div>
+  </div>
+</div>
+
+<!-- CHECK-IN TEMPLATE MODAL -->
+<div class="modal-ov" id="m-checkin-template">
+  <div class="modal modal-wide">
+    <div class="modal-hdr"><div class="modal-title">⚙ SZABLONY CHECK-IN</div><button class="modal-close" onclick="closeM('m-checkin-template')">×</button></div>
+    <div class="modal-body" id="ci-template-body"></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-checkin-template')">Zamknij</button></div>
+  </div>
+</div>
+
 <!-- RAPORT MODAL -->
 <div class="modal-ov" id="m-report">
   <div class="modal modal-wide">
@@ -2767,7 +2864,7 @@ function goTo(n){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   const s=document.getElementById('screen-'+n);if(s)s.classList.add('active');
-  const navMap={'dashboard':0,'clients':1,'plans':2,'builder':3,'calendar':4,'inbox':5,'workout-library':6,'library':7,'programs':8,'metrics':9,'tasks':10,'forms':11,'automation':12,'resources':13,'ondemand':14,'payments':15,'calculator':16,'forum':17,'settings':18};
+  const navMap={'dashboard':0,'clients':1,'plans':2,'builder':3,'calendar':4,'inbox':5,'workout-library':6,'library':7,'programs':8,'metrics':9,'tasks':10,'forms':11,'automation':12,'resources':13,'ondemand':14,'payments':15,'calculator':16,'forum':17,'settings':18,'checkin':19};
   const btns=document.querySelectorAll('.nav-item');
   if(navMap[n]!==undefined&&btns[navMap[n]])btns[navMap[n]].classList.add('active');
   if(n==='builder')initBuilder();
@@ -2805,6 +2902,7 @@ function goTo(n){
     renderForum();
   }
   if(n==='settings'){setSettingsTab('profile');}
+  if(n==='checkin'){renderCheckin();}
 }
 
 function openM(id){
@@ -3082,8 +3180,374 @@ async function saveWorkout(){
 }
 
 // ════════════════════════════════════════
-// SETTINGS — USTAWIENIA
+// CHECK-IN SYSTEM
 // ════════════════════════════════════════
+var ciFilter='all';var ciActiveClient=null;
+window.CHECKINS={};// clientId -> [{week, date, answers, score}]
+
+const CI_QUESTIONS_STANDARD=[
+  {id:'energy',type:'scale',label:'Poziom energii',emoji:['😴','😪','😐','😊','⚡'],question:'Jak oceniasz swój poziom energii w tym tygodniu?',unit:'/ 5'},
+  {id:'sleep',type:'scale',label:'Jakość snu',emoji:['😴','😪','😐','😊','🌟'],question:'Jak spałeś/aś w tym tygodniu?',unit:'/ 5'},
+  {id:'stress',type:'scale',label:'Poziom stresu',emoji:['🧘','😌','😐','😰','🤯'],question:'Jaki był poziom stresu? (1=niski, 5=wysoki)',unit:'/ 5',invert:true},
+  {id:'nutrition',type:'scale',label:'Odżywianie',emoji:['🍕','🌮','😐','🥗','💪'],question:'Jak oceniasz swoje odżywianie?',unit:'/ 5'},
+  {id:'workouts',type:'number',label:'Treningi zrealizowane',question:'Ile treningów udało Ci się wykonać?',unit:'szt'},
+  {id:'weight',type:'number',label:'Masa ciała',question:'Podaj aktualną masę ciała (opcjonalnie)',unit:'kg'},
+  {id:'notes',type:'text',label:'Uwagi / komentarz',question:'Czy jest coś ważnego, co chcesz mi przekazać?'},
+];
+
+const CI_QUESTIONS_SHORT=[
+  {id:'overall',type:'scale',label:'Ogólne samopoczucie',emoji:['😣','😔','😐','😊','🔥'],question:'Jak ogólnie czujesz się w tym tygodniu?',unit:'/ 5'},
+  {id:'workouts',type:'number',label:'Treningi',question:'Ile treningów wykonałeś/aś?',unit:'szt'},
+  {id:'notes',type:'text',label:'Komentarz',question:'Coś do przekazania?'},
+];
+
+// Generate demo check-ins
+function initDemoCheckins(clientId){
+  if(window.CHECKINS[clientId])return;
+  const now=new Date();
+  window.CHECKINS[clientId]=[];
+  for(let w=7;w>=1;w--){
+    const d=new Date(now);d.setDate(d.getDate()-w*7);
+    const rnd=(min,max)=>Math.round(Math.random()*(max-min)+min);
+    const energy=rnd(2,5);const sleep=rnd(2,5);const stress=rnd(1,4);
+    const nutrition=rnd(2,5);const workouts=rnd(1,5);
+    const score=Math.round((energy+sleep+(5-stress)+nutrition)/4*20);
+    window.CHECKINS[clientId].push({
+      id:'ci'+clientId+w,week:w,
+      date:dateStr(d),
+      status:'filled',
+      score,
+      answers:{energy,sleep,stress,nutrition,workouts,weight:null,notes:w===1?'Świetny tydzień! Poprawiłem rekord w przysiadzie 🎉':''}
+    });
+  }
+  // current week - pending
+  window.CHECKINS[clientId].push({
+    id:'ci'+clientId+'0',week:0,
+    date:dateStr(now),
+    status:'pending',score:null,answers:{}
+  });
+}
+
+function getCIStatus(clientId){
+  const checkins=window.CHECKINS[clientId]||[];
+  const latest=checkins[checkins.length-1];
+  if(!latest)return'none';
+  const daysDiff=Math.floor((new Date()-new Date(latest.date))/(1000*60*60*24));
+  if(latest.status==='filled'&&daysDiff<=7)return'done';
+  if(latest.status==='pending')return'pending';
+  if(daysDiff>14)return'overdue';
+  return'none';
+}
+
+function setCIFilter(f,btn){
+  ciFilter=f;
+  document.querySelectorAll('#ci-client-list').length;
+  document.querySelectorAll('.wl-filter-chip').forEach(b=>{
+    if(['ci-f-all','ci-f-pending','ci-f-done','ci-f-overdue'].includes(b.id))b.classList.remove('active');
+  });
+  btn.classList.add('active');
+  renderCheckinClientList();
+}
+
+function renderCheckin(){
+  renderCheckinClientList();
+  renderCheckinSummary();
+}
+
+function renderCheckinClientList(){
+  const search=(document.getElementById('ci-search')||{}).value||'';
+  let clients=CL.filter(c=>!search||c.name.toLowerCase().includes(search.toLowerCase()));
+
+  // init demo data for all
+  clients.forEach(c=>initDemoCheckins(c.id));
+
+  if(ciFilter==='pending')clients=clients.filter(c=>getCIStatus(c.id)==='pending');
+  else if(ciFilter==='done')clients=clients.filter(c=>getCIStatus(c.id)==='done');
+  else if(ciFilter==='overdue')clients=clients.filter(c=>getCIStatus(c.id)==='overdue');
+
+  const el=document.getElementById('ci-client-list');if(!el)return;
+  if(!clients.length){
+    el.innerHTML=`<div style="padding:30px;text-align:center;color:var(--muted);">
+      <div style="font-size:32px;margin-bottom:8px;opacity:0.3;">✅</div>
+      <div style="font-size:13px;font-weight:600;">Brak klientów</div>
+    </div>`;return;
+  }
+
+  const statusConfig={
+    done:{color:'var(--teal)',label:'Wypełniony',dot:'var(--teal)'},
+    pending:{color:'var(--orange)',label:'Oczekuje',dot:'var(--orange)'},
+    overdue:{color:'var(--red)',label:'Zaległy',dot:'var(--red)'},
+    none:{color:'var(--muted)',label:'Nie wysłano',dot:'var(--s4)'},
+  };
+
+  el.innerHTML=clients.map((c,i)=>{
+    const st=getCIStatus(c.id);
+    const sc=statusConfig[st]||statusConfig.none;
+    const checkins=window.CHECKINS[c.id]||[];
+    const last=checkins.filter(x=>x.status==='filled').slice(-1)[0];
+    const avgScore=checkins.filter(x=>x.score).length?Math.round(checkins.filter(x=>x.score).reduce((s,x)=>s+x.score,0)/checkins.filter(x=>x.score).length):null;
+    const col=COLS[i%5];
+    return `<div class="ci-client-row${ciActiveClient===c.id?' active':''}" onclick="openCIClient('${c.id}')">
+      <div style="width:32px;height:32px;border-radius:50%;background:${col}22;color:${col};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:13px;flex-shrink:0;">${getInit(c.name)}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.name}</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+          <div class="ci-status-dot" style="background:${sc.dot};"></div>
+          <span style="font-size:10px;color:${sc.color};">${sc.label}</span>
+          ${avgScore?`<span style="font-size:10px;color:var(--muted);margin-left:auto;">⭐ ${avgScore}%</span>`:''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openCIClient(id){
+  ciActiveClient=id;
+  const c=CL.find(x=>x.id===id);if(!c)return;
+  initDemoCheckins(id);
+
+  const ci=CL.indexOf(c);const col=COLS[ci%5];
+  document.getElementById('ci-active-client').textContent=c.name;
+  document.getElementById('ci-header-actions').innerHTML=`
+    <button class="btn btn-ghost btn-sm" onclick="openSimulateCheckin('${id}')">🎭 Symuluj wypełnienie</button>
+    <button class="btn btn-primary btn-sm" onclick="sendCheckinTo('${id}')">📤 Wyślij check-in</button>`;
+
+  renderCIDetail(id);
+  renderCheckinSummary(id);
+  renderCheckinClientList();
+}
+
+function renderCIDetail(id){
+  const c=CL.find(x=>x.id===id);if(!c)return;
+  const checkins=(window.CHECKINS[id]||[]).slice().reverse();
+  const el=document.getElementById('ci-detail');if(!el)return;
+
+  if(!checkins.length){
+    el.innerHTML=`<div style="text-align:center;padding:60px;color:var(--muted);">
+      <div style="font-size:40px;margin-bottom:12px;opacity:0.3;">✅</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:6px;">Brak check-inów</div>
+      <button class="btn btn-primary" onclick="sendCheckinTo('${id}')">Wyślij pierwszy check-in</button>
+    </div>`;return;
+  }
+
+  const latest=checkins[0];
+  const filled=checkins.filter(x=>x.status==='filled');
+
+  el.innerHTML=`
+    <!-- aktualny check-in -->
+    <div style="margin-bottom:20px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:var(--accent);margin-bottom:12px;">
+        AKTUALNY TYDZIEŃ · ${latest.date}
+        <span class="pill ${latest.status==='filled'?'pill-green':'pill-orange'}" style="font-size:10px;margin-left:8px;">${latest.status==='filled'?'✓ Wypełniony':'⏳ Oczekuje'}</span>
+      </div>
+
+      ${latest.status==='filled'?renderCIAnswers(latest,c):`
+        <div style="background:var(--s2);border:1px dashed var(--border2);border-radius:12px;padding:30px;text-align:center;color:var(--muted);">
+          <div style="font-size:32px;margin-bottom:10px;">⏳</div>
+          <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Check-in wysłany, oczekuje na wypełnienie</div>
+          <div style="font-size:11px;margin-bottom:14px;">Wysłano: ${latest.date}</div>
+          <button class="btn btn-ghost btn-sm" onclick="openSimulateCheckin('${id}')">🎭 Symuluj odpowiedź klienta</button>
+        </div>
+      `}
+    </div>
+
+    <!-- historia -->
+    ${filled.length>1?`
+    <div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:var(--accent);margin-bottom:12px;">HISTORIA (${filled.length} check-inów)</div>
+      <div class="card" style="padding:0;">
+        <div style="display:grid;grid-template-columns:100px 1fr 80px 80px 80px 80px;gap:8px;padding:8px 14px;font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);">
+          <span>Data</span><span>Ocena ogólna</span><span>Energia</span><span>Sen</span><span>Treningi</span><span>Score</span>
+        </div>
+        ${filled.slice(0,8).map((ci,i)=>`
+          <div class="ci-history-row" style="padding:8px 14px;display:grid;grid-template-columns:100px 1fr 80px 80px 80px 80px;gap:8px;animation-delay:${i*0.03}s">
+            <span style="font-family:'DM Mono',monospace;color:var(--muted);">${ci.date}</span>
+            <div>
+              <div style="height:6px;background:var(--s3);border-radius:99px;overflow:hidden;">
+                <div style="height:100%;background:${ci.score>=70?'var(--teal)':ci.score>=50?'var(--orange)':'var(--red)'};width:${ci.score||0}%;border-radius:99px;"></div>
+              </div>
+            </div>
+            <span style="text-align:center;">${'⭐'.repeat(ci.answers.energy||0)}</span>
+            <span style="text-align:center;">${'💤'.repeat(ci.answers.sleep||0)}</span>
+            <span style="font-family:'DM Mono',monospace;text-align:center;color:var(--accent);">${ci.answers.workouts||0}</span>
+            <span style="font-weight:700;color:${ci.score>=70?'var(--teal)':ci.score>=50?'var(--orange)':'var(--red)'};">${ci.score||0}%</span>
+          </div>`).join('')}
+      </div>
+    </div>`:''}
+  `;
+}
+
+function renderCIAnswers(ci,c){
+  const qs=CI_QUESTIONS_STANDARD;
+  const scoreColor=ci.score>=70?'var(--teal)':ci.score>=50?'var(--orange)':'var(--red)';
+  return `
+    <!-- score big -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
+      <div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;grid-column:span 1;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:40px;color:${scoreColor};line-height:1;">${ci.score}</div>
+        <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:3px;">SCORE</div>
+      </div>
+      ${[
+        {icon:'⚡',label:'Energia',val:ci.answers.energy,max:5,col:'var(--accent)'},
+        {icon:'💤',label:'Sen',val:ci.answers.sleep,max:5,col:'var(--blue)'},
+        {icon:'🏋️',label:'Treningi',val:ci.answers.workouts,max:5,col:'var(--teal)'},
+      ].map(s=>`<div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center;">
+        <div style="font-size:20px;margin-bottom:4px;">${s.icon}</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${s.col};line-height:1;">${s.val||'—'}</div>
+        <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:2px;">${s.label}</div>
+      </div>`).join('')}
+    </div>
+
+    <!-- wskaźniki szczegółowe -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+      ${[
+        {id:'energy',label:'Energia',emoji:['😴','😪','😐','😊','⚡'],col:'var(--accent)'},
+        {id:'sleep',label:'Jakość snu',emoji:['😴','😪','😐','😊','🌟'],col:'var(--blue)'},
+        {id:'stress',label:'Stres (odwr.)',emoji:['🧘','😌','😐','😰','🤯'],col:'var(--orange)',invert:true},
+        {id:'nutrition',label:'Odżywianie',emoji:['🍕','🌮','😐','🥗','💪'],col:'var(--teal)'},
+      ].map(q=>{
+        const val=ci.answers[q.id]||0;
+        const pct=val/5*100;
+        const em=q.emoji[val-1]||'—';
+        return `<div class="ci-question-card">
+          <div class="ci-q-label">${q.label}</div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:24px;">${em}</span>
+            <div style="flex:1;">
+              <div class="ci-score-bar"><div class="ci-score-fill" style="width:${pct}%;background:${q.col};"></div></div>
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;"><span>1</span><span style="color:${q.col};font-weight:700;">${val}/5</span><span>5</span></div>
+            </div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    ${ci.answers.weight?`<div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px;">
+      <span style="font-size:20px;">⚖️</span>
+      <div><div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:2px;">MASA CIAŁA</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--text);">${ci.answers.weight} <span style="font-size:14px;color:var(--muted);">kg</span></div></div>
+    </div>`:''}
+
+    ${ci.answers.notes?`<div style="background:var(--adim);border:1px solid rgba(200,241,53,0.2);border-radius:12px;padding:12px 16px;">
+      <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:6px;">💬 Komentarz klienta</div>
+      <div style="font-size:13px;line-height:1.6;">${ci.answers.notes}</div>
+    </div>`:''}
+
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <button class="btn btn-ghost btn-sm" onclick="replyToCheckin('${c.id}')">💬 Odpowiedz klientowi</button>
+      <button class="btn btn-ghost btn-sm" onclick="addNotification('metric','Nowy check-in','${c.name} wypełnił check-in — score: ${ci.score}%','checkin')">🔔 Ustaw alert</button>
+    </div>`;
+}
+
+function renderCheckinSummary(id){
+  const el=document.getElementById('ci-summary');if(!el)return;
+  const allC=CL;
+  allC.forEach(c=>initDemoCheckins(c.id));
+
+  const total=allC.length;
+  const done=allC.filter(c=>getCIStatus(c.id)==='done').length;
+  const pending=allC.filter(c=>getCIStatus(c.id)==='pending').length;
+  const overdue=allC.filter(c=>getCIStatus(c.id)==='overdue').length;
+  const pct=total?Math.round(done/total*100):0;
+
+  // avg scores this week
+  const scores=Object.values(window.CHECKINS).flatMap(arr=>arr.filter(x=>x.status==='filled'&&x.score)).map(x=>x.score);
+  const avgScore=scores.length?Math.round(scores.reduce((s,v)=>s+v,0)/scores.length):null;
+
+  el.innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+      <div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--teal);">${done}</div>
+        <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">WYPEŁNIONE</div>
+      </div>
+      <div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--orange);">${pending}</div>
+        <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">OCZEKUJE</div>
+      </div>
+      <div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--red);">${overdue}</div>
+        <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">ZALEGŁE</div>
+      </div>
+      <div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--accent);">${avgScore||'—'}${avgScore?'%':''}</div>
+        <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">ŚR. SCORE</div>
+      </div>
+    </div>
+
+    <!-- completion bar -->
+    <div style="margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px;"><span style="color:var(--muted);">Wypełnialność</span><span style="color:var(--teal);font-weight:700;">${pct}%</span></div>
+      <div style="height:8px;background:var(--s3);border-radius:99px;overflow:hidden;">
+        <div style="height:100%;background:var(--teal);width:${pct}%;border-radius:99px;transition:width 0.3s;"></div>
+      </div>
+    </div>
+
+    ${id?`<!-- trend aktywnego klienta -->
+    <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:8px;">TREND KLIENTA</div>
+    ${(window.CHECKINS[id]||[]).filter(x=>x.status==='filled').slice(-5).reverse().map(ci=>`
+      <div class="ci-trend-item">
+        <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+          <span style="font-size:11px;color:var(--muted);">${ci.date}</span>
+          <span style="font-size:11px;font-weight:700;color:${ci.score>=70?'var(--teal)':ci.score>=50?'var(--orange)':'var(--red)'};">${ci.score}%</span>
+        </div>
+        <div class="ci-score-bar"><div class="ci-score-fill" style="width:${ci.score}%;background:${ci.score>=70?'var(--teal)':ci.score>=50?'var(--orange)':'var(--red)'};"></div></div>
+        <div style="display:flex;gap:8px;font-size:12px;margin-top:5px;">
+          <span title="Energia">⚡${ci.answers.energy||0}</span>
+          <span title="Sen">💤${ci.answers.sleep||0}</span>
+          <span title="Treningi">🏋️${ci.answers.workouts||0}</span>
+          ${ci.answers.weight?`<span title="Waga">⚖️${ci.answers.weight}kg</span>`:''}
+        </div>
+      </div>`).join('')}`:''}
+
+    <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px;" onclick="sendCheckin()">📤 Wyślij check-in do wszystkich</button>
+  `;
+}
+
+function openSimulateCheckin(id){
+  if(!window.CHECKINS[id])initDemoCheckins(id);
+  const latest=window.CHECKINS[id][window.CHECKINS[id].length-1];
+  if(!latest||latest.status==='filled'){
+    // add new pending
+    window.CHECKINS[id].push({id:'ci'+id+Date.now(),week:0,date:dateStr(new Date()),status:'pending',score:null,answers:{}});
+  }
+  const ci=window.CHECKINS[id][window.CHECKINS[id].length-1];
+  // simulate random answers
+  const rnd=(a,b)=>Math.round(Math.random()*(b-a)+a);
+  ci.answers={energy:rnd(3,5),sleep:rnd(3,5),stress:rnd(1,3),nutrition:rnd(3,5),workouts:rnd(2,5),weight:null,notes:'Świetny tydzień! 💪'};
+  ci.score=Math.round((ci.answers.energy+ci.answers.sleep+(5-ci.answers.stress)+ci.answers.nutrition)/4*20);
+  ci.status='filled';
+  renderCIDetail(id);
+  renderCheckinSummary(id);
+  renderCheckinClientList();
+  notify('✓ Check-in symulowany — score: '+ci.score+'%');
+  addNotification('task','Nowy check-in od klienta',CL.find(x=>x.id===id)?.name+' wypełnił check-in','checkin');
+}
+
+function sendCheckinTo(id){
+  if(!window.CHECKINS[id])initDemoCheckins(id);
+  const c=CL.find(x=>x.id===id);
+  if(!MSGS[id])MSGS[id]=[];
+  MSGS[id].push({text:'Hej '+( c?c.name.split(' ')[0]:'')+'! Czas na tygodniowy check-in 💪 Jak minął tydzień treningowy?',out:true,time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'})});
+  notify('✓ Check-in wysłany do '+(c?c.name:'klienta'));
+}
+
+function sendCheckin(){
+  const target=document.getElementById('ci-send-target').value;
+  const msg=document.getElementById('ci-send-msg').value;
+  let targets=CL;
+  if(target==='no-checkin')targets=CL.filter(c=>getCIStatus(c.id)!=='done');
+  targets.forEach(c=>{
+    if(!MSGS[c.id])MSGS[c.id]=[];
+    MSGS[c.id].push({text:msg.replace(/{imie}/g,c.name.split(' ')[0]),out:true,time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'})});
+  });
+  closeM('m-checkin-send');
+  notify('✓ Check-in wysłany do '+targets.length+' klientów!');
+}
+
+function replyToCheckin(id){
+  goTo('inbox');
+  setTimeout(()=>openChat(id),100);
+}
 var settingsTab='profile';
 
 window.SETTINGS={
@@ -8100,6 +8564,10 @@ window.setDashPeriod=setDashPeriod;
 window.openReportModal=openReportModal;window.openReportForClient=openReportForClient;
 window.previewReportOptions=previewReportOptions;window.generateReport=generateReport;
 window.reportClose=reportClose;window.reportPrint=reportPrint;
+window.renderCheckin=renderCheckin;window.setCIFilter=setCIFilter;
+window.openCIClient=openCIClient;window.openSimulateCheckin=openSimulateCheckin;
+window.sendCheckinTo=sendCheckinTo;window.sendCheckin=sendCheckin;
+window.replyToCheckin=replyToCheckin;
 window.setSettingsTab=setSettingsTab;window.toggleSetting=toggleSetting;
 window.setAccentColor=setAccentColor;window.addSpecialty=addSpecialty;
 window.removeSpecialty=removeSpecialty;window.exportData=exportData;
