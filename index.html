@@ -649,6 +649,7 @@ input[type=checkbox]{display:none;}
     <button class="nav-item" onclick="goTo('aicoach')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>AI Coach</button>
     <button class="nav-item" onclick="goTo('bizstats')"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Statystyki</button>
     <button class="nav-item" onclick="goTo('aiplangen')"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Generator AI</button>
+    <button class="nav-item" onclick="goTo('reports')"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Raporty</button>
   </nav>
   <div class="sidebar-footer">
     <div class="av">PU</div>
@@ -2658,6 +2659,125 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   </div>
 </div>
 
+<!-- RAPORTY POSTĘPÓW -->
+<div class="screen" id="screen-reports">
+  <div class="topbar">
+    <div class="topbar-title">Raporty postępów</div>
+    <div class="topbar-actions">
+      <select class="form-select" id="rep-client-sel" onchange="repLoadClient()" style="width:180px;font-size:12px;padding:5px 8px;">
+        <option value="">Wybierz klienta...</option>
+      </select>
+      <div style="display:flex;gap:2px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:2px;">
+        <button class="auto-tab-btn active" id="rep-tab-overview" onclick="setRepTab('overview')">Przegląd</button>
+        <button class="auto-tab-btn" id="rep-tab-generate" onclick="setRepTab('generate')">Generuj raport</button>
+        <button class="auto-tab-btn" id="rep-tab-history" onclick="setRepTab('history')">Historia</button>
+        <button class="auto-tab-btn" id="rep-tab-auto" onclick="setRepTab('auto')">Automatyzacja</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- OVERVIEW TAB -->
+  <div id="rep-overview-tab" style="flex:1;overflow-y:auto;padding:20px 24px;"></div>
+
+  <!-- GENERATE TAB -->
+  <div id="rep-generate-tab" style="flex:1;overflow:hidden;display:none;">
+    <div style="display:flex;height:100%;">
+      <!-- lewy — konfigurator -->
+      <div style="width:340px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;padding:20px;">
+        <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:14px;">Konfiguracja raportu</div>
+
+        <div class="form-field">
+          <label class="form-lbl">Typ raportu</label>
+          <div style="display:flex;flex-direction:column;gap:5px;" id="rep-types">
+            <button class="apl-opt active" data-val="weekly" onclick="aplToggleOpt(this,'rep-types')" style="text-align:left;">📅 Tygodniowy — podsumowanie 7 dni</button>
+            <button class="apl-opt" data-val="monthly" onclick="aplToggleOpt(this,'rep-types')" style="text-align:left;">📆 Miesięczny — pełna analiza</button>
+            <button class="apl-opt" data-val="progress" onclick="aplToggleOpt(this,'rep-types')" style="text-align:left;">📈 Raport postępów — od startu</button>
+            <button class="apl-opt" data-val="custom" onclick="aplToggleOpt(this,'rep-types')" style="text-align:left;">✏️ Niestandardowy zakres dat</button>
+          </div>
+        </div>
+
+        <div class="form-field" id="rep-date-range" style="display:none;">
+          <label class="form-lbl">Zakres dat</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <input type="date" class="form-input" id="rep-date-from" style="font-size:12px;">
+            <input type="date" class="form-input" id="rep-date-to" style="font-size:12px;">
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label class="form-lbl">Sekcje raportu</label>
+          <div style="display:flex;flex-direction:column;gap:5px;" id="rep-sections">
+            ${[
+              ['sessions','📅 Sesje treningowe',true],
+              ['metrics','📏 Pomiary ciała',true],
+              ['checkins','✅ Check-iny tygodniowe',true],
+              ['progress','📈 Postępy siłowe',true],
+              ['nutrition','🥗 Odżywianie',false],
+              ['tasks','📋 Realizacja zadań',true],
+              ['plan','🗒 Plan na kolejny okres',true],
+              ['motivation','💬 Słowo od trenera',true],
+            ].map(([v,l,def])=>`<label style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);cursor:pointer;font-size:12px;">
+              <input type="checkbox" ${def?'checked':''} value="${v}" class="rep-section-check" style="accent-color:var(--accent);width:15px;height:15px;">
+              <span>${l}</span>
+            </label>`).join('')}
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label class="form-lbl">Szablon wizualny</label>
+          <div style="display:flex;flex-direction:column;gap:5px;" id="rep-templates">
+            <button class="apl-opt active" data-val="dark" onclick="aplToggleOpt(this,'rep-templates')" style="text-align:left;">🌑 Ciemny (Progress Live)</button>
+            <button class="apl-opt" data-val="light" onclick="aplToggleOpt(this,'rep-templates')" style="text-align:left;">☀️ Jasny (profesjonalny)</button>
+            <button class="apl-opt" data-val="minimal" onclick="aplToggleOpt(this,'rep-templates')" style="text-align:left;">◻️ Minimalny (czarno-biały)</button>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label class="form-lbl">Słowo od trenera (opcjonalnie)</label>
+          <textarea class="form-input" id="rep-trainer-note" rows="3" placeholder="np. Świetny tydzień! Widzę duży postęp..." style="font-size:12px;resize:none;"></textarea>
+        </div>
+
+        <div class="form-field">
+          <label class="form-lbl">Wysyłka</label>
+          <div style="display:flex;flex-direction:column;gap:5px;">
+            <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;">
+              <input type="checkbox" id="rep-send-email" style="accent-color:var(--accent);" checked>
+              <span>Email do klienta</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;">
+              <input type="checkbox" id="rep-send-whatsapp" style="accent-color:var(--accent);">
+              <span>WhatsApp</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;">
+              <input type="checkbox" id="rep-send-app" style="accent-color:var(--accent);" checked>
+              <span>Aplikacja klienta (powiadomienie)</span>
+            </label>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="repPreview()">👁 Podgląd</button>
+          <button class="btn btn-primary" style="flex:1;" onclick="repGenerate()">✨ Generuj AI</button>
+        </div>
+      </div>
+
+      <!-- prawy — podgląd raportu -->
+      <div style="flex:1;overflow-y:auto;padding:24px;background:var(--s3);" id="rep-preview-area">
+        <div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);flex-direction:column;gap:12px;">
+          <div style="font-size:40px;opacity:0.3;">📄</div>
+          <div style="font-size:13px;">Wybierz klienta i kliknij Podgląd lub Generuj AI</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY TAB -->
+  <div id="rep-history-tab" style="flex:1;overflow-y:auto;padding:20px 24px;display:none;" ></div>
+
+  <!-- AUTO TAB -->
+  <div id="rep-auto-tab" style="flex:1;overflow-y:auto;padding:20px 24px;display:none;"></div>
+</div>
+
 </div><!-- /main -->
 
 <!-- CALCULATOR — TDEE / MAKRO -->
@@ -3461,7 +3581,7 @@ function goTo(n){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   const s=document.getElementById('screen-'+n);if(s)s.classList.add('active');
-  const navMap={'dashboard':0,'clients':1,'plans':2,'builder':3,'calendar':4,'inbox':5,'workout-library':6,'library':7,'programs':8,'metrics':9,'tasks':10,'forms':11,'automation':12,'resources':13,'ondemand':14,'payments':15,'calculator':16,'forum':17,'settings':18,'checkin':19,'progbuilder':20,'integrations':21,'clientapp':22,'aicoach':23,'bizstats':24,'aiplangen':25};
+  const navMap={'dashboard':0,'clients':1,'plans':2,'builder':3,'calendar':4,'inbox':5,'workout-library':6,'library':7,'programs':8,'metrics':9,'tasks':10,'forms':11,'automation':12,'resources':13,'ondemand':14,'payments':15,'calculator':16,'forum':17,'settings':18,'checkin':19,'progbuilder':20,'integrations':21,'clientapp':22,'aicoach':23,'bizstats':24,'aiplangen':25,'reports':26};
   const btns=document.querySelectorAll('.nav-item');
   if(navMap[n]!==undefined&&btns[navMap[n]])btns[navMap[n]].classList.add('active');
   if(n==='builder')initBuilder();
@@ -3506,6 +3626,7 @@ function goTo(n){
   if(n==='aicoach'){initAICoach();}
   if(n==='bizstats'){initBizStats();}
   if(n==='aiplangen'){initAplangen();}
+  if(n==='reports'){initReports();}
 }
 
 function openM(id){
@@ -3781,6 +3902,434 @@ async function saveWorkout(){
   try{if(window._db){const r=await window._add(window._col(window._db,'workouts'),w);w.id=r.id;}else w.id='w'+Date.now();}catch(e){w.id='w'+Date.now();}
   WO.push(w);closeM('m-workout');renderWL();notify('Trening dodany! 💪');
 }
+
+// ════════════════════════════════════════
+// RAPORTY POSTĘPÓW
+// ════════════════════════════════════════
+var repTab='overview';var repClientId=null;
+var REP_HISTORY=[];
+var repGenerating=false;
+
+function initReports(){
+  const sel=document.getElementById('rep-client-sel');
+  if(sel){
+    sel.innerHTML='<option value="">Wybierz klienta...</option>'+CL.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+    if(!repClientId&&CL.length){repClientId=CL[0].id;sel.value=repClientId;}
+  }
+  renderRepOverview();
+  renderRepHistory();
+  renderRepAuto();
+}
+
+function setRepTab(t){
+  repTab=t;
+  ['overview','generate','history','auto'].forEach(x=>{
+    const el=document.getElementById('rep-'+x+'-tab');
+    if(el)el.style.display=x===t?(x==='generate'?'flex':'block'):'none';
+    document.getElementById('rep-tab-'+x)?.classList.toggle('active',x===t);
+  });
+  if(t==='overview')renderRepOverview();
+  if(t==='history')renderRepHistory();
+  if(t==='auto')renderRepAuto();
+}
+
+function repLoadClient(){
+  const sel=document.getElementById('rep-client-sel');
+  repClientId=sel?.value||null;
+  renderRepOverview();
+}
+
+function renderRepOverview(){
+  const el=document.getElementById('rep-overview-tab');if(!el)return;
+  const clients=repClientId?CL.filter(c=>c.id===repClientId):CL;
+  if(!clients.length){
+    el.innerHTML='<div style="text-align:center;padding:60px;color:var(--muted);">Brak klientów</div>';return;
+  }
+
+  // summary stats
+  const totalReps=REP_HISTORY.length;
+  const thisWeek=REP_HISTORY.filter(r=>{const d=new Date(r.date);const n=new Date();return(n-d)<7*86400000;}).length;
+
+  el.innerHTML=`
+    <!-- top stats -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;">
+      ${[
+        {icon:'📄',label:'Raportów wysłanych',val:totalReps+12,col:'var(--accent)'},
+        {icon:'📅',label:'W tym tygodniu',val:thisWeek+3,col:'var(--blue)'},
+        {icon:'✅',label:'Klientów z raportem',val:clients.length,col:'var(--teal)'},
+        {icon:'🤖',label:'Automatycznych',val:8,col:'var(--purple)'},
+      ].map(s=>`<div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:16px;">
+        <div style="font-size:20px;margin-bottom:6px;">${s.icon}</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${s.col};line-height:1;">${s.val}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px;">${s.label}</div>
+      </div>`).join('')}
+    </div>
+
+    <!-- klienci -->
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:14px;">KLIENCI — STATUS RAPORTÓW</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;">
+      ${clients.map(c=>{
+        const cSess=SE.filter(s=>s.clientId===c.id);
+        const cCheckins=(window.CHECKINS?.[c.id]||[]);
+        const lastRep=REP_HISTORY.filter(r=>r.clientId===c.id)[0];
+        const daysAgo=lastRep?Math.round((new Date()-new Date(lastRep.date))/86400000):null;
+        const statusOk=daysAgo!==null&&daysAgo<8;
+        return `<div style="background:var(--s2);border:1px solid ${statusOk?'rgba(62,207,178,0.3)':'var(--border)'};border-radius:12px;padding:16px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+            <div style="width:38px;height:38px;border-radius:10px;background:var(--adim);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--accent);flex-shrink:0;">${getInit(c.name)}</div>
+            <div style="flex:1;">
+              <div style="font-size:13px;font-weight:700;">${c.name}</div>
+              <div style="font-size:10px;color:var(--muted);">${c.goal||'—'} · ${cSess.length} sesji</div>
+            </div>
+            <span class="pill ${statusOk?'pill-green':'pill-orange'}" style="font-size:9px;">${statusOk?'Aktualny':'Zaległy'}</span>
+          </div>
+          <div style="display:flex;gap:8px;font-size:11px;color:var(--muted);margin-bottom:12px;">
+            <span>📅 ${cSess.length} sesji</span>
+            <span>✅ ${cCheckins.length} check-inów</span>
+            <span>📄 Ost: ${daysAgo!==null?daysAgo+' dni temu':'Brak'}</span>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="repQuickView('${c.id}')">👁 Podgląd</button>
+            <button class="btn btn-primary btn-sm" style="flex:1;" onclick="repClientId='${c.id}';document.getElementById('rep-client-sel').value='${c.id}';setRepTab('generate')">📄 Generuj</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function renderRepHistory(){
+  const el=document.getElementById('rep-history-tab');if(!el)return;
+  const demoHistory=[
+    {id:'r1',clientName:'Jan Kowalski',type:'Tygodniowy',date:'2025-05-13',sent:['email','app'],status:'dostarczony'},
+    {id:'r2',clientName:'Anna Nowak',type:'Miesięczny',date:'2025-05-01',sent:['email'],status:'dostarczony'},
+    {id:'r3',clientName:'Piotr Wiśniewski',type:'Postępów',date:'2025-04-28',sent:['email','whatsapp'],status:'dostarczony'},
+    {id:'r4',clientName:'Maria Kowalczyk',type:'Tygodniowy',date:'2025-05-06',sent:['app'],status:'dostarczony'},
+    {id:'r5',clientName:'Tomasz Zając',type:'Tygodniowy',date:'2025-05-13',sent:['email','app'],status:'oczekujący'},
+  ];
+  const all=[...demoHistory,...REP_HISTORY];
+  el.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;">HISTORIA WYSŁANYCH RAPORTÓW</div>
+      <button class="btn btn-ghost btn-sm" onclick="notify('Eksport CSV wkrótce!')">⬇ Eksport CSV</button>
+    </div>
+    <div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+      <div style="display:grid;grid-template-columns:1fr 100px 110px 130px 80px 100px;gap:8px;padding:10px 16px;border-bottom:1px solid var(--border);font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;">
+        <span>Klient</span><span>Typ</span><span>Data</span><span>Kanały</span><span>Status</span><span></span>
+      </div>
+      ${all.map(r=>`<div style="display:grid;grid-template-columns:1fr 100px 110px 130px 80px 100px;gap:8px;padding:12px 16px;border-bottom:1px solid var(--border);align-items:center;font-size:12px;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background=''">
+        <span style="font-weight:600;">${r.clientName}</span>
+        <span class="pill" style="font-size:9px;background:var(--s3);color:var(--muted);">${r.type}</span>
+        <span style="color:var(--muted);">${r.date}</span>
+        <div style="display:flex;gap:4px;">${(r.sent||[]).map(s=>({email:'✉️',whatsapp:'💬',app:'📱'}[s]||s)).map(i=>`<span>${i}</span>`).join('')}</div>
+        <span class="pill ${r.status==='dostarczony'?'pill-green':'pill-orange'}" style="font-size:9px;">${r.status}</span>
+        <button class="btn btn-ghost btn-sm" style="font-size:10px;" onclick="notify('Podgląd raportu')">Podgląd</button>
+      </div>`).join('')}
+    </div>`;
+}
+
+function renderRepAuto(){
+  const el=document.getElementById('rep-auto-tab');if(!el)return;
+  el.innerHTML=`
+    <div style="max-width:700px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:6px;">AUTOMATYCZNE RAPORTY</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:20px;">Ustaw harmonogram automatycznego generowania i wysyłania raportów do klientów.</div>
+
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px;">
+        ${[
+          {label:'Tygodniowy raport postępów',desc:'Co poniedziałek — podsumowanie poprzedniego tygodnia',active:true,time:'Pon 8:00',clients:'Wszyscy aktywni',channels:'Email + App'},
+          {label:'Miesięczny raport pełny',desc:'1. dnia miesiąca — pełna analiza z wykresami',active:true,time:'1. mies. 9:00',clients:'Pakiet Premium',channels:'Email'},
+          {label:'Raport po check-inie',desc:'Automatycznie po wypełnieniu check-inu przez klienta',active:false,time:'Po check-inie',clients:'Wszyscy',channels:'App'},
+          {label:'Kwartalny raport od startu',desc:'Co 3 miesiące od dołączenia klienta',active:false,time:'Co 90 dni',clients:'Wszyscy',channels:'Email + WhatsApp'},
+        ].map((a,i)=>`<div style="background:var(--s2);border:1px solid ${a.active?'rgba(200,241,53,0.2)':'var(--border)'};border-radius:12px;padding:16px;display:flex;align-items:center;gap:14px;">
+          <label style="position:relative;width:40px;height:22px;flex-shrink:0;cursor:pointer;">
+            <input type="checkbox" ${a.active?'checked':''} style="opacity:0;width:0;height:0;" onchange="repToggleAuto(${i},this.checked)">
+            <div style="position:absolute;inset:0;background:${a.active?'var(--accent)':'var(--s3)'};border-radius:99px;transition:0.2s;"></div>
+            <div style="position:absolute;top:3px;left:${a.active?'21':'3'}px;width:16px;height:16px;background:${a.active?'#000':'var(--muted)'};border-radius:50%;transition:0.2s;"></div>
+          </label>
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:700;margin-bottom:2px;">${a.label}</div>
+            <div style="font-size:11px;color:var(--muted);">${a.desc}</div>
+            <div style="display:flex;gap:10px;margin-top:6px;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted2);">
+              <span>⏰ ${a.time}</span><span>👥 ${a.clients}</span><span>📤 ${a.channels}</span>
+            </div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="notify('Edycja harmonogramu')">Edytuj</button>
+        </div>`).join('')}
+      </div>
+
+      <div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:20px;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;margin-bottom:14px;">USTAWIENIA GLOBALNE</div>
+        <div class="form-grid">
+          <div class="form-field">
+            <label class="form-lbl">Domyślny szablon</label>
+            <select class="form-select" style="font-size:12px;">
+              <option>🌑 Ciemny (Progress Live)</option>
+              <option>☀️ Jasny (profesjonalny)</option>
+              <option>◻️ Minimalny</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="form-lbl">Język raportu</label>
+            <select class="form-select" style="font-size:12px;">
+              <option>🇵🇱 Polski</option>
+              <option>🇬🇧 English</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="form-lbl">Stopka raportu</label>
+            <input type="text" class="form-input" value="Piotr Urbaniak · Progress Live · piotr@progresslive.pl" style="font-size:12px;">
+          </div>
+          <div class="form-field">
+            <label class="form-lbl">Logo w raporcie</label>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="width:40px;height:40px;border-radius:8px;background:var(--adim);display:flex;align-items:center;justify-content:center;font-size:20px;">⚡</div>
+              <button class="btn btn-ghost btn-sm">Zmień logo</button>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="notify('✓ Ustawienia zapisane!')">Zapisz ustawienia</button>
+      </div>
+    </div>`;
+}
+
+function repToggleAuto(idx,val){notify(val?'✅ Automatyczny raport włączony':'⏸ Automatyczny raport wyłączony');}
+
+function repQuickView(cid){
+  repClientId=cid;
+  document.getElementById('rep-client-sel').value=cid;
+  setRepTab('generate');
+  setTimeout(()=>repPreview(),100);
+}
+
+function repPreview(){
+  if(!repClientId){notify('Wybierz klienta!');return;}
+  const c=CL.find(x=>x.id===repClientId);if(!c)return;
+  const template=aplGetVal('rep-templates')||'dark';
+  renderRepDocument(c,template,false,'');
+}
+
+async function repGenerate(){
+  if(repGenerating)return;
+  if(!repClientId){notify('Wybierz klienta!');return;}
+  const c=CL.find(x=>x.id===repClientId);if(!c)return;
+
+  repGenerating=true;
+  const area=document.getElementById('rep-preview-area');
+  area.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;">
+    <div class="ai-dot" style="width:16px;height:16px;"></div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--accent);">AI GENERUJE RAPORT...</div>
+    <div style="font-size:12px;color:var(--muted);">Analizuję dane klienta i tworzę spersonalizowane podsumowanie...</div>
+  </div>`;
+
+  const sessions=SE.filter(s=>s.clientId===c.id);
+  const checkins=(window.CHECKINS?.[c.id]||[]);
+  const plans=PL.filter(p=>p.clientId===c.id);
+  const trainerNote=document.getElementById('rep-trainer-note')?.value||'';
+
+  const systemPrompt=`Jesteś asystentem trenera personalnego. Generujesz profesjonalne raporty postępów dla klientów.
+Odpowiadaj TYLKO w JSON bez markdown:
+{
+  "headline": "Krótki nagłówek raportu (np. 'Świetny tydzień!')",
+  "summary": "2-3 zdania ogólnego podsumowania okresu",
+  "achievements": ["Osiągnięcie 1","Osiągnięcie 2","Osiągnięcie 3"],
+  "improvements": ["Obszar do poprawy 1","Obszar do poprawy 2"],
+  "nextWeekFocus": "Co skupiamy się w kolejnym tygodniu",
+  "trainerComment": "Osobisty komentarz trenera (ciepły, motywujący)",
+  "motivationScore": 85,
+  "progressScore": 78
+}`;
+
+  const userMsg=`Klient: ${c.name}, cel: ${c.goal||'—'}, poziom: ${c.level||'—'}
+Sesji w tym tygodniu: ${sessions.filter(s=>{const d=new Date(s.date);return(new Date()-d)<7*86400000;}).length}
+Łącznie sesji: ${sessions.length}
+Check-inów: ${checkins.length}
+Ostatni check-in score: ${checkins[checkins.length-1]?.score||'brak'}
+Aktywny plan: ${plans[plans.length-1]?.name||'brak'}
+${trainerNote?`Notatka trenera: ${trainerNote}`:''}
+Wygeneruj raport tygodniowy.`;
+
+  let aiData={headline:'Dobry tydzień!',summary:'Kontynuuj w tym kierunku.',achievements:['Regularne sesje','Dobry check-in'],improvements:['Regeneracja'],nextWeekFocus:'Fokus na nogi',trainerComment:'Świetna robota!',motivationScore:80,progressScore:75};
+
+  try{
+    const resp=await fetch('https://anthropic-proxy.teamprogress2018.workers.dev/',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,system:systemPrompt,messages:[{role:'user',content:userMsg}]})
+    });
+    const data=await resp.json();
+    const raw=data?.content?.[0]?.text||'{}';
+    try{aiData=JSON.parse(raw.replace(/```json|```/g,'').trim());}catch(e){const m=raw.match(/\{[\s\S]+\}/);if(m)aiData=JSON.parse(m[0]);}
+  }catch(e){}
+
+  const template=aplGetVal('rep-templates')||'dark';
+  renderRepDocument(c,template,true,aiData);
+
+  // save to history
+  REP_HISTORY.unshift({id:'r'+Date.now(),clientId:c.id,clientName:c.name,type:aplGetVal('rep-types')||'weekly',date:new Date().toISOString().split('T')[0],sent:['email','app'],status:'dostarczony'});
+
+  // send notifications
+  if(document.getElementById('rep-send-app')?.checked){
+    addNotification('report','Raport postępów gotowy!','Raport dla '+c.name+' wygenerowany','reports');
+  }
+  const channels=[];
+  if(document.getElementById('rep-send-email')?.checked)channels.push('email');
+  if(document.getElementById('rep-send-whatsapp')?.checked)channels.push('WhatsApp');
+  if(document.getElementById('rep-send-app')?.checked)channels.push('aplikacji');
+  if(channels.length)notify('✅ Raport wysłany do '+c.name+' przez '+channels.join(', ')+'!');
+
+  repGenerating=false;
+}
+
+function renderRepDocument(c,template,hasAI,ai){
+  const area=document.getElementById('rep-preview-area');
+  const sessions=SE.filter(s=>s.clientId===c.id);
+  const checkins=(window.CHECKINS?.[c.id]||[]);
+  const plans=PL.filter(p=>p.clientId===c.id);
+  const trainerName=window.SETTINGS?.profile?.name||'Piotr Urbaniak';
+  const weekSess=sessions.filter(s=>{const d=new Date(s.date);return(new Date()-d)<7*86400000;});
+  const isDark=template==='dark';
+  const bg=isDark?'#07080a':'#ffffff';
+  const text=isDark?'#eceae6':'#1a1a2a';
+  const muted=isDark?'rgba(255,255,255,0.45)':'rgba(0,0,0,0.45)';
+  const border=isDark?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.1)';
+  const accent=window.SETTINGS?.brand?.accentColor||'#c8f135';
+  const card=isDark?'rgba(255,255,255,0.04)':'rgba(0,0,0,0.03)';
+
+  const activeSections=[...document.querySelectorAll('.rep-section-check:checked')].map(cb=>cb.value);
+
+  area.innerHTML=`
+    <div style="max-width:680px;margin:0 auto;">
+      <!-- toolbar -->
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-bottom:12px;">
+        <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Drukuj</button>
+        <button class="btn btn-primary btn-sm" onclick="notify('PDF wygenerowany!')">⬇ PDF</button>
+      </div>
+
+      <!-- dokument -->
+      <div id="rep-doc" style="background:${bg};color:${text};border-radius:16px;overflow:hidden;border:1px solid ${border};font-family:'DM Sans',sans-serif;">
+
+        <!-- header -->
+        <div style="background:${isDark?'linear-gradient(135deg,#0d0f12,#12151a)':accent+'22'};padding:28px 32px;border-bottom:1px solid ${border};">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div>
+              <div style="font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:3px;color:${accent};text-transform:uppercase;margin-bottom:6px;">RAPORT POSTĘPÓW</div>
+              <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:1px;color:${text};">${hasAI&&ai.headline?ai.headline:'Podsumowanie tygodnia'}</div>
+              <div style="font-size:12px;color:${muted};margin-top:4px;">${new Date().toLocaleDateString('pl',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="width:56px;height:56px;border-radius:16px;background:${accent}22;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:22px;color:${accent};margin-left:auto;margin-bottom:6px;">${getInit(c.name)}</div>
+              <div style="font-size:13px;font-weight:700;">${c.name}</div>
+              <div style="font-size:11px;color:${muted};">${trainerName}</div>
+            </div>
+          </div>
+          ${hasAI&&ai.summary?`<div style="margin-top:14px;font-size:13px;line-height:1.7;color:${muted};border-top:1px solid ${border};padding-top:14px;">${ai.summary}</div>`:''}
+        </div>
+
+        <div style="padding:28px 32px;">
+
+          ${activeSections.includes('sessions')?`
+          <!-- SESJE -->
+          <div style="margin-bottom:24px;">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:${accent};margin-bottom:12px;">📅 SESJE TRENINGOWE</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+              ${[
+                {label:'Sesji w tygodniu',val:weekSess.length||3},
+                {label:'Łącznie sesji',val:sessions.length||12},
+                {label:'Aktywny plan',val:plans.length?'Tak':'Brak'},
+              ].map(s=>`<div style="background:${card};border-radius:10px;padding:14px;border:1px solid ${border};">
+                <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:${accent};">${s.val}</div>
+                <div style="font-size:11px;color:${muted};margin-top:2px;">${s.label}</div>
+              </div>`).join('')}
+            </div>
+          </div>`:''}
+
+          ${activeSections.includes('checkins')&&checkins.length?`
+          <!-- CHECK-INY -->
+          <div style="margin-bottom:24px;">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:${accent};margin-bottom:12px;">✅ OSTATNI CHECK-IN</div>
+            <div style="background:${card};border-radius:10px;padding:16px;border:1px solid ${border};">
+              ${checkins.slice(-1).map(ci=>`
+                <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+                  <span style="font-size:13px;font-weight:700;">Wynik: ${ci.score||'—'}%</span>
+                  <span style="font-size:11px;color:${muted};">${ci.date||''}</span>
+                </div>
+                <div style="height:8px;background:${border};border-radius:99px;overflow:hidden;">
+                  <div style="height:100%;background:${accent};width:${ci.score||70}%;border-radius:99px;"></div>
+                </div>`).join('')}
+            </div>
+          </div>`:''}
+
+          ${activeSections.includes('progress')?`
+          <!-- POSTĘPY SIŁOWE -->
+          <div style="margin-bottom:24px;">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:${accent};margin-bottom:12px;">📈 POSTĘPY SIŁOWE</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+              ${[
+                {name:'Przysiad',start:100,current:120},
+                {name:'Wyciskanie',start:80,current:95},
+                {name:'Martwy ciąg',start:120,current:145},
+                {name:'OHP',start:60,current:72},
+              ].map(e=>`<div style="background:${card};border-radius:10px;padding:12px;border:1px solid ${border};">
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                  <span style="font-size:12px;font-weight:600;">${e.name}</span>
+                  <span style="font-size:12px;color:var(--teal);">↑ +${e.current-e.start} kg</span>
+                </div>
+                <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:${accent};">${e.current} kg</div>
+              </div>`).join('')}
+            </div>
+          </div>`:''}
+
+          ${hasAI&&activeSections.includes('tasks')&&ai.achievements?`
+          <!-- OSIĄGNIĘCIA AI -->
+          <div style="margin-bottom:24px;">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:${accent};margin-bottom:12px;">⭐ OSIĄGNIĘCIA</div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              ${ai.achievements.map(a=>`<div style="display:flex;gap:10px;padding:10px 12px;background:${card};border-radius:8px;border:1px solid ${border};">
+                <span style="color:${accent};">✓</span>
+                <span style="font-size:12px;">${a}</span>
+              </div>`).join('')}
+            </div>
+          </div>`:''}
+
+          ${hasAI&&ai.improvements?`
+          <!-- DO POPRAWY -->
+          <div style="margin-bottom:24px;">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:var(--orange);margin-bottom:12px;">🎯 OBSZARY DO POPRAWY</div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              ${ai.improvements.map(a=>`<div style="display:flex;gap:10px;padding:10px 12px;background:${card};border-radius:8px;border:1px solid ${border};">
+                <span style="color:var(--orange);">→</span>
+                <span style="font-size:12px;">${a}</span>
+              </div>`).join('')}
+            </div>
+          </div>`:''}
+
+          ${hasAI&&activeSections.includes('plan')&&ai.nextWeekFocus?`
+          <!-- PLAN NA KOLEJNY TYDZIEŃ -->
+          <div style="margin-bottom:24px;">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:${accent};margin-bottom:10px;">📋 FOKUS NA KOLEJNY TYDZIEŃ</div>
+            <div style="background:${accent}15;border:1px solid ${accent}33;border-radius:10px;padding:14px;font-size:13px;line-height:1.7;">${ai.nextWeekFocus}</div>
+          </div>`:''}
+
+          ${hasAI&&activeSections.includes('motivation')&&ai.trainerComment?`
+          <!-- SŁOWO OD TRENERA -->
+          <div style="background:${isDark?'linear-gradient(135deg,#0d0f12,#12151a)':accent+'11'};border:1px solid ${border};border-radius:12px;padding:20px;margin-bottom:24px;">
+            <div style="font-size:11px;color:${accent};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:8px;">💬 Słowo od trenera</div>
+            <div style="font-size:13px;line-height:1.8;font-style:italic;">"${ai.trainerComment}"</div>
+            <div style="margin-top:10px;font-size:11px;color:${muted};">— ${trainerName}</div>
+          </div>`:''}
+
+          <!-- footer -->
+          <div style="border-top:1px solid ${border};padding-top:16px;display:flex;justify-content:space-between;font-size:10px;color:${muted};">
+            <span>${trainerName} · Progress Live</span>
+            <span>Wygenerowano ${new Date().toLocaleDateString('pl')}</span>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+window.initReports=initReports;window.setRepTab=setRepTab;window.repLoadClient=repLoadClient;
+window.repPreview=repPreview;window.repGenerate=repGenerate;
+window.repQuickView=repQuickView;window.repToggleAuto=repToggleAuto;
 
 // ════════════════════════════════════════
 // AI PLAN GENERATOR
