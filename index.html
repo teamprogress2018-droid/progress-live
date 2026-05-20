@@ -3271,17 +3271,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   </div>
 </div>
 
-<!-- Formularz -->
-<div class="modal-ov" id="m-form">
-  <div class="modal">
-    <div class="modal-hdr"><div class="modal-title">NOWY FORMULARZ</div><button class="modal-close" onclick="closeM('m-form')">×</button></div>
-    <div class="modal-body">
-      <div class="form-field"><label class="form-lbl">Nazwa formularza</label><input type="text" class="form-input" id="form-title" placeholder="np. Ankieta wstępna"></div>
-      <div class="form-field"><label class="form-lbl">Opis</label><textarea class="form-textarea" id="form-desc" rows="2"></textarea></div>
-    </div>
-    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-form')">Anuluj</button><button class="btn btn-primary" onclick="notify('Formularz dodany!')">Zapisz</button></div>
-  </div>
-</div>
+
 
 <!-- PROGRAM MODAL -->
 <div class="modal-ov" id="m-program">
@@ -3739,10 +3729,10 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-import{getFirestore,collection,getDocs,addDoc,deleteDoc,doc}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+import{getFirestore,collection,getDocs,addDoc,deleteDoc,doc,setDoc,updateDoc}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 const cfg={apiKey:"AIzaSyDrbke0QdB55k_4smzhKufQ75eAluu-r_8",authDomain:"progress-live-fc83d.firebaseapp.com",projectId:"progress-live-fc83d",storageBucket:"progress-live-fc83d.firebasestorage.app",messagingSenderId:"637727410398",appId:"1:637727410398:web:b8e4e2581c2e3a24a11a4f"};
 const app=initializeApp(cfg);const db=getFirestore(app);
-window._db=db;window._col=collection;window._add=addDoc;window._del=deleteDoc;window._doc=doc;window._get=getDocs;
+window._db=db;window._col=collection;window._add=addDoc;window._del=deleteDoc;window._doc=doc;window._get=getDocs;window._setDoc=setDoc;window._updateDoc=updateDoc;
 async function load(){
   try{const s=await getDocs(collection(db,'clients'));window.CL=[];s.forEach(d=>window.CL.push({id:d.id,...d.data()}));}catch(e){window.CL=[];}
   try{const s=await getDocs(collection(db,'plans'));window.PL=[];s.forEach(d=>window.PL.push({id:d.id,...d.data()}));}catch(e){window.PL=[];}
@@ -13318,7 +13308,7 @@ function saveCPEdit(id){
   c.notes=document.getElementById('cpe-notes').value;
   // Firebase w tle
   if(window._db&&c.id&&!c.id.startsWith('l')){
-    try{window._setDoc(window._doc(window._db,'clients',c.id),c);}catch(e){}
+    try{window._setDoc(window._doc(window._db,'clients',c.id),c,{merge:true});}catch(e){console.warn('Firebase setDoc:',e);}
   }
   try{renderAll();}catch(e){try{renderClients();}catch(e2){}}
   openClientProfile(id);
