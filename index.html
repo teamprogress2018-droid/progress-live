@@ -3079,8 +3079,8 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
     </div>
     <div style="display:flex;gap:6px;align-items:center;">
       <button class="btn btn-ghost btn-sm" onclick="openReportForClient(cpClientId)">📊 Raport</button>
-      <button class="btn btn-primary btn-sm" onclick="openM('m-session')">+ Sesja</button>
-      <button class="btn btn-ghost btn-sm" onclick="openM('m-task')">+ Zadanie</button>
+      <button class="btn btn-primary btn-sm" onclick="cpOpenSession()">+ Sesja</button>
+      <button class="btn btn-ghost btn-sm" onclick="cpOpenTask()">+ Zadanie</button>
       <button onclick="closeClientProfile()" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;">×</button>
     </div>
   </div>
@@ -3835,6 +3835,12 @@ function openM(id){
     document.getElementById('as-client').innerHTML=CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
     document.getElementById('as-date').value=new Date().toISOString().split('T')[0];
     document.getElementById('as-time').value='10:00';
+  }
+  if(id==='m-task'){
+    const tc=document.getElementById('task-client');
+    if(tc)tc.innerHTML=CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
+    const td=document.getElementById('task-due');
+    if(td&&!td.value)td.value=new Date().toISOString().split('T')[0];
   }
   if(id==='m-metric-entry'){
     document.getElementById('me-client').innerHTML=CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
@@ -11163,6 +11169,8 @@ async function saveSess(){
   closeM('m-session');
   try{renderCal();}catch(e){}
   try{renderDash();}catch(e){}
+  // odśwież profil klienta jeśli otwarty
+  if(cpClientId&&cpClientId===cid){try{setCPTab(cpTab);}catch(e){}}
   notify('Sesja dodana!');
   if(window._db){try{const r=await window._add(window._col(window._db,'sessions'),sess);if(r&&r.id)sess.id=r.id;}catch(e){console.warn('Firebase:',e);}}
 }
@@ -11987,7 +11995,9 @@ async function saveTask(){
   const title=document.getElementById('task-title').value.trim();if(!title){notify('Wpisz zadanie!');return;}
   const catEl=document.getElementById('task-cat');
   const t={id:'l'+Date.now(),title,clientId:document.getElementById('task-client').value,due:document.getElementById('task-due').value,priority:document.getElementById('task-priority').value,cat:catEl?catEl.value:'trening',desc:'',status:'open',createdAt:new Date().toISOString()};
-  TASKS.push(t);closeM('m-task');renderTasks();notify('Zadanie dodane!');
+  TASKS.push(t);closeM('m-task');renderTasks();
+  if(cpClientId&&cpClientId===t.clientId){try{setCPTab(cpTab);}catch(e){}}
+  notify('Zadanie dodane!');
   if(window._db){try{const r=await window._add(window._col(window._db,'tasks'),t);if(r&&r.id)t.id=r.id;}catch(e){console.warn('Firebase:',e);}}
 }
 function toggleTask(id){const t=TASKS.find(x=>x.id===id);if(t)t.status=t.status==='done'?'open':'done';renderTasks();}
@@ -13268,6 +13278,26 @@ function renderCPEdit(c){
     </div>`;
 }
 
+function cpOpenSession(){
+  openM('m-session');
+  // pre-select client
+  setTimeout(()=>{
+    const sel=document.getElementById('as-client');
+    if(sel&&cpClientId){sel.value=cpClientId;}
+    // set today's date
+    const dateEl=document.getElementById('as-date');
+    if(dateEl&&!dateEl.value)dateEl.value=new Date().toISOString().split('T')[0];
+  },50);
+}
+
+function cpOpenTask(){
+  openM('m-task');
+  setTimeout(()=>{
+    const sel=document.getElementById('task-client');
+    if(sel&&cpClientId){sel.value=cpClientId;}
+  },50);
+}
+
 function saveCPEdit(id){
   const c=CL.find(x=>x.id===id);if(!c)return;
   c.name=document.getElementById('cpe-name').value.trim()||c.name;
@@ -13279,7 +13309,11 @@ function saveCPEdit(id){
   c.level=document.getElementById('cpe-level').value;
   c.status=document.getElementById('cpe-status').value;
   c.notes=document.getElementById('cpe-notes').value;
-  renderAll();
+  // Firebase w tle
+  if(window._db&&c.id&&!c.id.startsWith('l')){
+    try{window._setDoc(window._doc(window._db,'clients',c.id),c);}catch(e){}
+  }
+  try{renderAll();}catch(e){try{renderClients();}catch(e2){}}
   openClientProfile(id);
   notify('✓ Profil "'+c.name+'" zaktualizowany!');
 }
@@ -14191,6 +14225,7 @@ window.viewInvoice=viewInvoice;window.filterPkgByClient=filterPkgByClient;
 window.openClientProfile=openClientProfile;window.closeClientProfile=closeClientProfile;
 window.setCPTab=setCPTab;window.saveCPEdit=saveCPEdit;window.archiveClient=archiveClient;
 window.delPlanFromProfile=delPlanFromProfile;window.cpAssignTemplate=cpAssignTemplate;window.liveSelectPlanForClient=liveSelectPlanForClient;
+window.cpOpenSession=cpOpenSession;window.cpOpenTask=cpOpenTask;
 // alias for old renderClients reference
 window.openClientDetail=openClientProfile;
 window.calcTDEE=calcTDEE;window.setCalcActivity=setCalcActivity;window.setCalcGoal=setCalcGoal;
