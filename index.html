@@ -673,6 +673,7 @@ input[type=checkbox]{display:none;}
     <button class="nav-item" onclick="goTo('reports')"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Raporty</button>
     <button class="nav-item" onclick="goTo('live')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>Trening Live</button>
     <button class="nav-item" onclick="goTo('templates')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Szablony planów</button>
+    <button class="nav-item" onclick="goTo('onboarding')"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>Onboarding</button>
   </nav>
   <div class="sidebar-footer">
     <div class="av">PU</div>
@@ -2954,6 +2955,26 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   </div>
 </div>
 
+<!-- ONBOARDING -->
+<div class="screen" id="screen-onboarding">
+  <div class="topbar">
+    <div class="topbar-title">Onboarding klientów</div>
+    <div class="topbar-actions">
+      <div style="display:flex;gap:2px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:2px;">
+        <button class="auto-tab-btn active" id="onb-tab-overview" onclick="setOnbTab('overview')">Przegląd</button>
+        <button class="auto-tab-btn" id="onb-tab-new" onclick="setOnbTab('new')">+ Nowy klient</button>
+        <button class="auto-tab-btn" id="onb-tab-flows" onclick="setOnbTab('flows')">Flow szablony</button>
+        <button class="auto-tab-btn" id="onb-tab-settings" onclick="setOnbTab('settings')">Ustawienia</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="onb-overview-tab"  style="flex:1;overflow-y:auto;padding:20px 24px;"></div>
+  <div id="onb-new-tab"       style="flex:1;overflow-y:auto;padding:20px 24px;display:none;"></div>
+  <div id="onb-flows-tab"     style="flex:1;overflow-y:auto;padding:20px 24px;display:none;"></div>
+  <div id="onb-settings-tab"  style="flex:1;overflow-y:auto;padding:20px 24px;display:none;"></div>
+</div>
+
 </div><!-- /main -->
 
 <!-- CALCULATOR — TDEE / MAKRO -->
@@ -3124,8 +3145,9 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
     <div class="modal-hdr"><div class="modal-title">NOWY KLIENT</div><button class="modal-close" onclick="closeM('m-client')">×</button></div>
     <div class="modal-body">
       <div class="form-grid"><div class="form-field"><label class="form-lbl">Imię i nazwisko</label><input type="text" class="form-input" id="ac-name" placeholder="Jan Kowalski"></div><div class="form-field"><label class="form-lbl">E-mail</label><input type="email" class="form-input" id="ac-email" placeholder="jan@example.com"></div></div>
-      <div class="form-grid"><div class="form-field"><label class="form-lbl">Wiek</label><input type="number" class="form-input" id="ac-age" placeholder="25"></div><div class="form-field"><label class="form-lbl">Płeć</label><select class="form-select" id="ac-gender"><option value="M">Mężczyzna</option><option value="K">Kobieta</option></select></div></div>
-      <div class="form-grid"><div class="form-field"><label class="form-lbl">Waga (kg)</label><input type="number" class="form-input" id="ac-weight" placeholder="80"></div><div class="form-field"><label class="form-lbl">Wzrost (cm)</label><input type="number" class="form-input" id="ac-height" placeholder="180"></div></div>
+      <div class="form-grid"><div class="form-field"><label class="form-lbl">Telefon</label><input type="tel" class="form-input" id="ac-phone" placeholder="+48 123 456 789"></div><div class="form-field"><label class="form-lbl">Wiek</label><input type="number" class="form-input" id="ac-age" placeholder="25"></div></div>
+      <div class="form-grid"><div class="form-field"><label class="form-lbl">Płeć</label><select class="form-select" id="ac-gender"><option value="M">Mężczyzna</option><option value="K">Kobieta</option></select></div><div class="form-field"><label class="form-lbl">Waga (kg)</label><input type="number" class="form-input" id="ac-weight" placeholder="80"></div></div>
+      <div class="form-grid"><div class="form-field"><label class="form-lbl">Wzrost (cm)</label><input type="number" class="form-input" id="ac-height" placeholder="180"></div><div class="form-field"></div></div>
       <div class="form-grid">
         <div class="form-field"><label class="form-lbl">Cel</label><select class="form-select" id="ac-goal"><option value="masa">Budowa masy</option><option value="sila">Wzrost siły</option><option value="redukcja">Redukcja</option><option value="kondycja">Kondycja</option></select></div>
         <div class="form-field"><label class="form-lbl">Poziom</label><select class="form-select" id="ac-level"><option value="poczatkujacy">Początkujący (0-1 rok)</option><option value="sredni">Średniozaawansowany (1-3 lata)</option><option value="zaawansowany">Zaawansowany (3+ lata)</option></select></div>
@@ -3757,7 +3779,7 @@ function goTo(n){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   const s=document.getElementById('screen-'+n);if(s)s.classList.add('active');
-  const navMap={'dashboard':0,'clients':1,'plans':2,'builder':3,'calendar':4,'inbox':5,'workout-library':6,'library':7,'programs':8,'metrics':9,'tasks':10,'forms':11,'automation':12,'resources':13,'ondemand':14,'payments':15,'calculator':16,'forum':17,'settings':18,'checkin':19,'progbuilder':20,'integrations':21,'clientapp':22,'aicoach':23,'bizstats':24,'aiplangen':25,'reports':26,'live':27,'templates':28};
+  const navMap={'dashboard':0,'clients':1,'plans':2,'builder':3,'calendar':4,'inbox':5,'workout-library':6,'library':7,'programs':8,'metrics':9,'tasks':10,'forms':11,'automation':12,'resources':13,'ondemand':14,'payments':15,'calculator':16,'forum':17,'settings':18,'checkin':19,'progbuilder':20,'integrations':21,'clientapp':22,'aicoach':23,'bizstats':24,'aiplangen':25,'reports':26,'live':27,'templates':28,'onboarding':29};
   const btns=document.querySelectorAll('.nav-item');
   if(navMap[n]!==undefined&&btns[navMap[n]])btns[navMap[n]].classList.add('active');
   if(n==='builder')initBuilder();
@@ -3805,6 +3827,7 @@ function goTo(n){
   if(n==='reports'){initReports();}
   if(n==='live'){initLive();}
   if(n==='templates'){initTemplates();}
+  if(n==='onboarding'){initOnboarding();}
 }
 
 function openM(id){
@@ -3834,11 +3857,13 @@ function closeM(id){document.getElementById(id).classList.remove('show');}
 document.querySelectorAll('.modal-ov').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');}));
 
 window.renderAll=function(){
-  renderDash();renderClients();renderPlans();renderCal();renderLib();renderInbox();renderWL();
-  document.getElementById('nb-clients').textContent=CL.length;
-  document.getElementById('b-client').innerHTML=CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
-  updateExDl();
-  generateAutoNotifs();
+  const safe=(fn)=>{try{fn();}catch(e){console.warn('renderAll partial fail:',e);}};
+  safe(renderDash);safe(renderClients);safe(renderPlans);
+  safe(renderCal);safe(renderLib);safe(renderInbox);safe(renderWL);
+  try{document.getElementById('nb-clients').textContent=CL.length;}catch(e){}
+  try{document.getElementById('b-client').innerHTML=CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');}catch(e){}
+  safe(updateExDl);
+  safe(generateAutoNotifs);
 };
 
 // ════════════════════════════════════════
@@ -4080,6 +4105,498 @@ async function saveWorkout(){
   try{if(window._db){const r=await window._add(window._col(window._db,'workouts'),w);w.id=r.id;}else w.id='w'+Date.now();}catch(e){w.id='w'+Date.now();}
   WO.push(w);closeM('m-workout');renderWL();notify('Trening dodany! 💪');
 }
+
+// ════════════════════════════════════════
+// ONBOARDING
+// ════════════════════════════════════════
+var onbTab='overview';
+var onbStep=0;
+var onbNewClient={};
+var ONB_ACTIVE=[];   // [{clientId, step, startDate, flow}]
+
+const ONB_STEPS=[
+  {id:'welcome',    icon:'👋', label:'Powitanie',        desc:'Wiadomość powitalna i dostęp do aplikacji'},
+  {id:'ankieta',    icon:'📋', label:'Ankieta wstępna',  desc:'Dane, cel, poziom, zdrowie, preferencje'},
+  {id:'kontrakt',   icon:'📄', label:'Kontrakt',         desc:'Regulamin współpracy i zgody RODO'},
+  {id:'pomiary',    icon:'📏', label:'Pomiary startowe', desc:'Waga, wzrost, obwody, zdjęcia startowe'},
+  {id:'plan',       icon:'📋', label:'Pierwszy plan',    desc:'Przypisanie planu treningowego'},
+  {id:'zadania',    icon:'✅', label:'Pierwsze zadania',  desc:'Lista zadań na pierwszy tydzień'},
+  {id:'platnosc',   icon:'💳', label:'Płatność',         desc:'Wybór pakietu i opłacenie'},
+  {id:'aplikacja',  icon:'📱', label:'Aplikacja',        desc:'Wysłanie linku do aplikacji klienta'},
+  {id:'sesja1',     icon:'🏋️', label:'Pierwsza sesja',   desc:'Zaplanowanie i przeprowadzenie sesji'},
+  {id:'checkin',    icon:'✅', label:'Pierwszy check-in',desc:'Wypełnienie pierwszego check-inu'},
+];
+
+const ONB_FLOWS=[
+  {id:'standard',  name:'Standard',      icon:'⚡', color:'var(--accent)',
+   desc:'Kompletny onboarding — ankieta, kontrakt, plan, płatność, aplikacja, sesja.',
+   steps:['welcome','ankieta','kontrakt','pomiary','plan','zadania','platnosc','aplikacja','sesja1','checkin'],
+   duration:'7 dni'},
+  {id:'quick',     name:'Szybki start',  icon:'🚀', color:'var(--blue)',
+   desc:'Minimum formalności — od razu do treningu. Ankieta online + plan + sesja.',
+   steps:['welcome','ankieta','plan','platnosc','sesja1'],
+   duration:'2 dni'},
+  {id:'online',    name:'Online',        icon:'💻', color:'var(--purple)',
+   desc:'Klient zdalny — wszystko przez aplikację. Bez sesji stacjonarnej na starcie.',
+   steps:['welcome','ankieta','kontrakt','plan','zadania','platnosc','aplikacja','checkin'],
+   duration:'5 dni'},
+  {id:'vip',       name:'VIP',           icon:'👑', color:'var(--orange)',
+   desc:'Rozszerzony onboarding dla klientów premium. Pełna diagnostyka i badania.',
+   steps:['welcome','ankieta','kontrakt','pomiary','plan','zadania','platnosc','aplikacja','sesja1','checkin'],
+   duration:'14 dni'},
+];
+
+function initOnboarding(){
+  // seed demo active onboardings
+  if(!ONB_ACTIVE.length&&CL.length){
+    ONB_ACTIVE=CL.slice(0,4).map((c,i)=>({
+      clientId:c.id,step:i+1,startDate:new Date(Date.now()-(i*2)*86400000).toISOString().split('T')[0],
+      flow:ONB_FLOWS[i%ONB_FLOWS.length].id,
+    }));
+  }
+  setOnbTab('overview');
+}
+
+function setOnbTab(t){
+  onbTab=t;
+  ['overview','new','flows','settings'].forEach(x=>{
+    const el=document.getElementById('onb-'+x+'-tab');
+    if(el)el.style.display=x===t?'block':'none';
+    document.getElementById('onb-tab-'+x)?.classList.toggle('active',x===t);
+  });
+  if(t==='overview')renderOnbOverview();
+  if(t==='new'){onbStep=0;onbNewClient={};renderOnbNew();}
+  if(t==='flows')renderOnbFlows();
+  if(t==='settings')renderOnbSettings();
+}
+
+/* ── OVERVIEW ── */
+function renderOnbOverview(){
+  const el=document.getElementById('onb-overview-tab');if(!el)return;
+  const completed=ONB_ACTIVE.filter(o=>o.step>=ONB_STEPS.length).length;
+  const inProgress=ONB_ACTIVE.filter(o=>o.step<ONB_STEPS.length).length;
+
+  el.innerHTML=`
+    <!-- KPI -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;">
+      ${[
+        {icon:'🔄',label:'W trakcie',val:inProgress,col:'var(--accent)'},
+        {icon:'✅',label:'Ukończone',val:completed+8,col:'var(--teal)'},
+        {icon:'⏳',label:'Oczekujące',val:CL.length-ONB_ACTIVE.length,col:'var(--orange)'},
+        {icon:'📊',label:'Śr. czas (dni)',val:4.2,col:'var(--blue)'},
+      ].map(s=>`<div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:16px;">
+        <div style="font-size:20px;margin-bottom:6px;">${s.icon}</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${s.col};line-height:1;">${s.val}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px;">${s.label}</div>
+      </div>`).join('')}
+    </div>
+
+    <!-- aktywne onboardingi -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;">AKTYWNE ONBOARDINGI</div>
+      <button class="btn btn-primary btn-sm" onclick="setOnbTab('new')">+ Nowy klient</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px;">
+      ${ONB_ACTIVE.map(o=>{
+        const c=CL.find(x=>x.id===o.clientId);if(!c)return'';
+        const flow=ONB_FLOWS.find(f=>f.id===o.flow)||ONB_FLOWS[0];
+        const steps=flow.steps.map(sid=>ONB_STEPS.find(s=>s.id===sid)).filter(Boolean);
+        const pct=Math.round(o.step/steps.length*100);
+        const curStep=steps[o.step]||steps[steps.length-1];
+        return `<div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:16px;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+            <div style="width:42px;height:42px;border-radius:12px;background:var(--adim);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--accent);flex-shrink:0;">${getInit(c.name)}</div>
+            <div style="flex:1;">
+              <div style="font-size:13px;font-weight:700;">${c.name}</div>
+              <div style="font-size:11px;color:var(--muted);">Flow: ${flow.icon} ${flow.name} · Start: ${o.startDate}</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:18px;font-weight:700;color:var(--accent);">${pct}%</div>
+              <div style="font-size:10px;color:var(--muted);">${o.step}/${steps.length} kroków</div>
+            </div>
+          </div>
+          <!-- pasek postępu z krokami -->
+          <div style="display:flex;gap:3px;margin-bottom:10px;">
+            ${steps.map((s,i)=>`<div title="${s.label}" style="flex:1;height:6px;border-radius:3px;background:${i<o.step?'var(--accent)':i===o.step?'rgba(200,241,53,0.4)':'var(--s3)'};transition:background 0.3s;"></div>`).join('')}
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="font-size:11px;color:var(--muted);">
+              ${o.step<steps.length?`Następny krok: <span style="color:var(--accent);">${curStep?.icon} ${curStep?.label}</span>`:'<span style="color:var(--teal);">✓ Onboarding ukończony!</span>'}
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-ghost btn-sm" onclick="onbCompleteStep('${o.clientId}')">Potwierdź krok ✓</button>
+              <button class="btn btn-primary btn-sm" onclick="onbViewClient('${o.clientId}')">Otwórz →</button>
+            </div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <!-- klienci bez onboardingu -->
+    ${CL.filter(c=>!ONB_ACTIVE.find(o=>o.clientId===c.id)).length?`
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;margin-bottom:12px;color:var(--muted);">KLIENCI BEZ ONBOARDINGU</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;">
+      ${CL.filter(c=>!ONB_ACTIVE.find(o=>o.clientId===c.id)).map(c=>`
+        <div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;align-items:center;gap:10px;">
+          <div style="width:34px;height:34px;border-radius:8px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;color:var(--muted);">${getInit(c.name)}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.name}</div>
+            <div style="font-size:10px;color:var(--muted);">Brak onboardingu</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" style="font-size:10px;" onclick="onbStartFor('${c.id}')">Start</button>
+        </div>`).join('')}
+    </div>`:''}`;
+}
+
+function onbCompleteStep(cid){
+  const o=ONB_ACTIVE.find(x=>x.clientId===cid);if(!o)return;
+  const flow=ONB_FLOWS.find(f=>f.id===o.flow)||ONB_FLOWS[0];
+  if(o.step<flow.steps.length){o.step++;notify('✓ Krok ukończony!');}
+  else notify('Onboarding już ukończony!');
+  renderOnbOverview();
+}
+
+function onbViewClient(cid){
+  goTo('clients');
+  setTimeout(()=>openClientProfile&&openClientProfile(cid),300);
+}
+
+function onbStartFor(cid){
+  const c=CL.find(x=>x.id===cid);if(!c)return;
+  ONB_ACTIVE.push({clientId:cid,step:0,startDate:new Date().toISOString().split('T')[0],flow:'standard'});
+  notify('✓ Onboarding uruchomiony dla '+c.name);
+  renderOnbOverview();
+}
+
+/* ── NEW CLIENT WIZARD ── */
+const ONB_WIZARD_STEPS=[
+  {label:'Dane podstawowe', icon:'👤'},
+  {label:'Cel i poziom',    icon:'🎯'},
+  {label:'Zdrowie',         icon:'🩺'},
+  {label:'Plan i flow',     icon:'📋'},
+  {label:'Potwierdzenie',   icon:'✅'},
+];
+
+function renderOnbNew(){
+  const el=document.getElementById('onb-new-tab');if(!el)return;
+  const step=onbStep;
+  const total=ONB_WIZARD_STEPS.length;
+
+  el.innerHTML=`
+    <div style="max-width:680px;margin:0 auto;">
+      <!-- stepper -->
+      <div style="display:flex;align-items:center;margin-bottom:28px;">
+        ${ONB_WIZARD_STEPS.map((s,i)=>`
+          <div style="display:flex;align-items:center;flex:${i<total-1?1:'none'};">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+              <div style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:${i<step?'14px':'16px'};
+                background:${i<step?'var(--teal)':i===step?'var(--accent)':'var(--s3)'};
+                color:${i<=step?'#000':'var(--muted)'};font-weight:700;border:2px solid ${i===step?'var(--accent)':i<step?'var(--teal)':'var(--border2)'};">${i<step?'✓':s.icon}</div>
+              <div style="font-size:9px;font-family:'DM Mono',monospace;color:${i===step?'var(--accent)':i<step?'var(--teal)':'var(--muted)'};white-space:nowrap;">${s.label}</div>
+            </div>
+            ${i<total-1?`<div style="flex:1;height:2px;background:${i<step?'var(--teal)':'var(--border)'};margin:0 6px;margin-bottom:18px;"></div>`:''}
+          </div>`).join('')}
+      </div>
+
+      <!-- step content -->
+      <div style="background:var(--s2);border:1px solid var(--border);border-radius:14px;padding:28px;margin-bottom:16px;" id="onb-wizard-body">
+        ${onbWizardStepHTML(step)}
+      </div>
+
+      <!-- nav buttons -->
+      <div style="display:flex;gap:10px;justify-content:space-between;">
+        <button class="btn btn-ghost" onclick="onbWizardBack()" ${step===0?'disabled style="opacity:0.4;"':''}>← Wstecz</button>
+        <button class="btn btn-primary" onclick="onbWizardNext()" id="onb-next-btn">${step===total-1?'✓ Utwórz klienta':'Dalej →'}</button>
+      </div>
+    </div>`;
+}
+
+function onbWizardStepHTML(step){
+  if(step===0) return `
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">👤 DANE PODSTAWOWE</div>
+    <div class="form-grid">
+      <div class="form-field"><label class="form-lbl">Imię i nazwisko *</label>
+        <input type="text" class="form-input" id="onb-name" placeholder="Jan Kowalski" value="${onbNewClient.name||''}"></div>
+      <div class="form-field"><label class="form-lbl">Email *</label>
+        <input type="email" class="form-input" id="onb-email" placeholder="jan@example.com" value="${onbNewClient.email||''}"></div>
+      <div class="form-field"><label class="form-lbl">Telefon</label>
+        <input type="tel" class="form-input" id="onb-phone" placeholder="+48 123 456 789" value="${onbNewClient.phone||''}"></div>
+      <div class="form-field"><label class="form-lbl">Data urodzenia</label>
+        <input type="date" class="form-input" id="onb-dob" value="${onbNewClient.dob||''}"></div>
+      <div class="form-field"><label class="form-lbl">Płeć</label>
+        <select class="form-select" id="onb-gender">
+          <option value="mężczyzna" ${onbNewClient.gender==='mężczyzna'?'selected':''}>Mężczyzna</option>
+          <option value="kobieta" ${onbNewClient.gender==='kobieta'?'selected':''}>Kobieta</option>
+          <option value="inne">Inne</option>
+        </select></div>
+      <div class="form-field"><label class="form-lbl">Skąd trafił/a do Ciebie?</label>
+        <select class="form-select" id="onb-source">
+          <option value="polecenie">Polecenie znajomego</option>
+          <option value="instagram">Instagram</option>
+          <option value="google">Google</option>
+          <option value="tiktok">TikTok</option>
+          <option value="inne">Inne</option>
+        </select></div>
+    </div>`;
+
+  if(step===1) return `
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">🎯 CEL I POZIOM</div>
+    <div class="form-field"><label class="form-lbl">Główny cel treningowy *</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;" id="onb-goal-opts">
+        ${[['masa','💪','Budowa masy'],['sila','🏋️','Siła'],['redukcja','🔥','Redukcja'],['kondycja','🏃','Kondycja'],['atletyzm','⚡','Atletyzm'],['rehab','🩺','Rehab']].map(([v,ico,l])=>`
+          <button class="apl-opt${onbNewClient.goal===v?' active':''}" data-val="${v}" onclick="onbSetVal('goal','${v}');this.closest('[id]')?.querySelectorAll('.apl-opt').forEach(b=>b.classList.remove('active'));this.classList.add('active');" style="text-align:center;">${ico}<br><span style="font-size:10px;">${l}</span></button>`).join('')}
+      </div></div>
+    <div class="form-grid" style="margin-top:14px;">
+      <div class="form-field"><label class="form-lbl">Poziom zaawansowania</label>
+        <select class="form-select" id="onb-level" onchange="onbSetVal('level',this.value)">
+          <option value="poczatkujacy" ${onbNewClient.level==='poczatkujacy'?'selected':''}>🌱 Początkujący (0-1 rok)</option>
+          <option value="sredni" ${onbNewClient.level==='sredni'?'selected':''}>⚡ Średni (1-3 lata)</option>
+          <option value="zaawansowany" ${onbNewClient.level==='zaawansowany'?'selected':''}>🔥 Zaawansowany (3+ lat)</option>
+        </select></div>
+      <div class="form-field"><label class="form-lbl">Ile razy w tygodniu chce trenować?</label>
+        <select class="form-select" id="onb-freq" onchange="onbSetVal('freq',this.value)">
+          ${[2,3,4,5,6].map(n=>`<option value="${n}" ${onbNewClient.freq==n?'selected':''}>${n}× w tygodniu</option>`).join('')}
+        </select></div>
+      <div class="form-field"><label class="form-lbl">Waga (kg)</label>
+        <input type="number" class="form-input" id="onb-weight" placeholder="80" value="${onbNewClient.weight||''}"></div>
+      <div class="form-field"><label class="form-lbl">Wzrost (cm)</label>
+        <input type="number" class="form-input" id="onb-height" placeholder="178" value="${onbNewClient.height||''}"></div>
+    </div>
+    <div class="form-field" style="margin-top:10px;"><label class="form-lbl">Opis celu własnymi słowami</label>
+      <textarea class="form-input" id="onb-goal-desc" rows="2" placeholder="np. chcę schudnąć 10 kg na wakacje..." style="resize:none;font-size:13px;">${onbNewClient.goalDesc||''}</textarea></div>`;
+
+  if(step===2) return `
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">🩺 ZDROWIE I OGRANICZENIA</div>
+    <div class="form-field"><label class="form-lbl">Kontuzje lub problemy zdrowotne</label>
+      <textarea class="form-input" id="onb-injuries" rows="3" placeholder="np. ból kolan, przepuklina, nadciśnienie..." style="resize:none;font-size:13px;">${onbNewClient.injuries||''}</textarea></div>
+    <div class="form-field"><label class="form-lbl">Leki stałe</label>
+      <input type="text" class="form-input" id="onb-meds" placeholder="np. inhibitory ACE, metformina..." value="${onbNewClient.meds||''}"></div>
+    <div class="form-field"><label class="form-lbl">Aktywność fizyczna dotychczas</label>
+      <select class="form-select" id="onb-activity">
+        <option value="sedentary">Siedzący tryb życia</option>
+        <option value="light">Lekka aktywność (spacery)</option>
+        <option value="moderate">Umiarkowana (rekreacyjnie)</option>
+        <option value="active">Aktywny (regularny trening)</option>
+      </select></div>
+    <div class="form-field"><label class="form-lbl">Dostępny sprzęt</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+        ${[['gym','🏋️','Pełna siłownia'],['dumbbells','💪','Hantle'],['home','🏠','Ćwiczenia domowe'],['pool','🏊','Basen'],['outdoor','🌳','Na zewnątrz'],['none','❌','Bez sprzętu']].map(([v,ico,l])=>`
+          <label style="display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--s3);border-radius:7px;cursor:pointer;font-size:11px;">
+            <input type="checkbox" value="${v}" class="onb-equip-check" style="accent-color:var(--accent);">${ico} ${l}
+          </label>`).join('')}
+      </div></div>
+    <div class="form-field"><label class="form-lbl">Czy wyraża zgodę na przetwarzanie danych (RODO)?</label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+        <input type="checkbox" id="onb-rodo" ${onbNewClient.rodo?'checked':''} style="accent-color:var(--accent);width:16px;height:16px;">
+        <span>Tak, wyrażam zgodę na przetwarzanie danych osobowych przez Piotra Urbaniaka w celu świadczenia usług treningowych.</span>
+      </label></div>`;
+
+  if(step===3) return `
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">📋 PLAN I ONBOARDING FLOW</div>
+    <div class="form-field"><label class="form-lbl">Flow onboardingu</label>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        ${ONB_FLOWS.map(f=>`<label style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--s3);border-radius:10px;cursor:pointer;border:1px solid ${onbNewClient.flow===f.id?'var(--accent)':'var(--border2)'};" onclick="onbSetVal('flow','${f.id}');document.querySelectorAll('#onb-new-tab label[style*=border]').forEach(l=>l.style.borderColor='var(--border2)');this.style.borderColor='var(--accent)';">
+          <input type="radio" name="onb-flow" value="${f.id}" ${onbNewClient.flow===f.id?'checked':''} style="accent-color:var(--accent);">
+          <span style="font-size:18px;">${f.icon}</span>
+          <div><div style="font-size:13px;font-weight:700;">${f.name} <span style="font-size:10px;color:var(--muted);">(${f.duration})</span></div>
+          <div style="font-size:11px;color:var(--muted);">${f.desc}</div></div>
+        </label>`).join('')}
+      </div></div>
+    <div class="form-field"><label class="form-lbl">Przypisz szablon planu treningowego (opcjonalnie)</label>
+      <select class="form-select" id="onb-template" onchange="onbSetVal('template',this.value)">
+        <option value="">Bez planu na razie</option>
+        ${PLAN_TEMPLATES.slice(0,10).map(t=>`<option value="${t.id}" ${onbNewClient.template===t.id?'selected':''}>${t.name}</option>`).join('')}
+      </select></div>
+    <div class="form-field"><label class="form-lbl">Pakiet startowy</label>
+      <select class="form-select" id="onb-package" onchange="onbSetVal('package',this.value)">
+        <option value="">Bez pakietu</option>
+        <option value="4sess">4 sesje (600 PLN)</option>
+        <option value="8sess">8 sesji (1100 PLN)</option>
+        <option value="12sess">12 sesji (1500 PLN)</option>
+        <option value="online">Online miesięcznie (350 PLN/mies.)</option>
+      </select></div>
+    <div class="form-field"><label class="form-lbl">Notatka prywatna (widoczna tylko dla Ciebie)</label>
+      <textarea class="form-input" id="onb-private-note" rows="2" placeholder="np. klient polecony przez Annę, wrażliwy na kolan..." style="resize:none;font-size:13px;">${onbNewClient.privateNote||''}</textarea></div>`;
+
+  if(step===4) return `
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">✅ POTWIERDZENIE</div>
+    <div style="background:var(--adim);border:1px solid rgba(200,241,53,0.2);border-radius:12px;padding:20px;margin-bottom:16px;">
+      <div style="font-size:14px;font-weight:700;margin-bottom:12px;">Podsumowanie nowego klienta</div>
+      ${[
+        ['Imię i nazwisko',onbNewClient.name||'—'],
+        ['Email',onbNewClient.email||'—'],
+        ['Telefon',onbNewClient.phone||'—'],
+        ['Cel',onbNewClient.goal||'—'],
+        ['Poziom',onbNewClient.level||'—'],
+        ['Flow',ONB_FLOWS.find(f=>f.id===onbNewClient.flow)?.name||'Standard'],
+        ['Pakiet',onbNewClient.package||'Brak'],
+        ['Szablon planu',onbNewClient.template?PLAN_TEMPLATES.find(t=>t.id===onbNewClient.template)?.name:'Brak'],
+      ].map(([l,v])=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;">
+        <span style="color:var(--muted);">${l}</span>
+        <span style="font-weight:600;">${v}</span>
+      </div>`).join('')}
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.7;">Po kliknięciu "Utwórz klienta":<br>
+    ✓ Klient zostanie dodany do listy klientów<br>
+    ✓ Uruchomi się flow onboardingu<br>
+    ${onbNewClient.template?'✓ Zostanie przypisany szablon planu treningowego<br>':''}
+    ✓ Zostanie wysłane powiadomienie powitalne</div>`;
+
+  return '<div>Nieznany krok</div>';
+}
+
+function onbSetVal(key,val){onbNewClient[key]=val;}
+
+function onbWizardBack(){
+  if(onbStep>0){onbStep--;renderOnbNew();}
+}
+
+function onbWizardNext(){
+  // collect current step values
+  if(onbStep===0){
+    onbNewClient.name=document.getElementById('onb-name')?.value||'';
+    onbNewClient.email=document.getElementById('onb-email')?.value||'';
+    onbNewClient.phone=document.getElementById('onb-phone')?.value||'';
+    onbNewClient.dob=document.getElementById('onb-dob')?.value||'';
+    onbNewClient.gender=document.getElementById('onb-gender')?.value||'mężczyzna';
+    onbNewClient.source=document.getElementById('onb-source')?.value||'';
+    if(!onbNewClient.name||!onbNewClient.email){notify('⚠ Wypełnij imię i email!');return;}
+  }
+  if(onbStep===1){
+    onbNewClient.level=document.getElementById('onb-level')?.value||'sredni';
+    onbNewClient.freq=document.getElementById('onb-freq')?.value||3;
+    onbNewClient.weight=document.getElementById('onb-weight')?.value||'';
+    onbNewClient.height=document.getElementById('onb-height')?.value||'';
+    onbNewClient.goalDesc=document.getElementById('onb-goal-desc')?.value||'';
+    if(!onbNewClient.goal){notify('⚠ Wybierz cel!');return;}
+  }
+  if(onbStep===2){
+    onbNewClient.injuries=document.getElementById('onb-injuries')?.value||'';
+    onbNewClient.meds=document.getElementById('onb-meds')?.value||'';
+    onbNewClient.rodo=document.getElementById('onb-rodo')?.checked||false;
+    if(!onbNewClient.rodo){notify('⚠ Wymagana zgoda RODO!');return;}
+  }
+  if(onbStep===3){
+    onbNewClient.template=document.getElementById('onb-template')?.value||'';
+    onbNewClient.package=document.getElementById('onb-package')?.value||'';
+    onbNewClient.privateNote=document.getElementById('onb-private-note')?.value||'';
+    if(!onbNewClient.flow)onbNewClient.flow='standard';
+  }
+  if(onbStep===ONB_WIZARD_STEPS.length-1){
+    onbCreateClient();return;
+  }
+  onbStep++;
+  renderOnbNew();
+}
+
+function onbCreateClient(){
+  const newC={
+    id:'c_onb_'+Date.now(),
+    name:onbNewClient.name,
+    email:onbNewClient.email,
+    phone:onbNewClient.phone||'',
+    goal:onbNewClient.goal||'masa',
+    level:onbNewClient.level||'sredni',
+    weight:onbNewClient.weight||'',
+    height:onbNewClient.height||'',
+    gender:onbNewClient.gender||'mężczyzna',
+    injuries:onbNewClient.injuries||'',
+    notes:onbNewClient.privateNote||'',
+    status:'active',
+    joinDate:new Date().toISOString().split('T')[0],
+    source:onbNewClient.source||'',
+  };
+  CL.push(newC);
+  if(window._db){try{window._add(window._col(window._db,'clients'),newC);}catch(e){}}
+
+  // assign template plan
+  if(onbNewClient.template){
+    const t=PLAN_TEMPLATES.find(x=>x.id===onbNewClient.template);
+    if(t){
+      const p={id:'p_onb_'+Date.now(),name:t.name,clientId:newC.id,method:t.method,duration:t.weeks,
+        days:(t.days_detail||[]).map(d=>({day:d.name,exercises:(d.exercises||[]).map(e=>({name:e.n,sets:e.s,reps:e.r}))})),
+        source:'template',createdAt:new Date().toISOString()};
+      PL.push(p);
+      if(window._db){try{window._add(window._col(window._db,'plans'),p);}catch(e){}}
+    }
+  }
+
+  // start onboarding flow
+  ONB_ACTIVE.push({clientId:newC.id,step:1,startDate:new Date().toISOString().split('T')[0],flow:onbNewClient.flow||'standard'});
+
+  // add first tasks
+  const tasks=[
+    {id:'t_onb1_'+Date.now(),clientId:newC.id,title:'Wypełnij ankietę wstępną',status:'pending',due:new Date(Date.now()+86400000).toISOString().split('T')[0]},
+    {id:'t_onb2_'+Date.now(),clientId:newC.id,title:'Zaakceptuj kontrakt współpracy',status:'pending',due:new Date(Date.now()+2*86400000).toISOString().split('T')[0]},
+    {id:'t_onb3_'+Date.now(),clientId:newC.id,title:'Zainstaluj aplikację Progress Live',status:'pending',due:new Date(Date.now()+3*86400000).toISOString().split('T')[0]},
+  ];
+  tasks.forEach(t=>{TASKS.push(t);if(window._db){try{window._add(window._col(window._db,'tasks'),t);}catch(e){}}});
+
+  addNotification('system','Nowy klient!',newC.name+' — onboarding uruchomiony','clients');
+  notify('🎉 Klient '+newC.name+' dodany! Onboarding uruchomiony.');
+
+  onbNewClient={};onbStep=0;
+  setOnbTab('overview');
+}
+
+/* ── FLOWS ── */
+function renderOnbFlows(){
+  const el=document.getElementById('onb-flows-tab');if(!el)return;
+  el.innerHTML=`
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:6px;">SZABLONY FLOW ONBOARDINGU</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:20px;">Każdy flow definiuje kolejność kroków onboardingu dla nowego klienta.</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;">
+      ${ONB_FLOWS.map(f=>`<div style="background:var(--s2);border:1px solid var(--border);border-top:3px solid ${f.color};border-radius:12px;padding:18px;">
+        <div style="font-size:24px;margin-bottom:8px;">${f.icon}</div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:4px;">${f.name}</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.6;">${f.desc}</div>
+        <div style="font-size:10px;color:${f.color};font-family:'DM Mono',monospace;margin-bottom:10px;">⏱ ${f.duration} · ${f.steps.length} kroków</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px;">
+          ${f.steps.map(sid=>{const s=ONB_STEPS.find(x=>x.id===sid);return s?`<span style="background:var(--s3);border-radius:5px;padding:2px 7px;font-size:10px;color:var(--muted);">${s.icon} ${s.label}</span>`:''}).join('')}
+        </div>
+        <button class="btn btn-ghost btn-sm" style="width:100%;" onclick="setOnbTab('new');onbSetVal('flow','${f.id}')">Użyj tego flow →</button>
+      </div>`).join('')}
+    </div>`;
+}
+
+/* ── SETTINGS ── */
+function renderOnbSettings(){
+  const el=document.getElementById('onb-settings-tab');if(!el)return;
+  el.innerHTML=`
+    <div style="max-width:600px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:20px;">USTAWIENIA ONBOARDINGU</div>
+      <div class="settings-card" style="margin-bottom:14px;">
+        <div class="settings-card-title">📩 Automatyczne wiadomości</div>
+        <div class="settings-card-desc">Wiadomości wysyłane automatycznie na każdym etapie onboardingu.</div>
+        ${ONB_STEPS.slice(0,5).map(s=>`<label style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;">
+          <span>${s.icon} ${s.label}</span>
+          <input type="checkbox" checked style="accent-color:var(--accent);">
+        </label>`).join('')}
+      </div>
+      <div class="settings-card" style="margin-bottom:14px;">
+        <div class="settings-card-title">⏰ Przypomnienia</div>
+        <div class="settings-card-desc">Automatyczne przypomnienia gdy klient nie ukończy kroku.</div>
+        <div class="form-grid">
+          <div class="form-field"><label class="form-lbl">Przypomnij po (dni)</label>
+            <input type="number" class="form-input" value="2" style="font-size:12px;"></div>
+          <div class="form-field"><label class="form-lbl">Kanał przypomnienia</label>
+            <select class="form-select" style="font-size:12px;"><option>Email</option><option>WhatsApp</option><option>SMS</option></select></div>
+        </div>
+      </div>
+      <div class="settings-card">
+        <div class="settings-card-title">📝 Domyślny kontrakt</div>
+        <div class="settings-card-desc">Treść kontraktu współpracy wysyłanego klientom.</div>
+        <textarea class="form-input" rows="5" style="font-size:12px;resize:none;">Regulamin współpracy z trenerem personalnym Piotrem Urbaniakiem\n\n1. Klient zobowiązuje się do regularnego uczestnictwa w sesjach.\n2. Odwołanie sesji możliwe do 24h przed jej terminem.\n3. Trener zastrzega sobie prawo do modyfikacji planu.\n...</textarea>
+        <button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="notify('✓ Ustawienia zapisane!')">Zapisz kontrakt</button>
+      </div>
+    </div>`;
+}
+
+window.initOnboarding=initOnboarding;window.setOnbTab=setOnbTab;
+window.renderOnbNew=renderOnbNew;window.onbWizardBack=onbWizardBack;
+window.onbWizardNext=onbWizardNext;window.onbSetVal=onbSetVal;
+window.onbCompleteStep=onbCompleteStep;window.onbViewClient=onbViewClient;
+window.onbStartFor=onbStartFor;window.onbCreateClient=onbCreateClient;
 
 // ════════════════════════════════════════
 // SZABLONY PLANÓW
@@ -10119,9 +10636,36 @@ function renderClients(){
 async function saveClient(){
   const name=document.getElementById('ac-name').value.trim();
   if(!name){notify('Wpisz imię!');return;}
-  const c={name,email:document.getElementById('ac-email').value,age:+document.getElementById('ac-age').value||0,gender:document.getElementById('ac-gender').value,weight:+document.getElementById('ac-weight').value||0,height:+document.getElementById('ac-height').value||0,goal:document.getElementById('ac-goal').value,level:document.getElementById('ac-level').value,notes:document.getElementById('ac-notes').value,status:'active',createdAt:new Date().toISOString()};
-  try{if(window._db){const r=await window._add(window._col(window._db,'clients'),c);c.id=r.id;}else c.id='l'+Date.now();}catch(e){c.id='l'+Date.now();}
-  CL.push(c);closeM('m-client');renderAll();notify('Klient dodany!');
+  const c={name,
+    email:document.getElementById('ac-email').value,
+    phone:document.getElementById('ac-phone')?.value||'',
+    age:+document.getElementById('ac-age').value||0,
+    gender:document.getElementById('ac-gender').value,
+    weight:+document.getElementById('ac-weight').value||0,
+    height:+document.getElementById('ac-height').value||0,
+    goal:document.getElementById('ac-goal').value,
+    level:document.getElementById('ac-level').value,
+    notes:document.getElementById('ac-notes').value,
+    status:'active',
+    createdAt:new Date().toISOString()
+  };
+  try{
+    if(window._db){const r=await window._add(window._col(window._db,'clients'),c);c.id=r.id;}
+    else c.id='l'+Date.now();
+  }catch(e){c.id='l'+Date.now();}
+  CL.push(c);
+  closeM('m-client');
+  // reset pól formularza
+  ['ac-name','ac-email','ac-age','ac-weight','ac-height','ac-notes'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+  try{renderAll();}catch(e){
+    // renderAll failed — re-render only clients
+    try{renderClients();}catch(e2){}
+    try{document.getElementById('nb-clients').textContent=CL.length;}catch(e2){}
+  }
+  addNotification('system','Nowy klient!',c.name+' — dodano do listy','clients');
+  notify('✅ Klient '+c.name+' dodany!');
 }
 
 // ════════════════════════════════════════
