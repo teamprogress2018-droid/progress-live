@@ -10679,8 +10679,15 @@ async function saveClient(){
 // BUILDER
 // ════════════════════════════════════════
 function initBuilder(){
-  dayCount=0;document.getElementById('builder-days').innerHTML='';
-  document.getElementById('b-name').value='';updatePeriod();
+  dayCount=0;
+  document.getElementById('builder-days').innerHTML='';
+  document.getElementById('b-name').value='';
+  // wypełnij select klientów
+  const sel=document.getElementById('b-client');
+  if(sel){
+    sel.innerHTML='<option value="">-- Wybierz klienta --</option>'+CL.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  }
+  updatePeriod();
 }
 function addDay(){
   dayCount++;const id='bd-'+dayCount;
