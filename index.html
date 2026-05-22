@@ -2877,7 +2877,10 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Timer przerwy</div>
         <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--text);text-align:center;line-height:1;margin-bottom:8px;" id="live-rest-timer">—</div>
         <div style="display:flex;gap:5px;">
-          ${[60,90,120,180].map(s=>`<button onclick="liveStartRest(${s})" style="flex:1;padding:5px;background:var(--s3);border:1px solid var(--border2);border-radius:6px;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);cursor:pointer;">${s}s</button>`).join('')}
+          <button onclick="liveStartRest(60)" style="flex:1;padding:5px;background:var(--s3);border:1px solid var(--border2);border-radius:6px;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);cursor:pointer;">60s</button>
+          <button onclick="liveStartRest(90)" style="flex:1;padding:5px;background:var(--s3);border:1px solid var(--border2);border-radius:6px;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);cursor:pointer;">90s</button>
+          <button onclick="liveStartRest(120)" style="flex:1;padding:5px;background:var(--s3);border:1px solid var(--border2);border-radius:6px;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);cursor:pointer;">120s</button>
+          <button onclick="liveStartRest(180)" style="flex:1;padding:5px;background:var(--s3);border:1px solid var(--border2);border-radius:6px;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);cursor:pointer;">180s</button>
         </div>
       </div>
 
@@ -2891,7 +2894,11 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:14px;">
         <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Feedback klienta</div>
         <div style="display:flex;justify-content:space-between;">
-          ${['😓','😐','🙂','💪','🔥'].map((e,i)=>`<button onclick="liveFeedback(${i+1})" style="width:40px;height:40px;border-radius:10px;background:var(--s3);border:1px solid var(--border2);font-size:20px;cursor:pointer;" title="Poziom ${i+1}">${e}</button>`).join('')}
+          <button onclick="liveFeedback(1)" style="width:40px;height:40px;border-radius:10px;background:var(--s3);border:1px solid var(--border2);font-size:20px;cursor:pointer;" title="Poziom 1">😓</button>
+          <button onclick="liveFeedback(2)" style="width:40px;height:40px;border-radius:10px;background:var(--s3);border:1px solid var(--border2);font-size:20px;cursor:pointer;" title="Poziom 2">😐</button>
+          <button onclick="liveFeedback(3)" style="width:40px;height:40px;border-radius:10px;background:var(--s3);border:1px solid var(--border2);font-size:20px;cursor:pointer;" title="Poziom 3">🙂</button>
+          <button onclick="liveFeedback(4)" style="width:40px;height:40px;border-radius:10px;background:var(--s3);border:1px solid var(--border2);font-size:20px;cursor:pointer;" title="Poziom 4">💪</button>
+          <button onclick="liveFeedback(5)" style="width:40px;height:40px;border-radius:10px;background:var(--s3);border:1px solid var(--border2);font-size:20px;cursor:pointer;" title="Poziom 5">🔥</button>
         </div>
         <div style="font-size:10px;color:var(--muted);margin-top:6px;text-align:center;" id="live-feedback-text">Brak oceny</div>
       </div>
