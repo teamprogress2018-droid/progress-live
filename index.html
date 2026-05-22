@@ -13705,7 +13705,18 @@ function cpOpenTask(){
     if(sel&&cpClientId){sel.value=cpClientId;}
   },50);
 }
-
+function deleteClientNote(clientId,idx){
+  if(!CLIENT_NOTES[clientId])return;
+  CLIENT_NOTES[clientId].splice(idx,1);
+  setCPTab('overview');
+  notify('Notatka usunięta');
+}
+function deleteClientActivity(clientId,idx){
+  if(!CLIENT_ACTIVITY[clientId])return;
+  CLIENT_ACTIVITY[clientId].splice(idx,1);
+  setCPTab('overview');
+  notify('Aktywność usunięta');
+}
 function saveCPEdit(id){
   const c=CL.find(x=>x.id===id);if(!c)return;
   c.name=document.getElementById('cpe-name').value.trim()||c.name;
