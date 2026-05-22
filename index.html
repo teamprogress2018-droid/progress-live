@@ -1008,7 +1008,7 @@ input[type=checkbox]{display:none;}
     <div class="modal-body">
       <div class="form-field"><label class="form-lbl">Odbiorcy</label>
         <select class="form-select" id="bc-target">
-          <option value="all">Wszyscy klienci ({{CL.length}})</option>
+          <option value="all">Wszyscy klienci</option>
           <option value="active">Tylko aktywni</option>
           <option value="inactive">Nieaktywni (zastój)</option>
         </select>
@@ -3794,6 +3794,7 @@ async function load(){
   try{const s=await getDocs(collection(db,'sessions'));window.SE=[];s.forEach(d=>window.SE.push({id:d.id,...d.data()}));}catch(e){window.SE=[];}
   try{const s=await getDocs(collection(db,'exercises'));window.EX=[];s.forEach(d=>window.EX.push({id:d.id,...d.data()}));}catch(e){window.EX=[];}
   try{const s=await getDocs(collection(db,'workouts'));window.WO=[];s.forEach(d=>window.WO.push({id:d.id,...d.data()}));}catch(e){window.WO=[];}
+try{const s2=await getDocs(collection(db,'tasks'));window.TASKS=[];s2.forEach(d=>window.TASKS.push({id:d.id,...d.data()}));}catch(e){window.TASKS=[];}
   window.renderAll();
 }
 setTimeout(load,300);
@@ -7169,7 +7170,7 @@ function setCapTab(t){
     if(el)el.style.display=x===t?'flex':'none';
     document.getElementById('cap-tab-'+x+'')?.classList.toggle('active',x===t);
   });
-  document.getElementById('cap-preview-tab').style.display=t==='preview'?'flex':'none';
+  Wszyscy klienci
   if(t==='customize')renderCapCustomize();
   if(t==='access')renderCapAccess();
 }
