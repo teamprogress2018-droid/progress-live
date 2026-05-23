@@ -5102,6 +5102,7 @@ function closeTplDetail(){
 }
 
 function tplAssignToClient(tid){
+  const _prevClientId = cpClientId;
   const cid=document.getElementById('tpl-assign-client')?.value;
   if(!cid){notify('Wybierz klienta!');return;}
   const c=CL.find(x=>x.id===cid);
@@ -5123,6 +5124,11 @@ function tplAssignToClient(tid){
   if(window._db){try{window._add(window._col(window._db,'plans'),newPlan);}catch(e){}}
   addNotification('system','Plan przypisany!','Szablon "'+t.name+'" przypisano do '+c.name,'plans');
   notify('✅ Plan "'+t.name+'" przypisany do '+c.name+'!');
+  closeTplDetail();
+  if(_prevClientId){
+    goTo('clients');
+    setTimeout(()=>openClientProfile(_prevClientId),300);
+  }
 }
 
 function tplStartLive(tid){
