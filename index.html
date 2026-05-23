@@ -13649,45 +13649,71 @@ function updateClientUnit(clientId,key,value){
 }
 
 function renderCPEdit(c){
+  const v=x=>(x!==undefined&&x!==null&&x!==0&&x!=='')?x:'';
   document.getElementById('cp-body').innerHTML=`
     <div class="cp-section-title">EDYTUJ PROFIL KLIENTA</div>
     <div style="background:var(--adim);border:1px solid rgba(200,241,53,0.2);border-radius:10px;padding:12px;margin-bottom:14px;font-size:12px;color:var(--muted);">Wypełnij dane i kliknij <strong style="color:var(--accent);">Zapisz zmiany</strong></div>
     <div style="display:flex;flex-direction:column;gap:10px;">
-      <div class="form-field"><label class="form-lbl">Imię i nazwisko</label><input class="cp-edit-field form-input" id="cpe-name" value="${c.name||''}"></div>
-      <div class="form-grid">
-        <div class="form-field"><label class="form-lbl">Email</label><input class="cp-edit-field form-input" id="cpe-email" value="${c.email||''}"></div>
-        <div class="form-field"><label class="form-lbl">Wiek</label><input type="number" class="cp-edit-field form-input" id="cpe-age" value="${c.age||''}"></div>
+      <div class="form-field"><label class="form-lbl">Imię i nazwisko</label>
+        <input class="form-input" id="cpe-name" placeholder="np. Jan Kowalski" value="${c.name||''}">
       </div>
       <div class="form-grid">
-        <div class="form-field"><label class="form-lbl">Waga (kg)</label><input type="number" class="cp-edit-field form-input" id="cpe-weight" value="${c.weight||''}" step="0.1"></div>
-        <div class="form-field"><label class="form-lbl">Wzrost (cm)</label><input type="number" class="cp-edit-field form-input" id="cpe-height" value="${c.height||''}"></div>
+        <div class="form-field"><label class="form-lbl">Email</label>
+          <input class="form-input" id="cpe-email" placeholder="jan@example.com" value="${c.email||''}">
+        </div>
+        <div class="form-field"><label class="form-lbl">Telefon</label>
+          <input class="form-input" id="cpe-phone" placeholder="+48 123 456 789" value="${c.phone||''}">
+        </div>
       </div>
       <div class="form-grid">
-        <div class="form-field"><label class="form-lbl">Cel</label>
+        <div class="form-field"><label class="form-lbl">Wiek (lata)</label>
+          <input type="number" class="form-input" id="cpe-age" placeholder="np. 28" min="10" max="100" value="${v(c.age)}">
+        </div>
+        <div class="form-field"><label class="form-lbl">Płeć</label>
+          <select class="form-select" id="cpe-gender">
+            <option value="M" ${(c.gender||c.płeć)==='M'?'selected':''}>Mężczyzna</option>
+            <option value="K" ${(c.gender||c.płeć)==='K'?'selected':''}>Kobieta</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-field"><label class="form-lbl">Waga (kg)</label>
+          <input type="number" class="form-input" id="cpe-weight" placeholder="np. 80" min="30" max="300" step="0.1" value="${v(c.weight)}">
+        </div>
+        <div class="form-field"><label class="form-lbl">Wzrost (cm)</label>
+          <input type="number" class="form-input" id="cpe-height" placeholder="np. 178" min="100" max="250" value="${v(c.height)}">
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-field"><label class="form-lbl">Cel treningowy</label>
           <select class="form-select" id="cpe-goal">
-            <option value="masa" ${c.goal==='masa'?'selected':''}>Budowa masy</option>
-            <option value="sila" ${c.goal==='sila'?'selected':''}>Wzrost siły</option>
-            <option value="redukcja" ${c.goal==='redukcja'?'selected':''}>Redukcja</option>
-            <option value="kondycja" ${c.goal==='kondycja'?'selected':''}>Kondycja</option>
+            <option value="" ${!c.goal?'selected':''}>Brak celu</option>
+            <option value="masa" ${c.goal==='masa'?'selected':''}>💪 Budowa masy</option>
+            <option value="sila" ${c.goal==='sila'?'selected':''}>🏋️ Wzrost siły</option>
+            <option value="redukcja" ${c.goal==='redukcja'?'selected':''}>🔥 Redukcja</option>
+            <option value="kondycja" ${c.goal==='kondycja'?'selected':''}>🏃 Kondycja</option>
           </select>
         </div>
-        <div class="form-field"><label class="form-lbl">Poziom</label>
+        <div class="form-field"><label class="form-lbl">Poziom zaawansowania</label>
           <select class="form-select" id="cpe-level">
-            <option value="poczatkujacy" ${c.level==='poczatkujacy'?'selected':''}>Początkujący</option>
-            <option value="sredni" ${c.level==='sredni'?'selected':''}>Średni</option>
-            <option value="zaawansowany" ${c.level==='zaawansowany'?'selected':''}>Zaawansowany</option>
+            <option value="" ${!c.level?'selected':''}>Nieokreślony</option>
+            <option value="poczatkujacy" ${c.level==='poczatkujacy'?'selected':''}>🌱 Początkujący</option>
+            <option value="sredni" ${c.level==='sredni'?'selected':''}>⚡ Średni</option>
+            <option value="zaawansowany" ${c.level==='zaawansowany'?'selected':''}>🔥 Zaawansowany</option>
           </select>
         </div>
       </div>
-      <div class="form-field"><label class="form-lbl">Status</label>
+      <div class="form-field"><label class="form-lbl">Status klienta</label>
         <select class="form-select" id="cpe-status">
-          <option value="active" ${c.status==='active'?'selected':''}>Aktywny</option>
-          <option value="inactive" ${c.status==='inactive'?'selected':''}>Nieaktywny</option>
-          <option value="archived" ${c.status==='archived'?'selected':''}>Zarchiwizowany</option>
+          <option value="active" ${(c.status||'active')==='active'?'selected':''}>✅ Aktywny</option>
+          <option value="inactive" ${c.status==='inactive'?'selected':''}>⚠ Nieaktywny</option>
+          <option value="archived" ${c.status==='archived'?'selected':''}>🗄 Zarchiwizowany</option>
         </select>
       </div>
-      <div class="form-field"><label class="form-lbl">Uwagi / kontuzje</label><textarea class="form-select" id="cpe-notes" rows="2" style="resize:none;">${c.notes||''}</textarea></div>
-      <button class="btn btn-primary" style="width:100%;" onclick="saveCPEdit('${c.id}')">Zapisz zmiany</button>
+      <div class="form-field"><label class="form-lbl">Uwagi / kontuzje</label>
+        <textarea class="form-textarea" id="cpe-notes" rows="3" placeholder="np. ból kolana, przepuklina, nadciśnienie..." style="resize:none;">${c.notes||''}</textarea>
+      </div>
+      <button class="btn btn-primary" style="width:100%;padding:12px;font-size:14px;" onclick="saveCPEdit('${c.id}')">💾 Zapisz zmiany</button>
       <button class="btn btn-danger" style="width:100%;" onclick="archiveClient('${c.id}')">🗃 Zarchiwizuj klienta</button>
     </div>`;
 }
@@ -13725,15 +13751,22 @@ function deleteClientActivity(clientId,idx){
 }
 function saveCPEdit(id){
   const c=CL.find(x=>x.id===id);if(!c)return;
-  c.name=document.getElementById('cpe-name').value.trim()||c.name;
-  c.email=document.getElementById('cpe-email').value;
-  c.age=parseInt(document.getElementById('cpe-age').value)||c.age;
-  c.weight=parseFloat(document.getElementById('cpe-weight').value)||c.weight;
-  c.height=parseInt(document.getElementById('cpe-height').value)||c.height;
-  c.goal=document.getElementById('cpe-goal').value;
-  c.level=document.getElementById('cpe-level').value;
-  c.status=document.getElementById('cpe-status').value;
-  c.notes=document.getElementById('cpe-notes').value;
+  const gn=id=>document.getElementById(id);
+  const nameVal=gn('cpe-name')?.value.trim();
+  const ageVal=gn('cpe-age')?.value;
+  const weightVal=gn('cpe-weight')?.value;
+  const heightVal=gn('cpe-height')?.value;
+  if(nameVal)c.name=nameVal;
+  if(gn('cpe-email'))c.email=gn('cpe-email').value;
+  if(gn('cpe-phone'))c.phone=gn('cpe-phone').value;
+  if(gn('cpe-gender'))c.gender=gn('cpe-gender').value;
+  if(ageVal!==''&&ageVal!==undefined&&ageVal!==null)c.age=parseInt(ageVal)||c.age;
+  if(weightVal!==''&&weightVal!==undefined&&weightVal!==null)c.weight=parseFloat(weightVal)||c.weight;
+  if(heightVal!==''&&heightVal!==undefined&&heightVal!==null)c.height=parseInt(heightVal)||c.height;
+  if(gn('cpe-goal'))c.goal=gn('cpe-goal').value;
+  if(gn('cpe-level'))c.level=gn('cpe-level').value;
+  if(gn('cpe-status'))c.status=gn('cpe-status').value;
+  if(gn('cpe-notes'))c.notes=gn('cpe-notes').value;
   // Firebase w tle
   if(window._db&&c.id&&!c.id.startsWith('l')){
     try{window._setDoc(window._doc(window._db,'clients',c.id),c,{merge:true});}catch(e){console.warn('Firebase setDoc:',e);}
@@ -13745,6 +13778,9 @@ function saveCPEdit(id){
   try{
     document.getElementById('cp-name').textContent=c.name;
     document.getElementById('cp-sub').textContent=(c.goal||'Brak celu')+' · '+(c.level||'')+(c.age?' · '+c.age+' lat':'');
+    const ci=CL.indexOf(c);const col=['#c8f135','#4d9fff','#9d7cf4','#ff8c42','#3ecfb2'][ci%5];
+    const av=document.getElementById('cp-avatar');
+    if(av){av.style.background=col+'22';av.style.color=col;av.textContent=c.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();}
   }catch(e){}
   // Wróć do zakładki Przegląd po zapisaniu
   try{setCPTab('overview');}catch(e){}
