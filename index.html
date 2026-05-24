@@ -13458,56 +13458,147 @@ function renderCPPayments(c){
 // CP — TRAINING (kalendarz 2-tygodniowy)
 // ══════════════════════════════════════════════════════
 function renderCPTraining(c){
-  if(!c.clientSettings)c.clientSettings={};
+  if(!c._mpView)c._mpView='2w';
+  if(!c._mpTab)c._mpTab='assignment';
+
   const sessions=SE.filter(s=>s.clientId===c.id);
   const today=new Date();
-  // 2 tygodnie: obecny tydzień od poniedziałku
-  const getMonday=(d)=>{const dt=new Date(d);const day=dt.getDay();const diff=day===0?-6:1-day;dt.setDate(dt.getDate()+diff);dt.setHours(0,0,0,0);return dt;};
+  const todayStr=today.toISOString().split('T')[0];
+
+  // Statystyki
+  const last7=sessions.filter(s=>{const d=new Date(s.date);return(today-d)/86400000<=7;}).length;
+  const last30=sessions.filter(s=>{const d=new Date(s.date);return(today-d)/86400000<=30;}).length;
+
+  // Oblicz zakres kalendarza
+  const getMonday=(d)=>{const dt=new Date(d);const day=dt.getDay();dt.setDate(dt.getDate()-(day===0?6:day-1));dt.setHours(0,0,0,0);return dt;};
   const mon=getMonday(today);
-  const days2w=Array.from({length:14},(_,i)=>{const d=new Date(mon);d.setDate(mon.getDate()+i);return d;});
-  const dayNames=['Pon','Wt','Śr','Czw','Pt','Sob','Nie'];
-  const dayGrid=days2w.map(d=>{
+  const weeks=c._mpView==='1w'?1:c._mpView==='2w'?2:4;
+  const totalDays=weeks*7;
+  const days=Array.from({length:totalDays},(_,i)=>{const d=new Date(mon);d.setDate(mon.getDate()+i);return d;});
+
+  const dayNamesShort=['Pon','Wt','Śr','Czw','Pt','Sob','Nie'];
+  const MONTHS_PL=['sty','lut','mar','kwi','maj','cze','lip','sie','wrz','paź','lis','gru'];
+
+  // Zakres dat header
+  const rangeStart=days[0];
+  const rangeEnd=days[days.length-1];
+  const rangeLabel=rangeStart.getDate()+' '+MONTHS_PL[rangeStart.getMonth()]+' – '+rangeEnd.getDate()+' '+MONTHS_PL[rangeEnd.getMonth()];
+
+  // Historia sesji
+  const historyHTML=sessions.length
+    ?sessions.sort((a,b)=>b.date.localeCompare(a.date)).slice(0,15).map(s=>{
+      const wo=allWorkouts().find(w=>w.id===s.workoutId);
+      const exCount=wo?(wo.days||[]).reduce((n,d)=>n+(d.exercises||[]).length,0):0;
+      const typeCol=s.type==='siłowy'||s.type==='Trening siłowy'?'var(--orange)':s.type==='cardio'?'var(--blue)':'var(--accent)';
+      return `<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="openSessDetail('${s.id}')">
+        <div style="width:38px;height:38px;border-radius:10px;background:${typeCol}18;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">💪</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:600;">${s.title||'Sesja'}</div>
+          <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;">${s.date}${s.duration?' · '+s.duration+' min':''}</div>
+        </div>
+        <span style="background:${typeCol}18;color:${typeCol};border-radius:4px;padding:2px 8px;font-size:10px;font-family:'DM Mono',monospace;font-weight:700;text-transform:uppercase;">${s.type||'trening personalny'}</span>
+      </div>`;
+    }).join('')
+    :'<div style="text-align:center;padding:32px;color:var(--muted);font-size:12px;">Brak historii sesji</div>';
+
+  // Siatka kalendarza
+  const calGrid=days.map((d,i)=>{
     const ds=d.toISOString().split('T')[0];
-    const dayName=dayNames[d.getDay()===0?6:d.getDay()-1];
-    const isToday=ds===today.toISOString().split('T')[0];
+    const isToday=ds===todayStr;
+    const isPast=d<today&&!isToday;
     const sessDay=sessions.filter(s=>s.date===ds);
-    return `<div style="border:1px solid var(--border);border-radius:8px;padding:8px;min-height:80px;cursor:pointer;${isToday?'border-color:var(--accent);background:rgba(200,241,53,0.04)':''}" onclick="openAddSessionFromCP('${c.id}','${ds}')">
-      <div style="font-size:10px;color:${isToday?'var(--accent)':'var(--muted)'};font-family:'DM Mono',monospace;font-weight:600;">${dayName} ${d.getDate()}</div>
-      ${sessDay.map(s=>`<div style="margin-top:4px;background:rgba(200,241,53,0.12);border-radius:4px;padding:3px 6px;font-size:10px;color:var(--accent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">💪 ${s.title||'Sesja'}</div>`).join('')}
-      ${!sessDay.length?`<div style="margin-top:8px;text-align:center;font-size:18px;color:var(--border2);">+</div>`:''}
+    const dayName=dayNamesShort[d.getDay()===0?6:d.getDay()-1];
+    const sessCards=sessDay.map(s=>{
+      const wo=allWorkouts().find(w=>w.id===s.workoutId);
+      const exCount=wo?(wo.days||[]).reduce((n,d)=>n+(d.exercises||[]).length,0):0;
+      const typeLabel=s.type||'REGULAR';
+      const typeCol=s.type==='siłowy'||s.type==='Trening siłowy'?'var(--orange)':s.type==='cardio'?'var(--blue)':'var(--accent)';
+      return `<div style="background:${typeCol}15;border:1px solid ${typeCol}40;border-radius:6px;padding:5px 6px;margin-top:4px;cursor:pointer;" onclick="event.stopPropagation();openSessDetail('${s.id}')">
+        <div style="font-size:10px;font-weight:700;color:${typeCol};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${(s.title||'Sesja').toUpperCase().substring(0,18)}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:2px;">
+          <span style="background:${typeCol}25;color:${typeCol};border-radius:3px;padding:1px 4px;font-size:9px;font-family:'DM Mono',monospace;">${typeLabel.toUpperCase().substring(0,8)}</span>
+          ${exCount?`<span style="font-size:9px;color:var(--muted);">⚡ ${exCount}</span>`:''}
+        </div>
+        ${s.duration?`<div style="font-size:9px;color:var(--muted);margin-top:2px;">⏱ ${s.duration} min</div>`:''}
+      </div>`;
+    }).join('');
+
+    return `<div style="border:1px solid ${isToday?'var(--accent)':isPast?'var(--border)':'var(--border)'};border-radius:8px;padding:7px;min-height:90px;background:${isToday?'rgba(200,241,53,0.04)':isPast?'rgba(0,0,0,0.1)':'var(--s2)'};cursor:pointer;transition:border-color 0.12s;" onclick="openAddSessionFromCP('${c.id}','${ds}')" onmouseover="this.style.borderColor='var(--border2)'" onmouseout="this.style.borderColor='${isToday?'var(--accent)':isPast?'var(--border)':'var(--border)'}'">
+      <div style="font-size:10px;color:${isToday?'var(--accent)':'var(--muted)'};font-family:'DM Mono',monospace;font-weight:${isToday?700:400};">${dayName} ${d.getDate()}</div>
+      ${sessCards}
+      ${!sessDay.length?`<div style="margin-top:10px;text-align:center;font-size:16px;color:var(--border2);opacity:0.6;">+</div>`:''}
     </div>`;
   });
-  const last7=sessions.filter(s=>{const d=new Date(s.date);return(today-d)/(1000*60*60*24)<=7;}).length;
-  const last30=sessions.filter(s=>{const d=new Date(s.date);return(today-d)/(1000*60*60*24)<=30;}).length;
+
+  // Tydzień 2: podziel na wiersze po 7
+  let gridRows='';
+  for(let w=0;w<weeks;w++){
+    const weekDays=calGrid.slice(w*7,(w+1)*7);
+    gridRows+=`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px;">${weekDays.join('')}</div>`;
+  }
+
   document.getElementById('cp-body').innerHTML=`
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;">
-      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--accent);">${last7}</div><div class="cp-stat-lbl">Ostatnie 7 dni</div></div>
-      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--blue);">${last30}</div><div class="cp-stat-lbl">Ostatnie 30 dni</div></div>
-      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--teal);">${sessions.length}</div><div class="cp-stat-lbl">Łącznie sesji</div></div>
+    <!-- Statystyki -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;">
+      <div style="background:var(--s3);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:30px;color:var(--accent);">${last7}</div>
+        <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.5px;">Ostatnie 7 dni</div>
+      </div>
+      <div style="background:var(--s3);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:30px;color:var(--blue);">${last30}</div>
+        <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.5px;">Ostatnie 30 dni</div>
+      </div>
+      <div style="background:var(--s3);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:30px;color:var(--teal);">${sessions.length}</div>
+        <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.5px;">Łącznie sesji</div>
+      </div>
     </div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-      <div class="cp-section-title" style="margin:0;">KALENDARZ TRENINGÓW (2 TYGODNIE)</div>
-      <button class="btn btn-primary btn-sm" onclick="openAddSessionFromCP('${c.id}','${today.toISOString().split('T')[0]}')">+ Sesja</button>
+
+    <!-- Nagłówek Master Planner -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+      <!-- Tabs: Assignment / History -->
+      <div style="display:flex;gap:2px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:2px;">
+        <button onclick="cpMpTab('${c.id}','assignment')" style="padding:5px 14px;border-radius:6px;border:none;font-size:12px;font-weight:600;cursor:pointer;background:${c._mpTab==='assignment'?'var(--accent)':'none'};color:${c._mpTab==='assignment'?'#000':'var(--muted)'};">Assignment</button>
+        <button onclick="cpMpTab('${c.id}','history')" style="padding:5px 14px;border-radius:6px;border:none;font-size:12px;font-weight:600;cursor:pointer;background:${c._mpTab==='history'?'var(--accent)':'none'};color:${c._mpTab==='history'?'#000':'var(--muted)'};">History</button>
+      </div>
+      <!-- Zakres dat -->
+      <div style="font-size:12px;color:var(--muted);padding:0 4px;">📅 ${rangeLabel}</div>
+      <!-- Przycisk + Sesja -->
+      <button class="btn btn-primary btn-sm" style="margin-left:auto;" onclick="openAddSessionFromCP('${c.id}','${todayStr}')">+ Sesja</button>
+      <!-- Widok: 1W / 2W / 4W -->
+      <div style="display:flex;gap:2px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:2px;">
+        <button onclick="cpMpView('${c.id}','1w')" style="padding:4px 10px;border-radius:6px;border:none;font-size:11px;font-weight:600;cursor:pointer;background:${c._mpView==='1w'?'var(--s1)':'none'};color:${c._mpView==='1w'?'var(--text)':'var(--muted)'};">1 Tydzień</button>
+        <button onclick="cpMpView('${c.id}','2w')" style="padding:4px 10px;border-radius:6px;border:none;font-size:11px;font-weight:600;cursor:pointer;background:${c._mpView==='2w'?'var(--s1)':'none'};color:${c._mpView==='2w'?'var(--text)':'var(--muted)'};">2 Tygodnie</button>
+        <button onclick="cpMpView('${c.id}','4w')" style="padding:4px 10px;border-radius:6px;border:none;font-size:11px;font-weight:600;cursor:pointer;background:${c._mpView==='4w'?'var(--s1)':'none'};color:${c._mpView==='4w'?'var(--text)':'var(--muted)'};">4 Tygodnie</button>
+      </div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:8px;">
-      ${dayNames.map(n=>`<div style="text-align:center;font-size:10px;color:var(--muted);font-weight:600;font-family:'DM Mono',monospace;">${n}</div>`).join('')}
+
+    <!-- Nagłówki dni -->
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px;">
+      ${dayNamesShort.map(n=>`<div style="text-align:center;font-size:10px;color:var(--muted);font-weight:600;font-family:'DM Mono',monospace;text-transform:uppercase;">${n}</div>`).join('')}
     </div>
-    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;">
-      ${dayGrid.join('')}
-    </div>
-    <div style="margin-top:16px;">
-      <div class="cp-section-title">HISTORIA SESJI</div>
-      ${sessions.length?sessions.sort((a,b)=>b.date.localeCompare(a.date)).slice(0,10).map(s=>`
-        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
-          <div style="width:32px;height:32px;border-radius:8px;background:var(--adim);display:flex;align-items:center;justify-content:center;font-size:14px;">💪</div>
-          <div style="flex:1;">
-            <div style="font-size:12px;font-weight:600;">${s.title||'Sesja'}</div>
-            <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${s.date}${s.duration?' · '+s.duration+' min':''}</div>
-          </div>
-          <span class="pill pill-green" style="font-size:9px;">${s.type||'trening'}</span>
-        </div>`).join(''):'<div style="text-align:center;padding:24px;color:var(--muted);font-size:12px;">Brak sesji — kliknij + lub dzień w kalendarzu</div>'}
+
+    <!-- Siatka kalendarza / Historia -->
+    <div id="cp-mp-content">
+      ${c._mpTab==='assignment'?gridRows:historyHTML}
     </div>`;
 }
+
+function cpMpView(clientId, view){
+  const c=CL.find(x=>x.id===clientId);
+  if(!c)return;
+  c._mpView=view;
+  renderCPTraining(c);
+}
+function cpMpTab(clientId, tab){
+  const c=CL.find(x=>x.id===clientId);
+  if(!c)return;
+  c._mpTab=tab;
+  renderCPTraining(c);
+}
+window.cpMpView=cpMpView;
+window.cpMpTab=cpMpTab;
+
 function openAddSessionFromCP(clientId,date){
   try{
     const se=document.getElementById('se-client');if(se)se.value=clientId;
