@@ -630,6 +630,13 @@ input[type=checkbox]{display:none;}
 .ex-list-row:hover{background:rgba(255,255,255,0.02);}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+/* TRYB PRYWATNY */
+body.private-mode .priv-blur{filter:blur(7px);pointer-events:none;user-select:none;transition:filter 0.25s;}
+body.private-mode .priv-hide{opacity:0!important;pointer-events:none;transition:opacity 0.25s;}
+#private-bar{display:none;padding:6px 14px;background:rgba(255,140,66,0.12);border-top:2px solid rgba(255,140,66,0.35);align-items:center;gap:8px;}
+#private-bar.visible{display:flex;}
+#private-mode-btn.active svg{stroke:var(--orange);}
+#private-mode-btn.active{background:rgba(255,140,66,0.12)!important;border-radius:6px;}
 @keyframes slideIn{from{opacity:0;transform:translateX(16px);}to{opacity:1;transform:translateX(0);}}
 </style>
 </head>
@@ -675,9 +682,18 @@ input[type=checkbox]{display:none;}
     <button class="nav-item" onclick="goTo('templates')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Szablony planów</button>
     <button class="nav-item" onclick="goTo('onboarding')"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>Onboarding</button>
   </nav>
+  <div id="private-bar">
+    <span style="font-size:13px;">🔒</span>
+    <span style="font-size:11px;color:var(--orange);font-family:'DM Mono',monospace;font-weight:700;letter-spacing:1px;">TRYB PRYWATNY</span>
+    <span style="font-size:10px;color:var(--muted);">Finanse ukryte</span>
+    <button onclick="togglePrivateMode()" style="margin-left:auto;background:var(--orange);border:none;border-radius:4px;padding:2px 10px;font-size:10px;font-weight:700;color:#000;cursor:pointer;">Wyłącz</button>
+  </div>
   <div class="sidebar-footer">
     <div class="av">PU</div>
     <div style="flex:1;"><div style="font-size:13px;font-weight:600;">Piotr Urbaniak</div><div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">Trener personalny</div></div>
+    <button onclick="togglePrivateMode()" id="private-mode-btn" style="background:none;border:none;cursor:pointer;padding:6px;transition:background 0.15s;" title="Tryb prywatny — ukryj dane finansowe">
+      <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="var(--muted)" stroke-width="1.8"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+    </button>
     <button onclick="toggleNotifs()" style="position:relative;background:none;border:none;cursor:pointer;padding:6px;" title="Powiadomienia">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--muted)" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
       <span id="notif-badge" style="display:none;position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:var(--red);border:1px solid var(--s1);"></span>
@@ -13649,71 +13665,45 @@ function updateClientUnit(clientId,key,value){
 }
 
 function renderCPEdit(c){
-  const v=x=>(x!==undefined&&x!==null&&x!==0&&x!=='')?x:'';
   document.getElementById('cp-body').innerHTML=`
     <div class="cp-section-title">EDYTUJ PROFIL KLIENTA</div>
     <div style="background:var(--adim);border:1px solid rgba(200,241,53,0.2);border-radius:10px;padding:12px;margin-bottom:14px;font-size:12px;color:var(--muted);">Wypełnij dane i kliknij <strong style="color:var(--accent);">Zapisz zmiany</strong></div>
     <div style="display:flex;flex-direction:column;gap:10px;">
-      <div class="form-field"><label class="form-lbl">Imię i nazwisko</label>
-        <input class="form-input" id="cpe-name" placeholder="np. Jan Kowalski" value="${c.name||''}">
+      <div class="form-field"><label class="form-lbl">Imię i nazwisko</label><input class="cp-edit-field form-input" id="cpe-name" value="${c.name||''}"></div>
+      <div class="form-grid">
+        <div class="form-field"><label class="form-lbl">Email</label><input class="cp-edit-field form-input" id="cpe-email" value="${c.email||''}"></div>
+        <div class="form-field"><label class="form-lbl">Wiek</label><input type="number" class="cp-edit-field form-input" id="cpe-age" value="${c.age||''}"></div>
       </div>
       <div class="form-grid">
-        <div class="form-field"><label class="form-lbl">Email</label>
-          <input class="form-input" id="cpe-email" placeholder="jan@example.com" value="${c.email||''}">
-        </div>
-        <div class="form-field"><label class="form-lbl">Telefon</label>
-          <input class="form-input" id="cpe-phone" placeholder="+48 123 456 789" value="${c.phone||''}">
-        </div>
+        <div class="form-field"><label class="form-lbl">Waga (kg)</label><input type="number" class="cp-edit-field form-input" id="cpe-weight" value="${c.weight||''}" step="0.1"></div>
+        <div class="form-field"><label class="form-lbl">Wzrost (cm)</label><input type="number" class="cp-edit-field form-input" id="cpe-height" value="${c.height||''}"></div>
       </div>
       <div class="form-grid">
-        <div class="form-field"><label class="form-lbl">Wiek (lata)</label>
-          <input type="number" class="form-input" id="cpe-age" placeholder="np. 28" min="10" max="100" value="${v(c.age)}">
-        </div>
-        <div class="form-field"><label class="form-lbl">Płeć</label>
-          <select class="form-select" id="cpe-gender">
-            <option value="M" ${(c.gender||c.płeć)==='M'?'selected':''}>Mężczyzna</option>
-            <option value="K" ${(c.gender||c.płeć)==='K'?'selected':''}>Kobieta</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-grid">
-        <div class="form-field"><label class="form-lbl">Waga (kg)</label>
-          <input type="number" class="form-input" id="cpe-weight" placeholder="np. 80" min="30" max="300" step="0.1" value="${v(c.weight)}">
-        </div>
-        <div class="form-field"><label class="form-lbl">Wzrost (cm)</label>
-          <input type="number" class="form-input" id="cpe-height" placeholder="np. 178" min="100" max="250" value="${v(c.height)}">
-        </div>
-      </div>
-      <div class="form-grid">
-        <div class="form-field"><label class="form-lbl">Cel treningowy</label>
+        <div class="form-field"><label class="form-lbl">Cel</label>
           <select class="form-select" id="cpe-goal">
-            <option value="" ${!c.goal?'selected':''}>Brak celu</option>
-            <option value="masa" ${c.goal==='masa'?'selected':''}>💪 Budowa masy</option>
-            <option value="sila" ${c.goal==='sila'?'selected':''}>🏋️ Wzrost siły</option>
-            <option value="redukcja" ${c.goal==='redukcja'?'selected':''}>🔥 Redukcja</option>
-            <option value="kondycja" ${c.goal==='kondycja'?'selected':''}>🏃 Kondycja</option>
+            <option value="masa" ${c.goal==='masa'?'selected':''}>Budowa masy</option>
+            <option value="sila" ${c.goal==='sila'?'selected':''}>Wzrost siły</option>
+            <option value="redukcja" ${c.goal==='redukcja'?'selected':''}>Redukcja</option>
+            <option value="kondycja" ${c.goal==='kondycja'?'selected':''}>Kondycja</option>
           </select>
         </div>
-        <div class="form-field"><label class="form-lbl">Poziom zaawansowania</label>
+        <div class="form-field"><label class="form-lbl">Poziom</label>
           <select class="form-select" id="cpe-level">
-            <option value="" ${!c.level?'selected':''}>Nieokreślony</option>
-            <option value="poczatkujacy" ${c.level==='poczatkujacy'?'selected':''}>🌱 Początkujący</option>
-            <option value="sredni" ${c.level==='sredni'?'selected':''}>⚡ Średni</option>
-            <option value="zaawansowany" ${c.level==='zaawansowany'?'selected':''}>🔥 Zaawansowany</option>
+            <option value="poczatkujacy" ${c.level==='poczatkujacy'?'selected':''}>Początkujący</option>
+            <option value="sredni" ${c.level==='sredni'?'selected':''}>Średni</option>
+            <option value="zaawansowany" ${c.level==='zaawansowany'?'selected':''}>Zaawansowany</option>
           </select>
         </div>
       </div>
-      <div class="form-field"><label class="form-lbl">Status klienta</label>
+      <div class="form-field"><label class="form-lbl">Status</label>
         <select class="form-select" id="cpe-status">
-          <option value="active" ${(c.status||'active')==='active'?'selected':''}>✅ Aktywny</option>
-          <option value="inactive" ${c.status==='inactive'?'selected':''}>⚠ Nieaktywny</option>
-          <option value="archived" ${c.status==='archived'?'selected':''}>🗄 Zarchiwizowany</option>
+          <option value="active" ${c.status==='active'?'selected':''}>Aktywny</option>
+          <option value="inactive" ${c.status==='inactive'?'selected':''}>Nieaktywny</option>
+          <option value="archived" ${c.status==='archived'?'selected':''}>Zarchiwizowany</option>
         </select>
       </div>
-      <div class="form-field"><label class="form-lbl">Uwagi / kontuzje</label>
-        <textarea class="form-textarea" id="cpe-notes" rows="3" placeholder="np. ból kolana, przepuklina, nadciśnienie..." style="resize:none;">${c.notes||''}</textarea>
-      </div>
-      <button class="btn btn-primary" style="width:100%;padding:12px;font-size:14px;" onclick="saveCPEdit('${c.id}')">💾 Zapisz zmiany</button>
+      <div class="form-field"><label class="form-lbl">Uwagi / kontuzje</label><textarea class="form-select" id="cpe-notes" rows="2" style="resize:none;">${c.notes||''}</textarea></div>
+      <button class="btn btn-primary" style="width:100%;" onclick="saveCPEdit('${c.id}')">Zapisz zmiany</button>
       <button class="btn btn-danger" style="width:100%;" onclick="archiveClient('${c.id}')">🗃 Zarchiwizuj klienta</button>
     </div>`;
 }
@@ -13751,22 +13741,15 @@ function deleteClientActivity(clientId,idx){
 }
 function saveCPEdit(id){
   const c=CL.find(x=>x.id===id);if(!c)return;
-  const gn=id=>document.getElementById(id);
-  const nameVal=gn('cpe-name')?.value.trim();
-  const ageVal=gn('cpe-age')?.value;
-  const weightVal=gn('cpe-weight')?.value;
-  const heightVal=gn('cpe-height')?.value;
-  if(nameVal)c.name=nameVal;
-  if(gn('cpe-email'))c.email=gn('cpe-email').value;
-  if(gn('cpe-phone'))c.phone=gn('cpe-phone').value;
-  if(gn('cpe-gender'))c.gender=gn('cpe-gender').value;
-  if(ageVal!==''&&ageVal!==undefined&&ageVal!==null)c.age=parseInt(ageVal)||c.age;
-  if(weightVal!==''&&weightVal!==undefined&&weightVal!==null)c.weight=parseFloat(weightVal)||c.weight;
-  if(heightVal!==''&&heightVal!==undefined&&heightVal!==null)c.height=parseInt(heightVal)||c.height;
-  if(gn('cpe-goal'))c.goal=gn('cpe-goal').value;
-  if(gn('cpe-level'))c.level=gn('cpe-level').value;
-  if(gn('cpe-status'))c.status=gn('cpe-status').value;
-  if(gn('cpe-notes'))c.notes=gn('cpe-notes').value;
+  c.name=document.getElementById('cpe-name').value.trim()||c.name;
+  c.email=document.getElementById('cpe-email').value;
+  c.age=parseInt(document.getElementById('cpe-age').value)||c.age;
+  c.weight=parseFloat(document.getElementById('cpe-weight').value)||c.weight;
+  c.height=parseInt(document.getElementById('cpe-height').value)||c.height;
+  c.goal=document.getElementById('cpe-goal').value;
+  c.level=document.getElementById('cpe-level').value;
+  c.status=document.getElementById('cpe-status').value;
+  c.notes=document.getElementById('cpe-notes').value;
   // Firebase w tle
   if(window._db&&c.id&&!c.id.startsWith('l')){
     try{window._setDoc(window._doc(window._db,'clients',c.id),c,{merge:true});}catch(e){console.warn('Firebase setDoc:',e);}
@@ -13778,9 +13761,6 @@ function saveCPEdit(id){
   try{
     document.getElementById('cp-name').textContent=c.name;
     document.getElementById('cp-sub').textContent=(c.goal||'Brak celu')+' · '+(c.level||'')+(c.age?' · '+c.age+' lat':'');
-    const ci=CL.indexOf(c);const col=['#c8f135','#4d9fff','#9d7cf4','#ff8c42','#3ecfb2'][ci%5];
-    const av=document.getElementById('cp-avatar');
-    if(av){av.style.background=col+'22';av.style.color=col;av.textContent=c.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();}
   }catch(e){}
   // Wróć do zakładki Przegląd po zapisaniu
   try{setCPTab('overview');}catch(e){}
@@ -14721,6 +14701,101 @@ window.copyInviteLink = copyInviteLink;
 window.sendInvitation = sendInvitation;
 window.generateInviteLink = generateInviteLink;
 // ════ KONIEC SYSTEM ZAPROSZEŃ ════
+
+
+// ═══════════════════════════════════════
+// TRYB PRYWATNY
+// ═══════════════════════════════════════
+var privateModeActive=false;
+
+function togglePrivateMode(){
+  privateModeActive=!privateModeActive;
+  const btn=document.getElementById('private-mode-btn');
+  const bar=document.getElementById('private-bar');
+
+  if(privateModeActive){
+    document.body.classList.add('private-mode');
+    if(bar)bar.classList.add('visible');
+    if(btn)btn.classList.add('active');
+    applyPrivateMode();
+    notify('🔒 Tryb prywatny włączony');
+  } else {
+    document.body.classList.remove('private-mode');
+    if(bar)bar.classList.remove('visible');
+    if(btn)btn.classList.remove('active');
+    removePrivateMode();
+    notify('👁 Tryb prywatny wyłączony');
+  }
+}
+
+function applyPrivateMode(){
+  // Zablokuj ekran Płatności w nawigacji
+  document.querySelectorAll('.nav-item').forEach(b=>{
+    if(b.textContent.trim().startsWith('Płatności')){
+      b.style.opacity='0.3';
+      b.style.pointerEvents='none';
+    }
+  });
+  // Jeśli aktualnie na Płatnościach — idź na dashboard
+  const payScr=document.getElementById('screen-payments');
+  if(payScr&&payScr.style.display!=='none'&&payScr.classList.contains('active')){
+    if(typeof goTo==='function')goTo('dashboard');
+  }
+  // Zamazaj KPI przychodów
+  const rev=document.getElementById('d-revenue');
+  if(rev){rev._orig=rev.textContent;rev.textContent='••••• zł';rev.classList.add('priv-blur');}
+  const revT=document.getElementById('d-revenue-trend');
+  if(revT)revT.classList.add('priv-hide');
+  // Zamazaj wykres przychodów
+  const chart=document.getElementById('d-chart-revenue');
+  if(chart)chart.classList.add('priv-blur');
+  const lbl=document.getElementById('d-rev-total-lbl');
+  if(lbl){lbl._orig=lbl.textContent;lbl.textContent='•••••';}
+  // Zamazaj statystyki biznesowe
+  const biz=document.getElementById('biz-content');
+  if(biz)biz.classList.add('priv-blur');
+  // Zamazaj sekcję płatności w ekranie
+  const paySec=document.getElementById('screen-payments');
+  if(paySec){
+    if(!document.getElementById('priv-pay-overlay')){
+      const ov=document.createElement('div');
+      ov.id='priv-pay-overlay';
+      ov.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(7,8,10,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;';
+      ov.innerHTML='<div style="font-size:56px">🔒</div>'
+        +'<div style="font-family:Bebas Neue,sans-serif;font-size:28px;letter-spacing:3px;color:var(--orange);">TRYB PRYWATNY</div>'
+        +'<div style="font-size:13px;color:var(--muted);text-align:center;max-width:320px;line-height:1.6;">Dane finansowe są ukryte podczas sesji z klientem.<br>Wyłącz tryb prywatny aby zobaczyć przychody.</div>'
+        +'<button onclick="togglePrivateMode()" style="background:var(--orange);border:none;border-radius:8px;padding:11px 28px;font-size:14px;font-weight:700;color:#000;cursor:pointer;margin-top:8px;">🔓 Wyłącz tryb prywatny</button>';
+      paySec.style.position='relative';
+      document.body.appendChild(ov);
+    }
+  }
+}
+
+function removePrivateMode(){
+  // Przywróć nawigację
+  document.querySelectorAll('.nav-item').forEach(b=>{
+    b.style.opacity='';
+    b.style.pointerEvents='';
+  });
+  // Przywróć KPI
+  const rev=document.getElementById('d-revenue');
+  if(rev){if(rev._orig)rev.textContent=rev._orig;rev.classList.remove('priv-blur');}
+  const revT=document.getElementById('d-revenue-trend');
+  if(revT)revT.classList.remove('priv-hide');
+  const chart=document.getElementById('d-chart-revenue');
+  if(chart)chart.classList.remove('priv-blur');
+  const lbl=document.getElementById('d-rev-total-lbl');
+  if(lbl){if(lbl._orig)lbl.textContent=lbl._orig;}
+  const biz=document.getElementById('biz-content');
+  if(biz)biz.classList.remove('priv-blur');
+  // Usuń overlay
+  const ov=document.getElementById('priv-pay-overlay');
+  if(ov)ov.remove();
+  // Odśwież dashboard
+  try{renderDash();}catch(e){}
+}
+
+window.togglePrivateMode=togglePrivateMode;
 
 window.goTo=goTo;window.openM=openM;window.closeM=closeM;
 window.saveClient=saveClient;window.saveSess=saveSess;window.saveEx=saveEx;window.savePlan=savePlan;window.delPlan=delPlan;
