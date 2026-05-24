@@ -364,12 +364,12 @@ button{cursor:pointer;}
 .forum-comment-bubble{background:var(--s3);border-radius:10px;padding:8px 12px;font-size:12px;line-height:1.5;margin-top:5px;}
 .forum-badge{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-family:'DM Mono',monospace;padding:2px 7px;border-radius:99px;text-transform:uppercase;}
 /* ── DASHBOARD V2 ── */
-.dash-kpi-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r2);padding:16px;position:relative;overflow:hidden;transition:border-color 0.12s;}
-.dash-kpi-card:hover{border-color:var(--border2);}
-.dash-kpi-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:10px;}
-.dash-kpi-val{font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--accent);line-height:1;margin-bottom:3px;}
-.dash-kpi-lbl{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.5px;}
-.dash-kpi-trend{font-size:11px;margin-top:5px;font-family:'DM Mono',monospace;}
+.dash-kpi-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r2);padding:22px 20px 18px;position:relative;overflow:hidden;transition:border-color 0.15s,transform 0.12s;}
+.dash-kpi-card:hover{border-color:var(--border2);transform:translateY(-1px);}
+.dash-kpi-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:14px;}
+.dash-kpi-val{font-family:'Bebas Neue',sans-serif;font-size:42px;color:var(--accent);line-height:1;margin-bottom:4px;}
+.dash-kpi-lbl{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.5px;line-height:1.4;}
+.dash-kpi-trend{font-size:11px;margin-top:8px;font-family:'DM Mono',monospace;}
 .dash-bar{display:flex;align-items:flex-end;gap:4px;height:80px;}
 .dash-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;}
 .dash-bar-fill{width:100%;border-radius:4px 4px 0 0;min-height:3px;transition:height 0.4s ease;}
@@ -709,36 +709,25 @@ input[type=checkbox]{display:none;}
   <div class="topbar">
     <div class="topbar-title">Panel główny</div>
     <div class="topbar-actions">
-      <div style="display:flex;gap:2px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:2px;">
-        <button class="auto-tab-btn active" id="dash-period-7" onclick="setDashPeriod(7)">7 dni</button>
-        <button class="auto-tab-btn" id="dash-period-30" onclick="setDashPeriod(30)">30 dni</button>
-        <button class="auto-tab-btn" id="dash-period-90" onclick="setDashPeriod(90)">90 dni</button>
-      </div>
       <button class="btn btn-ghost btn-sm" onclick="openM('m-client')">+ Klient</button>
       <button class="btn btn-primary btn-sm" onclick="goTo('builder')">+ Utwórz plan</button>
     </div>
   </div>
   <div class="content" style="overflow-y:auto;">
 
-    <!-- KPI ROW -->
-    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px;" id="d-kpi-row">
+    <!-- KPI ROW — 4 kafelki bez przychodów -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;" id="d-kpi-row">
       <div class="dash-kpi-card">
         <div class="dash-kpi-icon" style="background:rgba(200,241,53,0.12);color:var(--accent);">👥</div>
         <div class="dash-kpi-val" id="d-clients">0</div>
-        <div class="dash-kpi-lbl">Klientów</div>
+        <div class="dash-kpi-lbl">Aktywnych klientów</div>
         <div class="dash-kpi-trend" id="d-clients-trend"></div>
       </div>
       <div class="dash-kpi-card">
         <div class="dash-kpi-icon" style="background:rgba(77,159,255,0.12);color:var(--blue);">📅</div>
         <div class="dash-kpi-val" style="color:var(--blue);" id="d-sessions">0</div>
-        <div class="dash-kpi-lbl">Sesji (okres)</div>
+        <div class="dash-kpi-lbl">Sesji w tym tygodniu</div>
         <div class="dash-kpi-trend" id="d-sessions-trend"></div>
-      </div>
-      <div class="dash-kpi-card" id="dash-revenue-kpi">
-        <div class="dash-kpi-icon" style="background:rgba(62,207,178,0.12);color:var(--teal);">💰</div>
-        <div class="dash-kpi-val" style="color:var(--teal);" id="d-revenue">0 zł</div>
-        <div class="dash-kpi-lbl">Przychód (okres)</div>
-        <div class="dash-kpi-trend" id="d-revenue-trend"></div>
       </div>
       <div class="dash-kpi-card">
         <div class="dash-kpi-icon" style="background:rgba(255,140,66,0.12);color:var(--orange);">📋</div>
@@ -749,70 +738,67 @@ input[type=checkbox]{display:none;}
       <div class="dash-kpi-card">
         <div class="dash-kpi-icon" style="background:rgba(157,124,244,0.12);color:var(--purple);">🏋️</div>
         <div class="dash-kpi-val" style="color:var(--purple);" id="d-workouts">0</div>
-        <div class="dash-kpi-lbl">Treningów w lib.</div>
+        <div class="dash-kpi-lbl">Treningów w bibliotece</div>
         <div class="dash-kpi-trend" id="d-workouts-trend"></div>
       </div>
     </div>
 
-    <!-- WYKRESY ROW -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
-
-      <!-- wykres sesji w czasie -->
-      <div class="card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;">SESJE — TREND</div>
-          <span class="pill pill-green" style="font-size:10px;" id="d-sess-total-lbl">0 sesji</span>
+    <!-- DZIŚ I JUTRO -->
+    <div class="card" style="margin-bottom:20px;padding:20px 24px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1.5px;">DZIŚ I JUTRO</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px;" id="d-date-lbl"></div>
         </div>
-        <div id="d-chart-sessions" style="height:100px;"></div>
+        <button class="btn btn-ghost btn-sm" onclick="goTo('calendar')">Pełny kalendarz →</button>
       </div>
-
-      <!-- wykres przychodów -->
-      <div class="card" id="dash-revenue-chart">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;">PRZYCHODY — MIESIĘCZNIE</div>
-          <span class="pill pill-teal" style="font-size:10px;" id="d-rev-total-lbl">0 zł</span>
-        </div>
-        <div id="d-chart-revenue" style="height:100px;"></div>
-      </div>
+      <div id="d-today-sessions"></div>
     </div>
 
-    <!-- DOLNY ROW -->
-    <div style="display:grid;grid-template-columns:1fr 320px 280px;gap:16px;">
+    <!-- DOLNY ROW: Kalendarz + Zadania -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
 
-      <!-- klienci + aktywność -->
-      <div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;">KLIENCI</div>
-          <div style="display:flex;gap:5px;">
-            <span class="pill pill-green" style="font-size:10px;" id="d-active-count">0 aktywnych</span>
-            <button class="btn btn-ghost btn-sm" onclick="goTo('clients')">Wszyscy</button>
+      <!-- Mini kalendarz miesięczny -->
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;" id="d-cal-title">Maj 2026</div>
+          <div style="display:flex;gap:4px;">
+            <button onclick="dashCalPrev()" style="background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:3px 8px;cursor:pointer;color:var(--text);font-size:13px;">‹</button>
+            <button onclick="dashCalNext()" style="background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:3px 8px;cursor:pointer;color:var(--text);font-size:13px;">›</button>
           </div>
         </div>
-        <div class="card" style="padding:0;" id="d-client-list"></div>
-      </div>
-
-      <!-- dzisiejsze sesje + nadchodzące -->
-      <div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;">DZIŚ / NADCHODZĄCE</div>
-          <button class="btn btn-ghost btn-sm" onclick="goTo('calendar')">Kalendarz</button>
+        <div id="d-mini-cal"></div>
+        <div style="display:flex;gap:12px;margin-top:10px;">
+          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);"><div style="width:8px;height:8px;border-radius:50%;background:var(--blue);"></div>Zaplanowane</div>
+          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);"><div style="width:8px;height:8px;border-radius:50%;background:var(--teal);"></div>Wykonane</div>
+          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);"><div style="width:8px;height:8px;border-radius:50%;background:var(--accent);"></div>Dziś</div>
         </div>
-        <div id="d-today-sessions"></div>
       </div>
 
-      <!-- aktywność + zadania -->
-      <div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <!-- Zadania -->
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
           <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;">DO ZROBIENIA</div>
-          <button class="btn btn-ghost btn-sm" onclick="goTo('tasks')">Wszystkie</button>
+          <button class="btn btn-ghost btn-sm" onclick="openM('m-task')">+ Dodaj</button>
         </div>
         <div id="d-tasks-widget"></div>
-
-        <div style="margin-top:14px;">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;margin-bottom:10px;">OSTATNIE TRENINGI</div>
-          <div id="d-workout-list"></div>
-        </div>
       </div>
+
+    </div>
+
+    <!-- hidden elements for private mode / compat -->
+    <div style="display:none">
+      <span id="d-revenue">0 zł</span>
+      <span id="d-revenue-trend"></span>
+      <span id="d-rev-total-lbl">0 zł</span>
+      <span id="d-active-count">0</span>
+      <div id="d-chart-revenue"></div>
+      <div id="dash-revenue-kpi"></div>
+      <div id="dash-revenue-chart"></div>
+      <div id="d-client-list"></div>
+      <div id="d-workout-list"></div>
+      <div id="d-chart-sessions"></div>
+      <div id="d-sess-total-lbl"></div>
     </div>
 
   </div>
@@ -10414,68 +10400,104 @@ function setDashPeriod(p){
   renderDash();
 }
 
+// mini-calendar state
+var dashCalDate = new Date();
+
 function renderDash(){
   const today=new Date();
   const todayStr=dateStr(today);
-  const periodStart=new Date(today);periodStart.setDate(periodStart.getDate()-dashPeriod);
-  const periodStartStr=dateStr(periodStart);
-  const prevStart=new Date(periodStart);prevStart.setDate(prevStart.getDate()-dashPeriod);
-  const prevStartStr=dateStr(prevStart);
+  // week bounds
+  const dow=(today.getDay()+6)%7;
+  const weekStart=new Date(today);weekStart.setDate(today.getDate()-dow);
+  const weekEnd=new Date(weekStart);weekEnd.setDate(weekStart.getDate()+6);
+  const weekStartStr=dateStr(weekStart);
+  const weekEndStr=dateStr(weekEnd);
 
-  // ── KPI ──
-  const totalClients=CL.length;
-  const activeClients=CL.filter(c=>c.status==='active').length;
-  const periodSessions=SE.filter(s=>s.date>=periodStartStr&&s.date<=todayStr);
-  const prevSessions=SE.filter(s=>s.date>=prevStartStr&&s.date<periodStartStr);
-  const allPkgs=allPackages();
-  const periodRevenue=allPkgs.filter(p=>p.date&&p.date>=periodStartStr&&p.date<=todayStr&&p.payStatus==='paid').reduce((s,p)=>s+p.price,0);
-  const prevRevenue=allPkgs.filter(p=>p.date&&p.date>=prevStartStr&&p.date<periodStartStr&&p.payStatus==='paid').reduce((s,p)=>s+p.price,0);
+  // KPI
+  const activeClients=CL.filter(c=>c.status==='active'||!c.status).length;
+  const weekSessions=SE.filter(s=>s.date>=weekStartStr&&s.date<=weekEndStr);
   const activePlans=PL.length;
   const totalWorkouts=allWorkouts().length;
-
-  const trend=(cur,prev,unit='')=>{
-    if(!prev)return '';
-    const diff=cur-prev;
-    const pct=prev?Math.round(Math.abs(diff)/prev*100):0;
-    const up=diff>0;const same=diff===0;
-    return `<span style="color:${same?'var(--muted)':up?'var(--teal)':'var(--red)'};">${same?'—':up?'↑':'↓'} ${same?'bez zmian':(pct+'% vs poprzedni okres')}</span>`;
-  };
 
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
   const setHTML=(id,v)=>{const el=document.getElementById(id);if(el)el.innerHTML=v;};
 
-  set('d-clients',totalClients);
-  set('d-sessions',periodSessions.length);
-  set('d-revenue',periodRevenue.toLocaleString('pl')+' zł');
+  set('d-clients',activeClients);
+  set('d-sessions',weekSessions.length);
   set('d-plans',activePlans);
   set('d-workouts',totalWorkouts);
-  setHTML('d-clients-trend','<span style="color:var(--muted);">'+activeClients+' aktywnych</span>');
-  setHTML('d-sessions-trend',trend(periodSessions.length,prevSessions.length));
-  setHTML('d-revenue-trend',trend(periodRevenue,prevRevenue));
-  setHTML('d-active-count',activeClients+' aktywnych');
-  set('d-active-count',activeClients+' aktywnych');
+
+  const done7=SE.filter(s=>s.date<todayStr&&s.date>=weekStartStr).length;
+  setHTML('d-sessions-trend','<span style="color:var(--muted);">'+done7+' ukończone · '+weekSessions.length+' zaplanowane</span>');
+  setHTML('d-clients-trend','<span style="color:var(--muted);">'+CL.length+' łącznie</span>');
+
+  // data label
+  const MONTHS_PL=['stycznia','lutego','marca','kwietnia','maja','czerwca','lipca','sierpnia','września','października','listopada','grudnia'];
+  const DAYS_PL=['Niedziela','Poniedziałek','Wtorek','Środa','Czwartek','Piątek','Sobota'];
+  const dateLbl=document.getElementById('d-date-lbl');
+  if(dateLbl)dateLbl.textContent=DAYS_PL[today.getDay()]+', '+today.getDate()+' '+MONTHS_PL[today.getMonth()]+' '+today.getFullYear();
+
   document.getElementById('nb-clients').textContent=CL.length;
-  document.getElementById('b-client').innerHTML=CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
-  updateExDl();
+  try{document.getElementById('b-client').innerHTML=CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');}catch(e){}
+  try{updateExDl();}catch(e){}
 
-  // ── WYKRES SESJI ──
-  renderDashSessChart(periodStartStr,todayStr);
+  // compat hidden elements
+  set('d-revenue','0 zł');
+  set('d-active-count',activeClients+' aktywnych');
 
-  // ── WYKRES PRZYCHODÓW ──
-  renderDashRevenueChart();
-
-  // ── KLIENCI ──
-  renderDashClients();
-
-  // ── DZISIEJSZE SESJE ──
   renderDashToday();
-
-  // ── ZADANIA ──
   renderDashTasks();
-
-  // ── TRENINGI ──
-  renderDashWorkouts();
+  renderDashMiniCal();
 }
+
+function renderDashMiniCal(){
+  const el=document.getElementById('d-mini-cal');if(!el)return;
+  const titleEl=document.getElementById('d-cal-title');
+  const today=new Date();
+  const todayStr=dateStr(today);
+  const y=dashCalDate.getFullYear(),m=dashCalDate.getMonth();
+  const MONTHS=['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
+  if(titleEl)titleEl.textContent=MONTHS[m]+' '+y;
+  const firstDay=(new Date(y,m,1).getDay()+6)%7;
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  const DAYS=['Pn','Wt','Śr','Cz','Pt','Sb','Nd'];
+  let html='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;">';
+  DAYS.forEach(d=>{html+=`<div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);padding:4px 0;text-transform:uppercase;">${d}</div>`;});
+  for(let i=0;i<firstDay;i++){html+='<div></div>';}
+  for(let d=1;d<=daysInMonth;d++){
+    const mm=String(m+1).padStart(2,'0');
+    const dd=String(d).padStart(2,'0');
+    const ds=y+'-'+mm+'-'+dd;
+    const hasSess=SE.some(s=>s.date===ds);
+    const isDone=hasSess&&ds<todayStr;
+    const isToday=ds===todayStr;
+    const dotColor=isDone?'var(--teal)':'var(--blue)';
+    const dot=hasSess?`<div style="width:5px;height:5px;border-radius:50%;background:${dotColor};margin:1px auto 0;"></div>`:'';
+    const bg=isToday?'var(--accent)22':'none';
+    const border=isToday?'1px solid var(--accent)':'1px solid transparent';
+    const fw=isToday?700:400;
+    const col=isToday?'var(--accent)':'var(--text)';
+    const click=hasSess?`onclick="goTo('calendar')"` :'';
+    html+=`<div style="padding:3px 0;border-radius:6px;cursor:${hasSess?'pointer':'default'};background:${bg};border:${border};" ${click}>
+      <div style="font-size:12px;font-weight:${fw};color:${col};">${d}</div>
+      ${dot}
+    </div>`;
+  }
+  html+='</div>';
+  el.innerHTML=html;
+}
+
+function dashCalPrev(){
+  dashCalDate=new Date(dashCalDate.getFullYear(),dashCalDate.getMonth()-1,1);
+  renderDashMiniCal();
+}
+function dashCalNext(){
+  dashCalDate=new Date(dashCalDate.getFullYear(),dashCalDate.getMonth()+1,1);
+  renderDashMiniCal();
+}
+window.dashCalPrev=dashCalPrev;
+window.dashCalNext=dashCalNext;
+
 
 function renderDashSessChart(startStr,endStr){
   const el=document.getElementById('d-chart-sessions');if(!el)return;
@@ -10582,93 +10604,129 @@ function renderDashClients(){
 
 function renderDashToday(){
   const el=document.getElementById('d-today-sessions');if(!el)return;
-  const today=dateStr(new Date());
-  const todaySess=SE.filter(s=>s.date===today).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
-  const upcoming=SE.filter(s=>s.date>today).sort((a,b)=>a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||'')).slice(0,4);
+  const now=new Date();
+  const today=dateStr(now);
+  const tomorrow=dateStr(new Date(now.getFullYear(),now.getMonth(),now.getDate()+1));
 
-  let html='';
-  if(todaySess.length){
-    html+=`<div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:8px;">DZIŚ (${todaySess.length})</div>`;
-    html+=todaySess.map((s,i)=>{
-      const c=CL.find(x=>x.id===s.clientId);
-      const ci=CL.indexOf(c);
-      const col=SESS_COLORS[ci%6];
-      return `<div class="dash-sess-card" style="animation-delay:${i*0.04}s;border-left:3px solid ${col};" onclick="openSessDetail('${s.id}')">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:${col};min-width:42px;">${s.time||'—'}</div>
-        <div style="flex:1;">
-          <div style="font-size:12px;font-weight:700;">${c?c.name:'Klient'}</div>
-          <div style="font-size:10px;color:var(--muted);">${s.type||'Sesja'} · ${s.duration||60} min</div>
-        </div>
-      </div>`;
-    }).join('');
+  // Sesje dziś + jutro
+  const todaySess=SE.filter(s=>s.date===today).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  const tomorrowSess=SE.filter(s=>s.date===tomorrow).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+
+  function timeLabel(s){
+    if(!s.time)return null;
+    const [hh,mm]=s.time.split(':').map(Number);
+    const sessDate=new Date(s.date+'T'+s.time+':00');
+    const diffMs=sessDate-now;
+    const diffH=diffMs/3600000;
+    if(s.date===today){
+      if(diffMs<0)return {txt:'Zakończona',col:'var(--muted)'};
+      if(diffH<1)return {txt:'Za '+Math.round(diffMs/60000)+' min',col:'var(--red)'};
+      if(diffH<3)return {txt:'Za '+Math.floor(diffH)+'h',col:'var(--orange)'};
+      return {txt:s.time,col:'var(--teal)'};
+    }
+    if(s.date===tomorrow)return {txt:'Jutro',col:'var(--blue)'};
+    return {txt:s.date,col:'var(--muted)'};
   }
-  if(upcoming.length){
-    html+=`<div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin:10px 0 8px;">NADCHODZĄCE</div>`;
-    html+=upcoming.map((s,i)=>{
-      const c=CL.find(x=>x.id===s.clientId);
-      const ci=CL.indexOf(c);
-      const col=SESS_COLORS[ci%6];
-      const d=new Date(s.date+'T12:00:00');
-      const dayN=CAL_DAYS_PL[(d.getDay()+6)%7];
-      return `<div class="dash-sess-card" style="animation-delay:${(todaySess.length+i)*0.04}s;opacity:0.75;" onclick="openSessDetail('${s.id}')">
-        <div style="text-align:center;min-width:42px;">
-          <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">${dayN}</div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:${col};">${d.getDate()}</div>
-        </div>
-        <div style="flex:1;">
-          <div style="font-size:12px;font-weight:700;">${c?c.name:'Klient'}</div>
-          <div style="font-size:10px;color:var(--muted);">${s.time||'—'} · ${s.type||'Sesja'}</div>
-        </div>
-      </div>`;
-    }).join('');
-  }
-  if(!todaySess.length&&!upcoming.length){
-    html=`<div style="text-align:center;padding:30px;color:var(--muted);">
-      <div style="font-size:32px;margin-bottom:8px;opacity:0.3;">📅</div>
-      <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Brak sesji</div>
-      <button class="btn btn-primary btn-sm" onclick="openM('m-session')">+ Dodaj sesję</button>
+
+  function sessRow(s,i,col){
+    const c=CL.find(x=>x.id===s.clientId);
+    const ci=CL.findIndex(x=>x.id===s.clientId);
+    const clCol=SESS_COLORS[(ci>=0?ci:i)%6];
+    const av=c?(c.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase()):'?';
+    const tl=timeLabel(s);
+    return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.1s;" onclick="openSessDetail('${s.id}')" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background=''">
+      <div style="width:3px;height:44px;background:${clCol};border-radius:99px;flex-shrink:0;"></div>
+      <div style="width:36px;height:36px;border-radius:50%;background:${clCol}22;color:${clCol};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:13px;flex-shrink:0;">${av}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:700;">${c?c.name:'Klient'}</div>
+        <div style="font-size:11px;color:var(--muted);">${s.type||'Trening personalny'} · ${s.duration||60} min</div>
+      </div>
+      ${tl?`<div style="font-size:11px;font-weight:600;color:${tl.col};background:${tl.col}18;padding:3px 10px;border-radius:99px;white-space:nowrap;">${tl.txt}</div>`:''}
+      <button onclick="event.stopPropagation();openSessDetail('${s.id}')" class="btn btn-ghost btn-sm" style="font-size:11px;padding:4px 10px;flex-shrink:0;">Szczegóły</button>
     </div>`;
   }
+
+  let html='';
+
+  if(todaySess.length){
+    html+=todaySess.map((s,i)=>sessRow(s,i)).join('');
+  }
+  if(tomorrowSess.length){
+    html+=tomorrowSess.map((s,i)=>sessRow(s,todaySess.length+i)).join('');
+  }
+
+  if(!todaySess.length&&!tomorrowSess.length){
+    html=`<div style="display:flex;align-items:center;gap:12px;padding:16px 0;color:var(--muted);">
+      <div style="width:3px;height:40px;background:var(--border);border-radius:99px;"></div>
+      <div style="opacity:0.5;">— Brak kolejnych sesji w tym tygodniu —</div>
+      <button class="btn btn-primary btn-sm" style="margin-left:auto;" onclick="openM('m-session')">+ Dodaj sesję</button>
+    </div>`;
+  }
+
   el.innerHTML=html;
 }
 
 function renderDashTasks(){
   const el=document.getElementById('d-tasks-widget');if(!el)return;
   const today=dateStr(new Date());
-  const urgent=TASKS.filter(t=>t.status!=='done'&&(
-    (t.due&&t.due<=today)||(t.priority==='high')
-  )).sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999')).slice(0,5);
+  const tomorrow=dateStr(new Date(new Date().getFullYear(),new Date().getMonth(),new Date().getDate()+1));
 
-  if(!urgent.length){
-    el.innerHTML='<div style="font-size:12px;color:var(--muted);text-align:center;padding:16px 0;">Brak pilnych zadań ✓</div>';
+  // Wszystkie nieukończone, posortowane: przeterminowane → dziś → jutro → reszta
+  const tasks=TASKS.filter(t=>t.status!=='done')
+    .sort((a,b)=>{
+      const pri=v=>v.due===today?0:v.due&&v.due<today?-1:v.due===tomorrow?1:2;
+      return pri(a)-pri(b)||(a.due||'9999').localeCompare(b.due||'9999');
+    }).slice(0,6);
+
+  const done=TASKS.filter(t=>t.status==='done');
+
+  if(!tasks.length&&!done.length){
+    el.innerHTML='<div style="font-size:12px;color:var(--muted);text-align:center;padding:24px 0;">Brak pilnych zadań ✓</div>';
     return;
   }
-  const openCount=TASKS.filter(t=>t.status!=='done').length;
-  const doneCount=TASKS.filter(t=>t.status==='done').length;
-  el.innerHTML=`
-    <div style="display:flex;gap:6px;margin-bottom:10px;">
-      <div style="flex:1;background:var(--s3);border-radius:8px;padding:6px;text-align:center;">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--accent);">${openCount}</div>
-        <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">AKTYWNE</div>
+
+  let html='';
+
+  // Ukończone ostatnio (max 2)
+  const recentDone=done.sort((a,b)=>(b.doneAt||b.due||'').localeCompare(a.doneAt||a.due||'')).slice(0,2);
+
+  tasks.forEach(t=>{
+    const isOverdue=t.due&&t.due<today;
+    const isToday=t.due===today;
+    const isTomorrow=t.due===tomorrow;
+    const c=CL.find(x=>x.id===t.clientId);
+    let badge='';
+    if(isOverdue)badge=`<span style="background:rgba(255,68,68,0.15);color:var(--red);border-radius:4px;padding:1px 6px;font-size:9px;font-family:'DM Mono',monospace;font-weight:700;">Pilne</span>`;
+    else if(isTomorrow)badge=`<span style="background:rgba(255,140,66,0.15);color:var(--orange);border-radius:4px;padding:1px 6px;font-size:9px;font-family:'DM Mono',monospace;font-weight:700;">Wkrótce</span>`;
+    const dueText=isOverdue?'Termin: dziś':isToday?'Termin: dziś':isTomorrow?c?c.name+' · jutro':'jutro':c?c.name+(t.due?' · '+t.due:''):t.due||'Bez terminu';
+    html+=`<div style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);">
+      <div onclick="toggleTask('${t.id}');renderDash()" style="width:18px;height:18px;border-radius:4px;border:2px solid var(--border2);flex-shrink:0;cursor:pointer;margin-top:1px;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)'"></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${t.title}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:1px;">${dueText}</div>
       </div>
-      <div style="flex:1;background:var(--s3);border-radius:8px;padding:6px;text-align:center;">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--teal);">${doneCount}</div>
-        <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">UKOŃCZONE</div>
+      ${badge}
+    </div>`;
+  });
+
+  recentDone.forEach(t=>{
+    const c=CL.find(x=>x.id===t.clientId);
+    html+=`<div style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);opacity:0.5;">
+      <div style="width:18px;height:18px;border-radius:4px;background:var(--teal);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">
+        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#000" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
-    </div>
-    ${urgent.map(t=>{
-      const isOverdue=t.due&&t.due<today;
-      const catCol=TASK_CAT_COLORS[t.cat]||'var(--muted)';
-      const c=CL.find(x=>x.id===t.clientId);
-      return `<div class="dash-task-row">
-        <div class="d-activity-dot" style="background:${isOverdue?'var(--red)':t.priority==='high'?'var(--orange)':catCol};"></div>
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${t.title}</div>
-          <div style="font-size:10px;color:var(--muted);">${c?c.name:'—'}${t.due?' · '+t.due:''}</div>
-        </div>
-        <div class="task-check" onclick="toggleTask('${t.id}');renderDash()" style="width:18px;height:18px;"></div>
-      </div>`;
-    }).join('')}`;
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:12px;text-decoration:line-through;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${t.title}</div>
+        <div style="font-size:10px;color:var(--muted);">${c?c.name:''} ${t.doneAt?'· Ukończone '+t.doneAt:''}</div>
+      </div>
+    </div>`;
+  });
+
+  if(!tasks.length){
+    html='<div style="font-size:12px;color:var(--muted);text-align:center;padding:16px 0;">Brak pilnych zadań ✓</div>'+html;
+  }
+
+  el.innerHTML=html;
 }
 
 // ════════════════════════════════════════
