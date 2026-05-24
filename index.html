@@ -11876,6 +11876,171 @@ const DEMO_PROGRAMS=[
       {nr:2,label:'Akumulacja + progresja',rpe:'RPE 8',focus:'+2,5 kg ciężarach podstawowych',days:[{d:'PON',name:'Klatka + Plecy'},{d:'WT',name:'Barki + Ramiona'},{d:'ŚR',name:'Nogi'},{d:'CZ',name:'Klatka + Plecy'},{d:'PT',name:'Barki + Ramiona'},{d:'SO',name:'Nogi'}]},
     ]
   },
+  {
+    id:'dp7',type:'demo',name:'Tabata — Intensywny 4 tygodnie',goal:'kondycja',level:'sredni',duration:4,daysPerWeek:4,equip:'Bez sprzętu',method:'Tabata',
+    desc:'Protokół Tabata: 20 sekund maksymalnej intensywności + 10 sekund przerwy × 8 rund = 4 minuty piekła. Badania dr Izumi Tabaty (1996) potwierdzają: poprawia zarówno wydolność tlenową jak i beztlenową. Skuteczniejszy niż 60 min cardio.',
+    highlights:['20s praca / 10s przerwa × 8 rund','4 minuty = 1 blok Tabata','Wzrost VO2max o 14% w 6 tyg.','Spalanie kalorii do 24h po treningu (EPOC)'],
+    weeks:[
+      {nr:1,label:'Podstawy Tabata',rpe:'RPE 8-9',focus:'Nauka protokołu, 2-3 bloki/sesja',days:[{d:'PON',name:'Tabata: Burpees + High Knees — 3 bloki'},{d:'WT',name:'REST lub spacer'},{d:'ŚR',name:'Tabata: Przysiady + Mountain Climbers — 3 bloki'},{d:'CZ',name:'REST'},{d:'PT',name:'Tabata: Pompki + Jumping Jacks — 3 bloki'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},
+      {nr:2,label:'Progresja',rpe:'RPE 9',focus:'4 bloki/sesja, zmiana ćwiczeń',days:[{d:'PON',name:'Tabata: Burpees + Squat Jump — 4 bloki'},{d:'WT',name:'REST'},{d:'ŚR',name:'Tabata: KB Swing + Push-up — 4 bloki'},{d:'CZ',name:'REST'},{d:'PT',name:'Tabata: Sprint w miejscu + Dips — 4 bloki'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},
+      {nr:3,label:'Szczyt intensywności',rpe:'RPE 9-10',focus:'5 bloków, złożone ćwiczenia',days:[{d:'PON',name:'Tabata Full Body — 5 bloków'},{d:'WT',name:'REST'},{d:'ŚR',name:'Tabata Dolna + Core — 5 bloków'},{d:'CZ',name:'REST'},{d:'PT',name:'Tabata Górna — 5 bloków'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},
+      {nr:4,label:'Deload + Test',rpe:'RPE 7-8',focus:'3 bloki, test wytrzymałości',days:[{d:'PON',name:'Tabata — lekka wersja 3 bloki'},{d:'WT',name:'REST'},{d:'ŚR',name:'Test: ile Burpees w 4 min?'},{d:'CZ',name:'REST'},{d:'PT',name:'REST'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},
+    ]
+  },
+  {
+    id:'dp8',type:'demo',name:'EMOM — Siła i Kondycja 6 tygodni',goal:'kondycja',level:'sredni',duration:6,daysPerWeek:3,equip:'Siłownia',method:'EMOM',
+    desc:'EMOM (Every Minute On the Minute) — wykonujesz zadaną liczbę powtórzeń na początku każdej minuty, reszta minuty to przerwa. Im szybciej skończysz, tym więcej odpoczywasz. Idealny protokół łączący siłę z wydolnością.',
+    highlights:['Praca na starcie każdej minuty','Im szybsza praca = dłuższa przerwa','Buduje siłę-wytrzymałość','Sesje 20-40 minut'],
+    weeks:[
+      {nr:1,label:'EMOM 20 min',rpe:'RPE 7',focus:'Poznanie protokołu, umiarkowane ciężary',days:[{d:'PON',name:'EMOM 20: Nieparzyste — 5 Przysiadów, Parzyste — 5 Podciągnięć'},{d:'ŚR',name:'EMOM 20: Nieparzyste — 8 KB Swing, Parzyste — 5 Push Press'},{d:'PT',name:'EMOM 20: Nieparzyste — 5 Deadlift, Parzyste — 10 Pompek'}]},
+      {nr:2,label:'EMOM 25 min',rpe:'RPE 7-8',focus:'Wydłużenie czasu pracy',days:[{d:'PON',name:'EMOM 25: 3 ćwiczenia rotacyjnie — Squat/Pull/Hinge'},{d:'ŚR',name:'EMOM 25: Górna — Press/Row/Pull'},{d:'PT',name:'EMOM 25: Siłowy — cięższe ciężary, mniej powtórzeń'}]},
+      {nr:3,label:'EMOM 30 min',rpe:'RPE 8',focus:'Pełne 30 min bez przerwy',days:[{d:'PON',name:'EMOM 30: Full Body rotacja 5 ćwiczeń'},{d:'ŚR',name:'EMOM 30: Siłowy Lower'},{d:'PT',name:'EMOM 30: Siłowy Upper'}]},
+      {nr:4,label:'EMOM cięższy',rpe:'RPE 8-9',focus:'+5% ciężaru przy zachowaniu formy',days:[{d:'PON',name:'EMOM 20 — ciężki: 3-4 powt. Przysiad + Martwy'},{d:'ŚR',name:'EMOM 20 — ciężki: Pull + Press'},{d:'PT',name:'EMOM 20 — ciężki: FBW kompletny'}]},
+      {nr:5,label:'EMOM kompleksowy',rpe:'RPE 8-9',focus:'Kompleksy: kilka ćwiczeń pod rząd',days:[{d:'PON',name:'EMOM 24: co 2 min — Kompleks 6 ćwiczeń ze sztangą'},{d:'ŚR',name:'EMOM 24: KB kompleks'},{d:'PT',name:'EMOM 24: BW kompleks zaawansowany'}]},
+      {nr:6,label:'Deload + Test',rpe:'RPE 6-7',focus:'Regeneracja, ocena progresu',days:[{d:'PON',name:'EMOM 15 — lekki'},{d:'ŚR',name:'REST'},{d:'PT',name:'Test: maks. powtórzeń w EMOM 10 min'}]},
+    ]
+  },
+  {
+    id:'dp9',type:'demo',name:'AMRAP — Crossfit Style 4 tygodnie',goal:'kondycja',level:'sredni',duration:4,daysPerWeek:4,equip:'Siłownia',method:'AMRAP',
+    desc:'AMRAP (As Many Rounds As Possible) — wykonujesz jak najwięcej rund zadanego zestawu ćwiczeń w wyznaczonym czasie. Mierzysz postęp przez porównanie liczby rund w kolejnych tygodniach. Wysoka intensywność, brak przerw.',
+    highlights:['Jak najwyęcej rund w czasie','Mierzalny progres co tydzień','Wytrzymałość siłowa','15-25 minut intensywnej pracy'],
+    weeks:[
+      {nr:1,label:'AMRAP 15 min',rpe:'RPE 8',focus:'Ustanowienie baseline',days:[{d:'PON',name:'AMRAP 15: 5 Pull-up, 10 Push-up, 15 Squat (klasyczny Cindy)'},{d:'WT',name:'REST'},{d:'ŚR',name:'AMRAP 15: 10 KB Swing, 5 Burpee, 10 Box Jump'},{d:'CZ',name:'REST'},{d:'PT',name:'AMRAP 15: 10 Thruster, 10 Ring Row, 10 Sit-up'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},
+      {nr:2,label:'AMRAP 20 min',rpe:'RPE 8-9',focus:'Wydłużenie — więcej rund niż tydzień 1',days:[{d:'PON',name:'AMRAP 20: Cindy — cel +2 rundy vs tydzień 1'},{d:'WT',name:'REST'},{d:'ŚR',name:'AMRAP 20: Kompleks dolna'},{d:'CZ',name:'REST'},{d:'PT',name:'AMRAP 20: Kompleks górna'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},
+      {nr:3,label:'AMRAP z obciążeniem',rpe:'RPE 9',focus:'Dodaj ciężar — mniejsza liczba rund',days:[{d:'PON',name:'AMRAP 20: Cindy z kamizelką lub ciężarami'},{d:'WT',name:'REST'},{d:'ŚR',name:'AMRAP 15: Thrusters ciężkie'},{d:'CZ',name:'REST'},{d:'PT',name:'AMRAP 20: Deadlift + Burpee'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},
+      {nr:4,label:'Benchmark test',rpe:'RPE 9-10',focus:'Maksymalny wysiłek — test progresu',days:[{d:'PON',name:'AMRAP 20: Cindy — pobij rekord!'},{d:'WT',name:'REST'},{d:'ŚR',name:'REST'},{d:'CZ',name:'AMRAP 15: ulubiony zestaw'},{d:'PT',name:'REST'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},
+    ]
+  },
+  {
+    id:'dp10',type:'demo',name:'German Volume Training (GVT) — 6 tyg.',goal:'masa',level:'zaawansowany',duration:6,daysPerWeek:4,equip:'Siłownia',method:'GVT',
+    desc:'GVT (German Volume Training) — 10 serii × 10 powtórzeń z 60% 1RM. Opracowany przez Reinera Heppenthala, popularyzowany przez Charlesa Poliquina. Ekstremalna objętość prowadzi do hipertrofii sarkoplazmatycznej. Tylko dla zaawansowanych.',
+    highlights:['10×10 — 100 powtórzeń na ćwiczenie','60% 1RM — nie więcej!','Przerwa 60-90s między seriami','Przyrost masy do 4-5 kg w 6 tyg.'],
+    weeks:[
+      {nr:1,label:'Adaptacja GVT',rpe:'RPE 7',focus:'Zacznij od 50-60% 1RM — to trudniejsze niż myślisz',days:[{d:'PON',name:'Klatka + Plecy: 10×10 Wyciskanie + 10×10 Podciąganie'},{d:'WT',name:'REST'},{d:'ŚR',name:'Nogi + Pośladki: 10×10 Przysiad + 10×10 RDL'},{d:'CZ',name:'REST'},{d:'PT',name:'Barki + Ramiona: 10×10 OHP + 10×10 Biceps'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},
+      {nr:2,label:'GVT klasyczny',rpe:'RPE 8',focus:'Ten sam ciężar przez cały tydzień',days:[{d:'PON',name:'Klatka + Plecy: 10×10'},{d:'WT',name:'REST'},{d:'ŚR',name:'Nogi + Pośladki: 10×10'},{d:'CZ',name:'REST'},{d:'PT',name:'Barki + Ramiona: 10×10'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},
+      {nr:3,label:'Progresja +2,5 kg',rpe:'RPE 8-9',focus:'Tylko gdy zrobiłeś wszystkie 10×10 w tyg. 2',days:[{d:'PON',name:'Klatka + Plecy: +2,5 kg'},{d:'WT',name:'REST'},{d:'ŚR',name:'Nogi + Pośladki: +2,5 kg'},{d:'CZ',name:'REST'},{d:'PT',name:'Barki + Ramiona: +2,5 kg'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},
+      {nr:4,label:'Deload GVT',rpe:'RPE 6',focus:'5×10 zamiast 10×10 — regeneracja',days:[{d:'PON',name:'Klatka + Plecy: 5×10 (50%)'},{d:'WT',name:'REST'},{d:'ŚR',name:'Nogi: 5×10 (50%)'},{d:'CZ',name:'REST'},{d:'PT',name:'Barki: 5×10'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},
+      {nr:5,label:'GVT Faza 2',rpe:'RPE 9',focus:'Zmień ćwiczenia, zachowaj protokół',days:[{d:'PON',name:'Klatka + Plecy: inne ćwiczenia 10×10'},{d:'WT',name:'REST'},{d:'ŚR',name:'Nogi: Leg Press + Nordic Curl 10×10'},{d:'CZ',name:'REST'},{d:'PT',name:'Barki + Ramiona: 10×10'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},
+      {nr:6,label:'Peak + Test siły',rpe:'RPE 8-9',focus:'Ostatni tydzień GVT + test 1RM po regeneracji',days:[{d:'PON',name:'GVT — finalne 10×10'},{d:'WT',name:'REST'},{d:'ŚR',name:'GVT — finalne 10×10'},{d:'CZ',name:'REST'},{d:'PT',name:'Test 1RM po 3 dniach odpoczynku'},{d:'SO',name:'REST'},{d:'ND',name:'REST'}]},
+    ]
+  },
+  {
+    id:'dp11',type:'demo',name:'5/3/1 Wendler — Siła 12 tygodni',goal:'sila',level:'sredni',duration:12,daysPerWeek:4,equip:'Siłownia',method:'5/3/1',
+    desc:'Jeden z najpopularniejszych programów siłowych na świecie. Jim Wendler oparł go na 4 ćwiczeniach: Przysiad, Martwy ciąg, OHP, Wyciskanie. Cykle 4-tygodniowe z rosnącą intensywnością i resetem obciążeń. Długoterminowa, powolna ale solidna progresja.',
+    highlights:['4 ćwiczenia główne','Cykl 4-tygodniowy (3 + 1 deload)','Submaksymalne ciężary = zdrowie','AMRAP w ostatniej serii (PR)'],
+    weeks:[
+      {nr:1,label:'Tydzień 5 (65-85%)',rpe:'RPE 7-8',focus:'5-5-5+ — ostatnia seria AMRAP',days:[{d:'PON',name:'OHP: 5×65%, 5×75%, 5+×85% + akcesoria'},{d:'WT',name:'Martwy ciąg: 5×65%, 5×75%, 5+×85% + akcesoria'},{d:'CZ',name:'Wyciskanie: 5×65%, 5×75%, 5+×85% + akcesoria'},{d:'PT',name:'Przysiad: 5×65%, 5×75%, 5+×85% + akcesoria'}]},
+      {nr:2,label:'Tydzień 3 (70-90%)',rpe:'RPE 8-9',focus:'3-3-3+ — większe ciężary',days:[{d:'PON',name:'OHP: 3×70%, 3×80%, 3+×90%'},{d:'WT',name:'Martwy: 3×70%, 3×80%, 3+×90%'},{d:'CZ',name:'Wyciskanie: 3×70%, 3×80%, 3+×90%'},{d:'PT',name:'Przysiad: 3×70%, 3×80%, 3+×90%'}]},
+      {nr:3,label:'Tydzień 1 (75-95%)',rpe:'RPE 9',focus:'5-3-1+ — najcięższy tydzień',days:[{d:'PON',name:'OHP: 5×75%, 3×85%, 1+×95%'},{d:'WT',name:'Martwy: 5×75%, 3×85%, 1+×95%'},{d:'CZ',name:'Wyciskanie: 5×75%, 3×85%, 1+×95%'},{d:'PT',name:'Przysiad: 5×75%, 3×85%, 1+×95%'}]},
+      {nr:4,label:'DELOAD (40-60%)',rpe:'RPE 5-6',focus:'Regeneracja — nie pomijaj!',days:[{d:'PON',name:'OHP: 5×40%, 5×50%, 5×60%'},{d:'WT',name:'Martwy: 5×40%, 5×50%, 5×60%'},{d:'CZ',name:'Wyciskanie: 5×40%, 5×50%, 5×60%'},{d:'PT',name:'Przysiad: 5×40%, 5×50%, 5×60%'}]},
+    ]
+  },
+  {
+    id:'dp12',type:'demo',name:'HIIT — Interwały Wysokiej Intensywności 8 tyg.',goal:'kondycja',level:'poczatkujacy',duration:8,daysPerWeek:3,equip:'Bez sprzętu',method:'HIIT',
+    desc:'HIIT (High Intensity Interval Training) — naprzemienne okresy wysokiej i niskiej intensywności. Metaanaliza 2019 (British Journal of Sports Medicine): HIIT 28% skuteczniejszy w spalaniu tłuszczu niż steady-state cardio. Idealne gdy masz mało czasu.',
+    highlights:['20-30 min treningu = 60 min cardio','Efekt EPOC — spalanie do 24h','Poprawa wrażliwości insulinowej','Zachowanie masy mięśniowej'],
+    weeks:[
+      {nr:1,label:'Intro HIIT 1:2',rpe:'RPE 7-8',focus:'Stosunek pracy do odpoczynku 1:2 (20s:40s)',days:[{d:'PON',name:'HIIT 20 min: 20s praca / 40s odpoczynek × 20 rund'},{d:'ŚR',name:'REST lub lekki spacer'},{d:'PT',name:'HIIT 20 min: inne ćwiczenia, ten sam protokół'}]},
+      {nr:2,label:'HIIT 1:2 progresja',rpe:'RPE 8',focus:'Trudniejsze ćwiczenia',days:[{d:'PON',name:'HIIT 25 min: Burpee, Squat Jump, Push-up, Mountain Climber'},{d:'ŚR',name:'REST'},{d:'PT',name:'HIIT 25 min: Sprint 30s / Marsz 60s × 15'}]},
+      {nr:3,label:'HIIT 1:1',rpe:'RPE 8-9',focus:'Równy stosunek pracy i odpoczynku',days:[{d:'PON',name:'HIIT 30 min: 30s praca / 30s odpoczynek'},{d:'ŚR',name:'REST'},{d:'PT',name:'HIIT 30 min: Dolna + Core'}]},
+      {nr:4,label:'Deload HIIT',rpe:'RPE 6-7',focus:'Lżejszy tydzień, 1:2 ponownie',days:[{d:'PON',name:'HIIT 20 min — lekki: 1:2'},{d:'ŚR',name:'REST'},{d:'PT',name:'Spacer lub joga'}]},
+      {nr:5,label:'HIIT 2:1',rpe:'RPE 9',focus:'Więcej pracy niż odpoczynku',days:[{d:'PON',name:'HIIT 20 min: 40s praca / 20s odpoczynek'},{d:'ŚR',name:'REST'},{d:'PT',name:'HIIT 20 min: 40:20 różne ćwiczenia'}]},
+      {nr:6,label:'HIIT zaawansowany',rpe:'RPE 9',focus:'Złożone ćwiczenia wielostawowe',days:[{d:'PON',name:'HIIT 30 min: Kompleksy — Thruster, KB Swing, Box Jump'},{d:'ŚR',name:'REST'},{d:'PT',name:'HIIT Sprint: 10×100m z 1 min przerwy'}]},
+      {nr:7,label:'Szczyt HIIT',rpe:'RPE 9-10',focus:'Najkrótsza przerwa, najwyższa intensywność',days:[{d:'PON',name:'Tabata + HIIT hybrid: 4+10+4 min'},{d:'ŚR',name:'REST'},{d:'PT',name:'HIIT maksymalny 20 min: 2:1'}]},
+      {nr:8,label:'Test końcowy',rpe:'RPE 8-9',focus:'Porównaj wyniki z tygodnia 1',days:[{d:'PON',name:'HIIT test — ten sam protokół co tydzień 1'},{d:'ŚR',name:'REST'},{d:'PT',name:'Ocena: ile rund więcej?'}]},
+    ]
+  },
+  {
+    id:'dp13',type:'demo',name:'Upper/Lower Split — Masa 8 tygodni',goal:'masa',level:'sredni',duration:8,daysPerWeek:4,equip:'Siłownia',method:'Upper/Lower',
+    desc:'Klasyczny podział górna/dolna część ciała. Każda partia trenowana 2× tygodniowo. Idealna równowaga między frekwencją, objętością i regeneracją. Zalecany przez NSCA dla naturalnych zawodników na etapie intermediate.',
+    highlights:['Każda partia 2×/tydzień','Optymalna synteza białek','Łatwe do modyfikowania','4 dni treningu = ≥3 dni odpoczynku'],
+    weeks:[
+      {nr:1,label:'Akumulacja I',rpe:'RPE 7',focus:'Budowa bazy, nauka ćwiczeń',days:[{d:'PON',name:'Upper A: Wyciskanie 4×8, Podciąganie 4×8, OHP 3×10, Wiosłowanie 3×10'},{d:'WT',name:'Lower A: Przysiad 4×8, RDL 3×10, Leg Press 3×12, Hip Thrust 3×12'},{d:'CZ',name:'Upper B: Wyciskanie hantli 4×10, Wiosłowanie 4×10, Wznosy 3×15'},{d:'PT',name:'Lower B: Wykrok 3×10, Uginanie nóg 3×12, Wspięcia łydki 4×15'}]},
+      {nr:2,label:'Akumulacja I cont.',rpe:'RPE 7-8',focus:'+2,5 kg ciężarach głównych',days:[{d:'PON',name:'Upper A: +2,5 kg'},{d:'WT',name:'Lower A: +2,5 kg'},{d:'CZ',name:'Upper B'},{d:'PT',name:'Lower B'}]},
+      {nr:3,label:'Akumulacja II',rpe:'RPE 8',focus:'+1 seria na ćwiczenia główne',days:[{d:'PON',name:'Upper A: 5×8'},{d:'WT',name:'Lower A: 5×8'},{d:'CZ',name:'Upper B: 5×10'},{d:'PT',name:'Lower B: 5×10'}]},
+      {nr:4,label:'DELOAD',rpe:'RPE 6',focus:'-50% serii',days:[{d:'PON',name:'Upper — lekki'},{d:'WT',name:'Lower — lekki'},{d:'CZ',name:'REST'},{d:'PT',name:'REST'}]},
+    ]
+  },
+  {
+    id:'dp14',type:'demo',name:'Piramida siłowa — Moc i masa 6 tyg.',goal:'sila',level:'sredni',duration:6,daysPerWeek:4,equip:'Siłownia',method:'Piramida',
+    desc:'Protokół piramidalny — serie rosnące (ascending) lub malejące (descending) pod względem ciężaru/powtórzeń. Ascending: rozgrzewka wbudowana w trening. Descending: pierwsze serie przy świeżych mięśniach. Kombinacja obu = pełne widmo.',
+    highlights:['Wbudowana rozgrzewka (ascending)','Maks. siła na początku (descending)','Podwójna piramida — najskuteczniejsza','Wszechstronne obciążenie mięśni'],
+    weeks:[
+      {nr:1,label:'Piramida wznosząca',rpe:'RPE 6-9',focus:'12-10-8-6-4 powtórzeń (ciężar rośnie)',days:[{d:'PON',name:'Klatka: Wyciskanie 12/10/8/6/4 + akcesoria'},{d:'WT',name:'Plecy: Wiosłowanie + Podciąganie piramida'},{d:'CZ',name:'Nogi: Przysiad + RDL piramida'},{d:'PT',name:'Barki + Ramiona: OHP piramida + izolacja'}]},
+      {nr:2,label:'Piramida wznosząca cont.',rpe:'RPE 7-9',focus:'+2,5 kg na każdym poziomie',days:[{d:'PON',name:'Klatka: piramida +2,5 kg'},{d:'WT',name:'Plecy: piramida +2,5 kg'},{d:'CZ',name:'Nogi: piramida +2,5 kg'},{d:'PT',name:'Barki: piramida +2,5 kg'}]},
+      {nr:3,label:'Piramida opadająca',rpe:'RPE 9-7',focus:'4-6-8-10-12 (start ciężki, gdy świeży)',days:[{d:'PON',name:'Klatka: Wyciskanie 4/6/8/10/12 — start maksymalny'},{d:'WT',name:'Plecy: Piramida opadająca'},{d:'CZ',name:'Nogi: Piramida opadająca'},{d:'PT',name:'Barki: Piramida opadająca'}]},
+      {nr:4,label:'Podwójna piramida',rpe:'RPE 6-9-6',focus:'12-8-4-8-12 — pełne spectrum',days:[{d:'PON',name:'Klatka: Podwójna piramida 5 serii'},{d:'WT',name:'Plecy: Podwójna piramida'},{d:'CZ',name:'Nogi: Podwójna piramida'},{d:'PT',name:'Barki: Podwójna piramida'}]},
+      {nr:5,label:'Piramida + dropset',rpe:'RPE 9-10',focus:'Po szczycie piramidy — dropset do upadku',days:[{d:'PON',name:'Klatka: Piramida wznosząca + dropset na szczycie'},{d:'WT',name:'Plecy: Piramida + dropset'},{d:'CZ',name:'Nogi: Piramida + dropset'},{d:'PT',name:'Barki: Piramida + dropset'}]},
+      {nr:6,label:'Deload + ocena',rpe:'RPE 6',focus:'Regeneracja, test 1RM',days:[{d:'PON',name:'Lekka piramida wznosząca 3 serie'},{d:'WT',name:'REST'},{d:'CZ',name:'Test 1RM Przysiad + Wyciskanie'},{d:'PT',name:'REST'}]},
+    ]
+  },
+  {
+    id:'dp15',type:'demo',name:'Superserie i Drop sety — Hipertrofia 6 tyg.',goal:'masa',level:'sredni',duration:6,daysPerWeek:4,equip:'Siłownia',method:'Superset/Drop',
+    desc:'Superserie (dwa ćwiczenia bez przerwy) i drop sety (zmniejszanie ciężaru bez przerwy) to sprawdzone techniki intensyfikacji treningu. Oszczędzają czas i tworzą ogromny stres metaboliczny. Idealny dla zaawansowanych szukających nowych bodźców.',
+    highlights:['Skrócenie czasu treningu 30%','Maksymalny pompa mięśniowa','Superserie antagonistyczne = więcej siły','Dropsety = pełne wyczerpanie mięśnia'],
+    weeks:[
+      {nr:1,label:'Superserie antagonistyczne',rpe:'RPE 8',focus:'Klatka+Plecy, Biceps+Triceps, Quad+Ham',days:[{d:'PON',name:'Push+Pull: Wyciskanie SS Wiosłowanie × 4, OHP SS Podciąganie × 3'},{d:'WT',name:'Nogi: Przysiad SS RDL × 4, Leg Press SS Uginanie × 3'},{d:'CZ',name:'Ramiona: Biceps SS Triceps × 5 ćwiczeń'},{d:'PT',name:'Barki: Wznosy przód SS tył × 4'}]},
+      {nr:2,label:'Superserie agonistyczne',rpe:'RPE 8-9',focus:'Dwa ćwiczenia tej samej partii pod rząd',days:[{d:'PON',name:'Klatka: Wyciskanie SS Rozpiętki × 4'},{d:'WT',name:'Nogi: Przysiad SS Leg Press × 4'},{d:'CZ',name:'Plecy: Podciąganie SS Wiosłowanie × 4'},{d:'PT',name:'Barki: OHP SS Wznosy × 4'}]},
+      {nr:3,label:'Drop sety',rpe:'RPE 9-10',focus:'Po ostatniej serii — 2 dropsety',days:[{d:'PON',name:'Klatka: 3 normalne serie + 2 dropsety na koniec'},{d:'WT',name:'Nogi: Leg Press + Squat z dropsetami'},{d:'CZ',name:'Plecy: Ściąganie + Wiosłowanie z dropsetami'},{d:'PT',name:'Ramiona: każde ćwiczenie z dropsetem'}]},
+      {nr:4,label:'Deload',rpe:'RPE 6',focus:'Normalne serie, brak superserii',days:[{d:'PON',name:'Push — normalne serie 3×10'},{d:'WT',name:'Pull — normalne serie'},{d:'CZ',name:'REST'},{d:'PT',name:'Nogi — normalne serie'}]},
+      {nr:5,label:'Giant Sets',rpe:'RPE 8-9',focus:'3-4 ćwiczenia pod rząd na jedną partię',days:[{d:'PON',name:'Klatka Giant: Wyciskanie→Rozpiętki→Pompki→Dip × 3 rundy'},{d:'WT',name:'Nogi Giant: Przysiad→Leg Press→Wykrok→Hip Thrust × 3'},{d:'CZ',name:'Plecy Giant: Podciąganie→Wiosłowanie→Ściąganie→Facepull × 3'},{d:'PT',name:'Ramiona Giant: Biceps 2 cwicz + Triceps 2 cwicz × 4'}]},
+      {nr:6,label:'Rest-Pause',rpe:'RPE 9-10',focus:'Seria do upadku + 10s przerwa + dalej',days:[{d:'PON',name:'Push: Rest-pause na głównych ćwiczeniach'},{d:'WT',name:'Nogi: Rest-pause'},{d:'CZ',name:'Pull: Rest-pause'},{d:'PT',name:'Test sił — brak technik intensyfikacji'}]},
+    ]
+  },
+  {
+    id:'dp16',type:'demo',name:'Streching i Mobilność — 4 tygodnie',goal:'kondycja',level:'poczatkujacy',duration:4,daysPerWeek:5,equip:'Bez sprzętu',method:'Mobilność',
+    desc:'Program mobilności i elastyczności oparty na badaniach. Połączenie stretchingu statycznego, dynamicznego i PNF (Proprioceptive Neuromuscular Facilitation). Idealne uzupełnienie każdego programu siłowego lub samodzielny program regeneracji.',
+    highlights:['PNF stretching — najskuteczniejsza metoda','Poprawa zakresu ruchu o 20-30% w 4 tyg.','Redukcja bólu mięśniowego','5-10 min/dzień wystarczy'],
+    weeks:[
+      {nr:1,label:'Stretching statyczny',rpe:'RPE 4-5',focus:'Utrzymuj pozycje 30-60 sekund',days:[{d:'PON',name:'Biodra + Uda: Pigeon, Figure-4, Couch stretch, Butterfly — 30 min'},{d:'WT',name:'Grzbiet + Barki: Doorway, Lat stretch, Thoracic rotation — 30 min'},{d:'ŚR',name:'Aktywna regeneracja: Cat-cow, World Greatest, Hip 90/90 — 20 min'},{d:'CZ',name:'Dolna część: Downward dog, Seated forward fold, Lizard — 30 min'},{d:'PT',name:'Górna część: Pec minor, Sleeper stretch, Cross-body — 30 min'}]},
+      {nr:2,label:'Stretching dynamiczny',rpe:'RPE 5-6',focus:'Ruch w zakresie, bez utrzymywania',days:[{d:'PON',name:'Rozgrzewka dynamiczna: Leg swing, World Greatest, Inchworm — 20 min'},{d:'WT',name:'Mobilność bioder: Hip circle, Lateral lunge, Spiderman — 20 min'},{d:'ŚR',name:'Kręgosłup: T-spine rotation, Cat-cow, Thread needle — 20 min'},{d:'CZ',name:'Dolna: Toy soldier, Hacky sack, Squat to stand — 20 min'},{d:'PT',name:'Całe ciało: płynna sekwencja 20 min'}]},
+      {nr:3,label:'PNF Stretching',rpe:'RPE 6-7',focus:'Naprężenie 6s + rozluźnienie + pogłębienie',days:[{d:'PON',name:'PNF Biodra i uda — technika Contract-Relax'},{d:'WT',name:'PNF Barki i grzbiet'},{d:'ŚR',name:'PNF Hamstringi i łydki'},{d:'CZ',name:'PNF Klatka i piersiowy'},{d:'PT',name:'Pełna sesja mobilności 45 min'}]},
+      {nr:4,label:'Foam roller + mobilność',rpe:'RPE 4-6',focus:'Myofascial release + stretching',days:[{d:'PON',name:'Foam roller: plecy, IT band, czworogłowy — 30 min'},{d:'WT',name:'Foam roller: łydki, pośladki, barki — 30 min'},{d:'ŚR',name:'Mobilność aktywna: Yoga flow 30 min'},{d:'CZ',name:'Foam roller + stretching dolna'},{d:'PT',name:'Test zakresu ruchu + ocena postępu'}]},
+    ]
+  },
+  {
+    id:'dp17',type:'demo',name:'Trening na masę bez sprzętu — 8 tyg.',goal:'masa',level:'sredni',duration:8,daysPerWeek:4,equip:'Bez sprzętu',method:'Calisthenics',
+    desc:'Kalistenika zaawansowana — budowanie masy i siły wyłącznie masą własnego ciała. Progresja przez trudniejsze warianty ćwiczeń. Badania (2017, Journal of Human Kinetics) potwierdzają porównywalną hipertrofię z treningiem siłowym.',
+    highlights:['Zero sprzętu — ćwicz wszędzie','Progresja przez trudniejsze warianty','Buduje siłę funkcjonalną','Zdrowe stawy — mniejsze ryzyko kontuzji'],
+    weeks:[
+      {nr:1,label:'Baza kalisteniki',rpe:'RPE 7',focus:'Opanuj podstawowe wzorce',days:[{d:'PON',name:'Push: Pompki 4×15, Dips 3×10, Pike push-up 3×10'},{d:'WT',name:'Pull: Podciąganie 4×max, Inverted row 3×12'},{d:'CZ',name:'Push: Pompki jednoręczne progresja, Dip variations'},{d:'PT',name:'Legs: Pistol squat progresja, Nordic curl, Hip thrust'}]},
+      {nr:2,label:'Progresja wariantów',rpe:'RPE 8',focus:'Trudniejsze wersje gdy >15 powtórzeń',days:[{d:'PON',name:'Push: Pompki z elevacją, Archer push-up progresja'},{d:'WT',name:'Pull: Podciąganie z obciążeniem lub L-sit pull-up'},{d:'CZ',name:'Push: Handstand push-up progresja'},{d:'PT',name:'Legs: Pistol squat, Single leg RDL z masą ciała'}]},
+    ]
+  },
+  {
+    id:'dp18',type:'demo',name:'Trening Funkcjonalny — 6 tygodni',goal:'kondycja',level:'poczatkujacy',duration:6,daysPerWeek:3,equip:'Kettlebell',method:'Functional',
+    desc:'Trening funkcjonalny z kettlebell i masą własną ciała. Opracowany na wzór protokołów Military Fitness. Poprawia wzorce ruchowe, siłę całego ciała, stabilizację i koordynację. Idealne dla sportowców wszystkich dyscyplin.',
+    highlights:['Kompleksowe wzorce ruchowe','Siła + Koordynacja + Propriocepcja','Kettlebell — narzędzie wszechstronne','Turkish Get-Up jako benchmark'],
+    weeks:[
+      {nr:1,label:'Kettlebell basics',rpe:'RPE 6-7',focus:'Nauka KB Swing, Goblet Squat, Turkish Get-Up',days:[{d:'PON',name:'KB: Swing 5×15, Goblet Squat 4×10, Halo 3×10, Get-Up 3×3/stronę'},{d:'ŚR',name:'Funkcjonalny BW: Bear crawl, Inchworm, Farmer carry'},{d:'PT',name:'KB kompleks: Swing→Clean→Press→Squat × 5 rund'}]},
+      {nr:2,label:'Kompleksy KB',rpe:'RPE 7-8',focus:'Płynne przejścia między ćwiczeniami',days:[{d:'PON',name:'KB kompleks 5 ćwiczeń: 5 rund'},{d:'ŚR',name:'Unilateral: TGU + Single leg work + Suitcase carry'},{d:'PT',name:'EMOM 20: Swing + Snatch + Press'}]},
+    ]
+  },
+  {
+    id:'dp19',type:'demo',name:'Program Zawodnika — Siła + Moc 12 tyg.',goal:'sila',level:'zaawansowany',duration:12,daysPerWeek:5,equip:'Siłownia',method:'Conjugate/Block',
+    desc:'Program dla zaawansowanych sportowców oparty na metodzie sprzężonej Westside Barbell i periodyzacji blokowej. Rozwijanie siły maksymalnej, mocy eksplozywnej i siły-wytrzymałości jednocześnie. Wymaga doświadczenia i solidnej techniki.',
+    highlights:['Metoda sprzężona (Conjugate Method)','Max Effort + Dynamic Effort','Ćwiczenia akcesoryjne GPP','Przeznaczony dla zawodników'],
+    weeks:[
+      {nr:1,label:'ME Lower / DE Upper',rpe:'RPE 9/7',focus:'Max Effort Dolna + Dynamic Effort Górna',days:[{d:'PON',name:'ME Lower: Przysiad 1RM wariacja + akcesoria siłowe'},{d:'WT',name:'DE Upper: 9×3 Wyciskanie @60% + Górna akcesorium'},{d:'ŚR',name:'REST'},{d:'CZ',name:'ME Upper: Wyciskanie 1RM wariacja'},{d:'PT',name:'DE Lower: 10×2 Przysiad @60% + Martwy + Akcesoria'},{d:'SO',name:'GPP: kondycja, mobilność'}]},
+      {nr:2,label:'ME Lower / DE Upper',rpe:'RPE 9/7',focus:'Inne wariacje ćwiczeń głównych',days:[{d:'PON',name:'ME Lower: Martwy box pull lub sumo'},{d:'WT',name:'DE Upper: Floor press dynamic'},{d:'ŚR',name:'REST'},{d:'CZ',name:'ME Upper: Board press lub pin press'},{d:'PT',name:'DE Lower: Box squat dynamic'},{d:'SO',name:'GPP'}]},
+    ]
+  },
+  {
+    id:'dp20',type:'demo',name:'Bieganie — Od Kanapy do 5km — 8 tyg.',goal:'kondycja',level:'poczatkujacy',duration:8,daysPerWeek:3,equip:'Bez sprzętu',method:'Couch to 5K',
+    desc:'Klasyczny protokół C25K (Couch to 5K) zmodyfikowany o wytyczne ACSM. Przeprowadza początkującego od marszu do biegu ciągłego 5 km. Badania potwierdzają: 90% uczestników ukończyło 5K po 9 tygodniach. Zacznij gdzie jesteś.',
+    highlights:['Od 0 do 5km w 8 tygodniach','Naprzemienne bieg/marsz','Stopniowe wydłużanie biegu','3 sesje tygodniowo'],
+    weeks:[
+      {nr:1,label:'Marsz + bieg 1 min',rpe:'RPE 5-6',focus:'60s bieg / 90s marsz × 8 rund = 20 min',days:[{d:'PON',name:'C25K W1: 5 min marsz rozgrzewka → 8× (60s bieg + 90s marsz) → 5 min marsz'},{d:'ŚR',name:'C25K W1 powtórzenie'},{d:'PT',name:'C25K W1 powtórzenie'}]},
+      {nr:2,label:'Bieg 1,5 min',rpe:'RPE 6',focus:'90s bieg / 2 min marsz × 6 rund',days:[{d:'PON',name:'C25K W2: 6× (90s bieg + 2 min marsz)'},{d:'ŚR',name:'C25K W2 powtórzenie'},{d:'PT',name:'C25K W2 powtórzenie'}]},
+      {nr:3,label:'Bieg 3 min',rpe:'RPE 6-7',focus:'3 min bieg / 90s marsz × 5 rund',days:[{d:'PON',name:'C25K W3: 2× (90s bieg + 90s marsz + 3 min bieg + 3 min marsz)'},{d:'ŚR',name:'C25K W3 powtórzenie'},{d:'PT',name:'C25K W3 powtórzenie'}]},
+      {nr:4,label:'Bieg 5 min',rpe:'RPE 7',focus:'5 min bieg ciągły',days:[{d:'PON',name:'C25K W4: 3 min bieg + 90s marsz + 5 min bieg + 2,5 min marsz + 3 min + 90s + 5 min'},{d:'ŚR',name:'C25K W4 powtórzenie'},{d:'PT',name:'C25K W4 powtórzenie'}]},
+      {nr:5,label:'Bieg 8-20 min',rpe:'RPE 7',focus:'Wydłużanie biegu ciągłego',days:[{d:'PON',name:'C25K W5D1: 5 min + 3 min marsz + 5 min + 3 min + 5 min'},{d:'ŚR',name:'C25K W5D2: 8 min bieg + 5 min marsz + 8 min bieg'},{d:'PT',name:'C25K W5D3: 20 min bieg ciągły — przełomowy moment!'}]},
+      {nr:6,label:'Bieg 22-25 min',rpe:'RPE 7-8',focus:'Wydłużanie do 25 min',days:[{d:'PON',name:'C25K W6D1: 5+8+5 min z marszem'},{d:'ŚR',name:'C25K W6D2: 10 min + 3 min marsz + 10 min'},{d:'PT',name:'C25K W6D3: 22 min bieg ciągły'}]},
+      {nr:7,label:'Bieg 25-28 min',rpe:'RPE 7-8',focus:'Zbliżanie się do 5km',days:[{d:'PON',name:'C25K W7: 25 min bieg ciągły'},{d:'ŚR',name:'C25K W7: 25 min'},{d:'PT',name:'C25K W7: 25 min'}]},
+      {nr:8,label:'5km!',rpe:'RPE 7-8',focus:'30 min bieg = około 5km',days:[{d:'PON',name:'C25K W8: 28 min bieg ciągły'},{d:'ŚR',name:'C25K W8: 28 min'},{d:'PT',name:'5K RACE: Biegnij 5km bez przerwy! 🎉'}]},
+    ]
+  },
+
 ];
 
 function allPrograms(){return[...DEMO_PROGRAMS,...(window.USER_PROGRAMS||[])];}
