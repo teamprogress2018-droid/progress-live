@@ -631,12 +631,12 @@ input[type=checkbox]{display:none;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
 /* TRYB PRYWATNY */
-body.private-mode .priv-blur{filter:blur(7px);pointer-events:none;user-select:none;transition:filter 0.25s;}
-body.private-mode .priv-hide{opacity:0!important;pointer-events:none;transition:opacity 0.25s;}
-#private-bar{display:none;padding:6px 14px;background:rgba(255,140,66,0.12);border-top:2px solid rgba(255,140,66,0.35);align-items:center;gap:8px;}
-#private-bar.visible{display:flex;}
+#private-bar{display:none;padding:6px 14px;background:rgba(255,140,66,0.13);border-top:2px solid rgba(255,140,66,0.4);align-items:center;gap:8px;flex-shrink:0;}
+#private-bar.on{display:flex;}
+.priv-hidden{display:none!important;}
+.priv-blurred{filter:blur(8px)!important;pointer-events:none!important;user-select:none!important;}
+#private-mode-btn.active{background:rgba(255,140,66,0.15);border-radius:6px;}
 #private-mode-btn.active svg{stroke:var(--orange);}
-#private-mode-btn.active{background:rgba(255,140,66,0.12)!important;border-radius:6px;}
 @keyframes slideIn{from{opacity:0;transform:translateX(16px);}to{opacity:1;transform:translateX(0);}}
 </style>
 </head>
@@ -683,15 +683,15 @@ body.private-mode .priv-hide{opacity:0!important;pointer-events:none;transition:
     <button class="nav-item" onclick="goTo('onboarding')"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>Onboarding</button>
   </nav>
   <div id="private-bar">
-    <span style="font-size:13px;">🔒</span>
-    <span style="font-size:11px;color:var(--orange);font-family:'DM Mono',monospace;font-weight:700;letter-spacing:1px;">TRYB PRYWATNY</span>
+    <span style="font-size:12px;">🔒</span>
+    <span style="font-size:11px;font-family:'DM Mono',monospace;font-weight:700;color:var(--orange);letter-spacing:1px;">TRYB PRYWATNY</span>
     <span style="font-size:10px;color:var(--muted);">Finanse ukryte</span>
     <button onclick="togglePrivateMode()" style="margin-left:auto;background:var(--orange);border:none;border-radius:4px;padding:2px 10px;font-size:10px;font-weight:700;color:#000;cursor:pointer;">Wyłącz</button>
   </div>
   <div class="sidebar-footer">
     <div class="av">PU</div>
     <div style="flex:1;"><div style="font-size:13px;font-weight:600;">Piotr Urbaniak</div><div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">Trener personalny</div></div>
-    <button onclick="togglePrivateMode()" id="private-mode-btn" style="background:none;border:none;cursor:pointer;padding:6px;transition:background 0.15s;" title="Tryb prywatny — ukryj dane finansowe">
+    <button id="private-mode-btn" onclick="togglePrivateMode()" style="background:none;border:none;cursor:pointer;padding:6px;transition:background 0.15s;" title="Tryb prywatny — ukryj dane finansowe">
       <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="var(--muted)" stroke-width="1.8"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
     </button>
     <button onclick="toggleNotifs()" style="position:relative;background:none;border:none;cursor:pointer;padding:6px;" title="Powiadomienia">
@@ -734,7 +734,7 @@ body.private-mode .priv-hide{opacity:0!important;pointer-events:none;transition:
         <div class="dash-kpi-lbl">Sesji (okres)</div>
         <div class="dash-kpi-trend" id="d-sessions-trend"></div>
       </div>
-      <div class="dash-kpi-card">
+      <div class="dash-kpi-card" id="dash-revenue-kpi">
         <div class="dash-kpi-icon" style="background:rgba(62,207,178,0.12);color:var(--teal);">💰</div>
         <div class="dash-kpi-val" style="color:var(--teal);" id="d-revenue">0 zł</div>
         <div class="dash-kpi-lbl">Przychód (okres)</div>
@@ -767,7 +767,7 @@ body.private-mode .priv-hide{opacity:0!important;pointer-events:none;transition:
       </div>
 
       <!-- wykres przychodów -->
-      <div class="card">
+      <div class="card" id="dash-revenue-chart">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
           <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;">PRZYCHODY — MIESIĘCZNIE</div>
           <span class="pill pill-teal" style="font-size:10px;" id="d-rev-total-lbl">0 zł</span>
@@ -14706,96 +14706,60 @@ window.generateInviteLink = generateInviteLink;
 // ═══════════════════════════════════════
 // TRYB PRYWATNY
 // ═══════════════════════════════════════
-var privateModeActive=false;
+var privateModeActive = false;
 
 function togglePrivateMode(){
-  privateModeActive=!privateModeActive;
-  const btn=document.getElementById('private-mode-btn');
-  const bar=document.getElementById('private-bar');
+  privateModeActive = !privateModeActive;
+  const btn = document.getElementById('private-mode-btn');
+  const bar = document.getElementById('private-bar');
 
   if(privateModeActive){
-    document.body.classList.add('private-mode');
-    if(bar)bar.classList.add('visible');
-    if(btn)btn.classList.add('active');
-    applyPrivateMode();
+    // Włącz
+    if(bar) bar.classList.add('on');
+    if(btn) btn.classList.add('active');
+    // Ukryj kafelek KPI przychodów
+    const kpi = document.getElementById('dash-revenue-kpi');
+    if(kpi) kpi.classList.add('priv-hidden');
+    // Ukryj wykres przychodów
+    const chart = document.getElementById('dash-revenue-chart');
+    if(chart) chart.classList.add('priv-hidden');
+    // Zablokuj nawigację do Płatności
+    document.querySelectorAll('.nav-item').forEach(b=>{
+      if(b.textContent.trim().includes('Płatności')){
+        b.dataset.privDisabled='1';
+        b.style.opacity='0.3';
+        b.style.pointerEvents='none';
+      }
+    });
+    // Jeśli jesteśmy na Płatnościach — wróć
+    const active = document.querySelector('.screen.active') || document.querySelector('.screen[style*="flex"]');
+    if(active && active.id === 'screen-payments') goTo('dashboard');
     notify('🔒 Tryb prywatny włączony');
   } else {
-    document.body.classList.remove('private-mode');
-    if(bar)bar.classList.remove('visible');
-    if(btn)btn.classList.remove('active');
-    removePrivateMode();
+    // Wyłącz
+    if(bar) bar.classList.remove('on');
+    if(btn) btn.classList.remove('active');
+    // Przywróć KPI
+    const kpi = document.getElementById('dash-revenue-kpi');
+    if(kpi) kpi.classList.remove('priv-hidden');
+    // Przywróć wykres
+    const chart = document.getElementById('dash-revenue-chart');
+    if(chart) chart.classList.remove('priv-hidden');
+    // Przywróć nawigację
+    document.querySelectorAll('.nav-item').forEach(b=>{
+      if(b.dataset.privDisabled){
+        b.style.opacity='';
+        b.style.pointerEvents='';
+        delete b.dataset.privDisabled;
+      }
+    });
+    // Odśwież dashboard
+    try{ renderDash(); }catch(e){}
     notify('👁 Tryb prywatny wyłączony');
   }
 }
 
-function applyPrivateMode(){
-  // Zablokuj ekran Płatności w nawigacji
-  document.querySelectorAll('.nav-item').forEach(b=>{
-    if(b.textContent.trim().startsWith('Płatności')){
-      b.style.opacity='0.3';
-      b.style.pointerEvents='none';
-    }
-  });
-  // Jeśli aktualnie na Płatnościach — idź na dashboard
-  const payScr=document.getElementById('screen-payments');
-  if(payScr&&payScr.style.display!=='none'&&payScr.classList.contains('active')){
-    if(typeof goTo==='function')goTo('dashboard');
-  }
-  // Zamazaj KPI przychodów
-  const rev=document.getElementById('d-revenue');
-  if(rev){rev._orig=rev.textContent;rev.textContent='••••• zł';rev.classList.add('priv-blur');}
-  const revT=document.getElementById('d-revenue-trend');
-  if(revT)revT.classList.add('priv-hide');
-  // Zamazaj wykres przychodów
-  const chart=document.getElementById('d-chart-revenue');
-  if(chart)chart.classList.add('priv-blur');
-  const lbl=document.getElementById('d-rev-total-lbl');
-  if(lbl){lbl._orig=lbl.textContent;lbl.textContent='•••••';}
-  // Zamazaj statystyki biznesowe
-  const biz=document.getElementById('biz-content');
-  if(biz)biz.classList.add('priv-blur');
-  // Zamazaj sekcję płatności w ekranie
-  const paySec=document.getElementById('screen-payments');
-  if(paySec){
-    if(!document.getElementById('priv-pay-overlay')){
-      const ov=document.createElement('div');
-      ov.id='priv-pay-overlay';
-      ov.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(7,8,10,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;';
-      ov.innerHTML='<div style="font-size:56px">🔒</div>'
-        +'<div style="font-family:Bebas Neue,sans-serif;font-size:28px;letter-spacing:3px;color:var(--orange);">TRYB PRYWATNY</div>'
-        +'<div style="font-size:13px;color:var(--muted);text-align:center;max-width:320px;line-height:1.6;">Dane finansowe są ukryte podczas sesji z klientem.<br>Wyłącz tryb prywatny aby zobaczyć przychody.</div>'
-        +'<button onclick="togglePrivateMode()" style="background:var(--orange);border:none;border-radius:8px;padding:11px 28px;font-size:14px;font-weight:700;color:#000;cursor:pointer;margin-top:8px;">🔓 Wyłącz tryb prywatny</button>';
-      paySec.style.position='relative';
-      document.body.appendChild(ov);
-    }
-  }
-}
-
-function removePrivateMode(){
-  // Przywróć nawigację
-  document.querySelectorAll('.nav-item').forEach(b=>{
-    b.style.opacity='';
-    b.style.pointerEvents='';
-  });
-  // Przywróć KPI
-  const rev=document.getElementById('d-revenue');
-  if(rev){if(rev._orig)rev.textContent=rev._orig;rev.classList.remove('priv-blur');}
-  const revT=document.getElementById('d-revenue-trend');
-  if(revT)revT.classList.remove('priv-hide');
-  const chart=document.getElementById('d-chart-revenue');
-  if(chart)chart.classList.remove('priv-blur');
-  const lbl=document.getElementById('d-rev-total-lbl');
-  if(lbl){if(lbl._orig)lbl.textContent=lbl._orig;}
-  const biz=document.getElementById('biz-content');
-  if(biz)biz.classList.remove('priv-blur');
-  // Usuń overlay
-  const ov=document.getElementById('priv-pay-overlay');
-  if(ov)ov.remove();
-  // Odśwież dashboard
-  try{renderDash();}catch(e){}
-}
-
-window.togglePrivateMode=togglePrivateMode;
+window.togglePrivateMode = togglePrivateMode;
 
 window.goTo=goTo;window.openM=openM;window.closeM=closeM;
 window.saveClient=saveClient;window.saveSess=saveSess;window.saveEx=saveEx;window.savePlan=savePlan;window.delPlan=delPlan;
