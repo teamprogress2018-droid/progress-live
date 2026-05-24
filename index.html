@@ -3115,6 +3115,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
     <button class="cp-tab" id="cpt-documents" onclick="setCPTab('documents')">Dokumenty</button>
     <button class="cp-tab" id="cpt-payments" onclick="setCPTab('payments')">Płatności</button>
     <button class="cp-tab" id="cpt-settings" onclick="setCPTab('settings')">Ustawienia</button>
+    <button class="cp-tab" id="cpt-posture" onclick="setCPTab('posture')" style="position:relative;">🧍 Postawa<span style="position:absolute;top:-2px;right:-2px;width:6px;height:6px;border-radius:50%;background:var(--accent);"></span></button>
     <button class="cp-tab" id="cpt-edit" onclick="setCPTab('edit')">Edytuj</button>
   </div>
 
@@ -13468,6 +13469,7 @@ function setCPTab(t){
   if(t==='payments')renderCPPayments(c);
   if(t==='settings')renderCPSettings(c);
   if(t==='edit')renderCPEdit(c);
+  if(t==='posture')renderCPPosture(c);
 }
 
 function renderCPOverview(c){
@@ -14107,6 +14109,186 @@ function updateClientUnit(clientId,key,value){
   }
   notify('Zapisano');
 }
+
+
+// ═══════════════════════════════════════════════════════
+// OCENA POSTAWY AI
+// ═══════════════════════════════════════════════════════
+function renderCPPosture(c){
+  if(!c._posture)c._posture={photos:{front:null,side:null,back:null},analyses:[],currentPhoto:null};
+  const p=c._posture;
+
+  document.getElementById('cp-body').innerHTML=`
+    <div class="cp-section-title">🧍 OCENA POSTAWY — AI</div>
+    <div style="background:var(--adim);border:1px solid rgba(200,241,53,0.15);border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:11px;color:var(--muted);line-height:1.6;">
+      Wgraj zdjęcie klienta (przód, bok lub tył). AI przeanalizuje postawę ciała, wykryje dysfunkcje i wskaże mięśnie wymagające pracy.
+    </div>
+
+    <!-- Upload zdjęć -->
+    <div style="margin-bottom:16px;">
+      <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Wgraj zdjęcie</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;">
+        ${['front','side','back'].map(view=>{
+          const labels={front:'Przód',side:'Bok',back:'Tył'};
+          const icons={front:'⬆','side':'➡','back':'⬇'};
+          const hasPhoto=p.photos[view];
+          return `<label style="cursor:pointer;">
+            <input type="file" accept="image/*" style="display:none;" onchange="postureUploadPhoto('${c.id}','${view}',this)">
+            <div style="background:${hasPhoto?'rgba(200,241,53,0.08)':'var(--s3)'};border:2px ${hasPhoto?'solid var(--accent)':'dashed var(--border2)'};border-radius:10px;padding:12px 8px;text-align:center;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='${hasPhoto?'var(--accent)':'var(--border2)'}'">
+              ${hasPhoto
+                ? `<img src="${hasPhoto}" style="width:100%;height:80px;object-fit:cover;border-radius:6px;margin-bottom:4px;">`
+                : `<div style="font-size:28px;margin-bottom:4px;">${icons[view]}</div>`
+              }
+              <div style="font-size:11px;font-weight:600;color:${hasPhoto?'var(--accent)':'var(--muted)'};">${labels[view]}</div>
+              <div style="font-size:9px;color:var(--muted);">${hasPhoto?'Kliknij aby zmienić':'Kliknij aby wgrać'}</div>
+            </div>
+          </label>`;
+        }).join('')}
+      </div>
+
+      <!-- Wybór aktywnego zdjęcia do analizy -->
+      ${Object.values(p.photos).some(x=>x) ? `
+      <div style="margin-bottom:10px;">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Analizuj zdjęcie</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          ${['front','side','back'].filter(v=>p.photos[v]).map(v=>{
+            const labels={front:'Przód',side:'Bok',back:'Tył'};
+            return `<button onclick="postureSetActive('${c.id}','${v}')" style="padding:5px 12px;border-radius:6px;border:1px solid ${p.currentPhoto===v?'var(--accent)':'var(--border2)'};background:${p.currentPhoto===v?'rgba(200,241,53,0.1)':'var(--s3)'};color:${p.currentPhoto===v?'var(--accent)':'var(--muted)'};font-size:11px;cursor:pointer;">${labels[v]}</button>`;
+          }).join('')}
+        </div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;padding:11px;" onclick="postureAnalyze('${c.id}')" id="posture-analyze-btn">
+        🔍 Analizuj postawę AI
+      </button>` : ''}
+    </div>
+
+    <!-- Wyniki analiz -->
+    <div id="posture-results">
+      ${p.analyses.length ? renderPostureResults(p.analyses) : `
+        <div style="text-align:center;padding:24px;color:var(--muted);font-size:12px;">
+          <div style="font-size:36px;margin-bottom:8px;opacity:0.3;">🧍</div>
+          Wgraj zdjęcie aby rozpocząć analizę
+        </div>
+      `}
+    </div>`;
+}
+
+function renderPostureResults(analyses){
+  if(!analyses.length) return '';
+  const latest = analyses[analyses.length-1];
+  return `
+    <div style="margin-top:4px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Wyniki analizy</div>
+        <div style="font-size:10px;color:var(--muted);">${latest.date} · ${latest.view||''}</div>
+      </div>
+      <div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:14px;font-size:12px;line-height:1.7;color:var(--text);white-space:pre-wrap;">${latest.result}</div>
+      ${analyses.length>1?`<div style="margin-top:8px;font-size:11px;color:var(--muted);cursor:pointer;" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">📋 Poprzednie analizy (${analyses.length-1})</div>
+      <div style="display:none;">${analyses.slice(0,-1).reverse().map(a=>`<div style="background:var(--s3);border-radius:8px;padding:10px;margin-top:6px;font-size:11px;color:var(--muted);">${a.date} · ${a.view||''}<br><br>${a.result}</div>`).join('')}</div>`:''}
+    </div>`;
+}
+
+function postureUploadPhoto(clientId, view, input){
+  if(!input.files[0])return;
+  const c=CL.find(x=>x.id===clientId);if(!c)return;
+  if(!c._posture)c._posture={photos:{front:null,side:null,back:null},analyses:[],currentPhoto:null};
+  const reader=new FileReader();
+  reader.onload=e=>{
+    c._posture.photos[view]=e.target.result;
+    if(!c._posture.currentPhoto)c._posture.currentPhoto=view;
+    renderCPPosture(c);
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+function postureSetActive(clientId, view){
+  const c=CL.find(x=>x.id===clientId);if(!c||!c._posture)return;
+  c._posture.currentPhoto=view;
+  renderCPPosture(c);
+}
+
+async function postureAnalyze(clientId){
+  const c=CL.find(x=>x.id===clientId);
+  if(!c||!c._posture)return;
+  const view=c._posture.currentPhoto;
+  const photo=c._posture.photos[view];
+  if(!photo){notify('⚠ Wybierz zdjęcie do analizy');return;}
+
+  const btn=document.getElementById('posture-analyze-btn');
+  if(btn){btn.disabled=true;btn.innerHTML='⏳ Analizuję...';}
+
+  const viewLabels={front:'przód (widok od przodu)',side:'bok (widok z boku)',back:'tył (widok od tyłu)'};
+  const base64=photo.split(',')[1];
+  const mediaType=photo.split(';')[0].split(':')[1]||'image/jpeg';
+
+  const systemPrompt=`Jesteś doświadczonym fizjoterapeutą i trenerem personalnym. Analizujesz postawę ciała klientów na podstawie zdjęć. Odpowiadasz zawsze po polsku, konkretnie i profesjonalnie. Format odpowiedzi:
+
+🔍 WADY POSTAWY
+• [Lista wykrytych wad i dysfunkcji]
+
+💪 MIĘŚNIE SŁABE (wymagają wzmocnienia)
+• [Mięsień] — [dlaczego słaby, objawy]
+
+🔄 MIĘŚNIE SKRÓCONE/NAPIĘTE (wymagają rozciągnięcia)
+• [Mięsień] — [dlaczego skrócony]
+
+🏋️ ZALECANE ĆWICZENIA KORYGUJĄCE
+• [Ćwiczenie] — [cel, liczba serii/powtórzeń]
+
+⚠️ OSTRZEŻENIA
+• [Ćwiczenia/ruchy których należy unikać]
+
+📋 PROGRAM KOREKCYJNY (3x/tydzień)
+• [Dzień 1, 2, 3 z konkretnymi ćwiczeniami]
+
+Bądź konkretny. Bazuj wyłącznie na tym co widzisz na zdjęciu.`;
+
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1500,
+        system:systemPrompt,
+        messages:[{
+          role:'user',
+          content:[
+            {type:'image',source:{type:'base64',media_type:mediaType,data:base64}},
+            {type:'text',text:`Przeanalizuj postawę ciała klienta na tym zdjęciu (${viewLabels[view]||view}). Klient: ${c.name}, wiek: ${c.age||'nieznany'}, cel: ${c.goal||'nieznany'}. Podaj szczegółową analizę postawy.`}
+          ]
+        }]
+      })
+    });
+
+    const data=await resp.json();
+    if(!resp.ok)throw new Error(data.error?.message||'Błąd API');
+
+    const result=data.content?.map(b=>b.text||'').join('')||'Brak odpowiedzi';
+    const today=new Date().toLocaleDateString('pl-PL');
+    const viewLabelShort={front:'Przód',side:'Bok',back:'Tył'};
+
+    if(!c._posture.analyses)c._posture.analyses=[];
+    c._posture.analyses.push({date:today,view:viewLabelShort[view]||view,result});
+
+    // Zapisz do Firebase w tle
+    if(window._db&&c.id&&!c.id.startsWith('l')){
+      try{window._setDoc(window._doc(window._db,'clients',c.id),{_posture:c._posture},{merge:true});}catch(e){}
+    }
+
+    renderCPPosture(c);
+    notify('✓ Analiza postawy ukończona!');
+
+  }catch(err){
+    console.error('Posture AI error:',err);
+    notify('⚠ Błąd analizy: '+err.message);
+    if(btn){btn.disabled=false;btn.innerHTML='🔍 Analizuj postawę AI';}
+  }
+}
+
+window.postureUploadPhoto=postureUploadPhoto;
+window.postureSetActive=postureSetActive;
+window.postureAnalyze=postureAnalyze;
 
 function renderCPEdit(c){
   document.getElementById('cp-body').innerHTML=`
