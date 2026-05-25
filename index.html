@@ -5264,44 +5264,113 @@ function renderLivePlanPicker(){
     el.innerHTML=`<div style="font-size:11px;color:var(--muted);text-align:center;padding:12px;background:var(--s2);border-radius:10px;border:1px solid var(--border);">
       Brak planów dla klienta.<br>
       <button class="btn btn-ghost btn-sm" style="margin-top:6px;" onclick="goTo('builder')">+ Utwórz plan</button>
+    </div>
+    <div style="margin-top:10px;">
+      <button class="btn btn-ghost btn-sm" style="width:100%;" onclick="liveQuickAdd()">⚡ Szybki trening bez planu</button>
     </div>`;
     return;
   }
-  el.innerHTML=`<div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Wybierz plan</div>
-  <div style="display:flex;flex-direction:column;gap:5px;">
-    ${plans.map(p=>`<div style="background:var(--s2);border:1px solid ${livePlanId===p.id?'var(--accent)':'var(--border)'};border-radius:10px;padding:10px 12px;cursor:pointer;transition:border-color 0.1s;" onclick="liveSelectPlan('${p.id}')">
-      <div style="font-size:12px;font-weight:700;">${p.name}</div>
-      <div style="font-size:10px;color:var(--muted);">${p.method||''} · ${p.duration||'?'} tyg. · ${(p.days||[]).length} dni</div>
-    </div>`).join('')}
-  </div>
-  <div style="margin-top:10px;">
-    <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Lub quick-add trening</div>
-    <button class="btn btn-ghost btn-sm" style="width:100%;" onclick="liveQuickAdd()">⚡ Szybki trening bez planu</button>
-  </div>`;
+  const activePlan=plans.find(p=>p.id===livePlanId)||plans[0];
+  const days=activePlan?.days||[];
+
+  el.innerHTML=`
+    <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:8px;letter-spacing:1px;">Wybierz plan</div>
+    <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:10px;">
+      ${plans.map(p=>`<div style="background:var(--s2);border:1px solid ${livePlanId===p.id?'var(--accent)':'var(--border)'};border-radius:10px;padding:10px 12px;cursor:pointer;transition:border-color 0.12s;" onclick="liveSelectPlan('${p.id}')" onmouseover="this.style.borderColor='var(--border2)'" onmouseout="this.style.borderColor='${livePlanId===p.id?'var(--accent)':'var(--border)'}'">
+        <div style="font-size:12px;font-weight:700;color:${livePlanId===p.id?'var(--accent)':'var(--text)'};">${p.name}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px;">${p.method||''} · ${p.duration||'?'} tyg. · ${(p.days||[]).length} dni</div>
+      </div>`).join('')}
+    </div>
+    ${days.length>1?`
+    <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:6px;letter-spacing:1px;">Dzień treningu</div>
+    <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:10px;">
+      ${days.map((d,i)=>`<button onclick="liveSelectDay(${i})" style="background:${liveExercises.length&&i===0?'rgba(200,241,53,0.08)':'var(--s3)'};border:1px solid ${liveExercises.length&&i===0?'var(--accent)':'var(--border2)'};border-radius:8px;padding:7px 12px;cursor:pointer;text-align:left;display:flex;align-items:center;justify-content:space-between;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)'">
+        <div style="font-size:11px;font-weight:600;">${d.day||'Dzień '+(i+1)}</div>
+        <div style="font-size:10px;color:var(--muted);">${(d.exercises||[]).length} ćw.</div>
+      </button>`).join('')}
+    </div>`:''}
+    <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:6px;letter-spacing:1px;">Lub quick-add</div>
+    <button class="btn btn-ghost btn-sm" style="width:100%;" onclick="liveQuickAdd()">⚡ Szybki trening bez planu</button>`;
+
   if(!livePlanId&&plans.length)liveSelectPlan(plans[0].id);
 }
 
 function liveSelectPlan(pid){
   livePlanId=pid;
   const p=PL.find(x=>x.id===pid);if(!p)return;
-  // build exercises from first training day
+
+  // Pobierz ćwiczenia z pierwszego dnia planu
+  // Struktura: p.days = [{day:'Dzień 1', exercises:[{name,sets,reps}]}]
   const day=(p.days||[])[0];
-  liveExercises=(day?.exercises||[
-    {name:'Wyciskanie sztangi leżąc',sets:'4',reps:'8'},
-    {name:'Rozpiętki na wyciągu',sets:'3',reps:'12'},
-    {name:'Wyciskanie hantli skos+',sets:'3',reps:'10'},
-    {name:'OHP ze sztangą',sets:'3',reps:'10'},
-    {name:'Wznosy hantli bokiem',sets:'4',reps:'15'},
-    {name:'Prostowanie triceps wyciąg',sets:'3',reps:'12'},
-  ]).map(ex=>({
-    name:ex.name,
-    sets:Array.from({length:parseInt(ex.sets)||3},(_,i)=>({setNo:i+1,kg:'',reps:ex.reps||'8-12',done:false})),
-    done:false,
-    collapsed:false,
-  }));
+  const rawEx=day?.exercises||[];
+
+  if(rawEx.length>0){
+    liveExercises=rawEx.map(ex=>({
+      name:ex.name||ex.n||'Ćwiczenie',
+      sets:Array.from({length:parseInt(ex.sets||ex.s)||3},(_,i)=>({
+        setNo:i+1,
+        kg:'',
+        reps:ex.reps||ex.r||'8-12',
+        done:false
+      })),
+      done:false,
+      collapsed:false,
+    }));
+  } else {
+    // Plan bez ćwiczeń - zaproponuj wybór dnia
+    liveExercises=[];
+    liveShowDayPicker(p);
+  }
+
   renderLivePlanPicker();
   renderLiveExercises();
 }
+
+function liveShowDayPicker(p){
+  const el=document.getElementById('live-exercises-panel');if(!el)return;
+  const days=p.days||[];
+  if(!days.length){
+    el.innerHTML=`<div style="text-align:center;padding:40px 20px;color:var(--muted);">
+      <div style="font-size:32px;margin-bottom:10px;opacity:0.3;">📋</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Plan nie zawiera ćwiczeń</div>
+      <div style="font-size:11px;margin-bottom:14px;">Dodaj ćwiczenia do planu w kreatorze</div>
+      <button class="btn btn-ghost btn-sm" onclick="goTo('builder')">Otwórz kreator</button>
+    </div>`;
+    return;
+  }
+  el.innerHTML=`<div style="padding:16px;">
+    <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Wybierz dzień treningu</div>
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      ${days.map((d,i)=>`
+        <button onclick="liveSelectDay(${i})" style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;cursor:pointer;text-align:left;transition:border-color 0.12s;display:flex;align-items:center;justify-content:space-between;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--text);">${d.day||'Dzień '+(i+1)}</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px;">${(d.exercises||[]).length} ćwiczeń</div>
+          </div>
+          <div style="color:var(--accent);font-size:16px;">→</div>
+        </button>`).join('')}
+    </div>
+  </div>`;
+}
+
+function liveSelectDay(dayIdx){
+  const p=PL.find(x=>x.id===livePlanId);if(!p)return;
+  const day=(p.days||[])[dayIdx];if(!day)return;
+  const rawEx=day.exercises||[];
+  liveExercises=rawEx.map(ex=>({
+    name:ex.name||ex.n||'Ćwiczenie',
+    sets:Array.from({length:parseInt(ex.sets||ex.s)||3},(_,i)=>({
+      setNo:i+1,
+      kg:'',
+      reps:ex.reps||ex.r||'8-12',
+      done:false
+    })),
+    done:false,
+    collapsed:false,
+  }));
+  renderLiveExercises();
+}
+window.liveSelectDay=liveSelectDay;
 
 function liveQuickAdd(){
   liveExercises=[
