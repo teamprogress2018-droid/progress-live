@@ -424,7 +424,7 @@ button{cursor:pointer;}
 /* ── CLIENT PROFILE ── */
 .cp-drawer{position:fixed;right:0;top:0;bottom:0;width:560px;background:var(--s1);border-left:1px solid var(--border2);z-index:60;display:flex;flex-direction:column;transform:translateX(100%);transition:transform 0.28s cubic-bezier(.4,0,.2,1);}
 .cp-drawer.open{transform:translateX(0);}
-.cp-tab{padding:7px 9px;font-size:11px;font-weight:600;border:none;background:none;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.12s;}
+.cp-tab{padding:8px 16px;font-size:12px;font-weight:600;border:none;background:none;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.12s;}
 .cp-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
 .cp-section-title{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--accent);margin:16px 0 8px;}
 .cp-stat-box{background:var(--s3);border-radius:10px;padding:12px;text-align:center;}
@@ -3105,7 +3105,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   </div>
 
   <!-- tabs -->
-  <div style="display:flex;border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;scrollbar-width:none;" id="cp-tabs-bar">
+  <div style="display:flex;border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;">
     <button class="cp-tab active" id="cpt-overview" onclick="setCPTab('overview')">Przegląd</button>
     <button class="cp-tab" id="cpt-training" onclick="setCPTab('training')">Treningi</button>
     <button class="cp-tab" id="cpt-plan" onclick="setCPTab('plan')">Plan</button>
@@ -14117,74 +14117,55 @@ function updateClientUnit(clientId,key,value){
 function renderCPPosture(c){
   if(!c._posture)c._posture={photos:{front:null,side:null,back:null},analyses:[],currentPhoto:null};
   const p=c._posture;
+  const labels={front:'Przód',side:'Bok',back:'Tył'};
+  const ICONS={front:'🫁',side:'🏃',back:'🔙'};
+
+  const photoSlots=['front','side','back'].map(view=>{
+    const has=p.photos[view];
+    const active=p.currentPhoto===view;
+    return `<label style="cursor:pointer;display:block;">
+      <input type="file" accept="image/*" style="display:none;" onchange="postureUploadPhoto('${c.id}','${view}',this)">
+      <div style="border:2px ${has?(active?'solid var(--accent)':'solid var(--border2)'):'dashed var(--border2)'};border-radius:12px;overflow:hidden;background:${has?'transparent':'var(--s3)'};transition:border-color 0.15s;" onclick="if(this.parentElement.querySelector('input').files.length===0&&${has?'true':'false'})postureSetActive('${c.id}','${view}')">
+        ${has?`<img src="${has}" style="width:100%;height:110px;object-fit:cover;display:block;">`
+            :`<div style="height:110px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;"><div style="font-size:28px;opacity:0.4;">${ICONS[view]}</div><div style="font-size:10px;color:var(--muted);">+ Wgraj</div></div>`}
+        <div style="padding:6px 8px;background:${active&&has?'rgba(200,241,53,0.1)':'var(--s2)'};border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:11px;font-weight:700;color:${active&&has?'var(--accent)':'var(--text)'};">${labels[view]}</span>
+          ${has?`<span style="font-size:9px;color:var(--muted);">zmień</span>`:`<span style="font-size:9px;color:var(--muted);">brak</span>`}
+        </div>
+      </div>
+    </label>`;
+  }).join('');
+
+  const viewBtns=Object.entries(labels).filter(([v])=>p.photos[v]).map(([v,l])=>
+    `<button onclick="postureSetActive('${c.id}','${v}')" style="padding:5px 14px;border-radius:6px;border:1px solid ${p.currentPhoto===v?'var(--accent)':'var(--border2)'};background:${p.currentPhoto===v?'rgba(200,241,53,0.1)':'var(--s3)'};color:${p.currentPhoto===v?'var(--accent)':'var(--muted)'};font-size:11px;font-weight:${p.currentPhoto===v?700:400};cursor:pointer;transition:all 0.12s;">${l}</button>`
+  ).join('');
 
   document.getElementById('cp-body').innerHTML=`
-    <div class="cp-section-title">🧍 OCENA POSTAWY — AI</div>
-    <div style="background:var(--adim);border:1px solid rgba(200,241,53,0.15);border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:11px;color:var(--muted);line-height:1.6;">
-      Wgraj zdjęcie klienta (przód, bok lub tył). AI przeanalizuje postawę ciała, wykryje dysfunkcje i wskaże mięśnie wymagające pracy.
+    <div style="margin-bottom:14px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1.5px;color:var(--text);margin-bottom:4px;">🧍 OCENA POSTAWY — AI</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.5;">Wgraj zdjęcie klienta i uruchom analizę AI. Wynik zawiera wady postawy, słabe i skrócone mięśnie oraz gotowy program korekcyjny.</div>
     </div>
 
-    <!-- Upload zdjęć -->
-    <div style="margin-bottom:16px;">
-      <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Wgraj zdjęcie</div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;">
-        ${['front','side','back'].map(view=>{
-          const labels={front:'Przód',side:'Bok',back:'Tył'};
-          const icons={front:'⬆','side':'➡','back':'⬇'};
-          const hasPhoto=p.photos[view];
-          return `<label style="cursor:pointer;">
-            <input type="file" accept="image/*" style="display:none;" onchange="postureUploadPhoto('${c.id}','${view}',this)">
-            <div style="background:${hasPhoto?'rgba(200,241,53,0.08)':'var(--s3)'};border:2px ${hasPhoto?'solid var(--accent)':'dashed var(--border2)'};border-radius:10px;padding:12px 8px;text-align:center;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='${hasPhoto?'var(--accent)':'var(--border2)'}'">
-              ${hasPhoto
-                ? `<img src="${hasPhoto}" style="width:100%;height:80px;object-fit:cover;border-radius:6px;margin-bottom:4px;">`
-                : `<div style="font-size:28px;margin-bottom:4px;">${icons[view]}</div>`
-              }
-              <div style="font-size:11px;font-weight:600;color:${hasPhoto?'var(--accent)':'var(--muted)'};">${labels[view]}</div>
-              <div style="font-size:9px;color:var(--muted);">${hasPhoto?'Kliknij aby zmienić':'Kliknij aby wgrać'}</div>
-            </div>
-          </label>`;
-        }).join('')}
-      </div>
-
-      <!-- Wybór aktywnego zdjęcia do analizy -->
-      ${Object.values(p.photos).some(x=>x) ? `
-      <div style="margin-bottom:10px;">
-        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Analizuj zdjęcie</div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;">
-          ${['front','side','back'].filter(v=>p.photos[v]).map(v=>{
-            const labels={front:'Przód',side:'Bok',back:'Tył'};
-            return `<button onclick="postureSetActive('${c.id}','${v}')" style="padding:5px 12px;border-radius:6px;border:1px solid ${p.currentPhoto===v?'var(--accent)':'var(--border2)'};background:${p.currentPhoto===v?'rgba(200,241,53,0.1)':'var(--s3)'};color:${p.currentPhoto===v?'var(--accent)':'var(--muted)'};font-size:11px;cursor:pointer;">${labels[v]}</button>`;
-          }).join('')}
-        </div>
-      </div>
-      <button class="btn btn-primary" style="width:100%;padding:11px;" onclick="postureAnalyze('${c.id}')" id="posture-analyze-btn">
-        🔍 Analizuj postawę AI
-      </button>` : ''}
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;">
+      ${photoSlots}
     </div>
 
-    <!-- Wyniki analiz -->
-    <div id="posture-results">
-      ${p.analyses.length ? renderPostureResults(p.analyses) : `
-        <div style="text-align:center;padding:24px;color:var(--muted);font-size:12px;">
-          <div style="font-size:36px;margin-bottom:8px;opacity:0.3;">🧍</div>
-          Wgraj zdjęcie aby rozpocząć analizę
-        </div>
-      `}
-    </div>`;
-}
+    ${Object.values(p.photos).some(x=>x)?`
+    <div style="margin-bottom:12px;">
+      <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Wybierz zdjęcie do analizy</div>
+      <div style="display:flex;gap:6px;">${viewBtns}</div>
+    </div>
+    <button class="btn btn-primary" style="width:100%;padding:12px;font-size:13px;font-weight:700;letter-spacing:0.5px;" onclick="postureAnalyze('${c.id}')" id="posture-analyze-btn">
+      🔍 Analizuj postawę AI
+    </button>`:''}
 
-function renderPostureResults(analyses){
-  if(!analyses.length) return '';
-  const latest = analyses[analyses.length-1];
-  return `
-    <div style="margin-top:4px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Wyniki analizy</div>
-        <div style="font-size:10px;color:var(--muted);">${latest.date} · ${latest.view||''}</div>
-      </div>
-      <div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:14px;font-size:12px;line-height:1.7;color:var(--text);white-space:pre-wrap;">${latest.result}</div>
-      ${analyses.length>1?`<div style="margin-top:8px;font-size:11px;color:var(--muted);cursor:pointer;" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">📋 Poprzednie analizy (${analyses.length-1})</div>
-      <div style="display:none;">${analyses.slice(0,-1).reverse().map(a=>`<div style="background:var(--s3);border-radius:8px;padding:10px;margin-top:6px;font-size:11px;color:var(--muted);">${a.date} · ${a.view||''}<br><br>${a.result}</div>`).join('')}</div>`:''}
+    <div id="posture-results" style="margin-top:14px;">
+      ${p.analyses.length?renderPostureResults(p.analyses):`
+        <div style="text-align:center;padding:32px 16px;color:var(--muted);">
+          <div style="font-size:42px;margin-bottom:10px;opacity:0.2;">🧍</div>
+          <div style="font-size:12px;font-weight:600;margin-bottom:4px;">Brak analiz</div>
+          <div style="font-size:11px;">Wgraj zdjęcie i kliknij Analizuj</div>
+        </div>`}
     </div>`;
 }
 
