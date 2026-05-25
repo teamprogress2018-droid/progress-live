@@ -13966,12 +13966,15 @@ window.cpMpView=cpMpView;
 window.cpMpTab=cpMpTab;
 
 function openAddSessionFromCP(clientId,date){
-  try{
-    const se=document.getElementById('se-client');if(se)se.value=clientId;
-    const sd=document.getElementById('se-date');if(sd)sd.value=date;
-    openM('m-session');
-  }catch(e){notify('Otwórz sesję z kalendarza głównego');}
+  const sel=document.getElementById('as-client');
+  if(sel)sel.innerHTML=CL.map(c=>'<option value="'+c.id+'"'+(c.id===clientId?' selected':'')+'>'+c.name+'</option>').join('');
+  const dateEl=document.getElementById('as-date');
+  if(dateEl)dateEl.value=date||new Date().toISOString().split('T')[0];
+  const timeEl=document.getElementById('as-time');
+  if(timeEl&&!timeEl.value)timeEl.value='10:00';
+  openM('m-session');
 }
+ 
 
 // ══════════════════════════════════════════════════════
 // CP — FOOD JOURNAL (dziennik żywieniowy)
@@ -14183,7 +14186,29 @@ function updateClientUnit(clientId,key,value){
 // ═══════════════════════════════════════════════════════
 // OCENA POSTAWY AI
 // ═══════════════════════════════════════════════════════
-function renderCPPosture(c){
+function renderPostureResults(analyses){
+  if(!analyses||!analyses.length)return'';
+  return analyses.map((a,i)=>`
+    <div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;animation:fadeUp 0.2s ease both;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div>
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--accent);">ANALIZA ${(a.view||'ZDJĘCIA').toUpperCase()}</span>
+          <span style="margin-left:8px;font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${a.date}</span>
+        </div>
+        <button onclick="deletePostureAnalysis(${i})" style="background:none;border:none;color:var(--muted2);font-size:16px;cursor:pointer;line-height:1;">×</button>
+      </div>
+      <div style="font-size:12px;line-height:1.8;white-space:pre-line;color:var(--text);">${a.result}</div>
+    </div>`).join('');
+}
+
+function deletePostureAnalysis(idx){
+  const c=CL.find(x=>x.id===cpClientId);
+  if(!c||!c._posture)return;
+  c._posture.analyses.splice(idx,1);
+  setCPTab('posture');
+  notify('Analiza usunięta');
+}
+window.deletePostureAnalysis=deletePostureAnalysis;function renderCPPosture(c){
   if(!c._posture)c._posture={photos:{front:null,side:null,back:null},analyses:[],currentPhoto:null};
   const p=c._posture;
   const labels={front:'Przód',side:'Bok',back:'Tył'};
