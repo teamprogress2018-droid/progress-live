@@ -480,7 +480,7 @@ async function sendMessage(userMsg) {
   scrollToBottom();
   conversationHistory.push({ role:'user', content:message });
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('https://anthropic-proxy.teamprogress2018.workers.dev', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
