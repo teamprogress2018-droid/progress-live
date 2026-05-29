@@ -638,6 +638,511 @@ input[type=checkbox]{display:none;}
 #private-mode-btn.active{background:rgba(255,140,66,0.15);border-radius:6px;}
 #private-mode-btn.active svg{stroke:var(--orange);}
 @keyframes slideIn{from{opacity:0;transform:translateX(16px);}to{opacity:1;transform:translateX(0);}}
+/* === AI COACH v2 CSS === */
+#screen-aicoach .aic-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  height: calc(100vh - 112px);
+  gap: 0;
+  overflow: hidden;
+}
+#screen-aicoach .aic-sidebar {
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#screen-aicoach .aic-stabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+#screen-aicoach .aic-stab {
+  flex: 1;
+  padding: 9px 4px;
+  background: transparent;
+  border: none;
+  color: var(--tx3);
+  font-size: 9px;
+  cursor: pointer;
+  font-family: 'DM Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.15s;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+#screen-aicoach .aic-stab.active {
+  color: var(--ac);
+  border-bottom-color: var(--ac);
+}
+#screen-aicoach .aic-panel {
+  display: none;
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+}
+#screen-aicoach .aic-panel.active {
+  display: block;
+}
+#screen-aicoach .aic-panel::-webkit-scrollbar { width: 3px; }
+#screen-aicoach .aic-panel::-webkit-scrollbar-thumb { background: var(--bg3); }
+#screen-aicoach .aic-main {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg);
+}
+#screen-aicoach .aic-topbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+#screen-aicoach .aic-mode-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(200,241,53,0.1);
+  border: 1px solid rgba(200,241,53,0.2);
+  border-radius: 99px;
+  padding: 2px 10px;
+  font-size: 10px;
+  color: var(--ac);
+  font-family: 'DM Mono', monospace;
+}
+#screen-aicoach .aic-kb-badge {
+  font-size: 10px;
+  color: #4ade80;
+  font-family: 'DM Mono', monospace;
+  background: rgba(74,222,128,0.08);
+  border: 1px solid rgba(74,222,128,0.2);
+  border-radius: 99px;
+  padding: 2px 8px;
+}
+#screen-aicoach .aic-chat {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  scroll-behavior: smooth;
+}
+#screen-aicoach .aic-chat::-webkit-scrollbar { width: 4px; }
+#screen-aicoach .aic-chat::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 2px; }
+#screen-aicoach .aic-msg {
+  display: flex;
+  gap: 9px;
+  margin-bottom: 14px;
+  animation: aicFadeUp 0.2s ease;
+}
+@keyframes aicFadeUp {
+  from { opacity:0; transform:translateY(8px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+#screen-aicoach .aic-msg.user { flex-direction: row-reverse; }
+#screen-aicoach .aic-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  flex-shrink: 0;
+  font-weight: 700;
+  font-family: 'DM Mono', monospace;
+}
+#screen-aicoach .aic-msg.ai .aic-avatar {
+  background: rgba(200,241,53,0.12);
+  color: var(--ac);
+}
+#screen-aicoach .aic-msg.user .aic-avatar {
+  background: rgba(96,165,250,0.15);
+  color: #60a5fa;
+}
+#screen-aicoach .aic-bubble {
+  max-width: 74%;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 13px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--tx);
+}
+#screen-aicoach .aic-msg.user .aic-bubble {
+  background: rgba(96,165,250,0.07);
+  border-color: rgba(96,165,250,0.2);
+}
+#screen-aicoach .aic-bubble h3 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ac);
+  margin: 8px 0 4px;
+}
+#screen-aicoach .aic-bubble ul { padding-left: 14px; margin: 4px 0; }
+#screen-aicoach .aic-bubble li { margin-bottom: 2px; }
+#screen-aicoach .aic-bubble p { margin: 4px 0; }
+#screen-aicoach .aic-time {
+  font-size: 9px;
+  color: var(--tx3);
+  font-family: 'DM Mono', monospace;
+  margin-top: 3px;
+}
+#screen-aicoach .aic-msg.user .aic-time { text-align: right; }
+#screen-aicoach .aic-typing {
+  display: none;
+  align-items: center;
+  gap: 9px;
+  padding: 0 16px;
+  margin-bottom: 12px;
+}
+#screen-aicoach .aic-typing.visible { display: flex; }
+#screen-aicoach .aic-dots {
+  display: flex;
+  gap: 4px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 9px 13px;
+}
+#screen-aicoach .aic-dots span {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--tx3);
+  animation: aicDot 1.4s infinite;
+}
+#screen-aicoach .aic-dots span:nth-child(2) { animation-delay: 0.2s; }
+#screen-aicoach .aic-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes aicDot {
+  0%,80%,100% { transform:scale(0.6); opacity:0.4; }
+  40% { transform:scale(1); opacity:1; }
+}
+#screen-aicoach .aic-input-area {
+  padding: 12px 16px 14px;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+#screen-aicoach .aic-input-wrap {
+  display: flex;
+  gap: 9px;
+  align-items: flex-end;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 9px 11px;
+  transition: border-color 0.15s;
+}
+#screen-aicoach .aic-input-wrap:focus-within {
+  border-color: rgba(200,241,53,0.35);
+}
+#screen-aicoach #aic-input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--tx);
+  font-size: 13px;
+  font-family: 'DM Sans', sans-serif;
+  resize: none;
+  max-height: 120px;
+  line-height: 1.5;
+}
+#screen-aicoach #aic-input::placeholder { color: var(--tx3); }
+#screen-aicoach .aic-send-btn {
+  background: var(--ac);
+  border: none;
+  border-radius: 7px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s;
+  color: #000;
+  font-size: 13px;
+  font-weight: 700;
+}
+#screen-aicoach .aic-send-btn:hover { opacity: 0.85; transform: scale(1.05); }
+#screen-aicoach .aic-send-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+#screen-aicoach .aic-section-title {
+  font-size: 9px;
+  font-family: 'DM Mono', monospace;
+  color: var(--tx3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+#screen-aicoach .aic-fg { margin-bottom: 9px; }
+#screen-aicoach .aic-fg label {
+  display: block;
+  font-size: 9px;
+  color: var(--tx3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 3px;
+  font-family: 'DM Mono', monospace;
+}
+#screen-aicoach .aic-fg input,
+#screen-aicoach .aic-fg select,
+#screen-aicoach .aic-fg textarea {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  color: var(--tx);
+  font-size: 12px;
+  font-family: 'DM Sans', sans-serif;
+  outline: none;
+  transition: border-color 0.15s;
+  resize: vertical;
+}
+#screen-aicoach .aic-fg input:focus,
+#screen-aicoach .aic-fg select:focus,
+#screen-aicoach .aic-fg textarea:focus { border-color: var(--ac); }
+#screen-aicoach .aic-fg select option { background: #1a1a1a; }
+#screen-aicoach .aic-mode-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+#screen-aicoach .aic-mode-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 6px 4px;
+  color: var(--tx2);
+  font-size: 9px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
+  font-family: 'DM Mono', monospace;
+  line-height: 1.4;
+}
+#screen-aicoach .aic-mode-btn.active {
+  background: rgba(200,241,53,0.1);
+  border-color: var(--ac);
+  color: var(--ac);
+}
+#screen-aicoach .aic-phil-box {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+#screen-aicoach .aic-phil-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ac);
+  margin-bottom: 4px;
+}
+#screen-aicoach .aic-phil-desc {
+  font-size: 10px;
+  color: var(--tx3);
+  line-height: 1.5;
+  margin-bottom: 6px;
+}
+#screen-aicoach .aic-phil-ta {
+  width: 100%;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 7px;
+  color: var(--tx);
+  font-size: 11px;
+  font-family: 'DM Sans', sans-serif;
+  outline: none;
+  resize: vertical;
+  line-height: 1.6;
+  min-height: 70px;
+}
+#screen-aicoach .aic-phil-ta:focus { border-color: var(--ac); }
+#screen-aicoach .aic-save-btn {
+  background: var(--ac);
+  border: none;
+  border-radius: 7px;
+  padding: 6px 14px;
+  color: #000;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.15s;
+  margin-top: 4px;
+}
+#screen-aicoach .aic-save-btn:hover { opacity: 0.85; }
+#screen-aicoach .aic-saved {
+  display: none;
+  font-size: 10px;
+  color: #4ade80;
+  font-family: 'DM Mono', monospace;
+  margin-left: 8px;
+}
+#screen-aicoach .aic-saved.show { display: inline; }
+#screen-aicoach .aic-upload-zone {
+  border: 2px dashed var(--border);
+  border-radius: 9px;
+  padding: 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-bottom: 8px;
+}
+#screen-aicoach .aic-upload-zone:hover {
+  border-color: var(--ac);
+  background: rgba(200,241,53,0.04);
+}
+#screen-aicoach .aic-upload-icon { font-size: 24px; margin-bottom: 4px; }
+#screen-aicoach .aic-upload-text { font-size: 12px; color: var(--tx2); }
+#screen-aicoach .aic-upload-sub { font-size: 10px; color: var(--tx3); margin-top: 2px; }
+#screen-aicoach .aic-or { text-align: center; font-size: 10px; color: var(--tx3); font-family: 'DM Mono', monospace; margin: 6px 0; }
+#screen-aicoach .aic-text-input {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px;
+}
+#screen-aicoach .aic-text-input textarea {
+  width: 100%;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--tx);
+  font-size: 11px;
+  font-family: 'DM Sans', sans-serif;
+  resize: vertical;
+  min-height: 70px;
+  line-height: 1.6;
+}
+#screen-aicoach .aic-text-label {
+  font-size: 9px;
+  color: var(--tx3);
+  font-family: 'DM Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 5px;
+}
+#screen-aicoach .aic-add-btn {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 6px;
+  color: var(--tx2);
+  font-size: 11px;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.15s;
+  margin-top: 5px;
+}
+#screen-aicoach .aic-add-btn:hover { border-color: var(--ac); color: var(--ac); }
+#screen-aicoach .aic-kb-item {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 8px 10px;
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+#screen-aicoach .aic-kb-info { flex: 1; min-width: 0; }
+#screen-aicoach .aic-kb-name {
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#screen-aicoach .aic-kb-meta { font-size: 9px; color: var(--tx3); font-family: 'DM Mono', monospace; }
+#screen-aicoach .aic-kb-del {
+  background: none;
+  border: none;
+  color: var(--tx3);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+#screen-aicoach .aic-kb-del:hover { color: var(--ac); }
+#screen-aicoach .aic-quick-btns { display: flex; flex-direction: column; gap: 5px; }
+#screen-aicoach .aic-quick-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 8px 10px;
+  color: var(--tx);
+  font-size: 11px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+  font-family: 'DM Sans', sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+}
+#screen-aicoach .aic-quick-btn:hover {
+  background: rgba(200,241,53,0.07);
+  border-color: var(--ac);
+  color: var(--ac);
+}
+#screen-aicoach .aic-welcome {
+  text-align: center;
+  padding: 30px 20px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+#screen-aicoach .aic-welcome-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 36px;
+  letter-spacing: 3px;
+  color: var(--ac);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+#screen-aicoach .aic-welcome-sub {
+  font-size: 11px;
+  color: var(--tx2);
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+#screen-aicoach .aic-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+#screen-aicoach .aic-chip {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  padding: 5px 13px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: var(--tx2);
+}
+#screen-aicoach .aic-chip:hover {
+  border-color: var(--ac);
+  color: var(--ac);
+  background: rgba(200,241,53,0.06);
+}
+/* === END AI COACH v2 CSS === */
 </style>
 </head>
 <body>
@@ -7024,7 +7529,54 @@ function aicLoadSession(idx){
 function aicRenderAllMsgs(){
   const el=document.getElementById('aic-msgs');if(!el)return;
   el.innerHTML='';
-  aicMsgs.forEach(m=>aicAddMsgDOM(m.role,m.html,false));
+  aicMsgs.forEach(m=>function aicAddMsgDOM(role, html, scroll){
+  const el = document.getElementById('aic-msgs');
+  if(!el) return;
+  const isUser = role === 'user';
+  const div = document.createElement('div');
+  div.className = 'aic-msg';
+  div.style.display = 'flex';
+  div.style.justifyContent = isUser ? 'flex-end' : 'flex-start';
+  div.style.alignItems = 'flex-start';
+  div.style.gap = '8px';
+
+  const isPlan = !isUser && (
+    html.includes('serii') || html.includes('powtórzeń') ||
+    html.includes('PLAN TRENINGOWY') || html.includes('Wyciskanie') ||
+    html.includes('Przysiad') || html.includes('RPE') ||
+    html.includes('PUSH') || html.includes('PULL')
+  );
+
+  if(isUser){
+    div.innerHTML = `<div class="aic-bubble-user">${html}</div>`;
+  } else {
+    const dlBtn = isPlan ? `
+    <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.08);display:flex;gap:8px;">
+      <button onclick="downloadPlanAsTxt(this)" data-html="${encodeURIComponent(html)}"
+        style="flex:1;padding:8px 12px;background:var(--accent);color:#000;border:none;
+        border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;display:flex;
+        align-items:center;justify-content:center;gap:6px;">
+        ⬇ Pobierz plan (.txt)
+      </button>
+      <button onclick="copyPlanToClipboard(this)" data-html="${encodeURIComponent(html)}"
+        style="padding:8px 12px;background:var(--s3);color:var(--text);border:1px solid
+        var(--border2);border-radius:8px;font-size:12px;cursor:pointer;">
+        📋 Kopiuj
+      </button>
+    </div>` : '';
+
+    div.innerHTML = `
+      <div style="display:flex;gap:8px;align-items:flex-start;max-width:100%;">
+        <div style="width:28px;height:28px;border-radius:8px;background:var(--adim);
+          display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;">
+          <div class="ai-dot" style="width:8px;height:8px;"></div>
+        </div>
+        <div class="aic-bubble-ai">${html}${dlBtn}</div>
+      </div>`;
+  }
+  el.appendChild(div);
+  if(scroll) el.scrollTop = el.scrollHeight;
+}(m.role,m.html,false));
   el.scrollTop=el.scrollHeight;
 }
 
@@ -7044,7 +7596,54 @@ async function sendAICMsg(){
 
   // add user message
   aicMsgs.push({role:'user',html:escH(text)});
-  aicAddMsgDOM('user',escH(text),true);
+  function aicAddMsgDOM(role, html, scroll){
+  const el = document.getElementById('aic-msgs');
+  if(!el) return;
+  const isUser = role === 'user';
+  const div = document.createElement('div');
+  div.className = 'aic-msg';
+  div.style.display = 'flex';
+  div.style.justifyContent = isUser ? 'flex-end' : 'flex-start';
+  div.style.alignItems = 'flex-start';
+  div.style.gap = '8px';
+
+  const isPlan = !isUser && (
+    html.includes('serii') || html.includes('powtórzeń') ||
+    html.includes('PLAN TRENINGOWY') || html.includes('Wyciskanie') ||
+    html.includes('Przysiad') || html.includes('RPE') ||
+    html.includes('PUSH') || html.includes('PULL')
+  );
+
+  if(isUser){
+    div.innerHTML = `<div class="aic-bubble-user">${html}</div>`;
+  } else {
+    const dlBtn = isPlan ? `
+    <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.08);display:flex;gap:8px;">
+      <button onclick="downloadPlanAsTxt(this)" data-html="${encodeURIComponent(html)}"
+        style="flex:1;padding:8px 12px;background:var(--accent);color:#000;border:none;
+        border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;display:flex;
+        align-items:center;justify-content:center;gap:6px;">
+        ⬇ Pobierz plan (.txt)
+      </button>
+      <button onclick="copyPlanToClipboard(this)" data-html="${encodeURIComponent(html)}"
+        style="padding:8px 12px;background:var(--s3);color:var(--text);border:1px solid
+        var(--border2);border-radius:8px;font-size:12px;cursor:pointer;">
+        📋 Kopiuj
+      </button>
+    </div>` : '';
+
+    div.innerHTML = `
+      <div style="display:flex;gap:8px;align-items:flex-start;max-width:100%;">
+        <div style="width:28px;height:28px;border-radius:8px;background:var(--adim);
+          display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;">
+          <div class="ai-dot" style="width:8px;height:8px;"></div>
+        </div>
+        <div class="aic-bubble-ai">${html}${dlBtn}</div>
+      </div>`;
+  }
+  el.appendChild(div);
+  if(scroll) el.scrollTop = el.scrollHeight;
+}('user',escH(text),true);
   document.getElementById('aic-suggestions').innerHTML='';
 
   // build system prompt with client context
@@ -7123,7 +7722,54 @@ Notatki: ${c.notes||'—'}`;
     document.getElementById(typingId)?.remove();
     const html=aicMarkdownToHTML(raw);
     aicMsgs.push({role:'assistant',html,rawText:raw});
-    aicAddMsgDOM('assistant',html,true);
+    function aicAddMsgDOM(role, html, scroll){
+  const el = document.getElementById('aic-msgs');
+  if(!el) return;
+  const isUser = role === 'user';
+  const div = document.createElement('div');
+  div.className = 'aic-msg';
+  div.style.display = 'flex';
+  div.style.justifyContent = isUser ? 'flex-end' : 'flex-start';
+  div.style.alignItems = 'flex-start';
+  div.style.gap = '8px';
+
+  const isPlan = !isUser && (
+    html.includes('serii') || html.includes('powtórzeń') ||
+    html.includes('PLAN TRENINGOWY') || html.includes('Wyciskanie') ||
+    html.includes('Przysiad') || html.includes('RPE') ||
+    html.includes('PUSH') || html.includes('PULL')
+  );
+
+  if(isUser){
+    div.innerHTML = `<div class="aic-bubble-user">${html}</div>`;
+  } else {
+    const dlBtn = isPlan ? `
+    <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.08);display:flex;gap:8px;">
+      <button onclick="downloadPlanAsTxt(this)" data-html="${encodeURIComponent(html)}"
+        style="flex:1;padding:8px 12px;background:var(--accent);color:#000;border:none;
+        border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;display:flex;
+        align-items:center;justify-content:center;gap:6px;">
+        ⬇ Pobierz plan (.txt)
+      </button>
+      <button onclick="copyPlanToClipboard(this)" data-html="${encodeURIComponent(html)}"
+        style="padding:8px 12px;background:var(--s3);color:var(--text);border:1px solid
+        var(--border2);border-radius:8px;font-size:12px;cursor:pointer;">
+        📋 Kopiuj
+      </button>
+    </div>` : '';
+
+    div.innerHTML = `
+      <div style="display:flex;gap:8px;align-items:flex-start;max-width:100%;">
+        <div style="width:28px;height:28px;border-radius:8px;background:var(--adim);
+          display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;">
+          <div class="ai-dot" style="width:8px;height:8px;"></div>
+        </div>
+        <div class="aic-bubble-ai">${html}${dlBtn}</div>
+      </div>`;
+  }
+  el.appendChild(div);
+  if(scroll) el.scrollTop = el.scrollHeight;
+}('assistant',html,true);
     renderAICSuggestions(aicMode);
     // save to history
     aicSaveToHistory(text);
@@ -7131,7 +7777,54 @@ Notatki: ${c.notes||'—'}`;
     document.getElementById(typingId)?.remove();
     const errHtml='<span style="color:var(--red);">❌ Błąd połączenia z AI. Sprawdź połączenie internetowe.</span>';
     aicMsgs.push({role:'assistant',html:errHtml});
-    aicAddMsgDOM('assistant',errHtml,true);
+    function aicAddMsgDOM(role, html, scroll){
+  const el = document.getElementById('aic-msgs');
+  if(!el) return;
+  const isUser = role === 'user';
+  const div = document.createElement('div');
+  div.className = 'aic-msg';
+  div.style.display = 'flex';
+  div.style.justifyContent = isUser ? 'flex-end' : 'flex-start';
+  div.style.alignItems = 'flex-start';
+  div.style.gap = '8px';
+
+  const isPlan = !isUser && (
+    html.includes('serii') || html.includes('powtórzeń') ||
+    html.includes('PLAN TRENINGOWY') || html.includes('Wyciskanie') ||
+    html.includes('Przysiad') || html.includes('RPE') ||
+    html.includes('PUSH') || html.includes('PULL')
+  );
+
+  if(isUser){
+    div.innerHTML = `<div class="aic-bubble-user">${html}</div>`;
+  } else {
+    const dlBtn = isPlan ? `
+    <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.08);display:flex;gap:8px;">
+      <button onclick="downloadPlanAsTxt(this)" data-html="${encodeURIComponent(html)}"
+        style="flex:1;padding:8px 12px;background:var(--accent);color:#000;border:none;
+        border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;display:flex;
+        align-items:center;justify-content:center;gap:6px;">
+        ⬇ Pobierz plan (.txt)
+      </button>
+      <button onclick="copyPlanToClipboard(this)" data-html="${encodeURIComponent(html)}"
+        style="padding:8px 12px;background:var(--s3);color:var(--text);border:1px solid
+        var(--border2);border-radius:8px;font-size:12px;cursor:pointer;">
+        📋 Kopiuj
+      </button>
+    </div>` : '';
+
+    div.innerHTML = `
+      <div style="display:flex;gap:8px;align-items:flex-start;max-width:100%;">
+        <div style="width:28px;height:28px;border-radius:8px;background:var(--adim);
+          display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;">
+          <div class="ai-dot" style="width:8px;height:8px;"></div>
+        </div>
+        <div class="aic-bubble-ai">${html}${dlBtn}</div>
+      </div>`;
+  }
+  el.appendChild(div);
+  if(scroll) el.scrollTop = el.scrollHeight;
+}('assistant',errHtml,true);
   }
   aicLoading=false;
 }
@@ -7150,7 +7843,54 @@ function aicMarkdownToHTML(md){
     .replace(/\n/g,'<br>');
 }
 
-function aicAddMsgDOM(role,html,scroll){
+function function aicAddMsgDOM(role, html, scroll){
+  const el = document.getElementById('aic-msgs');
+  if(!el) return;
+  const isUser = role === 'user';
+  const div = document.createElement('div');
+  div.className = 'aic-msg';
+  div.style.display = 'flex';
+  div.style.justifyContent = isUser ? 'flex-end' : 'flex-start';
+  div.style.alignItems = 'flex-start';
+  div.style.gap = '8px';
+
+  const isPlan = !isUser && (
+    html.includes('serii') || html.includes('powtórzeń') ||
+    html.includes('PLAN TRENINGOWY') || html.includes('Wyciskanie') ||
+    html.includes('Przysiad') || html.includes('RPE') ||
+    html.includes('PUSH') || html.includes('PULL')
+  );
+
+  if(isUser){
+    div.innerHTML = `<div class="aic-bubble-user">${html}</div>`;
+  } else {
+    const dlBtn = isPlan ? `
+    <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.08);display:flex;gap:8px;">
+      <button onclick="downloadPlanAsTxt(this)" data-html="${encodeURIComponent(html)}"
+        style="flex:1;padding:8px 12px;background:var(--accent);color:#000;border:none;
+        border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;display:flex;
+        align-items:center;justify-content:center;gap:6px;">
+        ⬇ Pobierz plan (.txt)
+      </button>
+      <button onclick="copyPlanToClipboard(this)" data-html="${encodeURIComponent(html)}"
+        style="padding:8px 12px;background:var(--s3);color:var(--text);border:1px solid
+        var(--border2);border-radius:8px;font-size:12px;cursor:pointer;">
+        📋 Kopiuj
+      </button>
+    </div>` : '';
+
+    div.innerHTML = `
+      <div style="display:flex;gap:8px;align-items:flex-start;max-width:100%;">
+        <div style="width:28px;height:28px;border-radius:8px;background:var(--adim);
+          display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;">
+          <div class="ai-dot" style="width:8px;height:8px;"></div>
+        </div>
+        <div class="aic-bubble-ai">${html}${dlBtn}</div>
+      </div>`;
+  }
+  el.appendChild(div);
+  if(scroll) el.scrollTop = el.scrollHeight;
+}(role,html,scroll){
   const el=document.getElementById('aic-msgs');if(!el)return;
   const isUser=role==='user';
   const div=document.createElement('div');
