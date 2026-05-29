@@ -7576,6 +7576,36 @@ function aicRenderAllMsgs(){
   }
   el.appendChild(div);
   if(scroll) el.scrollTop = el.scrollHeight;
+  function downloadPlanAsTxt(btn){
+  const raw = decodeURIComponent(btn.dataset.html);
+  const text = raw.replace(/<h3>/g,'=== ').replace(/<\/h3>/g,' ===\n')
+    .replace(/<strong>/g,'').replace(/<\/strong>/g,'')
+    .replace(/<li>/g,'• ').replace(/<\/li>/g,'\n')
+    .replace(/<ul>|<\/ul>/g,'').replace(/<br>|<\/p>|<p>/g,'\n')
+    .replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' ')
+    .replace(/\n{3,}/g,'\n\n').trim();
+  const d = new Date().toISOString().split('T')[0];
+  const blob = new Blob(['PLAN TRENINGOWY — '+d+'\n'+'='.repeat(40)+'\n\n'+text],
+    {type:'text/plain;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'plan_treningowy_'+d+'.txt';
+  a.click(); URL.revokeObjectURL(a.href);
+  btn.textContent = '✓ Pobrano!';
+  setTimeout(()=>btn.innerHTML='⬇ Pobierz plan (.txt)', 2000);
+}
+
+function copyPlanToClipboard(btn){
+  const raw = decodeURIComponent(btn.dataset.html);
+  const text = raw.replace(/<[^>]+>/g,'').replace(/\n{3,}/g,'\n\n').trim();
+  navigator.clipboard.writeText(text).then(()=>{
+    btn.textContent = '✓ Skopiowano!';
+    setTimeout(()=>btn.textContent='📋 Kopiuj', 2000);
+  });
+}
+
+window.downloadPlanAsTxt = downloadPlanAsTxt;
+window.copyPlanToClipboard = copyPlanToClipboard;
 }(m.role,m.html,false));
   el.scrollTop=el.scrollHeight;
 }
