@@ -688,6 +688,8 @@ input[type=checkbox]{display:none;}
       <button class="nav-item" onclick="goTo('integrations')"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Integracje</button>
       <button class="nav-item" onclick="openReportModal()"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Raporty</button>
       <button class="nav-item" onclick="goTo('settings')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Ustawienia</button>
+      <button class="nav-item" onclick="goTo('aicoach')"><svg viewBox="0 0 24 24"><path d="M12 2a4 4 0 0 0-4 4c0 1.5.8 2.8 2 3.5V12H8a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h1v2a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-2h1a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-2V9.5c1.2-.7 2-2 2-3.5a4 4 0 0 0-4-4z"/></svg>AI Coach</button>
+      <button class="nav-item" onclick="goTo('kb')"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>Baza Wiedzy</button>
     </div>
 
   </nav>
@@ -815,7 +817,7 @@ input[type=checkbox]{display:none;}
 
 <!-- CLIENTS -->
 <div class="screen" id="screen-clients">
-  <div class="topbar"><div class="topbar-title">Klienci</div><div class="topbar-actions"><button class="btn btn-primary btn-sm" onclick="openM('m-client')">+ Dodaj klienta</button></div></div>
+  <div class="topbar"><div class="topbar-title">Klienci</div><div class="topbar-actions"><button class="btn btn-ghost btn-sm" onclick="openM('m-fitebo')">📥 Import z Fitebo</button><button class="btn btn-primary btn-sm" onclick="openM('m-client')">+ Dodaj klienta</button></div></div>
   <div style="display:flex;flex:1;overflow:hidden;">
     <div style="width:200px;flex-shrink:0;border-right:1px solid var(--border);padding:12px 0;overflow-y:auto;">
       <div style="padding:0 12px;margin-bottom:8px;"><input type="text" placeholder="Szukaj..." id="client-search" oninput="filterClients()" style="width:100%;background:var(--s3);border:1px solid var(--border);border-radius:6px;padding:6px 9px;color:var(--text);font-size:12px;"></div>
@@ -2125,6 +2127,22 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   </div>
 </div>
 
+<!-- BAZA WIEDZY -->
+<div class="screen" id="screen-kb">
+  <div class="topbar">
+    <div class="topbar-title">Baza wiedzy</div>
+    <div class="topbar-actions">
+      <button class="btn btn-primary btn-sm" onclick="openM('m-kb')">+ Dodaj wpis</button>
+    </div>
+  </div>
+  <div class="content">
+    <div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6;max-width:600px;">
+      Notatki, filozofia treningowa i wiedza, którą AI Coach automatycznie wykorzysta jako kontekst przy odpowiadaniu na Twoje pytania w zakładce AI Coach.
+    </div>
+    <div id="kb-list" style="display:flex;flex-direction:column;gap:10px;max-width:700px;"></div>
+  </div>
+</div>
+
 <!-- SETTINGS — USTAWIENIA -->
 <div class="screen" id="screen-settings">
   <div class="topbar">
@@ -3107,6 +3125,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   <!-- tabs -->
   <div style="display:flex;border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;">
     <button class="cp-tab active" id="cpt-overview" onclick="setCPTab('overview')">Przegląd</button>
+    <button class="cp-tab" id="cpt-timeline" onclick="setCPTab('timeline')">Oś czasu</button>
     <button class="cp-tab" id="cpt-training" onclick="setCPTab('training')">Treningi</button>
     <button class="cp-tab" id="cpt-plan" onclick="setCPTab('plan')">Plan</button>
     <button class="cp-tab" id="cpt-posture" onclick="setCPTab('posture')" style="color:var(--accent);font-weight:700;">🧍 Postawa</button>
@@ -3162,6 +3181,42 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 </div>
 
 <!-- ═══════════ MODALS ═══════════ -->
+
+<!-- Baza Wiedzy -->
+<div class="modal-ov" id="m-kb">
+  <div class="modal">
+    <div class="modal-hdr"><div class="modal-title">NOWY WPIS DO BAZY WIEDZY</div><button class="modal-close" onclick="closeM('m-kb')">×</button></div>
+    <div class="modal-body">
+      <div class="form-field"><label class="form-lbl">Tytuł</label><input type="text" class="form-input" id="kb-title" placeholder="np. Moja filozofia treningowa"></div>
+      <div class="form-field"><label class="form-lbl">Treść</label><textarea class="form-textarea" id="kb-text" rows="6" placeholder="Wklej notatkę, zasady, artykuł którym się kierujesz..."></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-kb')">Anuluj</button><button class="btn btn-primary" onclick="saveKBEntry()">Zapisz</button></div>
+  </div>
+</div>
+
+<!-- Import z Fitebo -->
+<div class="modal-ov" id="m-fitebo">
+  <div class="modal modal-wide">
+    <div class="modal-hdr"><div class="modal-title">📥 IMPORT KLIENTÓW Z FITEBO</div><button class="modal-close" onclick="closeM('m-fitebo')">×</button></div>
+    <div class="modal-body">
+      <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:14px;">
+        Wklej dane skopiowane z Fitebo (karta klienta, pomiary, historia treningów) albo wgraj zrzuty ekranu. AI rozpozna klienta/klientów i dopasuje dane do Progress Live. Możesz wkleić kilku klientów naraz.
+      </div>
+      <label style="display:inline-flex;align-items:center;gap:8px;background:var(--s3);border:1px dashed var(--border2);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--muted);cursor:pointer;margin-bottom:8px;margin-right:6px;">
+        📎 Wgraj plik (CSV/TXT)
+        <input type="file" accept=".csv,.txt" style="display:none;" onchange="fbFileLoad(this)">
+      </label>
+      <label style="display:inline-flex;align-items:center;gap:8px;background:var(--s3);border:1px dashed var(--border2);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--muted);cursor:pointer;margin-bottom:10px;">
+        📷 Wgraj zrzuty ekranu (max 8)
+        <input type="file" accept="image/*" multiple style="display:none;" onchange="fbImagesLoad(this)">
+      </label>
+      <div id="fb-img-previews" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;"></div>
+      <textarea id="fb-paste" rows="8" placeholder="Wklej dane z Fitebo (imię, wiek, waga, wzrost, cel, historia pomiarów, log treningowy)..." class="form-textarea"></textarea>
+      <button class="btn btn-primary" style="width:100%;margin-top:10px;" id="fb-analyze-btn" onclick="fbAnalyze()">🔍 Analizuj (AI)</button>
+      <div id="fb-result" style="margin-top:14px;"></div>
+    </div>
+  </div>
+</div>
 
 <!-- Klient -->
 <div class="modal-ov" id="m-client">
@@ -3814,6 +3869,9 @@ async function load(){
   try{const s=await getDocs(collection(db,'exercises'));window.EX=[];s.forEach(d=>window.EX.push({id:d.id,...d.data()}));}catch(e){window.EX=[];}
   try{const s=await getDocs(collection(db,'workouts'));window.WO=[];s.forEach(d=>window.WO.push({id:d.id,...d.data()}));}catch(e){window.WO=[];}
 try{const s2=await getDocs(collection(db,'tasks'));window.TASKS=[];s2.forEach(d=>window.TASKS.push({id:d.id,...d.data()}));}catch(e){window.TASKS=[];}
+  try{const s3=await getDocs(collection(db,'kb'));window.KB=[];s3.forEach(d=>window.KB.push({id:d.id,...d.data()}));}catch(e){window.KB=[];}
+  try{const s4=await getDocs(collection(db,'metricEntries'));window.METRIC_ENTRIES=[];s4.forEach(d=>window.METRIC_ENTRIES.push({id:d.id,...d.data()}));}catch(e){window.METRIC_ENTRIES=[];}
+  try{const s5=await getDocs(collection(db,'metricGroups'));window.METRIC_GROUPS=[];s5.forEach(d=>window.METRIC_GROUPS.push({id:d.id,...d.data()}));}catch(e){window.METRIC_GROUPS=[];}
   window.renderAll();
 }
 setTimeout(load,300);
@@ -3893,6 +3951,7 @@ function goTo(n){
   if(n==='live'){initLive();}
   if(n==='templates'){initTemplates();}
   if(n==='onboarding'){initOnboarding();}
+  if(n==='kb'){renderKB();}
 }
 
 function openM(id){
@@ -7051,6 +7110,7 @@ async function sendAICMsg(){
   let systemPrompt=AIC_MODES[aicMode]?.system||AIC_MODES.coach.system;
   systemPrompt+=`\n\nDziś: ${new Date().toLocaleDateString('pl',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}`;
   systemPrompt+=`\nTrener: Piotr Urbaniak`;
+  systemPrompt+=kbContextForAI();
 
   if(aicClientId){
     const c=CL.find(x=>x.id===aicClientId);
@@ -13155,12 +13215,18 @@ function saveQuickEntry(cid,gid){
   METRIC_ENTRIES.push(entry);
   renderMetrics();renderMetricData(cid,gid);
   notify('✓ Pomiar zapisany!');
+  if(window._db){
+    (async()=>{try{const r=await window._add(window._col(window._db,'metricEntries'),entry);entry.id=r.id;}catch(e){console.warn('Firebase metricEntries:',e);}})();
+  }
 }
 
 function delMetricEntry(id){
   window.METRIC_ENTRIES=METRIC_ENTRIES.filter(e=>e.id!==id);
   const cid=(document.getElementById('metric-client-sel')||{}).value||'';
   renderMetricData(cid,metricActiveGroup);
+  if(window._db && id){
+    (async()=>{try{await window._del(window._doc(window._db,'metricEntries',id));}catch(e){/* wpis demo/niezsynchronizowany - nic do usunięcia w chmurze */}})();
+  }
 }
 
 // Metric group creator
@@ -13193,6 +13259,9 @@ function saveMetricGroup(){
   document.getElementById('mg-name').value='';
   document.getElementById('mg-metrics-list').innerHTML='';
   renderMetrics();notify('✓ Grupa "'+name+'" utworzona!');
+  if(window._db){
+    (async()=>{try{const r=await window._add(window._col(window._db,'metricGroups'),grp);grp.id=r.id;}catch(e){console.warn('Firebase metricGroups:',e);}})();
+  }
 }
 
 function updateMetricEntryForm(){
@@ -13222,6 +13291,9 @@ async function saveMetricEntry(){
   closeM('m-metric-entry');
   if((document.getElementById('metric-client-sel')||{}).value===cid){renderMetrics();if(metricActiveGroup===gid)renderMetricData(cid,gid);}
   notify('✓ Pomiar dodany!');
+  if(window._db){
+    try{const r=await window._add(window._col(window._db,'metricEntries'),entry);entry.id=r.id;}catch(e){console.warn('Firebase metricEntries:',e);}
+  }
 }
 
 async function askMetricAI(){
@@ -13529,6 +13601,7 @@ function setCPTab(t){
   const btn=document.getElementById('cpt-'+t);if(btn)btn.classList.add('active');
   const c=CL.find(x=>x.id===cpClientId);if(!c)return;
   if(t==='overview')renderCPOverview(c);
+  if(t==='timeline')renderCPTimeline(c);
   if(t==='training')renderCPTraining(c);
   if(t==='plan')renderCPPlan(c);
   if(t==='metrics')renderCPMetrics(c);
@@ -13540,6 +13613,258 @@ function setCPTab(t){
   if(t==='edit')renderCPEdit(c);
   if(t==='posture')renderCPPosture(c);
 }
+
+// ════════════════════════════════════════
+// OŚ CZASU KLIENTA — notatki + auto: sesje/plany/pomiary
+// ════════════════════════════════════════
+window.CLIENT_TIMELINE = window.CLIENT_TIMELINE || {}; // clientId -> [{id,text,type,date}]
+
+const CTL_ICONS  = {trening:'🏋️',pomiar:'📏',plan:'📋',notatka:'📝',cel:'🎯',sukces:'🏆'};
+const CTL_COLORS = {trening:'#E8302A',pomiar:'var(--blue)',plan:'var(--blue)',notatka:'var(--orange)',cel:'var(--accent)',sukces:'#FFD700'};
+
+function renderCPTimeline(c){
+  if(!c) return;
+  if(!CLIENT_TIMELINE[c.id]) CLIENT_TIMELINE[c.id] = c.timeline || [];
+
+  document.getElementById('cp-body').innerHTML = `
+    <div class="cp-section-title">DODAJ WPIS</div>
+    <div style="display:flex;gap:6px;margin-bottom:16px;">
+      <select id="ctl-new-type" style="background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:7px 8px;color:var(--text);font-size:12px;">
+        <option value="notatka">📝 Notatka</option>
+        <option value="cel">🎯 Cel</option>
+        <option value="sukces">🏆 Sukces</option>
+      </select>
+      <input type="text" id="ctl-new-text" placeholder="Dodaj wpis do osi czasu..." style="flex:1;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:7px 9px;color:var(--text);font-size:12px;" onkeydown="if(event.key==='Enter')ctlAddEntry('${c.id}')">
+      <button class="btn btn-primary btn-sm" onclick="ctlAddEntry('${c.id}')">Dodaj</button>
+    </div>
+    <div class="cp-section-title">OŚ CZASU</div>
+    <div id="cp-timeline-list"></div>`;
+
+  renderCPTimelineList(c);
+}
+
+function renderCPTimelineList(c){
+  const manual = CLIENT_TIMELINE[c.id] || [];
+
+  const autoSess = SE.filter(s=>s.clientId===c.id).map(s=>({
+    id:'auto_sess_'+s.id, type:'trening',
+    text:(s.type||'Trening')+(s.exercises?' — '+s.exercises.length+' ćwiczeń':'')+(s.volume?' · '+s.volume+' kg obj.':''),
+    date:s.date+'T'+(s.time||'12:00')+':00'
+  }));
+
+  const autoPlans = PL.filter(p=>p.clientId===c.id).map(p=>({
+    id:'auto_plan_'+p.id, type:'plan', text:'Przypisano plan: '+p.name,
+    date:(p.createdAt||new Date().toISOString())
+  }));
+
+  const autoMeas = (window.METRIC_ENTRIES||[]).filter(e=>e.clientId===c.id).map(m=>{
+    const g = allMetricGroups().find(gr=>gr.id===m.groupId);
+    const parts = g ? g.metrics.filter(mm=>m.values[mm.id]!=null).map(mm=>mm.name+': '+m.values[mm.id]+(mm.unit?' '+mm.unit:'')).slice(0,3).join(' · ') : '';
+    return {id:'auto_meas_'+m.id, type:'pomiar', text:(g?g.icon+' '+g.name+' — ':'')+parts, date:m.date+'T10:00:00'};
+  });
+
+  const all = [...manual, ...autoSess, ...autoPlans, ...autoMeas].sort((a,b)=>new Date(b.date)-new Date(a.date));
+
+  const el = document.getElementById('cp-timeline-list');
+  if(!el) return;
+  if(!all.length){el.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted);font-size:12px;">Brak wpisów. Dodaj notatkę lub wykonaj sesję/pomiar.</div>'; return;}
+
+  el.innerHTML = all.slice(0,60).map(e=>{
+    const isAuto = e.id.toString().startsWith('auto_');
+    const col = CTL_COLORS[e.type] || 'var(--muted)';
+    const dayStr = new Date(e.date).toLocaleDateString('pl',{day:'numeric',month:'short',year:'numeric'});
+    return `<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);align-items:flex-start;">
+      <div style="width:22px;height:22px;border-radius:50%;background:${col}22;border:1px solid ${col}44;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;margin-top:1px;">${CTL_ICONS[e.type]||'📝'}</div>
+      <div style="flex:1;">
+        <div style="font-size:12px;color:var(--text);line-height:1.4;">${e.text}</div>
+        <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:2px;">${dayStr}</div>
+      </div>
+      ${!isAuto?`<button onclick="ctlDeleteEntry('${c.id}','${e.id}')" style="background:none;border:none;color:var(--muted2);font-size:14px;cursor:pointer;padding:0 2px;">×</button>`:''}
+    </div>`;
+  }).join('');
+}
+
+function ctlAddEntry(clientId){
+  const text = document.getElementById('ctl-new-text')?.value?.trim();
+  const type = document.getElementById('ctl-new-type')?.value || 'notatka';
+  if(!text) return;
+  if(!CLIENT_TIMELINE[clientId]) CLIENT_TIMELINE[clientId]=[];
+  CLIENT_TIMELINE[clientId].unshift({id:'ct'+Date.now(), text, type, date:new Date().toISOString()});
+  const c = CL.find(x=>x.id===clientId);
+  renderCPTimeline(c);
+  if(window._db && clientId && !clientId.startsWith('l')){
+    try{window._setDoc(window._doc(window._db,'clients',clientId),{timeline:CLIENT_TIMELINE[clientId]},{merge:true});}catch(e){}
+  }
+}
+
+function ctlDeleteEntry(clientId, id){
+  CLIENT_TIMELINE[clientId] = (CLIENT_TIMELINE[clientId]||[]).filter(e=>e.id!==id);
+  const c = CL.find(x=>x.id===clientId);
+  renderCPTimeline(c);
+  if(window._db && clientId && !clientId.startsWith('l')){
+    try{window._setDoc(window._doc(window._db,'clients',clientId),{timeline:CLIENT_TIMELINE[clientId]},{merge:true});}catch(e){}
+  }
+}
+
+window.renderCPTimeline=renderCPTimeline; window.ctlAddEntry=ctlAddEntry; window.ctlDeleteEntry=ctlDeleteEntry;
+
+// ════════════════════════════════════════
+// IMPORT Z FITEBO
+// ════════════════════════════════════════
+let fbImages = [];
+let fbParsed = [];
+
+function fbFileLoad(input){
+  const file = input.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => { document.getElementById('fb-paste').value = e.target.result; };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function fbImagesLoad(input){
+  const files = Array.from(input.files || []);
+  if(fbImages.length + files.length > 8){ alert('Maksymalnie 8 zrzutów na jedną analizę.'); }
+  files.slice(0, Math.max(0, 8 - fbImages.length)).forEach(file => {
+    if(file.size > 5000000){ alert(file.name + ': plik za duży (max 5MB), pomijam.'); return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+      const dataUrl = e.target.result;
+      fbImages.push({ dataUrl, mediaType: dataUrl.split(';')[0].split(':')[1], base64: dataUrl.split(',')[1] });
+      renderFbImagePreviews();
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
+}
+
+function fbRemoveImage(i){ fbImages.splice(i,1); renderFbImagePreviews(); }
+
+function renderFbImagePreviews(){
+  const wrap = document.getElementById('fb-img-previews'); if(!wrap) return;
+  wrap.innerHTML = fbImages.map((img,i)=>`<div style="position:relative;width:60px;height:60px;border-radius:8px;overflow:hidden;border:1px solid var(--border2);">
+    <img src="${img.dataUrl}" style="width:100%;height:100%;object-fit:cover;">
+    <button onclick="fbRemoveImage(${i})" style="position:absolute;top:1px;right:1px;background:rgba(0,0,0,0.7);color:#fff;border:none;border-radius:50%;width:16px;height:16px;font-size:10px;cursor:pointer;line-height:1;">×</button>
+  </div>`).join('');
+}
+
+async function fbAnalyze(){
+  const raw = document.getElementById('fb-paste').value.trim();
+  const resultEl = document.getElementById('fb-result');
+  const btn = document.getElementById('fb-analyze-btn');
+  if(!raw && !fbImages.length){ resultEl.innerHTML = '<div style="color:var(--red);font-size:12px;">Wklej dane albo wgraj zrzut ekranu.</div>'; return; }
+  btn.disabled = true; btn.textContent = '⏳ Analizuję...';
+  resultEl.innerHTML = '<div style="color:var(--muted);font-size:12px;">AI analizuje dane, przy większych porcjach może to potrwać kilkanaście sekund...</div>';
+
+  const system = `Jesteś asystentem migracji danych dla platformy trenera personalnego. Wyciągnij dane klientów z tekstu i/lub zrzutów ekranu z aplikacji Fitebo. Zwróć WYŁĄCZNIE poprawny JSON, bez markdown:
+{"clients":[{
+  "name":"Imię Nazwisko","age":liczba_lub_null,"gender":"M"|"K"|null,
+  "weight":liczba_lub_null,"height":liczba_lub_null,
+  "goal":"masa"|"sila"|"redukcja"|"kondycja"|null,
+  "level":"poczatkujacy"|"sredni"|"zaawansowany"|null,
+  "injuries":"tekst_lub_null",
+  "measurements":[{"date":"YYYY-MM-DD","weight":liczba_lub_null,"waist":liczba_lub_null,"chest":liczba_lub_null,"hips":liczba_lub_null}],
+  "sessions":[{"date":"YYYY-MM-DD","type":"opis treningu","exercisesCount":liczba_lub_null}],
+  "notes":"dodatkowe uwagi tekstowe lub null"
+}]}
+Zasady: jeśli danych brak, użyj null / pustej tablicy — NIE zmyślaj. Daty w formacie YYYY-MM-DD; jeśli nie da się ustalić dokładnej daty, pomiń wpis. Jeśli w danych jest wielu klientów, zwróć każdego osobno w tablicy.`;
+
+  const content = fbImages.length
+    ? [...fbImages.map(img => ({ type:'image', source:{ type:'base64', media_type: img.mediaType, data: img.base64 } })), { type:'text', text: raw || 'Przeanalizuj załączone zrzuty ekranu z Fitebo.' }]
+    : raw.substring(0, 15000);
+
+  try{
+    const resp = await fetch(W, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:4000, system, messages:[{ role:'user', content }] }) });
+    const data = await resp.json();
+    const rawText = (data.content||[]).map(b=>b.text||'').join('');
+    let parsed;
+    try{ parsed = JSON.parse(rawText.replace(/```json|```/g,'').trim()); }
+    catch(e){ const m = rawText.match(/\{[\s\S]+\}/); if(m) parsed = JSON.parse(m[0]); }
+
+    if(!parsed || !Array.isArray(parsed.clients) || !parsed.clients.length){
+      resultEl.innerHTML = '<div style="color:var(--red);font-size:12px;">Nie udało się rozpoznać żadnego klienta. Spróbuj wkleić inny fragment albo wyraźniejszy zrzut ekranu.</div>';
+    } else {
+      fbParsed = parsed.clients;
+      renderFbPreview();
+    }
+  }catch(e){
+    resultEl.innerHTML = '<div style="color:var(--red);font-size:12px;">Błąd: ' + e.message + '</div>';
+  }
+  btn.disabled = false; btn.textContent = '🔍 Analizuj (AI)';
+}
+
+function renderFbPreview(){
+  const el = document.getElementById('fb-result');
+  let h = '<div style="font-size:11px;color:var(--teal);margin-bottom:8px;">✅ Znaleziono ' + fbParsed.length + ' klient(ów). Odznacz tych, których NIE chcesz importować:</div>';
+  fbParsed.forEach((c,i) => {
+    h += `<label style="display:flex;align-items:flex-start;gap:8px;background:var(--s3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:6px;cursor:pointer;">
+      <input type="checkbox" id="fb-chk-${i}" checked style="margin-top:2px;">
+      <div><div style="font-weight:600;font-size:12px;">${c.name || '(bez imienia)'}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:2px;">${(c.measurements||[]).length} pomiarów · ${(c.sessions||[]).length} sesji</div></div>
+    </label>`;
+  });
+  h += '<button class="btn btn-primary" style="width:100%;margin-top:8px;" onclick="fbImportSelected()">📥 Importuj zaznaczone</button>';
+  el.innerHTML = h;
+}
+
+async function fbImportSelected(){
+  let imported = 0;
+  for(let i=0; i<fbParsed.length; i++){
+    const chk = document.getElementById('fb-chk-'+i);
+    if(!chk || !chk.checked) continue;
+    const c = fbParsed[i];
+    if(!c.name) continue;
+
+    const newClient = {
+      id: 'fb_'+Date.now()+'_'+i, name: c.name,
+      email:'', phone:'',
+      age: c.age||'', gender: c.gender==='K'?'K':'M',
+      weight: c.weight||'', height: c.height||'',
+      goal: c.goal||'masa', level: c.level||'sredni',
+      injuries: c.injuries||'', notes: c.notes||'',
+      status:'active', joinDate: new Date().toISOString().split('T')[0],
+      source:'Fitebo import'
+    };
+    CL.push(newClient);
+    if(window._db){ try{ const r = await window._add(window._col(window._db,'clients'), newClient); newClient.id = r.id; }catch(e){} }
+
+    for(const m of (c.measurements||[]).filter(m=>m.date)){
+      if(m.weight!=null){
+        const me={ id:'fbw_'+Date.now()+Math.random(), clientId:newClient.id, groupId:'mg1', date:m.date, values:{ m1:m.weight }, notes:'Import z Fitebo' };
+        window.METRIC_ENTRIES.push(me);
+        if(window._db){ try{ const r=await window._add(window._col(window._db,'metricEntries'),me); me.id=r.id; }catch(e){} }
+      }
+      if(m.waist!=null || m.chest!=null || m.hips!=null){
+        const me={ id:'fbm_'+Date.now()+Math.random(), clientId:newClient.id, groupId:'mg2', date:m.date, values:{ m1:m.chest||null, m2:m.waist||null, m3:m.hips||null }, notes:'Import z Fitebo' };
+        window.METRIC_ENTRIES.push(me);
+        if(window._db){ try{ const r=await window._add(window._col(window._db,'metricEntries'),me); me.id=r.id; }catch(e){} }
+      }
+    }
+
+    for(const s of (c.sessions||[]).filter(s=>s.date)){
+      const sess = { id:'fbs_'+Date.now()+Math.random(), clientId:newClient.id, date:s.date, time:'', type: s.type || 'Trening (import Fitebo)', duration:60, notes:'Zaimportowano z Fitebo', createdAt: new Date().toISOString() };
+      SE.push(sess);
+      if(window._db){ try{ const r = await window._add(window._col(window._db,'sessions'), sess); sess.id = r.id; }catch(e){} }
+    }
+
+    if(c.notes){
+      if(!window.CLIENT_TIMELINE) window.CLIENT_TIMELINE = {};
+      if(!CLIENT_TIMELINE[newClient.id]) CLIENT_TIMELINE[newClient.id] = [];
+      CLIENT_TIMELINE[newClient.id].push({ id:'fbn_'+Date.now(), text:'Import z Fitebo: '+c.notes, type:'notatka', date:new Date().toISOString() });
+      if(window._db){ try{ window._setDoc(window._doc(window._db,'clients',newClient.id), { timeline: CLIENT_TIMELINE[newClient.id] }, { merge:true }); }catch(e){} }
+    }
+
+    imported++;
+  }
+
+  try{ renderClients(); }catch(e){}
+  try{ document.getElementById('nb-clients').textContent = CL.length; }catch(e){}
+  fbImages = []; renderFbImagePreviews();
+  document.getElementById('fb-result').innerHTML = '<div style="color:var(--teal);font-size:13px;font-weight:600;">✅ Zaimportowano ' + imported + ' klient(ów)! Znajdziesz ich na liście Klienci.</div>';
+  notify('✓ Import z Fitebo zakończony — ' + imported + ' klient(ów)');
+}
+
+window.fbFileLoad=fbFileLoad; window.fbImagesLoad=fbImagesLoad; window.fbRemoveImage=fbRemoveImage;
+window.fbAnalyze=fbAnalyze; window.fbImportSelected=fbImportSelected;
 
 function renderCPOverview(c){
   const today=new Date().toISOString().split('T')[0];
@@ -15264,6 +15589,57 @@ function notify(msg){
   const d=document.createElement('div');d.className='notif';d.innerHTML=msg;
   document.body.appendChild(d);setTimeout(()=>d.remove(),3000);
 }
+
+// ════════════════════════════════════════
+// BAZA WIEDZY (KB) — kontekst dla AI Coach
+// ════════════════════════════════════════
+window.KB = window.KB || [];
+
+function renderKB(){
+  const el = document.getElementById('kb-list'); if(!el) return;
+  if(!KB.length){
+    el.innerHTML = '<div style="text-align:center;padding:50px;color:var(--muted);"><div style="font-size:36px;margin-bottom:10px;opacity:0.3;">📚</div><div>Brak wpisów. Dodaj pierwszą notatkę.</div></div>';
+    return;
+  }
+  el.innerHTML = KB.slice().reverse().map(k=>`
+    <div class="card-sm" style="border-left:3px solid var(--accent);">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+        <div style="font-size:13px;font-weight:700;">${k.title}</div>
+        <button onclick="delKBEntry('${k.id}')" style="background:none;border:none;color:var(--muted2);font-size:16px;cursor:pointer;">×</button>
+      </div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.6;white-space:pre-wrap;">${(k.text||'').substring(0,280)}${(k.text||'').length>280?'…':''}</div>
+    </div>`).join('');
+}
+
+async function saveKBEntry(){
+  const title = document.getElementById('kb-title').value.trim();
+  const text = document.getElementById('kb-text').value.trim();
+  if(!title || !text){notify('Wpisz tytuł i treść!'); return;}
+  const entry = {id:'kb'+Date.now(), title, text, createdAt:new Date().toISOString()};
+  KB.push(entry);
+  closeM('m-kb');
+  document.getElementById('kb-title').value=''; document.getElementById('kb-text').value='';
+  renderKB();
+  notify('✓ Wpis dodany do bazy wiedzy!');
+  if(window._db){
+    try{const r = await window._add(window._col(window._db,'kb'), entry); entry.id = r.id;}catch(e){console.warn('Firebase KB:',e);}
+  }
+}
+
+async function delKBEntry(id){
+  if(!confirm('Usunąć wpis?')) return;
+  window.KB = KB.filter(k=>k.id!==id);
+  renderKB();
+  if(window._db){try{await window._del(window._doc(window._db,'kb',id));}catch(e){}}
+}
+
+function kbContextForAI(){
+  if(!KB.length) return '';
+  return '\n\n=== BAZA WIEDZY TRENERA (kontekst, wykorzystaj jeśli pomocne) ===\n'
+    + KB.map(k=>`### ${k.title}\n${(k.text||'').substring(0,600)}`).join('\n\n');
+}
+
+window.renderKB=renderKB; window.saveKBEntry=saveKBEntry; window.delKBEntry=delKBEntry; window.kbContextForAI=kbContextForAI;
 
 // expose
 
