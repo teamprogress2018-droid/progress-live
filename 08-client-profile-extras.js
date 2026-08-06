@@ -1,0 +1,891 @@
+// ════════════════════════════════════════
+// OŚ CZASU KLIENTA — notatki + auto: sesje/plany/pomiary
+// ════════════════════════════════════════
+window.CLIENT_TIMELINE = window.CLIENT_TIMELINE || {}; // clientId -> [{id,text,type,date}]
+
+const CTL_ICONS  = {trening:'🏋️',pomiar:'📏',plan:'📋',notatka:'📝',cel:'🎯',sukces:'🏆'};
+const CTL_COLORS = {trening:'#E8302A',pomiar:'var(--blue)',plan:'var(--blue)',notatka:'var(--orange)',cel:'var(--accent)',sukces:'#FFD700'};
+
+function renderCPTimeline(c){
+  if(!c) return;
+  if(!CLIENT_TIMELINE[c.id]) CLIENT_TIMELINE[c.id] = c.timeline || [];
+
+  document.getElementById('cp-body').innerHTML = `
+    <div class="cp-section-title">DODAJ WPIS</div>
+    <div style="display:flex;gap:6px;margin-bottom:16px;">
+      <select id="ctl-new-type" style="background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:7px 8px;color:var(--text);font-size:12px;">
+        <option value="notatka">📝 Notatka</option>
+        <option value="cel">🎯 Cel</option>
+        <option value="sukces">🏆 Sukces</option>
+      </select>
+      <input type="text" id="ctl-new-text" placeholder="Dodaj wpis do osi czasu..." style="flex:1;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:7px 9px;color:var(--text);font-size:12px;" onkeydown="if(event.key==='Enter')ctlAddEntry('${c.id}')">
+      <button class="btn btn-primary btn-sm" onclick="ctlAddEntry('${c.id}')">Dodaj</button>
+    </div>
+    <div class="cp-section-title">OŚ CZASU</div>
+    <div id="cp-timeline-list"></div>`;
+
+  renderCPTimelineList(c);
+}
+
+function renderCPTimelineList(c){
+  const manual = CLIENT_TIMELINE[c.id] || [];
+
+  const autoSess = SE.filter(s=>s.clientId===c.id).map(s=>({
+    id:'auto_sess_'+s.id, type:'trening',
+    text:(s.type||'Trening')+(s.exercises?' — '+s.exercises.length+' ćwiczeń':'')+(s.volume?' · '+s.volume+' kg obj.':''),
+    date:s.date+'T'+(s.time||'12:00')+':00'
+  }));
+
+  const autoPlans = PL.filter(p=>p.clientId===c.id).map(p=>({
+    id:'auto_plan_'+p.id, type:'plan', text:'Przypisano plan: '+p.name,
+    date:(p.createdAt||new Date().toISOString())
+  }));
+
+  const autoMeas = (window.METRIC_ENTRIES||[]).filter(e=>e.clientId===c.id).map(m=>{
+    const g = allMetricGroups().find(gr=>gr.id===m.groupId);
+    const parts = g ? g.metrics.filter(mm=>m.values[mm.id]!=null).map(mm=>mm.name+': '+m.values[mm.id]+(mm.unit?' '+mm.unit:'')).slice(0,3).join(' · ') : '';
+    return {id:'auto_meas_'+m.id, type:'pomiar', text:(g?g.icon+' '+g.name+' — ':'')+parts, date:m.date+'T10:00:00'};
+  });
+
+  const all = [...manual, ...autoSess, ...autoPlans, ...autoMeas].sort((a,b)=>new Date(b.date)-new Date(a.date));
+
+  const el = document.getElementById('cp-timeline-list');
+  if(!el) return;
+  if(!all.length){el.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted);font-size:12px;">Brak wpisów. Dodaj notatkę lub wykonaj sesję/pomiar.</div>'; return;}
+
+  el.innerHTML = all.slice(0,60).map(e=>{
+    const isAuto = e.id.toString().startsWith('auto_');
+    const col = CTL_COLORS[e.type] || 'var(--muted)';
+    const dayStr = new Date(e.date).toLocaleDateString('pl',{day:'numeric',month:'short',year:'numeric'});
+    return `<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);align-items:flex-start;">
+      <div style="width:22px;height:22px;border-radius:50%;background:${col}22;border:1px solid ${col}44;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;margin-top:1px;">${CTL_ICONS[e.type]||'📝'}</div>
+      <div style="flex:1;">
+        <div style="font-size:12px;color:var(--text);line-height:1.4;">${e.text}</div>
+        <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:2px;">${dayStr}</div>
+      </div>
+      ${!isAuto?`<button onclick="ctlDeleteEntry('${c.id}','${e.id}')" style="background:none;border:none;color:var(--muted2);font-size:14px;cursor:pointer;padding:0 2px;">×</button>`:''}
+    </div>`;
+  }).join('');
+}
+
+function ctlAddEntry(clientId){
+  const text = document.getElementById('ctl-new-text')?.value?.trim();
+  const type = document.getElementById('ctl-new-type')?.value || 'notatka';
+  if(!text) return;
+  if(!CLIENT_TIMELINE[clientId]) CLIENT_TIMELINE[clientId]=[];
+  CLIENT_TIMELINE[clientId].unshift({id:'ct'+Date.now(), text, type, date:new Date().toISOString()});
+  const c = CL.find(x=>x.id===clientId);
+  renderCPTimeline(c);
+  if(window._db && clientId && !clientId.startsWith('l')){
+    try{window._setDoc(window._doc(window._db,'clients',clientId),{timeline:CLIENT_TIMELINE[clientId]},{merge:true});}catch(e){}
+  }
+}
+
+function ctlDeleteEntry(clientId, id){
+  CLIENT_TIMELINE[clientId] = (CLIENT_TIMELINE[clientId]||[]).filter(e=>e.id!==id);
+  const c = CL.find(x=>x.id===clientId);
+  renderCPTimeline(c);
+  if(window._db && clientId && !clientId.startsWith('l')){
+    try{window._setDoc(window._doc(window._db,'clients',clientId),{timeline:CLIENT_TIMELINE[clientId]},{merge:true});}catch(e){}
+  }
+}
+
+window.renderCPTimeline=renderCPTimeline; window.ctlAddEntry=ctlAddEntry; window.ctlDeleteEntry=ctlDeleteEntry;
+
+// ════════════════════════════════════════
+// IMPORT Z FITEBO
+// ════════════════════════════════════════
+let fbImages = [];
+let fbParsed = [];
+
+function fbFileLoad(input){
+  const file = input.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => { document.getElementById('fb-paste').value = e.target.result; };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function fbImagesLoad(input){
+  const files = Array.from(input.files || []);
+  if(fbImages.length + files.length > 8){ alert('Maksymalnie 8 zrzutów na jedną analizę.'); }
+  files.slice(0, Math.max(0, 8 - fbImages.length)).forEach(file => {
+    if(file.size > 5000000){ alert(file.name + ': plik za duży (max 5MB), pomijam.'); return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+      const dataUrl = e.target.result;
+      fbImages.push({ dataUrl, mediaType: dataUrl.split(';')[0].split(':')[1], base64: dataUrl.split(',')[1] });
+      renderFbImagePreviews();
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
+}
+
+function fbRemoveImage(i){ fbImages.splice(i,1); renderFbImagePreviews(); }
+
+function renderFbImagePreviews(){
+  const wrap = document.getElementById('fb-img-previews'); if(!wrap) return;
+  wrap.innerHTML = fbImages.map((img,i)=>`<div style="position:relative;width:60px;height:60px;border-radius:8px;overflow:hidden;border:1px solid var(--border2);">
+    <img src="${img.dataUrl}" style="width:100%;height:100%;object-fit:cover;">
+    <button onclick="fbRemoveImage(${i})" style="position:absolute;top:1px;right:1px;background:rgba(0,0,0,0.7);color:#fff;border:none;border-radius:50%;width:16px;height:16px;font-size:10px;cursor:pointer;line-height:1;">×</button>
+  </div>`).join('');
+}
+
+async function fbAnalyze(){
+  const raw = document.getElementById('fb-paste').value.trim();
+  const resultEl = document.getElementById('fb-result');
+  const btn = document.getElementById('fb-analyze-btn');
+  if(!raw && !fbImages.length){ resultEl.innerHTML = '<div style="color:var(--red);font-size:12px;">Wklej dane albo wgraj zrzut ekranu.</div>'; return; }
+  btn.disabled = true; btn.textContent = '⏳ Analizuję...';
+  resultEl.innerHTML = '<div style="color:var(--muted);font-size:12px;">AI analizuje dane, przy większych porcjach może to potrwać kilkanaście sekund...</div>';
+
+  const system = `Jesteś asystentem migracji danych dla platformy trenera personalnego. Wyciągnij dane klientów z tekstu i/lub zrzutów ekranu z aplikacji Fitebo. Zwróć WYŁĄCZNIE poprawny JSON, bez markdown:
+{"clients":[{
+  "name":"Imię Nazwisko","age":liczba_lub_null,"gender":"M"|"K"|null,
+  "weight":liczba_lub_null,"height":liczba_lub_null,
+  "goal":"masa"|"sila"|"redukcja"|"kondycja"|null,
+  "level":"poczatkujacy"|"sredni"|"zaawansowany"|null,
+  "injuries":"tekst_lub_null",
+  "measurements":[{"date":"YYYY-MM-DD","weight":liczba_lub_null,"waist":liczba_lub_null,"chest":liczba_lub_null,"hips":liczba_lub_null}],
+  "sessions":[{"date":"YYYY-MM-DD","type":"opis treningu","exercisesCount":liczba_lub_null}],
+  "notes":"dodatkowe uwagi tekstowe lub null"
+}]}
+Zasady: jeśli danych brak, użyj null / pustej tablicy — NIE zmyślaj. Daty w formacie YYYY-MM-DD; jeśli nie da się ustalić dokładnej daty, pomiń wpis. Jeśli w danych jest wielu klientów, zwróć każdego osobno w tablicy.`;
+
+  const content = fbImages.length
+    ? [...fbImages.map(img => ({ type:'image', source:{ type:'base64', media_type: img.mediaType, data: img.base64 } })), { type:'text', text: raw || 'Przeanalizuj załączone zrzuty ekranu z Fitebo.' }]
+    : raw.substring(0, 15000);
+
+  try{
+    const resp = await fetch(W, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:4000, system, messages:[{ role:'user', content }] }) });
+    const data = await resp.json();
+    const rawText = (data.content||[]).map(b=>b.text||'').join('');
+    let parsed;
+    try{ parsed = JSON.parse(rawText.replace(/```json|```/g,'').trim()); }
+    catch(e){ const m = rawText.match(/\{[\s\S]+\}/); if(m) parsed = JSON.parse(m[0]); }
+
+    if(!parsed || !Array.isArray(parsed.clients) || !parsed.clients.length){
+      resultEl.innerHTML = '<div style="color:var(--red);font-size:12px;">Nie udało się rozpoznać żadnego klienta. Spróbuj wkleić inny fragment albo wyraźniejszy zrzut ekranu.</div>';
+    } else {
+      fbParsed = parsed.clients;
+      renderFbPreview();
+    }
+  }catch(e){
+    resultEl.innerHTML = '<div style="color:var(--red);font-size:12px;">Błąd: ' + e.message + '</div>';
+  }
+  btn.disabled = false; btn.textContent = '🔍 Analizuj (AI)';
+}
+
+function renderFbPreview(){
+  const el = document.getElementById('fb-result');
+  let h = '<div style="font-size:11px;color:var(--teal);margin-bottom:8px;">✅ Znaleziono ' + fbParsed.length + ' klient(ów). Odznacz tych, których NIE chcesz importować:</div>';
+  fbParsed.forEach((c,i) => {
+    h += `<label style="display:flex;align-items:flex-start;gap:8px;background:var(--s3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:6px;cursor:pointer;">
+      <input type="checkbox" id="fb-chk-${i}" checked style="margin-top:2px;">
+      <div><div style="font-weight:600;font-size:12px;">${c.name || '(bez imienia)'}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:2px;">${(c.measurements||[]).length} pomiarów · ${(c.sessions||[]).length} sesji</div></div>
+    </label>`;
+  });
+  h += '<button class="btn btn-primary" style="width:100%;margin-top:8px;" onclick="fbImportSelected()">📥 Importuj zaznaczone</button>';
+  el.innerHTML = h;
+}
+
+async function fbImportSelected(){
+  let imported = 0;
+  for(let i=0; i<fbParsed.length; i++){
+    const chk = document.getElementById('fb-chk-'+i);
+    if(!chk || !chk.checked) continue;
+    const c = fbParsed[i];
+    if(!c.name) continue;
+
+    const newClient = {
+      id: 'fb_'+Date.now()+'_'+i, name: c.name,
+      email:'', phone:'',
+      age: c.age||'', gender: c.gender==='K'?'K':'M',
+      weight: c.weight||'', height: c.height||'',
+      goal: c.goal||'masa', level: c.level||'sredni',
+      injuries: c.injuries||'', notes: c.notes||'',
+      status:'active', joinDate: new Date().toISOString().split('T')[0],
+      source:'Fitebo import'
+    };
+    CL.push(newClient);
+    if(window._db){ try{ const r = await window._add(window._col(window._db,'clients'), newClient); newClient.id = r.id; }catch(e){} }
+
+    for(const m of (c.measurements||[]).filter(m=>m.date)){
+      if(m.weight!=null){
+        const me={ id:'fbw_'+Date.now()+Math.random(), clientId:newClient.id, groupId:'mg1', date:m.date, values:{ m1:m.weight }, notes:'Import z Fitebo' };
+        window.METRIC_ENTRIES.push(me);
+        if(window._db){ try{ const r=await window._add(window._col(window._db,'metricEntries'),me); me.id=r.id; }catch(e){} }
+      }
+      if(m.waist!=null || m.chest!=null || m.hips!=null){
+        const me={ id:'fbm_'+Date.now()+Math.random(), clientId:newClient.id, groupId:'mg2', date:m.date, values:{ m1:m.chest||null, m2:m.waist||null, m3:m.hips||null }, notes:'Import z Fitebo' };
+        window.METRIC_ENTRIES.push(me);
+        if(window._db){ try{ const r=await window._add(window._col(window._db,'metricEntries'),me); me.id=r.id; }catch(e){} }
+      }
+    }
+
+    for(const s of (c.sessions||[]).filter(s=>s.date)){
+      const sess = { id:'fbs_'+Date.now()+Math.random(), clientId:newClient.id, date:s.date, time:'', type: s.type || 'Trening (import Fitebo)', duration:60, notes:'Zaimportowano z Fitebo', createdAt: new Date().toISOString() };
+      SE.push(sess);
+      if(window._db){ try{ const r = await window._add(window._col(window._db,'sessions'), sess); sess.id = r.id; }catch(e){} }
+    }
+
+    if(c.notes){
+      if(!window.CLIENT_TIMELINE) window.CLIENT_TIMELINE = {};
+      if(!CLIENT_TIMELINE[newClient.id]) CLIENT_TIMELINE[newClient.id] = [];
+      CLIENT_TIMELINE[newClient.id].push({ id:'fbn_'+Date.now(), text:'Import z Fitebo: '+c.notes, type:'notatka', date:new Date().toISOString() });
+      if(window._db){ try{ window._setDoc(window._doc(window._db,'clients',newClient.id), { timeline: CLIENT_TIMELINE[newClient.id] }, { merge:true }); }catch(e){} }
+    }
+
+    imported++;
+  }
+
+  try{ renderClients(); }catch(e){}
+  try{ document.getElementById('nb-clients').textContent = CL.length; }catch(e){}
+  fbImages = []; renderFbImagePreviews();
+  document.getElementById('fb-result').innerHTML = '<div style="color:var(--teal);font-size:13px;font-weight:600;">✅ Zaimportowano ' + imported + ' klient(ów)! Znajdziesz ich na liście Klienci.</div>';
+  notify('✓ Import z Fitebo zakończony — ' + imported + ' klient(ów)');
+}
+
+window.fbFileLoad=fbFileLoad; window.fbImagesLoad=fbImagesLoad; window.fbRemoveImage=fbRemoveImage;
+window.fbAnalyze=fbAnalyze; window.fbImportSelected=fbImportSelected;
+
+function renderCPOverview(c){
+  const today=new Date().toISOString().split('T')[0];
+  const ci=CL.indexOf(c);const col=COLS[ci%5];
+  const sessions=SE.filter(s=>s.clientId===c.id);
+  const tasks=TASKS.filter(t=>t.clientId===c.id);
+  const tasksDone=tasks.filter(t=>t.status==='done');
+  const plans=PL.filter(p=>p.clientId===c.id);
+  const packages=allPackages().filter(p=>p.clientId===c.id||p.clientName===c.name);
+  const lastSess=sessions.sort((a,b)=>b.date.localeCompare(a.date))[0];
+  const daysSince=lastSess?Math.floor((new Date()-new Date(lastSess.date))/(1000*60*60*24)):null;
+  const notes=CLIENT_NOTES[c.id]||[];
+  const activity=CLIENT_ACTIVITY[c.id]||[];
+  initClientData(c);
+
+  document.getElementById('cp-body').innerHTML=`
+    <!-- statystyki -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;">
+      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--accent);">${sessions.length}</div><div class="cp-stat-lbl">Sesji</div></div>
+      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--blue);">${plans.length}</div><div class="cp-stat-lbl">Planów</div></div>
+      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--teal);">${tasksDone.length}/${tasks.length}</div><div class="cp-stat-lbl">Zadań</div></div>
+      <div class="cp-stat-box"><div class="cp-stat-val" style="color:${daysSince===null?'var(--muted)':daysSince>14?'var(--red)':daysSince>7?'var(--orange)':'var(--teal)'};">${daysSince!==null?daysSince+'d':'—'}</div><div class="cp-stat-lbl">Ost. sesja</div></div>
+    </div>
+
+    <!-- dane podstawowe -->
+    <div class="cp-section-title">DANE KLIENTA</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:16px;">
+      ${[
+        ['📧 Email',c.email||'—'],['🎂 Wiek',c.age?c.age+' lat':'—'],
+        ['⚖️ Waga',c.weight?c.weight+' kg':'—'],['📏 Wzrost',c.height?c.height+' cm':'—'],
+        ['🎯 Cel',{masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja'}[c.goal]||c.goal||'—'],
+        ['🏋️ Poziom',{poczatkujacy:'Początkujący',sredni:'Średni',zaawansowany:'Zaawansowany'}[c.level]||c.level||'—'],
+      ].map(([l,v])=>`<div style="background:var(--s3);border-radius:8px;padding:8px 10px;"><div style="font-size:10px;color:var(--muted);margin-bottom:2px;">${l}</div><div style="font-size:12px;font-weight:600;">${v}</div></div>`).join('')}
+    </div>
+
+    ${c.notes?`<div style="background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.2);border-radius:8px;padding:10px 12px;margin-bottom:16px;font-size:12px;"><span style="color:var(--red);">⚠ Kontuzje/uwagi: </span>${c.notes}</div>`:''}
+
+    <!-- aktywny plan -->
+    ${plans.length?`
+    <div class="cp-section-title">AKTYWNY PLAN</div>
+    <div style="background:linear-gradient(135deg,var(--adim),transparent);border:1px solid rgba(200,241,53,0.2);border-radius:10px;padding:12px 14px;margin-bottom:16px;cursor:pointer;" onclick="setCPTab('plan')">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <div style="font-size:13px;font-weight:700;">${plans[plans.length-1].name}</div>
+        <span class="pill pill-green" style="font-size:9px;">${plans[plans.length-1].method||'—'}</span>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${plans[plans.length-1].method||'—'} · ${plans[plans.length-1].duration||'?'} tyg. · ${(plans[plans.length-1].days||[]).length} dni/tydzień</div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;">
+        ${(plans[plans.length-1].days||[]).slice(0,5).map(d=>`<span style="background:${d.rest?'var(--s3)':'rgba(200,241,53,0.12)'};color:${d.rest?'var(--muted)':'var(--accent)'};border-radius:5px;padding:2px 7px;font-size:10px;font-family:'DM Mono',monospace;">${d.day||d.dayName||'?'}${d.rest?' REST':''}</span>`).join('')}
+      </div>
+      <div style="font-size:10px;color:var(--accent);margin-top:8px;">→ Kliknij aby zobaczyć szczegóły</div>
+    </div>`:`
+    <div class="cp-section-title">AKTYWNY PLAN</div>
+    <div style="background:var(--s3);border:1px dashed var(--border2);border-radius:10px;padding:12px 14px;margin-bottom:16px;text-align:center;">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">Brak przypisanego planu</div>
+      <button class="btn btn-primary btn-sm" onclick="cpAssignTemplate('${c.id}')">📋 Przypisz szablon</button>
+    </div>`}
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div class="cp-section-title" style="margin-bottom:0;">NOTATKI (${notes.length})</div>
+      <button onclick="addClientNote('${c.id}')" style="background:none;border:none;color:var(--accent);font-size:18px;cursor:pointer;">+</button>
+    </div>
+    <div id="cp-notes-area" style="margin-bottom:16px;">
+      ${notes.map((n,ni)=>`<div class="cip-note" style="position:relative;padding-right:24px;"><div>${n.text}</div><div class="cip-note-date">${n.date}</div><button onclick="deleteClientNote('${c.id}',${ni})" style="position:absolute;top:4px;right:4px;background:none;border:none;color:var(--muted2);font-size:14px;cursor:pointer;line-height:1;">×</button></div>`).join('')}
+      <div id="note-input-${c.id}" style="display:none;margin-top:6px;">
+        <textarea id="note-text-${c.id}" rows="2" style="width:100%;background:var(--s4);border:1px solid var(--border2);border-radius:6px;padding:6px 8px;color:var(--text);font-size:11px;resize:none;font-family:'DM Sans',sans-serif;"></textarea>
+        <div style="display:flex;gap:4px;margin-top:4px;">
+          <button onclick="saveClientNote('${c.id}');setCPTab('overview')" class="btn btn-primary btn-sm" style="flex:1;">Zapisz</button>
+          <button onclick="document.getElementById('note-input-${c.id}').style.display='none'" class="btn btn-ghost btn-sm">Anuluj</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- aktywność -->
+    <div class="cp-section-title">OSTATNIA AKTYWNOŚĆ</div>
+    ${(CLIENT_ACTIVITY[c.id]||[]).map((a,ai)=>`<div class="cp-mini-row">
+      <div class="cp-mini-icon" style="background:var(--s3);">${a.icon}</div>
+      <div style="flex:1;"><div>${a.text}</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">${a.date}</div></div>
+      <button onclick="deleteClientActivity('${c.id}',${ai})" style="background:none;border:none;color:var(--muted2);font-size:14px;cursor:pointer;padding:0 4px;">×</button>
+    </div>`).join('')}`;
+}
+
+function renderCPPlan(c){
+  const plans=PL.filter(p=>p.clientId===c.id);
+  document.getElementById('cp-body').innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div class="cp-section-title" style="margin:0;">PLANY TRENINGOWE (${plans.length})</div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-ghost btn-sm" onclick="cpAssignTemplate('${c.id}')">📋 Przypisz szablon</button>
+        <button class="btn btn-primary btn-sm" onclick="goTo('builder');document.getElementById('b-client').value='${c.id}';closeClientProfile()">+ Nowy plan</button>
+      </div>
+    </div>
+    ${!plans.length
+      ?`<div style="text-align:center;padding:40px;color:var(--muted);">
+          <div style="font-size:32px;margin-bottom:10px;opacity:0.3;">📋</div>
+          <div style="margin-bottom:14px;">Brak planów treningowych</div>
+          <button class="btn btn-primary btn-sm" onclick="cpAssignTemplate('${c.id}')">📋 Przypisz szablon</button>
+        </div>`
+      :plans.map((p,pi)=>`
+        <div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;animation:fadeUp 0.15s ease ${pi*0.05}s both;">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;">
+            <div>
+              <div style="font-size:14px;font-weight:700;">${p.name}</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:3px;">${p.method||'—'} · ${p.duration||'?'} tyg. · ${(p.days||[]).length} dni</div>
+            </div>
+            <div style="display:flex;gap:5px;">
+              <span class="pill pill-green" style="font-size:9px;">${p.method||'—'}</span>
+              <button onclick="delPlanFromProfile('${p.id}','${c.id}')" style="background:none;border:none;color:var(--muted2);font-size:16px;cursor:pointer;line-height:1;" title="Usuń plan">×</button>
+            </div>
+          </div>
+          <!-- dni treningowe -->
+          <div style="display:flex;flex-direction:column;gap:5px;">
+            ${(p.days||[]).map(d=>`
+              <div style="background:var(--s3);border-radius:8px;padding:8px 10px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:${d.rest||!(d.exercises&&d.exercises.length)?0:5}px;">
+                  <span style="font-size:10px;font-family:'DM Mono',monospace;color:${d.rest?'var(--muted)':'var(--accent)'};font-weight:700;min-width:28px;">${d.day||d.dayName||'—'}</span>
+                  <span style="font-size:12px;font-weight:600;color:${d.rest?'var(--muted)':'var(--text)'};">${d.rest?'Odpoczynek':(d.muscles||d.name||d.focus||'Trening')}</span>
+                </div>
+                ${!d.rest&&(d.exercises||[]).length?`<div style="padding-left:36px;display:flex;flex-wrap:wrap;gap:3px;">
+                  ${(d.exercises||[]).slice(0,4).map(e=>`<span style="font-size:10px;color:var(--muted);background:var(--s2);border-radius:4px;padding:1px 6px;">${typeof e==='string'?e:e.name||e.n||''}</span>`).join('')}
+                  ${(d.exercises||[]).length>4?`<span style="font-size:10px;color:var(--muted2);">+${(d.exercises||[]).length-4} więcej</span>`:''}
+                </div>`:''}
+              </div>`).join('')}
+          </div>
+          <div style="margin-top:10px;display:flex;gap:6px;">
+            <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="liveSelectPlanForClient('${p.id}','${c.id}')">▶ Trenuj teraz</button>
+            <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="goTo('builder');closeClientProfile()">✏ Edytuj</button>
+          </div>
+        </div>`).join('')}`;
+}
+
+async function delPlanFromProfile(planId,clientId){
+  if(!confirm('Usunąć plan?'))return;
+  window.PL=PL.filter(p=>p.id!==planId);
+  if(window._db){try{await window._del(window._doc(window._db,'plans',planId));}catch(e){console.warn('Firebase:',e);}}
+  const c=CL.find(x=>x.id===clientId);
+  if(c)renderCPPlan(c);
+  notify('✓ Plan usunięty');
+}
+
+function cpAssignTemplate(clientId){
+  const c=CL.find(x=>x.id===clientId);if(!c)return;
+  // otwórz szablony i ustaw klienta
+  closeClientProfile();
+  goTo('templates');
+  setTimeout(()=>{
+    // pre-select klienta w panelu szablonów
+    const sel=document.getElementById('tpl-assign-client');
+    if(sel)sel.value=clientId;
+    notify('Wybierz szablon i kliknij "Przypisz plan klientowi" dla '+c.name);
+  },300);
+}
+
+function liveSelectPlanForClient(planId,clientId){
+  closeClientProfile();
+  goTo('live');
+  setTimeout(()=>{
+    const sel=document.getElementById('live-client-sel');
+    if(sel){sel.value=clientId;liveLoadClient();}
+    setTimeout(()=>liveSelectPlan(planId),200);
+  },300);
+}
+
+function renderCPMetrics(c){
+  initDemoEntries(c.id);
+  const groups=allMetricGroups();
+  const entries=METRIC_ENTRIES.filter(e=>e.clientId===c.id);
+  document.getElementById('cp-body').innerHTML=`
+    <div class="cp-section-title">POMIARY CIAŁA</div>
+    ${groups.map(g=>{
+      const ge=entries.filter(e=>e.groupId===g.id).sort((a,b)=>b.date.localeCompare(a.date));
+      if(!ge.length)return '';
+      const last=ge[0];const prev=ge[1];
+      return `<div class="card-sm" style="margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <span style="font-size:20px;">${g.icon}</span>
+          <div style="font-size:13px;font-weight:700;">${g.name}</div>
+          <span style="font-size:10px;color:var(--muted);margin-left:auto;font-family:'DM Mono',monospace;">${last.date}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:6px;">
+          ${g.metrics.map(m=>{
+            const cv=last.values[m.id];const pv=prev?prev.values[m.id]:null;
+            const diff=cv!=null&&pv!=null?(cv-pv).toFixed(1):null;
+            const goodDown=['mg1','mg2'].includes(g.id);
+            const color=diff==null?'var(--muted)':parseFloat(diff)<0?(goodDown?'var(--teal)':'var(--red)'):parseFloat(diff)>0?(goodDown?'var(--red)':'var(--teal)'):'var(--muted)';
+            return `<div style="background:var(--s3);border-radius:8px;padding:8px;text-align:center;">
+              <div style="font-size:10px;color:var(--muted);margin-bottom:3px;">${m.name}</div>
+              <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--text);">${cv!=null?cv:'—'}${m.unit?'<span style="font-size:10px;color:var(--muted);"> '+m.unit+'</span>':''}</div>
+              ${diff!=null?`<div style="font-size:10px;color:${color};">${parseFloat(diff)>0?'+':''}${diff}</div>`:''}
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }).join('')}
+    <div style="margin-top:16px;">
+      <div class="cp-section-title">HISTORIA POMIARÓW</div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:11px;">
+          <thead><tr style="background:var(--s3);">
+            <th style="padding:6px 10px;text-align:left;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border);">Data</th>
+            ${groups.slice(0,1).map(g=>g.metrics.map(m=>`<th style="padding:6px 10px;text-align:right;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border);">${m.name}</th>`).join('')).join('')}
+          </tr></thead>
+          <tbody>
+            ${(()=>{const g=groups[0];if(!g)return '<tr><td colspan="10" style="text-align:center;padding:16px;color:var(--muted);">Brak danych</td></tr>';
+              const ge=entries.filter(e=>e.groupId===g.id).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,6);
+              return ge.map(e=>`<tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:6px 10px;font-family:'DM Mono',monospace;color:var(--muted);">${e.date}</td>
+                ${g.metrics.map(m=>`<td style="padding:6px 10px;text-align:right;font-weight:600;">${e.values[m.id]!=null?e.values[m.id]+' '+(m.unit||''):'—'}</td>`).join('')}
+              </tr>`).join('');})()}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-sm" style="width:100%;margin-top:12px;" onclick="goTo('metrics');closeClientProfile()">📊 Zarządzaj pomiarami</button>`;
+}
+
+function renderCPTasks(c){
+  const tasks=TASKS.filter(t=>t.clientId===c.id);
+  const today=new Date().toISOString().split('T')[0];
+  document.getElementById('cp-body').innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div class="cp-section-title" style="margin:0;">ZADANIA (${tasks.length})</div>
+      <button class="btn btn-primary btn-sm" onclick="document.getElementById('task-client').value='${c.id}';openM('m-task')">+ Zadanie</button>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:12px;">
+      <div class="cp-stat-box" style="flex:1;"><div class="cp-stat-val" style="color:var(--accent);font-size:22px;">${tasks.filter(t=>t.status!=='done').length}</div><div class="cp-stat-lbl">Aktywne</div></div>
+      <div class="cp-stat-box" style="flex:1;"><div class="cp-stat-val" style="color:var(--teal);font-size:22px;">${tasks.filter(t=>t.status==='done').length}</div><div class="cp-stat-lbl">Ukończone</div></div>
+      <div class="cp-stat-box" style="flex:1;"><div class="cp-stat-val" style="color:var(--orange);font-size:22px;">${tasks.filter(t=>t.status!=='done'&&t.due&&t.due<today).length}</div><div class="cp-stat-lbl">Przet.</div></div>
+    </div>
+    ${!tasks.length?'<div style="text-align:center;padding:30px;color:var(--muted);">Brak zadań dla tego klienta</div>'
+    :tasks.sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999')).map(t=>{
+      const isDone=t.status==='done';
+      const isOverdue=!isDone&&t.due&&t.due<today;
+      const catCol=TASK_CAT_COLORS[t.cat]||'var(--muted)';
+      return `<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);">
+        <div class="task-check${isDone?' checked':''}" onclick="toggleTask('${t.id}');renderCPTasks(CL.find(x=>x.id==='${c.id}'))">${isDone?'<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#000" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':''}</div>
+        <div style="flex:1;${isDone?'opacity:0.5;text-decoration:line-through;':''}">
+          <div style="font-size:12px;font-weight:600;">${t.title}</div>
+          <div style="display:flex;gap:5px;margin-top:3px;">
+            ${t.cat?`<span class="pill" style="background:${catCol}22;color:${catCol};font-size:9px;">${TASK_CAT_LABELS[t.cat]||t.cat}</span>`:''}
+            ${t.due?`<span style="font-size:10px;color:${isOverdue?'var(--red)':'var(--muted)'};font-family:'DM Mono',monospace;">${isOverdue?'⚠ ':''} ${t.due}</span>`:''}
+          </div>
+        </div>
+      </div>`;
+    }).join('')}
+    <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:10px;" onclick="openTaskTemplates()">📋 Użyj szablonu</button>`;
+}
+
+function renderCPPayments(c){
+  const pkgs=allPackages().filter(p=>p.clientId===c.id||p.clientName===c.name);
+  const total=pkgs.filter(p=>p.payStatus==='paid').reduce((s,p)=>s+p.price,0);
+  const today=new Date().toISOString().split('T')[0];
+  document.getElementById('cp-body').innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div class="cp-section-title" style="margin:0;">PAKIETY I PŁATNOŚCI</div>
+      <button class="btn btn-primary btn-sm" onclick="document.getElementById('pkg-client').value='${c.id}';openM('m-package')">+ Pakiet</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
+      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--accent);font-size:22px;">${total.toLocaleString('pl')} zł</div><div class="cp-stat-lbl">Łącznie zapłacono</div></div>
+      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--blue);font-size:22px;">${pkgs.length}</div><div class="cp-stat-lbl">Pakietów</div></div>
+    </div>
+    ${!pkgs.length?'<div style="text-align:center;padding:30px;color:var(--muted);">Brak pakietów</div>'
+    :pkgs.map(p=>{
+      const pct=Math.round(p.sessionsUsed/p.sessions*100);
+      const col=PKG_TYPE_COLOR[p.type]||'var(--accent)';
+      const isExpired=p.expiresDate&&p.expiresDate<today;
+      return `<div class="card-sm" style="margin-bottom:8px;border-left:3px solid ${col};">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+          <div style="font-size:12px;font-weight:600;">${p.title}</div>
+          <div style="font-weight:700;color:${col};">${p.price.toLocaleString('pl')} zł</div>
+        </div>
+        <div class="pkg-progress" style="margin:6px 0;"><div class="pkg-progress-fill" style="width:${pct}%;background:${col};"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);">
+          <span>${p.sessionsUsed}/${p.sessions} sesji</span>
+          <span class="pill ${PAY_STATUS_PILL[isExpired?'expired':p.payStatus]||'pill-muted'}" style="font-size:9px;">${PAY_STATUS_LABEL[isExpired?'expired':p.payStatus]||p.payStatus}</span>
+        </div>
+        ${p.invoiceId?`<button class="btn btn-ghost btn-sm" style="width:100%;margin-top:6px;" onclick="viewInvoice('${p.invoiceId}')">🧾 Faktura ${p.invoiceId}</button>`:''}
+      </div>`;
+    }).join('')}`;
+}
+
+
+// ══════════════════════════════════════════════════════
+// CP — TRAINING (kalendarz 2-tygodniowy)
+// ══════════════════════════════════════════════════════
+function renderCPTraining(c){
+  if(!c._mpView)c._mpView='2w';
+  if(!c._mpTab)c._mpTab='assignment';
+
+  const sessions=SE.filter(s=>s.clientId===c.id);
+  const today=new Date();
+  const todayStr=today.toISOString().split('T')[0];
+
+  // Statystyki
+  const last7=sessions.filter(s=>{const d=new Date(s.date);return(today-d)/86400000<=7;}).length;
+  const last30=sessions.filter(s=>{const d=new Date(s.date);return(today-d)/86400000<=30;}).length;
+
+  // Oblicz zakres kalendarza
+  const getMonday=(d)=>{const dt=new Date(d);const day=dt.getDay();dt.setDate(dt.getDate()-(day===0?6:day-1));dt.setHours(0,0,0,0);return dt;};
+  const mon=getMonday(today);
+  const weeks=c._mpView==='1w'?1:c._mpView==='2w'?2:4;
+  const totalDays=weeks*7;
+  const days=Array.from({length:totalDays},(_,i)=>{const d=new Date(mon);d.setDate(mon.getDate()+i);return d;});
+
+  const dayNamesShort=['Pon','Wt','Śr','Czw','Pt','Sob','Nie'];
+  const MONTHS_PL=['sty','lut','mar','kwi','maj','cze','lip','sie','wrz','paź','lis','gru'];
+
+  // Zakres dat header
+  const rangeStart=days[0];
+  const rangeEnd=days[days.length-1];
+  const rangeLabel=rangeStart.getDate()+' '+MONTHS_PL[rangeStart.getMonth()]+' – '+rangeEnd.getDate()+' '+MONTHS_PL[rangeEnd.getMonth()];
+
+  // Historia sesji
+  const historyHTML=sessions.length
+    ?sessions.sort((a,b)=>b.date.localeCompare(a.date)).slice(0,15).map(s=>{
+      const wo=allWorkouts().find(w=>w.id===s.workoutId);
+      const exCount=wo?(wo.days||[]).reduce((n,d)=>n+(d.exercises||[]).length,0):0;
+      const typeCol=s.type==='siłowy'||s.type==='Trening siłowy'?'var(--orange)':s.type==='cardio'?'var(--blue)':'var(--accent)';
+      return `<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="openSessDetail('${s.id}')">
+        <div style="width:38px;height:38px;border-radius:10px;background:${typeCol}18;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">💪</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:600;">${s.title||'Sesja'}</div>
+          <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;">${s.date}${s.duration?' · '+s.duration+' min':''}</div>
+        </div>
+        <span style="background:${typeCol}18;color:${typeCol};border-radius:4px;padding:2px 8px;font-size:10px;font-family:'DM Mono',monospace;font-weight:700;text-transform:uppercase;">${s.type||'trening personalny'}</span>
+      </div>`;
+    }).join('')
+    :'<div style="text-align:center;padding:32px;color:var(--muted);font-size:12px;">Brak historii sesji</div>';
+
+  // Siatka kalendarza
+  const calGrid=days.map((d,i)=>{
+    const ds=d.toISOString().split('T')[0];
+    const isToday=ds===todayStr;
+    const isPast=d<today&&!isToday;
+    const sessDay=sessions.filter(s=>s.date===ds);
+    const dayName=dayNamesShort[d.getDay()===0?6:d.getDay()-1];
+    const sessCards=sessDay.map(s=>{
+      const wo=allWorkouts().find(w=>w.id===s.workoutId);
+      const exCount=wo?(wo.days||[]).reduce((n,d)=>n+(d.exercises||[]).length,0):0;
+      const typeLabel=s.type||'REGULAR';
+      const typeCol=s.type==='siłowy'||s.type==='Trening siłowy'?'var(--orange)':s.type==='cardio'?'var(--blue)':'var(--accent)';
+      return `<div style="background:${typeCol}15;border:1px solid ${typeCol}40;border-radius:6px;padding:5px 6px;margin-top:4px;cursor:pointer;" onclick="event.stopPropagation();openSessDetail('${s.id}')">
+        <div style="font-size:10px;font-weight:700;color:${typeCol};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${(s.title||'Sesja').toUpperCase().substring(0,18)}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:2px;">
+          <span style="background:${typeCol}25;color:${typeCol};border-radius:3px;padding:1px 4px;font-size:9px;font-family:'DM Mono',monospace;">${typeLabel.toUpperCase().substring(0,8)}</span>
+          ${exCount?`<span style="font-size:9px;color:var(--muted);">⚡ ${exCount}</span>`:''}
+        </div>
+        ${s.duration?`<div style="font-size:9px;color:var(--muted);margin-top:2px;">⏱ ${s.duration} min</div>`:''}
+      </div>`;
+    }).join('');
+
+    return `<div style="border:1px solid ${isToday?'var(--accent)':isPast?'var(--border)':'var(--border)'};border-radius:8px;padding:7px;min-height:90px;background:${isToday?'rgba(200,241,53,0.04)':isPast?'rgba(0,0,0,0.1)':'var(--s2)'};cursor:pointer;transition:border-color 0.12s;" onclick="openAddSessionFromCP('${c.id}','${ds}')" onmouseover="this.style.borderColor='var(--border2)'" onmouseout="this.style.borderColor='${isToday?'var(--accent)':isPast?'var(--border)':'var(--border)'}'">
+      <div style="font-size:10px;color:${isToday?'var(--accent)':'var(--muted)'};font-family:'DM Mono',monospace;font-weight:${isToday?700:400};">${dayName} ${d.getDate()}</div>
+      ${sessCards}
+      ${!sessDay.length?`<div style="margin-top:10px;text-align:center;font-size:16px;color:var(--border2);opacity:0.6;">+</div>`:''}
+    </div>`;
+  });
+
+  // Tydzień 2: podziel na wiersze po 7
+  let gridRows='';
+  for(let w=0;w<weeks;w++){
+    const weekDays=calGrid.slice(w*7,(w+1)*7);
+    gridRows+=`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px;">${weekDays.join('')}</div>`;
+  }
+
+  document.getElementById('cp-body').innerHTML=`
+    <!-- Statystyki -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;">
+      <div style="background:var(--s3);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:30px;color:var(--accent);">${last7}</div>
+        <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.5px;">Ostatnie 7 dni</div>
+      </div>
+      <div style="background:var(--s3);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:30px;color:var(--blue);">${last30}</div>
+        <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.5px;">Ostatnie 30 dni</div>
+      </div>
+      <div style="background:var(--s3);border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:30px;color:var(--teal);">${sessions.length}</div>
+        <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.5px;">Łącznie sesji</div>
+      </div>
+    </div>
+
+    <!-- Nagłówek Master Planner -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+      <!-- Tabs: Assignment / History -->
+      <div style="display:flex;gap:2px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:2px;">
+        <button onclick="cpMpTab('${c.id}','assignment')" style="padding:5px 14px;border-radius:6px;border:none;font-size:12px;font-weight:600;cursor:pointer;background:${c._mpTab==='assignment'?'var(--accent)':'none'};color:${c._mpTab==='assignment'?'#000':'var(--muted)'};">Assignment</button>
+        <button onclick="cpMpTab('${c.id}','history')" style="padding:5px 14px;border-radius:6px;border:none;font-size:12px;font-weight:600;cursor:pointer;background:${c._mpTab==='history'?'var(--accent)':'none'};color:${c._mpTab==='history'?'#000':'var(--muted)'};">History</button>
+      </div>
+      <!-- Zakres dat -->
+      <div style="font-size:12px;color:var(--muted);padding:0 4px;">📅 ${rangeLabel}</div>
+      <!-- Przycisk + Sesja -->
+      <button class="btn btn-primary btn-sm" style="margin-left:auto;" onclick="openAddSessionFromCP('${c.id}','${todayStr}')">+ Sesja</button>
+      <!-- Widok: 1W / 2W / 4W -->
+      <div style="display:flex;gap:2px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:2px;">
+        <button onclick="cpMpView('${c.id}','1w')" style="padding:4px 10px;border-radius:6px;border:none;font-size:11px;font-weight:600;cursor:pointer;background:${c._mpView==='1w'?'var(--s1)':'none'};color:${c._mpView==='1w'?'var(--text)':'var(--muted)'};">1 Tydzień</button>
+        <button onclick="cpMpView('${c.id}','2w')" style="padding:4px 10px;border-radius:6px;border:none;font-size:11px;font-weight:600;cursor:pointer;background:${c._mpView==='2w'?'var(--s1)':'none'};color:${c._mpView==='2w'?'var(--text)':'var(--muted)'};">2 Tygodnie</button>
+        <button onclick="cpMpView('${c.id}','4w')" style="padding:4px 10px;border-radius:6px;border:none;font-size:11px;font-weight:600;cursor:pointer;background:${c._mpView==='4w'?'var(--s1)':'none'};color:${c._mpView==='4w'?'var(--text)':'var(--muted)'};">4 Tygodnie</button>
+      </div>
+    </div>
+
+    <!-- Nagłówki dni -->
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px;">
+      ${dayNamesShort.map(n=>`<div style="text-align:center;font-size:10px;color:var(--muted);font-weight:600;font-family:'DM Mono',monospace;text-transform:uppercase;">${n}</div>`).join('')}
+    </div>
+
+    <!-- Siatka kalendarza / Historia -->
+    <div id="cp-mp-content">
+      ${c._mpTab==='assignment'?gridRows:historyHTML}
+    </div>`;
+}
+
+function cpMpView(clientId, view){
+  const c=CL.find(x=>x.id===clientId);
+  if(!c)return;
+  c._mpView=view;
+  renderCPTraining(c);
+}
+function cpMpTab(clientId, tab){
+  const c=CL.find(x=>x.id===clientId);
+  if(!c)return;
+  c._mpTab=tab;
+  renderCPTraining(c);
+}
+window.cpMpView=cpMpView;
+window.cpMpTab=cpMpTab;
+
+function openAddSessionFromCP(clientId,date){
+  try{
+    const se=document.getElementById('se-client');if(se)se.value=clientId;
+    const sd=document.getElementById('se-date');if(sd)sd.value=date;
+    openM('m-session');
+  }catch(e){notify('Otwórz sesję z kalendarza głównego');}
+}
+
+// ══════════════════════════════════════════════════════
+// CP — FOOD JOURNAL (dziennik żywieniowy)
+// ══════════════════════════════════════════════════════
+window.CLIENT_FOOD = window.CLIENT_FOOD || {};
+function renderCPFood(c){
+  if(!window.CLIENT_FOOD[c.id]) window.CLIENT_FOOD[c.id]=[];
+  const entries=window.CLIENT_FOOD[c.id];
+  const enabled=c.clientSettings?.foodJournal!==false;
+  const today=new Date().toISOString().split('T')[0];
+  const byDate={};
+  entries.forEach(e=>{if(!byDate[e.date])byDate[e.date]=[];byDate[e.date].push(e);});
+  const dates=Object.keys(byDate).sort((a,b)=>b.localeCompare(a));
+  const mealTypes={breakfast:'🌅 Śniadanie',lunch:'☀️ Obiad',snack:'🍎 Przekąska',dinner:'🌙 Kolacja',other:'🍽️ Inne'};
+  document.getElementById('cp-body').innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div class="cp-section-title" style="margin:0;">DZIENNIK ŻYWIENIOWY</div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);cursor:pointer;">
+          <span>${enabled?'✅ Aktywny':'⛔ Wyłączony'}</span>
+          <div onclick="toggleClientFeature('${c.id}','foodJournal','food')" style="width:32px;height:18px;border-radius:9px;background:${enabled?'var(--accent)':'var(--s4)'};cursor:pointer;position:relative;transition:background 0.2s;">
+            <div style="width:14px;height:14px;border-radius:50%;background:#000;position:absolute;top:2px;left:${enabled?'16px':'2px'};transition:left 0.2s;"></div>
+          </div>
+        </label>
+        ${enabled?`<button class="btn btn-primary btn-sm" onclick="addFoodEntry('${c.id}')">+ Wpis</button>`:''}
+      </div>
+    </div>
+    ${!enabled?`<div style="text-align:center;padding:40px 20px;background:var(--s3);border-radius:12px;border:1px dashed var(--border2);">
+      <div style="font-size:32px;margin-bottom:8px;">🥗</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Dziennik Żywieniowy wyłączony</div>
+      <div style="font-size:11px;color:var(--muted);">Włącz powyżej aby klient mógł dodawać zdjęcia posiłków</div>
+    </div>`:
+    !entries.length?`<div style="text-align:center;padding:40px 20px;">
+      <div style="font-size:32px;margin-bottom:8px;">📸</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Brak wpisów</div>
+      <div style="font-size:11px;color:var(--muted);">Klient jeszcze nie dodał żadnych posiłków</div>
+      <button class="btn btn-ghost btn-sm" style="margin-top:12px;" onclick="addFoodEntry('${c.id}')">+ Dodaj przykładowy wpis</button>
+    </div>`:
+    dates.map(date=>`
+      <div style="margin-bottom:16px;">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:8px;text-transform:uppercase;">${date===today?'📅 DZIŚ':date}</div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">
+          ${byDate[date].map(e=>`
+            <div style="background:var(--s3);border-radius:10px;overflow:hidden;cursor:pointer;" onclick="viewFoodEntry('${c.id}','${e.id}')">
+              <div style="height:80px;background:linear-gradient(135deg,var(--s4),var(--s2));display:flex;align-items:center;justify-content:center;font-size:32px;">${e.emoji||'🍽️'}</div>
+              <div style="padding:8px;">
+                <div style="font-size:11px;font-weight:600;">${e.name||'Posiłek'}</div>
+                <div style="font-size:10px;color:var(--muted);">${mealTypes[e.type]||e.type||''}${e.kcal?' · '+e.kcal+' kcal':''}</div>
+                ${e.note?`<div style="font-size:10px;color:var(--muted2);margin-top:2px;font-style:italic;">${e.note}</div>`:''}
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>`).join('')}`;
+}
+function addFoodEntry(clientId){
+  const name=prompt('Nazwa posiłku:');if(!name)return;
+  const type=prompt('Typ (breakfast/lunch/snack/dinner/other):','lunch')||'other';
+  const kcal=parseInt(prompt('Kalorie (opcjonalne):',''))||null;
+  const emojis={'breakfast':'🥣','lunch':'🍲','snack':'🍎','dinner':'🌮','other':'🍽️'};
+  if(!window.CLIENT_FOOD[clientId])window.CLIENT_FOOD[clientId]=[];
+  window.CLIENT_FOOD[clientId].push({
+    id:'fe'+Date.now(),date:new Date().toISOString().split('T')[0],
+    name,type,kcal,emoji:emojis[type]||'🍽️',note:'',addedAt:new Date().toISOString()
+  });
+  const c=CL.find(x=>x.id===clientId);if(c)renderCPFood(c);
+}
+function viewFoodEntry(clientId,entryId){
+  const e=(window.CLIENT_FOOD[clientId]||[]).find(x=>x.id===entryId);
+  if(!e)return;
+  if(confirm(`${e.emoji||'🍽️'} ${e.name}\nData: ${e.date}\nKalorie: ${e.kcal||'—'}\n\nUsunąć ten wpis?`)){
+    window.CLIENT_FOOD[clientId]=(window.CLIENT_FOOD[clientId]||[]).filter(x=>x.id!==entryId);
+    const c=CL.find(x=>x.id===clientId);if(c)renderCPFood(c);
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// CP — DOCUMENTS
+// ══════════════════════════════════════════════════════
+window.CLIENT_DOCS = window.CLIENT_DOCS || {};
+function renderCPDocuments(c){
+  if(!window.CLIENT_DOCS[c.id])window.CLIENT_DOCS[c.id]=[];
+  const docs=window.CLIENT_DOCS[c.id];
+  const typeIcon={pdf:'📄',image:'🖼️',video:'🎬',other:'📁'};
+  document.getElementById('cp-body').innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div class="cp-section-title" style="margin:0;">DOKUMENTY (${docs.length})</div>
+      <button class="btn btn-primary btn-sm" onclick="addClientDoc('${c.id}')">+ Dodaj</button>
+    </div>
+    ${!docs.length?`<div style="text-align:center;padding:60px 20px;background:var(--s3);border-radius:12px;border:1px dashed var(--border2);">
+      <div style="font-size:40px;margin-bottom:12px;">📂</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Brak dokumentów</div>
+      <div style="font-size:11px;color:var(--muted);">Dokumenty przesłane przez klienta pojawią się tutaj</div>
+      <button class="btn btn-ghost btn-sm" style="margin-top:14px;" onclick="addClientDoc('${c.id}')">+ Dodaj dokument</button>
+    </div>`:
+    docs.map(d=>`
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--s3);border-radius:10px;margin-bottom:8px;">
+        <div style="width:40px;height:40px;border-radius:8px;background:var(--s4);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">${typeIcon[d.type]||'📁'}</div>
+        <div style="flex:1;overflow:hidden;">
+          <div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d.name}</div>
+          <div style="font-size:10px;color:var(--muted);">${d.date}${d.size?' · '+d.size:''}</div>
+          ${d.note?`<div style="font-size:10px;color:var(--muted2);font-style:italic;">${d.note}</div>`:''}
+        </div>
+        <button onclick="delClientDoc('${c.id}','${d.id}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;padding:4px;">🗑</button>
+      </div>`).join('')}`;
+}
+function addClientDoc(clientId){
+  const name=prompt('Nazwa dokumentu (np. "Ankieta wstępna.pdf"):');if(!name)return;
+  const type=name.endsWith('.pdf')?'pdf':name.match(/\.(jpg|png|jpeg)/i)?'image':'other';
+  const note=prompt('Notatka (opcjonalne):','')||'';
+  if(!window.CLIENT_DOCS[clientId])window.CLIENT_DOCS[clientId]=[];
+  window.CLIENT_DOCS[clientId].push({
+    id:'doc'+Date.now(),name,type,note,
+    date:new Date().toISOString().split('T')[0],
+    size:Math.round(Math.random()*900+100)+'KB'
+  });
+  const c=CL.find(x=>x.id===clientId);if(c)renderCPDocuments(c);
+}
+function delClientDoc(clientId,docId){
+  if(!confirm('Usunąć dokument?'))return;
+  window.CLIENT_DOCS[clientId]=(window.CLIENT_DOCS[clientId]||[]).filter(x=>x.id!==docId);
+  const c=CL.find(x=>x.id===clientId);if(c)renderCPDocuments(c);
+}
+
+// ══════════════════════════════════════════════════════
+// CP — SETTINGS (ustawienia per klient jak w Everfit)
+// ══════════════════════════════════════════════════════
+function toggleClientFeature(clientId,feature,tab){
+  const c=CL.find(x=>x.id===clientId);if(!c)return;
+  if(!c.clientSettings)c.clientSettings={};
+  c.clientSettings[feature]=!c.clientSettings[feature];
+  if(window._db&&c.id&&!c.id.startsWith('l')){
+    try{window._setDoc(window._doc(window._db,'clients',c.id),{clientSettings:c.clientSettings},{merge:true});}catch(e){}
+  }
+  if(tab)setCPTab(tab);
+  else renderCPSettings(c);
+  notify(feature+' '+(c.clientSettings[feature]?'włączone':'wyłączone'));
+}
+function renderCPSettings(c){
+  if(!c.clientSettings)c.clientSettings={};
+  const s=c.clientSettings;
+  const feat=[
+    {key:'training',label:'Treningi',desc:'Przypisywanie i śledzenie treningów',icon:'💪',default:true},
+    {key:'tasks',label:'Zadania',desc:'Harmonogram zadań i materiały edukacyjne',icon:'✅',default:true},
+    {key:'foodJournal',label:'Dziennik żywieniowy',desc:'Klient przesyła zdjęcia posiłków',icon:'🥗',default:false},
+    {key:'macros',label:'Makroelementy',desc:'Śledzenie kalorii i makroskładników',icon:'🔢',default:false},
+    {key:'mealPlan',label:'Plan żywieniowy',desc:'Spersonalizowane plany diety',icon:'🍽️',default:false},
+    {key:'messages',label:'Wiadomości',desc:'Czat bezpośredni z trenerem',icon:'💬',default:true},
+    {key:'progressPhoto',label:'Zdjęcia postępu',desc:'Wizualizacja efektów — przed/po',icon:'📸',default:true},
+    {key:'bodyMetrics',label:'Pomiary ciała',desc:'Monitorowanie pomiarów ciała',icon:'📏',default:true},
+  ];
+  const toggle=(key,defaultVal)=>{
+    const on=s[key]!==undefined?s[key]:defaultVal;
+    return `<div onclick="toggleClientFeature('${c.id}','${key}','settings')" style="width:40px;height:22px;border-radius:11px;background:${on?'var(--accent)':'var(--s4)'};cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0;">
+      <div style="width:16px;height:16px;border-radius:50%;background:${on?'#0a0a0a':'var(--muted)'};position:absolute;top:3px;left:${on?'21px':'3px'};transition:left 0.2s;"></div>
+    </div>`;
+  };
+  document.getElementById('cp-body').innerHTML=`
+    <div class="cp-section-title">FUNKCJE KLIENTA</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:14px;">Włącz lub wyłącz funkcje dla tego klienta. Wyłączone funkcje nie będą widoczne w aplikacji klienta.</div>
+    ${feat.map(f=>{
+      const on=s[f.key]!==undefined?s[f.key]:f.default;
+      return `<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);">
+        <div style="width:36px;height:36px;border-radius:10px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">${f.icon}</div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:600;color:${on?'var(--text)':'var(--muted)'};">${f.label}</div>
+          <div style="font-size:11px;color:var(--muted);">${f.desc}</div>
+        </div>
+        ${toggle(f.key,f.default)}
+      </div>`;
+    }).join('')}
+    
+    <div style="margin-top:20px;" class="cp-section-title">USTAWIENIA JEDNOSTEK</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
+      <div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Waga</div>
+        <select class="form-select" style="font-size:12px;" onchange="updateClientUnit('${c.id}','weightUnit',this.value)">
+          <option value="kg" ${(s.weightUnit||'kg')==='kg'?'selected':''}>kg</option>
+          <option value="lbs" ${s.weightUnit==='lbs'?'selected':''}>lbs</option>
+        </select>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Wymiary</div>
+        <select class="form-select" style="font-size:12px;" onchange="updateClientUnit('${c.id}','dimUnit',this.value)">
+          <option value="cm" ${(s.dimUnit||'cm')==='cm'?'selected':''}>cm</option>
+          <option value="in" ${s.dimUnit==='in'?'selected':''}>inch</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="cp-section-title">STREFA CZASOWA</div>
+    <select class="form-select" style="font-size:12px;margin-bottom:16px;" onchange="updateClientUnit('${c.id}','timezone',this.value)">
+      ${['Europe/Warsaw','Europe/London','America/New_York','America/Chicago','America/Los_Angeles','Asia/Tokyo','Australia/Sydney']
+        .map(tz=>`<option value="${tz}" ${(s.timezone||'Europe/Warsaw')===tz?'selected':''}>${tz.replace('_',' ')}</option>`).join('')}
+    </select>
+    
+    <button class="btn btn-danger btn-sm" style="width:100%;" onclick="archiveClient('${c.id}')">🗄 Zarchiwizuj klienta</button>`;
+}
+function updateClientUnit(clientId,key,value){
+  const c=CL.find(x=>x.id===clientId);if(!c)return;
+  if(!c.clientSettings)c.clientSettings={};
+  c.clientSettings[key]=value;
+  if(window._db&&c.id&&!c.id.startsWith('l')){
+    try{window._setDoc(window._doc(window._db,'clients',c.id),{clientSettings:c.clientSettings},{merge:true});}catch(e){}
+  }
+  notify('Zapisano');
+}
+
+
