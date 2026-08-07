@@ -90,6 +90,23 @@ async function aplGenerate(){
   const cid=document.getElementById('apl-client').value;
   const client=cid?CL.find(x=>x.id===cid):null;
 
+  // anatomia i biomechanika
+  const femur=document.getElementById('apl-femur')?.value||'';
+  const wingspan=document.getElementById('apl-wingspan')?.value||'';
+  const ankle=document.getElementById('apl-ankle')?.value||'';
+  const pelvis=document.getElementById('apl-pelvis')?.value||'';
+  const asymmetry=document.getElementById('apl-asymmetry')?.value||'';
+
+  // styl zycia
+  const job=document.getElementById('apl-job')?.value||'';
+  const sleepLabels=['fatalna','słaba','średnia','dobra','świetna'];
+  const stressLabels=['niski','lekki','średni','wysoki','bardzo wysoki'];
+  const sleep=sleepLabels[(document.getElementById('apl-sleep')?.value||3)-1];
+  const stress=stressLabels[(document.getElementById('apl-stress')?.value||3)-1];
+
+  // progresja
+  const progression=aplGetVal('apl-progression')||'ai';
+
   if(!goal||!level||!method||!days){
     notify('⚠ Uzupełnij wymagane pola!');return;
   }
@@ -109,6 +126,17 @@ async function aplGenerate(){
     <div style="font-size:12px;color:var(--muted);max-width:300px;text-align:center;line-height:1.7;">Analizuję parametry i tworzę spersonalizowany plan ${method} na ${weeks} tygodni...</div>
     <div style="display:flex;gap:6px;">${[0,1,2].map(i=>`<div style="width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 1s ${i*0.2}s infinite;"></div>`).join('')}</div>
   </div>`;
+
+  const progressionInstructions={
+    linear:'PROGRESJA LINIOWA: każdy tydzień +2.5-5kg przy tych samych seriach i powtórzeniach.',
+    dup:'DUP (Daily Undulating Periodization): każda sesja inne zakresy — A: 4-6 powt. (siła), B: 8-12 (hipertrofia), C: 15-20 (wytrzymałość).',
+    wave:'FALUJĄCA TYGODNIOWA: tygodnie nieparzyste = wyższa objętość RPE 7-8, parzyste = wyższa intensywność RPE 8-9.',
+    block:'BLOKOWA: pierwsze tygodnie Akumulacja (10-15 powt. RPE 6-7), środkowe Intensyfikacja (6-8 powt. RPE 8-9), ostatni tydzień Deload, potem Realizacja.',
+    double:'PODWÓJNA PROGRESJA: dodawaj 1 powt./tydzień do górnego zakresu, potem +2.5-5kg i reset do dolnego zakresu powtórzeń.',
+  };
+  const progressionInstruction = progression==='ai'
+    ? 'Dobierz OPTYMALNĄ metodę progresji dla tego klienta i uzasadnij wybór w polu "periodization".'
+    : progressionInstructions[progression];
 
   const systemPrompt=`Jesteś ekspertem programowania treningowego z certyfikatami NSCA CSCS i NASM CPT. Tworzysz szczegółowe plany treningowe w języku polskim.
 
@@ -148,6 +176,10 @@ WAŻNE — odpowiedz TYLKO w formacie JSON (bez żadnego dodatkowego tekstu, bez
   "weeklyVolume": {"chest":"12 serii","back":"14 serii","legs":"16 serii","shoulders":"10 serii","arms":"8 serii"}
 }
 
+METODA PROGRESJI (obowiązkowa): ${progressionInstruction}
+
+UWZGLĘDNIJ ANATOMIĘ I BIOMECHANIKĘ KLIENTA przy doborze wariantów ćwiczeń (np. długa kość udowa → przysiad na maszynie hack/suwnicy zamiast klasycznego przysiadu ze sztangą; ograniczona mobilność skokowa → dodaj podkładki pod pięty lub zamień na wykroki; długie ramiona → węższy chwyt w wyciskaniu).
+
 Stwórz PEŁNY plan z wszystkimi dniami i minimum 6-8 ćwiczeniami na dzień.`;
 
   const userMsg=`Stwórz plan treningowy:
@@ -163,6 +195,14 @@ ${gender?`- Płeć: ${gender}`:''}
 ${weight?`- Waga: ${weight} kg`:''}
 ${height?`- Wzrost: ${height} cm`:''}
 ${injuries?`- Kontuzje/ograniczenia: ${injuries}`:''}
+${femur?`- Długość kości udowej: ${femur}`:''}
+${wingspan?`- Zasięg ramion: ${wingspan}`:''}
+${ankle?`- Mobilność stawu skokowego: ${ankle}`:''}
+${pelvis?`- Budowa miednicy: ${pelvis}`:''}
+${asymmetry?`- Dominacja stron/asymetrie: ${asymmetry}`:''}
+${job?`- Rodzaj pracy (NEAT): ${job}`:''}
+- Jakość snu: ${sleep}
+- Poziom stresu: ${stress}
 ${notes?`- Dodatkowe uwagi: ${notes}`:''}
 ${client?`- Klient: ${client.name}, cel: ${client.goal}, poziom: ${client.level}`:''}`;
 
@@ -188,6 +228,7 @@ ${client?`- Klient: ${client.name}, cel: ${client.goal}, poziom: ${client.level}
       else throw new Error('JSON parse failed');
     }
     aplLastPlan=plan;
+    aplLastClient=client;
     aplRenderPlan(plan,client,goal,method,days,weeks);
   }catch(e){
     res.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;gap:14px;text-align:center;padding:40px;">
@@ -259,10 +300,11 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
                     <th style="padding:5px 6px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;font-weight:400;text-transform:uppercase;font-size:9px;">Powt.</th>
                     <th style="padding:5px 6px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;font-weight:400;text-transform:uppercase;font-size:9px;">Przerwa</th>
                     <th style="padding:5px 6px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;font-weight:400;text-transform:uppercase;font-size:9px;">RIR</th>
+                    <th style="padding:5px 6px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;font-weight:400;text-transform:uppercase;font-size:9px;width:24px;"></th>
                   </tr>
                 </thead>
                 <tbody>
-                  ${(d.exercises||[]).map((ex,ei)=>`<tr style="border-bottom:1px solid rgba(255,255,255,0.04);" onmouseover="this.style.background='rgba(200,241,53,0.03)'" onmouseout="this.style.background=''">
+                  ${(d.exercises||[]).map((ex,ei)=>`<tr id="apl-ex-row-${di}-${ei}" style="border-bottom:1px solid rgba(255,255,255,0.04);" onmouseover="this.style.background='rgba(200,241,53,0.03)'" onmouseout="this.style.background=''">
                     <td style="padding:7px 6px;"><div class="apl-ex-num">${ei+1}</div></td>
                     <td style="padding:7px 6px;">
                       <div style="font-size:12px;font-weight:600;">${ex.name}</div>
@@ -273,6 +315,7 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
                     <td style="padding:7px 6px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;">${ex.reps}</td>
                     <td style="padding:7px 6px;text-align:center;font-size:11px;color:var(--muted);">${ex.rest||'—'}</td>
                     <td style="padding:7px 6px;text-align:center;font-size:11px;color:var(--blue);">${ex.rir||'—'}</td>
+                    <td style="padding:7px 6px;text-align:center;"><button onclick="aplEditExercise(${di},${ei})" title="Edytuj ćwiczenie" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;opacity:.7;">✏️</button></td>
                   </tr>`).join('')}
                 </tbody>
               </table>
@@ -326,6 +369,48 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
         </div>`:''}
       </div>
     </div>`;
+}
+
+// ════════════════════════════════════════
+// EDYCJA ĆWICZENIA W WYGENEROWANYM PLANIE
+// ════════════════════════════════════════
+let aplLastClient=null;
+
+function aplEditExercise(di,ei){
+  const ex=aplLastPlan.days[di].exercises[ei];
+  const row=document.getElementById(`apl-ex-row-${di}-${ei}`);
+  if(!row||!ex)return;
+  row.innerHTML=`
+    <td style="padding:6px;"><div class="apl-ex-num">${ei+1}</div></td>
+    <td style="padding:6px;" colspan="1">
+      <input type="text" id="apl-edit-name-${di}-${ei}" value="${(ex.name||'').replace(/"/g,'&quot;')}" style="width:100%;background:var(--s3);border:1px solid var(--border2);border-radius:5px;padding:4px 6px;color:var(--text);font-size:11px;margin-bottom:3px;">
+      <input type="text" id="apl-edit-notes-${di}-${ei}" value="${(ex.notes||'').replace(/"/g,'&quot;')}" placeholder="notatka" style="width:100%;background:var(--s3);border:1px solid var(--border2);border-radius:5px;padding:3px 6px;color:var(--muted);font-size:10px;">
+    </td>
+    <td style="padding:6px;"><input type="text" id="apl-edit-sets-${di}-${ei}" value="${ex.sets||''}" style="width:36px;text-align:center;background:var(--s3);border:1px solid var(--border2);border-radius:5px;padding:4px 2px;color:var(--accent);font-size:11px;"></td>
+    <td style="padding:6px;"><input type="text" id="apl-edit-reps-${di}-${ei}" value="${ex.reps||''}" style="width:44px;text-align:center;background:var(--s3);border:1px solid var(--border2);border-radius:5px;padding:4px 2px;color:var(--text);font-size:11px;"></td>
+    <td style="padding:6px;"><input type="text" id="apl-edit-rest-${di}-${ei}" value="${ex.rest||''}" style="width:48px;text-align:center;background:var(--s3);border:1px solid var(--border2);border-radius:5px;padding:4px 2px;color:var(--text);font-size:11px;"></td>
+    <td style="padding:6px;"><input type="text" id="apl-edit-rir-${di}-${ei}" value="${ex.rir||''}" style="width:44px;text-align:center;background:var(--s3);border:1px solid var(--border2);border-radius:5px;padding:4px 2px;color:var(--blue);font-size:11px;"></td>
+    <td style="padding:6px;white-space:nowrap;">
+      <button onclick="aplSaveExerciseEdit(${di},${ei})" title="Zapisz" style="background:none;border:none;color:var(--teal);cursor:pointer;font-size:13px;">✓</button>
+      <button onclick="aplRerenderCurrent()" title="Anuluj" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;">✕</button>
+    </td>`;
+}
+
+function aplSaveExerciseEdit(di,ei){
+  const ex=aplLastPlan.days[di].exercises[ei];
+  ex.name=document.getElementById(`apl-edit-name-${di}-${ei}`).value.trim()||ex.name;
+  ex.notes=document.getElementById(`apl-edit-notes-${di}-${ei}`).value.trim();
+  ex.sets=document.getElementById(`apl-edit-sets-${di}-${ei}`).value.trim();
+  ex.reps=document.getElementById(`apl-edit-reps-${di}-${ei}`).value.trim();
+  ex.rest=document.getElementById(`apl-edit-rest-${di}-${ei}`).value.trim();
+  ex.rir=document.getElementById(`apl-edit-rir-${di}-${ei}`).value.trim();
+  notify('✓ Ćwiczenie zaktualizowane');
+  aplRerenderCurrent();
+}
+
+function aplRerenderCurrent(){
+  if(!aplLastPlan)return;
+  aplRenderPlan(aplLastPlan,aplLastClient,aplLastPlan.method,aplLastPlan.method,aplLastPlan.daysPerWeek,aplLastPlan.weeks);
 }
 
 function aplSavePlan(){
@@ -481,6 +566,7 @@ function aplReset(){
 window.initAplangen=initAplangen;window.aplToggleOpt=aplToggleOpt;
 window.aplFillFromClient=aplFillFromClient;window.aplGenerate=aplGenerate;
 window.aplSavePlan=aplSavePlan;window.aplExportPlan=aplExportPlan;window.aplExportPlanPDF=aplExportPlanPDF;window.aplReset=aplReset;
+window.aplEditExercise=aplEditExercise;window.aplSaveExerciseEdit=aplSaveExerciseEdit;window.aplRerenderCurrent=aplRerenderCurrent;
 
 // ════════════════════════════════════════
 // STATYSTYKI BIZNESOWE

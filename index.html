@@ -2055,6 +2055,91 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <input type="text" class="form-input" id="apl-injuries" placeholder="np. ból kolan, problem z barkiem..." style="font-size:13px;">
       </div>
 
+      <!-- anatomia i biomechanika -->
+      <div class="form-field">
+        <label class="form-lbl">🦴 Długość kości udowej</label>
+        <select class="form-select" id="apl-femur" style="font-size:13px;">
+          <option value="">— Nieznana —</option>
+          <option value="krótka (korzystna do przysiadu klasycznego)">🟢 Krótka (dobry dźwig do przysiadu)</option>
+          <option value="średnia (standardowa)">🟡 Średnia (standardowa)</option>
+          <option value="długa (wymaga modyfikacji przysiadu)">🔴 Długa (wymaga hack/rampy/suwnica)</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="form-lbl">🦴 Zasięg ramion (wingspan)</label>
+        <select class="form-select" id="apl-wingspan" style="font-size:13px;">
+          <option value="">— Nieznany —</option>
+          <option value="krótki (korzystny do wyciskania)">🟢 Krótki (korzystny do wyciskania)</option>
+          <option value="średni (standardowy)">🟡 Średni (standardowy)</option>
+          <option value="długi (korzystny do martwego ciągu)">🟣 Długi (korzystny do DL, trudniejszy BP)</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-field">
+          <label class="form-lbl">🦴 Mobilność stawu skokowego</label>
+          <select class="form-select" id="apl-ankle" style="font-size:13px;">
+            <option value="">— Nieznana —</option>
+            <option value="dobra (kolano wychodzi daleko za palce)">✅ Dobra (pełny przysiad)</option>
+            <option value="ograniczona (wymaga klina/rampy pod pięty)">⚠️ Ograniczona</option>
+            <option value="bardzo ograniczona (uniemożliwia przysiad)">❌ B. ograniczona</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-lbl">🦴 Budowa miednicy</label>
+          <select class="form-select" id="apl-pelvis" style="font-size:13px;">
+            <option value="">— Nieznana —</option>
+            <option value="wąska (szeroki stance może być niekomfortowy)">Wąska</option>
+            <option value="standardowa">Standardowa</option>
+            <option value="szeroka (szeroki stance korzystny w przysiadu)">Szeroka</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-field">
+        <label class="form-lbl">🦴 Dominacja stron / asymetrie</label>
+        <select class="form-select" id="apl-asymmetry" style="font-size:13px;">
+          <option value="">— Brak znanych —</option>
+          <option value="silna dominacja prawej strony (różnica siły >15%)">Silna dominacja prawa (>15%)</option>
+          <option value="silna dominacja lewej strony (różnica siły >15%)">Silna dominacja lewa (>15%)</option>
+          <option value="skrzywienie kręgosłupa (skolioza)">Skolioza</option>
+          <option value="nierówna długość nóg">Nierówna długość nóg</option>
+        </select>
+      </div>
+
+      <!-- styl zycia -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-field">
+          <label class="form-lbl">🌙 Rodzaj pracy (NEAT)</label>
+          <select class="form-select" id="apl-job" style="font-size:13px;">
+            <option value="praca siedząca (biuro, komputer)">💺 Siedząca</option>
+            <option value="praca stojąca lub mieszana">🚶 Stojąca/mieszana</option>
+            <option value="praca fizyczna (aktywna)">⛏ Fizyczna</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-lbl">🌙 Jakość snu (1-5)</label>
+          <input type="range" id="apl-sleep" min="1" max="5" value="3" style="width:100%;margin-top:10px;accent-color:var(--accent);" oninput="document.getElementById('apl-sleep-val').textContent=['😴 Fatalny','😕 Słaby','😐 Średni','🙂 Dobry','😊 Świetny'][this.value-1]">
+          <div style="font-size:10px;color:var(--muted);text-align:right;" id="apl-sleep-val">😐 Średni</div>
+        </div>
+      </div>
+      <div class="form-field">
+        <label class="form-lbl">🌙 Poziom stresu (1-5)</label>
+        <input type="range" id="apl-stress" min="1" max="5" value="3" style="width:100%;accent-color:var(--red);" oninput="document.getElementById('apl-stress-val').textContent=['😌 Niski','🙂 Lekki','😐 Średni','😣 Wysoki','🤯 B. wysoki'][this.value-1]">
+        <div style="font-size:10px;color:var(--muted);text-align:right;" id="apl-stress-val">😐 Średni</div>
+      </div>
+
+      <!-- progresja -->
+      <div class="form-field">
+        <label class="form-lbl">📈 Metoda progresji</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;" id="apl-progression">
+          <button class="apl-opt active" data-val="ai" onclick="aplToggleOpt(this,'apl-progression')" title="AI dobiera optymalną metodę">🤖 AI Auto</button>
+          <button class="apl-opt" data-val="linear" onclick="aplToggleOpt(this,'apl-progression')" title="Co tydzień +2.5-5kg">📈 Liniowa</button>
+          <button class="apl-opt" data-val="dup" onclick="aplToggleOpt(this,'apl-progression')" title="Różne rep ranges każdej sesji">🔄 DUP</button>
+          <button class="apl-opt" data-val="wave" onclick="aplToggleOpt(this,'apl-progression')" title="Tygodnie obj. przeplatane z intensywnością">〰️ Falowa</button>
+          <button class="apl-opt" data-val="block" onclick="aplToggleOpt(this,'apl-progression')" title="Akumulacja → Intensyfikacja → Realizacja">🧱 Blokowa</button>
+          <button class="apl-opt" data-val="double" onclick="aplToggleOpt(this,'apl-progression')" title="Najpierw +powt., potem +ciężar">⏫ Podwójna</button>
+        </div>
+      </div>
+
       <!-- dodatkowe uwagi -->
       <div class="form-field">
         <label class="form-lbl">Dodatkowe uwagi dla AI</label>
