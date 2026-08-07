@@ -93,6 +93,248 @@ function ctlDeleteEntry(clientId, id){
 window.renderCPTimeline=renderCPTimeline; window.ctlAddEntry=ctlAddEntry; window.ctlDeleteEntry=ctlDeleteEntry;
 
 // ════════════════════════════════════════
+// PSYCHO — profil psychodietetyczny klienta
+// ════════════════════════════════════════
+window.CLIENT_PSYCHO = window.CLIENT_PSYCHO || {}; // clientId -> {habits,diagnosis,psychology,daily:[]}
+
+const PSY_HABIT_LABELS = {binge:'Napady objadania się',snacking:'Niekontrolowane podjadanie',yoyo:'Błędne koło yo-yo',emotional:'Jedzenie emocjonalne',restriction:'Nadmierne restrykcje',social:'Trudności w sytuacjach społecznych'};
+const PSY_DIAG_LABELS  = {io:'Insulinooporność',diabetes:'Cukrzyca (t.1 lub t.2)',ibs:'Jelito drażliwe (IBS)',hashimoto:'Hashimoto / niedoczynność',pcos:'PCOS',gluten:'Nietolerancja glutenu/celiakia',lactose:'Nietolerancja laktozy'};
+const PSY_BARRIERS = ['Brak czasu','Brak motywacji','Perfekcjonizm (wszystko albo nic)','Strach przed porażką','Porównywanie się z innymi','Trauma związana z odchudzaniem','Problemy emocjonalne z jedzeniem','Presja społeczna'];
+
+function psyGet(clientId){
+  if(!CLIENT_PSYCHO[clientId]){
+    const c = CL.find(x=>x.id===clientId);
+    CLIENT_PSYCHO[clientId] = (c && c.psycho) ? c.psycho : {habits:{},diagnosis:{},psychology:{},daily:[]};
+  }
+  return CLIENT_PSYCHO[clientId];
+}
+
+function psyPersist(clientId){
+  if(window._db && clientId){
+    try{ window._setDoc(window._doc(window._db,'clients',clientId), {psycho: CLIENT_PSYCHO[clientId]}, {merge:true}); }catch(e){}
+  }
+}
+
+function renderCPPsycho(c){
+  if(!c) return;
+  const p = psyGet(c.id);
+  const todayMood = (p.daily||[]).find(d=>d.date===new Date().toISOString().split('T')[0]);
+
+  document.getElementById('cp-body').innerHTML = `
+    <div style="background:linear-gradient(135deg,rgba(127,119,221,0.1),rgba(232,48,42,0.06));border:1px solid rgba(127,119,221,0.2);border-radius:10px;padding:14px;margin-bottom:14px;">
+      <div style="font-size:10px;color:#9f97e8;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">😊 Dzienny tracker nastroju</div>
+      <div style="display:flex;gap:6px;justify-content:space-between;margin-bottom:10px;" id="psy-mood-btns">
+        ${[[1,'😞','Bardzo zły'],[2,'😕','Zły'],[3,'😐','Neutralny'],[4,'😊','Dobry'],[5,'🤩','Świetny']].map(([v,e,t])=>
+          `<button onclick="psySetMood('${c.id}',${v},this)" class="psy-mood-btn" data-v="${v}" title="${t}" style="flex:1;font-size:20px;background:${(todayMood?.mood===v)?'rgba(127,119,221,0.25)':'var(--s3)'};border:1px solid ${(todayMood?.mood===v)?'rgba(127,119,221,0.5)':'var(--border2)'};border-radius:8px;padding:8px 2px;cursor:pointer;">${e}</button>`
+        ).join('')}
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">Poziom energii</div>
+          <input type="range" id="psy-energy" min="1" max="10" value="${todayMood?.energy||5}" style="width:100%;accent-color:#9f97e8;" oninput="document.getElementById('psy-energy-val').textContent=this.value">
+          <div style="font-size:10px;color:#9f97e8;text-align:right;" id="psy-energy-val">${todayMood?.energy||5}</div>
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">Poziom stresu</div>
+          <input type="range" id="psy-stress" min="1" max="10" value="${todayMood?.stress||5}" style="width:100%;accent-color:var(--red);" oninput="document.getElementById('psy-stress-val').textContent=this.value">
+          <div style="font-size:10px;color:var(--red);text-align:right;" id="psy-stress-val">${todayMood?.stress||5}</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">Jakość snu (godz.)</div>
+        <div style="display:flex;gap:6px;">
+          <input id="psy-sleep" type="number" min="0" max="12" step="0.5" value="${todayMood?.sleep||''}" placeholder="7.5" style="flex:1;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:6px 9px;color:var(--text);font-size:12px;">
+          <button onclick="psySaveDaily('${c.id}')" id="psy-daily-btn" style="background:rgba(127,119,221,0.2);border:1px solid rgba(127,119,221,0.4);border-radius:6px;padding:6px 12px;color:#9f97e8;font-size:11px;font-weight:600;cursor:pointer;">💾 Zapisz</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;">
+      <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">📈 Nastrój — ostatnie 7 dni</div>
+      <div id="psy-mood-history" style="display:flex;gap:4px;align-items:flex-end;height:56px;"></div>
+    </div>
+
+    <div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;">
+      <div style="font-size:10px;color:var(--accent);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">🍽️ Nawyki żywieniowe klienta</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        ${Object.entries(PSY_HABIT_LABELS).map(([k,label])=>
+          `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text);">
+            <input type="checkbox" id="psy-h-${k}" ${p.habits?.[k]?'checked':''} style="accent-color:var(--red);"> ${label}
+          </label>`
+        ).join('')}
+      </div>
+    </div>
+
+    <div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;">
+      <div style="font-size:10px;color:var(--accent);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">🏥 Diagnoza / kondycja zdrowotna</div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        ${Object.entries(PSY_DIAG_LABELS).map(([k,label])=>
+          `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text);">
+            <input type="checkbox" id="psy-d-${k}" ${p.diagnosis?.[k]?'checked':''} style="accent-color:var(--accent);"> ${label}
+          </label>`
+        ).join('')}
+      </div>
+      <textarea id="psy-diag-notes" placeholder="Inne diagnozy, leki, uwagi..." style="width:100%;margin-top:10px;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:8px 9px;color:var(--text);font-size:12px;resize:none;height:54px;">${p.diagnosis?.notes||''}</textarea>
+    </div>
+
+    <div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;">
+      <div style="font-size:10px;color:var(--accent);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">💭 Relacja z ciałem i ćwiczeniami</div>
+      <div style="margin-bottom:10px;">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Motywacja do ćwiczeń (1-10)</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input type="range" id="psy-motivation" min="1" max="10" value="${p.psychology?.motivation||7}" style="flex:1;accent-color:var(--accent);" oninput="document.getElementById('psy-mot-val').textContent=this.value">
+          <span style="font-size:13px;font-weight:700;color:var(--accent);min-width:18px;" id="psy-mot-val">${p.psychology?.motivation||7}</span>
+        </div>
+      </div>
+      <div style="margin-bottom:10px;">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Zadowolenie z własnego ciała (1-10)</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input type="range" id="psy-body-sat" min="1" max="10" value="${p.psychology?.bodySatisfaction||6}" style="flex:1;accent-color:var(--accent);" oninput="document.getElementById('psy-body-val').textContent=this.value">
+          <span style="font-size:13px;font-weight:700;color:var(--accent);min-width:18px;" id="psy-body-val">${p.psychology?.bodySatisfaction||6}</span>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Główna bariera psychologiczna</div>
+      <select id="psy-barrier" style="width:100%;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:7px 9px;color:var(--text);font-size:12px;">
+        <option value="">– wybierz –</option>
+        ${PSY_BARRIERS.map(b=>`<option ${p.psychology?.barrier===b?'selected':''}>${b}</option>`).join('')}
+      </select>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <button onclick="psySaveProfile('${c.id}')" id="psy-save-btn" style="width:100%;background:rgba(127,119,221,0.15);border:1px solid rgba(127,119,221,0.35);border-radius:8px;padding:10px;color:#9f97e8;font-size:12px;font-weight:600;cursor:pointer;">💾 Zapisz profil psychodietetyczny</button>
+      <button onclick="psyAskAI('${c.id}')" id="psy-ai-btn" style="width:100%;background:rgba(200,241,53,0.1);border:1px solid rgba(200,241,53,0.25);border-radius:8px;padding:10px;color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;">🤖 Zapytaj AI o strategie</button>
+      <button onclick="psyCheckYoyo('${c.id}')" style="width:100%;background:rgba(255,140,66,0.1);border:1px solid rgba(255,140,66,0.25);border-radius:8px;padding:10px;color:var(--orange);font-size:12px;font-weight:600;cursor:pointer;">🔄 Sprawdź błędne koło yo-yo</button>
+      <div id="psy-yoyo-result"></div>
+      <div id="psy-ai-result"></div>
+    </div>`;
+
+  psyRenderMoodHistory(c.id);
+}
+
+function psySetMood(clientId,val,btn){
+  document.querySelectorAll('.psy-mood-btn').forEach(b=>{b.style.background='var(--s3)';b.style.borderColor='var(--border2)';});
+  btn.style.background='rgba(127,119,221,0.25)';btn.style.borderColor='rgba(127,119,221,0.5)';
+  btn.dataset.selected='1';
+}
+
+function psySaveDaily(clientId){
+  const selBtn = document.querySelector('.psy-mood-btn[data-selected="1"]') || document.querySelector('.psy-mood-btn');
+  const mood = parseInt(selBtn?.dataset.v || 3);
+  const today = new Date().toISOString().split('T')[0];
+  const p = psyGet(clientId);
+  if(!p.daily) p.daily=[];
+  const entry = {date:today, mood, energy:parseInt(document.getElementById('psy-energy')?.value||5), stress:parseInt(document.getElementById('psy-stress')?.value||5), sleep:parseFloat(document.getElementById('psy-sleep')?.value||7)};
+  const idx = p.daily.findIndex(d=>d.date===today);
+  if(idx>=0) p.daily[idx]=entry; else p.daily.push(entry);
+  p.daily = p.daily.slice(-30);
+  psyPersist(clientId);
+  psyRenderMoodHistory(clientId);
+  const btn=document.getElementById('psy-daily-btn');
+  if(btn){btn.textContent='✓ Zapisano!';setTimeout(()=>btn.textContent='💾 Zapisz',2000);}
+}
+
+function psySaveProfile(clientId){
+  const p = psyGet(clientId);
+  p.habits = {};
+  Object.keys(PSY_HABIT_LABELS).forEach(k=>{ p.habits[k] = !!document.getElementById('psy-h-'+k)?.checked; });
+  p.diagnosis = {notes: document.getElementById('psy-diag-notes')?.value||''};
+  Object.keys(PSY_DIAG_LABELS).forEach(k=>{ p.diagnosis[k] = !!document.getElementById('psy-d-'+k)?.checked; });
+  p.psychology = {
+    motivation: parseInt(document.getElementById('psy-motivation')?.value||7),
+    bodySatisfaction: parseInt(document.getElementById('psy-body-sat')?.value||6),
+    barrier: document.getElementById('psy-barrier')?.value||''
+  };
+  psyPersist(clientId);
+  const btn=document.getElementById('psy-save-btn');
+  if(btn){const old=btn.textContent;btn.textContent='✓ Profil zapisany!';btn.style.background='rgba(74,222,128,0.15)';setTimeout(()=>{btn.textContent=old;btn.style.background='rgba(127,119,221,0.15)';},2500);}
+  notify('✓ Profil psychodietetyczny zapisany');
+}
+
+function psyRenderMoodHistory(clientId){
+  const el = document.getElementById('psy-mood-history'); if(!el) return;
+  const p = psyGet(clientId);
+  const daily = (p.daily||[]).slice(-7);
+  if(!daily.length){ el.innerHTML='<div style="font-size:11px;color:var(--muted);text-align:center;width:100%;">Brak danych – zacznij śledzić nastrój!</div>'; return; }
+  const moodEmoji={1:'😞',2:'😕',3:'😐',4:'😊',5:'🤩'};
+  const moodColor={1:'#ff4d4d',2:'#ff8c42',3:'#9a9086',4:'#4ade80',5:'#c8f135'};
+  el.innerHTML = daily.map(d=>{
+    const height=Math.round((d.mood/5)*100);
+    const dayName=new Date(d.date).toLocaleDateString('pl',{weekday:'short'}).substring(0,2);
+    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;">
+      <div style="font-size:13px;">${moodEmoji[d.mood]||'😐'}</div>
+      <div style="width:100%;height:${height}%;background:${moodColor[d.mood]||'var(--muted)'};border-radius:3px;min-height:4px;opacity:.8;"></div>
+      <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">${dayName}</div>
+    </div>`;
+  }).join('');
+}
+
+async function psyAskAI(clientId){
+  const p = psyGet(clientId);
+  const c = CL.find(x=>x.id===clientId);
+  const habits = Object.entries(p.habits||{}).filter(([,v])=>v).map(([k])=>PSY_HABIT_LABELS[k]).filter(Boolean);
+  const diagnoses = Object.entries(p.diagnosis||{}).filter(([k,v])=>v&&k!=='notes').map(([k])=>PSY_DIAG_LABELS[k]).filter(Boolean);
+  const barrier = p.psychology?.barrier||'';
+  const motivation = p.psychology?.motivation||7;
+
+  let prompt = `Jako psychodietetyk, zaproponuj strategie dla klienta${c?' '+c.name:''}:\n`;
+  if(habits.length) prompt += `• Problemy: ${habits.join(', ')}\n`;
+  if(diagnoses.length) prompt += `• Diagnozy: ${diagnoses.join(', ')}\n`;
+  if(barrier) prompt += `• Bariera: ${barrier}\n`;
+  prompt += `• Motywacja: ${motivation}/10\n`;
+  prompt += '\nPodaj konkretne techniki behawioralne, strategie mindful eating i wskazówki dla trenera personalnego. Odpowiedz krótko po polsku (max 150 słów).';
+
+  const resEl = document.getElementById('psy-ai-result');
+  const btn = document.getElementById('psy-ai-btn');
+  if(btn){btn.disabled=true;btn.textContent='⏳ Analizuję...';}
+  if(resEl) resEl.innerHTML = '<div style="font-size:11px;color:var(--muted);padding:10px;">AI przygotowuje strategie...</div>';
+
+  try{
+    const r = await fetch(W,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,system:'Jesteś doświadczonym psychodietetykiem i trenerem personalnym. Odpowiadaj konkretnie, po polsku.',messages:[{role:'user',content:prompt}]})});
+    const d = await r.json();
+    const ans = (d.content||[]).map(i=>i.text||'').join('');
+    if(resEl) resEl.innerHTML = `<div style="background:rgba(200,241,53,0.06);border:1px solid rgba(200,241,53,0.2);border-radius:8px;padding:12px;margin-top:4px;font-size:12px;color:var(--text);line-height:1.6;white-space:pre-wrap;">🤖 ${ans}</div>`;
+  }catch(e){
+    if(resEl) resEl.innerHTML = '<div style="color:var(--red);font-size:12px;padding:8px;">Błąd: '+e.message+'</div>';
+  }
+  if(btn){btn.disabled=false;btn.textContent='🤖 Zapytaj AI o strategie';}
+}
+
+function psyCheckYoyo(clientId){
+  const resultEl = document.getElementById('psy-yoyo-result');
+  const weights = (window.METRIC_ENTRIES||[]).filter(e=>e.clientId===clientId&&e.groupId==='mg1'&&e.values?.m1!=null)
+    .map(e=>({date:e.date,w:parseFloat(e.values.m1)})).sort((a,b)=>a.date.localeCompare(b.date));
+
+  if(weights.length<3){
+    resultEl.innerHTML = `<div style="background:var(--s3);border-radius:8px;padding:10px;font-size:11px;color:var(--muted);margin-top:6px;">Potrzeba min. 3 pomiarów wagi, aby wykryć wzorzec yo-yo.</div>`;
+    return;
+  }
+
+  let reversals=0;
+  for(let i=1;i<weights.length-1;i++){
+    const prev=weights[i-1].w,curr=weights[i].w,next=weights[i+1].w;
+    if((curr>prev&&curr>next)||(curr<prev&&curr<next)) reversals++;
+  }
+  const first=weights[0].w, last=weights[weights.length-1].w;
+  const maxW=Math.max(...weights.map(w=>w.w)), minW=Math.min(...weights.map(w=>w.w));
+  const amplitude=(maxW-minW).toFixed(1);
+  const isYoyo = reversals>=2 && parseFloat(amplitude)>=2;
+
+  resultEl.innerHTML = isYoyo
+    ? `<div style="background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.25);border-radius:8px;padding:12px;margin-top:6px;">
+        <div style="font-size:12px;font-weight:700;color:var(--red);margin-bottom:6px;">⚠️ Wykryto wzorzec yo-yo</div>
+        <div style="font-size:11px;color:var(--text);line-height:1.6;">Amplituda: <strong>${amplitude}kg</strong> · ${reversals} zmiany kierunku<br>
+        Zalecenie: zmień podejście z restrykcji na zrównoważony deficyt (max -300kcal). Zwiększ białko do 2.4g/kg. Praca nad psychologią jedzenia.</div>
+      </div>`
+    : `<div style="background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.25);border-radius:8px;padding:12px;margin-top:6px;">
+        <div style="font-size:12px;font-weight:700;color:var(--teal);">✅ Brak wzorca yo-yo</div>
+        <div style="font-size:11px;color:var(--text);margin-top:4px;">Waga zmienia się ${last>first?'rosnąco':'malejąco'} o ${Math.abs(last-first).toFixed(1)}kg. Amplituda: ${amplitude}kg.</div>
+      </div>`;
+}
+
+window.renderCPPsycho=renderCPPsycho; window.psySetMood=psySetMood; window.psySaveDaily=psySaveDaily;
+window.psySaveProfile=psySaveProfile; window.psyAskAI=psyAskAI; window.psyCheckYoyo=psyCheckYoyo;
+
+// ════════════════════════════════════════
 // IMPORT Z FITEBO
 // ════════════════════════════════════════
 let fbImages = [];

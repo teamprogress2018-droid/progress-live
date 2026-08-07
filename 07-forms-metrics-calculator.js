@@ -921,6 +921,7 @@ function setCPTab(t){
   const c=CL.find(x=>x.id===cpClientId);if(!c)return;
   if(t==='overview')renderCPOverview(c);
   if(t==='timeline')renderCPTimeline(c);
+  if(t==='psycho')renderCPPsycho(c);
   if(t==='training')renderCPTraining(c);
   if(t==='plan')renderCPPlan(c);
   if(t==='metrics')renderCPMetrics(c);
