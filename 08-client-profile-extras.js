@@ -335,6 +335,173 @@ window.renderCPPsycho=renderCPPsycho; window.psySetMood=psySetMood; window.psySa
 window.psySaveProfile=psySaveProfile; window.psyAskAI=psyAskAI; window.psyCheckYoyo=psyCheckYoyo;
 
 // ════════════════════════════════════════
+// SFR TRACKER — objętość tygodniowa i zmęczenie stawowe per partia
+// ════════════════════════════════════════
+window.CLIENT_SFR = window.CLIENT_SFR || {}; // clientId -> {weekKey: {muscle:{sets,fatigue}}}
+
+const SFR_MUSCLES = ['Klatka','Plecy','Barki','Biceps','Triceps','Nogi','Pośladki','Core'];
+const SFR_LIMITS = {
+  'Klatka':{mev:10,mrv:20},'Plecy':{mev:10,mrv:22},'Barki':{mev:12,mrv:22},
+  'Biceps':{mev:8,mrv:16},'Triceps':{mev:8,mrv:16},'Nogi':{mev:12,mrv:24},
+  'Pośladki':{mev:6,mrv:16},'Core':{mev:8,mrv:16}
+};
+
+function sfrWeekKey(){
+  const d=new Date();
+  const year=d.getFullYear();
+  const week=Math.ceil((d-new Date(year,0,1))/(7*24*3600*1000));
+  return `${year}W${week}`;
+}
+
+function sfrGetWeekData(clientId){
+  if(!CLIENT_SFR[clientId]){
+    const c=CL.find(x=>x.id===clientId);
+    CLIENT_SFR[clientId]=(c&&c.sfr)?c.sfr:{};
+  }
+  const wk=sfrWeekKey();
+  if(!CLIENT_SFR[clientId][wk]) CLIENT_SFR[clientId][wk]={};
+  const data=CLIENT_SFR[clientId][wk];
+  SFR_MUSCLES.forEach(m=>{ if(!data[m]) data[m]={sets:0,fatigue:5}; });
+  return data;
+}
+
+function sfrPersist(clientId){
+  if(window._db && clientId){
+    try{ window._setDoc(window._doc(window._db,'clients',clientId),{sfr:CLIENT_SFR[clientId]},{merge:true}); }catch(e){}
+  }
+}
+
+// Mnożnik MRV na podstawie ostatniego dziennego wpisu z modułu Psycho (stres/sen)
+function sfrGetMultiplier(clientId){
+  const psy=(typeof psyGet==='function')?psyGet(clientId):null;
+  const last=(psy&&psy.daily&&psy.daily.length)?psy.daily[psy.daily.length-1]:null;
+  if(!last) return {mult:1.0, source:'brak danych z Psycho — używam pełnego MRV'};
+  const stress=last.stress||5, sleep=(last.sleep!=null)?last.sleep:7;
+  if(stress>=7||sleep<6) return {mult:0.75, source:`wysoki stres (${stress}/10) lub mało snu (${sleep}h) — MRV obniżone o 25%`};
+  if(stress>=5||sleep<7) return {mult:0.9, source:`umiarkowany stres/sen — MRV obniżone o 10%`};
+  return {mult:1.0, source:`dobry stres/sen (${stress}/10, ${sleep}h) — pełne MRV`};
+}
+
+function renderCPSfr(c){
+  if(!c) return;
+  document.getElementById('cp-body').innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">TYDZIEŃ ${sfrWeekKey()}</div>
+      <button onclick="sfrReset('${c.id}')" style="background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.2);border-radius:6px;padding:5px 10px;color:var(--red);font-size:10px;cursor:pointer;">↺ Reset tygodnia</button>
+    </div>
+    <div id="sfr-mult-info" style="font-size:10px;color:var(--muted);background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;margin-bottom:12px;"></div>
+    <div id="sfr-warning" style="display:none;background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.25);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:11px;color:var(--red);line-height:1.6;"></div>
+    <div id="sfr-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"></div>`;
+  sfrRender(c.id);
+}
+
+function sfrRender(clientId){
+  const grid=document.getElementById('sfr-grid');
+  if(!grid) return;
+  const data=sfrGetWeekData(clientId);
+  const {mult,source}=sfrGetMultiplier(clientId);
+
+  const infoEl=document.getElementById('sfr-mult-info');
+  if(infoEl) infoEl.innerHTML=`🧠 <b>Mnożnik MRV z Psycho:</b> ×${mult} — ${source}`;
+
+  grid.innerHTML=SFR_MUSCLES.map(m=>{
+    const d=data[m]||{sets:0,fatigue:5};
+    const lim=SFR_LIMITS[m];
+    const adjMrv=Math.round(lim.mrv*mult);
+    const pct=Math.min(100,Math.round(d.sets/adjMrv*100));
+    const color=pct>=100?'var(--red)':pct>=75?'var(--orange)':'var(--teal)';
+    const fatigueEmoji=d.fatigue<=3?'😊':d.fatigue<=6?'😐':'😫';
+    return `<div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div style="font-size:12px;font-weight:600;color:var(--text);">${m}</div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">${d.sets}/${adjMrv} serii</span>
+          <button onclick="sfrAddSet('${clientId}','${m}')" style="background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.25);border-radius:4px;padding:1px 7px;color:var(--teal);font-size:12px;cursor:pointer;">+</button>
+          <button onclick="sfrRemoveSet('${clientId}','${m}')" style="background:rgba(255,255,255,0.04);border:1px solid var(--border2);border-radius:4px;padding:1px 7px;color:var(--muted);font-size:12px;cursor:pointer;">−</button>
+        </div>
+      </div>
+      <div style="height:5px;background:rgba(255,255,255,0.06);border-radius:20px;overflow:hidden;margin-bottom:6px;">
+        <div style="height:100%;width:${pct}%;background:${color};border-radius:20px;transition:width .3s;"></div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
+        <span style="font-size:9px;color:var(--muted);white-space:nowrap;">Zmęczenie: ${fatigueEmoji}</span>
+        <input type="range" min="1" max="10" value="${d.fatigue}" oninput="sfrSetFatigue('${clientId}','${m}',this.value)" style="flex:1;accent-color:${color};">
+        <span style="font-size:9px;color:${color};font-family:'DM Mono',monospace;">${d.fatigue}/10</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  sfrCheckWarnings(clientId,mult);
+}
+
+function sfrAddSet(clientId,muscle){
+  const data=sfrGetWeekData(clientId);
+  data[muscle].sets++;
+  sfrPersist(clientId);
+  sfrRender(clientId);
+}
+
+function sfrRemoveSet(clientId,muscle){
+  const data=sfrGetWeekData(clientId);
+  if(data[muscle].sets>0) data[muscle].sets--;
+  sfrPersist(clientId);
+  sfrRender(clientId);
+}
+
+function sfrSetFatigue(clientId,muscle,val){
+  const data=sfrGetWeekData(clientId);
+  data[muscle].fatigue=parseInt(val);
+  sfrPersist(clientId);
+  sfrRender(clientId);
+}
+
+function sfrReset(clientId){
+  if(!confirm('Zresetować objętość na ten tydzień?')) return;
+  const wk=sfrWeekKey();
+  CLIENT_SFR[clientId][wk]={};
+  SFR_MUSCLES.forEach(m=>{ CLIENT_SFR[clientId][wk][m]={sets:0,fatigue:5}; });
+  sfrPersist(clientId);
+  sfrRender(clientId);
+}
+
+function sfrCheckWarnings(clientId,mult){
+  const warningEl=document.getElementById('sfr-warning');
+  if(!warningEl) return;
+  const data=sfrGetWeekData(clientId);
+  const warnings=[];
+  SFR_MUSCLES.forEach(m=>{
+    const d=data[m];
+    const adjMrv=Math.round(SFR_LIMITS[m].mrv*mult);
+    if(d?.sets>=adjMrv) warnings.push(`⚠️ ${m}: MRV osiągnięte (${d.sets}/${adjMrv} serii)`);
+    if(d?.fatigue>=8) warnings.push(`🦴 ${m}: Wysokie zmęczenie stawowe (${d.fatigue}/10) — rozważ deload`);
+  });
+  if(warnings.length){
+    warningEl.style.display='block';
+    warningEl.innerHTML=warnings.join('<br>');
+  }else{
+    warningEl.style.display='none';
+  }
+}
+
+// Wykorzystywane przez generator planu AI (jeśli wybrano klienta)
+function sfrGetContextForAI(clientId){
+  if(!clientId || !CLIENT_SFR[clientId]) return '';
+  const data=sfrGetWeekData(clientId);
+  const {mult}=sfrGetMultiplier(clientId);
+  const lines=SFR_MUSCLES.map(m=>{
+    const d=data[m];
+    if(!d||d.sets===0) return null;
+    const adjMrv=Math.round(SFR_LIMITS[m].mrv*mult);
+    return `${m}: ${d.sets}/${adjMrv} serii w tym tygodniu, zmęczenie stawowe: ${d.fatigue}/10`;
+  }).filter(Boolean);
+  if(!lines.length) return '';
+  return `\n\nSFR TRACKER (bieżący tydzień klienta, uwzględnij przy planowaniu objętości):\n${lines.join('\n')}\nLimit MRV dostosowany do stresu/snu (mnożnik: ${mult}x)`;
+}
+
+window.renderCPSfr=renderCPSfr; window.sfrAddSet=sfrAddSet; window.sfrRemoveSet=sfrRemoveSet;
+window.sfrSetFatigue=sfrSetFatigue; window.sfrReset=sfrReset; window.sfrGetContextForAI=sfrGetContextForAI;
+
+// ════════════════════════════════════════
 // IMPORT Z FITEBO
 // ════════════════════════════════════════
 let fbImages = [];

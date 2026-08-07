@@ -204,7 +204,7 @@ ${job?`- Rodzaj pracy (NEAT): ${job}`:''}
 - Jakość snu: ${sleep}
 - Poziom stresu: ${stress}
 ${notes?`- Dodatkowe uwagi: ${notes}`:''}
-${client?`- Klient: ${client.name}, cel: ${client.goal}, poziom: ${client.level}`:''}`;
+${client?`- Klient: ${client.name}, cel: ${client.goal}, poziom: ${client.level}`:''}${cid&&typeof sfrGetContextForAI==='function'?sfrGetContextForAI(cid):''}`;
 
   try{
     const resp=await fetch('https://anthropic-proxy.teamprogress2018.workers.dev/',{
