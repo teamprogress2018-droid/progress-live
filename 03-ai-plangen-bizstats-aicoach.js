@@ -218,7 +218,8 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button class="btn btn-primary btn-sm" onclick="aplSavePlan()">💾 Zapisz plan</button>
-          <button class="btn btn-ghost btn-sm" onclick="aplExportPlan()">⬇ Eksport</button>
+          <button class="btn btn-ghost btn-sm" onclick="aplExportPlanPDF()">📄 PDF</button>
+          <button class="btn btn-ghost btn-sm" onclick="aplExportPlan()">⬇ JSON</button>
           <button class="btn btn-ghost btn-sm" onclick="aplGenerate()">↺ Regeneruj</button>
         </div>
       </div>
@@ -362,6 +363,116 @@ function aplExportPlan(){
   notify('⬇ Plan wyeksportowany jako JSON');
 }
 
+// ════════════════════════════════════════
+// EKSPORT PLANU DO PDF (przez istniejący #report-overlay)
+// ════════════════════════════════════════
+function aplExportPlanPDF(){
+  if(!aplLastPlan){notify('Brak planu!');return;}
+  const cid=document.getElementById('apl-client')?.value;
+  const client=cid?CL.find(x=>x.id===cid):null;
+  const html=buildPlanPDFHTML(aplLastPlan,client);
+  document.getElementById('report-container').innerHTML=html;
+  document.getElementById('report-overlay-title').textContent='PLAN TRENINGOWY — '+(aplLastPlan.planName||'AI').toUpperCase();
+  document.getElementById('report-overlay').style.display='flex';
+}
+
+function buildPlanPDFHTML(plan,client){
+  const bg='#ffffff',surface='#f8f9fa',border='#e0e0e0',text='#1a1a2a',muted='#6b7280';
+  const accent='#7c3aed',accentDim='rgba(124,58,237,0.08)',orange='#ea580c',teal='#0d9488';
+  const today=new Date().toLocaleDateString('pl',{day:'numeric',month:'long',year:'numeric'});
+
+  const card=(content,extra='')=>`<div style="background:${surface};border:1px solid ${border};border-radius:14px;padding:20px 24px;margin-bottom:16px;${extra}">${content}</div>`;
+  const sectionTitle=(t,icon,col=accent)=>`<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid ${col}40;">
+    <div style="font-size:20px;">${icon}</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1.5px;color:${col};">${t}</div>
+  </div>`;
+
+  let html=`<div style="max-width:850px;margin:0 auto;padding:40px 30px;font-family:'DM Sans',sans-serif;color:${text};">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:1px;color:${accent};">${plan.planName||'Plan treningowy AI'}</div>
+        <div style="font-size:13px;color:${muted};margin-top:4px;">${client?'Klient: '+client.name+' · ':''}Wygenerowano: ${today}</div>
+      </div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;color:${muted};">PROGRESS LIVE</div>
+    </div>
+    ${plan.summary?`<div style="font-size:13px;color:${text};line-height:1.6;margin:14px 0 20px;padding:14px 16px;background:${accentDim};border-radius:10px;border-left:3px solid ${accent};">${plan.summary}</div>`:''}
+
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;">
+      ${[['📅',plan.daysPerWeek||'-','dni/tydz.'],['⏱',(plan.sessionDuration||60)+'min','sesja'],['📆',plan.weeks||'-','tygodni'],['🎯',plan.method||'-','metoda']].map(([icon,val,lbl])=>
+        `<div style="background:${bg};border:1px solid ${border};border-radius:10px;padding:12px;text-align:center;">
+          <div style="font-size:18px;">${icon}</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:${accent};margin:2px 0;">${val}</div>
+          <div style="font-size:9px;color:${muted};text-transform:uppercase;">${lbl}</div>
+        </div>`
+      ).join('')}
+    </div>`;
+
+  if(plan.periodization||plan.deload){
+    html+=card(`
+      ${plan.periodization?`<div style="margin-bottom:10px;"><b style="color:${accent};font-size:12px;">📈 Periodyzacja:</b> <span style="font-size:12px;">${plan.periodization}</span></div>`:''}
+      ${plan.deload?`<div><b style="color:${orange};font-size:12px;">🔄 Deload:</b> <span style="font-size:12px;">${plan.deload}</span></div>`:''}
+    `);
+  }
+
+  (plan.days||[]).forEach((day,i)=>{
+    html+=card(`
+      ${sectionTitle(day.dayName||('Dzień '+(i+1)),'💪')}
+      ${day.focus?`<div style="font-size:11px;color:${muted};margin-bottom:12px;">Focus: ${day.focus}</div>`:''}
+      <table style="width:100%;border-collapse:collapse;font-size:11px;">
+        <thead><tr style="border-bottom:2px solid ${border};text-align:left;">
+          <th style="padding:6px 8px;color:${muted};font-weight:600;">Ćwiczenie</th>
+          <th style="padding:6px 8px;color:${muted};font-weight:600;">Serie</th>
+          <th style="padding:6px 8px;color:${muted};font-weight:600;">Powt.</th>
+          <th style="padding:6px 8px;color:${muted};font-weight:600;">Przerwa</th>
+          <th style="padding:6px 8px;color:${muted};font-weight:600;">Tempo</th>
+          <th style="padding:6px 8px;color:${muted};font-weight:600;">RIR</th>
+        </tr></thead>
+        <tbody>
+        ${(day.exercises||[]).map(e=>`<tr style="border-bottom:1px solid ${border};">
+          <td style="padding:7px 8px;font-weight:600;">${e.name||''}${e.notes?`<div style="font-size:9px;color:${muted};font-weight:400;margin-top:2px;">${e.notes}</div>`:''}</td>
+          <td style="padding:7px 8px;">${e.sets||'-'}</td>
+          <td style="padding:7px 8px;">${e.reps||'-'}</td>
+          <td style="padding:7px 8px;">${e.rest||'-'}</td>
+          <td style="padding:7px 8px;">${e.tempo||'-'}</td>
+          <td style="padding:7px 8px;">${e.rir||'-'}</td>
+        </tr>`).join('')}
+        </tbody>
+      </table>
+    `);
+  });
+
+  if(plan.warmup||plan.cooldown){
+    html+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+      ${plan.warmup?card(`<div style="font-size:11px;"><b style="color:${teal};">🔥 Rozgrzewka:</b><br>${plan.warmup}</div>`):''}
+      ${plan.cooldown?card(`<div style="font-size:11px;"><b style="color:${accent};">🧊 Cool-down:</b><br>${plan.cooldown}</div>`):''}
+    </div>`;
+  }
+
+  if(plan.weeklyVolume){
+    html+=card(`
+      ${sectionTitle('Objętość tygodniowa wg partii','📊')}
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        ${Object.entries(plan.weeklyVolume).map(([k,v])=>`<span style="background:${bg};border:1px solid ${border};border-radius:20px;padding:5px 12px;font-size:11px;">${k}: <b>${v}</b></span>`).join('')}
+      </div>
+    `);
+  }
+
+  if(plan.progressionRules?.length){
+    html+=card(`
+      ${sectionTitle('Zasady progresji','📈',teal)}
+      <ul style="margin:0;padding-left:18px;font-size:12px;line-height:1.8;">${plan.progressionRules.map(r=>`<li>${r}</li>`).join('')}</ul>
+    `);
+  }
+
+  if(plan.nutritionTip){
+    html+=card(`<div style="font-size:12px;"><b style="color:${orange};">🥗 Wskazówka żywieniowa:</b> ${plan.nutritionTip}</div>`);
+  }
+
+  html+=`<div style="text-align:center;margin-top:24px;font-size:10px;color:${muted};">Plan wygenerowany przez AI · Progress Live · ${today}</div>
+    </div>`;
+  return html;
+}
+
 function aplReset(){
   aplLastPlan=null;
   aplShowWelcome();
@@ -369,7 +480,7 @@ function aplReset(){
 
 window.initAplangen=initAplangen;window.aplToggleOpt=aplToggleOpt;
 window.aplFillFromClient=aplFillFromClient;window.aplGenerate=aplGenerate;
-window.aplSavePlan=aplSavePlan;window.aplExportPlan=aplExportPlan;window.aplReset=aplReset;
+window.aplSavePlan=aplSavePlan;window.aplExportPlan=aplExportPlan;window.aplExportPlanPDF=aplExportPlanPDF;window.aplReset=aplReset;
 
 // ════════════════════════════════════════
 // STATYSTYKI BIZNESOWE
