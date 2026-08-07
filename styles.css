@@ -414,10 +414,13 @@ button{cursor:pointer;}
 .calc-meal-card{background:var(--s3);border-radius:10px;padding:12px 14px;margin-bottom:8px;}
 .calc-tip{background:var(--adim);border:1px solid rgba(200,241,53,0.15);border-radius:8px;padding:10px 12px;font-size:11px;line-height:1.6;margin-bottom:8px;}
 /* ── CLIENT PROFILE ── */
-.cp-drawer{position:fixed;right:0;top:0;bottom:0;width:560px;background:var(--s1);border-left:1px solid var(--border2);z-index:60;display:flex;flex-direction:column;transform:translateX(100%);transition:transform 0.28s cubic-bezier(.4,0,.2,1);}
+.cp-drawer{position:fixed;inset:0;width:100%;background:var(--s1);z-index:60;display:flex;flex-direction:column;transform:translateX(100%);transition:transform 0.24s cubic-bezier(.4,0,.2,1);}
 .cp-drawer.open{transform:translateX(0);}
 .cp-tab{padding:8px 16px;font-size:12px;font-weight:600;border:none;background:none;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.12s;}
 .cp-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.cp-tab-v{display:block;width:100%;text-align:left;padding:10px 14px;font-size:12.5px;font-weight:600;border:none;background:none;color:var(--muted);cursor:pointer;border-left:3px solid transparent;border-radius:0 8px 8px 0;transition:all 0.12s;margin-bottom:2px;}
+.cp-tab-v:hover{background:var(--s2);color:var(--text);}
+.cp-tab-v.active{color:var(--accent);border-left-color:var(--accent);background:var(--s2);}
 .cp-section-title{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--accent);margin:16px 0 8px;}
 .cp-stat-box{background:var(--s3);border-radius:10px;padding:12px;text-align:center;}
 .cp-stat-val{font-family:'Bebas Neue',sans-serif;font-size:26px;line-height:1;margin-bottom:2px;}

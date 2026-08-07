@@ -2586,11 +2586,12 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 <div class="cp-overlay" id="cp-overlay" onclick="closeClientProfile()"></div>
 <div class="cp-drawer" id="cp-drawer">
   <!-- nagłówek profilu -->
-  <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
-    <div style="display:flex;align-items:center;gap:12px;">
+  <div style="padding:14px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+    <div style="display:flex;align-items:center;gap:14px;">
+      <button onclick="closeClientProfile()" style="background:var(--s2);border:1px solid var(--border2);border-radius:8px;color:var(--muted);font-size:13px;cursor:pointer;padding:7px 12px;display:flex;align-items:center;gap:6px;">← Wróć</button>
       <div id="cp-avatar" style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:18px;flex-shrink:0;"></div>
       <div>
-        <div style="font-size:16px;font-weight:700;" id="cp-name">—</div>
+        <div style="font-size:17px;font-weight:700;" id="cp-name">—</div>
         <div style="font-size:11px;color:var(--muted);" id="cp-sub">—</div>
       </div>
     </div>
@@ -2599,30 +2600,35 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <button class="btn btn-ghost btn-sm" onclick="openInviteModal(cpClientId)">📱 Zaproś</button>
       <button class="btn btn-primary btn-sm" onclick="cpOpenSession()">+ Sesja</button>
       <button class="btn btn-ghost btn-sm" onclick="cpOpenTask()">+ Zadanie</button>
-      <button onclick="closeClientProfile()" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;">×</button>
     </div>
   </div>
 
-  <!-- tabs -->
-  <div style="display:flex;border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;">
-    <button class="cp-tab active" id="cpt-overview" onclick="setCPTab('overview')">Przegląd</button>
-    <button class="cp-tab" id="cpt-timeline" onclick="setCPTab('timeline')">Oś czasu</button>
-    <button class="cp-tab" id="cpt-psycho" onclick="setCPTab('psycho')" style="color:#9f97e8;font-weight:700;">🧠 Psycho</button>
-    <button class="cp-tab" id="cpt-sfr" onclick="setCPTab('sfr')" style="color:var(--teal);font-weight:700;">📊 SFR</button>
-    <button class="cp-tab" id="cpt-training" onclick="setCPTab('training')">Treningi</button>
-    <button class="cp-tab" id="cpt-plan" onclick="setCPTab('plan')">Plan</button>
-    <button class="cp-tab" id="cpt-posture" onclick="setCPTab('posture')" style="color:var(--accent);font-weight:700;">🧍 Postawa</button>
-    <button class="cp-tab" id="cpt-metrics" onclick="setCPTab('metrics')">Pomiary</button>
-    <button class="cp-tab" id="cpt-tasks" onclick="setCPTab('tasks')">Zadania</button>
-    <button class="cp-tab" id="cpt-food" onclick="setCPTab('food')">Żywienie</button>
-    <button class="cp-tab" id="cpt-documents" onclick="setCPTab('documents')">Dokumenty</button>
-    <button class="cp-tab" id="cpt-payments" onclick="setCPTab('payments')">Płatności</button>
-    <button class="cp-tab" id="cpt-settings" onclick="setCPTab('settings')">Ustawienia</button>
-    <button class="cp-tab" id="cpt-edit" onclick="setCPTab('edit')">Edytuj</button>
-  </div>
+  <!-- glowny uklad: pionowe zakladki + tresc -->
+  <div style="flex:1;display:flex;overflow:hidden;">
+    <!-- pionowe menu zakladek -->
+    <div style="width:200px;flex-shrink:0;border-right:1px solid var(--border);padding:14px 8px;overflow-y:auto;">
+      <button class="cp-tab cp-tab-v active" id="cpt-overview" onclick="setCPTab('overview')">📋 Przegląd</button>
+      <button class="cp-tab cp-tab-v" id="cpt-timeline" onclick="setCPTab('timeline')">📅 Oś czasu</button>
+      <button class="cp-tab cp-tab-v" id="cpt-psycho" onclick="setCPTab('psycho')" style="color:#9f97e8;">🧠 Psycho</button>
+      <button class="cp-tab cp-tab-v" id="cpt-sfr" onclick="setCPTab('sfr')" style="color:var(--teal);">📊 SFR</button>
+      <button class="cp-tab cp-tab-v" id="cpt-training" onclick="setCPTab('training')">💪 Treningi</button>
+      <button class="cp-tab cp-tab-v" id="cpt-plan" onclick="setCPTab('plan')">🗒 Plan</button>
+      <button class="cp-tab cp-tab-v" id="cpt-posture" onclick="setCPTab('posture')" style="color:var(--accent);">🧍 Postawa</button>
+      <button class="cp-tab cp-tab-v" id="cpt-metrics" onclick="setCPTab('metrics')">📏 Pomiary</button>
+      <button class="cp-tab cp-tab-v" id="cpt-tasks" onclick="setCPTab('tasks')">✅ Zadania</button>
+      <button class="cp-tab cp-tab-v" id="cpt-food" onclick="setCPTab('food')">🥗 Żywienie</button>
+      <button class="cp-tab cp-tab-v" id="cpt-documents" onclick="setCPTab('documents')">📎 Dokumenty</button>
+      <button class="cp-tab cp-tab-v" id="cpt-payments" onclick="setCPTab('payments')">💳 Płatności</button>
+      <div style="height:1px;background:var(--border);margin:10px 6px;"></div>
+      <button class="cp-tab cp-tab-v" id="cpt-settings" onclick="setCPTab('settings')">⚙️ Ustawienia</button>
+      <button class="cp-tab cp-tab-v" id="cpt-edit" onclick="setCPTab('edit')">✏️ Edytuj profil</button>
+    </div>
 
-  <!-- body -->
-  <div style="flex:1;overflow-y:auto;padding:16px 20px;" id="cp-body"></div>
+    <!-- tresc zakladki -->
+    <div style="flex:1;overflow-y:auto;">
+      <div style="max-width:920px;margin:0 auto;padding:24px 32px;" id="cp-body"></div>
+    </div>
+  </div>
 </div>
 <!-- NOTIFICATIONS PANEL -->
 <div id="notif-overlay" onclick="closeNotifs()" style="display:none;position:fixed;inset:0;z-index:149;"></div>
