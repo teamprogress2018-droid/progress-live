@@ -516,9 +516,9 @@ function fbFileLoad(input){
 
 function fbImagesLoad(input){
   const files = Array.from(input.files || []);
-  if(fbImages.length + files.length > 8){ alert('Maksymalnie 8 zrzutów na jedną analizę.'); }
+  if(fbImages.length + files.length > 8){ notify('⚠ Maksymalnie 8 zrzutów na jedną analizę.'); }
   files.slice(0, Math.max(0, 8 - fbImages.length)).forEach(file => {
-    if(file.size > 5000000){ alert(file.name + ': plik za duży (max 5MB), pomijam.'); return; }
+    if(file.size > 5000000){ notify('⚠ '+file.name+': plik za duży (max 5MB), pomijam.'); return; }
     const reader = new FileReader();
     reader.onload = e => {
       const dataUrl = e.target.result;

@@ -320,8 +320,8 @@ function renderCalWeek(){
       const cellSessions=SE.filter(s=>s.date===ds&&parseInt((s.time||'0:0').split(':')[0])===h);
       const sessHTML=cellSessions.map((s,si)=>{
         const c=CL.find(x=>x.id===s.clientId);
-        const cIdx=CL.indexOf(c);
-        const col=SESS_COLORS[cIdx%6];
+        const cIdx=c?CL.indexOf(c):-1;
+        const col=SESS_COLORS[(cIdx>=0?cIdx:0)%6];
         const timeMin=parseInt((s.time||'0:0').split(':')[1]||0);
         const topPct=(timeMin/60)*100;
         const dur=s.duration||60;
@@ -384,8 +384,8 @@ function renderCalMonth(){
       <div style="font-size:12px;font-weight:${isToday?700:500};color:${isToday?'var(--accent)':'var(--text)'};">${d}</div>
       ${daySess.slice(0,3).map(s=>{
         const c=CL.find(x=>x.id===s.clientId);
-        const ci=CL.indexOf(c);
-        const col=SESS_COLORS[ci%6];
+        const ci=c?CL.indexOf(c):-1;
+        const col=SESS_COLORS[(ci>=0?ci:0)%6];
         return `<div class="cal-month-sess" style="background:${col}22;color:${col};" onclick="event.stopPropagation();openSessDetail('${s.id}')">${s.time||''} ${c?c.name.split(' ')[0]:'Klient'}</div>`;
       }).join('')}
       ${daySess.length>3?`<div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">+${daySess.length-3} więcej</div>`:''}
@@ -435,8 +435,8 @@ function renderCalList(){
       </div>
       ${sessions.map(s=>{
         const c=CL.find(x=>x.id===s.clientId);
-        const ci=CL.indexOf(c);
-        const col=SESS_COLORS[ci%6];
+        const ci=c?CL.indexOf(c):-1;
+        const col=SESS_COLORS[(ci>=0?ci:0)%6];
         return `<div class="cal-list-sess" onclick="openSessDetail('${s.id}')">
           <div style="width:4px;border-radius:2px;background:${col};flex-shrink:0;align-self:stretch;"></div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:${col};min-width:44px;line-height:1.1;">${s.time||'—'}</div>
@@ -515,8 +515,8 @@ function renderCalSidebar(){
   upEl.innerHTML=!up.length?'<div style="color:var(--muted);font-size:12px;text-align:center;padding:20px 0;">Brak nadchodzących sesji</div>'
     :up.map(s=>{
       const c=CL.find(x=>x.id===s.clientId);
-      const ci=CL.indexOf(c);
-      const col=SESS_COLORS[ci%6];
+      const ci=c?CL.indexOf(c):-1;
+      const col=SESS_COLORS[(ci>=0?ci:0)%6];
       const d=new Date(s.date+'T12:00:00');
       const isToday=s.date===nowStr;
       return `<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="openSessDetail('${s.id}')">
