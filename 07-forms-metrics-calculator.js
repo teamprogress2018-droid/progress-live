@@ -931,7 +931,6 @@ function setCPTab(t){
   if(t==='documents')renderCPDocuments(c);
   if(t==='payments')renderCPPayments(c);
   if(t==='settings')renderCPSettings(c);
-  if(t==='edit')renderCPEdit(c);
   if(t==='posture')renderCPPosture(c);
 }
 

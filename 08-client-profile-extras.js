@@ -1247,6 +1247,45 @@ function renderCPSettings(c){
     </div>`;
   };
   document.getElementById('cp-body').innerHTML=`
+    <div class="cp-section-title">DANE KLIENTA</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
+      <div class="form-field"><label class="form-lbl">Imię i nazwisko</label><input class="cp-edit-field form-input" id="cpe-name" value="${c.name||''}"></div>
+      <div class="form-grid">
+        <div class="form-field"><label class="form-lbl">Email</label><input class="cp-edit-field form-input" id="cpe-email" value="${c.email||''}"></div>
+        <div class="form-field"><label class="form-lbl">Wiek</label><input type="number" class="cp-edit-field form-input" id="cpe-age" value="${c.age||''}"></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-field"><label class="form-lbl">Waga (kg)</label><input type="number" class="cp-edit-field form-input" id="cpe-weight" value="${c.weight||''}" step="0.1"></div>
+        <div class="form-field"><label class="form-lbl">Wzrost (cm)</label><input type="number" class="cp-edit-field form-input" id="cpe-height" value="${c.height||''}"></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-field"><label class="form-lbl">Cel</label>
+          <select class="form-select" id="cpe-goal">
+            <option value="masa" ${c.goal==='masa'?'selected':''}>Budowa masy</option>
+            <option value="sila" ${c.goal==='sila'?'selected':''}>Wzrost siły</option>
+            <option value="redukcja" ${c.goal==='redukcja'?'selected':''}>Redukcja</option>
+            <option value="kondycja" ${c.goal==='kondycja'?'selected':''}>Kondycja</option>
+          </select>
+        </div>
+        <div class="form-field"><label class="form-lbl">Poziom</label>
+          <select class="form-select" id="cpe-level">
+            <option value="poczatkujacy" ${c.level==='poczatkujacy'?'selected':''}>Początkujący</option>
+            <option value="sredni" ${c.level==='sredni'?'selected':''}>Średni</option>
+            <option value="zaawansowany" ${c.level==='zaawansowany'?'selected':''}>Zaawansowany</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-field"><label class="form-lbl">Status</label>
+        <select class="form-select" id="cpe-status">
+          <option value="active" ${c.status==='active'?'selected':''}>Aktywny</option>
+          <option value="inactive" ${c.status==='inactive'?'selected':''}>Nieaktywny</option>
+          <option value="archived" ${c.status==='archived'?'selected':''}>Zarchiwizowany</option>
+        </select>
+      </div>
+      <div class="form-field"><label class="form-lbl">Uwagi / kontuzje</label><textarea class="form-select" id="cpe-notes" rows="2" style="resize:none;">${c.notes||''}</textarea></div>
+      <button class="btn btn-primary" style="width:100%;" onclick="saveCPEdit('${c.id}')">💾 Zapisz zmiany</button>
+    </div>
+
     <div class="cp-section-title">FUNKCJE KLIENTA</div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:14px;">Włącz lub wyłącz funkcje dla tego klienta. Wyłączone funkcje nie będą widoczne w aplikacji klienta.</div>
     ${feat.map(f=>{
@@ -1260,7 +1299,7 @@ function renderCPSettings(c){
         ${toggle(f.key,f.default)}
       </div>`;
     }).join('')}
-    
+
     <div style="margin-top:20px;" class="cp-section-title">USTAWIENIA JEDNOSTEK</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
       <div>
@@ -1278,14 +1317,14 @@ function renderCPSettings(c){
         </select>
       </div>
     </div>
-    
+
     <div class="cp-section-title">STREFA CZASOWA</div>
     <select class="form-select" style="font-size:12px;margin-bottom:16px;" onchange="updateClientUnit('${c.id}','timezone',this.value)">
       ${['Europe/Warsaw','Europe/London','America/New_York','America/Chicago','America/Los_Angeles','Asia/Tokyo','Australia/Sydney']
         .map(tz=>`<option value="${tz}" ${(s.timezone||'Europe/Warsaw')===tz?'selected':''}>${tz.replace('_',' ')}</option>`).join('')}
     </select>
-    
-    <button class="btn btn-danger btn-sm" style="width:100%;" onclick="archiveClient('${c.id}')">🗄 Zarchiwizuj klienta</button>`;
+
+    <button class="btn btn-danger btn-sm" style="width:100%;" onclick="archiveClient('${c.id}')">🗃 Zarchiwizuj klienta</button>`;
 }
 function updateClientUnit(clientId,key,value){
   const c=CL.find(x=>x.id===clientId);if(!c)return;

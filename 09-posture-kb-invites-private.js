@@ -158,50 +158,6 @@ window.postureUploadPhoto=postureUploadPhoto;
 window.postureSetActive=postureSetActive;
 window.postureAnalyze=postureAnalyze;
 
-function renderCPEdit(c){
-  document.getElementById('cp-body').innerHTML=`
-    <div class="cp-section-title">EDYTUJ PROFIL KLIENTA</div>
-    <div style="background:var(--adim);border:1px solid rgba(200,241,53,0.2);border-radius:10px;padding:12px;margin-bottom:14px;font-size:12px;color:var(--muted);">Wypełnij dane i kliknij <strong style="color:var(--accent);">Zapisz zmiany</strong></div>
-    <div style="display:flex;flex-direction:column;gap:10px;">
-      <div class="form-field"><label class="form-lbl">Imię i nazwisko</label><input class="cp-edit-field form-input" id="cpe-name" value="${c.name||''}"></div>
-      <div class="form-grid">
-        <div class="form-field"><label class="form-lbl">Email</label><input class="cp-edit-field form-input" id="cpe-email" value="${c.email||''}"></div>
-        <div class="form-field"><label class="form-lbl">Wiek</label><input type="number" class="cp-edit-field form-input" id="cpe-age" value="${c.age||''}"></div>
-      </div>
-      <div class="form-grid">
-        <div class="form-field"><label class="form-lbl">Waga (kg)</label><input type="number" class="cp-edit-field form-input" id="cpe-weight" value="${c.weight||''}" step="0.1"></div>
-        <div class="form-field"><label class="form-lbl">Wzrost (cm)</label><input type="number" class="cp-edit-field form-input" id="cpe-height" value="${c.height||''}"></div>
-      </div>
-      <div class="form-grid">
-        <div class="form-field"><label class="form-lbl">Cel</label>
-          <select class="form-select" id="cpe-goal">
-            <option value="masa" ${c.goal==='masa'?'selected':''}>Budowa masy</option>
-            <option value="sila" ${c.goal==='sila'?'selected':''}>Wzrost siły</option>
-            <option value="redukcja" ${c.goal==='redukcja'?'selected':''}>Redukcja</option>
-            <option value="kondycja" ${c.goal==='kondycja'?'selected':''}>Kondycja</option>
-          </select>
-        </div>
-        <div class="form-field"><label class="form-lbl">Poziom</label>
-          <select class="form-select" id="cpe-level">
-            <option value="poczatkujacy" ${c.level==='poczatkujacy'?'selected':''}>Początkujący</option>
-            <option value="sredni" ${c.level==='sredni'?'selected':''}>Średni</option>
-            <option value="zaawansowany" ${c.level==='zaawansowany'?'selected':''}>Zaawansowany</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-field"><label class="form-lbl">Status</label>
-        <select class="form-select" id="cpe-status">
-          <option value="active" ${c.status==='active'?'selected':''}>Aktywny</option>
-          <option value="inactive" ${c.status==='inactive'?'selected':''}>Nieaktywny</option>
-          <option value="archived" ${c.status==='archived'?'selected':''}>Zarchiwizowany</option>
-        </select>
-      </div>
-      <div class="form-field"><label class="form-lbl">Uwagi / kontuzje</label><textarea class="form-select" id="cpe-notes" rows="2" style="resize:none;">${c.notes||''}</textarea></div>
-      <button class="btn btn-primary" style="width:100%;" onclick="saveCPEdit('${c.id}')">Zapisz zmiany</button>
-      <button class="btn btn-danger" style="width:100%;" onclick="archiveClient('${c.id}')">🗃 Zarchiwizuj klienta</button>
-    </div>`;
-}
-
 function cpOpenSession(){
   openM('m-session');
   // pre-select client
