@@ -8,7 +8,43 @@
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div class="app">
+
+<!-- EKRAN LOGOWANIA -->
+<div id="auth-screen" style="position:fixed;inset:0;background:var(--bg);z-index:2000;display:flex;align-items:center;justify-content:center;">
+  <div style="width:100%;max-width:360px;padding:32px 28px;background:var(--s1);border:1px solid var(--border2);border-radius:16px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:28px;justify-content:center;">
+      <div class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></div>
+      <div class="logo-text" style="font-size:20px;">PROGRESS<span>LIVE</span></div>
+    </div>
+
+    <div id="auth-login-view">
+      <div style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:20px;">Zaloguj się, aby otworzyć panel trenera</div>
+      <div class="form-field"><label class="form-lbl">E-mail</label><input type="email" class="form-input" id="auth-email" placeholder="trener@przyklad.pl" autocomplete="username"></div>
+      <div class="form-field"><label class="form-lbl">Hasło</label><input type="password" class="form-input" id="auth-password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doSignIn()"></div>
+      <div id="auth-error" style="display:none;background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.25);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--red);margin-bottom:12px;"></div>
+      <button class="btn btn-primary" style="width:100%;margin-top:6px;" id="auth-login-btn" onclick="doSignIn()">Zaloguj się</button>
+      <div style="text-align:center;margin-top:14px;">
+        <button onclick="authShowReset()" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;text-decoration:underline;">Nie pamiętam hasła</button>
+      </div>
+    </div>
+
+    <div id="auth-reset-view" style="display:none;">
+      <div style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:20px;">Podaj e-mail, na który wyślemy link do resetu hasła</div>
+      <div class="form-field"><label class="form-lbl">E-mail</label><input type="email" class="form-input" id="auth-reset-email" placeholder="trener@przyklad.pl"></div>
+      <div id="auth-reset-msg" style="display:none;font-size:11px;margin-bottom:12px;"></div>
+      <button class="btn btn-primary" style="width:100%;margin-top:6px;" onclick="doPasswordReset()">Wyślij link resetujący</button>
+      <div style="text-align:center;margin-top:14px;">
+        <button onclick="authShowLogin()" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;text-decoration:underline;">← Wróć do logowania</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="app" id="app-root" style="display:none;">
+<button id="mobile-menu-btn" onclick="toggleMobileSidebar()" style="display:none;">
+  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+<div id="mobile-sidebar-backdrop" onclick="toggleMobileSidebar()"></div>
 <aside class="sidebar">
   <div class="sidebar-logo">
     <div class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></div>
@@ -73,6 +109,9 @@
     <button onclick="toggleNotifs()" style="position:relative;background:none;border:none;cursor:pointer;padding:6px;" title="Powiadomienia">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--muted)" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
       <span id="notif-badge" style="display:none;position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:var(--red);border:1px solid var(--s1);"></span>
+    </button>
+    <button onclick="doSignOut()" style="background:none;border:none;cursor:pointer;padding:6px;" title="Wyloguj się">
+      <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="var(--muted)" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
     </button>
   </div>
 </aside>
@@ -3345,9 +3384,80 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
 import{getFirestore,collection,getDocs,addDoc,deleteDoc,doc,setDoc,updateDoc}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+import{getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut,sendPasswordResetEmail}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 const cfg={apiKey:"AIzaSyDrbke0QdB55k_4smzhKufQ75eAluu-r_8",authDomain:"progress-live-fc83d.firebaseapp.com",projectId:"progress-live-fc83d",storageBucket:"progress-live-fc83d.firebasestorage.app",messagingSenderId:"637727410398",appId:"1:637727410398:web:b8e4e2581c2e3a24a11a4f"};
-const app=initializeApp(cfg);const db=getFirestore(app);
+const app=initializeApp(cfg);const db=getFirestore(app);const auth=getAuth(app);
 window._db=db;window._col=collection;window._add=addDoc;window._del=deleteDoc;window._doc=doc;window._get=getDocs;window._setDoc=setDoc;window._updateDoc=updateDoc;
+
+window.doSignIn=async function(){
+  const email=document.getElementById('auth-email').value.trim();
+  const pass=document.getElementById('auth-password').value;
+  const errEl=document.getElementById('auth-error');
+  const btn=document.getElementById('auth-login-btn');
+  errEl.style.display='none';
+  if(!email||!pass){errEl.textContent='Wpisz e-mail i hasło.';errEl.style.display='block';return;}
+  btn.disabled=true;btn.textContent='Logowanie...';
+  try{
+    await signInWithEmailAndPassword(auth,email,pass);
+    // onAuthStateChanged zrobi reszte
+  }catch(e){
+    const msgs={
+      'auth/invalid-credential':'Nieprawidłowy e-mail lub hasło.',
+      'auth/invalid-email':'Nieprawidłowy adres e-mail.',
+      'auth/user-not-found':'Nie znaleziono konta z tym adresem e-mail.',
+      'auth/wrong-password':'Nieprawidłowe hasło.',
+      'auth/too-many-requests':'Zbyt wiele prób. Spróbuj ponownie za chwilę.',
+    };
+    errEl.textContent=msgs[e.code]||('Błąd logowania: '+e.message);
+    errEl.style.display='block';
+  }
+  btn.disabled=false;btn.textContent='Zaloguj się';
+};
+
+window.doSignOut=async function(){
+  if(!confirm('Wylogować się?'))return;
+  try{await signOut(auth);}catch(e){}
+};
+
+window.authShowReset=function(){
+  document.getElementById('auth-login-view').style.display='none';
+  document.getElementById('auth-reset-view').style.display='block';
+};
+window.authShowLogin=function(){
+  document.getElementById('auth-reset-view').style.display='none';
+  document.getElementById('auth-login-view').style.display='block';
+};
+window.doPasswordReset=async function(){
+  const email=document.getElementById('auth-reset-email').value.trim();
+  const msgEl=document.getElementById('auth-reset-msg');
+  if(!email){return;}
+  try{
+    await sendPasswordResetEmail(auth,email);
+    msgEl.style.color='var(--teal)';
+    msgEl.textContent='Link do resetu hasła wysłany — sprawdź skrzynkę e-mail.';
+    msgEl.style.display='block';
+  }catch(e){
+    msgEl.style.color='var(--red)';
+    msgEl.textContent='Nie udało się wysłać linku. Sprawdź adres e-mail.';
+    msgEl.style.display='block';
+  }
+};
+
+onAuthStateChanged(auth,(user)=>{
+  const authScreen=document.getElementById('auth-screen');
+  const appRoot=document.getElementById('app-root');
+  if(user){
+    authScreen.style.display='none';
+    appRoot.style.display='';
+    document.getElementById('auth-email').value='';
+    document.getElementById('auth-password').value='';
+    load();
+  }else{
+    authScreen.style.display='flex';
+    appRoot.style.display='none';
+  }
+});
+
 async function load(){
   try{const s=await getDocs(collection(db,'clients'));window.CL=[];s.forEach(d=>window.CL.push({id:d.id,...d.data()}));}catch(e){window.CL=[];}
   try{const s=await getDocs(collection(db,'plans'));window.PL=[];s.forEach(d=>window.PL.push({id:d.id,...d.data()}));}catch(e){window.PL=[];}
@@ -3360,7 +3470,6 @@ try{const s2=await getDocs(collection(db,'tasks'));window.TASKS=[];s2.forEach(d=
   try{const s5=await getDocs(collection(db,'metricGroups'));window.METRIC_GROUPS=[];s5.forEach(d=>window.METRIC_GROUPS.push({id:d.id,...d.data()}));}catch(e){window.METRIC_GROUPS=[];}
   window.renderAll();
 }
-setTimeout(load,300);
 </script>
 
 <script src="01-core.js"></script>

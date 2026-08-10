@@ -633,3 +633,69 @@ input[type=checkbox]{display:none;}
 #private-mode-btn.active{background:rgba(255,140,66,0.15);border-radius:6px;}
 #private-mode-btn.active svg{stroke:var(--orange);}
 @keyframes slideIn{from{opacity:0;transform:translateX(16px);}to{opacity:1;transform:translateX(0);}}
+
+/* ════════════════════════════════════════
+   RESPONSYWNOŚĆ MOBILNA
+   ════════════════════════════════════════ */
+
+#mobile-menu-btn{
+  display:none;
+  position:fixed;top:12px;left:12px;z-index:600;
+  width:38px;height:38px;border-radius:10px;
+  background:var(--s2);border:1px solid var(--border2);color:var(--text);
+  align-items:center;justify-content:center;cursor:pointer;
+}
+#mobile-sidebar-backdrop{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:450;
+}
+#mobile-sidebar-backdrop.show{display:block;}
+
+@media (max-width: 860px){
+  #mobile-menu-btn{display:flex;}
+
+  .app{position:relative;}
+
+  .sidebar{
+    position:fixed;top:0;bottom:0;left:0;
+    width:250px;
+    transform:translateX(-100%);
+    transition:transform 0.22s cubic-bezier(.4,0,.2,1);
+    z-index:500;
+    box-shadow:2px 0 24px rgba(0,0,0,0.4);
+  }
+  .sidebar.mobile-open{transform:translateX(0);}
+
+  .main{width:100%;}
+
+  .topbar{padding:0 14px 0 58px;height:52px;}
+  .topbar-title{font-size:15px;}
+  .content{padding:14px;}
+
+  /* siatki -> mniej kolumn na waskim ekranie */
+  .stats-grid{grid-template-columns:repeat(2,1fr)!important;gap:8px;}
+  .form-grid{grid-template-columns:1fr!important;}
+
+  /* modale na cala szerokosc */
+  .modal, .modal-wide{width:94%;max-width:none;max-height:88vh;}
+
+  /* tabele/listy z wieloma kolumnami - poziomy scroll zamiast lamania layoutu */
+  .ex-list-row{grid-template-columns:2fr 90px 1fr;font-size:11px;}
+  .ex-list-row > *:nth-child(4),
+  .ex-list-row > *:nth-child(5){display:none;}
+
+  /* profil klienta pelnoekranowy - pionowe menu zwezone */
+  .cp-drawer > div:nth-child(2) > div:first-child{width:52px!important;padding:14px 4px!important;}
+  .cp-tab-v{padding:10px 4px;text-align:center;font-size:9px;}
+  .cp-drawer > div:nth-child(2) > div:last-child > div{padding:16px!important;}
+
+  /* szybkie karty statystyk dashboardu - mniejszy tekst */
+  #app-root .content > div[style*="grid-template-columns:repeat(4"]{grid-template-columns:repeat(2,1fr)!important;}
+}
+
+@media (max-width: 480px){
+  .stats-grid{grid-template-columns:1fr!important;}
+  #app-root .content > div[style*="grid-template-columns:repeat(4"]{grid-template-columns:1fr!important;}
+  .topbar-actions{flex-wrap:wrap;gap:6px;}
+  .topbar-actions .btn{font-size:11px;padding:6px 10px;}
+}
+
