@@ -690,7 +690,7 @@ function renderCPOverview(c){
         ['⚖️ Waga',c.weight?c.weight+' kg':'—'],['📏 Wzrost',c.height?c.height+' cm':'—'],
         ['🎯 Cel',{masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja'}[c.goal]||c.goal||'—'],
         ['🏋️ Poziom',{poczatkujacy:'Początkujący',sredni:'Średni',zaawansowany:'Zaawansowany'}[c.level]||c.level||'—'],
-      ].map(([l,v])=>`<div style="background:var(--s3);border-radius:8px;padding:8px 10px;"><div style="font-size:10px;color:var(--muted);margin-bottom:2px;">${l}</div><div style="font-size:12px;font-weight:600;">${v}</div></div>`).join('')}
+      ].map(([l,v])=>`<div style="background:var(--s3);border-radius:8px;padding:9px 11px;"><div style="font-size:12px;color:var(--muted);margin-bottom:2px;">${l}</div><div style="font-size:14px;font-weight:600;">${v}</div></div>`).join('')}
     </div>
 
     ${c.notes?`<div style="background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.2);border-radius:8px;padding:10px 12px;margin-bottom:16px;font-size:12px;"><span style="color:var(--red);">⚠ Kontuzje/uwagi: </span>${c.notes}</div>`:''}
@@ -700,14 +700,14 @@ function renderCPOverview(c){
     <div class="cp-section-title">AKTYWNY PLAN</div>
     <div style="background:linear-gradient(135deg,var(--adim),transparent);border:1px solid rgba(200,241,53,0.2);border-radius:10px;padding:12px 14px;margin-bottom:16px;cursor:pointer;" onclick="setCPTab('plan')">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-        <div style="font-size:13px;font-weight:700;">${plans[plans.length-1].name}</div>
-        <span class="pill pill-green" style="font-size:9px;">${plans[plans.length-1].method||'—'}</span>
+        <div style="font-size:15px;font-weight:700;">${plans[plans.length-1].name}</div>
+        <span class="pill pill-green" style="font-size:11px;">${plans[plans.length-1].method||'—'}</span>
       </div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${plans[plans.length-1].method||'—'} · ${plans[plans.length-1].duration||'?'} tyg. · ${(plans[plans.length-1].days||[]).length} dni/tydzień</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:8px;">${plans[plans.length-1].method||'—'} · ${plans[plans.length-1].duration||'?'} tyg. · ${(plans[plans.length-1].days||[]).length} dni/tydzień</div>
       <div style="display:flex;gap:4px;flex-wrap:wrap;">
-        ${(plans[plans.length-1].days||[]).slice(0,5).map(d=>`<span style="background:${d.rest?'var(--s3)':'rgba(200,241,53,0.12)'};color:${d.rest?'var(--muted)':'var(--accent)'};border-radius:5px;padding:2px 7px;font-size:10px;font-family:'DM Mono',monospace;">${d.day||d.dayName||'?'}${d.rest?' REST':''}</span>`).join('')}
+        ${(plans[plans.length-1].days||[]).slice(0,5).map(d=>`<span style="background:${d.rest?'var(--s3)':'rgba(200,241,53,0.12)'};color:${d.rest?'var(--muted)':'var(--accent)'};border-radius:5px;padding:3px 8px;font-size:12px;font-family:'DM Mono',monospace;">${d.day||d.dayName||'?'}${d.rest?' REST':''}</span>`).join('')}
       </div>
-      <div style="font-size:10px;color:var(--accent);margin-top:8px;">→ Kliknij aby zobaczyć szczegóły</div>
+      <div style="font-size:12px;color:var(--accent);margin-top:8px;">→ Kliknij aby zobaczyć szczegóły</div>
     </div>`:`
     <div class="cp-section-title">AKTYWNY PLAN</div>
     <div style="background:var(--s3);border:1px dashed var(--border2);border-radius:10px;padding:12px 14px;margin-bottom:16px;text-align:center;">
@@ -721,7 +721,7 @@ function renderCPOverview(c){
     <div id="cp-notes-area" style="margin-bottom:16px;">
       ${notes.map((n,ni)=>`<div class="cip-note" style="position:relative;padding-right:24px;"><div>${n.text}</div><div class="cip-note-date">${n.date}</div><button onclick="deleteClientNote('${c.id}',${ni})" style="position:absolute;top:4px;right:4px;background:none;border:none;color:var(--muted2);font-size:14px;cursor:pointer;line-height:1;">×</button></div>`).join('')}
       <div id="note-input-${c.id}" style="display:none;margin-top:6px;">
-        <textarea id="note-text-${c.id}" rows="2" style="width:100%;background:var(--s4);border:1px solid var(--border2);border-radius:6px;padding:6px 8px;color:var(--text);font-size:11px;resize:none;font-family:'DM Sans',sans-serif;"></textarea>
+        <textarea id="note-text-${c.id}" rows="2" style="width:100%;background:var(--s4);border:1px solid var(--border2);border-radius:6px;padding:6px 8px;color:var(--text);font-size:13px;resize:none;font-family:'DM Sans',sans-serif;"></textarea>
         <div style="display:flex;gap:4px;margin-top:4px;">
           <button onclick="saveClientNote('${c.id}');setCPTab('overview')" class="btn btn-primary btn-sm" style="flex:1;">Zapisz</button>
           <button onclick="document.getElementById('note-input-${c.id}').style.display='none'" class="btn btn-ghost btn-sm">Anuluj</button>
@@ -733,7 +733,7 @@ function renderCPOverview(c){
     <div class="cp-section-title">OSTATNIA AKTYWNOŚĆ</div>
     ${(CLIENT_ACTIVITY[c.id]||[]).map((a,ai)=>`<div class="cp-mini-row">
       <div class="cp-mini-icon" style="background:var(--s3);">${a.icon}</div>
-      <div style="flex:1;"><div>${a.text}</div><div style="font-size:10px;color:var(--muted);margin-top:1px;">${a.date}</div></div>
+      <div style="flex:1;"><div>${a.text}</div><div style="font-size:12px;color:var(--muted);margin-top:1px;">${a.date}</div></div>
       <button onclick="deleteClientActivity('${c.id}',${ai})" style="background:none;border:none;color:var(--muted2);font-size:14px;cursor:pointer;padding:0 4px;">×</button>
     </div>`).join('')}`;
 }
