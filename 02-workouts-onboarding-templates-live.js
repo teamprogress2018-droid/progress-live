@@ -1324,7 +1324,7 @@ function renderLivePlanPicker(){
   if(!plans.length){
     el.innerHTML=`<div style="font-size:11px;color:var(--muted);text-align:center;padding:12px;background:var(--s2);border-radius:10px;border:1px solid var(--border);">
       Brak planów dla klienta.<br>
-      <button class="btn btn-ghost btn-sm" style="margin-top:6px;" onclick="goTo('builder')">+ Utwórz plan</button>
+      <button class="btn btn-ghost btn-sm" style="margin-top:6px;" onclick="goTo('aiplangen');if(liveClientId){document.getElementById('apl-client').value=liveClientId;aplFillFromClient();}">⚡ Generuj plan AI</button>
     </div>
     <div style="margin-top:10px;">
       <button class="btn btn-ghost btn-sm" style="width:100%;" onclick="liveQuickAdd()">⚡ Szybki trening bez planu</button>

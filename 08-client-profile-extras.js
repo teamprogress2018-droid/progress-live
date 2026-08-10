@@ -745,7 +745,8 @@ function renderCPPlan(c){
       <div class="cp-section-title" style="margin:0;">PLANY TRENINGOWE (${plans.length})</div>
       <div style="display:flex;gap:6px;">
         <button class="btn btn-ghost btn-sm" onclick="cpAssignTemplate('${c.id}')">📋 Przypisz szablon</button>
-        <button class="btn btn-primary btn-sm" onclick="goTo('builder');document.getElementById('b-client').value='${c.id}';closeClientProfile()">+ Nowy plan</button>
+        <button class="btn btn-primary btn-sm" onclick="goTo('aiplangen');document.getElementById('apl-client').value='${c.id}';aplFillFromClient();closeClientProfile()">⚡ Generuj plan AI</button>
+        <button class="btn btn-ghost btn-sm" onclick="goTo('builder');document.getElementById('b-client').value='${c.id}';closeClientProfile()">✏️ Ręcznie</button>
       </div>
     </div>
     ${!plans.length
