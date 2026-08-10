@@ -1071,12 +1071,15 @@ async function confirmAssignProgram(){
     startDate,
     createdAt:new Date().toISOString(),
     days:(p.weeks&&p.weeks[0]&&p.weeks[0].days
-      ? p.weeks[0].days.map(d=>({
-          day:d.d||d.name||'',
-          muscles:d.name||'',
-          rest:d.name==='REST'||d.rest||false,
-          exercises:[]
-        }))
+      ? p.weeks[0].days.map(d=>{
+          const isRest=d.name==='REST'||d.rest||/^rest$/i.test(d.name||'');
+          return{
+            day:d.d||d.name||'',
+            muscles:d.name||'',
+            rest:isRest,
+            exercises:isRest?[]:[{name:d.name||'Trening wg planu',sets:'3',reps:'wg planu'}]
+          };
+        })
       : [])
   };
 
