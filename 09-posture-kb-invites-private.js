@@ -993,7 +993,7 @@ function renderAutoflows(){
     </div>
     <div style="display:flex;flex-wrap:wrap;gap:5px;">
       ${af.steps.map(s=>`<div class="af-step-row" style="flex:0 0 auto;max-width:300px;">
-        <div class="af-step-icon" style="background:${s.type==='message'?'var(--adim)':s.type==='task'?'rgba(77,159,255,0.12)':s.type==='form'?'rgba(157,124,244,0.12)':'var(--s4)'};">${s.type==='message'?'💬':s.type==='task'?'✅':s.type==='form'?'📋':'⏳'}</div>
+        <div class="af-step-icon" style="background:${s.type==='message'?'var(--adim)':s.type==='task'?'rgba(201,162,39,0.12)':s.type==='form'?'rgba(168,50,74,0.12)':'var(--s4)'};">${s.type==='message'?'💬':s.type==='task'?'✅':s.type==='form'?'📋':'⏳'}</div>
         <div><div style="font-size:11px;font-weight:600;">${s.type==='wait'?'Czekaj '+s.day+' dni':s.type.charAt(0).toUpperCase()+s.type.slice(1)}</div><div style="font-size:10px;color:var(--muted);">${s.text.substring(0,40)}${s.text.length>40?'…':''}</div></div>
       </div>`).join('')}
     </div>
