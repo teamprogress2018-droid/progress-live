@@ -1,0 +1,56 @@
+name: Sprawdzenie kodu
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  sprawdzenie:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pobierz kod
+        uses: actions/checkout@v4
+
+      - name: Ustaw Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Ustaw Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 1. Sprawdź składnię wszystkich plików JS
+        run: |
+          echo "Sprawdzam skladnie kazdego pliku .js..."
+          for f in *.js; do
+            echo "  -> $f"
+            node --check "$f"
+          done
+          echo "Wszystkie pliki JS maja poprawna skladnie."
+
+      - name: 2. Sprawdź duplikaty (funkcje / id / zmienne)
+        run: python3 .github/scripts/check_duplicates.py
+
+      - name: 3. Sprawdź czy wszystkie odwołania do plików są poprawne
+        run: python3 .github/scripts/check_file_refs.py
+
+      - name: 4. Zainstaluj przeglądarkę testową
+        run: |
+          npm install playwright
+          npx playwright install --with-deps chromium
+
+      - name: 5. Uruchom lokalny serwer
+        run: python3 -m http.server 8080 &
+
+      - name: 6. Poczekaj aż serwer wystartuje
+        run: sleep 2
+
+      - name: 7. Sprawdź stronę w prawdziwej przeglądarce
+        run: node .github/scripts/check_browser.js
+
+      - name: Podsumowanie
+        if: success()
+        run: echo "✅ Wszystkie sprawdzenia przeszły pomyślnie."
