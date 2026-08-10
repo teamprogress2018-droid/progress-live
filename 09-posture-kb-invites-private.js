@@ -297,7 +297,9 @@ function renderPayOverview(){
   // transactions
   const tl=document.getElementById('pay-transactions-list');
   const sorted=all.sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,8);
-  tl.innerHTML=sorted.map((p,i)=>`<div class="pay-trans-row" style="animation-delay:${i*0.03}s">
+  tl.innerHTML=!sorted.length
+    ?`<div style="text-align:center;padding:30px;color:var(--muted);font-size:12px;">Brak transakcji — pojawią się tu automatycznie po zarejestrowaniu pierwszej płatności.</div>`
+    :sorted.map((p,i)=>`<div class="pay-trans-row" style="animation-delay:${i*0.03}s">
     <div>
       <div style="font-size:13px;font-weight:600;">${p.clientName||'—'}</div>
       <div style="font-size:11px;color:var(--muted);">${p.title}</div>
@@ -488,7 +490,9 @@ function renderPayInvoices(){
   const all=allInvoices();
   const el=document.getElementById('pay-invoices-list');
   if(!el)return;
-  el.innerHTML=all.map((inv,i)=>`<div class="pay-inv-row" style="animation-delay:${i*0.03}s" onclick="viewInvoice('${inv.id}')">
+  el.innerHTML=!all.length
+    ?`<div style="text-align:center;padding:30px;color:var(--muted);font-size:12px;">Brak wystawionych faktur.</div>`
+    :all.map((inv,i)=>`<div class="pay-inv-row" style="animation-delay:${i*0.03}s" onclick="viewInvoice('${inv.id}')">
     <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);">${inv.nr}</div>
     <div><div style="font-size:13px;font-weight:600;">${inv.clientName}</div><div style="font-size:11px;color:var(--muted);">${inv.pkgTitle}</div></div>
     <div style="color:var(--muted);align-self:center;">${inv.date}</div>
