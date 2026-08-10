@@ -152,7 +152,7 @@ function capScreenHTML(scr,c){
       </div>`:''}
 
       <!-- motywacja -->
-      <div style="background:linear-gradient(135deg,#1a0a2a,#0a0a1a);border:1px solid rgba(157,124,244,0.3);border-radius:18px;padding:16px;text-align:center;">
+      <div style="background:linear-gradient(135deg,#1a0a2a,#0a0a1a);border:1px solid rgba(168,50,74,0.3);border-radius:18px;padding:16px;text-align:center;">
         <div style="font-size:24px;margin-bottom:8px;">💡</div>
         <div style="font-size:13px;color:${CAP_TEXT};font-style:italic;line-height:1.6;">"Każdy trening to inwestycja, której nie możesz stracić."</div>
         <div style="font-size:10px;color:${CAP_MUTED};margin-top:6px;">— ${trainerName}</div>
@@ -2312,12 +2312,12 @@ var notifPanelOpen=false;var notifTab='all';
 window.NOTIFICATIONS=[];
 
 const NOTIF_TYPES={
-  session:   {icon:'📅',color:'var(--blue)',bg:'rgba(77,159,255,0.12)'},
+  session:   {icon:'📅',color:'var(--blue)',bg:'rgba(201,162,39,0.12)'},
   payment:   {icon:'💰',color:'var(--teal)',bg:'rgba(62,207,178,0.12)'},
-  alert:     {icon:'⚠️',color:'var(--orange)',bg:'rgba(255,140,66,0.12)'},
+  alert:     {icon:'⚠️',color:'var(--orange)',bg:'rgba(201,123,63,0.12)'},
   task:      {icon:'✅',color:'var(--accent)',bg:'rgba(200,241,53,0.12)'},
-  message:   {icon:'💬',color:'var(--purple)',bg:'rgba(157,124,244,0.12)'},
-  metric:    {icon:'📏',color:'var(--blue)',bg:'rgba(77,159,255,0.12)'},
+  message:   {icon:'💬',color:'var(--purple)',bg:'rgba(168,50,74,0.12)'},
+  metric:    {icon:'📏',color:'var(--blue)',bg:'rgba(201,162,39,0.12)'},
   system:    {icon:'🔔',color:'var(--muted)',bg:'var(--s3)'},
   expiry:    {icon:'⏰',color:'var(--red)',bg:'rgba(255,77,77,0.12)'},
 };
@@ -2570,8 +2570,8 @@ function buildReportHTML(c,from,to,sec,template){
   const muted=isDark?'#5a6070':'#6b7280';
   const accent='#c8f135';
   const accentDark=isDark?'rgba(200,241,53,0.1)':'rgba(100,180,0,0.08)';
-  const blue=isDark?'#4d9fff':'#2563eb';
-  const orange=isDark?'#ff8c42':'#ea580c';
+  const blue=isDark?'#c9a227':'#2563eb';
+  const orange=isDark?'#c97b3f':'#ea580c';
   const teal=isDark?'#3ecfb2':'#0d9488';
   const red=isDark?'#ff4d4d':'#dc2626';
   const fontMono="'DM Mono',monospace";
@@ -2830,7 +2830,7 @@ function buildReportHTML(c,from,to,sec,template){
         <thead><tr>${['Zadanie','Kategoria','Priorytet','Termin','Status'].map(h=>`<th style="padding:6px 10px;text-align:left;font-family:${fontMono};font-size:10px;color:${muted};text-transform:uppercase;border-bottom:1px solid ${border};">${h}</th>`).join('')}</tr></thead>
         <tbody>${tasks.map((t,i)=>{
           const isDone=t.status==='done';
-          const catCol={trening:accent,dieta:teal,pomiary:blue,lifestyle:'#9d7cf4'}[t.cat]||muted;
+          const catCol={trening:accent,dieta:teal,pomiary:blue,lifestyle:'#a8324a'}[t.cat]||muted;
           return `<tr style="background:${i%2===0?'transparent':bg};border-bottom:1px solid ${border};">
             <td style="padding:6px 10px;font-weight:600;${isDone?'text-decoration:line-through;color:'+muted+';':''};">${t.title}</td>
             <td style="padding:6px 10px;"><span style="background:${catCol}22;color:${catCol};border-radius:99px;padding:1px 7px;font-size:10px;font-family:${fontMono};">${t.cat||'—'}</span></td>
@@ -3549,7 +3549,7 @@ function renderDashTasks(){
     const c=CL.find(x=>x.id===t.clientId);
     let badge='';
     if(isOverdue)badge=`<span style="background:rgba(255,68,68,0.15);color:var(--red);border-radius:4px;padding:1px 6px;font-size:9px;font-family:'DM Mono',monospace;font-weight:700;">Pilne</span>`;
-    else if(isTomorrow)badge=`<span style="background:rgba(255,140,66,0.15);color:var(--orange);border-radius:4px;padding:1px 6px;font-size:9px;font-family:'DM Mono',monospace;font-weight:700;">Wkrótce</span>`;
+    else if(isTomorrow)badge=`<span style="background:rgba(201,123,63,0.15);color:var(--orange);border-radius:4px;padding:1px 6px;font-size:9px;font-family:'DM Mono',monospace;font-weight:700;">Wkrótce</span>`;
     const dueText=isOverdue?'Termin: dziś':isToday?'Termin: dziś':isTomorrow?c?c.name+' · jutro':'jutro':c?c.name+(t.due?' · '+t.due:''):t.due||'Bez terminu';
     html+=`<div style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);">
       <div onclick="toggleTask('${t.id}');renderDash()" style="width:18px;height:18px;border-radius:4px;border:2px solid var(--border2);flex-shrink:0;cursor:pointer;margin-top:1px;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)'"></div>
