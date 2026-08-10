@@ -821,6 +821,66 @@ const DEMO_PROGRAMS=[
       {nr:8,label:'5km!',rpe:'RPE 7-8',focus:'30 min bieg = około 5km',days:[{d:'PON',name:'C25K W8: 28 min bieg ciągły'},{d:'ŚR',name:'C25K W8: 28 min'},{d:'PT',name:'5K RACE: Biegnij 5km bez przerwy! 🎉'}]},
     ]
   },
+  {
+    id:'dp21',type:'demo',name:'Cardio Start — 1 tydzień',goal:'kondycja',level:'poczatkujacy',duration:1,daysPerWeek:5,equip:'Bez sprzętu',method:'Cardio',
+    desc:'Krótki, 7-dniowy program wprowadzający do treningu wytrzymałościowego. Codzienna, rosnąca dawka cardio — idealny jako tydzień próbny przed dłuższym programem albo samodzielny reset kondycyjny.',
+    highlights:['Codzienna progresja intensywności','Mix: marsz, trucht, rower, skakanka','Zero sprzętu — start od zaraz','Naturalne wprowadzenie do dłuższych programów'],
+    weeks:[
+      {nr:1,label:'Tydzień startowy',rpe:'RPE 5-7 (rośnie każdego dnia)',focus:'Codzienna, rosnąca dawka cardio',days:[{d:'PON',name:'Marsz szybki 20 min, tętno strefa 2'},{d:'WT',name:'Trucht/marsz naprzemienny 20 min (2 min trucht / 1 min marsz)'},{d:'ŚR',name:'Skakanka: 5×2 min (przerwa 1 min)'},{d:'CZ',name:'Rower/orbitrek 25 min, stałe tempo'},{d:'PT',name:'Krótki test: 12 min tak dużo dystansu ile dasz radę (Cooper test)'}]},
+    ]
+  },
+  {
+    id:'dp22',type:'demo',name:'Cardio Baza Wytrzymałościowa — 4 tygodnie',goal:'kondycja',level:'poczatkujacy',duration:4,daysPerWeek:4,equip:'Bez sprzętu',method:'Cardio',
+    desc:'Budowanie aerobowej bazy wytrzymałościowej metodą stałego wysiłku (steady-state) z automatyczną progresją czasu i tempa co tydzień. Fundament pod każdy dalszy trening kondycyjny.',
+    highlights:['Progresja czasu: 20→35 min','Trening w strefie tętna 2 (łatwa rozmowa)','1× tydzień test tempa','Zero sprzętu, dowolna dyscyplina cardio'],
+    weeks:[
+      {nr:1,label:'Baza — 20 min',rpe:'RPE 5-6 (strefa 2)',focus:'Budowanie nawyku, stałe, łatwe tempo',days:[{d:'PON',name:'Cardio ciągłe 20 min'},{d:'WT',name:'REST / spacer regeneracyjny'},{d:'ŚR',name:'Cardio ciągłe 20 min'},{d:'PT',name:'Cardio ciągłe 22 min'},{d:'NIE',name:'Cardio ciągłe 22 min, luźne tempo'}]},
+      {nr:2,label:'Baza — 25 min',rpe:'RPE 6',focus:'+5 min do każdej sesji',days:[{d:'PON',name:'Cardio ciągłe 25 min'},{d:'ŚR',name:'Cardio ciągłe 25 min'},{d:'PT',name:'Cardio ciągłe 27 min'},{d:'NIE',name:'Cardio ciągłe 27 min'}]},
+      {nr:3,label:'Baza — 30 min',rpe:'RPE 6-7',focus:'Wydłużanie + 1 sesja z lekkim przyspieszeniem',days:[{d:'PON',name:'Cardio ciągłe 30 min'},{d:'ŚR',name:'Cardio 30 min + 5×1 min przyspieszenie'},{d:'PT',name:'Cardio ciągłe 32 min'},{d:'NIE',name:'Cardio ciągłe 32 min'}]},
+      {nr:4,label:'Test + Ocena',rpe:'RPE 7',focus:'Test tempa na 35 min — porównanie z tygodniem 1',days:[{d:'PON',name:'Cardio ciągłe 35 min'},{d:'ŚR',name:'Cardio ciągłe 30 min, lżej'},{d:'PT',name:'TEST: 35 min, maksymalny dystans przy stałym tętnie'}]},
+    ]
+  },
+  {
+    id:'dp23',type:'demo',name:'HIIT Spalacz — 12 tygodni',goal:'kondycja',level:'zaawansowany',duration:12,daysPerWeek:4,equip:'Bez sprzętu',method:'HIIT',
+    desc:'Długoterminowy program interwałowy o wysokiej intensywności z pełną periodyzacją blokową (3 bloki po 4 tygodnie). Automatyczna progresja: dłuższe interwały, krótsze przerwy, więcej rund. Dla osób z solidną bazą kondycyjną.',
+    highlights:['3 bloki progresji po 4 tygodnie','Stosunek pracy do przerwy rośnie z 1:2 do 1:1','Deload co 4. tydzień','Test Cooper na starcie i mecie'],
+    weeks:[
+      {nr:1,label:'Blok I — Wprowadzenie',rpe:'RPE 7',focus:'20s praca / 40s przerwa × 8 rund',days:[{d:'PON',name:'HIIT: 8× (20s max + 40s przerwa)'},{d:'WT',name:'REST / mobilność'},{d:'CZ',name:'HIIT: 8× (20s max + 40s przerwa)'},{d:'SO',name:'Cardio LISS 25 min (regeneracja)'}]},
+      {nr:2,label:'Blok I — Progresja',rpe:'RPE 7-8',focus:'30s praca / 40s przerwa × 8 rund',days:[{d:'PON',name:'HIIT: 8× (30s max + 40s przerwa)'},{d:'CZ',name:'HIIT: 8× (30s max + 40s przerwa)'},{d:'SO',name:'Cardio LISS 25 min'}]},
+      {nr:3,label:'Blok I — Szczyt',rpe:'RPE 8',focus:'30s praca / 30s przerwa × 10 rund',days:[{d:'PON',name:'HIIT: 10× (30s max + 30s przerwa)'},{d:'CZ',name:'HIIT: 10× (30s max + 30s przerwa)'},{d:'SO',name:'Cardio LISS 30 min'}]},
+      {nr:4,label:'DELOAD I',rpe:'RPE 5-6',focus:'Regeneracja — połowa objętości',days:[{d:'PON',name:'HIIT lekki: 6× (20s + 40s)'},{d:'CZ',name:'Cardio LISS 20 min'}]},
+      {nr:5,label:'Blok II — Restart wyżej',rpe:'RPE 8',focus:'40s praca / 40s przerwa × 8 rund',days:[{d:'PON',name:'HIIT: 8× (40s max + 40s przerwa)'},{d:'WT',name:'REST'},{d:'CZ',name:'HIIT: 8× (40s max + 40s przerwa)'},{d:'SO',name:'Cardio LISS 30 min'}]},
+      {nr:8,label:'DELOAD II',rpe:'RPE 5-6',focus:'Regeneracja przed blokiem finałowym',days:[{d:'PON',name:'HIIT lekki: 6 rund'},{d:'CZ',name:'Cardio LISS 25 min'}]},
+      {nr:9,label:'Blok III — Peak',rpe:'RPE 8-9',focus:'40s praca / 30s przerwa × 10 rund',days:[{d:'PON',name:'HIIT: 10× (40s max + 30s przerwa)'},{d:'CZ',name:'HIIT: 10× (40s max + 30s przerwa)'},{d:'SO',name:'Cardio LISS 30 min'}]},
+      {nr:12,label:'TEST KOŃCOWY',rpe:'RPE 9-10',focus:'Test Cooper — porównanie z tygodniem 1',days:[{d:'PON',name:'HIIT: 45s praca / 30s przerwa × 10 rund'},{d:'PT',name:'TEST COOPER: maksymalny dystans w 12 min'}]},
+    ]
+  },
+  {
+    id:'dp24',type:'demo',name:'EMOM Kondycja Pro — 12 tygodni',goal:'kondycja',level:'sredni',duration:12,daysPerWeek:4,equip:'Mieszany',method:'EMOM',
+    desc:'12-tygodniowy program EMOM (Every Minute On the Minute) z automatyczną progresją liczby powtórzeń i długości sesji co tydzień. Łączy kondycję z pracą siłową w krótkim czasie.',
+    highlights:['Progresja: 20→35 minut EMOM','Rosnąca liczba powtórzeń w minucie','Deload co 4. tydzień','Mierzalny postęp — więcej rund w tym samym czasie'],
+    weeks:[
+      {nr:1,label:'EMOM 20 min',rpe:'RPE 6-7',focus:'Nauka tempa, umiarkowana liczba powtórzeń',days:[{d:'PON',name:'EMOM 20 min: 8 burpees + 10 kettlebell swing'},{d:'ŚR',name:'EMOM 20 min: 10 przysiadów + 8 pompek'},{d:'PT',name:'EMOM 20 min: 12 mountain climbers + 6 podciągnięć/rząd'}]},
+      {nr:2,label:'EMOM 25 min',rpe:'RPE 7',focus:'+5 minut, ten sam ciężar pracy',days:[{d:'PON',name:'EMOM 25 min: 9 burpees + 11 kettlebell swing'},{d:'ŚR',name:'EMOM 25 min: 11 przysiadów + 9 pompek'},{d:'PT',name:'EMOM 25 min: 13 mountain climbers + 7 wiosłowań'}]},
+      {nr:3,label:'EMOM 30 min',rpe:'RPE 7-8',focus:'Szczyt objętości w tym bloku',days:[{d:'PON',name:'EMOM 30 min: 10 burpees + 12 kettlebell swing'},{d:'ŚR',name:'EMOM 30 min: 12 przysiadów + 10 pompek'},{d:'PT',name:'EMOM 30 min: 14 mountain climbers + 8 wiosłowań'}]},
+      {nr:4,label:'DELOAD',rpe:'RPE 5-6',focus:'-50% objętości, regeneracja',days:[{d:'PON',name:'EMOM 15 min, lekkie tempo'},{d:'PT',name:'EMOM 15 min, lekkie tempo'}]},
+      {nr:8,label:'EMOM 30 min — Blok II',rpe:'RPE 8',focus:'Nowy blok, wyższy próg wejścia',days:[{d:'PON',name:'EMOM 30 min: 12 burpees + 14 kettlebell swing'},{d:'ŚR',name:'EMOM 30 min: 14 przysiadów pistolet-progresja + 12 pompek'},{d:'PT',name:'EMOM 30 min: 16 mountain climbers + 10 wiosłowań'}]},
+      {nr:12,label:'EMOM 35 min — Test',rpe:'RPE 8-9',focus:'Maksymalna objętość programu',days:[{d:'PON',name:'EMOM 35 min: pełny obwód, rundy jak w tyg. 8 +2 powt.'},{d:'PT',name:'TEST: EMOM 20 min na maksymalną liczbę powtórzeń'}]},
+    ]
+  },
+  {
+    id:'dp25',type:'demo',name:'Tabata Full Send — 12 tygodni',goal:'kondycja',level:'zaawansowany',duration:12,daysPerWeek:4,equip:'Bez sprzętu',method:'Tabata',
+    desc:'Rozszerzony, 12-tygodniowy program Tabata (20s max / 10s przerwy) z automatyczną progresją liczby rund i bloków. Dla osób gotowych na regularny, bardzo intensywny trening interwałowy.',
+    highlights:['Start: 4 rundy (16 min) → Meta: 8 rund (32 min)','Klasyczny protokół 20:10 przez cały program','Rotacja ćwiczeń co tydzień — brak monotonii','Deload co 4. tydzień chroni stawy i CNS'],
+    weeks:[
+      {nr:1,label:'4 rundy Tabata',rpe:'RPE 8',focus:'2 bloki × 4 rundy (20s/10s), różne ćwiczenia',days:[{d:'PON',name:'Tabata: Burpees + Jump Squats (2×4 rundy)'},{d:'ŚR',name:'Tabata: Mountain Climbers + Pompki (2×4 rundy)'},{d:'PT',name:'Tabata: High Knees + Plank Jacks (2×4 rundy)'}]},
+      {nr:2,label:'5 rund Tabata',rpe:'RPE 8',focus:'2 bloki × 5 rund',days:[{d:'PON',name:'Tabata: Burpees + Jump Squats (2×5 rund)'},{d:'ŚR',name:'Tabata: Mountain Climbers + Pompki (2×5 rund)'},{d:'PT',name:'Tabata: High Knees + Plank Jacks (2×5 rund)'}]},
+      {nr:3,label:'6 rund Tabata',rpe:'RPE 8-9',focus:'2 bloki × 6 rund — szczyt bloku I',days:[{d:'PON',name:'Tabata: pełny obwód, 2×6 rund'},{d:'ŚR',name:'Tabata: pełny obwód, 2×6 rund'},{d:'PT',name:'Tabata: pełny obwód, 2×6 rund'}]},
+      {nr:4,label:'DELOAD',rpe:'RPE 5-6',focus:'1 blok × 4 rundy, lekkie ćwiczenia',days:[{d:'PON',name:'Tabata light: 1×4 rundy'},{d:'PT',name:'Tabata light: 1×4 rundy'}]},
+      {nr:8,label:'7 rund Tabata',rpe:'RPE 9',focus:'2 bloki × 7 rund — nowy poziom',days:[{d:'PON',name:'Tabata: pełny obwód, 2×7 rund'},{d:'ŚR',name:'Tabata: pełny obwód, 2×7 rund'},{d:'PT',name:'Tabata: pełny obwód, 2×7 rund'}]},
+      {nr:12,label:'8 rund Tabata — Meta',rpe:'RPE 9-10',focus:'2 bloki × 8 rund — maksimum programu',days:[{d:'PON',name:'Tabata: pełny obwód, 2×8 rund'},{d:'PT',name:'TEST: maksymalna liczba powtórzeń w 1 rundzie Tabata'}]},
+    ]
+  },
 
 ];
 
