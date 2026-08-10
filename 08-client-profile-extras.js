@@ -121,18 +121,18 @@ function renderCPPsycho(c){
   const todayMood = (p.daily||[]).find(d=>d.date===new Date().toISOString().split('T')[0]);
 
   document.getElementById('cp-body').innerHTML = `
-    <div style="background:linear-gradient(135deg,rgba(127,119,221,0.1),rgba(232,48,42,0.06));border:1px solid rgba(127,119,221,0.2);border-radius:10px;padding:14px;margin-bottom:14px;">
-      <div style="font-size:10px;color:#9f97e8;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">😊 Dzienny tracker nastroju</div>
+    <div style="background:linear-gradient(135deg,rgba(168,50,74,0.1),rgba(232,48,42,0.06));border:1px solid rgba(168,50,74,0.2);border-radius:10px;padding:14px;margin-bottom:14px;">
+      <div style="font-size:10px;color:var(--purple);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">😊 Dzienny tracker nastroju</div>
       <div style="display:flex;gap:6px;justify-content:space-between;margin-bottom:10px;" id="psy-mood-btns">
         ${[[1,'😞','Bardzo zły'],[2,'😕','Zły'],[3,'😐','Neutralny'],[4,'😊','Dobry'],[5,'🤩','Świetny']].map(([v,e,t])=>
-          `<button onclick="psySetMood('${c.id}',${v},this)" class="psy-mood-btn" data-v="${v}" title="${t}" style="flex:1;font-size:20px;background:${(todayMood?.mood===v)?'rgba(127,119,221,0.25)':'var(--s3)'};border:1px solid ${(todayMood?.mood===v)?'rgba(127,119,221,0.5)':'var(--border2)'};border-radius:8px;padding:8px 2px;cursor:pointer;">${e}</button>`
+          `<button onclick="psySetMood('${c.id}',${v},this)" class="psy-mood-btn" data-v="${v}" title="${t}" style="flex:1;font-size:20px;background:${(todayMood?.mood===v)?'rgba(168,50,74,0.25)':'var(--s3)'};border:1px solid ${(todayMood?.mood===v)?'rgba(168,50,74,0.5)':'var(--border2)'};border-radius:8px;padding:8px 2px;cursor:pointer;">${e}</button>`
         ).join('')}
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
         <div>
           <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">Poziom energii</div>
-          <input type="range" id="psy-energy" min="1" max="10" value="${todayMood?.energy||5}" style="width:100%;accent-color:#9f97e8;" oninput="document.getElementById('psy-energy-val').textContent=this.value">
-          <div style="font-size:10px;color:#9f97e8;text-align:right;" id="psy-energy-val">${todayMood?.energy||5}</div>
+          <input type="range" id="psy-energy" min="1" max="10" value="${todayMood?.energy||5}" style="width:100%;accent-color:var(--purple);" oninput="document.getElementById('psy-energy-val').textContent=this.value">
+          <div style="font-size:10px;color:var(--purple);text-align:right;" id="psy-energy-val">${todayMood?.energy||5}</div>
         </div>
         <div>
           <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">Poziom stresu</div>
@@ -144,7 +144,7 @@ function renderCPPsycho(c){
         <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">Jakość snu (godz.)</div>
         <div style="display:flex;gap:6px;">
           <input id="psy-sleep" type="number" min="0" max="12" step="0.5" value="${todayMood?.sleep||''}" placeholder="7.5" style="flex:1;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:6px 9px;color:var(--text);font-size:12px;">
-          <button onclick="psySaveDaily('${c.id}')" id="psy-daily-btn" style="background:rgba(127,119,221,0.2);border:1px solid rgba(127,119,221,0.4);border-radius:6px;padding:6px 12px;color:#9f97e8;font-size:11px;font-weight:600;cursor:pointer;">💾 Zapisz</button>
+          <button onclick="psySaveDaily('${c.id}')" id="psy-daily-btn" style="background:rgba(168,50,74,0.2);border:1px solid rgba(168,50,74,0.4);border-radius:6px;padding:6px 12px;color:var(--purple);font-size:11px;font-weight:600;cursor:pointer;">💾 Zapisz</button>
         </div>
       </div>
     </div>
@@ -201,9 +201,9 @@ function renderCPPsycho(c){
     </div>
 
     <div style="display:flex;flex-direction:column;gap:8px;">
-      <button onclick="psySaveProfile('${c.id}')" id="psy-save-btn" style="width:100%;background:rgba(127,119,221,0.15);border:1px solid rgba(127,119,221,0.35);border-radius:8px;padding:10px;color:#9f97e8;font-size:12px;font-weight:600;cursor:pointer;">💾 Zapisz profil psychodietetyczny</button>
+      <button onclick="psySaveProfile('${c.id}')" id="psy-save-btn" style="width:100%;background:rgba(168,50,74,0.15);border:1px solid rgba(168,50,74,0.35);border-radius:8px;padding:10px;color:var(--purple);font-size:12px;font-weight:600;cursor:pointer;">💾 Zapisz profil psychodietetyczny</button>
       <button onclick="psyAskAI('${c.id}')" id="psy-ai-btn" style="width:100%;background:rgba(200,241,53,0.1);border:1px solid rgba(200,241,53,0.25);border-radius:8px;padding:10px;color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;">🤖 Zapytaj AI o strategie</button>
-      <button onclick="psyCheckYoyo('${c.id}')" style="width:100%;background:rgba(255,140,66,0.1);border:1px solid rgba(255,140,66,0.25);border-radius:8px;padding:10px;color:var(--orange);font-size:12px;font-weight:600;cursor:pointer;">🔄 Sprawdź błędne koło yo-yo</button>
+      <button onclick="psyCheckYoyo('${c.id}')" style="width:100%;background:rgba(201,123,63,0.1);border:1px solid rgba(201,123,63,0.25);border-radius:8px;padding:10px;color:var(--orange);font-size:12px;font-weight:600;cursor:pointer;">🔄 Sprawdź błędne koło yo-yo</button>
       <div id="psy-yoyo-result"></div>
       <div id="psy-ai-result"></div>
     </div>`;
@@ -213,7 +213,7 @@ function renderCPPsycho(c){
 
 function psySetMood(clientId,val,btn){
   document.querySelectorAll('.psy-mood-btn').forEach(b=>{b.style.background='var(--s3)';b.style.borderColor='var(--border2)';});
-  btn.style.background='rgba(127,119,221,0.25)';btn.style.borderColor='rgba(127,119,221,0.5)';
+  btn.style.background='rgba(168,50,74,0.25)';btn.style.borderColor='rgba(168,50,74,0.5)';
   btn.dataset.selected='1';
 }
 
@@ -246,7 +246,7 @@ function psySaveProfile(clientId){
   };
   psyPersist(clientId);
   const btn=document.getElementById('psy-save-btn');
-  if(btn){const old=btn.textContent;btn.textContent='✓ Profil zapisany!';btn.style.background='rgba(74,222,128,0.15)';setTimeout(()=>{btn.textContent=old;btn.style.background='rgba(127,119,221,0.15)';},2500);}
+  if(btn){const old=btn.textContent;btn.textContent='✓ Profil zapisany!';btn.style.background='rgba(74,222,128,0.15)';setTimeout(()=>{btn.textContent=old;btn.style.background='rgba(168,50,74,0.15)';},2500);}
   notify('✓ Profil psychodietetyczny zapisany');
 }
 
@@ -256,7 +256,7 @@ function psyRenderMoodHistory(clientId){
   const daily = (p.daily||[]).slice(-7);
   if(!daily.length){ el.innerHTML='<div style="font-size:11px;color:var(--muted);text-align:center;width:100%;">Brak danych – zacznij śledzić nastrój!</div>'; return; }
   const moodEmoji={1:'😞',2:'😕',3:'😐',4:'😊',5:'🤩'};
-  const moodColor={1:'#ff4d4d',2:'#ff8c42',3:'#9a9086',4:'#4ade80',5:'#c8f135'};
+  const moodColor={1:'#ff4d4d',2:'#c97b3f',3:'#9a9086',4:'#4ade80',5:'#c8f135'};
   el.innerHTML = daily.map(d=>{
     const height=Math.round((d.mood/5)*100);
     const dayName=new Date(d.date).toLocaleDateString('pl',{weekday:'short'}).substring(0,2);
