@@ -2035,6 +2035,18 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         </div>
       </div>
 
+      <!-- metody intensyfikacji -->
+      <div class="form-field">
+        <label class="form-lbl">Metody intensyfikacji (zaznacz dostępne)</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;" id="apl-intensify">
+          <button class="apl-opt-multi" data-val="Drop-sety" onclick="this.classList.toggle('active')">💧 Drop-sety</button>
+          <button class="apl-opt-multi" data-val="Super-serie" onclick="this.classList.toggle('active')">⚡ Super-serie</button>
+          <button class="apl-opt-multi" data-val="RPE/RIR" onclick="this.classList.toggle('active')">🎯 RPE/RIR</button>
+          <button class="apl-opt-multi" data-val="HIIT/Interwały" onclick="this.classList.toggle('active')">🔥 HIIT/Interwały</button>
+          <button class="apl-opt-multi" data-val="Trening obwodowy" onclick="this.classList.toggle('active')" style="grid-column:1/-1;">🔄 Trening obwodowy</button>
+        </div>
+      </div>
+
       <!-- dni w tygodniu -->
       <div class="form-field">
         <label class="form-lbl">Dni treningowe w tygodniu *</label>
@@ -2195,6 +2207,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <div class="form-field">
         <label class="form-lbl">Długość planu (tygodnie)</label>
         <div style="display:flex;gap:6px;" id="apl-weeks">
+          <button class="apl-opt" data-val="1" onclick="aplToggleOpt(this,'apl-weeks')" style="flex:1;">1 tyg.</button>
           <button class="apl-opt" data-val="4" onclick="aplToggleOpt(this,'apl-weeks')" style="flex:1;">4 tyg.</button>
           <button class="apl-opt" data-val="6" onclick="aplToggleOpt(this,'apl-weeks')" style="flex:1;">6 tyg.</button>
           <button class="apl-opt active" data-val="8" onclick="aplToggleOpt(this,'apl-weeks')" style="flex:1;">8 tyg.</button>
