@@ -293,10 +293,14 @@ ${client?`- Klient: ${client.name}, cel: ${client.goal}, poziom: ${client.level}
       })
     };
     let resp=await fetch('https://anthropic-proxy.teamprogress2018.workers.dev/',fetchOpts);
-    if(!resp.ok){
-      // jedna automatyczna próba ponowienia przy przeciążeniu serwera (np. 524)
-      await new Promise(r=>setTimeout(r,1500));
+    let attempt=0;
+    while(!resp.ok && attempt<2){
+      attempt++;
+      await new Promise(r=>setTimeout(r,attempt*3000));
       resp=await fetch('https://anthropic-proxy.teamprogress2018.workers.dev/',fetchOpts);
+    }
+    if(!resp.ok){
+      throw new Error('Serwer AI przeciążony (status '+resp.status+') po '+(attempt+1)+' próbach.');
     }
     const data=await resp.json();
     const raw=data?.content?.[0]?.text||'';
@@ -322,10 +326,11 @@ ${client?`- Klient: ${client.name}, cel: ${client.goal}, poziom: ${client.level}
     aplRenderPlan(plan,client,goal,method,days,weeks);
   }catch(e){
     console.error('aplGenerate błąd:',e);
+    const isTimeout=/524|przeciążon|timeout/i.test(e?.message||'');
     res.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;gap:14px;text-align:center;padding:40px;">
-      <div style="font-size:40px;">❌</div>
-      <div style="font-size:15px;font-weight:700;color:var(--red);">Błąd generowania planu</div>
-      <div style="font-size:12px;color:var(--muted);">Sprawdź połączenie internetowe i spróbuj ponownie.</div>
+      <div style="font-size:40px;">${isTimeout?'⏱️':'❌'}</div>
+      <div style="font-size:15px;font-weight:700;color:var(--red);">${isTimeout?'Serwer AI jest chwilowo przeciążony':'Błąd generowania planu'}</div>
+      <div style="font-size:12px;color:var(--muted);max-width:320px;">${isTimeout?'To zwykle mija po chwili. Odczekaj 30-60 sekund i spróbuj ponownie.':'Sprawdź połączenie internetowe i spróbuj ponownie.'}</div>
       <button class="btn btn-primary" onclick="aplGenerate()">↺ Spróbuj ponownie</button>
     </div>`;
   }
