@@ -244,7 +244,7 @@ WAŻNE — odpowiedz TYLKO w formacie JSON (bez żadnego dodatkowego tekstu, bez
 
 Podaj wartości TYLKO dla tygodnia 1 (bazowe). Pole "kg" podaj jako sam SUGEROWANY CIĘŻAR STARTOWY W KG (liczba, np. "60"), albo pusty string jeśli niemożliwe do oszacowania — resztę tygodni (progresję) obliczy aplikacja automatycznie na podstawie wybranej metody progresji.
 
-WARMUP KAŻDEJ SESJI: "warmupExercises" to lista 3-5 ćwiczeń mobilizacyjno-aktywacyjnych SPECYFICZNYCH dla tej sesji (nie ogólnikowych), z polami name/emoji/sets/reps/note.
+WARMUP KAŻDEJ SESJI: "warmupExercises" to lista DOKŁADNIE 3 ćwiczeń mobilizacyjno-aktywacyjnych SPECYFICZNYCH dla tej sesji (nie ogólnikowych), z polami name/emoji/sets/reps/note.
 
 FAZY TYGODNI (kontekst dla treści "periodization"/"deload", NIE umieszczaj w JSON): ${JSON.stringify(phasesMap)}
 
@@ -255,7 +255,7 @@ METODY INTENSYFIKACJI DO WYKORZYSTANIA (zaznaczone przez trenera): ${intensify.l
 
 UWZGLĘDNIJ ANATOMIĘ I BIOMECHANIKĘ KLIENTA przy doborze wariantów ćwiczeń (np. długa kość udowa → przysiad na maszynie hack/suwnicy zamiast klasycznego przysiadu ze sztangą; ograniczona mobilność skokowa → dodaj podkładki pod pięty lub zamień na wykroki; długie ramiona → węższy chwyt w wyciskaniu).
 
-Stwórz PEŁNY plan z wszystkimi dniami i minimum 6-8 ćwiczeniami na dzień (plus 2 na core na końcu każdej sesji siłowej).`;
+Stwórz PEŁNY plan z wszystkimi dniami i 5-6 ćwiczeniami na dzień (plus 2 na core na końcu każdej sesji siłowej).`;
 
   const userMsg=`Stwórz plan treningowy:
 - Cel: ${goal}
@@ -287,7 +287,7 @@ ${client?`- Klient: ${client.name}, cel: ${client.goal}, poziom: ${client.level}
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         model:'claude-sonnet-4-20250514',
-        max_tokens: (parseInt(days)||4)<=4?5000:7000,
+        max_tokens: Math.min(4500+(parseInt(days)||4)*1300, 9500),
         system:systemPrompt,
         messages:[{role:'user',content:userMsg}]
       })
@@ -321,6 +321,7 @@ ${client?`- Klient: ${client.name}, cel: ${client.goal}, poziom: ${client.level}
     });
     aplRenderPlan(plan,client,goal,method,days,weeks);
   }catch(e){
+    console.error('aplGenerate błąd:',e);
     res.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;gap:14px;text-align:center;padding:40px;">
       <div style="font-size:40px;">❌</div>
       <div style="font-size:15px;font-weight:700;color:var(--red);">Błąd generowania planu</div>
