@@ -4,7 +4,7 @@
 var capScreen='home';var capDevice='phone';var capTab='preview';
 var capClientId=null;
 
-const CAP_ACCENT='#c8f135';
+const CAP_ACCENT='#e11f2e';
 const CAP_BG='#07080a';
 const CAP_S1='#0d0f12';
 const CAP_S2='#12151a';
@@ -476,14 +476,14 @@ function renderCapInfo(){
 
 function renderCapCustomize(){
   const el=document.getElementById('cap-customize-content');if(!el)return;
-  const accent=window.SETTINGS?.brand?.accentColor||'#c8f135';
+  const accent=window.SETTINGS?.brand?.accentColor||'#e11f2e';
   const appName=window.SETTINGS?.brand?.appName||'PROGRESS LIVE';
   el.innerHTML=`
     <div class="settings-card">
       <div class="settings-card-title">🎨 Kolor marki w aplikacji klienta</div>
       <div class="settings-card-desc">Główny kolor akcentu widoczny przez klienta w przyciskach, postępach i elementach aktywnych.</div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        ${['#c8f135','#4d9fff','#ff8c42','#9d7cf4','#3ecfb2','#ff4d4d','#f59e0b','#ec4899'].map(c=>`<div style="width:36px;height:36px;border-radius:10px;background:${c};cursor:pointer;border:3px solid ${c===accent?'white':'transparent'};" onclick="setAccentColor('${c}');renderCapCustomize()"></div>`).join('')}
+        ${['#e11f2e','#4d9fff','#ff8c42','#9d7cf4','#3ecfb2','#ff4d4d','#f59e0b','#ec4899'].map(c=>`<div style="width:36px;height:36px;border-radius:10px;background:${c};cursor:pointer;border:3px solid ${c===accent?'white':'transparent'};" onclick="setAccentColor('${c}');renderCapCustomize()"></div>`).join('')}
         <input type="color" value="${accent}" oninput="setAccentColor(this.value);renderCapCustomize()" style="width:36px;height:36px;border-radius:10px;cursor:pointer;border:none;padding:2px;">
       </div>
     </div>
@@ -1895,7 +1895,7 @@ window.SETTINGS={
     specialty:['Trening siłowy','Hipertrofia','Redukcja'],
   },
   brand:{
-    accentColor:'#c8f135',
+    accentColor:'#e11f2e',
     theme:'dark',
     appName:'PROGRESS LIVE',
     logo:null,
@@ -2004,7 +2004,7 @@ function renderSettingsContent(t){
   }
 
   else if(t==='brand'){
-    const colors=['#c8f135','#4d9fff','#ff8c42','#9d7cf4','#3ecfb2','#ff4d4d','#f59e0b','#ec4899'];
+    const colors=['#e11f2e','#4d9fff','#ff8c42','#9d7cf4','#3ecfb2','#ff4d4d','#f59e0b','#ec4899'];
     el.innerHTML=`<div class="settings-section">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">MARKA I WYGLĄD</div>
 
@@ -2568,7 +2568,7 @@ function buildReportHTML(c,from,to,sec,template){
   const border=isDark?'rgba(255,255,255,0.08)':'#e0e0e0';
   const text=isDark?'#eceae6':'#1a1a2a';
   const muted=isDark?'#5a6070':'#6b7280';
-  const accent='#c8f135';
+  const accent='#e11f2e';
   const accentDark=isDark?'rgba(200,241,53,0.1)':'rgba(100,180,0,0.08)';
   const blue=isDark?'#c9a227':'#2563eb';
   const orange=isDark?'#c97b3f':'#ea580c';
