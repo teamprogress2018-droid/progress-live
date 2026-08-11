@@ -4,6 +4,57 @@
 var aplGenerating=false;
 var aplLastPlan=null;
 
+// ── Lokalne obliczanie progresji na kolejne tygodnie (bez dodatkowych zapytań do AI) ──
+function aplComputeProgression(ex,weekKeys,phasesMap,progressionType){
+  const baseS=ex.sets,baseR=ex.reps,baseRest=ex.rest;
+  const baseRpe=parseFloat(ex.rir)||7;
+  let baseKgNum=null,kgSuffix='';
+  if(ex.kg){
+    const m=String(ex.kg).match(/^([\d.]+)/);
+    if(m){baseKgNum=parseFloat(m[1]);kgSuffix=String(ex.kg).slice(m[1].length);}
+  }
+  weekKeys.forEach((wk,i)=>{
+    if(i===0){ex[wk]={s:baseS,r:baseR,rest:baseRest,rpe:String(baseRpe),kg:ex.kg||''};return;}
+    const phase=(phasesMap[wk]||'').toLowerCase();
+    const isDeload=phase.includes('deload');
+    let s=baseS,r=baseR,rest=baseRest,rpe=baseRpe,kg=ex.kg||'';
+    if(isDeload){
+      rpe=Math.max(5,baseRpe-2);
+      s=String(Math.max(1,Math.round((parseInt(baseS)||3)*0.6)));
+      if(baseKgNum!=null)kg=(Math.round(baseKgNum*0.7*10)/10)+kgSuffix;
+    }else{
+      switch(progressionType){
+        case 'linear':
+          rpe=Math.min(9,baseRpe+Math.floor(i/2));
+          if(baseKgNum!=null)kg=(Math.round((baseKgNum+2.5*i)*10)/10)+kgSuffix;
+          break;
+        case 'dup':
+          rpe=Math.min(9,baseRpe+Math.floor(i/3));
+          if(baseKgNum!=null)kg=(Math.round((baseKgNum+1.25*i)*10)/10)+kgSuffix;
+          break;
+        case 'wave':
+          rpe=(i%2===0)?Math.min(8,baseRpe):Math.min(9,baseRpe+1);
+          if(baseKgNum!=null)kg=(Math.round((baseKgNum+(i%2===0?0:2.5))*10)/10)+kgSuffix;
+          break;
+        case 'block':
+          if(i<weekKeys.length*0.4){rpe=Math.min(7,baseRpe);}
+          else if(i<weekKeys.length*0.8){rpe=Math.min(9,baseRpe+2);}
+          else{rpe=Math.min(10,baseRpe+3);}
+          if(baseKgNum!=null)kg=(Math.round((baseKgNum+2*i)*10)/10)+kgSuffix;
+          break;
+        case 'double':
+          rpe=Math.min(9,baseRpe+Math.floor(i/2));
+          if(baseKgNum!=null)kg=(Math.round((baseKgNum+2*Math.floor(i/2))*10)/10)+kgSuffix;
+          break;
+        default:
+          rpe=Math.min(9,baseRpe+Math.floor(i/2));
+          if(baseKgNum!=null)kg=(Math.round((baseKgNum+2.5*i)*10)/10)+kgSuffix;
+      }
+    }
+    ex[wk]={s,r,rest,rpe:String(rpe),kg};
+  });
+}
+
 function initAplangen(){
   const sel=document.getElementById('apl-client');
   if(sel){
@@ -150,7 +201,6 @@ async function aplGenerate(){
     ? 'Dobierz OPTYMALNĄ metodę progresji dla tego klienta i uzasadnij wybór w polu "periodization".'
     : progressionInstructions[progression];
 
-  const wEx = weekKeys.map(wk=>`"${wk}":{"s":"4","r":"8-10","rest":"90s","rpe":"7","kg":""}`).join(',');
   const wuEx = `[{"name":"Krążenia ramion","emoji":"🔄","sets":"2x","reps":"15","note":"mobilizacja"},{"name":"Aktywacja pośladków z gumą","emoji":"🍑","sets":"2x","reps":"12","note":"aktywacja"}]`;
 
   const systemPrompt=`Jesteś ekspertem programowania treningowego z certyfikatami NSCA CSCS i NASM CPT. Tworzysz szczegółowe plany treningowe w języku polskim.
@@ -178,7 +228,11 @@ WAŻNE — odpowiedz TYLKO w formacie JSON (bez żadnego dodatkowego tekstu, bez
           "name": "Wyciskanie sztangi leżąc (płaskie)",
           "notes": "Ćwiczenie bazowe — priorytet siłowy, uwaga techniczna",
           "muscleGroup": "Klatka",
-          ${wEx}
+          "sets": "4",
+          "reps": "8-10",
+          "rest": "90s",
+          "rpe": "7",
+          "kg": "60"
         }
       ]
     }
@@ -188,11 +242,12 @@ WAŻNE — odpowiedz TYLKO w formacie JSON (bez żadnego dodatkowego tekstu, bez
   "weeklyVolume": {"chest":"12 serii","back":"14 serii","legs":"16 serii","shoulders":"10 serii","arms":"8 serii"}
 }
 
-KAŻDE ćwiczenie MUSI mieć dane progresji dla WSZYSTKICH ${weeksNum} tygodni (klucze: ${weekKeys.join(', ')}) — dla każdego tygodnia osobno podaj "s" (serie), "r" (powtórzenia), "rest" (przerwa), "rpe" (RPE 1-10), "kg" (sugerowany ciężar startowy lub % 1RM, może być pusty string jeśli nieznany).
+Podaj wartości TYLKO dla tygodnia 1 (bazowe). Pole "kg" podaj jako sam SUGEROWANY CIĘŻAR STARTOWY W KG (liczba, np. "60"), albo pusty string jeśli niemożliwe do oszacowania — resztę tygodni (progresję) obliczy aplikacja automatycznie na podstawie wybranej metody progresji.
 
 WARMUP KAŻDEJ SESJI: "warmupExercises" to lista 3-5 ćwiczeń mobilizacyjno-aktywacyjnych SPECYFICZNYCH dla tej sesji (nie ogólnikowych), z polami name/emoji/sets/reps/note.
 
-FAZY TYGODNI (do wykorzystania w progresji, NIE umieszczaj w JSON — tylko jako kontekst): ${JSON.stringify(phasesMap)}
+FAZY TYGODNI (kontekst dla treści "periodization"/"deload", NIE umieszczaj w JSON): ${JSON.stringify(phasesMap)}
+
 
 METODA PROGRESJI (obowiązkowa): ${progressionInstruction}
 
@@ -227,16 +282,22 @@ ${notes?`- Dodatkowe uwagi: ${notes}`:''}
 ${client?`- Klient: ${client.name}, cel: ${client.goal}, poziom: ${client.level}`:''}${cid&&typeof sfrGetContextForAI==='function'?sfrGetContextForAI(cid):''}`;
 
   try{
-    const resp=await fetch('https://anthropic-proxy.teamprogress2018.workers.dev/',{
+    const fetchOpts={
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         model:'claude-sonnet-4-20250514',
-        max_tokens: weeksNum<=1?8000:weeksNum<=4?16000:weeksNum<=8?24000:30000,
+        max_tokens: (parseInt(days)||4)<=4?5000:7000,
         system:systemPrompt,
         messages:[{role:'user',content:userMsg}]
       })
-    });
+    };
+    let resp=await fetch('https://anthropic-proxy.teamprogress2018.workers.dev/',fetchOpts);
+    if(!resp.ok){
+      // jedna automatyczna próba ponowienia przy przeciążeniu serwera (np. 524)
+      await new Promise(r=>setTimeout(r,1500));
+      resp=await fetch('https://anthropic-proxy.teamprogress2018.workers.dev/',fetchOpts);
+    }
     const data=await resp.json();
     const raw=data?.content?.[0]?.text||'';
     const clean=raw.replace(/```json|```/g,'').trim();
@@ -251,14 +312,11 @@ ${client?`- Klient: ${client.name}, cel: ${client.goal}, poziom: ${client.level}
     aplLastClient=client;
     plan.phases=phasesMap;
     plan.weekKeys=weekKeys;
-    plan.currentWeek=plan.currentWeek||'w1';
+    plan.currentWeek=plan.currentWeek||weekKeys[0];
     (plan.days||[]).forEach(d=>{
       (d.exercises||[]).forEach(ex=>{
-        const w1=ex[weekKeys[0]]||{};
-        ex.sets=ex.sets||w1.s||'3';
-        ex.reps=ex.reps||w1.r||'10';
-        ex.rest=ex.rest||w1.rest||'90s';
-        ex.rir=ex.rir||w1.rpe||'';
+        ex.sets=ex.sets||'3';ex.reps=ex.reps||'10';ex.rest=ex.rest||'90s';ex.rir=ex.rir||ex.rpe||'7';
+        aplComputeProgression(ex,weekKeys,phasesMap,progression);
       });
     });
     aplRenderPlan(plan,client,goal,method,days,weeks);
