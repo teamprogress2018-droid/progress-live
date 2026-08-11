@@ -1643,7 +1643,7 @@ function renderLiveClientMock(){
   const doneCnt=liveExercises.filter(e=>e.done).length;
   const total=liveExercises.length;
   const pct=total?Math.round(doneCnt/total*100):0;
-  const accent=window.SETTINGS?.brand?.accentColor||'#c8f135';
+  const accent=window.SETTINGS?.brand?.accentColor||'#e11f2e';
   el.innerHTML=`
     <div style="background:#07080a;border-radius:40px;border:6px solid #1a1a2a;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.8);">
       <!-- status bar -->
@@ -2028,7 +2028,7 @@ function renderRepDocument(c,template,hasAI,ai){
   const text=isDark?'#eceae6':'#1a1a2a';
   const muted=isDark?'rgba(255,255,255,0.45)':'rgba(0,0,0,0.45)';
   const border=isDark?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.1)';
-  const accent=window.SETTINGS?.brand?.accentColor||'#c8f135';
+  const accent=window.SETTINGS?.brand?.accentColor||'#e11f2e';
   const card=isDark?'rgba(255,255,255,0.04)':'rgba(0,0,0,0.03)';
 
   const activeSections=[...document.querySelectorAll('.rep-section-check:checked')].map(cb=>cb.value);
