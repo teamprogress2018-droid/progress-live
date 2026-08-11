@@ -81,6 +81,7 @@ async function aplGenerate(){
   const duration=aplGetVal('apl-duration');
   const weeks=aplGetVal('apl-weeks');
   const equipment=aplGetMulti('apl-equipment');
+  const intensify=aplGetMulti('apl-intensify');
   const age=document.getElementById('apl-age').value;
   const weight=document.getElementById('apl-weight').value;
   const height=document.getElementById('apl-height').value;
@@ -106,6 +107,17 @@ async function aplGenerate(){
 
   // progresja
   const progression=aplGetVal('apl-progression')||'ai';
+
+  const weeksNum = parseInt(weeks)||8;
+  const weekKeys = ['w1','w2','w3','w4','w5','w6','w7','w8','w9','w10','w11','w12'].slice(0,weeksNum);
+  const PHASE_TABLES={
+    1:{w1:'Tydzień 1'},
+    4:{w1:'Adaptacja',w2:'Hipertrofia I',w3:'Hipertrofia II',w4:'Deload'},
+    6:{w1:'Adaptacja',w2:'Hipertrofia I',w3:'Hipertrofia I',w4:'Hipertrofia II',w5:'Intensyfikacja',w6:'Deload'},
+    8:{w1:'Adaptacja',w2:'Adaptacja',w3:'Hipertrofia I',w4:'Hipertrofia I',w5:'Hipertrofia II',w6:'Siła',w7:'Deload',w8:'Szczyt'},
+    12:{w1:'Adaptacja',w2:'Adaptacja',w3:'Hipertrofia I',w4:'Hipertrofia I',w5:'Hipertrofia II',w6:'Hipertrofia II',w7:'Siła',w8:'Siła',w9:'Deload',w10:'Intensyfikacja',w11:'Szczyt',w12:'Test/Realizacja'},
+  };
+  const phasesMap = PHASE_TABLES[weeksNum] || (()=>{const o={};weekKeys.forEach((k,i)=>o[k]=i===weekKeys.length-1?'Deload':'Tydzień '+(i+1));return o;})();
 
   if(!goal||!level||!method||!days){
     notify('⚠ Uzupełnij wymagane pola!');return;
@@ -138,6 +150,9 @@ async function aplGenerate(){
     ? 'Dobierz OPTYMALNĄ metodę progresji dla tego klienta i uzasadnij wybór w polu "periodization".'
     : progressionInstructions[progression];
 
+  const wEx = weekKeys.map(wk=>`"${wk}":{"s":"4","r":"8-10","rest":"90s","rpe":"7","kg":""}`).join(',');
+  const wuEx = `[{"name":"Krążenia ramion","emoji":"🔄","sets":"2x","reps":"15","note":"mobilizacja"},{"name":"Aktywacja pośladków z gumą","emoji":"🍑","sets":"2x","reps":"12","note":"aktywacja"}]`;
+
   const systemPrompt=`Jesteś ekspertem programowania treningowego z certyfikatami NSCA CSCS i NASM CPT. Tworzysz szczegółowe plany treningowe w języku polskim.
 
 WAŻNE — odpowiedz TYLKO w formacie JSON (bez żadnego dodatkowego tekstu, bez markdown, bez \`\`\`):
@@ -145,28 +160,25 @@ WAŻNE — odpowiedz TYLKO w formacie JSON (bez żadnego dodatkowego tekstu, bez
   "planName": "Nazwa planu",
   "summary": "Krótkie 2-zdaniowe uzasadnienie metodyczne",
   "method": "Nazwa metody",
-  "weeks": liczba,
+  "weeks": ${weeksNum},
   "daysPerWeek": liczba,
   "sessionDuration": liczba_minut,
   "periodization": "Opis periodyzacji (np. progresja liniowa 2.5kg/tyg)",
   "deload": "Opis tygodnia deload (co ile tygodni i jak)",
-  "warmup": "Protokół rozgrzewki 5-8 min",
-  "cooldown": "Protokół cool-down",
+  "warmup": "Ogólny protokół rozgrzewki 5-8 min (opis tekstowy, ponad sesjami)",
+  "cooldown": "Protokół cool-down / schłodzenia",
   "nutritionTip": "Krótka wskazówka żywieniowa dopasowana do celu",
   "days": [
     {
       "dayName": "Dzień 1 — Push / Klatka, barki, triceps",
       "focus": "Klatka piersiowa, barki, triceps",
+      "warmupExercises": ${wuEx},
       "exercises": [
         {
           "name": "Wyciskanie sztangi leżąc (płaskie)",
-          "sets": "4",
-          "reps": "6-8",
-          "rest": "180s",
-          "tempo": "3-1-1-0",
-          "rir": "1-2 RIR",
-          "notes": "Ćwiczenie bazowe — priorytet siłowy",
-          "muscleGroup": "Klatka"
+          "notes": "Ćwiczenie bazowe — priorytet siłowy, uwaga techniczna",
+          "muscleGroup": "Klatka",
+          ${wEx}
         }
       ]
     }
@@ -176,11 +188,19 @@ WAŻNE — odpowiedz TYLKO w formacie JSON (bez żadnego dodatkowego tekstu, bez
   "weeklyVolume": {"chest":"12 serii","back":"14 serii","legs":"16 serii","shoulders":"10 serii","arms":"8 serii"}
 }
 
+KAŻDE ćwiczenie MUSI mieć dane progresji dla WSZYSTKICH ${weeksNum} tygodni (klucze: ${weekKeys.join(', ')}) — dla każdego tygodnia osobno podaj "s" (serie), "r" (powtórzenia), "rest" (przerwa), "rpe" (RPE 1-10), "kg" (sugerowany ciężar startowy lub % 1RM, może być pusty string jeśli nieznany).
+
+WARMUP KAŻDEJ SESJI: "warmupExercises" to lista 3-5 ćwiczeń mobilizacyjno-aktywacyjnych SPECYFICZNYCH dla tej sesji (nie ogólnikowych), z polami name/emoji/sets/reps/note.
+
+FAZY TYGODNI (do wykorzystania w progresji, NIE umieszczaj w JSON — tylko jako kontekst): ${JSON.stringify(phasesMap)}
+
 METODA PROGRESJI (obowiązkowa): ${progressionInstruction}
+
+METODY INTENSYFIKACJI DO WYKORZYSTANIA (zaznaczone przez trenera): ${intensify.length?intensify.join(', '):'brak — standardowe serie proste'}. Jeśli zaznaczono, w polu "notes" wybranych ćwiczeń zaznacz zastosowaną metodę (np. "Drop-set na ostatniej serii: -20% ciężaru do upadku").
 
 UWZGLĘDNIJ ANATOMIĘ I BIOMECHANIKĘ KLIENTA przy doborze wariantów ćwiczeń (np. długa kość udowa → przysiad na maszynie hack/suwnicy zamiast klasycznego przysiadu ze sztangą; ograniczona mobilność skokowa → dodaj podkładki pod pięty lub zamień na wykroki; długie ramiona → węższy chwyt w wyciskaniu).
 
-Stwórz PEŁNY plan z wszystkimi dniami i minimum 6-8 ćwiczeniami na dzień.`;
+Stwórz PEŁNY plan z wszystkimi dniami i minimum 6-8 ćwiczeniami na dzień (plus 2 na core na końcu każdej sesji siłowej).`;
 
   const userMsg=`Stwórz plan treningowy:
 - Cel: ${goal}
@@ -212,7 +232,7 @@ ${client?`- Klient: ${client.name}, cel: ${client.goal}, poziom: ${client.level}
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         model:'claude-sonnet-4-20250514',
-        max_tokens:4000,
+        max_tokens: weeksNum<=1?8000:weeksNum<=4?16000:weeksNum<=8?24000:30000,
         system:systemPrompt,
         messages:[{role:'user',content:userMsg}]
       })
@@ -229,6 +249,18 @@ ${client?`- Klient: ${client.name}, cel: ${client.goal}, poziom: ${client.level}
     }
     aplLastPlan=plan;
     aplLastClient=client;
+    plan.phases=phasesMap;
+    plan.weekKeys=weekKeys;
+    plan.currentWeek=plan.currentWeek||'w1';
+    (plan.days||[]).forEach(d=>{
+      (d.exercises||[]).forEach(ex=>{
+        const w1=ex[weekKeys[0]]||{};
+        ex.sets=ex.sets||w1.s||'3';
+        ex.reps=ex.reps||w1.r||'10';
+        ex.rest=ex.rest||w1.rest||'90s';
+        ex.rir=ex.rir||w1.rpe||'';
+      });
+    });
     aplRenderPlan(plan,client,goal,method,days,weeks);
   }catch(e){
     res.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;gap:14px;text-align:center;padding:40px;">
@@ -249,9 +281,17 @@ ${client?`- Klient: ${client.name}, cel: ${client.goal}, poziom: ${client.level}
 function aplRenderPlan(plan,client,goal,method,days,weeks){
   const goalLabels={masa:'💪 Budowa masy',sila:'🏋️ Wzrost siły',redukcja:'🔥 Redukcja',kondycja:'🏃 Kondycja',atletyzm:'⚡ Atletyzm',rehab:'🩺 Rehabilitacja'};
   const res=document.getElementById('apl-result');
-  res.innerHTML=`
+  const weekKeys=plan.weekKeys||['w1'];
+  const phases=plan.phases||{w1:'Tydzień 1'};
+  const curWeek=plan.currentWeek||weekKeys[0];
+  const curWeekIdx=weekKeys.indexOf(curWeek);
+  const phaseColors={'Adaptacja':'var(--blue)','Hipertrofia I':'var(--teal)','Hipertrofia II':'var(--teal)','Siła':'var(--gold)','Deload':'var(--muted)','Intensyfikacja':'var(--orange)','Szczyt':'var(--accent)','Test/Realizacja':'var(--accent)'};
+  const phaseColor=(ph)=>{for(const k in phaseColors){if((ph||'').includes(k))return phaseColors[k];}return 'var(--accent)';};
+
+  let html=`
     <!-- plan header -->
-    <div style="background:linear-gradient(135deg,var(--adim),transparent);border:1px solid rgba(200,241,53,0.2);border-radius:16px;padding:20px;margin-bottom:20px;">
+    <div style="background:linear-gradient(135deg,var(--adim),transparent);border:1px solid rgba(225,31,46,0.25);border-radius:16px;padding:20px;margin-bottom:16px;position:relative;overflow:hidden;box-shadow:var(--glow);">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent);"></div>
       <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
         <div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;margin-bottom:4px;">${plan.planName||'Plan treningowy AI'}</div>
@@ -264,7 +304,6 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
           <button class="btn btn-ghost btn-sm" onclick="aplGenerate()">↺ Regeneruj</button>
         </div>
       </div>
-      <!-- meta pills -->
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <span class="pill pill-green">${goalLabels[goal]||goal}</span>
         <span class="pill" style="background:var(--s3);color:var(--muted);">📅 ${plan.daysPerWeek||days}×/tydzień</span>
@@ -274,101 +313,161 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
       </div>
     </div>
 
-    <!-- 2-col layout -->
-    <div style="display:grid;grid-template-columns:1fr 300px;gap:16px;margin-bottom:20px;">
-
-      <!-- dni treningowe -->
-      <div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:12px;color:var(--accent);">PLAN TRENINGOWY</div>
-        ${(plan.days||[]).map((d,di)=>`
-          <div class="apl-day-block" style="animation-delay:${di*0.06}s;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-              <div>
-                <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;">${d.dayName}</div>
-                <div style="font-size:11px;color:var(--muted);margin-top:1px;">${d.focus||''}</div>
-              </div>
-              <span style="font-size:11px;background:var(--adim);color:var(--accent);border-radius:6px;padding:3px 8px;font-family:'DM Mono',monospace;">${(d.exercises||[]).length} ćw.</span>
-            </div>
-            <!-- tabela ćwiczeń -->
-            <div style="overflow-x:auto;">
-              <table style="width:100%;border-collapse:collapse;font-size:11px;">
-                <thead>
-                  <tr style="border-bottom:1px solid var(--border);">
-                    <th style="padding:5px 6px;text-align:left;color:var(--muted);font-family:'DM Mono',monospace;font-weight:400;text-transform:uppercase;font-size:9px;width:24px;">#</th>
-                    <th style="padding:5px 6px;text-align:left;color:var(--muted);font-family:'DM Mono',monospace;font-weight:400;text-transform:uppercase;font-size:9px;">Ćwiczenie</th>
-                    <th style="padding:5px 6px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;font-weight:400;text-transform:uppercase;font-size:9px;">Serie</th>
-                    <th style="padding:5px 6px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;font-weight:400;text-transform:uppercase;font-size:9px;">Powt.</th>
-                    <th style="padding:5px 6px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;font-weight:400;text-transform:uppercase;font-size:9px;">Przerwa</th>
-                    <th style="padding:5px 6px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;font-weight:400;text-transform:uppercase;font-size:9px;">RIR</th>
-                    <th style="padding:5px 6px;text-align:center;color:var(--muted);font-family:'DM Mono',monospace;font-weight:400;text-transform:uppercase;font-size:9px;width:24px;"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${(d.exercises||[]).map((ex,ei)=>`<tr id="apl-ex-row-${di}-${ei}" style="border-bottom:1px solid rgba(255,255,255,0.04);" onmouseover="this.style.background='rgba(200,241,53,0.03)'" onmouseout="this.style.background=''">
-                    <td style="padding:7px 6px;"><div class="apl-ex-num">${ei+1}</div></td>
-                    <td style="padding:7px 6px;">
-                      <div style="font-size:12px;font-weight:600;">${ex.name}</div>
-                      ${ex.notes?`<div style="font-size:10px;color:var(--muted);margin-top:2px;">${ex.notes}</div>`:''}
-                      ${ex.muscleGroup?`<span style="font-size:9px;background:var(--s3);color:var(--muted);border-radius:4px;padding:1px 5px;margin-top:2px;display:inline-block;">${ex.muscleGroup}</span>`:''}
-                    </td>
-                    <td style="padding:7px 6px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:var(--accent);">${ex.sets}</td>
-                    <td style="padding:7px 6px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;">${ex.reps}</td>
-                    <td style="padding:7px 6px;text-align:center;font-size:11px;color:var(--muted);">${ex.rest||'—'}</td>
-                    <td style="padding:7px 6px;text-align:center;font-size:11px;color:var(--blue);">${ex.rir||'—'}</td>
-                    <td style="padding:7px 6px;text-align:center;"><button onclick="aplEditExercise(${di},${ei})" title="Edytuj ćwiczenie" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;opacity:.7;">✏️</button></td>
-                  </tr>`).join('')}
-                </tbody>
-              </table>
-            </div>
-          </div>`).join('')}
+    <!-- 3-panel: zasady progresji / rozgrzewka / schłodzenie -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-bottom:16px;">
+      <div style="background:rgba(62,207,178,0.05);border:1px solid rgba(62,207,178,0.2);border-radius:12px;padding:16px 18px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <span style="font-size:14px;">📈</span>
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:var(--teal);">ZASADY PROGRESJI</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.7;">${plan.periodization||''}</div>
+        ${plan.progressionRules?.length?`<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;">${plan.progressionRules.map(r=>`<div style="display:flex;gap:6px;font-size:11px;color:var(--muted);line-height:1.5;"><span style="color:var(--teal);flex-shrink:0;">→</span>${r}</div>`).join('')}</div>`:''}
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:10px;letter-spacing:1px;color:var(--purple);margin-top:10px;margin-bottom:3px;">DELOAD</div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.6;">${plan.deload||'Co 4-6 tygodni: 50% objętości'}</div>
       </div>
-
-      <!-- prawy sidebar -->
-      <div>
-        <!-- rozgrzewka -->
-        <div class="apl-day-block" style="margin-bottom:12px;">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--orange);margin-bottom:8px;">🔥 ROZGRZEWKA</div>
-          <div style="font-size:12px;color:var(--muted);line-height:1.7;">${plan.warmup||'5-8 min cardio lekkie + mobilizacja'}</div>
+      <div style="background:rgba(201,162,39,0.05);border:1px solid rgba(201,162,39,0.2);border-radius:12px;padding:16px 18px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <span style="font-size:14px;">🔥</span>
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:var(--gold);">PROTOKÓŁ ROZGRZEWKI</span>
         </div>
-
-        <!-- cool-down -->
-        <div class="apl-day-block" style="margin-bottom:12px;">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--blue);margin-bottom:8px;">🧊 COOL-DOWN</div>
-          <div style="font-size:12px;color:var(--muted);line-height:1.7;">${plan.cooldown||'5 min stretchingu statycznego'}</div>
-        </div>
-
-        <!-- periodyzacja -->
-        <div class="apl-day-block" style="margin-bottom:12px;">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--accent);margin-bottom:8px;">📈 PERIODYZACJA</div>
-          <div style="font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:8px;">${plan.periodization||''}</div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:1px;color:var(--purple);margin-bottom:5px;">DELOAD</div>
-          <div style="font-size:12px;color:var(--muted);line-height:1.7;">${plan.deload||'Co 4-6 tygodni: 50% objętości'}</div>
-        </div>
-
-        <!-- reguły progresji -->
-        ${plan.progressionRules?.length?`<div class="apl-day-block" style="margin-bottom:12px;">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--teal);margin-bottom:8px;">⚡ PROGRESJA</div>
-          <div style="display:flex;flex-direction:column;gap:5px;">
-            ${plan.progressionRules.map(r=>`<div style="display:flex;gap:7px;font-size:11px;color:var(--muted);line-height:1.5;"><span style="color:var(--teal);flex-shrink:0;">→</span>${r}</div>`).join('')}
-          </div>
-        </div>`:''}
-
-        <!-- objętość tygodniowa -->
-        ${plan.weeklyVolume?`<div class="apl-day-block" style="margin-bottom:12px;">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--accent);margin-bottom:10px;">📊 OBJĘTOŚĆ/TYDZIEŃ</div>
-          ${Object.entries(plan.weeklyVolume).map(([k,v])=>`<div style="display:flex;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border);">
-            <span style="color:var(--muted);text-transform:capitalize;">${k}</span>
-            <span style="font-family:'DM Mono',monospace;color:var(--accent);font-weight:700;">${v}</span>
-          </div>`).join('')}
-        </div>`:''}
-
-        <!-- wskazówka żywieniowa -->
-        ${plan.nutritionTip?`<div class="apl-day-block">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--orange);margin-bottom:8px;">🥗 ODŻYWIANIE</div>
-          <div style="font-size:12px;color:var(--muted);line-height:1.7;">${plan.nutritionTip}</div>
-        </div>`:''}
+        <div style="font-size:11px;color:var(--muted);line-height:1.7;">${plan.warmup||'5-8 min cardio lekkie + mobilizacja'}</div>
       </div>
+      <div style="background:rgba(77,159,255,0.05);border:1px solid rgba(77,159,255,0.2);border-radius:12px;padding:16px 18px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <span style="font-size:14px;">❄️</span>
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:var(--blue);">SCHŁODZENIE</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.7;">${plan.cooldown||'5 min stretchingu statycznego'}</div>
+      </div>
+    </div>
+
+    <!-- legenda -->
+    <div style="background:var(--s3);border:1px solid var(--border);border-radius:8px;padding:7px 14px;margin-bottom:14px;display:flex;gap:16px;flex-wrap:wrap;align-items:center;">
+      <span style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px;">Legenda:</span>
+      <span style="font-size:10px;color:var(--teal);">✏️ <b>Powt./Serie/Przerwa</b> — edytuj przez ✏️</span>
+      <span style="font-size:10px;color:var(--accent);">🏷️ <b>RPE</b> — docelowy poziom wysiłku danego tygodnia</span>
+      <span style="font-size:10px;color:var(--gold);">⚖️ <b>Ciężar ref.</b> — punkt startowy, koryguj wg odczucia</span>
     </div>`;
+
+  // ── NAWIGATOR TYGODNI ──
+  if(weekKeys.length>1){
+    html+=`<div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;">`;
+    weekKeys.forEach((wk,i)=>{
+      const ph=phases[wk]||('Tydzień '+(i+1));
+      const col=phaseColor(ph);
+      const active=i===curWeekIdx;
+      html+=`<button onclick="aplSetWeek(${i})" style="padding:7px 14px;border-radius:8px;border:1px solid ${active?col:'var(--border)'};background:${active?'var(--adim)':'var(--s3)'};color:${active?col:'var(--muted)'};font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;transition:all .12s;">TYG ${i+1} <span style="opacity:.75;">${ph}</span></button>`;
+    });
+    html+=`</div>`;
+  }
+
+  const curPhase=phases[curWeek]||'Tydzień '+(curWeekIdx+1);
+  const curCol=phaseColor(curPhase);
+  html+=`<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:${curCol};">TYDZIEŃ ${curWeekIdx+1}</div>
+    <div style="background:var(--s3);border:1px solid ${curCol};border-radius:20px;padding:3px 12px;font-size:9px;font-family:'DM Mono',monospace;color:${curCol};letter-spacing:.5px;">${curPhase}</div>
+  </div>`;
+
+  // ── DNI TRENINGOWE ──
+  (plan.days||[]).forEach((d,di)=>{
+    const warmupExs=d.warmupExercises||[];
+    html+=`<div style="margin-bottom:22px;border-radius:14px;overflow:hidden;border:1px solid rgba(225,31,46,0.2);">
+      <div style="background:var(--adim);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+        <div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1.5px;color:var(--accent);">${d.dayName}</div>
+          ${d.focus?`<div style="font-size:10px;color:var(--muted);margin-top:2px;">${d.focus}</div>`:''}
+        </div>
+        <span style="font-size:10px;background:var(--s3);color:var(--muted);border-radius:6px;padding:3px 10px;font-family:'DM Mono',monospace;">${(d.exercises||[]).length} ćwiczeń</span>
+      </div>`;
+
+    if(warmupExs.length){
+      html+=`<div style="background:rgba(201,162,39,0.04);padding:14px 20px 16px;">
+        <div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">🔥 Rozgrzewka — mobilizacja &amp; aktywacja</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;">
+          ${warmupExs.map(ex=>`<div style="background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:9px 11px;display:flex;gap:9px;align-items:flex-start;">
+            <span style="font-size:18px;flex-shrink:0;">${ex.emoji||'🔸'}</span>
+            <div style="min-width:0;">
+              <div style="font-size:11px;font-weight:600;line-height:1.3;">${ex.name||''}</div>
+              <div style="font-size:10px;color:var(--gold);font-family:'DM Mono',monospace;margin-top:2px;">${ex.sets||''}&nbsp;×&nbsp;${ex.reps||''}</div>
+              ${ex.note?`<div style="font-size:9px;color:var(--muted);font-style:italic;margin-top:2px;">${ex.note}</div>`:''}
+            </div>
+          </div>`).join('')}
+        </div>
+      </div>`;
+    }
+
+    html+=`<div style="background:var(--s2);">
+      <div style="padding:10px 20px;background:rgba(255,255,255,0.02);border-bottom:1px solid var(--border);">
+        <span style="font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">📋 Ćwiczenia główne</span>
+      </div>`;
+
+    (d.exercises||[]).forEach((ex,ei)=>{
+      const wp=ex[curWeek]||{};
+      const sets=wp.s||ex.sets||'3';
+      const reps=wp.r||ex.reps||'10';
+      const rest=wp.rest||ex.rest||'90s';
+      const rpe=wp.rpe||ex.rir||'';
+      const kg=wp.kg||'';
+      const isLast=ei===(d.exercises.length-1);
+      html+=`<div id="apl-ex-row-${di}-${ei}" style="padding:15px 20px;${!isLast?'border-bottom:1px solid rgba(255,255,255,0.05);':''}">
+        <div style="display:flex;align-items:flex-start;gap:12px;">
+          <div class="apl-ex-num" style="flex-shrink:0;margin-top:2px;">${ei+1}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:14px;font-weight:700;line-height:1.3;">${ex.name}</div>
+            ${ex.notes?`<div style="font-size:11px;color:var(--muted);margin-top:5px;font-style:italic;line-height:1.6;">💡 ${ex.notes}</div>`:''}
+            ${ex.muscleGroup?`<span style="font-size:9px;background:var(--s3);color:var(--muted);border-radius:4px;padding:1px 6px;margin-top:5px;display:inline-block;">${ex.muscleGroup}</span>`:''}
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
+            ${rpe?`<span style="font-size:10px;color:var(--accent);background:var(--adim);border:1px solid rgba(225,31,46,0.3);border-radius:6px;padding:3px 9px;font-family:'DM Mono',monospace;font-weight:700;">RPE ${rpe}</span>`:''}
+            <button onclick="aplEditExercise(${di},${ei})" title="Edytuj" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;opacity:.75;">✏️</button>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px;padding-left:42px;">
+          <div style="background:var(--s3);border-radius:8px;padding:8px 10px;text-align:center;">
+            <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Serie</div>
+            <div style="font-size:16px;font-family:'Bebas Neue',sans-serif;color:var(--accent);">${sets}</div>
+          </div>
+          <div style="background:var(--s3);border-radius:8px;padding:8px 10px;text-align:center;">
+            <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Powt.</div>
+            <div style="font-size:16px;font-family:'Bebas Neue',sans-serif;color:var(--teal);">${reps}</div>
+          </div>
+          <div style="background:var(--s3);border-radius:8px;padding:8px 10px;text-align:center;">
+            <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Przerwa</div>
+            <div style="font-size:16px;font-family:'Bebas Neue',sans-serif;color:var(--muted);">${rest}</div>
+          </div>
+          <div style="background:var(--s3);border-radius:8px;padding:8px 10px;text-align:center;">
+            <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Ciężar ref.</div>
+            <div style="font-size:12px;font-family:'Bebas Neue',sans-serif;color:var(--gold);">${kg||'wg odczucia'}</div>
+          </div>
+        </div>
+      </div>`;
+    });
+    html+=`</div></div>`;
+  });
+
+  // ── OBJĘTOŚĆ TYGODNIOWA + ODŻYWIANIE (na dole) ──
+  html+=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;">`;
+  if(plan.weeklyVolume){
+    html+=`<div class="apl-day-block">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--accent);margin-bottom:10px;">📊 OBJĘTOŚĆ/TYDZIEŃ</div>
+      ${Object.entries(plan.weeklyVolume).map(([k,v])=>`<div style="display:flex;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border);"><span style="color:var(--muted);text-transform:capitalize;">${k}</span><span style="font-family:'DM Mono',monospace;color:var(--accent);font-weight:700;">${v}</span></div>`).join('')}
+    </div>`;
+  }
+  if(plan.nutritionTip){
+    html+=`<div class="apl-day-block">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--gold);margin-bottom:8px;">🥗 ODŻYWIANIE</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.7;">${plan.nutritionTip}</div>
+    </div>`;
+  }
+  html+=`</div>`;
+
+  res.innerHTML=html;
+}
+
+function aplSetWeek(idx){
+  if(!aplLastPlan||!aplLastPlan.weekKeys)return;
+  aplLastPlan.currentWeek=aplLastPlan.weekKeys[idx];
+  aplRenderPlan(aplLastPlan,aplLastClient,aplLastPlan.method,aplLastPlan.method,aplLastPlan.daysPerWeek,aplLastPlan.weeks);
 }
 
 // ════════════════════════════════════════
@@ -378,32 +477,44 @@ let aplLastClient=null;
 
 function aplEditExercise(di,ei){
   const ex=aplLastPlan.days[di].exercises[ei];
+  const curWeek=aplLastPlan.currentWeek||(aplLastPlan.weekKeys||['w1'])[0];
+  const wp=ex[curWeek]||{};
   const row=document.getElementById(`apl-ex-row-${di}-${ei}`);
   if(!row||!ex)return;
   row.innerHTML=`
-    <td style="padding:6px;"><div class="apl-ex-num">${ei+1}</div></td>
-    <td style="padding:6px;" colspan="1">
-      <input type="text" id="apl-edit-name-${di}-${ei}" value="${(ex.name||'').replace(/"/g,'&quot;')}" style="width:100%;background:var(--s3);border:1px solid var(--border2);border-radius:5px;padding:4px 6px;color:var(--text);font-size:11px;margin-bottom:3px;">
-      <input type="text" id="apl-edit-notes-${di}-${ei}" value="${(ex.notes||'').replace(/"/g,'&quot;')}" placeholder="notatka" style="width:100%;background:var(--s3);border:1px solid var(--border2);border-radius:5px;padding:3px 6px;color:var(--muted);font-size:10px;">
-    </td>
-    <td style="padding:6px;"><input type="text" id="apl-edit-sets-${di}-${ei}" value="${ex.sets||''}" style="width:36px;text-align:center;background:var(--s3);border:1px solid var(--border2);border-radius:5px;padding:4px 2px;color:var(--accent);font-size:11px;"></td>
-    <td style="padding:6px;"><input type="text" id="apl-edit-reps-${di}-${ei}" value="${ex.reps||''}" style="width:44px;text-align:center;background:var(--s3);border:1px solid var(--border2);border-radius:5px;padding:4px 2px;color:var(--text);font-size:11px;"></td>
-    <td style="padding:6px;"><input type="text" id="apl-edit-rest-${di}-${ei}" value="${ex.rest||''}" style="width:48px;text-align:center;background:var(--s3);border:1px solid var(--border2);border-radius:5px;padding:4px 2px;color:var(--text);font-size:11px;"></td>
-    <td style="padding:6px;"><input type="text" id="apl-edit-rir-${di}-${ei}" value="${ex.rir||''}" style="width:44px;text-align:center;background:var(--s3);border:1px solid var(--border2);border-radius:5px;padding:4px 2px;color:var(--blue);font-size:11px;"></td>
-    <td style="padding:6px;white-space:nowrap;">
-      <button onclick="aplSaveExerciseEdit(${di},${ei})" title="Zapisz" style="background:none;border:none;color:var(--teal);cursor:pointer;font-size:13px;">✓</button>
-      <button onclick="aplRerenderCurrent()" title="Anuluj" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;">✕</button>
-    </td>`;
+    <div style="display:flex;align-items:flex-start;gap:12px;">
+      <div class="apl-ex-num" style="flex-shrink:0;margin-top:2px;">${ei+1}</div>
+      <div style="flex:1;min-width:0;">
+        <input type="text" id="apl-edit-name-${di}-${ei}" value="${(ex.name||'').replace(/"/g,'&quot;')}" style="width:100%;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:6px 9px;color:var(--text);font-size:13px;font-weight:700;margin-bottom:5px;">
+        <input type="text" id="apl-edit-notes-${di}-${ei}" value="${(ex.notes||'').replace(/"/g,'&quot;')}" placeholder="notatka" style="width:100%;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:5px 9px;color:var(--muted);font-size:11px;">
+      </div>
+      <div style="display:flex;gap:4px;flex-shrink:0;">
+        <button onclick="aplSaveExerciseEdit(${di},${ei})" title="Zapisz" style="background:var(--teal);border:none;border-radius:6px;width:26px;height:26px;color:#000;cursor:pointer;font-size:13px;">✓</button>
+        <button onclick="aplRerenderCurrent()" title="Anuluj" style="background:var(--s3);border:1px solid var(--border2);border-radius:6px;width:26px;height:26px;color:var(--red);cursor:pointer;font-size:12px;">✕</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px;padding-left:42px;">
+      <div><div style="font-size:8px;color:var(--muted);text-transform:uppercase;margin-bottom:3px;">Serie</div><input type="text" id="apl-edit-sets-${di}-${ei}" value="${wp.s||ex.sets||''}" style="width:100%;text-align:center;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:6px 2px;color:var(--accent);font-size:12px;"></div>
+      <div><div style="font-size:8px;color:var(--muted);text-transform:uppercase;margin-bottom:3px;">Powt.</div><input type="text" id="apl-edit-reps-${di}-${ei}" value="${wp.r||ex.reps||''}" style="width:100%;text-align:center;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:6px 2px;color:var(--teal);font-size:12px;"></div>
+      <div><div style="font-size:8px;color:var(--muted);text-transform:uppercase;margin-bottom:3px;">Przerwa</div><input type="text" id="apl-edit-rest-${di}-${ei}" value="${wp.rest||ex.rest||''}" style="width:100%;text-align:center;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:6px 2px;color:var(--text);font-size:12px;"></div>
+      <div><div style="font-size:8px;color:var(--muted);text-transform:uppercase;margin-bottom:3px;">RPE / kg</div><input type="text" id="apl-edit-rir-${di}-${ei}" value="${wp.rpe||ex.rir||''}" style="width:100%;text-align:center;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:6px 2px;color:var(--gold);font-size:12px;"></div>
+    </div>`;
 }
 
 function aplSaveExerciseEdit(di,ei){
   const ex=aplLastPlan.days[di].exercises[ei];
+  const curWeek=aplLastPlan.currentWeek||(aplLastPlan.weekKeys||['w1'])[0];
   ex.name=document.getElementById(`apl-edit-name-${di}-${ei}`).value.trim()||ex.name;
   ex.notes=document.getElementById(`apl-edit-notes-${di}-${ei}`).value.trim();
-  ex.sets=document.getElementById(`apl-edit-sets-${di}-${ei}`).value.trim();
-  ex.reps=document.getElementById(`apl-edit-reps-${di}-${ei}`).value.trim();
-  ex.rest=document.getElementById(`apl-edit-rest-${di}-${ei}`).value.trim();
-  ex.rir=document.getElementById(`apl-edit-rir-${di}-${ei}`).value.trim();
+  if(!ex[curWeek])ex[curWeek]={};
+  ex[curWeek].s=document.getElementById(`apl-edit-sets-${di}-${ei}`).value.trim();
+  ex[curWeek].r=document.getElementById(`apl-edit-reps-${di}-${ei}`).value.trim();
+  ex[curWeek].rest=document.getElementById(`apl-edit-rest-${di}-${ei}`).value.trim();
+  ex[curWeek].rpe=document.getElementById(`apl-edit-rir-${di}-${ei}`).value.trim();
+  // zachowaj kompatybilność wsteczną (tydzień 1 = pola płaskie)
+  if(curWeek===(aplLastPlan.weekKeys||['w1'])[0]){
+    ex.sets=ex[curWeek].s;ex.reps=ex[curWeek].r;ex.rest=ex[curWeek].rest;ex.rir=ex[curWeek].rpe;
+  }
   notify('✓ Ćwiczenie zaktualizowane');
   aplRerenderCurrent();
 }
@@ -417,6 +528,7 @@ function aplSavePlan(){
   if(!aplLastPlan){notify('Brak planu do zapisania!');return;}
   const cid=document.getElementById('apl-client').value;
   const client=cid?CL.find(x=>x.id===cid):null;
+  const curWeek=aplLastPlan.currentWeek||(aplLastPlan.weekKeys||['w1'])[0];
   const newPlan={
     id:'apl_'+Date.now(),
     name:aplLastPlan.planName||'Plan AI',
@@ -424,7 +536,12 @@ function aplSavePlan(){
     method:aplLastPlan.method||'Custom',
     duration:aplLastPlan.weeks||8,
     days:(aplLastPlan.days||[]).map(d=>({
-      day:d.dayName,exercises:(d.exercises||[]).map(e=>({name:e.name,sets:e.sets,reps:e.reps}))
+      day:d.dayName,
+      muscles:d.focus||'',
+      exercises:(d.exercises||[]).map(e=>{
+        const wp=e[curWeek]||{};
+        return{name:e.name,sets:wp.s||e.sets||'3',reps:wp.r||e.reps||'10',rest:wp.rest||e.rest||'90s',rpe:wp.rpe||e.rir||''};
+      })
     })),
     source:'ai',
     createdAt:new Date().toISOString()
