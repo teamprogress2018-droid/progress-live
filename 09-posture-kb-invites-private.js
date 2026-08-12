@@ -162,8 +162,10 @@ function cpOpenSession(){
   openM('m-session');
   // pre-select client
   setTimeout(()=>{
-    const sel=document.getElementById('as-client');
-    if(sel&&cpClientId){sel.value=cpClientId;}
+    if(cpClientId){
+      const cc=CL.find(x=>x.id===cpClientId);
+      if(typeof asSetClientField==='function')asSetClientField(cpClientId,cc?cc.name:'');
+    }
     // set today's date
     const dateEl=document.getElementById('as-date');
     if(dateEl&&!dateEl.value)dateEl.value=new Date().toISOString().split('T')[0];
