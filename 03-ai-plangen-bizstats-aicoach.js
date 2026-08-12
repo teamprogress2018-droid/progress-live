@@ -410,10 +410,10 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
         </div>
         <div style="font-size:11px;color:var(--muted);line-height:1.7;">${plan.warmup||'5-8 min cardio lekkie + mobilizacja'}</div>
       </div>
-      <div style="background:rgba(99,179,237,0.05);border:1px solid rgba(99,179,237,0.2);border-radius:12px;padding:16px 18px;">
+      <div style="background:rgba(248,113,113,0.05);border:1px solid rgba(248,113,113,0.2);border-radius:12px;padding:16px 18px;">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
           <span style="font-size:14px;">❄️</span>
-          <span style="font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:#63b3ed;">SCHŁODZENIE</span>
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:#f87171;">SCHŁODZENIE</span>
         </div>
         <div style="font-size:11px;color:var(--muted);line-height:1.7;">${plan.cooldown||'5 min stretchingu statycznego'}</div>
       </div>
