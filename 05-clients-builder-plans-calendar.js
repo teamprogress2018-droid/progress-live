@@ -639,6 +639,30 @@ function asSetClientField(clientId,clientName){
   if(vis)vis.value=clientName;
   const res=document.getElementById('as-client-results');
   if(res)res.style.display='none';
+  asRenderPlanDayChips(clientId);
+}
+
+// Pokazuje "chipsy" z dniami przypisanego planu klienta — 1 klik wypełnia pole notatek.
+function asRenderPlanDayChips(clientId){
+  const wrap=document.getElementById('as-plan-days');
+  const list=document.getElementById('as-plan-days-list');
+  if(!wrap||!list)return;
+  const clientPlans=PL.filter(p=>p.clientId===clientId);
+  const plan=clientPlans[clientPlans.length-1];
+  if(!plan||!plan.days||!plan.days.length){wrap.style.display='none';return;}
+  list.innerHTML=plan.days.map(d=>{
+    const label=d.day||d.dayName||d.muscles||d.name||'Trening';
+    const detail=d.muscles&&d.muscles!==label?' — '+d.muscles:'';
+    const full=(label+detail).replace(/'/g,"\\'");
+    return `<button type="button" onclick="asPickPlanDay('${full}')" style="background:var(--s3);border:1px solid var(--border2);border-radius:99px;padding:5px 12px;font-size:11px;color:var(--text);cursor:pointer;">${label}${detail}</button>`;
+  }).join('');
+  wrap.style.display='block';
+}
+
+// Wypełnia pole notatek wybranym dniem z planu (nadpisuje, żeby nie duplikować przy kilku kliknięciach).
+function asPickPlanDay(text){
+  const notesEl=document.getElementById('as-notes');
+  if(notesEl)notesEl.value=text;
 }
 
 // Filtruje i pokazuje klientów pod polem wyszukiwania, priorytetyzując tych wymagających uwagi.
