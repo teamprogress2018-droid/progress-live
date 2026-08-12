@@ -2,6 +2,35 @@
 // KLIENCI
 // ════════════════════════════════════════
 var clientSegment='all';
+
+// Zwraca datę (Date) ostatniej jakiejkolwiek aktywności klienta, albo null jeśli brak.
+// Sprawdza: sesje treningowe (SE), przypisane plany (PL), pomiary (METRIC_ENTRIES), ręczne wpisy osi czasu (CLIENT_TIMELINE).
+function getClientLastActivity(clientId){
+  const dates=[];
+  (window.SE||[]).forEach(s=>{ if(s.clientId===clientId && s.date) dates.push(new Date(s.date+'T'+(s.time||'12:00')+':00')); });
+  (window.PL||[]).forEach(p=>{ if(p.clientId===clientId && p.createdAt) dates.push(new Date(p.createdAt)); });
+  (window.METRIC_ENTRIES||[]).forEach(m=>{ if(m.clientId===clientId && m.date) dates.push(new Date(m.date+'T10:00:00')); });
+  (window.CLIENT_TIMELINE?.[clientId]||[]).forEach(e=>{ if(e.date) dates.push(new Date(e.date)); });
+  const valid=dates.filter(d=>!isNaN(d));
+  if(!valid.length)return null;
+  return new Date(Math.max(...valid.map(d=>d.getTime())));
+}
+
+// Formatuje datę ostatniej aktywności do krótkiego, czytelnego tekstu + oznacza priorytet kolorem.
+function formatClientActivity(clientId){
+  const last=getClientLastActivity(clientId);
+  if(!last)return{label:'Brak danych',color:'var(--red)',days:Infinity};
+  const days=Math.floor((Date.now()-last.getTime())/(1000*60*60*24));
+  let label;
+  if(days<=0)label='Dziś';
+  else if(days===1)label='Wczoraj';
+  else if(days<7)label=days+' dni temu';
+  else if(days<14)label='Tydzień temu';
+  else if(days<31)label=Math.floor(days/7)+' tyg. temu';
+  else label=Math.floor(days/30)+' mies. temu';
+  const color=days<=3?'var(--teal)':days<=7?'var(--gold)':'var(--red)';
+  return{label,color,days};
+}
 function renderClientFilters(){
   const segments=[
     {id:'all',label:'Wszyscy klienci',count:CL.length},
@@ -25,23 +54,30 @@ function renderClients(){
     if(clientSegment==='inactive')return c.status==='inactive';
     return true;
   });
+  // Priorytet: klienci wymagający uwagi (dawno nieaktywni / brak danych) na górze listy.
+  filtered=filtered.map(c=>({c,act:formatClientActivity(c.id)}))
+    .sort((a,b)=>b.act.days-a.act.days)
+    .map(x=>x.c);
   const countEl=document.getElementById('clients-segment-count');
   if(countEl)countEl.textContent=filtered.length;
   const el=document.getElementById('clients-tbl');
   if(!filtered.length){el.innerHTML='<div style="padding:40px;text-align:center;color:var(--muted);">Brak klientów</div>';return;}
-  el.innerHTML=filtered.map((c,i)=>`<div class="tbl-row" style="grid-template-columns:2fr 120px 120px 100px 80px;animation-delay:${i*0.03}s">
+  el.innerHTML=filtered.map((c,i)=>{
+    const act=formatClientActivity(c.id);
+    return `<div class="tbl-row" style="grid-template-columns:2fr 120px 120px 100px 80px;animation-delay:${i*0.03}s;cursor:pointer;" onclick="openClientProfile('${c.id}')">
     <div style="display:flex;align-items:center;gap:10px;">
       <div style="width:32px;height:32px;border-radius:50%;background:${COLS[i%5]}22;color:${COLS[i%5]};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:13px;flex-shrink:0;">${getInit(c.name)}</div>
       <div><div style="font-size:13px;font-weight:600;">${c.name}</div><div style="font-size:11px;color:var(--muted);">${c.email||'—'}</div></div>
     </div>
-    <div style="font-size:12px;color:var(--muted);align-self:center;">—</div>
+    <div style="font-size:12px;color:${act.color};align-self:center;font-weight:600;">${act.label}</div>
     <div style="font-size:12px;color:var(--muted);align-self:center;">${c.goal||'—'}</div>
     <div style="align-self:center;display:flex;gap:4px;flex-wrap:wrap;">
       <span class="pill ${c.status==='inactive'?'pill-red':'pill-green'}"><span class="pill-dot"></span>${c.status==='inactive'?'Offline':'Aktywny'}</span>
       ${c.inviteSent?'<span class="pill pill-blue" style="font-size:9px;">📱 Zaproszony</span>':''}
     </div>
     <div style="align-self:center;"><button class="btn btn-ghost btn-sm" onclick="openClientProfile('${c.id}')">Profil</button></div>
-  </div>`).join('');
+  </div>`;
+  }).join('');
 }
 
 async function saveClient(){
