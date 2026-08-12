@@ -2832,7 +2832,12 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   <div class="modal">
     <div class="modal-hdr"><div class="modal-title">NOWA SESJA</div><button class="modal-close" onclick="closeM('m-session')">×</button></div>
     <div class="modal-body">
-      <div class="form-field"><label class="form-lbl">Klient</label><select class="form-select" id="as-client"></select></div>
+      <div class="form-field" style="position:relative;">
+        <label class="form-lbl">Klient</label>
+        <input class="form-select" id="as-client-search" placeholder="Wpisz imię i nazwisko..." autocomplete="off" oninput="asClientSearchInput()" onfocus="asClientSearchInput()">
+        <input type="hidden" id="as-client">
+        <div id="as-client-results" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;background:var(--s2);border:1px solid var(--border2);border-radius:8px;margin-top:4px;max-height:220px;overflow-y:auto;box-shadow:0 8px 20px rgba(0,0,0,0.4);"></div>
+      </div>
       <div class="form-grid"><div class="form-field"><label class="form-lbl">Data</label><input type="date" class="form-input" id="as-date"></div><div class="form-field"><label class="form-lbl">Godzina</label><input type="time" class="form-input" id="as-time"></div></div>
       <div class="form-grid">
         <div class="form-field"><label class="form-lbl">Typ</label><select class="form-select" id="as-type"><option>Trening siłowy</option><option>Cardio</option><option>Full Body</option><option>Ocena postępów</option><option>Online</option></select></div>
