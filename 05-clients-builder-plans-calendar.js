@@ -608,7 +608,7 @@ function calJumpTo(ds){
 }
 
 function quickAddSession(date,time){
-  document.getElementById('as-client').innerHTML=CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
+  asSetClientField('','');
   document.getElementById('as-date').value=date;
   document.getElementById('as-time').value=time;
   openM('m-session');
@@ -622,13 +622,48 @@ function openSessDetail(id){
 
 function editSession(id){
   const s=SE.find(x=>x.id===id);if(!s)return;
-  document.getElementById('as-client').innerHTML=CL.map(c=>'<option value="'+c.id+'"'+(c.id===s.clientId?' selected':'')+'>'+c.name+'</option>').join('');
+  const c=CL.find(x=>x.id===s.clientId);
+  asSetClientField(s.clientId||'',c?c.name:'');
   document.getElementById('as-date').value=s.date;
   document.getElementById('as-time').value=s.time||'';
   document.getElementById('as-type').value=s.type||'';
   document.getElementById('as-notes').value=s.notes||'';
   openM('m-session');
 }
+
+// Ustawia pole klienta w oknie sesji: widoczny tekst wyszukiwania + ukryte id.
+function asSetClientField(clientId,clientName){
+  const hid=document.getElementById('as-client');
+  const vis=document.getElementById('as-client-search');
+  if(hid)hid.value=clientId;
+  if(vis)vis.value=clientName;
+  const res=document.getElementById('as-client-results');
+  if(res)res.style.display='none';
+}
+
+// Filtruje i pokazuje klientów pod polem wyszukiwania, priorytetyzując tych wymagających uwagi.
+function asClientSearchInput(){
+  const q=(document.getElementById('as-client-search')?.value||'').trim().toLowerCase();
+  const res=document.getElementById('as-client-results');
+  if(!res)return;
+  let list=CL;
+  if(q)list=list.filter(c=>c.name.toLowerCase().includes(q));
+  list=list.map(c=>({c,act:typeof formatClientActivity==='function'?formatClientActivity(c.id):{label:'',color:'var(--muted)',days:0}}))
+    .sort((a,b)=>b.act.days-a.act.days)
+    .slice(0,8);
+  if(!list.length){
+    res.innerHTML='<div style="padding:12px;font-size:12px;color:var(--muted);text-align:center;">Brak wyników</div>';
+    res.style.display='block';
+    return;
+  }
+  res.innerHTML=list.map(({c,act})=>`
+    <div onclick="asSetClientField('${c.id}','${c.name.replace(/'/g,"\\'")}')" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background='transparent'">
+      <span style="font-size:13px;">${c.name}</span>
+      <span style="font-size:10px;color:${act.color};font-family:'DM Mono',monospace;">${act.label||''}</span>
+    </div>`).join('');
+  res.style.display='block';
+}
+
 
 function delSession(id){
   if(!confirm('Usunąć sesję?'))return;
