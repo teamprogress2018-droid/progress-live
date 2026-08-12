@@ -31,6 +31,26 @@ function formatClientActivity(clientId){
   const color=days<=3?'var(--teal)':days<=7?'var(--gold)':'var(--red)';
   return{label,color,days};
 }
+
+// ── Szybkie akcje z listy klientów (bez otwierania pełnego profilu) ──
+function quickMessageClient(e,clientId){
+  e.stopPropagation();
+  goTo('inbox');
+  setTimeout(()=>{ if(typeof openChat==='function')openChat(clientId); },200);
+}
+function quickStartWorkout(e,clientId){
+  e.stopPropagation();
+  goTo('live');
+  setTimeout(()=>{
+    const sel=document.getElementById('live-client-sel');
+    if(sel){ sel.value=clientId; if(typeof liveLoadClient==='function')liveLoadClient(); }
+  },200);
+}
+function quickCheckin(e,clientId){
+  e.stopPropagation();
+  if(typeof sendCheckinTo==='function')sendCheckinTo(clientId);
+}
+
 function renderClientFilters(){
   const segments=[
     {id:'all',label:'Wszyscy klienci',count:CL.length},
@@ -64,7 +84,7 @@ function renderClients(){
   if(!filtered.length){el.innerHTML='<div style="padding:40px;text-align:center;color:var(--muted);">Brak klientów</div>';return;}
   el.innerHTML=filtered.map((c,i)=>{
     const act=formatClientActivity(c.id);
-    return `<div class="tbl-row" style="grid-template-columns:2fr 120px 120px 100px 80px;animation-delay:${i*0.03}s;cursor:pointer;" onclick="openClientProfile('${c.id}')">
+    return `<div class="tbl-row" style="grid-template-columns:2fr 120px 120px 100px 130px 80px;animation-delay:${i*0.03}s;cursor:pointer;" onclick="openClientProfile('${c.id}')">
     <div style="display:flex;align-items:center;gap:10px;">
       <div style="width:32px;height:32px;border-radius:50%;background:${COLS[i%5]}22;color:${COLS[i%5]};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:13px;flex-shrink:0;">${getInit(c.name)}</div>
       <div><div style="font-size:13px;font-weight:600;">${c.name}</div><div style="font-size:11px;color:var(--muted);">${c.email||'—'}</div></div>
@@ -74,6 +94,11 @@ function renderClients(){
     <div style="align-self:center;display:flex;gap:4px;flex-wrap:wrap;">
       <span class="pill ${c.status==='inactive'?'pill-red':'pill-green'}"><span class="pill-dot"></span>${c.status==='inactive'?'Offline':'Aktywny'}</span>
       ${c.inviteSent?'<span class="pill pill-blue" style="font-size:9px;">📱 Zaproszony</span>':''}
+    </div>
+    <div style="align-self:center;display:flex;gap:6px;">
+      <button onclick="quickMessageClient(event,'${c.id}')" title="Wyślij wiadomość" style="width:28px;height:28px;border-radius:6px;background:var(--s3);border:1px solid var(--border2);color:var(--text);font-size:13px;cursor:pointer;">💬</button>
+      <button onclick="quickStartWorkout(event,'${c.id}')" title="Rozpocznij dzisiejszy trening" style="width:28px;height:28px;border-radius:6px;background:var(--s3);border:1px solid var(--border2);color:var(--accent);font-size:13px;cursor:pointer;">▶</button>
+      <button onclick="quickCheckin(event,'${c.id}')" title="Wyślij prośbę o check-in" style="width:28px;height:28px;border-radius:6px;background:var(--s3);border:1px solid var(--border2);color:var(--teal);font-size:13px;cursor:pointer;">✓</button>
     </div>
     <div style="align-self:center;"><button class="btn btn-ghost btn-sm" onclick="openClientProfile('${c.id}')">Profil</button></div>
   </div>`;
