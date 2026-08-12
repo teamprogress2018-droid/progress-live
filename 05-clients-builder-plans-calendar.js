@@ -387,7 +387,7 @@ function renderCalWeek(){
         const topPct=(timeMin/60)*100;
         const dur=s.duration||60;
         const heightPx=Math.max(20,(dur/60)*56);
-        return `<div class="cal-session-block" style="background:${col}22;border-color:${col}44;color:${col};top:${topPct}%;height:${heightPx}px;" onclick="openSessDetail('${s.id}')" title="${c?c.name:'Klient'} — ${s.type||''} ${s.time||''}">
+        return `<div class="cal-session-block" style="background:${col}22;border-color:${col}44;color:${col};top:${topPct}%;height:${heightPx}px;" onclick="editSession('${s.id}')" title="${c?c.name:'Klient'} — ${s.type||''} ${s.time||''}">
           <div style="font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${c?c.name.split(' ')[0]:'Klient'}</div>
           <div style="font-size:9px;opacity:0.8;">${s.time||''} ${s.type||''}</div>
         </div>`;
@@ -447,7 +447,7 @@ function renderCalMonth(){
         const c=CL.find(x=>x.id===s.clientId);
         const ci=c?CL.indexOf(c):-1;
         const col=SESS_COLORS[(ci>=0?ci:0)%6];
-        return `<div class="cal-month-sess" style="background:${col}22;color:${col};" onclick="event.stopPropagation();openSessDetail('${s.id}')">${s.time||''} ${c?c.name.split(' ')[0]:'Klient'}</div>`;
+        return `<div class="cal-month-sess" style="background:${col}22;color:${col};" onclick="event.stopPropagation();editSession('${s.id}')">${s.time||''} ${c?c.name.split(' ')[0]:'Klient'}</div>`;
       }).join('')}
       ${daySess.length>3?`<div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">+${daySess.length-3} więcej</div>`:''}
     </div>`;
@@ -498,7 +498,7 @@ function renderCalList(){
         const c=CL.find(x=>x.id===s.clientId);
         const ci=c?CL.indexOf(c):-1;
         const col=SESS_COLORS[(ci>=0?ci:0)%6];
-        return `<div class="cal-list-sess" onclick="openSessDetail('${s.id}')">
+        return `<div class="cal-list-sess" onclick="editSession('${s.id}')">
           <div style="width:4px;border-radius:2px;background:${col};flex-shrink:0;align-self:stretch;"></div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:${col};min-width:44px;line-height:1.1;">${s.time||'—'}</div>
           <div style="flex:1;">
@@ -580,7 +580,7 @@ function renderCalSidebar(){
       const col=SESS_COLORS[(ci>=0?ci:0)%6];
       const d=new Date(s.date+'T12:00:00');
       const isToday=s.date===nowStr;
-      return `<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="openSessDetail('${s.id}')">
+      return `<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="editSession('${s.id}')">
         <div style="text-align:center;min-width:36px;">
           <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${isToday?'DZIŚ':CAL_DAYS_PL[(d.getDay()+6)%7]}</div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:${col};">${d.getDate()}</div>
