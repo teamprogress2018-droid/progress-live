@@ -391,29 +391,29 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
       </div>
     </div>
 
-    <!-- 3-panel: zasady progresji / rozgrzewka / schłodzenie -->
+    <!-- 3-panel: zasady progresji / rozgrzewka / schłodzenie (kolory dopasowane 1:1 do Progress Studio AI) -->
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-bottom:16px;">
-      <div style="background:rgba(62,207,178,0.05);border:1px solid rgba(62,207,178,0.2);border-radius:12px;padding:16px 18px;">
+      <div style="background:rgba(74,222,128,0.05);border:1px solid rgba(74,222,128,0.2);border-radius:12px;padding:16px 18px;">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
           <span style="font-size:14px;">📈</span>
-          <span style="font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:var(--teal);">ZASADY PROGRESJI</span>
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:#4ade80;">ZASADY PROGRESJI</span>
         </div>
         <div style="font-size:11px;color:var(--muted);line-height:1.7;">${plan.periodization||''}</div>
-        ${plan.progressionRules?.length?`<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;">${plan.progressionRules.map(r=>`<div style="display:flex;gap:6px;font-size:11px;color:var(--muted);line-height:1.5;"><span style="color:var(--teal);flex-shrink:0;">→</span>${r}</div>`).join('')}</div>`:''}
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:10px;letter-spacing:1px;color:var(--purple);margin-top:10px;margin-bottom:3px;">DELOAD</div>
+        ${plan.progressionRules?.length?`<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;">${plan.progressionRules.map(r=>`<div style="display:flex;gap:6px;font-size:11px;color:var(--muted);line-height:1.5;"><span style="color:#4ade80;flex-shrink:0;">→</span>${r}</div>`).join('')}</div>`:''}
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:10px;letter-spacing:1px;color:#4ade80;margin-top:10px;margin-bottom:3px;">DELOAD</div>
         <div style="font-size:11px;color:var(--muted);line-height:1.6;">${plan.deload||'Co 4-6 tygodni: 50% objętości'}</div>
       </div>
-      <div style="background:rgba(201,162,39,0.05);border:1px solid rgba(201,162,39,0.2);border-radius:12px;padding:16px 18px;">
+      <div style="background:rgba(245,158,11,0.05);border:1px solid rgba(245,158,11,0.2);border-radius:12px;padding:16px 18px;">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
           <span style="font-size:14px;">🔥</span>
-          <span style="font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:var(--gold);">PROTOKÓŁ ROZGRZEWKI</span>
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:#f59e0b;">PROTOKÓŁ ROZGRZEWKI</span>
         </div>
         <div style="font-size:11px;color:var(--muted);line-height:1.7;">${plan.warmup||'5-8 min cardio lekkie + mobilizacja'}</div>
       </div>
-      <div style="background:rgba(77,159,255,0.05);border:1px solid rgba(77,159,255,0.2);border-radius:12px;padding:16px 18px;">
+      <div style="background:rgba(99,179,237,0.05);border:1px solid rgba(99,179,237,0.2);border-radius:12px;padding:16px 18px;">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
           <span style="font-size:14px;">❄️</span>
-          <span style="font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:var(--blue);">SCHŁODZENIE</span>
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:#63b3ed;">SCHŁODZENIE</span>
         </div>
         <div style="font-size:11px;color:var(--muted);line-height:1.7;">${plan.cooldown||'5 min stretchingu statycznego'}</div>
       </div>
