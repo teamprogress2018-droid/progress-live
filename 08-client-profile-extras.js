@@ -1020,7 +1020,7 @@ function renderCPTraining(c){
       const wo=allWorkouts().find(w=>w.id===s.workoutId);
       const exCount=wo?(wo.days||[]).reduce((n,d)=>n+(d.exercises||[]).length,0):0;
       const typeCol=s.type==='siłowy'||s.type==='Trening siłowy'?'var(--orange)':s.type==='cardio'?'var(--blue)':'var(--accent)';
-      return `<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="openSessDetail('${s.id}')">
+      return `<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="editSession('${s.id}')">
         <div style="width:38px;height:38px;border-radius:10px;background:${typeCol}18;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">💪</div>
         <div style="flex:1;min-width:0;">
           <div style="font-size:13px;font-weight:600;">${s.title||'Sesja'}</div>
@@ -1043,7 +1043,7 @@ function renderCPTraining(c){
       const exCount=wo?(wo.days||[]).reduce((n,d)=>n+(d.exercises||[]).length,0):0;
       const typeLabel=s.type||'REGULAR';
       const typeCol=s.type==='siłowy'||s.type==='Trening siłowy'?'var(--orange)':s.type==='cardio'?'var(--blue)':'var(--accent)';
-      return `<div style="background:${typeCol}15;border:1px solid ${typeCol}40;border-radius:6px;padding:5px 6px;margin-top:4px;cursor:pointer;" onclick="event.stopPropagation();openSessDetail('${s.id}')">
+      return `<div style="background:${typeCol}15;border:1px solid ${typeCol}40;border-radius:6px;padding:5px 6px;margin-top:4px;cursor:pointer;" onclick="event.stopPropagation();editSession('${s.id}')">
         <div style="font-size:10px;font-weight:700;color:${typeCol};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${(s.title||'Sesja').toUpperCase().substring(0,18)}</div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:2px;">
           <span style="background:${typeCol}25;color:${typeCol};border-radius:3px;padding:1px 4px;font-size:9px;font-family:'DM Mono',monospace;">${typeLabel.toUpperCase().substring(0,8)}</span>
