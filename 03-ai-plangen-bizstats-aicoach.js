@@ -251,6 +251,20 @@ FAZY TYGODNI (kontekst dla treści "periodization"/"deload", NIE umieszczaj w JS
 
 METODA PROGRESJI (obowiązkowa): ${progressionInstruction}
 
+OBOWIĄZKOWE PROGI OBJĘTOŚCI (MEV/MAV/MRV) NA PARTIĘ NA TYDZIEŃ — liczba serii roboczych zsumowana ze WSZYSTKICH dni treningowych w całym tygodniu:
+Klatka: MEV 10 / MAV 14-18 / MRV 20
+Plecy: MEV 10 / MAV 14-20 / MRV 22
+Barki: MEV 12 / MAV 16-20 / MRV 22
+Biceps: MEV 8 / MAV 10-14 / MRV 16
+Triceps: MEV 8 / MAV 10-14 / MRV 16
+Nogi (czworogłowe): MEV 12 / MAV 16-20 / MRV 24
+Pośladki: MEV 6 / MAV 10-14 / MRV 16
+Core: MEV 8 / MAV 10-14 / MRV 16
+Wg stażu: Początkujący → doln half MEV-MAV. Średni → środek/góra MAV. Zaawansowany → góra MAV, blisko MRV.
+
+OBOWIĄZKOWA WERYFIKACJA PRZED ZWRÓCENIEM JSON: Dla KAŻDEJ partii zsumuj w pamięci liczbę serii roboczych ze WSZYSTKICH dni treningowych tygodnia (licz tylko ćwiczenia, gdzie ta partia jest głównym celem). Jeśli suma dla jakiejkolwiek partii jest PONIŻEJ MEV z tabeli — to błąd krytyczny: dodaj kolejne ćwiczenie lub serię w jednym z dni, zanim oddasz plan. Pole "weeklyVolume" w JSON MUSI odzwierciedlać faktyczną, sprawdzoną sumę, nie szacunek.
+SZCZEGÓLNA UWAGA przy podziałach Upper/Lower, Push/Pull/Legs: gdy dana partia (np. barki, biceps) pojawia się tylko w części dni tygodnia, łatwo przypadkiem zejść poniżej MEV mimo że pojedynczy dzień "wygląda nieźle" — zawsze licz sumę tygodniową, nie objętość jednego dnia.
+
 METODY INTENSYFIKACJI DO WYKORZYSTANIA (zaznaczone przez trenera): ${intensify.length?intensify.join(', '):'brak — standardowe serie proste'}. Jeśli zaznaczono, w polu "notes" wybranych ćwiczeń zaznacz zastosowaną metodę (np. "Drop-set na ostatniej serii: -20% ciężaru do upadku").
 
 UWZGLĘDNIJ ANATOMIĘ I BIOMECHANIKĘ KLIENTA przy doborze wariantów ćwiczeń (np. długa kość udowa → przysiad na maszynie hack/suwnicy zamiast klasycznego przysiadu ze sztangą; ograniczona mobilność skokowa → dodaj podkładki pod pięty lub zamień na wykroki; długie ramiona → węższy chwyt w wyciskaniu).
