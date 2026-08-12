@@ -659,6 +659,42 @@ async function fbImportSelected(){
 window.fbFileLoad=fbFileLoad; window.fbImagesLoad=fbImagesLoad; window.fbRemoveImage=fbRemoveImage;
 window.fbAnalyze=fbAnalyze; window.fbImportSelected=fbImportSelected;
 
+// Buduje krótkie, automatyczne wnioski dla trenera na bazie danych, które apka już zbiera
+// (nastrój/stres z modułu Psycho, frekwencja sesji vs. przypisany plan). Zwraca max 2 najważniejsze.
+function buildClientInsight(c,sessions,plans,daysSince){
+  const insights=[];
+
+  // 1) Nastrój / stres — trend z ostatnich wpisów w module Psycho
+  const psyDaily=(window.CLIENT_PSYCHO?.[c.id]?.daily||[]).slice(-5);
+  if(psyDaily.length>=2){
+    const avgStress=psyDaily.reduce((s,d)=>s+(d.stress||0),0)/psyDaily.length;
+    const moodTrend=psyDaily[psyDaily.length-1].mood-psyDaily[0].mood;
+    if(avgStress>=7){
+      insights.push({icon:'⚠️',color:'var(--red)',text:`Wysoki poziom stresu w ostatnich wpisach (śr. ${avgStress.toFixed(1)}/10) — rozważ obniżenie intensywności o 15-20% w tym tygodniu.`});
+    } else if(moodTrend<=-2){
+      insights.push({icon:'📉',color:'var(--orange)',text:'Nastrój klienta spada w ostatnich wpisach — warto zapytać, jak się czuje, zanim naciśniesz na kolejny ciężki trening.'});
+    }
+  }
+
+  // 2) Frekwencja vs. przypisany plan
+  if(plans.length){
+    const expectedPerWeek=plans[0].days?.length||3;
+    const twoWeeksAgo=new Date();twoWeeksAgo.setDate(twoWeeksAgo.getDate()-14);
+    const recentCount=sessions.filter(s=>new Date(s.date)>=twoWeeksAgo).length;
+    const expectedTwoWeeks=expectedPerWeek*2;
+    if(expectedTwoWeeks>0 && recentCount<expectedTwoWeeks*0.6){
+      insights.push({icon:'📊',color:'var(--gold)',text:`${recentCount} sesji w ostatnich 2 tyg. przy planie ${expectedPerWeek}×/tydz. (oczekiwano ~${expectedTwoWeeks}) — rozważ dopytać o przeszkody albo zmniejszyć liczbę dni w planie.`});
+    }
+  }
+
+  // 3) Długa nieobecność (tylko jeśli nic wcześniej nie wskazano)
+  if(!insights.length && daysSince!==null && daysSince>10){
+    insights.push({icon:'⏱️',color:'var(--red)',text:`Brak sesji od ${daysSince} dni — dobry moment na krótką wiadomość sprawdzającą, zanim klient całkiem straci rytm.`});
+  }
+
+  return insights.slice(0,2);
+}
+
 function renderCPOverview(c){
   const today=new Date().toISOString().split('T')[0];
   const ci=CL.indexOf(c);const col=COLS[ci%5];
@@ -681,6 +717,16 @@ function renderCPOverview(c){
       <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--teal);">${tasksDone.length}/${tasks.length}</div><div class="cp-stat-lbl">Zadań</div></div>
       <div class="cp-stat-box"><div class="cp-stat-val" style="color:${daysSince===null?'var(--muted)':daysSince>14?'var(--red)':daysSince>7?'var(--orange)':'var(--teal)'};">${daysSince!==null?daysSince+'d':'—'}</div><div class="cp-stat-lbl">Ost. sesja</div></div>
     </div>
+
+    ${(()=>{const ins=buildClientInsight(c,sessions,plans,daysSince);
+      if(!ins.length)return'';
+      return `<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+        ${ins.map(i=>`<div style="background:${i.color}14;border:1px solid ${i.color}44;border-radius:10px;padding:10px 14px;display:flex;gap:10px;align-items:flex-start;">
+          <span style="font-size:16px;flex-shrink:0;">${i.icon}</span>
+          <div style="font-size:12px;color:var(--text);line-height:1.6;">${i.text}</div>
+        </div>`).join('')}
+      </div>`;
+    })()}
 
     <!-- dane podstawowe -->
     <div class="cp-section-title">DANE KLIENTA</div>
