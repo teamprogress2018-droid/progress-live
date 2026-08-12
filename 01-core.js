@@ -87,7 +87,6 @@ function goTo(n){
 
 function openM(id){
   if(id==='m-session'){
-    document.getElementById('as-client').innerHTML=CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
     document.getElementById('as-date').value=new Date().toISOString().split('T')[0];
     document.getElementById('as-time').value='10:00';
   }
