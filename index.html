@@ -2844,6 +2844,10 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <div class="form-field"><label class="form-lbl">Czas trwania (min)</label><input type="number" class="form-input" id="as-duration" value="60" min="15" step="15"></div>
       </div>
       <div class="form-field"><label class="form-lbl">Notatki</label><textarea class="form-textarea" id="as-notes" rows="2"></textarea></div>
+      <div id="as-plan-days" style="display:none;margin-top:-6px;margin-bottom:12px;">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">📋 Z planu klienta (1 klik = wypełnij notatkę)</div>
+        <div id="as-plan-days-list" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+      </div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-session')">Anuluj</button><button class="btn btn-primary" onclick="saveSess()">Zapisz</button></div>
   </div>
