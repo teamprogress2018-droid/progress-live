@@ -3564,6 +3564,20 @@ try{const s2=await getDocs(collection(db,'tasks'));window.TASKS=[];s2.forEach(d=
   }catch(e){console.warn('Wczytywanie autoflows nie powiodło się:',e);window.AUTOFLOWS=window.AUTOFLOWS||[];}
   try{const sAF=await getDocs(collection(db,'automationState'));sAF.forEach(d=>{window.AF_STATE={...d.data()};window._afStateDocId=d.id;});}catch(e){console.warn('Wczytywanie stanu automatyzacji nie powiodło się:',e);}
   try{const sInt=await getDocs(collection(db,'integrationConfigs'));window.INT_CONNECTIONS={};sInt.forEach(d=>{window.INT_CONNECTIONS[d.id]=d.data();});}catch(e){console.warn('Wczytywanie konfiguracji integracji nie powiodło się:',e);}
+  try{
+    const sFG=await getDocs(collection(db,'forumGroups'));
+    window.FORUM_GROUPS=[];sFG.forEach(d=>window.FORUM_GROUPS.push({id:d.id,...d.data(),_fbId:d.id}));
+    if(!window.FORUM_GROUPS.length&&typeof DEMO_FORUM_GROUPS!=='undefined'){
+      // Pierwsze uruchomienie: zamień domyślne kategorie w prawdziwe, edytowalne grupy.
+      for(const g of DEMO_FORUM_GROUPS){
+        const copy={...g};
+        window.FORUM_GROUPS.push(copy);
+        try{const r=await addDoc(collection(db,'forumGroups'),copy);copy._fbId=r.id;}catch(e){}
+      }
+    }
+  }catch(e){console.warn('Wczytywanie grup forum nie powiodło się:',e);window.FORUM_GROUPS=window.FORUM_GROUPS||[];}
+  try{const sFP=await getDocs(collection(db,'forumPosts'));window.FORUM_POSTS=[];sFP.forEach(d=>window.FORUM_POSTS.push({id:d.id,...d.data(),_fbId:d.id}));}catch(e){console.warn('Wczytywanie postów forum nie powiodło się:',e);window.FORUM_POSTS=window.FORUM_POSTS||[];}
+  try{const sFC=await getDocs(collection(db,'forumComments'));window.FORUM_COMMENTS={};sFC.forEach(d=>{const c={id:d.id,...d.data(),_fbId:d.id};if(!window.FORUM_COMMENTS[c.postId])window.FORUM_COMMENTS[c.postId]=[];window.FORUM_COMMENTS[c.postId].push(c);});}catch(e){console.warn('Wczytywanie komentarzy forum nie powiodło się:',e);window.FORUM_COMMENTS=window.FORUM_COMMENTS||{};}
   window.AF_STATE=window.AF_STATE||{enrollments:{},executed:{},lastFired:{}};
   try{if(typeof runAutoflowsCheck==='function')runAutoflowsCheck();}catch(e){console.warn('runAutoflowsCheck:',e);}
   window.renderAll();
