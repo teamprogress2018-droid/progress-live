@@ -452,6 +452,72 @@ function initDemoEntries(clientId){
   entries.forEach(e=>METRIC_ENTRIES.push(e));
 }
 
+// Ustawia pole klienta w oknie dodawania pomiaru: widoczny tekst + ukryte id.
+function meClientSetField(clientId,clientName){
+  const hid=document.getElementById('me-client');
+  const vis=document.getElementById('me-client-search');
+  if(hid)hid.value=clientId;
+  if(vis)vis.value=clientName;
+  const res=document.getElementById('me-client-results');
+  if(res)res.style.display='none';
+  updateMetricEntryForm();
+}
+
+function meClientSearchInput(){
+  const q=(document.getElementById('me-client-search')?.value||'').trim().toLowerCase();
+  const res=document.getElementById('me-client-results');
+  if(!res)return;
+  let list=CL;
+  if(q)list=list.filter(c=>c.name.toLowerCase().includes(q));
+  list=list.map(c=>({c,act:typeof formatClientActivity==='function'?formatClientActivity(c.id):{label:'',color:'var(--muted)',days:0}}))
+    .sort((a,b)=>b.act.days-a.act.days)
+    .slice(0,8);
+  if(!list.length){
+    res.innerHTML='<div style="padding:12px;font-size:12px;color:var(--muted);text-align:center;">Brak wyników</div>';
+    res.style.display='block';
+    return;
+  }
+  res.innerHTML=list.map(({c,act})=>`
+    <div onclick="meClientSetField('${c.id}','${c.name.replace(/'/g,"\\'")}')" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background='transparent'">
+      <span style="font-size:13px;">${c.name}</span>
+      <span style="font-size:10px;color:${act.color};font-family:'DM Mono',monospace;">${act.label||''}</span>
+    </div>`).join('');
+  res.style.display='block';
+}
+
+// Ustawia pole klienta w bocznym panelu ekranu Pomiary: widoczny tekst + ukryte id.
+function metricClientSetField(clientId,clientName){
+  const hid=document.getElementById('metric-client-sel');
+  const vis=document.getElementById('metric-client-sel-search');
+  if(hid)hid.value=clientId;
+  if(vis)vis.value=clientName;
+  const res=document.getElementById('metric-client-sel-results');
+  if(res)res.style.display='none';
+  renderMetrics();
+}
+
+function metricClientSearchInput(){
+  const q=(document.getElementById('metric-client-sel-search')?.value||'').trim().toLowerCase();
+  const res=document.getElementById('metric-client-sel-results');
+  if(!res)return;
+  let list=CL;
+  if(q)list=list.filter(c=>c.name.toLowerCase().includes(q));
+  list=list.map(c=>({c,act:typeof formatClientActivity==='function'?formatClientActivity(c.id):{label:'',color:'var(--muted)',days:0}}))
+    .sort((a,b)=>b.act.days-a.act.days)
+    .slice(0,8);
+  if(!list.length){
+    res.innerHTML='<div style="padding:12px;font-size:12px;color:var(--muted);text-align:center;">Brak wyników</div>';
+    res.style.display='block';
+    return;
+  }
+  res.innerHTML=list.map(({c,act})=>`
+    <div onclick="metricClientSetField('${c.id}','${c.name.replace(/'/g,"\\'")}')" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background='transparent'">
+      <span style="font-size:13px;">${c.name}</span>
+      <span style="font-size:10px;color:${act.color};font-family:'DM Mono',monospace;">${act.label||''}</span>
+    </div>`).join('');
+  res.style.display='block';
+}
+
 function allMetricGroups(){return[...DEMO_METRIC_GROUPS,...(window.METRIC_GROUPS||[])];}
 
 function renderMetrics(){
