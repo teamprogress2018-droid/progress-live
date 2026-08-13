@@ -3540,6 +3540,7 @@ try{const s2=await getDocs(collection(db,'tasks'));window.TASKS=[];s2.forEach(d=
   try{const s7=await getDocs(collection(db,'packages'));window.PACKAGES=[];s7.forEach(d=>window.PACKAGES.push({id:d.id,...d.data(),_fbId:d.id}));}catch(e){console.warn('Wczytywanie pakietów nie powiodło się:',e);window.PACKAGES=window.PACKAGES||[];}
   try{const s8=await getDocs(collection(db,'invoices'));window.INVOICES=[];s8.forEach(d=>window.INVOICES.push({id:d.id,...d.data()}));}catch(e){console.warn('Wczytywanie faktur nie powiodło się:',e);window.INVOICES=window.INVOICES||[];}
   try{const s9=await getDocs(collection(db,'formSends'));window.FORM_SENDS=[];s9.forEach(d=>window.FORM_SENDS.push({id:d.id,...d.data(),_fbId:d.id}));}catch(e){console.warn('Wczytywanie wysłanych formularzy nie powiodło się:',e);window.FORM_SENDS=window.FORM_SENDS||[];}
+  try{const s10=await getDocs(collection(db,'reportHistory'));window.REP_HISTORY=[];s10.forEach(d=>window.REP_HISTORY.push({id:d.id,...d.data(),_fbId:d.id}));}catch(e){console.warn('Wczytywanie historii raportów nie powiodło się:',e);window.REP_HISTORY=window.REP_HISTORY||[];}
   window.renderAll();
 }
 </script>
