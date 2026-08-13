@@ -1586,7 +1586,10 @@ function liveEndSession(){
     time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),
     type:'Trening personalny',
     duration:durationMin||60,
-    exercises:liveExercises.map(e=>({name:e.name,sets:e.sets.filter(s=>s.done).length})),
+    exercises:liveExercises.map(e=>({
+      name:e.name,
+      sets:e.sets.filter(s=>s.done).map(s=>({kg:parseFloat(s.kg)||0,reps:parseFloat(s.reps)||0,setNo:s.setNo}))
+    })),
     volume,feedback:liveFeedbackVal,
     note:document.getElementById('live-note')?.value||'',
     source:'live',
