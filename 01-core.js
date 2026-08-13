@@ -51,7 +51,6 @@ function goTo(n){
     renderMetrics();
   }
   if(n==='tasks'){
-    document.getElementById('task-client').innerHTML=CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
     document.getElementById('task-due').value=new Date().toISOString().split('T')[0];
     renderTasks();
   }
@@ -96,8 +95,7 @@ function openM(id){
     if(titleEl)titleEl.textContent='NOWE ZADANIE';
     const saveBtn=document.querySelector('#m-task .modal-footer .btn-primary');
     if(saveBtn)saveBtn.textContent='Dodaj zadanie';
-    const tc=document.getElementById('task-client');
-    if(tc)tc.innerHTML=CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
+    taskSetClientField('','');
     const td=document.getElementById('task-due');
     if(td&&!td.value)td.value=new Date().toISOString().split('T')[0];
     document.getElementById('task-title').value='';
