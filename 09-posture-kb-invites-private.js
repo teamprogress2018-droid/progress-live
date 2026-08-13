@@ -175,8 +175,10 @@ function cpOpenSession(){
 function cpOpenTask(){
   openM('m-task');
   setTimeout(()=>{
-    const sel=document.getElementById('task-client');
-    if(sel&&cpClientId){sel.value=cpClientId;}
+    if(cpClientId){
+      const cc=CL.find(x=>x.id===cpClientId);
+      if(typeof taskSetClientField==='function')taskSetClientField(cpClientId,cc?cc.name:'');
+    }
   },50);
 }
 function deleteClientNote(clientId,idx){
