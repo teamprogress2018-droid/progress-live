@@ -924,7 +924,7 @@ function renderCPTasks(c){
   document.getElementById('cp-body').innerHTML=`
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
       <div class="cp-section-title" style="margin:0;">ZADANIA (${tasks.length})</div>
-      <button class="btn btn-primary btn-sm" onclick="document.getElementById('task-client').value='${c.id}';openM('m-task')">+ Zadanie</button>
+      <button class="btn btn-primary btn-sm" onclick="openM('m-task');taskSetClientField('${c.id}','${(c.name||'').replace(/'/g,"\\'")}')">+ Zadanie</button>
     </div>
     <div style="display:flex;gap:6px;margin-bottom:12px;">
       <div class="cp-stat-box" style="flex:1;"><div class="cp-stat-val" style="color:var(--accent);font-size:22px;">${tasks.filter(t=>t.status!=='done').length}</div><div class="cp-stat-lbl">Aktywne</div></div>
