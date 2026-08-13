@@ -3543,6 +3543,21 @@ try{const s2=await getDocs(collection(db,'tasks'));window.TASKS=[];s2.forEach(d=
   try{const s10=await getDocs(collection(db,'reportHistory'));window.REP_HISTORY=[];s10.forEach(d=>window.REP_HISTORY.push({id:d.id,...d.data(),_fbId:d.id}));}catch(e){console.warn('Wczytywanie historii raportów nie powiodło się:',e);window.REP_HISTORY=window.REP_HISTORY||[];}
   try{const s11=await getDocs(collection(db,'settings'));s11.forEach(d=>{window.SETTINGS={...window.SETTINGS,...d.data()};window._settingsDocId=d.id;});}catch(e){console.warn('Wczytywanie ustawień nie powiodło się:',e);}
   try{const s12=await getDocs(collection(db,'notifications'));window.NOTIFICATIONS=[];s12.forEach(d=>window.NOTIFICATIONS.push({id:d.id,...d.data(),_fbId:d.id}));window.NOTIFICATIONS.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));}catch(e){console.warn('Wczytywanie powiadomień nie powiodło się:',e);window.NOTIFICATIONS=window.NOTIFICATIONS||[];}
+  try{
+    const s13=await getDocs(collection(db,'autoflows'));
+    window.AUTOFLOWS=[];s13.forEach(d=>window.AUTOFLOWS.push({id:d.id,...d.data(),_fbId:d.id}));
+    if(!window.AUTOFLOWS.length&&typeof DEMO_AUTOFLOWS!=='undefined'){
+      // Pierwsze uruchomienie: zamień wbudowane przykłady w prawdziwe, edytowalne flow.
+      for(const af of DEMO_AUTOFLOWS){
+        const copy={...af,createdAt:new Date().toISOString()};
+        window.AUTOFLOWS.push(copy);
+        try{const r=await addDoc(collection(db,'autoflows'),copy);copy._fbId=r.id;}catch(e){}
+      }
+    }
+  }catch(e){console.warn('Wczytywanie autoflows nie powiodło się:',e);window.AUTOFLOWS=window.AUTOFLOWS||[];}
+  try{const sAF=await getDocs(collection(db,'automationState'));sAF.forEach(d=>{window.AF_STATE={...d.data()};window._afStateDocId=d.id;});}catch(e){console.warn('Wczytywanie stanu automatyzacji nie powiodło się:',e);}
+  window.AF_STATE=window.AF_STATE||{enrollments:{},executed:{},lastFired:{}};
+  try{if(typeof runAutoflowsCheck==='function')runAutoflowsCheck();}catch(e){console.warn('runAutoflowsCheck:',e);}
   window.renderAll();
 }
 </script>
