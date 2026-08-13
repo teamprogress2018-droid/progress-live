@@ -3516,6 +3516,10 @@ try{const s2=await getDocs(collection(db,'tasks'));window.TASKS=[];s2.forEach(d=
   try{const s3=await getDocs(collection(db,'kb'));window.KB=[];s3.forEach(d=>window.KB.push({id:d.id,...d.data()}));}catch(e){window.KB=[];}
   try{const s4=await getDocs(collection(db,'metricEntries'));window.METRIC_ENTRIES=[];s4.forEach(d=>window.METRIC_ENTRIES.push({id:d.id,...d.data()}));}catch(e){window.METRIC_ENTRIES=[];}
   try{const s5=await getDocs(collection(db,'metricGroups'));window.METRIC_GROUPS=[];s5.forEach(d=>window.METRIC_GROUPS.push({id:d.id,...d.data()}));}catch(e){window.METRIC_GROUPS=[];}
+  try{const s6=await getDocs(collection(db,'messages'));const grouped={};s6.forEach(d=>{const m={id:d.id,...d.data()};const cid=m.clientId;if(!cid)return;if(!grouped[cid])grouped[cid]=[];grouped[cid].push(m);});
+    Object.keys(grouped).forEach(cid=>grouped[cid].sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||'')));
+    if(typeof MSGS!=='undefined')Object.assign(MSGS,grouped);
+  }catch(e){console.warn('Wczytywanie wiadomości nie powiodło się:',e);}
   window.renderAll();
 }
 </script>
