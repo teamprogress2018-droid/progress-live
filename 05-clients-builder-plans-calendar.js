@@ -147,6 +147,9 @@ async function saveClient(){
 // BUILDER
 // ════════════════════════════════════════
 function initBuilder(){
+  window._editingPlanId=null;
+  const titleEl=document.querySelector('#screen-builder .topbar-title');
+  if(titleEl)titleEl.textContent='Nowy plan treningowy';
   dayCount=0;
   document.getElementById('builder-days').innerHTML='';
   document.getElementById('b-name').value='';
@@ -205,6 +208,59 @@ function getPeriod(level){
   if(level==='sredni')return[{nr:1,cel:'DUP Akumulacja — wysoka objętość',rpe:'RPE 7'},{nr:2,cel:'DUP Intensyfikacja',rpe:'RPE 8'},{nr:3,cel:'DUP Szczyt',rpe:'RPE 9'},{nr:4,cel:'DELOAD',rpe:'RPE 6'}];
   return[{nr:1,cel:'Blok Akumulacji',rpe:'RPE 7-8'},{nr:2,cel:'Blok Akumulacji +',rpe:'RPE 8'},{nr:3,cel:'Blok Intensyfikacji',rpe:'RPE 8-9'},{nr:4,cel:'Blok Intensyfikacji peak',rpe:'RPE 9'},{nr:5,cel:'Blok Realizacji',rpe:'RPE 9-10'},{nr:6,cel:'DELOAD + Pivot Week',rpe:'RPE 6'}];
 }
+// Ładuje istniejący plan do kreatora, żeby faktycznie go edytować (a nie tworzyć pusty nowy).
+function editPlan(id){
+  const plan=PL.find(p=>p.id===id);
+  if(!plan){notify('Nie znaleziono planu');return;}
+  goTo('builder'); // initBuilder() czyści formularz i resetuje _editingPlanId
+  document.getElementById('b-name').value=plan.name||'';
+  const clientSel=document.getElementById('b-client');
+  if(clientSel)clientSel.value=plan.clientId||'';
+  const methodSel=document.getElementById('b-method');
+  if(methodSel)methodSel.value=plan.method||methodSel.value;
+  const durInp=document.getElementById('b-duration');
+  if(durInp)durInp.value=plan.duration||'';
+  updatePeriod();
+  (plan.days||[]).forEach(d=>{
+    addDay();
+    const dayEl=document.getElementById('bd-'+dayCount);
+    if(!dayEl)return;
+    const hdrInps=dayEl.querySelectorAll('.builder-day-hdr select, .builder-day-hdr input[type=text]');
+    if(hdrInps[0])hdrInps[0].value=d.day||d.dayName||hdrInps[0].value;
+    if(hdrInps[1])hdrInps[1].value=d.muscles||d.focus||'';
+    if(d.rest){
+      const rc=dayEl.querySelector('.rc');
+      if(rc){rc.checked=true;toggleR(dayEl.id);}
+      return;
+    }
+    (d.exercises||[]).forEach(ex=>{
+      addRow(dayEl.id);
+      const rows=dayEl.querySelectorAll('.ex-row');
+      const row=rows[rows.length-1];
+      const inps=row.querySelectorAll('input');
+      if(typeof ex==='string'){
+        // format z ręcznego kreatora: "Nazwa 4x8"
+        const m=ex.match(/^(.*?)\s+(\d+)\s*x\s*(.+)$/i);
+        if(m){inps[0].value=m[1].trim();inps[1].value=m[2];inps[2].value=m[3];}
+        else{inps[0].value=ex;}
+      }else if(ex&&typeof ex==='object'){
+        // format z generatora AI / szablonów: {name,sets,reps,...}
+        if(inps[0])inps[0].value=ex.name||ex.n||'';
+        if(inps[1])inps[1].value=ex.sets||'';
+        if(inps[2])inps[2].value=ex.reps||'';
+        if(inps[3])inps[3].value=ex.kg||'';
+        if(inps[4])inps[4].value=ex.rpe||'';
+        if(inps[5])inps[5].value=ex.rir||'';
+        if(inps[6])inps[6].value=ex.rest||'';
+        if(inps[7])inps[7].value=ex.tempo||'';
+      }
+    });
+  });
+  const titleEl=document.querySelector('#screen-builder .topbar-title');
+  if(titleEl)titleEl.textContent='Edytuj plan: '+(plan.name||'');
+  window._editingPlanId=id;
+}
+
 async function savePlan(){
   const name=document.getElementById('b-name').value.trim();
   if(!name){notify('Wpisz nazwę planu!');return;}
@@ -220,6 +276,17 @@ async function savePlan(){
     days.push({day:dn,muscles,exercises,sets,rest:false});
   });
   if(!days.length){notify('Dodaj przynajmniej jeden dzień!');return;}
+  const editingId=window._editingPlanId;
+  if(editingId){
+    const idx=PL.findIndex(p=>p.id===editingId);
+    if(idx>=0){
+      PL[idx]={...PL[idx],name,method:document.getElementById('b-method').value,duration:document.getElementById('b-duration').value,clientId:cid,clientName:c?c.name:'',level:c?c.level:PL[idx].level,goal:c?c.goal:PL[idx].goal,days,updatedAt:new Date().toISOString()};
+      window._editingPlanId=null;
+      goTo('plans');notify('Plan zaktualizowany!');
+      if(window._db){try{await window._setDoc(window._doc(window._db,'plans',editingId),PL[idx],{merge:true});}catch(e){console.warn('Firebase update:',e);}}
+      return;
+    }
+  }
   const plan={id:'l'+Date.now(),name,method:document.getElementById('b-method').value,duration:document.getElementById('b-duration').value,clientId:cid,clientName:c?c.name:'',level:c?c.level:'sredni',goal:c?c.goal:'masa',days,createdAt:new Date().toISOString()};
   PL.push(plan);goTo('plans');notify('Plan zapisany!');
   if(window._db){try{const r=await window._add(window._col(window._db,'plans'),plan);if(r&&r.id)plan.id=r.id;}catch(e){console.warn('Firebase:',e);}}
@@ -253,6 +320,7 @@ function renderPlans(){
         </div>
         <div style="display:flex;gap:6px;align-items:center;">
           <span class="pill pill-green">${p.method||'—'}</span>
+          <button class="btn btn-ghost btn-sm" onclick="editPlan('${p.id}')">✏ Edytuj</button>
           ${hasClient?`<button class="btn btn-ghost btn-sm" onclick="openClientProfile('${client.id}')">Profil klienta</button>`:''}
           <button class="btn btn-danger btn-sm" onclick="delPlan('${p.id}')">Usuń</button>
         </div>
