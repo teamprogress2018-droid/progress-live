@@ -1138,6 +1138,39 @@ const TASK_CAT_LABELS={trening:'Trening',dieta:'Dieta',pomiary:'Pomiary',lifesty
 const TASK_PRIO_COLORS={high:'var(--red)',medium:'var(--orange)',low:'var(--teal)'};
 const TASK_PRIO_LABELS={high:'Wysoki',medium:'Średni',low:'Niski'};
 
+// Ustawia pole klienta w oknie zadania: widoczny tekst wyszukiwania + ukryte id.
+function taskSetClientField(clientId,clientName){
+  const hid=document.getElementById('task-client');
+  const vis=document.getElementById('task-client-search');
+  if(hid)hid.value=clientId;
+  if(vis)vis.value=clientName;
+  const res=document.getElementById('task-client-results');
+  if(res)res.style.display='none';
+}
+
+// Filtruje i pokazuje klientów pod polem wyszukiwania w oknie zadania.
+function taskClientSearchInput(){
+  const q=(document.getElementById('task-client-search')?.value||'').trim().toLowerCase();
+  const res=document.getElementById('task-client-results');
+  if(!res)return;
+  let list=CL;
+  if(q)list=list.filter(c=>c.name.toLowerCase().includes(q));
+  list=list.map(c=>({c,act:typeof formatClientActivity==='function'?formatClientActivity(c.id):{label:'',color:'var(--muted)',days:0}}))
+    .sort((a,b)=>b.act.days-a.act.days)
+    .slice(0,8);
+  if(!list.length){
+    res.innerHTML='<div style="padding:12px;font-size:12px;color:var(--muted);text-align:center;">Brak wyników</div>';
+    res.style.display='block';
+    return;
+  }
+  res.innerHTML=list.map(({c,act})=>`
+    <div onclick="taskSetClientField('${c.id}','${c.name.replace(/'/g,"\\'")}')" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background='transparent'">
+      <span style="font-size:13px;">${c.name}</span>
+      <span style="font-size:10px;color:${act.color};font-family:'DM Mono',monospace;">${act.label||''}</span>
+    </div>`).join('');
+  res.style.display='block';
+}
+
 function setTaskFilter(f){
   taskFilter=f;
   document.querySelectorAll('.task-nav-item').forEach(el=>el.classList.remove('active'));
@@ -1212,7 +1245,8 @@ function editTask(id){
   const t=TASKS.find(x=>x.id===id);
   if(!t){notify('Nie znaleziono zadania');return;}
   openM('m-task'); // resetuje formularz i _editingTaskId
-  document.getElementById('task-client').value=t.clientId||'';
+  const tCl=CL.find(x=>x.id===t.clientId);
+  taskSetClientField(t.clientId||'',tCl?tCl.name:'');
   document.getElementById('task-title').value=t.title||'';
   const catEl=document.getElementById('task-cat');if(catEl)catEl.value=t.cat||'trening';
   document.getElementById('task-priority').value=t.priority||'medium';
