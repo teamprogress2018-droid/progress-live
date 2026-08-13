@@ -2930,38 +2930,14 @@ const DEMO_FORUM_GROUPS=[
   {id:'fg4',name:'Przepisy i dieta',icon:'🥗',color:'var(--teal)',desc:'Zdrowe przepisy i wskazówki żywieniowe',privacy:'public',members:0,createdAt:'2025-01-01'},
 ];
 
-const DEMO_FORUM_POSTS=[
-  {id:'fp1',groupId:'fg2',title:'🏆 Wyzwanie — 30 pompek dziennie przez 30 dni!',body:'Startujemy nowe wyzwanie! Przez cały miesiąc robimy minimum 30 pompek dziennie. Możecie je rozłożyć na serie, ale wszystkie muszą być w ciągu dnia. Kto daje radę?\n\nPrzypomnę — pompki to nie tylko klatka. To stabilizacja core, barki, triceps. Idealne uzupełnienie każdego planu! 💪\n\nZaznaczcie się w komentarzach jeśli dołączacie!',type:'challenge',authorName:'Piotr Urbaniak',authorRole:'trener',groupId:'fg2',pinned:true,date:'2025-05-10',likes:12,views:47,comments:8,reactions:{fire:5,strong:7,love:2}},
-  {id:'fp2',groupId:'fg1',title:'📢 Nowy harmonogram sesji na czerwiec',body:'Hej wszyscy! Czerwiec się zbliża i chciałem poinformować o kilku zmianach w harmonogramie:\n\n• Poniedziałki 7:00-9:00 — tylko online\n• Środy — normalnie w studio\n• Piątki — przerwa w 3. tydzień miesiąca\n\nJeśli macie pytania, piszcie tutaj lub bezpośrednio na czacie. Umawiamy sesje jak zawsze!',type:'announcement',authorName:'Piotr Urbaniak',authorRole:'trener',groupId:'fg1',pinned:true,date:'2025-05-14',likes:8,views:31,comments:3,reactions:{like:8,heart:3}},
-  {id:'fp3',groupId:'fg3',title:'Moje wyniki po 8 tygodniach PPL 💪',body:'Właśnie skończyłem 8-tygodniowy program PPL Masa i jestem w szoku z wynikami!\n\nStartowałem:\n• Masa: 88 kg, 22% tłuszczu\n• Przysiad 1RM: 100 kg\n• Martwy ciąg: 120 kg\n\nTeraz:\n• Masa: 83 kg, 18.8% tłuszczu (-5kg, -3.2% BF)\n• Przysiad 1RM: 120 kg (+20 kg!)\n• Martwy ciąg: 145 kg (+25 kg!)\n\nProgram jest świetny, polecam każdemu!',type:'post',authorName:'Jan Kowalski',authorRole:'klient',groupId:'fg3',pinned:false,date:'2025-05-12',likes:15,views:62,comments:6,reactions:{fire:8,strong:10,love:5}},
-  {id:'fp4',groupId:'fg4',title:'💡 Prosty przepis na shake proteinowy po treningu',body:'Dzielę się moim ulubionym shake\'m po treningu, który pomógł mi trafić w makro!\n\n**Składniki (1 porcja ~400 kcal, 40g białka):**\n• 1 miarka białka waniliowego (30g)\n• 200ml mleka 2%\n• 1 banan\n• 1 łyżka masła orzechowego\n• Szczypta cynamonu\n\nMiksujemy wszystko razem. Możecie dodać lód dla świeżości. Smacznego! 🥤',type:'tip',authorName:'Anna Nowak',authorRole:'klient',groupId:'fg4',pinned:false,date:'2025-05-11',likes:9,views:28,comments:4,reactions:{love:6,yummy:4}},
-  {id:'fp5',groupId:'fg2',title:'Tydzień 2 wyzwania — jak Wam idzie?',body:'Meldujemy się po pierwszych 2 tygodniach! Jak idzie z pompkami?\n\nJa trzymam się planu. Rozkładam na 3 serie: rano 10, po południu 10, wieczór 10. Łatwiej niż myślałem!\n\nCiekaw jestem jak reszta sobie radzi. Czy ktoś zmodyfikował metodę?',type:'question',authorName:'Piotr Wiśniewski',authorRole:'klient',groupId:'fg2',pinned:false,date:'2025-05-13',likes:6,views:22,comments:5,reactions:{strong:4,fire:3}},
-  {id:'fp6',groupId:'fg1',title:'💡 Wskazówka tygodnia — regeneracja CNS',body:'Na ten tydzień mam dla Was ważną wskazówkę o regeneracji układu nerwowego.\n\nWielu sportowców skupia się tylko na mięśniach, zapominając o CNS. Tymczasem po ciężkim treningu siłowym (RPE 9+) system nerwowy może być "zmęczony" nawet przez 48-72 godziny!\n\nObjawy przeciążonego CNS:\n• Brak motywacji do treningu\n• Słabsze wyniki mimo odpoczynku\n• Problemy ze snem\n• Drażliwość\n\nDlatego deload jest tak ważny! 🧠',type:'tip',authorName:'Piotr Urbaniak',authorRole:'trener',groupId:'fg1',pinned:false,date:'2025-05-09',likes:18,views:74,comments:7,reactions:{like:12,brain:6}},
-];
-
-const DEMO_FORUM_COMMENTS={
-  fp1:[
-    {id:'fc1',postId:'fp1',authorName:'Jan Kowalski',authorRole:'klient',body:'Dołączam! Dziś pierwsze 30 — zrobiłem 3×10 rano. Łatwo poszło 💪',date:'2025-05-10',likes:3},
-    {id:'fc2',postId:'fp1',authorName:'Anna Nowak',authorRole:'klient',body:'Jestem w drużynie! Pytanie — czy ławkowe też się liczą czy muszą być na podłodze?',date:'2025-05-10',likes:1},
-    {id:'fc3',postId:'fp1',authorName:'Piotr Urbaniak',authorRole:'trener',body:'@Anna Możecie robić na podłodze, na kolanach, na ławce — ważna jest jakość! Lepiej 30 poprawnych na kolanach niż 30 byle jakich.',date:'2025-05-10',likes:5},
-    {id:'fc4',postId:'fp1',authorName:'Marta Kowalczyk',authorRole:'klient',body:'Dołączam! 🔥 Robię 2 podejścia po 15 — rano i wieczór.',date:'2025-05-11',likes:2},
-    {id:'fc5',postId:'fp1',authorName:'Tomasz Mazur',authorRole:'klient',body:'Tydzień 1 za mną — wszystkie dni zaliczone! Pierwsze 3 dni były trudne, teraz idzie lepiej.',date:'2025-05-17',likes:4},
-  ],
-  fp3:[
-    {id:'fc6',postId:'fp3',authorName:'Piotr Urbaniak',authorRole:'trener',body:'Świetna robota Jan! Te wyniki to efekt ciężkiej pracy i dobrego odżywiania. +25 kg na martwym ciągu w 8 tygodni to naprawdę imponujące 🏆',date:'2025-05-12',likes:6},
-    {id:'fc7',postId:'fp3',authorName:'Anna Nowak',authorRole:'klient',body:'Wow, niesamowite wyniki! Mnie też interesuje PPL — mogę zapytać o szczegóły?',date:'2025-05-12',likes:2},
-    {id:'fc8',postId:'fp3',authorName:'Tomasz Mazur',authorRole:'klient',body:'Motywujące! Niedługo kończę swój cykl, zobaczymy co wyjdzie 🤞',date:'2025-05-13',likes:1},
-  ],
-};
-
 const POST_TYPE_COLORS={challenge:'var(--orange)',announcement:'var(--blue)',post:'var(--accent)',question:'var(--purple)',tip:'var(--teal)'};
 const POST_TYPE_ICONS={challenge:'🏆',announcement:'📢',post:'📝',question:'❓',tip:'💡'};
 const POST_TYPE_LABELS={challenge:'Wyzwanie',announcement:'Ogłoszenie',post:'Post',question:'Pytanie',tip:'Wskazówka'};
 const REACTIONS_MAP={'fire':'🔥','strong':'💪','love':'❤️','like':'👍','heart':'🤍','brain':'🧠','yummy':'😋'};
 
-function allForumGroups(){return[...DEMO_FORUM_GROUPS,...(window.FORUM_GROUPS||[])];}
-function allForumPosts(){return[...DEMO_FORUM_POSTS,...(window.FORUM_POSTS||[])];}
-function getPostComments(pid){return[...(DEMO_FORUM_COMMENTS[pid]||[]),...(window.FORUM_COMMENTS[pid]||[])];}
+function allForumGroups(){return window.FORUM_GROUPS||[];}
+function allForumPosts(){return window.FORUM_POSTS||[];}
+function getPostComments(pid){return window.FORUM_COMMENTS[pid]||[];}
 
 function setForumFilter(f,btn){
   forumFilter=f;
@@ -2996,7 +2972,7 @@ function renderForum(){
   // stats
   const statsEl=document.getElementById('forum-stats');
   if(statsEl){
-    const totalComments=Object.values(DEMO_FORUM_COMMENTS).reduce((s,a)=>s+a.length,0)+Object.values(window.FORUM_COMMENTS).reduce((s,a)=>s+a.length,0);
+    const totalComments=Object.values(window.FORUM_COMMENTS).reduce((s,a)=>s+a.length,0);
     statsEl.innerHTML=`
       <div style="display:flex;justify-content:space-between;font-size:11px;"><span style="color:var(--muted);">Postów</span><span style="font-family:'DM Mono',monospace;color:var(--accent);">${posts.length}</span></div>
       <div style="display:flex;justify-content:space-between;font-size:11px;"><span style="color:var(--muted);">Komentarzy</span><span style="font-family:'DM Mono',monospace;color:var(--teal);">${totalComments}</span></div>
@@ -3155,6 +3131,7 @@ function addComment(pid){
   if(!window.FORUM_COMMENTS[pid])window.FORUM_COMMENTS[pid]=[];
   const c={id:'fc'+Date.now(),postId:pid,authorName:'Piotr Urbaniak',authorRole:'trener',body:inp.value.trim(),date:new Date().toISOString().split('T')[0],likes:0};
   window.FORUM_COMMENTS[pid].push(c);
+  if(window._db){window._add(window._col(window._db,'forumComments'),c).then(r=>{if(r&&r.id)c._fbId=r.id;}).catch(e=>console.warn('Firebase comment save:',e));}
   inp.value='';
   openForumPost(pid);
   renderForumFeed();
@@ -3168,15 +3145,20 @@ function addCommentAs(pid,role){
   const client=CL[Math.floor(Math.random()*CL.length)];
   const c={id:'fc'+Date.now(),postId:pid,authorName:client?client.name:'Klient',authorRole:'klient',body:inp.value.trim(),date:new Date().toISOString().split('T')[0],likes:0};
   window.FORUM_COMMENTS[pid].push(c);
+  if(window._db){window._add(window._col(window._db,'forumComments'),c).then(r=>{if(r&&r.id)c._fbId=r.id;}).catch(e=>console.warn('Firebase comment save:',e));}
   inp.value='';
   openForumPost(pid);
   notify('✓ Komentarz dodany jako klient!');
 }
 
 function likeComment(cid,pid){
-  const all=[...(DEMO_FORUM_COMMENTS[pid]||[]),...(window.FORUM_COMMENTS[pid]||[])];
+  const all=window.FORUM_COMMENTS[pid]||[];
   const c=all.find(x=>x.id===cid);
-  if(c){c.likes++;openForumPost(pid);}
+  if(c){
+    c.likes++;
+    openForumPost(pid);
+    if(window._db&&c._fbId){window._setDoc(window._doc(window._db,'forumComments',c._fbId),{likes:c.likes},{merge:true}).catch(e=>console.warn('Firebase like save:',e));}
+  }
 }
 
 function reactToPost(pid,reaction){
@@ -3186,6 +3168,7 @@ function reactToPost(pid,reaction){
   p.reactions[reaction]=(p.reactions[reaction]||0)+1;
   renderForumFeed();
   if(forumActivePost===pid)openForumPost(pid);
+  if(window._db&&p._fbId){window._setDoc(window._doc(window._db,'forumPosts',p._fbId),{reactions:p.reactions},{merge:true}).catch(e=>console.warn('Firebase reaction save:',e));}
 }
 
 function addReaction(pid){
@@ -3220,6 +3203,7 @@ function saveForumGroup(){
     createdAt:new Date().toISOString().split('T')[0]
   };
   window.FORUM_GROUPS.push(g);
+  if(window._db){window._add(window._col(window._db,'forumGroups'),g).then(r=>{if(r&&r.id)g._fbId=r.id;}).catch(e=>console.warn('Firebase forum group save:',e));}
   closeM('m-forum-group');
   renderForum();
   notify('✓ Grupa "'+name+'" utworzona!');
@@ -3242,6 +3226,7 @@ function saveForumPost(){
     likes:0,views:0,comments:0,reactions:{like:0}
   };
   window.FORUM_POSTS.unshift(p);
+  if(window._db){window._add(window._col(window._db,'forumPosts'),p).then(r=>{if(r&&r.id)p._fbId=r.id;}).catch(e=>console.warn('Firebase forum post save:',e));}
   closeM('m-forum-post');
   renderForum();
   notify('✓ Post "'+title.substring(0,30)+'" opublikowany!');
