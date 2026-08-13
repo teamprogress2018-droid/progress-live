@@ -89,6 +89,15 @@ function openM(id){
     document.getElementById('as-date').value=new Date().toISOString().split('T')[0];
     document.getElementById('as-time').value='10:00';
   }
+  if(id==='m-program'){
+    window._editingProgId=null;
+    const titleEl=document.querySelector('#m-program .modal-title');
+    if(titleEl)titleEl.textContent='NOWY PROGRAM';
+    const saveBtn=document.querySelector('#m-program .modal-footer .btn-primary');
+    if(saveBtn)saveBtn.textContent='Zapisz program';
+    document.getElementById('pm-name').value='';
+    document.getElementById('pm-desc').value='';
+  }
   if(id==='m-ex'){
     window._editingExName=null;
     const titleEl=document.querySelector('#m-ex .modal-title');
