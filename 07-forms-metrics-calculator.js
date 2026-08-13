@@ -217,9 +217,12 @@ function openFormDetail(id){
         </div>`).join('')}
     </div>`;
 
-  document.getElementById('fd-actions').innerHTML=`
-    <button class="btn btn-primary" style="flex:1;" onclick="openSendForm('${id}')">📤 Wyślij do klienta</button>
-    <button class="btn btn-ghost" onclick="closeFormDetail()">Zamknij</button>`;
+  document.getElementById('fd-actions').innerHTML=findCustomForm(id)
+    ?`<button class="btn btn-primary" style="flex:1;" onclick="openSendForm('${id}')">📤 Wyślij do klienta</button>
+      <button class="btn btn-ghost" onclick="editForm('${id}')">✏</button>
+      <button class="btn btn-ghost" style="color:var(--red);" onclick="delForm('${id}')">🗑</button>`
+    :`<button class="btn btn-primary" style="flex:1;" onclick="openSendForm('${id}')">📤 Wyślij do klienta</button>
+      <button class="btn btn-ghost" onclick="closeFormDetail()">Zamknij</button>`;
 
   document.getElementById('form-detail').style.transform='translateX(0)';
 }
@@ -243,9 +246,41 @@ function openSendForm(id){
   const f=allForms().find(x=>x.id===id);if(!f)return;
   if(!CL.length){notify('Najpierw dodaj klienta!');return;}
   document.getElementById('m-send-form-title').textContent='WYŚLIJ: '+f.name.toUpperCase();
-  document.getElementById('send-form-client').innerHTML=CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
+  sendFormSetClientField('','');
   document.getElementById('send-form-msg').value='';
   openM('m-send-form');
+}
+
+// Ustawia pole klienta w oknie wysyłania formularza: widoczny tekst + ukryte id.
+function sendFormSetClientField(clientId,clientName){
+  const hid=document.getElementById('send-form-client');
+  const vis=document.getElementById('send-form-client-search');
+  if(hid)hid.value=clientId;
+  if(vis)vis.value=clientName;
+  const res=document.getElementById('send-form-client-results');
+  if(res)res.style.display='none';
+}
+
+function sendFormClientSearchInput(){
+  const q=(document.getElementById('send-form-client-search')?.value||'').trim().toLowerCase();
+  const res=document.getElementById('send-form-client-results');
+  if(!res)return;
+  let list=CL;
+  if(q)list=list.filter(c=>c.name.toLowerCase().includes(q));
+  list=list.map(c=>({c,act:typeof formatClientActivity==='function'?formatClientActivity(c.id):{label:'',color:'var(--muted)',days:0}}))
+    .sort((a,b)=>b.act.days-a.act.days)
+    .slice(0,8);
+  if(!list.length){
+    res.innerHTML='<div style="padding:12px;font-size:12px;color:var(--muted);text-align:center;">Brak wyników</div>';
+    res.style.display='block';
+    return;
+  }
+  res.innerHTML=list.map(({c,act})=>`
+    <div onclick="sendFormSetClientField('${c.id}','${c.name.replace(/'/g,"\\'")}')" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background='transparent'">
+      <span style="font-size:13px;">${c.name}</span>
+      <span style="font-size:10px;color:${act.color};font-family:'DM Mono',monospace;">${act.label||''}</span>
+    </div>`).join('');
+  res.style.display='block';
 }
 
 function confirmSendForm(){
@@ -255,6 +290,7 @@ function confirmSendForm(){
   const f=allForms().find(x=>x.id===sendFormId);
   const send={formId:sendFormId,clientId:cid,sentAt:new Date().toLocaleDateString('pl'),status:'sent',answers:[]};
   FORM_SENDS.push(send);
+  if(window._db){window._add(window._col(window._db,'formSends'),send).then(r=>{if(r&&r.id)send._fbId=r.id;}).catch(e=>console.warn('Firebase formSend save:',e));}
   closeM('m-send-form');
   renderForms();
   if(formSelId===sendFormId)openFormDetail(sendFormId);
@@ -277,6 +313,48 @@ function addFormQ(type){
   container.appendChild(div);
 }
 
+function findCustomForm(id){
+  return (window.CUSTOM_FORMS||[]).find(f=>f.id===id);
+}
+
+function editForm(id){
+  const f=findCustomForm(id);
+  if(!f){notify('To formularz z biblioteki demo — nie można go edytować');return;}
+  openM('m-form');
+  document.getElementById('nf-title').value=f.name||'';
+  document.getElementById('nf-cat').value=f.cat||'';
+  document.getElementById('nf-desc').value=f.desc||'';
+  const container=document.getElementById('nf-questions');
+  container.innerHTML='';
+  (f.questions||[]).forEach(q=>{
+    addFormQ(q.type);
+    const lastRow=container.lastElementChild;
+    const inp=lastRow.querySelector('input[data-type]');
+    if(inp)inp.value=q.text||'';
+    const optsInp=lastRow.querySelector('input[data-opts]');
+    if(optsInp&&q.options)optsInp.value=q.options.join(', ');
+    const reqInp=lastRow.querySelector('input[data-req]');
+    if(reqInp)reqInp.checked=!!q.required;
+  });
+  const titleEl=document.querySelector('#m-form .modal-title');
+  if(titleEl)titleEl.textContent='EDYTUJ FORMULARZ';
+  const saveBtn=document.querySelector('#m-form .modal-footer .btn-primary');
+  if(saveBtn)saveBtn.textContent='Zapisz zmiany';
+  window._editingFormId=id;
+  closeFormDetail();
+}
+
+async function delForm(id){
+  const f=findCustomForm(id);
+  if(!f){notify('To formularz z biblioteki demo — nie można go usunąć');return;}
+  if(!confirm('Usunąć formularz "'+f.name+'"?'))return;
+  window.CUSTOM_FORMS=(window.CUSTOM_FORMS||[]).filter(x=>x.id!==id);
+  closeFormDetail();
+  renderForms();
+  notify('Formularz usunięty');
+  if(window._db){try{await window._del(window._doc(window._db,'forms',id));}catch(e){console.warn('Firebase delForm:',e);}}
+}
+
 async function saveCustomForm(){
   const title=document.getElementById('nf-title').value.trim();
   if(!title){notify('Wpisz nazwę formularza!');return;}
@@ -291,6 +369,20 @@ async function saveCustomForm(){
     questions.push(q);
   });
   if(!questions.length){notify('Dodaj przynajmniej jedno pytanie!');return;}
+  const editingId=window._editingFormId;
+  if(editingId){
+    const idx=(window.CUSTOM_FORMS||[]).findIndex(x=>x.id===editingId);
+    if(idx>=0){
+      window.CUSTOM_FORMS[idx]={...window.CUSTOM_FORMS[idx],cat:document.getElementById('nf-cat').value,name:title,desc:document.getElementById('nf-desc').value,questions,updatedAt:new Date().toISOString()};
+      window._editingFormId=null;
+      closeM('m-form');
+      document.getElementById('nf-questions').innerHTML='';
+      document.getElementById('nf-title').value='';
+      renderForms();notify('✓ Formularz zaktualizowany!');
+      if(window._db){try{await window._setDoc(window._doc(window._db,'forms',editingId),window.CUSTOM_FORMS[idx],{merge:true});}catch(e){console.warn('Firebase update form:',e);}}
+      return;
+    }
+  }
   const form={id:'cf'+Date.now(),type:'moje',status:'active',cat:document.getElementById('nf-cat').value,name:title,desc:document.getElementById('nf-desc').value,questions,createdAt:new Date().toISOString()};
   try{if(window._db){const r=await window._add(window._col(window._db,'forms'),form);form.id=r.id;}}catch(e){}
   window.CUSTOM_FORMS.push(form);
