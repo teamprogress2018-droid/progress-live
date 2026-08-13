@@ -2925,7 +2925,12 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   <div class="modal">
     <div class="modal-hdr"><div class="modal-title">NOWE ZADANIE</div><button class="modal-close" onclick="closeM('m-task')">×</button></div>
     <div class="modal-body">
-      <div class="form-field"><label class="form-lbl">Klient</label><select class="form-select" id="task-client"></select></div>
+      <div class="form-field" style="position:relative;">
+        <label class="form-lbl">Klient</label>
+        <input class="form-select" id="task-client-search" placeholder="Wpisz imię i nazwisko..." autocomplete="off" oninput="taskClientSearchInput()" onfocus="taskClientSearchInput()">
+        <input type="hidden" id="task-client">
+        <div id="task-client-results" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;background:var(--s2);border:1px solid var(--border2);border-radius:8px;margin-top:4px;max-height:220px;overflow-y:auto;box-shadow:0 8px 20px rgba(0,0,0,0.4);"></div>
+      </div>
       <div class="form-field"><label class="form-lbl">Zadanie</label><input type="text" class="form-input" id="task-title" placeholder="np. Wykonaj 3 treningi w tym tygodniu"></div>
       <div class="form-grid">
         <div class="form-field"><label class="form-lbl">Kategoria</label>
