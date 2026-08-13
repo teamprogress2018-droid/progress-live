@@ -1842,10 +1842,10 @@ function renderRepOverview(){
     <!-- top stats -->
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;">
       ${[
-        {icon:'📄',label:'Raportów wysłanych',val:totalReps+12,col:'var(--accent)'},
-        {icon:'📅',label:'W tym tygodniu',val:thisWeek+3,col:'var(--blue)'},
+        {icon:'📄',label:'Raportów wysłanych',val:totalReps,col:'var(--accent)'},
+        {icon:'📅',label:'W tym tygodniu',val:thisWeek,col:'var(--blue)'},
         {icon:'✅',label:'Klientów z raportem',val:clients.length,col:'var(--teal)'},
-        {icon:'🤖',label:'Automatycznych',val:8,col:'var(--purple)'},
+        {icon:'🤖',label:'Automatycznych',val:REP_HISTORY.filter(r=>r.auto).length,col:'var(--purple)'},
       ].map(s=>`<div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:16px;">
         <div style="font-size:20px;margin-bottom:6px;">${s.icon}</div>
         <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${s.col};line-height:1;">${s.val}</div>
@@ -1887,20 +1887,16 @@ function renderRepOverview(){
 
 function renderRepHistory(){
   const el=document.getElementById('rep-history-tab');if(!el)return;
-  const demoHistory=[
-    {id:'r1',clientName:'Jan Kowalski',type:'Tygodniowy',date:'2025-05-13',sent:['email','app'],status:'dostarczony'},
-    {id:'r2',clientName:'Anna Nowak',type:'Miesięczny',date:'2025-05-01',sent:['email'],status:'dostarczony'},
-    {id:'r3',clientName:'Piotr Wiśniewski',type:'Postępów',date:'2025-04-28',sent:['email','whatsapp'],status:'dostarczony'},
-    {id:'r4',clientName:'Maria Kowalczyk',type:'Tygodniowy',date:'2025-05-06',sent:['app'],status:'dostarczony'},
-    {id:'r5',clientName:'Tomasz Zając',type:'Tygodniowy',date:'2025-05-13',sent:['email','app'],status:'oczekujący'},
-  ];
-  const all=[...demoHistory,...REP_HISTORY];
+  const all=REP_HISTORY;
   el.innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;">HISTORIA WYSŁANYCH RAPORTÓW</div>
       <button class="btn btn-ghost btn-sm" onclick="notify('Eksport CSV wkrótce!')">⬇ Eksport CSV</button>
     </div>
-    <div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+    ${!all.length?`<div style="text-align:center;padding:60px;color:var(--muted);">
+      <div style="font-size:36px;opacity:0.3;margin-bottom:12px;">📄</div>
+      <div>Brak wysłanych raportów — pojawią się tu automatycznie po wygenerowaniu pierwszego.</div>
+    </div>`:`<div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
       <div style="display:grid;grid-template-columns:1fr 100px 110px 130px 80px 100px;gap:8px;padding:10px 16px;border-bottom:1px solid var(--border);font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;">
         <span>Klient</span><span>Typ</span><span>Data</span><span>Kanały</span><span>Status</span><span></span>
       </div>
@@ -1912,7 +1908,7 @@ function renderRepHistory(){
         <span class="pill ${r.status==='dostarczony'?'pill-green':'pill-orange'}" style="font-size:9px;">${r.status}</span>
         <button class="btn btn-ghost btn-sm" style="font-size:10px;" onclick="notify('Podgląd raportu')">Podgląd</button>
       </div>`).join('')}
-    </div>`;
+    </div>`}`;
 }
 
 function renderRepAuto(){
@@ -2052,7 +2048,9 @@ Wygeneruj raport tygodniowy.`;
   renderRepDocument(c,template,true,aiData);
 
   // save to history
-  REP_HISTORY.unshift({id:'r'+Date.now(),clientId:c.id,clientName:c.name,type:aplGetVal('rep-types')||'weekly',date:new Date().toISOString().split('T')[0],sent:['email','app'],status:'dostarczony'});
+  const repEntry={id:'r'+Date.now(),clientId:c.id,clientName:c.name,type:aplGetVal('rep-types')||'weekly',date:new Date().toISOString().split('T')[0],sent:['email','app'],status:'dostarczony',auto:false};
+  REP_HISTORY.unshift(repEntry);
+  if(window._db){window._add(window._col(window._db,'reportHistory'),repEntry).then(r=>{if(r&&r.id)repEntry._fbId=r.id;}).catch(e=>console.warn('Firebase reportHistory save:',e));}
 
   // send notifications
   if(document.getElementById('rep-send-app')?.checked){
