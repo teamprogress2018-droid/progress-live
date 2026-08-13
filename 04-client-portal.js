@@ -599,11 +599,7 @@ const INTEGRATIONS=[
       {key:'webhook_secret',label:'Webhook Secret (whsec_...)',placeholder:'whsec_...'},
     ],
     webhook:'https://progresslive.pl/webhooks/stripe',
-    logs:[
-      {time:'12:34',status:'ok',msg:'Płatność 1500 PLN — Jan Kowalski'},
-      {time:'11:20',status:'ok',msg:'Subskrypcja aktywowana — Anna Nowak'},
-      {time:'10:05',status:'error',msg:'Nieudana płatność — karta odrzucona'},
-    ],
+    logs:[],
     docs:'https://stripe.com/docs'
   },
   {
@@ -710,10 +706,7 @@ const INTEGRATIONS=[
       {key:'verify_token',label:'Webhook Verify Token',placeholder:'mój_token'},
     ],
     webhook:'https://progresslive.pl/webhooks/whatsapp',
-    logs:[
-      {time:'9:00',status:'ok',msg:'Przypomnienie o sesji → Jan Kowalski'},
-      {time:'8:30',status:'ok',msg:'Broadcast: "Nowy plan treningowy!" → 5 klientów'},
-    ],
+    logs:[],
     docs:'https://developers.facebook.com/docs/whatsapp'
   },
   {
@@ -896,9 +889,7 @@ const INTEGRATIONS=[
       {key:'api_key',label:'Progress Live API Key (dla Zapier)',placeholder:'pl_live_...'},
     ],
     webhook:'https://progresslive.pl/webhooks/zapier',
-    logs:[
-      {time:'13:00',status:'ok',msg:'Zap uruchomiony: Nowy klient → Google Sheets'},
-    ],
+    logs:[],
     docs:'https://zapier.com/apps/progress-live'
   },
   {
@@ -956,7 +947,7 @@ function renderIntStatusSummary(){
   const total=INTEGRATIONS.length;
   el.innerHTML=`
     <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px;">
-      <span style="color:var(--muted);">Połączone</span>
+      <span style="color:var(--muted);">Skonfigurowane</span>
       <span style="font-family:'DM Mono',monospace;color:var(--teal);">${connected}</span>
     </div>
     <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px;">
@@ -1021,7 +1012,7 @@ function renderIntCard(int,i){
   return `<div class="int-card${isConnected?' connected':''}" style="animation-delay:${i*0.04}s;border-top:3px solid ${int.color};" onclick="openIntDetail('${int.id}')">
     <div style="position:absolute;top:12px;right:12px;">
       ${isConnected
-        ?'<span class="int-badge-connected">✓ Połączono</span>'
+        ?'<span class="int-badge-connected">⚙️ Skonfigurowano</span>'
         :'<span class="int-badge-available">Dostępne</span>'}
     </div>
     <div class="int-card-icon" style="background:${int.color}22;">${int.icon}</div>
@@ -1054,9 +1045,9 @@ function openIntDetail(id){
         <div style="font-size:11px;color:var(--muted);line-height:1.6;">${int.desc}</div>
         <div style="margin-top:8px;">
           ${isConnected
-            ?'<span class="int-badge-connected">✓ Aktywna</span>'
-            +'<span style="font-size:10px;color:var(--muted);margin-left:8px;">Ostatnia sync: '+( conn?.lastSync||'—')+'</span>'
-            :'<span class="int-badge-available">Niepołączona</span>'}
+            ?'<span class="int-badge-connected">⚙️ Skonfigurowano</span>'
+            +'<span style="font-size:10px;color:var(--muted);margin-left:8px;">Zapisano: '+( conn?.configuredAt?new Date(conn.configuredAt).toLocaleString('pl'):'—')+' · brak realnego połączenia</span>'
+            :'<span class="int-badge-available">Nieskonfigurowana</span>'}
         </div>
       </div>
     </div>
@@ -1107,10 +1098,10 @@ function openIntDetail(id){
     <!-- akcje -->
     <div style="display:flex;gap:8px;">
       ${isConnected
-        ?`<button class="btn btn-danger btn-sm" style="flex:1;" onclick="disconnectInt('${int.id}');closeIntDetail()">Rozłącz</button>
-           <button class="btn btn-primary" style="flex:1;" onclick="testIntConnection('${int.id}')">🔄 Testuj połączenie</button>`
+        ?`<button class="btn btn-danger btn-sm" style="flex:1;" onclick="disconnectInt('${int.id}');closeIntDetail()">Usuń konfigurację</button>
+           <button class="btn btn-ghost" style="flex:1;" onclick="testIntConnection('${int.id}')">ℹ️ O połączeniu</button>`
         :`<button class="btn btn-ghost btn-sm" onclick="closeIntDetail()">Anuluj</button>
-           <button class="btn btn-primary" style="flex:1;" onclick="connectInt('${int.id}')">✓ Połącz ${int.name}</button>`}
+           <button class="btn btn-primary" style="flex:1;" onclick="connectInt('${int.id}')">💾 Zapisz konfigurację</button>`}
     </div>`;
 
   document.getElementById('int-detail-panel').style.transform='translateX(0)';
@@ -1135,31 +1126,29 @@ function connectInt(id){
     notify('⚠ Wpisz dane konfiguracyjne!');
     return;
   }
-  // save connection
-  window.INT_CONNECTIONS[id]={connected:true,config,lastSync:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'})+' '+new Date().toLocaleDateString('pl')};
-  addNotification('system','Integracja połączona!',`${int.name} — połączono pomyślnie`,'integrations');
-  notify(`✅ ${int.name} — połączono pomyślnie!`);
+  // Zapisujemy WYŁĄCZNIE ustawienia — ta aplikacja jest statyczną stroną bez własnego
+  // serwera, więc nie ma jak realnie połączyć się z Stripe/Google/innym API stąd.
+  // Konfiguracja zostaje zapisana, żeby nie przepadła, gdyby kiedyś powstał do tego backend.
+  window.INT_CONNECTIONS[id]={connected:true,config,configuredAt:new Date().toISOString(),lastSync:null};
+  if(window._db){window._setDoc(window._doc(window._db,'integrationConfigs',id),window.INT_CONNECTIONS[id],{merge:true}).catch(e=>console.warn('Firebase integration config save:',e));}
+  addNotification('system','Konfiguracja zapisana',`${int.name} — dane zapisane (bez realnego połączenia, patrz opis)`,'integrations');
+  notify(`✓ ${int.name} — konfiguracja zapisana. Pamiętaj: to jeszcze nie prawdziwe połączenie (patrz informacja na ekranie).`);
   renderIntegrations();
   openIntDetail(id);
 }
 
 function disconnectInt(id){
   const int=INTEGRATIONS.find(x=>x.id===id);
-  if(!confirm(`Rozłączyć ${int?.name||id}?`))return;
+  if(!confirm(`Usunąć zapisaną konfigurację ${int?.name||id}?`))return;
   delete window.INT_CONNECTIONS[id];
-  notify(`${int?.name||id} — rozłączono`);
+  if(window._db){window._del(window._doc(window._db,'integrationConfigs',id)).catch(e=>console.warn('Firebase integration config delete:',e));}
+  notify(`${int?.name||id} — konfiguracja usunięta`);
   renderIntegrations();
 }
 
 function testIntConnection(id){
   const int=INTEGRATIONS.find(x=>x.id===id);
-  // simulate test
-  notify(`🔄 Testowanie połączenia z ${int?.name||id}...`);
-  setTimeout(()=>{
-    window.INT_CONNECTIONS[id].lastSync=new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'})+' '+new Date().toLocaleDateString('pl');
-    notify(`✅ ${int?.name||id} — połączenie działa prawidłowo!`);
-    openIntDetail(id);
-  },1200);
+  notify(`⚠ Nie da się przetestować prawdziwego połączenia — ta aplikacja nie ma własnego serwera do rozmowy z ${int?.name||id}. Zapisane dane pozostają, ale test nie jest możliwy stąd.`);
 }
 
 function copyWebhook(url){
