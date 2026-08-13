@@ -2378,9 +2378,11 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <div class="topbar-title">Trening na żywo</div>
     </div>
     <div class="topbar-actions">
-      <select class="form-select" id="live-client-sel" onchange="liveLoadClient()" style="width:180px;font-size:12px;padding:5px 8px;">
-        <option value="">Wybierz klienta...</option>
-      </select>
+      <div style="position:relative;width:180px;">
+        <input class="form-select" id="live-client-sel-search" placeholder="Wybierz klienta..." autocomplete="off" oninput="liveClientSearchInput()" onfocus="liveClientSearchInput()" style="font-size:12px;padding:5px 8px;">
+        <input type="hidden" id="live-client-sel">
+        <div id="live-client-sel-results" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;background:var(--s2);border:1px solid var(--border2);border-radius:8px;margin-top:4px;max-height:220px;overflow-y:auto;box-shadow:0 8px 20px rgba(0,0,0,0.4);"></div>
+      </div>
       <div style="display:flex;gap:2px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:2px;">
         <button class="auto-tab-btn active" id="live-tab-trainer" onclick="setLiveTab('trainer')">🏋️ Widok trenera</button>
         <button class="auto-tab-btn" id="live-tab-client" onclick="setLiveTab('client')">📱 Widok klienta</button>
