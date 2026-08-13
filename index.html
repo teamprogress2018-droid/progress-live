@@ -3405,6 +3405,24 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 
 <datalist id="ex-dl"></datalist>
 
+<script>
+// Siatka bezpieczeństwa: jeśli poniższy skrypt modułowy (Firebase) nie załaduje się
+// z powodu problemów sieciowych (np. blokada QUIC), te funkcje pokażą czytelny
+// komunikat zamiast ciche "X is not defined". Zostają nadpisane prawdziwą
+// implementacją, jeśli Firebase załaduje się poprawnie.
+function authNetworkFallbackMsg(){
+  const errEl=document.getElementById('auth-error');
+  const msg='Nie można połączyć się z serwerem logowania. Sprawdź połączenie internetowe (jeśli używasz VPN, spróbuj go wyłączyć) i odśwież stronę.';
+  if(errEl){errEl.textContent=msg;errEl.style.display='block';}
+  else alert(msg);
+}
+window.doSignIn=window.doSignIn||authNetworkFallbackMsg;
+window.doSignOut=window.doSignOut||authNetworkFallbackMsg;
+window.authShowReset=window.authShowReset||authNetworkFallbackMsg;
+window.authShowLogin=window.authShowLogin||authNetworkFallbackMsg;
+window.doPasswordReset=window.doPasswordReset||authNetworkFallbackMsg;
+</script>
+
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
 import{getFirestore,collection,getDocs,addDoc,deleteDoc,doc,setDoc,updateDoc}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
