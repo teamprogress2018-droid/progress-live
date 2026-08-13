@@ -46,8 +46,6 @@ function goTo(n){
   if(n==='workout-library'){closeWLDetail();renderWL();}
   if(n==='programs'){renderPrograms();}
   if(n==='metrics'){
-    const msel=document.getElementById('metric-client-sel');
-    if(msel)msel.innerHTML='<option value="">Wybierz klienta...</option>'+CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
     renderMetrics();
   }
   if(n==='tasks'){
@@ -129,7 +127,7 @@ function openM(id){
     document.getElementById('task-title').value='';
   }
   if(id==='m-metric-entry'){
-    document.getElementById('me-client').innerHTML=CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
+    meClientSetField('','');
     document.getElementById('me-group').innerHTML=allMetricGroups().map(g=>'<option value="'+g.id+'">'+g.icon+' '+g.name+'</option>').join('');
     document.getElementById('me-date').value=new Date().toISOString().split('T')[0];
     updateMetricEntryForm();
