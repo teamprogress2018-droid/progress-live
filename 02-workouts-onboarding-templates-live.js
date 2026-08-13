@@ -1252,6 +1252,7 @@ window.tplStartLive=tplStartLive;window.tplDuplicate=tplDuplicate;window.openTpl
 var liveTab='trainer';
 var liveClientId=null;
 var livePlanId=null;
+var liveCurrentDayIdx=0;
 var liveSessionActive=false;
 var liveTimerSec=0;var liveTimerInterval=null;
 var liveRestSec=0;var liveRestInterval=null;
@@ -1260,11 +1261,9 @@ var liveFeedbackVal=0;
 var LIVE_HISTORY=[];
 
 function initLive(){
-  const sel=document.getElementById('live-client-sel');
-  if(sel){
-    sel.innerHTML='<option value="">Wybierz klienta...</option>'+CL.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
-    if(!liveClientId&&CL.length){liveClientId=CL[0].id;sel.value=liveClientId;}
-  }
+  liveClientId=liveClientId||(CL.length?CL[0].id:null);
+  const c=CL.find(x=>x.id===liveClientId);
+  liveClientSetField(liveClientId||'',c?c.name:'');
   if(liveClientId)liveLoadClient();
   renderLiveHistory();
 }
@@ -1278,6 +1277,39 @@ function setLiveTab(t){
   });
   if(t==='client')renderLiveClientMock();
   if(t==='history')renderLiveHistory();
+}
+
+// Ustawia pole klienta na ekranie Trening Live: widoczny tekst + ukryte id.
+function liveClientSetField(clientId,clientName){
+  const hid=document.getElementById('live-client-sel');
+  const vis=document.getElementById('live-client-sel-search');
+  if(hid)hid.value=clientId;
+  if(vis)vis.value=clientName;
+  const res=document.getElementById('live-client-sel-results');
+  if(res)res.style.display='none';
+  liveLoadClient();
+}
+
+function liveClientSearchInput(){
+  const q=(document.getElementById('live-client-sel-search')?.value||'').trim().toLowerCase();
+  const res=document.getElementById('live-client-sel-results');
+  if(!res)return;
+  let list=CL;
+  if(q)list=list.filter(c=>c.name.toLowerCase().includes(q));
+  list=list.map(c=>({c,act:typeof formatClientActivity==='function'?formatClientActivity(c.id):{label:'',color:'var(--muted)',days:0}}))
+    .sort((a,b)=>b.act.days-a.act.days)
+    .slice(0,8);
+  if(!list.length){
+    res.innerHTML='<div style="padding:12px;font-size:12px;color:var(--muted);text-align:center;">Brak wyników</div>';
+    res.style.display='block';
+    return;
+  }
+  res.innerHTML=list.map(({c,act})=>`
+    <div onclick="liveClientSetField('${c.id}','${c.name.replace(/'/g,"\\'")}')" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background='transparent'">
+      <span style="font-size:13px;">${c.name}</span>
+      <span style="font-size:10px;color:${act.color};font-family:'DM Mono',monospace;">${act.label||''}</span>
+    </div>`).join('');
+  res.style.display='block';
 }
 
 function liveLoadClient(){
@@ -1343,9 +1375,9 @@ function renderLivePlanPicker(){
       </div>`).join('')}
     </div>
     ${days.length>1?`
-    <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:6px;letter-spacing:1px;">Dzień treningu</div>
+    <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:6px;letter-spacing:1px;">Dzień treningu ${liveExercises.length?`<span style="color:var(--accent);normal-case;text-transform:none;letter-spacing:0;">— sugerowany na dziś</span>`:''}</div>
     <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:10px;">
-      ${days.map((d,i)=>`<button onclick="liveSelectDay(${i})" style="background:${liveExercises.length&&i===0?'rgba(200,241,53,0.08)':'var(--s3)'};border:1px solid ${liveExercises.length&&i===0?'var(--accent)':'var(--border2)'};border-radius:8px;padding:7px 12px;cursor:pointer;text-align:left;display:flex;align-items:center;justify-content:space-between;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)'">
+      ${days.map((d,i)=>`<button onclick="liveSelectDay(${i})" style="background:${liveExercises.length&&i===liveCurrentDayIdx?'rgba(200,241,53,0.08)':'var(--s3)'};border:1px solid ${liveExercises.length&&i===liveCurrentDayIdx?'var(--accent)':'var(--border2)'};border-radius:8px;padding:7px 12px;cursor:pointer;text-align:left;display:flex;align-items:center;justify-content:space-between;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)'">
         <div style="font-size:11px;font-weight:600;">${d.day||'Dzień '+(i+1)}</div>
         <div style="font-size:10px;color:var(--muted);">${(d.exercises||[]).length} ćw.</div>
       </button>`).join('')}
@@ -1356,13 +1388,25 @@ function renderLivePlanPicker(){
   if(!livePlanId&&plans.length)liveSelectPlan(plans[0].id);
 }
 
+// Sprawdza ostatnią sesję live tego klienta z tym planem i sugeruje kolejny dzień w rotacji.
+// Jeśli brak historii — zaczyna od dnia 1 (indeks 0).
+function liveGetSuggestedDayIdx(clientId,plan){
+  if(!plan||!plan.days||!plan.days.length)return 0;
+  const past=SE.filter(s=>s.clientId===clientId&&s.source==='live'&&s.planId===plan.id&&s.dayIdx!=null)
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  if(!past.length)return 0;
+  return (past[0].dayIdx+1)%plan.days.length;
+}
+
 function liveSelectPlan(pid){
   livePlanId=pid;
   const p=PL.find(x=>x.id===pid);if(!p)return;
 
-  // Pobierz ćwiczenia z pierwszego dnia planu
+  // Pobierz ćwiczenia z SUGEROWANEGO dnia (na bazie rotacji od ostatniej sesji), nie zawsze z Dnia 1.
   // Struktura: p.days = [{day:'Dzień 1', exercises:[{name,sets,reps}]}]
-  const day=(p.days||[])[0];
+  const suggestedIdx=liveGetSuggestedDayIdx(liveClientId,p);
+  liveCurrentDayIdx=suggestedIdx;
+  const day=(p.days||[])[suggestedIdx];
   const rawEx=day?.exercises||[];
 
   if(rawEx.length>0){
@@ -1417,6 +1461,7 @@ function liveShowDayPicker(p){
 function liveSelectDay(dayIdx){
   const p=PL.find(x=>x.id===livePlanId);if(!p)return;
   const day=(p.days||[])[dayIdx];if(!day)return;
+  liveCurrentDayIdx=dayIdx;
   const rawEx=day.exercises||[];
   liveExercises=rawEx.map(ex=>({
     name:ex.name||ex.n||'Ćwiczenie',
@@ -1429,6 +1474,7 @@ function liveSelectDay(dayIdx){
     done:false,
     collapsed:false,
   }));
+  renderLivePlanPicker();
   renderLiveExercises();
 }
 window.liveSelectDay=liveSelectDay;
@@ -1593,6 +1639,8 @@ function liveEndSession(){
     volume,feedback:liveFeedbackVal,
     note:document.getElementById('live-note')?.value||'',
     source:'live',
+    planId:livePlanId||null,
+    dayIdx:livePlanId!=null?liveCurrentDayIdx:null,
   };
   SE.push(newSession);
   if(window._db){try{window._add(window._col(window._db,'sessions'),newSession);}catch(e){}}
