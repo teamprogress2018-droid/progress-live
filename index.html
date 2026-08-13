@@ -2569,11 +2569,11 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
     <div style="width:320px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;padding:20px 18px;">
 
       <!-- wybór klienta -->
-      <div class="form-field">
+      <div class="form-field" style="position:relative;">
         <label class="form-lbl">Klient (opcjonalnie)</label>
-        <select class="form-select" id="calc-client" onchange="calcLoadFromClient()">
-          <option value="">Oblicz ręcznie</option>
-        </select>
+        <input class="form-select" id="calc-client-search" placeholder="Wpisz imię i nazwisko, lub zostaw puste (oblicz ręcznie)..." autocomplete="off" oninput="calcClientSearchInput()" onfocus="calcClientSearchInput()">
+        <input type="hidden" id="calc-client">
+        <div id="calc-client-results" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;background:var(--s2);border:1px solid var(--border2);border-radius:8px;margin-top:4px;max-height:220px;overflow-y:auto;box-shadow:0 8px 20px rgba(0,0,0,0.4);"></div>
       </div>
 
       <!-- dane osobowe -->
