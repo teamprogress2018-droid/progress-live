@@ -922,8 +922,8 @@ const DEMO_AUTOFLOWS=[
    ]},
   {id:'af3',name:'Alert po zastoju (14 dni)',type:'trigger',scope:'all',status:'active',clients:0,
    steps:[
-     {type:'message',day:1,text:'{imie}, minęły 2 tygodnie bez treningu. Wszystko ok? Chętnie pomogę wrócić na właściwe tory! 💪'},
-     {type:'task',day:1,text:'Skontaktuj się z trenerem'},
+     {type:'message',day:14,text:'{imie}, minęły 2 tygodnie bez treningu. Wszystko ok? Chętnie pomogę wrócić na właściwe tory! 💪'},
+     {type:'task',day:14,text:'Skontaktuj się z trenerem'},
    ]},
 ];
 
@@ -971,7 +971,7 @@ function saveOnboardingFlow(){
 }
 
 function renderAutoflows(){
-  const all=[...DEMO_AUTOFLOWS,...(window.AUTOFLOWS||[])];
+  const all=window.AUTOFLOWS||[];
   const el=document.getElementById('autoflow-list-main');
   if(!el)return;
   if(!all.length){
@@ -979,11 +979,13 @@ function renderAutoflows(){
     return;
   }
   const typeLabels={sequence:'Sekwencja dni',trigger:'Wyzwalacz'};
-  el.innerHTML=all.map((af,i)=>`<div class="af-card" style="animation-delay:${i*0.05}s">
+  el.innerHTML=all.map((af,i)=>{
+    const enrolledCount=Object.keys(window.AF_STATE?.enrollments?.[af.id]||{}).length;
+    return `<div class="af-card" style="animation-delay:${i*0.05}s">
     <div class="af-card-hdr">
       <div>
         <div style="font-size:14px;font-weight:700;">${af.name}</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px;">${typeLabels[af.type]||af.type} · ${af.steps.length} kroków · ${af.clients} klientów</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">${typeLabels[af.type]||af.type} · ${af.steps.length} kroków · ${enrolledCount} klientów w trakcie</div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;">
         <span class="pill ${af.status==='active'?'pill-green':'pill-muted'}">${af.status==='active'?'Aktywny':'Nieaktywny'}</span>
@@ -996,12 +998,20 @@ function renderAutoflows(){
         <div><div style="font-size:11px;font-weight:600;">${s.type==='wait'?'Czekaj '+s.day+' dni':s.type.charAt(0).toUpperCase()+s.type.slice(1)}</div><div style="font-size:10px;color:var(--muted);">${s.text.substring(0,40)}${s.text.length>40?'…':''}</div></div>
       </div>`).join('')}
     </div>
-  </div>`).join('');
+  </div>`;}).join('');
 }
 
 function toggleAF(id){
-  const af=[...DEMO_AUTOFLOWS,...(window.AUTOFLOWS||[])].find(x=>x.id===id);
-  if(af){af.status=af.status==='active'?'inactive':'active';renderAutoflows();notify('Autoflow '+(af.status==='active'?'włączony':'wyłączony'));}
+  const af=(window.AUTOFLOWS||[]).find(x=>x.id===id);
+  if(af){
+    af.status=af.status==='active'?'inactive':'active';
+    renderAutoflows();
+    notify('Autoflow '+(af.status==='active'?'włączony':'wyłączony'));
+    if(window._db&&af._fbId){
+      window._setDoc(window._doc(window._db,'autoflows',af._fbId),{status:af.status},{merge:true}).catch(e=>console.warn('Firebase toggleAF:',e));
+    }
+    if(af.status==='active'&&typeof runAutoflowsCheck==='function')runAutoflowsCheck();
+  }
 }
 
 function addAFStep(type){
@@ -1027,13 +1037,94 @@ function saveAutoflow(){
     const typeEl=row.querySelector('[data-type]');
     steps.push({type:typeEl?typeEl.dataset.type:'wait',day:i+1,text:inp.value.trim()});
   });
-  const af={id:'af'+Date.now(),name,type:document.getElementById('af-type').value,scope:document.getElementById('af-scope').value,status:'active',clients:0,steps};
+  const af={id:'af'+Date.now(),name,type:document.getElementById('af-type').value,scope:document.getElementById('af-scope').value,status:'active',steps,createdAt:new Date().toISOString()};
   window.AUTOFLOWS.push(af);
+  if(window._db){window._add(window._col(window._db,'autoflows'),af).then(r=>{if(r&&r.id)af._fbId=r.id;}).catch(e=>console.warn('Firebase autoflow save:',e));}
   closeM('m-autoflow-builder');
   document.getElementById('af-name').value='';
   document.getElementById('af-steps').innerHTML='';
   if(autoTab==='autoflow')renderAutoflows();
   notify('✓ Autoflow "'+name+'" zapisany!');
+  if(typeof runAutoflowsCheck==='function')runAutoflowsCheck();
+}
+
+// ── SILNIK WYKONAWCZY AUTOFLOWS ──
+// Uczciwe działanie: sprawdza i wykonuje zaległe kroki przy KAŻDYM otwarciu aplikacji.
+// To nie jest prawdziwe działanie w tle 24/7 (statyczna strona bez własnego serwera nie ma
+// jak tego zrobić) — ale realnie wysyła wiadomości/zadania/formularze, gdy trener otworzy apkę.
+function runAutoflowsCheck(){
+  if(!window.AF_STATE)window.AF_STATE={enrollments:{},executed:{},lastFired:{}};
+  const state=window.AF_STATE;
+  const today=new Date();
+  const todayISO=today.toISOString().split('T')[0];
+  let changed=false;
+  (window.AUTOFLOWS||[]).filter(af=>af.status==='active').forEach(af=>{
+    if(!state.enrollments[af.id])state.enrollments[af.id]={};
+    if(!state.executed[af.id])state.executed[af.id]={};
+    if(!state.lastFired[af.id])state.lastFired[af.id]={};
+    let scopeClients=[];
+    if(af.scope==='all')scopeClients=CL;
+    else if(af.scope==='new')scopeClients=CL.filter(c=>af.createdAt&&c.joinDate&&c.joinDate>=af.createdAt.split('T')[0]);
+    // scope 'select' pomijamy — brak jeszcze interfejsu do wybierania konkretnych klientów.
+    scopeClients.forEach(c=>{
+      if(!state.enrollments[af.id][c.id]){state.enrollments[af.id][c.id]=todayISO;changed=true;}
+      const enrolledAt=new Date(state.enrollments[af.id][c.id]);
+      const daysSince=Math.floor((today-enrolledAt)/86400000);
+      if(!state.executed[af.id][c.id])state.executed[af.id][c.id]={};
+      af.steps.forEach((step,si)=>{
+        if(step.type==='wait')return;
+        if(af.type==='sequence'){
+          if(daysSince>=step.day&&!state.executed[af.id][c.id][si]){
+            execAFStep(step,c);
+            state.executed[af.id][c.id][si]=true;
+            changed=true;
+          }
+        }else if(af.type==='trigger'){
+          const inactiveDays=(typeof formatClientActivity==='function'?formatClientActivity(c.id).days:0);
+          const threshold=step.day||14;
+          if(!state.lastFired[af.id][c.id])state.lastFired[af.id][c.id]={};
+          const lastFired=state.lastFired[af.id][c.id][si];
+          const daysSinceLastFired=lastFired?Math.floor((today-new Date(lastFired))/86400000):999;
+          if(inactiveDays>=threshold&&daysSinceLastFired>=7){
+            execAFStep(step,c);
+            state.lastFired[af.id][c.id][si]=todayISO;
+            changed=true;
+          }
+        }
+      });
+    });
+  });
+  if(changed)saveAutomationState();
+}
+
+// Wykonuje jeden krok autoflow dla konkretnego klienta.
+function execAFStep(step,c){
+  const firstName=(c.name||'').split(' ')[0];
+  const text=(step.text||'').replace(/\{imie\}/g,firstName);
+  if(step.type==='message'){
+    if(typeof pushMsg==='function')pushMsg(c.id,text);
+  }else if(step.type==='task'){
+    const t={id:'af_t_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),clientId:c.id,title:text,status:'open',priority:'medium',cat:'trening',due:new Date().toISOString().split('T')[0],createdAt:new Date().toISOString()};
+    window.TASKS.push(t);
+    if(window._db)window._add(window._col(window._db,'tasks'),t).catch(e=>console.warn('Autoflow task save:',e));
+  }else if(step.type==='form'){
+    const form=(typeof allForms==='function'?allForms():[]).find(f=>f.name.toLowerCase().includes(text.toLowerCase())||text.toLowerCase().includes(f.name.toLowerCase()));
+    if(form){
+      const send={formId:form.id,clientId:c.id,sentAt:new Date().toLocaleDateString('pl'),status:'sent',answers:[]};
+      window.FORM_SENDS.push(send);
+      if(window._db)window._add(window._col(window._db,'formSends'),send).catch(e=>console.warn('Autoflow form save:',e));
+    }
+  }
+  if(typeof addNotification==='function')addNotification('system','Autoflow: krok wykonany',text.substring(0,60)+' — '+c.name,'automation');
+}
+
+function saveAutomationState(){
+  if(!window._db)return;
+  if(window._afStateDocId){
+    window._setDoc(window._doc(window._db,'automationState',window._afStateDocId),window.AF_STATE,{merge:true}).catch(e=>console.warn('AF state save:',e));
+  }else{
+    window._add(window._col(window._db,'automationState'),window.AF_STATE).then(r=>{if(r&&r.id)window._afStateDocId=r.id;}).catch(e=>console.warn('AF state save:',e));
+  }
 }
 
 function notify(msg){
