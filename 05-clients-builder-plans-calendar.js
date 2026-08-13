@@ -42,8 +42,8 @@ function quickStartWorkout(e,clientId){
   e.stopPropagation();
   goTo('live');
   setTimeout(()=>{
-    const sel=document.getElementById('live-client-sel');
-    if(sel){ sel.value=clientId; if(typeof liveLoadClient==='function')liveLoadClient(); }
+    const c=CL.find(x=>x.id===clientId);
+    if(typeof liveClientSetField==='function')liveClientSetField(clientId,c?c.name:'');
   },200);
 }
 function quickCheckin(e,clientId){
