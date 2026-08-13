@@ -1074,7 +1074,7 @@ function runAutoflowsCheck(){
       af.steps.forEach((step,si)=>{
         if(step.type==='wait')return;
         if(af.type==='sequence'){
-          if(daysSince>=step.day&&!state.executed[af.id][c.id][si]){
+          if(daysSince>=step.day-1&&!state.executed[af.id][c.id][si]){
             execAFStep(step,c);
             state.executed[af.id][c.id][si]=true;
             changed=true;
