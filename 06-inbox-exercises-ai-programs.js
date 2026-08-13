@@ -1190,7 +1190,7 @@ function renderTasks(){
       const daysLeft=t.due?Math.ceil((new Date(t.due)-new Date())/(1000*60*60*24)):null;
       html+=`<div class="task-card${isDone?' done':''}" style="animation-delay:${i*0.03}s;border-left:3px solid ${isDone?'var(--muted2)':catCol};">
         <div class="task-check${isDone?' checked':''}" onclick="toggleTask('${t.id}')">${isDone?'<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#000" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':''}</div>
-        <div class="task-body">
+        <div class="task-body" onclick="editTask('${t.id}')" style="cursor:pointer;">
           <div class="task-title${isDone?' done':''}">${t.title}</div>
           <div class="task-meta">
             ${t.cat?`<span class="pill" style="background:${catCol}22;color:${catCol};font-size:9px;">${TASK_CAT_LABELS[t.cat]||t.cat}</span>`:''}
@@ -1207,9 +1207,39 @@ function renderTasks(){
   el.innerHTML=html;
 }
 
+// Ładuje istniejące zadanie do formularza, żeby faktycznie je edytować.
+function editTask(id){
+  const t=TASKS.find(x=>x.id===id);
+  if(!t){notify('Nie znaleziono zadania');return;}
+  openM('m-task'); // resetuje formularz i _editingTaskId
+  document.getElementById('task-client').value=t.clientId||'';
+  document.getElementById('task-title').value=t.title||'';
+  const catEl=document.getElementById('task-cat');if(catEl)catEl.value=t.cat||'trening';
+  document.getElementById('task-priority').value=t.priority||'medium';
+  document.getElementById('task-due').value=t.due||'';
+  const titleEl=document.querySelector('#m-task .modal-title');
+  if(titleEl)titleEl.textContent='EDYTUJ ZADANIE';
+  const saveBtn=document.querySelector('#m-task .modal-footer .btn-primary');
+  if(saveBtn)saveBtn.textContent='Zapisz zmiany';
+  window._editingTaskId=id;
+}
+
 async function saveTask(){
   const title=document.getElementById('task-title').value.trim();if(!title){notify('Wpisz zadanie!');return;}
   const catEl=document.getElementById('task-cat');
+  const editingId=window._editingTaskId;
+  if(editingId){
+    const idx=TASKS.findIndex(x=>x.id===editingId);
+    if(idx>=0){
+      TASKS[idx]={...TASKS[idx],title,clientId:document.getElementById('task-client').value,due:document.getElementById('task-due').value,priority:document.getElementById('task-priority').value,cat:catEl?catEl.value:TASKS[idx].cat,updatedAt:new Date().toISOString()};
+      window._editingTaskId=null;
+      closeM('m-task');renderTasks();
+      if(cpClientId&&cpClientId===TASKS[idx].clientId){try{setCPTab(cpTab);}catch(e){}}
+      notify('Zadanie zaktualizowane!');
+      if(window._db){try{await window._setDoc(window._doc(window._db,'tasks',editingId),TASKS[idx],{merge:true});}catch(e){console.warn('Firebase update:',e);}}
+      return;
+    }
+  }
   const t={id:'l'+Date.now(),title,clientId:document.getElementById('task-client').value,due:document.getElementById('task-due').value,priority:document.getElementById('task-priority').value,cat:catEl?catEl.value:'trening',desc:'',status:'open',createdAt:new Date().toISOString()};
   TASKS.push(t);closeM('m-task');renderTasks();
   if(cpClientId&&cpClientId===t.clientId){try{setCPTab(cpTab);}catch(e){}}
