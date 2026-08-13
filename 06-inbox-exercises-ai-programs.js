@@ -1094,6 +1094,14 @@ function openProgDetail(id){
         </div>`).join('')}
       </div>`;
     }).join('')}`;
+  const footer=document.getElementById('prd-footer');
+  const custom=findUserProgram(id);
+  if(footer)footer.innerHTML=custom
+    ?`<button class="btn btn-primary" style="flex:1;" onclick="assignProgramToClient()">Przypisz klientowi</button>
+       <button class="btn btn-ghost" onclick="editProgram('${id}')">✏ Edytuj</button>
+       <button class="btn btn-ghost" style="color:var(--red);" onclick="delProgram('${id}')">🗑</button>`
+    :`<button class="btn btn-primary" style="flex:1;" onclick="assignProgramToClient()">Przypisz klientowi</button>
+       <button class="btn btn-ghost" onclick="closeProgDetail()">Zamknij</button>`;
   document.getElementById('prog-detail').style.transform='translateX(0)';
 }
 
@@ -1112,9 +1120,41 @@ function openAssignProg(id){
   if(!p)return;
   if(!CL.length){notify('Najpierw dodaj klienta!');return;}
   document.getElementById('m-assign-prog-title').textContent='PRZYPISZ: '+p.name.toUpperCase();
-  document.getElementById('assign-prog-client').innerHTML=CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
+  assignProgSetClientField('','');
   document.getElementById('assign-prog-date').value=new Date().toISOString().split('T')[0];
   openM('m-assign-prog');
+}
+
+// Ustawia pole klienta w oknie przypisania programu: widoczny tekst + ukryte id.
+function assignProgSetClientField(clientId,clientName){
+  const hid=document.getElementById('assign-prog-client');
+  const vis=document.getElementById('assign-prog-client-search');
+  if(hid)hid.value=clientId;
+  if(vis)vis.value=clientName;
+  const res=document.getElementById('assign-prog-client-results');
+  if(res)res.style.display='none';
+}
+
+function assignProgClientSearchInput(){
+  const q=(document.getElementById('assign-prog-client-search')?.value||'').trim().toLowerCase();
+  const res=document.getElementById('assign-prog-client-results');
+  if(!res)return;
+  let list=CL;
+  if(q)list=list.filter(c=>c.name.toLowerCase().includes(q));
+  list=list.map(c=>({c,act:typeof formatClientActivity==='function'?formatClientActivity(c.id):{label:'',color:'var(--muted)',days:0}}))
+    .sort((a,b)=>b.act.days-a.act.days)
+    .slice(0,8);
+  if(!list.length){
+    res.innerHTML='<div style="padding:12px;font-size:12px;color:var(--muted);text-align:center;">Brak wyników</div>';
+    res.style.display='block';
+    return;
+  }
+  res.innerHTML=list.map(({c,act})=>`
+    <div onclick="assignProgSetClientField('${c.id}','${c.name.replace(/'/g,"\\'")}')" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background='transparent'">
+      <span style="font-size:13px;">${c.name}</span>
+      <span style="font-size:10px;color:${act.color};font-family:'DM Mono',monospace;">${act.label||''}</span>
+    </div>`).join('');
+  res.style.display='block';
 }
 
 async function confirmAssignProgram(){
@@ -1174,9 +1214,53 @@ async function confirmAssignProgram(){
   }
 }
 
+function findUserProgram(id){
+  return (window.USER_PROGRAMS||[]).find(p=>p.id===id);
+}
+
+function editProgram(id){
+  const p=findUserProgram(id);
+  if(!p){notify('To program z biblioteki demo — nie można go edytować');return;}
+  openM('m-program'); // resetuje formularz
+  document.getElementById('pm-name').value=p.name||'';
+  document.getElementById('pm-goal').value=p.goal||'';
+  document.getElementById('pm-level').value=p.level||'';
+  document.getElementById('pm-dur').value=p.duration||'';
+  document.getElementById('pm-days').value=p.daysPerWeek||'';
+  document.getElementById('pm-equip').value=p.equip||'';
+  document.getElementById('pm-method').value=p.method||'';
+  document.getElementById('pm-desc').value=p.desc||'';
+  const titleEl=document.querySelector('#m-program .modal-title');
+  if(titleEl)titleEl.textContent='EDYTUJ PROGRAM';
+  const saveBtn=document.querySelector('#m-program .modal-footer .btn-primary');
+  if(saveBtn)saveBtn.textContent='Zapisz zmiany';
+  window._editingProgId=id;
+}
+
+async function delProgram(id){
+  const p=findUserProgram(id);
+  if(!p){notify('To program z biblioteki demo — nie można go usunąć');return;}
+  if(!confirm('Usunąć program "'+p.name+'"?'))return;
+  window.USER_PROGRAMS=(window.USER_PROGRAMS||[]).filter(x=>x.id!==id);
+  renderPrograms();
+  notify('Program usunięty');
+  if(window._db){try{await window._del(window._doc(window._db,'programs',id));}catch(e){console.warn('Firebase delProgram:',e);}}
+}
+
 async function saveUserProgram(){
   const name=document.getElementById('pm-name').value.trim();
   if(!name){notify('Wpisz nazwę programu!');return;}
+  const editingId=window._editingProgId;
+  if(editingId){
+    const idx=(window.USER_PROGRAMS||[]).findIndex(x=>x.id===editingId);
+    if(idx>=0){
+      window.USER_PROGRAMS[idx]={...window.USER_PROGRAMS[idx],name,goal:document.getElementById('pm-goal').value,level:document.getElementById('pm-level').value,duration:parseInt(document.getElementById('pm-dur').value),daysPerWeek:parseInt(document.getElementById('pm-days').value),equip:document.getElementById('pm-equip').value,method:document.getElementById('pm-method').value,desc:document.getElementById('pm-desc').value,updatedAt:new Date().toISOString()};
+      window._editingProgId=null;
+      closeM('m-program');renderPrograms();notify('Program zaktualizowany!');
+      if(window._db){try{await window._setDoc(window._doc(window._db,'programs',editingId),window.USER_PROGRAMS[idx],{merge:true});}catch(e){console.warn('Firebase update program:',e);}}
+      return;
+    }
+  }
   const p={
     id:'up'+Date.now(),type:'moje',
     name,goal:document.getElementById('pm-goal').value,
