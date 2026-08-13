@@ -859,8 +859,8 @@ function liveSelectPlanForClient(planId,clientId){
   closeClientProfile();
   goTo('live');
   setTimeout(()=>{
-    const sel=document.getElementById('live-client-sel');
-    if(sel){sel.value=clientId;liveLoadClient();}
+    const c=CL.find(x=>x.id===clientId);
+    if(typeof liveClientSetField==='function')liveClientSetField(clientId,c?c.name:'');
     setTimeout(()=>liveSelectPlan(planId),200);
   },300);
 }
