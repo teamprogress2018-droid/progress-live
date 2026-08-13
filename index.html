@@ -867,7 +867,12 @@
   <div class="modal">
     <div class="modal-hdr"><div class="modal-title" id="m-send-form-title">WYŚLIJ FORMULARZ</div><button class="modal-close" onclick="closeM('m-send-form')">×</button></div>
     <div class="modal-body">
-      <div class="form-field"><label class="form-lbl">Wybierz klienta</label><select class="form-select" id="send-form-client"></select></div>
+      <div class="form-field" style="position:relative;">
+        <label class="form-lbl">Wybierz klienta</label>
+        <input class="form-select" id="send-form-client-search" placeholder="Wpisz imię i nazwisko..." autocomplete="off" oninput="sendFormClientSearchInput()" onfocus="sendFormClientSearchInput()">
+        <input type="hidden" id="send-form-client">
+        <div id="send-form-client-results" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;background:var(--s2);border:1px solid var(--border2);border-radius:8px;margin-top:4px;max-height:220px;overflow-y:auto;box-shadow:0 8px 20px rgba(0,0,0,0.4);"></div>
+      </div>
       <div class="form-field"><label class="form-lbl">Wiadomość do klienta (opcjonalnie)</label><textarea class="form-textarea" id="send-form-msg" rows="3" placeholder="np. Proszę wypełnić formularz przed następną sesją..."></textarea></div>
       <div style="background:var(--adim);border:1px solid rgba(200,241,53,0.15);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--muted);line-height:1.6;">
         Klient otrzyma link do formularza i powiadomienie. Odpowiedzi będą widoczne w sekcji Odpowiedzi.
@@ -3527,6 +3532,7 @@ try{const s2=await getDocs(collection(db,'tasks'));window.TASKS=[];s2.forEach(d=
   }catch(e){console.warn('Wczytywanie wiadomości nie powiodło się:',e);}
   try{const s7=await getDocs(collection(db,'packages'));window.PACKAGES=[];s7.forEach(d=>window.PACKAGES.push({id:d.id,...d.data(),_fbId:d.id}));}catch(e){console.warn('Wczytywanie pakietów nie powiodło się:',e);window.PACKAGES=window.PACKAGES||[];}
   try{const s8=await getDocs(collection(db,'invoices'));window.INVOICES=[];s8.forEach(d=>window.INVOICES.push({id:d.id,...d.data()}));}catch(e){console.warn('Wczytywanie faktur nie powiodło się:',e);window.INVOICES=window.INVOICES||[];}
+  try{const s9=await getDocs(collection(db,'formSends'));window.FORM_SENDS=[];s9.forEach(d=>window.FORM_SENDS.push({id:d.id,...d.data(),_fbId:d.id}));}catch(e){console.warn('Wczytywanie wysłanych formularzy nie powiodło się:',e);window.FORM_SENDS=window.FORM_SENDS||[];}
   window.renderAll();
 }
 </script>
