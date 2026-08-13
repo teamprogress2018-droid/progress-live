@@ -938,7 +938,7 @@ function renderCPTasks(c){
       const catCol=TASK_CAT_COLORS[t.cat]||'var(--muted)';
       return `<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);">
         <div class="task-check${isDone?' checked':''}" onclick="toggleTask('${t.id}');renderCPTasks(CL.find(x=>x.id==='${c.id}'))">${isDone?'<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#000" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':''}</div>
-        <div style="flex:1;${isDone?'opacity:0.5;text-decoration:line-through;':''}">
+        <div style="flex:1;${isDone?'opacity:0.5;text-decoration:line-through;':''}cursor:pointer;" onclick="editTask('${t.id}')">
           <div style="font-size:12px;font-weight:600;">${t.title}</div>
           <div style="display:flex;gap:5px;margin-top:3px;">
             ${t.cat?`<span class="pill" style="background:${catCol}22;color:${catCol};font-size:9px;">${TASK_CAT_LABELS[t.cat]||t.cat}</span>`:''}
