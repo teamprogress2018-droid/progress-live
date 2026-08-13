@@ -801,9 +801,40 @@ var calcActivity=1.375;var calcGoalDelta=0;
 var calcMacroP=35;var calcMacroF=25;var calcMacroC=40;
 
 function initCalcClients(){
-  const sel=document.getElementById('calc-client');
-  if(!sel)return;
-  sel.innerHTML='<option value="">Oblicz ręcznie</option>'+CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
+  calcSetClientField('','');
+}
+
+// Ustawia pole klienta w kalkulatorze: widoczny tekst + ukryte id, i wczytuje jego dane.
+function calcSetClientField(clientId,clientName){
+  const hid=document.getElementById('calc-client');
+  const vis=document.getElementById('calc-client-search');
+  if(hid)hid.value=clientId;
+  if(vis)vis.value=clientName;
+  const res=document.getElementById('calc-client-results');
+  if(res)res.style.display='none';
+  calcLoadFromClient();
+}
+
+function calcClientSearchInput(){
+  const q=(document.getElementById('calc-client-search')?.value||'').trim().toLowerCase();
+  const res=document.getElementById('calc-client-results');
+  if(!res)return;
+  let list=CL;
+  if(q)list=list.filter(c=>c.name.toLowerCase().includes(q));
+  list=list.map(c=>({c,act:typeof formatClientActivity==='function'?formatClientActivity(c.id):{label:'',color:'var(--muted)',days:0}}))
+    .sort((a,b)=>b.act.days-a.act.days)
+    .slice(0,8);
+  if(!list.length){
+    res.innerHTML='<div style="padding:12px;font-size:12px;color:var(--muted);text-align:center;">Brak wyników</div>';
+    res.style.display='block';
+    return;
+  }
+  res.innerHTML=list.map(({c,act})=>`
+    <div onclick="calcSetClientField('${c.id}','${c.name.replace(/'/g,"\\'")}')" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background='transparent'">
+      <span style="font-size:13px;">${c.name}</span>
+      <span style="font-size:10px;color:${act.color};font-family:'DM Mono',monospace;">${act.label||''}</span>
+    </div>`).join('');
+  res.style.display='block';
 }
 
 function calcLoadFromClient(){
@@ -1041,11 +1072,7 @@ function calcSendToClient(){
   const proteinG=Math.round(target*(calcMacroP/100)/4);
   const fatG=Math.round(target*(calcMacroF/100)/9);
   const carbG=Math.round(target*(calcMacroC/100)/4);
-  if(!MSGS[cid])MSGS[cid]=[];
-  MSGS[cid].push({
-    text:`📊 Twoje zapotrzebowanie kaloryczne:\n\nTDEE: ${tdee} kcal\nCel: ${target} kcal\n\nMakroskładniki:\n🟢 Białko: ${proteinG}g\n🟡 Tłuszcze: ${fatG}g\n🔵 Węglowodany: ${carbG}g\n\nWoda: min. ${Math.round(weight*0.035*10)/10}l/dzień`,
-    out:true,time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'})
-  });
+  pushMsg(cid,`📊 Twoje zapotrzebowanie kaloryczne:\n\nTDEE: ${tdee} kcal\nCel: ${target} kcal\n\nMakroskładniki:\n🟢 Białko: ${proteinG}g\n🟡 Tłuszcze: ${fatG}g\n🔵 Węglowodany: ${carbG}g\n\nWoda: min. ${Math.round(weight*0.035*10)/10}l/dzień`);
   notify('✓ Wyniki wysłane do '+(c?c.name:'klienta')+' w wiadomościach!');
 }
 var cpClientId=null;var cpTab='overview';
