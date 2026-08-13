@@ -89,6 +89,15 @@ function openM(id){
     document.getElementById('as-date').value=new Date().toISOString().split('T')[0];
     document.getElementById('as-time').value='10:00';
   }
+  if(id==='m-ex'){
+    window._editingExName=null;
+    const titleEl=document.querySelector('#m-ex .modal-title');
+    if(titleEl)titleEl.textContent='NOWE ĆWICZENIE';
+    const saveBtn=document.querySelector('#m-ex .modal-footer .btn-primary');
+    if(saveBtn)saveBtn.textContent='Zapisz';
+    document.getElementById('ex-name').value='';
+    document.getElementById('ex-desc').value='';
+  }
   if(id==='m-task'){
     window._editingTaskId=null;
     const titleEl=document.querySelector('#m-task .modal-title');
