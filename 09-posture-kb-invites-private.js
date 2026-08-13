@@ -236,27 +236,13 @@ var payTab='overview';
 window.PACKAGES=[];window.INVOICES=[];
 var invoiceCounter=1000;
 
-const DEMO_PACKAGES=[
-  {id:'dp1',title:'10 sesji personalnych',type:'sessions',sessions:10,sessionsUsed:4,price:1500,validity:90,clientId:null,clientName:'Jan Kowalski',payStatus:'paid',date:'2025-03-01',expiresDate:'2025-05-30',notes:'',invoiceId:'INV-1001'},
-  {id:'dp2',title:'Miesięczny coaching online',type:'monthly',sessions:4,sessionsUsed:2,price:800,validity:30,clientId:null,clientName:'Anna Nowak',payStatus:'paid',date:'2025-04-01',expiresDate:'2025-05-01',notes:'',invoiceId:'INV-1002'},
-  {id:'dp3',title:'5 sesji — pakiet startowy',type:'sessions',sessions:5,sessionsUsed:5,price:700,validity:60,clientId:null,clientName:'Piotr Wiśniewski',payStatus:'paid',date:'2025-02-15',expiresDate:'2025-04-15',notes:'',invoiceId:'INV-1003'},
-  {id:'dp4',title:'Program 12-tygodniowy',type:'program',sessions:12,sessionsUsed:8,price:2200,validity:84,clientId:null,clientName:'Marta Kowalczyk',payStatus:'pending',date:'2025-04-10',expiresDate:'2025-07-03',notes:'Płatność ratalna',invoiceId:'INV-1004'},
-  {id:'dp5',title:'20 sesji VIP',type:'sessions',sessions:20,sessionsUsed:3,price:3500,validity:180,clientId:null,clientName:'Tomasz Mazur',payStatus:'paid',date:'2025-04-20',expiresDate:'2025-10-17',notes:'',invoiceId:'INV-1005'},
-];
-
-const DEMO_INVOICES=DEMO_PACKAGES.map((p,i)=>({
-  id:p.invoiceId,pkgId:p.id,clientName:p.clientName,
-  pkgTitle:p.title,date:p.date,amount:p.price,
-  status:p.payStatus,nr:'INV-100'+(i+1)
-}));
-
 const PAY_STATUS_PILL={paid:'pill-green',pending:'pill-orange',partial:'pill-blue',expired:'pill-red'};
 const PAY_STATUS_LABEL={paid:'Opłacony',pending:'Oczekujący',partial:'Częściowy',expired:'Wygasły'};
 const PKG_TYPE_LABEL={sessions:'Pakiet sesji',monthly:'Abonament',program:'Program',online:'Coaching online'};
 const PKG_TYPE_COLOR={sessions:'var(--accent)',monthly:'var(--blue)',program:'var(--purple)',online:'var(--teal)'};
 
-function allPackages(){return[...DEMO_PACKAGES,...(window.PACKAGES||[])];}
-function allInvoices(){return[...DEMO_INVOICES,...(window.INVOICES||[])];}
+function allPackages(){return window.PACKAGES||[];}
+function allInvoices(){return window.INVOICES||[];}
 
 function setPayTab(t){
   payTab=t;
@@ -451,7 +437,12 @@ function usePackageSession(id){
 function markPaid(id){
   const all=allPackages();
   const p=all.find(x=>x.id===id);
-  if(p){p.payStatus='paid';renderPayPackages();renderPayOverview();notify('✓ Pakiet oznaczony jako opłacony');}
+  if(p){
+    p.payStatus='paid';renderPayPackages();renderPayOverview();notify('✓ Pakiet oznaczony jako opłacony');
+    if(window._db&&p._fbId){
+      window._setDoc(window._doc(window._db,'packages',p._fbId),{payStatus:'paid'},{merge:true}).catch(e=>console.warn('Firebase markPaid:',e));
+    }
+  }
 }
 
 function viewInvoice(invId){
@@ -557,6 +548,10 @@ async function savePackage(){
   const inv={id:invId,nr:invId,pkgId:pkg.id,clientName:pkg.clientName,pkgTitle:title,date,amount:price,status:pkg.payStatus};
   window.PACKAGES.push(pkg);
   window.INVOICES.push(inv);
+  if(window._db){
+    window._add(window._col(window._db,'packages'),pkg).then(r=>{if(r&&r.id)pkg._fbId=r.id;}).catch(e=>console.warn('Firebase pkg save:',e));
+    window._add(window._col(window._db,'invoices'),inv).then(r=>{if(r&&r.id)inv._fbId=r.id;}).catch(e=>console.warn('Firebase inv save:',e));
+  }
   closeM('m-package');
   if(payTab==='overview')renderPayOverview();
   else if(payTab==='packages')renderPayPackages();
