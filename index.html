@@ -3520,6 +3520,8 @@ try{const s2=await getDocs(collection(db,'tasks'));window.TASKS=[];s2.forEach(d=
     Object.keys(grouped).forEach(cid=>grouped[cid].sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||'')));
     if(typeof MSGS!=='undefined')Object.assign(MSGS,grouped);
   }catch(e){console.warn('Wczytywanie wiadomości nie powiodło się:',e);}
+  try{const s7=await getDocs(collection(db,'packages'));window.PACKAGES=[];s7.forEach(d=>window.PACKAGES.push({id:d.id,...d.data(),_fbId:d.id}));}catch(e){console.warn('Wczytywanie pakietów nie powiodło się:',e);window.PACKAGES=window.PACKAGES||[];}
+  try{const s8=await getDocs(collection(db,'invoices'));window.INVOICES=[];s8.forEach(d=>window.INVOICES.push({id:d.id,...d.data()}));}catch(e){console.warn('Wczytywanie faktur nie powiodło się:',e);window.INVOICES=window.INVOICES||[];}
   window.renderAll();
 }
 </script>
