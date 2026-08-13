@@ -91,10 +91,16 @@ function openM(id){
     document.getElementById('as-time').value='10:00';
   }
   if(id==='m-task'){
+    window._editingTaskId=null;
+    const titleEl=document.querySelector('#m-task .modal-title');
+    if(titleEl)titleEl.textContent='NOWE ZADANIE';
+    const saveBtn=document.querySelector('#m-task .modal-footer .btn-primary');
+    if(saveBtn)saveBtn.textContent='Dodaj zadanie';
     const tc=document.getElementById('task-client');
     if(tc)tc.innerHTML=CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
     const td=document.getElementById('task-due');
     if(td&&!td.value)td.value=new Date().toISOString().split('T')[0];
+    document.getElementById('task-title').value='';
   }
   if(id==='m-metric-entry'){
     document.getElementById('me-client').innerHTML=CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
