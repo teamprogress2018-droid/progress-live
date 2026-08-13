@@ -298,8 +298,21 @@ async function savePlan(){
 function renderPlans(){
   const el=document.getElementById('plans-content');
   if(!el)return;
-  if(!PL.length){el.innerHTML='<div style="text-align:center;color:var(--muted);padding:60px;">Brak planów — utwórz pierwszy!</div>';return;}
-  el.innerHTML=PL.map((p,pi)=>{
+  const search=(document.getElementById('plans-search')||{}).value?.trim().toLowerCase()||'';
+  let list=PL.filter(p=>{
+    if(!search)return true;
+    const client=CL.find(c=>c.id===p.clientId);
+    const clientName=(client?.name||p.clientName||'').toLowerCase();
+    return clientName.includes(search)||(p.name||'').toLowerCase().includes(search);
+  });
+  // Najnowsze / ostatnio aktualizowane na górze.
+  list=list.slice().sort((a,b)=>{
+    const da=new Date(a.updatedAt||a.createdAt||0).getTime();
+    const db=new Date(b.updatedAt||b.createdAt||0).getTime();
+    return db-da;
+  });
+  if(!list.length){el.innerHTML=`<div style="text-align:center;color:var(--muted);padding:60px;">${search?'Brak planów pasujących do wyszukiwania':'Brak planów — utwórz pierwszy!'}</div>`;return;}
+  el.innerHTML=list.map((p,pi)=>{
     const client=CL.find(c=>c.id===p.clientId);
     const clientName=client?.name||p.clientName||'Bez klienta';
     const hasClient=!!client;
