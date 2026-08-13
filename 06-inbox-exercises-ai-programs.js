@@ -391,9 +391,61 @@ const DEF_EX=[
 
 
 function allExercises(){
-  const all=[...DEF_EX,...(EX||[])];
+  // Własne ćwiczenia trenera (EX) mają PIERWSZEŃSTWO nad domyślnymi (DEF_EX) o tej samej nazwie —
+  // wcześniej było odwrotnie, przez co własne ćwiczenie znikało bez ostrzeżenia.
+  const all=[...(EX||[]),...DEF_EX];
   const seen=new Set();
   return all.filter(e=>{if(seen.has(e.name))return false;seen.add(e.name);return true;});
+}
+
+// Zwraca własne (niedomyślne) ćwiczenie trenera o danej nazwie, jeśli istnieje.
+function findCustomEx(name){
+  return (EX||[]).find(e=>e.name===name);
+}
+
+function editEx(name){
+  const ex=findCustomEx(name);
+  if(!ex){notify('To ćwiczenie z domyślnej biblioteki — nie można go edytować');return;}
+  openM('m-ex'); // resetuje formularz
+  document.getElementById('ex-name').value=ex.name||'';
+  document.getElementById('ex-cat').value=ex.cat||'';
+  document.getElementById('ex-eq').value=ex.eq||'';
+  document.getElementById('ex-desc').value=ex.desc||ex.tip||'';
+  const titleEl=document.querySelector('#m-ex .modal-title');
+  if(titleEl)titleEl.textContent='EDYTUJ ĆWICZENIE';
+  const saveBtn=document.querySelector('#m-ex .modal-footer .btn-primary');
+  if(saveBtn)saveBtn.textContent='Zapisz zmiany';
+  window._editingExName=name;
+}
+
+async function delEx(name){
+  const ex=findCustomEx(name);
+  if(!ex){notify('To ćwiczenie z domyślnej biblioteki — nie można go usunąć');return;}
+  if(!confirm('Usunąć ćwiczenie "'+name+'"?'))return;
+  window.EX=(EX||[]).filter(e=>e.name!==name);
+  document.getElementById('ex-detail').style.transform='translateX(100%)';
+  renderLib();
+  notify('Ćwiczenie usunięte');
+  if(window._db&&ex.id){try{await window._del(window._doc(window._db,'exercises',ex.id));}catch(e){console.warn('Firebase delEx:',e);}}
+}
+
+async function saveEx(){
+  const name=document.getElementById('ex-name').value.trim();if(!name){notify('Wpisz nazwę!');return;}
+  const editingName=window._editingExName;
+  if(editingName){
+    const idx=(EX||[]).findIndex(e=>e.name===editingName);
+    if(idx>=0){
+      const oldId=EX[idx].id;
+      EX[idx]={...EX[idx],name,cat:document.getElementById('ex-cat').value,eq:document.getElementById('ex-eq').value,desc:document.getElementById('ex-desc').value,tip:document.getElementById('ex-desc').value};
+      window._editingExName=null;
+      closeM('m-ex');renderLib();notify('Ćwiczenie zaktualizowane!');
+      if(window._db&&oldId){try{await window._setDoc(window._doc(window._db,'exercises',oldId),EX[idx],{merge:true});}catch(e){console.warn('Firebase update ex:',e);}}
+      return;
+    }
+  }
+  const ex={id:'l'+Date.now(),name,cat:document.getElementById('ex-cat').value,eq:document.getElementById('ex-eq').value,desc:document.getElementById('ex-desc').value,tip:document.getElementById('ex-desc').value,muscle:'',nsca:'',alt:''};
+  EX.push(ex);closeM('m-ex');renderLib();notify('Ćwiczenie dodane!');
+  if(window._db){try{const r=await window._add(window._col(window._db,'exercises'),ex);if(r&&r.id)ex.id=r.id;}catch(e){console.warn('Firebase:',e);}}
 }
 
 function setExView(v){
@@ -525,6 +577,10 @@ function openExDetail(name){
       <button class="btn btn-primary btn-sm" style="flex:1;" onclick="prefillExInBuilder('${e.name.replace(/'/g,"\\'")}')">Użyj w builderze</button>
       <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="prefillExInWorkout('${e.name.replace(/'/g,"\\'")}')">Dodaj do treningu</button>
     </div>
+    ${findCustomEx(e.name)?`<div style="display:flex;gap:6px;margin-top:6px;">
+      <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="editEx('${e.name.replace(/'/g,"\\'")}')">✏ Edytuj</button>
+      <button class="btn btn-ghost btn-sm" style="flex:1;color:var(--red);" onclick="delEx('${e.name.replace(/'/g,"\\'")}')">🗑 Usuń</button>
+    </div>`:''}
     <button onclick="event.stopPropagation();(function(){window.open('https://www.youtube.com/results?search_query='+encodeURIComponent(currentExDetail+' cwiczenie technika wykonania'),'_blank');})()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;padding:10px;background:rgba(255,0,0,0.1);border:1px solid rgba(255,0,0,0.3);border-radius:8px;color:#ff4444;font-size:12px;font-weight:700;cursor:pointer;" onmouseover="this.style.background='rgba(255,0,0,0.2)'" onmouseout="this.style.background='rgba(255,0,0,0.1)'">&#9654; Zobacz na YouTube &#8212; technika</button>
     `;
   // clear AI msgs
@@ -571,13 +627,6 @@ async function askExAI(){
     document.getElementById('exd-ai-t').outerHTML='<div style="margin-bottom:5px;"><div style="display:inline-block;background:var(--s3);border:1px solid var(--border2);padding:5px 9px;border-radius:8px;font-size:11px;line-height:1.5;">'+ans.replace(/\n/g,'<br>')+'</div></div>';
   }catch(e){document.getElementById('exd-ai-t').outerHTML='<div style="margin-bottom:5px;"><div style="display:inline-block;background:var(--s3);padding:5px 9px;border-radius:8px;font-size:11px;color:var(--red);">Błąd</div></div>';}
   msgs.scrollTop=msgs.scrollHeight;
-}
-
-async function saveEx(){
-  const name=document.getElementById('ex-name').value.trim();if(!name){notify('Wpisz nazwę!');return;}
-  const ex={id:'l'+Date.now(),name,cat:document.getElementById('ex-cat').value,eq:document.getElementById('ex-eq').value,desc:document.getElementById('ex-desc').value,tip:document.getElementById('ex-desc').value,muscle:'',nsca:'',alt:''};
-  EX.push(ex);closeM('m-ex');renderLib();notify('Ćwiczenie dodane!');
-  if(window._db){try{const r=await window._add(window._col(window._db,'exercises'),ex);if(r&&r.id)ex.id=r.id;}catch(e){console.warn('Firebase:',e);}}
 }
 
 // ════════════════════════════════════════
