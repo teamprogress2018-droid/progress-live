@@ -241,7 +241,8 @@
 
 <!-- PLANS -->
 <div class="screen" id="screen-plans">
-  <div class="topbar"><div class="topbar-title">Plany treningowe</div><div class="topbar-actions"><button class="btn btn-primary btn-sm" onclick="goTo('aiplangen')">⚡ Generuj plan AI</button></div></div>
+  <div class="topbar"><div class="topbar-title">Plany treningowe</div><div class="topbar-actions"><button class="btn btn-ghost btn-sm" onclick="goTo('builder')">+ Nowy plan</button><button class="btn btn-primary btn-sm" onclick="goTo('aiplangen')">⚡ Generuj plan AI</button></div></div>
+  <div style="padding:14px 20px 0;"><input type="text" class="form-input" id="plans-search" placeholder="🔍 Szukaj po nazwisku klienta..." oninput="renderPlans()" style="max-width:340px;"></div>
   <div class="content" id="plans-content"><div style="text-align:center;color:var(--muted);padding:60px;font-size:13px;">Brak planów — utwórz pierwszy!</div></div>
 </div>
 
