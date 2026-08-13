@@ -89,6 +89,16 @@ function openM(id){
     document.getElementById('as-date').value=new Date().toISOString().split('T')[0];
     document.getElementById('as-time').value='10:00';
   }
+  if(id==='m-form'){
+    window._editingFormId=null;
+    const titleEl=document.querySelector('#m-form .modal-title');
+    if(titleEl)titleEl.textContent='NOWY FORMULARZ';
+    const saveBtn=document.querySelector('#m-form .modal-footer .btn-primary');
+    if(saveBtn)saveBtn.textContent='Zapisz formularz';
+    document.getElementById('nf-title').value='';
+    document.getElementById('nf-desc').value='';
+    document.getElementById('nf-questions').innerHTML='';
+  }
   if(id==='m-program'){
     window._editingProgId=null;
     const titleEl=document.querySelector('#m-program .modal-title');
