@@ -2237,6 +2237,20 @@ function renderSettingsContent(t){
 function toggleSetting(id){
   const toggle=document.getElementById('set-'+id+'-toggle');
   if(toggle)toggle.classList.toggle('on');
+  // Przełącz faktyczną wartość w window.SETTINGS — wcześniej przełącznik był tylko wizualny.
+  const S=window.SETTINGS;
+  const map={
+    'theme':()=>{S.brand.theme=S.brand.theme==='dark'?'light':'dark';},
+    'vat-payer':()=>{S.payments.vatPayer=!S.payments.vatPayer;},
+    'sess-reminder':()=>{S.notifications.sessionReminder=!S.notifications.sessionReminder;},
+    'inactive-alert':()=>{S.notifications.inactiveClient=!S.notifications.inactiveClient;},
+    'task-overdue':()=>{S.notifications.taskOverdue=!S.notifications.taskOverdue;},
+    'payment-alert':()=>{S.notifications.paymentAlert=!S.notifications.paymentAlert;},
+    'push-notif':()=>{S.notifications.pushNotif=!S.notifications.pushNotif;},
+    'email-digest':()=>{S.notifications.emailDigest=!S.notifications.emailDigest;},
+    'auto-invoice':()=>{S.payments.autoInvoice=!S.payments.autoInvoice;},
+  };
+  if(map[id])map[id]();
 }
 
 function setAccentColor(color){
@@ -2307,6 +2321,13 @@ function saveSettings(){
   if(nameEl)nameEl.textContent=S.profile.name;
   if(roleEl)roleEl.textContent=S.profile.title;
   notify('✓ Ustawienia zapisane!');
+  if(window._db){
+    if(window._settingsDocId){
+      window._setDoc(window._doc(window._db,'settings',window._settingsDocId),S,{merge:true}).catch(e=>console.warn('Firebase settings update:',e));
+    }else{
+      window._add(window._col(window._db,'settings'),S).then(r=>{if(r&&r.id)window._settingsDocId=r.id;}).catch(e=>console.warn('Firebase settings save:',e));
+    }
+  }
 }
 var notifPanelOpen=false;var notifTab='all';
 window.NOTIFICATIONS=[];
@@ -2336,7 +2357,7 @@ const DEMO_NOTIFS=[
   {id:'n10',type:'system',title:'Raport wygenerowany',body:'Raport dla Jana Kowalskiego · 2 strony',time:'tydzień temu',read:true,action:null},
 ];
 
-function allNotifs(){return[...DEMO_NOTIFS,...(window.NOTIFICATIONS||[])];}
+function allNotifs(){return window.NOTIFICATIONS||[];}
 function unreadCount(){return allNotifs().filter(n=>!n.read).length;}
 
 function updateNotifBadge(){
@@ -2438,6 +2459,7 @@ function addNotification(type,title,body,action=null){
     createdAt:new Date().toISOString()
   };
   window.NOTIFICATIONS.unshift(n);
+  if(window._db){window._add(window._col(window._db,'notifications'),n).then(r=>{if(r&&r.id)n._fbId=r.id;}).catch(e=>console.warn('Firebase notification save:',e));}
   updateNotifBadge();
   // flash badge
   const badge=document.getElementById('notif-badge');
