@@ -4,6 +4,18 @@ var dayCount=0;var curChat=null;var libF='Wszystkie';
 var wlNav='all';var wlView='grid';var wlSort='nazwa';var wlDetailId=null;
 
 const MSGS={};
+
+// Wspólna funkcja wysyłania wiadomości — zawsze zapisuje trwale do Firebase.
+// Używana przez WSZYSTKIE miejsca w apce, które wysyłają wiadomość do klienta
+// (czat, broadcast, przypomnienia o check-in, zaproszenia, wyniki kalkulatora itd.),
+// żeby żadna z nich nie znikała po odświeżeniu strony.
+function pushMsg(clientId,text){
+  if(!MSGS[clientId])MSGS[clientId]=[];
+  const msg={clientId,text,out:true,time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),createdAt:new Date().toISOString()};
+  MSGS[clientId].push(msg);
+  if(window._db){window._add(window._col(window._db,'messages'),msg).then(r=>{if(r&&r.id)msg._fbId=r.id;}).catch(e=>console.warn('Firebase msg save:',e));}
+  return msg;
+}
 const COLS=['#c8f135','#4d9fff','#9d7cf4','#ff8c42','#3ecfb2'];
 
 // ── DEMO TRENINGI ──
