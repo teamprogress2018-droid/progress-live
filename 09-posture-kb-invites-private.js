@@ -1182,12 +1182,7 @@ function sendInvitation() {
   const methodLabels = { wiadomosc: 'wiadomości', email: 'emaila', whatsapp: 'WhatsApp' };
 
   // Dodaj do wiadomości
-  if (!MSGS[c.id]) MSGS[c.id] = [];
-  MSGS[c.id].push({
-    text: document.getElementById('inv-msg-preview')?.textContent || '',
-    out: true,
-    time: new Date().toLocaleTimeString('pl', { hour: '2-digit', minute: '2-digit' })
-  });
+  pushMsg(c.id, document.getElementById('inv-msg-preview')?.textContent || '');
 
   // Oznacz klienta jako zaproszony
   c.inviteSent = true;
