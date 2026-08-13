@@ -9,6 +9,21 @@ const QUICK_REPLIES=['Dziękuję za informację!','Rozumiem, zajmę się tym.','
 const CLIENT_NOTES={};// clientId -> [{text, date}]
 const CLIENT_ACTIVITY={};// clientId -> [{type, text, date, icon}]
 
+// ── Prawdziwe śledzenie "nieprzeczytane" (zamiast losowego i%3) ──
+// Zapisuje, kiedy trener ostatnio otworzył rozmowę z danym klientem.
+function msgGetLastRead(clientId){
+  try{return localStorage.getItem('msg_last_read_'+clientId)||'';}catch(e){return '';}
+}
+function msgSetLastRead(clientId){
+  try{localStorage.setItem('msg_last_read_'+clientId,new Date().toISOString());}catch(e){}
+}
+// Nieprzeczytane = jest wiadomość PRZYCHODZĄCA (out:false) nowsza niż ostatnie otwarcie rozmowy.
+function msgHasUnread(clientId){
+  const msgs=MSGS[clientId]||[];
+  const lastRead=msgGetLastRead(clientId);
+  return msgs.some(m=>!m.out&&(!lastRead||(m.createdAt||'')>lastRead));
+}
+
 function initClientData(c){
   if(!CLIENT_NOTES[c.id])CLIENT_NOTES[c.id]=[
     {text:'Klient preferuje treningi rano przed 8:00',date:'14 maj, 7:36'},
@@ -33,7 +48,7 @@ function setInboxTab(t){
 function renderInbox(){
   const search=(document.getElementById('inbox-search')||{}).value||'';
   let list=CL.filter(c=>!search||c.name.toLowerCase().includes(search.toLowerCase()));
-  if(inboxTab==='unread')list=list.filter((c,i)=>i%3===0);// simulate unread
+  if(inboxTab==='unread')list=list.filter(c=>msgHasUnread(c.id));
   if(inboxTab==='groups')list=[];// groups placeholder
 
   const el=document.getElementById('msg-list');
@@ -56,7 +71,7 @@ function renderInbox(){
   el.innerHTML=list.map((c,i)=>{
     const msgs=MSGS[c.id]||[];
     const last=msgs.slice(-1)[0];
-    const unread=i%3===0&&msgs.length===0;
+    const unread=msgHasUnread(c.id);
     const time=last?last.time:'';
     const col=COLS[i%5];
     return `<div class="msg-item-enhanced${curChat===c.id?' active':''}" onclick="openChat('${c.id}')">
@@ -78,6 +93,7 @@ function openChat(id){
   const c=CL.find(x=>x.id===id);
   if(!c)return;
   if(!MSGS[id])MSGS[id]=[];
+  msgSetLastRead(id);
   initClientData(c);
   const ci=CL.indexOf(c);
   const col=COLS[ci%5];
@@ -175,9 +191,11 @@ function sendMsg(){
   const txt=inp?inp.value.trim():'';
   if(!txt||!curChat)return;
   if(!MSGS[curChat])MSGS[curChat]=[];
-  MSGS[curChat].push({text:txt,out:true,time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'})});
+  const msg={clientId:curChat,text:txt,out:true,time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),createdAt:new Date().toISOString()};
+  MSGS[curChat].push(msg);
   inp.value='';inp.style.height='auto';
   openChat(curChat);
+  if(window._db){window._add(window._col(window._db,'messages'),msg).then(r=>{if(r&&r.id)msg.id=r.id;}).catch(e=>console.warn('Firebase msg save:',e));}
 }
 
 function sendBroadcast(){
@@ -190,7 +208,9 @@ function sendBroadcast(){
   targets.forEach(c=>{
     if(!MSGS[c.id])MSGS[c.id]=[];
     const text=msg.replace(/{imie}/g,c.name.split(' ')[0]);
-    MSGS[c.id].push({text,out:true,time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'})});
+    const m={clientId:c.id,text,out:true,time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),createdAt:new Date().toISOString()};
+    MSGS[c.id].push(m);
+    if(window._db){window._add(window._col(window._db,'messages'),m).then(r=>{if(r&&r.id)m.id=r.id;}).catch(e=>console.warn('Firebase broadcast save:',e));}
   });
   closeM('m-broadcast');
   renderInbox();
