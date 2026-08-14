@@ -212,6 +212,8 @@ function addWExRow(){
 }
 
 async function saveWorkout(){
+  if(window._saveGuard_saveWorkout)return;window._saveGuard_saveWorkout=true;setTimeout(()=>window._saveGuard_saveWorkout=false,1500);
+
   const name=document.getElementById('w-name').value.trim();
   if(!name){notify('Wpisz nazwę treningu!');return;}
   const exercises=[];
