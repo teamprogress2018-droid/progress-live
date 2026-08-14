@@ -356,6 +356,8 @@ async function delForm(id){
 }
 
 async function saveCustomForm(){
+  if(window._saveGuard_saveCustomForm)return;window._saveGuard_saveCustomForm=true;setTimeout(()=>window._saveGuard_saveCustomForm=false,1500);
+
   const title=document.getElementById('nf-title').value.trim();
   if(!title){notify('Wpisz nazwę formularza!');return;}
   const questions=[];
@@ -755,6 +757,8 @@ function updateMetricEntryForm(){
 }
 
 async function saveMetricEntry(){
+  if(window._saveGuard_saveMetricEntry)return;window._saveGuard_saveMetricEntry=true;setTimeout(()=>window._saveGuard_saveMetricEntry=false,1500);
+
   const cid=document.getElementById('me-client').value;
   const gid=document.getElementById('me-group').value;
   const date=document.getElementById('me-date').value;
