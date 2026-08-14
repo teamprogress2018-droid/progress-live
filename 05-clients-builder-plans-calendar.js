@@ -315,35 +315,49 @@ function renderPlans(){
     return db-da;
   });
   if(!list.length){el.innerHTML=`<div style="text-align:center;color:var(--muted);padding:60px;">${search?'Brak planów pasujących do wyszukiwania':'Brak planów — utwórz pierwszy!'}</div>`;return;}
-  el.innerHTML=list.map((p,pi)=>{
+  el.innerHTML=`<div class="plans-grid">`+list.map((p,pi)=>{
     const client=CL.find(c=>c.id===p.clientId);
     const clientName=client?.name||p.clientName||'Bez klienta';
     const hasClient=!!client;
-    return `<div class="plan-card" style="animation-delay:${pi*0.05}s">
-      <div class="plan-card-hdr">
-        <div style="display:flex;align-items:center;gap:10px;flex:1;">
-          ${hasClient?`<div style="width:34px;height:34px;border-radius:9px;background:var(--adim);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:13px;color:var(--accent);flex-shrink:0;">${getInit(clientName)}</div>`:'<div style="width:34px;height:34px;border-radius:9px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">📋</div>'}
-          <div>
-            <div style="font-size:15px;font-weight:700;">${p.name}</div>
-            <div style="display:flex;align-items:center;gap:6px;margin-top:3px;">
-              <span style="font-size:11px;color:${hasClient?'var(--accent)':'var(--muted)'};">${hasClient?'👤 '+clientName:'Brak klienta'}</span>
-              <span style="color:var(--border2);">·</span>
-              <span style="font-size:11px;color:var(--muted);">${p.method||'—'}</span>
-              <span style="color:var(--border2);">·</span>
-              <span style="font-size:11px;color:var(--muted);">${p.duration||'?'} tyg.</span>
-            </div>
+    const dayChips=(p.days||[]).map(d=>d.rest?'💤':(d.day||d.dayName||d.muscles||d.focus||d.name||'—')).slice(0,6);
+    return `<div class="plan-card" id="plan-card-${p.id}" style="animation-delay:${pi*0.03}s;">
+      <div style="padding:16px 18px;">
+        <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
+          ${hasClient?`<div style="width:36px;height:36px;border-radius:9px;background:var(--adim);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:13px;color:var(--accent);flex-shrink:0;">${getInit(clientName)}</div>`:'<div style="width:36px;height:36px;border-radius:9px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">📋</div>'}
+          <div style="min-width:0;flex:1;">
+            <div style="font-size:15px;font-weight:700;color:var(--text);line-height:1.3;">${p.name}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:3px;">${hasClient?'👤 '+clientName:'Brak klienta'} · ⏱️ ${p.duration||'?'} tyg.</div>
           </div>
         </div>
-        <div style="display:flex;gap:6px;align-items:center;">
-          <span class="pill pill-green">${p.method||'—'}</span>
-          <button class="btn btn-ghost btn-sm" onclick="editPlan('${p.id}')">✏ Edytuj</button>
-          ${hasClient?`<button class="btn btn-ghost btn-sm" onclick="openClientProfile('${client.id}')">Profil klienta</button>`:''}
-          <button class="btn btn-danger btn-sm" onclick="delPlan('${p.id}')">Usuń</button>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
+          ${dayChips.map(d=>`<span class="plan-day-chip">${d}</span>`).join('')}
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="togglePlanExpand('${p.id}')" id="plan-toggle-${p.id}">👁️ Podgląd</button>
+          <button class="btn btn-ghost btn-sm" onclick="editPlan('${p.id}')">✏️</button>
+          ${hasClient?`<button class="btn btn-ghost btn-sm" onclick="openClientProfile('${client.id}')">👤</button>`:''}
+          <button class="btn btn-danger btn-sm" onclick="delPlan('${p.id}')">🗑️</button>
         </div>
       </div>
-      ${(p.days||[]).map(d=>`<div class="plan-day-row"><div class="plan-day-name">${d.day||d.dayName||'—'}</div>${d.rest?'<div style="color:var(--muted);font-size:12px;font-style:italic;">— Odpoczynek</div>':`<div style="flex:1;"><div style="font-size:13px;font-weight:600;">${d.muscles||d.focus||d.name||''}</div><div style="font-size:11px;color:var(--muted);margin-top:2px;">${(d.exercises||[]).slice(0,3).map(e=>typeof e==='string'?e:(e.name||e.n||'')).filter(Boolean).join(' · ')}</div></div>`}</div>`).join('')}
+      <div id="plan-detail-${p.id}" style="display:none;border-top:1px solid var(--border);padding:14px 18px;background:rgba(0,0,0,0.15);">
+        ${(p.days||[]).map(d=>`<div class="plan-day-row" style="padding:9px 0;">
+          <div class="plan-day-name">${d.day||d.dayName||'—'}</div>
+          ${d.rest?'<div style="color:var(--muted);font-size:12px;font-style:italic;">— Odpoczynek</div>':`<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;color:var(--text);">${d.muscles||d.focus||d.name||''}</div><div style="font-size:11px;color:var(--muted);margin-top:2px;line-height:1.5;">${(d.exercises||[]).map(e=>typeof e==='string'?e:(e.name||e.n||'')).filter(Boolean).join(' · ')}</div></div>`}
+        </div>`).join('')}
+      </div>
     </div>`;
-  }).join('');
+  }).join('')+`</div>`;
+}
+
+// Rozwija/zwija szczegóły ćwiczeń w karcie planu — na liście widać tylko nagłówek + tagi dni,
+// pełne ćwiczenia pokazują się dopiero po kliknięciu "Podgląd".
+function togglePlanExpand(id){
+  const detail=document.getElementById('plan-detail-'+id);
+  const btn=document.getElementById('plan-toggle-'+id);
+  if(!detail)return;
+  const isOpen=detail.style.display==='block';
+  detail.style.display=isOpen?'none':'block';
+  if(btn)btn.textContent=isOpen?'👁️ Podgląd':'👁️ Ukryj';
 }
 async function delPlan(id){
   if(!id){notify('Błąd: brak ID planu');return;}
