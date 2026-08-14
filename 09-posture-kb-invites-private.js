@@ -602,7 +602,7 @@ function setODTab(t){
 }
 
 function renderODBrowse(){
-  const allW=[...OD_DEMO_WORKOUTS,...(window.OD_WORKOUTS||[])];
+  const allW=(window.OD_WORKOUTS||[]);
   // stats
   const sc=document.getElementById('od-stat-clients');if(sc)sc.textContent=CL.length;
   const sw=document.getElementById('od-stat-workouts');if(sw)sw.textContent=allW.length;
@@ -627,7 +627,7 @@ function renderODBrowse(){
 }
 
 function renderODWorkouts(){
-  const allW=[...OD_DEMO_WORKOUTS,...(window.OD_WORKOUTS||[])];
+  const allW=(window.OD_WORKOUTS||[]);
   // filters
   const fEl=document.getElementById('od-workout-filters');
   if(fEl){
@@ -702,7 +702,7 @@ function odProgramCardHTML(p,i){
 
 function shareODWorkout(id){
   if(!CL.length){notify('Najpierw dodaj klienta!');return;}
-  const w=[...OD_DEMO_WORKOUTS,...(window.OD_WORKOUTS||[])].find(x=>x.id===id);
+  const w=(window.OD_WORKOUTS||[]).find(x=>x.id===id);
   notify('✓ Trening "'+(w?w.name:id)+'" udostępniony wszystkim klientom!');
 }
 
@@ -726,6 +726,7 @@ async function saveODWorkout(){
     color:'var(--s3)',emoji:'🏋️',views:0,likes:0
   };
   window.OD_WORKOUTS.push(w);
+  if(window._db){window._add(window._col(window._db,'odWorkouts'),w).then(r=>{if(r&&r.id)w._fbId=r.id;}).catch(e=>console.warn('Firebase OD workout save:',e));}
   closeM('m-od-workout');
   if(odTab==='browse')renderODBrowse();
   else if(odTab==='workouts')renderODWorkouts();
