@@ -763,7 +763,7 @@ const DEMO_COLLECTIONS=[
   {id:'podcasts',name:'Podcasty fitness',icon:'🎧',desc:'Najlepsze podcasty o treningu, żywieniu i psychologii sportu',count:6,color:'var(--purple)',clients:0},
 ];
 
-function allResources(){return[...DEMO_RESOURCES,...(window.USER_RESOURCES||[])];}
+function allResources(){return window.USER_RESOURCES||[];}
 
 function setResTab(t){
   resTab=t;
@@ -878,11 +878,58 @@ function shareCollection(id){
   notify('✓ Kolekcja "'+(c?c.name:id)+'" udostępniona wszystkim klientom');
 }
 
+var sendResourceId=null;
+
 function sendResourceToClient(id){
-  const r=allResources().find(x=>x.id===id);
-  if(!r)return;
+  sendResourceId=id;
+  const r=allResources().find(x=>x.id===id);if(!r)return;
   if(!CL.length){notify('Najpierw dodaj klienta!');return;}
-  notify('✓ Zasób "'+r.name+'" wysłany do klienta');
+  document.getElementById('m-send-resource-title').textContent='WYŚLIJ: '+r.name.toUpperCase();
+  sendResourceSetClientField('','');
+  openM('m-send-resource');
+}
+
+function sendResourceSetClientField(clientId,clientName){
+  const hid=document.getElementById('send-resource-client');
+  const vis=document.getElementById('send-resource-client-search');
+  if(hid)hid.value=clientId;
+  if(vis)vis.value=clientName;
+  const res=document.getElementById('send-resource-client-results');
+  if(res)res.style.display='none';
+}
+
+function sendResourceClientSearchInput(){
+  const q=(document.getElementById('send-resource-client-search')?.value||'').trim().toLowerCase();
+  const res=document.getElementById('send-resource-client-results');
+  if(!res)return;
+  let list=CL;
+  if(q)list=list.filter(c=>c.name.toLowerCase().includes(q));
+  list=list.map(c=>({c,act:typeof formatClientActivity==='function'?formatClientActivity(c.id):{label:'',color:'var(--muted)',days:0}}))
+    .sort((a,b)=>b.act.days-a.act.days)
+    .slice(0,8);
+  if(!list.length){
+    res.innerHTML='<div style="padding:12px;font-size:12px;color:var(--muted);text-align:center;">Brak wyników</div>';
+    res.style.display='block';
+    return;
+  }
+  res.innerHTML=list.map(({c,act})=>`
+    <div onclick="sendResourceSetClientField('${c.id}','${c.name.replace(/'/g,"\\'")}')" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background='transparent'">
+      <span style="font-size:13px;">${c.name}</span>
+      <span style="font-size:10px;color:${act.color};font-family:'DM Mono',monospace;">${act.label||''}</span>
+    </div>`).join('');
+  res.style.display='block';
+}
+
+function confirmSendResource(){
+  if(!sendResourceId)return;
+  const cid=document.getElementById('send-resource-client').value;
+  if(!cid){notify('Wybierz klienta!');return;}
+  const c=CL.find(x=>x.id===cid);
+  const r=allResources().find(x=>x.id===sendResourceId);
+  if(!r||!c)return;
+  pushMsg(cid,`📚 Polecam Ci ten materiał: ${r.name}\n\n${r.desc||''}\n\n${r.url||''}`);
+  closeM('m-send-resource');
+  notify('✓ Zasób "'+r.name+'" wysłany do '+c.name);
 }
 
 async function saveResource(){
@@ -899,6 +946,7 @@ async function saveResource(){
     createdAt:new Date().toISOString()
   };
   window.USER_RESOURCES.push(r);
+  if(window._db){window._add(window._col(window._db,'resources'),r).then(res=>{if(res&&res.id)r._fbId=res.id;}).catch(e=>console.warn('Firebase resource save:',e));}
   closeM('m-resource');
   renderResources();
   notify('✓ Zasób "'+name+'" dodany!');
