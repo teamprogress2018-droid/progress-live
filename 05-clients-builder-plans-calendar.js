@@ -704,12 +704,31 @@ function openSessDetail(id){
 function editSession(id){
   const s=SE.find(x=>x.id===id);if(!s)return;
   const c=CL.find(x=>x.id===s.clientId);
+  openM('m-session'); // resetuje formularz (w tym ukrywa sekcję zarejestrowanych ćwiczeń)
   asSetClientField(s.clientId||'',c?c.name:'');
   document.getElementById('as-date').value=s.date;
   document.getElementById('as-time').value=s.time||'';
   document.getElementById('as-type').value=s.type||'';
   document.getElementById('as-notes').value=s.notes||'';
-  openM('m-session');
+  renderRecordedExercises(s);
+}
+
+// Pokazuje zarejestrowane ćwiczenia (ciężary/powtórzenia) z sesji Trening Live, jeśli są dostępne.
+// Wcześniej te dane były zapisywane, ale nigdzie nie były pokazywane trenerowi z powrotem.
+function renderRecordedExercises(s){
+  const wrap=document.getElementById('as-recorded-exercises');
+  const list=document.getElementById('as-recorded-exercises-list');
+  if(!wrap||!list)return;
+  const hasDetailedSets=(s.exercises||[]).some(e=>Array.isArray(e.sets)&&e.sets.length&&typeof e.sets[0]==='object');
+  if(!hasDetailedSets){wrap.style.display='none';list.innerHTML='';return;}
+  list.innerHTML=s.exercises.map(e=>{
+    const setsText=(e.sets||[]).map(st=>`${st.kg||0}kg × ${st.reps||0}`).join(' · ');
+    return `<div style="background:var(--s3);border-radius:8px;padding:8px 10px;">
+      <div style="font-size:12px;font-weight:600;margin-bottom:3px;">${e.name}</div>
+      <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;">${setsText||'brak zarejestrowanych serii'}</div>
+    </div>`;
+  }).join('')+(s.volume?`<div style="font-size:11px;color:var(--accent);text-align:right;font-family:'DM Mono',monospace;padding-top:2px;">Łączna objętość: ${s.volume} kg</div>`:'');
+  wrap.style.display='block';
 }
 
 // Ustawia pole klienta w oknie sesji: widoczny tekst wyszukiwania + ukryte id.
