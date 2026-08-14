@@ -882,6 +882,21 @@
   </div>
 </div>
 
+<div class="modal-ov" id="m-send-resource">
+  <div class="modal">
+    <div class="modal-hdr"><div class="modal-title" id="m-send-resource-title">WYŚLIJ ZASÓB</div><button class="modal-close" onclick="closeM('m-send-resource')">×</button></div>
+    <div class="modal-body">
+      <div class="form-field" style="position:relative;">
+        <label class="form-lbl">Wybierz klienta</label>
+        <input class="form-select" id="send-resource-client-search" placeholder="Wpisz imię i nazwisko..." autocomplete="off" oninput="sendResourceClientSearchInput()" onfocus="sendResourceClientSearchInput()">
+        <input type="hidden" id="send-resource-client">
+        <div id="send-resource-client-results" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;background:var(--s2);border:1px solid var(--border2);border-radius:8px;margin-top:4px;max-height:220px;overflow-y:auto;box-shadow:0 8px 20px rgba(0,0,0,0.4);"></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-send-resource')">Anuluj</button><button class="btn btn-primary" onclick="confirmSendResource()">Wyślij zasób</button></div>
+  </div>
+</div>
+
 <!-- FORM BUILDER MODAL -->
 <div class="modal-ov" id="m-form">
   <div class="modal modal-wide">
@@ -3590,6 +3605,18 @@ try{const s2=await getDocs(collection(db,'tasks'));window.TASKS=[];s2.forEach(d=
       }
     }
   }catch(e){console.warn('Wczytywanie treningów on-demand nie powiodło się:',e);window.OD_WORKOUTS=window.OD_WORKOUTS||[];}
+  try{
+    const sRes=await getDocs(collection(db,'resources'));
+    window.USER_RESOURCES=[];sRes.forEach(d=>window.USER_RESOURCES.push({id:d.id,...d.data(),_fbId:d.id}));
+    if(!window.USER_RESOURCES.length&&typeof DEMO_RESOURCES!=='undefined'){
+      // Pierwsze uruchomienie: zamień bibliotekę edukacyjną w prawdziwą, edytowalną zawartość.
+      for(const r of DEMO_RESOURCES){
+        const copy={...r};
+        window.USER_RESOURCES.push(copy);
+        try{const rr=await addDoc(collection(db,'resources'),copy);copy._fbId=rr.id;}catch(e){}
+      }
+    }
+  }catch(e){console.warn('Wczytywanie zasobów nie powiodło się:',e);window.USER_RESOURCES=window.USER_RESOURCES||[];}
   window.AF_STATE=window.AF_STATE||{enrollments:{},executed:{},lastFired:{}};
   try{if(typeof runAutoflowsCheck==='function')runAutoflowsCheck();}catch(e){console.warn('runAutoflowsCheck:',e);}
   window.renderAll();
