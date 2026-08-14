@@ -524,6 +524,8 @@ function renderPayHistory(){
 }
 
 async function savePackage(){
+  if(window._saveGuard_savePackage)return;window._saveGuard_savePackage=true;setTimeout(()=>window._saveGuard_savePackage=false,1500);
+
   const title=document.getElementById('pkg-title').value.trim();
   if(!title){notify('Wpisz nazwę pakietu!');return;}
   const cid=document.getElementById('pkg-client').value;
@@ -713,6 +715,8 @@ function shareODProgram(id){
 }
 
 async function saveODWorkout(){
+  if(window._saveGuard_saveODWorkout)return;window._saveGuard_saveODWorkout=true;setTimeout(()=>window._saveGuard_saveODWorkout=false,1500);
+
   const name=document.getElementById('odw-name').value.trim();
   if(!name){notify('Wpisz nazwę treningu!');return;}
   const w={
@@ -933,6 +937,8 @@ function confirmSendResource(){
 }
 
 async function saveResource(){
+  if(window._saveGuard_saveResource)return;window._saveGuard_saveResource=true;setTimeout(()=>window._saveGuard_saveResource=false,1500);
+
   const name=document.getElementById('rs-name').value.trim();
   if(!name){notify('Wpisz nazwę zasobu!');return;}
   const r={
@@ -1204,6 +1210,8 @@ function renderKB(){
 }
 
 async function saveKBEntry(){
+  if(window._saveGuard_saveKBEntry)return;window._saveGuard_saveKBEntry=true;setTimeout(()=>window._saveGuard_saveKBEntry=false,1500);
+
   const title = document.getElementById('kb-title').value.trim();
   const text = document.getElementById('kb-text').value.trim();
   if(!title || !text){notify('Wpisz tytuł i treść!'); return;}
