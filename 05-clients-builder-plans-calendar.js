@@ -298,6 +298,9 @@ async function savePlan(){
 // ════════════════════════════════════════
 // PLANS
 // ════════════════════════════════════════
+// Kolor akcentu karty wg metody treningowej — ten sam wzorzec co w Zasobach i Bibliotece ćwiczeń.
+const PLAN_METHOD_COLORS={PPL:'var(--accent)',FBW:'var(--teal)',UL:'var(--blue)','531':'var(--purple)',HIIT:'var(--red)',GZCLP:'var(--orange)'};
+
 function renderPlans(){
   const el=document.getElementById('plans-content');
   if(!el)return;
@@ -320,7 +323,9 @@ function renderPlans(){
     const clientName=client?.name||p.clientName||'Bez klienta';
     const hasClient=!!client;
     const dayChips=(p.days||[]).map(d=>d.rest?'💤':(d.day||d.dayName||d.muscles||d.focus||d.name||'—')).slice(0,6);
+    const accentCol=PLAN_METHOD_COLORS[p.method]||'var(--muted)';
     return `<div class="plan-card" id="plan-card-${p.id}" style="animation-delay:${pi*0.03}s;">
+      <div class="plan-card-accent" style="background:${accentCol};"></div>
       <div style="padding:16px 18px;">
         <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
           ${hasClient?`<div style="width:36px;height:36px;border-radius:9px;background:var(--adim);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:13px;color:var(--accent);flex-shrink:0;">${getInit(clientName)}</div>`:'<div style="width:36px;height:36px;border-radius:9px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">📋</div>'}
