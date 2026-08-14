@@ -133,14 +133,14 @@
     <!-- KPI ROW — 4 kafelki bez przychodów -->
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;" id="d-kpi-row">
       <div class="dash-kpi-card">
-        <div class="dash-kpi-icon" style="background:rgba(200,241,53,0.12);color:var(--accent);">👥</div>
+        <div class="dash-kpi-icon" style="background:var(--adim);color:var(--accent);">👥</div>
         <div class="dash-kpi-val" id="d-clients">0</div>
         <div class="dash-kpi-lbl">Aktywnych klientów</div>
         <div class="dash-kpi-trend" id="d-clients-trend"></div>
       </div>
       <div class="dash-kpi-card">
-        <div class="dash-kpi-icon" style="background:rgba(77,159,255,0.12);color:var(--blue);">📅</div>
-        <div class="dash-kpi-val" style="color:var(--blue);" id="d-sessions">0</div>
+        <div class="dash-kpi-icon" style="background:rgba(62,207,178,0.12);color:var(--teal);">📅</div>
+        <div class="dash-kpi-val" style="color:var(--teal);" id="d-sessions">0</div>
         <div class="dash-kpi-lbl">Sesji w tym tygodniu</div>
         <div class="dash-kpi-trend" id="d-sessions-trend"></div>
       </div>
@@ -158,22 +158,30 @@
       </div>
     </div>
 
-    <!-- DZIŚ I JUTRO -->
-    <div class="card" style="margin-bottom:20px;padding:20px 24px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-        <div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1.5px;">DZIŚ I JUTRO</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:2px;" id="d-date-lbl"></div>
+    <!-- DZIŚ I JUTRO + DO ZROBIENIA — obok siebie, żeby trener od razu widział oba na pierwszy rzut oka -->
+    <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:16px;margin-bottom:20px;align-items:start;">
+      <div class="card" style="padding:20px 24px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1.5px;">DZIŚ I JUTRO</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px;" id="d-date-lbl"></div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="goTo('calendar')">Pełny kalendarz →</button>
         </div>
-        <button class="btn btn-ghost btn-sm" onclick="goTo('calendar')">Pełny kalendarz →</button>
+        <div id="d-today-sessions"></div>
       </div>
-      <div id="d-today-sessions"></div>
+
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;">DO ZROBIENIA</div>
+          <button class="btn btn-ghost btn-sm" onclick="openM('m-task')">+ Dodaj</button>
+        </div>
+        <div id="d-tasks-widget"></div>
+      </div>
     </div>
 
-    <!-- DOLNY ROW: Kalendarz + Zadania -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-
-      <!-- Mini kalendarz miesięczny -->
+    <!-- Mini kalendarz miesięczny -->
+    <div style="display:grid;grid-template-columns:1fr;gap:16px;margin-bottom:20px;">
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
           <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;" id="d-cal-title">Maj 2026</div>
@@ -189,16 +197,6 @@
           <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);"><div style="width:8px;height:8px;border-radius:50%;background:var(--accent);"></div>Dziś</div>
         </div>
       </div>
-
-      <!-- Zadania -->
-      <div class="card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;">DO ZROBIENIA</div>
-          <button class="btn btn-ghost btn-sm" onclick="openM('m-task')">+ Dodaj</button>
-        </div>
-        <div id="d-tasks-widget"></div>
-      </div>
-
     </div>
 
     <!-- hidden elements for private mode / compat -->
@@ -233,7 +231,7 @@
         <span class="nav-badge" id="clients-segment-count">0</span>
         <span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-left:auto;">↑ Posortowano: kto wymaga uwagi najpierw</span>
       </div>
-      <div class="tbl-hdr" style="grid-template-columns:2fr 120px 120px 100px 130px 80px;"><span>Klient</span><span>Ostatnia aktywność</span><span>Cel</span><span>Status</span><span>Szybkie akcje</span><span></span></div>
+      <div class="tbl-hdr" style="grid-template-columns:2fr 120px 120px 100px 150px;"><span>Klient</span><span>Ostatnia aktywność</span><span>Cel</span><span>Status</span><span style="text-align:right;">Szybkie akcje</span></div>
       <div id="clients-tbl"></div>
     </div>
   </div>
