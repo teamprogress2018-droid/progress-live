@@ -98,6 +98,8 @@ function openM(id){
   if(id==='m-session'){
     document.getElementById('as-date').value=new Date().toISOString().split('T')[0];
     document.getElementById('as-time').value='10:00';
+    const rec=document.getElementById('as-recorded-exercises');
+    if(rec)rec.style.display='none';
   }
   if(id==='m-form'){
     window._editingFormId=null;
