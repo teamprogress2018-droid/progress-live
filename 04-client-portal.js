@@ -3476,7 +3476,7 @@ function renderDashToday(){
     const clCol=SESS_COLORS[(ci>=0?ci:i)%6];
     const av=c?(c.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase()):'?';
     const tl=timeLabel(s);
-    return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.1s;" onclick="editSession('${s.id}')" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background=''">
+    return `<div style="display:flex;align-items:center;gap:12px;padding:16px 4px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.1s;" onclick="editSession('${s.id}')" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background=''">
       <div style="width:3px;height:44px;background:${clCol};border-radius:99px;flex-shrink:0;"></div>
       <div style="width:36px;height:36px;border-radius:50%;background:${clCol}22;color:${clCol};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:13px;flex-shrink:0;">${av}</div>
       <div style="flex:1;min-width:0;">
@@ -3484,7 +3484,7 @@ function renderDashToday(){
         <div style="font-size:11px;color:var(--muted);">${s.type||'Trening personalny'} · ${s.duration||60} min</div>
       </div>
       ${tl?`<div style="font-size:11px;font-weight:600;color:${tl.col};background:${tl.col}18;padding:3px 10px;border-radius:99px;white-space:nowrap;">${tl.txt}</div>`:''}
-      <button onclick="event.stopPropagation();editSession('${s.id}')" class="btn btn-ghost btn-sm" style="font-size:11px;padding:4px 10px;flex-shrink:0;">Szczegóły</button>
+      <button onclick="event.stopPropagation();editSession('${s.id}')" class="btn btn-ghost btn-sm" style="font-size:12px;padding:8px 16px;flex-shrink:0;">Szczegóły</button>
     </div>`;
   }
 
