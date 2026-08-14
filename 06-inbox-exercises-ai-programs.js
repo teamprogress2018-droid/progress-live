@@ -195,7 +195,7 @@ function sendMsg(){
   MSGS[curChat].push(msg);
   inp.value='';inp.style.height='auto';
   openChat(curChat);
-  if(window._db){window._add(window._col(window._db,'messages'),msg).then(r=>{if(r&&r.id)msg.id=r.id;}).catch(e=>console.warn('Firebase msg save:',e));}
+  if(window._db){window._add(window._col(window._db,'messages'),msg).then(r=>{if(r&&r.id)msg._fbId=r.id;}).catch(e=>console.warn('Firebase msg save:',e));}
 }
 
 function sendBroadcast(){
@@ -210,7 +210,7 @@ function sendBroadcast(){
     const text=msg.replace(/{imie}/g,c.name.split(' ')[0]);
     const m={clientId:c.id,text,out:true,time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),createdAt:new Date().toISOString()};
     MSGS[c.id].push(m);
-    if(window._db){window._add(window._col(window._db,'messages'),m).then(r=>{if(r&&r.id)m.id=r.id;}).catch(e=>console.warn('Firebase broadcast save:',e));}
+    if(window._db){window._add(window._col(window._db,'messages'),m).then(r=>{if(r&&r.id)m._fbId=r.id;}).catch(e=>console.warn('Firebase broadcast save:',e));}
   });
   closeM('m-broadcast');
   renderInbox();
@@ -430,6 +430,8 @@ async function delEx(name){
 }
 
 async function saveEx(){
+  if(window._saveGuard_saveEx)return;window._saveGuard_saveEx=true;setTimeout(()=>window._saveGuard_saveEx=false,1500);
+
   const name=document.getElementById('ex-name').value.trim();if(!name){notify('Wpisz nazwę!');return;}
   const editingName=window._editingExName;
   if(editingName){
@@ -445,7 +447,7 @@ async function saveEx(){
   }
   const ex={id:'l'+Date.now(),name,cat:document.getElementById('ex-cat').value,eq:document.getElementById('ex-eq').value,desc:document.getElementById('ex-desc').value,tip:document.getElementById('ex-desc').value,muscle:'',nsca:'',alt:''};
   EX.push(ex);closeM('m-ex');renderLib();notify('Ćwiczenie dodane!');
-  if(window._db){try{const r=await window._add(window._col(window._db,'exercises'),ex);if(r&&r.id)ex.id=r.id;}catch(e){console.warn('Firebase:',e);}}
+  if(window._db){try{const r=await window._add(window._col(window._db,'exercises'),ex);if(r&&r.id)ex._fbId=r.id;}catch(e){console.warn('Firebase:',e);}}
 }
 
 function setExView(v){
@@ -1198,7 +1200,7 @@ async function confirmAssignProgram(){
   if(window._db){
     try{
       const r=await window._add(window._col(window._db,'plans'),newPlan);
-      if(r&&r.id)newPlan.id=r.id;
+      if(r&&r.id)newPlan._fbId=r.id;
     }catch(e){console.warn('Firebase plan save:',e);}
   }
 
@@ -1248,6 +1250,8 @@ async function delProgram(id){
 }
 
 async function saveUserProgram(){
+  if(window._saveGuard_saveUserProgram)return;window._saveGuard_saveUserProgram=true;setTimeout(()=>window._saveGuard_saveUserProgram=false,1500);
+
   const name=document.getElementById('pm-name').value.trim();
   if(!name){notify('Wpisz nazwę programu!');return;}
   const editingId=window._editingProgId;
@@ -1412,6 +1416,8 @@ function editTask(id){
 }
 
 async function saveTask(){
+  if(window._saveGuard_saveTask)return;window._saveGuard_saveTask=true;setTimeout(()=>window._saveGuard_saveTask=false,1500);
+
   const title=document.getElementById('task-title').value.trim();if(!title){notify('Wpisz zadanie!');return;}
   const catEl=document.getElementById('task-cat');
   const editingId=window._editingTaskId;
@@ -1431,7 +1437,7 @@ async function saveTask(){
   TASKS.push(t);closeM('m-task');renderTasks();
   if(cpClientId&&cpClientId===t.clientId){try{setCPTab(cpTab);}catch(e){}}
   notify('Zadanie dodane!');
-  if(window._db){try{const r=await window._add(window._col(window._db,'tasks'),t);if(r&&r.id)t.id=r.id;}catch(e){console.warn('Firebase:',e);}}
+  if(window._db){try{const r=await window._add(window._col(window._db,'tasks'),t);if(r&&r.id)t._fbId=r.id;}catch(e){console.warn('Firebase:',e);}}
 }
 function toggleTask(id){const t=TASKS.find(x=>x.id===id);if(t)t.status=t.status==='done'?'open':'done';renderTasks();}
 function delTask(id){window.TASKS=TASKS.filter(t=>t.id!==id);renderTasks();}
