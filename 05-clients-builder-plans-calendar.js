@@ -106,6 +106,8 @@ function renderClients(){
 }
 
 async function saveClient(){
+  if(window._saveGuard_saveClient)return;window._saveGuard_saveClient=true;setTimeout(()=>window._saveGuard_saveClient=false,1500);
+
   const name=document.getElementById('ac-name').value.trim();
   if(!name){notify('Wpisz imię!');return;}
   const c={
@@ -138,7 +140,7 @@ async function saveClient(){
   if(window._db){
     try{
       const r=await window._add(window._col(window._db,'clients'),c);
-      if(r&&r.id)c.id=r.id;
+      if(r&&r.id)c._fbId=r.id;
     }catch(e){console.warn('Firebase save failed (offline?):', e);}
   }
 }
@@ -262,6 +264,8 @@ function editPlan(id){
 }
 
 async function savePlan(){
+  if(window._saveGuard_savePlan)return;window._saveGuard_savePlan=true;setTimeout(()=>window._saveGuard_savePlan=false,1500);
+
   const name=document.getElementById('b-name').value.trim();
   if(!name){notify('Wpisz nazwę planu!');return;}
   const cid=document.getElementById('b-client').value;
@@ -289,7 +293,7 @@ async function savePlan(){
   }
   const plan={id:'l'+Date.now(),name,method:document.getElementById('b-method').value,duration:document.getElementById('b-duration').value,clientId:cid,clientName:c?c.name:'',level:c?c.level:'sredni',goal:c?c.goal:'masa',days,createdAt:new Date().toISOString()};
   PL.push(plan);goTo('plans');notify('Plan zapisany!');
-  if(window._db){try{const r=await window._add(window._col(window._db,'plans'),plan);if(r&&r.id)plan.id=r.id;}catch(e){console.warn('Firebase:',e);}}
+  if(window._db){try{const r=await window._add(window._col(window._db,'plans'),plan);if(r&&r.id)plan._fbId=r.id;}catch(e){console.warn('Firebase:',e);}}
 }
 
 // ════════════════════════════════════════
@@ -796,6 +800,8 @@ function delSession(id){
   notify('Sesja usunięta');
 }
 async function saveSess(){
+  if(window._saveGuard_saveSess)return;window._saveGuard_saveSess=true;setTimeout(()=>window._saveGuard_saveSess=false,1500);
+
   const cid=document.getElementById('as-client').value;
   const date=document.getElementById('as-date').value;
   const time=document.getElementById('as-time').value;
@@ -811,6 +817,6 @@ async function saveSess(){
   // odśwież profil klienta jeśli otwarty
   if(cpClientId&&cpClientId===cid){try{setCPTab(cpTab);}catch(e){}}
   notify('Sesja dodana!');
-  if(window._db){try{const r=await window._add(window._col(window._db,'sessions'),sess);if(r&&r.id)sess.id=r.id;}catch(e){console.warn('Firebase:',e);}}
+  if(window._db){try{const r=await window._add(window._col(window._db,'sessions'),sess);if(r&&r.id)sess._fbId=r.id;}catch(e){console.warn('Firebase:',e);}}
 }
 
