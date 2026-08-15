@@ -806,6 +806,31 @@ var calcMacroP=35;var calcMacroF=25;var calcMacroC=40;
 
 function initCalcClients(){
   calcSetClientField('','');
+  calcShowWelcome();
+}
+
+// Ekran powitalny kalkulatora — ten sam styl co w Generatorze AI: duża ikona,
+// tytuł, opis i siatka kart pokazujących, co warto uzupełnić przed obliczeniem.
+function calcShowWelcome(){
+  const el=document.getElementById('calc-results');
+  if(!el)return;
+  el.innerHTML=`
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:400px;text-align:center;padding:40px;">
+      <div style="font-size:56px;margin-bottom:20px;">🧮</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:2px;margin-bottom:10px;">KALKULATOR TDEE I MAKRO</div>
+      <div style="font-size:13px;color:var(--muted);max-width:440px;line-height:1.8;margin-bottom:28px;">Wypełnij dane po lewej stronie i kliknij <strong style="color:var(--accent);">Oblicz</strong>. Kalkulator wyznaczy zapotrzebowanie kaloryczne, podział makroskładników i przykładowy rozkład na posiłki.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;max-width:500px;">
+        ${[
+          {icon:'👤',txt:'Płeć, wiek, waga, wzrost'},
+          {icon:'🏃',txt:'Poziom aktywności'},
+          {icon:'🎯',txt:'Cel klienta'},
+          {icon:'⚖️',txt:'Podział makroskładników'},
+          {icon:'🍽️',txt:'Liczba posiłków'},
+          {icon:'📤',txt:'Opcjonalnie: wyślij klientowi'},
+        ].map(i=>`<div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:11px;color:var(--muted);"><div style="font-size:20px;margin-bottom:5px;">${i.icon}</div>${i.txt}</div>`).join('')}
+      </div>
+      <button class="btn btn-primary" style="margin-top:28px;padding:12px 32px;" onclick="calcTDEE()">🧮 Oblicz teraz</button>
+    </div>`;
 }
 
 // Ustawia pole klienta w kalkulatorze: widoczny tekst + ukryte id, i wczytuje jego dane.
