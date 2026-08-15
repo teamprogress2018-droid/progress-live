@@ -736,12 +736,14 @@ async function saveODWorkout(){
   else if(odTab==='workouts')renderODWorkouts();
   notify('✓ Trening "'+name+'" dodany!');
 }
-var resTab='resources';var resNav='all';
+var resTab='resources';var resNav='all';var resColl='all';
 window.USER_RESOURCES=[];
 
 const RES_TYPE_COLORS={link:'var(--blue)',video:'var(--red)',doc:'var(--orange)',podcast:'var(--purple)'};
 const RES_TYPE_ICONS={link:'🔗',video:'▶️',doc:'📄',podcast:'🎧'};
-const RES_CAT_COLORS={odżywianie:'var(--teal)',trening:'var(--accent)',regeneracja:'var(--blue)',psychologia:'var(--purple)'};
+// 5 kategorii z kolorami wg schematu: Odżywianie=zielony, Trening=czerwony(marka), Rehabilitacja=niebieski, Psychologia=fioletowy, Muzyka=złoty.
+const RES_CAT_COLORS={odżywianie:'var(--teal)',trening:'var(--accent)',regeneracja:'var(--blue)',psychologia:'var(--purple)',muzyka:'var(--gold)'};
+const RES_CAT_LABELS={odżywianie:'🥗 Odżywianie i Dieta',trening:'🏋️ Trening Siłowy',regeneracja:'🩹 Rehabilitacja i Mobilność',psychologia:'🧠 Psychologia i Mindset',muzyka:'🎧 Muzyka do słuchania'};
 
 const DEMO_RESOURCES=[
   {id:'r1',name:'Dobre źródła białka',type:'link',cat:'odżywianie',url:'https://www.health.harvard.edu',desc:'Harvard Health — kompleksowy przewodnik po źródłach białka w diecie.',coll:'edu'},
@@ -753,11 +755,11 @@ const DEMO_RESOURCES=[
   {id:'r7',name:'Mobilność i regeneracja',type:'podcast',cat:'regeneracja',url:'https://open.spotify.com',desc:'Praktyczne techniki poprawy mobilności i recovery.',coll:'podcasts'},
   {id:'r8',name:'Psychologia w sporcie',type:'podcast',cat:'psychologia',url:'https://open.spotify.com',desc:'Mindfulness, nawyki i psychologia osiągania celów.',coll:'podcasts'},
   {id:'r9',name:'Coaching, Nawyki i Mindset',type:'podcast',cat:'psychologia',url:'https://open.spotify.com',desc:'Budowanie trwałych nawyków i mentalności sportowca.',coll:'podcasts'},
-  {id:'r10',name:'Muzyka do treningu — Workout',type:'video',cat:'trening',url:'https://www.youtube.com',desc:'Energetyczna playlista YouTube do treningu siłowego.',coll:'music'},
-  {id:'r11',name:'Spotify Playlist — Cardio',type:'link',cat:'trening',url:'https://open.spotify.com',desc:'Najlepsza playlista do cardio i biegania.',coll:'music'},
-  {id:'r12',name:'Fun Workout Mix',type:'video',cat:'trening',url:'https://www.youtube.com',desc:'Motywujący mix muzyczny do każdego treningu.',coll:'music'},
-  {id:'r13',name:'5k Training Mix',type:'video',cat:'trening',url:'https://www.youtube.com',desc:'Specjalny mix dla biegaczy przygotowujących się do 5km.',coll:'music'},
-  {id:'r14',name:'Running Motivation Playlist',type:'link',cat:'trening',url:'https://www.youtube.com',desc:'Playlist motywacyjna do biegania.',coll:'music'},
+  {id:'r10',name:'Muzyka do treningu — Workout',type:'video',cat:'muzyka',url:'https://www.youtube.com',desc:'Energetyczna playlista YouTube do treningu siłowego.',coll:'music'},
+  {id:'r11',name:'Spotify Playlist — Cardio',type:'link',cat:'muzyka',url:'https://open.spotify.com',desc:'Najlepsza playlista do cardio i biegania.',coll:'music'},
+  {id:'r12',name:'Fun Workout Mix',type:'video',cat:'muzyka',url:'https://www.youtube.com',desc:'Motywujący mix muzyczny do każdego treningu.',coll:'music'},
+  {id:'r13',name:'5k Training Mix',type:'video',cat:'muzyka',url:'https://www.youtube.com',desc:'Specjalny mix dla biegaczy przygotowujących się do 5km.',coll:'music'},
+  {id:'r14',name:'Running Motivation Playlist',type:'link',cat:'muzyka',url:'https://www.youtube.com',desc:'Playlist motywacyjna do biegania.',coll:'music'},
   {id:'r15',name:'Mindfulness dla sportowców',type:'podcast',cat:'psychologia',url:'https://open.spotify.com',desc:'Techniki mindfulness poprawiające wydajność treningową.',coll:'podcasts'},
 ];
 
@@ -787,12 +789,20 @@ function setResNav(n){
   renderResources();
 }
 
+// Duże zakładki wg rodzaju materiału (Muzyka / Podcasty / Artykuły) — główny sposób nawigacji dla klienta.
+function setResColl(c){
+  resColl=c;
+  document.querySelectorAll('.res-coll-tab').forEach(el=>el.classList.remove('active'));
+  const el=document.getElementById('rcoll-'+c);if(el)el.classList.add('active');
+  renderResources();
+}
+
 function updateResCounts(){
   const all=allResources();
   const set=(id,n)=>{const el=document.getElementById(id);if(el)el.textContent=n;};
   set('rnc-all',all.length);
   ['link','video','doc','podcast'].forEach(t=>set('rnc-'+t,all.filter(r=>r.type===t).length));
-  ['odżywianie','trening','regeneracja','psychologia'].forEach(c=>set('rnc-'+c,all.filter(r=>r.cat===c).length));
+  ['odżywianie','trening','regeneracja','psychologia','muzyka'].forEach(c=>set('rnc-'+c,all.filter(r=>r.cat===c).length));
 }
 
 function renderResources(){
@@ -805,9 +815,10 @@ function renderResources(){
 
   let res=all.filter(r=>{
     if(search&&!r.name.toLowerCase().includes(search.toLowerCase())&&!(r.desc||'').toLowerCase().includes(search.toLowerCase()))return false;
+    if(resColl!=='all'&&r.coll!==resColl)return false;
     if(resNav==='all')return true;
     if(['link','video','doc','podcast'].includes(resNav))return r.type===resNav;
-    if(['odżywianie','trening','regeneracja','psychologia'].includes(resNav))return r.cat===resNav;
+    if(['odżywianie','trening','regeneracja','psychologia','muzyka'].includes(resNav))return r.cat===resNav;
     return true;
   });
 
@@ -833,17 +844,16 @@ function renderResources(){
           <div style="flex:1;min-width:0;">
             <div class="res-card-title">${r.name}</div>
             <div class="res-card-url">${domain}</div>
-            ${r.desc?`<div style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:8px;">${r.desc}</div>`:''}
+            ${r.desc?`<div style="font-size:13px;color:#D1D5DB;line-height:1.55;margin-bottom:8px;">${r.desc}</div>`:''}
             <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;">
-              <span class="pill" style="background:${cc}22;color:${cc};font-size:9px;">${r.cat}</span>
-              <span class="pill pill-muted" style="font-size:9px;">${r.type}</span>
+              <span class="pill" style="background:${cc}22;color:${cc};font-size:10px;font-weight:700;">${RES_CAT_LABELS[r.cat]||r.cat}</span>
               ${r.coll?`<span class="pill pill-muted" style="font-size:9px;">📁 ${DEMO_COLLECTIONS.find(c=>c.id===r.coll)?.name||r.coll}</span>`:''}
             </div>
           </div>
         </div>
         <div style="display:flex;gap:6px;margin-top:10px;border-top:1px solid var(--border);padding-top:10px;" onclick="event.stopPropagation()">
           <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="sendResourceToClient('${r.id}')">Wyślij klientowi</button>
-          <button class="btn btn-ghost btn-sm" onclick="window.open('${r.url}','_blank')">↗ Otwórz</button>
+          <button class="btn btn-primary btn-sm" onclick="window.open('${r.url}','_blank')">↗ Otwórz</button>
         </div>
       </div>`;
     }).join('');
@@ -934,6 +944,64 @@ function confirmSendResource(){
   pushMsg(cid,`📚 Polecam Ci ten materiał: ${r.name}\n\n${r.desc||''}\n\n${r.url||''}`);
   closeM('m-send-resource');
   notify('✓ Zasób "'+r.name+'" wysłany do '+c.name);
+}
+
+// ── PACZKA STARTOWA dla nowego podopiecznego ──
+// 1 klik = wysyła playlistę treningową + artykuł o diecie + przewodnik po regeneracji naraz.
+function openStarterPackModal(){
+  if(!CL.length){notify('Najpierw dodaj klienta!');return;}
+  starterPackSetClientField('','');
+  openM('m-starter-pack');
+}
+
+function starterPackSetClientField(clientId,clientName){
+  const hid=document.getElementById('starter-pack-client');
+  const vis=document.getElementById('starter-pack-client-search');
+  if(hid)hid.value=clientId;
+  if(vis)vis.value=clientName;
+  const res=document.getElementById('starter-pack-client-results');
+  if(res)res.style.display='none';
+}
+
+function starterPackClientSearchInput(){
+  const q=(document.getElementById('starter-pack-client-search')?.value||'').trim().toLowerCase();
+  const res=document.getElementById('starter-pack-client-results');
+  if(!res)return;
+  let list=CL;
+  if(q)list=list.filter(c=>c.name.toLowerCase().includes(q));
+  list=list.map(c=>({c,act:typeof formatClientActivity==='function'?formatClientActivity(c.id):{label:'',color:'var(--muted)',days:0}}))
+    .sort((a,b)=>b.act.days-a.act.days)
+    .slice(0,8);
+  if(!list.length){
+    res.innerHTML='<div style="padding:12px;font-size:12px;color:var(--muted);text-align:center;">Brak wyników</div>';
+    res.style.display='block';
+    return;
+  }
+  res.innerHTML=list.map(({c,act})=>`
+    <div onclick="starterPackSetClientField('${c.id}','${c.name.replace(/'/g,"\\'")}')" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background='transparent'">
+      <span style="font-size:13px;">${c.name}</span>
+      <span style="font-size:10px;color:${act.color};font-family:'DM Mono',monospace;">${act.label||''}</span>
+    </div>`).join('');
+  res.style.display='block';
+}
+
+function confirmStarterPack(){
+  const cid=document.getElementById('starter-pack-client').value;
+  if(!cid){notify('Wybierz klienta!');return;}
+  const c=CL.find(x=>x.id===cid);
+  if(!c)return;
+  const all=allResources();
+  const picks=[
+    all.find(r=>r.coll==='music'),
+    all.find(r=>r.cat==='odżywianie'),
+    all.find(r=>r.cat==='regeneracja'),
+  ].filter(Boolean);
+  if(!picks.length){notify('Brak zasobów do wysłania — dodaj kilka materiałów.');return;}
+  const intro=`🎁 Witaj ${c.name.split(' ')[0]}! Przygotowałem dla Ciebie mały start — ${picks.length===3?'playlistę, artykuł o diecie i przewodnik po regeneracji':'kilka materiałów'}, żebyś mógł/mogła zacząć na dobrych zasadach:`;
+  const body=picks.map(r=>`• ${r.name}\n${r.url||''}`).join('\n\n');
+  pushMsg(cid,intro+'\n\n'+body);
+  closeM('m-starter-pack');
+  notify('✓ Paczka startowa ('+picks.length+' zasoby) wysłana do '+c.name+'!');
 }
 
 async function saveResource(){
