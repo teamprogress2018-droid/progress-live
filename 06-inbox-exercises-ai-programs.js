@@ -1386,7 +1386,7 @@ function renderTasks(){
             ${t.cat?`<span class="pill" style="background:${catCol}22;color:${catCol};font-size:9px;">${TASK_CAT_LABELS[t.cat]||t.cat}</span>`:''}
             <div class="task-prio-dot" style="background:${prioCol};"></div>
             <span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${TASK_PRIO_LABELS[t.priority]||''}</span>
-            ${t.due?`<span style="font-size:10px;font-family:'DM Mono',monospace;color:${isOverdue?'var(--red)':daysLeft<=2?'var(--orange)':'var(--muted)'};">${isOverdue?'⚠ PRZET.':daysLeft===0?'dziś':daysLeft===1?'jutro':'za '+daysLeft+' dni'}</span>`:''}
+            ${t.due?`<span style="font-size:10px;font-family:'DM Mono',monospace;color:${isOverdue?'var(--red)':daysLeft<=2?'var(--orange)':'var(--muted)'};">${isOverdue?'⚠ Przeterminowane':daysLeft===0?'dziś':daysLeft===1?'jutro':'za '+daysLeft+' dni'}</span>`:''}
           </div>
         </div>
         <button onclick="delTask('${t.id}')" style="background:none;border:none;color:var(--muted2);font-size:18px;cursor:pointer;align-self:flex-start;padding:0 2px;">×</button>
