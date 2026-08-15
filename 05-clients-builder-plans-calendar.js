@@ -87,7 +87,7 @@ function renderClients(){
     return `<div class="tbl-row" style="grid-template-columns:2fr 120px 120px 100px 150px;animation-delay:${i*0.03}s;cursor:pointer;" onclick="openClientProfile('${c.id}')">
     <div style="display:flex;align-items:center;gap:10px;">
       <div style="width:32px;height:32px;border-radius:50%;background:${COLS[i%5]}22;color:${COLS[i%5]};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:13px;flex-shrink:0;">${getInit(c.name)}</div>
-      <div><div style="font-size:13px;font-weight:600;">${c.name}</div><div style="font-size:11px;color:var(--muted);">${c.email||'—'}</div></div>
+      <div><div style="font-size:13px;font-weight:600;">${c.name}</div><div style="font-size:11px;color:var(--muted);">${c.email||'⚠ Brak e-maila'}</div></div>
     </div>
     <div style="font-size:12px;color:${act.color};align-self:center;font-weight:600;">${act.label}</div>
     <div style="font-size:12px;color:var(--muted);align-self:center;">${c.goal||'—'}</div>
