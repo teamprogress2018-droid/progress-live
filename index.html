@@ -895,6 +895,22 @@
   </div>
 </div>
 
+<div class="modal-ov" id="m-starter-pack">
+  <div class="modal">
+    <div class="modal-hdr"><div class="modal-title">🎁 PACZKA STARTOWA</div><button class="modal-close" onclick="closeM('m-starter-pack')">×</button></div>
+    <div class="modal-body">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6;">Jednym kliknięciem wyślij nowemu klientowi zestaw: 🎵 playlistę do treningu, 🥗 artykuł o diecie i 🩹 przewodnik po regeneracji.</div>
+      <div class="form-field" style="position:relative;">
+        <label class="form-lbl">Wybierz klienta</label>
+        <input class="form-select" id="starter-pack-client-search" placeholder="Wpisz imię i nazwisko..." autocomplete="off" oninput="starterPackClientSearchInput()" onfocus="starterPackClientSearchInput()">
+        <input type="hidden" id="starter-pack-client">
+        <div id="starter-pack-client-results" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;background:var(--s2);border:1px solid var(--border2);border-radius:8px;margin-top:4px;max-height:220px;overflow-y:auto;box-shadow:0 8px 20px rgba(0,0,0,0.4);"></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-starter-pack')">Anuluj</button><button class="btn btn-primary" onclick="confirmStarterPack()">🎁 Wyślij paczkę</button></div>
+  </div>
+</div>
+
 <!-- FORM BUILDER MODAL -->
 <div class="modal-ov" id="m-form">
   <div class="modal modal-wide">
@@ -1233,25 +1249,30 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <input type="text" id="res-search" placeholder="Szukaj zasobu..." oninput="renderResources()" style="width:100%;background:var(--s3);border:1px solid var(--border);border-radius:6px;padding:6px 9px;color:var(--text);font-size:12px;">
       </div>
       <div style="overflow-y:auto;flex:1;padding:4px 0;">
-        <div style="padding:5px 14px 2px;font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Typ</div>
-        <div class="res-nav-item active" id="rn-all" onclick="setResNav('all')"><span>Wszystkie</span><span class="wl-nav-count" id="rnc-all">0</span></div>
-        <div class="res-nav-item" id="rn-link" onclick="setResNav('link')"><span>🔗 Linki</span><span class="wl-nav-count" id="rnc-link">0</span></div>
-        <div class="res-nav-item" id="rn-video" onclick="setResNav('video')"><span>▶️ Wideo</span><span class="wl-nav-count" id="rnc-video">0</span></div>
-        <div class="res-nav-item" id="rn-doc" onclick="setResNav('doc')"><span>📄 Dokumenty</span><span class="wl-nav-count" id="rnc-doc">0</span></div>
-        <div class="res-nav-item" id="rn-podcast" onclick="setResNav('podcast')"><span>🎧 Podcasty</span><span class="wl-nav-count" id="rnc-podcast">0</span></div>
-        <div style="padding:5px 14px 2px;font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:4px;">Kategoria</div>
+        <div style="padding:5px 14px 2px;font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Kategoria</div>
         <div class="res-nav-item" id="rn-odżywianie" onclick="setResNav('odżywianie')"><span>🥗 Odżywianie</span><span class="wl-nav-count" id="rnc-odżywianie">0</span></div>
-        <div class="res-nav-item" id="rn-trening" onclick="setResNav('trening')"><span>💪 Trening</span><span class="wl-nav-count" id="rnc-trening">0</span></div>
-        <div class="res-nav-item" id="rn-regeneracja" onclick="setResNav('regeneracja')"><span>😴 Regeneracja</span><span class="wl-nav-count" id="rnc-regeneracja">0</span></div>
+        <div class="res-nav-item" id="rn-trening" onclick="setResNav('trening')"><span>🏋️ Trening Siłowy</span><span class="wl-nav-count" id="rnc-trening">0</span></div>
+        <div class="res-nav-item" id="rn-regeneracja" onclick="setResNav('regeneracja')"><span>🩹 Rehabilitacja</span><span class="wl-nav-count" id="rnc-regeneracja">0</span></div>
         <div class="res-nav-item" id="rn-psychologia" onclick="setResNav('psychologia')"><span>🧠 Psychologia</span><span class="wl-nav-count" id="rnc-psychologia">0</span></div>
+        <div class="res-nav-item" id="rn-muzyka" onclick="setResNav('muzyka')"><span>🎧 Muzyka</span><span class="wl-nav-count" id="rnc-muzyka">0</span></div>
       </div>
     </div>
 
     <!-- główna treść -->
     <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+
+      <!-- DUŻE ZAKŁADKI wg rodzaju materiału — łatwe dla klienta, który szuka konkretnego typu treści -->
+      <div style="padding:14px 16px 0;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <button class="res-coll-tab active" id="rcoll-all" onclick="setResColl('all')" style="flex:1;min-width:140px;">Wszystkie</button>
+        <button class="res-coll-tab" id="rcoll-music" onclick="setResColl('music')" style="flex:1;min-width:140px;">🎵 Muzyka i Playlisty</button>
+        <button class="res-coll-tab" id="rcoll-podcasts" onclick="setResColl('podcasts')" style="flex:1;min-width:140px;">🎙️ Podcasty i Słuchowiska</button>
+        <button class="res-coll-tab" id="rcoll-edu" onclick="setResColl('edu')" style="flex:1;min-width:140px;">📄 Artykuły i Przewodniki</button>
+      </div>
+
       <div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;">
         <span style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;" id="res-count-lbl">0 zasobów</span>
         <div style="margin-left:auto;display:flex;gap:6px;">
+          <button class="btn btn-ghost btn-sm" onclick="openStarterPackModal()">🎁 Paczka Startowa dla Podopiecznego</button>
           <select class="form-select" style="padding:4px 8px;font-size:11px;width:auto;" id="res-client-fil" onchange="renderResources()">
             <option value="">Wszyscy klienci</option>
           </select>
