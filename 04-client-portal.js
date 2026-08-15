@@ -1787,15 +1787,15 @@ function renderCheckinSummary(id){
         <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--red);">${overdue}</div>
         <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">ZALEGŁE</div>
       </div>
-      <div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center;">
+      <div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center;" title="Średnia ocena samopoczucia klienta z wypełnionych check-inów">
         <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--accent);">${avgScore||'—'}${avgScore?'%':''}</div>
         <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">ŚR. SCORE</div>
       </div>
     </div>
 
     <!-- completion bar -->
-    <div style="margin-bottom:14px;">
-      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px;"><span style="color:var(--muted);">Wypełnialność</span><span style="color:var(--teal);font-weight:700;">${pct}%</span></div>
+    <div style="margin-bottom:14px;" title="Jaki procent zaplanowanych check-inów klient faktycznie wypełnił (niezależnie od tego, jak dobrze się ocenił)">
+      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px;"><span style="color:var(--muted);">Wypełnialność (% wysłanych check-inów)</span><span style="color:var(--teal);font-weight:700;">${pct}%</span></div>
       <div style="height:8px;background:var(--s3);border-radius:99px;overflow:hidden;">
         <div style="height:100%;background:var(--teal);width:${pct}%;border-radius:99px;transition:width 0.3s;"></div>
       </div>
@@ -1854,6 +1854,7 @@ function sendCheckin(){
   const msg=document.getElementById('ci-send-msg').value;
   let targets=CL;
   if(target==='no-checkin')targets=CL.filter(c=>getCIStatus(c.id)!=='done');
+  if(!confirm('Wysłać check-in do '+targets.length+' klientów? Tej akcji nie da się cofnąć.'))return;
   targets.forEach(c=>{
     pushMsg(c.id,msg.replace(/{imie}/g,c.name.split(' ')[0]));
   });
