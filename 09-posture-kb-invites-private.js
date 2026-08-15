@@ -1030,7 +1030,7 @@ window.AUTOFLOWS=[];
 window.ONBOARD_HISTORY=[];
 
 const DEMO_AUTOFLOWS=[
-  {id:'af1',name:'2-tygodniowe wyzwanie fitness',type:'sequence',scope:'all',status:'active',clients:0,
+  {id:'af1',name:'2-tygodniowe wyzwanie fitness',type:'sequence',scope:'all',status:'inactive',clients:0,
    steps:[
      {type:'message',day:1,text:'Dzień 1: Cześć {imie}! Zaczynamy wyzwanie! Dzisiaj: 3 serie pompek do upadku 💪'},
      {type:'task',day:1,text:'Wykonaj trening startowy'},
@@ -1039,11 +1039,11 @@ const DEMO_AUTOFLOWS=[
      {type:'form',day:7,text:'Wypełnij formularz postępów — tydzień 1'},
      {type:'message',day:14,text:'Gratulacje! Ukończyłeś 2-tygodniowe wyzwanie! 🎉'},
    ]},
-  {id:'af2',name:'Przypomnienie o treningu',type:'trigger',scope:'all',status:'active',clients:0,
+  {id:'af2',name:'Przypomnienie o treningu',type:'trigger',scope:'all',status:'inactive',clients:0,
    steps:[
      {type:'message',day:1,text:'Hej {imie}! Nie zapomnij o treningu dzisiaj 🏋️'},
    ]},
-  {id:'af3',name:'Alert po zastoju (14 dni)',type:'trigger',scope:'all',status:'active',clients:0,
+  {id:'af3',name:'Alert po zastoju (14 dni)',type:'trigger',scope:'all',status:'inactive',clients:0,
    steps:[
      {type:'message',day:14,text:'{imie}, minęły 2 tygodnie bez treningu. Wszystko ok? Chętnie pomogę wrócić na właściwe tory! 💪'},
      {type:'task',day:14,text:'Skontaktuj się z trenerem'},
