@@ -3642,6 +3642,57 @@ try{const s2=await getDocs(collection(db,'tasks'));window.TASKS=[];s2.forEach(d=
       }
     }
   }catch(e){console.warn('Wczytywanie zasobów nie powiodło się:',e);window.USER_RESOURCES=window.USER_RESOURCES||[];}
+  try{
+    // Pakiet startowy: 1x playlista siłowa, 1x artykuł o białku, 1x artykuł o śnie/regeneracji,
+    // 1x przewodnik po rozciąganiu — realne, sprawdzone linki. Dodawane raz, jeśli jeszcze nie istnieją.
+    const STARTER_PACK=[
+      {id:'r16',name:'Heavy Workout — playlista do ciężkiego treningu',type:'link',cat:'muzyka',url:'https://open.spotify.com/playlist/37i9dQZF1DXe6bgV3TmZOL',desc:'Oficjalna playlista Spotify — mocne brzmienia do ciężkich serii siłowych.',coll:'music'},
+      {id:'r17',name:'Czy jesz wystarczająco dużo białka?',type:'link',cat:'odżywianie',url:'https://www.health.harvard.edu/diet-and-nutrition/are-you-eating-enough-protein',desc:'Harvard Health o roli białka w budowie i utrzymaniu masy mięśniowej.',coll:'edu'},
+      {id:'r18',name:'Sen a regeneracja sportowca',type:'link',cat:'regeneracja',url:'https://www.betterup.com/blog/sleep-recovery-for-athletes',desc:'Jak jakość snu wpływa na regenerację mięśni i wyniki treningowe.',coll:'edu'},
+      {id:'r19',name:'Rozciąganie a zdrowie stawów',type:'link',cat:'regeneracja',url:'https://www.health.harvard.edu/staying-healthy/how-stretching-keeps-your-joints-moving',desc:'Harvard Health o tym, jak regularne rozciąganie chroni ruchomość stawów.',coll:'edu'},
+      // Wersja polskojęzyczna — te same 4 tematy, materiały po polsku.
+      {id:'r20',name:'Muzyka do ćwiczeń — Siłka 2026',type:'link',cat:'muzyka',url:'https://open.spotify.com/playlist/2aa9jra1QrZxVzN7tgnLm0',desc:'Polska playlista Spotify dedykowana treningowi siłowemu na siłowni.',coll:'music'},
+      {id:'r21',name:'Białko zwierzęce czy roślinne w treningu siłowym?',type:'link',cat:'odżywianie',url:'https://www.mp.pl/pacjent/dieta/lista/192477,bialko-zwierzece-czy-roslinne-w-treningu-silowym',desc:'Medycyna Praktyczna o różnicach między źródłami białka przy budowie masy.',coll:'edu'},
+      {id:'r22',name:'Odpoczynek to też trening',type:'link',cat:'regeneracja',url:'https://www.xtremefitness.pl/xfg-magazyn/odpoczynek-to-tez-trening',desc:'Jak sen i regeneracja po treningu wpływają na realne efekty siłowe.',coll:'edu'},
+      {id:'r23',name:'Trening Mobility w domu — przewodnik',type:'link',cat:'regeneracja',url:'https://www.antoninastamm.pl/post/trening-mobility-w-domu---szczegolowy-przewodnik-aby-poprawic-elastycznosc-i-ruchomosc-stawow',desc:'Krok po kroku, jak poprawić elastyczność i ruchomość stawów w domu.',coll:'edu'},
+      {id:'r24',name:'Progresywne przeciążenie — metody i progresja',type:'link',cat:'trening',url:'https://przemekjurek.pl/blog/trening/progresywne-przeciazenie/',desc:'Praktyczny przewodnik po metodach progresji dla każdego poziomu.',coll:'edu'},
+      {id:'r25',name:'Rodzaje progresji w treningu siłowym',type:'link',cat:'trening',url:'https://www.fabrykasily.pl/treningi/rodzaje-progresji-w-treningu-silowym',desc:'Jak stopniowo zwiększać intensywność i objętość treningową.',coll:'edu'},
+      {id:'r26',name:'Rozgrzewka przed treningiem siłowym — jak przygotować ciało',type:'link',cat:'trening',url:'https://www.decathlon.pl/c/disc/rozgrzewka-przed-treningiem-silowym-jak-przygotowac-cialo_fc52d4a8-854c-4202-8569-0ca3bd33f59e',desc:'Trzy etapy dobrej rozgrzewki i przykładowy zestaw ćwiczeń.',coll:'edu'},
+      {id:'r27',name:'Deload — co to jest i jak zrobić lżejszy tydzień',type:'link',cat:'trening',url:'https://arf.edu.pl/deload-co-to-jest/',desc:'Kiedy i jak wprowadzić tydzień odciążający, żeby uniknąć przetrenowania.',coll:'edu'},
+      {id:'r28',name:'Okres roztrenowania (Deload) — kiedy odpoczywać',type:'link',cat:'trening',url:'https://przemekjurek.pl/blog/trening/okres-roztrenowania-deload-korzysci/',desc:'Dlaczego zaplanowany odpoczynek przyspiesza długoterminowy progres.',coll:'edu'},
+      {id:'r29',name:'Białko a trening siłowy — obalamy mity',type:'link',cat:'odżywianie',url:'https://dietbox.pl/bialko-a-trening-silowy-obalamy-najpopularniejsze-mity/',desc:'Ile białka naprawdę potrzeba przy regularnym treningu siłowym.',coll:'edu'},
+      {id:'r30',name:'Ile białka potrzeba do budowania mięśni?',type:'link',cat:'odżywianie',url:'https://www.doz.pl/czytelnia/a17127-Ile_bialka_jest_potrzebne_do_efektywnego_budowania_miesni',desc:'Aktualne zalecenia dot. spożycia białka przy treningu oporowym.',coll:'edu'},
+      {id:'r31',name:'Węglowodany w diecie sportowca',type:'link',cat:'odżywianie',url:'https://ncez.pzh.gov.pl/abc-zywienia/weglowodany-w-diecie-sportowca/',desc:'Narodowe Centrum Edukacji Żywieniowej o roli węglowodanów w sporcie.',coll:'edu'},
+      {id:'r32',name:'Tłuszcze w diecie sportowca',type:'link',cat:'odżywianie',url:'https://ncez.pzh.gov.pl/abc-zywienia/tluszcze-w-diecie-sportowca/',desc:'Ile i jakich tłuszczów potrzebuje osoba aktywna fizycznie.',coll:'edu'},
+      {id:'r33',name:'Nawodnienie w diecie sportowca',type:'link',cat:'odżywianie',url:'https://ncez.pzh.gov.pl/abc-zywienia/nawodnienie-w-diecie-sportowca/',desc:'Zasady prawidłowego nawodnienia przed, w trakcie i po treningu.',coll:'edu'},
+      {id:'r34',name:'Dieta w treningu siłowym — jak komponować posiłki',type:'link',cat:'odżywianie',url:'https://testosterone.pl/wiedza/dieta-w-treningu-silowym-jak-komponowac-posilki-pod-budowe-miesni-i-redukcje-tkanki-tluszczowej/',desc:'Jak układać jadłospis pod budowę masy i redukcję tkanki tłuszczowej.',coll:'edu'},
+      {id:'r35',name:'Makro w diecie sportowca',type:'link',cat:'odżywianie',url:'https://bistrobox.pl/makro-w-diecie-sportowca-bialko-tluszcze-weglowodany/',desc:'Proporcje białka, tłuszczów i węglowodanów dopasowane do celu.',coll:'edu'},
+      {id:'r36',name:'Nawadnianie organizmu przed treningiem i po nim',type:'link',cat:'odżywianie',url:'https://www.fabrykasily.pl/bieganie/nawadnianie-organizmu-przed-i-po-treningu',desc:'Jak oszacować straty wody i skutecznie je uzupełnić.',coll:'edu'},
+      {id:'r37',name:'Rolowanie, czyli czym jest foam rolling',type:'link',cat:'regeneracja',url:'https://www.budujmase.pl/trening/rolowanie-czyli-czym-foam-rolling.html',desc:'Podstawy automasażu wałkiem i jego wpływ na regenerację mięśni.',coll:'edu'},
+      {id:'r38',name:'Foam rolling — co nauka mówi o regeneracji',type:'link',cat:'regeneracja',url:'https://swiatsupli.pl/blog/foam-rolling-i-rolowanie-powiezi-co-nauka-mowi-o-regeneracji-i-czy-to-rzeczywiscie-dziala/',desc:'Rzetelny przegląd badań o realnych efektach rolowania mięśni.',coll:'edu'},
+      {id:'r39',name:'Sen a regeneracja po treningu',type:'link',cat:'regeneracja',url:'https://up-fit.pl/blog/sen-a-regeneracja-2',desc:'Jak fazy snu wpływają na odbudowę mięśni i układu nerwowego.',coll:'edu'},
+      {id:'r40',name:'Mobilność a rozciąganie — jak zwiększać zakres ruchu',type:'link',cat:'regeneracja',url:'https://trenerwnuczek.pl/mobilnosc-a-rozciaganie-jak-poprawnie-zwiekszac-zakres-ruchu-w-treningu/',desc:'Różnice między mobilnością a rozciąganiem i jak je łączyć.',coll:'edu'},
+      {id:'r41',name:'Trening na mobilność — dlaczego i jakie ćwiczenia',type:'link',cat:'regeneracja',url:'https://zdrofit.pl/blog/trening-na-mobilnosc-jakie-cwiczenia-wykonywac',desc:'Przykładowe ćwiczenia mobilności dla różnych stawów.',coll:'edu'},
+      {id:'r42',name:'Rozciąganie przed czy po treningu',type:'link',cat:'regeneracja',url:'https://sciencetraining.pl/trening/rozciaganie-przed-czy-po-treningu/',desc:'Praktyczny przewodnik, kiedy stosować stretching dynamiczny i statyczny.',coll:'edu'},
+      {id:'r43',name:'Jak poprawić mobilność stawów — kluczowe ćwiczenia',type:'link',cat:'regeneracja',url:'https://mypersonaltrainer.pl/jak-poprawic-mobilnosc-stawow-kluczowe-cwiczenia-i-wskazowki/',desc:'Techniki i wskazówki poprawiające ruchomość stawów na dłużej.',coll:'edu'},
+      {id:'r44',name:'Psychologia osiągania celów sportowych',type:'link',cat:'psychologia',url:'https://www.vanitystyle.pl/blog/psychologia-osiagania-celow-sportowych',desc:'Jak nie tracić motywacji, gdy pierwszy entuzjazm już minie.',coll:'edu'},
+      {id:'r45',name:'Spadek motywacji do treningu',type:'link',cat:'psychologia',url:'https://psychologiasportu.pl/spadek-motywacji-do-treningu/',desc:'Skąd bierze się spadek motywacji i jak sobie z nim radzić.',coll:'edu'},
+      {id:'r46',name:'Psychologia sportu — jak wyznaczać cele',type:'link',cat:'psychologia',url:'https://wytrenowani.com.pl/psychologia-sportu/',desc:'Rola motywacji wewnętrznej i zewnętrznej w wyznaczaniu celów treningowych.',coll:'edu'},
+      {id:'r47',name:'Motywacja w sporcie — znaczenie w psychologii sportu',type:'link',cat:'psychologia',url:'https://silaumyslu.net/motywacja-w-sporcie-znaczenie-motywacji-w-psychologii-sportu/',desc:'Dlaczego motywacja decyduje o tym, czy talent zamienia się w wyniki.',coll:'edu'},
+      {id:'r48',name:'Chwila z samorozwojem — podcast',type:'podcast',cat:'psychologia',url:'https://open.spotify.com/show/4XDtC2ttFAIrp3LPw3TjYn',desc:'Polski podcast o rozwoju osobistym, nawykach i motywacji.',coll:'podcasts'},
+      {id:'r49',name:'Polski rap trening!',type:'link',cat:'muzyka',url:'https://open.spotify.com/playlist/6KNzlmx1bdIrShNwz89EvU',desc:'Popularna polska playlista rapowa do intensywnego treningu.',coll:'music'},
+      {id:'r50',name:'Muzyka motywacyjna na trening',type:'link',cat:'muzyka',url:'https://open.spotify.com/playlist/5O93gdP6tdxq3bQukvOLEV',desc:'Energetyczny zestaw utworów budujących motywację przed serią.',coll:'music'},
+      {id:'r51',name:'Muzyka na siłownię — Music Gym Poland',type:'link',cat:'muzyka',url:'https://open.spotify.com/playlist/6OGNxRJ1Vyb6GG6UC89GyL',desc:'Polska playlista dedykowana treningowi na siłowni.',coll:'music'},
+      {id:'r52',name:'Rap motywacja',type:'link',cat:'muzyka',url:'https://open.spotify.com/playlist/37i9dQZF1DXa3d3ljLBxSG',desc:'Oficjalna playlista Spotify z hitami rapowymi do treningu.',coll:'music'},
+      {id:'r53',name:'Polski Rap Trening / Bieganie / Siłownia',type:'link',cat:'muzyka',url:'https://open.spotify.com/playlist/6I2h66EqqOcKJX8lGr2tUr',desc:'Szeroki wybór polskiego rapu do biegania i treningu siłowego.',coll:'music'},
+    ];
+    const existingIds=new Set(window.USER_RESOURCES.map(r=>r.id));
+    for(const r of STARTER_PACK){
+      if(existingIds.has(r.id))continue;
+      window.USER_RESOURCES.push(r);
+      try{const rr=await addDoc(collection(db,'resources'),r);r._fbId=rr.id;}catch(e){}
+    }
+  }catch(e){console.warn('Dodawanie pakietu startowego zasobów:',e);}
   window.AF_STATE=window.AF_STATE||{enrollments:{},executed:{},lastFired:{}};
   try{if(typeof runAutoflowsCheck==='function')runAutoflowsCheck();}catch(e){console.warn('runAutoflowsCheck:',e);}
   window.renderAll();
