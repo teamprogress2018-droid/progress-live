@@ -158,8 +158,8 @@
       </div>
     </div>
 
-    <!-- DZIŚ I JUTRO + DO ZROBIENIA — obok siebie, żeby trener od razu widział oba na pierwszy rzut oka -->
-    <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:16px;margin-bottom:20px;align-items:start;">
+    <!-- DZIŚ I JUTRO + KALENDARZ + DO ZROBIENIA — wszystko w jednym rzędzie, kalendarz od razu widoczny -->
+    <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:16px;margin-bottom:20px;align-items:start;">
       <div class="card" style="padding:20px 24px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
           <div>
@@ -173,17 +173,6 @@
 
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;">DO ZROBIENIA</div>
-          <button class="btn btn-ghost btn-sm" onclick="openM('m-task')">+ Dodaj</button>
-        </div>
-        <div id="d-tasks-widget"></div>
-      </div>
-    </div>
-
-    <!-- Mini kalendarz miesięczny -->
-    <div style="display:grid;grid-template-columns:1fr;gap:16px;margin-bottom:20px;">
-      <div class="card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
           <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;" id="d-cal-title">Maj 2026</div>
           <div style="display:flex;gap:4px;">
             <button onclick="dashCalPrev()" style="background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:3px 8px;cursor:pointer;color:var(--text);font-size:13px;">‹</button>
@@ -191,11 +180,19 @@
           </div>
         </div>
         <div id="d-mini-cal"></div>
-        <div style="display:flex;gap:12px;margin-top:10px;">
+        <div style="display:flex;gap:12px;margin-top:10px;flex-wrap:wrap;">
           <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);"><div style="width:8px;height:8px;border-radius:50%;background:var(--blue);"></div>Zaplanowane</div>
           <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);"><div style="width:8px;height:8px;border-radius:50%;background:var(--teal);"></div>Wykonane</div>
           <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);"><div style="width:8px;height:8px;border-radius:50%;background:var(--accent);"></div>Dziś</div>
         </div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;">DO ZROBIENIA</div>
+          <button class="btn btn-ghost btn-sm" onclick="openM('m-task')">+ Dodaj</button>
+        </div>
+        <div id="d-tasks-widget"></div>
       </div>
     </div>
 
@@ -716,7 +713,7 @@
         </div>
         <div style="background:var(--s3);border-radius:8px;padding:8px 6px;text-align:center;">
           <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--orange);" id="t-over">0</div>
-          <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">PRZET.</div>
+          <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">ZALEGŁE</div>
         </div>
       </div>
 
