@@ -1,0 +1,19 @@
+{
+  "name": "Progress Live",
+  "short_name": "Progress",
+  "description": "Panel trenera — klienci, plany i trening live",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#09080a",
+  "theme_color": "#e11f2e",
+  "lang": "pl",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

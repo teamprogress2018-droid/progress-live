@@ -744,6 +744,8 @@ input[type=checkbox]{display:none;}
   .auto-onboard-wrap{padding:16px;}
   #onboard-flow-cards,#osc-preview{grid-template-columns:1fr;gap:6px;}
   .osc-arrow,.osc-preview-arrow{transform:rotate(90deg);height:22px;justify-self:center;}
+  .gs-steps{grid-template-columns:1fr!important;}
+  #screen-dashboard .content > div[style*="grid-template-columns:1.3fr"]{grid-template-columns:1fr!important;}
 }
 
 @media (max-width: 480px){
