@@ -1,8 +1,6 @@
 rules_version = '2';
-// Progress Live — reguły izolujące dane trenerów po polu trainerId / uid.
-// Wdróż w Firebase Console → Firestore → Rules (lub firebase deploy --only firestore:rules).
-// UWAGA: dokumenty legacy BEZ trainerId nie będą dostępne po wdrożeniu tych reguł.
-// Przed deployem zrób migrację: ustaw trainerId = uid właściciela na istniejących dokumentach.
+// Progress Live — izolacja trenerów (trainerId) + dostęp klienta (clientAccounts).
+// Wdróż: Firebase Console → Firestore → Rules (lub firebase deploy --only firestore:rules).
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() {
@@ -17,12 +15,73 @@ service cloud.firestore {
       return signedIn()
         && request.resource.data.trainerId == request.auth.uid;
     }
+    function clientAcc() {
+      return get(/databases/$(database)/documents/clientAccounts/$(request.auth.uid)).data;
+    }
+    function hasClientAcc() {
+      return signedIn() && exists(/databases/$(database)/documents/clientAccounts/$(request.auth.uid));
+    }
+    function isLinkedClient() {
+      return hasClientAcc()
+        && resource.data.keys().hasAny(['trainerId'])
+        && resource.data.trainerId == clientAcc().trainerId
+        && (
+          !resource.data.keys().hasAny(['clientId'])
+          || resource.data.clientId == clientAcc().clientId
+        );
+    }
+    function creatingAsLinkedClient() {
+      return hasClientAcc()
+        && request.resource.data.trainerId == clientAcc().trainerId
+        && request.resource.data.clientId == clientAcc().clientId;
+    }
 
-    match /{collection}/{docId} {
-      allow read: if isOwner();
+    match /invites/{token} {
+      allow get: if true;
+      allow list: if signedIn() && resource.data.trainerId == request.auth.uid;
       allow create: if creatingAsOwner();
       allow update, delete: if isOwner()
         && request.resource.data.trainerId == request.auth.uid;
+    }
+
+    match /clientAccounts/{uid} {
+      allow get: if signedIn() && (
+        request.auth.uid == uid
+        || resource.data.trainerId == request.auth.uid
+      );
+      allow list: if signedIn() && resource.data.trainerId == request.auth.uid;
+      allow create: if signedIn()
+        && request.auth.uid == uid
+        && request.resource.data.role == 'client'
+        && request.resource.data.inviteToken is string
+        && exists(/databases/$(database)/documents/invites/$(request.resource.data.inviteToken))
+        && get(/databases/$(database)/documents/invites/$(request.resource.data.inviteToken)).data.clientId == request.resource.data.clientId
+        && get(/databases/$(database)/documents/invites/$(request.resource.data.inviteToken)).data.trainerId == request.resource.data.trainerId;
+      allow update: if signedIn() && request.auth.uid == uid;
+    }
+
+    match /clients/{docId} {
+      allow read: if isOwner()
+        || (hasClientAcc() && docId == clientAcc().clientId
+            && resource.data.trainerId == clientAcc().trainerId);
+      allow create: if creatingAsOwner();
+      allow update, delete: if isOwner()
+        && request.resource.data.trainerId == request.auth.uid;
+    }
+
+    match /settings/{docId} {
+      allow read: if isOwner()
+        || (hasClientAcc() && docId == clientAcc().trainerId);
+      allow create: if creatingAsOwner();
+      allow update, delete: if isOwner()
+        && request.resource.data.trainerId == request.auth.uid;
+    }
+
+    match /{collection}/{docId} {
+      allow read: if isOwner() || isLinkedClient();
+      allow create: if creatingAsOwner() || creatingAsLinkedClient();
+      allow update, delete: if (isOwner() || isLinkedClient())
+        && request.resource.data.trainerId == resource.data.trainerId;
     }
   }
 }
