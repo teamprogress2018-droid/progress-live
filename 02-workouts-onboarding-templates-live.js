@@ -169,15 +169,69 @@ function assignWorkout(){
   const w=allWorkouts().find(x=>x.id===wlDetailId);
   if(!w)return;
   if(!CL.length){notify('Najpierw dodaj klienta!');return;}
-  notify('Trening "'+w.name+'" przypisany do klienta ✓');
-  closeWLDetail();
+  openAssignWorkoutModal(w.id);
 }
 
 function assignWorkoutDirect(id){
   const w=allWorkouts().find(x=>x.id===id);
   if(!w)return;
   if(!CL.length){notify('Najpierw dodaj klienta!');return;}
-  notify('Trening "'+w.name+'" przypisany ✓');
+  openAssignWorkoutModal(id);
+}
+
+function openAssignWorkoutModal(workoutId){
+  window._assignWorkoutId=workoutId;
+  const w=allWorkouts().find(x=>x.id===workoutId);
+  let modal=document.getElementById('m-assign-workout');
+  if(!modal){
+    modal=document.createElement('div');
+    modal.className='modal-bg';
+    modal.id='m-assign-workout';
+    modal.innerHTML=`<div class="modal" style="max-width:420px;">
+      <div class="modal-title">Przypisz trening</div>
+      <div class="form-field"><label class="form-lbl">Trening</label><div id="aw-name" style="font-size:13px;font-weight:600;"></div></div>
+      <div class="form-field"><label class="form-lbl">Klient</label>
+        <select class="form-select" id="aw-client"></select>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">
+        <button class="btn btn-ghost" onclick="closeM('m-assign-workout')">Anuluj</button>
+        <button class="btn btn-primary" onclick="confirmAssignWorkout()">Przypisz</button>
+      </div>
+    </div>`;
+    document.body.appendChild(modal);
+  }
+  document.getElementById('aw-name').textContent=w?w.name:'';
+  document.getElementById('aw-client').innerHTML=CL.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  openM('m-assign-workout');
+}
+
+async function confirmAssignWorkout(){
+  const wid=window._assignWorkoutId;
+  const cid=document.getElementById('aw-client')?.value;
+  const w=allWorkouts().find(x=>x.id===wid);
+  const c=CL.find(x=>x.id===cid);
+  if(!w||!c){notify('Wybierz klienta!');return;}
+  const plan=withTrainer({
+    id:newId('p'),
+    name:w.name,
+    clientId:c.id,
+    clientName:c.name,
+    method:'Trening z biblioteki',
+    duration:1,
+    level:w.level||c.level||'sredni',
+    goal:c.goal||'masa',
+    source:'workout-library',
+    workoutId:w.id,
+    days:[{day:'Dzień 1',muscles:w.name,rest:false,exercises:(w.exercises||[]).map(e=>({name:e.name,sets:e.sets||'3',reps:e.reps||'10',rest:e.rest||'60s'}))}],
+    createdAt:new Date().toISOString()
+  });
+  PL.push(plan);
+  await persistById('plans',plan);
+  pushMsg(c.id,'💪 Nowy trening: "'+w.name+'" — sprawdź plan w aplikacji / z trenerem.');
+  closeM('m-assign-workout');
+  closeWLDetail();
+  addNotification('system','Trening przypisany','"'+w.name+'" → '+c.name,'plans');
+  notify('✓ Trening "'+w.name+'" przypisany do: '+c.name);
 }
 
 function renderDashWorkouts(){
@@ -624,8 +678,8 @@ function onbWizardNext(){
 }
 
 function onbCreateClient(){
-  const newC={
-    id:'c_onb_'+Date.now(),
+  const newC=withTrainer({
+    id:newId('c'),
     name:onbNewClient.name,
     email:onbNewClient.email,
     phone:onbNewClient.phone||'',
@@ -639,19 +693,19 @@ function onbCreateClient(){
     status:'active',
     joinDate:new Date().toISOString().split('T')[0],
     source:onbNewClient.source||'',
-  };
+  });
   CL.push(newC);
-  if(window._db){try{window._add(window._col(window._db,'clients'),newC);}catch(e){}}
+  persistById('clients',newC);
 
   // assign template plan
   if(onbNewClient.template){
     const t=PLAN_TEMPLATES.find(x=>x.id===onbNewClient.template);
     if(t){
-      const p={id:'p_onb_'+Date.now(),name:t.name,clientId:newC.id,method:t.method,duration:t.weeks,
+      const p=withTrainer({id:newId('p'),name:t.name,clientId:newC.id,method:t.method,duration:t.weeks,
         days:(t.days_detail||[]).map(d=>({day:d.name,exercises:(d.exercises||[]).map(e=>({name:e.n,sets:e.s,reps:e.r}))})),
-        source:'template',createdAt:new Date().toISOString()};
+        source:'template',createdAt:new Date().toISOString()});
       PL.push(p);
-      if(window._db){try{window._add(window._col(window._db,'plans'),p);}catch(e){}}
+      persistById('plans',p);
     }
   }
 

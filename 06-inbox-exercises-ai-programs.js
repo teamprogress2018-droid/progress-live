@@ -25,17 +25,8 @@ function msgHasUnread(clientId){
 }
 
 function initClientData(c){
-  if(!CLIENT_NOTES[c.id])CLIENT_NOTES[c.id]=[
-    {text:'Klient preferuje treningi rano przed 8:00',date:'14 maj, 7:36'},
-    {text:'Cel: redukcja 5kg do końca lata',date:'9 maj, 7:36'},
-  ];
-  if(!CLIENT_ACTIVITY[c.id])CLIENT_ACTIVITY[c.id]=[
-    {type:'workout',text:'Ukończył trening — Push Day',date:'dziś 9:15',icon:'💪'},
-    {type:'metric',text:'Zaktualizował pomiary (masa: -0.5kg)',date:'wczoraj 8:00',icon:'📏'},
-    {type:'form',text:'Wypełnił formularz postępów',date:'3 dni temu',icon:'📋'},
-    {type:'task',text:'Ukończył zadanie: 3 treningi w tygodniu',date:'4 dni temu',icon:'✅'},
-    {type:'message',text:'Wysłał wiadomość',date:'tydzień temu',icon:'💬'},
-  ];
+  if(!CLIENT_NOTES[c.id])CLIENT_NOTES[c.id]=[];
+  if(!CLIENT_ACTIVITY[c.id])CLIENT_ACTIVITY[c.id]=[];
 }
 
 function setInboxTab(t){
@@ -1168,8 +1159,8 @@ async function confirmAssignProgram(){
   if(!c){notify('Wybierz klienta!');return;}
 
   // Buduj pełny obiekt planu z programu
-  const newPlan={
-    id:'prog_'+Date.now(),
+  const newPlan=withTrainer({
+    id:newId('p'),
     name:p.name,
     clientId:cid,
     clientName:c.name,
@@ -1192,17 +1183,10 @@ async function confirmAssignProgram(){
           };
         })
       : [])
-  };
+  });
 
   PL.push(newPlan);
-
-  // Zapisz do Firebase jeśli dostępne
-  if(window._db){
-    try{
-      const r=await window._add(window._col(window._db,'plans'),newPlan);
-      if(r&&r.id)newPlan._fbId=r.id;
-    }catch(e){console.warn('Firebase plan save:',e);}
-  }
+  await persistById('plans',newPlan);
 
   closeM('m-assign-prog');
   closeProgDetail();
@@ -1261,12 +1245,12 @@ async function saveUserProgram(){
       window.USER_PROGRAMS[idx]={...window.USER_PROGRAMS[idx],name,goal:document.getElementById('pm-goal').value,level:document.getElementById('pm-level').value,duration:parseInt(document.getElementById('pm-dur').value),daysPerWeek:parseInt(document.getElementById('pm-days').value),equip:document.getElementById('pm-equip').value,method:document.getElementById('pm-method').value,desc:document.getElementById('pm-desc').value,updatedAt:new Date().toISOString()};
       window._editingProgId=null;
       closeM('m-program');renderPrograms();notify('Program zaktualizowany!');
-      if(window._db){try{await window._setDoc(window._doc(window._db,'programs',editingId),window.USER_PROGRAMS[idx],{merge:true});}catch(e){console.warn('Firebase update program:',e);}}
+      await persistById('programs',window.USER_PROGRAMS[idx]);
       return;
     }
   }
-  const p={
-    id:'up'+Date.now(),type:'moje',
+  const p=withTrainer({
+    id:newId('up'),type:'moje',
     name,goal:document.getElementById('pm-goal').value,
     level:document.getElementById('pm-level').value,
     duration:parseInt(document.getElementById('pm-dur').value),
@@ -1275,8 +1259,8 @@ async function saveUserProgram(){
     method:document.getElementById('pm-method').value,
     desc:document.getElementById('pm-desc').value,
     highlights:[],weeks:[],createdAt:new Date().toISOString()
-  };
-  try{if(window._db){const r=await window._add(window._col(window._db,'programs'),p);p.id=r.id;}}catch(e){}
+  });
+  await persistById('programs',p);
   window.USER_PROGRAMS.push(p);closeM('m-program');renderPrograms();notify('Program dodany! 📋');
 }
 window.TASKS=[];var taskFilter='all';

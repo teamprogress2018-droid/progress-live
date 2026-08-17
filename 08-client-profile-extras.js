@@ -607,8 +607,8 @@ async function fbImportSelected(){
     const c = fbParsed[i];
     if(!c.name) continue;
 
-    const newClient = {
-      id: 'fb_'+Date.now()+'_'+i, name: c.name,
+    const newClient = withTrainer({
+      id: newId('c'), name: c.name,
       email:'', phone:'',
       age: c.age||'', gender: c.gender==='K'?'K':'M',
       weight: c.weight||'', height: c.height||'',
@@ -616,27 +616,27 @@ async function fbImportSelected(){
       injuries: c.injuries||'', notes: c.notes||'',
       status:'active', joinDate: new Date().toISOString().split('T')[0],
       source:'Fitebo import'
-    };
+    });
     CL.push(newClient);
-    if(window._db){ try{ const r = await window._add(window._col(window._db,'clients'), newClient); newClient.id = r.id; }catch(e){} }
+    await persistById('clients', newClient);
 
     for(const m of (c.measurements||[]).filter(m=>m.date)){
       if(m.weight!=null){
-        const me={ id:'fbw_'+Date.now()+Math.random(), clientId:newClient.id, groupId:'mg1', date:m.date, values:{ m1:m.weight }, notes:'Import z Fitebo' };
+        const me=withTrainer({ id:newId('me'), clientId:newClient.id, groupId:'mg1', date:m.date, values:{ m1:m.weight }, notes:'Import z Fitebo' });
         window.METRIC_ENTRIES.push(me);
-        if(window._db){ try{ const r=await window._add(window._col(window._db,'metricEntries'),me); me.id=r.id; }catch(e){} }
+        await persistById('metricEntries', me);
       }
       if(m.waist!=null || m.chest!=null || m.hips!=null){
-        const me={ id:'fbm_'+Date.now()+Math.random(), clientId:newClient.id, groupId:'mg2', date:m.date, values:{ m1:m.chest||null, m2:m.waist||null, m3:m.hips||null }, notes:'Import z Fitebo' };
+        const me=withTrainer({ id:newId('me'), clientId:newClient.id, groupId:'mg2', date:m.date, values:{ m1:m.chest||null, m2:m.waist||null, m3:m.hips||null }, notes:'Import z Fitebo' });
         window.METRIC_ENTRIES.push(me);
-        if(window._db){ try{ const r=await window._add(window._col(window._db,'metricEntries'),me); me.id=r.id; }catch(e){} }
+        await persistById('metricEntries', me);
       }
     }
 
     for(const s of (c.sessions||[]).filter(s=>s.date)){
-      const sess = { id:'fbs_'+Date.now()+Math.random(), clientId:newClient.id, date:s.date, time:'', type: s.type || 'Trening (import Fitebo)', duration:60, notes:'Zaimportowano z Fitebo', createdAt: new Date().toISOString() };
+      const sess = withTrainer({ id:newId('s'), clientId:newClient.id, date:s.date, time:'', type: s.type || 'Trening (import Fitebo)', duration:60, notes:'Zaimportowano z Fitebo', createdAt: new Date().toISOString() });
       SE.push(sess);
-      if(window._db){ try{ const r = await window._add(window._col(window._db,'sessions'), sess); sess.id = r.id; }catch(e){} }
+      await persistById('sessions', sess);
     }
 
     if(c.notes){

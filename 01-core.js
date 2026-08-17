@@ -4,6 +4,38 @@ var dayCount=0;var curChat=null;var libF='Wszystkie';
 var wlNav='all';var wlView='grid';var wlSort='nazwa';var wlDetailId=null;
 
 const MSGS={};
+window.MSGS=MSGS;
+
+/** Stabilne ID współdzielone lokalnie i w Firestore (doc id = obj.id). */
+function newId(prefix){
+  return (prefix||'id')+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+}
+/** Dokleja trainerId bieżącego użytkownika do obiektu przed zapisem. */
+function withTrainer(obj){
+  if(window._uid)obj.trainerId=window._uid;
+  return obj;
+}
+/** Mapuje dokument Firestore z priorytetem id dokumentu (nie lokalnego pola id z data()). */
+function mapFbDoc(d){
+  return {...d.data(),id:d.id,_fbId:d.id};
+}
+/** Legacy bez trainerId widoczne; nowe dokumenty filtrujemy po uid. */
+function belongsToTrainer(data){
+  if(!window._uid)return true;
+  if(!data||!data.trainerId)return true;
+  return data.trainerId===window._uid;
+}
+/** Zapisuje dokument pod stałym id (setDoc), żeby lokalne id = Firestore id. */
+async function persistById(colName,obj){
+  if(!obj||!obj.id)return obj;
+  withTrainer(obj);
+  if(!window._db)return obj;
+  try{
+    await window._setDoc(window._doc(window._db,colName,obj.id),obj,{merge:true});
+    obj._fbId=obj.id;
+  }catch(e){console.warn('Firebase persist '+colName+':',e);}
+  return obj;
+}
 
 // Wspólna funkcja wysyłania wiadomości — zawsze zapisuje trwale do Firebase.
 // Używana przez WSZYSTKIE miejsca w apce, które wysyłają wiadomość do klienta
@@ -11,7 +43,7 @@ const MSGS={};
 // żeby żadna z nich nie znikała po odświeżeniu strony.
 function pushMsg(clientId,text){
   if(!MSGS[clientId])MSGS[clientId]=[];
-  const msg={clientId,text,out:true,time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),createdAt:new Date().toISOString()};
+  const msg=withTrainer({clientId,text,out:true,time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),createdAt:new Date().toISOString()});
   MSGS[clientId].push(msg);
   if(window._db){window._add(window._col(window._db,'messages'),msg).then(r=>{if(r&&r.id)msg._fbId=r.id;}).catch(e=>console.warn('Firebase msg save:',e));}
   return msg;

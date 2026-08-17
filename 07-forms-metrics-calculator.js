@@ -381,12 +381,12 @@ async function saveCustomForm(){
       document.getElementById('nf-questions').innerHTML='';
       document.getElementById('nf-title').value='';
       renderForms();notify('✓ Formularz zaktualizowany!');
-      if(window._db){try{await window._setDoc(window._doc(window._db,'forms',editingId),window.CUSTOM_FORMS[idx],{merge:true});}catch(e){console.warn('Firebase update form:',e);}}
+      await persistById('forms',window.CUSTOM_FORMS[idx]);
       return;
     }
   }
-  const form={id:'cf'+Date.now(),type:'moje',status:'active',cat:document.getElementById('nf-cat').value,name:title,desc:document.getElementById('nf-desc').value,questions,createdAt:new Date().toISOString()};
-  try{if(window._db){const r=await window._add(window._col(window._db,'forms'),form);form.id=r.id;}}catch(e){}
+  const form=withTrainer({id:newId('cf'),type:'moje',status:'active',cat:document.getElementById('nf-cat').value,name:title,desc:document.getElementById('nf-desc').value,questions,createdAt:new Date().toISOString()});
+  await persistById('forms',form);
   window.CUSTOM_FORMS.push(form);
   closeM('m-form');
   document.getElementById('nf-questions').innerHTML='';

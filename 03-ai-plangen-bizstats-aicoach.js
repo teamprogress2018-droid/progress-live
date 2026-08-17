@@ -1110,7 +1110,7 @@ function bizForecast(D){
   </div>`;
 }
 
-function exportBizReport(){notify('📄 Generowanie raportu PDF... (wkrótce!)');}
+function exportBizReport(){notify('📄 Eksport PDF jeszcze nie jest podłączony — funkcja w przygotowaniu.');}
 
 window.initBizStats=initBizStats;window.setBizPeriod=setBizPeriod;window.exportBizReport=exportBizReport;
 

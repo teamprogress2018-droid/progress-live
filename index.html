@@ -1479,7 +1479,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   <div id="ptab-invoices-view" style="flex:1;overflow-y:auto;padding:20px 24px;display:none;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
       <div style="font-size:13px;color:var(--muted);">Faktury generowane automatycznie po sprzedaży pakietu.</div>
-      <button class="btn btn-ghost btn-sm" onclick="notify('Eksport PDF — wkrótce!')">⬇ Eksportuj wszystkie</button>
+      <button class="btn btn-ghost btn-sm" onclick="notify('Eksport PDF jeszcze nie jest podłączony.')">⬇ Eksportuj wszystkie</button>
     </div>
     <div class="card" style="padding:0;">
       <div style="display:grid;grid-template-columns:80px 1fr 120px 100px 100px 80px;gap:8px;padding:9px 16px;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);">
@@ -3467,8 +3467,8 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
     <div class="modal-body" id="inv-modal-body"></div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeM('m-invoice')">Zamknij</button>
-      <button class="btn btn-ghost btn-sm" onclick="notify('Drukowanie — wkrótce!')">🖨 Drukuj</button>
-      <button class="btn btn-primary btn-sm" onclick="notify('Eksport PDF — wkrótce!')">⬇ PDF</button>
+      <button class="btn btn-ghost btn-sm" onclick="notify('Drukowanie jeszcze nie jest podłączone.')">🖨 Drukuj</button>
+      <button class="btn btn-primary btn-sm" onclick="notify('Eksport PDF jeszcze nie jest podłączony.')">⬇ PDF</button>
     </div>
   </div>
 </div>
@@ -3559,127 +3559,104 @@ onAuthStateChanged(auth,(user)=>{
   const authScreen=document.getElementById('auth-screen');
   const appRoot=document.getElementById('app-root');
   if(user){
+    window._uid=user.uid;
     authScreen.style.display='none';
     appRoot.style.display='';
     document.getElementById('auth-email').value='';
     document.getElementById('auth-password').value='';
     load();
   }else{
+    window._uid=null;
     authScreen.style.display='flex';
     appRoot.style.display='none';
   }
 });
 
+function _takeFb(d){
+  const data=d.data()||{};
+  if(typeof window.belongsToTrainer==='function'&&!window.belongsToTrainer(data))return null;
+  return typeof window.mapFbDoc==='function'?window.mapFbDoc(d):{...data,id:d.id,_fbId:d.id};
+}
 async function load(){
-  try{const s=await getDocs(collection(db,'clients'));window.CL=[];s.forEach(d=>window.CL.push({id:d.id,...d.data()}));}catch(e){window.CL=[];}
-  try{const s=await getDocs(collection(db,'plans'));window.PL=[];s.forEach(d=>window.PL.push({id:d.id,...d.data()}));}catch(e){window.PL=[];}
-  try{const s=await getDocs(collection(db,'sessions'));window.SE=[];s.forEach(d=>window.SE.push({id:d.id,...d.data()}));}catch(e){window.SE=[];}
-  try{const s=await getDocs(collection(db,'exercises'));window.EX=[];s.forEach(d=>window.EX.push({id:d.id,...d.data()}));}catch(e){window.EX=[];}
-  try{const s=await getDocs(collection(db,'workouts'));window.WO=[];s.forEach(d=>window.WO.push({id:d.id,...d.data()}));}catch(e){window.WO=[];}
-try{const s2=await getDocs(collection(db,'tasks'));window.TASKS=[];s2.forEach(d=>window.TASKS.push({id:d.id,...d.data()}));}catch(e){window.TASKS=[];}
-  try{const s3=await getDocs(collection(db,'kb'));window.KB=[];s3.forEach(d=>window.KB.push({id:d.id,...d.data()}));}catch(e){window.KB=[];}
-  try{const s4=await getDocs(collection(db,'metricEntries'));window.METRIC_ENTRIES=[];s4.forEach(d=>window.METRIC_ENTRIES.push({id:d.id,...d.data()}));}catch(e){window.METRIC_ENTRIES=[];}
-  try{const s5=await getDocs(collection(db,'metricGroups'));window.METRIC_GROUPS=[];s5.forEach(d=>window.METRIC_GROUPS.push({id:d.id,...d.data()}));}catch(e){window.METRIC_GROUPS=[];}
-  try{const s6=await getDocs(collection(db,'messages'));const grouped={};s6.forEach(d=>{const m={id:d.id,...d.data()};const cid=m.clientId;if(!cid)return;if(!grouped[cid])grouped[cid]=[];grouped[cid].push(m);});
+  const withTrainer=typeof window.withTrainer==='function'?window.withTrainer:(o)=>o;
+  const newId=typeof window.newId==='function'?window.newId:(p)=> (p||'id')+'_'+Date.now();
+  try{const s=await getDocs(collection(db,'clients'));window.CL=[];s.forEach(d=>{const x=_takeFb(d);if(x)window.CL.push(x);});}catch(e){window.CL=[];}
+  try{const s=await getDocs(collection(db,'plans'));window.PL=[];s.forEach(d=>{const x=_takeFb(d);if(x)window.PL.push(x);});}catch(e){window.PL=[];}
+  try{const s=await getDocs(collection(db,'sessions'));window.SE=[];s.forEach(d=>{const x=_takeFb(d);if(x)window.SE.push(x);});}catch(e){window.SE=[];}
+  try{const s=await getDocs(collection(db,'exercises'));window.EX=[];s.forEach(d=>{const x=_takeFb(d);if(x)window.EX.push(x);});}catch(e){window.EX=[];}
+  try{const s=await getDocs(collection(db,'workouts'));window.WO=[];s.forEach(d=>{const x=_takeFb(d);if(x)window.WO.push(x);});}catch(e){window.WO=[];}
+  try{const s2=await getDocs(collection(db,'tasks'));window.TASKS=[];s2.forEach(d=>{const x=_takeFb(d);if(x)window.TASKS.push(x);});}catch(e){window.TASKS=[];}
+  try{const s3=await getDocs(collection(db,'kb'));window.KB=[];s3.forEach(d=>{const x=_takeFb(d);if(x)window.KB.push(x);});}catch(e){window.KB=[];}
+  try{const s4=await getDocs(collection(db,'metricEntries'));window.METRIC_ENTRIES=[];s4.forEach(d=>{const x=_takeFb(d);if(x)window.METRIC_ENTRIES.push(x);});}catch(e){window.METRIC_ENTRIES=[];}
+  try{const s5=await getDocs(collection(db,'metricGroups'));window.METRIC_GROUPS=[];s5.forEach(d=>{const x=_takeFb(d);if(x)window.METRIC_GROUPS.push(x);});}catch(e){window.METRIC_GROUPS=[];}
+  try{const s6=await getDocs(collection(db,'messages'));const grouped={};s6.forEach(d=>{const m=_takeFb(d);if(!m)return;const cid=m.clientId;if(!cid)return;if(!grouped[cid])grouped[cid]=[];grouped[cid].push(m);});
     Object.keys(grouped).forEach(cid=>grouped[cid].sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||'')));
-    if(typeof MSGS!=='undefined')Object.assign(MSGS,grouped);
+    if(typeof MSGS!=='undefined'){Object.keys(MSGS).forEach(k=>delete MSGS[k]);Object.assign(MSGS,grouped);}
   }catch(e){console.warn('Wczytywanie wiadomości nie powiodło się:',e);}
-  try{const s7=await getDocs(collection(db,'packages'));window.PACKAGES=[];s7.forEach(d=>window.PACKAGES.push({id:d.id,...d.data(),_fbId:d.id}));}catch(e){console.warn('Wczytywanie pakietów nie powiodło się:',e);window.PACKAGES=window.PACKAGES||[];}
-  try{const s8=await getDocs(collection(db,'invoices'));window.INVOICES=[];s8.forEach(d=>window.INVOICES.push({id:d.id,...d.data()}));}catch(e){console.warn('Wczytywanie faktur nie powiodło się:',e);window.INVOICES=window.INVOICES||[];}
-  try{const s9=await getDocs(collection(db,'formSends'));window.FORM_SENDS=[];s9.forEach(d=>window.FORM_SENDS.push({id:d.id,...d.data(),_fbId:d.id}));}catch(e){console.warn('Wczytywanie wysłanych formularzy nie powiodło się:',e);window.FORM_SENDS=window.FORM_SENDS||[];}
-  try{const s10=await getDocs(collection(db,'reportHistory'));window.REP_HISTORY=[];s10.forEach(d=>window.REP_HISTORY.push({id:d.id,...d.data(),_fbId:d.id}));}catch(e){console.warn('Wczytywanie historii raportów nie powiodło się:',e);window.REP_HISTORY=window.REP_HISTORY||[];}
-  try{const s11=await getDocs(collection(db,'settings'));s11.forEach(d=>{window.SETTINGS={...window.SETTINGS,...d.data()};window._settingsDocId=d.id;});}catch(e){console.warn('Wczytywanie ustawień nie powiodło się:',e);}
-  try{const s12=await getDocs(collection(db,'notifications'));window.NOTIFICATIONS=[];s12.forEach(d=>window.NOTIFICATIONS.push({id:d.id,...d.data(),_fbId:d.id}));window.NOTIFICATIONS.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));}catch(e){console.warn('Wczytywanie powiadomień nie powiodło się:',e);window.NOTIFICATIONS=window.NOTIFICATIONS||[];}
+  try{const s7=await getDocs(collection(db,'packages'));window.PACKAGES=[];s7.forEach(d=>{const x=_takeFb(d);if(x)window.PACKAGES.push(x);});}catch(e){console.warn('Wczytywanie pakietów nie powiodło się:',e);window.PACKAGES=window.PACKAGES||[];}
+  try{const s8=await getDocs(collection(db,'invoices'));window.INVOICES=[];s8.forEach(d=>{const x=_takeFb(d);if(x)window.INVOICES.push(x);});}catch(e){console.warn('Wczytywanie faktur nie powiodło się:',e);window.INVOICES=window.INVOICES||[];}
+  try{const s9=await getDocs(collection(db,'formSends'));window.FORM_SENDS=[];s9.forEach(d=>{const x=_takeFb(d);if(x)window.FORM_SENDS.push(x);});}catch(e){console.warn('Wczytywanie wysłanych formularzy nie powiodło się:',e);window.FORM_SENDS=window.FORM_SENDS||[];}
+  try{const s10=await getDocs(collection(db,'reportHistory'));window.REP_HISTORY=[];s10.forEach(d=>{const x=_takeFb(d);if(x)window.REP_HISTORY.push(x);});}catch(e){console.warn('Wczytywanie historii raportów nie powiodło się:',e);window.REP_HISTORY=window.REP_HISTORY||[];}
+  try{const sForms=await getDocs(collection(db,'forms'));window.CUSTOM_FORMS=[];sForms.forEach(d=>{const x=_takeFb(d);if(x)window.CUSTOM_FORMS.push(x);});}catch(e){console.warn('Wczytywanie formularzy nie powiodło się:',e);window.CUSTOM_FORMS=window.CUSTOM_FORMS||[];}
+  try{const sProgs=await getDocs(collection(db,'programs'));window.USER_PROGRAMS=[];sProgs.forEach(d=>{const x=_takeFb(d);if(x)window.USER_PROGRAMS.push(x);});}catch(e){console.warn('Wczytywanie programów nie powiodło się:',e);window.USER_PROGRAMS=window.USER_PROGRAMS||[];}
+  try{const sCI=await getDocs(collection(db,'checkins'));window.CHECKINS={};sCI.forEach(d=>{const ci=_takeFb(d);if(!ci||!ci.clientId)return;if(!window.CHECKINS[ci.clientId])window.CHECKINS[ci.clientId]=[];window.CHECKINS[ci.clientId].push(ci);});Object.keys(window.CHECKINS).forEach(cid=>window.CHECKINS[cid].sort((a,b)=>(a.date||'').localeCompare(b.date||'')));}catch(e){console.warn('Wczytywanie check-inów nie powiodło się:',e);window.CHECKINS=window.CHECKINS||{};}
+  try{const s11=await getDocs(collection(db,'settings'));s11.forEach(d=>{const data=d.data()||{};if(typeof window.belongsToTrainer==='function'&&!window.belongsToTrainer(data)&&data.trainerId)return;window.SETTINGS={...window.SETTINGS,...data};window._settingsDocId=d.id;});}catch(e){console.warn('Wczytywanie ustawień nie powiodło się:',e);}
+  try{const s12=await getDocs(collection(db,'notifications'));window.NOTIFICATIONS=[];s12.forEach(d=>{const x=_takeFb(d);if(x)window.NOTIFICATIONS.push(x);});window.NOTIFICATIONS.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));}catch(e){console.warn('Wczytywanie powiadomień nie powiodło się:',e);window.NOTIFICATIONS=window.NOTIFICATIONS||[];}
   try{
     const s13=await getDocs(collection(db,'autoflows'));
-    window.AUTOFLOWS=[];s13.forEach(d=>window.AUTOFLOWS.push({id:d.id,...d.data(),_fbId:d.id}));
+    window.AUTOFLOWS=[];s13.forEach(d=>{const x=_takeFb(d);if(x)window.AUTOFLOWS.push(x);});
     if(!window.AUTOFLOWS.length&&typeof DEMO_AUTOFLOWS!=='undefined'){
       // Pierwsze uruchomienie: zamień wbudowane przykłady w prawdziwe, edytowalne flow.
       for(const af of DEMO_AUTOFLOWS){
-        const copy={...af,createdAt:new Date().toISOString()};
+        const copy=withTrainer({...af,id:af.id||newId('af'),createdAt:new Date().toISOString()});
         window.AUTOFLOWS.push(copy);
-        try{const r=await addDoc(collection(db,'autoflows'),copy);copy._fbId=r.id;}catch(e){}
+        try{await setDoc(doc(db,'autoflows',copy.id),copy);copy._fbId=copy.id;}catch(e){}
       }
     }
   }catch(e){console.warn('Wczytywanie autoflows nie powiodło się:',e);window.AUTOFLOWS=window.AUTOFLOWS||[];}
-  try{const sAF=await getDocs(collection(db,'automationState'));sAF.forEach(d=>{window.AF_STATE={...d.data()};window._afStateDocId=d.id;});}catch(e){console.warn('Wczytywanie stanu automatyzacji nie powiodło się:',e);}
-  try{const sInt=await getDocs(collection(db,'integrationConfigs'));window.INT_CONNECTIONS={};sInt.forEach(d=>{window.INT_CONNECTIONS[d.id]=d.data();});}catch(e){console.warn('Wczytywanie konfiguracji integracji nie powiodło się:',e);}
+  try{const sAF=await getDocs(collection(db,'automationState'));sAF.forEach(d=>{const data=d.data()||{};if(typeof window.belongsToTrainer==='function'&&data.trainerId&&!window.belongsToTrainer(data))return;window.AF_STATE={...data};window._afStateDocId=d.id;});}catch(e){console.warn('Wczytywanie stanu automatyzacji nie powiodło się:',e);}
+  try{const sInt=await getDocs(collection(db,'integrationConfigs'));window.INT_CONNECTIONS={};sInt.forEach(d=>{const data=d.data()||{};if(typeof window.belongsToTrainer==='function'&&data.trainerId&&!window.belongsToTrainer(data))return;window.INT_CONNECTIONS[d.id]=data;});}catch(e){console.warn('Wczytywanie konfiguracji integracji nie powiodło się:',e);}
   try{
     const sFG=await getDocs(collection(db,'forumGroups'));
-    window.FORUM_GROUPS=[];sFG.forEach(d=>window.FORUM_GROUPS.push({id:d.id,...d.data(),_fbId:d.id}));
+    window.FORUM_GROUPS=[];sFG.forEach(d=>{const x=_takeFb(d);if(x)window.FORUM_GROUPS.push(x);});
     if(!window.FORUM_GROUPS.length&&typeof DEMO_FORUM_GROUPS!=='undefined'){
       // Pierwsze uruchomienie: zamień domyślne kategorie w prawdziwe, edytowalne grupy.
       for(const g of DEMO_FORUM_GROUPS){
-        const copy={...g};
+        const copy=withTrainer({...g,id:g.id||newId('fg')});
         window.FORUM_GROUPS.push(copy);
-        try{const r=await addDoc(collection(db,'forumGroups'),copy);copy._fbId=r.id;}catch(e){}
+        try{await setDoc(doc(db,'forumGroups',copy.id),copy);copy._fbId=copy.id;}catch(e){}
       }
     }
   }catch(e){console.warn('Wczytywanie grup forum nie powiodło się:',e);window.FORUM_GROUPS=window.FORUM_GROUPS||[];}
-  try{const sFP=await getDocs(collection(db,'forumPosts'));window.FORUM_POSTS=[];sFP.forEach(d=>window.FORUM_POSTS.push({id:d.id,...d.data(),_fbId:d.id}));}catch(e){console.warn('Wczytywanie postów forum nie powiodło się:',e);window.FORUM_POSTS=window.FORUM_POSTS||[];}
-  try{const sFC=await getDocs(collection(db,'forumComments'));window.FORUM_COMMENTS={};sFC.forEach(d=>{const c={id:d.id,...d.data(),_fbId:d.id};if(!window.FORUM_COMMENTS[c.postId])window.FORUM_COMMENTS[c.postId]=[];window.FORUM_COMMENTS[c.postId].push(c);});}catch(e){console.warn('Wczytywanie komentarzy forum nie powiodło się:',e);window.FORUM_COMMENTS=window.FORUM_COMMENTS||{};}
+  try{const sFP=await getDocs(collection(db,'forumPosts'));window.FORUM_POSTS=[];sFP.forEach(d=>{const x=_takeFb(d);if(x)window.FORUM_POSTS.push(x);});}catch(e){console.warn('Wczytywanie postów forum nie powiodło się:',e);window.FORUM_POSTS=window.FORUM_POSTS||[];}
+  try{const sFC=await getDocs(collection(db,'forumComments'));window.FORUM_COMMENTS={};sFC.forEach(d=>{const c=_takeFb(d);if(!c)return;if(!window.FORUM_COMMENTS[c.postId])window.FORUM_COMMENTS[c.postId]=[];window.FORUM_COMMENTS[c.postId].push(c);});}catch(e){console.warn('Wczytywanie komentarzy forum nie powiodło się:',e);window.FORUM_COMMENTS=window.FORUM_COMMENTS||{};}
   try{
     const sOD=await getDocs(collection(db,'odWorkouts'));
-    window.OD_WORKOUTS=[];sOD.forEach(d=>window.OD_WORKOUTS.push({id:d.id,...d.data(),_fbId:d.id}));
+    window.OD_WORKOUTS=[];sOD.forEach(d=>{const x=_takeFb(d);if(x)window.OD_WORKOUTS.push(x);});
     if(!window.OD_WORKOUTS.length&&typeof OD_DEMO_WORKOUTS!=='undefined'){
       // Pierwsze uruchomienie: zamień bibliotekę startową w prawdziwą, edytowalną zawartość.
       for(const w of OD_DEMO_WORKOUTS){
-        const copy={...w};
+        const copy=withTrainer({...w,id:w.id||newId('od')});
         window.OD_WORKOUTS.push(copy);
-        try{const r=await addDoc(collection(db,'odWorkouts'),copy);copy._fbId=r.id;}catch(e){}
+        try{await setDoc(doc(db,'odWorkouts',copy.id),copy);copy._fbId=copy.id;}catch(e){}
       }
     }
   }catch(e){console.warn('Wczytywanie treningów on-demand nie powiodło się:',e);window.OD_WORKOUTS=window.OD_WORKOUTS||[];}
   try{
     const sRes=await getDocs(collection(db,'resources'));
-    window.USER_RESOURCES=[];sRes.forEach(d=>window.USER_RESOURCES.push({id:d.id,...d.data(),_fbId:d.id}));
+    window.USER_RESOURCES=[];sRes.forEach(d=>{const x=_takeFb(d);if(x)window.USER_RESOURCES.push(x);});
     if(!window.USER_RESOURCES.length&&typeof DEMO_RESOURCES!=='undefined'){
-      // Pierwsze uruchomienie: zamień bibliotekę edukacyjną w prawdziwą, edytowalną zawartość.
+      // Pierwsze uruchomienie: seed biblioteki edukacyjnej (bez kasowania przy kolejnych logowaniach).
       for(const r of DEMO_RESOURCES){
-        const copy={...r};
+        const copy=withTrainer({...r,id:r.id||newId('res')});
         window.USER_RESOURCES.push(copy);
-        try{const rr=await addDoc(collection(db,'resources'),copy);copy._fbId=rr.id;}catch(e){}
+        try{await setDoc(doc(db,'resources',copy.id),copy);copy._fbId=copy.id;}catch(e){}
       }
     }
   }catch(e){console.warn('Wczytywanie zasobów nie powiodło się:',e);window.USER_RESOURCES=window.USER_RESOURCES||[];}
-  try{
-    // Sprzątanie: usuwamy wszystkie materiały tekstowe (artykuły) — zgodnie z życzeniem,
-    // biblioteka ma zawierać WYŁĄCZNIE audio (podcasty + muzyka) po polsku.
-    const REMOVE_IDS=new Set(['r1','r2','r3','r4','r5','r6','r7','r8','r9','r10','r11','r12','r13','r14','r15','r16','r17','r18','r19','r21','r22','r23','r24','r25','r26','r27','r28','r29','r30','r31','r32','r33','r34','r35','r36','r37','r38','r39','r40','r41','r42','r43','r44','r45','r46','r47']);
-    const toRemove=window.USER_RESOURCES.filter(r=>REMOVE_IDS.has(r.id));
-    for(const r of toRemove){
-      window.USER_RESOURCES=window.USER_RESOURCES.filter(x=>x.id!==r.id);
-      if(window._db&&r._fbId){try{await deleteDoc(doc(db,'resources',r._fbId));}catch(e){}}
-    }
-    // Pakiet audio: wyłącznie polskie playlisty i podcasty — trening, dieta, regeneracja, psychologia sportu.
-    const AUDIO_PACK=[
-      {id:'r20',name:'Muzyka do ćwiczeń — Siłka 2026',type:'link',cat:'muzyka',url:'https://open.spotify.com/playlist/2aa9jra1QrZxVzN7tgnLm0',desc:'Polska playlista Spotify dedykowana treningowi siłowemu na siłowni.',coll:'music'},
-      {id:'r48',name:'Chwila z samorozwojem — podcast',type:'podcast',cat:'psychologia',url:'https://open.spotify.com/show/4XDtC2ttFAIrp3LPw3TjYn',desc:'Polski podcast o rozwoju osobistym, nawykach i motywacji.',coll:'podcasts'},
-      {id:'r49',name:'Polski rap trening!',type:'link',cat:'muzyka',url:'https://open.spotify.com/playlist/6KNzlmx1bdIrShNwz89EvU',desc:'Popularna polska playlista rapowa do intensywnego treningu.',coll:'music'},
-      {id:'r50',name:'Muzyka motywacyjna na trening',type:'link',cat:'muzyka',url:'https://open.spotify.com/playlist/5O93gdP6tdxq3bQukvOLEV',desc:'Energetyczny zestaw utworów budujących motywację przed serią.',coll:'music'},
-      {id:'r51',name:'Muzyka na siłownię — Music Gym Poland',type:'link',cat:'muzyka',url:'https://open.spotify.com/playlist/6OGNxRJ1Vyb6GG6UC89GyL',desc:'Polska playlista dedykowana treningowi na siłowni.',coll:'music'},
-      {id:'r52',name:'Rap motywacja',type:'link',cat:'muzyka',url:'https://open.spotify.com/playlist/37i9dQZF1DXa3d3ljLBxSG',desc:'Oficjalna playlista Spotify z hitami rapowymi do treningu.',coll:'music'},
-      {id:'r53',name:'Polski Rap Trening / Bieganie / Siłownia',type:'link',cat:'muzyka',url:'https://open.spotify.com/playlist/6I2h66EqqOcKJX8lGr2tUr',desc:'Szeroki wybór polskiego rapu do biegania i treningu siłowego.',coll:'music'},
-      {id:'r54',name:'Praktyczna Strona Treningu — podcast',type:'podcast',cat:'trening',url:'https://open.spotify.com/show/3JqDZIz3rtwWB7qbsOnh4x',desc:'Trening, fizjoterapia i dietetyka — rozmowy z praktykami sportu.',coll:'podcasts'},
-      {id:'r55',name:'Kształtowanie Sylwetki w Naukowym Wydaniu — podcast',type:'podcast',cat:'trening',url:'https://creators.spotify.com/pod/profile/podcast-ksztatowanie-sylw/',desc:'Dieta i trening siłowy oparte na aktualnej literaturze naukowej.',coll:'podcasts'},
-      {id:'r56',name:'Bieganie.pl — podcast',type:'podcast',cat:'trening',url:'https://open.spotify.com/show/0q9MAphs1NtavIZivVg7yx',desc:'Wywiady i wiedza treningowa od największego portalu biegowego w Polsce.',coll:'podcasts'},
-      {id:'r57',name:'Rusz się zdrowo! — podcast',type:'podcast',cat:'trening',url:'https://open.spotify.com/show/7GZTsuTVGQIRhliHkYFtul',desc:'Trening siłowy i przygotowanie motoryczne z ekspertami sportu.',coll:'podcasts'},
-      {id:'r58',name:'Katarzyna Łożyńska — dietetyk kliniczno-sportowy',type:'podcast',cat:'odżywianie',url:'https://open.spotify.com/show/2wsEqZTEjRAQspYEU7xVC3',desc:'Rozmowy o zdrowym odżywianiu, psychodietetyce i kształtowaniu sylwetki.',coll:'podcasts'},
-      {id:'r59',name:'Praktyczna Strona Dietetyki — podcast',type:'podcast',cat:'odżywianie',url:'https://open.spotify.com/show/6WQc5rNuG6uUgzjwxSQwpH',desc:'Dietetyka sportowa, kliniczna i psychodietetyka w praktycznym wydaniu.',coll:'podcasts'},
-      {id:'r60',name:'Dietetyka oparta na faktach — podcast',type:'podcast',cat:'odżywianie',url:'https://open.spotify.com/show/3mq9AuBIb3qOFISaLDZCo6',desc:'Żywienie i suplementacja oparte na aktualnym stanie wiedzy naukowej.',coll:'podcasts'},
-      {id:'r61',name:'Dietetyczny Podcast',type:'podcast',cat:'odżywianie',url:'https://open.spotify.com/show/1EqfvEbJn048vzlaoC3cOg',desc:'Zwyczaje żywieniowe sportowców i osób aktywnych fizycznie.',coll:'podcasts'},
-      {id:'r62',name:'Psychologia sportu — podcast',type:'podcast',cat:'psychologia',url:'https://open.spotify.com/show/0kUxd5KU7r4o8Q7x4EEmF8',desc:'Jak wykorzystać potęgę umysłu w sporcie i budować mentalną odporność.',coll:'podcasts'},
-      {id:'r63',name:'Fizjopozytywnie o zdrowiu — podcast',type:'podcast',cat:'regeneracja',url:'https://joannatokarska.pl/podcast-o-fizjoterapii/',desc:'Pierwszy polski podcast o fizjoterapii — rehabilitacja i powrót do aktywności.',coll:'podcasts'},
-    ];
-    const existingIds=new Set(window.USER_RESOURCES.map(r=>r.id));
-    for(const r of AUDIO_PACK){
-      if(existingIds.has(r.id))continue;
-      window.USER_RESOURCES.push(r);
-      try{const rr=await addDoc(collection(db,'resources'),r);r._fbId=rr.id;}catch(e){}
-    }
-  }catch(e){console.warn('Aktualizacja biblioteki audio:',e);}
   window.AF_STATE=window.AF_STATE||{enrollments:{},executed:{},lastFired:{}};
-  try{if(typeof runAutoflowsCheck==='function')runAutoflowsCheck();}catch(e){console.warn('runAutoflowsCheck:',e);}
+  try{if(typeof window.runAutoflowsCheck==='function')window.runAutoflowsCheck();}catch(e){console.warn('runAutoflowsCheck:',e);}
+  try{if(typeof window.syncSidebarProfile==='function')window.syncSidebarProfile();}catch(e){}
   window.renderAll();
 }
 </script>

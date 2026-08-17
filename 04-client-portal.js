@@ -18,6 +18,19 @@ function initClientApp(){
     sel.innerHTML='<option value="">Wybierz klienta...</option>'+CL.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
     if(!capClientId&&CL.length){capClientId=CL[0].id;sel.value=capClientId;}
   }
+  const title=document.querySelector('#screen-clientapp .topbar-title');
+  if(title)title.textContent='Aplikacja klienta — podgląd (mock)';
+  let banner=document.getElementById('cap-mock-banner');
+  if(!banner){
+    const top=document.querySelector('#screen-clientapp .topbar');
+    if(top&&top.nextElementSibling){
+      banner=document.createElement('div');
+      banner.id='cap-mock-banner';
+      banner.style.cssText='margin:0 16px 8px;padding:10px 14px;background:rgba(201,123,63,0.12);border:1px solid rgba(201,123,63,0.35);border-radius:8px;font-size:12px;color:var(--orange);';
+      banner.textContent='To jest podgląd UI dla trenera — nie ma osobnej aplikacji klienta ani realnego logowania podopiecznych.';
+      top.parentNode.insertBefore(banner,top.nextElementSibling);
+    }
+  }
   renderClientApp();
 }
 
@@ -545,15 +558,16 @@ function renderCapAccess(){
         <div style="display:grid;grid-template-columns:1fr 80px 80px 80px;gap:8px;padding:8px 0;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);">
           <span>Klient</span><span>Status</span><span>Ostatnio</span><span></span>
         </div>
-        ${CL.slice(0,8).map((c,i)=>{
-          const statuses=['active','active','inactive','active','active','never','active','inactive'];
-          const st=statuses[i%statuses.length];
-          const times=['dziś 9:15','wczoraj','5 dni temu','dziś 11:00','2 dni temu','—','wczoraj','1 tydzień'];
+        ${CL.slice(0,8).map((c)=>{
+          const lastMsg=(typeof MSGS!=='undefined'&&MSGS[c.id]&&MSGS[c.id].length)?MSGS[c.id][MSGS[c.id].length-1]:null;
+          const invited=!!c.inviteSentAt||!!c.appInvited;
+          const st=invited?(lastMsg?'active':'invited'):'never';
+          const lastLabel=lastMsg?(lastMsg.createdAt?new Date(lastMsg.createdAt).toLocaleDateString('pl'):'niedawno'):(invited?'zaproszony':'—');
           return `<div style="display:grid;grid-template-columns:1fr 80px 80px 80px;gap:8px;padding:10px 0;border-bottom:1px solid var(--border);font-size:12px;align-items:center;">
             <div style="font-weight:600;">${c.name}</div>
-            <span class="pill ${st==='active'?'pill-green':st==='inactive'?'pill-orange':'pill-muted'}" style="font-size:9px;">${st==='active'?'Aktywny':st==='inactive'?'Nieaktywny':'Brak'}</span>
-            <span style="font-size:10px;color:var(--muted);">${times[i%times.length]}</span>
-            <button class="btn btn-ghost btn-sm" style="font-size:10px;" onclick="notify('Zaproszenie wysłane do ${c.name}')">Wyślij</button>
+            <span class="pill ${st==='active'?'pill-green':st==='invited'?'pill-orange':'pill-muted'}" style="font-size:9px;">${st==='active'?'Aktywny':st==='invited'?'Zaproszony':'Brak'}</span>
+            <span style="font-size:10px;color:var(--muted);">${lastLabel}</span>
+            <button class="btn btn-ghost btn-sm" style="font-size:10px;" onclick="inviteClientToApp('${c.id}')">Wyślij</button>
           </div>`;
         }).join('')}
       </div>
@@ -563,8 +577,26 @@ function renderCapAccess(){
 function shareAppLink(){
   const c=CL.find(x=>x.id===capClientId);
   if(!c){notify('Wybierz klienta!');return;}
-  pushMsg(c.id,`📱 Twoja aplikacja Progress Live jest gotowa!\n\nLink: https://app.progresslive.pl/client/${c.name.toLowerCase().replace(/\s/g,'-')}\n\nZaloguj się swoim emailem. Do zobaczenia na treningu! 💪`);
-  notify(`✓ Link do aplikacji wysłany do ${c.name}!`);
+  const link=buildClientInviteLink(c);
+  pushMsg(c.id,'📱 Podgląd aplikacji Progress Live (wersja robocza):\n\n'+link+'\n\nUwaga: to jeszcze nie jest osobna aplikacja klienta — link otwiera panel / podgląd.');
+  if(navigator.clipboard){try{navigator.clipboard.writeText(link);}catch(e){}}
+  notify('✓ Link podglądu skopiowany i zapisany w wiadomościach');
+}
+
+function buildClientInviteLink(c){
+  const base=(location.origin+location.pathname).replace(/index\.html$/,'');
+  return base+'#client-preview='+encodeURIComponent(c.id);
+}
+
+function inviteClientToApp(cid){
+  const c=CL.find(x=>x.id===cid);if(!c){notify('Nie znaleziono klienta');return;}
+  const link=buildClientInviteLink(c);
+  c.appInvited=true;c.inviteSentAt=new Date().toISOString();
+  persistById('clients',c);
+  pushMsg(c.id,'📱 Zaproszenie do podglądu Progress Live:\n'+link+'\n\n(Pełna aplikacja klienta — w przygotowaniu. Na razie to podgląd dla trenera.)');
+  if(navigator.clipboard){try{navigator.clipboard.writeText(link);}catch(e){}}
+  notify('✓ Zaproszenie zapisane w czacie + link skopiowany');
+  if(typeof renderClientApp==='function')renderClientApp();
 }
 
 function sendAppInvite(){
@@ -572,8 +604,13 @@ function sendAppInvite(){
   const method=document.getElementById('cap-inv-method').value;
   if(!cid){notify('Wybierz klienta!');return;}
   const c=CL.find(x=>x.id===cid);
-  const methodLabels={email:'email',sms:'SMS',whatsapp:'WhatsApp'};
-  notify(`✓ Zaproszenie wysłane do ${c?.name} przez ${methodLabels[method]}!`);
+  if(!c){notify('Nie znaleziono klienta');return;}
+  if(method==='email'||method==='sms'||method==='whatsapp'){
+    inviteClientToApp(cid);
+    notify('E-mail / SMS / WhatsApp nie są jeszcze podłączone — wysłano wiadomość w Inbox i skopiowano link.');
+    return;
+  }
+  inviteClientToApp(cid);
 }
 var intTab='all';var intCat='all';var intDetailId=null;
 
@@ -1467,25 +1504,53 @@ function pbLoadDemo(){
   notify('✓ Demo PPL Masa wczytane!');
 }
 
-function pbAssign(){
+async function pbAssign(){
   if(!CL.length){notify('Najpierw dodaj klienta!');return;}
   const name=document.getElementById('pb-name').value.trim()||'Program';
-  const cid=prompt('ID klienta (lub wpisz imię):');
+  // Zapisz program jeśli jeszcze nie w bibliotece
+  await pbSave(true);
+  const prog=window.USER_PROGRAMS[window.USER_PROGRAMS.length-1];
+  if(!prog){notify('Najpierw zapisz program');return;}
+  window._assignProgId=prog.id;
+  // reuse existing assign modal if present
+  const sel=document.getElementById('assign-prog-client');
+  if(sel){
+    sel.innerHTML=CL.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+    const dateEl=document.getElementById('assign-prog-date');
+    if(dateEl)dateEl.value=new Date().toISOString().split('T')[0];
+    openM('m-assign-prog');
+    return;
+  }
+  const cid=prompt('Wpisz imię lub ID klienta:');
   if(!cid)return;
   const c=CL.find(x=>x.id===cid||x.name.toLowerCase().includes(cid.toLowerCase()));
   if(!c){notify('Nie znaleziono klienta');return;}
+  document.getElementById('assign-prog-client')&&(document.getElementById('assign-prog-client').value=c.id);
+  // fallback: build plan directly
+  const newPlan=withTrainer({
+    id:newId('p'),name:prog.name,clientId:c.id,clientName:c.name,
+    method:prog.method||'Własna',duration:prog.duration||8,level:prog.level||'sredni',goal:prog.goal||'masa',
+    source:'program',programId:prog.id,startDate:new Date().toISOString().split('T')[0],
+    createdAt:new Date().toISOString(),
+    days:(prog.weeks&&prog.weeks[0]&&prog.weeks[0].days
+      ?prog.weeks[0].days.map(d=>{
+          const isRest=d.name==='REST'||d.rest||/^rest$/i.test(d.name||'');
+          return{day:d.d||d.name||'',muscles:d.name||'',rest:isRest,exercises:isRest?[]:[{name:d.name||'Trening wg planu',sets:'3',reps:'wg planu'}]};
+        }):[])
+  });
+  PL.push(newPlan);
+  await persistById('plans',newPlan);
   notify('✓ Program "'+name+'" przypisany do: '+c.name);
 }
 
-function pbSave(){
+async function pbSave(silent){
   const name=document.getElementById('pb-name').value.trim();
   if(!name){notify('Wpisz nazwę programu!');return;}
   pbProgram.name=name;
   pbProgram.goal=document.getElementById('pb-goal').value;
   pbProgram.level=document.getElementById('pb-level').value;
-  // save to USER_PROGRAMS
-  const prog={
-    id:'pb'+Date.now(),type:'moje',
+  const prog=withTrainer({
+    id:pbProgram._savedId||newId('pb'),type:'moje',
     name,goal:pbProgram.goal,level:pbProgram.level,
     duration:pbProgram.duration,daysPerWeek:pbProgram.daysPerWeek,
     equip:'Siłownia',method:'Własna',
@@ -1495,11 +1560,17 @@ function pbSave(){
       nr:w.nr,label:w.label,rpe:w.rpe,
       days:w.days.map(d=>({d:d.name.substring(0,3),name:d.rest?'REST':d.name}))
     })),
-    createdAt:new Date().toISOString()
-  };
-  window.USER_PROGRAMS.push(prog);
-  notify('✓ Program "'+name+'" zapisany do biblioteki programów!');
+    createdAt:pbProgram.createdAt||new Date().toISOString(),
+    updatedAt:new Date().toISOString()
+  });
+  pbProgram._savedId=prog.id;
+  const idx=(window.USER_PROGRAMS||[]).findIndex(x=>x.id===prog.id);
+  if(idx>=0)window.USER_PROGRAMS[idx]=prog;
+  else window.USER_PROGRAMS.push(prog);
+  await persistById('programs',prog);
+  if(typeof renderPrograms==='function')renderPrograms();
   document.getElementById('pb-title').textContent=name;
+  if(!silent)notify('✓ Program "'+name+'" zapisany do biblioteki programów!');
 }
 var ciFilter='all';var ciActiveClient=null;
 window.CHECKINS={};// clientId -> [{week, date, answers, score}]
@@ -1520,31 +1591,45 @@ const CI_QUESTIONS_SHORT=[
   {id:'notes',type:'text',label:'Komentarz',question:'Coś do przekazania?'},
 ];
 
-// Generate demo check-ins
+/** Pusta lista check-inów — bez fałszywych danych demo. */
+function ensureCheckins(clientId){
+  if(!window.CHECKINS[clientId])window.CHECKINS[clientId]=[];
+}
+async function persistCheckin(ci){
+  if(!ci)return;
+  if(!ci.id)ci.id=newId('ci');
+  withTrainer(ci);
+  await persistById('checkins',ci);
+}
+
+// Generate demo check-ins — zachowane tylko do jawnej symulacji / seedu testowego
 function initDemoCheckins(clientId){
-  if(window.CHECKINS[clientId])return;
+  ensureCheckins(clientId);
+  if(window.CHECKINS[clientId].length)return;
   const now=new Date();
-  window.CHECKINS[clientId]=[];
   for(let w=7;w>=1;w--){
     const d=new Date(now);d.setDate(d.getDate()-w*7);
     const rnd=(min,max)=>Math.round(Math.random()*(max-min)+min);
     const energy=rnd(2,5);const sleep=rnd(2,5);const stress=rnd(1,4);
     const nutrition=rnd(2,5);const workouts=rnd(1,5);
     const score=Math.round((energy+sleep+(5-stress)+nutrition)/4*20);
-    window.CHECKINS[clientId].push({
-      id:'ci'+clientId+w,week:w,
+    const ci=withTrainer({
+      id:newId('ci'),clientId,week:w,
       date:dateStr(d),
       status:'filled',
       score,
       answers:{energy,sleep,stress,nutrition,workouts,weight:null,notes:w===1?'Świetny tydzień! Poprawiłem rekord w przysiadzie 🎉':''}
     });
+    window.CHECKINS[clientId].push(ci);
+    persistCheckin(ci);
   }
-  // current week - pending
-  window.CHECKINS[clientId].push({
-    id:'ci'+clientId+'0',week:0,
+  const pending=withTrainer({
+    id:newId('ci'),clientId,week:0,
     date:dateStr(now),
     status:'pending',score:null,answers:{}
   });
+  window.CHECKINS[clientId].push(pending);
+  persistCheckin(pending);
 }
 
 function getCIStatus(clientId){
@@ -1577,8 +1662,7 @@ function renderCheckinClientList(){
   const search=(document.getElementById('ci-search')||{}).value||'';
   let clients=CL.filter(c=>!search||c.name.toLowerCase().includes(search.toLowerCase()));
 
-  // init demo data for all
-  clients.forEach(c=>initDemoCheckins(c.id));
+  clients.forEach(c=>ensureCheckins(c.id));
 
   if(ciFilter==='pending')clients=clients.filter(c=>getCIStatus(c.id)==='pending');
   else if(ciFilter==='done')clients=clients.filter(c=>getCIStatus(c.id)==='done');
@@ -1623,7 +1707,7 @@ function renderCheckinClientList(){
 function openCIClient(id){
   ciActiveClient=id;
   const c=CL.find(x=>x.id===id);if(!c)return;
-  initDemoCheckins(id);
+  ensureCheckins(id);
 
   const ci=CL.indexOf(c);const col=COLS[ci%5];
   document.getElementById('ci-active-client').textContent=c.name;
@@ -1761,7 +1845,7 @@ function renderCIAnswers(ci,c){
 function renderCheckinSummary(id){
   const el=document.getElementById('ci-summary');if(!el)return;
   const allC=CL;
-  allC.forEach(c=>initDemoCheckins(c.id));
+  allC.forEach(c=>ensureCheckins(c.id));
 
   const total=allC.length;
   const done=allC.filter(c=>getCIStatus(c.id)==='done').length;
@@ -1823,18 +1907,18 @@ function renderCheckinSummary(id){
 }
 
 function openSimulateCheckin(id){
-  if(!window.CHECKINS[id])initDemoCheckins(id);
-  const latest=window.CHECKINS[id][window.CHECKINS[id].length-1];
+  ensureCheckins(id);
+  let latest=window.CHECKINS[id][window.CHECKINS[id].length-1];
   if(!latest||latest.status==='filled'){
-    // add new pending
-    window.CHECKINS[id].push({id:'ci'+id+Date.now(),week:0,date:dateStr(new Date()),status:'pending',score:null,answers:{}});
+    latest=withTrainer({id:newId('ci'),clientId:id,week:0,date:dateStr(new Date()),status:'pending',score:null,answers:{}});
+    window.CHECKINS[id].push(latest);
   }
-  const ci=window.CHECKINS[id][window.CHECKINS[id].length-1];
-  // simulate random answers
+  const ci=latest;
   const rnd=(a,b)=>Math.round(Math.random()*(b-a)+a);
   ci.answers={energy:rnd(3,5),sleep:rnd(3,5),stress:rnd(1,3),nutrition:rnd(3,5),workouts:rnd(2,5),weight:null,notes:'Świetny tydzień! 💪'};
   ci.score=Math.round((ci.answers.energy+ci.answers.sleep+(5-ci.answers.stress)+ci.answers.nutrition)/4*20);
   ci.status='filled';
+  persistCheckin(ci);
   renderCIDetail(id);
   renderCheckinSummary(id);
   renderCheckinClientList();
@@ -1843,10 +1927,15 @@ function openSimulateCheckin(id){
 }
 
 function sendCheckinTo(id){
-  if(!window.CHECKINS[id])initDemoCheckins(id);
+  ensureCheckins(id);
   const c=CL.find(x=>x.id===id);
+  const pending=withTrainer({id:newId('ci'),clientId:id,week:0,date:dateStr(new Date()),status:'pending',score:null,answers:{}});
+  window.CHECKINS[id].push(pending);
+  persistCheckin(pending);
   pushMsg(id,'Hej '+( c?c.name.split(' ')[0]:'')+'! Czas na tygodniowy check-in 💪 Jak minął tydzień treningowy?');
   notify('✓ Check-in wysłany do '+(c?c.name:'klienta'));
+  renderCheckinClientList();
+  if(ciActiveClient===id)renderCIDetail(id);
 }
 
 function sendCheckin(){
@@ -2287,6 +2376,7 @@ function confirmDeleteAll(){
 function saveSettings(){
   // read profile
   const S=window.SETTINGS;
+  withTrainer(S);
   const g=id=>document.getElementById('set-'+id);
   if(g('profile-name'))S.profile.name=g('profile-name').value||S.profile.name;
   if(g('profile-title'))S.profile.title=g('profile-title').value||S.profile.title;
@@ -2299,20 +2389,28 @@ function saveSettings(){
   if(g('company-address'))S.company.address=g('company-address').value;
   if(g('company-city'))S.company.city=g('company-city').value;
   if(g('company-website'))S.company.website=g('company-website').value;
-  // update sidebar footer
-  const nameEl=document.querySelector('.sidebar-footer div:nth-child(2) div:first-child');
-  const roleEl=document.querySelector('.sidebar-footer div:nth-child(2) div:last-child');
-  if(nameEl)nameEl.textContent=S.profile.name;
-  if(roleEl)roleEl.textContent=S.profile.title;
+  syncSidebarProfile();
   notify('✓ Ustawienia zapisane!');
   if(window._db){
     if(window._settingsDocId){
       window._setDoc(window._doc(window._db,'settings',window._settingsDocId),S,{merge:true}).catch(e=>console.warn('Firebase settings update:',e));
     }else{
-      window._add(window._col(window._db,'settings'),S).then(r=>{if(r&&r.id)window._settingsDocId=r.id;}).catch(e=>console.warn('Firebase settings save:',e));
+      window._setDoc(window._doc(window._db,'settings',window._uid||'default'),S,{merge:true}).then(()=>{window._settingsDocId=window._uid||'default';}).catch(e=>console.warn('Firebase settings save:',e));
     }
   }
 }
+function syncSidebarProfile(){
+  const S=window.SETTINGS||{};
+  const name=(S.profile&&S.profile.name)||'';
+  const title=(S.profile&&S.profile.title)||'Trener personalny';
+  const nameEl=document.querySelector('.sidebar-footer div:nth-child(2) div:first-child');
+  const roleEl=document.querySelector('.sidebar-footer div:nth-child(2) div:last-child');
+  const av=document.querySelector('.sidebar-footer .av');
+  if(name&&nameEl)nameEl.textContent=name;
+  if(roleEl)roleEl.textContent=title;
+  if(av&&name)av.textContent=getInit(name);
+}
+window.syncSidebarProfile=syncSidebarProfile;
 var notifPanelOpen=false;var notifTab='all';
 window.NOTIFICATIONS=[];
 
