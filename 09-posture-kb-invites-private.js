@@ -1521,13 +1521,14 @@ var inviteMethod = 'wiadomosc';
 const APP_URL = 'https://teamprogress2018-droid.github.io/progress-live/';
 
 function generateInviteLink(client) {
-  // Unikalny token oparty na email lub id
-  const base = (client.email || client.id || '').replace(/[^a-z0-9]/gi, '').toLowerCase();
-  const token = base.substring(0, 8) + btoa(client.id || client.name).replace(/[^a-zA-Z0-9]/g, '').substring(0, 6);
-  return APP_URL + '?client=' + encodeURIComponent(client.email || client.name) + '&token=' + token;
+  if(typeof ensureClientInvite==='function'){
+    // synchroniczny fallback — token jeśli już jest, inaczej tymczasowy link
+    if(client.inviteToken)return (typeof clientAppUrl==='function'?clientAppUrl():APP_URL)+'?invite='+encodeURIComponent(client.inviteToken);
+  }
+  return APP_URL + '?invite=' + encodeURIComponent(client.inviteToken||client.id);
 }
 
-function openInviteModal(clientId) {
+async function openInviteModal(clientId) {
   const c = CL.find(x => x.id === clientId);
   if (!c) return;
   inviteClientId = clientId;
@@ -1539,8 +1540,9 @@ function openInviteModal(clientId) {
   if (el('inv-name')) el('inv-name').textContent = c.name;
   if (el('inv-email')) el('inv-email').textContent = c.email || 'Brak emaila';
 
-  // Generuj link
-  const link = generateInviteLink(c);
+  if (el('inv-link')) el('inv-link').textContent = 'Generowanie linku...';
+  openM('m-invite');
+  const link = typeof ensureClientInvite==='function' ? await ensureClientInvite(c) : generateInviteLink(c);
   if (el('inv-link')) el('inv-link').textContent = link;
 
   // Reset przycisków metody
@@ -1552,7 +1554,6 @@ function openInviteModal(clientId) {
   });
 
   updateInvitePreview(c, link, 'wiadomosc');
-  openM('m-invite');
 }
 
 function selectInvMethod(btn) {
@@ -1572,7 +1573,7 @@ function updateInvitePreview(c, link, method) {
   const trainerName = getTrainerName('Twój trener');
   const firstName = c.name.split(' ')[0];
   const msgs = {
-    wiadomosc: `Cześć ${firstName}! 👋\n\nWitaj w Progress Live — Twojej aplikacji treningowej!\n\n🔗 Twój link do aplikacji:\n${link}\n\nZaloguj się emailem: ${c.email || '[Twój email]'}\nDo zobaczenia na treningu! 💪\n\n— ${trainerName}`,
+    wiadomosc: `Cześć ${firstName}! 👋\n\nWitaj w Progress Live — Twojej aplikacji treningowej!\n\n🔗 Twój link do aplikacji:\n${link}\n\nZaloguj się emailem: ${c.email || '[Twój email]'}\nPrzy pierwszym wejściu ustaw hasło.\nDo zobaczenia na treningu! 💪\n\n— ${trainerName}`,
     email: `Temat: Zaproszenie do aplikacji Progress Live\n\nCześć ${firstName},\n\nZ przyjemnością zapraszam Cię do aplikacji Progress Live, gdzie znajdziesz swój plan treningowy, postępy i kontakt ze mną.\n\n➡️ Kliknij aby się zarejestrować:\n${link}\n\nPozdrawiam,\n${trainerName}`,
     whatsapp: `Hej ${firstName}! 🏋️ Twoja aplikacja treningowa jest gotowa!\n\n👉 ${link}\n\nZaloguj się i sprawdź swój plan. Do zobaczenia! 💪`
   };

@@ -25,13 +25,29 @@
     </div>
 
     <div id="auth-login-view">
-      <div style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:20px;">Zaloguj się, aby otworzyć panel trenera</div>
+      <div id="auth-role-hint" style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:20px;">Zaloguj się — trener do panelu, klient do swojej aplikacji</div>
       <div class="form-field"><label class="form-lbl">E-mail</label><input type="email" class="form-input" id="auth-email" placeholder="trener@przyklad.pl" autocomplete="username"></div>
       <div class="form-field"><label class="form-lbl">Hasło</label><input type="password" class="form-input" id="auth-password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doSignIn()"></div>
       <div id="auth-error" style="display:none;background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.25);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--red);margin-bottom:12px;"></div>
       <button class="btn btn-primary" style="width:100%;margin-top:6px;" id="auth-login-btn" onclick="doSignIn()">Zaloguj się</button>
       <div style="text-align:center;margin-top:14px;">
         <button onclick="authShowReset()" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;text-decoration:underline;">Nie pamiętam hasła</button>
+      </div>
+      <div style="text-align:center;margin-top:10px;">
+        <button type="button" onclick="authShowRegister()" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;text-decoration:underline;">Mam zaproszenie od trenera — pierwsze logowanie</button>
+      </div>
+    </div>
+
+    <div id="auth-register-view" style="display:none;">
+      <div id="auth-reg-sub" style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:20px;">Ustaw hasło z linku zaproszenia, żeby zobaczyć swój plan.</div>
+      <div class="form-field"><label class="form-lbl">E-mail</label><input type="email" class="form-input" id="auth-reg-email" placeholder="jan@przyklad.pl" autocomplete="username"></div>
+      <div class="form-field"><label class="form-lbl">Hasło</label><input type="password" class="form-input" id="auth-reg-password" placeholder="min. 6 znaków" autocomplete="new-password"></div>
+      <div class="form-field"><label class="form-lbl">Powtórz hasło</label><input type="password" class="form-input" id="auth-reg-password2" placeholder="powtórz hasło" autocomplete="new-password" onkeydown="if(event.key==='Enter')doClientRegister()"></div>
+      <div class="form-field"><label class="form-lbl">Kod z linku zaproszenia</label><input class="form-input" id="auth-reg-token" placeholder="wklej, jeśli nie otworzyłeś linku" autocomplete="off"></div>
+      <div id="auth-reg-error" style="display:none;background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.25);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--red);margin-bottom:12px;"></div>
+      <button class="btn btn-primary" style="width:100%;margin-top:6px;" id="auth-reg-btn" onclick="doClientRegister()">Utwórz konto i wejdź</button>
+      <div style="text-align:center;margin-top:14px;">
+        <button type="button" onclick="authShowLoginFromClient()" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;text-decoration:underline;">← Mam już konto — zaloguj się</button>
       </div>
     </div>
 
@@ -1924,6 +1940,24 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   </div>
 </div>
 
+<!-- APLIKACJA KLIENTA — prawdziwe logowanie (pełny ekran) -->
+<div class="screen" id="screen-clientlive">
+  <div class="clive-shell">
+    <div class="clive-top">
+      <div class="clive-brand">PROGRESS<span>LIVE</span></div>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="doSignOut()">Wyloguj</button>
+    </div>
+    <div id="clive-screen-content" class="clive-content"></div>
+    <nav class="clive-nav">
+      <button type="button" class="clive-nav-btn active" id="clive-bn-home" onclick="setClientLiveScreen('home')"><span>🏠</span><span>Główna</span></button>
+      <button type="button" class="clive-nav-btn" id="clive-bn-plan" onclick="setClientLiveScreen('plan')"><span>📋</span><span>Plan</span></button>
+      <button type="button" class="clive-nav-btn" id="clive-bn-progress" onclick="setClientLiveScreen('progress')"><span>📈</span><span>Postępy</span></button>
+      <button type="button" class="clive-nav-btn" id="clive-bn-messages" onclick="setClientLiveScreen('messages')"><span>💬</span><span>Czat</span></button>
+      <button type="button" class="clive-nav-btn" id="clive-bn-profile" onclick="setClientLiveScreen('profile')"><span>👤</span><span>Profil</span></button>
+    </nav>
+  </div>
+</div>
+
 <!-- AI COACH -->
 <div class="screen" id="screen-aicoach">
   <div class="topbar">
@@ -3523,11 +3557,12 @@ window.doPasswordReset=window.doPasswordReset||authNetworkFallbackMsg;
 
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-import{getFirestore,collection,getDocs,addDoc,deleteDoc,doc,setDoc,updateDoc}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
-import{getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut,sendPasswordResetEmail}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+import{getFirestore,collection,getDocs,addDoc,deleteDoc,doc,setDoc,updateDoc,getDoc,query,where}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+import{getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut,sendPasswordResetEmail,createUserWithEmailAndPassword}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 const cfg={apiKey:"AIzaSyDrbke0QdB55k_4smzhKufQ75eAluu-r_8",authDomain:"progress-live-fc83d.firebaseapp.com",projectId:"progress-live-fc83d",storageBucket:"progress-live-fc83d.firebasestorage.app",messagingSenderId:"637727410398",appId:"1:637727410398:web:b8e4e2581c2e3a24a11a4f"};
 const app=initializeApp(cfg);const db=getFirestore(app);const auth=getAuth(app);
-window._db=db;window._col=collection;window._add=addDoc;window._del=deleteDoc;window._doc=doc;window._get=getDocs;window._setDoc=setDoc;window._updateDoc=updateDoc;
+window._db=db;window._col=collection;window._add=addDoc;window._del=deleteDoc;window._doc=doc;window._get=getDocs;window._setDoc=setDoc;window._updateDoc=updateDoc;window._getDoc=getDoc;window._query=query;window._where=where;
+window._createUser=function(email,pass){return createUserWithEmailAndPassword(auth,email,pass);};
 
 window.doSignIn=async function(){
   const email=document.getElementById('auth-email').value.trim();
@@ -3561,10 +3596,12 @@ window.doSignOut=async function(){
 
 window.authShowReset=function(){
   document.getElementById('auth-login-view').style.display='none';
+  const reg=document.getElementById('auth-register-view');if(reg)reg.style.display='none';
   document.getElementById('auth-reset-view').style.display='block';
 };
 window.authShowLogin=function(){
   document.getElementById('auth-reset-view').style.display='none';
+  const reg=document.getElementById('auth-register-view');if(reg)reg.style.display='none';
   document.getElementById('auth-login-view').style.display='block';
 };
 window.doPasswordReset=async function(){
@@ -3595,13 +3632,35 @@ onAuthStateChanged(auth,(user)=>{
     document.getElementById('auth-email').value='';
     document.getElementById('auth-password').value='';
     if(typeof window.showAppLoading==='function')window.showAppLoading(true);
-    Promise.resolve(load()).finally(()=>{if(typeof window.showAppLoading==='function')window.showAppLoading(false);});
+    Promise.resolve(bootApp()).finally(()=>{if(typeof window.showAppLoading==='function')window.showAppLoading(false);});
   }else{
     window._uid=null;
+    window._clientAppMode=false;
+    window._clientId=null;
+    window._trainerId=null;
+    document.body.classList.remove('client-app-mode');
     authScreen.style.display='flex';
     appRoot.style.display='none';
+    if(typeof window.prepareAuthForInvite==='function')window.prepareAuthForInvite();
   }
 });
+
+async function bootApp(){
+  try{
+    if(typeof window.fetchClientAccount==='function'){
+      const acc=await window.fetchClientAccount(window._uid);
+      if(acc&&typeof window.loadClientApp==='function'){
+        await window.loadClientApp(acc);
+        return;
+      }
+    }
+  }catch(e){console.warn('Konto klienta:',e);}
+  window._clientAppMode=false;
+  document.body.classList.remove('client-app-mode');
+  const sidebar=document.querySelector('.sidebar');
+  if(sidebar)sidebar.style.display='';
+  await load();
+}
 
 function _takeFb(d){
   const data=d.data()||{};
@@ -3612,6 +3671,14 @@ async function load(){
   const withTrainer=typeof window.withTrainer==='function'?window.withTrainer:(o)=>o;
   const newId=typeof window.newId==='function'?window.newId:(p)=> (p||'id')+'_'+Date.now();
   try{const s=await getDocs(collection(db,'clients'));window.CL=[];s.forEach(d=>{const x=_takeFb(d);if(x)window.CL.push(x);});}catch(e){window.CL=[];}
+  try{
+    if(window._uid&&query&&where){
+      const accSnap=await getDocs(query(collection(db,'clientAccounts'),where('trainerId','==',window._uid)));
+      const joined={};
+      accSnap.forEach(d=>{const a=d.data()||{};if(a.clientId)joined[a.clientId]=true;});
+      window.CL.forEach(c=>{if(joined[c.id])c.appJoined=true;});
+    }
+  }catch(e){console.warn('Konta klientów:',e);}
   try{const s=await getDocs(collection(db,'plans'));window.PL=[];s.forEach(d=>{const x=_takeFb(d);if(x)window.PL.push(x);});}catch(e){window.PL=[];}
   try{const s=await getDocs(collection(db,'sessions'));window.SE=[];s.forEach(d=>{const x=_takeFb(d);if(x)window.SE.push(x);});}catch(e){window.SE=[];}
   try{const s=await getDocs(collection(db,'exercises'));window.EX=[];s.forEach(d=>{const x=_takeFb(d);if(x)window.EX.push(x);});}catch(e){window.EX=[];}
@@ -3750,7 +3817,7 @@ async function load(){
       'clients','plans','sessions','exercises','workouts','tasks','kb','metricEntries','metricGroups',
       'messages','packages','invoices','formSends','reportHistory','forms','programs','checkins',
       'notifications','autoflows','forumGroups','forumPosts','forumComments','odWorkouts','resources',
-      'settings','integrationConfigs','automationState','clientNotes','clientDocs','onboardingFlows','planTemplates','odPrograms','onboardingActive','clientGroups'
+      'settings','integrationConfigs','automationState','clientNotes','clientDocs','onboardingFlows','planTemplates','odPrograms','onboardingActive','clientGroups','invites','clientAccounts'
     ]);
   }catch(e){console.warn('Migracja trainerId:',e);}
   try{if(typeof window.runAutoflowsCheck==='function')window.runAutoflowsCheck();}catch(e){console.warn('runAutoflowsCheck:',e);}
@@ -3770,5 +3837,6 @@ async function load(){
 <script src="07-forms-metrics-calculator.js"></script>
 <script src="08-client-profile-extras.js"></script>
 <script src="09-posture-kb-invites-private.js"></script>
+<script src="10-client-app.js"></script>
 </body>
 </html>

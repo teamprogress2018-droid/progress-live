@@ -17,8 +17,14 @@ function newId(prefix){
   return (prefix||'id')+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 }
 window.newId=newId;
-/** Dokleja trainerId bieżącego użytkownika do obiektu przed zapisem. */
+/** Dokleja trainerId bieżącego użytkownika do obiektu przed zapisem.
+ *  W aplikacji klienta zachowujemy trainerId trenera (nie uid podopiecznego). */
 function withTrainer(obj){
+  if(window._clientAppMode){
+    if(window._trainerId)obj.trainerId=window._trainerId;
+    if(!obj.clientId&&window._clientId)obj.clientId=window._clientId;
+    return obj;
+  }
   if(window._uid)obj.trainerId=window._uid;
   return obj;
 }
@@ -30,6 +36,12 @@ function mapFbDoc(d){
 window.mapFbDoc=mapFbDoc;
 /** Legacy bez trainerId widoczne; nowe dokumenty filtrujemy po uid. */
 function belongsToTrainer(data){
+  if(window._clientAppMode){
+    if(!data)return false;
+    if(data.trainerId&&window._trainerId&&data.trainerId!==window._trainerId)return false;
+    if(data.clientId&&window._clientId&&data.clientId!==window._clientId)return false;
+    return true;
+  }
   if(!window._uid)return true;
   if(!data||!data.trainerId)return true;
   return data.trainerId===window._uid;
@@ -170,7 +182,7 @@ function exitClientPreviewMode(){
   const banner=document.getElementById('cap-mock-banner');
   if(banner){
     banner.style.cssText='margin:0 16px 8px;padding:10px 14px;background:rgba(201,123,63,0.12);border:1px solid rgba(201,123,63,0.35);border-radius:8px;font-size:12px;color:var(--orange);';
-    banner.textContent='To jest podgląd UI dla trenera — nie ma osobnej aplikacji klienta ani realnego logowania podopiecznych.';
+    banner.textContent='To jest podgląd UI. Prawdziwe logowanie klienta jest w linku z zaproszenia.';
   }
   goTo('dashboard');
 }
@@ -263,6 +275,7 @@ function applyAuthToTrainerProfile(){
   if(p.name&&!p.avatar)p.avatar=getInit(p.name);
 }
 function maybePromptTrainerProfile(){
+  if(window._clientAppMode||window._clientPreviewMode)return;
   if(!isTrainerProfileIncomplete())return;
   let dismissed=false;
   try{dismissed=localStorage.getItem('pl_profile_prompt')==='1';}catch(e){}
