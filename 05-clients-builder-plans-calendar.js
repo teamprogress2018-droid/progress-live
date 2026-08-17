@@ -140,6 +140,7 @@ async function saveClient(){
     level:document.getElementById('ac-level').value,
     notes:document.getElementById('ac-notes').value,
     status:'active',
+    joinDate:new Date().toISOString().split('T')[0],
     createdAt:new Date().toISOString()
   });
   // najpierw dodaj lokalnie — natychmiast
@@ -151,6 +152,7 @@ async function saveClient(){
   try{renderAll();}catch(e){try{renderClients();}catch(e2){}}
   notify('✅ Klient '+c.name+' dodany!');
   addNotification('system','Nowy klient!',c.name+' dodany do listy','clients');
+  if(typeof runOnboardingForClient==='function')runOnboardingForClient(c);
   setTimeout(()=>openClientOnboardChecklist(c.id),400);
   // Firebase w tle — to samo id lokalnie i w Firestore
   await persistById('clients',c);

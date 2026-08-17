@@ -427,6 +427,9 @@ function openM(id){
   if(id==='m-broadcast'){
     if(typeof refreshBroadcastGroupOptions==='function')refreshBroadcastGroupOptions();
   }
+  if(id==='m-autoflow-builder'){
+    if(typeof updateAfBuilderUi==='function')updateAfBuilderUi();
+  }
   document.getElementById(id).classList.add('show');
 }
 function closeM(id){document.getElementById(id).classList.remove('show');}

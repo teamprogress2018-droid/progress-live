@@ -1052,6 +1052,7 @@
       </div>
     </div>
   </div>
+  <div class="auto-honest-banner">Automatyzacja działa przy otwarciu panelu — nie w tle 24/7. Wiadomość, zadanie i formularz idą naprawdę. Onboarding tylko gdy przełącznik jest <strong>Aktywny</strong> i zapiszesz flow.</div>
 
   <!-- ONBOARDING FLOW TAB -->
   <div id="auto-onboard-tab" class="auto-onboard-wrap">
@@ -1086,11 +1087,7 @@
           <div class="osc-title">Formularze wstępne</div>
           <div class="osc-desc">Zbieraj informacje o kliencie zaraz po dodaniu go do systemu.</div>
           <div style="margin-top:10px;" id="osc-forms-content">
-            <div class="osc-item active">
-              <div style="font-size:12px;font-weight:600;">📋 Ankieta wstępna</div>
-              <div style="font-size:10px;color:var(--muted);margin-top:2px;">10 pytań · Wstępna</div>
-            </div>
-            <button onclick="addOSCForm()" class="osc-add-btn">+ Dodaj formularz</button>
+            <div id="osc-forms-list" style="display:flex;flex-direction:column;gap:6px;"></div>
           </div>
         </div>
 
@@ -1130,18 +1127,13 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
             <div style="margin-bottom:8px;">
               <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">Program</div>
               <select class="form-select" style="font-size:11px;padding:5px 8px;" id="osc-program-sel">
-                <option value="">Wybierz program...</option>
-                <option value="dp1">PPL Masa — 8 tygodni</option>
-                <option value="dp2">Siła 5×5 — 12 tygodni</option>
-                <option value="dp4">FBW Początkujący — 4 tygodnie</option>
+                <option value="">Nie przypisuj programu</option>
               </select>
             </div>
             <div>
               <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">Forum / Grupa</div>
-              <select class="form-select" style="font-size:11px;padding:5px 8px;">
+              <select class="form-select" style="font-size:11px;padding:5px 8px;" id="osc-forum-sel">
                 <option value="">Brak</option>
-                <option value="general">Ogólna społeczność</option>
-                <option value="beginners">Dla początkujących</option>
               </select>
             </div>
           </div>
@@ -1158,12 +1150,11 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
           </div>
           <div class="osc-title">Zasoby On-demand</div>
           <div class="osc-desc">Daj klientowi dostęp do kolekcji zasobów i treningów.</div>
-          <div style="margin-top:10px;opacity:0.4;" id="osc-ondemand-content">
-            <div style="font-size:11px;color:var(--muted);text-align:center;padding:16px 0;">
-              <div style="font-size:24px;margin-bottom:6px;">▶️</div>
-              + Dodaj kolekcję
-            </div>
-            <button onclick="document.getElementById('osc-ondemand-en').checked=true;updateOSC()" class="osc-add-btn">+ Dodaj zasoby</button>
+          <div style="margin-top:10px;" id="osc-ondemand-content">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Wyśle w czacie listę zasobów (nie otwiera Netflix-portalu).</div>
+            <select class="form-select" style="font-size:11px;padding:5px 8px;" id="osc-resource-sel">
+              <option value="">Wszystkie zasoby</option>
+            </select>
           </div>
         </div>
 
@@ -1178,12 +1169,8 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
           </div>
           <div class="osc-title">Plany posiłków</div>
           <div class="osc-desc">Udostępnij klientowi gotowe plany żywieniowe i przepisy.</div>
-          <div style="margin-top:10px;opacity:0.4;" id="osc-recipes-content">
-            <div style="font-size:11px;color:var(--muted);text-align:center;padding:16px 0;">
-              <div style="font-size:24px;margin-bottom:6px;">🥗</div>
-              + Dodaj plan posiłków
-            </div>
-            <button onclick="document.getElementById('osc-recipes-en').checked=true;updateOSC()" class="osc-add-btn">+ Dodaj plan</button>
+          <div style="margin-top:10px;" id="osc-recipes-content">
+            <div style="font-size:11px;color:var(--muted);">Nie ma osobnego kreatora posiłków. Włączone = wiadomość w czacie z prośbą o dzienniczek żywienia.</div>
           </div>
         </div>
 
@@ -1238,16 +1225,22 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   <!-- AUTOFLOW TAB -->
   <div id="auto-autoflow-tab" style="display:none;flex:1;overflow-y:auto;padding:24px;">
     <div style="max-width:900px;margin:0 auto;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap;">
         <div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:4px;">AUTOFLOW</div>
-          <div style="font-size:12px;color:var(--muted);">Sekwencje automatycznych akcji wyzwalanych przez czas lub zdarzenia klienta.</div>
+          <div style="font-size:12px;color:var(--muted);">Sekwencje i przypomnienia. Sprawdzane przy otwarciu panelu — nie działają gdy komputer jest wyłączony.</div>
         </div>
-        <button class="btn btn-primary btn-sm" onclick="openM('m-autoflow-builder')">+ Nowy Autoflow</button>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-ghost btn-sm" onclick="runAutoflowsCheck(true)">Sprawdź teraz</button>
+          <button class="btn btn-primary btn-sm" onclick="openM('m-autoflow-builder')">+ Nowy Autoflow</button>
+        </div>
       </div>
 
-      <!-- demo autoflow -->
       <div id="autoflow-list-main"></div>
+      <div style="margin-top:20px;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;margin-bottom:10px;">OSTATNIE WYKONANIA</div>
+        <div id="autoflow-log" style="font-size:12px;color:var(--muted);"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -3457,18 +3450,30 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <div class="form-field"><label class="form-lbl">Nazwa autoflow</label><input type="text" class="form-input" id="af-name" placeholder="np. Tygodniowe przypomnienie o treningu"></div>
       <div class="form-grid">
         <div class="form-field"><label class="form-lbl">Typ</label>
-          <select class="form-select" id="af-type">
+          <select class="form-select" id="af-type" onchange="updateAfBuilderUi()">
             <option value="sequence">Sekwencja dni (By Day)</option>
             <option value="trigger">Wyzwalacz zdarzenia</option>
           </select>
         </div>
         <div class="form-field"><label class="form-lbl">Przypisz do</label>
-          <select class="form-select" id="af-scope">
-            <option value="all">Wszyscy klienci</option>
-            <option value="new">Tylko nowi klienci</option>
+          <select class="form-select" id="af-scope" onchange="updateAfBuilderUi()">
+            <option value="new">Tylko nowi klienci (od dziś)</option>
+            <option value="all">Wszyscy klienci (bez spamu wstecz)</option>
             <option value="select">Wybrani klienci</option>
           </select>
         </div>
+      </div>
+      <div class="form-field" id="af-trigger-wrap" style="display:none;">
+        <label class="form-lbl">Co ma odpalić flow</label>
+        <select class="form-select" id="af-trigger">
+          <option value="inactivity">Brak aktywności (dni w kroku)</option>
+          <option value="session_today">Sesja zaplanowana na dziś</option>
+          <option value="new_client">Nowy klient (raz)</option>
+        </select>
+      </div>
+      <div class="form-field" id="af-scope-clients-wrap" style="display:none;">
+        <label class="form-lbl">Klienci</label>
+        <div id="af-scope-clients" style="max-height:160px;overflow-y:auto;background:var(--s3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;"></div>
       </div>
       <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--accent);margin-bottom:10px;margin-top:4px;">KROKI SEKWENCJI</div>
       <div id="af-steps"></div>
@@ -3745,7 +3750,7 @@ async function load(){
     if(!window.AUTOFLOWS.length&&typeof DEMO_AUTOFLOWS!=='undefined'){
       // Pierwsze uruchomienie: zamień wbudowane przykłady w prawdziwe, edytowalne flow.
       for(const af of DEMO_AUTOFLOWS){
-        const copy=withTrainer({...af,id:af.id||newId('af'),createdAt:new Date().toISOString()});
+        const copy=withTrainer({...af,id:newId('af'),createdAt:new Date().toISOString(),status:'inactive'});
         window.AUTOFLOWS.push(copy);
         try{await setDoc(doc(db,'autoflows',copy.id),copy);copy._fbId=copy.id;}catch(e){}
       }
@@ -3822,6 +3827,7 @@ async function load(){
     ]);
   }catch(e){console.warn('Migracja trainerId:',e);}
   try{if(typeof window.runAutoflowsCheck==='function')window.runAutoflowsCheck();}catch(e){console.warn('runAutoflowsCheck:',e);}
+  try{if(typeof window.fillAutomationSelects==='function')window.fillAutomationSelects();}catch(e){}
   try{if(typeof window.syncSidebarProfile==='function')window.syncSidebarProfile();}catch(e){}
   try{if(typeof window.maybePromptTrainerProfile==='function')window.maybePromptTrainerProfile();}catch(e){}
   window.renderAll();
