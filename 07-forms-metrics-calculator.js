@@ -776,7 +776,7 @@ async function askMetricAI(){
   const q=document.getElementById('metric-ai-q').value.trim();if(!q)return;
   document.getElementById('metric-ai-q').value='';
   const msgs=document.getElementById('metric-ai-msgs');
-  msgs.innerHTML+='<div style="text-align:right;margin-bottom:6px;"><div style="display:inline-block;background:var(--accent);color:#000;padding:5px 9px;border-radius:8px;font-size:11px;">'+q+'</div></div>';
+  msgs.innerHTML+='<div style="text-align:right;margin-bottom:6px;"><div style="display:inline-block;background:var(--accent);color:#fff;padding:5px 9px;border-radius:8px;font-size:11px;">'+q+'</div></div>';
   msgs.innerHTML+='<div id="mai-t" style="margin-bottom:6px;"><div style="display:inline-block;background:var(--s3);border:1px solid var(--border2);padding:5px 9px;border-radius:8px;font-size:11px;opacity:0.5;">Analizuję dane...</div></div>';
   msgs.scrollTop=msgs.scrollHeight;
   const cid=(document.getElementById('metric-client-sel')||{}).value||'';

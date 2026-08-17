@@ -201,7 +201,7 @@ function pushMsg(clientId,text){
   persistById('messages',msg);
   return msg;
 }
-const COLS=['#c8f135','#4d9fff','#9d7cf4','#ff8c42','#3ecfb2'];
+const COLS=['#e11f2e','#4d9fff','#9d7cf4','#ff8c42','#3ecfb2'];
 
 // ── DEMO TRENINGI ──
 const DEMO_WORKOUTS=[

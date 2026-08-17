@@ -209,6 +209,8 @@ function sendClientGroupMessage(){
   const msg=document.getElementById('gm-text')?.value.trim();
   if(!msg){notify('Wpisz wiadomość!');return;}
   const members=(g.clientIds||[]).map(cid=>CL.find(c=>c.id===cid)).filter(Boolean);
+  if(!members.length){notify('Grupa nie ma członków');return;}
+  if(!confirm('Wysłać wiadomość do '+members.length+' klientów z grupy "'+g.name+'"?'))return;
   members.forEach(c=>pushMsg(c.id,msg.replace(/\{imie\}/gi,c.name.split(' ')[0])));
   closeM('m-group-msg');
   notify('✓ Wysłano do '+members.length+' klientów z grupy "'+g.name+'"');
@@ -362,6 +364,8 @@ function sendBroadcast(){
     const ids=new Set(g?.clientIds||[]);
     targets=CL.filter(c=>ids.has(c.id));
   }
+  if(!targets.length){notify('Brak odbiorców');return;}
+  if(!confirm('Wysłać wiadomość do '+targets.length+' klientów?'))return;
   targets.forEach(c=>{
     const text=msg.replace(/{imie}/g,c.name.split(' ')[0]);
     pushMsg(c.id,text);
@@ -723,7 +727,7 @@ function openExDetail(name){
     </div>`:''}
     ${e.nsca?`<div style="margin-bottom:12px;">
       <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Parametry NSCA/ACSM</div>
-      <div style="background:var(--adim);border:1px solid rgba(200,241,53,0.15);border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.6;">${e.nsca}</div>
+      <div style="background:var(--adim);border:1px solid rgba(225,31,46,0.15);border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.6;">${e.nsca}</div>
     </div>`:''}
     ${e.alt?`<div style="margin-bottom:12px;">
       <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Zamienniki</div>
@@ -772,7 +776,7 @@ async function askExAI(){
   const q=document.getElementById('exd-ai-q').value.trim();if(!q)return;
   document.getElementById('exd-ai-q').value='';
   const msgs=document.getElementById('exd-ai-msgs');
-  msgs.innerHTML+='<div style="text-align:right;margin-bottom:5px;"><div style="display:inline-block;background:var(--accent);color:#000;padding:5px 9px;border-radius:8px;font-size:11px;">'+q+'</div></div>';
+  msgs.innerHTML+='<div style="text-align:right;margin-bottom:5px;"><div style="display:inline-block;background:var(--accent);color:#fff;padding:5px 9px;border-radius:8px;font-size:11px;">'+q+'</div></div>';
   msgs.innerHTML+='<div id="exd-ai-t" style="margin-bottom:5px;"><div style="display:inline-block;background:var(--s3);border:1px solid var(--border2);padding:5px 9px;border-radius:8px;font-size:11px;opacity:0.5;">Analizuję...</div></div>';
   msgs.scrollTop=msgs.scrollHeight;
   const ctx=exSelId?'Ćwiczenie: '+exSelId+'. ':'';
@@ -1615,7 +1619,7 @@ async function askTaskAI(){
   const q=document.getElementById('task-ai-q').value.trim();if(!q)return;
   document.getElementById('task-ai-q').value='';
   const msgs=document.getElementById('task-ai-msgs');
-  msgs.innerHTML+='<div style="text-align:right;margin-bottom:6px;"><div style="display:inline-block;background:var(--accent);color:#000;padding:5px 9px;border-radius:8px;font-size:11px;">'+q+'</div></div>';
+  msgs.innerHTML+='<div style="text-align:right;margin-bottom:6px;"><div style="display:inline-block;background:var(--accent);color:#fff;padding:5px 9px;border-radius:8px;font-size:11px;">'+q+'</div></div>';
   msgs.innerHTML+='<div id="tai-t" style="margin-bottom:6px;"><div style="display:inline-block;background:var(--s3);border:1px solid var(--border2);padding:5px 9px;border-radius:8px;font-size:11px;opacity:0.5;">Generuję zadania...</div></div>';
   msgs.scrollTop=msgs.scrollHeight;
   const clientFil=(document.getElementById('task-client-filter')||{}).value||'';
@@ -1628,7 +1632,7 @@ async function askTaskAI(){
     const raw=d.content.map(i=>i.text||'').join('');
     let tasks=[];try{tasks=JSON.parse(raw.replace(/```json|```/g,'').trim());}catch(e){}
     if(tasks.length){
-      const aiHtml=tasks.map(t=>`<div style="background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:6px 8px;margin-bottom:4px;font-size:11px;"><div style="font-weight:600;margin-bottom:4px;">${t.title}</div><div style="display:flex;gap:5px;align-items:center;"><span class="pill" style="background:${TASK_CAT_COLORS[t.cat]||'var(--muted)'}22;color:${TASK_CAT_COLORS[t.cat]||'var(--muted)'};font-size:9px;">${t.cat||''}</span><span style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">${t.days||7}d</span><button onclick="addAITask(${JSON.stringify(t).replace(/"/g,"&quot;")})" style="margin-left:auto;background:var(--accent);color:#000;border:none;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:700;cursor:pointer;">+ Dodaj</button></div></div>`).join('');
+      const aiHtml=tasks.map(t=>`<div style="background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:6px 8px;margin-bottom:4px;font-size:11px;"><div style="font-weight:600;margin-bottom:4px;">${t.title}</div><div style="display:flex;gap:5px;align-items:center;"><span class="pill" style="background:${TASK_CAT_COLORS[t.cat]||'var(--muted)'}22;color:${TASK_CAT_COLORS[t.cat]||'var(--muted)'};font-size:9px;">${t.cat||''}</span><span style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">${t.days||7}d</span><button onclick="addAITask(${JSON.stringify(t).replace(/"/g,"&quot;")})" style="margin-left:auto;background:var(--accent);color:#fff;border:none;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:700;cursor:pointer;">+ Dodaj</button></div></div>`).join('');
       document.getElementById('tai-t').outerHTML=`<div style="margin-bottom:6px;">${aiHtml}</div>`;
     }else{document.getElementById('tai-t').outerHTML=`<div style="margin-bottom:6px;"><div style="display:inline-block;background:var(--s3);padding:5px 9px;border-radius:8px;font-size:11px;">${raw.substring(0,150)}</div></div>`;}
   }catch(e){document.getElementById('tai-t').outerHTML=`<div style="margin-bottom:6px;"><div style="display:inline-block;background:var(--s3);padding:5px 9px;border-radius:8px;font-size:11px;color:var(--red);">Błąd połączenia</div></div>`;}

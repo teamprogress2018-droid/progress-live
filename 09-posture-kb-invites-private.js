@@ -15,7 +15,7 @@ function renderCPPosture(c){
       <div style="border:2px ${has?(active?'solid var(--accent)':'solid var(--border2)'):'dashed var(--border2)'};border-radius:12px;overflow:hidden;background:${has?'transparent':'var(--s3)'};transition:border-color 0.15s;" onclick="if(this.parentElement.querySelector('input').files.length===0&&${has?'true':'false'})postureSetActive('${c.id}','${view}')">
         ${has?`<img src="${has}" style="width:100%;height:110px;object-fit:cover;display:block;">`
             :`<div style="height:110px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;"><div style="font-size:28px;opacity:0.4;">${ICONS[view]}</div><div style="font-size:10px;color:var(--muted);">+ Wgraj</div></div>`}
-        <div style="padding:6px 8px;background:${active&&has?'rgba(200,241,53,0.1)':'var(--s2)'};border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+        <div style="padding:6px 8px;background:${active&&has?'rgba(225,31,46,0.1)':'var(--s2)'};border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
           <span style="font-size:11px;font-weight:700;color:${active&&has?'var(--accent)':'var(--text)'};">${labels[view]}</span>
           ${has?`<span style="font-size:9px;color:var(--muted);">zmień</span>`:`<span style="font-size:9px;color:var(--muted);">brak</span>`}
         </div>
@@ -24,7 +24,7 @@ function renderCPPosture(c){
   }).join('');
 
   const viewBtns=Object.entries(labels).filter(([v])=>p.photos[v]).map(([v,l])=>
-    `<button onclick="postureSetActive('${c.id}','${v}')" style="padding:5px 14px;border-radius:6px;border:1px solid ${p.currentPhoto===v?'var(--accent)':'var(--border2)'};background:${p.currentPhoto===v?'rgba(200,241,53,0.1)':'var(--s3)'};color:${p.currentPhoto===v?'var(--accent)':'var(--muted)'};font-size:11px;font-weight:${p.currentPhoto===v?700:400};cursor:pointer;transition:all 0.12s;">${l}</button>`
+    `<button onclick="postureSetActive('${c.id}','${v}')" style="padding:5px 14px;border-radius:6px;border:1px solid ${p.currentPhoto===v?'var(--accent)':'var(--border2)'};background:${p.currentPhoto===v?'rgba(225,31,46,0.1)':'var(--s3)'};color:${p.currentPhoto===v?'var(--accent)':'var(--muted)'};font-size:11px;font-weight:${p.currentPhoto===v?700:400};cursor:pointer;transition:all 0.12s;">${l}</button>`
   ).join('');
 
   document.getElementById('cp-body').innerHTML=`
@@ -181,6 +181,7 @@ function cpOpenTask(){
 }
 function deleteClientNote(clientId,idx){
   if(!CLIENT_NOTES[clientId])return;
+  if(!confirm('Usunąć tę notatkę?'))return;
   const removed=CLIENT_NOTES[clientId].splice(idx,1)[0];
   setCPTab('overview');
   notify('Notatka usunięta');
@@ -190,6 +191,7 @@ function deleteClientNote(clientId,idx){
 }
 function deleteClientActivity(clientId,idx){
   if(!CLIENT_ACTIVITY[clientId])return;
+  if(!confirm('Usunąć ten wpis aktywności?'))return;
   CLIENT_ACTIVITY[clientId].splice(idx,1);
   setCPTab('overview');
   notify('Aktywność usunięta');
@@ -468,7 +470,7 @@ function viewInvoice(invId){
         </div>
       </div>
       <div style="display:flex;justify-content:flex-end;">
-        <div style="background:var(--adim);border:1px solid rgba(200,241,53,0.2);border-radius:8px;padding:12px 20px;text-align:right;">
+        <div style="background:var(--adim);border:1px solid rgba(225,31,46,0.2);border-radius:8px;padding:12px 20px;text-align:right;">
           <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">RAZEM</div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--accent);">${inv.amount.toLocaleString('pl')} zł</div>
         </div>
@@ -816,6 +818,7 @@ function shareODWorkout(id){
   if(!CL.length){notify('Najpierw dodaj klienta!');return;}
   const w=(window.OD_WORKOUTS||[]).find(x=>x.id===id);
   if(!w){notify('Nie znaleziono treningu');return;}
+  if(!confirm('Udostępnić trening "'+w.name+'" wszystkim klientom ('+CL.length+')?'))return;
   const link=w.url||'(brak URL wideo)';
   CL.forEach(c=>pushMsg(c.id,'▶️ Nowy trening on-demand: "'+w.name+'"\n'+link+(w.desc?'\n'+w.desc:'')));
   notify('✓ Trening "'+w.name+'" wysłany do '+CL.length+' klientów (Inbox)');
@@ -825,6 +828,7 @@ function shareODProgram(id){
   if(!CL.length){notify('Najpierw dodaj klienta!');return;}
   const p=allODPrograms().find(x=>x.id===id);
   if(!p){notify('Nie znaleziono programu');return;}
+  if(!confirm('Udostępnić program "'+p.name+'" wszystkim klientom ('+CL.length+')?'))return;
   CL.forEach(c=>pushMsg(c.id,'📋 Program on-demand: "'+p.name+'"'+(p.desc?'\n'+p.desc:'')+'\nCzas: '+(p.duration||'—')+' · '+(LEVEL_MAP[p.level]||p.level||'')));
   notify('✓ Program "'+p.name+'" wysłany do '+CL.length+' klientów (Inbox)');
 }
@@ -1281,7 +1285,7 @@ function renderAutoflows(){
     </div>
     <div style="display:flex;flex-wrap:wrap;gap:5px;">
       ${af.steps.map(s=>`<div class="af-step-row" style="flex:0 0 auto;max-width:300px;">
-        <div class="af-step-icon" style="background:${s.type==='message'?'var(--adim)':s.type==='task'?'rgba(201,162,39,0.12)':s.type==='form'?'rgba(168,50,74,0.12)':'var(--s4)'};">${s.type==='message'?'💬':s.type==='task'?'✅':s.type==='form'?'📋':'⏳'}</div>
+        <div class="af-step-icon" style="background:${s.type==='message'?'var(--adim)':s.type==='task'?'rgba(201,162,39,0.12)':s.type==='form'?'rgba(157,124,244,0.12)':'var(--s4)'};">${s.type==='message'?'💬':s.type==='task'?'✅':s.type==='form'?'📋':'⏳'}</div>
         <div><div style="font-size:11px;font-weight:600;">${s.type==='wait'?'Czekaj '+s.day+' dni':s.type.charAt(0).toUpperCase()+s.type.slice(1)}</div><div style="font-size:10px;color:var(--muted);">${s.text.substring(0,40)}${s.text.length>40?'…':''}</div></div>
       </div>`).join('')}
     </div>

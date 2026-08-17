@@ -178,7 +178,7 @@ function capScreenHTML(scr,c){
       </div>`:''}
 
       <!-- motywacja -->
-      <div style="background:linear-gradient(135deg,#1a0a2a,#0a0a1a);border:1px solid rgba(168,50,74,0.3);border-radius:18px;padding:16px;text-align:center;">
+      <div style="background:linear-gradient(135deg,#1a0a2a,#0a0a1a);border:1px solid rgba(157,124,244,0.3);border-radius:18px;padding:16px;text-align:center;">
         <div style="font-size:24px;margin-bottom:8px;">💡</div>
         <div style="font-size:13px;color:${CAP_TEXT};font-style:italic;line-height:1.6;">"Każdy trening to inwestycja, której nie możesz stracić."</div>
         <div style="font-size:10px;color:${CAP_MUTED};margin-top:6px;">— ${trainerName}</div>
@@ -217,7 +217,7 @@ function capScreenHTML(scr,c){
           <div style="font-size:13px;font-weight:600;color:${ex.done?accent:CAP_TEXT};">${ex.name}</div>
           <div style="font-size:11px;color:${CAP_MUTED};">${ex.sets} · Przerwa: ${ex.rest}</div>
         </div>
-        ${!ex.done?`<button style="background:${accent};color:#000;border:none;border-radius:10px;padding:6px 12px;font-size:11px;font-weight:700;">Start</button>`:''}
+        ${!ex.done?`<button style="background:${accent};color:#fff;border:none;border-radius:10px;padding:6px 12px;font-size:11px;font-weight:700;">Start</button>`:''}
       </div>`).join('')}
     </div>`;
 
@@ -461,7 +461,7 @@ function renderCapInfo(){
   const info=CAP_SCREEN_INFO[capScreen]||{title:'Ekran',desc:''};
   const c=CL.find(x=>x.id===capClientId);
   el.innerHTML=`
-    <div style="background:var(--adim);border:1px solid rgba(200,241,53,0.15);border-radius:10px;padding:12px;margin-bottom:14px;">
+    <div style="background:var(--adim);border:1px solid rgba(225,31,46,0.15);border-radius:10px;padding:12px;margin-bottom:14px;">
       <div style="font-size:14px;font-weight:700;margin-bottom:6px;">${info.title}</div>
       <div style="font-size:12px;color:var(--muted);line-height:1.6;">${info.desc}</div>
     </div>
@@ -1386,7 +1386,7 @@ function renderPBExItems(weekNr,dayIdx,exercises){
           <span style="font-size:10px;color:var(--muted);align-self:center;">×</span>
           <input type="text" class="pb-ex-inp" value="${ex.reps||'10'}" title="Powt." placeholder="10" onchange="pbUpdateEx(${weekNr},${dayIdx},${ei},'reps',this.value)" style="width:40px;">
           <input type="text" class="pb-ex-inp" value="${ex.rest||'90s'}" title="Przerwa" placeholder="90s" onchange="pbUpdateEx(${weekNr},${dayIdx},${ei},'rest',this.value)" style="width:36px;">
-          <input type="text" class="pb-ex-inp" value="${ex.rpe||'8'}" title="RPE" placeholder="8" onchange="pbUpdateEx(${weekNr},${dayIdx},${ei},'rpe',this.value)" style="width:28px;border-color:rgba(200,241,53,0.3);">
+          <input type="text" class="pb-ex-inp" value="${ex.rpe||'8'}" title="RPE" placeholder="8" onchange="pbUpdateEx(${weekNr},${dayIdx},${ei},'rpe',this.value)" style="width:28px;border-color:rgba(225,31,46,0.3);">
         </div>
       </div>
       <button class="pb-ex-remove" onclick="pbRemoveEx(${weekNr},${dayIdx},${ei})">×</button>
@@ -1487,7 +1487,7 @@ async function pbAskAI(){
   const q=document.getElementById('pb-ai-q').value.trim();if(!q)return;
   document.getElementById('pb-ai-q').value='';
   const msgs=document.getElementById('pb-ai-msgs');
-  msgs.innerHTML+=`<div style="text-align:right;margin-bottom:4px;"><span style="background:var(--accent);color:#000;padding:3px 8px;border-radius:6px;font-size:10px;">${q}</span></div>`;
+  msgs.innerHTML+=`<div style="text-align:right;margin-bottom:4px;"><span style="background:var(--accent);color:#fff;padding:3px 8px;border-radius:6px;font-size:10px;">${q}</span></div>`;
   msgs.innerHTML+=`<div id="pb-ai-t" style="margin-bottom:4px;"><span style="background:var(--s3);padding:3px 8px;border-radius:6px;font-size:10px;opacity:0.5;">Analizuję...</span></div>`;
   msgs.scrollTop=msgs.scrollHeight;
   const goal={masa:'hipertrofia/masa',sila:'siła/5RM',redukcja:'kardio+siła',kondycja:'kondycja'}[pbProgram.goal]||'hipertrofia';
@@ -1855,7 +1855,7 @@ function renderCIAnswers(ci,c){
       <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--text);">${ci.answers.weight} <span style="font-size:14px;color:var(--muted);">kg</span></div></div>
     </div>`:''}
 
-    ${ci.answers.notes?`<div style="background:var(--adim);border:1px solid rgba(200,241,53,0.2);border-radius:12px;padding:12px 16px;">
+    ${ci.answers.notes?`<div style="background:var(--adim);border:1px solid rgba(225,31,46,0.2);border-radius:12px;padding:12px 16px;">
       <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:6px;">💬 Komentarz klienta</div>
       <div style="font-size:13px;line-height:1.6;">${ci.answers.notes}</div>
     </div>`:''}
@@ -2061,7 +2061,7 @@ function renderSettingsContent(t){
 
       ${card('Zdjęcie i dane osobowe','Informacje widoczne dla klientów w aplikacji mobilnej.',`
         <div style="display:flex;gap:20px;align-items:center;margin-bottom:20px;">
-          <div class="settings-avatar-big" id="set-avatar-preview" style="background:rgba(200,241,53,0.12);color:var(--accent);overflow:hidden;">${S.profile.avatarUrl?`<img src="${escHtml(S.profile.avatarUrl)}" alt="" style="width:100%;height:100%;object-fit:cover;">`:escHtml(S.profile.avatar||'—')}</div>
+          <div class="settings-avatar-big" id="set-avatar-preview" style="background:rgba(225,31,46,0.12);color:var(--accent);overflow:hidden;">${S.profile.avatarUrl?`<img src="${escHtml(S.profile.avatarUrl)}" alt="" style="width:100%;height:100%;object-fit:cover;">`:escHtml(S.profile.avatar||'—')}</div>
           <div>
             <div style="font-size:13px;font-weight:700;margin-bottom:4px;">${escHtml(S.profile.name)}</div>
             <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">${escHtml(S.profile.title)}</div>
@@ -2082,7 +2082,7 @@ function renderSettingsContent(t){
 
       ${card('Specjalizacje','Twoje obszary ekspertyzy widoczne w profilu.',`
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;" id="set-specialties">
-          ${(S.profile.specialty||[]).map(s=>`<span style="background:var(--adim);border:1px solid rgba(200,241,53,0.3);color:var(--accent);border-radius:99px;padding:4px 12px;font-size:12px;cursor:pointer;" onclick="removeSpecialty('${escHtml(s).replace(/'/g,'&#39;')}')">${escHtml(s)} ×</span>`).join('')}
+          ${(S.profile.specialty||[]).map(s=>`<span style="background:var(--adim);border:1px solid rgba(225,31,46,0.3);color:var(--accent);border-radius:99px;padding:4px 12px;font-size:12px;cursor:pointer;" onclick="removeSpecialty('${escHtml(s).replace(/'/g,'&#39;')}')">${escHtml(s)} ×</span>`).join('')}
         </div>
         <div style="display:flex;gap:8px;">
           <input type="text" class="form-input" id="set-new-specialty" placeholder="np. Trening funkcjonalny" style="font-size:13px;">
@@ -2603,8 +2603,8 @@ const NOTIF_TYPES={
   session:   {icon:'📅',color:'var(--blue)',bg:'rgba(201,162,39,0.12)'},
   payment:   {icon:'💰',color:'var(--teal)',bg:'rgba(62,207,178,0.12)'},
   alert:     {icon:'⚠️',color:'var(--orange)',bg:'rgba(201,123,63,0.12)'},
-  task:      {icon:'✅',color:'var(--accent)',bg:'rgba(200,241,53,0.12)'},
-  message:   {icon:'💬',color:'var(--purple)',bg:'rgba(168,50,74,0.12)'},
+  task:      {icon:'✅',color:'var(--accent)',bg:'rgba(225,31,46,0.12)'},
+  message:   {icon:'💬',color:'var(--purple)',bg:'rgba(157,124,244,0.12)'},
   metric:    {icon:'📏',color:'var(--blue)',bg:'rgba(201,162,39,0.12)'},
   system:    {icon:'🔔',color:'var(--muted)',bg:'var(--s3)'},
   expiry:    {icon:'⏰',color:'var(--red)',bg:'rgba(255,77,77,0.12)'},
@@ -2712,6 +2712,8 @@ function markAllRead(){
 }
 
 function clearAllNotifs(){
+  if(!(window.NOTIFICATIONS||[]).length){notify('Brak powiadomień');return;}
+  if(!confirm('Wyczyścić wszystkie powiadomienia?'))return;
   const ids=(window.NOTIFICATIONS||[]).map(n=>n.id);
   window.NOTIFICATIONS=[];
   if(typeof DEMO_NOTIFS!=='undefined')DEMO_NOTIFS.forEach(n=>n.read=true);
@@ -2865,7 +2867,7 @@ function buildReportHTML(c,from,to,sec,template){
   const text=isDark?'#eceae6':'#1a1a2a';
   const muted=isDark?'#5a6070':'#6b7280';
   const accent='#e11f2e';
-  const accentDark=isDark?'rgba(200,241,53,0.1)':'rgba(100,180,0,0.08)';
+  const accentDark=isDark?'rgba(225,31,46,0.1)':'rgba(100,180,0,0.08)';
   const blue=isDark?'#c9a227':'#2563eb';
   const orange=isDark?'#c97b3f':'#ea580c';
   const teal=isDark?'#3ecfb2':'#0d9488';
@@ -2874,7 +2876,7 @@ function buildReportHTML(c,from,to,sec,template){
 
   const today=new Date().toLocaleDateString('pl',{day:'numeric',month:'long',year:'numeric'});
   const ci=CL.indexOf(c);
-  const colHex=isDark?['#c8f135','#4d9fff','#9d7cf4','#ff8c42','#3ecfb2'][ci%5]:['#16a34a','#2563eb','#7c3aed','#ea580c','#0d9488'][ci%5];
+  const colHex=isDark?['#e11f2e','#4d9fff','#9d7cf4','#ff8c42','#3ecfb2'][ci%5]:['#16a34a','#2563eb','#7c3aed','#ea580c','#0d9488'][ci%5];
 
   // data
   const sessions=SE.filter(s=>s.clientId===c.id&&s.date>=from&&s.date<=to).sort((a,b)=>b.date.localeCompare(a.date));

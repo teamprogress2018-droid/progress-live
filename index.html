@@ -145,7 +145,7 @@
         <div class="dash-kpi-trend" id="d-sessions-trend"></div>
       </div>
       <div class="dash-kpi-card">
-        <div class="dash-kpi-icon" style="background:rgba(255,140,66,0.12);color:var(--orange);">📋</div>
+        <div class="dash-kpi-icon" style="background:rgba(201,123,63,0.12);color:var(--orange);">📋</div>
         <div class="dash-kpi-val" style="color:var(--orange);" id="d-plans">0</div>
         <div class="dash-kpi-lbl">Aktywnych planów</div>
         <div class="dash-kpi-trend" id="d-plans-trend"></div>
@@ -265,7 +265,7 @@
         </div>
       </div>
       <div id="builder-days"></div>
-      <button onclick="addDay()" style="width:100%;padding:11px;background:rgba(200,241,53,0.04);border:1px dashed rgba(200,241,53,0.25);border-radius:var(--r2);color:var(--accent);font-size:12px;font-family:'DM Mono',monospace;letter-spacing:0.5px;margin-bottom:20px;">+ DODAJ DZIEŃ TRENINGOWY</button>
+      <button onclick="addDay()" style="width:100%;padding:11px;background:rgba(225,31,46,0.04);border:1px dashed rgba(225,31,46,0.25);border-radius:var(--r2);color:var(--accent);font-size:12px;font-family:'DM Mono',monospace;letter-spacing:0.5px;margin-bottom:20px;">+ DODAJ DZIEŃ TRENINGOWY</button>
     </div>
     <div style="overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding-bottom:20px;">
       <div class="ai-panel">
@@ -370,7 +370,8 @@
       <button class="btn btn-ghost btn-sm" onclick="openM('m-broadcast')">📢 Broadcast</button>
     </div>
   </div>
-  <div style="display:flex;flex:1;overflow:hidden;">
+  <div style="display:flex;flex:1;overflow:hidden;justify-content:center;">
+  <div style="display:flex;width:100%;max-width:1100px;overflow:hidden;">
 
     <!-- lista rozmów -->
     <div style="width:260px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;">
@@ -413,6 +414,7 @@
       <div style="flex:1;overflow-y:auto;" id="cip-body"></div>
     </div>
   </div>
+  </div>
 </div>
 
 <!-- BROADCAST MODAL -->
@@ -430,7 +432,7 @@
       <div class="form-field"><label class="form-lbl">Wiadomość</label>
         <textarea class="form-textarea" id="bc-msg" rows="4" placeholder="Napisz wiadomość do wszystkich...&#10;&#10;Możesz użyć {imie} aby spersonalizować."></textarea>
       </div>
-      <div style="background:var(--adim);border:1px solid rgba(200,241,53,0.15);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--muted);">
+      <div style="background:var(--adim);border:1px solid rgba(225,31,46,0.15);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--muted);">
         Wiadomość zostanie wysłana do każdego klienta osobno jako prywatna rozmowa.
       </div>
     </div>
@@ -606,7 +608,7 @@
         <div id="exd-ai-msgs" style="max-height:120px;overflow-y:auto;margin-bottom:8px;"></div>
         <div style="display:flex;gap:6px;">
           <input type="text" id="exd-ai-q" placeholder="Pytaj o technikę, zamienniki..." style="flex:1;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:6px 9px;color:var(--text);font-size:11px;" onkeydown="if(event.key==='Enter')askExAI()">
-          <button onclick="askExAI()" style="padding:6px 10px;background:var(--accent);color:#000;border:none;border-radius:6px;font-size:12px;font-weight:700;">→</button>
+          <button onclick="askExAI()" style="padding:6px 10px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;">→</button>
         </div>
       </div>
     </div>
@@ -753,7 +755,7 @@
         <div id="task-ai-msgs" style="flex:1;overflow-y:auto;margin-bottom:8px;font-size:11px;"></div>
         <div style="display:flex;gap:5px;">
           <input type="text" id="task-ai-q" placeholder="Zaproponuj zadania dla klienta..." style="flex:1;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:6px 8px;color:var(--text);font-size:11px;" onkeydown="if(event.key==='Enter')askTaskAI()">
-          <button onclick="askTaskAI()" style="padding:6px 10px;background:var(--accent);color:#000;border:none;border-radius:6px;font-size:12px;font-weight:700;">→</button>
+          <button onclick="askTaskAI()" style="padding:6px 10px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;">→</button>
         </div>
         <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;" id="task-ai-chips"></div>
       </div>
@@ -869,7 +871,7 @@
         <div id="send-form-client-results" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;background:var(--s2);border:1px solid var(--border2);border-radius:8px;margin-top:4px;max-height:220px;overflow-y:auto;box-shadow:0 8px 20px rgba(0,0,0,0.4);"></div>
       </div>
       <div class="form-field"><label class="form-lbl">Wiadomość do klienta (opcjonalnie)</label><textarea class="form-textarea" id="send-form-msg" rows="3" placeholder="np. Proszę wypełnić formularz przed następną sesją..."></textarea></div>
-      <div style="background:var(--adim);border:1px solid rgba(200,241,53,0.15);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--muted);line-height:1.6;">
+      <div style="background:var(--adim);border:1px solid rgba(225,31,46,0.15);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--muted);line-height:1.6;">
         Klient otrzyma link do formularza i powiadomienie. Odpowiedzi będą widoczne w sekcji Odpowiedzi.
       </div>
     </div>
@@ -1008,7 +1010,7 @@
         <div id="metric-ai-msgs" style="flex:1;overflow-y:auto;margin-bottom:8px;font-size:11px;"></div>
         <div style="display:flex;gap:5px;">
           <input type="text" id="metric-ai-q" placeholder="Zapytaj o postępy klienta..." style="flex:1;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:6px 8px;color:var(--text);font-size:11px;" onkeydown="if(event.key==='Enter')askMetricAI()">
-          <button onclick="askMetricAI()" style="padding:6px 10px;background:var(--accent);color:#000;border:none;border-radius:6px;font-size:12px;font-weight:700;">→</button>
+          <button onclick="askMetricAI()" style="padding:6px 10px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;">→</button>
         </div>
         <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:8px;">
           <button class="btn btn-ghost btn-sm" style="font-size:10px;" onclick="document.getElementById('metric-ai-q').value='Oceń postępy klienta';askMetricAI()">Oceń postępy</button>
@@ -1306,7 +1308,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   <!-- BROWSE TAB — Netflix style -->
   <div id="odtab-browse-view" style="flex:1;overflow-y:auto;">
     <!-- hero banner -->
-    <div style="background:linear-gradient(135deg,var(--s2) 0%,rgba(200,241,53,0.08) 100%);border-bottom:1px solid var(--border);padding:28px 24px;display:flex;align-items:center;justify-content:space-between;">
+    <div style="background:linear-gradient(135deg,var(--s2) 0%,rgba(225,31,46,0.08) 100%);border-bottom:1px solid var(--border);padding:28px 24px;display:flex;align-items:center;justify-content:space-between;">
       <div>
         <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;margin-bottom:4px;">PORTAL TRENINGÓW</div>
         <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">Udostępnij klientom treningi i programy, do których mają dostęp o każdej porze.</div>
@@ -1329,7 +1331,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <div style="background:var(--s3);border:1px solid var(--border2);border-radius:16px;padding:16px;width:200px;flex-shrink:0;">
         <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);margin-bottom:10px;text-transform:uppercase;">Widok klienta</div>
         <div style="display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;">
-          <span style="font-size:10px;background:var(--accent);color:#000;padding:3px 8px;border-radius:99px;white-space:nowrap;flex-shrink:0;">Wszystkie</span>
+          <span style="font-size:10px;background:var(--accent);color:#fff;padding:3px 8px;border-radius:99px;white-space:nowrap;flex-shrink:0;">Wszystkie</span>
           <span style="font-size:10px;color:var(--muted);padding:3px 8px;border-radius:99px;white-space:nowrap;flex-shrink:0;">Zasoby</span>
           <span style="font-size:10px;color:var(--muted);padding:3px 8px;border-radius:99px;white-space:nowrap;flex-shrink:0;">Treningi</span>
         </div>
@@ -1386,7 +1388,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 
   <!-- SETTINGS TAB -->
   <div id="odtab-settings-view" style="flex:1;overflow-y:auto;padding:24px;display:none;">
-    <div style="max-width:600px;">
+    <div style="max-width:600px;margin:0 auto;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;margin-bottom:16px;">USTAWIENIA PORTALU</div>
       <div class="card" style="margin-bottom:14px;">
         <div style="font-size:13px;font-weight:700;margin-bottom:12px;">Nazwa portalu</div>
@@ -1581,7 +1583,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
     <div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6;max-width:600px;">
       Notatki, filozofia treningowa i wiedza, którą AI Coach automatycznie wykorzysta jako kontekst przy odpowiadaniu na Twoje pytania w zakładce AI Coach.
     </div>
-    <div id="kb-list" style="display:flex;flex-direction:column;gap:10px;max-width:700px;"></div>
+    <div id="kb-list" style="display:flex;flex-direction:column;gap:10px;max-width:700px;margin:0 auto;"></div>
   </div>
 </div>
 
@@ -1742,7 +1744,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <div id="pb-ai-msgs" style="max-height:100px;overflow-y:auto;margin-bottom:6px;font-size:11px;"></div>
         <div style="display:flex;gap:5px;">
           <input type="text" id="pb-ai-q" placeholder="np. Push dla średniozaawansowanych..." style="flex:1;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:5px 8px;color:var(--text);font-size:11px;" onkeydown="if(event.key==='Enter')pbAskAI()">
-          <button onclick="pbAskAI()" style="padding:5px 9px;background:var(--accent);color:#000;border:none;border-radius:6px;font-size:12px;font-weight:700;">→</button>
+          <button onclick="pbAskAI()" style="padding:5px 9px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;">→</button>
         </div>
         <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:5px;">
           <button class="btn btn-ghost btn-sm" style="font-size:10px;" onclick="pbQuickAI('Zaproponuj ćwiczenia Push')">Push</button>
@@ -1967,7 +1969,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
     <!-- środek — główny chat -->
     <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
       <!-- kontekst klienta bar -->
-      <div id="aic-context-bar" style="padding:8px 16px;background:var(--adim);border-bottom:1px solid rgba(200,241,53,0.15);font-size:12px;display:none;">
+      <div id="aic-context-bar" style="padding:8px 16px;background:var(--adim);border-bottom:1px solid rgba(225,31,46,0.15);font-size:12px;display:none;">
         <span style="color:var(--accent);">🎯 Kontekst klienta:</span>
         <span id="aic-context-text" style="color:var(--muted);margin-left:6px;"></span>
       </div>
@@ -1986,7 +1988,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
               style="flex:1;background:none;border:none;color:var(--text);font-size:13px;resize:none;line-height:1.5;font-family:'DM Sans',sans-serif;max-height:120px;outline:none;"
               onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAICMsg();}"
               oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"></textarea>
-            <button onclick="sendAICMsg()" style="width:34px;height:34px;background:var(--accent);color:#000;border:none;border-radius:8px;font-size:16px;font-weight:700;flex-shrink:0;cursor:pointer;">→</button>
+            <button onclick="sendAICMsg()" style="width:34px;height:34px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:700;flex-shrink:0;cursor:pointer;">→</button>
           </div>
         </div>
         <div style="font-size:10px;color:var(--muted2);text-align:center;margin-top:6px;font-family:'DM Mono',monospace;">Claude AI · Dane Twoich klientów są poufne i nie są przechowywane przez Anthropic</div>
@@ -2712,7 +2714,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
     <div style="width:200px;flex-shrink:0;border-right:1px solid var(--border);padding:14px 8px;overflow-y:auto;">
       <button class="cp-tab cp-tab-v active" id="cpt-overview" onclick="setCPTab('overview')">📋 Przegląd</button>
       <button class="cp-tab cp-tab-v" id="cpt-timeline" onclick="setCPTab('timeline')">📅 Oś czasu</button>
-      <button class="cp-tab cp-tab-v" id="cpt-psycho" onclick="setCPTab('psycho')" style="color:#9f97e8;">🧠 Psycho</button>
+      <button class="cp-tab cp-tab-v" id="cpt-psycho" onclick="setCPTab('psycho')" style="color:var(--purple);">🧠 Psycho</button>
       <button class="cp-tab cp-tab-v" id="cpt-sfr" onclick="setCPTab('sfr')" style="color:var(--teal);">📊 SFR</button>
       <button class="cp-tab cp-tab-v" id="cpt-training" onclick="setCPTab('training')">💪 Treningi</button>
       <button class="cp-tab cp-tab-v" id="cpt-plan" onclick="setCPTab('plan')">🗒 Plan</button>
@@ -2846,11 +2848,11 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       </div>
 
       <!-- link do aplikacji -->
-      <div style="background:var(--adim);border:1px solid rgba(200,241,53,0.25);border-radius:12px;padding:16px;margin-bottom:16px;">
+      <div style="background:var(--adim);border:1px solid rgba(225,31,46,0.25);border-radius:12px;padding:16px;margin-bottom:16px;">
         <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">📱 Link do aplikacji klienta</div>
         <div style="display:flex;gap:8px;align-items:center;">
           <div id="inv-link" style="flex:1;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;font-size:12px;font-family:'DM Mono',monospace;color:var(--text);word-break:break-all;line-height:1.4;"></div>
-          <button onclick="copyInviteLink()" style="padding:9px 12px;background:var(--accent);color:#000;border:none;border-radius:8px;font-size:16px;cursor:pointer;flex-shrink:0;" title="Kopiuj link">📋</button>
+          <button onclick="copyInviteLink()" style="padding:9px 12px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:16px;cursor:pointer;flex-shrink:0;" title="Kopiuj link">📋</button>
         </div>
         <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;">Wyślij ten link klientowi — zaloguje się tym samym emailem który podałeś przy dodawaniu.</div>
       </div>
@@ -2968,7 +2970,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <span>Ćwiczenie</span><span>Serie</span><span>Powtórzenia</span><span>Przerwa</span><span></span>
       </div>
       <div id="w-ex-rows"></div>
-      <button onclick="addWExRow()" style="width:100%;padding:7px;background:rgba(200,241,53,0.03);border:1px dashed rgba(200,241,53,0.2);border-radius:8px;color:var(--accent);font-size:11px;font-family:'DM Mono',monospace;margin-top:6px;">+ DODAJ ĆWICZENIE</button>
+      <button onclick="addWExRow()" style="width:100%;padding:7px;background:rgba(225,31,46,0.03);border:1px dashed rgba(225,31,46,0.2);border-radius:8px;color:var(--accent);font-size:11px;font-family:'DM Mono',monospace;margin-top:6px;">+ DODAJ ĆWICZENIE</button>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-workout')">Anuluj</button><button class="btn btn-primary" onclick="saveWorkout()">Zapisz trening</button></div>
   </div>
@@ -3082,7 +3084,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <div id="assign-prog-client-results" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;background:var(--s2);border:1px solid var(--border2);border-radius:8px;margin-top:4px;max-height:220px;overflow-y:auto;box-shadow:0 8px 20px rgba(0,0,0,0.4);"></div>
       </div>
       <div class="form-field"><label class="form-lbl">Data rozpoczęcia</label><input type="date" class="form-input" id="assign-prog-date"></div>
-      <div style="background:var(--adim);border:1px solid rgba(200,241,53,0.15);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--muted);line-height:1.6;">
+      <div style="background:var(--adim);border:1px solid rgba(225,31,46,0.15);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--muted);line-height:1.6;">
         Program zostanie przypisany do klienta. Możesz go potem edytować w sekcji Plany treningowe.
       </div>
     </div>
@@ -3241,7 +3243,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <div class="form-field"><label class="form-lbl">Wiadomość do klienta</label>
         <textarea class="form-textarea" id="ci-send-msg" rows="3">Hej {imie}! Czas na tygodniowy check-in 💪 Jak minął tydzień treningowy? Wypełnij formularz — zajmie 2 minuty!</textarea>
       </div>
-      <div style="background:var(--adim);border:1px solid rgba(200,241,53,0.15);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--muted);">
+      <div style="background:var(--adim);border:1px solid rgba(225,31,46,0.15);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--muted);">
         Check-in zostanie wysłany jako wiadomość z linkiem do formularza.
       </div>
     </div>
@@ -3307,7 +3309,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
           </select>
         </div>
       </div>
-      <div id="rep-preview-info" style="background:var(--adim);border:1px solid rgba(200,241,53,0.15);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--muted);line-height:1.6;"></div>
+      <div id="rep-preview-info" style="background:var(--adim);border:1px solid rgba(225,31,46,0.15);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--muted);line-height:1.6;"></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeM('m-report')">Anuluj</button>
