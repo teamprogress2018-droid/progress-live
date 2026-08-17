@@ -1246,16 +1246,20 @@ function addClientDoc(clientId){
   const type=name.endsWith('.pdf')?'pdf':name.match(/\.(jpg|png|jpeg)/i)?'image':'other';
   const note=prompt('Notatka (opcjonalne):','')||'';
   if(!window.CLIENT_DOCS[clientId])window.CLIENT_DOCS[clientId]=[];
-  window.CLIENT_DOCS[clientId].push({
-    id:'doc'+Date.now(),name,type,note,
+  const docItem=withTrainer({
+    id:newId('doc'),clientId,name,type,note,
     date:new Date().toISOString().split('T')[0],
-    size:Math.round(Math.random()*900+100)+'KB'
+    size:'—',
+    createdAt:new Date().toISOString()
   });
+  window.CLIENT_DOCS[clientId].push(docItem);
+  persistById('clientDocs',docItem);
   const c=CL.find(x=>x.id===clientId);if(c)renderCPDocuments(c);
 }
 function delClientDoc(clientId,docId){
   if(!confirm('Usunąć dokument?'))return;
   window.CLIENT_DOCS[clientId]=(window.CLIENT_DOCS[clientId]||[]).filter(x=>x.id!==docId);
+  if(window._db){try{window._del(window._doc(window._db,'clientDocs',docId));}catch(e){}}
   const c=CL.find(x=>x.id===clientId);if(c)renderCPDocuments(c);
 }
 
@@ -1266,9 +1270,7 @@ function toggleClientFeature(clientId,feature,tab){
   const c=CL.find(x=>x.id===clientId);if(!c)return;
   if(!c.clientSettings)c.clientSettings={};
   c.clientSettings[feature]=!c.clientSettings[feature];
-  if(window._db&&c.id&&!c.id.startsWith('l')){
-    try{window._setDoc(window._doc(window._db,'clients',c.id),{clientSettings:c.clientSettings},{merge:true});}catch(e){}
-  }
+  persistById('clients',c);
   if(tab)setCPTab(tab);
   else renderCPSettings(c);
   notify(feature+' '+(c.clientSettings[feature]?'włączone':'wyłączone'));

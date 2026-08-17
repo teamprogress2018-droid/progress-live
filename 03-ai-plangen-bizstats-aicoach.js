@@ -607,10 +607,11 @@ function aplSavePlan(){
   const cid=document.getElementById('apl-client').value;
   const client=cid?CL.find(x=>x.id===cid):null;
   const curWeek=aplLastPlan.currentWeek||(aplLastPlan.weekKeys||['w1'])[0];
-  const newPlan={
-    id:'apl_'+Date.now(),
+  const newPlan=withTrainer({
+    id:newId('p'),
     name:aplLastPlan.planName||'Plan AI',
     clientId:cid||null,
+    clientName:client?client.name:'',
     method:aplLastPlan.method||'Custom',
     duration:aplLastPlan.weeks||8,
     days:(aplLastPlan.days||[]).map(d=>({
@@ -623,11 +624,9 @@ function aplSavePlan(){
     })),
     source:'ai',
     createdAt:new Date().toISOString()
-  };
+  });
   PL.push(newPlan);
-  if(window._db){
-    try{window._add(window._col(window._db,'plans'),newPlan);}catch(e){}
-  }
+  persistById('plans',newPlan);
   addNotification('system','Plan AI zapisany!','"'+newPlan.name+'" dodany do planów'+(client?' klienta '+client.name:''),'plans');
   notify(`✅ Plan "${newPlan.name}" zapisany${client?' dla '+client.name:''}!`);
 }

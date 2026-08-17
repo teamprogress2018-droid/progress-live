@@ -65,12 +65,34 @@ function downloadCsv(filename,rows){
 }
 window.downloadCsv=downloadCsv;
 
-/** Jednorazowa migracja: dokumenty bez trainerId dostają uid bieżącego trenera. */
+/**
+ * Jednorazowa migracja: dokumenty bez trainerId dostają uid bieżącego trenera.
+ * Bezpieczeństwo multi-tenant: jeśli w bazie są już dokumenty innego trenera,
+ * NIE przejmujemy dokumentów bez trainerId (unikamy „kradzieży” legacy).
+ * Flaga localStorage ustawiana dopiero po udanym przebiegu (bez błędów zapisu).
+ */
 async function migrateTrainerOwnership(collections){
   if(!window._db||!window._uid)return;
   const key='pl_trainer_migrated_'+window._uid;
   try{if(localStorage.getItem(key)==='1')return;}catch(e){}
   let tagged=0;
+  let failed=0;
+  let otherOwnerSeen=false;
+  for(const colName of collections){
+    try{
+      const snap=await window._get(window._col(window._db,colName));
+      for(const d of snap.docs){
+        const data=d.data()||{};
+        if(data.trainerId&&data.trainerId!==window._uid){otherOwnerSeen=true;break;}
+      }
+      if(otherOwnerSeen)break;
+    }catch(e){console.warn('Migracja (skan) '+colName+':',e);failed++;}
+  }
+  if(otherOwnerSeen){
+    console.warn('Progress Live: wykryto dane innego trenera — pomijam przejęcie legacy bez trainerId');
+    try{localStorage.setItem(key,'1');}catch(e){}
+    return;
+  }
   for(const colName of collections){
     try{
       const snap=await window._get(window._col(window._db,colName));
@@ -80,11 +102,15 @@ async function migrateTrainerOwnership(collections){
         try{
           await window._setDoc(window._doc(window._db,colName,d.id),{trainerId:window._uid},{merge:true});
           tagged++;
-        }catch(e){}
+        }catch(e){failed++;}
       }
-    }catch(e){console.warn('Migracja '+colName+':',e);}
+    }catch(e){console.warn('Migracja '+colName+':',e);failed++;}
   }
-  try{localStorage.setItem(key,'1');}catch(e){}
+  if(!failed){
+    try{localStorage.setItem(key,'1');}catch(e){}
+  }else{
+    console.warn('Progress Live: migracja trainerId częściowo nieudana ('+failed+' błędów) — ponowię przy następnym logowaniu');
+  }
   if(tagged)console.info('Progress Live: oznaczono trainerId na',tagged,'legacy dokumentach');
 }
 window.migrateTrainerOwnership=migrateTrainerOwnership;
@@ -228,7 +254,7 @@ function goTo(n){
   if(n==='resources'){renderResources();}
   if(n==='ondemand'){setODTab('browse');}
   if(n==='payments'){
-    document.getElementById('pkg-client').innerHTML=CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
+    document.getElementById('pkg-client').innerHTML=CL.map(c=>'<option value="'+escHtml(c.id)+'">'+escHtml(c.name)+'</option>').join('');
     document.getElementById('pkg-date').value=new Date().toISOString().split('T')[0];
     setPayTab('overview');
   }

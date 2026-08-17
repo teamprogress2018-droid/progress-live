@@ -806,11 +806,12 @@ function asClientSearchInput(){
 }
 
 
-function delSession(id){
+async function delSession(id){
   if(!confirm('Usunąć sesję?'))return;
   window.SE=SE.filter(s=>s.id!==id);
   renderCal();renderDash();
   notify('Sesja usunięta');
+  if(window._db){try{await window._del(window._doc(window._db,'sessions',id));}catch(e){console.warn('Firebase delSession:',e);}}
 }
 async function saveSess(){
   if(window._saveGuard_saveSess)return;window._saveGuard_saveSess=true;setTimeout(()=>window._saveGuard_saveSess=false,1500);

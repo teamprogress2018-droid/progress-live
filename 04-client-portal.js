@@ -129,29 +129,42 @@ function capScreenHTML(scr,c){
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
         <div style="background:${CAP_S2};border-radius:16px;padding:14px;text-align:center;border:1px solid ${CAP_S3};">
           <div style="font-size:28px;margin-bottom:4px;">🔥</div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--orange);line-height:1;">${sessions.length||7}</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--orange);line-height:1;">${sessions.length}</div>
           <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-top:2px;">Sesji łącznie</div>
         </div>
         <div style="background:${CAP_S2};border-radius:16px;padding:14px;text-align:center;border:1px solid ${CAP_S3};">
           <div style="font-size:28px;margin-bottom:4px;">⚡</div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;color:${accent};line-height:1;">${tasks.length||3}</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;color:${accent};line-height:1;">${tasks.length}</div>
           <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-top:2px;">Zadań do zrobienia</div>
         </div>
       </div>
 
-      <!-- tygodniowy postęp -->
-      <div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
+      <!-- tygodniowy postęp (realne sesje z ostatnich 7 dni, Pon–Pt) -->
+      ${(()=>{
+        const labels=['Pon','Wt','Śr','Czw','Pt'];
+        const now=new Date();
+        const dayDone=[false,false,false,false,false];
+        sessions.forEach(s=>{
+          if(!s.date)return;
+          const d=new Date(s.date);if(isNaN(d))return;
+          if((now-d)>7*86400000||(now-d)<0)return;
+          const wd=d.getDay(); // 0=Nd … 6=Sob
+          if(wd>=1&&wd<=5)dayDone[wd-1]=true;
+        });
+        const doneCnt=dayDone.filter(Boolean).length;
+        return `<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
           <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};">Tydzień treningowy</div>
-          <div style="font-size:11px;color:${accent};">3/5 dni</div>
+          <div style="font-size:11px;color:${accent};">${doneCnt}/5 dni</div>
         </div>
         <div style="display:flex;gap:6px;">
-          ${['Pon','Wt','Śr','Czw','Pt'].map((d,i)=>`<div style="flex:1;text-align:center;">
-            <div style="height:36px;border-radius:8px;background:${i<3?accent+'33':CAP_S3};border:1px solid ${i<3?accent+'66':'transparent'};display:flex;align-items:center;justify-content:center;font-size:14px;margin-bottom:4px;">${i<3?'✓':''}</div>
+          ${labels.map((d,i)=>`<div style="flex:1;text-align:center;">
+            <div style="height:36px;border-radius:8px;background:${dayDone[i]?accent+'33':CAP_S3};border:1px solid ${dayDone[i]?accent+'66':'transparent'};display:flex;align-items:center;justify-content:center;font-size:14px;margin-bottom:4px;">${dayDone[i]?'✓':''}</div>
             <div style="font-size:9px;color:${CAP_MUTED};">${d}</div>
           </div>`).join('')}
         </div>
-      </div>
+      </div>`;
+      })()}
 
       <!-- zadania -->
       ${tasks.length?`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
@@ -393,9 +406,9 @@ function capScreenHTML(scr,c){
       <!-- stats -->
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px;">
         ${[
-          {label:'Sesji',val:sessions.length||12,col:accent},
-          {label:'Tygodni',val:8,col:'var(--blue)'},
-          {label:'Zadań',val:TASKS.filter(t=>t.clientId===c.id&&t.status==='done').length||5,col:'var(--teal)'},
+          {label:'Sesji',val:sessions.length,col:accent},
+          {label:'Planów',val:plans.length,col:'var(--blue)'},
+          {label:'Zadań',val:TASKS.filter(t=>t.clientId===c.id&&t.status==='done').length,col:'var(--teal)'},
         ].map(s=>`<div style="background:${CAP_S2};border-radius:14px;padding:12px;text-align:center;border:1px solid ${CAP_S3};">
           <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:${s.col};line-height:1;">${s.val}</div>
           <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-top:2px;">${s.label}</div>
@@ -409,19 +422,26 @@ function capScreenHTML(scr,c){
         </div>`).join('')}
       </div>
       <!-- aktywny pakiet -->
-      <div style="background:linear-gradient(135deg,${accent}22,${accent}08);border:1px solid ${accent}44;border-radius:18px;padding:16px;margin-bottom:12px;">
+      ${(()=>{
+        const pkgs=(typeof allPackages==='function'?allPackages():(window.PACKAGES||[])).filter(p=>p.clientId===c.id&&p.status!=='expired'&&p.payStatus!=='expired');
+        const p=pkgs[0];
+        if(!p)return `<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:12px;text-align:center;color:${CAP_MUTED};font-size:12px;">Brak aktywnego pakietu</div>`;
+        const left=Math.max(0,(p.sessions||0)-(p.sessionsUsed||0));
+        const pct=p.sessions?Math.round((p.sessionsUsed||0)/p.sessions*100):0;
+        return `<div style="background:linear-gradient(135deg,${accent}22,${accent}08);border:1px solid ${accent}44;border-radius:18px;padding:16px;margin-bottom:12px;">
         <div style="font-size:10px;color:${accent};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:8px;">Aktywny pakiet</div>
-        <div style="font-size:14px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">10 sesji personalnych</div>
-        <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:10px;">6/10 sesji pozostało · Ważny do 30.08.2025</div>
+        <div style="font-size:14px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">${escHtml(p.title||'Pakiet')}</div>
+        <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:10px;">${left}/${p.sessions||0} sesji pozostało${p.expiresDate?' · Ważny do '+p.expiresDate:''}</div>
         <div style="height:6px;background:${CAP_S3};border-radius:99px;overflow:hidden;">
-          <div style="height:100%;background:${accent};width:60%;border-radius:99px;"></div>
+          <div style="height:100%;background:${accent};width:${pct}%;border-radius:99px;"></div>
         </div>
-      </div>
+      </div>`;
+      })()}
       <button class="cap-btn-secondary">⚙ Ustawienia konta</button>
       <button class="cap-btn-secondary" style="color:var(--red);border-color:rgba(255,77,77,0.2);">Wyloguj się</button>
     </div>`;
 
-  return `<div style="padding:40px;text-align:center;color:${CAP_MUTED};">Wkrótce...</div>`;
+  return `<div style="padding:40px;text-align:center;color:${CAP_MUTED};">Brak tego ekranu</div>`;
 }
 
 const CAP_SCREEN_INFO={
@@ -483,8 +503,47 @@ function renderCapCustomize(){
         </label>`).join('')}
       </div>
     </div>
-    <button class="btn btn-primary" onclick="notify('✓ Ustawienia aplikacji klienta zapisane!')">Zapisz ustawienia</button>`;
+    <button class="btn btn-primary" onclick="saveCapAppSettings()">Zapisz ustawienia</button>`;
 }
+
+function saveCapAppSettings(){
+  const S=window.SETTINGS||(window.SETTINGS={});
+  if(!S.clientApp)S.clientApp={};
+  const nameEl=document.getElementById('cap-app-name');
+  if(nameEl)S.clientApp.appName=nameEl.value.trim()||S.clientApp.appName||'Progress Live';
+  const checks=document.querySelectorAll('#cap-customize-content input[type=checkbox]');
+  const keys=['home','plan','calendar','progress','checkin','messages','ondemand','resources'];
+  S.clientApp.visibleSections=S.clientApp.visibleSections||{};
+  checks.forEach((cb,i)=>{if(keys[i])S.clientApp.visibleSections[keys[i]]=cb.checked;});
+  withTrainer(S);
+  if(window._db){
+    const sid=window._settingsDocId||window._uid||'default';
+    window._setDoc(window._doc(window._db,'settings',sid),S,{merge:true}).then(()=>{window._settingsDocId=sid;}).catch(e=>console.warn('Firebase cap settings:',e));
+  }
+  notify('✓ Ustawienia aplikacji klienta zapisane');
+}
+window.saveCapAppSettings=saveCapAppSettings;
+
+function capShowQr(){
+  const url='https://app.progresslive.pl/client/'+encodeURIComponent((window.SETTINGS?.profile?.name||'trener').toLowerCase().replace(/\s+/g,'-'));
+  const q='https://api.qrserver.com/v1/create-qr-code/?size=200x200&data='+encodeURIComponent(url);
+  let m=document.getElementById('m-cap-qr');
+  if(!m){
+    m=document.createElement('div');m.id='m-cap-qr';m.className='modal-ov';
+    m.innerHTML=`<div class="modal" style="max-width:320px;text-align:center;">
+      <div class="modal-title">QR do aplikacji</div>
+      <img id="cap-qr-img" alt="QR" style="width:200px;height:200px;margin:12px auto;display:block;border-radius:8px;background:#fff;padding:8px;">
+      <div style="font-size:11px;color:var(--muted);word-break:break-all;margin-bottom:12px;" id="cap-qr-url"></div>
+      <button class="btn btn-ghost btn-sm" onclick="closeM('m-cap-qr')">Zamknij</button>
+    </div>`;
+    document.body.appendChild(m);
+    m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');});
+  }
+  document.getElementById('cap-qr-img').src=q;
+  document.getElementById('cap-qr-url').textContent=url;
+  openM('m-cap-qr');
+}
+window.capShowQr=capShowQr;
 
 function renderCapAccess(){
   const el=document.getElementById('cap-access-content');if(!el)return;
@@ -516,7 +575,7 @@ function renderCapAccess(){
       <div style="background:var(--s3);border-radius:8px;padding:12px;font-size:12px;font-family:'DM Mono',monospace;color:var(--muted);word-break:break-all;margin-bottom:8px;">https://app.progresslive.pl/client/piotr-urbaniak</div>
       <div style="display:flex;gap:8px;">
         <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="copyWebhook('https://app.progresslive.pl/client/piotr-urbaniak')">📋 Kopiuj link</button>
-        <button class="btn btn-primary btn-sm" style="flex:1;" onclick="notify('QR Code wygenerowany!')">📲 QR Code</button>
+        <button class="btn btn-primary btn-sm" style="flex:1;" onclick="capShowQr()">📲 QR Code</button>
       </div>
     </div>
 
@@ -1474,16 +1533,14 @@ function pbLoadDemo(){
 
 async function pbAssign(){
   if(!CL.length){notify('Najpierw dodaj klienta!');return;}
-  const name=document.getElementById('pb-name').value.trim()||'Program';
-  // Zapisz program jeśli jeszcze nie w bibliotece
-  await pbSave(true);
-  const prog=window.USER_PROGRAMS[window.USER_PROGRAMS.length-1];
-  if(!prog){notify('Najpierw zapisz program');return;}
+  const nameEl=document.getElementById('pb-name');
+  if(nameEl&&!nameEl.value.trim())nameEl.value='Program';
+  const prog=await pbSave(true);
+  if(!prog){notify('Najpierw zapisz program (wpisz nazwę)');return;}
   window._assignProgId=prog.id;
-  // reuse existing assign modal if present
   const sel=document.getElementById('assign-prog-client');
   if(sel){
-    sel.innerHTML=CL.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+    sel.innerHTML=CL.map(c=>`<option value="${escHtml(c.id)}">${escHtml(c.name)}</option>`).join('');
     const dateEl=document.getElementById('assign-prog-date');
     if(dateEl)dateEl.value=new Date().toISOString().split('T')[0];
     openM('m-assign-prog');
@@ -1493,8 +1550,6 @@ async function pbAssign(){
   if(!cid)return;
   const c=CL.find(x=>x.id===cid||x.name.toLowerCase().includes(cid.toLowerCase()));
   if(!c){notify('Nie znaleziono klienta');return;}
-  document.getElementById('assign-prog-client')&&(document.getElementById('assign-prog-client').value=c.id);
-  // fallback: build plan directly
   const newPlan=withTrainer({
     id:newId('p'),name:prog.name,clientId:c.id,clientName:c.name,
     method:prog.method||'Własna',duration:prog.duration||8,level:prog.level||'sredni',goal:prog.goal||'masa',
@@ -1508,12 +1563,12 @@ async function pbAssign(){
   });
   PL.push(newPlan);
   await persistById('plans',newPlan);
-  notify('✓ Program "'+name+'" przypisany do: '+c.name);
+  notify('✓ Program "'+prog.name+'" przypisany do: '+c.name);
 }
 
 async function pbSave(silent){
   const name=document.getElementById('pb-name').value.trim();
-  if(!name){notify('Wpisz nazwę programu!');return;}
+  if(!name){if(!silent)notify('Wpisz nazwę programu!');return null;}
   pbProgram.name=name;
   pbProgram.goal=document.getElementById('pb-goal').value;
   pbProgram.level=document.getElementById('pb-level').value;
@@ -1539,6 +1594,7 @@ async function pbSave(silent){
   if(typeof renderPrograms==='function')renderPrograms();
   document.getElementById('pb-title').textContent=name;
   if(!silent)notify('✓ Program "'+name+'" zapisany do biblioteki programów!');
+  return prog;
 }
 var ciFilter='all';var ciActiveClient=null;
 window.CHECKINS={};// clientId -> [{week, date, answers, score}]
@@ -2362,10 +2418,13 @@ function exportRepHistoryCsv(){
 window.exportRepHistoryCsv=exportRepHistoryCsv;
 
 function confirmDeleteAll(){
-  if(!confirm('UWAGA! Ta operacja usunie wszystkie dane. Czy na pewno chcesz kontynuować?'))return;
-  if(!confirm('Ostatnie ostrzeżenie — wszystkie dane zostaną utracone. Kontynuować?'))return;
+  if(!confirm('UWAGA! To wyczyści dane w tej sesji przeglądarki. Dokumenty w Firebase nie zostaną automatycznie usunięte (bezpieczeństwo). Kontynuować?'))return;
+  if(!confirm('Ostatnie ostrzeżenie — lokalna pamięć aplikacji zostanie wyczyszczona. Kontynuować?'))return;
   window.CL=[];window.PL=[];window.SE=[];window.EX=[];window.WO=[];window.TASKS=[];
-  renderAll();notify('Wszystkie dane usunięte');
+  window.PACKAGES=[];window.INVOICES=[];window.NOTIFICATIONS=[];window.CUSTOM_FORMS=[];
+  window.USER_PROGRAMS=[];window.CHECKINS={};window.METRIC_ENTRIES=[];window.METRIC_GROUPS=[];
+  if(window.MSGS)Object.keys(window.MSGS).forEach(k=>delete window.MSGS[k]);
+  renderAll();notify('Lokalne dane wyczyszczone (Firebase bez zmian — usuń ręcznie w konsoli jeśli potrzeba)');
 }
 
 function saveSettings(){
@@ -2512,18 +2571,25 @@ function clickNotif(id){
 }
 
 function markAllRead(){
-  allNotifs().forEach(n=>n.read=true);
+  allNotifs().forEach(n=>{
+    n.read=true;
+    if(n.id)persistById('notifications',n);
+  });
   updateNotifBadge();
   renderNotifs();
   notify('✓ Wszystkie powiadomienia oznaczone jako przeczytane');
 }
 
 function clearAllNotifs(){
+  const ids=(window.NOTIFICATIONS||[]).map(n=>n.id);
   window.NOTIFICATIONS=[];
-  DEMO_NOTIFS.forEach(n=>n.read=true);
+  if(typeof DEMO_NOTIFS!=='undefined')DEMO_NOTIFS.forEach(n=>n.read=true);
   updateNotifBadge();
   renderNotifs();
   notify('Powiadomienia wyczyszczone');
+  if(window._db){
+    ids.forEach(id=>{try{window._del(window._doc(window._db,'notifications',id));}catch(e){}});
+  }
 }
 
 // Dodaj powiadomienie programowo (używane przez inne moduły)

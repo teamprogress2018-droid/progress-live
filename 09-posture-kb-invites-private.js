@@ -183,9 +183,12 @@ function cpOpenTask(){
 }
 function deleteClientNote(clientId,idx){
   if(!CLIENT_NOTES[clientId])return;
-  CLIENT_NOTES[clientId].splice(idx,1);
+  const removed=CLIENT_NOTES[clientId].splice(idx,1)[0];
   setCPTab('overview');
   notify('Notatka usunięta');
+  if(removed&&removed.id&&window._db){
+    try{window._del(window._doc(window._db,'clientNotes',removed.id));}catch(e){}
+  }
 }
 function deleteClientActivity(clientId,idx){
   if(!CLIENT_ACTIVITY[clientId])return;
@@ -204,10 +207,7 @@ function saveCPEdit(id){
   c.level=document.getElementById('cpe-level').value;
   c.status=document.getElementById('cpe-status').value;
   c.notes=document.getElementById('cpe-notes').value;
-  // Firebase w tle
-  if(window._db&&c.id&&!c.id.startsWith('l')){
-    try{window._setDoc(window._doc(window._db,'clients',c.id),c,{merge:true});}catch(e){console.warn('Firebase setDoc:',e);}
-  }
+  persistById('clients',c);
   // Odśwież sidebar bez zamykania drawera
   try{renderClients();}catch(e){}
   try{document.getElementById('nb-clients').textContent=CL.length;}catch(e){}
@@ -226,6 +226,7 @@ function archiveClient(id){
   const c=CL.find(x=>x.id===id);
   if(c){
     c.status='archived';
+    persistById('clients',c);
     try{renderClients();}catch(e){}
     try{document.getElementById('nb-clients').textContent=CL.length;}catch(e){}
     closeClientProfile();
@@ -430,6 +431,7 @@ function usePackageSession(id){
   if(!p)return;
   if(p.sessionsUsed>=p.sessions){notify('Pakiet wyczerpany!');return;}
   p.sessionsUsed++;
+  persistById('packages',p);
   renderPayPackages();
   notify('✓ Sesja odliczona z pakietu ('+p.sessionsUsed+'/'+p.sessions+')');
 }
@@ -439,9 +441,9 @@ function markPaid(id){
   const p=all.find(x=>x.id===id);
   if(p){
     p.payStatus='paid';renderPayPackages();renderPayOverview();notify('✓ Pakiet oznaczony jako opłacony');
-    if(window._db&&p._fbId){
-      window._setDoc(window._doc(window._db,'packages',p._fbId),{payStatus:'paid'},{merge:true}).catch(e=>console.warn('Firebase markPaid:',e));
-    }
+    persistById('packages',p);
+    const inv=(window.INVOICES||[]).find(i=>i.pkgId===p.id||i.id===p.invoiceId);
+    if(inv){inv.status='paid';persistById('invoices',inv);}
   }
 }
 
@@ -1093,8 +1095,57 @@ function addOSCForm(){
 }
 
 function saveOnboardingFlow(){
-  notify('✓ Onboarding Flow zapisany!');
+  const flow=withTrainer({
+    id:window.ONBOARDING_FLOW?.id||(window._uid?('onbflow_'+window._uid):newId('onbflow')),
+    formsEnabled:!!document.getElementById('osc-forms-en')?.checked,
+    msgEnabled:!!document.getElementById('osc-msg-en')?.checked,
+    assignEnabled:!!document.getElementById('osc-assign-en')?.checked,
+    ondemandEnabled:!!document.getElementById('osc-ondemand-en')?.checked,
+    recipesEnabled:!!document.getElementById('osc-recipes-en')?.checked,
+    welcomeMsg:document.getElementById('osc-welcome-msg')?.value||'',
+    programId:document.getElementById('osc-program-sel')?.value||'',
+    updatedAt:new Date().toISOString()
+  });
+  window.ONBOARDING_FLOW=flow;
+  persistById('onboardingFlows',flow);
+  notify('✓ Onboarding Flow zapisany');
 }
+
+function applyOnboardingFlow(flow){
+  if(!flow)return;
+  const setChk=(id,v)=>{const el=document.getElementById(id);if(el)el.checked=!!v;};
+  setChk('osc-forms-en',flow.formsEnabled!==false);
+  setChk('osc-msg-en',flow.msgEnabled!==false);
+  setChk('osc-assign-en',flow.assignEnabled!==false);
+  setChk('osc-ondemand-en',!!flow.ondemandEnabled);
+  setChk('osc-recipes-en',!!flow.recipesEnabled);
+  const msg=document.getElementById('osc-welcome-msg');if(msg&&flow.welcomeMsg!=null)msg.value=flow.welcomeMsg;
+  const prog=document.getElementById('osc-program-sel');if(prog&&flow.programId)prog.value=flow.programId;
+  if(typeof updateOSC==='function')updateOSC();
+}
+window.applyOnboardingFlow=applyOnboardingFlow;
+
+function savePortalSettings(){
+  const S=window.SETTINGS||(window.SETTINGS={});
+  if(!S.portal)S.portal={};
+  S.portal.resourcesVisible=true;
+  S.portal.workoutCollectionsVisible=true;
+  S.portal.ondemandVisible=true;
+  // Odczyt checkboxów z ekranu portalu jeśli obecne
+  const cards=document.querySelectorAll('#screen-portal input[type=checkbox]');
+  if(cards.length>=3){
+    S.portal.resourcesVisible=cards[0].checked;
+    S.portal.workoutCollectionsVisible=cards[1].checked;
+    S.portal.ondemandVisible=cards[2].checked;
+  }
+  withTrainer(S);
+  if(window._db){
+    const sid=window._settingsDocId||window._uid||'default';
+    window._setDoc(window._doc(window._db,'settings',sid),S,{merge:true}).then(()=>{window._settingsDocId=sid;}).catch(e=>console.warn(e));
+  }
+  notify('✓ Ustawienia portalu zapisane');
+}
+window.savePortalSettings=savePortalSettings;
 
 function renderAutoflows(){
   const all=window.AUTOFLOWS||[];
@@ -1397,19 +1448,21 @@ function sendInvitation() {
   const c = CL.find(x => x.id === inviteClientId);
   if (!c) return;
   const link = document.getElementById('inv-link')?.textContent || '';
-  const methodLabels = { wiadomosc: 'wiadomości', email: 'emaila', whatsapp: 'WhatsApp' };
+  const methodLabels = { wiadomosc: 'Inbox', email: 'email (niepodłączony — zapisano w Inbox)', whatsapp: 'WhatsApp (niepodłączony — zapisano w Inbox)' };
 
   // Dodaj do wiadomości
   pushMsg(c.id, document.getElementById('inv-msg-preview')?.textContent || '');
 
-  // Oznacz klienta jako zaproszony
+  // Oznacz klienta jako zaproszony i zapisz
   c.inviteSent = true;
+  c.appInvited = true;
   c.inviteLink = link;
   c.inviteSentAt = new Date().toISOString();
+  persistById('clients', c);
 
-  addNotification('system', 'Zaproszenie wysłane!', c.name + ' — link do aplikacji wysłany przez ' + methodLabels[inviteMethod], 'clients');
+  addNotification('system', 'Zaproszenie zapisane', c.name + ' — link w Inbox (' + (methodLabels[inviteMethod]||'wiadomość') + ')', 'clients');
   closeM('m-invite');
-  notify('✅ Zaproszenie wysłane do ' + c.name + ' przez ' + methodLabels[inviteMethod] + '!');
+  notify('✅ Zaproszenie do ' + c.name + ': ' + (methodLabels[inviteMethod]||'Inbox'));
 }
 
 window.openInviteModal = openInviteModal;

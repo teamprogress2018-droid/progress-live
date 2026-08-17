@@ -8,6 +8,8 @@ var inboxTab='all';
 const QUICK_REPLIES=['Dziękuję za informację!','Rozumiem, zajmę się tym.','Świetna robota! 💪','Pamiętaj o treningu!','Proszę wypełnić formularz postępów.','Kiedy możemy się spotkać?'];
 const CLIENT_NOTES={};// clientId -> [{text, date}]
 const CLIENT_ACTIVITY={};// clientId -> [{type, text, date, icon}]
+window.CLIENT_NOTES=CLIENT_NOTES;
+window.CLIENT_ACTIVITY=CLIENT_ACTIVITY;
 
 // ── Prawdziwe śledzenie "nieprzeczytane" (zamiast losowego i%3) ──
 // Zapisuje, kiedy trener ostatnio otworzył rozmowę z danym klientem.
@@ -173,7 +175,15 @@ function saveClientNote(id){
   const nt=document.getElementById('note-text-'+id);
   if(!nt||!nt.value.trim())return;
   if(!CLIENT_NOTES[id])CLIENT_NOTES[id]=[];
-  CLIENT_NOTES[id].unshift({text:nt.value.trim(),date:new Date().toLocaleDateString('pl',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})});
+  const note=withTrainer({
+    id:newId('note'),
+    clientId:id,
+    text:nt.value.trim(),
+    date:new Date().toLocaleDateString('pl',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}),
+    createdAt:new Date().toISOString()
+  });
+  CLIENT_NOTES[id].unshift(note);
+  persistById('clientNotes',note);
   openChat(id);notify('Notatka zapisana ✓');
 }
 
@@ -1417,8 +1427,6 @@ async function saveTask(){
   notify('Zadanie dodane!');
   await persistById('tasks',t);
 }
-function toggleTask(id){const t=TASKS.find(x=>x.id===id);if(t)t.status=t.status==='done'?'open':'done';renderTasks();}
-function delTask(id){window.TASKS=TASKS.filter(t=>t.id!==id);renderTasks();}
 
 function openTaskTemplates(){
   const sel=document.getElementById('tmpl-client-sel');
@@ -1472,8 +1480,20 @@ async function addAITask(t){
   if(typeof t==='string')try{t=JSON.parse(t);}catch(e){return;}
   const clientFil=(document.getElementById('task-client-filter')||{}).value||'';
   const due=new Date();due.setDate(due.getDate()+(t.days||7));
-  const task={title:t.title,clientId:clientFil,due:due.toISOString().split('T')[0],priority:t.priority||'medium',cat:t.cat||'trening',desc:'',status:'open',createdAt:new Date().toISOString()};
-  try{if(window._db){const r=await window._add(window._col(window._db,'tasks'),task);task.id=r.id;}else task.id='l'+Date.now();}catch(e){task.id='l'+Date.now();}
+  const task=withTrainer({id:newId('t'),title:t.title,clientId:clientFil,due:due.toISOString().split('T')[0],priority:t.priority||'medium',cat:t.cat||'trening',desc:'',status:'open',createdAt:new Date().toISOString()});
+  await persistById('tasks',task);
   TASKS.push(task);renderTasks();notify('Zadanie AI dodane ✓');
+}
+
+function toggleTask(id){
+  const t=TASKS.find(x=>x.id===id);if(!t)return;
+  t.status=t.status==='done'?'open':'done';
+  persistById('tasks',t);
+  renderTasks();
+}
+async function delTask(id){
+  window.TASKS=TASKS.filter(t=>t.id!==id);
+  renderTasks();
+  if(window._db){try{await window._del(window._doc(window._db,'tasks',id));}catch(e){console.warn('Firebase delTask:',e);}}
 }
 

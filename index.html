@@ -1410,7 +1410,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
           </label>
         </div>
       </div>
-      <button class="btn btn-primary" onclick="notify('✓ Ustawienia portalu zapisane!')">Zapisz ustawienia</button>
+      <button class="btn btn-primary" onclick="savePortalSettings()">Zapisz ustawienia</button>
     </div>
   </div>
 </div>
@@ -3602,6 +3602,30 @@ async function load(){
   try{const sForms=await getDocs(collection(db,'forms'));window.CUSTOM_FORMS=[];sForms.forEach(d=>{const x=_takeFb(d);if(x)window.CUSTOM_FORMS.push(x);});}catch(e){console.warn('Wczytywanie formularzy nie powiodło się:',e);window.CUSTOM_FORMS=window.CUSTOM_FORMS||[];}
   try{const sProgs=await getDocs(collection(db,'programs'));window.USER_PROGRAMS=[];sProgs.forEach(d=>{const x=_takeFb(d);if(x)window.USER_PROGRAMS.push(x);});}catch(e){console.warn('Wczytywanie programów nie powiodło się:',e);window.USER_PROGRAMS=window.USER_PROGRAMS||[];}
   try{const sCI=await getDocs(collection(db,'checkins'));window.CHECKINS={};sCI.forEach(d=>{const ci=_takeFb(d);if(!ci||!ci.clientId)return;if(!window.CHECKINS[ci.clientId])window.CHECKINS[ci.clientId]=[];window.CHECKINS[ci.clientId].push(ci);});Object.keys(window.CHECKINS).forEach(cid=>window.CHECKINS[cid].sort((a,b)=>(a.date||'').localeCompare(b.date||'')));}catch(e){console.warn('Wczytywanie check-inów nie powiodło się:',e);window.CHECKINS=window.CHECKINS||{};}
+  try{
+    const sNotes=await getDocs(collection(db,'clientNotes'));
+    window.CLIENT_NOTES=window.CLIENT_NOTES||{};
+    Object.keys(window.CLIENT_NOTES).forEach(k=>delete window.CLIENT_NOTES[k]);
+    sNotes.forEach(d=>{const n=_takeFb(d);if(!n||!n.clientId)return;if(!window.CLIENT_NOTES[n.clientId])window.CLIENT_NOTES[n.clientId]=[];window.CLIENT_NOTES[n.clientId].push(n);});
+    Object.keys(window.CLIENT_NOTES).forEach(cid=>window.CLIENT_NOTES[cid].sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||'')));
+  }catch(e){console.warn('Wczytywanie notatek nie powiodło się:',e);}
+  try{
+    const sDocs=await getDocs(collection(db,'clientDocs'));
+    window.CLIENT_DOCS=window.CLIENT_DOCS||{};
+    Object.keys(window.CLIENT_DOCS).forEach(k=>delete window.CLIENT_DOCS[k]);
+    sDocs.forEach(d=>{const docu=_takeFb(d);if(!docu||!docu.clientId)return;if(!window.CLIENT_DOCS[docu.clientId])window.CLIENT_DOCS[docu.clientId]=[];window.CLIENT_DOCS[docu.clientId].push(docu);});
+  }catch(e){console.warn('Wczytywanie dokumentów klientów nie powiodło się:',e);window.CLIENT_DOCS=window.CLIENT_DOCS||{};}
+  try{
+    const sOnb=await getDocs(collection(db,'onboardingFlows'));
+    sOnb.forEach(d=>{const flow=_takeFb(d);if(!flow)return;window.ONBOARDING_FLOW=flow;});
+    if(window.ONBOARDING_FLOW&&typeof window.applyOnboardingFlow==='function')window.applyOnboardingFlow(window.ONBOARDING_FLOW);
+  }catch(e){console.warn('Wczytywanie onboarding flow nie powiodło się:',e);}
+  try{
+    const sTpl=await getDocs(collection(db,'planTemplates'));
+    window.TPL_CUSTOM=window.TPL_CUSTOM||[];
+    window.TPL_CUSTOM.length=0;
+    sTpl.forEach(d=>{const t=_takeFb(d);if(t)window.TPL_CUSTOM.push(t);});
+  }catch(e){console.warn('Wczytywanie szablonów planów nie powiodło się:',e);}
   try{const s11=await getDocs(collection(db,'settings'));s11.forEach(d=>{const data=d.data()||{};if(typeof window.belongsToTrainer==='function'&&!window.belongsToTrainer(data)&&data.trainerId)return;window.SETTINGS={...window.SETTINGS,...data};window._settingsDocId=d.id;});}catch(e){console.warn('Wczytywanie ustawień nie powiodło się:',e);}
   try{const s12=await getDocs(collection(db,'notifications'));window.NOTIFICATIONS=[];s12.forEach(d=>{const x=_takeFb(d);if(x)window.NOTIFICATIONS.push(x);});window.NOTIFICATIONS.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));}catch(e){console.warn('Wczytywanie powiadomień nie powiodło się:',e);window.NOTIFICATIONS=window.NOTIFICATIONS||[];}
   try{
@@ -3661,7 +3685,8 @@ async function load(){
     await window.migrateTrainerOwnership?.([
       'clients','plans','sessions','exercises','workouts','tasks','kb','metricEntries','metricGroups',
       'messages','packages','invoices','formSends','reportHistory','forms','programs','checkins',
-      'notifications','autoflows','forumGroups','forumPosts','forumComments','odWorkouts','resources'
+      'notifications','autoflows','forumGroups','forumPosts','forumComments','odWorkouts','resources',
+      'settings','integrationConfigs','automationState','clientNotes','clientDocs','onboardingFlows','planTemplates'
     ]);
   }catch(e){console.warn('Migracja trainerId:',e);}
   try{if(typeof window.runAutoflowsCheck==='function')window.runAutoflowsCheck();}catch(e){console.warn('runAutoflowsCheck:',e);}

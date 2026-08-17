@@ -185,7 +185,7 @@ function openAssignWorkoutModal(workoutId){
   let modal=document.getElementById('m-assign-workout');
   if(!modal){
     modal=document.createElement('div');
-    modal.className='modal-bg';
+    modal.className='modal-ov';
     modal.id='m-assign-workout';
     modal.innerHTML=`<div class="modal" style="max-width:420px;">
       <div class="modal-title">Przypisz trening</div>
@@ -199,9 +199,10 @@ function openAssignWorkoutModal(workoutId){
       </div>
     </div>`;
     document.body.appendChild(modal);
+    modal.addEventListener('click',e=>{if(e.target===modal)modal.classList.remove('show');});
   }
   document.getElementById('aw-name').textContent=w?w.name:'';
-  document.getElementById('aw-client').innerHTML=CL.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  document.getElementById('aw-client').innerHTML=CL.map(c=>`<option value="${escHtml(c.id)}">${escHtml(c.name)}</option>`).join('');
   openM('m-assign-workout');
 }
 
@@ -336,13 +337,7 @@ const ONB_FLOWS=[
 ];
 
 function initOnboarding(){
-  // seed demo active onboardings
-  if(!ONB_ACTIVE.length&&CL.length){
-    ONB_ACTIVE=CL.slice(0,4).map((c,i)=>({
-      clientId:c.id,step:i+1,startDate:new Date(Date.now()-(i*2)*86400000).toISOString().split('T')[0],
-      flow:ONB_FLOWS[i%ONB_FLOWS.length].id,
-    }));
-  }
+  // Nie seedujemy fałszywych onboardingu — tylko realne wpisy z ONB_ACTIVE
   setOnbTab('overview');
 }
 
@@ -776,7 +771,7 @@ function renderOnbSettings(){
         <div class="settings-card-title">📝 Domyślny kontrakt</div>
         <div class="settings-card-desc">Treść kontraktu współpracy wysyłanego klientom.</div>
         <textarea class="form-input" rows="5" style="font-size:12px;resize:none;">Regulamin współpracy z trenerem personalnym Piotrem Urbaniakiem\n\n1. Klient zobowiązuje się do regularnego uczestnictwa w sesjach.\n2. Odwołanie sesji możliwe do 24h przed jej terminem.\n3. Trener zastrzega sobie prawo do modyfikacji planu.\n...</textarea>
-        <button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="notify('✓ Ustawienia zapisane!')">Zapisz kontrakt</button>
+        <button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="notify('Zapis kontraktu — wkrótce (obecnie tylko podgląd w UI)')">Zapisz kontrakt</button>
       </div>
     </div>`;
 }
@@ -793,6 +788,7 @@ window.onbStartFor=onbStartFor;window.onbCreateClient=onbCreateClient;
 var tplFilter='all';
 var tplDetailId=null;
 var TPL_CUSTOM=[];
+window.TPL_CUSTOM=TPL_CUSTOM;
 
 const PLAN_TEMPLATES=[
   // ── MASA ──
@@ -1239,19 +1235,20 @@ function tplAssignToClient(tid){
   const t=[...PLAN_TEMPLATES,...TPL_CUSTOM].find(x=>x.id===tid);
   if(!t||!c)return;
   // build plan object
-  const newPlan={
-    id:'tpl_'+Date.now(),
+  const newPlan=withTrainer({
+    id:newId('p'),
     name:t.name,
     clientId:cid,
+    clientName:c.name,
     method:t.method,
     duration:t.weeks,
     days:(t.days_detail||[]).map(d=>({day:d.name,exercises:(d.exercises||[]).map(e=>({name:e.n,sets:e.s,reps:e.r}))})),
     source:'template',
     templateId:tid,
     createdAt:new Date().toISOString(),
-  };
+  });
   PL.push(newPlan);
-  if(window._db){try{window._add(window._col(window._db,'plans'),newPlan);}catch(e){}}
+  persistById('plans',newPlan);
   addNotification('system','Plan przypisany!','Szablon "'+t.name+'" przypisano do '+c.name,'plans');
   notify('✅ Plan "'+t.name+'" przypisany do '+c.name+'!');
   closeTplDetail();
@@ -1282,8 +1279,9 @@ function tplStartLive(tid){
 
 function tplDuplicate(tid){
   const t=[...PLAN_TEMPLATES,...TPL_CUSTOM].find(x=>x.id===tid);if(!t)return;
-  const copy={...JSON.parse(JSON.stringify(t)),id:'custom_'+Date.now(),name:t.name+' (kopia)',custom:true};
+  const copy=withTrainer({...JSON.parse(JSON.stringify(t)),id:newId('tpl'),name:t.name+' (kopia)',custom:true,createdAt:new Date().toISOString()});
   TPL_CUSTOM.push(copy);
+  persistById('planTemplates',copy);
   updateTplMyCount();
   renderTemplates();
   notify('✓ Szablon zduplikowany — możesz go edytować!');
@@ -1682,8 +1680,8 @@ function liveEndSession(){
   const totalSets=liveExercises.flatMap(e=>e.sets).filter(s=>s.done).length;
   const volume=Math.round(liveExercises.flatMap(e=>e.sets).filter(s=>s.done&&s.kg).reduce((a,s)=>a+parseFloat(s.kg||0)*parseFloat(s.reps||0),0));
   const durationMin=Math.round(liveTimerSec/60);
-  const newSession={
-    id:'ls_'+Date.now(),
+  const newSession=withTrainer({
+    id:newId('s'),
     clientId:liveClientId,
     date:dateStr(new Date()),
     time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),
@@ -1698,10 +1696,14 @@ function liveEndSession(){
     source:'live',
     planId:livePlanId||null,
     dayIdx:livePlanId!=null?liveCurrentDayIdx:null,
-  };
+    createdAt:new Date().toISOString()
+  });
   SE.push(newSession);
-  if(window._db){try{window._add(window._col(window._db,'sessions'),newSession);}catch(e){}}
+  persistById('sessions',newSession);
   LIVE_HISTORY.unshift({...newSession,clientName:c?.name||'Klient'});
+  // Odlicz sesję z aktywnego pakietu klienta jeśli jest
+  const pkg=(window.PACKAGES||[]).find(p=>p.clientId===liveClientId&&p.sessionsUsed<p.sessions&&p.payStatus!=='expired');
+  if(pkg){pkg.sessionsUsed++;persistById('packages',pkg);}
   addNotification('system','Sesja zapisana!','Trening '+c?.name+' · '+durationMin+' min · '+totalSets+' serii','clients');
   notify('✅ Sesja zapisana! '+durationMin+' min, '+totalSets+' serii, '+volume+' kg obj.');
   // reset
@@ -2028,7 +2030,7 @@ function renderRepAuto(){
             </div>
           </div>
         </div>
-        <button class="btn btn-primary btn-sm" onclick="notify('✓ Ustawienia zapisane!')">Zapisz ustawienia</button>
+        <button class="btn btn-primary btn-sm" onclick="notify('Ustawienia raportów — zapis globalny wkrótce (użyj Drukuj / PDF z podglądu)')">Zapisz ustawienia</button>
       </div>
     </div>`;
 }
@@ -2150,7 +2152,7 @@ function renderRepDocument(c,template,hasAI,ai){
       <!-- toolbar -->
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-bottom:12px;">
         <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Drukuj</button>
-        <button class="btn btn-primary btn-sm" onclick="notify('PDF wygenerowany!')">⬇ PDF</button>
+        <button class="btn btn-primary btn-sm" onclick="window.print()">⬇ PDF (przez drukuj)</button>
       </div>
 
       <!-- dokument -->
