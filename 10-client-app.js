@@ -185,7 +185,7 @@ function renderClientLive(){
   const content=document.getElementById('clive-screen-content');
   if(!content)return;
   const scr=window._clientLiveScreen||'home';
-  ['home','plan','progress','forum','messages','profile'].forEach(s=>{
+  ['home','plan','progress','checkin','forum','messages','profile'].forEach(s=>{
     const bn=document.getElementById('clive-bn-'+s);
     if(!bn)return;
     const on=s===scr;
@@ -339,25 +339,36 @@ function clientSubmitCheckin(){
   const a=window._cliveCheckin||{};
   const clientId=window._clientId;
   if(!clientId)return;
-  const energy=a.energy||3,sleep=a.sleep||3,stress=a.stress||3,nutrition=a.nutrition||3;
-  const workouts=a.workouts!=null?a.workouts:0;
-  const weight=a.weight||'';
-  const notes=a.notes||'';
-  const score=Math.round((energy+sleep+(6-stress)+nutrition)/4*20);
-  const ci=withTrainer({
-    id:newId('ci'),
-    clientId,
-    date:typeof dateStr==='function'?dateStr(new Date()):new Date().toISOString().slice(0,10),
-    status:'filled',
-    score,
-    answers:{energy,sleep,stress,nutrition,workouts,weight,notes},
-    createdAt:new Date().toISOString()
-  });
-  if(!window.CHECKINS[clientId])window.CHECKINS[clientId]=[];
-  window.CHECKINS[clientId].push(ci);
-  if(typeof persistCheckin==='function')persistCheckin(ci);
-  else persistById('checkins',ci);
+  if(typeof filledThisWeek==='function'&&filledThisWeek(clientId)&&typeof pendingCheckin==='function'&&!pendingCheckin(clientId)){
+    if(typeof notify==='function')notify('Check-in z tego tygodnia już jest');
+    return;
+  }
+  const answers={
+    energy:a.energy||3,sleep:a.sleep||3,stress:a.stress||3,nutrition:a.nutrition||3,
+    workouts:a.workouts!=null?a.workouts:0,weight:a.weight||'',notes:a.notes||''
+  };
+  if(typeof ensureCheckins==='function')ensureCheckins(clientId);
+  else if(!window.CHECKINS[clientId])window.CHECKINS[clientId]=[];
+  let ci=typeof pendingCheckin==='function'?pendingCheckin(clientId):null;
+  if(!ci){
+    ci=withTrainer({
+      id:newId('ci'),clientId,
+      date:typeof dateStr==='function'?dateStr(new Date()):new Date().toISOString().slice(0,10),
+      status:'pending',score:null,answers:{},createdAt:new Date().toISOString()
+    });
+    window.CHECKINS[clientId].push(ci);
+  }
+  if(typeof applyCheckinAnswers==='function')applyCheckinAnswers(ci,answers,'client');
+  else{
+    ci.answers=answers;ci.status='filled';ci.score=Math.round(((answers.energy)+(answers.sleep)+(6-answers.stress)+answers.nutrition)/4*20);
+    persistById('checkins',ci);
+  }
   window._cliveCheckin={};
+  pushClientMsg('Wypełniłem tygodniowy check-in.');
+  if(typeof addNotification==='function'){
+    const me=(window.CL||[])[0];
+    addNotification('task','Nowy check-in od klienta',(me&&me.name)||'Klient','checkin');
+  }
   if(typeof notify==='function')notify('✓ Check-in wysłany do trenera');
   window._clientLiveScreen='home';
   renderClientLive();

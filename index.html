@@ -1644,9 +1644,10 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
     <div class="topbar-title">Check-in tygodniowy</div>
     <div class="topbar-actions">
       <button class="btn btn-ghost btn-sm" onclick="openM('m-checkin-send')">📤 Wyślij check-in</button>
-      <button class="btn btn-primary btn-sm" onclick="openM('m-checkin-template')">⚙ Szablony</button>
+      <button class="btn btn-ghost btn-sm" onclick="openM('m-checkin-template')">ℹ Formularz</button>
     </div>
   </div>
+  <div class="auto-honest-banner">Klient wypełnia w swojej aplikacji (Check-in). Tu wysyłasz prośbę w czacie i widzisz odpowiedzi. Możesz też wypełnić za niego, gdy nie ma apki.</div>
   <div style="display:flex;flex:1;overflow:hidden;">
 
     <!-- lewy panel — klienci -->
@@ -1951,6 +1952,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <button type="button" class="clive-nav-btn active" id="clive-bn-home" onclick="setClientLiveScreen('home')"><span>🏠</span><span>Główna</span></button>
       <button type="button" class="clive-nav-btn" id="clive-bn-plan" onclick="setClientLiveScreen('plan')"><span>📋</span><span>Plan</span></button>
       <button type="button" class="clive-nav-btn" id="clive-bn-progress" onclick="setClientLiveScreen('progress')"><span>📈</span><span>Postępy</span></button>
+      <button type="button" class="clive-nav-btn" id="clive-bn-checkin" onclick="setClientLiveScreen('checkin')"><span>✅</span><span>Check-in</span></button>
       <button type="button" class="clive-nav-btn" id="clive-bn-forum" onclick="setClientLiveScreen('forum')"><span>👥</span><span>Forum</span></button>
       <button type="button" class="clive-nav-btn" id="clive-bn-messages" onclick="setClientLiveScreen('messages')"><span>💬</span><span>Czat</span></button>
       <button type="button" class="clive-nav-btn" id="clive-bn-profile" onclick="setClientLiveScreen('profile')"><span>👤</span><span>Profil</span></button>
@@ -3289,22 +3291,15 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <div class="form-field"><label class="form-lbl">Odbiorcy</label>
         <select class="form-select" id="ci-send-target">
           <option value="all">Wszyscy aktywni klienci</option>
-          <option value="select">Wybrani klienci</option>
           <option value="no-checkin">Bez check-inu w tym tygodniu</option>
-        </select>
-      </div>
-      <div class="form-field"><label class="form-lbl">Szablon check-inu</label>
-        <select class="form-select" id="ci-send-template">
-          <option value="standard">Standardowy (7 pytań)</option>
-          <option value="short">Skrócony (3 pytania)</option>
-          <option value="detailed">Szczegółowy (12 pytań)</option>
+          <option value="current">Tylko otwarty w panelu</option>
         </select>
       </div>
       <div class="form-field"><label class="form-lbl">Wiadomość do klienta</label>
-        <textarea class="form-textarea" id="ci-send-msg" rows="3">Hej {imie}! Czas na tygodniowy check-in 💪 Jak minął tydzień treningowy? Wypełnij formularz — zajmie 2 minuty!</textarea>
+        <textarea class="form-textarea" id="ci-send-msg" rows="3">Hej {imie}! Czas na tygodniowy check-in 💪 Otwórz aplikację → Check-in i wypełnij (ok. 2 min).</textarea>
       </div>
       <div style="background:var(--adim);border:1px solid rgba(225,31,46,0.15);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--muted);">
-        Check-in zostanie wysłany jako wiadomość z linkiem do formularza.
+        Zapisze oczekujący check-in i wyśle wiadomość w czacie. Klient wypełnia w aplikacji — nie ma osobnego linku do formularza.
       </div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-checkin-send')">Anuluj</button><button class="btn btn-primary" onclick="sendCheckin()">Wyślij check-in</button></div>
@@ -3314,8 +3309,12 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 <!-- CHECK-IN TEMPLATE MODAL -->
 <div class="modal-ov" id="m-checkin-template">
   <div class="modal modal-wide">
-    <div class="modal-hdr"><div class="modal-title">⚙ SZABLONY CHECK-IN</div><button class="modal-close" onclick="closeM('m-checkin-template')">×</button></div>
-    <div class="modal-body" id="ci-template-body"></div>
+    <div class="modal-hdr"><div class="modal-title">FORMULARZ CHECK-IN</div><button class="modal-close" onclick="closeM('m-checkin-template')">×</button></div>
+    <div class="modal-body" id="ci-template-body">
+      <div style="font-size:13px;line-height:1.6;color:var(--muted);">
+        Jeden formularz dla wszystkich: energia, sen, stres, odżywianie, liczba treningów, waga (opcjonalnie) i komentarz. Klient widzi to samo w aplikacji. Osobnych szablonów 3/7/12 pytań tu nie ma — żeby nie udawać edytora, którego nie ma.
+      </div>
+    </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-checkin-template')">Zamknij</button></div>
   </div>
 </div>
