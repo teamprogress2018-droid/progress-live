@@ -1504,12 +1504,78 @@ var liveRestSec=0;var liveRestInterval=null;
 var liveExercises=[];  // [{name,sets:[{kg,reps,done}],done}]
 var liveFeedbackVal=0;
 var LIVE_HISTORY=[];
+const LIVE_DRAFT_KEY='pl_live_draft';
+
+function liveSaveDraft(){
+  if(!liveClientId&&!liveExercises.length)return;
+  try{
+    localStorage.setItem(LIVE_DRAFT_KEY,JSON.stringify({
+      clientId:liveClientId,
+      planId:livePlanId,
+      dayIdx:liveCurrentDayIdx,
+      exercises:liveExercises,
+      sessionActive:liveSessionActive,
+      timerSec:liveTimerSec,
+      feedback:liveFeedbackVal,
+      note:document.getElementById('live-note')?.value||'',
+      savedAt:Date.now()
+    }));
+  }catch(e){}
+}
+
+function liveClearDraft(){
+  try{localStorage.removeItem(LIVE_DRAFT_KEY);}catch(e){}
+}
+
+function liveTryRecoverDraft(){
+  let raw;
+  try{raw=localStorage.getItem(LIVE_DRAFT_KEY);}catch(e){return false;}
+  if(!raw)return false;
+  try{
+    const draft=JSON.parse(raw);
+    if(!draft.clientId||Date.now()-(draft.savedAt||0)>7*24*60*60*1000){liveClearDraft();return false;}
+    const c=CL.find(x=>x.id===draft.clientId);
+    if(!c){liveClearDraft();return false;}
+    if(!confirm('Masz niedokończoną sesję treningową ('+c.name+'). Wznowić?')){liveClearDraft();return false;}
+    liveClientId=draft.clientId;
+    livePlanId=draft.planId||null;
+    liveCurrentDayIdx=draft.dayIdx||0;
+    liveExercises=draft.exercises||[];
+    liveSessionActive=!!draft.sessionActive;
+    liveTimerSec=draft.timerSec||0;
+    liveFeedbackVal=draft.feedback||0;
+    const noteEl=document.getElementById('live-note');
+    if(noteEl)noteEl.value=draft.note||'';
+    liveClientSetField(draft.clientId,c.name,true);
+    if(liveSessionActive){
+      clearInterval(liveTimerInterval);
+      liveTimerInterval=setInterval(()=>{
+        liveTimerSec++;
+        const m=String(Math.floor(liveTimerSec/60)).padStart(2,'0');
+        const s=String(liveTimerSec%60).padStart(2,'0');
+        const el=document.getElementById('live-timer');
+        if(el)el.textContent=m+':'+s;
+      },1000);
+      document.getElementById('live-timer-status').textContent='W toku';
+      document.getElementById('live-start-btn').style.display='none';
+      document.getElementById('live-end-btn').style.display='';
+    }
+    renderLivePlanPicker();
+    renderLiveExercises();
+    notify('Sesja wznowiona z kopii zapasowej');
+    return true;
+  }catch(e){liveClearDraft();return false;}
+}
 
 function initLive(){
-  liveClientId=liveClientId||(CL.length?CL[0].id:null);
-  const c=CL.find(x=>x.id===liveClientId);
-  liveClientSetField(liveClientId||'',c?c.name:'');
-  if(liveClientId)liveLoadClient();
+  const recovered=liveTryRecoverDraft();
+  if(!liveClientId){
+    liveClientId=CL.length?CL[0].id:null;
+    const c=CL.find(x=>x.id===liveClientId);
+    liveClientSetField(liveClientId||'',c?c.name:'');
+  }else if(!recovered){
+    liveLoadClient();
+  }
   renderLiveHistory();
 }
 
@@ -1525,14 +1591,16 @@ function setLiveTab(t){
 }
 
 // Ustawia pole klienta na ekranie Trening Live: widoczny tekst + ukryte id.
-function liveClientSetField(clientId,clientName){
+function liveClientSetField(clientId,clientName,skipLoad){
   const hid=document.getElementById('live-client-sel');
   const vis=document.getElementById('live-client-sel-search');
   if(hid)hid.value=clientId;
   if(vis)vis.value=clientName;
   const res=document.getElementById('live-client-sel-results');
   if(res)res.style.display='none';
-  liveLoadClient();
+  liveClientId=clientId;
+  if(!skipLoad)liveLoadClient();
+  else renderLiveClientCard();
 }
 
 function liveClientSearchInput(){
@@ -1674,6 +1742,7 @@ function liveSelectPlan(pid){
 
   renderLivePlanPicker();
   renderLiveExercises();
+  liveSaveDraft();
 }
 
 function liveShowDayPicker(p){
@@ -1721,6 +1790,7 @@ function liveSelectDay(dayIdx){
   }));
   renderLivePlanPicker();
   renderLiveExercises();
+  liveSaveDraft();
 }
 window.liveSelectDay=liveSelectDay;
 
@@ -1729,6 +1799,7 @@ function liveQuickAdd(){
     {name:'Ćwiczenie 1',sets:[{setNo:1,kg:'',reps:'10',done:false},{setNo:2,kg:'',reps:'10',done:false},{setNo:3,kg:'',reps:'10',done:false}],done:false},
   ];
   renderLiveExercises();
+  liveSaveDraft();
 }
 
 function renderLiveExercises(){
@@ -1788,14 +1859,14 @@ function liveExCard(ex,i){
     </div>
     ${!ex.collapsed?`
     <div>
-      <div style="display:grid;grid-template-columns:30px 1fr 70px 70px 50px;gap:6px;padding:4px 0;font-size:9px;font-family:'DM Mono',monospace;color:var(--muted2);text-transform:uppercase;border-bottom:1px solid var(--border);">
+      <div style="display:grid;grid-template-columns:30px 1fr minmax(72px,1fr) minmax(72px,1fr) 50px;gap:6px;padding:4px 0;font-size:9px;font-family:'DM Mono',monospace;color:var(--muted2);text-transform:uppercase;border-bottom:1px solid var(--border);">
         <span></span><span>Seria</span><span style="text-align:center;">Ciężar</span><span style="text-align:center;">Powt.</span><span></span>
       </div>
       ${ex.sets.map((s,si)=>`<div class="live-set-row">
         <div class="live-set-check${s.done?' done':''}" onclick="liveToggleSet(${i},${si})">${s.done?'✓':''}</div>
         <div style="font-size:12px;color:var(--muted);">Seria ${s.setNo}</div>
-        <input type="number" class="live-kg-input" placeholder="kg" value="${s.kg}" oninput="liveSetKg(${i},${si},this.value)" onclick="event.stopPropagation()">
-        <input type="number" class="live-kg-input" placeholder="powt." value="${s.reps}" oninput="liveSetReps(${i},${si},this.value)" onclick="event.stopPropagation()">
+        <input type="number" inputmode="decimal" class="live-kg-input" placeholder="kg" value="${s.kg}" oninput="liveSetKg(${i},${si},this.value)" onclick="event.stopPropagation()">
+        <input type="number" inputmode="numeric" class="live-kg-input" placeholder="powt." value="${s.reps}" oninput="liveSetReps(${i},${si},this.value)" onclick="event.stopPropagation()">
         <button onclick="liveStartRest(90)" style="background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:4px 6px;font-size:10px;color:var(--muted);cursor:pointer;">⏱</button>
       </div>`).join('')}
       <button onclick="liveAddSet(${i})" style="width:100%;margin-top:6px;padding:6px;background:none;border:1px dashed var(--border2);border-radius:6px;color:var(--muted);font-size:11px;cursor:pointer;">+ Dodaj serię</button>
@@ -1815,11 +1886,12 @@ function liveToggleSet(ei,si){
   if(liveExercises[ei].sets.every(s=>s.done))liveExercises[ei].done=true;
   // start rest timer if setting done
   if(s.done)liveStartRest(90);
+  liveSaveDraft();
   renderLiveExercises();
 }
 
-function liveSetKg(ei,si,v){liveExercises[ei].sets[si].kg=v;}
-function liveSetReps(ei,si,v){liveExercises[ei].sets[si].reps=v;}
+function liveSetKg(ei,si,v){liveExercises[ei].sets[si].kg=v;liveSaveDraft();}
+function liveSetReps(ei,si,v){liveExercises[ei].sets[si].reps=v;liveSaveDraft();}
 
 function liveAddSet(ei){
   const ex=liveExercises[ei];
@@ -1859,6 +1931,7 @@ function liveStartSession(){
   document.getElementById('live-start-btn').style.display='none';
   document.getElementById('live-end-btn').style.display='';
   notify('▶ Sesja rozpoczęta!');
+  liveSaveDraft();
   renderLiveExercises();
 }
 
@@ -1866,6 +1939,7 @@ function liveEndSession(){
   if(!confirm('Zakończyć i zapisać sesję?'))return;
   clearInterval(liveTimerInterval);
   liveSessionActive=false;
+  liveClearDraft();
   const c=CL.find(x=>x.id===liveClientId);
   const totalSets=liveExercises.flatMap(e=>e.sets).filter(s=>s.done).length;
   const volume=Math.round(liveExercises.flatMap(e=>e.sets).filter(s=>s.done&&s.kg).reduce((a,s)=>a+parseFloat(s.kg||0)*parseFloat(s.reps||0),0));

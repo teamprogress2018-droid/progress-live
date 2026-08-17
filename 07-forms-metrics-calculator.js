@@ -1113,7 +1113,7 @@ function openClientProfile(id){
   document.getElementById('cp-avatar').style.color=col;
   document.getElementById('cp-avatar').textContent=getInit(c.name);
   document.getElementById('cp-name').textContent=c.name;
-  document.getElementById('cp-sub').textContent=(c.goal||'Brak celu')+' · '+(c.level||'')+(c.age?' · '+c.age+' lat':'');
+  document.getElementById('cp-sub').textContent=(({masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja'})[c.goal]||c.goal||'Brak celu')+' · '+(c.level||'')+(c.age?' · '+c.age+' lat':'');
   document.getElementById('cp-drawer').classList.add('open');
   document.getElementById('cp-overlay').classList.add('show');
   document.querySelectorAll('.cp-tab').forEach(t=>t.classList.remove('active'));
@@ -1129,10 +1129,18 @@ function closeClientProfile(){
 
 function setCPTab(t){
   cpTab=t;
+  const moreTabs=['timeline','psycho','sfr','posture','metrics','tasks','food','documents','payments','settings'];
+  if(moreTabs.includes(t)){
+    const moreEl=document.getElementById('cp-more-items');
+    const arrow=document.getElementById('cp-more-arrow');
+    if(moreEl)moreEl.style.display='block';
+    if(arrow)arrow.style.transform='rotate(180deg)';
+  }
   document.querySelectorAll('.cp-tab').forEach(el=>el.classList.remove('active'));
   const btn=document.getElementById('cpt-'+t);if(btn)btn.classList.add('active');
   const c=CL.find(x=>x.id===cpClientId);if(!c)return;
   if(t==='overview')renderCPOverview(c);
+  if(t==='notes')renderCPNotes(c);
   if(t==='timeline')renderCPTimeline(c);
   if(t==='psycho')renderCPPsycho(c);
   if(t==='sfr')renderCPSfr(c);

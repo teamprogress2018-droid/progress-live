@@ -170,6 +170,39 @@ function cpOpenSession(){
   },50);
 }
 
+function cpQuickMessage(){
+  if(!cpClientId)return;
+  closeClientProfile();
+  goTo('inbox');
+  setTimeout(()=>{if(typeof openChat==='function')openChat(cpClientId);},200);
+}
+
+function cpQuickCheckin(){
+  if(!cpClientId)return;
+  if(typeof sendCheckinTo==='function')sendCheckinTo(cpClientId);
+}
+
+function cpStartLive(){
+  if(!cpClientId)return;
+  const c=CL.find(x=>x.id===cpClientId);
+  closeClientProfile();
+  goTo('live');
+  setTimeout(()=>{if(typeof liveClientSetField==='function')liveClientSetField(cpClientId,c?c.name:'');},200);
+}
+
+function toggleCpMoreNav(){
+  const el=document.getElementById('cp-more-items');
+  const arrow=document.getElementById('cp-more-arrow');
+  if(!el)return;
+  const open=el.style.display==='block';
+  el.style.display=open?'none':'block';
+  if(arrow)arrow.style.transform=open?'':'rotate(180deg)';
+}
+window.toggleCpMoreNav=toggleCpMoreNav;
+window.cpQuickMessage=cpQuickMessage;
+window.cpQuickCheckin=cpQuickCheckin;
+window.cpStartLive=cpStartLive;
+
 function cpOpenTask(){
   openM('m-task');
   setTimeout(()=>{
@@ -183,7 +216,11 @@ function deleteClientNote(clientId,idx){
   if(!CLIENT_NOTES[clientId])return;
   if(!confirm('Usunąć tę notatkę?'))return;
   const removed=CLIENT_NOTES[clientId].splice(idx,1)[0];
-  setCPTab('overview');
+  const c=CL.find(x=>x.id===clientId);
+  if(c){
+    if(cpTab==='notes')renderCPNotes(c);
+    else setCPTab('overview');
+  }
   notify('Notatka usunięta');
   if(removed&&removed.id&&window._db){
     try{window._del(window._doc(window._db,'clientNotes',removed.id));}catch(e){}

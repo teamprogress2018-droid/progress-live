@@ -756,17 +756,11 @@ function renderCPOverview(c){
     </div>`}
     <div style="display:flex;align-items:center;justify-content:space-between;">
       <div class="cp-section-title" style="margin-bottom:0;">NOTATKI (${notes.length})</div>
-      <button onclick="addClientNote('${c.id}')" style="background:none;border:none;color:var(--accent);font-size:18px;cursor:pointer;">+</button>
+      <button onclick="setCPTab('notes')" style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;">Wszystkie →</button>
     </div>
     <div id="cp-notes-area" style="margin-bottom:16px;">
-      ${notes.map((n,ni)=>`<div class="cip-note" style="position:relative;padding-right:24px;"><div>${n.text}</div><div class="cip-note-date">${n.date}</div><button onclick="deleteClientNote('${c.id}',${ni})" style="position:absolute;top:4px;right:4px;background:none;border:none;color:var(--muted2);font-size:14px;cursor:pointer;line-height:1;">×</button></div>`).join('')}
-      <div id="note-input-${c.id}" style="display:none;margin-top:6px;">
-        <textarea id="note-text-${c.id}" rows="2" style="width:100%;background:var(--s4);border:1px solid var(--border2);border-radius:6px;padding:6px 8px;color:var(--text);font-size:13px;resize:none;font-family:'DM Sans',sans-serif;"></textarea>
-        <div style="display:flex;gap:4px;margin-top:4px;">
-          <button onclick="saveClientNote('${c.id}');setCPTab('overview')" class="btn btn-primary btn-sm" style="flex:1;">Zapisz</button>
-          <button onclick="document.getElementById('note-input-${c.id}').style.display='none'" class="btn btn-ghost btn-sm">Anuluj</button>
-        </div>
-      </div>
+      ${notes.slice(0,2).map((n,ni)=>`<div class="cip-note" style="position:relative;padding-right:24px;"><div>${n.text}</div><div class="cip-note-date">${n.date}</div></div>`).join('')}
+      ${!notes.length?'<div style="font-size:12px;color:var(--muted);padding:8px 0;">Brak notatek — dodaj w zakładce Notatki</div>':''}
     </div>
 
     <!-- aktywność -->
@@ -1124,12 +1118,34 @@ window.cpMpView=cpMpView;
 window.cpMpTab=cpMpTab;
 
 function openAddSessionFromCP(clientId,date){
-  try{
-    const se=document.getElementById('se-client');if(se)se.value=clientId;
-    const sd=document.getElementById('se-date');if(sd)sd.value=date;
-    openM('m-session');
-  }catch(e){notify('Otwórz sesję z kalendarza głównego');}
+  openM('m-session');
+  setTimeout(()=>{
+    const c=CL.find(x=>x.id===clientId);
+    if(typeof asSetClientField==='function')asSetClientField(clientId,c?c.name:'');
+    const sd=document.getElementById('as-date');if(sd)sd.value=date||new Date().toISOString().split('T')[0];
+  },50);
 }
+
+function renderCPNotes(c){
+  const notes=CLIENT_NOTES[c.id]||[];
+  document.getElementById('cp-body').innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div class="cp-section-title" style="margin:0;">NOTATKI (${notes.length})</div>
+      <button onclick="addClientNote('${c.id}')" class="btn btn-primary btn-sm">+ Dodaj notatkę</button>
+    </div>
+    <div id="cp-notes-area">
+      ${notes.map((n,ni)=>`<div class="cip-note" style="position:relative;padding-right:24px;margin-bottom:8px;"><div>${n.text}</div><div class="cip-note-date">${n.date}</div><button onclick="deleteClientNote('${c.id}',${ni})" style="position:absolute;top:4px;right:4px;background:none;border:none;color:var(--muted2);font-size:14px;cursor:pointer;line-height:1;">×</button></div>`).join('')}
+      ${!notes.length?'<div style="text-align:center;padding:40px;color:var(--muted);">Brak notatek — dodaj pierwszą obserwację z treningu</div>':''}
+      <div id="note-input-${c.id}" style="display:none;margin-top:12px;">
+        <textarea id="note-text-${c.id}" rows="3" style="width:100%;background:var(--s4);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;resize:none;font-family:'DM Sans',sans-serif;"></textarea>
+        <div style="display:flex;gap:6px;margin-top:6px;">
+          <button onclick="saveClientNote('${c.id}')" class="btn btn-primary btn-sm" style="flex:1;">Zapisz</button>
+          <button onclick="document.getElementById('note-input-${c.id}').style.display='none'" class="btn btn-ghost btn-sm">Anuluj</button>
+        </div>
+      </div>
+    </div>`;
+}
+window.renderCPNotes=renderCPNotes;
 
 // ══════════════════════════════════════════════════════
 // CP — FOOD JOURNAL (dziennik żywieniowy)

@@ -2,6 +2,8 @@
 // KLIENCI
 // ════════════════════════════════════════
 var clientSegment='all';
+const CLIENT_GOAL_LABELS={masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja'};
+const CLIENT_SEGMENT_TITLES={all:'Wszyscy klienci',active:'Aktywni klienci',inactive:'Nieaktywni klienci',archived:'Zarchiwizowani klienci'};
 
 // Zwraca datę (Date) ostatniej jakiejkolwiek aktywności klienta, albo null jeśli brak.
 // Sprawdza: sesje treningowe (SE), przypisane plany (PL), pomiary (METRIC_ENTRIES), ręczne wpisy osi czasu (CLIENT_TIMELINE).
@@ -52,10 +54,12 @@ function quickCheckin(e,clientId){
 }
 
 function renderClientFilters(){
+  const nonArchived=CL.filter(c=>c.status!=='archived');
   const segments=[
-    {id:'all',label:'Wszyscy klienci',count:CL.length},
-    {id:'active',label:'Połączeni',count:CL.filter(c=>c.status==='active').length},
-    {id:'inactive',label:'Offline',count:CL.filter(c=>c.status==='inactive').length},
+    {id:'all',label:'Wszyscy klienci',count:nonArchived.length},
+    {id:'active',label:'Aktywni',count:CL.filter(c=>c.status==='active').length},
+    {id:'inactive',label:'Nieaktywni',count:CL.filter(c=>c.status==='inactive').length},
+    {id:'archived',label:'Zarchiwizowani',count:CL.filter(c=>c.status==='archived').length},
   ];
   const el=document.getElementById('client-filter-list');
   if(!el)return;
@@ -72,6 +76,8 @@ function renderClients(){
     if(search&&!c.name.toLowerCase().includes(search.toLowerCase()))return false;
     if(clientSegment==='active')return c.status==='active';
     if(clientSegment==='inactive')return c.status==='inactive';
+    if(clientSegment==='archived')return c.status==='archived';
+    if(clientSegment==='all')return c.status!=='archived';
     return true;
   });
   // Priorytet: klienci wymagający uwagi (dawno nieaktywni / brak danych) na górze listy.
@@ -80,6 +86,8 @@ function renderClients(){
     .map(x=>x.c);
   const countEl=document.getElementById('clients-segment-count');
   if(countEl)countEl.textContent=filtered.length;
+  const titleEl=document.getElementById('clients-segment-title');
+  if(titleEl)titleEl.textContent=CLIENT_SEGMENT_TITLES[clientSegment]||'Klienci';
   const el=document.getElementById('clients-tbl');
   if(!filtered.length){el.innerHTML='<div style="padding:40px;text-align:center;color:var(--muted);">Brak klientów</div>';return;}
   el.innerHTML=filtered.map((c,i)=>{
@@ -90,9 +98,9 @@ function renderClients(){
       <div><div style="font-size:13px;font-weight:600;">${escHtml(c.name)}</div><div style="font-size:11px;color:var(--muted);">${escHtml(c.email||'⚠ Brak e-maila')}</div></div>
     </div>
     <div style="font-size:12px;color:${act.color};align-self:center;font-weight:600;">${act.label}</div>
-    <div style="font-size:12px;color:var(--muted);align-self:center;">${c.goal||'—'}</div>
+    <div style="font-size:12px;color:var(--muted);align-self:center;">${CLIENT_GOAL_LABELS[c.goal]||c.goal||'—'}</div>
     <div style="align-self:center;display:flex;gap:4px;flex-wrap:wrap;">
-      <span class="pill ${c.status==='inactive'?'pill-red':'pill-green'}"><span class="pill-dot"></span>${c.status==='inactive'?'Offline':'Aktywny'}</span>
+      <span class="pill ${c.status==='inactive'?'pill-red':c.status==='archived'?'pill-red':'pill-green'}"><span class="pill-dot"></span>${c.status==='inactive'?'Nieaktywny':c.status==='archived'?'Zarchiwizowany':'Aktywny'}</span>
       ${c.inviteSent?'<span class="pill pill-blue" style="font-size:9px;">📱 Zaproszony</span>':''}
     </div>
     <div style="align-self:center;display:flex;gap:10px;justify-content:flex-end;">
@@ -133,11 +141,41 @@ async function saveClient(){
   try{renderAll();}catch(e){try{renderClients();}catch(e2){}}
   notify('✅ Klient '+c.name+' dodany!');
   addNotification('system','Nowy klient!',c.name+' dodany do listy','clients');
-  // Pokaż modal zaproszenia
-  setTimeout(()=>openInviteModal(c.id), 400);
+  setTimeout(()=>openClientOnboardChecklist(c.id),400);
   // Firebase w tle — to samo id lokalnie i w Firestore
   await persistById('clients',c);
 }
+
+function openClientOnboardChecklist(clientId){
+  window._onboardClientId=clientId;
+  renderClientOnboardChecklist();
+  openM('m-client-onboard');
+}
+
+function renderClientOnboardChecklist(){
+  const id=window._onboardClientId;
+  const c=CL.find(x=>x.id===id);
+  const el=document.getElementById('client-onboard-steps');
+  if(!el||!c)return;
+  const hasPlan=PL.some(p=>p.clientId===id);
+  const hasSession=SE.some(s=>s.clientId===id);
+  const steps=[
+    {done:!!c.inviteSent,icon:'📱',title:'Wyślij zaproszenie',desc:'Klient dostanie link do aplikacji',action:`closeM('m-client-onboard');openInviteModal('${id}')`},
+    {done:hasPlan,icon:'📋',title:'Przypisz plan treningowy',desc:'Szablon lub generator AI',action:`closeM('m-client-onboard');openClientProfile('${id}');setTimeout(()=>setCPTab('plan'),300)`},
+    {done:hasSession,icon:'▶',title:'Zaplanuj pierwszą sesję',desc:'Trening Live lub wpis w kalendarzu',action:`closeM('m-client-onboard');goTo('live');setTimeout(()=>liveClientSetField('${id}','${c.name.replace(/'/g,"\\'")}'),300)`},
+  ];
+  el.innerHTML=steps.map(s=>`
+    <div style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:var(--s3);border:1px solid ${s.done?'var(--teal)':'var(--border)'};border-radius:10px;margin-bottom:8px;">
+      <div style="width:32px;height:32px;border-radius:8px;background:${s.done?'rgba(0,200,150,0.15)':'var(--s2)'};display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">${s.done?'✓':s.icon}</div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:700;margin-bottom:2px;">${s.title}</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:${s.done?'0':'8px'};">${s.desc}</div>
+        ${s.done?'<div style="font-size:10px;color:var(--teal);font-family:\'DM Mono\',monospace;margin-top:4px;">GOTOWE</div>':`<button class="btn btn-primary btn-sm" onclick="${s.action}">Wykonaj</button>`}
+      </div>
+    </div>`).join('');
+}
+window.openClientOnboardChecklist=openClientOnboardChecklist;
+window.renderClientOnboardChecklist=renderClientOnboardChecklist;
 
 // ════════════════════════════════════════
 // BUILDER
