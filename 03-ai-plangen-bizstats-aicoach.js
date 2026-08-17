@@ -58,7 +58,7 @@ function aplComputeProgression(ex,weekKeys,phasesMap,progressionType){
 function initAplangen(){
   const sel=document.getElementById('apl-client');
   if(sel){
-    sel.innerHTML='<option value="">Nowy / ręcznie wpisz</option>'+CL.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+    sel.innerHTML='<option value="">Nowy / ręcznie wpisz</option>'+CL.map(c=>`<option value="${escHtml(c.id)}">${escHtml(c.name)}</option>`).join('');
   }
   if(!document.getElementById('apl-result').innerHTML){
     aplShowWelcome();
@@ -607,10 +607,11 @@ function aplSavePlan(){
   const cid=document.getElementById('apl-client').value;
   const client=cid?CL.find(x=>x.id===cid):null;
   const curWeek=aplLastPlan.currentWeek||(aplLastPlan.weekKeys||['w1'])[0];
-  const newPlan={
-    id:'apl_'+Date.now(),
+  const newPlan=withTrainer({
+    id:newId('p'),
     name:aplLastPlan.planName||'Plan AI',
     clientId:cid||null,
+    clientName:client?client.name:'',
     method:aplLastPlan.method||'Custom',
     duration:aplLastPlan.weeks||8,
     days:(aplLastPlan.days||[]).map(d=>({
@@ -623,11 +624,9 @@ function aplSavePlan(){
     })),
     source:'ai',
     createdAt:new Date().toISOString()
-  };
+  });
   PL.push(newPlan);
-  if(window._db){
-    try{window._add(window._col(window._db,'plans'),newPlan);}catch(e){}
-  }
+  persistById('plans',newPlan);
   addNotification('system','Plan AI zapisany!','"'+newPlan.name+'" dodany do planów'+(client?' klienta '+client.name:''),'plans');
   notify(`✅ Plan "${newPlan.name}" zapisany${client?' dla '+client.name:''}!`);
 }
@@ -1075,7 +1074,7 @@ function bizHeatmap(D){
     <div style="display:flex;gap:3px;flex-wrap:wrap;">
       ${hours.slice(6).map((v,i)=>{
         const pct=v/max;
-        const bg=pct>0.7?'var(--accent)':pct>0.4?'rgba(200,241,53,0.5)':pct>0.1?'rgba(200,241,53,0.2)':'var(--s3)';
+        const bg=pct>0.7?'var(--accent)':pct>0.4?'rgba(225,31,46,0.5)':pct>0.1?'rgba(225,31,46,0.2)':'var(--s3)';
         return `<div style="width:28px;text-align:center;">
           <div style="height:28px;border-radius:5px;background:${bg};margin-bottom:3px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:${pct>0.7?'#000':'transparent'};">${v||''}</div>
           <div style="font-size:8px;color:var(--muted2);">${slots[i]}</div>
@@ -1084,7 +1083,7 @@ function bizHeatmap(D){
     </div>
     <div style="display:flex;gap:10px;margin-top:8px;align-items:center;">
       <span style="font-size:10px;color:var(--muted);">Mało</span>
-      <div style="display:flex;gap:3px;">${[0.1,0.3,0.5,0.7,1].map(o=>`<div style="width:14px;height:10px;border-radius:2px;background:rgba(200,241,53,${o});"></div>`).join('')}</div>
+      <div style="display:flex;gap:3px;">${[0.1,0.3,0.5,0.7,1].map(o=>`<div style="width:14px;height:10px;border-radius:2px;background:rgba(225,31,46,${o});"></div>`).join('')}</div>
       <span style="font-size:10px;color:var(--muted);">Dużo</span>
     </div>
   </div>`;
@@ -1110,7 +1109,18 @@ function bizForecast(D){
   </div>`;
 }
 
-function exportBizReport(){notify('📄 Generowanie raportu PDF... (wkrótce!)');}
+function exportBizReport(){
+  const rows=[['Metryka','Wartość']];
+  rows.push(['Aktywnych klientów',CL.filter(c=>c.status!=='inactive').length]);
+  rows.push(['Planów',PL.length]);
+  rows.push(['Sesji',SE.length]);
+  rows.push(['Pakietów',(window.PACKAGES||[]).length]);
+  const paid=(window.INVOICES||[]).filter(i=>i.status==='paid'||i.payStatus==='paid');
+  rows.push(['Faktury opłacone',paid.length]);
+  rows.push(['Suma opłaconych (zł)',paid.reduce((s,i)=>s+(i.amount||i.price||0),0)]);
+  downloadCsv('bizstats-'+new Date().toISOString().slice(0,10)+'.csv',rows);
+  notify('✓ Wyeksportowano CSV ze statystykami biznesowymi');
+}
 
 window.initBizStats=initBizStats;window.setBizPeriod=setBizPeriod;window.exportBizReport=exportBizReport;
 
@@ -1180,7 +1190,7 @@ Dajesz konkretne, praktyczne rady:
 function initAICoach(){
   const sel=document.getElementById('aic-client-sel');
   if(sel){
-    sel.innerHTML='<option value="">Brak klienta (ogólne)</option>'+CL.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+    sel.innerHTML='<option value="">Brak klienta (ogólne)</option>'+CL.map(c=>`<option value="${escHtml(c.id)}">${escHtml(c.name)}</option>`).join('');
   }
   if(!aicMsgs.length) aicShowWelcome();
   renderAICQuickQs();
@@ -1192,7 +1202,7 @@ function aicShowWelcome(){
   const msgs=document.getElementById('aic-msgs');
   if(!msgs)return;
   msgs.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;text-align:center;padding:40px;">
-    <div style="width:64px;height:64px;border-radius:20px;background:var(--adim);border:1px solid rgba(200,241,53,0.2);display:flex;align-items:center;justify-content:center;margin-bottom:20px;">
+    <div style="width:64px;height:64px;border-radius:20px;background:var(--adim);border:1px solid rgba(225,31,46,0.2);display:flex;align-items:center;justify-content:center;margin-bottom:20px;">
       <div class="ai-dot" style="width:14px;height:14px;"></div>
     </div>
     <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;margin-bottom:8px;">AI COACH</div>

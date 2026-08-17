@@ -8,6 +8,10 @@ var inboxTab='all';
 const QUICK_REPLIES=['Dziękuję za informację!','Rozumiem, zajmę się tym.','Świetna robota! 💪','Pamiętaj o treningu!','Proszę wypełnić formularz postępów.','Kiedy możemy się spotkać?'];
 const CLIENT_NOTES={};// clientId -> [{text, date}]
 const CLIENT_ACTIVITY={};// clientId -> [{type, text, date, icon}]
+window.CLIENT_NOTES=CLIENT_NOTES;
+window.CLIENT_ACTIVITY=CLIENT_ACTIVITY;
+window.CLIENT_GROUPS=window.CLIENT_GROUPS||[]; // [{id,name,clientIds,color,createdAt}]
+const GROUP_COLORS=['#e11f2e','#4d9fff','#9d7cf4','#ff8c42','#3ecfb2','#f59e0b'];
 
 // ── Prawdziwe śledzenie "nieprzeczytane" (zamiast losowego i%3) ──
 // Zapisuje, kiedy trener ostatnio otworzył rozmowę z danym klientem.
@@ -25,17 +29,8 @@ function msgHasUnread(clientId){
 }
 
 function initClientData(c){
-  if(!CLIENT_NOTES[c.id])CLIENT_NOTES[c.id]=[
-    {text:'Klient preferuje treningi rano przed 8:00',date:'14 maj, 7:36'},
-    {text:'Cel: redukcja 5kg do końca lata',date:'9 maj, 7:36'},
-  ];
-  if(!CLIENT_ACTIVITY[c.id])CLIENT_ACTIVITY[c.id]=[
-    {type:'workout',text:'Ukończył trening — Push Day',date:'dziś 9:15',icon:'💪'},
-    {type:'metric',text:'Zaktualizował pomiary (masa: -0.5kg)',date:'wczoraj 8:00',icon:'📏'},
-    {type:'form',text:'Wypełnił formularz postępów',date:'3 dni temu',icon:'📋'},
-    {type:'task',text:'Ukończył zadanie: 3 treningi w tygodniu',date:'4 dni temu',icon:'✅'},
-    {type:'message',text:'Wysłał wiadomość',date:'tydzień temu',icon:'💬'},
-  ];
+  if(!CLIENT_NOTES[c.id])CLIENT_NOTES[c.id]=[];
+  if(!CLIENT_ACTIVITY[c.id])CLIENT_ACTIVITY[c.id]=[];
 }
 
 function setInboxTab(t){
@@ -49,17 +44,12 @@ function renderInbox(){
   const search=(document.getElementById('inbox-search')||{}).value||'';
   let list=CL.filter(c=>!search||c.name.toLowerCase().includes(search.toLowerCase()));
   if(inboxTab==='unread')list=list.filter(c=>msgHasUnread(c.id));
-  if(inboxTab==='groups')list=[];// groups placeholder
 
   const el=document.getElementById('msg-list');
   if(!el)return;
 
   if(inboxTab==='groups'){
-    el.innerHTML=`<div style="padding:30px;text-align:center;color:var(--muted);">
-      <div style="font-size:32px;margin-bottom:10px;opacity:0.3;">👥</div>
-      <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Grupy wkrótce</div>
-      <div style="font-size:11px;">Wyślij wiadomość do grupy klientów naraz</div>
-    </div>`;
+    renderInboxGroups(el,search);
     return;
   }
 
@@ -74,19 +64,177 @@ function renderInbox(){
     const unread=msgHasUnread(c.id);
     const time=last?last.time:'';
     const col=COLS[i%5];
-    return `<div class="msg-item-enhanced${curChat===c.id?' active':''}" onclick="openChat('${c.id}')">
+    return `<div class="msg-item-enhanced${curChat===c.id?' active':''}" onclick="openChat('${escHtml(c.id)}')">
       <div class="msg-avatar" style="background:${col}22;color:${col};">${getInit(c.name)}</div>
       <div style="flex:1;min-width:0;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
-          <div style="font-size:13px;font-weight:${unread?700:500};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.name}</div>
-          <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;flex-shrink:0;margin-left:4px;">${time}</div>
+          <div style="font-size:13px;font-weight:${unread?700:500};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(c.name)}</div>
+          <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;flex-shrink:0;margin-left:4px;">${escHtml(time)}</div>
         </div>
-        <div style="font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${last?last.text:(unread?'Nowa wiadomość':'Brak wiadomości')}</div>
+        <div style="font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${last?escHtml(last.text):(unread?'Nowa wiadomość':'Brak wiadomości')}</div>
       </div>
       ${unread?'<div class="msg-unread-dot"></div>':''}
     </div>`;
   }).join('');
 }
+
+function renderInboxGroups(el,search){
+  const groups=(window.CLIENT_GROUPS||[]).filter(g=>!search||(g.name||'').toLowerCase().includes(search.toLowerCase()));
+  el.innerHTML=`
+    <div style="padding:12px;border-bottom:1px solid var(--border);">
+      <button class="btn btn-primary btn-sm" style="width:100%;" onclick="openClientGroupModal()">+ Nowa grupa</button>
+    </div>
+    ${groups.length?groups.map((g,i)=>{
+      const col=g.color||GROUP_COLORS[i%GROUP_COLORS.length];
+      const members=(g.clientIds||[]).map(id=>CL.find(c=>c.id===id)).filter(Boolean);
+      return `<div class="msg-item-enhanced" style="flex-direction:column;align-items:stretch;gap:8px;" onclick="event.stopPropagation()">
+        <div style="display:flex;gap:10px;align-items:center;cursor:pointer;" onclick="openClientGroupModal('${escHtml(g.id)}')">
+          <div class="msg-avatar" style="background:${col}22;color:${col};">👥</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:600;">${escHtml(g.name)}</div>
+            <div style="font-size:11px;color:var(--muted);">${members.length} klientów · ${members.slice(0,3).map(c=>c.name.split(' ')[0]).join(', ')}${members.length>3?'…':''}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-primary btn-sm" style="flex:1;" onclick="messageClientGroup('${escHtml(g.id)}')">💬 Napisz</button>
+          <button class="btn btn-ghost btn-sm" onclick="openClientGroupModal('${escHtml(g.id)}')">Edytuj</button>
+        </div>
+      </div>`;
+    }).join(''):`<div style="padding:30px;text-align:center;color:var(--muted);">
+      <div style="font-size:32px;margin-bottom:10px;opacity:0.3;">👥</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Brak grup</div>
+      <div style="font-size:11px;margin-bottom:12px;">Utwórz grupę i wyślij wiadomość do wielu klientów naraz</div>
+    </div>`}`;
+}
+
+function openClientGroupModal(id){
+  window._editingGroupId=id||null;
+  let m=document.getElementById('m-client-group');
+  if(!m){
+    m=document.createElement('div');m.id='m-client-group';m.className='modal-ov';
+    m.innerHTML=`<div class="modal" style="max-width:480px;">
+      <div class="modal-hdr"><div class="modal-title" id="cg-modal-title">NOWA GRUPA</div><button class="modal-close" onclick="closeM('m-client-group')">×</button></div>
+      <div class="modal-body">
+        <div class="form-field"><label class="form-lbl">Nazwa grupy</label><input type="text" class="form-input" id="cg-name" placeholder="np. Redukcja 2026"></div>
+        <div class="form-field"><label class="form-lbl">Kolor</label>
+          <div id="cg-colors" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+        </div>
+        <div class="form-field"><label class="form-lbl">Członkowie</label>
+          <div id="cg-members" style="max-height:220px;overflow-y:auto;border:1px solid var(--border2);border-radius:8px;padding:8px;"></div>
+        </div>
+      </div>
+      <div class="modal-footer" style="display:flex;gap:8px;">
+        <button class="btn btn-ghost btn-sm" id="cg-delete-btn" style="display:none;margin-right:auto;color:var(--red);" onclick="deleteClientGroup()">Usuń</button>
+        <button class="btn btn-ghost" onclick="closeM('m-client-group')">Anuluj</button>
+        <button class="btn btn-primary" onclick="saveClientGroup()">Zapisz</button>
+      </div>
+    </div>`;
+    document.body.appendChild(m);
+    m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');});
+  }
+  const g=id?(window.CLIENT_GROUPS||[]).find(x=>x.id===id):null;
+  document.getElementById('cg-modal-title').textContent=g?'EDYTUJ GRUPĘ':'NOWA GRUPA';
+  document.getElementById('cg-name').value=g?.name||'';
+  window._cgColor=g?.color||GROUP_COLORS[0];
+  document.getElementById('cg-colors').innerHTML=GROUP_COLORS.map(c=>`<button type="button" onclick="window._cgColor='${c}';openClientGroupModal(window._editingGroupId)" style="width:28px;height:28px;border-radius:8px;background:${c};border:2px solid ${window._cgColor===c?'#fff':'transparent'};cursor:pointer;"></button>`).join('');
+  const selected=new Set(g?.clientIds||[]);
+  document.getElementById('cg-members').innerHTML=CL.length?CL.map(c=>`<label style="display:flex;align-items:center;gap:8px;padding:6px 4px;border-bottom:1px solid var(--border);font-size:12px;cursor:pointer;">
+    <input type="checkbox" class="cg-member-chk" value="${escHtml(c.id)}" ${selected.has(c.id)?'checked':''} style="accent-color:var(--accent);">
+    <span>${escHtml(c.name)}</span>
+  </label>`).join(''):`<div style="font-size:12px;color:var(--muted);padding:8px;">Brak klientów — najpierw dodaj klientów.</div>`;
+  const del=document.getElementById('cg-delete-btn');
+  if(del)del.style.display=g?'inline-flex':'none';
+  openM('m-client-group');
+}
+
+async function saveClientGroup(){
+  const name=document.getElementById('cg-name')?.value.trim();
+  if(!name){notify('Wpisz nazwę grupy!');return;}
+  const clientIds=[...document.querySelectorAll('.cg-member-chk:checked')].map(cb=>cb.value);
+  let g;
+  if(window._editingGroupId){
+    g=(window.CLIENT_GROUPS||[]).find(x=>x.id===window._editingGroupId);
+    if(g){
+      g.name=name;g.clientIds=clientIds;g.color=window._cgColor||g.color;g.updatedAt=new Date().toISOString();
+      withTrainer(g);
+    }
+  }
+  if(!g){
+    g=withTrainer({id:newId('grp'),name,clientIds,color:window._cgColor||GROUP_COLORS[0],createdAt:new Date().toISOString()});
+    window.CLIENT_GROUPS.push(g);
+  }
+  await persistById('clientGroups',g);
+  closeM('m-client-group');
+  refreshBroadcastGroupOptions();
+  if(inboxTab==='groups')renderInbox();
+  notify('✓ Grupa "'+name+'" zapisana ('+clientIds.length+' osób)');
+}
+
+async function deleteClientGroup(){
+  const id=window._editingGroupId;if(!id)return;
+  if(!confirm('Usunąć tę grupę?'))return;
+  window.CLIENT_GROUPS=(window.CLIENT_GROUPS||[]).filter(x=>x.id!==id);
+  if(window._db){try{await window._del(window._doc(window._db,'clientGroups',id));}catch(e){}}
+  closeM('m-client-group');
+  refreshBroadcastGroupOptions();
+  if(inboxTab==='groups')renderInbox();
+  notify('Grupa usunięta');
+}
+
+function messageClientGroup(id){
+  const g=(window.CLIENT_GROUPS||[]).find(x=>x.id===id);if(!g)return;
+  let m=document.getElementById('m-group-msg');
+  if(!m){
+    m=document.createElement('div');m.id='m-group-msg';m.className='modal-ov';
+    m.innerHTML=`<div class="modal" style="max-width:440px;">
+      <div class="modal-hdr"><div class="modal-title">WIADOMOŚĆ DO GRUPY</div><button class="modal-close" onclick="closeM('m-group-msg')">×</button></div>
+      <div class="modal-body">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px;" id="gm-meta"></div>
+        <textarea class="form-textarea" id="gm-text" rows="4" placeholder="Treść… Użyj {imie} aby spersonalizować."></textarea>
+      </div>
+      <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-group-msg')">Anuluj</button><button class="btn btn-primary" onclick="sendClientGroupMessage()">Wyślij</button></div>
+    </div>`;
+    document.body.appendChild(m);
+    m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');});
+  }
+  window._msgGroupId=id;
+  const members=(g.clientIds||[]).map(cid=>CL.find(c=>c.id===cid)).filter(Boolean);
+  document.getElementById('gm-meta').textContent=g.name+' · '+members.length+' odbiorców';
+  document.getElementById('gm-text').value='';
+  openM('m-group-msg');
+}
+
+function sendClientGroupMessage(){
+  const g=(window.CLIENT_GROUPS||[]).find(x=>x.id===window._msgGroupId);if(!g)return;
+  const msg=document.getElementById('gm-text')?.value.trim();
+  if(!msg){notify('Wpisz wiadomość!');return;}
+  const members=(g.clientIds||[]).map(cid=>CL.find(c=>c.id===cid)).filter(Boolean);
+  if(!members.length){notify('Grupa nie ma członków');return;}
+  if(!confirm('Wysłać wiadomość do '+members.length+' klientów z grupy "'+g.name+'"?'))return;
+  members.forEach(c=>pushMsg(c.id,msg.replace(/\{imie\}/gi,c.name.split(' ')[0])));
+  closeM('m-group-msg');
+  notify('✓ Wysłano do '+members.length+' klientów z grupy "'+g.name+'"');
+  renderInbox();
+}
+
+function refreshBroadcastGroupOptions(){
+  const sel=document.getElementById('bc-target');if(!sel)return;
+  const keep=sel.value;
+  const base=[
+    ['all','Wszyscy klienci'],
+    ['active','Tylko aktywni'],
+    ['inactive','Nieaktywni (zastój)'],
+  ];
+  const groups=(window.CLIENT_GROUPS||[]).map(g=>['group:'+g.id,'Grupa: '+g.name]);
+  sel.innerHTML=[...base,...groups].map(([v,l])=>`<option value="${escHtml(v)}">${escHtml(l)}</option>`).join('');
+  if([...base,...groups].some(([v])=>v===keep))sel.value=keep;
+}
+window.openClientGroupModal=openClientGroupModal;
+window.saveClientGroup=saveClientGroup;
+window.deleteClientGroup=deleteClientGroup;
+window.messageClientGroup=messageClientGroup;
+window.sendClientGroupMessage=sendClientGroupMessage;
+window.refreshBroadcastGroupOptions=refreshBroadcastGroupOptions;
 
 function openChat(id){
   curChat=id;
@@ -109,12 +257,12 @@ function openChat(id){
   const wrap=document.getElementById('msg-wrap');
   wrap.innerHTML=MSGS[id].length?MSGS[id].map(m=>`
     <div style="margin-bottom:12px;${m.out?'text-align:right;':''}">
-      <div class="msg-bubble ${m.out?'msg-out':'msg-in'}">${m.text}</div>
-      <div style="font-size:10px;color:var(--muted);margin-top:3px;">${m.time}</div>
+      <div class="msg-bubble ${m.out?'msg-out':'msg-in'}" style="white-space:pre-wrap;">${escHtml(m.text||'')}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:3px;">${escHtml(m.time||'')}</div>
     </div>`).join('')
     :`<div style="text-align:center;padding:40px 20px;color:var(--muted);">
       <div style="font-size:32px;margin-bottom:8px;">👋</div>
-      <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Zacznij rozmowę z ${c.name}</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Zacznij rozmowę z ${escHtml(c.name)}</div>
       <div style="font-size:11px;">Wyślij wiadomość lub wybierz szybką odpowiedź poniżej</div>
     </div>`;
   wrap.scrollTop=wrap.scrollHeight;
@@ -182,7 +330,15 @@ function saveClientNote(id){
   const nt=document.getElementById('note-text-'+id);
   if(!nt||!nt.value.trim())return;
   if(!CLIENT_NOTES[id])CLIENT_NOTES[id]=[];
-  CLIENT_NOTES[id].unshift({text:nt.value.trim(),date:new Date().toLocaleDateString('pl',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})});
+  const note=withTrainer({
+    id:newId('note'),
+    clientId:id,
+    text:nt.value.trim(),
+    date:new Date().toLocaleDateString('pl',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}),
+    createdAt:new Date().toISOString()
+  });
+  CLIENT_NOTES[id].unshift(note);
+  persistById('clientNotes',note);
   openChat(id);notify('Notatka zapisana ✓');
 }
 
@@ -190,12 +346,9 @@ function sendMsg(){
   const inp=document.getElementById('msg-inp');
   const txt=inp?inp.value.trim():'';
   if(!txt||!curChat)return;
-  if(!MSGS[curChat])MSGS[curChat]=[];
-  const msg={clientId:curChat,text:txt,out:true,time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),createdAt:new Date().toISOString()};
-  MSGS[curChat].push(msg);
+  pushMsg(curChat,txt);
   inp.value='';inp.style.height='auto';
   openChat(curChat);
-  if(window._db){window._add(window._col(window._db,'messages'),msg).then(r=>{if(r&&r.id)msg._fbId=r.id;}).catch(e=>console.warn('Firebase msg save:',e));}
 }
 
 function sendBroadcast(){
@@ -204,13 +357,18 @@ function sendBroadcast(){
   const target=document.getElementById('bc-target').value;
   let targets=CL;
   if(target==='active')targets=CL.filter(c=>c.status==='active');
-  if(target==='inactive')targets=CL.filter(c=>c.status==='inactive');
+  else if(target==='inactive')targets=CL.filter(c=>c.status==='inactive');
+  else if(target&&target.startsWith('group:')){
+    const gid=target.slice(6);
+    const g=(window.CLIENT_GROUPS||[]).find(x=>x.id===gid);
+    const ids=new Set(g?.clientIds||[]);
+    targets=CL.filter(c=>ids.has(c.id));
+  }
+  if(!targets.length){notify('Brak odbiorców');return;}
+  if(!confirm('Wysłać wiadomość do '+targets.length+' klientów?'))return;
   targets.forEach(c=>{
-    if(!MSGS[c.id])MSGS[c.id]=[];
     const text=msg.replace(/{imie}/g,c.name.split(' ')[0]);
-    const m={clientId:c.id,text,out:true,time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),createdAt:new Date().toISOString()};
-    MSGS[c.id].push(m);
-    if(window._db){window._add(window._col(window._db,'messages'),m).then(r=>{if(r&&r.id)m._fbId=r.id;}).catch(e=>console.warn('Firebase broadcast save:',e));}
+    pushMsg(c.id,text);
   });
   closeM('m-broadcast');
   renderInbox();
@@ -441,13 +599,13 @@ async function saveEx(){
       EX[idx]={...EX[idx],name,cat:document.getElementById('ex-cat').value,eq:document.getElementById('ex-eq').value,desc:document.getElementById('ex-desc').value,tip:document.getElementById('ex-desc').value};
       window._editingExName=null;
       closeM('m-ex');renderLib();notify('Ćwiczenie zaktualizowane!');
-      if(window._db&&oldId){try{await window._setDoc(window._doc(window._db,'exercises',oldId),EX[idx],{merge:true});}catch(e){console.warn('Firebase update ex:',e);}}
+      await persistById('exercises',EX[idx]);
       return;
     }
   }
-  const ex={id:'l'+Date.now(),name,cat:document.getElementById('ex-cat').value,eq:document.getElementById('ex-eq').value,desc:document.getElementById('ex-desc').value,tip:document.getElementById('ex-desc').value,muscle:'',nsca:'',alt:''};
+  const ex=withTrainer({id:newId('ex'),name,cat:document.getElementById('ex-cat').value,eq:document.getElementById('ex-eq').value,desc:document.getElementById('ex-desc').value,tip:document.getElementById('ex-desc').value,muscle:'',nsca:'',alt:''});
   EX.push(ex);closeM('m-ex');renderLib();notify('Ćwiczenie dodane!');
-  if(window._db){try{const r=await window._add(window._col(window._db,'exercises'),ex);if(r&&r.id)ex._fbId=r.id;}catch(e){console.warn('Firebase:',e);}}
+  await persistById('exercises',ex);
 }
 
 function setExView(v){
@@ -569,7 +727,7 @@ function openExDetail(name){
     </div>`:''}
     ${e.nsca?`<div style="margin-bottom:12px;">
       <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Parametry NSCA/ACSM</div>
-      <div style="background:var(--adim);border:1px solid rgba(200,241,53,0.15);border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.6;">${e.nsca}</div>
+      <div style="background:var(--adim);border:1px solid rgba(225,31,46,0.15);border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.6;">${e.nsca}</div>
     </div>`:''}
     ${e.alt?`<div style="margin-bottom:12px;">
       <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Zamienniki</div>
@@ -618,7 +776,7 @@ async function askExAI(){
   const q=document.getElementById('exd-ai-q').value.trim();if(!q)return;
   document.getElementById('exd-ai-q').value='';
   const msgs=document.getElementById('exd-ai-msgs');
-  msgs.innerHTML+='<div style="text-align:right;margin-bottom:5px;"><div style="display:inline-block;background:var(--accent);color:#000;padding:5px 9px;border-radius:8px;font-size:11px;">'+q+'</div></div>';
+  msgs.innerHTML+='<div style="text-align:right;margin-bottom:5px;"><div style="display:inline-block;background:var(--accent);color:#fff;padding:5px 9px;border-radius:8px;font-size:11px;">'+q+'</div></div>';
   msgs.innerHTML+='<div id="exd-ai-t" style="margin-bottom:5px;"><div style="display:inline-block;background:var(--s3);border:1px solid var(--border2);padding:5px 9px;border-radius:8px;font-size:11px;opacity:0.5;">Analizuję...</div></div>';
   msgs.scrollTop=msgs.scrollHeight;
   const ctx=exSelId?'Ćwiczenie: '+exSelId+'. ':'';
@@ -1168,8 +1326,8 @@ async function confirmAssignProgram(){
   if(!c){notify('Wybierz klienta!');return;}
 
   // Buduj pełny obiekt planu z programu
-  const newPlan={
-    id:'prog_'+Date.now(),
+  const newPlan=withTrainer({
+    id:newId('p'),
     name:p.name,
     clientId:cid,
     clientName:c.name,
@@ -1192,17 +1350,10 @@ async function confirmAssignProgram(){
           };
         })
       : [])
-  };
+  });
 
   PL.push(newPlan);
-
-  // Zapisz do Firebase jeśli dostępne
-  if(window._db){
-    try{
-      const r=await window._add(window._col(window._db,'plans'),newPlan);
-      if(r&&r.id)newPlan._fbId=r.id;
-    }catch(e){console.warn('Firebase plan save:',e);}
-  }
+  await persistById('plans',newPlan);
 
   closeM('m-assign-prog');
   closeProgDetail();
@@ -1261,12 +1412,12 @@ async function saveUserProgram(){
       window.USER_PROGRAMS[idx]={...window.USER_PROGRAMS[idx],name,goal:document.getElementById('pm-goal').value,level:document.getElementById('pm-level').value,duration:parseInt(document.getElementById('pm-dur').value),daysPerWeek:parseInt(document.getElementById('pm-days').value),equip:document.getElementById('pm-equip').value,method:document.getElementById('pm-method').value,desc:document.getElementById('pm-desc').value,updatedAt:new Date().toISOString()};
       window._editingProgId=null;
       closeM('m-program');renderPrograms();notify('Program zaktualizowany!');
-      if(window._db){try{await window._setDoc(window._doc(window._db,'programs',editingId),window.USER_PROGRAMS[idx],{merge:true});}catch(e){console.warn('Firebase update program:',e);}}
+      await persistById('programs',window.USER_PROGRAMS[idx]);
       return;
     }
   }
-  const p={
-    id:'up'+Date.now(),type:'moje',
+  const p=withTrainer({
+    id:newId('up'),type:'moje',
     name,goal:document.getElementById('pm-goal').value,
     level:document.getElementById('pm-level').value,
     duration:parseInt(document.getElementById('pm-dur').value),
@@ -1275,8 +1426,8 @@ async function saveUserProgram(){
     method:document.getElementById('pm-method').value,
     desc:document.getElementById('pm-desc').value,
     highlights:[],weeks:[],createdAt:new Date().toISOString()
-  };
-  try{if(window._db){const r=await window._add(window._col(window._db,'programs'),p);p.id=r.id;}}catch(e){}
+  });
+  await persistById('programs',p);
   window.USER_PROGRAMS.push(p);closeM('m-program');renderPrograms();notify('Program dodany! 📋');
 }
 window.TASKS=[];var taskFilter='all';
@@ -1429,18 +1580,16 @@ async function saveTask(){
       closeM('m-task');renderTasks();
       if(cpClientId&&cpClientId===TASKS[idx].clientId){try{setCPTab(cpTab);}catch(e){}}
       notify('Zadanie zaktualizowane!');
-      if(window._db){try{await window._setDoc(window._doc(window._db,'tasks',editingId),TASKS[idx],{merge:true});}catch(e){console.warn('Firebase update:',e);}}
+      await persistById('tasks',TASKS[idx]);
       return;
     }
   }
-  const t={id:'l'+Date.now(),title,clientId:document.getElementById('task-client').value,due:document.getElementById('task-due').value,priority:document.getElementById('task-priority').value,cat:catEl?catEl.value:'trening',desc:'',status:'open',createdAt:new Date().toISOString()};
+  const t=withTrainer({id:newId('t'),title,clientId:document.getElementById('task-client').value,due:document.getElementById('task-due').value,priority:document.getElementById('task-priority').value,cat:catEl?catEl.value:'trening',desc:'',status:'open',createdAt:new Date().toISOString()});
   TASKS.push(t);closeM('m-task');renderTasks();
   if(cpClientId&&cpClientId===t.clientId){try{setCPTab(cpTab);}catch(e){}}
   notify('Zadanie dodane!');
-  if(window._db){try{const r=await window._add(window._col(window._db,'tasks'),t);if(r&&r.id)t._fbId=r.id;}catch(e){console.warn('Firebase:',e);}}
+  await persistById('tasks',t);
 }
-function toggleTask(id){const t=TASKS.find(x=>x.id===id);if(t)t.status=t.status==='done'?'open':'done';renderTasks();}
-function delTask(id){window.TASKS=TASKS.filter(t=>t.id!==id);renderTasks();}
 
 function openTaskTemplates(){
   const sel=document.getElementById('tmpl-client-sel');
@@ -1457,8 +1606,8 @@ async function applyTemplate(tmplId){
   const today=new Date();let added=0;
   for(const t of tmpl.tasks){
     const due=new Date(today);due.setDate(due.getDate()+t.days);
-    const task={title:t.title,clientId:cid,due:due.toISOString().split('T')[0],priority:t.priority,cat:t.cat,desc:'',status:'open',createdAt:new Date().toISOString()};
-    try{if(window._db){const r=await window._add(window._col(window._db,'tasks'),task);task.id=r.id;}else task.id='l'+Date.now();}catch(e){task.id='l'+Date.now();}
+    const task=withTrainer({id:newId('t'),title:t.title,clientId:cid,due:due.toISOString().split('T')[0],priority:t.priority,cat:t.cat,desc:'',status:'open',createdAt:new Date().toISOString()});
+    await persistById('tasks',task);
     TASKS.push(task);added++;
   }
   const c=CL.find(x=>x.id===cid);
@@ -1470,7 +1619,7 @@ async function askTaskAI(){
   const q=document.getElementById('task-ai-q').value.trim();if(!q)return;
   document.getElementById('task-ai-q').value='';
   const msgs=document.getElementById('task-ai-msgs');
-  msgs.innerHTML+='<div style="text-align:right;margin-bottom:6px;"><div style="display:inline-block;background:var(--accent);color:#000;padding:5px 9px;border-radius:8px;font-size:11px;">'+q+'</div></div>';
+  msgs.innerHTML+='<div style="text-align:right;margin-bottom:6px;"><div style="display:inline-block;background:var(--accent);color:#fff;padding:5px 9px;border-radius:8px;font-size:11px;">'+q+'</div></div>';
   msgs.innerHTML+='<div id="tai-t" style="margin-bottom:6px;"><div style="display:inline-block;background:var(--s3);border:1px solid var(--border2);padding:5px 9px;border-radius:8px;font-size:11px;opacity:0.5;">Generuję zadania...</div></div>';
   msgs.scrollTop=msgs.scrollHeight;
   const clientFil=(document.getElementById('task-client-filter')||{}).value||'';
@@ -1483,7 +1632,7 @@ async function askTaskAI(){
     const raw=d.content.map(i=>i.text||'').join('');
     let tasks=[];try{tasks=JSON.parse(raw.replace(/```json|```/g,'').trim());}catch(e){}
     if(tasks.length){
-      const aiHtml=tasks.map(t=>`<div style="background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:6px 8px;margin-bottom:4px;font-size:11px;"><div style="font-weight:600;margin-bottom:4px;">${t.title}</div><div style="display:flex;gap:5px;align-items:center;"><span class="pill" style="background:${TASK_CAT_COLORS[t.cat]||'var(--muted)'}22;color:${TASK_CAT_COLORS[t.cat]||'var(--muted)'};font-size:9px;">${t.cat||''}</span><span style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">${t.days||7}d</span><button onclick="addAITask(${JSON.stringify(t).replace(/"/g,"&quot;")})" style="margin-left:auto;background:var(--accent);color:#000;border:none;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:700;cursor:pointer;">+ Dodaj</button></div></div>`).join('');
+      const aiHtml=tasks.map(t=>`<div style="background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:6px 8px;margin-bottom:4px;font-size:11px;"><div style="font-weight:600;margin-bottom:4px;">${t.title}</div><div style="display:flex;gap:5px;align-items:center;"><span class="pill" style="background:${TASK_CAT_COLORS[t.cat]||'var(--muted)'}22;color:${TASK_CAT_COLORS[t.cat]||'var(--muted)'};font-size:9px;">${t.cat||''}</span><span style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">${t.days||7}d</span><button onclick="addAITask(${JSON.stringify(t).replace(/"/g,"&quot;")})" style="margin-left:auto;background:var(--accent);color:#fff;border:none;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:700;cursor:pointer;">+ Dodaj</button></div></div>`).join('');
       document.getElementById('tai-t').outerHTML=`<div style="margin-bottom:6px;">${aiHtml}</div>`;
     }else{document.getElementById('tai-t').outerHTML=`<div style="margin-bottom:6px;"><div style="display:inline-block;background:var(--s3);padding:5px 9px;border-radius:8px;font-size:11px;">${raw.substring(0,150)}</div></div>`;}
   }catch(e){document.getElementById('tai-t').outerHTML=`<div style="margin-bottom:6px;"><div style="display:inline-block;background:var(--s3);padding:5px 9px;border-radius:8px;font-size:11px;color:var(--red);">Błąd połączenia</div></div>`;}
@@ -1494,8 +1643,20 @@ async function addAITask(t){
   if(typeof t==='string')try{t=JSON.parse(t);}catch(e){return;}
   const clientFil=(document.getElementById('task-client-filter')||{}).value||'';
   const due=new Date();due.setDate(due.getDate()+(t.days||7));
-  const task={title:t.title,clientId:clientFil,due:due.toISOString().split('T')[0],priority:t.priority||'medium',cat:t.cat||'trening',desc:'',status:'open',createdAt:new Date().toISOString()};
-  try{if(window._db){const r=await window._add(window._col(window._db,'tasks'),task);task.id=r.id;}else task.id='l'+Date.now();}catch(e){task.id='l'+Date.now();}
+  const task=withTrainer({id:newId('t'),title:t.title,clientId:clientFil,due:due.toISOString().split('T')[0],priority:t.priority||'medium',cat:t.cat||'trening',desc:'',status:'open',createdAt:new Date().toISOString()});
+  await persistById('tasks',task);
   TASKS.push(task);renderTasks();notify('Zadanie AI dodane ✓');
+}
+
+function toggleTask(id){
+  const t=TASKS.find(x=>x.id===id);if(!t)return;
+  t.status=t.status==='done'?'open':'done';
+  persistById('tasks',t);
+  renderTasks();
+}
+async function delTask(id){
+  window.TASKS=TASKS.filter(t=>t.id!==id);
+  renderTasks();
+  if(window._db){try{await window._del(window._doc(window._db,'tasks',id));}catch(e){console.warn('Firebase delTask:',e);}}
 }
 

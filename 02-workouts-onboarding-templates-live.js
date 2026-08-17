@@ -155,7 +155,7 @@ function openWLDetail(id){
       </div>
     </div>`).join('');
   document.getElementById('wld-notes-section').innerHTML=w.notes?`
-    <div style="background:var(--adim);border:1px solid rgba(200,241,53,0.2);border-radius:8px;padding:10px 12px;">
+    <div style="background:var(--adim);border:1px solid rgba(225,31,46,0.2);border-radius:8px;padding:10px 12px;">
       <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);margin-bottom:5px;">NOTATKI DLA KLIENTA</div>
       <div style="font-size:12px;line-height:1.6;">${w.notes}</div>
     </div>`:'';
@@ -169,15 +169,70 @@ function assignWorkout(){
   const w=allWorkouts().find(x=>x.id===wlDetailId);
   if(!w)return;
   if(!CL.length){notify('Najpierw dodaj klienta!');return;}
-  notify('Trening "'+w.name+'" przypisany do klienta ✓');
-  closeWLDetail();
+  openAssignWorkoutModal(w.id);
 }
 
 function assignWorkoutDirect(id){
   const w=allWorkouts().find(x=>x.id===id);
   if(!w)return;
   if(!CL.length){notify('Najpierw dodaj klienta!');return;}
-  notify('Trening "'+w.name+'" przypisany ✓');
+  openAssignWorkoutModal(id);
+}
+
+function openAssignWorkoutModal(workoutId){
+  window._assignWorkoutId=workoutId;
+  const w=allWorkouts().find(x=>x.id===workoutId);
+  let modal=document.getElementById('m-assign-workout');
+  if(!modal){
+    modal=document.createElement('div');
+    modal.className='modal-ov';
+    modal.id='m-assign-workout';
+    modal.innerHTML=`<div class="modal" style="max-width:420px;">
+      <div class="modal-title">Przypisz trening</div>
+      <div class="form-field"><label class="form-lbl">Trening</label><div id="aw-name" style="font-size:13px;font-weight:600;"></div></div>
+      <div class="form-field"><label class="form-lbl">Klient</label>
+        <select class="form-select" id="aw-client"></select>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">
+        <button class="btn btn-ghost" onclick="closeM('m-assign-workout')">Anuluj</button>
+        <button class="btn btn-primary" onclick="confirmAssignWorkout()">Przypisz</button>
+      </div>
+    </div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click',e=>{if(e.target===modal)modal.classList.remove('show');});
+  }
+  document.getElementById('aw-name').textContent=w?w.name:'';
+  document.getElementById('aw-client').innerHTML=CL.map(c=>`<option value="${escHtml(c.id)}">${escHtml(c.name)}</option>`).join('');
+  openM('m-assign-workout');
+}
+
+async function confirmAssignWorkout(){
+  const wid=window._assignWorkoutId;
+  const cid=document.getElementById('aw-client')?.value;
+  const w=allWorkouts().find(x=>x.id===wid);
+  const c=CL.find(x=>x.id===cid);
+  if(!w||!c){notify('Wybierz klienta!');return;}
+  const plan=withTrainer({
+    id:newId('p'),
+    name:w.name,
+    clientId:c.id,
+    clientName:c.name,
+    method:'Trening z biblioteki',
+    duration:1,
+    level:w.level||c.level||'sredni',
+    goal:c.goal||'masa',
+    source:'workout-library',
+    workoutId:w.id,
+    days:[{day:'Dzień 1',muscles:w.name,rest:false,exercises:(w.exercises||[]).map(e=>({name:e.name,sets:e.sets||'3',reps:e.reps||'10',rest:e.rest||'60s'}))}],
+    createdAt:new Date().toISOString()
+  });
+  PL.push(plan);
+  await persistById('plans',plan);
+  pushMsg(c.id,'💪 Nowy trening: "'+w.name+'" — sprawdź plan w aplikacji / z trenerem.');
+  closeM('m-assign-workout');
+  closeWLDetail();
+  addNotification('system','Trening przypisany','"'+w.name+'" → '+c.name,'plans');
+  notify('✓ Trening "'+w.name+'" przypisany do: '+c.name);
 }
 
 function renderDashWorkouts(){
@@ -224,7 +279,8 @@ async function saveWorkout(){
     exercises.push({name:n,sets:inps[1].value||'3',reps:inps[2].value||'10',rest:inps[3].value||'60s'});
   });
   if(!exercises.length){notify('Dodaj przynajmniej jedno ćwiczenie!');return;}
-  const w={
+  const w=withTrainer({
+    id:newId('w'),
     name,
     cat:document.getElementById('w-cat').value,
     level:document.getElementById('w-level').value,
@@ -235,8 +291,8 @@ async function saveWorkout(){
     notes:document.getElementById('w-notes').value,
     exercises,
     createdAt:new Date().toISOString().split('T')[0]
-  };
-  try{if(window._db){const r=await window._add(window._col(window._db,'workouts'),w);w.id=r.id;}else w.id='w'+Date.now();}catch(e){w.id='w'+Date.now();}
+  });
+  await persistById('workouts',w);
   WO.push(w);closeM('m-workout');renderWL();notify('Trening dodany! 💪');
 }
 
@@ -247,6 +303,7 @@ var onbTab='overview';
 var onbStep=0;
 var onbNewClient={};
 var ONB_ACTIVE=[];   // [{clientId, step, startDate, flow}]
+window.ONB_ACTIVE=ONB_ACTIVE;
 
 const ONB_STEPS=[
   {id:'welcome',    icon:'👋', label:'Powitanie',        desc:'Wiadomość powitalna i dostęp do aplikacji'},
@@ -281,13 +338,7 @@ const ONB_FLOWS=[
 ];
 
 function initOnboarding(){
-  // seed demo active onboardings
-  if(!ONB_ACTIVE.length&&CL.length){
-    ONB_ACTIVE=CL.slice(0,4).map((c,i)=>({
-      clientId:c.id,step:i+1,startDate:new Date(Date.now()-(i*2)*86400000).toISOString().split('T')[0],
-      flow:ONB_FLOWS[i%ONB_FLOWS.length].id,
-    }));
-  }
+  // Nie seedujemy fałszywych onboardingu — tylko realne wpisy z ONB_ACTIVE
   setOnbTab('overview');
 }
 
@@ -351,7 +402,7 @@ function renderOnbOverview(){
           </div>
           <!-- pasek postępu z krokami -->
           <div style="display:flex;gap:3px;margin-bottom:10px;">
-            ${steps.map((s,i)=>`<div title="${s.label}" style="flex:1;height:6px;border-radius:3px;background:${i<o.step?'var(--accent)':i===o.step?'rgba(200,241,53,0.4)':'var(--s3)'};transition:background 0.3s;"></div>`).join('')}
+            ${steps.map((s,i)=>`<div title="${s.label}" style="flex:1;height:6px;border-radius:3px;background:${i<o.step?'var(--accent)':i===o.step?'rgba(225,31,46,0.4)':'var(--s3)'};transition:background 0.3s;"></div>`).join('')}
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;">
             <div style="font-size:11px;color:var(--muted);">
@@ -387,6 +438,9 @@ function onbCompleteStep(cid){
   const flow=ONB_FLOWS.find(f=>f.id===o.flow)||ONB_FLOWS[0];
   if(o.step<flow.steps.length){o.step++;notify('✓ Krok ukończony!');}
   else notify('Onboarding już ukończony!');
+  if(!o.id)o.id=newId('onba');
+  withTrainer(o);
+  persistById('onboardingActive',o);
   renderOnbOverview();
 }
 
@@ -397,7 +451,9 @@ function onbViewClient(cid){
 
 function onbStartFor(cid){
   const c=CL.find(x=>x.id===cid);if(!c)return;
-  ONB_ACTIVE.push({clientId:cid,step:0,startDate:new Date().toISOString().split('T')[0],flow:'standard'});
+  const o=withTrainer({id:newId('onba'),clientId:cid,step:0,startDate:new Date().toISOString().split('T')[0],flow:'standard'});
+  ONB_ACTIVE.push(o);
+  persistById('onboardingActive',o);
   notify('✓ Onboarding uruchomiony dla '+c.name);
   renderOnbOverview();
 }
@@ -554,7 +610,7 @@ function onbWizardStepHTML(step){
 
   if(step===4) return `
     <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">✅ POTWIERDZENIE</div>
-    <div style="background:var(--adim);border:1px solid rgba(200,241,53,0.2);border-radius:12px;padding:20px;margin-bottom:16px;">
+    <div style="background:var(--adim);border:1px solid rgba(225,31,46,0.2);border-radius:12px;padding:20px;margin-bottom:16px;">
       <div style="font-size:14px;font-weight:700;margin-bottom:12px;">Podsumowanie nowego klienta</div>
       ${[
         ['Imię i nazwisko',onbNewClient.name||'—'],
@@ -624,8 +680,8 @@ function onbWizardNext(){
 }
 
 function onbCreateClient(){
-  const newC={
-    id:'c_onb_'+Date.now(),
+  const newC=withTrainer({
+    id:newId('c'),
     name:onbNewClient.name,
     email:onbNewClient.email,
     phone:onbNewClient.phone||'',
@@ -639,32 +695,34 @@ function onbCreateClient(){
     status:'active',
     joinDate:new Date().toISOString().split('T')[0],
     source:onbNewClient.source||'',
-  };
+  });
   CL.push(newC);
-  if(window._db){try{window._add(window._col(window._db,'clients'),newC);}catch(e){}}
+  persistById('clients',newC);
 
   // assign template plan
   if(onbNewClient.template){
     const t=PLAN_TEMPLATES.find(x=>x.id===onbNewClient.template);
     if(t){
-      const p={id:'p_onb_'+Date.now(),name:t.name,clientId:newC.id,method:t.method,duration:t.weeks,
+      const p=withTrainer({id:newId('p'),name:t.name,clientId:newC.id,method:t.method,duration:t.weeks,
         days:(t.days_detail||[]).map(d=>({day:d.name,exercises:(d.exercises||[]).map(e=>({name:e.n,sets:e.s,reps:e.r}))})),
-        source:'template',createdAt:new Date().toISOString()};
+        source:'template',createdAt:new Date().toISOString()});
       PL.push(p);
-      if(window._db){try{window._add(window._col(window._db,'plans'),p);}catch(e){}}
+      persistById('plans',p);
     }
   }
 
   // start onboarding flow
-  ONB_ACTIVE.push({clientId:newC.id,step:1,startDate:new Date().toISOString().split('T')[0],flow:onbNewClient.flow||'standard'});
+  const onbRec=withTrainer({id:newId('onba'),clientId:newC.id,step:1,startDate:new Date().toISOString().split('T')[0],flow:onbNewClient.flow||'standard'});
+  ONB_ACTIVE.push(onbRec);
+  persistById('onboardingActive',onbRec);
 
   // add first tasks
   const tasks=[
-    {id:'t_onb1_'+Date.now(),clientId:newC.id,title:'Wypełnij ankietę wstępną',status:'pending',due:new Date(Date.now()+86400000).toISOString().split('T')[0]},
-    {id:'t_onb2_'+Date.now(),clientId:newC.id,title:'Zaakceptuj kontrakt współpracy',status:'pending',due:new Date(Date.now()+2*86400000).toISOString().split('T')[0]},
-    {id:'t_onb3_'+Date.now(),clientId:newC.id,title:'Zainstaluj aplikację Progress Live',status:'pending',due:new Date(Date.now()+3*86400000).toISOString().split('T')[0]},
+    withTrainer({id:newId('t'),clientId:newC.id,title:'Wypełnij ankietę wstępną',status:'open',priority:'high',cat:'lifestyle',due:new Date(Date.now()+86400000).toISOString().split('T')[0],createdAt:new Date().toISOString()}),
+    withTrainer({id:newId('t'),clientId:newC.id,title:'Zaakceptuj kontrakt współpracy',status:'open',priority:'high',cat:'lifestyle',due:new Date(Date.now()+2*86400000).toISOString().split('T')[0],createdAt:new Date().toISOString()}),
+    withTrainer({id:newId('t'),clientId:newC.id,title:'Zainstaluj aplikację Progress Live',status:'open',priority:'medium',cat:'lifestyle',due:new Date(Date.now()+3*86400000).toISOString().split('T')[0],createdAt:new Date().toISOString()}),
   ];
-  tasks.forEach(t=>{TASKS.push(t);if(window._db){try{window._add(window._col(window._db,'tasks'),t);}catch(e){}}});
+  tasks.forEach(t=>{TASKS.push(t);persistById('tasks',t);});
 
   addNotification('system','Nowy klient!',newC.name+' — onboarding uruchomiony','clients');
   notify('🎉 Klient '+newC.name+' dodany! Onboarding uruchomiony.');
@@ -696,6 +754,9 @@ function renderOnbFlows(){
 /* ── SETTINGS ── */
 function renderOnbSettings(){
   const el=document.getElementById('onb-settings-tab');if(!el)return;
+  const S=window.SETTINGS||{};
+  const onb=S.onboarding||{};
+  const contract=onb.contract||'Regulamin współpracy z trenerem personalnym\n\n1. Klient zobowiązuje się do regularnego uczestnictwa w sesjach.\n2. Odwołanie sesji możliwe do 24h przed jej terminem.\n3. Trener zastrzega sobie prawo do modyfikacji planu.';
   el.innerHTML=`
     <div style="max-width:600px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:20px;">USTAWIENIA ONBOARDINGU</div>
@@ -704,7 +765,7 @@ function renderOnbSettings(){
         <div class="settings-card-desc">Wiadomości wysyłane automatycznie na każdym etapie onboardingu.</div>
         ${ONB_STEPS.slice(0,5).map(s=>`<label style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;">
           <span>${s.icon} ${s.label}</span>
-          <input type="checkbox" checked style="accent-color:var(--accent);">
+          <input type="checkbox" class="onb-msg-step" data-step="${s.id}" ${(onb.msgSteps&&onb.msgSteps[s.id]===false)?'':'checked'} style="accent-color:var(--accent);">
         </label>`).join('')}
       </div>
       <div class="settings-card" style="margin-bottom:14px;">
@@ -712,19 +773,43 @@ function renderOnbSettings(){
         <div class="settings-card-desc">Automatyczne przypomnienia gdy klient nie ukończy kroku.</div>
         <div class="form-grid">
           <div class="form-field"><label class="form-lbl">Przypomnij po (dni)</label>
-            <input type="number" class="form-input" value="2" style="font-size:12px;"></div>
+            <input type="number" class="form-input" id="onb-remind-days" value="${onb.remindDays||2}" style="font-size:12px;"></div>
           <div class="form-field"><label class="form-lbl">Kanał przypomnienia</label>
-            <select class="form-select" style="font-size:12px;"><option>Email</option><option>WhatsApp</option><option>SMS</option></select></div>
+            <select class="form-select" id="onb-remind-channel" style="font-size:12px;">
+              <option value="email" ${(onb.remindChannel||'email')==='email'?'selected':''}>Email</option>
+              <option value="whatsapp" ${onb.remindChannel==='whatsapp'?'selected':''}>WhatsApp</option>
+              <option value="sms" ${onb.remindChannel==='sms'?'selected':''}>SMS</option>
+            </select></div>
         </div>
       </div>
       <div class="settings-card">
         <div class="settings-card-title">📝 Domyślny kontrakt</div>
         <div class="settings-card-desc">Treść kontraktu współpracy wysyłanego klientom.</div>
-        <textarea class="form-input" rows="5" style="font-size:12px;resize:none;">Regulamin współpracy z trenerem personalnym Piotrem Urbaniakiem\n\n1. Klient zobowiązuje się do regularnego uczestnictwa w sesjach.\n2. Odwołanie sesji możliwe do 24h przed jej terminem.\n3. Trener zastrzega sobie prawo do modyfikacji planu.\n...</textarea>
-        <button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="notify('✓ Ustawienia zapisane!')">Zapisz kontrakt</button>
+        <textarea class="form-input" id="onb-contract-text" rows="5" style="font-size:12px;resize:none;">${escHtml(contract)}</textarea>
+        <button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="saveOnbContract()">Zapisz ustawienia onboardingu</button>
       </div>
     </div>`;
 }
+
+function saveOnbContract(){
+  const S=window.SETTINGS||(window.SETTINGS={});
+  if(!S.onboarding)S.onboarding={};
+  S.onboarding.contract=document.getElementById('onb-contract-text')?.value||'';
+  S.onboarding.remindDays=parseInt(document.getElementById('onb-remind-days')?.value)||2;
+  S.onboarding.remindChannel=document.getElementById('onb-remind-channel')?.value||'email';
+  S.onboarding.msgSteps={};
+  document.querySelectorAll('.onb-msg-step').forEach(cb=>{S.onboarding.msgSteps[cb.dataset.step]=cb.checked;});
+  if(typeof persistSettingsDoc==='function')persistSettingsDoc();
+  else{
+    withTrainer(S);
+    if(window._db){
+      const sid=window._settingsDocId||window._uid||'default';
+      window._setDoc(window._doc(window._db,'settings',sid),S,{merge:true}).catch(()=>{});
+    }
+  }
+  notify('✓ Ustawienia onboardingu zapisane');
+}
+window.saveOnbContract=saveOnbContract;
 
 window.initOnboarding=initOnboarding;window.setOnbTab=setOnbTab;
 window.renderOnbNew=renderOnbNew;window.onbWizardBack=onbWizardBack;
@@ -738,6 +823,7 @@ window.onbStartFor=onbStartFor;window.onbCreateClient=onbCreateClient;
 var tplFilter='all';
 var tplDetailId=null;
 var TPL_CUSTOM=[];
+window.TPL_CUSTOM=TPL_CUSTOM;
 
 const PLAN_TEMPLATES=[
   // ── MASA ──
@@ -1158,12 +1244,13 @@ function openTplDetail(id){
         <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:8px;">Przypisz do klienta</div>
         <select class="form-select" id="tpl-assign-client" style="font-size:12px;margin-bottom:8px;">
           <option value="">Wybierz klienta...</option>
-          ${CL.map(c=>`<option value="${c.id}">${c.name}</option>`).join('')}
+          ${CL.map(c=>`<option value="${escHtml(c.id)}">${escHtml(c.name)}</option>`).join('')}
         </select>
         <button class="btn btn-primary" style="width:100%;" onclick="tplAssignToClient('${t.id}')">✓ Przypisz plan klientowi</button>
       </div>
 
       <div style="display:flex;gap:8px;">
+        ${t.custom?`<button class="btn btn-ghost btn-sm" style="flex:1;" onclick="closeTplDetail();openTplCreate('${t.id}')">✎ Edytuj</button>`:''}
         <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="tplStartLive('${t.id}')">▶ Użyj w treningu Live</button>
         <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="tplDuplicate('${t.id}')">📋 Duplikuj</button>
       </div>
@@ -1184,19 +1271,20 @@ function tplAssignToClient(tid){
   const t=[...PLAN_TEMPLATES,...TPL_CUSTOM].find(x=>x.id===tid);
   if(!t||!c)return;
   // build plan object
-  const newPlan={
-    id:'tpl_'+Date.now(),
+  const newPlan=withTrainer({
+    id:newId('p'),
     name:t.name,
     clientId:cid,
+    clientName:c.name,
     method:t.method,
     duration:t.weeks,
     days:(t.days_detail||[]).map(d=>({day:d.name,exercises:(d.exercises||[]).map(e=>({name:e.n,sets:e.s,reps:e.r}))})),
     source:'template',
     templateId:tid,
     createdAt:new Date().toISOString(),
-  };
+  });
   PL.push(newPlan);
-  if(window._db){try{window._add(window._col(window._db,'plans'),newPlan);}catch(e){}}
+  persistById('plans',newPlan);
   addNotification('system','Plan przypisany!','Szablon "'+t.name+'" przypisano do '+c.name,'plans');
   notify('✅ Plan "'+t.name+'" przypisany do '+c.name+'!');
   closeTplDetail();
@@ -1227,16 +1315,171 @@ function tplStartLive(tid){
 
 function tplDuplicate(tid){
   const t=[...PLAN_TEMPLATES,...TPL_CUSTOM].find(x=>x.id===tid);if(!t)return;
-  const copy={...JSON.parse(JSON.stringify(t)),id:'custom_'+Date.now(),name:t.name+' (kopia)',custom:true};
+  const copy=withTrainer({...JSON.parse(JSON.stringify(t)),id:newId('tpl'),name:t.name+' (kopia)',custom:true,createdAt:new Date().toISOString()});
   TPL_CUSTOM.push(copy);
+  persistById('planTemplates',copy);
   updateTplMyCount();
   renderTemplates();
   notify('✓ Szablon zduplikowany — możesz go edytować!');
 }
 
-function openTplCreate(){
-  notify('Kreator własnych szablonów — wkrótce! Na razie użyj Generator AI lub Duplikuj istniejący.');
+function openTplCreate(editId){
+  window._editingTplId=editId||null;
+  let m=document.getElementById('m-tpl-create');
+  if(!m){
+    m=document.createElement('div');m.id='m-tpl-create';m.className='modal-ov';
+    m.innerHTML=`<div class="modal modal-wide" style="max-width:640px;">
+      <div class="modal-hdr"><div class="modal-title" id="tplc-title">NOWY SZABLON PLANU</div><button class="modal-close" onclick="closeM('m-tpl-create')">×</button></div>
+      <div class="modal-body">
+        <div class="form-field"><label class="form-lbl">Nazwa</label><input type="text" class="form-input" id="tplc-name" placeholder="np. PPL 4× — Moja wersja"></div>
+        <div class="form-field"><label class="form-lbl">Opis</label><textarea class="form-textarea" id="tplc-desc" rows="2" placeholder="Krótki opis szablonu..."></textarea></div>
+        <div class="form-grid">
+          <div class="form-field"><label class="form-lbl">Cel</label>
+            <select class="form-select" id="tplc-goal">
+              <option value="masa">Masa</option><option value="sila">Siła</option><option value="redukcja">Redukcja</option><option value="kondycja">Kondycja</option>
+            </select>
+          </div>
+          <div class="form-field"><label class="form-lbl">Poziom</label>
+            <select class="form-select" id="tplc-level">
+              <option value="poczatkujacy">Początkujący</option><option value="sredni" selected>Średni</option><option value="zaawansowany">Zaawansowany</option>
+            </select>
+          </div>
+          <div class="form-field"><label class="form-lbl">Metoda</label>
+            <select class="form-select" id="tplc-method">
+              <option>PPL</option><option>FBW</option><option>UL</option><option>531</option><option>Custom</option>
+            </select>
+          </div>
+          <div class="form-field"><label class="form-lbl">Tygodnie</label><input type="number" class="form-input" id="tplc-weeks" value="8" min="1" max="52"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0 8px;">
+          <div style="font-size:12px;font-weight:700;">Dni treningowe</div>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="tplcAddDay()">+ Dzień</button>
+        </div>
+        <div id="tplc-days" style="display:flex;flex-direction:column;gap:10px;"></div>
+      </div>
+      <div class="modal-footer" style="display:flex;gap:8px;">
+        <button class="btn btn-ghost btn-sm" id="tplc-del" style="display:none;margin-right:auto;color:var(--red);" onclick="deleteCustomTemplate()">Usuń</button>
+        <button class="btn btn-ghost" onclick="closeM('m-tpl-create')">Anuluj</button>
+        <button class="btn btn-primary" onclick="saveCustomTemplate()">Zapisz szablon</button>
+      </div>
+    </div>`;
+    document.body.appendChild(m);
+    m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');});
+  }
+  const existing=editId?TPL_CUSTOM.find(x=>x.id===editId):null;
+  document.getElementById('tplc-title').textContent=existing?'EDYTUJ SZABLON':'NOWY SZABLON PLANU';
+  document.getElementById('tplc-name').value=existing?.name||'';
+  document.getElementById('tplc-desc').value=existing?.desc||'';
+  document.getElementById('tplc-goal').value=existing?.goal||'masa';
+  document.getElementById('tplc-level').value=existing?.level||'sredni';
+  document.getElementById('tplc-method').value=existing?.method||'PPL';
+  document.getElementById('tplc-weeks').value=existing?.weeks||8;
+  const daysEl=document.getElementById('tplc-days');
+  daysEl.innerHTML='';
+  const days=existing?.days_detail?.length?existing.days_detail:[{name:'Dzień 1',exercises:[{n:'',s:'3',r:'10'}]}];
+  days.forEach(d=>tplcAddDay(d));
+  const del=document.getElementById('tplc-del');
+  if(del)del.style.display=existing?'inline-flex':'none';
+  openM('m-tpl-create');
 }
+
+function tplcAddDay(prefill){
+  const wrap=document.getElementById('tplc-days');if(!wrap)return;
+  const di=wrap.children.length;
+  const day=prefill||{name:'Dzień '+(di+1),exercises:[{n:'',s:'3',r:'10'}]};
+  const box=document.createElement('div');
+  box.className='tplc-day';
+  box.style.cssText='background:var(--s3);border:1px solid var(--border2);border-radius:10px;padding:10px;';
+  box.innerHTML=`
+    <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center;">
+      <input type="text" class="form-input tplc-day-name" value="${escHtml(day.name||'')}" placeholder="Nazwa dnia" style="flex:1;font-size:12px;">
+      <button type="button" class="btn btn-ghost btn-sm" onclick="this.closest('.tplc-day').remove()">×</button>
+    </div>
+    <div class="tplc-ex-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+    <button type="button" class="btn btn-ghost btn-sm" style="margin-top:6px;" onclick="tplcAddEx(this)">+ Ćwiczenie</button>`;
+  wrap.appendChild(box);
+  const list=box.querySelector('.tplc-ex-list');
+  (day.exercises&&day.exercises.length?day.exercises:[{n:'',s:'3',r:'10'}]).forEach(ex=>tplcAddExRow(list,ex));
+}
+
+function tplcAddEx(btn){
+  const list=btn.parentElement.querySelector('.tplc-ex-list');
+  tplcAddExRow(list,{n:'',s:'3',r:'10'});
+}
+
+function tplcAddExRow(list,ex){
+  const row=document.createElement('div');
+  row.style.cssText='display:grid;grid-template-columns:1fr 54px 64px 28px;gap:6px;align-items:center;';
+  row.innerHTML=`
+    <input type="text" class="form-input tplc-ex-n" placeholder="Ćwiczenie" value="${escHtml(ex.n||'')}" style="font-size:12px;" list="ex-dl">
+    <input type="text" class="form-input tplc-ex-s" placeholder="Serie" value="${escHtml(ex.s||'3')}" style="font-size:12px;">
+    <input type="text" class="form-input tplc-ex-r" placeholder="Powt." value="${escHtml(ex.r||'10')}" style="font-size:12px;">
+    <button type="button" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:16px;" onclick="this.parentElement.remove()">×</button>`;
+  list.appendChild(row);
+}
+
+async function saveCustomTemplate(){
+  const name=document.getElementById('tplc-name')?.value.trim();
+  if(!name){notify('Wpisz nazwę szablonu!');return;}
+  const days=[];
+  document.querySelectorAll('#tplc-days .tplc-day').forEach(box=>{
+    const dname=box.querySelector('.tplc-day-name')?.value.trim()||'Dzień';
+    const exercises=[];
+    box.querySelectorAll('.tplc-ex-list > div').forEach(row=>{
+      const n=row.querySelector('.tplc-ex-n')?.value.trim();
+      if(!n)return;
+      exercises.push({
+        n,
+        s:row.querySelector('.tplc-ex-s')?.value.trim()||'3',
+        r:row.querySelector('.tplc-ex-r')?.value.trim()||'10',
+        rest:'90s'
+      });
+    });
+    days.push({name:dname,exercises});
+  });
+  if(!days.length){notify('Dodaj przynajmniej jeden dzień!');return;}
+  const goal=document.getElementById('tplc-goal').value;
+  const level=document.getElementById('tplc-level').value;
+  const method=document.getElementById('tplc-method').value;
+  const weeks=parseInt(document.getElementById('tplc-weeks').value)||8;
+  const desc=document.getElementById('tplc-desc').value.trim()||'Własny szablon';
+  const color={masa:'var(--accent)',sila:'var(--orange)',redukcja:'var(--red)',kondycja:'var(--teal)'}[goal]||'var(--accent)';
+  let tpl;
+  if(window._editingTplId){
+    tpl=TPL_CUSTOM.find(x=>x.id===window._editingTplId);
+  }
+  if(tpl){
+    Object.assign(tpl,{name,desc,goal,level,method,weeks,days:days.length,days_detail:days,schedule:days.map(d=>d.name),tags:[goal,method,days.length+'×/tydzień','własny'],color,custom:true,updatedAt:new Date().toISOString()});
+    withTrainer(tpl);
+  }else{
+    tpl=withTrainer({
+      id:newId('tpl'),name,desc,goal,level,method,weeks,days:days.length,
+      days_detail:days,schedule:days.map(d=>d.name),
+      tags:[goal,method,days.length+'×/tydzień','własny'],
+      color,popularity:50,custom:true,createdAt:new Date().toISOString()
+    });
+    TPL_CUSTOM.push(tpl);
+  }
+  await persistById('planTemplates',tpl);
+  closeM('m-tpl-create');
+  updateTplMyCount();
+  renderTemplates();
+  notify('✓ Szablon "'+name+'" zapisany');
+}
+
+async function deleteCustomTemplate(){
+  const id=window._editingTplId;if(!id)return;
+  if(!confirm('Usunąć ten szablon?'))return;
+  const idx=TPL_CUSTOM.findIndex(x=>x.id===id);
+  if(idx>=0)TPL_CUSTOM.splice(idx,1);
+  if(window._db){try{await window._del(window._doc(window._db,'planTemplates',id));}catch(e){}}
+  closeM('m-tpl-create');
+  updateTplMyCount();
+  renderTemplates();
+  notify('Szablon usunięty');
+}
+window.tplcAddDay=tplcAddDay;window.tplcAddEx=tplcAddEx;
+window.saveCustomTemplate=saveCustomTemplate;window.deleteCustomTemplate=deleteCustomTemplate;
 
 function updateTplMyCount(){
   const el=document.getElementById('tpl-my-count');
@@ -1379,7 +1622,7 @@ function renderLivePlanPicker(){
     ${days.length>1?`
     <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:6px;letter-spacing:1px;">Dzień treningu ${liveExercises.length?`<span style="color:var(--accent);normal-case;text-transform:none;letter-spacing:0;">— sugerowany na dziś</span>`:''}</div>
     <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:10px;">
-      ${days.map((d,i)=>`<button onclick="liveSelectDay(${i})" style="background:${liveExercises.length&&i===liveCurrentDayIdx?'rgba(200,241,53,0.08)':'var(--s3)'};border:1px solid ${liveExercises.length&&i===liveCurrentDayIdx?'var(--accent)':'var(--border2)'};border-radius:8px;padding:7px 12px;cursor:pointer;text-align:left;display:flex;align-items:center;justify-content:space-between;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)'">
+      ${days.map((d,i)=>`<button onclick="liveSelectDay(${i})" style="background:${liveExercises.length&&i===liveCurrentDayIdx?'rgba(225,31,46,0.08)':'var(--s3)'};border:1px solid ${liveExercises.length&&i===liveCurrentDayIdx?'var(--accent)':'var(--border2)'};border-radius:8px;padding:7px 12px;cursor:pointer;text-align:left;display:flex;align-items:center;justify-content:space-between;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)'">
         <div style="font-size:11px;font-weight:600;">${d.day||'Dzień '+(i+1)}</div>
         <div style="font-size:10px;color:var(--muted);">${(d.exercises||[]).length} ćw.</div>
       </button>`).join('')}
@@ -1521,7 +1764,7 @@ function renderLiveExercises(){
     </div>
     ${liveExercises.map((ex,i)=>liveExCard(ex,i)).join('')}
     ${liveSessionActive&&doneCnt===total&&total>0?`
-    <div style="background:linear-gradient(135deg,var(--adim),transparent);border:1px solid rgba(200,241,53,0.3);border-radius:14px;padding:20px;text-align:center;margin-top:10px;">
+    <div style="background:linear-gradient(135deg,var(--adim),transparent);border:1px solid rgba(225,31,46,0.3);border-radius:14px;padding:20px;text-align:center;margin-top:10px;">
       <div style="font-size:28px;margin-bottom:8px;">🎉</div>
       <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:4px;">TRENING UKOŃCZONY!</div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">${setsDone} serii · ${Math.round(volume)} kg objętości</div>
@@ -1627,8 +1870,8 @@ function liveEndSession(){
   const totalSets=liveExercises.flatMap(e=>e.sets).filter(s=>s.done).length;
   const volume=Math.round(liveExercises.flatMap(e=>e.sets).filter(s=>s.done&&s.kg).reduce((a,s)=>a+parseFloat(s.kg||0)*parseFloat(s.reps||0),0));
   const durationMin=Math.round(liveTimerSec/60);
-  const newSession={
-    id:'ls_'+Date.now(),
+  const newSession=withTrainer({
+    id:newId('s'),
     clientId:liveClientId,
     date:dateStr(new Date()),
     time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),
@@ -1643,10 +1886,14 @@ function liveEndSession(){
     source:'live',
     planId:livePlanId||null,
     dayIdx:livePlanId!=null?liveCurrentDayIdx:null,
-  };
+    createdAt:new Date().toISOString()
+  });
   SE.push(newSession);
-  if(window._db){try{window._add(window._col(window._db,'sessions'),newSession);}catch(e){}}
+  persistById('sessions',newSession);
   LIVE_HISTORY.unshift({...newSession,clientName:c?.name||'Klient'});
+  // Odlicz sesję z aktywnego pakietu klienta jeśli jest
+  const pkg=(window.PACKAGES||[]).find(p=>p.clientId===liveClientId&&p.sessionsUsed<p.sessions&&p.payStatus!=='expired');
+  if(pkg){pkg.sessionsUsed++;persistById('packages',pkg);}
   addNotification('system','Sesja zapisana!','Trening '+c?.name+' · '+durationMin+' min · '+totalSets+' serii','clients');
   notify('✅ Sesja zapisana! '+durationMin+' min, '+totalSets+' serii, '+volume+' kg obj.');
   // reset
@@ -1729,7 +1976,7 @@ function renderLiveClientMock(){
         ${liveExercises.length?liveExercises.map((ex,i)=>`
           <div style="margin-bottom:10px;background:${ex.done?'rgba(62,207,178,0.06)':'rgba(255,255,255,0.03)'};border:1px solid ${ex.done?'rgba(62,207,178,0.2)':'rgba(255,255,255,0.06)'};border-radius:14px;padding:12px;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:${ex.done?0:8}px;">
-              <div style="width:24px;height:24px;border-radius:6px;background:${ex.done?'var(--teal)':'rgba(200,241,53,0.1)'};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:${ex.done?'#000':accent};flex-shrink:0;">${ex.done?'✓':i+1}</div>
+              <div style="width:24px;height:24px;border-radius:6px;background:${ex.done?'var(--teal)':'rgba(225,31,46,0.1)'};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:${ex.done?'#000':accent};flex-shrink:0;">${ex.done?'✓':i+1}</div>
               <div style="font-size:12px;font-weight:700;color:#eceae6;">${ex.name}</div>
             </div>
             ${!ex.done?`<div style="display:flex;gap:5px;">
@@ -1803,7 +2050,7 @@ var repGenerating=false;
 function initReports(){
   const sel=document.getElementById('rep-client-sel');
   if(sel){
-    sel.innerHTML='<option value="">Wybierz klienta...</option>'+CL.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+    sel.innerHTML='<option value="">Wybierz klienta...</option>'+CL.map(c=>`<option value="${escHtml(c.id)}">${escHtml(c.name)}</option>`).join('');
     if(!repClientId&&CL.length){repClientId=CL[0].id;sel.value=repClientId;}
   }
   renderRepOverview();
@@ -1893,7 +2140,7 @@ function renderRepHistory(){
   el.innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;">HISTORIA WYSŁANYCH RAPORTÓW</div>
-      <button class="btn btn-ghost btn-sm" onclick="notify('Eksport CSV wkrótce!')">⬇ Eksport CSV</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportRepHistoryCsv()">⬇ Eksport CSV</button>
     </div>
     ${!all.length?`<div style="text-align:center;padding:60px;color:var(--muted);">
       <div style="font-size:36px;opacity:0.3;margin-bottom:12px;">📄</div>
@@ -1913,33 +2160,54 @@ function renderRepHistory(){
     </div>`}`;
 }
 
+const DEFAULT_REP_SCHEDULES=[
+  {id:'weekly',label:'Tygodniowy raport postępów',desc:'Co poniedziałek — podsumowanie poprzedniego tygodnia',active:true,time:'Pon 8:00',clients:'active',channels:['email','app']},
+  {id:'monthly',label:'Miesięczny raport pełny',desc:'1. dnia miesiąca — pełna analiza z wykresami',active:true,time:'1. mies. 9:00',clients:'premium',channels:['email']},
+  {id:'checkin',label:'Raport po check-inie',desc:'Automatycznie po wypełnieniu check-inu przez klienta',active:false,time:'Po check-inie',clients:'all',channels:['app']},
+  {id:'quarterly',label:'Kwartalny raport od startu',desc:'Co 3 miesiące od dołączenia klienta',active:false,time:'Co 90 dni',clients:'all',channels:['email','whatsapp']},
+];
+
+function getRepSchedules(){
+  const S=window.SETTINGS||(window.SETTINGS={});
+  if(!S.reports)S.reports={};
+  if(!Array.isArray(S.reports.schedules)||!S.reports.schedules.length){
+    S.reports.schedules=DEFAULT_REP_SCHEDULES.map(x=>({...x,channels:[...(x.channels||[])]}));
+  }
+  return S.reports.schedules;
+}
+
+function clientsLabel(v){
+  return {all:'Wszyscy',active:'Wszyscy aktywni',premium:'Pakiet Premium',inactive:'Nieaktywni'}[v]||v||'Wszyscy';
+}
+function channelsLabel(arr){
+  const map={email:'Email',app:'App',whatsapp:'WhatsApp'};
+  return (arr||[]).map(c=>map[c]||c).join(' + ')||'—';
+}
+
 function renderRepAuto(){
   const el=document.getElementById('rep-auto-tab');if(!el)return;
+  const schedules=getRepSchedules();
   el.innerHTML=`
     <div style="max-width:700px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:6px;">AUTOMATYCZNE RAPORTY</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:20px;">Ustaw harmonogram automatycznego generowania i wysyłania raportów do klientów.</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Harmonogram zapisuje się w ustawieniach. Wysyłka e-mail/WhatsApp wymaga backendu — tu zapisujemy reguły i generujemy raport w appce przy logowaniu (jeśli włączone).</div>
+      <div style="font-size:11px;color:var(--muted);background:var(--adim);border:1px solid rgba(225,31,46,0.15);border-radius:8px;padding:10px 12px;margin-bottom:20px;">Uwaga: to nie jest cron 24/7. Reguły są sprawdzane gdy otworzysz panel trenera.</div>
 
       <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px;">
-        ${[
-          {label:'Tygodniowy raport postępów',desc:'Co poniedziałek — podsumowanie poprzedniego tygodnia',active:true,time:'Pon 8:00',clients:'Wszyscy aktywni',channels:'Email + App'},
-          {label:'Miesięczny raport pełny',desc:'1. dnia miesiąca — pełna analiza z wykresami',active:true,time:'1. mies. 9:00',clients:'Pakiet Premium',channels:'Email'},
-          {label:'Raport po check-inie',desc:'Automatycznie po wypełnieniu check-inu przez klienta',active:false,time:'Po check-inie',clients:'Wszyscy',channels:'App'},
-          {label:'Kwartalny raport od startu',desc:'Co 3 miesiące od dołączenia klienta',active:false,time:'Co 90 dni',clients:'Wszyscy',channels:'Email + WhatsApp'},
-        ].map((a,i)=>`<div style="background:var(--s2);border:1px solid ${a.active?'rgba(200,241,53,0.2)':'var(--border)'};border-radius:12px;padding:16px;display:flex;align-items:center;gap:14px;">
+        ${schedules.map((a,i)=>`<div style="background:var(--s2);border:1px solid ${a.active?'rgba(225,31,46,0.2)':'var(--border)'};border-radius:12px;padding:16px;display:flex;align-items:center;gap:14px;">
           <label style="position:relative;width:40px;height:22px;flex-shrink:0;cursor:pointer;">
             <input type="checkbox" ${a.active?'checked':''} style="opacity:0;width:0;height:0;" onchange="repToggleAuto(${i},this.checked)">
             <div style="position:absolute;inset:0;background:${a.active?'var(--accent)':'var(--s3)'};border-radius:99px;transition:0.2s;"></div>
             <div style="position:absolute;top:3px;left:${a.active?'21':'3'}px;width:16px;height:16px;background:${a.active?'#000':'var(--muted)'};border-radius:50%;transition:0.2s;"></div>
           </label>
           <div style="flex:1;">
-            <div style="font-size:13px;font-weight:700;margin-bottom:2px;">${a.label}</div>
-            <div style="font-size:11px;color:var(--muted);">${a.desc}</div>
+            <div style="font-size:13px;font-weight:700;margin-bottom:2px;">${escHtml(a.label)}</div>
+            <div style="font-size:11px;color:var(--muted);">${escHtml(a.desc||'')}</div>
             <div style="display:flex;gap:10px;margin-top:6px;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted2);">
-              <span>⏰ ${a.time}</span><span>👥 ${a.clients}</span><span>📤 ${a.channels}</span>
+              <span>⏰ ${escHtml(a.time||'')}</span><span>👥 ${escHtml(clientsLabel(a.clients))}</span><span>📤 ${escHtml(channelsLabel(a.channels))}</span>
             </div>
           </div>
-          <button class="btn btn-ghost btn-sm" onclick="notify('Edycja harmonogramu')">Edytuj</button>
+          <button class="btn btn-ghost btn-sm" onclick="openRepScheduleEdit(${i})">Edytuj</button>
         </div>`).join('')}
       </div>
 
@@ -1948,37 +2216,131 @@ function renderRepAuto(){
         <div class="form-grid">
           <div class="form-field">
             <label class="form-lbl">Domyślny szablon</label>
-            <select class="form-select" style="font-size:12px;">
-              <option>🌑 Ciemny (Progress Live)</option>
-              <option>☀️ Jasny (profesjonalny)</option>
-              <option>◻️ Minimalny</option>
+            <select class="form-select" id="rep-set-template" style="font-size:12px;">
+              <option value="dark">🌑 Ciemny (Progress Live)</option>
+              <option value="light">☀️ Jasny (profesjonalny)</option>
+              <option value="minimal">◻️ Minimalny</option>
             </select>
           </div>
           <div class="form-field">
             <label class="form-lbl">Język raportu</label>
-            <select class="form-select" style="font-size:12px;">
-              <option>🇵🇱 Polski</option>
-              <option>🇬🇧 English</option>
+            <select class="form-select" id="rep-set-lang" style="font-size:12px;">
+              <option value="pl">🇵🇱 Polski</option>
+              <option value="en">🇬🇧 English</option>
             </select>
           </div>
           <div class="form-field">
             <label class="form-lbl">Stopka raportu</label>
-            <input type="text" class="form-input" value="Piotr Urbaniak · Progress Live · piotr@progresslive.pl" style="font-size:12px;">
+            <input type="text" class="form-input" id="rep-set-footer" value="" style="font-size:12px;">
           </div>
           <div class="form-field">
             <label class="form-lbl">Logo w raporcie</label>
             <div style="display:flex;align-items:center;gap:8px;">
-              <div style="width:40px;height:40px;border-radius:8px;background:var(--adim);display:flex;align-items:center;justify-content:center;font-size:20px;">⚡</div>
-              <button class="btn btn-ghost btn-sm">Zmień logo</button>
+              <div style="width:40px;height:40px;border-radius:8px;background:var(--adim);display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;" id="rep-set-logo-prev">⚡</div>
+              <span style="font-size:11px;color:var(--muted);">Używa logo z Ustawienia → Marka</span>
             </div>
           </div>
         </div>
-        <button class="btn btn-primary btn-sm" onclick="notify('✓ Ustawienia zapisane!')">Zapisz ustawienia</button>
+        <button class="btn btn-primary btn-sm" onclick="saveRepSettings()">Zapisz ustawienia</button>
       </div>
     </div>`;
+  const R=(window.SETTINGS&&window.SETTINGS.reports)||{};
+  const tEl=document.getElementById('rep-set-template');if(tEl)tEl.value=R.template||'dark';
+  const lEl=document.getElementById('rep-set-lang');if(lEl)lEl.value=R.lang||'pl';
+  const fEl=document.getElementById('rep-set-footer');
+  if(fEl)fEl.value=R.footer||((window.SETTINGS?.profile?.name||'Trener')+' · Progress Live');
+  const logoPrev=document.getElementById('rep-set-logo-prev');
+  if(logoPrev&&window.SETTINGS?.brand?.logo)logoPrev.innerHTML='<img src="'+escHtml(window.SETTINGS.brand.logo)+'" style="width:100%;height:100%;object-fit:contain;">';
 }
 
-function repToggleAuto(idx,val){notify(val?'✅ Automatyczny raport włączony':'⏸ Automatyczny raport wyłączony');}
+function openRepScheduleEdit(idx){
+  const schedules=getRepSchedules();
+  const a=schedules[idx];if(!a)return;
+  window._repSchedIdx=idx;
+  let m=document.getElementById('m-rep-sched');
+  if(!m){
+    m=document.createElement('div');m.id='m-rep-sched';m.className='modal-ov';
+    m.innerHTML=`<div class="modal" style="max-width:460px;">
+      <div class="modal-hdr"><div class="modal-title">EDYTUJ HARMONOGRAM</div><button class="modal-close" onclick="closeM('m-rep-sched')">×</button></div>
+      <div class="modal-body">
+        <div class="form-field"><label class="form-lbl">Nazwa</label><input type="text" class="form-input" id="rs-label"></div>
+        <div class="form-field"><label class="form-lbl">Opis</label><textarea class="form-textarea" id="rs-desc" rows="2"></textarea></div>
+        <div class="form-field"><label class="form-lbl">Czas / częstotliwość</label><input type="text" class="form-input" id="rs-time" placeholder="np. Pon 8:00"></div>
+        <div class="form-field"><label class="form-lbl">Odbiorcy</label>
+          <select class="form-select" id="rs-clients">
+            <option value="all">Wszyscy</option>
+            <option value="active">Wszyscy aktywni</option>
+            <option value="premium">Pakiet Premium</option>
+            <option value="inactive">Nieaktywni</option>
+          </select>
+        </div>
+        <div class="form-field"><label class="form-lbl">Kanały</label>
+          <label style="display:flex;gap:8px;align-items:center;font-size:12px;margin:4px 0;"><input type="checkbox" id="rs-ch-email" style="accent-color:var(--accent);"> Email</label>
+          <label style="display:flex;gap:8px;align-items:center;font-size:12px;margin:4px 0;"><input type="checkbox" id="rs-ch-app" style="accent-color:var(--accent);"> App / Inbox</label>
+          <label style="display:flex;gap:8px;align-items:center;font-size:12px;margin:4px 0;"><input type="checkbox" id="rs-ch-whatsapp" style="accent-color:var(--accent);"> WhatsApp</label>
+        </div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-rep-sched')">Anuluj</button><button class="btn btn-primary" onclick="saveRepScheduleEdit()">Zapisz</button></div>
+    </div>`;
+    document.body.appendChild(m);
+    m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');});
+  }
+  document.getElementById('rs-label').value=a.label||'';
+  document.getElementById('rs-desc').value=a.desc||'';
+  document.getElementById('rs-time').value=a.time||'';
+  document.getElementById('rs-clients').value=a.clients||'all';
+  document.getElementById('rs-ch-email').checked=(a.channels||[]).includes('email');
+  document.getElementById('rs-ch-app').checked=(a.channels||[]).includes('app');
+  document.getElementById('rs-ch-whatsapp').checked=(a.channels||[]).includes('whatsapp');
+  openM('m-rep-sched');
+}
+
+function saveRepScheduleEdit(){
+  const schedules=getRepSchedules();
+  const a=schedules[window._repSchedIdx];if(!a)return;
+  a.label=document.getElementById('rs-label').value.trim()||a.label;
+  a.desc=document.getElementById('rs-desc').value.trim();
+  a.time=document.getElementById('rs-time').value.trim();
+  a.clients=document.getElementById('rs-clients').value;
+  a.channels=[];
+  if(document.getElementById('rs-ch-email').checked)a.channels.push('email');
+  if(document.getElementById('rs-ch-app').checked)a.channels.push('app');
+  if(document.getElementById('rs-ch-whatsapp').checked)a.channels.push('whatsapp');
+  if(typeof persistSettingsDoc==='function')persistSettingsDoc();
+  closeM('m-rep-sched');
+  renderRepAuto();
+  notify('✓ Harmonogram zapisany');
+}
+
+function repToggleAuto(idx,val){
+  const schedules=getRepSchedules();
+  if(!schedules[idx])return;
+  schedules[idx].active=!!val;
+  if(typeof persistSettingsDoc==='function')persistSettingsDoc();
+  renderRepAuto();
+  notify(val?'✅ Automatyczny raport włączony':'⏸ Automatyczny raport wyłączony');
+}
+window.openRepScheduleEdit=openRepScheduleEdit;
+window.saveRepScheduleEdit=saveRepScheduleEdit;
+
+function saveRepSettings(){
+  const S=window.SETTINGS||(window.SETTINGS={});
+  if(!S.reports)S.reports={};
+  S.reports.template=document.getElementById('rep-set-template')?.value||'dark';
+  S.reports.lang=document.getElementById('rep-set-lang')?.value||'pl';
+  S.reports.footer=document.getElementById('rep-set-footer')?.value||'';
+  if(typeof persistSettingsDoc==='function')persistSettingsDoc();
+  else{
+    withTrainer(S);
+    if(window._db){
+      const sid=window._settingsDocId||window._uid||'default';
+      window._setDoc(window._doc(window._db,'settings',sid),S,{merge:true}).catch(()=>{});
+    }
+  }
+  notify('✓ Ustawienia raportów zapisane');
+}
+window.saveRepSettings=saveRepSettings;
+
 
 function repQuickView(cid){
   repClientId=cid;
@@ -2050,19 +2412,25 @@ Wygeneruj raport tygodniowy.`;
   renderRepDocument(c,template,true,aiData);
 
   // save to history
-  const repEntry={id:'r'+Date.now(),clientId:c.id,clientName:c.name,type:aplGetVal('rep-types')||'weekly',date:new Date().toISOString().split('T')[0],sent:['email','app'],status:'dostarczony',auto:false};
-  REP_HISTORY.unshift(repEntry);
-  if(window._db){window._add(window._col(window._db,'reportHistory'),repEntry).then(r=>{if(r&&r.id)repEntry._fbId=r.id;}).catch(e=>console.warn('Firebase reportHistory save:',e));}
-
-  // send notifications
+  const sentChannels=[];
+  if(document.getElementById('rep-send-email')?.checked)sentChannels.push('email');
+  if(document.getElementById('rep-send-whatsapp')?.checked)sentChannels.push('whatsapp');
+  if(document.getElementById('rep-send-app')?.checked)sentChannels.push('app');
+  const repEntry=withTrainer({id:newId('r'),clientId:c.id,clientName:c.name,type:aplGetVal('rep-types')||'weekly',date:new Date().toISOString().split('T')[0],sent:sentChannels,status:'wygenerowany',auto:false});
+  // Honest status: email/WhatsApp nie są podłączone — raport jest lokalny + w historii
+  const channels=[];
+  if(document.getElementById('rep-send-email')?.checked)channels.push('email (lokalnie — wysyłka niepodłączona)');
+  if(document.getElementById('rep-send-whatsapp')?.checked)channels.push('WhatsApp (niepodłączone)');
   if(document.getElementById('rep-send-app')?.checked){
+    channels.push('aplikacja');
+    pushMsg(c.id,'📄 Twój raport postępów jest gotowy — sprawdź u trenera lub w podglądzie.');
     addNotification('report','Raport postępów gotowy!','Raport dla '+c.name+' wygenerowany','reports');
   }
-  const channels=[];
-  if(document.getElementById('rep-send-email')?.checked)channels.push('email');
-  if(document.getElementById('rep-send-whatsapp')?.checked)channels.push('WhatsApp');
-  if(document.getElementById('rep-send-app')?.checked)channels.push('aplikacji');
-  if(channels.length)notify('✅ Raport wysłany do '+c.name+' przez '+channels.join(', ')+'!');
+  REP_HISTORY.unshift(repEntry);
+  await persistById('reportHistory',repEntry);
+
+  if(channels.length)notify('✅ Raport zapisany dla '+c.name+'. Kanały: '+channels.join(', '));
+  else notify('✅ Raport wygenerowany i zapisany w historii');
 
   repGenerating=false;
 }
@@ -2089,7 +2457,7 @@ function renderRepDocument(c,template,hasAI,ai){
       <!-- toolbar -->
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-bottom:12px;">
         <button class="btn btn-ghost btn-sm" onclick="window.print()">🖨 Drukuj</button>
-        <button class="btn btn-primary btn-sm" onclick="notify('PDF wygenerowany!')">⬇ PDF</button>
+        <button class="btn btn-primary btn-sm" onclick="window.print()">⬇ PDF (przez drukuj)</button>
       </div>
 
       <!-- dokument -->

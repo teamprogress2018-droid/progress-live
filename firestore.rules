@@ -1,0 +1,28 @@
+rules_version = '2';
+// Progress Live — reguły izolujące dane trenerów po polu trainerId / uid.
+// Wdróż w Firebase Console → Firestore → Rules (lub firebase deploy --only firestore:rules).
+// UWAGA: dokumenty legacy BEZ trainerId nie będą dostępne po wdrożeniu tych reguł.
+// Przed deployem zrób migrację: ustaw trainerId = uid właściciela na istniejących dokumentach.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+    function isOwner() {
+      return signedIn()
+        && resource.data.keys().hasAny(['trainerId'])
+        && resource.data.trainerId == request.auth.uid;
+    }
+    function creatingAsOwner() {
+      return signedIn()
+        && request.resource.data.trainerId == request.auth.uid;
+    }
+
+    match /{collection}/{docId} {
+      allow read: if isOwner();
+      allow create: if creatingAsOwner();
+      allow update, delete: if isOwner()
+        && request.resource.data.trainerId == request.auth.uid;
+    }
+  }
+}

@@ -73,21 +73,17 @@ function ctlAddEntry(clientId){
   const type = document.getElementById('ctl-new-type')?.value || 'notatka';
   if(!text) return;
   if(!CLIENT_TIMELINE[clientId]) CLIENT_TIMELINE[clientId]=[];
-  CLIENT_TIMELINE[clientId].unshift({id:'ct'+Date.now(), text, type, date:new Date().toISOString()});
+  CLIENT_TIMELINE[clientId].unshift({id:newId('ct'), text, type, date:new Date().toISOString()});
   const c = CL.find(x=>x.id===clientId);
+  if(c){c.timeline=CLIENT_TIMELINE[clientId];persistById('clients',c);}
   renderCPTimeline(c);
-  if(window._db && clientId && !clientId.startsWith('l')){
-    try{window._setDoc(window._doc(window._db,'clients',clientId),{timeline:CLIENT_TIMELINE[clientId]},{merge:true});}catch(e){}
-  }
 }
 
 function ctlDeleteEntry(clientId, id){
   CLIENT_TIMELINE[clientId] = (CLIENT_TIMELINE[clientId]||[]).filter(e=>e.id!==id);
   const c = CL.find(x=>x.id===clientId);
+  if(c){c.timeline=CLIENT_TIMELINE[clientId];persistById('clients',c);}
   renderCPTimeline(c);
-  if(window._db && clientId && !clientId.startsWith('l')){
-    try{window._setDoc(window._doc(window._db,'clients',clientId),{timeline:CLIENT_TIMELINE[clientId]},{merge:true});}catch(e){}
-  }
 }
 
 window.renderCPTimeline=renderCPTimeline; window.ctlAddEntry=ctlAddEntry; window.ctlDeleteEntry=ctlDeleteEntry;
@@ -110,9 +106,8 @@ function psyGet(clientId){
 }
 
 function psyPersist(clientId){
-  if(window._db && clientId){
-    try{ window._setDoc(window._doc(window._db,'clients',clientId), {psycho: CLIENT_PSYCHO[clientId]}, {merge:true}); }catch(e){}
-  }
+  const c=CL.find(x=>x.id===clientId);
+  if(c){c.psycho=CLIENT_PSYCHO[clientId];persistById('clients',c);}
 }
 
 function renderCPPsycho(c){
@@ -121,11 +116,11 @@ function renderCPPsycho(c){
   const todayMood = (p.daily||[]).find(d=>d.date===new Date().toISOString().split('T')[0]);
 
   document.getElementById('cp-body').innerHTML = `
-    <div style="background:linear-gradient(135deg,rgba(168,50,74,0.1),rgba(232,48,42,0.06));border:1px solid rgba(168,50,74,0.2);border-radius:10px;padding:14px;margin-bottom:14px;">
+    <div style="background:linear-gradient(135deg,rgba(157,124,244,0.1),rgba(232,48,42,0.06));border:1px solid rgba(157,124,244,0.2);border-radius:10px;padding:14px;margin-bottom:14px;">
       <div style="font-size:10px;color:var(--purple);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">😊 Dzienny tracker nastroju</div>
       <div style="display:flex;gap:6px;justify-content:space-between;margin-bottom:10px;" id="psy-mood-btns">
         ${[[1,'😞','Bardzo zły'],[2,'😕','Zły'],[3,'😐','Neutralny'],[4,'😊','Dobry'],[5,'🤩','Świetny']].map(([v,e,t])=>
-          `<button onclick="psySetMood('${c.id}',${v},this)" class="psy-mood-btn" data-v="${v}" title="${t}" style="flex:1;font-size:20px;background:${(todayMood?.mood===v)?'rgba(168,50,74,0.25)':'var(--s3)'};border:1px solid ${(todayMood?.mood===v)?'rgba(168,50,74,0.5)':'var(--border2)'};border-radius:8px;padding:8px 2px;cursor:pointer;">${e}</button>`
+          `<button onclick="psySetMood('${c.id}',${v},this)" class="psy-mood-btn" data-v="${v}" title="${t}" style="flex:1;font-size:20px;background:${(todayMood?.mood===v)?'rgba(157,124,244,0.25)':'var(--s3)'};border:1px solid ${(todayMood?.mood===v)?'rgba(157,124,244,0.5)':'var(--border2)'};border-radius:8px;padding:8px 2px;cursor:pointer;">${e}</button>`
         ).join('')}
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
@@ -144,7 +139,7 @@ function renderCPPsycho(c){
         <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">Jakość snu (godz.)</div>
         <div style="display:flex;gap:6px;">
           <input id="psy-sleep" type="number" min="0" max="12" step="0.5" value="${todayMood?.sleep||''}" placeholder="7.5" style="flex:1;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:6px 9px;color:var(--text);font-size:12px;">
-          <button onclick="psySaveDaily('${c.id}')" id="psy-daily-btn" style="background:rgba(168,50,74,0.2);border:1px solid rgba(168,50,74,0.4);border-radius:6px;padding:6px 12px;color:var(--purple);font-size:11px;font-weight:600;cursor:pointer;">💾 Zapisz</button>
+          <button onclick="psySaveDaily('${c.id}')" id="psy-daily-btn" style="background:rgba(157,124,244,0.2);border:1px solid rgba(157,124,244,0.4);border-radius:6px;padding:6px 12px;color:var(--purple);font-size:11px;font-weight:600;cursor:pointer;">💾 Zapisz</button>
         </div>
       </div>
     </div>
@@ -201,8 +196,8 @@ function renderCPPsycho(c){
     </div>
 
     <div style="display:flex;flex-direction:column;gap:8px;">
-      <button onclick="psySaveProfile('${c.id}')" id="psy-save-btn" style="width:100%;background:rgba(168,50,74,0.15);border:1px solid rgba(168,50,74,0.35);border-radius:8px;padding:10px;color:var(--purple);font-size:12px;font-weight:600;cursor:pointer;">💾 Zapisz profil psychodietetyczny</button>
-      <button onclick="psyAskAI('${c.id}')" id="psy-ai-btn" style="width:100%;background:rgba(200,241,53,0.1);border:1px solid rgba(200,241,53,0.25);border-radius:8px;padding:10px;color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;">🤖 Zapytaj AI o strategie</button>
+      <button onclick="psySaveProfile('${c.id}')" id="psy-save-btn" style="width:100%;background:rgba(157,124,244,0.15);border:1px solid rgba(157,124,244,0.35);border-radius:8px;padding:10px;color:var(--purple);font-size:12px;font-weight:600;cursor:pointer;">💾 Zapisz profil psychodietetyczny</button>
+      <button onclick="psyAskAI('${c.id}')" id="psy-ai-btn" style="width:100%;background:rgba(225,31,46,0.1);border:1px solid rgba(225,31,46,0.25);border-radius:8px;padding:10px;color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;">🤖 Zapytaj AI o strategie</button>
       <button onclick="psyCheckYoyo('${c.id}')" style="width:100%;background:rgba(201,123,63,0.1);border:1px solid rgba(201,123,63,0.25);border-radius:8px;padding:10px;color:var(--orange);font-size:12px;font-weight:600;cursor:pointer;">🔄 Sprawdź błędne koło yo-yo</button>
       <div id="psy-yoyo-result"></div>
       <div id="psy-ai-result"></div>
@@ -213,7 +208,7 @@ function renderCPPsycho(c){
 
 function psySetMood(clientId,val,btn){
   document.querySelectorAll('.psy-mood-btn').forEach(b=>{b.style.background='var(--s3)';b.style.borderColor='var(--border2)';});
-  btn.style.background='rgba(168,50,74,0.25)';btn.style.borderColor='rgba(168,50,74,0.5)';
+  btn.style.background='rgba(157,124,244,0.25)';btn.style.borderColor='rgba(157,124,244,0.5)';
   btn.dataset.selected='1';
 }
 
@@ -246,7 +241,7 @@ function psySaveProfile(clientId){
   };
   psyPersist(clientId);
   const btn=document.getElementById('psy-save-btn');
-  if(btn){const old=btn.textContent;btn.textContent='✓ Profil zapisany!';btn.style.background='rgba(74,222,128,0.15)';setTimeout(()=>{btn.textContent=old;btn.style.background='rgba(168,50,74,0.15)';},2500);}
+  if(btn){const old=btn.textContent;btn.textContent='✓ Profil zapisany!';btn.style.background='rgba(74,222,128,0.15)';setTimeout(()=>{btn.textContent=old;btn.style.background='rgba(157,124,244,0.15)';},2500);}
   notify('✓ Profil psychodietetyczny zapisany');
 }
 
@@ -256,7 +251,7 @@ function psyRenderMoodHistory(clientId){
   const daily = (p.daily||[]).slice(-7);
   if(!daily.length){ el.innerHTML='<div style="font-size:11px;color:var(--muted);text-align:center;width:100%;">Brak danych – zacznij śledzić nastrój!</div>'; return; }
   const moodEmoji={1:'😞',2:'😕',3:'😐',4:'😊',5:'🤩'};
-  const moodColor={1:'#ff4d4d',2:'#c97b3f',3:'#9a9086',4:'#4ade80',5:'#c8f135'};
+  const moodColor={1:'#ff4d4d',2:'#c97b3f',3:'#9a9086',4:'#4ade80',5:'#e11f2e'};
   el.innerHTML = daily.map(d=>{
     const height=Math.round((d.mood/5)*100);
     const dayName=new Date(d.date).toLocaleDateString('pl',{weekday:'short'}).substring(0,2);
@@ -292,7 +287,7 @@ async function psyAskAI(clientId){
     const r = await fetch(W,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,system:'Jesteś doświadczonym psychodietetykiem i trenerem personalnym. Odpowiadaj konkretnie, po polsku.',messages:[{role:'user',content:prompt}]})});
     const d = await r.json();
     const ans = (d.content||[]).map(i=>i.text||'').join('');
-    if(resEl) resEl.innerHTML = `<div style="background:rgba(200,241,53,0.06);border:1px solid rgba(200,241,53,0.2);border-radius:8px;padding:12px;margin-top:4px;font-size:12px;color:var(--text);line-height:1.6;white-space:pre-wrap;">🤖 ${ans}</div>`;
+    if(resEl) resEl.innerHTML = `<div style="background:rgba(225,31,46,0.06);border:1px solid rgba(225,31,46,0.2);border-radius:8px;padding:12px;margin-top:4px;font-size:12px;color:var(--text);line-height:1.6;white-space:pre-wrap;">🤖 ${ans}</div>`;
   }catch(e){
     if(resEl) resEl.innerHTML = '<div style="color:var(--red);font-size:12px;padding:8px;">Błąd: '+e.message+'</div>';
   }
@@ -366,9 +361,8 @@ function sfrGetWeekData(clientId){
 }
 
 function sfrPersist(clientId){
-  if(window._db && clientId){
-    try{ window._setDoc(window._doc(window._db,'clients',clientId),{sfr:CLIENT_SFR[clientId]},{merge:true}); }catch(e){}
-  }
+  const c=CL.find(x=>x.id===clientId);
+  if(c){c.sfr=CLIENT_SFR[clientId];persistById('clients',c);}
 }
 
 // Mnożnik MRV na podstawie ostatniego dziennego wpisu z modułu Psycho (stres/sen)
@@ -607,8 +601,8 @@ async function fbImportSelected(){
     const c = fbParsed[i];
     if(!c.name) continue;
 
-    const newClient = {
-      id: 'fb_'+Date.now()+'_'+i, name: c.name,
+    const newClient = withTrainer({
+      id: newId('c'), name: c.name,
       email:'', phone:'',
       age: c.age||'', gender: c.gender==='K'?'K':'M',
       weight: c.weight||'', height: c.height||'',
@@ -616,27 +610,27 @@ async function fbImportSelected(){
       injuries: c.injuries||'', notes: c.notes||'',
       status:'active', joinDate: new Date().toISOString().split('T')[0],
       source:'Fitebo import'
-    };
+    });
     CL.push(newClient);
-    if(window._db){ try{ const r = await window._add(window._col(window._db,'clients'), newClient); newClient.id = r.id; }catch(e){} }
+    await persistById('clients', newClient);
 
     for(const m of (c.measurements||[]).filter(m=>m.date)){
       if(m.weight!=null){
-        const me={ id:'fbw_'+Date.now()+Math.random(), clientId:newClient.id, groupId:'mg1', date:m.date, values:{ m1:m.weight }, notes:'Import z Fitebo' };
+        const me=withTrainer({ id:newId('me'), clientId:newClient.id, groupId:'mg1', date:m.date, values:{ m1:m.weight }, notes:'Import z Fitebo' });
         window.METRIC_ENTRIES.push(me);
-        if(window._db){ try{ const r=await window._add(window._col(window._db,'metricEntries'),me); me.id=r.id; }catch(e){} }
+        await persistById('metricEntries', me);
       }
       if(m.waist!=null || m.chest!=null || m.hips!=null){
-        const me={ id:'fbm_'+Date.now()+Math.random(), clientId:newClient.id, groupId:'mg2', date:m.date, values:{ m1:m.chest||null, m2:m.waist||null, m3:m.hips||null }, notes:'Import z Fitebo' };
+        const me=withTrainer({ id:newId('me'), clientId:newClient.id, groupId:'mg2', date:m.date, values:{ m1:m.chest||null, m2:m.waist||null, m3:m.hips||null }, notes:'Import z Fitebo' });
         window.METRIC_ENTRIES.push(me);
-        if(window._db){ try{ const r=await window._add(window._col(window._db,'metricEntries'),me); me.id=r.id; }catch(e){} }
+        await persistById('metricEntries', me);
       }
     }
 
     for(const s of (c.sessions||[]).filter(s=>s.date)){
-      const sess = { id:'fbs_'+Date.now()+Math.random(), clientId:newClient.id, date:s.date, time:'', type: s.type || 'Trening (import Fitebo)', duration:60, notes:'Zaimportowano z Fitebo', createdAt: new Date().toISOString() };
+      const sess = withTrainer({ id:newId('s'), clientId:newClient.id, date:s.date, time:'', type: s.type || 'Trening (import Fitebo)', duration:60, notes:'Zaimportowano z Fitebo', createdAt: new Date().toISOString() });
       SE.push(sess);
-      if(window._db){ try{ const r = await window._add(window._col(window._db,'sessions'), sess); sess.id = r.id; }catch(e){} }
+      await persistById('sessions', sess);
     }
 
     if(c.notes){
@@ -744,14 +738,14 @@ function renderCPOverview(c){
     <!-- aktywny plan -->
     ${plans.length?`
     <div class="cp-section-title">AKTYWNY PLAN</div>
-    <div style="background:linear-gradient(135deg,var(--adim),transparent);border:1px solid rgba(200,241,53,0.2);border-radius:10px;padding:12px 14px;margin-bottom:16px;cursor:pointer;" onclick="setCPTab('plan')">
+    <div style="background:linear-gradient(135deg,var(--adim),transparent);border:1px solid rgba(225,31,46,0.2);border-radius:10px;padding:12px 14px;margin-bottom:16px;cursor:pointer;" onclick="setCPTab('plan')">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
         <div style="font-size:15px;font-weight:700;">${plans[plans.length-1].name}</div>
         <span class="pill pill-green" style="font-size:11px;">${plans[plans.length-1].method||'—'}</span>
       </div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:8px;">${plans[plans.length-1].method||'—'} · ${plans[plans.length-1].duration||'?'} tyg. · ${(plans[plans.length-1].days||[]).length} dni/tydzień</div>
       <div style="display:flex;gap:4px;flex-wrap:wrap;">
-        ${(plans[plans.length-1].days||[]).slice(0,5).map(d=>`<span style="background:${d.rest?'var(--s3)':'rgba(200,241,53,0.12)'};color:${d.rest?'var(--muted)':'var(--accent)'};border-radius:5px;padding:3px 8px;font-size:12px;font-family:'DM Mono',monospace;">${d.day||d.dayName||'?'}${d.rest?' REST':''}</span>`).join('')}
+        ${(plans[plans.length-1].days||[]).slice(0,5).map(d=>`<span style="background:${d.rest?'var(--s3)':'rgba(225,31,46,0.12)'};color:${d.rest?'var(--muted)':'var(--accent)'};border-radius:5px;padding:3px 8px;font-size:12px;font-family:'DM Mono',monospace;">${d.day||d.dayName||'?'}${d.rest?' REST':''}</span>`).join('')}
       </div>
       <div style="font-size:12px;color:var(--accent);margin-top:8px;">→ Kliknij aby zobaczyć szczegóły</div>
     </div>`:`
@@ -1053,7 +1047,7 @@ function renderCPTraining(c){
       </div>`;
     }).join('');
 
-    return `<div style="border:1px solid ${isToday?'var(--accent)':isPast?'var(--border)':'var(--border)'};border-radius:8px;padding:7px;min-height:90px;background:${isToday?'rgba(200,241,53,0.04)':isPast?'rgba(0,0,0,0.1)':'var(--s2)'};cursor:pointer;transition:border-color 0.12s;" onclick="openAddSessionFromCP('${c.id}','${ds}')" onmouseover="this.style.borderColor='var(--border2)'" onmouseout="this.style.borderColor='${isToday?'var(--accent)':isPast?'var(--border)':'var(--border)'}'">
+    return `<div style="border:1px solid ${isToday?'var(--accent)':isPast?'var(--border)':'var(--border)'};border-radius:8px;padding:7px;min-height:90px;background:${isToday?'rgba(225,31,46,0.04)':isPast?'rgba(0,0,0,0.1)':'var(--s2)'};cursor:pointer;transition:border-color 0.12s;" onclick="openAddSessionFromCP('${c.id}','${ds}')" onmouseover="this.style.borderColor='var(--border2)'" onmouseout="this.style.borderColor='${isToday?'var(--accent)':isPast?'var(--border)':'var(--border)'}'">
       <div style="font-size:10px;color:${isToday?'var(--accent)':'var(--muted)'};font-family:'DM Mono',monospace;font-weight:${isToday?700:400};">${dayName} ${d.getDate()}</div>
       ${sessCards}
       ${!sessDay.length?`<div style="margin-top:10px;text-align:center;font-size:16px;color:var(--border2);opacity:0.6;">+</div>`:''}
@@ -1246,16 +1240,20 @@ function addClientDoc(clientId){
   const type=name.endsWith('.pdf')?'pdf':name.match(/\.(jpg|png|jpeg)/i)?'image':'other';
   const note=prompt('Notatka (opcjonalne):','')||'';
   if(!window.CLIENT_DOCS[clientId])window.CLIENT_DOCS[clientId]=[];
-  window.CLIENT_DOCS[clientId].push({
-    id:'doc'+Date.now(),name,type,note,
+  const docItem=withTrainer({
+    id:newId('doc'),clientId,name,type,note,
     date:new Date().toISOString().split('T')[0],
-    size:Math.round(Math.random()*900+100)+'KB'
+    size:'—',
+    createdAt:new Date().toISOString()
   });
+  window.CLIENT_DOCS[clientId].push(docItem);
+  persistById('clientDocs',docItem);
   const c=CL.find(x=>x.id===clientId);if(c)renderCPDocuments(c);
 }
 function delClientDoc(clientId,docId){
   if(!confirm('Usunąć dokument?'))return;
   window.CLIENT_DOCS[clientId]=(window.CLIENT_DOCS[clientId]||[]).filter(x=>x.id!==docId);
+  if(window._db){try{window._del(window._doc(window._db,'clientDocs',docId));}catch(e){}}
   const c=CL.find(x=>x.id===clientId);if(c)renderCPDocuments(c);
 }
 
@@ -1266,9 +1264,7 @@ function toggleClientFeature(clientId,feature,tab){
   const c=CL.find(x=>x.id===clientId);if(!c)return;
   if(!c.clientSettings)c.clientSettings={};
   c.clientSettings[feature]=!c.clientSettings[feature];
-  if(window._db&&c.id&&!c.id.startsWith('l')){
-    try{window._setDoc(window._doc(window._db,'clients',c.id),{clientSettings:c.clientSettings},{merge:true});}catch(e){}
-  }
+  persistById('clients',c);
   if(tab)setCPTab(tab);
   else renderCPSettings(c);
   notify(feature+' '+(c.clientSettings[feature]?'włączone':'wyłączone'));
@@ -1376,9 +1372,7 @@ function updateClientUnit(clientId,key,value){
   const c=CL.find(x=>x.id===clientId);if(!c)return;
   if(!c.clientSettings)c.clientSettings={};
   c.clientSettings[key]=value;
-  if(window._db&&c.id&&!c.id.startsWith('l')){
-    try{window._setDoc(window._doc(window._db,'clients',c.id),{clientSettings:c.clientSettings},{merge:true});}catch(e){}
-  }
+  persistById('clients',c);
   notify('Zapisano');
 }
 

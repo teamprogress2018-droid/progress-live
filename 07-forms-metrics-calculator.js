@@ -288,9 +288,10 @@ function confirmSendForm(){
   const cid=document.getElementById('send-form-client').value;
   const c=CL.find(x=>x.id===cid);
   const f=allForms().find(x=>x.id===sendFormId);
-  const send={formId:sendFormId,clientId:cid,sentAt:new Date().toLocaleDateString('pl'),status:'sent',answers:[]};
+  const send=withTrainer({id:newId('fs'),formId:sendFormId,clientId:cid,sentAt:new Date().toLocaleDateString('pl'),status:'sent',answers:[]});
   FORM_SENDS.push(send);
-  if(window._db){window._add(window._col(window._db,'formSends'),send).then(r=>{if(r&&r.id)send._fbId=r.id;}).catch(e=>console.warn('Firebase formSend save:',e));}
+  persistById('formSends',send);
+  if(c)pushMsg(c.id,'📋 Proszę wypełnić formularz: "'+(f?f.name:'Formularz')+'"');
   closeM('m-send-form');
   renderForms();
   if(formSelId===sendFormId)openFormDetail(sendFormId);
@@ -381,12 +382,12 @@ async function saveCustomForm(){
       document.getElementById('nf-questions').innerHTML='';
       document.getElementById('nf-title').value='';
       renderForms();notify('✓ Formularz zaktualizowany!');
-      if(window._db){try{await window._setDoc(window._doc(window._db,'forms',editingId),window.CUSTOM_FORMS[idx],{merge:true});}catch(e){console.warn('Firebase update form:',e);}}
+      await persistById('forms',window.CUSTOM_FORMS[idx]);
       return;
     }
   }
-  const form={id:'cf'+Date.now(),type:'moje',status:'active',cat:document.getElementById('nf-cat').value,name:title,desc:document.getElementById('nf-desc').value,questions,createdAt:new Date().toISOString()};
-  try{if(window._db){const r=await window._add(window._col(window._db,'forms'),form);form.id=r.id;}}catch(e){}
+  const form=withTrainer({id:newId('cf'),type:'moje',status:'active',cat:document.getElementById('nf-cat').value,name:title,desc:document.getElementById('nf-desc').value,questions,createdAt:new Date().toISOString()});
+  await persistById('forms',form);
   window.CUSTOM_FORMS.push(form);
   closeM('m-form');
   document.getElementById('nf-questions').innerHTML='';
@@ -690,13 +691,11 @@ function saveQuickEntry(cid,gid){
     if(el&&el.value)values[m.id]=parseFloat(el.value);
   });
   if(!Object.keys(values).length){notify('Wpisz przynajmniej jedną wartość!');return;}
-  const entry={id:'qe'+Date.now(),clientId:cid,groupId:gid,date,values,notes:'',createdAt:new Date().toISOString()};
+  const entry=withTrainer({id:newId('qe'),clientId:cid,groupId:gid,date,values,notes:'',createdAt:new Date().toISOString()});
   METRIC_ENTRIES.push(entry);
   renderMetrics();renderMetricData(cid,gid);
   notify('✓ Pomiar zapisany!');
-  if(window._db){
-    (async()=>{try{const r=await window._add(window._col(window._db,'metricEntries'),entry);entry.id=r.id;}catch(e){console.warn('Firebase metricEntries:',e);}})();
-  }
+  persistById('metricEntries',entry);
 }
 
 function delMetricEntry(id){
@@ -732,15 +731,13 @@ function saveMetricGroup(){
     const inps=row.querySelectorAll('input');
     if(inps[0]&&inps[0].value.trim())metrics.push({id:'m'+(i+1),name:inps[0].value.trim(),unit:inps[1]?inps[1].value.trim():'',type:'number'});
   });
-  const grp={id:'ug'+Date.now(),name,icon:metricSelIcon,color:'var(--purple)',metrics};
+  const grp=withTrainer({id:newId('ug'),name,icon:metricSelIcon,color:'var(--purple)',metrics});
   window.METRIC_GROUPS.push(grp);
   closeM('m-metric-group');
   document.getElementById('mg-name').value='';
   document.getElementById('mg-metrics-list').innerHTML='';
   renderMetrics();notify('✓ Grupa "'+name+'" utworzona!');
-  if(window._db){
-    (async()=>{try{const r=await window._add(window._col(window._db,'metricGroups'),grp);grp.id=r.id;}catch(e){console.warn('Firebase metricGroups:',e);}})();
-  }
+  persistById('metricGroups',grp);
 }
 
 function updateMetricEntryForm(){
@@ -767,21 +764,19 @@ async function saveMetricEntry(){
   const values={};
   group.metrics.forEach(m=>{const el=document.getElementById('mef-'+m.id);if(el&&el.value)values[m.id]=parseFloat(el.value);});
   if(!Object.keys(values).length){notify('Wpisz przynajmniej jedną wartość!');return;}
-  const entry={id:'me'+Date.now(),clientId:cid,groupId:gid,date,values,notes:document.getElementById('me-notes').value,createdAt:new Date().toISOString()};
+  const entry=withTrainer({id:newId('me'),clientId:cid,groupId:gid,date,values,notes:document.getElementById('me-notes').value,createdAt:new Date().toISOString()});
   METRIC_ENTRIES.push(entry);
   closeM('m-metric-entry');
   if((document.getElementById('metric-client-sel')||{}).value===cid){renderMetrics();if(metricActiveGroup===gid)renderMetricData(cid,gid);}
   notify('✓ Pomiar dodany!');
-  if(window._db){
-    try{const r=await window._add(window._col(window._db,'metricEntries'),entry);entry.id=r.id;}catch(e){console.warn('Firebase metricEntries:',e);}
-  }
+  await persistById('metricEntries',entry);
 }
 
 async function askMetricAI(){
   const q=document.getElementById('metric-ai-q').value.trim();if(!q)return;
   document.getElementById('metric-ai-q').value='';
   const msgs=document.getElementById('metric-ai-msgs');
-  msgs.innerHTML+='<div style="text-align:right;margin-bottom:6px;"><div style="display:inline-block;background:var(--accent);color:#000;padding:5px 9px;border-radius:8px;font-size:11px;">'+q+'</div></div>';
+  msgs.innerHTML+='<div style="text-align:right;margin-bottom:6px;"><div style="display:inline-block;background:var(--accent);color:#fff;padding:5px 9px;border-radius:8px;font-size:11px;">'+q+'</div></div>';
   msgs.innerHTML+='<div id="mai-t" style="margin-bottom:6px;"><div style="display:inline-block;background:var(--s3);border:1px solid var(--border2);padding:5px 9px;border-radius:8px;font-size:11px;opacity:0.5;">Analizuję dane...</div></div>';
   msgs.scrollTop=msgs.scrollHeight;
   const cid=(document.getElementById('metric-client-sel')||{}).value||'';

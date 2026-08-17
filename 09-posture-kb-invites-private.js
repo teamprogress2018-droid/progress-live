@@ -15,7 +15,7 @@ function renderCPPosture(c){
       <div style="border:2px ${has?(active?'solid var(--accent)':'solid var(--border2)'):'dashed var(--border2)'};border-radius:12px;overflow:hidden;background:${has?'transparent':'var(--s3)'};transition:border-color 0.15s;" onclick="if(this.parentElement.querySelector('input').files.length===0&&${has?'true':'false'})postureSetActive('${c.id}','${view}')">
         ${has?`<img src="${has}" style="width:100%;height:110px;object-fit:cover;display:block;">`
             :`<div style="height:110px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;"><div style="font-size:28px;opacity:0.4;">${ICONS[view]}</div><div style="font-size:10px;color:var(--muted);">+ Wgraj</div></div>`}
-        <div style="padding:6px 8px;background:${active&&has?'rgba(200,241,53,0.1)':'var(--s2)'};border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+        <div style="padding:6px 8px;background:${active&&has?'rgba(225,31,46,0.1)':'var(--s2)'};border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
           <span style="font-size:11px;font-weight:700;color:${active&&has?'var(--accent)':'var(--text)'};">${labels[view]}</span>
           ${has?`<span style="font-size:9px;color:var(--muted);">zmień</span>`:`<span style="font-size:9px;color:var(--muted);">brak</span>`}
         </div>
@@ -24,7 +24,7 @@ function renderCPPosture(c){
   }).join('');
 
   const viewBtns=Object.entries(labels).filter(([v])=>p.photos[v]).map(([v,l])=>
-    `<button onclick="postureSetActive('${c.id}','${v}')" style="padding:5px 14px;border-radius:6px;border:1px solid ${p.currentPhoto===v?'var(--accent)':'var(--border2)'};background:${p.currentPhoto===v?'rgba(200,241,53,0.1)':'var(--s3)'};color:${p.currentPhoto===v?'var(--accent)':'var(--muted)'};font-size:11px;font-weight:${p.currentPhoto===v?700:400};cursor:pointer;transition:all 0.12s;">${l}</button>`
+    `<button onclick="postureSetActive('${c.id}','${v}')" style="padding:5px 14px;border-radius:6px;border:1px solid ${p.currentPhoto===v?'var(--accent)':'var(--border2)'};background:${p.currentPhoto===v?'rgba(225,31,46,0.1)':'var(--s3)'};color:${p.currentPhoto===v?'var(--accent)':'var(--muted)'};font-size:11px;font-weight:${p.currentPhoto===v?700:400};cursor:pointer;transition:all 0.12s;">${l}</button>`
   ).join('');
 
   document.getElementById('cp-body').innerHTML=`
@@ -139,10 +139,8 @@ Bądź konkretny. Bazuj wyłącznie na tym co widzisz na zdjęciu.`;
     if(!c._posture.analyses)c._posture.analyses=[];
     c._posture.analyses.push({date:today,view:viewLabelShort[view]||view,result});
 
-    // Zapisz do Firebase w tle
-    if(window._db&&c.id&&!c.id.startsWith('l')){
-      try{window._setDoc(window._doc(window._db,'clients',c.id),{_posture:c._posture},{merge:true});}catch(e){}
-    }
+    // Zapisz do Firebase
+    persistById('clients',c);
 
     renderCPPosture(c);
     notify('✓ Analiza postawy ukończona!');
@@ -183,12 +181,17 @@ function cpOpenTask(){
 }
 function deleteClientNote(clientId,idx){
   if(!CLIENT_NOTES[clientId])return;
-  CLIENT_NOTES[clientId].splice(idx,1);
+  if(!confirm('Usunąć tę notatkę?'))return;
+  const removed=CLIENT_NOTES[clientId].splice(idx,1)[0];
   setCPTab('overview');
   notify('Notatka usunięta');
+  if(removed&&removed.id&&window._db){
+    try{window._del(window._doc(window._db,'clientNotes',removed.id));}catch(e){}
+  }
 }
 function deleteClientActivity(clientId,idx){
   if(!CLIENT_ACTIVITY[clientId])return;
+  if(!confirm('Usunąć ten wpis aktywności?'))return;
   CLIENT_ACTIVITY[clientId].splice(idx,1);
   setCPTab('overview');
   notify('Aktywność usunięta');
@@ -204,10 +207,7 @@ function saveCPEdit(id){
   c.level=document.getElementById('cpe-level').value;
   c.status=document.getElementById('cpe-status').value;
   c.notes=document.getElementById('cpe-notes').value;
-  // Firebase w tle
-  if(window._db&&c.id&&!c.id.startsWith('l')){
-    try{window._setDoc(window._doc(window._db,'clients',c.id),c,{merge:true});}catch(e){console.warn('Firebase setDoc:',e);}
-  }
+  persistById('clients',c);
   // Odśwież sidebar bez zamykania drawera
   try{renderClients();}catch(e){}
   try{document.getElementById('nb-clients').textContent=CL.length;}catch(e){}
@@ -226,6 +226,7 @@ function archiveClient(id){
   const c=CL.find(x=>x.id===id);
   if(c){
     c.status='archived';
+    persistById('clients',c);
     try{renderClients();}catch(e){}
     try{document.getElementById('nb-clients').textContent=CL.length;}catch(e){}
     closeClientProfile();
@@ -430,6 +431,7 @@ function usePackageSession(id){
   if(!p)return;
   if(p.sessionsUsed>=p.sessions){notify('Pakiet wyczerpany!');return;}
   p.sessionsUsed++;
+  persistById('packages',p);
   renderPayPackages();
   notify('✓ Sesja odliczona z pakietu ('+p.sessionsUsed+'/'+p.sessions+')');
 }
@@ -439,9 +441,9 @@ function markPaid(id){
   const p=all.find(x=>x.id===id);
   if(p){
     p.payStatus='paid';renderPayPackages();renderPayOverview();notify('✓ Pakiet oznaczony jako opłacony');
-    if(window._db&&p._fbId){
-      window._setDoc(window._doc(window._db,'packages',p._fbId),{payStatus:'paid'},{merge:true}).catch(e=>console.warn('Firebase markPaid:',e));
-    }
+    persistById('packages',p);
+    const inv=(window.INVOICES||[]).find(i=>i.pkgId===p.id||i.id===p.invoiceId);
+    if(inv){inv.status='paid';persistById('invoices',inv);}
   }
 }
 
@@ -468,7 +470,7 @@ function viewInvoice(invId){
         </div>
       </div>
       <div style="display:flex;justify-content:flex-end;">
-        <div style="background:var(--adim);border:1px solid rgba(200,241,53,0.2);border-radius:8px;padding:12px 20px;text-align:right;">
+        <div style="background:var(--adim);border:1px solid rgba(225,31,46,0.2);border-radius:8px;padding:12px 20px;text-align:right;">
           <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">RAZEM</div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--accent);">${inv.amount.toLocaleString('pl')} zł</div>
         </div>
@@ -537,8 +539,8 @@ async function savePackage(){
   const expD=new Date(date);expD.setDate(expD.getDate()+validity);
   invoiceCounter++;
   const invId='INV-'+invoiceCounter;
-  const pkg={
-    id:'pkg'+Date.now(),title,
+  const pkg=withTrainer({
+    id:newId('pkg'),title,
     type:document.getElementById('pkg-type').value,
     sessions,sessionsUsed:0,price,validity,
     clientId:cid,clientName:c?c.name:'Brak klienta',
@@ -546,14 +548,12 @@ async function savePackage(){
     date,expiresDate:expD.toISOString().split('T')[0],
     notes:document.getElementById('pkg-notes').value,
     invoiceId:invId
-  };
-  const inv={id:invId,nr:invId,pkgId:pkg.id,clientName:pkg.clientName,pkgTitle:title,date,amount:price,status:pkg.payStatus};
+  });
+  const inv=withTrainer({id:invId,nr:invId,pkgId:pkg.id,clientName:pkg.clientName,pkgTitle:title,date,amount:price,status:pkg.payStatus});
   window.PACKAGES.push(pkg);
   window.INVOICES.push(inv);
-  if(window._db){
-    window._add(window._col(window._db,'packages'),pkg).then(r=>{if(r&&r.id)pkg._fbId=r.id;}).catch(e=>console.warn('Firebase pkg save:',e));
-    window._add(window._col(window._db,'invoices'),inv).then(r=>{if(r&&r.id)inv._fbId=r.id;}).catch(e=>console.warn('Firebase inv save:',e));
-  }
+  await persistById('packages',pkg);
+  await persistById('invoices',inv);
   closeM('m-package');
   if(payTab==='overview')renderPayOverview();
   else if(payTab==='packages')renderPayPackages();
@@ -582,6 +582,8 @@ const OD_DEMO_WORKOUTS=[
 const OD_DEMO_PROGRAMS=[
   {id:'op1',name:'Starting Strength — Demo',level:'poczatkujacy',duration:'4 tygodnie',color:'linear-gradient(135deg,#1a0a0a,#2a1a0a)',emoji:'🏋️',desc:'Oparty na Starting Strength Marka Rippetoe. Program siły oparty na własnej masie, stopniowo wprowadzający obciążenia.',clients:0,status:'draft'},
 ];
+window.OD_PROGRAMS=window.OD_PROGRAMS||[];
+function allODPrograms(){return window.OD_PROGRAMS&&window.OD_PROGRAMS.length?window.OD_PROGRAMS:OD_DEMO_PROGRAMS;}
 
 const LEVEL_MAP={poczatkujacy:'Początkujący',sredni:'Średni',zaawansowany:'Zaawansowany'};
 
@@ -595,7 +597,7 @@ function setODTab(t){
   });
   const addBtn=document.getElementById('od-add-btn');
   if(addBtn){
-    if(t==='programs'){addBtn.textContent='+ Nowy program';addBtn.onclick=()=>notify('Kreator programów on-demand — wkrótce!');}
+    if(t==='programs'){addBtn.textContent='+ Nowy program';addBtn.onclick=()=>openODProgramModal();}
     else{addBtn.textContent='+ Dodaj trening';addBtn.onclick=()=>openM('m-od-workout');}
   }
   if(t==='browse')renderODBrowse();
@@ -625,7 +627,7 @@ function renderODBrowse(){
 
   // programs grid
   const pg=document.getElementById('od-programs-grid');
-  if(pg)pg.innerHTML=OD_DEMO_PROGRAMS.map((p,i)=>odProgramCardHTML(p,i)).join('');
+  if(pg)pg.innerHTML=allODPrograms().slice(0,3).map((p,i)=>odProgramCardHTML(p,i)).join('');
 }
 
 function renderODWorkouts(){
@@ -652,8 +654,9 @@ function renderODWorkouts(){
 function renderODPrograms(){
   const g=document.getElementById('od-all-programs-grid');
   if(!g)return;
-  g.innerHTML=OD_DEMO_PROGRAMS.map((p,i)=>odProgramCardHTML(p,i)).join('')
-    +`<div style="border:1px dashed var(--border2);border-radius:var(--r2);padding:18px;display:flex;align-items:center;justify-content:center;min-height:180px;cursor:pointer;background:transparent;" onclick="notify('Kreator programów — wkrótce!')"><div style="text-align:center;color:var(--muted);"><div style="font-size:32px;margin-bottom:8px;">+</div><div style="font-size:13px;font-weight:600;">Nowy program on-demand</div><div style="font-size:11px;margin-top:4px;">Klienci startują sami</div></div></div>`;
+  const list=allODPrograms();
+  g.innerHTML=(list.length?list.map((p,i)=>odProgramCardHTML(p,i)).join(''):'')
+    +`<div style="border:1px dashed var(--border2);border-radius:var(--r2);padding:18px;display:flex;align-items:center;justify-content:center;min-height:180px;cursor:pointer;background:transparent;" onclick="openODProgramModal()"><div style="text-align:center;color:var(--muted);"><div style="font-size:32px;margin-bottom:8px;">+</div><div style="font-size:13px;font-weight:600;">Nowy program on-demand</div><div style="font-size:11px;margin-top:4px;">Klienci startują sami</div></div></div>`;
 }
 
 function odWorkoutCardHTML(w,i){
@@ -687,31 +690,147 @@ function odProgramCardHTML(p,i){
       <div style="font-size:36px;opacity:0.25;position:absolute;top:10px;right:10px;">${p.emoji||'🏋️'}</div>
       <div>
         <span style="background:rgba(0,0,0,0.6);color:${p.status==='draft'?'var(--orange)':'var(--accent)'};font-size:10px;font-family:'DM Mono',monospace;padding:2px 8px;border-radius:4px;margin-right:6px;">${p.status==='draft'?'DRAFT':'AKTYWNY'}</span>
-        <span style="background:rgba(0,0,0,0.6);color:#fff;font-size:10px;font-family:'DM Mono',monospace;padding:2px 8px;border-radius:4px;">${p.duration}</span>
+        <span style="background:rgba(0,0,0,0.6);color:#fff;font-size:10px;font-family:'DM Mono',monospace;padding:2px 8px;border-radius:4px;">${escHtml(p.duration||'')}</span>
       </div>
     </div>
     <div style="padding:14px;">
-      <div style="font-size:14px;font-weight:700;margin-bottom:4px;">${p.name}</div>
-      <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:10px;">${p.desc||''}</div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">Dostępny dla <strong>${p.clients}</strong> klientów</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:4px;">${escHtml(p.name)}</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:10px;">${escHtml(p.desc||'')}</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">Poziom: <strong>${LEVEL_MAP[p.level]||escHtml(p.level||'—')}</strong></div>
       <div style="display:flex;gap:6px;">
-        <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="notify('Edytor programów — wkrótce!')">Edytuj</button>
-        <button class="btn btn-primary btn-sm" style="flex:1;" onclick="shareODProgram('${p.id}')">Udostępnij</button>
+        <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="openODProgramModal('${escHtml(p.id)}')">Edytuj</button>
+        <button class="btn btn-primary btn-sm" style="flex:1;" onclick="shareODProgram('${escHtml(p.id)}')">Udostępnij</button>
       </div>
     </div>
   </div>`;
 }
 
+function openODProgramModal(id){
+  window._editingODProgId=id||null;
+  let m=document.getElementById('m-od-program');
+  if(!m){
+    m=document.createElement('div');
+    m.id='m-od-program';m.className='modal-ov';
+    m.innerHTML=`<div class="modal" style="max-width:520px;">
+      <div class="modal-hdr"><div class="modal-title" id="odp-modal-title">NOWY PROGRAM ON-DEMAND</div><button class="modal-close" onclick="closeM('m-od-program')">×</button></div>
+      <div class="modal-body">
+        <div class="form-field"><label class="form-lbl">Nazwa</label><input type="text" class="form-input" id="odp-name" placeholder="np. Starting Strength 4 tyg."></div>
+        <div class="form-grid">
+          <div class="form-field"><label class="form-lbl">Poziom</label>
+            <select class="form-select" id="odp-level">
+              <option value="poczatkujacy">Początkujący</option>
+              <option value="sredni" selected>Średni</option>
+              <option value="zaawansowany">Zaawansowany</option>
+            </select>
+          </div>
+          <div class="form-field"><label class="form-lbl">Czas trwania</label><input type="text" class="form-input" id="odp-duration" placeholder="np. 8 tygodni" value="4 tygodnie"></div>
+        </div>
+        <div class="form-grid">
+          <div class="form-field"><label class="form-lbl">Status</label>
+            <select class="form-select" id="odp-status">
+              <option value="draft">Draft</option>
+              <option value="active">Aktywny</option>
+            </select>
+          </div>
+          <div class="form-field"><label class="form-lbl">Emoji</label><input type="text" class="form-input" id="odp-emoji" value="🏋️" maxlength="4"></div>
+        </div>
+        <div class="form-field"><label class="form-lbl">Opis</label><textarea class="form-textarea" id="odp-desc" rows="3" placeholder="Opis programu dla klientów..."></textarea></div>
+      </div>
+      <div class="modal-footer" style="display:flex;gap:8px;justify-content:flex-end;">
+        <button class="btn btn-ghost btn-sm" id="odp-delete-btn" style="display:none;margin-right:auto;color:var(--red);" onclick="deleteODProgram()">Usuń</button>
+        <button class="btn btn-ghost" onclick="closeM('m-od-program')">Anuluj</button>
+        <button class="btn btn-primary" onclick="saveODProgram()">Zapisz</button>
+      </div>
+    </div>`;
+    document.body.appendChild(m);
+    m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');});
+  }
+  const p=id?(window.OD_PROGRAMS||[]).find(x=>x.id===id)||OD_DEMO_PROGRAMS.find(x=>x.id===id):null;
+  document.getElementById('odp-modal-title').textContent=p?'EDYTUJ PROGRAM':'NOWY PROGRAM ON-DEMAND';
+  document.getElementById('odp-name').value=p?.name||'';
+  document.getElementById('odp-level').value=p?.level||'sredni';
+  document.getElementById('odp-duration').value=p?.duration||'4 tygodnie';
+  document.getElementById('odp-status').value=p?.status||'draft';
+  document.getElementById('odp-emoji').value=p?.emoji||'🏋️';
+  document.getElementById('odp-desc').value=p?.desc||'';
+  const del=document.getElementById('odp-delete-btn');
+  if(del)del.style.display=(p&&window.OD_PROGRAMS.some(x=>x.id===p.id))?'inline-flex':'none';
+  openM('m-od-program');
+}
+
+async function saveODProgram(){
+  const name=document.getElementById('odp-name')?.value.trim();
+  if(!name){notify('Wpisz nazwę programu!');return;}
+  const editingId=window._editingODProgId;
+  let prog;
+  if(editingId){
+    prog=(window.OD_PROGRAMS||[]).find(x=>x.id===editingId);
+    if(!prog){
+      // edycja demo → utwórz kopię użytkownika
+      prog=withTrainer({id:newId('op'),name,level:document.getElementById('odp-level').value,duration:document.getElementById('odp-duration').value.trim()||'4 tygodnie',status:document.getElementById('odp-status').value,emoji:document.getElementById('odp-emoji').value||'🏋️',desc:document.getElementById('odp-desc').value.trim(),color:'linear-gradient(135deg,#1a0a0a,#2a1a0a)',clients:0,createdAt:new Date().toISOString()});
+      window.OD_PROGRAMS.push(prog);
+    }else{
+      prog.name=name;
+      prog.level=document.getElementById('odp-level').value;
+      prog.duration=document.getElementById('odp-duration').value.trim()||prog.duration;
+      prog.status=document.getElementById('odp-status').value;
+      prog.emoji=document.getElementById('odp-emoji').value||'🏋️';
+      prog.desc=document.getElementById('odp-desc').value.trim();
+      prog.updatedAt=new Date().toISOString();
+      withTrainer(prog);
+    }
+  }else{
+    prog=withTrainer({
+      id:newId('op'),name,
+      level:document.getElementById('odp-level').value,
+      duration:document.getElementById('odp-duration').value.trim()||'4 tygodnie',
+      status:document.getElementById('odp-status').value,
+      emoji:document.getElementById('odp-emoji').value||'🏋️',
+      desc:document.getElementById('odp-desc').value.trim(),
+      color:'linear-gradient(135deg,#1a0a0a,#2a1a0a)',
+      clients:0,
+      createdAt:new Date().toISOString()
+    });
+    window.OD_PROGRAMS.push(prog);
+  }
+  await persistById('odPrograms',prog);
+  closeM('m-od-program');
+  renderODPrograms();
+  if(odTab==='browse')renderODBrowse();
+  notify('✓ Program "'+name+'" zapisany');
+}
+
+async function deleteODProgram(){
+  const id=window._editingODProgId;if(!id)return;
+  if(!confirm('Usunąć ten program?'))return;
+  window.OD_PROGRAMS=(window.OD_PROGRAMS||[]).filter(x=>x.id!==id);
+  if(window._db){try{await window._del(window._doc(window._db,'odPrograms',id));}catch(e){}}
+  closeM('m-od-program');
+  renderODPrograms();
+  notify('Program usunięty');
+}
+window.openODProgramModal=openODProgramModal;
+window.saveODProgram=saveODProgram;
+window.deleteODProgram=deleteODProgram;
+window.allODPrograms=allODPrograms;
+
 function shareODWorkout(id){
   if(!CL.length){notify('Najpierw dodaj klienta!');return;}
   const w=(window.OD_WORKOUTS||[]).find(x=>x.id===id);
-  notify('✓ Trening "'+(w?w.name:id)+'" udostępniony wszystkim klientom!');
+  if(!w){notify('Nie znaleziono treningu');return;}
+  if(!confirm('Udostępnić trening "'+w.name+'" wszystkim klientom ('+CL.length+')?'))return;
+  const link=w.url||'(brak URL wideo)';
+  CL.forEach(c=>pushMsg(c.id,'▶️ Nowy trening on-demand: "'+w.name+'"\n'+link+(w.desc?'\n'+w.desc:'')));
+  notify('✓ Trening "'+w.name+'" wysłany do '+CL.length+' klientów (Inbox)');
 }
 
 function shareODProgram(id){
   if(!CL.length){notify('Najpierw dodaj klienta!');return;}
-  const p=OD_DEMO_PROGRAMS.find(x=>x.id===id);
-  notify('✓ Program "'+(p?p.name:id)+'" udostępniony klientom!');
+  const p=allODPrograms().find(x=>x.id===id);
+  if(!p){notify('Nie znaleziono programu');return;}
+  if(!confirm('Udostępnić program "'+p.name+'" wszystkim klientom ('+CL.length+')?'))return;
+  CL.forEach(c=>pushMsg(c.id,'📋 Program on-demand: "'+p.name+'"'+(p.desc?'\n'+p.desc:'')+'\nCzas: '+(p.duration||'—')+' · '+(LEVEL_MAP[p.level]||p.level||'')));
+  notify('✓ Program "'+p.name+'" wysłany do '+CL.length+' klientów (Inbox)');
 }
 
 async function saveODWorkout(){
@@ -719,8 +838,8 @@ async function saveODWorkout(){
 
   const name=document.getElementById('odw-name').value.trim();
   if(!name){notify('Wpisz nazwę treningu!');return;}
-  const w={
-    id:'ow'+Date.now(),name,
+  const w=withTrainer({
+    id:newId('ow'),name,
     type:document.getElementById('odw-type').value,
     level:document.getElementById('odw-level').value,
     time:parseInt(document.getElementById('odw-time').value)||30,
@@ -728,9 +847,9 @@ async function saveODWorkout(){
     url:document.getElementById('odw-url').value,
     desc:document.getElementById('odw-desc').value,
     color:'var(--s3)',emoji:'🏋️',views:0,likes:0
-  };
+  });
   window.OD_WORKOUTS.push(w);
-  if(window._db){window._add(window._col(window._db,'odWorkouts'),w).then(r=>{if(r&&r.id)w._fbId=r.id;}).catch(e=>console.warn('Firebase OD workout save:',e));}
+  await persistById('odWorkouts',w);
   closeM('m-od-workout');
   if(odTab==='browse')renderODBrowse();
   else if(odTab==='workouts')renderODWorkouts();
@@ -1009,8 +1128,8 @@ async function saveResource(){
 
   const name=document.getElementById('rs-name').value.trim();
   if(!name){notify('Wpisz nazwę zasobu!');return;}
-  const r={
-    id:'ur'+Date.now(),
+  const r=withTrainer({
+    id:newId('ur'),
     name,
     type:document.getElementById('rs-type').value,
     cat:document.getElementById('rs-cat').value,
@@ -1018,9 +1137,9 @@ async function saveResource(){
     desc:document.getElementById('rs-desc').value,
     coll:document.getElementById('rs-coll').value,
     createdAt:new Date().toISOString()
-  };
+  });
   window.USER_RESOURCES.push(r);
-  if(window._db){window._add(window._col(window._db,'resources'),r).then(res=>{if(res&&res.id)r._fbId=res.id;}).catch(e=>console.warn('Firebase resource save:',e));}
+  await persistById('resources',r);
   closeM('m-resource');
   renderResources();
   notify('✓ Zasób "'+name+'" dodany!');
@@ -1090,8 +1209,57 @@ function addOSCForm(){
 }
 
 function saveOnboardingFlow(){
-  notify('✓ Onboarding Flow zapisany!');
+  const flow=withTrainer({
+    id:window.ONBOARDING_FLOW?.id||(window._uid?('onbflow_'+window._uid):newId('onbflow')),
+    formsEnabled:!!document.getElementById('osc-forms-en')?.checked,
+    msgEnabled:!!document.getElementById('osc-msg-en')?.checked,
+    assignEnabled:!!document.getElementById('osc-assign-en')?.checked,
+    ondemandEnabled:!!document.getElementById('osc-ondemand-en')?.checked,
+    recipesEnabled:!!document.getElementById('osc-recipes-en')?.checked,
+    welcomeMsg:document.getElementById('osc-welcome-msg')?.value||'',
+    programId:document.getElementById('osc-program-sel')?.value||'',
+    updatedAt:new Date().toISOString()
+  });
+  window.ONBOARDING_FLOW=flow;
+  persistById('onboardingFlows',flow);
+  notify('✓ Onboarding Flow zapisany');
 }
+
+function applyOnboardingFlow(flow){
+  if(!flow)return;
+  const setChk=(id,v)=>{const el=document.getElementById(id);if(el)el.checked=!!v;};
+  setChk('osc-forms-en',flow.formsEnabled!==false);
+  setChk('osc-msg-en',flow.msgEnabled!==false);
+  setChk('osc-assign-en',flow.assignEnabled!==false);
+  setChk('osc-ondemand-en',!!flow.ondemandEnabled);
+  setChk('osc-recipes-en',!!flow.recipesEnabled);
+  const msg=document.getElementById('osc-welcome-msg');if(msg&&flow.welcomeMsg!=null)msg.value=flow.welcomeMsg;
+  const prog=document.getElementById('osc-program-sel');if(prog&&flow.programId)prog.value=flow.programId;
+  if(typeof updateOSC==='function')updateOSC();
+}
+window.applyOnboardingFlow=applyOnboardingFlow;
+
+function savePortalSettings(){
+  const S=window.SETTINGS||(window.SETTINGS={});
+  if(!S.portal)S.portal={};
+  S.portal.resourcesVisible=true;
+  S.portal.workoutCollectionsVisible=true;
+  S.portal.ondemandVisible=true;
+  // Odczyt checkboxów z ekranu portalu jeśli obecne
+  const cards=document.querySelectorAll('#screen-portal input[type=checkbox]');
+  if(cards.length>=3){
+    S.portal.resourcesVisible=cards[0].checked;
+    S.portal.workoutCollectionsVisible=cards[1].checked;
+    S.portal.ondemandVisible=cards[2].checked;
+  }
+  withTrainer(S);
+  if(window._db){
+    const sid=window._settingsDocId||window._uid||'default';
+    window._setDoc(window._doc(window._db,'settings',sid),S,{merge:true}).then(()=>{window._settingsDocId=sid;}).catch(e=>console.warn(e));
+  }
+  notify('✓ Ustawienia portalu zapisane');
+}
+window.savePortalSettings=savePortalSettings;
 
 function renderAutoflows(){
   const all=window.AUTOFLOWS||[];
@@ -1117,7 +1285,7 @@ function renderAutoflows(){
     </div>
     <div style="display:flex;flex-wrap:wrap;gap:5px;">
       ${af.steps.map(s=>`<div class="af-step-row" style="flex:0 0 auto;max-width:300px;">
-        <div class="af-step-icon" style="background:${s.type==='message'?'var(--adim)':s.type==='task'?'rgba(201,162,39,0.12)':s.type==='form'?'rgba(168,50,74,0.12)':'var(--s4)'};">${s.type==='message'?'💬':s.type==='task'?'✅':s.type==='form'?'📋':'⏳'}</div>
+        <div class="af-step-icon" style="background:${s.type==='message'?'var(--adim)':s.type==='task'?'rgba(201,162,39,0.12)':s.type==='form'?'rgba(157,124,244,0.12)':'var(--s4)'};">${s.type==='message'?'💬':s.type==='task'?'✅':s.type==='form'?'📋':'⏳'}</div>
         <div><div style="font-size:11px;font-weight:600;">${s.type==='wait'?'Czekaj '+s.day+' dni':s.type.charAt(0).toUpperCase()+s.type.slice(1)}</div><div style="font-size:10px;color:var(--muted);">${s.text.substring(0,40)}${s.text.length>40?'…':''}</div></div>
       </div>`).join('')}
     </div>
@@ -1130,9 +1298,7 @@ function toggleAF(id){
     af.status=af.status==='active'?'inactive':'active';
     renderAutoflows();
     notify('Autoflow '+(af.status==='active'?'włączony':'wyłączony'));
-    if(window._db&&af._fbId){
-      window._setDoc(window._doc(window._db,'autoflows',af._fbId),{status:af.status},{merge:true}).catch(e=>console.warn('Firebase toggleAF:',e));
-    }
+    persistById('autoflows',af);
     if(af.status==='active'&&typeof runAutoflowsCheck==='function')runAutoflowsCheck();
   }
 }
@@ -1160,9 +1326,9 @@ function saveAutoflow(){
     const typeEl=row.querySelector('[data-type]');
     steps.push({type:typeEl?typeEl.dataset.type:'wait',day:i+1,text:inp.value.trim()});
   });
-  const af={id:'af'+Date.now(),name,type:document.getElementById('af-type').value,scope:document.getElementById('af-scope').value,status:'active',steps,createdAt:new Date().toISOString()};
+  const af=withTrainer({id:newId('af'),name,type:document.getElementById('af-type').value,scope:document.getElementById('af-scope').value,status:'active',steps,createdAt:new Date().toISOString()});
   window.AUTOFLOWS.push(af);
-  if(window._db){window._add(window._col(window._db,'autoflows'),af).then(r=>{if(r&&r.id)af._fbId=r.id;}).catch(e=>console.warn('Firebase autoflow save:',e));}
+  persistById('autoflows',af);
   closeM('m-autoflow-builder');
   document.getElementById('af-name').value='';
   document.getElementById('af-steps').innerHTML='';
@@ -1227,15 +1393,15 @@ function execAFStep(step,c){
   if(step.type==='message'){
     if(typeof pushMsg==='function')pushMsg(c.id,text);
   }else if(step.type==='task'){
-    const t={id:'af_t_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),clientId:c.id,title:text,status:'open',priority:'medium',cat:'trening',due:new Date().toISOString().split('T')[0],createdAt:new Date().toISOString()};
+    const t=withTrainer({id:newId('t'),clientId:c.id,title:text,status:'open',priority:'medium',cat:'trening',due:new Date().toISOString().split('T')[0],createdAt:new Date().toISOString()});
     window.TASKS.push(t);
-    if(window._db)window._add(window._col(window._db,'tasks'),t).catch(e=>console.warn('Autoflow task save:',e));
+    persistById('tasks',t);
   }else if(step.type==='form'){
     const form=(typeof allForms==='function'?allForms():[]).find(f=>f.name.toLowerCase().includes(text.toLowerCase())||text.toLowerCase().includes(f.name.toLowerCase()));
     if(form){
-      const send={formId:form.id,clientId:c.id,sentAt:new Date().toLocaleDateString('pl'),status:'sent',answers:[]};
+      const send=withTrainer({id:newId('fs'),formId:form.id,clientId:c.id,sentAt:new Date().toLocaleDateString('pl'),status:'sent',answers:[]});
       window.FORM_SENDS.push(send);
-      if(window._db)window._add(window._col(window._db,'formSends'),send).catch(e=>console.warn('Autoflow form save:',e));
+      persistById('formSends',send);
     }
   }
   if(typeof addNotification==='function')addNotification('system','Autoflow: krok wykonany',text.substring(0,60)+' — '+c.name,'automation');
@@ -1243,16 +1409,17 @@ function execAFStep(step,c){
 
 function saveAutomationState(){
   if(!window._db)return;
-  if(window._afStateDocId){
-    window._setDoc(window._doc(window._db,'automationState',window._afStateDocId),window.AF_STATE,{merge:true}).catch(e=>console.warn('AF state save:',e));
-  }else{
-    window._add(window._col(window._db,'automationState'),window.AF_STATE).then(r=>{if(r&&r.id)window._afStateDocId=r.id;}).catch(e=>console.warn('AF state save:',e));
-  }
+  withTrainer(window.AF_STATE);
+  const docId=window._afStateDocId||window._uid||'default';
+  window._afStateDocId=docId;
+  window._setDoc(window._doc(window._db,'automationState',docId),window.AF_STATE,{merge:true}).catch(e=>console.warn('AF state save:',e));
 }
 
 function notify(msg){
   const old=document.querySelector('.notif');if(old)old.remove();
-  const d=document.createElement('div');d.className='notif';d.innerHTML=msg;
+  const d=document.createElement('div');d.className='notif';
+  // Bezpiecznie: textContent zamiast innerHTML (toast może zawierać imię klienta / treść z inputu).
+  d.textContent=String(msg??'').replace(/<[^>]*>/g,'');
   document.body.appendChild(d);setTimeout(()=>d.remove(),3000);
 }
 
@@ -1270,10 +1437,10 @@ function renderKB(){
   el.innerHTML = KB.slice().reverse().map(k=>`
     <div class="card-sm" style="border-left:3px solid var(--accent);">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
-        <div style="font-size:13px;font-weight:700;">${k.title}</div>
+        <div style="font-size:13px;font-weight:700;">${escHtml(k.title)}</div>
         <button onclick="delKBEntry('${k.id}')" style="background:none;border:none;color:var(--muted2);font-size:16px;cursor:pointer;">×</button>
       </div>
-      <div style="font-size:12px;color:var(--muted);line-height:1.6;white-space:pre-wrap;">${(k.text||'').substring(0,280)}${(k.text||'').length>280?'…':''}</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.6;white-space:pre-wrap;">${escHtml((k.text||'').substring(0,280))}${(k.text||'').length>280?'…':''}</div>
     </div>`).join('');
 }
 
@@ -1283,15 +1450,13 @@ async function saveKBEntry(){
   const title = document.getElementById('kb-title').value.trim();
   const text = document.getElementById('kb-text').value.trim();
   if(!title || !text){notify('Wpisz tytuł i treść!'); return;}
-  const entry = {id:'kb'+Date.now(), title, text, createdAt:new Date().toISOString()};
+  const entry = withTrainer({id:newId('kb'), title, text, createdAt:new Date().toISOString()});
   KB.push(entry);
   closeM('m-kb');
   document.getElementById('kb-title').value=''; document.getElementById('kb-text').value='';
   renderKB();
   notify('✓ Wpis dodany do bazy wiedzy!');
-  if(window._db){
-    try{const r = await window._add(window._col(window._db,'kb'), entry); entry.id = r.id;}catch(e){console.warn('Firebase KB:',e);}
-  }
+  await persistById('kb', entry);
 }
 
 async function delKBEntry(id){
@@ -1395,19 +1560,21 @@ function sendInvitation() {
   const c = CL.find(x => x.id === inviteClientId);
   if (!c) return;
   const link = document.getElementById('inv-link')?.textContent || '';
-  const methodLabels = { wiadomosc: 'wiadomości', email: 'emaila', whatsapp: 'WhatsApp' };
+  const methodLabels = { wiadomosc: 'Inbox', email: 'email (niepodłączony — zapisano w Inbox)', whatsapp: 'WhatsApp (niepodłączony — zapisano w Inbox)' };
 
   // Dodaj do wiadomości
   pushMsg(c.id, document.getElementById('inv-msg-preview')?.textContent || '');
 
-  // Oznacz klienta jako zaproszony
+  // Oznacz klienta jako zaproszony i zapisz
   c.inviteSent = true;
+  c.appInvited = true;
   c.inviteLink = link;
   c.inviteSentAt = new Date().toISOString();
+  persistById('clients', c);
 
-  addNotification('system', 'Zaproszenie wysłane!', c.name + ' — link do aplikacji wysłany przez ' + methodLabels[inviteMethod], 'clients');
+  addNotification('system', 'Zaproszenie zapisane', c.name + ' — link w Inbox (' + (methodLabels[inviteMethod]||'wiadomość') + ')', 'clients');
   closeM('m-invite');
-  notify('✅ Zaproszenie wysłane do ' + c.name + ' przez ' + methodLabels[inviteMethod] + '!');
+  notify('✅ Zaproszenie do ' + c.name + ': ' + (methodLabels[inviteMethod]||'Inbox'));
 }
 
 window.openInviteModal = openInviteModal;
@@ -1497,6 +1664,7 @@ window.renderLib=renderLib;window.renderWL=renderWL;
 window.setWLNav=setWLNav;window.setWLView=setWLView;window.setWLSort=setWLSort;
 window.openWLDetail=openWLDetail;window.closeWLDetail=closeWLDetail;
 window.assignWorkout=assignWorkout;window.assignWorkoutDirect=assignWorkoutDirect;
+window.openAssignWorkoutModal=openAssignWorkoutModal;window.confirmAssignWorkout=confirmAssignWorkout;
 window.addWExRow=addWExRow;window.saveWorkout=saveWorkout;
 window.setDashPeriod=setDashPeriod;
 window.openReportModal=openReportModal;window.openReportForClient=openReportForClient;
@@ -1508,7 +1676,8 @@ window.connectInt=connectInt;window.disconnectInt=disconnectInt;
 window.testIntConnection=testIntConnection;window.copyWebhook=copyWebhook;
 window.initClientApp=initClientApp;window.renderClientApp=renderClientApp;
 window.setCapTab=setCapTab;window.setCapScreen=setCapScreen;window.setCapDevice=setCapDevice;
-window.shareAppLink=shareAppLink;window.sendAppInvite=sendAppInvite;
+window.shareAppLink=shareAppLink;window.sendAppInvite=sendAppInvite;window.inviteClientToApp=inviteClientToApp;
+window.exportInvoicesCsv=exportInvoicesCsv;window.exportRepHistoryCsv=exportRepHistoryCsv;window.exportData=exportData;
 window.pbNewProgram=pbNewProgram;window.pbLoadDemo=pbLoadDemo;
 window.pbAssign=pbAssign;window.pbSave=pbSave;window.pbSetWeek=pbSetWeek;
 window.pbToggleRest=pbToggleRest;window.pbUpdateDayName=pbUpdateDayName;

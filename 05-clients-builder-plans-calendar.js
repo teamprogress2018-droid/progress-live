@@ -86,8 +86,8 @@ function renderClients(){
     const act=formatClientActivity(c.id);
     return `<div class="tbl-row" style="grid-template-columns:2fr 120px 120px 100px 150px;animation-delay:${i*0.03}s;cursor:pointer;" onclick="openClientProfile('${c.id}')">
     <div style="display:flex;align-items:center;gap:10px;">
-      <div style="width:32px;height:32px;border-radius:50%;background:${COLS[i%5]}22;color:${COLS[i%5]};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:13px;flex-shrink:0;">${getInit(c.name)}</div>
-      <div><div style="font-size:13px;font-weight:600;">${c.name}</div><div style="font-size:11px;color:var(--muted);">${c.email||'⚠ Brak e-maila'}</div></div>
+      <div style="width:32px;height:32px;border-radius:50%;background:${COLS[i%5]}22;color:${COLS[i%5]};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:13px;flex-shrink:0;">${escHtml(getInit(c.name))}</div>
+      <div><div style="font-size:13px;font-weight:600;">${escHtml(c.name)}</div><div style="font-size:11px;color:var(--muted);">${escHtml(c.email||'⚠ Brak e-maila')}</div></div>
     </div>
     <div style="font-size:12px;color:${act.color};align-self:center;font-weight:600;">${act.label}</div>
     <div style="font-size:12px;color:var(--muted);align-self:center;">${c.goal||'—'}</div>
@@ -109,8 +109,8 @@ async function saveClient(){
 
   const name=document.getElementById('ac-name').value.trim();
   if(!name){notify('Wpisz imię!');return;}
-  const c={
-    id:'l'+Date.now(),
+  const c=withTrainer({
+    id:newId('c'),
     name,
     email:document.getElementById('ac-email').value,
     phone:document.getElementById('ac-phone')?.value||'',
@@ -123,7 +123,7 @@ async function saveClient(){
     notes:document.getElementById('ac-notes').value,
     status:'active',
     createdAt:new Date().toISOString()
-  };
+  });
   // najpierw dodaj lokalnie — natychmiast
   CL.push(c);
   closeM('m-client');
@@ -135,13 +135,8 @@ async function saveClient(){
   addNotification('system','Nowy klient!',c.name+' dodany do listy','clients');
   // Pokaż modal zaproszenia
   setTimeout(()=>openInviteModal(c.id), 400);
-  // Firebase w tle — nie blokuj UI
-  if(window._db){
-    try{
-      const r=await window._add(window._col(window._db,'clients'),c);
-      if(r&&r.id)c._fbId=r.id;
-    }catch(e){console.warn('Firebase save failed (offline?):', e);}
-  }
+  // Firebase w tle — to samo id lokalnie i w Firestore
+  await persistById('clients',c);
 }
 
 // ════════════════════════════════════════
@@ -157,7 +152,7 @@ function initBuilder(){
   // wypełnij select klientów
   const sel=document.getElementById('b-client');
   if(sel){
-    sel.innerHTML='<option value="">-- Wybierz klienta --</option>'+CL.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+    sel.innerHTML='<option value="">-- Wybierz klienta --</option>'+CL.map(c=>`<option value="${escHtml(c.id)}">${escHtml(c.name)}</option>`).join('');
   }
   updatePeriod();
 }
@@ -286,13 +281,13 @@ async function savePlan(){
       PL[idx]={...PL[idx],name,method:document.getElementById('b-method').value,duration:document.getElementById('b-duration').value,clientId:cid,clientName:c?c.name:'',level:c?c.level:PL[idx].level,goal:c?c.goal:PL[idx].goal,days,updatedAt:new Date().toISOString()};
       window._editingPlanId=null;
       goTo('plans');notify('Plan zaktualizowany!');
-      if(window._db){try{await window._setDoc(window._doc(window._db,'plans',editingId),PL[idx],{merge:true});}catch(e){console.warn('Firebase update:',e);}}
+      await persistById('plans',PL[idx]);
       return;
     }
   }
-  const plan={id:'l'+Date.now(),name,method:document.getElementById('b-method').value,duration:document.getElementById('b-duration').value,clientId:cid,clientName:c?c.name:'',level:c?c.level:'sredni',goal:c?c.goal:'masa',days,createdAt:new Date().toISOString()};
+  const plan=withTrainer({id:newId('p'),name,method:document.getElementById('b-method').value,duration:document.getElementById('b-duration').value,clientId:cid,clientName:c?c.name:'',level:c?c.level:'sredni',goal:c?c.goal:'masa',days,createdAt:new Date().toISOString()});
   PL.push(plan);goTo('plans');notify('Plan zapisany!');
-  if(window._db){try{const r=await window._add(window._col(window._db,'plans'),plan);if(r&&r.id)plan._fbId=r.id;}catch(e){console.warn('Firebase:',e);}}
+  await persistById('plans',plan);
 }
 
 // ════════════════════════════════════════
@@ -811,11 +806,12 @@ function asClientSearchInput(){
 }
 
 
-function delSession(id){
+async function delSession(id){
   if(!confirm('Usunąć sesję?'))return;
   window.SE=SE.filter(s=>s.id!==id);
   renderCal();renderDash();
   notify('Sesja usunięta');
+  if(window._db){try{await window._del(window._doc(window._db,'sessions',id));}catch(e){console.warn('Firebase delSession:',e);}}
 }
 async function saveSess(){
   if(window._saveGuard_saveSess)return;window._saveGuard_saveSess=true;setTimeout(()=>window._saveGuard_saveSess=false,1500);
@@ -827,7 +823,7 @@ async function saveSess(){
   const notes=document.getElementById('as-notes').value;
   const duration=parseInt(document.getElementById('as-duration').value)||60;
   if(!date||!time){notify('Uzupełnij datę i godzinę!');return;}
-  const sess={id:'l'+Date.now(),clientId:cid,date,time,type,notes,duration,createdAt:new Date().toISOString()};
+  const sess=withTrainer({id:newId('s'),clientId:cid,date,time,type,notes,duration,createdAt:new Date().toISOString()});
   SE.push(sess);
   closeM('m-session');
   try{renderCal();}catch(e){}
@@ -835,6 +831,6 @@ async function saveSess(){
   // odśwież profil klienta jeśli otwarty
   if(cpClientId&&cpClientId===cid){try{setCPTab(cpTab);}catch(e){}}
   notify('Sesja dodana!');
-  if(window._db){try{const r=await window._add(window._col(window._db,'sessions'),sess);if(r&&r.id)sess._fbId=r.id;}catch(e){console.warn('Firebase:',e);}}
+  await persistById('sessions',sess);
 }
 
