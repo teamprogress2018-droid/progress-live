@@ -715,11 +715,11 @@ function onbCreateClient(){
 
   // add first tasks
   const tasks=[
-    {id:'t_onb1_'+Date.now(),clientId:newC.id,title:'Wypełnij ankietę wstępną',status:'pending',due:new Date(Date.now()+86400000).toISOString().split('T')[0]},
-    {id:'t_onb2_'+Date.now(),clientId:newC.id,title:'Zaakceptuj kontrakt współpracy',status:'pending',due:new Date(Date.now()+2*86400000).toISOString().split('T')[0]},
-    {id:'t_onb3_'+Date.now(),clientId:newC.id,title:'Zainstaluj aplikację Progress Live',status:'pending',due:new Date(Date.now()+3*86400000).toISOString().split('T')[0]},
+    withTrainer({id:newId('t'),clientId:newC.id,title:'Wypełnij ankietę wstępną',status:'open',priority:'high',cat:'lifestyle',due:new Date(Date.now()+86400000).toISOString().split('T')[0],createdAt:new Date().toISOString()}),
+    withTrainer({id:newId('t'),clientId:newC.id,title:'Zaakceptuj kontrakt współpracy',status:'open',priority:'high',cat:'lifestyle',due:new Date(Date.now()+2*86400000).toISOString().split('T')[0],createdAt:new Date().toISOString()}),
+    withTrainer({id:newId('t'),clientId:newC.id,title:'Zainstaluj aplikację Progress Live',status:'open',priority:'medium',cat:'lifestyle',due:new Date(Date.now()+3*86400000).toISOString().split('T')[0],createdAt:new Date().toISOString()}),
   ];
-  tasks.forEach(t=>{TASKS.push(t);if(window._db){try{window._add(window._col(window._db,'tasks'),t);}catch(e){}}});
+  tasks.forEach(t=>{TASKS.push(t);persistById('tasks',t);});
 
   addNotification('system','Nowy klient!',newC.name+' — onboarding uruchomiony','clients');
   notify('🎉 Klient '+newC.name+' dodany! Onboarding uruchomiony.');
