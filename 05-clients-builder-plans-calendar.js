@@ -156,6 +156,7 @@ async function saveClient(){
   setTimeout(()=>openClientOnboardChecklist(c.id),400);
   // Firebase w tle — to samo id lokalnie i w Firestore
   await persistById('clients',c);
+  if(typeof fireIntEvent==='function')fireIntEvent('client.created',{client:{id:c.id,name:c.name,email:c.email||'',phone:c.phone||''}});
 }
 
 function getClientOnboard(c){
@@ -949,6 +950,10 @@ async function saveSess(){
   if(cpClientId&&cpClientId===cid){try{setCPTab(cpTab);}catch(e){}}
   notify('Sesja dodana!');
   await persistById('sessions',sess);
+  if(typeof fireIntEvent==='function'){
+    const cli=(window.CL||[]).find(x=>x.id===cid);
+    fireIntEvent('session.created',{session:{id:sess.id,date:sess.date,time:sess.time,type:sess.type,duration:sess.duration},client:{id:cid,name:cli&&cli.name||'',email:cli&&cli.email||'',phone:cli&&cli.phone||''}});
+  }
   maybeResumeOnboard(cid);
 }
 

@@ -517,6 +517,9 @@ function markPaid(id){
     persistById('packages',p);
     const inv=(window.INVOICES||[]).find(i=>i.pkgId===p.id||i.id===p.invoiceId||i.nr===p.invoiceId);
     if(inv){inv.status='paid';persistById('invoices',inv);}
+    if(typeof fireIntEvent==='function'){
+      fireIntEvent('package.paid',{package:{id:p.id,title:p.title,price:p.price,clientId:p.clientId,clientName:p.clientName}});
+    }
   }
 }
 
@@ -2092,6 +2095,10 @@ window.renderIntegrations=renderIntegrations;window.setIntTab=setIntTab;
 window.setIntCat=setIntCat;window.openIntDetail=openIntDetail;window.closeIntDetail=closeIntDetail;
 window.connectInt=connectInt;window.disconnectInt=disconnectInt;
 window.testIntConnection=testIntConnection;window.copyWebhook=copyWebhook;
+window.downloadSessionsIcs=downloadSessionsIcs;window.intRemindWhatsApp=intRemindWhatsApp;
+window.intRemindEmail=intRemindEmail;window.intOpenCalendly=intOpenCalendly;
+window.intSendCalendly=intSendCalendly;window.intPushCalendly=intPushCalendly;
+window.intTestWebhook=intTestWebhook;window.fireIntEvent=fireIntEvent;window.intWorksNow=intWorksNow;
 window.initClientApp=initClientApp;window.renderClientApp=renderClientApp;
 window.setCapTab=setCapTab;window.setCapScreen=setCapScreen;window.setCapDevice=setCapDevice;
 window.shareAppLink=shareAppLink;window.sendAppInvite=sendAppInvite;window.inviteClientToApp=inviteClientToApp;
