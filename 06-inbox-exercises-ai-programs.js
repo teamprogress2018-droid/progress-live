@@ -339,7 +339,15 @@ function saveClientNote(id){
   });
   CLIENT_NOTES[id].unshift(note);
   persistById('clientNotes',note);
-  openChat(id);notify('Notatka zapisana ✓');
+  notify('Notatka zapisana ✓');
+  if(cpClientId===id){
+    const c=CL.find(x=>x.id===id);
+    if(c){
+      if(cpTab==='notes')renderCPNotes(c);
+      else if(cpTab==='overview')renderCPOverview(c);
+      else setCPTab('notes');
+    }
+  }
 }
 
 function sendMsg(){

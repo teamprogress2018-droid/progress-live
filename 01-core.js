@@ -230,9 +230,15 @@ function goTo(n){
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   const s=document.getElementById('screen-'+n);if(s)s.classList.add('active');
   closeMobileSidebar();
-  const navMap={'dashboard':0,'clients':1,'calendar':2,'inbox':3,'plans':4,'workout-library':5,'library':6,'programs':7,'tasks':8,'forms':9,'payments':10,'calculator':11,'automation':12,'metrics':13,'checkin':14,'aiplangen':15,'ondemand':16,'resources':17,'bizstats':18,'live':19,'forum':20,'settings':22,'aicoach':23,'kb':24,'builder':-1,'progbuilder':-1,'reports':-1,'templates':-1,'onboarding':-1,'clientapp':-1,'integrations':-1};
-  const btns=document.querySelectorAll('.nav-item');
-  if(navMap[n]!==undefined&&btns[navMap[n]])btns[navMap[n]].classList.add('active');
+  const moreScreens=['workout-library','library','programs','tasks','forms','payments','calculator','automation','metrics','checkin','aiplangen','ondemand','resources','bizstats','forum','settings','aicoach','kb'];
+  if(moreScreens.includes(n)){
+    const moreEl=document.getElementById('nav-more-items');
+    const arrow=document.getElementById('nav-more-arrow');
+    if(moreEl)moreEl.style.display='block';
+    if(arrow)arrow.style.transform='rotate(180deg)';
+  }
+  const activeBtn=document.querySelector('.nav-item[data-screen="'+n+'"]');
+  if(activeBtn)activeBtn.classList.add('active');
   if(n==='builder')initBuilder();
   if(n==='calendar'){calCurrentDate=new Date();calMiniDate=new Date();setCalView('week');}
   if(n==='plans')renderPlans();

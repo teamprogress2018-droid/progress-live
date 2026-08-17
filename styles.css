@@ -234,7 +234,7 @@ button{cursor:pointer;}
 .live-set-row:last-child{border-bottom:none;}
 .live-set-check{width:26px;height:26px;border-radius:7px;border:2px solid var(--border2);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;transition:all 0.12s;}
 .live-set-check.done{background:var(--teal);border-color:var(--teal);color:#000;}
-.live-kg-input{width:55px;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:4px 6px;color:var(--text);font-size:12px;font-family:'DM Mono',monospace;text-align:center;}
+.live-kg-input{width:100%;min-width:72px;min-height:44px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);font-size:16px;font-family:'DM Mono',monospace;text-align:center;}
 .live-kg-input:focus{border-color:var(--accent);}
 .btn-danger{background:rgba(255,77,77,0.15);border:1px solid rgba(255,77,77,0.3);color:var(--red);}
 .btn-danger:hover{background:rgba(255,77,77,0.25);}
