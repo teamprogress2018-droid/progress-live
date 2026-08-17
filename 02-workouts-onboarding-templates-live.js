@@ -1562,6 +1562,7 @@ function liveTryRecoverDraft(){
       document.getElementById('live-start-btn').style.display='none';
       document.getElementById('live-end-btn').style.display='';
     }
+    liveSyncFloorUi();
     renderLivePlanPicker();
     renderLiveExercises();
     notify('Sesja wznowiona z kopii zapasowej');
@@ -1569,8 +1570,25 @@ function liveTryRecoverDraft(){
   }catch(e){liveClearDraft();return false;}
 }
 
+function liveSyncFloorUi(){
+  const sc=document.getElementById('screen-live');
+  if(!sc)return;
+  sc.classList.toggle('live-session-on',!!liveSessionActive);
+  if(!liveSessionActive)sc.classList.remove('live-plan-open');
+  const tog=document.getElementById('live-plan-toggle');
+  if(tog)tog.textContent=sc.classList.contains('live-plan-open')?'Ukryj plan':'Plan';
+}
+function liveTogglePlanPanel(){
+  const sc=document.getElementById('screen-live');
+  if(!sc)return;
+  sc.classList.toggle('live-plan-open');
+  liveSyncFloorUi();
+}
+window.liveTogglePlanPanel=liveTogglePlanPanel;
+
 function initLive(){
   const recovered=liveTryRecoverDraft();
+  liveSyncFloorUi();
   if(recovered){renderLiveHistory();return;}
   if(liveClientId){
     liveLoadClient();
@@ -1907,23 +1925,23 @@ function liveExCard(ex,i){
         <div style="font-size:10px;color:var(--muted);">${ex.sets.length} serie · ${setsDone}/${ex.sets.length} ukończono${lastHint?' · '+lastHint:''}</div>
       </div>
       <div style="display:flex;gap:6px;align-items:center;">
-        ${!ex.done?`<button onclick="event.stopPropagation();liveSkipEx(${i})" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;padding:4px 6px;">Pomiń</button>`:''}
+        ${!ex.done?`<button type="button" class="live-skip-btn" onclick="event.stopPropagation();liveSkipEx(${i})">Pomiń</button>`:''}
         <span style="color:var(--muted);font-size:14px;">${ex.collapsed?'▶':'▼'}</span>
       </div>
     </div>
     ${!ex.collapsed?`
     <div>
-      <div style="display:grid;grid-template-columns:44px 1fr minmax(72px,1fr) minmax(72px,1fr) 50px;gap:6px;padding:4px 0;font-size:9px;font-family:'DM Mono',monospace;color:var(--muted2);text-transform:uppercase;border-bottom:1px solid var(--border);">
+      <div class="live-set-grid live-set-head">
         <span></span><span>Seria</span><span style="text-align:center;">Ciężar</span><span style="text-align:center;">Powt.</span><span></span>
       </div>
       ${ex.sets.map((s,si)=>`<div class="live-set-row">
         <div class="live-set-check${s.done?' done':''}" onclick="liveToggleSet(${i},${si})" title="Oznacz serię">${s.done?'✓':''}</div>
-        <div style="font-size:12px;color:var(--muted);">Seria ${s.setNo}</div>
+        <div class="live-set-label"><span class="live-set-label-full">Seria </span>${s.setNo}</div>
         <input type="number" inputmode="decimal" class="live-kg-input" placeholder="${ex.lastKg!==''&&ex.lastKg!=null?ex.lastKg:'kg'}" value="${s.kg}" oninput="liveSetKg(${i},${si},this.value)" onkeydown="liveSetKey(event,${i},${si})" onclick="event.stopPropagation()">
         <input type="number" inputmode="numeric" class="live-kg-input" placeholder="powt." value="${s.reps}" oninput="liveSetReps(${i},${si},this.value)" onkeydown="liveSetKey(event,${i},${si})" onclick="event.stopPropagation()">
-        <button onclick="liveStartRest(90)" style="background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:4px 6px;font-size:10px;color:var(--muted);cursor:pointer;">⏱</button>
+        <button type="button" class="live-set-rest" onclick="liveStartRest(90)" title="Przerwa 90s">⏱</button>
       </div>`).join('')}
-      <button onclick="liveAddSet(${i})" style="width:100%;margin-top:6px;padding:10px;background:none;border:1px dashed var(--border2);border-radius:6px;color:var(--muted);font-size:12px;cursor:pointer;">+ Dodaj serię</button>
+      <button type="button" class="live-add-set" onclick="liveAddSet(${i})">+ Dodaj serię</button>
     </div>`:''}
   </div>`;
 }
@@ -2009,6 +2027,7 @@ function liveStartSession(){
   document.getElementById('live-timer-status').textContent='W toku';
   document.getElementById('live-start-btn').style.display='none';
   document.getElementById('live-end-btn').style.display='';
+  liveSyncFloorUi();
   notify('▶ Sesja rozpoczęta!');
   liveSaveDraft();
   renderLiveExercises();
@@ -2055,6 +2074,7 @@ function liveEndSession(){
   document.getElementById('live-timer-status').textContent='Nieaktywny';
   document.getElementById('live-start-btn').style.display='';
   document.getElementById('live-end-btn').style.display='none';
+  liveSyncFloorUi();
   liveFeedbackVal=0;
   const fb=document.getElementById('live-feedback-text');
   if(fb)fb.textContent='Brak oceny';
