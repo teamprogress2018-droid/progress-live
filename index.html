@@ -3686,6 +3686,10 @@ async function load(){
     sOnbA.forEach(d=>{const x=_takeFb(d);if(x)window.ONB_ACTIVE.push(x);});
   }catch(e){console.warn('Wczytywanie aktywnych onboardingów nie powiodło się:',e);}
   try{
+    const sGrp=await getDocs(collection(db,'clientGroups'));
+    window.CLIENT_GROUPS=[];sGrp.forEach(d=>{const x=_takeFb(d);if(x)window.CLIENT_GROUPS.push(x);});
+  }catch(e){console.warn('Wczytywanie grup klientów nie powiodło się:',e);window.CLIENT_GROUPS=window.CLIENT_GROUPS||[];}
+  try{
     const sRes=await getDocs(collection(db,'resources'));
     window.USER_RESOURCES=[];sRes.forEach(d=>{const x=_takeFb(d);if(x)window.USER_RESOURCES.push(x);});
     if(!window.USER_RESOURCES.length&&typeof DEMO_RESOURCES!=='undefined'){
@@ -3703,7 +3707,7 @@ async function load(){
       'clients','plans','sessions','exercises','workouts','tasks','kb','metricEntries','metricGroups',
       'messages','packages','invoices','formSends','reportHistory','forms','programs','checkins',
       'notifications','autoflows','forumGroups','forumPosts','forumComments','odWorkouts','resources',
-      'settings','integrationConfigs','automationState','clientNotes','clientDocs','onboardingFlows','planTemplates','odPrograms','onboardingActive'
+      'settings','integrationConfigs','automationState','clientNotes','clientDocs','onboardingFlows','planTemplates','odPrograms','onboardingActive','clientGroups'
     ]);
   }catch(e){console.warn('Migracja trainerId:',e);}
   try{if(typeof window.runAutoflowsCheck==='function')window.runAutoflowsCheck();}catch(e){console.warn('runAutoflowsCheck:',e);}

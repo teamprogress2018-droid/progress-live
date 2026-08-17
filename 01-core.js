@@ -340,6 +340,9 @@ function openM(id){
     document.getElementById('w-ex-rows').innerHTML='';
     addWExRow();addWExRow();addWExRow();
   }
+  if(id==='m-broadcast'){
+    if(typeof refreshBroadcastGroupOptions==='function')refreshBroadcastGroupOptions();
+  }
   document.getElementById(id).classList.add('show');
 }
 function closeM(id){document.getElementById(id).classList.remove('show');}

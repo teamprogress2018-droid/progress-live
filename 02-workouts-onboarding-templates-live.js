@@ -1244,12 +1244,13 @@ function openTplDetail(id){
         <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:8px;">Przypisz do klienta</div>
         <select class="form-select" id="tpl-assign-client" style="font-size:12px;margin-bottom:8px;">
           <option value="">Wybierz klienta...</option>
-          ${CL.map(c=>`<option value="${c.id}">${c.name}</option>`).join('')}
+          ${CL.map(c=>`<option value="${escHtml(c.id)}">${escHtml(c.name)}</option>`).join('')}
         </select>
         <button class="btn btn-primary" style="width:100%;" onclick="tplAssignToClient('${t.id}')">✓ Przypisz plan klientowi</button>
       </div>
 
       <div style="display:flex;gap:8px;">
+        ${t.custom?`<button class="btn btn-ghost btn-sm" style="flex:1;" onclick="closeTplDetail();openTplCreate('${t.id}')">✎ Edytuj</button>`:''}
         <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="tplStartLive('${t.id}')">▶ Użyj w treningu Live</button>
         <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="tplDuplicate('${t.id}')">📋 Duplikuj</button>
       </div>
@@ -1322,9 +1323,162 @@ function tplDuplicate(tid){
   notify('✓ Szablon zduplikowany — możesz go edytować!');
 }
 
-function openTplCreate(){
-  notify('Kreator własnych szablonów — wkrótce! Na razie użyj Generator AI lub Duplikuj istniejący.');
+function openTplCreate(editId){
+  window._editingTplId=editId||null;
+  let m=document.getElementById('m-tpl-create');
+  if(!m){
+    m=document.createElement('div');m.id='m-tpl-create';m.className='modal-ov';
+    m.innerHTML=`<div class="modal modal-wide" style="max-width:640px;">
+      <div class="modal-hdr"><div class="modal-title" id="tplc-title">NOWY SZABLON PLANU</div><button class="modal-close" onclick="closeM('m-tpl-create')">×</button></div>
+      <div class="modal-body">
+        <div class="form-field"><label class="form-lbl">Nazwa</label><input type="text" class="form-input" id="tplc-name" placeholder="np. PPL 4× — Moja wersja"></div>
+        <div class="form-field"><label class="form-lbl">Opis</label><textarea class="form-textarea" id="tplc-desc" rows="2" placeholder="Krótki opis szablonu..."></textarea></div>
+        <div class="form-grid">
+          <div class="form-field"><label class="form-lbl">Cel</label>
+            <select class="form-select" id="tplc-goal">
+              <option value="masa">Masa</option><option value="sila">Siła</option><option value="redukcja">Redukcja</option><option value="kondycja">Kondycja</option>
+            </select>
+          </div>
+          <div class="form-field"><label class="form-lbl">Poziom</label>
+            <select class="form-select" id="tplc-level">
+              <option value="poczatkujacy">Początkujący</option><option value="sredni" selected>Średni</option><option value="zaawansowany">Zaawansowany</option>
+            </select>
+          </div>
+          <div class="form-field"><label class="form-lbl">Metoda</label>
+            <select class="form-select" id="tplc-method">
+              <option>PPL</option><option>FBW</option><option>UL</option><option>531</option><option>Custom</option>
+            </select>
+          </div>
+          <div class="form-field"><label class="form-lbl">Tygodnie</label><input type="number" class="form-input" id="tplc-weeks" value="8" min="1" max="52"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0 8px;">
+          <div style="font-size:12px;font-weight:700;">Dni treningowe</div>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="tplcAddDay()">+ Dzień</button>
+        </div>
+        <div id="tplc-days" style="display:flex;flex-direction:column;gap:10px;"></div>
+      </div>
+      <div class="modal-footer" style="display:flex;gap:8px;">
+        <button class="btn btn-ghost btn-sm" id="tplc-del" style="display:none;margin-right:auto;color:var(--red);" onclick="deleteCustomTemplate()">Usuń</button>
+        <button class="btn btn-ghost" onclick="closeM('m-tpl-create')">Anuluj</button>
+        <button class="btn btn-primary" onclick="saveCustomTemplate()">Zapisz szablon</button>
+      </div>
+    </div>`;
+    document.body.appendChild(m);
+    m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');});
+  }
+  const existing=editId?TPL_CUSTOM.find(x=>x.id===editId):null;
+  document.getElementById('tplc-title').textContent=existing?'EDYTUJ SZABLON':'NOWY SZABLON PLANU';
+  document.getElementById('tplc-name').value=existing?.name||'';
+  document.getElementById('tplc-desc').value=existing?.desc||'';
+  document.getElementById('tplc-goal').value=existing?.goal||'masa';
+  document.getElementById('tplc-level').value=existing?.level||'sredni';
+  document.getElementById('tplc-method').value=existing?.method||'PPL';
+  document.getElementById('tplc-weeks').value=existing?.weeks||8;
+  const daysEl=document.getElementById('tplc-days');
+  daysEl.innerHTML='';
+  const days=existing?.days_detail?.length?existing.days_detail:[{name:'Dzień 1',exercises:[{n:'',s:'3',r:'10'}]}];
+  days.forEach(d=>tplcAddDay(d));
+  const del=document.getElementById('tplc-del');
+  if(del)del.style.display=existing?'inline-flex':'none';
+  openM('m-tpl-create');
 }
+
+function tplcAddDay(prefill){
+  const wrap=document.getElementById('tplc-days');if(!wrap)return;
+  const di=wrap.children.length;
+  const day=prefill||{name:'Dzień '+(di+1),exercises:[{n:'',s:'3',r:'10'}]};
+  const box=document.createElement('div');
+  box.className='tplc-day';
+  box.style.cssText='background:var(--s3);border:1px solid var(--border2);border-radius:10px;padding:10px;';
+  box.innerHTML=`
+    <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center;">
+      <input type="text" class="form-input tplc-day-name" value="${escHtml(day.name||'')}" placeholder="Nazwa dnia" style="flex:1;font-size:12px;">
+      <button type="button" class="btn btn-ghost btn-sm" onclick="this.closest('.tplc-day').remove()">×</button>
+    </div>
+    <div class="tplc-ex-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+    <button type="button" class="btn btn-ghost btn-sm" style="margin-top:6px;" onclick="tplcAddEx(this)">+ Ćwiczenie</button>`;
+  wrap.appendChild(box);
+  const list=box.querySelector('.tplc-ex-list');
+  (day.exercises&&day.exercises.length?day.exercises:[{n:'',s:'3',r:'10'}]).forEach(ex=>tplcAddExRow(list,ex));
+}
+
+function tplcAddEx(btn){
+  const list=btn.parentElement.querySelector('.tplc-ex-list');
+  tplcAddExRow(list,{n:'',s:'3',r:'10'});
+}
+
+function tplcAddExRow(list,ex){
+  const row=document.createElement('div');
+  row.style.cssText='display:grid;grid-template-columns:1fr 54px 64px 28px;gap:6px;align-items:center;';
+  row.innerHTML=`
+    <input type="text" class="form-input tplc-ex-n" placeholder="Ćwiczenie" value="${escHtml(ex.n||'')}" style="font-size:12px;" list="ex-dl">
+    <input type="text" class="form-input tplc-ex-s" placeholder="Serie" value="${escHtml(ex.s||'3')}" style="font-size:12px;">
+    <input type="text" class="form-input tplc-ex-r" placeholder="Powt." value="${escHtml(ex.r||'10')}" style="font-size:12px;">
+    <button type="button" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:16px;" onclick="this.parentElement.remove()">×</button>`;
+  list.appendChild(row);
+}
+
+async function saveCustomTemplate(){
+  const name=document.getElementById('tplc-name')?.value.trim();
+  if(!name){notify('Wpisz nazwę szablonu!');return;}
+  const days=[];
+  document.querySelectorAll('#tplc-days .tplc-day').forEach(box=>{
+    const dname=box.querySelector('.tplc-day-name')?.value.trim()||'Dzień';
+    const exercises=[];
+    box.querySelectorAll('.tplc-ex-list > div').forEach(row=>{
+      const n=row.querySelector('.tplc-ex-n')?.value.trim();
+      if(!n)return;
+      exercises.push({
+        n,
+        s:row.querySelector('.tplc-ex-s')?.value.trim()||'3',
+        r:row.querySelector('.tplc-ex-r')?.value.trim()||'10',
+        rest:'90s'
+      });
+    });
+    days.push({name:dname,exercises});
+  });
+  if(!days.length){notify('Dodaj przynajmniej jeden dzień!');return;}
+  const goal=document.getElementById('tplc-goal').value;
+  const level=document.getElementById('tplc-level').value;
+  const method=document.getElementById('tplc-method').value;
+  const weeks=parseInt(document.getElementById('tplc-weeks').value)||8;
+  const desc=document.getElementById('tplc-desc').value.trim()||'Własny szablon';
+  const color={masa:'var(--accent)',sila:'var(--orange)',redukcja:'var(--red)',kondycja:'var(--teal)'}[goal]||'var(--accent)';
+  let tpl;
+  if(window._editingTplId){
+    tpl=TPL_CUSTOM.find(x=>x.id===window._editingTplId);
+  }
+  if(tpl){
+    Object.assign(tpl,{name,desc,goal,level,method,weeks,days:days.length,days_detail:days,schedule:days.map(d=>d.name),tags:[goal,method,days.length+'×/tydzień','własny'],color,custom:true,updatedAt:new Date().toISOString()});
+    withTrainer(tpl);
+  }else{
+    tpl=withTrainer({
+      id:newId('tpl'),name,desc,goal,level,method,weeks,days:days.length,
+      days_detail:days,schedule:days.map(d=>d.name),
+      tags:[goal,method,days.length+'×/tydzień','własny'],
+      color,popularity:50,custom:true,createdAt:new Date().toISOString()
+    });
+    TPL_CUSTOM.push(tpl);
+  }
+  await persistById('planTemplates',tpl);
+  closeM('m-tpl-create');
+  updateTplMyCount();
+  renderTemplates();
+  notify('✓ Szablon "'+name+'" zapisany');
+}
+
+async function deleteCustomTemplate(){
+  const id=window._editingTplId;if(!id)return;
+  if(!confirm('Usunąć ten szablon?'))return;
+  window.TPL_CUSTOM=TPL_CUSTOM.filter(x=>x.id!==id);
+  if(window._db){try{await window._del(window._doc(window._db,'planTemplates',id));}catch(e){}}
+  closeM('m-tpl-create');
+  updateTplMyCount();
+  renderTemplates();
+  notify('Szablon usunięty');
+}
+window.tplcAddDay=tplcAddDay;window.tplcAddEx=tplcAddEx;
+window.saveCustomTemplate=saveCustomTemplate;window.deleteCustomTemplate=deleteCustomTemplate;
 
 function updateTplMyCount(){
   const el=document.getElementById('tpl-my-count');
@@ -2005,33 +2159,54 @@ function renderRepHistory(){
     </div>`}`;
 }
 
+const DEFAULT_REP_SCHEDULES=[
+  {id:'weekly',label:'Tygodniowy raport postępów',desc:'Co poniedziałek — podsumowanie poprzedniego tygodnia',active:true,time:'Pon 8:00',clients:'active',channels:['email','app']},
+  {id:'monthly',label:'Miesięczny raport pełny',desc:'1. dnia miesiąca — pełna analiza z wykresami',active:true,time:'1. mies. 9:00',clients:'premium',channels:['email']},
+  {id:'checkin',label:'Raport po check-inie',desc:'Automatycznie po wypełnieniu check-inu przez klienta',active:false,time:'Po check-inie',clients:'all',channels:['app']},
+  {id:'quarterly',label:'Kwartalny raport od startu',desc:'Co 3 miesiące od dołączenia klienta',active:false,time:'Co 90 dni',clients:'all',channels:['email','whatsapp']},
+];
+
+function getRepSchedules(){
+  const S=window.SETTINGS||(window.SETTINGS={});
+  if(!S.reports)S.reports={};
+  if(!Array.isArray(S.reports.schedules)||!S.reports.schedules.length){
+    S.reports.schedules=DEFAULT_REP_SCHEDULES.map(x=>({...x,channels:[...(x.channels||[])]}));
+  }
+  return S.reports.schedules;
+}
+
+function clientsLabel(v){
+  return {all:'Wszyscy',active:'Wszyscy aktywni',premium:'Pakiet Premium',inactive:'Nieaktywni'}[v]||v||'Wszyscy';
+}
+function channelsLabel(arr){
+  const map={email:'Email',app:'App',whatsapp:'WhatsApp'};
+  return (arr||[]).map(c=>map[c]||c).join(' + ')||'—';
+}
+
 function renderRepAuto(){
   const el=document.getElementById('rep-auto-tab');if(!el)return;
+  const schedules=getRepSchedules();
   el.innerHTML=`
     <div style="max-width:700px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:6px;">AUTOMATYCZNE RAPORTY</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:20px;">Ustaw harmonogram automatycznego generowania i wysyłania raportów do klientów.</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Harmonogram zapisuje się w ustawieniach. Wysyłka e-mail/WhatsApp wymaga backendu — tu zapisujemy reguły i generujemy raport w appce przy logowaniu (jeśli włączone).</div>
+      <div style="font-size:11px;color:var(--muted);background:var(--adim);border:1px solid rgba(200,241,53,0.15);border-radius:8px;padding:10px 12px;margin-bottom:20px;">Uwaga: to nie jest cron 24/7. Reguły są sprawdzane gdy otworzysz panel trenera.</div>
 
       <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px;">
-        ${[
-          {label:'Tygodniowy raport postępów',desc:'Co poniedziałek — podsumowanie poprzedniego tygodnia',active:true,time:'Pon 8:00',clients:'Wszyscy aktywni',channels:'Email + App'},
-          {label:'Miesięczny raport pełny',desc:'1. dnia miesiąca — pełna analiza z wykresami',active:true,time:'1. mies. 9:00',clients:'Pakiet Premium',channels:'Email'},
-          {label:'Raport po check-inie',desc:'Automatycznie po wypełnieniu check-inu przez klienta',active:false,time:'Po check-inie',clients:'Wszyscy',channels:'App'},
-          {label:'Kwartalny raport od startu',desc:'Co 3 miesiące od dołączenia klienta',active:false,time:'Co 90 dni',clients:'Wszyscy',channels:'Email + WhatsApp'},
-        ].map((a,i)=>`<div style="background:var(--s2);border:1px solid ${a.active?'rgba(200,241,53,0.2)':'var(--border)'};border-radius:12px;padding:16px;display:flex;align-items:center;gap:14px;">
+        ${schedules.map((a,i)=>`<div style="background:var(--s2);border:1px solid ${a.active?'rgba(200,241,53,0.2)':'var(--border)'};border-radius:12px;padding:16px;display:flex;align-items:center;gap:14px;">
           <label style="position:relative;width:40px;height:22px;flex-shrink:0;cursor:pointer;">
             <input type="checkbox" ${a.active?'checked':''} style="opacity:0;width:0;height:0;" onchange="repToggleAuto(${i},this.checked)">
             <div style="position:absolute;inset:0;background:${a.active?'var(--accent)':'var(--s3)'};border-radius:99px;transition:0.2s;"></div>
             <div style="position:absolute;top:3px;left:${a.active?'21':'3'}px;width:16px;height:16px;background:${a.active?'#000':'var(--muted)'};border-radius:50%;transition:0.2s;"></div>
           </label>
           <div style="flex:1;">
-            <div style="font-size:13px;font-weight:700;margin-bottom:2px;">${a.label}</div>
-            <div style="font-size:11px;color:var(--muted);">${a.desc}</div>
+            <div style="font-size:13px;font-weight:700;margin-bottom:2px;">${escHtml(a.label)}</div>
+            <div style="font-size:11px;color:var(--muted);">${escHtml(a.desc||'')}</div>
             <div style="display:flex;gap:10px;margin-top:6px;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted2);">
-              <span>⏰ ${a.time}</span><span>👥 ${a.clients}</span><span>📤 ${a.channels}</span>
+              <span>⏰ ${escHtml(a.time||'')}</span><span>👥 ${escHtml(clientsLabel(a.clients))}</span><span>📤 ${escHtml(channelsLabel(a.channels))}</span>
             </div>
           </div>
-          <button class="btn btn-ghost btn-sm" onclick="notify('Edycja harmonogramu')">Edytuj</button>
+          <button class="btn btn-ghost btn-sm" onclick="openRepScheduleEdit(${i})">Edytuj</button>
         </div>`).join('')}
       </div>
 
@@ -2077,6 +2252,76 @@ function renderRepAuto(){
   if(logoPrev&&window.SETTINGS?.brand?.logo)logoPrev.innerHTML='<img src="'+escHtml(window.SETTINGS.brand.logo)+'" style="width:100%;height:100%;object-fit:contain;">';
 }
 
+function openRepScheduleEdit(idx){
+  const schedules=getRepSchedules();
+  const a=schedules[idx];if(!a)return;
+  window._repSchedIdx=idx;
+  let m=document.getElementById('m-rep-sched');
+  if(!m){
+    m=document.createElement('div');m.id='m-rep-sched';m.className='modal-ov';
+    m.innerHTML=`<div class="modal" style="max-width:460px;">
+      <div class="modal-hdr"><div class="modal-title">EDYTUJ HARMONOGRAM</div><button class="modal-close" onclick="closeM('m-rep-sched')">×</button></div>
+      <div class="modal-body">
+        <div class="form-field"><label class="form-lbl">Nazwa</label><input type="text" class="form-input" id="rs-label"></div>
+        <div class="form-field"><label class="form-lbl">Opis</label><textarea class="form-textarea" id="rs-desc" rows="2"></textarea></div>
+        <div class="form-field"><label class="form-lbl">Czas / częstotliwość</label><input type="text" class="form-input" id="rs-time" placeholder="np. Pon 8:00"></div>
+        <div class="form-field"><label class="form-lbl">Odbiorcy</label>
+          <select class="form-select" id="rs-clients">
+            <option value="all">Wszyscy</option>
+            <option value="active">Wszyscy aktywni</option>
+            <option value="premium">Pakiet Premium</option>
+            <option value="inactive">Nieaktywni</option>
+          </select>
+        </div>
+        <div class="form-field"><label class="form-lbl">Kanały</label>
+          <label style="display:flex;gap:8px;align-items:center;font-size:12px;margin:4px 0;"><input type="checkbox" id="rs-ch-email" style="accent-color:var(--accent);"> Email</label>
+          <label style="display:flex;gap:8px;align-items:center;font-size:12px;margin:4px 0;"><input type="checkbox" id="rs-ch-app" style="accent-color:var(--accent);"> App / Inbox</label>
+          <label style="display:flex;gap:8px;align-items:center;font-size:12px;margin:4px 0;"><input type="checkbox" id="rs-ch-whatsapp" style="accent-color:var(--accent);"> WhatsApp</label>
+        </div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-rep-sched')">Anuluj</button><button class="btn btn-primary" onclick="saveRepScheduleEdit()">Zapisz</button></div>
+    </div>`;
+    document.body.appendChild(m);
+    m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');});
+  }
+  document.getElementById('rs-label').value=a.label||'';
+  document.getElementById('rs-desc').value=a.desc||'';
+  document.getElementById('rs-time').value=a.time||'';
+  document.getElementById('rs-clients').value=a.clients||'all';
+  document.getElementById('rs-ch-email').checked=(a.channels||[]).includes('email');
+  document.getElementById('rs-ch-app').checked=(a.channels||[]).includes('app');
+  document.getElementById('rs-ch-whatsapp').checked=(a.channels||[]).includes('whatsapp');
+  openM('m-rep-sched');
+}
+
+function saveRepScheduleEdit(){
+  const schedules=getRepSchedules();
+  const a=schedules[window._repSchedIdx];if(!a)return;
+  a.label=document.getElementById('rs-label').value.trim()||a.label;
+  a.desc=document.getElementById('rs-desc').value.trim();
+  a.time=document.getElementById('rs-time').value.trim();
+  a.clients=document.getElementById('rs-clients').value;
+  a.channels=[];
+  if(document.getElementById('rs-ch-email').checked)a.channels.push('email');
+  if(document.getElementById('rs-ch-app').checked)a.channels.push('app');
+  if(document.getElementById('rs-ch-whatsapp').checked)a.channels.push('whatsapp');
+  if(typeof persistSettingsDoc==='function')persistSettingsDoc();
+  closeM('m-rep-sched');
+  renderRepAuto();
+  notify('✓ Harmonogram zapisany');
+}
+
+function repToggleAuto(idx,val){
+  const schedules=getRepSchedules();
+  if(!schedules[idx])return;
+  schedules[idx].active=!!val;
+  if(typeof persistSettingsDoc==='function')persistSettingsDoc();
+  renderRepAuto();
+  notify(val?'✅ Automatyczny raport włączony':'⏸ Automatyczny raport wyłączony');
+}
+window.openRepScheduleEdit=openRepScheduleEdit;
+window.saveRepScheduleEdit=saveRepScheduleEdit;
+
 function saveRepSettings(){
   const S=window.SETTINGS||(window.SETTINGS={});
   if(!S.reports)S.reports={};
@@ -2095,8 +2340,6 @@ function saveRepSettings(){
 }
 window.saveRepSettings=saveRepSettings;
 
-
-function repToggleAuto(idx,val){notify(val?'✅ Automatyczny raport włączony':'⏸ Automatyczny raport wyłączony');}
 
 function repQuickView(cid){
   repClientId=cid;

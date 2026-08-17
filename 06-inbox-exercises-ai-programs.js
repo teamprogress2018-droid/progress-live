@@ -10,6 +10,8 @@ const CLIENT_NOTES={};// clientId -> [{text, date}]
 const CLIENT_ACTIVITY={};// clientId -> [{type, text, date, icon}]
 window.CLIENT_NOTES=CLIENT_NOTES;
 window.CLIENT_ACTIVITY=CLIENT_ACTIVITY;
+window.CLIENT_GROUPS=window.CLIENT_GROUPS||[]; // [{id,name,clientIds,color,createdAt}]
+const GROUP_COLORS=['#e11f2e','#4d9fff','#9d7cf4','#ff8c42','#3ecfb2','#f59e0b'];
 
 // ── Prawdziwe śledzenie "nieprzeczytane" (zamiast losowego i%3) ──
 // Zapisuje, kiedy trener ostatnio otworzył rozmowę z danym klientem.
@@ -42,17 +44,12 @@ function renderInbox(){
   const search=(document.getElementById('inbox-search')||{}).value||'';
   let list=CL.filter(c=>!search||c.name.toLowerCase().includes(search.toLowerCase()));
   if(inboxTab==='unread')list=list.filter(c=>msgHasUnread(c.id));
-  if(inboxTab==='groups')list=[];// groups placeholder
 
   const el=document.getElementById('msg-list');
   if(!el)return;
 
   if(inboxTab==='groups'){
-    el.innerHTML=`<div style="padding:30px;text-align:center;color:var(--muted);">
-      <div style="font-size:32px;margin-bottom:10px;opacity:0.3;">👥</div>
-      <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Grupy wkrótce</div>
-      <div style="font-size:11px;">Wyślij wiadomość do grupy klientów naraz</div>
-    </div>`;
+    renderInboxGroups(el,search);
     return;
   }
 
@@ -67,19 +64,175 @@ function renderInbox(){
     const unread=msgHasUnread(c.id);
     const time=last?last.time:'';
     const col=COLS[i%5];
-    return `<div class="msg-item-enhanced${curChat===c.id?' active':''}" onclick="openChat('${c.id}')">
+    return `<div class="msg-item-enhanced${curChat===c.id?' active':''}" onclick="openChat('${escHtml(c.id)}')">
       <div class="msg-avatar" style="background:${col}22;color:${col};">${getInit(c.name)}</div>
       <div style="flex:1;min-width:0;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
-          <div style="font-size:13px;font-weight:${unread?700:500};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.name}</div>
-          <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;flex-shrink:0;margin-left:4px;">${time}</div>
+          <div style="font-size:13px;font-weight:${unread?700:500};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(c.name)}</div>
+          <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;flex-shrink:0;margin-left:4px;">${escHtml(time)}</div>
         </div>
-        <div style="font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${last?last.text:(unread?'Nowa wiadomość':'Brak wiadomości')}</div>
+        <div style="font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${last?escHtml(last.text):(unread?'Nowa wiadomość':'Brak wiadomości')}</div>
       </div>
       ${unread?'<div class="msg-unread-dot"></div>':''}
     </div>`;
   }).join('');
 }
+
+function renderInboxGroups(el,search){
+  const groups=(window.CLIENT_GROUPS||[]).filter(g=>!search||(g.name||'').toLowerCase().includes(search.toLowerCase()));
+  el.innerHTML=`
+    <div style="padding:12px;border-bottom:1px solid var(--border);">
+      <button class="btn btn-primary btn-sm" style="width:100%;" onclick="openClientGroupModal()">+ Nowa grupa</button>
+    </div>
+    ${groups.length?groups.map((g,i)=>{
+      const col=g.color||GROUP_COLORS[i%GROUP_COLORS.length];
+      const members=(g.clientIds||[]).map(id=>CL.find(c=>c.id===id)).filter(Boolean);
+      return `<div class="msg-item-enhanced" style="flex-direction:column;align-items:stretch;gap:8px;" onclick="event.stopPropagation()">
+        <div style="display:flex;gap:10px;align-items:center;cursor:pointer;" onclick="openClientGroupModal('${escHtml(g.id)}')">
+          <div class="msg-avatar" style="background:${col}22;color:${col};">👥</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:600;">${escHtml(g.name)}</div>
+            <div style="font-size:11px;color:var(--muted);">${members.length} klientów · ${members.slice(0,3).map(c=>c.name.split(' ')[0]).join(', ')}${members.length>3?'…':''}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-primary btn-sm" style="flex:1;" onclick="messageClientGroup('${escHtml(g.id)}')">💬 Napisz</button>
+          <button class="btn btn-ghost btn-sm" onclick="openClientGroupModal('${escHtml(g.id)}')">Edytuj</button>
+        </div>
+      </div>`;
+    }).join(''):`<div style="padding:30px;text-align:center;color:var(--muted);">
+      <div style="font-size:32px;margin-bottom:10px;opacity:0.3;">👥</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Brak grup</div>
+      <div style="font-size:11px;margin-bottom:12px;">Utwórz grupę i wyślij wiadomość do wielu klientów naraz</div>
+    </div>`}`;
+}
+
+function openClientGroupModal(id){
+  window._editingGroupId=id||null;
+  let m=document.getElementById('m-client-group');
+  if(!m){
+    m=document.createElement('div');m.id='m-client-group';m.className='modal-ov';
+    m.innerHTML=`<div class="modal" style="max-width:480px;">
+      <div class="modal-hdr"><div class="modal-title" id="cg-modal-title">NOWA GRUPA</div><button class="modal-close" onclick="closeM('m-client-group')">×</button></div>
+      <div class="modal-body">
+        <div class="form-field"><label class="form-lbl">Nazwa grupy</label><input type="text" class="form-input" id="cg-name" placeholder="np. Redukcja 2026"></div>
+        <div class="form-field"><label class="form-lbl">Kolor</label>
+          <div id="cg-colors" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+        </div>
+        <div class="form-field"><label class="form-lbl">Członkowie</label>
+          <div id="cg-members" style="max-height:220px;overflow-y:auto;border:1px solid var(--border2);border-radius:8px;padding:8px;"></div>
+        </div>
+      </div>
+      <div class="modal-footer" style="display:flex;gap:8px;">
+        <button class="btn btn-ghost btn-sm" id="cg-delete-btn" style="display:none;margin-right:auto;color:var(--red);" onclick="deleteClientGroup()">Usuń</button>
+        <button class="btn btn-ghost" onclick="closeM('m-client-group')">Anuluj</button>
+        <button class="btn btn-primary" onclick="saveClientGroup()">Zapisz</button>
+      </div>
+    </div>`;
+    document.body.appendChild(m);
+    m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');});
+  }
+  const g=id?(window.CLIENT_GROUPS||[]).find(x=>x.id===id):null;
+  document.getElementById('cg-modal-title').textContent=g?'EDYTUJ GRUPĘ':'NOWA GRUPA';
+  document.getElementById('cg-name').value=g?.name||'';
+  window._cgColor=g?.color||GROUP_COLORS[0];
+  document.getElementById('cg-colors').innerHTML=GROUP_COLORS.map(c=>`<button type="button" onclick="window._cgColor='${c}';openClientGroupModal(window._editingGroupId)" style="width:28px;height:28px;border-radius:8px;background:${c};border:2px solid ${window._cgColor===c?'#fff':'transparent'};cursor:pointer;"></button>`).join('');
+  const selected=new Set(g?.clientIds||[]);
+  document.getElementById('cg-members').innerHTML=CL.length?CL.map(c=>`<label style="display:flex;align-items:center;gap:8px;padding:6px 4px;border-bottom:1px solid var(--border);font-size:12px;cursor:pointer;">
+    <input type="checkbox" class="cg-member-chk" value="${escHtml(c.id)}" ${selected.has(c.id)?'checked':''} style="accent-color:var(--accent);">
+    <span>${escHtml(c.name)}</span>
+  </label>`).join(''):`<div style="font-size:12px;color:var(--muted);padding:8px;">Brak klientów — najpierw dodaj klientów.</div>`;
+  const del=document.getElementById('cg-delete-btn');
+  if(del)del.style.display=g?'inline-flex':'none';
+  openM('m-client-group');
+}
+
+async function saveClientGroup(){
+  const name=document.getElementById('cg-name')?.value.trim();
+  if(!name){notify('Wpisz nazwę grupy!');return;}
+  const clientIds=[...document.querySelectorAll('.cg-member-chk:checked')].map(cb=>cb.value);
+  let g;
+  if(window._editingGroupId){
+    g=(window.CLIENT_GROUPS||[]).find(x=>x.id===window._editingGroupId);
+    if(g){
+      g.name=name;g.clientIds=clientIds;g.color=window._cgColor||g.color;g.updatedAt=new Date().toISOString();
+      withTrainer(g);
+    }
+  }
+  if(!g){
+    g=withTrainer({id:newId('grp'),name,clientIds,color:window._cgColor||GROUP_COLORS[0],createdAt:new Date().toISOString()});
+    window.CLIENT_GROUPS.push(g);
+  }
+  await persistById('clientGroups',g);
+  closeM('m-client-group');
+  refreshBroadcastGroupOptions();
+  if(inboxTab==='groups')renderInbox();
+  notify('✓ Grupa "'+name+'" zapisana ('+clientIds.length+' osób)');
+}
+
+async function deleteClientGroup(){
+  const id=window._editingGroupId;if(!id)return;
+  if(!confirm('Usunąć tę grupę?'))return;
+  window.CLIENT_GROUPS=(window.CLIENT_GROUPS||[]).filter(x=>x.id!==id);
+  if(window._db){try{await window._del(window._doc(window._db,'clientGroups',id));}catch(e){}}
+  closeM('m-client-group');
+  refreshBroadcastGroupOptions();
+  if(inboxTab==='groups')renderInbox();
+  notify('Grupa usunięta');
+}
+
+function messageClientGroup(id){
+  const g=(window.CLIENT_GROUPS||[]).find(x=>x.id===id);if(!g)return;
+  let m=document.getElementById('m-group-msg');
+  if(!m){
+    m=document.createElement('div');m.id='m-group-msg';m.className='modal-ov';
+    m.innerHTML=`<div class="modal" style="max-width:440px;">
+      <div class="modal-hdr"><div class="modal-title">WIADOMOŚĆ DO GRUPY</div><button class="modal-close" onclick="closeM('m-group-msg')">×</button></div>
+      <div class="modal-body">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px;" id="gm-meta"></div>
+        <textarea class="form-textarea" id="gm-text" rows="4" placeholder="Treść… Użyj {imie} aby spersonalizować."></textarea>
+      </div>
+      <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-group-msg')">Anuluj</button><button class="btn btn-primary" onclick="sendClientGroupMessage()">Wyślij</button></div>
+    </div>`;
+    document.body.appendChild(m);
+    m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');});
+  }
+  window._msgGroupId=id;
+  const members=(g.clientIds||[]).map(cid=>CL.find(c=>c.id===cid)).filter(Boolean);
+  document.getElementById('gm-meta').textContent=g.name+' · '+members.length+' odbiorców';
+  document.getElementById('gm-text').value='';
+  openM('m-group-msg');
+}
+
+function sendClientGroupMessage(){
+  const g=(window.CLIENT_GROUPS||[]).find(x=>x.id===window._msgGroupId);if(!g)return;
+  const msg=document.getElementById('gm-text')?.value.trim();
+  if(!msg){notify('Wpisz wiadomość!');return;}
+  const members=(g.clientIds||[]).map(cid=>CL.find(c=>c.id===cid)).filter(Boolean);
+  members.forEach(c=>pushMsg(c.id,msg.replace(/\{imie\}/gi,c.name.split(' ')[0])));
+  closeM('m-group-msg');
+  notify('✓ Wysłano do '+members.length+' klientów z grupy "'+g.name+'"');
+  renderInbox();
+}
+
+function refreshBroadcastGroupOptions(){
+  const sel=document.getElementById('bc-target');if(!sel)return;
+  const keep=sel.value;
+  const base=[
+    ['all','Wszyscy klienci'],
+    ['active','Tylko aktywni'],
+    ['inactive','Nieaktywni (zastój)'],
+  ];
+  const groups=(window.CLIENT_GROUPS||[]).map(g=>['group:'+g.id,'Grupa: '+g.name]);
+  sel.innerHTML=[...base,...groups].map(([v,l])=>`<option value="${escHtml(v)}">${escHtml(l)}</option>`).join('');
+  if([...base,...groups].some(([v])=>v===keep))sel.value=keep;
+}
+window.openClientGroupModal=openClientGroupModal;
+window.saveClientGroup=saveClientGroup;
+window.deleteClientGroup=deleteClientGroup;
+window.messageClientGroup=messageClientGroup;
+window.sendClientGroupMessage=sendClientGroupMessage;
+window.refreshBroadcastGroupOptions=refreshBroadcastGroupOptions;
 
 function openChat(id){
   curChat=id;
@@ -202,7 +355,13 @@ function sendBroadcast(){
   const target=document.getElementById('bc-target').value;
   let targets=CL;
   if(target==='active')targets=CL.filter(c=>c.status==='active');
-  if(target==='inactive')targets=CL.filter(c=>c.status==='inactive');
+  else if(target==='inactive')targets=CL.filter(c=>c.status==='inactive');
+  else if(target&&target.startsWith('group:')){
+    const gid=target.slice(6);
+    const g=(window.CLIENT_GROUPS||[]).find(x=>x.id===gid);
+    const ids=new Set(g?.clientIds||[]);
+    targets=CL.filter(c=>ids.has(c.id));
+  }
   targets.forEach(c=>{
     const text=msg.replace(/{imie}/g,c.name.split(' ')[0]);
     pushMsg(c.id,text);
