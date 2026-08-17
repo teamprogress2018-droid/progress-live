@@ -2229,6 +2229,10 @@ function renderSettingsContent(t){
     ];
     el.innerHTML=`<div class="settings-section" style="max-width:700px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">INTEGRACJE</div>
+      <div class="settings-card" style="margin-bottom:16px;">
+        <div style="font-size:13px;line-height:1.6;color:var(--muted);margin-bottom:12px;">Konfiguracja Stripe, Calendly i innych narzędzi jest na osobnym ekranie. Zapisywane są tylko dane konfiguracyjne — bez realnego OAuth/API (statyczna strona).</div>
+        <button class="btn btn-primary btn-sm" onclick="goTo('integrations')">Otwórz ekran Integracje →</button>
+      </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         ${integrations.map(int=>`<div class="settings-card" style="display:flex;flex-direction:column;gap:12px;border-top:3px solid ${int.color};">
           <div style="display:flex;gap:12px;align-items:flex-start;">
@@ -2239,8 +2243,8 @@ function renderSettingsContent(t){
             </div>
           </div>
           <div style="display:flex;align-items:center;justify-content:space-between;">
-            <span class="pill ${int.connected?'pill-green':'pill-muted'}" style="font-size:10px;">${int.connected?'✓ Połączono':'Niepołączono'}</span>
-            <button class="btn btn-ghost btn-sm" onclick="notify('Integracja z ${int.name} — wkrótce!')">${int.connected?'Rozłącz':'Połącz'}</button>
+            <span class="pill pill-muted" style="font-size:10px;">Konfiguracja</span>
+            <button class="btn btn-ghost btn-sm" onclick="goTo('integrations')">Otwórz</button>
           </div>
         </div>`).join('')}
       </div>
@@ -2354,17 +2358,40 @@ function removeSpecialty(s){
 }
 
 function exportData(type){
-  let data,filename;
-  if(type==='clients'){data=CL;filename='clients.json';}
-  else if(type==='sessions'){data=SE;filename='sessions.json';}
-  else if(type==='payments'){data=allPackages();filename='payments.json';}
-  else{data={clients:CL,sessions:SE,plans:PL,exercises:EX,workouts:WO,tasks:TASKS,settings:window.SETTINGS};filename='progress-live-export.json';}
+  if(type==='clients'){
+    downloadCsv('clients.csv',[['id','name','email','phone','goal','level','status']].concat(CL.map(c=>[c.id,c.name,c.email,c.phone,c.goal,c.level,c.status])));
+    notify('✓ Eksport CSV: klienci');return;
+  }
+  if(type==='sessions'){
+    downloadCsv('sessions.csv',[['id','clientId','date','time','type','duration']].concat(SE.map(s=>[s.id,s.clientId,s.date,s.time,s.type,s.duration])));
+    notify('✓ Eksport CSV: sesje');return;
+  }
+  if(type==='payments'){
+    const pkgs=typeof allPackages==='function'?allPackages():(window.PACKAGES||[]);
+    downloadCsv('payments.csv',[['id','client','title','price','status','date']].concat(pkgs.map(p=>[p.id,p.clientName,p.title,p.price,p.payStatus,p.date])));
+    notify('✓ Eksport CSV: płatności');return;
+  }
+  const data={clients:CL,sessions:SE,plans:PL,exercises:EX,workouts:WO,tasks:TASKS,settings:window.SETTINGS};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.download=filename;a.click();
+  const a=document.createElement('a');a.href=url;a.download='progress-live-export.json';a.click();
   URL.revokeObjectURL(url);
-  notify('✓ Eksport pobrany: '+filename);
+  notify('✓ Eksport pobrany: progress-live-export.json');
 }
+
+function exportInvoicesCsv(){
+  const inv=window.INVOICES||[];
+  downloadCsv('invoices.csv',[['nr','client','title','date','amount','status']].concat(inv.map(i=>[i.nr||i.id,i.clientName,i.pkgTitle,i.date,i.amount,i.status])));
+  notify('✓ Eksport CSV: faktury');
+}
+window.exportInvoicesCsv=exportInvoicesCsv;
+
+function exportRepHistoryCsv(){
+  const all=window.REP_HISTORY||[];
+  downloadCsv('report-history.csv',[['client','type','date','channels','status']].concat(all.map(r=>[r.clientName,r.type,r.date,(r.sent||[]).join('|'),r.status])));
+  notify('✓ Eksport CSV: historia raportów');
+}
+window.exportRepHistoryCsv=exportRepHistoryCsv;
 
 function confirmDeleteAll(){
   if(!confirm('UWAGA! Ta operacja usunie wszystkie dane. Czy na pewno chcesz kontynuować?'))return;

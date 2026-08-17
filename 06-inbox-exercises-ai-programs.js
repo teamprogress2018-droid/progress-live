@@ -432,13 +432,13 @@ async function saveEx(){
       EX[idx]={...EX[idx],name,cat:document.getElementById('ex-cat').value,eq:document.getElementById('ex-eq').value,desc:document.getElementById('ex-desc').value,tip:document.getElementById('ex-desc').value};
       window._editingExName=null;
       closeM('m-ex');renderLib();notify('Ćwiczenie zaktualizowane!');
-      if(window._db&&oldId){try{await window._setDoc(window._doc(window._db,'exercises',oldId),EX[idx],{merge:true});}catch(e){console.warn('Firebase update ex:',e);}}
+      await persistById('exercises',EX[idx]);
       return;
     }
   }
-  const ex={id:'l'+Date.now(),name,cat:document.getElementById('ex-cat').value,eq:document.getElementById('ex-eq').value,desc:document.getElementById('ex-desc').value,tip:document.getElementById('ex-desc').value,muscle:'',nsca:'',alt:''};
+  const ex=withTrainer({id:newId('ex'),name,cat:document.getElementById('ex-cat').value,eq:document.getElementById('ex-eq').value,desc:document.getElementById('ex-desc').value,tip:document.getElementById('ex-desc').value,muscle:'',nsca:'',alt:''});
   EX.push(ex);closeM('m-ex');renderLib();notify('Ćwiczenie dodane!');
-  if(window._db){try{const r=await window._add(window._col(window._db,'exercises'),ex);if(r&&r.id)ex._fbId=r.id;}catch(e){console.warn('Firebase:',e);}}
+  await persistById('exercises',ex);
 }
 
 function setExView(v){
@@ -1413,15 +1413,15 @@ async function saveTask(){
       closeM('m-task');renderTasks();
       if(cpClientId&&cpClientId===TASKS[idx].clientId){try{setCPTab(cpTab);}catch(e){}}
       notify('Zadanie zaktualizowane!');
-      if(window._db){try{await window._setDoc(window._doc(window._db,'tasks',editingId),TASKS[idx],{merge:true});}catch(e){console.warn('Firebase update:',e);}}
+      await persistById('tasks',TASKS[idx]);
       return;
     }
   }
-  const t={id:'l'+Date.now(),title,clientId:document.getElementById('task-client').value,due:document.getElementById('task-due').value,priority:document.getElementById('task-priority').value,cat:catEl?catEl.value:'trening',desc:'',status:'open',createdAt:new Date().toISOString()};
+  const t=withTrainer({id:newId('t'),title,clientId:document.getElementById('task-client').value,due:document.getElementById('task-due').value,priority:document.getElementById('task-priority').value,cat:catEl?catEl.value:'trening',desc:'',status:'open',createdAt:new Date().toISOString()});
   TASKS.push(t);closeM('m-task');renderTasks();
   if(cpClientId&&cpClientId===t.clientId){try{setCPTab(cpTab);}catch(e){}}
   notify('Zadanie dodane!');
-  if(window._db){try{const r=await window._add(window._col(window._db,'tasks'),t);if(r&&r.id)t._fbId=r.id;}catch(e){console.warn('Firebase:',e);}}
+  await persistById('tasks',t);
 }
 function toggleTask(id){const t=TASKS.find(x=>x.id===id);if(t)t.status=t.status==='done'?'open':'done';renderTasks();}
 function delTask(id){window.TASKS=TASKS.filter(t=>t.id!==id);renderTasks();}
@@ -1441,8 +1441,8 @@ async function applyTemplate(tmplId){
   const today=new Date();let added=0;
   for(const t of tmpl.tasks){
     const due=new Date(today);due.setDate(due.getDate()+t.days);
-    const task={title:t.title,clientId:cid,due:due.toISOString().split('T')[0],priority:t.priority,cat:t.cat,desc:'',status:'open',createdAt:new Date().toISOString()};
-    try{if(window._db){const r=await window._add(window._col(window._db,'tasks'),task);task.id=r.id;}else task.id='l'+Date.now();}catch(e){task.id='l'+Date.now();}
+    const task=withTrainer({id:newId('t'),title:t.title,clientId:cid,due:due.toISOString().split('T')[0],priority:t.priority,cat:t.cat,desc:'',status:'open',createdAt:new Date().toISOString()});
+    await persistById('tasks',task);
     TASKS.push(task);added++;
   }
   const c=CL.find(x=>x.id===cid);

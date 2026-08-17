@@ -278,7 +278,8 @@ async function saveWorkout(){
     exercises.push({name:n,sets:inps[1].value||'3',reps:inps[2].value||'10',rest:inps[3].value||'60s'});
   });
   if(!exercises.length){notify('Dodaj przynajmniej jedno ćwiczenie!');return;}
-  const w={
+  const w=withTrainer({
+    id:newId('w'),
     name,
     cat:document.getElementById('w-cat').value,
     level:document.getElementById('w-level').value,
@@ -289,8 +290,8 @@ async function saveWorkout(){
     notes:document.getElementById('w-notes').value,
     exercises,
     createdAt:new Date().toISOString().split('T')[0]
-  };
-  try{if(window._db){const r=await window._add(window._col(window._db,'workouts'),w);w.id=r.id;}else w.id='w'+Date.now();}catch(e){w.id='w'+Date.now();}
+  });
+  await persistById('workouts',w);
   WO.push(w);closeM('m-workout');renderWL();notify('Trening dodany! 💪');
 }
 
@@ -1947,7 +1948,7 @@ function renderRepHistory(){
   el.innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;">HISTORIA WYSŁANYCH RAPORTÓW</div>
-      <button class="btn btn-ghost btn-sm" onclick="notify('Eksport CSV wkrótce!')">⬇ Eksport CSV</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportRepHistoryCsv()">⬇ Eksport CSV</button>
     </div>
     ${!all.length?`<div style="text-align:center;padding:60px;color:var(--muted);">
       <div style="font-size:36px;opacity:0.3;margin-bottom:12px;">📄</div>
@@ -2104,19 +2105,25 @@ Wygeneruj raport tygodniowy.`;
   renderRepDocument(c,template,true,aiData);
 
   // save to history
-  const repEntry={id:'r'+Date.now(),clientId:c.id,clientName:c.name,type:aplGetVal('rep-types')||'weekly',date:new Date().toISOString().split('T')[0],sent:['email','app'],status:'dostarczony',auto:false};
-  REP_HISTORY.unshift(repEntry);
-  if(window._db){window._add(window._col(window._db,'reportHistory'),repEntry).then(r=>{if(r&&r.id)repEntry._fbId=r.id;}).catch(e=>console.warn('Firebase reportHistory save:',e));}
-
-  // send notifications
+  const sentChannels=[];
+  if(document.getElementById('rep-send-email')?.checked)sentChannels.push('email');
+  if(document.getElementById('rep-send-whatsapp')?.checked)sentChannels.push('whatsapp');
+  if(document.getElementById('rep-send-app')?.checked)sentChannels.push('app');
+  const repEntry=withTrainer({id:newId('r'),clientId:c.id,clientName:c.name,type:aplGetVal('rep-types')||'weekly',date:new Date().toISOString().split('T')[0],sent:sentChannels,status:'wygenerowany',auto:false});
+  // Honest status: email/WhatsApp nie są podłączone — raport jest lokalny + w historii
+  const channels=[];
+  if(document.getElementById('rep-send-email')?.checked)channels.push('email (lokalnie — wysyłka niepodłączona)');
+  if(document.getElementById('rep-send-whatsapp')?.checked)channels.push('WhatsApp (niepodłączone)');
   if(document.getElementById('rep-send-app')?.checked){
+    channels.push('aplikacja');
+    pushMsg(c.id,'📄 Twój raport postępów jest gotowy — sprawdź u trenera lub w podglądzie.');
     addNotification('report','Raport postępów gotowy!','Raport dla '+c.name+' wygenerowany','reports');
   }
-  const channels=[];
-  if(document.getElementById('rep-send-email')?.checked)channels.push('email');
-  if(document.getElementById('rep-send-whatsapp')?.checked)channels.push('WhatsApp');
-  if(document.getElementById('rep-send-app')?.checked)channels.push('aplikacji');
-  if(channels.length)notify('✅ Raport wysłany do '+c.name+' przez '+channels.join(', ')+'!');
+  REP_HISTORY.unshift(repEntry);
+  await persistById('reportHistory',repEntry);
+
+  if(channels.length)notify('✅ Raport zapisany dla '+c.name+'. Kanały: '+channels.join(', '));
+  else notify('✅ Raport wygenerowany i zapisany w historii');
 
   repGenerating=false;
 }

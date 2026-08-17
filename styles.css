@@ -728,5 +728,22 @@ input[type=checkbox]{display:none;}
   .topbar-actions .btn{font-size:11px;padding:6px 10px;}
 }
 
+/* Overlay ładowania danych po logowaniu */
+#app-loading{
+  position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;
+  background:rgba(7,8,10,0.72);backdrop-filter:blur(4px);
+}
+#app-loading .app-loading-card{
+  background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:22px 28px;
+  display:flex;align-items:center;gap:14px;font-size:13px;color:var(--text);
+}
+#app-loading .app-loading-spin{
+  width:18px;height:18px;border-radius:50%;
+  border:2px solid var(--border2);border-top-color:var(--accent);
+  animation:app-spin .7s linear infinite;
+}
+@keyframes app-spin{to{transform:rotate(360deg)}}
+
+
 
     

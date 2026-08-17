@@ -6,25 +6,35 @@ var wlNav='all';var wlView='grid';var wlSort='nazwa';var wlDetailId=null;
 const MSGS={};
 window.MSGS=MSGS;
 
+/** Escape HTML — chroni przed XSS przy wstawianiu tekstu użytkownika. */
+function escHtml(s){
+  return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+window.escHtml=escHtml;
+
 /** Stabilne ID współdzielone lokalnie i w Firestore (doc id = obj.id). */
 function newId(prefix){
   return (prefix||'id')+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 }
+window.newId=newId;
 /** Dokleja trainerId bieżącego użytkownika do obiektu przed zapisem. */
 function withTrainer(obj){
   if(window._uid)obj.trainerId=window._uid;
   return obj;
 }
+window.withTrainer=withTrainer;
 /** Mapuje dokument Firestore z priorytetem id dokumentu (nie lokalnego pola id z data()). */
 function mapFbDoc(d){
   return {...d.data(),id:d.id,_fbId:d.id};
 }
+window.mapFbDoc=mapFbDoc;
 /** Legacy bez trainerId widoczne; nowe dokumenty filtrujemy po uid. */
 function belongsToTrainer(data){
   if(!window._uid)return true;
   if(!data||!data.trainerId)return true;
   return data.trainerId===window._uid;
 }
+window.belongsToTrainer=belongsToTrainer;
 /** Zapisuje dokument pod stałym id (setDoc), żeby lokalne id = Firestore id. */
 async function persistById(colName,obj){
   if(!obj||!obj.id)return obj;
@@ -36,6 +46,41 @@ async function persistById(colName,obj){
   }catch(e){console.warn('Firebase persist '+colName+':',e);}
   return obj;
 }
+window.persistById=persistById;
+
+/** Prosty eksport CSV (UTF-8 BOM) — pobiera plik w przeglądarce. */
+function downloadCsv(filename,rows){
+  const esc=v=>{
+    const s=String(v??'');
+    if(/[",\n\r]/.test(s))return '"'+s.replace(/"/g,'""')+'"';
+    return s;
+  };
+  const csv='\uFEFF'+rows.map(r=>r.map(esc).join(';')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=filename;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+window.downloadCsv=downloadCsv;
+
+/** Overlay ładowania danych po zalogowaniu. */
+function showAppLoading(on){
+  let el=document.getElementById('app-loading');
+  if(on){
+    if(!el){
+      el=document.createElement('div');
+      el.id='app-loading';
+      el.innerHTML='<div class="app-loading-card"><div class="app-loading-spin"></div><div>Ładowanie danych…</div></div>';
+      document.body.appendChild(el);
+    }
+    el.style.display='flex';
+  }else if(el){
+    el.style.display='none';
+  }
+}
+window.showAppLoading=showAppLoading;
 
 // Wspólna funkcja wysyłania wiadomości — zawsze zapisuje trwale do Firebase.
 // Używana przez WSZYSTKIE miejsca w apce, które wysyłają wiadomość do klienta

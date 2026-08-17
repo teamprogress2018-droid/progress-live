@@ -1110,7 +1110,18 @@ function bizForecast(D){
   </div>`;
 }
 
-function exportBizReport(){notify('📄 Eksport PDF jeszcze nie jest podłączony — funkcja w przygotowaniu.');}
+function exportBizReport(){
+  const rows=[['Metryka','Wartość']];
+  rows.push(['Aktywnych klientów',CL.filter(c=>c.status!=='inactive').length]);
+  rows.push(['Planów',PL.length]);
+  rows.push(['Sesji',SE.length]);
+  rows.push(['Pakietów',(window.PACKAGES||[]).length]);
+  const paid=(window.INVOICES||[]).filter(i=>i.status==='paid'||i.payStatus==='paid');
+  rows.push(['Faktury opłacone',paid.length]);
+  rows.push(['Suma opłaconych (zł)',paid.reduce((s,i)=>s+(i.amount||i.price||0),0)]);
+  downloadCsv('bizstats-'+new Date().toISOString().slice(0,10)+'.csv',rows);
+  notify('✓ Wyeksportowano CSV ze statystykami biznesowymi');
+}
 
 window.initBizStats=initBizStats;window.setBizPeriod=setBizPeriod;window.exportBizReport=exportBizReport;
 

@@ -537,8 +537,8 @@ async function savePackage(){
   const expD=new Date(date);expD.setDate(expD.getDate()+validity);
   invoiceCounter++;
   const invId='INV-'+invoiceCounter;
-  const pkg={
-    id:'pkg'+Date.now(),title,
+  const pkg=withTrainer({
+    id:newId('pkg'),title,
     type:document.getElementById('pkg-type').value,
     sessions,sessionsUsed:0,price,validity,
     clientId:cid,clientName:c?c.name:'Brak klienta',
@@ -546,14 +546,12 @@ async function savePackage(){
     date,expiresDate:expD.toISOString().split('T')[0],
     notes:document.getElementById('pkg-notes').value,
     invoiceId:invId
-  };
-  const inv={id:invId,nr:invId,pkgId:pkg.id,clientName:pkg.clientName,pkgTitle:title,date,amount:price,status:pkg.payStatus};
+  });
+  const inv=withTrainer({id:invId,nr:invId,pkgId:pkg.id,clientName:pkg.clientName,pkgTitle:title,date,amount:price,status:pkg.payStatus});
   window.PACKAGES.push(pkg);
   window.INVOICES.push(inv);
-  if(window._db){
-    window._add(window._col(window._db,'packages'),pkg).then(r=>{if(r&&r.id)pkg._fbId=r.id;}).catch(e=>console.warn('Firebase pkg save:',e));
-    window._add(window._col(window._db,'invoices'),inv).then(r=>{if(r&&r.id)inv._fbId=r.id;}).catch(e=>console.warn('Firebase inv save:',e));
-  }
+  await persistById('packages',pkg);
+  await persistById('invoices',inv);
   closeM('m-package');
   if(payTab==='overview')renderPayOverview();
   else if(payTab==='packages')renderPayPackages();
@@ -705,13 +703,18 @@ function odProgramCardHTML(p,i){
 function shareODWorkout(id){
   if(!CL.length){notify('Najpierw dodaj klienta!');return;}
   const w=(window.OD_WORKOUTS||[]).find(x=>x.id===id);
-  notify('✓ Trening "'+(w?w.name:id)+'" udostępniony wszystkim klientom!');
+  if(!w){notify('Nie znaleziono treningu');return;}
+  const link=w.url||'(brak URL wideo)';
+  CL.forEach(c=>pushMsg(c.id,'▶️ Nowy trening on-demand: "'+w.name+'"\n'+link+(w.desc?'\n'+w.desc:'')));
+  notify('✓ Trening "'+w.name+'" wysłany do '+CL.length+' klientów (Inbox)');
 }
 
 function shareODProgram(id){
   if(!CL.length){notify('Najpierw dodaj klienta!');return;}
   const p=OD_DEMO_PROGRAMS.find(x=>x.id===id);
-  notify('✓ Program "'+(p?p.name:id)+'" udostępniony klientom!');
+  if(!p){notify('Nie znaleziono programu');return;}
+  CL.forEach(c=>pushMsg(c.id,'📋 Program on-demand: "'+p.name+'" — szczegóły u trenera / w bibliotece.'));
+  notify('✓ Program "'+p.name+'" wysłany do '+CL.length+' klientów (Inbox)');
 }
 
 async function saveODWorkout(){
@@ -719,8 +722,8 @@ async function saveODWorkout(){
 
   const name=document.getElementById('odw-name').value.trim();
   if(!name){notify('Wpisz nazwę treningu!');return;}
-  const w={
-    id:'ow'+Date.now(),name,
+  const w=withTrainer({
+    id:newId('ow'),name,
     type:document.getElementById('odw-type').value,
     level:document.getElementById('odw-level').value,
     time:parseInt(document.getElementById('odw-time').value)||30,
@@ -728,9 +731,9 @@ async function saveODWorkout(){
     url:document.getElementById('odw-url').value,
     desc:document.getElementById('odw-desc').value,
     color:'var(--s3)',emoji:'🏋️',views:0,likes:0
-  };
+  });
   window.OD_WORKOUTS.push(w);
-  if(window._db){window._add(window._col(window._db,'odWorkouts'),w).then(r=>{if(r&&r.id)w._fbId=r.id;}).catch(e=>console.warn('Firebase OD workout save:',e));}
+  await persistById('odWorkouts',w);
   closeM('m-od-workout');
   if(odTab==='browse')renderODBrowse();
   else if(odTab==='workouts')renderODWorkouts();
@@ -1009,8 +1012,8 @@ async function saveResource(){
 
   const name=document.getElementById('rs-name').value.trim();
   if(!name){notify('Wpisz nazwę zasobu!');return;}
-  const r={
-    id:'ur'+Date.now(),
+  const r=withTrainer({
+    id:newId('ur'),
     name,
     type:document.getElementById('rs-type').value,
     cat:document.getElementById('rs-cat').value,
@@ -1018,9 +1021,9 @@ async function saveResource(){
     desc:document.getElementById('rs-desc').value,
     coll:document.getElementById('rs-coll').value,
     createdAt:new Date().toISOString()
-  };
+  });
   window.USER_RESOURCES.push(r);
-  if(window._db){window._add(window._col(window._db,'resources'),r).then(res=>{if(res&&res.id)r._fbId=res.id;}).catch(e=>console.warn('Firebase resource save:',e));}
+  await persistById('resources',r);
   closeM('m-resource');
   renderResources();
   notify('✓ Zasób "'+name+'" dodany!');
@@ -1160,9 +1163,9 @@ function saveAutoflow(){
     const typeEl=row.querySelector('[data-type]');
     steps.push({type:typeEl?typeEl.dataset.type:'wait',day:i+1,text:inp.value.trim()});
   });
-  const af={id:'af'+Date.now(),name,type:document.getElementById('af-type').value,scope:document.getElementById('af-scope').value,status:'active',steps,createdAt:new Date().toISOString()};
+  const af=withTrainer({id:newId('af'),name,type:document.getElementById('af-type').value,scope:document.getElementById('af-scope').value,status:'active',steps,createdAt:new Date().toISOString()});
   window.AUTOFLOWS.push(af);
-  if(window._db){window._add(window._col(window._db,'autoflows'),af).then(r=>{if(r&&r.id)af._fbId=r.id;}).catch(e=>console.warn('Firebase autoflow save:',e));}
+  persistById('autoflows',af);
   closeM('m-autoflow-builder');
   document.getElementById('af-name').value='';
   document.getElementById('af-steps').innerHTML='';
@@ -1252,7 +1255,9 @@ function saveAutomationState(){
 
 function notify(msg){
   const old=document.querySelector('.notif');if(old)old.remove();
-  const d=document.createElement('div');d.className='notif';d.innerHTML=msg;
+  const d=document.createElement('div');d.className='notif';
+  // Bezpiecznie: textContent zamiast innerHTML (toast może zawierać imię klienta / treść z inputu).
+  d.textContent=String(msg??'').replace(/<[^>]*>/g,'');
   document.body.appendChild(d);setTimeout(()=>d.remove(),3000);
 }
 
@@ -1270,10 +1275,10 @@ function renderKB(){
   el.innerHTML = KB.slice().reverse().map(k=>`
     <div class="card-sm" style="border-left:3px solid var(--accent);">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
-        <div style="font-size:13px;font-weight:700;">${k.title}</div>
+        <div style="font-size:13px;font-weight:700;">${escHtml(k.title)}</div>
         <button onclick="delKBEntry('${k.id}')" style="background:none;border:none;color:var(--muted2);font-size:16px;cursor:pointer;">×</button>
       </div>
-      <div style="font-size:12px;color:var(--muted);line-height:1.6;white-space:pre-wrap;">${(k.text||'').substring(0,280)}${(k.text||'').length>280?'…':''}</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.6;white-space:pre-wrap;">${escHtml((k.text||'').substring(0,280))}${(k.text||'').length>280?'…':''}</div>
     </div>`).join('');
 }
 
@@ -1283,15 +1288,13 @@ async function saveKBEntry(){
   const title = document.getElementById('kb-title').value.trim();
   const text = document.getElementById('kb-text').value.trim();
   if(!title || !text){notify('Wpisz tytuł i treść!'); return;}
-  const entry = {id:'kb'+Date.now(), title, text, createdAt:new Date().toISOString()};
+  const entry = withTrainer({id:newId('kb'), title, text, createdAt:new Date().toISOString()});
   KB.push(entry);
   closeM('m-kb');
   document.getElementById('kb-title').value=''; document.getElementById('kb-text').value='';
   renderKB();
   notify('✓ Wpis dodany do bazy wiedzy!');
-  if(window._db){
-    try{const r = await window._add(window._col(window._db,'kb'), entry); entry.id = r.id;}catch(e){console.warn('Firebase KB:',e);}
-  }
+  await persistById('kb', entry);
 }
 
 async function delKBEntry(id){
@@ -1510,6 +1513,7 @@ window.testIntConnection=testIntConnection;window.copyWebhook=copyWebhook;
 window.initClientApp=initClientApp;window.renderClientApp=renderClientApp;
 window.setCapTab=setCapTab;window.setCapScreen=setCapScreen;window.setCapDevice=setCapDevice;
 window.shareAppLink=shareAppLink;window.sendAppInvite=sendAppInvite;window.inviteClientToApp=inviteClientToApp;
+window.exportInvoicesCsv=exportInvoicesCsv;window.exportRepHistoryCsv=exportRepHistoryCsv;window.exportData=exportData;
 window.pbNewProgram=pbNewProgram;window.pbLoadDemo=pbLoadDemo;
 window.pbAssign=pbAssign;window.pbSave=pbSave;window.pbSetWeek=pbSetWeek;
 window.pbToggleRest=pbToggleRest;window.pbUpdateDayName=pbUpdateDayName;
