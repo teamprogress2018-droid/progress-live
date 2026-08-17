@@ -2846,7 +2846,8 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   <div class="modal" style="max-width:480px;">
     <div class="modal-hdr"><div class="modal-title">🎯 ROZPOCZNIJ WSPÓŁPRACĘ</div><button class="modal-close" onclick="closeM('m-client-onboard')">×</button></div>
     <div class="modal-body" id="client-onboard-body">
-      <div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6;">Klient dodany! Wykonaj te kroki, aby szybko uruchomić współpracę:</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6;" id="client-onboard-intro">Wykonaj te kroki, aby uruchomić współpracę:</div>
+      <div id="client-onboard-progress" style="margin-bottom:14px;"></div>
       <div id="client-onboard-steps"></div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-client-onboard')">Zamknij</button></div>
@@ -2858,7 +2859,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   <div class="modal" style="max-width:480px;">
     <div class="modal-hdr" style="border-bottom:2px solid var(--accent);">
       <div class="modal-title" style="display:flex;align-items:center;gap:10px;">
-        <span style="font-size:24px;">🎉</span> KLIENT DODANY!
+        <span style="font-size:24px;">📱</span> ZAPROSZENIE
       </div>
       <button class="modal-close" onclick="closeM('m-invite')">×</button>
     </div>

@@ -59,6 +59,11 @@ function initAplangen(){
   const sel=document.getElementById('apl-client');
   if(sel){
     sel.innerHTML='<option value="">Nowy / ręcznie wpisz</option>'+CL.map(c=>`<option value="${escHtml(c.id)}">${escHtml(c.name)}</option>`).join('');
+    if(window._aplPrefillClientId){
+      sel.value=window._aplPrefillClientId;
+      window._aplPrefillClientId=null;
+      aplFillFromClient();
+    }
   }
   if(!document.getElementById('apl-result').innerHTML){
     aplShowWelcome();
@@ -629,6 +634,7 @@ function aplSavePlan(){
   persistById('plans',newPlan);
   addNotification('system','Plan AI zapisany!','"'+newPlan.name+'" dodany do planów'+(client?' klienta '+client.name:''),'plans');
   notify(`✅ Plan "${newPlan.name}" zapisany${client?' dla '+client.name:''}!`);
+  if(cid&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);
 }
 
 function aplExportPlan(){

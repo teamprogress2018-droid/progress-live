@@ -1288,6 +1288,8 @@ function tplAssignToClient(tid){
   addNotification('system','Plan przypisany!','Szablon "'+t.name+'" przypisano do '+c.name,'plans');
   notify('✅ Plan "'+t.name+'" przypisany do '+c.name+'!');
   closeTplDetail();
+  const st=typeof getClientOnboard==='function'?getClientOnboard(c):null;
+  if(st&&!st.complete){maybeResumeOnboard(cid);return;}
   if(_prevClientId){
     goTo('clients');
     setTimeout(()=>openClientProfile(_prevClientId),300);
@@ -2060,6 +2062,7 @@ function liveEndSession(){
   livePlanId=null;
   renderLiveExercises();
   renderLiveHistory();
+  if(typeof maybeResumeOnboard==='function')maybeResumeOnboard(window._liveSavedClientId||liveClientId);
 }
 
 function liveRepeatSameClient(){
