@@ -726,6 +726,7 @@ function onbCreateClient(){
 
   addNotification('system','Nowy klient!',newC.name+' — onboarding uruchomiony','clients');
   notify('🎉 Klient '+newC.name+' dodany! Onboarding uruchomiony.');
+  if(typeof runOnboardingForClient==='function')runOnboardingForClient(newC);
 
   onbNewClient={};onbStep=0;
   setOnbTab('overview');
