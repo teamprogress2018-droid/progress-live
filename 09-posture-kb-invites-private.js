@@ -2113,6 +2113,7 @@ window.renderPBExList=renderPBExList;window.pbAskAI=pbAskAI;window.pbQuickAI=pbQ
 window.pbRebuildWeeks=pbRebuildWeeks;
 window.renderCheckin=renderCheckin;window.setCIFilter=setCIFilter;
 window.openCIClient=openCIClient;window.openSimulateCheckin=openSimulateCheckin;
+window.openCIFill=openCIFill;window.ciFillPick=ciFillPick;window.saveCheckinFill=saveCheckinFill;
 window.sendCheckinTo=sendCheckinTo;window.sendCheckin=sendCheckin;
 window.replyToCheckin=replyToCheckin;
 window.setSettingsTab=setSettingsTab;window.toggleSetting=toggleSetting;

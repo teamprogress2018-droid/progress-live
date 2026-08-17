@@ -143,6 +143,18 @@ function capScreenHTML(scr,c){
         <div style="font-size:11px;color:${CAP_MUTED};">Dzień regeneracji — pamiętaj o diecie!</div>
       </div>`}
 
+      ${(()=>{
+        if(!capIsLiveClient()||typeof pendingCheckin!=='function')return '';
+        const pend=pendingCheckin(c.id);
+        if(!pend)return '';
+        return `<div style="background:linear-gradient(135deg,rgba(62,207,178,0.18),rgba(62,207,178,0.05));border:1px solid rgba(62,207,178,0.35);border-radius:18px;padding:16px;margin-bottom:14px;">
+          <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--teal);text-transform:uppercase;margin-bottom:6px;">✅ CHECK-IN</div>
+          <div style="font-size:14px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">Trener prosi o check-in tygodniowy</div>
+          <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:10px;">Zajmie ok. 2 minuty — energia, sen, treningi.</div>
+          <button type="button" class="cap-btn-primary" style="padding:10px;font-size:13px;" onclick="setClientLiveScreen('checkin')">Wypełnij teraz</button>
+        </div>`;
+      })()}
+
       <!-- streaki i postępy -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
         <div style="background:${CAP_S2};border-radius:16px;padding:14px;text-align:center;border:1px solid ${CAP_S3};">
@@ -346,6 +358,17 @@ function capScreenHTML(scr,c){
   if(scr==='checkin'){
     const st=window._cliveCheckin||{};
     const live=capIsLiveClient();
+    if(live&&typeof filledThisWeek==='function'&&filledThisWeek(c.id)&&!(typeof pendingCheckin==='function'&&pendingCheckin(c.id))){
+      const last=filledThisWeek(c.id);
+      return `<div class="cap-section" style="padding-bottom:90px;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:8px;padding-top:8px;">CHECK-IN</div>
+        <div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:20px;text-align:center;">
+          <div style="font-size:36px;margin-bottom:8px;">✓</div>
+          <div style="font-size:14px;font-weight:700;color:${CAP_TEXT};margin-bottom:6px;">W tym tygodniu już wysłane</div>
+          <div style="font-size:12px;color:${CAP_MUTED};">Score ${escHtml(String(last.score||'—'))}% · ${escHtml(last.date||'')}</div>
+        </div>
+      </div>`;
+    }
     const qrow=(field,label,emoji)=>{
       const selected=st[field]!=null?st[field]:(live?null:2);
       return `<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:10px;">
@@ -1919,45 +1942,50 @@ async function persistCheckin(ci){
   await persistById('checkins',ci);
 }
 
-// Generate demo check-ins — zachowane tylko do jawnej symulacji / seedu testowego
-function initDemoCheckins(clientId){
-  ensureCheckins(clientId);
-  if(window.CHECKINS[clientId].length)return;
-  const now=new Date();
-  for(let w=7;w>=1;w--){
-    const d=new Date(now);d.setDate(d.getDate()-w*7);
-    const rnd=(min,max)=>Math.round(Math.random()*(max-min)+min);
-    const energy=rnd(2,5);const sleep=rnd(2,5);const stress=rnd(1,4);
-    const nutrition=rnd(2,5);const workouts=rnd(1,5);
-    const score=Math.round((energy+sleep+(5-stress)+nutrition)/4*20);
-    const ci=withTrainer({
-      id:newId('ci'),clientId,week:w,
-      date:dateStr(d),
-      status:'filled',
-      score,
-      answers:{energy,sleep,stress,nutrition,workouts,weight:null,notes:w===1?'Świetny tydzień! Poprawiłem rekord w przysiadzie 🎉':''}
-    });
-    window.CHECKINS[clientId].push(ci);
-    persistCheckin(ci);
-  }
-  const pending=withTrainer({
-    id:newId('ci'),clientId,week:0,
-    date:dateStr(now),
-    status:'pending',score:null,answers:{}
-  });
-  window.CHECKINS[clientId].push(pending);
-  persistCheckin(pending);
-}
-
 function getCIStatus(clientId){
   const checkins=window.CHECKINS[clientId]||[];
   const latest=checkins[checkins.length-1];
   if(!latest)return'none';
-  const daysDiff=Math.floor((new Date()-new Date(latest.date))/(1000*60*60*24));
+  const daysDiff=Math.floor((new Date()-new Date(latest.date||Date.now()))/(1000*60*60*24));
   if(latest.status==='filled'&&daysDiff<=7)return'done';
-  if(latest.status==='pending')return'pending';
+  if(latest.status==='pending')return daysDiff>7?'overdue':'pending';
   if(daysDiff>14)return'overdue';
   return'none';
+}
+
+function pendingCheckin(clientId){
+  const list=window.CHECKINS[clientId]||[];
+  return list.filter(x=>x.status==='pending').slice(-1)[0]||null;
+}
+function filledThisWeek(clientId){
+  const weekAgo=Date.now()-7*86400000;
+  return (window.CHECKINS[clientId]||[]).filter(x=>x.status==='filled'&&x.date&&new Date(x.date).getTime()>=weekAgo).slice(-1)[0]||null;
+}
+function scoreCheckinAnswers(a){
+  const energy=+(a&&a.energy)||3;
+  const sleep=+(a&&a.sleep)||3;
+  const stress=+(a&&a.stress)||3;
+  const nutrition=+(a&&a.nutrition)||3;
+  return Math.round((energy+sleep+(6-stress)+nutrition)/4*20);
+}
+function checkinChatText(name,custom){
+  const first=(name||'').split(' ')[0]||'';
+  if(custom)return String(custom).replace(/\{imie\}/gi,first);
+  return 'Hej '+first+'! Czas na tygodniowy check-in 💪 Otwórz aplikację → Check-in i wypełnij (ok. 2 min).';
+}
+function ensurePendingCheckin(clientId){
+  ensureCheckins(clientId);
+  const existing=pendingCheckin(clientId);
+  if(existing)return existing;
+  const rec=withTrainer({
+    id:newId('ci'),clientId,
+    date:typeof dateStr==='function'?dateStr(new Date()):new Date().toISOString().slice(0,10),
+    status:'pending',score:null,answers:{},
+    createdAt:new Date().toISOString()
+  });
+  window.CHECKINS[clientId].push(rec);
+  persistCheckin(rec);
+  return rec;
 }
 
 function setCIFilter(f,btn){
@@ -2029,7 +2057,7 @@ function openCIClient(id){
   const ci=CL.indexOf(c);const col=COLS[ci%5];
   document.getElementById('ci-active-client').textContent=c.name;
   document.getElementById('ci-header-actions').innerHTML=`
-    <button class="btn btn-ghost btn-sm" onclick="openSimulateCheckin('${id}')">🎭 Symuluj wypełnienie</button>
+    <button class="btn btn-ghost btn-sm" onclick="openCIFill('${id}')">✎ Wypełnij za klienta</button>
     <button class="btn btn-primary btn-sm" onclick="sendCheckinTo('${id}')">📤 Wyślij check-in</button>`;
 
   renderCIDetail(id);
@@ -2062,11 +2090,13 @@ function renderCIDetail(id){
       </div>
 
       ${latest.status==='filled'?renderCIAnswers(latest,c):`
-        <div style="background:var(--s2);border:1px dashed var(--border2);border-radius:12px;padding:30px;text-align:center;color:var(--muted);">
-          <div style="font-size:32px;margin-bottom:10px;">⏳</div>
-          <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Check-in wysłany, oczekuje na wypełnienie</div>
-          <div style="font-size:11px;margin-bottom:14px;">Wysłano: ${latest.date}</div>
-          <button class="btn btn-ghost btn-sm" onclick="openSimulateCheckin('${id}')">🎭 Symuluj odpowiedź klienta</button>
+        <div style="background:var(--s2);border:1px dashed var(--border2);border-radius:12px;padding:20px;color:var(--muted);">
+          <div style="text-align:center;margin-bottom:14px;">
+            <div style="font-size:28px;margin-bottom:8px;">⏳</div>
+            <div style="font-size:13px;font-weight:600;margin-bottom:6px;color:var(--text);">Oczekuje na klienta</div>
+            <div style="font-size:11px;margin-bottom:4px;">Wysłano: ${escHtml(latest.date||'')}. Klient wypełnia w aplikacji → Check-in.</div>
+          </div>
+          ${window._ciFillOpen===id?ciFillFormHtml(id):`<div style="text-align:center;"><button class="btn btn-ghost btn-sm" onclick="openCIFill('${id}')">✎ Wypełnij za klienta</button></div>`}
         </div>
       `}
     </div>
@@ -2223,49 +2253,118 @@ function renderCheckinSummary(id){
   `;
 }
 
-function openSimulateCheckin(id){
-  ensureCheckins(id);
-  let latest=window.CHECKINS[id][window.CHECKINS[id].length-1];
-  if(!latest||latest.status==='filled'){
-    latest=withTrainer({id:newId('ci'),clientId:id,week:0,date:dateStr(new Date()),status:'pending',score:null,answers:{}});
-    window.CHECKINS[id].push(latest);
-  }
-  const ci=latest;
-  const rnd=(a,b)=>Math.round(Math.random()*(b-a)+a);
-  ci.answers={energy:rnd(3,5),sleep:rnd(3,5),stress:rnd(1,3),nutrition:rnd(3,5),workouts:rnd(2,5),weight:null,notes:'Świetny tydzień! 💪'};
-  ci.score=Math.round((ci.answers.energy+ci.answers.sleep+(5-ci.answers.stress)+ci.answers.nutrition)/4*20);
+function ciFillDraft(clientId){
+  window._ciFillDraft=window._ciFillDraft||{};
+  if(!window._ciFillDraft[clientId])window._ciFillDraft[clientId]={energy:3,sleep:3,stress:3,nutrition:3,workouts:3,weight:'',notes:''};
+  return window._ciFillDraft[clientId];
+}
+function ciFillFormHtml(clientId){
+  const a=ciFillDraft(clientId);
+  const qrow=(id,label,emoji)=>`<div style="margin-bottom:12px;">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">${label}</div>
+    <div style="display:flex;justify-content:space-between;gap:4px;">
+      ${emoji.map((e,i)=>`<button type="button" class="clive-check-opt${a[id]===i+1?' on':''}" onclick="ciFillPick('${clientId}','${id}',${i+1})">${e}</button>`).join('')}
+    </div>
+  </div>`;
+  return `<div>
+    ${qrow('energy','Energia',['😴','😪','😐','😊','⚡'])}
+    ${qrow('sleep','Sen',['😴','😪','😐','😊','🌟'])}
+    ${qrow('stress','Stres (1=niski)',['🧘','😌','😐','😰','🤯'])}
+    ${qrow('nutrition','Odżywianie',['🍕','🌮','😐','🥗','💪'])}
+    <div style="margin-bottom:12px;">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Ile treningów</div>
+      <div style="display:flex;justify-content:space-between;gap:4px;">
+        ${[0,1,2,3,4,5].map(n=>`<button type="button" class="clive-check-opt${a.workouts===n?' on':''}" style="font-family:'Bebas Neue',sans-serif;font-size:16px;" onclick="ciFillPick('${clientId}','workouts',${n})">${n}</button>`).join('')}
+      </div>
+    </div>
+    <div class="form-field"><label class="form-lbl">Masa (kg, opcjonalnie)</label>
+      <input type="number" inputmode="decimal" class="form-input" value="${escHtml(a.weight||'')}" oninput="ciFillDraft('${clientId}').weight=this.value">
+    </div>
+    <div class="form-field"><label class="form-lbl">Komentarz</label>
+      <textarea class="form-textarea" rows="2" oninput="ciFillDraft('${clientId}').notes=this.value">${escHtml(a.notes||'')}</textarea>
+    </div>
+    <button class="btn btn-primary" style="width:100%;" onclick="saveCheckinFill('${clientId}')">Zapisz check-in</button>
+  </div>`;
+}
+function openCIFill(id){
+  window._ciFillOpen=id;
+  ciFillDraft(id);
+  if(ciActiveClient===id)renderCIDetail(id);
+}
+function ciFillPick(clientId,field,val){
+  ciFillDraft(clientId)[field]=val;
+  if(ciActiveClient===clientId)renderCIDetail(clientId);
+}
+function applyCheckinAnswers(ci,answers,filledBy){
+  ci.answers={
+    energy:+answers.energy||3,
+    sleep:+answers.sleep||3,
+    stress:+answers.stress||3,
+    nutrition:+answers.nutrition||3,
+    workouts:answers.workouts!=null?+answers.workouts:0,
+    weight:answers.weight||'',
+    notes:answers.notes||''
+  };
+  ci.score=scoreCheckinAnswers(ci.answers);
   ci.status='filled';
+  ci.filledBy=filledBy||'client';
+  ci.filledAt=new Date().toISOString();
   persistCheckin(ci);
+}
+
+function openSimulateCheckin(id){openCIFill(id);}
+
+function saveCheckinFill(id){
+  ensureCheckins(id);
+  let ci=pendingCheckin(id);
+  if(!ci)ci=ensurePendingCheckin(id);
+  applyCheckinAnswers(ci,ciFillDraft(id),'trainer');
+  window._ciFillOpen=null;
   renderCIDetail(id);
   renderCheckinSummary(id);
   renderCheckinClientList();
-  notify('✓ Check-in symulowany — score: '+ci.score+'%');
-  addNotification('task','Nowy check-in od klienta',CL.find(x=>x.id===id)?.name+' wypełnił check-in','checkin');
+  notify('✓ Check-in zapisany za klienta');
+  const c=CL.find(x=>x.id===id);
+  addNotification('task','Check-in (wpisany przez Ciebie)',(c?c.name:'Klient'),'checkin');
 }
 
 function sendCheckinTo(id){
-  ensureCheckins(id);
   const c=CL.find(x=>x.id===id);
-  const pending=withTrainer({id:newId('ci'),clientId:id,week:0,date:dateStr(new Date()),status:'pending',score:null,answers:{}});
-  window.CHECKINS[id].push(pending);
-  persistCheckin(pending);
-  pushMsg(id,'Hej '+( c?c.name.split(' ')[0]:'')+'! Czas na tygodniowy check-in 💪 Jak minął tydzień treningowy?');
-  notify('✓ Check-in wysłany do '+(c?c.name:'klienta'));
+  if(filledThisWeek(id)&&!pendingCheckin(id)){
+    pushMsg(id,checkinChatText(c&&c.name,'Hej {imie}! Check-in z tego tygodnia już jest — dziękuję 💪'));
+    notify('Ten klient już wypełnił check-in w tym tygodniu — przypomnienie poszło w czacie');
+    return;
+  }
+  ensurePendingCheckin(id);
+  pushMsg(id,checkinChatText(c&&c.name));
+  notify('✓ Check-in wysłany do '+(c?c.name:'klienta')+' (czat + oczekujący formularz)');
   renderCheckinClientList();
   if(ciActiveClient===id)renderCIDetail(id);
 }
 
 function sendCheckin(){
-  const target=document.getElementById('ci-send-target').value;
-  const msg=document.getElementById('ci-send-msg').value;
-  let targets=CL;
-  if(target==='no-checkin')targets=CL.filter(c=>getCIStatus(c.id)!=='done');
+  const target=(document.getElementById('ci-send-target')||{}).value||'all';
+  const msg=(document.getElementById('ci-send-msg')||{}).value||'';
+  let targets=CL.filter(c=>c.status!=='archived');
+  if(target==='no-checkin')targets=targets.filter(c=>getCIStatus(c.id)!=='done');
+  if(target==='current'){
+    if(!ciActiveClient){notify('Otwórz najpierw klienta w Check-inie');return;}
+    targets=CL.filter(c=>c.id===ciActiveClient);
+  }
+  if(!targets.length){notify('Brak odbiorców');return;}
   if(!confirm('Wysłać check-in do '+targets.length+' klientów? Tej akcji nie da się cofnąć.'))return;
   targets.forEach(c=>{
-    pushMsg(c.id,msg.replace(/{imie}/g,c.name.split(' ')[0]));
+    if(filledThisWeek(c.id)&&!pendingCheckin(c.id)){
+      pushMsg(c.id,checkinChatText(c.name,msg));
+      return;
+    }
+    ensurePendingCheckin(c.id);
+    pushMsg(c.id,checkinChatText(c.name,msg));
   });
   closeM('m-checkin-send');
-  notify('✓ Check-in wysłany do '+targets.length+' klientów!');
+  notify('✓ Check-in wysłany do '+targets.length+' klientów (czat + oczekujący formularz)');
+  renderCheckinClientList();
+  if(ciActiveClient)renderCIDetail(ciActiveClient);
 }
 
 function replyToCheckin(id){
