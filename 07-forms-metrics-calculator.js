@@ -983,6 +983,7 @@ function calcTDEE(){
   if(!el)return;
 
   el.innerHTML=`
+    <div class="calc-col-main">
     <!-- główny wynik TDEE -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
       <div class="calc-result-card" style="text-align:center;border-top:3px solid var(--muted);">
@@ -1040,6 +1041,21 @@ function calcTDEE(){
       </div>
     </div>
 
+    <!-- alternatywne scenariusze -->
+    <div class="calc-result-card">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:var(--accent);margin-bottom:12px;">ALTERNATYWNE SCENARIUSZE</div>
+      <div class="calc-scenarios">
+        ${[{l:'Agresywna redukcja',d:-500,c:'var(--red)'},{l:'Łagodna redukcja',d:-300,c:'var(--orange)'},{l:'Utrzymanie',d:0,c:'var(--teal)'},{l:'Łagodna masa',d:300,c:'var(--blue)'},{l:'Agresywna masa',d:500,c:'var(--accent)'}].map(s=>`
+          <div style="background:var(--s3);border-radius:8px;padding:10px;text-align:center;${calcGoalDelta===s.d?'border:1px solid '+s.c+';':'border:1px solid transparent;'}">
+            <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">${s.l}</div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:${s.c};">${tdee+s.d}</div>
+            <div style="font-size:9px;color:var(--muted2);">kcal/dzień</div>
+          </div>`).join('')}
+      </div>
+    </div>
+    </div>
+
+    <div class="calc-col-side">
     <!-- podział na posiłki -->
     <div class="calc-result-card" style="margin-bottom:14px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:var(--accent);margin-bottom:12px;">PODZIAŁ NA POSIŁKI (5 posiłków)</div>
@@ -1057,7 +1073,7 @@ function calcTDEE(){
     </div>
 
     <!-- wskazówki i normy -->
-    <div class="calc-result-card" style="margin-bottom:14px;">
+    <div class="calc-result-card">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:var(--accent);margin-bottom:12px;">NORMY I WSKAZÓWKI</div>
       <div class="calc-tip"><strong style="color:var(--accent);">Białko:</strong> Rekomendacja NSCA: 1.6–2.5 g/kg masy ciała. Twój wynik: ${protPerKg} g/kg — ${isProtOk?'✅ w normie':'⚠ poza normą, dostosuj'}.</div>
       <div class="calc-tip"><strong style="color:var(--accent);">Woda:</strong> Min. ${Math.round(weight*0.035*10)/10} l/dzień (35ml/kg). Podczas treningu +500-1000ml.</div>
@@ -1065,18 +1081,6 @@ function calcTDEE(){
       <div class="calc-tip"><strong style="color:var(--accent);">LBM (szacunkowa beztłuszczowa masa):</strong> ~${lbm} kg. Docelowo 1.8-2.2g białka na kg LBM = ${Math.round(lbm*1.8)}–${Math.round(lbm*2.2)}g białka.</div>
       <div class="calc-tip"><strong style="color:var(--accent);">Okno żywieniowe po treningu:</strong> Spożyj 20-40g białka + węglowodany w ciągu 2h po treningu (okno anaboliczne).</div>
     </div>
-
-    <!-- alternatywne scenariusze -->
-    <div class="calc-result-card">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:var(--accent);margin-bottom:12px;">ALTERNATYWNE SCENARIUSZE</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
-        ${[{l:'Agresywna redukcja',d:-500,c:'var(--red)'},{l:'Łagodna redukcja',d:-300,c:'var(--orange)'},{l:'Utrzymanie',d:0,c:'var(--teal)'},{l:'Łagodna masa',d:300,c:'var(--blue)'},{l:'Agresywna masa',d:500,c:'var(--accent)'}].map(s=>`
-          <div style="background:var(--s3);border-radius:8px;padding:10px;text-align:center;${calcGoalDelta===s.d?'border:1px solid '+s.c+';':'border:1px solid transparent;'}">
-            <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">${s.l}</div>
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:${s.c};">${tdee+s.d}</div>
-            <div style="font-size:9px;color:var(--muted2);">kcal/dzień</div>
-          </div>`).join('')}
-      </div>
     </div>`;
 }
 
