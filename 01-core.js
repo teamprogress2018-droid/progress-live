@@ -22,7 +22,11 @@ window.newId=newId;
 function withTrainer(obj){
   if(window._clientAppMode){
     if(window._trainerId)obj.trainerId=window._trainerId;
-    if(!obj.clientId&&window._clientId)obj.clientId=window._clientId;
+    // clientId tylko na rekordach klienta. Nie dopisuj go do postów trenera —
+    // inaczej Firestore odrzuca reakcje/wyświetlenia ( spoza dozwolonych pól ).
+    if(window._clientId && !obj.clientId && obj.authorRole!=='trener' && !obj._fbId){
+      obj.clientId=window._clientId;
+    }
     return obj;
   }
   if(window._uid)obj.trainerId=window._uid;
@@ -310,7 +314,7 @@ function goTo(n){
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   const s=document.getElementById('screen-'+n);if(s)s.classList.add('active');
   closeMobileSidebar();
-  const moreScreens=['workout-library','library','programs','tasks','forms','payments','calculator','automation','metrics','checkin','aiplangen','ondemand','resources','bizstats','settings','aicoach','kb'];
+  const moreScreens=['workout-library','library','programs','tasks','forms','payments','calculator','automation','integrations','metrics','checkin','aiplangen','ondemand','resources','bizstats','forum','settings','aicoach','kb'];
   if(moreScreens.includes(n)){
     const moreEl=document.getElementById('nav-more-items');
     const arrow=document.getElementById('nav-more-arrow');
@@ -437,6 +441,9 @@ function openM(id){
     if(name)name.value='';
     if(desc)desc.value='';
     if(typeof renderForumGroupMembers==='function')renderForumGroupMembers();
+  }
+  if(id==='m-autoflow-builder'){
+    if(typeof updateAfBuilderUi==='function')updateAfBuilderUi();
   }
   document.getElementById(id).classList.add('show');
 }

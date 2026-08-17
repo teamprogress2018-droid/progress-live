@@ -726,6 +726,7 @@ function onbCreateClient(){
 
   addNotification('system','Nowy klient!',newC.name+' — onboarding uruchomiony','clients');
   notify('🎉 Klient '+newC.name+' dodany! Onboarding uruchomiony.');
+  if(typeof runOnboardingForClient==='function')runOnboardingForClient(newC);
 
   onbNewClient={};onbStep=0;
   setOnbTab('overview');
@@ -2064,10 +2065,19 @@ function liveEndSession(){
   persistById('sessions',newSession);
   LIVE_HISTORY.unshift({...newSession,clientName:c?.name||'Klient'});
   // Odlicz sesję z aktywnego pakietu klienta jeśli jest
-  const pkg=(window.PACKAGES||[]).find(p=>p.clientId===liveClientId&&p.sessionsUsed<p.sessions&&p.payStatus!=='expired');
-  if(pkg){pkg.sessionsUsed++;persistById('packages',pkg);}
+  const pkg=(window.PACKAGES||[]).filter(p=>p.clientId===liveClientId&&(p.sessionsUsed||0)<(p.sessions||0)&&p.payStatus!=='expired')
+    .sort((a,b)=>(a.payStatus==='paid'?0:1)-(b.payStatus==='paid'?0:1))[0];
+  if(pkg){
+    pkg.sessionsUsed=(pkg.sessionsUsed||0)+1;
+    persistById('packages',pkg);
+    const left=Math.max(0,(pkg.sessions||0)-pkg.sessionsUsed);
+    if(left<=1){
+      addNotification('alert',left===0?'Pakiet wyczerpany':'Ostatnia sesja w pakiecie',(c?.name||'')+' — '+pkg.title,'payments');
+    }
+  }
   addNotification('system','Sesja zapisana!','Trening '+c?.name+' · '+durationMin+' min · '+totalSets+' serii','clients');
-  notify('✅ Sesja zapisana! '+durationMin+' min, '+totalSets+' serii, '+volume+' kg obj.');
+  const leftTxt=pkg?(' · pakiet '+(pkg.sessionsUsed)+'/'+pkg.sessions):'';
+  notify('✅ Sesja zapisana! '+durationMin+' min, '+totalSets+' serii, '+volume+' kg obj.'+leftTxt);
   window._liveSavedClientId=liveClientId;
   window._liveSavedClientName=c?.name||'';
   document.getElementById('live-timer').textContent='00:00';

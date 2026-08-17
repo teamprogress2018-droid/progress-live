@@ -113,12 +113,16 @@ service cloud.firestore {
       allow create: if creatingAsOwner() || (
         creatingAsSameTrainerClient()
         && request.resource.data.clientId == clientAcc().clientId
+        && request.resource.data.authorRole == 'klient'
       );
       allow update: if (isOwner()
           && request.resource.data.trainerId == resource.data.trainerId)
         || (isSameTrainerClient()
           && resource.data.clientId == clientAcc().clientId
-          && request.resource.data.trainerId == resource.data.trainerId);
+          && request.resource.data.trainerId == resource.data.trainerId
+          && request.resource.data.clientId == resource.data.clientId
+          && request.resource.data.authorRole == 'klient'
+          && request.resource.data.postId == resource.data.postId);
       allow delete: if isOwner()
         || (isSameTrainerClient() && resource.data.clientId == clientAcc().clientId);
     }

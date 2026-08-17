@@ -274,6 +274,31 @@ var payTab='overview';
 window.PACKAGES=[];window.INVOICES=[];
 var invoiceCounter=1000;
 
+function nextInvoiceNr(){
+  const prefix=((window.SETTINGS&&window.SETTINGS.company&&window.SETTINGS.company.invoice_prefix)||'INV').replace(/[^A-Za-z0-9]/g,'')||'INV';
+  let max=1000;
+  (window.INVOICES||[]).forEach(inv=>{
+    const m=String(inv.nr||inv.id||'').match(/(\d+)\s*$/);
+    if(m)max=Math.max(max,parseInt(m[1],10));
+  });
+  invoiceCounter=max+1;
+  return prefix+'-'+invoiceCounter;
+}
+
+function paySeller(){
+  const S=window.SETTINGS||{};
+  const co=S.company||{};
+  const pay=S.payments||{};
+  return{
+    name:(typeof getTrainerName==='function'?getTrainerName(''):'')||co.name||'Trener',
+    nip:co.nip||'',
+    address:[co.address,co.city].filter(Boolean).join(', '),
+    bank:pay.bankAccount||'',
+    footer:co.invoice_footer||'',
+    currency:pay.currency||'PLN'
+  };
+}
+
 const PAY_STATUS_PILL={paid:'pill-green',pending:'pill-orange',partial:'pill-blue',expired:'pill-red'};
 const PAY_STATUS_LABEL={paid:'Opłacony',pending:'Oczekujący',partial:'Częściowy',expired:'Wygasły'};
 const PKG_TYPE_LABEL={sessions:'Pakiet sesji',monthly:'Abonament',program:'Program',online:'Coaching online'};
@@ -368,8 +393,17 @@ function renderPayOverview(){
     const d=Math.ceil((new Date(p.expiresDate)-today)/(1000*60*60*24));
     alertsHTML+=`<div class="pay-alert"><span style="font-size:18px;">⏰</span><div><div style="font-weight:600;">${p.clientName}</div><div style="color:var(--orange);">Pakiet wygasa za ${d} ${d===1?'dzień':'dni'}</div></div></div>`;
   });
+  const lowPkgs=all.filter(p=>{
+    const left=(p.sessions||0)-(p.sessionsUsed||0);
+    return p.payStatus!=='expired'&&left>0&&left<=2;
+  });
+  lowPkgs.forEach(p=>{
+    const left=(p.sessions||0)-(p.sessionsUsed||0);
+    alertsHTML+=`<div class="pay-alert"><span style="font-size:18px;">📉</span><div><div style="font-weight:600;">${escHtml(p.clientName||'')}</div><div style="color:var(--orange);">Został${left===1?'a':'o'} ${left} ${left===1?'sesja':'sesje'}</div></div></div>`;
+  });
   pendPkgs.forEach(p=>{
-    alertsHTML+=`<div class="pay-alert"><span style="font-size:18px;">💳</span><div><div style="font-weight:600;">${p.clientName}</div><div style="color:var(--red);">Oczekująca płatność — ${p.price.toLocaleString('pl')} zł</div></div></div>`;
+    alertsHTML+=`<div class="pay-alert"><span style="font-size:18px;">💳</span><div style="flex:1;"><div style="font-weight:600;">${escHtml(p.clientName||'')}</div><div style="color:var(--red);">Oczekująca płatność — ${(p.price||0).toLocaleString('pl')} zł</div></div>
+      <button class="btn btn-ghost btn-sm" onclick="requestPayment('${p.id}')">Poproś</button></div>`;
   });
   alerts.innerHTML=alertsHTML||'<div style="font-size:12px;color:var(--muted);text-align:center;padding:16px;">Brak alertów ✓</div>';
 }
@@ -439,10 +473,12 @@ function renderPayPackages(){
           <span>${p.sessionsUsed}/${p.sessions} sesji</span>
           <span>${pct}% wykorzystano</span>
         </div>
-        <div style="display:flex;gap:6px;">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
           <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="usePackageSession('${p.id}')">+ Sesja</button>
-          <button class="btn btn-ghost btn-sm" onclick="viewInvoice('${p.invoiceId}')">🧾 Faktura</button>
-          ${p.payStatus==='pending'?`<button class="btn btn-primary btn-sm" onclick="markPaid('${p.id}')">Oznacz opłacony</button>`:''}
+          <button class="btn btn-ghost btn-sm" onclick="viewInvoice('${p.invoiceId||p.id}')">🧾</button>
+          ${p.payStatus==='pending'?`<button class="btn btn-primary btn-sm" onclick="markPaid('${p.id}')">Opłacony</button>
+          <button class="btn btn-ghost btn-sm" onclick="requestPayment('${p.id}')">Poproś o wpłatę</button>`:''}
+          <button class="btn btn-ghost btn-sm" title="Usuń" onclick="deletePackage('${p.id}')">🗑</button>
         </div>
       </div>
     </div>`;
@@ -479,45 +515,106 @@ function markPaid(id){
   if(p){
     p.payStatus='paid';renderPayPackages();renderPayOverview();notify('✓ Pakiet oznaczony jako opłacony');
     persistById('packages',p);
-    const inv=(window.INVOICES||[]).find(i=>i.pkgId===p.id||i.id===p.invoiceId);
+    const inv=(window.INVOICES||[]).find(i=>i.pkgId===p.id||i.id===p.invoiceId||i.nr===p.invoiceId);
     if(inv){inv.status='paid';persistById('invoices',inv);}
+    if(typeof fireIntEvent==='function'){
+      fireIntEvent('package.paid',{package:{id:p.id,title:p.title,price:p.price,clientId:p.clientId,clientName:p.clientName}});
+    }
   }
 }
 
+function requestPayment(id){
+  const p=allPackages().find(x=>x.id===id);
+  if(!p){notify('Nie znaleziono pakietu');return;}
+  if(!p.clientId){notify('Pakiet bez klienta');return;}
+  const seller=paySeller();
+  const lines=[
+    'Prośba o płatność — '+p.title,
+    'Kwota: '+(p.price||0).toLocaleString('pl')+' '+(seller.currency||'zł'),
+    seller.bank?('Nr konta: '+seller.bank):'Nr konta: (trener uzupełni w Ustawieniach → Płatności)',
+    'Tytuł przelewu: '+(p.clientName||'')+' '+(p.invoiceId||''),
+    '',
+    'Po wpłacie daj znać — oznaczę pakiet jako opłacony.'
+  ];
+  if(typeof pushMsg==='function')pushMsg(p.clientId,lines.join('\n'));
+  notify('✓ Prośba o wpłatę poszła do czatu klienta');
+  if(typeof addNotification==='function')addNotification('payment','Wysłano prośbę o wpłatę',(p.clientName||'')+' · '+(p.price||0)+' zł','inbox');
+}
+
+function deletePackage(id){
+  const p=allPackages().find(x=>x.id===id);
+  if(!p)return;
+  if(!confirm('Usunąć pakiet „'+p.title+'”? Faktura zostanie w historii.'))return;
+  window.PACKAGES=(window.PACKAGES||[]).filter(x=>x.id!==id);
+  if(window._db&&window._del&&window._doc){
+    window._del(window._doc(window._db,'packages',id)).catch(e=>console.warn(e));
+  }
+  if(payTab==='packages')renderPayPackages();
+  else renderPayOverview();
+  notify('Pakiet usunięty');
+}
+
 function viewInvoice(invId){
-  const inv=allInvoices().find(x=>x.id===invId||x.nr===invId);
+  const inv=allInvoices().find(x=>x.id===invId||x.nr===invId)||allPackages().find(x=>x.id===invId||x.invoiceId===invId);
   if(!inv){notify('Faktura nie znaleziona');return;}
-  document.getElementById('inv-modal-title').textContent='FAKTURA '+inv.nr;
+  const nr=inv.nr||inv.invoiceId||inv.id;
+  const clientName=inv.clientName||'—';
+  const pkgTitle=inv.pkgTitle||inv.title||'Pakiet';
+  const date=inv.date||'—';
+  const amount=inv.amount!=null?inv.amount:inv.price||0;
+  const status=inv.status||inv.payStatus||'pending';
+  const seller=paySeller();
+  window._payCopy={bank:seller.bank,title:clientName+' '+nr,amount};
+  document.getElementById('inv-modal-title').textContent='FAKTURA '+nr;
   document.getElementById('inv-modal-body').innerHTML=`
     <div style="font-family:'DM Mono',monospace;">
-      <div style="display:flex;justify-content:space-between;margin-bottom:20px;">
-        <div><div style="font-size:22px;font-weight:700;font-family:'Bebas Neue',sans-serif;letter-spacing:1px;">PROGRESS LIVE</div><div style="font-size:11px;color:var(--muted);">${escHtml(getTrainerSignature())}</div></div>
-        <div style="text-align:right;"><div style="font-size:14px;font-weight:700;">${inv.nr}</div><div style="font-size:11px;color:var(--muted);">Data: ${inv.date}</div></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:20px;gap:12px;">
+        <div>
+          <div style="font-size:22px;font-weight:700;font-family:'Bebas Neue',sans-serif;letter-spacing:1px;">PROGRESS LIVE</div>
+          <div style="font-size:11px;color:var(--muted);">${escHtml(seller.name)}</div>
+          ${seller.nip?`<div style="font-size:11px;color:var(--muted);">NIP ${escHtml(seller.nip)}</div>`:''}
+          ${seller.address?`<div style="font-size:11px;color:var(--muted);">${escHtml(seller.address)}</div>`:''}
+        </div>
+        <div style="text-align:right;"><div style="font-size:14px;font-weight:700;">${escHtml(nr)}</div><div style="font-size:11px;color:var(--muted);">Data: ${escHtml(date)}</div></div>
       </div>
       <div style="background:var(--s3);border-radius:8px;padding:12px;margin-bottom:16px;">
         <div style="font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Nabywca</div>
-        <div style="font-size:14px;font-weight:600;">${inv.clientName}</div>
+        <div style="font-size:14px;font-weight:600;">${escHtml(clientName)}</div>
       </div>
       <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:16px;">
         <div style="display:grid;grid-template-columns:1fr 100px 100px;padding:8px 12px;background:var(--s3);font-size:10px;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);">
           <span>Pozycja</span><span>Ilość</span><span style="text-align:right;">Kwota</span>
         </div>
         <div style="display:grid;grid-template-columns:1fr 100px 100px;padding:12px;font-size:12px;">
-          <span>${inv.pkgTitle}</span><span>1</span><span style="text-align:right;font-weight:700;">${inv.amount.toLocaleString('pl')} zł</span>
+          <span>${escHtml(pkgTitle)}</span><span>1</span><span style="text-align:right;font-weight:700;">${amount.toLocaleString('pl')} zł</span>
         </div>
       </div>
+      ${seller.bank?`<div style="background:var(--s3);border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Przelew</div>
+        <div>Konto: <strong>${escHtml(seller.bank)}</strong></div>
+        <div>Tytuł: ${escHtml(clientName+' '+nr)}</div>
+        <button type="button" class="btn btn-ghost btn-sm" style="margin-top:8px;" onclick="copyPayTransfer()">📋 Kopiuj dane do przelewu</button>
+      </div>`:`<div style="font-size:11px;color:var(--orange);margin-bottom:12px;">Uzupełnij numer konta w Ustawieniach → Płatności, żeby pojawił się na fakturze.</div>`}
       <div style="display:flex;justify-content:flex-end;">
         <div style="background:var(--adim);border:1px solid rgba(225,31,46,0.2);border-radius:8px;padding:12px 20px;text-align:right;">
           <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">RAZEM</div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--accent);">${inv.amount.toLocaleString('pl')} zł</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--accent);">${amount.toLocaleString('pl')} zł</div>
         </div>
       </div>
       <div style="margin-top:16px;display:flex;justify-content:space-between;align-items:center;">
-        <div style="font-size:11px;color:var(--muted);">Status płatności</div>
-        <span class="pill ${PAY_STATUS_PILL[inv.status]||'pill-muted'}">${PAY_STATUS_LABEL[inv.status]||inv.status}</span>
+        <div style="font-size:11px;color:var(--muted);">${escHtml(seller.footer||'Dokument wewnętrzny — nie jest fakturą VAT, chyba że uzupełnisz NIP w ustawieniach.')}</div>
+        <span class="pill ${PAY_STATUS_PILL[status]||'pill-muted'}">${PAY_STATUS_LABEL[status]||status}</span>
       </div>
     </div>`;
   openM('m-invoice');
+}
+
+function copyPayTransfer(){
+  const d=window._payCopy||{};
+  const seller=paySeller();
+  const text='Konto: '+(d.bank||seller.bank||'')+'\nKwota: '+(d.amount!=null?d.amount:0)+' zł\nTytuł: '+(d.title||'');
+  if(navigator.clipboard){navigator.clipboard.writeText(text).then(()=>notify('✓ Dane przelewu skopiowane')).catch(()=>notify(text));}
+  else notify(text);
 }
 
 function renderPayInvoices(){
@@ -574,8 +671,7 @@ async function savePackage(){
   const validity=parseInt(document.getElementById('pkg-validity').value)||90;
   const date=document.getElementById('pkg-date').value||new Date().toISOString().split('T')[0];
   const expD=new Date(date);expD.setDate(expD.getDate()+validity);
-  invoiceCounter++;
-  const invId='INV-'+invoiceCounter;
+  const invId=nextInvoiceNr();
   const pkg=withTrainer({
     id:newId('pkg'),title,
     type:document.getElementById('pkg-type').value,
@@ -1186,20 +1282,20 @@ window.AUTOFLOWS=[];
 window.ONBOARD_HISTORY=[];
 
 const DEMO_AUTOFLOWS=[
-  {id:'af1',name:'2-tygodniowe wyzwanie fitness',type:'sequence',scope:'all',status:'inactive',clients:0,
+  {name:'2-tygodniowe wyzwanie fitness',type:'sequence',trigger:'',scope:'new',status:'inactive',
    steps:[
      {type:'message',day:1,text:'Dzień 1: Cześć {imie}! Zaczynamy wyzwanie! Dzisiaj: 3 serie pompek do upadku 💪'},
      {type:'task',day:1,text:'Wykonaj trening startowy'},
-     {type:'wait',day:3,text:'Czekaj 2 dni'},
+     {type:'wait',day:3,text:'Czekaj 2 dni',waitDays:2},
      {type:'message',day:3,text:'Dzień 3: Jak Ci idzie? Pamiętaj o nawodnieniu 💧'},
      {type:'form',day:7,text:'Wypełnij formularz postępów — tydzień 1'},
      {type:'message',day:14,text:'Gratulacje! Ukończyłeś 2-tygodniowe wyzwanie! 🎉'},
    ]},
-  {id:'af2',name:'Przypomnienie o treningu',type:'trigger',scope:'all',status:'inactive',clients:0,
+  {name:'Przypomnienie o treningu',type:'trigger',trigger:'session_today',scope:'all',status:'inactive',
    steps:[
      {type:'message',day:1,text:'Hej {imie}! Nie zapomnij o treningu dzisiaj 🏋️'},
    ]},
-  {id:'af3',name:'Alert po zastoju (14 dni)',type:'trigger',scope:'all',status:'inactive',clients:0,
+  {name:'Alert po zastoju (14 dni)',type:'trigger',trigger:'inactivity',scope:'all',status:'inactive',
    steps:[
      {type:'message',day:14,text:'{imie}, minęły 2 tygodnie bez treningu. Wszystko ok? Chętnie pomogę wrócić na właściwe tory! 💪'},
      {type:'task',day:14,text:'Skontaktuj się z trenerem'},
@@ -1210,17 +1306,65 @@ function setAutoTab(t){
   autoTab=t;
   document.getElementById('auto-onboard-tab').style.display=t==='onboard'?'block':'none';
   document.getElementById('auto-autoflow-tab').style.display=t==='autoflow'?'block':'none';
-  document.querySelectorAll('.auto-tab-btn').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('#screen-automation .auto-tab-btn').forEach(el=>el.classList.remove('active'));
   const el=document.getElementById('atab-'+t);if(el)el.classList.add('active');
-  if(t==='autoflow')renderAutoflows();
+  fillAutomationSelects();
+  if(t==='autoflow'){renderAutoflows();renderAutoflowLog();}
+  if(t==='onboard')renderOnboardHistory();
+}
+
+function fillAutomationSelects(){
+  const flow=window.ONBOARDING_FLOW||{};
+  const prog=document.getElementById('osc-program-sel');
+  if(prog){
+    const list=typeof allPrograms==='function'?allPrograms():[];
+    prog.innerHTML='<option value="">Nie przypisuj programu</option>'+list.map(p=>'<option value="'+escHtml(p.id)+'">'+escHtml(p.name)+'</option>').join('');
+    if(flow.programId)prog.value=flow.programId;
+  }
+  const forum=document.getElementById('osc-forum-sel');
+  if(forum){
+    const groups=window.FORUM_GROUPS||[];
+    forum.innerHTML='<option value="">Brak</option>'+groups.map(g=>'<option value="'+escHtml(g.id)+'">'+escHtml((g.icon||'')+' '+g.name)+'</option>').join('');
+    if(flow.forumGroupId)forum.value=flow.forumGroupId;
+  }
+  const res=document.getElementById('osc-resource-sel');
+  if(res){
+    const items=window.USER_RESOURCES||[];
+    res.innerHTML='<option value="">Wszystkie zasoby</option>'+items.map(r=>'<option value="'+escHtml(r.id)+'">'+escHtml(r.title||r.name||'Zasób')+'</option>').join('');
+    if(flow.resourceId)res.value=flow.resourceId;
+  }
+  const formsBox=document.getElementById('osc-forms-list');
+  if(formsBox){
+    const forms=typeof allForms==='function'?allForms():[];
+    const selected=flow.formIds||[];
+    if(!forms.length){
+      formsBox.innerHTML='<div style="font-size:11px;color:var(--muted);">Brak formularzy — dodaj w Formularzach.</div>';
+    }else{
+      formsBox.innerHTML=forms.map(f=>`<label style="display:flex;align-items:center;gap:8px;font-size:12px;cursor:pointer;">
+        <input type="checkbox" class="osc-form-cb" value="${escHtml(f.id)}" ${selected.indexOf(f.id)>=0?'checked':''} style="accent-color:var(--accent);">
+        ${escHtml(f.name||'Formularz')}
+      </label>`).join('');
+    }
+  }
+}
+
+function setOnboardingToggleUi(on){
+  onboardingActive=!!on;
+  const sw=document.getElementById('onboard-toggle');
+  if(sw)sw.classList.toggle('on',onboardingActive);
+  const st=document.getElementById('onboard-status');
+  if(st)st.textContent=onboardingActive?'Aktywny':'Draft';
 }
 
 function toggleOnboarding(){
-  onboardingActive=!onboardingActive;
-  const sw=document.getElementById('onboard-toggle');
-  if(sw){sw.classList.toggle('on',onboardingActive);}
-  document.getElementById('onboard-status').textContent=onboardingActive?'Aktywny':'Draft';
-  notify(onboardingActive?'✓ Onboarding Flow aktywny — nowi klienci będą automatycznie wdrażani':'Onboarding Flow wyłączony');
+  setOnboardingToggleUi(!onboardingActive);
+  if(!window.ONBOARDING_FLOW){
+    saveOnboardingFlow();
+  }else{
+    window.ONBOARDING_FLOW.active=onboardingActive;
+    persistById('onboardingFlows',window.ONBOARDING_FLOW);
+  }
+  notify(onboardingActive?'✓ Onboarding aktywny — nowy klient dostanie wiadomość / formularz / program':'Onboarding wyłączony — nic nie pójdzie automatycznie');
 }
 
 function updateOSC(){
@@ -1238,16 +1382,18 @@ function updateOSC(){
 }
 
 function addOSCForm(){
-  const c=document.getElementById('osc-forms-content');
-  const div=document.createElement('div');div.className='osc-item active';
-  div.innerHTML='<div style="font-size:12px;font-weight:600;">📋 Ocena postawy</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">10 pytań · Zdrowie</div>';
-  c.insertBefore(div,c.querySelector('.osc-add-btn'));
-  notify('Formularz dodany do onboardingu');
+  fillAutomationSelects();
+  notify('Zaznacz formularze z listy — to prawdziwe formularze z zakładki Formularze');
+}
+
+function collectOnboardingFormIds(){
+  return Array.from(document.querySelectorAll('.osc-form-cb:checked')).map(el=>el.value);
 }
 
 function saveOnboardingFlow(){
   const flow=withTrainer({
     id:window.ONBOARDING_FLOW?.id||(window._uid?('onbflow_'+window._uid):newId('onbflow')),
+    active:onboardingActive,
     formsEnabled:!!document.getElementById('osc-forms-en')?.checked,
     msgEnabled:!!document.getElementById('osc-msg-en')?.checked,
     assignEnabled:!!document.getElementById('osc-assign-en')?.checked,
@@ -1255,15 +1401,20 @@ function saveOnboardingFlow(){
     recipesEnabled:!!document.getElementById('osc-recipes-en')?.checked,
     welcomeMsg:document.getElementById('osc-welcome-msg')?.value||'',
     programId:document.getElementById('osc-program-sel')?.value||'',
+    forumGroupId:document.getElementById('osc-forum-sel')?.value||'',
+    resourceId:document.getElementById('osc-resource-sel')?.value||'',
+    formIds:collectOnboardingFormIds(),
+    history:(window.ONBOARDING_FLOW&&window.ONBOARDING_FLOW.history)||[],
     updatedAt:new Date().toISOString()
   });
   window.ONBOARDING_FLOW=flow;
   persistById('onboardingFlows',flow);
-  notify('✓ Onboarding Flow zapisany');
+  notify('✓ Onboarding zapisany'+(flow.active?' i aktywny':' — włącz przełącznik, żeby działał przy nowym kliencie'));
 }
 
 function applyOnboardingFlow(flow){
   if(!flow)return;
+  window.ONBOARDING_FLOW=flow;
   const setChk=(id,v)=>{const el=document.getElementById(id);if(el)el.checked=!!v;};
   setChk('osc-forms-en',flow.formsEnabled!==false);
   setChk('osc-msg-en',flow.msgEnabled!==false);
@@ -1271,10 +1422,111 @@ function applyOnboardingFlow(flow){
   setChk('osc-ondemand-en',!!flow.ondemandEnabled);
   setChk('osc-recipes-en',!!flow.recipesEnabled);
   const msg=document.getElementById('osc-welcome-msg');if(msg&&flow.welcomeMsg!=null)msg.value=flow.welcomeMsg;
+  fillAutomationSelects();
   const prog=document.getElementById('osc-program-sel');if(prog&&flow.programId)prog.value=flow.programId;
+  const forum=document.getElementById('osc-forum-sel');if(forum&&flow.forumGroupId)forum.value=flow.forumGroupId;
+  const res=document.getElementById('osc-resource-sel');if(res&&flow.resourceId)res.value=flow.resourceId;
+  setOnboardingToggleUi(!!flow.active);
   if(typeof updateOSC==='function')updateOSC();
+  renderOnboardHistory();
 }
 window.applyOnboardingFlow=applyOnboardingFlow;
+
+function logOnboardRun(client, parts){
+  const flow=window.ONBOARDING_FLOW;if(!flow)return;
+  flow.history=flow.history||[];
+  flow.history.unshift({at:new Date().toISOString(),clientName:client.name,clientId:client.id,parts:parts.join(', ')});
+  flow.history=flow.history.slice(0,30);
+  persistById('onboardingFlows',flow);
+  renderOnboardHistory();
+}
+
+function renderOnboardHistory(){
+  const el=document.getElementById('onboard-history');if(!el)return;
+  const hist=(window.ONBOARDING_FLOW&&window.ONBOARDING_FLOW.history)||[];
+  if(!hist.length){
+    el.innerHTML='<div style="color:var(--muted);font-size:12px;text-align:center;padding:20px;">Brak uruchomień. Włącz flow, zapisz, potem dodaj klienta.</div>';
+    return;
+  }
+  el.innerHTML=hist.map(h=>`<div style="display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;">
+    <span><strong>${escHtml(h.clientName||'')}</strong> — ${escHtml(h.parts||'')}</span>
+    <span style="color:var(--muted);font-family:'DM Mono',monospace;font-size:10px;">${escHtml((h.at||'').slice(0,16).replace('T',' '))}</span>
+  </div>`).join('');
+}
+
+function assignProgramPlanToClient(programId, client){
+  if(!programId||typeof allPrograms!=='function')return null;
+  const prog=allPrograms().find(p=>p.id===programId);if(!prog)return null;
+  const week0=(prog.weeks&&prog.weeks[0])||{};
+  const days=(week0.days||[]).map(d=>({day:d.d||d.day||d.name||'Dzień',exercises:[]}));
+  const plan=withTrainer({
+    id:newId('p'),name:prog.name,clientId:client.id,method:prog.method||'',
+    duration:prog.duration||0,days:days.length?days:[{day:'Pon',exercises:[]}],
+    source:'onboarding',createdAt:new Date().toISOString()
+  });
+  (window.PL||(window.PL=[])).push(plan);
+  persistById('plans',plan);
+  return plan;
+}
+
+function runOnboardingForClient(client){
+  if(!client)return false;
+  const flow=window.ONBOARDING_FLOW;
+  const first=(client.name||'').split(' ')[0];
+  const parts=[];
+  if(flow&&flow.active){
+    if(flow.msgEnabled!==false && flow.welcomeMsg && typeof pushMsg==='function'){
+      pushMsg(client.id,(flow.welcomeMsg||'').replace(/\{imie\}/g,first));
+      parts.push('wiadomość');
+    }
+    if(flow.formsEnabled!==false){
+      const ids=(flow.formIds&&flow.formIds.length)?flow.formIds:[];
+      const forms=typeof allForms==='function'?allForms():[];
+      const picked=ids.length?forms.filter(f=>ids.indexOf(f.id)>=0):forms.slice(0,1);
+      picked.forEach(form=>{
+        const send=withTrainer({id:newId('fs'),formId:form.id,clientId:client.id,sentAt:new Date().toLocaleDateString('pl'),status:'sent',answers:[]});
+        (window.FORM_SENDS||(window.FORM_SENDS=[])).push(send);
+        persistById('formSends',send);
+        if(typeof pushMsg==='function')pushMsg(client.id,'Formularz do wypełnienia: '+(form.name||'Ankieta'));
+      });
+      if(picked.length)parts.push('formularz');
+    }
+    if(flow.assignEnabled!==false && flow.programId){
+      if(assignProgramPlanToClient(flow.programId,client))parts.push('program');
+    }
+    if(flow.assignEnabled!==false && flow.forumGroupId){
+      const g=(window.FORUM_GROUPS||[]).find(x=>x.id===flow.forumGroupId);
+      if(g){
+        if(g.privacy==='private'){
+          g.memberIds=g.memberIds||[];
+          if(g.memberIds.indexOf(client.id)<0){g.memberIds.push(client.id);persistById('forumGroups',g);}
+        }
+        if(typeof pushMsg==='function')pushMsg(client.id,'Jesteś w grupie na forum: '+(g.name||'Społeczność'));
+        parts.push('forum');
+      }
+    }
+    if(flow.ondemandEnabled){
+      const items=window.USER_RESOURCES||[];
+      const one=flow.resourceId?items.find(r=>r.id===flow.resourceId):null;
+      const names=one?[one.title||one.name]:items.slice(0,5).map(r=>r.title||r.name).filter(Boolean);
+      if(typeof pushMsg==='function')pushMsg(client.id, names.length
+        ?('Zasoby na start:\n- '+names.join('\n- '))
+        :'Trener udostępni Ci zasoby on-demand wkrótce.');
+      parts.push('zasoby');
+    }
+    if(flow.recipesEnabled && typeof pushMsg==='function'){
+      pushMsg(client.id,'Proszę o krótki dzienniczek żywienia z 2–3 dni — wrzucimy to do planu.');
+      parts.push('żywienie');
+    }
+    if(parts.length){
+      logOnboardRun(client,parts);
+      if(typeof addNotification==='function')addNotification('system','Onboarding uruchomiony',client.name+' — '+parts.join(', '),'automation');
+    }
+  }
+  if(typeof enrollNewClientInAutoflows==='function')enrollNewClientInAutoflows(client);
+  return parts.length>0;
+}
+window.runOnboardingForClient=runOnboardingForClient;
 
 function savePortalSettings(){
   const S=window.SETTINGS||(window.SETTINGS={});
@@ -1307,36 +1559,81 @@ function renderAutoflows(){
     return;
   }
   const typeLabels={sequence:'Sekwencja dni',trigger:'Wyzwalacz'};
+  const trigLabels={inactivity:'brak aktywności',session_today:'sesja dziś',new_client:'nowy klient'};
   el.innerHTML=all.map((af,i)=>{
     const enrolledCount=Object.keys(window.AF_STATE?.enrollments?.[af.id]||{}).length;
+    const trig=af.type==='trigger'?(trigLabels[af.trigger||'inactivity']||af.trigger):'';
     return `<div class="af-card" style="animation-delay:${i*0.05}s">
     <div class="af-card-hdr">
       <div>
-        <div style="font-size:14px;font-weight:700;">${af.name}</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px;">${typeLabels[af.type]||af.type} · ${af.steps.length} kroków · ${enrolledCount} klientów w trakcie</div>
+        <div style="font-size:14px;font-weight:700;">${escHtml(af.name)}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">${escHtml(typeLabels[af.type]||af.type)}${trig?' · '+escHtml(trig):''} · ${(af.steps||[]).length} kroków · ${enrolledCount} zapisanych</div>
       </div>
-      <div style="display:flex;gap:8px;align-items:center;">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
         <span class="pill ${af.status==='active'?'pill-green':'pill-muted'}">${af.status==='active'?'Aktywny':'Nieaktywny'}</span>
-        <button onclick="toggleAF('${af.id}')" class="btn btn-ghost btn-sm">${af.status==='active'?'Wyłącz':'Włącz'}</button>
+        <button onclick="toggleAF('${escHtml(af.id)}')" class="btn btn-ghost btn-sm">${af.status==='active'?'Wyłącz':'Włącz'}</button>
+        <button onclick="deleteAutoflow('${escHtml(af.id)}')" class="btn btn-ghost btn-sm" title="Usuń">🗑</button>
       </div>
     </div>
     <div style="display:flex;flex-wrap:wrap;gap:5px;">
-      ${af.steps.map(s=>`<div class="af-step-row" style="flex:0 0 auto;max-width:300px;">
+      ${(af.steps||[]).map(s=>`<div class="af-step-row" style="flex:0 0 auto;max-width:300px;">
         <div class="af-step-icon" style="background:${s.type==='message'?'var(--adim)':s.type==='task'?'rgba(201,162,39,0.12)':s.type==='form'?'rgba(157,124,244,0.12)':'var(--s4)'};">${s.type==='message'?'💬':s.type==='task'?'✅':s.type==='form'?'📋':'⏳'}</div>
-        <div><div style="font-size:11px;font-weight:600;">${s.type==='wait'?'Czekaj '+s.day+' dni':s.type.charAt(0).toUpperCase()+s.type.slice(1)}</div><div style="font-size:10px;color:var(--muted);">${s.text.substring(0,40)}${s.text.length>40?'…':''}</div></div>
+        <div><div style="font-size:11px;font-weight:600;">${s.type==='wait'?'Czekaj '+(s.waitDays||s.day||'')+' dni':escHtml((s.type||'').charAt(0).toUpperCase()+(s.type||'').slice(1))} · dzień ${s.day||1}</div><div style="font-size:10px;color:var(--muted);">${escHtml((s.text||'').substring(0,40))}${(s.text||'').length>40?'…':''}</div></div>
       </div>`).join('')}
     </div>
   </div>`;}).join('');
 }
 
+function renderAutoflowLog(){
+  const el=document.getElementById('autoflow-log');if(!el)return;
+  const logs=(window.AF_STATE&&window.AF_STATE.logs)||[];
+  if(!logs.length){
+    el.innerHTML='<div style="text-align:center;padding:12px;">Jeszcze nic nie poszło. Włącz flow i otwórz panel albo kliknij „Sprawdź teraz”.</div>';
+    return;
+  }
+  el.innerHTML=logs.slice(0,20).map(l=>`<div style="display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);">
+    <span>${escHtml(l.client||'')} — ${escHtml(l.af||'')} · ${escHtml(l.text||'')}</span>
+    <span style="font-family:'DM Mono',monospace;font-size:10px;">${escHtml((l.at||'').slice(0,16).replace('T',' '))}</span>
+  </div>`).join('');
+}
+
 function toggleAF(id){
   const af=(window.AUTOFLOWS||[]).find(x=>x.id===id);
-  if(af){
-    af.status=af.status==='active'?'inactive':'active';
+  if(!af)return;
+  af.status=af.status==='active'?'inactive':'active';
+  persistById('autoflows',af);
+  if(af.status==='active'){
+    enrollScopeClients(af,true);
+    notify('Autoflow włączony. Obecni klienci zapisani bez wysyłki wstecz. Nowi dostaną krok 1.');
+    runAutoflowsCheck(true);
+  }else{
     renderAutoflows();
-    notify('Autoflow '+(af.status==='active'?'włączony':'wyłączony'));
-    persistById('autoflows',af);
-    if(af.status==='active'&&typeof runAutoflowsCheck==='function')runAutoflowsCheck();
+    notify('Autoflow wyłączony');
+  }
+}
+
+function deleteAutoflow(id){
+  const af=(window.AUTOFLOWS||[]).find(x=>x.id===id);if(!af)return;
+  if(!confirm('Usunąć „'+af.name+'"?'))return;
+  window.AUTOFLOWS=(window.AUTOFLOWS||[]).filter(x=>x.id!==id);
+  if(window._db&&window._del)window._del(window._doc(window._db,'autoflows',id)).catch(e=>console.warn(e));
+  renderAutoflows();
+  notify('Autoflow usunięty');
+}
+
+function updateAfBuilderUi(){
+  const type=(document.getElementById('af-type')||{}).value;
+  const scope=(document.getElementById('af-scope')||{}).value;
+  const tw=document.getElementById('af-trigger-wrap');
+  const cw=document.getElementById('af-scope-clients-wrap');
+  const box=document.getElementById('af-scope-clients');
+  if(tw)tw.style.display=type==='trigger'?'block':'none';
+  if(cw)cw.style.display=scope==='select'?'block':'none';
+  if(scope==='select'&&box){
+    const clients=(window.CL||[]).filter(c=>c.status!=='archived');
+    box.innerHTML=clients.length?clients.map(c=>`<label style="display:flex;align-items:center;gap:8px;font-size:12px;padding:3px 0;cursor:pointer;">
+      <input type="checkbox" class="af-client-cb" value="${escHtml(c.id)}" style="accent-color:var(--accent);"> ${escHtml(c.name)}
+    </label>`).join(''):'<div style="font-size:12px;color:var(--muted);">Brak klientów</div>';
   }
 }
 
@@ -1347,7 +1644,7 @@ function addAFStep(type){
   const div=document.createElement('div');div.className='af-step-row';
   div.innerHTML=`<div class="af-step-icon" style="background:var(--s3);">${icons[type]}</div>
     <div style="font-size:11px;font-weight:600;min-width:100px;flex-shrink:0;">${labels[type]}</div>
-    ${type==='wait'?`<input type="number" class="af-step-inp" placeholder="7" style="width:60px;flex:0 0 60px;"> <span style="font-size:11px;color:var(--muted);">dni</span>`
+    ${type==='wait'?`<input type="number" class="af-step-inp" data-type="wait" placeholder="2" min="1" style="width:60px;flex:0 0 60px;"> <span style="font-size:11px;color:var(--muted);">dni</span>`
     :`<input type="text" class="af-step-inp" placeholder="Treść..." data-type="${type}">`}
     <button onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--muted2);font-size:18px;cursor:pointer;flex-shrink:0;">×</button>`;
   container.appendChild(div);
@@ -1357,74 +1654,153 @@ function saveAutoflow(){
   const name=document.getElementById('af-name').value.trim();
   if(!name){notify('Wpisz nazwę!');return;}
   const steps=[];
-  document.querySelectorAll('#af-steps .af-step-row').forEach((row,i)=>{
+  let dayCursor=1;
+  document.querySelectorAll('#af-steps .af-step-row').forEach(row=>{
     const inp=row.querySelector('input');
-    if(!inp||!inp.value.trim())return;
-    const typeEl=row.querySelector('[data-type]');
-    steps.push({type:typeEl?typeEl.dataset.type:'wait',day:i+1,text:inp.value.trim()});
+    if(!inp||!String(inp.value||'').trim())return;
+    const type=(inp.dataset.type)||'wait';
+    if(type==='wait'){
+      const n=Math.max(1,parseInt(inp.value,10)||1);
+      dayCursor+=n;
+      steps.push({type:'wait',day:dayCursor,text:'Czekaj '+n+' dni',waitDays:n});
+    }else{
+      steps.push({type,day:dayCursor,text:inp.value.trim()});
+    }
   });
-  const af=withTrainer({id:newId('af'),name,type:document.getElementById('af-type').value,scope:document.getElementById('af-scope').value,status:'active',steps,createdAt:new Date().toISOString()});
+  if(!steps.filter(s=>s.type!=='wait').length){notify('Dodaj przynajmniej wiadomość, zadanie albo formularz');return;}
+  const scope=document.getElementById('af-scope').value;
+  const clientIds=scope==='select'?Array.from(document.querySelectorAll('.af-client-cb:checked')).map(el=>el.value):[];
+  const af=withTrainer({
+    id:newId('af'),name,
+    type:document.getElementById('af-type').value,
+    trigger:document.getElementById('af-trigger')?.value||'inactivity',
+    scope,clientIds,status:'active',steps,
+    createdAt:new Date().toISOString()
+  });
   window.AUTOFLOWS.push(af);
   persistById('autoflows',af);
   closeM('m-autoflow-builder');
   document.getElementById('af-name').value='';
   document.getElementById('af-steps').innerHTML='';
+  enrollScopeClients(af,true);
   if(autoTab==='autoflow')renderAutoflows();
-  notify('✓ Autoflow "'+name+'" zapisany!');
-  if(typeof runAutoflowsCheck==='function')runAutoflowsCheck();
+  notify('✓ Autoflow zapisany. Obecni bez spamu wstecz — nowi dostaną krok 1.');
+  runAutoflowsCheck(true);
 }
 
-// ── SILNIK WYKONAWCZY AUTOFLOWS ──
-// Uczciwe działanie: sprawdza i wykonuje zaległe kroki przy KAŻDYM otwarciu aplikacji.
-// To nie jest prawdziwe działanie w tle 24/7 (statyczna strona bez własnego serwera nie ma
-// jak tego zrobić) — ale realnie wysyła wiadomości/zadania/formularze, gdy trener otworzy apkę.
-function runAutoflowsCheck(){
-  if(!window.AF_STATE)window.AF_STATE={enrollments:{},executed:{},lastFired:{}};
-  const state=window.AF_STATE;
+function ensureAfState(){
+  if(!window.AF_STATE)window.AF_STATE={enrollments:{},executed:{},lastFired:{},logs:[]};
+  const s=window.AF_STATE;
+  if(!s.enrollments)s.enrollments={};
+  if(!s.executed)s.executed={};
+  if(!s.lastFired)s.lastFired={};
+  if(!s.logs)s.logs=[];
+  return s;
+}
+
+function afClientsFor(af){
+  const active=(window.CL||[]).filter(c=>c.status!=='archived');
+  if(af.scope==='select')return active.filter(c=>(af.clientIds||[]).indexOf(c.id)>=0);
+  if(af.scope==='new'){
+    const since=(af.createdAt||'').split('T')[0];
+    return active.filter(c=>{
+      const joined=c.joinDate||(c.createdAt||'').split('T')[0];
+      return since&&joined&&joined>=since;
+    });
+  }
+  return active;
+}
+
+function enrollClientInAutoflow(af,c,skipPast){
+  const state=ensureAfState();
+  const todayISO=new Date().toISOString().split('T')[0];
+  if(!state.enrollments[af.id])state.enrollments[af.id]={};
+  if(!state.executed[af.id])state.executed[af.id]={};
+  if(state.enrollments[af.id][c.id])return false;
+  state.enrollments[af.id][c.id]=todayISO;
+  state.executed[af.id][c.id]={};
+  if(skipPast){
+    (af.steps||[]).forEach((step,si)=>{if(step.type!=='wait')state.executed[af.id][c.id][si]=true;});
+  }
+  return true;
+}
+
+function enrollScopeClients(af,skipPast){
+  afClientsFor(af).forEach(c=>enrollClientInAutoflow(af,c,skipPast));
+  saveAutomationState();
+}
+
+function enrollNewClientInAutoflows(c){
+  (window.AUTOFLOWS||[]).filter(af=>af.status==='active').forEach(af=>{
+    if(af.scope==='select'&&(af.clientIds||[]).indexOf(c.id)<0)return;
+    enrollClientInAutoflow(af,c,false);
+  });
+  saveAutomationState();
+  runAutoflowsCheck(false);
+}
+
+function logAF(af,c,text){
+  const state=ensureAfState();
+  state.logs.unshift({at:new Date().toISOString(),af:af.name,client:c.name,text:(text||'').substring(0,80)});
+  state.logs=state.logs.slice(0,40);
+}
+
+function runAutoflowsCheck(showToast){
+  const state=ensureAfState();
   const today=new Date();
   const todayISO=today.toISOString().split('T')[0];
   let changed=false;
+  let ran=0;
   (window.AUTOFLOWS||[]).filter(af=>af.status==='active').forEach(af=>{
     if(!state.enrollments[af.id])state.enrollments[af.id]={};
     if(!state.executed[af.id])state.executed[af.id]={};
     if(!state.lastFired[af.id])state.lastFired[af.id]={};
-    let scopeClients=[];
-    if(af.scope==='all')scopeClients=CL;
-    else if(af.scope==='new')scopeClients=CL.filter(c=>af.createdAt&&c.joinDate&&c.joinDate>=af.createdAt.split('T')[0]);
-    // scope 'select' pomijamy — brak jeszcze interfejsu do wybierania konkretnych klientów.
-    scopeClients.forEach(c=>{
-      if(!state.enrollments[af.id][c.id]){state.enrollments[af.id][c.id]=todayISO;changed=true;}
+    afClientsFor(af).forEach(c=>{
+      if(!state.enrollments[af.id][c.id])return;
       const enrolledAt=new Date(state.enrollments[af.id][c.id]);
-      const daysSince=Math.floor((today-enrolledAt)/86400000);
+      const daysSince=Math.max(0,Math.floor((today-enrolledAt)/86400000));
       if(!state.executed[af.id][c.id])state.executed[af.id][c.id]={};
-      af.steps.forEach((step,si)=>{
+      (af.steps||[]).forEach((step,si)=>{
         if(step.type==='wait')return;
         if(af.type==='sequence'){
-          if(daysSince>=step.day-1&&!state.executed[af.id][c.id][si]){
-            execAFStep(step,c);
+          if(daysSince>=(step.day||1)-1&&!state.executed[af.id][c.id][si]){
+            execAFStep(step,c,af);
             state.executed[af.id][c.id][si]=true;
-            changed=true;
+            changed=true;ran++;
           }
-        }else if(af.type==='trigger'){
-          const inactiveDays=(typeof formatClientActivity==='function'?formatClientActivity(c.id).days:0);
-          const threshold=step.day||14;
+        }else{
+          const kind=af.trigger||'inactivity';
           if(!state.lastFired[af.id][c.id])state.lastFired[af.id][c.id]={};
           const lastFired=state.lastFired[af.id][c.id][si];
           const daysSinceLastFired=lastFired?Math.floor((today-new Date(lastFired))/86400000):999;
-          if(inactiveDays>=threshold&&daysSinceLastFired>=7){
-            execAFStep(step,c);
+          let fire=false;
+          if(kind==='inactivity'){
+            const inactiveDays=(typeof formatClientActivity==='function'?formatClientActivity(c.id).days:0);
+            const threshold=step.day||14;
+            fire=inactiveDays>=threshold&&daysSinceLastFired>=7;
+          }else if(kind==='session_today'){
+            const hasToday=(window.SE||[]).some(s=>s.clientId===c.id&&s.date===todayISO);
+            fire=hasToday&&daysSinceLastFired>=1;
+          }else if(kind==='new_client'){
+            fire=!state.executed[af.id][c.id][si];
+          }
+          if(fire){
+            execAFStep(step,c,af);
             state.lastFired[af.id][c.id][si]=todayISO;
-            changed=true;
+            state.executed[af.id][c.id][si]=true;
+            changed=true;ran++;
           }
         }
       });
     });
   });
   if(changed)saveAutomationState();
+  renderAutoflows();
+  renderAutoflowLog();
+  if(showToast)notify(ran?('✓ Wykonano '+ran+' krok(ów)'):'Brak zaległych kroków');
 }
 
-// Wykonuje jeden krok autoflow dla konkretnego klienta.
-function execAFStep(step,c){
+function execAFStep(step,c,af){
   const firstName=(c.name||'').split(' ')[0];
   const text=(step.text||'').replace(/\{imie\}/g,firstName);
   if(step.type==='message'){
@@ -1434,22 +1810,28 @@ function execAFStep(step,c){
     window.TASKS.push(t);
     persistById('tasks',t);
   }else if(step.type==='form'){
-    const form=(typeof allForms==='function'?allForms():[]).find(f=>f.name.toLowerCase().includes(text.toLowerCase())||text.toLowerCase().includes(f.name.toLowerCase()));
+    const form=(typeof allForms==='function'?allForms():[]).find(f=>(f.name||'').toLowerCase().includes((text||'').toLowerCase())||(text||'').toLowerCase().includes((f.name||'').toLowerCase()));
     if(form){
       const send=withTrainer({id:newId('fs'),formId:form.id,clientId:c.id,sentAt:new Date().toLocaleDateString('pl'),status:'sent',answers:[]});
       window.FORM_SENDS.push(send);
       persistById('formSends',send);
+      if(typeof pushMsg==='function')pushMsg(c.id,'Formularz: '+(form.name||text));
+    }else if(typeof pushMsg==='function'){
+      pushMsg(c.id,text);
     }
   }
-  if(typeof addNotification==='function')addNotification('system','Autoflow: krok wykonany',text.substring(0,60)+' — '+c.name,'automation');
+  logAF(af||{name:'Autoflow'},c,text);
+  if(typeof addNotification==='function')addNotification('system','Autoflow',text.substring(0,60)+' — '+c.name,'automation');
 }
 
 function saveAutomationState(){
   if(!window._db)return;
   withTrainer(window.AF_STATE);
+  const payload={...window.AF_STATE};
+  delete payload._fbId;
   const docId=window._afStateDocId||window._uid||'default';
   window._afStateDocId=docId;
-  window._setDoc(window._doc(window._db,'automationState',docId),window.AF_STATE,{merge:true}).catch(e=>console.warn('AF state save:',e));
+  window._setDoc(window._doc(window._db,'automationState',docId),payload,{merge:true}).catch(e=>console.warn('AF state save:',e));
 }
 
 function notify(msg){
@@ -1713,6 +2095,10 @@ window.renderIntegrations=renderIntegrations;window.setIntTab=setIntTab;
 window.setIntCat=setIntCat;window.openIntDetail=openIntDetail;window.closeIntDetail=closeIntDetail;
 window.connectInt=connectInt;window.disconnectInt=disconnectInt;
 window.testIntConnection=testIntConnection;window.copyWebhook=copyWebhook;
+window.downloadSessionsIcs=downloadSessionsIcs;window.intRemindWhatsApp=intRemindWhatsApp;
+window.intRemindEmail=intRemindEmail;window.intOpenCalendly=intOpenCalendly;
+window.intSendCalendly=intSendCalendly;window.intPushCalendly=intPushCalendly;
+window.intTestWebhook=intTestWebhook;window.fireIntEvent=fireIntEvent;window.intWorksNow=intWorksNow;
 window.initClientApp=initClientApp;window.renderClientApp=renderClientApp;
 window.setCapTab=setCapTab;window.setCapScreen=setCapScreen;window.setCapDevice=setCapDevice;
 window.shareAppLink=shareAppLink;window.sendAppInvite=sendAppInvite;window.inviteClientToApp=inviteClientToApp;
@@ -1771,6 +2157,8 @@ window.setAutoTab=setAutoTab;window.toggleOnboarding=toggleOnboarding;window.upd
 window.addOSCForm=addOSCForm;window.saveOnboardingFlow=saveOnboardingFlow;
 window.renderAutoflows=renderAutoflows;window.toggleAF=toggleAF;
 window.addAFStep=addAFStep;window.saveAutoflow=saveAutoflow;
+window.runAutoflowsCheck=runAutoflowsCheck;window.deleteAutoflow=deleteAutoflow;
+window.updateAfBuilderUi=updateAfBuilderUi;window.fillAutomationSelects=fillAutomationSelects;
 window.setResTab=setResTab;window.setResNav=setResNav;window.renderResources=renderResources;
 window.viewCollection=viewCollection;window.shareCollection=shareCollection;
 window.sendResourceToClient=sendResourceToClient;window.saveResource=saveResource;
@@ -1782,6 +2170,7 @@ window.setPayTab=setPayTab;window.renderPayOverview=renderPayOverview;
 window.renderPayPackages=renderPayPackages;window.renderPayInvoices=renderPayInvoices;
 window.renderPayHistory=renderPayHistory;window.savePackage=savePackage;
 window.usePackageSession=usePackageSession;window.markPaid=markPaid;
+window.requestPayment=requestPayment;window.deletePackage=deletePackage;window.copyPayTransfer=copyPayTransfer;
 window.viewInvoice=viewInvoice;window.filterPkgByClient=filterPkgByClient;
 window.openClientProfile=openClientProfile;window.closeClientProfile=closeClientProfile;
 window.setCPTab=setCPTab;window.saveCPEdit=saveCPEdit;window.archiveClient=archiveClient;

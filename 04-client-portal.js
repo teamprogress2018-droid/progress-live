@@ -748,8 +748,8 @@ const INTEGRATIONS=[
   {
     id:'stripe',cat:'payments',name:'Stripe',icon:'💳',color:'#635bff',
     status:'available',
-    shortDesc:'Przyjmuj płatności online kartą i BLIK',
-    desc:'Stripe to wiodąca platforma płatności online. Przyjmuj płatności kartą, BLIK, Apple Pay, Google Pay bezpośrednio w aplikacji. Automatyczne faktury i subskrypcje.',
+    shortDesc:'Płatności online — wymaga własnego serwera (nie zbieramy sk_live)',
+    desc:'Stripe wymaga backendu (Checkout + webhook). Z tej statycznej strony nie łączymy Stripe i nie zapisujemy klucza tajnego. Gotówka i przelew są w Płatnościach.',
     features:[
       {name:'Płatności kartą (Visa, Mastercard, Amex)',on:true},
       {name:'BLIK i Apple/Google Pay',on:true},
@@ -759,12 +759,8 @@ const INTEGRATIONS=[
       {name:'Webhook — powiadomienia o płatnościach',on:true},
       {name:'Raportowanie i eksport transakcji',on:true},
     ],
-    config:[
-      {key:'publishable_key',label:'Klucz publiczny (pk_...)',placeholder:'pk_live_...'},
-      {key:'secret_key',label:'Klucz prywatny (sk_...)',placeholder:'sk_live_...'},
-      {key:'webhook_secret',label:'Webhook Secret (whsec_...)',placeholder:'whsec_...'},
-    ],
-    webhook:'https://progresslive.pl/webhooks/stripe',
+    config:[],
+    webhook:null,
     logs:[],
     docs:'https://stripe.com/docs'
   },
@@ -781,12 +777,8 @@ const INTEGRATIONS=[
       {name:'Panel transakcji w PLN',on:true},
       {name:'Automatyczne powiadomienia',on:true},
     ],
-    config:[
-      {key:'merchant_id',label:'Merchant ID',placeholder:'12345'},
-      {key:'crc_key',label:'Klucz CRC',placeholder:'ABC123...'},
-      {key:'api_key',label:'API Key',placeholder:'...'},
-    ],
-    webhook:'https://progresslive.pl/webhooks/p24',
+    config:[],
+    webhook:null,
     logs:[],
     docs:'https://developers.przelewy24.pl'
   },
@@ -794,8 +786,8 @@ const INTEGRATIONS=[
   {
     id:'google_calendar',cat:'calendar',name:'Google Calendar',icon:'📅',color:'#4285f4',
     status:'available',
-    shortDesc:'Synchronizacja sesji z Google Calendar',
-    desc:'Dwukierunkowa synchronizacja sesji treningowych z Google Calendar. Twoje sesje automatycznie pojawiają się w kalendarzu Google — i odwrotnie.',
+    shortDesc:'Plik ICS do importu w Google Calendar (bez logowania Google)',
+    desc:'Pobierz plik .ics ze sesjami i zaimportuj w Google Calendar (Ustawienia → Importuj). Dwukierunkowa sync OAuth wymagałaby serwera — stąd tego nie ma.',
     features:[
       {name:'Dwukierunkowa sync sesji',on:true},
       {name:'Automatyczne zaproszenia dla klientów',on:true},
@@ -805,8 +797,7 @@ const INTEGRATIONS=[
       {name:'Strefy czasowe (auto-detect)',on:true},
     ],
     config:[
-      {key:'client_id',label:'Client ID (Google OAuth)',placeholder:'xxx.apps.googleusercontent.com'},
-      {key:'calendar_id',label:'ID Kalendarza',placeholder:'primary'},
+      {key:'cal_name',label:'Nazwa w pliku ICS (opcjonalnie)',placeholder:'Progress Live'},
     ],
     webhook:null,
     logs:[],
@@ -815,8 +806,8 @@ const INTEGRATIONS=[
   {
     id:'calendly',cat:'calendar',name:'Calendly',icon:'🗓',color:'#006bff',
     status:'available',
-    shortDesc:'Automatyczne umawianie wizyt przez klientów',
-    desc:'Calendly pozwala klientom samodzielnie umawiać sesje na podstawie Twojej dostępności. Zero telefonów, zero SMS — klient wybiera termin, system robi resztę.',
+    shortDesc:'Publiczny link — kopiuj, otwórz, wyślij w czat',
+    desc:'Zapisz publiczny URL wydarzenia Calendly. Otwierasz go, kopiujesz albo wysyłasz klientowi w wiadomościach. API Calendly / OAuth — nie, bo nie ma serwera.',
     features:[
       {name:'Link do samodzielnego umawiania',on:true},
       {name:'Bufory czasowe między sesjami',on:true},
@@ -826,28 +817,24 @@ const INTEGRATIONS=[
       {name:'Strona rezerwacji z brandingiem',on:true},
     ],
     config:[
-      {key:'api_key',label:'Calendly API Key',placeholder:'eyJhbGc...'},
-      {key:'event_type',label:'Event Type URL',placeholder:'https://calendly.com/piotr/sesja-60min'},
+      {key:'event_url',label:'Publiczny link do wydarzenia',placeholder:'https://calendly.com/twoj-nick/sesja-60min'},
     ],
-    webhook:'https://progresslive.pl/webhooks/calendly',
+    webhook:null,
     logs:[],
     docs:'https://developer.calendly.com'
   },
   {
     id:'outlook',cat:'calendar',name:'Microsoft Outlook',icon:'📧',color:'#0078d4',
     status:'available',
-    shortDesc:'Synchronizacja z Outlook i Teams',
-    desc:'Synchronizuj sesje z Microsoft Outlook Calendar i Microsoft Teams. Idealne dla klientów korporacyjnych.',
+    shortDesc:'Ten sam plik ICS — import w Outlook',
+    desc:'Pobierz .ics i otwórz w Outlook (Plik → Otwórz i wyeksportuj → Importuj). Logowanie Microsoft / Teams z tej strony nie działa.',
     features:[
       {name:'Sync z Outlook Calendar',on:true},
       {name:'Linki do spotkań Microsoft Teams',on:true},
       {name:'Zaproszenia email przez Outlook',on:true},
       {name:'Dostępność przez Microsoft 365',on:true},
     ],
-    config:[
-      {key:'client_id',label:'Azure App Client ID',placeholder:'xxxxxxxx-xxxx-...'},
-      {key:'tenant_id',label:'Tenant ID',placeholder:'common'},
-    ],
+    config:[],
     webhook:null,
     logs:[],
     docs:'https://docs.microsoft.com/graph'
@@ -856,8 +843,8 @@ const INTEGRATIONS=[
   {
     id:'whatsapp',cat:'communication',name:'WhatsApp Business',icon:'💬',color:'#25d366',
     status:'available',
-    shortDesc:'Automatyczne wiadomości WhatsApp do klientów',
-    desc:'Wysyłaj automatyczne wiadomości WhatsApp — przypomnienia o sesjach, motywacyjne wiadomości, wyniki check-inów. Klienci je czytają (open rate 98%).',
+    shortDesc:'Przypomnienia wa.me na telefon klienta (sesje na dziś)',
+    desc:'Otwiera WhatsApp Web / aplikację z gotową wiadomością (wa.me). Potrzebny numer w karcie klienta. API Meta Business nie jest podłączone — nie zbieramy tokenów.',
     features:[
       {name:'Automatyczne przypomnienia o sesjach',on:true},
       {name:'Powiadomienia o check-inach',on:true},
@@ -867,11 +854,9 @@ const INTEGRATIONS=[
       {name:'Media: zdjęcia, PDFy, linki',on:true},
     ],
     config:[
-      {key:'phone_id',label:'Phone Number ID (Meta)',placeholder:'1234567890'},
-      {key:'access_token',label:'Access Token',placeholder:'EAAxxxxxxxxx...'},
-      {key:'verify_token',label:'Webhook Verify Token',placeholder:'mój_token'},
+      {key:'template',label:'Treść przypomnienia',placeholder:'Cześć {imie}! Dziś trening o {godzina}.'},
     ],
-    webhook:'https://progresslive.pl/webhooks/whatsapp',
+    webhook:null,
     logs:[],
     docs:'https://developers.facebook.com/docs/whatsapp'
   },
@@ -886,20 +871,16 @@ const INTEGRATIONS=[
       {name:'Szablony wiadomości PL/EN',on:true},
       {name:'Harmonogram wysyłania',on:true},
     ],
-    config:[
-      {key:'account_sid',label:'Account SID',placeholder:'ACxxxxxxxxxxxx...'},
-      {key:'auth_token',label:'Auth Token',placeholder:'...'},
-      {key:'phone_number',label:'Numer nadawcy',placeholder:'+48123456789'},
-    ],
-    webhook:'https://progresslive.pl/webhooks/sms',
+    config:[],
+    webhook:null,
     logs:[],
     docs:'https://www.twilio.com/docs/sms'
   },
   {
     id:'email',cat:'communication',name:'Mailchimp / Resend',icon:'✉️',color:'#ffe01b',
     status:'available',
-    shortDesc:'Automatyczne emaile i newsletter do klientów',
-    desc:'Wysyłaj profesjonalne emaile przez Mailchimp lub Resend. Newslettery, podsumowania postępów, oferty specjalne.',
+    shortDesc:'Przypomnienia mailto — Twój program pocztowy',
+    desc:'Otwiera e-mail z gotową treścią (mailto). Masowa wysyłka Mailchimp/Resend wymaga serwera — nie zapisujemy API key.',
     features:[
       {name:'Automatyczne emaile po dodaniu klienta',on:true},
       {name:'Newsletter miesięczny z postępami',on:true},
@@ -908,11 +889,9 @@ const INTEGRATIONS=[
       {name:'Segmentacja klientów (cel, poziom)',on:true},
     ],
     config:[
-      {key:'api_key',label:'API Key (Resend/Mailchimp)',placeholder:'re_...'},
-      {key:'from_email',label:'Email nadawcy',placeholder:getTrainerEmail()||'twoj@email.pl'},
-      {key:'audience_id',label:'Audience ID (Mailchimp)',placeholder:'...'},
+      {key:'from_email',label:'Twój e-mail (widoczny w mailto)',placeholder:getTrainerEmail()||'twoj@email.pl'},
     ],
-    webhook:'https://progresslive.pl/webhooks/email',
+    webhook:null,
     logs:[],
     docs:'https://resend.com/docs'
   },
@@ -929,10 +908,7 @@ const INTEGRATIONS=[
       {name:'Historia diety w profilu klienta',on:true},
       {name:'Porównanie z kalkulatorem TDEE',on:true},
     ],
-    config:[
-      {key:'client_id',label:'MFP API Client ID',placeholder:'...'},
-      {key:'client_secret',label:'Client Secret',placeholder:'...'},
-    ],
+    config:[],
     webhook:null,
     logs:[],
     docs:'https://www.myfitnesspal.com/api'
@@ -950,11 +926,8 @@ const INTEGRATIONS=[
       {name:'Stres i Body Battery',on:true},
       {name:'Auto-sync z pomiarami Progress Live',on:true},
     ],
-    config:[
-      {key:'consumer_key',label:'Consumer Key',placeholder:'...'},
-      {key:'consumer_secret',label:'Consumer Secret',placeholder:'...'},
-    ],
-    webhook:'https://progresslive.pl/webhooks/garmin',
+    config:[],
+    webhook:null,
     logs:[],
     docs:'https://developer.garmin.com'
   },
@@ -970,9 +943,7 @@ const INTEGRATIONS=[
       {name:'Sen (przez aplikację mobilną)',on:true},
       {name:'Wymaga iOS 14+',on:true},
     ],
-    config:[
-      {key:'bundle_id',label:'App Bundle ID',placeholder:'pl.progresslive.app'},
-    ],
+    config:[],
     webhook:null,
     logs:[],
     docs:'https://developer.apple.com/health-fitness/'
@@ -988,10 +959,7 @@ const INTEGRATIONS=[
       {name:'Obciążenie treningowe (Training Load)',on:true},
       {name:'Regeneracja (Recovery Pro)',on:false},
     ],
-    config:[
-      {key:'client_id',label:'Polar API Client ID',placeholder:'...'},
-      {key:'client_secret',label:'Client Secret',placeholder:'...'},
-    ],
+    config:[],
     webhook:null,
     logs:[],
     docs:'https://www.polar.com/accesslink-api'
@@ -1008,10 +976,7 @@ const INTEGRATIONS=[
       {name:'Konwersje (zakup pakietu)',on:true},
       {name:'Raporty użytkowników',on:true},
     ],
-    config:[
-      {key:'measurement_id',label:'Measurement ID',placeholder:'G-XXXXXXXXXX'},
-      {key:'api_secret',label:'API Secret (dla Measurement Protocol)',placeholder:'...'},
-    ],
+    config:[],
     webhook:null,
     logs:[],
     docs:'https://developers.google.com/analytics'
@@ -1028,9 +993,7 @@ const INTEGRATIONS=[
       {name:'A/B testing',on:false},
       {name:'Powiadomienia push z segmentów',on:true},
     ],
-    config:[
-      {key:'project_token',label:'Project Token',placeholder:'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'},
-    ],
+    config:[],
     webhook:null,
     logs:[],
     docs:'https://developer.mixpanel.com'
@@ -1039,8 +1002,8 @@ const INTEGRATIONS=[
   {
     id:'zapier',cat:'automation',name:'Zapier',icon:'⚡',color:'#ff4a00',
     status:'available',
-    shortDesc:'Automatyzuj z 5000+ aplikacjami bez kodu',
-    desc:'Zapier łączy Progress Live z tysiącami aplikacji. Automatycznie twórz klientów z formularzy, wysyłaj powiadomienia, aktualizuj arkusze — bez pisania kodu.',
+    shortDesc:'Catch Hook — POST przy kliencie, sesji i płatności',
+    desc:'Wklej URL Catch Hook z Zapiera. Przy nowym kliencie, zapisanej sesji i oznaczeniu pakietu jako opłacony strona wysyła POST. Jeśli Zapier zablokuje CORS, i tak wyślemy w trybie no-cors.',
     features:[
       {name:'Trigger: Nowy klient dodany',on:true},
       {name:'Trigger: Płatność otrzymana',on:true},
@@ -1052,17 +1015,17 @@ const INTEGRATIONS=[
       {name:'5000+ integracji w katalogu Zapier',on:true},
     ],
     config:[
-      {key:'api_key',label:'Progress Live API Key (dla Zapier)',placeholder:'pl_live_...'},
+      {key:'webhook_url',label:'Catch Hook URL (Zapier)',placeholder:'https://hooks.zapier.com/hooks/catch/...'},
     ],
-    webhook:'https://progresslive.pl/webhooks/zapier',
+    webhook:null,
     logs:[],
     docs:'https://zapier.com/apps/progress-live'
   },
   {
     id:'make',cat:'automation',name:'Make (Integromat)',icon:'🔧',color:'#6d00cc',
     status:'available',
-    shortDesc:'Wizualne automatyzacje bez kodu',
-    desc:'Make (dawniej Integromat) to zaawansowana platforma automatyzacji z wizualnym builderem. Bardziej elastyczna niż Zapier dla złożonych procesów.',
+    shortDesc:'Catch Hook Make — ten sam POST co Zapier',
+    desc:'Wklej Webhook URL z Make. Te same zdarzenia: nowy klient, sesja, pakiet opłacony.',
     features:[
       {name:'Wizualny builder scenariuszy',on:true},
       {name:'Transformacje danych (JSON, XML)',on:true},
@@ -1071,10 +1034,9 @@ const INTEGRATIONS=[
       {name:'Harmonogramy i warunki',on:true},
     ],
     config:[
-      {key:'api_key',label:'Progress Live API Key',placeholder:'pl_live_...'},
-      {key:'webhook_url',label:'Make Webhook URL',placeholder:'https://hook.make.com/...'},
+      {key:'webhook_url',label:'Webhook URL (Make)',placeholder:'https://hook.eu1.make.com/...'},
     ],
-    webhook:'https://progresslive.pl/api/webhooks',
+    webhook:null,
     logs:[],
     docs:'https://www.make.com/en/integrations'
   },
@@ -1090,44 +1052,69 @@ const INTEGRATIONS=[
       {name:'Dwukierunkowa synchronizacja',on:false},
       {name:'Raporty jako strony Notion',on:true},
     ],
-    config:[
-      {key:'integration_token',label:'Notion Integration Token',placeholder:'secret_...'},
-      {key:'database_id',label:'Database ID klientów',placeholder:'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'},
-    ],
+    config:[],
     webhook:null,
     logs:[],
     docs:'https://developers.notion.com'
   },
 ];
 
-window.INT_CONNECTIONS={}; // id -> {apiKey, connected, lastSync, config:{}}
+window.INT_CONNECTIONS={}; // integrationId -> {id: firestoreDocId, integrationId, connected, config}
+window.INT_EVENT_LOG=window.INT_EVENT_LOG||[];
+const INT_DAILY_IDS=['google_calendar','outlook','calendly','whatsapp','email','zapier','make'];
+const INT_REQUIRED_CFG={calendly:'event_url',zapier:'webhook_url',make:'webhook_url'};
+
+function intWorksNow(id){return INT_DAILY_IDS.includes(id);}
+function intDocId(integrationId){return (window._uid||'local')+'_'+integrationId;}
+function getIntConn(id){return window.INT_CONNECTIONS[id];}
+function intCfg(id,key){return (getIntConn(id)?.config||{})[key]||'';}
 
 function renderIntegrations(){
   renderIntStatusSummary();
+  renderIntDailyBar();
   renderIntContent();
 }
 
 function renderIntStatusSummary(){
   const el=document.getElementById('int-status-summary');if(!el)return;
-  const connected=INTEGRATIONS.filter(i=>window.INT_CONNECTIONS[i.id]?.connected).length;
-  const total=INTEGRATIONS.length;
+  const dailyOn=INT_DAILY_IDS.filter(id=>getIntConn(id)?.connected).length;
+  const daily=INT_DAILY_IDS.length;
+  const last=window.INT_EVENT_LOG[0];
   el.innerHTML=`
     <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px;">
-      <span style="color:var(--muted);">Skonfigurowane</span>
-      <span style="font-family:'DM Mono',monospace;color:var(--teal);">${connected}</span>
+      <span style="color:var(--muted);">Działa dziś</span>
+      <span style="font-family:'DM Mono',monospace;color:var(--teal);">${dailyOn}/${daily}</span>
     </div>
     <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px;">
-      <span style="color:var(--muted);">Dostępne</span>
-      <span style="font-family:'DM Mono',monospace;color:var(--muted);">${total-connected}</span>
+      <span style="color:var(--muted);">Wymaga serwera</span>
+      <span style="font-family:'DM Mono',monospace;color:var(--muted);">${INTEGRATIONS.length-daily}</span>
     </div>
     <div style="height:4px;background:var(--s3);border-radius:99px;overflow:hidden;margin-top:8px;">
-      <div style="height:100%;background:var(--teal);width:${connected?Math.round(connected/total*100):0}%;border-radius:99px;"></div>
+      <div style="height:100%;background:var(--teal);width:${daily?Math.round(dailyOn/daily*100):0}%;border-radius:99px;"></div>
+    </div>
+    ${last?`<div style="font-size:10px;color:var(--muted);margin-top:8px;line-height:1.4;">Ostatnio: ${escHtml(last.time)} · ${escHtml(last.msg)}</div>`:''}`;
+}
+
+function renderIntDailyBar(){
+  const el=document.getElementById('int-daily-bar');if(!el)return;
+  const today=todaysSessions();
+  const calUrl=intCfg('calendly','event_url');
+  const zapOn=!!(getIntConn('zapier')?.connected&&intCfg('zapier','webhook_url'));
+  const makeOn=!!(getIntConn('make')?.connected&&intCfg('make','webhook_url'));
+  el.innerHTML=`
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <button class="btn btn-primary btn-sm" onclick="downloadSessionsIcs()">📅 Pobierz ICS (${(window.SE||[]).length} sesji)</button>
+      <button class="btn btn-ghost btn-sm" onclick="intRemindWhatsApp()">💬 WhatsApp dziś (${today.length})</button>
+      <button class="btn btn-ghost btn-sm" onclick="intRemindEmail()">✉️ E-mail dziś</button>
+      <button class="btn btn-ghost btn-sm" onclick="intOpenCalendly()" ${calUrl?'':'disabled title="Najpierw zapisz link Calendly"'}>🗓 Otwórz Calendly</button>
+      <button class="btn btn-ghost btn-sm" onclick="intSendCalendly()" ${calUrl?'':'disabled'}>Wyślij Calendly w czat</button>
+      <button class="btn btn-ghost btn-sm" onclick="intTestWebhook()" ${zapOn||makeOn?'':'disabled title="Włącz Zapier albo Make"'}>⚡ Sprawdź webhook</button>
     </div>`;
 }
 
 function setIntTab(t){
   intTab=t;
-  ['all','connected','available'].forEach(x=>{
+  ['all','daily','connected','server'].forEach(x=>{
     const btn=document.getElementById('int-tab-'+x);
     if(btn)btn.classList.toggle('active',x===t);
   });
@@ -1146,8 +1133,9 @@ function renderIntContent(){
 
   let list=INTEGRATIONS;
   if(intCat!=='all')list=list.filter(i=>i.cat===intCat);
-  if(intTab==='connected')list=list.filter(i=>window.INT_CONNECTIONS[i.id]?.connected);
-  if(intTab==='available')list=list.filter(i=>!window.INT_CONNECTIONS[i.id]?.connected);
+  if(intTab==='connected')list=list.filter(i=>getIntConn(i.id)?.connected);
+  if(intTab==='daily')list=list.filter(i=>intWorksNow(i.id));
+  if(intTab==='server')list=list.filter(i=>!intWorksNow(i.id));
 
   const catLabels={payments:'💳 Płatności',calendar:'📅 Kalendarz',communication:'💬 Komunikacja',fitness:'🏋️ Fitness & Zdrowie',analytics:'📊 Analityka',automation:'⚡ Automatyzacja'};
   const cats=[...new Set(list.map(i=>i.cat))];
@@ -1173,22 +1161,24 @@ function renderIntContent(){
 }
 
 function renderIntCard(int,i){
-  const conn=window.INT_CONNECTIONS[int.id];
+  const conn=getIntConn(int.id);
   const isConnected=conn?.connected;
+  const daily=intWorksNow(int.id);
+  const badge=daily
+    ?(isConnected?'<span class="int-badge-daily">Działa dziś</span>':'<span class="int-badge-daily">Działa dziś — włącz</span>')
+    :'<span class="int-badge-server">Wymaga serwera</span>';
   return `<div class="int-card${isConnected?' connected':''}" style="animation-delay:${i*0.04}s;border-top:3px solid ${int.color};" onclick="openIntDetail('${int.id}')">
-    <div style="position:absolute;top:12px;right:12px;">
-      ${isConnected
-        ?'<span class="int-badge-connected">⚙️ Skonfigurowano</span>'
-        :'<span class="int-badge-available">Dostępne</span>'}
-    </div>
+    <div style="position:absolute;top:12px;right:12px;">${badge}</div>
     <div class="int-card-icon" style="background:${int.color}22;">${int.icon}</div>
     <div class="int-card-name">${int.name}</div>
     <div class="int-card-desc">${int.shortDesc}</div>
     <div style="display:flex;gap:8px;margin-top:auto;">
-      ${isConnected
-        ?`<button class="btn btn-ghost btn-sm" style="flex:1;" onclick="event.stopPropagation();disconnectInt('${int.id}')">Rozłącz</button>
-           <button class="btn btn-primary btn-sm" style="flex:1;" onclick="event.stopPropagation();openIntDetail('${int.id}')">Konfiguracja</button>`
-        :`<button class="btn btn-primary btn-sm" style="flex:1;" onclick="event.stopPropagation();openIntDetail('${int.id}')">Połącz →</button>`}
+      ${daily
+        ?(isConnected
+          ?`<button class="btn btn-ghost btn-sm" style="flex:1;" onclick="event.stopPropagation();disconnectInt('${int.id}')">Wyłącz</button>
+             <button class="btn btn-primary btn-sm" style="flex:1;" onclick="event.stopPropagation();openIntDetail('${int.id}')">Ustawienia</button>`
+          :`<button class="btn btn-primary btn-sm" style="flex:1;" onclick="event.stopPropagation();openIntDetail('${int.id}')">Włącz →</button>`)
+        :`<button class="btn btn-ghost btn-sm" style="flex:1;" onclick="event.stopPropagation();openIntDetail('${int.id}')">Dlaczego nie</button>`}
     </div>
   </div>`;
 }
@@ -1196,78 +1186,79 @@ function renderIntCard(int,i){
 function openIntDetail(id){
   intDetailId=id;
   const int=INTEGRATIONS.find(x=>x.id===id);if(!int)return;
-  const conn=window.INT_CONNECTIONS[id];
+  const conn=getIntConn(id);
   const isConnected=conn?.connected;
+  const daily=intWorksNow(id);
 
   document.getElementById('int-detail-title').textContent=int.name;
   const body=document.getElementById('int-detail-body');
+  const cfgFields=(int.config||[]).map(c=>`<div class="form-field">
+        <label class="form-lbl">${escHtml(c.label)}</label>
+        <input type="text" class="int-config-field" id="int-cfg-${int.id}-${c.key}" placeholder="${escHtml(c.placeholder||'')}" value="${escHtml(conn?.config?.[c.key]||'')}">
+      </div>`).join('');
 
   body.innerHTML=`
-    <!-- header -->
     <div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:20px;">
       <div style="width:56px;height:56px;border-radius:14px;background:${int.color}22;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;">${int.icon}</div>
       <div style="flex:1;">
         <div style="font-size:15px;font-weight:700;margin-bottom:4px;">${int.name}</div>
         <div style="font-size:11px;color:var(--muted);line-height:1.6;">${int.desc}</div>
         <div style="margin-top:8px;">
-          ${isConnected
-            ?'<span class="int-badge-connected">⚙️ Skonfigurowano</span>'
-            +'<span style="font-size:10px;color:var(--muted);margin-left:8px;">Zapisano: '+( conn?.configuredAt?new Date(conn.configuredAt).toLocaleString('pl'):'—')+' · brak realnego połączenia</span>'
-            :'<span class="int-badge-available">Nieskonfigurowana</span>'}
+          ${daily
+            ?(isConnected
+              ?'<span class="int-badge-daily">Działa dziś</span><span style="font-size:10px;color:var(--muted);margin-left:8px;">Włączono: '+(conn?.configuredAt?new Date(conn.configuredAt).toLocaleString('pl'):'—')+'</span>'
+              :'<span class="int-badge-daily">Działa dziś — wyłączone</span>')
+            :'<span class="int-badge-server">Wymaga własnego serwera</span>'}
         </div>
       </div>
     </div>
 
-    <!-- funkcje -->
     <div style="margin-bottom:20px;">
-      <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:10px;">Co zyskujesz</div>
+      <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:10px;">${daily?'Co działa stąd':'Czego tu nie ma'}</div>
       ${int.features.map(f=>`<div class="int-feature-row">
         <div class="int-feature-check" style="background:${f.on?'var(--adim)':'var(--s3)'};color:${f.on?'var(--accent)':'var(--muted)'};">${f.on?'✓':'–'}</div>
         <span style="color:${f.on?'var(--text)':'var(--muted)'};">${f.name}</span>
       </div>`).join('')}
     </div>
 
-    <!-- konfiguracja -->
+    ${daily&&cfgFields?`
     <div style="margin-bottom:20px;">
-      <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:10px;">Konfiguracja</div>
-      ${int.config.map(c=>`<div class="form-field">
-        <label class="form-lbl">${c.label}</label>
-        <input type="${c.key.includes('secret')||c.key.includes('token')||c.key.includes('key')?'password':'text'}" class="int-config-field" id="int-cfg-${int.id}-${c.key}" placeholder="${c.placeholder}" value="${conn?.config?.[c.key]||''}">
-      </div>`).join('')}
-    </div>
-
-    ${int.webhook?`
-    <div style="margin-bottom:20px;">
-      <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:8px;">Webhook URL</div>
-      <div class="int-webhook-url">${int.webhook}</div>
-      <button onclick="copyWebhook('${int.webhook}')" class="btn btn-ghost btn-sm" style="margin-top:6px;width:100%;">📋 Kopiuj URL</button>
+      <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:10px;">Ustawienia</div>
+      ${cfgFields}
     </div>`:''}
 
-    <!-- logi -->
-    ${int.logs.length?`
+    ${!daily?`
+    <div style="margin-bottom:20px;background:rgba(201,123,63,0.1);border:1px solid rgba(201,123,63,0.3);border-radius:10px;padding:12px;font-size:12px;line-height:1.6;">
+      ${id==='stripe'||id==='przelewy24'
+        ?'Płatności online wymagają backendu. Gotówka i przelew są w Płatnościach — nie zapisujemy kluczy tajnych bramek.'
+        :'Ta integracja potrzebuje OAuth albo tajnego API. Statyczna strona tego nie zrobi — i nie zbieramy tu secretów do Firestore.'}
+    </div>`:''}
+
+    ${window.INT_EVENT_LOG.length&&(id==='zapier'||id==='make')?`
     <div style="margin-bottom:20px;">
       <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:8px;">Ostatnie zdarzenia</div>
       <div style="background:var(--s3);border-radius:8px;padding:10px 12px;">
-        ${int.logs.map(l=>`<div class="int-log-row">
-          <span style="color:var(--muted);font-family:'DM Mono',monospace;flex-shrink:0;">${l.time}</span>
-          <span style="width:8px;height:8px;border-radius:50%;background:${l.status==='ok'?'var(--teal)':'var(--red)'};flex-shrink:0;margin-top:3px;"></span>
-          <span style="flex:1;">${l.msg}</span>
+        ${window.INT_EVENT_LOG.slice(0,8).map(l=>`<div class="int-log-row">
+          <span style="color:var(--muted);font-family:'DM Mono',monospace;flex-shrink:0;">${escHtml(l.time)}</span>
+          <span style="width:8px;height:8px;border-radius:50%;background:${l.ok?'var(--teal)':'var(--red)'};flex-shrink:0;margin-top:3px;"></span>
+          <span style="flex:1;">${escHtml(l.msg)}</span>
         </div>`).join('')}
       </div>
     </div>`:''}
 
-    <!-- dokumentacja -->
     <div style="margin-bottom:16px;">
-      <a href="${int.docs}" target="_blank" style="font-size:12px;color:var(--accent);text-decoration:none;">📖 Dokumentacja ${int.name} →</a>
+      <a href="${int.docs}" target="_blank" rel="noopener" style="font-size:12px;color:var(--accent);text-decoration:none;">📖 Dokumentacja ${int.name} →</a>
     </div>
 
-    <!-- akcje -->
     <div style="display:flex;gap:8px;">
-      ${isConnected
-        ?`<button class="btn btn-danger btn-sm" style="flex:1;" onclick="disconnectInt('${int.id}');closeIntDetail()">Usuń konfigurację</button>
-           <button class="btn btn-ghost" style="flex:1;" onclick="testIntConnection('${int.id}')">ℹ️ O połączeniu</button>`
-        :`<button class="btn btn-ghost btn-sm" onclick="closeIntDetail()">Anuluj</button>
-           <button class="btn btn-primary" style="flex:1;" onclick="connectInt('${int.id}')">💾 Zapisz konfigurację</button>`}
+      ${daily
+        ?(isConnected
+          ?`<button class="btn btn-danger btn-sm" style="flex:1;" onclick="disconnectInt('${int.id}');closeIntDetail()">Wyłącz</button>
+             <button class="btn btn-primary" style="flex:1;" onclick="connectInt('${int.id}')">💾 Zapisz</button>`
+          :`<button class="btn btn-ghost btn-sm" onclick="closeIntDetail()">Anuluj</button>
+             <button class="btn btn-primary" style="flex:1;" onclick="connectInt('${int.id}')">Włącz</button>`)
+        :`<button class="btn btn-ghost btn-sm" style="flex:1;" onclick="closeIntDetail()">Zamknij</button>
+           ${id==='stripe'||id==='przelewy24'?`<button class="btn btn-ghost btn-sm" style="flex:1;" onclick="goTo('payments')">Płatności →</button>`:''}`}
     </div>`;
 
   document.getElementById('int-detail-panel').style.transform='translateX(0)';
@@ -1280,48 +1271,248 @@ function closeIntDetail(){
 
 function connectInt(id){
   const int=INTEGRATIONS.find(x=>x.id===id);if(!int)return;
-  // collect config values
-  const config={};
-  int.config.forEach(c=>{
-    const el=document.getElementById(`int-cfg-${id}-${c.key}`);
-    if(el)config[c.key]=el.value;
-  });
-  // validate - at least one field filled
-  const hasValues=Object.values(config).some(v=>v.trim());
-  if(!hasValues){
-    notify('⚠ Wpisz dane konfiguracyjne!');
+  if(!intWorksNow(id)){
+    notify('⚠ '+int.name+' wymaga serwera — nie zapisujemy kluczy tajnych.');
     return;
   }
-  // Zapisujemy WYŁĄCZNIE ustawienia — ta aplikacja jest statyczną stroną bez własnego
-  // serwera, więc nie ma jak realnie połączyć się z Stripe/Google/innym API stąd.
-  // Konfiguracja zostaje zapisana, żeby nie przepadła, gdyby kiedyś powstał do tego backend.
-  window.INT_CONNECTIONS[id]=withTrainer({id,connected:true,config,configuredAt:new Date().toISOString(),lastSync:null});
-  if(window._db){window._setDoc(window._doc(window._db,'integrationConfigs',id),window.INT_CONNECTIONS[id],{merge:true}).catch(e=>console.warn('Firebase integration config save:',e));}
-  addNotification('system','Konfiguracja zapisana',`${int.name} — dane zapisane (bez realnego połączenia, patrz opis)`,'integrations');
-  notify(`✓ ${int.name} — konfiguracja zapisana. Pamiętaj: to jeszcze nie prawdziwe połączenie (patrz informacja na ekranie).`);
+  const config={};
+  (int.config||[]).forEach(c=>{
+    const el=document.getElementById('int-cfg-'+id+'-'+c.key);
+    if(el)config[c.key]=el.value.trim();
+  });
+  const req=INT_REQUIRED_CFG[id];
+  if(req&&!config[req]){
+    notify('⚠ Uzupełnij wymagane pole');
+    return;
+  }
+  if((id==='zapier'||id==='make')&&!/^https:\/\//i.test(config.webhook_url||'')){
+    notify('⚠ Wklej adres https:// Catch Hook');
+    return;
+  }
+  if(id==='calendly'&&!/^https:\/\//i.test(config.event_url||'')){
+    notify('⚠ Wklej publiczny link https://calendly.com/...');
+    return;
+  }
+  const prev=getIntConn(id);
+  const docId=intDocId(id);
+  const rec=withTrainer({
+    id:docId,
+    integrationId:id,
+    connected:true,
+    config,
+    configuredAt:new Date().toISOString(),
+    lastSync:null
+  });
+  window.INT_CONNECTIONS[id]=rec;
+  persistById('integrationConfigs',rec);
+  if(window._db&&prev&&prev.id&&prev.id!==docId){
+    window._del(window._doc(window._db,'integrationConfigs',prev.id)).catch(()=>{});
+  }
+  addNotification('system','Integracja włączona',int.name+' — działa ze strony (patrz opis)','integrations');
+  notify('✓ '+int.name+' włączone');
   renderIntegrations();
   openIntDetail(id);
 }
 
 function disconnectInt(id){
   const int=INTEGRATIONS.find(x=>x.id===id);
-  if(!confirm(`Usunąć zapisaną konfigurację ${int?.name||id}?`))return;
+  if(!confirm('Wyłączyć '+((int&&int.name)||id)+'?'))return;
+  const prev=getIntConn(id);
+  const docId=(prev&&prev.id)||intDocId(id);
   delete window.INT_CONNECTIONS[id];
-  if(window._db){window._del(window._doc(window._db,'integrationConfigs',id)).catch(e=>console.warn('Firebase integration config delete:',e));}
-  notify(`${int?.name||id} — konfiguracja usunięta`);
+  if(window._db){
+    window._del(window._doc(window._db,'integrationConfigs',docId)).catch(e=>console.warn('Firebase integration config delete:',e));
+    if(docId!==id)window._del(window._doc(window._db,'integrationConfigs',id)).catch(()=>{});
+  }
+  notify(((int&&int.name)||id)+' — wyłączone');
   renderIntegrations();
 }
 
 function testIntConnection(id){
+  if(id==='zapier'||id==='make'){intTestWebhook();return;}
   const int=INTEGRATIONS.find(x=>x.id===id);
-  notify(`⚠ Nie da się przetestować prawdziwego połączenia — ta aplikacja nie ma własnego serwera do rozmowy z ${int?.name||id}. Zapisane dane pozostają, ale test nie jest możliwy stąd.`);
+  if(intWorksNow(id))notify('✓ '+((int&&int.name)||id)+' działa ze strony — użyj przycisków na górze ekranu.');
+  else notify('⚠ '+((int&&int.name)||id)+' wymaga własnego serwera. Nie testujemy połączenia stąd.');
 }
 
 function copyWebhook(url){
-  navigator.clipboard.writeText(url).then(()=>notify('✓ Webhook URL skopiowany!')).catch(()=>{
+  navigator.clipboard.writeText(url).then(()=>notify('✓ Skopiowano')).catch(()=>{
     const ta=document.createElement('textarea');ta.value=url;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
     notify('✓ Skopiowano!');
   });
+}
+
+function icsStamp(date,time){
+  const d=String(date||'').replace(/-/g,'');
+  if(d.length!==8)return '';
+  const parts=String(time||'10:00').split(':');
+  const h=String(parts[0]||'10').padStart(2,'0');
+  const m=String(parts[1]||'00').padStart(2,'0');
+  return d+'T'+h+m+'00';
+}
+function icsEnd(date,time,durationMin){
+  const bits=String(date||'').split('-').map(Number);
+  const hm=String(time||'10:00').split(':').map(Number);
+  if(!bits[0])return '';
+  const dt=new Date(bits[0],(bits[1]||1)-1,bits[2]||1,hm[0]||10,hm[1]||0,0);
+  dt.setMinutes(dt.getMinutes()+(durationMin||60));
+  const p=n=>String(n).padStart(2,'0');
+  return dt.getFullYear()+p(dt.getMonth()+1)+p(dt.getDate())+'T'+p(dt.getHours())+p(dt.getMinutes())+'00';
+}
+function todaysSessions(){
+  const today=new Date().toISOString().split('T')[0];
+  return (window.SE||[]).filter(s=>s.date===today).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+}
+function waPhone(raw){
+  let d=String(raw||'').replace(/\D/g,'');
+  if(!d)return '';
+  if(d.startsWith('00'))d=d.slice(2);
+  if(d.length===9)d='48'+d;
+  return d;
+}
+function intRemindTpl(c,s){
+  const tpl=intCfg('whatsapp','template')||'Cześć {imie}! Dziś trening o {godzina}.';
+  return tpl.replace(/\{imie\}/gi,c&&c.name||'hej').replace(/\{godzina\}/gi,s&&s.time||'');
+}
+
+function downloadSessionsIcs(){
+  const sessions=Array.isArray(window.SE)?window.SE:[];
+  if(!sessions.length){notify('Brak sesji do eksportu');return;}
+  const calName=intCfg('google_calendar','cal_name')||'Progress Live';
+  const esc=s=>String(s||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');
+  const lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Progress Live//PL','CALSCALE:GREGORIAN','METHOD:PUBLISH','X-WR-CALNAME:'+esc(calName)];
+  const now=new Date();
+  const nowStamp=icsStamp(now.toISOString().split('T')[0],String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0'));
+  sessions.forEach(s=>{
+    const start=icsStamp(s.date,s.time);
+    const end=icsEnd(s.date,s.time,s.duration||60);
+    if(!start||!end)return;
+    const c=(window.CL||[]).find(x=>x.id===s.clientId);
+    lines.push('BEGIN:VEVENT');
+    lines.push('UID:'+esc(s.id||start)+'@progresslive');
+    lines.push('DTSTAMP:'+nowStamp);
+    lines.push('DTSTART:'+start);
+    lines.push('DTEND:'+end);
+    lines.push('SUMMARY:'+esc((s.type||'Trening')+' — '+(c&&c.name||'Klient')));
+    if(s.notes)lines.push('DESCRIPTION:'+esc(s.notes));
+    lines.push('END:VEVENT');
+  });
+  lines.push('END:VCALENDAR');
+  const blob=new Blob([lines.join('\r\n')],{type:'text/calendar;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='progress-live-sesje.ics';
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  notify('✓ Pobrano ICS — w Google: Ustawienia → Importuj; w Outlook: Otwórz i wyeksportuj');
+}
+
+function intRemindWhatsApp(){
+  const list=todaysSessions();
+  const el=document.getElementById('int-daily-panel');if(!el)return;
+  if(!list.length){el.innerHTML='<div style="font-size:12px;color:var(--muted);padding:8px 0;">Dziś brak sesji.</div>';return;}
+  el.innerHTML=`<div style="font-size:12px;font-weight:600;margin-bottom:8px;">WhatsApp — sesje dziś</div>
+    ${list.map(s=>{
+      const c=(window.CL||[]).find(x=>x.id===s.clientId);
+      const phone=waPhone(c&&c.phone);
+      const text=encodeURIComponent(intRemindTpl(c,s));
+      const href=phone?'https://wa.me/'+phone+'?text='+text:'';
+      return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;">
+        <div style="flex:1;"><strong>${escHtml(c&&c.name||'Klient')}</strong> · ${escHtml(s.time||'')} · ${escHtml(s.type||'Trening')}</div>
+        ${href?`<a class="btn btn-primary btn-sm" href="${href}" target="_blank" rel="noopener">Otwórz WA</a>`:'<span style="color:var(--muted);font-size:11px;">brak telefonu w karcie</span>'}
+      </div>`;
+    }).join('')}`;
+}
+
+function intRemindEmail(){
+  const list=todaysSessions();
+  const el=document.getElementById('int-daily-panel');if(!el)return;
+  if(!list.length){el.innerHTML='<div style="font-size:12px;color:var(--muted);padding:8px 0;">Dziś brak sesji.</div>';return;}
+  const from=intCfg('email','from_email')||(typeof getTrainerEmail==='function'?getTrainerEmail():'');
+  el.innerHTML=`<div style="font-size:12px;font-weight:600;margin-bottom:8px;">E-mail — sesje dziś${from?' · od '+escHtml(from):''}</div>
+    ${list.map(s=>{
+      const c=(window.CL||[]).find(x=>x.id===s.clientId);
+      const sub=encodeURIComponent('Przypomnienie: trening '+((s&&s.time)||''));
+      const body=encodeURIComponent(intRemindTpl(c,s));
+      const href=c&&c.email?('mailto:'+encodeURIComponent(c.email)+'?subject='+sub+'&body='+body):'';
+      return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;">
+        <div style="flex:1;"><strong>${escHtml(c&&c.name||'Klient')}</strong> · ${escHtml(s.time||'')} · ${escHtml(c&&c.email||'brak e-maila')}</div>
+        ${href?`<a class="btn btn-primary btn-sm" href="${href}">Otwórz mail</a>`:'<span style="color:var(--muted);font-size:11px;">uzupełnij e-mail klienta</span>'}
+      </div>`;
+    }).join('')}`;
+}
+
+function intOpenCalendly(){
+  const url=intCfg('calendly','event_url');
+  if(!url){notify('Najpierw włącz Calendly i wklej publiczny link');return;}
+  window.open(url,'_blank','noopener');
+}
+
+function intSendCalendly(){
+  const url=intCfg('calendly','event_url');
+  if(!url){notify('Najpierw włącz Calendly i wklej publiczny link');return;}
+  const el=document.getElementById('int-daily-panel');if(!el)return;
+  const clients=window.CL||[];
+  el.innerHTML=`<div style="font-size:12px;font-weight:600;margin-bottom:8px;">Wyślij Calendly w czat</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:8px;word-break:break-all;">${escHtml(url)}</div>
+    <button class="btn btn-ghost btn-sm" style="margin-bottom:10px;" onclick="copyWebhook(${JSON.stringify(url)})">📋 Kopiuj link</button>
+    ${clients.map(c=>`<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;">
+      <div style="flex:1;">${escHtml(c.name)}</div>
+      <button class="btn btn-primary btn-sm" onclick="intPushCalendly('${c.id}')">Wyślij</button>
+    </div>`).join('')||'<div style="font-size:12px;color:var(--muted);">Brak klientów</div>'}`;
+}
+function intPushCalendly(clientId){
+  const url=intCfg('calendly','event_url');
+  if(!url||!clientId)return;
+  if(typeof pushMsg==='function')pushMsg(clientId,'🗓 Umów sesję w Calendly:\n'+url);
+  notify('✓ Link Calendly w czacie klienta');
+}
+
+function intLog(msg,ok){
+  window.INT_EVENT_LOG.unshift({time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),msg:String(msg||''),ok:!!ok});
+  window.INT_EVENT_LOG=window.INT_EVENT_LOG.slice(0,30);
+}
+
+async function postIntWebhook(url,body){
+  if(!url||!/^https:\/\//i.test(url))return {ok:false};
+  const payload=JSON.stringify(body);
+  try{
+    const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:payload,mode:'cors'});
+    intLog(body.event+' → '+(res.ok?'ok':res.status),res.ok);
+    return {ok:res.ok};
+  }catch(e){
+    try{
+      await fetch(url,{method:'POST',mode:'no-cors',body:payload});
+      intLog(body.event+' wysłany (no-cors)',true);
+      return {ok:true,opaque:true};
+    }catch(e2){
+      intLog('błąd webhook: '+(e2.message||e.message||'sieć'),false);
+      return {ok:false};
+    }
+  }
+}
+
+function fireIntEvent(event,payload){
+  const body=Object.assign({source:'progress-live',event:event,at:new Date().toISOString(),trainerId:window._uid||null},payload||{});
+  const jobs=[];
+  ['zapier','make'].forEach(id=>{
+    const conn=getIntConn(id);
+    const url=conn&&conn.connected&&conn.config&&conn.config.webhook_url;
+    if(url)jobs.push(postIntWebhook(String(url).trim(),body));
+  });
+  return Promise.all(jobs);
+}
+
+async function intTestWebhook(){
+  const zap=intCfg('zapier','webhook_url');
+  const mk=intCfg('make','webhook_url');
+  if(!((getIntConn('zapier')||{}).connected&&zap)&&!((getIntConn('make')||{}).connected&&mk)){
+    notify('Włącz Zapier albo Make i wklej Catch Hook');
+    return;
+  }
+  await fireIntEvent('test',{note:'ręczne sprawdzenie z Integracji'});
+  notify('✓ Wysłano test na Catch Hook — sprawdź historię w Zapier/Make');
+  renderIntStatusSummary();
 }
 var pbActiveWeek=1;var pbCatFilter='all';
 var pbProgram={
@@ -2337,8 +2528,12 @@ function renderSettingsContent(t){
 
       ${card('Waluta i ceny','',`
         ${row('Waluta',''  ,sel('currency',S.payments.currency,[['PLN','PLN — Polski złoty'],['EUR','EUR — Euro'],['USD','USD — Dolar'],['GBP','GBP — Funt']]))}
-        ${row('Automatyczne faktury','Generuj fakturę po zakupie pakietu',toggle('auto-invoice',S.payments.autoInvoice))}
+        ${row('Automatyczne faktury','Generuj dokument po dodaniu pakietu (numeracja z istniejących faktur)',toggle('auto-invoice',S.payments.autoInvoice))}
       `)}
+      <div class="settings-card" style="margin-bottom:16px;border-color:rgba(201,123,63,.35);">
+        <div class="settings-card-title">Bez bramki online</div>
+        <div class="settings-card-desc">Stripe, BLIK i Przelewy24 nie pobierają pieniędzy z tej strony. Klient płaci gotówką albo przelewem na konto poniżej — Ty klikasz „Opłacony”.</div>
+      </div>
 
       ${card('Metody płatności','Zaznacz akceptowane formy płatności.',`
         <div style="display:flex;flex-direction:column;gap:8px;">
@@ -2353,34 +2548,31 @@ function renderSettingsContent(t){
   }
 
   else if(t==='integrations'){
-    const integrations=[
-      {id:'google-cal',name:'Google Calendar',icon:'📅',desc:'Synchronizuj sesje z Google Calendar',connected:false,color:'var(--red)'},
-      {id:'stripe',name:'Stripe',icon:'💳',desc:'Przyjmuj płatności online',connected:false,color:'var(--purple)'},
-      {id:'calendly',name:'Calendly',icon:'🗓',desc:'Automatyczne umawianie wizyt',connected:false,color:'var(--blue)'},
-      {id:'zoom',name:'Zoom',icon:'🎥',desc:'Integracja z sesjami online',connected:false,color:'var(--blue)'},
-      {id:'whatsapp',name:'WhatsApp',icon:'💬',desc:'Powiadomienia przez WhatsApp',connected:false,color:'var(--teal)'},
-      {id:'myfitnesspal',name:'MyFitnessPal',icon:'🥗',desc:'Synchronizuj dane żywieniowe klientów',connected:false,color:'var(--accent)'},
-    ];
+    const items=typeof INTEGRATIONS!=='undefined'?INTEGRATIONS:[];
     el.innerHTML=`<div class="settings-section" style="max-width:700px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">INTEGRACJE</div>
       <div class="settings-card" style="margin-bottom:16px;">
-        <div style="font-size:13px;line-height:1.6;color:var(--muted);margin-bottom:12px;">Konfiguracja Stripe, Calendly i innych narzędzi jest na osobnym ekranie. Zapisywane są tylko dane konfiguracyjne — bez realnego OAuth/API (statyczna strona).</div>
-        <button class="btn btn-primary btn-sm" onclick="goTo('integrations')">Otwórz ekran Integracje →</button>
+        <div style="font-size:13px;line-height:1.6;color:var(--muted);margin-bottom:12px;">Zielone działają ze strony (ICS, WhatsApp, e-mail, Calendly, Zapier/Make). Pomarańczowe wymagają serwera — nie zbieramy kluczy tajnych.</div>
+        <button class="btn btn-primary btn-sm" onclick="goTo('integrations')">Otwórz Integracje →</button>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        ${integrations.map(int=>`<div class="settings-card" style="display:flex;flex-direction:column;gap:12px;border-top:3px solid ${int.color};">
+        ${items.map(int=>{
+          const on=!!(window.INT_CONNECTIONS&&window.INT_CONNECTIONS[int.id]&&window.INT_CONNECTIONS[int.id].connected);
+          const daily=typeof intWorksNow==='function'?intWorksNow(int.id):false;
+          return `<div class="settings-card" style="display:flex;flex-direction:column;gap:12px;border-top:3px solid ${int.color};">
           <div style="display:flex;gap:12px;align-items:flex-start;">
             <div style="font-size:28px;">${int.icon}</div>
             <div style="flex:1;">
               <div style="font-size:14px;font-weight:700;">${int.name}</div>
-              <div style="font-size:11px;color:var(--muted);margin-top:2px;">${int.desc}</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px;">${int.shortDesc}</div>
             </div>
           </div>
           <div style="display:flex;align-items:center;justify-content:space-between;">
-            <span class="pill pill-muted" style="font-size:10px;">Konfiguracja</span>
+            <span class="${daily?'int-badge-daily':'int-badge-server'}" style="font-size:10px;">${daily?(on?'Działa dziś':'Działa dziś — wyłączone'):'Wymaga serwera'}</span>
             <button class="btn btn-ghost btn-sm" onclick="goTo('integrations')">Otwórz</button>
           </div>
-        </div>`).join('')}
+        </div>`;
+        }).join('')}
       </div>
     </div>`;
   }
@@ -2879,6 +3071,22 @@ function generateAutoNotifs(){
     const key='auto_exp_'+p.id;
     if(!hasNotif(key)){
       addNotification('expiry','Pakiet wygasa za '+diff+(diff===1?' dzień':' dni'),`${p.clientName} — ${p.title}`,'payments',key);
+    }
+  });
+
+  allPackages().filter(p=>p.payStatus==='pending').forEach(p=>{
+    const key='auto_pay_'+p.id;
+    if(!hasNotif(key)){
+      addNotification('payment','Oczekująca płatność',`${p.clientName||''} — ${p.title||'Pakiet'} · ${(p.price||0).toLocaleString('pl')} zł`,'payments',key);
+    }
+  });
+
+  allPackages().forEach(p=>{
+    const left=(p.sessions||0)-(p.sessionsUsed||0);
+    if(p.payStatus==='expired'||left<=0||left>2)return;
+    const key='auto_low_'+p.id+'_'+left;
+    if(!hasNotif(key)){
+      addNotification('alert','Mało sesji w pakiecie',`${p.clientName||''} — zostało ${left}`,'payments',key);
     }
   });
 
@@ -3535,7 +3743,7 @@ function openForumPost(pid){
   if(!window._forumViewed[pid]){
     window._forumViewed[pid]=true;
     p.views=(p.views||0)+1;
-    persistById('forumPosts',p);
+    persistForumPostEngagement(p);
   }
   if(window._clientAppMode){
     if(typeof renderClientLive==='function')renderClientLive();
@@ -3626,7 +3834,7 @@ function addComment(pid){
   window.FORUM_COMMENTS[pid].push(c);
   persistById('forumComments',c);
   const post=allForumPosts().find(x=>x.id===pid);
-  if(post){post.comments=(window.FORUM_COMMENTS[pid]||[]).length;persistById('forumPosts',post);}
+  if(post){post.comments=(window.FORUM_COMMENTS[pid]||[]).length;persistForumPostEngagement(post);}
   inp.value='';
   openForumPost(pid);
   renderForumFeed();
@@ -3651,9 +3859,36 @@ function deleteForumComment(cid,pid){
   window.FORUM_COMMENTS[pid]=all.filter(x=>x.id!==cid);
   if(window._db&&window._del)window._del(window._doc(window._db,'forumComments',cid)).catch(e=>console.warn(e));
   const post=allForumPosts().find(x=>x.id===pid);
-  if(post){post.comments=(window.FORUM_COMMENTS[pid]||[]).length;persistById('forumPosts',post);}
+  if(post){post.comments=(window.FORUM_COMMENTS[pid]||[]).length;persistForumPostEngagement(post);}
   openForumPost(pid);
   renderForumFeed();
+}
+
+function persistForumPostEngagement(p){
+  if(!p||!p.id)return;
+  if(!window._clientAppMode){
+    persistById('forumPosts',p);
+    return;
+  }
+  const patch={
+    id:p.id,
+    trainerId:p.trainerId||window._trainerId||null,
+    reactions:p.reactions||{},
+    likes:p.likes||0,
+    views:p.views||0,
+    comments:p.comments||0,
+    reactedBy:p.reactedBy||{}
+  };
+  if(!window._db){
+    if(typeof persistWarn==='function')persistWarn('⚠ Brak połączenia z bazą — dane mogą nie zostać zapisane');
+    return;
+  }
+  window._setDoc(window._doc(window._db,'forumPosts',p.id),patch,{merge:true})
+    .then(()=>{p._fbId=p.id;})
+    .catch(e=>{
+      console.warn('Firebase forum post engagement:',e);
+      if(typeof persistWarn==='function')persistWarn('⚠ Nie udało się zapisać. Sprawdź internet i spróbuj ponownie.');
+    });
 }
 
 function reactToPost(pid,reaction){
@@ -3676,7 +3911,7 @@ function reactToPost(pid,reaction){
     p.reactedBy[key]=reaction;
   }
   p.likes=forumReactionScore(p);
-  persistById('forumPosts',p);
+  persistForumPostEngagement(p);
   renderForumFeed();
   if(forumActivePost===pid)openForumPost(pid);
   if(window._clientAppMode&&typeof renderClientLive==='function')renderClientLive();
