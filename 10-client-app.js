@@ -62,10 +62,60 @@ async function queryByClientId(colName,clientId){
   return out;
 }
 
+async function queryByTrainerId(colName,trainerId){
+  const out=[];
+  if(!window._db||!trainerId)return out;
+  try{
+    if(window._query&&window._where&&window._get){
+      const q=window._query(window._col(window._db,colName),window._where('trainerId','==',trainerId));
+      const snap=await window._get(q);
+      snap.forEach(d=>{
+        const x=typeof window.mapFbDoc==='function'?window.mapFbDoc(d):{...d.data(),id:d.id,_fbId:d.id};
+        out.push(x);
+      });
+    }
+  }catch(e){console.warn('query trainer '+colName,e);}
+  return out;
+}
+
+function indexForumComments(list){
+  window.FORUM_COMMENTS={};
+  (list||[]).forEach(c=>{
+    if(!c||!c.postId)return;
+    if(!window.FORUM_COMMENTS[c.postId])window.FORUM_COMMENTS[c.postId]=[];
+    window.FORUM_COMMENTS[c.postId].push(c);
+  });
+}
+
+function clientSaveForumPost(){
+  const title=((document.getElementById('clive-fp-title')||{}).value||'').trim();
+  const body=((document.getElementById('clive-fp-body')||{}).value||'').trim();
+  if(!title||!body){if(typeof notify==='function')notify('Wpisz tytuł i treść');return;}
+  const groups=typeof visibleForumGroups==='function'?visibleForumGroups():(window.FORUM_GROUPS||[]);
+  const group=groups.find(g=>g.privacy!=='private')||groups[0];
+  if(!group){if(typeof notify==='function')notify('Trener nie utworzył jeszcze grupy');return;}
+  const me=typeof forumActor==='function'?forumActor():{name:'Klient',role:'klient',clientId:window._clientId};
+  const now=new Date().toISOString();
+  const p=withTrainer({
+    id:newId('fp'),title,body,type:'post',groupId:group.id,
+    authorName:me.name,authorRole:'klient',
+    pinned:false,date:now.slice(0,10),createdAt:now,
+    likes:0,views:0,comments:0,reactions:{},reactedBy:{}
+  });
+  if(me.clientId)p.clientId=me.clientId;
+  window.FORUM_POSTS=window.FORUM_POSTS||[];
+  window.FORUM_POSTS.unshift(p);
+  persistById('forumPosts',p);
+  if(typeof addNotification==='function')addNotification('system','Nowy post klienta',me.name+': '+title,'forum');
+  if(typeof notify==='function')notify('✓ Post opublikowany');
+  if(typeof renderClientLive==='function')renderClientLive();
+}
+
 function emptyClientCollections(){
   window.CL=[];window.PL=[];window.SE=[];window.EX=[];window.WO=[];
   window.TASKS=[];window.PACKAGES=[];window.METRIC_ENTRIES=[];
   window.CHECKINS={};window.NOTIFICATIONS=[];
+  window.FORUM_GROUPS=[];window.FORUM_POSTS=[];window.FORUM_COMMENTS={};
   if(window.MSGS)Object.keys(window.MSGS).forEach(k=>delete window.MSGS[k]);
 }
 
@@ -94,6 +144,9 @@ async function loadClientApp(account){
   window.MSGS[cid]=msgs;
   const cis=await queryByClientId('checkins',cid);
   window.CHECKINS={};window.CHECKINS[cid]=cis.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  window.FORUM_GROUPS=await queryByTrainerId('forumGroups',account.trainerId);
+  window.FORUM_POSTS=await queryByTrainerId('forumPosts',account.trainerId);
+  indexForumComments(await queryByTrainerId('forumComments',account.trainerId));
   try{
     if(account.trainerId){
       const st=await window._getDoc(window._doc(window._db,'settings',account.trainerId));
@@ -132,7 +185,7 @@ function renderClientLive(){
   const content=document.getElementById('clive-screen-content');
   if(!content)return;
   const scr=window._clientLiveScreen||'home';
-  ['home','plan','progress','messages','profile'].forEach(s=>{
+  ['home','plan','progress','forum','messages','profile'].forEach(s=>{
     const bn=document.getElementById('clive-bn-'+s);
     if(!bn)return;
     const on=s===scr;
@@ -357,5 +410,7 @@ window.clientSubmitCheckin=clientSubmitCheckin;
 window.ensureClientInvite=ensureClientInvite;
 window.newInviteToken=newInviteToken;
 window.clientAppUrl=clientAppUrl;
+window.queryByTrainerId=queryByTrainerId;
+window.clientSaveForumPost=clientSaveForumPost;
 
 document.addEventListener('DOMContentLoaded',prepareAuthForInvite);

@@ -62,7 +62,9 @@ async function persistById(colName,obj){
     return obj;
   }
   try{
-    await window._setDoc(window._doc(window._db,colName,obj.id),obj,{merge:true});
+    const payload={...obj};
+    delete payload._fbId;
+    await window._setDoc(window._doc(window._db,colName,obj.id),payload,{merge:true});
     obj._fbId=obj.id;
   }catch(e){
     console.warn('Firebase persist '+colName+':',e);
@@ -308,7 +310,7 @@ function goTo(n){
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   const s=document.getElementById('screen-'+n);if(s)s.classList.add('active');
   closeMobileSidebar();
-  const moreScreens=['workout-library','library','programs','tasks','forms','payments','calculator','automation','metrics','checkin','aiplangen','ondemand','resources','bizstats','forum','settings','aicoach','kb'];
+  const moreScreens=['workout-library','library','programs','tasks','forms','payments','calculator','automation','metrics','checkin','aiplangen','ondemand','resources','bizstats','settings','aicoach','kb'];
   if(moreScreens.includes(n)){
     const moreEl=document.getElementById('nav-more-items');
     const arrow=document.getElementById('nav-more-arrow');
@@ -344,8 +346,7 @@ function goTo(n){
   }
   if(n==='calculator'){initCalcClients();calcTDEE();}
   if(n==='forum'){
-    const fpg=document.getElementById('fp-group');
-    if(fpg)fpg.innerHTML=allForumGroups().map(g=>'<option value="'+g.id+'">'+g.icon+' '+g.name+'</option>').join('');
+    fillForumPostGroupSelect();
     renderForum();
   }
   if(n==='settings'){setSettingsTab('profile');}
@@ -426,6 +427,16 @@ function openM(id){
   }
   if(id==='m-broadcast'){
     if(typeof refreshBroadcastGroupOptions==='function')refreshBroadcastGroupOptions();
+  }
+  if(id==='m-forum-post'){
+    if(typeof fillForumPostGroupSelect==='function')fillForumPostGroupSelect();
+  }
+  if(id==='m-forum-group'){
+    const name=document.getElementById('fg-name');
+    const desc=document.getElementById('fg-desc');
+    if(name)name.value='';
+    if(desc)desc.value='';
+    if(typeof renderForumGroupMembers==='function')renderForumGroupMembers();
   }
   document.getElementById(id).classList.add('show');
 }

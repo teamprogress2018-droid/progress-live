@@ -901,7 +901,7 @@ body.client-app-mode #screen-clientlive{display:flex!important;flex:1;overflow:h
 .clive-brand span{color:var(--accent);}
 .clive-content{flex:1;overflow-y:auto;padding:8px 16px 12px;min-height:0;}
 .clive-nav{display:flex;justify-content:space-around;align-items:flex-start;padding:8px 4px calc(8px + env(safe-area-inset-bottom));border-top:1px solid rgba(255,255,255,.06);background:rgba(7,8,10,.96);flex-shrink:0;}
-.clive-nav-btn{background:none;border:none;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;min-width:56px;min-height:48px;cursor:pointer;opacity:.55;}
+.clive-nav-btn{background:none;border:none;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;font-size:9px;min-width:48px;min-height:48px;cursor:pointer;opacity:.55;}
 .clive-nav-btn span:first-child{font-size:20px;}
 .clive-nav-btn.active{opacity:1;color:var(--accent);}
 .clive-check-opt{
@@ -909,6 +909,22 @@ body.client-app-mode #screen-clientlive{display:flex!important;flex:1;overflow:h
   display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;
 }
 .clive-check-opt.on{background:rgba(225,31,46,.2);border-color:var(--accent);}
+.forum-honest-banner{
+  margin:0;padding:8px 16px;background:rgba(201,123,63,.1);border-bottom:1px solid rgba(201,123,63,.3);
+  font-size:12px;color:var(--orange);flex-shrink:0;
+}
+.forum-layout{display:flex;flex:1;overflow:hidden;min-height:0;}
+@media (max-width: 900px){
+  .forum-layout{flex-direction:column;}
+  .forum-groups-col{width:100%!important;max-height:150px;border-right:none!important;border-bottom:1px solid var(--border);}
+  .forum-detail-col{
+    display:none;position:fixed;inset:0;width:100%!important;z-index:80;background:var(--s1);
+    border-left:none!important;
+  }
+  .forum-detail-col.forum-detail-open{display:flex!important;}
+  #forum-detail-close{display:block!important;}
+  .forum-honest-banner{font-size:11px;padding:8px 12px;}
+}
 
 
 

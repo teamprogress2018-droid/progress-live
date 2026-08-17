@@ -79,6 +79,7 @@
     <button class="nav-item active" data-screen="dashboard" onclick="goTo('dashboard')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Panel główny</button>
     <button class="nav-item" data-screen="clients" onclick="goTo('clients')"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Klienci<span class="nav-badge" id="nb-clients">0</span></button>
     <button class="nav-item" data-screen="inbox" onclick="goTo('inbox')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Wiadomości</button>
+    <button class="nav-item" data-screen="forum" onclick="goTo('forum')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="13" y2="13"/></svg>Społeczność</button>
     <button class="nav-item" data-screen="live" onclick="goTo('live')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>Trening Live</button>
     <button class="nav-item" data-screen="calendar" onclick="goTo('calendar')"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Kalendarz</button>
     <button class="nav-item" data-screen="plans" onclick="goTo('plans')"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Plany treningowe</button>
@@ -103,7 +104,6 @@
       <button class="nav-item" data-screen="ondemand" onclick="goTo('ondemand')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>On-demand</button>
       <button class="nav-item" data-screen="resources" onclick="goTo('resources')"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Zasoby</button>
       <button class="nav-item" data-screen="bizstats" onclick="goTo('bizstats')"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Statystyki</button>
-      <button class="nav-item" data-screen="forum" onclick="goTo('forum')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="13" y2="13"/></svg>Społeczność</button>
       <button class="nav-item" onclick="openReportModal()"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Raporty</button>
       <button class="nav-item" data-screen="settings" onclick="goTo('settings')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Ustawienia</button>
       <button class="nav-item" data-screen="aicoach" onclick="goTo('aicoach')"><svg viewBox="0 0 24 24"><path d="M12 2a4 4 0 0 0-4 4c0 1.5.8 2.8 2 3.5V12H8a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h1v2a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-2h1a2 2 0 0 0 2-2v-2a2 2 0 0 0-2-2h-2V9.5c1.2-.7 2-2 2-3.5a4 4 0 0 0-4-4z"/></svg>AI Coach</button>
@@ -1540,16 +1540,17 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 <!-- FORUM — SPOŁECZNOŚĆ -->
 <div class="screen" id="screen-forum">
   <div class="topbar">
-    <div class="topbar-title">Fora społecznościowe</div>
+    <div class="topbar-title">Społeczność</div>
     <div class="topbar-actions">
       <button class="btn btn-ghost btn-sm" onclick="openM('m-forum-group')">+ Nowa grupa</button>
       <button class="btn btn-primary btn-sm" id="forum-new-post-btn" onclick="openM('m-forum-post')">+ Nowy post</button>
     </div>
   </div>
-  <div style="display:flex;flex:1;overflow:hidden;">
+  <div class="forum-honest-banner">To jest grupa Twoich klientów, nie publiczne forum. Klienci widzą posty w swojej aplikacji. Zaznacz „Powiadom członków”, żeby poszło też w czacie.</div>
+  <div class="forum-layout">
 
     <!-- lewy panel — grupy -->
-    <div style="width:240px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;">
+    <div class="forum-groups-col" style="width:240px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;">
       <div style="padding:10px;border-bottom:1px solid var(--border);">
         <input type="text" id="forum-search" placeholder="Szukaj postów..." oninput="renderForum()" style="width:100%;background:var(--s3);border:1px solid var(--border);border-radius:6px;padding:6px 9px;color:var(--text);font-size:12px;">
       </div>
@@ -1564,7 +1565,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
     </div>
 
     <!-- środek — feed postów -->
-    <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+    <div class="forum-feed-col" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
       <!-- toolbar -->
       <div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;">
         <span style="font-size:13px;font-weight:700;" id="forum-group-title">Wszystkie grupy</span>
@@ -1579,7 +1580,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
     </div>
 
     <!-- prawy panel — szczegóły posta/komentarze -->
-    <div style="width:360px;flex-shrink:0;border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;" id="forum-detail-panel">
+    <div class="forum-detail-col" style="width:360px;flex-shrink:0;border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;" id="forum-detail-panel">
       <div style="padding:14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
         <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;" id="forum-detail-title">Wybierz post</div>
         <button id="forum-detail-close" onclick="closeForumDetail()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;display:none;">×</button>
@@ -1952,6 +1953,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <button type="button" class="clive-nav-btn active" id="clive-bn-home" onclick="setClientLiveScreen('home')"><span>🏠</span><span>Główna</span></button>
       <button type="button" class="clive-nav-btn" id="clive-bn-plan" onclick="setClientLiveScreen('plan')"><span>📋</span><span>Plan</span></button>
       <button type="button" class="clive-nav-btn" id="clive-bn-progress" onclick="setClientLiveScreen('progress')"><span>📈</span><span>Postępy</span></button>
+      <button type="button" class="clive-nav-btn" id="clive-bn-forum" onclick="setClientLiveScreen('forum')"><span>👥</span><span>Forum</span></button>
       <button type="button" class="clive-nav-btn" id="clive-bn-messages" onclick="setClientLiveScreen('messages')"><span>💬</span><span>Czat</span></button>
       <button type="button" class="clive-nav-btn" id="clive-bn-profile" onclick="setClientLiveScreen('profile')"><span>👤</span><span>Profil</span></button>
     </nav>
@@ -3406,10 +3408,14 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         </div>
       </div>
       <div class="form-field"><label class="form-lbl">Widoczność</label>
-        <select class="form-select" id="fg-privacy">
-          <option value="public">Publiczna — wszyscy klienci</option>
-          <option value="private">Prywatna — tylko zaproszeni</option>
+        <select class="form-select" id="fg-privacy" onchange="renderForumGroupMembers()">
+          <option value="public">Publiczna — wszyscy Twoi klienci</option>
+          <option value="private">Prywatna — tylko zaznaczeni klienci</option>
         </select>
+      </div>
+      <div class="form-field" id="fg-members-wrap" style="display:none;">
+        <label class="form-lbl">Kto widzi tę grupę</label>
+        <div id="fg-members" style="max-height:180px;overflow-y:auto;background:var(--s3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;"></div>
       </div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-forum-group')">Anuluj</button><button class="btn btn-primary" onclick="saveForumGroup()">Utwórz grupę</button></div>
@@ -3758,7 +3764,7 @@ async function load(){
     if(!window.FORUM_GROUPS.length&&typeof DEMO_FORUM_GROUPS!=='undefined'){
       // Pierwsze uruchomienie: zamień domyślne kategorie w prawdziwe, edytowalne grupy.
       for(const g of DEMO_FORUM_GROUPS){
-        const copy=withTrainer({...g,id:g.id||newId('fg')});
+        const copy=withTrainer({...g,id:newId('fg'),memberIds:g.memberIds||[]});
         window.FORUM_GROUPS.push(copy);
         try{await setDoc(doc(db,'forumGroups',copy.id),copy);copy._fbId=copy.id;}catch(e){}
       }
