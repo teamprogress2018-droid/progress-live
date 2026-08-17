@@ -22,7 +22,11 @@ window.newId=newId;
 function withTrainer(obj){
   if(window._clientAppMode){
     if(window._trainerId)obj.trainerId=window._trainerId;
-    if(!obj.clientId&&window._clientId)obj.clientId=window._clientId;
+    // clientId tylko na rekordach klienta. Nie dopisuj go do postów trenera —
+    // inaczej Firestore odrzuca reakcje/wyświetlenia ( spoza dozwolonych pól ).
+    if(window._clientId && !obj.clientId && obj.authorRole!=='trener' && !obj._fbId){
+      obj.clientId=window._clientId;
+    }
     return obj;
   }
   if(window._uid)obj.trainerId=window._uid;
@@ -62,7 +66,9 @@ async function persistById(colName,obj){
     return obj;
   }
   try{
-    await window._setDoc(window._doc(window._db,colName,obj.id),obj,{merge:true});
+    const payload={...obj};
+    delete payload._fbId;
+    await window._setDoc(window._doc(window._db,colName,obj.id),payload,{merge:true});
     obj._fbId=obj.id;
   }catch(e){
     console.warn('Firebase persist '+colName+':',e);
@@ -344,8 +350,7 @@ function goTo(n){
   }
   if(n==='calculator'){initCalcClients();calcTDEE();}
   if(n==='forum'){
-    const fpg=document.getElementById('fp-group');
-    if(fpg)fpg.innerHTML=allForumGroups().map(g=>'<option value="'+g.id+'">'+g.icon+' '+g.name+'</option>').join('');
+    fillForumPostGroupSelect();
     renderForum();
   }
   if(n==='settings'){setSettingsTab('profile');}
@@ -426,6 +431,16 @@ function openM(id){
   }
   if(id==='m-broadcast'){
     if(typeof refreshBroadcastGroupOptions==='function')refreshBroadcastGroupOptions();
+  }
+  if(id==='m-forum-post'){
+    if(typeof fillForumPostGroupSelect==='function')fillForumPostGroupSelect();
+  }
+  if(id==='m-forum-group'){
+    const name=document.getElementById('fg-name');
+    const desc=document.getElementById('fg-desc');
+    if(name)name.value='';
+    if(desc)desc.value='';
+    if(typeof renderForumGroupMembers==='function')renderForumGroupMembers();
   }
   if(id==='m-autoflow-builder'){
     if(typeof updateAfBuilderUi==='function')updateAfBuilderUi();

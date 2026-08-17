@@ -195,6 +195,21 @@ function capScreenHTML(scr,c){
         </div>`).join('')}
       </div>`:''}
 
+      ${(()=>{
+        const posts=(typeof visibleForumPosts==='function'?visibleForumPosts():[]).slice().sort((a,b)=>(b.createdAt||b.date||'').localeCompare(a.createdAt||a.date||'')).slice(0,2);
+        if(!posts.length)return '';
+        return `<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};">💬 Społeczność</div>
+            <button type="button" onclick="setClientLiveScreen('forum')" style="background:none;border:none;color:${accent};font-size:11px;cursor:pointer;">Więcej →</button>
+          </div>
+          ${posts.map(p=>`<div onclick="setClientLiveScreen('forum');setTimeout(()=>openForumPost('${escHtml(p.id)}'),50)" style="padding:8px 0;border-top:1px solid ${CAP_S3};cursor:pointer;">
+            <div style="font-size:12px;font-weight:700;color:${CAP_TEXT};">${escHtml(p.title||'')}</div>
+            <div style="font-size:10px;color:${CAP_MUTED};">${escHtml(p.authorName||'')} · ${(typeof forumFormatWhen==='function'?forumFormatWhen(p):'')}</div>
+          </div>`).join('')}
+        </div>`;
+      })()}
+
       <!-- motywacja -->
       <div style="background:linear-gradient(135deg,#1a0a2a,#0a0a1a);border:1px solid rgba(157,124,244,0.3);border-radius:18px;padding:16px;text-align:center;">
         <div style="font-size:24px;margin-bottom:8px;">💡</div>
@@ -422,6 +437,54 @@ function capScreenHTML(scr,c){
         <div style="font-size:10px;color:${CAP_MUTED};margin-top:2px;">${escHtml(r.cat||r.type||'')}</div>
         ${r.url?`<a href="${escHtml(r.url)}" target="_blank" rel="noopener" style="display:inline-block;margin-top:6px;font-size:11px;color:${accent};">Otwórz →</a>`:''}
       </div>`).join('')}
+    </div>`;
+  }
+
+  if(scr==='forum'){
+    const posts=(typeof visibleForumPosts==='function'?visibleForumPosts():[]).slice().sort((a,b)=>{
+      if(a.pinned&&!b.pinned)return -1;if(!a.pinned&&b.pinned)return 1;
+      return (b.createdAt||b.date||'').localeCompare(a.createdAt||a.date||'');
+    });
+    const openId=typeof forumActivePost!=='undefined'?forumActivePost:null;
+    const open=openId&&posts.find(p=>p.id===openId);
+    if(open){
+      const comments=typeof getPostComments==='function'?getPostComments(open.id):[];
+      const me=typeof forumActor==='function'?forumActor():{};
+      const myReact=(open.reactedBy||{})[me.uid];
+      return `<div class="cap-section" style="padding-bottom:90px;">
+        <button type="button" class="btn btn-ghost btn-sm" style="margin:8px 0 12px;" onclick="forumActivePost=null;renderClientLive()">← Wróć do feedu</button>
+        <div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:16px;padding:14px;margin-bottom:12px;">
+          <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:4px;">${escHtml(open.authorName||'')} · ${typeof forumFormatWhen==='function'?forumFormatWhen(open):''}</div>
+          <div style="font-size:16px;font-weight:700;color:${CAP_TEXT};margin-bottom:8px;">${escHtml(open.title||'')}</div>
+          <div style="font-size:13px;color:${CAP_MUTED};line-height:1.6;white-space:pre-line;">${escHtml(open.body||'')}</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;">
+            ${Object.entries(REACTIONS_MAP).map(([r,icon])=>`<button class="forum-reaction-btn${myReact===r?' active':''}" onclick="reactToPost('${escHtml(open.id)}','${r}')">${icon} ${(open.reactions||{})[r]||''}</button>`).join('')}
+          </div>
+        </div>
+        <div style="font-size:12px;font-weight:700;margin-bottom:8px;">Komentarze (${comments.length})</div>
+        ${comments.length?comments.map(cm=>`<div style="background:${CAP_S2};border-radius:12px;padding:10px 12px;margin-bottom:8px;">
+          <div style="font-size:11px;font-weight:700;color:${CAP_TEXT};">${escHtml(cm.authorName||'')} ${cm.authorRole==='trener'?'<span style="color:var(--accent);font-size:9px;">TRENER</span>':''}</div>
+          <div style="font-size:12px;color:${CAP_MUTED};margin-top:4px;white-space:pre-line;">${escHtml(cm.body||'')}</div>
+        </div>`).join(''):`<div style="font-size:12px;color:${CAP_MUTED};margin-bottom:10px;">Napisz pierwszy komentarz.</div>`}
+        <textarea id="new-comment-${escHtml(open.id)}" rows="3" placeholder="Twój komentarz..." style="width:100%;background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:12px;padding:10px;color:${CAP_TEXT};font-size:13px;margin-bottom:8px;"></textarea>
+        <button class="btn btn-primary" style="width:100%;" onclick="addComment('${escHtml(open.id)}')">Wyślij</button>
+      </div>`;
+    }
+    return `<div class="cap-section" style="padding-bottom:90px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin:8px 0 6px;">SPOŁECZNOŚĆ</div>
+      <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:14px;">Grupa Twojego trenera — nie jest to publiczne forum.</div>
+      <div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:16px;padding:12px;margin-bottom:14px;">
+        <input id="clive-fp-title" class="form-input" placeholder="Tytuł posta" style="margin-bottom:8px;background:${CAP_S3};border:1px solid ${CAP_S3};">
+        <textarea id="clive-fp-body" rows="3" placeholder="Napisz do grupy..." style="width:100%;background:${CAP_S3};border:1px solid ${CAP_S3};border-radius:8px;padding:8px;color:${CAP_TEXT};font-size:13px;margin-bottom:8px;"></textarea>
+        <button class="btn btn-primary btn-sm" style="width:100%;" onclick="clientSaveForumPost()">Opublikuj</button>
+      </div>
+      ${posts.length?posts.map(p=>`<div onclick="openForumPost('${escHtml(p.id)}')" style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:12px;margin-bottom:10px;cursor:pointer;">
+        ${p.pinned?'<div style="font-size:10px;color:var(--orange);margin-bottom:4px;">📌 Przypięty</div>':''}
+        <div style="font-size:14px;font-weight:700;color:${CAP_TEXT};">${escHtml(p.title||'')}</div>
+        <div style="font-size:11px;color:${CAP_MUTED};margin:4px 0 6px;">${escHtml(p.authorName||'')} · ${typeof forumFormatWhen==='function'?forumFormatWhen(p):''}</div>
+        <div style="font-size:12px;color:${CAP_MUTED};display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${escHtml(p.body||'')}</div>
+        <div style="font-size:11px;color:${CAP_MUTED};margin-top:8px;">💬 ${(typeof getPostComments==='function'?getPostComments(p.id).length:0)} · ❤️ ${typeof forumReactionScore==='function'?forumReactionScore(p):(p.likes||0)}</div>
+      </div>`).join(''):`<div style="text-align:center;padding:28px 12px;color:${CAP_MUTED};font-size:12px;">Brak postów. Napisz pierwszy albo poczekaj na ogłoszenie trenera.</div>`}
     </div>`;
   }
 
@@ -3466,12 +3529,13 @@ function buildReportHTML(c,from,to,sec,template){
 }
 var forumActiveGroup='all';var forumFilter='all';var forumActivePost=null;
 window.FORUM_GROUPS=[];window.FORUM_POSTS=[];window.FORUM_COMMENTS={};
+window._forumViewed=window._forumViewed||{};
 
 const DEMO_FORUM_GROUPS=[
-  {id:'fg1',name:'Ogólna społeczność',icon:'💬',color:'var(--accent)',desc:'Przestrzeń dla wszystkich klientów',privacy:'public',members:0,createdAt:'2025-01-01'},
-  {id:'fg2',name:'Wyzwania treningowe',icon:'🏆',color:'var(--orange)',desc:'Tygodniowe i miesięczne wyzwania',privacy:'public',members:0,createdAt:'2025-01-01'},
-  {id:'fg3',name:'Postępy i pomiary',icon:'📊',color:'var(--blue)',desc:'Dzielcie się wynikami i pomiarami',privacy:'public',members:0,createdAt:'2025-01-01'},
-  {id:'fg4',name:'Przepisy i dieta',icon:'🥗',color:'var(--teal)',desc:'Zdrowe przepisy i wskazówki żywieniowe',privacy:'public',members:0,createdAt:'2025-01-01'},
+  {name:'Ogólna społeczność',icon:'💬',color:'var(--accent)',desc:'Przestrzeń dla wszystkich klientów',privacy:'public',memberIds:[],createdAt:'2025-01-01'},
+  {name:'Wyzwania treningowe',icon:'🏆',color:'var(--orange)',desc:'Tygodniowe i miesięczne wyzwania',privacy:'public',memberIds:[],createdAt:'2025-01-01'},
+  {name:'Postępy i pomiary',icon:'📊',color:'var(--blue)',desc:'Dzielcie się wynikami i pomiarami',privacy:'public',memberIds:[],createdAt:'2025-01-01'},
+  {name:'Przepisy i dieta',icon:'🥗',color:'var(--teal)',desc:'Zdrowe przepisy i wskazówki żywieniowe',privacy:'public',memberIds:[],createdAt:'2025-01-01'},
 ];
 
 const POST_TYPE_COLORS={challenge:'var(--orange)',announcement:'var(--blue)',post:'var(--accent)',question:'var(--purple)',tip:'var(--teal)'};
@@ -3481,7 +3545,67 @@ const REACTIONS_MAP={'fire':'🔥','strong':'💪','love':'❤️','like':'👍'
 
 function allForumGroups(){return window.FORUM_GROUPS||[];}
 function allForumPosts(){return window.FORUM_POSTS||[];}
-function getPostComments(pid){return window.FORUM_COMMENTS[pid]||[];}
+function getPostComments(pid){return (window.FORUM_COMMENTS[pid]||[]).slice().sort((a,b)=>(a.createdAt||a.date||'').localeCompare(b.createdAt||b.date||''));}
+function forumActor(){
+  if(window._clientAppMode){
+    const c=(window.CL||[]).find(x=>x.id===window._clientId)||(window.CL||[])[0];
+    return {name:(c&&c.name)||'Klient',role:'klient',clientId:window._clientId||(c&&c.id)||'',uid:window._uid||window._clientId||'client'};
+  }
+  return {name:(typeof getTrainerName==='function'?getTrainerName('Trener'):'Trener'),role:'trener',clientId:'',uid:window._uid||'trainer'};
+}
+function forumCanSeeGroup(g){
+  if(!g)return false;
+  if(g.privacy!=='private')return true;
+  if(!window._clientAppMode)return true;
+  return (g.memberIds||[]).indexOf(window._clientId)>=0;
+}
+function visibleForumGroups(){return allForumGroups().filter(forumCanSeeGroup);}
+function visibleForumPosts(){
+  return allForumPosts().filter(p=>{
+    const g=allForumGroups().find(x=>x.id===p.groupId);
+    if(!g)return !window._clientAppMode;
+    return forumCanSeeGroup(g);
+  });
+}
+function forumGroupMemberCount(g){
+  if(!g)return 0;
+  if(g.privacy==='private')return (g.memberIds||[]).length;
+  return (window.CL||[]).filter(c=>c.status!=='archived').length;
+}
+function forumSortKey(p){return p.createdAt||p.date||'';}
+function forumFormatWhen(p){
+  const iso=p&&(p.createdAt||p.date)||'';
+  if(!iso)return '';
+  const d=new Date(iso);
+  if(isNaN(d.getTime()))return escHtml(String(iso).slice(0,10));
+  const now=new Date();
+  const opts={hour:'2-digit',minute:'2-digit'};
+  if(d.toDateString()===now.toDateString())return d.toLocaleTimeString('pl',opts);
+  return d.toLocaleDateString('pl',{day:'numeric',month:'short'})+' '+d.toLocaleTimeString('pl',opts);
+}
+function forumReactionScore(p){
+  const r=p&&p.reactions||{};
+  return Object.values(r).reduce((s,v)=>s+(v||0),0);
+}
+function fillForumPostGroupSelect(){
+  const fpg=document.getElementById('fp-group');
+  if(!fpg)return;
+  const groups=window._clientAppMode?visibleForumGroups():allForumGroups();
+  fpg.innerHTML=groups.map(g=>'<option value="'+escHtml(g.id)+'">'+escHtml((g.icon||'')+' '+g.name)+'</option>').join('');
+}
+function forumNotifyMembers(p,group){
+  const notifyEl=document.getElementById('fp-notify');
+  if(notifyEl&&!notifyEl.checked)return;
+  const active=(window.CL||[]).filter(c=>c.status!=='archived');
+  let ids;
+  if(group&&group.privacy==='private')ids=(group.memberIds||[]).slice();
+  else ids=active.map(c=>c.id);
+  ids=ids.filter(Boolean).slice(0,80);
+  const preview=(p.body||'').slice(0,180);
+  const text='Nowy post na forum: '+p.title+(preview?'\n\n'+preview:'');
+  ids.forEach(id=>{if(typeof pushMsg==='function')pushMsg(id,text);});
+  if(typeof addNotification==='function')addNotification('system','Post na forum',p.title,'forum');
+}
 
 function setForumFilter(f,btn){
   forumFilter=f;
@@ -3491,10 +3615,10 @@ function setForumFilter(f,btn){
 }
 
 function renderForum(){
-  const groups=allForumGroups();
-  const posts=allForumPosts();
+  const groups=visibleForumGroups();
+  const posts=visibleForumPosts();
+  fillForumPostGroupSelect();
 
-  // sidebar nav
   const nav=document.getElementById('forum-groups-nav');
   if(nav){
     const totalPosts=posts.length;
@@ -3504,24 +3628,25 @@ function renderForum(){
       <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);">${totalPosts}</span>
     </div>`+groups.map(g=>{
       const count=posts.filter(p=>p.groupId===g.id).length;
-      const members=CL.length;
-      return `<div class="forum-group-nav${forumActiveGroup===g.id?' active':''}" onclick="setForumGroup('${g.id}')">
-        <span style="font-size:16px;">${g.icon}</span>
-        <div style="flex:1;"><div>${g.name}</div><div style="font-size:10px;color:var(--muted);">${members} członków</div></div>
+      const members=forumGroupMemberCount(g);
+      const lock=g.privacy==='private'?' 🔒':'';
+      return `<div class="forum-group-nav${forumActiveGroup===g.id?' active':''}" onclick="setForumGroup('${escHtml(g.id)}')">
+        <span style="font-size:16px;">${escHtml(g.icon||'💬')}</span>
+        <div style="flex:1;"><div>${escHtml(g.name)}${lock}</div><div style="font-size:10px;color:var(--muted);">${members} ${members===1?'osoba':'osób'}</div></div>
         <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);">${count}</span>
       </div>`;
     }).join('');
   }
 
-  // stats
   const statsEl=document.getElementById('forum-stats');
   if(statsEl){
-    const totalComments=Object.values(window.FORUM_COMMENTS).reduce((s,a)=>s+a.length,0);
+    const totalComments=Object.values(window.FORUM_COMMENTS||{}).reduce((s,a)=>s+a.length,0);
+    const people=(window.CL||[]).filter(c=>c.status!=='archived').length;
     statsEl.innerHTML=`
       <div style="display:flex;justify-content:space-between;font-size:11px;"><span style="color:var(--muted);">Postów</span><span style="font-family:'DM Mono',monospace;color:var(--accent);">${posts.length}</span></div>
       <div style="display:flex;justify-content:space-between;font-size:11px;"><span style="color:var(--muted);">Komentarzy</span><span style="font-family:'DM Mono',monospace;color:var(--teal);">${totalComments}</span></div>
-      <div style="display:flex;justify-content:space-between;font-size:11px;"><span style="color:var(--muted);">Grup</span><span style="font-family:'DM Mono',monospace;color:var(--blue);">${allForumGroups().length}</span></div>
-      <div style="display:flex;justify-content:space-between;font-size:11px;"><span style="color:var(--muted);">Członków</span><span style="font-family:'DM Mono',monospace;color:var(--purple);">${CL.length}</span></div>`;
+      <div style="display:flex;justify-content:space-between;font-size:11px;"><span style="color:var(--muted);">Grup</span><span style="font-family:'DM Mono',monospace;color:var(--blue);">${groups.length}</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;"><span style="color:var(--muted);">Klientów</span><span style="font-family:'DM Mono',monospace;color:var(--purple);">${people}</span></div>`;
   }
 
   renderForumFeed();
@@ -3547,55 +3672,64 @@ function setForumGroup(gid){
 
 function renderForumFeed(){
   const search=(document.getElementById('forum-search')||{}).value||'';
-  let posts=allForumPosts();
+  let posts=visibleForumPosts();
   if(forumActiveGroup!=='all')posts=posts.filter(p=>p.groupId===forumActiveGroup);
-  if(search)posts=posts.filter(p=>p.title.toLowerCase().includes(search.toLowerCase())||p.body.toLowerCase().includes(search.toLowerCase()));
+  if(search){
+    const q=search.toLowerCase();
+    posts=posts.filter(p=>((p.title||'')+' '+(p.body||'')+' '+(p.authorName||'')).toLowerCase().includes(q));
+  }
   if(forumFilter==='pinned')posts=posts.filter(p=>p.pinned);
-  else if(forumFilter==='recent')posts.sort((a,b)=>b.date.localeCompare(a.date));
-  else if(forumFilter==='popular')posts.sort((a,b)=>(b.likes+b.views)-(a.likes+a.views));
-  else{posts.sort((a,b)=>{if(a.pinned&&!b.pinned)return -1;if(!a.pinned&&b.pinned)return 1;return b.date.localeCompare(a.date);});}
+  else if(forumFilter==='recent')posts.sort((a,b)=>forumSortKey(b).localeCompare(forumSortKey(a)));
+  else if(forumFilter==='popular')posts.sort((a,b)=>(forumReactionScore(b)+(b.views||0))-(forumReactionScore(a)+(a.views||0)));
+  else{posts.sort((a,b)=>{if(a.pinned&&!b.pinned)return -1;if(!a.pinned&&b.pinned)return 1;return forumSortKey(b).localeCompare(forumSortKey(a));});}
 
   const feed=document.getElementById('forum-feed');if(!feed)return;
   if(!posts.length){
     feed.innerHTML=`<div style="text-align:center;padding:60px;color:var(--muted);">
       <div style="font-size:40px;margin-bottom:12px;opacity:0.3;">💬</div>
       <div style="font-size:15px;font-weight:600;margin-bottom:6px;">Brak postów</div>
-      <div style="font-size:12px;margin-bottom:16px;">Bądź pierwszy — podziel się czymś ze społecznością!</div>
+      <div style="font-size:12px;margin-bottom:16px;">Napisz ogłoszenie albo wskazówkę — klienci zobaczą to w swojej aplikacji.</div>
       <button class="btn btn-primary" onclick="openM('m-forum-post')">+ Nowy post</button>
     </div>`;
     return;
   }
 
+  const me=forumActor();
   feed.innerHTML=posts.map((p,i)=>{
     const group=allForumGroups().find(g=>g.id===p.groupId);
     const col=POST_TYPE_COLORS[p.type]||'var(--accent)';
     const comments=getPostComments(p.id);
     const isTrainer=p.authorRole==='trener';
-    const reactTotal=Object.values(p.reactions||{}).reduce((s,v)=>s+v,0);
-    return `<div class="forum-post-card${p.pinned?' pinned':''}${forumActivePost===p.id?' active':''}" style="animation-delay:${i*0.04}s;border-top:3px solid ${col};" onclick="openForumPost('${p.id}')">
+    const reactTotal=forumReactionScore(p);
+    const myReact=(p.reactedBy||{})[me.uid];
+    return `<div class="forum-post-card${p.pinned?' pinned':''}${forumActivePost===p.id?' active':''}" style="animation-delay:${i*0.04}s;border-top:3px solid ${col};" onclick="openForumPost('${escHtml(p.id)}')">
       ${p.pinned?'<div style="position:absolute;top:10px;right:12px;font-size:12px;color:var(--orange);">📌 Przypięty</div>':''}
       <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;">
-        <div style="width:36px;height:36px;border-radius:50%;background:${isTrainer?'var(--adim)':'var(--s3)'};border:${isTrainer?'2px solid var(--accent)':'none'};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;flex-shrink:0;color:${isTrainer?'var(--accent)':'var(--text)'};">${getInit(p.authorName)}</div>
+        <div style="width:36px;height:36px;border-radius:50%;background:${isTrainer?'var(--adim)':'var(--s3)'};border:${isTrainer?'2px solid var(--accent)':'none'};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;flex-shrink:0;color:${isTrainer?'var(--accent)':'var(--text)'};">${escHtml(getInit(p.authorName||'?'))}</div>
         <div style="flex:1;min-width:0;">
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
-            <span style="font-size:13px;font-weight:700;">${p.authorName}</span>
+            <span style="font-size:13px;font-weight:700;">${escHtml(p.authorName||'')}</span>
             ${isTrainer?'<span class="forum-badge" style="background:var(--adim);color:var(--accent);">Trener</span>':''}
-            <span style="font-size:10px;color:var(--muted);margin-left:auto;">${p.date}</span>
+            <span style="font-size:10px;color:var(--muted);margin-left:auto;">${forumFormatWhen(p)}</span>
           </div>
-          <div style="display:flex;gap:5px;align-items:center;">
-            <span class="forum-badge" style="background:${col}22;color:${col};">${POST_TYPE_ICONS[p.type]} ${POST_TYPE_LABELS[p.type]||p.type}</span>
-            ${group?`<span class="forum-badge" style="background:${group.color}22;color:${group.color};">${group.icon} ${group.name}</span>`:''}
+          <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;">
+            <span class="forum-badge" style="background:${col}22;color:${col};">${POST_TYPE_ICONS[p.type]||'📝'} ${escHtml(POST_TYPE_LABELS[p.type]||p.type||'Post')}</span>
+            ${group?`<span class="forum-badge" style="background:${group.color}22;color:${group.color};">${escHtml(group.icon||'')} ${escHtml(group.name)}</span>`:''}
           </div>
         </div>
       </div>
-      <div style="font-size:14px;font-weight:700;margin-bottom:6px;">${p.title}</div>
-      <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">${p.body.replace(/\n/g,' ')}</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:6px;">${escHtml(p.title||'')}</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">${escHtml((p.body||'').replace(/\n/g,' '))}</div>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;" onclick="event.stopPropagation()">
-        ${Object.entries(p.reactions||{}).map(([r,cnt])=>`<button class="forum-reaction-btn" onclick="reactToPost('${p.id}','${r}')">${REACTIONS_MAP[r]||r} ${cnt}</button>`).join('')}
+        ${Object.keys(REACTIONS_MAP).map(r=>{
+          const cnt=(p.reactions||{})[r]||0;
+          if(!cnt&&r!==myReact)return '';
+          return `<button class="forum-reaction-btn${myReact===r?' active':''}" onclick="reactToPost('${escHtml(p.id)}','${r}')">${REACTIONS_MAP[r]} ${cnt||''}</button>`;
+        }).join('')}
         <div style="margin-left:auto;display:flex;gap:8px;font-size:11px;color:var(--muted);">
           <span>💬 ${comments.length}</span>
-          <span>👁 ${p.views}</span>
-          <span>❤️ ${p.likes}</span>
+          <span>👁 ${p.views||0}</span>
+          <span>❤️ ${reactTotal}</span>
         </div>
       </div>
     </div>`;
@@ -3605,10 +3739,26 @@ function renderForumFeed(){
 function openForumPost(pid){
   forumActivePost=pid;
   const p=allForumPosts().find(x=>x.id===pid);if(!p)return;
-  const group=allForumGroups().find(g=>g.id===p.groupId);
-  const col=POST_TYPE_COLORS[p.type]||'var(--accent)';
+  window._forumViewed=window._forumViewed||{};
+  if(!window._forumViewed[pid]){
+    window._forumViewed[pid]=true;
+    p.views=(p.views||0)+1;
+    persistForumPostEngagement(p);
+  }
+  if(window._clientAppMode){
+    if(typeof renderClientLive==='function')renderClientLive();
+    return;
+  }
   const isTrainer=p.authorRole==='trener';
   const comments=getPostComments(pid);
+  const me=forumActor();
+  const myReact=(p.reactedBy||{})[me.uid];
+  const canManage=true;
+
+  const panel=document.getElementById('forum-detail-panel');
+  if(panel)panel.classList.add('forum-detail-open');
+  const closeBtn=document.getElementById('forum-detail-close');
+  if(closeBtn)closeBtn.style.display='block';
 
   const titleEl=document.getElementById('forum-detail-title');
   if(titleEl)titleEl.textContent='💬 Komentarze ('+comments.length+')';
@@ -3617,55 +3767,54 @@ function openForumPost(pid){
   if(!db)return;
 
   db.innerHTML=`
-    <!-- post header -->
     <div style="padding:14px;border-bottom:1px solid var(--border);">
       <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:10px;">
-        <div style="width:32px;height:32px;border-radius:50%;background:${isTrainer?'var(--adim)':'var(--s3)'};border:${isTrainer?'2px solid var(--accent)':'none'};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:12px;flex-shrink:0;color:${isTrainer?'var(--accent)':'var(--text)'};">${getInit(p.authorName)}</div>
-        <div>
-          <div style="font-size:12px;font-weight:700;">${p.authorName} ${isTrainer?'<span style="font-size:10px;color:var(--accent);font-family:\'DM Mono\',monospace;">TRENER</span>':''}</div>
-          <div style="font-size:10px;color:var(--muted);">${p.date} · 👁 ${p.views} wyświetleń</div>
+        <div style="width:32px;height:32px;border-radius:50%;background:${isTrainer?'var(--adim)':'var(--s3)'};border:${isTrainer?'2px solid var(--accent)':'none'};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:12px;flex-shrink:0;color:${isTrainer?'var(--accent)':'var(--text)'};">${escHtml(getInit(p.authorName||'?'))}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:12px;font-weight:700;">${escHtml(p.authorName||'')} ${isTrainer?'<span style="font-size:10px;color:var(--accent);font-family:\'DM Mono\',monospace;">TRENER</span>':''}</div>
+          <div style="font-size:10px;color:var(--muted);">${forumFormatWhen(p)} · 👁 ${p.views||0} wyświetleń</div>
         </div>
       </div>
-      <div style="font-size:13px;font-weight:700;margin-bottom:8px;">${p.title}</div>
-      <div style="font-size:12px;color:var(--muted);line-height:1.7;white-space:pre-line;">${p.body}</div>
-      <!-- reakcje -->
+      <div style="font-size:13px;font-weight:700;margin-bottom:8px;">${escHtml(p.title||'')}</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.7;white-space:pre-line;">${escHtml(p.body||'')}</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);">
-        ${Object.entries(p.reactions||{}).map(([r,cnt])=>`<button class="forum-reaction-btn" onclick="reactToPost('${p.id}','${r}');openForumPost('${p.id}')">${REACTIONS_MAP[r]||r} <span>${cnt}</span></button>`).join('')}
-        <button class="forum-reaction-btn" onclick="addReaction('${p.id}')">+ 😊</button>
+        ${Object.entries(REACTIONS_MAP).map(([r,icon])=>{
+          const cnt=(p.reactions||{})[r]||0;
+          return `<button class="forum-reaction-btn${myReact===r?' active':''}" onclick="reactToPost('${escHtml(p.id)}','${r}')">${icon} ${cnt||''}</button>`;
+        }).join('')}
       </div>
+      ${canManage?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;">
+        ${!window._clientAppMode?`<button class="btn btn-ghost btn-sm" onclick="toggleForumPin('${escHtml(p.id)}')">${p.pinned?'Odepnij':'📌 Przypnij'}</button>`:''}
+        <button class="btn btn-ghost btn-sm" onclick="deleteForumPost('${escHtml(p.id)}')">🗑 Usuń</button>
+      </div>`:''}
     </div>
 
-    <!-- komentarze -->
     <div id="forum-comments-list" style="padding:10px 14px;">
-      ${!comments.length?'<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px;">Brak komentarzy — bądź pierwszy!</div>'
+      ${!comments.length?'<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px;">Brak komentarzy — napisz pierwszy.</div>'
       :comments.map((c,i)=>{
         const isT=c.authorRole==='trener';
+        const canDel=!window._clientAppMode || (c.clientId&&c.clientId===window._clientId);
         return `<div class="forum-comment" style="animation-delay:${i*0.03}s">
           <div style="display:flex;gap:8px;align-items:center;">
-            <div style="width:26px;height:26px;border-radius:50%;background:${isT?'var(--adim)':'var(--s3)'};border:${isT?'1px solid var(--accent)':'none'};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:10px;flex-shrink:0;color:${isT?'var(--accent)':'var(--text)'};">${getInit(c.authorName)}</div>
+            <div style="width:26px;height:26px;border-radius:50%;background:${isT?'var(--adim)':'var(--s3)'};border:${isT?'1px solid var(--accent)':'none'};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:10px;flex-shrink:0;color:${isT?'var(--accent)':'var(--text)'};">${escHtml(getInit(c.authorName||'?'))}</div>
             <div style="flex:1;">
-              <span style="font-size:12px;font-weight:700;">${c.authorName}</span>
+              <span style="font-size:12px;font-weight:700;">${escHtml(c.authorName||'')}</span>
               ${isT?'<span style="font-size:9px;color:var(--accent);font-family:\'DM Mono\',monospace;margin-left:4px;">TRENER</span>':''}
-              <span style="font-size:10px;color:var(--muted);margin-left:6px;">${c.date}</span>
+              <span style="font-size:10px;color:var(--muted);margin-left:6px;">${forumFormatWhen(c)}</span>
             </div>
-            <button onclick="likeComment('${c.id}','${pid}')" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;">❤️ ${c.likes}</button>
+            ${canDel?`<button onclick="deleteForumComment('${escHtml(c.id)}','${escHtml(pid)}')" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;" title="Usuń">🗑</button>`:''}
           </div>
-          <div class="forum-comment-bubble">${c.body}</div>
+          <div class="forum-comment-bubble">${escHtml(c.body||'')}</div>
         </div>`;
       }).join('')}
     </div>
 
-    <!-- nowy komentarz -->
     <div style="padding:12px 14px;border-top:1px solid var(--border);">
       <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:8px;">DODAJ KOMENTARZ</div>
-      <textarea id="new-comment-${pid}" rows="3" placeholder="Napisz komentarz..." style="width:100%;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);font-size:12px;resize:none;line-height:1.5;font-family:'DM Sans',sans-serif;margin-bottom:8px;"></textarea>
-      <div style="display:flex;gap:6px;">
-        <button class="btn btn-primary btn-sm" style="flex:1;" onclick="addComment('${pid}')">Opublikuj komentarz</button>
-        <button class="btn btn-ghost btn-sm" onclick="addCommentAs('${pid}','klient')">Jako klient</button>
-      </div>
+      <textarea id="new-comment-${escHtml(pid)}" rows="3" placeholder="Napisz komentarz..." style="width:100%;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);font-size:12px;resize:none;line-height:1.5;font-family:'DM Sans',sans-serif;margin-bottom:8px;"></textarea>
+      <button class="btn btn-primary btn-sm" style="width:100%;" onclick="addComment('${escHtml(pid)}')">Opublikuj komentarz</button>
     </div>`;
 
-  // update post card active state
   renderForumFeed();
 }
 
@@ -3673,57 +3822,111 @@ function addComment(pid){
   const inp=document.getElementById('new-comment-'+pid);
   if(!inp||!inp.value.trim()){notify('Napisz komentarz!');return;}
   if(!window.FORUM_COMMENTS[pid])window.FORUM_COMMENTS[pid]=[];
-  const c=withTrainer({id:newId('fc'),postId:pid,authorName:(window.SETTINGS?.profile?.name)||'Trener',authorRole:'trener',body:inp.value.trim(),date:new Date().toISOString().split('T')[0],likes:0});
+  const me=forumActor();
+  const now=new Date().toISOString();
+  const c=withTrainer({
+    id:newId('fc'),postId:pid,
+    authorName:me.name,authorRole:me.role,
+    body:inp.value.trim(),
+    date:now.slice(0,10),createdAt:now,likes:0
+  });
+  if(me.clientId)c.clientId=me.clientId;
   window.FORUM_COMMENTS[pid].push(c);
   persistById('forumComments',c);
+  const post=allForumPosts().find(x=>x.id===pid);
+  if(post){post.comments=(window.FORUM_COMMENTS[pid]||[]).length;persistForumPostEngagement(post);}
   inp.value='';
   openForumPost(pid);
   renderForumFeed();
-  notify('✓ Komentarz dodany!');
-}
-
-function addCommentAs(pid,role){
-  const inp=document.getElementById('new-comment-'+pid);
-  if(!inp||!inp.value.trim()){notify('Napisz komentarz!');return;}
-  if(!window.FORUM_COMMENTS[pid])window.FORUM_COMMENTS[pid]=[];
-  const client=CL[Math.floor(Math.random()*CL.length)];
-  const c=withTrainer({id:newId('fc'),postId:pid,authorName:client?client.name:'Klient',authorRole:'klient',body:inp.value.trim(),date:new Date().toISOString().split('T')[0],likes:0});
-  window.FORUM_COMMENTS[pid].push(c);
-  persistById('forumComments',c);
-  inp.value='';
-  openForumPost(pid);
-  notify('✓ Komentarz dodany jako klient!');
+  if(window._clientAppMode&&typeof renderClientLive==='function')renderClientLive();
+  notify('✓ Komentarz dodany');
 }
 
 function likeComment(cid,pid){
   const all=window.FORUM_COMMENTS[pid]||[];
   const c=all.find(x=>x.id===cid);
-  if(c){
-    c.likes++;
-    openForumPost(pid);
-    if(window._db&&c._fbId){window._setDoc(window._doc(window._db,'forumComments',c._fbId),{likes:c.likes},{merge:true}).catch(e=>console.warn('Firebase like save:',e));}
+  if(!c)return;
+  c.likes=(c.likes||0)+1;
+  persistById('forumComments',c);
+  openForumPost(pid);
+}
+
+function deleteForumComment(cid,pid){
+  const all=window.FORUM_COMMENTS[pid]||[];
+  const c=all.find(x=>x.id===cid);
+  if(!c)return;
+  if(window._clientAppMode && c.clientId!==window._clientId){notify('To nie Twój komentarz');return;}
+  window.FORUM_COMMENTS[pid]=all.filter(x=>x.id!==cid);
+  if(window._db&&window._del)window._del(window._doc(window._db,'forumComments',cid)).catch(e=>console.warn(e));
+  const post=allForumPosts().find(x=>x.id===pid);
+  if(post){post.comments=(window.FORUM_COMMENTS[pid]||[]).length;persistForumPostEngagement(post);}
+  openForumPost(pid);
+  renderForumFeed();
+}
+
+function persistForumPostEngagement(p){
+  if(!p||!p.id)return;
+  if(!window._clientAppMode){
+    persistById('forumPosts',p);
+    return;
   }
+  const patch={
+    id:p.id,
+    trainerId:p.trainerId||window._trainerId||null,
+    reactions:p.reactions||{},
+    likes:p.likes||0,
+    views:p.views||0,
+    comments:p.comments||0,
+    reactedBy:p.reactedBy||{}
+  };
+  if(!window._db){
+    if(typeof persistWarn==='function')persistWarn('⚠ Brak połączenia z bazą — dane mogą nie zostać zapisane');
+    return;
+  }
+  window._setDoc(window._doc(window._db,'forumPosts',p.id),patch,{merge:true})
+    .then(()=>{p._fbId=p.id;})
+    .catch(e=>{
+      console.warn('Firebase forum post engagement:',e);
+      if(typeof persistWarn==='function')persistWarn('⚠ Nie udało się zapisać. Sprawdź internet i spróbuj ponownie.');
+    });
 }
 
 function reactToPost(pid,reaction){
   const p=allForumPosts().find(x=>x.id===pid);
   if(!p)return;
   if(!p.reactions)p.reactions={};
-  p.reactions[reaction]=(p.reactions[reaction]||0)+1;
+  if(!p.reactedBy)p.reactedBy={};
+  const key=forumActor().uid;
+  const prev=p.reactedBy[key];
+  if(prev===reaction){
+    p.reactions[reaction]=Math.max(0,(p.reactions[reaction]||0)-1);
+    if(!p.reactions[reaction])delete p.reactions[reaction];
+    delete p.reactedBy[key];
+  }else{
+    if(prev){
+      p.reactions[prev]=Math.max(0,(p.reactions[prev]||0)-1);
+      if(!p.reactions[prev])delete p.reactions[prev];
+    }
+    p.reactions[reaction]=(p.reactions[reaction]||0)+1;
+    p.reactedBy[key]=reaction;
+  }
+  p.likes=forumReactionScore(p);
+  persistForumPostEngagement(p);
   renderForumFeed();
   if(forumActivePost===pid)openForumPost(pid);
-  if(window._db&&p._fbId){window._setDoc(window._doc(window._db,'forumPosts',p._fbId),{reactions:p.reactions},{merge:true}).catch(e=>console.warn('Firebase reaction save:',e));}
+  if(window._clientAppMode&&typeof renderClientLive==='function')renderClientLive();
 }
 
 function addReaction(pid){
-  const reactions=['fire','strong','love','like','brain'];
-  const r=reactions[Math.floor(Math.random()*reactions.length)];
-  reactToPost(pid,r);
-  notify(REACTIONS_MAP[r]+' Reakcja dodana!');
+  reactToPost(pid,'like');
 }
 
 function closeForumDetail(){
   forumActivePost=null;
+  const panel=document.getElementById('forum-detail-panel');
+  if(panel)panel.classList.remove('forum-detail-open');
+  const closeBtn=document.getElementById('forum-detail-close');
+  if(closeBtn)closeBtn.style.display='none';
   const db=document.getElementById('forum-detail-body');
   const dt=document.getElementById('forum-detail-title');
   if(db)db.innerHTML=`<div style="padding:30px;text-align:center;color:var(--muted);">
@@ -3734,23 +3937,66 @@ function closeForumDetail(){
   renderForumFeed();
 }
 
+function toggleForumPin(pid){
+  if(window._clientAppMode){notify('Przypinać może tylko trener');return;}
+  const p=allForumPosts().find(x=>x.id===pid);if(!p)return;
+  p.pinned=!p.pinned;
+  persistById('forumPosts',p);
+  openForumPost(pid);
+  renderForum();
+}
+
+function deleteForumPost(pid){
+  const p=allForumPosts().find(x=>x.id===pid);if(!p)return;
+  if(window._clientAppMode && p.clientId!==window._clientId){notify('To nie Twój post');return;}
+  if(!confirm('Usunąć post „'+(p.title||'')+'”?'))return;
+  window.FORUM_POSTS=(window.FORUM_POSTS||[]).filter(x=>x.id!==pid);
+  const comments=window.FORUM_COMMENTS[pid]||[];
+  delete window.FORUM_COMMENTS[pid];
+  if(window._db&&window._del){
+    window._del(window._doc(window._db,'forumPosts',pid)).catch(e=>console.warn(e));
+    comments.forEach(c=>window._del(window._doc(window._db,'forumComments',c.id)).catch(()=>{}));
+  }
+  closeForumDetail();
+  renderForum();
+  notify('Post usunięty');
+}
+
+function renderForumGroupMembers(){
+  const wrap=document.getElementById('fg-members-wrap');
+  const box=document.getElementById('fg-members');
+  const priv=document.getElementById('fg-privacy');
+  if(!wrap||!box)return;
+  const isPriv=priv&&priv.value==='private';
+  wrap.style.display=isPriv?'block':'none';
+  if(!isPriv)return;
+  const clients=(window.CL||[]).filter(c=>c.status!=='archived');
+  if(!clients.length){box.innerHTML='<div style="font-size:12px;color:var(--muted);">Brak klientów — dodaj ich najpierw.</div>';return;}
+  box.innerHTML=clients.map(c=>`<label style="display:flex;align-items:center;gap:8px;font-size:12px;padding:4px 0;cursor:pointer;">
+    <input type="checkbox" class="fg-member-cb" value="${escHtml(c.id)}" style="accent-color:var(--accent);"> ${escHtml(c.name)}
+  </label>`).join('');
+}
+
 function saveForumGroup(){
   const name=document.getElementById('fg-name').value.trim();
   if(!name){notify('Wpisz nazwę grupy!');return;}
+  const privacy=(document.getElementById('fg-privacy')||{}).value||'public';
+  const memberIds=privacy==='private'
+    ?Array.from(document.querySelectorAll('.fg-member-cb:checked')).map(el=>el.value)
+    :[];
   const g=withTrainer({
     id:newId('fg'),name,
     icon:document.getElementById('fg-icon').value,
     color:document.getElementById('fg-color').value,
     desc:document.getElementById('fg-desc').value,
-    privacy:document.getElementById('fg-privacy').value,
-    members:CL.length,
+    privacy,memberIds,
     createdAt:new Date().toISOString().split('T')[0]
   });
   window.FORUM_GROUPS.push(g);
   persistById('forumGroups',g);
   closeM('m-forum-group');
   renderForum();
-  notify('✓ Grupa "'+name+'" utworzona!');
+  notify('✓ Grupa "'+name+'" utworzona');
 }
 
 function saveForumPost(){
@@ -3758,22 +4004,32 @@ function saveForumPost(){
   const body=document.getElementById('fp-body').value.trim();
   if(!title){notify('Wpisz tytuł posta!');return;}
   if(!body){notify('Napisz treść posta!');return;}
-  const col=POST_TYPE_COLORS[document.getElementById('fp-type').value]||'var(--accent)';
+  const me=forumActor();
+  const now=new Date().toISOString();
+  const groupId=document.getElementById('fp-group').value;
+  const group=allForumGroups().find(g=>g.id===groupId);
   const p=withTrainer({
     id:newId('fp'),
     title,body,
-    type:document.getElementById('fp-type').value,
-    groupId:document.getElementById('fp-group').value,
-    authorName:(window.SETTINGS?.profile?.name)||'Trener',authorRole:'trener',
-    pinned:document.getElementById('fp-pinned').checked,
-    date:new Date().toISOString().split('T')[0],
-    likes:0,views:0,comments:0,reactions:{like:0}
+    type:document.getElementById('fp-type').value||'post',
+    groupId,
+    authorName:me.name,authorRole:me.role,
+    pinned:!!(document.getElementById('fp-pinned')&&document.getElementById('fp-pinned').checked&&!window._clientAppMode),
+    date:now.slice(0,10),createdAt:now,
+    likes:0,views:0,comments:0,reactions:{},reactedBy:{}
   });
+  if(me.clientId)p.clientId=me.clientId;
   window.FORUM_POSTS.unshift(p);
   persistById('forumPosts',p);
+  forumNotifyMembers(p,group);
   closeM('m-forum-post');
+  const titleInp=document.getElementById('fp-title');
+  const bodyInp=document.getElementById('fp-body');
+  if(titleInp)titleInp.value='';
+  if(bodyInp)bodyInp.value='';
   renderForum();
-  notify('✓ Post "'+title.substring(0,30)+'" opublikowany!');
+  if(window._clientAppMode&&typeof renderClientLive==='function')renderClientLive();
+  notify('✓ Post opublikowany');
 }
 var dashPeriod=7;
 
