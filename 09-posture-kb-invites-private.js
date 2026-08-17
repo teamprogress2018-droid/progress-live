@@ -491,7 +491,7 @@ function viewInvoice(invId){
   document.getElementById('inv-modal-body').innerHTML=`
     <div style="font-family:'DM Mono',monospace;">
       <div style="display:flex;justify-content:space-between;margin-bottom:20px;">
-        <div><div style="font-size:22px;font-weight:700;font-family:'Bebas Neue',sans-serif;letter-spacing:1px;">PROGRESS LIVE</div><div style="font-size:11px;color:var(--muted);">Piotr Urbaniak — Trener Personalny</div></div>
+        <div><div style="font-size:22px;font-weight:700;font-family:'Bebas Neue',sans-serif;letter-spacing:1px;">PROGRESS LIVE</div><div style="font-size:11px;color:var(--muted);">${escHtml(getTrainerSignature())}</div></div>
         <div style="text-align:right;"><div style="font-size:14px;font-weight:700;">${inv.nr}</div><div style="font-size:11px;color:var(--muted);">Data: ${inv.date}</div></div>
       </div>
       <div style="background:var(--s3);border-radius:8px;padding:12px;margin-bottom:16px;">
@@ -1569,7 +1569,7 @@ function selectInvMethod(btn) {
 }
 
 function updateInvitePreview(c, link, method) {
-  const trainerName = window.SETTINGS?.profile?.name || 'Twój trener';
+  const trainerName = getTrainerName('Twój trener');
   const firstName = c.name.split(' ')[0];
   const msgs = {
     wiadomosc: `Cześć ${firstName}! 👋\n\nWitaj w Progress Live — Twojej aplikacji treningowej!\n\n🔗 Twój link do aplikacji:\n${link}\n\nZaloguj się emailem: ${c.email || '[Twój email]'}\nDo zobaczenia na treningu! 💪\n\n— ${trainerName}`,

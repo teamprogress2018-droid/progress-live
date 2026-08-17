@@ -2524,7 +2524,7 @@ function renderRepDocument(c,template,hasAI,ai){
   const sessions=SE.filter(s=>s.clientId===c.id);
   const checkins=(window.CHECKINS?.[c.id]||[]);
   const plans=PL.filter(p=>p.clientId===c.id);
-  const trainerName=window.SETTINGS?.profile?.name||'Piotr Urbaniak';
+  const trainerName=getTrainerName();
   const weekSess=sessions.filter(s=>{const d=new Date(s.date);return(new Date()-d)<7*86400000;});
   const isDark=template==='dark';
   const bg=isDark?'#07080a':'#ffffff';

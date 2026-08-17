@@ -1343,7 +1343,7 @@ async function sendAICMsg(){
   // build system prompt with client context
   let systemPrompt=AIC_MODES[aicMode]?.system||AIC_MODES.coach.system;
   systemPrompt+=`\n\nDziś: ${new Date().toLocaleDateString('pl',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}`;
-  systemPrompt+=`\nTrener: Piotr Urbaniak`;
+  systemPrompt+=`\nTrener: ${getTrainerName()}`;
   systemPrompt+=kbContextForAI();
 
   if(aicClientId){

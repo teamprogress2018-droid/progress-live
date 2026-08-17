@@ -227,6 +227,59 @@ const DEMO_WORKOUTS=[
 
 function getInit(name){return name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();}
 
+/** Profil trenera z Ustawień — jedno źródło prawdy w całej apce. */
+function getTrainerProfile(){
+  return(window.SETTINGS&&window.SETTINGS.profile)||{};
+}
+function getTrainerName(fallback='Trener'){
+  const name=(getTrainerProfile().name||'').trim();
+  return name||fallback;
+}
+function getTrainerTitle(){
+  return(getTrainerProfile().title||'').trim()||'Trener personalny';
+}
+function getTrainerEmail(){
+  return(getTrainerProfile().email||'').trim()||window._userEmail||'';
+}
+function getTrainerSignature(){
+  return getTrainerName()+' — '+getTrainerTitle();
+}
+function isTrainerProfileIncomplete(){
+  return!(getTrainerProfile().name||'').trim();
+}
+function applyAuthToTrainerProfile(){
+  if(!window.SETTINGS)window.SETTINGS={};
+  if(!window.SETTINGS.profile)window.SETTINGS.profile={title:'Trener personalny',avatar:'?',specialty:[],certs:[]};
+  const p=window.SETTINGS.profile;
+  if(window._userEmail&&!p.email)p.email=window._userEmail;
+  if(!(p.name||'').trim()){
+    if(window._userDisplayName){
+      p.name=window._userDisplayName.trim();
+    }else if(window._userEmail){
+      const local=window._userEmail.split('@')[0];
+      p.name=local.replace(/[._-]+/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+    }
+  }
+  if(p.name&&!p.avatar)p.avatar=getInit(p.name);
+}
+function maybePromptTrainerProfile(){
+  if(!isTrainerProfileIncomplete())return;
+  let dismissed=false;
+  try{dismissed=localStorage.getItem('pl_profile_prompt')==='1';}catch(e){}
+  if(dismissed)return;
+  setTimeout(()=>{
+    if(typeof notify==='function')notify('Uzupełnij profil trenera: Ustawienia → Profil');
+  },1200);
+}
+window.getTrainerProfile=getTrainerProfile;
+window.getTrainerName=getTrainerName;
+window.getTrainerTitle=getTrainerTitle;
+window.getTrainerEmail=getTrainerEmail;
+window.getTrainerSignature=getTrainerSignature;
+window.isTrainerProfileIncomplete=isTrainerProfileIncomplete;
+window.applyAuthToTrainerProfile=applyAuthToTrainerProfile;
+window.maybePromptTrainerProfile=maybePromptTrainerProfile;
+
 function toggleMobileSidebar(){
   document.querySelector('.sidebar').classList.toggle('mobile-open');
   document.getElementById('mobile-sidebar-backdrop').classList.toggle('show');
