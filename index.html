@@ -101,8 +101,8 @@
     <button onclick="togglePrivateMode()" style="margin-left:auto;background:var(--orange);border:none;border-radius:4px;padding:2px 10px;font-size:10px;font-weight:700;color:#000;cursor:pointer;">Wyłącz</button>
   </div>
   <div class="sidebar-footer">
-    <div class="av">PU</div>
-    <div style="flex:1;"><div style="font-size:13px;font-weight:600;">Piotr Urbaniak</div><div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">Trener personalny</div></div>
+    <div class="av" id="sf-avatar">?</div>
+    <div style="flex:1;"><div style="font-size:13px;font-weight:600;" id="sf-name">Trener</div><div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;" id="sf-title">Trener personalny</div></div>
     <button id="private-mode-btn" onclick="togglePrivateMode()" style="background:none;border:none;cursor:pointer;padding:6px;transition:background 0.15s;" title="Tryb prywatny — ukryj dane finansowe">
       <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="var(--muted)" stroke-width="1.8"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
     </button>
@@ -130,6 +130,7 @@
   </div>
   <div class="content" style="overflow-y:auto;">
     <div id="dash-getting-started" style="display:none;"></div>
+    <div id="dash-profile-setup" style="display:none;"></div>
 
     <!-- KPI ROW — 4 kafelki bez przychodów -->
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;" id="d-kpi-row">
@@ -3654,8 +3655,16 @@ async function load(){
   }catch(e){console.warn('Wczytywanie szablonów planów nie powiodło się:',e);}
   try{const s11=await getDocs(collection(db,'settings'));s11.forEach(d=>{const data=d.data()||{};if(typeof window.belongsToTrainer==='function'&&!window.belongsToTrainer(data)&&data.trainerId)return;window.SETTINGS={...window.SETTINGS,...data};if(data.profile)window.SETTINGS.profile={...window.SETTINGS.profile,...data.profile};window._settingsDocId=d.id;});}catch(e){console.warn('Wczytywanie ustawień nie powiodło się:',e);}
   try{
+    if(typeof window.applyAuthToTrainerProfile==='function')window.applyAuthToTrainerProfile();
     if(window.SETTINGS&&window.SETTINGS.profile){
-      if(window._userEmail&&!window.SETTINGS.profile.email)window.SETTINGS.profile.email=window._userEmail;
+      const hadDoc=!!window._settingsDocId;
+      if(!hadDoc&&window._uid&&window._db&&typeof window.withTrainer==='function'){
+        withTrainer(window.SETTINGS);
+        try{
+          await setDoc(doc(db,'settings',window._uid),window.SETTINGS,{merge:true});
+          window._settingsDocId=window._uid;
+        }catch(e){console.warn('Zapis początkowego profilu:',e);}
+      }
     }
   }catch(e){}
   try{const s12=await getDocs(collection(db,'notifications'));window.NOTIFICATIONS=[];s12.forEach(d=>{const x=_takeFb(d);if(x)window.NOTIFICATIONS.push(x);});window.NOTIFICATIONS.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));}catch(e){console.warn('Wczytywanie powiadomień nie powiodło się:',e);window.NOTIFICATIONS=window.NOTIFICATIONS||[];}
@@ -3743,6 +3752,7 @@ async function load(){
   }catch(e){console.warn('Migracja trainerId:',e);}
   try{if(typeof window.runAutoflowsCheck==='function')window.runAutoflowsCheck();}catch(e){console.warn('runAutoflowsCheck:',e);}
   try{if(typeof window.syncSidebarProfile==='function')window.syncSidebarProfile();}catch(e){}
+  try{if(typeof window.maybePromptTrainerProfile==='function')window.maybePromptTrainerProfile();}catch(e){}
   window.renderAll();
   try{if(typeof window.consumeClientPreviewHash==='function')window.consumeClientPreviewHash();}catch(e){}
 }

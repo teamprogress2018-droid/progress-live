@@ -90,7 +90,7 @@ function setCapScreen(scr,btn){
 
 function capScreenHTML(scr,c){
   const accent=window.SETTINGS?.brand?.accentColor||CAP_ACCENT;
-  const trainerName=window.SETTINGS?.profile?.name||'Piotr Urbaniak';
+  const trainerName=getTrainerName();
   const sessions=SE.filter(s=>s.clientId===c.id);
   const plans=PL.filter(p=>p.clientId===c.id);
   const tasks=TASKS.filter(t=>t.clientId===c.id&&t.status!=='done');
@@ -807,7 +807,7 @@ const INTEGRATIONS=[
     ],
     config:[
       {key:'api_key',label:'API Key (Resend/Mailchimp)',placeholder:'re_...'},
-      {key:'from_email',label:'Email nadawcy',placeholder:'piotr@progresslive.pl'},
+      {key:'from_email',label:'Email nadawcy',placeholder:getTrainerEmail()||'twoj@email.pl'},
       {key:'audience_id',label:'Audience ID (Mailchimp)',placeholder:'...'},
     ],
     webhook:'https://progresslive.pl/webhooks/email',
@@ -1983,12 +1983,12 @@ var settingsTab='profile';
 
 window.SETTINGS={
   profile:{
-    name:'Piotr Urbaniak',
+    name:'',
     title:'Trener personalny',
     email:'',
     phone:'',
     bio:'',
-    avatar:'PU',
+    avatar:'?',
     avatarUrl:null,
     specialty:['Trening siłowy','Hipertrofia','Redukcja'],
     certs:[],
@@ -2074,7 +2074,7 @@ function renderSettingsContent(t){
           <div class="form-field"><label class="form-lbl">Tytuł zawodowy</label>${inp('profile-title',S.profile.title)}</div>
         </div>
         <div class="form-grid">
-          <div class="form-field"><label class="form-lbl">Email</label>${inp('profile-email',S.profile.email,'email')}</div>
+          <div class="form-field"><label class="form-lbl">Email</label>${inp('profile-email',S.profile.email||window._userEmail||'','email')}${window._userEmail?`<div style="font-size:10px;color:var(--muted);margin-top:4px;">Konto logowania: ${escHtml(window._userEmail)}</div>`:''}</div>
           <div class="form-field"><label class="form-lbl">Telefon</label>${inp('profile-phone',S.profile.phone,'tel')}</div>
         </div>
         <div class="form-field"><label class="form-lbl">Bio / Opis</label>${textarea('profile-bio',S.profile.bio)}</div>
@@ -2563,11 +2563,12 @@ function saveSettings(){
   const S=window.SETTINGS;
   withTrainer(S);
   const g=id=>document.getElementById('set-'+id);
-  if(g('profile-name'))S.profile.name=g('profile-name').value||S.profile.name;
-  if(g('profile-title'))S.profile.title=g('profile-title').value||S.profile.title;
-  if(g('profile-email'))S.profile.email=g('profile-email').value||S.profile.email;
-  if(g('profile-phone'))S.profile.phone=g('profile-phone').value||S.profile.phone;
+  if(g('profile-name'))S.profile.name=g('profile-name').value.trim()||S.profile.name;
+  if(g('profile-title'))S.profile.title=g('profile-title').value.trim()||S.profile.title;
+  if(g('profile-email'))S.profile.email=g('profile-email').value.trim()||S.profile.email;
+  if(g('profile-phone'))S.profile.phone=g('profile-phone').value.trim()||S.profile.phone;
   if(g('profile-bio'))S.profile.bio=g('profile-bio').value||S.profile.bio;
+  if(S.profile.name)S.profile.avatar=getInit(S.profile.name);
   if(g('appname'))S.brand.appName=g('appname').value||S.brand.appName;
   if(g('company-name'))S.company.name=g('company-name').value||S.company.name;
   if(g('company-nip'))S.company.nip=g('company-nip').value;
@@ -2585,15 +2586,23 @@ function saveSettings(){
   }
 }
 function syncSidebarProfile(){
-  const S=window.SETTINGS||{};
-  const name=(S.profile&&S.profile.name)||'';
-  const title=(S.profile&&S.profile.title)||'Trener personalny';
-  const nameEl=document.querySelector('.sidebar-footer div:nth-child(2) div:first-child');
-  const roleEl=document.querySelector('.sidebar-footer div:nth-child(2) div:last-child');
-  const av=document.querySelector('.sidebar-footer .av');
-  if(name&&nameEl)nameEl.textContent=name;
+  const name=getTrainerName('Trener');
+  const title=getTrainerTitle();
+  const p=getTrainerProfile();
+  const nameEl=document.getElementById('sf-name');
+  const roleEl=document.getElementById('sf-title');
+  const av=document.getElementById('sf-avatar');
+  if(nameEl)nameEl.textContent=name;
   if(roleEl)roleEl.textContent=title;
-  if(av&&name)av.textContent=getInit(name);
+  if(av){
+    if(p.avatarUrl){
+      av.innerHTML=`<img src="${escHtml(p.avatarUrl)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+      av.style.background='var(--s3)';
+    }else{
+      av.style.background='';
+      av.textContent=p.name?getInit(p.name):'?';
+    }
+  }
 }
 window.syncSidebarProfile=syncSidebarProfile;
 var notifPanelOpen=false;var notifTab='all';
@@ -2975,7 +2984,7 @@ function buildReportHTML(c,from,to,sec,template){
       <div style="text-align:right;">
         <div style="width:64px;height:64px;border-radius:50%;background:${colHex}22;border:3px solid ${colHex};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:26px;color:${colHex};margin-left:auto;margin-bottom:8px;">${getInit(c.name)}</div>
         <div style="font-size:11px;opacity:0.5;">Wygenerowano:<br>${today}</div>
-        <div style="font-size:11px;opacity:0.5;margin-top:4px;">Trener: Piotr Urbaniak</div>
+        <div style="font-size:11px;opacity:0.5;margin-top:4px;">Trener: ${escHtml(getTrainerName())}</div>
       </div>
     </div>
   </div>`;
@@ -3196,7 +3205,7 @@ function buildReportHTML(c,from,to,sec,template){
   // FOOTER
   html+=`<div style="margin-top:32px;padding-top:16px;border-top:1px solid ${border};display:flex;justify-content:space-between;align-items:center;">
     <div style="font-size:11px;color:${muted};">
-      <strong style="color:${text};">Progress Live</strong> · Piotr Urbaniak — Trener Personalny<br>
+      <strong style="color:${text};">Progress Live</strong> · ${escHtml(getTrainerSignature())}<br>
       Raport wygenerowany: ${today}
     </div>
     <div style="font-size:10px;color:${muted};font-family:${fontMono};text-align:right;">
@@ -3579,6 +3588,33 @@ function renderDash(){
   renderDashTasks();
   renderDashMiniCal();
   renderDashGettingStarted();
+  renderProfileSetupBanner();
+}
+
+function dismissProfileSetupBanner(){
+  try{localStorage.setItem('pl_profile_prompt','1');}catch(e){}
+  renderProfileSetupBanner();
+}
+window.dismissProfileSetupBanner=dismissProfileSetupBanner;
+
+function renderProfileSetupBanner(){
+  const el=document.getElementById('dash-profile-setup');if(!el)return;
+  let dismissed=false;
+  try{dismissed=localStorage.getItem('pl_profile_prompt')==='1';}catch(e){}
+  if(dismissed||!isTrainerProfileIncomplete()){el.style.display='none';el.innerHTML='';return;}
+  el.style.display='block';
+  el.innerHTML=`<div class="card" style="margin-bottom:20px;border-color:rgba(201,123,63,0.45);background:linear-gradient(135deg,rgba(201,123,63,0.1),var(--s2));">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:4px;">👤 UZUPEŁNIJ PROFIL TRENERA</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.5;">Twoje imię i tytuł pojawią się w sidebarze, raportach, fakturach i wiadomościach do klientów.</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0;">
+        <button class="btn btn-ghost btn-sm" onclick="dismissProfileSetupBanner()">Później</button>
+        <button class="btn btn-primary btn-sm" onclick="goTo('settings')">Ustawienia → Profil</button>
+      </div>
+    </div>
+  </div>`;
 }
 
 function dismissGettingStarted(){
