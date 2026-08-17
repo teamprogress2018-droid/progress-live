@@ -1288,6 +1288,8 @@ function tplAssignToClient(tid){
   addNotification('system','Plan przypisany!','Szablon "'+t.name+'" przypisano do '+c.name,'plans');
   notify('✅ Plan "'+t.name+'" przypisany do '+c.name+'!');
   closeTplDetail();
+  const st=typeof getClientOnboard==='function'?getClientOnboard(c):null;
+  if(st&&!st.complete){maybeResumeOnboard(cid);return;}
   if(_prevClientId){
     goTo('clients');
     setTimeout(()=>openClientProfile(_prevClientId),300);
@@ -1721,6 +1723,52 @@ function liveGetSuggestedDayIdx(clientId,plan){
   return (past[0].dayIdx+1)%plan.days.length;
 }
 
+function liveNormExName(n){
+  return String(n||'').toLowerCase().replace(/\s+/g,' ').trim();
+}
+
+/** Ostatnie kg/powt. tego ćwiczenia u tego klienta (z zapisanych sesji). */
+function liveLastLoad(clientId,name){
+  if(!clientId||!name)return null;
+  const key=liveNormExName(name);
+  const sessions=SE.filter(s=>s.clientId===clientId&&Array.isArray(s.exercises))
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.time||'').localeCompare(a.time||''));
+  for(const s of sessions){
+    const ex=(s.exercises||[]).find(e=>liveNormExName(e.name)===key);
+    if(!ex)continue;
+    const sets=(ex.sets||[]).filter(x=>x&&(x.kg||x.reps));
+    if(!sets.length)continue;
+    const last=sets[sets.length-1];
+    return{kg:last.kg,reps:last.reps,sets};
+  }
+  return null;
+}
+
+function liveMapPlanExercises(rawEx){
+  return(rawEx||[]).map(ex=>{
+    const name=ex.name||ex.n||'Ćwiczenie';
+    const last=liveLastLoad(liveClientId,name);
+    const nSets=parseInt(ex.sets||ex.s)||3;
+    const defaultReps=ex.reps||ex.r||'8-12';
+    return{
+      name,
+      lastKg:last&&last.kg!=null&&last.kg!==''?last.kg:'',
+      lastReps:last&&last.reps!=null&&last.reps!==''?last.reps:'',
+      sets:Array.from({length:nSets},(_,i)=>{
+        const prev=last&&last.sets[i];
+        return{
+          setNo:i+1,
+          kg:prev&&prev.kg!=null&&prev.kg!==''?String(prev.kg):'',
+          reps:prev&&prev.reps!=null&&prev.reps!==''?String(prev.reps):defaultReps,
+          done:false
+        };
+      }),
+      done:false,
+      collapsed:false
+    };
+  });
+}
+
 function liveSelectPlan(pid){
   livePlanId=pid;
   const p=PL.find(x=>x.id===pid);if(!p)return;
@@ -1733,17 +1781,7 @@ function liveSelectPlan(pid){
   const rawEx=day?.exercises||[];
 
   if(rawEx.length>0){
-    liveExercises=rawEx.map(ex=>({
-      name:ex.name||ex.n||'Ćwiczenie',
-      sets:Array.from({length:parseInt(ex.sets||ex.s)||3},(_,i)=>({
-        setNo:i+1,
-        kg:'',
-        reps:ex.reps||ex.r||'8-12',
-        done:false
-      })),
-      done:false,
-      collapsed:false,
-    }));
+    liveExercises=liveMapPlanExercises(rawEx);
   } else {
     // Plan bez ćwiczeń - zaproponuj wybór dnia
     liveExercises=[];
@@ -1787,17 +1825,7 @@ function liveSelectDay(dayIdx){
   const day=(p.days||[])[dayIdx];if(!day)return;
   liveCurrentDayIdx=dayIdx;
   const rawEx=day.exercises||[];
-  liveExercises=rawEx.map(ex=>({
-    name:ex.name||ex.n||'Ćwiczenie',
-    sets:Array.from({length:parseInt(ex.sets||ex.s)||3},(_,i)=>({
-      setNo:i+1,
-      kg:'',
-      reps:ex.reps||ex.r||'8-12',
-      done:false
-    })),
-    done:false,
-    collapsed:false,
-  }));
+  liveExercises=liveMapPlanExercises(rawEx);
   renderLivePlanPicker();
   renderLiveExercises();
   liveSaveDraft();
@@ -1815,9 +1843,24 @@ function liveQuickAdd(){
 function renderLiveExercises(){
   const el=document.getElementById('live-exercises-panel');if(!el)return;
   if(!liveExercises.length){
+    if(window._liveSavedClientId){
+      const nm=window._liveSavedClientName||'klient';
+      el.innerHTML=`<div style="text-align:center;padding:48px 20px;">
+        <div style="font-size:36px;margin-bottom:10px;">✅</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:6px;">SESJA ZAPISANA</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.5;">${escHtml(nm)} · trening jest w kalendarzu i historii.</div>
+        <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="liveRepeatSameClient()">▶ Kolejny dzień tego klienta</button>
+          <button class="btn btn-ghost" onclick="goTo('clients')">Lista klientów</button>
+          <button class="btn btn-ghost" onclick="goTo('dashboard')">Panel</button>
+        </div>
+      </div>`;
+      return;
+    }
     el.innerHTML=`<div style="text-align:center;padding:60px 20px;color:var(--muted);">
       <div style="font-size:36px;margin-bottom:12px;opacity:0.3;">🏋️</div>
       <div style="font-size:14px;font-weight:600;margin-bottom:6px;">Wybierz klienta i plan</div>
+      <div style="font-size:12px;">Potem Start sesji — kg z poprzedniego treningu wstawią się same.</div>
     </div>`;
     return;
   }
@@ -1855,12 +1898,13 @@ function renderLiveExercises(){
 
 function liveExCard(ex,i){
   const setsDone=ex.sets.filter(s=>s.done).length;
+  const lastHint=ex.lastKg!==''&&ex.lastKg!=null?`Ostatnio: ${ex.lastKg} kg${ex.lastReps?' × '+ex.lastReps:''}`:'';
   return `<div class="live-ex-card${ex.done?' done':liveSessionActive&&!ex.done&&i===liveExercises.findIndex(e=>!e.done)?' active':''}" id="live-ex-${i}">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:${ex.collapsed?0:10}px;cursor:pointer;" onclick="liveToggleCollapse(${i})">
       <div style="width:30px;height:30px;border-radius:8px;background:${ex.done?'var(--teal)':'var(--adim)'};display:flex;align-items:center;justify-content:center;font-size:${ex.done?'14px':'12px'};font-weight:700;color:${ex.done?'#000':'var(--accent)'};flex-shrink:0;">${ex.done?'✓':i+1}</div>
       <div style="flex:1;">
-        <div style="font-size:13px;font-weight:700;">${ex.name}</div>
-        <div style="font-size:10px;color:var(--muted);">${ex.sets.length} serie · ${setsDone}/${ex.sets.length} ukończono</div>
+        <div style="font-size:13px;font-weight:700;">${escHtml(ex.name)}</div>
+        <div style="font-size:10px;color:var(--muted);">${ex.sets.length} serie · ${setsDone}/${ex.sets.length} ukończono${lastHint?' · '+lastHint:''}</div>
       </div>
       <div style="display:flex;gap:6px;align-items:center;">
         ${!ex.done?`<button onclick="event.stopPropagation();liveSkipEx(${i})" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;padding:4px 6px;">Pomiń</button>`:''}
@@ -1869,20 +1913,28 @@ function liveExCard(ex,i){
     </div>
     ${!ex.collapsed?`
     <div>
-      <div style="display:grid;grid-template-columns:30px 1fr minmax(72px,1fr) minmax(72px,1fr) 50px;gap:6px;padding:4px 0;font-size:9px;font-family:'DM Mono',monospace;color:var(--muted2);text-transform:uppercase;border-bottom:1px solid var(--border);">
+      <div style="display:grid;grid-template-columns:44px 1fr minmax(72px,1fr) minmax(72px,1fr) 50px;gap:6px;padding:4px 0;font-size:9px;font-family:'DM Mono',monospace;color:var(--muted2);text-transform:uppercase;border-bottom:1px solid var(--border);">
         <span></span><span>Seria</span><span style="text-align:center;">Ciężar</span><span style="text-align:center;">Powt.</span><span></span>
       </div>
       ${ex.sets.map((s,si)=>`<div class="live-set-row">
-        <div class="live-set-check${s.done?' done':''}" onclick="liveToggleSet(${i},${si})">${s.done?'✓':''}</div>
+        <div class="live-set-check${s.done?' done':''}" onclick="liveToggleSet(${i},${si})" title="Oznacz serię">${s.done?'✓':''}</div>
         <div style="font-size:12px;color:var(--muted);">Seria ${s.setNo}</div>
-        <input type="number" inputmode="decimal" class="live-kg-input" placeholder="kg" value="${s.kg}" oninput="liveSetKg(${i},${si},this.value)" onclick="event.stopPropagation()">
-        <input type="number" inputmode="numeric" class="live-kg-input" placeholder="powt." value="${s.reps}" oninput="liveSetReps(${i},${si},this.value)" onclick="event.stopPropagation()">
+        <input type="number" inputmode="decimal" class="live-kg-input" placeholder="${ex.lastKg!==''&&ex.lastKg!=null?ex.lastKg:'kg'}" value="${s.kg}" oninput="liveSetKg(${i},${si},this.value)" onkeydown="liveSetKey(event,${i},${si})" onclick="event.stopPropagation()">
+        <input type="number" inputmode="numeric" class="live-kg-input" placeholder="powt." value="${s.reps}" oninput="liveSetReps(${i},${si},this.value)" onkeydown="liveSetKey(event,${i},${si})" onclick="event.stopPropagation()">
         <button onclick="liveStartRest(90)" style="background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:4px 6px;font-size:10px;color:var(--muted);cursor:pointer;">⏱</button>
       </div>`).join('')}
-      <button onclick="liveAddSet(${i})" style="width:100%;margin-top:6px;padding:6px;background:none;border:1px dashed var(--border2);border-radius:6px;color:var(--muted);font-size:11px;cursor:pointer;">+ Dodaj serię</button>
+      <button onclick="liveAddSet(${i})" style="width:100%;margin-top:6px;padding:10px;background:none;border:1px dashed var(--border2);border-radius:6px;color:var(--muted);font-size:12px;cursor:pointer;">+ Dodaj serię</button>
     </div>`:''}
   </div>`;
 }
+
+function liveSetKey(e,ei,si){
+  if(e.key==='Enter'){
+    e.preventDefault();
+    liveToggleSet(ei,si);
+  }
+}
+window.liveSetKey=liveSetKey;
 
 function liveToggleCollapse(i){
   liveExercises[i].collapsed=!liveExercises[i].collapsed;
@@ -1890,12 +1942,25 @@ function liveToggleCollapse(i){
 }
 
 function liveToggleSet(ei,si){
-  const s=liveExercises[ei].sets[si];
+  const ex=liveExercises[ei];if(!ex)return;
+  const s=ex.sets[si];
   s.done=!s.done;
-  // check if all sets done
-  if(liveExercises[ei].sets.every(s=>s.done))liveExercises[ei].done=true;
-  // start rest timer if setting done
-  if(s.done)liveStartRest(90);
+  if(s.done){
+    const next=ex.sets[si+1];
+    if(next){
+      if((next.kg===''||next.kg==null)&&s.kg!==''&&s.kg!=null)next.kg=s.kg;
+      if((next.reps===''||next.reps==null||next.reps==='8-12')&&s.reps)next.reps=s.reps;
+    }
+    if(ex.sets.every(x=>x.done)){
+      ex.done=true;
+      ex.collapsed=true;
+      const nxt=liveExercises.find(e=>!e.done);
+      if(nxt)nxt.collapsed=false;
+    }
+    liveStartRest(90);
+  }else{
+    ex.done=false;
+  }
   liveSaveDraft();
   renderLiveExercises();
 }
@@ -1905,8 +1970,10 @@ function liveSetReps(ei,si,v){liveExercises[ei].sets[si].reps=v;liveSaveDraft();
 
 function liveAddSet(ei){
   const ex=liveExercises[ei];
-  ex.sets.push({setNo:ex.sets.length+1,kg:'',reps:'8-12',done:false});
+  const prev=ex.sets[ex.sets.length-1];
+  ex.sets.push({setNo:ex.sets.length+1,kg:prev&&prev.kg!=null?prev.kg:'',reps:prev&&prev.reps?prev.reps:'8-12',done:false});
   renderLiveExercises();
+  liveSaveDraft();
 }
 
 function liveSkipEx(i){
@@ -1927,6 +1994,8 @@ function liveAddExercise(){
 function liveStartSession(){
   if(!liveClientId){notify('Wybierz klienta!');return;}
   if(!liveExercises.length){notify('Wybierz plan lub dodaj ćwiczenia!');return;}
+  window._liveSavedClientId=null;
+  window._liveSavedClientName='';
   liveSessionActive=true;
   liveTimerSec=0;
   clearInterval(liveTimerInterval);
@@ -1980,18 +2049,32 @@ function liveEndSession(){
   if(pkg){pkg.sessionsUsed++;persistById('packages',pkg);}
   addNotification('system','Sesja zapisana!','Trening '+c?.name+' · '+durationMin+' min · '+totalSets+' serii','clients');
   notify('✅ Sesja zapisana! '+durationMin+' min, '+totalSets+' serii, '+volume+' kg obj.');
-  // reset
+  window._liveSavedClientId=liveClientId;
+  window._liveSavedClientName=c?.name||'';
   document.getElementById('live-timer').textContent='00:00';
   document.getElementById('live-timer-status').textContent='Nieaktywny';
   document.getElementById('live-start-btn').style.display='';
   document.getElementById('live-end-btn').style.display='none';
   liveFeedbackVal=0;
-  document.getElementById('live-feedback-text').textContent='Brak oceny';
+  const fb=document.getElementById('live-feedback-text');
+  if(fb)fb.textContent='Brak oceny';
   liveExercises=[];
+  livePlanId=null;
   renderLiveExercises();
   renderLiveHistory();
-  setLiveTab('history');
+  if(typeof maybeResumeOnboard==='function')maybeResumeOnboard(window._liveSavedClientId||liveClientId);
 }
+
+function liveRepeatSameClient(){
+  const id=window._liveSavedClientId||liveClientId;
+  const name=window._liveSavedClientName||(CL.find(x=>x.id===id)||{}).name||'';
+  window._liveSavedClientId=null;
+  window._liveSavedClientName='';
+  if(!id){notify('Wybierz klienta');return;}
+  liveClientSetField(id,name);
+  notify('Kolejny dzień — kg z poprzedniej sesji są już w polach');
+}
+window.liveRepeatSameClient=liveRepeatSameClient;
 
 function liveStartRest(sec){
   clearInterval(liveRestInterval);

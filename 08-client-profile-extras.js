@@ -735,6 +735,17 @@ function renderCPOverview(c){
 
     ${c.notes?`<div style="background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.2);border-radius:8px;padding:10px 12px;margin-bottom:16px;font-size:12px;"><span style="color:var(--red);">⚠ Kontuzje/uwagi: </span>${c.notes}</div>`:''}
 
+    ${(()=>{const ob=typeof getClientOnboard==='function'?getClientOnboard(c):null;
+      if(!ob||ob.complete)return'';
+      return `<div style="background:rgba(201,123,63,0.1);border:1px solid rgba(201,123,63,0.35);border-radius:10px;padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+        <div>
+          <div style="font-size:12px;font-weight:700;margin-bottom:2px;">Start współpracy ${ob.done}/3</div>
+          <div style="font-size:11px;color:var(--muted);">${!ob.invite?'Brak zaproszenia. ':''}${!ob.plan?'Brak planu. ':''}${!ob.session?'Brak sesji. ':''}</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openClientOnboardChecklist('${c.id}')">Dokończ</button>
+      </div>`;
+    })()}
+
     <!-- aktywny plan -->
     ${plans.length?`
     <div class="cp-section-title">AKTYWNY PLAN</div>
@@ -752,7 +763,10 @@ function renderCPOverview(c){
     <div class="cp-section-title">AKTYWNY PLAN</div>
     <div style="background:var(--s3);border:1px dashed var(--border2);border-radius:10px;padding:12px 14px;margin-bottom:16px;text-align:center;">
       <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">Brak przypisanego planu</div>
-      <button class="btn btn-primary btn-sm" onclick="cpAssignTemplate('${c.id}')">📋 Przypisz szablon</button>
+      <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
+        <button class="btn btn-primary btn-sm" onclick="openAiPlanForClient('${c.id}')">⚡ Plan AI</button>
+        <button class="btn btn-ghost btn-sm" onclick="cpAssignTemplate('${c.id}')">📋 Szablon</button>
+      </div>
     </div>`}
     <div style="display:flex;align-items:center;justify-content:space-between;">
       <div class="cp-section-title" style="margin-bottom:0;">NOTATKI (${notes.length})</div>

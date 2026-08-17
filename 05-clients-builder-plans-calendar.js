@@ -111,6 +111,7 @@ function renderClients(){
     <div style="align-self:center;display:flex;gap:4px;flex-wrap:wrap;">
       <span class="pill ${c.status==='inactive'?'pill-red':c.status==='archived'?'pill-red':'pill-green'}"><span class="pill-dot"></span>${c.status==='inactive'?'Nieaktywny':c.status==='archived'?'Zarchiwizowany':'Aktywny'}</span>
       ${c.inviteSent?'<span class="pill pill-blue" style="font-size:9px;">📱 Zaproszony</span>':''}
+      ${(()=>{const ob=getClientOnboard(c);return ob.complete?'':'<span class="pill pill-orange" style="font-size:9px;" onclick="event.stopPropagation();openClientOnboardChecklist(\''+c.id+'\')">Start '+ob.done+'/3</span>';})()}
     </div>
     <div style="align-self:center;display:flex;gap:10px;justify-content:flex-end;">
       <button onclick="quickMessageClient(event,'${c.id}')" title="Wyślij wiadomość" style="width:32px;height:32px;border-radius:8px;background:var(--s3);border:1px solid var(--border2);color:var(--text);font-size:14px;cursor:pointer;">💬</button>
@@ -155,6 +156,49 @@ async function saveClient(){
   await persistById('clients',c);
 }
 
+function getClientOnboard(c){
+  if(!c)return{invite:false,plan:false,session:false,done:0,total:3,complete:true};
+  const invite=!!(c.inviteSent||c.appInvited||c.inviteSentAt||c.inviteSkipped);
+  const plan=PL.some(p=>p.clientId===c.id);
+  const session=SE.some(s=>s.clientId===c.id);
+  const done=[invite,plan,session].filter(Boolean).length;
+  return{invite,plan,session,done,total:3,complete:done===3};
+}
+window.getClientOnboard=getClientOnboard;
+
+function maybeResumeOnboard(clientId){
+  const c=CL.find(x=>x.id===clientId);
+  if(!c||c.status==='archived')return;
+  const st=getClientOnboard(c);
+  if(st.complete)return;
+  setTimeout(()=>openClientOnboardChecklist(clientId),450);
+}
+window.maybeResumeOnboard=maybeResumeOnboard;
+
+function skipClientInvite(clientId){
+  const c=CL.find(x=>x.id===clientId);if(!c)return;
+  c.inviteSkipped=true;
+  persistById('clients',c);
+  renderClientOnboardChecklist();
+  notify('Zaproszenie pominięte — możesz wrócić do niego później');
+}
+window.skipClientInvite=skipClientInvite;
+
+function openAiPlanForClient(clientId){
+  closeM('m-client-onboard');
+  if(typeof closeClientProfile==='function')closeClientProfile();
+  window._aplPrefillClientId=clientId;
+  goTo('aiplangen');
+  setTimeout(()=>{
+    const sel=document.getElementById('apl-client');
+    if(sel){
+      sel.value=clientId;
+      if(typeof aplFillFromClient==='function')aplFillFromClient();
+    }
+  },200);
+}
+window.openAiPlanForClient=openAiPlanForClient;
+
 function openClientOnboardChecklist(clientId){
   window._onboardClientId=clientId;
   renderClientOnboardChecklist();
@@ -166,22 +210,37 @@ function renderClientOnboardChecklist(){
   const c=CL.find(x=>x.id===id);
   const el=document.getElementById('client-onboard-steps');
   if(!el||!c)return;
-  const hasPlan=PL.some(p=>p.clientId===id);
-  const hasSession=SE.some(s=>s.clientId===id);
+  const st=getClientOnboard(c);
+  const intro=document.getElementById('client-onboard-intro');
+  if(intro)intro.textContent=st.complete
+    ? c.name+' jest gotowy do codziennej pracy.'
+    : 'Klient: '+c.name+' — dokończ start współpracy.';
+  const prog=document.getElementById('client-onboard-progress');
+  if(prog){
+    const pct=Math.round(st.done/st.total*100);
+    prog.innerHTML=`<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:6px;"><span>Postęp startu</span><span style="font-family:'DM Mono',monospace;color:var(--accent);">${st.done}/${st.total}</span></div>
+      <div style="height:6px;background:var(--s4);border-radius:99px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:var(--accent);border-radius:99px;"></div></div>`;
+  }
+  const safeName=c.name.replace(/'/g,"\\'");
   const steps=[
-    {done:!!c.inviteSent,icon:'📱',title:'Wyślij zaproszenie',desc:'Klient dostanie link do aplikacji',action:`closeM('m-client-onboard');openInviteModal('${id}')`},
-    {done:hasPlan,icon:'📋',title:'Przypisz plan treningowy',desc:'Szablon lub generator AI',action:`closeM('m-client-onboard');openClientProfile('${id}');setTimeout(()=>setCPTab('plan'),300)`},
-    {done:hasSession,icon:'▶',title:'Zaplanuj pierwszą sesję',desc:'Trening Live lub wpis w kalendarzu',action:`closeM('m-client-onboard');goTo('live');setTimeout(()=>liveClientSetField('${id}','${c.name.replace(/'/g,"\\'")}'),300)`},
+    {done:st.invite,icon:'📱',title:'Wyślij zaproszenie',desc:'Link do aplikacji w wiadomości (możesz pominąć)',
+      action:`closeM('m-client-onboard');openInviteModal('${id}')`,cta:'Wyślij',
+      extra:st.invite?'':`<button class="btn btn-ghost btn-sm" onclick="skipClientInvite('${id}')">Pomiń</button>`},
+    {done:st.plan,icon:'📋',title:'Przypisz plan treningowy',desc:'Najszybciej: generator AI z danymi klienta',
+      action:`openAiPlanForClient('${id}')`,cta:'⚡ Plan AI',
+      extra:st.plan?'':`<button class="btn btn-ghost btn-sm" onclick="closeM('m-client-onboard');openClientProfile('${id}');setTimeout(()=>setCPTab('plan'),300)">Szablon</button>`},
+    {done:st.session,icon:'▶',title:'Pierwsza sesja',desc:'Odpal Trening Live albo dopisz do kalendarza',
+      action:`closeM('m-client-onboard');goTo('live');setTimeout(()=>liveClientSetField('${id}','${safeName}'),300)`,cta:'Trening Live'},
   ];
   el.innerHTML=steps.map(s=>`
     <div style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:var(--s3);border:1px solid ${s.done?'var(--teal)':'var(--border)'};border-radius:10px;margin-bottom:8px;">
-      <div style="width:32px;height:32px;border-radius:8px;background:${s.done?'rgba(0,200,150,0.15)':'var(--s2)'};display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">${s.done?'✓':s.icon}</div>
+      <div style="width:32px;height:32px;border-radius:8px;background:${s.done?'rgba(62,207,178,0.18)':'var(--s2)'};display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">${s.done?'✓':s.icon}</div>
       <div style="flex:1;">
         <div style="font-size:13px;font-weight:700;margin-bottom:2px;">${s.title}</div>
         <div style="font-size:11px;color:var(--muted);margin-bottom:${s.done?'0':'8px'};">${s.desc}</div>
-        ${s.done?'<div style="font-size:10px;color:var(--teal);font-family:\'DM Mono\',monospace;margin-top:4px;">GOTOWE</div>':`<button class="btn btn-primary btn-sm" onclick="${s.action}">Wykonaj</button>`}
+        ${s.done?'<div style="font-size:10px;color:var(--teal);font-family:\'DM Mono\',monospace;margin-top:4px;">GOTOWE</div>':`<div style="display:flex;gap:6px;flex-wrap:wrap;"><button class="btn btn-primary btn-sm" onclick="${s.action}">${s.cta}</button>${s.extra||''}</div>`}
       </div>
-    </div>`).join('');
+    </div>`).join('')+(st.complete?`<button class="btn btn-primary" style="width:100%;margin-top:4px;" onclick="closeM('m-client-onboard')">Gotowe — zamknij</button>`:'');
 }
 window.openClientOnboardChecklist=openClientOnboardChecklist;
 window.renderClientOnboardChecklist=renderClientOnboardChecklist;
@@ -335,6 +394,7 @@ async function savePlan(){
   const plan=withTrainer({id:newId('p'),name,method:document.getElementById('b-method').value,duration:document.getElementById('b-duration').value,clientId:cid,clientName:c?c.name:'',level:c?c.level:'sredni',goal:c?c.goal:'masa',days,createdAt:new Date().toISOString()});
   PL.push(plan);goTo('plans');notify('Plan zapisany!');
   await persistById('plans',plan);
+  maybeResumeOnboard(cid);
 }
 
 // ════════════════════════════════════════
@@ -887,5 +947,6 @@ async function saveSess(){
   if(cpClientId&&cpClientId===cid){try{setCPTab(cpTab);}catch(e){}}
   notify('Sesja dodana!');
   await persistById('sessions',sess);
+  maybeResumeOnboard(cid);
 }
 

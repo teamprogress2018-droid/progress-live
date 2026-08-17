@@ -1612,6 +1612,7 @@ function sendInvitation() {
   addNotification('system', 'Zaproszenie zapisane', c.name + ' — link w Inbox (' + (methodLabels[inviteMethod]||'wiadomość') + ')', 'clients');
   closeM('m-invite');
   notify('✅ Zaproszenie do ' + c.name + ': ' + (methodLabels[inviteMethod]||'Inbox'));
+  maybeResumeOnboard(c.id);
 }
 
 window.openInviteModal = openInviteModal;
