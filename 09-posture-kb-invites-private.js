@@ -274,6 +274,31 @@ var payTab='overview';
 window.PACKAGES=[];window.INVOICES=[];
 var invoiceCounter=1000;
 
+function nextInvoiceNr(){
+  const prefix=((window.SETTINGS&&window.SETTINGS.company&&window.SETTINGS.company.invoice_prefix)||'INV').replace(/[^A-Za-z0-9]/g,'')||'INV';
+  let max=1000;
+  (window.INVOICES||[]).forEach(inv=>{
+    const m=String(inv.nr||inv.id||'').match(/(\d+)\s*$/);
+    if(m)max=Math.max(max,parseInt(m[1],10));
+  });
+  invoiceCounter=max+1;
+  return prefix+'-'+invoiceCounter;
+}
+
+function paySeller(){
+  const S=window.SETTINGS||{};
+  const co=S.company||{};
+  const pay=S.payments||{};
+  return{
+    name:(typeof getTrainerName==='function'?getTrainerName(''):'')||co.name||'Trener',
+    nip:co.nip||'',
+    address:[co.address,co.city].filter(Boolean).join(', '),
+    bank:pay.bankAccount||'',
+    footer:co.invoice_footer||'',
+    currency:pay.currency||'PLN'
+  };
+}
+
 const PAY_STATUS_PILL={paid:'pill-green',pending:'pill-orange',partial:'pill-blue',expired:'pill-red'};
 const PAY_STATUS_LABEL={paid:'Opłacony',pending:'Oczekujący',partial:'Częściowy',expired:'Wygasły'};
 const PKG_TYPE_LABEL={sessions:'Pakiet sesji',monthly:'Abonament',program:'Program',online:'Coaching online'};
@@ -368,8 +393,17 @@ function renderPayOverview(){
     const d=Math.ceil((new Date(p.expiresDate)-today)/(1000*60*60*24));
     alertsHTML+=`<div class="pay-alert"><span style="font-size:18px;">⏰</span><div><div style="font-weight:600;">${p.clientName}</div><div style="color:var(--orange);">Pakiet wygasa za ${d} ${d===1?'dzień':'dni'}</div></div></div>`;
   });
+  const lowPkgs=all.filter(p=>{
+    const left=(p.sessions||0)-(p.sessionsUsed||0);
+    return p.payStatus!=='expired'&&left>0&&left<=2;
+  });
+  lowPkgs.forEach(p=>{
+    const left=(p.sessions||0)-(p.sessionsUsed||0);
+    alertsHTML+=`<div class="pay-alert"><span style="font-size:18px;">📉</span><div><div style="font-weight:600;">${escHtml(p.clientName||'')}</div><div style="color:var(--orange);">Został${left===1?'a':'o'} ${left} ${left===1?'sesja':'sesje'}</div></div></div>`;
+  });
   pendPkgs.forEach(p=>{
-    alertsHTML+=`<div class="pay-alert"><span style="font-size:18px;">💳</span><div><div style="font-weight:600;">${p.clientName}</div><div style="color:var(--red);">Oczekująca płatność — ${p.price.toLocaleString('pl')} zł</div></div></div>`;
+    alertsHTML+=`<div class="pay-alert"><span style="font-size:18px;">💳</span><div style="flex:1;"><div style="font-weight:600;">${escHtml(p.clientName||'')}</div><div style="color:var(--red);">Oczekująca płatność — ${(p.price||0).toLocaleString('pl')} zł</div></div>
+      <button class="btn btn-ghost btn-sm" onclick="requestPayment('${p.id}')">Poproś</button></div>`;
   });
   alerts.innerHTML=alertsHTML||'<div style="font-size:12px;color:var(--muted);text-align:center;padding:16px;">Brak alertów ✓</div>';
 }
@@ -439,10 +473,12 @@ function renderPayPackages(){
           <span>${p.sessionsUsed}/${p.sessions} sesji</span>
           <span>${pct}% wykorzystano</span>
         </div>
-        <div style="display:flex;gap:6px;">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
           <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="usePackageSession('${p.id}')">+ Sesja</button>
-          <button class="btn btn-ghost btn-sm" onclick="viewInvoice('${p.invoiceId}')">🧾 Faktura</button>
-          ${p.payStatus==='pending'?`<button class="btn btn-primary btn-sm" onclick="markPaid('${p.id}')">Oznacz opłacony</button>`:''}
+          <button class="btn btn-ghost btn-sm" onclick="viewInvoice('${p.invoiceId||p.id}')">🧾</button>
+          ${p.payStatus==='pending'?`<button class="btn btn-primary btn-sm" onclick="markPaid('${p.id}')">Opłacony</button>
+          <button class="btn btn-ghost btn-sm" onclick="requestPayment('${p.id}')">Poproś o wpłatę</button>`:''}
+          <button class="btn btn-ghost btn-sm" title="Usuń" onclick="deletePackage('${p.id}')">🗑</button>
         </div>
       </div>
     </div>`;
@@ -479,45 +515,103 @@ function markPaid(id){
   if(p){
     p.payStatus='paid';renderPayPackages();renderPayOverview();notify('✓ Pakiet oznaczony jako opłacony');
     persistById('packages',p);
-    const inv=(window.INVOICES||[]).find(i=>i.pkgId===p.id||i.id===p.invoiceId);
+    const inv=(window.INVOICES||[]).find(i=>i.pkgId===p.id||i.id===p.invoiceId||i.nr===p.invoiceId);
     if(inv){inv.status='paid';persistById('invoices',inv);}
   }
 }
 
+function requestPayment(id){
+  const p=allPackages().find(x=>x.id===id);
+  if(!p){notify('Nie znaleziono pakietu');return;}
+  if(!p.clientId){notify('Pakiet bez klienta');return;}
+  const seller=paySeller();
+  const lines=[
+    'Prośba o płatność — '+p.title,
+    'Kwota: '+(p.price||0).toLocaleString('pl')+' '+(seller.currency||'zł'),
+    seller.bank?('Nr konta: '+seller.bank):'Nr konta: (trener uzupełni w Ustawieniach → Płatności)',
+    'Tytuł przelewu: '+(p.clientName||'')+' '+(p.invoiceId||''),
+    '',
+    'Po wpłacie daj znać — oznaczę pakiet jako opłacony.'
+  ];
+  if(typeof pushMsg==='function')pushMsg(p.clientId,lines.join('\n'));
+  notify('✓ Prośba o wpłatę poszła do czatu klienta');
+  if(typeof addNotification==='function')addNotification('payment','Wysłano prośbę o wpłatę',(p.clientName||'')+' · '+(p.price||0)+' zł','inbox');
+}
+
+function deletePackage(id){
+  const p=allPackages().find(x=>x.id===id);
+  if(!p)return;
+  if(!confirm('Usunąć pakiet „'+p.title+'”? Faktura zostanie w historii.'))return;
+  window.PACKAGES=(window.PACKAGES||[]).filter(x=>x.id!==id);
+  if(window._db&&window._del&&window._doc){
+    window._del(window._doc(window._db,'packages',id)).catch(e=>console.warn(e));
+  }
+  if(payTab==='packages')renderPayPackages();
+  else renderPayOverview();
+  notify('Pakiet usunięty');
+}
+
 function viewInvoice(invId){
-  const inv=allInvoices().find(x=>x.id===invId||x.nr===invId);
+  const inv=allInvoices().find(x=>x.id===invId||x.nr===invId)||allPackages().find(x=>x.id===invId||x.invoiceId===invId);
   if(!inv){notify('Faktura nie znaleziona');return;}
-  document.getElementById('inv-modal-title').textContent='FAKTURA '+inv.nr;
+  const nr=inv.nr||inv.invoiceId||inv.id;
+  const clientName=inv.clientName||'—';
+  const pkgTitle=inv.pkgTitle||inv.title||'Pakiet';
+  const date=inv.date||'—';
+  const amount=inv.amount!=null?inv.amount:inv.price||0;
+  const status=inv.status||inv.payStatus||'pending';
+  const seller=paySeller();
+  window._payCopy={bank:seller.bank,title:clientName+' '+nr,amount};
+  document.getElementById('inv-modal-title').textContent='FAKTURA '+nr;
   document.getElementById('inv-modal-body').innerHTML=`
     <div style="font-family:'DM Mono',monospace;">
-      <div style="display:flex;justify-content:space-between;margin-bottom:20px;">
-        <div><div style="font-size:22px;font-weight:700;font-family:'Bebas Neue',sans-serif;letter-spacing:1px;">PROGRESS LIVE</div><div style="font-size:11px;color:var(--muted);">${escHtml(getTrainerSignature())}</div></div>
-        <div style="text-align:right;"><div style="font-size:14px;font-weight:700;">${inv.nr}</div><div style="font-size:11px;color:var(--muted);">Data: ${inv.date}</div></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:20px;gap:12px;">
+        <div>
+          <div style="font-size:22px;font-weight:700;font-family:'Bebas Neue',sans-serif;letter-spacing:1px;">PROGRESS LIVE</div>
+          <div style="font-size:11px;color:var(--muted);">${escHtml(seller.name)}</div>
+          ${seller.nip?`<div style="font-size:11px;color:var(--muted);">NIP ${escHtml(seller.nip)}</div>`:''}
+          ${seller.address?`<div style="font-size:11px;color:var(--muted);">${escHtml(seller.address)}</div>`:''}
+        </div>
+        <div style="text-align:right;"><div style="font-size:14px;font-weight:700;">${escHtml(nr)}</div><div style="font-size:11px;color:var(--muted);">Data: ${escHtml(date)}</div></div>
       </div>
       <div style="background:var(--s3);border-radius:8px;padding:12px;margin-bottom:16px;">
         <div style="font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Nabywca</div>
-        <div style="font-size:14px;font-weight:600;">${inv.clientName}</div>
+        <div style="font-size:14px;font-weight:600;">${escHtml(clientName)}</div>
       </div>
       <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:16px;">
         <div style="display:grid;grid-template-columns:1fr 100px 100px;padding:8px 12px;background:var(--s3);font-size:10px;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);">
           <span>Pozycja</span><span>Ilość</span><span style="text-align:right;">Kwota</span>
         </div>
         <div style="display:grid;grid-template-columns:1fr 100px 100px;padding:12px;font-size:12px;">
-          <span>${inv.pkgTitle}</span><span>1</span><span style="text-align:right;font-weight:700;">${inv.amount.toLocaleString('pl')} zł</span>
+          <span>${escHtml(pkgTitle)}</span><span>1</span><span style="text-align:right;font-weight:700;">${amount.toLocaleString('pl')} zł</span>
         </div>
       </div>
+      ${seller.bank?`<div style="background:var(--s3);border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Przelew</div>
+        <div>Konto: <strong>${escHtml(seller.bank)}</strong></div>
+        <div>Tytuł: ${escHtml(clientName+' '+nr)}</div>
+        <button type="button" class="btn btn-ghost btn-sm" style="margin-top:8px;" onclick="copyPayTransfer()">📋 Kopiuj dane do przelewu</button>
+      </div>`:`<div style="font-size:11px;color:var(--orange);margin-bottom:12px;">Uzupełnij numer konta w Ustawieniach → Płatności, żeby pojawił się na fakturze.</div>`}
       <div style="display:flex;justify-content:flex-end;">
         <div style="background:var(--adim);border:1px solid rgba(225,31,46,0.2);border-radius:8px;padding:12px 20px;text-align:right;">
           <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">RAZEM</div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--accent);">${inv.amount.toLocaleString('pl')} zł</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--accent);">${amount.toLocaleString('pl')} zł</div>
         </div>
       </div>
       <div style="margin-top:16px;display:flex;justify-content:space-between;align-items:center;">
-        <div style="font-size:11px;color:var(--muted);">Status płatności</div>
-        <span class="pill ${PAY_STATUS_PILL[inv.status]||'pill-muted'}">${PAY_STATUS_LABEL[inv.status]||inv.status}</span>
+        <div style="font-size:11px;color:var(--muted);">${escHtml(seller.footer||'Dokument wewnętrzny — nie jest fakturą VAT, chyba że uzupełnisz NIP w ustawieniach.')}</div>
+        <span class="pill ${PAY_STATUS_PILL[status]||'pill-muted'}">${PAY_STATUS_LABEL[status]||status}</span>
       </div>
     </div>`;
   openM('m-invoice');
+}
+
+function copyPayTransfer(){
+  const d=window._payCopy||{};
+  const seller=paySeller();
+  const text='Konto: '+(d.bank||seller.bank||'')+'\nKwota: '+(d.amount!=null?d.amount:0)+' zł\nTytuł: '+(d.title||'');
+  if(navigator.clipboard){navigator.clipboard.writeText(text).then(()=>notify('✓ Dane przelewu skopiowane')).catch(()=>notify(text));}
+  else notify(text);
 }
 
 function renderPayInvoices(){
@@ -574,8 +668,7 @@ async function savePackage(){
   const validity=parseInt(document.getElementById('pkg-validity').value)||90;
   const date=document.getElementById('pkg-date').value||new Date().toISOString().split('T')[0];
   const expD=new Date(date);expD.setDate(expD.getDate()+validity);
-  invoiceCounter++;
-  const invId='INV-'+invoiceCounter;
+  const invId=nextInvoiceNr();
   const pkg=withTrainer({
     id:newId('pkg'),title,
     type:document.getElementById('pkg-type').value,
@@ -1780,6 +1873,7 @@ window.setPayTab=setPayTab;window.renderPayOverview=renderPayOverview;
 window.renderPayPackages=renderPayPackages;window.renderPayInvoices=renderPayInvoices;
 window.renderPayHistory=renderPayHistory;window.savePackage=savePackage;
 window.usePackageSession=usePackageSession;window.markPaid=markPaid;
+window.requestPayment=requestPayment;window.deletePackage=deletePackage;window.copyPayTransfer=copyPayTransfer;
 window.viewInvoice=viewInvoice;window.filterPkgByClient=filterPkgByClient;
 window.openClientProfile=openClientProfile;window.closeClientProfile=closeClientProfile;
 window.setCPTab=setCPTab;window.saveCPEdit=saveCPEdit;window.archiveClient=archiveClient;

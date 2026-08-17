@@ -2274,8 +2274,12 @@ function renderSettingsContent(t){
 
       ${card('Waluta i ceny','',`
         ${row('Waluta',''  ,sel('currency',S.payments.currency,[['PLN','PLN — Polski złoty'],['EUR','EUR — Euro'],['USD','USD — Dolar'],['GBP','GBP — Funt']]))}
-        ${row('Automatyczne faktury','Generuj fakturę po zakupie pakietu',toggle('auto-invoice',S.payments.autoInvoice))}
+        ${row('Automatyczne faktury','Generuj dokument po dodaniu pakietu (numeracja z istniejących faktur)',toggle('auto-invoice',S.payments.autoInvoice))}
       `)}
+      <div class="settings-card" style="margin-bottom:16px;border-color:rgba(201,123,63,.35);">
+        <div class="settings-card-title">Bez bramki online</div>
+        <div class="settings-card-desc">Stripe, BLIK i Przelewy24 nie pobierają pieniędzy z tej strony. Klient płaci gotówką albo przelewem na konto poniżej — Ty klikasz „Opłacony”.</div>
+      </div>
 
       ${card('Metody płatności','Zaznacz akceptowane formy płatności.',`
         <div style="display:flex;flex-direction:column;gap:8px;">
@@ -2816,6 +2820,22 @@ function generateAutoNotifs(){
     const key='auto_exp_'+p.id;
     if(!hasNotif(key)){
       addNotification('expiry','Pakiet wygasa za '+diff+(diff===1?' dzień':' dni'),`${p.clientName} — ${p.title}`,'payments',key);
+    }
+  });
+
+  allPackages().filter(p=>p.payStatus==='pending').forEach(p=>{
+    const key='auto_pay_'+p.id;
+    if(!hasNotif(key)){
+      addNotification('payment','Oczekująca płatność',`${p.clientName||''} — ${p.title||'Pakiet'} · ${(p.price||0).toLocaleString('pl')} zł`,'payments',key);
+    }
+  });
+
+  allPackages().forEach(p=>{
+    const left=(p.sessions||0)-(p.sessionsUsed||0);
+    if(p.payStatus==='expired'||left<=0||left>2)return;
+    const key='auto_low_'+p.id+'_'+left;
+    if(!hasNotif(key)){
+      addNotification('alert','Mało sesji w pakiecie',`${p.clientName||''} — zostało ${left}`,'payments',key);
     }
   });
 
