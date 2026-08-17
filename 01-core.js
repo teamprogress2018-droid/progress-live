@@ -35,15 +35,27 @@ function belongsToTrainer(data){
   return data.trainerId===window._uid;
 }
 window.belongsToTrainer=belongsToTrainer;
+function persistWarn(msg){
+  const now=Date.now();
+  if(now-(window._persistWarnAt||0)<8000)return;
+  window._persistWarnAt=now;
+  if(typeof notify==='function')notify(msg);
+}
 /** Zapisuje dokument pod stałym id (setDoc), żeby lokalne id = Firestore id. */
 async function persistById(colName,obj){
   if(!obj||!obj.id)return obj;
   withTrainer(obj);
-  if(!window._db)return obj;
+  if(!window._db){
+    persistWarn('⚠ Brak połączenia z bazą — dane mogą nie zostać zapisane');
+    return obj;
+  }
   try{
     await window._setDoc(window._doc(window._db,colName,obj.id),obj,{merge:true});
     obj._fbId=obj.id;
-  }catch(e){console.warn('Firebase persist '+colName+':',e);}
+  }catch(e){
+    console.warn('Firebase persist '+colName+':',e);
+    persistWarn('⚠ Nie udało się zapisać. Sprawdź internet i spróbuj ponownie.');
+  }
   return obj;
 }
 window.persistById=persistById;
@@ -362,5 +374,33 @@ window.renderAll=function(){
   try{document.getElementById('b-client').innerHTML=CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');}catch(e){}
   safe(updateExDl);
   safe(generateAutoNotifs);
+  safe(syncSidebarProfile);
 };
+
+function showNetBanner(offline){
+  let el=document.getElementById('net-banner');
+  if(!el){
+    el=document.createElement('div');
+    el.id='net-banner';
+    el.style.cssText='display:none;position:fixed;top:0;left:0;right:0;z-index:4000;padding:8px 14px;background:var(--orange);color:#000;font-size:12px;font-weight:700;text-align:center;';
+    document.body.appendChild(el);
+  }
+  if(offline){
+    el.textContent='Brak internetu — zmiany mogą nie zostać zapisane w chmurze.';
+    el.style.display='block';
+  }else{
+    el.textContent='Połączenie wróciło.';
+    el.style.background='var(--teal)';
+    el.style.display='block';
+    setTimeout(()=>{el.style.display='none';el.style.background='var(--orange)';},2500);
+  }
+}
+window.addEventListener('offline',()=>showNetBanner(true));
+window.addEventListener('online',()=>showNetBanner(false));
+window.addEventListener('beforeunload',e=>{
+  if(typeof liveSessionActive!=='undefined'&&liveSessionActive){
+    e.preventDefault();
+    e.returnValue='';
+  }
+});
 

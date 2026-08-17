@@ -89,7 +89,16 @@ function renderClients(){
   const titleEl=document.getElementById('clients-segment-title');
   if(titleEl)titleEl.textContent=CLIENT_SEGMENT_TITLES[clientSegment]||'Klienci';
   const el=document.getElementById('clients-tbl');
-  if(!filtered.length){el.innerHTML='<div style="padding:40px;text-align:center;color:var(--muted);">Brak klientów</div>';return;}
+  if(!filtered.length){
+    const q=search.trim();
+    el.innerHTML=`<div style="padding:48px 20px;text-align:center;">
+      <div style="font-size:36px;margin-bottom:8px;opacity:0.4;">👥</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:6px;">${q?'Brak wyników':'Brak klientów w tym widoku'}</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5;">${q?'Spróbuj innej frazy.':clientSegment==='archived'?'Nie masz zarchiwizowanych klientów.':'Dodaj pierwszego klienta — potem plan i Trening Live.'}</div>
+      ${!q&&clientSegment!=='archived'?`<button class="btn btn-primary" onclick="openM('m-client')">+ Dodaj klienta</button>`:''}
+    </div>`;
+    return;
+  }
   el.innerHTML=filtered.map((c,i)=>{
     const act=formatClientActivity(c.id);
     return `<div class="tbl-row" style="grid-template-columns:2fr 120px 120px 100px 150px;animation-delay:${i*0.03}s;cursor:pointer;" onclick="openClientProfile('${c.id}')">
@@ -350,7 +359,15 @@ function renderPlans(){
     const db=new Date(b.updatedAt||b.createdAt||0).getTime();
     return db-da;
   });
-  if(!list.length){el.innerHTML=`<div style="text-align:center;color:var(--muted);padding:60px;">${search?'Brak planów pasujących do wyszukiwania':'Brak planów — utwórz pierwszy!'}</div>`;return;}
+  if(!list.length){el.innerHTML=`<div style="text-align:center;color:var(--muted);padding:60px 20px;">
+    <div style="font-size:36px;margin-bottom:10px;opacity:0.35;">📋</div>
+    <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">${search?'Brak planów pasujących do wyszukiwania':'Brak planów treningowych'}</div>
+    <div style="font-size:12px;margin-bottom:16px;">Przypisz plan klientowi, żeby móc od razu odpalić Trening Live.</div>
+    ${search?'':`<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-primary btn-sm" onclick="goTo('builder')">+ Nowy plan</button>
+      <button class="btn btn-ghost btn-sm" onclick="goTo('aiplangen')">⚡ Generuj plan AI</button>
+    </div>`}
+  </div>`;return;}
   el.innerHTML=`<div class="plans-grid">`+list.map((p,pi)=>{
     const client=CL.find(c=>c.id===p.clientId);
     const clientName=client?.name||p.clientName||'Bez klienta';

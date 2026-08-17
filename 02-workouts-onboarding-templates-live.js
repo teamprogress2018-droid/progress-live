@@ -1569,12 +1569,16 @@ function liveTryRecoverDraft(){
 
 function initLive(){
   const recovered=liveTryRecoverDraft();
-  if(!liveClientId){
-    liveClientId=CL.length?CL[0].id:null;
-    const c=CL.find(x=>x.id===liveClientId);
-    liveClientSetField(liveClientId||'',c?c.name:'');
-  }else if(!recovered){
+  if(recovered){renderLiveHistory();return;}
+  if(liveClientId){
     liveLoadClient();
+  }else{
+    liveClientSetField('','',true);
+    livePlanId=null;
+    liveExercises=[];
+    renderLiveClientCard();
+    renderLivePlanPicker();
+    renderLiveExercises();
   }
   renderLiveHistory();
 }
@@ -1665,6 +1669,12 @@ function renderLiveClientCard(){
 
 function renderLivePlanPicker(){
   const el=document.getElementById('live-plan-picker');if(!el)return;
+  if(!liveClientId){
+    el.innerHTML=`<div style="font-size:12px;color:var(--muted);text-align:center;padding:16px;background:var(--s2);border-radius:10px;border:1px dashed var(--border2);line-height:1.5;">
+      Wybierz klienta u góry, żeby załadować jego plan i zacząć sesję.
+    </div>`;
+    return;
+  }
   const plans=PL.filter(p=>p.clientId===liveClientId);
   if(!plans.length){
     el.innerHTML=`<div style="font-size:11px;color:var(--muted);text-align:center;padding:12px;background:var(--s2);border-radius:10px;border:1px solid var(--border);">

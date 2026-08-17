@@ -1985,13 +1985,13 @@ window.SETTINGS={
   profile:{
     name:'Piotr Urbaniak',
     title:'Trener personalny',
-    email:'piotr@progresslive.pl',
-    phone:'+48 501 234 567',
-    bio:'Certyfikowany trener personalny z 8-letnim doświadczeniem. Specjalizuję się w treningu siłowym, hipertrofii i redukcji. Certyfikaty: NSCA-CPT, FMS Level 2.',
+    email:'',
+    phone:'',
+    bio:'',
     avatar:'PU',
     avatarUrl:null,
     specialty:['Trening siłowy','Hipertrofia','Redukcja'],
-    certs:['NSCA-CPT','FMS Level 2'],
+    certs:[],
   },
   brand:{
     accentColor:'#e11f2e',
@@ -2726,18 +2726,18 @@ function clearAllNotifs(){
 }
 
 // Dodaj powiadomienie programowo (używane przez inne moduły)
-function addNotification(type,title,body,action=null){
+function addNotification(type,title,body,action=null,fixedId=null){
   const n=withTrainer({
-    id:newId('n'),type,title,body,
+    id:fixedId||newId('n'),type,title,body,
     time:'teraz',
     read:false,
     action,
+    autoKey:fixedId||null,
     createdAt:new Date().toISOString()
   });
   window.NOTIFICATIONS.unshift(n);
   persistById('notifications',n);
   updateNotifBadge();
-  // flash badge
   const badge=document.getElementById('notif-badge');
   if(badge){
     badge.style.transform='scale(1.5)';
@@ -2746,41 +2746,36 @@ function addNotification(type,title,body,action=null){
   return n;
 }
 
-// Auto-generate notifications from app data
 function generateAutoNotifs(){
   const today=new Date();
   const todayStr=dateStr(today);
+  const hasNotif=key=>allNotifs().some(n=>n.id===key||n.autoKey===key);
 
-  // sesje dziś
   SE.filter(s=>s.date===todayStr).forEach(s=>{
     const c=CL.find(x=>x.id===s.clientId);
-    const existing=allNotifs().find(n=>n.id==='auto_sess_'+s.id);
-    if(!existing&&c){
-      addNotification('session','Sesja dziś!',`${c.name} · ${s.type||'Sesja'} · ${s.time||''}`, 'calendar');
+    const key='auto_sess_'+s.id;
+    if(!hasNotif(key)&&c){
+      addNotification('session','Sesja dziś!',`${c.name} · ${s.type||'Sesja'} · ${s.time||''}`,'calendar',key);
     }
   });
 
-  // pakiety wygasające
   allPackages().filter(p=>{
     if(!p.expiresDate)return false;
     const diff=Math.ceil((new Date(p.expiresDate)-today)/(1000*60*60*24));
     return diff>=0&&diff<=7;
   }).forEach(p=>{
     const diff=Math.ceil((new Date(p.expiresDate)-today)/(1000*60*60*24));
-    const existing=allNotifs().find(n=>n.id==='auto_exp_'+p.id);
-    if(!existing){
-      const n=addNotification('expiry','Pakiet wygasa za '+diff+(diff===1?' dzień':' dni'),`${p.clientName} — ${p.title}`,'payments');
-      n.id='auto_exp_'+p.id;
+    const key='auto_exp_'+p.id;
+    if(!hasNotif(key)){
+      addNotification('expiry','Pakiet wygasa za '+diff+(diff===1?' dzień':' dni'),`${p.clientName} — ${p.title}`,'payments',key);
     }
   });
 
-  // zadania przeterminowane
   TASKS.filter(t=>t.status!=='done'&&t.due&&t.due<todayStr).slice(0,3).forEach(t=>{
     const c=CL.find(x=>x.id===t.clientId);
-    const existing=allNotifs().find(n=>n.id==='auto_task_'+t.id);
-    if(!existing&&c){
-      const n=addNotification('task','Zadanie przeterminowane',`${c.name} — ${t.title}`,'tasks');
-      n.id='auto_task_'+t.id;
+    const key='auto_task_'+t.id;
+    if(!hasNotif(key)&&c){
+      addNotification('task','Zadanie przeterminowane',`${c.name} — ${t.title}`,'tasks',key);
     }
   });
 
@@ -3583,6 +3578,49 @@ function renderDash(){
   renderDashToday();
   renderDashTasks();
   renderDashMiniCal();
+  renderDashGettingStarted();
+}
+
+function dismissGettingStarted(){
+  try{localStorage.setItem('pl_gs_dismissed','1');}catch(e){}
+  renderDashGettingStarted();
+}
+window.dismissGettingStarted=dismissGettingStarted;
+
+function renderDashGettingStarted(){
+  const el=document.getElementById('dash-getting-started');if(!el)return;
+  let dismissed=false;
+  try{dismissed=localStorage.getItem('pl_gs_dismissed')==='1';}catch(e){}
+  const liveClients=CL.filter(c=>c.status!=='archived');
+  const hasClients=liveClients.length>0;
+  const hasPlan=PL.length>0;
+  const hasSess=SE.length>0;
+  if(dismissed||(hasClients&&hasPlan&&hasSess)){el.style.display='none';el.innerHTML='';return;}
+  const steps=[
+    {done:hasClients,icon:'👤',title:'Dodaj klienta',desc:'Imię, cel i e-mail — stąd zaczyna się wszystko',action:"openM('m-client')",cta:'Dodaj klienta'},
+    {done:hasPlan,icon:'📋',title:'Przypisz plan',desc:'Szablon lub nowy plan pod konkretną osobę',action:hasClients?"goTo('plans')":"openM('m-client')",cta:'Otwórz plany'},
+    {done:hasSess,icon:'▶',title:'Odpal Trening Live',desc:'Wybierz klienta, start sesji, zapis ciężarów',action:"goTo('live')",cta:'Trening Live'},
+  ];
+  el.style.display='block';
+  el.innerHTML=`<div class="card" style="margin-bottom:20px;border-color:rgba(225,31,46,0.25);background:linear-gradient(135deg,var(--adim),var(--s2));">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px;">
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;">START DNIA</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5;">Trzy kroki, żeby aplikacja była gotowa do pracy z klientem.</div>
+      </div>
+      <button onclick="dismissGettingStarted()" class="btn btn-ghost btn-sm">Ukryj</button>
+    </div>
+    <div class="gs-steps" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+      ${steps.map((s,i)=>`<div style="background:var(--s3);border:1px solid ${s.done?'var(--teal)':'var(--border)'};border-radius:10px;padding:12px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <div style="width:28px;height:28px;border-radius:8px;background:${s.done?'rgba(62,207,178,0.18)':'var(--s2)'};display:flex;align-items:center;justify-content:center;">${s.done?'✓':s.icon}</div>
+          <div style="font-size:12px;font-weight:700;">${i+1}. ${s.title}</div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:${s.done?'0':'10px'};">${s.desc}</div>
+        ${s.done?'<div style="font-size:10px;color:var(--teal);font-family:\'DM Mono\',monospace;margin-top:8px;">GOTOWE</div>':`<button class="btn btn-primary btn-sm" onclick="${s.action}">${s.cta}</button>`}
+      </div>`).join('')}
+    </div>
+  </div>`;
 }
 
 function renderDashMiniCal(){
@@ -3791,10 +3829,13 @@ function renderDashToday(){
   }
 
   if(!todaySess.length&&!tomorrowSess.length){
-    html=`<div style="display:flex;align-items:center;gap:12px;padding:16px 0;color:var(--muted);">
-      <div style="width:3px;height:40px;background:var(--border);border-radius:99px;"></div>
-      <div style="opacity:0.5;">— Brak kolejnych sesji w tym tygodniu —</div>
-      <button class="btn btn-primary btn-sm" style="margin-left:auto;" onclick="openM('m-session')">+ Dodaj sesję</button>
+    html=`<div style="padding:8px 0 4px;">
+      <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Brak sesji na dziś i jutro</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Odpal trening od razu albo dopisz sesję do kalendarza.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-primary btn-sm" onclick="goTo('live')">▶ Trening Live</button>
+        <button class="btn btn-ghost btn-sm" onclick="openM('m-session')">+ Dodaj do kalendarza</button>
+      </div>
     </div>`;
   }
 
@@ -3816,7 +3857,10 @@ function renderDashTasks(){
   const done=TASKS.filter(t=>t.status==='done');
 
   if(!tasks.length&&!done.length){
-    el.innerHTML='<div style="font-size:12px;color:var(--muted);text-align:center;padding:24px 0;">Brak pilnych zadań ✓</div>';
+    el.innerHTML=`<div style="font-size:12px;color:var(--muted);text-align:center;padding:18px 0 8px;">
+      <div style="margin-bottom:10px;">Nic pilnego na liście</div>
+      <button class="btn btn-ghost btn-sm" onclick="openM('m-task')">+ Dodaj zadanie</button>
+    </div>`;
     return;
   }
 

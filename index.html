@@ -2,7 +2,13 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#e11f2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Progress Live">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
@@ -119,10 +125,11 @@
     <div class="topbar-title">Panel główny</div>
     <div class="topbar-actions">
       <button class="btn btn-ghost btn-sm" onclick="openM('m-client')">+ Klient</button>
-      <button class="btn btn-primary btn-sm" onclick="goTo('aiplangen')">⚡ Generuj plan AI</button>
+      <button class="btn btn-primary btn-sm" onclick="goTo('live')">▶ Trening Live</button>
     </div>
   </div>
   <div class="content" style="overflow-y:auto;">
+    <div id="dash-getting-started" style="display:none;"></div>
 
     <!-- KPI ROW — 4 kafelki bez przychodów -->
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;" id="d-kpi-row">
@@ -3577,6 +3584,8 @@ onAuthStateChanged(auth,(user)=>{
   const appRoot=document.getElementById('app-root');
   if(user){
     window._uid=user.uid;
+    window._userEmail=user.email||'';
+    window._userDisplayName=user.displayName||'';
     authScreen.style.display='none';
     appRoot.style.display='';
     document.getElementById('auth-email').value='';
@@ -3643,7 +3652,12 @@ async function load(){
     window.TPL_CUSTOM.length=0;
     sTpl.forEach(d=>{const t=_takeFb(d);if(t)window.TPL_CUSTOM.push(t);});
   }catch(e){console.warn('Wczytywanie szablonów planów nie powiodło się:',e);}
-  try{const s11=await getDocs(collection(db,'settings'));s11.forEach(d=>{const data=d.data()||{};if(typeof window.belongsToTrainer==='function'&&!window.belongsToTrainer(data)&&data.trainerId)return;window.SETTINGS={...window.SETTINGS,...data};window._settingsDocId=d.id;});}catch(e){console.warn('Wczytywanie ustawień nie powiodło się:',e);}
+  try{const s11=await getDocs(collection(db,'settings'));s11.forEach(d=>{const data=d.data()||{};if(typeof window.belongsToTrainer==='function'&&!window.belongsToTrainer(data)&&data.trainerId)return;window.SETTINGS={...window.SETTINGS,...data};if(data.profile)window.SETTINGS.profile={...window.SETTINGS.profile,...data.profile};window._settingsDocId=d.id;});}catch(e){console.warn('Wczytywanie ustawień nie powiodło się:',e);}
+  try{
+    if(window.SETTINGS&&window.SETTINGS.profile){
+      if(window._userEmail&&!window.SETTINGS.profile.email)window.SETTINGS.profile.email=window._userEmail;
+    }
+  }catch(e){}
   try{const s12=await getDocs(collection(db,'notifications'));window.NOTIFICATIONS=[];s12.forEach(d=>{const x=_takeFb(d);if(x)window.NOTIFICATIONS.push(x);});window.NOTIFICATIONS.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));}catch(e){console.warn('Wczytywanie powiadomień nie powiodło się:',e);window.NOTIFICATIONS=window.NOTIFICATIONS||[];}
   try{
     const s13=await getDocs(collection(db,'autoflows'));
