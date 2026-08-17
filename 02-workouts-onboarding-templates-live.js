@@ -303,6 +303,7 @@ var onbTab='overview';
 var onbStep=0;
 var onbNewClient={};
 var ONB_ACTIVE=[];   // [{clientId, step, startDate, flow}]
+window.ONB_ACTIVE=ONB_ACTIVE;
 
 const ONB_STEPS=[
   {id:'welcome',    icon:'👋', label:'Powitanie',        desc:'Wiadomość powitalna i dostęp do aplikacji'},
@@ -437,6 +438,9 @@ function onbCompleteStep(cid){
   const flow=ONB_FLOWS.find(f=>f.id===o.flow)||ONB_FLOWS[0];
   if(o.step<flow.steps.length){o.step++;notify('✓ Krok ukończony!');}
   else notify('Onboarding już ukończony!');
+  if(!o.id)o.id=newId('onba');
+  withTrainer(o);
+  persistById('onboardingActive',o);
   renderOnbOverview();
 }
 
@@ -447,7 +451,9 @@ function onbViewClient(cid){
 
 function onbStartFor(cid){
   const c=CL.find(x=>x.id===cid);if(!c)return;
-  ONB_ACTIVE.push({clientId:cid,step:0,startDate:new Date().toISOString().split('T')[0],flow:'standard'});
+  const o=withTrainer({id:newId('onba'),clientId:cid,step:0,startDate:new Date().toISOString().split('T')[0],flow:'standard'});
+  ONB_ACTIVE.push(o);
+  persistById('onboardingActive',o);
   notify('✓ Onboarding uruchomiony dla '+c.name);
   renderOnbOverview();
 }
@@ -706,7 +712,9 @@ function onbCreateClient(){
   }
 
   // start onboarding flow
-  ONB_ACTIVE.push({clientId:newC.id,step:1,startDate:new Date().toISOString().split('T')[0],flow:onbNewClient.flow||'standard'});
+  const onbRec=withTrainer({id:newId('onba'),clientId:newC.id,step:1,startDate:new Date().toISOString().split('T')[0],flow:onbNewClient.flow||'standard'});
+  ONB_ACTIVE.push(onbRec);
+  persistById('onboardingActive',onbRec);
 
   // add first tasks
   const tasks=[
@@ -746,6 +754,9 @@ function renderOnbFlows(){
 /* ── SETTINGS ── */
 function renderOnbSettings(){
   const el=document.getElementById('onb-settings-tab');if(!el)return;
+  const S=window.SETTINGS||{};
+  const onb=S.onboarding||{};
+  const contract=onb.contract||'Regulamin współpracy z trenerem personalnym\n\n1. Klient zobowiązuje się do regularnego uczestnictwa w sesjach.\n2. Odwołanie sesji możliwe do 24h przed jej terminem.\n3. Trener zastrzega sobie prawo do modyfikacji planu.';
   el.innerHTML=`
     <div style="max-width:600px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:20px;">USTAWIENIA ONBOARDINGU</div>
@@ -754,7 +765,7 @@ function renderOnbSettings(){
         <div class="settings-card-desc">Wiadomości wysyłane automatycznie na każdym etapie onboardingu.</div>
         ${ONB_STEPS.slice(0,5).map(s=>`<label style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;">
           <span>${s.icon} ${s.label}</span>
-          <input type="checkbox" checked style="accent-color:var(--accent);">
+          <input type="checkbox" class="onb-msg-step" data-step="${s.id}" ${(onb.msgSteps&&onb.msgSteps[s.id]===false)?'':'checked'} style="accent-color:var(--accent);">
         </label>`).join('')}
       </div>
       <div class="settings-card" style="margin-bottom:14px;">
@@ -762,19 +773,43 @@ function renderOnbSettings(){
         <div class="settings-card-desc">Automatyczne przypomnienia gdy klient nie ukończy kroku.</div>
         <div class="form-grid">
           <div class="form-field"><label class="form-lbl">Przypomnij po (dni)</label>
-            <input type="number" class="form-input" value="2" style="font-size:12px;"></div>
+            <input type="number" class="form-input" id="onb-remind-days" value="${onb.remindDays||2}" style="font-size:12px;"></div>
           <div class="form-field"><label class="form-lbl">Kanał przypomnienia</label>
-            <select class="form-select" style="font-size:12px;"><option>Email</option><option>WhatsApp</option><option>SMS</option></select></div>
+            <select class="form-select" id="onb-remind-channel" style="font-size:12px;">
+              <option value="email" ${(onb.remindChannel||'email')==='email'?'selected':''}>Email</option>
+              <option value="whatsapp" ${onb.remindChannel==='whatsapp'?'selected':''}>WhatsApp</option>
+              <option value="sms" ${onb.remindChannel==='sms'?'selected':''}>SMS</option>
+            </select></div>
         </div>
       </div>
       <div class="settings-card">
         <div class="settings-card-title">📝 Domyślny kontrakt</div>
         <div class="settings-card-desc">Treść kontraktu współpracy wysyłanego klientom.</div>
-        <textarea class="form-input" rows="5" style="font-size:12px;resize:none;">Regulamin współpracy z trenerem personalnym Piotrem Urbaniakiem\n\n1. Klient zobowiązuje się do regularnego uczestnictwa w sesjach.\n2. Odwołanie sesji możliwe do 24h przed jej terminem.\n3. Trener zastrzega sobie prawo do modyfikacji planu.\n...</textarea>
-        <button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="notify('Zapis kontraktu — wkrótce (obecnie tylko podgląd w UI)')">Zapisz kontrakt</button>
+        <textarea class="form-input" id="onb-contract-text" rows="5" style="font-size:12px;resize:none;">${escHtml(contract)}</textarea>
+        <button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="saveOnbContract()">Zapisz ustawienia onboardingu</button>
       </div>
     </div>`;
 }
+
+function saveOnbContract(){
+  const S=window.SETTINGS||(window.SETTINGS={});
+  if(!S.onboarding)S.onboarding={};
+  S.onboarding.contract=document.getElementById('onb-contract-text')?.value||'';
+  S.onboarding.remindDays=parseInt(document.getElementById('onb-remind-days')?.value)||2;
+  S.onboarding.remindChannel=document.getElementById('onb-remind-channel')?.value||'email';
+  S.onboarding.msgSteps={};
+  document.querySelectorAll('.onb-msg-step').forEach(cb=>{S.onboarding.msgSteps[cb.dataset.step]=cb.checked;});
+  if(typeof persistSettingsDoc==='function')persistSettingsDoc();
+  else{
+    withTrainer(S);
+    if(window._db){
+      const sid=window._settingsDocId||window._uid||'default';
+      window._setDoc(window._doc(window._db,'settings',sid),S,{merge:true}).catch(()=>{});
+    }
+  }
+  notify('✓ Ustawienia onboardingu zapisane');
+}
+window.saveOnbContract=saveOnbContract;
 
 window.initOnboarding=initOnboarding;window.setOnbTab=setOnbTab;
 window.renderOnbNew=renderOnbNew;window.onbWizardBack=onbWizardBack;
@@ -1860,7 +1895,7 @@ var repGenerating=false;
 function initReports(){
   const sel=document.getElementById('rep-client-sel');
   if(sel){
-    sel.innerHTML='<option value="">Wybierz klienta...</option>'+CL.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+    sel.innerHTML='<option value="">Wybierz klienta...</option>'+CL.map(c=>`<option value="${escHtml(c.id)}">${escHtml(c.name)}</option>`).join('');
     if(!repClientId&&CL.length){repClientId=CL[0].id;sel.value=repClientId;}
   }
   renderRepOverview();
@@ -2005,35 +2040,61 @@ function renderRepAuto(){
         <div class="form-grid">
           <div class="form-field">
             <label class="form-lbl">Domyślny szablon</label>
-            <select class="form-select" style="font-size:12px;">
-              <option>🌑 Ciemny (Progress Live)</option>
-              <option>☀️ Jasny (profesjonalny)</option>
-              <option>◻️ Minimalny</option>
+            <select class="form-select" id="rep-set-template" style="font-size:12px;">
+              <option value="dark">🌑 Ciemny (Progress Live)</option>
+              <option value="light">☀️ Jasny (profesjonalny)</option>
+              <option value="minimal">◻️ Minimalny</option>
             </select>
           </div>
           <div class="form-field">
             <label class="form-lbl">Język raportu</label>
-            <select class="form-select" style="font-size:12px;">
-              <option>🇵🇱 Polski</option>
-              <option>🇬🇧 English</option>
+            <select class="form-select" id="rep-set-lang" style="font-size:12px;">
+              <option value="pl">🇵🇱 Polski</option>
+              <option value="en">🇬🇧 English</option>
             </select>
           </div>
           <div class="form-field">
             <label class="form-lbl">Stopka raportu</label>
-            <input type="text" class="form-input" value="Piotr Urbaniak · Progress Live · piotr@progresslive.pl" style="font-size:12px;">
+            <input type="text" class="form-input" id="rep-set-footer" value="" style="font-size:12px;">
           </div>
           <div class="form-field">
             <label class="form-lbl">Logo w raporcie</label>
             <div style="display:flex;align-items:center;gap:8px;">
-              <div style="width:40px;height:40px;border-radius:8px;background:var(--adim);display:flex;align-items:center;justify-content:center;font-size:20px;">⚡</div>
-              <button class="btn btn-ghost btn-sm">Zmień logo</button>
+              <div style="width:40px;height:40px;border-radius:8px;background:var(--adim);display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;" id="rep-set-logo-prev">⚡</div>
+              <span style="font-size:11px;color:var(--muted);">Używa logo z Ustawienia → Marka</span>
             </div>
           </div>
         </div>
-        <button class="btn btn-primary btn-sm" onclick="notify('Ustawienia raportów — zapis globalny wkrótce (użyj Drukuj / PDF z podglądu)')">Zapisz ustawienia</button>
+        <button class="btn btn-primary btn-sm" onclick="saveRepSettings()">Zapisz ustawienia</button>
       </div>
     </div>`;
+  const R=(window.SETTINGS&&window.SETTINGS.reports)||{};
+  const tEl=document.getElementById('rep-set-template');if(tEl)tEl.value=R.template||'dark';
+  const lEl=document.getElementById('rep-set-lang');if(lEl)lEl.value=R.lang||'pl';
+  const fEl=document.getElementById('rep-set-footer');
+  if(fEl)fEl.value=R.footer||((window.SETTINGS?.profile?.name||'Trener')+' · Progress Live');
+  const logoPrev=document.getElementById('rep-set-logo-prev');
+  if(logoPrev&&window.SETTINGS?.brand?.logo)logoPrev.innerHTML='<img src="'+escHtml(window.SETTINGS.brand.logo)+'" style="width:100%;height:100%;object-fit:contain;">';
 }
+
+function saveRepSettings(){
+  const S=window.SETTINGS||(window.SETTINGS={});
+  if(!S.reports)S.reports={};
+  S.reports.template=document.getElementById('rep-set-template')?.value||'dark';
+  S.reports.lang=document.getElementById('rep-set-lang')?.value||'pl';
+  S.reports.footer=document.getElementById('rep-set-footer')?.value||'';
+  if(typeof persistSettingsDoc==='function')persistSettingsDoc();
+  else{
+    withTrainer(S);
+    if(window._db){
+      const sid=window._settingsDocId||window._uid||'default';
+      window._setDoc(window._doc(window._db,'settings',sid),S,{merge:true}).catch(()=>{});
+    }
+  }
+  notify('✓ Ustawienia raportów zapisane');
+}
+window.saveRepSettings=saveRepSettings;
+
 
 function repToggleAuto(idx,val){notify(val?'✅ Automatyczny raport włączony':'⏸ Automatyczny raport wyłączony');}
 

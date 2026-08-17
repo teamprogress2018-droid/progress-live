@@ -58,7 +58,7 @@ function aplComputeProgression(ex,weekKeys,phasesMap,progressionType){
 function initAplangen(){
   const sel=document.getElementById('apl-client');
   if(sel){
-    sel.innerHTML='<option value="">Nowy / ręcznie wpisz</option>'+CL.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+    sel.innerHTML='<option value="">Nowy / ręcznie wpisz</option>'+CL.map(c=>`<option value="${escHtml(c.id)}">${escHtml(c.name)}</option>`).join('');
   }
   if(!document.getElementById('apl-result').innerHTML){
     aplShowWelcome();
@@ -1190,7 +1190,7 @@ Dajesz konkretne, praktyczne rady:
 function initAICoach(){
   const sel=document.getElementById('aic-client-sel');
   if(sel){
-    sel.innerHTML='<option value="">Brak klienta (ogólne)</option>'+CL.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+    sel.innerHTML='<option value="">Brak klienta (ogólne)</option>'+CL.map(c=>`<option value="${escHtml(c.id)}">${escHtml(c.name)}</option>`).join('');
   }
   if(!aicMsgs.length) aicShowWelcome();
   renderAICQuickQs();

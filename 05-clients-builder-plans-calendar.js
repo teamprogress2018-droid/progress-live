@@ -152,7 +152,7 @@ function initBuilder(){
   // wypełnij select klientów
   const sel=document.getElementById('b-client');
   if(sel){
-    sel.innerHTML='<option value="">-- Wybierz klienta --</option>'+CL.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+    sel.innerHTML='<option value="">-- Wybierz klienta --</option>'+CL.map(c=>`<option value="${escHtml(c.id)}">${escHtml(c.name)}</option>`).join('');
   }
   updatePeriod();
 }

@@ -3669,6 +3669,23 @@ async function load(){
     }
   }catch(e){console.warn('Wczytywanie treningów on-demand nie powiodło się:',e);window.OD_WORKOUTS=window.OD_WORKOUTS||[];}
   try{
+    const sODP=await getDocs(collection(db,'odPrograms'));
+    window.OD_PROGRAMS=[];sODP.forEach(d=>{const x=_takeFb(d);if(x)window.OD_PROGRAMS.push(x);});
+    if(!window.OD_PROGRAMS.length&&typeof OD_DEMO_PROGRAMS!=='undefined'){
+      for(const p of OD_DEMO_PROGRAMS){
+        const copy=withTrainer({...p,id:p.id||newId('op')});
+        window.OD_PROGRAMS.push(copy);
+        try{await setDoc(doc(db,'odPrograms',copy.id),copy);copy._fbId=copy.id;}catch(e){}
+      }
+    }
+  }catch(e){console.warn('Wczytywanie programów on-demand nie powiodło się:',e);window.OD_PROGRAMS=window.OD_PROGRAMS||[];}
+  try{
+    const sOnbA=await getDocs(collection(db,'onboardingActive'));
+    window.ONB_ACTIVE=window.ONB_ACTIVE||[];
+    window.ONB_ACTIVE.length=0;
+    sOnbA.forEach(d=>{const x=_takeFb(d);if(x)window.ONB_ACTIVE.push(x);});
+  }catch(e){console.warn('Wczytywanie aktywnych onboardingów nie powiodło się:',e);}
+  try{
     const sRes=await getDocs(collection(db,'resources'));
     window.USER_RESOURCES=[];sRes.forEach(d=>{const x=_takeFb(d);if(x)window.USER_RESOURCES.push(x);});
     if(!window.USER_RESOURCES.length&&typeof DEMO_RESOURCES!=='undefined'){
@@ -3686,7 +3703,7 @@ async function load(){
       'clients','plans','sessions','exercises','workouts','tasks','kb','metricEntries','metricGroups',
       'messages','packages','invoices','formSends','reportHistory','forms','programs','checkins',
       'notifications','autoflows','forumGroups','forumPosts','forumComments','odWorkouts','resources',
-      'settings','integrationConfigs','automationState','clientNotes','clientDocs','onboardingFlows','planTemplates'
+      'settings','integrationConfigs','automationState','clientNotes','clientDocs','onboardingFlows','planTemplates','odPrograms','onboardingActive'
     ]);
   }catch(e){console.warn('Migracja trainerId:',e);}
   try{if(typeof window.runAutoflowsCheck==='function')window.runAutoflowsCheck();}catch(e){console.warn('runAutoflowsCheck:',e);}

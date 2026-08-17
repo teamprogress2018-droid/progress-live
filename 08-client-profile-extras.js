@@ -73,21 +73,17 @@ function ctlAddEntry(clientId){
   const type = document.getElementById('ctl-new-type')?.value || 'notatka';
   if(!text) return;
   if(!CLIENT_TIMELINE[clientId]) CLIENT_TIMELINE[clientId]=[];
-  CLIENT_TIMELINE[clientId].unshift({id:'ct'+Date.now(), text, type, date:new Date().toISOString()});
+  CLIENT_TIMELINE[clientId].unshift({id:newId('ct'), text, type, date:new Date().toISOString()});
   const c = CL.find(x=>x.id===clientId);
+  if(c){c.timeline=CLIENT_TIMELINE[clientId];persistById('clients',c);}
   renderCPTimeline(c);
-  if(window._db && clientId && !clientId.startsWith('l')){
-    try{window._setDoc(window._doc(window._db,'clients',clientId),{timeline:CLIENT_TIMELINE[clientId]},{merge:true});}catch(e){}
-  }
 }
 
 function ctlDeleteEntry(clientId, id){
   CLIENT_TIMELINE[clientId] = (CLIENT_TIMELINE[clientId]||[]).filter(e=>e.id!==id);
   const c = CL.find(x=>x.id===clientId);
+  if(c){c.timeline=CLIENT_TIMELINE[clientId];persistById('clients',c);}
   renderCPTimeline(c);
-  if(window._db && clientId && !clientId.startsWith('l')){
-    try{window._setDoc(window._doc(window._db,'clients',clientId),{timeline:CLIENT_TIMELINE[clientId]},{merge:true});}catch(e){}
-  }
 }
 
 window.renderCPTimeline=renderCPTimeline; window.ctlAddEntry=ctlAddEntry; window.ctlDeleteEntry=ctlDeleteEntry;
@@ -110,9 +106,8 @@ function psyGet(clientId){
 }
 
 function psyPersist(clientId){
-  if(window._db && clientId){
-    try{ window._setDoc(window._doc(window._db,'clients',clientId), {psycho: CLIENT_PSYCHO[clientId]}, {merge:true}); }catch(e){}
-  }
+  const c=CL.find(x=>x.id===clientId);
+  if(c){c.psycho=CLIENT_PSYCHO[clientId];persistById('clients',c);}
 }
 
 function renderCPPsycho(c){
@@ -366,9 +361,8 @@ function sfrGetWeekData(clientId){
 }
 
 function sfrPersist(clientId){
-  if(window._db && clientId){
-    try{ window._setDoc(window._doc(window._db,'clients',clientId),{sfr:CLIENT_SFR[clientId]},{merge:true}); }catch(e){}
-  }
+  const c=CL.find(x=>x.id===clientId);
+  if(c){c.sfr=CLIENT_SFR[clientId];persistById('clients',c);}
 }
 
 // Mnożnik MRV na podstawie ostatniego dziennego wpisu z modułu Psycho (stres/sen)
@@ -1378,9 +1372,7 @@ function updateClientUnit(clientId,key,value){
   const c=CL.find(x=>x.id===clientId);if(!c)return;
   if(!c.clientSettings)c.clientSettings={};
   c.clientSettings[key]=value;
-  if(window._db&&c.id&&!c.id.startsWith('l')){
-    try{window._setDoc(window._doc(window._db,'clients',c.id),{clientSettings:c.clientSettings},{merge:true});}catch(e){}
-  }
+  persistById('clients',c);
   notify('Zapisano');
 }
 

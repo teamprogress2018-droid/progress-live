@@ -139,10 +139,8 @@ Bądź konkretny. Bazuj wyłącznie na tym co widzisz na zdjęciu.`;
     if(!c._posture.analyses)c._posture.analyses=[];
     c._posture.analyses.push({date:today,view:viewLabelShort[view]||view,result});
 
-    // Zapisz do Firebase w tle
-    if(window._db&&c.id&&!c.id.startsWith('l')){
-      try{window._setDoc(window._doc(window._db,'clients',c.id),{_posture:c._posture},{merge:true});}catch(e){}
-    }
+    // Zapisz do Firebase
+    persistById('clients',c);
 
     renderCPPosture(c);
     notify('✓ Analiza postawy ukończona!');
@@ -582,6 +580,8 @@ const OD_DEMO_WORKOUTS=[
 const OD_DEMO_PROGRAMS=[
   {id:'op1',name:'Starting Strength — Demo',level:'poczatkujacy',duration:'4 tygodnie',color:'linear-gradient(135deg,#1a0a0a,#2a1a0a)',emoji:'🏋️',desc:'Oparty na Starting Strength Marka Rippetoe. Program siły oparty na własnej masie, stopniowo wprowadzający obciążenia.',clients:0,status:'draft'},
 ];
+window.OD_PROGRAMS=window.OD_PROGRAMS||[];
+function allODPrograms(){return window.OD_PROGRAMS&&window.OD_PROGRAMS.length?window.OD_PROGRAMS:OD_DEMO_PROGRAMS;}
 
 const LEVEL_MAP={poczatkujacy:'Początkujący',sredni:'Średni',zaawansowany:'Zaawansowany'};
 
@@ -595,7 +595,7 @@ function setODTab(t){
   });
   const addBtn=document.getElementById('od-add-btn');
   if(addBtn){
-    if(t==='programs'){addBtn.textContent='+ Nowy program';addBtn.onclick=()=>notify('Kreator programów on-demand — wkrótce!');}
+    if(t==='programs'){addBtn.textContent='+ Nowy program';addBtn.onclick=()=>openODProgramModal();}
     else{addBtn.textContent='+ Dodaj trening';addBtn.onclick=()=>openM('m-od-workout');}
   }
   if(t==='browse')renderODBrowse();
@@ -625,7 +625,7 @@ function renderODBrowse(){
 
   // programs grid
   const pg=document.getElementById('od-programs-grid');
-  if(pg)pg.innerHTML=OD_DEMO_PROGRAMS.map((p,i)=>odProgramCardHTML(p,i)).join('');
+  if(pg)pg.innerHTML=allODPrograms().slice(0,3).map((p,i)=>odProgramCardHTML(p,i)).join('');
 }
 
 function renderODWorkouts(){
@@ -652,8 +652,9 @@ function renderODWorkouts(){
 function renderODPrograms(){
   const g=document.getElementById('od-all-programs-grid');
   if(!g)return;
-  g.innerHTML=OD_DEMO_PROGRAMS.map((p,i)=>odProgramCardHTML(p,i)).join('')
-    +`<div style="border:1px dashed var(--border2);border-radius:var(--r2);padding:18px;display:flex;align-items:center;justify-content:center;min-height:180px;cursor:pointer;background:transparent;" onclick="notify('Kreator programów — wkrótce!')"><div style="text-align:center;color:var(--muted);"><div style="font-size:32px;margin-bottom:8px;">+</div><div style="font-size:13px;font-weight:600;">Nowy program on-demand</div><div style="font-size:11px;margin-top:4px;">Klienci startują sami</div></div></div>`;
+  const list=allODPrograms();
+  g.innerHTML=(list.length?list.map((p,i)=>odProgramCardHTML(p,i)).join(''):'')
+    +`<div style="border:1px dashed var(--border2);border-radius:var(--r2);padding:18px;display:flex;align-items:center;justify-content:center;min-height:180px;cursor:pointer;background:transparent;" onclick="openODProgramModal()"><div style="text-align:center;color:var(--muted);"><div style="font-size:32px;margin-bottom:8px;">+</div><div style="font-size:13px;font-weight:600;">Nowy program on-demand</div><div style="font-size:11px;margin-top:4px;">Klienci startują sami</div></div></div>`;
 }
 
 function odWorkoutCardHTML(w,i){
@@ -687,20 +688,129 @@ function odProgramCardHTML(p,i){
       <div style="font-size:36px;opacity:0.25;position:absolute;top:10px;right:10px;">${p.emoji||'🏋️'}</div>
       <div>
         <span style="background:rgba(0,0,0,0.6);color:${p.status==='draft'?'var(--orange)':'var(--accent)'};font-size:10px;font-family:'DM Mono',monospace;padding:2px 8px;border-radius:4px;margin-right:6px;">${p.status==='draft'?'DRAFT':'AKTYWNY'}</span>
-        <span style="background:rgba(0,0,0,0.6);color:#fff;font-size:10px;font-family:'DM Mono',monospace;padding:2px 8px;border-radius:4px;">${p.duration}</span>
+        <span style="background:rgba(0,0,0,0.6);color:#fff;font-size:10px;font-family:'DM Mono',monospace;padding:2px 8px;border-radius:4px;">${escHtml(p.duration||'')}</span>
       </div>
     </div>
     <div style="padding:14px;">
-      <div style="font-size:14px;font-weight:700;margin-bottom:4px;">${p.name}</div>
-      <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:10px;">${p.desc||''}</div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">Dostępny dla <strong>${p.clients}</strong> klientów</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:4px;">${escHtml(p.name)}</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:10px;">${escHtml(p.desc||'')}</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">Poziom: <strong>${LEVEL_MAP[p.level]||escHtml(p.level||'—')}</strong></div>
       <div style="display:flex;gap:6px;">
-        <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="notify('Edytor programów — wkrótce!')">Edytuj</button>
-        <button class="btn btn-primary btn-sm" style="flex:1;" onclick="shareODProgram('${p.id}')">Udostępnij</button>
+        <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="openODProgramModal('${escHtml(p.id)}')">Edytuj</button>
+        <button class="btn btn-primary btn-sm" style="flex:1;" onclick="shareODProgram('${escHtml(p.id)}')">Udostępnij</button>
       </div>
     </div>
   </div>`;
 }
+
+function openODProgramModal(id){
+  window._editingODProgId=id||null;
+  let m=document.getElementById('m-od-program');
+  if(!m){
+    m=document.createElement('div');
+    m.id='m-od-program';m.className='modal-ov';
+    m.innerHTML=`<div class="modal" style="max-width:520px;">
+      <div class="modal-hdr"><div class="modal-title" id="odp-modal-title">NOWY PROGRAM ON-DEMAND</div><button class="modal-close" onclick="closeM('m-od-program')">×</button></div>
+      <div class="modal-body">
+        <div class="form-field"><label class="form-lbl">Nazwa</label><input type="text" class="form-input" id="odp-name" placeholder="np. Starting Strength 4 tyg."></div>
+        <div class="form-grid">
+          <div class="form-field"><label class="form-lbl">Poziom</label>
+            <select class="form-select" id="odp-level">
+              <option value="poczatkujacy">Początkujący</option>
+              <option value="sredni" selected>Średni</option>
+              <option value="zaawansowany">Zaawansowany</option>
+            </select>
+          </div>
+          <div class="form-field"><label class="form-lbl">Czas trwania</label><input type="text" class="form-input" id="odp-duration" placeholder="np. 8 tygodni" value="4 tygodnie"></div>
+        </div>
+        <div class="form-grid">
+          <div class="form-field"><label class="form-lbl">Status</label>
+            <select class="form-select" id="odp-status">
+              <option value="draft">Draft</option>
+              <option value="active">Aktywny</option>
+            </select>
+          </div>
+          <div class="form-field"><label class="form-lbl">Emoji</label><input type="text" class="form-input" id="odp-emoji" value="🏋️" maxlength="4"></div>
+        </div>
+        <div class="form-field"><label class="form-lbl">Opis</label><textarea class="form-textarea" id="odp-desc" rows="3" placeholder="Opis programu dla klientów..."></textarea></div>
+      </div>
+      <div class="modal-footer" style="display:flex;gap:8px;justify-content:flex-end;">
+        <button class="btn btn-ghost btn-sm" id="odp-delete-btn" style="display:none;margin-right:auto;color:var(--red);" onclick="deleteODProgram()">Usuń</button>
+        <button class="btn btn-ghost" onclick="closeM('m-od-program')">Anuluj</button>
+        <button class="btn btn-primary" onclick="saveODProgram()">Zapisz</button>
+      </div>
+    </div>`;
+    document.body.appendChild(m);
+    m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');});
+  }
+  const p=id?(window.OD_PROGRAMS||[]).find(x=>x.id===id)||OD_DEMO_PROGRAMS.find(x=>x.id===id):null;
+  document.getElementById('odp-modal-title').textContent=p?'EDYTUJ PROGRAM':'NOWY PROGRAM ON-DEMAND';
+  document.getElementById('odp-name').value=p?.name||'';
+  document.getElementById('odp-level').value=p?.level||'sredni';
+  document.getElementById('odp-duration').value=p?.duration||'4 tygodnie';
+  document.getElementById('odp-status').value=p?.status||'draft';
+  document.getElementById('odp-emoji').value=p?.emoji||'🏋️';
+  document.getElementById('odp-desc').value=p?.desc||'';
+  const del=document.getElementById('odp-delete-btn');
+  if(del)del.style.display=(p&&window.OD_PROGRAMS.some(x=>x.id===p.id))?'inline-flex':'none';
+  openM('m-od-program');
+}
+
+async function saveODProgram(){
+  const name=document.getElementById('odp-name')?.value.trim();
+  if(!name){notify('Wpisz nazwę programu!');return;}
+  const editingId=window._editingODProgId;
+  let prog;
+  if(editingId){
+    prog=(window.OD_PROGRAMS||[]).find(x=>x.id===editingId);
+    if(!prog){
+      // edycja demo → utwórz kopię użytkownika
+      prog=withTrainer({id:newId('op'),name,level:document.getElementById('odp-level').value,duration:document.getElementById('odp-duration').value.trim()||'4 tygodnie',status:document.getElementById('odp-status').value,emoji:document.getElementById('odp-emoji').value||'🏋️',desc:document.getElementById('odp-desc').value.trim(),color:'linear-gradient(135deg,#1a0a0a,#2a1a0a)',clients:0,createdAt:new Date().toISOString()});
+      window.OD_PROGRAMS.push(prog);
+    }else{
+      prog.name=name;
+      prog.level=document.getElementById('odp-level').value;
+      prog.duration=document.getElementById('odp-duration').value.trim()||prog.duration;
+      prog.status=document.getElementById('odp-status').value;
+      prog.emoji=document.getElementById('odp-emoji').value||'🏋️';
+      prog.desc=document.getElementById('odp-desc').value.trim();
+      prog.updatedAt=new Date().toISOString();
+      withTrainer(prog);
+    }
+  }else{
+    prog=withTrainer({
+      id:newId('op'),name,
+      level:document.getElementById('odp-level').value,
+      duration:document.getElementById('odp-duration').value.trim()||'4 tygodnie',
+      status:document.getElementById('odp-status').value,
+      emoji:document.getElementById('odp-emoji').value||'🏋️',
+      desc:document.getElementById('odp-desc').value.trim(),
+      color:'linear-gradient(135deg,#1a0a0a,#2a1a0a)',
+      clients:0,
+      createdAt:new Date().toISOString()
+    });
+    window.OD_PROGRAMS.push(prog);
+  }
+  await persistById('odPrograms',prog);
+  closeM('m-od-program');
+  renderODPrograms();
+  if(odTab==='browse')renderODBrowse();
+  notify('✓ Program "'+name+'" zapisany');
+}
+
+async function deleteODProgram(){
+  const id=window._editingODProgId;if(!id)return;
+  if(!confirm('Usunąć ten program?'))return;
+  window.OD_PROGRAMS=(window.OD_PROGRAMS||[]).filter(x=>x.id!==id);
+  if(window._db){try{await window._del(window._doc(window._db,'odPrograms',id));}catch(e){}}
+  closeM('m-od-program');
+  renderODPrograms();
+  notify('Program usunięty');
+}
+window.openODProgramModal=openODProgramModal;
+window.saveODProgram=saveODProgram;
+window.deleteODProgram=deleteODProgram;
+window.allODPrograms=allODPrograms;
 
 function shareODWorkout(id){
   if(!CL.length){notify('Najpierw dodaj klienta!');return;}
@@ -713,9 +823,9 @@ function shareODWorkout(id){
 
 function shareODProgram(id){
   if(!CL.length){notify('Najpierw dodaj klienta!');return;}
-  const p=OD_DEMO_PROGRAMS.find(x=>x.id===id);
+  const p=allODPrograms().find(x=>x.id===id);
   if(!p){notify('Nie znaleziono programu');return;}
-  CL.forEach(c=>pushMsg(c.id,'📋 Program on-demand: "'+p.name+'" — szczegóły u trenera / w bibliotece.'));
+  CL.forEach(c=>pushMsg(c.id,'📋 Program on-demand: "'+p.name+'"'+(p.desc?'\n'+p.desc:'')+'\nCzas: '+(p.duration||'—')+' · '+(LEVEL_MAP[p.level]||p.level||'')));
   notify('✓ Program "'+p.name+'" wysłany do '+CL.length+' klientów (Inbox)');
 }
 
@@ -1184,9 +1294,7 @@ function toggleAF(id){
     af.status=af.status==='active'?'inactive':'active';
     renderAutoflows();
     notify('Autoflow '+(af.status==='active'?'włączony':'wyłączony'));
-    if(window._db&&af._fbId){
-      window._setDoc(window._doc(window._db,'autoflows',af._fbId),{status:af.status},{merge:true}).catch(e=>console.warn('Firebase toggleAF:',e));
-    }
+    persistById('autoflows',af);
     if(af.status==='active'&&typeof runAutoflowsCheck==='function')runAutoflowsCheck();
   }
 }

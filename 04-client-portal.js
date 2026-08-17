@@ -15,7 +15,7 @@ const CAP_MUTED='rgba(255,255,255,0.4)';
 function initClientApp(){
   const sel=document.getElementById('cap-client-sel');
   if(sel){
-    sel.innerHTML='<option value="">Wybierz klienta...</option>'+CL.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+    sel.innerHTML='<option value="">Wybierz klienta...</option>'+CL.map(c=>`<option value="${escHtml(c.id)}">${escHtml(c.name)}</option>`).join('');
     if(!capClientId&&CL.length){capClientId=CL[0].id;sel.value=capClientId;}
   }
   const title=document.querySelector('#screen-clientapp .topbar-title');
@@ -555,7 +555,7 @@ function renderCapAccess(){
         <div class="form-field"><label class="form-lbl">Klient</label>
           <select class="form-select" id="cap-inv-client" style="font-size:13px;">
             <option value="">Wybierz klienta...</option>
-            ${CL.map(c=>`<option value="${c.id}">${c.name}</option>`).join('')}
+            ${CL.map(c=>`<option value="${escHtml(c.id)}">${escHtml(c.name)}</option>`).join('')}
           </select>
         </div>
         <div class="form-field"><label class="form-lbl">Metoda</label>
@@ -1193,7 +1193,7 @@ function connectInt(id){
   // Zapisujemy WYŁĄCZNIE ustawienia — ta aplikacja jest statyczną stroną bez własnego
   // serwera, więc nie ma jak realnie połączyć się z Stripe/Google/innym API stąd.
   // Konfiguracja zostaje zapisana, żeby nie przepadła, gdyby kiedyś powstał do tego backend.
-  window.INT_CONNECTIONS[id]={connected:true,config,configuredAt:new Date().toISOString(),lastSync:null};
+  window.INT_CONNECTIONS[id]=withTrainer({id,connected:true,config,configuredAt:new Date().toISOString(),lastSync:null});
   if(window._db){window._setDoc(window._doc(window._db,'integrationConfigs',id),window.INT_CONNECTIONS[id],{merge:true}).catch(e=>console.warn('Firebase integration config save:',e));}
   addNotification('system','Konfiguracja zapisana',`${int.name} — dane zapisane (bez realnego połączenia, patrz opis)`,'integrations');
   notify(`✓ ${int.name} — konfiguracja zapisana. Pamiętaj: to jeszcze nie prawdziwe połączenie (patrz informacja na ekranie).`);
@@ -1989,7 +1989,9 @@ window.SETTINGS={
     phone:'+48 501 234 567',
     bio:'Certyfikowany trener personalny z 8-letnim doświadczeniem. Specjalizuję się w treningu siłowym, hipertrofii i redukcji. Certyfikaty: NSCA-CPT, FMS Level 2.',
     avatar:'PU',
+    avatarUrl:null,
     specialty:['Trening siłowy','Hipertrofia','Redukcja'],
+    certs:['NSCA-CPT','FMS Level 2'],
   },
   brand:{
     accentColor:'#e11f2e',
@@ -2059,11 +2061,12 @@ function renderSettingsContent(t){
 
       ${card('Zdjęcie i dane osobowe','Informacje widoczne dla klientów w aplikacji mobilnej.',`
         <div style="display:flex;gap:20px;align-items:center;margin-bottom:20px;">
-          <div class="settings-avatar-big" id="set-avatar-preview" style="background:rgba(200,241,53,0.12);color:var(--accent);">${S.profile.avatar}</div>
+          <div class="settings-avatar-big" id="set-avatar-preview" style="background:rgba(200,241,53,0.12);color:var(--accent);overflow:hidden;">${S.profile.avatarUrl?`<img src="${escHtml(S.profile.avatarUrl)}" alt="" style="width:100%;height:100%;object-fit:cover;">`:escHtml(S.profile.avatar||'—')}</div>
           <div>
-            <div style="font-size:13px;font-weight:700;margin-bottom:4px;">${S.profile.name}</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">${S.profile.title}</div>
-            <button class="btn btn-ghost btn-sm" onclick="notify('Upload zdjęcia — wkrótce!')">📷 Zmień zdjęcie</button>
+            <div style="font-size:13px;font-weight:700;margin-bottom:4px;">${escHtml(S.profile.name)}</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">${escHtml(S.profile.title)}</div>
+            <input type="file" id="set-avatar-file" accept="image/*" style="display:none" onchange="uploadProfileImage(this,'avatar')">
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('set-avatar-file').click()">📷 Zmień zdjęcie</button>
           </div>
         </div>
         <div class="form-grid">
@@ -2079,7 +2082,7 @@ function renderSettingsContent(t){
 
       ${card('Specjalizacje','Twoje obszary ekspertyzy widoczne w profilu.',`
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;" id="set-specialties">
-          ${S.profile.specialty.map(s=>`<span style="background:var(--adim);border:1px solid rgba(200,241,53,0.3);color:var(--accent);border-radius:99px;padding:4px 12px;font-size:12px;cursor:pointer;" onclick="removeSpecialty('${s}')">${s} ×</span>`).join('')}
+          ${(S.profile.specialty||[]).map(s=>`<span style="background:var(--adim);border:1px solid rgba(200,241,53,0.3);color:var(--accent);border-radius:99px;padding:4px 12px;font-size:12px;cursor:pointer;" onclick="removeSpecialty('${escHtml(s).replace(/'/g,'&#39;')}')">${escHtml(s)} ×</span>`).join('')}
         </div>
         <div style="display:flex;gap:8px;">
           <input type="text" class="form-input" id="set-new-specialty" placeholder="np. Trening funkcjonalny" style="font-size:13px;">
@@ -2089,12 +2092,15 @@ function renderSettingsContent(t){
 
       ${card('Certyfikaty i kwalifikacje','',`
         <div style="display:flex;flex-direction:column;gap:8px;">
-          ${['NSCA-CPT','FMS Level 2'].map(c=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--s3);border-radius:8px;">
+          ${(S.profile.certs||[]).map((c,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--s3);border-radius:8px;">
             <span style="font-size:16px;">🏆</span>
-            <span style="font-size:13px;">${c}</span>
-            <button onclick="notify('Usuń certyfikat — wkrótce!')" style="background:none;border:none;color:var(--muted2);font-size:16px;cursor:pointer;margin-left:auto;">×</button>
+            <span style="font-size:13px;">${escHtml(c)}</span>
+            <button onclick="removeCert(${i})" style="background:none;border:none;color:var(--muted2);font-size:16px;cursor:pointer;margin-left:auto;">×</button>
           </div>`).join('')}
-          <button class="btn btn-ghost btn-sm" style="margin-top:4px;" onclick="notify('Dodaj certyfikat — wkrótce!')">+ Dodaj certyfikat</button>
+          <div style="display:flex;gap:8px;margin-top:4px;">
+            <input type="text" class="form-input" id="set-new-cert" placeholder="np. NSCA-CPT" style="font-size:13px;">
+            <button class="btn btn-ghost btn-sm" onclick="addCert()">+ Dodaj</button>
+          </div>
         </div>
       `)}
     </div>`;
@@ -2123,12 +2129,14 @@ function renderSettingsContent(t){
 
       ${card('Logo','Logo widoczne w raportach PDF i nagłówku aplikacji.',`
         <div style="display:flex;gap:16px;align-items:center;">
-          <div style="width:80px;height:80px;background:var(--s3);border:1px solid var(--border2);border-radius:12px;display:flex;align-items:center;justify-content:center;" id="set-logo-preview">
-            <span style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--accent);">PL</span>
+          <div style="width:80px;height:80px;background:var(--s3);border:1px solid var(--border2);border-radius:12px;display:flex;align-items:center;justify-content:center;overflow:hidden;" id="set-logo-preview">
+            ${S.brand.logo?`<img src="${escHtml(S.brand.logo)}" alt="logo" style="width:100%;height:100%;object-fit:contain;">`:`<span style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--accent);">PL</span>`}
           </div>
           <div>
-            <button class="btn btn-ghost btn-sm" onclick="notify('Upload logo — wkrótce!')">📁 Wgraj logo (PNG/SVG)</button>
-            <div style="font-size:11px;color:var(--muted);margin-top:6px;">Zalecany rozmiar: 200×200 px, przezroczyste tło</div>
+            <input type="file" id="set-logo-file" accept="image/png,image/svg+xml,image/jpeg,image/webp" style="display:none" onchange="uploadProfileImage(this,'logo')">
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('set-logo-file').click()">📁 Wgraj logo (PNG/SVG)</button>
+            ${S.brand.logo?`<button class="btn btn-ghost btn-sm" style="margin-left:6px;" onclick="clearBrandLogo()">Usuń</button>`:''}
+            <div style="font-size:11px;color:var(--muted);margin-top:6px;">Zalecany rozmiar: 200×200 px · zapis lokalnie w ustawieniach (max ~400 KB)</div>
           </div>
         </div>
       `)}
@@ -2288,12 +2296,13 @@ function renderSettingsContent(t){
         </div>
       `)}
 
-      ${card('Import danych','',`
+      ${card('Import danych','Import klientów z CSV (kolumny: name,email,phone,goal,level — nagłówek opcjonalny).',`
         <div style="border:1px dashed var(--border2);border-radius:8px;padding:20px;text-align:center;color:var(--muted);">
           <div style="font-size:32px;margin-bottom:8px;">📂</div>
-          <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Importuj dane</div>
-          <div style="font-size:11px;margin-bottom:12px;">CSV z klientami, sesjami lub pomiarami</div>
-          <button class="btn btn-ghost btn-sm" onclick="notify('Import — wkrótce!')">Wybierz plik</button>
+          <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Importuj klientów (CSV)</div>
+          <div style="font-size:11px;margin-bottom:12px;">Oddzielone średnikiem lub przecinkiem · UTF-8</div>
+          <input type="file" id="import-csv-file" accept=".csv,text/csv,text/plain" style="display:none" onchange="importClientsCsv(this)">
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('import-csv-file').click()">Wybierz plik</button>
         </div>
       `)}
 
@@ -2371,15 +2380,137 @@ function setAccentColor(color){
 function addSpecialty(){
   const inp=document.getElementById('set-new-specialty');
   if(!inp||!inp.value.trim())return;
+  if(!window.SETTINGS.profile.specialty)window.SETTINGS.profile.specialty=[];
   window.SETTINGS.profile.specialty.push(inp.value.trim());
   inp.value='';
   renderSettingsContent('profile');
+  persistSettingsDoc();
 }
 
 function removeSpecialty(s){
-  window.SETTINGS.profile.specialty=window.SETTINGS.profile.specialty.filter(x=>x!==s);
+  window.SETTINGS.profile.specialty=(window.SETTINGS.profile.specialty||[]).filter(x=>x!==s);
   renderSettingsContent('profile');
+  persistSettingsDoc();
 }
+
+function addCert(){
+  const inp=document.getElementById('set-new-cert');
+  if(!inp||!inp.value.trim())return;
+  if(!window.SETTINGS.profile.certs)window.SETTINGS.profile.certs=[];
+  window.SETTINGS.profile.certs.push(inp.value.trim());
+  inp.value='';
+  renderSettingsContent('profile');
+  persistSettingsDoc();
+  notify('✓ Certyfikat dodany');
+}
+function removeCert(idx){
+  if(!window.SETTINGS.profile.certs)return;
+  window.SETTINGS.profile.certs.splice(idx,1);
+  renderSettingsContent('profile');
+  persistSettingsDoc();
+}
+window.addCert=addCert;window.removeCert=removeCert;
+
+function persistSettingsDoc(){
+  const S=window.SETTINGS;if(!S)return;
+  withTrainer(S);
+  if(!window._db)return;
+  const sid=window._settingsDocId||window._uid||'default';
+  window._setDoc(window._doc(window._db,'settings',sid),S,{merge:true}).then(()=>{window._settingsDocId=sid;}).catch(e=>console.warn('Firebase settings:',e));
+}
+window.persistSettingsDoc=persistSettingsDoc;
+
+function uploadProfileImage(input,kind){
+  const file=input?.files?.[0];if(!file)return;
+  if(file.size>450000){notify('Plik za duży (max ~400 KB). Skompresuj obraz.');input.value='';return;}
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const dataUrl=reader.result;
+    if(kind==='logo'){
+      window.SETTINGS.brand.logo=dataUrl;
+      renderSettingsContent('brand');
+    }else{
+      window.SETTINGS.profile.avatarUrl=dataUrl;
+      if(window.SETTINGS.profile.name)window.SETTINGS.profile.avatar=getInit(window.SETTINGS.profile.name);
+      renderSettingsContent('profile');
+      syncSidebarProfile();
+    }
+    persistSettingsDoc();
+    notify(kind==='logo'?'✓ Logo zapisane':'✓ Zdjęcie profilowe zapisane');
+  };
+  reader.onerror=()=>notify('Nie udało się odczytać pliku');
+  reader.readAsDataURL(file);
+  input.value='';
+}
+window.uploadProfileImage=uploadProfileImage;
+
+function clearBrandLogo(){
+  window.SETTINGS.brand.logo=null;
+  renderSettingsContent('brand');
+  persistSettingsDoc();
+  notify('Logo usunięte');
+}
+window.clearBrandLogo=clearBrandLogo;
+
+async function importClientsCsv(input){
+  const file=input?.files?.[0];if(!file)return;
+  try{
+    const text=await file.text();
+    const lines=text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+    if(!lines.length){notify('Pusty plik CSV');return;}
+    const delim=lines[0].includes(';')?';':',';
+    const split=(line)=>{
+      const out=[];let cur='',q=false;
+      for(let i=0;i<line.length;i++){
+        const ch=line[i];
+        if(ch==='"'){q=!q;continue;}
+        if(ch===delim&&!q){out.push(cur.trim());cur='';continue;}
+        cur+=ch;
+      }
+      out.push(cur.trim());
+      return out;
+    };
+    let start=0;
+    let headers=split(lines[0]).map(h=>h.toLowerCase());
+    const looksHeader=headers.some(h=>/name|imie|imię|email|mail|phone|telefon|goal|cel|level|poziom/.test(h));
+    if(looksHeader)start=1;else headers=['name','email','phone','goal','level'];
+    const idx=(...aliases)=>{
+      for(const a of aliases){const i=headers.findIndex(h=>h===a||h.includes(a));if(i>=0)return i;}
+      return -1;
+    };
+    const iName=idx('name','imie','imię','nazwa');
+    const iEmail=idx('email','mail');
+    const iPhone=idx('phone','telefon','tel');
+    const iGoal=idx('goal','cel');
+    const iLevel=idx('level','poziom');
+    let imported=0;
+    for(let li=start;li<lines.length;li++){
+      const cols=split(lines[li]);
+      const name=(iName>=0?cols[iName]:cols[0])||'';
+      if(!name||name.length<2)continue;
+      const c=withTrainer({
+        id:newId('c'),name,
+        email:iEmail>=0?(cols[iEmail]||''):'',
+        phone:iPhone>=0?(cols[iPhone]||''):'',
+        goal:iGoal>=0?(cols[iGoal]||'masa'):'masa',
+        level:iLevel>=0?(cols[iLevel]||'sredni'):'sredni',
+        status:'active',
+        joinDate:new Date().toISOString().split('T')[0],
+        source:'CSV import',
+        createdAt:new Date().toISOString()
+      });
+      CL.push(c);
+      await persistById('clients',c);
+      imported++;
+    }
+    renderAll();
+    notify(imported?'✓ Zaimportowano '+imported+' klientów':'Nie znaleziono wierszy do importu');
+  }catch(e){
+    console.warn(e);notify('Błąd importu CSV: '+(e.message||e));
+  }
+  input.value='';
+}
+window.importClientsCsv=importClientsCsv;
 
 function exportData(type){
   if(type==='clients'){
