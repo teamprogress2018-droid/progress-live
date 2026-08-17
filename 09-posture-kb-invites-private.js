@@ -1230,15 +1230,15 @@ function execAFStep(step,c){
   if(step.type==='message'){
     if(typeof pushMsg==='function')pushMsg(c.id,text);
   }else if(step.type==='task'){
-    const t={id:'af_t_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),clientId:c.id,title:text,status:'open',priority:'medium',cat:'trening',due:new Date().toISOString().split('T')[0],createdAt:new Date().toISOString()};
+    const t=withTrainer({id:newId('t'),clientId:c.id,title:text,status:'open',priority:'medium',cat:'trening',due:new Date().toISOString().split('T')[0],createdAt:new Date().toISOString()});
     window.TASKS.push(t);
-    if(window._db)window._add(window._col(window._db,'tasks'),t).catch(e=>console.warn('Autoflow task save:',e));
+    persistById('tasks',t);
   }else if(step.type==='form'){
     const form=(typeof allForms==='function'?allForms():[]).find(f=>f.name.toLowerCase().includes(text.toLowerCase())||text.toLowerCase().includes(f.name.toLowerCase()));
     if(form){
-      const send={formId:form.id,clientId:c.id,sentAt:new Date().toLocaleDateString('pl'),status:'sent',answers:[]};
+      const send=withTrainer({id:newId('fs'),formId:form.id,clientId:c.id,sentAt:new Date().toLocaleDateString('pl'),status:'sent',answers:[]});
       window.FORM_SENDS.push(send);
-      if(window._db)window._add(window._col(window._db,'formSends'),send).catch(e=>console.warn('Autoflow form save:',e));
+      persistById('formSends',send);
     }
   }
   if(typeof addNotification==='function')addNotification('system','Autoflow: krok wykonany',text.substring(0,60)+' — '+c.name,'automation');
@@ -1246,11 +1246,10 @@ function execAFStep(step,c){
 
 function saveAutomationState(){
   if(!window._db)return;
-  if(window._afStateDocId){
-    window._setDoc(window._doc(window._db,'automationState',window._afStateDocId),window.AF_STATE,{merge:true}).catch(e=>console.warn('AF state save:',e));
-  }else{
-    window._add(window._col(window._db,'automationState'),window.AF_STATE).then(r=>{if(r&&r.id)window._afStateDocId=r.id;}).catch(e=>console.warn('AF state save:',e));
-  }
+  withTrainer(window.AF_STATE);
+  const docId=window._afStateDocId||window._uid||'default';
+  window._afStateDocId=docId;
+  window._setDoc(window._doc(window._db,'automationState',docId),window.AF_STATE,{merge:true}).catch(e=>console.warn('AF state save:',e));
 }
 
 function notify(msg){

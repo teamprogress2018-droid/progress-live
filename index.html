@@ -3657,9 +3657,17 @@ async function load(){
     }
   }catch(e){console.warn('Wczytywanie zasobów nie powiodło się:',e);window.USER_RESOURCES=window.USER_RESOURCES||[];}
   window.AF_STATE=window.AF_STATE||{enrollments:{},executed:{},lastFired:{}};
+  try{
+    await window.migrateTrainerOwnership?.([
+      'clients','plans','sessions','exercises','workouts','tasks','kb','metricEntries','metricGroups',
+      'messages','packages','invoices','formSends','reportHistory','forms','programs','checkins',
+      'notifications','autoflows','forumGroups','forumPosts','forumComments','odWorkouts','resources'
+    ]);
+  }catch(e){console.warn('Migracja trainerId:',e);}
   try{if(typeof window.runAutoflowsCheck==='function')window.runAutoflowsCheck();}catch(e){console.warn('runAutoflowsCheck:',e);}
   try{if(typeof window.syncSidebarProfile==='function')window.syncSidebarProfile();}catch(e){}
   window.renderAll();
+  try{if(typeof window.consumeClientPreviewHash==='function')window.consumeClientPreviewHash();}catch(e){}
 }
 </script>
 

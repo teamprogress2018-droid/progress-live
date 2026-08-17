@@ -329,91 +329,59 @@ function capScreenHTML(scr,c){
       <button class="cap-btn-primary">✓ Wyślij check-in</button>
     </div>`;
 
-  if(scr==='messages') return `
+  if(scr==='messages'){
+    const realMsgs=(typeof MSGS!=='undefined'&&MSGS[c.id])?MSGS[c.id].slice(-20):[];
+    const msgs=realMsgs.length?realMsgs.map(m=>({out:!!m.out,text:escHtml(m.text||''),time:m.time||''})):[
+      {out:false,text:'Hej! Napisz do mnie, gdy będziesz miał pytanie o trening 💪',time:''}
+    ];
+    return `
     <div style="display:flex;flex-direction:column;height:100%;padding-bottom:80px;">
-      <!-- header -->
       <div style="padding:12px 16px;border-bottom:1px solid ${CAP_S3};display:flex;align-items:center;gap:10px;flex-shrink:0;">
-        <div style="width:36px;height:36px;border-radius:50%;background:${accent}22;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;color:${accent};">PU</div>
-        <div><div style="font-size:13px;font-weight:700;color:${CAP_TEXT};">${trainerName}</div>
-        <div style="font-size:10px;color:var(--teal);">● Online</div></div>
+        <div style="width:36px;height:36px;border-radius:50%;background:${accent}22;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;color:${accent};">${escHtml(getInit(trainerName))}</div>
+        <div><div style="font-size:13px;font-weight:700;color:${CAP_TEXT};">${escHtml(trainerName)}</div>
+        <div style="font-size:10px;color:var(--teal);">Trener</div></div>
       </div>
-      <!-- wiadomości -->
       <div style="flex:1;overflow-y:auto;padding:14px 12px;">
-        ${[
-          {out:false,text:`Hej ${c.name.split(' ')[0]}! Jak Ci idzie z nowym planem? 💪`,time:'Wt 9:15'},
-          {out:true,text:'Świetnie! Wczoraj pobiłem rekord w przysiadzie — 120 kg! 🎉',time:'Wt 10:32'},
-          {out:false,text:'Super robota! To efekt tych 8 tygodni ciężkiej pracy. Pamiętaj o regeneracji dziś wieczór 🧘',time:'Wt 10:45'},
-          {out:true,text:'Będę pamiętał! Mam pytanie — czy mogę dodać cardio w dni wolne od siłowni?',time:'Wt 11:00'},
-          {out:false,text:'Tak, 20-30 min lekkiego cardio w niskiej strefie (strefa 2) będzie idealne. Bieganie lub rower 👍',time:'Wt 11:05'},
-        ].map(m=>`<div style="margin-bottom:10px;${m.out?'text-align:right;':''}">
-          <div style="display:inline-block;max-width:80%;padding:10px 14px;border-radius:${m.out?'16px 4px 16px 16px':'4px 16px 16px 16px'};background:${m.out?accent:CAP_S2};color:${m.out?'#000':CAP_TEXT};font-size:12px;line-height:1.5;border:${m.out?'none':'1px solid '+CAP_S3};">${m.text}</div>
-          <div style="font-size:9px;color:${CAP_MUTED};margin-top:3px;">${m.time}</div>
+        ${msgs.map(m=>`<div style="margin-bottom:10px;${!m.out?'text-align:right;':''}">
+          <div style="display:inline-block;max-width:80%;padding:10px 14px;border-radius:${!m.out?'16px 4px 16px 16px':'4px 16px 16px 16px'};background:${!m.out?accent:CAP_S2};color:${!m.out?'#000':CAP_TEXT};font-size:12px;line-height:1.5;border:${!m.out?'none':'1px solid '+CAP_S3};white-space:pre-wrap;">${m.text}</div>
+          <div style="font-size:9px;color:${CAP_MUTED};margin-top:3px;">${escHtml(m.time)}</div>
         </div>`).join('')}
       </div>
-      <!-- input -->
       <div style="padding:10px 12px;background:${CAP_S1};border-top:1px solid ${CAP_S3};display:flex;gap:8px;align-items:center;">
-        <div style="flex:1;background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:20px;padding:10px 14px;font-size:12px;color:${CAP_MUTED};">Napisz wiadomość...</div>
-        <div style="width:36px;height:36px;background:${accent};border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;flex-shrink:0;">→</div>
+        <div style="flex:1;background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:20px;padding:10px 14px;font-size:12px;color:${CAP_MUTED};">Podgląd — odpowiedź w panelu trenera</div>
       </div>
     </div>`;
+  }
 
-  if(scr==='ondemand') return `
+  if(scr==='ondemand'){
+    const odList=(window.OD_WORKOUTS||[]).slice(0,8);
+    return `
     <div class="cap-section" style="padding-bottom:90px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:16px;padding-top:8px;">ON-DEMAND</div>
-      <!-- kategorie -->
-      <div style="display:flex;gap:8px;overflow-x:auto;margin-bottom:16px;padding-bottom:4px;">
-        ${['Wszystkie','Full Body','Siła','HIIT','Mobilność'].map((cat,i)=>`<div style="padding:8px 16px;border-radius:20px;background:${i===0?accent:CAP_S2};color:${i===0?'#000':CAP_MUTED};font-size:12px;font-weight:600;white-space:nowrap;cursor:pointer;border:1px solid ${i===0?accent:CAP_S3};">${cat}</div>`).join('')}
-      </div>
-      <!-- treningi -->
-      ${[
-        {name:'Full Body EMOM 30 min',level:'Średni',time:30,emoji:'⚡',col:'#1a1a2e'},
-        {name:'HIIT Tabata — bez sprzętu',level:'Średni',time:25,emoji:'🔥',col:'#1a0a0a'},
-        {name:'Push Day — Klatka & Triceps',level:'Zaawansowany',time:55,emoji:'💪',col:'#0a1a0a'},
-        {name:'Mobilność bioder 20 min',level:'Początkujący',time:20,emoji:'🧘',col:'#0a1a1a'},
-      ].map(w=>`<div style="background:linear-gradient(135deg,${w.col},${CAP_S1});border:1px solid ${CAP_S3};border-radius:18px;overflow:hidden;margin-bottom:12px;cursor:pointer;">
-        <div style="height:110px;display:flex;align-items:center;justify-content:center;position:relative;background:linear-gradient(135deg,${w.col},transparent);">
-          <div style="font-size:50px;opacity:0.3;position:absolute;">${w.emoji}</div>
-          <div style="width:48px;height:48px;border-radius:50%;background:${accent};display:flex;align-items:center;justify-content:center;font-size:20px;z-index:1;">▶</div>
-          <div style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.7);border-radius:4px;padding:2px 7px;font-size:10px;font-family:'DM Mono',monospace;color:#fff;">${w.time} min</div>
-        </div>
-        <div style="padding:12px;">
-          <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};">${w.name}</div>
-          <div style="font-size:11px;color:${CAP_MUTED};margin-top:2px;">${w.level} · ${w.time} min</div>
+      ${!odList.length?`<div style="text-align:center;padding:40px;color:${CAP_MUTED};font-size:12px;">Brak treningów on-demand — trener jeszcze nic nie dodał.</div>`:
+      odList.map(w=>`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;overflow:hidden;margin-bottom:12px;">
+        <div style="padding:14px;">
+          <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};">${escHtml(w.name)}</div>
+          <div style="font-size:11px;color:${CAP_MUTED};margin-top:2px;">${escHtml(w.level||'')} · ${w.time||'?'} min</div>
+          ${w.url?`<a href="${escHtml(w.url)}" target="_blank" rel="noopener" style="display:inline-block;margin-top:8px;font-size:11px;color:${accent};">Otwórz wideo →</a>`:''}
         </div>
       </div>`).join('')}
     </div>`;
+  }
 
-  if(scr==='resources') return `
+  if(scr==='resources'){
+    const resList=(typeof allResources==='function'?allResources():(window.USER_RESOURCES||[])).slice(0,10);
+    return `
     <div class="cap-section" style="padding-bottom:90px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:16px;padding-top:8px;">ZASOBY</div>
-      <!-- kolekcje -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;">
-        ${[
-          {name:'Poradniki\nżywieniowe',icon:'🥗',col:'var(--teal)',count:4},
-          {name:'Muzyka do\ntreningu',icon:'🎵',col:accent,count:5},
-          {name:'Podcasty\nfitness',icon:'🎧',col:'var(--purple)',count:6},
-          {name:'Technika\nćwiczeń',icon:'📹',col:'var(--orange)',count:3},
-        ].map(col=>`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:16px;padding:14px;cursor:pointer;">
-          <div style="font-size:28px;margin-bottom:8px;">${col.icon}</div>
-          <div style="font-size:12px;font-weight:700;color:${CAP_TEXT};line-height:1.3;white-space:pre-line;">${col.name}</div>
-          <div style="font-size:10px;color:${col.col};margin-top:4px;">${col.count} zasobów</div>
-        </div>`).join('')}
-      </div>
-      <!-- ostatnio dodane -->
-      <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">Ostatnio dodane przez trenera</div>
-      ${[
-        {name:'Dobre źródła białka',type:'🔗 Link',cat:'Odżywianie'},
-        {name:'Muzyka do treningu siłowego',type:'▶️ Wideo',cat:'Trening'},
-        {name:'Podcast o regeneracji CNS',type:'🎧 Podcast',cat:'Regeneracja'},
-      ].map(r=>`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:14px;margin-bottom:8px;display:flex;gap:12px;align-items:center;">
-        <div style="width:40px;height:40px;border-radius:12px;background:${accent}22;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">${r.type.split(' ')[0]}</div>
-        <div style="flex:1;">
-          <div style="font-size:12px;font-weight:700;color:${CAP_TEXT};">${r.name}</div>
-          <div style="font-size:10px;color:${CAP_MUTED};">${r.cat} · ${r.type.split(' ')[1]}</div>
-        </div>
-        <div style="color:${accent};font-size:18px;">→</div>
+      ${!resList.length?`<div style="text-align:center;padding:40px;color:${CAP_MUTED};font-size:12px;">Brak zasobów.</div>`:
+      resList.map(r=>`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:14px;margin-bottom:8px;">
+        <div style="font-size:12px;font-weight:700;color:${CAP_TEXT};">${escHtml(r.name)}</div>
+        <div style="font-size:10px;color:${CAP_MUTED};margin-top:2px;">${escHtml(r.cat||r.type||'')}</div>
+        ${r.url?`<a href="${escHtml(r.url)}" target="_blank" rel="noopener" style="display:inline-block;margin-top:6px;font-size:11px;color:${accent};">Otwórz →</a>`:''}
       </div>`).join('')}
     </div>`;
+  }
 
   if(scr==='profile') return `
     <div class="cap-section" style="padding-bottom:90px;">
@@ -2560,15 +2528,15 @@ function clearAllNotifs(){
 
 // Dodaj powiadomienie programowo (używane przez inne moduły)
 function addNotification(type,title,body,action=null){
-  const n={
-    id:'n'+Date.now(),type,title,body,
+  const n=withTrainer({
+    id:newId('n'),type,title,body,
     time:'teraz',
     read:false,
     action,
     createdAt:new Date().toISOString()
-  };
+  });
   window.NOTIFICATIONS.unshift(n);
-  if(window._db){window._add(window._col(window._db,'notifications'),n).then(r=>{if(r&&r.id)n._fbId=r.id;}).catch(e=>console.warn('Firebase notification save:',e));}
+  persistById('notifications',n);
   updateNotifBadge();
   // flash badge
   const badge=document.getElementById('notif-badge');
@@ -3255,9 +3223,9 @@ function addComment(pid){
   const inp=document.getElementById('new-comment-'+pid);
   if(!inp||!inp.value.trim()){notify('Napisz komentarz!');return;}
   if(!window.FORUM_COMMENTS[pid])window.FORUM_COMMENTS[pid]=[];
-  const c={id:'fc'+Date.now(),postId:pid,authorName:'Piotr Urbaniak',authorRole:'trener',body:inp.value.trim(),date:new Date().toISOString().split('T')[0],likes:0};
+  const c=withTrainer({id:newId('fc'),postId:pid,authorName:(window.SETTINGS?.profile?.name)||'Trener',authorRole:'trener',body:inp.value.trim(),date:new Date().toISOString().split('T')[0],likes:0});
   window.FORUM_COMMENTS[pid].push(c);
-  if(window._db){window._add(window._col(window._db,'forumComments'),c).then(r=>{if(r&&r.id)c._fbId=r.id;}).catch(e=>console.warn('Firebase comment save:',e));}
+  persistById('forumComments',c);
   inp.value='';
   openForumPost(pid);
   renderForumFeed();
@@ -3269,9 +3237,9 @@ function addCommentAs(pid,role){
   if(!inp||!inp.value.trim()){notify('Napisz komentarz!');return;}
   if(!window.FORUM_COMMENTS[pid])window.FORUM_COMMENTS[pid]=[];
   const client=CL[Math.floor(Math.random()*CL.length)];
-  const c={id:'fc'+Date.now(),postId:pid,authorName:client?client.name:'Klient',authorRole:'klient',body:inp.value.trim(),date:new Date().toISOString().split('T')[0],likes:0};
+  const c=withTrainer({id:newId('fc'),postId:pid,authorName:client?client.name:'Klient',authorRole:'klient',body:inp.value.trim(),date:new Date().toISOString().split('T')[0],likes:0});
   window.FORUM_COMMENTS[pid].push(c);
-  if(window._db){window._add(window._col(window._db,'forumComments'),c).then(r=>{if(r&&r.id)c._fbId=r.id;}).catch(e=>console.warn('Firebase comment save:',e));}
+  persistById('forumComments',c);
   inp.value='';
   openForumPost(pid);
   notify('✓ Komentarz dodany jako klient!');
@@ -3319,17 +3287,17 @@ function closeForumDetail(){
 function saveForumGroup(){
   const name=document.getElementById('fg-name').value.trim();
   if(!name){notify('Wpisz nazwę grupy!');return;}
-  const g={
-    id:'fg'+Date.now(),name,
+  const g=withTrainer({
+    id:newId('fg'),name,
     icon:document.getElementById('fg-icon').value,
     color:document.getElementById('fg-color').value,
     desc:document.getElementById('fg-desc').value,
     privacy:document.getElementById('fg-privacy').value,
     members:CL.length,
     createdAt:new Date().toISOString().split('T')[0]
-  };
+  });
   window.FORUM_GROUPS.push(g);
-  if(window._db){window._add(window._col(window._db,'forumGroups'),g).then(r=>{if(r&&r.id)g._fbId=r.id;}).catch(e=>console.warn('Firebase forum group save:',e));}
+  persistById('forumGroups',g);
   closeM('m-forum-group');
   renderForum();
   notify('✓ Grupa "'+name+'" utworzona!');
@@ -3341,18 +3309,18 @@ function saveForumPost(){
   if(!title){notify('Wpisz tytuł posta!');return;}
   if(!body){notify('Napisz treść posta!');return;}
   const col=POST_TYPE_COLORS[document.getElementById('fp-type').value]||'var(--accent)';
-  const p={
-    id:'fp'+Date.now(),
+  const p=withTrainer({
+    id:newId('fp'),
     title,body,
     type:document.getElementById('fp-type').value,
     groupId:document.getElementById('fp-group').value,
-    authorName:'Piotr Urbaniak',authorRole:'trener',
+    authorName:(window.SETTINGS?.profile?.name)||'Trener',authorRole:'trener',
     pinned:document.getElementById('fp-pinned').checked,
     date:new Date().toISOString().split('T')[0],
     likes:0,views:0,comments:0,reactions:{like:0}
-  };
+  });
   window.FORUM_POSTS.unshift(p);
-  if(window._db){window._add(window._col(window._db,'forumPosts'),p).then(r=>{if(r&&r.id)p._fbId=r.id;}).catch(e=>console.warn('Firebase forum post save:',e));}
+  persistById('forumPosts',p);
   closeM('m-forum-post');
   renderForum();
   notify('✓ Post "'+title.substring(0,30)+'" opublikowany!');

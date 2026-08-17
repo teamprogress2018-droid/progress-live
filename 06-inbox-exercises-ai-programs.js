@@ -100,12 +100,12 @@ function openChat(id){
   const wrap=document.getElementById('msg-wrap');
   wrap.innerHTML=MSGS[id].length?MSGS[id].map(m=>`
     <div style="margin-bottom:12px;${m.out?'text-align:right;':''}">
-      <div class="msg-bubble ${m.out?'msg-out':'msg-in'}">${m.text}</div>
-      <div style="font-size:10px;color:var(--muted);margin-top:3px;">${m.time}</div>
+      <div class="msg-bubble ${m.out?'msg-out':'msg-in'}" style="white-space:pre-wrap;">${escHtml(m.text||'')}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:3px;">${escHtml(m.time||'')}</div>
     </div>`).join('')
     :`<div style="text-align:center;padding:40px 20px;color:var(--muted);">
       <div style="font-size:32px;margin-bottom:8px;">👋</div>
-      <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Zacznij rozmowę z ${c.name}</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Zacznij rozmowę z ${escHtml(c.name)}</div>
       <div style="font-size:11px;">Wyślij wiadomość lub wybierz szybką odpowiedź poniżej</div>
     </div>`;
   wrap.scrollTop=wrap.scrollHeight;
@@ -181,12 +181,9 @@ function sendMsg(){
   const inp=document.getElementById('msg-inp');
   const txt=inp?inp.value.trim():'';
   if(!txt||!curChat)return;
-  if(!MSGS[curChat])MSGS[curChat]=[];
-  const msg={clientId:curChat,text:txt,out:true,time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),createdAt:new Date().toISOString()};
-  MSGS[curChat].push(msg);
+  pushMsg(curChat,txt);
   inp.value='';inp.style.height='auto';
   openChat(curChat);
-  if(window._db){window._add(window._col(window._db,'messages'),msg).then(r=>{if(r&&r.id)msg._fbId=r.id;}).catch(e=>console.warn('Firebase msg save:',e));}
 }
 
 function sendBroadcast(){
@@ -197,11 +194,8 @@ function sendBroadcast(){
   if(target==='active')targets=CL.filter(c=>c.status==='active');
   if(target==='inactive')targets=CL.filter(c=>c.status==='inactive');
   targets.forEach(c=>{
-    if(!MSGS[c.id])MSGS[c.id]=[];
     const text=msg.replace(/{imie}/g,c.name.split(' ')[0]);
-    const m={clientId:c.id,text,out:true,time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),createdAt:new Date().toISOString()};
-    MSGS[c.id].push(m);
-    if(window._db){window._add(window._col(window._db,'messages'),m).then(r=>{if(r&&r.id)m._fbId=r.id;}).catch(e=>console.warn('Firebase broadcast save:',e));}
+    pushMsg(c.id,text);
   });
   closeM('m-broadcast');
   renderInbox();

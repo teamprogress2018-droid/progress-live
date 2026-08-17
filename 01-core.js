@@ -65,6 +65,88 @@ function downloadCsv(filename,rows){
 }
 window.downloadCsv=downloadCsv;
 
+/** Jednorazowa migracja: dokumenty bez trainerId dostają uid bieżącego trenera. */
+async function migrateTrainerOwnership(collections){
+  if(!window._db||!window._uid)return;
+  const key='pl_trainer_migrated_'+window._uid;
+  try{if(localStorage.getItem(key)==='1')return;}catch(e){}
+  let tagged=0;
+  for(const colName of collections){
+    try{
+      const snap=await window._get(window._col(window._db,colName));
+      for(const d of snap.docs){
+        const data=d.data()||{};
+        if(data.trainerId)continue;
+        try{
+          await window._setDoc(window._doc(window._db,colName,d.id),{trainerId:window._uid},{merge:true});
+          tagged++;
+        }catch(e){}
+      }
+    }catch(e){console.warn('Migracja '+colName+':',e);}
+  }
+  try{localStorage.setItem(key,'1');}catch(e){}
+  if(tagged)console.info('Progress Live: oznaczono trainerId na',tagged,'legacy dokumentach');
+}
+window.migrateTrainerOwnership=migrateTrainerOwnership;
+
+/** Wejście w tryb podglądu klienta z linku #client-preview=<id>. */
+function enterClientPreviewMode(clientId){
+  window._clientPreviewMode=true;
+  capClientId=clientId;
+  window.capClientId=clientId;
+  const sidebar=document.querySelector('.sidebar');
+  if(sidebar)sidebar.style.display='none';
+  const main=document.querySelector('.main');
+  if(main){main.style.marginLeft='0';main.style.width='100%';}
+  goTo('clientapp');
+  const sel=document.getElementById('cap-client-sel');
+  if(sel){sel.value=clientId;sel.style.display='none';}
+  document.querySelectorAll('#cap-tab-customize,#cap-tab-access').forEach(b=>{if(b)b.style.display='none';});
+  let banner=document.getElementById('cap-mock-banner');
+  if(!banner){
+    // initClientApp mógł jeszcze nie dodać bannera — dodaj teraz
+    const top=document.querySelector('#screen-clientapp .topbar');
+    if(top){
+      banner=document.createElement('div');
+      banner.id='cap-mock-banner';
+      top.parentNode.insertBefore(banner,top.nextElementSibling);
+    }
+  }
+  if(banner){
+    banner.style.cssText='margin:0 16px 8px;padding:10px 14px;background:rgba(62,207,178,0.12);border:1px solid rgba(62,207,178,0.35);border-radius:8px;font-size:12px;color:var(--teal);';
+    banner.innerHTML='Podgląd klienta · <button type="button" onclick="exitClientPreviewMode()" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:12px;text-decoration:underline;">Wróć do panelu trenera</button>';
+  }
+  setCapTab('preview');
+  renderClientApp();
+}
+window.enterClientPreviewMode=enterClientPreviewMode;
+
+function exitClientPreviewMode(){
+  window._clientPreviewMode=false;
+  const sidebar=document.querySelector('.sidebar');
+  if(sidebar)sidebar.style.display='';
+  document.querySelectorAll('#cap-tab-customize,#cap-tab-access').forEach(b=>{if(b)b.style.display='';});
+  const sel=document.getElementById('cap-client-sel');
+  if(sel)sel.style.display='';
+  if(location.hash.indexOf('client-preview=')===0)history.replaceState(null,'',location.pathname+location.search);
+  const banner=document.getElementById('cap-mock-banner');
+  if(banner){
+    banner.style.cssText='margin:0 16px 8px;padding:10px 14px;background:rgba(201,123,63,0.12);border:1px solid rgba(201,123,63,0.35);border-radius:8px;font-size:12px;color:var(--orange);';
+    banner.textContent='To jest podgląd UI dla trenera — nie ma osobnej aplikacji klienta ani realnego logowania podopiecznych.';
+  }
+  goTo('dashboard');
+}
+window.exitClientPreviewMode=exitClientPreviewMode;
+
+function consumeClientPreviewHash(){
+  const m=(location.hash||'').match(/[#&]client-preview=([^&]+)/);
+  if(!m)return;
+  const cid=decodeURIComponent(m[1]);
+  if(CL.find(c=>c.id===cid))enterClientPreviewMode(cid);
+  else notify('Nie znaleziono klienta z linku podglądu');
+}
+window.consumeClientPreviewHash=consumeClientPreviewHash;
+
 /** Overlay ładowania danych po zalogowaniu. */
 function showAppLoading(on){
   let el=document.getElementById('app-loading');
@@ -88,9 +170,9 @@ window.showAppLoading=showAppLoading;
 // żeby żadna z nich nie znikała po odświeżeniu strony.
 function pushMsg(clientId,text){
   if(!MSGS[clientId])MSGS[clientId]=[];
-  const msg=withTrainer({clientId,text,out:true,time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),createdAt:new Date().toISOString()});
+  const msg=withTrainer({id:newId('msg'),clientId,text,out:true,time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),createdAt:new Date().toISOString()});
   MSGS[clientId].push(msg);
-  if(window._db){window._add(window._col(window._db,'messages'),msg).then(r=>{if(r&&r.id)msg._fbId=r.id;}).catch(e=>console.warn('Firebase msg save:',e));}
+  persistById('messages',msg);
   return msg;
 }
 const COLS=['#c8f135','#4d9fff','#9d7cf4','#ff8c42','#3ecfb2'];
