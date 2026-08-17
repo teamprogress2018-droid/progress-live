@@ -1569,7 +1569,7 @@ function selectInvMethod(btn) {
 }
 
 function updateInvitePreview(c, link, method) {
-  const trainerName = window.SETTINGS?.profile?.name || 'Twój trener';
+  const trainerName = getTrainerName('Twój trener');
   const firstName = c.name.split(' ')[0];
   const msgs = {
     wiadomosc: `Cześć ${firstName}! 👋\n\nWitaj w Progress Live — Twojej aplikacji treningowej!\n\n🔗 Twój link do aplikacji:\n${link}\n\nZaloguj się emailem: ${c.email || '[Twój email]'}\nDo zobaczenia na treningu! 💪\n\n— ${trainerName}`,
