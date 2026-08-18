@@ -1912,11 +1912,13 @@ function liveExCard(ex,i){
       </div>
       <div style="display:flex;gap:6px;align-items:center;">
         ${!ex.done?`<button type="button" class="live-skip-btn" onclick="event.stopPropagation();liveSkipEx(${i})">Pomiń</button>`:''}
+        ${ex.video?`<button type="button" class="live-skip-btn" onclick="event.stopPropagation();liveToggleExVideo(${i})">${ex.showVideo?'▾ Film':'▶ Film'}</button>`:''}
         <span style="color:var(--muted);font-size:14px;">${ex.collapsed?'▶':'▼'}</span>
       </div>
     </div>
     ${!ex.collapsed?`
     <div>
+      ${ex.showVideo&&typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:true}):''}
       <div class="live-set-grid live-set-head">
         <span></span><span>Seria</span><span style="text-align:center;">Ciężar</span><span style="text-align:center;">Powt.</span><span></span>
       </div>
@@ -1939,6 +1941,14 @@ function liveSetKey(e,ei,si){
   }
 }
 window.liveSetKey=liveSetKey;
+
+function liveToggleExVideo(i){
+  if(!liveExercises[i])return;
+  liveExercises[i].showVideo=!liveExercises[i].showVideo;
+  liveExercises[i].collapsed=false;
+  renderLiveExercises();
+}
+window.liveToggleExVideo=liveToggleExVideo;
 
 function liveToggleCollapse(i){
   liveExercises[i].collapsed=!liveExercises[i].collapsed;

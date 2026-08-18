@@ -49,6 +49,9 @@ jobs:
       - name: 1g. Testy EMOM
         run: node .github/scripts/test_emom.js
 
+      - name: 1g. Testy własnych filmów
+        run: node .github/scripts/test_own_videos.js
+
       - name: 2. Sprawdź duplikaty (funkcje / id / zmienne)
         run: python3 .github/scripts/check_duplicates.py
 

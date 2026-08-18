@@ -2154,6 +2154,7 @@ window.openTaskTemplates=openTaskTemplates;window.closeTaskTemplates=closeTaskTe
 window.applyTemplate=applyTemplate;window.askTaskAI=askTaskAI;window.addAITask=addAITask;
 window.setClientSegment=setClientSegment;window.filterClients=filterClients;
 window.setExView=setExView;window.openExDetail=openExDetail;window.closeExDetail=closeExDetail;
+window.setLibTab=setLibTab;window.saveOwnVideo=saveOwnVideo;window.editOwnVideo=editOwnVideo;window.delOwnVideo=delOwnVideo;
 window.prefillExInBuilder=prefillExInBuilder;window.prefillExInWorkout=prefillExInWorkout;
 window.askExAI=askExAI;
 window.renderPrograms=renderPrograms;window.setProgNav=setProgNav;window.setProgDurFilter=setProgDurFilter;
