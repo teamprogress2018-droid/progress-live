@@ -138,6 +138,8 @@ function capTodayExercises(c){
       sets+=' @'+p.kg+'kg';
     }
     if(typeof isEmomExercise==='function'&&isEmomExercise(p))sets+=' · EMOM';
+    const tag=typeof formatSetKindTag==='function'?formatSetKindTag(p):'';
+    if(tag)sets+=' · '+tag;
     return{
       name:p.name,
       ssLabel:p.ssLabel||'',
@@ -842,14 +844,10 @@ function capFormQControl(sendId,q,val,live){
 
 const CAP_SCREEN_INFO={
   home:{title:'🏠 Dziś',desc:'Jeden ekran na dzień: trening do odpalenia (Start), dzień wolny, nawyki, wyzwania, formularze od trenera, zadania i check-in jeśli czeka. Klient nie zgaduje, co ma zrobić.'},
-  plan:{title:'📋 Mój plan treningowy',desc:'Lista dni planu. Z każdego dnia treningowego klient może od razu kliknąć Start i odhaczać serie.'},
+  plan:{title:'📋 Mój plan treningowy',desc:'Lista dni planu z wskazówkami i filmem techniki. Start odhacza serie. W kreatorze: SS, EMOM, WU/DROP/AMRAP.'},
   calendar:{title:'📅 Kalendarz',desc:'Prawdziwy miesiąc z zaznaczonymi zrobionymi treningami, sesje z trenerem i lista ostatnich ocen.'},
-  progress:{title:'📈 Moje postępy',desc:'Masa, średnia ocena treningów, zdjęcia sylwetki i historia sesji — klik w trening pokazuje serie, kg i ocenę.'},
+  progress:{title:'📈 Moje postępy',desc:'Masa, średnia ocena treningów, zdjęcia sylwetki, rekordy i historia sesji — klik w trening pokazuje serie, kg i ocenę.'},
   session:{title:'🏋️ Szczegóły treningu',desc:'Ocena 1–5, komentarz klienta, ćwiczenia i zrobione serie (kg × powt.). Trener widzi to samo w karcie klienta i w historii Live.'},
-  plan:{title:'📋 Mój plan treningowy',desc:'Lista dni planu. Start odhacza serie. W kreatorze: SS i EMOM (każda seria na początku minuty).'},
-  plan:{title:'📋 Mój plan treningowy',desc:'Lista dni planu. Start odhacza serie. W kreatorze: SS i EMOM, a jeśli trener podpiął swój film techniki do ćwiczenia, w playerze jest przycisk Film trenera.'},
-  calendar:{title:'📅 Kalendarz sesji',desc:'Mini-kalendarz z zaznaczonymi sesjami. Klient widzi nadchodzące treningi z godziną, typem i linkiem do Google Meet (jeśli online).'},
-  progress:{title:'📈 Moje postępy',desc:'Masa, zdjęcia sylwetki i rekordy z treningów. Klik w ćwiczenie pokazuje historię kg × powt. i szacowany 1RM.'},
   exercise:{title:'🏆 Historia ćwiczenia',desc:'Rekord (Epley) i lista serii po datach. Player podpowiada „Ostatnio” i „Rekord”; nowy rekord to toast 🏆.'},
   checkin:{title:'✅ Check-in tygodniowy',desc:'Interaktywny formularz check-inu — emoji skale, liczba treningów, waga. Wysłany check-in trafia bezpośrednio do Twojego panelu.'},
   forms:{title:'📋 Formularze',desc:'Ankiety wysłane przez Ciebie (wstępna, zdrowie, postępy). Klient wypełnia w apce, odpowiedzi wracają do karty klienta i podglądu formularza.'},
