@@ -607,7 +607,14 @@ function cwSwapEx(name){
     });
   }
   if(typeof resolveCoachMedia==='function'){
-    const coach=resolveCoachMedia({name,note:cur.note,video:name===(cur.plannedName||orig)?(cur.planVideo||''):''});
+    const planned=cur.plannedName||orig;
+    const backToPlan=name===planned;
+    const coach=resolveCoachMedia({
+      name,
+      note:backToPlan?(cur.planNote||''):'',
+      video:backToPlan?(cur.planVideo||''):''
+    });
+    cur.note=coach.note;
     cur.libTip=coach.libTip;
     cur.video=coach.video;
     cur.videoEmbed=coach.videoEmbed;
@@ -628,7 +635,7 @@ function cwRender(){
       <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;margin-bottom:6px;">${escHtml(cw.dayName)}</div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:18px;">${cw.exercises.length} ćwiczeń · odhacz serie, timer przerwy sam się włączy</div>
       ${cw.exercises.map((ex,i)=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:10px 0;border-top:1px solid rgba(255,255,255,.06);">
-        <div style="font-size:13px;font-weight:600;">${i+1}. ${escHtml(ex.name)}${ex.note?' 💡':''}${ex.video?' ▶️':''}</div>
+        <div style="font-size:13px;font-weight:600;">${i+1}. ${escHtml(ex.name)}${typeof coachMediaIcons==='function'?coachMediaIcons(ex):''}</div>
         <div style="font-size:11px;color:var(--muted);white-space:nowrap;">${ex.sets.length} serii</div>
       </div>`).join('')}
       <button type="button" class="cap-btn-primary" style="margin-top:20px;padding:16px;font-size:16px;" onclick="cwBegin()">▶ Start</button>`;

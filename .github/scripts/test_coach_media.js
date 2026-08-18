@@ -42,7 +42,7 @@ vm.runInContext(fs.readFileSync(path.join(__dirname, '..', '..', '01-core.js'), 
 
 const {
   normalizeCoachVideoUrl, coachVideoEmbed, parsePlanExercise,
-  resolveCoachMedia, mapPlanExercisesForClient
+  resolveCoachMedia, mapPlanExercisesForClient, coachMediaIcons
 } = ctx;
 
 let failed = 0;
@@ -97,6 +97,25 @@ const mapped = mapPlanExercisesForClient([{
 }], 'c1');
 eq('mapped note', mapped[0].note, 'Tempo 3-0-1');
 eq('mapped embed', mapped[0].videoEmbed, 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ');
+eq('mapped planNote', mapped[0].planNote, 'Tempo 3-0-1');
+
+windowObj.DEF_EX = [{name: 'Przysiad ze sztangą', tip: '', video: 'https://youtu.be/abcdefghijk'}];
+eq('icons lib video only', coachMediaIcons({name: 'Przysiad ze sztangą'}), ' ▶️');
+
+windowObj.DEF_EX = [{name: 'Przysiad ze sztangą', tip: 'Kolana w kierunku palców.', video: ''}];
+eq('icons lib tip only', coachMediaIcons({name: 'Przysiad ze sztangą'}), ' 💡');
+
+const swapAway = resolveCoachMedia({name: 'Przysiad ze sztangą', note: '', video: ''});
+eq('swap away no plan note', swapAway.note, '');
+eq('swap away lib tip', swapAway.libTip, 'Kolana w kierunku palców.');
+
+const swapBack = resolveCoachMedia({
+  name: 'Przysiad ze sztangą',
+  note: 'Z planu',
+  video: 'https://youtu.be/dQw4w9WgXcQ'
+});
+eq('swap back plan note', swapBack.note, 'Z planu');
+eq('swap back no lib tip', swapBack.libTip, '');
 
 if (failed) {
   console.error('\n' + failed + ' test(s) failed');

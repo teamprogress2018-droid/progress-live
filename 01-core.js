@@ -546,6 +546,18 @@ function resolveCoachMedia(parsed){
 }
 window.resolveCoachMedia=resolveCoachMedia;
 
+function coachMediaIcons(ex){
+  const src=ex&&typeof ex==='object'?ex:{name:String(ex||'')};
+  const coach=(src.libTip!==undefined||src.planVideo!==undefined||src.planNote!==undefined)
+    ?{note:String(src.note||'').trim(),libTip:String(src.libTip||'').trim(),video:String(src.video||'').trim()}
+    :resolveCoachMedia(typeof parsePlanExercise==='function'?parsePlanExercise(src):src);
+  let icons='';
+  if(coach.note||coach.libTip)icons+=' 💡';
+  if(coach.video)icons+=' ▶️';
+  return icons;
+}
+window.coachMediaIcons=coachMediaIcons;
+
 function coachMediaHtml(ex,opts){
   opts=opts||{};
   const note=(ex&&ex.note)||'';
@@ -691,6 +703,7 @@ function mapPlanExercisesForClient(rawEx,clientId){
       rpe:ex.rpe||'',
       note:coach.note,
       libTip:coach.libTip,
+      planNote:coach.note,
       planVideo:normalizeCoachVideoUrl(ex.video),
       video:coach.video,
       videoEmbed:coach.videoEmbed,
