@@ -121,7 +121,14 @@ function capTodayExercises(c){
   const raw=(slot.day&&slot.day.exercises)||[];
   return raw.map((ex,i)=>{
     const p=typeof parsePlanExercise==='function'?parsePlanExercise(ex):{name:ex.name||ex.n||String(ex),sets:ex.sets||'3',reps:ex.reps||'10',rest:ex.rest||'90s'};
-    return{name:p.name,sets:(p.sets&&p.reps)?(p.sets+'×'+p.reps):(p.sets||p.reps||'—'),rest:p.rest||'90s',done:slot.kind==='done'};
+    let sets=(p.sets&&p.reps)?(p.sets+'×'+p.reps):(p.sets||p.reps||'—');
+    if(p.pct1rm&&typeof weightFromPct1RM==='function'){
+      const w=weightFromPct1RM(c.id,p.name,p.pct1rm);
+      sets+=w&&w.kg?` @${p.pct1rm}% → ${w.kg}kg`:` @${p.pct1rm}%`;
+    }else if(p.kg){
+      sets+=' @'+p.kg+'kg';
+    }
+    return{name:p.name,sets,rest:p.rest||'90s',done:slot.kind==='done'};
   });
 }
 
