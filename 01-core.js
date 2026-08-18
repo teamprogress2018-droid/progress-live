@@ -610,7 +610,7 @@ window.weightFromPct1RM=weightFromPct1RM;
 
 /** Ćwiczenie z planu: obiekt AI albo string z kreatora ("Wyciskanie 4x8 @75%"). */
 function parsePlanExercise(ex){
-  if(ex==null)return{name:'Ćwiczenie',sets:'3',reps:'10',rest:'90s',kg:'',pct1rm:''};
+  if(ex==null)return{name:'Ćwiczenie',sets:'3',reps:'10',rest:'90s',kg:'',pct1rm:'',ss:''};
   if(typeof ex==='string'){
     const raw=ex.trim();
     const m=raw.match(/^(.*?)(?:\s+(\d+)\s*[x×]\s*(\d+(?:\s*-\s*\d+)?))?(?:\s*@\s*(\d+(?:[.,]\d+)?)\s*(%|kg)?)?\s*$/i);
@@ -623,7 +623,8 @@ function parsePlanExercise(ex){
       reps:((m&&m[3])||'10').replace(/\s/g,''),
       rest:'90s',
       kg:isPct?'':amt,
-      pct1rm:isPct?parsePct1RM(amt):''
+      pct1rm:isPct?parsePct1RM(amt):'',
+      ss:''
     };
   }
   let kg=ex.kg!=null&&ex.kg!==''?String(ex.kg):'';
@@ -640,13 +641,82 @@ function parsePlanExercise(ex){
     rpe:ex.rpe||ex.rir||'',
     rir:ex.rir||'',
     tempo:ex.tempo||'',
-    alt:ex.alt||''
+    alt:ex.alt||'',
+    ss:String(ex.ss||ex.superset||'').trim()
   };
 }
 window.parsePlanExercise=parsePlanExercise;
 
+function applySsLabels(list){
+  let n=0;
+  let i=0;
+  while(i<(list||[]).length){
+    const g=String(list[i].ss||'').trim();
+    if(!g){
+      list[i].ss='';list[i].ssLabel='';list[i].ssLetter='';
+      i++;continue;
+    }
+    let j=i+1;
+    while(j<list.length&&String(list[j].ss||'').trim()===g)j++;
+    if(j-i<2){
+      list[i].ss='';list[i].ssLabel='';list[i].ssLetter='';
+      i++;continue;
+    }
+    const letter=String.fromCharCode(65+(n%26));
+    n++;
+    for(let k=i;k<j;k++){
+      list[k].ss=letter;
+      list[k].ssLetter=letter;
+      list[k].ssLabel=letter+(k-i+1);
+    }
+    i=j;
+  }
+  return list;
+}
+window.applySsLabels=applySsLabels;
+
+function ssGroupIdxs(list,idx){
+  const g=list&&list[idx]&&String(list[idx].ss||'').trim();
+  if(!g)return[idx];
+  const out=[];
+  for(let i=0;i<list.length;i++) if(String(list[i].ss||'').trim()===g) out.push(i);
+  return out.length>=2?out:[idx];
+}
+window.ssGroupIdxs=ssGroupIdxs;
+
+function ssDoneCount(ex){return ((ex&&ex.sets)||[]).filter(s=>s&&s.done).length;}
+function ssHasRemain(ex){return ((ex&&ex.sets)||[]).some(s=>s&&!s.done);}
+
+function ssNextAfterSet(list,idx){
+  if(!list||!list[idx])return{kind:'advance'};
+  const group=ssGroupIdxs(list,idx);
+  const myDone=ssDoneCount(list[idx]);
+  if(group.length>=2){
+    const pos=group.indexOf(idx);
+    for(let k=1;k<group.length;k++){
+      const j=group[(pos+k)%group.length];
+      if(ssDoneCount(list[j])<myDone)return{kind:'partner',exIdx:j};
+    }
+    const leftover=group.find(i=>ssHasRemain(list[i]));
+    if(leftover!=null)return{kind:'rest',exIdx:leftover};
+    return{kind:'advance'};
+  }
+  if(ssHasRemain(list[idx]))return{kind:'rest',exIdx:idx};
+  return{kind:'advance'};
+}
+window.ssNextAfterSet=ssNextAfterSet;
+
+function ssAdvanceIdx(list,idx){
+  const group=ssGroupIdxs(list,idx);
+  const last=group[group.length-1];
+  const n=last+1;
+  return list&&n<list.length?n:-1;
+}
+window.ssAdvanceIdx=ssAdvanceIdx;
+
 function formatPlanExerciseLine(ex,clientId){
   const p=parsePlanExercise(ex);
+  if(ex&&typeof ex==='object'&&ex.ssLabel)p.ssLabel=ex.ssLabel;
   let kgPart='';
   if(p.pct1rm){
     const w=weightFromPct1RM(clientId,p.name,p.pct1rm);
@@ -654,9 +724,30 @@ function formatPlanExerciseLine(ex,clientId){
   }else if(p.kg){
     kgPart=' @'+p.kg+'kg';
   }
-  return(p.name||'')+(p.sets?' '+p.sets+'×'+p.reps:'')+kgPart;
+  return(p.ssLabel?p.ssLabel+' ':'')+(p.name||'')+(p.sets?' '+p.sets+'×'+p.reps:'')+kgPart;
 }
 window.formatPlanExerciseLine=formatPlanExerciseLine;
+
+function formatDayExerciseLines(exercises,clientId){
+  const list=(exercises||[]).map(e=>parsePlanExercise(e));
+  applySsLabels(list);
+  const parts=[];
+  let i=0;
+  while(i<list.length){
+    const line=p=>formatPlanExerciseLine(p,clientId);
+    if(list[i].ss&&i+1<list.length&&list[i+1].ss===list[i].ss){
+      const chunk=[];
+      const g=list[i].ss;
+      while(i<list.length&&list[i].ss===g){chunk.push(line(list[i]));i++;}
+      parts.push(chunk.join(' + '));
+    }else{
+      parts.push(line(list[i]));
+      i++;
+    }
+  }
+  return parts.filter(Boolean).join(' · ');
+}
+window.formatDayExerciseLines=formatDayExerciseLines;
 
 function altsForExercise(name,explicit){
   const fromPlan=String(explicit||'').split(/[,;/|]/).map(s=>s.trim()).filter(Boolean);
@@ -735,7 +826,7 @@ function lastLoadForExercise(clientId,name){
 window.lastLoadForExercise=lastLoadForExercise;
 
 function mapPlanExercisesForClient(rawEx,clientId){
-  return(rawEx||[]).map(raw=>{
+  const mapped=(rawEx||[]).map(raw=>{
     const ex=parsePlanExercise(raw);
     const last=lastLoadForExercise(clientId,ex.name);
     const nSets=parseInt(ex.sets,10)||3;
@@ -755,6 +846,7 @@ function mapPlanExercisesForClient(rawEx,clientId){
       kgHint:fromPct?fromPct.hint:'',
       lastKg:last&&last.kg!=null&&last.kg!==''?last.kg:(plannedKg||''),
       lastReps:last&&last.reps!=null&&last.reps!==''?last.reps:'',
+      ss:ex.ss||'',
       sets:Array.from({length:nSets},(_,i)=>{
         const prev=last&&last.sets[i];
         let kg=plannedKg;
@@ -768,6 +860,7 @@ function mapPlanExercisesForClient(rawEx,clientId){
       })
     };
   });
+  return applySsLabels(mapped);
 }
 window.mapPlanExercisesForClient=mapPlanExercisesForClient;
 

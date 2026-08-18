@@ -119,8 +119,9 @@ function capTodaySlot(c){
 function capTodayExercises(c){
   const slot=capTodaySlot(c);
   const raw=(slot.day&&slot.day.exercises)||[];
-  return raw.map((ex,i)=>{
-    const p=typeof parsePlanExercise==='function'?parsePlanExercise(ex):{name:ex.name||ex.n||String(ex),sets:ex.sets||'3',reps:ex.reps||'10',rest:ex.rest||'90s'};
+  const parsed=raw.map(ex=>typeof parsePlanExercise==='function'?parsePlanExercise(ex):{name:ex.name||ex.n||String(ex),sets:ex.sets||'3',reps:ex.reps||'10',rest:ex.rest||'90s'});
+  if(typeof applySsLabels==='function')applySsLabels(parsed);
+  return parsed.map((p,i)=>{
     let sets=(p.sets&&p.reps)?(p.sets+'×'+p.reps):(p.sets||p.reps||'—');
     if(p.pct1rm&&typeof weightFromPct1RM==='function'){
       const w=weightFromPct1RM(c.id,p.name,p.pct1rm);
@@ -128,7 +129,7 @@ function capTodayExercises(c){
     }else if(p.kg){
       sets+=' @'+p.kg+'kg';
     }
-    return{name:p.name,sets,rest:p.rest||'90s',done:slot.kind==='done'};
+    return{name:p.name,ssLabel:p.ssLabel||'',sets,rest:p.rest||'90s',done:slot.kind==='done'};
   });
 }
 
@@ -191,7 +192,7 @@ function capScreenHTML(scr,c){
         <div style="font-size:20px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">${escHtml(capDayLabel(slot.day,slot.dayIdx))}</div>
         <div style="font-size:12px;color:${CAP_MUTED};margin-bottom:12px;">${list.length} ćwiczeń · ${escHtml(slot.plan.name||'Plan')}</div>
         ${list.slice(0,4).map(ex=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-top:1px solid ${CAP_S3};font-size:12px;">
-          <span style="color:${CAP_TEXT};">${escHtml(ex.name)}</span>
+          <span style="color:${CAP_TEXT};">${ex.ssLabel?escHtml(ex.ssLabel)+' ':''}${escHtml(ex.name)}</span>
           <span style="color:${CAP_MUTED};white-space:nowrap;">${escHtml(ex.sets)}</span>
         </div>`).join('')}
         ${list.length>4?`<div style="font-size:11px;color:${CAP_MUTED};padding-top:6px;">+${list.length-4} kolejnych</div>`:''}
