@@ -492,26 +492,151 @@ window.addEventListener('beforeunload',e=>{
   }
 });
 
-/** Ćwiczenie z planu: obiekt AI albo string z kreatora ("Wyciskanie 4x8"). */
+function parsePct1RM(v){
+  if(v==null||v==='')return '';
+  const s=String(v).trim().replace(',','.');
+  const m=s.match(/^(\d+(?:\.\d+)?)\s*%$/);
+  const n=parseFloat(m?m[1]:s);
+  if(!Number.isFinite(n)||n<=0||n>150)return '';
+  return String(n);
+}
+window.parsePct1RM=parsePct1RM;
+
+function roundToPlate(kg,plate){
+  const n=parseFloat(kg);
+  const step=plate||2.5;
+  if(!Number.isFinite(n)||n<=0||!Number.isFinite(step)||step<=0)return '';
+  const rounded=Math.round(n/step)*step;
+  if(rounded<=0)return '';
+  const x=Math.round(rounded*10)/10;
+  return Number.isInteger(x)?String(x):x.toFixed(1);
+}
+window.roundToPlate=roundToPlate;
+
+function epley1RM(kg,reps){
+  const w=parseFloat(kg);
+  const r=parseFloat(reps);
+  if(!Number.isFinite(w)||w<=0||!Number.isFinite(r)||r<=0)return null;
+  if(r<=1)return w;
+  return w*(1+r/30);
+}
+window.epley1RM=epley1RM;
+
+/** Rodzina boju do 1RM: OHP przed bench (oboje mają „wyciskanie”). */
+function guessLiftFamily(name){
+  const n=String(name||'').toLowerCase().replace(/ł/g,'l').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();
+  if(!n)return '';
+  if(/francusk|triceps|prostowanie|kickback/.test(n))return '';
+  if(/ohp|military|zolniers|overhead|nad glowa|\barnold\b/.test(n))return 'ohp';
+  if(/wyciskan/.test(n)&&/(siedz|stoj)/.test(n)&&!/lez/.test(n))return 'ohp';
+  if(/przysiad|squat|hack|goblet/.test(n))return 'squat';
+  if(/martw|deadlift|\brdl\b|rumunsk|trap\s*bar/.test(n))return 'deadlift';
+  if(/bench/.test(n))return 'bench';
+  if(/wyciskan/.test(n)&&/(lez|skos|incline|decline|klatk)/.test(n))return 'bench';
+  if(/^wyciskanie( sztangi| hantli)?$/.test(n))return 'bench';
+  return '';
+}
+window.guessLiftFamily=guessLiftFamily;
+
+const LIFT_1RM_META={
+  squat:{metric:'m1',label:'przysiad'},
+  deadlift:{metric:'m2',label:'martwy ciąg'},
+  bench:{metric:'m3',label:'wyciskanie leżąc'},
+  ohp:{metric:'m4',label:'OHP'}
+};
+
+function officialLift1RMs(clientId){
+  const out={squat:null,deadlift:null,bench:null,ohp:null};
+  if(!clientId)return out;
+  const entries=(window.METRIC_ENTRIES||[]).filter(e=>e.clientId===clientId&&e.groupId==='mg3')
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const num=x=>{const n=parseFloat(x);return Number.isFinite(n)&&n>0?n:null;};
+  for(const e of entries){
+    const v=e.values||{};
+    if(out.squat==null)out.squat=num(v.m1);
+    if(out.deadlift==null)out.deadlift=num(v.m2);
+    if(out.bench==null)out.bench=num(v.m3);
+    if(out.ohp==null)out.ohp=num(v.m4);
+    if(out.squat&&out.deadlift&&out.bench&&out.ohp)break;
+  }
+  return out;
+}
+window.officialLift1RMs=officialLift1RMs;
+
+function epley1RMFromSessions(clientId,family,exactName){
+  if(!clientId)return null;
+  const want=String(exactName||'').toLowerCase().replace(/\s+/g,' ').trim();
+  const sessions=(window.SE||[]).filter(s=>s.clientId===clientId&&Array.isArray(s.exercises))
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''));
+  for(const s of sessions){
+    let best=null;
+    for(const ex of s.exercises||[]){
+      const match=family?guessLiftFamily(ex.name)===family
+        :String(ex.name||'').toLowerCase().replace(/\s+/g,' ').trim()===want;
+      if(!match)continue;
+      for(const set of ex.sets||[]){
+        const est=epley1RM(set.kg,set.reps);
+        if(est!=null&&(best==null||est>best))best=est;
+      }
+    }
+    if(best!=null)return best;
+  }
+  return null;
+}
+window.epley1RMFromSessions=epley1RMFromSessions;
+
+function client1RMforExercise(clientId,name){
+  const family=guessLiftFamily(name);
+  const official=officialLift1RMs(clientId);
+  const meta=family?LIFT_1RM_META[family]:null;
+  if(meta&&official[family])return{kg:official[family],source:'metric',family,label:meta.label};
+  const est=epley1RMFromSessions(clientId,family,name);
+  if(est)return{kg:est,source:'epley',family,label:meta?meta.label:(name||'ćwiczenie')};
+  return null;
+}
+window.client1RMforExercise=client1RMforExercise;
+
+function weightFromPct1RM(clientId,name,pct){
+  const p=parseFloat(parsePct1RM(pct));
+  if(!Number.isFinite(p)||p<=0)return{kg:'',hint:'',rm:null};
+  const rm=client1RMforExercise(clientId,name);
+  if(!rm)return{kg:'',hint:p+'% 1RM — wpisz pomiar w Pomiary → Siła bazowa',rm:null};
+  const kg=roundToPlate(rm.kg*p/100);
+  const rmKg=roundToPlate(rm.kg)||String(Math.round(rm.kg));
+  const src=rm.source==='metric'?(rm.label+' 1RM '+rmKg+' kg'):('szac. 1RM '+rmKg+' kg z sesji');
+  return{kg:kg||'',hint:p+'% z '+src+(kg?' → '+kg+' kg':''),rm};
+}
+window.weightFromPct1RM=weightFromPct1RM;
+
+/** Ćwiczenie z planu: obiekt AI albo string z kreatora ("Wyciskanie 4x8 @75%"). */
 function parsePlanExercise(ex){
-  if(ex==null)return{name:'Ćwiczenie',sets:'3',reps:'10',rest:'90s',kg:''};
+  if(ex==null)return{name:'Ćwiczenie',sets:'3',reps:'10',rest:'90s',kg:'',pct1rm:''};
   if(typeof ex==='string'){
     const raw=ex.trim();
-    const m=raw.match(/^(.*?)(?:\s+(\d+)\s*[x×]\s*(\d+(?:\s*-\s*\d+)?))\s*$/i);
+    const m=raw.match(/^(.*?)(?:\s+(\d+)\s*[x×]\s*(\d+(?:\s*-\s*\d+)?))?(?:\s*@\s*(\d+(?:[.,]\d+)?)\s*(%|kg)?)?\s*$/i);
+    const amt=m&&m[4]?String(m[4]).replace(',','.'):'';
+    const unit=((m&&m[5])||'').toLowerCase();
+    const isPct=unit==='%';
     return{
       name:(m&&m[1]?m[1]:raw).trim()||'Ćwiczenie',
       sets:(m&&m[2])||'3',
       reps:((m&&m[3])||'10').replace(/\s/g,''),
       rest:'90s',
-      kg:''
+      kg:isPct?'':amt,
+      pct1rm:isPct?parsePct1RM(amt):''
     };
   }
+  let kg=ex.kg!=null&&ex.kg!==''?String(ex.kg):'';
+  let pct1rm=parsePct1RM(ex.pct1rm);
+  const fromKg=parsePct1RM(/^\s*\d+(?:[.,]\d+)?\s*%\s*$/.test(kg)?kg:'');
+  if(fromKg){pct1rm=pct1rm||fromKg;kg='';}
   return{
     name:ex.name||ex.n||'Ćwiczenie',
     sets:String(ex.sets||ex.s||'3'),
     reps:String(ex.reps||ex.r||'10'),
     rest:String(ex.rest||ex.rs||'90s'),
-    kg:ex.kg!=null&&ex.kg!==''?String(ex.kg):'',
+    kg,
+    pct1rm,
     rpe:ex.rpe||ex.rir||'',
     rir:ex.rir||'',
     tempo:ex.tempo||'',
@@ -519,6 +644,19 @@ function parsePlanExercise(ex){
   };
 }
 window.parsePlanExercise=parsePlanExercise;
+
+function formatPlanExerciseLine(ex,clientId){
+  const p=parsePlanExercise(ex);
+  let kgPart='';
+  if(p.pct1rm){
+    const w=weightFromPct1RM(clientId,p.name,p.pct1rm);
+    kgPart=w.kg?(' @'+p.pct1rm+'% → '+w.kg+'kg'):(' @'+p.pct1rm+'%');
+  }else if(p.kg){
+    kgPart=' @'+p.kg+'kg';
+  }
+  return(p.name||'')+(p.sets?' '+p.sets+'×'+p.reps:'')+kgPart;
+}
+window.formatPlanExerciseLine=formatPlanExerciseLine;
 
 function altsForExercise(name,explicit){
   const fromPlan=String(explicit||'').split(/[,;/|]/).map(s=>s.trim()).filter(Boolean);
@@ -603,19 +741,27 @@ function mapPlanExercisesForClient(rawEx,clientId){
     const nSets=parseInt(ex.sets,10)||3;
     const defaultReps=ex.reps||'10';
     const rest=parseRestSeconds(ex.rest);
+    const pct=ex.pct1rm||'';
+    const fromPct=pct?weightFromPct1RM(clientId,ex.name,pct):null;
+    const plannedKg=(fromPct&&fromPct.kg)?fromPct.kg:(ex.kg||'');
+    const lockPct=!!pct;
     return{
       name:ex.name,
       plannedName:ex.name,
       alts:altsForExercise(ex.name,ex.alt),
       restSec:rest,
       rpe:ex.rpe||'',
-      lastKg:last&&last.kg!=null&&last.kg!==''?last.kg:(ex.kg||''),
+      pct1rm:pct,
+      kgHint:fromPct?fromPct.hint:'',
+      lastKg:last&&last.kg!=null&&last.kg!==''?last.kg:(plannedKg||''),
       lastReps:last&&last.reps!=null&&last.reps!==''?last.reps:'',
       sets:Array.from({length:nSets},(_,i)=>{
         const prev=last&&last.sets[i];
+        let kg=plannedKg;
+        if(!lockPct&&prev&&prev.kg!=null&&prev.kg!=='')kg=String(prev.kg);
         return{
           setNo:i+1,
-          kg:prev&&prev.kg!=null&&prev.kg!==''?String(prev.kg):(ex.kg||''),
+          kg:kg||'',
           reps:prev&&prev.reps!=null&&prev.reps!==''?String(prev.reps):defaultReps,
           done:false
         };

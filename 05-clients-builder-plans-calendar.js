@@ -288,18 +288,37 @@ function toggleR(id){const el=document.getElementById(id);const r=el.querySelect
 function addRow(dayId){
   const rows=document.querySelector('#'+dayId+' .ex-rows');
   const div=document.createElement('div');div.className='ex-row';
-  div.innerHTML='<input type="text" placeholder="Nazwa ćwiczenia..." class="ex-inp ex-inp-name" style="width:100%;" list="ex-dl" data-f="name">'
+  div.innerHTML='<input type="text" placeholder="Nazwa ćwiczenia..." class="ex-inp ex-inp-name" style="width:100%;" list="ex-dl" data-f="name" oninput="builderPreviewKg(this.closest(\'.ex-row\'))">'
     +'<input type="number" placeholder="4" class="ex-inp" data-f="sets">'
     +'<input type="text" placeholder="8-10" class="ex-inp" data-f="reps">'
-    +'<input type="number" placeholder="kg" class="ex-inp" data-f="kg">'
+    +'<input type="number" placeholder="kg" class="ex-inp" data-f="kg" title="Zostaw puste, jeśli liczysz z %1RM">'
     +'<input type="number" placeholder="8" class="ex-inp" data-f="rpe">'
     +'<input type="number" placeholder="2" class="ex-inp" data-f="rir">'
     +'<input type="text" placeholder="2min" class="ex-inp" data-f="rest">'
     +'<input type="text" placeholder="2-0-2" class="ex-inp" data-f="tempo">'
     +'<button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--muted2);font-size:18px;cursor:pointer;">×</button>'
-    +'<input type="text" placeholder="Zamiennik (opcjonalnie, np. hantle zamiast sztangi)" class="ex-inp" data-f="alt" style="grid-column:1/-1;font-size:11px;">';
+    +'<div class="ex-row-extra">'
+    +'<input type="text" placeholder="Zamiennik (opcjonalnie, np. hantle zamiast sztangi)" class="ex-inp ex-inp-name" data-f="alt" style="font-size:11px;">'
+    +'<input type="number" placeholder="%1RM" class="ex-inp" data-f="pct1rm" min="1" max="150" step="0.5" title="Procent 1RM — kg z Pomiary → Siła bazowa" oninput="builderPreviewKg(this.closest(\'.ex-row\'))">'
+    +'</div>';
   rows.appendChild(div);
 }
+function builderPreviewKg(row){
+  if(!row)return;
+  const kgEl=row.querySelector('[data-f="kg"]');
+  if(!kgEl)return;
+  const cid=(document.getElementById('b-client')||{}).value||'';
+  const name=(row.querySelector('[data-f="name"]')||{}).value||'';
+  const pct=typeof parsePct1RM==='function'?parsePct1RM((row.querySelector('[data-f="pct1rm"]')||{}).value||''):'';
+  if(!pct||!cid||typeof weightFromPct1RM!=='function'){
+    if(!kgEl.value)kgEl.placeholder='kg';
+    return;
+  }
+  const w=weightFromPct1RM(cid,name,pct);
+  kgEl.placeholder=w.kg?String(w.kg):'kg';
+  kgEl.title=w.hint||'kg z %1RM';
+}
+window.builderPreviewKg=builderPreviewKg;
 function updateExDl(){
   const dl=document.getElementById('ex-dl');
   const all=allExercises().map(e=>e.name);
@@ -310,7 +329,15 @@ function updatePeriod(){
   const el=document.getElementById('period-sched');
   if(!c){el.innerHTML='<div style="font-size:11px;color:var(--muted);">Wybierz klienta</div>';return;}
   const sch=getPeriod(c.level||'sredni');
-  el.innerHTML=sch.map(w=>`<div class="period-row"><div style="font-family:'DM Mono',monospace;font-size:10px;color:${w.cel.includes('DELOAD')?'var(--orange)':w.nr===1?'var(--accent)':'var(--blue)'};width:46px;flex-shrink:0;">TYG ${w.nr}</div><div><div style="font-size:12px;font-weight:600;">${w.cel}</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">${w.rpe}</div></div></div>`).join('');
+  const rms=typeof officialLift1RMs==='function'?officialLift1RMs(c.id):{};
+  const fmt=(v)=>v!=null?v+' kg':'—';
+  const rmBar=`<div style="font-size:11px;color:var(--text);margin-bottom:10px;line-height:1.55;padding:8px 10px;background:var(--s3);border:1px solid var(--border);border-radius:8px;">
+    <div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;">1RM — Siła bazowa</div>
+    Przysiad ${fmt(rms.squat)} · Martwy ${fmt(rms.deadlift)} · Bench ${fmt(rms.bench)} · OHP ${fmt(rms.ohp)}
+    <div style="font-size:10px;color:var(--muted);margin-top:4px;">Pole %1RM w ćwiczeniu liczy kg z tych pomiarów. Brak? Uzupełnij w Pomiary → Siła bazowa.</div>
+  </div>`;
+  el.innerHTML=rmBar+sch.map(w=>`<div class="period-row"><div style="font-family:'DM Mono',monospace;font-size:10px;color:${w.cel.includes('DELOAD')?'var(--orange)':w.nr===1?'var(--accent)':'var(--blue)'};width:46px;flex-shrink:0;">TYG ${w.nr}</div><div><div style="font-size:12px;font-weight:600;">${w.cel}</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">${w.rpe}</div></div></div>`).join('');
+  document.querySelectorAll('#builder-days .ex-row').forEach(r=>{if(typeof builderPreviewKg==='function')builderPreviewKg(r);});
 }
 function getPeriod(level){
   if(level==='poczatkujacy')return[{nr:1,cel:'Adaptacja — nauka wzorców',rpe:'RPE 7'},{nr:2,cel:'Utrwalenie techniki',rpe:'RPE 7'},{nr:3,cel:'Progresja liniowa',rpe:'RPE 8'},{nr:4,cel:'DELOAD — regeneracja CNS',rpe:'RPE 6'}];
@@ -357,6 +384,8 @@ function editPlan(id){
       set('rest',parsed.rest||'');
       set('tempo',parsed.tempo||'');
       set('alt',(ex&&typeof ex==='object'&&ex.alt)||parsed.alt||(typeof altsForExercise==='function'?altsForExercise(parsed.name).join(', '):''));
+      set('pct1rm',parsed.pct1rm||(ex&&typeof ex==='object'&&ex.pct1rm)||'');
+      if(typeof builderPreviewKg==='function')builderPreviewKg(row);
     });
   });
   const titleEl=document.querySelector('#screen-builder .topbar-title');
@@ -383,11 +412,13 @@ async function savePlan(){
       if(!n)return;
       const setN=g('sets')||'3';
       const alt=g('alt').trim()||(typeof altsForExercise==='function'?altsForExercise(n).join(', '):'');
+      const pct=typeof parsePct1RM==='function'?parsePct1RM(g('pct1rm')):'';
       exercises.push({
         name:n,
         sets:setN,
         reps:g('reps')||'10',
         kg:g('kg'),
+        pct1rm:pct,
         rpe:g('rpe'),
         rir:g('rir'),
         rest:g('rest')||'90s',
@@ -476,7 +507,7 @@ function renderPlans(){
       <div id="plan-detail-${p.id}" style="display:none;border-top:1px solid var(--border);padding:14px 18px;background:rgba(0,0,0,0.15);">
         ${(p.days||[]).map(d=>`<div class="plan-day-row" style="padding:9px 0;">
           <div class="plan-day-name">${d.day||d.dayName||'—'}</div>
-          ${d.rest?'<div style="color:var(--muted);font-size:12px;font-style:italic;">— Odpoczynek</div>':`<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;color:var(--text);">${d.muscles||d.focus||d.name||''}</div><div style="font-size:11px;color:var(--muted);margin-top:2px;line-height:1.5;">${(d.exercises||[]).map(e=>{const p=typeof parsePlanExercise==='function'?parsePlanExercise(e):(typeof e==='string'?{name:e}:e);return (p.name||'')+(p.sets?' '+p.sets+'×'+p.reps:'')+(p.kg?' @'+p.kg+'kg':'');}).filter(Boolean).join(' · ')}</div></div>`}
+          ${d.rest?'<div style="color:var(--muted);font-size:12px;font-style:italic;">— Odpoczynek</div>':`<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;color:var(--text);">${d.muscles||d.focus||d.name||''}</div><div style="font-size:11px;color:var(--muted);margin-top:2px;line-height:1.5;">${(d.exercises||[]).map(e=>typeof formatPlanExerciseLine==='function'?formatPlanExerciseLine(e,p.clientId):(typeof parsePlanExercise==='function'?(()=>{const x=parsePlanExercise(e);return (x.name||'')+(x.sets?' '+x.sets+'×'+x.reps:'')+(x.kg?' @'+x.kg+'kg':'');})():(typeof e==='string'?e:(e.name||'')))).filter(Boolean).join(' · ')}</div></div>`}
         </div>`).join('')}
       </div>
     </div>`;

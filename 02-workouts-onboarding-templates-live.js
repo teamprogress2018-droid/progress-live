@@ -1901,12 +1901,14 @@ function renderLiveExercises(){
 function liveExCard(ex,i){
   const setsDone=ex.sets.filter(s=>s.done).length;
   const lastHint=ex.lastKg!==''&&ex.lastKg!=null?`Ostatnio: ${ex.lastKg} kg${ex.lastReps?' × '+ex.lastReps:''}`:'';
+  const pctHint=ex.kgHint||'';
+  const sub=[pctHint,lastHint].filter(Boolean).join(' · ');
   return `<div class="live-ex-card${ex.done?' done':liveSessionActive&&!ex.done&&i===liveExercises.findIndex(e=>!e.done)?' active':''}" id="live-ex-${i}">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:${ex.collapsed?0:10}px;cursor:pointer;" onclick="liveToggleCollapse(${i})">
       <div style="width:30px;height:30px;border-radius:8px;background:${ex.done?'var(--teal)':'var(--adim)'};display:flex;align-items:center;justify-content:center;font-size:${ex.done?'14px':'12px'};font-weight:700;color:${ex.done?'#000':'var(--accent)'};flex-shrink:0;">${ex.done?'✓':i+1}</div>
       <div style="flex:1;">
         <div style="font-size:13px;font-weight:700;">${escHtml(ex.name)}</div>
-        <div style="font-size:10px;color:var(--muted);">${ex.sets.length} serie · ${setsDone}/${ex.sets.length} ukończono${lastHint?' · '+lastHint:''}</div>
+        <div style="font-size:10px;color:var(--muted);">${ex.sets.length} serie · ${setsDone}/${ex.sets.length} ukończono${sub?' · '+escHtml(sub):''}</div>
       </div>
       <div style="display:flex;gap:6px;align-items:center;">
         ${!ex.done?`<button type="button" class="live-skip-btn" onclick="event.stopPropagation();liveSkipEx(${i})">Pomiń</button>`:''}

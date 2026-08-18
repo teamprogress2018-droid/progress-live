@@ -599,6 +599,13 @@ function cwSwapEx(name){
       if(prev.reps!=null&&prev.reps!=='')s.reps=String(prev.reps);
     });
   }
+  if(cur.pct1rm&&typeof weightFromPct1RM==='function'){
+    const w=weightFromPct1RM(window._clientId,name,cur.pct1rm);
+    cur.kgHint=w.hint||'';
+    if(w.kg){
+      (cur.sets||[]).forEach(s=>{if(!s.done)s.kg=String(w.kg);});
+    }
+  }
   if(typeof notify==='function')notify('Zamieniono na: '+name);
   cwRender();
 }
@@ -655,6 +662,7 @@ function cwRender(){
     <div style="font-size:20px;font-weight:700;margin-bottom:6px;">${escHtml(ex.name)}</div>
     ${(ex.plannedName&&ex.plannedName!==ex.name)?`<div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Z planu: ${escHtml(ex.plannedName)}</div>`:''}
     ${(ex.alts||[]).length?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px;">${ex.alts.map(a=>`<button type="button" class="btn btn-ghost btn-sm" onclick='cwSwapEx(${JSON.stringify(a)})'>↻ ${escHtml(a)}</button>`).join('')}</div>`:''}
+    ${ex.kgHint?`<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${escHtml(ex.kgHint)}</div>`:''}
     ${ex.lastKg?`<div style="font-size:11px;color:var(--muted);margin-bottom:12px;">Ostatnio: ${escHtml(String(ex.lastKg))} kg${ex.lastReps?' × '+escHtml(String(ex.lastReps)):''}</div>`:'<div style="height:8px;"></div>'}
     <div style="height:6px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden;margin-bottom:16px;">
       <div style="height:100%;width:${Math.round((cw.exIdx+doneSets/Math.max(1,ex.sets.length))/cw.exercises.length*100)}%;background:${accent};"></div>
