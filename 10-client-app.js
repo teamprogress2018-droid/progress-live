@@ -431,6 +431,8 @@ window.cwClose=cwClose;
 window.cwBegin=cwBegin;
 window.cwPatchSet=cwPatchSet;
 window.cwCheckSet=cwCheckSet;
+window.cwStartRest=cwStartRest;
+window.cwGoEx=cwGoEx;
 window.cwSkipRest=cwSkipRest;
 window.cwSkipEx=cwSkipEx;
 window.cwPrevEx=cwPrevEx;
@@ -524,32 +526,59 @@ function cwPatchSet(setIdx,field,val){
   ex.sets[setIdx][field]=val;
 }
 
+function cwStartRest(seconds){
+  const cw=window._cw;if(!cw)return;
+  cw.phase='rest';
+  cw.restLeft=seconds||90;
+  cwClearTimers();
+  window._cwClock=setInterval(()=>{
+    if(!window._cw)return;
+    window._cw.elapsed=Math.round((Date.now()-window._cw.startedAt)/1000);
+  },1000);
+  window._cwRestTimer=setInterval(()=>{
+    if(!window._cw)return;
+    window._cw.restLeft-=1;
+    const n=document.getElementById('cw-rest-num');
+    if(n)n.textContent=Math.max(0,window._cw.restLeft);
+    if(window._cw.restLeft<=0)cwSkipRest();
+  },1000);
+  cwRender();
+}
+
+function cwGoEx(idx){
+  const cw=window._cw;if(!cw)return;
+  if(idx==null||idx<0||idx>=cw.exercises.length){cw.phase='finish';cwRender();return;}
+  cw.exIdx=idx;
+  cw.phase='exercise';
+  cwRender();
+}
+
 function cwCheckSet(setIdx){
   const cw=window._cw;if(!cw)return;
   const ex=cw.exercises[cw.exIdx];if(!ex||!ex.sets[setIdx])return;
   const st=ex.sets[setIdx];
   st.done=!st.done;
   if(!st.done){cwRender();return;}
-  const next=ex.sets.find(s=>!s.done);
-  if(next){
-    cw.phase='rest';
-    cw.restLeft=ex.restSec||90;
-    cwClearTimers();
-    window._cwClock=setInterval(()=>{
-      if(!window._cw)return;
-      window._cw.elapsed=Math.round((Date.now()-window._cw.startedAt)/1000);
-    },1000);
-    window._cwRestTimer=setInterval(()=>{
-      if(!window._cw)return;
-      window._cw.restLeft-=1;
-      const n=document.getElementById('cw-rest-num');
-      if(n)n.textContent=Math.max(0,window._cw.restLeft);
-      if(window._cw.restLeft<=0)cwSkipRest();
-    },1000);
-    cwRender();
+  const act=typeof ssNextAfterSet==='function'?ssNextAfterSet(cw.exercises,cw.exIdx):null;
+  if(act&&act.kind==='partner'){
+    const nxt=cw.exercises[act.exIdx];
+    cwGoEx(act.exIdx);
+    if(typeof notify==='function')notify('Super-seria → '+(nxt&&nxt.ssLabel?nxt.ssLabel+' ':'')+(nxt?nxt.name:''));
     return;
   }
-  if(cw.exIdx<cw.exercises.length-1){cw.exIdx+=1;cw.phase='exercise';cwRender();return;}
+  if(act&&act.kind==='rest'){
+    cw.exIdx=act.exIdx;
+    cwStartRest((cw.exercises[act.exIdx]&&cw.exercises[act.exIdx].restSec)||90);
+    return;
+  }
+  if(act&&act.kind==='advance'){
+    const next=typeof ssAdvanceIdx==='function'?ssAdvanceIdx(cw.exercises,cw.exIdx):cw.exIdx+1;
+    cwGoEx(next);
+    return;
+  }
+  const next=ex.sets.find(s=>!s.done);
+  if(next){cwStartRest(ex.restSec||90);return;}
+  if(cw.exIdx<cw.exercises.length-1){cwGoEx(cw.exIdx+1);return;}
   cw.phase='finish';cwRender();
 }
 
@@ -621,17 +650,18 @@ function cwRender(){
       <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;margin-bottom:6px;">${escHtml(cw.dayName)}</div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:18px;">${cw.exercises.length} ćwiczeń · odhacz serie, timer przerwy sam się włączy</div>
       ${cw.exercises.map((ex,i)=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:10px 0;border-top:1px solid rgba(255,255,255,.06);">
-        <div style="font-size:13px;font-weight:600;">${i+1}. ${escHtml(ex.name)}</div>
+        <div style="font-size:13px;font-weight:600;">${i+1}. ${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}</div>
         <div style="font-size:11px;color:var(--muted);white-space:nowrap;">${ex.sets.length} serii</div>
       </div>`).join('')}
       <button type="button" class="cap-btn-primary" style="margin-top:20px;padding:16px;font-size:16px;" onclick="cwBegin()">▶ Start</button>`;
     return;
   }
   if(cw.phase==='rest'){
+    const nxt=cw.exercises[cw.exIdx]||{};
     el.innerHTML=`<div class="cw-rest">
-      <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Przerwa</div>
+      <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">${nxt.ssLabel?'Przerwa · super-seria':'Przerwa'}</div>
       <div class="cw-rest-num" id="cw-rest-num">${cw.restLeft}</div>
-      <div style="font-size:13px;color:var(--muted);">Następna seria · ${escHtml(cw.exercises[cw.exIdx].name)}</div>
+      <div style="font-size:13px;color:var(--muted);">Następna seria · ${nxt.ssLabel?escHtml(nxt.ssLabel)+' ':''}${escHtml(nxt.name||'')}</div>
       <button type="button" class="cap-btn-primary" style="max-width:240px;padding:12px;" onclick="cwSkipRest()">Pomiń przerwę</button>
     </div>`;
     return;
@@ -658,8 +688,9 @@ function cwRender(){
       ${back}
       <div id="cw-clock" style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:${accent};">${cwFmt(cw.elapsed)}</div>
     </div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Ćwiczenie ${cw.exIdx+1} / ${cw.exercises.length}</div>
-    <div style="font-size:20px;font-weight:700;margin-bottom:6px;">${escHtml(ex.name)}</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Ćwiczenie ${cw.exIdx+1} / ${cw.exercises.length}${ex.ssLabel?' · super-seria':''}</div>
+    <div style="font-size:20px;font-weight:700;margin-bottom:6px;">${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}</div>
+    ${(()=>{const g=typeof ssGroupIdxs==='function'?ssGroupIdxs(cw.exercises,cw.exIdx):[];const others=g.filter(i=>i!==cw.exIdx).map(i=>cw.exercises[i]).filter(Boolean);return others.length?`<div style="font-size:11px;color:var(--orange);margin-bottom:8px;">Bez przerwy z: ${others.map(o=>escHtml((o.ssLabel?o.ssLabel+' ':'')+o.name)).join(', ')}</div>`:'';})()}
     ${(ex.plannedName&&ex.plannedName!==ex.name)?`<div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Z planu: ${escHtml(ex.plannedName)}</div>`:''}
     ${(ex.alts||[]).length?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px;">${ex.alts.map(a=>`<button type="button" class="btn btn-ghost btn-sm" onclick='cwSwapEx(${JSON.stringify(a)})'>↻ ${escHtml(a)}</button>`).join('')}</div>`:''}
     ${ex.kgHint?`<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${escHtml(ex.kgHint)}</div>`:''}
