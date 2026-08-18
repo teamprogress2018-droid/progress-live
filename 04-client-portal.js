@@ -145,9 +145,11 @@ function capTodayExercises(c){
     if(p.pct1rm&&typeof weightFromPct1RM==='function'){
       const w=weightFromPct1RM(c.id,p.name,p.pct1rm);
       sets+=w&&w.kg?` @${p.pct1rm}% → ${w.kg}kg`:` @${p.pct1rm}%`;
-    }else if(p.kg){
+    }else     if(p.kg){
       sets+=' @'+p.kg+'kg';
     }
+    const tag=typeof formatSetKindTag==='function'?formatSetKindTag(p):'';
+    if(tag)sets+=' · '+tag;
     if(typeof isEmomExercise==='function'&&isEmomExercise(p))sets+=' · EMOM';
     return{name:p.name,ssLabel:p.ssLabel||'',sets,rest:p.rest||'90s',done:slot.kind==='done'};
   });
@@ -711,6 +713,8 @@ function capFormQControl(sendId,q,val,live){
 }
 
 const CAP_SCREEN_INFO={
+  home:{title:'🏠 Dziś',desc:'Jeden ekran na dzień: trening do odpalenia (Start), dzień wolny, nawyki ze streakiem, zadania do odhaczenia i check-in jeśli czeka. Klient nie zgaduje, co ma zrobić.'},
+  plan:{title:'📋 Mój plan treningowy',desc:'Lista dni planu. Start odhacza serie. W kreatorze: SS, rozgrzewka (WU), drop set i AMRAP na ostatniej serii.'},
   home:{title:'🏠 Dziś',desc:'Jeden ekran na dzień: trening do odpalenia (Start), dzień wolny, nawyki, wyzwania, formularze od trenera, zadania i check-in jeśli czeka. Klient nie zgaduje, co ma zrobić.'},
   plan:{title:'📋 Mój plan treningowy',desc:'Lista dni planu. Start odhacza serie. W kreatorze: SS i EMOM (każda seria na początku minuty).'},
   plan:{title:'📋 Mój plan treningowy',desc:'Lista dni planu. Start odhacza serie. W kreatorze: SS i EMOM, a jeśli trener podpiął swój film techniki do ćwiczenia, w playerze jest przycisk Film trenera.'},

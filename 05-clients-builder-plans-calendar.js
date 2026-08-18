@@ -307,6 +307,13 @@ function addRow(dayId){
     +'<input type="number" placeholder="%1RM" class="ex-inp" data-f="pct1rm" min="1" max="150" step="0.5" title="Procent 1RM — kg z Pomiary → Siła bazowa" oninput="builderPreviewKg(this.closest(\'.ex-row\'))">'
     +'<div class="ex-kind-btns">'
     +'<input type="hidden" data-f="ss" value="">'
+    +'<input type="hidden" data-f="wu" value="">'
+    +'<input type="hidden" data-f="drop" value="">'
+    +'<input type="hidden" data-f="amrap" value="">'
+    +'<button type="button" class="ex-ss-btn" onclick="builderToggleSs(this)" title="Połącz z następnym ćwiczeniem w super-serię">⚡ SS</button>'
+    +'<button type="button" class="ex-ss-btn ex-kind-btn wu" onclick="builderCycleKind(this,\'wu\',2)" title="Serie rozgrzewkowe (1–2) — lżejsze kg, krótsza przerwa">WU</button>'
+    +'<button type="button" class="ex-ss-btn ex-kind-btn drop" onclick="builderCycleKind(this,\'drop\',2)" title="Drop sety po roboczych — bez przerwy, mniejszy ciężar">DROP</button>'
+    +'<button type="button" class="ex-ss-btn ex-kind-btn amrap" onclick="builderToggleAmrap(this)" title="Ostatnia seria robocza = AMRAP (max powtórzeń)">AMRAP</button>'
     +'<input type="hidden" data-f="emom" value="">'
     +'<button type="button" class="ex-ss-btn" onclick="builderToggleSs(this)" title="Połącz z następnym ćwiczeniem w super-serię">⚡ SS</button>'
     +'<button type="button" class="ex-ss-btn ex-emom-btn" onclick="builderToggleEmom(this)" title="EMOM: każda seria na starcie minuty, reszta minuty to przerwa">EMOM</button>'
@@ -366,6 +373,45 @@ function builderToggleSs(btn){
     while(used.has(letter))letter=String.fromCharCode(letter.charCodeAt(0)+1);
   }
   set(row,letter);set(next,letter);
+  [row,next].forEach(r=>{
+    ['wu','drop'].forEach(f=>{const el=r.querySelector('[data-f="'+f+'"]');if(el)el.value='';});
+    builderPaintKinds(r);
+  });
+  builderPaintSs(box);
+}
+window.builderToggleSs=builderToggleSs;
+function builderCycleKind(btn,field,max){
+  const row=btn&&btn.closest('.ex-row');if(!row)return;
+  if((row.querySelector('[data-f="ss"]')||{}).value)return;
+  const el=row.querySelector('[data-f="'+field+'"]');if(!el)return;
+  let n=parseInt(el.value,10)||0;
+  n=(n+1)%((max||2)+1);
+  el.value=n?String(n):'';
+  builderPaintKinds(row);
+}
+window.builderCycleKind=builderCycleKind;
+function builderToggleAmrap(btn){
+  const row=btn&&btn.closest('.ex-row');if(!row)return;
+  const el=row.querySelector('[data-f="amrap"]');if(!el)return;
+  el.value=el.value==='1'?'':'1';
+  builderPaintKinds(row);
+}
+window.builderToggleAmrap=builderToggleAmrap;
+function builderPaintKinds(row){
+  if(!row)return;
+  const g=f=>((row.querySelector('[data-f="'+f+'"]')||{}).value||'');
+  const inSs=!!g('ss');
+  const wu=inSs?0:(parseInt(g('wu'),10)||0);
+  const dr=inSs?0:(parseInt(g('drop'),10)||0);
+  const am=g('amrap')==='1';
+  const wuBtn=row.querySelector('.ex-kind-btn.wu');
+  const drBtn=row.querySelector('.ex-kind-btn.drop');
+  const amBtn=row.querySelector('.ex-kind-btn.amrap');
+  if(wuBtn){wuBtn.textContent=wu?('WU '+wu):'WU';wuBtn.classList.toggle('on',!!wu);wuBtn.disabled=inSs;wuBtn.title=inSs?'WU/DROP nie w super-serii':'';}
+  if(drBtn){drBtn.textContent=dr?('DROP '+dr):'DROP';drBtn.classList.toggle('on',!!dr);drBtn.disabled=inSs;drBtn.title=inSs?'WU/DROP nie w super-serii':'';}
+  if(amBtn)amBtn.classList.toggle('on',am);
+}
+window.builderPaintKinds=builderPaintKinds;
   const em1=row.querySelector('[data-f="emom"]');
   const em2=next.querySelector('[data-f="emom"]');
   if(em1)em1.value='';
@@ -481,6 +527,11 @@ function editPlan(id){
       set('video',parsed.video||(ex&&typeof ex==='object'&&ex.video)||'');
       set('pct1rm',parsed.pct1rm||(ex&&typeof ex==='object'&&ex.pct1rm)||'');
       set('ss',parsed.ss||(ex&&typeof ex==='object'&&ex.ss)||'');
+      set('wu',(ex&&typeof ex==='object'&&ex.wu)||parsed.wu||'');
+      set('drop',(ex&&typeof ex==='object'&&ex.drop)||parsed.drop||'');
+      set('amrap',((ex&&typeof ex==='object'&&(ex.amrap||parsed.amrap))?'1':''));
+      if(typeof builderPreviewKg==='function')builderPreviewKg(row);
+      if(typeof builderPaintKinds==='function')builderPaintKinds(row);
       set('emom',((ex&&typeof ex==='object'&&ex.emom)||parsed.emom)?'1':'');
       if(typeof builderPreviewKg==='function')builderPreviewKg(row);
       if(typeof builderPaintEmom==='function')builderPaintEmom(row);
@@ -524,6 +575,10 @@ async function savePlan(){
         rest:g('rest')||'90s',
         tempo:g('tempo'),
         alt,
+        ss:g('ss'),
+        wu:g('wu')||'',
+        drop:g('drop')||'',
+        amrap:g('amrap')==='1'
         note:g('note').trim(),
         video
         ss:g('ss'),

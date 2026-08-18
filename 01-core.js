@@ -599,6 +599,7 @@ function epley1RMFromSessions(clientId,family,exactName){
         :String(ex.name||'').toLowerCase().replace(/\s+/g,' ').trim()===want;
       if(!match)continue;
       for(const set of ex.sets||[]){
+        if(set&&(set.kind==='warmup'||set.kind==='drop'))continue;
         const est=epley1RM(set.kg,set.reps);
         if(est!=null&&(best==null||est>best))best=est;
       }
@@ -764,6 +765,7 @@ function parsePlanExercise(ex){
   if(ex==null)return{name:'Ćwiczenie',sets:'3',reps:'10',rest:'90s',kg:'',note:'',video:''};
 /** Ćwiczenie z planu: obiekt AI albo string z kreatora ("Wyciskanie 4x8 @75%"). */
 function parsePlanExercise(ex){
+  if(ex==null)return{name:'Ćwiczenie',sets:'3',reps:'10',rest:'90s',kg:'',pct1rm:'',ss:'',wu:0,drop:0,amrap:false};
   if(ex==null)return{name:'Ćwiczenie',sets:'3',reps:'10',rest:'90s',kg:'',pct1rm:'',ss:'',emom:false,video:''};
   if(typeof ex==='string'){
     const raw=ex.trim();
@@ -781,6 +783,7 @@ function parsePlanExercise(ex){
       kg:isPct?'':amt,
       pct1rm:isPct?parsePct1RM(amt):'',
       ss:'',
+      wu:0,drop:0,amrap:false
       emom:false,
       video:''
     };
@@ -800,6 +803,10 @@ function parsePlanExercise(ex){
     rir:ex.rir||'',
     tempo:ex.tempo||'',
     alt:ex.alt||'',
+    ss:String(ex.ss||ex.superset||'').trim(),
+    wu:parseSetKindCount(ex.wu,2),
+    drop:parseSetKindCount(ex.drop,2),
+    amrap:isAmrapFlag(ex.amrap)
     note:String(ex.note||ex.notes||ex.cue||'').trim(),
     ss:String(ex.ss||ex.superset||'').trim(),
     emom:isEmomFlag(ex.emom),
@@ -808,6 +815,105 @@ function parsePlanExercise(ex){
 }
 window.parsePlanExercise=parsePlanExercise;
 
+function parseSetKindCount(v,max){
+  const n=parseInt(v,10);
+  if(!Number.isFinite(n)||n<=0)return 0;
+  return Math.min(max==null?2:max,n);
+}
+window.parseSetKindCount=parseSetKindCount;
+
+function isAmrapFlag(v){
+  return v===true||v===1||v==='1'||v==='true'||v==='amrap'||v==='AMRAP';
+}
+window.isAmrapFlag=isAmrapFlag;
+
+function setKindOf(s){
+  return(s&&s.kind)||'work';
+}
+window.setKindOf=setKindOf;
+
+function isWorkingSet(s){
+  const k=setKindOf(s);
+  return k==='work'||k==='amrap';
+}
+window.isWorkingSet=isWorkingSet;
+
+function setKindBadge(kind){
+  if(kind==='warmup')return 'W';
+  if(kind==='drop')return 'D';
+  if(kind==='amrap')return '+';
+  return '';
+}
+window.setKindBadge=setKindBadge;
+
+function formatSetKindTag(ex){
+  const p=ex&&typeof ex==='object'?ex:{};
+  const bits=[];
+  const inSs=!!String(p.ss||'').trim();
+  const wu=inSs?0:parseSetKindCount(p.wu,2);
+  const dr=inSs?0:parseSetKindCount(p.drop,2);
+  if(wu)bits.push('WU'+wu);
+  if(isAmrapFlag(p.amrap))bits.push('AMRAP');
+  if(dr)bits.push('DROP'+dr);
+  return bits.join(' ');
+}
+window.formatSetKindTag=formatSetKindTag;
+
+function scaleKg(kg,frac){
+  const n=parseFloat(kg);
+  if(!Number.isFinite(n)||n<=0)return kg||'';
+  return roundToPlate(n*frac)||String(n);
+}
+window.scaleKg=scaleKg;
+
+function expandExerciseSets(ex,opts){
+  opts=opts||{};
+  const last=opts.last;
+  const plannedKg=opts.plannedKg||'';
+  const lockPct=!!opts.lockPct;
+  const defaultReps=ex.reps||'10';
+  const inSs=!!String(ex.ss||'').trim();
+  const nWork=Math.max(1,parseInt(ex.sets,10)||3);
+  const nWu=inSs?0:parseSetKindCount(ex.wu,2);
+  const nDrop=inSs?0:parseSetKindCount(ex.drop,2);
+  const amrap=isAmrapFlag(ex.amrap);
+  const lastWork=((last&&last.sets)||[]).filter(isWorkingSet);
+  const sets=[];
+  let no=1;
+  const wuFrac=nWu===1?[0.6]:[0.5,0.7];
+  for(let i=0;i<nWu;i++){
+    sets.push({setNo:no++,kg:scaleKg(plannedKg,wuFrac[i])||'',reps:defaultReps,done:false,kind:'warmup'});
+  }
+  for(let i=0;i<nWork;i++){
+    const kind=(amrap&&i===nWork-1)?'amrap':'work';
+    const prev=lastWork[i];
+    let kg=plannedKg;
+    if(!lockPct&&prev&&prev.kg!=null&&prev.kg!=='')kg=String(prev.kg);
+    let reps='';
+    if(kind!=='amrap'){
+      reps=prev&&prev.reps!=null&&prev.reps!==''?String(prev.reps):defaultReps;
+    }
+    sets.push({setNo:no++,kg:kg||'',reps,done:false,kind});
+  }
+  const dropFrac=nDrop===1?[0.75]:[0.8,0.6];
+  for(let i=0;i<nDrop;i++){
+    sets.push({setNo:no++,kg:scaleKg(plannedKg,dropFrac[i])||'',reps:defaultReps,done:false,kind:'drop'});
+  }
+  return sets;
+}
+window.expandExerciseSets=expandExerciseSets;
+
+function skipRestBeforeSet(next){
+  return!!(next&&next.kind==='drop');
+}
+window.skipRestBeforeSet=skipRestBeforeSet;
+
+function restSecAfterSet(ex,st,next){
+  if(next&&next.kind==='drop')return 0;
+  if(st&&st.kind==='warmup')return Math.min(45,(ex&&ex.restSec)||90);
+  return(ex&&ex.restSec)||90;
+}
+window.restSecAfterSet=restSecAfterSet;
 function isEmomFlag(v){
   return v===true||v===1||v==='1'||v==='true'||v==='emom'||v==='EMOM';
 }
@@ -906,6 +1012,8 @@ function formatPlanExerciseLine(ex,clientId){
   }else if(p.kg){
     kgPart=' @'+p.kg+'kg';
   }
+  const tag=formatSetKindTag(p);
+  return(p.ssLabel?p.ssLabel+' ':'')+(p.name||'')+(p.sets?' '+p.sets+'×'+p.reps:'')+kgPart+(tag?' '+tag:'');
   const emom=isEmomFlag(p.emom)&&!p.ss?' EMOM':'';
   return(p.ssLabel?p.ssLabel+' ':'')+(p.name||'')+(p.sets?' '+p.sets+'×'+p.reps:'')+kgPart+emom;
 }
@@ -1231,8 +1339,9 @@ function lastLoadForExercise(clientId,name){
     if(!ex)continue;
     const sets=(ex.sets||[]).filter(x=>x&&(x.kg||x.reps));
     if(!sets.length)continue;
-    const last=sets[sets.length-1];
-    return{kg:last.kg,reps:last.reps,sets};
+    const work=sets.filter(s=>typeof isWorkingSet!=='function'||isWorkingSet(s));
+    const pick=work.length?work[work.length-1]:sets[sets.length-1];
+    return{kg:pick.kg,reps:pick.reps,sets:work.length?work:sets};
   }
   return null;
 }
@@ -1242,14 +1351,13 @@ function mapPlanExercisesForClient(rawEx,clientId){
   const mapped=(rawEx||[]).map(raw=>{
     const ex=parsePlanExercise(raw);
     const last=lastLoadForExercise(clientId,ex.name);
-    const nSets=parseInt(ex.sets,10)||3;
-    const defaultReps=ex.reps||'10';
     const rest=parseRestSeconds(ex.rest);
     const coach=resolveCoachMedia(ex);
     const pct=ex.pct1rm||'';
     const fromPct=pct?weightFromPct1RM(clientId,ex.name,pct):null;
     const plannedKg=(fromPct&&fromPct.kg)?fromPct.kg:(ex.kg||'');
     const lockPct=!!pct;
+    const sets=expandExerciseSets(ex,{last,plannedKg,lockPct});
     const emom=isEmomExercise(ex);
     const coach=typeof resolveCoachMedia==='function'?resolveCoachMedia(ex):{video:'',videoEmbed:'',isFile:false};
     return{
@@ -1270,6 +1378,10 @@ function mapPlanExercisesForClient(rawEx,clientId){
       lastKg:last&&last.kg!=null&&last.kg!==''?last.kg:(plannedKg||''),
       lastReps:last&&last.reps!=null&&last.reps!==''?last.reps:'',
       ss:ex.ss||'',
+      wu:ex.ss?0:(ex.wu||0),
+      drop:ex.ss?0:(ex.drop||0),
+      amrap:!!ex.amrap,
+      sets
       emom,
       video:coach.video||'',
       videoEmbed:coach.videoEmbed||'',
