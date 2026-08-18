@@ -657,24 +657,45 @@ function renderPlans(){
           <button class="btn btn-danger btn-sm" onclick="delPlan('${p.id}')">🗑️</button>
         </div>
       </div>
-      <div id="plan-detail-${p.id}" style="display:none;border-top:1px solid var(--border);padding:14px 18px;background:rgba(0,0,0,0.15);">
-        ${(p.days||[]).map(d=>`<div class="plan-day-row" style="padding:9px 0;">
-          <div class="plan-day-name">${d.day||d.dayName||'—'}</div>
-          ${d.rest?'<div style="color:var(--muted);font-size:12px;font-style:italic;">— Odpoczynek</div>':`<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;color:var(--text);">${d.muscles||d.focus||d.name||''}</div><div style="font-size:11px;color:var(--muted);margin-top:2px;line-height:1.5;">${typeof formatDayExerciseLines==='function'?formatDayExerciseLines(d.exercises,p.clientId):(d.exercises||[]).map(e=>typeof formatPlanExerciseLine==='function'?formatPlanExerciseLine(e,p.clientId):'').filter(Boolean).join(' · ')}</div></div>`}
-        </div>`).join('')}
+      <div id="plan-detail-${p.id}" class="plan-card-detail" style="display:none;">
+        ${(p.days||[]).map(d=>planDayPreviewHtml(d,p.clientId)).join('')}
       </div>
     </div>`;
   }).join('')+`</div>`;
 }
+
+function planDayPreviewHtml(d,clientId){
+  const dayName=escHtml(d.day||d.dayName||'—');
+  if(d.rest){
+    return `<div class="plan-day-row">
+      <div class="plan-day-name">${dayName}</div>
+      <div class="plan-day-rest">— Odpoczynek</div>
+    </div>`;
+  }
+  const focusRaw=String(d.muscles||d.focus||d.name||'');
+  const dayRaw=String(d.day||d.dayName||'');
+  const showFocus=focusRaw&&focusRaw!==dayRaw;
+  const parts=typeof formatDayExerciseParts==='function'
+    ? formatDayExerciseParts(d.exercises,clientId)
+    : (d.exercises||[]).map(e=>typeof formatPlanExerciseLine==='function'?formatPlanExerciseLine(e,clientId):'').filter(Boolean);
+  return `<div class="plan-day-row">
+    <div class="plan-day-name">${dayName}</div>
+    ${showFocus?`<div class="plan-day-focus">${escHtml(focusRaw)}</div>`:''}
+    <div class="plan-day-ex">${parts.map(l=>`<div class="plan-ex-line">${escHtml(l)}</div>`).join('')}</div>
+  </div>`;
+}
+window.planDayPreviewHtml=planDayPreviewHtml;
 
 // Rozwija/zwija szczegóły ćwiczeń w karcie planu — na liście widać tylko nagłówek + tagi dni,
 // pełne ćwiczenia pokazują się dopiero po kliknięciu "Podgląd".
 function togglePlanExpand(id){
   const detail=document.getElementById('plan-detail-'+id);
   const btn=document.getElementById('plan-toggle-'+id);
+  const card=document.getElementById('plan-card-'+id);
   if(!detail)return;
   const isOpen=detail.style.display==='block';
   detail.style.display=isOpen?'none':'block';
+  if(card)card.classList.toggle('is-open',!isOpen);
   if(btn)btn.textContent=isOpen?'👁️ Podgląd':'👁️ Ukryj';
 }
 async function delPlan(id){

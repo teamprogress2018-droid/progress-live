@@ -86,6 +86,9 @@ jobs:
       - name: 6. Poczekaj aż serwer wystartuje
         run: sleep 2
 
+      - name: 6b. Testy layoutu podglądu planu w przeglądarce
+        run: node .github/scripts/test_plan_preview_layout.js
+
       - name: 7. Sprawdź stronę w prawdziwej przeglądarce
         run: node .github/scripts/check_browser.js
 
