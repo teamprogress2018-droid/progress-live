@@ -1735,8 +1735,9 @@ function renderLivePlanPicker(){
 // Sprawdza ostatnią sesję live tego klienta z tym planem i sugeruje kolejny dzień w rotacji.
 // Jeśli brak historii — zaczyna od dnia 1 (indeks 0).
 function liveGetSuggestedDayIdx(clientId,plan){
+  if(typeof suggestedPlanDayIdx==='function')return suggestedPlanDayIdx(clientId,plan);
   if(!plan||!plan.days||!plan.days.length)return 0;
-  const past=SE.filter(s=>s.clientId===clientId&&s.source==='live'&&s.planId===plan.id&&s.dayIdx!=null)
+  const past=SE.filter(s=>s.clientId===clientId&&(s.source==='live'||s.source==='client')&&s.planId===plan.id&&s.dayIdx!=null)
     .sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   if(!past.length)return 0;
   return (past[0].dayIdx+1)%plan.days.length;
@@ -1764,28 +1765,10 @@ function liveLastLoad(clientId,name){
 }
 
 function liveMapPlanExercises(rawEx){
-  return(rawEx||[]).map(ex=>{
-    const name=ex.name||ex.n||'Ćwiczenie';
-    const last=liveLastLoad(liveClientId,name);
-    const nSets=parseInt(ex.sets||ex.s)||3;
-    const defaultReps=ex.reps||ex.r||'8-12';
-    return{
-      name,
-      lastKg:last&&last.kg!=null&&last.kg!==''?last.kg:'',
-      lastReps:last&&last.reps!=null&&last.reps!==''?last.reps:'',
-      sets:Array.from({length:nSets},(_,i)=>{
-        const prev=last&&last.sets[i];
-        return{
-          setNo:i+1,
-          kg:prev&&prev.kg!=null&&prev.kg!==''?String(prev.kg):'',
-          reps:prev&&prev.reps!=null&&prev.reps!==''?String(prev.reps):defaultReps,
-          done:false
-        };
-      }),
-      done:false,
-      collapsed:false
-    };
-  });
+  const mapped=typeof mapPlanExercisesForClient==='function'
+    ?mapPlanExercisesForClient(rawEx,liveClientId)
+    :(rawEx||[]).map(ex=>({name:ex.name||ex.n||'Ćwiczenie',sets:[{setNo:1,kg:'',reps:'10',done:false}]}));
+  return mapped.map(ex=>({...ex,done:false,collapsed:false}));
 }
 
 function liveSelectPlan(pid){

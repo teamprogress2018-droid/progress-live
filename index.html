@@ -1897,7 +1897,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
           <!-- bottom nav bar -->
           <div id="cap-bottom-nav" style="position:absolute;bottom:0;left:0;right:0;height:80px;background:rgba(7,8,10,0.95);border-top:1px solid rgba(255,255,255,0.06);display:flex;align-items:flex-start;justify-content:space-around;padding:10px 0 0;z-index:9;backdrop-filter:blur(10px);">
             <div onclick="setCapScreen('home',null)" style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;opacity:1;" id="cap-bn-home">
-              <span style="font-size:20px;">🏠</span><span style="font-size:9px;color:var(--accent);">Główna</span>
+              <span style="font-size:20px;">🏠</span><span style="font-size:9px;color:var(--accent);">Dziś</span>
             </div>
             <div onclick="setCapScreen('plan',null)" style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;opacity:0.5;" id="cap-bn-plan">
               <span style="font-size:20px;">📋</span><span style="font-size:9px;color:var(--muted);">Plan</span>
@@ -1949,7 +1949,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
     </div>
     <div id="clive-screen-content" class="clive-content"></div>
     <nav class="clive-nav">
-      <button type="button" class="clive-nav-btn active" id="clive-bn-home" onclick="setClientLiveScreen('home')"><span>🏠</span><span>Główna</span></button>
+      <button type="button" class="clive-nav-btn active" id="clive-bn-home" onclick="setClientLiveScreen('home')"><span>🏠</span><span>Dziś</span></button>
       <button type="button" class="clive-nav-btn" id="clive-bn-plan" onclick="setClientLiveScreen('plan')"><span>📋</span><span>Plan</span></button>
       <button type="button" class="clive-nav-btn" id="clive-bn-progress" onclick="setClientLiveScreen('progress')"><span>📈</span><span>Postępy</span></button>
       <button type="button" class="clive-nav-btn" id="clive-bn-checkin" onclick="setClientLiveScreen('checkin')"><span>✅</span><span>Check-in</span></button>
@@ -1957,6 +1957,9 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <button type="button" class="clive-nav-btn" id="clive-bn-messages" onclick="setClientLiveScreen('messages')"><span>💬</span><span>Czat</span></button>
       <button type="button" class="clive-nav-btn" id="clive-bn-profile" onclick="setClientLiveScreen('profile')"><span>👤</span><span>Profil</span></button>
     </nav>
+    <div id="clive-player" class="clive-player" hidden>
+      <div id="clive-player-inner" class="clive-player-inner"></div>
+    </div>
   </div>
 </div>
 
@@ -3653,7 +3656,9 @@ onAuthStateChanged(auth,(user)=>{
     window._clientAppMode=false;
     window._clientId=null;
     window._trainerId=null;
-    document.body.classList.remove('client-app-mode');
+    document.body.classList.remove('client-app-mode','cw-playing');
+    if(typeof cwClearTimers==='function')cwClearTimers();
+    window._cw=null;
     authScreen.style.display='flex';
     appRoot.style.display='none';
     if(typeof window.prepareAuthForInvite==='function')window.prepareAuthForInvite();

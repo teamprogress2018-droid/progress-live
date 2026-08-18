@@ -423,5 +423,259 @@ window.newInviteToken=newInviteToken;
 window.clientAppUrl=clientAppUrl;
 window.queryByTrainerId=queryByTrainerId;
 window.clientSaveForumPost=clientSaveForumPost;
+window.clientToggleTask=clientToggleTask;
+window.cwOpen=cwOpen;
+window.cwClose=cwClose;
+window.cwBegin=cwBegin;
+window.cwPatchSet=cwPatchSet;
+window.cwCheckSet=cwCheckSet;
+window.cwSkipRest=cwSkipRest;
+window.cwSkipEx=cwSkipEx;
+window.cwPrevEx=cwPrevEx;
+window.cwRate=cwRate;
+window.cwFinish=cwFinish;
 
 document.addEventListener('DOMContentLoaded',prepareAuthForInvite);
+
+function clientToggleTask(id){
+  const t=(window.TASKS||[]).find(x=>x.id===id);
+  if(!t)return;
+  t.status=t.status==='done'?'open':'done';
+  t.updatedAt=new Date().toISOString();
+  persistById('tasks',t);
+  if(typeof notify==='function')notify(t.status==='done'?'✓ Zadanie zrobione':'Zadanie znów otwarte');
+  renderClientLive();
+}
+
+function cwClearTimers(){
+  if(window._cwRestTimer){clearInterval(window._cwRestTimer);window._cwRestTimer=null;}
+  if(window._cwClock){clearInterval(window._cwClock);window._cwClock=null;}
+}
+
+function cwOpen(planId,dayIdx){
+  if(!window._clientAppMode){
+    if(typeof notify==='function')notify('Podgląd — klient startuje trening w swojej apce');
+    return;
+  }
+  const plan=(window.PL||[]).find(p=>p.id===planId);
+  if(!plan){if(typeof notify==='function')notify('Nie znaleziono planu');return;}
+  const day=(plan.days||[])[dayIdx];
+  if(!day||day.rest||!(day.exercises||[]).length){if(typeof notify==='function')notify('Ten dzień nie ma ćwiczeń');return;}
+  const exercises=mapPlanExercisesForClient(day.exercises,window._clientId);
+  if(!exercises.length){if(typeof notify==='function')notify('Brak ćwiczeń w tym dniu');return;}
+  cwClearTimers();
+  window._cw={
+    active:true,phase:'overview',
+    planId,dayIdx,dayName:typeof capDayLabel==='function'?capDayLabel(day,dayIdx):('Dzień '+(dayIdx+1)),
+    planName:plan.name||'Plan',
+    exercises,exIdx:0,restLeft:0,rating:0,note:'',
+    startedAt:Date.now(),elapsed:0
+  };
+  const wrap=document.getElementById('clive-player');
+  if(wrap)wrap.hidden=false;
+  document.body.classList.add('cw-playing');
+  cwRender();
+}
+
+function cwClose(){
+  if(window._cw&&window._cw.active&&window._cw.phase!=='overview'&&window._cw.phase!=='finish'){
+    if(!confirm('Przerwać trening? Serie nie zostaną zapisane.'))return;
+  }
+  cwClearTimers();
+  window._cw=null;
+  const wrap=document.getElementById('clive-player');
+  if(wrap)wrap.hidden=true;
+  document.body.classList.remove('cw-playing');
+  renderClientLive();
+}
+
+function cwBegin(){
+  const cw=window._cw;if(!cw)return;
+  cw.phase='exercise';
+  cw.startedAt=Date.now();
+  cwClearTimers();
+  window._cwClock=setInterval(()=>{
+    if(!window._cw)return;
+    window._cw.elapsed=Math.round((Date.now()-window._cw.startedAt)/1000);
+    const el=document.getElementById('cw-clock');
+    if(el)el.textContent=cwFmt(window._cw.elapsed);
+  },1000);
+  cwRender();
+}
+
+function cwFmt(sec){
+  const m=Math.floor((sec||0)/60),s=(sec||0)%60;
+  return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
+
+function cwPatchSet(setIdx,field,val){
+  const cw=window._cw;if(!cw)return;
+  const ex=cw.exercises[cw.exIdx];if(!ex||!ex.sets[setIdx])return;
+  ex.sets[setIdx][field]=val;
+}
+
+function cwCheckSet(setIdx){
+  const cw=window._cw;if(!cw)return;
+  const ex=cw.exercises[cw.exIdx];if(!ex||!ex.sets[setIdx])return;
+  const st=ex.sets[setIdx];
+  st.done=!st.done;
+  if(!st.done){cwRender();return;}
+  const next=ex.sets.find(s=>!s.done);
+  if(next){
+    cw.phase='rest';
+    cw.restLeft=ex.restSec||90;
+    cwClearTimers();
+    window._cwClock=setInterval(()=>{
+      if(!window._cw)return;
+      window._cw.elapsed=Math.round((Date.now()-window._cw.startedAt)/1000);
+    },1000);
+    window._cwRestTimer=setInterval(()=>{
+      if(!window._cw)return;
+      window._cw.restLeft-=1;
+      const n=document.getElementById('cw-rest-num');
+      if(n)n.textContent=Math.max(0,window._cw.restLeft);
+      if(window._cw.restLeft<=0)cwSkipRest();
+    },1000);
+    cwRender();
+    return;
+  }
+  if(cw.exIdx<cw.exercises.length-1){cw.exIdx+=1;cw.phase='exercise';cwRender();return;}
+  cw.phase='finish';cwRender();
+}
+
+function cwSkipRest(){
+  const cw=window._cw;if(!cw)return;
+  if(window._cwRestTimer){clearInterval(window._cwRestTimer);window._cwRestTimer=null;}
+  cw.phase='exercise';
+  cwRender();
+}
+
+function cwSkipEx(){
+  const cw=window._cw;if(!cw)return;
+  if(cw.exIdx<cw.exercises.length-1){cw.exIdx+=1;cw.phase='exercise';cwRender();}
+  else{cw.phase='finish';cwRender();}
+}
+
+function cwPrevEx(){
+  const cw=window._cw;if(!cw||cw.exIdx<=0)return;
+  cw.exIdx-=1;cw.phase='exercise';cwRender();
+}
+
+function cwRate(v){
+  const cw=window._cw;if(!cw)return;
+  cw.rating=v;
+  cwRender();
+}
+
+function cwRender(){
+  const el=document.getElementById('clive-player-inner');
+  const cw=window._cw;
+  if(!el||!cw)return;
+  const accent=(window.SETTINGS&&window.SETTINGS.brand&&window.SETTINGS.brand.accentColor)||'#e11f2e';
+  const back=`<button type="button" class="btn btn-ghost btn-sm" onclick="cwClose()">✕</button>`;
+  if(cw.phase==='overview'){
+    el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">${back}<div style="font-size:11px;color:var(--muted);">${escHtml(cw.planName)}</div></div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;margin-bottom:6px;">${escHtml(cw.dayName)}</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:18px;">${cw.exercises.length} ćwiczeń · odhacz serie, timer przerwy sam się włączy</div>
+      ${cw.exercises.map((ex,i)=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:10px 0;border-top:1px solid rgba(255,255,255,.06);">
+        <div style="font-size:13px;font-weight:600;">${i+1}. ${escHtml(ex.name)}</div>
+        <div style="font-size:11px;color:var(--muted);white-space:nowrap;">${ex.sets.length} serii</div>
+      </div>`).join('')}
+      <button type="button" class="cap-btn-primary" style="margin-top:20px;padding:16px;font-size:16px;" onclick="cwBegin()">▶ Start</button>`;
+    return;
+  }
+  if(cw.phase==='rest'){
+    el.innerHTML=`<div class="cw-rest">
+      <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Przerwa</div>
+      <div class="cw-rest-num" id="cw-rest-num">${cw.restLeft}</div>
+      <div style="font-size:13px;color:var(--muted);">Następna seria · ${escHtml(cw.exercises[cw.exIdx].name)}</div>
+      <button type="button" class="cap-btn-primary" style="max-width:240px;padding:12px;" onclick="cwSkipRest()">Pomiń przerwę</button>
+    </div>`;
+    return;
+  }
+  if(cw.phase==='finish'){
+    const setsDone=cw.exercises.flatMap(e=>e.sets).filter(s=>s.done).length;
+    el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">${back}</div>
+      <div style="text-align:center;padding:10px 0 20px;">
+        <div style="font-size:40px;margin-bottom:8px;">🔥</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;">TRENING SKOŃCZONY</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:6px;">${setsDone} serii · ${cwFmt(cw.elapsed)}</div>
+      </div>
+      <div style="font-size:13px;margin-bottom:10px;text-align:center;">Jak było?</div>
+      <div style="display:flex;justify-content:center;gap:8px;margin-bottom:16px;">
+        ${[1,2,3,4,5].map(n=>`<button type="button" class="clive-check-opt${cw.rating===n?' on':''}" onclick="cwRate(${n})">${['😓','😐','🙂','💪','🔥'][n-1]}</button>`).join('')}
+      </div>
+      <textarea class="form-textarea" rows="3" placeholder="Komentarz dla trenera (opcjonalnie)" oninput="window._cw.note=this.value">${escHtml(cw.note||'')}</textarea>
+      <button type="button" class="cap-btn-primary" style="margin-top:16px;padding:16px;" onclick="cwFinish()">Zapisz i wyślij do trenera</button>`;
+    return;
+  }
+  const ex=cw.exercises[cw.exIdx];
+  const doneSets=ex.sets.filter(s=>s.done).length;
+  el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      ${back}
+      <div id="cw-clock" style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:${accent};">${cwFmt(cw.elapsed)}</div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Ćwiczenie ${cw.exIdx+1} / ${cw.exercises.length}</div>
+    <div style="font-size:20px;font-weight:700;margin-bottom:6px;">${escHtml(ex.name)}</div>
+    ${ex.lastKg?`<div style="font-size:11px;color:var(--muted);margin-bottom:12px;">Ostatnio: ${escHtml(String(ex.lastKg))} kg${ex.lastReps?' × '+escHtml(String(ex.lastReps)):''}</div>`:'<div style="height:12px;"></div>'}
+    <div style="height:6px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden;margin-bottom:16px;">
+      <div style="height:100%;width:${Math.round((cw.exIdx+doneSets/Math.max(1,ex.sets.length))/cw.exercises.length*100)}%;background:${accent};"></div>
+    </div>
+    <div class="cw-set-row" style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">
+      <div>#</div><div>Kg</div><div>Powt.</div><div></div>
+    </div>
+    ${ex.sets.map((s,i)=>`<div class="cw-set-row">
+      <div style="text-align:center;font-weight:700;color:${s.done?'var(--teal)':'var(--muted)'};">${s.done?'✓':s.setNo}</div>
+      <input type="number" inputmode="decimal" value="${escHtml(s.kg)}" ${s.done?'disabled':''} oninput="cwPatchSet(${i},'kg',this.value)" class="${s.done?'cw-set-done':''}">
+      <input type="text" inputmode="numeric" value="${escHtml(s.reps)}" ${s.done?'disabled':''} oninput="cwPatchSet(${i},'reps',this.value)" class="${s.done?'cw-set-done':''}">
+      <button type="button" class="btn ${s.done?'btn-ghost':'btn-primary'} btn-sm" onclick="cwCheckSet(${i})">${s.done?'↩':'+'}</button>
+    </div>`).join('')}
+    <div style="display:flex;gap:8px;margin-top:18px;">
+      ${cw.exIdx>0?`<button type="button" class="btn btn-ghost" onclick="cwPrevEx()">←</button>`:''}
+      <button type="button" class="btn btn-ghost" style="flex:1;" onclick="cwSkipEx()">Pomiń ćwiczenie</button>
+    </div>`;
+}
+
+async function cwFinish(){
+  const cw=window._cw;if(!cw)return;
+  const clientId=window._clientId;
+  const totalSets=cw.exercises.flatMap(e=>e.sets).filter(s=>s.done).length;
+  const volume=Math.round(cw.exercises.flatMap(e=>e.sets).filter(s=>s.done&&s.kg).reduce((a,s)=>a+(parseFloat(s.kg)||0)*(parseFloat(s.reps)||0),0));
+  const durationMin=Math.max(1,Math.round((cw.elapsed||0)/60));
+  const newSession=withTrainer({
+    id:newId('s'),
+    clientId,
+    date:todayYmd(),
+    time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),
+    type:cw.dayName||'Trening',
+    duration:durationMin,
+    exercises:cw.exercises.map(e=>({
+      name:e.name,
+      sets:e.sets.filter(s=>s.done).map(s=>({kg:parseFloat(s.kg)||0,reps:parseFloat(s.reps)||0,setNo:s.setNo}))
+    })),
+    volume,
+    feedback:cw.rating||0,
+    note:cw.note||'',
+    source:'client',
+    planId:cw.planId,
+    dayIdx:cw.dayIdx,
+    createdAt:new Date().toISOString()
+  });
+  window.SE=window.SE||[];
+  window.SE.push(newSession);
+  await persistById('sessions',newSession);
+  const me=(window.CL||[])[0];
+  const name=me&&me.name?me.name.split(' ')[0]:'Klient';
+  pushClientMsg('Zrobiłem trening: '+cw.dayName+(cw.rating?(' · ocena '+cw.rating+'/5'):'')+(cw.note?('\n'+cw.note):''));
+  if(typeof addNotification==='function'){
+    addNotification('system','Trening klienta',name+' · '+cw.dayName+' · '+durationMin+' min · '+totalSets+' serii','live');
+  }
+  if(typeof notify==='function')notify('✓ Trening zapisany');
+  cwClearTimers();
+  window._cw=null;
+  const wrap=document.getElementById('clive-player');
+  if(wrap)wrap.hidden=true;
+  document.body.classList.remove('cw-playing');
+  window._clientLiveScreen='home';
+  renderClientLive();
+}
