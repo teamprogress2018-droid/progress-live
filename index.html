@@ -724,10 +724,14 @@
     <!-- lewa kolumna — filtry + AI -->
     <div style="width:260px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;">
       <!-- statsy -->
-      <div style="padding:12px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+      <div style="padding:12px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr;gap:6px;">
         <div style="background:var(--s3);border-radius:8px;padding:8px 6px;text-align:center;">
           <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--accent);" id="t-open">0</div>
           <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">AKTYWNE</div>
+        </div>
+        <div style="background:var(--s3);border-radius:8px;padding:8px 6px;text-align:center;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--purple);" id="t-habits">0</div>
+          <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">NAWYKI</div>
         </div>
         <div style="background:var(--s3);border-radius:8px;padding:8px 6px;text-align:center;">
           <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--teal);" id="t-done">0</div>
@@ -747,6 +751,7 @@
         <div class="task-nav-item active" id="tn-all" onclick="setTaskFilter('all')">Wszystkie zadania</div>
         <div class="task-nav-item" id="tn-open" onclick="setTaskFilter('open')">Do wykonania</div>
         <div class="task-nav-item" id="tn-done" onclick="setTaskFilter('done')">Ukończone</div>
+        <div class="task-nav-item" id="tn-habits" onclick="setTaskFilter('habits')">🔥 Nawyki</div>
         <div class="task-nav-item" id="tn-overdue" onclick="setTaskFilter('overdue')">⚠ Przeterminowane</div>
         <div style="padding:6px 14px 2px;font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:4px;">Priorytet</div>
         <div class="task-nav-item" id="tn-high" onclick="setTaskFilter('high')">🔴 Wysoki</div>
@@ -3054,6 +3059,16 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <div id="task-client-results" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;background:var(--s2);border:1px solid var(--border2);border-radius:8px;margin-top:4px;max-height:220px;overflow-y:auto;box-shadow:0 8px 20px rgba(0,0,0,0.4);"></div>
       </div>
       <div class="form-field"><label class="form-lbl">Zadanie</label><input type="text" class="form-input" id="task-title" placeholder="np. Wykonaj 3 treningi w tym tygodniu"></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin:-4px 0 10px;">
+        <button type="button" class="btn btn-ghost btn-sm" onclick="applyHabitChip('Wypij 3L wody','lifestyle')">💧 Woda 3L</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="applyHabitChip('Sen 7–8h','lifestyle')">😴 Sen</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="applyHabitChip('8 000 kroków','lifestyle')">🚶 Kroki</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="applyHabitChip('Białko na każdym posiłku','dieta')">🥗 Białko</button>
+      </div>
+      <label style="display:flex;align-items:flex-start;gap:8px;margin:0 0 12px;font-size:12px;cursor:pointer;line-height:1.4;">
+        <input type="checkbox" id="task-habit" onchange="onHabitToggle()" style="margin-top:2px;flex-shrink:0;">
+        <span>Nawyk codzienny — klient odhacza każdego dnia, liczy się seria (streak)</span>
+      </label>
       <div class="form-grid">
         <div class="form-field"><label class="form-lbl">Kategoria</label>
           <select class="form-select" id="task-cat">
@@ -3071,7 +3086,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
           </select>
         </div>
       </div>
-      <div class="form-field"><label class="form-lbl">Termin</label><input type="date" class="form-input" id="task-due"></div>
+      <div class="form-field" id="task-due-wrap"><label class="form-lbl">Termin</label><input type="date" class="form-input" id="task-due"></div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-task')">Anuluj</button><button class="btn btn-primary" onclick="saveTask()">Dodaj zadanie</button></div>
   </div>

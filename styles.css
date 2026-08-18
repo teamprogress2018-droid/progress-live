@@ -696,6 +696,11 @@ input[type=checkbox]{display:none;}
 .task-title.done{text-decoration:line-through;color:var(--muted);}
 .task-meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px;}
 .task-prio-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.habit-week{display:flex;gap:4px;margin-top:8px;align-items:center;}
+.habit-dot{width:10px;height:10px;border-radius:50%;background:var(--border);flex-shrink:0;}
+.habit-dot.on{background:var(--teal);}
+.habit-dot.today{outline:2px solid var(--accent);outline-offset:1px;}
+.habit-streak{font-size:11px;font-weight:700;color:var(--orange);}
 .tmpl-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r2);padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:border-color 0.12s;}
 .tmpl-card:hover{border-color:var(--border2);}
 .tmpl-card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
