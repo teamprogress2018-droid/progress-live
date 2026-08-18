@@ -34,6 +34,9 @@ jobs:
       - name: 1b. Testy wskazówki i filmu przy ćwiczeniu
         run: node .github/scripts/test_coach_media.js
 
+      - name: 1c. Testy warstwy klienta dla coach media
+        run: node .github/scripts/test_client_portal_coach_media.js
+
       - name: 2. Sprawdź duplikaty (funkcje / id / zmienne)
         run: python3 .github/scripts/check_duplicates.py
 
