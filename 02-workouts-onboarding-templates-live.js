@@ -1908,7 +1908,7 @@ function liveExCard(ex,i){
       <div style="width:30px;height:30px;border-radius:8px;background:${ex.done?'var(--teal)':'var(--adim)'};display:flex;align-items:center;justify-content:center;font-size:${ex.done?'14px':'12px'};font-weight:700;color:${ex.done?'#000':'var(--accent)'};flex-shrink:0;">${ex.done?'✓':i+1}</div>
       <div style="flex:1;">
         <div style="font-size:13px;font-weight:700;">${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}</div>
-        <div style="font-size:10px;color:var(--muted);">${ex.sets.length} serie · ${setsDone}/${ex.sets.length} ukończono${ex.ssLabel?' · super-seria':''}${sub?' · '+escHtml(sub):''}</div>
+        <div style="font-size:10px;color:var(--muted);">${ex.sets.length} serie · ${setsDone}/${ex.sets.length} ukończono${ex.ssLabel?' · super-seria':''}${ex.emom?' · EMOM':''}${sub?' · '+escHtml(sub):''}</div>
       </div>
       <div style="display:flex;gap:6px;align-items:center;">
         ${!ex.done?`<button type="button" class="live-skip-btn" onclick="event.stopPropagation();liveSkipEx(${i})">Pomiń</button>`:''}
@@ -1971,13 +1971,27 @@ function liveToggleSet(ei,si){
       const nxt=liveExercises.find(e=>!e.done);
       if(nxt)nxt.collapsed=false;
     }
-    const act=typeof ssNextAfterSet==='function'?ssNextAfterSet(liveExercises,ei):null;
-    if(act&&act.kind==='partner'){
-      liveExercises[act.exIdx].collapsed=false;
-      const nxt=liveExercises[act.exIdx];
-      if(typeof notify==='function')notify('Super-seria → '+(nxt.ssLabel?nxt.ssLabel+' ':'')+nxt.name+' (bez przerwy)');
+    if(typeof isEmomExercise==='function'&&isEmomExercise(ex)&&next){
+      window._liveEmomClock=window._liveEmomClock||{};
+      if(!window._liveEmomClock[ei])window._liveEmomClock[ei]=Date.now();
+      const done=ex.sets.filter(x=>x.done).length;
+      const elapsed=(Date.now()-window._liveEmomClock[ei])/1000;
+      const wait=typeof emomRestSec==='function'?emomRestSec(done,elapsed):0;
+      if(wait>0){
+        if(typeof notify==='function')notify('EMOM — czekaj na minutę · '+wait+' s');
+        liveStartRest(wait);
+      }else if(typeof notify==='function'){
+        notify('EMOM — poza minutą, jedź dalej');
+      }
     }else{
-      liveStartRest((ex.restSec)||90);
+      const act=typeof ssNextAfterSet==='function'?ssNextAfterSet(liveExercises,ei):null;
+      if(act&&act.kind==='partner'){
+        liveExercises[act.exIdx].collapsed=false;
+        const nxt=liveExercises[act.exIdx];
+        if(typeof notify==='function')notify('Super-seria → '+(nxt.ssLabel?nxt.ssLabel+' ':'')+nxt.name+' (bez przerwy)');
+      }else{
+        liveStartRest((ex.restSec)||90);
+      }
     }
   }else{
     ex.done=false;
@@ -2019,6 +2033,7 @@ function liveStartSession(){
   window._liveSavedClientName='';
   liveSessionActive=true;
   liveTimerSec=0;
+  window._liveEmomClock={};
   clearInterval(liveTimerInterval);
   liveTimerInterval=setInterval(()=>{
     liveTimerSec++;
@@ -2054,7 +2069,7 @@ function liveEndSession(){
     duration:durationMin||60,
     exercises:liveExercises.map(e=>({
       name:e.name,
-      sets:e.sets.filter(s=>s.done).map(s=>({kg:parseFloat(s.kg)||0,reps:parseFloat(s.reps)||0,setNo:s.setNo}))
+      sets:e.sets.filter(s=>s.done).map(s=>({kg:parseFloat(s.kg)||0,reps:parseFloat(s.reps)||0,setNo:s.setNo,kind:s.kind||'work'}))
     })),
     volume,feedback:liveFeedbackVal,
     note:document.getElementById('live-note')?.value||'',

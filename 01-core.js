@@ -716,7 +716,7 @@ window.coachMediaHtml=coachMediaHtml;
 
 /** Ćwiczenie z planu: obiekt AI albo string z kreatora ("Wyciskanie 4x8 @75%"). */
 function parsePlanExercise(ex){
-  if(ex==null)return{name:'Ćwiczenie',sets:'3',reps:'10',rest:'90s',kg:'',pct1rm:'',ss:'',video:''};
+  if(ex==null)return{name:'Ćwiczenie',sets:'3',reps:'10',rest:'90s',kg:'',pct1rm:'',ss:'',emom:false,video:''};
   if(typeof ex==='string'){
     const raw=ex.trim();
     const m=raw.match(/^(.*?)(?:\s+(\d+)\s*[x×]\s*(\d+(?:\s*-\s*\d+)?))?(?:\s*@\s*(\d+(?:[.,]\d+)?)\s*(%|kg)?)?\s*$/i);
@@ -731,6 +731,7 @@ function parsePlanExercise(ex){
       kg:isPct?'':amt,
       pct1rm:isPct?parsePct1RM(amt):'',
       ss:'',
+      emom:false,
       video:''
     };
   }
@@ -750,10 +751,32 @@ function parsePlanExercise(ex){
     tempo:ex.tempo||'',
     alt:ex.alt||'',
     ss:String(ex.ss||ex.superset||'').trim(),
+    emom:isEmomFlag(ex.emom),
     video:normalizeCoachVideoUrl(ex.video||ex.url||'')
   };
 }
 window.parsePlanExercise=parsePlanExercise;
+
+function isEmomFlag(v){
+  return v===true||v===1||v==='1'||v==='true'||v==='emom'||v==='EMOM';
+}
+window.isEmomFlag=isEmomFlag;
+
+function isEmomExercise(ex){
+  if(!ex)return false;
+  if(String(ex.ss||'').trim())return false;
+  return isEmomFlag(ex.emom);
+}
+window.isEmomExercise=isEmomExercise;
+
+/** Po N-tej skończonej rundzie: ile sekund do N×60 od startu zegara EMOM. */
+function emomRestSec(doneCount,elapsedSec){
+  const n=Math.max(1,parseInt(doneCount,10)||1);
+  const elapsed=Number(elapsedSec)||0;
+  const wait=n*60-elapsed;
+  return wait>0?Math.ceil(wait):0;
+}
+window.emomRestSec=emomRestSec;
 
 function applySsLabels(list){
   let n=0;
@@ -832,7 +855,8 @@ function formatPlanExerciseLine(ex,clientId){
   }else if(p.kg){
     kgPart=' @'+p.kg+'kg';
   }
-  return(p.ssLabel?p.ssLabel+' ':'')+(p.name||'')+(p.sets?' '+p.sets+'×'+p.reps:'')+kgPart;
+  const emom=isEmomFlag(p.emom)&&!p.ss?' EMOM':'';
+  return(p.ssLabel?p.ssLabel+' ':'')+(p.name||'')+(p.sets?' '+p.sets+'×'+p.reps:'')+kgPart+emom;
 }
 window.formatPlanExerciseLine=formatPlanExerciseLine;
 
@@ -1174,6 +1198,7 @@ function mapPlanExercisesForClient(rawEx,clientId){
     const fromPct=pct?weightFromPct1RM(clientId,ex.name,pct):null;
     const plannedKg=(fromPct&&fromPct.kg)?fromPct.kg:(ex.kg||'');
     const lockPct=!!pct;
+    const emom=isEmomExercise(ex);
     const coach=typeof resolveCoachMedia==='function'?resolveCoachMedia(ex):{video:'',videoEmbed:'',isFile:false};
     return{
       name:ex.name,
@@ -1186,6 +1211,7 @@ function mapPlanExercisesForClient(rawEx,clientId){
       lastKg:last&&last.kg!=null&&last.kg!==''?last.kg:(plannedKg||''),
       lastReps:last&&last.reps!=null&&last.reps!==''?last.reps:'',
       ss:ex.ss||'',
+      emom,
       video:coach.video||'',
       videoEmbed:coach.videoEmbed||'',
       isFile:!!coach.isFile,
@@ -1197,7 +1223,8 @@ function mapPlanExercisesForClient(rawEx,clientId){
           setNo:i+1,
           kg:kg||'',
           reps:prev&&prev.reps!=null&&prev.reps!==''?String(prev.reps):defaultReps,
-          done:false
+          done:false,
+          kind:emom?'emom':'work'
         };
       })
     };

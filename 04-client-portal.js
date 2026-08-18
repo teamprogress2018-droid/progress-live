@@ -129,6 +129,7 @@ function capTodayExercises(c){
     }else if(p.kg){
       sets+=' @'+p.kg+'kg';
     }
+    if(typeof isEmomExercise==='function'&&isEmomExercise(p))sets+=' · EMOM';
     return{name:p.name,ssLabel:p.ssLabel||'',sets,rest:p.rest||'90s',done:slot.kind==='done'};
   });
 }
@@ -665,7 +666,8 @@ function capFormQControl(sendId,q,val,live){
 
 const CAP_SCREEN_INFO={
   home:{title:'🏠 Dziś',desc:'Jeden ekran na dzień: trening do odpalenia (Start), dzień wolny, nawyki, wyzwania, formularze od trenera, zadania i check-in jeśli czeka. Klient nie zgaduje, co ma zrobić.'},
-  plan:{title:'📋 Mój plan treningowy',desc:'Lista dni planu. Start odhacza serie. Jeśli trener podpiął swój film techniki do ćwiczenia, w playerze jest przycisk Film trenera.'},
+  plan:{title:'📋 Mój plan treningowy',desc:'Lista dni planu. Start odhacza serie. W kreatorze: SS i EMOM (każda seria na początku minuty).'},
+  plan:{title:'📋 Mój plan treningowy',desc:'Lista dni planu. Start odhacza serie. W kreatorze: SS i EMOM, a jeśli trener podpiął swój film techniki do ćwiczenia, w playerze jest przycisk Film trenera.'},
   calendar:{title:'📅 Kalendarz sesji',desc:'Mini-kalendarz z zaznaczonymi sesjami. Klient widzi nadchodzące treningi z godziną, typem i linkiem do Google Meet (jeśli online).'},
   progress:{title:'📈 Moje postępy',desc:'Masa z pomiarów oraz zdjęcia sylwetki (przód / bok / tył) z porównaniem w czasie. Klient robi zdjęcia w apce — Ty widzisz je w karcie klienta.'},
   checkin:{title:'✅ Check-in tygodniowy',desc:'Interaktywny formularz check-inu — emoji skale, liczba treningów, waga. Wysłany check-in trafia bezpośrednio do Twojego panelu.'},

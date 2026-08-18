@@ -583,6 +583,7 @@ function cwBegin(){
   const cw=window._cw;if(!cw)return;
   cw.phase='exercise';
   cw.startedAt=Date.now();
+  cw.emomClock={};
   cwClearTimers();
   window._cwClock=setInterval(()=>{
     if(!window._cw)return;
@@ -590,6 +591,7 @@ function cwBegin(){
     const el=document.getElementById('cw-clock');
     if(el)el.textContent=cwFmt(window._cw.elapsed);
   },1000);
+  cwEnsureEmomClock();
   cwRender();
 }
 
@@ -604,9 +606,10 @@ function cwPatchSet(setIdx,field,val){
   ex.sets[setIdx][field]=val;
 }
 
-function cwStartRest(seconds){
+function cwStartRest(seconds,kind){
   const cw=window._cw;if(!cw)return;
   cw.phase='rest';
+  cw.restKind=kind||'';
   cw.restLeft=seconds||90;
   cwClearTimers();
   window._cwClock=setInterval(()=>{
@@ -628,8 +631,23 @@ function cwGoEx(idx){
   if(idx==null||idx<0||idx>=cw.exercises.length){cw.phase='finish';cwRender();return;}
   cw.exIdx=idx;
   cw.phase='exercise';
+  cwEnsureEmomClock();
   cw.showVideo=false;
+  cwEnsureEmomClock();
   cwRender();
+}
+
+function cwEnsureEmomClock(){
+  const cw=window._cw;if(!cw)return;
+  const ex=cw.exercises[cw.exIdx];
+  if(typeof isEmomExercise!=='function'||!isEmomExercise(ex))return;
+  cw.emomClock=cw.emomClock||{};
+  if(!cw.emomClock[cw.exIdx])cw.emomClock[cw.exIdx]=Date.now();
+}
+
+function cwEmomElapsed(){
+  const cw=window._cw;if(!cw||!cw.emomClock||!cw.emomClock[cw.exIdx])return 0;
+  return(Date.now()-cw.emomClock[cw.exIdx])/1000;
 }
 
 function cwCheckSet(setIdx){
@@ -638,6 +656,22 @@ function cwCheckSet(setIdx){
   const st=ex.sets[setIdx];
   st.done=!st.done;
   if(!st.done){cwRender();return;}
+  if(typeof isEmomExercise==='function'&&isEmomExercise(ex)){
+    cwEnsureEmomClock();
+    const done=ex.sets.filter(s=>s.done).length;
+    const nxtSet=ex.sets.find(s=>!s.done);
+    if(nxtSet){
+      const wait=typeof emomRestSec==='function'?emomRestSec(done,cwEmomElapsed()):0;
+      if(wait>0){
+        if(typeof notify==='function')notify('EMOM — następna runda za '+wait+' s');
+        cwStartRest(wait,'emom');
+      }else{
+        if(typeof notify==='function')notify('EMOM — poza minutą, jedź dalej');
+        cwRender();
+      }
+      return;
+    }
+  }
   const act=typeof ssNextAfterSet==='function'?ssNextAfterSet(cw.exercises,cw.exIdx):null;
   if(act&&act.kind==='partner'){
     const nxt=cw.exercises[act.exIdx];
@@ -744,17 +778,18 @@ function cwRender(){
       <div style="font-size:12px;color:var(--muted);margin-bottom:18px;">${cw.exercises.length} ćwiczeń · odhacz serie, timer przerwy sam się włączy</div>
       ${cw.exercises.map((ex,i)=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:10px 0;border-top:1px solid rgba(255,255,255,.06);">
         <div style="font-size:13px;font-weight:600;">${i+1}. ${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}${ex.video?' ▶':''}</div>
-        <div style="font-size:11px;color:var(--muted);white-space:nowrap;">${ex.sets.length} serii</div>
+        <div style="font-size:11px;color:var(--muted);white-space:nowrap;">${ex.sets.length} serii${ex.emom?' · EMOM':''}</div>
       </div>`).join('')}
       <button type="button" class="cap-btn-primary" style="margin-top:20px;padding:16px;font-size:16px;" onclick="cwBegin()">▶ Start</button>`;
     return;
   }
   if(cw.phase==='rest'){
     const nxt=cw.exercises[cw.exIdx]||{};
+    const emom=cw.restKind==='emom';
     el.innerHTML=`<div class="cw-rest">
-      <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">${nxt.ssLabel?'Przerwa · super-seria':'Przerwa'}</div>
+      <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">${emom?'EMOM — czekaj na minutę':(nxt.ssLabel?'Przerwa · super-seria':'Przerwa')}</div>
       <div class="cw-rest-num" id="cw-rest-num">${cw.restLeft}</div>
-      <div style="font-size:13px;color:var(--muted);">Następna seria · ${nxt.ssLabel?escHtml(nxt.ssLabel)+' ':''}${escHtml(nxt.name||'')}</div>
+      <div style="font-size:13px;color:var(--muted);">${emom?'Następna runda':'Następna seria'} · ${nxt.ssLabel?escHtml(nxt.ssLabel)+' ':''}${escHtml(nxt.name||'')}</div>
       <button type="button" class="cap-btn-primary" style="max-width:240px;padding:12px;" onclick="cwSkipRest()">Pomiń przerwę</button>
     </div>`;
     return;
@@ -776,19 +811,24 @@ function cwRender(){
     return;
   }
   const ex=cw.exercises[cw.exIdx];
+  cwEnsureEmomClock();
   const doneSets=ex.sets.filter(s=>s.done).length;
+  const emomOn=typeof isEmomExercise==='function'&&isEmomExercise(ex);
+  const emomWait=emomOn&&typeof emomRestSec==='function'?emomRestSec(doneSets+1,cwEmomElapsed()):0;
   el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
       ${back}
       <div id="cw-clock" style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:${accent};">${cwFmt(cw.elapsed)}</div>
     </div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Ćwiczenie ${cw.exIdx+1} / ${cw.exercises.length}${ex.ssLabel?' · super-seria':''}</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Ćwiczenie ${cw.exIdx+1} / ${cw.exercises.length}${ex.ssLabel?' · super-seria':''}${emomOn?' · EMOM runda '+(doneSets+1)+'/'+ex.sets.length:''}</div>
     <div style="font-size:20px;font-weight:700;margin-bottom:6px;">${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}</div>
     ${typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:!!cw.showVideo,toggleFn:'cwToggleVideo()'}):''}
     ${(()=>{const g=typeof ssGroupIdxs==='function'?ssGroupIdxs(cw.exercises,cw.exIdx):[];const others=g.filter(i=>i!==cw.exIdx).map(i=>cw.exercises[i]).filter(Boolean);return others.length?`<div style="font-size:11px;color:var(--orange);margin-bottom:8px;">Bez przerwy z: ${others.map(o=>escHtml((o.ssLabel?o.ssLabel+' ':'')+o.name)).join(', ')}</div>`:'';})()}
     ${(ex.plannedName&&ex.plannedName!==ex.name)?`<div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Z planu: ${escHtml(ex.plannedName)}</div>`:''}
     ${(ex.alts||[]).length?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px;">${ex.alts.map(a=>`<button type="button" class="btn btn-ghost btn-sm" onclick='cwSwapEx(${JSON.stringify(a)})'>↻ ${escHtml(a)}</button>`).join('')}</div>`:''}
     ${ex.kgHint?`<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${escHtml(ex.kgHint)}</div>`:''}
-    ${ex.lastKg?`<div style="font-size:11px;color:var(--muted);margin-bottom:12px;">Ostatnio: ${escHtml(String(ex.lastKg))} kg${ex.lastReps?' × '+escHtml(String(ex.lastReps)):''}</div>`:'<div style="height:8px;"></div>'}
+    ${ex.lastKg?`<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Ostatnio: ${escHtml(String(ex.lastKg))} kg${ex.lastReps?' × '+escHtml(String(ex.lastReps)):''}</div>`:''}
+    ${emomOn?`<div style="font-size:11px;color:var(--blue);margin-bottom:8px;">Zegar minuty · do rundy ~${emomWait}s (zrób serie i czekaj reszty)</div>`:''}
+    ${!ex.lastKg&&!emomOn?'<div style="height:8px;"></div>':''}
     <div style="height:6px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden;margin-bottom:16px;">
       <div style="height:100%;width:${Math.round((cw.exIdx+doneSets/Math.max(1,ex.sets.length))/cw.exercises.length*100)}%;background:${accent};"></div>
     </div>
@@ -822,7 +862,7 @@ async function cwFinish(){
     duration:durationMin,
     exercises:cw.exercises.map(e=>({
       name:e.name,
-      sets:e.sets.filter(s=>s.done).map(s=>({kg:parseFloat(s.kg)||0,reps:parseFloat(s.reps)||0,setNo:s.setNo}))
+      sets:e.sets.filter(s=>s.done).map(s=>({kg:parseFloat(s.kg)||0,reps:parseFloat(s.reps)||0,setNo:s.setNo,kind:s.kind||'work'}))
     })),
     volume,
     feedback:cw.rating||0,
