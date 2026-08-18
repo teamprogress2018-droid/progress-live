@@ -330,7 +330,7 @@ function goTo(n){
   if(n==='inbox')renderInbox();
   if(n==='clients'){renderClientFilters();renderClients();}
   if(n==='dashboard')renderDash();
-  if(n==='workout-library'){closeWLDetail();renderWL();}
+  if(n==='workout-library'){closeWLDetail();if(typeof setWLView==='function')setWLView(wlView||'grid');else renderWL();}
   if(n==='programs'){renderPrograms();}
   if(n==='metrics'){
     renderMetrics();

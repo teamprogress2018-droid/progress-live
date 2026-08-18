@@ -69,6 +69,9 @@ jobs:
       - name: 1i. Testy wiring kreatora WU/DROP/AMRAP + film
         run: node .github/scripts/test_builder_kinds_media.js
 
+      - name: 1j. Testy parsera JSON generatora AI
+        run: node .github/scripts/test_ai_plan_json.js
+
       - name: 2. Sprawdź duplikaty (funkcje / id / zmienne)
         run: python3 .github/scripts/check_duplicates.py
 
@@ -88,6 +91,8 @@ jobs:
 
       - name: 6b. Testy layoutu podglądu planu w przeglądarce
         run: node .github/scripts/test_plan_preview_layout.js
+      - name: 6b. Testy layoutu generatora / biblioteki / kalkulatora
+        run: node .github/scripts/test_ai_gen_layout.js
 
       - name: 7. Sprawdź stronę w prawdziwej przeglądarce
         run: node .github/scripts/check_browser.js

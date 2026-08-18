@@ -162,7 +162,7 @@ button{cursor:pointer;}
 .lib-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;}
 
 /* ── WORKOUT LIBRARY ── */
-.wl-layout{display:flex;flex:1;overflow:hidden;width:100%;max-width:1100px;margin:0 auto;}
+.wl-layout{display:flex;flex:1;overflow:hidden;width:100%;min-width:0;}
 .wl-sidebar{width:200px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
 .wl-sidebar-top{padding:10px;border-bottom:1px solid var(--border);}
 .wl-search{width:100%;background:var(--s3);border:1px solid var(--border);border-radius:6px;padding:6px 9px;color:var(--text);font-size:12px;}
@@ -533,7 +533,7 @@ button{cursor:pointer;}
 .calc-inputs{overflow-y:auto;padding:16px 18px 24px;border-right:1px solid var(--border);background:var(--s1);min-width:0;}
 .calc-guide{font-size:11px;color:var(--muted);background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:14px;line-height:1.4;}
 .calc-results-area{overflow-y:auto;padding:20px 28px 32px 22px;min-width:0;}
-#calc-results{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(240px,360px);gap:18px;align-items:start;width:100%;max-width:1180px;}
+#calc-results{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(240px,1fr);gap:18px;align-items:start;width:100%;max-width:none;}
 .calc-col-main,.calc-col-side{min-width:0;}
 .calc-scenarios{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;}
 .calc-act-btn,.calc-goal-btn,.calc-macro-btn{width:100%;padding:8px 12px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;color:var(--muted);font-size:12px;text-align:left;cursor:pointer;transition:all 0.12s;font-family:'DM Sans',sans-serif;}
@@ -548,6 +548,12 @@ button{cursor:pointer;}
 .calc-macro-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
 .calc-meal-card{background:var(--s3);border-radius:10px;padding:12px 14px;margin-bottom:8px;}
 .calc-tip{background:var(--adim);border:1px solid rgba(225,31,46,0.15);border-radius:8px;padding:10px 12px;font-size:11px;line-height:1.6;margin-bottom:8px;}
+/* ── AI PLAN GENERATOR ── */
+.apl-layout{display:flex;flex:1;overflow:hidden;width:100%;min-width:0;}
+.apl-form{width:380px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;padding:20px;min-width:0;}
+.apl-result-col{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+.apl-result-wrap{flex:1;overflow-y:auto;padding:24px;min-width:0;}
+#apl-result{max-width:none;width:100%;margin:0;}
 /* ── CLIENT PROFILE ── */
 .cp-drawer{position:fixed;inset:0;width:100%;background:var(--s1);z-index:60;display:flex;flex-direction:column;transform:translateX(100%);transition:transform 0.24s cubic-bezier(.4,0,.2,1);}
 .cp-drawer.open{transform:translateX(0);}
@@ -805,7 +811,7 @@ input[type=checkbox]{display:none;}
 #mobile-sidebar-backdrop.show{display:block;}
 
 @media (max-width: 1200px){
-  #calc-results{grid-template-columns:1fr;}
+  #calc-results{grid-template-columns:1fr;max-width:none;}
   .calc-scenarios{grid-template-columns:repeat(3,1fr);}
 }
 
@@ -854,6 +860,8 @@ input[type=checkbox]{display:none;}
   .calc-inputs{border-right:none;border-bottom:1px solid var(--border);max-height:46vh;}
   #calc-results{grid-template-columns:1fr;max-width:none;}
   .calc-scenarios{grid-template-columns:repeat(2,1fr);}
+  .apl-layout{flex-direction:column;}
+  .apl-form{width:100%;border-right:none;border-bottom:1px solid var(--border);max-height:46vh;}
   .auto-onboard-wrap{padding:16px;}
   #onboard-flow-cards,#osc-preview{grid-template-columns:1fr;gap:6px;}
   .osc-arrow,.osc-preview-arrow{transform:rotate(90deg);height:22px;justify-self:center;}
