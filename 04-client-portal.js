@@ -236,6 +236,16 @@ function capScreenHTML(scr,c){
           </div>
         </button>`).join('')}
       </div>`:''}
+      ${(()=>{
+        if(!live||typeof ppFeatureOn!=='function'||!ppFeatureOn(c))return '';
+        const n=(typeof ppListFor==='function'?ppListFor(c.id):[]).length;
+        if(n)return '';
+        return `<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
+          <div style="font-size:14px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">📸 Zdjęcia startowe</div>
+          <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:10px;">Przód, bok i tył — potem porównasz efekty.</div>
+          <button type="button" class="cap-btn-primary" style="padding:10px;font-size:13px;" onclick="setClientLiveScreen('progress');setTimeout(()=>ppOpenDraft(),50)">Zrób zdjęcia</button>
+        </div>`;
+      })()}
     </div>`;
   }
 
@@ -308,50 +318,26 @@ function capScreenHTML(scr,c){
       })()}
     </div>`;
 
-  if(scr==='progress') return `
+  if(scr==='progress'){
+    const live=capIsLiveClient();
+    const w=typeof ppLatestWeight==='function'?ppLatestWeight(c):(c.weight||'—');
+    const photosOn=typeof ppFeatureOn==='function'?ppFeatureOn(c):true;
+    return `
     <div class="cap-section" style="padding-bottom:90px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:16px;padding-top:8px;">MOJE POSTĘPY</div>
-      <!-- główne KPI -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
         <div style="background:${CAP_S2};border-radius:16px;padding:14px;border:1px solid ${CAP_S3};">
-          <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:6px;">⚖️ Masa ciała</div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:30px;color:${CAP_TEXT};line-height:1;">${c.weight||'—'}<span style="font-size:14px;color:${CAP_MUTED};"> kg</span></div>
-          <div style="font-size:11px;color:${CAP_MUTED};margin-top:4px;">${capIsLiveClient()?'Z karty u trenera':'Podgląd'}</div>
+          <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:6px;">⚖️ Masa</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:30px;color:${CAP_TEXT};line-height:1;">${escHtml(String(w))}<span style="font-size:14px;color:${CAP_MUTED};"> kg</span></div>
         </div>
         <div style="background:${CAP_S2};border-radius:16px;padding:14px;border:1px solid ${CAP_S3};">
           <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:6px;">🏋️ Sesje</div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:30px;color:${accent};line-height:1;">${sessions.length}</div>
-          <div style="font-size:11px;color:${CAP_MUTED};margin-top:4px;">zapisanych treningów</div>
         </div>
       </div>
-      <!-- wykres masy (SVG) -->
-      <div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
-        <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:12px;">Masa ciała — ostatnie 8 tygodni</div>
-        <svg viewBox="0 0 320 80" xmlns="http://www.w3.org/2000/svg" style="width:100%;">
-          <defs><linearGradient id="grad1" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="${accent}" stop-opacity="0.3"/><stop offset="100%" stop-color="${accent}" stop-opacity="0"/></linearGradient></defs>
-          <path d="M10,60 L56,55 L102,52 L148,48 L194,44 L240,40 L286,36 L320,33 L320,80 L10,80 Z" fill="url(#grad1)"/>
-          <path d="M10,60 L56,55 L102,52 L148,48 L194,44 L240,40 L286,36 L320,33" fill="none" stroke="${accent}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
-          ${[60,55,52,48,44,40,36,33].map((y,i)=>`<circle cx="${10+i*44}" cy="${y}" r="4" fill="${accent}" stroke="${CAP_BG}" stroke-width="1.5"/>`).join('')}
-          ${['T1','T2','T3','T4','T5','T6','T7','T8'].map((l,i)=>`<text x="${10+i*44}" y="78" font-size="8" fill="${CAP_MUTED}" text-anchor="middle">${l}</text>`).join('')}
-        </svg>
-      </div>
-      <!-- siła bazowa -->
-      <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">Siła bazowa</div>
-      ${[
-        {name:'Przysiad',start:100,current:120,unit:'kg',col:accent},
-        {name:'Martwy ciąg',start:120,current:145,unit:'kg',col:'var(--orange)'},
-        {name:'Wyciskanie',start:80,current:95,unit:'kg',col:'var(--blue)'},
-        {name:'OHP',start:60,current:72,unit:'kg',col:'var(--purple)'},
-      ].map(s=>`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:12px;margin-bottom:8px;">
-        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-          <span style="font-size:12px;font-weight:600;color:${CAP_TEXT};">${s.name}</span>
-          <span style="font-size:12px;color:${s.col};font-weight:700;">${s.current} kg <span style="font-size:10px;color:var(--teal);">↑ +${s.current-s.start}</span></span>
-        </div>
-        <div style="height:5px;background:${CAP_S3};border-radius:99px;overflow:hidden;">
-          <div style="height:100%;background:${s.col};width:${Math.round(s.current/200*100)}%;border-radius:99px;"></div>
-        </div>
-      </div>`).join('')}
+      ${photosOn&&typeof ppBlockHTML==='function'?ppBlockHTML(c,{live,accent}):`<div style="font-size:12px;color:${CAP_MUTED};">Zdjęcia sylwetki są wyłączone u trenera.</div>`}
     </div>`;
+  }
 
   if(scr==='checkin'){
     const st=window._cliveCheckin||{};
@@ -561,7 +547,7 @@ const CAP_SCREEN_INFO={
   home:{title:'🏠 Dziś',desc:'Jeden ekran na dzień: trening do odpalenia (Start), dzień wolny, zadania do odhaczenia i check-in jeśli czeka. Klient nie zgaduje, co ma zrobić.'},
   plan:{title:'📋 Mój plan treningowy',desc:'Lista dni planu. Z każdego dnia treningowego klient może od razu kliknąć Start i odhaczać serie.'},
   calendar:{title:'📅 Kalendarz sesji',desc:'Mini-kalendarz z zaznaczonymi sesjami. Klient widzi nadchodzące treningi z godziną, typem i linkiem do Google Meet (jeśli online).'},
-  progress:{title:'📈 Moje postępy',desc:'Wykresy masy ciała, siły bazowej i innych pomiarów. Klient na bieżąco widzi swoje postępy i może je porównać z punktem startowym.'},
+  progress:{title:'📈 Moje postępy',desc:'Masa z pomiarów oraz zdjęcia sylwetki (przód / bok / tył) z porównaniem w czasie. Klient robi zdjęcia w apce — Ty widzisz je w karcie klienta.'},
   checkin:{title:'✅ Check-in tygodniowy',desc:'Interaktywny formularz check-inu — emoji skale, liczba treningów, waga. Wysłany check-in trafia bezpośrednio do Twojego panelu.'},
   messages:{title:'💬 Wiadomości',desc:'Czat z trenerem w czasie rzeczywistym. Klient widzi historię rozmów, może pisać i odbierać wiadomości. Możesz wysyłać zdjęcia, pliki i linki.'},
   ondemand:{title:'▶️ On-demand',desc:'Portal treningów wideo i planów. Klient może samodzielnie wykonywać treningi między sesjami — filtrować po kategorii, poziomie i czasie.'},

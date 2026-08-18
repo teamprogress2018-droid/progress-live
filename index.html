@@ -2770,6 +2770,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <button class="cp-tab cp-tab-v" id="cpt-psycho" onclick="setCPTab('psycho')" style="color:var(--purple);">🧠 Psycho</button>
         <button class="cp-tab cp-tab-v" id="cpt-sfr" onclick="setCPTab('sfr')" style="color:var(--teal);">📊 SFR</button>
         <button class="cp-tab cp-tab-v" id="cpt-posture" onclick="setCPTab('posture')" style="color:var(--accent);">🧍 Postawa</button>
+        <button class="cp-tab cp-tab-v" id="cpt-photos" onclick="setCPTab('photos')">📸 Zdjęcia</button>
         <button class="cp-tab cp-tab-v" id="cpt-metrics" onclick="setCPTab('metrics')">📏 Pomiary</button>
         <button class="cp-tab cp-tab-v" id="cpt-tasks" onclick="setCPTab('tasks')">✅ Zadania</button>
         <button class="cp-tab cp-tab-v" id="cpt-food" onclick="setCPTab('food')">🥗 Żywienie</button>
@@ -3706,6 +3707,7 @@ async function load(){
   try{const s2=await getDocs(collection(db,'tasks'));window.TASKS=[];s2.forEach(d=>{const x=_takeFb(d);if(x)window.TASKS.push(x);});}catch(e){window.TASKS=[];}
   try{const s3=await getDocs(collection(db,'kb'));window.KB=[];s3.forEach(d=>{const x=_takeFb(d);if(x)window.KB.push(x);});}catch(e){window.KB=[];}
   try{const s4=await getDocs(collection(db,'metricEntries'));window.METRIC_ENTRIES=[];s4.forEach(d=>{const x=_takeFb(d);if(x)window.METRIC_ENTRIES.push(x);});}catch(e){window.METRIC_ENTRIES=[];}
+  try{const sPP=await getDocs(collection(db,'progressPhotos'));window.PROGRESS_PHOTOS=[];sPP.forEach(d=>{const x=_takeFb(d);if(x)window.PROGRESS_PHOTOS.push(x);});}catch(e){window.PROGRESS_PHOTOS=[];}
   try{const s5=await getDocs(collection(db,'metricGroups'));window.METRIC_GROUPS=[];s5.forEach(d=>{const x=_takeFb(d);if(x)window.METRIC_GROUPS.push(x);});}catch(e){window.METRIC_GROUPS=[];}
   try{const s6=await getDocs(collection(db,'messages'));const grouped={};s6.forEach(d=>{const m=_takeFb(d);if(!m)return;const cid=m.clientId;if(!cid)return;if(!grouped[cid])grouped[cid]=[];grouped[cid].push(m);});
     Object.keys(grouped).forEach(cid=>grouped[cid].sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||'')));
@@ -3849,7 +3851,7 @@ async function load(){
       'clients','plans','sessions','exercises','workouts','tasks','kb','metricEntries','metricGroups',
       'messages','packages','invoices','formSends','reportHistory','forms','programs','checkins',
       'notifications','autoflows','forumGroups','forumPosts','forumComments','odWorkouts','resources',
-      'settings','integrationConfigs','automationState','clientNotes','clientDocs','onboardingFlows','planTemplates','odPrograms','onboardingActive','clientGroups','invites','clientAccounts'
+      'settings','integrationConfigs','automationState','clientNotes','clientDocs','onboardingFlows','planTemplates','odPrograms','onboardingActive','clientGroups','invites','clientAccounts','progressPhotos'
     ]);
   }catch(e){console.warn('Migracja trainerId:',e);}
   try{if(typeof window.runAutoflowsCheck==='function')window.runAutoflowsCheck();}catch(e){console.warn('runAutoflowsCheck:',e);}
