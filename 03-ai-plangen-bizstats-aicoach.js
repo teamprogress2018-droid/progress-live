@@ -665,7 +665,16 @@ function aplSavePlan(){
       muscles:d.focus||'',
       exercises:(d.exercises||[]).map(e=>{
         const wp=e[curWeek]||{};
-        return{name:e.name,sets:wp.s||e.sets||'3',reps:wp.r||e.reps||'10',rest:wp.rest||e.rest||'90s',rpe:wp.rpe||e.rir||''};
+        const name=e.name||'Ćwiczenie';
+        return{
+          name,
+          sets:wp.s||e.sets||'3',
+          reps:wp.r||e.reps||'10',
+          rest:wp.rest||e.rest||'90s',
+          rpe:wp.rpe||e.rir||e.rpe||'',
+          kg:wp.kg||e.kg||'',
+          alt:e.alt||(typeof altsForExercise==='function'?altsForExercise(name).join(', '):'')
+        };
       })
     })),
     source:'ai',

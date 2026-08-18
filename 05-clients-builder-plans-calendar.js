@@ -288,12 +288,16 @@ function toggleR(id){const el=document.getElementById(id);const r=el.querySelect
 function addRow(dayId){
   const rows=document.querySelector('#'+dayId+' .ex-rows');
   const div=document.createElement('div');div.className='ex-row';
-  div.innerHTML='<input type="text" placeholder="Nazwa ćwiczenia..." class="ex-inp ex-inp-name" style="width:100%;" list="ex-dl">'
-    +'<input type="number" placeholder="4" class="ex-inp">'+'<input type="text" placeholder="8-10" class="ex-inp">'
-    +'<input type="number" placeholder="kg" class="ex-inp">'+'<input type="number" placeholder="8" class="ex-inp">'
-    +'<input type="number" placeholder="2" class="ex-inp">'+'<input type="text" placeholder="2min" class="ex-inp">'
-    +'<input type="text" placeholder="2-0-2" class="ex-inp">'
-    +'<button onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--muted2);font-size:18px;cursor:pointer;">×</button>';
+  div.innerHTML='<input type="text" placeholder="Nazwa ćwiczenia..." class="ex-inp ex-inp-name" style="width:100%;" list="ex-dl" data-f="name">'
+    +'<input type="number" placeholder="4" class="ex-inp" data-f="sets">'
+    +'<input type="text" placeholder="8-10" class="ex-inp" data-f="reps">'
+    +'<input type="number" placeholder="kg" class="ex-inp" data-f="kg">'
+    +'<input type="number" placeholder="8" class="ex-inp" data-f="rpe">'
+    +'<input type="number" placeholder="2" class="ex-inp" data-f="rir">'
+    +'<input type="text" placeholder="2min" class="ex-inp" data-f="rest">'
+    +'<input type="text" placeholder="2-0-2" class="ex-inp" data-f="tempo">'
+    +'<button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--muted2);font-size:18px;cursor:pointer;">×</button>'
+    +'<input type="text" placeholder="Zamiennik (opcjonalnie, np. hantle zamiast sztangi)" class="ex-inp" data-f="alt" style="grid-column:1/-1;font-size:11px;">';
   rows.appendChild(div);
 }
 function updateExDl(){
@@ -342,23 +346,17 @@ function editPlan(id){
       addRow(dayEl.id);
       const rows=dayEl.querySelectorAll('.ex-row');
       const row=rows[rows.length-1];
-      const inps=row.querySelectorAll('input');
-      if(typeof ex==='string'){
-        // format z ręcznego kreatora: "Nazwa 4x8"
-        const m=ex.match(/^(.*?)\s+(\d+)\s*x\s*(.+)$/i);
-        if(m){inps[0].value=m[1].trim();inps[1].value=m[2];inps[2].value=m[3];}
-        else{inps[0].value=ex;}
-      }else if(ex&&typeof ex==='object'){
-        // format z generatora AI / szablonów: {name,sets,reps,...}
-        if(inps[0])inps[0].value=ex.name||ex.n||'';
-        if(inps[1])inps[1].value=ex.sets||'';
-        if(inps[2])inps[2].value=ex.reps||'';
-        if(inps[3])inps[3].value=ex.kg||'';
-        if(inps[4])inps[4].value=ex.rpe||'';
-        if(inps[5])inps[5].value=ex.rir||'';
-        if(inps[6])inps[6].value=ex.rest||'';
-        if(inps[7])inps[7].value=ex.tempo||'';
-      }
+      const parsed=typeof parsePlanExercise==='function'?parsePlanExercise(ex):(typeof ex==='string'?{name:ex}:ex);
+      const set=(f,v)=>{const el=row.querySelector('[data-f="'+f+'"]');if(el)el.value=v==null?'':v;};
+      set('name',parsed.name||'');
+      set('sets',parsed.sets||'');
+      set('reps',parsed.reps||'');
+      set('kg',parsed.kg||'');
+      set('rpe',parsed.rpe||'');
+      set('rir',parsed.rir||'');
+      set('rest',parsed.rest||'');
+      set('tempo',parsed.tempo||'');
+      set('alt',(ex&&typeof ex==='object'&&ex.alt)||parsed.alt||(typeof altsForExercise==='function'?altsForExercise(parsed.name).join(', '):''));
     });
   });
   const titleEl=document.querySelector('#screen-builder .topbar-title');
@@ -379,7 +377,25 @@ async function savePlan(){
     const dn=inps[0].value,muscles=inps[1].value;const isRest=de.querySelector('.rc').checked;
     if(isRest){days.push({day:dn,rest:true,muscles:'',exercises:[],sets:0});return;}
     const exercises=[];let sets=0;
-    de.querySelectorAll('.ex-row').forEach(r=>{const i=r.querySelectorAll('input');const n=i[0].value.trim();if(!n)return;exercises.push(n+' '+i[1].value+'x'+i[2].value);sets+=parseInt(i[1].value)||3;});
+    de.querySelectorAll('.ex-row').forEach(r=>{
+      const g=f=>(r.querySelector('[data-f="'+f+'"]')||{}).value||'';
+      const n=g('name').trim();
+      if(!n)return;
+      const setN=g('sets')||'3';
+      const alt=g('alt').trim()||(typeof altsForExercise==='function'?altsForExercise(n).join(', '):'');
+      exercises.push({
+        name:n,
+        sets:setN,
+        reps:g('reps')||'10',
+        kg:g('kg'),
+        rpe:g('rpe'),
+        rir:g('rir'),
+        rest:g('rest')||'90s',
+        tempo:g('tempo'),
+        alt
+      });
+      sets+=parseInt(setN,10)||3;
+    });
     days.push({day:dn,muscles,exercises,sets,rest:false});
   });
   if(!days.length){notify('Dodaj przynajmniej jeden dzień!');return;}
@@ -460,7 +476,7 @@ function renderPlans(){
       <div id="plan-detail-${p.id}" style="display:none;border-top:1px solid var(--border);padding:14px 18px;background:rgba(0,0,0,0.15);">
         ${(p.days||[]).map(d=>`<div class="plan-day-row" style="padding:9px 0;">
           <div class="plan-day-name">${d.day||d.dayName||'—'}</div>
-          ${d.rest?'<div style="color:var(--muted);font-size:12px;font-style:italic;">— Odpoczynek</div>':`<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;color:var(--text);">${d.muscles||d.focus||d.name||''}</div><div style="font-size:11px;color:var(--muted);margin-top:2px;line-height:1.5;">${(d.exercises||[]).map(e=>typeof e==='string'?e:(e.name||e.n||'')).filter(Boolean).join(' · ')}</div></div>`}
+          ${d.rest?'<div style="color:var(--muted);font-size:12px;font-style:italic;">— Odpoczynek</div>':`<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;color:var(--text);">${d.muscles||d.focus||d.name||''}</div><div style="font-size:11px;color:var(--muted);margin-top:2px;line-height:1.5;">${(d.exercises||[]).map(e=>{const p=typeof parsePlanExercise==='function'?parsePlanExercise(e):(typeof e==='string'?{name:e}:e);return (p.name||'')+(p.sets?' '+p.sets+'×'+p.reps:'')+(p.kg?' @'+p.kg+'kg':'');}).filter(Boolean).join(' · ')}</div></div>`}
         </div>`).join('')}
       </div>
     </div>`;

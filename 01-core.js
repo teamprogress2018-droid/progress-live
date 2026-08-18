@@ -486,5 +486,142 @@ window.addEventListener('beforeunload',e=>{
     e.preventDefault();
     e.returnValue='';
   }
+  if(window._cw&&window._cw.active){
+    e.preventDefault();
+    e.returnValue='';
+  }
 });
+
+/** Ćwiczenie z planu: obiekt AI albo string z kreatora ("Wyciskanie 4x8"). */
+function parsePlanExercise(ex){
+  if(ex==null)return{name:'Ćwiczenie',sets:'3',reps:'10',rest:'90s',kg:''};
+  if(typeof ex==='string'){
+    const raw=ex.trim();
+    const m=raw.match(/^(.*?)(?:\s+(\d+)\s*[x×]\s*(\d+(?:\s*-\s*\d+)?))\s*$/i);
+    return{
+      name:(m&&m[1]?m[1]:raw).trim()||'Ćwiczenie',
+      sets:(m&&m[2])||'3',
+      reps:((m&&m[3])||'10').replace(/\s/g,''),
+      rest:'90s',
+      kg:''
+    };
+  }
+  return{
+    name:ex.name||ex.n||'Ćwiczenie',
+    sets:String(ex.sets||ex.s||'3'),
+    reps:String(ex.reps||ex.r||'10'),
+    rest:String(ex.rest||ex.rs||'90s'),
+    kg:ex.kg!=null&&ex.kg!==''?String(ex.kg):'',
+    rpe:ex.rpe||ex.rir||'',
+    rir:ex.rir||'',
+    tempo:ex.tempo||'',
+    alt:ex.alt||''
+  };
+}
+window.parsePlanExercise=parsePlanExercise;
+
+function altsForExercise(name,explicit){
+  const fromPlan=String(explicit||'').split(/[,;/|]/).map(s=>s.trim()).filter(Boolean);
+  if(fromPlan.length)return fromPlan;
+  const key=String(name||'').toLowerCase().replace(/\s+/g,' ').trim();
+  if(!key)return [];
+  const lib=typeof allExercises==='function'?allExercises():(window.DEF_EX||[]);
+  const hit=lib.find(e=>String(e.name||'').toLowerCase().replace(/\s+/g,' ').trim()===key);
+  if(!hit||!hit.alt)return [];
+  return String(hit.alt).split(/[,;/]/).map(s=>s.trim()).filter(Boolean);
+}
+window.altsForExercise=altsForExercise;
+
+function parseRestSeconds(rest){
+  const s=String(rest||'90');
+  if(/min/i.test(s))return Math.round((parseFloat(s)||1)*60);
+  const n=parseInt(s,10);
+  return Number.isFinite(n)&&n>0?n:90;
+}
+window.parseRestSeconds=parseRestSeconds;
+
+function todayYmd(){
+  if(typeof dateStr==='function')return dateStr(new Date());
+  const d=new Date();
+  const p=n=>String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+}
+window.todayYmd=todayYmd;
+
+function mondayYmd(){
+  const d=new Date();
+  const day=d.getDay();
+  const diff=day===0?-6:1-day;
+  d.setDate(d.getDate()+diff);
+  const p=n=>String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+}
+window.mondayYmd=mondayYmd;
+
+function planTrainingDayIdxs(plan){
+  return(plan&&plan.days||[]).map((d,i)=>d&&!d.rest&&(d.exercises||[]).length?i:-1).filter(i=>i>=0);
+}
+window.planTrainingDayIdxs=planTrainingDayIdxs;
+
+function suggestedPlanDayIdx(clientId,plan){
+  if(!plan||!plan.days||!plan.days.length)return 0;
+  if(plan.days.length===7)return(new Date().getDay()+6)%7;
+  const train=planTrainingDayIdxs(plan);
+  if(!train.length)return 0;
+  const past=(window.SE||[]).filter(s=>s.clientId===clientId&&s.planId===plan.id&&s.dayIdx!=null&&(s.source==='live'||s.source==='client'))
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''));
+  if(!past.length)return train[0];
+  const today=todayYmd();
+  if(past[0].date===today)return past[0].dayIdx;
+  const pos=train.indexOf(past[0].dayIdx);
+  if(pos<0)return train[0];
+  return train[(pos+1)%train.length];
+}
+window.suggestedPlanDayIdx=suggestedPlanDayIdx;
+
+function lastLoadForExercise(clientId,name){
+  if(!clientId||!name)return null;
+  const key=String(name||'').toLowerCase().replace(/\s+/g,' ').trim();
+  const sessions=(window.SE||[]).filter(s=>s.clientId===clientId&&Array.isArray(s.exercises))
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''));
+  for(const s of sessions){
+    const ex=(s.exercises||[]).find(e=>String(e.name||'').toLowerCase().replace(/\s+/g,' ').trim()===key);
+    if(!ex)continue;
+    const sets=(ex.sets||[]).filter(x=>x&&(x.kg||x.reps));
+    if(!sets.length)continue;
+    const last=sets[sets.length-1];
+    return{kg:last.kg,reps:last.reps,sets};
+  }
+  return null;
+}
+window.lastLoadForExercise=lastLoadForExercise;
+
+function mapPlanExercisesForClient(rawEx,clientId){
+  return(rawEx||[]).map(raw=>{
+    const ex=parsePlanExercise(raw);
+    const last=lastLoadForExercise(clientId,ex.name);
+    const nSets=parseInt(ex.sets,10)||3;
+    const defaultReps=ex.reps||'10';
+    const rest=parseRestSeconds(ex.rest);
+    return{
+      name:ex.name,
+      plannedName:ex.name,
+      alts:altsForExercise(ex.name,ex.alt),
+      restSec:rest,
+      rpe:ex.rpe||'',
+      lastKg:last&&last.kg!=null&&last.kg!==''?last.kg:(ex.kg||''),
+      lastReps:last&&last.reps!=null&&last.reps!==''?last.reps:'',
+      sets:Array.from({length:nSets},(_,i)=>{
+        const prev=last&&last.sets[i];
+        return{
+          setNo:i+1,
+          kg:prev&&prev.kg!=null&&prev.kg!==''?String(prev.kg):(ex.kg||''),
+          reps:prev&&prev.reps!=null&&prev.reps!==''?String(prev.reps):defaultReps,
+          done:false
+        };
+      })
+    };
+  });
+}
+window.mapPlanExercisesForClient=mapPlanExercisesForClient;
 
