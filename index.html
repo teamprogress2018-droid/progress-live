@@ -526,13 +526,13 @@
       </div>
 
       <!-- lista widok -->
-      <div id="wl-list-view" style="flex:1;overflow-y:auto;">
+      <div id="wl-list-view" style="flex:1;overflow-y:auto;display:none;">
         <div class="wl-list-hdr"><span>Trening</span><span>Kategoria</span><span>Ćwiczenia</span><span>Czas</span><span>Poziom</span><span>Sprzęt</span><span></span></div>
         <div id="wl-list-body"></div>
       </div>
 
       <!-- karty widok -->
-      <div id="wl-card-view" style="flex:1;overflow-y:auto;padding:14px 16px;display:none;">
+      <div id="wl-card-view" style="flex:1;overflow-y:auto;padding:14px 16px;">
         <div class="wl-card-grid" id="wl-card-body"></div>
       </div>
     </div>
@@ -2098,10 +2098,9 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
     </div>
   </div>
 
-  <div style="display:flex;flex:1;overflow:hidden;justify-content:center;">
-    <div style="display:flex;width:100%;max-width:1100px;">
+  <div class="apl-layout">
     <!-- lewy panel — formularz -->
-    <div style="width:380px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;padding:20px;">
+    <div class="apl-form">
       <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;">Parametry planu</div>
 
       <!-- klient -->
@@ -2332,11 +2331,10 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
     </div>
 
     <!-- prawy panel — wynik -->
-    <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
-      <div style="flex:1;overflow-y:auto;padding:24px;" id="apl-result-wrap">
-        <div id="apl-result" style="max-width:820px;margin:0 auto;"></div>
+    <div class="apl-result-col">
+      <div class="apl-result-wrap" id="apl-result-wrap">
+        <div id="apl-result"></div>
       </div>
-    </div>
     </div>
   </div>
 </div>
