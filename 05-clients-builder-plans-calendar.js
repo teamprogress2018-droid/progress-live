@@ -300,10 +300,20 @@ function addRow(dayId){
     +'<div class="ex-row-extra">'
     +'<input type="text" placeholder="Zamiennik (opcjonalnie, np. hantle zamiast sztangi)" class="ex-inp ex-inp-name" data-f="alt" style="font-size:11px;">'
     +'<input type="number" placeholder="%1RM" class="ex-inp" data-f="pct1rm" min="1" max="150" step="0.5" title="Procent 1RM — kg z Pomiary → Siła bazowa" oninput="builderPreviewKg(this.closest(\'.ex-row\'))">'
+    +'<div class="ex-row-coach">'
+    +'<input type="text" placeholder="Wskazówka dla klienta (np. łopatki ściągnięte)" class="ex-inp ex-inp-name" data-f="note" style="font-size:11px;">'
+    +'<input type="url" placeholder="Film: YouTube / Vimeo / .mp4" class="ex-inp ex-inp-name" data-f="video" style="font-size:11px;" title="Link do filmu techniki">'
+    +'</div>'
     +'<div class="ex-kind-btns">'
     +'<input type="hidden" data-f="ss" value="">'
+    +'<input type="hidden" data-f="wu" value="">'
+    +'<input type="hidden" data-f="drop" value="">'
+    +'<input type="hidden" data-f="amrap" value="">'
     +'<input type="hidden" data-f="emom" value="">'
     +'<button type="button" class="ex-ss-btn" onclick="builderToggleSs(this)" title="Połącz z następnym ćwiczeniem w super-serię">⚡ SS</button>'
+    +'<button type="button" class="ex-ss-btn ex-kind-btn wu" onclick="builderCycleKind(this,\'wu\',2)" title="Serie rozgrzewkowe (1–2) — lżejsze kg, krótsza przerwa">WU</button>'
+    +'<button type="button" class="ex-ss-btn ex-kind-btn drop" onclick="builderCycleKind(this,\'drop\',2)" title="Drop sety po roboczych — bez przerwy, mniejszy ciężar">DROP</button>'
+    +'<button type="button" class="ex-ss-btn ex-kind-btn amrap" onclick="builderToggleAmrap(this)" title="Ostatnia seria robocza = AMRAP (max powtórzeń)">AMRAP</button>'
     +'<button type="button" class="ex-ss-btn ex-emom-btn" onclick="builderToggleEmom(this)" title="EMOM: każda seria na starcie minuty, reszta minuty to przerwa">EMOM</button>'
     +'</div>'
     +'</div>';
@@ -361,14 +371,47 @@ function builderToggleSs(btn){
     while(used.has(letter))letter=String.fromCharCode(letter.charCodeAt(0)+1);
   }
   set(row,letter);set(next,letter);
-  const em1=row.querySelector('[data-f="emom"]');
-  const em2=next.querySelector('[data-f="emom"]');
-  if(em1)em1.value='';
-  if(em2)em2.value='';
-  if(typeof builderPaintEmom==='function'){builderPaintEmom(row);builderPaintEmom(next);}
+  [row,next].forEach(r=>{
+    ['wu','drop'].forEach(f=>{const el=r.querySelector('[data-f="'+f+'"]');if(el)el.value='';});
+    const em=r.querySelector('[data-f="emom"]');if(em)em.value='';
+    if(typeof builderPaintKinds==='function')builderPaintKinds(r);
+    if(typeof builderPaintEmom==='function')builderPaintEmom(r);
+  });
   builderPaintSs(box);
 }
 window.builderToggleSs=builderToggleSs;
+function builderCycleKind(btn,field,max){
+  const row=btn&&btn.closest('.ex-row');if(!row)return;
+  if((row.querySelector('[data-f="ss"]')||{}).value)return;
+  const el=row.querySelector('[data-f="'+field+'"]');if(!el)return;
+  let n=parseInt(el.value,10)||0;
+  n=(n+1)%((max||2)+1);
+  el.value=n?String(n):'';
+  builderPaintKinds(row);
+}
+window.builderCycleKind=builderCycleKind;
+function builderToggleAmrap(btn){
+  const row=btn&&btn.closest('.ex-row');if(!row)return;
+  const el=row.querySelector('[data-f="amrap"]');if(!el)return;
+  el.value=el.value==='1'?'':'1';
+  builderPaintKinds(row);
+}
+window.builderToggleAmrap=builderToggleAmrap;
+function builderPaintKinds(row){
+  if(!row)return;
+  const g=f=>((row.querySelector('[data-f="'+f+'"]')||{}).value||'');
+  const inSs=!!g('ss');
+  const wu=inSs?0:(parseInt(g('wu'),10)||0);
+  const dr=inSs?0:(parseInt(g('drop'),10)||0);
+  const am=g('amrap')==='1';
+  const wuBtn=row.querySelector('.ex-kind-btn.wu');
+  const drBtn=row.querySelector('.ex-kind-btn.drop');
+  const amBtn=row.querySelector('.ex-kind-btn.amrap');
+  if(wuBtn){wuBtn.textContent=wu?('WU '+wu):'WU';wuBtn.classList.toggle('on',!!wu);wuBtn.disabled=inSs;wuBtn.title=inSs?'WU/DROP nie w super-serii':'Serie rozgrzewkowe (1–2) — lżejsze kg, krótsza przerwa';}
+  if(drBtn){drBtn.textContent=dr?('DROP '+dr):'DROP';drBtn.classList.toggle('on',!!dr);drBtn.disabled=inSs;drBtn.title=inSs?'WU/DROP nie w super-serii':'Drop sety po roboczych — bez przerwy, mniejszy ciężar';}
+  if(amBtn)amBtn.classList.toggle('on',am);
+}
+window.builderPaintKinds=builderPaintKinds;
 function builderToggleEmom(btn){
   const row=btn&&btn.closest('.ex-row');if(!row)return;
   const el=row.querySelector('[data-f="emom"]');if(!el)return;
@@ -382,6 +425,7 @@ function builderToggleEmom(btn){
     }
   }
   builderPaintEmom(row);
+  if(typeof builderPaintKinds==='function')builderPaintKinds(row);
 }
 window.builderToggleEmom=builderToggleEmom;
 function builderPaintEmom(row){
@@ -475,8 +519,14 @@ function editPlan(id){
       set('pct1rm',parsed.pct1rm||(ex&&typeof ex==='object'&&ex.pct1rm)||'');
       set('ss',parsed.ss||(ex&&typeof ex==='object'&&ex.ss)||'');
       set('emom',((ex&&typeof ex==='object'&&ex.emom)||parsed.emom)?'1':'');
+      set('note',parsed.note||(ex&&typeof ex==='object'&&(ex.note||ex.notes))||'');
+      set('video',parsed.video||(ex&&typeof ex==='object'&&ex.video)||'');
+      set('wu',parsed.wu||(ex&&typeof ex==='object'&&ex.wu)||'');
+      set('drop',parsed.drop||(ex&&typeof ex==='object'&&ex.drop)||'');
+      set('amrap',((ex&&typeof ex==='object'&&ex.amrap)||parsed.amrap)?'1':'');
       if(typeof builderPreviewKg==='function')builderPreviewKg(row);
       if(typeof builderPaintEmom==='function')builderPaintEmom(row);
+      if(typeof builderPaintKinds==='function')builderPaintKinds(row);
     });
     if(typeof builderPaintSs==='function')builderPaintSs(dayEl.querySelector('.ex-rows'));
   });
@@ -517,7 +567,12 @@ async function savePlan(){
         tempo:g('tempo'),
         alt,
         ss:g('ss'),
-        emom:g('emom')==='1'
+        emom:g('emom')==='1',
+        note:g('note').trim(),
+        video:typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl(g('video')):g('video').trim(),
+        wu:g('ss')?0:(typeof parseSetKindCount==='function'?parseSetKindCount(g('wu'),2):(parseInt(g('wu'),10)||0)),
+        drop:g('ss')?0:(typeof parseSetKindCount==='function'?parseSetKindCount(g('drop'),2):(parseInt(g('drop'),10)||0)),
+        amrap:g('amrap')==='1'
       });
       sets+=parseInt(setN,10)||3;
     });

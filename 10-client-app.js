@@ -661,7 +661,6 @@ function cwGoEx(idx){
   if(idx==null||idx<0||idx>=cw.exercises.length){cw.phase='finish';cwRender();return;}
   cw.exIdx=idx;
   cw.phase='exercise';
-  cwEnsureEmomClock();
   cw.showVideo=false;
   cwEnsureEmomClock();
   cwRender();
@@ -703,6 +702,12 @@ function cwCheckSet(setIdx){
       return;
     }
   }
+  const nxtSet=ex.sets.find(s=>!s.done);
+  if(nxtSet&&typeof skipRestBeforeSet==='function'&&skipRestBeforeSet(nxtSet)){
+    if(typeof notify==='function')notify((prMsg?prMsg+' · ':'')+'Drop set — bez przerwy, zdejmij ciężar');
+    cwRender();
+    return;
+  }
   const act=typeof ssNextAfterSet==='function'?ssNextAfterSet(cw.exercises,cw.exIdx):null;
   if(act&&act.kind==='partner'){
     const nxt=cw.exercises[act.exIdx];
@@ -713,7 +718,10 @@ function cwCheckSet(setIdx){
   if(prMsg&&typeof notify==='function')notify(prMsg);
   if(act&&act.kind==='rest'){
     cw.exIdx=act.exIdx;
-    cwStartRest((cw.exercises[act.exIdx]&&cw.exercises[act.exIdx].restSec)||90);
+    const nextEx=cw.exercises[act.exIdx];
+    const nextSt=(nextEx.sets||[]).find(x=>!x.done);
+    const sec=typeof restSecAfterSet==='function'?restSecAfterSet(nextEx,st,nextSt):(nextEx&&nextEx.restSec)||90;
+    cwStartRest(sec);
     return;
   }
   if(act&&act.kind==='advance'){
@@ -722,7 +730,11 @@ function cwCheckSet(setIdx){
     return;
   }
   const next=ex.sets.find(s=>!s.done);
-  if(next){cwStartRest(ex.restSec||90);return;}
+  if(next){
+    const sec=typeof restSecAfterSet==='function'?restSecAfterSet(ex,st,next):ex.restSec||90;
+    cwStartRest(sec);
+    return;
+  }
   if(cw.exIdx<cw.exercises.length-1){cwGoEx(cw.exIdx+1);return;}
   cw.phase='finish';cwRender();
 }
@@ -786,6 +798,8 @@ function cwSwapEx(name){
     cur.video=m.video||'';
     cur.videoEmbed=m.videoEmbed||'';
     cur.isFile=!!m.isFile;
+    cur.note='';
+    cur.libTip=m.libTip||'';
   }
   cw.showVideo=false;
   cwRender();
@@ -810,7 +824,7 @@ function cwRender(){
       <div style="font-size:12px;color:var(--muted);margin-bottom:18px;">${cw.exercises.length} ćwiczeń · odhacz serie, timer przerwy sam się włączy</div>
       ${cw.exercises.map((ex,i)=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:10px 0;border-top:1px solid rgba(255,255,255,.06);">
         <div style="font-size:13px;font-weight:600;">${i+1}. ${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}${ex.video?' ▶':''}</div>
-        <div style="font-size:11px;color:var(--muted);white-space:nowrap;">${ex.sets.length} serii${ex.emom?' · EMOM':''}</div>
+        <div style="font-size:11px;color:var(--muted);white-space:nowrap;">${ex.sets.length} serii${ex.wu?' · WU'+ex.wu:''}${ex.amrap?' · AMRAP':''}${ex.drop?' · DROP'+ex.drop:''}${ex.emom?' · EMOM':''}</div>
       </div>`).join('')}
       <button type="button" class="cap-btn-primary" style="margin-top:20px;padding:16px;font-size:16px;" onclick="cwBegin()">▶ Start</button>`;
     return;
@@ -867,9 +881,7 @@ function cwRender(){
       const line=same?(last?last+' · rekord':rec):(last&&rec?last+' · '+rec:(last||rec));
       return line?`<div style="font-size:11px;color:var(--muted);margin-bottom:12px;">${line}</div>`:'<div style="height:8px;"></div>';
     })()}
-    ${ex.lastKg?`<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Ostatnio: ${escHtml(String(ex.lastKg))} kg${ex.lastReps?' × '+escHtml(String(ex.lastReps)):''}</div>`:''}
     ${emomOn?`<div style="font-size:11px;color:var(--blue);margin-bottom:8px;">Zegar minuty · do rundy ~${emomWait}s (zrób serie i czekaj reszty)</div>`:''}
-    ${!ex.lastKg&&!emomOn?'<div style="height:8px;"></div>':''}
     <div style="height:6px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden;margin-bottom:16px;">
       <div style="height:100%;width:${Math.round((cw.exIdx+doneSets/Math.max(1,ex.sets.length))/cw.exercises.length*100)}%;background:${accent};"></div>
     </div>
@@ -877,9 +889,9 @@ function cwRender(){
       <div>#</div><div>Kg</div><div>Powt.</div><div></div>
     </div>
     ${ex.sets.map((s,i)=>`<div class="cw-set-row">
-      <div style="text-align:center;font-weight:700;color:${s.done?'var(--teal)':'var(--muted)'};">${s.done?'✓':s.setNo}</div>
+      <div style="text-align:center;font-weight:700;color:${s.done?'var(--teal)':'var(--muted)'};">${s.done?'✓':s.setNo}${s.kind&&s.kind!=='work'?`<div class="cw-set-kind ${s.kind}">${escHtml((typeof setKindBadge==='function'&&setKindBadge(s.kind))||s.kind)}</div>`:''}</div>
       <input type="number" inputmode="decimal" value="${escHtml(s.kg)}" ${s.done?'disabled':''} oninput="cwPatchSet(${i},'kg',this.value)" class="${s.done?'cw-set-done':''}">
-      <input type="text" inputmode="numeric" value="${escHtml(s.reps)}" ${s.done?'disabled':''} oninput="cwPatchSet(${i},'reps',this.value)" class="${s.done?'cw-set-done':''}">
+      <input type="text" inputmode="numeric" value="${escHtml(s.reps)}" ${s.done?'disabled':''} placeholder="${s.kind==='amrap'?'max':''}" oninput="cwPatchSet(${i},'reps',this.value)" class="${s.done?'cw-set-done':''}">
       <button type="button" class="btn ${s.done?'btn-ghost':'btn-primary'} btn-sm" onclick="cwCheckSet(${i})">${s.done?'↩':'+'}</button>
     </div>`).join('')}
     <div style="display:flex;gap:8px;margin-top:18px;">

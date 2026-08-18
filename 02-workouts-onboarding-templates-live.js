@@ -1920,16 +1920,16 @@ function liveExCard(ex,i){
     </div>
     ${!ex.collapsed?`
     <div>
-      ${ex.showVideo&&typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:true}):''}
+      ${typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:!!ex.showVideo}):''}
       <div class="live-set-grid live-set-head">
         <span></span><span>Seria</span><span style="text-align:center;">Ciężar</span><span style="text-align:center;">Powt.</span><span></span>
       </div>
       ${ex.sets.map((s,si)=>`<div class="live-set-row">
         <div class="live-set-check${s.done?' done':''}" onclick="liveToggleSet(${i},${si})" title="Oznacz serię">${s.done?'✓':''}</div>
-        <div class="live-set-label"><span class="live-set-label-full">Seria </span>${s.setNo}</div>
+        <div class="live-set-label"><span class="live-set-label-full">Seria </span>${s.setNo}${s.kind&&s.kind!=='work'?` <span class="cw-set-kind ${s.kind}">${escHtml(typeof setKindBadge==='function'?setKindBadge(s.kind):s.kind)}</span>`:''}</div>
         <input type="number" inputmode="decimal" class="live-kg-input" placeholder="${ex.lastKg!==''&&ex.lastKg!=null?ex.lastKg:'kg'}" value="${s.kg}" oninput="liveSetKg(${i},${si},this.value)" onkeydown="liveSetKey(event,${i},${si})" onclick="event.stopPropagation()">
-        <input type="number" inputmode="numeric" class="live-kg-input" placeholder="powt." value="${s.reps}" oninput="liveSetReps(${i},${si},this.value)" onkeydown="liveSetKey(event,${i},${si})" onclick="event.stopPropagation()">
-        <button type="button" class="live-set-rest" onclick="liveStartRest(90)" title="Przerwa 90s">⏱</button>
+        <input type="number" inputmode="numeric" class="live-kg-input" placeholder="${s.kind==='amrap'?'max':'powt.'}" value="${s.reps}" oninput="liveSetReps(${i},${si},this.value)" onkeydown="liveSetKey(event,${i},${si})" onclick="event.stopPropagation()">
+        <button type="button" class="live-set-rest" onclick="liveStartRest(${typeof restSecAfterSet==='function'?restSecAfterSet(ex,s,ex.sets[si+1]):90})" title="Przerwa">⏱</button>
       </div>`).join('')}
       <button type="button" class="live-add-set" onclick="liveAddSet(${i})">+ Dodaj serię</button>
     </div>`:''}
@@ -1965,8 +1965,8 @@ function liveToggleSet(ei,si){
     const prMsg=typeof prToastText==='function'?prToastText(liveClientId,ex.name,s.kg,s.reps):'';
     const next=ex.sets[si+1];
     if(next){
-      if((next.kg===''||next.kg==null)&&s.kg!==''&&s.kg!=null)next.kg=s.kg;
-      if((next.reps===''||next.reps==null||next.reps==='8-12')&&s.reps)next.reps=s.reps;
+      if(next.kind!=='drop'&&(next.kg===''||next.kg==null)&&s.kg!==''&&s.kg!=null)next.kg=s.kg;
+      if(next.kind!=='drop'&&next.kind!=='amrap'&&(next.reps===''||next.reps==null||next.reps==='8-12')&&s.reps)next.reps=s.reps;
     }
     if(ex.sets.every(x=>x.done)){
       ex.done=true;
@@ -1974,7 +1974,9 @@ function liveToggleSet(ei,si){
       const nxt=liveExercises.find(e=>!e.done);
       if(nxt)nxt.collapsed=false;
     }
-    if(typeof isEmomExercise==='function'&&isEmomExercise(ex)&&next){
+    if(next&&typeof skipRestBeforeSet==='function'&&skipRestBeforeSet(next)){
+      if(typeof notify==='function')notify((prMsg?prMsg+' · ':'')+'Drop set — bez przerwy, zdejmij ciężar');
+    }else if(typeof isEmomExercise==='function'&&isEmomExercise(ex)&&next){
       window._liveEmomClock=window._liveEmomClock||{};
       if(!window._liveEmomClock[ei])window._liveEmomClock[ei]=Date.now();
       const done=ex.sets.filter(x=>x.done).length;
@@ -1994,7 +1996,8 @@ function liveToggleSet(ei,si){
         if(typeof notify==='function')notify(typeof superseriesToastText==='function'?superseriesToastText(nxt,{prMsg,noRest:true}):('Super-seria → '+(nxt.ssLabel?nxt.ssLabel+' ':'')+nxt.name+' (bez przerwy)'));
       }else{
         if(prMsg&&typeof notify==='function')notify(prMsg);
-        liveStartRest((ex.restSec)||90);
+        const sec=typeof restSecAfterSet==='function'?restSecAfterSet(ex,s,next):(ex.restSec||90);
+        liveStartRest(sec);
       }
     }
   }else{
