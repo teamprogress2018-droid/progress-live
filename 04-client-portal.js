@@ -144,8 +144,10 @@ function capScreenHTML(scr,c){
   const sessions=SE.filter(s=>s.clientId===c.id);
   const plans=PL.filter(p=>p.clientId===c.id);
   const isH=typeof isHabit==='function'?isHabit:()=>false;
+  const isC=typeof isChallenge==='function'?isChallenge:()=>false;
   const habits=TASKS.filter(t=>t.clientId===c.id&&isH(t));
-  const tasks=TASKS.filter(t=>t.clientId===c.id&&!isH(t)&&t.status!=='done');
+  const challenges=TASKS.filter(t=>t.clientId===c.id&&isC(t)&&(typeof challengeVisible!=='function'||challengeVisible(t)));
+  const tasks=TASKS.filter(t=>t.clientId===c.id&&!isH(t)&&!isC(t)&&t.status!=='done');
   const packages=capIsLiveClient()
     ?(window.PACKAGES||[]).filter(p=>p.clientId===c.id)
     :(window.PACKAGES||[]).concat(window.PACKAGES?.length?[]:[{title:'10 sesji personalnych',sessions:10,sessionsUsed:4,price:1500,expiresDate:'2025-08-30'}]);
@@ -240,6 +242,24 @@ function capScreenHTML(scr,c){
           <div class="cap-check-circle">${done?'✓':''}</div>
           <div style="flex:1;"><div style="font-size:12px;color:${CAP_TEXT};">${escHtml(t.title)}</div>
           <div style="font-size:10px;color:${CAP_MUTED};">${streak?'🔥 '+streak+' '+(streak===1?'dzień':'dni')+' z rzędu':'Odhacz na dziś'}</div>
+          </div>
+        </button>`;
+        }).join('')}
+      </div>`:''}
+      ${challenges.length?`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
+        <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">🏆 Wyzwania</div>
+        ${challenges.map(t=>{
+          const done=typeof habitDoneOn==='function'&&today?habitDoneOn(t,today):false;
+          const st=typeof challengeStatusText==='function'?challengeStatusText(t,today):'';
+          const bar=typeof challengeBarHtml==='function'?challengeBarHtml(t,today):'';
+          const p=typeof challengeProgress==='function'?challengeProgress(t,today):null;
+          const tick=done||(p&&p.won&&!p.active);
+          const can=typeof challengeCanCheck==='function'?challengeCanCheck(t,today,today):true;
+          return `<button type="button" class="cap-list-item" style="width:100%;text-align:left;background:none;border:none;cursor:${can?'pointer':'default'};padding:8px 0;" ${live&&can?`onclick="clientToggleTask('${escHtml(t.id)}')"`:''}>
+          <div class="cap-check-circle">${tick?'✓':''}</div>
+          <div style="flex:1;"><div style="font-size:12px;color:${CAP_TEXT};">${escHtml(t.title)}</div>
+          <div style="font-size:10px;color:${p&&p.won?'var(--teal)':CAP_MUTED};">${escHtml(st)}</div>
+          ${bar}
           </div>
         </button>`;
         }).join('')}
@@ -524,7 +544,7 @@ function capScreenHTML(scr,c){
         ${[
           {label:'Sesji',val:sessions.length,col:accent},
           {label:'Planów',val:plans.length,col:'var(--blue)'},
-          {label:'Zadań',val:TASKS.filter(t=>t.clientId===c.id&&!isHabit(t)&&t.status==='done').length,col:'var(--teal)'},
+          {label:'Zadań',val:TASKS.filter(t=>t.clientId===c.id&&(typeof isOneShot==='function'?isOneShot(t):!isHabit(t))&&t.status==='done').length,col:'var(--teal)'},
         ].map(s=>`<div style="background:${CAP_S2};border-radius:14px;padding:12px;text-align:center;border:1px solid ${CAP_S3};">
           <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:${s.col};line-height:1;">${s.val}</div>
           <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-top:2px;">${s.label}</div>
@@ -561,7 +581,7 @@ function capScreenHTML(scr,c){
 }
 
 const CAP_SCREEN_INFO={
-  home:{title:'🏠 Dziś',desc:'Jeden ekran na dzień: trening do odpalenia (Start), dzień wolny, nawyki ze streakiem, zadania do odhaczenia i check-in jeśli czeka. Klient nie zgaduje, co ma zrobić.'},
+  home:{title:'🏠 Dziś',desc:'Jeden ekran na dzień: trening do odpalenia (Start), dzień wolny, nawyki ze streakiem, wyzwania z paskiem postępu, zadania do odhaczenia i check-in jeśli czeka. Klient nie zgaduje, co ma zrobić.'},
   plan:{title:'📋 Mój plan treningowy',desc:'Lista dni planu. Z każdego dnia treningowego klient może od razu kliknąć Start i odhaczać serie.'},
   calendar:{title:'📅 Kalendarz sesji',desc:'Mini-kalendarz z zaznaczonymi sesjami. Klient widzi nadchodzące treningi z godziną, typem i linkiem do Google Meet (jeśli online).'},
   progress:{title:'📈 Moje postępy',desc:'Masa z pomiarów oraz zdjęcia sylwetki (przód / bok / tył) z porównaniem w czasie. Klient robi zdjęcia w apce — Ty widzisz je w karcie klienta.'},
@@ -3190,7 +3210,7 @@ function generateAutoNotifs(){
     }
   });
 
-  TASKS.filter(t=>!isHabit(t)&&t.status!=='done'&&t.due&&t.due<todayStr).slice(0,3).forEach(t=>{
+  TASKS.filter(t=>(typeof isOneShot==='function'?isOneShot(t):!isHabit(t))&&t.status!=='done'&&t.due&&t.due<todayStr).slice(0,3).forEach(t=>{
     const c=CL.find(x=>x.id===t.clientId);
     const key='auto_task_'+t.id;
     if(!hasNotif(key)&&c){
@@ -3296,7 +3316,7 @@ function buildReportHTML(c,from,to,sec,template){
   const sessions=SE.filter(s=>s.clientId===c.id&&s.date>=from&&s.date<=to).sort((a,b)=>b.date.localeCompare(a.date));
   const allSessions=SE.filter(s=>s.clientId===c.id);
   const tasks=TASKS.filter(t=>t.clientId===c.id);
-  const oneShot=tasks.filter(t=>!isHabit(t));
+  const oneShot=tasks.filter(t=>typeof isOneShot==='function'?isOneShot(t):!isHabit(t));
   const habits=tasks.filter(t=>isHabit(t));
   const tasksDone=oneShot.filter(t=>t.status==='done');
   const plans=PL.filter(p=>p.clientId===c.id);
@@ -4505,16 +4525,17 @@ function renderDashTasks(){
   const tomorrow=dateStr(new Date(new Date().getFullYear(),new Date().getMonth(),new Date().getDate()+1));
 
   const pendingHabits=TASKS.filter(t=>isHabit(t)&&!habitDoneOn(t,today));
-  const oneShot=TASKS.filter(t=>!isHabit(t)&&t.status!=='done')
+  const pendingCh=TASKS.filter(t=>typeof isChallenge==='function'&&isChallenge(t)&&typeof challengeProgress==='function'&&challengeProgress(t,today).active&&!habitDoneOn(t,today)&&!challengeProgress(t,today).won);
+  const oneShot=TASKS.filter(t=>(typeof isOneShot==='function'?isOneShot(t):!isHabit(t))&&t.status!=='done')
     .sort((a,b)=>{
       const pri=v=>v.due===today?0:v.due&&v.due<today?-1:v.due===tomorrow?1:2;
       return pri(a)-pri(b)||(a.due||'9999').localeCompare(b.due||'9999');
     });
-  const tasks=pendingHabits.concat(oneShot).slice(0,6);
+  const tasks=pendingCh.concat(pendingHabits).concat(oneShot).slice(0,6);
 
-  const done=TASKS.filter(t=>!isHabit(t)&&t.status==='done');
+  const done=TASKS.filter(t=>(typeof isOneShot==='function'?isOneShot(t):!isHabit(t))&&t.status==='done');
 
-  if(!tasks.length&&!done.length&&!TASKS.filter(isHabit).length){
+  if(!tasks.length&&!done.length&&!TASKS.filter(isHabit).length&&!(typeof isChallenge==='function'?TASKS.filter(isChallenge).length:0)){
     el.innerHTML=`<div style="font-size:12px;color:var(--muted);text-align:center;padding:18px 0 8px;">
       <div style="margin-bottom:10px;">Nic pilnego na liście</div>
       <button class="btn btn-ghost btn-sm" onclick="openM('m-task')">+ Dodaj zadanie</button>
@@ -4528,16 +4549,19 @@ function renderDashTasks(){
 
   tasks.forEach(t=>{
     const habit=isHabit(t);
-    const isOverdue=!habit&&t.due&&t.due<today;
+    const ch=typeof isChallenge==='function'&&isChallenge(t);
+    const isOverdue=!habit&&!ch&&t.due&&t.due<today;
     const isToday=t.due===today;
     const isTomorrow=t.due===tomorrow;
     const c=CL.find(x=>x.id===t.clientId);
     const streak=habit?habitStreak(t,today):0;
+    const chSt=ch&&typeof challengeStatusText==='function'?challengeStatusText(t,today):'';
     let badge='';
-    if(habit)badge=`<span style="background:rgba(157,124,244,0.15);color:var(--purple);border-radius:4px;padding:1px 6px;font-size:9px;font-family:'DM Mono',monospace;font-weight:700;">🔥 Nawyk</span>`;
+    if(ch)badge=`<span style="background:rgba(201,162,39,0.15);color:var(--gold);border-radius:4px;padding:1px 6px;font-size:9px;font-family:'DM Mono',monospace;font-weight:700;">🏆 Wyzwanie</span>`;
+    else if(habit)badge=`<span style="background:rgba(157,124,244,0.15);color:var(--purple);border-radius:4px;padding:1px 6px;font-size:9px;font-family:'DM Mono',monospace;font-weight:700;">🔥 Nawyk</span>`;
     else if(isOverdue)badge=`<span style="background:rgba(255,68,68,0.15);color:var(--red);border-radius:4px;padding:1px 6px;font-size:9px;font-family:'DM Mono',monospace;font-weight:700;">Pilne</span>`;
     else if(isTomorrow)badge=`<span style="background:rgba(201,123,63,0.15);color:var(--orange);border-radius:4px;padding:1px 6px;font-size:9px;font-family:'DM Mono',monospace;font-weight:700;">Wkrótce</span>`;
-    const dueText=habit?(c?(c.name+(streak?' · 🔥 '+streak:'')):(streak?'🔥 '+streak+' dni':'Odhacz dziś')):isOverdue?'Termin: dziś':isToday?'Termin: dziś':isTomorrow?c?c.name+' · jutro':'jutro':c?c.name+(t.due?' · '+t.due:''):t.due||'Bez terminu';
+    const dueText=ch?(c?c.name+' · '+chSt:chSt):habit?(c?(c.name+(streak?' · 🔥 '+streak:'')):(streak?'🔥 '+streak+' dni':'Odhacz dziś')):isOverdue?'Termin: dziś':isToday?'Termin: dziś':isTomorrow?c?c.name+' · jutro':'jutro':c?c.name+(t.due?' · '+t.due:''):t.due||'Bez terminu';
     html+=`<div style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);">
       <div onclick="toggleTask('${t.id}');renderDash()" style="width:18px;height:18px;border-radius:4px;border:2px solid var(--border2);flex-shrink:0;cursor:pointer;margin-top:1px;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)'"></div>
       <div style="flex:1;min-width:0;">

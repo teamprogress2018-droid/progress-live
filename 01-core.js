@@ -412,6 +412,15 @@ function openM(id){
     taskSetClientField('','');
     const hb=document.getElementById('task-habit');
     if(hb)hb.checked=false;
+    const chb=document.getElementById('task-challenge');
+    if(chb)chb.checked=false;
+    const chDays=document.getElementById('task-ch-days');
+    if(chDays)chDays.value='21';
+    const chStart=document.getElementById('task-ch-start');
+    if(chStart)chStart.value='';
+    const chTgt=document.getElementById('task-ch-target');
+    if(chTgt)chTgt.value='';
+    if(typeof syncTaskKindUi==='function')syncTaskKindUi();
     const wrap=document.getElementById('task-due-wrap');
     if(wrap)wrap.style.display='';
     const td=document.getElementById('task-due');
@@ -793,9 +802,20 @@ function ymdAdd(ymd,days){
 window.ymdAdd=ymdAdd;
 
 function isHabit(t){
-  return !!(t&&(t.kind==='habit'||t.repeat==='daily'));
+  if(!t||t.kind==='challenge')return false;
+  return t.kind==='habit'||t.repeat==='daily';
 }
 window.isHabit=isHabit;
+
+function isChallenge(t){
+  return !!(t&&t.kind==='challenge');
+}
+window.isChallenge=isChallenge;
+
+function isOneShot(t){
+  return !!(t&&!isHabit(t)&&!isChallenge(t));
+}
+window.isOneShot=isOneShot;
 
 function habitDoneOn(t,ymd){
   return !!(t&&ymd&&(t.doneDates||[]).includes(ymd));
@@ -854,11 +874,151 @@ function habitWeekHtml(t,today){
 window.habitWeekHtml=habitWeekHtml;
 
 function onHabitToggle(){
-  const on=!!document.getElementById('task-habit')?.checked;
-  const wrap=document.getElementById('task-due-wrap');
-  if(wrap)wrap.style.display=on?'none':'';
+  const h=document.getElementById('task-habit');
+  const c=document.getElementById('task-challenge');
+  if(h&&h.checked&&c)c.checked=false;
+  syncTaskKindUi();
 }
 window.onHabitToggle=onHabitToggle;
+
+function onChallengeToggle(){
+  const h=document.getElementById('task-habit');
+  const c=document.getElementById('task-challenge');
+  if(c&&c.checked&&h)h.checked=false;
+  syncTaskKindUi();
+}
+window.onChallengeToggle=onChallengeToggle;
+
+function syncTaskKindUi(){
+  const habit=!!document.getElementById('task-habit')?.checked;
+  const ch=!!document.getElementById('task-challenge')?.checked;
+  const due=document.getElementById('task-due-wrap');
+  const wrap=document.getElementById('task-ch-wrap');
+  if(due)due.style.display=(habit||ch)?'none':'';
+  if(wrap)wrap.style.display=ch?'':'none';
+  if(ch){
+    const start=document.getElementById('task-ch-start');
+    if(start&&!start.value)start.value=typeof todayYmd==='function'?todayYmd():'';
+    paintChallengeDays();
+  }
+}
+window.syncTaskKindUi=syncTaskKindUi;
+
+function parseChallengeDays(v){
+  const n=parseInt(v,10);
+  if(n===7||n===14||n===21||n===30)return n;
+  if(n>=2&&n<=90)return n;
+  return 21;
+}
+window.parseChallengeDays=parseChallengeDays;
+
+function parseChallengeTarget(t){
+  const days=parseChallengeDays(t&&t.days);
+  const n=parseInt(t&&t.target,10);
+  if(n>=1&&n<=days)return n;
+  return days;
+}
+window.parseChallengeTarget=parseChallengeTarget;
+
+function challengeBounds(t){
+  const days=parseChallengeDays(t&&t.days);
+  const start=String((t&&t.start)||'').slice(0,10);
+  return{start,end:start?ymdAdd(start,days-1):'',days};
+}
+window.challengeBounds=challengeBounds;
+
+function challengeProgress(t,today){
+  today=today||(typeof todayYmd==='function'?todayYmd():'');
+  const days=parseChallengeDays(t&&t.days);
+  const start=String((t&&t.start)||today||'').slice(0,10);
+  const end=start?ymdAdd(start,days-1):'';
+  const target=parseChallengeTarget({days,target:t&&t.target});
+  const done=((t&&t.doneDates)||[]).filter(d=>start&&end&&d>=start&&d<=end).length;
+  const pct=target?Math.min(100,Math.round(done/target*100)):0;
+  const before=!!(today&&start&&today<start);
+  const after=!!(today&&end&&today>end);
+  const active=!!(today&&start&&end&&!before&&!after);
+  const won=done>=target;
+  const lost=after&&!won;
+  let left=0;
+  if(before)left=days;
+  else if(active&&today&&end){
+    let d=today;
+    while(d<=end&&left<400){left++;d=ymdAdd(d,1);}
+  }
+  return{start,end,days,target,done,pct,before,after,active,won,lost,left};
+}
+window.challengeProgress=challengeProgress;
+
+function challengeCanCheck(t,ymd,today){
+  today=today||(typeof todayYmd==='function'?todayYmd():'');
+  const p=challengeProgress(t,today);
+  if(!ymd||!p.start||!p.end)return false;
+  if(ymd<p.start||ymd>p.end)return false;
+  if(today&&ymd>today)return false;
+  return true;
+}
+window.challengeCanCheck=challengeCanCheck;
+
+function challengeVisible(t,today){
+  today=today||(typeof todayYmd==='function'?todayYmd():'');
+  const p=challengeProgress(t,today);
+  if(!p.end||!today)return true;
+  return today<=ymdAdd(p.end,7);
+}
+window.challengeVisible=challengeVisible;
+
+function toggleChallengeDay(t,ymd,today){
+  if(!t||!ymd)return t;
+  if(!challengeCanCheck(t,ymd,today))return t;
+  const dates=[...(t.doneDates||[])];
+  const i=dates.indexOf(ymd);
+  if(i>=0)dates.splice(i,1);
+  else dates.push(ymd);
+  dates.sort();
+  t.doneDates=dates;
+  t.status='open';
+  t.kind='challenge';
+  delete t.repeat;
+  t.updatedAt=new Date().toISOString();
+  return t;
+}
+window.toggleChallengeDay=toggleChallengeDay;
+
+function challengeStatusText(t,today){
+  const p=challengeProgress(t,today);
+  if(p.won)return '🏆 '+p.done+'/'+p.target+' — ukończone';
+  if(p.lost)return p.done+'/'+p.target+' — czas minął';
+  if(p.before)return 'Start '+p.start;
+  return p.done+'/'+p.target+' · jeszcze '+p.left+' '+(p.left===1?'dzień':'dni');
+}
+window.challengeStatusText=challengeStatusText;
+
+function challengeBarHtml(t,today){
+  const p=challengeProgress(t,today);
+  const col=p.won?'var(--teal)':p.lost?'var(--muted2)':'var(--gold)';
+  return `<div class="ch-bar"><div class="ch-bar-fill" style="width:${p.pct}%;background:${col};"></div></div>`;
+}
+window.challengeBarHtml=challengeBarHtml;
+
+function setChallengeDays(n){
+  const days=parseChallengeDays(n);
+  const el=document.getElementById('task-ch-days');
+  if(el)el.value=String(days);
+  const tgt=document.getElementById('task-ch-target');
+  if(tgt){
+    const cur=parseInt(tgt.value,10);
+    if(!cur||cur>days)tgt.value=String(days);
+  }
+  paintChallengeDays();
+}
+window.setChallengeDays=setChallengeDays;
+
+function paintChallengeDays(){
+  const cur=String((document.getElementById('task-ch-days')||{}).value||'21');
+  document.querySelectorAll('.ch-days-btn').forEach(b=>b.classList.toggle('on',b.getAttribute('data-d')===cur));
+}
+window.paintChallengeDays=paintChallengeDays;
 
 function mondayYmd(){
   const d=new Date();
