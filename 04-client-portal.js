@@ -91,14 +91,7 @@ function setCapScreen(scr,btn){
 function capIsLiveClient(){return !!window._clientAppMode;}
 
 function capClientPlan(c){
-  return (window.PL||[])
-    .filter(p=>p.clientId===c.id)
-    .slice()
-    .sort((a,b)=>{
-      const ak=String(a.updatedAt||a.createdAt||a.id||'');
-      const bk=String(b.updatedAt||b.createdAt||b.id||'');
-      return bk.localeCompare(ak);
-    })[0]||null;
+  return (window.PL||[]).filter(p=>p.clientId===c.id)[0]||null;
 }
 
 function capTodaySlot(c){
@@ -126,18 +119,6 @@ function capTodaySlot(c){
 function capTodayExercises(c){
   const slot=capTodaySlot(c);
   const raw=(slot.day&&slot.day.exercises)||[];
-  return raw.map((ex,i)=>{
-    const p=typeof parsePlanExercise==='function'?parsePlanExercise(ex):{name:ex.name||ex.n||String(ex),sets:ex.sets||'3',reps:ex.reps||'10',rest:ex.rest||'90s'};
-    const coach=typeof resolveCoachMedia==='function'?resolveCoachMedia(p):{note:p.note||'',libTip:'',video:p.video||''};
-    return{
-      name:p.name,
-      sets:(p.sets&&p.reps)?(p.sets+'×'+p.reps):(p.sets||p.reps||'—'),
-      rest:p.rest||'90s',
-      note:coach.note||coach.libTip||'',
-      video:coach.video||'',
-      icons:typeof coachMediaIcons==='function'?coachMediaIcons(p):'',
-      done:slot.kind==='done'
-    };
   const parsed=raw.map(ex=>typeof parsePlanExercise==='function'?parsePlanExercise(ex):{name:ex.name||ex.n||String(ex),sets:ex.sets||'3',reps:ex.reps||'10',rest:ex.rest||'90s'});
   if(typeof applySsLabels==='function')applySsLabels(parsed);
   return parsed.map((p,i)=>{
@@ -145,11 +126,9 @@ function capTodayExercises(c){
     if(p.pct1rm&&typeof weightFromPct1RM==='function'){
       const w=weightFromPct1RM(c.id,p.name,p.pct1rm);
       sets+=w&&w.kg?` @${p.pct1rm}% → ${w.kg}kg`:` @${p.pct1rm}%`;
-    }else     if(p.kg){
+    }else if(p.kg){
       sets+=' @'+p.kg+'kg';
     }
-    const tag=typeof formatSetKindTag==='function'?formatSetKindTag(p):'';
-    if(tag)sets+=' · '+tag;
     if(typeof isEmomExercise==='function'&&isEmomExercise(p))sets+=' · EMOM';
     return{name:p.name,ssLabel:p.ssLabel||'',sets,rest:p.rest||'90s',done:slot.kind==='done'};
   });
@@ -218,13 +197,6 @@ function capScreenHTML(scr,c){
         <div style="font-size:10px;font-family:'DM Mono',monospace;color:${accent};text-transform:uppercase;margin-bottom:6px;">📅 DZIŚ</div>
         <div style="font-size:20px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">${escHtml(capDayLabel(slot.day,slot.dayIdx))}</div>
         <div style="font-size:12px;color:${CAP_MUTED};margin-bottom:12px;">${list.length} ćwiczeń · ${escHtml(slot.plan.name||'Plan')}</div>
-        ${list.slice(0,4).map(ex=>`<div style="padding:8px 0;border-top:1px solid ${CAP_S3};">
-          <div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;">
-            <span style="color:${CAP_TEXT};">${escHtml(ex.name)}${ex.icons||''}</span>
-            <span style="color:${CAP_MUTED};white-space:nowrap;">${escHtml(ex.sets)}</span>
-          </div>
-          ${ex.note?`<div style="font-size:11px;color:${CAP_MUTED};line-height:1.5;margin-top:4px;">${escHtml(ex.note)}</div>`:''}
-          ${ex.video?`<div style="margin-top:6px;"><a href="${escHtml(ex.video)}" target="_blank" rel="noopener noreferrer" style="font-size:11px;color:${accent};text-decoration:none;">▶ Film techniki</a></div>`:''}
         ${list.slice(0,4).map(ex=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-top:1px solid ${CAP_S3};font-size:12px;">
           <span style="color:${CAP_TEXT};">${ex.ssLabel?escHtml(ex.ssLabel)+' ':''}${escHtml(ex.name)}</span>
           <span style="color:${CAP_MUTED};white-space:nowrap;">${escHtml(ex.sets)}</span>
@@ -328,16 +300,7 @@ function capScreenHTML(scr,c){
   if(scr==='plan') return `
     <div class="cap-section" style="padding-bottom:90px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:16px;padding-top:8px;">MÓJ PLAN</div>
-      ${(()=>{
-        const plan=capClientPlan(c);
-        if(!plan)return `
-        <div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:20px;text-align:center;margin-bottom:14px;">
-          <div style="font-size:32px;margin-bottom:8px;">📋</div>
-          <div style="font-size:14px;font-weight:700;color:${CAP_TEXT};margin-bottom:6px;">Brak planu</div>
-          <div style="font-size:11px;color:${CAP_MUTED};">Twój trener wkrótce przypisze Ci plan treningowy.</div>
-        </div>`;
-        const p=plan;
-        return `
+      ${plans.length?plans.slice(0,1).map(p=>`
         <div style="background:linear-gradient(135deg,${accent}22,${accent}08);border:1px solid ${accent}44;border-radius:18px;padding:16px;margin-bottom:14px;">
           <div style="font-size:15px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">${escHtml(p.name)}</div>
           <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:12px;">${escHtml(p.method||'')} · ${escHtml(String(p.duration||''))} tygodni</div>
@@ -345,20 +308,6 @@ function capScreenHTML(scr,c){
         ${(p.days||[]).map((d,i)=>{
           const rest=d.rest||!(d.exercises||[]).length;
           const live=capIsLiveClient();
-          const detailHtml=rest?'':(d.exercises||[]).map(ex=>{
-            const parsed=typeof parsePlanExercise==='function'?parsePlanExercise(ex):(typeof ex==='string'?{name:ex}:ex||{});
-            const coach=typeof resolveCoachMedia==='function'?resolveCoachMedia(parsed):{note:parsed.note||'',libTip:'',video:parsed.video||''};
-            const icons=typeof coachMediaIcons==='function'?coachMediaIcons(parsed):'';
-            return `<div style="padding:8px 0;border-top:1px solid ${CAP_S3};">
-              <div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;">
-                <span style="color:${CAP_TEXT};">${escHtml(parsed.name||'Ćwiczenie')}${icons}</span>
-                <span style="color:${CAP_MUTED};white-space:nowrap;">${escHtml((parsed.sets&&parsed.reps)?(parsed.sets+'×'+parsed.reps):(parsed.sets||parsed.reps||'—'))}</span>
-              </div>
-              ${coach.note?`<div style="font-size:11px;color:${CAP_MUTED};line-height:1.5;margin-top:4px;">${escHtml(coach.note)}</div>`:''}
-              ${!coach.note&&coach.libTip?`<div style="font-size:11px;color:${CAP_MUTED};line-height:1.5;margin-top:4px;">${escHtml(coach.libTip)}</div>`:''}
-              ${coach.video?`<div style="margin-top:6px;"><a href="${escHtml(coach.video)}" target="_blank" rel="noopener noreferrer" style="font-size:11px;color:${accent};text-decoration:none;">▶ Film techniki</a></div>`:''}
-            </div>`;
-          }).join('');
           return `<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:14px;margin-bottom:8px;">
             <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
               <div>
@@ -367,11 +316,14 @@ function capScreenHTML(scr,c){
               </div>
               ${rest?'':`<button type="button" class="btn btn-primary btn-sm" ${live?`onclick="cwOpen('${escHtml(p.id)}',${i})"`:`onclick="notify('Podgląd')"`}>▶ Start</button>`}
             </div>
-            ${detailHtml?`<div style="margin-top:10px;">${detailHtml}</div>`:''}
           </div>`;
         }).join('')}
-      `;
-      })()}
+      `).join(''):`
+        <div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:20px;text-align:center;margin-bottom:14px;">
+          <div style="font-size:32px;margin-bottom:8px;">📋</div>
+          <div style="font-size:14px;font-weight:700;color:${CAP_TEXT};margin-bottom:6px;">Brak planu</div>
+          <div style="font-size:11px;color:${CAP_MUTED};">Twój trener wkrótce przypisze Ci plan treningowy.</div>
+        </div>`}
     </div>`;
 
   if(scr==='calendar') return `
@@ -713,8 +665,6 @@ function capFormQControl(sendId,q,val,live){
 }
 
 const CAP_SCREEN_INFO={
-  home:{title:'🏠 Dziś',desc:'Jeden ekran na dzień: trening do odpalenia (Start), dzień wolny, nawyki ze streakiem, zadania do odhaczenia i check-in jeśli czeka. Klient nie zgaduje, co ma zrobić.'},
-  plan:{title:'📋 Mój plan treningowy',desc:'Lista dni planu. Start odhacza serie. W kreatorze: SS, rozgrzewka (WU), drop set i AMRAP na ostatniej serii.'},
   home:{title:'🏠 Dziś',desc:'Jeden ekran na dzień: trening do odpalenia (Start), dzień wolny, nawyki, wyzwania, formularze od trenera, zadania i check-in jeśli czeka. Klient nie zgaduje, co ma zrobić.'},
   plan:{title:'📋 Mój plan treningowy',desc:'Lista dni planu. Start odhacza serie. W kreatorze: SS i EMOM (każda seria na początku minuty).'},
   plan:{title:'📋 Mój plan treningowy',desc:'Lista dni planu. Start odhacza serie. W kreatorze: SS i EMOM, a jeśli trener podpiął swój film techniki do ćwiczenia, w playerze jest przycisk Film trenera.'},

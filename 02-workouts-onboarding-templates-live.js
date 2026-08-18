@@ -1907,8 +1907,6 @@ function liveExCard(ex,i){
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:${ex.collapsed?0:10}px;cursor:pointer;" onclick="liveToggleCollapse(${i})">
       <div style="width:30px;height:30px;border-radius:8px;background:${ex.done?'var(--teal)':'var(--adim)'};display:flex;align-items:center;justify-content:center;font-size:${ex.done?'14px':'12px'};font-weight:700;color:${ex.done?'#000':'var(--accent)'};flex-shrink:0;">${ex.done?'✓':i+1}</div>
       <div style="flex:1;">
-        <div style="font-size:13px;font-weight:700;">${escHtml(ex.name)}${typeof coachMediaIcons==='function'?coachMediaIcons(ex):''}</div>
-        <div style="font-size:10px;color:var(--muted);">${ex.sets.length} serie · ${setsDone}/${ex.sets.length} ukończono${lastHint?' · '+lastHint:''}</div>
         <div style="font-size:13px;font-weight:700;">${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}</div>
         <div style="font-size:10px;color:var(--muted);">${ex.sets.length} serie · ${setsDone}/${ex.sets.length} ukończono${ex.ssLabel?' · super-seria':''}${ex.emom?' · EMOM':''}${sub?' · '+escHtml(sub):''}</div>
       </div>
@@ -1920,16 +1918,15 @@ function liveExCard(ex,i){
     </div>
     ${!ex.collapsed?`
     <div>
-      ${typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:!!ex.showVideo,toggleFn:'event.stopPropagation();liveToggleExVideo('+i+')'}):''}
       ${ex.showVideo&&typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:true}):''}
       <div class="live-set-grid live-set-head">
         <span></span><span>Seria</span><span style="text-align:center;">Ciężar</span><span style="text-align:center;">Powt.</span><span></span>
       </div>
       ${ex.sets.map((s,si)=>`<div class="live-set-row">
         <div class="live-set-check${s.done?' done':''}" onclick="liveToggleSet(${i},${si})" title="Oznacz serię">${s.done?'✓':''}</div>
-        <div class="live-set-label"><span class="live-set-label-full">Seria </span>${s.setNo}${s.kind&&s.kind!=='work'?` <span class="cw-set-kind ${s.kind}">${escHtml(typeof setKindBadge==='function'?setKindBadge(s.kind):s.kind)}</span>`:''}</div>
+        <div class="live-set-label"><span class="live-set-label-full">Seria </span>${s.setNo}</div>
         <input type="number" inputmode="decimal" class="live-kg-input" placeholder="${ex.lastKg!==''&&ex.lastKg!=null?ex.lastKg:'kg'}" value="${s.kg}" oninput="liveSetKg(${i},${si},this.value)" onkeydown="liveSetKey(event,${i},${si})" onclick="event.stopPropagation()">
-        <input type="number" inputmode="numeric" class="live-kg-input" placeholder="${s.kind==='amrap'?'max':'powt.'}" value="${s.reps}" oninput="liveSetReps(${i},${si},this.value)" onkeydown="liveSetKey(event,${i},${si})" onclick="event.stopPropagation()">
+        <input type="number" inputmode="numeric" class="live-kg-input" placeholder="powt." value="${s.reps}" oninput="liveSetReps(${i},${si},this.value)" onkeydown="liveSetKey(event,${i},${si})" onclick="event.stopPropagation()">
         <button type="button" class="live-set-rest" onclick="liveStartRest(90)" title="Przerwa 90s">⏱</button>
       </div>`).join('')}
       <button type="button" class="live-add-set" onclick="liveAddSet(${i})">+ Dodaj serię</button>
@@ -1957,12 +1954,6 @@ function liveToggleCollapse(i){
   liveExercises[i].collapsed=!liveExercises[i].collapsed;
   renderLiveExercises();
 }
-function liveToggleExVideo(i){
-  if(!liveExercises[i])return;
-  liveExercises[i].showVideo=!liveExercises[i].showVideo;
-  renderLiveExercises();
-}
-window.liveToggleExVideo=liveToggleExVideo;
 
 function liveToggleSet(ei,si){
   const ex=liveExercises[ei];if(!ex)return;
@@ -1971,8 +1962,8 @@ function liveToggleSet(ei,si){
   if(s.done){
     const next=ex.sets[si+1];
     if(next){
-      if(next.kind!=='drop'&&(next.kg===''||next.kg==null)&&s.kg!==''&&s.kg!=null)next.kg=s.kg;
-      if(next.kind!=='drop'&&(next.reps===''||next.reps==null||next.reps==='8-12')&&s.reps)next.reps=s.reps;
+      if((next.kg===''||next.kg==null)&&s.kg!==''&&s.kg!=null)next.kg=s.kg;
+      if((next.reps===''||next.reps==null||next.reps==='8-12')&&s.reps)next.reps=s.reps;
     }
     if(ex.sets.every(x=>x.done)){
       ex.done=true;
@@ -1980,8 +1971,6 @@ function liveToggleSet(ei,si){
       const nxt=liveExercises.find(e=>!e.done);
       if(nxt)nxt.collapsed=false;
     }
-    if(next&&typeof skipRestBeforeSet==='function'&&skipRestBeforeSet(next)){
-      if(typeof notify==='function')notify('Drop set — bez przerwy, zdejmij ciężar');
     if(typeof isEmomExercise==='function'&&isEmomExercise(ex)&&next){
       window._liveEmomClock=window._liveEmomClock||{};
       if(!window._liveEmomClock[ei])window._liveEmomClock[ei]=Date.now();
@@ -2001,8 +1990,6 @@ function liveToggleSet(ei,si){
         const nxt=liveExercises[act.exIdx];
         if(typeof notify==='function')notify('Super-seria → '+(nxt.ssLabel?nxt.ssLabel+' ':'')+nxt.name+' (bez przerwy)');
       }else{
-        const sec=typeof restSecAfterSet==='function'?restSecAfterSet(ex,s,next):(ex.restSec||90);
-        liveStartRest(sec);
         liveStartRest((ex.restSec)||90);
       }
     }
