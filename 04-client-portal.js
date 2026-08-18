@@ -1225,20 +1225,20 @@ const INTEGRATIONS=[
   {
     id:'garmin',cat:'fitness',name:'Garmin Connect',icon:'⌚',color:'#007cc3',
     status:'available',
-    shortDesc:'Dane z zegarków Garmin (tętno, kroki, sen)',
-    desc:'Pobieraj dane zdrowotne z zegarków Garmin klientów — tętno spoczynkowe, HRV, jakość snu, kroki, kcal spalonych.',
+    shortDesc:'Import CSV z Garmin Connect → pomiary i kalendarz (bez OAuth)',
+    desc:'Żywy sync OAuth (HRV, sen, Body Battery) wymaga sekretu API na serwerze — nie zbieramy go do Firestore. Dziś działa import CSV z Garmin Connect (Aktywności → Export): pomiary grupy Garmin i sesje w kalendarzu.',
     features:[
-      {name:'Tętno spoczynkowe i HRV',on:true},
-      {name:'Kroki i aktywność codzienna',on:true},
-      {name:'Jakość snu (REM, głęboki)',on:true},
-      {name:'Dane treningowe GPS',on:true},
-      {name:'Stres i Body Battery',on:true},
-      {name:'Auto-sync z pomiarami Progress Live',on:true},
+      {name:'Import CSV aktywności z Garmin Connect',on:true},
+      {name:'Pomiary: kroki, kcal, tętno, czas, dystans',on:true},
+      {name:'Sesje w kalendarzu z treningów Garmin',on:true},
+      {name:'Działa ze strony, bez subskrypcji i bez sekretów',on:true},
+      {name:'Live OAuth: HRV, sen, Body Battery',on:false},
+      {name:'Client secret / API key w Firestore',on:false},
     ],
     config:[],
     webhook:null,
     logs:[],
-    docs:'https://developer.garmin.com'
+    docs:'https://connect.garmin.com'
   },
   {
     id:'apple_health',cat:'fitness',name:'Apple Health',icon:'🍎',color:'#ff3b30',
@@ -1368,15 +1368,259 @@ const INTEGRATIONS=[
   },
 ];
 
+window.INTEGRATIONS=INTEGRATIONS;
 window.INT_CONNECTIONS={}; // integrationId -> {id: firestoreDocId, integrationId, connected, config}
 window.INT_EVENT_LOG=window.INT_EVENT_LOG||[];
-const INT_DAILY_IDS=['google_calendar','outlook','calendly','whatsapp','email','zapier','make'];
+const INT_DAILY_IDS=['google_calendar','outlook','calendly','whatsapp','email','zapier','make','garmin'];
 const INT_REQUIRED_CFG={calendly:'event_url',zapier:'webhook_url',make:'webhook_url'};
 
 function intWorksNow(id){return INT_DAILY_IDS.includes(id);}
 function intDocId(integrationId){return (window._uid||'local')+'_'+integrationId;}
 function getIntConn(id){return window.INT_CONNECTIONS[id];}
 function intCfg(id,key){return (getIntConn(id)?.config||{})[key]||'';}
+
+function splitGarminCsvLine(line,delim){
+  const out=[];
+  let cur='';
+  let inQ=false;
+  const d=delim||',';
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(inQ){
+      if(ch==='"'){
+        if(line[i+1]==='"'){cur+='"';i++;}
+        else inQ=false;
+      }else cur+=ch;
+    }else if(ch==='"')inQ=true;
+    else if(ch===d){out.push(cur);cur='';}
+    else cur+=ch;
+  }
+  out.push(cur);
+  return out;
+}
+function normGarminHeader(h){
+  return String(h||'').replace(/^\ufeff/,'').trim().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+}
+function garminHeaderKey(h){
+  const n=normGarminHeader(h);
+  if(!n)return '';
+  if((/max/.test(n)||/maks/.test(n))&&(/hr/.test(n)||/tetno/.test(n)))return '';
+  if(/^(date|data|start time|start|dzien)$/.test(n)||n==='start time')return 'date';
+  if(n==='date'||n==='data'||n.indexOf('start time')===0)return 'date';
+  if(/typ aktywnosc/.test(n)||n==='activity type'||n==='typ'||n==='sport'||n==='type')return 'type';
+  if(n==='title'||n==='tytul'||n==='nazwa'||n==='activity name'||n==='name')return 'title';
+  if(/kalorie/.test(n)||n==='calories'||n==='kcal'||n==='calorie')return 'calories';
+  if(n==='time'||n==='czas'||n==='duration'||/czas trwania/.test(n)||/moving time/.test(n)||/elapsed time/.test(n)||/czas ruchu/.test(n))return 'duration';
+  if(/avg hr/.test(n)||/average hr/.test(n)||/avg heart/.test(n)||/sr\.? tetno/.test(n)||/srednie tetno/.test(n)||n==='tetno'||n==='heart rate')return 'hr';
+  if(/^dystans/.test(n)||/^distance/.test(n))return 'distance';
+  if(n==='steps'||n==='kroki'||/total steps/.test(n))return 'steps';
+  return '';
+}
+function parseGarminDuration(raw){
+  const s=String(raw||'').trim();
+  if(!s||s==='--')return 0;
+  if(/^\d+([.,]\d+)?$/.test(s))return Math.round(parseFloat(s.replace(',','.'))||0);
+  const parts=s.split(':').map(n=>parseInt(n,10)||0);
+  if(parts.length===3)return parts[0]*60+parts[1]+(parts[2]>=30?1:0);
+  if(parts.length===2){
+    if(parts[0]>23)return parts[0]+Math.round(parts[1]/60);
+    return parts[0]*60+parts[1];
+  }
+  return 0;
+}
+function parseGarminDistance(raw){
+  const s=String(raw||'').trim().toLowerCase();
+  if(!s||s==='--')return 0;
+  const num=parseFloat(s.replace(',','.').replace(/[^\d.]/g,''));
+  if(!num)return 0;
+  if(/\bm\b/.test(s)&&!/km/.test(s))return Math.round(num/10)/100;
+  if(num>=1000)return Math.round(num/10)/100;
+  return Math.round(num*100)/100;
+}
+function parseGarminDateTime(raw){
+  const s=String(raw||'').trim();
+  if(!s)return {date:'',time:'12:00'};
+  let m=s.match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{1,2}):(\d{2}))?/);
+  if(m)return {date:m[1]+'-'+m[2]+'-'+m[3],time:m[4]?String(m[4]).padStart(2,'0')+':'+m[5]:'12:00'};
+  m=s.match(/^(\d{1,2})[./](\d{1,2})[./](\d{4})(?:\s+(\d{1,2}):(\d{2}))?/);
+  if(m){
+    const dd=String(m[1]).padStart(2,'0');
+    const mm=String(m[2]).padStart(2,'0');
+    return {date:m[3]+'-'+mm+'-'+dd,time:m[4]?String(m[4]).padStart(2,'0')+':'+m[5]:'12:00'};
+  }
+  return {date:'',time:'12:00'};
+}
+function parseGarminNumber(raw){
+  const s=String(raw||'').trim();
+  if(!s||s==='--')return 0;
+  const n=parseFloat(s.replace(',','.').replace(/[^\d.-]/g,''));
+  return n&&isFinite(n)?n:0;
+}
+function parseGarminCsv(text){
+  const raw=String(text||'').replace(/^\ufeff/,'').replace(/\r\n/g,'\n').replace(/\r/g,'\n').trim();
+  if(!raw)return [];
+  const lines=raw.split('\n').filter(l=>l.trim());
+  if(!lines.length)return [];
+  const headerLine=lines[0];
+  const delim=(headerLine.split(';').length>headerLine.split(',').length)?';':',';
+  const headers=splitGarminCsvLine(headerLine,delim).map(garminHeaderKey);
+  const rows=[];
+  for(let i=1;i<lines.length;i++){
+    const cells=splitGarminCsvLine(lines[i],delim);
+    const rec={date:'',time:'12:00',type:'',title:'',calories:0,minutes:0,hr:0,distance:0,steps:0};
+    headers.forEach((key,idx)=>{
+      if(!key)return;
+      const val=cells[idx]==null?'':cells[idx];
+      if(key==='date'){
+        const dt=parseGarminDateTime(val);
+        rec.date=dt.date;rec.time=dt.time;
+      }else if(key==='type')rec.type=String(val).trim();
+      else if(key==='title')rec.title=String(val).trim();
+      else if(key==='calories')rec.calories=Math.round(parseGarminNumber(val));
+      else if(key==='duration')rec.minutes=parseGarminDuration(val);
+      else if(key==='hr')rec.hr=Math.round(parseGarminNumber(val));
+      else if(key==='distance')rec.distance=parseGarminDistance(val);
+      else if(key==='steps')rec.steps=Math.round(parseGarminNumber(val));
+    });
+    if(rec.date)rows.push(rec);
+  }
+  return rows;
+}
+function importGarminCsvForClient(clientId,text){
+  if(!clientId)return {ok:false,error:'Wybierz klienta',metrics:0,sessions:0,skipped:0,rows:0};
+  const parsed=parseGarminCsv(text);
+  if(!parsed.length)return {ok:false,error:'Brak wierszy w CSV — sprawdź nagłówki Date/Data',metrics:0,sessions:0,skipped:0,rows:0};
+  window.METRIC_ENTRIES=window.METRIC_ENTRIES||[];
+  window.SE=window.SE||[];
+  let metrics=0,sessions=0,skipped=0;
+  parsed.forEach(row=>{
+    const notes=row.title||row.type||'Garmin';
+    const dup=window.METRIC_ENTRIES.some(e=>e.source==='garmin'&&e.clientId===clientId&&e.date===row.date&&(e.notes||'')===notes);
+    if(dup){skipped++;return;}
+    const values={};
+    if(row.steps)values.m1=row.steps;
+    if(row.calories)values.m2=row.calories;
+    if(row.hr)values.m3=row.hr;
+    if(row.minutes)values.m4=row.minutes;
+    if(row.distance)values.m5=row.distance;
+    if(!Object.keys(values).length){skipped++;return;}
+    const entry=(typeof withTrainer==='function'?withTrainer:x=>x)({
+      id:(typeof newId==='function'?newId('gme'):('gme_'+Date.now())),
+      clientId,groupId:'mg6',date:row.date,values,notes,source:'garmin',
+      createdAt:new Date().toISOString()
+    });
+    window.METRIC_ENTRIES.push(entry);
+    if(typeof persistById==='function')persistById('metricEntries',entry);
+    metrics++;
+    const sessDup=window.SE.some(s=>s.source==='garmin'&&s.clientId===clientId&&s.date===row.date&&s.time===(row.time||'12:00')&&(s.notes||'')===notes);
+    if(!sessDup&&row.minutes>0){
+      const sess=(typeof withTrainer==='function'?withTrainer:x=>x)({
+        id:(typeof newId==='function'?newId('gs'):('gs_'+Date.now())),
+        clientId,date:row.date,time:row.time||'12:00',type:row.type||'Trening',
+        notes,duration:row.minutes,source:'garmin',createdAt:new Date().toISOString()
+      });
+      window.SE.push(sess);
+      if(typeof persistById==='function')persistById('sessions',sess);
+      sessions++;
+    }
+  });
+  return {ok:true,metrics,sessions,skipped,rows:parsed.length};
+}
+function ensureGarminConnected(extraConfig){
+  const prev=getIntConn('garmin')||{};
+  const config=Object.assign({},prev.config||{},extraConfig||{});
+  const docId=intDocId('garmin');
+  const rec=(typeof withTrainer==='function'?withTrainer:x=>x)({
+    id:docId,integrationId:'garmin',connected:true,config,
+    configuredAt:prev.configuredAt||new Date().toISOString(),
+    lastSync:new Date().toISOString()
+  });
+  window.INT_CONNECTIONS=window.INT_CONNECTIONS||{};
+  window.INT_CONNECTIONS.garmin=rec;
+  if(typeof persistById==='function')persistById('integrationConfigs',rec);
+  return rec;
+}
+function garminCsvPanelHtml(conn){
+  const last=conn&&conn.config&&conn.config.lastImport;
+  const clients=window.CL||[];
+  const lastCid=last&&last.clientId;
+  const lastTxt=last
+    ?('Ostatni import: '+(last.at?new Date(last.at).toLocaleString('pl'):'—')+' · '+(last.metrics||0)+' '+((last.metrics||0)===1?'pomiar':(last.metrics||0)<5&&(last.metrics||0)>1?'pomiary':'pomiarów')+', '+(last.sessions||0)+' '+((last.sessions||0)===1?'sesja':(last.sessions||0)<5&&(last.sessions||0)>1?'sesje':'sesji')+(last.skipped?(' · pominięto '+last.skipped):''))
+    :'Jeszcze nie importowano CSV.';
+  return `
+    <div style="margin-bottom:20px;background:rgba(0,124,195,0.12);border:1px solid rgba(0,124,195,0.35);border-radius:10px;padding:12px;font-size:12px;line-height:1.6;">
+      Live OAuth (HRV, sen, Body Battery) potrzebuje sekretu API na serwerze — <strong>nie zbieramy tu secretów do Firestore</strong>.
+      Działa dziś: plik CSV z Garmin Connect (Aktywności → Export).
+    </div>
+    <div style="margin-bottom:20px;">
+      <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:10px;">Import CSV</div>
+      <ol style="margin:0 0 12px 18px;padding:0;font-size:12px;line-height:1.6;color:var(--muted);">
+        <li>Otwórz Garmin Connect → Aktywności</li>
+        <li>Eksportuj CSV (Export)</li>
+        <li>Wybierz klienta i wczytaj plik</li>
+      </ol>
+      <div class="form-field">
+        <label class="form-lbl">Klient</label>
+        <select id="int-garmin-client" class="form-select">
+          <option value="">Wybierz klienta...</option>
+          ${clients.map(c=>`<option value="${escHtml(c.id)}"${c.id===lastCid?' selected':''}>${escHtml(c.name)}</option>`).join('')}
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+        <button class="btn btn-primary btn-sm" type="button" onclick="intGarminPickFile()">📂 Wczytaj CSV</button>
+        <button class="btn btn-ghost btn-sm" type="button" onclick="intGarminOpenConnect()">Otwórz Garmin Connect</button>
+      </div>
+      <div id="int-garmin-last" style="font-size:11px;color:var(--muted);margin-top:10px;">${escHtml(lastTxt)}</div>
+    </div>`;
+}
+function intGarminPickFile(){
+  const sel=document.getElementById('int-garmin-client');
+  const cid=sel&&sel.value;
+  if(!cid){if(typeof notify==='function')notify('⚠ Wybierz klienta');return;}
+  const inp=document.createElement('input');
+  inp.type='file';
+  inp.accept='.csv,text/csv,text/plain';
+  inp.onchange=function(){
+    const f=inp.files&&inp.files[0];
+    if(!f)return;
+    const reader=new FileReader();
+    reader.onload=function(){intGarminImportFor(cid,String(reader.result||''));};
+    reader.onerror=function(){if(typeof notify==='function')notify('⚠ Nie udało się odczytać pliku');};
+    reader.readAsText(f);
+  };
+  inp.click();
+}
+function intGarminImportFor(clientId,text){
+  const result=importGarminCsvForClient(clientId,text);
+  if(!result.ok){
+    if(typeof notify==='function')notify('⚠ '+(result.error||'Import CSV nieudany'));
+    return result;
+  }
+  ensureGarminConnected({lastImport:{at:new Date().toISOString(),metrics:result.metrics,sessions:result.sessions,skipped:result.skipped,clientId:clientId}});
+  if(typeof notify==='function'){
+    const m=result.metrics,s=result.sessions;
+    const mTxt=m+' '+(m===1?'pomiar':m>1&&m<5?'pomiary':'pomiarów');
+    const sTxt=s+' '+(s===1?'sesja':s>1&&s<5?'sesje':'sesji');
+    notify('✓ Garmin: '+mTxt+', '+sTxt+(result.skipped?' (pominięto '+result.skipped+')':''));
+  }
+  try{if(typeof renderIntegrations==='function')renderIntegrations();}catch(e){}
+  try{if(intDetailId==='garmin'&&typeof openIntDetail==='function')openIntDetail('garmin');}catch(e){}
+  try{if(typeof renderMetrics==='function')renderMetrics();}catch(e){}
+  try{if(typeof renderCal==='function')renderCal();}catch(e){}
+  return result;
+}
+function intGarminOpenConnect(){
+  window.open('https://connect.garmin.com','_blank','noopener');
+}
+window.parseGarminCsv=parseGarminCsv;
+window.parseGarminDuration=parseGarminDuration;
+window.parseGarminDistance=parseGarminDistance;
+window.importGarminCsvForClient=importGarminCsvForClient;
+window.intGarminPickFile=intGarminPickFile;
+window.intGarminImportFor=intGarminImportFor;
+window.intGarminOpenConnect=intGarminOpenConnect;
+window.ensureGarminConnected=ensureGarminConnected;
 
 function renderIntegrations(){
   renderIntStatusSummary();
@@ -1418,6 +1662,7 @@ function renderIntDailyBar(){
       <button class="btn btn-ghost btn-sm" onclick="intOpenCalendly()" ${calUrl?'':'disabled title="Najpierw zapisz link Calendly"'}>🗓 Otwórz Calendly</button>
       <button class="btn btn-ghost btn-sm" onclick="intSendCalendly()" ${calUrl?'':'disabled'}>Wyślij Calendly w czat</button>
       <button class="btn btn-ghost btn-sm" onclick="intTestWebhook()" ${zapOn||makeOn?'':'disabled title="Włącz Zapier albo Make"'}>⚡ Sprawdź webhook</button>
+      <button class="btn btn-ghost btn-sm" onclick="openIntDetail('garmin')">⌚ Import Garmin</button>
     </div>`;
 }
 
@@ -1476,7 +1721,7 @@ function renderIntCard(int,i){
   const badge=daily
     ?(isConnected?'<span class="int-badge-daily">Działa dziś</span>':'<span class="int-badge-daily">Działa dziś — włącz</span>')
     :'<span class="int-badge-server">Wymaga serwera</span>';
-  return `<div class="int-card${isConnected?' connected':''}" style="animation-delay:${i*0.04}s;border-top:3px solid ${int.color};" onclick="openIntDetail('${int.id}')">
+  return `<div class="int-card${isConnected?' connected':''}" data-int="${int.id}" style="animation-delay:${i*0.04}s;border-top:3px solid ${int.color};" onclick="openIntDetail('${int.id}')">
     <div style="position:absolute;top:12px;right:12px;">${badge}</div>
     <div class="int-card-icon" style="background:${int.color}22;">${int.icon}</div>
     <div class="int-card-name">${int.name}</div>
@@ -1535,6 +1780,8 @@ function openIntDetail(id){
       <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:10px;">Ustawienia</div>
       ${cfgFields}
     </div>`:''}
+
+    ${id==='garmin'?garminCsvPanelHtml(conn):''}
 
     ${!daily?`
     <div style="margin-bottom:20px;background:rgba(201,123,63,0.1);border:1px solid rgba(201,123,63,0.3);border-radius:10px;padding:12px;font-size:12px;line-height:1.6;">
@@ -2937,7 +3184,7 @@ function renderSettingsContent(t){
     el.innerHTML=`<div class="settings-section" style="max-width:700px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">INTEGRACJE</div>
       <div class="settings-card" style="margin-bottom:16px;">
-        <div style="font-size:13px;line-height:1.6;color:var(--muted);margin-bottom:12px;">Zielone działają ze strony (ICS, WhatsApp, e-mail, Calendly, Zapier/Make). Pomarańczowe wymagają serwera — nie zbieramy kluczy tajnych.</div>
+        <div style="font-size:13px;line-height:1.6;color:var(--muted);margin-bottom:12px;">Zielone działają ze strony (ICS, WhatsApp, e-mail, Calendly, Zapier/Make, Garmin CSV). Pomarańczowe wymagają serwera — nie zbieramy kluczy tajnych.</div>
         <button class="btn btn-primary btn-sm" onclick="goTo('integrations')">Otwórz Integracje →</button>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">

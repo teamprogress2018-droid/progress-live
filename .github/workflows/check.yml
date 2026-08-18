@@ -72,6 +72,9 @@ jobs:
       - name: 1j. Testy parsera JSON generatora AI
         run: node .github/scripts/test_ai_plan_json.js
 
+      - name: 1k. Testy zasobów YouTube i Garmin CSV
+        run: node .github/scripts/test_resources_garmin.js
+
       - name: 2. Sprawdź duplikaty (funkcje / id / zmienne)
         run: python3 .github/scripts/check_duplicates.py
 
@@ -93,6 +96,9 @@ jobs:
         run: node .github/scripts/test_plan_preview_layout.js
       - name: 6b. Testy layoutu generatora / biblioteki / kalkulatora
         run: node .github/scripts/test_ai_gen_layout.js
+
+      - name: 6c. Testy UI zasobów YouTube i Garmin CSV
+        run: node .github/scripts/test_resources_garmin_ui.js
 
       - name: 7. Sprawdź stronę w prawdziwej przeglądarce
         run: node .github/scripts/check_browser.js
