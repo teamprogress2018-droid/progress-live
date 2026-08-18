@@ -296,6 +296,11 @@ function addRow(dayId){
     +'<input type="number" placeholder="2" class="ex-inp" data-f="rir">'
     +'<input type="text" placeholder="2min" class="ex-inp" data-f="rest">'
     +'<input type="text" placeholder="2-0-2" class="ex-inp" data-f="tempo">'
+    +'<button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--muted2);font-size:18px;cursor:pointer;">×</button>'
+    +'<input type="text" placeholder="Zamiennik (opcjonalnie, np. hantle zamiast sztangi)" class="ex-inp" data-f="alt" style="grid-column:1/-1;font-size:11px;">'
+    +'<div class="ex-row-coach">'
+    +'<input type="text" placeholder="Wskazówka dla klienta (np. łopatki ściągnięte)" class="ex-inp ex-inp-name" data-f="note" style="font-size:11px;">'
+    +'<input type="url" placeholder="Film: YouTube / Vimeo" class="ex-inp ex-inp-name" data-f="video" style="font-size:11px;" title="Link do filmu techniki">'
     +'<button type="button" onclick="builderRemoveRow(this)" style="background:none;border:none;color:var(--muted2);font-size:18px;cursor:pointer;">×</button>'
     +'<div class="ex-row-extra">'
     +'<input type="text" placeholder="Zamiennik (opcjonalnie, np. hantle zamiast sztangi)" class="ex-inp ex-inp-name" data-f="alt" style="font-size:11px;">'
@@ -309,6 +314,9 @@ function addRow(dayId){
     +'<button type="button" class="ex-ss-btn ex-kind-btn wu" onclick="builderCycleKind(this,\'wu\',2)" title="Serie rozgrzewkowe (1–2) — lżejsze kg, krótsza przerwa">WU</button>'
     +'<button type="button" class="ex-ss-btn ex-kind-btn drop" onclick="builderCycleKind(this,\'drop\',2)" title="Drop sety po roboczych — bez przerwy, mniejszy ciężar">DROP</button>'
     +'<button type="button" class="ex-ss-btn ex-kind-btn amrap" onclick="builderToggleAmrap(this)" title="Ostatnia seria robocza = AMRAP (max powtórzeń)">AMRAP</button>'
+    +'<input type="hidden" data-f="emom" value="">'
+    +'<button type="button" class="ex-ss-btn" onclick="builderToggleSs(this)" title="Połącz z następnym ćwiczeniem w super-serię">⚡ SS</button>'
+    +'<button type="button" class="ex-ss-btn ex-emom-btn" onclick="builderToggleEmom(this)" title="EMOM: każda seria na starcie minuty, reszta minuty to przerwa">EMOM</button>'
     +'</div>'
     +'</div>';
   rows.appendChild(div);
@@ -404,6 +412,36 @@ function builderPaintKinds(row){
   if(amBtn)amBtn.classList.toggle('on',am);
 }
 window.builderPaintKinds=builderPaintKinds;
+  const em1=row.querySelector('[data-f="emom"]');
+  const em2=next.querySelector('[data-f="emom"]');
+  if(em1)em1.value='';
+  if(em2)em2.value='';
+  if(typeof builderPaintEmom==='function'){builderPaintEmom(row);builderPaintEmom(next);}
+  builderPaintSs(box);
+}
+window.builderToggleSs=builderToggleSs;
+function builderToggleEmom(btn){
+  const row=btn&&btn.closest('.ex-row');if(!row)return;
+  const el=row.querySelector('[data-f="emom"]');if(!el)return;
+  el.value=el.value==='1'?'':'1';
+  if(el.value==='1'){
+    const ss=row.querySelector('[data-f="ss"]');
+    if(ss&&ss.value){
+      ss.value='';
+      const box=row.parentElement;
+      if(typeof builderPaintSs==='function')builderPaintSs(box);
+    }
+  }
+  builderPaintEmom(row);
+}
+window.builderToggleEmom=builderToggleEmom;
+function builderPaintEmom(row){
+  if(!row)return;
+  const on=((row.querySelector('[data-f="emom"]')||{}).value||'')==='1';
+  const btn=row.querySelector('.ex-emom-btn');
+  if(btn)btn.classList.toggle('on',on);
+}
+window.builderPaintEmom=builderPaintEmom;
 function builderPreviewKg(row){
   if(!row)return;
   const kgEl=row.querySelector('[data-f="kg"]');
@@ -485,6 +523,8 @@ function editPlan(id){
       set('rest',parsed.rest||'');
       set('tempo',parsed.tempo||'');
       set('alt',(ex&&typeof ex==='object'&&ex.alt)||parsed.alt||(typeof altsForExercise==='function'?altsForExercise(parsed.name).join(', '):''));
+      set('note',parsed.note||(ex&&typeof ex==='object'&&(ex.note||ex.notes))||'');
+      set('video',parsed.video||(ex&&typeof ex==='object'&&ex.video)||'');
       set('pct1rm',parsed.pct1rm||(ex&&typeof ex==='object'&&ex.pct1rm)||'');
       set('ss',parsed.ss||(ex&&typeof ex==='object'&&ex.ss)||'');
       set('wu',(ex&&typeof ex==='object'&&ex.wu)||parsed.wu||'');
@@ -492,6 +532,9 @@ function editPlan(id){
       set('amrap',((ex&&typeof ex==='object'&&(ex.amrap||parsed.amrap))?'1':''));
       if(typeof builderPreviewKg==='function')builderPreviewKg(row);
       if(typeof builderPaintKinds==='function')builderPaintKinds(row);
+      set('emom',((ex&&typeof ex==='object'&&ex.emom)||parsed.emom)?'1':'');
+      if(typeof builderPreviewKg==='function')builderPreviewKg(row);
+      if(typeof builderPaintEmom==='function')builderPaintEmom(row);
     });
     if(typeof builderPaintSs==='function')builderPaintSs(dayEl.querySelector('.ex-rows'));
   });
@@ -519,6 +562,7 @@ async function savePlan(){
       if(!n)return;
       const setN=g('sets')||'3';
       const alt=g('alt').trim()||(typeof altsForExercise==='function'?altsForExercise(n).join(', '):'');
+      const video=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl(g('video')):g('video').trim();
       const pct=typeof parsePct1RM==='function'?parsePct1RM(g('pct1rm')):'';
       exercises.push({
         name:n,
@@ -535,6 +579,10 @@ async function savePlan(){
         wu:g('wu')||'',
         drop:g('drop')||'',
         amrap:g('amrap')==='1'
+        note:g('note').trim(),
+        video
+        ss:g('ss'),
+        emom:g('emom')==='1'
       });
       sets+=parseInt(setN,10)||3;
     });
@@ -622,6 +670,7 @@ function renderPlans(){
       <div id="plan-detail-${p.id}" style="display:none;border-top:1px solid var(--border);padding:14px 18px;background:rgba(0,0,0,0.15);">
         ${(p.days||[]).map(d=>`<div class="plan-day-row" style="padding:9px 0;">
           <div class="plan-day-name">${d.day||d.dayName||'—'}</div>
+          ${d.rest?'<div style="color:var(--muted);font-size:12px;font-style:italic;">— Odpoczynek</div>':`<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;color:var(--text);">${d.muscles||d.focus||d.name||''}</div><div style="font-size:11px;color:var(--muted);margin-top:2px;line-height:1.5;">${(d.exercises||[]).map(e=>{const x=typeof parsePlanExercise==='function'?parsePlanExercise(e):(typeof e==='string'?{name:e}:e);return (x.name||'')+(x.sets?' '+x.sets+'×'+x.reps:'')+(x.kg?' @'+x.kg+'kg':'')+(typeof coachMediaIcons==='function'?coachMediaIcons(e):'');}).filter(Boolean).join(' · ')}</div></div>`}
           ${d.rest?'<div style="color:var(--muted);font-size:12px;font-style:italic;">— Odpoczynek</div>':`<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;color:var(--text);">${d.muscles||d.focus||d.name||''}</div><div style="font-size:11px;color:var(--muted);margin-top:2px;line-height:1.5;">${typeof formatDayExerciseLines==='function'?formatDayExerciseLines(d.exercises,p.clientId):(d.exercises||[]).map(e=>typeof formatPlanExerciseLine==='function'?formatPlanExerciseLine(e,p.clientId):'').filter(Boolean).join(' · ')}</div></div>`}
         </div>`).join('')}
       </div>

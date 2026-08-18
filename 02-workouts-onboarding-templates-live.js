@@ -1907,16 +1907,21 @@ function liveExCard(ex,i){
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:${ex.collapsed?0:10}px;cursor:pointer;" onclick="liveToggleCollapse(${i})">
       <div style="width:30px;height:30px;border-radius:8px;background:${ex.done?'var(--teal)':'var(--adim)'};display:flex;align-items:center;justify-content:center;font-size:${ex.done?'14px':'12px'};font-weight:700;color:${ex.done?'#000':'var(--accent)'};flex-shrink:0;">${ex.done?'✓':i+1}</div>
       <div style="flex:1;">
+        <div style="font-size:13px;font-weight:700;">${escHtml(ex.name)}${typeof coachMediaIcons==='function'?coachMediaIcons(ex):''}</div>
+        <div style="font-size:10px;color:var(--muted);">${ex.sets.length} serie · ${setsDone}/${ex.sets.length} ukończono${lastHint?' · '+lastHint:''}</div>
         <div style="font-size:13px;font-weight:700;">${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}</div>
-        <div style="font-size:10px;color:var(--muted);">${ex.sets.length} serie · ${setsDone}/${ex.sets.length} ukończono${ex.ssLabel?' · super-seria':''}${sub?' · '+escHtml(sub):''}</div>
+        <div style="font-size:10px;color:var(--muted);">${ex.sets.length} serie · ${setsDone}/${ex.sets.length} ukończono${ex.ssLabel?' · super-seria':''}${ex.emom?' · EMOM':''}${sub?' · '+escHtml(sub):''}</div>
       </div>
       <div style="display:flex;gap:6px;align-items:center;">
         ${!ex.done?`<button type="button" class="live-skip-btn" onclick="event.stopPropagation();liveSkipEx(${i})">Pomiń</button>`:''}
+        ${ex.video?`<button type="button" class="live-skip-btn" onclick="event.stopPropagation();liveToggleExVideo(${i})">${ex.showVideo?'▾ Film':'▶ Film'}</button>`:''}
         <span style="color:var(--muted);font-size:14px;">${ex.collapsed?'▶':'▼'}</span>
       </div>
     </div>
     ${!ex.collapsed?`
     <div>
+      ${typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:!!ex.showVideo,toggleFn:'event.stopPropagation();liveToggleExVideo('+i+')'}):''}
+      ${ex.showVideo&&typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:true}):''}
       <div class="live-set-grid live-set-head">
         <span></span><span>Seria</span><span style="text-align:center;">Ciężar</span><span style="text-align:center;">Powt.</span><span></span>
       </div>
@@ -1940,10 +1945,24 @@ function liveSetKey(e,ei,si){
 }
 window.liveSetKey=liveSetKey;
 
+function liveToggleExVideo(i){
+  if(!liveExercises[i])return;
+  liveExercises[i].showVideo=!liveExercises[i].showVideo;
+  liveExercises[i].collapsed=false;
+  renderLiveExercises();
+}
+window.liveToggleExVideo=liveToggleExVideo;
+
 function liveToggleCollapse(i){
   liveExercises[i].collapsed=!liveExercises[i].collapsed;
   renderLiveExercises();
 }
+function liveToggleExVideo(i){
+  if(!liveExercises[i])return;
+  liveExercises[i].showVideo=!liveExercises[i].showVideo;
+  renderLiveExercises();
+}
+window.liveToggleExVideo=liveToggleExVideo;
 
 function liveToggleSet(ei,si){
   const ex=liveExercises[ei];if(!ex)return;
@@ -1963,6 +1982,18 @@ function liveToggleSet(ei,si){
     }
     if(next&&typeof skipRestBeforeSet==='function'&&skipRestBeforeSet(next)){
       if(typeof notify==='function')notify('Drop set — bez przerwy, zdejmij ciężar');
+    if(typeof isEmomExercise==='function'&&isEmomExercise(ex)&&next){
+      window._liveEmomClock=window._liveEmomClock||{};
+      if(!window._liveEmomClock[ei])window._liveEmomClock[ei]=Date.now();
+      const done=ex.sets.filter(x=>x.done).length;
+      const elapsed=(Date.now()-window._liveEmomClock[ei])/1000;
+      const wait=typeof emomRestSec==='function'?emomRestSec(done,elapsed):0;
+      if(wait>0){
+        if(typeof notify==='function')notify('EMOM — czekaj na minutę · '+wait+' s');
+        liveStartRest(wait);
+      }else if(typeof notify==='function'){
+        notify('EMOM — poza minutą, jedź dalej');
+      }
     }else{
       const act=typeof ssNextAfterSet==='function'?ssNextAfterSet(liveExercises,ei):null;
       if(act&&act.kind==='partner'){
@@ -1972,6 +2003,7 @@ function liveToggleSet(ei,si){
       }else{
         const sec=typeof restSecAfterSet==='function'?restSecAfterSet(ex,s,next):(ex.restSec||90);
         liveStartRest(sec);
+        liveStartRest((ex.restSec)||90);
       }
     }
   }else{
@@ -2014,6 +2046,7 @@ function liveStartSession(){
   window._liveSavedClientName='';
   liveSessionActive=true;
   liveTimerSec=0;
+  window._liveEmomClock={};
   clearInterval(liveTimerInterval);
   liveTimerInterval=setInterval(()=>{
     liveTimerSec++;

@@ -326,7 +326,7 @@ function goTo(n){
   if(n==='builder')initBuilder();
   if(n==='calendar'){calCurrentDate=new Date();calMiniDate=new Date();setCalView('week');}
   if(n==='plans')renderPlans();
-  if(n==='library')renderLib();
+  if(n==='library'){if(typeof renderLibTab==='function')renderLibTab();else renderLib();}
   if(n==='inbox')renderInbox();
   if(n==='clients'){renderClientFilters();renderClients();}
   if(n==='dashboard')renderDash();
@@ -402,6 +402,7 @@ function openM(id){
     if(saveBtn)saveBtn.textContent='Zapisz';
     document.getElementById('ex-name').value='';
     document.getElementById('ex-desc').value='';
+    const ev=document.getElementById('ex-video');if(ev)ev.value='';
   }
   if(id==='m-task'){
     window._editingTaskId=null;
@@ -412,6 +413,15 @@ function openM(id){
     taskSetClientField('','');
     const hb=document.getElementById('task-habit');
     if(hb)hb.checked=false;
+    const chb=document.getElementById('task-challenge');
+    if(chb)chb.checked=false;
+    const chDays=document.getElementById('task-ch-days');
+    if(chDays)chDays.value='21';
+    const chStart=document.getElementById('task-ch-start');
+    if(chStart)chStart.value='';
+    const chTgt=document.getElementById('task-ch-target');
+    if(chTgt)chTgt.value='';
+    if(typeof syncTaskKindUi==='function')syncTaskKindUi();
     const wrap=document.getElementById('task-due-wrap');
     if(wrap)wrap.style.display='';
     const td=document.getElementById('task-due');
@@ -445,6 +455,16 @@ function openM(id){
     if(name)name.value='';
     if(desc)desc.value='';
     if(typeof renderForumGroupMembers==='function')renderForumGroupMembers();
+  }
+  if(id==='m-own-video'){
+    window._editingVideoId=null;
+    const titleEl=document.querySelector('#m-own-video .modal-title');
+    if(titleEl)titleEl.textContent='NOWY FILM';
+    const saveBtn=document.querySelector('#m-own-video .modal-footer .btn-primary');
+    if(saveBtn)saveBtn.textContent='Zapisz film';
+    const n=document.getElementById('ov-name');if(n)n.value='';
+    const u=document.getElementById('ov-url');if(u)u.value='';
+    const e=document.getElementById('ov-ex');if(e)e.value='';
   }
   if(id==='m-autoflow-builder'){
     if(typeof updateAfBuilderUi==='function')updateAfBuilderUi();
@@ -613,9 +633,140 @@ function weightFromPct1RM(clientId,name,pct){
 }
 window.weightFromPct1RM=weightFromPct1RM;
 
+window.COACH_VIDEOS=window.COACH_VIDEOS||[];
+
+function normalizeCoachVideoUrl(raw){
+  const s=String(raw||'').trim();
+  if(!s)return '';
+  if(/^(javascript|data|vbscript):/i.test(s))return '';
+  let url=s;
+  if(!/^https?:\/\//i.test(url)){
+    if(/^(www\.|youtube\.|youtu\.be|vimeo\.)/i.test(url))url='https://'+url;
+    else return '';
+  }
+  if(!/^https?:\/\//i.test(url))return '';
+  return url;
+}
+window.normalizeCoachVideoUrl=normalizeCoachVideoUrl;
+
+function coachVideoEmbed(url){
+  const u=normalizeCoachVideoUrl(url);
+  if(!u)return '';
+  let id='';
+  let m=u.match(/[?&]v=([A-Za-z0-9_-]{11})/);
+  if(m)id=m[1];
+  if(!id){m=u.match(/youtu\.be\/([A-Za-z0-9_-]{11})/);if(m)id=m[1];}
+  if(!id){m=u.match(/youtube\.com\/(?:embed|shorts)\/([A-Za-z0-9_-]{11})/);if(m)id=m[1];}
+  if(id)return 'https://www.youtube-nocookie.com/embed/'+id;
+  m=u.match(/vimeo\.com\/(?:video\/)?(\d+)/i);
+  if(m)return 'https://player.vimeo.com/video/'+m[1];
+  return '';
+}
+window.coachVideoEmbed=coachVideoEmbed;
+
+function coachVideoIsFile(url){
+  return /\.(mp4|webm|ogg|m4v)(\?|#|$)/i.test(String(url||''));
+}
+window.coachVideoIsFile=coachVideoIsFile;
+
+function libExerciseByName(name){
+  const key=String(name||'').toLowerCase().replace(/\s+/g,' ').trim();
+  if(!key)return null;
+  const lib=typeof allExercises==='function'?allExercises():[].concat(window.EX||[],window.DEF_EX||[]);
+  return lib.find(e=>String(e.name||'').toLowerCase().replace(/\s+/g,' ').trim()===key)||null;
+}
+window.libExerciseByName=libExerciseByName;
+
+function resolveCoachMedia(parsed){
+  const ex=parsed&&typeof parsed==='object'?parsed:{name:parsed};
+  const name=ex.name||'';
+  const lib=libExerciseByName(name);
+  const note=String(ex.note||ex.notes||ex.cue||'').trim();
+  let video=normalizeCoachVideoUrl(ex.video||ex.url||'');
+  if(!video&&lib)video=normalizeCoachVideoUrl(lib.video||'');
+  let libTip='';
+  if(!note&&lib){
+    libTip=String(lib.tip||lib.desc||'').trim();
+    if(libTip.length>160)libTip=libTip.slice(0,157)+'…';
+  }
+  return{note,libTip,video,videoEmbed:coachVideoEmbed(video)};
+}
+window.resolveCoachMedia=resolveCoachMedia;
+
+function coachMediaIcons(ex){
+  const src=ex&&typeof ex==='object'?ex:{name:String(ex||'')};
+  const coach=(src.libTip!==undefined||src.planVideo!==undefined||src.planNote!==undefined)
+    ?{note:String(src.note||'').trim(),libTip:String(src.libTip||'').trim(),video:String(src.video||'').trim()}
+    :resolveCoachMedia(typeof parsePlanExercise==='function'?parsePlanExercise(src):src);
+  let icons='';
+  if(coach.note||coach.libTip)icons+=' 💡';
+  if(coach.video)icons+=' ▶️';
+  return icons;
+}
+window.coachMediaIcons=coachMediaIcons;
+
+function coachMediaHtml(ex,opts){
+  opts=opts||{};
+  const note=(ex&&ex.note)||'';
+  const libTip=(ex&&ex.libTip)||'';
+  const video=(ex&&ex.video)||'';
+  const embed=(ex&&ex.videoEmbed)||'';
+  const show=!!opts.showVideo;
+  const toggle=opts.toggleFn||'';
+  let html='';
+  if(note)html+=`<div class="cw-coach-note">${escHtml(note)}</div>`;
+  else if(libTip)html+=`<div style="font-size:11px;color:var(--muted);margin:0 0 10px;line-height:1.45;">${escHtml(libTip)}</div>`;
+  if(video){
+    html+=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px;">`;
+    if(toggle)html+=`<button type="button" class="btn btn-ghost btn-sm" onclick="${toggle}">${show?'▾ Ukryj film':'▶ Film techniki'}</button>`;
+    html+=`<a class="btn btn-ghost btn-sm" href="${escHtml(video)}" target="_blank" rel="noopener noreferrer">↗ Otwórz film</a></div>`;
+    if(show&&embed)html+=`<div class="cw-video-wrap"><iframe src="${escHtml(embed)}" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen title="Film techniki"></iframe></div>`;
+  }
+function ownVideoForExercise(name){
+  const key=String(name||'').toLowerCase().replace(/\s+/g,' ').trim();
+  if(!key)return '';
+  const vids=(window.COACH_VIDEOS||[]).filter(v=>String(v.exName||'').toLowerCase().replace(/\s+/g,' ').trim()===key)
+    .sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+  if(vids[0])return normalizeCoachVideoUrl(vids[0].url);
+  const lib=libExerciseByName(name);
+  return lib?normalizeCoachVideoUrl(lib.video||''):'';
+}
+window.ownVideoForExercise=ownVideoForExercise;
+
+function resolveCoachMedia(parsed){
+  const ex=parsed&&typeof parsed==='object'?parsed:{name:parsed};
+  const name=ex.name||'';
+  let video=normalizeCoachVideoUrl(ex.video||ex.url||'');
+  if(!video)video=ownVideoForExercise(name);
+  const embed=coachVideoEmbed(video);
+  return{video,videoEmbed:embed,isFile:coachVideoIsFile(video)};
+}
+window.resolveCoachMedia=resolveCoachMedia;
+
+function coachMediaHtml(ex,opts){
+  opts=opts||{};
+  const video=(ex&&ex.video)||'';
+  const embed=(ex&&ex.videoEmbed)||'';
+  const file=!!(ex&&ex.isFile)||coachVideoIsFile(video);
+  const show=!!opts.showVideo;
+  const toggle=opts.toggleFn||'';
+  if(!video)return '';
+  let html=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px;">`;
+  if(toggle)html+=`<button type="button" class="btn btn-ghost btn-sm" onclick="${toggle}">${show?'▾ Ukryj film':'▶ Film trenera'}</button>`;
+  html+=`<a class="btn btn-ghost btn-sm" href="${escHtml(video)}" target="_blank" rel="noopener noreferrer">↗ Otwórz</a></div>`;
+  if(show&&embed)html+=`<div class="cw-video-wrap"><iframe src="${escHtml(embed)}" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen title="Film trenera"></iframe></div>`;
+  else if(show&&file)html+=`<div class="cw-video-wrap"><video src="${escHtml(video)}" controls playsinline></video></div>`;
+  return html;
+}
+window.coachMediaHtml=coachMediaHtml;
+
+/** Ćwiczenie z planu: obiekt AI albo string z kreatora ("Wyciskanie 4x8"). */
+function parsePlanExercise(ex){
+  if(ex==null)return{name:'Ćwiczenie',sets:'3',reps:'10',rest:'90s',kg:'',note:'',video:''};
 /** Ćwiczenie z planu: obiekt AI albo string z kreatora ("Wyciskanie 4x8 @75%"). */
 function parsePlanExercise(ex){
   if(ex==null)return{name:'Ćwiczenie',sets:'3',reps:'10',rest:'90s',kg:'',pct1rm:'',ss:'',wu:0,drop:0,amrap:false};
+  if(ex==null)return{name:'Ćwiczenie',sets:'3',reps:'10',rest:'90s',kg:'',pct1rm:'',ss:'',emom:false,video:''};
   if(typeof ex==='string'){
     const raw=ex.trim();
     const m=raw.match(/^(.*?)(?:\s+(\d+)\s*[x×]\s*(\d+(?:\s*-\s*\d+)?))?(?:\s*@\s*(\d+(?:[.,]\d+)?)\s*(%|kg)?)?\s*$/i);
@@ -627,10 +778,14 @@ function parsePlanExercise(ex){
       sets:(m&&m[2])||'3',
       reps:((m&&m[3])||'10').replace(/\s/g,''),
       rest:'90s',
+      kg:'',
+      note:'',
       kg:isPct?'':amt,
       pct1rm:isPct?parsePct1RM(amt):'',
       ss:'',
       wu:0,drop:0,amrap:false
+      emom:false,
+      video:''
     };
   }
   let kg=ex.kg!=null&&ex.kg!==''?String(ex.kg):'';
@@ -652,6 +807,10 @@ function parsePlanExercise(ex){
     wu:parseSetKindCount(ex.wu,2),
     drop:parseSetKindCount(ex.drop,2),
     amrap:isAmrapFlag(ex.amrap)
+    note:String(ex.note||ex.notes||ex.cue||'').trim(),
+    ss:String(ex.ss||ex.superset||'').trim(),
+    emom:isEmomFlag(ex.emom),
+    video:normalizeCoachVideoUrl(ex.video||ex.url||'')
   };
 }
 window.parsePlanExercise=parsePlanExercise;
@@ -755,6 +914,26 @@ function restSecAfterSet(ex,st,next){
   return(ex&&ex.restSec)||90;
 }
 window.restSecAfterSet=restSecAfterSet;
+function isEmomFlag(v){
+  return v===true||v===1||v==='1'||v==='true'||v==='emom'||v==='EMOM';
+}
+window.isEmomFlag=isEmomFlag;
+
+function isEmomExercise(ex){
+  if(!ex)return false;
+  if(String(ex.ss||'').trim())return false;
+  return isEmomFlag(ex.emom);
+}
+window.isEmomExercise=isEmomExercise;
+
+/** Po N-tej skończonej rundzie: ile sekund do N×60 od startu zegara EMOM. */
+function emomRestSec(doneCount,elapsedSec){
+  const n=Math.max(1,parseInt(doneCount,10)||1);
+  const elapsed=Number(elapsedSec)||0;
+  const wait=n*60-elapsed;
+  return wait>0?Math.ceil(wait):0;
+}
+window.emomRestSec=emomRestSec;
 
 function applySsLabels(list){
   let n=0;
@@ -835,6 +1014,8 @@ function formatPlanExerciseLine(ex,clientId){
   }
   const tag=formatSetKindTag(p);
   return(p.ssLabel?p.ssLabel+' ':'')+(p.name||'')+(p.sets?' '+p.sets+'×'+p.reps:'')+kgPart+(tag?' '+tag:'');
+  const emom=isEmomFlag(p.emom)&&!p.ss?' EMOM':'';
+  return(p.ssLabel?p.ssLabel+' ':'')+(p.name||'')+(p.sets?' '+p.sets+'×'+p.reps:'')+kgPart+emom;
 }
 window.formatPlanExerciseLine=formatPlanExerciseLine;
 
@@ -899,9 +1080,20 @@ function ymdAdd(ymd,days){
 window.ymdAdd=ymdAdd;
 
 function isHabit(t){
-  return !!(t&&(t.kind==='habit'||t.repeat==='daily'));
+  if(!t||t.kind==='challenge')return false;
+  return t.kind==='habit'||t.repeat==='daily';
 }
 window.isHabit=isHabit;
+
+function isChallenge(t){
+  return !!(t&&t.kind==='challenge');
+}
+window.isChallenge=isChallenge;
+
+function isOneShot(t){
+  return !!(t&&!isHabit(t)&&!isChallenge(t));
+}
+window.isOneShot=isOneShot;
 
 function habitDoneOn(t,ymd){
   return !!(t&&ymd&&(t.doneDates||[]).includes(ymd));
@@ -960,11 +1152,151 @@ function habitWeekHtml(t,today){
 window.habitWeekHtml=habitWeekHtml;
 
 function onHabitToggle(){
-  const on=!!document.getElementById('task-habit')?.checked;
-  const wrap=document.getElementById('task-due-wrap');
-  if(wrap)wrap.style.display=on?'none':'';
+  const h=document.getElementById('task-habit');
+  const c=document.getElementById('task-challenge');
+  if(h&&h.checked&&c)c.checked=false;
+  syncTaskKindUi();
 }
 window.onHabitToggle=onHabitToggle;
+
+function onChallengeToggle(){
+  const h=document.getElementById('task-habit');
+  const c=document.getElementById('task-challenge');
+  if(c&&c.checked&&h)h.checked=false;
+  syncTaskKindUi();
+}
+window.onChallengeToggle=onChallengeToggle;
+
+function syncTaskKindUi(){
+  const habit=!!document.getElementById('task-habit')?.checked;
+  const ch=!!document.getElementById('task-challenge')?.checked;
+  const due=document.getElementById('task-due-wrap');
+  const wrap=document.getElementById('task-ch-wrap');
+  if(due)due.style.display=(habit||ch)?'none':'';
+  if(wrap)wrap.style.display=ch?'':'none';
+  if(ch){
+    const start=document.getElementById('task-ch-start');
+    if(start&&!start.value)start.value=typeof todayYmd==='function'?todayYmd():'';
+    paintChallengeDays();
+  }
+}
+window.syncTaskKindUi=syncTaskKindUi;
+
+function parseChallengeDays(v){
+  const n=parseInt(v,10);
+  if(n===7||n===14||n===21||n===30)return n;
+  if(n>=2&&n<=90)return n;
+  return 21;
+}
+window.parseChallengeDays=parseChallengeDays;
+
+function parseChallengeTarget(t){
+  const days=parseChallengeDays(t&&t.days);
+  const n=parseInt(t&&t.target,10);
+  if(n>=1&&n<=days)return n;
+  return days;
+}
+window.parseChallengeTarget=parseChallengeTarget;
+
+function challengeBounds(t){
+  const days=parseChallengeDays(t&&t.days);
+  const start=String((t&&t.start)||'').slice(0,10);
+  return{start,end:start?ymdAdd(start,days-1):'',days};
+}
+window.challengeBounds=challengeBounds;
+
+function challengeProgress(t,today){
+  today=today||(typeof todayYmd==='function'?todayYmd():'');
+  const days=parseChallengeDays(t&&t.days);
+  const start=String((t&&t.start)||today||'').slice(0,10);
+  const end=start?ymdAdd(start,days-1):'';
+  const target=parseChallengeTarget({days,target:t&&t.target});
+  const done=((t&&t.doneDates)||[]).filter(d=>start&&end&&d>=start&&d<=end).length;
+  const pct=target?Math.min(100,Math.round(done/target*100)):0;
+  const before=!!(today&&start&&today<start);
+  const after=!!(today&&end&&today>end);
+  const active=!!(today&&start&&end&&!before&&!after);
+  const won=done>=target;
+  const lost=after&&!won;
+  let left=0;
+  if(before)left=days;
+  else if(active&&today&&end){
+    let d=today;
+    while(d<=end&&left<400){left++;d=ymdAdd(d,1);}
+  }
+  return{start,end,days,target,done,pct,before,after,active,won,lost,left};
+}
+window.challengeProgress=challengeProgress;
+
+function challengeCanCheck(t,ymd,today){
+  today=today||(typeof todayYmd==='function'?todayYmd():'');
+  const p=challengeProgress(t,today);
+  if(!ymd||!p.start||!p.end)return false;
+  if(ymd<p.start||ymd>p.end)return false;
+  if(today&&ymd>today)return false;
+  return true;
+}
+window.challengeCanCheck=challengeCanCheck;
+
+function challengeVisible(t,today){
+  today=today||(typeof todayYmd==='function'?todayYmd():'');
+  const p=challengeProgress(t,today);
+  if(!p.end||!today)return true;
+  return today<=ymdAdd(p.end,7);
+}
+window.challengeVisible=challengeVisible;
+
+function toggleChallengeDay(t,ymd,today){
+  if(!t||!ymd)return t;
+  if(!challengeCanCheck(t,ymd,today))return t;
+  const dates=[...(t.doneDates||[])];
+  const i=dates.indexOf(ymd);
+  if(i>=0)dates.splice(i,1);
+  else dates.push(ymd);
+  dates.sort();
+  t.doneDates=dates;
+  t.status='open';
+  t.kind='challenge';
+  delete t.repeat;
+  t.updatedAt=new Date().toISOString();
+  return t;
+}
+window.toggleChallengeDay=toggleChallengeDay;
+
+function challengeStatusText(t,today){
+  const p=challengeProgress(t,today);
+  if(p.won)return '🏆 '+p.done+'/'+p.target+' — ukończone';
+  if(p.lost)return p.done+'/'+p.target+' — czas minął';
+  if(p.before)return 'Start '+p.start;
+  return p.done+'/'+p.target+' · jeszcze '+p.left+' '+(p.left===1?'dzień':'dni');
+}
+window.challengeStatusText=challengeStatusText;
+
+function challengeBarHtml(t,today){
+  const p=challengeProgress(t,today);
+  const col=p.won?'var(--teal)':p.lost?'var(--muted2)':'var(--gold)';
+  return `<div class="ch-bar"><div class="ch-bar-fill" style="width:${p.pct}%;background:${col};"></div></div>`;
+}
+window.challengeBarHtml=challengeBarHtml;
+
+function setChallengeDays(n){
+  const days=parseChallengeDays(n);
+  const el=document.getElementById('task-ch-days');
+  if(el)el.value=String(days);
+  const tgt=document.getElementById('task-ch-target');
+  if(tgt){
+    const cur=parseInt(tgt.value,10);
+    if(!cur||cur>days)tgt.value=String(days);
+  }
+  paintChallengeDays();
+}
+window.setChallengeDays=setChallengeDays;
+
+function paintChallengeDays(){
+  const cur=String((document.getElementById('task-ch-days')||{}).value||'21');
+  document.querySelectorAll('.ch-days-btn').forEach(b=>b.classList.toggle('on',b.getAttribute('data-d')===cur));
+}
+window.paintChallengeDays=paintChallengeDays;
 
 function mondayYmd(){
   const d=new Date();
@@ -1020,17 +1352,27 @@ function mapPlanExercisesForClient(rawEx,clientId){
     const ex=parsePlanExercise(raw);
     const last=lastLoadForExercise(clientId,ex.name);
     const rest=parseRestSeconds(ex.rest);
+    const coach=resolveCoachMedia(ex);
     const pct=ex.pct1rm||'';
     const fromPct=pct?weightFromPct1RM(clientId,ex.name,pct):null;
     const plannedKg=(fromPct&&fromPct.kg)?fromPct.kg:(ex.kg||'');
     const lockPct=!!pct;
     const sets=expandExerciseSets(ex,{last,plannedKg,lockPct});
+    const emom=isEmomExercise(ex);
+    const coach=typeof resolveCoachMedia==='function'?resolveCoachMedia(ex):{video:'',videoEmbed:'',isFile:false};
     return{
       name:ex.name,
       plannedName:ex.name,
       alts:altsForExercise(ex.name,ex.alt),
       restSec:rest,
       rpe:ex.rpe||'',
+      note:coach.note,
+      libTip:coach.libTip,
+      planNote:coach.note,
+      planVideo:normalizeCoachVideoUrl(ex.video),
+      video:coach.video,
+      videoEmbed:coach.videoEmbed,
+      lastKg:last&&last.kg!=null&&last.kg!==''?last.kg:(ex.kg||''),
       pct1rm:pct,
       kgHint:fromPct?fromPct.hint:'',
       lastKg:last&&last.kg!=null&&last.kg!==''?last.kg:(plannedKg||''),
@@ -1040,6 +1382,22 @@ function mapPlanExercisesForClient(rawEx,clientId){
       drop:ex.ss?0:(ex.drop||0),
       amrap:!!ex.amrap,
       sets
+      emom,
+      video:coach.video||'',
+      videoEmbed:coach.videoEmbed||'',
+      isFile:!!coach.isFile,
+      sets:Array.from({length:nSets},(_,i)=>{
+        const prev=last&&last.sets[i];
+        let kg=plannedKg;
+        if(!lockPct&&prev&&prev.kg!=null&&prev.kg!=='')kg=String(prev.kg);
+        return{
+          setNo:i+1,
+          kg:kg||'',
+          reps:prev&&prev.reps!=null&&prev.reps!==''?String(prev.reps):defaultReps,
+          done:false,
+          kind:emom?'emom':'work'
+        };
+      })
     };
   });
   return applySsLabels(mapped);
@@ -1085,4 +1443,69 @@ function compressImageFile(file,max=720,quality=0.68){
   });
 }
 window.compressImageFile=compressImageFile;
+
+function snapshotFormQuestions(form){
+  return((form&&form.questions)||[]).map(q=>({
+    id:q.id,type:q.type,text:q.text,required:!!q.required,
+    options:Array.isArray(q.options)?q.options.slice():undefined
+  }));
+}
+window.snapshotFormQuestions=snapshotFormQuestions;
+
+function formQuestionsForSend(send,forms){
+  if(send&&Array.isArray(send.questions)&&send.questions.length)return send.questions;
+  const list=forms||(typeof allForms==='function'?allForms():[]);
+  const f=list.find(x=>x&&send&&x.id===send.formId);
+  return(f&&f.questions)||[];
+}
+window.formQuestionsForSend=formQuestionsForSend;
+
+function formSendAnswersMap(send){
+  const a=send&&send.answers;
+  if(!a)return{};
+  if(!Array.isArray(a))return a;
+  const m={};
+  a.forEach((item,i)=>{
+    if(item&&typeof item==='object'&&item.id!=null)m[item.id]=item.value;
+    else if(item!=null&&item!=='')m['q'+(i+1)]=item;
+  });
+  return m;
+}
+window.formSendAnswersMap=formSendAnswersMap;
+
+function formatFormAnswer(q,val){
+  if(val==null||String(val).trim()==='')return '—';
+  const v=String(val);
+  if(q&&q.type==='yesno'){
+    if(v==='tak'||v==='true'||v==='Tak'||v==='1')return 'Tak';
+    if(v==='nie'||v==='false'||v==='Nie'||v==='0')return 'Nie';
+  }
+  return v;
+}
+window.formatFormAnswer=formatFormAnswer;
+
+function missingRequiredFormAnswers(questions,answers){
+  const map=answers&&!Array.isArray(answers)?answers:{};
+  return(questions||[]).filter(q=>q&&q.required&&(map[q.id]==null||String(map[q.id]).trim()===''));
+}
+window.missingRequiredFormAnswers=missingRequiredFormAnswers;
+
+function pendingFormSends(clientId,sends){
+  return(sends||window.FORM_SENDS||[]).filter(s=>s&&s.clientId===clientId&&s.status!=='filled');
+}
+window.pendingFormSends=pendingFormSends;
+
+function applyFormSubmit(send,answers,nowIso){
+  if(!send)return{ok:false,error:'missing'};
+  if(send.status==='filled')return{ok:false,error:'already'};
+  const qs=formQuestionsForSend(send);
+  const map=answers&&!Array.isArray(answers)?answers:{};
+  const missing=missingRequiredFormAnswers(qs,map);
+  if(missing.length)return{ok:false,error:'required',missing};
+  send.status='filled';
+  send.answers=map;
+  send.filledAt=nowIso||new Date().toISOString();
+  return{ok:true,send};
+}
+window.applyFormSubmit=applyFormSubmit;
 

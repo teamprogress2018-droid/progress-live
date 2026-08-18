@@ -564,16 +564,21 @@
 <!-- EXERCISE LIBRARY — ENHANCED -->
 <div class="screen" id="screen-library">
   <div class="topbar">
-    <div class="topbar-title">Biblioteka ćwiczeń</div>
+    <div class="topbar-title" id="lib-top-title">Biblioteka ćwiczeń</div>
     <div class="topbar-actions">
       <div style="display:flex;gap:6px;">
+        <button class="btn btn-primary btn-sm" id="lib-tab-ex" onclick="setLibTab('ex')">Ćwiczenia</button>
+        <button class="btn btn-ghost btn-sm" id="lib-tab-vid" onclick="setLibTab('videos')">Moje filmy</button>
+      </div>
+      <div style="display:flex;gap:6px;" id="lib-ex-view-btns">
         <button class="btn btn-ghost btn-sm" id="ex-view-grid-btn" onclick="setExView('grid')">⊞ Karty</button>
         <button class="btn btn-primary btn-sm" id="ex-view-list-btn" onclick="setExView('list')">☰ Lista</button>
       </div>
-      <button class="btn btn-primary btn-sm" onclick="openM('m-ex')">+ Ćwiczenie</button>
+      <button class="btn btn-primary btn-sm" id="lib-add-ex" onclick="openM('m-ex')">+ Ćwiczenie</button>
+      <button class="btn btn-primary btn-sm" id="lib-add-vid" onclick="openM('m-own-video')" style="display:none;">+ Film</button>
     </div>
   </div>
-  <div style="display:flex;flex:1;overflow:hidden;">
+  <div id="lib-ex-body" style="display:flex;flex:1;overflow:hidden;">
     <!-- lewy panel -->
     <div style="width:200px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;">
       <div style="padding:10px;">
@@ -632,6 +637,10 @@
         </div>
       </div>
     </div>
+  </div>
+  <div id="lib-vid-body" style="display:none;flex:1;overflow-y:auto;padding:16px;">
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5;">Twoje filmy techniki — YouTube (niewidoczny link), Vimeo albo bezpośredni plik .mp4. Podpnij pod ćwiczenie, a klient zobaczy je w Starcie.</div>
+    <div id="own-videos-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;"></div>
   </div>
 </div>
 
@@ -724,7 +733,7 @@
     <!-- lewa kolumna — filtry + AI -->
     <div style="width:260px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;">
       <!-- statsy -->
-      <div style="padding:12px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+      <div style="padding:12px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
         <div style="background:var(--s3);border-radius:8px;padding:8px 6px;text-align:center;">
           <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--accent);" id="t-open">0</div>
           <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">AKTYWNE</div>
@@ -732,6 +741,10 @@
         <div style="background:var(--s3);border-radius:8px;padding:8px 6px;text-align:center;">
           <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--purple);" id="t-habits">0</div>
           <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">NAWYKI</div>
+        </div>
+        <div style="background:var(--s3);border-radius:8px;padding:8px 6px;text-align:center;">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--gold);" id="t-challenges">0</div>
+          <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">WYZWANIA</div>
         </div>
         <div style="background:var(--s3);border-radius:8px;padding:8px 6px;text-align:center;">
           <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--teal);" id="t-done">0</div>
@@ -752,6 +765,7 @@
         <div class="task-nav-item" id="tn-open" onclick="setTaskFilter('open')">Do wykonania</div>
         <div class="task-nav-item" id="tn-done" onclick="setTaskFilter('done')">Ukończone</div>
         <div class="task-nav-item" id="tn-habits" onclick="setTaskFilter('habits')">🔥 Nawyki</div>
+        <div class="task-nav-item" id="tn-challenges" onclick="setTaskFilter('challenges')">🏆 Wyzwania</div>
         <div class="task-nav-item" id="tn-overdue" onclick="setTaskFilter('overdue')">⚠ Przeterminowane</div>
         <div style="padding:6px 14px 2px;font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:4px;">Priorytet</div>
         <div class="task-nav-item" id="tn-high" onclick="setTaskFilter('high')">🔴 Wysoki</div>
@@ -2778,6 +2792,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <button class="cp-tab cp-tab-v" id="cpt-photos" onclick="setCPTab('photos')">📸 Zdjęcia</button>
         <button class="cp-tab cp-tab-v" id="cpt-metrics" onclick="setCPTab('metrics')">📏 Pomiary</button>
         <button class="cp-tab cp-tab-v" id="cpt-tasks" onclick="setCPTab('tasks')">✅ Zadania</button>
+        <button class="cp-tab cp-tab-v" id="cpt-forms" onclick="setCPTab('forms')">📋 Formularze</button>
         <button class="cp-tab cp-tab-v" id="cpt-food" onclick="setCPTab('food')">🥗 Żywienie</button>
         <button class="cp-tab cp-tab-v" id="cpt-documents" onclick="setCPTab('documents')">📎 Dokumenty</button>
         <button class="cp-tab cp-tab-v" id="cpt-payments" onclick="setCPTab('payments')">💳 Płatności</button>
@@ -2989,8 +3004,24 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <div class="form-field"><label class="form-lbl">Nazwa</label><input type="text" class="form-input" id="ex-name" placeholder="np. Wyciskanie sztangi leżąc"></div>
       <div class="form-grid"><div class="form-field"><label class="form-lbl">Kategoria</label><select class="form-select" id="ex-cat"><option>Klatka piersiowa</option><option>Plecy</option><option>Barki</option><option>Nogi</option><option>Biceps</option><option>Triceps</option><option>Core</option><option>Pośladki</option></select></div><div class="form-field"><label class="form-lbl">Sprzęt</label><select class="form-select" id="ex-eq"><option>Sztanga</option><option>Hantle</option><option>Maszyna</option><option>Wyciąg</option><option>Własna masa</option><option>Kettlebell</option></select></div></div>
       <div class="form-field"><label class="form-lbl">Wskazówka techniczna</label><textarea class="form-textarea" id="ex-desc" rows="2" placeholder="np. Łopatki ściągnięte, pełny ROM..."></textarea></div>
+      <div class="form-field"><label class="form-lbl">Film techniki (YouTube / Vimeo)</label><input type="url" class="form-input" id="ex-video" placeholder="https://youtube.com/watch?v=..."></div>
+      <div class="form-field"><label class="form-lbl">Film techniki (opcjonalnie)</label><input type="url" class="form-input" id="ex-video" placeholder="https://youtube.com/watch?v=... albo .mp4"></div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-ex')">Anuluj</button><button class="btn btn-primary" onclick="saveEx()">Zapisz</button></div>
+  </div>
+</div>
+
+<!-- WŁASNY FILM -->
+<div class="modal-ov" id="m-own-video">
+  <div class="modal">
+    <div class="modal-hdr"><div class="modal-title">NOWY FILM</div><button class="modal-close" onclick="closeM('m-own-video')">×</button></div>
+    <div class="modal-body">
+      <div class="form-field"><label class="form-lbl">Nazwa</label><input type="text" class="form-input" id="ov-name" placeholder="np. Przysiad — technika"></div>
+      <div class="form-field"><label class="form-lbl">Link</label><input type="url" class="form-input" id="ov-url" placeholder="YouTube / Vimeo / bezpośredni .mp4"></div>
+      <div class="form-field"><label class="form-lbl">Ćwiczenie (opcjonalnie)</label><input type="text" class="form-input" id="ov-ex" list="ex-dl" placeholder="Podpnij pod ćwiczenie z biblioteki"></div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.5;">Wrzuć film na YouTube jako <b>niewidoczny</b> i wklej link — klient zobaczy go tylko u Ciebie w apce. Albo wklej bezpośredni plik .mp4.</div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-own-video')">Anuluj</button><button class="btn btn-primary" onclick="saveOwnVideo()">Zapisz film</button></div>
   </div>
 </div>
 
@@ -3064,11 +3095,30 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <button type="button" class="btn btn-ghost btn-sm" onclick="applyHabitChip('Sen 7–8h','lifestyle')">😴 Sen</button>
         <button type="button" class="btn btn-ghost btn-sm" onclick="applyHabitChip('8 000 kroków','lifestyle')">🚶 Kroki</button>
         <button type="button" class="btn btn-ghost btn-sm" onclick="applyHabitChip('Białko na każdym posiłku','dieta')">🥗 Białko</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="applyChallengeChip('21 dni bez słodyczy','dieta',21)">🏆 21 dni bez słodyczy</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="applyChallengeChip('14 dni treningu','trening',14)">🏆 14 dni treningu</button>
       </div>
       <label style="display:flex;align-items:flex-start;gap:8px;margin:0 0 12px;font-size:12px;cursor:pointer;line-height:1.4;">
         <input type="checkbox" id="task-habit" onchange="onHabitToggle()" style="margin-top:2px;flex-shrink:0;">
         <span>Nawyk codzienny — klient odhacza każdego dnia, liczy się seria (streak)</span>
       </label>
+      <label style="display:flex;align-items:flex-start;gap:8px;margin:0 0 12px;font-size:12px;cursor:pointer;line-height:1.4;">
+        <input type="checkbox" id="task-challenge" onchange="onChallengeToggle()" style="margin-top:2px;flex-shrink:0;">
+        <span>Wyzwanie — odhaczanie w terminie (7/14/21/30 dni), pasek postępu</span>
+      </label>
+      <div id="task-ch-wrap" style="display:none;margin:0 0 12px;">
+        <input type="hidden" id="task-ch-days" value="21">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+          <button type="button" class="btn btn-ghost btn-sm ch-days-btn" data-d="7" onclick="setChallengeDays(7)">7 dni</button>
+          <button type="button" class="btn btn-ghost btn-sm ch-days-btn" data-d="14" onclick="setChallengeDays(14)">14 dni</button>
+          <button type="button" class="btn btn-ghost btn-sm ch-days-btn on" data-d="21" onclick="setChallengeDays(21)">21 dni</button>
+          <button type="button" class="btn btn-ghost btn-sm ch-days-btn" data-d="30" onclick="setChallengeDays(30)">30 dni</button>
+        </div>
+        <div class="form-grid">
+          <div class="form-field"><label class="form-lbl">Start</label><input type="date" class="form-input" id="task-ch-start"></div>
+          <div class="form-field"><label class="form-lbl">Dni do zaliczenia</label><input type="number" class="form-input" id="task-ch-target" min="1" max="90" placeholder="= długość" title="Ile dni odhaczyć, żeby wygrać (domyślnie całość)"></div>
+        </div>
+      </div>
       <div class="form-grid">
         <div class="form-field"><label class="form-lbl">Kategoria</label>
           <select class="form-select" id="task-cat">
@@ -3718,6 +3768,7 @@ async function load(){
   try{const s=await getDocs(collection(db,'plans'));window.PL=[];s.forEach(d=>{const x=_takeFb(d);if(x)window.PL.push(x);});}catch(e){window.PL=[];}
   try{const s=await getDocs(collection(db,'sessions'));window.SE=[];s.forEach(d=>{const x=_takeFb(d);if(x)window.SE.push(x);});}catch(e){window.SE=[];}
   try{const s=await getDocs(collection(db,'exercises'));window.EX=[];s.forEach(d=>{const x=_takeFb(d);if(x)window.EX.push(x);});}catch(e){window.EX=[];}
+  try{const sCV=await getDocs(collection(db,'coachVideos'));window.COACH_VIDEOS=[];sCV.forEach(d=>{const x=_takeFb(d);if(x)window.COACH_VIDEOS.push(x);});}catch(e){window.COACH_VIDEOS=window.COACH_VIDEOS||[];}
   try{const s=await getDocs(collection(db,'workouts'));window.WO=[];s.forEach(d=>{const x=_takeFb(d);if(x)window.WO.push(x);});}catch(e){window.WO=[];}
   try{const s2=await getDocs(collection(db,'tasks'));window.TASKS=[];s2.forEach(d=>{const x=_takeFb(d);if(x)window.TASKS.push(x);});}catch(e){window.TASKS=[];}
   try{const s3=await getDocs(collection(db,'kb'));window.KB=[];s3.forEach(d=>{const x=_takeFb(d);if(x)window.KB.push(x);});}catch(e){window.KB=[];}
@@ -3866,7 +3917,7 @@ async function load(){
       'clients','plans','sessions','exercises','workouts','tasks','kb','metricEntries','metricGroups',
       'messages','packages','invoices','formSends','reportHistory','forms','programs','checkins',
       'notifications','autoflows','forumGroups','forumPosts','forumComments','odWorkouts','resources',
-      'settings','integrationConfigs','automationState','clientNotes','clientDocs','onboardingFlows','planTemplates','odPrograms','onboardingActive','clientGroups','invites','clientAccounts','progressPhotos'
+      'settings','integrationConfigs','automationState','clientNotes','clientDocs','onboardingFlows','planTemplates','odPrograms','onboardingActive','clientGroups','invites','clientAccounts','progressPhotos','coachVideos'
     ]);
   }catch(e){console.warn('Migracja trainerId:',e);}
   try{if(typeof window.runAutoflowsCheck==='function')window.runAutoflowsCheck();}catch(e){console.warn('runAutoflowsCheck:',e);}
