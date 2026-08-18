@@ -690,8 +690,9 @@ window.setKindBadge=setKindBadge;
 function formatSetKindTag(ex){
   const p=ex&&typeof ex==='object'?ex:{};
   const bits=[];
-  const wu=parseSetKindCount(p.wu,2);
-  const dr=parseSetKindCount(p.drop,2);
+  const inSs=!!String(p.ss||'').trim();
+  const wu=inSs?0:parseSetKindCount(p.wu,2);
+  const dr=inSs?0:parseSetKindCount(p.drop,2);
   if(wu)bits.push('WU'+wu);
   if(isAmrapFlag(p.amrap))bits.push('AMRAP');
   if(dr)bits.push('DROP'+dr);
@@ -729,7 +730,10 @@ function expandExerciseSets(ex,opts){
     const prev=lastWork[i];
     let kg=plannedKg;
     if(!lockPct&&prev&&prev.kg!=null&&prev.kg!=='')kg=String(prev.kg);
-    const reps=prev&&prev.reps!=null&&prev.reps!==''?String(prev.reps):defaultReps;
+    let reps='';
+    if(kind!=='amrap'){
+      reps=prev&&prev.reps!=null&&prev.reps!==''?String(prev.reps):defaultReps;
+    }
     sets.push({setNo:no++,kg:kg||'',reps,done:false,kind});
   }
   const dropFrac=nDrop===1?[0.75]:[0.8,0.6];
@@ -1032,8 +1036,8 @@ function mapPlanExercisesForClient(rawEx,clientId){
       lastKg:last&&last.kg!=null&&last.kg!==''?last.kg:(plannedKg||''),
       lastReps:last&&last.reps!=null&&last.reps!==''?last.reps:'',
       ss:ex.ss||'',
-      wu:ex.wu||0,
-      drop:ex.drop||0,
+      wu:ex.ss?0:(ex.wu||0),
+      drop:ex.ss?0:(ex.drop||0),
       amrap:!!ex.amrap,
       sets
     };

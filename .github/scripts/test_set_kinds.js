@@ -72,6 +72,7 @@ eq('warmup kg 50%', expanded[0].kg, '50');
 eq('second warmup 70%', expanded[1].kg, '70');
 eq('first work', expanded[2].kind, 'work');
 eq('last work amrap', expanded[4].kind, 'amrap');
+eq('amrap reps empty', expanded[4].reps, '');
 eq('drop1', expanded[5].kind, 'drop');
 eq('drop1 kg 80%', expanded[5].kg, '80');
 eq('drop2 kg 60%', expanded[6].kg, '60');
@@ -95,10 +96,17 @@ const ssExp = expandExerciseSets(
 );
 eq('ss skips wu/drop', ssExp.length, 3);
 eq('ss all work', ssExp.every(s => s.kind === 'work'), true);
+eq('ss tag no wu/drop', formatSetKindTag({name: 'X', wu: 2, drop: 1, ss: 'A', amrap: true}), 'AMRAP');
 
 const mapped = mapPlanExercisesForClient([{name: 'Przysiad', sets: '3', reps: '8', wu: 1, amrap: true, kg: '80'}], 'c1');
 eq('mapped has warmup', mapped[0].sets[0].kind, 'warmup');
 eq('mapped last amrap', mapped[0].sets[mapped[0].sets.length - 1].kind, 'amrap');
+eq('mapped amrap reps empty', mapped[0].sets[mapped[0].sets.length - 1].reps, '');
+
+const ssMapped = mapPlanExercisesForClient([{name: 'Burpee', sets: '3', reps: '5', wu: 2, drop: 1, ss: 'A', amrap: true}], 'c1');
+eq('ss mapped wu 0', ssMapped[0].wu, 0);
+eq('ss mapped drop 0', ssMapped[0].drop, 0);
+eq('ss mapped keeps amrap', ssMapped[0].amrap, true);
 
 if (failed) {
   console.error('\n' + failed + ' test(s) failed');

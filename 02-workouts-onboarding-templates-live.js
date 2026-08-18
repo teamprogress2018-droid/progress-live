@@ -1924,7 +1924,7 @@ function liveExCard(ex,i){
         <div class="live-set-check${s.done?' done':''}" onclick="liveToggleSet(${i},${si})" title="Oznacz serię">${s.done?'✓':''}</div>
         <div class="live-set-label"><span class="live-set-label-full">Seria </span>${s.setNo}${s.kind&&s.kind!=='work'?` <span class="cw-set-kind ${s.kind}">${escHtml(typeof setKindBadge==='function'?setKindBadge(s.kind):s.kind)}</span>`:''}</div>
         <input type="number" inputmode="decimal" class="live-kg-input" placeholder="${ex.lastKg!==''&&ex.lastKg!=null?ex.lastKg:'kg'}" value="${s.kg}" oninput="liveSetKg(${i},${si},this.value)" onkeydown="liveSetKey(event,${i},${si})" onclick="event.stopPropagation()">
-        <input type="number" inputmode="numeric" class="live-kg-input" placeholder="powt." value="${s.reps}" oninput="liveSetReps(${i},${si},this.value)" onkeydown="liveSetKey(event,${i},${si})" onclick="event.stopPropagation()">
+        <input type="number" inputmode="numeric" class="live-kg-input" placeholder="${s.kind==='amrap'?'max':'powt.'}" value="${s.reps}" oninput="liveSetReps(${i},${si},this.value)" onkeydown="liveSetKey(event,${i},${si})" onclick="event.stopPropagation()">
         <button type="button" class="live-set-rest" onclick="liveStartRest(90)" title="Przerwa 90s">⏱</button>
       </div>`).join('')}
       <button type="button" class="live-add-set" onclick="liveAddSet(${i})">+ Dodaj serię</button>
