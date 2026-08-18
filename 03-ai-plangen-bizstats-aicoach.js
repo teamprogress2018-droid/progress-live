@@ -132,14 +132,124 @@ function aplPlanTokenBudget(dayCount){
   return Math.min(2800+Math.max(1,dayCount)*550,5000);
 }
 
+function aplExtractJsonObject(text){
+  const s=String(text||'');
+  const start=s.search(/[\[{]/);
+  if(start<0)return s.trim();
+  let depth=0,inStr=false,esc=false;
+  for(let i=start;i<s.length;i++){
+    const c=s[i];
+    if(inStr){
+      if(esc){esc=false;continue;}
+      if(c==='\\'){esc=true;continue;}
+      if(c==='"')inStr=false;
+      continue;
+    }
+    if(c==='"'){inStr=true;continue;}
+    if(c==='{'||c==='[')depth++;
+    else if(c==='}'||c===']'){
+      depth--;
+      if(depth===0)return s.slice(start,i+1);
+    }
+  }
+  return s.slice(start);
+}
+
+function aplRepairJsonText(input){
+  let s=String(input||'')
+    .replace(/```(?:json)?/gi,'')
+    .replace(/[\u201C\u201D\u00AB\u00BB]/g,'"')
+    .replace(/[\u2018\u2019]/g,"'")
+    .trim();
+  s=aplExtractJsonObject(s);
+
+  let inStr=false,esc=false;
+  for(let i=0;i<s.length;i++){
+    const c=s[i];
+    if(inStr){
+      if(esc){esc=false;continue;}
+      if(c==='\\'){esc=true;continue;}
+      if(c==='"')inStr=false;
+    }else if(c==='"')inStr=true;
+  }
+  if(inStr)s+='"';
+
+  const isWs=c=>c===' '||c==='\n'||c==='\r'||c==='\t';
+  let out='';
+  inStr=false;esc=false;
+  let lastSig='';
+  const maybeComma=()=>{
+    if(lastSig==='}'||lastSig===']'||lastSig==='"'||(lastSig>='0'&&lastSig<='9')||lastSig==='e'||lastSig==='l')out+=',';
+  };
+  for(let i=0;i<s.length;i++){
+    const c=s[i];
+    if(inStr){
+      out+=c;
+      if(esc){esc=false;continue;}
+      if(c==='\\'){esc=true;continue;}
+      if(c==='"'){inStr=false;lastSig='"';}
+      continue;
+    }
+    if(isWs(c)){out+=c;continue;}
+    if(c==='"'){
+      maybeComma();
+      inStr=true;
+      out+=c;
+      lastSig='"';
+      continue;
+    }
+    if(c==='}'||c===']'){
+      out=out.replace(/,(\s*)$/,'$1');
+      out+=c;
+      lastSig=c;
+      continue;
+    }
+    if(c==='{'||c==='['){
+      maybeComma();
+      out+=c;
+      lastSig=c;
+      continue;
+    }
+    if((c==='-'||(c>='0'&&c<='9')||c==='t'||c==='f'||c==='n')){
+      maybeComma();
+    }
+    out+=c;
+    lastSig=c;
+  }
+
+  inStr=false;esc=false;
+  const stack=[];
+  for(let i=0;i<out.length;i++){
+    const c=out[i];
+    if(inStr){
+      if(esc){esc=false;continue;}
+      if(c==='\\'){esc=true;continue;}
+      if(c==='"')inStr=false;
+      continue;
+    }
+    if(c==='"'){inStr=true;continue;}
+    if(c==='{')stack.push('}');
+    else if(c==='[')stack.push(']');
+    else if(c==='}'||c===']')stack.pop();
+  }
+  while(stack.length)out+=stack.pop();
+  return out.replace(/,(\s*[}\]])/g,'$1');
+}
+
 function aplParsePlanJson(raw){
-  const clean=(raw||'').replace(/```json|```/g,'').trim();
-  try{return JSON.parse(clean);}catch(e){
-    const m=clean.match(/\{[\s\S]+\}/);
-    if(m)return JSON.parse(m[0]);
-    throw new Error('JSON parse failed');
+  const repaired=aplRepairJsonText(raw);
+  try{return JSON.parse(repaired);}catch(e){
+    const clean=(raw||'').replace(/```(?:json)?/gi,'').trim();
+    try{return JSON.parse(clean);}catch(e2){
+      const m=clean.match(/\{[\s\S]*\}/);
+      if(m)return JSON.parse(aplRepairJsonText(m[0]));
+      throw e;
+    }
   }
 }
+window.aplExtractJsonObject=aplExtractJsonObject;
+window.aplRepairJsonText=aplRepairJsonText;
+window.aplParsePlanJson=aplParsePlanJson;
 
 async function aplAnthropicRequest(payload,maxRetries=3){
   const url=typeof W!=='undefined'?W:'https://anthropic-proxy.teamprogress2018.workers.dev/';
@@ -386,11 +496,15 @@ ${client?`- Klient: ${client.name}, cel: ${client.goal}, poziom: ${client.level}
     aplRenderPlan(plan,client,goal,method,days,weeks);
   }catch(e){
     console.error('aplGenerate błąd:',e);
-    const isTimeout=/524|przeciążon|timeout/i.test(e?.message||'');
+    const msg=String(e?.message||e||'');
+    const isTimeout=/524|przeciążon|timeout/i.test(msg);
+    const isJson=/JSON|parse|Expected|,|\]|Unexpected/i.test(msg);
+    const title=isTimeout?'Serwer AI jest chwilowo przeciążony':isJson?'AI zwróciło niekompletny plan':'Błąd generowania planu';
+    const hint=isTimeout?'To zwykle mija po chwili. Odczekaj 30-60 sekund i spróbuj ponownie.':isJson?'Spróbuj ponownie — generator naprawia uszkodzony JSON, ale czasem trzeba powtórzyć żądanie.':'Sprawdź połączenie internetowe i spróbuj ponownie.';
     res.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;gap:14px;text-align:center;padding:40px;">
       <div style="font-size:40px;">${isTimeout?'⏱️':'❌'}</div>
-      <div style="font-size:15px;font-weight:700;color:var(--red);">${isTimeout?'Serwer AI jest chwilowo przeciążony':'Błąd generowania planu'}</div>
-      <div style="font-size:12px;color:var(--muted);max-width:320px;">${isTimeout?'To zwykle mija po chwili. Odczekaj 30-60 sekund i spróbuj ponownie.':'Sprawdź połączenie internetowe i spróbuj ponownie.'}</div>
+      <div style="font-size:15px;font-weight:700;color:var(--red);">${title}</div>
+      <div style="font-size:12px;color:var(--muted);max-width:360px;">${hint}</div>
       <button class="btn btn-primary" onclick="aplGenerate()">↺ Spróbuj ponownie</button>
     </div>`;
   }

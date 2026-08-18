@@ -1,0 +1,86 @@
+// Parser planu AI musi przeżyć typowe błędy JSON z modelu (przecinki, ucięcie, markdown).
+const fs = require('fs');
+const path = require('path');
+const vm = require('vm');
+
+const document = {
+  querySelectorAll: () => [],
+  getElementById: () => null,
+  addEventListener() {},
+  createElement: () => ({ style: {}, appendChild() {} })
+};
+const windowObj = {
+  addEventListener() {},
+  CL: [], PL: [], SE: [], EX: [], WO: [],
+  METRIC_ENTRIES: [],
+  document
+};
+windowObj.window = windowObj;
+const ctx = {
+  window: windowObj,
+  document,
+  console,
+  Date,
+  Math,
+  parseInt,
+  parseFloat,
+  Number,
+  String,
+  Array,
+  Object,
+  JSON,
+  setTimeout,
+  clearTimeout,
+  isNaN,
+  Infinity,
+  undefined,
+  fetch: async () => ({ ok: true, json: async () => ({}) })
+};
+ctx.globalThis = ctx;
+vm.createContext(ctx);
+const root = path.join(__dirname, '..', '..');
+vm.runInContext(fs.readFileSync(path.join(root, '01-core.js'), 'utf8'), ctx);
+vm.runInContext(fs.readFileSync(path.join(root, '03-ai-plangen-bizstats-aicoach.js'), 'utf8'), ctx);
+
+const { aplParsePlanJson } = ctx;
+let failed = 0;
+function ok(name, cond, extra) {
+  if (!cond) {
+    console.error('FAIL ' + name + (extra ? ' — ' + extra : ''));
+    failed++;
+  } else console.log('OK   ' + name);
+}
+
+const valid = aplParsePlanJson('{"planName":"FBW","days":[{"dayName":"A","exercises":[{"name":"Przysiad","sets":"4"}]}]}');
+ok('plain json', valid.planName === 'FBW' && valid.days[0].exercises[0].name === 'Przysiad');
+
+const fenced = aplParsePlanJson('```json\n{"planName":"PPL","days":[]}\n```');
+ok('markdown fence', fenced.planName === 'PPL');
+
+const trailing = aplParsePlanJson('{"days":[{"name":"A"},{"name":"B"},]}');
+ok('trailing comma in array', trailing.days.length === 2 && trailing.days[1].name === 'B');
+
+const trailingObj = aplParsePlanJson('{"planName":"X","weeks":4,}');
+ok('trailing comma in object', trailingObj.planName === 'X' && trailingObj.weeks === 4);
+
+const missing = aplParsePlanJson('{"days":[{"name":"A"}{"name":"B"}]}');
+ok('missing comma between objects', missing.days.length === 2 && missing.days[1].name === 'B');
+
+const truncated = aplParsePlanJson('{"planName":"FBW","days":[{"dayName":"A","exercises":[{"name":"Przysiad"');
+ok('truncated object closed', truncated.planName === 'FBW' && truncated.days[0].exercises[0].name === 'Przysiad');
+
+const smart = aplParsePlanJson('{“planName”:“Masa”,“days”:[]}');
+ok('smart quotes', smart.planName === 'Masa');
+
+const extraText = aplParsePlanJson('Oto plan:\n{"planName":"HIIT","days":[]}\nKoniec.');
+ok('surrounding prose', extraText.planName === 'HIIT');
+
+const src = fs.readFileSync(path.join(root, '03-ai-plangen-bizstats-aicoach.js'), 'utf8');
+ok('parser exported', src.includes('window.aplParsePlanJson=aplParsePlanJson'));
+ok('repair exported', src.includes('function aplRepairJsonText'));
+
+if (failed) {
+  console.error('\n' + failed + ' test(s) failed');
+  process.exit(1);
+}
+console.log('\nParser planu AI OK.');
