@@ -40,6 +40,9 @@ jobs:
       - name: 1d. Testy nawyków / streak
         run: node .github/scripts/test_habits.js
 
+      - name: 1e. Testy własnych filmów
+        run: node .github/scripts/test_own_videos.js
+
       - name: 2. Sprawdź duplikaty (funkcje / id / zmienne)
         run: python3 .github/scripts/check_duplicates.py
 

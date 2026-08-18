@@ -577,6 +577,8 @@ function editEx(name){
   document.getElementById('ex-cat').value=ex.cat||'';
   document.getElementById('ex-eq').value=ex.eq||'';
   document.getElementById('ex-desc').value=ex.desc||ex.tip||'';
+  const ev=document.getElementById('ex-video');
+  if(ev)ev.value=ex.video||'';
   const titleEl=document.querySelector('#m-ex .modal-title');
   if(titleEl)titleEl.textContent='EDYTUJ ĆWICZENIE';
   const saveBtn=document.querySelector('#m-ex .modal-footer .btn-primary');
@@ -604,14 +606,14 @@ async function saveEx(){
     const idx=(EX||[]).findIndex(e=>e.name===editingName);
     if(idx>=0){
       const oldId=EX[idx].id;
-      EX[idx]={...EX[idx],name,cat:document.getElementById('ex-cat').value,eq:document.getElementById('ex-eq').value,desc:document.getElementById('ex-desc').value,tip:document.getElementById('ex-desc').value};
+      EX[idx]={...EX[idx],name,cat:document.getElementById('ex-cat').value,eq:document.getElementById('ex-eq').value,desc:document.getElementById('ex-desc').value,tip:document.getElementById('ex-desc').value,video:typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl((document.getElementById('ex-video')||{}).value):((document.getElementById('ex-video')||{}).value||'')};
       window._editingExName=null;
       closeM('m-ex');renderLib();notify('Ćwiczenie zaktualizowane!');
       await persistById('exercises',EX[idx]);
       return;
     }
   }
-  const ex=withTrainer({id:newId('ex'),name,cat:document.getElementById('ex-cat').value,eq:document.getElementById('ex-eq').value,desc:document.getElementById('ex-desc').value,tip:document.getElementById('ex-desc').value,muscle:'',nsca:'',alt:''});
+  const ex=withTrainer({id:newId('ex'),name,cat:document.getElementById('ex-cat').value,eq:document.getElementById('ex-eq').value,desc:document.getElementById('ex-desc').value,tip:document.getElementById('ex-desc').value,video:typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl((document.getElementById('ex-video')||{}).value):((document.getElementById('ex-video')||{}).value||''),muscle:'',nsca:'',alt:''});
   EX.push(ex);closeM('m-ex');renderLib();notify('Ćwiczenie dodane!');
   await persistById('exercises',ex);
 }
@@ -741,6 +743,7 @@ function openExDetail(name){
       <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Zamienniki</div>
       <div style="display:flex;gap:4px;flex-wrap:wrap;">${e.alt.split(',').map(a=>`<span class="pill pill-muted" style="font-size:10px;cursor:pointer;" onclick="openExDetail('${a.trim().replace(/'/g,"\\'")}')">→ ${a.trim()}</span>`).join('')}</div>
     </div>`:''}
+    ${(()=>{const media=typeof resolveCoachMedia==='function'?resolveCoachMedia(e):null;return media&&media.video?(typeof coachMediaHtml==='function'?coachMediaHtml({video:media.video,videoEmbed:media.videoEmbed,isFile:media.isFile},{showVideo:true}):''):'';})()}
     <div style="display:flex;gap:6px;margin-top:4px;">
       <button class="btn btn-primary btn-sm" style="flex:1;" onclick="prefillExInBuilder('${e.name.replace(/'/g,"\\'")}')">Użyj w builderze</button>
       <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="prefillExInWorkout('${e.name.replace(/'/g,"\\'")}')">Dodaj do treningu</button>
@@ -749,7 +752,7 @@ function openExDetail(name){
       <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="editEx('${e.name.replace(/'/g,"\\'")}')">✏ Edytuj</button>
       <button class="btn btn-ghost btn-sm" style="flex:1;color:var(--red);" onclick="delEx('${e.name.replace(/'/g,"\\'")}')">🗑 Usuń</button>
     </div>`:''}
-    <button onclick="event.stopPropagation();(function(){window.open('https://www.youtube.com/results?search_query='+encodeURIComponent(currentExDetail+' cwiczenie technika wykonania'),'_blank');})()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;padding:10px;background:rgba(255,0,0,0.1);border:1px solid rgba(255,0,0,0.3);border-radius:8px;color:#ff4444;font-size:12px;font-weight:700;cursor:pointer;" onmouseover="this.style.background='rgba(255,0,0,0.2)'" onmouseout="this.style.background='rgba(255,0,0,0.1)'">&#9654; Zobacz na YouTube &#8212; technika</button>
+    ${typeof ownVideoForExercise==='function'&&ownVideoForExercise(e.name)?'':`<button onclick="event.stopPropagation();(function(){window.open('https://www.youtube.com/results?search_query='+encodeURIComponent(currentExDetail+' cwiczenie technika wykonania'),'_blank');})()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;padding:10px;background:rgba(255,0,0,0.1);border:1px solid rgba(255,0,0,0.3);border-radius:8px;color:#ff4444;font-size:12px;font-weight:700;cursor:pointer;" onmouseover="this.style.background='rgba(255,0,0,0.2)'" onmouseout="this.style.background='rgba(255,0,0,0.1)'">&#9654; Szukaj na YouTube &#8212; technika</button>`}
     `;
   // clear AI msgs
   document.getElementById('exd-ai-msgs').innerHTML='';
@@ -757,6 +760,130 @@ function openExDetail(name){
   detail.style.transform='translateX(0)';
   renderLib();
 }
+
+window.EX=window.EX||[];
+window.COACH_VIDEOS=window.COACH_VIDEOS||[];
+var libTab='ex';
+
+function setLibTab(tab){
+  libTab=tab==='videos'?'videos':'ex';
+  renderLibTab();
+}
+window.setLibTab=setLibTab;
+
+function renderLibTab(){
+  const videos=libTab==='videos';
+  const exBody=document.getElementById('lib-ex-body');
+  const vidBody=document.getElementById('lib-vid-body');
+  if(exBody)exBody.style.display=videos?'none':'flex';
+  if(vidBody)vidBody.style.display=videos?'block':'none';
+  const title=document.getElementById('lib-top-title');
+  if(title)title.textContent=videos?'Moje filmy':'Biblioteka ćwiczeń';
+  const tabEx=document.getElementById('lib-tab-ex');
+  const tabVid=document.getElementById('lib-tab-vid');
+  if(tabEx)tabEx.className='btn btn-sm '+(videos?'btn-ghost':'btn-primary');
+  if(tabVid)tabVid.className='btn btn-sm '+(videos?'btn-primary':'btn-ghost');
+  const view=document.getElementById('lib-ex-view-btns');
+  if(view)view.style.display=videos?'none':'flex';
+  const addEx=document.getElementById('lib-add-ex');
+  const addVid=document.getElementById('lib-add-vid');
+  if(addEx)addEx.style.display=videos?'none':'';
+  if(addVid)addVid.style.display=videos?'':'none';
+  if(videos)renderOwnVideos();
+  else renderLib();
+}
+window.renderLibTab=renderLibTab;
+
+function renderOwnVideos(){
+  const el=document.getElementById('own-videos-grid');
+  if(!el)return;
+  const list=(window.COACH_VIDEOS||[]).slice().sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+  if(!list.length){
+    el.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:40px 16px;color:var(--muted);">
+      <div style="font-size:32px;margin-bottom:8px;opacity:.4;">▶</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:6px;">Brak własnych filmów</div>
+      <div style="font-size:12px;margin-bottom:14px;">Wklej link YouTube (niewidoczny) albo .mp4 i podepnij pod ćwiczenie.</div>
+      <button class="btn btn-primary btn-sm" onclick="openM('m-own-video')">+ Dodaj film</button>
+    </div>`;
+    return;
+  }
+  el.innerHTML=list.map(v=>{
+    const url=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl(v.url):v.url;
+    const embed=typeof coachVideoEmbed==='function'?coachVideoEmbed(url):'';
+    const file=typeof coachVideoIsFile==='function'&&coachVideoIsFile(url);
+    let player='';
+    if(embed)player=`<div class="cw-video-wrap" style="margin-bottom:8px;"><iframe src="${escHtml(embed)}" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen title="${escHtml(v.name||'Film')}"></iframe></div>`;
+    else if(file)player=`<div class="cw-video-wrap" style="margin-bottom:8px;"><video src="${escHtml(url)}" controls playsinline></video></div>`;
+    else if(url)player=`<a href="${escHtml(url)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" style="margin-bottom:8px;">↗ Otwórz link</a>`;
+    return `<div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:12px;">
+      ${player}
+      <div style="font-size:13px;font-weight:700;margin-bottom:4px;">${escHtml(v.name||'Film')}</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">${v.exName?('Ćwiczenie: '+escHtml(v.exName)):'Bez ćwiczenia — podepnij przy edycji'}</div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="editOwnVideo('${v.id}')">Edytuj</button>
+        <button class="btn btn-ghost btn-sm" style="flex:1;color:var(--red);" onclick="delOwnVideo('${v.id}')">Usuń</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+window.renderOwnVideos=renderOwnVideos;
+
+async function saveOwnVideo(){
+  if(window._saveGuard_saveOwnVideo)return;window._saveGuard_saveOwnVideo=true;setTimeout(()=>window._saveGuard_saveOwnVideo=false,1500);
+  const name=(document.getElementById('ov-name')||{}).value.trim();
+  const raw=(document.getElementById('ov-url')||{}).value;
+  const url=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl(raw):String(raw||'').trim();
+  const exName=(document.getElementById('ov-ex')||{}).value.trim();
+  if(!name){notify('Wpisz nazwę filmu');return;}
+  if(!url){notify('Wklej poprawny link https (YouTube, Vimeo albo .mp4)');return;}
+  const editing=window._editingVideoId;
+  if(editing){
+    const idx=(window.COACH_VIDEOS||[]).findIndex(v=>v.id===editing);
+    if(idx>=0){
+      window.COACH_VIDEOS[idx]={...window.COACH_VIDEOS[idx],name,url,exName,updatedAt:new Date().toISOString()};
+      window._editingVideoId=null;
+      closeM('m-own-video');
+      renderOwnVideos();
+      notify('Film zaktualizowany');
+      await persistById('coachVideos',window.COACH_VIDEOS[idx]);
+      return;
+    }
+  }
+  const v=withTrainer({id:newId('cv'),name,url,exName,createdAt:new Date().toISOString()});
+  window.COACH_VIDEOS=window.COACH_VIDEOS||[];
+  window.COACH_VIDEOS.push(v);
+  closeM('m-own-video');
+  renderOwnVideos();
+  notify('Film dodany — klient zobaczy go przy ćwiczeniu w Starcie');
+  await persistById('coachVideos',v);
+}
+window.saveOwnVideo=saveOwnVideo;
+
+function editOwnVideo(id){
+  const v=(window.COACH_VIDEOS||[]).find(x=>x.id===id);
+  if(!v){notify('Nie znaleziono filmu');return;}
+  openM('m-own-video');
+  const n=document.getElementById('ov-name');if(n)n.value=v.name||'';
+  const u=document.getElementById('ov-url');if(u)u.value=v.url||'';
+  const e=document.getElementById('ov-ex');if(e)e.value=v.exName||'';
+  const titleEl=document.querySelector('#m-own-video .modal-title');
+  if(titleEl)titleEl.textContent='EDYTUJ FILM';
+  const saveBtn=document.querySelector('#m-own-video .modal-footer .btn-primary');
+  if(saveBtn)saveBtn.textContent='Zapisz zmiany';
+  window._editingVideoId=id;
+}
+window.editOwnVideo=editOwnVideo;
+
+async function delOwnVideo(id){
+  const v=(window.COACH_VIDEOS||[]).find(x=>x.id===id);
+  if(!v)return;
+  if(!confirm('Usunąć film "'+(v.name||'')+'"?'))return;
+  window.COACH_VIDEOS=(window.COACH_VIDEOS||[]).filter(x=>x.id!==id);
+  renderOwnVideos();
+  notify('Film usunięty');
+  if(window._db){try{await window._del(window._doc(window._db,'coachVideos',id));}catch(e){console.warn('Firebase delOwnVideo:',e);}}
+}
+window.delOwnVideo=delOwnVideo;
 
 function closeExDetail(){
   document.getElementById('ex-detail').style.transform='translateX(100%)';
