@@ -37,6 +37,9 @@ jobs:
       - name: 1c. Testy super-serii
         run: node .github/scripts/test_supersets.js
 
+      - name: 1d. Testy formularzy klienta
+        run: node .github/scripts/test_forms.js
+
       - name: 2. Sprawdź duplikaty (funkcje / id / zmienne)
         run: python3 .github/scripts/check_duplicates.py
 

@@ -904,3 +904,68 @@ function compressImageFile(file,max=720,quality=0.68){
 }
 window.compressImageFile=compressImageFile;
 
+function snapshotFormQuestions(form){
+  return((form&&form.questions)||[]).map(q=>({
+    id:q.id,type:q.type,text:q.text,required:!!q.required,
+    options:Array.isArray(q.options)?q.options.slice():undefined
+  }));
+}
+window.snapshotFormQuestions=snapshotFormQuestions;
+
+function formQuestionsForSend(send,forms){
+  if(send&&Array.isArray(send.questions)&&send.questions.length)return send.questions;
+  const list=forms||(typeof allForms==='function'?allForms():[]);
+  const f=list.find(x=>x&&send&&x.id===send.formId);
+  return(f&&f.questions)||[];
+}
+window.formQuestionsForSend=formQuestionsForSend;
+
+function formSendAnswersMap(send){
+  const a=send&&send.answers;
+  if(!a)return{};
+  if(!Array.isArray(a))return a;
+  const m={};
+  a.forEach((item,i)=>{
+    if(item&&typeof item==='object'&&item.id!=null)m[item.id]=item.value;
+    else if(item!=null&&item!=='')m['q'+(i+1)]=item;
+  });
+  return m;
+}
+window.formSendAnswersMap=formSendAnswersMap;
+
+function formatFormAnswer(q,val){
+  if(val==null||String(val).trim()==='')return '—';
+  const v=String(val);
+  if(q&&q.type==='yesno'){
+    if(v==='tak'||v==='true'||v==='Tak'||v==='1')return 'Tak';
+    if(v==='nie'||v==='false'||v==='Nie'||v==='0')return 'Nie';
+  }
+  return v;
+}
+window.formatFormAnswer=formatFormAnswer;
+
+function missingRequiredFormAnswers(questions,answers){
+  const map=answers&&!Array.isArray(answers)?answers:{};
+  return(questions||[]).filter(q=>q&&q.required&&(map[q.id]==null||String(map[q.id]).trim()===''));
+}
+window.missingRequiredFormAnswers=missingRequiredFormAnswers;
+
+function pendingFormSends(clientId,sends){
+  return(sends||window.FORM_SENDS||[]).filter(s=>s&&s.clientId===clientId&&s.status!=='filled');
+}
+window.pendingFormSends=pendingFormSends;
+
+function applyFormSubmit(send,answers,nowIso){
+  if(!send)return{ok:false,error:'missing'};
+  if(send.status==='filled')return{ok:false,error:'already'};
+  const qs=formQuestionsForSend(send);
+  const map=answers&&!Array.isArray(answers)?answers:{};
+  const missing=missingRequiredFormAnswers(qs,map);
+  if(missing.length)return{ok:false,error:'required',missing};
+  send.status='filled';
+  send.answers=map;
+  send.filledAt=nowIso||new Date().toISOString();
+  return{ok:true,send};
+}
+window.applyFormSubmit=applyFormSubmit;
+

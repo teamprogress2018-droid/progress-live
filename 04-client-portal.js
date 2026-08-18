@@ -228,6 +228,16 @@ function capScreenHTML(scr,c){
           <button type="button" class="cap-btn-primary" style="padding:10px;font-size:13px;" onclick="setClientLiveScreen('checkin')">Wypełnij teraz</button>
         </div>`;
       })()}
+      ${(()=>{
+        const pend=typeof pendingFormSends==='function'?pendingFormSends(c.id):[];
+        if(!pend.length)return '';
+        return `<div style="background:linear-gradient(135deg,rgba(157,124,244,0.18),rgba(157,124,244,0.05));border:1px solid rgba(157,124,244,0.35);border-radius:18px;padding:16px;margin-bottom:14px;">
+          <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--purple);text-transform:uppercase;margin-bottom:6px;">📋 FORMULARZ</div>
+          <div style="font-size:14px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">${pend.length===1?escHtml(pend[0].formName||'Formularz do wypełnienia'):pend.length+' formularze do wypełnienia'}</div>
+          <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:10px;">Trener czeka na Twoje odpowiedzi.</div>
+          <button type="button" class="cap-btn-primary" style="padding:10px;font-size:13px;" onclick="${pend.length===1?`clientOpenForm('${escHtml(pend[0].id)}')`:`setClientLiveScreen('forms')`}">${pend.length===1?'Wypełnij teraz':'Zobacz listę'}</button>
+        </div>`;
+      })()}
       ${showTasks.length?`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
         <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">Zadania na dziś</div>
         ${showTasks.map(t=>`<button type="button" class="cap-list-item" style="width:100%;text-align:left;background:none;border:none;cursor:pointer;padding:8px 0;" ${live?`onclick="clientToggleTask('${escHtml(t.id)}')"`:''}>
@@ -537,19 +547,93 @@ function capScreenHTML(scr,c){
         </div>
       </div>`;
       })()}
+      <button type="button" class="cap-btn-secondary" style="margin-bottom:8px;" onclick="setClientLiveScreen('forms')">📋 Moje formularze</button>
       ${capIsLiveClient()?'':`<button class="cap-btn-secondary">⚙ Ustawienia konta</button>`}
       <button type="button" class="cap-btn-secondary" style="color:var(--red);border-color:rgba(255,77,77,0.2);" ${capIsLiveClient()?'onclick="doSignOut()"':''}>Wyloguj się</button>
     </div>`;
 
+  if(scr==='forms'||scr==='formfill'){
+    const live=capIsLiveClient();
+    const sends=(window.FORM_SENDS||[]).filter(s=>s.clientId===c.id)
+      .slice().sort((a,b)=>(b.sentAtIso||b.createdAt||'').localeCompare(a.sentAtIso||a.createdAt||''));
+    const pending=sends.filter(s=>s.status!=='filled');
+    const filled=sends.filter(s=>s.status==='filled');
+    if(scr==='formfill'){
+      const send=sends.find(s=>s.id===window._cliveFormSendId)||pending[0];
+      if(!send){
+        return `<div class="cap-section" style="padding-bottom:90px;">
+          <button type="button" class="btn btn-ghost btn-sm" style="margin:8px 0 12px;" onclick="setClientLiveScreen('forms')">← Formularze</button>
+          <div style="text-align:center;padding:40px;color:${CAP_MUTED};font-size:12px;">Brak formularza do wypełnienia.</div>
+        </div>`;
+      }
+      const qs=formQuestionsForSend(send);
+      const draft=(window._cliveFormAnswers&&window._cliveFormAnswers[send.id])||formSendAnswersMap(send);
+      const done=send.status==='filled';
+      return `<div class="cap-section" style="padding-bottom:90px;">
+        <button type="button" class="btn btn-ghost btn-sm" style="margin:8px 0 12px;" onclick="setClientLiveScreen('forms')">← Formularze</button>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:4px;">${escHtml(send.formName||'Formularz')}</div>
+        <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:16px;">${done?'Wysłane odpowiedzi':(live?'Odpowiedz i wyślij do trenera':'Podgląd — klient wypełnia w swojej apce')}</div>
+        ${qs.map((q,i)=>`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:16px;padding:14px;margin-bottom:10px;">
+          <div style="font-size:12px;color:${CAP_MUTED};margin-bottom:10px;">${i+1}. ${escHtml(q.text||'')}${q.required?'<span style="color:var(--red);"> *</span>':''}</div>
+          ${capFormQControl(send.id,q,draft[q.id],live&&!done)}
+        </div>`).join('')}
+        ${done?`<div style="text-align:center;font-size:12px;color:var(--teal);padding:12px;">✓ Wysłane ${escHtml((send.filledAt||'').slice(0,10))}</div>`
+        :live?`<button type="button" class="cap-btn-primary" onclick="clientSubmitForm('${escHtml(send.id)}')">✓ Wyślij do trenera</button>`
+        :`<button class="cap-btn-primary">✓ Wyślij do trenera</button>`}
+      </div>`;
+    }
+    return `<div class="cap-section" style="padding-bottom:90px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin:8px 0 16px;padding-top:8px;">FORMULARZE</div>
+      ${!sends.length?`<div style="text-align:center;padding:40px;color:${CAP_MUTED};font-size:12px;">Brak formularzy. Gdy trener wyśle ankietę, pojawi się tutaj.</div>`:''}
+      ${pending.length?`<div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--purple);text-transform:uppercase;margin-bottom:8px;">Do wypełnienia</div>
+        ${pending.map(s=>`<button type="button" class="cap-list-item" style="width:100%;text-align:left;background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:14px;margin-bottom:8px;cursor:pointer;" onclick="clientOpenForm('${escHtml(s.id)}')">
+          <div style="flex:1;"><div style="font-size:14px;font-weight:700;color:${CAP_TEXT};">${escHtml(s.formName||'Formularz')}</div>
+          <div style="font-size:11px;color:${CAP_MUTED};margin-top:3px;">${escHtml(s.sentAt||'')} · ${formQuestionsForSend(s).length} pytań</div></div>
+          <span style="font-size:11px;color:var(--orange);">Wypełnij →</span>
+        </button>`).join('')}`:''}
+      ${filled.length?`<div style="font-size:10px;font-family:'DM Mono',monospace;color:${CAP_MUTED};text-transform:uppercase;margin:16px 0 8px;">Wysłane</div>
+        ${filled.map(s=>`<button type="button" class="cap-list-item" style="width:100%;text-align:left;background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:14px;margin-bottom:8px;cursor:pointer;" onclick="clientOpenForm('${escHtml(s.id)}')">
+          <div style="flex:1;"><div style="font-size:13px;font-weight:600;color:${CAP_TEXT};">${escHtml(s.formName||'Formularz')}</div>
+          <div style="font-size:11px;color:${CAP_MUTED};margin-top:3px;">${escHtml((s.filledAt||s.sentAt||'').slice(0,10))}</div></div>
+          <span style="color:var(--teal);font-size:12px;">✓</span>
+        </button>`).join('')}`:''}
+    </div>`;
+  }
+
   return `<div style="padding:40px;text-align:center;color:${CAP_MUTED};">Brak tego ekranu</div>`;
 }
 
+function capFormQControl(sendId,q,val,live){
+  const sid=JSON.stringify(sendId);
+  const qid=JSON.stringify(q.id);
+  if(q.type==='text'){
+    return `<textarea class="form-textarea" rows="3" ${live?`oninput="clientFormSetAnswer(${sid},${qid},this.value)"`:'disabled'} placeholder="Twoja odpowiedź">${escHtml(val||'')}</textarea>`;
+  }
+  if(q.type==='number'){
+    return `<input type="number" inputmode="decimal" class="form-input" value="${escHtml(val==null?'':val)}" ${live?`oninput="clientFormSetAnswer(${sid},${qid},this.value)"`:'disabled'} placeholder="Liczba" style="font-size:16px;">`;
+  }
+  if(q.type==='scale'){
+    return `<div class="fd-scale">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button type="button" class="fd-scale-btn${String(val)===String(n)?' sel':''}" ${live?`onclick="clientFormPick(${sid},${qid},${JSON.stringify(String(n))})"`:'disabled'}>${n}</button>`).join('')}</div>`;
+  }
+  if(q.type==='yesno'){
+    return `<div class="fd-yn">
+      <button type="button" class="fd-yn-btn${val==='tak'?' sel':''}" ${live?`onclick="clientFormPick(${sid},${qid},'tak')"`:'disabled'}>✓ Tak</button>
+      <button type="button" class="fd-yn-btn${val==='nie'?' sel':''}" ${live?`onclick="clientFormPick(${sid},${qid},'nie')"`:'disabled'}>✗ Nie</button>
+    </div>`;
+  }
+  if(q.type==='choice'){
+    return `<div style="display:flex;flex-direction:column;gap:8px;">${(q.options||[]).map(opt=>`<button type="button" class="fd-yn-btn${String(val)===String(opt)?' sel':''}" style="text-align:left;" ${live?`onclick="clientFormPick(${sid},${qid},${JSON.stringify(opt)})"`:'disabled'}>${escHtml(opt)}</button>`).join('')}</div>`;
+  }
+  return `<input class="form-input" value="${escHtml(val||'')}" ${live?`oninput="clientFormSetAnswer(${sid},${qid},this.value)"`:'disabled'}>`;
+}
+
 const CAP_SCREEN_INFO={
-  home:{title:'🏠 Dziś',desc:'Jeden ekran na dzień: trening do odpalenia (Start), dzień wolny, zadania do odhaczenia i check-in jeśli czeka. Klient nie zgaduje, co ma zrobić.'},
+  home:{title:'🏠 Dziś',desc:'Jeden ekran na dzień: trening do odpalenia (Start), dzień wolny, zadania, formularze od trenera i check-in jeśli czeka. Klient nie zgaduje, co ma zrobić.'},
   plan:{title:'📋 Mój plan treningowy',desc:'Lista dni planu. Z każdego dnia treningowego klient może od razu kliknąć Start i odhaczać serie.'},
   calendar:{title:'📅 Kalendarz sesji',desc:'Mini-kalendarz z zaznaczonymi sesjami. Klient widzi nadchodzące treningi z godziną, typem i linkiem do Google Meet (jeśli online).'},
   progress:{title:'📈 Moje postępy',desc:'Masa z pomiarów oraz zdjęcia sylwetki (przód / bok / tył) z porównaniem w czasie. Klient robi zdjęcia w apce — Ty widzisz je w karcie klienta.'},
   checkin:{title:'✅ Check-in tygodniowy',desc:'Interaktywny formularz check-inu — emoji skale, liczba treningów, waga. Wysłany check-in trafia bezpośrednio do Twojego panelu.'},
+  forms:{title:'📋 Formularze',desc:'Ankiety wysłane przez Ciebie (wstępna, zdrowie, postępy). Klient wypełnia w apce, odpowiedzi wracają do karty klienta i podglądu formularza.'},
   messages:{title:'💬 Wiadomości',desc:'Czat z trenerem w czasie rzeczywistym. Klient widzi historię rozmów, może pisać i odbierać wiadomości. Możesz wysyłać zdjęcia, pliki i linki.'},
   ondemand:{title:'▶️ On-demand',desc:'Portal treningów wideo i planów. Klient może samodzielnie wykonywać treningi między sesjami — filtrować po kategorii, poziomie i czasie.'},
   resources:{title:'📚 Zasoby',desc:'Kolekcje artykułów, podcastów, wideo i linków udostępnionych przez Ciebie. Klient może je przeglądać w dowolnym czasie.'},
