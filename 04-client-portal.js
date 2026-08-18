@@ -143,6 +143,38 @@ function openODProgramClient(id){
 }
 window.openODProgramClient=openODProgramClient;
 
+function toggleODProgramDay(progId,weekIdx,dayIdx){
+  if(!capIsLiveClient()){
+    if(typeof notify==='function')notify('Podgląd — klient odhacza dni w swojej apce');
+    return;
+  }
+  const cid=window._clientId||(window.CL[0]&&window.CL[0].id);
+  if(!cid||!progId)return;
+  if(typeof ensureODPrograms==='function')ensureODPrograms();
+  window.OD_PROGRESS=window.OD_PROGRESS||[];
+  let rec=typeof odProgramProgressFor==='function'?odProgramProgressFor(cid,progId):null;
+  if(!rec){
+    rec=(typeof withTrainer==='function'?withTrainer:x=>x)({
+      id:(typeof newId==='function'?newId('odpr'):('odpr_'+Date.now())),
+      clientId:cid,programId:progId,done:[],updatedAt:new Date().toISOString()
+    });
+    window.OD_PROGRESS.push(rec);
+  }
+  const key=typeof odProgramSessionKey==='function'?odProgramSessionKey(progId,weekIdx,dayIdx):(progId+':'+weekIdx+':'+dayIdx);
+  rec.done=rec.done||[];
+  const i=rec.done.indexOf(key);
+  if(i>=0)rec.done.splice(i,1);
+  else rec.done.push(key);
+  rec.updatedAt=new Date().toISOString();
+  if(typeof persistById==='function')persistById('odProgress',rec);
+  if(window._clientAppMode){
+    if(typeof renderClientLive==='function')renderClientLive();
+  }else if(typeof setCapScreen==='function'){
+    setCapScreen('odprogram');
+  }
+}
+window.toggleODProgramDay=toggleODProgramDay;
+
 function capClientPlan(c){
   return (window.PL||[])
     .filter(p=>p.clientId===c.id)
@@ -880,6 +912,7 @@ function capScreenHTML(scr,c){
     const programCards=!progList.length?`<div style="text-align:center;padding:40px;color:${CAP_MUTED};font-size:12px;">Brak programów z filmami YouTube.</div>`:
       progList.map(p=>{
         const n=typeof odProgramWorkoutCount==='function'?odProgramWorkoutCount(p):0;
+        const pct=typeof odProgramProgressPct==='function'?odProgramProgressPct(c.id,p):0;
         return `<button type="button" onclick="openODProgramClient('${escHtml(p.id)}')" style="width:100%;text-align:left;background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:14px;margin-bottom:12px;cursor:pointer;color:inherit;">
           <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;">
             <div>
@@ -888,7 +921,8 @@ function capScreenHTML(scr,c){
             </div>
             <span style="font-size:9px;font-family:'DM Mono',monospace;color:${accent};white-space:nowrap;">${escHtml(p.duration||'')}</span>
           </div>
-          <div style="font-size:10px;color:${CAP_MUTED};margin-top:8px;">${n?n+' treningów YouTube · ':''}${escHtml(typeof LEVEL_MAP!=='undefined'&&p.level?(LEVEL_MAP[p.level]||p.level):p.level||'')}</div>
+          <div style="font-size:10px;color:${CAP_MUTED};margin-top:8px;">${n?n+' treningów YouTube · ':''}${escHtml(typeof LEVEL_MAP!=='undefined'&&p.level?(LEVEL_MAP[p.level]||p.level):p.level||'')}${pct?' · '+pct+'% zrobione':''}</div>
+          ${pct?`<div style="height:4px;background:${CAP_S3};border-radius:99px;margin-top:8px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:${accent};"></div></div>`:''}
         </button>`;
       }).join('');
     return `
@@ -909,23 +943,37 @@ function capScreenHTML(scr,c){
       </div>`;
     }
     const weeks=p.weeks||[];
+    const live=capIsLiveClient();
+    const done=typeof odProgramDoneSet==='function'?odProgramDoneSet(c.id,p.id):new Set();
+    const pct=typeof odProgramProgressPct==='function'?odProgramProgressPct(c.id,p):0;
+    const total=typeof odProgramSessionTotal==='function'?odProgramSessionTotal(p):0;
     return `<div class="cap-section" style="padding-bottom:90px;">
       <button type="button" class="btn btn-ghost btn-sm" style="margin:8px 0 12px;" onclick="capGoScreen('ondemand')">← On-demand</button>
       <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:4px;">${escHtml(p.emoji||'')} ${escHtml(p.name||'Program')}</div>
-      <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:16px;line-height:1.5;">${escHtml(p.desc||'')}${p.duration?' · '+escHtml(p.duration):''}</div>
-      ${!weeks.length?`<div style="text-align:center;padding:32px;color:${CAP_MUTED};font-size:12px;">Program bez przypisanych filmów YouTube.</div>`:weeks.map(wk=>`<div style="margin-bottom:16px;">
+      <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:12px;line-height:1.5;">${escHtml(p.desc||'')}${p.duration?' · '+escHtml(p.duration):''}</div>
+      ${total?`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:12px;margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:${CAP_MUTED};margin-bottom:6px;"><span>Postęp</span><span>${pct}%</span></div>
+        <div style="height:6px;background:${CAP_S3};border-radius:99px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:${accent};"></div></div>
+      </div>`:''}
+      ${!weeks.length?`<div style="text-align:center;padding:32px;color:${CAP_MUTED};font-size:12px;">Program bez przypisanych filmów YouTube.</div>`:weeks.map((wk,wi)=>`<div style="margin-bottom:16px;">
         <div style="font-size:12px;font-weight:700;color:${CAP_TEXT};margin-bottom:8px;">${escHtml(wk.label||'Tydzień')}</div>
-        ${(wk.days||[]).map(d=>{
+        ${(wk.days||[]).map((d,di)=>{
           if(d.rest)return `<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:12px;padding:12px;margin-bottom:6px;font-size:12px;color:${CAP_MUTED};">🧘 ${escHtml(d.label||'Odpoczynek')}</div>`;
           const wo=(typeof allODWorkouts==='function'?allODWorkouts():(window.OD_WORKOUTS||[])).find(x=>x.id===d.workoutId);
+          const key=typeof odProgramSessionKey==='function'?odProgramSessionKey(p.id,wi,di):(p.id+':'+wi+':'+di);
+          const isDone=done.has(key);
           if(!wo)return `<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:12px;padding:12px;margin-bottom:6px;font-size:12px;color:${CAP_MUTED};">${escHtml(d.label||'Trening')} — brak wideo</div>`;
-          return `<button type="button" onclick="openODWorkout('${escHtml(wo.id)}')" style="width:100%;text-align:left;background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:12px;padding:12px;margin-bottom:6px;cursor:pointer;color:inherit;display:flex;justify-content:space-between;gap:10px;align-items:center;">
-            <div><div style="font-size:12px;font-weight:700;color:${CAP_TEXT};">${escHtml(d.label||wo.name)}</div>
-            <div style="font-size:10px;color:${CAP_MUTED};margin-top:2px;">${escHtml(wo.name)} · ${wo.time||'?'} min · YouTube</div></div>
-            <span style="color:${accent};font-size:18px;">▶</span>
-          </button>`;
+          return `<div style="background:${CAP_S2};border:1px solid ${isDone?'rgba(62,207,178,0.45)':CAP_S3};border-radius:12px;padding:12px;margin-bottom:6px;display:flex;gap:10px;align-items:center;">
+            <button type="button" class="cap-check-circle" style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1px solid ${isDone?'var(--teal)':CAP_S3};background:${isDone?'rgba(62,207,178,0.25)':'transparent'};color:${isDone?'var(--teal)':CAP_MUTED};" onclick="toggleODProgramDay('${escHtml(p.id)}',${wi},${di})">${isDone?'✓':''}</button>
+            <button type="button" onclick="openODWorkout('${escHtml(wo.id)}')" style="flex:1;text-align:left;background:none;border:none;cursor:pointer;color:inherit;padding:0;">
+              <div style="font-size:12px;font-weight:700;color:${CAP_TEXT};">${escHtml(d.label||wo.name)}</div>
+              <div style="font-size:10px;color:${CAP_MUTED};margin-top:2px;">${escHtml(wo.name)} · ${wo.time||'?'} min · YouTube</div>
+            </button>
+            <span style="color:${accent};font-size:18px;cursor:pointer;" onclick="openODWorkout('${escHtml(wo.id)}')">▶</span>
+          </div>`;
         }).join('')}
       </div>`).join('')}
+      ${!live?'<div style="font-size:11px;color:'+CAP_MUTED+';margin-top:8px;text-align:center;">Podgląd — klient odhacza dni w swojej apce</div>':''}
     </div>`;
   }
 

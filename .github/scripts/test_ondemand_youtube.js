@@ -128,14 +128,30 @@ ok('demo program active youtube', progs.some((p) => p.id === 'op2' && p.status =
 windowObj._cliveOdProgId = 'op2';
 const odProgHtml2 = ctx.capScreenHTML('odprogram', { id: 'c-anna', name: 'Anna' });
 ok('client odprogram play buttons', /openODWorkout\('ow1'\)/.test(odProgHtml2));
+ok('client odprogram toggle day', /toggleODProgramDay\('op2',0,0\)/.test(odProgHtml2));
 ok('client ondemand programs tab', /capSetOdTab\('programs'\)/.test(html));
 ok('cap odprog msg id', ctx.capOdProgMsgId('[odprog:op2]\nProgram') === 'op2');
 ok('live nav has resources', (ctx.capLiveNavScreens() || []).some((s) => s.id === 'resources'));
+
+const op2 = progs.find((p) => p.id === 'op2');
+ok('session key', ctx.odProgramSessionKey('op2', 0, 2) === 'op2:0:2');
+ok('session total youtube days', ctx.odProgramSessionTotal(op2) >= 5, 'n=' + ctx.odProgramSessionTotal(op2));
+windowObj._clientAppMode = true;
+windowObj._clientId = 'c-anna';
+windowObj.OD_PROGRESS = [];
+ctx.toggleODProgramDay('op2', 0, 0);
+ok('progress stored', (windowObj.OD_PROGRESS[0] && (windowObj.OD_PROGRESS[0].done || []).includes('op2:0:0')));
+ok('progress pct after one', ctx.odProgramProgressPct('c-anna', op2) > 0);
+const afterToggle = ctx.capScreenHTML('odprogram', { id: 'c-anna', name: 'Anna' });
+ok('progress label after toggle', /Postęp/.test(afterToggle));
+windowObj._clientAppMode = false;
 
 const src09 = fs.readFileSync(path.join(root, '09-posture-kb-invites-private.js'), 'utf8');
 ok('share od tag', /\[od:'\+id\+'\]/.test(src09));
 ok('share odprog tag', /\[odprog:'\+id\+'\]/.test(src09));
 ok('live od player', /openODWorkoutLive/.test(src09));
+ok('program weeks editor', /id="odp-weeks"/.test(src09) && /odpAddWeek/.test(src09));
+ok('starter pack od tags', /\[od:'\+w\.id\+'\]/.test(src09) && /\[odprog:'\+prog\.id\+'\]/.test(src09));
 ok('preview no longer notify-only', !/notify\('\$\{w\.name\} — podgląd'\)/.test(src09));
 
 if (failed) {

@@ -172,6 +172,20 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'client_live_odprogram.png') });
   ok('live odprogram screen', /Full Body/i.test(liveProg.text));
   ok('live odprogram play', liveProg.play);
+  ok('live odprogram toggle', /toggleODProgramDay/.test((await page.evaluate(() => (document.getElementById('clive-screen-content') || {}).innerHTML || ''))));
+
+  await page.evaluate(() => {
+    const btn = document.querySelector('#clive-screen-content button[onclick*="toggleODProgramDay"]');
+    if (btn) btn.click();
+  });
+  await page.waitForTimeout(250);
+  const liveProgDone = await page.evaluate(() => ({
+    text: (document.getElementById('clive-screen-content') || {}).innerText || '',
+    rec: (window.OD_PROGRESS || [])[0] || null
+  }));
+  await page.screenshot({ path: path.join(shotDir, 'client_live_odprogram_progress.png') });
+  ok('live progress stored', !!(liveProgDone.rec && (liveProgDone.rec.done || []).length), JSON.stringify(liveProgDone.rec));
+  ok('live progress percent', /%/.test(liveProgDone.text));
 
   await page.evaluate(() => {
     if (typeof setClientLiveScreen === 'function') setClientLiveScreen('resources');
@@ -185,6 +199,40 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'client_live_resources.png') });
   ok('live resources nav', liveRes.nav);
   ok('live resources youtube', liveRes.hrefs.some((u) => /youtube\.com/i.test(u)));
+
+  await page.evaluate(() => {
+    if (typeof closeODPlayer === 'function') closeODPlayer();
+    document.body.classList.remove('client-app-mode', 'od-playing', 'cw-playing');
+    window._clientAppMode = false;
+    const clive = document.getElementById('clive-player');
+    if (clive) clive.hidden = true;
+    if (typeof goTo === 'function') goTo('ondemand');
+    if (typeof ensureODWorkouts === 'function') ensureODWorkouts();
+    if (typeof ensureODPrograms === 'function') ensureODPrograms();
+    if (typeof setODTab === 'function') setODTab('programs');
+  });
+  await page.waitForTimeout(400);
+  await page.evaluate(() => {
+    const btn = [...document.querySelectorAll('#od-all-programs-grid button')].find((b) => /Edytuj/.test(b.textContent || ''));
+    if (btn) btn.click();
+    else if (typeof openODProgramModal === 'function') openODProgramModal('op2');
+  });
+  await page.waitForSelector('#odp-weeks');
+  await page.waitForTimeout(200);
+  const editor = await page.evaluate(() => {
+    const weeks = document.getElementById('odp-weeks');
+    const selects = [...document.querySelectorAll('#odp-weeks .odp-day-wo')];
+    return {
+      shown: !!(document.getElementById('m-od-program') && document.getElementById('m-od-program').classList.contains('show')),
+      days: document.querySelectorAll('#odp-weeks .odp-day').length,
+      youtubeOpts: selects.some((s) => /ow1/.test(s.innerHTML) || [...s.options].some((o) => o.value === 'ow1')),
+      html: (weeks && weeks.innerHTML) || ''
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'trainer_od_program_editor.png') });
+  ok('trainer program modal', editor.shown);
+  ok('trainer program days', editor.days >= 5, 'days=' + editor.days);
+  ok('trainer program youtube options', editor.youtubeOpts);
 
   await browser.close();
   if (failed) {

@@ -121,6 +121,7 @@ function emptyClientCollections(){
   window.USER_RESOURCES=[];
   window.OD_WORKOUTS=[];
   window.OD_PROGRAMS=[];
+  window.OD_PROGRESS=[];
   if(window.MSGS)Object.keys(window.MSGS).forEach(k=>delete window.MSGS[k]);
 }
 
@@ -166,6 +167,10 @@ async function loadClientApp(account){
   }catch(e){
     if(typeof ensureODPrograms==='function')ensureODPrograms();
   }
+  try{
+    const pr=await queryByClientId('odProgress',cid);
+    window.OD_PROGRESS=pr||[];
+  }catch(e){window.OD_PROGRESS=[];}
   const msgs=await queryByClientId('messages',cid);
   msgs.sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||''));
   if(!window.MSGS)window.MSGS={};
