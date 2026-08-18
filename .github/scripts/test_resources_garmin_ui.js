@@ -118,6 +118,23 @@ const SAMPLE_CSV = [
   ok('ui session stored', after.sessions.length === 1 && after.sessions[0].duration === 32);
   ok('garmin auto-connected', after.connected);
   ok('last import shown', /1 pomiar/i.test(after.last) || /Ostatni import/i.test(after.last), after.last);
+  ok('jump to metrics button', /Pomiary Garmin/i.test(await page.locator('#int-garmin-jump').innerText().catch(() => '')));
+
+  await page.click('text=Pomiary Garmin');
+  await page.waitForSelector('#metric-table-body');
+  await page.waitForTimeout(300);
+  const metricsUi = await page.evaluate(() => ({
+    title: (document.getElementById('metric-active-group-title') || {}).textContent || '',
+    body: (document.getElementById('metric-table-body') || {}).innerText || '',
+    client: (document.getElementById('metric-client-sel') || {}).value || '',
+    screen: !!(document.getElementById('screen-metrics') && document.getElementById('screen-metrics').classList.contains('active'))
+  }));
+  await page.screenshot({ path: path.join(shotDir, 'garmin_metrics_after_import.png') });
+  ok('metrics screen open', metricsUi.screen);
+  ok('metrics group garmin', /Garmin/i.test(metricsUi.title), metricsUi.title);
+  ok('metrics client selected', metricsUi.client === 'c-anna', metricsUi.client);
+  ok('metrics shows imported kcal', /412/.test(metricsUi.body), metricsUi.body.slice(0, 400));
+  ok('metrics shows activity name', /Morning Run/i.test(metricsUi.body), metricsUi.body.slice(0, 400));
 
   await browser.close();
   if (failed) {

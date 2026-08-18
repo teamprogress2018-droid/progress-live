@@ -1406,15 +1406,16 @@ function garminHeaderKey(h){
   const n=normGarminHeader(h);
   if(!n)return '';
   if((/max/.test(n)||/maks/.test(n))&&(/hr/.test(n)||/tetno/.test(n)))return '';
-  if(/^(date|data|start time|start|dzien)$/.test(n)||n==='start time')return 'date';
-  if(n==='date'||n==='data'||n.indexOf('start time')===0)return 'date';
-  if(/typ aktywnosc/.test(n)||n==='activity type'||n==='typ'||n==='sport'||n==='type')return 'type';
-  if(n==='title'||n==='tytul'||n==='nazwa'||n==='activity name'||n==='name')return 'title';
-  if(/kalorie/.test(n)||n==='calories'||n==='kcal'||n==='calorie')return 'calories';
-  if(n==='time'||n==='czas'||n==='duration'||/czas trwania/.test(n)||/moving time/.test(n)||/elapsed time/.test(n)||/czas ruchu/.test(n))return 'duration';
-  if(/avg hr/.test(n)||/average hr/.test(n)||/avg heart/.test(n)||/sr\.? tetno/.test(n)||/srednie tetno/.test(n)||n==='tetno'||n==='heart rate')return 'hr';
+  if(/siedzac/.test(n)||/sedentary/.test(n)||/lightly active/.test(n)||/lekko aktyw/.test(n)||n==='goal'||/floors/.test(n)||/pietra/.test(n))return '';
+  if(/^(date|data|start time|dzien)$/.test(n)||n.indexOf('start time')===0)return 'date';
+  if(n==='date'||n==='data')return 'date';
+  if(/typ aktywnosc/.test(n)||n==='activity type'||n==='sport')return 'type';
+  if(n==='title'||n==='tytul'||n==='nazwa'||n==='activity name')return 'title';
+  if(/kalorie/.test(n)||/calorie/.test(n)||n==='kcal')return 'calories';
+  if(/intensity min/.test(n)||/active min/.test(n)||/fairly active/.test(n)||/very active/.test(n)||/minuty intens/.test(n)||/minuty aktyw/.test(n)||/czas trwania/.test(n)||/moving time/.test(n)||/elapsed time/.test(n)||/czas ruchu/.test(n)||n==='duration'||n==='czas'||n==='time')return 'duration';
+  if(/resting heart/.test(n)||/tetno spoczynk/.test(n)||/avg hr/.test(n)||/average hr/.test(n)||/avg heart/.test(n)||/sr\.? tetno/.test(n)||/srednie tetno/.test(n)||n==='tetno'||n==='heart rate')return 'hr';
   if(/^dystans/.test(n)||/^distance/.test(n))return 'distance';
-  if(n==='steps'||n==='kroki'||/total steps/.test(n))return 'steps';
+  if(/steps/.test(n)||/kroki/.test(n))return 'steps';
   return '';
 }
 function parseGarminDuration(raw){
@@ -1474,15 +1475,16 @@ function parseGarminCsv(text){
       const val=cells[idx]==null?'':cells[idx];
       if(key==='date'){
         const dt=parseGarminDateTime(val);
-        rec.date=dt.date;rec.time=dt.time;
+        rec.date=dt.date;if(dt.time&&dt.time!=='12:00')rec.time=dt.time;
       }else if(key==='type')rec.type=String(val).trim();
       else if(key==='title')rec.title=String(val).trim();
       else if(key==='calories')rec.calories=Math.round(parseGarminNumber(val));
-      else if(key==='duration')rec.minutes=parseGarminDuration(val);
+      else if(key==='duration')rec.minutes+=parseGarminDuration(val);
       else if(key==='hr')rec.hr=Math.round(parseGarminNumber(val));
       else if(key==='distance')rec.distance=parseGarminDistance(val);
       else if(key==='steps')rec.steps=Math.round(parseGarminNumber(val));
     });
+    rec.activity=!!(rec.type||rec.title);
     if(rec.date)rows.push(rec);
   }
   return rows;
@@ -1514,7 +1516,7 @@ function importGarminCsvForClient(clientId,text){
     if(typeof persistById==='function')persistById('metricEntries',entry);
     metrics++;
     const sessDup=window.SE.some(s=>s.source==='garmin'&&s.clientId===clientId&&s.date===row.date&&s.time===(row.time||'12:00')&&(s.notes||'')===notes);
-    if(!sessDup&&row.minutes>0){
+    if(!sessDup&&row.minutes>0&&row.activity){
       const sess=(typeof withTrainer==='function'?withTrainer:x=>x)({
         id:(typeof newId==='function'?newId('gs'):('gs_'+Date.now())),
         clientId,date:row.date,time:row.time||'12:00',type:row.type||'Trening',
@@ -1525,7 +1527,10 @@ function importGarminCsvForClient(clientId,text){
       sessions++;
     }
   });
-  return {ok:true,metrics,sessions,skipped,rows:parsed.length};
+  const preview=window.METRIC_ENTRIES.filter(e=>e.source==='garmin'&&e.clientId===clientId)
+    .slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,5)
+    .map(e=>({date:e.date,notes:e.notes,values:e.values}));
+  return {ok:true,metrics,sessions,skipped,rows:parsed.length,preview};
 }
 function ensureGarminConnected(extraConfig){
   const prev=getIntConn('garmin')||{};
@@ -1548,15 +1553,25 @@ function garminCsvPanelHtml(conn){
   const lastTxt=last
     ?('Ostatni import: '+(last.at?new Date(last.at).toLocaleString('pl'):'—')+' · '+(last.metrics||0)+' '+((last.metrics||0)===1?'pomiar':(last.metrics||0)<5&&(last.metrics||0)>1?'pomiary':'pomiarów')+', '+(last.sessions||0)+' '+((last.sessions||0)===1?'sesja':(last.sessions||0)<5&&(last.sessions||0)>1?'sesje':'sesji')+(last.skipped?(' · pominięto '+last.skipped):''))
     :'Jeszcze nie importowano CSV.';
+  const preview=(last&&last.preview)||[];
+  const previewHtml=preview.length
+    ?`<div style="margin-top:10px;background:var(--s3);border-radius:8px;padding:8px 10px;">
+        ${preview.map(p=>`<div style="display:flex;justify-content:space-between;gap:8px;font-size:11px;padding:4px 0;border-bottom:1px solid var(--border);">
+          <span style="font-family:'DM Mono',monospace;color:var(--muted);">${escHtml(p.date||'')}</span>
+          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(p.notes||'Garmin')}</span>
+          <span style="color:var(--text);">${p.values&&p.values.m2?p.values.m2+' kcal':p.values&&p.values.m1?p.values.m1+' kroków':''}</span>
+        </div>`).join('')}
+      </div>`
+    :'';
   return `
     <div style="margin-bottom:20px;background:rgba(0,124,195,0.12);border:1px solid rgba(0,124,195,0.35);border-radius:10px;padding:12px;font-size:12px;line-height:1.6;">
       Live OAuth (HRV, sen, Body Battery) potrzebuje sekretu API na serwerze — <strong>nie zbieramy tu secretów do Firestore</strong>.
-      Działa dziś: plik CSV z Garmin Connect (Aktywności → Export).
+      Działa dziś: plik CSV z Garmin Connect (Aktywności albo raport dzienny → Export).
     </div>
     <div style="margin-bottom:20px;">
       <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:10px;">Import CSV</div>
       <ol style="margin:0 0 12px 18px;padding:0;font-size:12px;line-height:1.6;color:var(--muted);">
-        <li>Otwórz Garmin Connect → Aktywności</li>
+        <li>Otwórz Garmin Connect → Aktywności albo Raporty</li>
         <li>Eksportuj CSV (Export)</li>
         <li>Wybierz klienta i wczytaj plik</li>
       </ol>
@@ -1572,6 +1587,12 @@ function garminCsvPanelHtml(conn){
         <button class="btn btn-ghost btn-sm" type="button" onclick="intGarminOpenConnect()">Otwórz Garmin Connect</button>
       </div>
       <div id="int-garmin-last" style="font-size:11px;color:var(--muted);margin-top:10px;">${escHtml(lastTxt)}</div>
+      ${previewHtml}
+      ${lastCid?`<div id="int-garmin-jump" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
+        <button class="btn btn-primary btn-sm" type="button" onclick="openGarminImportedMetrics('${escHtml(lastCid)}')">📊 Pomiary Garmin</button>
+        <button class="btn btn-ghost btn-sm" type="button" onclick="openGarminImportedCalendar('${escHtml(lastCid)}')">📅 Kalendarz</button>
+        <button class="btn btn-ghost btn-sm" type="button" onclick="openGarminImportedProfile('${escHtml(lastCid)}')">👤 Profil klienta</button>
+      </div>`:''}
     </div>`;
 }
 function intGarminPickFile(){
@@ -1597,7 +1618,7 @@ function intGarminImportFor(clientId,text){
     if(typeof notify==='function')notify('⚠ '+(result.error||'Import CSV nieudany'));
     return result;
   }
-  ensureGarminConnected({lastImport:{at:new Date().toISOString(),metrics:result.metrics,sessions:result.sessions,skipped:result.skipped,clientId:clientId}});
+  ensureGarminConnected({lastImport:{at:new Date().toISOString(),metrics:result.metrics,sessions:result.sessions,skipped:result.skipped,clientId:clientId,preview:result.preview||[]}});
   if(typeof notify==='function'){
     const m=result.metrics,s=result.sessions;
     const mTxt=m+' '+(m===1?'pomiar':m>1&&m<5?'pomiary':'pomiarów');
@@ -1610,6 +1631,36 @@ function intGarminImportFor(clientId,text){
   try{if(typeof renderCal==='function')renderCal();}catch(e){}
   return result;
 }
+function openGarminImportedMetrics(clientId){
+  if(!clientId){if(typeof notify==='function')notify('⚠ Wybierz klienta');return;}
+  if(typeof closeIntDetail==='function')closeIntDetail();
+  if(typeof goTo==='function')goTo('metrics');
+  const csel=document.getElementById('metric-client-sel');
+  if(csel)csel.value=clientId;
+  if(typeof setMetricGroup==='function')setMetricGroup('mg6');
+  else if(typeof renderMetrics==='function')renderMetrics();
+}
+function openGarminImportedCalendar(clientId){
+  if(!clientId){if(typeof notify==='function')notify('⚠ Wybierz klienta');return;}
+  const jump=((window.SE||[]).filter(s=>s.source==='garmin'&&s.clientId===clientId).sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0]||{}).date
+    ||((window.METRIC_ENTRIES||[]).filter(e=>e.source==='garmin'&&e.clientId===clientId).sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0]||{}).date;
+  if(typeof closeIntDetail==='function')closeIntDetail();
+  if(typeof goTo==='function')goTo('calendar');
+  if(jump){
+    calCurrentDate=new Date(jump+'T12:00:00');
+    calMiniDate=new Date(calCurrentDate);
+    calSelectedDate=jump;
+  }
+  if(typeof setCalView==='function')setCalView('list');
+  else if(typeof renderCal==='function')renderCal();
+}
+function openGarminImportedProfile(clientId){
+  if(!clientId){if(typeof notify==='function')notify('⚠ Wybierz klienta');return;}
+  if(typeof closeIntDetail==='function')closeIntDetail();
+  if(typeof goTo==='function')goTo('clients');
+  if(typeof openClientProfile==='function')openClientProfile(clientId);
+  setTimeout(function(){if(typeof setCPTab==='function')setCPTab('metrics');},0);
+}
 function intGarminOpenConnect(){
   window.open('https://connect.garmin.com','_blank','noopener');
 }
@@ -1621,6 +1672,9 @@ window.intGarminPickFile=intGarminPickFile;
 window.intGarminImportFor=intGarminImportFor;
 window.intGarminOpenConnect=intGarminOpenConnect;
 window.ensureGarminConnected=ensureGarminConnected;
+window.openGarminImportedMetrics=openGarminImportedMetrics;
+window.openGarminImportedCalendar=openGarminImportedCalendar;
+window.openGarminImportedProfile=openGarminImportedProfile;
 
 function renderIntegrations(){
   renderIntStatusSummary();

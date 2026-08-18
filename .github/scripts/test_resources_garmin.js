@@ -134,8 +134,27 @@ ok('metric group mg6', windowObj.METRIC_ENTRIES[0] && windowObj.METRIC_ENTRIES[0
 ok('metric source garmin', windowObj.METRIC_ENTRIES[0] && windowObj.METRIC_ENTRIES[0].source === 'garmin');
 ok('session source garmin', windowObj.SE[0] && windowObj.SE[0].source === 'garmin');
 ok('session duration', windowObj.SE[0] && windowObj.SE[0].duration === 32);
+ok('session title garmin', ctx.sessionTitle(windowObj.SE[0]) === 'Morning Run');
+ok('session label garmin', ctx.sessionSourceLabel(windowObj.SE[0]) === 'Garmin');
+ok('preview rows', imported.preview && imported.preview.length === 2);
 const again = ctx.importGarminCsvForClient('c1', csv);
 ok('duplicate skipped', again.ok && again.skipped === 2 && again.metrics === 0, JSON.stringify(again));
+
+const daily = [
+  'Date,Calories Burned,Steps,Distance,Minutes Sedentary,Minutes Lightly Active,Minutes Fairly Active,Minutes Very Active,Resting Heart Rate',
+  '2024-03-14,2100,8432,6.2,600,180,25,20,58'
+].join('\n');
+const dailyRows = ctx.parseGarminCsv(daily);
+ok('daily csv row', dailyRows.length === 1, JSON.stringify(dailyRows));
+ok('daily not activity', dailyRows[0] && dailyRows[0].activity === false);
+ok('daily steps', dailyRows[0] && dailyRows[0].steps === 8432);
+ok('daily calories burned', dailyRows[0] && dailyRows[0].calories === 2100);
+ok('daily hr', dailyRows[0] && dailyRows[0].hr === 58);
+ok('daily skips sedentary', dailyRows[0] && dailyRows[0].minutes === 45, JSON.stringify(dailyRows[0]));
+const beforeSess = windowObj.SE.length;
+const dailyImp = ctx.importGarminCsvForClient('c1', daily);
+ok('daily metrics', dailyImp.ok && dailyImp.metrics === 1, JSON.stringify(dailyImp));
+ok('daily no calendar session', dailyImp.sessions === 0 && windowObj.SE.length === beforeSess, JSON.stringify(dailyImp));
 
 const groups = windowObj.DEMO_METRIC_GROUPS || ctx.DEMO_METRIC_GROUPS || [];
 ok('mg6 metric group', groups.some(g => g.id === 'mg6' && g.name === 'Garmin Connect'));
