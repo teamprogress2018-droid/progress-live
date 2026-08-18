@@ -116,7 +116,79 @@ const html = ctx.capScreenHTML('ondemand', { id: 'c-anna', name: 'Anna' });
 ok('client ondemand youtube', /YouTube/i.test(html) && /openODWorkout/.test(html));
 ok('client ondemand thumbs', /i\.ytimg\.com/.test(html));
 
+const homeHtml = ctx.capScreenHTML('home', { id: 'c-anna', name: 'Anna Nowak' });
+ok('home ondemand featured (no progress yet)', /ON-DEMAND/i.test(homeHtml) && /openODWorkout/.test(homeHtml) && !/KONTYNUUJ PROGRAM/i.test(homeHtml));
+
+ok('progress doc id stable', ctx.odProgramProgressDocId('c-anna', 'op2') === 'odpr_c-anna_op2');
+const cont0 = ctx.odProgramContinueForClient('c-anna');
+ok('continue finds active program', !!(cont0 && cont0.prog && cont0.prog.id === 'op2' && cont0.next));
+ok('continue next is first session', cont0 && cont0.next.weekIdx === 0 && cont0.next.dayIdx === 0);
+windowObj.OD_PROGRESS = [{
+  id: 'odpr_c-anna_op2',
+  clientId: 'c-anna',
+  programId: 'op2',
+  done: ['op2:0:0'],
+  updatedAt: new Date().toISOString()
+}];
+const cont1 = ctx.odProgramContinueForClient('c-anna');
+ok('continue after one day', cont1 && cont1.pct > 0 && cont1.next.dayIdx === 2);
+const homeContinue = ctx.capScreenHTML('home', { id: 'c-anna', name: 'Anna Nowak' });
+ok('home continue card when partial', /KONTYNUUJ PROGRAM/i.test(homeContinue) && /openODProgramContinue/.test(homeContinue));
+
+ok('cap od msg id', ctx.capOdMsgId('[od:ow1]\nTrening') === 'ow1');
+ok('cap live nav has ondemand', (ctx.capLiveNavScreens() || []).some((s) => s.id === 'ondemand'));
+
+if (typeof ctx.ensureODPrograms === 'function') ctx.ensureODPrograms();
+const progs = ctx.allODPrograms();
+ok('demo program active youtube', progs.some((p) => p.id === 'op2' && p.status === 'active' && ctx.odProgramWorkoutCount(p) >= 5));
+windowObj._cliveOdProgId = 'op2';
+const odProgHtml2 = ctx.capScreenHTML('odprogram', { id: 'c-anna', name: 'Anna' });
+ok('client odprogram play buttons', /openODWorkout\('ow1'\)/.test(odProgHtml2));
+ok('client odprogram toggle day', /toggleODProgramDay\('op2',0,0\)/.test(odProgHtml2));
+ok('client ondemand programs tab', /capSetOdTab\('programs'\)/.test(html));
+ok('cap odprog msg id', ctx.capOdProgMsgId('[odprog:op2]\nProgram') === 'op2');
+ok('live nav has resources', (ctx.capLiveNavScreens() || []).some((s) => s.id === 'resources'));
+
+const op2 = progs.find((p) => p.id === 'op2');
+ok('week complete helper', !ctx.odProgramWeekComplete('c-anna', op2, 0));
+windowObj.OD_PROGRESS = [{
+  id: 'odpr_c-anna_op2',
+  clientId: 'c-anna',
+  programId: 'op2',
+  done: ['op2:0:0', 'op2:0:2', 'op2:0:4'],
+  updatedAt: new Date().toISOString()
+}];
+ok('week complete after three days', ctx.odProgramWeekComplete('c-anna', op2, 0));
+const notifs = [];
+ctx.addNotification = (type, title, body, action, fixedId) => {
+  notifs.push({ type, title, body, action, fixedId });
+};
+windowObj.addNotification = ctx.addNotification;
+ctx.odProgramNotifyAfterToggle('c-anna', 'op2', 0, true);
+ok('week done notification', notifs.some((n) => n.fixedId === 'odprog_week_c-anna_op2_0' && /Tydzień programu/i.test(n.title)));
+notifs.length = 0;
+windowObj.OD_PROGRESS[0].done = ['op2:0:0', 'op2:0:2', 'op2:0:4', 'op2:1:0', 'op2:1:2', 'op2:1:4'];
+ctx.odProgramNotifyAfterToggle('c-anna', 'op2', 1, true);
+ok('program done notification', notifs.some((n) => n.fixedId === 'odprog_done_c-anna_op2' && /ukończony/i.test(n.title)));
+windowObj.OD_PROGRESS = [];
+ok('session key', ctx.odProgramSessionKey('op2', 0, 2) === 'op2:0:2');
+ok('session total youtube days', ctx.odProgramSessionTotal(op2) >= 5, 'n=' + ctx.odProgramSessionTotal(op2));
+windowObj._clientAppMode = true;
+windowObj._clientId = 'c-anna';
+windowObj.OD_PROGRESS = [];
+ctx.toggleODProgramDay('op2', 0, 0);
+ok('progress stored', (windowObj.OD_PROGRESS[0] && (windowObj.OD_PROGRESS[0].done || []).includes('op2:0:0')));
+ok('progress pct after one', ctx.odProgramProgressPct('c-anna', op2) > 0);
+const afterToggle = ctx.capScreenHTML('odprogram', { id: 'c-anna', name: 'Anna' });
+ok('progress label after toggle', /Postęp/.test(afterToggle));
+windowObj._clientAppMode = false;
+
 const src09 = fs.readFileSync(path.join(root, '09-posture-kb-invites-private.js'), 'utf8');
+ok('share od tag', /\[od:'\+id\+'\]/.test(src09));
+ok('share odprog tag', /\[odprog:'\+id\+'\]/.test(src09));
+ok('live od player', /openODWorkoutLive/.test(src09));
+ok('program weeks editor', /id="odp-weeks"/.test(src09) && /odpAddWeek/.test(src09));
+ok('starter pack od tags', /\[od:'\+w\.id\+'\]/.test(src09) && /\[odprog:'\+prog\.id\+'\]/.test(src09));
 ok('preview no longer notify-only', !/notify\('\$\{w\.name\} — podgląd'\)/.test(src09));
 
 if (failed) {

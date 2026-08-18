@@ -723,10 +723,207 @@ const OD_DEMO_WORKOUTS=[
 window.OD_DEMO_WORKOUTS=OD_DEMO_WORKOUTS;
 
 const OD_DEMO_PROGRAMS=[
-  {id:'op1',name:'Starting Strength — Demo',level:'poczatkujacy',duration:'4 tygodnie',color:'linear-gradient(135deg,#1a0a0a,#2a1a0a)',emoji:'🏋️',desc:'Oparty na Starting Strength Marka Rippetoe. Program siły oparty na własnej masie, stopniowo wprowadzający obciążenia.',clients:0,status:'draft'},
+  {id:'op2',name:'4 tygodnie Full Body — YouTube',level:'poczatkujacy',duration:'4 tygodnie',status:'active',color:'linear-gradient(135deg,#1a1a2e,#2a1a0a)',emoji:'⚡',desc:'3 darmowe treningi w tygodniu z YouTube (HASfit, MadFit). Odtwarzaj w apce — bez subskrypcji.',clients:0,weeks:[
+    {label:'Tydzień 1',days:[
+      {label:'Dzień 1 — Full Body',workoutId:'ow1'},
+      {label:'Dzień 2 — Regeneracja',rest:true},
+      {label:'Dzień 3 — HIIT',workoutId:'ow2'},
+      {label:'Dzień 4 — Regeneracja',rest:true},
+      {label:'Dzień 5 — Lower Body',workoutId:'ow6'},
+    ]},
+    {label:'Tydzień 2',days:[
+      {label:'Dzień 1 — Push',workoutId:'ow3'},
+      {label:'Dzień 2 — Regeneracja',rest:true},
+      {label:'Dzień 3 — Pull',workoutId:'ow4'},
+      {label:'Dzień 4 — Regeneracja',rest:true},
+      {label:'Dzień 5 — Mobilność',workoutId:'ow5'},
+    ]},
+  ]},
+  {id:'op1',name:'Starting Strength — szkic',level:'poczatkujacy',duration:'4 tygodnie',color:'linear-gradient(135deg,#1a0a0a,#2a1a0a)',emoji:'🏋️',desc:'Szkic programu siłowego — dodaj filmy YouTube w panelu On-demand.',clients:0,status:'draft'},
 ];
 window.OD_PROGRAMS=window.OD_PROGRAMS||[];
+window.OD_PROGRESS=window.OD_PROGRESS||[];
 function allODPrograms(){return window.OD_PROGRAMS&&window.OD_PROGRAMS.length?window.OD_PROGRAMS:OD_DEMO_PROGRAMS;}
+function ensureODPrograms(){
+  if(window.OD_PROGRAMS&&window.OD_PROGRAMS.length)return window.OD_PROGRAMS;
+  window.OD_PROGRAMS=OD_DEMO_PROGRAMS.map(p=>JSON.parse(JSON.stringify(p)));
+  return window.OD_PROGRAMS;
+}
+function odProgramWorkoutIds(prog){
+  const ids=new Set();
+  (prog&&prog.weeks||[]).forEach(w=>(w.days||[]).forEach(d=>{if(d.workoutId)ids.add(d.workoutId);}));
+  return [...ids];
+}
+function odProgramWorkoutCount(prog){return odProgramWorkoutIds(prog).length;}
+function odProgramSessionKey(progId,weekIdx,dayIdx){
+  return String(progId||'')+':'+Number(weekIdx)+':'+Number(dayIdx);
+}
+function odProgramSessionTotal(prog){
+  let n=0;
+  (prog&&prog.weeks||[]).forEach(w=>(w.days||[]).forEach(d=>{if(!d.rest&&d.workoutId)n++;}));
+  return n;
+}
+function odProgramProgressFor(clientId,progId){
+  const cid=clientId||window._clientId||'';
+  return (window.OD_PROGRESS||[]).find(p=>p.clientId===cid&&p.programId===progId)||null;
+}
+function odProgramDoneSet(clientId,progId){
+  const rec=odProgramProgressFor(clientId,progId);
+  return new Set((rec&&rec.done)||[]);
+}
+function odProgramProgressPct(clientId,prog){
+  const total=odProgramSessionTotal(prog);
+  if(!total)return 0;
+  const done=odProgramDoneSet(clientId,prog.id);
+  let n=0;
+  (prog.weeks||[]).forEach((w,wi)=>(w.days||[]).forEach((d,di)=>{
+    if(!d.rest&&d.workoutId&&done.has(odProgramSessionKey(prog.id,wi,di)))n++;
+  }));
+  return Math.round(n/total*100);
+}
+function odProgramProgressDocId(clientId,progId){
+  return 'odpr_'+String(clientId||'').replace(/[^a-zA-Z0-9_-]/g,'_')+'_'+String(progId||'');
+}
+function odProgramWeekWorkoutKeys(prog,weekIdx){
+  const keys=[];
+  const w=(prog&&prog.weeks||[])[weekIdx];
+  if(!w)return keys;
+  (w.days||[]).forEach((d,di)=>{if(!d.rest&&d.workoutId)keys.push(odProgramSessionKey(prog.id,weekIdx,di));});
+  return keys;
+}
+function odProgramWeekComplete(clientId,prog,weekIdx){
+  const keys=odProgramWeekWorkoutKeys(prog,weekIdx);
+  if(!keys.length)return false;
+  const done=odProgramDoneSet(clientId,prog.id);
+  return keys.every(k=>done.has(k));
+}
+function odProgramNextSession(clientId,prog){
+  if(!prog)return null;
+  const done=odProgramDoneSet(clientId,prog.id);
+  let found=null;
+  (prog.weeks||[]).forEach((w,wi)=>(w.days||[]).forEach((d,di)=>{
+    if(found||d.rest||!d.workoutId)return;
+    const key=odProgramSessionKey(prog.id,wi,di);
+    if(!done.has(key))found={prog,weekIdx:wi,dayIdx:di,day:d,key,workoutId:d.workoutId};
+  }));
+  return found;
+}
+function odProgramContinueForClient(clientId){
+  if(typeof ensureODPrograms==='function')ensureODPrograms();
+  if(typeof ensureODWorkouts==='function')ensureODWorkouts();
+  const progs=allODPrograms().filter(p=>(typeof odProgramWorkoutCount==='function'?odProgramWorkoutCount(p)>0:p.status==='active')&&p.status!=='draft');
+  let pick=null;
+  let pickPct=-1;
+  progs.forEach(p=>{
+    const next=odProgramNextSession(clientId,p);
+    if(!next)return;
+    const pct=odProgramProgressPct(clientId,p);
+    if(pct>=100)return;
+    if(pct>0&&pct>=pickPct){pick=p;pickPct=pct;}
+    else if(!pick&&pct===0)pick=p;
+  });
+  if(!pick)pick=progs.find(p=>{const n=odProgramNextSession(clientId,p);return n&&odProgramProgressPct(clientId,p)<100;})||null;
+  if(!pick)return null;
+  const next=odProgramNextSession(clientId,pick);
+  if(!next)return null;
+  const workout=allODWorkouts().find(x=>x.id===next.workoutId)||null;
+  return {prog:pick,next,workout,pct:odProgramProgressPct(clientId,pick)};
+}
+function odProgramNotifyAfterToggle(clientId,progId,weekIdx,markedDone){
+  if(!markedDone||typeof addNotification!=='function')return;
+  const prog=allODPrograms().find(x=>x.id===progId);
+  if(!prog)return;
+  const c=(window.CL||[]).find(x=>x.id===clientId)||{name:'Klient'};
+  const pct=odProgramProgressPct(clientId,prog);
+  if(pct>=100){
+    addNotification('system','Program on-demand ukończony',c.name+' · '+prog.name,'ondemand','odprog_done_'+clientId+'_'+progId);
+    return;
+  }
+  if(odProgramWeekComplete(clientId,prog,weekIdx)){
+    const wk=(prog.weeks||[])[weekIdx];
+    addNotification('system','Tydzień programu on-demand',c.name+' · '+prog.name+' · '+(wk&&wk.label||('Tydzień '+(Number(weekIdx)+1))),'ondemand','odprog_week_'+clientId+'_'+progId+'_'+weekIdx);
+  }
+}
+window.odProgramProgressDocId=odProgramProgressDocId;
+window.odProgramWeekComplete=odProgramWeekComplete;
+window.odProgramNextSession=odProgramNextSession;
+window.odProgramContinueForClient=odProgramContinueForClient;
+window.odProgramNotifyAfterToggle=odProgramNotifyAfterToggle;
+function collectODProgramWeeksFromForm(){
+  const weeks=[];
+  document.querySelectorAll('#odp-weeks .odp-week').forEach(wEl=>{
+    const label=(wEl.querySelector('.odp-week-label')||{}).value||'Tydzień';
+    const days=[];
+    wEl.querySelectorAll('.odp-day').forEach(dEl=>{
+      const dlabel=(dEl.querySelector('.odp-day-label')||{}).value||'';
+      const sel=dEl.querySelector('.odp-day-wo');
+      const val=sel?sel.value:'';
+      if(val==='rest')days.push({label:dlabel||'Regeneracja',rest:true});
+      else if(val)days.push({label:dlabel||'',workoutId:val});
+      else days.push({label:dlabel||'Dzień',rest:true});
+    });
+    weeks.push({label,days});
+  });
+  return weeks;
+}
+function odWorkoutSelectHtml(selected){
+  const list=allODWorkouts();
+  const cur=selected||'';
+  return `<select class="form-select odp-day-wo" style="font-size:12px;">
+    <option value="rest"${cur==='rest'||!cur?' selected':''}>🧘 Regeneracja</option>
+    ${list.map(w=>`<option value="${escHtml(w.id)}"${cur===w.id?' selected':''}>▶ ${escHtml(w.name)}</option>`).join('')}
+  </select>`;
+}
+function odProgramDayRowHtml(day){
+  const d=day||{};
+  const sel=d.rest?'rest':(d.workoutId||'rest');
+  return `<div class="odp-day" style="display:grid;grid-template-columns:1fr 1fr auto;gap:6px;margin-bottom:6px;align-items:center;">
+    <input class="form-input odp-day-label" style="font-size:12px;" placeholder="Dzień 1 — Full Body" value="${escHtml(d.label||'')}">
+    ${odWorkoutSelectHtml(sel)}
+    <button type="button" class="btn btn-ghost btn-sm" onclick="this.closest('.odp-day').remove()">×</button>
+  </div>`;
+}
+function odProgramWeekHtml(week){
+  const w=week||{label:'Tydzień',days:[{label:'Dzień 1',workoutId:''}]};
+  return `<div class="odp-week" style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:10px;">
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+      <input class="form-input odp-week-label" style="font-size:13px;font-weight:600;" value="${escHtml(w.label||'Tydzień')}">
+      <button type="button" class="btn btn-ghost btn-sm" onclick="this.closest('.odp-week').remove()">Usuń tydzień</button>
+    </div>
+    <div class="odp-days">${(w.days&&w.days.length?w.days:[{label:'Dzień 1'}]).map(odProgramDayRowHtml).join('')}</div>
+    <button type="button" class="btn btn-ghost btn-sm" onclick="odpAddDay(this)">+ Dzień</button>
+  </div>`;
+}
+function renderODProgramWeeksEditor(weeks){
+  const box=document.getElementById('odp-weeks');
+  if(!box)return;
+  const list=weeks&&weeks.length?weeks:[{label:'Tydzień 1',days:[{label:'Dzień 1 — Full Body',workoutId:''},{label:'Dzień 2 — Regeneracja',rest:true}]}];
+  box.innerHTML=list.map(odProgramWeekHtml).join('');
+}
+function odpAddWeek(){
+  const box=document.getElementById('odp-weeks');
+  if(!box)return;
+  const n=box.querySelectorAll('.odp-week').length+1;
+  box.insertAdjacentHTML('beforeend',odProgramWeekHtml({label:'Tydzień '+n,days:[{label:'Dzień 1',workoutId:''}]}));
+}
+function odpAddDay(btn){
+  const days=btn&&btn.parentElement&&btn.parentElement.querySelector('.odp-days');
+  if(!days)return;
+  const n=days.querySelectorAll('.odp-day').length+1;
+  days.insertAdjacentHTML('beforeend',odProgramDayRowHtml({label:'Dzień '+n}));
+}
+window.odProgramSessionKey=odProgramSessionKey;
+window.odProgramSessionTotal=odProgramSessionTotal;
+window.odProgramProgressFor=odProgramProgressFor;
+window.odProgramDoneSet=odProgramDoneSet;
+window.odProgramProgressPct=odProgramProgressPct;
+window.collectODProgramWeeksFromForm=collectODProgramWeeksFromForm;
+window.renderODProgramWeeksEditor=renderODProgramWeeksEditor;
+window.odpAddWeek=odpAddWeek;
+window.odpAddDay=odpAddDay;
+window.ensureODPrograms=ensureODPrograms;
+window.odProgramWorkoutIds=odProgramWorkoutIds;
+window.odProgramWorkoutCount=odProgramWorkoutCount;
 function allODWorkouts(){
   if(window.OD_WORKOUTS&&window.OD_WORKOUTS.length)return window.OD_WORKOUTS;
   return OD_DEMO_WORKOUTS;
@@ -882,21 +1079,24 @@ function odWorkoutCardHTML(w,i){
 }
 
 function odProgramCardHTML(p,i){
-  return `<div class="od-prog-card" style="animation-delay:${i*0.05}s">
+  const ytN=odProgramWorkoutCount(p);
+  return `<div class="od-prog-card" style="animation-delay:${i*0.05}s;${ytN?'cursor:pointer;':''}" ${ytN?`onclick="openODProgramClient('${escHtml(p.id)}')"`:''}>
     <div class="od-prog-thumb" style="background:${p.color||'var(--s3)'};">
       <div style="font-size:36px;opacity:0.25;position:absolute;top:10px;right:10px;">${p.emoji||'🏋️'}</div>
       <div>
         <span style="background:rgba(0,0,0,0.6);color:${p.status==='draft'?'var(--orange)':'var(--accent)'};font-size:10px;font-family:'DM Mono',monospace;padding:2px 8px;border-radius:4px;margin-right:6px;">${p.status==='draft'?'DRAFT':'AKTYWNY'}</span>
         <span style="background:rgba(0,0,0,0.6);color:#fff;font-size:10px;font-family:'DM Mono',monospace;padding:2px 8px;border-radius:4px;">${escHtml(p.duration||'')}</span>
+        ${ytN?`<span style="background:rgba(0,0,0,0.6);color:#fff;font-size:10px;font-family:'DM Mono',monospace;padding:2px 8px;border-radius:4px;margin-left:6px;">${ytN}× YouTube</span>`:''}
       </div>
     </div>
     <div style="padding:14px;">
       <div style="font-size:14px;font-weight:700;margin-bottom:4px;">${escHtml(p.name)}</div>
       <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:10px;">${escHtml(p.desc||'')}</div>
       <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">Poziom: <strong>${LEVEL_MAP[p.level]||escHtml(p.level||'—')}</strong></div>
-      <div style="display:flex;gap:6px;">
-        <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="openODProgramModal('${escHtml(p.id)}')">Edytuj</button>
-        <button class="btn btn-primary btn-sm" style="flex:1;" onclick="shareODProgram('${escHtml(p.id)}')">Udostępnij</button>
+      <div style="display:flex;gap:6px;" onclick="event.stopPropagation()">
+        <button class="btn btn-ghost btn-sm" style="flex:1;" type="button" onclick="openODProgramModal('${escHtml(p.id)}')">Edytuj</button>
+        ${ytN?`<button class="btn btn-primary btn-sm" style="flex:1;" type="button" onclick="openODProgramClient('${escHtml(p.id)}')">Podgląd klienta</button>`:`<button class="btn btn-primary btn-sm" style="flex:1;" type="button" onclick="shareODProgram('${escHtml(p.id)}')">Udostępnij</button>`}
+        <button class="btn btn-ghost btn-sm" type="button" onclick="shareODProgram('${escHtml(p.id)}')">↗</button>
       </div>
     </div>
   </div>`;
@@ -932,6 +1132,12 @@ function openODProgramModal(id){
           <div class="form-field"><label class="form-lbl">Emoji</label><input type="text" class="form-input" id="odp-emoji" value="🏋️" maxlength="4"></div>
         </div>
         <div class="form-field"><label class="form-lbl">Opis</label><textarea class="form-textarea" id="odp-desc" rows="3" placeholder="Opis programu dla klientów..."></textarea></div>
+        <div class="form-field">
+          <label class="form-lbl">Tygodnie i dni YouTube</label>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Przypisz darmowy trening (watch?v=…) albo regenerację. Klient odhacza dni w apce.</div>
+          <div id="odp-weeks"></div>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="odpAddWeek()">+ Tydzień</button>
+        </div>
       </div>
       <div class="modal-footer" style="display:flex;gap:8px;justify-content:flex-end;">
         <button class="btn btn-ghost btn-sm" id="odp-delete-btn" style="display:none;margin-right:auto;color:var(--red);" onclick="deleteODProgram()">Usuń</button>
@@ -950,6 +1156,7 @@ function openODProgramModal(id){
   document.getElementById('odp-status').value=p?.status||'draft';
   document.getElementById('odp-emoji').value=p?.emoji||'🏋️';
   document.getElementById('odp-desc').value=p?.desc||'';
+  renderODProgramWeeksEditor(p&&p.weeks);
   const del=document.getElementById('odp-delete-btn');
   if(del)del.style.display=(p&&window.OD_PROGRAMS.some(x=>x.id===p.id))?'inline-flex':'none';
   openM('m-od-program');
@@ -958,13 +1165,13 @@ function openODProgramModal(id){
 async function saveODProgram(){
   const name=document.getElementById('odp-name')?.value.trim();
   if(!name){notify('Wpisz nazwę programu!');return;}
+  const weeks=collectODProgramWeeksFromForm();
   const editingId=window._editingODProgId;
   let prog;
   if(editingId){
     prog=(window.OD_PROGRAMS||[]).find(x=>x.id===editingId);
     if(!prog){
-      // edycja demo → utwórz kopię użytkownika
-      prog=withTrainer({id:newId('op'),name,level:document.getElementById('odp-level').value,duration:document.getElementById('odp-duration').value.trim()||'4 tygodnie',status:document.getElementById('odp-status').value,emoji:document.getElementById('odp-emoji').value||'🏋️',desc:document.getElementById('odp-desc').value.trim(),color:'linear-gradient(135deg,#1a0a0a,#2a1a0a)',clients:0,createdAt:new Date().toISOString()});
+      prog=withTrainer({id:editingId,name,level:document.getElementById('odp-level').value,duration:document.getElementById('odp-duration').value.trim()||'4 tygodnie',status:document.getElementById('odp-status').value,emoji:document.getElementById('odp-emoji').value||'🏋️',desc:document.getElementById('odp-desc').value.trim(),color:'linear-gradient(135deg,#1a0a0a,#2a1a0a)',clients:0,weeks,createdAt:new Date().toISOString()});
       window.OD_PROGRAMS.push(prog);
     }else{
       prog.name=name;
@@ -973,6 +1180,7 @@ async function saveODProgram(){
       prog.status=document.getElementById('odp-status').value;
       prog.emoji=document.getElementById('odp-emoji').value||'🏋️';
       prog.desc=document.getElementById('odp-desc').value.trim();
+      prog.weeks=weeks;
       prog.updatedAt=new Date().toISOString();
       withTrainer(prog);
     }
@@ -986,6 +1194,7 @@ async function saveODProgram(){
       desc:document.getElementById('odp-desc').value.trim(),
       color:'linear-gradient(135deg,#1a0a0a,#2a1a0a)',
       clients:0,
+      weeks,
       createdAt:new Date().toISOString()
     });
     window.OD_PROGRAMS.push(prog);
@@ -994,7 +1203,7 @@ async function saveODProgram(){
   closeM('m-od-program');
   renderODPrograms();
   if(odTab==='browse')renderODBrowse();
-  notify('✓ Program "'+name+'" zapisany');
+  notify('✓ Program "'+name+'" zapisany'+(odProgramWorkoutCount(prog)?' · '+odProgramWorkoutCount(prog)+' treningów YouTube':''));
 }
 
 async function deleteODProgram(){
@@ -1017,22 +1226,70 @@ function shareODWorkout(id){
   if(!w){notify('Nie znaleziono treningu');return;}
   if(!confirm('Udostępnić trening "'+w.name+'" wszystkim klientom ('+CL.length+')?'))return;
   const link=w.url||'(brak URL wideo)';
-  CL.forEach(c=>pushMsg(c.id,'▶️ Nowy trening on-demand: "'+w.name+'"\n'+link+(w.desc?'\n'+w.desc:'')));
+  const tag='[od:'+id+']';
+  CL.forEach(c=>pushMsg(c.id,tag+'\n▶️ Nowy trening on-demand: "'+w.name+'"\n'+link+(w.desc?'\n'+w.desc:'')));
   notify('✓ Trening "'+w.name+'" wysłany do '+CL.length+' klientów (Inbox)');
+}
+
+function odPlayerHtml(w,extraWrapClass){
+  const embed=typeof coachVideoEmbed==='function'?coachVideoEmbed(w.url):'';
+  const file=typeof coachVideoIsFile==='function'&&coachVideoIsFile(w.url);
+  const safeUrl=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl(w.url):String(w.url||'');
+  const wrapCls='od-player-wrap'+(extraWrapClass?' '+extraWrapClass:'');
+  if(embed){
+    return '<div class="'+wrapCls+'"><iframe id="od-player-frame" src="'+escHtml(embed)+'" title="'+escHtml(w.name||'Trening')+'" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen></iframe></div>';
+  }
+  if(file&&safeUrl){
+    return '<video id="od-player-frame" src="'+escHtml(safeUrl)+'" controls playsinline style="width:100%;border-radius:12px;background:#000;"></video>';
+  }
+  if(safeUrl){
+    return '<div style="padding:28px;text-align:center;color:var(--muted);">Nie da się osadzić tego linku. <a href="'+escHtml(safeUrl)+'" target="_blank" rel="noopener noreferrer">Otwórz wideo</a></div>';
+  }
+  return '<div style="padding:28px;text-align:center;color:var(--muted);">Brak linku YouTube. Dodaj URL odcinka (watch?v=...), nie kanału.</div>';
+}
+
+function openODWorkoutLive(w){
+  if(window._cw&&window._cw.active){
+    if(!confirm('Masz rozpoczęty trening z planu. Przerwać i odtworzyć on-demand?'))return;
+    if(typeof cwClose==='function')cwClose();
+  }
+  window._odPlay={id:w.id,workout:w};
+  const wrap=document.getElementById('clive-player');
+  const inner=document.getElementById('clive-player-inner');
+  if(!wrap||!inner)return false;
+  const safeUrl=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl(w.url):String(w.url||'');
+  inner.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px;">
+    <button type="button" class="btn btn-ghost btn-sm" onclick="closeODPlayer()">✕ Zamknij</button>
+    <div style="font-size:11px;color:var(--muted);text-align:right;flex:1;">YouTube · darmowy trening</div>
+  </div>
+  <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;margin-bottom:6px;">${escHtml(w.name||'Trening')}</div>
+  <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">${escHtml(w.desc||'')}${w.time?' · '+w.time+' min':''}</div>
+  ${odPlayerHtml(w,'clive-od-player-wrap')}
+  ${safeUrl?`<a class="btn btn-ghost btn-sm" style="margin-top:12px;display:inline-flex;" href="${escHtml(safeUrl)}" target="_blank" rel="noopener noreferrer">Otwórz na YouTube</a>`:''}`;
+  wrap.hidden=false;
+  document.body.classList.add('od-playing');
+  return true;
 }
 
 function closeODPlayer(){
   const frame=document.getElementById('od-player-frame');
-  if(frame)frame.removeAttribute('src');
-  if(typeof closeM==='function')closeM('m-od-player');
-  else{
-    const m=document.getElementById('m-od-player');
-    if(m)m.classList.remove('show');
+  if(frame){
+    if(frame.tagName==='IFRAME')frame.removeAttribute('src');
+    else if(frame.pause){try{frame.pause();}catch(e){}}
   }
+  if(window._odPlay||(document.body&&document.body.classList&&document.body.classList.contains('od-playing'))){
+    const wrap=document.getElementById('clive-player');
+    if(wrap)wrap.hidden=true;
+    document.body.classList.remove('od-playing');
+    window._odPlay=null;
+  }
+  const m=document.getElementById('m-od-player');
+  if(m)m.classList.remove('show');
 }
 function openODWorkout(id){
   const w=allODWorkouts().find(x=>x.id===id);
   if(!w){if(typeof notify==='function')notify('Nie znaleziono treningu');return;}
+  if(window._clientAppMode&&openODWorkoutLive(w))return;
   const embed=typeof coachVideoEmbed==='function'?coachVideoEmbed(w.url):'';
   const file=typeof coachVideoIsFile==='function'&&coachVideoIsFile(w.url);
   let m=document.getElementById('m-od-player');
@@ -1064,15 +1321,7 @@ function openODWorkout(id){
     else{yt.removeAttribute('href');yt.style.display='none';}
   }
   if(meta)meta.textContent=(w.desc||'')+(w.time?' · '+w.time+' min':'')+' · darmowy YouTube';
-  if(embed){
-    wrap.innerHTML='<iframe id="od-player-frame" src="'+escHtml(embed)+'" title="'+escHtml(w.name||'Trening')+'" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen></iframe>';
-  }else if(file&&safeUrl){
-    wrap.innerHTML='<video id="od-player-frame" src="'+escHtml(safeUrl)+'" controls playsinline style="width:100%;height:100%;position:absolute;inset:0;background:#000;"></video>';
-  }else if(safeUrl){
-    wrap.innerHTML='<div style="padding:28px;text-align:center;color:var(--muted);">Nie da się osadzić tego linku. <a href="'+escHtml(safeUrl)+'" target="_blank" rel="noopener noreferrer">Otwórz wideo</a></div>';
-  }else{
-    wrap.innerHTML='<div style="padding:28px;text-align:center;color:var(--muted);">Brak linku YouTube. Dodaj URL odcinka (watch?v=...), nie kanału.</div>';
-  }
+  if(wrap)wrap.innerHTML=odPlayerHtml(w);
   if(typeof openM==='function')openM('m-od-player');
   else m.classList.add('show');
 }
@@ -1115,7 +1364,9 @@ function shareODProgram(id){
   const p=allODPrograms().find(x=>x.id===id);
   if(!p){notify('Nie znaleziono programu');return;}
   if(!confirm('Udostępnić program "'+p.name+'" wszystkim klientom ('+CL.length+')?'))return;
-  CL.forEach(c=>pushMsg(c.id,'📋 Program on-demand: "'+p.name+'"'+(p.desc?'\n'+p.desc:'')+'\nCzas: '+(p.duration||'—')+' · '+(LEVEL_MAP[p.level]||p.level||'')));
+  const tag='[odprog:'+id+']';
+  const ytN=odProgramWorkoutCount(p);
+  CL.forEach(c=>pushMsg(c.id,tag+'\n📋 Program on-demand: "'+p.name+'"'+(p.desc?'\n'+p.desc:'')+'\nCzas: '+(p.duration||'—')+' · '+(LEVEL_MAP[p.level]||p.level||'')+(ytN?'\n'+ytN+' treningów YouTube w apce':'')));
   notify('✓ Program "'+p.name+'" wysłany do '+CL.length+' klientów (Inbox)');
 }
 
@@ -1404,18 +1655,30 @@ function confirmStarterPack(){
   if(!cid){notify('Wybierz klienta!');return;}
   const c=CL.find(x=>x.id===cid);
   if(!c)return;
+  if(typeof ensureODWorkouts==='function')ensureODWorkouts();
+  if(typeof ensureODPrograms==='function')ensureODPrograms();
   const all=allResources();
   const picks=[
     all.find(r=>r.coll==='podcasts'&&/youtube/i.test(r.url||'')),
     all.find(r=>r.cat==='odżywianie'&&r.type==='link'),
     all.find(r=>r.coll==='music'&&/youtube/i.test(r.url||'')),
   ].filter(Boolean);
-  if(!picks.length){notify('Brak zasobów do wysłania — dodaj kilka materiałów.');return;}
-  const intro=`🎁 Witaj ${c.name.split(' ')[0]}! Przygotowałem dla Ciebie start na YouTube (bez Spotify Premium) — ${picks.length===3?'podcast, artykuł o diecie i muzykę na trening':'kilka materiałów'}:`;
-  const body=picks.map(r=>`• ${r.name}\n${r.url||''}`).join('\n\n');
-  pushMsg(cid,intro+'\n\n'+body);
+  const workouts=allODWorkouts().slice(0,2);
+  const prog=allODPrograms().find(p=>p.status==='active'&&odProgramWorkoutCount(p)>0);
+  if(!picks.length&&!workouts.length&&!prog){notify('Brak zasobów i treningów do wysłania.');return;}
+  const lines=[`🎁 Witaj ${c.name.split(' ')[0]}! Start na YouTube (bez Spotify Premium):`];
+  if(prog)lines.push('','[odprog:'+prog.id+']','📋 Program: '+prog.name+(prog.duration?' ('+prog.duration+')':''));
+  if(workouts.length){
+    lines.push('','▶ Treningi w apce:');
+    workouts.forEach(w=>lines.push('[od:'+w.id+'] '+w.name+(w.url?'\n'+w.url:'')));
+  }
+  if(picks.length){
+    lines.push('','🎧 Podcast / artykuł / muzyka:');
+    picks.forEach(r=>lines.push('• '+r.name+(r.url?'\n'+r.url:'')));
+  }
+  pushMsg(cid,lines.join('\n'));
   closeM('m-starter-pack');
-  notify('✓ Paczka startowa ('+picks.length+' zasoby) wysłana do '+c.name+'!');
+  notify('✓ Paczka startowa wysłana do '+c.name+'!');
 }
 
 async function saveResource(){
@@ -1671,13 +1934,23 @@ function runOnboardingForClient(client){
       }
     }
     if(flow.ondemandEnabled){
+      if(typeof ensureODWorkouts==='function')ensureODWorkouts();
+      if(typeof ensureODPrograms==='function')ensureODPrograms();
       const items=window.USER_RESOURCES||[];
       const one=flow.resourceId?items.find(r=>r.id===flow.resourceId):null;
-      const names=one?[one.title||one.name]:items.slice(0,5).map(r=>r.title||r.name).filter(Boolean);
-      if(typeof pushMsg==='function')pushMsg(client.id, names.length
-        ?('Zasoby na start:\n- '+names.join('\n- '))
-        :'Trener udostępni Ci zasoby on-demand wkrótce.');
-      parts.push('zasoby');
+      const progs=allODPrograms().filter(p=>p.status==='active'&&odProgramWorkoutCount(p)>0);
+      const prog=progs[0]||null;
+      const picks=allODWorkouts().slice(0,3);
+      const lines=[];
+      if(prog)lines.push('[odprog:'+prog.id+']','📋 Program: '+prog.name+' ('+(prog.duration||'')+')');
+      if(picks.length)lines.push('▶ Treningi YouTube w apce:',...picks.map(w=>'[od:'+w.id+'] '+w.name));
+      if(one)lines.push('🎧 '+ (one.title||one.name)+': '+(one.url||''));
+      else if(!prog&&!picks.length){
+        const names=items.slice(0,5).map(r=>r.title||r.name).filter(Boolean);
+        if(names.length)lines.push('Zasoby na start:\n- '+names.join('\n- '));
+      }
+      if(typeof pushMsg==='function')pushMsg(client.id,lines.length?lines.join('\n'):'Trener udostępni Ci treningi on-demand wkrótce — zakładka ▶ On-demand w apce.');
+      parts.push('on-demand');
     }
     if(flow.recipesEnabled && typeof pushMsg==='function'){
       pushMsg(client.id,'Proszę o krótki dzienniczek żywienia z 2–3 dni — wrzucimy to do planu.');

@@ -121,6 +121,7 @@ function emptyClientCollections(){
   window.USER_RESOURCES=[];
   window.OD_WORKOUTS=[];
   window.OD_PROGRAMS=[];
+  window.OD_PROGRESS=[];
   if(window.MSGS)Object.keys(window.MSGS).forEach(k=>delete window.MSGS[k]);
 }
 
@@ -159,6 +160,17 @@ async function loadClientApp(account){
   }catch(e){
     window.OD_WORKOUTS=(window.OD_DEMO_WORKOUTS||[]).map(w=>Object.assign({},w));
   }
+  try{
+    const odp=await queryByTrainerId('odPrograms',account.trainerId);
+    window.OD_PROGRAMS=(odp&&odp.length)?odp:((typeof ensureODPrograms==='function'?ensureODPrograms():[])||[]);
+    if(typeof ensureODPrograms==='function'&&!window.OD_PROGRAMS.length)ensureODPrograms();
+  }catch(e){
+    if(typeof ensureODPrograms==='function')ensureODPrograms();
+  }
+  try{
+    const pr=await queryByClientId('odProgress',cid);
+    window.OD_PROGRESS=pr||[];
+  }catch(e){window.OD_PROGRESS=[];}
   const msgs=await queryByClientId('messages',cid);
   msgs.sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||''));
   if(!window.MSGS)window.MSGS={};
@@ -199,16 +211,33 @@ function enterClientLiveShell(){
   const c=window.CL[0];
   window.capClientId=c?c.id:window._clientId;
   renderClientLive();
+  clientTryOpenOdDeepLink();
+}
+
+function clientTryOpenOdDeepLink(){
+  try{
+    const q=new URLSearchParams(location.search||'');
+    const od=q.get('od');
+    const odprog=q.get('odprog');
+    if(odprog&&typeof openODProgramClient==='function')setTimeout(()=>openODProgramClient(odprog),400);
+    else if(od&&typeof openODWorkout==='function')setTimeout(()=>openODWorkout(od),400);
+  }catch(e){}
 }
 
 function renderClientLive(){
   const c=window.CL.find(x=>x.id===window._clientId)||window.CL[0];
   const content=document.getElementById('clive-screen-content');
   if(!content)return;
-  const scr=window._clientLiveScreen||'home';
-  ['home','plan','progress','checkin','forum','messages','profile'].forEach(s=>{
+  let scr=window._clientLiveScreen||'home';
+  const navIds=(typeof capLiveNavScreens==='function'?capLiveNavScreens():[]).map(s=>s.id);
+  const subScreens=['forms','formfill','session','exercise','calendar','resources','odprogram'];
+  if(typeof capClientSectionVisible==='function'&&!capClientSectionVisible(scr)&&!subScreens.includes(scr))scr='home';
+  window._clientLiveScreen=scr;
+  ['home','plan','progress','checkin','ondemand','resources','forum','messages','profile'].forEach(s=>{
     const bn=document.getElementById('clive-bn-'+s);
     if(!bn)return;
+    const visible=!navIds.length||navIds.includes(s);
+    bn.style.display=visible?'':'none';
     const on=s===scr;
     bn.classList.toggle('active',on);
     bn.style.opacity=on?'1':'0.55';

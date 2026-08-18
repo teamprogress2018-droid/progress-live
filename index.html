@@ -937,7 +937,7 @@
   <div class="modal">
     <div class="modal-hdr"><div class="modal-title">🎁 PACZKA STARTOWA</div><button class="modal-close" onclick="closeM('m-starter-pack')">×</button></div>
     <div class="modal-body">
-      <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6;">Jednym kliknięciem wyślij nowemu klientowi zestaw na YouTube (bez Spotify Premium): 🎙️ podcast, 🥗 artykuł o diecie i 🎵 muzykę na trening.</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6;">Jednym kliknięciem wyślij nowemu klientowi start na YouTube: program on-demand, 2 treningi z tagiem [od:], plus 🎙️ podcast, 🥗 artykuł i 🎵 muzykę.</div>
       <div class="form-field" style="position:relative;">
         <label class="form-lbl">Wybierz klienta</label>
         <input class="form-select" id="starter-pack-client-search" placeholder="Wpisz imię i nazwisko..." autocomplete="off" oninput="starterPackClientSearchInput()" onfocus="starterPackClientSearchInput()">
@@ -1168,10 +1168,10 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
             <div class="osc-icon">▶️</div>
             <label class="osc-toggle"><input type="checkbox" id="osc-ondemand-en" onchange="updateOSC()"><div class="toggle-mini"></div></label>
           </div>
-          <div class="osc-title">Zasoby On-demand</div>
-          <div class="osc-desc">Daj klientowi dostęp do kolekcji zasobów i treningów.</div>
+          <div class="osc-title">On-demand YouTube</div>
+          <div class="osc-desc">Wyśle w czacie program/treningi z tagami — klient odtwarza w zakładce ▶ On-demand (darmowe filmy, bez Spotify).</div>
           <div style="margin-top:10px;" id="osc-ondemand-content">
-            <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Wyśle w czacie listę zasobów (nie otwiera Netflix-portalu).</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Opcjonalnie dołącz jeden podcast/zasób YouTube obok treningów:</div>
             <select class="form-select" style="font-size:11px;padding:5px 8px;" id="osc-resource-sel">
               <option value="">Wszystkie zasoby</option>
             </select>
@@ -1221,7 +1221,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
           <div class="osc-preview-step inactive" id="prev-ondemand">
             <div style="font-size:20px;margin-bottom:6px;opacity:0.4;">▶️</div>
             <div style="font-size:11px;font-weight:600;color:var(--muted);">On-demand</div>
-            <div style="font-size:10px;color:var(--muted2);">Wyłączone</div>
+            <div style="font-size:10px;color:var(--muted2);">YouTube w apce</div>
           </div>
           <div class="osc-preview-arrow">→</div>
           <div class="osc-preview-step inactive" id="prev-recipes">
@@ -1972,6 +1972,8 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <button type="button" class="clive-nav-btn" id="clive-bn-plan" onclick="setClientLiveScreen('plan')"><span>📋</span><span>Plan</span></button>
       <button type="button" class="clive-nav-btn" id="clive-bn-progress" onclick="setClientLiveScreen('progress')"><span>📈</span><span>Postępy</span></button>
       <button type="button" class="clive-nav-btn" id="clive-bn-checkin" onclick="setClientLiveScreen('checkin')"><span>✅</span><span>Check-in</span></button>
+      <button type="button" class="clive-nav-btn" id="clive-bn-ondemand" onclick="setClientLiveScreen('ondemand')"><span>▶️</span><span>On-demand</span></button>
+      <button type="button" class="clive-nav-btn" id="clive-bn-resources" onclick="setClientLiveScreen('resources')"><span>📚</span><span>Zasoby</span></button>
       <button type="button" class="clive-nav-btn" id="clive-bn-forum" onclick="setClientLiveScreen('forum')"><span>👥</span><span>Forum</span></button>
       <button type="button" class="clive-nav-btn" id="clive-bn-messages" onclick="setClientLiveScreen('messages')"><span>💬</span><span>Czat</span></button>
       <button type="button" class="clive-nav-btn" id="clive-bn-profile" onclick="setClientLiveScreen('profile')"><span>👤</span><span>Profil</span></button>
@@ -3888,6 +3890,10 @@ async function load(){
     }
   }catch(e){console.warn('Wczytywanie programów on-demand nie powiodło się:',e);window.OD_PROGRAMS=window.OD_PROGRAMS||[];}
   try{
+    const sODPr=await getDocs(collection(db,'odProgress'));
+    window.OD_PROGRESS=[];sODPr.forEach(d=>{const x=_takeFb(d);if(x)window.OD_PROGRESS.push(x);});
+  }catch(e){console.warn('Wczytywanie postępu on-demand nie powiodło się:',e);window.OD_PROGRESS=window.OD_PROGRESS||[];}
+  try{
     const sOnbA=await getDocs(collection(db,'onboardingActive'));
     window.ONB_ACTIVE=window.ONB_ACTIVE||[];
     window.ONB_ACTIVE.length=0;
@@ -3915,8 +3921,8 @@ async function load(){
     await window.migrateTrainerOwnership?.([
       'clients','plans','sessions','exercises','workouts','tasks','kb','metricEntries','metricGroups',
       'messages','packages','invoices','formSends','reportHistory','forms','programs','checkins',
-      'notifications','autoflows','forumGroups','forumPosts','forumComments','odWorkouts','resources',
-      'settings','integrationConfigs','automationState','clientNotes','clientDocs','onboardingFlows','planTemplates','odPrograms','onboardingActive','clientGroups','invites','clientAccounts','progressPhotos','coachVideos'
+      'notifications','autoflows','forumGroups','forumPosts','forumComments','odWorkouts','odProgress','resources',
+      'settings','integrationConfigs','automationState','clientNotes','clientDocs','onboardingFlows','planTemplates','odPrograms','odProgress','onboardingActive','clientGroups','invites','clientAccounts','progressPhotos','coachVideos'
     ]);
   }catch(e){console.warn('Migracja trainerId:',e);}
   try{if(typeof window.runAutoflowsCheck==='function')window.runAutoflowsCheck();}catch(e){console.warn('runAutoflowsCheck:',e);}
