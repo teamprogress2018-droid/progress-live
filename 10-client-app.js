@@ -203,6 +203,50 @@ function setClientLiveScreen(scr){
   renderClientLive();
 }
 
+function clientOpenForm(sendId){
+  window._cliveFormSendId=sendId;
+  window._cliveFormAnswers=window._cliveFormAnswers||{};
+  const send=(window.FORM_SENDS||[]).find(s=>s.id===sendId);
+  if(!window._cliveFormAnswers[sendId]){
+    window._cliveFormAnswers[sendId]=send?Object.assign({},formSendAnswersMap(send)):{};
+  }
+  setClientLiveScreen('formfill');
+}
+
+function clientFormSetAnswer(sendId,qid,val){
+  window._cliveFormAnswers=window._cliveFormAnswers||{};
+  if(!window._cliveFormAnswers[sendId])window._cliveFormAnswers[sendId]={};
+  window._cliveFormAnswers[sendId][qid]=val;
+}
+
+function clientFormPick(sendId,qid,val){
+  clientFormSetAnswer(sendId,qid,val);
+  renderClientLive();
+}
+
+function clientSubmitForm(sendId){
+  const send=(window.FORM_SENDS||[]).find(s=>s.id===sendId);
+  if(!send){if(typeof notify==='function')notify('Nie znaleziono formularza');return;}
+  const answers=(window._cliveFormAnswers&&window._cliveFormAnswers[sendId])||{};
+  const r=applyFormSubmit(send,answers);
+  if(!r.ok){
+    if(r.error==='required'){if(typeof notify==='function')notify('Uzupełnij wymagane pytania ('+r.missing.length+')');}
+    else if(r.error==='already'){if(typeof notify==='function')notify('Ten formularz jest już wysłany');}
+    else if(typeof notify==='function')notify('Nie udało się wysłać');
+    return;
+  }
+  persistById('formSends',send);
+  const name=send.formName||'Formularz';
+  if(typeof notify==='function')notify('✓ Wysłano: '+name);
+  if(typeof pushClientMsg==='function')pushClientMsg('Wypełniłem formularz: '+name);
+  if(typeof addNotification==='function'){
+    const c=(window.CL||[]).find(x=>x.id===send.clientId);
+    addNotification('form','Formularz wypełniony',(c?c.name+' — ':'')+name,'forms');
+  }
+  window._cliveFormSendId=null;
+  setClientLiveScreen('forms');
+}
+
 function prepareAuthForInvite(){
   const token=clientInviteTokenFromUrl();
   window._pendingInviteToken=token||window._pendingInviteToken||'';
@@ -411,6 +455,10 @@ window.loadClientApp=loadClientApp;
 window.enterClientLiveShell=enterClientLiveShell;
 window.renderClientLive=renderClientLive;
 window.setClientLiveScreen=setClientLiveScreen;
+window.clientOpenForm=clientOpenForm;
+window.clientFormSetAnswer=clientFormSetAnswer;
+window.clientFormPick=clientFormPick;
+window.clientSubmitForm=clientSubmitForm;
 window.prepareAuthForInvite=prepareAuthForInvite;
 window.authShowRegister=authShowRegister;
 window.authShowLoginFromClient=authShowLoginFromClient;
