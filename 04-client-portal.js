@@ -143,7 +143,11 @@ function capScreenHTML(scr,c){
   const trainerName=getTrainerName();
   const sessions=SE.filter(s=>s.clientId===c.id);
   const plans=PL.filter(p=>p.clientId===c.id);
-  const tasks=TASKS.filter(t=>t.clientId===c.id&&t.status!=='done');
+  const isH=typeof isHabit==='function'?isHabit:()=>false;
+  const isC=typeof isChallenge==='function'?isChallenge:()=>false;
+  const habits=TASKS.filter(t=>t.clientId===c.id&&isH(t));
+  const challenges=TASKS.filter(t=>t.clientId===c.id&&isC(t)&&(typeof challengeVisible!=='function'||challengeVisible(t)));
+  const tasks=TASKS.filter(t=>t.clientId===c.id&&!isH(t)&&!isC(t)&&t.status!=='done');
   const packages=capIsLiveClient()
     ?(window.PACKAGES||[]).filter(p=>p.clientId===c.id)
     :(window.PACKAGES||[]).concat(window.PACKAGES?.length?[]:[{title:'10 sesji personalnych',sessions:10,sessionsUsed:4,price:1500,expiresDate:'2025-08-30'}]);
@@ -153,8 +157,9 @@ function capScreenHTML(scr,c){
   if(scr==='home'){
     const slot=capTodaySlot(c);
     const live=capIsLiveClient();
+    const today=typeof todayYmd==='function'?todayYmd():'';
     const openTasks=tasks.filter(t=>t.status!=='done');
-    const todayTasks=openTasks.filter(t=>!t.due||t.due<= (typeof todayYmd==='function'?todayYmd():''));
+    const todayTasks=openTasks.filter(t=>!t.due||t.due<=today);
     const showTasks=todayTasks.length?todayTasks:openTasks.slice(0,5);
     const startBtn=(planId,dayIdx)=>live
       ?`onclick="cwOpen('${escHtml(planId)}',${dayIdx})"`
@@ -238,6 +243,37 @@ function capScreenHTML(scr,c){
           <button type="button" class="cap-btn-primary" style="padding:10px;font-size:13px;" onclick="${pend.length===1?`clientOpenForm('${escHtml(pend[0].id)}')`:`setClientLiveScreen('forms')`}">${pend.length===1?'Wypełnij teraz':'Zobacz listę'}</button>
         </div>`;
       })()}
+      ${habits.length?`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
+        <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">🔥 Nawyki</div>
+        ${habits.map(t=>{
+          const done=typeof habitDoneOn==='function'&&today?habitDoneOn(t,today):false;
+          const streak=typeof habitStreak==='function'&&today?habitStreak(t,today):0;
+          return `<button type="button" class="cap-list-item" style="width:100%;text-align:left;background:none;border:none;cursor:pointer;padding:8px 0;" ${live?`onclick="clientToggleTask('${escHtml(t.id)}')"`:''}>
+          <div class="cap-check-circle">${done?'✓':''}</div>
+          <div style="flex:1;"><div style="font-size:12px;color:${CAP_TEXT};">${escHtml(t.title)}</div>
+          <div style="font-size:10px;color:${CAP_MUTED};">${streak?'🔥 '+streak+' '+(streak===1?'dzień':'dni')+' z rzędu':'Odhacz na dziś'}</div>
+          </div>
+        </button>`;
+        }).join('')}
+      </div>`:''}
+      ${challenges.length?`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
+        <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">🏆 Wyzwania</div>
+        ${challenges.map(t=>{
+          const done=typeof habitDoneOn==='function'&&today?habitDoneOn(t,today):false;
+          const st=typeof challengeStatusText==='function'?challengeStatusText(t,today):'';
+          const bar=typeof challengeBarHtml==='function'?challengeBarHtml(t,today):'';
+          const p=typeof challengeProgress==='function'?challengeProgress(t,today):null;
+          const tick=done||(p&&p.won&&!p.active);
+          const can=typeof challengeCanCheck==='function'?challengeCanCheck(t,today,today):true;
+          return `<button type="button" class="cap-list-item" style="width:100%;text-align:left;background:none;border:none;cursor:${can?'pointer':'default'};padding:8px 0;" ${live&&can?`onclick="clientToggleTask('${escHtml(t.id)}')"`:''}>
+          <div class="cap-check-circle">${tick?'✓':''}</div>
+          <div style="flex:1;"><div style="font-size:12px;color:${CAP_TEXT};">${escHtml(t.title)}</div>
+          <div style="font-size:10px;color:${p&&p.won?'var(--teal)':CAP_MUTED};">${escHtml(st)}</div>
+          ${bar}
+          </div>
+        </button>`;
+        }).join('')}
+      </div>`:''}
       ${showTasks.length?`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
         <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">Zadania na dziś</div>
         ${showTasks.map(t=>`<button type="button" class="cap-list-item" style="width:100%;text-align:left;background:none;border:none;cursor:pointer;padding:8px 0;" ${live?`onclick="clientToggleTask('${escHtml(t.id)}')"`:''}>
@@ -518,7 +554,7 @@ function capScreenHTML(scr,c){
         ${[
           {label:'Sesji',val:sessions.length,col:accent},
           {label:'Planów',val:plans.length,col:'var(--blue)'},
-          {label:'Zadań',val:TASKS.filter(t=>t.clientId===c.id&&t.status==='done').length,col:'var(--teal)'},
+          {label:'Zadań',val:TASKS.filter(t=>t.clientId===c.id&&(typeof isOneShot==='function'?isOneShot(t):!isHabit(t))&&t.status==='done').length,col:'var(--teal)'},
         ].map(s=>`<div style="background:${CAP_S2};border-radius:14px;padding:12px;text-align:center;border:1px solid ${CAP_S3};">
           <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:${s.col};line-height:1;">${s.val}</div>
           <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-top:2px;">${s.label}</div>
@@ -628,7 +664,7 @@ function capFormQControl(sendId,q,val,live){
 }
 
 const CAP_SCREEN_INFO={
-  home:{title:'🏠 Dziś',desc:'Jeden ekran na dzień: trening do odpalenia (Start), dzień wolny, zadania, formularze od trenera i check-in jeśli czeka. Klient nie zgaduje, co ma zrobić.'},
+  home:{title:'🏠 Dziś',desc:'Jeden ekran na dzień: trening do odpalenia (Start), dzień wolny, nawyki, wyzwania, formularze od trenera, zadania i check-in jeśli czeka. Klient nie zgaduje, co ma zrobić.'},
   plan:{title:'📋 Mój plan treningowy',desc:'Lista dni planu. Z każdego dnia treningowego klient może od razu kliknąć Start i odhaczać serie.'},
   calendar:{title:'📅 Kalendarz sesji',desc:'Mini-kalendarz z zaznaczonymi sesjami. Klient widzi nadchodzące treningi z godziną, typem i linkiem do Google Meet (jeśli online).'},
   progress:{title:'📈 Moje postępy',desc:'Masa z pomiarów oraz zdjęcia sylwetki (przód / bok / tył) z porównaniem w czasie. Klient robi zdjęcia w apce — Ty widzisz je w karcie klienta.'},
@@ -3258,7 +3294,7 @@ function generateAutoNotifs(){
     }
   });
 
-  TASKS.filter(t=>t.status!=='done'&&t.due&&t.due<todayStr).slice(0,3).forEach(t=>{
+  TASKS.filter(t=>(typeof isOneShot==='function'?isOneShot(t):!isHabit(t))&&t.status!=='done'&&t.due&&t.due<todayStr).slice(0,3).forEach(t=>{
     const c=CL.find(x=>x.id===t.clientId);
     const key='auto_task_'+t.id;
     if(!hasNotif(key)&&c){
@@ -3364,7 +3400,9 @@ function buildReportHTML(c,from,to,sec,template){
   const sessions=SE.filter(s=>s.clientId===c.id&&s.date>=from&&s.date<=to).sort((a,b)=>b.date.localeCompare(a.date));
   const allSessions=SE.filter(s=>s.clientId===c.id);
   const tasks=TASKS.filter(t=>t.clientId===c.id);
-  const tasksDone=tasks.filter(t=>t.status==='done');
+  const oneShot=tasks.filter(t=>typeof isOneShot==='function'?isOneShot(t):!isHabit(t));
+  const habits=tasks.filter(t=>isHabit(t));
+  const tasksDone=oneShot.filter(t=>t.status==='done');
   const plans=PL.filter(p=>p.clientId===c.id);
   const entries=METRIC_ENTRIES.filter(e=>e.clientId===c.id);
   const pkgs=allPackages().filter(p=>p.clientId===c.id||p.clientName===c.name);
@@ -3476,7 +3514,7 @@ function buildReportHTML(c,from,to,sec,template){
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
       ${kpiBox(allSessions.length,'Łącznie sesji',accent)}
       ${kpiBox(sessions.length,'Sesji w okresie',blue)}
-      ${kpiBox(tasksDone.length+'/'+tasks.length,'Zadań ukończonych',teal)}
+      ${kpiBox(oneShot.length?tasksDone.length+'/'+oneShot.length:habits.length?habits.length+' nawyków':'0/0','Zadań ukończonych',teal)}
       ${kpiBox(totalRevenue.toLocaleString('pl')+' zł','Łączna wartość',orange)}
     </div>
     ${card(`
@@ -3597,18 +3635,19 @@ function buildReportHTML(c,from,to,sec,template){
   // ── TASKS ──
   if(sec.tasks){
     html+=`<div style="margin-bottom:24px;">${sectionTitle('REALIZACJA ZADAŃ','✅',teal)}`;
-    const pct=tasks.length?Math.round(tasksDone.length/tasks.length*100):0;
+    const pct=oneShot.length?Math.round(tasksDone.length/oneShot.length*100):0;
+    const habitToday=typeof todayYmd==='function'?todayYmd():'';
     html+=card(`
       <div style="display:flex;gap:16px;align-items:center;margin-bottom:16px;">
         <div style="flex:1;">
-          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;"><span>Ukończone</span><span style="font-weight:700;color:${teal};">${tasksDone.length}/${tasks.length} (${pct}%)</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;"><span>Ukończone (jednorazowe)</span><span style="font-weight:700;color:${teal};">${tasksDone.length}/${oneShot.length} (${pct}%)</span></div>
           <div style="height:8px;background:${border};border-radius:99px;overflow:hidden;"><div style="height:100%;background:${teal};width:${pct}%;border-radius:99px;transition:width 0.3s;"></div></div>
         </div>
         <div style="font-family:'Bebas Neue',sans-serif;font-size:36px;color:${teal};">${pct}%</div>
       </div>
-      ${tasks.length?`<table style="width:100%;border-collapse:collapse;font-size:12px;">
+      ${oneShot.length?`<table style="width:100%;border-collapse:collapse;font-size:12px;">
         <thead><tr>${['Zadanie','Kategoria','Priorytet','Termin','Status'].map(h=>`<th style="padding:6px 10px;text-align:left;font-family:${fontMono};font-size:10px;color:${muted};text-transform:uppercase;border-bottom:1px solid ${border};">${h}</th>`).join('')}</tr></thead>
-        <tbody>${tasks.map((t,i)=>{
+        <tbody>${oneShot.map((t,i)=>{
           const isDone=t.status==='done';
           const catCol={trening:accent,dieta:teal,pomiary:blue,lifestyle:'#a8324a'}[t.cat]||muted;
           return `<tr style="background:${i%2===0?'transparent':bg};border-bottom:1px solid ${border};">
@@ -3619,7 +3658,22 @@ function buildReportHTML(c,from,to,sec,template){
             <td style="padding:6px 10px;">${isDone?`<span style="color:${teal};font-size:11px;">✓ Ukończone</span>`:`<span style="color:${orange};font-size:11px;">⏳ W toku</span>`}</td>
           </tr>`;
         }).join('')}</tbody>
-      </table>`:'<div style="color:'+muted+';font-size:12px;text-align:center;padding:16px;">Brak zadań</div>'}
+      </table>`:habits.length?'':'<div style="color:'+muted+';font-size:12px;text-align:center;padding:16px;">Brak zadań</div>'}
+      ${habits.length?`<div style="margin-top:16px;font-size:11px;font-family:${fontMono};color:${muted};text-transform:uppercase;margin-bottom:8px;">Nawyki (streak)</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead><tr>${['Nawyk','Kategoria','Seria','Ten tydzień'].map(h=>`<th style="padding:6px 10px;text-align:left;font-family:${fontMono};font-size:10px;color:${muted};text-transform:uppercase;border-bottom:1px solid ${border};">${h}</th>`).join('')}</tr></thead>
+        <tbody>${habits.map((t,i)=>{
+          const streak=typeof habitStreak==='function'?habitStreak(t,habitToday):0;
+          const weekN=typeof habitWeek==='function'?habitWeek(t,habitToday).filter(d=>d.done).length:0;
+          const catCol={trening:accent,dieta:teal,pomiary:blue,lifestyle:'#a8324a'}[t.cat]||muted;
+          return `<tr style="background:${i%2===0?'transparent':bg};border-bottom:1px solid ${border};">
+            <td style="padding:6px 10px;font-weight:600;">${t.title}</td>
+            <td style="padding:6px 10px;"><span style="background:${catCol}22;color:${catCol};border-radius:99px;padding:1px 7px;font-size:10px;font-family:${fontMono};">${t.cat||'—'}</span></td>
+            <td style="padding:6px 10px;font-weight:700;color:${orange};">${streak?('🔥 '+streak+' dni'):'—'}</td>
+            <td style="padding:6px 10px;font-family:${fontMono};color:${muted};">${weekN}/7</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>`:''}
     `);
     html+='</div>';
   }
@@ -4554,16 +4608,18 @@ function renderDashTasks(){
   const today=dateStr(new Date());
   const tomorrow=dateStr(new Date(new Date().getFullYear(),new Date().getMonth(),new Date().getDate()+1));
 
-  // Wszystkie nieukończone, posortowane: przeterminowane → dziś → jutro → reszta
-  const tasks=TASKS.filter(t=>t.status!=='done')
+  const pendingHabits=TASKS.filter(t=>isHabit(t)&&!habitDoneOn(t,today));
+  const pendingCh=TASKS.filter(t=>typeof isChallenge==='function'&&isChallenge(t)&&typeof challengeProgress==='function'&&challengeProgress(t,today).active&&!habitDoneOn(t,today)&&!challengeProgress(t,today).won);
+  const oneShot=TASKS.filter(t=>(typeof isOneShot==='function'?isOneShot(t):!isHabit(t))&&t.status!=='done')
     .sort((a,b)=>{
       const pri=v=>v.due===today?0:v.due&&v.due<today?-1:v.due===tomorrow?1:2;
       return pri(a)-pri(b)||(a.due||'9999').localeCompare(b.due||'9999');
-    }).slice(0,6);
+    });
+  const tasks=pendingCh.concat(pendingHabits).concat(oneShot).slice(0,6);
 
-  const done=TASKS.filter(t=>t.status==='done');
+  const done=TASKS.filter(t=>(typeof isOneShot==='function'?isOneShot(t):!isHabit(t))&&t.status==='done');
 
-  if(!tasks.length&&!done.length){
+  if(!tasks.length&&!done.length&&!TASKS.filter(isHabit).length&&!(typeof isChallenge==='function'?TASKS.filter(isChallenge).length:0)){
     el.innerHTML=`<div style="font-size:12px;color:var(--muted);text-align:center;padding:18px 0 8px;">
       <div style="margin-bottom:10px;">Nic pilnego na liście</div>
       <button class="btn btn-ghost btn-sm" onclick="openM('m-task')">+ Dodaj zadanie</button>
@@ -4573,18 +4629,23 @@ function renderDashTasks(){
 
   let html='';
 
-  // Ukończone ostatnio (max 2)
   const recentDone=done.sort((a,b)=>(b.doneAt||b.due||'').localeCompare(a.doneAt||a.due||'')).slice(0,2);
 
   tasks.forEach(t=>{
-    const isOverdue=t.due&&t.due<today;
+    const habit=isHabit(t);
+    const ch=typeof isChallenge==='function'&&isChallenge(t);
+    const isOverdue=!habit&&!ch&&t.due&&t.due<today;
     const isToday=t.due===today;
     const isTomorrow=t.due===tomorrow;
     const c=CL.find(x=>x.id===t.clientId);
+    const streak=habit?habitStreak(t,today):0;
+    const chSt=ch&&typeof challengeStatusText==='function'?challengeStatusText(t,today):'';
     let badge='';
-    if(isOverdue)badge=`<span style="background:rgba(255,68,68,0.15);color:var(--red);border-radius:4px;padding:1px 6px;font-size:9px;font-family:'DM Mono',monospace;font-weight:700;">Pilne</span>`;
+    if(ch)badge=`<span style="background:rgba(201,162,39,0.15);color:var(--gold);border-radius:4px;padding:1px 6px;font-size:9px;font-family:'DM Mono',monospace;font-weight:700;">🏆 Wyzwanie</span>`;
+    else if(habit)badge=`<span style="background:rgba(157,124,244,0.15);color:var(--purple);border-radius:4px;padding:1px 6px;font-size:9px;font-family:'DM Mono',monospace;font-weight:700;">🔥 Nawyk</span>`;
+    else if(isOverdue)badge=`<span style="background:rgba(255,68,68,0.15);color:var(--red);border-radius:4px;padding:1px 6px;font-size:9px;font-family:'DM Mono',monospace;font-weight:700;">Pilne</span>`;
     else if(isTomorrow)badge=`<span style="background:rgba(201,123,63,0.15);color:var(--orange);border-radius:4px;padding:1px 6px;font-size:9px;font-family:'DM Mono',monospace;font-weight:700;">Wkrótce</span>`;
-    const dueText=isOverdue?'Termin: dziś':isToday?'Termin: dziś':isTomorrow?c?c.name+' · jutro':'jutro':c?c.name+(t.due?' · '+t.due:''):t.due||'Bez terminu';
+    const dueText=ch?(c?c.name+' · '+chSt:chSt):habit?(c?(c.name+(streak?' · 🔥 '+streak:'')):(streak?'🔥 '+streak+' dni':'Odhacz dziś')):isOverdue?'Termin: dziś':isToday?'Termin: dziś':isTomorrow?c?c.name+' · jutro':'jutro':c?c.name+(t.due?' · '+t.due:''):t.due||'Bez terminu';
     html+=`<div style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);">
       <div onclick="toggleTask('${t.id}');renderDash()" style="width:18px;height:18px;border-radius:4px;border:2px solid var(--border2);flex-shrink:0;cursor:pointer;margin-top:1px;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)'"></div>
       <div style="flex:1;min-width:0;">
