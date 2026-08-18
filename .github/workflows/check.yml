@@ -40,7 +40,13 @@ jobs:
       - name: 1d. Testy nawyków / streak
         run: node .github/scripts/test_habits.js
 
-      - name: 1e. Testy EMOM
+      - name: 1e. Testy wyzwań
+        run: node .github/scripts/test_challenges.js
+
+      - name: 1f. Testy formularzy klienta
+        run: node .github/scripts/test_forms.js
+
+      - name: 1g. Testy EMOM
         run: node .github/scripts/test_emom.js
 
       - name: 2. Sprawdź duplikaty (funkcje / id / zmienne)

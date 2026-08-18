@@ -203,6 +203,50 @@ function setClientLiveScreen(scr){
   renderClientLive();
 }
 
+function clientOpenForm(sendId){
+  window._cliveFormSendId=sendId;
+  window._cliveFormAnswers=window._cliveFormAnswers||{};
+  const send=(window.FORM_SENDS||[]).find(s=>s.id===sendId);
+  if(!window._cliveFormAnswers[sendId]){
+    window._cliveFormAnswers[sendId]=send?Object.assign({},formSendAnswersMap(send)):{};
+  }
+  setClientLiveScreen('formfill');
+}
+
+function clientFormSetAnswer(sendId,qid,val){
+  window._cliveFormAnswers=window._cliveFormAnswers||{};
+  if(!window._cliveFormAnswers[sendId])window._cliveFormAnswers[sendId]={};
+  window._cliveFormAnswers[sendId][qid]=val;
+}
+
+function clientFormPick(sendId,qid,val){
+  clientFormSetAnswer(sendId,qid,val);
+  renderClientLive();
+}
+
+function clientSubmitForm(sendId){
+  const send=(window.FORM_SENDS||[]).find(s=>s.id===sendId);
+  if(!send){if(typeof notify==='function')notify('Nie znaleziono formularza');return;}
+  const answers=(window._cliveFormAnswers&&window._cliveFormAnswers[sendId])||{};
+  const r=applyFormSubmit(send,answers);
+  if(!r.ok){
+    if(r.error==='required'){if(typeof notify==='function')notify('Uzupełnij wymagane pytania ('+r.missing.length+')');}
+    else if(r.error==='already'){if(typeof notify==='function')notify('Ten formularz jest już wysłany');}
+    else if(typeof notify==='function')notify('Nie udało się wysłać');
+    return;
+  }
+  persistById('formSends',send);
+  const name=send.formName||'Formularz';
+  if(typeof notify==='function')notify('✓ Wysłano: '+name);
+  if(typeof pushClientMsg==='function')pushClientMsg('Wypełniłem formularz: '+name);
+  if(typeof addNotification==='function'){
+    const c=(window.CL||[]).find(x=>x.id===send.clientId);
+    addNotification('form','Formularz wypełniony',(c?c.name+' — ':'')+name,'forms');
+  }
+  window._cliveFormSendId=null;
+  setClientLiveScreen('forms');
+}
+
 function prepareAuthForInvite(){
   const token=clientInviteTokenFromUrl();
   window._pendingInviteToken=token||window._pendingInviteToken||'';
@@ -411,6 +455,10 @@ window.loadClientApp=loadClientApp;
 window.enterClientLiveShell=enterClientLiveShell;
 window.renderClientLive=renderClientLive;
 window.setClientLiveScreen=setClientLiveScreen;
+window.clientOpenForm=clientOpenForm;
+window.clientFormSetAnswer=clientFormSetAnswer;
+window.clientFormPick=clientFormPick;
+window.clientSubmitForm=clientSubmitForm;
 window.prepareAuthForInvite=prepareAuthForInvite;
 window.authShowRegister=authShowRegister;
 window.authShowLoginFromClient=authShowLoginFromClient;
@@ -452,13 +500,30 @@ document.addEventListener('DOMContentLoaded',prepareAuthForInvite);
 function clientToggleTask(id){
   const t=(window.TASKS||[]).find(x=>x.id===id);
   if(!t)return;
+  const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
   if(typeof isHabit==='function'&&isHabit(t)){
-    const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
     toggleHabitDay(t,today);
     persistById('tasks',t);
     const done=habitDoneOn(t,today);
     const streak=habitStreak(t,today);
     if(typeof notify==='function')notify(done?('✓ Dziś zrobione'+(streak?' · 🔥 '+streak:'')):'Nawyk odznaczony');
+    if(typeof renderClientLive==='function')renderClientLive();
+    return;
+  }
+  if(typeof isChallenge==='function'&&isChallenge(t)){
+    if(typeof challengeCanCheck==='function'&&!challengeCanCheck(t,today,today)){
+      const p=typeof challengeProgress==='function'?challengeProgress(t,today):null;
+      if(typeof notify==='function')notify(p&&p.before?'Wyzwanie jeszcze się nie zaczęło':p&&p.won?'Wyzwanie ukończone 🏆':'Wyzwanie już się skończyło');
+      return;
+    }
+    toggleChallengeDay(t,today,today);
+    persistById('tasks',t);
+    const p=typeof challengeProgress==='function'?challengeProgress(t,today):null;
+    const done=typeof habitDoneOn==='function'&&habitDoneOn(t,today);
+    if(typeof notify==='function'){
+      if(p&&p.won)notify('🏆 Wyzwanie ukończone · '+p.done+'/'+p.target);
+      else notify(done?('✓ '+((p&&p.done)||0)+'/'+(p?p.target:'')+' dni'):'Wyzwanie odznaczone');
+    }
     if(typeof renderClientLive==='function')renderClientLive();
     return;
   }

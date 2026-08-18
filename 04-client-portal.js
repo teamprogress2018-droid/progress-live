@@ -145,8 +145,10 @@ function capScreenHTML(scr,c){
   const sessions=SE.filter(s=>s.clientId===c.id);
   const plans=PL.filter(p=>p.clientId===c.id);
   const isH=typeof isHabit==='function'?isHabit:()=>false;
+  const isC=typeof isChallenge==='function'?isChallenge:()=>false;
   const habits=TASKS.filter(t=>t.clientId===c.id&&isH(t));
-  const tasks=TASKS.filter(t=>t.clientId===c.id&&!isH(t)&&t.status!=='done');
+  const challenges=TASKS.filter(t=>t.clientId===c.id&&isC(t)&&(typeof challengeVisible!=='function'||challengeVisible(t)));
+  const tasks=TASKS.filter(t=>t.clientId===c.id&&!isH(t)&&!isC(t)&&t.status!=='done');
   const packages=capIsLiveClient()
     ?(window.PACKAGES||[]).filter(p=>p.clientId===c.id)
     :(window.PACKAGES||[]).concat(window.PACKAGES?.length?[]:[{title:'10 sesji personalnych',sessions:10,sessionsUsed:4,price:1500,expiresDate:'2025-08-30'}]);
@@ -232,6 +234,16 @@ function capScreenHTML(scr,c){
           <button type="button" class="cap-btn-primary" style="padding:10px;font-size:13px;" onclick="setClientLiveScreen('checkin')">Wypełnij teraz</button>
         </div>`;
       })()}
+      ${(()=>{
+        const pend=typeof pendingFormSends==='function'?pendingFormSends(c.id):[];
+        if(!pend.length)return '';
+        return `<div style="background:linear-gradient(135deg,rgba(157,124,244,0.18),rgba(157,124,244,0.05));border:1px solid rgba(157,124,244,0.35);border-radius:18px;padding:16px;margin-bottom:14px;">
+          <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--purple);text-transform:uppercase;margin-bottom:6px;">📋 FORMULARZ</div>
+          <div style="font-size:14px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">${pend.length===1?escHtml(pend[0].formName||'Formularz do wypełnienia'):pend.length+' formularze do wypełnienia'}</div>
+          <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:10px;">Trener czeka na Twoje odpowiedzi.</div>
+          <button type="button" class="cap-btn-primary" style="padding:10px;font-size:13px;" onclick="${pend.length===1?`clientOpenForm('${escHtml(pend[0].id)}')`:`setClientLiveScreen('forms')`}">${pend.length===1?'Wypełnij teraz':'Zobacz listę'}</button>
+        </div>`;
+      })()}
       ${habits.length?`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
         <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">🔥 Nawyki</div>
         ${habits.map(t=>{
@@ -241,6 +253,24 @@ function capScreenHTML(scr,c){
           <div class="cap-check-circle">${done?'✓':''}</div>
           <div style="flex:1;"><div style="font-size:12px;color:${CAP_TEXT};">${escHtml(t.title)}</div>
           <div style="font-size:10px;color:${CAP_MUTED};">${streak?'🔥 '+streak+' '+(streak===1?'dzień':'dni')+' z rzędu':'Odhacz na dziś'}</div>
+          </div>
+        </button>`;
+        }).join('')}
+      </div>`:''}
+      ${challenges.length?`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
+        <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">🏆 Wyzwania</div>
+        ${challenges.map(t=>{
+          const done=typeof habitDoneOn==='function'&&today?habitDoneOn(t,today):false;
+          const st=typeof challengeStatusText==='function'?challengeStatusText(t,today):'';
+          const bar=typeof challengeBarHtml==='function'?challengeBarHtml(t,today):'';
+          const p=typeof challengeProgress==='function'?challengeProgress(t,today):null;
+          const tick=done||(p&&p.won&&!p.active);
+          const can=typeof challengeCanCheck==='function'?challengeCanCheck(t,today,today):true;
+          return `<button type="button" class="cap-list-item" style="width:100%;text-align:left;background:none;border:none;cursor:${can?'pointer':'default'};padding:8px 0;" ${live&&can?`onclick="clientToggleTask('${escHtml(t.id)}')"`:''}>
+          <div class="cap-check-circle">${tick?'✓':''}</div>
+          <div style="flex:1;"><div style="font-size:12px;color:${CAP_TEXT};">${escHtml(t.title)}</div>
+          <div style="font-size:10px;color:${p&&p.won?'var(--teal)':CAP_MUTED};">${escHtml(st)}</div>
+          ${bar}
           </div>
         </button>`;
         }).join('')}
@@ -525,7 +555,7 @@ function capScreenHTML(scr,c){
         ${[
           {label:'Sesji',val:sessions.length,col:accent},
           {label:'Planów',val:plans.length,col:'var(--blue)'},
-          {label:'Zadań',val:TASKS.filter(t=>t.clientId===c.id&&!isHabit(t)&&t.status==='done').length,col:'var(--teal)'},
+          {label:'Zadań',val:TASKS.filter(t=>t.clientId===c.id&&(typeof isOneShot==='function'?isOneShot(t):!isHabit(t))&&t.status==='done').length,col:'var(--teal)'},
         ].map(s=>`<div style="background:${CAP_S2};border-radius:14px;padding:12px;text-align:center;border:1px solid ${CAP_S3};">
           <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:${s.col};line-height:1;">${s.val}</div>
           <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-top:2px;">${s.label}</div>
@@ -554,19 +584,93 @@ function capScreenHTML(scr,c){
         </div>
       </div>`;
       })()}
+      <button type="button" class="cap-btn-secondary" style="margin-bottom:8px;" onclick="setClientLiveScreen('forms')">📋 Moje formularze</button>
       ${capIsLiveClient()?'':`<button class="cap-btn-secondary">⚙ Ustawienia konta</button>`}
       <button type="button" class="cap-btn-secondary" style="color:var(--red);border-color:rgba(255,77,77,0.2);" ${capIsLiveClient()?'onclick="doSignOut()"':''}>Wyloguj się</button>
     </div>`;
 
+  if(scr==='forms'||scr==='formfill'){
+    const live=capIsLiveClient();
+    const sends=(window.FORM_SENDS||[]).filter(s=>s.clientId===c.id)
+      .slice().sort((a,b)=>(b.sentAtIso||b.createdAt||'').localeCompare(a.sentAtIso||a.createdAt||''));
+    const pending=sends.filter(s=>s.status!=='filled');
+    const filled=sends.filter(s=>s.status==='filled');
+    if(scr==='formfill'){
+      const send=sends.find(s=>s.id===window._cliveFormSendId)||pending[0];
+      if(!send){
+        return `<div class="cap-section" style="padding-bottom:90px;">
+          <button type="button" class="btn btn-ghost btn-sm" style="margin:8px 0 12px;" onclick="setClientLiveScreen('forms')">← Formularze</button>
+          <div style="text-align:center;padding:40px;color:${CAP_MUTED};font-size:12px;">Brak formularza do wypełnienia.</div>
+        </div>`;
+      }
+      const qs=formQuestionsForSend(send);
+      const draft=(window._cliveFormAnswers&&window._cliveFormAnswers[send.id])||formSendAnswersMap(send);
+      const done=send.status==='filled';
+      return `<div class="cap-section" style="padding-bottom:90px;">
+        <button type="button" class="btn btn-ghost btn-sm" style="margin:8px 0 12px;" onclick="setClientLiveScreen('forms')">← Formularze</button>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:4px;">${escHtml(send.formName||'Formularz')}</div>
+        <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:16px;">${done?'Wysłane odpowiedzi':(live?'Odpowiedz i wyślij do trenera':'Podgląd — klient wypełnia w swojej apce')}</div>
+        ${qs.map((q,i)=>`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:16px;padding:14px;margin-bottom:10px;">
+          <div style="font-size:12px;color:${CAP_MUTED};margin-bottom:10px;">${i+1}. ${escHtml(q.text||'')}${q.required?'<span style="color:var(--red);"> *</span>':''}</div>
+          ${capFormQControl(send.id,q,draft[q.id],live&&!done)}
+        </div>`).join('')}
+        ${done?`<div style="text-align:center;font-size:12px;color:var(--teal);padding:12px;">✓ Wysłane ${escHtml((send.filledAt||'').slice(0,10))}</div>`
+        :live?`<button type="button" class="cap-btn-primary" onclick="clientSubmitForm('${escHtml(send.id)}')">✓ Wyślij do trenera</button>`
+        :`<button class="cap-btn-primary">✓ Wyślij do trenera</button>`}
+      </div>`;
+    }
+    return `<div class="cap-section" style="padding-bottom:90px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin:8px 0 16px;padding-top:8px;">FORMULARZE</div>
+      ${!sends.length?`<div style="text-align:center;padding:40px;color:${CAP_MUTED};font-size:12px;">Brak formularzy. Gdy trener wyśle ankietę, pojawi się tutaj.</div>`:''}
+      ${pending.length?`<div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--purple);text-transform:uppercase;margin-bottom:8px;">Do wypełnienia</div>
+        ${pending.map(s=>`<button type="button" class="cap-list-item" style="width:100%;text-align:left;background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:14px;margin-bottom:8px;cursor:pointer;" onclick="clientOpenForm('${escHtml(s.id)}')">
+          <div style="flex:1;"><div style="font-size:14px;font-weight:700;color:${CAP_TEXT};">${escHtml(s.formName||'Formularz')}</div>
+          <div style="font-size:11px;color:${CAP_MUTED};margin-top:3px;">${escHtml(s.sentAt||'')} · ${formQuestionsForSend(s).length} pytań</div></div>
+          <span style="font-size:11px;color:var(--orange);">Wypełnij →</span>
+        </button>`).join('')}`:''}
+      ${filled.length?`<div style="font-size:10px;font-family:'DM Mono',monospace;color:${CAP_MUTED};text-transform:uppercase;margin:16px 0 8px;">Wysłane</div>
+        ${filled.map(s=>`<button type="button" class="cap-list-item" style="width:100%;text-align:left;background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:14px;margin-bottom:8px;cursor:pointer;" onclick="clientOpenForm('${escHtml(s.id)}')">
+          <div style="flex:1;"><div style="font-size:13px;font-weight:600;color:${CAP_TEXT};">${escHtml(s.formName||'Formularz')}</div>
+          <div style="font-size:11px;color:${CAP_MUTED};margin-top:3px;">${escHtml((s.filledAt||s.sentAt||'').slice(0,10))}</div></div>
+          <span style="color:var(--teal);font-size:12px;">✓</span>
+        </button>`).join('')}`:''}
+    </div>`;
+  }
+
   return `<div style="padding:40px;text-align:center;color:${CAP_MUTED};">Brak tego ekranu</div>`;
 }
 
+function capFormQControl(sendId,q,val,live){
+  const sid=JSON.stringify(sendId);
+  const qid=JSON.stringify(q.id);
+  if(q.type==='text'){
+    return `<textarea class="form-textarea" rows="3" ${live?`oninput="clientFormSetAnswer(${sid},${qid},this.value)"`:'disabled'} placeholder="Twoja odpowiedź">${escHtml(val||'')}</textarea>`;
+  }
+  if(q.type==='number'){
+    return `<input type="number" inputmode="decimal" class="form-input" value="${escHtml(val==null?'':val)}" ${live?`oninput="clientFormSetAnswer(${sid},${qid},this.value)"`:'disabled'} placeholder="Liczba" style="font-size:16px;">`;
+  }
+  if(q.type==='scale'){
+    return `<div class="fd-scale">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button type="button" class="fd-scale-btn${String(val)===String(n)?' sel':''}" ${live?`onclick="clientFormPick(${sid},${qid},${JSON.stringify(String(n))})"`:'disabled'}>${n}</button>`).join('')}</div>`;
+  }
+  if(q.type==='yesno'){
+    return `<div class="fd-yn">
+      <button type="button" class="fd-yn-btn${val==='tak'?' sel':''}" ${live?`onclick="clientFormPick(${sid},${qid},'tak')"`:'disabled'}>✓ Tak</button>
+      <button type="button" class="fd-yn-btn${val==='nie'?' sel':''}" ${live?`onclick="clientFormPick(${sid},${qid},'nie')"`:'disabled'}>✗ Nie</button>
+    </div>`;
+  }
+  if(q.type==='choice'){
+    return `<div style="display:flex;flex-direction:column;gap:8px;">${(q.options||[]).map(opt=>`<button type="button" class="fd-yn-btn${String(val)===String(opt)?' sel':''}" style="text-align:left;" ${live?`onclick="clientFormPick(${sid},${qid},${JSON.stringify(opt)})"`:'disabled'}>${escHtml(opt)}</button>`).join('')}</div>`;
+  }
+  return `<input class="form-input" value="${escHtml(val||'')}" ${live?`oninput="clientFormSetAnswer(${sid},${qid},this.value)"`:'disabled'}>`;
+}
+
 const CAP_SCREEN_INFO={
-  home:{title:'🏠 Dziś',desc:'Jeden ekran na dzień: trening do odpalenia (Start), dzień wolny, nawyki ze streakiem, zadania do odhaczenia i check-in jeśli czeka. Klient nie zgaduje, co ma zrobić.'},
-  plan:{title:'📋 Mój plan treningowy',desc:'Lista dni. Start odhacza serie. W kreatorze: SS i EMOM (każda seria na początku minuty).'},
+  home:{title:'🏠 Dziś',desc:'Jeden ekran na dzień: trening do odpalenia (Start), dzień wolny, nawyki, wyzwania, formularze od trenera, zadania i check-in jeśli czeka. Klient nie zgaduje, co ma zrobić.'},
+  plan:{title:'📋 Mój plan treningowy',desc:'Lista dni planu. Start odhacza serie. W kreatorze: SS i EMOM (każda seria na początku minuty).'},
   calendar:{title:'📅 Kalendarz sesji',desc:'Mini-kalendarz z zaznaczonymi sesjami. Klient widzi nadchodzące treningi z godziną, typem i linkiem do Google Meet (jeśli online).'},
   progress:{title:'📈 Moje postępy',desc:'Masa z pomiarów oraz zdjęcia sylwetki (przód / bok / tył) z porównaniem w czasie. Klient robi zdjęcia w apce — Ty widzisz je w karcie klienta.'},
   checkin:{title:'✅ Check-in tygodniowy',desc:'Interaktywny formularz check-inu — emoji skale, liczba treningów, waga. Wysłany check-in trafia bezpośrednio do Twojego panelu.'},
+  forms:{title:'📋 Formularze',desc:'Ankiety wysłane przez Ciebie (wstępna, zdrowie, postępy). Klient wypełnia w apce, odpowiedzi wracają do karty klienta i podglądu formularza.'},
   messages:{title:'💬 Wiadomości',desc:'Czat z trenerem w czasie rzeczywistym. Klient widzi historię rozmów, może pisać i odbierać wiadomości. Możesz wysyłać zdjęcia, pliki i linki.'},
   ondemand:{title:'▶️ On-demand',desc:'Portal treningów wideo i planów. Klient może samodzielnie wykonywać treningi między sesjami — filtrować po kategorii, poziomie i czasie.'},
   resources:{title:'📚 Zasoby',desc:'Kolekcje artykułów, podcastów, wideo i linków udostępnionych przez Ciebie. Klient może je przeglądać w dowolnym czasie.'},
@@ -3191,7 +3295,7 @@ function generateAutoNotifs(){
     }
   });
 
-  TASKS.filter(t=>!isHabit(t)&&t.status!=='done'&&t.due&&t.due<todayStr).slice(0,3).forEach(t=>{
+  TASKS.filter(t=>(typeof isOneShot==='function'?isOneShot(t):!isHabit(t))&&t.status!=='done'&&t.due&&t.due<todayStr).slice(0,3).forEach(t=>{
     const c=CL.find(x=>x.id===t.clientId);
     const key='auto_task_'+t.id;
     if(!hasNotif(key)&&c){
@@ -3297,7 +3401,7 @@ function buildReportHTML(c,from,to,sec,template){
   const sessions=SE.filter(s=>s.clientId===c.id&&s.date>=from&&s.date<=to).sort((a,b)=>b.date.localeCompare(a.date));
   const allSessions=SE.filter(s=>s.clientId===c.id);
   const tasks=TASKS.filter(t=>t.clientId===c.id);
-  const oneShot=tasks.filter(t=>!isHabit(t));
+  const oneShot=tasks.filter(t=>typeof isOneShot==='function'?isOneShot(t):!isHabit(t));
   const habits=tasks.filter(t=>isHabit(t));
   const tasksDone=oneShot.filter(t=>t.status==='done');
   const plans=PL.filter(p=>p.clientId===c.id);
@@ -4506,16 +4610,17 @@ function renderDashTasks(){
   const tomorrow=dateStr(new Date(new Date().getFullYear(),new Date().getMonth(),new Date().getDate()+1));
 
   const pendingHabits=TASKS.filter(t=>isHabit(t)&&!habitDoneOn(t,today));
-  const oneShot=TASKS.filter(t=>!isHabit(t)&&t.status!=='done')
+  const pendingCh=TASKS.filter(t=>typeof isChallenge==='function'&&isChallenge(t)&&typeof challengeProgress==='function'&&challengeProgress(t,today).active&&!habitDoneOn(t,today)&&!challengeProgress(t,today).won);
+  const oneShot=TASKS.filter(t=>(typeof isOneShot==='function'?isOneShot(t):!isHabit(t))&&t.status!=='done')
     .sort((a,b)=>{
       const pri=v=>v.due===today?0:v.due&&v.due<today?-1:v.due===tomorrow?1:2;
       return pri(a)-pri(b)||(a.due||'9999').localeCompare(b.due||'9999');
     });
-  const tasks=pendingHabits.concat(oneShot).slice(0,6);
+  const tasks=pendingCh.concat(pendingHabits).concat(oneShot).slice(0,6);
 
-  const done=TASKS.filter(t=>!isHabit(t)&&t.status==='done');
+  const done=TASKS.filter(t=>(typeof isOneShot==='function'?isOneShot(t):!isHabit(t))&&t.status==='done');
 
-  if(!tasks.length&&!done.length&&!TASKS.filter(isHabit).length){
+  if(!tasks.length&&!done.length&&!TASKS.filter(isHabit).length&&!(typeof isChallenge==='function'?TASKS.filter(isChallenge).length:0)){
     el.innerHTML=`<div style="font-size:12px;color:var(--muted);text-align:center;padding:18px 0 8px;">
       <div style="margin-bottom:10px;">Nic pilnego na liście</div>
       <button class="btn btn-ghost btn-sm" onclick="openM('m-task')">+ Dodaj zadanie</button>
@@ -4529,16 +4634,19 @@ function renderDashTasks(){
 
   tasks.forEach(t=>{
     const habit=isHabit(t);
-    const isOverdue=!habit&&t.due&&t.due<today;
+    const ch=typeof isChallenge==='function'&&isChallenge(t);
+    const isOverdue=!habit&&!ch&&t.due&&t.due<today;
     const isToday=t.due===today;
     const isTomorrow=t.due===tomorrow;
     const c=CL.find(x=>x.id===t.clientId);
     const streak=habit?habitStreak(t,today):0;
+    const chSt=ch&&typeof challengeStatusText==='function'?challengeStatusText(t,today):'';
     let badge='';
-    if(habit)badge=`<span style="background:rgba(157,124,244,0.15);color:var(--purple);border-radius:4px;padding:1px 6px;font-size:9px;font-family:'DM Mono',monospace;font-weight:700;">🔥 Nawyk</span>`;
+    if(ch)badge=`<span style="background:rgba(201,162,39,0.15);color:var(--gold);border-radius:4px;padding:1px 6px;font-size:9px;font-family:'DM Mono',monospace;font-weight:700;">🏆 Wyzwanie</span>`;
+    else if(habit)badge=`<span style="background:rgba(157,124,244,0.15);color:var(--purple);border-radius:4px;padding:1px 6px;font-size:9px;font-family:'DM Mono',monospace;font-weight:700;">🔥 Nawyk</span>`;
     else if(isOverdue)badge=`<span style="background:rgba(255,68,68,0.15);color:var(--red);border-radius:4px;padding:1px 6px;font-size:9px;font-family:'DM Mono',monospace;font-weight:700;">Pilne</span>`;
     else if(isTomorrow)badge=`<span style="background:rgba(201,123,63,0.15);color:var(--orange);border-radius:4px;padding:1px 6px;font-size:9px;font-family:'DM Mono',monospace;font-weight:700;">Wkrótce</span>`;
-    const dueText=habit?(c?(c.name+(streak?' · 🔥 '+streak:'')):(streak?'🔥 '+streak+' dni':'Odhacz dziś')):isOverdue?'Termin: dziś':isToday?'Termin: dziś':isTomorrow?c?c.name+' · jutro':'jutro':c?c.name+(t.due?' · '+t.due:''):t.due||'Bez terminu';
+    const dueText=ch?(c?c.name+' · '+chSt:chSt):habit?(c?(c.name+(streak?' · 🔥 '+streak:'')):(streak?'🔥 '+streak+' dni':'Odhacz dziś')):isOverdue?'Termin: dziś':isToday?'Termin: dziś':isTomorrow?c?c.name+' · jutro':'jutro':c?c.name+(t.due?' · '+t.due:''):t.due||'Bez terminu';
     html+=`<div style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);">
       <div onclick="toggleTask('${t.id}');renderDash()" style="width:18px;height:18px;border-radius:4px;border:2px solid var(--border2);flex-shrink:0;cursor:pointer;margin-top:1px;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)'"></div>
       <div style="flex:1;min-width:0;">
