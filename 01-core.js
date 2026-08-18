@@ -614,7 +614,7 @@ window.weightFromPct1RM=weightFromPct1RM;
 
 /** Ćwiczenie z planu: obiekt AI albo string z kreatora ("Wyciskanie 4x8 @75%"). */
 function parsePlanExercise(ex){
-  if(ex==null)return{name:'Ćwiczenie',sets:'3',reps:'10',rest:'90s',kg:'',pct1rm:'',ss:''};
+  if(ex==null)return{name:'Ćwiczenie',sets:'3',reps:'10',rest:'90s',kg:'',pct1rm:'',ss:'',emom:false};
   if(typeof ex==='string'){
     const raw=ex.trim();
     const m=raw.match(/^(.*?)(?:\s+(\d+)\s*[x×]\s*(\d+(?:\s*-\s*\d+)?))?(?:\s*@\s*(\d+(?:[.,]\d+)?)\s*(%|kg)?)?\s*$/i);
@@ -628,7 +628,8 @@ function parsePlanExercise(ex){
       rest:'90s',
       kg:isPct?'':amt,
       pct1rm:isPct?parsePct1RM(amt):'',
-      ss:''
+      ss:'',
+      emom:false
     };
   }
   let kg=ex.kg!=null&&ex.kg!==''?String(ex.kg):'';
@@ -646,10 +647,32 @@ function parsePlanExercise(ex){
     rir:ex.rir||'',
     tempo:ex.tempo||'',
     alt:ex.alt||'',
-    ss:String(ex.ss||ex.superset||'').trim()
+    ss:String(ex.ss||ex.superset||'').trim(),
+    emom:isEmomFlag(ex.emom)
   };
 }
 window.parsePlanExercise=parsePlanExercise;
+
+function isEmomFlag(v){
+  return v===true||v===1||v==='1'||v==='true'||v==='emom'||v==='EMOM';
+}
+window.isEmomFlag=isEmomFlag;
+
+function isEmomExercise(ex){
+  if(!ex)return false;
+  if(String(ex.ss||'').trim())return false;
+  return isEmomFlag(ex.emom);
+}
+window.isEmomExercise=isEmomExercise;
+
+/** Po N-tej skończonej rundzie: ile sekund do N×60 od startu zegara EMOM. */
+function emomRestSec(doneCount,elapsedSec){
+  const n=Math.max(1,parseInt(doneCount,10)||1);
+  const elapsed=Number(elapsedSec)||0;
+  const wait=n*60-elapsed;
+  return wait>0?Math.ceil(wait):0;
+}
+window.emomRestSec=emomRestSec;
 
 function applySsLabels(list){
   let n=0;
@@ -728,7 +751,8 @@ function formatPlanExerciseLine(ex,clientId){
   }else if(p.kg){
     kgPart=' @'+p.kg+'kg';
   }
-  return(p.ssLabel?p.ssLabel+' ':'')+(p.name||'')+(p.sets?' '+p.sets+'×'+p.reps:'')+kgPart;
+  const emom=isEmomFlag(p.emom)&&!p.ss?' EMOM':'';
+  return(p.ssLabel?p.ssLabel+' ':'')+(p.name||'')+(p.sets?' '+p.sets+'×'+p.reps:'')+kgPart+emom;
 }
 window.formatPlanExerciseLine=formatPlanExerciseLine;
 
@@ -919,6 +943,7 @@ function mapPlanExercisesForClient(rawEx,clientId){
     const fromPct=pct?weightFromPct1RM(clientId,ex.name,pct):null;
     const plannedKg=(fromPct&&fromPct.kg)?fromPct.kg:(ex.kg||'');
     const lockPct=!!pct;
+    const emom=isEmomExercise(ex);
     return{
       name:ex.name,
       plannedName:ex.name,
@@ -930,6 +955,7 @@ function mapPlanExercisesForClient(rawEx,clientId){
       lastKg:last&&last.kg!=null&&last.kg!==''?last.kg:(plannedKg||''),
       lastReps:last&&last.reps!=null&&last.reps!==''?last.reps:'',
       ss:ex.ss||'',
+      emom,
       sets:Array.from({length:nSets},(_,i)=>{
         const prev=last&&last.sets[i];
         let kg=plannedKg;
@@ -938,7 +964,8 @@ function mapPlanExercisesForClient(rawEx,clientId){
           setNo:i+1,
           kg:kg||'',
           reps:prev&&prev.reps!=null&&prev.reps!==''?String(prev.reps):defaultReps,
-          done:false
+          done:false,
+          kind:emom?'emom':'work'
         };
       })
     };
