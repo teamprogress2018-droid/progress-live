@@ -1284,12 +1284,12 @@ function confirmStarterPack(){
   if(!c)return;
   const all=allResources();
   const picks=[
-    all.find(r=>r.coll==='music'),
-    all.find(r=>r.cat==='odżywianie'),
-    all.find(r=>r.cat==='regeneracja'),
+    all.find(r=>r.coll==='podcasts'&&/youtube/i.test(r.url||'')),
+    all.find(r=>r.cat==='odżywianie'&&r.type==='link'),
+    all.find(r=>r.coll==='music'&&/youtube/i.test(r.url||'')),
   ].filter(Boolean);
   if(!picks.length){notify('Brak zasobów do wysłania — dodaj kilka materiałów.');return;}
-  const intro=`🎁 Witaj ${c.name.split(' ')[0]}! Przygotowałem dla Ciebie mały start — ${picks.length===3?'playlistę, artykuł o diecie i przewodnik po regeneracji':'kilka materiałów'}, żebyś mógł/mogła zacząć na dobrych zasadach:`;
+  const intro=`🎁 Witaj ${c.name.split(' ')[0]}! Przygotowałem dla Ciebie start na YouTube (bez Spotify Premium) — ${picks.length===3?'podcast, artykuł o diecie i muzykę na trening':'kilka materiałów'}:`;
   const body=picks.map(r=>`• ${r.name}\n${r.url||''}`).join('\n\n');
   pushMsg(cid,intro+'\n\n'+body);
   closeM('m-starter-pack');

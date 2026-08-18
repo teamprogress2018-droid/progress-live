@@ -819,13 +819,13 @@ function renderCalWeek(){
       const sessHTML=cellSessions.map((s,si)=>{
         const c=CL.find(x=>x.id===s.clientId);
         const cIdx=c?CL.indexOf(c):-1;
-        const col=SESS_COLORS[(cIdx>=0?cIdx:0)%6];
+        const col=s.source==='garmin'?'#007cc3':SESS_COLORS[(cIdx>=0?cIdx:0)%6];
         const timeMin=parseInt((s.time||'0:0').split(':')[1]||0);
         const topPct=(timeMin/60)*100;
         const dur=s.duration||60;
         const heightPx=Math.max(20,(dur/60)*56);
         return `<div class="cal-session-block" style="background:${col}22;border-color:${col}44;color:${col};top:${topPct}%;height:${heightPx}px;" onclick="editSession('${s.id}')" title="${c?c.name:'Klient'} — ${s.type||''} ${s.time||''}">
-          <div style="font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${c?c.name.split(' ')[0]:'Klient'}</div>
+          <div style="font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${s.source==='garmin'?'⌚ ':''}${c?c.name.split(' ')[0]:'Klient'}</div>
           <div style="font-size:9px;opacity:0.8;">${s.time||''} ${s.type||''}</div>
         </div>`;
       }).join('');
@@ -934,13 +934,13 @@ function renderCalList(){
       ${sessions.map(s=>{
         const c=CL.find(x=>x.id===s.clientId);
         const ci=c?CL.indexOf(c):-1;
-        const col=SESS_COLORS[(ci>=0?ci:0)%6];
+        const col=s.source==='garmin'?'#007cc3':SESS_COLORS[(ci>=0?ci:0)%6];
         return `<div class="cal-list-sess" onclick="editSession('${s.id}')">
           <div style="width:4px;border-radius:2px;background:${col};flex-shrink:0;align-self:stretch;"></div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:${col};min-width:44px;line-height:1.1;">${s.time||'—'}</div>
           <div style="flex:1;">
-            <div style="font-size:13px;font-weight:700;">${c?c.name:'Klient'}</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:2px;">${s.type||'Sesja'} · ${s.duration||60} min</div>
+            <div style="font-size:13px;font-weight:700;">${s.source==='garmin'?'⌚ ':''}${c?c.name:'Klient'}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;">${s.source==='garmin'?'Garmin · ':''}${s.type||'Sesja'} · ${s.duration||60} min</div>
             ${s.notes?`<div style="font-size:11px;color:var(--muted2);margin-top:3px;font-style:italic;">${s.notes}</div>`:''}
           </div>
           <div style="display:flex;flex-direction:column;gap:4px;align-self:center;">

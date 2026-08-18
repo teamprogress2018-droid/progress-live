@@ -638,10 +638,12 @@ function renderMetrics(){
   if(sumEl&&cid){
     const lastMass=METRIC_ENTRIES.filter(e=>e.clientId===cid&&e.groupId==='mg1').sort((a,b)=>b.date.localeCompare(a.date))[0];
     const firstMass=METRIC_ENTRIES.filter(e=>e.clientId===cid&&e.groupId==='mg1').sort((a,b)=>a.date.localeCompare(b.date))[0];
+    const lastGarmin=METRIC_ENTRIES.filter(e=>e.clientId===cid&&e.groupId==='mg6').sort((a,b)=>b.date.localeCompare(a.date))[0];
     const diff=lastMass&&firstMass&&lastMass!==firstMass?((lastMass.values.m1||0)-(firstMass.values.m1||0)).toFixed(1):null;
-    sumEl.innerHTML=lastMass?`
-      <div class="metric-summary-row"><span style="color:var(--muted);">Masa ciała</span><span style="font-weight:700;">${lastMass.values.m1||'—'} kg</span></div>
+    sumEl.innerHTML=(lastMass||lastGarmin)?`
+      ${lastMass?`<div class="metric-summary-row"><span style="color:var(--muted);">Masa ciała</span><span style="font-weight:700;">${lastMass.values.m1||'—'} kg</span></div>`:''}
       ${diff!==null?`<div class="metric-summary-row"><span style="color:var(--muted);">Zmiana</span><span style="font-weight:700;color:${diff<0?'var(--teal)':diff>0?'var(--red)':'var(--muted)'};">${diff>0?'+':''}${diff} kg</span></div>`:''}
+      ${lastGarmin?`<div class="metric-summary-row"><span style="color:var(--muted);">Garmin</span><span style="font-weight:700;">${lastGarmin.values.m1?lastGarmin.values.m1+' kroków':lastGarmin.values.m2?lastGarmin.values.m2+' kcal':'⌚'}</span></div>`:''}
       <div class="metric-summary-row"><span style="color:var(--muted);">Pomiarów</span><span>${METRIC_ENTRIES.filter(e=>e.clientId===cid).length}</span></div>
     `:'<div style="font-size:11px;color:var(--muted);">Brak danych</div>';
   }
@@ -713,9 +715,10 @@ function renderMetricData(cid,gid){
         <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);">${e.date}</div>
         <div style="display:flex;flex-wrap:wrap;gap:3px;">
           ${group.metrics.map(m=>`<span class="metric-val-chip">${m.name}: <strong>${e.values[m.id]!=null?e.values[m.id]+'':'—'}${m.unit?'<span style="color:var(--muted);font-size:9px;"> '+m.unit+'</span>':''}</strong></span>`).join('')}
+          ${e.notes?`<span class="metric-val-chip" style="color:var(--muted);">${e.source==='garmin'?'⌚ ':''}${e.notes}</span>`:''}
         </div>
         <div style="font-size:12px;" class="${trendClass}">${change!=null?(parseFloat(change)>0?'+':'')+change+(firstMetric&&firstMetric.unit?' '+firstMetric.unit:''):'—'}</div>
-        <div style="font-size:18px;" class="${trendClass}">${change==null?'—':parseFloat(change)>0?'↑':parseFloat(change)<0?'↓':'→'}</div>
+        <div style="font-size:18px;" class="${trendClass}">${e.source==='garmin'?'⌚':change==null?'—':parseFloat(change)>0?'↑':parseFloat(change)<0?'↓':'→'}</div>
         <div><button onclick="delMetricEntry('${e.id}')" style="background:none;border:none;color:var(--muted2);font-size:16px;cursor:pointer;">×</button></div>
       </div>`;
     }).join('');

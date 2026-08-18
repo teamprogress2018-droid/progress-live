@@ -1563,12 +1563,14 @@ function avgSessionRating(sessions){
 window.avgSessionRating=avgSessionRating;
 
 function sessionTitle(s){
+  if(s&&s.source==='garmin')return s.notes||s.type||s.title||'Garmin';
   return (s&&(s.type||s.title))||'Trening';
 }
 window.sessionTitle=sessionTitle;
 
 function sessionSourceLabel(s){
   if(!s)return '';
+  if(s.source==='garmin')return 'Garmin';
   if(s.source==='client')return 'Klient';
   if(s.source==='live')return 'Live';
   return 'Sala';

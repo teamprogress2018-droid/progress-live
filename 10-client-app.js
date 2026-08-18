@@ -118,6 +118,7 @@ function emptyClientCollections(){
   window.FORUM_GROUPS=[];window.FORUM_POSTS=[];window.FORUM_COMMENTS={};
   window.PROGRESS_PHOTOS=[];
   window.COACH_VIDEOS=[];
+  window.USER_RESOURCES=[];
   if(window.MSGS)Object.keys(window.MSGS).forEach(k=>delete window.MSGS[k]);
 }
 
@@ -143,6 +144,12 @@ async function loadClientApp(account){
   window.PROGRESS_PHOTOS=await queryByClientId('progressPhotos',cid);
   window.EX=await queryByTrainerId('exercises',account.trainerId);
   window.COACH_VIDEOS=await queryByTrainerId('coachVideos',account.trainerId);
+  try{
+    const res=await queryByTrainerId('resources',account.trainerId);
+    window.USER_RESOURCES=(res&&res.length)?res:((window.DEMO_RESOURCES||[]).map(r=>Object.assign({},r)));
+  }catch(e){
+    window.USER_RESOURCES=(window.DEMO_RESOURCES||[]).map(r=>Object.assign({},r));
+  }
   const msgs=await queryByClientId('messages',cid);
   msgs.sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||''));
   if(!window.MSGS)window.MSGS={};
