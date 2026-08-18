@@ -904,3 +904,67 @@ function compressImageFile(file,max=720,quality=0.68){
 }
 window.compressImageFile=compressImageFile;
 
+const SESSION_RATING={
+  1:{emoji:'😓',label:'Bardzo ciężko'},
+  2:{emoji:'😐',label:'Ciężko'},
+  3:{emoji:'🙂',label:'OK'},
+  4:{emoji:'💪',label:'Dobre'},
+  5:{emoji:'🔥',label:'Świetne'}
+};
+window.SESSION_RATING=SESSION_RATING;
+
+function sessionRatingEmoji(n){
+  const r=SESSION_RATING[Number(n)];
+  return r?r.emoji:'';
+}
+window.sessionRatingEmoji=sessionRatingEmoji;
+
+function sessionRatingLabel(n){
+  const r=SESSION_RATING[Number(n)];
+  return r?(r.emoji+' '+r.label):'';
+}
+window.sessionRatingLabel=sessionRatingLabel;
+
+function isLoggedWorkout(s){
+  if(!s)return false;
+  if(s.source==='client'||s.source==='live')return true;
+  return Array.isArray(s.exercises)&&s.exercises.length>0;
+}
+window.isLoggedWorkout=isLoggedWorkout;
+
+function completedWorkouts(clientId,sessions){
+  return(sessions||window.SE||[]).filter(s=>s&&s.clientId===clientId&&isLoggedWorkout(s))
+    .slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''));
+}
+window.completedWorkouts=completedWorkouts;
+
+function sessionSetsCount(s){
+  if(!s||!s.exercises)return 0;
+  return s.exercises.reduce((n,e)=>{
+    if(Array.isArray(e.sets))return n+e.sets.length;
+    const k=parseInt(e.sets,10);
+    return n+(Number.isFinite(k)?k:0);
+  },0);
+}
+window.sessionSetsCount=sessionSetsCount;
+
+function avgSessionRating(sessions){
+  const nums=(sessions||[]).map(s=>Number(s.feedback)).filter(n=>n>=1&&n<=5);
+  if(!nums.length)return 0;
+  return Math.round((nums.reduce((a,b)=>a+b,0)/nums.length)*10)/10;
+}
+window.avgSessionRating=avgSessionRating;
+
+function sessionTitle(s){
+  return (s&&(s.type||s.title))||'Trening';
+}
+window.sessionTitle=sessionTitle;
+
+function sessionSourceLabel(s){
+  if(!s)return '';
+  if(s.source==='client')return 'Klient';
+  if(s.source==='live')return 'Live';
+  return 'Sala';
+}
+window.sessionSourceLabel=sessionSourceLabel;
+

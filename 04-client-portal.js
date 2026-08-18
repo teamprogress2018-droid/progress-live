@@ -138,6 +138,35 @@ function capDayLabel(day,idx){
   return day.day||day.dayName||day.focus||day.muscles||('Dzień '+(idx+1));
 }
 
+function capSessionSetsText(e){
+  if(!e)return '—';
+  if(Array.isArray(e.sets)&&e.sets.length&&typeof e.sets[0]==='object'){
+    return e.sets.map((st,i)=>(st.setNo||(i+1))+': '+(st.kg||0)+' kg × '+(st.reps||0)).join(' · ');
+  }
+  if(e.sets&&e.reps)return e.sets+'×'+e.reps+(e.kg?' @'+e.kg+'kg':'');
+  if(typeof e.sets==='string')return e.sets;
+  return '—';
+}
+
+function capWorkoutHistoryList(c,list,live,accent){
+  if(!list||!list.length){
+    return `<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:16px;text-align:center;color:${CAP_MUTED};font-size:12px;">Brak zapisanych treningów. Po skończonej sesji ocena i serie pojawią się tutaj.</div>`;
+  }
+  return list.map(s=>{
+    const emoji=typeof sessionRatingEmoji==='function'?sessionRatingEmoji(s.feedback):'';
+    const n=(s.exercises||[]).length;
+    const sets=typeof sessionSetsCount==='function'?sessionSetsCount(s):n;
+    return `<button type="button" class="cap-list-item" style="width:100%;text-align:left;background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:14px;margin-bottom:8px;cursor:pointer;" onclick="clientOpenSession('${escHtml(s.id)}')">
+      <div style="font-size:22px;width:36px;text-align:center;flex-shrink:0;">${emoji||'🏋️'}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};">${escHtml(s.type||s.title||'Trening')}</div>
+        <div style="font-size:11px;color:${CAP_MUTED};margin-top:2px;">${escHtml(s.date||'')} · ${s.duration||'—'} min${n?' · '+n+' ćw.':''}${sets?' · '+sets+' serii':''}</div>
+      </div>
+      <span style="font-size:11px;color:${accent};">Szczegóły →</span>
+    </button>`;
+  }).join('');
+}
+
 function capScreenHTML(scr,c){
   const accent=window.SETTINGS?.brand?.accentColor||CAP_ACCENT;
   const trainerName=getTrainerName();
@@ -169,11 +198,16 @@ function capScreenHTML(scr,c){
       }
       if(slot.kind==='done'){
         const n=((slot.session&&slot.session.exercises)||[]).length;
+        const emoji=typeof sessionRatingEmoji==='function'?sessionRatingEmoji(slot.session.feedback):'';
+        const sid=slot.session&&slot.session.id;
         return `<div style="background:linear-gradient(135deg,rgba(62,207,178,0.18),rgba(62,207,178,0.05));border:1px solid rgba(62,207,178,0.35);border-radius:18px;padding:18px;margin-bottom:14px;text-align:center;">
           <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--teal);text-transform:uppercase;margin-bottom:8px;">✓ ZROBIONE</div>
           <div style="font-size:18px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">${escHtml(capDayLabel(slot.day,slot.dayIdx))}</div>
-          <div style="font-size:12px;color:${CAP_MUTED};margin-bottom:12px;">${n?n+' ćwiczeń · ':''}${escHtml(slot.session.duration||'')} min · ocena ${escHtml(String(slot.session.feedback||'—'))}/5</div>
-          <button type="button" class="cap-btn-primary" style="padding:10px;font-size:13px;" ${startBtn(slot.plan.id,slot.dayIdx)}>↺ Powtórz trening</button>
+          <div style="font-size:12px;color:${CAP_MUTED};margin-bottom:12px;">${n?n+' ćwiczeń · ':''}${escHtml(String(slot.session.duration||''))} min · ${emoji?escHtml(emoji)+' ':''}ocena ${escHtml(String(slot.session.feedback||'—'))}/5</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            ${sid?`<button type="button" class="cap-btn-primary" style="padding:10px;font-size:13px;background:${CAP_S3};" onclick="clientOpenSession('${escHtml(sid)}')">Szczegóły treningu</button>`:''}
+            <button type="button" class="cap-btn-primary" style="padding:10px;font-size:13px;" ${startBtn(slot.plan.id,slot.dayIdx)}>↺ Powtórz trening</button>
+          </div>
         </div>`;
       }
       if(slot.kind==='rest'){
@@ -279,64 +313,128 @@ function capScreenHTML(scr,c){
         </div>`}
     </div>`;
 
-  if(scr==='calendar') return `
+  if(scr==='calendar'){
+    const live=capIsLiveClient();
+    const now=new Date();
+    const cal=window._cliveCal||{y:now.getFullYear(),m:now.getMonth()};
+    window._cliveCal=cal;
+    const monthNames=['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
+    const first=new Date(cal.y,cal.m,1);
+    const startDow=(first.getDay()+6)%7;
+    const dim=new Date(cal.y,cal.m+1,0).getDate();
+    const today=typeof todayYmd==='function'?todayYmd():'';
+    const logged=typeof completedWorkouts==='function'?completedWorkouts(c.id):sessions.filter(s=>s.source==='client'||s.source==='live');
+    const doneDates=new Set(logged.map(s=>s.date));
+    const upcoming=sessions.filter(s=>s.date&&s.date>=today&&s.source!=='client'&&s.source!=='live').sort((a,b)=>(a.date||'').localeCompare(b.date||'')).slice(0,5);
+    const cells=[];
+    for(let i=0;i<startDow;i++)cells.push('<div></div>');
+    for(let d=1;d<=dim;d++){
+      const ymd=cal.y+'-'+String(cal.m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+      const isToday=ymd===today;
+      const has=doneDates.has(ymd);
+      const sid=has?(logged.find(s=>s.date===ymd)||{}).id:'';
+      cells.push(`<div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:12px;background:${isToday?accent:has?accent+'22':'transparent'};color:${isToday?'#000':has?accent:CAP_MUTED};font-weight:${isToday||has?700:400};${has?'cursor:pointer;':''}" ${sid?`onclick="clientOpenSession('${escHtml(sid)}')"`:''}>${d}</div>`);
+    }
+    return `
     <div class="cap-section" style="padding-bottom:90px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:16px;padding-top:8px;">KALENDARZ SESJI</div>
-      <!-- mini calendar -->
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:16px;padding-top:8px;">KALENDARZ</div>
       <div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-          <button style="background:none;border:none;color:${CAP_MUTED};font-size:18px;cursor:pointer;">‹</button>
-          <div style="font-size:14px;font-weight:700;color:${CAP_TEXT};">Maj 2025</div>
-          <button style="background:none;border:none;color:${CAP_MUTED};font-size:18px;cursor:pointer;">›</button>
+          <button type="button" style="background:none;border:none;color:${CAP_MUTED};font-size:18px;cursor:pointer;" onclick="clientCalNav(-1)">‹</button>
+          <div style="font-size:14px;font-weight:700;color:${CAP_TEXT};">${monthNames[cal.m]} ${cal.y}</div>
+          <button type="button" style="background:none;border:none;color:${CAP_MUTED};font-size:18px;cursor:pointer;" onclick="clientCalNav(1)">›</button>
         </div>
         <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;margin-bottom:8px;">
           ${['P','W','Ś','C','P','S','N'].map(d=>`<div style="font-size:9px;color:${CAP_MUTED};padding:4px 0;">${d}</div>`).join('')}
         </div>
-        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center;">
-          ${Array.from({length:31},(_,i)=>{
-            const hasSess=[5,8,12,15,19,22,26].includes(i+1);
-            const isToday=i+1===20;
-            return `<div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:12px;background:${isToday?accent:hasSess?accent+'22':'transparent'};color:${isToday?'#000':hasSess?accent:CAP_MUTED};font-weight:${isToday||hasSess?700:400};">${i+1}</div>`;
-          }).join('')}
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center;">${cells.join('')}</div>
+        <div style="display:flex;gap:12px;margin-top:10px;font-size:10px;color:${CAP_MUTED};">
+          <span>● zrobiony trening</span>
         </div>
       </div>
-      <!-- nadchodzące sesje -->
-      <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">Nadchodzące sesje</div>
-      ${(()=>{
-        const upcoming=sessions.filter(s=>s.date&&s.date>=(typeof dateStr==='function'?dateStr(new Date()):'')).sort((a,b)=>(a.date||'').localeCompare(b.date||'')).slice(0,6);
-        const list=upcoming.length?upcoming.map(s=>({date:s.date,time:s.time||'',type:s.type||'Trening'})):(capIsLiveClient()?[]:[
-          {date:'—',time:'10:00',type:'Trening siłowy — Push'},
-        ]);
-        if(!list.length)return `<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:16px;text-align:center;color:${CAP_MUTED};font-size:12px;">Brak zaplanowanych sesji.</div>`;
-        return list.map(s=>`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:14px;margin-bottom:8px;display:flex;gap:12px;align-items:center;">
+      ${upcoming.length?`<div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">Nadchodzące z trenerem</div>
+      ${upcoming.map(s=>`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:14px;margin-bottom:8px;display:flex;gap:12px;align-items:center;">
         <div style="background:${accent}22;border-radius:10px;padding:8px 12px;text-align:center;flex-shrink:0;">
           <div style="font-size:11px;color:${accent};font-family:'DM Mono',monospace;">${escHtml((s.date||'').slice(5,7)||'—')}</div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:${accent};line-height:1;">${escHtml((s.date||'').slice(8,10)||'—')}</div>
         </div>
-        <div><div style="font-size:13px;font-weight:700;color:${CAP_TEXT};">${escHtml(s.type)}</div>
+        <div><div style="font-size:13px;font-weight:700;color:${CAP_TEXT};">${escHtml(s.type||'Sesja')}</div>
         <div style="font-size:11px;color:${CAP_MUTED};">⏰ ${escHtml(s.time||'')} · z ${escHtml(trainerName)}</div></div>
-      </div>`).join('');
-      })()}
+      </div>`).join('')}`:''}
+      <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin:14px 0 10px;">Ostatnie treningi</div>
+      ${capWorkoutHistoryList(c,logged.slice(0,8),live,accent)}
     </div>`;
+  }
 
   if(scr==='progress'){
     const live=capIsLiveClient();
     const w=typeof ppLatestWeight==='function'?ppLatestWeight(c):(c.weight||'—');
     const photosOn=typeof ppFeatureOn==='function'?ppFeatureOn(c):true;
+    const logged=typeof completedWorkouts==='function'?completedWorkouts(c.id):sessions.filter(s=>s.source==='client'||s.source==='live');
+    const avg=typeof avgSessionRating==='function'?avgSessionRating(logged):0;
     return `
     <div class="cap-section" style="padding-bottom:90px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:16px;padding-top:8px;">MOJE POSTĘPY</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-top:8px;gap:8px;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;">MOJE POSTĘPY</div>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="capGoScreen('calendar')">📅 Kalendarz</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;">
         <div style="background:${CAP_S2};border-radius:16px;padding:14px;border:1px solid ${CAP_S3};">
           <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:6px;">⚖️ Masa</div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:30px;color:${CAP_TEXT};line-height:1;">${escHtml(String(w))}<span style="font-size:14px;color:${CAP_MUTED};"> kg</span></div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${CAP_TEXT};line-height:1;">${escHtml(String(w))}<span style="font-size:12px;color:${CAP_MUTED};"> kg</span></div>
         </div>
         <div style="background:${CAP_S2};border-radius:16px;padding:14px;border:1px solid ${CAP_S3};">
           <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:6px;">🏋️ Sesje</div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:30px;color:${accent};line-height:1;">${sessions.length}</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${accent};line-height:1;">${logged.length||sessions.length}</div>
+        </div>
+        <div style="background:${CAP_S2};border-radius:16px;padding:14px;border:1px solid ${CAP_S3};">
+          <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:6px;">Ocena</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${CAP_TEXT};line-height:1;">${avg?avg+'/5':'—'}</div>
         </div>
       </div>
       ${photosOn&&typeof ppBlockHTML==='function'?ppBlockHTML(c,{live,accent}):`<div style="font-size:12px;color:${CAP_MUTED};">Zdjęcia sylwetki są wyłączone u trenera.</div>`}
+      <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin:16px 0 10px;">Historia treningów</div>
+      ${capWorkoutHistoryList(c,logged.slice(0,20),live,accent)}
+    </div>`;
+  }
+
+  if(scr==='session'){
+    const live=capIsLiveClient();
+    const s=(window.SE||[]).find(x=>x.id===window._cliveSessionId&&x.clientId===c.id);
+    if(!s){
+      return `<div class="cap-section" style="padding-bottom:90px;">
+        <button type="button" class="btn btn-ghost btn-sm" style="margin:8px 0 12px;" onclick="capGoScreen('progress')">← Postępy</button>
+        <div style="text-align:center;padding:40px;color:${CAP_MUTED};font-size:12px;">Nie znaleziono treningu.</div>
+      </div>`;
+    }
+    const src=s.source==='client'?'Ty w apce':s.source==='live'?'Z trenerem (live)':'Sesja';
+    return `<div class="cap-section" style="padding-bottom:90px;">
+      <button type="button" class="btn btn-ghost btn-sm" style="margin:8px 0 12px;" onclick="capGoScreen('progress')">← Postępy</button>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:4px;">${escHtml(s.type||s.title||'Trening')}</div>
+      <div style="font-size:12px;color:${CAP_MUTED};margin-bottom:14px;">${escHtml(s.date||'')} ${escHtml(s.time||'')} · ${escHtml(src)}${s.duration?' · '+escHtml(String(s.duration))+' min':''}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;">
+        <div style="background:${CAP_S2};border-radius:14px;padding:12px;text-align:center;border:1px solid ${CAP_S3};">
+          <div style="font-size:20px;">${escHtml(sessionRatingEmoji(s.feedback)||'—')}</div>
+          <div style="font-size:10px;color:${CAP_MUTED};margin-top:4px;">${escHtml((SESSION_RATING[Number(s.feedback)]||{}).label||'Brak oceny')}</div>
+        </div>
+        <div style="background:${CAP_S2};border-radius:14px;padding:12px;text-align:center;border:1px solid ${CAP_S3};">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:${accent};">${(s.exercises||[]).length}</div>
+          <div style="font-size:10px;color:${CAP_MUTED};">ćwiczeń</div>
+        </div>
+        <div style="background:${CAP_S2};border-radius:14px;padding:12px;text-align:center;border:1px solid ${CAP_S3};">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:${CAP_TEXT};">${s.volume||sessionSetsCount(s)}</div>
+          <div style="font-size:10px;color:${CAP_MUTED};">${s.volume?'kg obj.':'serii'}</div>
+        </div>
+      </div>
+      ${(s.exercises||[]).length?(s.exercises||[]).map(e=>`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:12px;margin-bottom:8px;">
+        <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">${escHtml(e.name||'')}</div>
+        <div style="font-size:11px;color:${CAP_MUTED};font-family:'DM Mono',monospace;">${escHtml(capSessionSetsText(e))}</div>
+      </div>`).join(''):`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:16px;text-align:center;color:${CAP_MUTED};font-size:12px;">Brak zapisanych serii.</div>`}
+      ${s.note||s.notes?`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:14px;margin-top:6px;">
+        <div style="font-size:10px;color:${CAP_MUTED};text-transform:uppercase;margin-bottom:6px;">Komentarz</div>
+        <div style="font-size:13px;color:${CAP_TEXT};line-height:1.5;">${escHtml(s.note||s.notes||'')}</div>
+      </div>`:''}
+      ${!live?'<div style="font-size:11px;color:'+CAP_MUTED+';margin-top:12px;text-align:center;">Podgląd — klient otwiera to w swojej apce</div>':''}
     </div>`;
   }
 
@@ -547,8 +645,9 @@ function capScreenHTML(scr,c){
 const CAP_SCREEN_INFO={
   home:{title:'🏠 Dziś',desc:'Jeden ekran na dzień: trening do odpalenia (Start), dzień wolny, zadania do odhaczenia i check-in jeśli czeka. Klient nie zgaduje, co ma zrobić.'},
   plan:{title:'📋 Mój plan treningowy',desc:'Lista dni planu. Z każdego dnia treningowego klient może od razu kliknąć Start i odhaczać serie.'},
-  calendar:{title:'📅 Kalendarz sesji',desc:'Mini-kalendarz z zaznaczonymi sesjami. Klient widzi nadchodzące treningi z godziną, typem i linkiem do Google Meet (jeśli online).'},
-  progress:{title:'📈 Moje postępy',desc:'Masa z pomiarów oraz zdjęcia sylwetki (przód / bok / tył) z porównaniem w czasie. Klient robi zdjęcia w apce — Ty widzisz je w karcie klienta.'},
+  calendar:{title:'📅 Kalendarz',desc:'Prawdziwy miesiąc z zaznaczonymi zrobionymi treningami, sesje z trenerem i lista ostatnich ocen.'},
+  progress:{title:'📈 Moje postępy',desc:'Masa, średnia ocena treningów, zdjęcia sylwetki i historia sesji — klik w trening pokazuje serie, kg i ocenę.'},
+  session:{title:'🏋️ Szczegóły treningu',desc:'Ocena 1–5, komentarz klienta, ćwiczenia i zrobione serie (kg × powt.). Trener widzi to samo w karcie klienta i w historii Live.'},
   checkin:{title:'✅ Check-in tygodniowy',desc:'Interaktywny formularz check-inu — emoji skale, liczba treningów, waga. Wysłany check-in trafia bezpośrednio do Twojego panelu.'},
   messages:{title:'💬 Wiadomości',desc:'Czat z trenerem w czasie rzeczywistym. Klient widzi historię rozmów, może pisać i odbierać wiadomości. Możesz wysyłać zdjęcia, pliki i linki.'},
   ondemand:{title:'▶️ On-demand',desc:'Portal treningów wideo i planów. Klient może samodzielnie wykonywać treningi między sesjami — filtrować po kategorii, poziomie i czasie.'},

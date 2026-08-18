@@ -203,6 +203,26 @@ function setClientLiveScreen(scr){
   renderClientLive();
 }
 
+function capGoScreen(scr){
+  if(window._clientAppMode){setClientLiveScreen(scr);return;}
+  if(typeof setCapScreen==='function')setCapScreen(scr);
+}
+
+function clientCalNav(delta){
+  const now=new Date();
+  const d=window._cliveCal||{y:now.getFullYear(),m:now.getMonth()};
+  d.m+=Number(delta)||0;
+  while(d.m<0){d.m+=12;d.y--;}
+  while(d.m>11){d.m-=12;d.y++;}
+  window._cliveCal=d;
+  capGoScreen('calendar');
+}
+
+function clientOpenSession(id){
+  window._cliveSessionId=id;
+  capGoScreen('session');
+}
+
 function prepareAuthForInvite(){
   const token=clientInviteTokenFromUrl();
   window._pendingInviteToken=token||window._pendingInviteToken||'';
@@ -411,6 +431,9 @@ window.loadClientApp=loadClientApp;
 window.enterClientLiveShell=enterClientLiveShell;
 window.renderClientLive=renderClientLive;
 window.setClientLiveScreen=setClientLiveScreen;
+window.capGoScreen=capGoScreen;
+window.clientCalNav=clientCalNav;
+window.clientOpenSession=clientOpenSession;
 window.prepareAuthForInvite=prepareAuthForInvite;
 window.authShowRegister=authShowRegister;
 window.authShowLoginFromClient=authShowLoginFromClient;
@@ -674,10 +697,11 @@ function cwRender(){
         <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;">TRENING SKOŃCZONY</div>
         <div style="font-size:13px;color:var(--muted);margin-top:6px;">${setsDone} serii · ${cwFmt(cw.elapsed)}</div>
       </div>
-      <div style="font-size:13px;margin-bottom:10px;text-align:center;">Jak było?</div>
-      <div style="display:flex;justify-content:center;gap:8px;margin-bottom:16px;">
+      <div style="font-size:13px;margin-bottom:10px;text-align:center;">Jak było? (ocena dla trenera)</div>
+      <div style="display:flex;justify-content:center;gap:8px;margin-bottom:6px;">
         ${[1,2,3,4,5].map(n=>`<button type="button" class="clive-check-opt${cw.rating===n?' on':''}" onclick="cwRate(${n})">${['😓','😐','🙂','💪','🔥'][n-1]}</button>`).join('')}
       </div>
+      <div style="text-align:center;font-size:12px;color:var(--muted);margin-bottom:14px;">${cw.rating?(typeof sessionRatingLabel==='function'?sessionRatingLabel(cw.rating):cw.rating+'/5'):'Wybierz 1–5'}</div>
       <textarea class="form-textarea" rows="3" placeholder="Komentarz dla trenera (opcjonalnie)" oninput="window._cw.note=this.value">${escHtml(cw.note||'')}</textarea>
       <button type="button" class="cap-btn-primary" style="margin-top:16px;padding:16px;" onclick="cwFinish()">Zapisz i wyślij do trenera</button>`;
     return;
@@ -715,6 +739,7 @@ function cwRender(){
 
 async function cwFinish(){
   const cw=window._cw;if(!cw)return;
+  if(!cw.rating){if(typeof notify==='function')notify('Wybierz ocenę 1–5 — trener to widzi');return;}
   const clientId=window._clientId;
   const totalSets=cw.exercises.flatMap(e=>e.sets).filter(s=>s.done).length;
   const volume=Math.round(cw.exercises.flatMap(e=>e.sets).filter(s=>s.done&&s.kg).reduce((a,s)=>a+(parseFloat(s.kg)||0)*(parseFloat(s.reps)||0),0));
@@ -745,7 +770,7 @@ async function cwFinish(){
   const name=me&&me.name?me.name.split(' ')[0]:'Klient';
   pushClientMsg('Zrobiłem trening: '+cw.dayName+(cw.rating?(' · ocena '+cw.rating+'/5'):'')+(cw.note?('\n'+cw.note):''));
   if(typeof addNotification==='function'){
-    addNotification('system','Trening klienta',name+' · '+cw.dayName+' · '+durationMin+' min · '+totalSets+' serii','live');
+    addNotification('system','Trening klienta',name+' · '+cw.dayName+' · ocena '+cw.rating+'/5 · '+durationMin+' min · '+totalSets+' serii','live');
   }
   if(typeof notify==='function')notify('✓ Trening zapisany');
   cwClearTimers();
@@ -753,7 +778,8 @@ async function cwFinish(){
   const wrap=document.getElementById('clive-player');
   if(wrap)wrap.hidden=true;
   document.body.classList.remove('cw-playing');
-  window._clientLiveScreen='home';
+  window._cliveSessionId=newSession.id;
+  window._clientLiveScreen='progress';
   renderClientLive();
 }
 

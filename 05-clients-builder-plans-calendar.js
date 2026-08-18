@@ -959,21 +959,29 @@ function editSession(id){
   renderRecordedExercises(s);
 }
 
-// Pokazuje zarejestrowane ćwiczenia (ciężary/powtórzenia) z sesji Trening Live, jeśli są dostępne.
-// Wcześniej te dane były zapisywane, ale nigdzie nie były pokazywane trenerowi z powrotem.
+// Pokazuje zarejestrowane ćwiczenia (ciężary/powtórzenia) i ocenę z sesji klienta lub Treningu Live.
 function renderRecordedExercises(s){
   const wrap=document.getElementById('as-recorded-exercises');
   const list=document.getElementById('as-recorded-exercises-list');
   if(!wrap||!list)return;
   const hasDetailedSets=(s.exercises||[]).some(e=>Array.isArray(e.sets)&&e.sets.length&&typeof e.sets[0]==='object');
-  if(!hasDetailedSets){wrap.style.display='none';list.innerHTML='';return;}
-  list.innerHTML=s.exercises.map(e=>{
+  const hasRating=Number(s.feedback)>=1&&Number(s.feedback)<=5;
+  if(!hasDetailedSets&&!hasRating&&!(s.note||s.notes)){wrap.style.display='none';list.innerHTML='';return;}
+  const src=s.source==='client'?'klienta':s.source==='live'?'Treningu Live':'sesji';
+  const titleEl=wrap.querySelector('[data-rec-ex-title]');
+  if(titleEl)titleEl.textContent='Zapisane serie i ocena (z '+src+')';
+  const ratingLine=hasRating&&typeof sessionRatingLabel==='function'
+    ?`<div style="background:var(--s3);border-radius:8px;padding:8px 10px;font-size:13px;font-weight:600;">Ocena: ${sessionRatingLabel(s.feedback)}</div>`
+    :'';
+  const noteLine=(s.note||s.notes)?`<div style="font-size:12px;color:var(--muted);padding:2px 4px;">Komentarz: ${escHtml(s.note||s.notes)}</div>`:'';
+  const exHtml=hasDetailedSets?s.exercises.map(e=>{
     const setsText=(e.sets||[]).map(st=>`${st.kg||0}kg × ${st.reps||0}`).join(' · ');
     return `<div style="background:var(--s3);border-radius:8px;padding:8px 10px;">
-      <div style="font-size:12px;font-weight:600;margin-bottom:3px;">${e.name}</div>
+      <div style="font-size:12px;font-weight:600;margin-bottom:3px;">${escHtml(e.name||'')}</div>
       <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;">${setsText||'brak zarejestrowanych serii'}</div>
     </div>`;
-  }).join('')+(s.volume?`<div style="font-size:11px;color:var(--accent);text-align:right;font-family:'DM Mono',monospace;padding-top:2px;">Łączna objętość: ${s.volume} kg</div>`:'');
+  }).join(''):'';
+  list.innerHTML=ratingLine+noteLine+exHtml+(s.volume?`<div style="font-size:11px;color:var(--accent);text-align:right;font-family:'DM Mono',monospace;padding-top:2px;">Łączna objętość: ${s.volume} kg</div>`:'');
   wrap.style.display='block';
 }
 
