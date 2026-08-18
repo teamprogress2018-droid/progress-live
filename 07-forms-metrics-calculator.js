@@ -1129,7 +1129,7 @@ function closeClientProfile(){
 
 function setCPTab(t){
   cpTab=t;
-  const moreTabs=['timeline','psycho','sfr','posture','metrics','tasks','food','documents','payments','settings'];
+  const moreTabs=['timeline','psycho','sfr','posture','photos','metrics','tasks','food','documents','payments','settings'];
   if(moreTabs.includes(t)){
     const moreEl=document.getElementById('cp-more-items');
     const arrow=document.getElementById('cp-more-arrow');
@@ -1153,5 +1153,6 @@ function setCPTab(t){
   if(t==='payments')renderCPPayments(c);
   if(t==='settings')renderCPSettings(c);
   if(t==='posture')renderCPPosture(c);
+  if(t==='photos')renderCPPhotos(c);
 }
 

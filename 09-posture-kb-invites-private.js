@@ -156,6 +156,15 @@ window.postureUploadPhoto=postureUploadPhoto;
 window.postureSetActive=postureSetActive;
 window.postureAnalyze=postureAnalyze;
 
+function renderCPPhotos(c){
+  const el=document.getElementById('cp-body');if(!el||!c)return;
+  el.innerHTML=`
+    <div class="cp-section-title">ZDJECIA SYLWETKI</div>
+    <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:16px;">Klient dodaje przód / bok / tył w swojej apce. Możesz też wgrać zestaw tutaj i porównać daty.</div>
+    ${typeof ppBlockHTML==='function'?ppBlockHTML(c,{live:true,accent:'var(--accent)'}):'<div style="color:var(--muted);font-size:12px;">Brak modułu zdjęć.</div>'}`;
+}
+window.renderCPPhotos=renderCPPhotos;
+
 function cpOpenSession(){
   openM('m-session');
   // pre-select client

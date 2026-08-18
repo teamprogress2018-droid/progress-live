@@ -116,6 +116,7 @@ function emptyClientCollections(){
   window.TASKS=[];window.PACKAGES=[];window.METRIC_ENTRIES=[];
   window.CHECKINS={};window.NOTIFICATIONS=[];
   window.FORUM_GROUPS=[];window.FORUM_POSTS=[];window.FORUM_COMMENTS={};
+  window.PROGRESS_PHOTOS=[];
   if(window.MSGS)Object.keys(window.MSGS).forEach(k=>delete window.MSGS[k]);
 }
 
@@ -138,6 +139,7 @@ async function loadClientApp(account){
   window.TASKS=await queryByClientId('tasks',cid);
   window.PACKAGES=await queryByClientId('packages',cid);
   window.METRIC_ENTRIES=await queryByClientId('metricEntries',cid);
+  window.PROGRESS_PHOTOS=await queryByClientId('progressPhotos',cid);
   const msgs=await queryByClientId('messages',cid);
   msgs.sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||''));
   if(!window.MSGS)window.MSGS={};
@@ -435,6 +437,13 @@ window.cwPrevEx=cwPrevEx;
 window.cwRate=cwRate;
 window.cwFinish=cwFinish;
 window.cwSwapEx=cwSwapEx;
+window.ppPick=ppPick;
+window.ppSave=ppSave;
+window.ppDelete=ppDelete;
+window.ppOpenDraft=ppOpenDraft;
+window.ppCloseDraft=ppCloseDraft;
+window.ppSetCmp=ppSetCmp;
+window.ppCmpView=ppCmpView;
 
 document.addEventListener('DOMContentLoaded',prepareAuthForInvite);
 
@@ -708,3 +717,165 @@ async function cwFinish(){
   window._clientLiveScreen='home';
   renderClientLive();
 }
+
+function ppOpenDraft(){
+  if(!window._clientAppMode && !(window.cpClientId&&document.getElementById('cp-drawer')&&document.getElementById('cp-drawer').classList.contains('open'))){
+    if(typeof notify==='function')notify('Podgląd — klient robi zdjęcia w swojej apce');
+    return;
+  }
+  const cid=window._clientAppMode?window._clientId:window.cpClientId;
+  const c=(window.CL||[]).find(x=>x.id===cid)||(window.CL||[])[0]||{};
+  window._ppDraft={front:'',side:'',back:'',weight:c.weight||'',note:'',open:true};
+  if(window._clientAppMode)renderClientLive();
+  else if(typeof setCPTab==='function')setCPTab('photos');
+}
+function ppCloseDraft(){
+  window._ppDraft=null;
+  if(window._clientAppMode)renderClientLive();
+  else if(typeof setCPTab==='function')setCPTab('photos');
+}
+async function ppPick(view,input){
+  const file=input&&input.files&&input.files[0];
+  if(!file)return;
+  try{
+    const data=await compressImageFile(file);
+    window._ppDraft=window._ppDraft||{front:'',side:'',back:'',weight:'',note:'',open:true};
+    window._ppDraft[view]=data;
+    window._ppDraft.open=true;
+    if(window._clientAppMode)renderClientLive();
+    else if(typeof setCPTab==='function')setCPTab('photos');
+  }catch(e){
+    if(typeof notify==='function')notify('Nie udało się wczytać zdjęcia');
+  }
+  if(input)input.value='';
+}
+async function ppSave(clientId){
+  const draft=window._ppDraft||{};
+  const cid=clientId||window._clientId;
+  if(!cid)return;
+  if(!draft.front&&!draft.side&&!draft.back){
+    if(typeof notify==='function')notify('Dodaj przynajmniej jedno zdjęcie');
+    return;
+  }
+  const entry=withTrainer({
+    id:newId('pp'),
+    clientId:cid,
+    date:typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10),
+    weight:draft.weight||'',
+    note:draft.note||'',
+    photos:{front:draft.front||'',side:draft.side||'',back:draft.back||''},
+    source:window._clientAppMode?'client':'trainer',
+    createdAt:new Date().toISOString()
+  });
+  window.PROGRESS_PHOTOS=window.PROGRESS_PHOTOS||[];
+  window.PROGRESS_PHOTOS.push(entry);
+  await persistById('progressPhotos',entry);
+  window._ppDraft=null;
+  if(window._clientAppMode){
+    pushClientMsg('Dodałem zdjęcia sylwetki ('+entry.date+').');
+    if(typeof addNotification==='function'){
+      const me=(window.CL||[])[0];
+      addNotification('task','Nowe zdjęcia sylwetki',(me&&me.name)||'Klient','clients');
+    }
+  }
+  if(typeof notify==='function')notify('✓ Zdjęcia zapisane');
+  if(window._clientAppMode){window._clientLiveScreen='progress';renderClientLive();}
+  else if(typeof setCPTab==='function')setCPTab('photos');
+}
+function ppDelete(id){
+  if(!id||!confirm('Usunąć ten zestaw zdjęć?'))return;
+  window.PROGRESS_PHOTOS=(window.PROGRESS_PHOTOS||[]).filter(p=>p.id!==id);
+  if(window._db){try{window._del(window._doc(window._db,'progressPhotos',id));}catch(e){}}
+  if(typeof notify==='function')notify('Usunięto zestaw');
+  if(window._clientAppMode)renderClientLive();
+  else if(typeof setCPTab==='function')setCPTab('photos');
+}
+function ppSetCmp(side,id){
+  window._ppCmp=window._ppCmp||{left:'',right:'',view:'front'};
+  window._ppCmp[side]=id;
+  if(window._clientAppMode)renderClientLive();
+  else if(typeof setCPTab==='function')setCPTab('photos');
+}
+function ppCmpView(view){
+  window._ppCmp=window._ppCmp||{left:'',right:'',view:'front'};
+  window._ppCmp.view=view;
+  if(window._clientAppMode)renderClientLive();
+  else if(typeof setCPTab==='function')setCPTab('photos');
+}
+function ppLatestWeight(c){
+  const entries=(window.METRIC_ENTRIES||[]).filter(e=>e.clientId===c.id&&e.groupId==='mg1'&&e.values&&e.values.m1!=null)
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  if(entries[0])return entries[0].values.m1;
+  return c.weight||'—';
+}
+
+function ppSlotHTML(view,label,src,cid,live){
+  const pick=live?`onchange="ppPick('${view}',this)"`:'';
+  return `<label style="display:block;cursor:pointer;">
+    <input type="file" accept="image/*" capture="environment" style="display:none;" ${pick}>
+    <div style="border:1px dashed rgba(255,255,255,.15);border-radius:12px;overflow:hidden;background:rgba(255,255,255,.04);min-height:110px;display:flex;flex-direction:column;">
+      ${src?`<img src="${src}" alt="${label}" style="width:100%;height:120px;object-fit:cover;display:block;">`
+        :`<div style="height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:rgba(255,255,255,.4);font-size:11px;"><span style="font-size:22px;">📷</span>${label}</div>`}
+      <div style="padding:6px;text-align:center;font-size:10px;color:rgba(255,255,255,.5);">${src?'Zmień':'Zrób / wgraj'} · ${label}</div>
+    </div>
+  </label>`;
+}
+
+function ppBlockHTML(c,opts){
+  opts=opts||{};
+  const live=!!opts.live;
+  const accent=opts.accent||'#e11f2e';
+  const cid=c.id;
+  if(!ppFeatureOn(c))return '';
+  const list=ppListFor(cid);
+  const draft=window._ppDraft;
+  const views=[{id:'front',l:'Przód'},{id:'side',l:'Bok'},{id:'back',l:'Tył'}];
+  let cmp=window._ppCmp;
+  if(!cmp||!cmp.left||!cmp.right){
+    cmp={left:(list[0]&&list[0].id)||'',right:(list[list.length-1]&&list[list.length-1].id)||'',view:(cmp&&cmp.view)||'front'};
+    window._ppCmp=cmp;
+  }
+  const left=list.find(p=>p.id===cmp.left)||list[0];
+  const right=list.find(p=>p.id===cmp.right)||list[list.length-1];
+  const view=cmp.view||'front';
+  const draftBox=draft&&draft.open?`<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px;margin-bottom:14px;">
+    <div style="font-size:13px;font-weight:700;margin-bottom:10px;">Nowy zestaw</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;">
+      ${views.map(v=>ppSlotHTML(v.id,v.l,draft[v.id],cid,live)).join('')}
+    </div>
+    <input type="number" inputmode="decimal" class="form-input" placeholder="Waga (kg, opcjonalnie)" value="${escHtml(draft.weight||'')}" oninput="window._ppDraft.weight=this.value" style="margin-bottom:8px;font-size:16px;">
+    <input type="text" class="form-input" placeholder="Notatka (opcjonalnie)" value="${escHtml(draft.note||'')}" oninput="window._ppDraft.note=this.value" style="margin-bottom:10px;font-size:14px;">
+    <div style="display:flex;gap:8px;">
+      <button type="button" class="btn btn-ghost" style="flex:1;" onclick="ppCloseDraft()">Anuluj</button>
+      <button type="button" class="btn btn-primary" style="flex:1;" onclick="ppSave('${escHtml(cid)}')">Zapisz</button>
+    </div>
+  </div>`:'';
+  const compare=list.length>=2&&left&&right?`<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px;margin-bottom:14px;">
+    <div style="font-size:13px;font-weight:700;margin-bottom:8px;">Porównanie</div>
+    <div style="display:flex;gap:8px;margin-bottom:8px;">
+      <select class="form-select" onchange="ppSetCmp('left',this.value)">${list.map(p=>`<option value="${escHtml(p.id)}" ${p.id===left.id?'selected':''}>${escHtml(p.date)}</option>`).join('')}</select>
+      <select class="form-select" onchange="ppSetCmp('right',this.value)">${list.map(p=>`<option value="${escHtml(p.id)}" ${p.id===right.id?'selected':''}>${escHtml(p.date)}</option>`).join('')}</select>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:10px;">${views.map(v=>`<button type="button" class="btn ${view===v.id?'btn-primary':'btn-ghost'} btn-sm" onclick="ppCmpView('${v.id}')">${v.l}</button>`).join('')}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div><div style="font-size:10px;color:rgba(255,255,255,.45);margin-bottom:4px;">${escHtml(left.date)}${left.weight?' · '+escHtml(String(left.weight))+' kg':''}</div>${left.photos&&left.photos[view]?`<img src="${left.photos[view]}" style="width:100%;border-radius:10px;object-fit:cover;aspect-ratio:3/4;">`:'<div style="aspect-ratio:3/4;border-radius:10px;background:rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center;font-size:11px;color:rgba(255,255,255,.35);">Brak</div>'}</div>
+      <div><div style="font-size:10px;color:rgba(255,255,255,.45);margin-bottom:4px;">${escHtml(right.date)}${right.weight?' · '+escHtml(String(right.weight))+' kg':''}</div>${right.photos&&right.photos[view]?`<img src="${right.photos[view]}" style="width:100%;border-radius:10px;object-fit:cover;aspect-ratio:3/4;">`:'<div style="aspect-ratio:3/4;border-radius:10px;background:rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center;font-size:11px;color:rgba(255,255,255,.35);">Brak</div>'}</div>
+    </div>
+  </div>`:'';
+  const history=list.length?list.slice().reverse().map(p=>`<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:10px;margin-bottom:8px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <div style="font-size:12px;font-weight:700;">${escHtml(p.date)}${p.weight?' · '+escHtml(String(p.weight))+' kg':''}</div>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="${live?`ppDelete('${escHtml(p.id)}')`:'void(0)'}">Usuń</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
+      ${views.map(v=>p.photos&&p.photos[v.id]?`<img src="${p.photos[v.id]}" style="width:100%;height:88px;object-fit:cover;border-radius:8px;">`:`<div style="height:88px;border-radius:8px;background:rgba(255,255,255,.04);"></div>`).join('')}
+    </div>
+    ${p.note?`<div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:6px;">${escHtml(p.note)}</div>`:''}
+  </div>`).join(''):`<div style="text-align:center;padding:18px;color:rgba(255,255,255,.45);font-size:12px;line-height:1.6;">Zrób zestaw przód / bok / tył — potem porównasz z kolejnym miesiącem.</div>`;
+  return `<div style="margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+      <div style="font-size:13px;font-weight:700;">Zdjęcia sylwetki</div>
+      ${draft&&draft.open?'':`<button type="button" class="btn btn-primary btn-sm" onclick="${live?'ppOpenDraft()':'notify(\'Podgląd — klient robi zdjęcia w swojej apce\')'}">+ Dodaj</button>`}
+    </div>
+    ${draftBox}${compare}${history}`;
+}
+window.ppBlockHTML=ppBlockHTML;
