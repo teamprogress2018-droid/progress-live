@@ -452,13 +452,30 @@ document.addEventListener('DOMContentLoaded',prepareAuthForInvite);
 function clientToggleTask(id){
   const t=(window.TASKS||[]).find(x=>x.id===id);
   if(!t)return;
+  const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
   if(typeof isHabit==='function'&&isHabit(t)){
-    const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
     toggleHabitDay(t,today);
     persistById('tasks',t);
     const done=habitDoneOn(t,today);
     const streak=habitStreak(t,today);
     if(typeof notify==='function')notify(done?('✓ Dziś zrobione'+(streak?' · 🔥 '+streak:'')):'Nawyk odznaczony');
+    if(typeof renderClientLive==='function')renderClientLive();
+    return;
+  }
+  if(typeof isChallenge==='function'&&isChallenge(t)){
+    if(typeof challengeCanCheck==='function'&&!challengeCanCheck(t,today,today)){
+      const p=typeof challengeProgress==='function'?challengeProgress(t,today):null;
+      if(typeof notify==='function')notify(p&&p.before?'Wyzwanie jeszcze się nie zaczęło':p&&p.won?'Wyzwanie ukończone 🏆':'Wyzwanie już się skończyło');
+      return;
+    }
+    toggleChallengeDay(t,today,today);
+    persistById('tasks',t);
+    const p=typeof challengeProgress==='function'?challengeProgress(t,today):null;
+    const done=typeof habitDoneOn==='function'&&habitDoneOn(t,today);
+    if(typeof notify==='function'){
+      if(p&&p.won)notify('🏆 Wyzwanie ukończone · '+p.done+'/'+p.target);
+      else notify(done?('✓ '+((p&&p.done)||0)+'/'+(p?p.target:'')+' dni'):'Wyzwanie odznaczone');
+    }
     if(typeof renderClientLive==='function')renderClientLive();
     return;
   }
