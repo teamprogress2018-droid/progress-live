@@ -339,6 +339,7 @@ function capScreenHTML(scr,c){
     const live=capIsLiveClient();
     const w=typeof ppLatestWeight==='function'?ppLatestWeight(c):(c.weight||'—');
     const photosOn=typeof ppFeatureOn==='function'?ppFeatureOn(c):true;
+    const prs=typeof clientExercisePRs==='function'?clientExercisePRs(c.id).slice(0,8):[];
     return `
     <div class="cap-section" style="padding-bottom:90px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:16px;padding-top:8px;">MOJE POSTĘPY</div>
@@ -352,7 +353,43 @@ function capScreenHTML(scr,c){
           <div style="font-family:'Bebas Neue',sans-serif;font-size:30px;color:${accent};line-height:1;">${sessions.length}</div>
         </div>
       </div>
+      <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin:4px 0 10px;">Rekordy</div>
+      ${prs.length?prs.map(p=>{
+        const est=typeof roundToPlate==='function'?roundToPlate(p.epley):Math.round(p.epley);
+        return `<button type="button" class="cap-list-item" style="width:100%;text-align:left;background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:14px;margin-bottom:8px;cursor:pointer;" onclick='clientOpenExercise(${JSON.stringify(p.name)})'>
+          <div style="font-size:18px;width:28px;flex-shrink:0;">🏆</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};">${escHtml(p.name)}</div>
+            <div style="font-size:11px;color:${CAP_MUTED};margin-top:2px;">${escHtml(formatSetLoad(p.kg,p.reps))}${est?' · szac. 1RM '+escHtml(String(est))+' kg':''} · ${escHtml(p.date||'')}</div>
+          </div>
+          <span style="font-size:11px;color:${accent};">Historia →</span>
+        </button>`;
+      }).join(''):`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:16px;text-align:center;color:${CAP_MUTED};font-size:12px;margin-bottom:14px;">Po zapisanych seriach tu wpadną rekordy (najlepszy kg × powt.).</div>`}
       ${photosOn&&typeof ppBlockHTML==='function'?ppBlockHTML(c,{live,accent}):`<div style="font-size:12px;color:${CAP_MUTED};">Zdjęcia sylwetki są wyłączone u trenera.</div>`}
+    </div>`;
+  }
+
+  if(scr==='exercise'){
+    const live=capIsLiveClient();
+    const name=window._cliveExerciseName||'';
+    const pr=typeof exercisePR==='function'?exercisePR(c.id,name):null;
+    const days=typeof exerciseHistoryByDay==='function'?exerciseHistoryByDay(c.id,name).slice(0,16):[];
+    const est=pr&&typeof roundToPlate==='function'?roundToPlate(pr.epley):'';
+    const back=live?"setClientLiveScreen('progress')":"setCapScreen('progress')";
+    return `<div class="cap-section" style="padding-bottom:90px;">
+      <button type="button" class="btn btn-ghost btn-sm" style="margin:8px 0 12px;" onclick="${back}">← Postępy</button>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:4px;">${escHtml(name||'Ćwiczenie')}</div>
+      <div style="font-size:12px;color:${CAP_MUTED};margin-bottom:14px;">Historia serii — jak w Everfit: ostatnio i rekord.</div>
+      ${pr?`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:16px;padding:16px;margin-bottom:14px;text-align:center;">
+        <div style="font-size:11px;color:${CAP_MUTED};text-transform:uppercase;margin-bottom:6px;">🏆 Rekord</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${accent};">${escHtml(formatSetLoad(pr.kg,pr.reps))}</div>
+        <div style="font-size:11px;color:${CAP_MUTED};margin-top:4px;">${escHtml(pr.date||'')}${est?' · szac. 1RM '+escHtml(String(est))+' kg':''}</div>
+      </div>`:`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:16px;text-align:center;color:${CAP_MUTED};font-size:12px;margin-bottom:14px;">Brak zapisanych serii tego ćwiczenia.</div>`}
+      ${days.map(d=>`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:12px;margin-bottom:8px;">
+        <div style="font-size:12px;font-weight:700;color:${CAP_TEXT};margin-bottom:6px;">${escHtml(d.date)}</div>
+        <div style="font-size:11px;color:${CAP_MUTED};font-family:'DM Mono',monospace;">${(d.sets||[]).slice().reverse().map(st=>escHtml(formatSetLoad(st.kg,st.reps))).join(' · ')}</div>
+      </div>`).join('')}
+      ${!live?'<div style="font-size:11px;color:'+CAP_MUTED+';margin-top:12px;text-align:center;">Podgląd — klient otwiera to w swojej apce</div>':''}
     </div>`;
   }
 
@@ -564,7 +601,8 @@ const CAP_SCREEN_INFO={
   home:{title:'🏠 Dziś',desc:'Jeden ekran na dzień: trening do odpalenia (Start), dzień wolny, nawyki ze streakiem, zadania do odhaczenia i check-in jeśli czeka. Klient nie zgaduje, co ma zrobić.'},
   plan:{title:'📋 Mój plan treningowy',desc:'Lista dni planu. Z każdego dnia treningowego klient może od razu kliknąć Start i odhaczać serie.'},
   calendar:{title:'📅 Kalendarz sesji',desc:'Mini-kalendarz z zaznaczonymi sesjami. Klient widzi nadchodzące treningi z godziną, typem i linkiem do Google Meet (jeśli online).'},
-  progress:{title:'📈 Moje postępy',desc:'Masa z pomiarów oraz zdjęcia sylwetki (przód / bok / tył) z porównaniem w czasie. Klient robi zdjęcia w apce — Ty widzisz je w karcie klienta.'},
+  progress:{title:'📈 Moje postępy',desc:'Masa, zdjęcia sylwetki i rekordy z treningów. Klik w ćwiczenie pokazuje historię kg × powt. i szacowany 1RM.'},
+  exercise:{title:'🏆 Historia ćwiczenia',desc:'Rekord (Epley) i lista serii po datach. Player podpowiada „Ostatnio” i „Rekord”; nowy rekord to toast 🏆.'},
   checkin:{title:'✅ Check-in tygodniowy',desc:'Interaktywny formularz check-inu — emoji skale, liczba treningów, waga. Wysłany check-in trafia bezpośrednio do Twojego panelu.'},
   messages:{title:'💬 Wiadomości',desc:'Czat z trenerem w czasie rzeczywistym. Klient widzi historię rozmów, może pisać i odbierać wiadomości. Możesz wysyłać zdjęcia, pliki i linki.'},
   ondemand:{title:'▶️ On-demand',desc:'Portal treningów wideo i planów. Klient może samodzielnie wykonywać treningi między sesjami — filtrować po kategorii, poziomie i czasie.'},

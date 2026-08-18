@@ -893,11 +893,11 @@ window.suggestedPlanDayIdx=suggestedPlanDayIdx;
 
 function lastLoadForExercise(clientId,name){
   if(!clientId||!name)return null;
-  const key=String(name||'').toLowerCase().replace(/\s+/g,' ').trim();
+  const key=exerciseNameKey(name);
   const sessions=(window.SE||[]).filter(s=>s.clientId===clientId&&Array.isArray(s.exercises))
     .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''));
   for(const s of sessions){
-    const ex=(s.exercises||[]).find(e=>String(e.name||'').toLowerCase().replace(/\s+/g,' ').trim()===key);
+    const ex=(s.exercises||[]).find(e=>exerciseNameKey(e.name)===key);
     if(!ex)continue;
     const sets=(ex.sets||[]).filter(x=>x&&(x.kg||x.reps));
     if(!sets.length)continue;
@@ -907,6 +907,102 @@ function lastLoadForExercise(clientId,name){
   return null;
 }
 window.lastLoadForExercise=lastLoadForExercise;
+
+function exerciseNameKey(name){
+  return String(name||'').toLowerCase().replace(/\s+/g,' ').trim();
+}
+window.exerciseNameKey=exerciseNameKey;
+
+function formatSetLoad(kg,reps){
+  const k=(kg==null||kg==='')?'—':String(kg);
+  const r=(reps==null||reps==='')?'—':String(reps);
+  return k+' kg × '+r;
+}
+window.formatSetLoad=formatSetLoad;
+
+function loggedSetRows(clientId,name,sessions){
+  const key=exerciseNameKey(name);
+  if(!clientId||!key)return [];
+  const rows=[];
+  (sessions||window.SE||[]).forEach(s=>{
+    if(!s||s.clientId!==clientId)return;
+    (s.exercises||[]).forEach(ex=>{
+      if(exerciseNameKey(ex.name)!==key)return;
+      (ex.sets||[]).forEach(st=>{
+        const est=epley1RM(st&&st.kg,st&&st.reps);
+        if(est==null)return;
+        rows.push({
+          date:s.date||'',
+          createdAt:s.createdAt||'',
+          sessionId:s.id,
+          name:ex.name,
+          kg:parseFloat(st.kg),
+          reps:parseFloat(st.reps),
+          setNo:st.setNo||0,
+          epley:est
+        });
+      });
+    });
+  });
+  return rows.sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||'')||(b.setNo||0)-(a.setNo||0));
+}
+window.loggedSetRows=loggedSetRows;
+
+function exercisePR(clientId,name,sessions){
+  const rows=loggedSetRows(clientId,name,sessions);
+  if(!rows.length)return null;
+  return rows.reduce((best,row)=>row.epley>(best.epley||0)?row:best);
+}
+window.exercisePR=exercisePR;
+
+function setBeatsPR(pr,kg,reps){
+  const est=epley1RM(kg,reps);
+  if(est==null||!pr||pr.epley==null)return false;
+  return est>pr.epley+0.05;
+}
+window.setBeatsPR=setBeatsPR;
+
+function prToastText(clientId,name,kg,reps,sessions){
+  const prev=exercisePR(clientId,name,sessions);
+  if(!setBeatsPR(prev,kg,reps))return '';
+  return '🏆 Rekord: '+name+' · '+formatSetLoad(kg,reps);
+}
+window.prToastText=prToastText;
+
+function clientExercisePRs(clientId,sessions){
+  const names=new Map();
+  (sessions||window.SE||[]).forEach(s=>{
+    if(!s||s.clientId!==clientId)return;
+    (s.exercises||[]).forEach(ex=>{
+      const key=exerciseNameKey(ex.name);
+      if(key&&!names.has(key))names.set(key,ex.name);
+    });
+  });
+  const prs=[];
+  names.forEach(name=>{
+    const pr=exercisePR(clientId,name,sessions);
+    if(pr)prs.push(Object.assign({name},pr));
+  });
+  return prs.sort((a,b)=>b.epley-a.epley);
+}
+window.clientExercisePRs=clientExercisePRs;
+
+function exerciseHistoryByDay(clientId,name,sessions){
+  const rows=loggedSetRows(clientId,name,sessions);
+  const map={};
+  const days=[];
+  rows.forEach(r=>{
+    const d=r.date||'';
+    if(!map[d]){
+      map[d]={date:d,sets:[],best:r};
+      days.push(map[d]);
+    }
+    map[d].sets.push(r);
+    if(r.epley>map[d].best.epley)map[d].best=r;
+  });
+  return days;
+}
+window.exerciseHistoryByDay=exerciseHistoryByDay;
 
 function mapPlanExercisesForClient(rawEx,clientId){
   const mapped=(rawEx||[]).map(raw=>{

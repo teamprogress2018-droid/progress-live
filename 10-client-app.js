@@ -203,6 +203,12 @@ function setClientLiveScreen(scr){
   renderClientLive();
 }
 
+function clientOpenExercise(name){
+  window._cliveExerciseName=name;
+  if(window._clientAppMode)setClientLiveScreen('exercise');
+  else if(typeof setCapScreen==='function')setCapScreen('exercise');
+}
+
 function prepareAuthForInvite(){
   const token=clientInviteTokenFromUrl();
   window._pendingInviteToken=token||window._pendingInviteToken||'';
@@ -411,6 +417,7 @@ window.loadClientApp=loadClientApp;
 window.enterClientLiveShell=enterClientLiveShell;
 window.renderClientLive=renderClientLive;
 window.setClientLiveScreen=setClientLiveScreen;
+window.clientOpenExercise=clientOpenExercise;
 window.prepareAuthForInvite=prepareAuthForInvite;
 window.authShowRegister=authShowRegister;
 window.authShowLoginFromClient=authShowLoginFromClient;
@@ -569,6 +576,10 @@ function cwCheckSet(setIdx){
   const st=ex.sets[setIdx];
   st.done=!st.done;
   if(!st.done){cwRender();return;}
+  if(typeof prToastText==='function'){
+    const msg=prToastText(window._clientId,ex.name,st.kg,st.reps);
+    if(msg&&typeof notify==='function')notify(msg);
+  }
   const act=typeof ssNextAfterSet==='function'?ssNextAfterSet(cw.exercises,cw.exIdx):null;
   if(act&&act.kind==='partner'){
     const nxt=cw.exercises[act.exIdx];
@@ -704,7 +715,14 @@ function cwRender(){
     ${(ex.plannedName&&ex.plannedName!==ex.name)?`<div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Z planu: ${escHtml(ex.plannedName)}</div>`:''}
     ${(ex.alts||[]).length?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px;">${ex.alts.map(a=>`<button type="button" class="btn btn-ghost btn-sm" onclick='cwSwapEx(${JSON.stringify(a)})'>↻ ${escHtml(a)}</button>`).join('')}</div>`:''}
     ${ex.kgHint?`<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${escHtml(ex.kgHint)}</div>`:''}
-    ${ex.lastKg?`<div style="font-size:11px;color:var(--muted);margin-bottom:12px;">Ostatnio: ${escHtml(String(ex.lastKg))} kg${ex.lastReps?' × '+escHtml(String(ex.lastReps)):''}</div>`:'<div style="height:8px;"></div>'}
+    ${(()=>{
+      const last=ex.lastKg?('Ostatnio: '+escHtml(String(ex.lastKg))+' kg'+(ex.lastReps?' × '+escHtml(String(ex.lastReps)):'')):'';
+      const pr=typeof exercisePR==='function'?exercisePR(window._clientId,ex.name):null;
+      const rec=pr?('Rekord: '+escHtml(String(pr.kg))+' kg × '+escHtml(String(pr.reps))):'';
+      const same=pr&&ex.lastKg!=null&&Number(ex.lastKg)===Number(pr.kg)&&Number(ex.lastReps)===Number(pr.reps);
+      const line=same?(last?last+' · rekord':rec):(last&&rec?last+' · '+rec:(last||rec));
+      return line?`<div style="font-size:11px;color:var(--muted);margin-bottom:12px;">${line}</div>`:'<div style="height:8px;"></div>';
+    })()}
     <div style="height:6px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden;margin-bottom:16px;">
       <div style="height:100%;width:${Math.round((cw.exIdx+doneSets/Math.max(1,ex.sets.length))/cw.exercises.length*100)}%;background:${accent};"></div>
     </div>

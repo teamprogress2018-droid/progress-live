@@ -1901,8 +1901,10 @@ function renderLiveExercises(){
 function liveExCard(ex,i){
   const setsDone=ex.sets.filter(s=>s.done).length;
   const lastHint=ex.lastKg!==''&&ex.lastKg!=null?`Ostatnio: ${ex.lastKg} kg${ex.lastReps?' × '+ex.lastReps:''}`:'';
+  const pr=typeof exercisePR==='function'?exercisePR(liveClientId,ex.name):null;
+  const prHint=pr?`Rekord: ${pr.kg} kg × ${pr.reps}`:'';
   const pctHint=ex.kgHint||'';
-  const sub=[pctHint,lastHint].filter(Boolean).join(' · ');
+  const sub=[pctHint,lastHint,prHint].filter(Boolean).join(' · ');
   return `<div class="live-ex-card${ex.ss?' ss':''}${ex.done?' done':liveSessionActive&&!ex.done&&i===liveExercises.findIndex(e=>!e.done)?' active':''}" id="live-ex-${i}">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:${ex.collapsed?0:10}px;cursor:pointer;" onclick="liveToggleCollapse(${i})">
       <div style="width:30px;height:30px;border-radius:8px;background:${ex.done?'var(--teal)':'var(--adim)'};display:flex;align-items:center;justify-content:center;font-size:${ex.done?'14px':'12px'};font-weight:700;color:${ex.done?'#000':'var(--accent)'};flex-shrink:0;">${ex.done?'✓':i+1}</div>
@@ -1950,6 +1952,10 @@ function liveToggleSet(ei,si){
   const s=ex.sets[si];
   s.done=!s.done;
   if(s.done){
+    if(typeof prToastText==='function'){
+      const msg=prToastText(liveClientId,ex.name,s.kg,s.reps);
+      if(msg&&typeof notify==='function')notify(msg);
+    }
     const next=ex.sets[si+1];
     if(next){
       if((next.kg===''||next.kg==null)&&s.kg!==''&&s.kg!=null)next.kg=s.kg;
