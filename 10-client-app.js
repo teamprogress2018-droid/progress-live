@@ -452,6 +452,16 @@ document.addEventListener('DOMContentLoaded',prepareAuthForInvite);
 function clientToggleTask(id){
   const t=(window.TASKS||[]).find(x=>x.id===id);
   if(!t)return;
+  if(typeof isHabit==='function'&&isHabit(t)){
+    const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
+    toggleHabitDay(t,today);
+    persistById('tasks',t);
+    const done=habitDoneOn(t,today);
+    const streak=habitStreak(t,today);
+    if(typeof notify==='function')notify(done?('✓ Dziś zrobione'+(streak?' · 🔥 '+streak:'')):'Nawyk odznaczony');
+    if(typeof renderClientLive==='function')renderClientLive();
+    return;
+  }
   t.status=t.status==='done'?'open':'done';
   t.updatedAt=new Date().toISOString();
   persistById('tasks',t);

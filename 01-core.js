@@ -410,6 +410,10 @@ function openM(id){
     const saveBtn=document.querySelector('#m-task .modal-footer .btn-primary');
     if(saveBtn)saveBtn.textContent='Dodaj zadanie';
     taskSetClientField('','');
+    const hb=document.getElementById('task-habit');
+    if(hb)hb.checked=false;
+    const wrap=document.getElementById('task-due-wrap');
+    if(wrap)wrap.style.display='';
     const td=document.getElementById('task-due');
     if(td&&!td.value)td.value=new Date().toISOString().split('T')[0];
     document.getElementById('task-title').value='';
@@ -776,6 +780,85 @@ function todayYmd(){
   return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
 }
 window.todayYmd=todayYmd;
+
+/** Dodaje dni do daty YYYY-MM-DD (południe, bez przesunięcia UTC). */
+function ymdAdd(ymd,days){
+  const p=String(ymd||'').slice(0,10);
+  const d=new Date(p+'T12:00:00');
+  if(isNaN(d.getTime()))return '';
+  d.setDate(d.getDate()+(Number(days)||0));
+  const pad=n=>String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+}
+window.ymdAdd=ymdAdd;
+
+function isHabit(t){
+  return !!(t&&(t.kind==='habit'||t.repeat==='daily'));
+}
+window.isHabit=isHabit;
+
+function habitDoneOn(t,ymd){
+  return !!(t&&ymd&&(t.doneDates||[]).includes(ymd));
+}
+window.habitDoneOn=habitDoneOn;
+
+/** Ciąg dni kończący się dziś albo wczoraj (dziś jeszcze nie odhaczone). */
+function habitStreak(t,today){
+  const set=new Set((t&&t.doneDates)||[]);
+  let start=today;
+  if(!set.has(today)){
+    const y=ymdAdd(today,-1);
+    if(!set.has(y))return 0;
+    start=y;
+  }
+  let n=0,d=start;
+  while(set.has(d)){
+    n++;
+    d=ymdAdd(d,-1);
+    if(n>4000)break;
+  }
+  return n;
+}
+window.habitStreak=habitStreak;
+
+function toggleHabitDay(t,ymd){
+  if(!t||!ymd)return t;
+  const dates=[...(t.doneDates||[])];
+  const i=dates.indexOf(ymd);
+  if(i>=0)dates.splice(i,1);
+  else dates.push(ymd);
+  dates.sort();
+  t.doneDates=dates;
+  t.status='open';
+  t.due='';
+  t.kind='habit';
+  t.repeat='daily';
+  t.updatedAt=new Date().toISOString();
+  return t;
+}
+window.toggleHabitDay=toggleHabitDay;
+
+function habitWeek(t,today){
+  const days=[];
+  for(let i=6;i>=0;i--){
+    const ymd=ymdAdd(today,-i);
+    days.push({ymd,done:habitDoneOn(t,ymd),today:ymd===today});
+  }
+  return days;
+}
+window.habitWeek=habitWeek;
+
+function habitWeekHtml(t,today){
+  return `<div class="habit-week">${habitWeek(t,today).map(d=>`<span class="habit-dot${d.done?' on':''}${d.today?' today':''}" title="${d.ymd}"></span>`).join('')}</div>`;
+}
+window.habitWeekHtml=habitWeekHtml;
+
+function onHabitToggle(){
+  const on=!!document.getElementById('task-habit')?.checked;
+  const wrap=document.getElementById('task-due-wrap');
+  if(wrap)wrap.style.display=on?'none':'';
+}
+window.onHabitToggle=onHabitToggle;
 
 function mondayYmd(){
   const d=new Date();
