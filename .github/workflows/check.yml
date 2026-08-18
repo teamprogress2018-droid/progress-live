@@ -31,6 +31,11 @@ jobs:
           done
           echo "Wszystkie pliki JS maja poprawna skladnie."
 
+      - name: 1b. Testy wskazówki i filmu przy ćwiczeniu
+        run: node .github/scripts/test_coach_media.js
+
+      - name: 1c. Testy warstwy klienta dla coach media
+        run: node .github/scripts/test_client_portal_coach_media.js
       - name: 1b. Testy %1RM → kg
         run: node .github/scripts/test_1rm.js
 

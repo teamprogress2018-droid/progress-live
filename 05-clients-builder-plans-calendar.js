@@ -296,6 +296,11 @@ function addRow(dayId){
     +'<input type="number" placeholder="2" class="ex-inp" data-f="rir">'
     +'<input type="text" placeholder="2min" class="ex-inp" data-f="rest">'
     +'<input type="text" placeholder="2-0-2" class="ex-inp" data-f="tempo">'
+    +'<button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--muted2);font-size:18px;cursor:pointer;">×</button>'
+    +'<input type="text" placeholder="Zamiennik (opcjonalnie, np. hantle zamiast sztangi)" class="ex-inp" data-f="alt" style="grid-column:1/-1;font-size:11px;">'
+    +'<div class="ex-row-coach">'
+    +'<input type="text" placeholder="Wskazówka dla klienta (np. łopatki ściągnięte)" class="ex-inp ex-inp-name" data-f="note" style="font-size:11px;">'
+    +'<input type="url" placeholder="Film: YouTube / Vimeo" class="ex-inp ex-inp-name" data-f="video" style="font-size:11px;" title="Link do filmu techniki">'
     +'<button type="button" onclick="builderRemoveRow(this)" style="background:none;border:none;color:var(--muted2);font-size:18px;cursor:pointer;">×</button>'
     +'<div class="ex-row-extra">'
     +'<input type="text" placeholder="Zamiennik (opcjonalnie, np. hantle zamiast sztangi)" class="ex-inp ex-inp-name" data-f="alt" style="font-size:11px;">'
@@ -472,6 +477,8 @@ function editPlan(id){
       set('rest',parsed.rest||'');
       set('tempo',parsed.tempo||'');
       set('alt',(ex&&typeof ex==='object'&&ex.alt)||parsed.alt||(typeof altsForExercise==='function'?altsForExercise(parsed.name).join(', '):''));
+      set('note',parsed.note||(ex&&typeof ex==='object'&&(ex.note||ex.notes))||'');
+      set('video',parsed.video||(ex&&typeof ex==='object'&&ex.video)||'');
       set('pct1rm',parsed.pct1rm||(ex&&typeof ex==='object'&&ex.pct1rm)||'');
       set('ss',parsed.ss||(ex&&typeof ex==='object'&&ex.ss)||'');
       set('emom',((ex&&typeof ex==='object'&&ex.emom)||parsed.emom)?'1':'');
@@ -504,6 +511,7 @@ async function savePlan(){
       if(!n)return;
       const setN=g('sets')||'3';
       const alt=g('alt').trim()||(typeof altsForExercise==='function'?altsForExercise(n).join(', '):'');
+      const video=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl(g('video')):g('video').trim();
       const pct=typeof parsePct1RM==='function'?parsePct1RM(g('pct1rm')):'';
       exercises.push({
         name:n,
@@ -516,6 +524,8 @@ async function savePlan(){
         rest:g('rest')||'90s',
         tempo:g('tempo'),
         alt,
+        note:g('note').trim(),
+        video
         ss:g('ss'),
         emom:g('emom')==='1'
       });
@@ -605,6 +615,7 @@ function renderPlans(){
       <div id="plan-detail-${p.id}" style="display:none;border-top:1px solid var(--border);padding:14px 18px;background:rgba(0,0,0,0.15);">
         ${(p.days||[]).map(d=>`<div class="plan-day-row" style="padding:9px 0;">
           <div class="plan-day-name">${d.day||d.dayName||'—'}</div>
+          ${d.rest?'<div style="color:var(--muted);font-size:12px;font-style:italic;">— Odpoczynek</div>':`<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;color:var(--text);">${d.muscles||d.focus||d.name||''}</div><div style="font-size:11px;color:var(--muted);margin-top:2px;line-height:1.5;">${(d.exercises||[]).map(e=>{const x=typeof parsePlanExercise==='function'?parsePlanExercise(e):(typeof e==='string'?{name:e}:e);return (x.name||'')+(x.sets?' '+x.sets+'×'+x.reps:'')+(x.kg?' @'+x.kg+'kg':'')+(typeof coachMediaIcons==='function'?coachMediaIcons(e):'');}).filter(Boolean).join(' · ')}</div></div>`}
           ${d.rest?'<div style="color:var(--muted);font-size:12px;font-style:italic;">— Odpoczynek</div>':`<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;color:var(--text);">${d.muscles||d.focus||d.name||''}</div><div style="font-size:11px;color:var(--muted);margin-top:2px;line-height:1.5;">${typeof formatDayExerciseLines==='function'?formatDayExerciseLines(d.exercises,p.clientId):(d.exercises||[]).map(e=>typeof formatPlanExerciseLine==='function'?formatPlanExerciseLine(e,p.clientId):'').filter(Boolean).join(' · ')}</div></div>`}
         </div>`).join('')}
       </div>

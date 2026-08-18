@@ -1907,6 +1907,8 @@ function liveExCard(ex,i){
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:${ex.collapsed?0:10}px;cursor:pointer;" onclick="liveToggleCollapse(${i})">
       <div style="width:30px;height:30px;border-radius:8px;background:${ex.done?'var(--teal)':'var(--adim)'};display:flex;align-items:center;justify-content:center;font-size:${ex.done?'14px':'12px'};font-weight:700;color:${ex.done?'#000':'var(--accent)'};flex-shrink:0;">${ex.done?'✓':i+1}</div>
       <div style="flex:1;">
+        <div style="font-size:13px;font-weight:700;">${escHtml(ex.name)}${typeof coachMediaIcons==='function'?coachMediaIcons(ex):''}</div>
+        <div style="font-size:10px;color:var(--muted);">${ex.sets.length} serie · ${setsDone}/${ex.sets.length} ukończono${lastHint?' · '+lastHint:''}</div>
         <div style="font-size:13px;font-weight:700;">${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}</div>
         <div style="font-size:10px;color:var(--muted);">${ex.sets.length} serie · ${setsDone}/${ex.sets.length} ukończono${ex.ssLabel?' · super-seria':''}${ex.emom?' · EMOM':''}${sub?' · '+escHtml(sub):''}</div>
       </div>
@@ -1918,6 +1920,7 @@ function liveExCard(ex,i){
     </div>
     ${!ex.collapsed?`
     <div>
+      ${typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:!!ex.showVideo,toggleFn:'event.stopPropagation();liveToggleExVideo('+i+')'}):''}
       ${ex.showVideo&&typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:true}):''}
       <div class="live-set-grid live-set-head">
         <span></span><span>Seria</span><span style="text-align:center;">Ciężar</span><span style="text-align:center;">Powt.</span><span></span>
@@ -1954,6 +1957,12 @@ function liveToggleCollapse(i){
   liveExercises[i].collapsed=!liveExercises[i].collapsed;
   renderLiveExercises();
 }
+function liveToggleExVideo(i){
+  if(!liveExercises[i])return;
+  liveExercises[i].showVideo=!liveExercises[i].showVideo;
+  renderLiveExercises();
+}
+window.liveToggleExVideo=liveToggleExVideo;
 
 function liveToggleSet(ei,si){
   const ex=liveExercises[ei];if(!ex)return;

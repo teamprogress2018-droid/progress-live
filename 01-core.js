@@ -676,6 +676,51 @@ function libExerciseByName(name){
 }
 window.libExerciseByName=libExerciseByName;
 
+function resolveCoachMedia(parsed){
+  const ex=parsed&&typeof parsed==='object'?parsed:{name:parsed};
+  const name=ex.name||'';
+  const lib=libExerciseByName(name);
+  const note=String(ex.note||ex.notes||ex.cue||'').trim();
+  let video=normalizeCoachVideoUrl(ex.video||ex.url||'');
+  if(!video&&lib)video=normalizeCoachVideoUrl(lib.video||'');
+  let libTip='';
+  if(!note&&lib){
+    libTip=String(lib.tip||lib.desc||'').trim();
+    if(libTip.length>160)libTip=libTip.slice(0,157)+'…';
+  }
+  return{note,libTip,video,videoEmbed:coachVideoEmbed(video)};
+}
+window.resolveCoachMedia=resolveCoachMedia;
+
+function coachMediaIcons(ex){
+  const src=ex&&typeof ex==='object'?ex:{name:String(ex||'')};
+  const coach=(src.libTip!==undefined||src.planVideo!==undefined||src.planNote!==undefined)
+    ?{note:String(src.note||'').trim(),libTip:String(src.libTip||'').trim(),video:String(src.video||'').trim()}
+    :resolveCoachMedia(typeof parsePlanExercise==='function'?parsePlanExercise(src):src);
+  let icons='';
+  if(coach.note||coach.libTip)icons+=' 💡';
+  if(coach.video)icons+=' ▶️';
+  return icons;
+}
+window.coachMediaIcons=coachMediaIcons;
+
+function coachMediaHtml(ex,opts){
+  opts=opts||{};
+  const note=(ex&&ex.note)||'';
+  const libTip=(ex&&ex.libTip)||'';
+  const video=(ex&&ex.video)||'';
+  const embed=(ex&&ex.videoEmbed)||'';
+  const show=!!opts.showVideo;
+  const toggle=opts.toggleFn||'';
+  let html='';
+  if(note)html+=`<div class="cw-coach-note">${escHtml(note)}</div>`;
+  else if(libTip)html+=`<div style="font-size:11px;color:var(--muted);margin:0 0 10px;line-height:1.45;">${escHtml(libTip)}</div>`;
+  if(video){
+    html+=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px;">`;
+    if(toggle)html+=`<button type="button" class="btn btn-ghost btn-sm" onclick="${toggle}">${show?'▾ Ukryj film':'▶ Film techniki'}</button>`;
+    html+=`<a class="btn btn-ghost btn-sm" href="${escHtml(video)}" target="_blank" rel="noopener noreferrer">↗ Otwórz film</a></div>`;
+    if(show&&embed)html+=`<div class="cw-video-wrap"><iframe src="${escHtml(embed)}" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen title="Film techniki"></iframe></div>`;
+  }
 function ownVideoForExercise(name){
   const key=String(name||'').toLowerCase().replace(/\s+/g,' ').trim();
   if(!key)return '';
@@ -714,6 +759,9 @@ function coachMediaHtml(ex,opts){
 }
 window.coachMediaHtml=coachMediaHtml;
 
+/** Ćwiczenie z planu: obiekt AI albo string z kreatora ("Wyciskanie 4x8"). */
+function parsePlanExercise(ex){
+  if(ex==null)return{name:'Ćwiczenie',sets:'3',reps:'10',rest:'90s',kg:'',note:'',video:''};
 /** Ćwiczenie z planu: obiekt AI albo string z kreatora ("Wyciskanie 4x8 @75%"). */
 function parsePlanExercise(ex){
   if(ex==null)return{name:'Ćwiczenie',sets:'3',reps:'10',rest:'90s',kg:'',pct1rm:'',ss:'',emom:false,video:''};
@@ -728,6 +776,8 @@ function parsePlanExercise(ex){
       sets:(m&&m[2])||'3',
       reps:((m&&m[3])||'10').replace(/\s/g,''),
       rest:'90s',
+      kg:'',
+      note:'',
       kg:isPct?'':amt,
       pct1rm:isPct?parsePct1RM(amt):'',
       ss:'',
@@ -750,6 +800,7 @@ function parsePlanExercise(ex){
     rir:ex.rir||'',
     tempo:ex.tempo||'',
     alt:ex.alt||'',
+    note:String(ex.note||ex.notes||ex.cue||'').trim(),
     ss:String(ex.ss||ex.superset||'').trim(),
     emom:isEmomFlag(ex.emom),
     video:normalizeCoachVideoUrl(ex.video||ex.url||'')
@@ -1194,6 +1245,7 @@ function mapPlanExercisesForClient(rawEx,clientId){
     const nSets=parseInt(ex.sets,10)||3;
     const defaultReps=ex.reps||'10';
     const rest=parseRestSeconds(ex.rest);
+    const coach=resolveCoachMedia(ex);
     const pct=ex.pct1rm||'';
     const fromPct=pct?weightFromPct1RM(clientId,ex.name,pct):null;
     const plannedKg=(fromPct&&fromPct.kg)?fromPct.kg:(ex.kg||'');
@@ -1206,6 +1258,13 @@ function mapPlanExercisesForClient(rawEx,clientId){
       alts:altsForExercise(ex.name,ex.alt),
       restSec:rest,
       rpe:ex.rpe||'',
+      note:coach.note,
+      libTip:coach.libTip,
+      planNote:coach.note,
+      planVideo:normalizeCoachVideoUrl(ex.video),
+      video:coach.video,
+      videoEmbed:coach.videoEmbed,
+      lastKg:last&&last.kg!=null&&last.kg!==''?last.kg:(ex.kg||''),
       pct1rm:pct,
       kgHint:fromPct?fromPct.hint:'',
       lastKg:last&&last.kg!=null&&last.kg!==''?last.kg:(plannedKg||''),

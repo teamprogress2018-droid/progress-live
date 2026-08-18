@@ -490,6 +490,13 @@ window.cwPrevEx=cwPrevEx;
 window.cwRate=cwRate;
 window.cwFinish=cwFinish;
 window.cwSwapEx=cwSwapEx;
+
+function cwToggleVideo(){
+  const cw=window._cw;if(!cw)return;
+  cw.showVideo=!cw.showVideo;
+  cwRender();
+}
+window.cwToggleVideo=cwToggleVideo;
 window.ppPick=ppPick;
 window.ppSave=ppSave;
 window.ppDelete=ppDelete;
@@ -689,6 +696,7 @@ function cwCheckSet(setIdx){
     cwGoEx(next);
     return;
   }
+  if(cw.exIdx<cw.exercises.length-1){cw.exIdx+=1;cw.showVideo=false;cw.phase='exercise';cwRender();return;}
   const next=ex.sets.find(s=>!s.done);
   if(next){cwStartRest(ex.restSec||90);return;}
   if(cw.exIdx<cw.exercises.length-1){cwGoEx(cw.exIdx+1);return;}
@@ -704,13 +712,13 @@ function cwSkipRest(){
 
 function cwSkipEx(){
   const cw=window._cw;if(!cw)return;
-  if(cw.exIdx<cw.exercises.length-1){cw.exIdx+=1;cw.phase='exercise';cwRender();}
+  if(cw.exIdx<cw.exercises.length-1){cw.exIdx+=1;cw.showVideo=false;cw.phase='exercise';cwRender();}
   else{cw.phase='finish';cwRender();}
 }
 
 function cwPrevEx(){
   const cw=window._cw;if(!cw||cw.exIdx<=0)return;
-  cw.exIdx-=1;cw.phase='exercise';cwRender();
+  cw.exIdx-=1;cw.showVideo=false;cw.phase='exercise';cwRender();
 }
 
 function cwRate(v){
@@ -741,6 +749,20 @@ function cwSwapEx(name){
       if(prev.reps!=null&&prev.reps!=='')s.reps=String(prev.reps);
     });
   }
+  if(typeof resolveCoachMedia==='function'){
+    const planned=cur.plannedName||orig;
+    const backToPlan=name===planned;
+    const coach=resolveCoachMedia({
+      name,
+      note:backToPlan?(cur.planNote||''):'',
+      video:backToPlan?(cur.planVideo||''):''
+    });
+    cur.note=coach.note;
+    cur.libTip=coach.libTip;
+    cur.video=coach.video;
+    cur.videoEmbed=coach.videoEmbed;
+  }
+  cw.showVideo=false;
   if(cur.pct1rm&&typeof weightFromPct1RM==='function'){
     const w=weightFromPct1RM(window._clientId,name,cur.pct1rm);
     cur.kgHint=w.hint||'';
@@ -777,6 +799,8 @@ function cwRender(){
       <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;margin-bottom:6px;">${escHtml(cw.dayName)}</div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:18px;">${cw.exercises.length} ćwiczeń · odhacz serie, timer przerwy sam się włączy</div>
       ${cw.exercises.map((ex,i)=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:10px 0;border-top:1px solid rgba(255,255,255,.06);">
+        <div style="font-size:13px;font-weight:600;">${i+1}. ${escHtml(ex.name)}${typeof coachMediaIcons==='function'?coachMediaIcons(ex):''}</div>
+        <div style="font-size:11px;color:var(--muted);white-space:nowrap;">${ex.sets.length} serii</div>
         <div style="font-size:13px;font-weight:600;">${i+1}. ${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}${ex.video?' ▶':''}</div>
         <div style="font-size:11px;color:var(--muted);white-space:nowrap;">${ex.sets.length} serii${ex.emom?' · EMOM':''}</div>
       </div>`).join('')}
@@ -825,6 +849,8 @@ function cwRender(){
     ${(()=>{const g=typeof ssGroupIdxs==='function'?ssGroupIdxs(cw.exercises,cw.exIdx):[];const others=g.filter(i=>i!==cw.exIdx).map(i=>cw.exercises[i]).filter(Boolean);return others.length?`<div style="font-size:11px;color:var(--orange);margin-bottom:8px;">Bez przerwy z: ${others.map(o=>escHtml((o.ssLabel?o.ssLabel+' ':'')+o.name)).join(', ')}</div>`:'';})()}
     ${(ex.plannedName&&ex.plannedName!==ex.name)?`<div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Z planu: ${escHtml(ex.plannedName)}</div>`:''}
     ${(ex.alts||[]).length?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px;">${ex.alts.map(a=>`<button type="button" class="btn btn-ghost btn-sm" onclick='cwSwapEx(${JSON.stringify(a)})'>↻ ${escHtml(a)}</button>`).join('')}</div>`:''}
+    ${typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:!!cw.showVideo,toggleFn:'cwToggleVideo()'}):''}
+    ${ex.lastKg?`<div style="font-size:11px;color:var(--muted);margin-bottom:12px;">Ostatnio: ${escHtml(String(ex.lastKg))} kg${ex.lastReps?' × '+escHtml(String(ex.lastReps)):''}</div>`:'<div style="height:8px;"></div>'}
     ${ex.kgHint?`<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${escHtml(ex.kgHint)}</div>`:''}
     ${ex.lastKg?`<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Ostatnio: ${escHtml(String(ex.lastKg))} kg${ex.lastReps?' × '+escHtml(String(ex.lastReps)):''}</div>`:''}
     ${emomOn?`<div style="font-size:11px;color:var(--blue);margin-bottom:8px;">Zegar minuty · do rundy ~${emomWait}s (zrób serie i czekaj reszty)</div>`:''}
