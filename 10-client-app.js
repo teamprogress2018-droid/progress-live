@@ -119,6 +119,8 @@ function emptyClientCollections(){
   window.PROGRESS_PHOTOS=[];
   window.COACH_VIDEOS=[];
   window.USER_RESOURCES=[];
+  window.OD_WORKOUTS=[];
+  window.OD_PROGRAMS=[];
   if(window.MSGS)Object.keys(window.MSGS).forEach(k=>delete window.MSGS[k]);
 }
 
@@ -149,6 +151,13 @@ async function loadClientApp(account){
     window.USER_RESOURCES=(res&&res.length)?res:((window.DEMO_RESOURCES||[]).map(r=>Object.assign({},r)));
   }catch(e){
     window.USER_RESOURCES=(window.DEMO_RESOURCES||[]).map(r=>Object.assign({},r));
+  }
+  try{
+    const od=await queryByTrainerId('odWorkouts',account.trainerId);
+    window.OD_WORKOUTS=(od&&od.length)?od:((window.OD_DEMO_WORKOUTS||[]).map(w=>Object.assign({},w)));
+    if(typeof migrateODYoutubeWorkouts==='function')migrateODYoutubeWorkouts();
+  }catch(e){
+    window.OD_WORKOUTS=(window.OD_DEMO_WORKOUTS||[]).map(w=>Object.assign({},w));
   }
   const msgs=await queryByClientId('messages',cid);
   msgs.sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||''));

@@ -713,23 +713,73 @@ const OD_COLLECTIONS=[
 ];
 
 const OD_DEMO_WORKOUTS=[
-  {id:'ow1',name:'Full Body EMOM 30 min',type:'video',level:'sredni',time:30,coll:'fbw',color:'#1a1a2e',emoji:'⚡',desc:'Klasyczny protokół EMOM dla całego ciała. Idealne na dzień FBW.',views:0,likes:12},
-  {id:'ow2',name:'HIIT Tabata — bez sprzętu',type:'video',level:'sredni',time:25,coll:'hiit',color:'#1a0a0a',emoji:'🔥',desc:'20s praca / 10s odpoczynek. Maksymalne spalanie.',views:0,likes:8},
-  {id:'ow3',name:'Push Day — Klatka & Triceps',type:'workout',level:'sredni',time:55,coll:'sila',color:'#0a1a0a',emoji:'💪',desc:'Kompleksowy trening push z objętością hipertroficzną.',views:0,likes:15},
-  {id:'ow4',name:'Pull Day — Plecy & Biceps',type:'workout',level:'sredni',time:55,coll:'sila',color:'#0a0a1a',emoji:'🏋️',desc:'Budowanie szerokości i grubości pleców.',views:0,likes:11},
-  {id:'ow5',name:'Mobilność bioder 20 min',type:'video',level:'poczatkujacy',time:20,coll:'mobilnosc',color:'#0a1a1a',emoji:'🧘',desc:'Kompleksowa sesja mobilności — idealna po treningu nóg.',views:0,likes:9},
-  {id:'ow6',name:'Lower Body — Nogi & Pośladki',type:'workout',level:'sredni',time:60,coll:'fbw',color:'#1a1000',emoji:'🦵',desc:'Pełny trening nóg z hip thrustem i przysiadem.',views:0,likes:14},
+  {id:'ow1',name:'Full Body 30 min (HASfit)',type:'video',level:'sredni',time:30,coll:'fbw',color:'#1a1a2e',emoji:'⚡',desc:'Darmowy trening całego ciała z hantlami. YouTube, bez subskrypcji.',url:'https://www.youtube.com/watch?v=445nEr4-uJM',views:0,likes:12},
+  {id:'ow2',name:'HIIT 20 min — bez sprzętu (MadFit)',type:'video',level:'sredni',time:20,coll:'hiit',color:'#1a0a0a',emoji:'🔥',desc:'Standing HIIT, bez powtórzeń, zero sprzętu. Darmowy follow-along na YouTube.',url:'https://www.youtube.com/watch?v=HhdYlniTjvg',views:0,likes:8},
+  {id:'ow3',name:'Push Day — klatka, barki, triceps',type:'video',level:'sredni',time:20,coll:'sila',color:'#0a1a0a',emoji:'💪',desc:'MadFit push w domu. Wklejony odcinek YouTube, nie kanał.',url:'https://www.youtube.com/watch?v=N6IzvFjybLc',views:0,likes:15},
+  {id:'ow4',name:'Pull Day — plecy (ATHLEAN-X)',type:'video',level:'sredni',time:12,coll:'sila',color:'#0a0a1a',emoji:'🏋️',desc:'Darmowy film o treningu pleców. Odtwarzaj w portalu albo na YouTube.',url:'https://www.youtube.com/watch?v=OXvQe9payHw',views:0,likes:11},
+  {id:'ow5',name:'Mobilność bioder 20 min',type:'video',level:'poczatkujacy',time:20,coll:'mobilnosc',color:'#0a1a1a',emoji:'🧘',desc:'Yoga With Adriene — Feel Good Flow na biodra. Za darmo na YouTube.',url:'https://www.youtube.com/watch?v=zwoVcrdmLOE',views:0,likes:9},
+  {id:'ow6',name:'Lower Body — nogi i pośladki',type:'video',level:'sredni',time:20,coll:'fbw',color:'#1a1000',emoji:'🦵',desc:'MadFit, bez sprzętu. Darmowy follow-along na YouTube.',url:'https://www.youtube.com/watch?v=9hQTvrP6EsM',views:0,likes:14},
 ];
+window.OD_DEMO_WORKOUTS=OD_DEMO_WORKOUTS;
 
 const OD_DEMO_PROGRAMS=[
   {id:'op1',name:'Starting Strength — Demo',level:'poczatkujacy',duration:'4 tygodnie',color:'linear-gradient(135deg,#1a0a0a,#2a1a0a)',emoji:'🏋️',desc:'Oparty na Starting Strength Marka Rippetoe. Program siły oparty na własnej masie, stopniowo wprowadzający obciążenia.',clients:0,status:'draft'},
 ];
 window.OD_PROGRAMS=window.OD_PROGRAMS||[];
 function allODPrograms(){return window.OD_PROGRAMS&&window.OD_PROGRAMS.length?window.OD_PROGRAMS:OD_DEMO_PROGRAMS;}
+function allODWorkouts(){
+  if(window.OD_WORKOUTS&&window.OD_WORKOUTS.length)return window.OD_WORKOUTS;
+  return OD_DEMO_WORKOUTS;
+}
+function odYoutubeId(url){
+  const embed=typeof coachVideoEmbed==='function'?coachVideoEmbed(url):'';
+  const m=String(embed||'').match(/embed\/([A-Za-z0-9_-]{11})/);
+  return m?m[1]:'';
+}
+function odThumbUrl(w){
+  const id=odYoutubeId(w&&w.url);
+  return id?('https://i.ytimg.com/vi/'+id+'/hqdefault.jpg'):'';
+}
+function odCanPlay(w){
+  if(!w||!w.url)return false;
+  if(typeof coachVideoEmbed==='function'&&coachVideoEmbed(w.url))return true;
+  if(typeof coachVideoIsFile==='function'&&coachVideoIsFile(w.url))return true;
+  return /^https?:\/\//i.test(String(w.url||''));
+}
+function ensureODWorkouts(){
+  if(window.OD_WORKOUTS&&window.OD_WORKOUTS.length)return window.OD_WORKOUTS;
+  window.OD_WORKOUTS=OD_DEMO_WORKOUTS.map(w=>Object.assign({},w));
+  return window.OD_WORKOUTS;
+}
+function migrateODYoutubeWorkouts(){
+  const demoById={};const demoByName={};
+  OD_DEMO_WORKOUTS.forEach(d=>{demoById[d.id]=d;demoByName[String(d.name||'').toLowerCase()]=d;});
+  let n=0;
+  ensureODWorkouts().forEach(w=>{
+    const playable=typeof coachVideoEmbed==='function'&&coachVideoEmbed(w.url);
+    if(playable)return;
+    const demo=demoById[w.id]||demoByName[String(w.name||'').toLowerCase()];
+    if(!demo||!demo.url)return;
+    w.url=demo.url;
+    w.type='video';
+    if(demo.time)w.time=demo.time;
+    if(demo.desc)w.desc=demo.desc;
+    n++;
+    if(typeof persistById==='function')persistById('odWorkouts',w);
+  });
+  return n;
+}
+window.allODWorkouts=allODWorkouts;
+window.odYoutubeId=odYoutubeId;
+window.odThumbUrl=odThumbUrl;
+window.ensureODWorkouts=ensureODWorkouts;
+window.migrateODYoutubeWorkouts=migrateODYoutubeWorkouts;
 
 const LEVEL_MAP={poczatkujacy:'Początkujący',sredni:'Średni',zaawansowany:'Zaawansowany'};
 
 function setODTab(t){
+  ensureODWorkouts();
+  migrateODYoutubeWorkouts();
   odTab=t;
   ['browse','workouts','programs','settings'].forEach(tab=>{
     const v=document.getElementById('odtab-'+tab+'-view');
@@ -748,7 +798,7 @@ function setODTab(t){
 }
 
 function renderODBrowse(){
-  const allW=(window.OD_WORKOUTS||[]);
+  const allW=allODWorkouts();
   // stats
   const sc=document.getElementById('od-stat-clients');if(sc)sc.textContent=CL.length;
   const sw=document.getElementById('od-stat-workouts');if(sw)sw.textContent=allW.length;
@@ -773,7 +823,7 @@ function renderODBrowse(){
 }
 
 function renderODWorkouts(){
-  const allW=(window.OD_WORKOUTS||[]);
+  const allW=allODWorkouts();
   // filters
   const fEl=document.getElementById('od-workout-filters');
   if(fEl){
@@ -804,23 +854,28 @@ function renderODPrograms(){
 function odWorkoutCardHTML(w,i){
   const coll=OD_COLLECTIONS.find(c=>c.id===w.coll);
   const collColor=coll?coll.color:'var(--muted)';
-  return `<div class="od-workout-card" style="animation-delay:${i*0.04}s">
-    <div class="od-thumb" style="background:${w.color||'var(--s3)'};background:linear-gradient(135deg,${w.color||'var(--s3)'},var(--s3));">
-      <div class="od-thumb-label">${LEVEL_MAP[w.level]||w.level}</div>
-      <div style="font-size:40px;opacity:0.3;position:absolute;">${w.emoji||'▶️'}</div>
+  const thumb=odThumbUrl(w);
+  const bg=thumb
+    ?`background-image:url('${escHtml(thumb)}');background-size:cover;background-position:center;`
+    :`background:linear-gradient(135deg,${w.color||'var(--s3)'},var(--s3));`;
+  const yt=odCanPlay(w);
+  return `<div class="od-workout-card" style="animation-delay:${i*0.04}s" onclick="openODWorkout('${escHtml(w.id)}')">
+    <div class="od-thumb" style="${bg}">
+      <div class="od-thumb-label">${escHtml(LEVEL_MAP[w.level]||w.level||'')}</div>
+      ${thumb?'':`<div style="font-size:40px;opacity:0.3;position:absolute;">${escHtml(w.emoji||'▶️')}</div>`}
       <div class="od-play-btn">▶</div>
-      <div class="od-thumb-time">${w.time} min</div>
+      <div class="od-thumb-time">${escHtml(String(w.time||'?'))} min</div>
     </div>
     <div style="padding:12px;">
-      <div style="font-size:13px;font-weight:700;margin-bottom:4px;">${w.name}</div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.4;">${w.desc||''}</div>
+      <div style="font-size:13px;font-weight:700;margin-bottom:4px;">${escHtml(w.name||'')}</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.4;">${escHtml(w.desc||'')}</div>
       <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;">
-        ${coll?`<span class="pill" style="background:${collColor}22;color:${collColor};font-size:9px;">${coll.icon} ${coll.name}</span>`:''}
-        <span class="pill pill-muted" style="font-size:9px;">${w.type==='video'?'▶️ Wideo':w.type==='audio'?'🎧 Audio':'🏋️ Plan'}</span>
+        ${coll?`<span class="pill" style="background:${collColor}22;color:${collColor};font-size:9px;">${coll.icon} ${escHtml(coll.name)}</span>`:''}
+        <span class="pill pill-muted" style="font-size:9px;">${yt?'▶️ YouTube':w.type==='audio'?'🎧 Audio':'🏋️ Plan'}</span>
       </div>
       <div style="display:flex;gap:6px;" onclick="event.stopPropagation()">
-        <button class="btn btn-primary btn-sm" style="flex:1;" onclick="shareODWorkout('${w.id}')">Udostępnij klientom</button>
-        <button class="btn btn-ghost btn-sm" onclick="notify('${w.name} — podgląd')">👁</button>
+        <button class="btn btn-primary btn-sm" style="flex:1;" type="button" onclick="openODWorkout('${escHtml(w.id)}')">▶ Odtwórz</button>
+        <button class="btn btn-ghost btn-sm" type="button" onclick="shareODWorkout('${escHtml(w.id)}')">Udostępnij</button>
       </div>
     </div>
   </div>`;
@@ -958,12 +1013,101 @@ window.allODPrograms=allODPrograms;
 
 function shareODWorkout(id){
   if(!CL.length){notify('Najpierw dodaj klienta!');return;}
-  const w=(window.OD_WORKOUTS||[]).find(x=>x.id===id);
+  const w=allODWorkouts().find(x=>x.id===id);
   if(!w){notify('Nie znaleziono treningu');return;}
   if(!confirm('Udostępnić trening "'+w.name+'" wszystkim klientom ('+CL.length+')?'))return;
   const link=w.url||'(brak URL wideo)';
   CL.forEach(c=>pushMsg(c.id,'▶️ Nowy trening on-demand: "'+w.name+'"\n'+link+(w.desc?'\n'+w.desc:'')));
   notify('✓ Trening "'+w.name+'" wysłany do '+CL.length+' klientów (Inbox)');
+}
+
+function closeODPlayer(){
+  const frame=document.getElementById('od-player-frame');
+  if(frame)frame.removeAttribute('src');
+  if(typeof closeM==='function')closeM('m-od-player');
+  else{
+    const m=document.getElementById('m-od-player');
+    if(m)m.classList.remove('show');
+  }
+}
+function openODWorkout(id){
+  const w=allODWorkouts().find(x=>x.id===id);
+  if(!w){if(typeof notify==='function')notify('Nie znaleziono treningu');return;}
+  const embed=typeof coachVideoEmbed==='function'?coachVideoEmbed(w.url):'';
+  const file=typeof coachVideoIsFile==='function'&&coachVideoIsFile(w.url);
+  let m=document.getElementById('m-od-player');
+  if(!m){
+    m=document.createElement('div');
+    m.id='m-od-player';
+    m.className='modal-ov';
+    m.innerHTML=`<div class="modal" style="max-width:760px;">
+      <div class="modal-hdr"><div class="modal-title" id="od-player-title">TRENING</div><button class="modal-close" type="button" onclick="closeODPlayer()">×</button></div>
+      <div class="modal-body">
+        <div class="od-player-wrap" id="od-player-wrap"></div>
+        <div id="od-player-meta" style="font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5;"></div>
+      </div>
+      <div class="modal-footer" style="display:flex;gap:8px;justify-content:flex-end;">
+        <a id="od-player-yt" class="btn btn-ghost btn-sm" href="#" target="_blank" rel="noopener noreferrer">Otwórz na YouTube</a>
+        <button class="btn btn-primary btn-sm" type="button" onclick="closeODPlayer()">Zamknij</button>
+      </div>
+    </div>`;
+    document.body.appendChild(m);
+    m.addEventListener('click',e=>{if(e.target===m)closeODPlayer();});
+  }
+  document.getElementById('od-player-title').textContent=w.name||'Trening';
+  const wrap=document.getElementById('od-player-wrap');
+  const meta=document.getElementById('od-player-meta');
+  const yt=document.getElementById('od-player-yt');
+  const safeUrl=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl(w.url):String(w.url||'');
+  if(yt){
+    if(safeUrl){yt.href=safeUrl;yt.style.display='inline-flex';}
+    else{yt.removeAttribute('href');yt.style.display='none';}
+  }
+  if(meta)meta.textContent=(w.desc||'')+(w.time?' · '+w.time+' min':'')+' · darmowy YouTube';
+  if(embed){
+    wrap.innerHTML='<iframe id="od-player-frame" src="'+escHtml(embed)+'" title="'+escHtml(w.name||'Trening')+'" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen></iframe>';
+  }else if(file&&safeUrl){
+    wrap.innerHTML='<video id="od-player-frame" src="'+escHtml(safeUrl)+'" controls playsinline style="width:100%;height:100%;position:absolute;inset:0;background:#000;"></video>';
+  }else if(safeUrl){
+    wrap.innerHTML='<div style="padding:28px;text-align:center;color:var(--muted);">Nie da się osadzić tego linku. <a href="'+escHtml(safeUrl)+'" target="_blank" rel="noopener noreferrer">Otwórz wideo</a></div>';
+  }else{
+    wrap.innerHTML='<div style="padding:28px;text-align:center;color:var(--muted);">Brak linku YouTube. Dodaj URL odcinka (watch?v=...), nie kanału.</div>';
+  }
+  if(typeof openM==='function')openM('m-od-player');
+  else m.classList.add('show');
+}
+
+async function saveODWorkout(){
+  if(window._saveGuard_saveODWorkout)return;window._saveGuard_saveODWorkout=true;setTimeout(()=>window._saveGuard_saveODWorkout=false,1500);
+
+  const name=document.getElementById('odw-name').value.trim();
+  if(!name){notify('Wpisz nazwę treningu!');return;}
+  const type=document.getElementById('odw-type').value;
+  const rawUrl=document.getElementById('odw-url').value;
+  const url=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl(rawUrl):String(rawUrl||'').trim();
+  const embed=typeof coachVideoEmbed==='function'?coachVideoEmbed(url):'';
+  const file=typeof coachVideoIsFile==='function'&&coachVideoIsFile(url);
+  if(type==='video'&&!embed&&!file){
+    notify('Wklej link do odcinka YouTube (np. youtube.com/watch?v=...), nie do kanału.');
+    return;
+  }
+  ensureODWorkouts();
+  const w=withTrainer({
+    id:newId('ow'),name,
+    type:type,
+    level:document.getElementById('odw-level').value,
+    time:parseInt(document.getElementById('odw-time').value)||30,
+    coll:document.getElementById('odw-coll').value,
+    url:url,
+    desc:document.getElementById('odw-desc').value,
+    color:'var(--s3)',emoji:'🏋️',views:0,likes:0
+  });
+  window.OD_WORKOUTS.push(w);
+  await persistById('odWorkouts',w);
+  closeM('m-od-workout');
+  if(odTab==='browse')renderODBrowse();
+  else if(odTab==='workouts')renderODWorkouts();
+  notify('✓ Trening "'+name+'" dodany!');
 }
 
 function shareODProgram(id){
@@ -975,28 +1119,6 @@ function shareODProgram(id){
   notify('✓ Program "'+p.name+'" wysłany do '+CL.length+' klientów (Inbox)');
 }
 
-async function saveODWorkout(){
-  if(window._saveGuard_saveODWorkout)return;window._saveGuard_saveODWorkout=true;setTimeout(()=>window._saveGuard_saveODWorkout=false,1500);
-
-  const name=document.getElementById('odw-name').value.trim();
-  if(!name){notify('Wpisz nazwę treningu!');return;}
-  const w=withTrainer({
-    id:newId('ow'),name,
-    type:document.getElementById('odw-type').value,
-    level:document.getElementById('odw-level').value,
-    time:parseInt(document.getElementById('odw-time').value)||30,
-    coll:document.getElementById('odw-coll').value,
-    url:document.getElementById('odw-url').value,
-    desc:document.getElementById('odw-desc').value,
-    color:'var(--s3)',emoji:'🏋️',views:0,likes:0
-  });
-  window.OD_WORKOUTS.push(w);
-  await persistById('odWorkouts',w);
-  closeM('m-od-workout');
-  if(odTab==='browse')renderODBrowse();
-  else if(odTab==='workouts')renderODWorkouts();
-  notify('✓ Trening "'+name+'" dodany!');
-}
 var resTab='resources';var resNav='all';var resColl='all';
 window.USER_RESOURCES=[];
 
@@ -2215,7 +2337,7 @@ window.sendResourceToClient=sendResourceToClient;window.saveResource=saveResourc
 window.setODTab=setODTab;window.renderODBrowse=renderODBrowse;
 window.renderODWorkouts=renderODWorkouts;window.renderODPrograms=renderODPrograms;
 window.shareODWorkout=shareODWorkout;window.shareODProgram=shareODProgram;
-window.saveODWorkout=saveODWorkout;
+window.saveODWorkout=saveODWorkout;window.openODWorkout=openODWorkout;window.closeODPlayer=closeODPlayer;
 window.setPayTab=setPayTab;window.renderPayOverview=renderPayOverview;
 window.renderPayPackages=renderPayPackages;window.renderPayInvoices=renderPayInvoices;
 window.renderPayHistory=renderPayHistory;window.savePackage=savePackage;

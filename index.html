@@ -1348,7 +1348,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
     <div style="background:linear-gradient(135deg,var(--s2) 0%,rgba(225,31,46,0.08) 100%);border-bottom:1px solid var(--border);padding:28px 24px;display:flex;align-items:center;justify-content:space-between;">
       <div>
         <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;margin-bottom:4px;">PORTAL TRENINGÓW</div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">Udostępnij klientom treningi i programy, do których mają dostęp o każdej porze.</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">Darmowe treningi YouTube — odtwarzaj w portalu, bez Spotify Premium.</div>
         <div style="display:flex;gap:10px;">
           <div style="background:var(--s3);border:1px solid var(--border2);border-radius:10px;padding:12px 20px;text-align:center;">
             <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--accent);" id="od-stat-workouts">6</div>
@@ -3303,7 +3303,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
           </select>
         </div>
       </div>
-      <div class="form-field"><label class="form-lbl">URL wideo (YouTube/Vimeo)</label><input type="url" class="form-input" id="odw-url" placeholder="https://youtube.com/..."></div>
+      <div class="form-field"><label class="form-lbl">URL wideo (YouTube)</label><input type="url" class="form-input" id="odw-url" placeholder="https://www.youtube.com/watch?v=..."><div style="font-size:11px;color:var(--muted);margin-top:6px;">Wklej link do odcinka (watch?v= albo youtu.be/...), nie do kanału.</div></div>
       <div class="form-field"><label class="form-lbl">Opis</label><textarea class="form-textarea" id="odw-desc" rows="2" placeholder="Krótki opis treningu..."></textarea></div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-od-workout')">Anuluj</button><button class="btn btn-primary" onclick="saveODWorkout()">Zapisz trening</button></div>
@@ -3874,7 +3874,8 @@ async function load(){
         try{await setDoc(doc(db,'odWorkouts',copy.id),copy);copy._fbId=copy.id;}catch(e){}
       }
     }
-  }catch(e){console.warn('Wczytywanie treningów on-demand nie powiodło się:',e);window.OD_WORKOUTS=window.OD_WORKOUTS||[];}
+    if(typeof migrateODYoutubeWorkouts==='function')migrateODYoutubeWorkouts();
+  }catch(e){console.warn('Wczytywanie treningów on-demand nie powiodło się:',e);window.OD_WORKOUTS=window.OD_WORKOUTS||[];if(typeof ensureODWorkouts==='function')ensureODWorkouts();}
   try{
     const sODP=await getDocs(collection(db,'odPrograms'));
     window.OD_PROGRAMS=[];sODP.forEach(d=>{const x=_takeFb(d);if(x)window.OD_PROGRAMS.push(x);});

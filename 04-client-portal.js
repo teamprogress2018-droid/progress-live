@@ -782,18 +782,22 @@ function capScreenHTML(scr,c){
   }
 
   if(scr==='ondemand'){
-    const odList=(window.OD_WORKOUTS||[]).slice(0,8);
+    const odList=(typeof allODWorkouts==='function'?allODWorkouts():(window.OD_WORKOUTS||[])).slice(0,12);
     return `
     <div class="cap-section" style="padding-bottom:90px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:16px;padding-top:8px;">ON-DEMAND</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:8px;padding-top:8px;">ON-DEMAND</div>
+      <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:14px;">Darmowe treningi YouTube — odtwarzaj w apce, bez Spotify Premium.</div>
       ${!odList.length?`<div style="text-align:center;padding:40px;color:${CAP_MUTED};font-size:12px;">Brak treningów on-demand — trener jeszcze nic nie dodał.</div>`:
-      odList.map(w=>`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;overflow:hidden;margin-bottom:12px;">
+      odList.map(w=>{
+        const thumb=typeof odThumbUrl==='function'?odThumbUrl(w):'';
+        return `<button type="button" onclick="openODWorkout('${escHtml(w.id)}')" style="width:100%;text-align:left;background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;overflow:hidden;margin-bottom:12px;cursor:pointer;padding:0;color:inherit;">
+        ${thumb?`<div style="height:120px;background:#000 url('${escHtml(thumb)}') center/cover no-repeat;position:relative;"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;"><span style="width:44px;height:44px;border-radius:50%;background:rgba(225,31,46,0.92);color:#fff;display:flex;align-items:center;justify-content:center;">▶</span></div></div>`:''}
         <div style="padding:14px;">
           <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};">${escHtml(w.name)}</div>
-          <div style="font-size:11px;color:${CAP_MUTED};margin-top:2px;">${escHtml(w.level||'')} · ${w.time||'?'} min</div>
-          ${w.url?`<a href="${escHtml(w.url)}" target="_blank" rel="noopener" style="display:inline-block;margin-top:8px;font-size:11px;color:${accent};">Otwórz wideo →</a>`:''}
+          <div style="font-size:11px;color:${CAP_MUTED};margin-top:2px;">${escHtml(w.level||'')} · ${w.time||'?'} min · YouTube</div>
         </div>
-      </div>`).join('')}
+      </button>`;
+      }).join('')}
     </div>`;
   }
 
@@ -1001,7 +1005,7 @@ const CAP_SCREEN_INFO={
   checkin:{title:'✅ Check-in tygodniowy',desc:'Interaktywny formularz check-inu — emoji skale, liczba treningów, waga. Wysłany check-in trafia bezpośrednio do Twojego panelu.'},
   forms:{title:'📋 Formularze',desc:'Ankiety wysłane przez Ciebie (wstępna, zdrowie, postępy). Klient wypełnia w apce, odpowiedzi wracają do karty klienta i podglądu formularza.'},
   messages:{title:'💬 Wiadomości',desc:'Czat z trenerem w czasie rzeczywistym. Klient widzi historię rozmów, może pisać i odbierać wiadomości. Możesz wysyłać zdjęcia, pliki i linki.'},
-  ondemand:{title:'▶️ On-demand',desc:'Portal treningów wideo i planów. Klient może samodzielnie wykonywać treningi między sesjami — filtrować po kategorii, poziomie i czasie.'},
+  ondemand:{title:'▶️ On-demand',desc:'Portal darmowych treningów YouTube. Klient odtwarza film w apce — bez Spotify Premium i bez OAuth.'},
   resources:{title:'📚 Zasoby',desc:'Najpierw darmowe podcasty i muzyka na YouTube — bez Spotify Premium. Klient otwiera link w przeglądarce.'},
   profile:{title:'👤 Mój profil',desc:'Dane osobowe klienta, statystyki aktywności, aktywny pakiet z paskiem postępu, ustawienia konta.'},
 };

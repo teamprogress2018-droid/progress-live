@@ -471,7 +471,17 @@ function openM(id){
   }
   document.getElementById(id).classList.add('show');
 }
-function closeM(id){document.getElementById(id).classList.remove('show');}
+function closeM(id){
+  if(id==='m-od-player'){
+    const frame=document.getElementById('od-player-frame');
+    if(frame){
+      if(frame.tagName==='IFRAME')frame.removeAttribute('src');
+      else if(frame.pause){try{frame.pause();}catch(e){}}
+    }
+  }
+  const el=document.getElementById(id);
+  if(el)el.classList.remove('show');
+}
 document.querySelectorAll('.modal-ov').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');}));
 
 window.renderAll=function(){
