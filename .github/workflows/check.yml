@@ -75,6 +75,9 @@ jobs:
       - name: 1k. Testy zasobów YouTube i Garmin CSV
         run: node .github/scripts/test_resources_garmin.js
 
+      - name: 1l. Testy portalu On-demand YouTube
+        run: node .github/scripts/test_ondemand_youtube.js
+
       - name: 2. Sprawdź duplikaty (funkcje / id / zmienne)
         run: python3 .github/scripts/check_duplicates.py
 
@@ -99,6 +102,9 @@ jobs:
 
       - name: 6c. Testy UI zasobów YouTube i Garmin CSV
         run: node .github/scripts/test_resources_garmin_ui.js
+
+      - name: 6d. Testy UI portalu On-demand YouTube
+        run: node .github/scripts/test_ondemand_youtube_ui.js
 
       - name: 7. Sprawdź stronę w prawdziwej przeglądarce
         run: node .github/scripts/check_browser.js

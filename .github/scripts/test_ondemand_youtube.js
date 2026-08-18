@@ -1,0 +1,126 @@
+// On-demand: darmowe treningi YouTube i odtwarzacz (bez stubów bez URL).
+const fs = require('fs');
+const vm = require('vm');
+const path = require('path');
+
+const els = {};
+const document = {
+  querySelectorAll: () => [],
+  querySelector: () => null,
+  getElementById: (id) => els[id] || null,
+  addEventListener() {},
+  createElement: (tag) => {
+    const el = {
+      id: '',
+      className: '',
+      innerHTML: '',
+      style: {},
+      tagName: String(tag || 'div').toUpperCase(),
+      children: [],
+      classList: { add() {}, remove() {}, toggle() {} },
+      appendChild(c) { this.children.push(c); return c; },
+      addEventListener() {},
+      click() {},
+      remove() {},
+      setAttribute() {},
+      removeAttribute() {}
+    };
+    return el;
+  },
+  body: { appendChild(el) { if (el && el.id) els[el.id] = el; } }
+};
+document.body.appendChild = (el) => { if (el && el.id) els[el.id] = el; };
+const windowObj = {
+  addEventListener() {},
+  CL: [{ id: 'c-anna', name: 'Anna Nowak' }],
+  PL: [], SE: [], EX: [], WO: [], TASKS: [],
+  OD_WORKOUTS: [],
+  persistById: async (_c, o) => o,
+  document
+};
+windowObj.window = windowObj;
+const ctx = {
+  window: windowObj,
+  document,
+  console,
+  Date,
+  Math,
+  parseInt,
+  parseFloat,
+  Number,
+  String,
+  Array,
+  Object,
+  JSON,
+  Set,
+  isFinite,
+  isNaN,
+  Infinity,
+  undefined,
+  URL,
+  encodeURIComponent,
+  setTimeout,
+  clearTimeout,
+  notify() {}
+};
+ctx.globalThis = ctx;
+vm.createContext(ctx);
+const root = path.join(__dirname, '..', '..');
+vm.runInContext(fs.readFileSync(path.join(root, '01-core.js'), 'utf8'), ctx);
+windowObj.persistById = async (_c, o) => o;
+ctx.persistById = windowObj.persistById;
+vm.runInContext(fs.readFileSync(path.join(root, '04-client-portal.js'), 'utf8'), ctx);
+try {
+  vm.runInContext(fs.readFileSync(path.join(root, '09-posture-kb-invites-private.js'), 'utf8'), ctx);
+} catch (e) {
+  if (!windowObj.OD_DEMO_WORKOUTS) throw e;
+}
+
+let failed = 0;
+function ok(name, cond, extra) {
+  if (!cond) {
+    console.error('FAIL ' + name + (extra ? ' — ' + extra : ''));
+    failed++;
+  } else console.log('OK   ' + name);
+}
+
+const demo = windowObj.OD_DEMO_WORKOUTS || [];
+ok('demo workouts exist', demo.length >= 6, 'n=' + demo.length);
+ok('every demo has youtube url', demo.every(w => /youtube\.com\/watch\?v=/i.test(w.url || '')), demo.map(w => w.url).join(','));
+ok('every demo embeds', demo.every(w => /youtube-nocookie\.com\/embed\//.test(ctx.coachVideoEmbed(w.url) || '')), demo.map(w => ctx.coachVideoEmbed(w.url)).join(','));
+ok('no channel-only urls', demo.every(w => !/youtube\.com\/@/.test(w.url || '')));
+ok('hiit is madfit', demo.some(w => w.id === 'ow2' && /HhdYlniTjvg/.test(w.url)));
+ok('hips is adriene', demo.some(w => w.id === 'ow5' && /zwoVcrdmLOE/.test(w.url)));
+
+windowObj.OD_WORKOUTS = [];
+ok('fallback to demo', ctx.allODWorkouts().length >= 6);
+ctx.ensureODWorkouts();
+ok('ensure copies demo', windowObj.OD_WORKOUTS.length >= 6 && windowObj.OD_WORKOUTS[0].url);
+
+windowObj.OD_WORKOUTS = [
+  { id: 'ow1', name: 'Full Body 30 min (HASfit)', type: 'workout', url: '', desc: 'stub' },
+  { id: 'custom', name: 'Moje wideo', type: 'video', url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' }
+];
+const migrated = ctx.migrateODYoutubeWorkouts();
+ok('migrated stub count', migrated === 1, 'changed=' + migrated);
+ok('ow1 now youtube', /445nEr4-uJM/.test(windowObj.OD_WORKOUTS[0].url));
+ok('custom video kept', /dQw4w9WgXcQ/.test(windowObj.OD_WORKOUTS[1].url));
+
+const card = ctx.odWorkoutCardHTML(windowObj.OD_WORKOUTS[0], 0);
+ok('card play handler', /openODWorkout\('ow1'\)/.test(card));
+ok('card youtube thumb', /i\.ytimg\.com\/vi\/445nEr4-uJM/.test(card));
+ok('card youtube pill', /YouTube/.test(card));
+ok('openODWorkout exported', typeof ctx.openODWorkout === 'function');
+
+const html = ctx.capScreenHTML('ondemand', { id: 'c-anna', name: 'Anna' });
+ok('client ondemand youtube', /YouTube/i.test(html) && /openODWorkout/.test(html));
+ok('client ondemand thumbs', /i\.ytimg\.com/.test(html));
+
+const src09 = fs.readFileSync(path.join(root, '09-posture-kb-invites-private.js'), 'utf8');
+ok('preview no longer notify-only', !/notify\('\$\{w\.name\} — podgląd'\)/.test(src09));
+
+if (failed) {
+  console.error('\n' + failed + ' test(s) failed');
+  process.exit(1);
+}
+console.log('\nOn-demand YouTube: OK');
