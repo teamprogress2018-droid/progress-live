@@ -1493,10 +1493,13 @@ function runOnboardingForClient(client){
       const forms=typeof allForms==='function'?allForms():[];
       const picked=ids.length?forms.filter(f=>ids.indexOf(f.id)>=0):forms.slice(0,1);
       picked.forEach(form=>{
-        const send=withTrainer({id:newId('fs'),formId:form.id,clientId:client.id,sentAt:new Date().toLocaleDateString('pl'),status:'sent',answers:[]});
-        (window.FORM_SENDS||(window.FORM_SENDS=[])).push(send);
-        persistById('formSends',send);
-        if(typeof pushMsg==='function')pushMsg(client.id,'Formularz do wypełnienia: '+(form.name||'Ankieta'));
+        if(typeof createFormSend==='function')createFormSend(form,client.id);
+        else{
+          const send=withTrainer({id:newId('fs'),formId:form.id,formName:form.name,clientId:client.id,sentAt:new Date().toLocaleDateString('pl'),status:'sent',answers:{},questions:typeof snapshotFormQuestions==='function'?snapshotFormQuestions(form):[]});
+          (window.FORM_SENDS||(window.FORM_SENDS=[])).push(send);
+          persistById('formSends',send);
+          if(typeof pushMsg==='function')pushMsg(client.id,'Formularz do wypełnienia: '+(form.name||'Ankieta'));
+        }
       });
       if(picked.length)parts.push('formularz');
     }
@@ -1821,10 +1824,13 @@ function execAFStep(step,c,af){
   }else if(step.type==='form'){
     const form=(typeof allForms==='function'?allForms():[]).find(f=>(f.name||'').toLowerCase().includes((text||'').toLowerCase())||(text||'').toLowerCase().includes((f.name||'').toLowerCase()));
     if(form){
-      const send=withTrainer({id:newId('fs'),formId:form.id,clientId:c.id,sentAt:new Date().toLocaleDateString('pl'),status:'sent',answers:[]});
-      window.FORM_SENDS.push(send);
-      persistById('formSends',send);
-      if(typeof pushMsg==='function')pushMsg(c.id,'Formularz: '+(form.name||text));
+      if(typeof createFormSend==='function')createFormSend(form,c.id);
+      else{
+        const send=withTrainer({id:newId('fs'),formId:form.id,formName:form.name,clientId:c.id,sentAt:new Date().toLocaleDateString('pl'),status:'sent',answers:{}});
+        window.FORM_SENDS.push(send);
+        persistById('formSends',send);
+        if(typeof pushMsg==='function')pushMsg(c.id,'Formularz: '+(form.name||text));
+      }
     }else if(typeof pushMsg==='function'){
       pushMsg(c.id,text);
     }
@@ -2143,7 +2149,7 @@ window.setCalView=setCalView;window.calNav=calNav;window.calNavToday=calNavToday
 window.calMiniNav=calMiniNav;window.calClickDay=calClickDay;window.calJumpTo=calJumpTo;
 window.quickAddSession=quickAddSession;window.openSessDetail=openSessDetail;
 window.editSession=editSession;window.delSession=delSession;window.saveTask=saveTask;window.toggleTask=toggleTask;window.delTask=delTask;
-window.editTask=editTask;window.renderTasks=renderTasks;window.setTaskFilter=setTaskFilter;window.applyHabitChip=applyHabitChip;
+window.editTask=editTask;window.renderTasks=renderTasks;window.setTaskFilter=setTaskFilter;window.applyHabitChip=applyHabitChip;window.applyChallengeChip=applyChallengeChip;
 window.openTaskTemplates=openTaskTemplates;window.closeTaskTemplates=closeTaskTemplates;
 window.applyTemplate=applyTemplate;window.askTaskAI=askTaskAI;window.addAITask=addAITask;
 window.setClientSegment=setClientSegment;window.filterClients=filterClients;
@@ -2158,6 +2164,7 @@ window.confirmAssignProgram=confirmAssignProgram;window.saveUserProgram=saveUser
 window.renderForms=renderForms;window.setFormNav=setFormNav;
 window.openFormDetail=openFormDetail;window.closeFormDetail=closeFormDetail;
 window.openSendForm=openSendForm;window.confirmSendForm=confirmSendForm;
+window.toggleFormSendAnswers=toggleFormSendAnswers;window.createFormSend=createFormSend;window.renderCPForms=renderCPForms;
 window.selectScale=selectScale;window.selectYN=selectYN;
 window.addFormQ=addFormQ;window.saveCustomForm=saveCustomForm;
 window.renderMetrics=renderMetrics;window.setMetricGroup=setMetricGroup;window.setMetricView=setMetricView;

@@ -1575,6 +1575,7 @@ const TASK_TEMPLATES=[
   {id:'tt5',name:'Tydzień deloadu',cat:'trening',icon:'⚡',desc:'Zadania na tydzień deloadu i regeneracji CNS',tasks:[{title:'Trenuj z 50% normalnej objętości i -10% ciężaru',cat:'trening',priority:'high',days:7},{title:'Skup się na technice — lekkie ciężary, pełny ROM',cat:'trening',priority:'high',days:7},{title:'Oceń postępy i przygotuj plan na kolejny blok',cat:'pomiary',priority:'medium',days:5},{title:'Zaplanuj cele na kolejne 4 tygodnie',cat:'lifestyle',priority:'medium',days:4}]},
   {id:'tt6',name:'Przed nowym blokiem',cat:'trening',icon:'🎯',desc:'Zadania przed startem kolejnego cyklu',tasks:[{title:'Ustal nowe 1RM lub szacunkowe maksima',cat:'pomiary',priority:'high',days:3},{title:'Przejrzyj notatki z poprzedniego bloku',cat:'trening',priority:'medium',days:2},{title:'Omów zmiany w planie z trenerem',cat:'lifestyle',priority:'high',days:3},{title:'Sprawdź sprzęt — pas, opaski, buty',cat:'trening',priority:'low',days:5}]},
   {id:'tt7',name:'Nawyki codzienne',cat:'lifestyle',icon:'🔥',desc:'Odhaczanie co dzień — liczy się seria (streak), bez jednorazowego terminu',tasks:[{title:'Wypij 3L wody',cat:'lifestyle',priority:'medium',kind:'habit'},{title:'Sen 7–8 godzin',cat:'lifestyle',priority:'medium',kind:'habit'},{title:'8 000 kroków',cat:'lifestyle',priority:'low',kind:'habit'},{title:'Białko na każdym posiłku',cat:'dieta',priority:'medium',kind:'habit'}]},
+  {id:'tt8',name:'Wyzwania 21 dni',cat:'lifestyle',icon:'🏆',desc:'Terminowe odhaczanie z paskiem postępu — 21 dni, żeby domknąć nawyk',tasks:[{title:'21 dni bez słodyczy',cat:'dieta',priority:'high',kind:'challenge',days:21},{title:'21 dni treningu',cat:'trening',priority:'high',kind:'challenge',days:21},{title:'21 dni 3L wody',cat:'lifestyle',priority:'medium',kind:'challenge',days:21}]},
 ];
 
 const TASK_CAT_COLORS={trening:'var(--accent)',dieta:'var(--teal)',pomiary:'var(--blue)',lifestyle:'var(--purple)'};
@@ -1629,27 +1630,33 @@ function renderTasks(){
   const search=(document.getElementById('task-search')||{}).value||'';
   const clientFil=(document.getElementById('task-client-filter')||{}).value||'';
   const sortBy=(document.getElementById('task-sort')||{}).value||'due';
-  const open=TASKS.filter(t=>!isHabit(t)&&t.status!=='done');
-  const done=TASKS.filter(t=>!isHabit(t)&&t.status==='done');
-  const over=TASKS.filter(t=>!isHabit(t)&&t.status!=='done'&&t.due&&t.due<today);
+  const oneShot=typeof isOneShot==='function'?isOneShot:t=>!isHabit(t);
+  const isCh=typeof isChallenge==='function'?isChallenge:()=>false;
+  const open=TASKS.filter(t=>oneShot(t)&&t.status!=='done');
+  const done=TASKS.filter(t=>oneShot(t)&&t.status==='done');
+  const over=TASKS.filter(t=>oneShot(t)&&t.status!=='done'&&t.due&&t.due<today);
   const habitsN=TASKS.filter(isHabit);
+  const chN=TASKS.filter(isCh);
   const tOpen=document.getElementById('t-open');if(tOpen)tOpen.textContent=open.length;
   const tDone=document.getElementById('t-done');if(tDone)tDone.textContent=done.length;
   const tOver=document.getElementById('t-over');if(tOver)tOver.textContent=over.length;
   const tHabits=document.getElementById('t-habits');if(tHabits)tHabits.textContent=habitsN.length;
+  const tCh=document.getElementById('t-challenges');if(tCh)tCh.textContent=chN.length;
   let filtered=TASKS.filter(t=>{
     if(search&&!t.title.toLowerCase().includes(search.toLowerCase()))return false;
     if(clientFil&&t.clientId!==clientFil)return false;
-    if(taskFilter==='open')return !isHabit(t)&&t.status!=='done';
-    if(taskFilter==='done')return !isHabit(t)&&t.status==='done';
-    if(taskFilter==='overdue')return !isHabit(t)&&t.status!=='done'&&t.due&&t.due<today;
+    if(taskFilter==='open')return oneShot(t)&&t.status!=='done';
+    if(taskFilter==='done')return oneShot(t)&&t.status==='done';
+    if(taskFilter==='overdue')return oneShot(t)&&t.status!=='done'&&t.due&&t.due<today;
     if(taskFilter==='habits')return isHabit(t);
+    if(taskFilter==='challenges')return isCh(t);
     if(['high','medium','low'].includes(taskFilter))return t.priority===taskFilter;
     if(['trening','dieta','pomiary','lifestyle'].includes(taskFilter))return t.cat===taskFilter;
     return true;
   });
   if(sortBy==='due')filtered.sort((a,b)=>{
-    if(isHabit(a)!==isHabit(b))return isHabit(a)?-1:1;
+    const rank=t=>isHabit(t)?0:isCh(t)?1:2;
+    if(rank(a)!==rank(b))return rank(a)-rank(b);
     return (a.due||'9999').localeCompare(b.due||'9999');
   });
   else if(sortBy==='priority'){const o={high:0,medium:1,low:2};filtered.sort((a,b)=>(o[a.priority]||1)-(o[b.priority]||1));}
@@ -1667,25 +1674,30 @@ function renderTasks(){
     html+=`<div style="margin-bottom:16px;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">${c?`<div style="width:24px;height:24px;border-radius:50%;background:${COLS[ci%5]}22;color:${COLS[ci%5]};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:11px;flex-shrink:0;">${getInit(cname)}</div>`:'<div style="width:24px;height:24px;border-radius:50%;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:12px;">📋</div>'}<span style="font-size:13px;font-weight:700;">${cname}</span><span class="pill pill-muted" style="font-size:10px;">${tasks.length}</span><div style="flex:1;height:1px;background:var(--border);"></div></div>`;
     tasks.forEach((t,i)=>{
       const habit=isHabit(t);
-      const doneToday=habit&&habitDoneOn(t,today);
+      const ch=isCh(t);
+      const doneToday=(habit||ch)&&habitDoneOn(t,today);
       const streak=habit?habitStreak(t,today):0;
-      const isOverdue=!habit&&t.status!=='done'&&t.due&&t.due<today;
-      const isDone=!habit&&t.status==='done';
+      const chProg=ch&&typeof challengeProgress==='function'?challengeProgress(t,today):null;
+      const isOverdue=oneShot(t)&&t.status!=='done'&&t.due&&t.due<today;
+      const isDone=oneShot(t)&&t.status==='done';
       const catCol=TASK_CAT_COLORS[t.cat]||'var(--muted)';
       const prioCol=TASK_PRIO_COLORS[t.priority]||'var(--muted)';
       const daysLeft=t.due?Math.ceil((new Date(t.due)-new Date())/(1000*60*60*24)):null;
-      html+=`<div class="task-card${isDone?' done':''}${habit?' habit':''}" style="animation-delay:${i*0.03}s;border-left:3px solid ${isDone?'var(--muted2)':habit?'var(--orange)':catCol};">
+      html+=`<div class="task-card${isDone?' done':''}${habit?' habit':''}${ch?' challenge':''}" style="animation-delay:${i*0.03}s;border-left:3px solid ${isDone?'var(--muted2)':ch?'var(--gold)':habit?'var(--orange)':catCol};">
         <div class="task-check${isDone||doneToday?' checked':''}" onclick="toggleTask('${t.id}')">${isDone||doneToday?'<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#000" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':''}</div>
         <div class="task-body" onclick="editTask('${t.id}')" style="cursor:pointer;">
           <div class="task-title${isDone?' done':''}">${t.title}</div>
           <div class="task-meta">
             ${habit?`<span class="pill" style="background:rgba(201,123,63,0.18);color:var(--orange);font-size:9px;">🔥 Nawyk</span>`:''}
+            ${ch?`<span class="pill" style="background:rgba(201,162,39,0.18);color:var(--gold);font-size:9px;">🏆 Wyzwanie</span>`:''}
             ${t.cat?`<span class="pill" style="background:${catCol}22;color:${catCol};font-size:9px;">${TASK_CAT_LABELS[t.cat]||t.cat}</span>`:''}
-            ${habit?'':`<div class="task-prio-dot" style="background:${prioCol};"></div><span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${TASK_PRIO_LABELS[t.priority]||''}</span>`}
+            ${habit||ch?'':`<div class="task-prio-dot" style="background:${prioCol};"></div><span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${TASK_PRIO_LABELS[t.priority]||''}</span>`}
             ${habit&&streak?`<span class="habit-streak">🔥 ${streak} ${streak===1?'dzień':'dni'}</span>`:habit?`<span style="font-size:10px;color:var(--muted);">Odhacz na dziś</span>`:''}
-            ${!habit&&t.due?`<span style="font-size:10px;font-family:'DM Mono',monospace;color:${isOverdue?'var(--red)':daysLeft<=2?'var(--orange)':'var(--muted)'};">${isOverdue?'⚠ Przeterminowane':daysLeft===0?'dziś':daysLeft===1?'jutro':'za '+daysLeft+' dni'}</span>`:''}
+            ${ch&&typeof challengeStatusText==='function'?`<span style="font-size:10px;color:${chProg&&chProg.won?'var(--teal)':chProg&&chProg.lost?'var(--muted)':'var(--gold)'};">${challengeStatusText(t,today)}</span>`:''}
+            ${oneShot(t)&&t.due?`<span style="font-size:10px;font-family:'DM Mono',monospace;color:${isOverdue?'var(--red)':daysLeft<=2?'var(--orange)':'var(--muted)'};">${isOverdue?'⚠ Przeterminowane':daysLeft===0?'dziś':daysLeft===1?'jutro':'za '+daysLeft+' dni'}</span>`:''}
           </div>
           ${habit?habitWeekHtml(t,today):''}
+          ${ch&&typeof challengeBarHtml==='function'?challengeBarHtml(t,today):''}
         </div>
         <button onclick="delTask('${t.id}')" style="background:none;border:none;color:var(--muted2);font-size:18px;cursor:pointer;align-self:flex-start;padding:0 2px;">×</button>
       </div>`;
@@ -1706,10 +1718,24 @@ function editTask(id){
   const catEl=document.getElementById('task-cat');if(catEl)catEl.value=t.cat||'trening';
   document.getElementById('task-priority').value=t.priority||'medium';
   const habit=isHabit(t);
+  const ch=typeof isChallenge==='function'&&isChallenge(t);
   const hb=document.getElementById('task-habit');
   if(hb)hb.checked=habit;
-  if(typeof onHabitToggle==='function')onHabitToggle();
-  document.getElementById('task-due').value=habit?'':(t.due||'');
+  const chb=document.getElementById('task-challenge');
+  if(chb)chb.checked=ch;
+  if(ch){
+    const days=typeof parseChallengeDays==='function'?parseChallengeDays(t.days):21;
+    const daysEl=document.getElementById('task-ch-days');
+    if(daysEl)daysEl.value=String(days);
+    const startEl=document.getElementById('task-ch-start');
+    if(startEl)startEl.value=t.start||(typeof todayYmd==='function'?todayYmd():'');
+    const tgtEl=document.getElementById('task-ch-target');
+    if(tgtEl)tgtEl.value=String(typeof parseChallengeTarget==='function'?parseChallengeTarget(t):days);
+    if(typeof paintChallengeDays==='function')paintChallengeDays();
+  }
+  if(typeof syncTaskKindUi==='function')syncTaskKindUi();
+  else if(typeof onHabitToggle==='function')onHabitToggle();
+  document.getElementById('task-due').value=(habit||ch)?'':(t.due||'');
   const titleEl=document.querySelector('#m-task .modal-title');
   if(titleEl)titleEl.textContent='EDYTUJ ZADANIE';
   const saveBtn=document.querySelector('#m-task .modal-footer .btn-primary');
@@ -1723,34 +1749,60 @@ async function saveTask(){
   const title=document.getElementById('task-title').value.trim();if(!title){notify('Wpisz zadanie!');return;}
   const catEl=document.getElementById('task-cat');
   const isH=!!document.getElementById('task-habit')?.checked;
-  const dueVal=isH?'':(document.getElementById('task-due').value||'');
+  const isC=!!document.getElementById('task-challenge')?.checked;
+  const dueVal=(isH||isC)?'':(document.getElementById('task-due').value||'');
   const editingId=window._editingTaskId;
+  const chFields=()=>{
+    const start=(document.getElementById('task-ch-start')||{}).value||(typeof todayYmd==='function'?todayYmd():'');
+    const days=typeof parseChallengeDays==='function'?parseChallengeDays((document.getElementById('task-ch-days')||{}).value):21;
+    const target=typeof parseChallengeTarget==='function'?parseChallengeTarget({days,target:(document.getElementById('task-ch-target')||{}).value}):days;
+    const end=typeof ymdAdd==='function'?ymdAdd(start,days-1):'';
+    return{start,days,target,due:end||dueVal};
+  };
+  const stripCh=obj=>{
+    delete obj.start;delete obj.days;delete obj.target;
+    return obj;
+  };
   if(editingId){
     const idx=TASKS.findIndex(x=>x.id===editingId);
     if(idx>=0){
-      const next={...TASKS[idx],title,clientId:document.getElementById('task-client').value,due:dueVal,priority:document.getElementById('task-priority').value,cat:catEl?catEl.value:TASKS[idx].cat,kind:isH?'habit':'task',updatedAt:new Date().toISOString()};
-      if(isH){
+      const next={...TASKS[idx],title,clientId:document.getElementById('task-client').value,due:dueVal,priority:document.getElementById('task-priority').value,cat:catEl?catEl.value:TASKS[idx].cat,kind:isC?'challenge':isH?'habit':'task',updatedAt:new Date().toISOString()};
+      if(isC){
+        const f=chFields();
+        next.status='open';
+        next.start=f.start;
+        next.days=f.days;
+        next.target=f.target;
+        next.due=f.due;
+        next.doneDates=Array.isArray(TASKS[idx].doneDates)?TASKS[idx].doneDates:[];
+        delete next.repeat;
+      }else if(isH){
         next.status='open';
         next.repeat='daily';
         next.doneDates=Array.isArray(TASKS[idx].doneDates)?TASKS[idx].doneDates:[];
+        stripCh(next);
       }else{
         delete next.repeat;
         delete next.doneDates;
+        stripCh(next);
       }
       TASKS[idx]=next;
       window._editingTaskId=null;
       closeM('m-task');renderTasks();
       if(cpClientId&&cpClientId===TASKS[idx].clientId){try{setCPTab(cpTab);}catch(e){}}
-      notify(isH?'Nawyk zaktualizowany!':'Zadanie zaktualizowane!');
+      notify(isC?'Wyzwanie zaktualizowane!':isH?'Nawyk zaktualizowany!':'Zadanie zaktualizowane!');
       await persistById('tasks',TASKS[idx]);
       return;
     }
   }
-  const t=withTrainer({id:newId('t'),title,clientId:document.getElementById('task-client').value,due:dueVal,priority:document.getElementById('task-priority').value,cat:catEl?catEl.value:'trening',desc:'',status:'open',kind:isH?'habit':'task',createdAt:new Date().toISOString()});
-  if(isH){t.repeat='daily';t.doneDates=[];}
+  const t=withTrainer({id:newId('t'),title,clientId:document.getElementById('task-client').value,due:dueVal,priority:document.getElementById('task-priority').value,cat:catEl?catEl.value:'trening',desc:'',status:'open',kind:isC?'challenge':isH?'habit':'task',createdAt:new Date().toISOString()});
+  if(isC){
+    const f=chFields();
+    t.start=f.start;t.days=f.days;t.target=f.target;t.due=f.due;t.doneDates=[];
+  }else if(isH){t.repeat='daily';t.doneDates=[];}
   TASKS.push(t);closeM('m-task');renderTasks();
   if(cpClientId&&cpClientId===t.clientId){try{setCPTab(cpTab);}catch(e){}}
-  notify(isH?'Nawyk dodany — klient odhacza codziennie 🔥':'Zadanie dodane!');
+  notify(isC?'Wyzwanie dodane — klient odhacza w terminie 🏆':isH?'Nawyk dodany — klient odhacza codziennie 🔥':'Zadanie dodane!');
   await persistById('tasks',t);
 }
 
@@ -1758,7 +1810,7 @@ function openTaskTemplates(){
   const sel=document.getElementById('tmpl-client-sel');
   if(sel)sel.innerHTML=CL.length?CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join(''):'<option value="">Brak klientów — dodaj klienta</option>';
   const body=document.getElementById('task-templates-body');
-  if(body)body.innerHTML=TASK_TEMPLATES.map(tmpl=>`<div class="tmpl-card"><div class="tmpl-card-hdr"><div><span style="font-size:18px;margin-right:6px;">${tmpl.icon}</span><span style="font-size:13px;font-weight:700;">${tmpl.name}</span></div><button class="btn btn-primary btn-sm" onclick="applyTemplate('${tmpl.id}')">Przypisz</button></div><div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${tmpl.desc}</div><div class="tmpl-tasks">${tmpl.tasks.map(t=>`<div class="tmpl-task-item"><span style="color:${TASK_CAT_COLORS[t.cat]||'var(--muted)'};flex-shrink:0;">•</span><span>${t.title}</span><span style="margin-left:auto;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);white-space:nowrap;flex-shrink:0;padding-left:6px;">${t.kind==='habit'?'codziennie':(t.days||0)+'d'}</span></div>`).join('')}</div></div>`).join('');
+    if(body)body.innerHTML=TASK_TEMPLATES.map(tmpl=>`<div class="tmpl-card"><div class="tmpl-card-hdr"><div><span style="font-size:18px;margin-right:6px;">${tmpl.icon}</span><span style="font-size:13px;font-weight:700;">${tmpl.name}</span></div><button class="btn btn-primary btn-sm" onclick="applyTemplate('${tmpl.id}')">Przypisz</button></div><div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${tmpl.desc}</div><div class="tmpl-tasks">${tmpl.tasks.map(t=>`<div class="tmpl-task-item"><span style="color:${TASK_CAT_COLORS[t.cat]||'var(--muted)'};flex-shrink:0;">•</span><span>${t.title}</span><span style="margin-left:auto;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);white-space:nowrap;flex-shrink:0;padding-left:6px;">${t.kind==='challenge'?(t.days||21)+'d ★':t.kind==='habit'?'codziennie':(t.days||0)+'d'}</span></div>`).join('')}</div></div>`).join('');
   document.getElementById('task-templates-panel').style.transform='translateX(0)';
 }
 function closeTaskTemplates(){document.getElementById('task-templates-panel').style.transform='translateX(100%)';}
@@ -1768,10 +1820,18 @@ async function applyTemplate(tmplId){
   const cid=document.getElementById('tmpl-client-sel').value;if(!cid){notify('Wybierz klienta!');return;}
   const today=new Date();let added=0;
   for(const t of tmpl.tasks){
-    const isH=t.kind==='habit'||t.repeat==='daily';
+    const isC=t.kind==='challenge';
+    const isH=!isC&&(t.kind==='habit'||t.repeat==='daily');
     const due=new Date(today);due.setDate(due.getDate()+(t.days||7));
-    const task=withTrainer({id:newId('t'),title:t.title,clientId:cid,due:isH?'':due.toISOString().split('T')[0],priority:t.priority,cat:t.cat,desc:'',status:'open',kind:isH?'habit':'task',createdAt:new Date().toISOString()});
-    if(isH){task.repeat='daily';task.doneDates=[];}
+    const start=typeof todayYmd==='function'?todayYmd():due.toISOString().split('T')[0];
+    const chDays=typeof parseChallengeDays==='function'?parseChallengeDays(t.days||21):21;
+    const task=withTrainer({id:newId('t'),title:t.title,clientId:cid,due:isC?(typeof ymdAdd==='function'?ymdAdd(start,chDays-1):due.toISOString().split('T')[0]):isH?'':due.toISOString().split('T')[0],priority:t.priority,cat:t.cat,desc:'',status:'open',kind:isC?'challenge':isH?'habit':'task',createdAt:new Date().toISOString()});
+    if(isC){
+      task.start=start;
+      task.days=chDays;
+      task.target=typeof parseChallengeTarget==='function'?parseChallengeTarget({days:chDays,target:t.target}):chDays;
+      task.doneDates=[];
+    }else if(isH){task.repeat='daily';task.doneDates=[];}
     await persistById('tasks',task);
     TASKS.push(task);added++;
   }
@@ -1820,20 +1880,49 @@ function applyHabitChip(title,cat){
   if(catEl&&cat)catEl.value=cat;
   const hb=document.getElementById('task-habit');
   if(hb)hb.checked=true;
-  if(typeof onHabitToggle==='function')onHabitToggle();
+  const chb=document.getElementById('task-challenge');
+  if(chb)chb.checked=false;
+  if(typeof syncTaskKindUi==='function')syncTaskKindUi();
+  else if(typeof onHabitToggle==='function')onHabitToggle();
+}
+
+function applyChallengeChip(title,cat,days){
+  const titleEl=document.getElementById('task-title');
+  if(titleEl)titleEl.value=title||'';
+  const catEl=document.getElementById('task-cat');
+  if(catEl&&cat)catEl.value=cat;
+  const hb=document.getElementById('task-habit');
+  if(hb)hb.checked=false;
+  const chb=document.getElementById('task-challenge');
+  if(chb)chb.checked=true;
+  if(typeof setChallengeDays==='function')setChallengeDays(days||21);
+  const startEl=document.getElementById('task-ch-start');
+  if(startEl&&!startEl.value&&typeof todayYmd==='function')startEl.value=todayYmd();
+  if(typeof syncTaskKindUi==='function')syncTaskKindUi();
 }
 
 function toggleTask(id){
   const t=TASKS.find(x=>x.id===id);if(!t)return;
+  const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().split('T')[0];
   if(isHabit(t)){
-    const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().split('T')[0];
     toggleHabitDay(t,today);
     persistById('tasks',t);
     renderTasks();
     return;
   }
+  if(typeof isChallenge==='function'&&isChallenge(t)){
+    if(typeof challengeCanCheck==='function'&&!challengeCanCheck(t,today,today)){
+      const p=typeof challengeProgress==='function'?challengeProgress(t,today):null;
+      if(typeof notify==='function')notify(p&&p.before?'Wyzwanie jeszcze się nie zaczęło':p&&p.won?'Wyzwanie już ukończone':'Wyzwanie już się skończyło');
+      return;
+    }
+    toggleChallengeDay(t,today,today);
+    persistById('tasks',t);
+    renderTasks();
+    return;
+  }
   t.status=t.status==='done'?'open':'done';
-  if(t.status==='done')t.doneAt=typeof todayYmd==='function'?todayYmd():new Date().toISOString().split('T')[0];
+  if(t.status==='done')t.doneAt=today;
   persistById('tasks',t);
   renderTasks();
 }
