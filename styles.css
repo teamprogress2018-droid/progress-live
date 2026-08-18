@@ -955,8 +955,8 @@ body.client-app-mode #screen-clientlive{display:flex!important;flex:1;overflow:h
 .clive-brand{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;}
 .clive-brand span{color:var(--accent);}
 .clive-content{flex:1;overflow-y:auto;padding:8px 16px 12px;min-height:0;}
-.clive-nav{display:flex;justify-content:space-around;align-items:flex-start;padding:8px 4px calc(8px + env(safe-area-inset-bottom));border-top:1px solid rgba(255,255,255,.06);background:rgba(7,8,10,.96);flex-shrink:0;}
-.clive-nav-btn{background:none;border:none;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;font-size:7px;min-width:34px;min-height:48px;cursor:pointer;opacity:.55;}
+.clive-nav{display:flex;justify-content:flex-start;align-items:flex-start;padding:8px 4px calc(8px + env(safe-area-inset-bottom));border-top:1px solid rgba(255,255,255,.06);background:rgba(7,8,10,.96);flex-shrink:0;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:2px;}
+.clive-nav-btn{background:none;border:none;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;font-size:7px;min-width:34px;min-height:48px;flex:0 0 auto;cursor:pointer;opacity:.55;}
 .clive-nav-btn span:first-child{font-size:20px;}
 .clive-nav-btn.active{opacity:1;color:var(--accent);}
 body.cw-playing .clive-nav,

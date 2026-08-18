@@ -122,8 +122,19 @@ ok('home ondemand featured', /ON-DEMAND/i.test(homeHtml) && /openODWorkout/.test
 ok('cap od msg id', ctx.capOdMsgId('[od:ow1]\nTrening') === 'ow1');
 ok('cap live nav has ondemand', (ctx.capLiveNavScreens() || []).some((s) => s.id === 'ondemand'));
 
+if (typeof ctx.ensureODPrograms === 'function') ctx.ensureODPrograms();
+const progs = ctx.allODPrograms();
+ok('demo program active youtube', progs.some((p) => p.id === 'op2' && p.status === 'active' && ctx.odProgramWorkoutCount(p) >= 5));
+windowObj._cliveOdProgId = 'op2';
+const odProgHtml2 = ctx.capScreenHTML('odprogram', { id: 'c-anna', name: 'Anna' });
+ok('client odprogram play buttons', /openODWorkout\('ow1'\)/.test(odProgHtml2));
+ok('client ondemand programs tab', /capSetOdTab\('programs'\)/.test(html));
+ok('cap odprog msg id', ctx.capOdProgMsgId('[odprog:op2]\nProgram') === 'op2');
+ok('live nav has resources', (ctx.capLiveNavScreens() || []).some((s) => s.id === 'resources'));
+
 const src09 = fs.readFileSync(path.join(root, '09-posture-kb-invites-private.js'), 'utf8');
 ok('share od tag', /\[od:'\+id\+'\]/.test(src09));
+ok('share odprog tag', /\[odprog:'\+id\+'\]/.test(src09));
 ok('live od player', /openODWorkoutLive/.test(src09));
 ok('preview no longer notify-only', !/notify\('\$\{w\.name\} — podgląd'\)/.test(src09));
 

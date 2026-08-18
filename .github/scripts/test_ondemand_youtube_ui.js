@@ -158,6 +158,34 @@ function ok(name, cond, extra) {
   ok('live clive player open', livePlayer.playerOpen && livePlayer.odPlaying);
   ok('live clive iframe', /youtube-nocookie\.com\/embed\//.test(livePlayer.src), livePlayer.src);
 
+  await page.evaluate(() => {
+    if (typeof closeODPlayer === 'function') closeODPlayer();
+    if (typeof ensureODPrograms === 'function') ensureODPrograms();
+    window._cliveOdProgId = 'op2';
+    if (typeof openODProgramClient === 'function') openODProgramClient('op2');
+  });
+  await page.waitForTimeout(350);
+  const liveProg = await page.evaluate(() => ({
+    text: (document.getElementById('clive-screen-content') || {}).innerText || '',
+    play: /openODWorkout/.test((document.getElementById('clive-screen-content') || {}).innerHTML || '')
+  }));
+  await page.screenshot({ path: path.join(shotDir, 'client_live_odprogram.png') });
+  ok('live odprogram screen', /Full Body/i.test(liveProg.text));
+  ok('live odprogram play', liveProg.play);
+
+  await page.evaluate(() => {
+    if (typeof setClientLiveScreen === 'function') setClientLiveScreen('resources');
+  });
+  await page.waitForTimeout(250);
+  const liveRes = await page.evaluate(() => ({
+    nav: !!(document.getElementById('clive-bn-resources') && document.getElementById('clive-bn-resources').style.display !== 'none'),
+    text: (document.getElementById('clive-screen-content') || {}).innerText || '',
+    hrefs: [...document.querySelectorAll('#clive-screen-content a[href]')].map((a) => a.getAttribute('href') || '')
+  }));
+  await page.screenshot({ path: path.join(shotDir, 'client_live_resources.png') });
+  ok('live resources nav', liveRes.nav);
+  ok('live resources youtube', liveRes.hrefs.some((u) => /youtube\.com/i.test(u)));
+
   await browser.close();
   if (failed) {
     console.error('\n' + failed + ' test(s) failed');

@@ -1168,10 +1168,10 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
             <div class="osc-icon">▶️</div>
             <label class="osc-toggle"><input type="checkbox" id="osc-ondemand-en" onchange="updateOSC()"><div class="toggle-mini"></div></label>
           </div>
-          <div class="osc-title">Zasoby On-demand</div>
-          <div class="osc-desc">Daj klientowi dostęp do kolekcji zasobów i treningów.</div>
+          <div class="osc-title">On-demand YouTube</div>
+          <div class="osc-desc">Wyśle w czacie program/treningi z tagami — klient odtwarza w zakładce ▶ On-demand (darmowe filmy, bez Spotify).</div>
           <div style="margin-top:10px;" id="osc-ondemand-content">
-            <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Wyśle w czacie listę zasobów (nie otwiera Netflix-portalu).</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Opcjonalnie dołącz jeden podcast/zasób YouTube obok treningów:</div>
             <select class="form-select" style="font-size:11px;padding:5px 8px;" id="osc-resource-sel">
               <option value="">Wszystkie zasoby</option>
             </select>
@@ -1221,7 +1221,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
           <div class="osc-preview-step inactive" id="prev-ondemand">
             <div style="font-size:20px;margin-bottom:6px;opacity:0.4;">▶️</div>
             <div style="font-size:11px;font-weight:600;color:var(--muted);">On-demand</div>
-            <div style="font-size:10px;color:var(--muted2);">Wyłączone</div>
+            <div style="font-size:10px;color:var(--muted2);">YouTube w apce</div>
           </div>
           <div class="osc-preview-arrow">→</div>
           <div class="osc-preview-step inactive" id="prev-recipes">
@@ -1973,6 +1973,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <button type="button" class="clive-nav-btn" id="clive-bn-progress" onclick="setClientLiveScreen('progress')"><span>📈</span><span>Postępy</span></button>
       <button type="button" class="clive-nav-btn" id="clive-bn-checkin" onclick="setClientLiveScreen('checkin')"><span>✅</span><span>Check-in</span></button>
       <button type="button" class="clive-nav-btn" id="clive-bn-ondemand" onclick="setClientLiveScreen('ondemand')"><span>▶️</span><span>On-demand</span></button>
+      <button type="button" class="clive-nav-btn" id="clive-bn-resources" onclick="setClientLiveScreen('resources')"><span>📚</span><span>Zasoby</span></button>
       <button type="button" class="clive-nav-btn" id="clive-bn-forum" onclick="setClientLiveScreen('forum')"><span>👥</span><span>Forum</span></button>
       <button type="button" class="clive-nav-btn" id="clive-bn-messages" onclick="setClientLiveScreen('messages')"><span>💬</span><span>Czat</span></button>
       <button type="button" class="clive-nav-btn" id="clive-bn-profile" onclick="setClientLiveScreen('profile')"><span>👤</span><span>Profil</span></button>

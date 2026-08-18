@@ -159,6 +159,13 @@ async function loadClientApp(account){
   }catch(e){
     window.OD_WORKOUTS=(window.OD_DEMO_WORKOUTS||[]).map(w=>Object.assign({},w));
   }
+  try{
+    const odp=await queryByTrainerId('odPrograms',account.trainerId);
+    window.OD_PROGRAMS=(odp&&odp.length)?odp:((typeof ensureODPrograms==='function'?ensureODPrograms():[])||[]);
+    if(typeof ensureODPrograms==='function'&&!window.OD_PROGRAMS.length)ensureODPrograms();
+  }catch(e){
+    if(typeof ensureODPrograms==='function')ensureODPrograms();
+  }
   const msgs=await queryByClientId('messages',cid);
   msgs.sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||''));
   if(!window.MSGS)window.MSGS={};
@@ -206,7 +213,9 @@ function clientTryOpenOdDeepLink(){
   try{
     const q=new URLSearchParams(location.search||'');
     const od=q.get('od');
-    if(od&&typeof openODWorkout==='function')setTimeout(()=>openODWorkout(od),400);
+    const odprog=q.get('odprog');
+    if(odprog&&typeof openODProgramClient==='function')setTimeout(()=>openODProgramClient(odprog),400);
+    else if(od&&typeof openODWorkout==='function')setTimeout(()=>openODWorkout(od),400);
   }catch(e){}
 }
 
@@ -216,10 +225,10 @@ function renderClientLive(){
   if(!content)return;
   let scr=window._clientLiveScreen||'home';
   const navIds=(typeof capLiveNavScreens==='function'?capLiveNavScreens():[]).map(s=>s.id);
-  const subScreens=['forms','formfill','session','exercise','calendar','resources'];
+  const subScreens=['forms','formfill','session','exercise','calendar','resources','odprogram'];
   if(typeof capClientSectionVisible==='function'&&!capClientSectionVisible(scr)&&!subScreens.includes(scr))scr='home';
   window._clientLiveScreen=scr;
-  ['home','plan','progress','checkin','ondemand','forum','messages','profile'].forEach(s=>{
+  ['home','plan','progress','checkin','ondemand','resources','forum','messages','profile'].forEach(s=>{
     const bn=document.getElementById('clive-bn-'+s);
     if(!bn)return;
     const visible=!navIds.length||navIds.includes(s);

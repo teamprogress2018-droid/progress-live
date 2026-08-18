@@ -723,10 +723,40 @@ const OD_DEMO_WORKOUTS=[
 window.OD_DEMO_WORKOUTS=OD_DEMO_WORKOUTS;
 
 const OD_DEMO_PROGRAMS=[
-  {id:'op1',name:'Starting Strength — Demo',level:'poczatkujacy',duration:'4 tygodnie',color:'linear-gradient(135deg,#1a0a0a,#2a1a0a)',emoji:'🏋️',desc:'Oparty na Starting Strength Marka Rippetoe. Program siły oparty na własnej masie, stopniowo wprowadzający obciążenia.',clients:0,status:'draft'},
+  {id:'op2',name:'4 tygodnie Full Body — YouTube',level:'poczatkujacy',duration:'4 tygodnie',status:'active',color:'linear-gradient(135deg,#1a1a2e,#2a1a0a)',emoji:'⚡',desc:'3 darmowe treningi w tygodniu z YouTube (HASfit, MadFit). Odtwarzaj w apce — bez subskrypcji.',clients:0,weeks:[
+    {label:'Tydzień 1',days:[
+      {label:'Dzień 1 — Full Body',workoutId:'ow1'},
+      {label:'Dzień 2 — Regeneracja',rest:true},
+      {label:'Dzień 3 — HIIT',workoutId:'ow2'},
+      {label:'Dzień 4 — Regeneracja',rest:true},
+      {label:'Dzień 5 — Lower Body',workoutId:'ow6'},
+    ]},
+    {label:'Tydzień 2',days:[
+      {label:'Dzień 1 — Push',workoutId:'ow3'},
+      {label:'Dzień 2 — Regeneracja',rest:true},
+      {label:'Dzień 3 — Pull',workoutId:'ow4'},
+      {label:'Dzień 4 — Regeneracja',rest:true},
+      {label:'Dzień 5 — Mobilność',workoutId:'ow5'},
+    ]},
+  ]},
+  {id:'op1',name:'Starting Strength — szkic',level:'poczatkujacy',duration:'4 tygodnie',color:'linear-gradient(135deg,#1a0a0a,#2a1a0a)',emoji:'🏋️',desc:'Szkic programu siłowego — dodaj filmy YouTube w panelu On-demand.',clients:0,status:'draft'},
 ];
 window.OD_PROGRAMS=window.OD_PROGRAMS||[];
 function allODPrograms(){return window.OD_PROGRAMS&&window.OD_PROGRAMS.length?window.OD_PROGRAMS:OD_DEMO_PROGRAMS;}
+function ensureODPrograms(){
+  if(window.OD_PROGRAMS&&window.OD_PROGRAMS.length)return window.OD_PROGRAMS;
+  window.OD_PROGRAMS=OD_DEMO_PROGRAMS.map(p=>JSON.parse(JSON.stringify(p)));
+  return window.OD_PROGRAMS;
+}
+function odProgramWorkoutIds(prog){
+  const ids=new Set();
+  (prog&&prog.weeks||[]).forEach(w=>(w.days||[]).forEach(d=>{if(d.workoutId)ids.add(d.workoutId);}));
+  return [...ids];
+}
+function odProgramWorkoutCount(prog){return odProgramWorkoutIds(prog).length;}
+window.ensureODPrograms=ensureODPrograms;
+window.odProgramWorkoutIds=odProgramWorkoutIds;
+window.odProgramWorkoutCount=odProgramWorkoutCount;
 function allODWorkouts(){
   if(window.OD_WORKOUTS&&window.OD_WORKOUTS.length)return window.OD_WORKOUTS;
   return OD_DEMO_WORKOUTS;
@@ -882,21 +912,24 @@ function odWorkoutCardHTML(w,i){
 }
 
 function odProgramCardHTML(p,i){
-  return `<div class="od-prog-card" style="animation-delay:${i*0.05}s">
+  const ytN=odProgramWorkoutCount(p);
+  return `<div class="od-prog-card" style="animation-delay:${i*0.05}s;${ytN?'cursor:pointer;':''}" ${ytN?`onclick="openODProgramClient('${escHtml(p.id)}')"`:''}>
     <div class="od-prog-thumb" style="background:${p.color||'var(--s3)'};">
       <div style="font-size:36px;opacity:0.25;position:absolute;top:10px;right:10px;">${p.emoji||'🏋️'}</div>
       <div>
         <span style="background:rgba(0,0,0,0.6);color:${p.status==='draft'?'var(--orange)':'var(--accent)'};font-size:10px;font-family:'DM Mono',monospace;padding:2px 8px;border-radius:4px;margin-right:6px;">${p.status==='draft'?'DRAFT':'AKTYWNY'}</span>
         <span style="background:rgba(0,0,0,0.6);color:#fff;font-size:10px;font-family:'DM Mono',monospace;padding:2px 8px;border-radius:4px;">${escHtml(p.duration||'')}</span>
+        ${ytN?`<span style="background:rgba(0,0,0,0.6);color:#fff;font-size:10px;font-family:'DM Mono',monospace;padding:2px 8px;border-radius:4px;margin-left:6px;">${ytN}× YouTube</span>`:''}
       </div>
     </div>
     <div style="padding:14px;">
       <div style="font-size:14px;font-weight:700;margin-bottom:4px;">${escHtml(p.name)}</div>
       <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:10px;">${escHtml(p.desc||'')}</div>
       <div style="font-size:11px;color:var(--muted);margin-bottom:12px;">Poziom: <strong>${LEVEL_MAP[p.level]||escHtml(p.level||'—')}</strong></div>
-      <div style="display:flex;gap:6px;">
-        <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="openODProgramModal('${escHtml(p.id)}')">Edytuj</button>
-        <button class="btn btn-primary btn-sm" style="flex:1;" onclick="shareODProgram('${escHtml(p.id)}')">Udostępnij</button>
+      <div style="display:flex;gap:6px;" onclick="event.stopPropagation()">
+        <button class="btn btn-ghost btn-sm" style="flex:1;" type="button" onclick="openODProgramModal('${escHtml(p.id)}')">Edytuj</button>
+        ${ytN?`<button class="btn btn-primary btn-sm" style="flex:1;" type="button" onclick="openODProgramClient('${escHtml(p.id)}')">Podgląd klienta</button>`:`<button class="btn btn-primary btn-sm" style="flex:1;" type="button" onclick="shareODProgram('${escHtml(p.id)}')">Udostępnij</button>`}
+        <button class="btn btn-ghost btn-sm" type="button" onclick="shareODProgram('${escHtml(p.id)}')">↗</button>
       </div>
     </div>
   </div>`;
@@ -1161,7 +1194,9 @@ function shareODProgram(id){
   const p=allODPrograms().find(x=>x.id===id);
   if(!p){notify('Nie znaleziono programu');return;}
   if(!confirm('Udostępnić program "'+p.name+'" wszystkim klientom ('+CL.length+')?'))return;
-  CL.forEach(c=>pushMsg(c.id,'📋 Program on-demand: "'+p.name+'"'+(p.desc?'\n'+p.desc:'')+'\nCzas: '+(p.duration||'—')+' · '+(LEVEL_MAP[p.level]||p.level||'')));
+  const tag='[odprog:'+id+']';
+  const ytN=odProgramWorkoutCount(p);
+  CL.forEach(c=>pushMsg(c.id,tag+'\n📋 Program on-demand: "'+p.name+'"'+(p.desc?'\n'+p.desc:'')+'\nCzas: '+(p.duration||'—')+' · '+(LEVEL_MAP[p.level]||p.level||'')+(ytN?'\n'+ytN+' treningów YouTube w apce':'')));
   notify('✓ Program "'+p.name+'" wysłany do '+CL.length+' klientów (Inbox)');
 }
 
@@ -1717,13 +1752,23 @@ function runOnboardingForClient(client){
       }
     }
     if(flow.ondemandEnabled){
+      if(typeof ensureODWorkouts==='function')ensureODWorkouts();
+      if(typeof ensureODPrograms==='function')ensureODPrograms();
       const items=window.USER_RESOURCES||[];
       const one=flow.resourceId?items.find(r=>r.id===flow.resourceId):null;
-      const names=one?[one.title||one.name]:items.slice(0,5).map(r=>r.title||r.name).filter(Boolean);
-      if(typeof pushMsg==='function')pushMsg(client.id, names.length
-        ?('Zasoby na start:\n- '+names.join('\n- '))
-        :'Trener udostępni Ci zasoby on-demand wkrótce.');
-      parts.push('zasoby');
+      const progs=allODPrograms().filter(p=>p.status==='active'&&odProgramWorkoutCount(p)>0);
+      const prog=progs[0]||null;
+      const picks=allODWorkouts().slice(0,3);
+      const lines=[];
+      if(prog)lines.push('[odprog:'+prog.id+']','📋 Program: '+prog.name+' ('+(prog.duration||'')+')');
+      if(picks.length)lines.push('▶ Treningi YouTube w apce:',...picks.map(w=>'[od:'+w.id+'] '+w.name));
+      if(one)lines.push('🎧 '+ (one.title||one.name)+': '+(one.url||''));
+      else if(!prog&&!picks.length){
+        const names=items.slice(0,5).map(r=>r.title||r.name).filter(Boolean);
+        if(names.length)lines.push('Zasoby na start:\n- '+names.join('\n- '));
+      }
+      if(typeof pushMsg==='function')pushMsg(client.id,lines.length?lines.join('\n'):'Trener udostępni Ci treningi on-demand wkrótce — zakładka ▶ On-demand w apce.');
+      parts.push('on-demand');
     }
     if(flow.recipesEnabled && typeof pushMsg==='function'){
       pushMsg(client.id,'Proszę o krótki dzienniczek żywienia z 2–3 dni — wrzucimy to do planu.');
