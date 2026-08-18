@@ -625,3 +625,43 @@ function mapPlanExercisesForClient(rawEx,clientId){
 }
 window.mapPlanExercisesForClient=mapPlanExercisesForClient;
 
+window.PROGRESS_PHOTOS=window.PROGRESS_PHOTOS||[];
+
+function ppFeatureOn(c){
+  if(!c)return true;
+  const s=c.clientSettings||{};
+  return s.progressPhoto!==false;
+}
+window.ppFeatureOn=ppFeatureOn;
+
+function ppListFor(clientId){
+  return (window.PROGRESS_PHOTOS||[]).filter(p=>p.clientId===clientId)
+    .slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')||(a.createdAt||'').localeCompare(b.createdAt||''));
+}
+window.ppListFor=ppListFor;
+
+function compressImageFile(file,max=720,quality=0.68){
+  return new Promise((resolve,reject)=>{
+    if(!file){reject(new Error('Brak pliku'));return;}
+    const img=new Image();
+    const url=URL.createObjectURL(file);
+    img.onload=()=>{
+      URL.revokeObjectURL(url);
+      let w=img.width,h=img.height;
+      const scale=Math.min(1,max/Math.max(w,h,1));
+      w=Math.max(1,Math.round(w*scale));
+      h=Math.max(1,Math.round(h*scale));
+      const canvas=document.createElement('canvas');
+      canvas.width=w;canvas.height=h;
+      const ctx=canvas.getContext('2d');
+      ctx.fillStyle='#111';
+      ctx.fillRect(0,0,w,h);
+      ctx.drawImage(img,0,0,w,h);
+      resolve(canvas.toDataURL('image/jpeg',quality));
+    };
+    img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('Nie udało się wczytać zdjęcia'));};
+    img.src=url;
+  });
+}
+window.compressImageFile=compressImageFile;
+
