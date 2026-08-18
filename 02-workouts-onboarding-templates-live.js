@@ -2230,9 +2230,9 @@ function renderLiveHistory(){
       ${all.slice(0,12).map(s=>`<div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:16px;">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
           <div style="width:36px;height:36px;border-radius:10px;background:var(--adim);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;color:var(--accent);">${getInit(s.clientName||'?')}</div>
-          <div>
-            <div style="font-size:13px;font-weight:700;">${s.clientName||'Klient'}</div>
-            <div style="font-size:10px;color:var(--muted);">${s.date||''} ${s.time||''}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:700;">${s.clientName||'Klient'}${s.feedback&&typeof sessionRatingEmoji==='function'?' '+sessionRatingEmoji(s.feedback):''}</div>
+            <div style="font-size:10px;color:var(--muted);">${s.date||''} ${s.time||''}${typeof sessionSourceLabel==='function'&&s.source?' · '+sessionSourceLabel(s):''}</div>
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:11px;">
@@ -2249,6 +2249,7 @@ function renderLiveHistory(){
             <div style="color:var(--muted);">kg obj.</div>
           </div>
         </div>
+        ${s.feedback&&typeof sessionRatingLabel==='function'?`<div style="font-size:12px;margin-top:8px;">Ocena: ${sessionRatingLabel(s.feedback)}</div>`:''}
         ${s.note?`<div style="font-size:11px;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--border);line-height:1.5;">${s.note}</div>`:''}
       </div>`).join('')}
     </div>`:`<div style="text-align:center;padding:60px;color:var(--muted);">

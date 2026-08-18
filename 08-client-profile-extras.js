@@ -6,6 +6,11 @@ window.CLIENT_TIMELINE = window.CLIENT_TIMELINE || {}; // clientId -> [{id,text,
 const CTL_ICONS  = {trening:'🏋️',pomiar:'📏',plan:'📋',notatka:'📝',cel:'🎯',sukces:'🏆'};
 const CTL_COLORS = {trening:'#E8302A',pomiar:'var(--blue)',plan:'var(--blue)',notatka:'var(--orange)',cel:'var(--accent)',sukces:'#FFD700'};
 
+function safeEscSnippet(text,max){
+  return escHtml(String(text||'').slice(0,Math.max(0,max||0)));
+}
+window.safeEscSnippet=safeEscSnippet;
+
 function renderCPTimeline(c){
   if(!c) return;
   if(!CLIENT_TIMELINE[c.id]) CLIENT_TIMELINE[c.id] = c.timeline || [];
@@ -1036,10 +1041,12 @@ function renderCPTraining(c){
   const sessions=SE.filter(s=>s.clientId===c.id);
   const today=new Date();
   const todayStr=today.toISOString().split('T')[0];
+  const logged=typeof completedWorkouts==='function'?completedWorkouts(c.id,sessions):sessions.filter(s=>s.source==='client'||s.source==='live');
+  const avgRate=typeof avgSessionRating==='function'?avgSessionRating(logged):0;
 
-  // Statystyki
-  const last7=sessions.filter(s=>{const d=new Date(s.date);return(today-d)/86400000<=7;}).length;
-  const last30=sessions.filter(s=>{const d=new Date(s.date);return(today-d)/86400000<=30;}).length;
+  // Statystyki — zrobione treningi, nie same wpisy w kalendarzu
+  const last7=logged.filter(s=>{const d=new Date(s.date);return(today-d)/86400000<=7;}).length;
+  const last30=logged.filter(s=>{const d=new Date(s.date);return(today-d)/86400000<=30;}).length;
 
   // Oblicz zakres kalendarza
   const getMonday=(d)=>{const dt=new Date(d);const day=dt.getDay();dt.setDate(dt.getDate()-(day===0?6:day-1));dt.setHours(0,0,0,0);return dt;};
@@ -1058,17 +1065,19 @@ function renderCPTraining(c){
 
   // Historia sesji
   const historyHTML=sessions.length
-    ?sessions.sort((a,b)=>b.date.localeCompare(a.date)).slice(0,15).map(s=>{
-      const wo=allWorkouts().find(w=>w.id===s.workoutId);
-      const exCount=wo?(wo.days||[]).reduce((n,d)=>n+(d.exercises||[]).length,0):0;
-      const typeCol=s.type==='siłowy'||s.type==='Trening siłowy'?'var(--orange)':s.type==='cardio'?'var(--blue)':'var(--accent)';
+    ?sessions.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,15).map(s=>{
+      const exCount=(s.exercises||[]).length;
+      const emoji=typeof sessionRatingEmoji==='function'?sessionRatingEmoji(s.feedback):'';
+      const src=typeof sessionSourceLabel==='function'?sessionSourceLabel(s):(s.type||'sesja');
+      const typeCol=s.source==='client'?'var(--teal)':s.source==='live'?'var(--orange)':'var(--accent)';
+      const title=typeof sessionTitle==='function'?sessionTitle(s):(s.type||s.title||'Sesja');
       return `<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="editSession('${s.id}')">
-        <div style="width:38px;height:38px;border-radius:10px;background:${typeCol}18;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">💪</div>
+        <div style="width:38px;height:38px;border-radius:10px;background:${typeCol}18;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">${emoji||'💪'}</div>
         <div style="flex:1;min-width:0;">
-          <div style="font-size:13px;font-weight:600;">${s.title||'Sesja'}</div>
-          <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;">${s.date}${s.duration?' · '+s.duration+' min':''}</div>
+          <div style="font-size:13px;font-weight:600;">${escHtml(title)}</div>
+          <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;">${escHtml(s.date||'')}${s.duration?' · '+s.duration+' min':''}${exCount?' · '+exCount+' ćw.':''}${s.feedback?' · '+s.feedback+'/5':''}</div>
         </div>
-        <span style="background:${typeCol}18;color:${typeCol};border-radius:4px;padding:2px 8px;font-size:10px;font-family:'DM Mono',monospace;font-weight:700;text-transform:uppercase;">${s.type||'trening personalny'}</span>
+        <span style="background:${typeCol}18;color:${typeCol};border-radius:4px;padding:2px 8px;font-size:10px;font-family:'DM Mono',monospace;font-weight:700;text-transform:uppercase;">${escHtml(src)}</span>
       </div>`;
     }).join('')
     :'<div style="text-align:center;padding:32px;color:var(--muted);font-size:12px;">Brak historii sesji</div>';
@@ -1081,15 +1090,16 @@ function renderCPTraining(c){
     const sessDay=sessions.filter(s=>s.date===ds);
     const dayName=dayNamesShort[d.getDay()===0?6:d.getDay()-1];
     const sessCards=sessDay.map(s=>{
-      const wo=allWorkouts().find(w=>w.id===s.workoutId);
-      const exCount=wo?(wo.days||[]).reduce((n,d)=>n+(d.exercises||[]).length,0):0;
-      const typeLabel=s.type||'REGULAR';
-      const typeCol=s.type==='siłowy'||s.type==='Trening siłowy'?'var(--orange)':s.type==='cardio'?'var(--blue)':'var(--accent)';
+      const exCount=(s.exercises||[]).length;
+      const title=typeof sessionTitle==='function'?sessionTitle(s):(s.type||s.title||'Sesja');
+      const typeLabel=typeof sessionSourceLabel==='function'?sessionSourceLabel(s):(s.type||'REGULAR');
+      const typeCol=s.source==='client'?'var(--teal)':s.source==='live'?'var(--orange)':'var(--accent)';
+      const emoji=typeof sessionRatingEmoji==='function'?sessionRatingEmoji(s.feedback):'';
       return `<div style="background:${typeCol}15;border:1px solid ${typeCol}40;border-radius:6px;padding:5px 6px;margin-top:4px;cursor:pointer;" onclick="event.stopPropagation();editSession('${s.id}')">
-        <div style="font-size:10px;font-weight:700;color:${typeCol};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${(s.title||'Sesja').toUpperCase().substring(0,18)}</div>
+        <div style="font-size:10px;font-weight:700;color:${typeCol};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${safeEscSnippet(String(title).toUpperCase(),18)}</div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:2px;">
-          <span style="background:${typeCol}25;color:${typeCol};border-radius:3px;padding:1px 4px;font-size:9px;font-family:'DM Mono',monospace;">${typeLabel.toUpperCase().substring(0,8)}</span>
-          ${exCount?`<span style="font-size:9px;color:var(--muted);">⚡ ${exCount}</span>`:''}
+          <span style="background:${typeCol}25;color:${typeCol};border-radius:3px;padding:1px 4px;font-size:9px;font-family:'DM Mono',monospace;">${safeEscSnippet(String(typeLabel).toUpperCase(),8)}</span>
+          <span style="font-size:9px;color:var(--muted);">${emoji||''}${exCount?` ⚡ ${exCount}`:''}</span>
         </div>
         ${s.duration?`<div style="font-size:9px;color:var(--muted);margin-top:2px;">⏱ ${s.duration} min</div>`:''}
       </div>`;
@@ -1121,8 +1131,8 @@ function renderCPTraining(c){
         <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.5px;">Ostatnie 30 dni</div>
       </div>
       <div style="background:var(--s3);border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:30px;color:var(--teal);">${sessions.length}</div>
-        <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.5px;">Łącznie sesji</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:30px;color:var(--teal);">${logged.length}</div>
+        <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.5px;">Zrobione${avgRate?' · śr. '+avgRate+'/5':''}</div>
       </div>
     </div>
 
