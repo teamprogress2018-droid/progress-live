@@ -300,8 +300,16 @@ function addRow(dayId){
     +'<div class="ex-row-extra">'
     +'<input type="text" placeholder="Zamiennik (opcjonalnie, np. hantle zamiast sztangi)" class="ex-inp ex-inp-name" data-f="alt" style="font-size:11px;">'
     +'<input type="number" placeholder="%1RM" class="ex-inp" data-f="pct1rm" min="1" max="150" step="0.5" title="Procent 1RM — kg z Pomiary → Siła bazowa" oninput="builderPreviewKg(this.closest(\'.ex-row\'))">'
+    +'<div class="ex-kind-btns">'
     +'<input type="hidden" data-f="ss" value="">'
+    +'<input type="hidden" data-f="wu" value="">'
+    +'<input type="hidden" data-f="drop" value="">'
+    +'<input type="hidden" data-f="amrap" value="">'
     +'<button type="button" class="ex-ss-btn" onclick="builderToggleSs(this)" title="Połącz z następnym ćwiczeniem w super-serię">⚡ SS</button>'
+    +'<button type="button" class="ex-ss-btn ex-kind-btn wu" onclick="builderCycleKind(this,\'wu\',2)" title="Serie rozgrzewkowe (1–2) — lżejsze kg, krótsza przerwa">WU</button>'
+    +'<button type="button" class="ex-ss-btn ex-kind-btn drop" onclick="builderCycleKind(this,\'drop\',2)" title="Drop sety po roboczych — bez przerwy, mniejszy ciężar">DROP</button>'
+    +'<button type="button" class="ex-ss-btn ex-kind-btn amrap" onclick="builderToggleAmrap(this)" title="Ostatnia seria robocza = AMRAP (max powtórzeń)">AMRAP</button>'
+    +'</div>'
     +'</div>';
   rows.appendChild(div);
 }
@@ -360,6 +368,36 @@ function builderToggleSs(btn){
   builderPaintSs(box);
 }
 window.builderToggleSs=builderToggleSs;
+function builderCycleKind(btn,field,max){
+  const row=btn&&btn.closest('.ex-row');if(!row)return;
+  const el=row.querySelector('[data-f="'+field+'"]');if(!el)return;
+  let n=parseInt(el.value,10)||0;
+  n=(n+1)%((max||2)+1);
+  el.value=n?String(n):'';
+  builderPaintKinds(row);
+}
+window.builderCycleKind=builderCycleKind;
+function builderToggleAmrap(btn){
+  const row=btn&&btn.closest('.ex-row');if(!row)return;
+  const el=row.querySelector('[data-f="amrap"]');if(!el)return;
+  el.value=el.value==='1'?'':'1';
+  builderPaintKinds(row);
+}
+window.builderToggleAmrap=builderToggleAmrap;
+function builderPaintKinds(row){
+  if(!row)return;
+  const g=f=>((row.querySelector('[data-f="'+f+'"]')||{}).value||'');
+  const wu=parseInt(g('wu'),10)||0;
+  const dr=parseInt(g('drop'),10)||0;
+  const am=g('amrap')==='1';
+  const wuBtn=row.querySelector('.ex-kind-btn.wu');
+  const drBtn=row.querySelector('.ex-kind-btn.drop');
+  const amBtn=row.querySelector('.ex-kind-btn.amrap');
+  if(wuBtn){wuBtn.textContent=wu?('WU '+wu):'WU';wuBtn.classList.toggle('on',!!wu);}
+  if(drBtn){drBtn.textContent=dr?('DROP '+dr):'DROP';drBtn.classList.toggle('on',!!dr);}
+  if(amBtn)amBtn.classList.toggle('on',am);
+}
+window.builderPaintKinds=builderPaintKinds;
 function builderPreviewKg(row){
   if(!row)return;
   const kgEl=row.querySelector('[data-f="kg"]');
@@ -443,7 +481,11 @@ function editPlan(id){
       set('alt',(ex&&typeof ex==='object'&&ex.alt)||parsed.alt||(typeof altsForExercise==='function'?altsForExercise(parsed.name).join(', '):''));
       set('pct1rm',parsed.pct1rm||(ex&&typeof ex==='object'&&ex.pct1rm)||'');
       set('ss',parsed.ss||(ex&&typeof ex==='object'&&ex.ss)||'');
+      set('wu',(ex&&typeof ex==='object'&&ex.wu)||parsed.wu||'');
+      set('drop',(ex&&typeof ex==='object'&&ex.drop)||parsed.drop||'');
+      set('amrap',((ex&&typeof ex==='object'&&(ex.amrap||parsed.amrap))?'1':''));
       if(typeof builderPreviewKg==='function')builderPreviewKg(row);
+      if(typeof builderPaintKinds==='function')builderPaintKinds(row);
     });
     if(typeof builderPaintSs==='function')builderPaintSs(dayEl.querySelector('.ex-rows'));
   });
@@ -483,7 +525,10 @@ async function savePlan(){
         rest:g('rest')||'90s',
         tempo:g('tempo'),
         alt,
-        ss:g('ss')
+        ss:g('ss'),
+        wu:g('wu')||'',
+        drop:g('drop')||'',
+        amrap:g('amrap')==='1'
       });
       sets+=parseInt(setN,10)||3;
     });

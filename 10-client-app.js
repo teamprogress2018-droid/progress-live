@@ -569,6 +569,17 @@ function cwCheckSet(setIdx){
   const st=ex.sets[setIdx];
   st.done=!st.done;
   if(!st.done){cwRender();return;}
+  const nxtSet=(ex.sets||[]).find(s=>!s.done);
+  if(nxtSet&&typeof skipRestBeforeSet==='function'&&skipRestBeforeSet(nxtSet)){
+    if(typeof notify==='function')notify('Drop set — bez przerwy, zdejmij ciężar');
+    cwRender();
+    return;
+  }
+  if(st.kind==='warmup'&&nxtSet){
+    const sec=typeof restSecAfterSet==='function'?restSecAfterSet(ex,st,nxtSet):45;
+    cwStartRest(sec);
+    return;
+  }
   const act=typeof ssNextAfterSet==='function'?ssNextAfterSet(cw.exercises,cw.exIdx):null;
   if(act&&act.kind==='partner'){
     const nxt=cw.exercises[act.exIdx];
@@ -661,7 +672,7 @@ function cwRender(){
       <div style="font-size:12px;color:var(--muted);margin-bottom:18px;">${cw.exercises.length} ćwiczeń · odhacz serie, timer przerwy sam się włączy</div>
       ${cw.exercises.map((ex,i)=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:10px 0;border-top:1px solid rgba(255,255,255,.06);">
         <div style="font-size:13px;font-weight:600;">${i+1}. ${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}</div>
-        <div style="font-size:11px;color:var(--muted);white-space:nowrap;">${ex.sets.length} serii</div>
+        <div style="font-size:11px;color:var(--muted);white-space:nowrap;">${ex.sets.length} serii${ex.wu?' · WU'+ex.wu:''}${ex.amrap?' · AMRAP':''}${ex.drop?' · DROP'+ex.drop:''}</div>
       </div>`).join('')}
       <button type="button" class="cap-btn-primary" style="margin-top:20px;padding:16px;font-size:16px;" onclick="cwBegin()">▶ Start</button>`;
     return;
@@ -712,9 +723,9 @@ function cwRender(){
       <div>#</div><div>Kg</div><div>Powt.</div><div></div>
     </div>
     ${ex.sets.map((s,i)=>`<div class="cw-set-row">
-      <div style="text-align:center;font-weight:700;color:${s.done?'var(--teal)':'var(--muted)'};">${s.done?'✓':s.setNo}</div>
+      <div style="text-align:center;font-weight:700;color:${s.done?'var(--teal)':'var(--muted)'};">${s.done?'✓':s.setNo}${s.kind&&s.kind!=='work'?`<div class="cw-set-kind ${s.kind}">${escHtml(setKindBadge(s.kind)||s.kind)}</div>`:''}</div>
       <input type="number" inputmode="decimal" value="${escHtml(s.kg)}" ${s.done?'disabled':''} oninput="cwPatchSet(${i},'kg',this.value)" class="${s.done?'cw-set-done':''}">
-      <input type="text" inputmode="numeric" value="${escHtml(s.reps)}" ${s.done?'disabled':''} oninput="cwPatchSet(${i},'reps',this.value)" class="${s.done?'cw-set-done':''}">
+      <input type="text" inputmode="numeric" value="${escHtml(s.reps)}" ${s.done?'disabled':''} placeholder="${s.kind==='amrap'?'max':''}" oninput="cwPatchSet(${i},'reps',this.value)" class="${s.done?'cw-set-done':''}">
       <button type="button" class="btn ${s.done?'btn-ghost':'btn-primary'} btn-sm" onclick="cwCheckSet(${i})">${s.done?'↩':'+'}</button>
     </div>`).join('')}
     <div style="display:flex;gap:8px;margin-top:18px;">
@@ -738,7 +749,7 @@ async function cwFinish(){
     duration:durationMin,
     exercises:cw.exercises.map(e=>({
       name:e.name,
-      sets:e.sets.filter(s=>s.done).map(s=>({kg:parseFloat(s.kg)||0,reps:parseFloat(s.reps)||0,setNo:s.setNo}))
+      sets:e.sets.filter(s=>s.done).map(s=>({kg:parseFloat(s.kg)||0,reps:parseFloat(s.reps)||0,setNo:s.setNo,kind:s.kind||'work'}))
     })),
     volume,
     feedback:cw.rating||0,

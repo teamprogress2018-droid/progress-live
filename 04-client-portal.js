@@ -126,9 +126,11 @@ function capTodayExercises(c){
     if(p.pct1rm&&typeof weightFromPct1RM==='function'){
       const w=weightFromPct1RM(c.id,p.name,p.pct1rm);
       sets+=w&&w.kg?` @${p.pct1rm}% → ${w.kg}kg`:` @${p.pct1rm}%`;
-    }else if(p.kg){
+    }else     if(p.kg){
       sets+=' @'+p.kg+'kg';
     }
+    const tag=typeof formatSetKindTag==='function'?formatSetKindTag(p):'';
+    if(tag)sets+=' · '+tag;
     return{name:p.name,ssLabel:p.ssLabel||'',sets,rest:p.rest||'90s',done:slot.kind==='done'};
   });
 }
@@ -562,7 +564,7 @@ function capScreenHTML(scr,c){
 
 const CAP_SCREEN_INFO={
   home:{title:'🏠 Dziś',desc:'Jeden ekran na dzień: trening do odpalenia (Start), dzień wolny, nawyki ze streakiem, zadania do odhaczenia i check-in jeśli czeka. Klient nie zgaduje, co ma zrobić.'},
-  plan:{title:'📋 Mój plan treningowy',desc:'Lista dni planu. Z każdego dnia treningowego klient może od razu kliknąć Start i odhaczać serie.'},
+  plan:{title:'📋 Mój plan treningowy',desc:'Lista dni planu. Start odhacza serie. W kreatorze: SS, rozgrzewka (WU), drop set i AMRAP na ostatniej serii.'},
   calendar:{title:'📅 Kalendarz sesji',desc:'Mini-kalendarz z zaznaczonymi sesjami. Klient widzi nadchodzące treningi z godziną, typem i linkiem do Google Meet (jeśli online).'},
   progress:{title:'📈 Moje postępy',desc:'Masa z pomiarów oraz zdjęcia sylwetki (przód / bok / tył) z porównaniem w czasie. Klient robi zdjęcia w apce — Ty widzisz je w karcie klienta.'},
   checkin:{title:'✅ Check-in tygodniowy',desc:'Interaktywny formularz check-inu — emoji skale, liczba treningów, waga. Wysłany check-in trafia bezpośrednio do Twojego panelu.'},

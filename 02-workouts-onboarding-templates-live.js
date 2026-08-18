@@ -1922,7 +1922,7 @@ function liveExCard(ex,i){
       </div>
       ${ex.sets.map((s,si)=>`<div class="live-set-row">
         <div class="live-set-check${s.done?' done':''}" onclick="liveToggleSet(${i},${si})" title="Oznacz serię">${s.done?'✓':''}</div>
-        <div class="live-set-label"><span class="live-set-label-full">Seria </span>${s.setNo}</div>
+        <div class="live-set-label"><span class="live-set-label-full">Seria </span>${s.setNo}${s.kind&&s.kind!=='work'?` <span class="cw-set-kind ${s.kind}">${escHtml(typeof setKindBadge==='function'?setKindBadge(s.kind):s.kind)}</span>`:''}</div>
         <input type="number" inputmode="decimal" class="live-kg-input" placeholder="${ex.lastKg!==''&&ex.lastKg!=null?ex.lastKg:'kg'}" value="${s.kg}" oninput="liveSetKg(${i},${si},this.value)" onkeydown="liveSetKey(event,${i},${si})" onclick="event.stopPropagation()">
         <input type="number" inputmode="numeric" class="live-kg-input" placeholder="powt." value="${s.reps}" oninput="liveSetReps(${i},${si},this.value)" onkeydown="liveSetKey(event,${i},${si})" onclick="event.stopPropagation()">
         <button type="button" class="live-set-rest" onclick="liveStartRest(90)" title="Przerwa 90s">⏱</button>
@@ -1952,8 +1952,8 @@ function liveToggleSet(ei,si){
   if(s.done){
     const next=ex.sets[si+1];
     if(next){
-      if((next.kg===''||next.kg==null)&&s.kg!==''&&s.kg!=null)next.kg=s.kg;
-      if((next.reps===''||next.reps==null||next.reps==='8-12')&&s.reps)next.reps=s.reps;
+      if(next.kind!=='drop'&&(next.kg===''||next.kg==null)&&s.kg!==''&&s.kg!=null)next.kg=s.kg;
+      if(next.kind!=='drop'&&(next.reps===''||next.reps==null||next.reps==='8-12')&&s.reps)next.reps=s.reps;
     }
     if(ex.sets.every(x=>x.done)){
       ex.done=true;
@@ -1961,13 +1961,18 @@ function liveToggleSet(ei,si){
       const nxt=liveExercises.find(e=>!e.done);
       if(nxt)nxt.collapsed=false;
     }
-    const act=typeof ssNextAfterSet==='function'?ssNextAfterSet(liveExercises,ei):null;
-    if(act&&act.kind==='partner'){
-      liveExercises[act.exIdx].collapsed=false;
-      const nxt=liveExercises[act.exIdx];
-      if(typeof notify==='function')notify('Super-seria → '+(nxt.ssLabel?nxt.ssLabel+' ':'')+nxt.name+' (bez przerwy)');
+    if(next&&typeof skipRestBeforeSet==='function'&&skipRestBeforeSet(next)){
+      if(typeof notify==='function')notify('Drop set — bez przerwy, zdejmij ciężar');
     }else{
-      liveStartRest((ex.restSec)||90);
+      const act=typeof ssNextAfterSet==='function'?ssNextAfterSet(liveExercises,ei):null;
+      if(act&&act.kind==='partner'){
+        liveExercises[act.exIdx].collapsed=false;
+        const nxt=liveExercises[act.exIdx];
+        if(typeof notify==='function')notify('Super-seria → '+(nxt.ssLabel?nxt.ssLabel+' ':'')+nxt.name+' (bez przerwy)');
+      }else{
+        const sec=typeof restSecAfterSet==='function'?restSecAfterSet(ex,s,next):(ex.restSec||90);
+        liveStartRest(sec);
+      }
     }
   }else{
     ex.done=false;
@@ -2044,7 +2049,7 @@ function liveEndSession(){
     duration:durationMin||60,
     exercises:liveExercises.map(e=>({
       name:e.name,
-      sets:e.sets.filter(s=>s.done).map(s=>({kg:parseFloat(s.kg)||0,reps:parseFloat(s.reps)||0,setNo:s.setNo}))
+      sets:e.sets.filter(s=>s.done).map(s=>({kg:parseFloat(s.kg)||0,reps:parseFloat(s.reps)||0,setNo:s.setNo,kind:s.kind||'work'}))
     })),
     volume,feedback:liveFeedbackVal,
     note:document.getElementById('live-note')?.value||'',
