@@ -46,6 +46,9 @@ jobs:
       - name: 1f. Testy formularzy klienta
         run: node .github/scripts/test_forms.js
 
+      - name: 1g. Testy własnych filmów
+        run: node .github/scripts/test_own_videos.js
+
       - name: 2. Sprawdź duplikaty (funkcje / id / zmienne)
         run: python3 .github/scripts/check_duplicates.py
 
