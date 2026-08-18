@@ -431,7 +431,7 @@ function capScreenHTML(scr,c){
         </div>
         <div style="background:${CAP_S2};border-radius:16px;padding:14px;border:1px solid ${CAP_S3};">
           <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:6px;">🏋️ Sesje</div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${accent};line-height:1;">${logged.length||sessions.length}</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${accent};line-height:1;">${logged.length}</div>
         </div>
         <div style="background:${CAP_S2};border-radius:16px;padding:14px;border:1px solid ${CAP_S3};">
           <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:6px;">Ocena</div>

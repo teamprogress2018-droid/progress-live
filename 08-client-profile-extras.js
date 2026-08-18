@@ -6,6 +6,11 @@ window.CLIENT_TIMELINE = window.CLIENT_TIMELINE || {}; // clientId -> [{id,text,
 const CTL_ICONS  = {trening:'🏋️',pomiar:'📏',plan:'📋',notatka:'📝',cel:'🎯',sukces:'🏆'};
 const CTL_COLORS = {trening:'#E8302A',pomiar:'var(--blue)',plan:'var(--blue)',notatka:'var(--orange)',cel:'var(--accent)',sukces:'#FFD700'};
 
+function safeEscSnippet(text,max){
+  return escHtml(String(text||'').slice(0,Math.max(0,max||0)));
+}
+window.safeEscSnippet=safeEscSnippet;
+
 function renderCPTimeline(c){
   if(!c) return;
   if(!CLIENT_TIMELINE[c.id]) CLIENT_TIMELINE[c.id] = c.timeline || [];
@@ -1074,9 +1079,9 @@ function renderCPTraining(c){
       const typeCol=s.source==='client'?'var(--teal)':s.source==='live'?'var(--orange)':'var(--accent)';
       const emoji=typeof sessionRatingEmoji==='function'?sessionRatingEmoji(s.feedback):'';
       return `<div style="background:${typeCol}15;border:1px solid ${typeCol}40;border-radius:6px;padding:5px 6px;margin-top:4px;cursor:pointer;" onclick="event.stopPropagation();editSession('${s.id}')">
-        <div style="font-size:10px;font-weight:700;color:${typeCol};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(String(title).toUpperCase()).substring(0,18)}</div>
+        <div style="font-size:10px;font-weight:700;color:${typeCol};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${safeEscSnippet(String(title).toUpperCase(),18)}</div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:2px;">
-          <span style="background:${typeCol}25;color:${typeCol};border-radius:3px;padding:1px 4px;font-size:9px;font-family:'DM Mono',monospace;">${escHtml(String(typeLabel).toUpperCase()).substring(0,8)}</span>
+          <span style="background:${typeCol}25;color:${typeCol};border-radius:3px;padding:1px 4px;font-size:9px;font-family:'DM Mono',monospace;">${safeEscSnippet(String(typeLabel).toUpperCase(),8)}</span>
           <span style="font-size:9px;color:var(--muted);">${emoji||''}${exCount?` ⚡ ${exCount}`:''}</span>
         </div>
         ${s.duration?`<div style="font-size:9px;color:var(--muted);margin-top:2px;">⏱ ${s.duration} min</div>`:''}

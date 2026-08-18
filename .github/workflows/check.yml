@@ -49,6 +49,9 @@ jobs:
       - name: 1g. Testy oceny treningu i historii
         run: node .github/scripts/test_session_history.js
 
+      - name: 1h. Testy regresji historii treningów
+        run: node .github/scripts/test_workout_rate_history_fixes.js
+
       - name: 2. Sprawdź duplikaty (funkcje / id / zmienne)
         run: python3 .github/scripts/check_duplicates.py
 
