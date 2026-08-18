@@ -326,7 +326,7 @@ function goTo(n){
   if(n==='builder')initBuilder();
   if(n==='calendar'){calCurrentDate=new Date();calMiniDate=new Date();setCalView('week');}
   if(n==='plans')renderPlans();
-  if(n==='library')renderLib();
+  if(n==='library'){if(typeof renderLibTab==='function')renderLibTab();else renderLib();}
   if(n==='inbox')renderInbox();
   if(n==='clients'){renderClientFilters();renderClients();}
   if(n==='dashboard')renderDash();
@@ -411,6 +411,19 @@ function openM(id){
     const saveBtn=document.querySelector('#m-task .modal-footer .btn-primary');
     if(saveBtn)saveBtn.textContent='Dodaj zadanie';
     taskSetClientField('','');
+    const hb=document.getElementById('task-habit');
+    if(hb)hb.checked=false;
+    const chb=document.getElementById('task-challenge');
+    if(chb)chb.checked=false;
+    const chDays=document.getElementById('task-ch-days');
+    if(chDays)chDays.value='21';
+    const chStart=document.getElementById('task-ch-start');
+    if(chStart)chStart.value='';
+    const chTgt=document.getElementById('task-ch-target');
+    if(chTgt)chTgt.value='';
+    if(typeof syncTaskKindUi==='function')syncTaskKindUi();
+    const wrap=document.getElementById('task-due-wrap');
+    if(wrap)wrap.style.display='';
     const td=document.getElementById('task-due');
     if(td&&!td.value)td.value=new Date().toISOString().split('T')[0];
     document.getElementById('task-title').value='';
@@ -442,6 +455,16 @@ function openM(id){
     if(name)name.value='';
     if(desc)desc.value='';
     if(typeof renderForumGroupMembers==='function')renderForumGroupMembers();
+  }
+  if(id==='m-own-video'){
+    window._editingVideoId=null;
+    const titleEl=document.querySelector('#m-own-video .modal-title');
+    if(titleEl)titleEl.textContent='NOWY FILM';
+    const saveBtn=document.querySelector('#m-own-video .modal-footer .btn-primary');
+    if(saveBtn)saveBtn.textContent='Zapisz film';
+    const n=document.getElementById('ov-name');if(n)n.value='';
+    const u=document.getElementById('ov-url');if(u)u.value='';
+    const e=document.getElementById('ov-ex');if(e)e.value='';
   }
   if(id==='m-autoflow-builder'){
     if(typeof updateAfBuilderUi==='function')updateAfBuilderUi();
@@ -493,6 +516,124 @@ window.addEventListener('beforeunload',e=>{
   }
 });
 
+function parsePct1RM(v){
+  if(v==null||v==='')return '';
+  const s=String(v).trim().replace(',','.');
+  const m=s.match(/^(\d+(?:\.\d+)?)\s*%$/);
+  const n=parseFloat(m?m[1]:s);
+  if(!Number.isFinite(n)||n<=0||n>150)return '';
+  return String(n);
+}
+window.parsePct1RM=parsePct1RM;
+
+function roundToPlate(kg,plate){
+  const n=parseFloat(kg);
+  const step=plate||2.5;
+  if(!Number.isFinite(n)||n<=0||!Number.isFinite(step)||step<=0)return '';
+  const rounded=Math.round(n/step)*step;
+  if(rounded<=0)return '';
+  const x=Math.round(rounded*10)/10;
+  return Number.isInteger(x)?String(x):x.toFixed(1);
+}
+window.roundToPlate=roundToPlate;
+
+function epley1RM(kg,reps){
+  const w=parseFloat(kg);
+  const r=parseFloat(reps);
+  if(!Number.isFinite(w)||w<=0||!Number.isFinite(r)||r<=0)return null;
+  if(r<=1)return w;
+  return w*(1+r/30);
+}
+window.epley1RM=epley1RM;
+
+/** Rodzina boju do 1RM: OHP przed bench (oboje mają „wyciskanie”). */
+function guessLiftFamily(name){
+  const n=String(name||'').toLowerCase().replace(/ł/g,'l').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();
+  if(!n)return '';
+  if(/francusk|triceps|prostowanie|kickback/.test(n))return '';
+  if(/ohp|military|zolniers|overhead|nad glowa|\barnold\b/.test(n))return 'ohp';
+  if(/wyciskan/.test(n)&&/(siedz|stoj)/.test(n)&&!/lez/.test(n))return 'ohp';
+  if(/przysiad|squat|hack|goblet/.test(n))return 'squat';
+  if(/martw|deadlift|\brdl\b|rumunsk|trap\s*bar/.test(n))return 'deadlift';
+  if(/bench/.test(n))return 'bench';
+  if(/wyciskan/.test(n)&&/(lez|skos|incline|decline|klatk)/.test(n))return 'bench';
+  if(/^wyciskanie( sztangi| hantli)?$/.test(n))return 'bench';
+  return '';
+}
+window.guessLiftFamily=guessLiftFamily;
+
+const LIFT_1RM_META={
+  squat:{metric:'m1',label:'przysiad'},
+  deadlift:{metric:'m2',label:'martwy ciąg'},
+  bench:{metric:'m3',label:'wyciskanie leżąc'},
+  ohp:{metric:'m4',label:'OHP'}
+};
+
+function officialLift1RMs(clientId){
+  const out={squat:null,deadlift:null,bench:null,ohp:null};
+  if(!clientId)return out;
+  const entries=(window.METRIC_ENTRIES||[]).filter(e=>e.clientId===clientId&&e.groupId==='mg3')
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const num=x=>{const n=parseFloat(x);return Number.isFinite(n)&&n>0?n:null;};
+  for(const e of entries){
+    const v=e.values||{};
+    if(out.squat==null)out.squat=num(v.m1);
+    if(out.deadlift==null)out.deadlift=num(v.m2);
+    if(out.bench==null)out.bench=num(v.m3);
+    if(out.ohp==null)out.ohp=num(v.m4);
+    if(out.squat&&out.deadlift&&out.bench&&out.ohp)break;
+  }
+  return out;
+}
+window.officialLift1RMs=officialLift1RMs;
+
+function epley1RMFromSessions(clientId,family,exactName){
+  if(!clientId)return null;
+  const want=String(exactName||'').toLowerCase().replace(/\s+/g,' ').trim();
+  const sessions=(window.SE||[]).filter(s=>s.clientId===clientId&&Array.isArray(s.exercises))
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''));
+  for(const s of sessions){
+    let best=null;
+    for(const ex of s.exercises||[]){
+      const match=family?guessLiftFamily(ex.name)===family
+        :String(ex.name||'').toLowerCase().replace(/\s+/g,' ').trim()===want;
+      if(!match)continue;
+      for(const set of ex.sets||[]){
+        const est=epley1RM(set.kg,set.reps);
+        if(est!=null&&(best==null||est>best))best=est;
+      }
+    }
+    if(best!=null)return best;
+  }
+  return null;
+}
+window.epley1RMFromSessions=epley1RMFromSessions;
+
+function client1RMforExercise(clientId,name){
+  const family=guessLiftFamily(name);
+  const official=officialLift1RMs(clientId);
+  const meta=family?LIFT_1RM_META[family]:null;
+  if(meta&&official[family])return{kg:official[family],source:'metric',family,label:meta.label};
+  const est=epley1RMFromSessions(clientId,family,name);
+  if(est)return{kg:est,source:'epley',family,label:meta?meta.label:(name||'ćwiczenie')};
+  return null;
+}
+window.client1RMforExercise=client1RMforExercise;
+
+function weightFromPct1RM(clientId,name,pct){
+  const p=parseFloat(parsePct1RM(pct));
+  if(!Number.isFinite(p)||p<=0)return{kg:'',hint:'',rm:null};
+  const rm=client1RMforExercise(clientId,name);
+  if(!rm)return{kg:'',hint:p+'% 1RM — wpisz pomiar w Pomiary → Siła bazowa',rm:null};
+  const kg=roundToPlate(rm.kg*p/100);
+  const rmKg=roundToPlate(rm.kg)||String(Math.round(rm.kg));
+  const src=rm.source==='metric'?(rm.label+' 1RM '+rmKg+' kg'):('szac. 1RM '+rmKg+' kg z sesji');
+  return{kg:kg||'',hint:p+'% z '+src+(kg?' → '+kg+' kg':''),rm};
+}
+window.weightFromPct1RM=weightFromPct1RM;
+
+window.COACH_VIDEOS=window.COACH_VIDEOS||[];
+
 function normalizeCoachVideoUrl(raw){
   const s=String(raw||'').trim();
   if(!s)return '';
@@ -521,6 +662,11 @@ function coachVideoEmbed(url){
   return '';
 }
 window.coachVideoEmbed=coachVideoEmbed;
+
+function coachVideoIsFile(url){
+  return /\.(mp4|webm|ogg|m4v)(\?|#|$)/i.test(String(url||''));
+}
+window.coachVideoIsFile=coachVideoIsFile;
 
 function libExerciseByName(name){
   const key=String(name||'').toLowerCase().replace(/\s+/g,' ').trim();
@@ -575,6 +721,40 @@ function coachMediaHtml(ex,opts){
     html+=`<a class="btn btn-ghost btn-sm" href="${escHtml(video)}" target="_blank" rel="noopener noreferrer">↗ Otwórz film</a></div>`;
     if(show&&embed)html+=`<div class="cw-video-wrap"><iframe src="${escHtml(embed)}" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen title="Film techniki"></iframe></div>`;
   }
+function ownVideoForExercise(name){
+  const key=String(name||'').toLowerCase().replace(/\s+/g,' ').trim();
+  if(!key)return '';
+  const vids=(window.COACH_VIDEOS||[]).filter(v=>String(v.exName||'').toLowerCase().replace(/\s+/g,' ').trim()===key)
+    .sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+  if(vids[0])return normalizeCoachVideoUrl(vids[0].url);
+  const lib=libExerciseByName(name);
+  return lib?normalizeCoachVideoUrl(lib.video||''):'';
+}
+window.ownVideoForExercise=ownVideoForExercise;
+
+function resolveCoachMedia(parsed){
+  const ex=parsed&&typeof parsed==='object'?parsed:{name:parsed};
+  const name=ex.name||'';
+  let video=normalizeCoachVideoUrl(ex.video||ex.url||'');
+  if(!video)video=ownVideoForExercise(name);
+  const embed=coachVideoEmbed(video);
+  return{video,videoEmbed:embed,isFile:coachVideoIsFile(video)};
+}
+window.resolveCoachMedia=resolveCoachMedia;
+
+function coachMediaHtml(ex,opts){
+  opts=opts||{};
+  const video=(ex&&ex.video)||'';
+  const embed=(ex&&ex.videoEmbed)||'';
+  const file=!!(ex&&ex.isFile)||coachVideoIsFile(video);
+  const show=!!opts.showVideo;
+  const toggle=opts.toggleFn||'';
+  if(!video)return '';
+  let html=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px;">`;
+  if(toggle)html+=`<button type="button" class="btn btn-ghost btn-sm" onclick="${toggle}">${show?'▾ Ukryj film':'▶ Film trenera'}</button>`;
+  html+=`<a class="btn btn-ghost btn-sm" href="${escHtml(video)}" target="_blank" rel="noopener noreferrer">↗ Otwórz</a></div>`;
+  if(show&&embed)html+=`<div class="cw-video-wrap"><iframe src="${escHtml(embed)}" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen title="Film trenera"></iframe></div>`;
+  else if(show&&file)html+=`<div class="cw-video-wrap"><video src="${escHtml(video)}" controls playsinline></video></div>`;
   return html;
 }
 window.coachMediaHtml=coachMediaHtml;
@@ -582,9 +762,15 @@ window.coachMediaHtml=coachMediaHtml;
 /** Ćwiczenie z planu: obiekt AI albo string z kreatora ("Wyciskanie 4x8"). */
 function parsePlanExercise(ex){
   if(ex==null)return{name:'Ćwiczenie',sets:'3',reps:'10',rest:'90s',kg:'',note:'',video:''};
+/** Ćwiczenie z planu: obiekt AI albo string z kreatora ("Wyciskanie 4x8 @75%"). */
+function parsePlanExercise(ex){
+  if(ex==null)return{name:'Ćwiczenie',sets:'3',reps:'10',rest:'90s',kg:'',pct1rm:'',ss:'',emom:false,video:''};
   if(typeof ex==='string'){
     const raw=ex.trim();
-    const m=raw.match(/^(.*?)(?:\s+(\d+)\s*[x×]\s*(\d+(?:\s*-\s*\d+)?))\s*$/i);
+    const m=raw.match(/^(.*?)(?:\s+(\d+)\s*[x×]\s*(\d+(?:\s*-\s*\d+)?))?(?:\s*@\s*(\d+(?:[.,]\d+)?)\s*(%|kg)?)?\s*$/i);
+    const amt=m&&m[4]?String(m[4]).replace(',','.'):'';
+    const unit=((m&&m[5])||'').toLowerCase();
+    const isPct=unit==='%';
     return{
       name:(m&&m[1]?m[1]:raw).trim()||'Ćwiczenie',
       sets:(m&&m[2])||'3',
@@ -592,24 +778,159 @@ function parsePlanExercise(ex){
       rest:'90s',
       kg:'',
       note:'',
+      kg:isPct?'':amt,
+      pct1rm:isPct?parsePct1RM(amt):'',
+      ss:'',
+      emom:false,
       video:''
     };
   }
+  let kg=ex.kg!=null&&ex.kg!==''?String(ex.kg):'';
+  let pct1rm=parsePct1RM(ex.pct1rm);
+  const fromKg=parsePct1RM(/^\s*\d+(?:[.,]\d+)?\s*%\s*$/.test(kg)?kg:'');
+  if(fromKg){pct1rm=pct1rm||fromKg;kg='';}
   return{
     name:ex.name||ex.n||'Ćwiczenie',
     sets:String(ex.sets||ex.s||'3'),
     reps:String(ex.reps||ex.r||'10'),
     rest:String(ex.rest||ex.rs||'90s'),
-    kg:ex.kg!=null&&ex.kg!==''?String(ex.kg):'',
+    kg,
+    pct1rm,
     rpe:ex.rpe||ex.rir||'',
     rir:ex.rir||'',
     tempo:ex.tempo||'',
     alt:ex.alt||'',
     note:String(ex.note||ex.notes||ex.cue||'').trim(),
+    ss:String(ex.ss||ex.superset||'').trim(),
+    emom:isEmomFlag(ex.emom),
     video:normalizeCoachVideoUrl(ex.video||ex.url||'')
   };
 }
 window.parsePlanExercise=parsePlanExercise;
+
+function isEmomFlag(v){
+  return v===true||v===1||v==='1'||v==='true'||v==='emom'||v==='EMOM';
+}
+window.isEmomFlag=isEmomFlag;
+
+function isEmomExercise(ex){
+  if(!ex)return false;
+  if(String(ex.ss||'').trim())return false;
+  return isEmomFlag(ex.emom);
+}
+window.isEmomExercise=isEmomExercise;
+
+/** Po N-tej skończonej rundzie: ile sekund do N×60 od startu zegara EMOM. */
+function emomRestSec(doneCount,elapsedSec){
+  const n=Math.max(1,parseInt(doneCount,10)||1);
+  const elapsed=Number(elapsedSec)||0;
+  const wait=n*60-elapsed;
+  return wait>0?Math.ceil(wait):0;
+}
+window.emomRestSec=emomRestSec;
+
+function applySsLabels(list){
+  let n=0;
+  let i=0;
+  while(i<(list||[]).length){
+    const g=String(list[i].ss||'').trim();
+    if(!g){
+      list[i].ss='';list[i].ssLabel='';list[i].ssLetter='';
+      i++;continue;
+    }
+    let j=i+1;
+    while(j<list.length&&String(list[j].ss||'').trim()===g)j++;
+    if(j-i<2){
+      list[i].ss='';list[i].ssLabel='';list[i].ssLetter='';
+      i++;continue;
+    }
+    const letter=String.fromCharCode(65+(n%26));
+    n++;
+    for(let k=i;k<j;k++){
+      list[k].ss=letter;
+      list[k].ssLetter=letter;
+      list[k].ssLabel=letter+(k-i+1);
+    }
+    i=j;
+  }
+  return list;
+}
+window.applySsLabels=applySsLabels;
+
+function ssGroupIdxs(list,idx){
+  const g=list&&list[idx]&&String(list[idx].ss||'').trim();
+  if(!g)return[idx];
+  const out=[];
+  for(let i=0;i<list.length;i++) if(String(list[i].ss||'').trim()===g) out.push(i);
+  return out.length>=2?out:[idx];
+}
+window.ssGroupIdxs=ssGroupIdxs;
+
+function ssDoneCount(ex){return ((ex&&ex.sets)||[]).filter(s=>s&&s.done).length;}
+function ssHasRemain(ex){return ((ex&&ex.sets)||[]).some(s=>s&&!s.done);}
+
+function ssNextAfterSet(list,idx){
+  if(!list||!list[idx])return{kind:'advance'};
+  const group=ssGroupIdxs(list,idx);
+  const myDone=ssDoneCount(list[idx]);
+  if(group.length>=2){
+    const pos=group.indexOf(idx);
+    for(let k=1;k<group.length;k++){
+      const j=group[(pos+k)%group.length];
+      if(ssDoneCount(list[j])<myDone)return{kind:'partner',exIdx:j};
+    }
+    const leftover=group.find(i=>ssHasRemain(list[i]));
+    if(leftover!=null)return{kind:'rest',exIdx:leftover};
+    return{kind:'advance'};
+  }
+  if(ssHasRemain(list[idx]))return{kind:'rest',exIdx:idx};
+  return{kind:'advance'};
+}
+window.ssNextAfterSet=ssNextAfterSet;
+
+function ssAdvanceIdx(list,idx){
+  const group=ssGroupIdxs(list,idx);
+  const last=group[group.length-1];
+  const n=last+1;
+  return list&&n<list.length?n:-1;
+}
+window.ssAdvanceIdx=ssAdvanceIdx;
+
+function formatPlanExerciseLine(ex,clientId){
+  const p=parsePlanExercise(ex);
+  if(ex&&typeof ex==='object'&&ex.ssLabel)p.ssLabel=ex.ssLabel;
+  let kgPart='';
+  if(p.pct1rm){
+    const w=weightFromPct1RM(clientId,p.name,p.pct1rm);
+    kgPart=w.kg?(' @'+p.pct1rm+'% → '+w.kg+'kg'):(' @'+p.pct1rm+'%');
+  }else if(p.kg){
+    kgPart=' @'+p.kg+'kg';
+  }
+  const emom=isEmomFlag(p.emom)&&!p.ss?' EMOM':'';
+  return(p.ssLabel?p.ssLabel+' ':'')+(p.name||'')+(p.sets?' '+p.sets+'×'+p.reps:'')+kgPart+emom;
+}
+window.formatPlanExerciseLine=formatPlanExerciseLine;
+
+function formatDayExerciseLines(exercises,clientId){
+  const list=(exercises||[]).map(e=>parsePlanExercise(e));
+  applySsLabels(list);
+  const parts=[];
+  let i=0;
+  while(i<list.length){
+    const line=p=>formatPlanExerciseLine(p,clientId);
+    if(list[i].ss&&i+1<list.length&&list[i+1].ss===list[i].ss){
+      const chunk=[];
+      const g=list[i].ss;
+      while(i<list.length&&list[i].ss===g){chunk.push(line(list[i]));i++;}
+      parts.push(chunk.join(' + '));
+    }else{
+      parts.push(line(list[i]));
+      i++;
+    }
+  }
+  return parts.filter(Boolean).join(' · ');
+}
+window.formatDayExerciseLines=formatDayExerciseLines;
 
 function altsForExercise(name,explicit){
   const fromPlan=String(explicit||'').split(/[,;/|]/).map(s=>s.trim()).filter(Boolean);
@@ -638,6 +959,236 @@ function todayYmd(){
   return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
 }
 window.todayYmd=todayYmd;
+
+/** Dodaje dni do daty YYYY-MM-DD (południe, bez przesunięcia UTC). */
+function ymdAdd(ymd,days){
+  const p=String(ymd||'').slice(0,10);
+  const d=new Date(p+'T12:00:00');
+  if(isNaN(d.getTime()))return '';
+  d.setDate(d.getDate()+(Number(days)||0));
+  const pad=n=>String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+}
+window.ymdAdd=ymdAdd;
+
+function isHabit(t){
+  if(!t||t.kind==='challenge')return false;
+  return t.kind==='habit'||t.repeat==='daily';
+}
+window.isHabit=isHabit;
+
+function isChallenge(t){
+  return !!(t&&t.kind==='challenge');
+}
+window.isChallenge=isChallenge;
+
+function isOneShot(t){
+  return !!(t&&!isHabit(t)&&!isChallenge(t));
+}
+window.isOneShot=isOneShot;
+
+function habitDoneOn(t,ymd){
+  return !!(t&&ymd&&(t.doneDates||[]).includes(ymd));
+}
+window.habitDoneOn=habitDoneOn;
+
+/** Ciąg dni kończący się dziś albo wczoraj (dziś jeszcze nie odhaczone). */
+function habitStreak(t,today){
+  const set=new Set((t&&t.doneDates)||[]);
+  let start=today;
+  if(!set.has(today)){
+    const y=ymdAdd(today,-1);
+    if(!set.has(y))return 0;
+    start=y;
+  }
+  let n=0,d=start;
+  while(set.has(d)){
+    n++;
+    d=ymdAdd(d,-1);
+    if(n>4000)break;
+  }
+  return n;
+}
+window.habitStreak=habitStreak;
+
+function toggleHabitDay(t,ymd){
+  if(!t||!ymd)return t;
+  const dates=[...(t.doneDates||[])];
+  const i=dates.indexOf(ymd);
+  if(i>=0)dates.splice(i,1);
+  else dates.push(ymd);
+  dates.sort();
+  t.doneDates=dates;
+  t.status='open';
+  t.due='';
+  t.kind='habit';
+  t.repeat='daily';
+  t.updatedAt=new Date().toISOString();
+  return t;
+}
+window.toggleHabitDay=toggleHabitDay;
+
+function habitWeek(t,today){
+  const days=[];
+  for(let i=6;i>=0;i--){
+    const ymd=ymdAdd(today,-i);
+    days.push({ymd,done:habitDoneOn(t,ymd),today:ymd===today});
+  }
+  return days;
+}
+window.habitWeek=habitWeek;
+
+function habitWeekHtml(t,today){
+  return `<div class="habit-week">${habitWeek(t,today).map(d=>`<span class="habit-dot${d.done?' on':''}${d.today?' today':''}" title="${d.ymd}"></span>`).join('')}</div>`;
+}
+window.habitWeekHtml=habitWeekHtml;
+
+function onHabitToggle(){
+  const h=document.getElementById('task-habit');
+  const c=document.getElementById('task-challenge');
+  if(h&&h.checked&&c)c.checked=false;
+  syncTaskKindUi();
+}
+window.onHabitToggle=onHabitToggle;
+
+function onChallengeToggle(){
+  const h=document.getElementById('task-habit');
+  const c=document.getElementById('task-challenge');
+  if(c&&c.checked&&h)h.checked=false;
+  syncTaskKindUi();
+}
+window.onChallengeToggle=onChallengeToggle;
+
+function syncTaskKindUi(){
+  const habit=!!document.getElementById('task-habit')?.checked;
+  const ch=!!document.getElementById('task-challenge')?.checked;
+  const due=document.getElementById('task-due-wrap');
+  const wrap=document.getElementById('task-ch-wrap');
+  if(due)due.style.display=(habit||ch)?'none':'';
+  if(wrap)wrap.style.display=ch?'':'none';
+  if(ch){
+    const start=document.getElementById('task-ch-start');
+    if(start&&!start.value)start.value=typeof todayYmd==='function'?todayYmd():'';
+    paintChallengeDays();
+  }
+}
+window.syncTaskKindUi=syncTaskKindUi;
+
+function parseChallengeDays(v){
+  const n=parseInt(v,10);
+  if(n===7||n===14||n===21||n===30)return n;
+  if(n>=2&&n<=90)return n;
+  return 21;
+}
+window.parseChallengeDays=parseChallengeDays;
+
+function parseChallengeTarget(t){
+  const days=parseChallengeDays(t&&t.days);
+  const n=parseInt(t&&t.target,10);
+  if(n>=1&&n<=days)return n;
+  return days;
+}
+window.parseChallengeTarget=parseChallengeTarget;
+
+function challengeBounds(t){
+  const days=parseChallengeDays(t&&t.days);
+  const start=String((t&&t.start)||'').slice(0,10);
+  return{start,end:start?ymdAdd(start,days-1):'',days};
+}
+window.challengeBounds=challengeBounds;
+
+function challengeProgress(t,today){
+  today=today||(typeof todayYmd==='function'?todayYmd():'');
+  const days=parseChallengeDays(t&&t.days);
+  const start=String((t&&t.start)||today||'').slice(0,10);
+  const end=start?ymdAdd(start,days-1):'';
+  const target=parseChallengeTarget({days,target:t&&t.target});
+  const done=((t&&t.doneDates)||[]).filter(d=>start&&end&&d>=start&&d<=end).length;
+  const pct=target?Math.min(100,Math.round(done/target*100)):0;
+  const before=!!(today&&start&&today<start);
+  const after=!!(today&&end&&today>end);
+  const active=!!(today&&start&&end&&!before&&!after);
+  const won=done>=target;
+  const lost=after&&!won;
+  let left=0;
+  if(before)left=days;
+  else if(active&&today&&end){
+    let d=today;
+    while(d<=end&&left<400){left++;d=ymdAdd(d,1);}
+  }
+  return{start,end,days,target,done,pct,before,after,active,won,lost,left};
+}
+window.challengeProgress=challengeProgress;
+
+function challengeCanCheck(t,ymd,today){
+  today=today||(typeof todayYmd==='function'?todayYmd():'');
+  const p=challengeProgress(t,today);
+  if(!ymd||!p.start||!p.end)return false;
+  if(ymd<p.start||ymd>p.end)return false;
+  if(today&&ymd>today)return false;
+  return true;
+}
+window.challengeCanCheck=challengeCanCheck;
+
+function challengeVisible(t,today){
+  today=today||(typeof todayYmd==='function'?todayYmd():'');
+  const p=challengeProgress(t,today);
+  if(!p.end||!today)return true;
+  return today<=ymdAdd(p.end,7);
+}
+window.challengeVisible=challengeVisible;
+
+function toggleChallengeDay(t,ymd,today){
+  if(!t||!ymd)return t;
+  if(!challengeCanCheck(t,ymd,today))return t;
+  const dates=[...(t.doneDates||[])];
+  const i=dates.indexOf(ymd);
+  if(i>=0)dates.splice(i,1);
+  else dates.push(ymd);
+  dates.sort();
+  t.doneDates=dates;
+  t.status='open';
+  t.kind='challenge';
+  delete t.repeat;
+  t.updatedAt=new Date().toISOString();
+  return t;
+}
+window.toggleChallengeDay=toggleChallengeDay;
+
+function challengeStatusText(t,today){
+  const p=challengeProgress(t,today);
+  if(p.won)return '🏆 '+p.done+'/'+p.target+' — ukończone';
+  if(p.lost)return p.done+'/'+p.target+' — czas minął';
+  if(p.before)return 'Start '+p.start;
+  return p.done+'/'+p.target+' · jeszcze '+p.left+' '+(p.left===1?'dzień':'dni');
+}
+window.challengeStatusText=challengeStatusText;
+
+function challengeBarHtml(t,today){
+  const p=challengeProgress(t,today);
+  const col=p.won?'var(--teal)':p.lost?'var(--muted2)':'var(--gold)';
+  return `<div class="ch-bar"><div class="ch-bar-fill" style="width:${p.pct}%;background:${col};"></div></div>`;
+}
+window.challengeBarHtml=challengeBarHtml;
+
+function setChallengeDays(n){
+  const days=parseChallengeDays(n);
+  const el=document.getElementById('task-ch-days');
+  if(el)el.value=String(days);
+  const tgt=document.getElementById('task-ch-target');
+  if(tgt){
+    const cur=parseInt(tgt.value,10);
+    if(!cur||cur>days)tgt.value=String(days);
+  }
+  paintChallengeDays();
+}
+window.setChallengeDays=setChallengeDays;
+
+function paintChallengeDays(){
+  const cur=String((document.getElementById('task-ch-days')||{}).value||'21');
+  document.querySelectorAll('.ch-days-btn').forEach(b=>b.classList.toggle('on',b.getAttribute('data-d')===cur));
+}
+window.paintChallengeDays=paintChallengeDays;
 
 function mondayYmd(){
   const d=new Date();
@@ -688,13 +1239,19 @@ function lastLoadForExercise(clientId,name){
 window.lastLoadForExercise=lastLoadForExercise;
 
 function mapPlanExercisesForClient(rawEx,clientId){
-  return(rawEx||[]).map(raw=>{
+  const mapped=(rawEx||[]).map(raw=>{
     const ex=parsePlanExercise(raw);
     const last=lastLoadForExercise(clientId,ex.name);
     const nSets=parseInt(ex.sets,10)||3;
     const defaultReps=ex.reps||'10';
     const rest=parseRestSeconds(ex.rest);
     const coach=resolveCoachMedia(ex);
+    const pct=ex.pct1rm||'';
+    const fromPct=pct?weightFromPct1RM(clientId,ex.name,pct):null;
+    const plannedKg=(fromPct&&fromPct.kg)?fromPct.kg:(ex.kg||'');
+    const lockPct=!!pct;
+    const emom=isEmomExercise(ex);
+    const coach=typeof resolveCoachMedia==='function'?resolveCoachMedia(ex):{video:'',videoEmbed:'',isFile:false};
     return{
       name:ex.name,
       plannedName:ex.name,
@@ -708,18 +1265,30 @@ function mapPlanExercisesForClient(rawEx,clientId){
       video:coach.video,
       videoEmbed:coach.videoEmbed,
       lastKg:last&&last.kg!=null&&last.kg!==''?last.kg:(ex.kg||''),
+      pct1rm:pct,
+      kgHint:fromPct?fromPct.hint:'',
+      lastKg:last&&last.kg!=null&&last.kg!==''?last.kg:(plannedKg||''),
       lastReps:last&&last.reps!=null&&last.reps!==''?last.reps:'',
+      ss:ex.ss||'',
+      emom,
+      video:coach.video||'',
+      videoEmbed:coach.videoEmbed||'',
+      isFile:!!coach.isFile,
       sets:Array.from({length:nSets},(_,i)=>{
         const prev=last&&last.sets[i];
+        let kg=plannedKg;
+        if(!lockPct&&prev&&prev.kg!=null&&prev.kg!=='')kg=String(prev.kg);
         return{
           setNo:i+1,
-          kg:prev&&prev.kg!=null&&prev.kg!==''?String(prev.kg):(ex.kg||''),
+          kg:kg||'',
           reps:prev&&prev.reps!=null&&prev.reps!==''?String(prev.reps):defaultReps,
-          done:false
+          done:false,
+          kind:emom?'emom':'work'
         };
       })
     };
   });
+  return applySsLabels(mapped);
 }
 window.mapPlanExercisesForClient=mapPlanExercisesForClient;
 
@@ -762,4 +1331,69 @@ function compressImageFile(file,max=720,quality=0.68){
   });
 }
 window.compressImageFile=compressImageFile;
+
+function snapshotFormQuestions(form){
+  return((form&&form.questions)||[]).map(q=>({
+    id:q.id,type:q.type,text:q.text,required:!!q.required,
+    options:Array.isArray(q.options)?q.options.slice():undefined
+  }));
+}
+window.snapshotFormQuestions=snapshotFormQuestions;
+
+function formQuestionsForSend(send,forms){
+  if(send&&Array.isArray(send.questions)&&send.questions.length)return send.questions;
+  const list=forms||(typeof allForms==='function'?allForms():[]);
+  const f=list.find(x=>x&&send&&x.id===send.formId);
+  return(f&&f.questions)||[];
+}
+window.formQuestionsForSend=formQuestionsForSend;
+
+function formSendAnswersMap(send){
+  const a=send&&send.answers;
+  if(!a)return{};
+  if(!Array.isArray(a))return a;
+  const m={};
+  a.forEach((item,i)=>{
+    if(item&&typeof item==='object'&&item.id!=null)m[item.id]=item.value;
+    else if(item!=null&&item!=='')m['q'+(i+1)]=item;
+  });
+  return m;
+}
+window.formSendAnswersMap=formSendAnswersMap;
+
+function formatFormAnswer(q,val){
+  if(val==null||String(val).trim()==='')return '—';
+  const v=String(val);
+  if(q&&q.type==='yesno'){
+    if(v==='tak'||v==='true'||v==='Tak'||v==='1')return 'Tak';
+    if(v==='nie'||v==='false'||v==='Nie'||v==='0')return 'Nie';
+  }
+  return v;
+}
+window.formatFormAnswer=formatFormAnswer;
+
+function missingRequiredFormAnswers(questions,answers){
+  const map=answers&&!Array.isArray(answers)?answers:{};
+  return(questions||[]).filter(q=>q&&q.required&&(map[q.id]==null||String(map[q.id]).trim()===''));
+}
+window.missingRequiredFormAnswers=missingRequiredFormAnswers;
+
+function pendingFormSends(clientId,sends){
+  return(sends||window.FORM_SENDS||[]).filter(s=>s&&s.clientId===clientId&&s.status!=='filled');
+}
+window.pendingFormSends=pendingFormSends;
+
+function applyFormSubmit(send,answers,nowIso){
+  if(!send)return{ok:false,error:'missing'};
+  if(send.status==='filled')return{ok:false,error:'already'};
+  const qs=formQuestionsForSend(send);
+  const map=answers&&!Array.isArray(answers)?answers:{};
+  const missing=missingRequiredFormAnswers(qs,map);
+  if(missing.length)return{ok:false,error:'required',missing};
+  send.status='filled';
+  send.answers=map;
+  send.filledAt=nowIso||new Date().toISOString();
+  return{ok:true,send};
+}
+window.applyFormSubmit=applyFormSubmit;
 

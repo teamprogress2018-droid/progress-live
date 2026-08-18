@@ -117,6 +117,7 @@ function emptyClientCollections(){
   window.CHECKINS={};window.NOTIFICATIONS=[];
   window.FORUM_GROUPS=[];window.FORUM_POSTS=[];window.FORUM_COMMENTS={};
   window.PROGRESS_PHOTOS=[];
+  window.COACH_VIDEOS=[];
   if(window.MSGS)Object.keys(window.MSGS).forEach(k=>delete window.MSGS[k]);
 }
 
@@ -140,6 +141,8 @@ async function loadClientApp(account){
   window.PACKAGES=await queryByClientId('packages',cid);
   window.METRIC_ENTRIES=await queryByClientId('metricEntries',cid);
   window.PROGRESS_PHOTOS=await queryByClientId('progressPhotos',cid);
+  window.EX=await queryByTrainerId('exercises',account.trainerId);
+  window.COACH_VIDEOS=await queryByTrainerId('coachVideos',account.trainerId);
   const msgs=await queryByClientId('messages',cid);
   msgs.sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||''));
   if(!window.MSGS)window.MSGS={};
@@ -201,6 +204,50 @@ function renderClientLive(){
 function setClientLiveScreen(scr){
   window._clientLiveScreen=scr;
   renderClientLive();
+}
+
+function clientOpenForm(sendId){
+  window._cliveFormSendId=sendId;
+  window._cliveFormAnswers=window._cliveFormAnswers||{};
+  const send=(window.FORM_SENDS||[]).find(s=>s.id===sendId);
+  if(!window._cliveFormAnswers[sendId]){
+    window._cliveFormAnswers[sendId]=send?Object.assign({},formSendAnswersMap(send)):{};
+  }
+  setClientLiveScreen('formfill');
+}
+
+function clientFormSetAnswer(sendId,qid,val){
+  window._cliveFormAnswers=window._cliveFormAnswers||{};
+  if(!window._cliveFormAnswers[sendId])window._cliveFormAnswers[sendId]={};
+  window._cliveFormAnswers[sendId][qid]=val;
+}
+
+function clientFormPick(sendId,qid,val){
+  clientFormSetAnswer(sendId,qid,val);
+  renderClientLive();
+}
+
+function clientSubmitForm(sendId){
+  const send=(window.FORM_SENDS||[]).find(s=>s.id===sendId);
+  if(!send){if(typeof notify==='function')notify('Nie znaleziono formularza');return;}
+  const answers=(window._cliveFormAnswers&&window._cliveFormAnswers[sendId])||{};
+  const r=applyFormSubmit(send,answers);
+  if(!r.ok){
+    if(r.error==='required'){if(typeof notify==='function')notify('Uzupełnij wymagane pytania ('+r.missing.length+')');}
+    else if(r.error==='already'){if(typeof notify==='function')notify('Ten formularz jest już wysłany');}
+    else if(typeof notify==='function')notify('Nie udało się wysłać');
+    return;
+  }
+  persistById('formSends',send);
+  const name=send.formName||'Formularz';
+  if(typeof notify==='function')notify('✓ Wysłano: '+name);
+  if(typeof pushClientMsg==='function')pushClientMsg('Wypełniłem formularz: '+name);
+  if(typeof addNotification==='function'){
+    const c=(window.CL||[]).find(x=>x.id===send.clientId);
+    addNotification('form','Formularz wypełniony',(c?c.name+' — ':'')+name,'forms');
+  }
+  window._cliveFormSendId=null;
+  setClientLiveScreen('forms');
 }
 
 function prepareAuthForInvite(){
@@ -411,6 +458,10 @@ window.loadClientApp=loadClientApp;
 window.enterClientLiveShell=enterClientLiveShell;
 window.renderClientLive=renderClientLive;
 window.setClientLiveScreen=setClientLiveScreen;
+window.clientOpenForm=clientOpenForm;
+window.clientFormSetAnswer=clientFormSetAnswer;
+window.clientFormPick=clientFormPick;
+window.clientSubmitForm=clientSubmitForm;
 window.prepareAuthForInvite=prepareAuthForInvite;
 window.authShowRegister=authShowRegister;
 window.authShowLoginFromClient=authShowLoginFromClient;
@@ -431,6 +482,8 @@ window.cwClose=cwClose;
 window.cwBegin=cwBegin;
 window.cwPatchSet=cwPatchSet;
 window.cwCheckSet=cwCheckSet;
+window.cwStartRest=cwStartRest;
+window.cwGoEx=cwGoEx;
 window.cwSkipRest=cwSkipRest;
 window.cwSkipEx=cwSkipEx;
 window.cwPrevEx=cwPrevEx;
@@ -457,6 +510,33 @@ document.addEventListener('DOMContentLoaded',prepareAuthForInvite);
 function clientToggleTask(id){
   const t=(window.TASKS||[]).find(x=>x.id===id);
   if(!t)return;
+  const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
+  if(typeof isHabit==='function'&&isHabit(t)){
+    toggleHabitDay(t,today);
+    persistById('tasks',t);
+    const done=habitDoneOn(t,today);
+    const streak=habitStreak(t,today);
+    if(typeof notify==='function')notify(done?('✓ Dziś zrobione'+(streak?' · 🔥 '+streak:'')):'Nawyk odznaczony');
+    if(typeof renderClientLive==='function')renderClientLive();
+    return;
+  }
+  if(typeof isChallenge==='function'&&isChallenge(t)){
+    if(typeof challengeCanCheck==='function'&&!challengeCanCheck(t,today,today)){
+      const p=typeof challengeProgress==='function'?challengeProgress(t,today):null;
+      if(typeof notify==='function')notify(p&&p.before?'Wyzwanie jeszcze się nie zaczęło':p&&p.won?'Wyzwanie ukończone 🏆':'Wyzwanie już się skończyło');
+      return;
+    }
+    toggleChallengeDay(t,today,today);
+    persistById('tasks',t);
+    const p=typeof challengeProgress==='function'?challengeProgress(t,today):null;
+    const done=typeof habitDoneOn==='function'&&habitDoneOn(t,today);
+    if(typeof notify==='function'){
+      if(p&&p.won)notify('🏆 Wyzwanie ukończone · '+p.done+'/'+p.target);
+      else notify(done?('✓ '+((p&&p.done)||0)+'/'+(p?p.target:'')+' dni'):'Wyzwanie odznaczone');
+    }
+    if(typeof renderClientLive==='function')renderClientLive();
+    return;
+  }
   t.status=t.status==='done'?'open':'done';
   t.updatedAt=new Date().toISOString();
   persistById('tasks',t);
@@ -510,6 +590,7 @@ function cwBegin(){
   const cw=window._cw;if(!cw)return;
   cw.phase='exercise';
   cw.startedAt=Date.now();
+  cw.emomClock={};
   cwClearTimers();
   window._cwClock=setInterval(()=>{
     if(!window._cw)return;
@@ -517,6 +598,7 @@ function cwBegin(){
     const el=document.getElementById('cw-clock');
     if(el)el.textContent=cwFmt(window._cw.elapsed);
   },1000);
+  cwEnsureEmomClock();
   cwRender();
 }
 
@@ -531,32 +613,93 @@ function cwPatchSet(setIdx,field,val){
   ex.sets[setIdx][field]=val;
 }
 
+function cwStartRest(seconds,kind){
+  const cw=window._cw;if(!cw)return;
+  cw.phase='rest';
+  cw.restKind=kind||'';
+  cw.restLeft=seconds||90;
+  cwClearTimers();
+  window._cwClock=setInterval(()=>{
+    if(!window._cw)return;
+    window._cw.elapsed=Math.round((Date.now()-window._cw.startedAt)/1000);
+  },1000);
+  window._cwRestTimer=setInterval(()=>{
+    if(!window._cw)return;
+    window._cw.restLeft-=1;
+    const n=document.getElementById('cw-rest-num');
+    if(n)n.textContent=Math.max(0,window._cw.restLeft);
+    if(window._cw.restLeft<=0)cwSkipRest();
+  },1000);
+  cwRender();
+}
+
+function cwGoEx(idx){
+  const cw=window._cw;if(!cw)return;
+  if(idx==null||idx<0||idx>=cw.exercises.length){cw.phase='finish';cwRender();return;}
+  cw.exIdx=idx;
+  cw.phase='exercise';
+  cwEnsureEmomClock();
+  cw.showVideo=false;
+  cwEnsureEmomClock();
+  cwRender();
+}
+
+function cwEnsureEmomClock(){
+  const cw=window._cw;if(!cw)return;
+  const ex=cw.exercises[cw.exIdx];
+  if(typeof isEmomExercise!=='function'||!isEmomExercise(ex))return;
+  cw.emomClock=cw.emomClock||{};
+  if(!cw.emomClock[cw.exIdx])cw.emomClock[cw.exIdx]=Date.now();
+}
+
+function cwEmomElapsed(){
+  const cw=window._cw;if(!cw||!cw.emomClock||!cw.emomClock[cw.exIdx])return 0;
+  return(Date.now()-cw.emomClock[cw.exIdx])/1000;
+}
+
 function cwCheckSet(setIdx){
   const cw=window._cw;if(!cw)return;
   const ex=cw.exercises[cw.exIdx];if(!ex||!ex.sets[setIdx])return;
   const st=ex.sets[setIdx];
   st.done=!st.done;
   if(!st.done){cwRender();return;}
-  const next=ex.sets.find(s=>!s.done);
-  if(next){
-    cw.phase='rest';
-    cw.restLeft=ex.restSec||90;
-    cwClearTimers();
-    window._cwClock=setInterval(()=>{
-      if(!window._cw)return;
-      window._cw.elapsed=Math.round((Date.now()-window._cw.startedAt)/1000);
-    },1000);
-    window._cwRestTimer=setInterval(()=>{
-      if(!window._cw)return;
-      window._cw.restLeft-=1;
-      const n=document.getElementById('cw-rest-num');
-      if(n)n.textContent=Math.max(0,window._cw.restLeft);
-      if(window._cw.restLeft<=0)cwSkipRest();
-    },1000);
-    cwRender();
+  if(typeof isEmomExercise==='function'&&isEmomExercise(ex)){
+    cwEnsureEmomClock();
+    const done=ex.sets.filter(s=>s.done).length;
+    const nxtSet=ex.sets.find(s=>!s.done);
+    if(nxtSet){
+      const wait=typeof emomRestSec==='function'?emomRestSec(done,cwEmomElapsed()):0;
+      if(wait>0){
+        if(typeof notify==='function')notify('EMOM — następna runda za '+wait+' s');
+        cwStartRest(wait,'emom');
+      }else{
+        if(typeof notify==='function')notify('EMOM — poza minutą, jedź dalej');
+        cwRender();
+      }
+      return;
+    }
+  }
+  const act=typeof ssNextAfterSet==='function'?ssNextAfterSet(cw.exercises,cw.exIdx):null;
+  if(act&&act.kind==='partner'){
+    const nxt=cw.exercises[act.exIdx];
+    cwGoEx(act.exIdx);
+    if(typeof notify==='function')notify('Super-seria → '+(nxt&&nxt.ssLabel?nxt.ssLabel+' ':'')+(nxt?nxt.name:''));
+    return;
+  }
+  if(act&&act.kind==='rest'){
+    cw.exIdx=act.exIdx;
+    cwStartRest((cw.exercises[act.exIdx]&&cw.exercises[act.exIdx].restSec)||90);
+    return;
+  }
+  if(act&&act.kind==='advance'){
+    const next=typeof ssAdvanceIdx==='function'?ssAdvanceIdx(cw.exercises,cw.exIdx):cw.exIdx+1;
+    cwGoEx(next);
     return;
   }
   if(cw.exIdx<cw.exercises.length-1){cw.exIdx+=1;cw.showVideo=false;cw.phase='exercise';cwRender();return;}
+  const next=ex.sets.find(s=>!s.done);
+  if(next){cwStartRest(ex.restSec||90);return;}
+  if(cw.exIdx<cw.exercises.length-1){cwGoEx(cw.exIdx+1);return;}
   cw.phase='finish';cwRender();
 }
 
@@ -620,9 +763,30 @@ function cwSwapEx(name){
     cur.videoEmbed=coach.videoEmbed;
   }
   cw.showVideo=false;
+  if(cur.pct1rm&&typeof weightFromPct1RM==='function'){
+    const w=weightFromPct1RM(window._clientId,name,cur.pct1rm);
+    cur.kgHint=w.hint||'';
+    if(w.kg){
+      (cur.sets||[]).forEach(s=>{if(!s.done)s.kg=String(w.kg);});
+    }
+  }
   if(typeof notify==='function')notify('Zamieniono na: '+name);
+  if(typeof resolveCoachMedia==='function'){
+    const m=resolveCoachMedia({name});
+    cur.video=m.video||'';
+    cur.videoEmbed=m.videoEmbed||'';
+    cur.isFile=!!m.isFile;
+  }
+  cw.showVideo=false;
   cwRender();
 }
+
+function cwToggleVideo(){
+  const cw=window._cw;if(!cw)return;
+  cw.showVideo=!cw.showVideo;
+  cwRender();
+}
+window.cwToggleVideo=cwToggleVideo;
 
 function cwRender(){
   const el=document.getElementById('clive-player-inner');
@@ -637,15 +801,19 @@ function cwRender(){
       ${cw.exercises.map((ex,i)=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:10px 0;border-top:1px solid rgba(255,255,255,.06);">
         <div style="font-size:13px;font-weight:600;">${i+1}. ${escHtml(ex.name)}${typeof coachMediaIcons==='function'?coachMediaIcons(ex):''}</div>
         <div style="font-size:11px;color:var(--muted);white-space:nowrap;">${ex.sets.length} serii</div>
+        <div style="font-size:13px;font-weight:600;">${i+1}. ${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}${ex.video?' ▶':''}</div>
+        <div style="font-size:11px;color:var(--muted);white-space:nowrap;">${ex.sets.length} serii${ex.emom?' · EMOM':''}</div>
       </div>`).join('')}
       <button type="button" class="cap-btn-primary" style="margin-top:20px;padding:16px;font-size:16px;" onclick="cwBegin()">▶ Start</button>`;
     return;
   }
   if(cw.phase==='rest'){
+    const nxt=cw.exercises[cw.exIdx]||{};
+    const emom=cw.restKind==='emom';
     el.innerHTML=`<div class="cw-rest">
-      <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Przerwa</div>
+      <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">${emom?'EMOM — czekaj na minutę':(nxt.ssLabel?'Przerwa · super-seria':'Przerwa')}</div>
       <div class="cw-rest-num" id="cw-rest-num">${cw.restLeft}</div>
-      <div style="font-size:13px;color:var(--muted);">Następna seria · ${escHtml(cw.exercises[cw.exIdx].name)}</div>
+      <div style="font-size:13px;color:var(--muted);">${emom?'Następna runda':'Następna seria'} · ${nxt.ssLabel?escHtml(nxt.ssLabel)+' ':''}${escHtml(nxt.name||'')}</div>
       <button type="button" class="cap-btn-primary" style="max-width:240px;padding:12px;" onclick="cwSkipRest()">Pomiń przerwę</button>
     </div>`;
     return;
@@ -667,17 +835,26 @@ function cwRender(){
     return;
   }
   const ex=cw.exercises[cw.exIdx];
+  cwEnsureEmomClock();
   const doneSets=ex.sets.filter(s=>s.done).length;
+  const emomOn=typeof isEmomExercise==='function'&&isEmomExercise(ex);
+  const emomWait=emomOn&&typeof emomRestSec==='function'?emomRestSec(doneSets+1,cwEmomElapsed()):0;
   el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
       ${back}
       <div id="cw-clock" style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:${accent};">${cwFmt(cw.elapsed)}</div>
     </div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Ćwiczenie ${cw.exIdx+1} / ${cw.exercises.length}</div>
-    <div style="font-size:20px;font-weight:700;margin-bottom:6px;">${escHtml(ex.name)}</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Ćwiczenie ${cw.exIdx+1} / ${cw.exercises.length}${ex.ssLabel?' · super-seria':''}${emomOn?' · EMOM runda '+(doneSets+1)+'/'+ex.sets.length:''}</div>
+    <div style="font-size:20px;font-weight:700;margin-bottom:6px;">${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}</div>
+    ${typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:!!cw.showVideo,toggleFn:'cwToggleVideo()'}):''}
+    ${(()=>{const g=typeof ssGroupIdxs==='function'?ssGroupIdxs(cw.exercises,cw.exIdx):[];const others=g.filter(i=>i!==cw.exIdx).map(i=>cw.exercises[i]).filter(Boolean);return others.length?`<div style="font-size:11px;color:var(--orange);margin-bottom:8px;">Bez przerwy z: ${others.map(o=>escHtml((o.ssLabel?o.ssLabel+' ':'')+o.name)).join(', ')}</div>`:'';})()}
     ${(ex.plannedName&&ex.plannedName!==ex.name)?`<div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Z planu: ${escHtml(ex.plannedName)}</div>`:''}
     ${(ex.alts||[]).length?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px;">${ex.alts.map(a=>`<button type="button" class="btn btn-ghost btn-sm" onclick='cwSwapEx(${JSON.stringify(a)})'>↻ ${escHtml(a)}</button>`).join('')}</div>`:''}
     ${typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:!!cw.showVideo,toggleFn:'cwToggleVideo()'}):''}
     ${ex.lastKg?`<div style="font-size:11px;color:var(--muted);margin-bottom:12px;">Ostatnio: ${escHtml(String(ex.lastKg))} kg${ex.lastReps?' × '+escHtml(String(ex.lastReps)):''}</div>`:'<div style="height:8px;"></div>'}
+    ${ex.kgHint?`<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${escHtml(ex.kgHint)}</div>`:''}
+    ${ex.lastKg?`<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Ostatnio: ${escHtml(String(ex.lastKg))} kg${ex.lastReps?' × '+escHtml(String(ex.lastReps)):''}</div>`:''}
+    ${emomOn?`<div style="font-size:11px;color:var(--blue);margin-bottom:8px;">Zegar minuty · do rundy ~${emomWait}s (zrób serie i czekaj reszty)</div>`:''}
+    ${!ex.lastKg&&!emomOn?'<div style="height:8px;"></div>':''}
     <div style="height:6px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden;margin-bottom:16px;">
       <div style="height:100%;width:${Math.round((cw.exIdx+doneSets/Math.max(1,ex.sets.length))/cw.exercises.length*100)}%;background:${accent};"></div>
     </div>
@@ -711,7 +888,7 @@ async function cwFinish(){
     duration:durationMin,
     exercises:cw.exercises.map(e=>({
       name:e.name,
-      sets:e.sets.filter(s=>s.done).map(s=>({kg:parseFloat(s.kg)||0,reps:parseFloat(s.reps)||0,setNo:s.setNo}))
+      sets:e.sets.filter(s=>s.done).map(s=>({kg:parseFloat(s.kg)||0,reps:parseFloat(s.reps)||0,setNo:s.setNo,kind:s.kind||'work'}))
     })),
     volume,
     feedback:cw.rating||0,

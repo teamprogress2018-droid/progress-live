@@ -288,10 +288,10 @@ function toggleR(id){const el=document.getElementById(id);const r=el.querySelect
 function addRow(dayId){
   const rows=document.querySelector('#'+dayId+' .ex-rows');
   const div=document.createElement('div');div.className='ex-row';
-  div.innerHTML='<input type="text" placeholder="Nazwa ćwiczenia..." class="ex-inp ex-inp-name" style="width:100%;" list="ex-dl" data-f="name">'
+  div.innerHTML='<input type="text" placeholder="Nazwa ćwiczenia..." class="ex-inp ex-inp-name" style="width:100%;" list="ex-dl" data-f="name" oninput="builderPreviewKg(this.closest(\'.ex-row\'))">'
     +'<input type="number" placeholder="4" class="ex-inp" data-f="sets">'
     +'<input type="text" placeholder="8-10" class="ex-inp" data-f="reps">'
-    +'<input type="number" placeholder="kg" class="ex-inp" data-f="kg">'
+    +'<input type="number" placeholder="kg" class="ex-inp" data-f="kg" title="Zostaw puste, jeśli liczysz z %1RM">'
     +'<input type="number" placeholder="8" class="ex-inp" data-f="rpe">'
     +'<input type="number" placeholder="2" class="ex-inp" data-f="rir">'
     +'<input type="text" placeholder="2min" class="ex-inp" data-f="rest">'
@@ -301,9 +301,117 @@ function addRow(dayId){
     +'<div class="ex-row-coach">'
     +'<input type="text" placeholder="Wskazówka dla klienta (np. łopatki ściągnięte)" class="ex-inp ex-inp-name" data-f="note" style="font-size:11px;">'
     +'<input type="url" placeholder="Film: YouTube / Vimeo" class="ex-inp ex-inp-name" data-f="video" style="font-size:11px;" title="Link do filmu techniki">'
+    +'<button type="button" onclick="builderRemoveRow(this)" style="background:none;border:none;color:var(--muted2);font-size:18px;cursor:pointer;">×</button>'
+    +'<div class="ex-row-extra">'
+    +'<input type="text" placeholder="Zamiennik (opcjonalnie, np. hantle zamiast sztangi)" class="ex-inp ex-inp-name" data-f="alt" style="font-size:11px;">'
+    +'<input type="number" placeholder="%1RM" class="ex-inp" data-f="pct1rm" min="1" max="150" step="0.5" title="Procent 1RM — kg z Pomiary → Siła bazowa" oninput="builderPreviewKg(this.closest(\'.ex-row\'))">'
+    +'<div class="ex-kind-btns">'
+    +'<input type="hidden" data-f="ss" value="">'
+    +'<input type="hidden" data-f="emom" value="">'
+    +'<button type="button" class="ex-ss-btn" onclick="builderToggleSs(this)" title="Połącz z następnym ćwiczeniem w super-serię">⚡ SS</button>'
+    +'<button type="button" class="ex-ss-btn ex-emom-btn" onclick="builderToggleEmom(this)" title="EMOM: każda seria na starcie minuty, reszta minuty to przerwa">EMOM</button>'
+    +'</div>'
     +'</div>';
   rows.appendChild(div);
 }
+function builderRemoveRow(btn){
+  const row=btn.closest('.ex-row');
+  const box=row&&row.parentElement;
+  if(row)row.remove();
+  if(box)builderPaintSs(box);
+}
+window.builderRemoveRow=builderRemoveRow;
+function builderPaintSs(box){
+  if(!box)return;
+  const rows=[...box.querySelectorAll('.ex-row')];
+  const vals=rows.map(r=>(r.querySelector('[data-f="ss"]')||{}).value||'');
+  rows.forEach((r,i)=>{
+    r.classList.remove('ss','ss-first','ss-last');
+    const btn=r.querySelector('.ex-ss-btn');
+    const v=vals[i];
+    const run=!!v&&((i>0&&vals[i-1]===v)||(i<vals.length-1&&vals[i+1]===v));
+    if(!run){
+      const el=r.querySelector('[data-f="ss"]');if(el&&v)el.value='';
+      if(btn)btn.textContent='⚡ SS';
+      return;
+    }
+    r.classList.add('ss');
+    if(i===0||vals[i-1]!==v)r.classList.add('ss-first');
+    if(i===rows.length-1||vals[i+1]!==v)r.classList.add('ss-last');
+    let start=i;while(start>0&&vals[start-1]===v)start--;
+    if(btn)btn.textContent='⚡ '+v+(i-start+1);
+  });
+}
+window.builderPaintSs=builderPaintSs;
+function builderToggleSs(btn){
+  const row=btn.closest('.ex-row');if(!row)return;
+  const box=row.parentElement;
+  const rows=[...box.querySelectorAll('.ex-row')];
+  const i=rows.indexOf(row);
+  const get=r=>(r.querySelector('[data-f="ss"]')||{}).value||'';
+  const set=(r,v)=>{const el=r.querySelector('[data-f="ss"]');if(el)el.value=v||'';};
+  const cur=get(row);
+  const next=rows[i+1];
+  const prev=rows[i-1];
+  if(cur&&((next&&get(next)===cur)||(prev&&get(prev)===cur))){
+    set(row,'');
+    builderPaintSs(box);
+    return;
+  }
+  if(!next){if(typeof notify==='function')notify('Dodaj następne ćwiczenie, potem ⚡ Super-seria');return;}
+  let letter=get(next)||cur;
+  if(!letter){
+    const used=new Set(rows.map(get).filter(Boolean));
+    letter='A';
+    while(used.has(letter))letter=String.fromCharCode(letter.charCodeAt(0)+1);
+  }
+  set(row,letter);set(next,letter);
+  const em1=row.querySelector('[data-f="emom"]');
+  const em2=next.querySelector('[data-f="emom"]');
+  if(em1)em1.value='';
+  if(em2)em2.value='';
+  if(typeof builderPaintEmom==='function'){builderPaintEmom(row);builderPaintEmom(next);}
+  builderPaintSs(box);
+}
+window.builderToggleSs=builderToggleSs;
+function builderToggleEmom(btn){
+  const row=btn&&btn.closest('.ex-row');if(!row)return;
+  const el=row.querySelector('[data-f="emom"]');if(!el)return;
+  el.value=el.value==='1'?'':'1';
+  if(el.value==='1'){
+    const ss=row.querySelector('[data-f="ss"]');
+    if(ss&&ss.value){
+      ss.value='';
+      const box=row.parentElement;
+      if(typeof builderPaintSs==='function')builderPaintSs(box);
+    }
+  }
+  builderPaintEmom(row);
+}
+window.builderToggleEmom=builderToggleEmom;
+function builderPaintEmom(row){
+  if(!row)return;
+  const on=((row.querySelector('[data-f="emom"]')||{}).value||'')==='1';
+  const btn=row.querySelector('.ex-emom-btn');
+  if(btn)btn.classList.toggle('on',on);
+}
+window.builderPaintEmom=builderPaintEmom;
+function builderPreviewKg(row){
+  if(!row)return;
+  const kgEl=row.querySelector('[data-f="kg"]');
+  if(!kgEl)return;
+  const cid=(document.getElementById('b-client')||{}).value||'';
+  const name=(row.querySelector('[data-f="name"]')||{}).value||'';
+  const pct=typeof parsePct1RM==='function'?parsePct1RM((row.querySelector('[data-f="pct1rm"]')||{}).value||''):'';
+  if(!pct||!cid||typeof weightFromPct1RM!=='function'){
+    if(!kgEl.value)kgEl.placeholder='kg';
+    return;
+  }
+  const w=weightFromPct1RM(cid,name,pct);
+  kgEl.placeholder=w.kg?String(w.kg):'kg';
+  kgEl.title=w.hint||'kg z %1RM';
+}
+window.builderPreviewKg=builderPreviewKg;
 function updateExDl(){
   const dl=document.getElementById('ex-dl');
   const all=allExercises().map(e=>e.name);
@@ -314,7 +422,15 @@ function updatePeriod(){
   const el=document.getElementById('period-sched');
   if(!c){el.innerHTML='<div style="font-size:11px;color:var(--muted);">Wybierz klienta</div>';return;}
   const sch=getPeriod(c.level||'sredni');
-  el.innerHTML=sch.map(w=>`<div class="period-row"><div style="font-family:'DM Mono',monospace;font-size:10px;color:${w.cel.includes('DELOAD')?'var(--orange)':w.nr===1?'var(--accent)':'var(--blue)'};width:46px;flex-shrink:0;">TYG ${w.nr}</div><div><div style="font-size:12px;font-weight:600;">${w.cel}</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">${w.rpe}</div></div></div>`).join('');
+  const rms=typeof officialLift1RMs==='function'?officialLift1RMs(c.id):{};
+  const fmt=(v)=>v!=null?v+' kg':'—';
+  const rmBar=`<div style="font-size:11px;color:var(--text);margin-bottom:10px;line-height:1.55;padding:8px 10px;background:var(--s3);border:1px solid var(--border);border-radius:8px;">
+    <div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;">1RM — Siła bazowa</div>
+    Przysiad ${fmt(rms.squat)} · Martwy ${fmt(rms.deadlift)} · Bench ${fmt(rms.bench)} · OHP ${fmt(rms.ohp)}
+    <div style="font-size:10px;color:var(--muted);margin-top:4px;">Pole %1RM w ćwiczeniu liczy kg z tych pomiarów. Brak? Uzupełnij w Pomiary → Siła bazowa.</div>
+  </div>`;
+  el.innerHTML=rmBar+sch.map(w=>`<div class="period-row"><div style="font-family:'DM Mono',monospace;font-size:10px;color:${w.cel.includes('DELOAD')?'var(--orange)':w.nr===1?'var(--accent)':'var(--blue)'};width:46px;flex-shrink:0;">TYG ${w.nr}</div><div><div style="font-size:12px;font-weight:600;">${w.cel}</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">${w.rpe}</div></div></div>`).join('');
+  document.querySelectorAll('#builder-days .ex-row').forEach(r=>{if(typeof builderPreviewKg==='function')builderPreviewKg(r);});
 }
 function getPeriod(level){
   if(level==='poczatkujacy')return[{nr:1,cel:'Adaptacja — nauka wzorców',rpe:'RPE 7'},{nr:2,cel:'Utrwalenie techniki',rpe:'RPE 7'},{nr:3,cel:'Progresja liniowa',rpe:'RPE 8'},{nr:4,cel:'DELOAD — regeneracja CNS',rpe:'RPE 6'}];
@@ -363,7 +479,13 @@ function editPlan(id){
       set('alt',(ex&&typeof ex==='object'&&ex.alt)||parsed.alt||(typeof altsForExercise==='function'?altsForExercise(parsed.name).join(', '):''));
       set('note',parsed.note||(ex&&typeof ex==='object'&&(ex.note||ex.notes))||'');
       set('video',parsed.video||(ex&&typeof ex==='object'&&ex.video)||'');
+      set('pct1rm',parsed.pct1rm||(ex&&typeof ex==='object'&&ex.pct1rm)||'');
+      set('ss',parsed.ss||(ex&&typeof ex==='object'&&ex.ss)||'');
+      set('emom',((ex&&typeof ex==='object'&&ex.emom)||parsed.emom)?'1':'');
+      if(typeof builderPreviewKg==='function')builderPreviewKg(row);
+      if(typeof builderPaintEmom==='function')builderPaintEmom(row);
     });
+    if(typeof builderPaintSs==='function')builderPaintSs(dayEl.querySelector('.ex-rows'));
   });
   const titleEl=document.querySelector('#screen-builder .topbar-title');
   if(titleEl)titleEl.textContent='Edytuj plan: '+(plan.name||'');
@@ -390,11 +512,13 @@ async function savePlan(){
       const setN=g('sets')||'3';
       const alt=g('alt').trim()||(typeof altsForExercise==='function'?altsForExercise(n).join(', '):'');
       const video=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl(g('video')):g('video').trim();
+      const pct=typeof parsePct1RM==='function'?parsePct1RM(g('pct1rm')):'';
       exercises.push({
         name:n,
         sets:setN,
         reps:g('reps')||'10',
         kg:g('kg'),
+        pct1rm:pct,
         rpe:g('rpe'),
         rir:g('rir'),
         rest:g('rest')||'90s',
@@ -402,9 +526,15 @@ async function savePlan(){
         alt,
         note:g('note').trim(),
         video
+        ss:g('ss'),
+        emom:g('emom')==='1'
       });
       sets+=parseInt(setN,10)||3;
     });
+    if(typeof applySsLabels==='function'){
+      applySsLabels(exercises);
+      exercises.forEach(e=>{e.ss=e.ssLetter||'';delete e.ssLabel;delete e.ssLetter;});
+    }
     days.push({day:dn,muscles,exercises,sets,rest:false});
   });
   if(!days.length){notify('Dodaj przynajmniej jeden dzień!');return;}
@@ -486,6 +616,7 @@ function renderPlans(){
         ${(p.days||[]).map(d=>`<div class="plan-day-row" style="padding:9px 0;">
           <div class="plan-day-name">${d.day||d.dayName||'—'}</div>
           ${d.rest?'<div style="color:var(--muted);font-size:12px;font-style:italic;">— Odpoczynek</div>':`<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;color:var(--text);">${d.muscles||d.focus||d.name||''}</div><div style="font-size:11px;color:var(--muted);margin-top:2px;line-height:1.5;">${(d.exercises||[]).map(e=>{const x=typeof parsePlanExercise==='function'?parsePlanExercise(e):(typeof e==='string'?{name:e}:e);return (x.name||'')+(x.sets?' '+x.sets+'×'+x.reps:'')+(x.kg?' @'+x.kg+'kg':'')+(typeof coachMediaIcons==='function'?coachMediaIcons(e):'');}).filter(Boolean).join(' · ')}</div></div>`}
+          ${d.rest?'<div style="color:var(--muted);font-size:12px;font-style:italic;">— Odpoczynek</div>':`<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;color:var(--text);">${d.muscles||d.focus||d.name||''}</div><div style="font-size:11px;color:var(--muted);margin-top:2px;line-height:1.5;">${typeof formatDayExerciseLines==='function'?formatDayExerciseLines(d.exercises,p.clientId):(d.exercises||[]).map(e=>typeof formatPlanExerciseLine==='function'?formatPlanExerciseLine(e,p.clientId):'').filter(Boolean).join(' · ')}</div></div>`}
         </div>`).join('')}
       </div>
     </div>`;
