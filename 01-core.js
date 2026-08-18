@@ -690,33 +690,58 @@ window.ownVideoForExercise=ownVideoForExercise;
 function resolveCoachMedia(parsed){
   const ex=parsed&&typeof parsed==='object'?parsed:{name:parsed};
   const name=ex.name||'';
+  const lib=libExerciseByName(name);
+  const note=String(ex.note||ex.notes||ex.cue||'').trim();
   let video=normalizeCoachVideoUrl(ex.video||ex.url||'');
   if(!video)video=ownVideoForExercise(name);
+  let libTip='';
+  if(!note&&lib){
+    libTip=String(lib.tip||lib.desc||'').trim();
+    if(libTip.length>160)libTip=libTip.slice(0,157)+'…';
+  }
   const embed=coachVideoEmbed(video);
-  return{video,videoEmbed:embed,isFile:coachVideoIsFile(video)};
+  return{note,libTip,video,videoEmbed:embed,isFile:coachVideoIsFile(video)};
 }
 window.resolveCoachMedia=resolveCoachMedia;
 
+function coachMediaIcons(ex){
+  const src=ex&&typeof ex==='object'?ex:{name:String(ex||'')};
+  const coach=(src.libTip!==undefined||src.planVideo!==undefined||src.planNote!==undefined)
+    ?{note:String(src.note||'').trim(),libTip:String(src.libTip||'').trim(),video:String(src.video||'').trim()}
+    :resolveCoachMedia(typeof parsePlanExercise==='function'?parsePlanExercise(src):src);
+  let icons='';
+  if(coach.note||coach.libTip)icons+=' 💡';
+  if(coach.video)icons+=' ▶️';
+  return icons;
+}
+window.coachMediaIcons=coachMediaIcons;
+
 function coachMediaHtml(ex,opts){
   opts=opts||{};
+  const note=(ex&&ex.note)||'';
+  const libTip=(ex&&ex.libTip)||'';
   const video=(ex&&ex.video)||'';
   const embed=(ex&&ex.videoEmbed)||'';
   const file=!!(ex&&ex.isFile)||coachVideoIsFile(video);
   const show=!!opts.showVideo;
   const toggle=opts.toggleFn||'';
-  if(!video)return '';
-  let html=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px;">`;
-  if(toggle)html+=`<button type="button" class="btn btn-ghost btn-sm" onclick="${toggle}">${show?'▾ Ukryj film':'▶ Film trenera'}</button>`;
-  html+=`<a class="btn btn-ghost btn-sm" href="${escHtml(video)}" target="_blank" rel="noopener noreferrer">↗ Otwórz</a></div>`;
-  if(show&&embed)html+=`<div class="cw-video-wrap"><iframe src="${escHtml(embed)}" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen title="Film trenera"></iframe></div>`;
-  else if(show&&file)html+=`<div class="cw-video-wrap"><video src="${escHtml(video)}" controls playsinline></video></div>`;
+  let html='';
+  if(note)html+=`<div class="cw-coach-note">${escHtml(note)}</div>`;
+  else if(libTip)html+=`<div style="font-size:11px;color:var(--muted);margin:0 0 10px;line-height:1.45;">${escHtml(libTip)}</div>`;
+  if(video){
+    html+=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px;">`;
+    if(toggle)html+=`<button type="button" class="btn btn-ghost btn-sm" onclick="${toggle}">${show?'▾ Ukryj film':'▶ Film techniki'}</button>`;
+    html+=`<a class="btn btn-ghost btn-sm" href="${escHtml(video)}" target="_blank" rel="noopener noreferrer">↗ Otwórz film</a></div>`;
+    if(show&&embed)html+=`<div class="cw-video-wrap"><iframe src="${escHtml(embed)}" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen title="Film techniki"></iframe></div>`;
+    else if(show&&file)html+=`<div class="cw-video-wrap"><video src="${escHtml(video)}" controls playsinline></video></div>`;
+  }
   return html;
 }
 window.coachMediaHtml=coachMediaHtml;
 
 /** Ćwiczenie z planu: obiekt AI albo string z kreatora ("Wyciskanie 4x8 @75%"). */
 function parsePlanExercise(ex){
-  if(ex==null)return{name:'Ćwiczenie',sets:'3',reps:'10',rest:'90s',kg:'',pct1rm:'',ss:'',emom:false,video:''};
+  if(ex==null)return{name:'Ćwiczenie',sets:'3',reps:'10',rest:'90s',kg:'',pct1rm:'',ss:'',emom:false,note:'',video:'',wu:0,drop:0,amrap:false};
   if(typeof ex==='string'){
     const raw=ex.trim();
     const m=raw.match(/^(.*?)(?:\s+(\d+)\s*[x×]\s*(\d+(?:\s*-\s*\d+)?))?(?:\s*@\s*(\d+(?:[.,]\d+)?)\s*(%|kg)?)?\s*$/i);
@@ -732,7 +757,11 @@ function parsePlanExercise(ex){
       pct1rm:isPct?parsePct1RM(amt):'',
       ss:'',
       emom:false,
-      video:''
+      note:'',
+      video:'',
+      wu:0,
+      drop:0,
+      amrap:false
     };
   }
   let kg=ex.kg!=null&&ex.kg!==''?String(ex.kg):'';
@@ -752,10 +781,114 @@ function parsePlanExercise(ex){
     alt:ex.alt||'',
     ss:String(ex.ss||ex.superset||'').trim(),
     emom:isEmomFlag(ex.emom),
-    video:normalizeCoachVideoUrl(ex.video||ex.url||'')
+    note:String(ex.note||ex.notes||ex.cue||'').trim(),
+    video:normalizeCoachVideoUrl(ex.video||ex.url||''),
+    wu:parseSetKindCount(ex.wu,2),
+    drop:parseSetKindCount(ex.drop,2),
+    amrap:isAmrapFlag(ex.amrap)
   };
 }
 window.parsePlanExercise=parsePlanExercise;
+
+function parseSetKindCount(v,max){
+  const n=parseInt(v,10);
+  if(!Number.isFinite(n)||n<=0)return 0;
+  return Math.min(max==null?2:max,n);
+}
+window.parseSetKindCount=parseSetKindCount;
+
+function isAmrapFlag(v){
+  return v===true||v===1||v==='1'||v==='true'||v==='amrap'||v==='AMRAP';
+}
+window.isAmrapFlag=isAmrapFlag;
+
+function setKindOf(s){
+  return(s&&s.kind)||'work';
+}
+window.setKindOf=setKindOf;
+
+function isWorkingSet(s){
+  const k=setKindOf(s);
+  return k==='work'||k==='amrap';
+}
+window.isWorkingSet=isWorkingSet;
+
+function setKindBadge(kind){
+  if(kind==='warmup')return 'W';
+  if(kind==='drop')return 'D';
+  if(kind==='amrap')return '+';
+  return '';
+}
+window.setKindBadge=setKindBadge;
+
+function formatSetKindTag(ex){
+  const p=ex&&typeof ex==='object'?ex:{};
+  const bits=[];
+  const inSs=!!String(p.ss||'').trim();
+  const wu=inSs?0:parseSetKindCount(p.wu,2);
+  const dr=inSs?0:parseSetKindCount(p.drop,2);
+  if(wu)bits.push('WU'+wu);
+  if(isAmrapFlag(p.amrap))bits.push('AMRAP');
+  if(dr)bits.push('DROP'+dr);
+  return bits.join(' ');
+}
+window.formatSetKindTag=formatSetKindTag;
+
+function scaleKg(kg,frac){
+  const n=parseFloat(kg);
+  if(!Number.isFinite(n)||n<=0)return kg||'';
+  return roundToPlate(n*frac)||String(n);
+}
+window.scaleKg=scaleKg;
+
+function expandExerciseSets(ex,opts){
+  opts=opts||{};
+  const last=opts.last;
+  const plannedKg=opts.plannedKg||'';
+  const lockPct=!!opts.lockPct;
+  const defaultReps=ex.reps||'10';
+  const inSs=!!String(ex.ss||'').trim();
+  const nWork=Math.max(1,parseInt(ex.sets,10)||3);
+  const nWu=inSs?0:parseSetKindCount(ex.wu,2);
+  const nDrop=inSs?0:parseSetKindCount(ex.drop,2);
+  const amrap=isAmrapFlag(ex.amrap);
+  const lastWork=((last&&last.sets)||[]).filter(isWorkingSet);
+  const sets=[];
+  let no=1;
+  const wuFrac=nWu===1?[0.6]:[0.5,0.7];
+  for(let i=0;i<nWu;i++){
+    sets.push({setNo:no++,kg:scaleKg(plannedKg,wuFrac[i])||'',reps:defaultReps,done:false,kind:'warmup'});
+  }
+  for(let i=0;i<nWork;i++){
+    const kind=(amrap&&i===nWork-1)?'amrap':(!inSs&&isEmomFlag(ex.emom)?'emom':'work');
+    const prev=lastWork[i];
+    let kg=plannedKg;
+    if(!lockPct&&prev&&prev.kg!=null&&prev.kg!=='')kg=String(prev.kg);
+    let reps='';
+    if(kind!=='amrap'){
+      reps=prev&&prev.reps!=null&&prev.reps!==''?String(prev.reps):defaultReps;
+    }
+    sets.push({setNo:no++,kg:kg||'',reps,done:false,kind});
+  }
+  const dropFrac=nDrop===1?[0.75]:[0.8,0.6];
+  for(let i=0;i<nDrop;i++){
+    sets.push({setNo:no++,kg:scaleKg(plannedKg,dropFrac[i])||'',reps:defaultReps,done:false,kind:'drop'});
+  }
+  return sets;
+}
+window.expandExerciseSets=expandExerciseSets;
+
+function skipRestBeforeSet(next){
+  return!!(next&&next.kind==='drop');
+}
+window.skipRestBeforeSet=skipRestBeforeSet;
+
+function restSecAfterSet(ex,st,next){
+  if(next&&next.kind==='drop')return 0;
+  if(st&&st.kind==='warmup')return Math.min(45,(ex&&ex.restSec)||90);
+  return(ex&&ex.restSec)||90;
+}
+window.restSecAfterSet=restSecAfterSet;
 
 function isEmomFlag(v){
   return v===true||v===1||v==='1'||v==='true'||v==='emom'||v==='EMOM';
@@ -855,8 +988,9 @@ function formatPlanExerciseLine(ex,clientId){
   }else if(p.kg){
     kgPart=' @'+p.kg+'kg';
   }
+  const tag=formatSetKindTag(p);
   const emom=isEmomFlag(p.emom)&&!p.ss?' EMOM':'';
-  return(p.ssLabel?p.ssLabel+' ':'')+(p.name||'')+(p.sets?' '+p.sets+'×'+p.reps:'')+kgPart+emom;
+  return(p.ssLabel?p.ssLabel+' ':'')+(p.name||'')+(p.sets?' '+p.sets+'×'+p.reps:'')+kgPart+(tag?' '+tag:'')+emom;
 }
 window.formatPlanExerciseLine=formatPlanExerciseLine;
 
@@ -1295,8 +1429,6 @@ function mapPlanExercisesForClient(rawEx,clientId){
   const mapped=(rawEx||[]).map(raw=>{
     const ex=parsePlanExercise(raw);
     const last=lastLoadForExercise(clientId,ex.name);
-    const nSets=parseInt(ex.sets,10)||3;
-    const defaultReps=ex.reps||'10';
     const rest=parseRestSeconds(ex.rest);
     const pct=ex.pct1rm||'';
     const fromPct=pct?weightFromPct1RM(clientId,ex.name,pct):null;
@@ -1304,6 +1436,7 @@ function mapPlanExercisesForClient(rawEx,clientId){
     const lockPct=!!pct;
     const emom=isEmomExercise(ex);
     const coach=typeof resolveCoachMedia==='function'?resolveCoachMedia(ex):{video:'',videoEmbed:'',isFile:false};
+    const sets=expandExerciseSets(ex,{last,plannedKg,lockPct});
     return{
       name:ex.name,
       plannedName:ex.name,
@@ -1315,22 +1448,18 @@ function mapPlanExercisesForClient(rawEx,clientId){
       lastKg:last&&last.kg!=null&&last.kg!==''?last.kg:(plannedKg||''),
       lastReps:last&&last.reps!=null&&last.reps!==''?last.reps:'',
       ss:ex.ss||'',
+      wu:ex.ss?0:(ex.wu||0),
+      drop:ex.ss?0:(ex.drop||0),
+      amrap:!!ex.amrap,
       emom,
+      note:coach.note||'',
+      libTip:coach.libTip||'',
+      planNote:coach.note||'',
+      planVideo:normalizeCoachVideoUrl(ex.video||''),
       video:coach.video||'',
       videoEmbed:coach.videoEmbed||'',
       isFile:!!coach.isFile,
-      sets:Array.from({length:nSets},(_,i)=>{
-        const prev=last&&last.sets[i];
-        let kg=plannedKg;
-        if(!lockPct&&prev&&prev.kg!=null&&prev.kg!=='')kg=String(prev.kg);
-        return{
-          setNo:i+1,
-          kg:kg||'',
-          reps:prev&&prev.reps!=null&&prev.reps!==''?String(prev.reps):defaultReps,
-          done:false,
-          kind:emom?'emom':'work'
-        };
-      })
+      sets
     };
   });
   return applySsLabels(mapped);
