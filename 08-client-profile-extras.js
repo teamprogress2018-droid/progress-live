@@ -694,7 +694,8 @@ function renderCPOverview(c){
   const ci=CL.indexOf(c);const col=COLS[ci%5];
   const sessions=SE.filter(s=>s.clientId===c.id);
   const tasks=TASKS.filter(t=>t.clientId===c.id);
-  const tasksDone=tasks.filter(t=>t.status==='done');
+  const oneShot=tasks.filter(t=>typeof isOneShot==='function'?isOneShot(t):!isHabit(t));
+  const tasksDone=oneShot.filter(t=>t.status==='done');
   const plans=PL.filter(p=>p.clientId===c.id);
   const packages=allPackages().filter(p=>p.clientId===c.id||p.clientName===c.name);
   const lastSess=sessions.sort((a,b)=>b.date.localeCompare(a.date))[0];
@@ -708,7 +709,7 @@ function renderCPOverview(c){
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;">
       <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--accent);">${sessions.length}</div><div class="cp-stat-lbl">Sesji</div></div>
       <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--blue);">${plans.length}</div><div class="cp-stat-lbl">Planów</div></div>
-      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--teal);">${tasksDone.length}/${tasks.length}</div><div class="cp-stat-lbl">Zadań</div></div>
+      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--teal);">${tasksDone.length}/${oneShot.length}</div><div class="cp-stat-lbl">Zadań</div></div>
       <div class="cp-stat-box"><div class="cp-stat-val" style="color:${daysSince===null?'var(--muted)':daysSince>14?'var(--red)':daysSince>7?'var(--orange)':'var(--teal)'};">${daysSince!==null?daysSince+'d':'—'}</div><div class="cp-stat-lbl">Ost. sesja</div></div>
     </div>
 
@@ -922,30 +923,48 @@ function renderCPMetrics(c){
 
 function renderCPTasks(c){
   const tasks=TASKS.filter(t=>t.clientId===c.id);
-  const today=new Date().toISOString().split('T')[0];
+  const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().split('T')[0];
+  const oneShot=tasks.filter(t=>typeof isOneShot==='function'?isOneShot(t):!isHabit(t));
+  const habits=tasks.filter(t=>isHabit(t));
+  const chs=tasks.filter(t=>typeof isChallenge==='function'&&isChallenge(t));
   document.getElementById('cp-body').innerHTML=`
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
       <div class="cp-section-title" style="margin:0;">ZADANIA (${tasks.length})</div>
       <button class="btn btn-primary btn-sm" onclick="openM('m-task');taskSetClientField('${c.id}','${(c.name||'').replace(/'/g,"\\'")}')">+ Zadanie</button>
     </div>
     <div style="display:flex;gap:6px;margin-bottom:12px;">
-      <div class="cp-stat-box" style="flex:1;"><div class="cp-stat-val" style="color:var(--accent);font-size:22px;">${tasks.filter(t=>t.status!=='done').length}</div><div class="cp-stat-lbl">Aktywne</div></div>
-      <div class="cp-stat-box" style="flex:1;"><div class="cp-stat-val" style="color:var(--teal);font-size:22px;">${tasks.filter(t=>t.status==='done').length}</div><div class="cp-stat-lbl">Ukończone</div></div>
-      <div class="cp-stat-box" style="flex:1;"><div class="cp-stat-val" style="color:var(--orange);font-size:22px;">${tasks.filter(t=>t.status!=='done'&&t.due&&t.due<today).length}</div><div class="cp-stat-lbl">Przet.</div></div>
+      <div class="cp-stat-box" style="flex:1;"><div class="cp-stat-val" style="color:var(--accent);font-size:22px;">${oneShot.filter(t=>t.status!=='done').length}</div><div class="cp-stat-lbl">Aktywne</div></div>
+      <div class="cp-stat-box" style="flex:1;"><div class="cp-stat-val" style="color:var(--purple);font-size:22px;">${habits.length}</div><div class="cp-stat-lbl">Nawyki</div></div>
+      <div class="cp-stat-box" style="flex:1;"><div class="cp-stat-val" style="color:var(--gold);font-size:22px;">${chs.length}</div><div class="cp-stat-lbl">Wyzwania</div></div>
+      <div class="cp-stat-box" style="flex:1;"><div class="cp-stat-val" style="color:var(--orange);font-size:22px;">${oneShot.filter(t=>t.status!=='done'&&t.due&&t.due<today).length}</div><div class="cp-stat-lbl">Przet.</div></div>
     </div>
     ${!tasks.length?'<div style="text-align:center;padding:30px;color:var(--muted);">Brak zadań dla tego klienta</div>'
-    :tasks.sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999')).map(t=>{
-      const isDone=t.status==='done';
-      const isOverdue=!isDone&&t.due&&t.due<today;
+    :tasks.sort((a,b)=>{
+      const rank=t=>isHabit(t)?0:(typeof isChallenge==='function'&&isChallenge(t)?1:2);
+      return rank(a)-rank(b)||(a.due||'9999').localeCompare(b.due||'9999');
+    }).map(t=>{
+      const habit=isHabit(t);
+      const ch=typeof isChallenge==='function'&&isChallenge(t);
+      const one=typeof isOneShot==='function'?isOneShot(t):!habit&&!ch;
+      const doneToday=(habit||ch)&&habitDoneOn(t,today);
+      const streak=habit?habitStreak(t,today):0;
+      const isDone=one&&t.status==='done';
+      const isOverdue=one&&!isDone&&t.due&&t.due<today;
       const catCol=TASK_CAT_COLORS[t.cat]||'var(--muted)';
       return `<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);">
-        <div class="task-check${isDone?' checked':''}" onclick="toggleTask('${t.id}');renderCPTasks(CL.find(x=>x.id==='${c.id}'))">${isDone?'<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#000" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':''}</div>
+        <div class="task-check${isDone||doneToday?' checked':''}" onclick="toggleTask('${t.id}');renderCPTasks(CL.find(x=>x.id==='${c.id}'))">${isDone||doneToday?'<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#000" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':''}</div>
         <div style="flex:1;${isDone?'opacity:0.5;text-decoration:line-through;':''}cursor:pointer;" onclick="editTask('${t.id}')">
           <div style="font-size:12px;font-weight:600;">${t.title}</div>
-          <div style="display:flex;gap:5px;margin-top:3px;">
+          <div style="display:flex;gap:5px;margin-top:3px;flex-wrap:wrap;align-items:center;">
+            ${habit?`<span class="pill" style="background:rgba(157,124,244,0.18);color:var(--purple);font-size:9px;">🔥 Nawyk</span>`:''}
+            ${ch?`<span class="pill" style="background:rgba(201,162,39,0.18);color:var(--gold);font-size:9px;">🏆 Wyzwanie</span>`:''}
             ${t.cat?`<span class="pill" style="background:${catCol}22;color:${catCol};font-size:9px;">${TASK_CAT_LABELS[t.cat]||t.cat}</span>`:''}
-            ${t.due?`<span style="font-size:10px;color:${isOverdue?'var(--red)':'var(--muted)'};font-family:'DM Mono',monospace;">${isOverdue?'⚠ ':''} ${t.due}</span>`:''}
+            ${habit&&streak?`<span class="habit-streak">🔥 ${streak}</span>`:''}
+            ${ch&&typeof challengeStatusText==='function'?`<span style="font-size:10px;color:var(--gold);">${challengeStatusText(t,today)}</span>`:''}
+            ${one&&t.due?`<span style="font-size:10px;color:${isOverdue?'var(--red)':'var(--muted)'};font-family:'DM Mono',monospace;">${isOverdue?'⚠ ':''} ${t.due}</span>`:''}
           </div>
+          ${habit?habitWeekHtml(t,today):''}
+          ${ch&&typeof challengeBarHtml==='function'?challengeBarHtml(t,today):''}
         </div>
       </div>`;
     }).join('')}

@@ -96,6 +96,31 @@ const DEMO_FORMS=[
 
 function allForms(){return[...DEMO_FORMS,...(window.CUSTOM_FORMS||[])];}
 
+function createFormSend(form,clientId,extraMsg){
+  if(!form||!clientId)return null;
+  const now=new Date();
+  const iso=now.toISOString();
+  const send=withTrainer({
+    id:newId('fs'),
+    formId:form.id,
+    formName:form.name||'Formularz',
+    clientId,
+    sentAt:now.toLocaleDateString('pl'),
+    sentAtIso:iso,
+    createdAt:iso,
+    status:'sent',
+    answers:{},
+    questions:snapshotFormQuestions(form)
+  });
+  window.FORM_SENDS=window.FORM_SENDS||[];
+  window.FORM_SENDS.push(send);
+  persistById('formSends',send);
+  const msg=(extraMsg||'').trim()||('📋 Proszę wypełnić formularz: "'+(form.name||'Formularz')+'"');
+  if(typeof pushMsg==='function')pushMsg(clientId,msg);
+  return send;
+}
+window.createFormSend=createFormSend;
+
 function setFormNav(n){
   formNav=n;
   document.querySelectorAll('.form-nav-item').forEach(el=>el.classList.remove('active'));
@@ -196,11 +221,18 @@ function openFormDetail(id){
     <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:16px;">${f.desc||''}</div>
 
     ${sends.length?`<div style="margin-bottom:16px;">
-      <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Historia wysyłek</div>
-      ${sends.map(s=>{const c=CL.find(x=>x.id===s.clientId);return `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;">
-        <span>${c?c.name:'Klient'}</span>
-        <span class="sent-badge ${s.status==='filled'?'pill-green':'pill-orange'}">${s.status==='filled'?'✓ Wypełniony':'⏳ Oczekuje'}</span>
-        <span style="margin-left:auto;font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${s.sentAt}</span>
+      <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Wysyłki i odpowiedzi</div>
+      ${sends.slice().reverse().map(s=>{
+        const c=CL.find(x=>x.id===s.clientId);
+        const filled=s.status==='filled';
+        const open=window._fdAnswersSendId===s.id;
+        return `<div style="padding:7px 0;border-bottom:1px solid var(--border);">
+        <div ${filled?`onclick="toggleFormSendAnswers('${s.id}')"`:''} style="display:flex;align-items:center;gap:8px;font-size:12px;${filled?'cursor:pointer;':''}">
+          <span>${c?c.name:'Klient'}</span>
+          <span class="sent-badge ${filled?'pill-green':'pill-orange'}">${filled?'✓ Wypełniony':'⏳ Oczekuje'}</span>
+          <span style="margin-left:auto;font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${s.sentAt||''}${filled?' · odpowiedzi':''}</span>
+        </div>
+        ${open?formAnswersHtml(s):''}
       </div>`;}).join('')}
     </div>`:''}
 
@@ -230,6 +262,24 @@ function openFormDetail(id){
 function closeFormDetail(){
   document.getElementById('form-detail').style.transform='translateX(100%)';
   formSelId=null;
+  window._fdAnswersSendId=null;
+}
+
+function formAnswersHtml(send){
+  const qs=formQuestionsForSend(send);
+  const ans=formSendAnswersMap(send);
+  if(!qs.length)return `<div style="font-size:11px;color:var(--muted);padding:8px 0;">Brak pytań w tym wysłaniu.</div>`;
+  return `<div style="background:var(--s3);border-radius:8px;padding:10px 12px;margin-top:8px;">
+    ${qs.map((q,i)=>`<div style="padding:6px 0;${i<qs.length-1?'border-bottom:1px solid var(--border);':''}">
+      <div style="font-size:11px;color:var(--muted);line-height:1.4;">${i+1}. ${escHtml(q.text||'')}${q.required?' <span style="color:var(--red);">*</span>':''}</div>
+      <div style="font-size:13px;font-weight:600;margin-top:3px;">${escHtml(formatFormAnswer(q,ans[q.id]))}</div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function toggleFormSendAnswers(sendId){
+  window._fdAnswersSendId=window._fdAnswersSendId===sendId?null:sendId;
+  if(formSelId)openFormDetail(formSelId);
 }
 
 function selectScale(btn,qid){
@@ -286,16 +336,16 @@ function sendFormClientSearchInput(){
 function confirmSendForm(){
   if(!sendFormId)return;
   const cid=document.getElementById('send-form-client').value;
+  if(!cid){notify('Wybierz klienta!');return;}
   const c=CL.find(x=>x.id===cid);
   const f=allForms().find(x=>x.id===sendFormId);
-  const send=withTrainer({id:newId('fs'),formId:sendFormId,clientId:cid,sentAt:new Date().toLocaleDateString('pl'),status:'sent',answers:[]});
-  FORM_SENDS.push(send);
-  persistById('formSends',send);
-  if(c)pushMsg(c.id,'📋 Proszę wypełnić formularz: "'+(f?f.name:'Formularz')+'"');
+  if(!f){notify('Nie znaleziono formularza');return;}
+  const extra=(document.getElementById('send-form-msg')||{}).value||'';
+  createFormSend(f,cid,extra);
   closeM('m-send-form');
   renderForms();
   if(formSelId===sendFormId)openFormDetail(sendFormId);
-  notify('✓ Formularz "'+f.name+'" wysłany do '+(c?c.name:'klienta'));
+  notify('✓ Formularz "'+f.name+'" wysłany do '+(c?c.name:'klienta')+' — wypełni go w apce');
 }
 
 // Form builder
@@ -393,6 +443,40 @@ async function saveCustomForm(){
   document.getElementById('nf-questions').innerHTML='';
   document.getElementById('nf-title').value='';
   renderForms();notify('✓ Formularz "'+title+'" utworzony!');
+}
+
+function renderCPForms(c){
+  const sends=(window.FORM_SENDS||[]).filter(s=>s.clientId===c.id)
+    .slice().sort((a,b)=>(b.sentAtIso||b.createdAt||b.sentAt||'').localeCompare(a.sentAtIso||a.createdAt||a.sentAt||''));
+  const pending=sends.filter(s=>s.status!=='filled');
+  const filled=sends.filter(s=>s.status==='filled');
+  document.getElementById('cp-body').innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div class="cp-section-title" style="margin:0;">FORMULARZE (${sends.length})</div>
+      <button class="btn btn-primary btn-sm" onclick="goTo('forms')">📋 Biblioteka</button>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:12px;">
+      <div class="cp-stat-box" style="flex:1;"><div class="cp-stat-val" style="color:var(--orange);font-size:22px;">${pending.length}</div><div class="cp-stat-lbl">Oczekuje</div></div>
+      <div class="cp-stat-box" style="flex:1;"><div class="cp-stat-val" style="color:var(--teal);font-size:22px;">${filled.length}</div><div class="cp-stat-lbl">Wypełnione</div></div>
+    </div>
+    ${!sends.length?'<div style="text-align:center;padding:30px;color:var(--muted);">Brak wysłanych formularzy. Otwórz Formularze i kliknij Wyślij.</div>'
+    :sends.map(s=>{
+      const f=(typeof allForms==='function'?allForms():[]).find(x=>x.id===s.formId);
+      const name=s.formName||(f&&f.name)||'Formularz';
+      const open=window._fdAnswersSendId===s.id;
+      const isFilled=s.status==='filled';
+      return `<div style="padding:10px 0;border-bottom:1px solid var(--border);">
+        <div style="display:flex;gap:8px;align-items:flex-start;">
+          <div style="flex:1;${isFilled?'cursor:pointer;':''}" ${isFilled?`onclick="window._fdAnswersSendId=window._fdAnswersSendId==='${s.id}'?null:'${s.id}';renderCPForms(CL.find(x=>x.id==='${c.id}'))"`:''}>
+            <div style="font-size:13px;font-weight:600;">${escHtml(name)}</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:3px;">${escHtml(s.sentAt||'')} ${isFilled?'· kliknij, żeby zobaczyć odpowiedzi':''}</div>
+          </div>
+          <span class="pill ${isFilled?'pill-green':'pill-orange'}" style="font-size:9px;">${isFilled?'✓ Wypełniony':'⏳ Oczekuje'}</span>
+        </div>
+        ${open?formAnswersHtml(s):''}
+      </div>`;
+    }).join('')}
+    <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:10px;" onclick="goTo('forms')">📤 Wyślij kolejny</button>`;
 }
 
 // ════════════════════════════════════════
@@ -1129,7 +1213,7 @@ function closeClientProfile(){
 
 function setCPTab(t){
   cpTab=t;
-  const moreTabs=['timeline','psycho','sfr','posture','photos','metrics','tasks','food','documents','payments','settings'];
+  const moreTabs=['timeline','psycho','sfr','posture','photos','metrics','tasks','forms','food','documents','payments','settings'];
   if(moreTabs.includes(t)){
     const moreEl=document.getElementById('cp-more-items');
     const arrow=document.getElementById('cp-more-arrow');
@@ -1148,6 +1232,7 @@ function setCPTab(t){
   if(t==='plan')renderCPPlan(c);
   if(t==='metrics')renderCPMetrics(c);
   if(t==='tasks')renderCPTasks(c);
+  if(t==='forms')renderCPForms(c);
   if(t==='food')renderCPFood(c);
   if(t==='documents')renderCPDocuments(c);
   if(t==='payments')renderCPPayments(c);
