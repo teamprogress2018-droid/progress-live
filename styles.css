@@ -132,13 +132,19 @@ button{cursor:pointer;}
 .notif{position:fixed;bottom:20px;right:20px;background:var(--s3);border:1px solid var(--border2);border-radius:var(--r);padding:9px 14px;font-size:12px;z-index:999;pointer-events:none;animation:slideIn 0.2s ease;display:flex;align-items:center;gap:8px;}
 .plan-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;animation:fadeUp 0.2s ease both;transition:border-color 0.15s;position:relative;}
 .plan-card:hover{border-color:var(--border2);}
+.plan-card.is-open{grid-column:1/-1;}
 .plan-card-accent{position:absolute;top:0;left:0;right:0;height:3px;}
 .plans-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;}
-.plan-day-chip{display:inline-flex;align-items:center;font-size:10px;font-family:'DM Mono',monospace;padding:3px 9px;border-radius:99px;background:var(--s3);color:var(--text);border:1px solid var(--border2);}
+.plan-day-chip{display:inline-flex;align-items:center;font-size:10px;font-family:'DM Mono',monospace;padding:3px 9px;border-radius:99px;background:var(--s3);color:var(--text);border:1px solid var(--border2);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .plan-card-hdr{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--border);}
-.plan-day-row{display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid var(--border);}
+.plan-card-detail{border-top:1px solid var(--border);padding:14px 18px;background:rgba(0,0,0,0.15);}
+.plan-day-row{display:block;padding:10px 0;border-bottom:1px solid var(--border);}
 .plan-day-row:last-child{border-bottom:none;}
-.plan-day-name{font-family:'DM Mono',monospace;font-size:11px;color:var(--text);width:34px;flex-shrink:0;font-weight:600;}
+.plan-day-name{font-family:'DM Mono',monospace;font-size:11px;color:var(--text);width:auto;max-width:100%;font-weight:600;line-height:1.4;overflow-wrap:anywhere;word-break:break-word;}
+.plan-day-focus{font-size:13px;font-weight:600;color:var(--text);margin-top:4px;line-height:1.4;overflow-wrap:anywhere;}
+.plan-day-rest{color:var(--muted);font-size:12px;font-style:italic;margin-top:4px;}
+.plan-day-ex{margin-top:6px;}
+.plan-ex-line{font-size:11px;color:var(--muted);line-height:1.45;margin-top:3px;overflow-wrap:anywhere;word-break:break-word;}
 .period-row{display:flex;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);}
 .period-row:last-child{border-bottom:none;}
 .cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:13px;cursor:pointer;transition:all 0.1s;color:var(--muted);}

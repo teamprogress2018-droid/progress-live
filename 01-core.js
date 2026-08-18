@@ -994,7 +994,7 @@ function formatPlanExerciseLine(ex,clientId){
 }
 window.formatPlanExerciseLine=formatPlanExerciseLine;
 
-function formatDayExerciseLines(exercises,clientId){
+function formatDayExerciseParts(exercises,clientId){
   const list=(exercises||[]).map(e=>parsePlanExercise(e));
   applySsLabels(list);
   const parts=[];
@@ -1011,7 +1011,12 @@ function formatDayExerciseLines(exercises,clientId){
       i++;
     }
   }
-  return parts.filter(Boolean).join(' · ');
+  return parts.filter(Boolean);
+}
+window.formatDayExerciseParts=formatDayExerciseParts;
+
+function formatDayExerciseLines(exercises,clientId){
+  return formatDayExerciseParts(exercises,clientId).join(' · ');
 }
 window.formatDayExerciseLines=formatDayExerciseLines;
 
