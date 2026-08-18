@@ -3921,7 +3921,7 @@ async function load(){
     await window.migrateTrainerOwnership?.([
       'clients','plans','sessions','exercises','workouts','tasks','kb','metricEntries','metricGroups',
       'messages','packages','invoices','formSends','reportHistory','forms','programs','checkins',
-      'notifications','autoflows','forumGroups','forumPosts','forumComments','odWorkouts','resources',
+      'notifications','autoflows','forumGroups','forumPosts','forumComments','odWorkouts','odProgress','resources',
       'settings','integrationConfigs','automationState','clientNotes','clientDocs','onboardingFlows','planTemplates','odPrograms','odProgress','onboardingActive','clientGroups','invites','clientAccounts','progressPhotos','coachVideos'
     ]);
   }catch(e){console.warn('Migracja trainerId:',e);}

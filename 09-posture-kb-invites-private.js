@@ -781,6 +781,74 @@ function odProgramProgressPct(clientId,prog){
   }));
   return Math.round(n/total*100);
 }
+function odProgramProgressDocId(clientId,progId){
+  return 'odpr_'+String(clientId||'').replace(/[^a-zA-Z0-9_-]/g,'_')+'_'+String(progId||'');
+}
+function odProgramWeekWorkoutKeys(prog,weekIdx){
+  const keys=[];
+  const w=(prog&&prog.weeks||[])[weekIdx];
+  if(!w)return keys;
+  (w.days||[]).forEach((d,di)=>{if(!d.rest&&d.workoutId)keys.push(odProgramSessionKey(prog.id,weekIdx,di));});
+  return keys;
+}
+function odProgramWeekComplete(clientId,prog,weekIdx){
+  const keys=odProgramWeekWorkoutKeys(prog,weekIdx);
+  if(!keys.length)return false;
+  const done=odProgramDoneSet(clientId,prog.id);
+  return keys.every(k=>done.has(k));
+}
+function odProgramNextSession(clientId,prog){
+  if(!prog)return null;
+  const done=odProgramDoneSet(clientId,prog.id);
+  let found=null;
+  (prog.weeks||[]).forEach((w,wi)=>(w.days||[]).forEach((d,di)=>{
+    if(found||d.rest||!d.workoutId)return;
+    const key=odProgramSessionKey(prog.id,wi,di);
+    if(!done.has(key))found={prog,weekIdx:wi,dayIdx:di,day:d,key,workoutId:d.workoutId};
+  }));
+  return found;
+}
+function odProgramContinueForClient(clientId){
+  if(typeof ensureODPrograms==='function')ensureODPrograms();
+  if(typeof ensureODWorkouts==='function')ensureODWorkouts();
+  const progs=allODPrograms().filter(p=>(typeof odProgramWorkoutCount==='function'?odProgramWorkoutCount(p)>0:p.status==='active')&&p.status!=='draft');
+  let pick=null;
+  let pickPct=-1;
+  progs.forEach(p=>{
+    const next=odProgramNextSession(clientId,p);
+    if(!next)return;
+    const pct=odProgramProgressPct(clientId,p);
+    if(pct>=100)return;
+    if(pct>0&&pct>=pickPct){pick=p;pickPct=pct;}
+    else if(!pick&&pct===0)pick=p;
+  });
+  if(!pick)pick=progs.find(p=>{const n=odProgramNextSession(clientId,p);return n&&odProgramProgressPct(clientId,p)<100;})||null;
+  if(!pick)return null;
+  const next=odProgramNextSession(clientId,pick);
+  if(!next)return null;
+  const workout=allODWorkouts().find(x=>x.id===next.workoutId)||null;
+  return {prog:pick,next,workout,pct:odProgramProgressPct(clientId,pick)};
+}
+function odProgramNotifyAfterToggle(clientId,progId,weekIdx,markedDone){
+  if(!markedDone||typeof addNotification!=='function')return;
+  const prog=allODPrograms().find(x=>x.id===progId);
+  if(!prog)return;
+  const c=(window.CL||[]).find(x=>x.id===clientId)||{name:'Klient'};
+  const pct=odProgramProgressPct(clientId,prog);
+  if(pct>=100){
+    addNotification('system','Program on-demand ukończony',c.name+' · '+prog.name,'ondemand','odprog_done_'+clientId+'_'+progId);
+    return;
+  }
+  if(odProgramWeekComplete(clientId,prog,weekIdx)){
+    const wk=(prog.weeks||[])[weekIdx];
+    addNotification('system','Tydzień programu on-demand',c.name+' · '+prog.name+' · '+(wk&&wk.label||('Tydzień '+(Number(weekIdx)+1))),'ondemand','odprog_week_'+clientId+'_'+progId+'_'+weekIdx);
+  }
+}
+window.odProgramProgressDocId=odProgramProgressDocId;
+window.odProgramWeekComplete=odProgramWeekComplete;
+window.odProgramNextSession=odProgramNextSession;
+window.odProgramContinueForClient=odProgramContinueForClient;
+window.odProgramNotifyAfterToggle=odProgramNotifyAfterToggle;
 function collectODProgramWeeksFromForm(){
   const weeks=[];
   document.querySelectorAll('#odp-weeks .odp-week').forEach(wEl=>{

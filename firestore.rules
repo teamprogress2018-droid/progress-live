@@ -127,6 +127,28 @@ service cloud.firestore {
         || (isSameTrainerClient() && resource.data.clientId == clientAcc().clientId);
     }
 
+    // Postęp programów on-demand — klient zapisuje tylko swoje odhaczenia (done[]).
+    match /odProgress/{docId} {
+      allow read: if isOwner()
+        || (hasClientAcc()
+          && resource.data.trainerId == clientAcc().trainerId
+          && resource.data.clientId == clientAcc().clientId);
+      allow create: if creatingAsOwner() || (
+        creatingAsLinkedClient()
+        && request.resource.data.programId is string
+        && request.resource.data.done is list
+      );
+      allow update: if (isOwner()
+          && request.resource.data.trainerId == resource.data.trainerId)
+        || (hasClientAcc()
+          && resource.data.clientId == clientAcc().clientId
+          && request.resource.data.clientId == clientAcc().clientId
+          && request.resource.data.programId == resource.data.programId
+          && request.resource.data.trainerId == clientAcc().trainerId
+          && request.resource.data.done is list);
+      allow delete: if isOwner();
+    }
+
     match /{collection}/{docId} {
       allow read: if isOwner() || isLinkedClient();
       allow create: if creatingAsOwner() || creatingAsLinkedClient();

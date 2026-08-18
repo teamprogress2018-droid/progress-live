@@ -154,8 +154,9 @@ function toggleODProgramDay(progId,weekIdx,dayIdx){
   window.OD_PROGRESS=window.OD_PROGRESS||[];
   let rec=typeof odProgramProgressFor==='function'?odProgramProgressFor(cid,progId):null;
   if(!rec){
+    const docId=typeof odProgramProgressDocId==='function'?odProgramProgressDocId(cid,progId):((typeof newId==='function'?newId('odpr'):('odpr_'+Date.now())));
     rec=(typeof withTrainer==='function'?withTrainer:x=>x)({
-      id:(typeof newId==='function'?newId('odpr'):('odpr_'+Date.now())),
+      id:docId,
       clientId:cid,programId:progId,done:[],updatedAt:new Date().toISOString()
     });
     window.OD_PROGRESS.push(rec);
@@ -163,10 +164,12 @@ function toggleODProgramDay(progId,weekIdx,dayIdx){
   const key=typeof odProgramSessionKey==='function'?odProgramSessionKey(progId,weekIdx,dayIdx):(progId+':'+weekIdx+':'+dayIdx);
   rec.done=rec.done||[];
   const i=rec.done.indexOf(key);
+  let markedDone=false;
   if(i>=0)rec.done.splice(i,1);
-  else rec.done.push(key);
+  else{rec.done.push(key);markedDone=true;}
   rec.updatedAt=new Date().toISOString();
   if(typeof persistById==='function')persistById('odProgress',rec);
+  if(markedDone&&typeof odProgramNotifyAfterToggle==='function')odProgramNotifyAfterToggle(cid,progId,weekIdx,true);
   if(window._clientAppMode){
     if(typeof renderClientLive==='function')renderClientLive();
   }else if(typeof setCapScreen==='function'){
@@ -174,6 +177,20 @@ function toggleODProgramDay(progId,weekIdx,dayIdx){
   }
 }
 window.toggleODProgramDay=toggleODProgramDay;
+
+function openODProgramContinue(clientId){
+  const cid=clientId||window._clientId||(window.CL[0]&&window.CL[0].id);
+  const cont=typeof odProgramContinueForClient==='function'?odProgramContinueForClient(cid):null;
+  if(!cont){
+    if(typeof notify==='function')notify('Brak programu do kontynuacji');
+    return;
+  }
+  window._cliveOdProgId=cont.prog.id;
+  window._capOdTab='programs';
+  if(cont.workout&&typeof openODWorkout==='function')openODWorkout(cont.workout.id);
+  else if(typeof openODProgramClient==='function')openODProgramClient(cont.prog.id);
+}
+window.openODProgramContinue=openODProgramContinue;
 
 function capClientPlan(c){
   return (window.PL||[])
@@ -436,6 +453,20 @@ function capScreenHTML(scr,c){
       })()}
       ${(()=>{
         if(!capClientSectionVisible('ondemand'))return '';
+        const cont=typeof odProgramContinueForClient==='function'?odProgramContinueForClient(c.id):null;
+        if(cont&&cont.pct>0){
+          const w=cont.workout;
+          const thumb=w&&typeof odThumbUrl==='function'?odThumbUrl(w):'';
+          return `<div style="background:linear-gradient(135deg,rgba(225,31,46,0.22),rgba(225,31,46,0.08));border:1px solid rgba(225,31,46,0.45);border-radius:18px;padding:16px;margin-bottom:14px;">
+          <div style="font-size:10px;font-family:'DM Mono',monospace;color:${accent};text-transform:uppercase;margin-bottom:6px;">▶ KONTYNUUJ PROGRAM</div>
+          <div style="font-size:15px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">${escHtml(cont.prog.name||'Program')}</div>
+          <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:10px;">${escHtml(cont.next.day.label||(w&&w.name)||'Następny trening')} · ${cont.pct}% ukończone</div>
+          <div style="height:4px;background:${CAP_S3};border-radius:99px;overflow:hidden;margin-bottom:12px;"><div style="height:100%;width:${cont.pct}%;background:${accent};"></div></div>
+          ${thumb?`<div style="height:72px;border-radius:12px;background:#000 url('${escHtml(thumb)}') center/cover no-repeat;margin-bottom:10px;"></div>`:''}
+          <button type="button" class="cap-btn-primary" style="padding:12px;font-size:14px;width:100%;margin-bottom:8px;" onclick="openODProgramContinue('${escHtml(c.id)}')">▶ Kontynuuj trening</button>
+          <button type="button" class="cap-btn-primary" style="padding:10px;font-size:13px;width:100%;background:${CAP_S3};" onclick="openODProgramClient('${escHtml(cont.prog.id)}')">Cały program</button>
+        </div>`;
+        }
         const odList=(typeof allODWorkouts==='function'?allODWorkouts():(window.OD_WORKOUTS||[])).slice(0,2);
         if(!odList.length)return '';
         return `<div style="background:linear-gradient(135deg,rgba(225,31,46,0.18),rgba(225,31,46,0.05));border:1px solid rgba(225,31,46,0.35);border-radius:18px;padding:16px;margin-bottom:14px;">

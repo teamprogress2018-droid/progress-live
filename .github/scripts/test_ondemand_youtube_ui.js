@@ -132,6 +132,26 @@ function ok(name, cond, extra) {
   ok('live nav ondemand', liveNav.ondemandBtn);
   ok('live home featured od', liveNav.homeOd);
 
+  await page.evaluate(() => {
+    window.OD_PROGRESS = [{
+      id: 'odpr_c-anna_op2',
+      clientId: 'c-anna',
+      programId: 'op2',
+      done: ['op2:0:0'],
+      updatedAt: new Date().toISOString()
+    }];
+    if (typeof ensureODPrograms === 'function') ensureODPrograms();
+    if (typeof renderClientLive === 'function') renderClientLive();
+  });
+  await page.waitForTimeout(250);
+  const liveContinue = await page.evaluate(() => ({
+    text: (document.getElementById('clive-screen-content') || {}).innerText || '',
+    html: (document.getElementById('clive-screen-content') || {}).innerHTML || ''
+  }));
+  await page.screenshot({ path: path.join(shotDir, 'client_live_home_continue_program.png') });
+  ok('live home continue card', /KONTYNUUJ PROGRAM/i.test(liveContinue.text));
+  ok('live home continue play', /openODProgramContinue/.test(liveContinue.html));
+
   await page.click('#clive-bn-ondemand');
   await page.waitForTimeout(300);
   const liveOd = await page.evaluate(() => {
@@ -175,6 +195,8 @@ function ok(name, cond, extra) {
   ok('live odprogram toggle', /toggleODProgramDay/.test((await page.evaluate(() => (document.getElementById('clive-screen-content') || {}).innerHTML || ''))));
 
   await page.evaluate(() => {
+    window.OD_PROGRESS = [];
+    if (typeof openODProgramClient === 'function') openODProgramClient('op2');
     const btn = document.querySelector('#clive-screen-content button[onclick*="toggleODProgramDay"]');
     if (btn) btn.click();
   });
