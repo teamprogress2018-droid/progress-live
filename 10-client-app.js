@@ -437,6 +437,13 @@ window.cwPrevEx=cwPrevEx;
 window.cwRate=cwRate;
 window.cwFinish=cwFinish;
 window.cwSwapEx=cwSwapEx;
+
+function cwToggleVideo(){
+  const cw=window._cw;if(!cw)return;
+  cw.showVideo=!cw.showVideo;
+  cwRender();
+}
+window.cwToggleVideo=cwToggleVideo;
 window.ppPick=ppPick;
 window.ppSave=ppSave;
 window.ppDelete=ppDelete;
@@ -549,7 +556,7 @@ function cwCheckSet(setIdx){
     cwRender();
     return;
   }
-  if(cw.exIdx<cw.exercises.length-1){cw.exIdx+=1;cw.phase='exercise';cwRender();return;}
+  if(cw.exIdx<cw.exercises.length-1){cw.exIdx+=1;cw.showVideo=false;cw.phase='exercise';cwRender();return;}
   cw.phase='finish';cwRender();
 }
 
@@ -562,13 +569,13 @@ function cwSkipRest(){
 
 function cwSkipEx(){
   const cw=window._cw;if(!cw)return;
-  if(cw.exIdx<cw.exercises.length-1){cw.exIdx+=1;cw.phase='exercise';cwRender();}
+  if(cw.exIdx<cw.exercises.length-1){cw.exIdx+=1;cw.showVideo=false;cw.phase='exercise';cwRender();}
   else{cw.phase='finish';cwRender();}
 }
 
 function cwPrevEx(){
   const cw=window._cw;if(!cw||cw.exIdx<=0)return;
-  cw.exIdx-=1;cw.phase='exercise';cwRender();
+  cw.exIdx-=1;cw.showVideo=false;cw.phase='exercise';cwRender();
 }
 
 function cwRate(v){
@@ -599,6 +606,13 @@ function cwSwapEx(name){
       if(prev.reps!=null&&prev.reps!=='')s.reps=String(prev.reps);
     });
   }
+  if(typeof resolveCoachMedia==='function'){
+    const coach=resolveCoachMedia({name,note:cur.note,video:name===(cur.plannedName||orig)?(cur.planVideo||''):''});
+    cur.libTip=coach.libTip;
+    cur.video=coach.video;
+    cur.videoEmbed=coach.videoEmbed;
+  }
+  cw.showVideo=false;
   if(typeof notify==='function')notify('Zamieniono na: '+name);
   cwRender();
 }
@@ -614,7 +628,7 @@ function cwRender(){
       <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;margin-bottom:6px;">${escHtml(cw.dayName)}</div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:18px;">${cw.exercises.length} ćwiczeń · odhacz serie, timer przerwy sam się włączy</div>
       ${cw.exercises.map((ex,i)=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:10px 0;border-top:1px solid rgba(255,255,255,.06);">
-        <div style="font-size:13px;font-weight:600;">${i+1}. ${escHtml(ex.name)}</div>
+        <div style="font-size:13px;font-weight:600;">${i+1}. ${escHtml(ex.name)}${ex.note?' 💡':''}${ex.video?' ▶️':''}</div>
         <div style="font-size:11px;color:var(--muted);white-space:nowrap;">${ex.sets.length} serii</div>
       </div>`).join('')}
       <button type="button" class="cap-btn-primary" style="margin-top:20px;padding:16px;font-size:16px;" onclick="cwBegin()">▶ Start</button>`;
@@ -655,6 +669,7 @@ function cwRender(){
     <div style="font-size:20px;font-weight:700;margin-bottom:6px;">${escHtml(ex.name)}</div>
     ${(ex.plannedName&&ex.plannedName!==ex.name)?`<div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Z planu: ${escHtml(ex.plannedName)}</div>`:''}
     ${(ex.alts||[]).length?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px;">${ex.alts.map(a=>`<button type="button" class="btn btn-ghost btn-sm" onclick='cwSwapEx(${JSON.stringify(a)})'>↻ ${escHtml(a)}</button>`).join('')}</div>`:''}
+    ${typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:!!cw.showVideo,toggleFn:'cwToggleVideo()'}):''}
     ${ex.lastKg?`<div style="font-size:11px;color:var(--muted);margin-bottom:12px;">Ostatnio: ${escHtml(String(ex.lastKg))} kg${ex.lastReps?' × '+escHtml(String(ex.lastReps)):''}</div>`:'<div style="height:8px;"></div>'}
     <div style="height:6px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden;margin-bottom:16px;">
       <div style="height:100%;width:${Math.round((cw.exIdx+doneSets/Math.max(1,ex.sets.length))/cw.exercises.length*100)}%;background:${accent};"></div>

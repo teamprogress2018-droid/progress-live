@@ -297,7 +297,11 @@ function addRow(dayId){
     +'<input type="text" placeholder="2min" class="ex-inp" data-f="rest">'
     +'<input type="text" placeholder="2-0-2" class="ex-inp" data-f="tempo">'
     +'<button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--muted2);font-size:18px;cursor:pointer;">×</button>'
-    +'<input type="text" placeholder="Zamiennik (opcjonalnie, np. hantle zamiast sztangi)" class="ex-inp" data-f="alt" style="grid-column:1/-1;font-size:11px;">';
+    +'<input type="text" placeholder="Zamiennik (opcjonalnie, np. hantle zamiast sztangi)" class="ex-inp" data-f="alt" style="grid-column:1/-1;font-size:11px;">'
+    +'<div class="ex-row-coach">'
+    +'<input type="text" placeholder="Wskazówka dla klienta (np. łopatki ściągnięte)" class="ex-inp ex-inp-name" data-f="note" style="font-size:11px;">'
+    +'<input type="url" placeholder="Film: YouTube / Vimeo" class="ex-inp ex-inp-name" data-f="video" style="font-size:11px;" title="Link do filmu techniki">'
+    +'</div>';
   rows.appendChild(div);
 }
 function updateExDl(){
@@ -357,6 +361,8 @@ function editPlan(id){
       set('rest',parsed.rest||'');
       set('tempo',parsed.tempo||'');
       set('alt',(ex&&typeof ex==='object'&&ex.alt)||parsed.alt||(typeof altsForExercise==='function'?altsForExercise(parsed.name).join(', '):''));
+      set('note',parsed.note||(ex&&typeof ex==='object'&&(ex.note||ex.notes))||'');
+      set('video',parsed.video||(ex&&typeof ex==='object'&&ex.video)||'');
     });
   });
   const titleEl=document.querySelector('#screen-builder .topbar-title');
@@ -383,6 +389,7 @@ async function savePlan(){
       if(!n)return;
       const setN=g('sets')||'3';
       const alt=g('alt').trim()||(typeof altsForExercise==='function'?altsForExercise(n).join(', '):'');
+      const video=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl(g('video')):g('video').trim();
       exercises.push({
         name:n,
         sets:setN,
@@ -392,7 +399,9 @@ async function savePlan(){
         rir:g('rir'),
         rest:g('rest')||'90s',
         tempo:g('tempo'),
-        alt
+        alt,
+        note:g('note').trim(),
+        video
       });
       sets+=parseInt(setN,10)||3;
     });
@@ -476,7 +485,7 @@ function renderPlans(){
       <div id="plan-detail-${p.id}" style="display:none;border-top:1px solid var(--border);padding:14px 18px;background:rgba(0,0,0,0.15);">
         ${(p.days||[]).map(d=>`<div class="plan-day-row" style="padding:9px 0;">
           <div class="plan-day-name">${d.day||d.dayName||'—'}</div>
-          ${d.rest?'<div style="color:var(--muted);font-size:12px;font-style:italic;">— Odpoczynek</div>':`<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;color:var(--text);">${d.muscles||d.focus||d.name||''}</div><div style="font-size:11px;color:var(--muted);margin-top:2px;line-height:1.5;">${(d.exercises||[]).map(e=>{const p=typeof parsePlanExercise==='function'?parsePlanExercise(e):(typeof e==='string'?{name:e}:e);return (p.name||'')+(p.sets?' '+p.sets+'×'+p.reps:'')+(p.kg?' @'+p.kg+'kg':'');}).filter(Boolean).join(' · ')}</div></div>`}
+          ${d.rest?'<div style="color:var(--muted);font-size:12px;font-style:italic;">— Odpoczynek</div>':`<div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;color:var(--text);">${d.muscles||d.focus||d.name||''}</div><div style="font-size:11px;color:var(--muted);margin-top:2px;line-height:1.5;">${(d.exercises||[]).map(e=>{const x=typeof parsePlanExercise==='function'?parsePlanExercise(e):(typeof e==='string'?{name:e}:e);return (x.name||'')+(x.sets?' '+x.sets+'×'+x.reps:'')+(x.kg?' @'+x.kg+'kg':'')+(x.note?' 💡':'')+(x.video?' ▶️':'');}).filter(Boolean).join(' · ')}</div></div>`}
         </div>`).join('')}
       </div>
     </div>`;

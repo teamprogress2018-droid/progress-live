@@ -402,6 +402,7 @@ function openM(id){
     if(saveBtn)saveBtn.textContent='Zapisz';
     document.getElementById('ex-name').value='';
     document.getElementById('ex-desc').value='';
+    const ev=document.getElementById('ex-video');if(ev)ev.value='';
   }
   if(id==='m-task'){
     window._editingTaskId=null;
@@ -492,9 +493,83 @@ window.addEventListener('beforeunload',e=>{
   }
 });
 
+function normalizeCoachVideoUrl(raw){
+  const s=String(raw||'').trim();
+  if(!s)return '';
+  if(/^(javascript|data|vbscript):/i.test(s))return '';
+  let url=s;
+  if(!/^https?:\/\//i.test(url)){
+    if(/^(www\.|youtube\.|youtu\.be|vimeo\.)/i.test(url))url='https://'+url;
+    else return '';
+  }
+  if(!/^https?:\/\//i.test(url))return '';
+  return url;
+}
+window.normalizeCoachVideoUrl=normalizeCoachVideoUrl;
+
+function coachVideoEmbed(url){
+  const u=normalizeCoachVideoUrl(url);
+  if(!u)return '';
+  let id='';
+  let m=u.match(/[?&]v=([A-Za-z0-9_-]{11})/);
+  if(m)id=m[1];
+  if(!id){m=u.match(/youtu\.be\/([A-Za-z0-9_-]{11})/);if(m)id=m[1];}
+  if(!id){m=u.match(/youtube\.com\/(?:embed|shorts)\/([A-Za-z0-9_-]{11})/);if(m)id=m[1];}
+  if(id)return 'https://www.youtube-nocookie.com/embed/'+id;
+  m=u.match(/vimeo\.com\/(?:video\/)?(\d+)/i);
+  if(m)return 'https://player.vimeo.com/video/'+m[1];
+  return '';
+}
+window.coachVideoEmbed=coachVideoEmbed;
+
+function libExerciseByName(name){
+  const key=String(name||'').toLowerCase().replace(/\s+/g,' ').trim();
+  if(!key)return null;
+  const lib=typeof allExercises==='function'?allExercises():[].concat(window.EX||[],window.DEF_EX||[]);
+  return lib.find(e=>String(e.name||'').toLowerCase().replace(/\s+/g,' ').trim()===key)||null;
+}
+window.libExerciseByName=libExerciseByName;
+
+function resolveCoachMedia(parsed){
+  const ex=parsed&&typeof parsed==='object'?parsed:{name:parsed};
+  const name=ex.name||'';
+  const lib=libExerciseByName(name);
+  const note=String(ex.note||ex.notes||ex.cue||'').trim();
+  let video=normalizeCoachVideoUrl(ex.video||ex.url||'');
+  if(!video&&lib)video=normalizeCoachVideoUrl(lib.video||'');
+  let libTip='';
+  if(!note&&lib){
+    libTip=String(lib.tip||lib.desc||'').trim();
+    if(libTip.length>160)libTip=libTip.slice(0,157)+'…';
+  }
+  return{note,libTip,video,videoEmbed:coachVideoEmbed(video)};
+}
+window.resolveCoachMedia=resolveCoachMedia;
+
+function coachMediaHtml(ex,opts){
+  opts=opts||{};
+  const note=(ex&&ex.note)||'';
+  const libTip=(ex&&ex.libTip)||'';
+  const video=(ex&&ex.video)||'';
+  const embed=(ex&&ex.videoEmbed)||'';
+  const show=!!opts.showVideo;
+  const toggle=opts.toggleFn||'';
+  let html='';
+  if(note)html+=`<div class="cw-coach-note">${escHtml(note)}</div>`;
+  else if(libTip)html+=`<div style="font-size:11px;color:var(--muted);margin:0 0 10px;line-height:1.45;">${escHtml(libTip)}</div>`;
+  if(video){
+    html+=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px;">`;
+    if(toggle)html+=`<button type="button" class="btn btn-ghost btn-sm" onclick="${toggle}">${show?'▾ Ukryj film':'▶ Film techniki'}</button>`;
+    html+=`<a class="btn btn-ghost btn-sm" href="${escHtml(video)}" target="_blank" rel="noopener noreferrer">↗ Otwórz film</a></div>`;
+    if(show&&embed)html+=`<div class="cw-video-wrap"><iframe src="${escHtml(embed)}" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen title="Film techniki"></iframe></div>`;
+  }
+  return html;
+}
+window.coachMediaHtml=coachMediaHtml;
+
 /** Ćwiczenie z planu: obiekt AI albo string z kreatora ("Wyciskanie 4x8"). */
 function parsePlanExercise(ex){
-  if(ex==null)return{name:'Ćwiczenie',sets:'3',reps:'10',rest:'90s',kg:''};
+  if(ex==null)return{name:'Ćwiczenie',sets:'3',reps:'10',rest:'90s',kg:'',note:'',video:''};
   if(typeof ex==='string'){
     const raw=ex.trim();
     const m=raw.match(/^(.*?)(?:\s+(\d+)\s*[x×]\s*(\d+(?:\s*-\s*\d+)?))\s*$/i);
@@ -503,7 +578,9 @@ function parsePlanExercise(ex){
       sets:(m&&m[2])||'3',
       reps:((m&&m[3])||'10').replace(/\s/g,''),
       rest:'90s',
-      kg:''
+      kg:'',
+      note:'',
+      video:''
     };
   }
   return{
@@ -515,7 +592,9 @@ function parsePlanExercise(ex){
     rpe:ex.rpe||ex.rir||'',
     rir:ex.rir||'',
     tempo:ex.tempo||'',
-    alt:ex.alt||''
+    alt:ex.alt||'',
+    note:String(ex.note||ex.notes||ex.cue||'').trim(),
+    video:normalizeCoachVideoUrl(ex.video||ex.url||'')
   };
 }
 window.parsePlanExercise=parsePlanExercise;
@@ -603,12 +682,18 @@ function mapPlanExercisesForClient(rawEx,clientId){
     const nSets=parseInt(ex.sets,10)||3;
     const defaultReps=ex.reps||'10';
     const rest=parseRestSeconds(ex.rest);
+    const coach=resolveCoachMedia(ex);
     return{
       name:ex.name,
       plannedName:ex.name,
       alts:altsForExercise(ex.name,ex.alt),
       restSec:rest,
       rpe:ex.rpe||'',
+      note:coach.note,
+      libTip:coach.libTip,
+      planVideo:normalizeCoachVideoUrl(ex.video),
+      video:coach.video,
+      videoEmbed:coach.videoEmbed,
       lastKg:last&&last.kg!=null&&last.kg!==''?last.kg:(ex.kg||''),
       lastReps:last&&last.reps!=null&&last.reps!==''?last.reps:'',
       sets:Array.from({length:nSets},(_,i)=>{
