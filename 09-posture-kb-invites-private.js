@@ -1007,30 +1007,61 @@ const RES_CAT_COLORS={odżywianie:'var(--teal)',trening:'var(--accent)',regenera
 const RES_CAT_LABELS={odżywianie:'🥗 Odżywianie i Dieta',trening:'🏋️ Trening Siłowy',regeneracja:'🩹 Rehabilitacja i Mobilność',psychologia:'🧠 Psychologia i Mindset',muzyka:'🎧 Muzyka do słuchania'};
 
 const DEMO_RESOURCES=[
-  {id:'r1',name:'Dobre źródła białka',type:'link',cat:'odżywianie',url:'https://www.health.harvard.edu',desc:'Harvard Health — kompleksowy przewodnik po źródłach białka w diecie.',coll:'edu'},
-  {id:'r2',name:'Znaczenie białka w diecie',type:'link',cat:'odżywianie',url:'https://nutritionsource.hsph.harvard.edu',desc:'Dlaczego białko jest kluczowe dla budowy mięśni i regeneracji.',coll:'edu'},
-  {id:'r3',name:'Mikroelementy — przewodnik',type:'link',cat:'odżywianie',url:'https://www.healthline.com',desc:'Kompleksowy przewodnik po witaminach i minerałach.',coll:'edu'},
-  {id:'r4',name:'Znaczenie błonnika',type:'link',cat:'odżywianie',url:'https://www.houstonmethodist.org',desc:'Jak błonnik wpływa na zdrowie jelit i metabolizm.',coll:'edu'},
-  {id:'r5',name:'Fitness Myths — Real Coaching',type:'podcast',cat:'trening',url:'https://open.spotify.com',desc:'Podcast obalający najpopularniejsze mity fitnessu.',coll:'podcasts'},
-  {id:'r6',name:'Trening siłowy i rehabilitacja',type:'podcast',cat:'regeneracja',url:'https://open.spotify.com',desc:'Jak łączyć trening siłowy z profilaktyką urazów.',coll:'podcasts'},
-  {id:'r7',name:'Mobilność i regeneracja',type:'podcast',cat:'regeneracja',url:'https://open.spotify.com',desc:'Praktyczne techniki poprawy mobilności i recovery.',coll:'podcasts'},
-  {id:'r8',name:'Psychologia w sporcie',type:'podcast',cat:'psychologia',url:'https://open.spotify.com',desc:'Mindfulness, nawyki i psychologia osiągania celów.',coll:'podcasts'},
-  {id:'r9',name:'Coaching, Nawyki i Mindset',type:'podcast',cat:'psychologia',url:'https://open.spotify.com',desc:'Budowanie trwałych nawyków i mentalności sportowca.',coll:'podcasts'},
-  {id:'r10',name:'Muzyka do treningu — Workout',type:'video',cat:'muzyka',url:'https://www.youtube.com',desc:'Energetyczna playlista YouTube do treningu siłowego.',coll:'music'},
-  {id:'r11',name:'Spotify Playlist — Cardio',type:'link',cat:'muzyka',url:'https://open.spotify.com',desc:'Najlepsza playlista do cardio i biegania.',coll:'music'},
-  {id:'r12',name:'Fun Workout Mix',type:'video',cat:'muzyka',url:'https://www.youtube.com',desc:'Motywujący mix muzyczny do każdego treningu.',coll:'music'},
-  {id:'r13',name:'5k Training Mix',type:'video',cat:'muzyka',url:'https://www.youtube.com',desc:'Specjalny mix dla biegaczy przygotowujących się do 5km.',coll:'music'},
-  {id:'r14',name:'Running Motivation Playlist',type:'link',cat:'muzyka',url:'https://www.youtube.com',desc:'Playlist motywacyjna do biegania.',coll:'music'},
-  {id:'r15',name:'Mindfulness dla sportowców',type:'podcast',cat:'psychologia',url:'https://open.spotify.com',desc:'Techniki mindfulness poprawiające wydajność treningową.',coll:'podcasts'},
+  {id:'r1',name:'Dobre źródła białka',type:'link',cat:'odżywianie',url:'https://www.health.harvard.edu/nutrition/high-protein-foods-the-best-protein-sources-to-include-in-a-healthy-diet',desc:'Harvard Health — darmowy przewodnik po źródłach białka w diecie.',coll:'edu'},
+  {id:'r2',name:'Znaczenie białka w diecie',type:'link',cat:'odżywianie',url:'https://nutritionsource.hsph.harvard.edu/what-should-you-eat/protein/',desc:'Harvard Nutrition Source — po co białko w budowie mięśni i regeneracji.',coll:'edu'},
+  {id:'r3',name:'Mikroelementy — przewodnik',type:'link',cat:'odżywianie',url:'https://www.healthline.com/nutrition/micronutrients',desc:'Darmowy przewodnik po witaminach i minerałach (bez logowania).',coll:'edu'},
+  {id:'r4',name:'Znaczenie błonnika',type:'link',cat:'odżywianie',url:'https://www.houstonmethodist.org/blog/articles/2022/sep/why-is-fiber-good-for-you/',desc:'Jak błonnik wpływa na zdrowie jelit i metabolizm.',coll:'edu'},
+  {id:'r5',name:'Mind Pump — trening siłowy (YouTube)',type:'podcast',cat:'trening',url:'https://www.youtube.com/@MindPumpTV',desc:'Darmowy podcast/wideo o treningu siłowym i coachingu. Bez Spotify Premium.',coll:'podcasts'},
+  {id:'r6',name:'Barbell Medicine — siła i rehab (YouTube)',type:'podcast',cat:'regeneracja',url:'https://www.youtube.com/@BarbellMedicine',desc:'Jak łączyć trening siłowy z profilaktyką urazów. Kanał YouTube, darmowy dostęp.',coll:'podcasts'},
+  {id:'r7',name:'Yoga With Adriene — mobilność (YouTube)',type:'podcast',cat:'regeneracja',url:'https://www.youtube.com/@yogawithadriene',desc:'Darmowe sesje mobilności i regeneracji na YouTube.',coll:'podcasts'},
+  {id:'r8',name:'Huberman Lab — mindset i sen (YouTube)',type:'podcast',cat:'psychologia',url:'https://www.youtube.com/@hubermanlab',desc:'Nauka o śnie, stresie i nawykach. Pełne odcinki za darmo na YouTube.',coll:'podcasts'},
+  {id:'r9',name:'Andy Galpin — fizjologia treningu (YouTube)',type:'podcast',cat:'psychologia',url:'https://www.youtube.com/@andygalpin',desc:'Wyjaśnienia adaptacji, recovery i wydolności. Darmowy kanał YouTube.',coll:'podcasts'},
+  {id:'r10',name:'The Workout Mix — muzyka na siłownię',type:'video',cat:'muzyka',url:'https://www.youtube.com/@TheWorkoutMix',desc:'Darmowe mixy treningowe na YouTube — bez konta Premium.',coll:'music'},
+  {id:'r11',name:'Power Music Workout — cardio (YouTube)',type:'video',cat:'muzyka',url:'https://www.youtube.com/@PowerMusicWorkout',desc:'Darmowa muzyka do cardio i biegania na YouTube, zamiast Spotify.',coll:'music'},
+  {id:'r12',name:'NCS — muzyka bez copyrightu',type:'video',cat:'muzyka',url:'https://www.youtube.com/@NoCopyrightSounds',desc:'Darmowe utwory do treningu, legalne do odtwarzania bez subskrypcji.',coll:'music'},
+  {id:'r13',name:'FoundMyFitness — odżywianie (YouTube)',type:'podcast',cat:'odżywianie',url:'https://www.youtube.com/@FoundMyFitness',desc:'Rhonda Patrick — nauka o diecie i regeneracji. Darmowe odcinki na YouTube.',coll:'podcasts'},
+  {id:'r14',name:'The Proof — dieta i zdrowie (YouTube)',type:'podcast',cat:'odżywianie',url:'https://www.youtube.com/@TheProofWithSimonHill',desc:'Podcast żywieniowy na YouTube. Bez płatnej aplikacji muzycznej.',coll:'podcasts'},
+  {id:'r15',name:'Renaissance Periodization (YouTube)',type:'podcast',cat:'trening',url:'https://www.youtube.com/@RenaissancePeriodization',desc:'Dr Mike Israetel — hipertrofia i programowanie. Darmowy kanał YouTube.',coll:'podcasts'},
 ];
 
 const DEMO_COLLECTIONS=[
-  {id:'edu',name:'Poradniki edukacyjne',icon:'📚',desc:'Artykuły i przewodniki o żywieniu, treningu i zdrowiu',count:4,color:'var(--blue)',clients:0},
-  {id:'music',name:'Muzyka do treningu',icon:'🎵',desc:'Playlisty i mixy muzyczne do różnych typów treningu',count:5,color:'var(--accent)',clients:0},
-  {id:'podcasts',name:'Podcasty fitness',icon:'🎧',desc:'Najlepsze podcasty o treningu, żywieniu i psychologii sportu',count:6,color:'var(--purple)',clients:0},
+  {id:'edu',name:'Poradniki edukacyjne',icon:'📚',desc:'Artykuły i przewodniki o żywieniu, treningu i zdrowiu (darmowe strony)',count:4,color:'var(--blue)',clients:0},
+  {id:'music',name:'Muzyka do treningu',icon:'🎵',desc:'Mixy treningowe na YouTube — darmowe, bez Spotify Premium',count:3,color:'var(--accent)',clients:0},
+  {id:'podcasts',name:'Podcasty fitness na YouTube',icon:'🎧',desc:'Darmowe podcasty i kanały YouTube o treningu, diecie i mindsetcie',count:8,color:'var(--purple)',clients:0},
 ];
+window.DEMO_RESOURCES=DEMO_RESOURCES;
+window.DEMO_COLLECTIONS=DEMO_COLLECTIONS;
 
 function allResources(){return window.USER_RESOURCES||[];}
+
+function isGenericSpotifyUrl(url){
+  const s=String(url||'').trim().toLowerCase();
+  if(!/spotify\.com/.test(s))return false;
+  return !/\/(playlist|episode|show|album|track|user)\//.test(s);
+}
+
+function migrateSpotifyDemoResources(){
+  const list=window.USER_RESOURCES||[];
+  const demoById={};
+  DEMO_RESOURCES.forEach(r=>{demoById[r.id]=r;});
+  let changed=0;
+  list.forEach(r=>{
+    if(!isGenericSpotifyUrl(r.url))return;
+    const demo=demoById[r.id];
+    if(demo){
+      r.url=demo.url;r.name=demo.name;r.desc=demo.desc;r.type=demo.type;r.cat=demo.cat;r.coll=demo.coll;
+    }else{
+      r.url='https://www.youtube.com/results?search_query='+encodeURIComponent((r.name||'fitness podcast')+' youtube');
+      r.type=r.type==='link'?'video':r.type;
+      r.desc=(r.desc?r.desc+' ':'')+'(YouTube — darmowy dostęp, bez Spotify Premium)';
+    }
+    changed++;
+    if(typeof persistById==='function')persistById('resources',r);
+  });
+  return changed;
+}
+window.isGenericSpotifyUrl=isGenericSpotifyUrl;
+window.migrateSpotifyDemoResources=migrateSpotifyDemoResources;
 
 function setResTab(t){
   resTab=t;
