@@ -877,8 +877,25 @@ function renderCPMetrics(c){
   initDemoEntries(c.id);
   const groups=allMetricGroups();
   const entries=METRIC_ENTRIES.filter(e=>e.clientId===c.id);
+  const prs=typeof clientExercisePRs==='function'?clientExercisePRs(c.id).slice(0,10):[];
   document.getElementById('cp-body').innerHTML=`
     <div class="cp-section-title">POMIARY CIAŁA</div>
+    ${prs.length?`<div class="card-sm" style="margin-bottom:12px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+        <span style="font-size:20px;">🏆</span>
+        <div style="font-size:13px;font-weight:700;">Rekordy z treningów</div>
+      </div>
+      ${prs.map(p=>{
+        const est=typeof roundToPlate==='function'?roundToPlate(p.epley):Math.round(p.epley);
+        return `<div style="display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-top:1px solid var(--border);font-size:12px;">
+          <div>
+            <div style="font-weight:600;">${escHtml(p.name)}</div>
+            <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${escHtml(p.date||'')}${est?' · szac. 1RM '+escHtml(String(est))+' kg':''}</div>
+          </div>
+          <div style="font-weight:700;color:var(--accent);white-space:nowrap;">${escHtml(formatSetLoad(p.kg,p.reps))}</div>
+        </div>`;
+      }).join('')}
+    </div>`:''}
     ${groups.map(g=>{
       const ge=entries.filter(e=>e.groupId===g.id).sort((a,b)=>b.date.localeCompare(a.date));
       if(!ge.length)return '';

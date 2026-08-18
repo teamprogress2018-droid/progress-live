@@ -300,8 +300,12 @@ function addRow(dayId){
     +'<div class="ex-row-extra">'
     +'<input type="text" placeholder="Zamiennik (opcjonalnie, np. hantle zamiast sztangi)" class="ex-inp ex-inp-name" data-f="alt" style="font-size:11px;">'
     +'<input type="number" placeholder="%1RM" class="ex-inp" data-f="pct1rm" min="1" max="150" step="0.5" title="Procent 1RM — kg z Pomiary → Siła bazowa" oninput="builderPreviewKg(this.closest(\'.ex-row\'))">'
+    +'<div class="ex-kind-btns">'
     +'<input type="hidden" data-f="ss" value="">'
+    +'<input type="hidden" data-f="emom" value="">'
     +'<button type="button" class="ex-ss-btn" onclick="builderToggleSs(this)" title="Połącz z następnym ćwiczeniem w super-serię">⚡ SS</button>'
+    +'<button type="button" class="ex-ss-btn ex-emom-btn" onclick="builderToggleEmom(this)" title="EMOM: każda seria na starcie minuty, reszta minuty to przerwa">EMOM</button>'
+    +'</div>'
     +'</div>';
   rows.appendChild(div);
 }
@@ -357,9 +361,36 @@ function builderToggleSs(btn){
     while(used.has(letter))letter=String.fromCharCode(letter.charCodeAt(0)+1);
   }
   set(row,letter);set(next,letter);
+  const em1=row.querySelector('[data-f="emom"]');
+  const em2=next.querySelector('[data-f="emom"]');
+  if(em1)em1.value='';
+  if(em2)em2.value='';
+  if(typeof builderPaintEmom==='function'){builderPaintEmom(row);builderPaintEmom(next);}
   builderPaintSs(box);
 }
 window.builderToggleSs=builderToggleSs;
+function builderToggleEmom(btn){
+  const row=btn&&btn.closest('.ex-row');if(!row)return;
+  const el=row.querySelector('[data-f="emom"]');if(!el)return;
+  el.value=el.value==='1'?'':'1';
+  if(el.value==='1'){
+    const ss=row.querySelector('[data-f="ss"]');
+    if(ss&&ss.value){
+      ss.value='';
+      const box=row.parentElement;
+      if(typeof builderPaintSs==='function')builderPaintSs(box);
+    }
+  }
+  builderPaintEmom(row);
+}
+window.builderToggleEmom=builderToggleEmom;
+function builderPaintEmom(row){
+  if(!row)return;
+  const on=((row.querySelector('[data-f="emom"]')||{}).value||'')==='1';
+  const btn=row.querySelector('.ex-emom-btn');
+  if(btn)btn.classList.toggle('on',on);
+}
+window.builderPaintEmom=builderPaintEmom;
 function builderPreviewKg(row){
   if(!row)return;
   const kgEl=row.querySelector('[data-f="kg"]');
@@ -443,7 +474,9 @@ function editPlan(id){
       set('alt',(ex&&typeof ex==='object'&&ex.alt)||parsed.alt||(typeof altsForExercise==='function'?altsForExercise(parsed.name).join(', '):''));
       set('pct1rm',parsed.pct1rm||(ex&&typeof ex==='object'&&ex.pct1rm)||'');
       set('ss',parsed.ss||(ex&&typeof ex==='object'&&ex.ss)||'');
+      set('emom',((ex&&typeof ex==='object'&&ex.emom)||parsed.emom)?'1':'');
       if(typeof builderPreviewKg==='function')builderPreviewKg(row);
+      if(typeof builderPaintEmom==='function')builderPaintEmom(row);
     });
     if(typeof builderPaintSs==='function')builderPaintSs(dayEl.querySelector('.ex-rows'));
   });
@@ -483,7 +516,8 @@ async function savePlan(){
         rest:g('rest')||'90s',
         tempo:g('tempo'),
         alt,
-        ss:g('ss')
+        ss:g('ss'),
+        emom:g('emom')==='1'
       });
       sets+=parseInt(setN,10)||3;
     });

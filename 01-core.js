@@ -326,7 +326,7 @@ function goTo(n){
   if(n==='builder')initBuilder();
   if(n==='calendar'){calCurrentDate=new Date();calMiniDate=new Date();setCalView('week');}
   if(n==='plans')renderPlans();
-  if(n==='library')renderLib();
+  if(n==='library'){if(typeof renderLibTab==='function')renderLibTab();else renderLib();}
   if(n==='inbox')renderInbox();
   if(n==='clients'){renderClientFilters();renderClients();}
   if(n==='dashboard')renderDash();
@@ -402,6 +402,7 @@ function openM(id){
     if(saveBtn)saveBtn.textContent='Zapisz';
     document.getElementById('ex-name').value='';
     document.getElementById('ex-desc').value='';
+    const ev=document.getElementById('ex-video');if(ev)ev.value='';
   }
   if(id==='m-task'){
     window._editingTaskId=null;
@@ -454,6 +455,16 @@ function openM(id){
     if(name)name.value='';
     if(desc)desc.value='';
     if(typeof renderForumGroupMembers==='function')renderForumGroupMembers();
+  }
+  if(id==='m-own-video'){
+    window._editingVideoId=null;
+    const titleEl=document.querySelector('#m-own-video .modal-title');
+    if(titleEl)titleEl.textContent='NOWY FILM';
+    const saveBtn=document.querySelector('#m-own-video .modal-footer .btn-primary');
+    if(saveBtn)saveBtn.textContent='Zapisz film';
+    const n=document.getElementById('ov-name');if(n)n.value='';
+    const u=document.getElementById('ov-url');if(u)u.value='';
+    const e=document.getElementById('ov-ex');if(e)e.value='';
   }
   if(id==='m-autoflow-builder'){
     if(typeof updateAfBuilderUi==='function')updateAfBuilderUi();
@@ -621,9 +632,91 @@ function weightFromPct1RM(clientId,name,pct){
 }
 window.weightFromPct1RM=weightFromPct1RM;
 
+window.COACH_VIDEOS=window.COACH_VIDEOS||[];
+
+function normalizeCoachVideoUrl(raw){
+  const s=String(raw||'').trim();
+  if(!s)return '';
+  if(/^(javascript|data|vbscript):/i.test(s))return '';
+  let url=s;
+  if(!/^https?:\/\//i.test(url)){
+    if(/^(www\.|youtube\.|youtu\.be|vimeo\.)/i.test(url))url='https://'+url;
+    else return '';
+  }
+  if(!/^https?:\/\//i.test(url))return '';
+  return url;
+}
+window.normalizeCoachVideoUrl=normalizeCoachVideoUrl;
+
+function coachVideoEmbed(url){
+  const u=normalizeCoachVideoUrl(url);
+  if(!u)return '';
+  let id='';
+  let m=u.match(/[?&]v=([A-Za-z0-9_-]{11})/);
+  if(m)id=m[1];
+  if(!id){m=u.match(/youtu\.be\/([A-Za-z0-9_-]{11})/);if(m)id=m[1];}
+  if(!id){m=u.match(/youtube\.com\/(?:embed|shorts)\/([A-Za-z0-9_-]{11})/);if(m)id=m[1];}
+  if(id)return 'https://www.youtube-nocookie.com/embed/'+id;
+  m=u.match(/vimeo\.com\/(?:video\/)?(\d+)/i);
+  if(m)return 'https://player.vimeo.com/video/'+m[1];
+  return '';
+}
+window.coachVideoEmbed=coachVideoEmbed;
+
+function coachVideoIsFile(url){
+  return /\.(mp4|webm|ogg|m4v)(\?|#|$)/i.test(String(url||''));
+}
+window.coachVideoIsFile=coachVideoIsFile;
+
+function libExerciseByName(name){
+  const key=String(name||'').toLowerCase().replace(/\s+/g,' ').trim();
+  if(!key)return null;
+  const lib=typeof allExercises==='function'?allExercises():[].concat(window.EX||[],window.DEF_EX||[]);
+  return lib.find(e=>String(e.name||'').toLowerCase().replace(/\s+/g,' ').trim()===key)||null;
+}
+window.libExerciseByName=libExerciseByName;
+
+function ownVideoForExercise(name){
+  const key=String(name||'').toLowerCase().replace(/\s+/g,' ').trim();
+  if(!key)return '';
+  const vids=(window.COACH_VIDEOS||[]).filter(v=>String(v.exName||'').toLowerCase().replace(/\s+/g,' ').trim()===key)
+    .sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+  if(vids[0])return normalizeCoachVideoUrl(vids[0].url);
+  const lib=libExerciseByName(name);
+  return lib?normalizeCoachVideoUrl(lib.video||''):'';
+}
+window.ownVideoForExercise=ownVideoForExercise;
+
+function resolveCoachMedia(parsed){
+  const ex=parsed&&typeof parsed==='object'?parsed:{name:parsed};
+  const name=ex.name||'';
+  let video=normalizeCoachVideoUrl(ex.video||ex.url||'');
+  if(!video)video=ownVideoForExercise(name);
+  const embed=coachVideoEmbed(video);
+  return{video,videoEmbed:embed,isFile:coachVideoIsFile(video)};
+}
+window.resolveCoachMedia=resolveCoachMedia;
+
+function coachMediaHtml(ex,opts){
+  opts=opts||{};
+  const video=(ex&&ex.video)||'';
+  const embed=(ex&&ex.videoEmbed)||'';
+  const file=!!(ex&&ex.isFile)||coachVideoIsFile(video);
+  const show=!!opts.showVideo;
+  const toggle=opts.toggleFn||'';
+  if(!video)return '';
+  let html=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px;">`;
+  if(toggle)html+=`<button type="button" class="btn btn-ghost btn-sm" onclick="${toggle}">${show?'▾ Ukryj film':'▶ Film trenera'}</button>`;
+  html+=`<a class="btn btn-ghost btn-sm" href="${escHtml(video)}" target="_blank" rel="noopener noreferrer">↗ Otwórz</a></div>`;
+  if(show&&embed)html+=`<div class="cw-video-wrap"><iframe src="${escHtml(embed)}" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen title="Film trenera"></iframe></div>`;
+  else if(show&&file)html+=`<div class="cw-video-wrap"><video src="${escHtml(video)}" controls playsinline></video></div>`;
+  return html;
+}
+window.coachMediaHtml=coachMediaHtml;
+
 /** Ćwiczenie z planu: obiekt AI albo string z kreatora ("Wyciskanie 4x8 @75%"). */
 function parsePlanExercise(ex){
-  if(ex==null)return{name:'Ćwiczenie',sets:'3',reps:'10',rest:'90s',kg:'',pct1rm:'',ss:''};
+  if(ex==null)return{name:'Ćwiczenie',sets:'3',reps:'10',rest:'90s',kg:'',pct1rm:'',ss:'',emom:false,video:''};
   if(typeof ex==='string'){
     const raw=ex.trim();
     const m=raw.match(/^(.*?)(?:\s+(\d+)\s*[x×]\s*(\d+(?:\s*-\s*\d+)?))?(?:\s*@\s*(\d+(?:[.,]\d+)?)\s*(%|kg)?)?\s*$/i);
@@ -637,7 +730,9 @@ function parsePlanExercise(ex){
       rest:'90s',
       kg:isPct?'':amt,
       pct1rm:isPct?parsePct1RM(amt):'',
-      ss:''
+      ss:'',
+      emom:false,
+      video:''
     };
   }
   let kg=ex.kg!=null&&ex.kg!==''?String(ex.kg):'';
@@ -655,10 +750,33 @@ function parsePlanExercise(ex){
     rir:ex.rir||'',
     tempo:ex.tempo||'',
     alt:ex.alt||'',
-    ss:String(ex.ss||ex.superset||'').trim()
+    ss:String(ex.ss||ex.superset||'').trim(),
+    emom:isEmomFlag(ex.emom),
+    video:normalizeCoachVideoUrl(ex.video||ex.url||'')
   };
 }
 window.parsePlanExercise=parsePlanExercise;
+
+function isEmomFlag(v){
+  return v===true||v===1||v==='1'||v==='true'||v==='emom'||v==='EMOM';
+}
+window.isEmomFlag=isEmomFlag;
+
+function isEmomExercise(ex){
+  if(!ex)return false;
+  if(String(ex.ss||'').trim())return false;
+  return isEmomFlag(ex.emom);
+}
+window.isEmomExercise=isEmomExercise;
+
+/** Po N-tej skończonej rundzie: ile sekund do N×60 od startu zegara EMOM. */
+function emomRestSec(doneCount,elapsedSec){
+  const n=Math.max(1,parseInt(doneCount,10)||1);
+  const elapsed=Number(elapsedSec)||0;
+  const wait=n*60-elapsed;
+  return wait>0?Math.ceil(wait):0;
+}
+window.emomRestSec=emomRestSec;
 
 function applySsLabels(list){
   let n=0;
@@ -737,7 +855,8 @@ function formatPlanExerciseLine(ex,clientId){
   }else if(p.kg){
     kgPart=' @'+p.kg+'kg';
   }
-  return(p.ssLabel?p.ssLabel+' ':'')+(p.name||'')+(p.sets?' '+p.sets+'×'+p.reps:'')+kgPart;
+  const emom=isEmomFlag(p.emom)&&!p.ss?' EMOM':'';
+  return(p.ssLabel?p.ssLabel+' ':'')+(p.name||'')+(p.sets?' '+p.sets+'×'+p.reps:'')+kgPart+emom;
 }
 window.formatPlanExerciseLine=formatPlanExerciseLine;
 
@@ -1053,11 +1172,11 @@ window.suggestedPlanDayIdx=suggestedPlanDayIdx;
 
 function lastLoadForExercise(clientId,name){
   if(!clientId||!name)return null;
-  const key=String(name||'').toLowerCase().replace(/\s+/g,' ').trim();
+  const key=exerciseNameKey(name);
   const sessions=(window.SE||[]).filter(s=>s.clientId===clientId&&Array.isArray(s.exercises))
     .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''));
   for(const s of sessions){
-    const ex=(s.exercises||[]).find(e=>String(e.name||'').toLowerCase().replace(/\s+/g,' ').trim()===key);
+    const ex=(s.exercises||[]).find(e=>exerciseNameKey(e.name)===key);
     if(!ex)continue;
     const sets=(ex.sets||[]).filter(x=>x&&(x.kg||x.reps));
     if(!sets.length)continue;
@@ -1067,6 +1186,110 @@ function lastLoadForExercise(clientId,name){
   return null;
 }
 window.lastLoadForExercise=lastLoadForExercise;
+
+function exerciseNameKey(name){
+  return String(name||'').toLowerCase().replace(/\s+/g,' ').trim();
+}
+window.exerciseNameKey=exerciseNameKey;
+
+function formatSetLoad(kg,reps){
+  const k=(kg==null||kg==='')?'—':String(kg);
+  const r=(reps==null||reps==='')?'—':String(reps);
+  return k+' kg × '+r;
+}
+window.formatSetLoad=formatSetLoad;
+
+function loggedSetRows(clientId,name,sessions){
+  const key=exerciseNameKey(name);
+  if(!clientId||!key)return [];
+  const rows=[];
+  (sessions||window.SE||[]).forEach(s=>{
+    if(!s||s.clientId!==clientId)return;
+    (s.exercises||[]).forEach(ex=>{
+      if(exerciseNameKey(ex.name)!==key)return;
+      (ex.sets||[]).forEach(st=>{
+        const est=epley1RM(st&&st.kg,st&&st.reps);
+        if(est==null)return;
+        rows.push({
+          date:s.date||'',
+          createdAt:s.createdAt||'',
+          sessionId:s.id,
+          name:ex.name,
+          kg:parseFloat(st.kg),
+          reps:parseFloat(st.reps),
+          setNo:st.setNo||0,
+          epley:est
+        });
+      });
+    });
+  });
+  return rows.sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||'')||(b.setNo||0)-(a.setNo||0));
+}
+window.loggedSetRows=loggedSetRows;
+
+function exercisePR(clientId,name,sessions){
+  const rows=loggedSetRows(clientId,name,sessions);
+  if(!rows.length)return null;
+  return rows.reduce((best,row)=>row.epley>(best.epley||0)?row:best);
+}
+window.exercisePR=exercisePR;
+
+function setBeatsPR(pr,kg,reps){
+  const est=epley1RM(kg,reps);
+  if(est==null||!pr||pr.epley==null)return false;
+  return est>pr.epley+0.05;
+}
+window.setBeatsPR=setBeatsPR;
+
+function prToastText(clientId,name,kg,reps,sessions){
+  const prev=exercisePR(clientId,name,sessions);
+  if(!setBeatsPR(prev,kg,reps))return '';
+  return '🏆 Rekord: '+name+' · '+formatSetLoad(kg,reps);
+}
+window.prToastText=prToastText;
+
+function superseriesToastText(nextEx,opts){
+  const ex=nextEx&&typeof nextEx==='object'?nextEx:{name:nextEx};
+  opts=opts||{};
+  const ss='Super-seria → '+(ex&&ex.ssLabel?ex.ssLabel+' ':'')+(ex&&ex.name?ex.name:'')+(opts.noRest?' (bez przerwy)':'');
+  return opts.prMsg?(opts.prMsg+' · '+ss):ss;
+}
+window.superseriesToastText=superseriesToastText;
+
+function clientExercisePRs(clientId,sessions){
+  const names=new Map();
+  (sessions||window.SE||[]).forEach(s=>{
+    if(!s||s.clientId!==clientId)return;
+    (s.exercises||[]).forEach(ex=>{
+      const key=exerciseNameKey(ex.name);
+      if(key&&!names.has(key))names.set(key,ex.name);
+    });
+  });
+  const prs=[];
+  names.forEach(name=>{
+    const pr=exercisePR(clientId,name,sessions);
+    if(pr)prs.push(Object.assign({name},pr));
+  });
+  return prs.sort((a,b)=>b.epley-a.epley);
+}
+window.clientExercisePRs=clientExercisePRs;
+
+function exerciseHistoryByDay(clientId,name,sessions){
+  const rows=loggedSetRows(clientId,name,sessions);
+  const map={};
+  const days=[];
+  rows.forEach(r=>{
+    const d=r.date||'';
+    if(!map[d]){
+      map[d]={date:d,sets:[],best:r};
+      days.push(map[d]);
+    }
+    map[d].sets.push(r);
+    if(r.epley>map[d].best.epley)map[d].best=r;
+  });
+  return days;
+}
+window.exerciseHistoryByDay=exerciseHistoryByDay;
 
 function mapPlanExercisesForClient(rawEx,clientId){
   const mapped=(rawEx||[]).map(raw=>{
@@ -1079,6 +1302,8 @@ function mapPlanExercisesForClient(rawEx,clientId){
     const fromPct=pct?weightFromPct1RM(clientId,ex.name,pct):null;
     const plannedKg=(fromPct&&fromPct.kg)?fromPct.kg:(ex.kg||'');
     const lockPct=!!pct;
+    const emom=isEmomExercise(ex);
+    const coach=typeof resolveCoachMedia==='function'?resolveCoachMedia(ex):{video:'',videoEmbed:'',isFile:false};
     return{
       name:ex.name,
       plannedName:ex.name,
@@ -1090,6 +1315,10 @@ function mapPlanExercisesForClient(rawEx,clientId){
       lastKg:last&&last.kg!=null&&last.kg!==''?last.kg:(plannedKg||''),
       lastReps:last&&last.reps!=null&&last.reps!==''?last.reps:'',
       ss:ex.ss||'',
+      emom,
+      video:coach.video||'',
+      videoEmbed:coach.videoEmbed||'',
+      isFile:!!coach.isFile,
       sets:Array.from({length:nSets},(_,i)=>{
         const prev=last&&last.sets[i];
         let kg=plannedKg;
@@ -1098,7 +1327,8 @@ function mapPlanExercisesForClient(rawEx,clientId){
           setNo:i+1,
           kg:kg||'',
           reps:prev&&prev.reps!=null&&prev.reps!==''?String(prev.reps):defaultReps,
-          done:false
+          done:false,
+          kind:emom?'emom':'work'
         };
       })
     };

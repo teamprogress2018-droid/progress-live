@@ -31,6 +31,11 @@ jobs:
           done
           echo "Wszystkie pliki JS maja poprawna skladnie."
 
+      - name: 1b. Testy wskazówki i filmu przy ćwiczeniu
+        run: node .github/scripts/test_coach_media.js
+
+      - name: 1c. Testy warstwy klienta dla coach media
+        run: node .github/scripts/test_client_portal_coach_media.js
       - name: 1b. Testy %1RM → kg
         run: node .github/scripts/test_1rm.js
 
@@ -40,6 +45,13 @@ jobs:
       - name: 1d. Testy nawyków / streak
         run: node .github/scripts/test_habits.js
 
+      - name: 1e. Testy rekordów / historii ćwiczenia
+        run: node .github/scripts/test_exercise_pr.js
+
+      - name: 1f. Testy regresji portalu rekordów
+        run: node .github/scripts/test_exercise_pr_portal.js
+      - name: 1e. Testy warmup / drop / AMRAP
+        run: node .github/scripts/test_set_kinds.js
       - name: 1e. Testy wyzwań
         run: node .github/scripts/test_challenges.js
 
@@ -51,6 +63,11 @@ jobs:
 
       - name: 1h. Testy regresji historii treningów
         run: node .github/scripts/test_workout_rate_history_fixes.js
+      - name: 1g. Testy EMOM
+        run: node .github/scripts/test_emom.js
+
+      - name: 1g. Testy własnych filmów
+        run: node .github/scripts/test_own_videos.js
 
       - name: 2. Sprawdź duplikaty (funkcje / id / zmienne)
         run: python3 .github/scripts/check_duplicates.py
