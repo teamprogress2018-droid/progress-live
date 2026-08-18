@@ -512,10 +512,25 @@ function parsePlanExercise(ex){
     reps:String(ex.reps||ex.r||'10'),
     rest:String(ex.rest||ex.rs||'90s'),
     kg:ex.kg!=null&&ex.kg!==''?String(ex.kg):'',
-    rpe:ex.rpe||ex.rir||''
+    rpe:ex.rpe||ex.rir||'',
+    rir:ex.rir||'',
+    tempo:ex.tempo||'',
+    alt:ex.alt||''
   };
 }
 window.parsePlanExercise=parsePlanExercise;
+
+function altsForExercise(name,explicit){
+  const fromPlan=String(explicit||'').split(/[,;/|]/).map(s=>s.trim()).filter(Boolean);
+  if(fromPlan.length)return fromPlan;
+  const key=String(name||'').toLowerCase().replace(/\s+/g,' ').trim();
+  if(!key)return [];
+  const lib=typeof allExercises==='function'?allExercises():(window.DEF_EX||[]);
+  const hit=lib.find(e=>String(e.name||'').toLowerCase().replace(/\s+/g,' ').trim()===key);
+  if(!hit||!hit.alt)return [];
+  return String(hit.alt).split(/[,;/]/).map(s=>s.trim()).filter(Boolean);
+}
+window.altsForExercise=altsForExercise;
 
 function parseRestSeconds(rest){
   const s=String(rest||'90');
@@ -590,7 +605,10 @@ function mapPlanExercisesForClient(rawEx,clientId){
     const rest=parseRestSeconds(ex.rest);
     return{
       name:ex.name,
+      plannedName:ex.name,
+      alts:altsForExercise(ex.name,ex.alt),
       restSec:rest,
+      rpe:ex.rpe||'',
       lastKg:last&&last.kg!=null&&last.kg!==''?last.kg:(ex.kg||''),
       lastReps:last&&last.reps!=null&&last.reps!==''?last.reps:'',
       sets:Array.from({length:nSets},(_,i)=>{
