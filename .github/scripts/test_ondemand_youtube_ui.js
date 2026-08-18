@@ -108,6 +108,56 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'client_app_ondemand_player.png') });
   ok('client player iframe', /youtube-nocookie\.com\/embed\//.test(capPlayer.src), capPlayer.src);
 
+  await page.evaluate(() => {
+    if (typeof closeODPlayer === 'function') closeODPlayer();
+    window._clientAppMode = true;
+    window._clientId = 'c-anna';
+    window._clientLiveScreen = 'home';
+    window.CL = [{ id: 'c-anna', name: 'Anna Nowak' }];
+    window.SETTINGS = window.SETTINGS || {};
+    window.SETTINGS.clientApp = { visibleSections: { ondemand: true } };
+    if (typeof ensureODWorkouts === 'function') ensureODWorkouts();
+    document.body.classList.add('client-app-mode');
+    document.querySelectorAll('.screen').forEach((s) => s.classList.remove('active'));
+    document.getElementById('screen-clientlive').classList.add('active');
+    window.capClientId = 'c-anna';
+    if (typeof renderClientLive === 'function') renderClientLive();
+  });
+  await page.waitForSelector('#clive-bn-ondemand');
+  const liveNav = await page.evaluate(() => ({
+    ondemandBtn: !!(document.getElementById('clive-bn-ondemand') && document.getElementById('clive-bn-ondemand').style.display !== 'none'),
+    homeOd: /ON-DEMAND/i.test((document.getElementById('clive-screen-content') || {}).innerText || '')
+  }));
+  await page.screenshot({ path: path.join(shotDir, 'client_live_home_ondemand.png') });
+  ok('live nav ondemand', liveNav.ondemandBtn);
+  ok('live home featured od', liveNav.homeOd);
+
+  await page.click('#clive-bn-ondemand');
+  await page.waitForTimeout(300);
+  const liveOd = await page.evaluate(() => {
+    const html = (document.getElementById('clive-screen-content') || {}).innerHTML || '';
+    return { html, play: /openODWorkout/.test(html) };
+  });
+  ok('live ondemand list', liveOd.play);
+
+  await page.evaluate(() => {
+    const btn = document.querySelector('#clive-screen-content button[onclick*="openODWorkout"]');
+    if (btn) btn.click();
+  });
+  await page.waitForTimeout(400);
+  const livePlayer = await page.evaluate(() => {
+    const wrap = document.getElementById('clive-player');
+    const frame = document.getElementById('od-player-frame');
+    return {
+      playerOpen: !!(wrap && !wrap.hidden),
+      odPlaying: document.body.classList.contains('od-playing'),
+      src: (frame && frame.getAttribute('src')) || ''
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'client_live_ondemand_player.png') });
+  ok('live clive player open', livePlayer.playerOpen && livePlayer.odPlaying);
+  ok('live clive iframe', /youtube-nocookie\.com\/embed\//.test(livePlayer.src), livePlayer.src);
+
   await browser.close();
   if (failed) {
     console.error('\n' + failed + ' test(s) failed');

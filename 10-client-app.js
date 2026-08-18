@@ -199,16 +199,31 @@ function enterClientLiveShell(){
   const c=window.CL[0];
   window.capClientId=c?c.id:window._clientId;
   renderClientLive();
+  clientTryOpenOdDeepLink();
+}
+
+function clientTryOpenOdDeepLink(){
+  try{
+    const q=new URLSearchParams(location.search||'');
+    const od=q.get('od');
+    if(od&&typeof openODWorkout==='function')setTimeout(()=>openODWorkout(od),400);
+  }catch(e){}
 }
 
 function renderClientLive(){
   const c=window.CL.find(x=>x.id===window._clientId)||window.CL[0];
   const content=document.getElementById('clive-screen-content');
   if(!content)return;
-  const scr=window._clientLiveScreen||'home';
-  ['home','plan','progress','checkin','forum','messages','profile'].forEach(s=>{
+  let scr=window._clientLiveScreen||'home';
+  const navIds=(typeof capLiveNavScreens==='function'?capLiveNavScreens():[]).map(s=>s.id);
+  const subScreens=['forms','formfill','session','exercise','calendar','resources'];
+  if(typeof capClientSectionVisible==='function'&&!capClientSectionVisible(scr)&&!subScreens.includes(scr))scr='home';
+  window._clientLiveScreen=scr;
+  ['home','plan','progress','checkin','ondemand','forum','messages','profile'].forEach(s=>{
     const bn=document.getElementById('clive-bn-'+s);
     if(!bn)return;
+    const visible=!navIds.length||navIds.includes(s);
+    bn.style.display=visible?'':'none';
     const on=s===scr;
     bn.classList.toggle('active',on);
     bn.style.opacity=on?'1':'0.55';

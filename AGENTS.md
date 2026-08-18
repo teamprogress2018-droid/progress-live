@@ -18,4 +18,4 @@ Static site — no committed `package.json`. Do not commit `node_modules/`, `pac
 
 **Garmin Connect:** CSV import only. No OAuth, no client secrets in Firestore, no live HRV/sleep/Body Battery. Import lands in metric group `mg6` and calendar sessions with `source:'garmin'`. Client app (trainer preview + live login) shows those measurements and YouTube-first resources.
 
-**On-demand:** karty bez `watch?v=` nic nie grały — demo ma prawdziwe odcinki YouTube, `openODWorkout` osadza `youtube-nocookie.com/embed`. Migracja `migrateODYoutubeWorkouts` dopina URL-e do starych stubów o id `ow1`–`ow6`.
+**On-demand:** karty bez `watch?v=` nic nie grały — demo ma prawdziwe odcinki YouTube, `openODWorkout` osadza `youtube-nocookie.com/embed`. Migracja `migrateODYoutubeWorkouts` dopina URL-e do starych stubów o id `ow1`–`ow6`. W **live client app** (`screen-clientlive`) dolna nawigacja ma **On-demand**; player idzie w `#clive-player` (klasa `od-playing`). Udostępnienie treningu dodaje tag `[od:owId]` w czacie — przycisk **Odtwórz trening**. Deep link: `?od=ow1` po logowaniu klienta.

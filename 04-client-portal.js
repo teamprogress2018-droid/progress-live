@@ -91,6 +91,33 @@ function setCapScreen(scr,btn){
 
 function capIsLiveClient(){return !!window._clientAppMode;}
 
+function capClientSectionVisible(id){
+  const vs=(window.SETTINGS&&window.SETTINGS.clientApp&&window.SETTINGS.clientApp.visibleSections)||{};
+  if(vs[id]===false)return false;
+  return true;
+}
+
+function capLiveNavScreens(){
+  return [
+    {id:'home',label:'Dziś',icon:'🏠'},
+    {id:'plan',label:'Plan',icon:'📋'},
+    {id:'progress',label:'Postępy',icon:'📈'},
+    {id:'checkin',label:'Check-in',icon:'✅'},
+    {id:'ondemand',label:'On-demand',icon:'▶️'},
+    {id:'forum',label:'Forum',icon:'👥'},
+    {id:'messages',label:'Czat',icon:'💬'},
+    {id:'profile',label:'Profil',icon:'👤'}
+  ].filter(s=>capClientSectionVisible(s.id));
+}
+
+function capOdMsgId(text){
+  const m=String(text||'').match(/\[od:([^\]]+)\]/);
+  return m?m[1]:null;
+}
+window.capClientSectionVisible=capClientSectionVisible;
+window.capLiveNavScreens=capLiveNavScreens;
+window.capOdMsgId=capOdMsgId;
+
 function capClientPlan(c){
   return (window.PL||[])
     .filter(p=>p.clientId===c.id)
@@ -350,7 +377,27 @@ function capScreenHTML(scr,c){
           <button type="button" class="cap-btn-primary" style="padding:10px;font-size:13px;margin-top:10px;background:${CAP_S3};" onclick="capGoScreen('resources')">Więcej zasobów</button>
         </div>`;
       })()}
-      ${inPerson.length?`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:16px;padding:14px;margin-bottom:14px;">
+      ${(()=>{
+        if(!capClientSectionVisible('ondemand'))return '';
+        const odList=(typeof allODWorkouts==='function'?allODWorkouts():(window.OD_WORKOUTS||[])).slice(0,2);
+        if(!odList.length)return '';
+        return `<div style="background:linear-gradient(135deg,rgba(225,31,46,0.18),rgba(225,31,46,0.05));border:1px solid rgba(225,31,46,0.35);border-radius:18px;padding:16px;margin-bottom:14px;">
+          <div style="font-size:10px;font-family:'DM Mono',monospace;color:${accent};text-transform:uppercase;margin-bottom:6px;">▶ ON-DEMAND</div>
+          <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">Treningi YouTube (za darmo)</div>
+          ${odList.map(w=>{
+            const thumb=typeof odThumbUrl==='function'?odThumbUrl(w):'';
+            return `<button type="button" onclick="openODWorkout('${escHtml(w.id)}')" style="width:100%;text-align:left;background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;overflow:hidden;margin-bottom:8px;cursor:pointer;padding:0;color:inherit;">
+              ${thumb?`<div style="height:88px;background:#000 url('${escHtml(thumb)}') center/cover no-repeat;position:relative;"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;"><span style="width:36px;height:36px;border-radius:50%;background:rgba(225,31,46,0.92);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;">▶</span></div></div>`:''}
+              <div style="padding:10px 12px;">
+                <div style="font-size:12px;font-weight:700;color:${CAP_TEXT};">${escHtml(w.name)}</div>
+                <div style="font-size:10px;color:${CAP_MUTED};margin-top:2px;">${escHtml(w.level||'')} · ${w.time||'?'} min</div>
+              </div>
+            </button>`;
+          }).join('')}
+          <button type="button" class="cap-btn-primary" style="padding:10px;font-size:13px;" onclick="capGoScreen('ondemand')">Wszystkie treningi</button>
+        </div>`;
+      })()}
+      ${inPerson.length?`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:16px;padding:16px;margin-bottom:14px;">
         <div style="font-size:10px;font-family:'DM Mono',monospace;color:${accent};text-transform:uppercase;margin-bottom:8px;">SALA Z TRENEREM</div>
         ${inPerson.map(s=>`<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
           <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${accent};line-height:1;">${escHtml(s.time||'—')}</div>
@@ -756,9 +803,16 @@ function capScreenHTML(scr,c){
 
   if(scr==='messages'){
     const realMsgs=(typeof MSGS!=='undefined'&&MSGS[c.id])?MSGS[c.id].slice(-20):[];
-    const msgs=realMsgs.length?realMsgs.map(m=>({out:!!m.out,text:escHtml(m.text||''),time:m.time||''})):[
-      {out:false,text:'Hej! Napisz do mnie, gdy będziesz miał pytanie o trening 💪',time:''}
+    const fmtMsg=(m)=>{
+      const raw=String(m.text||'');
+      const odId=capOdMsgId(raw);
+      const display=escHtml(raw.replace(/\[od:[^\]]+\]\n?/g,'').trim());
+      return {out:!!m.out,text:display,time:m.time||'',odId};
+    };
+    const msgs=realMsgs.length?realMsgs.map(fmtMsg):[
+      {out:false,text:escHtml('Hej! Napisz do mnie, gdy będziesz miał pytanie o trening 💪'),time:'',odId:null}
     ];
+    const liveOd=capIsLiveClient()&&capClientSectionVisible('ondemand');
     return `
     <div style="display:flex;flex-direction:column;height:100%;padding-bottom:80px;">
       <div style="padding:12px 16px;border-bottom:1px solid ${CAP_S3};display:flex;align-items:center;gap:10px;flex-shrink:0;">
@@ -768,7 +822,7 @@ function capScreenHTML(scr,c){
       </div>
       <div style="flex:1;overflow-y:auto;padding:14px 12px;">
         ${msgs.map(m=>`<div style="margin-bottom:10px;${!m.out?'text-align:right;':''}">
-          <div style="display:inline-block;max-width:80%;padding:10px 14px;border-radius:${!m.out?'16px 4px 16px 16px':'4px 16px 16px 16px'};background:${!m.out?accent:CAP_S2};color:${!m.out?'#000':CAP_TEXT};font-size:12px;line-height:1.5;border:${!m.out?'none':'1px solid '+CAP_S3};white-space:pre-wrap;">${m.text}</div>
+          <div style="display:inline-block;max-width:80%;padding:10px 14px;border-radius:${!m.out?'16px 4px 16px 16px':'4px 16px 16px 16px'};background:${!m.out?accent:CAP_S2};color:${!m.out?'#000':CAP_TEXT};font-size:12px;line-height:1.5;border:${!m.out?'none':'1px solid '+CAP_S3};white-space:pre-wrap;">${m.text}${m.odId&&liveOd?`<div style="margin-top:10px;"><button type="button" class="cap-btn-primary" style="padding:8px 12px;font-size:12px;width:100%;" onclick="openODWorkout('${escHtml(m.odId)}')">▶ Odtwórz trening</button></div>`:''}</div>
           <div style="font-size:9px;color:${CAP_MUTED};margin-top:3px;">${escHtml(m.time)}</div>
         </div>`).join('')}
       </div>
@@ -1051,10 +1105,14 @@ function renderCapCustomize(){
       <div class="settings-card-title">👁 Widoczne sekcje dla klienta</div>
       <div class="settings-card-desc">Wybierz które sekcje są dostępne w aplikacji klienta.</div>
       <div style="display:flex;flex-direction:column;gap:8px;">
-        ${[['home','🏠 Strona główna',true],['plan','📋 Mój plan',true],['calendar','📅 Kalendarz',true],['progress','📈 Postępy',true],['checkin','✅ Check-in',true],['messages','💬 Wiadomości',true],['ondemand','▶️ On-demand',true],['resources','📚 Zasoby',true]].map(([id,label,def])=>`<label style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;">
+        ${(()=>{
+          const vs=(window.SETTINGS&&window.SETTINGS.clientApp&&window.SETTINGS.clientApp.visibleSections)||{};
+          const rows=[['home','🏠 Strona główna'],['plan','📋 Mój plan'],['calendar','📅 Kalendarz'],['progress','📈 Postępy'],['checkin','✅ Check-in'],['messages','💬 Wiadomości'],['ondemand','▶️ On-demand'],['resources','📚 Zasoby']];
+          return rows.map(([id,label])=>`<label style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;">
           <span style="font-size:13px;">${label}</span>
-          <input type="checkbox" ${def?'checked':''} style="accent-color:var(--accent);width:18px;height:18px;">
-        </label>`).join('')}
+          <input type="checkbox" data-cap-section="${id}" ${vs[id]!==false?'checked':''} style="accent-color:var(--accent);width:18px;height:18px;">
+        </label>`).join('');
+        })()}
       </div>
     </div>
     <button class="btn btn-primary" onclick="saveCapAppSettings()">Zapisz ustawienia</button>`;
@@ -1065,10 +1123,11 @@ function saveCapAppSettings(){
   if(!S.clientApp)S.clientApp={};
   const nameEl=document.getElementById('cap-app-name');
   if(nameEl)S.clientApp.appName=nameEl.value.trim()||S.clientApp.appName||'Progress Live';
-  const checks=document.querySelectorAll('#cap-customize-content input[type=checkbox]');
-  const keys=['home','plan','calendar','progress','checkin','messages','ondemand','resources'];
   S.clientApp.visibleSections=S.clientApp.visibleSections||{};
-  checks.forEach((cb,i)=>{if(keys[i])S.clientApp.visibleSections[keys[i]]=cb.checked;});
+  document.querySelectorAll('#cap-customize-content input[data-cap-section]').forEach(cb=>{
+    const id=cb.getAttribute('data-cap-section');
+    if(id)S.clientApp.visibleSections[id]=cb.checked;
+  });
   withTrainer(S);
   if(window._db){
     const sid=window._settingsDocId||window._uid||'default';

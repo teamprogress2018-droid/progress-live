@@ -116,7 +116,15 @@ const html = ctx.capScreenHTML('ondemand', { id: 'c-anna', name: 'Anna' });
 ok('client ondemand youtube', /YouTube/i.test(html) && /openODWorkout/.test(html));
 ok('client ondemand thumbs', /i\.ytimg\.com/.test(html));
 
+const homeHtml = ctx.capScreenHTML('home', { id: 'c-anna', name: 'Anna Nowak' });
+ok('home ondemand featured', /ON-DEMAND/i.test(homeHtml) && /openODWorkout/.test(homeHtml));
+
+ok('cap od msg id', ctx.capOdMsgId('[od:ow1]\nTrening') === 'ow1');
+ok('cap live nav has ondemand', (ctx.capLiveNavScreens() || []).some((s) => s.id === 'ondemand'));
+
 const src09 = fs.readFileSync(path.join(root, '09-posture-kb-invites-private.js'), 'utf8');
+ok('share od tag', /\[od:'\+id\+'\]/.test(src09));
+ok('live od player', /openODWorkoutLive/.test(src09));
 ok('preview no longer notify-only', !/notify\('\$\{w\.name\} — podgląd'\)/.test(src09));
 
 if (failed) {

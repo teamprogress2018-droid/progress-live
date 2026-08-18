@@ -1017,11 +1017,64 @@ function shareODWorkout(id){
   if(!w){notify('Nie znaleziono treningu');return;}
   if(!confirm('Udostępnić trening "'+w.name+'" wszystkim klientom ('+CL.length+')?'))return;
   const link=w.url||'(brak URL wideo)';
-  CL.forEach(c=>pushMsg(c.id,'▶️ Nowy trening on-demand: "'+w.name+'"\n'+link+(w.desc?'\n'+w.desc:'')));
+  const tag='[od:'+id+']';
+  CL.forEach(c=>pushMsg(c.id,tag+'\n▶️ Nowy trening on-demand: "'+w.name+'"\n'+link+(w.desc?'\n'+w.desc:'')));
   notify('✓ Trening "'+w.name+'" wysłany do '+CL.length+' klientów (Inbox)');
 }
 
+function odPlayerHtml(w,extraWrapClass){
+  const embed=typeof coachVideoEmbed==='function'?coachVideoEmbed(w.url):'';
+  const file=typeof coachVideoIsFile==='function'&&coachVideoIsFile(w.url);
+  const safeUrl=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl(w.url):String(w.url||'');
+  const wrapCls='od-player-wrap'+(extraWrapClass?' '+extraWrapClass:'');
+  if(embed){
+    return '<div class="'+wrapCls+'"><iframe id="od-player-frame" src="'+escHtml(embed)+'" title="'+escHtml(w.name||'Trening')+'" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen></iframe></div>';
+  }
+  if(file&&safeUrl){
+    return '<video id="od-player-frame" src="'+escHtml(safeUrl)+'" controls playsinline style="width:100%;border-radius:12px;background:#000;"></video>';
+  }
+  if(safeUrl){
+    return '<div style="padding:28px;text-align:center;color:var(--muted);">Nie da się osadzić tego linku. <a href="'+escHtml(safeUrl)+'" target="_blank" rel="noopener noreferrer">Otwórz wideo</a></div>';
+  }
+  return '<div style="padding:28px;text-align:center;color:var(--muted);">Brak linku YouTube. Dodaj URL odcinka (watch?v=...), nie kanału.</div>';
+}
+
+function openODWorkoutLive(w){
+  if(window._cw&&window._cw.active){
+    if(!confirm('Masz rozpoczęty trening z planu. Przerwać i odtworzyć on-demand?'))return;
+    if(typeof cwClose==='function')cwClose();
+  }
+  window._odPlay={id:w.id,workout:w};
+  const wrap=document.getElementById('clive-player');
+  const inner=document.getElementById('clive-player-inner');
+  if(!wrap||!inner)return false;
+  const safeUrl=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl(w.url):String(w.url||'');
+  inner.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px;">
+    <button type="button" class="btn btn-ghost btn-sm" onclick="closeODPlayer()">✕ Zamknij</button>
+    <div style="font-size:11px;color:var(--muted);text-align:right;flex:1;">YouTube · darmowy trening</div>
+  </div>
+  <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;margin-bottom:6px;">${escHtml(w.name||'Trening')}</div>
+  <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">${escHtml(w.desc||'')}${w.time?' · '+w.time+' min':''}</div>
+  ${odPlayerHtml(w,'clive-od-player-wrap')}
+  ${safeUrl?`<a class="btn btn-ghost btn-sm" style="margin-top:12px;display:inline-flex;" href="${escHtml(safeUrl)}" target="_blank" rel="noopener noreferrer">Otwórz na YouTube</a>`:''}`;
+  wrap.hidden=false;
+  document.body.classList.add('od-playing');
+  return true;
+}
+
 function closeODPlayer(){
+  if(window._clientAppMode&&window._odPlay){
+    const frame=document.getElementById('od-player-frame');
+    if(frame){
+      if(frame.tagName==='IFRAME')frame.removeAttribute('src');
+      else if(frame.pause){try{frame.pause();}catch(e){}}
+    }
+    const wrap=document.getElementById('clive-player');
+    if(wrap)wrap.hidden=true;
+    document.body.classList.remove('od-playing');
+    window._odPlay=null;
+    return;
+  }
   const frame=document.getElementById('od-player-frame');
   if(frame)frame.removeAttribute('src');
   if(typeof closeM==='function')closeM('m-od-player');
@@ -1033,6 +1086,7 @@ function closeODPlayer(){
 function openODWorkout(id){
   const w=allODWorkouts().find(x=>x.id===id);
   if(!w){if(typeof notify==='function')notify('Nie znaleziono treningu');return;}
+  if(window._clientAppMode&&openODWorkoutLive(w))return;
   const embed=typeof coachVideoEmbed==='function'?coachVideoEmbed(w.url):'';
   const file=typeof coachVideoIsFile==='function'&&coachVideoIsFile(w.url);
   let m=document.getElementById('m-od-player');
@@ -1064,15 +1118,7 @@ function openODWorkout(id){
     else{yt.removeAttribute('href');yt.style.display='none';}
   }
   if(meta)meta.textContent=(w.desc||'')+(w.time?' · '+w.time+' min':'')+' · darmowy YouTube';
-  if(embed){
-    wrap.innerHTML='<iframe id="od-player-frame" src="'+escHtml(embed)+'" title="'+escHtml(w.name||'Trening')+'" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen></iframe>';
-  }else if(file&&safeUrl){
-    wrap.innerHTML='<video id="od-player-frame" src="'+escHtml(safeUrl)+'" controls playsinline style="width:100%;height:100%;position:absolute;inset:0;background:#000;"></video>';
-  }else if(safeUrl){
-    wrap.innerHTML='<div style="padding:28px;text-align:center;color:var(--muted);">Nie da się osadzić tego linku. <a href="'+escHtml(safeUrl)+'" target="_blank" rel="noopener noreferrer">Otwórz wideo</a></div>';
-  }else{
-    wrap.innerHTML='<div style="padding:28px;text-align:center;color:var(--muted);">Brak linku YouTube. Dodaj URL odcinka (watch?v=...), nie kanału.</div>';
-  }
+  if(wrap)wrap.innerHTML=odPlayerHtml(w);
   if(typeof openM==='function')openM('m-od-player');
   else m.classList.add('show');
 }

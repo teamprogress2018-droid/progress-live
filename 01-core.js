@@ -473,6 +473,7 @@ function openM(id){
 }
 function closeM(id){
   if(id==='m-od-player'){
+    if(window._clientAppMode&&typeof closeODPlayer==='function'){closeODPlayer();return;}
     const frame=document.getElementById('od-player-frame');
     if(frame){
       if(frame.tagName==='IFRAME')frame.removeAttribute('src');
