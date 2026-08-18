@@ -517,7 +517,15 @@ const DEMO_METRIC_GROUPS=[
     {id:'m3',name:'Motywacja (1-10)',unit:'',type:'scale'},
     {id:'m4',name:'Poziom stresu (1-10)',unit:'',type:'scale'},
   ]},
+  {id:'mg6',name:'Garmin Connect',icon:'⌚',color:'#007cc3',metrics:[
+    {id:'m1',name:'Kroki',unit:'szt',type:'number'},
+    {id:'m2',name:'Kalorie',unit:'kcal',type:'number'},
+    {id:'m3',name:'Śr. tętno',unit:'bpm',type:'number'},
+    {id:'m4',name:'Czas aktywności',unit:'min',type:'number'},
+    {id:'m5',name:'Dystans',unit:'km',type:'number'},
+  ]},
 ];
+window.DEMO_METRIC_GROUPS=DEMO_METRIC_GROUPS;
 
 // demo entries for first client
 function initDemoEntries(clientId){
