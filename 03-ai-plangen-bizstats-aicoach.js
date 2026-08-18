@@ -128,6 +128,45 @@ function aplGetMulti(groupId){
   return [...document.querySelectorAll(`#${groupId} .apl-opt-multi.active`)].map(b=>b.dataset.val);
 }
 
+function aplPlanTokenBudget(dayCount){
+  return Math.min(2800+Math.max(1,dayCount)*550,5000);
+}
+
+function aplParsePlanJson(raw){
+  const clean=(raw||'').replace(/```json|```/g,'').trim();
+  try{return JSON.parse(clean);}catch(e){
+    const m=clean.match(/\{[\s\S]+\}/);
+    if(m)return JSON.parse(m[0]);
+    throw new Error('JSON parse failed');
+  }
+}
+
+async function aplAnthropicRequest(payload,maxRetries=3){
+  const url=typeof W!=='undefined'?W:'https://anthropic-proxy.teamprogress2018.workers.dev/';
+  let lastStatus=0;
+  for(let attempt=0;attempt<=maxRetries;attempt++){
+    if(attempt>0){
+      await new Promise(r=>setTimeout(r,attempt*4000));
+      if((lastStatus===524||lastStatus===503)&&payload.max_tokens>3200){
+        payload.max_tokens=Math.max(3200,payload.max_tokens-600);
+      }
+    }
+    const resp=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    lastStatus=resp.status;
+    if(resp.ok){
+      const data=await resp.json();
+      if(data?.error)throw new Error(data.error.message||String(data.error));
+      return data;
+    }
+    if(attempt===maxRetries)throw new Error('Serwer AI przeciążony (status '+resp.status+') po '+(attempt+1)+' próbach.');
+  }
+}
+
+function aplSetGenProgress(msg){
+  const el=document.getElementById('apl-gen-status');
+  if(el)el.textContent=msg;
+}
+
 async function aplGenerate(){
   if(aplGenerating)return;
   const goal=aplGetVal('apl-goals');
@@ -191,7 +230,7 @@ async function aplGenerate(){
       <div class="ai-dot" style="width:16px;height:16px;"></div>
     </div>
     <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--accent);">AI GENERUJE PLAN...</div>
-    <div style="font-size:12px;color:var(--muted);max-width:300px;text-align:center;line-height:1.7;">Analizuję parametry i tworzę spersonalizowany plan ${method} na ${weeks} tygodni...</div>
+    <div id="apl-gen-status" style="font-size:12px;color:var(--muted);max-width:320px;text-align:center;line-height:1.7;">Analizuję parametry i tworzę plan ${method} na ${weeks} tygodni… To zwykle trwa 60–90 sekund.</div>
     <div style="display:flex;gap:6px;">${[0,1,2].map(i=>`<div style="width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 1s ${i*0.2}s infinite;"></div>`).join('')}</div>
   </div>`;
 
@@ -274,7 +313,7 @@ METODY INTENSYFIKACJI DO WYKORZYSTANIA (zaznaczone przez trenera): ${intensify.l
 
 UWZGLĘDNIJ ANATOMIĘ I BIOMECHANIKĘ KLIENTA przy doborze wariantów ćwiczeń (np. długa kość udowa → przysiad na maszynie hack/suwnicy zamiast klasycznego przysiadu ze sztangą; ograniczona mobilność skokowa → dodaj podkładki pod pięty lub zamień na wykroki; długie ramiona → węższy chwyt w wyciskaniu).
 
-Stwórz PEŁNY plan z wszystkimi dniami i 5-6 ćwiczeniami na dzień (plus 2 na core na końcu każdej sesji siłowej).`;
+Każdy dzień: 4 ćwiczenia główne + 1 core. Pole "notes" max 60 znaków. warmupExercises: dokładnie 3 pozycje.`;
 
   const userMsg=`Stwórz plan treningowy:
 - Cel: ${goal}
@@ -301,35 +340,37 @@ ${notes?`- Dodatkowe uwagi: ${notes}`:''}
 ${client?`- Klient: ${client.name}, cel: ${client.goal}, poziom: ${client.level}`:''}${cid&&typeof sfrGetContextForAI==='function'?sfrGetContextForAI(cid):''}`;
 
   try{
-    const fetchOpts={
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
+    const totalDays=parseInt(days)||4;
+    const chunkSize=totalDays<=4?totalDays:3;
+    const chunks=[];
+    for(let i=0;i<totalDays;i+=chunkSize)chunks.push({from:i+1,to:Math.min(i+chunkSize,totalDays)});
+    let plan=null;
+    for(let ci=0;ci<chunks.length;ci++){
+      const {from,to}=chunks[ci];
+      const chunkDays=to-from+1;
+      const isFirst=ci===0;
+      if(chunks.length>1){
+        aplSetGenProgress(`Generuję dni ${from}–${to} z ${totalDays} (część ${ci+1}/${chunks.length})…`);
+      }
+      let chunkSystem=systemPrompt;
+      let chunkUser=userMsg;
+      if(chunks.length>1){
+        if(isFirst){
+          chunkSystem+=`\n\nW TEJ ODPOWIEDZI wygeneruj TYLKO dni ${from}–${to} z ${totalDays}. Dołącz pełną strukturę planu (planName, summary, periodization itd.), ale w "days" tylko te ${chunkDays} dni.`;
+        }else{
+          chunkSystem=`Kontynuuj plan treningowy w języku polskim. Zwróć TYLKO JSON (bez markdown): {"days":[...]} z DOKŁADNIE ${chunkDays} dniami (numeracja ${from}–${to} z ${totalDays}). Każdy dzień: dayName, focus, warmupExercises (3), exercises (4 główne + 1 core) z polami name, notes (max 60 znaków), muscleGroup, sets, reps, rest, rpe, kg.`;
+          chunkUser=`Plan: ${plan?.planName||method}. Istniejące dni: ${(plan?.days||[]).map(d=>d.dayName).join('; ')}.\nDodaj dni ${from}–${to}.\n${userMsg}`;
+        }
+      }
+      const data=await aplAnthropicRequest({
         model:'claude-sonnet-4-20250514',
-        max_tokens: Math.min(4500+(parseInt(days)||4)*1300, 9500),
-        system:systemPrompt,
-        messages:[{role:'user',content:userMsg}]
-      })
-    };
-    let resp=await fetch('https://anthropic-proxy.teamprogress2018.workers.dev/',fetchOpts);
-    let attempt=0;
-    while(!resp.ok && attempt<2){
-      attempt++;
-      await new Promise(r=>setTimeout(r,attempt*3000));
-      resp=await fetch('https://anthropic-proxy.teamprogress2018.workers.dev/',fetchOpts);
-    }
-    if(!resp.ok){
-      throw new Error('Serwer AI przeciążony (status '+resp.status+') po '+(attempt+1)+' próbach.');
-    }
-    const data=await resp.json();
-    const raw=data?.content?.[0]?.text||'';
-    const clean=raw.replace(/```json|```/g,'').trim();
-    let plan;
-    try{plan=JSON.parse(clean);}catch(e){
-      // fallback — try to extract JSON
-      const m=clean.match(/\{[\s\S]+\}/);
-      if(m)plan=JSON.parse(m[0]);
-      else throw new Error('JSON parse failed');
+        max_tokens:aplPlanTokenBudget(chunkDays),
+        system:chunkSystem,
+        messages:[{role:'user',content:chunkUser}]
+      });
+      const chunkPlan=aplParsePlanJson(data?.content?.[0]?.text||'');
+      if(isFirst)plan=chunkPlan;
+      else plan.days=(plan.days||[]).concat(chunkPlan.days||[]);
     }
     aplLastPlan=plan;
     aplLastClient=client;
