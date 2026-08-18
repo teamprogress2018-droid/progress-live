@@ -1974,14 +1974,6 @@ function liveToggleSet(ei,si){
       const nxt=liveExercises.find(e=>!e.done);
       if(nxt)nxt.collapsed=false;
     }
-    const act=typeof ssNextAfterSet==='function'?ssNextAfterSet(liveExercises,ei):null;
-    if(act&&act.kind==='partner'){
-      liveExercises[act.exIdx].collapsed=false;
-      const nxt=liveExercises[act.exIdx];
-      if(typeof notify==='function')notify(typeof superseriesToastText==='function'?superseriesToastText(nxt,{prMsg,noRest:true}):('Super-seria → '+(nxt.ssLabel?nxt.ssLabel+' ':'')+nxt.name+' (bez przerwy)'));
-    }else{
-      if(prMsg&&typeof notify==='function')notify(prMsg);
-      liveStartRest((ex.restSec)||90);
     if(typeof isEmomExercise==='function'&&isEmomExercise(ex)&&next){
       window._liveEmomClock=window._liveEmomClock||{};
       if(!window._liveEmomClock[ei])window._liveEmomClock[ei]=Date.now();
@@ -1999,8 +1991,9 @@ function liveToggleSet(ei,si){
       if(act&&act.kind==='partner'){
         liveExercises[act.exIdx].collapsed=false;
         const nxt=liveExercises[act.exIdx];
-        if(typeof notify==='function')notify('Super-seria → '+(nxt.ssLabel?nxt.ssLabel+' ':'')+nxt.name+' (bez przerwy)');
+        if(typeof notify==='function')notify(typeof superseriesToastText==='function'?superseriesToastText(nxt,{prMsg,noRest:true}):('Super-seria → '+(nxt.ssLabel?nxt.ssLabel+' ':'')+nxt.name+' (bez przerwy)'));
       }else{
+        if(prMsg&&typeof notify==='function')notify(prMsg);
         liveStartRest((ex.restSec)||90);
       }
     }

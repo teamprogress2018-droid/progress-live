@@ -230,6 +230,8 @@ function clientOpenExercise(name){
   window._cliveExerciseName=name;
   if(window._clientAppMode)setClientLiveScreen('exercise');
   else if(typeof setCapScreen==='function')setCapScreen('exercise');
+}
+
 function clientOpenForm(sendId){
   window._cliveFormSendId=sendId;
   window._cliveFormAnswers=window._cliveFormAnswers||{};
