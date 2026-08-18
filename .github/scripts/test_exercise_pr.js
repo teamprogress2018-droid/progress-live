@@ -42,7 +42,7 @@ vm.runInContext(fs.readFileSync(path.join(__dirname, '..', '..', '01-core.js'), 
 
 const {
   exerciseNameKey, formatSetLoad, loggedSetRows, exercisePR, setBeatsPR,
-  prToastText, clientExercisePRs, exerciseHistoryByDay, epley1RM
+  prToastText, clientExercisePRs, exerciseHistoryByDay, epley1RM, superseriesToastText
 } = ctx;
 
 let failed = 0;
@@ -77,6 +77,8 @@ eq('no beat 80x5', setBeatsPR(exercisePR('c1', 'Przysiad', sessions), 80, 5), fa
 eq('first log not toast', setBeatsPR(null, 100, 5), false);
 eq('toast has name', prToastText('c1', 'Przysiad', 100, 5, sessions).indexOf('Przysiad') > 0, true);
 eq('no toast weaker', prToastText('c1', 'Przysiad', 80, 5, sessions), '');
+eq('superset toast combines pr', superseriesToastText({name: 'Wiosło', ssLabel: 'A2'},{prMsg: '🏆 Rekord: Przysiad · 100 kg × 5'}), '🏆 Rekord: Przysiad · 100 kg × 5 · Super-seria → A2 Wiosło');
+eq('superset toast no-rest', superseriesToastText({name: 'Wiosło', ssLabel: 'A2'},{noRest:true}), 'Super-seria → A2 Wiosło (bez przerwy)');
 eq('two lifts', clientExercisePRs('c1', sessions).length, 2);
 eq('strongest first', clientExercisePRs('c1', sessions)[0].name, 'Martwy ciąg');
 eq('days', exerciseHistoryByDay('c1', 'Przysiad', sessions).length, 2);

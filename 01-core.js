@@ -969,6 +969,14 @@ function prToastText(clientId,name,kg,reps,sessions){
 }
 window.prToastText=prToastText;
 
+function superseriesToastText(nextEx,opts){
+  const ex=nextEx&&typeof nextEx==='object'?nextEx:{name:nextEx};
+  opts=opts||{};
+  const ss='Super-seria → '+(ex&&ex.ssLabel?ex.ssLabel+' ':'')+(ex&&ex.name?ex.name:'')+(opts.noRest?' (bez przerwy)':'');
+  return opts.prMsg?(opts.prMsg+' · '+ss):ss;
+}
+window.superseriesToastText=superseriesToastText;
+
 function clientExercisePRs(clientId,sessions){
   const names=new Map();
   (sessions||window.SE||[]).forEach(s=>{

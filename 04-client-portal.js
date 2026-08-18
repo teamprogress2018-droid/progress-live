@@ -356,7 +356,7 @@ function capScreenHTML(scr,c){
       <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin:4px 0 10px;">Rekordy</div>
       ${prs.length?prs.map(p=>{
         const est=typeof roundToPlate==='function'?roundToPlate(p.epley):Math.round(p.epley);
-        return `<button type="button" class="cap-list-item" style="width:100%;text-align:left;background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:14px;margin-bottom:8px;cursor:pointer;" onclick='clientOpenExercise(${JSON.stringify(p.name)})'>
+        return `<button type="button" class="cap-list-item" style="width:100%;text-align:left;background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:14px;margin-bottom:8px;cursor:pointer;" onclick="clientOpenExercise(${escHtml(JSON.stringify(p.name))})">
           <div style="font-size:18px;width:28px;flex-shrink:0;">🏆</div>
           <div style="flex:1;min-width:0;">
             <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};">${escHtml(p.name)}</div>

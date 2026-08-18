@@ -576,17 +576,15 @@ function cwCheckSet(setIdx){
   const st=ex.sets[setIdx];
   st.done=!st.done;
   if(!st.done){cwRender();return;}
-  if(typeof prToastText==='function'){
-    const msg=prToastText(window._clientId,ex.name,st.kg,st.reps);
-    if(msg&&typeof notify==='function')notify(msg);
-  }
+  const prMsg=typeof prToastText==='function'?prToastText(window._clientId,ex.name,st.kg,st.reps):'';
   const act=typeof ssNextAfterSet==='function'?ssNextAfterSet(cw.exercises,cw.exIdx):null;
   if(act&&act.kind==='partner'){
     const nxt=cw.exercises[act.exIdx];
     cwGoEx(act.exIdx);
-    if(typeof notify==='function')notify('Super-seria → '+(nxt&&nxt.ssLabel?nxt.ssLabel+' ':'')+(nxt?nxt.name:''));
+    if(typeof notify==='function')notify(typeof superseriesToastText==='function'?superseriesToastText(nxt,{prMsg}):('Super-seria → '+(nxt&&nxt.ssLabel?nxt.ssLabel+' ':'')+(nxt?nxt.name:'')));
     return;
   }
+  if(prMsg&&typeof notify==='function')notify(prMsg);
   if(act&&act.kind==='rest'){
     cw.exIdx=act.exIdx;
     cwStartRest((cw.exercises[act.exIdx]&&cw.exercises[act.exIdx].restSec)||90);

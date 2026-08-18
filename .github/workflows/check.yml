@@ -43,6 +43,9 @@ jobs:
       - name: 1e. Testy rekordów / historii ćwiczenia
         run: node .github/scripts/test_exercise_pr.js
 
+      - name: 1f. Testy regresji portalu rekordów
+        run: node .github/scripts/test_exercise_pr_portal.js
+
       - name: 2. Sprawdź duplikaty (funkcje / id / zmienne)
         run: python3 .github/scripts/check_duplicates.py
 
