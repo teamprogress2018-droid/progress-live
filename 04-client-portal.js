@@ -16,7 +16,8 @@ function initClientApp(){
   const sel=document.getElementById('cap-client-sel');
   if(sel){
     sel.innerHTML='<option value="">Wybierz klienta...</option>'+CL.map(c=>`<option value="${escHtml(c.id)}">${escHtml(c.name)}</option>`).join('');
-    if(!capClientId&&CL.length){capClientId=CL[0].id;sel.value=capClientId;}
+    if(!capClientId&&CL.length)capClientId=CL[0].id;
+    if(capClientId)sel.value=capClientId;
   }
   const title=document.querySelector('#screen-clientapp .topbar-title');
   if(title)title.textContent='Aplikacja klienta — podgląd (mock)';
@@ -187,16 +188,71 @@ function capWorkoutHistoryList(c,list,live,accent){
   }).join('');
 }
 
+function capGarminEntries(c){
+  const cid=c&&c.id;
+  return (window.METRIC_ENTRIES||[])
+    .filter(e=>e&&e.source==='garmin'&&e.clientId===cid)
+    .slice()
+    .sort((a,b)=>((b.date||'')+' '+(b.createdAt||'')).localeCompare((a.date||'')+' '+(a.createdAt||'')));
+}
+function capLastGarmin(c){
+  return capGarminEntries(c)[0]||null;
+}
+function capGarminSessions(c){
+  const cid=c&&c.id;
+  return (window.SE||[])
+    .filter(s=>s&&s.source==='garmin'&&s.clientId===cid)
+    .slice()
+    .sort((a,b)=>((b.date||'')+'T'+(b.time||'')).localeCompare((a.date||'')+'T'+(a.time||'')));
+}
+function capResourceDomain(url){
+  try{
+    return new URL(url).hostname.replace(/^www\./i,'');
+  }catch(e){
+    const m=String(url||'').match(/https?:\/\/([^\/]+)/i);
+    return m?m[1].replace(/^www\./i,''):'';
+  }
+}
+function capIsYoutubeUrl(url){
+  return /youtube\.com|youtu\.be/i.test(String(url||''));
+}
+function capYoutubeResources(){
+  const list=typeof allResources==='function'?allResources():(window.USER_RESOURCES||[]);
+  return list.filter(r=>capIsYoutubeUrl(r&&r.url));
+}
+function capClientResourceList(filter){
+  const list=(typeof allResources==='function'?allResources():(window.USER_RESOURCES||[])).slice();
+  const yt=[],rest=[];
+  list.forEach(r=>(capIsYoutubeUrl(r&&r.url)?yt:rest).push(r));
+  let ordered=yt.concat(rest);
+  if(filter==='podcast')ordered=ordered.filter(r=>r&&(r.type==='podcast'||r.coll==='podcasts'));
+  if(filter==='music')ordered=ordered.filter(r=>r&&(r.coll==='music'||r.cat==='muzyka'));
+  return ordered;
+}
+function capSetResFilter(f){
+  window._capResFilter=f||'all';
+  if(typeof capGoScreen==='function')capGoScreen('resources');
+  else if(typeof setCapScreen==='function')setCapScreen('resources');
+}
+window.capGarminEntries=capGarminEntries;
+window.capLastGarmin=capLastGarmin;
+window.capGarminSessions=capGarminSessions;
+window.capResourceDomain=capResourceDomain;
+window.capIsYoutubeUrl=capIsYoutubeUrl;
+window.capYoutubeResources=capYoutubeResources;
+window.capClientResourceList=capClientResourceList;
+window.capSetResFilter=capSetResFilter;
+
 function capScreenHTML(scr,c){
   const accent=window.SETTINGS?.brand?.accentColor||CAP_ACCENT;
   const trainerName=getTrainerName();
-  const sessions=SE.filter(s=>s.clientId===c.id);
-  const plans=PL.filter(p=>p.clientId===c.id);
+  const sessions=(window.SE||[]).filter(s=>s.clientId===c.id);
+  const plans=(window.PL||[]).filter(p=>p.clientId===c.id);
   const isH=typeof isHabit==='function'?isHabit:()=>false;
   const isC=typeof isChallenge==='function'?isChallenge:()=>false;
-  const habits=TASKS.filter(t=>t.clientId===c.id&&isH(t));
-  const challenges=TASKS.filter(t=>t.clientId===c.id&&isC(t)&&(typeof challengeVisible!=='function'||challengeVisible(t)));
-  const tasks=TASKS.filter(t=>t.clientId===c.id&&!isH(t)&&!isC(t)&&t.status!=='done');
+  const habits=(window.TASKS||[]).filter(t=>t.clientId===c.id&&isH(t));
+  const challenges=(window.TASKS||[]).filter(t=>t.clientId===c.id&&isC(t)&&(typeof challengeVisible!=='function'||challengeVisible(t)));
+  const tasks=(window.TASKS||[]).filter(t=>t.clientId===c.id&&!isH(t)&&!isC(t)&&t.status!=='done');
   const packages=capIsLiveClient()
     ?(window.PACKAGES||[]).filter(p=>p.clientId===c.id)
     :(window.PACKAGES||[]).concat(window.PACKAGES?.length?[]:[{title:'10 sesji personalnych',sessions:10,sessionsUsed:4,price:1500,expiresDate:'2025-08-30'}]);
@@ -271,6 +327,29 @@ function capScreenHTML(scr,c){
         <div style="font-size:11px;color:${CAP_MUTED};margin-top:2px;">${escHtml(trainerName)}</div>
       </div>
       ${hero}
+      ${(()=>{
+        const g=capLastGarmin(c);
+        if(!g)return '';
+        const v=g.values||{};
+        return `<div style="background:linear-gradient(135deg,rgba(0,124,195,0.22),rgba(0,124,195,0.06));border:1px solid rgba(0,124,195,0.4);border-radius:18px;padding:16px;margin-bottom:14px;">
+          <div style="font-size:10px;font-family:'DM Mono',monospace;color:#5ec8ff;text-transform:uppercase;margin-bottom:6px;">⌚ GARMIN</div>
+          <div style="font-size:15px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">${escHtml(g.notes||'Aktywność')}</div>
+          <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:10px;">${escHtml(g.date||'')}${v.m1?' · '+v.m1+' kroków':''}${v.m2?' · '+v.m2+' kcal':''}</div>
+          <button type="button" class="cap-btn-primary" style="padding:10px;font-size:13px;background:#007cc3;" onclick="capGoScreen('progress')">Zobacz pomiary Garmin</button>
+        </div>`;
+      })()}
+      ${(()=>{
+        const pods=capYoutubeResources().filter(r=>r.type==='podcast'||r.coll==='podcasts').slice(0,2);
+        if(!pods.length)return '';
+        return `<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
+          <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">🎧 Podcasty YouTube (za darmo)</div>
+          ${pods.map(r=>`<a href="${escHtml(r.url)}" target="_blank" rel="noopener noreferrer" style="display:block;padding:8px 0;border-top:1px solid ${CAP_S3};text-decoration:none;">
+            <div style="font-size:12px;color:${CAP_TEXT};">${escHtml(r.name)}</div>
+            <div style="font-size:10px;color:${CAP_MUTED};margin-top:2px;">${escHtml(capResourceDomain(r.url)||'youtube.com')}</div>
+          </a>`).join('')}
+          <button type="button" class="cap-btn-primary" style="padding:10px;font-size:13px;margin-top:10px;background:${CAP_S3};" onclick="capGoScreen('resources')">Więcej zasobów</button>
+        </div>`;
+      })()}
       ${inPerson.length?`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:16px;padding:14px;margin-bottom:14px;">
         <div style="font-size:10px;font-family:'DM Mono',monospace;color:${accent};text-transform:uppercase;margin-bottom:8px;">SALA Z TRENEREM</div>
         ${inPerson.map(s=>`<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
@@ -414,16 +493,21 @@ function capScreenHTML(scr,c){
     const dim=new Date(cal.y,cal.m+1,0).getDate();
     const today=typeof todayYmd==='function'?todayYmd():'';
     const logged=typeof completedWorkouts==='function'?completedWorkouts(c.id):sessions.filter(s=>s.source==='client'||s.source==='live');
+    const garminSess=capGarminSessions(c);
+    const garminDates=new Set(garminSess.map(s=>s.date).concat(capGarminEntries(c).map(e=>e.date)));
     const doneDates=new Set(logged.map(s=>s.date));
-    const upcoming=sessions.filter(s=>s.date&&s.date>=today&&s.source!=='client'&&s.source!=='live').sort((a,b)=>(a.date||'').localeCompare(b.date||'')).slice(0,5);
+    const upcoming=sessions.filter(s=>s.date&&s.date>=today&&s.source!=='client'&&s.source!=='live'&&s.source!=='garmin').sort((a,b)=>(a.date||'').localeCompare(b.date||'')).slice(0,5);
     const cells=[];
     for(let i=0;i<startDow;i++)cells.push('<div></div>');
     for(let d=1;d<=dim;d++){
       const ymd=cal.y+'-'+String(cal.m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
       const isToday=ymd===today;
       const has=doneDates.has(ymd);
-      const sid=has?(logged.find(s=>s.date===ymd)||{}).id:'';
-      cells.push(`<div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:12px;background:${isToday?accent:has?accent+'22':'transparent'};color:${isToday?'#000':has?accent:CAP_MUTED};font-weight:${isToday||has?700:400};${has?'cursor:pointer;':''}" ${sid?`onclick="clientOpenSession('${escHtml(sid)}')"`:''}>${d}</div>`);
+      const hasG=garminDates.has(ymd);
+      const sid=has?(logged.find(s=>s.date===ymd)||{}).id:(hasG?(garminSess.find(s=>s.date===ymd)||{}).id:'');
+      const bg=isToday?accent:has?accent+'22':hasG?'rgba(0,124,195,0.28)':'transparent';
+      const col=isToday?'#000':has?accent:hasG?'#5ec8ff':CAP_MUTED;
+      cells.push(`<div style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:12px;background:${bg};color:${col};font-weight:${isToday||has||hasG?700:400};${sid?'cursor:pointer;':''}" ${sid?`onclick="clientOpenSession('${escHtml(sid)}')"`:''}>${d}</div>`);
     }
     return `
     <div class="cap-section" style="padding-bottom:90px;">
@@ -440,6 +524,7 @@ function capScreenHTML(scr,c){
         <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center;">${cells.join('')}</div>
         <div style="display:flex;gap:12px;margin-top:10px;font-size:10px;color:${CAP_MUTED};">
           <span>● zrobiony trening</span>
+          ${garminDates.size?`<span style="color:#5ec8ff;">● Garmin</span>`:''}
         </div>
       </div>
       ${upcoming.length?`<div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">Nadchodzące z trenerem</div>
@@ -451,6 +536,17 @@ function capScreenHTML(scr,c){
         <div><div style="font-size:13px;font-weight:700;color:${CAP_TEXT};">${escHtml(s.type||'Sesja')}</div>
         <div style="font-size:11px;color:${CAP_MUTED};">⏰ ${escHtml(s.time||'')} · z ${escHtml(trainerName)}</div></div>
       </div>`).join('')}`:''}
+      ${garminSess.length?`<div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin:14px 0 10px;">Z zegarka Garmin</div>
+      ${garminSess.slice(0,8).map(s=>`<button type="button" class="cap-list-item" style="width:100%;text-align:left;background:${CAP_S2};border:1px solid rgba(0,124,195,0.35);border-radius:14px;padding:14px;margin-bottom:8px;cursor:pointer;display:flex;gap:12px;align-items:center;" onclick="clientOpenSession('${escHtml(s.id)}')">
+        <div style="background:rgba(0,124,195,0.22);border-radius:10px;padding:8px 12px;text-align:center;flex-shrink:0;">
+          <div style="font-size:11px;color:#5ec8ff;font-family:'DM Mono',monospace;">${escHtml((s.date||'').slice(5,7)||'—')}</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:#5ec8ff;line-height:1;">${escHtml((s.date||'').slice(8,10)||'—')}</div>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};">⌚ ${escHtml(typeof sessionTitle==='function'?sessionTitle(s):(s.notes||s.type||'Garmin'))}</div>
+          <div style="font-size:11px;color:${CAP_MUTED};">${escHtml(s.time||'')} · ${escHtml(String(s.duration||'—'))} min · import CSV</div>
+        </div>
+      </button>`).join('')}`:''}
       <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin:14px 0 10px;">Ostatnie treningi</div>
       ${capWorkoutHistoryList(c,logged.slice(0,8),live,accent)}
     </div>`;
@@ -483,6 +579,32 @@ function capScreenHTML(scr,c){
           <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${CAP_TEXT};line-height:1;">${avg?avg+'/5':'—'}</div>
         </div>
       </div>
+      ${(()=>{
+        const entries=capGarminEntries(c);
+        if(!entries.length)return '';
+        const last=entries[0];
+        const latestSteps=entries.find(e=>e.values&&e.values.m1);
+        const latestKcal=entries.find(e=>e.values&&e.values.m2);
+        return `<div style="background:linear-gradient(135deg,rgba(0,124,195,0.18),rgba(0,124,195,0.05));border:1px solid rgba(0,124,195,0.35);border-radius:18px;padding:16px;margin-bottom:14px;">
+          <div style="font-size:10px;font-family:'DM Mono',monospace;color:#5ec8ff;text-transform:uppercase;margin-bottom:8px;">⌚ GARMIN CONNECT</div>
+          <div style="font-size:15px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">${escHtml(last.notes||'Ostatnia aktywność')}</div>
+          <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:12px;">CSV od trenera · ${escHtml(last.date||'')}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div style="background:${CAP_S2};border-radius:12px;padding:12px;">
+              <div style="font-size:10px;color:${CAP_MUTED};text-transform:uppercase;">Kroki</div>
+              <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:${CAP_TEXT};">${escHtml(String((latestSteps&&latestSteps.values.m1)||'—'))}</div>
+            </div>
+            <div style="background:${CAP_S2};border-radius:12px;padding:12px;">
+              <div style="font-size:10px;color:${CAP_MUTED};text-transform:uppercase;">Kalorie</div>
+              <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:${CAP_TEXT};">${escHtml(String((latestKcal&&latestKcal.values.m2)||'—'))}<span style="font-size:11px;color:${CAP_MUTED};"> kcal</span></div>
+            </div>
+          </div>
+          ${entries.slice(0,4).map(e=>`<div style="display:flex;justify-content:space-between;gap:8px;font-size:11px;padding:8px 0 0;border-top:1px solid ${CAP_S3};margin-top:8px;">
+            <span style="color:${CAP_TEXT};">${escHtml(e.notes||'Garmin')}</span>
+            <span style="color:${CAP_MUTED};">${escHtml(e.date||'')}${e.values&&e.values.m2?' · '+e.values.m2+' kcal':''}</span>
+          </div>`).join('')}
+        </div>`;
+      })()}
       <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin:4px 0 10px;">Rekordy</div>
       ${prs.length?prs.map(p=>{
         const est=typeof roundToPlate==='function'?roundToPlate(p.epley):Math.round(p.epley);
@@ -510,12 +632,28 @@ function capScreenHTML(scr,c){
         <div style="text-align:center;padding:40px;color:${CAP_MUTED};font-size:12px;">Nie znaleziono treningu.</div>
       </div>`;
     }
-    const src=s.source==='client'?'Ty w apce':s.source==='live'?'Z trenerem (live)':'Sesja';
+    const src=s.source==='garmin'?'Garmin':s.source==='client'?'Ty w apce':s.source==='live'?'Z trenerem (live)':'Sesja';
+    const title=typeof sessionTitle==='function'?sessionTitle(s):(s.notes||s.type||s.title||'Trening');
+    const gMetric=s.source==='garmin'?capGarminEntries(c).find(e=>e.date===s.date&&(e.notes||'')===(s.notes||'')):null;
+    const gv=gMetric&&gMetric.values||{};
     return `<div class="cap-section" style="padding-bottom:90px;">
       <button type="button" class="btn btn-ghost btn-sm" style="margin:8px 0 12px;" onclick="capGoScreen('progress')">← Postępy</button>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:4px;">${escHtml(s.type||s.title||'Trening')}</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:4px;">${escHtml(title)}</div>
       <div style="font-size:12px;color:${CAP_MUTED};margin-bottom:14px;">${escHtml(s.date||'')} ${escHtml(s.time||'')} · ${escHtml(src)}${s.duration?' · '+escHtml(String(s.duration))+' min':''}</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;">
+      ${s.source==='garmin'?`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;">
+        <div style="background:${CAP_S2};border-radius:14px;padding:12px;text-align:center;border:1px solid rgba(0,124,195,0.35);">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:#5ec8ff;">${escHtml(String(gv.m1||'—'))}</div>
+          <div style="font-size:10px;color:${CAP_MUTED};">kroków</div>
+        </div>
+        <div style="background:${CAP_S2};border-radius:14px;padding:12px;text-align:center;border:1px solid rgba(0,124,195,0.35);">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:#5ec8ff;">${escHtml(String(gv.m2||s.duration||'—'))}</div>
+          <div style="font-size:10px;color:${CAP_MUTED};">${gv.m2?'kcal':'min'}</div>
+        </div>
+        <div style="background:${CAP_S2};border-radius:14px;padding:12px;text-align:center;border:1px solid rgba(0,124,195,0.35);">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:${CAP_TEXT};">${escHtml(String(gv.m3||gv.m5||'—'))}</div>
+          <div style="font-size:10px;color:${CAP_MUTED};">${gv.m3?'tętno':gv.m5?'km':'Garmin'}</div>
+        </div>
+      </div>`:`<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;">
         <div style="background:${CAP_S2};border-radius:14px;padding:12px;text-align:center;border:1px solid ${CAP_S3};">
           <div style="font-size:20px;">${escHtml(sessionRatingEmoji(s.feedback)||'—')}</div>
           <div style="font-size:10px;color:${CAP_MUTED};margin-top:4px;">${escHtml((SESSION_RATING[Number(s.feedback)]||{}).label||'Brak oceny')}</div>
@@ -528,11 +666,11 @@ function capScreenHTML(scr,c){
           <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:${CAP_TEXT};">${s.volume||sessionSetsCount(s)}</div>
           <div style="font-size:10px;color:${CAP_MUTED};">${s.volume?'kg obj.':'serii'}</div>
         </div>
-      </div>
+      </div>`}
       ${(s.exercises||[]).length?(s.exercises||[]).map(e=>`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:12px;margin-bottom:8px;">
         <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">${escHtml(e.name||'')}</div>
         <div style="font-size:11px;color:${CAP_MUTED};font-family:'DM Mono',monospace;">${escHtml(capSessionSetsText(e))}</div>
-      </div>`).join(''):`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:16px;text-align:center;color:${CAP_MUTED};font-size:12px;">Brak zapisanych serii.</div>`}
+      </div>`).join(''):(s.source==='garmin'?`<div style="background:${CAP_S2};border:1px solid rgba(0,124,195,0.35);border-radius:14px;padding:16px;text-align:center;color:${CAP_MUTED};font-size:12px;">Import CSV z Garmin Connect — bez serii siłowych.</div>`:`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:16px;text-align:center;color:${CAP_MUTED};font-size:12px;">Brak zapisanych serii.</div>`)}
       ${s.note||s.notes?`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:14px;margin-top:6px;">
         <div style="font-size:10px;color:${CAP_MUTED};text-transform:uppercase;margin-bottom:6px;">Komentarz</div>
         <div style="font-size:13px;color:${CAP_TEXT};line-height:1.5;">${escHtml(s.note||s.notes||'')}</div>
@@ -660,16 +798,27 @@ function capScreenHTML(scr,c){
   }
 
   if(scr==='resources'){
-    const resList=(typeof allResources==='function'?allResources():(window.USER_RESOURCES||[])).slice(0,10);
+    const filter=window._capResFilter||'all';
+    const resList=capClientResourceList(filter).slice(0,20);
+    const pill=(id,label)=>`<button type="button" class="btn ${filter===id?'btn-primary':'btn-ghost'} btn-sm" onclick="capSetResFilter('${id}')">${label}</button>`;
     return `
     <div class="cap-section" style="padding-bottom:90px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:16px;padding-top:8px;">ZASOBY</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:8px;padding-top:8px;">ZASOBY</div>
+      <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:12px;">Darmowe na YouTube — bez Spotify Premium.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+        ${pill('all','Wszystkie')}
+        ${pill('podcast','Podcasty')}
+        ${pill('music','Muzyka')}
+      </div>
       ${!resList.length?`<div style="text-align:center;padding:40px;color:${CAP_MUTED};font-size:12px;">Brak zasobów.</div>`:
-      resList.map(r=>`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:14px;margin-bottom:8px;">
+      resList.map(r=>{
+        const domain=capResourceDomain(r.url);
+        return `<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:14px;margin-bottom:8px;">
         <div style="font-size:12px;font-weight:700;color:${CAP_TEXT};">${escHtml(r.name)}</div>
-        <div style="font-size:10px;color:${CAP_MUTED};margin-top:2px;">${escHtml(r.cat||r.type||'')}</div>
-        ${r.url?`<a href="${escHtml(r.url)}" target="_blank" rel="noopener" style="display:inline-block;margin-top:6px;font-size:11px;color:${accent};">Otwórz →</a>`:''}
-      </div>`).join('')}
+        <div style="font-size:10px;color:${CAP_MUTED};margin-top:2px;">${escHtml(domain||r.cat||r.type||'')}${r.cat?' · '+escHtml(r.cat):''}</div>
+        ${r.url?`<a href="${escHtml(r.url)}" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin-top:6px;font-size:11px;color:${accent};">Otwórz →</a>`:''}
+      </div>`;
+      }).join('')}
     </div>`;
   }
 
@@ -845,15 +994,15 @@ function capFormQControl(sendId,q,val,live){
 const CAP_SCREEN_INFO={
   home:{title:'🏠 Dziś',desc:'Jeden ekran na dzień: trening do odpalenia (Start), dzień wolny, nawyki, wyzwania, formularze od trenera, zadania i check-in jeśli czeka. Klient nie zgaduje, co ma zrobić.'},
   plan:{title:'📋 Mój plan treningowy',desc:'Lista dni planu z wskazówkami i filmem techniki. Start odhacza serie. W kreatorze: SS, EMOM, WU/DROP/AMRAP.'},
-  calendar:{title:'📅 Kalendarz',desc:'Prawdziwy miesiąc z zaznaczonymi zrobionymi treningami, sesje z trenerem i lista ostatnich ocen.'},
-  progress:{title:'📈 Moje postępy',desc:'Masa, średnia ocena treningów, zdjęcia sylwetki, rekordy i historia sesji — klik w trening pokazuje serie, kg i ocenę.'},
-  session:{title:'🏋️ Szczegóły treningu',desc:'Ocena 1–5, komentarz klienta, ćwiczenia i zrobione serie (kg × powt.). Trener widzi to samo w karcie klienta i w historii Live.'},
+  calendar:{title:'📅 Kalendarz',desc:'Prawdziwy miesiąc z zaznaczonymi treningami, sesje z trenerem i aktywności z zegarka Garmin (import CSV, bez OAuth).'},
+  progress:{title:'📈 Moje postępy',desc:'Masa, Garmin (kroki/kcal z CSV), zdjęcia, rekordy i historia sesji. Import z zegarka widać tu po wczytaniu pliku przez trenera.'},
+  session:{title:'🏋️ Szczegóły treningu',desc:'Ocena 1–5 albo pomiary Garmin (CSV). Sesje z zegarka mają etykietę Garmin — bez live HRV/snu.'},
   exercise:{title:'🏆 Historia ćwiczenia',desc:'Rekord (Epley) i lista serii po datach. Player podpowiada „Ostatnio” i „Rekord”; nowy rekord to toast 🏆.'},
   checkin:{title:'✅ Check-in tygodniowy',desc:'Interaktywny formularz check-inu — emoji skale, liczba treningów, waga. Wysłany check-in trafia bezpośrednio do Twojego panelu.'},
   forms:{title:'📋 Formularze',desc:'Ankiety wysłane przez Ciebie (wstępna, zdrowie, postępy). Klient wypełnia w apce, odpowiedzi wracają do karty klienta i podglądu formularza.'},
   messages:{title:'💬 Wiadomości',desc:'Czat z trenerem w czasie rzeczywistym. Klient widzi historię rozmów, może pisać i odbierać wiadomości. Możesz wysyłać zdjęcia, pliki i linki.'},
   ondemand:{title:'▶️ On-demand',desc:'Portal treningów wideo i planów. Klient może samodzielnie wykonywać treningi między sesjami — filtrować po kategorii, poziomie i czasie.'},
-  resources:{title:'📚 Zasoby',desc:'Kolekcje artykułów, podcastów, wideo i linków udostępnionych przez Ciebie. Klient może je przeglądać w dowolnym czasie.'},
+  resources:{title:'📚 Zasoby',desc:'Najpierw darmowe podcasty i muzyka na YouTube — bez Spotify Premium. Klient otwiera link w przeglądarce.'},
   profile:{title:'👤 Mój profil',desc:'Dane osobowe klienta, statystyki aktywności, aktywny pakiet z paskiem postępu, ustawienia konta.'},
 };
 
@@ -1592,6 +1741,7 @@ function garminCsvPanelHtml(conn){
         <button class="btn btn-primary btn-sm" type="button" onclick="openGarminImportedMetrics('${escHtml(lastCid)}')">📊 Pomiary Garmin</button>
         <button class="btn btn-ghost btn-sm" type="button" onclick="openGarminImportedCalendar('${escHtml(lastCid)}')">📅 Kalendarz</button>
         <button class="btn btn-ghost btn-sm" type="button" onclick="openGarminImportedProfile('${escHtml(lastCid)}')">👤 Profil klienta</button>
+        <button class="btn btn-ghost btn-sm" type="button" onclick="openGarminImportedClientApp('${escHtml(lastCid)}')">📱 Aplikacja klienta</button>
       </div>`:''}
     </div>`;
 }
@@ -1661,6 +1811,18 @@ function openGarminImportedProfile(clientId){
   if(typeof openClientProfile==='function')openClientProfile(clientId);
   setTimeout(function(){if(typeof setCPTab==='function')setCPTab('metrics');},0);
 }
+function openGarminImportedClientApp(clientId){
+  if(!clientId){if(typeof notify==='function')notify('⚠ Wybierz klienta');return;}
+  if(typeof closeIntDetail==='function')closeIntDetail();
+  capClientId=clientId;
+  window.capClientId=clientId;
+  if(typeof goTo==='function')goTo('clientapp');
+  const sel=document.getElementById('cap-client-sel');
+  if(sel)sel.value=clientId;
+  capClientId=clientId;
+  window.capClientId=clientId;
+  if(typeof setCapScreen==='function')setCapScreen('progress');
+}
 function intGarminOpenConnect(){
   window.open('https://connect.garmin.com','_blank','noopener');
 }
@@ -1675,6 +1837,7 @@ window.ensureGarminConnected=ensureGarminConnected;
 window.openGarminImportedMetrics=openGarminImportedMetrics;
 window.openGarminImportedCalendar=openGarminImportedCalendar;
 window.openGarminImportedProfile=openGarminImportedProfile;
+window.openGarminImportedClientApp=openGarminImportedClientApp;
 
 function renderIntegrations(){
   renderIntStatusSummary();

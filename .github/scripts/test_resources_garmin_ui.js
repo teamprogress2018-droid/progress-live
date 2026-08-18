@@ -136,6 +136,53 @@ const SAMPLE_CSV = [
   ok('metrics shows imported kcal', /412/.test(metricsUi.body), metricsUi.body.slice(0, 400));
   ok('metrics shows activity name', /Morning Run/i.test(metricsUi.body), metricsUi.body.slice(0, 400));
 
+  await page.evaluate(() => {
+    if (typeof goTo === 'function') goTo('integrations');
+    if (typeof openIntDetail === 'function') openIntDetail('garmin');
+  });
+  await page.waitForSelector('#int-garmin-jump');
+  ok('jump to client app button', /Aplikacja klienta/i.test(await page.locator('#int-garmin-jump').innerText().catch(() => '')));
+
+  await page.click('text=Aplikacja klienta');
+  await page.waitForSelector('#cap-screen-content');
+  await page.waitForTimeout(400);
+  const capProgress = await page.evaluate(() => ({
+    screen: !!(document.getElementById('screen-clientapp') && document.getElementById('screen-clientapp').classList.contains('active')),
+    client: (document.getElementById('cap-client-sel') || {}).value || '',
+    text: (document.getElementById('cap-screen-content') || {}).innerText || ''
+  }));
+  await page.screenshot({ path: path.join(shotDir, 'client_app_garmin_progress.png') });
+  ok('client app screen open', capProgress.screen);
+  ok('client app client selected', capProgress.client === 'c-anna', capProgress.client);
+  ok('client progress Morning Run', /Morning Run/i.test(capProgress.text), capProgress.text.slice(0, 400));
+  ok('client progress 8432 steps', /8432/.test(capProgress.text));
+  ok('client progress 412 kcal', /412/.test(capProgress.text));
+
+  await page.evaluate(() => {
+    if (typeof setCapScreen === 'function') setCapScreen('resources');
+  });
+  await page.waitForTimeout(250);
+  const capRes = await page.evaluate(() => {
+    const html = (document.getElementById('cap-screen-content') || {}).innerHTML || '';
+    const text = (document.getElementById('cap-screen-content') || {}).innerText || '';
+    const hrefs = [...document.querySelectorAll('#cap-screen-content a[href]')].map((a) => a.getAttribute('href') || '');
+    return { html, text, hrefs };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'client_app_youtube_resources.png') });
+  ok('client resources youtube.com', capRes.hrefs.some((u) => /youtube\.com/i.test(u)), capRes.hrefs.slice(0, 5).join(','));
+  ok('client resources no open.spotify.com', capRes.hrefs.every((u) => !/open\.spotify\.com/i.test(u)), capRes.hrefs.join(','));
+  ok('client resources pills', /Podcasty/i.test(capRes.text) && /Muzyka/i.test(capRes.text));
+
+  await page.evaluate(() => {
+    window._cliveCal = { y: 2024, m: 2 };
+    if (typeof setCapScreen === 'function') setCapScreen('calendar');
+  });
+  await page.waitForTimeout(250);
+  const capCal = await page.evaluate(() => (document.getElementById('cap-screen-content') || {}).innerText || '');
+  await page.screenshot({ path: path.join(shotDir, 'client_app_garmin_calendar.png') });
+  ok('client calendar garmin section', /Z zegarka Garmin/i.test(capCal));
+  ok('client calendar morning run', /Morning Run/i.test(capCal));
+
   await browser.close();
   if (failed) {
     console.error('\n' + failed + ' test(s) failed');

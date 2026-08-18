@@ -13,6 +13,7 @@ const document = {
 const windowObj = {
   addEventListener() {},
   CL: [], PL: [], SE: [], EX: [], WO: [],
+  TASKS: [],
   METRIC_ENTRIES: [],
   USER_RESOURCES: [],
   INT_CONNECTIONS: {},
@@ -38,6 +39,7 @@ const ctx = {
   isNaN,
   Infinity,
   undefined,
+  URL,
   encodeURIComponent,
   setTimeout,
   clearTimeout,
@@ -159,9 +161,51 @@ ok('daily no calendar session', dailyImp.sessions === 0 && windowObj.SE.length =
 const groups = windowObj.DEMO_METRIC_GROUPS || ctx.DEMO_METRIC_GROUPS || [];
 ok('mg6 metric group', groups.some(g => g.id === 'mg6' && g.name === 'Garmin Connect'));
 
+const htmlCsv = [
+  'Activity Type,Date,Title,Distance,Calories,Time,Avg HR,Steps',
+  'Running,2024-03-12 18:30:00,Morning Run,5.23,412,00:32:15,148,8432'
+].join('\n');
+ctx.importGarminCsvForClient('c-html', htmlCsv);
+const anna = { id: 'c-html', name: 'Anna Nowak' };
+ok('cap last garmin notes', ctx.capLastGarmin(anna) && ctx.capLastGarmin(anna).notes === 'Morning Run');
+ok('cap last garmin steps', ctx.capLastGarmin(anna) && ctx.capLastGarmin(anna).values.m1 === 8432);
+ok('youtube domain helper', ctx.capResourceDomain('https://www.youtube.com/@hubermanlab') === 'youtube.com');
+windowObj.USER_RESOURCES = (windowObj.DEMO_RESOURCES || []).map(r => Object.assign({}, r));
+ok('youtube resources helper', ctx.capYoutubeResources().length >= 8);
+ok('client resources youtube first', /youtube\.com/i.test((ctx.capClientResourceList('all')[0] || {}).url || ''));
+ok('podcast filter youtube', ctx.capClientResourceList('podcast').every(r => /youtube\.com/i.test(r.url || '') && (r.type === 'podcast' || r.coll === 'podcasts')));
+
+const progressHtml = ctx.capScreenHTML('progress', anna);
+ok('client progress shows Morning Run', /Morning Run/i.test(progressHtml), progressHtml.slice(0, 400));
+ok('client progress shows 8432 steps', /8432/.test(progressHtml));
+ok('client progress shows 412 kcal', /412/.test(progressHtml));
+ok('client progress garmin label', /Garmin Connect/i.test(progressHtml));
+
+const homeHtml = ctx.capScreenHTML('home', anna);
+ok('client home garmin card', /Morning Run/i.test(homeHtml) && /8432/.test(homeHtml));
+ok('client home youtube podcasts', /Podcasty YouTube/i.test(homeHtml) && /youtube\.com/i.test(homeHtml));
+
+windowObj._cliveCal = { y: 2024, m: 2 };
+const calHtml = ctx.capScreenHTML('calendar', anna);
+ok('client calendar garmin section', /Z zegarka Garmin/i.test(calHtml));
+ok('client calendar morning run', /Morning Run/i.test(calHtml));
+
+windowObj._cliveSessionId = (windowObj.SE.find(s => s.clientId === 'c-html' && s.source === 'garmin') || {}).id;
+const sessHtml = ctx.capScreenHTML('session', anna);
+ok('client session garmin label', /Garmin/i.test(sessHtml) && /Morning Run/i.test(sessHtml));
+ok('client session not generic Sesja', !/· Sesja/.test(sessHtml));
+
+const resHtml = ctx.capScreenHTML('resources', anna);
+ok('client resources youtube.com', /youtube\.com/i.test(resHtml));
+ok('client resources no open.spotify.com', !/open\.spotify\.com/i.test(resHtml));
+ok('client resources podcast pill', /Podcasty/i.test(resHtml) && /Muzyka/i.test(resHtml));
+
 const src04 = fs.readFileSync(path.join(root, '04-client-portal.js'), 'utf8');
 ok('no garmin oauth secret fields', !/garmin[\s\S]{0,400}client_secret/i.test(src04));
 ok('garmin daily id', /INT_DAILY_IDS=\[[^\]]*garmin/.test(src04));
+ok('jump to client app', /openGarminImportedClientApp/.test(src04));
+const src10 = fs.readFileSync(path.join(root, '10-client-app.js'), 'utf8');
+ok('live client loads resources', /queryByTrainerId\('resources'/.test(src10));
 
 if (failed) {
   console.error('\n' + failed + ' test(s) failed');
