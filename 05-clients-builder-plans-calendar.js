@@ -1264,14 +1264,14 @@ function renderRecordedExercises(s){
   const titleEl=wrap.querySelector('[data-rec-ex-title]');
   if(titleEl)titleEl.textContent='Zapisane serie i ocena (z '+src+')';
   const ratingLine=hasRating&&typeof sessionRatingLabel==='function'
-    ?`<div style="background:var(--s3);border-radius:8px;padding:8px 10px;font-size:13px;font-weight:600;">Ocena: ${sessionRatingLabel(s.feedback)}</div>`
+    ?`<div style="background:var(--s3);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:9px 11px;font-size:13px;font-weight:700;color:var(--text);">Ocena: ${sessionRatingLabel(s.feedback)}</div>`
     :'';
-  const noteLine=(s.note||s.notes)?`<div style="font-size:12px;color:var(--muted);padding:2px 4px;">Komentarz: ${escHtml(s.note||s.notes)}</div>`:'';
+  const noteLine=(s.note||s.notes)?`<div style="font-size:12px;color:var(--text);padding:3px 4px 5px;font-weight:500;">Komentarz: <span style="color:var(--muted);font-weight:500;">${escHtml(s.note||s.notes)}</span></div>`:'';
   const exHtml=hasDetailedSets?s.exercises.map(e=>{
     const setsText=(e.sets||[]).map(st=>`${st.kg||0}kg × ${st.reps||0}`).join(' · ');
-    return `<div style="background:var(--s3);border-radius:8px;padding:8px 10px;">
-      <div style="font-size:12px;font-weight:600;margin-bottom:3px;">${escHtml(e.name||'')}</div>
-      <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;">${setsText||'brak zarejestrowanych serii'}</div>
+    return `<div style="background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.005)),var(--s3);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:9px 11px;">
+      <div style="font-size:12px;font-weight:700;margin-bottom:4px;color:var(--text);">${escHtml(e.name||'')}</div>
+      <div style="font-size:12px;color:var(--text);font-family:'DM Mono',monospace;font-weight:700;letter-spacing:0.1px;">${setsText||'brak zarejestrowanych serii'}</div>
     </div>`;
   }).join(''):'';
   list.innerHTML=ratingLine+noteLine+exHtml+(s.volume?`<div style="font-size:11px;color:var(--accent);text-align:right;font-family:'DM Mono',monospace;padding-top:2px;">Łączna objętość: ${s.volume} kg</div>`:'');
