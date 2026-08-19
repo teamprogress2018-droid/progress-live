@@ -3794,7 +3794,7 @@ function renderSettingsContent(t){
             <div style="font-size:11px;color:var(--muted);">Platforma dla trenerów personalnych</div>
           </div>
         </div>
-        ${[['Klientów w bazie',CL.length],['Sesji łącznie',SE.length],['Planów treningowych',PL.length],['Ćwiczeń w bibliotece',allExercises().length],['Treningów w bibliotece',allWorkouts().length],['Wielkość JS','~305 KB']]
+        ${[['Klientów w bazie',CL.length],['Sesji łącznie',SE.length],['Planów treningowych',PL.length],['Ćwiczeń w bibliotece',allExercises().length],['Wielkość JS','~305 KB']]
           .map(([l,v])=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="color:var(--muted);">${l}</span><span style="font-family:'DM Mono',monospace;color:var(--accent);">${v}</span></div>`).join('')}
       `)}
 
@@ -5247,7 +5247,6 @@ function renderDash(){
   const activeClients=CL.filter(c=>c.status==='active'||!c.status).length;
   const weekSessions=SE.filter(s=>s.date>=weekStartStr&&s.date<=weekEndStr);
   const activePlans=PL.length;
-  const totalWorkouts=allWorkouts().length;
 
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
   const setHTML=(id,v)=>{const el=document.getElementById(id);if(el)el.innerHTML=v;};
@@ -5255,7 +5254,6 @@ function renderDash(){
   set('d-clients',activeClients);
   set('d-sessions',weekSessions.length);
   set('d-plans',activePlans);
-  set('d-workouts',totalWorkouts);
 
   const done7=SE.filter(s=>s.date<todayStr&&s.date>=weekStartStr).length;
   setHTML('d-sessions-trend','<span style="color:var(--muted);">'+done7+' ukończone · '+weekSessions.length+' zaplanowane</span>');

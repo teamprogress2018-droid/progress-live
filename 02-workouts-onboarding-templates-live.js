@@ -33,6 +33,7 @@ function filteredWorkouts(){
 }
 
 function updateWLCounts(){
+  if(!document.getElementById('wl-cnt-all'))return;
   const all=allWorkouts();
   const cnt=(fn)=>all.filter(fn).length;
   document.getElementById('wl-cnt-all').textContent=all.length;
@@ -54,6 +55,7 @@ function setWLNav(n){
 }
 
 function setWLView(v){
+  if(!document.getElementById('wl-list-view'))return;
   wlView=v;
   document.getElementById('wl-list-view').style.display=v==='list'?'flex':'none';
   document.getElementById('wl-list-view').style.flexDirection='column';
@@ -73,6 +75,7 @@ function setWLSort(s){
 }
 
 function renderWL(){
+  if(!document.getElementById('wl-card-body'))return;
   updateWLCounts();
   const res=filteredWorkouts();
   document.getElementById('wl-results-count').textContent=res.length+' '+(res.length===1?'trening':res.length<5?'treningi':'treningów');
@@ -125,11 +128,13 @@ function renderWL(){
       </div>`).join('');
   }
   // update dashboard
-  document.getElementById('d-workouts').textContent=allWorkouts().length;
+  const dWorkouts=document.getElementById('d-workouts');
+  if(dWorkouts)dWorkouts.textContent=allWorkouts().length;
   renderDashWorkouts();
 }
 
 function openWLDetail(id){
+  if(!document.getElementById('wl-detail'))return;
   const all=allWorkouts();
   const w=all.find(x=>x.id===id);
   if(!w)return;
@@ -162,7 +167,10 @@ function openWLDetail(id){
   document.getElementById('wl-detail').classList.add('open');
 }
 
-function closeWLDetail(){document.getElementById('wl-detail').classList.remove('open');wlDetailId=null;}
+function closeWLDetail(){
+  const el=document.getElementById('wl-detail');
+  if(!el)return;
+  el.classList.remove('open');wlDetailId=null;}
 
 function assignWorkout(){
   if(!wlDetailId)return;
@@ -255,6 +263,7 @@ function renderDashWorkouts(){
 // dodawanie wiersza ćwiczenia w modalu workout
 function addWExRow(){
   const rows=document.getElementById('w-ex-rows');
+  if(!rows)return;
   const div=document.createElement('div');
   div.className='wb-ex-row';
   div.innerHTML=

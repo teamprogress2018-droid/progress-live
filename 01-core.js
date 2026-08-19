@@ -314,7 +314,7 @@ function goTo(n){
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   const s=document.getElementById('screen-'+n);if(s)s.classList.add('active');
   closeMobileSidebar();
-  const moreScreens=['workout-library','library','programs','tasks','forms','payments','calculator','automation','integrations','metrics','checkin','aiplangen','ondemand','resources','bizstats','forum','settings','aicoach','kb'];
+  const moreScreens=['library','programs','tasks','forms','payments','calculator','automation','integrations','metrics','checkin','aiplangen','ondemand','resources','bizstats','forum','settings','aicoach','kb'];
   if(moreScreens.includes(n)){
     const moreEl=document.getElementById('nav-more-items');
     const arrow=document.getElementById('nav-more-arrow');
@@ -330,7 +330,6 @@ function goTo(n){
   if(n==='inbox')renderInbox();
   if(n==='clients'){renderClientFilters();renderClients();}
   if(n==='dashboard')renderDash();
-  if(n==='workout-library'){closeWLDetail();if(typeof setWLView==='function')setWLView(wlView||'grid');else renderWL();}
   if(n==='programs'){renderPrograms();}
   if(n==='metrics'){
     renderMetrics();
@@ -461,10 +460,6 @@ function openM(id){
     document.getElementById('mg-name').value='';
     addMetricField();addMetricField();
   }
-  if(id==='m-workout'){
-    document.getElementById('w-ex-rows').innerHTML='';
-    addWExRow();addWExRow();addWExRow();
-  }
   if(id==='m-broadcast'){
     if(typeof refreshBroadcastGroupOptions==='function')refreshBroadcastGroupOptions();
   }
@@ -510,7 +505,7 @@ document.querySelectorAll('.modal-ov').forEach(m=>m.addEventListener('click',e=>
 window.renderAll=function(){
   const safe=(fn)=>{try{fn();}catch(e){console.warn('renderAll partial fail:',e);}};
   safe(renderDash);safe(renderClients);safe(renderPlans);
-  safe(renderCal);safe(renderLib);safe(renderInbox);safe(renderWL);
+  safe(renderCal);safe(renderLib);safe(renderInbox);
   try{document.getElementById('nb-clients').textContent=CL.length;}catch(e){}
   try{document.getElementById('b-client').innerHTML=CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');}catch(e){}
   safe(updateExDl);

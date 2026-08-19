@@ -2636,6 +2636,6 @@ window.calcTDEE=calcTDEE;window.setCalcActivity=setCalcActivity;window.setCalcGo
 window.setCalcMacro=setCalcMacro;window.syncSliders=syncSliders;
 window.calcLoadFromClient=calcLoadFromClient;window.calcSendToClient=calcSendToClient;
 
-updateExDl();renderWL();
+updateExDl();
 // init notifications
 setTimeout(()=>{updateNotifBadge();},500);

@@ -746,7 +746,6 @@ function openExDetail(name){
     ${(()=>{const media=typeof resolveCoachMedia==='function'?resolveCoachMedia(e):null;return media&&media.video?(typeof coachMediaHtml==='function'?coachMediaHtml({video:media.video,videoEmbed:media.videoEmbed,isFile:media.isFile},{showVideo:true}):''):'';})()}
     <div style="display:flex;gap:6px;margin-top:4px;">
       <button class="btn btn-primary btn-sm" style="flex:1;" onclick="prefillExInBuilder('${e.name.replace(/'/g,"\\'")}')">Użyj w builderze</button>
-      <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="prefillExInWorkout('${e.name.replace(/'/g,"\\'")}')">Dodaj do treningu</button>
     </div>
     ${findCustomEx(e.name)?`<div style="display:flex;gap:6px;margin-top:6px;">
       <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="editEx('${e.name.replace(/'/g,"\\'")}')">✏ Edytuj</button>
@@ -900,11 +899,7 @@ function prefillExInBuilder(name){
 }
 
 function prefillExInWorkout(name){
-  openM('m-workout');
-  setTimeout(()=>{
-    const rows=document.querySelectorAll('#w-ex-rows .wb-inp');
-    for(const r of rows){if(!r.value&&r.placeholder==='Nazwa ćwiczenia...'){r.value=name;r.focus();return;}}
-  },200);
+  prefillExInBuilder(name);
 }
 
 async function askExAI(){
