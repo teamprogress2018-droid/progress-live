@@ -549,6 +549,7 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
           <button class="btn btn-ghost btn-sm" onclick="aplExportPlanPDF()">📄 PDF</button>
           <button class="btn btn-ghost btn-sm" onclick="aplExportPlan()">⬇ JSON</button>
           <button class="btn btn-ghost btn-sm" onclick="aplGenerate()">↺ Regeneruj</button>
+          <button class="btn btn-ghost btn-sm" onclick="aplAddDay()">+ Dzień</button>
         </div>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -620,11 +621,15 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
     const warmupExs=d.warmupExercises||[];
     html+=`<div style="margin-bottom:22px;border-radius:14px;overflow:hidden;border:1px solid rgba(230,0,0,0.2);">
       <div style="background:var(--adim);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
-        <div>
+        <div style="cursor:pointer;" onclick="aplEditDayName(${di})">
           <div style="font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1.5px;color:var(--accent);">${d.dayName}</div>
           ${d.focus?`<div style="font-size:10px;color:var(--muted);margin-top:2px;">${d.focus}</div>`:''}
         </div>
-        <span style="font-size:10px;background:var(--s3);color:var(--muted);border-radius:6px;padding:3px 10px;font-family:'DM Mono',monospace;">${(d.exercises||[]).length} ćwiczeń</span>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <span style="font-size:10px;background:var(--s3);color:var(--muted);border-radius:6px;padding:3px 10px;font-family:'DM Mono',monospace;">${(d.exercises||[]).length} ćw.</span>
+          <button onclick="aplAddExercise(${di})" title="Dodaj ćwiczenie" style="background:var(--s3);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:10px;color:var(--teal);cursor:pointer;">+ Ćwiczenie</button>
+          <button onclick="aplRemoveDay(${di})" title="Usuń dzień" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;opacity:.65;">🗑</button>
+        </div>
       </div>`;
 
     if(warmupExs.length){
@@ -666,7 +671,13 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
             ${rpe?`<span style="font-size:10px;color:var(--accent);background:var(--adim);border:1px solid rgba(230,0,0,0.3);border-radius:6px;padding:3px 9px;font-family:'DM Mono',monospace;font-weight:700;">RPE ${rpe}</span>`:''}
-            <button onclick="aplEditExercise(${di},${ei})" title="Edytuj" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;opacity:.75;">✏️</button>
+            <div style="display:flex;gap:4px;">
+              <button onclick="aplEditExercise(${di},${ei})" title="Edytuj" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;opacity:.75;">✏️</button>
+              <button onclick="aplSwapExercise(${di},${ei})" title="Zamiennik" style="background:none;border:none;color:var(--teal);cursor:pointer;font-size:12px;opacity:.75;">🔄</button>
+              <button onclick="aplMoveExercise(${di},${ei},-1)" title="W górę" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;opacity:.65;">▲</button>
+              <button onclick="aplMoveExercise(${di},${ei},1)" title="W dół" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;opacity:.65;">▼</button>
+              <button onclick="aplRemoveExercise(${di},${ei})" title="Usuń" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;opacity:.65;">✕</button>
+            </div>
           </div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px;padding-left:42px;">
@@ -770,6 +781,96 @@ function aplRerenderCurrent(){
   if(!aplLastPlan)return;
   aplRenderPlan(aplLastPlan,aplLastClient,aplLastPlan.method,aplLastPlan.method,aplLastPlan.daysPerWeek,aplLastPlan.weeks);
 }
+
+function aplAddExercise(di){
+  if(!aplLastPlan||!aplLastPlan.days[di])return;
+  aplLastPlan.days[di].exercises.push({name:'Nowe ćwiczenie',sets:'3',reps:'10',rest:'90s',rir:'7',kg:'',notes:''});
+  aplRerenderCurrent();
+  const ei=aplLastPlan.days[di].exercises.length-1;
+  setTimeout(()=>aplEditExercise(di,ei),50);
+}
+function aplRemoveExercise(di,ei){
+  if(!aplLastPlan||!aplLastPlan.days[di])return;
+  aplLastPlan.days[di].exercises.splice(ei,1);
+  aplRerenderCurrent();
+  notify('Ćwiczenie usunięte');
+}
+function aplMoveExercise(di,ei,dir){
+  if(!aplLastPlan||!aplLastPlan.days[di])return;
+  const exs=aplLastPlan.days[di].exercises;
+  const ni=ei+dir;
+  if(ni<0||ni>=exs.length)return;
+  [exs[ei],exs[ni]]=[exs[ni],exs[ei]];
+  aplRerenderCurrent();
+}
+function aplSwapExercise(di,ei){
+  const ex=aplLastPlan?.days[di]?.exercises[ei];
+  if(!ex)return;
+  const alts=typeof altsForExercise==='function'?altsForExercise(ex.name):[];
+  if(!alts.length){
+    const newName=prompt('Zamiennik dla: '+ex.name+'\nWpisz nazwę ćwiczenia:',ex.name);
+    if(newName&&newName.trim())ex.name=newName.trim();
+  }else{
+    const choice=alts.length===1?alts[0]:prompt('Zamienniki:\n'+alts.map((a,i)=>(i+1)+'. '+a).join('\n')+'\n\nWpisz numer lub własną nazwę:','1');
+    if(!choice)return;
+    const idx=parseInt(choice);
+    ex.name=(idx>0&&idx<=alts.length)?alts[idx-1]:choice.trim();
+  }
+  aplRerenderCurrent();
+  notify('✓ Zamiennik: '+ex.name);
+}
+function aplAddDay(){
+  if(!aplLastPlan)return;
+  const n=(aplLastPlan.days||[]).length+1;
+  aplLastPlan.days.push({dayName:'Dzień '+n+' — Nowy',focus:'',warmupExercises:[],exercises:[{name:'Ćwiczenie 1',sets:'3',reps:'10',rest:'90s',rir:'7',kg:'',notes:''}]});
+  aplLastPlan.daysPerWeek=aplLastPlan.days.length;
+  aplRerenderCurrent();
+}
+function aplRemoveDay(di){
+  if(!aplLastPlan||!aplLastPlan.days[di])return;
+  if(!confirm('Usunąć dzień '+(di+1)+'?'))return;
+  aplLastPlan.days.splice(di,1);
+  aplLastPlan.daysPerWeek=aplLastPlan.days.length;
+  aplRerenderCurrent();
+  notify('Dzień usunięty');
+}
+function aplEditDayName(di){
+  const d=aplLastPlan?.days[di];if(!d)return;
+  const v=prompt('Nazwa dnia:',d.dayName);
+  if(v&&v.trim()){d.dayName=v.trim();aplRerenderCurrent();}
+}
+function aplCreateBlankPlan(){
+  const cid=(document.getElementById('apl-client')||{}).value||'';
+  const client=cid?CL.find(x=>x.id===cid):null;
+  aplLastPlan={
+    planName:'Nowy plan ręczny',
+    summary:'Plan tworzony od podstaw przez trenera.',
+    method:'Custom',
+    weeks:4,
+    daysPerWeek:3,
+    sessionDuration:60,
+    periodization:'Ustaw własne zasady progresji.',
+    deload:'',warmup:'',cooldown:'',nutritionTip:'',
+    weekKeys:['w1'],phases:{w1:'Tydzień 1'},currentWeek:'w1',
+    days:[
+      {dayName:'Dzień 1',focus:'',warmupExercises:[],exercises:[{name:'Ćwiczenie 1',sets:'3',reps:'10',rest:'90s',rir:'7',kg:'',notes:''}]},
+      {dayName:'Dzień 2',focus:'',warmupExercises:[],exercises:[{name:'Ćwiczenie 1',sets:'3',reps:'10',rest:'90s',rir:'7',kg:'',notes:''}]},
+      {dayName:'Dzień 3',focus:'',warmupExercises:[],exercises:[{name:'Ćwiczenie 1',sets:'3',reps:'10',rest:'90s',rir:'7',kg:'',notes:''}]},
+    ]
+  };
+  aplLastClient=client;
+  const goal=(document.querySelector('#apl-goals .active')||{}).dataset?.val||'masa';
+  aplRenderPlan(aplLastPlan,client,goal,'Custom','3','4');
+  notify('Pusty plan gotowy — dodawaj ćwiczenia i dni');
+}
+window.aplAddExercise=aplAddExercise;
+window.aplRemoveExercise=aplRemoveExercise;
+window.aplMoveExercise=aplMoveExercise;
+window.aplSwapExercise=aplSwapExercise;
+window.aplAddDay=aplAddDay;
+window.aplRemoveDay=aplRemoveDay;
+window.aplEditDayName=aplEditDayName;
+window.aplCreateBlankPlan=aplCreateBlankPlan;
 
 function aplSavePlan(){
   if(!aplLastPlan){notify('Brak planu do zapisania!');return;}
