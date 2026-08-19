@@ -808,6 +808,13 @@ function renderCPOverview(c){
 
   document.getElementById('cp-body').innerHTML=`
     ${editing?cpClientDataEditHTML(c):''}
+    ${!editing?`<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:linear-gradient(135deg,rgba(230,0,0,0.12),rgba(230,0,0,0.04));border:1px solid rgba(230,0,0,0.28);border-radius:12px;padding:12px 14px;margin-bottom:16px;">
+      <div>
+        <div style="font-size:13px;font-weight:700;">Dane kontaktowe i profil</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">Email, telefon, waga, cel — edycja na miejscu, bez wchodzenia w Ustawienia.</div>
+      </div>
+      <button type="button" class="btn btn-primary btn-sm" style="flex-shrink:0;" onclick="startCPEdit('${c.id}')">✏️ Edytuj dane klienta</button>
+    </div>`:''}
     <!-- statystyki -->
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;">
       <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--accent);">${sessions.length}</div><div class="cp-stat-lbl">Sesji</div></div>

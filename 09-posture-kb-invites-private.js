@@ -2843,7 +2843,7 @@ window.usePackageSession=usePackageSession;window.markPaid=markPaid;
 window.requestPayment=requestPayment;window.deletePackage=deletePackage;window.copyPayTransfer=copyPayTransfer;
 window.viewInvoice=viewInvoice;window.filterPkgByClient=filterPkgByClient;
 window.openClientModal=openClientModal;
-window.setCPTab=setCPTab;window.saveCPEdit=saveCPEdit;window.archiveClient=archiveClient;
+window.setCPTab=setCPTab;window.saveCPEdit=saveCPEdit;window.startCPEdit=startCPEdit;window.cancelCPEdit=cancelCPEdit;window.archiveClient=archiveClient;
 window.renderCPTraining=renderCPTraining;window.renderCPFood=renderCPFood;
 window.renderCPDocuments=renderCPDocuments;window.renderCPSettings=renderCPSettings;
 window.toggleClientFeature=toggleClientFeature;window.updateClientUnit=updateClientUnit;
