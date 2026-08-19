@@ -73,7 +73,7 @@ function renderClients(){
   renderClientFilters();
   const search=(document.getElementById('client-search')||{}).value||'';
   let filtered=CL.filter(c=>{
-    if(search&&!c.name.toLowerCase().includes(search.toLowerCase()))return false;
+    if(search&&!(c.name||'').toLowerCase().includes(search.toLowerCase()))return false;
     if(clientSegment==='active')return c.status==='active';
     if(clientSegment==='inactive')return c.status==='inactive';
     if(clientSegment==='archived')return c.status==='archived';

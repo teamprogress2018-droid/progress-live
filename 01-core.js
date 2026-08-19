@@ -323,6 +323,9 @@ function goTo(n){
   }
   const activeBtn=document.querySelector('.nav-item[data-screen="'+n+'"]');
   if(activeBtn)activeBtn.classList.add('active');
+  try{ _goToRender(n); }catch(e){ console.warn('goTo render error ('+n+'):', e); }
+}
+function _goToRender(n){
   if(n==='builder')initBuilder();
   if(n==='calendar'){calCurrentDate=new Date();calMiniDate=new Date();setCalView('week');}
   if(n==='plans')renderPlans();
@@ -343,8 +346,10 @@ function goTo(n){
   if(n==='resources'){renderResources();}
   if(n==='ondemand'){setODTab('browse');}
   if(n==='payments'){
-    document.getElementById('pkg-client').innerHTML=CL.map(c=>'<option value="'+escHtml(c.id)+'">'+escHtml(c.name)+'</option>').join('');
-    document.getElementById('pkg-date').value=new Date().toISOString().split('T')[0];
+    const pkgEl=document.getElementById('pkg-client');
+    if(pkgEl)pkgEl.innerHTML=CL.map(c=>'<option value="'+escHtml(c.id)+'">'+escHtml(c.name)+'</option>').join('');
+    const pkgDate=document.getElementById('pkg-date');
+    if(pkgDate)pkgDate.value=new Date().toISOString().split('T')[0];
     setPayTab('overview');
   }
   if(n==='calculator'){initCalcClients();calcTDEE();}
