@@ -154,6 +154,7 @@ function capHomeworkWorkoutCard(w,accent,live,opts){
     <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:8px;line-height:1.5;">${escHtml(w.desc||'')}</div>
     <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;">${chips}</div>
     ${struct?`<div style="font-size:11px;color:${CAP_TEXT};margin-bottom:4px;"><strong>Plan:</strong> ${escHtml(struct)}</div>`:''}
+    ${w&&w.structure&&w.structure.when&&w.format==='breath'?`<div style="font-size:11px;color:${CAP_MUTED};margin-bottom:4px;"><strong>Kiedy:</strong> ${escHtml(w.structure.when)}</div>`:''}
     ${mats?`<div style="font-size:11px;color:${CAP_MUTED};margin-bottom:10px;"><strong>Materiały:</strong> ${escHtml(mats)}</div>`:''}
     ${opts.due?`<div style="font-size:10px;color:${CAP_MUTED};margin-bottom:10px;">Termin: ${escHtml(opts.due)}</div>`:''}
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -1080,6 +1081,7 @@ function capScreenHTML(scr,c){
       if(f==='hiit')return w.format==='hiit'||w.coll==='hiit';
       if(f==='tabata')return w.format==='tabata';
       if(f==='cardio')return w.format==='hiit'||w.format==='tabata'||w.format==='cardio';
+      if(f==='oddech')return w.coll==='oddech'||w.format==='breath';
       return w.format===f||w.coll===f;
     };
     const lib=allW.filter(w=>fmtMatch(w,filter));
@@ -1087,7 +1089,7 @@ function capScreenHTML(scr,c){
     const resolveW=t=>(allW.find(x=>x.id===t.odWorkoutId)||null);
     return `<div class="cap-section" style="padding-bottom:90px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:4px;padding-top:8px;">ZADANIA DOMOWE</div>
-      <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:14px;line-height:1.6;">Treningi w domu przypisane przez trenera + gotowa biblioteka (HIIT, tabata, mobilność, bez sprzętu). Wszystko w jednym miejscu — czas, serie/obwody i materiały.</div>
+      <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:14px;line-height:1.6;">Treningi w domu + metody oddychania (box, 4-7-8, przeponowy) — czas, cykle wdech/wydech i materiały.</div>
       ${openHw.length?`<div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">📌 Od trenera (${openHw.length})</div>
         ${openHw.map(t=>{const w=resolveW(t);if(!w)return `<div style="font-size:12px;color:${CAP_MUTED};margin-bottom:8px;">${escHtml(t.title)} — brak powiązanego filmu</div>`;
           return capHomeworkWorkoutCard(w,accent,live,{taskId:t.id,due:t.due,trainerNote:t.desc,done:false});
@@ -1099,6 +1101,7 @@ function capScreenHTML(scr,c){
         ${pill('hiit','🔥 HIIT')}
         ${pill('tabata','⏱ Tabata')}
         ${pill('mobilnosc','🧘 Mobilność')}
+        ${pill('oddech','🌬 Oddech')}
         ${pill('strength','💪 Siła')}
       </div>
       ${lib.length?lib.map(w=>capHomeworkWorkoutCard(w,accent,live,{})).join(''):`<div style="text-align:center;padding:32px;color:${CAP_MUTED};font-size:12px;">Brak treningów w tej kategorii.</div>`}
@@ -1117,7 +1120,7 @@ function capScreenHTML(scr,c){
       progList.map(p=>{
         const n=typeof odProgramWorkoutCount==='function'?odProgramWorkoutCount(p):0;
         const pct=typeof odProgramProgressPct==='function'?odProgramProgressPct(c.id,p):0;
-        const catLabel=p.category==='mobilnosc'?'🧘 Mobilność':p.category==='dom'?'🏠 Dom bez sprzętu':p.category==='fbw'?'⚡ Full Body':'';
+        const catLabel=p.category==='mobilnosc'?'🧘 Mobilność':p.category==='dom'?'🏠 Dom bez sprzętu':p.category==='oddech'?'🌬 Oddech i relaks':p.category==='fbw'?'⚡ Full Body':'';
         return `<button type="button" onclick="openODProgramClient('${escHtml(p.id)}')" style="width:100%;text-align:left;background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:14px;margin-bottom:12px;cursor:pointer;color:inherit;">
           <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;">
             <div>

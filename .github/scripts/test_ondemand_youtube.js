@@ -85,7 +85,7 @@ function ok(name, cond, extra) {
 }
 
 const demo = windowObj.OD_DEMO_WORKOUTS || [];
-ok('demo workouts exist', demo.length >= 7, 'n=' + demo.length);
+ok('demo workouts exist', demo.length >= 13, 'n=' + demo.length);
 ok('every demo has youtube url', demo.every(w => /youtube\.com\/watch\?v=/i.test(w.url || '')), demo.map(w => w.url).join(','));
 ok('every demo embeds', demo.every(w => /youtube-nocookie\.com\/embed\//.test(ctx.coachVideoEmbed(w.url) || '')), demo.map(w => ctx.coachVideoEmbed(w.url)).join(','));
 ok('no channel-only urls', demo.every(w => !/youtube\.com\/@/.test(w.url || '')));
@@ -93,9 +93,9 @@ ok('hiit is madfit', demo.some(w => w.id === 'ow2' && /HhdYlniTjvg/.test(w.url))
 ok('hips is adriene', demo.some(w => w.id === 'ow5' && /zwoVcrdmLOE/.test(w.url)));
 
 windowObj.OD_WORKOUTS = [];
-ok('fallback to demo', ctx.allODWorkouts().length >= 7);
+ok('fallback to demo', ctx.allODWorkouts().length >= 13);
 ctx.ensureODWorkouts();
-ok('ensure copies demo', windowObj.OD_WORKOUTS.length >= 7 && windowObj.OD_WORKOUTS[0].url);
+ok('ensure copies demo', windowObj.OD_WORKOUTS.length >= 13 && windowObj.OD_WORKOUTS[0].url);
 
 windowObj.OD_WORKOUTS = [
   { id: 'ow1', name: 'Full Body 30 min (HASfit)', type: 'workout', url: '', desc: 'stub' },
@@ -142,6 +142,8 @@ if (typeof ctx.ensureODPrograms === 'function') ctx.ensureODPrograms();
 const progs = ctx.allODPrograms();
 ok('demo program active youtube', progs.some((p) => p.id === 'op2' && p.status === 'active' && ctx.odProgramWorkoutCount(p) >= 5));
 ok('mobility program demo', progs.some((p) => p.id === 'op3' && p.category === 'mobilnosc' && ctx.odProgramSessionTotal(p) >= 4));
+ok('breath workouts demo', demo.filter((w) => w.format === 'breath').length >= 5);
+ok('breath program op5', progs.some((p) => p.id === 'op5' && p.category === 'oddech'));
 ok('home no equipment program', progs.some((p) => p.id === 'op4' && p.category === 'dom' && ctx.odProgramSessionTotal(p) >= 4));
 ok('od programs for collection', ctx.odProgramsForCollection('mobilnosc').some((p) => p.id === 'op3'));
 windowObj._cliveOdProgId = 'op2';

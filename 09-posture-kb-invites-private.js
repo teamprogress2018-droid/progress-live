@@ -716,6 +716,7 @@ const OD_COLLECTIONS=[
   {id:'mobilnosc',name:'Mobilność',icon:'🧘',color:'var(--teal)',desc:'Stretching, mobilność i regeneracja',count:2},
   {id:'fbw',name:'Full Body',icon:'⚡',color:'var(--accent)',desc:'Programy angażujące całe ciało',count:1},
   {id:'hiit',name:'HIIT / Cardio',icon:'🔥',color:'var(--red)',desc:'Intensywne interwały, tabata i cardio',count:2},
+  {id:'oddech',name:'Oddech i relaks',icon:'🌬',color:'var(--purple)',desc:'Box breathing, 4-7-8, oddech przeponowy — przed snem lub po treningu',count:5},
   {id:'sila',name:'Siła',icon:'💪',color:'var(--orange)',desc:'Treningi siłowe z obciążeniem',count:0},
 ];
 
@@ -728,6 +729,12 @@ const OD_DEMO_WORKOUTS=[
   {id:'ow6',name:'Lower Body — nogi i pośladki',type:'video',level:'sredni',time:20,coll:'dom',format:'strength',equipment:'none',color:'#1a1000',emoji:'🦵',desc:'MadFit, bez sprzętu. Darmowy follow-along na YouTube.',url:'https://www.youtube.com/watch?v=9hQTvrP6EsM',views:0,likes:14,structure:{label:'Obwód',rounds:3,setsDesc:'3 obwody · nogi i pośladki · bez sprzętu',materials:'Brak — własne ciało'}},
   {id:'ow7',name:'Stretch i elastyczność 28 min (Adriene)',type:'video',level:'poczatkujacy',time:28,coll:'mobilnosc',format:'stretch',equipment:'mat',color:'#0a1a1a',emoji:'🧘',desc:'Yoga With Adriene — pełny stretching w domu, bez sprzętu.',url:'https://www.youtube.com/watch?v=g_tea8ZNr5A',views:0,likes:10,structure:{label:'Stretch',durationMin:28,materials:'Mata'}},
   {id:'ow8',name:'Tabata 16 min — cardio (MadFit)',type:'video',level:'sredni',time:16,coll:'hiit',format:'tabata',equipment:'none',color:'#2a0a0a',emoji:'⏱',desc:'Klasyczna tabata 20s/10s × 8 rund na ćwiczenie. Zero sprzętu, follow-along YouTube.',url:'https://www.youtube.com/watch?v=XI0YfASj5gY',views:0,likes:6,structure:{label:'Tabata',rounds:8,workSec:20,restSec:10,note:'8 rund tabata · 20s praca / 10s przerwa · cardio'}},
+  {id:'ow9',name:'Box breathing 4-4-4-4 — 5 min',type:'video',level:'poczatkujacy',time:5,coll:'oddech',format:'breath',equipment:'none',color:'#0a0a2a',emoji:'🌬',desc:'Technika Navy SEAL — wyrównuje układ nerwowy. Idealna przed snem lub po stresie.',url:'https://www.youtube.com/watch?v=tEmt1RCBKw0',views:0,likes:18,structure:{label:'Box 4-4-4-4',inhaleSec:4,holdInSec:4,exhaleSec:4,holdOutSec:4,cycles:8,note:'8 cykli · 4s wdech / 4s zatrzymanie / 4s wydech / 4s pauza · stres / sen',materials:'Wygodne siedzenie, cisza',when:'Po treningu, przed snem, stres'}},
+  {id:'ow10',name:'Oddychanie 4-7-8 (Dr Weil) — 5 min',type:'video',level:'poczatkujacy',time:5,coll:'oddech',format:'breath',equipment:'none',color:'#1a0a2a',emoji:'😴',desc:'Klasyczna metoda relaksacyjna — wdech 4s, zatrzymanie 7s, wydech 8s. Uspokaja przed snem.',url:'https://www.youtube.com/watch?v=1Dv-ldGLsyg',views:0,likes:14,structure:{label:'4-7-8',inhaleSec:4,holdInSec:7,exhaleSec:8,cycles:4,note:'4 cykle · 4s wdech / 7s zatrzymanie / 8s wydech · bez pauzy między cyklami',materials:'Brak — język dotyka podniebienia przy wydechu',when:'Wieczorem, lęk, trudność z zasypianiem'}},
+  {id:'ow11',name:'Oddech przeponowy — baza 8 min',type:'video',level:'poczatkujacy',time:8,coll:'oddech',format:'breath',equipment:'none',color:'#0a1a2a',emoji:'🫁',desc:'Oddychanie brzuszne — obniża tętno spoczynkowe i napięcie w klatce. Fundament pod inne metody.',url:'https://www.youtube.com/watch?v=0Ua9butB5nU',views:0,likes:11,structure:{label:'Przeponowy',inhaleSec:4,exhaleSec:6,cycles:10,note:'10 powtórzeń · wdech nosem (brzuch się unosi) · wydech ustami 6s',materials:'Leżenie lub siedzenie, ręka na brzuchu',when:'Regeneracja, ból pleców, rozgrzewka oddechowa'}},
+  {id:'ow12',name:'Oddychanie spójne 5-5 — 6 min',type:'video',level:'poczatkujacy',time:6,coll:'oddech',format:'breath',equipment:'none',color:'#0a2a1a',emoji:'💚',desc:'Równy rytm ~6 oddechów/min (wdech 5s, wydech 5s) — wspiera HRV i spokój w ciągu dnia.',url:'https://www.youtube.com/watch?v=aNXKjGFUlMs',views:0,likes:9,structure:{label:'Spójne 5-5',inhaleSec:5,exhaleSec:5,cycles:12,note:'12 cykli · 5s wdech / 5s wydech · bez zatrzymania · ~6 oddechów/min',materials:'Brak',when:'Między spotkaniami, cooldown po cardio'}},
+  {id:'ow13',name:'Wim Hof — wprowadzenie (początkujący) — 11 min',type:'video',level:'sredni',time:11,coll:'oddech',format:'breath',equipment:'none',color:'#0a1520',emoji:'❄️',desc:'Pierwsza sesja metody Wim Hofa z oficjalnym przewodnikiem. Nie w wannie, nie w wodzie — tylko oddech.',url:'https://www.youtube.com/watch?v=tybOi4hjZFQ',views:0,likes:22,structure:{label:'Wim Hof intro',rounds:3,note:'3 serie głębokich wdechów + wydech passively · retencja po wydechu · NIE w wodzie · unikaj przy ciąży/urazach',materials:'Mata/koc, miejsce do leżenia',when:'Rano na czczo (zaawansowani), NIE bez konsultacji przy schorzeniach'}},
+  {id:'ow14',name:'Oddech przed treningiem — aktywacja 4 min',type:'video',level:'poczatkujacy',time:4,coll:'oddech',format:'breath',equipment:'none',color:'#1a1a0a',emoji:'⚡',desc:'Krótka sekwencja oddechowa przed siłownią — pobudza bez stresu jak kawa.',url:'https://www.youtube.com/watch?v=kwOTAl9NOnw',views:0,likes:7,structure:{label:'Pre-workout',inhaleSec:3,exhaleSec:3,cycles:15,note:'15 cykli · szybszy rytm 3s/3s · przez nos · przed rozgrzewką',materials:'Brak',when:'5 min przed Start treningu w apce'}},
 ];
 window.OD_DEMO_WORKOUTS=OD_DEMO_WORKOUTS;
 
@@ -761,7 +768,23 @@ const OD_DEMO_PROGRAMS=[
       {label:'Dzień 2 — Regeneracja',rest:true},
       {label:'Dzień 3 — Mobilność bioder',workoutId:'ow5'},
       {label:'Dzień 4 — Regeneracja',rest:true},
-      {label:'Dzień 5 — Stretch + oddech',workoutId:'ow7'},
+      {label:'Dzień 5 — Stretch + oddech',workoutId:'ow10'},
+    ]},
+  ]},
+  {id:'op5',name:'Regeneracja oddechowa — 2 tygodnie',category:'oddech',level:'poczatkujacy',duration:'2 tygodnie',status:'active',color:'linear-gradient(135deg,#1a0a2a,#0a1a2a)',emoji:'🌬',desc:'5 metod oddychania na zmianę — box, 4-7-8, przeponowy, spójny i przed treningiem. Krótkie sesje YouTube, zero sprzętu.',clients:0,weeks:[
+    {label:'Tydzień 1',days:[
+      {label:'Dzień 1 — Box 4-4-4-4',workoutId:'ow9'},
+      {label:'Dzień 2 — Regeneracja',rest:true},
+      {label:'Dzień 3 — 4-7-8 (sen)',workoutId:'ow10'},
+      {label:'Dzień 4 — Regeneracja',rest:true},
+      {label:'Dzień 5 — Oddech przeponowy',workoutId:'ow11'},
+    ]},
+    {label:'Tydzień 2',days:[
+      {label:'Dzień 1 — Spójne 5-5',workoutId:'ow12'},
+      {label:'Dzień 2 — Regeneracja',rest:true},
+      {label:'Dzień 3 — Przed treningiem',workoutId:'ow14'},
+      {label:'Dzień 4 — Regeneracja',rest:true},
+      {label:'Dzień 5 — Box breathing',workoutId:'ow9'},
     ]},
   ]},
   {id:'op4',name:'Dom bez sprzętu — 4 tygodnie',category:'dom',level:'poczatkujacy',duration:'4 tygodnie',status:'active',color:'linear-gradient(135deg,#1a1000,#0a1a0a)',emoji:'🏠',desc:'Treningi w domu bez hantli i maszyn — HIIT i nogi z YouTube (MadFit). Zero sprzętu, start od zaraz.',clients:0,weeks:[
@@ -984,13 +1007,23 @@ function odCanPlay(w){
   if(typeof coachVideoIsFile==='function'&&coachVideoIsFile(w.url))return true;
   return /^https?:\/\//i.test(String(w.url||''));
 }
-const OD_FORMAT_LABELS={hiit:'🔥 HIIT',tabata:'⏱ Tabata',intervals:'⚡ Interwały',cardio:'❤️ Cardio',mobility:'🧘 Mobilność',stretch:'🤸 Stretch',strength:'💪 Siła'};
+const OD_FORMAT_LABELS={hiit:'🔥 HIIT',tabata:'⏱ Tabata',intervals:'⚡ Interwały',cardio:'❤️ Cardio',mobility:'🧘 Mobilność',stretch:'🤸 Stretch',strength:'💪 Siła',breath:'🌬 Oddychanie'};
 const OD_EQUIP_LABELS={none:'Bez sprzętu',dumbbells:'Hantle',mat:'Mata',bands:'Gumy'};
 function odWorkoutFormatLabel(w){return OD_FORMAT_LABELS[w&&w.format]||'🏋️ Trening';}
 function odWorkoutEquipmentLabel(w){return OD_EQUIP_LABELS[w&&w.equipment]||'';}
 function odWorkoutStructureText(w){
   const s=w&&w.structure;
   if(!s)return '';
+  if(s.note&&!s.inhaleSec)return s.note;
+  if(s.inhaleSec&&s.exhaleSec){
+    let t='Wdech '+s.inhaleSec+'s';
+    if(s.holdInSec)t+=' · zatrzymanie '+s.holdInSec+'s';
+    t+=' · wydech '+s.exhaleSec+'s';
+    if(s.holdOutSec)t+=' · pauza '+s.holdOutSec+'s';
+    if(s.cycles)t+=' · '+s.cycles+' cykli';
+    if(s.when)t+=' · '+s.when;
+    return t;
+  }
   if(s.note)return s.note;
   if(s.setsDesc)return s.setsDesc;
   if(s.durationMin)return s.durationMin+' min ciągłej pracy';
