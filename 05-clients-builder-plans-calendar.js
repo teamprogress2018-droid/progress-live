@@ -555,6 +555,15 @@ function builderWeekModel(level,idx){
   const arr=ls==='poczatkujacy'?beginner:ls==='sredni'?intermediate:advanced;
   return arr[Math.max(0,Math.min(idx,arr.length-1))]||arr[0];
 }
+function builderWeekPreviewData(row,mod,idx){
+  const reps=(row.querySelector('[data-f="reps"]')||{}).value||'10';
+  const setsBase=parseInt((row.querySelector('[data-f="sets"]')||{}).value||'3',10)||3;
+  const kgBase=builderBaseKg(row);
+  const nextSets=Math.max(1,setsBase+(mod.setDelta||0));
+  const nextReps=builderShiftRepRange(reps,mod.repDelta||0);
+  const nextKg=kgBase?Math.max(0,Math.round((kgBase*((100+(mod.loadPct||0))/100))*2)/2):0;
+  return {idx,sets:nextSets,reps:nextReps,kg:nextKg,rpe:mod.rpe||'',deload:!!mod.deload};
+}
 function builderBaseKg(row){
   const kgVal=(row.querySelector('[data-f="kg"]')||{}).value||'';
   if(kgVal)return parseFloat(kgVal)||0;
@@ -573,22 +582,21 @@ function builderRefreshPeriodPreview(){
   document.querySelectorAll('#builder-days .ex-row').forEach(row=>{
     const box=row.querySelector('.builder-period-preview');
     if(!box)return;
-    const reps=(row.querySelector('[data-f="reps"]')||{}).value||'10';
-    const setsBase=parseInt((row.querySelector('[data-f="sets"]')||{}).value||'3',10)||3;
-    const kgBase=builderBaseKg(row);
-    const nextSets=Math.max(1,setsBase+(mod.setDelta||0));
-    const nextReps=builderShiftRepRange(reps,mod.repDelta||0);
-    const nextKg=kgBase?Math.max(0,Math.round((kgBase*((100+(mod.loadPct||0))/100))*2)/2):0;
+    const pv=builderWeekPreviewData(row,mod,idx);
     const bits=[
       `TYDZ ${idx+1}`,
-      nextSets+' serie',
-      nextReps+' powt.',
-      (nextKg?nextKg+' kg':'kg bez zmiany'),
-      'RPE '+(mod.rpe||''),
-      mod.deload?'deload / mniej objętości':'progresja aktywna'
+      pv.sets+' serie',
+      pv.reps+' powt.',
+      (pv.kg?pv.kg+' kg':'kg bez zmiany'),
+      'RPE '+pv.rpe,
+      pv.deload?'deload / mniej objętości':'progresja aktywna'
     ];
-    box.style.display='block';
+    box.style.display=idx>0?'block':'none';
     box.innerHTML=`<div style="margin-top:8px;padding:8px 10px;border-radius:8px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.18);font-size:10px;color:var(--muted);line-height:1.5;font-family:'DM Mono',monospace;">📈 ${bits.join(' · ')}</div>`;
+    ['sets','reps','kg','rpe'].forEach(f=>{
+      const input=row.querySelector('[data-f="'+f+'"]');
+      if(input)input.classList.toggle('period-preview-on',idx>0);
+    });
   });
 }
 window.builderRefreshPeriodPreview=builderRefreshPeriodPreview;
@@ -614,7 +622,8 @@ function updatePeriod(){
     <div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--teal);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;">Tło sportowe (planowanie)</div>
     ${sportLbl}
   </div>`:'';
-  el.innerHTML=sportBar+rmBar+`<div style="font-size:10px;color:var(--muted);margin-bottom:8px;">Kliknij tydzień, aby podejrzeć jak zmienią się serie / powtórzenia / kg w planie.</div>`+sch.map((w,i)=>`<button type="button" class="period-row${(window._builderPeriodWeek||0)===i?' active':''}" onclick="builderSelectPeriodWeek(${i})"><div style="font-family:'DM Mono',monospace;font-size:10px;color:${w.cel.includes('DELOAD')?'var(--orange)':w.nr===1?'var(--accent)':'var(--blue)'};width:46px;flex-shrink:0;">TYG ${w.nr}</div><div><div style="font-size:12px;font-weight:600;">${w.cel}</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">${w.rpe}</div></div></button>`).join('');
+  const activeIdx=window._builderPeriodWeek||0;
+  el.innerHTML=sportBar+rmBar+`<div style="font-size:10px;color:var(--muted);margin-bottom:8px;">Kliknij tydzień, aby podejrzeć jak zmienią się serie / powtórzenia / kg w planie.</div>`+sch.map((w,i)=>`<button type="button" class="period-row${activeIdx===i?' active':''}" onclick="builderSelectPeriodWeek(${i})"><div style="font-family:'DM Mono',monospace;font-size:10px;color:${w.cel.includes('DELOAD')?'var(--orange)':w.nr===1?'var(--accent)':'var(--blue)'};width:46px;flex-shrink:0;">TYG ${w.nr}</div><div><div style="font-size:12px;font-weight:600;">${w.cel}</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">${w.rpe}</div></div></button>`).join('')+(activeIdx>0?`<button type="button" class="btn btn-primary btn-sm" style="width:100%;margin-top:8px;" onclick="builderApplyPeriodWeek()">Użyj wartości z TYG ${activeIdx+1} w formularzu</button>`:'');
   document.querySelectorAll('#builder-days .ex-row').forEach(r=>{if(typeof builderPreviewKg==='function')builderPreviewKg(r);});
   builderRefreshPeriodPreview();
 }
@@ -623,6 +632,28 @@ function builderSelectPeriodWeek(idx){
   updatePeriod();
 }
 window.builderSelectPeriodWeek=builderSelectPeriodWeek;
+function builderApplyPeriodWeek(){
+  const idx=window._builderPeriodWeek||0;
+  if(idx<=0){notify('TYG 1 to wartości bazowe');return;}
+  const cid=(document.getElementById('b-client')||{}).value||'';
+  const c=CL.find(x=>x.id===cid)||{};
+  const mod=builderWeekModel(c.level||'sredni',idx);
+  document.querySelectorAll('#builder-days .ex-row').forEach(row=>{
+    const pv=builderWeekPreviewData(row,mod,idx);
+    const setEl=row.querySelector('[data-f="sets"]');
+    const repsEl=row.querySelector('[data-f="reps"]');
+    const kgEl=row.querySelector('[data-f="kg"]');
+    const rpeEl=row.querySelector('[data-f="rpe"]');
+    if(setEl)setEl.value=String(pv.sets);
+    if(repsEl)repsEl.value=pv.reps;
+    if(kgEl&&pv.kg)kgEl.value=String(pv.kg);
+    if(rpeEl&&pv.rpe)rpeEl.value=String(pv.rpe).replace('RPE ','');
+  });
+  window._builderPeriodWeek=0;
+  updatePeriod();
+  notify('✓ Wstawiono wartości z wybranego tygodnia');
+}
+window.builderApplyPeriodWeek=builderApplyPeriodWeek;
 function getPeriod(level){
   if(level==='poczatkujacy')return[{nr:1,cel:'Adaptacja — nauka wzorców',rpe:'RPE 7'},{nr:2,cel:'Utrwalenie techniki',rpe:'RPE 7'},{nr:3,cel:'Progresja liniowa',rpe:'RPE 8'},{nr:4,cel:'DELOAD — regeneracja CNS',rpe:'RPE 6'}];
   if(level==='sredni')return[{nr:1,cel:'DUP Akumulacja — wysoka objętość',rpe:'RPE 7'},{nr:2,cel:'DUP Intensyfikacja',rpe:'RPE 8'},{nr:3,cel:'DUP Szczyt',rpe:'RPE 9'},{nr:4,cel:'DELOAD',rpe:'RPE 6'}];
