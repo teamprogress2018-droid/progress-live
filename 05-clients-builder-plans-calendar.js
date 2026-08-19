@@ -138,6 +138,9 @@ async function saveClient(){
     height:+document.getElementById('ac-height').value||0,
     goal:document.getElementById('ac-goal').value,
     level:document.getElementById('ac-level').value,
+    priorSports:typeof readPriorSportsFrom==='function'?readPriorSportsFrom('ac'):[],
+    activityLevel:document.getElementById('ac-activity')?.value||'moderate',
+    sportNotes:document.getElementById('ac-sport-notes')?.value||'',
     notes:document.getElementById('ac-notes').value,
     status:'active',
     joinDate:new Date().toISOString().split('T')[0],
@@ -468,7 +471,12 @@ function updatePeriod(){
     Przysiad ${fmt(rms.squat)} · Martwy ${fmt(rms.deadlift)} · Bench ${fmt(rms.bench)} · OHP ${fmt(rms.ohp)}
     <div style="font-size:10px;color:var(--muted);margin-top:4px;">Pole %1RM w ćwiczeniu liczy kg z tych pomiarów. Brak? Uzupełnij w Pomiary → Siła bazowa.</div>
   </div>`;
-  el.innerHTML=rmBar+sch.map(w=>`<div class="period-row"><div style="font-family:'DM Mono',monospace;font-size:10px;color:${w.cel.includes('DELOAD')?'var(--orange)':w.nr===1?'var(--accent)':'var(--blue)'};width:46px;flex-shrink:0;">TYG ${w.nr}</div><div><div style="font-size:12px;font-weight:600;">${w.cel}</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">${w.rpe}</div></div></div>`).join('');
+  const sportLbl=typeof clientSportProfileLabel==='function'?clientSportProfileLabel(c):'';
+  const sportBar=sportLbl?`<div style="font-size:11px;color:var(--text);margin-bottom:10px;line-height:1.55;padding:8px 10px;background:rgba(61,207,178,0.08);border:1px solid rgba(61,207,178,0.25);border-radius:8px;">
+    <div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--teal);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;">Tło sportowe (planowanie)</div>
+    ${sportLbl}
+  </div>`:'';
+  el.innerHTML=sportBar+rmBar+sch.map(w=>`<div class="period-row"><div style="font-family:'DM Mono',monospace;font-size:10px;color:${w.cel.includes('DELOAD')?'var(--orange)':w.nr===1?'var(--accent)':'var(--blue)'};width:46px;flex-shrink:0;">TYG ${w.nr}</div><div><div style="font-size:12px;font-weight:600;">${w.cel}</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">${w.rpe}</div></div></div>`).join('');
   document.querySelectorAll('#builder-days .ex-row').forEach(r=>{if(typeof builderPreviewKg==='function')builderPreviewKg(r);});
 }
 function getPeriod(level){

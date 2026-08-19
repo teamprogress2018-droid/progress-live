@@ -1404,6 +1404,25 @@ function renderCPSettings(c){
           <option value="archived" ${c.status==='archived'?'selected':''}>Zarchiwizowany</option>
         </select>
       </div>
+      <div class="form-field"><label class="form-lbl">Wcześniejsze sporty / aktywności</label>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Wpływa na planowanie — biegacz ma wyższą wytrzymałość, siłownia wyższą bazę siłową.</div>
+        ${typeof priorSportsChipsHTML==='function'?priorSportsChipsHTML(c.priorSports,'cpe'):''}
+      </div>
+      <div class="form-grid">
+        <div class="form-field"><label class="form-lbl">Dotychczasowa aktywność</label>
+          <select class="form-select" id="cpe-activity">
+            <option value="sedentary" ${c.activityLevel==='sedentary'?'selected':''}>Siedzący tryb</option>
+            <option value="light" ${c.activityLevel==='light'?'selected':''}>Lekka</option>
+            <option value="moderate" ${(!c.activityLevel||c.activityLevel==='moderate')?'selected':''}>Umiarkowana</option>
+            <option value="active" ${c.activityLevel==='active'?'selected':''}>Aktywny</option>
+          </select>
+        </div>
+        <div class="form-field"><label class="form-lbl">Profil (auto)</label>
+          <div style="padding:10px 12px;background:var(--s3);border-radius:8px;font-size:12px;color:var(--text);min-height:42px;">${typeof clientSportProfileLabel==='function'?escHtml(clientSportProfileLabel(c)||'—'):'—'}</div>
+        </div>
+      </div>
+      <div class="form-field"><label class="form-lbl">Uwagi sportowe</label>
+        <input class="form-input" id="cpe-sport-notes" value="${escHtml(c.sportNotes||'')}" placeholder="np. biegał 5 lat, teraz siłownia od zera"></div>
       <div class="form-field"><label class="form-lbl">Uwagi / kontuzje</label><textarea class="form-select" id="cpe-notes" rows="2" style="resize:none;">${c.notes||''}</textarea></div>
       <button class="btn btn-primary" style="width:100%;" onclick="saveCPEdit('${c.id}')">💾 Zapisz zmiany</button>
     </div>

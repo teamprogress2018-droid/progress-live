@@ -68,6 +68,7 @@ function initAplangen(){
   if(!document.getElementById('apl-result').innerHTML){
     aplShowWelcome();
   }
+  if(typeof initPriorSportsForm==='function')initPriorSportsForm('apl',[]);
 }
 
 function aplShowWelcome(){
@@ -116,6 +117,11 @@ function aplFillFromClient(){
       b.classList.toggle('active',b.dataset.val===c.level);
     });
   }
+  if(typeof setPriorSportsChips==='function')setPriorSportsChips('apl',c.priorSports||[]);
+  const actEl=document.getElementById('apl-activity');
+  if(actEl&&c.activityLevel)actEl.value=c.activityLevel;
+  const snEl=document.getElementById('apl-sport-notes');
+  if(snEl&&c.sportNotes)snEl.value=c.sportNotes;
   notify(`✓ Dane ${c.name} wczytane do formularza`);
 }
 
@@ -423,6 +429,8 @@ METODY INTENSYFIKACJI DO WYKORZYSTANIA (zaznaczone przez trenera): ${intensify.l
 
 UWZGLĘDNIJ ANATOMIĘ I BIOMECHANIKĘ KLIENTA przy doborze wariantów ćwiczeń (np. długa kość udowa → przysiad na maszynie hack/suwnicy zamiast klasycznego przysiadu ze sztangą; ograniczona mobilność skokowa → dodaj podkładki pod pięty lub zamień na wykroki; długie ramiona → węższy chwyt w wyciskaniu).
 
+UWZGLĘDNIJ TŁO SPORTOWE: jeśli klient ma predyspozycję wytrzymałościową (bieganie, kolarstwo, pływanie) — więcej pracy tlenowej, wyższe zakresy powtórzeń na start, mniejszy nacisk na maksymalne obciążenia siłowe. Jeśli dominacja siłowa (siłownia, kulturystyka) — szybsza progresja kg, niższe powtórzenia, mniej cardio.
+
 Każdy dzień: 4 ćwiczenia główne + 1 core. Pole "notes" max 60 znaków. warmupExercises: dokładnie 3 pozycje.`;
 
   const userMsg=`Stwórz plan treningowy:
@@ -447,6 +455,7 @@ ${job?`- Rodzaj pracy (NEAT): ${job}`:''}
 - Jakość snu: ${sleep}
 - Poziom stresu: ${stress}
 ${notes?`- Dodatkowe uwagi: ${notes}`:''}
+${client&&typeof clientSportProfileForAI==='function'?clientSportProfileForAI(Object.assign({},client,{priorSports:typeof readPriorSportsFrom==='function'?readPriorSportsFrom('apl'):(client.priorSports||[]),activityLevel:document.getElementById('apl-activity')?.value||client.activityLevel,sportNotes:document.getElementById('apl-sport-notes')?.value||client.sportNotes||''})):''}
 ${client?`- Klient: ${client.name}, cel: ${client.goal}, poziom: ${client.level}`:''}${cid&&typeof sfrGetContextForAI==='function'?sfrGetContextForAI(cid):''}`;
 
   try{

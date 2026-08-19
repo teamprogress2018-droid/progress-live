@@ -563,11 +563,14 @@ function onbWizardStepHTML(step){
       <input type="text" class="form-input" id="onb-meds" placeholder="np. inhibitory ACE, metformina..." value="${onbNewClient.meds||''}"></div>
     <div class="form-field"><label class="form-lbl">Aktywność fizyczna dotychczas</label>
       <select class="form-select" id="onb-activity">
-        <option value="sedentary">Siedzący tryb życia</option>
-        <option value="light">Lekka aktywność (spacery)</option>
-        <option value="moderate">Umiarkowana (rekreacyjnie)</option>
-        <option value="active">Aktywny (regularny trening)</option>
+        <option value="sedentary" ${onbNewClient.activityLevel==='sedentary'?'selected':''}>Siedzący tryb życia</option>
+        <option value="light" ${onbNewClient.activityLevel==='light'?'selected':''}>Lekka aktywność (spacery)</option>
+        <option value="moderate" ${(!onbNewClient.activityLevel||onbNewClient.activityLevel==='moderate')?'selected':''}>Umiarkowana (rekreacyjnie)</option>
+        <option value="active" ${onbNewClient.activityLevel==='active'?'selected':''}>Aktywny (regularny trening)</option>
       </select></div>
+    <div class="form-field"><label class="form-lbl">Wcześniejsze sporty (wpływ na plan)</label>
+      ${typeof priorSportsChipsHTML==='function'?priorSportsChipsHTML(onbNewClient.priorSports,'onb'):''}
+    </div>
     <div class="form-field"><label class="form-lbl">Dostępny sprzęt</label>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
         ${[['gym','🏋️','Pełna siłownia'],['dumbbells','💪','Hantle'],['home','🏠','Ćwiczenia domowe'],['pool','🏊','Basen'],['outdoor','🌳','Na zewnątrz'],['none','❌','Bez sprzętu']].map(([v,ico,l])=>`
@@ -663,6 +666,8 @@ function onbWizardNext(){
   if(onbStep===2){
     onbNewClient.injuries=document.getElementById('onb-injuries')?.value||'';
     onbNewClient.meds=document.getElementById('onb-meds')?.value||'';
+    onbNewClient.activityLevel=document.getElementById('onb-activity')?.value||'moderate';
+    onbNewClient.priorSports=typeof readPriorSportsFrom==='function'?readPriorSportsFrom('onb'):[];
     onbNewClient.rodo=document.getElementById('onb-rodo')?.checked||false;
     if(!onbNewClient.rodo){notify('⚠ Wymagana zgoda RODO!');return;}
   }
@@ -691,6 +696,8 @@ function onbCreateClient(){
     height:onbNewClient.height||'',
     gender:onbNewClient.gender||'mężczyzna',
     injuries:onbNewClient.injuries||'',
+    priorSports:onbNewClient.priorSports||[],
+    activityLevel:onbNewClient.activityLevel||'moderate',
     notes:onbNewClient.privateNote||'',
     status:'active',
     joinDate:new Date().toISOString().split('T')[0],

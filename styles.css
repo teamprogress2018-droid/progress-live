@@ -1003,7 +1003,12 @@ body.od-playing .clive-content{display:none;}
   font-size:12px;color:var(--orange);flex-shrink:0;
 }
 
+.prior-sport-chip.active{box-shadow:0 0 0 1px var(--accent);}
+.cap-progress-panel .cap-chart-card{overflow:hidden;}
+.cap-progress-panel .cap-stat-card{transition:border-color .2s;}
+.cap-progress-panel .cap-chart-svg{max-height:120px;}
+@media (min-width:520px){
+  .cap-progress-panel .cap-stat-kpi-row{grid-template-columns:repeat(4,1fr)!important;}
+}
 
 
-
-    

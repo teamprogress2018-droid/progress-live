@@ -344,6 +344,176 @@ window.capYoutubeResources=capYoutubeResources;
 window.capClientResourceList=capClientResourceList;
 window.capSetResFilter=capSetResFilter;
 
+function capMetricEntries(c,groupId){
+  return(window.METRIC_ENTRIES||[]).filter(e=>e&&e.clientId===c.id&&(!groupId||e.groupId===groupId))
+    .slice().sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+}
+function capSparklineSVG(points,color,w,h){
+  const pts=(points||[]).filter(p=>p&&p.v>0);
+  if(pts.length<2)return'';
+  const W=w||320;const H=h||72;const pad={l:8,r:8,t:12,b:18};
+  const iW=W-pad.l-pad.r;const iH=H-pad.t-pad.b;
+  const minV=Math.min(...pts.map(p=>p.v))*0.98;
+  const maxV=Math.max(...pts.map(p=>p.v))*1.02;
+  const range=maxV-minV||1;
+  const xs=pts.map((_,i)=>pad.l+(i/(pts.length-1||1))*iW);
+  const ys=pts.map(p=>pad.t+iH-(((p.v-minV)/range)*iH));
+  const path='M'+xs.map((x,i)=>x+','+ys[i]).join('L');
+  const area=path+' L'+xs[xs.length-1]+','+(pad.t+iH)+' L'+xs[0]+','+(pad.t+iH)+' Z';
+  const col=color||CAP_ACCENT;
+  const dots=xs.map((x,i)=>'<circle cx="'+x+'" cy="'+ys[i]+'" r="3.5" fill="'+col+'" stroke="'+CAP_BG+'" stroke-width="1.5"><title>'+escHtml(String(pts[i].d||''))+': '+pts[i].v+'</title></circle>').join('');
+  const xLab=(d,i)=>{if(i!==0&&i!==pts.length-1&&i!==Math.floor(pts.length/2))return'';const x=xs[i];return '<text x="'+x+'" y="'+(H-4)+'" text-anchor="middle" font-size="8" fill="'+CAP_MUTED+'">'+escHtml(String(d||'').slice(5))+'</text>';};
+  return '<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" class="cap-chart-svg" style="width:100%;display:block;">'+
+    '<defs><linearGradient id="capGrad'+String(col).replace(/[^a-z0-9]/gi,'')+'" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="'+col+'" stop-opacity="0.28"/><stop offset="100%" stop-color="'+col+'" stop-opacity="0.02"/></linearGradient></defs>'+
+    '<path d="'+area+'" fill="url(#capGrad'+String(col).replace(/[^a-z0-9]/gi,'')+')"/>'+
+    '<path d="'+path+'" fill="none" stroke="'+col+'" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>'+
+    dots+pts.map((p,i)=>xLab(p.d,i)).join('')+
+  '</svg>';
+}
+function capBarChartSVG(data,color,w,h){
+  const rows=(data||[]).filter(d=>d);
+  if(!rows.length)return'';
+  const W=w||320;const H=h||88;const pad=24;
+  const max=Math.max(...rows.map(d=>d.v||0),1);
+  const bw=Math.floor((W-pad*2)/rows.length)-3;
+  const col=color||CAP_ACCENT;
+  const bars=rows.map((d,i)=>{
+    const bh=Math.round(((d.v||0)/max)*(H-28));
+    const x=pad+i*(bw+3);const y=H-16-bh;
+    return '<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+bh+'" rx="4" fill="'+col+'" opacity="'+(d.v?0.88:0.15)+'"/>'+
+      '<text x="'+(x+bw/2)+'" y="'+(H-2)+'" text-anchor="middle" font-size="8" fill="'+CAP_MUTED+'">'+escHtml(String(d.l||''))+'</text>'+
+      (d.v?'<text x="'+(x+bw/2)+'" y="'+(y-3)+'" text-anchor="middle" font-size="7" fill="'+col+'">'+d.v+'</text>':'');
+  }).join('');
+  return '<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" class="cap-chart-svg" style="width:100%;display:block;">'+bars+'</svg>';
+}
+function capWeeklyVolume(clientId,weeks){
+  const logged=typeof completedWorkouts==='function'?completedWorkouts(clientId):[];
+  const now=new Date();const buckets=[];
+  for(let i=(weeks||8)-1;i>=0;i--){
+    const end=new Date(now);end.setDate(end.getDate()-i*7);
+    const start=new Date(end);start.setDate(start.getDate()-6);
+    const ds=start.toISOString().slice(0,10);const de=end.toISOString().slice(0,10);
+    let vol=0,sessions=0,sets=0;
+    logged.forEach(s=>{
+      const d=s.date;if(!d||d<ds||d>de)return;
+      sessions++;vol+=Number(s.volume)||0;
+      sets+=typeof sessionSetsCount==='function'?sessionSetsCount(s):0;
+    });
+    buckets.push({l:'T'+(weeks-i),vol:Math.round(vol),sessions,sets});
+  }
+  return buckets;
+}
+function capClientProgressScreenHTML(c,accent){
+  const live=capIsLiveClient();
+  const w=typeof ppLatestWeight==='function'?ppLatestWeight(c):(c.weight||'—');
+  const logged=typeof completedWorkouts==='function'?completedWorkouts(c.id):(window.SE||[]).filter(s=>s.clientId===c.id);
+  const avg=typeof avgSessionRating==='function'?avgSessionRating(logged):0;
+  const prs=typeof clientExercisePRs==='function'?clientExercisePRs(c.id).slice(0,10):[];
+  const photosOn=typeof ppFeatureOn==='function'?ppFeatureOn(c):true;
+  const massEntries=capMetricEntries(c,'mg1');
+  const firstMass=massEntries[0]&&massEntries[0].values&&massEntries[0].values.m1;
+  const lastMass=massEntries.length&&massEntries[massEntries.length-1].values&&massEntries[massEntries.length-1].values.m1;
+  const massDiff=firstMass&&lastMass?(Math.round((lastMass-firstMass)*10)/10):null;
+  const massPts=massEntries.map(e=>({d:e.date,v:parseFloat(e.values&&e.values.m1)||0})).filter(p=>p.v>0);
+  const volWeeks=capWeeklyVolume(c.id,8);
+  const totalVol=logged.reduce((s,x)=>s+(Number(x.volume)||0),0);
+  const totalSets=logged.reduce((s,x)=>s+(typeof sessionSetsCount==='function'?sessionSetsCount(x):0),0);
+  const days30=Date.now()-30*86400000;
+  const sess30=logged.filter(s=>s.date&&new Date(s.date).getTime()>=days30).length;
+  const checkins=(window.CHECKINS&&window.CHECKINS[c.id])||[];
+  const ciFilled=checkins.filter(x=>x.status==='filled'&&x.answers).slice(-8);
+  const ciPts=ciFilled.map(x=>({d:x.date,v:typeof scoreCheckinAnswers==='function'?scoreCheckinAnswers(x.answers):0})).filter(p=>p.v>0);
+  const measureEntries=capMetricEntries(c,'mg2');
+  const lastMeas=measureEntries[measureEntries.length-1];
+  const mv=lastMeas&&lastMeas.values||{};
+  const garmin=capGarminEntries(c);
+  const stepsPts=garmin.slice(0,14).reverse().map(e=>({d:e.date,v:parseFloat(e.values&&e.values.m1)||0})).filter(p=>p.v>0);
+  const maxPr=prs.length?Math.max(...prs.map(p=>p.epley||0),1):1;
+  return `
+    <div class="cap-section cap-progress-panel" style="padding-bottom:90px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-top:8px;gap:8px;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;">MOJE POSTĘPY</div>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="capGoScreen('calendar')">📅 Kalendarz</button>
+      </div>
+      <div class="cap-stat-kpi-row" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;">
+        <div class="cap-stat-card" style="background:${CAP_S2};border-radius:16px;padding:14px;border:1px solid ${CAP_S3};">
+          <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:6px;">⚖️ Masa ciała</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${CAP_TEXT};line-height:1;">${escHtml(String(w))}<span style="font-size:12px;color:${CAP_MUTED};"> kg</span></div>
+          ${massDiff!=null?'<div style="font-size:11px;margin-top:4px;color:'+(massDiff<=0?'#3ecfb2':'#ff8c42')+';">'+(massDiff>0?'+':'')+massDiff+' kg od startu</div>':''}
+        </div>
+        <div class="cap-stat-card" style="background:${CAP_S2};border-radius:16px;padding:14px;border:1px solid ${CAP_S3};">
+          <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:6px;">🏋️ Sesje (30 dni)</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${accent};line-height:1;">${sess30}</div>
+          <div style="font-size:11px;color:${CAP_MUTED};margin-top:4px;">łącznie ${logged.length} · ocena ${avg?avg+'/5':'—'}</div>
+        </div>
+        <div class="cap-stat-card" style="background:${CAP_S2};border-radius:16px;padding:14px;border:1px solid ${CAP_S3};">
+          <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:6px;">📦 Tonaż</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:${CAP_TEXT};line-height:1;">${totalVol>=1000?(Math.round(totalVol/100)/10)+'t':Math.round(totalVol)}<span style="font-size:11px;color:${CAP_MUTED};"> kg</span></div>
+          <div style="font-size:11px;color:${CAP_MUTED};margin-top:4px;">objętość (kg × powt.)</div>
+        </div>
+        <div class="cap-stat-card" style="background:${CAP_S2};border-radius:16px;padding:14px;border:1px solid ${CAP_S3};">
+          <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:6px;">🔢 Serie</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${CAP_TEXT};line-height:1;">${totalSets}</div>
+          <div style="font-size:11px;color:${CAP_MUTED};margin-top:4px;">zapisane serie robocze</div>
+        </div>
+      </div>
+      ${massPts.length>=2?`<div class="cap-chart-card" style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">Trend masy ciała</div>
+        <div style="font-size:10px;color:${CAP_MUTED};margin-bottom:10px;">Pomiary od trenera · ostatnie ${massPts.length} wpisów</div>
+        ${capSparklineSVG(massPts,accent,340,80)}
+      </div>`:''}
+      <div style="display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:14px;">
+        <div class="cap-chart-card" style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;">
+          <div style="font-size:12px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">Tonaż tygodniowy</div>
+          <div style="font-size:10px;color:${CAP_MUTED};margin-bottom:10px;">Suma kg × powt. z zapisanych treningów</div>
+          ${capBarChartSVG(volWeeks.map(wk=>({l:wk.l,v:wk.vol})),accent,340,92)}
+        </div>
+        ${ciPts.length>=2?`<div class="cap-chart-card" style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;">
+          <div style="font-size:12px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">Samopoczucie (check-in)</div>
+          <div style="font-size:10px;color:${CAP_MUTED};margin-bottom:10px;">Energia · sen · stres · odżywianie</div>
+          ${capSparklineSVG(ciPts,'#9d7cf4',340,72)}
+        </div>`:''}
+      </div>
+      ${lastMeas?`<div class="cap-chart-card" style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">📏 Ostatnie obwody</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+          ${[{k:'m1',l:'Klatka'},{k:'m2',l:'Talia'},{k:'m3',l:'Biodra'},{k:'m4',l:'Udo'},{k:'m5',l:'Ramię'}].map(x=>{
+            const v=mv[x.k];if(!v)return'';
+            return '<div style="background:'+CAP_S1+';border-radius:12px;padding:10px;text-align:center;border:1px solid '+CAP_S3+';"><div style="font-size:9px;color:'+CAP_MUTED+';text-transform:uppercase;">'+x.l+'</div><div style="font-family:\'Bebas Neue\',sans-serif;font-size:22px;color:'+CAP_TEXT+';">'+escHtml(String(v))+'<span style="font-size:10px;color:'+CAP_MUTED+';"> cm</span></div></div>';
+          }).join('')}
+        </div>
+        <div style="font-size:10px;color:${CAP_MUTED};margin-top:8px;">${escHtml(lastMeas.date||'')}</div>
+      </div>`:''}
+      ${stepsPts.length>=2?`<div class="cap-chart-card" style="background:linear-gradient(135deg,rgba(0,124,195,0.15),rgba(0,124,195,0.04));border:1px solid rgba(0,124,195,0.35);border-radius:18px;padding:16px;margin-bottom:14px;">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:#5ec8ff;text-transform:uppercase;margin-bottom:6px;">⌚ Kroki (Garmin)</div>
+        ${capSparklineSVG(stepsPts,'#5ec8ff',340,72)}
+      </div>`:''}
+      <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin:4px 0 10px;">🏆 Rekordy siłowe</div>
+      ${prs.length?`<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">${prs.map(p=>{
+        const est=typeof roundToPlate==='function'?roundToPlate(p.epley):Math.round(p.epley);
+        const pct=Math.round(((p.epley||0)/maxPr)*100);
+        return '<button type="button" class="cap-list-item" style="width:100%;text-align:left;background:'+CAP_S2+';border:1px solid '+CAP_S3+';border-radius:14px;padding:12px 14px;cursor:pointer;" onclick="clientOpenExercise('+escHtml(JSON.stringify(p.name))+')">'+
+          '<div style="display:flex;align-items:center;gap:10px;">'+
+          '<div style="font-size:16px;">🏆</div>'+
+          '<div style="flex:1;min-width:0;">'+
+            '<div style="font-size:13px;font-weight:700;color:'+CAP_TEXT+';">'+escHtml(p.name)+'</div>'+
+            '<div style="font-size:11px;color:'+CAP_MUTED+';margin-top:2px;">'+escHtml(formatSetLoad(p.kg,p.reps))+(est?' · 1RM ~'+escHtml(String(est))+' kg':'')+'</div>'+
+            '<div style="height:4px;background:'+CAP_S3+';border-radius:99px;margin-top:8px;overflow:hidden;"><div style="height:100%;width:'+pct+'%;background:linear-gradient(90deg,'+accent+',#ff8c42);"></div></div>'+
+          '</div>'+
+          '<span style="font-size:10px;color:'+accent+';">→</span>'+
+        '</div></button>';
+      }).join('')}</div>`:`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:16px;text-align:center;color:${CAP_MUTED};font-size:12px;margin-bottom:14px;">Po zapisanych seriach tu wpadną rekordy (najlepszy kg × powt.).</div>`}
+      ${photosOn&&typeof ppBlockHTML==='function'?ppBlockHTML(c,{live,accent}):''}
+      <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin:16px 0 10px;">Historia treningów</div>
+      ${capWorkoutHistoryList(c,logged.slice(0,20),live,accent)}
+    </div>`;
+}
+window.capMetricEntries=capMetricEntries;
+window.capSparklineSVG=capSparklineSVG;
+window.capBarChartSVG=capBarChartSVG;
+window.capWeeklyVolume=capWeeklyVolume;
+window.capClientProgressScreenHTML=capClientProgressScreenHTML;
+
 function capScreenHTML(scr,c){
   const accent=window.SETTINGS?.brand?.accentColor||CAP_ACCENT;
   const trainerName=getTrainerName();
@@ -688,74 +858,7 @@ function capScreenHTML(scr,c){
   }
 
   if(scr==='progress'){
-    const live=capIsLiveClient();
-    const w=typeof ppLatestWeight==='function'?ppLatestWeight(c):(c.weight||'—');
-    const photosOn=typeof ppFeatureOn==='function'?ppFeatureOn(c):true;
-    const logged=typeof completedWorkouts==='function'?completedWorkouts(c.id):sessions.filter(s=>s.source==='client'||s.source==='live');
-    const avg=typeof avgSessionRating==='function'?avgSessionRating(logged):0;
-    const prs=typeof clientExercisePRs==='function'?clientExercisePRs(c.id).slice(0,8):[];
-    return `
-    <div class="cap-section" style="padding-bottom:90px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-top:8px;gap:8px;">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;">MOJE POSTĘPY</div>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="capGoScreen('calendar')">📅 Kalendarz</button>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;">
-        <div style="background:${CAP_S2};border-radius:16px;padding:14px;border:1px solid ${CAP_S3};">
-          <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:6px;">⚖️ Masa</div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${CAP_TEXT};line-height:1;">${escHtml(String(w))}<span style="font-size:12px;color:${CAP_MUTED};"> kg</span></div>
-        </div>
-        <div style="background:${CAP_S2};border-radius:16px;padding:14px;border:1px solid ${CAP_S3};">
-          <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:6px;">🏋️ Sesje</div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${accent};line-height:1;">${logged.length}</div>
-        </div>
-        <div style="background:${CAP_S2};border-radius:16px;padding:14px;border:1px solid ${CAP_S3};">
-          <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:6px;">Ocena</div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${CAP_TEXT};line-height:1;">${avg?avg+'/5':'—'}</div>
-        </div>
-      </div>
-      ${(()=>{
-        const entries=capGarminEntries(c);
-        if(!entries.length)return '';
-        const last=entries[0];
-        const latestSteps=entries.find(e=>e.values&&e.values.m1);
-        const latestKcal=entries.find(e=>e.values&&e.values.m2);
-        return `<div style="background:linear-gradient(135deg,rgba(0,124,195,0.18),rgba(0,124,195,0.05));border:1px solid rgba(0,124,195,0.35);border-radius:18px;padding:16px;margin-bottom:14px;">
-          <div style="font-size:10px;font-family:'DM Mono',monospace;color:#5ec8ff;text-transform:uppercase;margin-bottom:8px;">⌚ GARMIN CONNECT</div>
-          <div style="font-size:15px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">${escHtml(last.notes||'Ostatnia aktywność')}</div>
-          <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:12px;">CSV od trenera · ${escHtml(last.date||'')}</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-            <div style="background:${CAP_S2};border-radius:12px;padding:12px;">
-              <div style="font-size:10px;color:${CAP_MUTED};text-transform:uppercase;">Kroki</div>
-              <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:${CAP_TEXT};">${escHtml(String((latestSteps&&latestSteps.values.m1)||'—'))}</div>
-            </div>
-            <div style="background:${CAP_S2};border-radius:12px;padding:12px;">
-              <div style="font-size:10px;color:${CAP_MUTED};text-transform:uppercase;">Kalorie</div>
-              <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:${CAP_TEXT};">${escHtml(String((latestKcal&&latestKcal.values.m2)||'—'))}<span style="font-size:11px;color:${CAP_MUTED};"> kcal</span></div>
-            </div>
-          </div>
-          ${entries.slice(0,4).map(e=>`<div style="display:flex;justify-content:space-between;gap:8px;font-size:11px;padding:8px 0 0;border-top:1px solid ${CAP_S3};margin-top:8px;">
-            <span style="color:${CAP_TEXT};">${escHtml(e.notes||'Garmin')}</span>
-            <span style="color:${CAP_MUTED};">${escHtml(e.date||'')}${e.values&&e.values.m2?' · '+e.values.m2+' kcal':''}</span>
-          </div>`).join('')}
-        </div>`;
-      })()}
-      <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin:4px 0 10px;">Rekordy</div>
-      ${prs.length?prs.map(p=>{
-        const est=typeof roundToPlate==='function'?roundToPlate(p.epley):Math.round(p.epley);
-        return `<button type="button" class="cap-list-item" style="width:100%;text-align:left;background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:14px;margin-bottom:8px;cursor:pointer;" onclick="clientOpenExercise(${escHtml(JSON.stringify(p.name))})">
-          <div style="font-size:18px;width:28px;flex-shrink:0;">🏆</div>
-          <div style="flex:1;min-width:0;">
-            <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};">${escHtml(p.name)}</div>
-            <div style="font-size:11px;color:${CAP_MUTED};margin-top:2px;">${escHtml(formatSetLoad(p.kg,p.reps))}${est?' · szac. 1RM '+escHtml(String(est))+' kg':''} · ${escHtml(p.date||'')}</div>
-          </div>
-          <span style="font-size:11px;color:${accent};">Historia →</span>
-        </button>`;
-      }).join(''):`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:16px;text-align:center;color:${CAP_MUTED};font-size:12px;margin-bottom:14px;">Po zapisanych seriach tu wpadną rekordy (najlepszy kg × powt.).</div>`}
-      ${photosOn&&typeof ppBlockHTML==='function'?ppBlockHTML(c,{live,accent}):`<div style="font-size:12px;color:${CAP_MUTED};">Zdjęcia sylwetki są wyłączone u trenera.</div>`}
-      <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin:16px 0 10px;">Historia treningów</div>
-      ${capWorkoutHistoryList(c,logged.slice(0,20),live,accent)}
-    </div>`;
+    return capClientProgressScreenHTML(c,accent);
   }
 
   if(scr==='session'){

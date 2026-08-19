@@ -2113,6 +2113,21 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         </select>
       </div>
 
+      <div class="form-field">
+        <label class="form-lbl">Wcześniejsze sporty / aktywności</label>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Biegacz → wyższa wytrzymałość; siłownia → wyższa baza siłowa. Wczytuje się z profilu klienta.</div>
+        <div id="apl-prior-sports-mount"></div>
+        <div class="form-grid" style="margin-top:10px;">
+          <div class="form-field"><label class="form-lbl">Dotychczasowa aktywność</label>
+            <select class="form-select" id="apl-activity" style="font-size:13px;">
+              <option value="sedentary">Siedzący tryb</option><option value="light">Lekka</option>
+              <option value="moderate" selected>Umiarkowana</option><option value="active">Aktywny</option>
+            </select></div>
+          <div class="form-field"><label class="form-lbl">Uwagi sportowe</label>
+            <input class="form-input" id="apl-sport-notes" placeholder="np. triathlon 3 lata" style="font-size:13px;"></div>
+        </div>
+      </div>
+
       <!-- cel -->
       <div class="form-field">
         <label class="form-lbl">Cel treningowy *</label>
@@ -2896,6 +2911,14 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <div class="form-grid">
         <div class="form-field"><label class="form-lbl">Cel</label><select class="form-select" id="ac-goal"><option value="masa">Budowa masy</option><option value="sila">Wzrost siły</option><option value="redukcja">Redukcja</option><option value="kondycja">Kondycja</option></select></div>
         <div class="form-field"><label class="form-lbl">Poziom</label><select class="form-select" id="ac-level"><option value="poczatkujacy">Początkujący (0-1 rok)</option><option value="sredni">Średniozaawansowany (1-3 lata)</option><option value="zaawansowany">Zaawansowany (3+ lata)</option></select></div>
+      </div>
+      <div class="form-field"><label class="form-lbl">Wcześniejsze sporty / aktywności</label>
+        <div id="ac-prior-sports-mount" style="font-size:11px;color:var(--muted);margin-bottom:6px;">Zaznacz uprawiane wcześniej — wpływa na plan (wytrzymałość vs siła).</div>
+      </div>
+      <div class="form-grid">
+        <div class="form-field"><label class="form-lbl">Dotychczasowa aktywność</label>
+          <select class="form-select" id="ac-activity"><option value="sedentary">Siedzący tryb</option><option value="light">Lekka</option><option value="moderate" selected>Umiarkowana</option><option value="active">Aktywny</option></select></div>
+        <div class="form-field"><label class="form-lbl">Uwagi sportowe</label><input type="text" class="form-input" id="ac-sport-notes" placeholder="np. biegał 5 lat"></div>
       </div>
       <div class="form-field"><label class="form-lbl">Uwagi / kontuzje</label><textarea class="form-textarea" id="ac-notes" rows="2" placeholder="np. ból kolana..."></textarea></div>
     </div>
@@ -3922,7 +3945,7 @@ async function load(){
       'clients','plans','sessions','exercises','workouts','tasks','kb','metricEntries','metricGroups',
       'messages','packages','invoices','formSends','reportHistory','forms','programs','checkins',
       'notifications','autoflows','forumGroups','forumPosts','forumComments','odWorkouts','odProgress','resources',
-      'settings','integrationConfigs','automationState','clientNotes','clientDocs','onboardingFlows','planTemplates','odPrograms','odProgress','onboardingActive','clientGroups','invites','clientAccounts','progressPhotos','coachVideos'
+      'settings','integrationConfigs','automationState','clientNotes','clientDocs','onboardingFlows','planTemplates','odPrograms','onboardingActive','clientGroups','invites','clientAccounts','progressPhotos','coachVideos'
     ]);
   }catch(e){console.warn('Migracja trainerId:',e);}
   try{if(typeof window.runAutoflowsCheck==='function')window.runAutoflowsCheck();}catch(e){console.warn('runAutoflowsCheck:',e);}

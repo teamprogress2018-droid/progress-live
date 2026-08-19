@@ -252,6 +252,9 @@ function saveCPEdit(id){
   c.goal=document.getElementById('cpe-goal').value;
   c.level=document.getElementById('cpe-level').value;
   c.status=document.getElementById('cpe-status').value;
+  c.priorSports=typeof readPriorSportsFrom==='function'?readPriorSportsFrom('cpe'):(c.priorSports||[]);
+  c.activityLevel=document.getElementById('cpe-activity')?.value||c.activityLevel||'moderate';
+  c.sportNotes=document.getElementById('cpe-sport-notes')?.value||'';
   c.notes=document.getElementById('cpe-notes').value;
   persistById('clients',c);
   // Odśwież sidebar bez zamykania drawera
