@@ -833,20 +833,7 @@ function renderCPOverview(c){
       </div>`;
     })()}
 
-    <!-- dane podstawowe -->
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
-      <div class="cp-section-title" style="margin-bottom:0;">DANE KLIENTA</div>
-      ${!editing?`<button type="button" class="btn btn-primary btn-sm" onclick="startCPEdit('${c.id}')">✏️ Edytuj dane</button>`:''}
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:16px;">
-      ${[
-        ['📧 Email',c.email||'—'],['📱 Telefon',c.phone||'—'],
-        ['🎂 Wiek',c.age?c.age+' lat':'—'],
-        ['⚖️ Waga',c.weight?c.weight+' kg':'—'],['📏 Wzrost',c.height?c.height+' cm':'—'],
-        ['🎯 Cel',{masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja'}[c.goal]||c.goal||'—'],
-        ['🏋️ Poziom',{poczatkujacy:'Początkujący',sredni:'Średni',zaawansowany:'Zaawansowany'}[c.level]||c.level||'—'],
-      ].map(([l,v])=>`<div style="background:var(--s3);border-radius:8px;padding:9px 11px;"><div style="font-size:12px;color:var(--muted);margin-bottom:2px;">${l}</div><div style="font-size:14px;font-weight:600;">${escHtml(String(v))}</div></div>`).join('')}
-    </div>
+    <!-- dane podstawowe (bez duplikatu nagłówka) -->
     ${!c.phone?`<div style="background:rgba(201,123,63,0.12);border:1px solid rgba(201,123,63,0.35);border-radius:8px;padding:10px 12px;margin-bottom:16px;font-size:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
       <span>Dodaj numer telefonu — potrzebny do WhatsApp i przypomnień.</span>
       <button type="button" class="btn btn-primary btn-sm" onclick="startCPEdit('${c.id}')">+ Telefon</button>

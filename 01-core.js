@@ -325,7 +325,7 @@ function goTo(n){
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   const s=document.getElementById('screen-'+n);if(s)s.classList.add('active');
   closeMobileSidebar();
-  const moreScreens=['library','programs','tasks','forms','payments','calculator','automation','integrations','metrics','checkin','aiplangen','ondemand','resources','bizstats','forum','settings','trainer-profile','aicoach','kb'];
+  const moreScreens=['library','programs','tasks','forms','payments','calculator','automation','integrations','metrics','checkin','aiplangen','ondemand','resources','bizstats','forum','inbox','settings','trainer-profile','aicoach','kb'];
   if(moreScreens.includes(n)){
     const moreEl=document.getElementById('nav-more-items');
     const arrow=document.getElementById('nav-more-arrow');
