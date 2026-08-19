@@ -33,29 +33,32 @@ function ok(name, cond, extra) {
     window.CL = [{ id: 'c-anna', name: 'Anna Nowak' }];
     window.OD_WORKOUTS = [];
     if (typeof ensureODWorkouts === 'function') ensureODWorkouts();
+    if (typeof ensureODPrograms === 'function') ensureODPrograms();
     if (typeof migrateODYoutubeWorkouts === 'function') migrateODYoutubeWorkouts();
     goTo('ondemand');
   });
 
-  await page.waitForSelector('.od-workout-card');
+  await page.waitForSelector('.od-prog-card');
   const browse = await page.evaluate(() => {
-    const cards = [...document.querySelectorAll('.od-workout-card')];
+    const cards = [...document.querySelectorAll('.od-prog-card')];
     const text = (document.getElementById('screen-ondemand') || {}).innerText || '';
-    const thumbs = [...document.querySelectorAll('.od-thumb')].map((el) => el.getAttribute('style') || '');
     return {
       count: cards.length,
       text,
-      youtubeThumbs: thumbs.filter((s) => /i\.ytimg\.com/.test(s)).length,
-      hasPlay: /Odtwórz/.test(text)
+      hasMobility: /Mobilność/i.test(text),
+      hasHome: /Dom bez sprzętu/i.test(text),
+      noWorkoutsTab: !document.getElementById('odtab-workouts')
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'ondemand_youtube_browse.png') });
-  ok('workout cards rendered', browse.count >= 4, 'count=' + browse.count);
-  ok('youtube thumbnails', browse.youtubeThumbs >= 4, 'thumbs=' + browse.youtubeThumbs);
-  ok('play buttons', browse.hasPlay);
-  ok('copy says youtube', /YouTube/i.test(browse.text));
+  ok('program cards rendered', browse.count >= 3, 'count=' + browse.count);
+  ok('mobility program visible', browse.hasMobility);
+  ok('home program visible', browse.hasHome);
+  ok('workouts tab removed', browse.noWorkoutsTab);
 
-  await page.click('button:has-text("Odtwórz")');
+  await page.evaluate(() => {
+    if (typeof openODWorkout === 'function') openODWorkout('ow2');
+  });
   await page.waitForSelector('#m-od-player.show, #m-od-player.modal-ov.show, #od-player-frame');
   await page.waitForTimeout(400);
   const player = await page.evaluate(() => {
@@ -86,12 +89,16 @@ function ok(name, cond, extra) {
     const root = document.getElementById('cap-screen-content');
     const html = (root && root.innerHTML) || '';
     const text = (root && root.innerText) || '';
-    return { html, text, play: /openODWorkout/.test(html), yt: /YouTube/i.test(text) };
+    return { html, text, prog: /openODProgramClient/.test(html), yt: /YouTube/i.test(text) };
   });
   await page.screenshot({ path: path.join(shotDir, 'client_app_ondemand_youtube.png') });
-  ok('client ondemand playable', cap.play);
+  ok('client ondemand programs', cap.prog);
   ok('client ondemand youtube label', cap.yt);
 
+  await page.evaluate(() => {
+    if (typeof openODProgramClient === 'function') openODProgramClient('op4');
+  });
+  await page.waitForTimeout(300);
   await page.evaluate(() => {
     const btn = document.querySelector('#cap-screen-content button[onclick*="openODWorkout"]');
     if (btn) btn.click();
@@ -117,6 +124,7 @@ function ok(name, cond, extra) {
     window.SETTINGS = window.SETTINGS || {};
     window.SETTINGS.clientApp = { visibleSections: { ondemand: true } };
     if (typeof ensureODWorkouts === 'function') ensureODWorkouts();
+    if (typeof ensureODPrograms === 'function') ensureODPrograms();
     document.body.classList.add('client-app-mode');
     document.querySelectorAll('.screen').forEach((s) => s.classList.remove('active'));
     document.getElementById('screen-clientlive').classList.add('active');
@@ -156,10 +164,14 @@ function ok(name, cond, extra) {
   await page.waitForTimeout(300);
   const liveOd = await page.evaluate(() => {
     const html = (document.getElementById('clive-screen-content') || {}).innerHTML || '';
-    return { html, play: /openODWorkout/.test(html) };
+    return { html, prog: /openODProgramClient/.test(html) };
   });
-  ok('live ondemand list', liveOd.play);
+  ok('live ondemand programs', liveOd.prog);
 
+  await page.evaluate(() => {
+    if (typeof openODProgramClient === 'function') openODProgramClient('op4');
+  });
+  await page.waitForTimeout(300);
   await page.evaluate(() => {
     const btn = document.querySelector('#clive-screen-content button[onclick*="openODWorkout"]');
     if (btn) btn.click();

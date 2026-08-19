@@ -705,28 +705,30 @@ async function savePackage(){
   else if(payTab==='invoices')renderPayInvoices();
   notify('✓ Pakiet "'+title+'" dodany! Faktura '+invId+' wygenerowana.');
 }
-var odTab='browse';var odWorkoutFilter='all';
+var odTab='browse';var odWorkoutFilter='all';var odProgramFilter='all';
 window.OD_WORKOUTS=[];
 
 const OD_COLLECTIONS=[
-  {id:'fbw',name:'Full Body',icon:'⚡',color:'var(--accent)',desc:'Treningi angażujące całe ciało',count:2},
-  {id:'hiit',name:'HIIT / Cardio',icon:'🔥',color:'var(--red)',desc:'Intensywne interwały i cardio',count:1},
-  {id:'sila',name:'Siła',icon:'💪',color:'var(--orange)',desc:'Treningi siłowe z obciążeniem',count:2},
+  {id:'dom',name:'Dom bez sprzętu',icon:'🏠',color:'var(--blue)',desc:'Ćwiczenia w domu — zero sprzętu, follow-along YouTube',count:1},
   {id:'mobilnosc',name:'Mobilność',icon:'🧘',color:'var(--teal)',desc:'Stretching, mobilność i regeneracja',count:1},
+  {id:'fbw',name:'Full Body',icon:'⚡',color:'var(--accent)',desc:'Programy angażujące całe ciało',count:1},
+  {id:'hiit',name:'HIIT / Cardio',icon:'🔥',color:'var(--red)',desc:'Intensywne interwały i cardio',count:0},
+  {id:'sila',name:'Siła',icon:'💪',color:'var(--orange)',desc:'Treningi siłowe z obciążeniem',count:0},
 ];
 
 const OD_DEMO_WORKOUTS=[
   {id:'ow1',name:'Full Body 30 min (HASfit)',type:'video',level:'sredni',time:30,coll:'fbw',color:'#1a1a2e',emoji:'⚡',desc:'Darmowy trening całego ciała z hantlami. YouTube, bez subskrypcji.',url:'https://www.youtube.com/watch?v=445nEr4-uJM',views:0,likes:12},
-  {id:'ow2',name:'HIIT 20 min — bez sprzętu (MadFit)',type:'video',level:'sredni',time:20,coll:'hiit',color:'#1a0a0a',emoji:'🔥',desc:'Standing HIIT, bez powtórzeń, zero sprzętu. Darmowy follow-along na YouTube.',url:'https://www.youtube.com/watch?v=HhdYlniTjvg',views:0,likes:8},
+  {id:'ow2',name:'HIIT 20 min — bez sprzętu (MadFit)',type:'video',level:'sredni',time:20,coll:'dom',color:'#1a0a0a',emoji:'🔥',desc:'Standing HIIT, bez powtórzeń, zero sprzętu. Darmowy follow-along na YouTube.',url:'https://www.youtube.com/watch?v=HhdYlniTjvg',views:0,likes:8},
   {id:'ow3',name:'Push Day — klatka, barki, triceps',type:'video',level:'sredni',time:20,coll:'sila',color:'#0a1a0a',emoji:'💪',desc:'MadFit push w domu. Wklejony odcinek YouTube, nie kanał.',url:'https://www.youtube.com/watch?v=N6IzvFjybLc',views:0,likes:15},
   {id:'ow4',name:'Pull Day — plecy (ATHLEAN-X)',type:'video',level:'sredni',time:12,coll:'sila',color:'#0a0a1a',emoji:'🏋️',desc:'Darmowy film o treningu pleców. Odtwarzaj w portalu albo na YouTube.',url:'https://www.youtube.com/watch?v=OXvQe9payHw',views:0,likes:11},
   {id:'ow5',name:'Mobilność bioder 20 min',type:'video',level:'poczatkujacy',time:20,coll:'mobilnosc',color:'#0a1a1a',emoji:'🧘',desc:'Yoga With Adriene — Feel Good Flow na biodra. Za darmo na YouTube.',url:'https://www.youtube.com/watch?v=zwoVcrdmLOE',views:0,likes:9},
-  {id:'ow6',name:'Lower Body — nogi i pośladki',type:'video',level:'sredni',time:20,coll:'fbw',color:'#1a1000',emoji:'🦵',desc:'MadFit, bez sprzętu. Darmowy follow-along na YouTube.',url:'https://www.youtube.com/watch?v=9hQTvrP6EsM',views:0,likes:14},
+  {id:'ow6',name:'Lower Body — nogi i pośladki',type:'video',level:'sredni',time:20,coll:'dom',color:'#1a1000',emoji:'🦵',desc:'MadFit, bez sprzętu. Darmowy follow-along na YouTube.',url:'https://www.youtube.com/watch?v=9hQTvrP6EsM',views:0,likes:14},
+  {id:'ow7',name:'Stretch i elastyczność 28 min (Adriene)',type:'video',level:'poczatkujacy',time:28,coll:'mobilnosc',color:'#0a1a1a',emoji:'🧘',desc:'Yoga With Adriene — pełny stretching w domu, bez sprzętu.',url:'https://www.youtube.com/watch?v=g_tea8ZNr5A',views:0,likes:10},
 ];
 window.OD_DEMO_WORKOUTS=OD_DEMO_WORKOUTS;
 
 const OD_DEMO_PROGRAMS=[
-  {id:'op2',name:'4 tygodnie Full Body — YouTube',level:'poczatkujacy',duration:'4 tygodnie',status:'active',color:'linear-gradient(135deg,#1a1a2e,#2a1a0a)',emoji:'⚡',desc:'3 darmowe treningi w tygodniu z YouTube (HASfit, MadFit). Odtwarzaj w apce — bez subskrypcji.',clients:0,weeks:[
+  {id:'op2',name:'4 tygodnie Full Body — YouTube',category:'fbw',level:'poczatkujacy',duration:'4 tygodnie',status:'active',color:'linear-gradient(135deg,#1a1a2e,#2a1a0a)',emoji:'⚡',desc:'3 darmowe treningi w tygodniu z YouTube (HASfit, MadFit). Odtwarzaj w apce — bez subskrypcji.',clients:0,weeks:[
     {label:'Tydzień 1',days:[
       {label:'Dzień 1 — Full Body',workoutId:'ow1'},
       {label:'Dzień 2 — Regeneracja',rest:true},
@@ -740,6 +742,38 @@ const OD_DEMO_PROGRAMS=[
       {label:'Dzień 3 — Pull',workoutId:'ow4'},
       {label:'Dzień 4 — Regeneracja',rest:true},
       {label:'Dzień 5 — Mobilność',workoutId:'ow5'},
+    ]},
+  ]},
+  {id:'op3',name:'Mobilność i regeneracja — 4 tygodnie',category:'mobilnosc',level:'poczatkujacy',duration:'4 tygodnie',status:'active',color:'linear-gradient(135deg,#0a1a1a,#0a2a2a)',emoji:'🧘',desc:'Stretching i mobilność w domu bez sprzętu — filmy YouTube (Adriene). Idealne między treningami siłowymi lub jako samodzielny reset.',clients:0,weeks:[
+    {label:'Tydzień 1',days:[
+      {label:'Dzień 1 — Mobilność bioder',workoutId:'ow5'},
+      {label:'Dzień 2 — Regeneracja',rest:true},
+      {label:'Dzień 3 — Stretch całego ciała',workoutId:'ow7'},
+      {label:'Dzień 4 — Regeneracja',rest:true},
+      {label:'Dzień 5 — Mobilność bioder',workoutId:'ow5'},
+    ]},
+    {label:'Tydzień 2',days:[
+      {label:'Dzień 1 — Stretch całego ciała',workoutId:'ow7'},
+      {label:'Dzień 2 — Regeneracja',rest:true},
+      {label:'Dzień 3 — Mobilność bioder',workoutId:'ow5'},
+      {label:'Dzień 4 — Regeneracja',rest:true},
+      {label:'Dzień 5 — Stretch + oddech',workoutId:'ow7'},
+    ]},
+  ]},
+  {id:'op4',name:'Dom bez sprzętu — 4 tygodnie',category:'dom',level:'poczatkujacy',duration:'4 tygodnie',status:'active',color:'linear-gradient(135deg,#1a1000,#0a1a0a)',emoji:'🏠',desc:'Treningi w domu bez hantli i maszyn — HIIT i nogi z YouTube (MadFit). Zero sprzętu, start od zaraz.',clients:0,weeks:[
+    {label:'Tydzień 1',days:[
+      {label:'Dzień 1 — HIIT 20 min',workoutId:'ow2'},
+      {label:'Dzień 2 — Regeneracja',rest:true},
+      {label:'Dzień 3 — Nogi i pośladki',workoutId:'ow6'},
+      {label:'Dzień 4 — Regeneracja',rest:true},
+      {label:'Dzień 5 — HIIT 20 min',workoutId:'ow2'},
+    ]},
+    {label:'Tydzień 2',days:[
+      {label:'Dzień 1 — Nogi i pośladki',workoutId:'ow6'},
+      {label:'Dzień 2 — Regeneracja',rest:true},
+      {label:'Dzień 3 — HIIT 20 min',workoutId:'ow2'},
+      {label:'Dzień 4 — Regeneracja',rest:true},
+      {label:'Dzień 5 — Nogi i pośladki',workoutId:'ow6'},
     ]},
   ]},
   {id:'op1',name:'Starting Strength — szkic',level:'poczatkujacy',duration:'4 tygodnie',color:'linear-gradient(135deg,#1a0a0a,#2a1a0a)',emoji:'🏋️',desc:'Szkic programu siłowego — dodaj filmy YouTube w panelu On-demand.',clients:0,status:'draft'},
@@ -977,11 +1011,24 @@ window.migrateODYoutubeWorkouts=migrateODYoutubeWorkouts;
 
 const LEVEL_MAP={poczatkujacy:'Początkujący',sredni:'Średni',zaawansowany:'Zaawansowany'};
 
+function odProgramsForCollection(collId){
+  const progs=allODPrograms().filter(p=>p.status!=='draft'&&odProgramWorkoutCount(p)>0);
+  if(!collId||collId==='all')return progs;
+  if(['dom','mobilnosc','fbw'].includes(collId))return progs.filter(p=>p.category===collId);
+  const allW=allODWorkouts();
+  return progs.filter(p=>odProgramWorkoutIds(p).some(wid=>{
+    const w=allW.find(x=>x.id===wid);
+    return w&&w.coll===collId;
+  }));
+}
+window.odProgramsForCollection=odProgramsForCollection;
+
 function setODTab(t){
   ensureODWorkouts();
   migrateODYoutubeWorkouts();
+  if(t==='workouts')t='programs';
   odTab=t;
-  ['browse','workouts','programs','settings'].forEach(tab=>{
+  ['browse','programs','settings'].forEach(tab=>{
     const v=document.getElementById('odtab-'+tab+'-view');
     if(v)v.style.display=tab===t?'block':'none';
     const btn=document.getElementById('odtab-'+tab);
@@ -990,36 +1037,34 @@ function setODTab(t){
   const addBtn=document.getElementById('od-add-btn');
   if(addBtn){
     if(t==='programs'){addBtn.textContent='+ Nowy program';addBtn.onclick=()=>openODProgramModal();}
-    else{addBtn.textContent='+ Dodaj trening';addBtn.onclick=()=>openM('m-od-workout');}
+    else{addBtn.textContent='+ Dodaj film';addBtn.onclick=()=>openM('m-od-workout');}
   }
   if(t==='browse')renderODBrowse();
-  if(t==='workouts')renderODWorkouts();
   if(t==='programs')renderODPrograms();
 }
 
 function renderODBrowse(){
   const allW=allODWorkouts();
-  // stats
+  const activeProgs=odProgramsForCollection('all');
   const sc=document.getElementById('od-stat-clients');if(sc)sc.textContent=CL.length;
   const sw=document.getElementById('od-stat-workouts');if(sw)sw.textContent=allW.length;
+  const sp=document.getElementById('od-stat-programs');if(sp)sp.textContent=activeProgs.length;
 
-  // collections grid
   const cg=document.getElementById('od-collections-grid');
-  if(cg)cg.innerHTML=OD_COLLECTIONS.map((c,i)=>`
-    <div class="od-coll-card" style="animation-delay:${i*0.05}s;border-top:3px solid ${c.color};" onclick="setODTab('workouts');odWorkoutFilter='${c.id}';renderODWorkouts()">
+  if(cg)cg.innerHTML=OD_COLLECTIONS.map((c,i)=>{
+    const progN=odProgramsForCollection(c.id).length;
+    const woN=allW.filter(w=>w.coll===c.id).length;
+    const cntLabel=progN?`${progN} program${progN===1?'':'ów'}`:`${woN} film${woN===1?'':'ów'}`;
+    return `<div class="od-coll-card" style="animation-delay:${i*0.05}s;border-top:3px solid ${c.color};" onclick="setODTab('programs');odProgramFilter='${c.id}';renderODPrograms()">
       <div style="font-size:28px;margin-bottom:8px;">${c.icon}</div>
       <div style="font-size:14px;font-weight:700;margin-bottom:4px;">${c.name}</div>
       <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${c.desc}</div>
-      <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);margin-top:8px;">${allW.filter(w=>w.coll===c.id).length} treningów</div>
-    </div>`).join('');
+      <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);margin-top:8px;">${cntLabel}</div>
+    </div>`;
+  }).join('');
 
-  // workouts grid (first 4)
-  const wg=document.getElementById('od-workouts-grid');
-  if(wg)wg.innerHTML=allW.slice(0,4).map((w,i)=>odWorkoutCardHTML(w,i)).join('');
-
-  // programs grid
   const pg=document.getElementById('od-programs-grid');
-  if(pg)pg.innerHTML=allODPrograms().slice(0,3).map((p,i)=>odProgramCardHTML(p,i)).join('');
+  if(pg)pg.innerHTML=activeProgs.slice(0,6).map((p,i)=>odProgramCardHTML(p,i)).join('');
 }
 
 function renderODWorkouts(){
@@ -1046,8 +1091,14 @@ function renderODWorkouts(){
 function renderODPrograms(){
   const g=document.getElementById('od-all-programs-grid');
   if(!g)return;
-  const list=allODPrograms();
-  g.innerHTML=(list.length?list.map((p,i)=>odProgramCardHTML(p,i)).join(''):'')
+  let list=odProgramsForCollection(odProgramFilter||'all');
+  const fEl=document.getElementById('od-program-filters');
+  if(fEl){
+    const filters=[{id:'all',label:'Wszystkie programy'},
+      ...OD_COLLECTIONS.filter(c=>odProgramsForCollection(c.id).length).map(c=>({id:c.id,label:c.icon+' '+c.name}))];
+    fEl.innerHTML=filters.map(f=>`<button class="wl-filter-chip${(odProgramFilter||'all')===f.id?' active':''}" onclick="odProgramFilter='${f.id}';renderODPrograms()">${f.label}</button>`).join('');
+  }
+  g.innerHTML=(list.length?list.map((p,i)=>odProgramCardHTML(p,i)).join(''):`<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--muted);"><div style="font-size:40px;margin-bottom:12px;opacity:0.3;">📋</div><div style="font-size:14px;font-weight:600;margin-bottom:6px;">Brak programów w tej kolekcji</div><button class="btn btn-primary" onclick="odProgramFilter='all';renderODPrograms()">Pokaż wszystkie</button></div>`)
     +`<div style="border:1px dashed var(--border2);border-radius:var(--r2);padding:18px;display:flex;align-items:center;justify-content:center;min-height:180px;cursor:pointer;background:transparent;" onclick="openODProgramModal()"><div style="text-align:center;color:var(--muted);"><div style="font-size:32px;margin-bottom:8px;">+</div><div style="font-size:13px;font-weight:600;">Nowy program on-demand</div><div style="font-size:11px;margin-top:4px;">Klienci startują sami</div></div></div>`;
 }
 
@@ -1358,7 +1409,7 @@ async function saveODWorkout(){
   await persistById('odWorkouts',w);
   closeM('m-od-workout');
   if(odTab==='browse')renderODBrowse();
-  else if(odTab==='workouts')renderODWorkouts();
+  else if(odTab==='programs')renderODPrograms();
   notify('✓ Trening "'+name+'" dodany!');
 }
 

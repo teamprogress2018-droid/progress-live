@@ -637,22 +637,16 @@ function capScreenHTML(scr,c){
           <button type="button" class="cap-btn-primary" style="padding:10px;font-size:13px;width:100%;background:${CAP_S3};" onclick="openODProgramClient('${escHtml(cont.prog.id)}')">Cały program</button>
         </div>`;
         }
-        const odList=(typeof allODWorkouts==='function'?allODWorkouts():(window.OD_WORKOUTS||[])).slice(0,2);
-        if(!odList.length)return '';
+        const progList=(typeof allODPrograms==='function'?allODPrograms():(window.OD_PROGRAMS||[])).filter(p=>(typeof odProgramWorkoutCount==='function'?odProgramWorkoutCount(p)>0:p.status==='active')&&p.status!=='draft').slice(0,2);
+        if(!progList.length)return '';
         return `<div style="background:linear-gradient(135deg,rgba(225,31,46,0.18),rgba(225,31,46,0.05));border:1px solid rgba(225,31,46,0.35);border-radius:18px;padding:16px;margin-bottom:14px;">
           <div style="font-size:10px;font-family:'DM Mono',monospace;color:${accent};text-transform:uppercase;margin-bottom:6px;">▶ ON-DEMAND</div>
-          <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">Treningi YouTube (za darmo)</div>
-          ${odList.map(w=>{
-            const thumb=typeof odThumbUrl==='function'?odThumbUrl(w):'';
-            return `<button type="button" onclick="openODWorkout('${escHtml(w.id)}')" style="width:100%;text-align:left;background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;overflow:hidden;margin-bottom:8px;cursor:pointer;padding:0;color:inherit;">
-              ${thumb?`<div style="height:88px;background:#000 url('${escHtml(thumb)}') center/cover no-repeat;position:relative;"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;"><span style="width:36px;height:36px;border-radius:50%;background:rgba(225,31,46,0.92);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;">▶</span></div></div>`:''}
-              <div style="padding:10px 12px;">
-                <div style="font-size:12px;font-weight:700;color:${CAP_TEXT};">${escHtml(w.name)}</div>
-                <div style="font-size:10px;color:${CAP_MUTED};margin-top:2px;">${escHtml(w.level||'')} · ${w.time||'?'} min</div>
-              </div>
-            </button>`;
-          }).join('')}
-          <button type="button" class="cap-btn-primary" style="padding:10px;font-size:13px;" onclick="capGoScreen('ondemand')">Wszystkie treningi</button>
+          <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">Programy YouTube (za darmo)</div>
+          ${progList.map(p=>`<button type="button" onclick="openODProgramClient('${escHtml(p.id)}')" style="width:100%;text-align:left;background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:12px;margin-bottom:8px;cursor:pointer;color:inherit;">
+              <div style="font-size:12px;font-weight:700;color:${CAP_TEXT};">${escHtml(p.emoji||'📋')} ${escHtml(p.name)}</div>
+              <div style="font-size:10px;color:${CAP_MUTED};margin-top:4px;line-height:1.4;">${escHtml(p.desc||'')}</div>
+            </button>`).join('')}
+          <button type="button" class="cap-btn-primary" style="padding:10px;font-size:13px;" onclick="capGoScreen('ondemand')">Wszystkie programy</button>
         </div>`;
       })()}
       ${inPerson.length?`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:16px;padding:16px;margin-bottom:14px;">
@@ -1028,25 +1022,12 @@ function capScreenHTML(scr,c){
   }
 
   if(scr==='ondemand'){
-    const tab=window._capOdTab||'workouts';
-    const odList=(typeof allODWorkouts==='function'?allODWorkouts():(window.OD_WORKOUTS||[])).slice(0,12);
     const progList=(typeof allODPrograms==='function'?allODPrograms():(window.OD_PROGRAMS||[])).filter(p=>typeof odProgramWorkoutCount==='function'?odProgramWorkoutCount(p)>0:p.status==='active');
-    const pill=(id,label)=>`<button type="button" class="btn ${tab===id?'btn-primary':'btn-ghost'} btn-sm" onclick="capSetOdTab('${id}')">${label}</button>`;
-    const workoutCards=!odList.length?`<div style="text-align:center;padding:40px;color:${CAP_MUTED};font-size:12px;">Brak treningów on-demand — trener jeszcze nic nie dodał.</div>`:
-      odList.map(w=>{
-        const thumb=typeof odThumbUrl==='function'?odThumbUrl(w):'';
-        return `<button type="button" onclick="openODWorkout('${escHtml(w.id)}')" style="width:100%;text-align:left;background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;overflow:hidden;margin-bottom:12px;cursor:pointer;padding:0;color:inherit;">
-        ${thumb?`<div style="height:120px;background:#000 url('${escHtml(thumb)}') center/cover no-repeat;position:relative;"><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;"><span style="width:44px;height:44px;border-radius:50%;background:rgba(225,31,46,0.92);color:#fff;display:flex;align-items:center;justify-content:center;">▶</span></div></div>`:''}
-        <div style="padding:14px;">
-          <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};">${escHtml(w.name)}</div>
-          <div style="font-size:11px;color:${CAP_MUTED};margin-top:2px;">${escHtml(w.level||'')} · ${w.time||'?'} min · YouTube</div>
-        </div>
-      </button>`;
-      }).join('');
     const programCards=!progList.length?`<div style="text-align:center;padding:40px;color:${CAP_MUTED};font-size:12px;">Brak programów z filmami YouTube.</div>`:
       progList.map(p=>{
         const n=typeof odProgramWorkoutCount==='function'?odProgramWorkoutCount(p):0;
         const pct=typeof odProgramProgressPct==='function'?odProgramProgressPct(c.id,p):0;
+        const catLabel=p.category==='mobilnosc'?'🧘 Mobilność':p.category==='dom'?'🏠 Dom bez sprzętu':p.category==='fbw'?'⚡ Full Body':'';
         return `<button type="button" onclick="openODProgramClient('${escHtml(p.id)}')" style="width:100%;text-align:left;background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:14px;margin-bottom:12px;cursor:pointer;color:inherit;">
           <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;">
             <div>
@@ -1055,16 +1036,15 @@ function capScreenHTML(scr,c){
             </div>
             <span style="font-size:9px;font-family:'DM Mono',monospace;color:${accent};white-space:nowrap;">${escHtml(p.duration||'')}</span>
           </div>
-          <div style="font-size:10px;color:${CAP_MUTED};margin-top:8px;">${n?n+' treningów YouTube · ':''}${escHtml(typeof LEVEL_MAP!=='undefined'&&p.level?(LEVEL_MAP[p.level]||p.level):p.level||'')}${pct?' · '+pct+'% zrobione':''}</div>
+          <div style="font-size:10px;color:${CAP_MUTED};margin-top:8px;">${catLabel?escHtml(catLabel)+' · ':''}${n?n+' treningów YouTube · ':''}${escHtml(typeof LEVEL_MAP!=='undefined'&&p.level?(LEVEL_MAP[p.level]||p.level):p.level||'')}${pct?' · '+pct+'% zrobione':''}</div>
           ${pct?`<div style="height:4px;background:${CAP_S3};border-radius:99px;margin-top:8px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:${accent};"></div></div>`:''}
         </button>`;
       }).join('');
     return `
     <div class="cap-section" style="padding-bottom:90px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:8px;padding-top:8px;">ON-DEMAND</div>
-      <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:12px;">Darmowe treningi YouTube — odtwarzaj w apce, bez Spotify Premium.</div>
-      <div style="display:flex;gap:8px;margin-bottom:14px;">${pill('workouts','Treningi')}${pill('programs','Programy')}</div>
-      ${tab==='programs'?programCards:workoutCards}
+      <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:14px;">Programy z darmowymi filmami YouTube — mobilność, dom bez sprzętu i więcej.</div>
+      ${programCards}
     </div>`;
   }
 

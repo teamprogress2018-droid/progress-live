@@ -1226,7 +1226,6 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
     <div class="topbar-actions">
       <div style="display:flex;gap:2px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:2px;">
         <button class="auto-tab-btn active" id="odtab-browse" onclick="setODTab('browse')">Przeglądaj</button>
-        <button class="auto-tab-btn" id="odtab-workouts" onclick="setODTab('workouts')">Treningi</button>
         <button class="auto-tab-btn" id="odtab-programs" onclick="setODTab('programs')">Programy</button>
         <button class="auto-tab-btn" id="odtab-settings" onclick="setODTab('settings')">Ustawienia</button>
       </div>
@@ -1247,7 +1246,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
             <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">TRENINGÓW</div>
           </div>
           <div style="background:var(--s3);border:1px solid var(--border2);border-radius:10px;padding:12px 20px;text-align:center;">
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--blue);" id="od-stat-programs">1</div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--blue);" id="od-stat-programs">3</div>
             <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">PROGRAMÓW</div>
           </div>
           <div style="background:var(--s3);border:1px solid var(--border2);border-radius:10px;padding:12px 20px;text-align:center;">
@@ -1262,35 +1261,26 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <div style="display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;">
           <span style="font-size:10px;background:var(--accent);color:#fff;padding:3px 8px;border-radius:99px;white-space:nowrap;flex-shrink:0;">Wszystkie</span>
           <span style="font-size:10px;color:var(--muted);padding:3px 8px;border-radius:99px;white-space:nowrap;flex-shrink:0;">Zasoby</span>
-          <span style="font-size:10px;color:var(--muted);padding:3px 8px;border-radius:99px;white-space:nowrap;flex-shrink:0;">Treningi</span>
+          <span style="font-size:10px;color:var(--muted);padding:3px 8px;border-radius:99px;white-space:nowrap;flex-shrink:0;">Programy</span>
         </div>
         <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Kolekcje zasobów</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:10px;">
           <div style="background:var(--s2);border-radius:6px;height:36px;"></div>
           <div style="background:var(--s2);border-radius:6px;height:36px;"></div>
         </div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Treningi wideo</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Programy wideo</div>
         <div style="background:var(--s2);border-radius:6px;height:50px;"></div>
       </div>
     </div>
 
     <div style="padding:20px 24px;">
-      <!-- Kolekcje treningów -->
+      <!-- Kolekcje programów -->
       <div style="margin-bottom:28px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;">KOLEKCJE TRENINGÓW</div>
-          <button class="btn btn-ghost btn-sm" onclick="setODTab('workouts')">Wszystkie →</button>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;">KOLEKCJE PROGRAMÓW</div>
+          <button class="btn btn-ghost btn-sm" onclick="setODTab('programs')">Wszystkie →</button>
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;" id="od-collections-grid"></div>
-      </div>
-
-      <!-- Treningi on-demand -->
-      <div style="margin-bottom:28px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;">TRENINGI ON-DEMAND</div>
-          <button class="btn btn-ghost btn-sm" onclick="setODTab('workouts')">Wszystkie →</button>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;" id="od-workouts-grid"></div>
       </div>
 
       <!-- Programy on-demand -->
@@ -1304,14 +1294,9 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
     </div>
   </div>
 
-  <!-- WORKOUTS TAB -->
-  <div id="odtab-workouts-view" style="flex:1;overflow-y:auto;padding:20px 24px;display:none;">
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;" id="od-workout-filters"></div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;" id="od-all-workouts-grid"></div>
-  </div>
-
   <!-- PROGRAMS TAB -->
   <div id="odtab-programs-view" style="flex:1;overflow-y:auto;padding:20px 24px;display:none;">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;" id="od-program-filters"></div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;" id="od-all-programs-grid"></div>
   </div>
 
