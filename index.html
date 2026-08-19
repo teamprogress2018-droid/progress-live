@@ -2669,8 +2669,8 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <div style="font-size:11px;color:var(--muted);" id="cp-sub">—</div>
       </div>
     </div>
-    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
-      <button class="btn btn-ghost btn-sm" onclick="startCPEdit(cpClientId)">✏️ Edytuj</button>
+    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
+      <button class="btn btn-primary btn-sm" id="cp-edit-btn" onclick="startCPEdit(cpClientId)">✏️ Edytuj profil</button>
       <button class="btn btn-ghost btn-sm" onclick="cpQuickMessage()">💬 Wiadomość</button>
       <button class="btn btn-ghost btn-sm" onclick="cpQuickCheckin()">✓ Check-in</button>
       <button class="btn btn-ghost btn-sm" onclick="openReportForClient(cpClientId)">📊 Podsumowanie</button>

@@ -1202,6 +1202,7 @@ var cpClientId=null;var cpTab='overview';
 
 function openClientProfile(id){
   cpClientId=id;cpTab='overview';
+  window._cpEditingClientId=null;
   const c=CL.find(x=>x.id===id);if(!c)return;
   const ci=CL.indexOf(c);const col=COLS[ci%5];
   document.getElementById('cp-avatar').style.background=col+'22';
