@@ -310,6 +310,17 @@ function closeMobileSidebar(){
 window.toggleMobileSidebar=toggleMobileSidebar;window.closeMobileSidebar=closeMobileSidebar;
 
 function goTo(n){
+  if(window._onboardResumeTimer){
+    clearTimeout(window._onboardResumeTimer);
+    window._onboardResumeTimer=null;
+  }
+  if(n!=='clients'&&typeof closeClientProfile==='function'){
+    try{closeClientProfile();}catch(e){}
+  }
+  document.querySelectorAll('.modal-ov.show').forEach(m=>m.classList.remove('show'));
+  if(typeof closeIntDetail==='function'){
+    try{closeIntDetail();}catch(e){}
+  }
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   const s=document.getElementById('screen-'+n);if(s)s.classList.add('active');

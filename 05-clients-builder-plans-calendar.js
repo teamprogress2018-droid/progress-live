@@ -237,7 +237,11 @@ function maybeResumeOnboard(clientId){
   if(!c||c.status==='archived')return;
   const st=getClientOnboard(c);
   if(st.complete)return;
-  setTimeout(()=>openClientOnboardChecklist(clientId),450);
+  if(window._onboardResumeTimer)clearTimeout(window._onboardResumeTimer);
+  window._onboardResumeTimer=setTimeout(()=>{
+    window._onboardResumeTimer=null;
+    openClientOnboardChecklist(clientId);
+  },450);
 }
 window.maybeResumeOnboard=maybeResumeOnboard;
 
