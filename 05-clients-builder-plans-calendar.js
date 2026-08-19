@@ -320,6 +320,7 @@ window.renderClientOnboardChecklist=renderClientOnboardChecklist;
 // ════════════════════════════════════════
 function initBuilder(){
   window._editingPlanId=null;
+  window._builderPeriodWeek=0;
   const titleEl=document.querySelector('#screen-builder .topbar-title');
   if(titleEl)titleEl.textContent='Nowy plan treningowy';
   dayCount=0;
@@ -355,18 +356,18 @@ function toggleR(id){const el=document.getElementById(id);const r=el.querySelect
 function addRow(dayId){
   const rows=document.querySelector('#'+dayId+' .ex-rows');
   const div=document.createElement('div');div.className='ex-row';
-  div.innerHTML='<input type="text" placeholder="Nazwa ćwiczenia..." class="ex-inp ex-inp-name" style="width:100%;" list="ex-dl" data-f="name" oninput="builderPreviewKg(this.closest(\'.ex-row\'))">'
-    +'<input type="number" placeholder="4" class="ex-inp" data-f="sets">'
-    +'<input type="text" placeholder="8-10" class="ex-inp" data-f="reps">'
-    +'<input type="number" placeholder="kg" class="ex-inp" data-f="kg" title="Zostaw puste, jeśli liczysz z %1RM">'
-    +'<input type="number" placeholder="8" class="ex-inp" data-f="rpe">'
-    +'<input type="number" placeholder="2" class="ex-inp" data-f="rir">'
-    +'<input type="text" placeholder="2min" class="ex-inp" data-f="rest">'
+  div.innerHTML='<input type="text" placeholder="Nazwa ćwiczenia..." class="ex-inp ex-inp-name" style="width:100%;" list="ex-dl" data-f="name" oninput="builderPreviewKg(this.closest(\'.ex-row\'));builderRefreshPeriodPreview()">'
+    +'<input type="number" placeholder="4" class="ex-inp" data-f="sets" oninput="builderRefreshPeriodPreview()">'
+    +'<input type="text" placeholder="8-10" class="ex-inp" data-f="reps" oninput="builderRefreshPeriodPreview()">'
+    +'<input type="number" placeholder="kg" class="ex-inp" data-f="kg" title="Zostaw puste, jeśli liczysz z %1RM" oninput="builderRefreshPeriodPreview()">'
+    +'<input type="number" placeholder="8" class="ex-inp" data-f="rpe" oninput="builderRefreshPeriodPreview()">'
+    +'<input type="number" placeholder="2" class="ex-inp" data-f="rir" oninput="builderRefreshPeriodPreview()">'
+    +'<input type="text" placeholder="2min" class="ex-inp" data-f="rest" oninput="builderRefreshPeriodPreview()">'
     +'<input type="text" placeholder="2-0-2" class="ex-inp" data-f="tempo">'
     +'<button type="button" onclick="builderRemoveRow(this)" style="background:none;border:none;color:var(--muted2);font-size:18px;cursor:pointer;">×</button>'
     +'<div class="ex-row-extra">'
     +'<input type="text" placeholder="Zamiennik (opcjonalnie, np. hantle zamiast sztangi)" class="ex-inp ex-inp-name" data-f="alt" style="font-size:11px;">'
-    +'<input type="number" placeholder="%1RM" class="ex-inp" data-f="pct1rm" min="1" max="150" step="0.5" title="Procent 1RM — kg z Pomiary → Siła bazowa" oninput="builderPreviewKg(this.closest(\'.ex-row\'))">'
+    +'<input type="number" placeholder="%1RM" class="ex-inp" data-f="pct1rm" min="1" max="150" step="0.5" title="Procent 1RM — kg z Pomiary → Siła bazowa" oninput="builderPreviewKg(this.closest(\'.ex-row\'));builderRefreshPeriodPreview()">'
     +'<div class="ex-row-coach">'
     +'<input type="text" placeholder="Wskazówka dla klienta (np. łopatki ściągnięte)" class="ex-inp ex-inp-name" data-f="note" style="font-size:11px;">'
     +'<input type="url" placeholder="Film: YouTube / Vimeo / .mp4" class="ex-inp ex-inp-name" data-f="video" style="font-size:11px;" title="Link do filmu techniki">'
@@ -383,8 +384,10 @@ function addRow(dayId){
     +'<button type="button" class="ex-ss-btn ex-kind-btn amrap" onclick="builderToggleAmrap(this)" title="Ostatnia seria robocza = AMRAP (max powtórzeń)">AMRAP</button>'
     +'<button type="button" class="ex-ss-btn ex-emom-btn" onclick="builderToggleEmom(this)" title="EMOM: każda seria na starcie minuty, reszta minuty to przerwa">EMOM</button>'
     +'</div>'
+    +'<div class="builder-period-preview" style="grid-column:1/-1;display:none;"></div>'
     +'</div>';
   rows.appendChild(div);
+  builderRefreshPeriodPreview();
 }
 function builderRemoveRow(btn){
   const row=btn.closest('.ex-row');
@@ -518,6 +521,77 @@ function builderPreviewKg(row){
   kgEl.title=w.hint||'kg z %1RM';
 }
 window.builderPreviewKg=builderPreviewKg;
+function builderShiftRepRange(val,delta){
+  const s=String(val||'').trim();
+  if(!s)return '';
+  const m=s.match(/^(\d+)\s*-\s*(\d+)$/);
+  if(m)return `${Math.max(1,parseInt(m[1],10)+delta)}-${Math.max(1,parseInt(m[2],10)+delta)}`;
+  const one=s.match(/^(\d+)$/);
+  if(one)return String(Math.max(1,parseInt(one[1],10)+delta));
+  return s;
+}
+function builderWeekModel(level,idx){
+  const ls=String(level||'sredni');
+  const beginner=[
+    {loadPct:0,repDelta:0,setDelta:0,rpe:'7'},
+    {loadPct:2.5,repDelta:0,setDelta:0,rpe:'7'},
+    {loadPct:5,repDelta:-1,setDelta:0,rpe:'8'},
+    {loadPct:-12,repDelta:-2,setDelta:-1,rpe:'6',deload:true},
+  ];
+  const intermediate=[
+    {loadPct:-2.5,repDelta:2,setDelta:1,rpe:'7'},
+    {loadPct:0,repDelta:0,setDelta:0,rpe:'8'},
+    {loadPct:5,repDelta:-2,setDelta:0,rpe:'9'},
+    {loadPct:-15,repDelta:-2,setDelta:-1,rpe:'6',deload:true},
+  ];
+  const advanced=[
+    {loadPct:-2.5,repDelta:1,setDelta:1,rpe:'7-8'},
+    {loadPct:2.5,repDelta:0,setDelta:0,rpe:'8'},
+    {loadPct:5,repDelta:-1,setDelta:0,rpe:'8-9'},
+    {loadPct:7.5,repDelta:-2,setDelta:0,rpe:'9'},
+    {loadPct:10,repDelta:-3,setDelta:-1,rpe:'9-10'},
+    {loadPct:-15,repDelta:-2,setDelta:-1,rpe:'6',deload:true},
+  ];
+  const arr=ls==='poczatkujacy'?beginner:ls==='sredni'?intermediate:advanced;
+  return arr[Math.max(0,Math.min(idx,arr.length-1))]||arr[0];
+}
+function builderBaseKg(row){
+  const kgVal=(row.querySelector('[data-f="kg"]')||{}).value||'';
+  if(kgVal)return parseFloat(kgVal)||0;
+  const cid=(document.getElementById('b-client')||{}).value||'';
+  const name=(row.querySelector('[data-f="name"]')||{}).value||'';
+  const pct=typeof parsePct1RM==='function'?parsePct1RM((row.querySelector('[data-f="pct1rm"]')||{}).value||''):'';
+  if(!pct||!cid||typeof weightFromPct1RM!=='function')return 0;
+  const w=weightFromPct1RM(cid,name,pct);
+  return parseFloat(w.kg)||0;
+}
+function builderRefreshPeriodPreview(){
+  const idx=window._builderPeriodWeek||0;
+  const cid=(document.getElementById('b-client')||{}).value||'';
+  const c=CL.find(x=>x.id===cid)||{};
+  const mod=builderWeekModel(c.level||'sredni',idx);
+  document.querySelectorAll('#builder-days .ex-row').forEach(row=>{
+    const box=row.querySelector('.builder-period-preview');
+    if(!box)return;
+    const reps=(row.querySelector('[data-f="reps"]')||{}).value||'10';
+    const setsBase=parseInt((row.querySelector('[data-f="sets"]')||{}).value||'3',10)||3;
+    const kgBase=builderBaseKg(row);
+    const nextSets=Math.max(1,setsBase+(mod.setDelta||0));
+    const nextReps=builderShiftRepRange(reps,mod.repDelta||0);
+    const nextKg=kgBase?Math.max(0,Math.round((kgBase*((100+(mod.loadPct||0))/100))*2)/2):0;
+    const bits=[
+      `TYDZ ${idx+1}`,
+      nextSets+' serie',
+      nextReps+' powt.',
+      (nextKg?nextKg+' kg':'kg bez zmiany'),
+      'RPE '+(mod.rpe||''),
+      mod.deload?'deload / mniej objętości':'progresja aktywna'
+    ];
+    box.style.display='block';
+    box.innerHTML=`<div style="margin-top:8px;padding:8px 10px;border-radius:8px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.18);font-size:10px;color:var(--muted);line-height:1.5;font-family:'DM Mono',monospace;">📈 ${bits.join(' · ')}</div>`;
+  });
+}
+window.builderRefreshPeriodPreview=builderRefreshPeriodPreview;
 function updateExDl(){
   const dl=document.getElementById('ex-dl');
   const all=allExercises().map(e=>e.name);
@@ -540,9 +614,15 @@ function updatePeriod(){
     <div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--teal);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;">Tło sportowe (planowanie)</div>
     ${sportLbl}
   </div>`:'';
-  el.innerHTML=sportBar+rmBar+sch.map(w=>`<div class="period-row"><div style="font-family:'DM Mono',monospace;font-size:10px;color:${w.cel.includes('DELOAD')?'var(--orange)':w.nr===1?'var(--accent)':'var(--blue)'};width:46px;flex-shrink:0;">TYG ${w.nr}</div><div><div style="font-size:12px;font-weight:600;">${w.cel}</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">${w.rpe}</div></div></div>`).join('');
+  el.innerHTML=sportBar+rmBar+`<div style="font-size:10px;color:var(--muted);margin-bottom:8px;">Kliknij tydzień, aby podejrzeć jak zmienią się serie / powtórzenia / kg w planie.</div>`+sch.map((w,i)=>`<button type="button" class="period-row${(window._builderPeriodWeek||0)===i?' active':''}" onclick="builderSelectPeriodWeek(${i})"><div style="font-family:'DM Mono',monospace;font-size:10px;color:${w.cel.includes('DELOAD')?'var(--orange)':w.nr===1?'var(--accent)':'var(--blue)'};width:46px;flex-shrink:0;">TYG ${w.nr}</div><div><div style="font-size:12px;font-weight:600;">${w.cel}</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">${w.rpe}</div></div></button>`).join('');
   document.querySelectorAll('#builder-days .ex-row').forEach(r=>{if(typeof builderPreviewKg==='function')builderPreviewKg(r);});
+  builderRefreshPeriodPreview();
 }
+function builderSelectPeriodWeek(idx){
+  window._builderPeriodWeek=idx||0;
+  updatePeriod();
+}
+window.builderSelectPeriodWeek=builderSelectPeriodWeek;
 function getPeriod(level){
   if(level==='poczatkujacy')return[{nr:1,cel:'Adaptacja — nauka wzorców',rpe:'RPE 7'},{nr:2,cel:'Utrwalenie techniki',rpe:'RPE 7'},{nr:3,cel:'Progresja liniowa',rpe:'RPE 8'},{nr:4,cel:'DELOAD — regeneracja CNS',rpe:'RPE 6'}];
   if(level==='sredni')return[{nr:1,cel:'DUP Akumulacja — wysoka objętość',rpe:'RPE 7'},{nr:2,cel:'DUP Intensyfikacja',rpe:'RPE 8'},{nr:3,cel:'DUP Szczyt',rpe:'RPE 9'},{nr:4,cel:'DELOAD',rpe:'RPE 6'}];
