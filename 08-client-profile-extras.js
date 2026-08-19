@@ -806,15 +806,59 @@ function renderCPOverview(c){
   const waNum=phoneDigits?(phoneDigits.length===9?'48'+phoneDigits:phoneDigits):'';
   const waHref=waNum?'https://wa.me/'+waNum:'';
 
+  const goalLabels={masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja'};
+  const levelLabels={poczatkujacy:'Początkujący',sredni:'Średni',zaawansowany:'Zaawansowany'};
+  const genderLabel=c.gender==='K'?'Kobieta':'Mężczyzna';
+  const sectionHdr=(icon,title,extra)=>`<div style="display:flex;align-items:center;justify-content:space-between;margin:20px 0 10px;flex-wrap:wrap;gap:6px;">
+    <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;letter-spacing:1px;">${icon} ${title}</div>
+    ${extra||''}
+  </div>`;
+  const infoRow=(label,val)=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;"><span style="color:var(--muted);">${label}</span><span style="font-weight:600;color:var(--text);">${escHtml(String(val||'—'))}</span></div>`;
+
   document.getElementById('cp-body').innerHTML=`
     ${editing?cpClientDataEditHTML(c):''}
-    ${!editing?`<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:linear-gradient(135deg,rgba(230,0,0,0.12),rgba(230,0,0,0.04));border:1px solid rgba(230,0,0,0.28);border-radius:12px;padding:12px 14px;margin-bottom:16px;">
-      <div>
-        <div style="font-size:13px;font-weight:700;">Dane kontaktowe i profil</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px;">Email, telefon, waga, cel — edycja na miejscu, bez wchodzenia w Ustawienia.</div>
+    ${!editing?`
+    <!-- profil w stylu Studio AI -->
+    <div style="background:var(--s2);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+        <div style="font-size:14px;font-weight:700;">📋 Profil klienta</div>
+        <button type="button" class="btn btn-primary btn-sm" onclick="startCPEdit('${c.id}')">✏️ Edytuj</button>
       </div>
-      <button type="button" class="btn btn-primary btn-sm" style="flex-shrink:0;" onclick="startCPEdit('${c.id}')">✏️ Edytuj dane klienta</button>
+      ${infoRow('Imię',c.name)}
+      ${infoRow('Email',c.email)}
+      ${infoRow('Telefon',c.phone)}
+      ${infoRow('Wiek',c.age?c.age+' lat':'')}
+      ${infoRow('Płeć',genderLabel)}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
+        ${infoRow('Waga',c.weight?c.weight+' kg':'')}
+        ${infoRow('Wzrost',c.height?c.height+' cm':'')}
+      </div>
+      ${infoRow('Cel',goalLabels[c.goal]||c.goal)}
+      ${infoRow('Poziom',levelLabels[c.level]||c.level)}
+      ${infoRow('Status',c.status==='active'?'Aktywny':c.status==='inactive'?'Nieaktywny':'Zarchiwizowany')}
+      ${c.notes?`<div style="margin-top:10px;background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.2);border-radius:8px;padding:8px 12px;font-size:11px;"><span style="color:var(--red);">⚠ Kontuzje/uwagi:</span> ${escHtml(c.notes)}</div>`:''}
+    </div>
+    ${!c.phone?`<div style="background:rgba(201,123,63,0.12);border:1px solid rgba(201,123,63,0.35);border-radius:8px;padding:10px 12px;margin-bottom:16px;font-size:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+      <span>Dodaj numer telefonu — potrzebny do WhatsApp i przypomnień.</span>
+      <button type="button" class="btn btn-primary btn-sm" onclick="startCPEdit('${c.id}')">+ Telefon</button>
     </div>`:''}
+    ${c.phone&&waHref?`<div style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;">
+      <a class="btn btn-ghost btn-sm" href="${escHtml(waHref)}" target="_blank" rel="noopener">💬 WhatsApp</a>
+      ${c.email?`<a class="btn btn-ghost btn-sm" href="mailto:${escHtml(c.email)}">📧 Email</a>`:''}
+    </div>`:''}
+
+    <!-- sporty i biomechanika -->
+    <div style="background:var(--s2);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:16px;">
+      ${sectionHdr('🏃','Wcześniejsze sporty / aktywności')}
+      ${c.priorSports&&c.priorSports.length?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">${c.priorSports.map(s=>`<span class="pill" style="background:var(--adim);color:var(--accent);font-size:10px;">${escHtml(typeof PRIOR_SPORTS_MAP!=='undefined'&&PRIOR_SPORTS_MAP[s]?PRIOR_SPORTS_MAP[s].label:s)}</span>`).join('')}</div>`:'<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Brak danych — edytuj profil</div>'}
+      ${infoRow('Dotychczasowa aktywność',{sedentary:'Siedzący tryb',light:'Lekka',moderate:'Umiarkowana',active:'Aktywny'}[c.activityLevel]||c.activityLevel||'—')}
+      ${infoRow('Profil sportowy (auto)',typeof clientSportProfileLabel==='function'?clientSportProfileLabel(c)||'—':'—')}
+      ${c.sportNotes?infoRow('Uwagi sportowe',c.sportNotes):''}
+    </div>
+
+    <!-- kontakt szybki (jak w Studio AI) -->
+    `:''}
+
     <!-- statystyki -->
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;">
       <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--accent);">${sessions.length}</div><div class="cp-stat-lbl">Sesji</div></div>
@@ -833,25 +877,7 @@ function renderCPOverview(c){
       </div>`;
     })()}
 
-    <!-- dane podstawowe -->
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
-      <div class="cp-section-title" style="margin-bottom:0;">DANE KLIENTA</div>
-      ${!editing?`<button type="button" class="btn btn-primary btn-sm" onclick="startCPEdit('${c.id}')">✏️ Edytuj dane</button>`:''}
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:16px;">
-      ${[
-        ['📧 Email',c.email||'—'],['📱 Telefon',c.phone||'—'],
-        ['🎂 Wiek',c.age?c.age+' lat':'—'],
-        ['⚖️ Waga',c.weight?c.weight+' kg':'—'],['📏 Wzrost',c.height?c.height+' cm':'—'],
-        ['🎯 Cel',{masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja'}[c.goal]||c.goal||'—'],
-        ['🏋️ Poziom',{poczatkujacy:'Początkujący',sredni:'Średni',zaawansowany:'Zaawansowany'}[c.level]||c.level||'—'],
-      ].map(([l,v])=>`<div style="background:var(--s3);border-radius:8px;padding:9px 11px;"><div style="font-size:12px;color:var(--muted);margin-bottom:2px;">${l}</div><div style="font-size:14px;font-weight:600;">${escHtml(String(v))}</div></div>`).join('')}
-    </div>
-    ${!c.phone?`<div style="background:rgba(201,123,63,0.12);border:1px solid rgba(201,123,63,0.35);border-radius:8px;padding:10px 12px;margin-bottom:16px;font-size:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-      <span>Dodaj numer telefonu — potrzebny do WhatsApp i przypomnień.</span>
-      <button type="button" class="btn btn-primary btn-sm" onclick="startCPEdit('${c.id}')">+ Telefon</button>
-    </div>`:''}
-    ${c.phone&&waHref?`<div style="margin-bottom:16px;"><a class="btn btn-ghost btn-sm" href="${escHtml(waHref)}" target="_blank" rel="noopener">💬 WhatsApp</a></div>`:''}
+    <!-- dane kontaktowe po profilu -->
 
     ${c.notes?`<div style="background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.2);border-radius:8px;padding:10px 12px;margin-bottom:16px;font-size:12px;"><span style="color:var(--red);">⚠ Kontuzje/uwagi: </span>${c.notes}</div>`:''}
 

@@ -73,7 +73,7 @@ function renderClients(){
   renderClientFilters();
   const search=(document.getElementById('client-search')||{}).value||'';
   let filtered=CL.filter(c=>{
-    if(search&&!c.name.toLowerCase().includes(search.toLowerCase()))return false;
+    if(search&&!(c.name||'').toLowerCase().includes(search.toLowerCase()))return false;
     if(clientSegment==='active')return c.status==='active';
     if(clientSegment==='inactive')return c.status==='inactive';
     if(clientSegment==='archived')return c.status==='archived';
@@ -237,7 +237,11 @@ function maybeResumeOnboard(clientId){
   if(!c||c.status==='archived')return;
   const st=getClientOnboard(c);
   if(st.complete)return;
-  setTimeout(()=>openClientOnboardChecklist(clientId),450);
+  if(window._onboardResumeTimer)clearTimeout(window._onboardResumeTimer);
+  window._onboardResumeTimer=setTimeout(()=>{
+    window._onboardResumeTimer=null;
+    openClientOnboardChecklist(clientId);
+  },450);
 }
 window.maybeResumeOnboard=maybeResumeOnboard;
 

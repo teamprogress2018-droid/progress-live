@@ -310,11 +310,22 @@ function closeMobileSidebar(){
 window.toggleMobileSidebar=toggleMobileSidebar;window.closeMobileSidebar=closeMobileSidebar;
 
 function goTo(n){
+  if(window._onboardResumeTimer){
+    clearTimeout(window._onboardResumeTimer);
+    window._onboardResumeTimer=null;
+  }
+  if(n!=='clients'&&typeof closeClientProfile==='function'){
+    try{closeClientProfile();}catch(e){}
+  }
+  document.querySelectorAll('.modal-ov.show').forEach(m=>m.classList.remove('show'));
+  if(typeof closeIntDetail==='function'){
+    try{closeIntDetail();}catch(e){}
+  }
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   const s=document.getElementById('screen-'+n);if(s)s.classList.add('active');
   closeMobileSidebar();
-  const moreScreens=['library','programs','tasks','forms','payments','calculator','automation','integrations','metrics','checkin','aiplangen','ondemand','resources','bizstats','forum','settings','trainer-profile','aicoach','kb'];
+  const moreScreens=['library','programs','tasks','forms','payments','calculator','automation','integrations','metrics','checkin','aiplangen','ondemand','resources','bizstats','forum','inbox','settings','trainer-profile','aicoach','kb'];
   if(moreScreens.includes(n)){
     const moreEl=document.getElementById('nav-more-items');
     const arrow=document.getElementById('nav-more-arrow');
@@ -323,6 +334,9 @@ function goTo(n){
   }
   const activeBtn=document.querySelector('.nav-item[data-screen="'+n+'"]');
   if(activeBtn)activeBtn.classList.add('active');
+  try{ _goToRender(n); }catch(e){ console.warn('goTo render error ('+n+'):', e); }
+}
+function _goToRender(n){
   if(n==='builder')initBuilder();
   if(n==='calendar'){calCurrentDate=new Date();calMiniDate=new Date();setCalView('week');}
   if(n==='plans')renderPlans();
@@ -343,8 +357,10 @@ function goTo(n){
   if(n==='resources'){renderResources();}
   if(n==='ondemand'){setODTab('browse');}
   if(n==='payments'){
-    document.getElementById('pkg-client').innerHTML=CL.map(c=>'<option value="'+escHtml(c.id)+'">'+escHtml(c.name)+'</option>').join('');
-    document.getElementById('pkg-date').value=new Date().toISOString().split('T')[0];
+    const pkgEl=document.getElementById('pkg-client');
+    if(pkgEl)pkgEl.innerHTML=CL.map(c=>'<option value="'+escHtml(c.id)+'">'+escHtml(c.name)+'</option>').join('');
+    const pkgDate=document.getElementById('pkg-date');
+    if(pkgDate)pkgDate.value=new Date().toISOString().split('T')[0];
     setPayTab('overview');
   }
   if(n==='calculator'){initCalcClients();calcTDEE();}
