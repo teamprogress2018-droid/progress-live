@@ -231,7 +231,7 @@ function pushMsg(clientId,text){
   persistById('messages',msg);
   return msg;
 }
-const COLS=['#e11f2e','#4d9fff','#9d7cf4','#ff8c42','#3ecfb2'];
+const COLS=['#e60000','#0055a4','#ffd700','#2ecc71','#9e9e9e'];
 
 // ── DEMO TRENINGI ──
 const DEMO_WORKOUTS=[
@@ -1790,3 +1790,36 @@ window.readPriorSportsFrom=readPriorSportsFrom;
 window.setPriorSportsChips=setPriorSportsChips;
 window.togglePriorSportChip=togglePriorSportChip;
 
+// ── Motyw studia (czerwień + grafit) ──
+const STUDIO_THEME={
+  accent:'#e60000',
+  accent2:'#b80000',
+  bg:'#1a1a1a',
+  blue:'#0055a4',
+  yellow:'#ffd700'
+};
+function hexToRgbStr(hex){
+  const h=String(hex||'').replace('#','');
+  if(h.length!==6)return '230,0,0';
+  return parseInt(h.slice(0,2),16)+','+parseInt(h.slice(2,4),16)+','+parseInt(h.slice(5,7),16);
+}
+function applyBrandTheme(settings){
+  const root=typeof document!=='undefined'?document.documentElement:null;
+  if(!root)return;
+  const s=settings||window.SETTINGS||{};
+  const brand=s.brand||{};
+  const accent=brand.accentColor||STUDIO_THEME.accent;
+  const rgb=hexToRgbStr(accent);
+  root.style.setProperty('--accent',accent);
+  root.style.setProperty('--accent2',brand.accentDark||STUDIO_THEME.accent2);
+  root.style.setProperty('--accent-rgb',rgb);
+  root.style.setProperty('--adim','rgba('+rgb+',0.14)');
+  root.style.setProperty('--glow','0 0 0 1px rgba('+rgb+',0.35), 0 0 18px rgba('+rgb+',0.18)');
+  const meta=typeof document!=='undefined'?document.querySelector('meta[name="theme-color"]'):null;
+  if(meta)meta.setAttribute('content',accent);
+}
+window.STUDIO_THEME=STUDIO_THEME;
+window.applyBrandTheme=applyBrandTheme;
+if(typeof document!=='undefined'&&document.documentElement){
+  try{applyBrandTheme(window.SETTINGS);}catch(e){}
+}

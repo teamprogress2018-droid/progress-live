@@ -22,4 +22,6 @@ Static site — no committed `package.json`. Do not commit `node_modules/`, `pac
 
 **Planowanie — tło sportowe:** pole `priorSports[]` + `activityLevel` na kliencie (modal + profil + onboarding + generator AI). `clientSportProfile()` liczy bias wytrzymałość/siła; `clientSportProfileForAI()` trafia do promptu `aplGenerate`.
 
-**Statystyki klienta:** ekran **Moje postępy** (`capClientProgressScreenHTML`) — KPI (masa, sesje 30d, tonaż, serie), wykresy SVG (masa, tonaż tygodniowy, check-in, Garmin), obwody, rekordy z paskami postępu.
+**Motyw studia:** domyślna paleta CSS (`styles.css`) — czerwień `#e60000`, tło grafit `#1a1a1a` / `#252525`, akcent niebieski `#0055a4`, żółty `#ffd700`. Nadpisanie akcentu: Ustawienia → Marka lub `SETTINGS.brand.accentColor`; `applyBrandTheme()` po starcie i po wczytaniu Firestore.
+
+**Statystyki klienta:** ekran **Moje postępy** (`capClientProgressScreenHTML`) — KPI, wykresy SVG, obwody, rekordy.

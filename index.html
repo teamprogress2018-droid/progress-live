@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#e11f2e">
+<meta name="theme-color" content="#e60000">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Progress Live">
@@ -285,7 +285,7 @@
         </div>
       </div>
       <div id="builder-days"></div>
-      <button onclick="addDay()" style="width:100%;padding:11px;background:rgba(225,31,46,0.04);border:1px dashed rgba(225,31,46,0.25);border-radius:var(--r2);color:var(--accent);font-size:12px;font-family:'DM Mono',monospace;letter-spacing:0.5px;margin-bottom:20px;">+ DODAJ DZIEŃ TRENINGOWY</button>
+      <button onclick="addDay()" style="width:100%;padding:11px;background:rgba(230,0,0,0.04);border:1px dashed rgba(230,0,0,0.25);border-radius:var(--r2);color:var(--accent);font-size:12px;font-family:'DM Mono',monospace;letter-spacing:0.5px;margin-bottom:20px;">+ DODAJ DZIEŃ TRENINGOWY</button>
     </div>
     <div style="overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding-bottom:20px;">
       <div class="ai-panel">
@@ -452,7 +452,7 @@
       <div class="form-field"><label class="form-lbl">Wiadomość</label>
         <textarea class="form-textarea" id="bc-msg" rows="4" placeholder="Napisz wiadomość do wszystkich...&#10;&#10;Możesz użyć {imie} aby spersonalizować."></textarea>
       </div>
-      <div style="background:var(--adim);border:1px solid rgba(225,31,46,0.15);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--muted);">
+      <div style="background:var(--adim);border:1px solid rgba(230,0,0,0.15);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--muted);">
         Wiadomość zostanie wysłana do każdego klienta osobno jako prywatna rozmowa.
       </div>
     </div>
@@ -910,7 +910,7 @@
         <div id="send-form-client-results" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;background:var(--s2);border:1px solid var(--border2);border-radius:8px;margin-top:4px;max-height:220px;overflow-y:auto;box-shadow:0 8px 20px rgba(0,0,0,0.4);"></div>
       </div>
       <div class="form-field"><label class="form-lbl">Wiadomość do klienta (opcjonalnie)</label><textarea class="form-textarea" id="send-form-msg" rows="3" placeholder="np. Proszę wypełnić formularz przed następną sesją..."></textarea></div>
-      <div style="background:var(--adim);border:1px solid rgba(225,31,46,0.15);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--muted);line-height:1.6;">
+      <div style="background:var(--adim);border:1px solid rgba(230,0,0,0.15);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--muted);line-height:1.6;">
         Klient otrzyma link do formularza i powiadomienie. Odpowiedzi będą widoczne w sekcji Odpowiedzi.
       </div>
     </div>
@@ -1345,7 +1345,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   <!-- BROWSE TAB — Netflix style -->
   <div id="odtab-browse-view" style="flex:1;overflow-y:auto;">
     <!-- hero banner -->
-    <div style="background:linear-gradient(135deg,var(--s2) 0%,rgba(225,31,46,0.08) 100%);border-bottom:1px solid var(--border);padding:28px 24px;display:flex;align-items:center;justify-content:space-between;">
+    <div style="background:linear-gradient(135deg,var(--s2) 0%,rgba(230,0,0,0.08) 100%);border-bottom:1px solid var(--border);padding:28px 24px;display:flex;align-items:center;justify-content:space-between;">
       <div>
         <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;margin-bottom:4px;">PORTAL TRENINGÓW</div>
         <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">Darmowe treningi YouTube — odtwarzaj w portalu, bez Spotify Premium.</div>
@@ -2037,7 +2037,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
     <!-- środek — główny chat -->
     <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
       <!-- kontekst klienta bar -->
-      <div id="aic-context-bar" style="padding:8px 16px;background:var(--adim);border-bottom:1px solid rgba(225,31,46,0.15);font-size:12px;display:none;">
+      <div id="aic-context-bar" style="padding:8px 16px;background:var(--adim);border-bottom:1px solid rgba(230,0,0,0.15);font-size:12px;display:none;">
         <span style="color:var(--accent);">🎯 Kontekst klienta:</span>
         <span id="aic-context-text" style="color:var(--muted);margin-left:6px;"></span>
       </div>
@@ -2957,7 +2957,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       </div>
 
       <!-- link do aplikacji -->
-      <div style="background:var(--adim);border:1px solid rgba(225,31,46,0.25);border-radius:12px;padding:16px;margin-bottom:16px;">
+      <div style="background:var(--adim);border:1px solid rgba(230,0,0,0.25);border-radius:12px;padding:16px;margin-bottom:16px;">
         <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">📱 Link do aplikacji klienta</div>
         <div style="display:flex;gap:8px;align-items:center;">
           <div id="inv-link" style="flex:1;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;font-size:12px;font-family:'DM Mono',monospace;color:var(--text);word-break:break-all;line-height:1.4;"></div>
@@ -3094,7 +3094,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <span>Ćwiczenie</span><span>Serie</span><span>Powtórzenia</span><span>Przerwa</span><span></span>
       </div>
       <div id="w-ex-rows"></div>
-      <button onclick="addWExRow()" style="width:100%;padding:7px;background:rgba(225,31,46,0.03);border:1px dashed rgba(225,31,46,0.2);border-radius:8px;color:var(--accent);font-size:11px;font-family:'DM Mono',monospace;margin-top:6px;">+ DODAJ ĆWICZENIE</button>
+      <button onclick="addWExRow()" style="width:100%;padding:7px;background:rgba(230,0,0,0.03);border:1px dashed rgba(230,0,0,0.2);border-radius:8px;color:var(--accent);font-size:11px;font-family:'DM Mono',monospace;margin-top:6px;">+ DODAJ ĆWICZENIE</button>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-workout')">Anuluj</button><button class="btn btn-primary" onclick="saveWorkout()">Zapisz trening</button></div>
   </div>
@@ -3237,7 +3237,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <div id="assign-prog-client-results" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;background:var(--s2);border:1px solid var(--border2);border-radius:8px;margin-top:4px;max-height:220px;overflow-y:auto;box-shadow:0 8px 20px rgba(0,0,0,0.4);"></div>
       </div>
       <div class="form-field"><label class="form-lbl">Data rozpoczęcia</label><input type="date" class="form-input" id="assign-prog-date"></div>
-      <div style="background:var(--adim);border:1px solid rgba(225,31,46,0.15);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--muted);line-height:1.6;">
+      <div style="background:var(--adim);border:1px solid rgba(230,0,0,0.15);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--muted);line-height:1.6;">
         Program zostanie przypisany do klienta. Możesz go potem edytować w sekcji Plany treningowe.
       </div>
     </div>
@@ -3389,7 +3389,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <div class="form-field"><label class="form-lbl">Wiadomość do klienta</label>
         <textarea class="form-textarea" id="ci-send-msg" rows="3">Hej {imie}! Czas na tygodniowy check-in 💪 Otwórz aplikację → Check-in i wypełnij (ok. 2 min).</textarea>
       </div>
-      <div style="background:var(--adim);border:1px solid rgba(225,31,46,0.15);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--muted);">
+      <div style="background:var(--adim);border:1px solid rgba(230,0,0,0.15);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--muted);">
         Zapisze oczekujący check-in i wyśle wiadomość w czacie. Klient wypełnia w aplikacji — nie ma osobnego linku do formularza.
       </div>
     </div>
@@ -3459,7 +3459,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
           </select>
         </div>
       </div>
-      <div id="rep-preview-info" style="background:var(--adim);border:1px solid rgba(225,31,46,0.15);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--muted);line-height:1.6;"></div>
+      <div id="rep-preview-info" style="background:var(--adim);border:1px solid rgba(230,0,0,0.15);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--muted);line-height:1.6;"></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeM('m-report')">Anuluj</button>
@@ -3834,6 +3834,7 @@ async function load(){
     sTpl.forEach(d=>{const t=_takeFb(d);if(t)window.TPL_CUSTOM.push(t);});
   }catch(e){console.warn('Wczytywanie szablonów planów nie powiodło się:',e);}
   try{const s11=await getDocs(collection(db,'settings'));s11.forEach(d=>{const data=d.data()||{};if(typeof window.belongsToTrainer==='function'&&!window.belongsToTrainer(data)&&data.trainerId)return;window.SETTINGS={...window.SETTINGS,...data};if(data.profile)window.SETTINGS.profile={...window.SETTINGS.profile,...data.profile};window._settingsDocId=d.id;});}catch(e){console.warn('Wczytywanie ustawień nie powiodło się:',e);}
+  if(typeof applyBrandTheme==='function')applyBrandTheme(window.SETTINGS);
   try{
     if(typeof window.applyAuthToTrainerProfile==='function')window.applyAuthToTrainerProfile();
     if(window.SETTINGS&&window.SETTINGS.profile){

@@ -861,7 +861,7 @@ function cwRender(){
   const el=document.getElementById('clive-player-inner');
   const cw=window._cw;
   if(!el||!cw)return;
-  const accent=(window.SETTINGS&&window.SETTINGS.brand&&window.SETTINGS.brand.accentColor)||'#e11f2e';
+  const accent=(window.SETTINGS&&window.SETTINGS.brand&&window.SETTINGS.brand.accentColor)||'#e60000';
   const back=`<button type="button" class="btn btn-ghost btn-sm" onclick="cwClose()">✕</button>`;
   if(cw.phase==='overview'){
     el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">${back}<div style="font-size:11px;color:var(--muted);">${escHtml(cw.planName)}</div></div>
@@ -1097,7 +1097,7 @@ function ppSlotHTML(view,label,src,cid,live){
 function ppBlockHTML(c,opts){
   opts=opts||{};
   const live=!!opts.live;
-  const accent=opts.accent||'#e11f2e';
+  const accent=opts.accent||'#e60000';
   const cid=c.id;
   if(!ppFeatureOn(c))return '';
   const list=ppListFor(cid);

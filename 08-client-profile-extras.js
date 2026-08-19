@@ -202,7 +202,7 @@ function renderCPPsycho(c){
 
     <div style="display:flex;flex-direction:column;gap:8px;">
       <button onclick="psySaveProfile('${c.id}')" id="psy-save-btn" style="width:100%;background:rgba(157,124,244,0.15);border:1px solid rgba(157,124,244,0.35);border-radius:8px;padding:10px;color:var(--purple);font-size:12px;font-weight:600;cursor:pointer;">💾 Zapisz profil psychodietetyczny</button>
-      <button onclick="psyAskAI('${c.id}')" id="psy-ai-btn" style="width:100%;background:rgba(225,31,46,0.1);border:1px solid rgba(225,31,46,0.25);border-radius:8px;padding:10px;color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;">🤖 Zapytaj AI o strategie</button>
+      <button onclick="psyAskAI('${c.id}')" id="psy-ai-btn" style="width:100%;background:rgba(230,0,0,0.1);border:1px solid rgba(230,0,0,0.25);border-radius:8px;padding:10px;color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;">🤖 Zapytaj AI o strategie</button>
       <button onclick="psyCheckYoyo('${c.id}')" style="width:100%;background:rgba(201,123,63,0.1);border:1px solid rgba(201,123,63,0.25);border-radius:8px;padding:10px;color:var(--orange);font-size:12px;font-weight:600;cursor:pointer;">🔄 Sprawdź błędne koło yo-yo</button>
       <div id="psy-yoyo-result"></div>
       <div id="psy-ai-result"></div>
@@ -256,7 +256,7 @@ function psyRenderMoodHistory(clientId){
   const daily = (p.daily||[]).slice(-7);
   if(!daily.length){ el.innerHTML='<div style="font-size:11px;color:var(--muted);text-align:center;width:100%;">Brak danych – zacznij śledzić nastrój!</div>'; return; }
   const moodEmoji={1:'😞',2:'😕',3:'😐',4:'😊',5:'🤩'};
-  const moodColor={1:'#ff4d4d',2:'#c97b3f',3:'#9a9086',4:'#4ade80',5:'#e11f2e'};
+  const moodColor={1:'#ff4d4d',2:'#c97b3f',3:'#9a9086',4:'#4ade80',5:'#e60000'};
   el.innerHTML = daily.map(d=>{
     const height=Math.round((d.mood/5)*100);
     const dayName=new Date(d.date).toLocaleDateString('pl',{weekday:'short'}).substring(0,2);
@@ -292,7 +292,7 @@ async function psyAskAI(clientId){
     const r = await fetch(W,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,system:'Jesteś doświadczonym psychodietetykiem i trenerem personalnym. Odpowiadaj konkretnie, po polsku.',messages:[{role:'user',content:prompt}]})});
     const d = await r.json();
     const ans = (d.content||[]).map(i=>i.text||'').join('');
-    if(resEl) resEl.innerHTML = `<div style="background:rgba(225,31,46,0.06);border:1px solid rgba(225,31,46,0.2);border-radius:8px;padding:12px;margin-top:4px;font-size:12px;color:var(--text);line-height:1.6;white-space:pre-wrap;">🤖 ${ans}</div>`;
+    if(resEl) resEl.innerHTML = `<div style="background:rgba(230,0,0,0.06);border:1px solid rgba(230,0,0,0.2);border-radius:8px;padding:12px;margin-top:4px;font-size:12px;color:var(--text);line-height:1.6;white-space:pre-wrap;">🤖 ${ans}</div>`;
   }catch(e){
     if(resEl) resEl.innerHTML = '<div style="color:var(--red);font-size:12px;padding:8px;">Błąd: '+e.message+'</div>';
   }
@@ -755,14 +755,14 @@ function renderCPOverview(c){
     <!-- aktywny plan -->
     ${plans.length?`
     <div class="cp-section-title">AKTYWNY PLAN</div>
-    <div style="background:linear-gradient(135deg,var(--adim),transparent);border:1px solid rgba(225,31,46,0.2);border-radius:10px;padding:12px 14px;margin-bottom:16px;cursor:pointer;" onclick="setCPTab('plan')">
+    <div style="background:linear-gradient(135deg,var(--adim),transparent);border:1px solid rgba(230,0,0,0.2);border-radius:10px;padding:12px 14px;margin-bottom:16px;cursor:pointer;" onclick="setCPTab('plan')">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
         <div style="font-size:15px;font-weight:700;">${plans[plans.length-1].name}</div>
         <span class="pill pill-green" style="font-size:11px;">${plans[plans.length-1].method||'—'}</span>
       </div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:8px;">${plans[plans.length-1].method||'—'} · ${plans[plans.length-1].duration||'?'} tyg. · ${(plans[plans.length-1].days||[]).length} dni/tydzień</div>
       <div style="display:flex;gap:4px;flex-wrap:wrap;">
-        ${(plans[plans.length-1].days||[]).slice(0,5).map(d=>`<span style="background:${d.rest?'var(--s3)':'rgba(225,31,46,0.12)'};color:${d.rest?'var(--muted)':'var(--accent)'};border-radius:5px;padding:3px 8px;font-size:12px;font-family:'DM Mono',monospace;">${d.day||d.dayName||'?'}${d.rest?' REST':''}</span>`).join('')}
+        ${(plans[plans.length-1].days||[]).slice(0,5).map(d=>`<span style="background:${d.rest?'var(--s3)':'rgba(230,0,0,0.12)'};color:${d.rest?'var(--muted)':'var(--accent)'};border-radius:5px;padding:3px 8px;font-size:12px;font-family:'DM Mono',monospace;">${d.day||d.dayName||'?'}${d.rest?' REST':''}</span>`).join('')}
       </div>
       <div style="font-size:12px;color:var(--accent);margin-top:8px;">→ Kliknij aby zobaczyć szczegóły</div>
     </div>`:`
@@ -1105,7 +1105,7 @@ function renderCPTraining(c){
       </div>`;
     }).join('');
 
-    return `<div style="border:1px solid ${isToday?'var(--accent)':isPast?'var(--border)':'var(--border)'};border-radius:8px;padding:7px;min-height:90px;background:${isToday?'rgba(225,31,46,0.04)':isPast?'rgba(0,0,0,0.1)':'var(--s2)'};cursor:pointer;transition:border-color 0.12s;" onclick="openAddSessionFromCP('${c.id}','${ds}')" onmouseover="this.style.borderColor='var(--border2)'" onmouseout="this.style.borderColor='${isToday?'var(--accent)':isPast?'var(--border)':'var(--border)'}'">
+    return `<div style="border:1px solid ${isToday?'var(--accent)':isPast?'var(--border)':'var(--border)'};border-radius:8px;padding:7px;min-height:90px;background:${isToday?'rgba(230,0,0,0.04)':isPast?'rgba(0,0,0,0.1)':'var(--s2)'};cursor:pointer;transition:border-color 0.12s;" onclick="openAddSessionFromCP('${c.id}','${ds}')" onmouseover="this.style.borderColor='var(--border2)'" onmouseout="this.style.borderColor='${isToday?'var(--accent)':isPast?'var(--border)':'var(--border)'}'">
       <div style="font-size:10px;color:${isToday?'var(--accent)':'var(--muted)'};font-family:'DM Mono',monospace;font-weight:${isToday?700:400};">${dayName} ${d.getDate()}</div>
       ${sessCards}
       ${!sessDay.length?`<div style="margin-top:10px;text-align:center;font-size:16px;color:var(--border2);opacity:0.6;">+</div>`:''}

@@ -15,7 +15,7 @@ function renderCPPosture(c){
       <div style="border:2px ${has?(active?'solid var(--accent)':'solid var(--border2)'):'dashed var(--border2)'};border-radius:12px;overflow:hidden;background:${has?'transparent':'var(--s3)'};transition:border-color 0.15s;" onclick="if(this.parentElement.querySelector('input').files.length===0&&${has?'true':'false'})postureSetActive('${c.id}','${view}')">
         ${has?`<img src="${has}" style="width:100%;height:110px;object-fit:cover;display:block;">`
             :`<div style="height:110px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;"><div style="font-size:28px;opacity:0.4;">${ICONS[view]}</div><div style="font-size:10px;color:var(--muted);">+ Wgraj</div></div>`}
-        <div style="padding:6px 8px;background:${active&&has?'rgba(225,31,46,0.1)':'var(--s2)'};border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+        <div style="padding:6px 8px;background:${active&&has?'rgba(230,0,0,0.1)':'var(--s2)'};border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
           <span style="font-size:11px;font-weight:700;color:${active&&has?'var(--accent)':'var(--text)'};">${labels[view]}</span>
           ${has?`<span style="font-size:9px;color:var(--muted);">zmień</span>`:`<span style="font-size:9px;color:var(--muted);">brak</span>`}
         </div>
@@ -24,7 +24,7 @@ function renderCPPosture(c){
   }).join('');
 
   const viewBtns=Object.entries(labels).filter(([v])=>p.photos[v]).map(([v,l])=>
-    `<button onclick="postureSetActive('${c.id}','${v}')" style="padding:5px 14px;border-radius:6px;border:1px solid ${p.currentPhoto===v?'var(--accent)':'var(--border2)'};background:${p.currentPhoto===v?'rgba(225,31,46,0.1)':'var(--s3)'};color:${p.currentPhoto===v?'var(--accent)':'var(--muted)'};font-size:11px;font-weight:${p.currentPhoto===v?700:400};cursor:pointer;transition:all 0.12s;">${l}</button>`
+    `<button onclick="postureSetActive('${c.id}','${v}')" style="padding:5px 14px;border-radius:6px;border:1px solid ${p.currentPhoto===v?'var(--accent)':'var(--border2)'};background:${p.currentPhoto===v?'rgba(230,0,0,0.1)':'var(--s3)'};color:${p.currentPhoto===v?'var(--accent)':'var(--muted)'};font-size:11px;font-weight:${p.currentPhoto===v?700:400};cursor:pointer;transition:all 0.12s;">${l}</button>`
   ).join('');
 
   document.getElementById('cp-body').innerHTML=`
@@ -608,7 +608,7 @@ function viewInvoice(invId){
         <button type="button" class="btn btn-ghost btn-sm" style="margin-top:8px;" onclick="copyPayTransfer()">📋 Kopiuj dane do przelewu</button>
       </div>`:`<div style="font-size:11px;color:var(--orange);margin-bottom:12px;">Uzupełnij numer konta w Ustawieniach → Płatności, żeby pojawił się na fakturze.</div>`}
       <div style="display:flex;justify-content:flex-end;">
-        <div style="background:var(--adim);border:1px solid rgba(225,31,46,0.2);border-radius:8px;padding:12px 20px;text-align:right;">
+        <div style="background:var(--adim);border:1px solid rgba(230,0,0,0.2);border-radius:8px;padding:12px 20px;text-align:right;">
           <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">RAZEM</div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--accent);">${amount.toLocaleString('pl')} zł</div>
         </div>

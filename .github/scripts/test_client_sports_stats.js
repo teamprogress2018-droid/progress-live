@@ -25,7 +25,7 @@ windowObj.METRIC_ENTRIES = [];
 windowObj.CHECKINS = {};
 windowObj.TASKS = [];
 windowObj.PACKAGES = [];
-windowObj.SETTINGS = { brand: { accentColor: '#e11f2e' } };
+windowObj.SETTINGS = { brand: { accentColor: '#e60000' } };
 windowObj.persistById = async (_c, o) => o;
 windowObj.window = windowObj;
 const ctx = {
@@ -109,8 +109,8 @@ windowObj.CHECKINS = {
 
 const vol = ctx.capWeeklyVolume('c-run', 4);
 ok('weekly volume buckets', vol.length === 4 && vol.some((w) => w.vol > 0));
-ok('sparkline svg', /<svg/.test(ctx.capSparklineSVG([{ d: '2026-07-01', v: 74 }, { d: '2026-08-01', v: 72 }], '#e11f2e')));
-ok('bar chart svg', /<rect/.test(ctx.capBarChartSVG([{ l: 'T1', v: 100 }], '#e11f2e')));
+ok('sparkline svg', /<svg/.test(ctx.capSparklineSVG([{ d: '2026-07-01', v: 74 }, { d: '2026-08-01', v: 72 }], '#e60000')));
+ok('bar chart svg', /<rect/.test(ctx.capBarChartSVG([{ l: 'T1', v: 100 }], '#e60000')));
 
 ctx.SE = windowObj.SE;
 ctx.METRIC_ENTRIES = windowObj.METRIC_ENTRIES;

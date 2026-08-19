@@ -537,7 +537,7 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
 
   let html=`
     <!-- plan header -->
-    <div style="background:linear-gradient(135deg,var(--adim),transparent);border:1px solid rgba(225,31,46,0.25);border-radius:16px;padding:20px;margin-bottom:16px;position:relative;overflow:hidden;box-shadow:var(--glow);">
+    <div style="background:linear-gradient(135deg,var(--adim),transparent);border:1px solid rgba(230,0,0,0.25);border-radius:16px;padding:20px;margin-bottom:16px;position:relative;overflow:hidden;box-shadow:var(--glow);">
       <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent);"></div>
       <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
         <div>
@@ -618,7 +618,7 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
   // ── DNI TRENINGOWE ──
   (plan.days||[]).forEach((d,di)=>{
     const warmupExs=d.warmupExercises||[];
-    html+=`<div style="margin-bottom:22px;border-radius:14px;overflow:hidden;border:1px solid rgba(225,31,46,0.2);">
+    html+=`<div style="margin-bottom:22px;border-radius:14px;overflow:hidden;border:1px solid rgba(230,0,0,0.2);">
       <div style="background:var(--adim);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
         <div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1.5px;color:var(--accent);">${d.dayName}</div>
@@ -665,7 +665,7 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
             ${ex.muscleGroup?`<span style="font-size:9px;background:var(--s3);color:var(--muted);border-radius:4px;padding:1px 6px;margin-top:5px;display:inline-block;">${ex.muscleGroup}</span>`:''}
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
-            ${rpe?`<span style="font-size:10px;color:var(--accent);background:var(--adim);border:1px solid rgba(225,31,46,0.3);border-radius:6px;padding:3px 9px;font-family:'DM Mono',monospace;font-weight:700;">RPE ${rpe}</span>`:''}
+            ${rpe?`<span style="font-size:10px;color:var(--accent);background:var(--adim);border:1px solid rgba(230,0,0,0.3);border-radius:6px;padding:3px 9px;font-family:'DM Mono',monospace;font-weight:700;">RPE ${rpe}</span>`:''}
             <button onclick="aplEditExercise(${di},${ei})" title="Edytuj" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;opacity:.75;">✏️</button>
           </div>
         </div>
@@ -1253,7 +1253,7 @@ function bizHeatmap(D){
     <div style="display:flex;gap:3px;flex-wrap:wrap;">
       ${hours.slice(6).map((v,i)=>{
         const pct=v/max;
-        const bg=pct>0.7?'var(--accent)':pct>0.4?'rgba(225,31,46,0.5)':pct>0.1?'rgba(225,31,46,0.2)':'var(--s3)';
+        const bg=pct>0.7?'var(--accent)':pct>0.4?'rgba(230,0,0,0.5)':pct>0.1?'rgba(230,0,0,0.2)':'var(--s3)';
         return `<div style="width:28px;text-align:center;">
           <div style="height:28px;border-radius:5px;background:${bg};margin-bottom:3px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:${pct>0.7?'#000':'transparent'};">${v||''}</div>
           <div style="font-size:8px;color:var(--muted2);">${slots[i]}</div>
@@ -1262,7 +1262,7 @@ function bizHeatmap(D){
     </div>
     <div style="display:flex;gap:10px;margin-top:8px;align-items:center;">
       <span style="font-size:10px;color:var(--muted);">Mało</span>
-      <div style="display:flex;gap:3px;">${[0.1,0.3,0.5,0.7,1].map(o=>`<div style="width:14px;height:10px;border-radius:2px;background:rgba(225,31,46,${o});"></div>`).join('')}</div>
+      <div style="display:flex;gap:3px;">${[0.1,0.3,0.5,0.7,1].map(o=>`<div style="width:14px;height:10px;border-radius:2px;background:rgba(230,0,0,${o});"></div>`).join('')}</div>
       <span style="font-size:10px;color:var(--muted);">Dużo</span>
     </div>
   </div>`;
@@ -1381,7 +1381,7 @@ function aicShowWelcome(){
   const msgs=document.getElementById('aic-msgs');
   if(!msgs)return;
   msgs.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;text-align:center;padding:40px;">
-    <div style="width:64px;height:64px;border-radius:20px;background:var(--adim);border:1px solid rgba(225,31,46,0.2);display:flex;align-items:center;justify-content:center;margin-bottom:20px;">
+    <div style="width:64px;height:64px;border-radius:20px;background:var(--adim);border:1px solid rgba(230,0,0,0.2);display:flex;align-items:center;justify-content:center;margin-bottom:20px;">
       <div class="ai-dot" style="width:14px;height:14px;"></div>
     </div>
     <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;margin-bottom:8px;">AI COACH</div>

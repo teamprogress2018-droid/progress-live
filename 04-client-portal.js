@@ -4,12 +4,12 @@
 var capScreen='home';var capDevice='phone';var capTab='preview';
 var capClientId=null;
 
-const CAP_ACCENT='#e11f2e';
-const CAP_BG='#07080a';
-const CAP_S1='#0d0f12';
-const CAP_S2='#12151a';
-const CAP_S3='rgba(255,255,255,0.06)';
-const CAP_TEXT='#eceae6';
+const CAP_ACCENT='#e60000';
+const CAP_BG='#1a1a1a';
+const CAP_S1='#121212';
+const CAP_S2='#252525';
+const CAP_S3='rgba(255,255,255,0.07)';
+const CAP_TEXT='#f5f5f5';
 const CAP_MUTED='rgba(255,255,255,0.4)';
 
 function initClientApp(){
@@ -471,7 +471,7 @@ function capClientProgressScreenHTML(c,accent){
         ${ciPts.length>=2?`<div class="cap-chart-card" style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;">
           <div style="font-size:12px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">Samopoczucie (check-in)</div>
           <div style="font-size:10px;color:${CAP_MUTED};margin-bottom:10px;">Energia · sen · stres · odżywianie</div>
-          ${capSparklineSVG(ciPts,'#9d7cf4',340,72)}
+          ${capSparklineSVG(ciPts,'#0055a4',340,72)}
         </div>`:''}
       </div>
       ${lastMeas?`<div class="cap-chart-card" style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
@@ -1342,14 +1342,14 @@ function renderCapInfo(){
 
 function renderCapCustomize(){
   const el=document.getElementById('cap-customize-content');if(!el)return;
-  const accent=window.SETTINGS?.brand?.accentColor||'#e11f2e';
+  const accent=window.SETTINGS?.brand?.accentColor||'#e60000';
   const appName=window.SETTINGS?.brand?.appName||'PROGRESS LIVE';
   el.innerHTML=`
     <div class="settings-card">
       <div class="settings-card-title">🎨 Kolor marki w aplikacji klienta</div>
       <div class="settings-card-desc">Główny kolor akcentu widoczny przez klienta w przyciskach, postępach i elementach aktywnych.</div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        ${['#e11f2e','#4d9fff','#ff8c42','#9d7cf4','#3ecfb2','#ff4d4d','#f59e0b','#ec4899'].map(c=>`<div style="width:36px;height:36px;border-radius:10px;background:${c};cursor:pointer;border:3px solid ${c===accent?'white':'transparent'};" onclick="setAccentColor('${c}');renderCapCustomize()"></div>`).join('')}
+        ${['#e60000','#4d9fff','#ff8c42','#9d7cf4','#3ecfb2','#ff4d4d','#f59e0b','#ec4899'].map(c=>`<div style="width:36px;height:36px;border-radius:10px;background:${c};cursor:pointer;border:3px solid ${c===accent?'white':'transparent'};" onclick="setAccentColor('${c}');renderCapCustomize()"></div>`).join('')}
         <input type="color" value="${accent}" oninput="setAccentColor(this.value);renderCapCustomize()" style="width:36px;height:36px;border-radius:10px;cursor:pointer;border:none;padding:2px;">
       </div>
     </div>
@@ -3456,7 +3456,7 @@ window.SETTINGS={
     certs:[],
   },
   brand:{
-    accentColor:'#e11f2e',
+    accentColor:'#e60000',
     theme:'dark',
     appName:'PROGRESS LIVE',
     logo:null,
@@ -3569,7 +3569,7 @@ function renderSettingsContent(t){
   }
 
   else if(t==='brand'){
-    const colors=['#e11f2e','#4d9fff','#ff8c42','#9d7cf4','#3ecfb2','#ff4d4d','#f59e0b','#ec4899'];
+    const colors=['#e60000','#b80000','#0055a4','#ffd700','#2ecc71','#3e3e3e','#ffffff','#121212'];
     el.innerHTML=`<div class="settings-section">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">MARKA I WYGLĄD</div>
 
@@ -3828,15 +3828,16 @@ function toggleSetting(id){
 
 function setAccentColor(color){
   window.SETTINGS.brand.accentColor=color;
-  document.documentElement.style.setProperty('--accent',color);
-  // update adim
-  const r=parseInt(color.slice(1,3),16);
-  const g=parseInt(color.slice(3,5),16);
-  const b=parseInt(color.slice(5,7),16);
-  document.documentElement.style.setProperty('--adim',`rgba(${r},${g},${b},0.1)`);
+  if(typeof applyBrandTheme==='function')applyBrandTheme(window.SETTINGS);
+  else{
+    document.documentElement.style.setProperty('--accent',color);
+    const rgb=typeof hexToRgbStr==='function'?hexToRgbStr(color):'230,0,0';
+    document.documentElement.style.setProperty('--accent-rgb',rgb);
+    document.documentElement.style.setProperty('--adim','rgba('+rgb+',0.14)');
+  }
   const valEl=document.getElementById('accent-color-val');
   if(valEl)valEl.textContent=color;
-  document.querySelectorAll('.color-swatch').forEach(s=>s.classList.toggle('active',s.style.background===color));
+  document.querySelectorAll('.color-swatch').forEach(s=>s.classList.toggle('active',s.style.background===color||s.style.backgroundColor===color));
   notify('✓ Kolor akcentu zmieniony na '+color);
 }
 
@@ -4349,7 +4350,7 @@ function buildReportHTML(c,from,to,sec,template){
   const border=isDark?'rgba(255,255,255,0.08)':'#e0e0e0';
   const text=isDark?'#eceae6':'#1a1a2a';
   const muted=isDark?'#5a6070':'#6b7280';
-  const accent='#e11f2e';
+  const accent='#e60000';
   const accentDark=isDark?'rgba(225,31,46,0.1)':'rgba(100,180,0,0.08)';
   const blue=isDark?'#c9a227':'#2563eb';
   const orange=isDark?'#c97b3f':'#ea580c';
@@ -4359,7 +4360,7 @@ function buildReportHTML(c,from,to,sec,template){
 
   const today=new Date().toLocaleDateString('pl',{day:'numeric',month:'long',year:'numeric'});
   const ci=CL.indexOf(c);
-  const colHex=isDark?['#e11f2e','#4d9fff','#9d7cf4','#ff8c42','#3ecfb2'][ci%5]:['#16a34a','#2563eb','#7c3aed','#ea580c','#0d9488'][ci%5];
+  const colHex=isDark?['#e60000','#4d9fff','#9d7cf4','#ff8c42','#3ecfb2'][ci%5]:['#16a34a','#2563eb','#7c3aed','#ea580c','#0d9488'][ci%5];
 
   // data
   const sessions=SE.filter(s=>s.clientId===c.id&&s.date>=from&&s.date<=to).sort((a,b)=>b.date.localeCompare(a.date));
