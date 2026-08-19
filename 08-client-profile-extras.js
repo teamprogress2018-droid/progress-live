@@ -1052,29 +1052,51 @@ function renderCPMetrics(c){
 
 function renderCPTasks(c){
   const tasks=TASKS.filter(t=>t.clientId===c.id);
+  const isHw=typeof isHomework==='function'?isHomework:()=>false;
   const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().split('T')[0];
-  const oneShot=tasks.filter(t=>typeof isOneShot==='function'?isOneShot(t):!isHabit(t));
+  const oneShot=tasks.filter(t=>typeof isOneShot==='function'?isOneShot(t):!isHabit(t)&&!isHw(t));
+  const homework=tasks.filter(t=>isHw(t));
   const habits=tasks.filter(t=>isHabit(t));
   const chs=tasks.filter(t=>typeof isChallenge==='function'&&isChallenge(t));
   document.getElementById('cp-body').innerHTML=`
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
       <div class="cp-section-title" style="margin:0;">ZADANIA (${tasks.length})</div>
-      <button class="btn btn-primary btn-sm" onclick="openM('m-task');taskSetClientField('${c.id}','${(c.name||'').replace(/'/g,"\\'")}')">+ Zadanie</button>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="btn btn-ghost btn-sm" onclick="typeof openHomeworkPickerForClient==='function'&&openHomeworkPickerForClient('${c.id}')">🏡 Trening domowy</button>
+        <button class="btn btn-primary btn-sm" onclick="openM('m-task');taskSetClientField('${c.id}','${(c.name||'').replace(/'/g,"\\'")}')">+ Zadanie</button>
+      </div>
     </div>
-    <div style="display:flex;gap:6px;margin-bottom:12px;">
-      <div class="cp-stat-box" style="flex:1;"><div class="cp-stat-val" style="color:var(--accent);font-size:22px;">${oneShot.filter(t=>t.status!=='done').length}</div><div class="cp-stat-lbl">Aktywne</div></div>
-      <div class="cp-stat-box" style="flex:1;"><div class="cp-stat-val" style="color:var(--purple);font-size:22px;">${habits.length}</div><div class="cp-stat-lbl">Nawyki</div></div>
-      <div class="cp-stat-box" style="flex:1;"><div class="cp-stat-val" style="color:var(--gold);font-size:22px;">${chs.length}</div><div class="cp-stat-lbl">Wyzwania</div></div>
-      <div class="cp-stat-box" style="flex:1;"><div class="cp-stat-val" style="color:var(--orange);font-size:22px;">${oneShot.filter(t=>t.status!=='done'&&t.due&&t.due<today).length}</div><div class="cp-stat-lbl">Przet.</div></div>
+    <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
+      <div class="cp-stat-box" style="flex:1;min-width:70px;"><div class="cp-stat-val" style="color:var(--blue);font-size:22px;">${homework.filter(t=>t.status!=='done').length}</div><div class="cp-stat-lbl">Domowe</div></div>
+      <div class="cp-stat-box" style="flex:1;min-width:70px;"><div class="cp-stat-val" style="color:var(--accent);font-size:22px;">${oneShot.filter(t=>t.status!=='done').length}</div><div class="cp-stat-lbl">Aktywne</div></div>
+      <div class="cp-stat-box" style="flex:1;min-width:70px;"><div class="cp-stat-val" style="color:var(--purple);font-size:22px;">${habits.length}</div><div class="cp-stat-lbl">Nawyki</div></div>
+      <div class="cp-stat-box" style="flex:1;min-width:70px;"><div class="cp-stat-val" style="color:var(--gold);font-size:22px;">${chs.length}</div><div class="cp-stat-lbl">Wyzwania</div></div>
     </div>
+    ${homework.length?`<div class="cp-section-title">ZADANIA DOMOWE</div>
+      ${homework.map(t=>{
+        const w=(typeof allODWorkouts==='function'?allODWorkouts():[]).find(x=>x.id===t.odWorkoutId);
+        const done=t.status==='done';
+        const struct=w&&typeof odWorkoutStructureText==='function'?odWorkoutStructureText(w):'';
+        return `<div style="background:var(--s2);border:1px solid ${done?'rgba(62,207,178,0.35)':'var(--border2)'};border-radius:10px;padding:12px;margin-bottom:8px;">
+          <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;">
+            <div style="flex:1;">
+              <div style="font-size:12px;font-weight:700;">${escHtml(t.title)}${done?' <span style="color:var(--teal);">✓</span>':''}</div>
+              ${struct?`<div style="font-size:10px;color:var(--muted);margin-top:4px;">${escHtml(struct)}</div>`:''}
+              ${t.due?`<div style="font-size:10px;color:var(--muted);margin-top:2px;">Termin: ${escHtml(t.due)}</div>`:''}
+            </div>
+            ${!done&&w?`<button class="btn btn-ghost btn-sm" type="button" onclick="openAssignHomeworkModal('${escHtml(w.id)}','${escHtml(c.id)}')">↻</button>`:''}
+          </div>
+        </div>`;
+      }).join('')}`:''}
     ${!tasks.length?'<div style="text-align:center;padding:30px;color:var(--muted);">Brak zadań dla tego klienta</div>'
-    :tasks.sort((a,b)=>{
-      const rank=t=>isHabit(t)?0:(typeof isChallenge==='function'&&isChallenge(t)?1:2);
+    :tasks.filter(t=>!isHw(t)).sort((a,b)=>{
+      const rank=t=>isHw(t)?0:isHabit(t)?1:(typeof isChallenge==='function'&&isChallenge(t)?2:3);
       return rank(a)-rank(b)||(a.due||'9999').localeCompare(b.due||'9999');
     }).map(t=>{
+      const hw=isHw(t);
       const habit=isHabit(t);
       const ch=typeof isChallenge==='function'&&isChallenge(t);
-      const one=typeof isOneShot==='function'?isOneShot(t):!habit&&!ch;
+      const one=typeof isOneShot==='function'?isOneShot(t):!habit&&!ch&&!hw;
       const doneToday=(habit||ch)&&habitDoneOn(t,today);
       const streak=habit?habitStreak(t,today):0;
       const isDone=one&&t.status==='done';
@@ -1085,6 +1107,7 @@ function renderCPTasks(c){
         <div style="flex:1;${isDone?'opacity:0.5;text-decoration:line-through;':''}cursor:pointer;" onclick="editTask('${t.id}')">
           <div style="font-size:12px;font-weight:600;">${t.title}</div>
           <div style="display:flex;gap:5px;margin-top:3px;flex-wrap:wrap;align-items:center;">
+            ${hw?`<span class="pill" style="background:rgba(0,85,164,0.18);color:var(--blue);font-size:9px;">🏡 Domowe</span>`:''}
             ${habit?`<span class="pill" style="background:rgba(157,124,244,0.18);color:var(--purple);font-size:9px;">🔥 Nawyk</span>`:''}
             ${ch?`<span class="pill" style="background:rgba(201,162,39,0.18);color:var(--gold);font-size:9px;">🏆 Wyzwanie</span>`:''}
             ${t.cat?`<span class="pill" style="background:${catCol}22;color:${catCol};font-size:9px;">${TASK_CAT_LABELS[t.cat]||t.cat}</span>`:''}

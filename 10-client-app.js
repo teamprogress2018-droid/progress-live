@@ -233,7 +233,7 @@ function renderClientLive(){
   const subScreens=['forms','formfill','session','exercise','calendar','resources','odprogram'];
   if(typeof capClientSectionVisible==='function'&&!capClientSectionVisible(scr)&&!subScreens.includes(scr))scr='home';
   window._clientLiveScreen=scr;
-  ['home','plan','progress','checkin','ondemand','resources','forum','messages','profile'].forEach(s=>{
+  ['home','plan','homework','progress','checkin','ondemand','resources','forum','messages','profile'].forEach(s=>{
     const bn=document.getElementById('clive-bn-'+s);
     if(!bn)return;
     const visible=!navIds.length||navIds.includes(s);
@@ -578,6 +578,10 @@ document.addEventListener('DOMContentLoaded',prepareAuthForInvite);
 function clientToggleTask(id){
   const t=(window.TASKS||[]).find(x=>x.id===id);
   if(!t)return;
+  if(typeof isHomework==='function'&&isHomework(t)){
+    if(typeof clientStartHomework==='function')clientStartHomework(id);
+    return;
+  }
   const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
   if(typeof isHabit==='function'&&isHabit(t)){
     toggleHabitDay(t,today);
@@ -611,6 +615,31 @@ function clientToggleTask(id){
   if(typeof notify==='function')notify(t.status==='done'?'✓ Zadanie zrobione':'Zadanie znów otwarte');
   renderClientLive();
 }
+
+function clientStartHomework(taskId){
+  const t=(window.TASKS||[]).find(x=>x.id===taskId);
+  const wid=t&&t.odWorkoutId;
+  if(!wid){
+    if(typeof notify==='function')notify('Brak powiązanego treningu');
+    return;
+  }
+  if(typeof openODWorkout==='function')openODWorkout(wid);
+  else if(typeof notify==='function')notify('Nie można odtworzyć treningu');
+}
+
+function clientCompleteHomework(taskId){
+  const t=(window.TASKS||[]).find(x=>x.id===taskId);
+  if(!t)return;
+  t.status='done';
+  t.doneAt=new Date().toISOString();
+  t.updatedAt=new Date().toISOString();
+  if(typeof persistById==='function')persistById('tasks',t);
+  if(typeof notify==='function')notify('✓ Zadanie domowe zaliczone');
+  if(typeof renderClientLive==='function')renderClientLive();
+}
+
+window.clientStartHomework=clientStartHomework;
+window.clientCompleteHomework=clientCompleteHomework;
 
 function cwClearTimers(){
   if(window._cwRestTimer){clearInterval(window._cwRestTimer);window._cwRestTimer=null;}

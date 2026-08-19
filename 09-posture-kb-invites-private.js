@@ -712,21 +712,22 @@ var odTab='browse';var odWorkoutFilter='all';var odProgramFilter='all';
 window.OD_WORKOUTS=[];
 
 const OD_COLLECTIONS=[
-  {id:'dom',name:'Dom bez sprzętu',icon:'🏠',color:'var(--blue)',desc:'Ćwiczenia w domu — zero sprzętu, follow-along YouTube',count:1},
-  {id:'mobilnosc',name:'Mobilność',icon:'🧘',color:'var(--teal)',desc:'Stretching, mobilność i regeneracja',count:1},
+  {id:'dom',name:'Dom bez sprzętu',icon:'🏠',color:'var(--blue)',desc:'Ćwiczenia w domu — zero sprzętu, follow-along YouTube',count:2},
+  {id:'mobilnosc',name:'Mobilność',icon:'🧘',color:'var(--teal)',desc:'Stretching, mobilność i regeneracja',count:2},
   {id:'fbw',name:'Full Body',icon:'⚡',color:'var(--accent)',desc:'Programy angażujące całe ciało',count:1},
-  {id:'hiit',name:'HIIT / Cardio',icon:'🔥',color:'var(--red)',desc:'Intensywne interwały i cardio',count:0},
+  {id:'hiit',name:'HIIT / Cardio',icon:'🔥',color:'var(--red)',desc:'Intensywne interwały, tabata i cardio',count:2},
   {id:'sila',name:'Siła',icon:'💪',color:'var(--orange)',desc:'Treningi siłowe z obciążeniem',count:0},
 ];
 
 const OD_DEMO_WORKOUTS=[
-  {id:'ow1',name:'Full Body 30 min (HASfit)',type:'video',level:'sredni',time:30,coll:'fbw',color:'#1a1a2e',emoji:'⚡',desc:'Darmowy trening całego ciała z hantlami. YouTube, bez subskrypcji.',url:'https://www.youtube.com/watch?v=445nEr4-uJM',views:0,likes:12},
-  {id:'ow2',name:'HIIT 20 min — bez sprzętu (MadFit)',type:'video',level:'sredni',time:20,coll:'dom',color:'#1a0a0a',emoji:'🔥',desc:'Standing HIIT, bez powtórzeń, zero sprzętu. Darmowy follow-along na YouTube.',url:'https://www.youtube.com/watch?v=HhdYlniTjvg',views:0,likes:8},
-  {id:'ow3',name:'Push Day — klatka, barki, triceps',type:'video',level:'sredni',time:20,coll:'sila',color:'#0a1a0a',emoji:'💪',desc:'MadFit push w domu. Wklejony odcinek YouTube, nie kanał.',url:'https://www.youtube.com/watch?v=N6IzvFjybLc',views:0,likes:15},
-  {id:'ow4',name:'Pull Day — plecy (ATHLEAN-X)',type:'video',level:'sredni',time:12,coll:'sila',color:'#0a0a1a',emoji:'🏋️',desc:'Darmowy film o treningu pleców. Odtwarzaj w portalu albo na YouTube.',url:'https://www.youtube.com/watch?v=OXvQe9payHw',views:0,likes:11},
-  {id:'ow5',name:'Mobilność bioder 20 min',type:'video',level:'poczatkujacy',time:20,coll:'mobilnosc',color:'#0a1a1a',emoji:'🧘',desc:'Yoga With Adriene — Feel Good Flow na biodra. Za darmo na YouTube.',url:'https://www.youtube.com/watch?v=zwoVcrdmLOE',views:0,likes:9},
-  {id:'ow6',name:'Lower Body — nogi i pośladki',type:'video',level:'sredni',time:20,coll:'dom',color:'#1a1000',emoji:'🦵',desc:'MadFit, bez sprzętu. Darmowy follow-along na YouTube.',url:'https://www.youtube.com/watch?v=9hQTvrP6EsM',views:0,likes:14},
-  {id:'ow7',name:'Stretch i elastyczność 28 min (Adriene)',type:'video',level:'poczatkujacy',time:28,coll:'mobilnosc',color:'#0a1a1a',emoji:'🧘',desc:'Yoga With Adriene — pełny stretching w domu, bez sprzętu.',url:'https://www.youtube.com/watch?v=g_tea8ZNr5A',views:0,likes:10},
+  {id:'ow1',name:'Full Body 30 min (HASfit)',type:'video',level:'sredni',time:30,coll:'fbw',format:'strength',equipment:'dumbbells',color:'#1a1a2e',emoji:'⚡',desc:'Darmowy trening całego ciała z hantlami. YouTube, bez subskrypcji.',url:'https://www.youtube.com/watch?v=445nEr4-uJM',views:0,likes:12,structure:{label:'Obwody',rounds:3,setsDesc:'3 obwody · ~12 powt. na ćwiczenie',materials:'Hantle (para), mata opcjonalnie'}},
+  {id:'ow2',name:'HIIT 20 min — bez sprzętu (MadFit)',type:'video',level:'sredni',time:20,coll:'dom',format:'hiit',equipment:'none',color:'#1a0a0a',emoji:'🔥',desc:'Standing HIIT, bez powtórzeń, zero sprzętu. Darmowy follow-along na YouTube.',url:'https://www.youtube.com/watch?v=HhdYlniTjvg',views:0,likes:8,structure:{label:'Interwały',rounds:5,workSec:45,restSec:15,note:'5 rund · 45s praca / 15s przerwa · cardio'}},
+  {id:'ow3',name:'Push Day — klatka, barki, triceps',type:'video',level:'sredni',time:20,coll:'sila',format:'strength',equipment:'dumbbells',color:'#0a1a0a',emoji:'💪',desc:'MadFit push w domu. Wklejony odcinek YouTube, nie kanał.',url:'https://www.youtube.com/watch?v=N6IzvFjybLc',views:0,likes:15,structure:{label:'Serie',setsDesc:'3–4 serie · 10–15 powt. · hantle',materials:'Hantle, ławka/oparcie opcjonalnie'}},
+  {id:'ow4',name:'Pull Day — plecy (ATHLEAN-X)',type:'video',level:'sredni',time:12,coll:'sila',format:'strength',equipment:'none',color:'#0a0a1a',emoji:'🏋️',desc:'Darmowy film o treningu pleców. Odtwarzaj w portalu albo na YouTube.',url:'https://www.youtube.com/watch?v=OXvQe9payHw',views:0,likes:11,structure:{label:'Serie',setsDesc:'3 serie · technika + objętość',materials:'Drążek / gumy opcjonalnie'}},
+  {id:'ow5',name:'Mobilność bioder 20 min',type:'video',level:'poczatkujacy',time:20,coll:'mobilnosc',format:'mobility',equipment:'mat',color:'#0a1a1a',emoji:'🧘',desc:'Yoga With Adriene — Feel Good Flow na biodra. Za darmo na YouTube.',url:'https://www.youtube.com/watch?v=zwoVcrdmLOE',views:0,likes:9,structure:{label:'Flow',durationMin:20,materials:'Mata, wygodny strój'}},
+  {id:'ow6',name:'Lower Body — nogi i pośladki',type:'video',level:'sredni',time:20,coll:'dom',format:'strength',equipment:'none',color:'#1a1000',emoji:'🦵',desc:'MadFit, bez sprzętu. Darmowy follow-along na YouTube.',url:'https://www.youtube.com/watch?v=9hQTvrP6EsM',views:0,likes:14,structure:{label:'Obwód',rounds:3,setsDesc:'3 obwody · nogi i pośladki · bez sprzętu',materials:'Brak — własne ciało'}},
+  {id:'ow7',name:'Stretch i elastyczność 28 min (Adriene)',type:'video',level:'poczatkujacy',time:28,coll:'mobilnosc',format:'stretch',equipment:'mat',color:'#0a1a1a',emoji:'🧘',desc:'Yoga With Adriene — pełny stretching w domu, bez sprzętu.',url:'https://www.youtube.com/watch?v=g_tea8ZNr5A',views:0,likes:10,structure:{label:'Stretch',durationMin:28,materials:'Mata'}},
+  {id:'ow8',name:'Tabata 16 min — cardio (MadFit)',type:'video',level:'sredni',time:16,coll:'hiit',format:'tabata',equipment:'none',color:'#2a0a0a',emoji:'⏱',desc:'Klasyczna tabata 20s/10s × 8 rund na ćwiczenie. Zero sprzętu, follow-along YouTube.',url:'https://www.youtube.com/watch?v=XI0YfASj5gY',views:0,likes:6,structure:{label:'Tabata',rounds:8,workSec:20,restSec:10,note:'8 rund tabata · 20s praca / 10s przerwa · cardio'}},
 ];
 window.OD_DEMO_WORKOUTS=OD_DEMO_WORKOUTS;
 
@@ -983,6 +984,171 @@ function odCanPlay(w){
   if(typeof coachVideoIsFile==='function'&&coachVideoIsFile(w.url))return true;
   return /^https?:\/\//i.test(String(w.url||''));
 }
+const OD_FORMAT_LABELS={hiit:'🔥 HIIT',tabata:'⏱ Tabata',intervals:'⚡ Interwały',cardio:'❤️ Cardio',mobility:'🧘 Mobilność',stretch:'🤸 Stretch',strength:'💪 Siła'};
+const OD_EQUIP_LABELS={none:'Bez sprzętu',dumbbells:'Hantle',mat:'Mata',bands:'Gumy'};
+function odWorkoutFormatLabel(w){return OD_FORMAT_LABELS[w&&w.format]||'🏋️ Trening';}
+function odWorkoutEquipmentLabel(w){return OD_EQUIP_LABELS[w&&w.equipment]||'';}
+function odWorkoutStructureText(w){
+  const s=w&&w.structure;
+  if(!s)return '';
+  if(s.note)return s.note;
+  if(s.setsDesc)return s.setsDesc;
+  if(s.durationMin)return s.durationMin+' min ciągłej pracy';
+  if(s.rounds&&s.workSec&&s.restSec)return s.rounds+' rund · '+s.workSec+'s praca / '+s.restSec+'s przerwa';
+  if(s.rounds)return s.rounds+' obwodów';
+  return s.label||'';
+}
+function odWorkoutMaterialsText(w){
+  const s=w&&w.structure;
+  if(s&&s.materials)return s.materials;
+  const eq=odWorkoutEquipmentLabel(w);
+  return eq||'';
+}
+function odWorkoutMetaChipsHTML(w){
+  const chips=[odWorkoutFormatLabel(w)];
+  const eq=odWorkoutEquipmentLabel(w);
+  if(eq)chips.push(eq);
+  if(w&&w.time)chips.push(String(w.time)+' min');
+  const st=odWorkoutStructureText(w);
+  if(st)chips.push(st);
+  return chips.map(c=>`<span class="pill pill-muted" style="font-size:9px;">${escHtml(c)}</span>`).join('');
+}
+function assignHomeworkToClient(clientId,workoutId,opts){
+  opts=opts||{};
+  if(typeof ensureODWorkouts==='function')ensureODWorkouts();
+  const w=(typeof allODWorkouts==='function'?allODWorkouts():OD_DEMO_WORKOUTS).find(x=>x.id===workoutId);
+  if(!w){if(typeof notify==='function')notify('Nie znaleziono treningu');return null;}
+  const c=(window.CL||[]).find(x=>x.id===clientId);
+  if(!c){if(typeof notify==='function')notify('Wybierz klienta');return null;}
+  const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
+  const t=(typeof withTrainer==='function'?withTrainer:x=>x)({
+    id:typeof newId==='function'?newId('t'):('t_'+Date.now()),
+    kind:'homework',
+    odWorkoutId:workoutId,
+    title:opts.title||w.name,
+    desc:opts.desc||w.desc||'',
+    clientId,
+    cat:'trening',
+    priority:opts.priority||'medium',
+    due:opts.due||today,
+    status:'open',
+    createdAt:new Date().toISOString()
+  });
+  window.TASKS=window.TASKS||[];
+  window.TASKS.push(t);
+  if(typeof persistById==='function')persistById('tasks',t);
+  if(opts.notify!==false&&typeof notify==='function')notify('✓ Zadanie domowe: '+c.name+' · '+t.title);
+  if(typeof pushMsg==='function'){
+    pushMsg(clientId,'[od:'+workoutId+']\n🏠 Zadanie domowe od trenera: "'+t.title+'"\n'+odWorkoutStructureText(w)+(odWorkoutMaterialsText(w)?'\nMateriały: '+odWorkoutMaterialsText(w):''));
+  }
+  try{if(typeof renderTasks==='function')renderTasks();}catch(e){}
+  if(typeof cpClientId!=='undefined'&&cpClientId===clientId){try{if(typeof setCPTab==='function')setCPTab('tasks');}catch(e){}}
+  return t;
+}
+function openAssignHomeworkModal(workoutId,clientId){
+  window._assignHwWorkoutId=workoutId||null;
+  let m=document.getElementById('m-assign-homework');
+  if(!m){
+    m=document.createElement('div');
+    m.id='m-assign-homework';m.className='modal-ov';
+    m.innerHTML=`<div class="modal" style="max-width:440px;">
+      <div class="modal-hdr"><div class="modal-title">PRZYPISZ ZADANIE DOMOWE</div><button class="modal-close" onclick="closeM('m-assign-homework')">×</button></div>
+      <div class="modal-body">
+        <div id="ahw-preview" style="background:var(--s3);border-radius:10px;padding:12px;margin-bottom:14px;font-size:12px;line-height:1.5;"></div>
+        <div class="form-field" style="position:relative;">
+          <label class="form-lbl">Klient</label>
+          <input class="form-select" id="ahw-client-search" placeholder="Wpisz imię..." autocomplete="off" oninput="ahwClientSearchInput()" onfocus="ahwClientSearchInput()">
+          <input type="hidden" id="ahw-client">
+          <div id="ahw-client-results" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;background:var(--s2);border:1px solid var(--border2);border-radius:8px;margin-top:4px;max-height:200px;overflow-y:auto;"></div>
+        </div>
+        <div class="form-field"><label class="form-lbl">Termin (opcjonalnie)</label><input type="date" class="form-input" id="ahw-due"></div>
+        <div class="form-field"><label class="form-lbl">Notatka dla klienta</label><textarea class="form-select" id="ahw-note" rows="2" style="resize:none;" placeholder="np. Wykonaj po treningu siłowym"></textarea></div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-assign-homework')">Anuluj</button><button class="btn btn-primary" onclick="saveAssignHomework()">🏠 Przypisz</button></div>
+    </div>`;
+    document.body.appendChild(m);
+  }
+  const w=(typeof allODWorkouts==='function'?allODWorkouts():[]).find(x=>x.id===workoutId);
+  const prev=document.getElementById('ahw-preview');
+  if(prev&&w){
+    prev.innerHTML=`<div style="font-weight:700;margin-bottom:6px;">${escHtml(w.emoji||'🏠')} ${escHtml(w.name)}</div>
+      <div style="color:var(--muted);margin-bottom:8px;">${escHtml(w.desc||'')}</div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;">${odWorkoutMetaChipsHTML(w)}</div>`;
+  }
+  const hid=document.getElementById('ahw-client');
+  const search=document.getElementById('ahw-client-search');
+  const cl=clientId?(window.CL||[]).find(x=>x.id===clientId):null;
+  if(hid)hid.value=clientId||'';
+  if(search)search.value=cl?cl.name:'';
+  const due=document.getElementById('ahw-due');
+  if(due)due.value=typeof todayYmd==='function'?todayYmd():'';
+  const note=document.getElementById('ahw-note');
+  if(note)note.value='';
+  openM('m-assign-homework');
+}
+function ahwClientSearchInput(){
+  const q=(document.getElementById('ahw-client-search')||{}).value||'';
+  const el=document.getElementById('ahw-client-results');
+  const hid=document.getElementById('ahw-client');
+  if(!el)return;
+  const ql=q.trim().toLowerCase();
+  const list=(window.CL||[]).filter(c=>c.status!=='archived'&&(!ql||String(c.name||'').toLowerCase().includes(ql))).slice(0,12);
+  if(!list.length){el.style.display='none';return;}
+  el.style.display='block';
+  el.innerHTML=list.map(c=>`<div style="padding:10px 12px;cursor:pointer;font-size:12px;border-bottom:1px solid var(--border);" onclick="ahwPickClient('${escHtml(c.id)}','${escHtml(c.name||'')}')">${escHtml(c.name)}</div>`).join('');
+  if(!ql&&hid)hid.value='';
+}
+function ahwPickClient(id,name){
+  const hid=document.getElementById('ahw-client');
+  const search=document.getElementById('ahw-client-search');
+  const el=document.getElementById('ahw-client-results');
+  if(hid)hid.value=id;
+  if(search)search.value=name;
+  if(el)el.style.display='none';
+}
+function saveAssignHomework(){
+  const wid=window._assignHwWorkoutId;
+  const cid=(document.getElementById('ahw-client')||{}).value;
+  if(!wid){if(typeof notify==='function')notify('Brak treningu');return;}
+  if(!cid){if(typeof notify==='function')notify('Wybierz klienta');return;}
+  assignHomeworkToClient(cid,wid,{due:(document.getElementById('ahw-due')||{}).value||'',desc:(document.getElementById('ahw-note')||{}).value||''});
+  closeM('m-assign-homework');
+}
+function openHomeworkPickerForClient(clientId){
+  window._assignHwClientId=clientId;
+  let m=document.getElementById('m-homework-picker');
+  if(!m){
+    m=document.createElement('div');
+    m.id='m-homework-picker';m.className='modal-ov';
+    m.innerHTML=`<div class="modal modal-wide">
+      <div class="modal-hdr"><div class="modal-title">WYBIERZ TRENING DOMOWY</div><button class="modal-close" onclick="closeM('m-homework-picker')">×</button></div>
+      <div class="modal-body" id="m-homework-picker-body" style="max-height:60vh;overflow-y:auto;"></div>
+    </div>`;
+    document.body.appendChild(m);
+  }
+  const body=document.getElementById('m-homework-picker-body');
+  const list=(typeof allODWorkouts==='function'?allODWorkouts():OD_DEMO_WORKOUTS).slice();
+  if(body){
+    body.innerHTML=list.length?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;">${list.map((w,i)=>`<div style="background:var(--s2);border:1px solid var(--border2);border-radius:12px;padding:12px;">
+      <div style="font-size:13px;font-weight:700;margin-bottom:4px;">${escHtml(w.emoji||'🏠')} ${escHtml(w.name)}</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.4;">${escHtml(w.desc||'')}</div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;">${odWorkoutMetaChipsHTML(w)}</div>
+      <button type="button" class="btn btn-primary btn-sm" style="width:100%;" onclick="assignHomeworkToClient('${escHtml(clientId)}','${escHtml(w.id)}');closeM('m-homework-picker');">Przypisz</button>
+    </div>`).join('')}</div>`:`<div style="text-align:center;padding:40px;color:var(--muted);">Brak treningów w bibliotece On-demand.</div>`;
+  }
+  openM('m-homework-picker');
+}
+window.odWorkoutFormatLabel=odWorkoutFormatLabel;
+window.odWorkoutEquipmentLabel=odWorkoutEquipmentLabel;
+window.odWorkoutStructureText=odWorkoutStructureText;
+window.odWorkoutMaterialsText=odWorkoutMaterialsText;
+window.odWorkoutMetaChipsHTML=odWorkoutMetaChipsHTML;
+window.assignHomeworkToClient=assignHomeworkToClient;
+window.openAssignHomeworkModal=openAssignHomeworkModal;
+window.openHomeworkPickerForClient=openHomeworkPickerForClient;
+window.ahwClientSearchInput=ahwClientSearchInput;
+window.ahwPickClient=ahwPickClient;
+window.saveAssignHomework=saveAssignHomework;
 function ensureODWorkouts(){
   if(window.OD_WORKOUTS&&window.OD_WORKOUTS.length)return window.OD_WORKOUTS;
   window.OD_WORKOUTS=OD_DEMO_WORKOUTS.map(w=>Object.assign({},w));
@@ -1125,11 +1291,13 @@ function odWorkoutCardHTML(w,i){
       <div style="font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.4;">${escHtml(w.desc||'')}</div>
       <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;">
         ${coll?`<span class="pill" style="background:${collColor}22;color:${collColor};font-size:9px;">${coll.icon} ${escHtml(coll.name)}</span>`:''}
+        ${typeof odWorkoutMetaChipsHTML==='function'?odWorkoutMetaChipsHTML(w):''}
         <span class="pill pill-muted" style="font-size:9px;">${yt?'▶️ YouTube':w.type==='audio'?'🎧 Audio':'🏋️ Plan'}</span>
       </div>
-      <div style="display:flex;gap:6px;" onclick="event.stopPropagation()">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;" onclick="event.stopPropagation()">
         <button class="btn btn-primary btn-sm" style="flex:1;" type="button" onclick="openODWorkout('${escHtml(w.id)}')">▶ Odtwórz</button>
-        <button class="btn btn-ghost btn-sm" type="button" onclick="shareODWorkout('${escHtml(w.id)}')">Udostępnij</button>
+        <button class="btn btn-ghost btn-sm" type="button" onclick="openAssignHomeworkModal('${escHtml(w.id)}')">🏠 Klientowi</button>
+        <button class="btn btn-ghost btn-sm" type="button" onclick="shareODWorkout('${escHtml(w.id)}')">↗</button>
       </div>
     </div>
   </div>`;

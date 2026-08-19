@@ -27,3 +27,5 @@ Static site — no committed `package.json`. Do not commit `node_modules/`, `pac
 **Statystyki klienta:** ekran **Moje postępy** (`capClientProgressScreenHTML`) — KPI, wykresy SVG, obwody, rekordy.
 
 **Profil trenera / edycja klienta:** nav **Mój profil** → `#screen-trainer-profile` (edycja profilu bez wchodzenia w Ustawienia). Profil klienta w drawerze: **Przegląd** → **✏️ Edytuj dane** (pole `cpe-phone`, zapis `saveCPEdit`); zakładka **Funkcje** zamiast dawnych ustawień z formularzem danych.
+
+**Zadania domowe vs On-demand:** **Zadania domowe** (`homework` w live nav) — pojedyncze treningi w domu (HIIT/tabata/mobilność/bez sprzętu) z czasem, obwodami i materiałami; trener przypisuje z On-demand (**🏠 Klientowi** / profil klienta → Zadania → **🏡 Trening domowy**). **On-demand** — wielotygodniowe programy YouTube z harmonogramem dni; klient sam wybiera tempo.

@@ -1104,8 +1104,13 @@ function isChallenge(t){
 }
 window.isChallenge=isChallenge;
 
+function isHomework(t){
+  return !!(t&&(t.kind==='homework'||t.odWorkoutId||t.odProgramId));
+}
+window.isHomework=isHomework;
+
 function isOneShot(t){
-  return !!(t&&!isHabit(t)&&!isChallenge(t));
+  return !!(t&&!isHabit(t)&&!isChallenge(t)&&!isHomework(t));
 }
 window.isOneShot=isOneShot;
 

@@ -101,6 +101,7 @@ function capLiveNavScreens(){
   return [
     {id:'home',label:'Dziś',icon:'🏠'},
     {id:'plan',label:'Plan',icon:'📋'},
+    {id:'homework',label:'Domowe',icon:'🏡'},
     {id:'progress',label:'Postępy',icon:'📈'},
     {id:'checkin',label:'Check-in',icon:'✅'},
     {id:'ondemand',label:'On-demand',icon:'▶️'},
@@ -132,6 +133,36 @@ window.capSetOdTab=capSetOdTab;
 window.capClientSectionVisible=capClientSectionVisible;
 window.capLiveNavScreens=capLiveNavScreens;
 window.capOdMsgId=capOdMsgId;
+
+function capHomeworkWorkoutCard(w,accent,live,opts){
+  opts=opts||{};
+  const thumb=typeof odThumbUrl==='function'?odThumbUrl(w):'';
+  const struct=typeof odWorkoutStructureText==='function'?odWorkoutStructureText(w):'';
+  const mats=typeof odWorkoutMaterialsText==='function'?odWorkoutMaterialsText(w):'';
+  const chips=typeof odWorkoutMetaChipsHTML==='function'?odWorkoutMetaChipsHTML(w):'';
+  const playBtn=opts.taskId&&live
+    ?`onclick="clientStartHomework('${escHtml(opts.taskId)}')"`
+    :live?`onclick="openODWorkout('${escHtml(w.id)}')"`
+    :`onclick="notify('Podgląd — klient odpala trening w apce')"`;
+  return `<div style="background:${opts.done?'rgba(62,207,178,0.08)':CAP_S2};border:1px solid ${opts.done?'rgba(62,207,178,0.35)':CAP_S3};border-radius:16px;padding:14px;margin-bottom:12px;">
+    ${thumb?`<div style="height:88px;border-radius:12px;background:#000 url('${escHtml(thumb)}') center/cover no-repeat;margin-bottom:10px;"></div>`:''}
+    <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;margin-bottom:6px;">
+      <div style="font-size:14px;font-weight:700;color:${CAP_TEXT};">${escHtml(w.emoji||'🏠')} ${escHtml(w.name||'')}</div>
+      ${opts.done?`<span style="font-size:10px;color:var(--teal);">✓ Zrobione</span>`:''}
+    </div>
+    ${opts.trainerNote?`<div style="font-size:11px;color:${accent};margin-bottom:6px;line-height:1.5;">💬 ${escHtml(opts.trainerNote)}</div>`:''}
+    <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:8px;line-height:1.5;">${escHtml(w.desc||'')}</div>
+    <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;">${chips}</div>
+    ${struct?`<div style="font-size:11px;color:${CAP_TEXT};margin-bottom:4px;"><strong>Plan:</strong> ${escHtml(struct)}</div>`:''}
+    ${mats?`<div style="font-size:11px;color:${CAP_MUTED};margin-bottom:10px;"><strong>Materiały:</strong> ${escHtml(mats)}</div>`:''}
+    ${opts.due?`<div style="font-size:10px;color:${CAP_MUTED};margin-bottom:10px;">Termin: ${escHtml(opts.due)}</div>`:''}
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button type="button" class="cap-btn-primary" style="flex:1;padding:11px;font-size:13px;" ${playBtn}>▶ Start treningu</button>
+      ${opts.taskId&&live&&!opts.done?`<button type="button" class="cap-btn-primary" style="padding:11px;font-size:13px;background:${CAP_S3};" onclick="clientCompleteHomework('${escHtml(opts.taskId)}')">✓ Zrobione</button>`:''}
+    </div>
+  </div>`;
+}
+window.capHomeworkWorkoutCard=capHomeworkWorkoutCard;
 
 function openODProgramClient(id){
   const p=(typeof allODPrograms==='function'?allODPrograms():(window.OD_PROGRAMS||[])).find(x=>x.id===id);
@@ -523,7 +554,9 @@ function capScreenHTML(scr,c){
   const isC=typeof isChallenge==='function'?isChallenge:()=>false;
   const habits=(window.TASKS||[]).filter(t=>t.clientId===c.id&&isH(t));
   const challenges=(window.TASKS||[]).filter(t=>t.clientId===c.id&&isC(t)&&(typeof challengeVisible!=='function'||challengeVisible(t)));
-  const tasks=(window.TASKS||[]).filter(t=>t.clientId===c.id&&!isH(t)&&!isC(t)&&t.status!=='done');
+  const isHw=typeof isHomework==='function'?isHomework:()=>false;
+  const tasks=(window.TASKS||[]).filter(t=>t.clientId===c.id&&!isH(t)&&!isC(t)&&!isHw(t)&&t.status!=='done');
+  const homeworkOpen=(window.TASKS||[]).filter(t=>t.clientId===c.id&&isHw(t)&&t.status!=='done');
   const packages=capIsLiveClient()
     ?(window.PACKAGES||[]).filter(p=>p.clientId===c.id)
     :(window.PACKAGES||[]).concat(window.PACKAGES?.length?[]:[{title:'10 sesji personalnych',sessions:10,sessionsUsed:4,price:1500,expiresDate:'2025-08-30'}]);
@@ -647,6 +680,18 @@ function capScreenHTML(scr,c){
               <div style="font-size:10px;color:${CAP_MUTED};margin-top:4px;line-height:1.4;">${escHtml(p.desc||'')}</div>
             </button>`).join('')}
           <button type="button" class="cap-btn-primary" style="padding:10px;font-size:13px;" onclick="capGoScreen('ondemand')">Wszystkie programy</button>
+        </div>`;
+      })()}
+      ${(()=>{
+        if(!capClientSectionVisible('homework')||!homeworkOpen.length)return '';
+        const t=homeworkOpen[0];
+        const w=(typeof allODWorkouts==='function'?allODWorkouts():[]).find(x=>x.id===t.odWorkoutId);
+        if(!w)return '';
+        return `<div style="background:linear-gradient(135deg,rgba(0,85,164,0.22),rgba(0,85,164,0.06));border:1px solid rgba(0,85,164,0.4);border-radius:18px;padding:16px;margin-bottom:14px;">
+          <div style="font-size:10px;font-family:'DM Mono',monospace;color:#5ec8ff;text-transform:uppercase;margin-bottom:6px;">🏡 ZADANIE DOMOWE</div>
+          <div style="font-size:15px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">${escHtml(t.title||w.name)}</div>
+          <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:10px;">${escHtml(typeof odWorkoutStructureText==='function'?odWorkoutStructureText(w):'')}${homeworkOpen.length>1?' · +'+(homeworkOpen.length-1)+' kolejne':''}</div>
+          <button type="button" class="cap-btn-primary" style="padding:12px;font-size:14px;width:100%;" onclick="capGoScreen('homework')">Otwórz zadania domowe →</button>
         </div>`;
       })()}
       ${inPerson.length?`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:16px;padding:16px;margin-bottom:14px;">
@@ -1021,6 +1066,51 @@ function capScreenHTML(scr,c){
     </div>`;
   }
 
+  if(scr==='homework'){
+    const live=capIsLiveClient();
+    const filter=window._capHwFilter||'all';
+    const hwTasks=(window.TASKS||[]).filter(t=>t.clientId===c.id&&typeof isHomework==='function'&&isHomework(t));
+    const openHw=hwTasks.filter(t=>t.status!=='done').sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999'));
+    const doneHw=hwTasks.filter(t=>t.status==='done').slice(0,5);
+    const allW=(typeof allODWorkouts==='function'?allODWorkouts():(window.OD_WORKOUTS||[]));
+    const fmtMatch=(w,f)=>{
+      if(f==='all')return true;
+      if(f==='dom')return w.coll==='dom'||w.equipment==='none';
+      if(f==='mobilnosc')return w.coll==='mobilnosc'||w.format==='mobility'||w.format==='stretch';
+      if(f==='hiit')return w.format==='hiit'||w.coll==='hiit';
+      if(f==='tabata')return w.format==='tabata';
+      if(f==='cardio')return w.format==='hiit'||w.format==='tabata'||w.format==='cardio';
+      return w.format===f||w.coll===f;
+    };
+    const lib=allW.filter(w=>fmtMatch(w,filter));
+    const pill=(id,label)=>`<button type="button" class="btn ${filter===id?'btn-primary':'btn-ghost'} btn-sm" onclick="window._capHwFilter='${id}';capGoScreen('homework')">${label}</button>`;
+    const resolveW=t=>(allW.find(x=>x.id===t.odWorkoutId)||null);
+    return `<div class="cap-section" style="padding-bottom:90px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:4px;padding-top:8px;">ZADANIA DOMOWE</div>
+      <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:14px;line-height:1.6;">Treningi w domu przypisane przez trenera + gotowa biblioteka (HIIT, tabata, mobilność, bez sprzętu). Wszystko w jednym miejscu — czas, serie/obwody i materiały.</div>
+      ${openHw.length?`<div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">📌 Od trenera (${openHw.length})</div>
+        ${openHw.map(t=>{const w=resolveW(t);if(!w)return `<div style="font-size:12px;color:${CAP_MUTED};margin-bottom:8px;">${escHtml(t.title)} — brak powiązanego filmu</div>`;
+          return capHomeworkWorkoutCard(w,accent,live,{taskId:t.id,due:t.due,trainerNote:t.desc,done:false});
+        }).join('')}`:`<div style="background:${CAP_S2};border:1px dashed ${CAP_S3};border-radius:14px;padding:16px;text-align:center;margin-bottom:16px;font-size:12px;color:${CAP_MUTED};">Brak aktywnych zadań domowych od trenera. Poniżej masz gotowe treningi do wyboru.</div>`}
+      <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin:8px 0 10px;">📚 Gotowe treningi</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">
+        ${pill('all','Wszystkie')}
+        ${pill('dom','🏠 Dom')}
+        ${pill('hiit','🔥 HIIT')}
+        ${pill('tabata','⏱ Tabata')}
+        ${pill('mobilnosc','🧘 Mobilność')}
+        ${pill('strength','💪 Siła')}
+      </div>
+      ${lib.length?lib.map(w=>capHomeworkWorkoutCard(w,accent,live,{})).join(''):`<div style="text-align:center;padding:32px;color:${CAP_MUTED};font-size:12px;">Brak treningów w tej kategorii.</div>`}
+      ${capClientSectionVisible('ondemand')?`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:14px;margin-top:8px;">
+        <div style="font-size:12px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">📅 Pełne programy wielotygodniowe?</div>
+        <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:10px;line-height:1.5;">Zakładka <strong>On-demand</strong> to plany 4+ tygodni z harmonogramem dni — klient sam wybiera tempo. Tu masz pojedyncze treningi „na dziś”.</div>
+        <button type="button" class="cap-btn-primary" style="padding:10px;font-size:13px;background:${CAP_S3};" onclick="capGoScreen('ondemand')">Przejdź do On-demand →</button>
+      </div>`:''}
+      ${doneHw.length?`<div style="font-size:12px;font-weight:700;color:${CAP_MUTED};margin:16px 0 8px;">Ostatnio zrobione</div>${doneHw.map(t=>{const w=resolveW(t);if(!w)return '';return capHomeworkWorkoutCard(w,accent,live,{taskId:t.id,done:true});}).join('')}`:''}
+    </div>`;
+  }
+
   if(scr==='ondemand'){
     const progList=(typeof allODPrograms==='function'?allODPrograms():(window.OD_PROGRAMS||[])).filter(p=>typeof odProgramWorkoutCount==='function'?odProgramWorkoutCount(p)>0:p.status==='active');
     const programCards=!progList.length?`<div style="text-align:center;padding:40px;color:${CAP_MUTED};font-size:12px;">Brak programów z filmami YouTube.</div>`:
@@ -1043,7 +1133,7 @@ function capScreenHTML(scr,c){
     return `
     <div class="cap-section" style="padding-bottom:90px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:8px;padding-top:8px;">ON-DEMAND</div>
-      <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:14px;">Programy z darmowymi filmami YouTube — mobilność, dom bez sprzętu i więcej.</div>
+      <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:14px;line-height:1.6;">Wielotygodniowe programy z filmami YouTube (mobilność, dom bez sprzętu, FBW). Klient sam wybiera dzień i tempo — to biblioteka planów, nie pojedyncze zadania od trenera. Pojedyncze treningi → zakładka <strong>Zadania domowe</strong>.</div>
       ${programCards}
     </div>`;
   }
@@ -1295,7 +1385,8 @@ const CAP_SCREEN_INFO={
   checkin:{title:'✅ Check-in tygodniowy',desc:'Interaktywny formularz check-inu — emoji skale, liczba treningów, waga. Wysłany check-in trafia bezpośrednio do Twojego panelu.'},
   forms:{title:'📋 Formularze',desc:'Ankiety wysłane przez Ciebie (wstępna, zdrowie, postępy). Klient wypełnia w apce, odpowiedzi wracają do karty klienta i podglądu formularza.'},
   messages:{title:'💬 Wiadomości',desc:'Czat z trenerem w czasie rzeczywistym. Klient widzi historię rozmów, może pisać i odbierać wiadomości. Możesz wysyłać zdjęcia, pliki i linki.'},
-  ondemand:{title:'▶️ On-demand',desc:'Portal darmowych treningów YouTube. Klient odtwarza film w apce — bez Spotify Premium i bez OAuth.'},
+  ondemand:{title:'▶️ On-demand',desc:'Wielotygodniowe programy YouTube (harmonogram tygodni i dni). Klient sam wybiera tempo — biblioteka planów, nie zadania od trenera. Pojedyncze treningi domowe → Zadania domowe.'},
+  homework:{title:'🏡 Zadania domowe',desc:'Treningi w domu od trenera + gotowa biblioteka: HIIT, tabata, interwały, mobilność, bez sprzętu. Czas, obwody/serie i materiały widoczne od razu — bez szukania.'},
   odprogram:{title:'📋 Program on-demand',desc:'Plan tygodniowy z filmami YouTube — klient odpala każdy dzień z listy.'},
   resources:{title:'📚 Zasoby',desc:'Najpierw darmowe podcasty i muzyka na YouTube — bez Spotify Premium. Klient otwiera link w przeglądarce.'},
   profile:{title:'👤 Mój profil',desc:'Dane osobowe klienta, statystyki aktywności, aktywny pakiet z paskiem postępu, ustawienia konta.'},
@@ -1344,7 +1435,7 @@ function renderCapCustomize(){
       <div style="display:flex;flex-direction:column;gap:8px;">
         ${(()=>{
           const vs=(window.SETTINGS&&window.SETTINGS.clientApp&&window.SETTINGS.clientApp.visibleSections)||{};
-          const rows=[['home','🏠 Strona główna'],['plan','📋 Mój plan'],['calendar','📅 Kalendarz'],['progress','📈 Postępy'],['checkin','✅ Check-in'],['messages','💬 Wiadomości'],['ondemand','▶️ On-demand'],['resources','📚 Zasoby']];
+          const rows=[['home','🏠 Strona główna'],['plan','📋 Mój plan'],['homework','🏡 Zadania domowe'],['calendar','📅 Kalendarz'],['progress','📈 Postępy'],['checkin','✅ Check-in'],['messages','💬 Wiadomości'],['ondemand','▶️ On-demand'],['resources','📚 Zasoby']];
           return rows.map(([id,label])=>`<label style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;">
           <span style="font-size:13px;">${label}</span>
           <input type="checkbox" data-cap-section="${id}" ${vs[id]!==false?'checked':''} style="accent-color:var(--accent);width:18px;height:18px;">
