@@ -83,6 +83,7 @@
     <button class="nav-item" data-screen="live" onclick="goTo('live')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>Trening Live</button>
     <button class="nav-item" data-screen="calendar" onclick="goTo('calendar')"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Kalendarz</button>
     <button class="nav-item" data-screen="plans" onclick="goTo('plans')"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Plany treningowe</button>
+    <button class="nav-item" data-screen="trainer-profile" onclick="goTo('trainer-profile')"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Mój profil</button>
 
     <!-- WIĘCEJ — zaawansowane -->
     <div class="nav-sec" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;" onclick="toggleMoreNav()" id="nav-more-toggle">
@@ -1503,6 +1504,18 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   </div>
 </div>
 
+<!-- MÓJ PROFIL TRENERA -->
+<div class="screen" id="screen-trainer-profile">
+  <div class="topbar">
+    <div class="topbar-title">Mój profil</div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost btn-sm" onclick="goTo('settings')">Pozostałe ustawienia</button>
+      <button class="btn btn-primary btn-sm" onclick="saveSettings()">💾 Zapisz profil</button>
+    </div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:24px;max-width:920px;" id="trainer-profile-content"></div>
+</div>
+
 <!-- SETTINGS — USTAWIENIA -->
 <div class="screen" id="screen-settings">
   <div class="topbar">
@@ -1515,9 +1528,8 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 
     <!-- lewy panel — nawigacja -->
     <div style="width:220px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;padding:8px 0;">
-      <div style="padding:6px 14px 2px;font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Profil</div>
-      <div class="settings-nav active" id="sn-profile" onclick="setSettingsTab('profile')">👤 Profil trenera</div>
-      <div class="settings-nav" id="sn-brand" onclick="setSettingsTab('brand')">🎨 Marka i wygląd</div>
+      <div style="padding:6px 14px 2px;font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Aplikacja</div>
+      <div class="settings-nav active" id="sn-brand" onclick="setSettingsTab('brand')">🎨 Marka i wygląd</div>
       <div class="settings-nav" id="sn-company" onclick="setSettingsTab('company')">🏢 Dane firmy</div>
       <div style="padding:6px 14px 2px;font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:6px;">Aplikacja</div>
       <div class="settings-nav" id="sn-notifications" onclick="setSettingsTab('notifications')">🔔 Powiadomienia</div>
@@ -2657,6 +2669,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       </div>
     </div>
     <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+      <button class="btn btn-ghost btn-sm" onclick="startCPEdit(cpClientId)">✏️ Edytuj</button>
       <button class="btn btn-ghost btn-sm" onclick="cpQuickMessage()">💬 Wiadomość</button>
       <button class="btn btn-ghost btn-sm" onclick="cpQuickCheckin()">✓ Check-in</button>
       <button class="btn btn-ghost btn-sm" onclick="openReportForClient(cpClientId)">📊 Podsumowanie</button>
@@ -2688,8 +2701,9 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <button class="cp-tab cp-tab-v" id="cpt-food" onclick="setCPTab('food')">🥗 Żywienie</button>
         <button class="cp-tab cp-tab-v" id="cpt-documents" onclick="setCPTab('documents')">📎 Dokumenty</button>
         <button class="cp-tab cp-tab-v" id="cpt-payments" onclick="setCPTab('payments')">💳 Płatności</button>
+        <button class="cp-tab cp-tab-v" id="cpt-features" onclick="setCPTab('features')">⚙️ Funkcje</button>
         <div style="height:1px;background:var(--border);margin:8px 6px;"></div>
-        <button class="cp-tab cp-tab-v" id="cpt-settings" onclick="setCPTab('settings')">⚙️ Ustawienia</button>
+        <button type="button" class="btn btn-ghost btn-sm" style="width:calc(100% - 12px);margin:0 6px 8px;" onclick="archiveClient(cpClientId)">🗃 Zarchiwizuj klienta</button>
       </div>
     </div>
 

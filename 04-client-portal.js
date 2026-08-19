@@ -3480,6 +3480,12 @@ window.SETTINGS={
   },
 };
 
+function renderTrainerProfilePage(){
+  renderSettingsContent('profile','trainer-profile-content');
+}
+window.renderTrainerProfilePage=renderTrainerProfilePage;
+window.goToTrainerProfile=function(){goTo('trainer-profile');};
+
 function setSettingsTab(t){
   settingsTab=t;
   document.querySelectorAll('.settings-nav').forEach(el=>el.classList.remove('active'));
@@ -3487,8 +3493,8 @@ function setSettingsTab(t){
   renderSettingsContent(t);
 }
 
-function renderSettingsContent(t){
-  const el=document.getElementById('settings-content');if(!el)return;
+function renderSettingsContent(t,targetId){
+  const el=document.getElementById(targetId||'settings-content');if(!el)return;
   const S=window.SETTINGS;
   const inp=(id,val,type='text',extra='')=>`<input type="${type}" class="form-input" id="set-${id}" value="${val||''}" ${extra} style="font-size:13px;">`;
   const textarea=(id,val)=>`<textarea class="form-textarea" id="set-${id}" rows="3" style="font-size:13px;">${val||''}</textarea>`;
@@ -5280,7 +5286,7 @@ function renderProfileSetupBanner(){
       </div>
       <div style="display:flex;gap:8px;flex-shrink:0;">
         <button class="btn btn-ghost btn-sm" onclick="dismissProfileSetupBanner()">Później</button>
-        <button class="btn btn-primary btn-sm" onclick="goTo('settings')">Ustawienia → Profil</button>
+        <button class="btn btn-primary btn-sm" onclick="goTo('trainer-profile')">Edytuj profil →</button>
       </div>
     </div>
   </div>`;

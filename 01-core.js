@@ -314,7 +314,7 @@ function goTo(n){
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   const s=document.getElementById('screen-'+n);if(s)s.classList.add('active');
   closeMobileSidebar();
-  const moreScreens=['library','programs','tasks','forms','payments','calculator','automation','integrations','metrics','checkin','aiplangen','ondemand','resources','bizstats','forum','settings','aicoach','kb'];
+  const moreScreens=['library','programs','tasks','forms','payments','calculator','automation','integrations','metrics','checkin','aiplangen','ondemand','resources','bizstats','forum','settings','trainer-profile','aicoach','kb'];
   if(moreScreens.includes(n)){
     const moreEl=document.getElementById('nav-more-items');
     const arrow=document.getElementById('nav-more-arrow');
@@ -352,7 +352,8 @@ function goTo(n){
     fillForumPostGroupSelect();
     renderForum();
   }
-  if(n==='settings'){setSettingsTab('profile');}
+  if(n==='settings'){setSettingsTab('brand');}
+  if(n==='trainer-profile'){renderTrainerProfilePage();}
   if(n==='checkin'){renderCheckin();}
   if(n==='progbuilder'){pbInit();}
   if(n==='integrations'){renderIntegrations();}
@@ -486,7 +487,12 @@ function openM(id){
   if(id==='m-autoflow-builder'){
     if(typeof updateAfBuilderUi==='function')updateAfBuilderUi();
   }
-  if(id==='m-client'&&typeof initPriorSportsForm==='function')initPriorSportsForm('ac',[]);
+  if(id==='m-client'){
+    window._editingClientId=null;
+    const titleEl=document.querySelector('#m-client .modal-title');
+    if(titleEl)titleEl.textContent='NOWY KLIENT';
+    if(typeof initPriorSportsForm==='function')initPriorSportsForm('ac',[]);
+  }
   document.getElementById(id).classList.add('show');
 }
 function closeM(id){

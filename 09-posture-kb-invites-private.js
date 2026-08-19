@@ -246,7 +246,9 @@ function saveCPEdit(id){
   const c=CL.find(x=>x.id===id);if(!c)return;
   c.name=document.getElementById('cpe-name').value.trim()||c.name;
   c.email=document.getElementById('cpe-email').value;
+  c.phone=(document.getElementById('cpe-phone')||{}).value||'';
   c.age=parseInt(document.getElementById('cpe-age').value)||c.age;
+  c.gender=(document.getElementById('cpe-gender')||{}).value||c.gender;
   c.weight=parseFloat(document.getElementById('cpe-weight').value)||c.weight;
   c.height=parseInt(document.getElementById('cpe-height').value)||c.height;
   c.goal=document.getElementById('cpe-goal').value;
@@ -256,6 +258,7 @@ function saveCPEdit(id){
   c.activityLevel=document.getElementById('cpe-activity')?.value||c.activityLevel||'moderate';
   c.sportNotes=document.getElementById('cpe-sport-notes')?.value||'';
   c.notes=document.getElementById('cpe-notes').value;
+  window._cpEditingClientId=null;
   persistById('clients',c);
   // Odśwież sidebar bez zamykania drawera
   try{renderClients();}catch(e){}
@@ -2671,7 +2674,7 @@ window.renderPayHistory=renderPayHistory;window.savePackage=savePackage;
 window.usePackageSession=usePackageSession;window.markPaid=markPaid;
 window.requestPayment=requestPayment;window.deletePackage=deletePackage;window.copyPayTransfer=copyPayTransfer;
 window.viewInvoice=viewInvoice;window.filterPkgByClient=filterPkgByClient;
-window.openClientProfile=openClientProfile;window.closeClientProfile=closeClientProfile;
+window.openClientModal=openClientModal;
 window.setCPTab=setCPTab;window.saveCPEdit=saveCPEdit;window.archiveClient=archiveClient;
 window.renderCPTraining=renderCPTraining;window.renderCPFood=renderCPFood;
 window.renderCPDocuments=renderCPDocuments;window.renderCPSettings=renderCPSettings;

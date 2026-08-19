@@ -25,3 +25,5 @@ Static site — no committed `package.json`. Do not commit `node_modules/`, `pac
 **Motyw studia:** domyślna paleta CSS (`styles.css`) — czerwień `#e60000`, tło grafit `#1a1a1a` / `#252525`, akcent niebieski `#0055a4`, żółty `#ffd700`. Nadpisanie akcentu: Ustawienia → Marka lub `SETTINGS.brand.accentColor`; `applyBrandTheme()` po starcie i po wczytaniu Firestore.
 
 **Statystyki klienta:** ekran **Moje postępy** (`capClientProgressScreenHTML`) — KPI, wykresy SVG, obwody, rekordy.
+
+**Profil trenera / edycja klienta:** nav **Mój profil** → `#screen-trainer-profile` (edycja profilu bez wchodzenia w Ustawienia). Profil klienta w drawerze: **Przegląd** → **✏️ Edytuj dane** (pole `cpe-phone`, zapis `saveCPEdit`); zakładka **Funkcje** zamiast dawnych ustawień z formularzem danych.

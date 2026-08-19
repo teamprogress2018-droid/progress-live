@@ -694,6 +694,98 @@ function buildClientInsight(c,sessions,plans,daysSince){
   return insights.slice(0,2);
 }
 
+function cpClientDataEditHTML(c){
+  return `<div style="background:var(--s2);border:1px solid var(--border2);border-radius:12px;padding:16px;margin-bottom:16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px;flex-wrap:wrap;">
+      <div style="font-size:13px;font-weight:700;">Edycja danych klienta</div>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="cancelCPEdit()">Anuluj</button>
+    </div>
+    <div class="form-field"><label class="form-lbl">Imię i nazwisko</label><input class="cp-edit-field form-input" id="cpe-name" value="${escHtml(c.name||'')}"></div>
+    <div class="form-grid">
+      <div class="form-field"><label class="form-lbl">Email</label><input class="cp-edit-field form-input" id="cpe-email" type="email" value="${escHtml(c.email||'')}"></div>
+      <div class="form-field"><label class="form-lbl">Telefon</label><input class="cp-edit-field form-input" id="cpe-phone" type="tel" placeholder="+48 123 456 789" value="${escHtml(c.phone||'')}"></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-field"><label class="form-lbl">Wiek</label><input type="number" class="cp-edit-field form-input" id="cpe-age" value="${c.age||''}"></div>
+      <div class="form-field"><label class="form-lbl">Płeć</label>
+        <select class="form-select" id="cpe-gender">
+          <option value="M" ${c.gender==='M'?'selected':''}>Mężczyzna</option>
+          <option value="K" ${c.gender==='K'?'selected':''}>Kobieta</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="form-field"><label class="form-lbl">Waga (kg)</label><input type="number" class="cp-edit-field form-input" id="cpe-weight" value="${c.weight||''}" step="0.1"></div>
+      <div class="form-field"><label class="form-lbl">Wzrost (cm)</label><input type="number" class="cp-edit-field form-input" id="cpe-height" value="${c.height||''}"></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-field"><label class="form-lbl">Cel</label>
+        <select class="form-select" id="cpe-goal">
+          <option value="masa" ${c.goal==='masa'?'selected':''}>Budowa masy</option>
+          <option value="sila" ${c.goal==='sila'?'selected':''}>Wzrost siły</option>
+          <option value="redukcja" ${c.goal==='redukcja'?'selected':''}>Redukcja</option>
+          <option value="kondycja" ${c.goal==='kondycja'?'selected':''}>Kondycja</option>
+        </select>
+      </div>
+      <div class="form-field"><label class="form-lbl">Poziom</label>
+        <select class="form-select" id="cpe-level">
+          <option value="poczatkujacy" ${c.level==='poczatkujacy'?'selected':''}>Początkujący</option>
+          <option value="sredni" ${c.level==='sredni'?'selected':''}>Średni</option>
+          <option value="zaawansowany" ${c.level==='zaawansowany'?'selected':''}>Zaawansowany</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-field"><label class="form-lbl">Status</label>
+      <select class="form-select" id="cpe-status">
+        <option value="active" ${c.status==='active'?'selected':''}>Aktywny</option>
+        <option value="inactive" ${c.status==='inactive'?'selected':''}>Nieaktywny</option>
+        <option value="archived" ${c.status==='archived'?'selected':''}>Zarchiwizowany</option>
+      </select>
+    </div>
+    <div class="form-field"><label class="form-lbl">Wcześniejsze sporty / aktywności</label>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Wpływa na planowanie — biegacz ma wyższą wytrzymałość, siłownia wyższą bazę siłową.</div>
+      ${typeof priorSportsChipsHTML==='function'?priorSportsChipsHTML(c.priorSports,'cpe'):''}
+    </div>
+    <div class="form-grid">
+      <div class="form-field"><label class="form-lbl">Dotychczasowa aktywność</label>
+        <select class="form-select" id="cpe-activity">
+          <option value="sedentary" ${c.activityLevel==='sedentary'?'selected':''}>Siedzący tryb</option>
+          <option value="light" ${c.activityLevel==='light'?'selected':''}>Lekka</option>
+          <option value="moderate" ${(!c.activityLevel||c.activityLevel==='moderate')?'selected':''}>Umiarkowana</option>
+          <option value="active" ${c.activityLevel==='active'?'selected':''}>Aktywny</option>
+        </select>
+      </div>
+      <div class="form-field"><label class="form-lbl">Profil (auto)</label>
+        <div style="padding:10px 12px;background:var(--s3);border-radius:8px;font-size:12px;color:var(--text);min-height:42px;">${typeof clientSportProfileLabel==='function'?escHtml(clientSportProfileLabel(c)||'—'):'—'}</div>
+      </div>
+    </div>
+    <div class="form-field"><label class="form-lbl">Uwagi sportowe</label>
+      <input class="form-input" id="cpe-sport-notes" value="${escHtml(c.sportNotes||'')}" placeholder="np. biegał 5 lat, teraz siłownia od zera"></div>
+    <div class="form-field"><label class="form-lbl">Uwagi / kontuzje</label><textarea class="form-select" id="cpe-notes" rows="2" style="resize:none;">${escHtml(c.notes||'')}</textarea></div>
+    <button type="button" class="btn btn-primary" style="width:100%;" onclick="saveCPEdit('${c.id}')">💾 Zapisz zmiany</button>
+  </div>`;
+}
+function startCPEdit(clientId){
+  window._cpEditingClientId=clientId;
+  if(typeof cpClientId!=='undefined'&&cpClientId===clientId){
+    const c=CL.find(x=>x.id===clientId);
+    if(c&&typeof setCPTab==='function')setCPTab('overview');
+    else if(c&&typeof renderCPOverview==='function')renderCPOverview(c);
+    return;
+  }
+  if(typeof openClientProfile==='function')openClientProfile(clientId);
+  window._cpEditingClientId=clientId;
+  const c=CL.find(x=>x.id===clientId);
+  if(c&&typeof renderCPOverview==='function')renderCPOverview(c);
+}
+function cancelCPEdit(){
+  window._cpEditingClientId=null;
+  const c=CL.find(x=>x.id===cpClientId);
+  if(c&&typeof renderCPOverview==='function')renderCPOverview(c);
+}
+window.startCPEdit=startCPEdit;
+window.cancelCPEdit=cancelCPEdit;
+
 function renderCPOverview(c){
   const today=new Date().toISOString().split('T')[0];
   const ci=CL.indexOf(c);const col=COLS[ci%5];
@@ -709,7 +801,13 @@ function renderCPOverview(c){
   const activity=CLIENT_ACTIVITY[c.id]||[];
   initClientData(c);
 
+  const editing=window._cpEditingClientId===c.id;
+  const phoneDigits=String(c.phone||'').replace(/\D/g,'');
+  const waNum=phoneDigits?(phoneDigits.length===9?'48'+phoneDigits:phoneDigits):'';
+  const waHref=waNum?'https://wa.me/'+waNum:'';
+
   document.getElementById('cp-body').innerHTML=`
+    ${editing?cpClientDataEditHTML(c):''}
     <!-- statystyki -->
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;">
       <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--accent);">${sessions.length}</div><div class="cp-stat-lbl">Sesji</div></div>
@@ -729,15 +827,24 @@ function renderCPOverview(c){
     })()}
 
     <!-- dane podstawowe -->
-    <div class="cp-section-title">DANE KLIENTA</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+      <div class="cp-section-title" style="margin-bottom:0;">DANE KLIENTA</div>
+      ${!editing?`<button type="button" class="btn btn-primary btn-sm" onclick="startCPEdit('${c.id}')">✏️ Edytuj dane</button>`:''}
+    </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:16px;">
       ${[
-        ['📧 Email',c.email||'—'],['🎂 Wiek',c.age?c.age+' lat':'—'],
+        ['📧 Email',c.email||'—'],['📱 Telefon',c.phone||'—'],
+        ['🎂 Wiek',c.age?c.age+' lat':'—'],
         ['⚖️ Waga',c.weight?c.weight+' kg':'—'],['📏 Wzrost',c.height?c.height+' cm':'—'],
         ['🎯 Cel',{masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja'}[c.goal]||c.goal||'—'],
         ['🏋️ Poziom',{poczatkujacy:'Początkujący',sredni:'Średni',zaawansowany:'Zaawansowany'}[c.level]||c.level||'—'],
-      ].map(([l,v])=>`<div style="background:var(--s3);border-radius:8px;padding:9px 11px;"><div style="font-size:12px;color:var(--muted);margin-bottom:2px;">${l}</div><div style="font-size:14px;font-weight:600;">${v}</div></div>`).join('')}
+      ].map(([l,v])=>`<div style="background:var(--s3);border-radius:8px;padding:9px 11px;"><div style="font-size:12px;color:var(--muted);margin-bottom:2px;">${l}</div><div style="font-size:14px;font-weight:600;">${escHtml(String(v))}</div></div>`).join('')}
     </div>
+    ${!c.phone?`<div style="background:rgba(201,123,63,0.12);border:1px solid rgba(201,123,63,0.35);border-radius:8px;padding:10px 12px;margin-bottom:16px;font-size:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+      <span>Dodaj numer telefonu — potrzebny do WhatsApp i przypomnień.</span>
+      <button type="button" class="btn btn-primary btn-sm" onclick="startCPEdit('${c.id}')">+ Telefon</button>
+    </div>`:''}
+    ${c.phone&&waHref?`<div style="margin-bottom:16px;"><a class="btn btn-ghost btn-sm" href="${escHtml(waHref)}" target="_blank" rel="noopener">💬 WhatsApp</a></div>`:''}
 
     ${c.notes?`<div style="background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.2);border-radius:8px;padding:10px 12px;margin-bottom:16px;font-size:12px;"><span style="color:var(--red);">⚠ Kontuzje/uwagi: </span>${c.notes}</div>`:''}
 
@@ -1364,71 +1471,13 @@ function renderCPSettings(c){
   ];
   const toggle=(key,defaultVal)=>{
     const on=s[key]!==undefined?s[key]:defaultVal;
-    return `<div onclick="toggleClientFeature('${c.id}','${key}','settings')" style="width:40px;height:22px;border-radius:11px;background:${on?'var(--accent)':'var(--s4)'};cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0;">
+    return `<div onclick="toggleClientFeature('${c.id}','${key}','features')" style="width:40px;height:22px;border-radius:11px;background:${on?'var(--accent)':'var(--s4)'};cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0;">
       <div style="width:16px;height:16px;border-radius:50%;background:${on?'#0a0a0a':'var(--muted)'};position:absolute;top:3px;left:${on?'21px':'3px'};transition:left 0.2s;"></div>
     </div>`;
   };
   document.getElementById('cp-body').innerHTML=`
-    <div class="cp-section-title">DANE KLIENTA</div>
-    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
-      <div class="form-field"><label class="form-lbl">Imię i nazwisko</label><input class="cp-edit-field form-input" id="cpe-name" value="${c.name||''}"></div>
-      <div class="form-grid">
-        <div class="form-field"><label class="form-lbl">Email</label><input class="cp-edit-field form-input" id="cpe-email" value="${c.email||''}"></div>
-        <div class="form-field"><label class="form-lbl">Wiek</label><input type="number" class="cp-edit-field form-input" id="cpe-age" value="${c.age||''}"></div>
-      </div>
-      <div class="form-grid">
-        <div class="form-field"><label class="form-lbl">Waga (kg)</label><input type="number" class="cp-edit-field form-input" id="cpe-weight" value="${c.weight||''}" step="0.1"></div>
-        <div class="form-field"><label class="form-lbl">Wzrost (cm)</label><input type="number" class="cp-edit-field form-input" id="cpe-height" value="${c.height||''}"></div>
-      </div>
-      <div class="form-grid">
-        <div class="form-field"><label class="form-lbl">Cel</label>
-          <select class="form-select" id="cpe-goal">
-            <option value="masa" ${c.goal==='masa'?'selected':''}>Budowa masy</option>
-            <option value="sila" ${c.goal==='sila'?'selected':''}>Wzrost siły</option>
-            <option value="redukcja" ${c.goal==='redukcja'?'selected':''}>Redukcja</option>
-            <option value="kondycja" ${c.goal==='kondycja'?'selected':''}>Kondycja</option>
-          </select>
-        </div>
-        <div class="form-field"><label class="form-lbl">Poziom</label>
-          <select class="form-select" id="cpe-level">
-            <option value="poczatkujacy" ${c.level==='poczatkujacy'?'selected':''}>Początkujący</option>
-            <option value="sredni" ${c.level==='sredni'?'selected':''}>Średni</option>
-            <option value="zaawansowany" ${c.level==='zaawansowany'?'selected':''}>Zaawansowany</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-field"><label class="form-lbl">Status</label>
-        <select class="form-select" id="cpe-status">
-          <option value="active" ${c.status==='active'?'selected':''}>Aktywny</option>
-          <option value="inactive" ${c.status==='inactive'?'selected':''}>Nieaktywny</option>
-          <option value="archived" ${c.status==='archived'?'selected':''}>Zarchiwizowany</option>
-        </select>
-      </div>
-      <div class="form-field"><label class="form-lbl">Wcześniejsze sporty / aktywności</label>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Wpływa na planowanie — biegacz ma wyższą wytrzymałość, siłownia wyższą bazę siłową.</div>
-        ${typeof priorSportsChipsHTML==='function'?priorSportsChipsHTML(c.priorSports,'cpe'):''}
-      </div>
-      <div class="form-grid">
-        <div class="form-field"><label class="form-lbl">Dotychczasowa aktywność</label>
-          <select class="form-select" id="cpe-activity">
-            <option value="sedentary" ${c.activityLevel==='sedentary'?'selected':''}>Siedzący tryb</option>
-            <option value="light" ${c.activityLevel==='light'?'selected':''}>Lekka</option>
-            <option value="moderate" ${(!c.activityLevel||c.activityLevel==='moderate')?'selected':''}>Umiarkowana</option>
-            <option value="active" ${c.activityLevel==='active'?'selected':''}>Aktywny</option>
-          </select>
-        </div>
-        <div class="form-field"><label class="form-lbl">Profil (auto)</label>
-          <div style="padding:10px 12px;background:var(--s3);border-radius:8px;font-size:12px;color:var(--text);min-height:42px;">${typeof clientSportProfileLabel==='function'?escHtml(clientSportProfileLabel(c)||'—'):'—'}</div>
-        </div>
-      </div>
-      <div class="form-field"><label class="form-lbl">Uwagi sportowe</label>
-        <input class="form-input" id="cpe-sport-notes" value="${escHtml(c.sportNotes||'')}" placeholder="np. biegał 5 lat, teraz siłownia od zera"></div>
-      <div class="form-field"><label class="form-lbl">Uwagi / kontuzje</label><textarea class="form-select" id="cpe-notes" rows="2" style="resize:none;">${c.notes||''}</textarea></div>
-      <button class="btn btn-primary" style="width:100%;" onclick="saveCPEdit('${c.id}')">💾 Zapisz zmiany</button>
-    </div>
-
-    <div class="cp-section-title">FUNKCJE KLIENTA</div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:14px;">Włącz lub wyłącz funkcje dla tego klienta. Wyłączone funkcje nie będą widoczne w aplikacji klienta.</div>
+    <div class="cp-section-title">FUNKCJE W APLIKACJI KLIENTA</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:14px;">Włącz lub wyłącz funkcje dla tego klienta. Wyłączone nie będą widoczne w aplikacji klienta.</div>
     ${feat.map(f=>{
       const on=s[f.key]!==undefined?s[f.key]:f.default;
       return `<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);">
