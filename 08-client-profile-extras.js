@@ -202,7 +202,7 @@ function renderCPPsycho(c){
 
     <div style="display:flex;flex-direction:column;gap:8px;">
       <button onclick="psySaveProfile('${c.id}')" id="psy-save-btn" style="width:100%;background:rgba(157,124,244,0.15);border:1px solid rgba(157,124,244,0.35);border-radius:8px;padding:10px;color:var(--purple);font-size:12px;font-weight:600;cursor:pointer;">💾 Zapisz profil psychodietetyczny</button>
-      <button onclick="psyAskAI('${c.id}')" id="psy-ai-btn" style="width:100%;background:rgba(225,31,46,0.1);border:1px solid rgba(225,31,46,0.25);border-radius:8px;padding:10px;color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;">🤖 Zapytaj AI o strategie</button>
+      <button onclick="psyAskAI('${c.id}')" id="psy-ai-btn" style="width:100%;background:rgba(230,0,0,0.1);border:1px solid rgba(230,0,0,0.25);border-radius:8px;padding:10px;color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;">🤖 Zapytaj AI o strategie</button>
       <button onclick="psyCheckYoyo('${c.id}')" style="width:100%;background:rgba(201,123,63,0.1);border:1px solid rgba(201,123,63,0.25);border-radius:8px;padding:10px;color:var(--orange);font-size:12px;font-weight:600;cursor:pointer;">🔄 Sprawdź błędne koło yo-yo</button>
       <div id="psy-yoyo-result"></div>
       <div id="psy-ai-result"></div>
@@ -256,7 +256,7 @@ function psyRenderMoodHistory(clientId){
   const daily = (p.daily||[]).slice(-7);
   if(!daily.length){ el.innerHTML='<div style="font-size:11px;color:var(--muted);text-align:center;width:100%;">Brak danych – zacznij śledzić nastrój!</div>'; return; }
   const moodEmoji={1:'😞',2:'😕',3:'😐',4:'😊',5:'🤩'};
-  const moodColor={1:'#ff4d4d',2:'#c97b3f',3:'#9a9086',4:'#4ade80',5:'#e11f2e'};
+  const moodColor={1:'#ff4d4d',2:'#c97b3f',3:'#9a9086',4:'#4ade80',5:'#e60000'};
   el.innerHTML = daily.map(d=>{
     const height=Math.round((d.mood/5)*100);
     const dayName=new Date(d.date).toLocaleDateString('pl',{weekday:'short'}).substring(0,2);
@@ -292,7 +292,7 @@ async function psyAskAI(clientId){
     const r = await fetch(W,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,system:'Jesteś doświadczonym psychodietetykiem i trenerem personalnym. Odpowiadaj konkretnie, po polsku.',messages:[{role:'user',content:prompt}]})});
     const d = await r.json();
     const ans = (d.content||[]).map(i=>i.text||'').join('');
-    if(resEl) resEl.innerHTML = `<div style="background:rgba(225,31,46,0.06);border:1px solid rgba(225,31,46,0.2);border-radius:8px;padding:12px;margin-top:4px;font-size:12px;color:var(--text);line-height:1.6;white-space:pre-wrap;">🤖 ${ans}</div>`;
+    if(resEl) resEl.innerHTML = `<div style="background:rgba(230,0,0,0.06);border:1px solid rgba(230,0,0,0.2);border-radius:8px;padding:12px;margin-top:4px;font-size:12px;color:var(--text);line-height:1.6;white-space:pre-wrap;">🤖 ${ans}</div>`;
   }catch(e){
     if(resEl) resEl.innerHTML = '<div style="color:var(--red);font-size:12px;padding:8px;">Błąd: '+e.message+'</div>';
   }
@@ -694,6 +694,98 @@ function buildClientInsight(c,sessions,plans,daysSince){
   return insights.slice(0,2);
 }
 
+function cpClientDataEditHTML(c){
+  return `<div style="background:var(--s2);border:1px solid var(--border2);border-radius:12px;padding:16px;margin-bottom:16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px;flex-wrap:wrap;">
+      <div style="font-size:13px;font-weight:700;">Edycja danych klienta</div>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="cancelCPEdit()">Anuluj</button>
+    </div>
+    <div class="form-field"><label class="form-lbl">Imię i nazwisko</label><input class="cp-edit-field form-input" id="cpe-name" value="${escHtml(c.name||'')}"></div>
+    <div class="form-grid">
+      <div class="form-field"><label class="form-lbl">Email</label><input class="cp-edit-field form-input" id="cpe-email" type="email" value="${escHtml(c.email||'')}"></div>
+      <div class="form-field"><label class="form-lbl">Telefon</label><input class="cp-edit-field form-input" id="cpe-phone" type="tel" placeholder="+48 123 456 789" value="${escHtml(c.phone||'')}"></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-field"><label class="form-lbl">Wiek</label><input type="number" class="cp-edit-field form-input" id="cpe-age" value="${c.age||''}"></div>
+      <div class="form-field"><label class="form-lbl">Płeć</label>
+        <select class="form-select" id="cpe-gender">
+          <option value="M" ${c.gender==='M'?'selected':''}>Mężczyzna</option>
+          <option value="K" ${c.gender==='K'?'selected':''}>Kobieta</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="form-field"><label class="form-lbl">Waga (kg)</label><input type="number" class="cp-edit-field form-input" id="cpe-weight" value="${c.weight||''}" step="0.1"></div>
+      <div class="form-field"><label class="form-lbl">Wzrost (cm)</label><input type="number" class="cp-edit-field form-input" id="cpe-height" value="${c.height||''}"></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-field"><label class="form-lbl">Cel</label>
+        <select class="form-select" id="cpe-goal">
+          <option value="masa" ${c.goal==='masa'?'selected':''}>Budowa masy</option>
+          <option value="sila" ${c.goal==='sila'?'selected':''}>Wzrost siły</option>
+          <option value="redukcja" ${c.goal==='redukcja'?'selected':''}>Redukcja</option>
+          <option value="kondycja" ${c.goal==='kondycja'?'selected':''}>Kondycja</option>
+        </select>
+      </div>
+      <div class="form-field"><label class="form-lbl">Poziom</label>
+        <select class="form-select" id="cpe-level">
+          <option value="poczatkujacy" ${c.level==='poczatkujacy'?'selected':''}>Początkujący</option>
+          <option value="sredni" ${c.level==='sredni'?'selected':''}>Średni</option>
+          <option value="zaawansowany" ${c.level==='zaawansowany'?'selected':''}>Zaawansowany</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-field"><label class="form-lbl">Status</label>
+      <select class="form-select" id="cpe-status">
+        <option value="active" ${c.status==='active'?'selected':''}>Aktywny</option>
+        <option value="inactive" ${c.status==='inactive'?'selected':''}>Nieaktywny</option>
+        <option value="archived" ${c.status==='archived'?'selected':''}>Zarchiwizowany</option>
+      </select>
+    </div>
+    <div class="form-field"><label class="form-lbl">Wcześniejsze sporty / aktywności</label>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Wpływa na planowanie — biegacz ma wyższą wytrzymałość, siłownia wyższą bazę siłową.</div>
+      ${typeof priorSportsChipsHTML==='function'?priorSportsChipsHTML(c.priorSports,'cpe'):''}
+    </div>
+    <div class="form-grid">
+      <div class="form-field"><label class="form-lbl">Dotychczasowa aktywność</label>
+        <select class="form-select" id="cpe-activity">
+          <option value="sedentary" ${c.activityLevel==='sedentary'?'selected':''}>Siedzący tryb</option>
+          <option value="light" ${c.activityLevel==='light'?'selected':''}>Lekka</option>
+          <option value="moderate" ${(!c.activityLevel||c.activityLevel==='moderate')?'selected':''}>Umiarkowana</option>
+          <option value="active" ${c.activityLevel==='active'?'selected':''}>Aktywny</option>
+        </select>
+      </div>
+      <div class="form-field"><label class="form-lbl">Profil (auto)</label>
+        <div style="padding:10px 12px;background:var(--s3);border-radius:8px;font-size:12px;color:var(--text);min-height:42px;">${typeof clientSportProfileLabel==='function'?escHtml(clientSportProfileLabel(c)||'—'):'—'}</div>
+      </div>
+    </div>
+    <div class="form-field"><label class="form-lbl">Uwagi sportowe</label>
+      <input class="form-input" id="cpe-sport-notes" value="${escHtml(c.sportNotes||'')}" placeholder="np. biegał 5 lat, teraz siłownia od zera"></div>
+    <div class="form-field"><label class="form-lbl">Uwagi / kontuzje</label><textarea class="form-select" id="cpe-notes" rows="2" style="resize:none;">${escHtml(c.notes||'')}</textarea></div>
+    <button type="button" class="btn btn-primary" style="width:100%;" onclick="saveCPEdit('${c.id}')">💾 Zapisz zmiany</button>
+  </div>`;
+}
+function startCPEdit(clientId){
+  window._cpEditingClientId=clientId;
+  if(typeof cpClientId!=='undefined'&&cpClientId===clientId){
+    const c=CL.find(x=>x.id===clientId);
+    if(c&&typeof setCPTab==='function')setCPTab('overview');
+    else if(c&&typeof renderCPOverview==='function')renderCPOverview(c);
+    return;
+  }
+  if(typeof openClientProfile==='function')openClientProfile(clientId);
+  window._cpEditingClientId=clientId;
+  const c=CL.find(x=>x.id===clientId);
+  if(c&&typeof renderCPOverview==='function')renderCPOverview(c);
+}
+function cancelCPEdit(){
+  window._cpEditingClientId=null;
+  const c=CL.find(x=>x.id===cpClientId);
+  if(c&&typeof renderCPOverview==='function')renderCPOverview(c);
+}
+window.startCPEdit=startCPEdit;
+window.cancelCPEdit=cancelCPEdit;
+
 function renderCPOverview(c){
   const today=new Date().toISOString().split('T')[0];
   const ci=CL.indexOf(c);const col=COLS[ci%5];
@@ -709,7 +801,13 @@ function renderCPOverview(c){
   const activity=CLIENT_ACTIVITY[c.id]||[];
   initClientData(c);
 
+  const editing=window._cpEditingClientId===c.id;
+  const phoneDigits=String(c.phone||'').replace(/\D/g,'');
+  const waNum=phoneDigits?(phoneDigits.length===9?'48'+phoneDigits:phoneDigits):'';
+  const waHref=waNum?'https://wa.me/'+waNum:'';
+
   document.getElementById('cp-body').innerHTML=`
+    ${editing?cpClientDataEditHTML(c):''}
     <!-- statystyki -->
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;">
       <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--accent);">${sessions.length}</div><div class="cp-stat-lbl">Sesji</div></div>
@@ -729,15 +827,24 @@ function renderCPOverview(c){
     })()}
 
     <!-- dane podstawowe -->
-    <div class="cp-section-title">DANE KLIENTA</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+      <div class="cp-section-title" style="margin-bottom:0;">DANE KLIENTA</div>
+      ${!editing?`<button type="button" class="btn btn-primary btn-sm" onclick="startCPEdit('${c.id}')">✏️ Edytuj dane</button>`:''}
+    </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:16px;">
       ${[
-        ['📧 Email',c.email||'—'],['🎂 Wiek',c.age?c.age+' lat':'—'],
+        ['📧 Email',c.email||'—'],['📱 Telefon',c.phone||'—'],
+        ['🎂 Wiek',c.age?c.age+' lat':'—'],
         ['⚖️ Waga',c.weight?c.weight+' kg':'—'],['📏 Wzrost',c.height?c.height+' cm':'—'],
         ['🎯 Cel',{masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja'}[c.goal]||c.goal||'—'],
         ['🏋️ Poziom',{poczatkujacy:'Początkujący',sredni:'Średni',zaawansowany:'Zaawansowany'}[c.level]||c.level||'—'],
-      ].map(([l,v])=>`<div style="background:var(--s3);border-radius:8px;padding:9px 11px;"><div style="font-size:12px;color:var(--muted);margin-bottom:2px;">${l}</div><div style="font-size:14px;font-weight:600;">${v}</div></div>`).join('')}
+      ].map(([l,v])=>`<div style="background:var(--s3);border-radius:8px;padding:9px 11px;"><div style="font-size:12px;color:var(--muted);margin-bottom:2px;">${l}</div><div style="font-size:14px;font-weight:600;">${escHtml(String(v))}</div></div>`).join('')}
     </div>
+    ${!c.phone?`<div style="background:rgba(201,123,63,0.12);border:1px solid rgba(201,123,63,0.35);border-radius:8px;padding:10px 12px;margin-bottom:16px;font-size:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+      <span>Dodaj numer telefonu — potrzebny do WhatsApp i przypomnień.</span>
+      <button type="button" class="btn btn-primary btn-sm" onclick="startCPEdit('${c.id}')">+ Telefon</button>
+    </div>`:''}
+    ${c.phone&&waHref?`<div style="margin-bottom:16px;"><a class="btn btn-ghost btn-sm" href="${escHtml(waHref)}" target="_blank" rel="noopener">💬 WhatsApp</a></div>`:''}
 
     ${c.notes?`<div style="background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.2);border-radius:8px;padding:10px 12px;margin-bottom:16px;font-size:12px;"><span style="color:var(--red);">⚠ Kontuzje/uwagi: </span>${c.notes}</div>`:''}
 
@@ -755,14 +862,14 @@ function renderCPOverview(c){
     <!-- aktywny plan -->
     ${plans.length?`
     <div class="cp-section-title">AKTYWNY PLAN</div>
-    <div style="background:linear-gradient(135deg,var(--adim),transparent);border:1px solid rgba(225,31,46,0.2);border-radius:10px;padding:12px 14px;margin-bottom:16px;cursor:pointer;" onclick="setCPTab('plan')">
+    <div style="background:linear-gradient(135deg,var(--adim),transparent);border:1px solid rgba(230,0,0,0.2);border-radius:10px;padding:12px 14px;margin-bottom:16px;cursor:pointer;" onclick="setCPTab('plan')">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
         <div style="font-size:15px;font-weight:700;">${plans[plans.length-1].name}</div>
         <span class="pill pill-green" style="font-size:11px;">${plans[plans.length-1].method||'—'}</span>
       </div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:8px;">${plans[plans.length-1].method||'—'} · ${plans[plans.length-1].duration||'?'} tyg. · ${(plans[plans.length-1].days||[]).length} dni/tydzień</div>
       <div style="display:flex;gap:4px;flex-wrap:wrap;">
-        ${(plans[plans.length-1].days||[]).slice(0,5).map(d=>`<span style="background:${d.rest?'var(--s3)':'rgba(225,31,46,0.12)'};color:${d.rest?'var(--muted)':'var(--accent)'};border-radius:5px;padding:3px 8px;font-size:12px;font-family:'DM Mono',monospace;">${d.day||d.dayName||'?'}${d.rest?' REST':''}</span>`).join('')}
+        ${(plans[plans.length-1].days||[]).slice(0,5).map(d=>`<span style="background:${d.rest?'var(--s3)':'rgba(230,0,0,0.12)'};color:${d.rest?'var(--muted)':'var(--accent)'};border-radius:5px;padding:3px 8px;font-size:12px;font-family:'DM Mono',monospace;">${d.day||d.dayName||'?'}${d.rest?' REST':''}</span>`).join('')}
       </div>
       <div style="font-size:12px;color:var(--accent);margin-top:8px;">→ Kliknij aby zobaczyć szczegóły</div>
     </div>`:`
@@ -945,29 +1052,51 @@ function renderCPMetrics(c){
 
 function renderCPTasks(c){
   const tasks=TASKS.filter(t=>t.clientId===c.id);
+  const isHw=typeof isHomework==='function'?isHomework:()=>false;
   const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().split('T')[0];
-  const oneShot=tasks.filter(t=>typeof isOneShot==='function'?isOneShot(t):!isHabit(t));
+  const oneShot=tasks.filter(t=>typeof isOneShot==='function'?isOneShot(t):!isHabit(t)&&!isHw(t));
+  const homework=tasks.filter(t=>isHw(t));
   const habits=tasks.filter(t=>isHabit(t));
   const chs=tasks.filter(t=>typeof isChallenge==='function'&&isChallenge(t));
   document.getElementById('cp-body').innerHTML=`
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
       <div class="cp-section-title" style="margin:0;">ZADANIA (${tasks.length})</div>
-      <button class="btn btn-primary btn-sm" onclick="openM('m-task');taskSetClientField('${c.id}','${(c.name||'').replace(/'/g,"\\'")}')">+ Zadanie</button>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="btn btn-ghost btn-sm" onclick="typeof openHomeworkPickerForClient==='function'&&openHomeworkPickerForClient('${c.id}')">🏡 Trening domowy</button>
+        <button class="btn btn-primary btn-sm" onclick="openM('m-task');taskSetClientField('${c.id}','${(c.name||'').replace(/'/g,"\\'")}')">+ Zadanie</button>
+      </div>
     </div>
-    <div style="display:flex;gap:6px;margin-bottom:12px;">
-      <div class="cp-stat-box" style="flex:1;"><div class="cp-stat-val" style="color:var(--accent);font-size:22px;">${oneShot.filter(t=>t.status!=='done').length}</div><div class="cp-stat-lbl">Aktywne</div></div>
-      <div class="cp-stat-box" style="flex:1;"><div class="cp-stat-val" style="color:var(--purple);font-size:22px;">${habits.length}</div><div class="cp-stat-lbl">Nawyki</div></div>
-      <div class="cp-stat-box" style="flex:1;"><div class="cp-stat-val" style="color:var(--gold);font-size:22px;">${chs.length}</div><div class="cp-stat-lbl">Wyzwania</div></div>
-      <div class="cp-stat-box" style="flex:1;"><div class="cp-stat-val" style="color:var(--orange);font-size:22px;">${oneShot.filter(t=>t.status!=='done'&&t.due&&t.due<today).length}</div><div class="cp-stat-lbl">Przet.</div></div>
+    <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
+      <div class="cp-stat-box" style="flex:1;min-width:70px;"><div class="cp-stat-val" style="color:var(--blue);font-size:22px;">${homework.filter(t=>t.status!=='done').length}</div><div class="cp-stat-lbl">Domowe</div></div>
+      <div class="cp-stat-box" style="flex:1;min-width:70px;"><div class="cp-stat-val" style="color:var(--accent);font-size:22px;">${oneShot.filter(t=>t.status!=='done').length}</div><div class="cp-stat-lbl">Aktywne</div></div>
+      <div class="cp-stat-box" style="flex:1;min-width:70px;"><div class="cp-stat-val" style="color:var(--purple);font-size:22px;">${habits.length}</div><div class="cp-stat-lbl">Nawyki</div></div>
+      <div class="cp-stat-box" style="flex:1;min-width:70px;"><div class="cp-stat-val" style="color:var(--gold);font-size:22px;">${chs.length}</div><div class="cp-stat-lbl">Wyzwania</div></div>
     </div>
+    ${homework.length?`<div class="cp-section-title">ZADANIA DOMOWE</div>
+      ${homework.map(t=>{
+        const w=(typeof allODWorkouts==='function'?allODWorkouts():[]).find(x=>x.id===t.odWorkoutId);
+        const done=t.status==='done';
+        const struct=w&&typeof odWorkoutStructureText==='function'?odWorkoutStructureText(w):'';
+        return `<div style="background:var(--s2);border:1px solid ${done?'rgba(62,207,178,0.35)':'var(--border2)'};border-radius:10px;padding:12px;margin-bottom:8px;">
+          <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;">
+            <div style="flex:1;">
+              <div style="font-size:12px;font-weight:700;">${escHtml(t.title)}${done?' <span style="color:var(--teal);">✓</span>':''}</div>
+              ${struct?`<div style="font-size:10px;color:var(--muted);margin-top:4px;">${escHtml(struct)}</div>`:''}
+              ${t.due?`<div style="font-size:10px;color:var(--muted);margin-top:2px;">Termin: ${escHtml(t.due)}</div>`:''}
+            </div>
+            ${!done&&w?`<button class="btn btn-ghost btn-sm" type="button" onclick="openAssignHomeworkModal('${escHtml(w.id)}','${escHtml(c.id)}')">↻</button>`:''}
+          </div>
+        </div>`;
+      }).join('')}`:''}
     ${!tasks.length?'<div style="text-align:center;padding:30px;color:var(--muted);">Brak zadań dla tego klienta</div>'
-    :tasks.sort((a,b)=>{
-      const rank=t=>isHabit(t)?0:(typeof isChallenge==='function'&&isChallenge(t)?1:2);
+    :tasks.filter(t=>!isHw(t)).sort((a,b)=>{
+      const rank=t=>isHw(t)?0:isHabit(t)?1:(typeof isChallenge==='function'&&isChallenge(t)?2:3);
       return rank(a)-rank(b)||(a.due||'9999').localeCompare(b.due||'9999');
     }).map(t=>{
+      const hw=isHw(t);
       const habit=isHabit(t);
       const ch=typeof isChallenge==='function'&&isChallenge(t);
-      const one=typeof isOneShot==='function'?isOneShot(t):!habit&&!ch;
+      const one=typeof isOneShot==='function'?isOneShot(t):!habit&&!ch&&!hw;
       const doneToday=(habit||ch)&&habitDoneOn(t,today);
       const streak=habit?habitStreak(t,today):0;
       const isDone=one&&t.status==='done';
@@ -978,6 +1107,7 @@ function renderCPTasks(c){
         <div style="flex:1;${isDone?'opacity:0.5;text-decoration:line-through;':''}cursor:pointer;" onclick="editTask('${t.id}')">
           <div style="font-size:12px;font-weight:600;">${t.title}</div>
           <div style="display:flex;gap:5px;margin-top:3px;flex-wrap:wrap;align-items:center;">
+            ${hw?`<span class="pill" style="background:rgba(0,85,164,0.18);color:var(--blue);font-size:9px;">🏡 Domowe</span>`:''}
             ${habit?`<span class="pill" style="background:rgba(157,124,244,0.18);color:var(--purple);font-size:9px;">🔥 Nawyk</span>`:''}
             ${ch?`<span class="pill" style="background:rgba(201,162,39,0.18);color:var(--gold);font-size:9px;">🏆 Wyzwanie</span>`:''}
             ${t.cat?`<span class="pill" style="background:${catCol}22;color:${catCol};font-size:9px;">${TASK_CAT_LABELS[t.cat]||t.cat}</span>`:''}
@@ -1105,7 +1235,7 @@ function renderCPTraining(c){
       </div>`;
     }).join('');
 
-    return `<div style="border:1px solid ${isToday?'var(--accent)':isPast?'var(--border)':'var(--border)'};border-radius:8px;padding:7px;min-height:90px;background:${isToday?'rgba(225,31,46,0.04)':isPast?'rgba(0,0,0,0.1)':'var(--s2)'};cursor:pointer;transition:border-color 0.12s;" onclick="openAddSessionFromCP('${c.id}','${ds}')" onmouseover="this.style.borderColor='var(--border2)'" onmouseout="this.style.borderColor='${isToday?'var(--accent)':isPast?'var(--border)':'var(--border)'}'">
+    return `<div style="border:1px solid ${isToday?'var(--accent)':isPast?'var(--border)':'var(--border)'};border-radius:8px;padding:7px;min-height:90px;background:${isToday?'rgba(230,0,0,0.04)':isPast?'rgba(0,0,0,0.1)':'var(--s2)'};cursor:pointer;transition:border-color 0.12s;" onclick="openAddSessionFromCP('${c.id}','${ds}')" onmouseover="this.style.borderColor='var(--border2)'" onmouseout="this.style.borderColor='${isToday?'var(--accent)':isPast?'var(--border)':'var(--border)'}'">
       <div style="font-size:10px;color:${isToday?'var(--accent)':'var(--muted)'};font-family:'DM Mono',monospace;font-weight:${isToday?700:400};">${dayName} ${d.getDate()}</div>
       ${sessCards}
       ${!sessDay.length?`<div style="margin-top:10px;text-align:center;font-size:16px;color:var(--border2);opacity:0.6;">+</div>`:''}
@@ -1364,52 +1494,13 @@ function renderCPSettings(c){
   ];
   const toggle=(key,defaultVal)=>{
     const on=s[key]!==undefined?s[key]:defaultVal;
-    return `<div onclick="toggleClientFeature('${c.id}','${key}','settings')" style="width:40px;height:22px;border-radius:11px;background:${on?'var(--accent)':'var(--s4)'};cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0;">
+    return `<div onclick="toggleClientFeature('${c.id}','${key}','features')" style="width:40px;height:22px;border-radius:11px;background:${on?'var(--accent)':'var(--s4)'};cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0;">
       <div style="width:16px;height:16px;border-radius:50%;background:${on?'#0a0a0a':'var(--muted)'};position:absolute;top:3px;left:${on?'21px':'3px'};transition:left 0.2s;"></div>
     </div>`;
   };
   document.getElementById('cp-body').innerHTML=`
-    <div class="cp-section-title">DANE KLIENTA</div>
-    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
-      <div class="form-field"><label class="form-lbl">Imię i nazwisko</label><input class="cp-edit-field form-input" id="cpe-name" value="${c.name||''}"></div>
-      <div class="form-grid">
-        <div class="form-field"><label class="form-lbl">Email</label><input class="cp-edit-field form-input" id="cpe-email" value="${c.email||''}"></div>
-        <div class="form-field"><label class="form-lbl">Wiek</label><input type="number" class="cp-edit-field form-input" id="cpe-age" value="${c.age||''}"></div>
-      </div>
-      <div class="form-grid">
-        <div class="form-field"><label class="form-lbl">Waga (kg)</label><input type="number" class="cp-edit-field form-input" id="cpe-weight" value="${c.weight||''}" step="0.1"></div>
-        <div class="form-field"><label class="form-lbl">Wzrost (cm)</label><input type="number" class="cp-edit-field form-input" id="cpe-height" value="${c.height||''}"></div>
-      </div>
-      <div class="form-grid">
-        <div class="form-field"><label class="form-lbl">Cel</label>
-          <select class="form-select" id="cpe-goal">
-            <option value="masa" ${c.goal==='masa'?'selected':''}>Budowa masy</option>
-            <option value="sila" ${c.goal==='sila'?'selected':''}>Wzrost siły</option>
-            <option value="redukcja" ${c.goal==='redukcja'?'selected':''}>Redukcja</option>
-            <option value="kondycja" ${c.goal==='kondycja'?'selected':''}>Kondycja</option>
-          </select>
-        </div>
-        <div class="form-field"><label class="form-lbl">Poziom</label>
-          <select class="form-select" id="cpe-level">
-            <option value="poczatkujacy" ${c.level==='poczatkujacy'?'selected':''}>Początkujący</option>
-            <option value="sredni" ${c.level==='sredni'?'selected':''}>Średni</option>
-            <option value="zaawansowany" ${c.level==='zaawansowany'?'selected':''}>Zaawansowany</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-field"><label class="form-lbl">Status</label>
-        <select class="form-select" id="cpe-status">
-          <option value="active" ${c.status==='active'?'selected':''}>Aktywny</option>
-          <option value="inactive" ${c.status==='inactive'?'selected':''}>Nieaktywny</option>
-          <option value="archived" ${c.status==='archived'?'selected':''}>Zarchiwizowany</option>
-        </select>
-      </div>
-      <div class="form-field"><label class="form-lbl">Uwagi / kontuzje</label><textarea class="form-select" id="cpe-notes" rows="2" style="resize:none;">${c.notes||''}</textarea></div>
-      <button class="btn btn-primary" style="width:100%;" onclick="saveCPEdit('${c.id}')">💾 Zapisz zmiany</button>
-    </div>
-
-    <div class="cp-section-title">FUNKCJE KLIENTA</div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:14px;">Włącz lub wyłącz funkcje dla tego klienta. Wyłączone funkcje nie będą widoczne w aplikacji klienta.</div>
+    <div class="cp-section-title">FUNKCJE W APLIKACJI KLIENTA</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:14px;">Włącz lub wyłącz funkcje dla tego klienta. Wyłączone nie będą widoczne w aplikacji klienta.</div>
     ${feat.map(f=>{
       const on=s[f.key]!==undefined?s[f.key]:f.default;
       return `<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);">

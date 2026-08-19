@@ -78,6 +78,12 @@ jobs:
       - name: 1l. Testy portalu On-demand YouTube
         run: node .github/scripts/test_ondemand_youtube.js
 
+      - name: 1l2. Testy zadań domowych klienta
+        run: node .github/scripts/test_homework_client.js
+
+      - name: 1m. Testy sportów w planowaniu i statystyk klienta
+        run: node .github/scripts/test_client_sports_stats.js
+
       - name: 2. Sprawdź duplikaty (funkcje / id / zmienne)
         run: python3 .github/scripts/check_duplicates.py
 

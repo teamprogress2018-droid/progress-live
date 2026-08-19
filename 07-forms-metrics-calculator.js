@@ -1217,6 +1217,7 @@ function openClientProfile(id){
 }
 
 function closeClientProfile(){
+  window._cpEditingClientId=null;
   document.getElementById('cp-drawer').classList.remove('open');
   document.getElementById('cp-overlay').classList.remove('show');
   cpClientId=null;
@@ -1224,7 +1225,7 @@ function closeClientProfile(){
 
 function setCPTab(t){
   cpTab=t;
-  const moreTabs=['timeline','psycho','sfr','posture','photos','metrics','tasks','forms','food','documents','payments','settings'];
+  const moreTabs=['timeline','psycho','sfr','posture','photos','metrics','tasks','forms','food','documents','payments','features'];
   if(moreTabs.includes(t)){
     const moreEl=document.getElementById('cp-more-items');
     const arrow=document.getElementById('cp-more-arrow');
@@ -1247,7 +1248,7 @@ function setCPTab(t){
   if(t==='food')renderCPFood(c);
   if(t==='documents')renderCPDocuments(c);
   if(t==='payments')renderCPPayments(c);
-  if(t==='settings')renderCPSettings(c);
+  if(t==='features')renderCPSettings(c);
   if(t==='posture')renderCPPosture(c);
   if(t==='photos')renderCPPhotos(c);
 }

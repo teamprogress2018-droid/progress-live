@@ -33,6 +33,7 @@ function filteredWorkouts(){
 }
 
 function updateWLCounts(){
+  if(!document.getElementById('wl-cnt-all'))return;
   const all=allWorkouts();
   const cnt=(fn)=>all.filter(fn).length;
   document.getElementById('wl-cnt-all').textContent=all.length;
@@ -54,6 +55,7 @@ function setWLNav(n){
 }
 
 function setWLView(v){
+  if(!document.getElementById('wl-list-view'))return;
   wlView=v;
   document.getElementById('wl-list-view').style.display=v==='list'?'flex':'none';
   document.getElementById('wl-list-view').style.flexDirection='column';
@@ -73,6 +75,7 @@ function setWLSort(s){
 }
 
 function renderWL(){
+  if(!document.getElementById('wl-card-body'))return;
   updateWLCounts();
   const res=filteredWorkouts();
   document.getElementById('wl-results-count').textContent=res.length+' '+(res.length===1?'trening':res.length<5?'treningi':'treningów');
@@ -125,11 +128,13 @@ function renderWL(){
       </div>`).join('');
   }
   // update dashboard
-  document.getElementById('d-workouts').textContent=allWorkouts().length;
+  const dWorkouts=document.getElementById('d-workouts');
+  if(dWorkouts)dWorkouts.textContent=allWorkouts().length;
   renderDashWorkouts();
 }
 
 function openWLDetail(id){
+  if(!document.getElementById('wl-detail'))return;
   const all=allWorkouts();
   const w=all.find(x=>x.id===id);
   if(!w)return;
@@ -155,14 +160,17 @@ function openWLDetail(id){
       </div>
     </div>`).join('');
   document.getElementById('wld-notes-section').innerHTML=w.notes?`
-    <div style="background:var(--adim);border:1px solid rgba(225,31,46,0.2);border-radius:8px;padding:10px 12px;">
+    <div style="background:var(--adim);border:1px solid rgba(230,0,0,0.2);border-radius:8px;padding:10px 12px;">
       <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);margin-bottom:5px;">NOTATKI DLA KLIENTA</div>
       <div style="font-size:12px;line-height:1.6;">${w.notes}</div>
     </div>`:'';
   document.getElementById('wl-detail').classList.add('open');
 }
 
-function closeWLDetail(){document.getElementById('wl-detail').classList.remove('open');wlDetailId=null;}
+function closeWLDetail(){
+  const el=document.getElementById('wl-detail');
+  if(!el)return;
+  el.classList.remove('open');wlDetailId=null;}
 
 function assignWorkout(){
   if(!wlDetailId)return;
@@ -255,6 +263,7 @@ function renderDashWorkouts(){
 // dodawanie wiersza ćwiczenia w modalu workout
 function addWExRow(){
   const rows=document.getElementById('w-ex-rows');
+  if(!rows)return;
   const div=document.createElement('div');
   div.className='wb-ex-row';
   div.innerHTML=
@@ -402,7 +411,7 @@ function renderOnbOverview(){
           </div>
           <!-- pasek postępu z krokami -->
           <div style="display:flex;gap:3px;margin-bottom:10px;">
-            ${steps.map((s,i)=>`<div title="${s.label}" style="flex:1;height:6px;border-radius:3px;background:${i<o.step?'var(--accent)':i===o.step?'rgba(225,31,46,0.4)':'var(--s3)'};transition:background 0.3s;"></div>`).join('')}
+            ${steps.map((s,i)=>`<div title="${s.label}" style="flex:1;height:6px;border-radius:3px;background:${i<o.step?'var(--accent)':i===o.step?'rgba(230,0,0,0.4)':'var(--s3)'};transition:background 0.3s;"></div>`).join('')}
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;">
             <div style="font-size:11px;color:var(--muted);">
@@ -563,11 +572,14 @@ function onbWizardStepHTML(step){
       <input type="text" class="form-input" id="onb-meds" placeholder="np. inhibitory ACE, metformina..." value="${onbNewClient.meds||''}"></div>
     <div class="form-field"><label class="form-lbl">Aktywność fizyczna dotychczas</label>
       <select class="form-select" id="onb-activity">
-        <option value="sedentary">Siedzący tryb życia</option>
-        <option value="light">Lekka aktywność (spacery)</option>
-        <option value="moderate">Umiarkowana (rekreacyjnie)</option>
-        <option value="active">Aktywny (regularny trening)</option>
+        <option value="sedentary" ${onbNewClient.activityLevel==='sedentary'?'selected':''}>Siedzący tryb życia</option>
+        <option value="light" ${onbNewClient.activityLevel==='light'?'selected':''}>Lekka aktywność (spacery)</option>
+        <option value="moderate" ${(!onbNewClient.activityLevel||onbNewClient.activityLevel==='moderate')?'selected':''}>Umiarkowana (rekreacyjnie)</option>
+        <option value="active" ${onbNewClient.activityLevel==='active'?'selected':''}>Aktywny (regularny trening)</option>
       </select></div>
+    <div class="form-field"><label class="form-lbl">Wcześniejsze sporty (wpływ na plan)</label>
+      ${typeof priorSportsChipsHTML==='function'?priorSportsChipsHTML(onbNewClient.priorSports,'onb'):''}
+    </div>
     <div class="form-field"><label class="form-lbl">Dostępny sprzęt</label>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
         ${[['gym','🏋️','Pełna siłownia'],['dumbbells','💪','Hantle'],['home','🏠','Ćwiczenia domowe'],['pool','🏊','Basen'],['outdoor','🌳','Na zewnątrz'],['none','❌','Bez sprzętu']].map(([v,ico,l])=>`
@@ -610,7 +622,7 @@ function onbWizardStepHTML(step){
 
   if(step===4) return `
     <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">✅ POTWIERDZENIE</div>
-    <div style="background:var(--adim);border:1px solid rgba(225,31,46,0.2);border-radius:12px;padding:20px;margin-bottom:16px;">
+    <div style="background:var(--adim);border:1px solid rgba(230,0,0,0.2);border-radius:12px;padding:20px;margin-bottom:16px;">
       <div style="font-size:14px;font-weight:700;margin-bottom:12px;">Podsumowanie nowego klienta</div>
       ${[
         ['Imię i nazwisko',onbNewClient.name||'—'],
@@ -663,6 +675,8 @@ function onbWizardNext(){
   if(onbStep===2){
     onbNewClient.injuries=document.getElementById('onb-injuries')?.value||'';
     onbNewClient.meds=document.getElementById('onb-meds')?.value||'';
+    onbNewClient.activityLevel=document.getElementById('onb-activity')?.value||'moderate';
+    onbNewClient.priorSports=typeof readPriorSportsFrom==='function'?readPriorSportsFrom('onb'):[];
     onbNewClient.rodo=document.getElementById('onb-rodo')?.checked||false;
     if(!onbNewClient.rodo){notify('⚠ Wymagana zgoda RODO!');return;}
   }
@@ -691,6 +705,8 @@ function onbCreateClient(){
     height:onbNewClient.height||'',
     gender:onbNewClient.gender||'mężczyzna',
     injuries:onbNewClient.injuries||'',
+    priorSports:onbNewClient.priorSports||[],
+    activityLevel:onbNewClient.activityLevel||'moderate',
     notes:onbNewClient.privateNote||'',
     status:'active',
     joinDate:new Date().toISOString().split('T')[0],
@@ -1721,7 +1737,7 @@ function renderLivePlanPicker(){
     ${days.length>1?`
     <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:6px;letter-spacing:1px;">Dzień treningu ${liveExercises.length?`<span style="color:var(--accent);normal-case;text-transform:none;letter-spacing:0;">— sugerowany na dziś</span>`:''}</div>
     <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:10px;">
-      ${days.map((d,i)=>`<button onclick="liveSelectDay(${i})" style="background:${liveExercises.length&&i===liveCurrentDayIdx?'rgba(225,31,46,0.08)':'var(--s3)'};border:1px solid ${liveExercises.length&&i===liveCurrentDayIdx?'var(--accent)':'var(--border2)'};border-radius:8px;padding:7px 12px;cursor:pointer;text-align:left;display:flex;align-items:center;justify-content:space-between;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)'">
+      ${days.map((d,i)=>`<button onclick="liveSelectDay(${i})" style="background:${liveExercises.length&&i===liveCurrentDayIdx?'rgba(230,0,0,0.08)':'var(--s3)'};border:1px solid ${liveExercises.length&&i===liveCurrentDayIdx?'var(--accent)':'var(--border2)'};border-radius:8px;padding:7px 12px;cursor:pointer;text-align:left;display:flex;align-items:center;justify-content:space-between;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)'">
         <div style="font-size:11px;font-weight:600;">${d.day||'Dzień '+(i+1)}</div>
         <div style="font-size:10px;color:var(--muted);">${(d.exercises||[]).length} ćw.</div>
       </button>`).join('')}
@@ -1890,7 +1906,7 @@ function renderLiveExercises(){
     </div>
     ${liveExercises.map((ex,i)=>liveExCard(ex,i)).join('')}
     ${liveSessionActive&&doneCnt===total&&total>0?`
-    <div style="background:linear-gradient(135deg,var(--adim),transparent);border:1px solid rgba(225,31,46,0.3);border-radius:14px;padding:20px;text-align:center;margin-top:10px;">
+    <div style="background:linear-gradient(135deg,var(--adim),transparent);border:1px solid rgba(230,0,0,0.3);border-radius:14px;padding:20px;text-align:center;margin-top:10px;">
       <div style="font-size:28px;margin-bottom:8px;">🎉</div>
       <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:4px;">TRENING UKOŃCZONY!</div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">${setsDone} serii · ${Math.round(volume)} kg objętości</div>
@@ -2164,7 +2180,7 @@ function renderLiveClientMock(){
   const doneCnt=liveExercises.filter(e=>e.done).length;
   const total=liveExercises.length;
   const pct=total?Math.round(doneCnt/total*100):0;
-  const accent=window.SETTINGS?.brand?.accentColor||'#e11f2e';
+  const accent=window.SETTINGS?.brand?.accentColor||'#e60000';
   el.innerHTML=`
     <div style="background:#07080a;border-radius:40px;border:6px solid #1a1a2a;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.8);">
       <!-- status bar -->
@@ -2197,7 +2213,7 @@ function renderLiveClientMock(){
         ${liveExercises.length?liveExercises.map((ex,i)=>`
           <div style="margin-bottom:10px;background:${ex.done?'rgba(62,207,178,0.06)':'rgba(255,255,255,0.03)'};border:1px solid ${ex.done?'rgba(62,207,178,0.2)':'rgba(255,255,255,0.06)'};border-radius:14px;padding:12px;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:${ex.done?0:8}px;">
-              <div style="width:24px;height:24px;border-radius:6px;background:${ex.done?'var(--teal)':'rgba(225,31,46,0.1)'};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:${ex.done?'#000':accent};flex-shrink:0;">${ex.done?'✓':i+1}</div>
+              <div style="width:24px;height:24px;border-radius:6px;background:${ex.done?'var(--teal)':'rgba(230,0,0,0.1)'};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:${ex.done?'#000':accent};flex-shrink:0;">${ex.done?'✓':i+1}</div>
               <div style="font-size:12px;font-weight:700;color:#eceae6;">${ex.name}</div>
             </div>
             ${!ex.done?`<div style="display:flex;gap:5px;">
@@ -2413,10 +2429,10 @@ function renderRepAuto(){
     <div style="max-width:700px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:6px;">AUTOMATYCZNE RAPORTY</div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Harmonogram zapisuje się w ustawieniach. Wysyłka e-mail/WhatsApp wymaga backendu — tu zapisujemy reguły i generujemy raport w appce przy logowaniu (jeśli włączone).</div>
-      <div style="font-size:11px;color:var(--muted);background:var(--adim);border:1px solid rgba(225,31,46,0.15);border-radius:8px;padding:10px 12px;margin-bottom:20px;">Uwaga: to nie jest cron 24/7. Reguły są sprawdzane gdy otworzysz panel trenera.</div>
+      <div style="font-size:11px;color:var(--muted);background:var(--adim);border:1px solid rgba(230,0,0,0.15);border-radius:8px;padding:10px 12px;margin-bottom:20px;">Uwaga: to nie jest cron 24/7. Reguły są sprawdzane gdy otworzysz panel trenera.</div>
 
       <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px;">
-        ${schedules.map((a,i)=>`<div style="background:var(--s2);border:1px solid ${a.active?'rgba(225,31,46,0.2)':'var(--border)'};border-radius:12px;padding:16px;display:flex;align-items:center;gap:14px;">
+        ${schedules.map((a,i)=>`<div style="background:var(--s2);border:1px solid ${a.active?'rgba(230,0,0,0.2)':'var(--border)'};border-radius:12px;padding:16px;display:flex;align-items:center;gap:14px;">
           <label style="position:relative;width:40px;height:22px;flex-shrink:0;cursor:pointer;">
             <input type="checkbox" ${a.active?'checked':''} style="opacity:0;width:0;height:0;" onchange="repToggleAuto(${i},this.checked)">
             <div style="position:absolute;inset:0;background:${a.active?'var(--accent)':'var(--s3)'};border-radius:99px;transition:0.2s;"></div>
@@ -2669,7 +2685,7 @@ function renderRepDocument(c,template,hasAI,ai){
   const text=isDark?'#eceae6':'#1a1a2a';
   const muted=isDark?'rgba(255,255,255,0.45)':'rgba(0,0,0,0.45)';
   const border=isDark?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.1)';
-  const accent=window.SETTINGS?.brand?.accentColor||'#e11f2e';
+  const accent=window.SETTINGS?.brand?.accentColor||'#e60000';
   const card=isDark?'rgba(255,255,255,0.04)':'rgba(0,0,0,0.03)';
 
   const activeSections=[...document.querySelectorAll('.rep-section-check:checked')].map(cb=>cb.value);

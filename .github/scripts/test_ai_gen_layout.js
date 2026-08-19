@@ -1,4 +1,4 @@
-// Layout generatora / biblioteki / kalkulatora: treść od lewej, karty widoczne, kalkulator na pełną szerokość.
+// Layout generatora / kalkulatora: treść od lewej, kalkulator na pełną szerokość.
 const fs = require('fs');
 const path = require('path');
 const { chromium } = require('playwright');
@@ -14,13 +14,12 @@ function ok(name, cond, extra) {
 
 const css = fs.readFileSync(path.join(root, 'styles.css'), 'utf8');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-ok('wl-layout not centered 1100', !/\.wl-layout\{[^}]*max-width:\s*1100px/.test(css));
 ok('apl-layout class', css.includes('.apl-layout{display:flex'));
 ok('apl-result no 820 cap', !html.includes('max-width:820px;margin:0 auto'));
 ok('calc-results no 1180 cap', !/#calc-results\{[^}]*max-width:\s*1180px/.test(css));
 ok('generator uses apl-layout', html.includes('class="apl-layout"'));
-ok('cards view visible by default', /id="wl-card-view"[^>]*padding:14px 16px;?"/.test(html) || html.includes('id="wl-card-view" style="flex:1;overflow-y:auto;padding:14px 16px;"'));
-ok('list view hidden by default', html.includes('id="wl-list-view"') && /id="wl-list-view"[^>]*display:none/.test(html));
+ok('workout library screen removed', !html.includes('id="screen-workout-library"'));
+ok('workout library nav removed', !html.includes('data-screen="workout-library"'));
 
 (async () => {
   const port = process.env.LAYOUT_PORT || '8080';
@@ -40,32 +39,6 @@ ok('list view hidden by default', html.includes('id="wl-list-view"') && /id="wl-
     const loading = document.getElementById('app-loading');
     if (loading) loading.style.display = 'none';
   });
-
-  await page.evaluate(() => goTo('workout-library'));
-  await page.waitForTimeout(400);
-  const wl = await page.evaluate(() => {
-    const layout = document.querySelector('.wl-layout');
-    const sidebar = document.querySelector('.sidebar');
-    const cards = document.querySelectorAll('#wl-card-body .wl-card');
-    const listView = document.getElementById('wl-list-view');
-    const cardView = document.getElementById('wl-card-view');
-    const lr = layout.getBoundingClientRect();
-    const sr = sidebar.getBoundingClientRect();
-    return {
-      cards: cards.length,
-      cardViewShown: getComputedStyle(cardView).display !== 'none',
-      listHidden: getComputedStyle(listView).display === 'none',
-      gapFromSidebar: Math.round(lr.left - sr.right),
-      layoutWidth: Math.round(lr.width),
-      mainWidth: Math.round(document.querySelector('.main').getBoundingClientRect().width)
-    };
-  });
-  await page.screenshot({ path: path.join(shotDir, 'workout_library.png') });
-  ok('workout cards rendered', wl.cards >= 1, 'cards=' + wl.cards);
-  ok('card view visible', wl.cardViewShown);
-  ok('list view hidden in grid mode', wl.listHidden);
-  ok('library flush to sidebar', wl.gapFromSidebar <= 8, 'gap=' + wl.gapFromSidebar);
-  ok('library uses main width', wl.layoutWidth > wl.mainWidth * 0.9, JSON.stringify({ w: wl.layoutWidth, main: wl.mainWidth }));
 
   await page.evaluate(() => goTo('aiplangen'));
   await page.waitForTimeout(400);
@@ -123,7 +96,7 @@ ok('list view hidden by default', html.includes('id="wl-list-view"') && /id="wl-
     console.error('\n' + failed + ' test(s) failed');
     process.exit(1);
   }
-  console.log('\nLayout generatora/biblioteki/kalkulatora OK. Shots: ' + shotDir);
+  console.log('\nLayout generatora/kalkulatora OK. Shots: ' + shotDir);
 })().catch((err) => {
   console.error(err);
   process.exit(1);

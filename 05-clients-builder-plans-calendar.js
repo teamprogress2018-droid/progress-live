@@ -104,7 +104,7 @@ function renderClients(){
     return `<div class="tbl-row" style="grid-template-columns:2fr 120px 120px 100px 150px;animation-delay:${i*0.03}s;cursor:pointer;" onclick="openClientProfile('${c.id}')">
     <div style="display:flex;align-items:center;gap:10px;">
       <div style="width:32px;height:32px;border-radius:50%;background:${COLS[i%5]}22;color:${COLS[i%5]};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:13px;flex-shrink:0;">${escHtml(getInit(c.name))}</div>
-      <div><div style="font-size:13px;font-weight:600;">${escHtml(c.name)}</div><div style="font-size:11px;color:var(--muted);">${escHtml(c.email||'⚠ Brak e-maila')}</div></div>
+      <div><div style="font-size:13px;font-weight:600;">${escHtml(c.name)}</div><div style="font-size:11px;color:var(--muted);">${escHtml(c.email||'⚠ Brak e-maila')}${c.phone?' · '+escHtml(c.phone):''}</div></div>
     </div>
     <div style="font-size:12px;color:${act.color};align-self:center;font-weight:600;">${act.label}</div>
     <div style="font-size:12px;color:var(--muted);align-self:center;">${CLIENT_GOAL_LABELS[c.goal]||c.goal||'—'}</div>
@@ -122,11 +122,70 @@ function renderClients(){
   }).join('');
 }
 
+function openClientModal(clientId){
+  window._editingClientId=clientId||null;
+  const titleEl=document.querySelector('#m-client .modal-title');
+  if(clientId){
+    const c=CL.find(x=>x.id===clientId);
+    if(!c){notify('Nie znaleziono klienta');return;}
+    if(titleEl)titleEl.textContent='EDYTUJ KLIENTA';
+    document.getElementById('ac-name').value=c.name||'';
+    document.getElementById('ac-email').value=c.email||'';
+    document.getElementById('ac-phone').value=c.phone||'';
+    document.getElementById('ac-age').value=c.age||'';
+    document.getElementById('ac-gender').value=c.gender||'M';
+    document.getElementById('ac-weight').value=c.weight||'';
+    document.getElementById('ac-height').value=c.height||'';
+    document.getElementById('ac-goal').value=c.goal||'masa';
+    document.getElementById('ac-level').value=c.level||'poczatkujacy';
+    document.getElementById('ac-activity').value=c.activityLevel||'moderate';
+    document.getElementById('ac-sport-notes').value=c.sportNotes||'';
+    document.getElementById('ac-notes').value=c.notes||'';
+    if(typeof initPriorSportsForm==='function')initPriorSportsForm('ac',c.priorSports||[]);
+  }else{
+    if(titleEl)titleEl.textContent='NOWY KLIENT';
+    ['ac-name','ac-email','ac-phone','ac-age','ac-weight','ac-height','ac-sport-notes','ac-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    if(typeof initPriorSportsForm==='function')initPriorSportsForm('ac',[]);
+  }
+  openM('m-client');
+}
+window.openClientModal=openClientModal;
+
 async function saveClient(){
   if(window._saveGuard_saveClient)return;window._saveGuard_saveClient=true;setTimeout(()=>window._saveGuard_saveClient=false,1500);
 
   const name=document.getElementById('ac-name').value.trim();
   if(!name){notify('Wpisz imię!');return;}
+
+  const editId=window._editingClientId;
+  if(editId){
+    const c=CL.find(x=>x.id===editId);
+    if(!c){notify('Nie znaleziono klienta');return;}
+    c.name=name;
+    c.email=document.getElementById('ac-email').value;
+    c.phone=document.getElementById('ac-phone')?.value||'';
+    c.age=+document.getElementById('ac-age').value||0;
+    c.gender=document.getElementById('ac-gender').value;
+    c.weight=+document.getElementById('ac-weight').value||0;
+    c.height=+document.getElementById('ac-height').value||0;
+    c.goal=document.getElementById('ac-goal').value;
+    c.level=document.getElementById('ac-level').value;
+    c.priorSports=typeof readPriorSportsFrom==='function'?readPriorSportsFrom('ac'):[];
+    c.activityLevel=document.getElementById('ac-activity')?.value||'moderate';
+    c.sportNotes=document.getElementById('ac-sport-notes')?.value||'';
+    c.notes=document.getElementById('ac-notes').value;
+    window._editingClientId=null;
+    closeM('m-client');
+    await persistById('clients',c);
+    try{renderAll();}catch(e){try{renderClients();}catch(e2){}}
+    if(cpClientId===c.id){
+      try{document.getElementById('cp-name').textContent=c.name;}catch(e){}
+      try{renderCPOverview(c);}catch(e){}
+    }
+    notify('✓ Zaktualizowano: '+c.name);
+    return;
+  }
+
   const c=withTrainer({
     id:newId('c'),
     name,
@@ -138,6 +197,9 @@ async function saveClient(){
     height:+document.getElementById('ac-height').value||0,
     goal:document.getElementById('ac-goal').value,
     level:document.getElementById('ac-level').value,
+    priorSports:typeof readPriorSportsFrom==='function'?readPriorSportsFrom('ac'):[],
+    activityLevel:document.getElementById('ac-activity')?.value||'moderate',
+    sportNotes:document.getElementById('ac-sport-notes')?.value||'',
     notes:document.getElementById('ac-notes').value,
     status:'active',
     joinDate:new Date().toISOString().split('T')[0],
@@ -145,6 +207,7 @@ async function saveClient(){
   });
   // najpierw dodaj lokalnie — natychmiast
   CL.push(c);
+  window._editingClientId=null;
   closeM('m-client');
   ['ac-name','ac-email','ac-phone','ac-age','ac-weight','ac-height','ac-notes'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.value='';
@@ -468,7 +531,12 @@ function updatePeriod(){
     Przysiad ${fmt(rms.squat)} · Martwy ${fmt(rms.deadlift)} · Bench ${fmt(rms.bench)} · OHP ${fmt(rms.ohp)}
     <div style="font-size:10px;color:var(--muted);margin-top:4px;">Pole %1RM w ćwiczeniu liczy kg z tych pomiarów. Brak? Uzupełnij w Pomiary → Siła bazowa.</div>
   </div>`;
-  el.innerHTML=rmBar+sch.map(w=>`<div class="period-row"><div style="font-family:'DM Mono',monospace;font-size:10px;color:${w.cel.includes('DELOAD')?'var(--orange)':w.nr===1?'var(--accent)':'var(--blue)'};width:46px;flex-shrink:0;">TYG ${w.nr}</div><div><div style="font-size:12px;font-weight:600;">${w.cel}</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">${w.rpe}</div></div></div>`).join('');
+  const sportLbl=typeof clientSportProfileLabel==='function'?clientSportProfileLabel(c):'';
+  const sportBar=sportLbl?`<div style="font-size:11px;color:var(--text);margin-bottom:10px;line-height:1.55;padding:8px 10px;background:rgba(61,207,178,0.08);border:1px solid rgba(61,207,178,0.25);border-radius:8px;">
+    <div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--teal);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;">Tło sportowe (planowanie)</div>
+    ${sportLbl}
+  </div>`:'';
+  el.innerHTML=sportBar+rmBar+sch.map(w=>`<div class="period-row"><div style="font-family:'DM Mono',monospace;font-size:10px;color:${w.cel.includes('DELOAD')?'var(--orange)':w.nr===1?'var(--accent)':'var(--blue)'};width:46px;flex-shrink:0;">TYG ${w.nr}</div><div><div style="font-size:12px;font-weight:600;">${w.cel}</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">${w.rpe}</div></div></div>`).join('');
   document.querySelectorAll('#builder-days .ex-row').forEach(r=>{if(typeof builderPreviewKg==='function')builderPreviewKg(r);});
 }
 function getPeriod(level){

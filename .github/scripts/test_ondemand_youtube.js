@@ -85,7 +85,7 @@ function ok(name, cond, extra) {
 }
 
 const demo = windowObj.OD_DEMO_WORKOUTS || [];
-ok('demo workouts exist', demo.length >= 6, 'n=' + demo.length);
+ok('demo workouts exist', demo.length >= 7, 'n=' + demo.length);
 ok('every demo has youtube url', demo.every(w => /youtube\.com\/watch\?v=/i.test(w.url || '')), demo.map(w => w.url).join(','));
 ok('every demo embeds', demo.every(w => /youtube-nocookie\.com\/embed\//.test(ctx.coachVideoEmbed(w.url) || '')), demo.map(w => ctx.coachVideoEmbed(w.url)).join(','));
 ok('no channel-only urls', demo.every(w => !/youtube\.com\/@/.test(w.url || '')));
@@ -93,9 +93,9 @@ ok('hiit is madfit', demo.some(w => w.id === 'ow2' && /HhdYlniTjvg/.test(w.url))
 ok('hips is adriene', demo.some(w => w.id === 'ow5' && /zwoVcrdmLOE/.test(w.url)));
 
 windowObj.OD_WORKOUTS = [];
-ok('fallback to demo', ctx.allODWorkouts().length >= 6);
+ok('fallback to demo', ctx.allODWorkouts().length >= 7);
 ctx.ensureODWorkouts();
-ok('ensure copies demo', windowObj.OD_WORKOUTS.length >= 6 && windowObj.OD_WORKOUTS[0].url);
+ok('ensure copies demo', windowObj.OD_WORKOUTS.length >= 7 && windowObj.OD_WORKOUTS[0].url);
 
 windowObj.OD_WORKOUTS = [
   { id: 'ow1', name: 'Full Body 30 min (HASfit)', type: 'workout', url: '', desc: 'stub' },
@@ -113,11 +113,11 @@ ok('card youtube pill', /YouTube/.test(card));
 ok('openODWorkout exported', typeof ctx.openODWorkout === 'function');
 
 const html = ctx.capScreenHTML('ondemand', { id: 'c-anna', name: 'Anna' });
-ok('client ondemand youtube', /YouTube/i.test(html) && /openODWorkout/.test(html));
-ok('client ondemand thumbs', /i\.ytimg\.com/.test(html));
+ok('client ondemand programs', /openODProgramClient/.test(html) && /Program/i.test(html));
+ok('client ondemand mobility program', /Mobilność/i.test(html) || /Dom bez sprzętu/i.test(html));
 
 const homeHtml = ctx.capScreenHTML('home', { id: 'c-anna', name: 'Anna Nowak' });
-ok('home ondemand featured (no progress yet)', /ON-DEMAND/i.test(homeHtml) && /openODWorkout/.test(homeHtml) && !/KONTYNUUJ PROGRAM/i.test(homeHtml));
+ok('home ondemand featured (no progress yet)', /ON-DEMAND/i.test(homeHtml) && /openODProgramClient/.test(homeHtml) && !/KONTYNUUJ PROGRAM/i.test(homeHtml));
 
 ok('progress doc id stable', ctx.odProgramProgressDocId('c-anna', 'op2') === 'odpr_c-anna_op2');
 const cont0 = ctx.odProgramContinueForClient('c-anna');
@@ -141,11 +141,14 @@ ok('cap live nav has ondemand', (ctx.capLiveNavScreens() || []).some((s) => s.id
 if (typeof ctx.ensureODPrograms === 'function') ctx.ensureODPrograms();
 const progs = ctx.allODPrograms();
 ok('demo program active youtube', progs.some((p) => p.id === 'op2' && p.status === 'active' && ctx.odProgramWorkoutCount(p) >= 5));
+ok('mobility program demo', progs.some((p) => p.id === 'op3' && p.category === 'mobilnosc' && ctx.odProgramSessionTotal(p) >= 4));
+ok('home no equipment program', progs.some((p) => p.id === 'op4' && p.category === 'dom' && ctx.odProgramSessionTotal(p) >= 4));
+ok('od programs for collection', ctx.odProgramsForCollection('mobilnosc').some((p) => p.id === 'op3'));
 windowObj._cliveOdProgId = 'op2';
 const odProgHtml2 = ctx.capScreenHTML('odprogram', { id: 'c-anna', name: 'Anna' });
 ok('client odprogram play buttons', /openODWorkout\('ow1'\)/.test(odProgHtml2));
 ok('client odprogram toggle day', /toggleODProgramDay\('op2',0,0\)/.test(odProgHtml2));
-ok('client ondemand programs tab', /capSetOdTab\('programs'\)/.test(html));
+ok('ondemand workouts tab removed', !fs.readFileSync(path.join(root, 'index.html'), 'utf8').includes('id="odtab-workouts"'));
 ok('cap odprog msg id', ctx.capOdProgMsgId('[odprog:op2]\nProgram') === 'op2');
 ok('live nav has resources', (ctx.capLiveNavScreens() || []).some((s) => s.id === 'resources'));
 

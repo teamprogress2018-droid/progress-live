@@ -1,16 +1,20 @@
     :root{
-  --bg:#09080a;--s1:#131011;--s2:#181415;--s3:#201a1b;--s4:#282022;
-  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.1);
-  --text:#f3ede2;--muted:#9c917f;--muted2:#6e655c;
-  --accent:#e11f2e;--accent2:#a3121d;--adim:rgba(225,31,46,0.14);
-  --glow:0 0 0 1px rgba(225,31,46,0.35), 0 0 18px rgba(225,31,46,0.18);
-  --red:#ff4d4d;--blue:#4d9fff;--orange:#c97b3f;--purple:#9d7cf4;--teal:#3ecfb2;
-  --gold:#c9a227;--wine:#a8324a;
+  /* Progress Live — paleta studia: czerwień, grafit, biel, akcent niebieski/żółty */
+  --bg:#1a1a1a;--s1:#121212;--s2:#252525;--s3:#2d2d2d;--s4:#3e3e3e;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --text:#f5f5f5;--muted:#9e9e9e;--muted2:#707070;
+  --accent:#e60000;--accent2:#b80000;--accent-rgb:230,0,0;
+  --adim:rgba(var(--accent-rgb),0.14);
+  --glow:0 0 0 1px rgba(var(--accent-rgb),0.35), 0 0 18px rgba(var(--accent-rgb),0.18);
+  --red:#ff3333;--blue:#0055a4;--orange:#e69500;--purple:#7c5cbf;--teal:#2ecc71;
+  --gold:#ffd700;--wine:#c60000;
+  --studio-gray:#2b2b2b;--studio-blue:#0055a4;--studio-yellow:#ffd700;
   --r:10px;--r2:14px;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px;}
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;line-height:1.55;overflow:hidden;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;line-height:1.55;overflow:hidden;
+  background-image:radial-gradient(ellipse 120% 80% at 50% -20%,rgba(255,255,255,0.03),transparent 55%),linear-gradient(180deg,var(--bg) 0%,#141414 100%);}
 ::-webkit-scrollbar{width:4px;background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--s4);border-radius:4px;}
 input,button,textarea,select{font-family:'DM Sans',sans-serif;}
@@ -1003,7 +1007,12 @@ body.od-playing .clive-content{display:none;}
   font-size:12px;color:var(--orange);flex-shrink:0;
 }
 
+.prior-sport-chip.active{box-shadow:0 0 0 1px var(--accent);}
+.cap-progress-panel .cap-chart-card{overflow:hidden;}
+.cap-progress-panel .cap-stat-card{transition:border-color .2s;}
+.cap-progress-panel .cap-chart-svg{max-height:120px;}
+@media (min-width:520px){
+  .cap-progress-panel .cap-stat-kpi-row{grid-template-columns:repeat(4,1fr)!important;}
+}
 
 
-
-    

@@ -11,7 +11,7 @@ const CLIENT_ACTIVITY={};// clientId -> [{type, text, date, icon}]
 window.CLIENT_NOTES=CLIENT_NOTES;
 window.CLIENT_ACTIVITY=CLIENT_ACTIVITY;
 window.CLIENT_GROUPS=window.CLIENT_GROUPS||[]; // [{id,name,clientIds,color,createdAt}]
-const GROUP_COLORS=['#e11f2e','#4d9fff','#9d7cf4','#ff8c42','#3ecfb2','#f59e0b'];
+const GROUP_COLORS=['#e60000','#4d9fff','#9d7cf4','#ff8c42','#3ecfb2','#f59e0b'];
 
 // ── Prawdziwe śledzenie "nieprzeczytane" (zamiast losowego i%3) ──
 // Zapisuje, kiedy trener ostatnio otworzył rozmowę z danym klientem.
@@ -737,7 +737,7 @@ function openExDetail(name){
     </div>`:''}
     ${e.nsca?`<div style="margin-bottom:12px;">
       <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Parametry NSCA/ACSM</div>
-      <div style="background:var(--adim);border:1px solid rgba(225,31,46,0.15);border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.6;">${e.nsca}</div>
+      <div style="background:var(--adim);border:1px solid rgba(230,0,0,0.15);border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.6;">${e.nsca}</div>
     </div>`:''}
     ${e.alt?`<div style="margin-bottom:12px;">
       <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Zamienniki</div>
@@ -746,7 +746,6 @@ function openExDetail(name){
     ${(()=>{const media=typeof resolveCoachMedia==='function'?resolveCoachMedia(e):null;return media&&media.video?(typeof coachMediaHtml==='function'?coachMediaHtml({video:media.video,videoEmbed:media.videoEmbed,isFile:media.isFile},{showVideo:true}):''):'';})()}
     <div style="display:flex;gap:6px;margin-top:4px;">
       <button class="btn btn-primary btn-sm" style="flex:1;" onclick="prefillExInBuilder('${e.name.replace(/'/g,"\\'")}')">Użyj w builderze</button>
-      <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="prefillExInWorkout('${e.name.replace(/'/g,"\\'")}')">Dodaj do treningu</button>
     </div>
     ${findCustomEx(e.name)?`<div style="display:flex;gap:6px;margin-top:6px;">
       <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="editEx('${e.name.replace(/'/g,"\\'")}')">✏ Edytuj</button>
@@ -900,11 +899,7 @@ function prefillExInBuilder(name){
 }
 
 function prefillExInWorkout(name){
-  openM('m-workout');
-  setTimeout(()=>{
-    const rows=document.querySelectorAll('#w-ex-rows .wb-inp');
-    for(const r of rows){if(!r.value&&r.placeholder==='Nazwa ćwiczenia...'){r.value=name;r.focus();return;}}
-  },200);
+  prefillExInBuilder(name);
 }
 
 async function askExAI(){

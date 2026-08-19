@@ -231,7 +231,7 @@ function pushMsg(clientId,text){
   persistById('messages',msg);
   return msg;
 }
-const COLS=['#e11f2e','#4d9fff','#9d7cf4','#ff8c42','#3ecfb2'];
+const COLS=['#e60000','#0055a4','#ffd700','#2ecc71','#9e9e9e'];
 
 // ── DEMO TRENINGI ──
 const DEMO_WORKOUTS=[
@@ -314,7 +314,7 @@ function goTo(n){
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
   const s=document.getElementById('screen-'+n);if(s)s.classList.add('active');
   closeMobileSidebar();
-  const moreScreens=['workout-library','library','programs','tasks','forms','payments','calculator','automation','integrations','metrics','checkin','aiplangen','ondemand','resources','bizstats','forum','settings','aicoach','kb'];
+  const moreScreens=['library','programs','tasks','forms','payments','calculator','automation','integrations','metrics','checkin','aiplangen','ondemand','resources','bizstats','forum','settings','trainer-profile','aicoach','kb'];
   if(moreScreens.includes(n)){
     const moreEl=document.getElementById('nav-more-items');
     const arrow=document.getElementById('nav-more-arrow');
@@ -330,7 +330,6 @@ function goTo(n){
   if(n==='inbox')renderInbox();
   if(n==='clients'){renderClientFilters();renderClients();}
   if(n==='dashboard')renderDash();
-  if(n==='workout-library'){closeWLDetail();if(typeof setWLView==='function')setWLView(wlView||'grid');else renderWL();}
   if(n==='programs'){renderPrograms();}
   if(n==='metrics'){
     renderMetrics();
@@ -353,7 +352,8 @@ function goTo(n){
     fillForumPostGroupSelect();
     renderForum();
   }
-  if(n==='settings'){setSettingsTab('profile');}
+  if(n==='settings'){setSettingsTab('brand');}
+  if(n==='trainer-profile'){renderTrainerProfilePage();}
   if(n==='checkin'){renderCheckin();}
   if(n==='progbuilder'){pbInit();}
   if(n==='integrations'){renderIntegrations();}
@@ -367,6 +367,28 @@ function goTo(n){
   if(n==='onboarding'){initOnboarding();}
   if(n==='kb'){renderKB();}
 }
+
+function initPriorSportsForm(prefix,selected){
+  const mountId=prefix+'-prior-sports-mount';
+  const mount=document.getElementById(mountId);
+  if(mount&&typeof priorSportsChipsHTML==='function'){
+    mount.outerHTML=priorSportsChipsHTML(selected||[],prefix);
+    return;
+  }
+  const direct=document.getElementById(prefix+'-prior-sports');
+  if(!direct&&typeof priorSportsChipsHTML==='function'){
+    const parent=document.getElementById(mountId)||document.querySelector('#m-'+prefix+' .modal-body');
+    if(parent){
+      const wrap=document.createElement('div');
+      wrap.id=prefix+'-prior-sports-wrap';
+      wrap.innerHTML=priorSportsChipsHTML(selected||[],prefix);
+      parent.insertBefore(wrap.firstElementChild,parent.firstChild);
+    }
+  }else if(direct&&typeof setPriorSportsChips==='function'){
+    setPriorSportsChips(prefix,selected||[]);
+  }
+}
+window.initPriorSportsForm=initPriorSportsForm;
 
 function openM(id){
   if(id==='m-session'){
@@ -439,10 +461,6 @@ function openM(id){
     document.getElementById('mg-name').value='';
     addMetricField();addMetricField();
   }
-  if(id==='m-workout'){
-    document.getElementById('w-ex-rows').innerHTML='';
-    addWExRow();addWExRow();addWExRow();
-  }
   if(id==='m-broadcast'){
     if(typeof refreshBroadcastGroupOptions==='function')refreshBroadcastGroupOptions();
   }
@@ -469,6 +487,12 @@ function openM(id){
   if(id==='m-autoflow-builder'){
     if(typeof updateAfBuilderUi==='function')updateAfBuilderUi();
   }
+  if(id==='m-client'){
+    window._editingClientId=null;
+    const titleEl=document.querySelector('#m-client .modal-title');
+    if(titleEl)titleEl.textContent='NOWY KLIENT';
+    if(typeof initPriorSportsForm==='function')initPriorSportsForm('ac',[]);
+  }
   document.getElementById(id).classList.add('show');
 }
 function closeM(id){
@@ -487,7 +511,7 @@ document.querySelectorAll('.modal-ov').forEach(m=>m.addEventListener('click',e=>
 window.renderAll=function(){
   const safe=(fn)=>{try{fn();}catch(e){console.warn('renderAll partial fail:',e);}};
   safe(renderDash);safe(renderClients);safe(renderPlans);
-  safe(renderCal);safe(renderLib);safe(renderInbox);safe(renderWL);
+  safe(renderCal);safe(renderLib);safe(renderInbox);
   try{document.getElementById('nb-clients').textContent=CL.length;}catch(e){}
   try{document.getElementById('b-client').innerHTML=CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');}catch(e){}
   safe(updateExDl);
@@ -1080,8 +1104,13 @@ function isChallenge(t){
 }
 window.isChallenge=isChallenge;
 
+function isHomework(t){
+  return !!(t&&(t.kind==='homework'||t.odWorkoutId||t.odProgramId));
+}
+window.isHomework=isHomework;
+
 function isOneShot(t){
-  return !!(t&&!isHabit(t)&&!isChallenge(t));
+  return !!(t&&!isHabit(t)&&!isChallenge(t)&&!isHomework(t));
 }
 window.isOneShot=isOneShot;
 
@@ -1652,3 +1681,151 @@ function applyFormSubmit(send,answers,nowIso){
 }
 window.applyFormSubmit=applyFormSubmit;
 
+// ── Wcześniejsze sporty / profil wytrzymałość vs siła (planowanie) ──
+const PRIOR_SPORTS_CATALOG=[
+  {id:'running',label:'Bieganie',icon:'🏃',endurance:9,strength:3},
+  {id:'cycling',label:'Kolarstwo',icon:'🚴',endurance:8,strength:4},
+  {id:'swimming',label:'Pływanie',icon:'🏊',endurance:8,strength:4},
+  {id:'football',label:'Piłka nożna',icon:'⚽',endurance:7,strength:5},
+  {id:'basketball',label:'Koszykówka',icon:'🏀',endurance:6,strength:6},
+  {id:'gym',label:'Siłownia',icon:'🏋️',endurance:4,strength:9},
+  {id:'crossfit',label:'CrossFit',icon:'🔥',endurance:7,strength:7},
+  {id:'martial',label:'Sztuki walki',icon:'🥋',endurance:6,strength:6},
+  {id:'yoga',label:'Joga / pilates',icon:'🧘',endurance:5,strength:3},
+  {id:'hiking',label:'Turystyka / góry',icon:'⛰️',endurance:7,strength:5},
+  {id:'team',label:'Sporty zespołowe',icon:'🤾',endurance:6,strength:5},
+];
+const ACTIVITY_LEVEL_LABELS={
+  sedentary:'Siedzący tryb życia',
+  light:'Lekka aktywność (spacery)',
+  moderate:'Umiarkowana aktywność',
+  active:'Aktywny (regularny trening)'
+};
+function normalizePriorSports(list){
+  if(!list)return[];
+  if(Array.isArray(list))return list.filter(Boolean);
+  if(typeof list==='string')return list.split(',').map(s=>s.trim()).filter(Boolean);
+  return[];
+}
+function clientSportProfile(c){
+  const ids=normalizePriorSports(c&&c.priorSports);
+  const sports=ids.map(id=>PRIOR_SPORTS_CATALOG.find(x=>x.id===id)).filter(Boolean);
+  let endurance=3,strength=3;
+  if(sports.length){
+    endurance=Math.round(sports.reduce((s,x)=>s+x.endurance,0)/sports.length);
+    strength=Math.round(sports.reduce((s,x)=>s+x.strength,0)/sports.length);
+  }
+  const act=c&&c.activityLevel;
+  if(act==='active')endurance=Math.min(10,endurance+1);
+  else if(act==='sedentary')endurance=Math.max(1,endurance-1);
+  let bias='balanced';
+  if(endurance-strength>=2)bias='endurance';
+  else if(strength-endurance>=2)bias='strength';
+  return {endurance,strength,bias,labels:sports.map(s=>s.label),sports,ids};
+}
+function clientSportProfileLabel(c){
+  const p=clientSportProfile(c);
+  if(!p.labels.length&&!(c&&c.activityLevel))return'';
+  const biasLabel={endurance:'predyspozycja wytrzymałościowa',strength:'predyspozycja siłowa',balanced:'profil zrównoważony'}[p.bias];
+  const parts=[];
+  if(p.labels.length)parts.push('Sporty: '+p.labels.join(', '));
+  if(c.activityLevel&&ACTIVITY_LEVEL_LABELS[c.activityLevel])parts.push(ACTIVITY_LEVEL_LABELS[c.activityLevel]);
+  parts.push(biasLabel);
+  return parts.join(' · ');
+}
+function clientSportProfileForAI(c){
+  if(!c)return'';
+  const p=clientSportProfile(c);
+  if(!p.labels.length&&!c.activityLevel&&!c.sportNotes)return'';
+  let txt='TŁO SPORTOWE I AKTYWNOŚĆ (obowiązkowo uwzględnij przy doborze objętości, zakresów powtórzeń i pracy kondycyjnej):\n';
+  if(p.labels.length)txt+='- Wcześniejsze sporty/aktywności: '+p.labels.join(', ')+'\n';
+  if(c.activityLevel)txt+='- Dotychczasowa aktywność: '+(ACTIVITY_LEVEL_LABELS[c.activityLevel]||c.activityLevel)+'\n';
+  if(c.sportNotes)txt+='- Uwagi sportowe: '+c.sportNotes+'\n';
+  txt+='- Indeks wytrzymałości: '+p.endurance+'/10 · indeks siły bazowej: '+p.strength+'/10\n';
+  if(p.bias==='endurance'){
+    txt+='- WNIOSEK: dominacja wytrzymałościowa (np. biegacz) — więcej pracy aerobowej i wyższych zakresów powtórzeń, mniejszy startowy nacisk na maksymalne obciążenia siłowe; szybsza adaptacja cardio, wolniejsza siła absolutna.\n';
+  }else if(p.bias==='strength'){
+    txt+='- WNIOSEK: dominacja siłowa — szybsza progresja obciążeń, niższe zakresy powtórzeń, mniej objętości cardio; wykorzystaj istniejącą bazę siłową.\n';
+  }else{
+    txt+='- WNIOSEK: profil zrównoważony — standardowa periodyzacja objętość/intensywność.\n';
+  }
+  return txt;
+}
+function priorSportsChipsHTML(selected,prefix,onclickFn){
+  const sel=new Set(normalizePriorSports(selected));
+  const fn=onclickFn||("togglePriorSportChip(this,'"+prefix+"')");
+  return '<div class="prior-sports-grid" id="'+prefix+'-prior-sports" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:6px;">'+
+    PRIOR_SPORTS_CATALOG.map(s=>{
+      const on=sel.has(s.id);
+      return '<button type="button" class="prior-sport-chip'+(on?' active':'')+'" data-sport="'+s.id+'" onclick="'+fn+'" style="padding:8px 6px;border-radius:10px;border:1px solid '+(on?'var(--accent)':'var(--border2)')+';background:'+(on?'var(--adim)':'var(--s3)')+';cursor:pointer;font-size:11px;text-align:center;color:var(--text);">'+
+        '<span style="font-size:16px;display:block;margin-bottom:2px;">'+s.icon+'</span>'+s.label+
+      '</button>';
+    }).join('')+'</div>';
+}
+function readPriorSportsFrom(prefix){
+  const root=document.getElementById(prefix+'-prior-sports');
+  if(!root)return[];
+  return[...root.querySelectorAll('.prior-sport-chip.active')].map(b=>b.dataset.sport).filter(Boolean);
+}
+function setPriorSportsChips(prefix,ids){
+  const root=document.getElementById(prefix+'-prior-sports');
+  if(!root)return;
+  const sel=new Set(normalizePriorSports(ids));
+  root.querySelectorAll('.prior-sport-chip').forEach(b=>{
+    const on=sel.has(b.dataset.sport);
+    b.classList.toggle('active',on);
+    b.style.borderColor=on?'var(--accent)':'var(--border2)';
+    b.style.background=on?'var(--adim)':'var(--s3)';
+  });
+}
+function togglePriorSportChip(btn,prefix){
+  if(!btn)return;
+  btn.classList.toggle('active');
+  const on=btn.classList.contains('active');
+  btn.style.borderColor=on?'var(--accent)':'var(--border2)';
+  btn.style.background=on?'var(--adim)':'var(--s3)';
+}
+window.PRIOR_SPORTS_CATALOG=PRIOR_SPORTS_CATALOG;
+window.ACTIVITY_LEVEL_LABELS=ACTIVITY_LEVEL_LABELS;
+window.normalizePriorSports=normalizePriorSports;
+window.clientSportProfile=clientSportProfile;
+window.clientSportProfileLabel=clientSportProfileLabel;
+window.clientSportProfileForAI=clientSportProfileForAI;
+window.priorSportsChipsHTML=priorSportsChipsHTML;
+window.readPriorSportsFrom=readPriorSportsFrom;
+window.setPriorSportsChips=setPriorSportsChips;
+window.togglePriorSportChip=togglePriorSportChip;
+
+// ── Motyw studia (czerwień + grafit) ──
+const STUDIO_THEME={
+  accent:'#e60000',
+  accent2:'#b80000',
+  bg:'#1a1a1a',
+  blue:'#0055a4',
+  yellow:'#ffd700'
+};
+function hexToRgbStr(hex){
+  const h=String(hex||'').replace('#','');
+  if(h.length!==6)return '230,0,0';
+  return parseInt(h.slice(0,2),16)+','+parseInt(h.slice(2,4),16)+','+parseInt(h.slice(5,7),16);
+}
+function applyBrandTheme(settings){
+  const root=typeof document!=='undefined'?document.documentElement:null;
+  if(!root)return;
+  const s=settings||window.SETTINGS||{};
+  const brand=s.brand||{};
+  const accent=brand.accentColor||STUDIO_THEME.accent;
+  const rgb=hexToRgbStr(accent);
+  root.style.setProperty('--accent',accent);
+  root.style.setProperty('--accent2',brand.accentDark||STUDIO_THEME.accent2);
+  root.style.setProperty('--accent-rgb',rgb);
+  root.style.setProperty('--adim','rgba('+rgb+',0.14)');
+  root.style.setProperty('--glow','0 0 0 1px rgba('+rgb+',0.35), 0 0 18px rgba('+rgb+',0.18)');
+  const meta=typeof document!=='undefined'?document.querySelector('meta[name="theme-color"]'):null;
+  if(meta)meta.setAttribute('content',accent);
+}
+window.STUDIO_THEME=STUDIO_THEME;
+window.applyBrandTheme=applyBrandTheme;
+if(typeof document!=='undefined'&&document.documentElement){
+  try{applyBrandTheme(window.SETTINGS);}catch(e){}
+}
