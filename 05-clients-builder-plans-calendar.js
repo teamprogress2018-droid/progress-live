@@ -339,12 +339,12 @@ function addDay(){
   const sel=days.map((d,i)=>`<option value="${d}"${i===dayCount-1?' selected':''}>${d}</option>`).join('');
   const div=document.createElement('div');div.id=id;div.className='builder-day';
   div.innerHTML=`<div class="builder-day-hdr">
-    <select style="background:var(--s2);border:1px solid var(--border2);border-radius:6px;padding:4px 8px;color:var(--accent);font-family:'DM Mono',monospace;font-size:13px;">${sel}</select>
-    <input type="text" placeholder="np. Klatka + Triceps" style="flex:1;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:5px 9px;color:var(--text);font-size:12px;">
-    <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);cursor:pointer;white-space:nowrap;margin-left:6px;"><input type="checkbox" class="rc" style="accent-color:var(--accent);" onchange="toggleR('${id}')"> REST</label>
-    <button onclick="document.getElementById('${id}').remove()" style="background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.2);color:var(--red);border-radius:6px;padding:4px 8px;margin-left:6px;">×</button>
+    <select class="builder-day-select">${sel}</select>
+    <input type="text" class="builder-day-focus" placeholder="np. Klatka + Triceps">
+    <label class="builder-rest-toggle"><input type="checkbox" class="rc" style="accent-color:var(--accent);" onchange="toggleR('${id}')"> Dzień odpoczynku</label>
+    <button type="button" class="builder-remove-day" onclick="document.getElementById('${id}').remove()">×</button>
   </div>
-  <div class="rest-s" style="display:none;padding:12px 14px;font-size:12px;color:var(--muted);">— Dzień odpoczynku / regeneracja aktywna</div>
+  <div class="rest-s builder-rest-state" style="display:none;">— Dzień odpoczynku / regeneracja aktywna</div>
   <div class="work-s">
     <div class="ex-tbl-hdr"><span>ĆWICZENIE</span><span>SER</span><span>POWT</span><span>KG</span><span>RPE</span><span>RIR</span><span>PRZERWA</span><span>TEMPO</span><span></span></div>
     <div class="ex-rows"></div>
@@ -356,7 +356,7 @@ function toggleR(id){const el=document.getElementById(id);const r=el.querySelect
 function addRow(dayId){
   const rows=document.querySelector('#'+dayId+' .ex-rows');
   const div=document.createElement('div');div.className='ex-row';
-  div.innerHTML='<input type="text" placeholder="Nazwa ćwiczenia..." class="ex-inp ex-inp-name" style="width:100%;" list="ex-dl" data-f="name" oninput="builderPreviewKg(this.closest(\'.ex-row\'));builderRefreshPeriodPreview()">'
+  div.innerHTML='<input type="text" placeholder="Nazwa ćwiczenia..." class="ex-inp ex-inp-name ex-ac-input" style="width:100%;" autocomplete="off" data-f="name" oninput="builderPreviewKg(this.closest(\'.ex-row\'));builderRefreshPeriodPreview()">'
     +'<input type="number" placeholder="4" class="ex-inp" data-f="sets" oninput="builderRefreshPeriodPreview()">'
     +'<input type="text" placeholder="8-10" class="ex-inp" data-f="reps" oninput="builderRefreshPeriodPreview()">'
     +'<input type="number" placeholder="kg" class="ex-inp" data-f="kg" title="Zostaw puste, jeśli liczysz z %1RM" oninput="builderRefreshPeriodPreview()">'
@@ -364,13 +364,13 @@ function addRow(dayId){
     +'<input type="number" placeholder="2" class="ex-inp" data-f="rir" oninput="builderRefreshPeriodPreview()">'
     +'<input type="text" placeholder="2min" class="ex-inp" data-f="rest" oninput="builderRefreshPeriodPreview()">'
     +'<input type="text" placeholder="2-0-2" class="ex-inp" data-f="tempo">'
-    +'<button type="button" onclick="builderRemoveRow(this)" style="background:none;border:none;color:var(--muted2);font-size:18px;cursor:pointer;">×</button>'
+    +'<button type="button" class="builder-remove-row" onclick="builderRemoveRow(this)">×</button>'
     +'<div class="ex-row-extra">'
-    +'<input type="text" placeholder="Zamiennik (opcjonalnie, np. hantle zamiast sztangi)" class="ex-inp ex-inp-name" data-f="alt" style="font-size:11px;">'
+    +'<input type="text" placeholder="Zamiennik (opcjonalnie, np. hantle zamiast sztangi)" class="ex-inp ex-inp-name builder-sub-input" data-f="alt">'
     +'<input type="number" placeholder="%1RM" class="ex-inp" data-f="pct1rm" min="1" max="150" step="0.5" title="Procent 1RM — kg z Pomiary → Siła bazowa" oninput="builderPreviewKg(this.closest(\'.ex-row\'));builderRefreshPeriodPreview()">'
     +'<div class="ex-row-coach">'
-    +'<input type="text" placeholder="Wskazówka dla klienta (np. łopatki ściągnięte)" class="ex-inp ex-inp-name" data-f="note" style="font-size:11px;">'
-    +'<input type="url" placeholder="Film: YouTube / Vimeo / .mp4" class="ex-inp ex-inp-name" data-f="video" style="font-size:11px;" title="Link do filmu techniki">'
+    +'<input type="text" placeholder="Wskazówka dla klienta (np. łopatki ściągnięte)" class="ex-inp ex-inp-name builder-sub-input" data-f="note">'
+    +'<input type="url" placeholder="Film: YouTube / Vimeo / .mp4" class="ex-inp ex-inp-name builder-sub-input" data-f="video" title="Link do filmu techniki">'
     +'</div>'
     +'<div class="ex-kind-btns">'
     +'<input type="hidden" data-f="ss" value="">'
@@ -387,6 +387,8 @@ function addRow(dayId){
     +'<div class="builder-period-preview" style="grid-column:1/-1;display:none;"></div>'
     +'</div>';
   rows.appendChild(div);
+  const nameInp=div.querySelector('[data-f="name"]');
+  if(nameInp&&typeof exAcInitInput==='function')exAcInitInput(nameInp);
   builderRefreshPeriodPreview();
 }
 function builderRemoveRow(btn){
@@ -623,7 +625,7 @@ function updatePeriod(){
     ${sportLbl}
   </div>`:'';
   const activeIdx=window._builderPeriodWeek||0;
-  el.innerHTML=sportBar+rmBar+`<div style="font-size:10px;color:var(--muted);margin-bottom:8px;">Kliknij tydzień, aby podejrzeć jak zmienią się serie / powtórzenia / kg w planie.</div>`+sch.map((w,i)=>`<button type="button" class="period-row${activeIdx===i?' active':''}" onclick="builderSelectPeriodWeek(${i})"><div style="font-family:'DM Mono',monospace;font-size:10px;color:${w.cel.includes('DELOAD')?'var(--orange)':w.nr===1?'var(--accent)':'var(--blue)'};width:46px;flex-shrink:0;">TYG ${w.nr}</div><div><div style="font-size:12px;font-weight:600;">${w.cel}</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">${w.rpe}</div></div></button>`).join('')+(activeIdx>0?`<button type="button" class="btn btn-primary btn-sm" style="width:100%;margin-top:8px;" onclick="builderApplyPeriodWeek()">Użyj wartości z TYG ${activeIdx+1} w formularzu</button>`:'');
+  el.innerHTML=sportBar+rmBar+`<div class="ui-section-sub" style="margin-bottom:12px;">Kliknij tydzień, aby podejrzeć jak zmienią się serie, powtórzenia i kg w planie.</div>`+sch.map((w,i)=>`<button type="button" class="period-row${activeIdx===i?' active':''}" onclick="builderSelectPeriodWeek(${i})"><div class="period-row-week" style="color:${w.cel.includes('DELOAD')?'var(--orange)':w.nr===1?'var(--accent)':'var(--blue)'};">Tydz. ${w.nr}</div><div style="min-width:0;flex:1;"><div class="period-row-title">${w.cel}</div><div class="period-row-sub">${w.rpe}</div></div></button>`).join('')+(activeIdx>0?`<button type="button" class="btn btn-primary btn-sm" style="width:100%;margin-top:12px;" onclick="builderApplyPeriodWeek()">Użyj wartości z tygodnia ${activeIdx+1} w formularzu</button>`:'');
   document.querySelectorAll('#builder-days .ex-row').forEach(r=>{if(typeof builderPreviewKg==='function')builderPreviewKg(r);});
   builderRefreshPeriodPreview();
 }
@@ -1007,9 +1009,9 @@ function renderCalWeek(){
         const topPct=(timeMin/60)*100;
         const dur=s.duration||60;
         const heightPx=Math.max(20,(dur/60)*56);
-        return `<div class="cal-session-block" style="background:${col}22;border-color:${col}44;color:${col};top:${topPct}%;height:${heightPx}px;" onclick="editSession('${s.id}')" title="${c?c.name:'Klient'} — ${s.type||''} ${s.time||''}">
-          <div style="font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${s.source==='garmin'?'⌚ ':''}${c?c.name.split(' ')[0]:'Klient'}</div>
-          <div style="font-size:9px;opacity:0.8;">${s.time||''} ${s.type||''}</div>
+        return `<div class="cal-session-block" style="background:var(--input-bg);border:1px solid rgba(255,255,255,0.1);border-left:3px solid ${col};color:var(--text);top:${topPct}%;height:${heightPx}px;" onclick="editSession('${s.id}')" title="${c?c.name:'Klient'} — ${s.type||''} ${s.time||''}">
+          <div class="cal-session-name">${s.source==='garmin'?'⌚ ':''}${c?c.name.split(' ')[0]:'Klient'}</div>
+          <div class="cal-session-meta">${s.time||''}${s.type?' · '+s.type:''}</div>
         </div>`;
       }).join('');
       gridHTML+=`<div class="cal-cell${isToday?' today-col':''}" onclick="quickAddSession('${ds}','${String(h).padStart(2,'0')}:00')">${sessHTML}</div>`;
@@ -1067,7 +1069,7 @@ function renderCalMonth(){
         const c=CL.find(x=>x.id===s.clientId);
         const ci=c?CL.indexOf(c):-1;
         const col=SESS_COLORS[(ci>=0?ci:0)%6];
-        return `<div class="cal-month-sess" style="background:${col}22;color:${col};" onclick="event.stopPropagation();editSession('${s.id}')">${s.time||''} ${c?c.name.split(' ')[0]:'Klient'}</div>`;
+        return `<div class="cal-month-sess" style="background:var(--input-bg);border-left:3px solid ${col};color:var(--text);" onclick="event.stopPropagation();editSession('${s.id}')"><span style="color:var(--muted);">${s.time||''}</span> ${c?c.name.split(' ')[0]:'Klient'}</div>`;
       }).join('')}
       ${daySess.length>3?`<div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">+${daySess.length-3} więcej</div>`:''}
     </div>`;
@@ -1171,21 +1173,21 @@ function renderCalSidebar(){
 
   const statsEl=document.getElementById('cal-week-stats');
   if(statsEl)statsEl.innerHTML=`
-    <div style="background:var(--s3);border-radius:8px;padding:8px;text-align:center;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--accent);">${weekSess.length}</div>
-      <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">SESJI</div>
+    <div class="ui-kpi-mini">
+      <div class="ui-kpi-mini-val">${weekSess.length}</div>
+      <div class="ui-kpi-mini-lbl">Sesji</div>
     </div>
-    <div style="background:var(--s3);border-radius:8px;padding:8px;text-align:center;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--blue);">${new Set(weekSess.map(s=>s.clientId)).size}</div>
-      <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">KLIENTÓW</div>
+    <div class="ui-kpi-mini">
+      <div class="ui-kpi-mini-val" style="color:var(--blue);">${new Set(weekSess.map(s=>s.clientId)).size}</div>
+      <div class="ui-kpi-mini-lbl">Klientów</div>
     </div>
-    <div style="background:var(--s3);border-radius:8px;padding:8px;text-align:center;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--teal);">${weekSess.reduce((s,sess)=>s+(sess.duration||60),0)}</div>
-      <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">MINUT</div>
+    <div class="ui-kpi-mini">
+      <div class="ui-kpi-mini-val" style="color:var(--teal);">${weekSess.reduce((s,sess)=>s+(sess.duration||60),0)}</div>
+      <div class="ui-kpi-mini-lbl">Minut</div>
     </div>
-    <div style="background:var(--s3);border-radius:8px;padding:8px;text-align:center;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--orange);">${SE.filter(s=>s.date===dateStr(today)).length}</div>
-      <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">DZIŚ</div>
+    <div class="ui-kpi-mini">
+      <div class="ui-kpi-mini-val" style="color:var(--orange);">${SE.filter(s=>s.date===dateStr(today)).length}</div>
+      <div class="ui-kpi-mini-lbl">Dziś</div>
     </div>`;
 
   // upcoming
@@ -1193,21 +1195,21 @@ function renderCalSidebar(){
   const up=SE.filter(s=>s.date>=nowStr).sort((a,b)=>a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||'')).slice(0,6);
   const upEl=document.getElementById('cal-upcoming');
   if(!upEl)return;
-  upEl.innerHTML=!up.length?'<div style="color:var(--muted);font-size:12px;text-align:center;padding:20px 0;">Brak nadchodzących sesji</div>'
+  upEl.innerHTML=!up.length?'<div class="ui-section-sub" style="text-align:center;padding:24px 0;">Brak nadchodzących sesji</div>'
     :up.map(s=>{
       const c=CL.find(x=>x.id===s.clientId);
       const ci=c?CL.indexOf(c):-1;
       const col=SESS_COLORS[(ci>=0?ci:0)%6];
       const d=new Date(s.date+'T12:00:00');
       const isToday=s.date===nowStr;
-      return `<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="editSession('${s.id}')">
-        <div style="text-align:center;min-width:36px;">
-          <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${isToday?'DZIŚ':CAL_DAYS_PL[(d.getDay()+6)%7]}</div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:${col};">${d.getDate()}</div>
+      return `<div style="display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border-subtle);cursor:pointer;" onclick="editSession('${s.id}')">
+        <div style="text-align:center;min-width:40px;">
+          <div style="font-size:var(--font-size-label);color:var(--text-label);font-weight:600;">${isToday?'Dziś':CAL_DAYS_PL[(d.getDay()+6)%7]}</div>
+          <div class="ui-kpi-mini-val" style="font-size:22px;color:${col};">${d.getDate()}</div>
         </div>
-        <div style="flex:1;">
-          <div style="font-size:12px;font-weight:700;">${c?c.name:'Klient'}</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:2px;">${s.time||'—'} · ${s.type||'Sesja'}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:var(--font-size-sm);font-weight:700;color:var(--text-primary);">${c?c.name:'Klient'}</div>
+          <div style="font-size:var(--font-size-label);color:var(--text-label);margin-top:4px;">${s.time||'—'} · ${s.type||'Sesja'}</div>
         </div>
       </div>`;
     }).join('');
@@ -1264,17 +1266,17 @@ function renderRecordedExercises(s){
   const titleEl=wrap.querySelector('[data-rec-ex-title]');
   if(titleEl)titleEl.textContent='Zapisane serie i ocena (z '+src+')';
   const ratingLine=hasRating&&typeof sessionRatingLabel==='function'
-    ?`<div style="background:var(--s3);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:9px 11px;font-size:13px;font-weight:700;color:var(--text);">Ocena: ${sessionRatingLabel(s.feedback)}</div>`
+    ?`<div class="as-recorded-rating">Ocena: ${sessionRatingLabel(s.feedback)}</div>`
     :'';
-  const noteLine=(s.note||s.notes)?`<div style="font-size:12px;color:var(--text);padding:3px 4px 5px;font-weight:500;">Komentarz: <span style="color:var(--muted);font-weight:500;">${escHtml(s.note||s.notes)}</span></div>`:'';
+  const noteLine=(s.note||s.notes)?`<div class="as-recorded-note">Komentarz: <span>${escHtml(s.note||s.notes)}</span></div>`:'';
   const exHtml=hasDetailedSets?s.exercises.map(e=>{
     const setsText=(e.sets||[]).map(st=>`${st.kg||0}kg × ${st.reps||0}`).join(' · ');
-    return `<div style="background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.005)),var(--s3);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:9px 11px;">
-      <div style="font-size:12px;font-weight:700;margin-bottom:4px;color:var(--text);">${escHtml(e.name||'')}</div>
-      <div style="font-size:12px;color:var(--text);font-family:'DM Mono',monospace;font-weight:700;letter-spacing:0.1px;">${setsText||'brak zarejestrowanych serii'}</div>
+    return `<div class="as-recorded-ex-card">
+      <div class="as-recorded-ex-name">${escHtml(e.name||'')}</div>
+      <div class="as-recorded-ex-sets">${setsText||'brak zarejestrowanych serii'}</div>
     </div>`;
   }).join(''):'';
-  list.innerHTML=ratingLine+noteLine+exHtml+(s.volume?`<div style="font-size:11px;color:var(--accent);text-align:right;font-family:'DM Mono',monospace;padding-top:2px;">Łączna objętość: ${s.volume} kg</div>`:'');
+  list.innerHTML=ratingLine+noteLine+exHtml+(s.volume?`<div class="as-recorded-volume">Łączna objętość: ${s.volume} kg</div>`:'');
   wrap.style.display='block';
 }
 

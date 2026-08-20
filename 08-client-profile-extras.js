@@ -814,29 +814,37 @@ function renderCPOverview(c){
     ${extra||''}
   </div>`;
   const infoRow=(label,val)=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;"><span style="color:var(--muted);">${label}</span><span style="font-weight:600;color:var(--text);">${escHtml(String(val||'—'))}</span></div>`;
+  const dataTile=(label,val,opts={})=>{
+    const v=val==null||val===''? '—':String(val);
+    const sm=opts.sm||label==='Email'||label==='Telefon';
+    const color=opts.color||'var(--text)';
+    return `<div class="cp-data-tile"><div class="cp-data-val${sm?' cp-data-val-sm':''}" style="color:${color};" title="${escHtml(v)}">${escHtml(v)}</div><div class="cp-data-lbl">${label}</div></div>`;
+  };
+  const statusLabel=c.status==='active'?'Aktywny':c.status==='inactive'?'Nieaktywny':'Zarchiwizowany';
+  const statusColor=c.status==='active'?'var(--teal)':c.status==='inactive'?'var(--orange)':'var(--muted)';
 
   document.getElementById('cp-body').innerHTML=`
     ${editing?cpClientDataEditHTML(c):''}
     ${!editing?`
-    <!-- profil w stylu Studio AI -->
+    <!-- profil klienta — kafelki -->
     <div style="background:var(--s2);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:16px;">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
         <div style="font-size:14px;font-weight:700;">📋 Profil klienta</div>
         <button type="button" class="btn btn-primary btn-sm" onclick="startCPEdit('${c.id}')">✏️ Edytuj</button>
       </div>
-      ${infoRow('Imię',c.name)}
-      ${infoRow('Email',c.email)}
-      ${infoRow('Telefon',c.phone)}
-      ${infoRow('Wiek',c.age?c.age+' lat':'')}
-      ${infoRow('Płeć',genderLabel)}
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
-        ${infoRow('Waga',c.weight?c.weight+' kg':'')}
-        ${infoRow('Wzrost',c.height?c.height+' cm':'')}
+      <div class="cp-data-grid">
+        ${dataTile('Imię',c.name,{color:'var(--accent)'})}
+        ${dataTile('Email',c.email,{sm:true})}
+        ${dataTile('Telefon',c.phone||'—',{sm:true,color:c.phone?'var(--text)':'var(--muted)'})}
+        ${dataTile('Wiek',c.age?c.age+' lat':'—',{color:'var(--blue)'})}
+        ${dataTile('Płeć',genderLabel)}
+        ${dataTile('Waga',c.weight?c.weight+' kg':'—',{color:'var(--gold)'})}
+        ${dataTile('Wzrost',c.height?c.height+' cm':'—',{color:'var(--blue)'})}
+        ${dataTile('Cel',goalLabels[c.goal]||c.goal||'—',{color:'var(--accent)'})}
+        ${dataTile('Poziom',levelLabels[c.level]||c.level||'—')}
+        ${dataTile('Status',statusLabel,{color:statusColor})}
       </div>
-      ${infoRow('Cel',goalLabels[c.goal]||c.goal)}
-      ${infoRow('Poziom',levelLabels[c.level]||c.level)}
-      ${infoRow('Status',c.status==='active'?'Aktywny':c.status==='inactive'?'Nieaktywny':'Zarchiwizowany')}
-      ${c.notes?`<div style="margin-top:10px;background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.2);border-radius:8px;padding:8px 12px;font-size:11px;"><span style="color:var(--red);">⚠ Kontuzje/uwagi:</span> ${escHtml(c.notes)}</div>`:''}
+      ${c.notes?`<div style="margin-top:12px;background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.2);border-radius:8px;padding:8px 12px;font-size:11px;"><span style="color:var(--red);">⚠ Kontuzje/uwagi:</span> ${escHtml(c.notes)}</div>`:''}
     </div>
     ${!c.phone?`<div style="background:rgba(201,123,63,0.12);border:1px solid rgba(201,123,63,0.35);border-radius:8px;padding:10px 12px;margin-bottom:16px;font-size:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
       <span>Dodaj numer telefonu — potrzebny do WhatsApp i przypomnień.</span>

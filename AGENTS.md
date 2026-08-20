@@ -22,7 +22,7 @@ Static site — no committed `package.json`. Do not commit `node_modules/`, `pac
 
 **Planowanie — tło sportowe:** pole `priorSports[]` + `activityLevel` na kliencie (modal + profil + onboarding + generator AI). `clientSportProfile()` liczy bias wytrzymałość/siła; `clientSportProfileForAI()` trafia do promptu `aplGenerate`.
 
-**Motyw studia:** domyślna paleta CSS (`styles.css`) — czerwień `#e60000`, tło grafit `#1a1a1a` / `#252525`, akcent niebieski `#0055a4`, żółty `#ffd700`. Nadpisanie akcentu: Ustawienia → Marka lub `SETTINGS.brand.accentColor`; `applyBrandTheme()` po starcie i po wczytaniu Firestore.
+**Motyw / Design System:** `globals.css` (tokeny + reguły bazowe) + `styles.css` (komponenty). Tokeny są też zduplikowane w `:root` w `styles.css` jako fallback. W `index.html` ładuj w tej kolejności; przy wdrożeniu **oba pliki muszą być na serwerze** (wcześniej `globals.css` nie był w repo → 404 → brak zmian wizualnych). Cache: linki mają `?v=3` — po zmianie CSS podbij wersję. Paleta: tło `#111318`, karty `#1E202A`, akcent `#FF3B30`, font UI Inter. Nadpisanie akcentu: Ustawienia → Marka lub `SETTINGS.brand.accentColor`; `applyBrandTheme()` po starcie i po wczytaniu Firestore.
 
 **Statystyki klienta:** ekran **Moje postępy** (`capClientProgressScreenHTML`) — KPI, wykresy SVG, obwody, rekordy.
 

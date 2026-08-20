@@ -8,17 +8,17 @@ html = open('index.html', encoding='utf-8').read()
 
 local_refs = []
 for m in re.finditer(r'<script[^>]+src="([^"]+)"', html):
-    src = m.group(1)
+    src = m.group(1).split('?')[0]
     if src.startswith('http'):
         continue
     local_refs.append(src)
 for m in re.finditer(r'<link[^>]+href="([^"]+)"[^>]*rel="stylesheet"', html):
-    href = m.group(1)
+    href = m.group(1).split('?')[0]
     if href.startswith('http'):
         continue
     local_refs.append(href)
 for m in re.finditer(r'<link[^>]+rel="stylesheet"[^>]+href="([^"]+)"', html):
-    href = m.group(1)
+    href = m.group(1).split('?')[0]
     if href.startswith('http'):
         continue
     local_refs.append(href)
