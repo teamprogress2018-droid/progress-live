@@ -267,12 +267,14 @@ function addWExRow(){
   const div=document.createElement('div');
   div.className='wb-ex-row';
   div.innerHTML=
-    '<input type="text" class="wb-inp" placeholder="Nazwa ćwiczenia..." list="ex-dl">'+
+    '<input type="text" class="wb-inp ex-ac-input" placeholder="Nazwa ćwiczenia..." autocomplete="off">'+
     '<input type="number" class="wb-inp" placeholder="4" min="1">'+
     '<input type="text" class="wb-inp" placeholder="8-10">'+
     '<input type="text" class="wb-inp" placeholder="90s">'+
     '<button onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--muted2);font-size:18px;cursor:pointer;">×</button>';
   rows.appendChild(div);
+  const nameInp=div.querySelector('.wb-inp');
+  if(nameInp&&typeof exAcInitInput==='function')exAcInitInput(nameInp);
 }
 
 async function saveWorkout(){
@@ -1430,11 +1432,13 @@ function tplcAddExRow(list,ex){
   const row=document.createElement('div');
   row.style.cssText='display:grid;grid-template-columns:1fr 54px 64px 28px;gap:6px;align-items:center;';
   row.innerHTML=`
-    <input type="text" class="form-input tplc-ex-n" placeholder="Ćwiczenie" value="${escHtml(ex.n||'')}" style="font-size:12px;" list="ex-dl">
+    <input type="text" class="form-input tplc-ex-n ex-ac-input" placeholder="Ćwiczenie" value="${escHtml(ex.n||'')}" style="font-size:12px;" autocomplete="off">
     <input type="text" class="form-input tplc-ex-s" placeholder="Serie" value="${escHtml(ex.s||'3')}" style="font-size:12px;">
     <input type="text" class="form-input tplc-ex-r" placeholder="Powt." value="${escHtml(ex.r||'10')}" style="font-size:12px;">
     <button type="button" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:16px;" onclick="this.parentElement.remove()">×</button>`;
   list.appendChild(row);
+  const nameInp=row.querySelector('.tplc-ex-n');
+  if(nameInp&&typeof exAcInitInput==='function')exAcInitInput(nameInp);
 }
 
 async function saveCustomTemplate(){

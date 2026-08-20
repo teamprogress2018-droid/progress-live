@@ -161,6 +161,38 @@ function aplExtractJsonObject(text){
   return s.slice(start);
 }
 
+function aplEscapeInnerQuotes(s){
+  let out='';
+  let i=0;
+  let inStr=false;
+  let esc=false;
+  while(i<s.length){
+    const c=s[i];
+    if(inStr){
+      if(esc){out+=c;esc=false;i++;continue;}
+      if(c==='\\'){out+=c;esc=true;i++;continue;}
+      if(c!=='"'){out+=c;i++;continue;}
+      let j=i+1;
+      while(j<s.length&&/[\s\n\r\t]/.test(s[j]))j++;
+      const n=s[j];
+      if(!n||n===','||n===':'||n==='}'||n===']'){
+        inStr=false;
+        out+=c;
+        i++;
+        continue;
+      }
+      out+='\\"';
+      i++;
+      continue;
+    }
+    out+=c;
+    if(c==='"')inStr=true;
+    i++;
+  }
+  if(inStr)out+='"';
+  return out;
+}
+
 function aplRepairJsonText(input){
   let s=String(input||'')
     .replace(/```(?:json)?/gi,'')
@@ -168,6 +200,7 @@ function aplRepairJsonText(input){
     .replace(/[\u2018\u2019]/g,"'")
     .trim();
   s=aplExtractJsonObject(s);
+  s=aplEscapeInnerQuotes(s);
 
   let inStr=false,esc=false;
   for(let i=0;i<s.length;i++){
@@ -197,6 +230,12 @@ function aplRepairJsonText(input){
       continue;
     }
     if(isWs(c)){out+=c;continue;}
+    if(c===','){
+      out=out.replace(/,(\s*)$/,'$1');
+      out+=c;
+      lastSig=',';
+      continue;
+    }
     if(c==='"'){
       maybeComma();
       inStr=true;
@@ -239,21 +278,28 @@ function aplRepairJsonText(input){
     else if(c==='}'||c===']')stack.pop();
   }
   while(stack.length)out+=stack.pop();
-  return out.replace(/,(\s*[}\]])/g,'$1');
+  return out.replace(/,(\s*[}\]])/g,'$1').replace(/,\s*,+/g,',');
 }
 
 function aplParsePlanJson(raw){
-  const repaired=aplRepairJsonText(raw);
-  try{return JSON.parse(repaired);}catch(e){
-    const clean=(raw||'').replace(/```(?:json)?/gi,'').trim();
-    try{return JSON.parse(clean);}catch(e2){
+  const attempts=[
+    ()=>JSON.parse(aplRepairJsonText(raw)),
+    ()=>JSON.parse(aplEscapeInnerQuotes(aplExtractJsonObject(String(raw||'').replace(/```(?:json)?/gi,'').trim()))),
+    ()=>{
+      const clean=String(raw||'').replace(/```(?:json)?/gi,'').trim();
       const m=clean.match(/\{[\s\S]*\}/);
-      if(m)return JSON.parse(aplRepairJsonText(m[0]));
-      throw e;
+      if(!m)throw new Error('Brak JSON w odpowiedzi AI');
+      return JSON.parse(aplRepairJsonText(m[0]));
     }
+  ];
+  let lastErr=null;
+  for(const tryParse of attempts){
+    try{return tryParse();}catch(e){lastErr=e;}
   }
+  throw lastErr||new Error('Nie udało się sparsować planu AI');
 }
 window.aplExtractJsonObject=aplExtractJsonObject;
+window.aplEscapeInnerQuotes=aplEscapeInnerQuotes;
 window.aplRepairJsonText=aplRepairJsonText;
 window.aplParsePlanJson=aplParsePlanJson;
 
@@ -431,7 +477,7 @@ UWZGLĘDNIJ ANATOMIĘ I BIOMECHANIKĘ KLIENTA przy doborze wariantów ćwiczeń 
 
 UWZGLĘDNIJ TŁO SPORTOWE: jeśli klient ma predyspozycję wytrzymałościową (bieganie, kolarstwo, pływanie) — więcej pracy tlenowej, wyższe zakresy powtórzeń na start, mniejszy nacisk na maksymalne obciążenia siłowe. Jeśli dominacja siłowa (siłownia, kulturystyka) — szybsza progresja kg, niższe powtórzenia, mniej cardio.
 
-Każdy dzień: 4 ćwiczenia główne + 1 core. Pole "notes" max 60 znaków. warmupExercises: dokładnie 3 pozycje.`;
+Każdy dzień: 4 ćwiczenia główne + 1 core. Pole "notes" max 60 znaków — bez cudzysłowów w tekście (używaj apostrofów). warmupExercises: dokładnie 3 pozycje. Cała odpowiedź musi być poprawnym JSON bez komentarzy i bez markdown.`;
 
   const userMsg=`Stwórz plan treningowy:
 - Cel: ${goal}
@@ -481,13 +527,28 @@ ${client?`- Klient: ${client.name}, cel: ${client.goal}, poziom: ${client.level}
           chunkUser=`Plan: ${plan?.planName||method}. Istniejące dni: ${(plan?.days||[]).map(d=>d.dayName).join('; ')}.\nDodaj dni ${from}–${to}.\n${userMsg}`;
         }
       }
-      const data=await aplAnthropicRequest({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:aplPlanTokenBudget(chunkDays),
-        system:chunkSystem,
-        messages:[{role:'user',content:chunkUser}]
-      });
-      const chunkPlan=aplParsePlanJson(data?.content?.[0]?.text||'');
+      let chunkPlan=null;
+      let chunkRaw='';
+      for(let parseTry=0;parseTry<2;parseTry++){
+        try{
+          const data=await aplAnthropicRequest({
+            model:'claude-sonnet-4-20250514',
+            max_tokens:aplPlanTokenBudget(chunkDays),
+            system:chunkSystem+(parseTry?'\n\nKRYTYCZNE: zwróć WYŁĄCZNIE poprawny JSON. W polach tekstowych nie używaj cudzysłowów — zamień je na apostrofy. Bez markdown.': ''),
+            messages:[{role:'user',content:chunkUser+(parseTry?'\n\nPoprzednia odpowiedź miała błędny JSON. Zwróć sam czysty JSON zgodny ze schematem.': '')}]
+          });
+          chunkRaw=data?.content?.[0]?.text||'';
+          if(!chunkRaw.trim())throw new Error('Pusta odpowiedź AI');
+          chunkPlan=aplParsePlanJson(chunkRaw);
+          break;
+        }catch(parseErr){
+          const msg=String(parseErr?.message||parseErr||'');
+          const isJson=/JSON|parse|Expected|,|\]|Unexpected|Brak JSON/i.test(msg);
+          if(parseTry===0&&isJson)continue;
+          throw parseErr;
+        }
+      }
+      if(!chunkPlan||!(chunkPlan.days||[]).length)throw new Error('AI zwróciło plan bez dni treningowych');
       if(isFirst)plan=chunkPlan;
       else plan.days=(plan.days||[]).concat(chunkPlan.days||[]);
     }
@@ -619,7 +680,7 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
   // ── DNI TRENINGOWE ──
   (plan.days||[]).forEach((d,di)=>{
     const warmupExs=d.warmupExercises||[];
-    html+=`<div style="margin-bottom:22px;border-radius:14px;overflow:hidden;border:1px solid rgba(230,0,0,0.2);">
+    html+=`<div style="margin-bottom:22px;border-radius:14px;overflow:visible;border:1px solid rgba(230,0,0,0.2);">
       <div style="background:var(--adim);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
         <div style="cursor:pointer;" onclick="aplEditDayName(${di})">
           <div style="font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1.5px;color:var(--accent);">${d.dayName}</div>
@@ -733,36 +794,52 @@ function aplSetWeek(idx){
 // ════════════════════════════════════════
 let aplLastClient=null;
 
+function aplInitExerciseNameInput(di,ei,focusSelect){
+  const inp=document.getElementById(`apl-edit-name-${di}-${ei}`);
+  if(!inp)return;
+  if(typeof exAcInitInput==='function')exAcInitInput(inp);
+  if(focusSelect){
+    inp.focus();
+    if(inp.value==='Nowe ćwiczenie'||inp.value==='Ćwiczenie 1'){inp.value='';}
+    inp.select();
+    if(typeof exAcRender==='function')exAcRender(inp);
+  }
+}
+
 function aplEditExercise(di,ei){
   const ex=aplLastPlan.days[di].exercises[ei];
   const curWeek=aplLastPlan.currentWeek||(aplLastPlan.weekKeys||['w1'])[0];
   const wp=ex[curWeek]||{};
   const row=document.getElementById(`apl-ex-row-${di}-${ei}`);
   if(!row||!ex)return;
+  const nameVal=(ex.name==='Nowe ćwiczenie'||ex.name==='Ćwiczenie 1')?'':(ex.name||'');
   row.innerHTML=`
-    <div style="display:flex;align-items:flex-start;gap:12px;">
+    <div class="apl-ex-edit" style="display:flex;align-items:flex-start;gap:12px;">
       <div class="apl-ex-num" style="flex-shrink:0;margin-top:2px;">${ei+1}</div>
       <div style="flex:1;min-width:0;">
-        <input type="text" id="apl-edit-name-${di}-${ei}" value="${(ex.name||'').replace(/"/g,'&quot;')}" style="width:100%;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:6px 9px;color:var(--text);font-size:13px;font-weight:700;margin-bottom:5px;">
-        <input type="text" id="apl-edit-notes-${di}-${ei}" value="${(ex.notes||'').replace(/"/g,'&quot;')}" placeholder="notatka" style="width:100%;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:5px 9px;color:var(--muted);font-size:11px;">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:5px;font-weight:500;">Wpisz nazwę lub wybierz z listy biblioteki</div>
+        <input type="text" id="apl-edit-name-${di}-${ei}" class="form-input ex-ac-input ex-inp-name" autocomplete="off" value="${typeof escHtml==='function'?escHtml(nameVal):nameVal.replace(/"/g,'&quot;')}" placeholder="Szukaj ćwiczenia… (np. wyciskanie, przysiad)" style="width:100%;font-size:14px;font-weight:600;margin-bottom:6px;">
+        <input type="text" id="apl-edit-notes-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(ex.notes||''):(ex.notes||'').replace(/"/g,'&quot;')}" placeholder="Notatka dla klienta (opcjonalnie)" style="width:100%;font-size:12px;">
       </div>
-      <div style="display:flex;gap:4px;flex-shrink:0;">
-        <button onclick="aplSaveExerciseEdit(${di},${ei})" title="Zapisz" style="background:var(--teal);border:none;border-radius:6px;width:26px;height:26px;color:#000;cursor:pointer;font-size:13px;">✓</button>
-        <button onclick="aplRerenderCurrent()" title="Anuluj" style="background:var(--s3);border:1px solid var(--border2);border-radius:6px;width:26px;height:26px;color:var(--red);cursor:pointer;font-size:12px;">✕</button>
+      <div style="display:flex;gap:4px;flex-shrink:0;padding-top:18px;">
+        <button onclick="aplSaveExerciseEdit(${di},${ei})" title="Zapisz" style="background:var(--teal);border:none;border-radius:6px;width:28px;height:28px;color:#000;cursor:pointer;font-size:14px;font-weight:700;">✓</button>
+        <button onclick="aplRerenderCurrent()" title="Anuluj" style="background:var(--input-bg);border:1px solid var(--border2);border-radius:6px;width:28px;height:28px;color:var(--red);cursor:pointer;font-size:13px;">✕</button>
       </div>
     </div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px;padding-left:42px;">
-      <div><div style="font-size:8px;color:var(--muted);text-transform:uppercase;margin-bottom:3px;">Serie</div><input type="text" id="apl-edit-sets-${di}-${ei}" value="${wp.s||ex.sets||''}" style="width:100%;text-align:center;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:6px 2px;color:var(--accent);font-size:12px;"></div>
-      <div><div style="font-size:8px;color:var(--muted);text-transform:uppercase;margin-bottom:3px;">Powt.</div><input type="text" id="apl-edit-reps-${di}-${ei}" value="${wp.r||ex.reps||''}" style="width:100%;text-align:center;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:6px 2px;color:var(--teal);font-size:12px;"></div>
-      <div><div style="font-size:8px;color:var(--muted);text-transform:uppercase;margin-bottom:3px;">Przerwa</div><input type="text" id="apl-edit-rest-${di}-${ei}" value="${wp.rest||ex.rest||''}" style="width:100%;text-align:center;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:6px 2px;color:var(--text);font-size:12px;"></div>
-      <div><div style="font-size:8px;color:var(--muted);text-transform:uppercase;margin-bottom:3px;">RPE / kg</div><input type="text" id="apl-edit-rir-${di}-${ei}" value="${wp.rpe||ex.rir||''}" style="width:100%;text-align:center;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:6px 2px;color:var(--gold);font-size:12px;"></div>
+      <div><div class="form-lbl" style="margin-bottom:3px;font-size:10px;">Serie</div><input type="text" id="apl-edit-sets-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(wp.s||ex.sets||''):(wp.s||ex.sets||'').replace(/"/g,'&quot;')}" style="width:100%;text-align:center;font-size:13px;color:var(--accent);"></div>
+      <div><div class="form-lbl" style="margin-bottom:3px;font-size:10px;">Powt.</div><input type="text" id="apl-edit-reps-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(wp.r||ex.reps||''):(wp.r||ex.reps||'').replace(/"/g,'&quot;')}" style="width:100%;text-align:center;font-size:13px;color:var(--teal);"></div>
+      <div><div class="form-lbl" style="margin-bottom:3px;font-size:10px;">Przerwa</div><input type="text" id="apl-edit-rest-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(wp.rest||ex.rest||''):(wp.rest||ex.rest||'').replace(/"/g,'&quot;')}" style="width:100%;text-align:center;font-size:13px;"></div>
+      <div><div class="form-lbl" style="margin-bottom:3px;font-size:10px;">RPE / kg</div><input type="text" id="apl-edit-rir-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(wp.rpe||ex.rir||''):(wp.rpe||ex.rir||'').replace(/"/g,'&quot;')}" style="width:100%;text-align:center;font-size:13px;color:var(--gold);"></div>
     </div>`;
+  setTimeout(()=>aplInitExerciseNameInput(di,ei,true),30);
 }
 
 function aplSaveExerciseEdit(di,ei){
   const ex=aplLastPlan.days[di].exercises[ei];
   const curWeek=aplLastPlan.currentWeek||(aplLastPlan.weekKeys||['w1'])[0];
-  ex.name=document.getElementById(`apl-edit-name-${di}-${ei}`).value.trim()||ex.name;
+  const nameEl=document.getElementById(`apl-edit-name-${di}-${ei}`);
+  ex.name=(nameEl&&nameEl.value.trim())||ex.name||'Ćwiczenie';
   ex.notes=document.getElementById(`apl-edit-notes-${di}-${ei}`).value.trim();
   if(!ex[curWeek])ex[curWeek]={};
   ex[curWeek].s=document.getElementById(`apl-edit-sets-${di}-${ei}`).value.trim();
@@ -787,7 +864,7 @@ function aplAddExercise(di){
   aplLastPlan.days[di].exercises.push({name:'Nowe ćwiczenie',sets:'3',reps:'10',rest:'90s',rir:'7',kg:'',notes:''});
   aplRerenderCurrent();
   const ei=aplLastPlan.days[di].exercises.length-1;
-  setTimeout(()=>aplEditExercise(di,ei),50);
+  setTimeout(()=>aplEditExercise(di,ei),80);
 }
 function aplRemoveExercise(di,ei){
   if(!aplLastPlan||!aplLastPlan.days[di])return;
@@ -806,18 +883,19 @@ function aplMoveExercise(di,ei,dir){
 function aplSwapExercise(di,ei){
   const ex=aplLastPlan?.days[di]?.exercises[ei];
   if(!ex)return;
-  const alts=typeof altsForExercise==='function'?altsForExercise(ex.name):[];
-  if(!alts.length){
-    const newName=prompt('Zamiennik dla: '+ex.name+'\nWpisz nazwę ćwiczenia:',ex.name);
-    if(newName&&newName.trim())ex.name=newName.trim();
-  }else{
-    const choice=alts.length===1?alts[0]:prompt('Zamienniki:\n'+alts.map((a,i)=>(i+1)+'. '+a).join('\n')+'\n\nWpisz numer lub własną nazwę:','1');
-    if(!choice)return;
-    const idx=parseInt(choice);
-    ex.name=(idx>0&&idx<=alts.length)?alts[idx-1]:choice.trim();
-  }
-  aplRerenderCurrent();
-  notify('✓ Zamiennik: '+ex.name);
+  aplEditExercise(di,ei);
+  setTimeout(()=>{
+    const inp=document.getElementById(`apl-edit-name-${di}-${ei}`);
+    if(!inp)return;
+    const alts=typeof altsForExercise==='function'?altsForExercise(ex.name):[];
+    if(alts.length){
+      inp.value='';
+      inp.placeholder='Zamienniki: '+alts.slice(0,3).join(', ')+'…';
+      if(typeof exAcRender==='function')exAcRender(inp);
+    }
+    inp.focus();
+  },60);
+  notify('Wybierz zamiennik z listy');
 }
 function aplAddDay(){
   if(!aplLastPlan)return;
@@ -861,8 +939,12 @@ function aplCreateBlankPlan(){
   aplLastClient=client;
   const goal=(document.querySelector('#apl-goals .active')||{}).dataset?.val||'masa';
   aplRenderPlan(aplLastPlan,client,goal,'Custom','3','4');
-  notify('Pusty plan gotowy — dodawaj ćwiczenia i dni');
+  notify('Pusty plan gotowy — kliknij ✏️ przy ćwiczeniu i wybierz z listy');
+  setTimeout(()=>{
+    if(aplLastPlan?.days?.[0]?.exercises?.[0])aplEditExercise(0,0);
+  },120);
 }
+window.aplInitExerciseNameInput=aplInitExerciseNameInput;
 window.aplAddExercise=aplAddExercise;
 window.aplRemoveExercise=aplRemoveExercise;
 window.aplMoveExercise=aplMoveExercise;

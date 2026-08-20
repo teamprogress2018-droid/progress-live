@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#e60000">
+<meta name="theme-color" content="#111318">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Progress Live">
@@ -11,14 +11,15 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>PROGRESS LIVE</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="globals.css?v=3">
+<link rel="stylesheet" href="styles.css?v=3">
 </head>
 <body>
 
 <!-- EKRAN LOGOWANIA -->
-<div id="auth-screen" style="position:fixed;inset:0;background:var(--bg);z-index:2000;display:flex;align-items:center;justify-content:center;">
-  <div style="width:100%;max-width:360px;padding:32px 28px;background:var(--s1);border:1px solid var(--border2);border-radius:16px;">
+<div id="auth-screen" style="position:fixed;inset:0;background:var(--bg-main);z-index:2000;display:flex;align-items:center;justify-content:center;">
+  <div style="width:100%;max-width:360px;padding:32px 28px;background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:16px;box-shadow:var(--panel-glow);">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:28px;justify-content:center;">
       <div class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></div>
       <div class="logo-text" style="font-size:20px;">PROGRESS<span>LIVE</span></div>
@@ -151,7 +152,7 @@
     <div id="dash-profile-setup" style="display:none;"></div>
 
     <!-- KPI ROW — 3 kafelki bez przychodów -->
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;" id="d-kpi-row">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:24px;" id="d-kpi-row">
       <div class="dash-kpi-card">
         <div class="dash-kpi-icon" style="background:var(--adim);color:var(--accent);">👥</div>
         <div class="dash-kpi-val" id="d-clients">0</div>
@@ -173,12 +174,12 @@
     </div>
 
     <!-- DZIŚ I JUTRO + KALENDARZ + DO ZROBIENIA — wszystko w jednym rzędzie, kalendarz od razu widoczny -->
-    <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:16px;margin-bottom:20px;align-items:start;">
-      <div class="card" style="padding:20px 24px;">
+    <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:20px;margin-bottom:24px;align-items:start;">
+      <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
           <div>
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1.5px;">DZIŚ I JUTRO</div>
-            <div style="font-size:12px;color:var(--muted);margin-top:2px;" id="d-date-lbl"></div>
+            <div class="studio-hdr">DZIŚ I JUTRO</div>
+            <div class="studio-sub" id="d-date-lbl"></div>
           </div>
           <button class="btn btn-ghost btn-sm" onclick="goTo('calendar')">Pełny kalendarz →</button>
         </div>
@@ -187,23 +188,23 @@
 
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;" id="d-cal-title">Maj 2026</div>
+          <div class="studio-hdr" style="font-size:16px!important;" id="d-cal-title">Maj 2026</div>
           <div style="display:flex;gap:4px;">
             <button onclick="dashCalPrev()" style="background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:3px 8px;cursor:pointer;color:var(--text);font-size:13px;">‹</button>
             <button onclick="dashCalNext()" style="background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:3px 8px;cursor:pointer;color:var(--text);font-size:13px;">›</button>
           </div>
         </div>
         <div id="d-mini-cal"></div>
-        <div style="display:flex;gap:12px;margin-top:10px;flex-wrap:wrap;">
-          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);"><div style="width:8px;height:8px;border-radius:50%;background:var(--blue);"></div>Zaplanowane</div>
-          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);"><div style="width:8px;height:8px;border-radius:50%;background:var(--teal);"></div>Wykonane</div>
-          <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);"><div style="width:8px;height:8px;border-radius:50%;background:var(--accent);"></div>Dziś</div>
+        <div class="cal-legend">
+          <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--blue);"></div>Zaplanowane</div>
+          <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--teal);"></div>Wykonane</div>
+          <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--accent);"></div>Dziś</div>
         </div>
       </div>
 
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;">DO ZROBIENIA</div>
+          <div class="studio-hdr" style="font-size:16px!important;">DO ZROBIENIA</div>
           <button class="btn btn-ghost btn-sm" onclick="openM('m-task')">+ Dodaj</button>
         </div>
         <div id="d-tasks-widget"></div>
@@ -233,7 +234,7 @@
   <div class="topbar"><div class="topbar-title">Klienci</div><div class="topbar-actions"><button class="btn btn-ghost btn-sm" onclick="openM('m-fitebo')">📥 Import z Fitebo</button><button class="btn btn-primary btn-sm" onclick="openM('m-client')">+ Dodaj klienta</button></div></div>
   <div style="display:flex;flex:1;overflow:hidden;">
     <div style="width:200px;flex-shrink:0;border-right:1px solid var(--border);padding:12px 0;overflow-y:auto;">
-      <div style="padding:0 12px;margin-bottom:8px;"><input type="text" placeholder="Szukaj..." id="client-search" oninput="filterClients()" style="width:100%;background:var(--s3);border:1px solid var(--border);border-radius:6px;padding:6px 9px;color:var(--text);font-size:12px;"></div>
+      <div style="padding:0 16px;margin-bottom:12px;"><input type="text" class="ui-search" placeholder="Szukaj..." id="client-search" oninput="filterClients()"></div>
       <div id="client-filter-list"></div>
     </div>
     <div style="flex:1;overflow-y:auto;">
@@ -258,14 +259,14 @@
 <!-- BUILDER -->
 <div class="screen" id="screen-builder">
   <div class="topbar"><div class="topbar-title">Nowy plan treningowy</div><div class="topbar-actions"><button class="btn btn-ghost btn-sm" onclick="goTo('plans')">Anuluj</button><button class="btn btn-primary btn-sm" onclick="savePlan()">Zapisz plan</button></div></div>
-  <div class="content" style="display:grid;grid-template-columns:1fr 300px;gap:16px;height:calc(100vh - 56px);overflow:hidden;padding-bottom:0;">
-    <div style="overflow-y:auto;padding-bottom:20px;">
-      <div class="card" style="margin-bottom:14px;">
+  <div class="content builder-layout">
+    <div class="builder-main">
+      <div class="card builder-meta-card">
         <div class="form-grid">
           <div class="form-field" style="margin-bottom:0;"><label class="form-lbl">Klient</label><select class="form-select" id="b-client" onchange="updatePeriod()"></select></div>
           <div class="form-field" style="margin-bottom:0;"><label class="form-lbl">Nazwa planu</label><input type="text" class="form-input" id="b-name" placeholder="np. PPL Masa - Tydzień 1"></div>
         </div>
-        <div class="form-grid" style="margin-top:10px;">
+        <div class="form-grid">
           <div class="form-field" style="margin-bottom:0;"><label class="form-lbl">Metoda</label>
             <select class="form-select" id="b-method">
               <option value="PPL">Push/Pull/Legs (PPL)</option><option value="FBW">Full Body (FBW)</option>
@@ -279,19 +280,19 @@
         </div>
       </div>
       <div id="builder-days"></div>
-      <button onclick="addDay()" style="width:100%;padding:11px;background:rgba(230,0,0,0.04);border:1px dashed rgba(230,0,0,0.25);border-radius:var(--r2);color:var(--accent);font-size:12px;font-family:'DM Mono',monospace;letter-spacing:0.5px;margin-bottom:20px;">+ DODAJ DZIEŃ TRENINGOWY</button>
+      <button type="button" class="add-day-btn" onclick="addDay()">+ Dodaj dzień treningowy</button>
     </div>
-    <div style="overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding-bottom:20px;">
+    <div class="builder-sidebar">
       <div class="ai-panel">
-        <div class="ai-hdr"><div class="ai-dot"></div><div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:var(--accent);">ASYSTENT AI</div><div style="font-size:9px;color:var(--muted);margin-left:auto;font-family:'DM Mono',monospace;">NSCA/NASM/ACSM</div></div>
+        <div class="ai-hdr"><div class="ai-dot"></div><div class="ai-panel-title">Asystent AI</div><div class="ai-panel-badge">NSCA / NASM / ACSM</div></div>
         <div class="ai-body">
           <div class="ai-msgs" id="ai-msgs"><div class="ai-msg bot"><div class="ai-bubble">Witaj! Zapytaj mnie o dobór ćwiczeń, serie, RPE, przerwy lub korekty dla klienta.</div></div></div>
           <div class="ai-input-row"><input type="text" class="ai-inp" id="ai-q" placeholder="Zapytaj o plan..." onkeydown="if(event.key==='Enter')askAI()"><button class="ai-send" onclick="askAI()">→</button></div>
         </div>
       </div>
       <div class="card">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:1px;color:var(--accent);margin-bottom:10px;">HARMONOGRAM PERIODYZACJI</div>
-        <div id="period-sched"><div style="font-size:11px;color:var(--muted);">Wybierz klienta</div></div>
+        <div class="ui-section-hdr">Harmonogram periodyzacji</div>
+        <div id="period-sched"><div class="ui-section-sub">Wybierz klienta</div></div>
       </div>
     </div>
   </div>
@@ -330,46 +331,46 @@
     </div>
 
     <!-- WIDOK MIESIĘCZNY -->
-    <div id="cal-month-view" style="flex:1;overflow-y:auto;display:none;padding:16px 20px;">
-      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px;" id="cal-month-dow"></div>
-      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;" id="cal-month-grid"></div>
+    <div id="cal-month-view" class="cal-month-view-wrap" style="display:none;">
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:var(--space-sm);" id="cal-month-dow"></div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;" id="cal-month-grid"></div>
     </div>
 
     <!-- WIDOK LISTA -->
-    <div id="cal-list-view" style="flex:1;overflow-y:auto;display:none;padding:16px 24px;">
+    <div id="cal-list-view" class="cal-list-view-wrap" style="display:none;">
       <div id="cal-list-body"></div>
     </div>
 
     <!-- prawy panel -->
-    <div style="width:280px;flex-shrink:0;border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;">
+    <div class="cal-sidebar">
       <!-- mini kalendarz -->
-      <div style="padding:14px;border-bottom:1px solid var(--border);">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-          <button onclick="calMiniNav(-1)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;">‹</button>
-          <div style="font-size:12px;font-weight:700;" id="cal-mini-title"></div>
-          <button onclick="calMiniNav(1)" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;">›</button>
+      <div class="cal-sidebar-section">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <button type="button" onclick="calMiniNav(-1)" style="background:none;border:none;color:var(--text-label);cursor:pointer;font-size:18px;padding:4px 8px;">‹</button>
+          <div class="ui-section-hdr" style="margin:0;font-size:var(--font-size-sm);" id="cal-mini-title"></div>
+          <button type="button" onclick="calMiniNav(1)" style="background:none;border:none;color:var(--text-label);cursor:pointer;font-size:18px;padding:4px 8px;">›</button>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;" id="cal-mini-dow">
-          <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;padding:3px 0;">P</div>
-          <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;padding:3px 0;">W</div>
-          <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;padding:3px 0;">Ś</div>
-          <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;padding:3px 0;">C</div>
-          <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;padding:3px 0;">P</div>
-          <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;padding:3px 0;">S</div>
-          <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;padding:3px 0;">N</div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;" id="cal-mini-dow">
+          <div class="cal-mini-dow-label">Pn</div>
+          <div class="cal-mini-dow-label">Wt</div>
+          <div class="cal-mini-dow-label">Śr</div>
+          <div class="cal-mini-dow-label">Cz</div>
+          <div class="cal-mini-dow-label">Pt</div>
+          <div class="cal-mini-dow-label">So</div>
+          <div class="cal-mini-dow-label">Nd</div>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;" id="cal-mini-grid"></div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:4px;" id="cal-mini-grid"></div>
       </div>
 
       <!-- statystyki tygodnia -->
-      <div style="padding:12px 14px;border-bottom:1px solid var(--border);">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:var(--accent);margin-bottom:10px;">TEN TYDZIEŃ</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="cal-week-stats"></div>
+      <div class="cal-sidebar-section">
+        <div class="cal-sidebar-title">Ten tydzień</div>
+        <div class="ui-kpi-grid" id="cal-week-stats"></div>
       </div>
 
       <!-- nadchodzące sesje -->
-      <div style="flex:1;overflow-y:auto;padding:12px 14px;">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1px;color:var(--accent);margin-bottom:10px;">NADCHODZĄCE</div>
+      <div class="cal-sidebar-section" style="flex:1;overflow-y:auto;border-bottom:none;">
+        <div class="cal-sidebar-title">Nadchodzące</div>
         <div id="cal-upcoming"></div>
       </div>
     </div>
@@ -2420,10 +2421,10 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 
     <!-- środek — ćwiczenia live -->
     <div class="live-ex-col" id="live-exercises-panel">
-      <div style="text-align:center;padding:60px 20px;color:var(--muted);">
-        <div style="font-size:36px;margin-bottom:12px;opacity:0.3;">🏋️</div>
-        <div style="font-size:14px;font-weight:600;margin-bottom:6px;">Wybierz klienta i plan</div>
-        <div style="font-size:12px;">Następnie kliknij Start sesji, aby rozpocząć trening na żywo.</div>
+      <div class="live-empty-state">
+        <div class="live-empty-state-icon">🏋️</div>
+        <div class="live-empty-state-title">Wybierz klienta i plan</div>
+        <div class="live-empty-state-sub">Następnie kliknij Start sesji, aby rozpocząć trening na żywo.</div>
       </div>
     </div>
 
@@ -2904,7 +2905,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <div id="as-plan-days-list" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
       </div>
       <div id="as-recorded-exercises" style="display:none;margin-top:4px;">
-        <div data-rec-ex-title style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">Zapisane serie i ocena</div>
+        <div data-rec-ex-title class="form-section-lbl">Zapisane serie i ocena</div>
         <div id="as-recorded-exercises-list" style="display:flex;flex-direction:column;gap:8px;"></div>
       </div>
     </div>
@@ -2933,7 +2934,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
     <div class="modal-body">
       <div class="form-field"><label class="form-lbl">Nazwa</label><input type="text" class="form-input" id="ov-name" placeholder="np. Przysiad — technika"></div>
       <div class="form-field"><label class="form-lbl">Link</label><input type="url" class="form-input" id="ov-url" placeholder="YouTube / Vimeo / bezpośredni .mp4"></div>
-      <div class="form-field"><label class="form-lbl">Ćwiczenie (opcjonalnie)</label><input type="text" class="form-input" id="ov-ex" list="ex-dl" placeholder="Podpnij pod ćwiczenie z biblioteki"></div>
+      <div class="form-field"><label class="form-lbl">Ćwiczenie (opcjonalnie)</label><input type="text" class="form-input ex-ac-input" id="ov-ex" autocomplete="off" placeholder="Podpnij pod ćwiczenie z biblioteki"></div>
       <div style="font-size:11px;color:var(--muted);line-height:1.5;">Wrzuć film na YouTube jako <b>niewidoczny</b> i wklej link — klient zobaczy go tylko u Ciebie w apce. Albo wklej bezpośredni plik .mp4.</div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-own-video')">Anuluj</button><button class="btn btn-primary" onclick="saveOwnVideo()">Zapisz film</button></div>

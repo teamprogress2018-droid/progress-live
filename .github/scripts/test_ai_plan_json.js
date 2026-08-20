@@ -75,9 +75,19 @@ ok('smart quotes', smart.planName === 'Masa');
 const extraText = aplParsePlanJson('Oto plan:\n{"planName":"HIIT","days":[]}\nKoniec.');
 ok('surrounding prose', extraText.planName === 'HIIT');
 
+const innerQuotes = aplParsePlanJson('{"planName":"Test","summary":"Utrzymaj \\"core\\" napięty","days":[]}');
+ok('escaped inner quotes', innerQuotes.planName === 'Test' && innerQuotes.summary.includes('core'));
+
+const rawInnerQuotes = aplParsePlanJson('{"planName":"Plan","summary":"Opis z cudzysłowem "w środku" tekstu","method":"PPL","weeks":4,"days":[]}');
+ok('unescaped inner quotes repaired', rawInnerQuotes.planName === 'Plan' && rawInnerQuotes.summary.includes('w środku'));
+
+const dblComma = aplParsePlanJson('{"planName":"Test",, "days":[]}');
+ok('double comma', dblComma.planName === 'Test');
+
 const src = fs.readFileSync(path.join(root, '03-ai-plangen-bizstats-aicoach.js'), 'utf8');
 ok('parser exported', src.includes('window.aplParsePlanJson=aplParsePlanJson'));
 ok('repair exported', src.includes('function aplRepairJsonText'));
+ok('inner quote helper exported', src.includes('function aplEscapeInnerQuotes'));
 
 if (failed) {
   console.error('\n' + failed + ' test(s) failed');

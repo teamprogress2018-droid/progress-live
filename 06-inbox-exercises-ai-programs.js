@@ -564,6 +564,159 @@ function allExercises(){
   return all.filter(e=>{if(seen.has(e.name))return false;seen.add(e.name);return true;});
 }
 
+// Ciemna lista podpowiedzi ćwiczeń (zamiast natywnego białego datalist)
+let _exAcState=null;
+
+function exercisesGroupedByCat(q){
+  const ql=(q||'').trim().toLowerCase();
+  const all=allExercises();
+  const filtered=ql?all.filter(e=>
+    e.name.toLowerCase().includes(ql)||
+    (e.cat||'').toLowerCase().includes(ql)||
+    (e.muscle||'').toLowerCase().includes(ql)||
+    (e.eq||'').toLowerCase().includes(ql)
+  ):all;
+  const byCat={};
+  filtered.forEach(e=>{
+    const cat=e.cat||'Inne';
+    if(!byCat[cat])byCat[cat]=[];
+    byCat[cat].push(e);
+  });
+  Object.keys(byCat).forEach(cat=>byCat[cat].sort((a,b)=>a.name.localeCompare(b.name,'pl')));
+  const order=[...Object.keys(CAT_COLORS_EX),...Object.keys(byCat).filter(c=>!CAT_COLORS_EX[c])];
+  return order.filter(cat=>byCat[cat]?.length).map(cat=>({cat,items:byCat[cat]}));
+}
+
+function exAcFilter(q){
+  const groups=exercisesGroupedByCat(q);
+  const flat=[];
+  groups.forEach(g=>g.items.forEach(e=>flat.push(e.name)));
+  return flat.slice(0,40);
+}
+
+function exAcEnsureWrap(input){
+  if(!input)return null;
+  let wrap=input.closest('.ex-ac-wrap');
+  if(wrap)return wrap;
+  wrap=document.createElement('div');
+  wrap.className='ex-ac-wrap';
+  input.parentNode.insertBefore(wrap,input);
+  wrap.appendChild(input);
+  const dd=document.createElement('div');
+  dd.className='ex-ac-dropdown';
+  wrap.appendChild(dd);
+  input.removeAttribute('list');
+  input.setAttribute('autocomplete','off');
+  input.classList.add('ex-ac-input');
+  return wrap;
+}
+
+function exAcHide(input){
+  const wrap=input&&input.closest('.ex-ac-wrap');
+  const dd=wrap&&wrap.querySelector('.ex-ac-dropdown');
+  if(dd)dd.style.display='none';
+  if(_exAcState&&(!input||_exAcState.input===input))_exAcState=null;
+}
+
+function exAcHighlight(dd,idx){
+  const items=[...dd.querySelectorAll('.ex-ac-item')];
+  items.forEach((el,i)=>el.classList.toggle('active',i===idx));
+  const active=items[idx];
+  if(active)active.scrollIntoView({block:'nearest'});
+  return items;
+}
+
+function exAcPick(input,name){
+  if(!input)return;
+  input.value=name;
+  exAcHide(input);
+  input.dispatchEvent(new Event('input',{bubbles:true}));
+  input.dispatchEvent(new Event('change',{bubbles:true}));
+}
+
+function exAcRender(input){
+  if(!input||typeof allExercises!=='function')return;
+  const wrap=exAcEnsureWrap(input);
+  const dd=wrap.querySelector('.ex-ac-dropdown');
+  const groups=exercisesGroupedByCat(input.value);
+  const total=groups.reduce((s,g)=>s+g.items.length,0);
+  if(!total){
+    dd.innerHTML='<div class="ex-ac-empty">Brak wyników — wpisz nazwę lub partię (np. klatka, plecy)</div>';
+    dd.style.display='block';
+    _exAcState={input,dd,idx:-1};
+    return;
+  }
+  const ql=(input.value||'').trim();
+  let html='';
+  groups.forEach(g=>{
+    const col=CAT_COLORS_EX[g.cat]||'var(--muted)';
+    const slice=ql?g.items.slice(0,10):g.items.slice(0,8);
+    html+=`<div class="ex-ac-group-hdr"><span class="ex-cat-dot" style="background:${col};"></span>${typeof escHtml==='function'?escHtml(g.cat):g.cat} <span style="opacity:0.65;font-weight:500;">(${g.items.length})</span></div>`;
+    slice.forEach(e=>{
+      html+=`<button type="button" class="ex-ac-item">${typeof escHtml==='function'?escHtml(e.name):e.name}</button>`;
+    });
+    if(!ql&&g.items.length>8)html+=`<div class="ex-ac-more">+ ${g.items.length-8} więcej — wpisz aby zawęzić</div>`;
+  });
+  dd.innerHTML=html;
+  dd.style.display='block';
+  _exAcState={input,dd,idx:-1};
+}
+
+function exAcInitInput(input){
+  if(!input||input.dataset.exAcInit)return;
+  input.dataset.exAcInit='1';
+  exAcEnsureWrap(input);
+  input.addEventListener('focus',()=>exAcRender(input));
+  input.addEventListener('input',()=>exAcRender(input));
+  input.addEventListener('keydown',e=>{
+    const st=_exAcState&&_exAcState.input===input?_exAcState:null;
+    const dd=st&&st.dd;
+    const open=dd&&dd.style.display!=='none';
+    const items=dd?[...dd.querySelectorAll('.ex-ac-item')]:[];
+    if(e.key==='ArrowDown'){
+      e.preventDefault();
+      if(!open){exAcRender(input);return;}
+      st.idx=Math.min(st.idx+1,items.length-1);
+      exAcHighlight(dd,st.idx);
+    }else if(e.key==='ArrowUp'){
+      e.preventDefault();
+      if(!open)return;
+      st.idx=Math.max(st.idx-1,0);
+      exAcHighlight(dd,st.idx);
+    }else if(e.key==='Enter'){
+      if(!open||st.idx<0||!items[st.idx])return;
+      e.preventDefault();
+      exAcPick(input,items[st.idx].textContent.trim());
+    }else if(e.key==='Escape'){
+      exAcHide(input);
+    }
+  });
+  input.addEventListener('blur',()=>setTimeout(()=>exAcHide(input),160));
+}
+
+function exAcInitAll(root){
+  const scope=root&&root.querySelectorAll?root:document;
+  scope.querySelectorAll('input[list="ex-dl"], input.ex-ac-input').forEach(exAcInitInput);
+}
+
+document.addEventListener('mousedown',e=>{
+  const item=e.target.closest('.ex-ac-item');
+  if(!item)return;
+  e.preventDefault();
+  const input=item.closest('.ex-ac-wrap')?.querySelector('input');
+  exAcPick(input,item.textContent.trim());
+});
+
+document.addEventListener('focusin',e=>{
+  if(e.target.matches&&e.target.matches('input[list="ex-dl"], input.ex-ac-input'))exAcInitInput(e.target);
+});
+
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>exAcInitAll());
+else exAcInitAll();
+
+window.exAcInitInput=exAcInitInput;
+window.exAcInitAll=exAcInitAll;
+
 // Zwraca własne (niedomyślne) ćwiczenie trenera o danej nazwie, jeśli istnieje.
 function findCustomEx(name){
   return (EX||[]).find(e=>e.name===name);
@@ -628,6 +781,75 @@ function setExView(v){
   renderLib();
 }
 
+window.exercisesGroupedByCat=exercisesGroupedByCat;
+
+function exCardHtml(e,i){
+  const col=CAT_COLORS_EX[e.cat]||'var(--muted2)';
+  return `<div class="ex-card${exSelId===e.name?' selected':''}" style="animation-delay:${(i||0)*0.025}s" onclick="openExDetail('${e.name.replace(/'/g,"\\'")}')">
+    <div class="ex-card-accent" style="background:${col};"></div>
+    <div style="padding-left:8px;">
+      <div class="ex-card-name">${e.name}</div>
+      <div class="ex-card-tags">
+        <span class="pill pill-muted" style="font-size:9px;">${e.cat}</span>
+        <span class="pill pill-muted" style="font-size:9px;">${e.eq}</span>
+      </div>
+      ${e.muscle?`<div style="font-size:10px;color:var(--muted);margin-bottom:4px;">${e.muscle}</div>`:''}
+      ${e.tip?`<div class="ex-card-tip">${e.tip.substring(0,80)}${e.tip.length>80?'…':''}</div>`:''}
+    </div>
+  </div>`;
+}
+
+function renderLibGroupedSections(filtered,mode){
+  const byCat={};
+  filtered.forEach(e=>{
+    const c=e.cat||'Inne';
+    if(!byCat[c])byCat[c]=[];
+    byCat[c].push(e);
+  });
+  const order=[...Object.keys(CAT_COLORS_EX),...Object.keys(byCat).filter(c=>!CAT_COLORS_EX[c])];
+  if(mode==='grid'){
+    const grid=document.getElementById('lib-grid');
+    if(!grid)return;
+    let html='';
+    let idx=0;
+    order.forEach(cat=>{
+      const items=byCat[cat];
+      if(!items?.length)return;
+      items.sort((a,b)=>a.name.localeCompare(b.name,'pl'));
+      const col=CAT_COLORS_EX[cat]||'var(--muted)';
+      html+=`<div class="ex-cat-section">
+        <div class="ex-cat-section-hdr"><span class="ex-cat-dot" style="background:${col};"></span><span>${cat}</span><span class="ex-cat-section-count">${items.length}</span></div>
+        <div class="ex-cat-section-grid">${items.map(e=>exCardHtml(e,idx++)).join('')}</div>
+      </div>`;
+    });
+    grid.innerHTML=html||'<div style="text-align:center;padding:40px;color:var(--muted);">Brak ćwiczeń pasujących do filtrów</div>';
+    return;
+  }
+  const body=document.getElementById('ex-list-body');
+  if(!body)return;
+  let html='';
+  order.forEach(cat=>{
+    const items=byCat[cat];
+    if(!items?.length)return;
+    items.sort((a,b)=>a.name.localeCompare(b.name,'pl'));
+    const col=CAT_COLORS_EX[cat]||'var(--muted2)';
+    html+=`<div class="ex-cat-section-hdr ex-cat-section-hdr-list"><span class="ex-cat-dot" style="background:${col};"></span><span>${cat}</span><span class="ex-cat-section-count">${items.length}</span></div>`;
+    items.forEach((e,i)=>{
+      html+=`<div class="ex-list-row" style="animation-delay:${i*0.02}s" onclick="openExDetail('${e.name.replace(/'/g,"\\'")}')">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="width:4px;height:32px;border-radius:2px;background:${col};flex-shrink:0;"></div>
+          <div><div style="font-size:13px;font-weight:600;color:var(--text);">${e.name}</div><div style="font-size:11px;color:var(--muted);margin-top:1px;">${e.muscle||''}</div></div>
+        </div>
+        <span class="pill pill-muted" style="font-size:10px;align-self:center;">${e.cat}</span>
+        <span class="pill pill-muted" style="font-size:10px;align-self:center;">${e.eq}</span>
+        <div style="font-size:11px;color:var(--muted);align-self:center;">${(e.tip||'').substring(0,60)}${(e.tip||'').length>60?'…':''}</div>
+        <div style="align-self:center;"><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openExDetail('${e.name.replace(/'/g,"\\'")}')">Szczegóły</button></div>
+      </div>`;
+    });
+  });
+  body.innerHTML=html||'<div style="padding:40px;text-align:center;color:var(--muted);">Brak ćwiczeń</div>';
+}
+
 function renderLib(){
   updateExDl();
   const all=allExercises();
@@ -676,25 +898,23 @@ function renderLib(){
   const countEl=document.getElementById('ex-results-count');
   if(countEl)countEl.textContent=filtered.length+' '+(filtered.length===1?'ćwiczenie':filtered.length<5?'ćwiczenia':'ćwiczeń');
 
+  const useGrouped=exCatFilter==='Wszystkie';
+
   if(exView==='grid'){
     const grid=document.getElementById('lib-grid');
+    if(useGrouped){
+      grid.classList.add('ex-lib-grouped');
+      renderLibGroupedSections(filtered,'grid');
+      return;
+    }
+    grid.classList.remove('ex-lib-grouped');
     if(!filtered.length){grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);">Brak ćwiczeń pasujących do filtrów</div>';return;}
-    grid.innerHTML=filtered.map((e,i)=>{
-      const col=CAT_COLORS_EX[e.cat]||'var(--muted2)';
-      return `<div class="ex-card${exSelId===e.name?' selected':''}" style="animation-delay:${i*0.025}s" onclick="openExDetail('${e.name.replace(/'/g,"\\'")}')">
-        <div class="ex-card-accent" style="background:${col};"></div>
-        <div style="padding-left:8px;">
-          <div class="ex-card-name">${e.name}</div>
-          <div class="ex-card-tags">
-            <span class="pill pill-muted" style="font-size:9px;">${e.cat}</span>
-            <span class="pill pill-muted" style="font-size:9px;">${e.eq}</span>
-          </div>
-          ${e.muscle?`<div style="font-size:10px;color:var(--muted);margin-bottom:4px;">${e.muscle}</div>`:''}
-          ${e.tip?`<div class="ex-card-tip">${e.tip.substring(0,80)}${e.tip.length>80?'…':''}</div>`:''}
-        </div>
-      </div>`;
-    }).join('');
+    grid.innerHTML=filtered.map((e,i)=>exCardHtml(e,i)).join('');
   } else {
+    if(useGrouped){
+      renderLibGroupedSections(filtered,'list');
+      return;
+    }
     const body=document.getElementById('ex-list-body');
     if(!filtered.length){body.innerHTML='<div style="padding:40px;text-align:center;color:var(--muted);">Brak ćwiczeń</div>';return;}
     body.innerHTML=filtered.map((e,i)=>{
