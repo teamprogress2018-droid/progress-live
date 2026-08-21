@@ -22,7 +22,9 @@ Static site — no committed `package.json`. Do not commit `node_modules/`, `pac
 
 **Planowanie — tło sportowe:** pole `priorSports[]` + `activityLevel` na kliencie (modal + profil + onboarding + generator AI). `clientSportProfile()` liczy bias wytrzymałość/siła; `clientSportProfileForAI()` trafia do promptu `aplGenerate`.
 
-**Motyw / Design System:** `globals.css` (tokeny + reguły bazowe) + `styles.css` (komponenty). Tokeny są też zduplikowane w `:root` w `styles.css` jako fallback. W `index.html` ładuj w tej kolejności; przy wdrożeniu **oba pliki muszą być na serwerze** (wcześniej `globals.css` nie był w repo → 404 → brak zmian wizualnych). Cache: linki mają `?v=3` — po zmianie CSS podbij wersję. Paleta: tło `#111318`, karty `#1E202A`, akcent `#FF3B30`, font UI Inter. Nadpisanie akcentu: Ustawienia → Marka lub `SETTINGS.brand.accentColor`; `applyBrandTheme()` po starcie i po wczytaniu Firestore.
+**Motyw / Design System:** `globals.css` (tokeny + reguły bazowe) + `styles.css` (komponenty). Tokeny są też zduplikowane w `:root` w `styles.css` jako fallback. W `index.html` ładuj w tej kolejności; przy wdrożeniu **oba pliki muszą być na serwerze** (wcześniej `globals.css` nie był w repo → 404 → brak zmian wizualnych). Cache: linki mają `?v=5` — po zmianie CSS podbij wersję. Paleta: tło `#111318`, karty `#1E202A`, akcent `#FF3B30`, font UI Inter. Nadpisanie akcentu: Ustawienia → Marka lub `SETTINGS.brand.accentColor`; `applyBrandTheme()` po starcie i po wczytaniu Firestore.
+
+**Biblioteka ćwiczeń / grafiki:** `DEF_EX` w `06-inbox-exercises-ai-programs.js` (~200 pozycji). Własne ćwiczenia: pole **Grafika techniki** (`ex-img`) + film (`ex-video`). Miniatura w autocomplete/builderze i kartach: `exThumbUrl()` — własne `img`/`assets/ex/*.svg` albo automatyczna miniaturka YouTube z filmu.
 
 **Statystyki klienta:** ekran **Moje postępy** (`capClientProgressScreenHTML`) — KPI, wykresy SVG, obwody, rekordy.
 
