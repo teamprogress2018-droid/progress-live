@@ -695,73 +695,64 @@ function buildClientInsight(c,sessions,plans,daysSince){
 }
 
 function cpClientDataEditHTML(c){
-  return `<div style="background:var(--s2);border:1px solid var(--border2);border-radius:12px;padding:16px;margin-bottom:16px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px;flex-wrap:wrap;">
-      <div style="font-size:13px;font-weight:700;">Edycja danych klienta</div>
+  const field=(id,label,control)=>`<div class="form-field cp-field-below"><div class="cp-field-control">${control}</div><label class="form-lbl" for="${id}">${label}</label></div>`;
+  return `<div class="cp-edit-card">
+    <div class="cp-edit-card-hdr">
+      <div class="cp-edit-card-title">Edycja danych klienta</div>
       <button type="button" class="btn btn-ghost btn-sm" onclick="cancelCPEdit()">Anuluj</button>
     </div>
-    <div class="form-field"><label class="form-lbl">Imię i nazwisko</label><input class="cp-edit-field form-input" id="cpe-name" value="${escHtml(c.name||'')}"></div>
+    ${field('cpe-name','Imię i nazwisko',`<input class="cp-edit-field form-input" id="cpe-name" value="${escHtml(c.name||'')}">`)}
     <div class="form-grid">
-      <div class="form-field"><label class="form-lbl">Email</label><input class="cp-edit-field form-input" id="cpe-email" type="email" value="${escHtml(c.email||'')}"></div>
-      <div class="form-field"><label class="form-lbl">Telefon</label><input class="cp-edit-field form-input" id="cpe-phone" type="tel" placeholder="+48 123 456 789" value="${escHtml(c.phone||'')}"></div>
+      ${field('cpe-email','Email',`<input class="cp-edit-field form-input" id="cpe-email" type="email" value="${escHtml(c.email||'')}">`)}
+      ${field('cpe-phone','Telefon',`<input class="cp-edit-field form-input" id="cpe-phone" type="tel" placeholder="+48 123 456 789" value="${escHtml(c.phone||'')}">`)}
     </div>
     <div class="form-grid">
-      <div class="form-field"><label class="form-lbl">Wiek</label><input type="number" class="cp-edit-field form-input" id="cpe-age" value="${c.age||''}"></div>
-      <div class="form-field"><label class="form-lbl">Płeć</label>
-        <select class="form-select" id="cpe-gender">
+      ${field('cpe-age','Wiek',`<input type="number" class="cp-edit-field form-input" id="cpe-age" value="${c.age||''}">`)}
+      ${field('cpe-gender','Płeć',`<select class="form-select" id="cpe-gender">
           <option value="M" ${c.gender==='M'?'selected':''}>Mężczyzna</option>
           <option value="K" ${c.gender==='K'?'selected':''}>Kobieta</option>
-        </select>
-      </div>
+        </select>`)}
     </div>
     <div class="form-grid">
-      <div class="form-field"><label class="form-lbl">Waga (kg)</label><input type="number" class="cp-edit-field form-input" id="cpe-weight" value="${c.weight||''}" step="0.1"></div>
-      <div class="form-field"><label class="form-lbl">Wzrost (cm)</label><input type="number" class="cp-edit-field form-input" id="cpe-height" value="${c.height||''}"></div>
+      ${field('cpe-weight','Waga (kg)',`<input type="number" class="cp-edit-field form-input" id="cpe-weight" value="${c.weight||''}" step="0.1">`)}
+      ${field('cpe-height','Wzrost (cm)',`<input type="number" class="cp-edit-field form-input" id="cpe-height" value="${c.height||''}">`)}
     </div>
     <div class="form-grid">
-      <div class="form-field"><label class="form-lbl">Cel</label>
-        <select class="form-select" id="cpe-goal">
+      ${field('cpe-goal','Cel',`<select class="form-select" id="cpe-goal">
           <option value="masa" ${c.goal==='masa'?'selected':''}>Budowa masy</option>
           <option value="sila" ${c.goal==='sila'?'selected':''}>Wzrost siły</option>
           <option value="redukcja" ${c.goal==='redukcja'?'selected':''}>Redukcja</option>
           <option value="kondycja" ${c.goal==='kondycja'?'selected':''}>Kondycja</option>
-        </select>
-      </div>
-      <div class="form-field"><label class="form-lbl">Poziom</label>
-        <select class="form-select" id="cpe-level">
+        </select>`)}
+      ${field('cpe-level','Poziom',`<select class="form-select" id="cpe-level">
           <option value="poczatkujacy" ${c.level==='poczatkujacy'?'selected':''}>Początkujący</option>
           <option value="sredni" ${c.level==='sredni'?'selected':''}>Średni</option>
           <option value="zaawansowany" ${c.level==='zaawansowany'?'selected':''}>Zaawansowany</option>
-        </select>
-      </div>
+        </select>`)}
     </div>
-    <div class="form-field"><label class="form-lbl">Status</label>
-      <select class="form-select" id="cpe-status">
+    ${field('cpe-status','Status',`<select class="form-select" id="cpe-status">
         <option value="active" ${c.status==='active'?'selected':''}>Aktywny</option>
         <option value="inactive" ${c.status==='inactive'?'selected':''}>Nieaktywny</option>
         <option value="archived" ${c.status==='archived'?'selected':''}>Zarchiwizowany</option>
-      </select>
-    </div>
-    <div class="form-field"><label class="form-lbl">Wcześniejsze sporty / aktywności</label>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Wpływa na planowanie — biegacz ma wyższą wytrzymałość, siłownia wyższą bazę siłową.</div>
-      ${typeof priorSportsChipsHTML==='function'?priorSportsChipsHTML(c.priorSports,'cpe'):''}
+      </select>`)}
+    <div class="form-field cp-field-below">
+      <div class="cp-field-control">
+        <div class="cp-field-hint">Wpływa na planowanie — biegacz ma wyższą wytrzymałość, siłownia wyższą bazę siłową.</div>
+        ${typeof priorSportsChipsHTML==='function'?priorSportsChipsHTML(c.priorSports,'cpe'):''}
+      </div>
+      <label class="form-lbl">Wcześniejsze sporty / aktywności</label>
     </div>
     <div class="form-grid">
-      <div class="form-field"><label class="form-lbl">Dotychczasowa aktywność</label>
-        <select class="form-select" id="cpe-activity">
+      ${field('cpe-activity','Dotychczasowa aktywność',`<select class="form-select" id="cpe-activity">
           <option value="sedentary" ${c.activityLevel==='sedentary'?'selected':''}>Siedzący tryb</option>
           <option value="light" ${c.activityLevel==='light'?'selected':''}>Lekka</option>
           <option value="moderate" ${(!c.activityLevel||c.activityLevel==='moderate')?'selected':''}>Umiarkowana</option>
           <option value="active" ${c.activityLevel==='active'?'selected':''}>Aktywny</option>
-        </select>
-      </div>
-      <div class="form-field"><label class="form-lbl">Profil (auto)</label>
-        <div style="padding:10px 12px;background:var(--s3);border-radius:8px;font-size:12px;color:var(--text);min-height:42px;">${typeof clientSportProfileLabel==='function'?escHtml(clientSportProfileLabel(c)||'—'):'—'}</div>
-      </div>
+        </select>`)}
+      ${field('cpe-profile-auto','Profil (auto)',`<div class="cp-profile-auto">${typeof clientSportProfileLabel==='function'?escHtml(clientSportProfileLabel(c)||'—'):'—'}</div>`)}
     </div>
-    <div class="form-field"><label class="form-lbl">Uwagi sportowe</label>
-      <input class="form-input" id="cpe-sport-notes" value="${escHtml(c.sportNotes||'')}" placeholder="np. biegał 5 lat, teraz siłownia od zera"></div>
-    <div class="form-field"><label class="form-lbl">Uwagi / kontuzje</label><textarea class="form-select" id="cpe-notes" rows="2" style="resize:none;">${escHtml(c.notes||'')}</textarea></div>
+    ${field('cpe-sport-notes','Uwagi sportowe',`<input class="form-input" id="cpe-sport-notes" value="${escHtml(c.sportNotes||'')}" placeholder="np. biegał 5 lat, teraz siłownia od zera">`)}
+    ${field('cpe-notes','Uwagi / kontuzje',`<textarea class="form-select" id="cpe-notes" rows="2" style="resize:none;">${escHtml(c.notes||'')}</textarea>`)}
     <button type="button" class="btn btn-primary" style="width:100%;" onclick="saveCPEdit('${c.id}')">💾 Zapisz zmiany</button>
   </div>`;
 }
@@ -816,9 +807,9 @@ function renderCPOverview(c){
   const infoRow=(label,val)=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;"><span style="color:var(--muted);">${label}</span><span style="font-weight:600;color:var(--text);">${escHtml(String(val||'—'))}</span></div>`;
   const dataTile=(label,val,opts={})=>{
     const v=val==null||val===''? '—':String(val);
-    const sm=opts.sm||label==='Email'||label==='Telefon';
     const color=opts.color||'var(--text)';
-    return `<div class="cp-data-tile"><div class="cp-data-val${sm?' cp-data-val-sm':''}" style="color:${color};" title="${escHtml(v)}">${escHtml(v)}</div><div class="cp-data-lbl">${label}</div></div>`;
+    const wide=opts.wide?' cp-data-tile-wide':'';
+    return `<div class="cp-data-tile${wide}"><div class="cp-data-val" style="color:${color};" title="${escHtml(v)}">${escHtml(v)}</div><div class="cp-data-lbl">${label}</div></div>`;
   };
   const statusLabel=c.status==='active'?'Aktywny':c.status==='inactive'?'Nieaktywny':'Zarchiwizowany';
   const statusColor=c.status==='active'?'var(--teal)':c.status==='inactive'?'var(--orange)':'var(--muted)';
@@ -834,8 +825,8 @@ function renderCPOverview(c){
       </div>
       <div class="cp-data-grid">
         ${dataTile('Imię',c.name,{color:'var(--accent)'})}
-        ${dataTile('Email',c.email,{sm:true})}
-        ${dataTile('Telefon',c.phone||'—',{sm:true,color:c.phone?'var(--text)':'var(--muted)'})}
+        ${dataTile('Email',c.email,{wide:true})}
+        ${dataTile('Telefon',c.phone||'—',{color:c.phone?'var(--text)':'var(--muted)'})}
         ${dataTile('Wiek',c.age?c.age+' lat':'—',{color:'var(--blue)'})}
         ${dataTile('Płeć',genderLabel)}
         ${dataTile('Waga',c.weight?c.weight+' kg':'—',{color:'var(--gold)'})}
