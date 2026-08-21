@@ -407,6 +407,7 @@ function initPriorSportsForm(prefix,selected){
 window.initPriorSportsForm=initPriorSportsForm;
 
 function openM(id){
+  document.querySelectorAll('.ex-ac-dropdown').forEach(dd=>{dd.style.display='none';});
   if(id==='m-session'){
     document.getElementById('as-date').value=new Date().toISOString().split('T')[0];
     document.getElementById('as-time').value='10:00';
