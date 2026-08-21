@@ -401,24 +401,35 @@ const CAT_COLORS_EX={
 };
 
 const DEF_EX=[
-  {name:'Wyciskanie sztangi leżąc',cat:'Klatka piersiowa',eq:'Sztanga',muscle:'Klatka (główna), Triceps, Barki (przednie)',tip:'Łopatki ściągnięte i wciśnięte w ławkę. Pełny ROM.',nsca:'Hipertrofia: 3-4x8-12, RPE 8. Siła: 4-6x3-5.',alt:'Wyciskanie hantli, Pompki'},
-  {name:'Wyciskanie hantli leżąc',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka (główna), Triceps',tip:'Hantle w jednej linii z klatką.',nsca:'3x10-12.',alt:'Wyciskanie sztangi, Pompki'},
-  {name:'Wyciskanie hantli skos+',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka górna, Barki (przednie)',tip:'Kąt ławki 30-45°.',nsca:'3x10-12.',alt:'Wyciskanie sztangi skos, Pompki na rączkach'},
+  {name:'Wyciskanie sztangi leżąc',cat:'Klatka piersiowa',eq:'Sztanga',muscle:'Klatka (główna), Triceps, Barki (przednie)',tip:'Łopatki ściągnięte i wciśnięte w ławkę. Pełny ROM.',nsca:'Hipertrofia: 3-4x8-12, RPE 8. Siła: 4-6x3-5.',alt:'Wyciskanie hantli, Pompki',img:'assets/ex/bench.svg'},
+  {name:'Wyciskanie hantli leżąc',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka (główna), Triceps',tip:'Hantle w jednej linii z klatką.',nsca:'3x10-12.',alt:'Wyciskanie sztangi, Pompki',img:'assets/ex/bench.svg'},
+  {name:'Wyciskanie hantli skos+',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka górna, Barki (przednie)',tip:'Kąt ławki 30-45°.',nsca:'3x10-12.',alt:'Wyciskanie sztangi skos, Pompki na rączkach',img:'assets/ex/bench.svg'},
   {name:'Rozpiętki hantlami',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka (izolacja)',tip:'Lekkie ugięcie łokci. Skup się na rozciągnięciu klatki.',nsca:'3x12-15.',alt:'Rozpiętki na wyciągu, Peck deck'},
   {name:'Rozpiętki na wyciągu',cat:'Klatka piersiowa',eq:'Wyciąg',muscle:'Klatka (izolacja), stałe napięcie',tip:'Stałe napięcie przez cały ruch.',nsca:'3x12-15.',alt:'Rozpiętki hantlami, Peck deck'},
-  {name:'Pompki',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka piersiowa, Triceps, Core',tip:'Ciało w jednej linii.',nsca:'3-4xmax.',alt:'Wyciskanie sztangi, Wyciskanie hantli'},
-  {name:'Pompki na rączkach',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka (dolna), Triceps',tip:'Głębszy zakres ruchu.',nsca:'3x10-15.',alt:'Dipy, Pompki'},
-  {name:'Dipy na poręczach',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka (dolna), Triceps, Barki',tip:'Pochylenie do przodu = więcej klatki.',nsca:'3x8-12.',alt:'Pompki na rączkach'},
-  {name:'Peck deck',cat:'Klatka piersiowa',eq:'Maszyna',muscle:'Klatka (izolacja)',tip:'Łokcie na poziomie barków.',nsca:'3x12-15.',alt:'Rozpiętki hantlami'},
+  {name:'Pompki',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka piersiowa, Triceps, Core',tip:'Ciało w jednej linii.',nsca:'3-4xmax.',alt:'Wyciskanie sztangi, Wyciskanie hantli',img:'assets/ex/bench.svg'},
+  {name:'Pompki na rączkach',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka (dolna), Triceps',tip:'Głębszy zakres ruchu.',nsca:'3x10-15.',alt:'Dipy, Pompki',img:'assets/ex/bench.svg'},
+  {name:'Dipy na poręczach',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka (dolna), Triceps, Barki',tip:'Pochylenie do przodu = więcej klatki.',nsca:'3x8-12.',alt:'Pompki na rączkach',img:'assets/ex/bench.svg'},
+  {name:'Peck deck',cat:'Klatka piersiowa',eq:'Maszyna',muscle:'Klatka (izolacja)',tip:'Łokcie na poziomie barków.',nsca:'3x12-15.',alt:'Rozpiętki hantlami',img:'assets/ex/bench.svg'},
   {name:'Pullover hantlem',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka, Najszerszy',tip:'Pełny zakres ruchu. Rozciągnięcie na dole.',nsca:'3x12-15.',alt:'Pullover sztangą'},
-  {name:'Pompki plyometryczne',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka, Triceps, Moc',tip:'Wybij się z podłogi.',nsca:'3x5-8.',alt:'Pompki'},
-  {name:'Wyciskanie wąskim chwytem',cat:'Klatka piersiowa',eq:'Sztanga',muscle:'Triceps (główny), Klatka (wewnętrzna)',tip:'Łokcie blisko tułowia.',nsca:'3x8-12.',alt:'French press, Dipy'},
-  {name:'Martwy ciąg klasyczny',cat:'Plecy',eq:'Sztanga',muscle:'Dwugłowy uda, Pośladki, Prostownicy grzbietu',tip:'Kręgosłup neutralny przez cały czas!',nsca:'Siła: 3-5x3-5. Hipertrofia: 3x8-10.',alt:'Martwy ciąg RDL, Trap bar deadlift'},
-  {name:'Martwy ciąg RDL',cat:'Plecy',eq:'Sztanga',muscle:'Dwugłowy uda, Pośladki, Prostownicy grzbietu',tip:'Biodra do tyłu, kręgosłup neutralny.',nsca:'3-4x10-12.',alt:'Martwy ciąg klasyczny, Good morning'},
+  {name:'Pompki plyometryczne',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka, Triceps, Moc',tip:'Wybij się z podłogi.',nsca:'3x5-8.',alt:'Pompki',img:'assets/ex/bench.svg'},
+  {name:'Wyciskanie wąskim chwytem',cat:'Klatka piersiowa',eq:'Sztanga',muscle:'Triceps (główny), Klatka (wewnętrzna)',tip:'Łokcie blisko tułowia.',nsca:'3x8-12.',alt:'French press, Dipy',img:'assets/ex/bench.svg'},
+  {name:'Wyciskanie sztangi skos+',cat:'Klatka piersiowa',eq:'Sztanga',muscle:'Klatka górna, Barki (przednie), Triceps',tip:'Ławka 30–45°. Łopatki ściągnięte.',nsca:'3–4x8–12.',alt:'Wyciskanie hantli skos+, Landmine press',img:'assets/ex/bench.svg'},
+  {name:'Wyciskanie sztangi skos−',cat:'Klatka piersiowa',eq:'Sztanga',muscle:'Klatka dolna, Triceps',tip:'Ławka lekko w dół. Nie odrywaj bioder.',nsca:'3x8–12.',alt:'Dipy, Pompki na rączkach',img:'assets/ex/bench.svg'},
+  {name:'Wyciskanie hantli skos−',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka dolna, Triceps',tip:'Kontroluj hantle w dolnej pozycji.',nsca:'3x10–12.',alt:'Wyciskanie sztangi skos−, Dipy',img:'assets/ex/bench.svg'},
+  {name:'Floor press',cat:'Klatka piersiowa',eq:'Sztanga',muscle:'Klatka, Triceps (bez pełnego rozciągnięcia)',tip:'Łokcie zatrzymują się o podłogę — bezpieczniej dla barków.',nsca:'3–4x6–10.',alt:'Wyciskanie wąskim chwytem, Bench press',img:'assets/ex/bench.svg'},
+  {name:'Wyciskanie na maszynie',cat:'Klatka piersiowa',eq:'Maszyna',muscle:'Klatka, Triceps',tip:'Łopatki oparte. Nie blokuj łokci.',nsca:'3x10–15.',alt:'Wyciskanie hantli, Peck deck',img:'assets/ex/bench.svg'},
+  {name:'Cable crossover góra–dół',cat:'Klatka piersiowa',eq:'Wyciąg',muscle:'Klatka (dolna i środkowa)',tip:'Ruch od góry do bioder. Lekkie ugięcie łokci.',nsca:'3x12–15.',alt:'Rozpiętki na wyciągu, Peck deck',img:'assets/ex/bench.svg'},
+  {name:'Cable crossover dół–góra',cat:'Klatka piersiowa',eq:'Wyciąg',muscle:'Klatka górna',tip:'Ruch od dołu do góry, jak „wyciskanie w górę”.',nsca:'3x12–15.',alt:'Wyciskanie hantli skos+, Rozpiętki',img:'assets/ex/bench.svg'},
+  {name:'Landmine press',cat:'Klatka piersiowa',eq:'Sztanga',muscle:'Klatka górna, Barki, Core',tip:'Jedna lub dwie ręce. Stabilny tułów.',nsca:'3x8–12.',alt:'Wyciskanie skos+, Push press',img:'assets/ex/bench.svg'},
+  {name:'Pompki diamentowe',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Triceps, Klatka wewnętrzna',tip:'Dłonie blisko siebie w kształt diamentu.',nsca:'3xmax.',alt:'Wyciskanie wąskim chwytem, Dipy',img:'assets/ex/bench.svg'},
+  {name:'Pompki szerokie',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka (główna), Barki',tip:'Dłonie szerzej niż barki. Ciało w linii.',nsca:'3xmax.',alt:'Pompki, Rozpiętki',img:'assets/ex/bench.svg'},
+  {name:'Svend press',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka wewnętrzna (ściśnięcie)',tip:'Ściskaj talerz/hantel przed klatką i wypychaj do przodu.',nsca:'3x12–20.',alt:'Peck deck, Cable crossover',img:'assets/ex/bench.svg'},
+  {name:'Martwy ciąg klasyczny',cat:'Plecy',eq:'Sztanga',muscle:'Dwugłowy uda, Pośladki, Prostownicy grzbietu',tip:'Kręgosłup neutralny przez cały czas!',nsca:'Siła: 3-5x3-5. Hipertrofia: 3x8-10.',alt:'Martwy ciąg RDL, Trap bar deadlift',img:'assets/ex/deadlift.svg'},
+  {name:'Martwy ciąg RDL',cat:'Plecy',eq:'Sztanga',muscle:'Dwugłowy uda, Pośladki, Prostownicy grzbietu',tip:'Biodra do tyłu, kręgosłup neutralny.',nsca:'3-4x10-12.',alt:'Martwy ciąg klasyczny, Good morning',img:'assets/ex/deadlift.svg'},
   {name:'Wiosłowanie sztangą',cat:'Plecy',eq:'Sztanga',muscle:'Plecy środkowe, Biceps, Barki (tylne)',tip:'Tułów pod kątem 45°. Ciągnij do bioder.',nsca:'3-4x8-12.',alt:'Wiosłowanie hantlem, Wyciąg'},
   {name:'Wiosłowanie hantlem',cat:'Plecy',eq:'Hantle',muscle:'Plecy środkowe (jednostronnie), Biceps',tip:'Kolano i ręka oparte o ławkę.',nsca:'3x10-12/stronę.',alt:'Wiosłowanie sztangą'},
-  {name:'Podciąganie na drążku',cat:'Plecy',eq:'Własna masa',muscle:'Plecy (szerokie), Biceps, Tylne barki',tip:'Nie bujaj się! Pełny ROM.',nsca:'3-4xmax.',alt:'Ściąganie drążka wyciąg'},
-  {name:'Podciąganie neutralnym chwytem',cat:'Plecy',eq:'Własna masa',muscle:'Plecy (szerokie i środkowe), Biceps',tip:'Dłonie zwrócone do siebie.',nsca:'3xmax.',alt:'Podciąganie na drążku'},
+  {name:'Podciąganie na drążku',cat:'Plecy',eq:'Własna masa',muscle:'Plecy (szerokie), Biceps, Tylne barki',tip:'Nie bujaj się! Pełny ROM.',nsca:'3-4xmax.',alt:'Ściąganie drążka wyciąg',img:'assets/ex/pullup.svg'},
+  {name:'Podciąganie neutralnym chwytem',cat:'Plecy',eq:'Własna masa',muscle:'Plecy (szerokie i środkowe), Biceps',tip:'Dłonie zwrócone do siebie.',nsca:'3xmax.',alt:'Podciąganie na drążku',img:'assets/ex/pullup.svg'},
   {name:'Ściąganie drążka wyciąg',cat:'Plecy',eq:'Wyciąg',muscle:'Najszerszy, Biceps',tip:'Drążek do górnej klatki, łokcie do dołu.',nsca:'3x10-12.',alt:'Podciąganie na drążku'},
   {name:'Wiosłowanie wyciągiem siedząc',cat:'Plecy',eq:'Wyciąg',muscle:'Plecy środkowe, Biceps, Rombowate',tip:'Ściągaj łopatki.',nsca:'3x12.',alt:'Wiosłowanie sztangą'},
   {name:'Facepull',cat:'Plecy',eq:'Wyciąg',muscle:'Tylne barki, Rombowate, Rotatory',tip:'Wyciągaj do czoła, łokcie wysoko.',nsca:'3x15-20.',alt:'Odwrotne rozpiętki'},
@@ -427,9 +438,19 @@ const DEF_EX=[
   {name:'Odwrotne rozpiętki',cat:'Plecy',eq:'Hantle',muscle:'Tylne barki, Rombowate',tip:'Tułów równoległy do podłogi.',nsca:'3x15.',alt:'Facepull, Wiosłowanie'},
   {name:'Inverted row',cat:'Plecy',eq:'Własna masa',muscle:'Plecy środkowe, Biceps',tip:'Leżąc pod drążkiem. Ciągnij klatkę do drążka.',nsca:'3xmax.',alt:'Wiosłowanie, Podciąganie'},
   {name:'Chest supported row',cat:'Plecy',eq:'Hantle',muscle:'Plecy środkowe (bez dolnego grzbietu)',tip:'Klatka na ławce pod kątem.',nsca:'3x12.',alt:'Wiosłowanie hantlem'},
-  {name:'Wyciskanie żołnierskie OHP',cat:'Barki',eq:'Sztanga',muscle:'Barki (przednie i środkowe), Triceps',tip:'Napnij pośladki i brzuch.',nsca:'3-4x6-10.',alt:'Wyciskanie hantli, Arnold press'},
-  {name:'Wyciskanie hantli siedząc',cat:'Barki',eq:'Hantle',muscle:'Barki (przednie i środkowe), Triceps',tip:'Hantle na poziomie uszu.',nsca:'3x10-12.',alt:'OHP, Arnold press'},
-  {name:'Arnold press',cat:'Barki',eq:'Hantle',muscle:'Barki (wszystkie głowy), Triceps',tip:'Obrót dłoni podczas wyciskania.',nsca:'3x10-12.',alt:'Wyciskanie hantli, OHP'},
+  {name:'Podciąganie podchwytem',cat:'Plecy',eq:'Własna masa',muscle:'Plecy, Biceps (mocniejsza praca)',tip:'Dłonie zwrócone do siebie/podchwytem. Pełny ROM.',nsca:'3–4xmax.',alt:'Podciąganie na drążku, Uginanie biceps'},
+  {name:'T-bar row',cat:'Plecy',eq:'Sztanga',muscle:'Plecy środkowe, Najszerszy, Biceps',tip:'Klatka stabilna, ciąg do brzucha.',nsca:'3–4x8–12.',alt:'Wiosłowanie sztangą, Meadows row'},
+  {name:'Meadows row',cat:'Plecy',eq:'Sztanga',muscle:'Plecy (jednostronnie), Tylne barki',tip:'Landmine. Ciągnij łokciem w bok/tył.',nsca:'3x10–12/stronę.',alt:'Wiosłowanie hantlem, T-bar row'},
+  {name:'Pendlay row',cat:'Plecy',eq:'Sztanga',muscle:'Plecy środkowe, Moc eksplozywna',tip:'Sztanga z podłogi. Eksplozywny ciąg, kontrolowane opuszczenie.',nsca:'3–5x5–8.',alt:'Wiosłowanie sztangą'},
+  {name:'Seal row',cat:'Plecy',eq:'Hantle',muscle:'Plecy środkowe (bez dolnego grzbietu)',tip:'Leżysz na ławce brzuchem — zero oszukiwania biodrami.',nsca:'3x10–12.',alt:'Chest supported row'},
+  {name:'Straight arm pulldown',cat:'Plecy',eq:'Wyciąg',muscle:'Najszerszy (izolacja)',tip:'Ręce prawie proste. Ciągnij do bioder.',nsca:'3x12–15.',alt:'Pullover hantlem, Ściąganie drążka'},
+  {name:'Ściąganie drążka wąskim chwytem',cat:'Plecy',eq:'Wyciąg',muscle:'Plecy środkowe, Biceps',tip:'Chwyt V-bar lub wąski. Drążek do klatki.',nsca:'3x10–12.',alt:'Wiosłowanie wyciągiem, Podciąganie neutralne'},
+  {name:'Shrugs sztanga',cat:'Plecy',eq:'Sztanga',muscle:'Trapez (górny)',tip:'Unieś barki prosto w górę. Bez rotacji.',nsca:'3–4x10–15.',alt:'Shrugs hantle, Farmer carry'},
+  {name:'Shrugs hantle',cat:'Plecy',eq:'Hantle',muscle:'Trapez (górny)',tip:'Hantle po bokach. Pauza na górze.',nsca:'3–4x12–15.',alt:'Shrugs sztanga'},
+  {name:'Single-arm lat pulldown',cat:'Plecy',eq:'Wyciąg',muscle:'Najszerszy (jednostronnie)',tip:'Ciągnij łokieć do biodra. Stabilny tułów.',nsca:'3x12/stronę.',alt:'Ściąganie drążka, Wiosłowanie hantlem'},
+  {name:'Wyciskanie żołnierskie OHP',cat:'Barki',eq:'Sztanga',muscle:'Barki (przednie i środkowe), Triceps',tip:'Napnij pośladki i brzuch.',nsca:'3-4x6-10.',alt:'Wyciskanie hantli, Arnold press',img:'assets/ex/ohp.svg'},
+  {name:'Wyciskanie hantli siedząc',cat:'Barki',eq:'Hantle',muscle:'Barki (przednie i środkowe), Triceps',tip:'Hantle na poziomie uszu.',nsca:'3x10-12.',alt:'OHP, Arnold press',img:'assets/ex/ohp.svg'},
+  {name:'Arnold press',cat:'Barki',eq:'Hantle',muscle:'Barki (wszystkie głowy), Triceps',tip:'Obrót dłoni podczas wyciskania.',nsca:'3x10-12.',alt:'Wyciskanie hantli, OHP',img:'assets/ex/ohp.svg'},
   {name:'Unoszenie bokiem',cat:'Barki',eq:'Hantle',muscle:'Barki (środkowe)',tip:'Lekkie ugięcie łokci. Nie zamachy!',nsca:'3x15-20.',alt:'Unoszenie wyciągiem'},
   {name:'Unoszenie przodem',cat:'Barki',eq:'Hantle',muscle:'Barki (przednie)',tip:'Do wysokości barków, nie wyżej.',nsca:'3x12-15.',alt:'OHP, Unoszenie wyciągiem'},
   {name:'Unoszenie wyciągiem bokiem',cat:'Barki',eq:'Wyciąg',muscle:'Barki (środkowe), stałe napięcie',tip:'Lepsza aktywacja niż hantle.',nsca:'3x15-20.',alt:'Unoszenie bokiem hantlami'},
@@ -437,22 +458,41 @@ const DEF_EX=[
   {name:'Rotacja zewnętrzna',cat:'Barki',eq:'Hantle',muscle:'Rotatory barku, Podgrzebieniowy',tip:'Łokieć przy boku pod kątem 90°.',nsca:'2-3x15-20.',alt:'Rotacja na wyciągu, Facepull'},
   {name:'Push press',cat:'Barki',eq:'Sztanga',muscle:'Barki, Triceps, Moc eksplozywna',tip:'Lekki dip kolanami i wybicie.',nsca:'3x5-8.',alt:'OHP'},
   {name:'Cuban press',cat:'Barki',eq:'Hantle',muscle:'Rotatory barku, Tylne barki',tip:'Zewnętrzna rotacja + wyciskanie.',nsca:'3x10-12.',alt:'Rotacja zewnętrzna, Facepull'},
-  {name:'Uginanie biceps sztangą',cat:'Biceps',eq:'Sztanga',muscle:'Biceps (głowa długa i krótka)',tip:'Łokieć stabilny przy boku.',nsca:'3x8-12.',alt:'Uginanie hantlami'},
-  {name:'Uginanie młotkowe',cat:'Biceps',eq:'Hantle',muscle:'Biceps (głowa długa), Ramiennopromieniowy',tip:'Neutralny chwyt — kciuk do góry.',nsca:'3x10-12.',alt:'Uginanie biceps sztangą'},
-  {name:'Uginanie hantlami naprzemiennie',cat:'Biceps',eq:'Hantle',muscle:'Biceps, Ramiennopromieniowy',tip:'Pełna supinacja przy uginaniu.',nsca:'3x10-12/stronę.',alt:'Uginanie sztangą'},
+  {name:'Wyciskanie barków maszyna',cat:'Barki',eq:'Maszyna',muscle:'Barki (przednie i środkowe), Triceps',tip:'Plecy oparte. Pełny ROM bez bólu barku.',nsca:'3x10–12.',alt:'Wyciskanie hantli siedząc, OHP'},
+  {name:'Upright row',cat:'Barki',eq:'Sztanga',muscle:'Barki środkowe, Trapez',tip:'Łokcie wyżej niż nadgarstki. Nie za wąsko.',nsca:'3x10–12.',alt:'Unoszenie bokiem, Facepull'},
+  {name:'Y-raise',cat:'Barki',eq:'Hantle',muscle:'Tylne barki, Dolny trapez',tip:'Unieś ręce w kształt Y. Lekkie obciążenie.',nsca:'3x12–15.',alt:'Odwrotne rozpiętki, Facepull'},
+  {name:'Unoszenie bokiem na wyciągu jednorącz',cat:'Barki',eq:'Wyciąg',muscle:'Barki (środkowe)',tip:'Ciągnij w poprzek ciała — stałe napięcie.',nsca:'3x12–20/stronę.',alt:'Unoszenie bokiem, Unoszenie wyciągiem bokiem'},
+  {name:'Plate front raise',cat:'Barki',eq:'Hantle',muscle:'Barki (przednie)',tip:'Talerz/hantel przed sobą do wysokości barków.',nsca:'3x12–15.',alt:'Unoszenie przodem, OHP'},
+  {name:'Landmine lateral raise',cat:'Barki',eq:'Sztanga',muscle:'Barki (środkowe)',tip:'Landmine w jednej ręce — łuk na zewnątrz.',nsca:'3x12–15/stronę.',alt:'Unoszenie bokiem'},
+  {name:'Uginanie biceps sztangą',cat:'Biceps',eq:'Sztanga',muscle:'Biceps (głowa długa i krótka)',tip:'Łokieć stabilny przy boku.',nsca:'3x8-12.',alt:'Uginanie hantlami',img:'assets/ex/curl.svg'},
+  {name:'Uginanie młotkowe',cat:'Biceps',eq:'Hantle',muscle:'Biceps (głowa długa), Ramiennopromieniowy',tip:'Neutralny chwyt — kciuk do góry.',nsca:'3x10-12.',alt:'Uginanie biceps sztangą',img:'assets/ex/curl.svg'},
+  {name:'Uginanie hantlami naprzemiennie',cat:'Biceps',eq:'Hantle',muscle:'Biceps, Ramiennopromieniowy',tip:'Pełna supinacja przy uginaniu.',nsca:'3x10-12/stronę.',alt:'Uginanie sztangą',img:'assets/ex/curl.svg'},
   {name:'Uginanie na wyciągu',cat:'Biceps',eq:'Wyciąg',muscle:'Biceps, stałe napięcie',tip:'Lepsze dla szczytowej kontrakcji.',nsca:'3x12-15.',alt:'Uginanie hantlami'},
   {name:'Spider curl',cat:'Biceps',eq:'Hantle',muscle:'Biceps (szczytowa kontrakcja)',tip:'Klatka oparta na ławce. Maksymalna izolacja.',nsca:'3x12-15.',alt:'Uginanie koncentryczne'},
   {name:'Uginanie Zottman',cat:'Biceps',eq:'Hantle',muscle:'Biceps, Ramiennopromieniowy, Przedramię',tip:'Supinacja w górze, pronacja w dół.',nsca:'3x10-12.',alt:'Uginanie młotkowe'},
   {name:'Uginanie reverse',cat:'Biceps',eq:'Sztanga',muscle:'Ramiennopromieniowy, Przedramię',tip:'Chwyt pronacyjny. Wzmacnia przedramię.',nsca:'3x12-15.',alt:'Uginanie Zottman'},
   {name:'Uginanie nadgarstka',cat:'Biceps',eq:'Sztanga',muscle:'Zginacze nadgarstka, Przedramię',tip:'Nadgarstek opiera się o ławkę.',nsca:'3x15-20.',alt:'Uginanie reverse'},
+  {name:'Concentration curl',cat:'Biceps',eq:'Hantle',muscle:'Biceps (szczytowa izolacja)',tip:'Łokieć oparty o udo. Pełna kontrakcja na górze.',nsca:'3x10–12/stronę.',alt:'Spider curl, Uginanie hantlami'},
+  {name:'Preacher curl',cat:'Biceps',eq:'Sztanga',muscle:'Biceps (głowa krótka)',tip:'Ramię przylegające do ławki Scotta. Nie odrywaj łokci.',nsca:'3x8–12.',alt:'Spider curl, Uginanie sztangą'},
+  {name:'Incline curl',cat:'Biceps',eq:'Hantle',muscle:'Biceps (głowa długa — rozciągnięcie)',tip:'Ławka 45–60°. Ramiona swobodnie w tył.',nsca:'3x10–12.',alt:'Uginanie hantlami, Bayesian curl'},
+  {name:'Bayesian curl',cat:'Biceps',eq:'Wyciąg',muscle:'Biceps (rozciągnięcie + napięcie)',tip:'Wyciąg z tyłu. Krok do przodu, uginaj do przodu.',nsca:'3x10–15.',alt:'Incline curl, Uginanie na wyciągu'},
+  {name:'Drag curl',cat:'Biceps',eq:'Sztanga',muscle:'Biceps (głowa długa)',tip:'Ciągnij sztangę wzdłuż tułowia — łokcie idą w tył.',nsca:'3x10–12.',alt:'Uginanie sztangą'},
+  {name:'21s biceps',cat:'Biceps',eq:'Sztanga',muscle:'Biceps (cała głowa — pump)',tip:'7 dolnej połowy + 7 górnej + 7 pełnych.',nsca:'2–3x21.',alt:'Uginanie sztangą, Uginanie na wyciągu'},
   {name:'Prostowanie tricepsa wyciąg',cat:'Triceps',eq:'Wyciąg',muscle:'Triceps (wszystkie 3 głowy)',tip:'Łokcie przy tułowiu, nie ruszaj nimi.',nsca:'3x12-15.',alt:'French press, Skull crusher'},
   {name:'French press',cat:'Triceps',eq:'Sztanga',muscle:'Triceps (długa głowa)',tip:'Łokcie skierowane do sufitu.',nsca:'3x10-12.',alt:'Prostowanie wyciąg, Skull crusher'},
   {name:'Skull crusher',cat:'Triceps',eq:'Sztanga',muscle:'Triceps (długa i boczna głowa)',tip:'Opuszczaj do czoła lub za głowę.',nsca:'3x10-12.',alt:'French press'},
   {name:'Kick back triceps',cat:'Triceps',eq:'Hantle',muscle:'Triceps (boczna i przyśrodkowa głowa)',tip:'Pełne wyprostowanie ramienia.',nsca:'3x12-15.',alt:'Prostowanie wyciąg'},
   {name:'Overhead triceps wyciąg',cat:'Triceps',eq:'Wyciąg',muscle:'Triceps (długa głowa — rozciągnięcie)',tip:'Wyciąg za głowę.',nsca:'3x12-15.',alt:'French press'},
-  {name:'Przysiad ze sztangą',cat:'Nogi',eq:'Sztanga',muscle:'Czworogłowy, Pośladki, Dwugłowy, Prostownicy',tip:'Kolana w kierunku palców. Biodra poniżej kolan.',nsca:'Siła: 4-6x3-5. Hipertrofia: 3-4x8-12.',alt:'Przysiad goblet, Front squat, Leg press'},
-  {name:'Przysiad Goblet',cat:'Nogi',eq:'Hantle',muscle:'Czworogłowy, Pośladki, Core',tip:'Hantel trzymaj przy klatce.',nsca:'3x12-15.',alt:'Przysiad ze sztangą'},
-  {name:'Front squat',cat:'Nogi',eq:'Sztanga',muscle:'Czworogłowy (głównie), Pośladki, Core',tip:'Łokcie wysoko, klatka dumna.',nsca:'3-4x6-10.',alt:'Przysiad ze sztangą'},
+  {name:'Prostowanie linką (rope pushdown)',cat:'Triceps',eq:'Wyciąg',muscle:'Triceps (boczna głowa)',tip:'Na dole rozciągnij linki na boki.',nsca:'3x12–15.',alt:'Prostowanie tricepsa wyciąg'},
+  {name:'Prostowanie jednorącz wyciąg',cat:'Triceps',eq:'Wyciąg',muscle:'Triceps (izolacja jednostronna)',tip:'Łokieć przyklejony. Pełny wyprost.',nsca:'3x12–15/stronę.',alt:'Kick back triceps, Rope pushdown'},
+  {name:'Overhead triceps hantlem',cat:'Triceps',eq:'Hantle',muscle:'Triceps (długa głowa)',tip:'Łokcie blisko głowy. Opuszczaj za głowę.',nsca:'3x10–12.',alt:'French press, Overhead triceps wyciąg'},
+  {name:'Bench dip',cat:'Triceps',eq:'Własna masa',muscle:'Triceps, Klatka przednia, Barki',tip:'Biodra blisko ławki. Nie schodź za głęboko przy wrażliwych barkach.',nsca:'3x10–15.',alt:'Dipy na poręczach, Pompki diamentowe'},
+  {name:'Dipy triceps (pionowe)',cat:'Triceps',eq:'Własna masa',muscle:'Triceps (główny), Klatka mniej',tip:'Tułów bardziej pionowo niż przy dipach na klatkę.',nsca:'3x8–12.',alt:'Bench dip, Wyciskanie wąskim chwytem'},
+  {name:'JM press',cat:'Triceps',eq:'Sztanga',muscle:'Triceps, Klatka górna',tip:'Hybryda skull crusher + wąski bench. Łokcie pod kątem.',nsca:'3x6–10.',alt:'Skull crusher, Wyciskanie wąskim chwytem'},
+  {name:'Triceps dip maszyna',cat:'Triceps',eq:'Maszyna',muscle:'Triceps (wszystkie głowy)',tip:'Ramiona blisko tułowia. Kontrolowany ruch.',nsca:'3x10–15.',alt:'Prostowanie wyciąg, Dipy'},
+  {name:'Przysiad ze sztangą',cat:'Nogi',eq:'Sztanga',muscle:'Czworogłowy, Pośladki, Dwugłowy, Prostownicy',tip:'Kolana w kierunku palców. Biodra poniżej kolan.',nsca:'Siła: 4-6x3-5. Hipertrofia: 3-4x8-12.',alt:'Przysiad goblet, Front squat, Leg press',img:'assets/ex/squat.svg'},
+  {name:'Przysiad Goblet',cat:'Nogi',eq:'Hantle',muscle:'Czworogłowy, Pośladki, Core',tip:'Hantel trzymaj przy klatce.',nsca:'3x12-15.',alt:'Przysiad ze sztangą',img:'assets/ex/squat.svg'},
+  {name:'Front squat',cat:'Nogi',eq:'Sztanga',muscle:'Czworogłowy (głównie), Pośladki, Core',tip:'Łokcie wysoko, klatka dumna.',nsca:'3-4x6-10.',alt:'Przysiad ze sztangą',img:'assets/ex/squat.svg'},
   {name:'Przysiad sumo',cat:'Nogi',eq:'Sztanga',muscle:'Pośladki, Przywodziciele, Czworogłowy',tip:'Szerokie ustawienie stóp, palce na zewnątrz.',nsca:'3x8-12.',alt:'Przysiad klasyczny'},
   {name:'Leg press',cat:'Nogi',eq:'Maszyna',muscle:'Czworogłowy, Pośladki, Dwugłowy uda',tip:'Nie blokuj kolan całkowicie.',nsca:'3-4x10-15.',alt:'Przysiad ze sztangą'},
   {name:'Wykrok ze sztangą',cat:'Nogi',eq:'Sztanga',muscle:'Czworogłowy, Pośladki (jednostronnie)',tip:'Kolano tylne blisko podłogi.',nsca:'3x10-12/noga.',alt:'Wykrok z hantlami, Bulgarian split squat'},
@@ -478,6 +518,13 @@ const DEF_EX=[
   {name:'Hip thrust jednonóż',cat:'Pośladki',eq:'Własna masa',muscle:'Pośladki (jednostronnie)',tip:'Jedna noga uniesiona.',nsca:'3x12-15/noga.',alt:'Hip thrust'},
   {name:'Monster walk',cat:'Pośladki',eq:'Własna masa',muscle:'Pośladki (średni), Stabilizatory biodra',tip:'Taśma oporowa powyżej kolan.',nsca:'3x15 kroków/stronę.',alt:'Abdukcja maszyna'},
   {name:'Clamshell',cat:'Pośladki',eq:'Własna masa',muscle:'Pośladki (średni i mały)',tip:'Leżąc na boku. Otwieraj kolano jak muszla.',nsca:'3x15-20/stronę.',alt:'Monster walk'},
+  {name:'Cable pull-through',cat:'Pośladki',eq:'Wyciąg',muscle:'Pośladki, Dwugłowy uda',tip:'Hip hinge. Ciągnij linkę między nogami do wyprostu bioder.',nsca:'3x12–15.',alt:'Hip thrust, RDL'},
+  {name:'Frog pump',cat:'Pośladki',eq:'Własna masa',muscle:'Pośladki (izolacja)',tip:'Podeszwy razem, kolana na boki. Wyciskaj biodra w górę.',nsca:'3x20–30.',alt:'Mostek biodrowy, Hip thrust'},
+  {name:'Reverse hyperextension',cat:'Pośladki',eq:'Maszyna',muscle:'Pośladki, Dolny grzbiet, Dwugłowy',tip:'Unoś nogi do linii tułowia. Nie przeprostowuj.',nsca:'3x12–15.',alt:'Hyperextension, Hip thrust'},
+  {name:'Step-up boczny',cat:'Pośladki',eq:'Hantle',muscle:'Pośladki (średni), Stabilizacja biodra',tip:'Wejście bokiem na skrzynię. Kontrola zejścia.',nsca:'3x10–12/noga.',alt:'Step-up, Bulgarian split squat'},
+  {name:'Banded hip thrust',cat:'Pośladki',eq:'Własna masa',muscle:'Pośladki (aktywacja + opór)',tip:'Taśma nad kolanami — rozpychaj na boki przy wyproście.',nsca:'3x15–20.',alt:'Hip thrust, Monster walk'},
+  {name:'45° hyperextension pośladki',cat:'Pośladki',eq:'Własna masa',muscle:'Pośladki, Dolny grzbiet',tip:'Zaokrąglij lekko górę ruchu w pośladkach, nie w odcinku lędźwiowym.',nsca:'3x12–15.',alt:'Hip thrust, Reverse hyperextension'},
+  {name:'Glute march',cat:'Pośladki',eq:'Własna masa',muscle:'Pośladki (jednostronnie), Core',tip:'Mostek + naprzemienne unoszenie kolan.',nsca:'3x10/stronę.',alt:'Hip thrust jednonóż, Mostek biodrowy'},
   {name:'Plank',cat:'Core',eq:'Własna masa',muscle:'Core (anteriora), Pośladki, Barki',tip:'45-60s/serie. Biodra nie opadają.',nsca:'2-3x45-60s.',alt:'Deska boczna, Ab wheel'},
   {name:'Ab wheel rollout',cat:'Core',eq:'Własna masa',muscle:'Core (przedni — prosty), Barki',tip:'Zacznij od wersji na kolanach.',nsca:'3x8-12.',alt:'Plank, Hollow hold'},
   {name:'Hollow hold',cat:'Core',eq:'Własna masa',muscle:'Core (głęboki), Biodra',tip:'Plecy płasko na podłodze.',nsca:'3x20-30s.',alt:'Plank, Ab wheel'},
@@ -554,6 +601,7 @@ const DEF_EX=[
   {name:'Kettlebell swing',cat:'Cardio',eq:'Kettlebell',muscle:'Pośladki, Dwugłowy uda, Core, Cardio',tip:'Napęd biodrami — nie przysiadem. Hip hinge!',nsca:'3-5x15-20.',alt:'Deadlift, Hip thrust'},
   {name:'Turkish get-up',cat:'Cardio',eq:'Kettlebell',muscle:'Całe ciało, Stabilizacja, Core',tip:'Powolne. Każda faza kontrolowana.',nsca:'3x3-5/stronę.',alt:'Kettlebell swing'},
 ];
+window.DEF_EX=DEF_EX;
 
 
 function allExercises(){
@@ -650,12 +698,21 @@ function exAcRender(input){
   let html='';
   groups.forEach(g=>{
     const col=CAT_COLORS_EX[g.cat]||'var(--muted)';
-    const slice=ql?g.items.slice(0,10):g.items.slice(0,8);
+    const slice=ql?g.items.slice(0,40):g.items.slice(0,16);
     html+=`<div class="ex-ac-group-hdr"><span class="ex-cat-dot" style="background:${col};"></span>${typeof escHtml==='function'?escHtml(g.cat):g.cat} <span style="opacity:0.65;font-weight:500;">(${g.items.length})</span></div>`;
     slice.forEach(e=>{
-      html+=`<button type="button" class="ex-ac-item">${typeof escHtml==='function'?escHtml(e.name):e.name}</button>`;
+      const name=e.name||'';
+      const safe=typeof escHtml==='function'?escHtml(name):name;
+      const attr=String(name).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+      const thumb=typeof exThumbUrl==='function'?exThumbUrl(e):'';
+      const letter=(name.trim()[0]||'?').toUpperCase();
+      const thumbHtml=thumb
+        ?`<img class="ex-ac-thumb-img" src="${typeof escHtml==='function'?escHtml(thumb):thumb}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.classList.add('is-broken');this.nextElementSibling&&this.nextElementSibling.classList.add('is-shown');">
+           <span class="ex-ac-thumb-ph ex-ac-thumb-fallback">${letter}</span>`
+        :`<span class="ex-ac-thumb-ph" style="background:${col}33;color:${col};">${letter}</span>`;
+      html+=`<button type="button" class="ex-ac-item" data-name="${attr}"><span class="ex-ac-thumb">${thumbHtml}</span><span class="ex-ac-name">${safe}</span></button>`;
     });
-    if(!ql&&g.items.length>8)html+=`<div class="ex-ac-more">+ ${g.items.length-8} więcej — wpisz aby zawęzić</div>`;
+    if(!ql&&g.items.length>16)html+=`<div class="ex-ac-more">+ ${g.items.length-16} więcej — wpisz aby zawęzić</div>`;
   });
   dd.innerHTML=html;
   dd.style.display='block';
@@ -686,7 +743,7 @@ function exAcInitInput(input){
     }else if(e.key==='Enter'){
       if(!open||st.idx<0||!items[st.idx])return;
       e.preventDefault();
-      exAcPick(input,items[st.idx].textContent.trim());
+      exAcPick(input,items[st.idx].dataset.name||items[st.idx].textContent.trim());
     }else if(e.key==='Escape'){
       exAcHide(input);
     }
@@ -704,7 +761,7 @@ document.addEventListener('mousedown',e=>{
   if(!item)return;
   e.preventDefault();
   const input=item.closest('.ex-ac-wrap')?.querySelector('input');
-  exAcPick(input,item.textContent.trim());
+  exAcPick(input,item.dataset.name||item.textContent.trim());
 });
 
 document.addEventListener('focusin',e=>{
@@ -732,6 +789,8 @@ function editEx(name){
   document.getElementById('ex-desc').value=ex.desc||ex.tip||'';
   const ev=document.getElementById('ex-video');
   if(ev)ev.value=ex.video||'';
+  const ei=document.getElementById('ex-img');
+  if(ei)ei.value=ex.img||ex.thumb||ex.image||'';
   const titleEl=document.querySelector('#m-ex .modal-title');
   if(titleEl)titleEl.textContent='EDYTUJ ĆWICZENIE';
   const saveBtn=document.querySelector('#m-ex .modal-footer .btn-primary');
@@ -754,19 +813,22 @@ async function saveEx(){
   if(window._saveGuard_saveEx)return;window._saveGuard_saveEx=true;setTimeout(()=>window._saveGuard_saveEx=false,1500);
 
   const name=document.getElementById('ex-name').value.trim();if(!name){notify('Wpisz nazwę!');return;}
+  const video=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl((document.getElementById('ex-video')||{}).value):((document.getElementById('ex-video')||{}).value||'');
+  const imgRaw=String((document.getElementById('ex-img')||{}).value||'').trim();
+  const img=(imgRaw&&!/^(javascript|data|vbscript):/i.test(imgRaw)&&(/^(https?:\/\/)/i.test(imgRaw)||imgRaw.startsWith('assets/')||/\.(png|jpe?g|gif|webp|svg)(\?.*)?$/i.test(imgRaw)))?imgRaw:'';
   const editingName=window._editingExName;
   if(editingName){
     const idx=(EX||[]).findIndex(e=>e.name===editingName);
     if(idx>=0){
       const oldId=EX[idx].id;
-      EX[idx]={...EX[idx],name,cat:document.getElementById('ex-cat').value,eq:document.getElementById('ex-eq').value,desc:document.getElementById('ex-desc').value,tip:document.getElementById('ex-desc').value,video:typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl((document.getElementById('ex-video')||{}).value):((document.getElementById('ex-video')||{}).value||'')};
+      EX[idx]={...EX[idx],name,cat:document.getElementById('ex-cat').value,eq:document.getElementById('ex-eq').value,desc:document.getElementById('ex-desc').value,tip:document.getElementById('ex-desc').value,video,img};
       window._editingExName=null;
       closeM('m-ex');renderLib();notify('Ćwiczenie zaktualizowane!');
       await persistById('exercises',EX[idx]);
       return;
     }
   }
-  const ex=withTrainer({id:newId('ex'),name,cat:document.getElementById('ex-cat').value,eq:document.getElementById('ex-eq').value,desc:document.getElementById('ex-desc').value,tip:document.getElementById('ex-desc').value,video:typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl((document.getElementById('ex-video')||{}).value):((document.getElementById('ex-video')||{}).value||''),muscle:'',nsca:'',alt:''});
+  const ex=withTrainer({id:newId('ex'),name,cat:document.getElementById('ex-cat').value,eq:document.getElementById('ex-eq').value,desc:document.getElementById('ex-desc').value,tip:document.getElementById('ex-desc').value,video,img,muscle:'',nsca:'',alt:''});
   EX.push(ex);closeM('m-ex');renderLib();notify('Ćwiczenie dodane!');
   await persistById('exercises',ex);
 }
@@ -785,16 +847,24 @@ window.exercisesGroupedByCat=exercisesGroupedByCat;
 
 function exCardHtml(e,i){
   const col=CAT_COLORS_EX[e.cat]||'var(--muted2)';
+  const thumb=typeof exThumbUrl==='function'?exThumbUrl(e):'';
+  const letter=((e.name||'?').trim()[0]||'?').toUpperCase();
+  const media=thumb
+    ?`<div class="ex-card-thumb"><img src="${typeof escHtml==='function'?escHtml(thumb):thumb}" alt="" loading="lazy" referrerpolicy="no-referrer"></div>`
+    :`<div class="ex-card-thumb ex-card-thumb-ph" style="background:${col}22;color:${col};">${letter}</div>`;
   return `<div class="ex-card${exSelId===e.name?' selected':''}" style="animation-delay:${(i||0)*0.025}s" onclick="openExDetail('${e.name.replace(/'/g,"\\'")}')">
     <div class="ex-card-accent" style="background:${col};"></div>
-    <div style="padding-left:8px;">
-      <div class="ex-card-name">${e.name}</div>
-      <div class="ex-card-tags">
-        <span class="pill pill-muted" style="font-size:9px;">${e.cat}</span>
-        <span class="pill pill-muted" style="font-size:9px;">${e.eq}</span>
+    <div class="ex-card-body">
+      ${media}
+      <div>
+        <div class="ex-card-name">${e.name}</div>
+        <div class="ex-card-tags">
+          <span class="pill pill-muted" style="font-size:9px;">${e.cat}</span>
+          <span class="pill pill-muted" style="font-size:9px;">${e.eq}</span>
+        </div>
+        ${e.muscle?`<div style="font-size:10px;color:var(--muted);margin-bottom:4px;">${e.muscle}</div>`:''}
+        ${e.tip?`<div class="ex-card-tip">${e.tip.substring(0,80)}${e.tip.length>80?'…':''}</div>`:''}
       </div>
-      ${e.muscle?`<div style="font-size:10px;color:var(--muted);margin-bottom:4px;">${e.muscle}</div>`:''}
-      ${e.tip?`<div class="ex-card-tip">${e.tip.substring(0,80)}${e.tip.length>80?'…':''}</div>`:''}
     </div>
   </div>`;
 }
@@ -947,6 +1017,7 @@ function openExDetail(name){
       <span class="pill" style="background:${col}22;color:${col};">${e.cat}</span>
       <span class="pill pill-muted">${e.eq}</span>
     </div>
+    ${(()=>{const thumb=typeof exThumbUrl==='function'?exThumbUrl(e):'';return thumb?`<div class="ex-detail-thumb"><img src="${typeof escHtml==='function'?escHtml(thumb):thumb}" alt="Technika: ${typeof escHtml==='function'?escHtml(e.name):e.name}" loading="lazy" referrerpolicy="no-referrer"></div>`:'';})()}
     ${e.muscle?`<div style="margin-bottom:12px;">
       <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Mięśnie</div>
       <div style="font-size:12px;line-height:1.6;">${e.muscle}</div>

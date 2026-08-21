@@ -407,6 +407,7 @@ function initPriorSportsForm(prefix,selected){
 window.initPriorSportsForm=initPriorSportsForm;
 
 function openM(id){
+  document.querySelectorAll('.ex-ac-dropdown').forEach(dd=>{dd.style.display='none';});
   if(id==='m-session'){
     document.getElementById('as-date').value=new Date().toISOString().split('T')[0];
     document.getElementById('as-time').value='10:00';
@@ -441,6 +442,7 @@ function openM(id){
     document.getElementById('ex-name').value='';
     document.getElementById('ex-desc').value='';
     const ev=document.getElementById('ex-video');if(ev)ev.value='';
+    const ei=document.getElementById('ex-img');if(ei)ei.value='';
   }
   if(id==='m-task'){
     window._editingTaskId=null;
@@ -718,6 +720,36 @@ function coachVideoIsFile(url){
 }
 window.coachVideoIsFile=coachVideoIsFile;
 
+function youtubeIdFromUrl(url){
+  const u=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl(url):String(url||'');
+  if(!u)return '';
+  let m=u.match(/[?&]v=([A-Za-z0-9_-]{11})/);
+  if(m)return m[1];
+  m=u.match(/youtu\.be\/([A-Za-z0-9_-]{11})/);
+  if(m)return m[1];
+  m=u.match(/youtube\.com\/(?:embed|shorts)\/([A-Za-z0-9_-]{11})/);
+  if(m)return m[1];
+  return '';
+}
+window.youtubeIdFromUrl=youtubeIdFromUrl;
+
+/** Miniatura techniki: własne img/gif albo miniaturka YouTube z filmu ćwiczenia. */
+function exThumbUrl(exOrName){
+  let ex=exOrName;
+  if(typeof exOrName==='string')ex=typeof libExerciseByName==='function'?libExerciseByName(exOrName):null;
+  if(!ex||typeof ex!=='object')return '';
+  const img=String(ex.img||ex.thumb||ex.image||'').trim();
+  if(img&&!/^(javascript|data|vbscript):/i.test(img)){
+    if(/^https?:\/\//i.test(img)||/^\.?\.?\/?[A-Za-z0-9_./-]+\.(png|jpe?g|gif|webp|svg)(\?.*)?$/i.test(img)||img.startsWith('assets/'))return img;
+  }
+  let video=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl(ex.video||''):String(ex.video||'');
+  if(!video&&ex.name&&typeof ownVideoForExercise==='function')video=ownVideoForExercise(ex.name);
+  const yt=youtubeIdFromUrl(video);
+  if(yt)return 'https://i.ytimg.com/vi/'+yt+'/mqdefault.jpg';
+  return '';
+}
+window.exThumbUrl=exThumbUrl;
+
 function libExerciseByName(name){
   const key=String(name||'').toLowerCase().replace(/\s+/g,' ').trim();
   if(!key)return null;
@@ -750,7 +782,8 @@ function resolveCoachMedia(parsed){
     if(libTip.length>160)libTip=libTip.slice(0,157)+'…';
   }
   const embed=coachVideoEmbed(video);
-  return{note,libTip,video,videoEmbed:embed,isFile:coachVideoIsFile(video)};
+  const img=exThumbUrl({...ex,...(lib||{}),video:video||(lib&&lib.video)||'',img:(ex.img||ex.thumb||ex.image||(lib&&(lib.img||lib.thumb||lib.image))||'')});
+  return{note,libTip,video,videoEmbed:embed,isFile:coachVideoIsFile(video),img};
 }
 window.resolveCoachMedia=resolveCoachMedia;
 
