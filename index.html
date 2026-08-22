@@ -2931,25 +2931,46 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 
 <!-- Import biblioteki GIF -->
 <div class="modal-ov" id="m-ex-gif-import">
-  <div class="modal" style="max-width:720px;">
-    <div class="modal-hdr"><div class="modal-title">IMPORT BIBLIOTEKI GIF</div><button class="modal-close" onclick="closeM('m-ex-gif-import')">×</button></div>
+  <div class="modal" style="max-width:760px;">
+    <div class="modal-hdr"><div class="modal-title">IMPORT BIBLIOTEKI GIF — MASOWO</div><button class="modal-close" onclick="closeM('m-ex-gif-import')">×</button></div>
     <div class="modal-body">
-      <div style="font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:14px;">Wgraj swoją bibliotekę krótkich animacji techniki. Nazwij pliki slugiem ćwiczenia (np. <code style="color:var(--text);">wyciskanie-sztangi-lezac.gif</code>) — aplikacja dopasuje je automatycznie. GIF-y trafią do Firebase Storage i będą widoczne w builderze, bibliotece i u klienta.</div>
-      <div class="form-field">
-        <label class="form-lbl">Pliki z dysku</label>
-        <input type="file" class="form-input" id="exgif-files" accept=".gif,.webp,.mp4,.webm,image/gif,video/mp4,video/webm" multiple webkitdirectory directory onchange="onExGifFilesPicked(this)">
-        <div style="font-size:11px;color:var(--muted);margin-top:6px;">Możesz wybrać cały folder (Chrome / Edge) albo wiele plików naraz.</div>
+      <div style="display:flex;gap:6px;margin-bottom:14px;">
+        <button type="button" class="btn btn-sm btn-ghost" id="exgif-tab-paste" onclick="setExGifImportTab('paste')">📋 Wklej listę (masowo)</button>
+        <button type="button" class="btn btn-sm btn-ghost" id="exgif-tab-files" onclick="setExGifImportTab('files')">📁 Pliki z dysku</button>
       </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin:12px 0 8px;">
+      <div id="exgif-panel-paste">
+        <div style="font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:10px;">Wklej <b>całą listę naraz</b> — jedna linia = jedno ćwiczenie. Formaty (wybierz jeden):</div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:10px;font-family:'DM Mono',monospace;background:rgba(0,0,0,0.25);padding:10px 12px;border-radius:8px;">
+          Nazwa ćwiczenia | https://link-do-gifa.gif<br>
+          Nazwa ćwiczenia;https://link-do-gifa.gif<br>
+          Nazwa ćwiczenia[TAB]https://link-do-gifa.gif<br>
+          Nazwa ćwiczenia https://link-do-gifa.gif<br>
+          # linie z # są ignorowane
+        </div>
+        <div class="form-field">
+          <label class="form-lbl">Lista ćwiczeń + linki (wklej tutaj)</label>
+          <textarea class="form-textarea" id="exgif-paste" rows="12" placeholder="Wyciskanie sztangi leżąc | https://twoj-serwer.pl/gify/bench.gif&#10;Podciąganie na drążku | https://...&#10;Martwy ciąg klasyczny | https://..."></textarea>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="onExGifBulkPastePreview()">Parsuj listę</button>
+      </div>
+      <div id="exgif-panel-files" style="display:none;">
+        <div style="font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:14px;">Wybierz folder z GIF-ami — nazwy plików jak slug ćwiczenia (<code style="color:var(--text);">wyciskanie-sztangi-lezac.gif</code>).</div>
+        <div class="form-field">
+          <label class="form-lbl">Pliki z dysku</label>
+          <input type="file" class="form-input" id="exgif-files" accept=".gif,.webp,.mp4,.webm,image/gif,video/mp4,video/webm" multiple webkitdirectory directory onchange="onExGifFilesPicked(this)">
+          <div style="font-size:11px;color:var(--muted);margin-top:6px;">Cały folder (Chrome / Edge) lub wiele plików naraz.</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 8px;">
         <span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);" id="exgif-match-count">0 dopasowanych</span>
-        <span style="font-size:11px;color:var(--muted);">Odznacz pliki bez dopasowania przed wgraniem</span>
+        <span style="font-size:11px;color:var(--muted);">Sprawdź listę — popraw niedopasowane w select</span>
       </div>
       <div id="exgif-preview" class="exgif-preview"></div>
       <div id="exgif-progress-wrap" style="display:none;margin-top:12px;height:6px;background:var(--s3);border-radius:99px;overflow:hidden;">
         <div id="exgif-progress" style="height:100%;width:0;background:var(--accent);transition:width 0.2s;"></div>
       </div>
     </div>
-    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-ex-gif-import')">Anuluj</button><button class="btn btn-primary" id="exgif-import-btn" onclick="runExGifImport()">Wgraj przypisane GIF-y</button></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-ex-gif-import')">Anuluj</button><button class="btn btn-primary" id="exgif-import-btn" onclick="runExGifImport()">Zapisz masowo</button></div>
   </div>
 </div>
 

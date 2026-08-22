@@ -770,6 +770,7 @@ function isSafeMediaUrl(url){
   if(s.startsWith('assets/'))return true;
   return /^\.?\.?\/?[A-Za-z0-9_./-]+\.(gif|webp|png|jpe?g|svg|mp4|webm)(\?.*)?$/i.test(s);
 }
+window.isSafeMediaUrl=isSafeMediaUrl;
 
 function exGifUrl(exOrName){
   let ex=exOrName;
