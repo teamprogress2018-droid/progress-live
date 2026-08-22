@@ -12,8 +12,8 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="globals.css?v=6">
-<link rel="stylesheet" href="styles.css?v=6">
+<link rel="stylesheet" href="globals.css?v=7">
+<link rel="stylesheet" href="styles.css?v=7">
 </head>
 <body>
 
@@ -478,6 +478,7 @@
     <div style="width:200px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;">
       <div style="padding:10px;">
         <input type="text" id="ex-search" placeholder="Szukaj ćwiczenia..." oninput="renderLib()" style="width:100%;background:var(--s3);border:1px solid var(--border);border-radius:6px;padding:6px 9px;color:var(--text);font-size:12px;">
+        <button type="button" class="btn btn-primary btn-sm" style="width:100%;margin-top:8px;" onclick="openExGifImport()">🎞 Import GIF-ów (masowo)</button>
       </div>
       <div style="overflow-y:auto;flex:1;padding:4px 0;" id="ex-cat-nav"></div>
       <div style="padding:10px;border-top:1px solid var(--border);">
