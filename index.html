@@ -12,8 +12,8 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="globals.css?v=5">
-<link rel="stylesheet" href="styles.css?v=5">
+<link rel="stylesheet" href="globals.css?v=6">
+<link rel="stylesheet" href="styles.css?v=6">
 </head>
 <body>
 
@@ -468,6 +468,7 @@
         <button class="btn btn-ghost btn-sm" id="ex-view-grid-btn" onclick="setExView('grid')">⊞ Karty</button>
         <button class="btn btn-primary btn-sm" id="ex-view-list-btn" onclick="setExView('list')">☰ Lista</button>
       </div>
+      <button class="btn btn-ghost btn-sm" id="lib-import-gif" onclick="openExGifImport()">🎞 Import GIF-ów</button>
       <button class="btn btn-primary btn-sm" id="lib-add-ex" onclick="openM('m-ex')">+ Ćwiczenie</button>
       <button class="btn btn-primary btn-sm" id="lib-add-vid" onclick="openM('m-own-video')" style="display:none;">+ Film</button>
     </div>
@@ -2921,10 +2922,34 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <div class="form-field"><label class="form-lbl">Nazwa</label><input type="text" class="form-input" id="ex-name" placeholder="np. Wyciskanie sztangi leżąc"></div>
       <div class="form-grid"><div class="form-field"><label class="form-lbl">Kategoria</label><select class="form-select" id="ex-cat"><option>Klatka piersiowa</option><option>Plecy</option><option>Barki</option><option>Nogi</option><option>Biceps</option><option>Triceps</option><option>Core</option><option>Pośladki</option></select></div><div class="form-field"><label class="form-lbl">Sprzęt</label><select class="form-select" id="ex-eq"><option>Sztanga</option><option>Hantle</option><option>Maszyna</option><option>Wyciąg</option><option>Własna masa</option><option>Kettlebell</option></select></div></div>
       <div class="form-field"><label class="form-lbl">Wskazówka techniczna</label><textarea class="form-textarea" id="ex-desc" rows="2" placeholder="np. Łopatki ściągnięte, pełny ROM..."></textarea></div>
-      <div class="form-field"><label class="form-lbl">Grafika techniki (opcjonalnie)</label><input type="url" class="form-input" id="ex-img" placeholder="https://…/cwiczenie.gif lub .jpg / .png / .webp"><div style="font-size:11px;color:var(--muted);margin-top:6px;">Miniatura pojawi się obok nazwy na liście ćwiczeń. Możesz wkleić GIF/zdjęcie z instrukcją ruchu.</div></div>
+      <div class="form-field"><label class="form-lbl">Animacja / grafika techniki (opcjonalnie)</label><input type="url" class="form-input" id="ex-img" placeholder="GIF / WEBP / MP4 — URL lub assets/ex/gifs/nazwa.gif"><div style="font-size:11px;color:var(--muted);margin-top:6px;">Krótka animacja techniki — widać ją w bibliotece, builderze i u klienta na treningu. Możesz też użyć <b>Import GIF-ów</b> w bibliotece.</div></div>
       <div class="form-field"><label class="form-lbl">Film techniki (opcjonalnie)</label><input type="url" class="form-input" id="ex-video" placeholder="https://youtube.com/watch?v=... albo .mp4"><div style="font-size:11px;color:var(--muted);margin-top:6px;">Przy filmie YouTube miniatura generuje się automatycznie, jeśli nie podasz osobnej grafiki.</div></div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-ex')">Anuluj</button><button class="btn btn-primary" onclick="saveEx()">Zapisz</button></div>
+  </div>
+</div>
+
+<!-- Import biblioteki GIF -->
+<div class="modal-ov" id="m-ex-gif-import">
+  <div class="modal" style="max-width:720px;">
+    <div class="modal-hdr"><div class="modal-title">IMPORT BIBLIOTEKI GIF</div><button class="modal-close" onclick="closeM('m-ex-gif-import')">×</button></div>
+    <div class="modal-body">
+      <div style="font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:14px;">Wgraj swoją bibliotekę krótkich animacji techniki. Nazwij pliki slugiem ćwiczenia (np. <code style="color:var(--text);">wyciskanie-sztangi-lezac.gif</code>) — aplikacja dopasuje je automatycznie. GIF-y trafią do Firebase Storage i będą widoczne w builderze, bibliotece i u klienta.</div>
+      <div class="form-field">
+        <label class="form-lbl">Pliki z dysku</label>
+        <input type="file" class="form-input" id="exgif-files" accept=".gif,.webp,.mp4,.webm,image/gif,video/mp4,video/webm" multiple webkitdirectory directory onchange="onExGifFilesPicked(this)">
+        <div style="font-size:11px;color:var(--muted);margin-top:6px;">Możesz wybrać cały folder (Chrome / Edge) albo wiele plików naraz.</div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin:12px 0 8px;">
+        <span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);" id="exgif-match-count">0 dopasowanych</span>
+        <span style="font-size:11px;color:var(--muted);">Odznacz pliki bez dopasowania przed wgraniem</span>
+      </div>
+      <div id="exgif-preview" class="exgif-preview"></div>
+      <div id="exgif-progress-wrap" style="display:none;margin-top:12px;height:6px;background:var(--s3);border-radius:99px;overflow:hidden;">
+        <div id="exgif-progress" style="height:100%;width:0;background:var(--accent);transition:width 0.2s;"></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-ex-gif-import')">Anuluj</button><button class="btn btn-primary" id="exgif-import-btn" onclick="runExGifImport()">Wgraj przypisane GIF-y</button></div>
   </div>
 </div>
 
@@ -3507,8 +3532,11 @@ window.doPasswordReset=window.doPasswordReset||authNetworkFallbackMsg;
 import{initializeApp}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
 import{getFirestore,collection,getDocs,addDoc,deleteDoc,doc,setDoc,updateDoc,getDoc,query,where}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 import{getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut,sendPasswordResetEmail,createUserWithEmailAndPassword}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
+import{getStorage,ref,uploadBytes,getDownloadURL}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-storage.js";
 const cfg={apiKey:"AIzaSyDrbke0QdB55k_4smzhKufQ75eAluu-r_8",authDomain:"progress-live-fc83d.firebaseapp.com",projectId:"progress-live-fc83d",storageBucket:"progress-live-fc83d.firebasestorage.app",messagingSenderId:"637727410398",appId:"1:637727410398:web:b8e4e2581c2e3a24a11a4f"};
 const app=initializeApp(cfg);const db=getFirestore(app);const auth=getAuth(app);
+const storage=getStorage(app);
+window._storage=storage;window._storageRef=ref;window._uploadBytes=uploadBytes;window._getDownloadURL=getDownloadURL;
 window._db=db;window._col=collection;window._add=addDoc;window._del=deleteDoc;window._doc=doc;window._get=getDocs;window._setDoc=setDoc;window._updateDoc=updateDoc;window._getDoc=getDoc;window._query=query;window._where=where;
 window._createUser=function(email,pass){return createUserWithEmailAndPassword(auth,email,pass);};
 
@@ -3632,6 +3660,17 @@ async function load(){
   try{const s=await getDocs(collection(db,'plans'));window.PL=[];s.forEach(d=>{const x=_takeFb(d);if(x)window.PL.push(x);});}catch(e){window.PL=[];}
   try{const s=await getDocs(collection(db,'sessions'));window.SE=[];s.forEach(d=>{const x=_takeFb(d);if(x)window.SE.push(x);});}catch(e){window.SE=[];}
   try{const s=await getDocs(collection(db,'exercises'));window.EX=[];s.forEach(d=>{const x=_takeFb(d);if(x)window.EX.push(x);});}catch(e){window.EX=[];}
+  try{
+    const sG=await getDocs(collection(db,'exerciseGifs'));
+    window.EX_GIF_REMOTE={};
+    sG.forEach(d=>{
+      const x=_takeFb(d);
+      if(!x||!x.gifUrl)return;
+      const n=x.exerciseName||x.name||'';
+      const k=typeof window.exerciseMediaKey==='function'?window.exerciseMediaKey(n):String(n).toLowerCase().replace(/\s+/g,' ').trim();
+      if(k)window.EX_GIF_REMOTE[k]=x.gifUrl;
+    });
+  }catch(e){window.EX_GIF_REMOTE=window.EX_GIF_REMOTE||{};}
   try{const sCV=await getDocs(collection(db,'coachVideos'));window.COACH_VIDEOS=[];sCV.forEach(d=>{const x=_takeFb(d);if(x)window.COACH_VIDEOS.push(x);});}catch(e){window.COACH_VIDEOS=window.COACH_VIDEOS||[];}
   try{const s=await getDocs(collection(db,'workouts'));window.WO=[];s.forEach(d=>{const x=_takeFb(d);if(x)window.WO.push(x);});}catch(e){window.WO=[];}
   try{const s2=await getDocs(collection(db,'tasks'));window.TASKS=[];s2.forEach(d=>{const x=_takeFb(d);if(x)window.TASKS.push(x);});}catch(e){window.TASKS=[];}
@@ -3800,6 +3839,7 @@ async function load(){
 }
 </script>
 
+<script src="ex-gif-manifest.js"></script>
 <script src="01-core.js"></script>
 <script src="02-workouts-onboarding-templates-live.js"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js"></script>

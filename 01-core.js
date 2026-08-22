@@ -733,15 +733,69 @@ function youtubeIdFromUrl(url){
 }
 window.youtubeIdFromUrl=youtubeIdFromUrl;
 
-/** Miniatura techniki: własne img/gif albo miniaturka YouTube z filmu ćwiczenia. */
+function exerciseMediaKey(name){
+  return String(name||'').toLowerCase().replace(/\s+/g,' ').trim();
+}
+window.exerciseMediaKey=exerciseMediaKey;
+
+function exerciseSlug(name){
+  return exerciseMediaKey(name)
+    .normalize('NFD').replace(/\p{M}/gu,'')
+    .replace(/ł/g,'l')
+    .replace(/[^a-z0-9]+/g,'-')
+    .replace(/^-|-$/g,'');
+}
+window.exerciseSlug=exerciseSlug;
+
+/** GIF techniki z manifestu repo, Firestore (EX_GIF_REMOTE) lub pola gif/img ćwiczenia. */
+function exGifMapLookup(name){
+  const key=exerciseMediaKey(name);
+  const slug=exerciseSlug(name);
+  if(!key&&!slug)return '';
+  const remote=window.EX_GIF_REMOTE||{};
+  if(remote[key])return remote[key];
+  if(remote[slug])return remote[slug];
+  const manifest=window.EX_GIF_MANIFEST||{};
+  if(manifest[key])return manifest[key];
+  if(manifest[slug])return manifest[slug];
+  if(manifest[name])return manifest[name];
+  return '';
+}
+window.exGifMapLookup=exGifMapLookup;
+
+function isSafeMediaUrl(url){
+  const s=String(url||'').trim();
+  if(!s||/^(javascript|data|vbscript):/i.test(s))return false;
+  if(/^https?:\/\//i.test(s))return true;
+  if(s.startsWith('assets/'))return true;
+  return /^\.?\.?\/?[A-Za-z0-9_./-]+\.(gif|webp|png|jpe?g|svg|mp4|webm)(\?.*)?$/i.test(s);
+}
+
+function exGifUrl(exOrName){
+  let ex=exOrName;
+  if(typeof exOrName==='string')ex=typeof libExerciseByName==='function'?libExerciseByName(exOrName):null;
+  if(ex&&typeof ex==='object'){
+    const gif=String(ex.gif||'').trim();
+    if(isSafeMediaUrl(gif))return gif;
+    const img=String(ex.img||ex.thumb||ex.image||'').trim();
+    if(isSafeMediaUrl(img)&&/\.(gif|webp|mp4|webm)(\?|#|$)/i.test(img))return img;
+    const mapped=exGifMapLookup(ex.name);
+    if(mapped)return mapped;
+    return '';
+  }
+  return exGifMapLookup(typeof exOrName==='string'?exOrName:'');
+}
+window.exGifUrl=exGifUrl;
+
+/** Miniatura techniki: GIF > img > miniaturka YouTube z filmu ćwiczenia. */
 function exThumbUrl(exOrName){
   let ex=exOrName;
   if(typeof exOrName==='string')ex=typeof libExerciseByName==='function'?libExerciseByName(exOrName):null;
+  const gif=typeof exGifUrl==='function'?exGifUrl(ex||exOrName):'';
+  if(gif)return gif;
   if(!ex||typeof ex!=='object')return '';
   const img=String(ex.img||ex.thumb||ex.image||'').trim();
-  if(img&&!/^(javascript|data|vbscript):/i.test(img)){
-    if(/^https?:\/\//i.test(img)||/^\.?\.?\/?[A-Za-z0-9_./-]+\.(png|jpe?g|gif|webp|svg)(\?.*)?$/i.test(img)||img.startsWith('assets/'))return img;
-  }
+  if(img&&isSafeMediaUrl(img))return img;
   let video=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl(ex.video||''):String(ex.video||'');
   if(!video&&ex.name&&typeof ownVideoForExercise==='function')video=ownVideoForExercise(ex.name);
   const yt=youtubeIdFromUrl(video);
@@ -782,22 +836,38 @@ function resolveCoachMedia(parsed){
     if(libTip.length>160)libTip=libTip.slice(0,157)+'…';
   }
   const embed=coachVideoEmbed(video);
-  const img=exThumbUrl({...ex,...(lib||{}),video:video||(lib&&lib.video)||'',img:(ex.img||ex.thumb||ex.image||(lib&&(lib.img||lib.thumb||lib.image))||'')});
-  return{note,libTip,video,videoEmbed:embed,isFile:coachVideoIsFile(video),img};
+  const gif=exGifUrl({...ex,...(lib||{}),video:video||(lib&&lib.video)||'',gif:(ex.gif||(lib&&lib.gif)||''),img:(ex.img||ex.thumb||ex.image||(lib&&(lib.img||lib.thumb||lib.image))||'')});
+  const img=gif||exThumbUrl({...ex,...(lib||{}),video:video||(lib&&lib.video)||'',img:(ex.img||ex.thumb||ex.image||(lib&&(lib.img||lib.thumb||lib.image))||'')});
+  return{note,libTip,video,videoEmbed:embed,isFile:coachVideoIsFile(video),img,gif};
 }
 window.resolveCoachMedia=resolveCoachMedia;
 
 function coachMediaIcons(ex){
   const src=ex&&typeof ex==='object'?ex:{name:String(ex||'')};
   const coach=(src.libTip!==undefined||src.planVideo!==undefined||src.planNote!==undefined)
-    ?{note:String(src.note||'').trim(),libTip:String(src.libTip||'').trim(),video:String(src.video||'').trim()}
+    ?{note:String(src.note||'').trim(),libTip:String(src.libTip||'').trim(),video:String(src.video||'').trim(),gif:String(src.gif||'').trim()}
     :resolveCoachMedia(typeof parsePlanExercise==='function'?parsePlanExercise(src):src);
   let icons='';
   if(coach.note||coach.libTip)icons+=' 💡';
+  if(coach.gif)icons+=' 🎞';
   if(coach.video)icons+=' ▶️';
   return icons;
 }
 window.coachMediaIcons=coachMediaIcons;
+
+function exTechniqueMediaHtml(media,opts){
+  opts=opts||{};
+  const gif=String((media&&media.gif)||'').trim();
+  const compact=!!opts.compact;
+  if(!gif||!isSafeMediaUrl(gif))return '';
+  const alt=escHtml((media&&media.name)||'Technika wykonania');
+  const cls=compact?'ex-ac-thumb-img cw-technique-gif-img':'cw-technique-gif-img';
+  if(/\.(mp4|webm)(\?|#|$)/i.test(gif)){
+    return `<div class="cw-technique-media cw-technique-gif${compact?' is-compact':''}"><video class="${cls}" src="${escHtml(gif)}" autoplay loop muted playsinline preload="metadata" title="${alt}"></video></div>`;
+  }
+  return `<div class="cw-technique-media cw-technique-gif${compact?' is-compact':''}"><img class="${cls}" src="${escHtml(gif)}" alt="${alt}" loading="lazy" referrerpolicy="no-referrer"></div>`;
+}
+window.exTechniqueMediaHtml=exTechniqueMediaHtml;
 
 function coachMediaHtml(ex,opts){
   opts=opts||{};
@@ -805,10 +875,13 @@ function coachMediaHtml(ex,opts){
   const libTip=(ex&&ex.libTip)||'';
   const video=(ex&&ex.video)||'';
   const embed=(ex&&ex.videoEmbed)||'';
+  const gif=(ex&&ex.gif)||'';
   const file=!!(ex&&ex.isFile)||coachVideoIsFile(video);
   const show=!!opts.showVideo;
+  const showGif=opts.showGif!==false;
   const toggle=opts.toggleFn||'';
   let html='';
+  if(showGif&&gif)html+=exTechniqueMediaHtml({gif,name:ex&&ex.name},opts);
   if(note)html+=`<div class="cw-coach-note">${escHtml(note)}</div>`;
   else if(libTip)html+=`<div style="font-size:11px;color:var(--muted);margin:0 0 10px;line-height:1.45;">${escHtml(libTip)}</div>`;
   if(video){
@@ -1552,6 +1625,8 @@ function mapPlanExercisesForClient(rawEx,clientId){
       video:coach.video||'',
       videoEmbed:coach.videoEmbed||'',
       isFile:!!coach.isFile,
+      gif:coach.gif||'',
+      img:coach.img||'',
       sets
     };
   });

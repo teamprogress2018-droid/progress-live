@@ -790,7 +790,7 @@ function editEx(name){
   const ev=document.getElementById('ex-video');
   if(ev)ev.value=ex.video||'';
   const ei=document.getElementById('ex-img');
-  if(ei)ei.value=ex.img||ex.thumb||ex.image||'';
+  if(ei)ei.value=ex.gif||ex.img||ex.thumb||ex.image||'';
   const titleEl=document.querySelector('#m-ex .modal-title');
   if(titleEl)titleEl.textContent='EDYTUJ ĆWICZENIE';
   const saveBtn=document.querySelector('#m-ex .modal-footer .btn-primary');
@@ -815,20 +815,23 @@ async function saveEx(){
   const name=document.getElementById('ex-name').value.trim();if(!name){notify('Wpisz nazwę!');return;}
   const video=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl((document.getElementById('ex-video')||{}).value):((document.getElementById('ex-video')||{}).value||'');
   const imgRaw=String((document.getElementById('ex-img')||{}).value||'').trim();
-  const img=(imgRaw&&!/^(javascript|data|vbscript):/i.test(imgRaw)&&(/^(https?:\/\/)/i.test(imgRaw)||imgRaw.startsWith('assets/')||/\.(png|jpe?g|gif|webp|svg)(\?.*)?$/i.test(imgRaw)))?imgRaw:'';
+  const mediaUrl=(imgRaw&&!/^(javascript|data|vbscript):/i.test(imgRaw)&&(/^(https?:\/\/)/i.test(imgRaw)||imgRaw.startsWith('assets/')||/\.(png|jpe?g|gif|webp|svg|mp4|webm)(\?.*)?$/i.test(imgRaw)))?imgRaw:'';
+  const isGif=/\.(gif|webp|mp4|webm)(\?.*)?$/i.test(mediaUrl);
+  const gif=isGif?mediaUrl:'';
+  const img=mediaUrl&&!isGif?mediaUrl:'';
   const editingName=window._editingExName;
   if(editingName){
     const idx=(EX||[]).findIndex(e=>e.name===editingName);
     if(idx>=0){
       const oldId=EX[idx].id;
-      EX[idx]={...EX[idx],name,cat:document.getElementById('ex-cat').value,eq:document.getElementById('ex-eq').value,desc:document.getElementById('ex-desc').value,tip:document.getElementById('ex-desc').value,video,img};
+      EX[idx]={...EX[idx],name,cat:document.getElementById('ex-cat').value,eq:document.getElementById('ex-eq').value,desc:document.getElementById('ex-desc').value,tip:document.getElementById('ex-desc').value,video,img,gif:gif||EX[idx].gif||''};
       window._editingExName=null;
       closeM('m-ex');renderLib();notify('Ćwiczenie zaktualizowane!');
       await persistById('exercises',EX[idx]);
       return;
     }
   }
-  const ex=withTrainer({id:newId('ex'),name,cat:document.getElementById('ex-cat').value,eq:document.getElementById('ex-eq').value,desc:document.getElementById('ex-desc').value,tip:document.getElementById('ex-desc').value,video,img,muscle:'',nsca:'',alt:''});
+  const ex=withTrainer({id:newId('ex'),name,cat:document.getElementById('ex-cat').value,eq:document.getElementById('ex-eq').value,desc:document.getElementById('ex-desc').value,tip:document.getElementById('ex-desc').value,video,img,gif,muscle:'',nsca:'',alt:''});
   EX.push(ex);closeM('m-ex');renderLib();notify('Ćwiczenie dodane!');
   await persistById('exercises',ex);
 }
@@ -1017,7 +1020,7 @@ function openExDetail(name){
       <span class="pill" style="background:${col}22;color:${col};">${e.cat}</span>
       <span class="pill pill-muted">${e.eq}</span>
     </div>
-    ${(()=>{const thumb=typeof exThumbUrl==='function'?exThumbUrl(e):'';return thumb?`<div class="ex-detail-thumb"><img src="${typeof escHtml==='function'?escHtml(thumb):thumb}" alt="Technika: ${typeof escHtml==='function'?escHtml(e.name):e.name}" loading="lazy" referrerpolicy="no-referrer"></div>`:'';})()}
+    ${(()=>{const media=typeof resolveCoachMedia==='function'?resolveCoachMedia(e):null;if(!media)return'';let h='';if(media.gif&&typeof exTechniqueMediaHtml==='function')h+=exTechniqueMediaHtml({gif:media.gif,name:e.name},{});else if(media.img){h+=`<div class="ex-detail-thumb"><img src="${typeof escHtml==='function'?escHtml(media.img):media.img}" alt="Technika: ${typeof escHtml==='function'?escHtml(e.name):e.name}" loading="lazy" referrerpolicy="no-referrer"></div>`;}if(typeof coachMediaHtml==='function')h+=coachMediaHtml({...media,name:e.name},{showVideo:!!media.video,showGif:false});return h;})()}
     ${e.muscle?`<div style="margin-bottom:12px;">
       <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Mięśnie</div>
       <div style="font-size:12px;line-height:1.6;">${e.muscle}</div>
@@ -1034,7 +1037,6 @@ function openExDetail(name){
       <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Zamienniki</div>
       <div style="display:flex;gap:4px;flex-wrap:wrap;">${e.alt.split(',').map(a=>`<span class="pill pill-muted" style="font-size:10px;cursor:pointer;" onclick="openExDetail('${a.trim().replace(/'/g,"\\'")}')">→ ${a.trim()}</span>`).join('')}</div>
     </div>`:''}
-    ${(()=>{const media=typeof resolveCoachMedia==='function'?resolveCoachMedia(e):null;return media&&media.video?(typeof coachMediaHtml==='function'?coachMediaHtml({video:media.video,videoEmbed:media.videoEmbed,isFile:media.isFile},{showVideo:true}):''):'';})()}
     <div style="display:flex;gap:6px;margin-top:4px;">
       <button class="btn btn-primary btn-sm" style="flex:1;" onclick="prefillExInBuilder('${e.name.replace(/'/g,"\\'")}')">Użyj w builderze</button>
     </div>
@@ -2218,3 +2220,149 @@ async function delTask(id){
   if(window._db){try{await window._del(window._doc(window._db,'tasks',id));}catch(e){console.warn('Firebase delTask:',e);}}
 }
 
+// ════════════════════════════════════════
+// IMPORT BIBLIOTEKI GIF (technika ćwiczeń)
+// ════════════════════════════════════════
+let _exGifImportRows=[];
+
+function matchGifFileToExercise(filename){
+  const base=String(filename||'').replace(/\.(gif|webp|mp4|webm)$/i,'').trim();
+  if(!base)return '';
+  const fileSlug=base.toLowerCase().replace(/[^a-z0-9-]+/g,'-').replace(/^-|-$/g,'');
+  const all=typeof allExercises==='function'?allExercises():[];
+  let hit=all.find(e=>typeof exerciseSlug==='function'&&exerciseSlug(e.name)===fileSlug);
+  if(hit)return hit.name;
+  const norm=base.toLowerCase().replace(/[-_]+/g,' ').trim();
+  hit=all.find(e=>typeof exerciseMediaKey==='function'&&exerciseMediaKey(e.name)===norm);
+  if(hit)return hit.name;
+  const partial=all.filter(e=>{
+    const s=typeof exerciseSlug==='function'?exerciseSlug(e.name):'';
+    return s&&(s.includes(fileSlug)||fileSlug.includes(s));
+  });
+  if(partial.length===1)return partial[0].name;
+  return '';
+}
+
+function buildExGifImportRows(files){
+  return (files||[]).filter(f=>/\.(gif|webp|mp4|webm)$/i.test(f.name||'')).map(file=>{
+    const exerciseName=matchGifFileToExercise(file.name);
+    return{file,exerciseName,selected:!!exerciseName,status:'',url:''};
+  }).sort((a,b)=>(b.selected?1:0)-(a.selected?1:0)||a.file.name.localeCompare(b.file.name,'pl'));
+}
+
+function renderExGifImportPreview(){
+  const el=document.getElementById('exgif-preview');
+  const cnt=document.getElementById('exgif-match-count');
+  if(!el)return;
+  const matched=_exGifImportRows.filter(r=>r.selected&&r.exerciseName).length;
+  if(cnt)cnt.textContent=matched+' / '+_exGifImportRows.length+' dopasowanych';
+  if(!_exGifImportRows.length){
+    el.innerHTML='<div style="text-align:center;padding:24px;color:var(--muted);font-size:12px;">Wybierz pliki GIF / WEBP / MP4 z biblioteki</div>';
+    return;
+  }
+  el.innerHTML=_exGifImportRows.map((r,i)=>{
+    const all=typeof allExercises==='function'?allExercises():[];
+    const opts=all.map(e=>`<option value="${typeof escHtml==='function'?escHtml(e.name):e.name}" ${r.exerciseName===e.name?'selected':''}>${typeof escHtml==='function'?escHtml(e.name):e.name}</option>`).join('');
+    const st=r.status==='done'?'✓':r.status==='err'?'✗':r.status==='upload'?'…':'';
+    return `<div class="exgif-row" data-i="${i}">
+      <label class="exgif-row-check"><input type="checkbox" ${r.selected?'checked':''} onchange="toggleExGifImportRow(${i},this.checked)"></label>
+      <div class="exgif-row-file">${typeof escHtml==='function'?escHtml(r.file.name):r.file.name}</div>
+      <select class="form-select exgif-row-select" onchange="setExGifImportExercise(${i},this.value)">
+        <option value="">— wybierz ćwiczenie —</option>${opts}
+      </select>
+      <span class="exgif-row-status">${st}</span>
+    </div>`;
+  }).join('');
+}
+
+function onExGifFilesPicked(input){
+  const files=input&&input.files?[...input.files]:[];
+  _exGifImportRows=buildExGifImportRows(files);
+  renderExGifImportPreview();
+}
+
+function toggleExGifImportRow(i,on){
+  if(_exGifImportRows[i])_exGifImportRows[i].selected=!!on;
+  renderExGifImportPreview();
+}
+
+function setExGifImportExercise(i,name){
+  if(!_exGifImportRows[i])return;
+  _exGifImportRows[i].exerciseName=name||'';
+  _exGifImportRows[i].selected=!!name;
+  renderExGifImportPreview();
+}
+
+function openExGifImport(){
+  _exGifImportRows=[];
+  const inp=document.getElementById('exgif-files');
+  if(inp)inp.value='';
+  renderExGifImportPreview();
+  const bar=document.getElementById('exgif-progress');
+  if(bar){bar.style.width='0%';bar.parentElement.style.display='none';}
+  openM('m-ex-gif-import');
+}
+
+async function runExGifImport(){
+  const rows=_exGifImportRows.filter(r=>r.selected&&r.exerciseName);
+  if(!rows.length){notify('Zaznacz pliki i przypisz ćwiczenia');return;}
+  if(!window._uid){notify('Zaloguj się, aby wgrać bibliotekę GIF');return;}
+  if(!window._storage||!window._storageRef||!window._uploadBytes||!window._getDownloadURL){
+    notify('Firebase Storage niedostępny — użyj folderu assets/ex/gifs/ w repo (patrz README)');
+    return;
+  }
+  const btn=document.getElementById('exgif-import-btn');
+  if(btn){btn.disabled=true;btn.textContent='Wgrywanie…';}
+  const progWrap=document.getElementById('exgif-progress-wrap');
+  const prog=document.getElementById('exgif-progress');
+  if(progWrap)progWrap.style.display='block';
+  window.EX_GIF_REMOTE=window.EX_GIF_REMOTE||{};
+  let ok=0;
+  for(let i=0;i<rows.length;i++){
+    const row=rows[i];
+    row.status='upload';
+    renderExGifImportPreview();
+    try{
+      const slug=typeof exerciseSlug==='function'?exerciseSlug(row.exerciseName):String(row.exerciseName).toLowerCase();
+      const ext=(row.file.name.match(/\.(gif|webp|mp4|webm)$/i)||['','gif'])[1].toLowerCase();
+      const path='exercise-gifs/'+window._uid+'/'+slug+'.'+ext;
+      const ref=window._storageRef(window._storage,path);
+      await window._uploadBytes(ref,row.file,{contentType:row.file.type||'image/gif'});
+      const url=await window._getDownloadURL(ref);
+      row.url=url;
+      row.status='done';
+      const key=typeof exerciseMediaKey==='function'?exerciseMediaKey(row.exerciseName):row.exerciseName.toLowerCase();
+      window.EX_GIF_REMOTE[key]=url;
+      if(window._db&&window._setDoc&&window._doc){
+        await window._setDoc(window._doc(window._db,'exerciseGifs',slug),{
+          exerciseName:row.exerciseName,
+          gifUrl:url,
+          trainerId:window._uid,
+          updatedAt:new Date().toISOString()
+        },{merge:true});
+      }
+      ok++;
+    }catch(e){
+      console.warn('GIF import',row.file.name,e);
+      row.status='err';
+    }
+    if(prog)prog.style.width=Math.round(((i+1)/rows.length)*100)+'%';
+    renderExGifImportPreview();
+  }
+  if(btn){btn.disabled=false;btn.textContent='Wgraj przypisane GIF-y';}
+  if(typeof renderLib==='function')renderLib();
+  notify('✓ Wgrano '+ok+' / '+rows.length+' animacji techniki');
+  if(ok===rows.length)closeM('m-ex-gif-import');
+}
+
+window.openExGifImport=openExGifImport;
+window.onExGifFilesPicked=onExGifFilesPicked;
+window.runExGifImport=runExGifImport;
+window.toggleExGifImportRow=toggleExGifImportRow;
+window.setExGifImportExercise=setExGifImportExercise;
+
+function countExercisesWithGif(){
+  const all=typeof allExercises==='function'?allExercises():[];
+  return all.filter(e=>typeof exGifUrl==='function'&&!!exGifUrl(e)).length;
+}
+window.countExercisesWithGif=countExercisesWithGif;
