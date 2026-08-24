@@ -1813,6 +1813,42 @@ function pendingFormSends(clientId,sends){
 }
 window.pendingFormSends=pendingFormSends;
 
+function allPendingFormSends(sends){
+  const list=sends||window.FORM_SENDS||[];
+  const live=new Set((window.CL||[]).filter(c=>c&&c.status!=='archived').map(c=>c.id));
+  return list.filter(s=>s&&s.status!=='filled'&&s.clientId&&(!live.size||live.has(s.clientId)))
+    .slice()
+    .sort((a,b)=>String(b.sentAtIso||b.createdAt||'').localeCompare(String(a.sentAtIso||a.createdAt||'')));
+}
+window.allPendingFormSends=allPendingFormSends;
+
+function defaultIntakeForm(){
+  const forms=typeof allForms==='function'?allForms():[];
+  return forms.find(f=>f&&f.id==='df1')
+    ||forms.find(f=>f&&String(f.cat||'').includes('wstepna'))
+    ||forms.find(f=>f&&/wst[eę]p|ankieta|intake|onboard/i.test(String(f.name||'')))
+    ||null;
+}
+window.defaultIntakeForm=defaultIntakeForm;
+
+function clientIntakeFormState(clientId){
+  const form=defaultIntakeForm();
+  const sends=(window.FORM_SENDS||[]).filter(s=>s&&s.clientId===clientId);
+  const forForm=form?sends.filter(s=>s.formId===form.id):sends;
+  const filledSend=forForm.find(s=>s.status==='filled')||null;
+  const pending=forForm.find(s=>s.status!=='filled')||null;
+  const anyPending=sends.filter(s=>s.status!=='filled');
+  return{
+    form,
+    filled:!!filledSend,
+    filledSend,
+    pending:pending||null,
+    anyPending,
+    sent:!!(filledSend||pending||forForm.length)
+  };
+}
+window.clientIntakeFormState=clientIntakeFormState;
+
 function applyFormSubmit(send,answers,nowIso){
   if(!send)return{ok:false,error:'missing'};
   if(send.status==='filled')return{ok:false,error:'already'};

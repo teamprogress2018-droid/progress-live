@@ -405,6 +405,8 @@ function clientSubmitForm(sendId){
       addNotification('form','Formularz wypełniony',(c?c.name+' — ':'')+name,'forms');
     }
   }
+  try{if(typeof renderDashFormFollowup==='function')renderDashFormFollowup();}catch(e){}
+  try{if(typeof renderDash==='function'&&!(r.intakeSync&&r.intakeSync.changed)){/* intake path already refreshed dash */}}catch(e){}
   window._cliveFormSendId=null;
   setClientLiveScreen('forms');
 }
