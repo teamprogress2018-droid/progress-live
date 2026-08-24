@@ -3126,7 +3126,7 @@ function checkinChatText(name,custom){
   if(custom)return String(custom).replace(/\{imie\}/gi,first);
   return 'Hej '+first+'! Czas na tygodniowy check-in 💪 Otwórz aplikację → Check-in i wypełnij (ok. 2 min).';
 }
-function ensurePendingCheckin(clientId){
+function ensurePendingCheckin(clientId,opts){
   ensureCheckins(clientId);
   const existing=pendingCheckin(clientId);
   if(existing)return existing;
@@ -3134,12 +3134,78 @@ function ensurePendingCheckin(clientId){
     id:newId('ci'),clientId,
     date:typeof dateStr==='function'?dateStr(new Date()):new Date().toISOString().slice(0,10),
     status:'pending',score:null,answers:{},
+    source:(opts&&opts.source)||'manual',
     createdAt:new Date().toISOString()
   });
   window.CHECKINS[clientId].push(rec);
   persistCheckin(rec);
   return rec;
 }
+
+/** Po starcie współpracy (ma plan) — kandydat do tygodniowego check-inu. */
+function clientEligibleForWeeklyCheckin(c){
+  if(!c||c.status==='archived')return false;
+  if(typeof clientHasAssignedPlan==='function')return clientHasAssignedPlan(c.id);
+  return(window.PL||[]).some(p=>p&&p.clientId===c.id);
+}
+function checkinRecordAgeDays(ci){
+  if(!ci)return 999;
+  const raw=ci.createdAt||ci.date||'';
+  const t=new Date(raw).getTime();
+  if(!t||isNaN(t))return 999;
+  return Math.floor((Date.now()-t)/86400000);
+}
+function needsWeeklyCheckin(clientId){
+  if(filledThisWeek(clientId))return false;
+  if(pendingCheckin(clientId))return false;
+  return true;
+}
+function isWeeklyCheckinDay(now){
+  const want=parseInt(window.SETTINGS&&window.SETTINGS.notifications&&window.SETTINGS.notifications.weeklyCheckinDay,10);
+  const day=Number.isFinite(want)?want:1;
+  return(now||new Date()).getDay()===day;
+}
+function lastCheckinActivity(clientId){
+  const list=(window.CHECKINS&&window.CHECKINS[clientId])||[];
+  if(!list.length)return null;
+  return list.slice().sort((a,b)=>String(b.createdAt||b.date||'').localeCompare(String(a.createdAt||a.date||'')))[0]||null;
+}
+/** Auto-wysyłka tygodniowego check-inu po onboardingu/planie.
+ *  Wysyła gdy: setting włączony, klient ma plan, brak filled/pending w tym tygodniu,
+ *  oraz (dziś to dzień check-inu LUB brak historii LUB >7 dni od ostatniego). */
+function runWeeklyCheckinSweep(opts){
+  const o=opts||{};
+  const N=(window.SETTINGS&&window.SETTINGS.notifications)||{};
+  if(N.weeklyCheckin===false&&!o.force)return{sent:0,reason:'disabled'};
+  const clients=(window.CL||[]).filter(clientEligibleForWeeklyCheckin);
+  let sent=0;
+  const sentIds=[];
+  clients.forEach(c=>{
+    if(!needsWeeklyCheckin(c.id))return;
+    const last=lastCheckinActivity(c.id);
+    const age=checkinRecordAgeDays(last);
+    if(!o.force&&!isWeeklyCheckinDay()&&last&&age<7)return;
+    ensurePendingCheckin(c.id,{source:'auto'});
+    if(typeof pushMsg==='function')pushMsg(c.id,checkinChatText(c.name));
+    sent++;
+    sentIds.push(c.id);
+  });
+  if(sent&&typeof addNotification==='function'){
+    addNotification('task','Check-in tygodniowy','Automatycznie wysłano do '+sent+(sent===1?' klienta':' klientów'),'checkin');
+  }
+  if(sent&&!o.silent&&typeof notify==='function'){
+    notify('✓ Check-in tygodniowy → '+sent+(sent===1?' klient':' klientów'));
+  }
+  if(sent&&typeof renderCheckinClientList==='function')try{renderCheckinClientList();}catch(e){}
+  return{sent,sentIds};
+}
+window.clientEligibleForWeeklyCheckin=clientEligibleForWeeklyCheckin;
+window.needsWeeklyCheckin=needsWeeklyCheckin;
+window.isWeeklyCheckinDay=isWeeklyCheckinDay;
+window.runWeeklyCheckinSweep=runWeeklyCheckinSweep;
+window.filledThisWeek=filledThisWeek;
+window.pendingCheckin=pendingCheckin;
+window.ensurePendingCheckin=ensurePendingCheckin;
 
 function setCIFilter(f,btn){
   ciFilter=f;
@@ -3562,6 +3628,8 @@ window.SETTINGS={
     taskOverdue:true,
     inactiveClient:true,
     inactiveDays:14,
+    weeklyCheckin:true,
+    weeklyCheckinDay:1,
     emailDigest:false,
     pushNotif:true,
   },
@@ -3744,6 +3812,8 @@ function renderSettingsContent(t,targetId){
       ${card('Klienci','',`
         ${row('Alert — nieaktywny klient','Gdy klient nie trenuje przez X dni',toggle('inactive-alert',S.notifications.inactiveClient))}
         ${row('Liczba dni bez aktywności','',sel('inactive-days',String(S.notifications.inactiveDays),[['7','7 dni'],['14','14 dni'],['21','21 dni'],['30','30 dni']]))}
+        ${row('Tygodniowy check-in','Auto-wysyłka do klientów z planem (po starcie współpracy)',toggle('weekly-checkin',S.notifications.weeklyCheckin!==false))}
+        ${row('Dzień check-inu','',sel('weekly-checkin-day',String(S.notifications.weeklyCheckinDay!=null?S.notifications.weeklyCheckinDay:1),[['1','Poniedziałek'],['2','Wtorek'],['3','Środa'],['4','Czwartek'],['5','Piątek'],['0','Niedziela']]))}
         ${row('Zadania przeterminowane','Powiadomienie o nieodrobionych zadaniach',toggle('task-overdue',S.notifications.taskOverdue))}
       `)}
 
@@ -3906,6 +3976,7 @@ function toggleSetting(id){
     'vat-payer':()=>{S.payments.vatPayer=!S.payments.vatPayer;},
     'sess-reminder':()=>{S.notifications.sessionReminder=!S.notifications.sessionReminder;},
     'inactive-alert':()=>{S.notifications.inactiveClient=!S.notifications.inactiveClient;},
+    'weekly-checkin':()=>{S.notifications.weeklyCheckin=!(S.notifications.weeklyCheckin!==false);},
     'task-overdue':()=>{S.notifications.taskOverdue=!S.notifications.taskOverdue;},
     'payment-alert':()=>{S.notifications.paymentAlert=!S.notifications.paymentAlert;},
     'push-notif':()=>{S.notifications.pushNotif=!S.notifications.pushNotif;},
@@ -4132,6 +4203,7 @@ function saveSettings(){
   if(g('company-website'))S.company.website=g('company-website').value;
   if(g('sess-reminder-time'))S.notifications.sessionReminderTime=parseInt(g('sess-reminder-time').value,10)||60;
   if(g('inactive-days'))S.notifications.inactiveDays=parseInt(g('inactive-days').value,10)||14;
+  if(g('weekly-checkin-day'))S.notifications.weeklyCheckinDay=parseInt(g('weekly-checkin-day').value,10);
   if(typeof ensureReminderAutoflowsFromSettings==='function')try{ensureReminderAutoflowsFromSettings();}catch(e){}
   syncSidebarProfile();
   notify('✓ Ustawienia zapisane!');
@@ -5330,6 +5402,7 @@ var dashCalDate = new Date();
 function renderDash(){
   if(typeof ensureReminderAutoflowsFromSettings==='function')try{ensureReminderAutoflowsFromSettings();}catch(e){}
   if(typeof runAutoflowsCheck==='function')try{runAutoflowsCheck(false);}catch(e){}
+  if(typeof runWeeklyCheckinSweep==='function')try{runWeeklyCheckinSweep({silent:true});}catch(e){}
   const today=new Date();
   const todayStr=dateStr(today);
   // week bounds
@@ -5374,6 +5447,7 @@ function renderDash(){
   renderDashMiniCal();
   renderDashGettingStarted();
   renderDashClientPipeline();
+  renderDashCheckinFollowup();
   renderProfileSetupBanner();
 }
 
@@ -5483,6 +5557,41 @@ function renderDashClientPipeline(){
   </div>`;
 }
 window.renderDashClientPipeline=renderDashClientPipeline;
+
+function renderDashCheckinFollowup(){
+  const el=document.getElementById('dash-checkin-followup');if(!el)return;
+  const clients=(window.CL||[]).filter(c=>c&&c.status!=='archived');
+  clients.forEach(c=>{ if(typeof ensureCheckins==='function')ensureCheckins(c.id); });
+  const pending=clients.filter(c=>typeof getCIStatus==='function'&&getCIStatus(c.id)==='pending');
+  const overdue=clients.filter(c=>typeof getCIStatus==='function'&&getCIStatus(c.id)==='overdue');
+  const need=clients.filter(c=>typeof clientEligibleForWeeklyCheckin==='function'&&clientEligibleForWeeklyCheckin(c)&&typeof needsWeeklyCheckin==='function'&&needsWeeklyCheckin(c.id));
+  if(!pending.length&&!overdue.length&&!need.length){el.style.display='none';el.innerHTML='';return;}
+  const rows=[
+    ...overdue.map(c=>({c,tag:'Zaległy',col:'var(--red)',cta:`sendCheckinTo('${escHtml(c.id)}')`})),
+    ...pending.map(c=>({c,tag:'Oczekuje',col:'var(--orange)',cta:`goTo('checkin');setTimeout(()=>openCIClient('${escHtml(c.id)}'),200)`})),
+    ...need.filter(c=>!pending.includes(c)&&!overdue.includes(c)).map(c=>({c,tag:'Do wysłania',col:'var(--accent)',cta:`sendCheckinTo('${escHtml(c.id)}')`}))
+  ].slice(0,6);
+  el.style.display='block';
+  el.innerHTML=`<div class="card" style="margin-bottom:20px;border-color:rgba(62,207,178,0.3);background:linear-gradient(135deg,rgba(62,207,178,0.08),var(--s2));">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;">
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;">CHECK-IN TYGODNIOWY</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5;">${overdue.length?overdue.length+' zaległych · ':''}${pending.length?pending.length+' oczekuje · ':''}${need.length?need.length+' do wysłania':''}</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="goTo('checkin')">Check-iny →</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      ${rows.map(row=>`<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--s3);border:1px solid var(--border);border-radius:10px;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:700;">${escHtml(row.c.name||'Klient')}</div>
+          <div style="font-size:11px;color:${row.col};margin-top:2px;">${row.tag}</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="${row.cta}">${row.tag==='Oczekuje'?'Otwórz':'Wyślij'}</button>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+window.renderDashCheckinFollowup=renderDashCheckinFollowup;
 
 function renderDashMiniCal(){
   const el=document.getElementById('d-mini-cal');if(!el)return;
