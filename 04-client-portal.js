@@ -5366,6 +5366,7 @@ function renderDash(){
   renderDashTasks();
   renderDashMiniCal();
   renderDashGettingStarted();
+  renderDashClientPipeline();
   renderProfileSetupBanner();
 }
 
@@ -5436,6 +5437,45 @@ function renderDashGettingStarted(){
     </div>
   </div>`;
 }
+
+function renderDashClientPipeline(){
+  const el=document.getElementById('dash-client-pipeline');if(!el)return;
+  const rows=typeof clientsWithIncompleteOnboard==='function'?clientsWithIncompleteOnboard():[];
+  if(!rows.length){el.style.display='none';el.innerHTML='';return;}
+  const nextLabel={
+    invite:'Wyślij zaproszenie',
+    baseline:'Zapisz pomiary',
+    schedule:'Ustaw dni treningu',
+    plan:'Przypisz plan',
+    calendar:'Wrzuć do kalendarza'
+  };
+  el.style.display='block';
+  el.innerHTML=`<div class="card" style="margin-bottom:20px;border-color:rgba(201,123,63,0.35);background:linear-gradient(135deg,rgba(201,123,63,0.08),var(--s2));">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;">
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;">START WSPÓŁPRACY</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5;">${rows.length===1?'1 klient wymaga dokończenia pipeline.':rows.length+' klientów wymaga dokończenia: pomiary → dni → plan → kalendarz.'}</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="goTo('clients')">Lista klientów →</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      ${rows.slice(0,8).map(row=>{
+        const c=row.client;const st=row.status;
+        const miss=(st.missingLabels||[]).slice(0,3).join(' · ');
+        const cta=nextLabel[st.next]||'Dokończ';
+        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--s3);border:1px solid var(--border);border-radius:10px;">
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:700;">${escHtml(c.name||'Klient')}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;">${st.done}/${st.total} · ${escHtml(miss)}</div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="openClientOnboardChecklist('${escHtml(c.id)}')">${escHtml(cta)}</button>
+        </div>`;
+      }).join('')}
+      ${rows.length>8?`<div style="font-size:11px;color:var(--muted);text-align:center;">+ ${rows.length-8} więcej na liście klientów</div>`:''}
+    </div>
+  </div>`;
+}
+window.renderDashClientPipeline=renderDashClientPipeline;
 
 function renderDashMiniCal(){
   const el=document.getElementById('d-mini-cal');if(!el)return;

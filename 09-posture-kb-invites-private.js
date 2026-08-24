@@ -281,6 +281,7 @@ function saveCPEdit(id){
   }catch(e){}
   // Wróć do zakładki Przegląd po zapisaniu
   try{setCPTab('overview');}catch(e){}
+  if(typeof renderDash==='function')try{renderDash();}catch(e){}
   notify('✓ Profil "'+c.name+'" zaktualizowany!');
 }
 
