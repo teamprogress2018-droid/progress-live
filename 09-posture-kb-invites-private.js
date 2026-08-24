@@ -1997,6 +1997,68 @@ const DEMO_AUTOFLOWS=[
    ]},
 ];
 
+function ensureReminderAutoflowsFromSettings(){
+  const S=window.SETTINGS||{};
+  const N=S.notifications||{};
+  window.AUTOFLOWS=window.AUTOFLOWS||[];
+  const defs=[
+    {
+      key:'pl-session-reminder',
+      enabled:N.sessionReminder!==false,
+      trigger:'session_today',
+      name:'Przypomnienie o treningu',
+      steps:[
+        {type:'message',day:1,text:'Hej {imie}! Nie zapomnij o treningu dzisiaj 🏋️'}
+      ]
+    },
+    {
+      key:'pl-inactive-client',
+      enabled:N.inactiveClient!==false,
+      trigger:'inactivity',
+      name:'Alert po zastoju ('+String(N.inactiveDays||14)+' dni)',
+      steps:[
+        {type:'message',day:parseInt(N.inactiveDays,10)||14,text:'{imie}, minęło już trochę czasu od ostatniego treningu. Wszystko ok? Chętnie pomogę wrócić do rytmu 💪'},
+        {type:'task',day:parseInt(N.inactiveDays,10)||14,text:'Skontaktuj się z klientem'}
+      ]
+    }
+  ];
+  let changed=false;
+  defs.forEach(def=>{
+    let af=window.AUTOFLOWS.find(x=>x&&x.systemKey===def.key);
+    if(!af){
+      af=withTrainer({
+        id:newId('af'),
+        systemKey:def.key,
+        name:def.name,
+        type:'trigger',
+        trigger:def.trigger,
+        scope:'all',
+        status:def.enabled?'active':'inactive',
+        steps:def.steps
+      });
+      window.AUTOFLOWS.push(af);
+      changed=true;
+      return;
+    }
+    const nextName=def.name;
+    const nextStatus=def.enabled?'active':'inactive';
+    const nextSteps=def.steps;
+    if(af.name!==nextName||af.status!==nextStatus||JSON.stringify(af.steps||[])!==JSON.stringify(nextSteps)){
+      af.name=nextName;
+      af.status=nextStatus;
+      af.steps=nextSteps;
+      af.trigger=def.trigger;
+      af.scope='all';
+      changed=true;
+    }
+  });
+  if(changed){
+    window.AUTOFLOWS.forEach(af=>{ if(af&&af.systemKey) persistById('autoflows',af); });
+  }
+  return changed;
+}
+window.ensureReminderAutoflowsFromSettings=ensureReminderAutoflowsFromSettings;
+
 function setAutoTab(t){
   autoTab=t;
   document.getElementById('auto-onboard-tab').style.display=t==='onboard'?'block':'none';
@@ -2516,8 +2578,15 @@ function runAutoflowsCheck(showToast){
             const threshold=step.day||14;
             fire=inactiveDays>=threshold&&daysSinceLastFired>=7;
           }else if(kind==='session_today'){
-            const hasToday=(window.SE||[]).some(s=>s.clientId===c.id&&s.date===todayISO);
-            fire=hasToday&&daysSinceLastFired>=1;
+            const leadMin=parseInt(window.SETTINGS?.notifications?.sessionReminderTime,10)||60;
+            const sessions=(window.SE||[]).filter(s=>s.clientId===c.id&&s.date===todayISO);
+            const hasWindow=sessions.some(s=>{
+              if(!s.time)return true;
+              const at=new Date(s.date+'T'+s.time+':00');
+              const diffMin=Math.round((at.getTime()-today.getTime())/60000);
+              return diffMin>=0&&diffMin<=leadMin;
+            });
+            fire=hasWindow&&daysSinceLastFired>=1;
           }else if(kind==='new_client'){
             fire=!state.executed[af.id][c.id][si];
           }
@@ -2902,6 +2971,7 @@ window.addOSCForm=addOSCForm;window.saveOnboardingFlow=saveOnboardingFlow;
 window.renderAutoflows=renderAutoflows;window.toggleAF=toggleAF;
 window.addAFStep=addAFStep;window.saveAutoflow=saveAutoflow;
 window.runAutoflowsCheck=runAutoflowsCheck;window.deleteAutoflow=deleteAutoflow;
+if(typeof ensureReminderAutoflowsFromSettings==='function')ensureReminderAutoflowsFromSettings();
 window.updateAfBuilderUi=updateAfBuilderUi;window.fillAutomationSelects=fillAutomationSelects;
 window.setResTab=setResTab;window.setResNav=setResNav;window.renderResources=renderResources;
 window.viewCollection=viewCollection;window.shareCollection=shareCollection;
