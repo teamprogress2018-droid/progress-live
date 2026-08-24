@@ -567,6 +567,9 @@ function pushClientMsg(text){
   window.MSGS[clientId].push(msg);
   persistById('messages',msg);
   renderClientLive();
+  try{if(typeof updateInboxNavBadge==='function')updateInboxNavBadge();}catch(e){}
+  try{if(typeof renderDashMsgFollowup==='function')renderDashMsgFollowup();}catch(e){}
+  try{if(typeof renderInbox==='function'&&document.getElementById('screen-inbox')&&document.getElementById('screen-inbox').classList.contains('active'))renderInbox();}catch(e){}
 }
 
 function clientSendChat(){

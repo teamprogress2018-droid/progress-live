@@ -23,10 +23,38 @@ function msgSetLastRead(clientId){
 }
 // Nieprzeczytane = jest wiadomość PRZYCHODZĄCA (out:false) nowsza niż ostatnie otwarcie rozmowy.
 function msgHasUnread(clientId){
-  const msgs=MSGS[clientId]||[];
+  const msgs=(typeof MSGS!=='undefined'?MSGS:window.MSGS)||{};
+  const list=msgs[clientId]||[];
   const lastRead=msgGetLastRead(clientId);
-  return msgs.some(m=>!m.out&&(!lastRead||(m.createdAt||'')>lastRead));
+  return list.some(m=>!m.out&&(!lastRead||(m.createdAt||'')>lastRead));
 }
+/** Aktywni klienci z nieprzeczytaną wiadomością do trenera (najnowsza najpierw). */
+function clientsWithUnreadMsgs(){
+  const clients=(window.CL||[]).filter(c=>c&&c.status!=='archived');
+  const rows=clients.filter(c=>msgHasUnread(c.id)).map(c=>{
+    const msgs=((typeof MSGS!=='undefined'?MSGS:window.MSGS)||{})[c.id]||[];
+    const lastIn=[...msgs].reverse().find(m=>!m.out)||null;
+    return{client:c,last:lastIn,at:lastIn&&(lastIn.createdAt||'')||''};
+  });
+  rows.sort((a,b)=>String(b.at).localeCompare(String(a.at)));
+  return rows;
+}
+function unreadMsgCount(){
+  return clientsWithUnreadMsgs().length;
+}
+function updateInboxNavBadge(){
+  const el=document.getElementById('nb-inbox');
+  if(!el)return;
+  const n=unreadMsgCount();
+  el.textContent=n?String(n):'';
+  el.style.display=n?'inline-flex':'none';
+}
+window.msgGetLastRead=msgGetLastRead;
+window.msgSetLastRead=msgSetLastRead;
+window.msgHasUnread=msgHasUnread;
+window.clientsWithUnreadMsgs=clientsWithUnreadMsgs;
+window.unreadMsgCount=unreadMsgCount;
+window.updateInboxNavBadge=updateInboxNavBadge;
 
 function initClientData(c){
   if(!CLIENT_NOTES[c.id])CLIENT_NOTES[c.id]=[];
@@ -50,11 +78,13 @@ function renderInbox(){
 
   if(inboxTab==='groups'){
     renderInboxGroups(el,search);
+    updateInboxNavBadge();
     return;
   }
 
   if(!list.length){
     el.innerHTML='<div style="padding:30px;text-align:center;color:var(--muted);font-size:12px;">Brak rozmów</div>';
+    updateInboxNavBadge();
     return;
   }
 
@@ -76,6 +106,7 @@ function renderInbox(){
       ${unread?'<div class="msg-unread-dot"></div>':''}
     </div>`;
   }).join('');
+  updateInboxNavBadge();
 }
 
 function renderInboxGroups(el,search){
@@ -311,6 +342,8 @@ function openChat(id){
     </div>`;
 
   renderInbox();
+  try{if(typeof renderDashMsgFollowup==='function')renderDashMsgFollowup();}catch(e){}
+  updateInboxNavBadge();
 }
 
 function useQuickReply(text){

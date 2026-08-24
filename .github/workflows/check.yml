@@ -122,6 +122,9 @@ jobs:
       - name: 1n13. Testy follow-upu zadań domowych (dashboard)
         run: node .github/scripts/test_dash_homework_followup.js
 
+      - name: 1n14. Testy follow-upu wiadomości (dashboard)
+        run: node .github/scripts/test_dash_msg_followup.js
+
       - name: 1n8. Testy webhooków integracji (Zapier/Make)
         run: node .github/scripts/test_integrations_webhooks.js
 
