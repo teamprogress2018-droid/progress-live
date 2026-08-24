@@ -5617,6 +5617,8 @@ function renderDash(){
   renderDashHwFollowup();
   renderDashMsgFollowup();
   renderDashHabitFollowup();
+  renderDashCalRefillFollowup();
+  renderDashPhotoFollowup();
   renderProfileSetupBanner();
 }
 
@@ -5967,6 +5969,77 @@ function renderDashHabitFollowup(){
   </div>`;
 }
 window.renderDashHabitFollowup=renderDashHabitFollowup;
+
+function renderDashCalRefillFollowup(){
+  const el=document.getElementById('dash-cal-refill');if(!el)return;
+  const rows=typeof clientsNeedingCalendarRefill==='function'?clientsNeedingCalendarRefill(7):[];
+  if(!rows.length){el.style.display='none';el.innerHTML='';return;}
+  el.style.display='block';
+  el.innerHTML=`<div class="card" style="margin-bottom:20px;border-color:rgba(62,207,178,0.35);background:linear-gradient(135deg,rgba(62,207,178,0.08),var(--s2));">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;">
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;">KALENDARZ DO DOPEŁNIENIA</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5;">${rows.length===1?'1 klient — plan kończy się w ≤7 dni.':rows.length+' klientów — zaplanowane sesje kończą się w ≤7 dni (lub brak).'}</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="goTo('calendar')">Kalendarz →</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      ${rows.slice(0,6).map(row=>{
+        const c=row.client;
+        const plan=row.plan||{};
+        const tag=row.urgency==='past'?'Sesje się skończyły':row.urgency==='empty'?'Brak sesji planned':'Kończy się wkrótce';
+        const col=row.urgency==='past'?'var(--red)':row.urgency==='empty'?'var(--orange)':'var(--teal)';
+        const lastLbl=row.last?('Ostatnia · '+escHtml(row.last)):'Brak planned';
+        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--s3);border:1px solid var(--border);border-radius:10px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:140px;">
+            <div style="font-size:13px;font-weight:700;">${escHtml(c.name||'Klient')}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;">${escHtml(plan.name||'Plan')}${plan.id?' · +4 tyg.':''}</div>
+            <div style="font-size:11px;color:${col};margin-top:2px;">${tag} · ${lastLbl}</div>
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:0;">
+            <button class="btn btn-ghost btn-sm" onclick="openClientProfile('${escHtml(c.id)}')">Profil</button>
+            <button class="btn btn-primary btn-sm" onclick="refillClientCalendar('${escHtml(c.id)}')">Dopełnij</button>
+          </div>
+        </div>`;
+      }).join('')}
+      ${rows.length>6?`<div style="font-size:11px;color:var(--muted);text-align:center;">+ ${rows.length-6} więcej</div>`:''}
+    </div>
+  </div>`;
+}
+window.renderDashCalRefillFollowup=renderDashCalRefillFollowup;
+
+function renderDashPhotoFollowup(){
+  const el=document.getElementById('dash-photo-followup');if(!el)return;
+  const photos=typeof recentClientProgressPhotos==='function'?recentClientProgressPhotos(14):[];
+  if(!photos.length){el.style.display='none';el.innerHTML='';return;}
+  const rows=photos.slice(0,6);
+  el.style.display='block';
+  el.innerHTML=`<div class="card" style="margin-bottom:20px;border-color:rgba(201,162,39,0.4);background:linear-gradient(135deg,rgba(201,162,39,0.1),var(--s2));">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;">
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;">NOWE ZDJĘCIA SYLWETKI</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5;">${photos.length===1?'1 zestaw od klienta (14 dni).':photos.length+' zestawów od klientów (ostatnie 14 dni).'}</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="goTo('clients')">Klienci →</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      ${rows.map(p=>{
+        const c=(window.CL||[]).find(x=>x.id===p.clientId)||{};
+        const n=[p.photos&&p.photos.front,p.photos&&p.photos.side,p.photos&&p.photos.back].filter(Boolean).length;
+        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--s3);border:1px solid var(--border);border-radius:10px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:140px;">
+            <div style="font-size:13px;font-weight:700;">${escHtml(c.name||'Klient')}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;">${escHtml(p.date||'')}${p.weight?' · '+escHtml(String(p.weight))+' kg':''} · ${n} ujęć</div>
+            <div style="font-size:11px;color:var(--gold);margin-top:2px;">Od klienta</div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="openClientProfile('${escHtml(p.clientId)}');setTimeout(()=>{if(typeof setCPTab==='function')setCPTab('photos');},150)">Zobacz</button>
+        </div>`;
+      }).join('')}
+      ${photos.length>6?`<div style="font-size:11px;color:var(--muted);text-align:center;">+ ${photos.length-6} więcej</div>`:''}
+    </div>
+  </div>`;
+}
+window.renderDashPhotoFollowup=renderDashPhotoFollowup;
 
 function renderDashMiniCal(){
   const el=document.getElementById('d-mini-cal');if(!el)return;
