@@ -47,6 +47,7 @@ sandbox.window.PACKAGES=sandbox.PACKAGES;
 vm.runInNewContext(
   'function allPackages(){return window.PACKAGES;}\n'+
   'function paySeller(){return {bank:"12 3456",currency:"zł"};}\n'+
+  'function refreshPaySurfaces(){}\n'+
   extract(src09,'requestPayment')+'\n'+
   extract(src05,'clientPendingPackage')+'\n'+
   extract(src10,'clientAppJoinedPatch')+'\n'+

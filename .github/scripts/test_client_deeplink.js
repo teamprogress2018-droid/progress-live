@@ -33,6 +33,7 @@ function runCase(label,opts){
     setTimeout:(fn)=>fn(),
     pendingCheckin:()=>opts.pendingCi||null,
     pendingFormSends:()=>opts.pendingForms||[],
+    clientUnpaidPackages:()=>opts.unpaid||[],
     setClientLiveScreen:(s)=>calls.push(['screen',s]),
     clientOpenForm:(id)=>calls.push(['form',id]),
     URLSearchParams
@@ -45,8 +46,10 @@ function runCase(label,opts){
 
 runCase('url checkin',{search:'?checkin=1',expect:[['screen','checkin']]});
 runCase('url form',{search:'?form=fs1',expect:[['form','fs1']]});
+runCase('url pay',{search:'?pay=1',expect:[['screen','profile']]});
 runCase('auto pending checkin',{search:'',pendingCi:{id:'ci1'},expect:[['screen','checkin']]});
 runCase('auto pending form',{search:'',pendingForms:[{id:'fs9'}],expect:[['form','fs9']]});
+runCase('auto pending pay',{search:'',unpaid:[{id:'p1',paymentRequestedAt:'2026-08-01'}],expect:[['screen','home']]});
 runCase('no pending',{search:'',expect:[]});
 const again=runCase('once only first',{search:'',pendingCi:{id:'ci1'},expect:[['screen','checkin']]});
 // second call with same flag should no-op auto path
