@@ -1817,17 +1817,16 @@ function liveSelectPlan(pid){
   livePlanId=pid;
   const p=PL.find(x=>x.id===pid);if(!p)return;
 
-  // Pobierz ćwiczenia z SUGEROWANEGO dnia (na bazie rotacji od ostatniej sesji), nie zawsze z Dnia 1.
-  // Struktura: p.days = [{day:'Dzień 1', exercises:[{name,sets,reps}]}]
+  // Preferuj dzień z kalendarza (source=planned) na dziś; inaczej rotacja po live/client.
   const suggestedIdx=liveGetSuggestedDayIdx(liveClientId,p);
   liveCurrentDayIdx=suggestedIdx;
+  const planned=typeof plannedSessionForDate==='function'?plannedSessionForDate(liveClientId,pid,typeof todayYmd==='function'?todayYmd():null):null;
   const day=(p.days||[])[suggestedIdx];
   const rawEx=day?.exercises||[];
 
   if(rawEx.length>0){
     liveExercises=liveMapPlanExercises(rawEx);
   } else {
-    // Plan bez ćwiczeń - zaproponuj wybór dnia
     liveExercises=[];
     liveShowDayPicker(p);
   }
@@ -1835,6 +1834,10 @@ function liveSelectPlan(pid){
   renderLivePlanPicker();
   renderLiveExercises();
   liveSaveDraft();
+  if(planned&&Number(planned.dayIdx)===suggestedIdx){
+    const label=day&&(day.day||day.dayName)||('Dzień '+(suggestedIdx+1));
+    notify('📅 Z kalendarza: '+label);
+  }
 }
 
 function liveShowDayPicker(p){
