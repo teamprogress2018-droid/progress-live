@@ -5611,6 +5611,7 @@ function renderDash(){
   renderDashFormFollowup();
   renderDashPayFollowup();
   renderDashHwFollowup();
+  renderDashMsgFollowup();
   renderProfileSetupBanner();
 }
 
@@ -5881,6 +5882,40 @@ function renderDashHwFollowup(){
   </div>`;
 }
 window.renderDashHwFollowup=renderDashHwFollowup;
+
+function renderDashMsgFollowup(){
+  const el=document.getElementById('dash-msg-followup');if(!el)return;
+  const rows=typeof clientsWithUnreadMsgs==='function'?clientsWithUnreadMsgs():[];
+  try{if(typeof updateInboxNavBadge==='function')updateInboxNavBadge();}catch(e){}
+  if(!rows.length){el.style.display='none';el.innerHTML='';return;}
+  el.style.display='block';
+  el.innerHTML=`<div class="card" style="margin-bottom:20px;border-color:rgba(77,159,255,0.4);background:linear-gradient(135deg,rgba(77,159,255,0.1),var(--s2));">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;">
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;">WIADOMOŚCI DO ODBIORU</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5;">${rows.length===1?'1 klient napisał — nieprzeczytane.':rows.length+' klientów z nieprzeczytanymi wiadomościami.'}</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="goTo('inbox');setTimeout(()=>{if(typeof setInboxTab==='function')setInboxTab('unread');},120)">Skrzynka →</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      ${rows.slice(0,6).map(row=>{
+        const c=row.client;
+        const preview=escHtml((row.last&&row.last.text)||'Nowa wiadomość');
+        const when=escHtml((row.last&&(row.last.time||String(row.last.createdAt||'').slice(11,16)))||'');
+        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--s3);border:1px solid var(--border);border-radius:10px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:140px;">
+            <div style="font-size:13px;font-weight:700;">${escHtml(c.name||'Klient')}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:420px;">${preview}</div>
+            <div style="font-size:11px;color:var(--blue);margin-top:2px;">Nieprzeczytane${when?' · '+when:''}</div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="goTo('inbox');setTimeout(()=>openChat('${escHtml(c.id)}'),150)">Otwórz</button>
+        </div>`;
+      }).join('')}
+      ${rows.length>6?`<div style="font-size:11px;color:var(--muted);text-align:center;">+ ${rows.length-6} więcej w Wiadomościach</div>`:''}
+    </div>
+  </div>`;
+}
+window.renderDashMsgFollowup=renderDashMsgFollowup;
 
 function renderDashMiniCal(){
   const el=document.getElementById('d-mini-cal');if(!el)return;
