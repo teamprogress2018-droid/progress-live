@@ -105,6 +105,9 @@ jobs:
       - name: 1n7. Testy zapisu klienta do forum (onboard)
         run: node .github/scripts/test_forum_enroll.js
 
+      - name: 1n9. Testy kanałów zaproszenia (mailto / WhatsApp)
+        run: node .github/scripts/test_invite_channels.js
+
       - name: 1n2. Testy programu → plan z ćwiczeniami (Automatyzacja)
         run: node .github/scripts/test_program_plan_days.js
 

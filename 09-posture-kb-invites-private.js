@@ -2814,16 +2814,50 @@ function selectInvMethod(btn) {
 }
 
 function updateInvitePreview(c, link, method) {
-  const trainerName = getTrainerName('Twój trener');
-  const firstName = c.name.split(' ')[0];
-  const msgs = {
-    wiadomosc: `Cześć ${firstName}! 👋\n\nWitaj w Progress Live — Twojej aplikacji treningowej!\n\n🔗 Twój link do aplikacji:\n${link}\n\nZaloguj się emailem: ${c.email || '[Twój email]'}\nPrzy pierwszym wejściu ustaw hasło.\nDo zobaczenia na treningu! 💪\n\n— ${trainerName}`,
-    email: `Temat: Zaproszenie do aplikacji Progress Live\n\nCześć ${firstName},\n\nZ przyjemnością zapraszam Cię do aplikacji Progress Live, gdzie znajdziesz swój plan treningowy, postępy i kontakt ze mną.\n\n➡️ Kliknij aby się zarejestrować:\n${link}\n\nPozdrawiam,\n${trainerName}`,
-    whatsapp: `Hej ${firstName}! 🏋️ Twoja aplikacja treningowa jest gotowa!\n\n👉 ${link}\n\nZaloguj się i sprawdź swój plan. Do zobaczenia! 💪`
-  };
+  const built = buildInviteMessage(c, link, method || 'wiadomosc');
   const el = document.getElementById('inv-msg-preview');
-  if (el) el.textContent = msgs[method] || msgs.wiadomosc;
+  if (el) el.textContent = built.preview;
+  const sendBtn = document.getElementById('inv-send-btn');
+  if (sendBtn) {
+    const labels = { wiadomosc: '📤 Wyślij do Inbox', email: '✉️ Otwórz e-mail', whatsapp: '💚 Otwórz WhatsApp' };
+    sendBtn.textContent = labels[method] || labels.wiadomosc;
+  }
+  const hint = document.getElementById('inv-channel-hint');
+  if (hint) {
+    const hints = {
+      wiadomosc: 'Wiadomość trafi do czatu w Progress Live (Inbox klienta).',
+      email: c.email
+        ? 'Otworzy Twoją aplikację pocztową (mailto) z gotową treścią — wyślij stamtąd.'
+        : 'Brak e-maila w karcie klienta — uzupełnij albo użyj Inbox / WhatsApp.',
+      whatsapp: (typeof waPhone === 'function' ? waPhone(c.phone) : c.phone)
+        ? 'Otworzy WhatsApp (wa.me) z gotową wiadomością — wyślij stamtąd.'
+        : 'Brak telefonu w karcie klienta — uzupełnij albo użyj Inbox / e-mail.'
+    };
+    hint.textContent = hints[method] || hints.wiadomosc;
+  }
 }
+
+/** Treści zaproszenia pod Inbox / mailto / wa.me. */
+function buildInviteMessage(c, link, method) {
+  const trainerName = typeof getTrainerName === 'function' ? getTrainerName('Twój trener') : 'Twój trener';
+  const firstName = String(c && c.name || 'hej').split(' ')[0];
+  const url = link || (c && c.inviteLink) || '';
+  const emailBody = `Cześć ${firstName},\n\nZ przyjemnością zapraszam Cię do aplikacji Progress Live, gdzie znajdziesz swój plan treningowy, postępy i kontakt ze mną.\n\n➡️ Kliknij aby się zarejestrować:\n${url}\n\nPozdrawiam,\n${trainerName}`;
+  const waBody = `Hej ${firstName}! 🏋️ Twoja aplikacja treningowa jest gotowa!\n\n👉 ${url}\n\nZaloguj się i sprawdź swój plan. Do zobaczenia! 💪`;
+  const inboxBody = `Cześć ${firstName}! 👋\n\nWitaj w Progress Live — Twojej aplikacji treningowej!\n\n🔗 Twój link do aplikacji:\n${url}\n\nZaloguj się emailem: ${(c && c.email) || '[Twój email]'}\nPrzy pierwszym wejściu ustaw hasło.\nDo zobaczenia na treningu! 💪\n\n— ${trainerName}`;
+  if (method === 'email') {
+    return {
+      subject: 'Zaproszenie do aplikacji Progress Live',
+      body: emailBody,
+      preview: 'Temat: Zaproszenie do aplikacji Progress Live\n\n' + emailBody
+    };
+  }
+  if (method === 'whatsapp') {
+    return { subject: '', body: waBody, preview: waBody };
+  }
+  return { subject: '', body: inboxBody, preview: inboxBody };
+}
+window.buildInviteMessage = buildInviteMessage;
 
 function copyInviteLink() {
   const link = document.getElementById('inv-link')?.textContent || '';
@@ -2842,22 +2876,68 @@ function sendInvitation() {
   const c = CL.find(x => x.id === inviteClientId);
   if (!c) return;
   const link = document.getElementById('inv-link')?.textContent || '';
-  const methodLabels = { wiadomosc: 'Inbox', email: 'email (niepodłączony — zapisano w Inbox)', whatsapp: 'WhatsApp (niepodłączony — zapisano w Inbox)' };
+  const method = inviteMethod || 'wiadomosc';
+  const built = buildInviteMessage(c, link, method);
+  const preview = document.getElementById('inv-msg-preview')?.textContent || built.preview;
 
-  // Dodaj do wiadomości
-  pushMsg(c.id, document.getElementById('inv-msg-preview')?.textContent || '');
+  // Zawsze zostaw kopię w Inbox aplikacji
+  if (typeof pushMsg === 'function') pushMsg(c.id, preview);
 
-  // Oznacz klienta jako zaproszony i zapisz
   c.inviteSent = true;
   c.appInvited = true;
   c.inviteLink = link;
   c.inviteSentAt = new Date().toISOString();
+  c.inviteMethod = method;
   persistById('clients', c);
 
-  addNotification('system', 'Zaproszenie zapisane', c.name + ' — link w Inbox (' + (methodLabels[inviteMethod]||'wiadomość') + ')', 'clients');
+  let channelLabel = 'Inbox';
+  let openedExternal = false;
+
+  if (method === 'email') {
+    if (!c.email) {
+      notify('⚠ Brak e-maila w karcie — zapisano w Inbox');
+      channelLabel = 'Inbox (brak e-maila)';
+    } else {
+      const href = 'mailto:' + encodeURIComponent(c.email)
+        + '?subject=' + encodeURIComponent(built.subject)
+        + '&body=' + encodeURIComponent(built.body);
+      try { window.open(href, '_blank'); openedExternal = true; } catch (e) { window.location.href = href; openedExternal = true; }
+      channelLabel = 'e-mail';
+    }
+  } else if (method === 'whatsapp') {
+    const phone = typeof waPhone === 'function' ? waPhone(c.phone) : String(c.phone || '').replace(/\D/g, '');
+    if (!phone) {
+      notify('⚠ Brak telefonu w karcie — zapisano w Inbox');
+      channelLabel = 'Inbox (brak telefonu)';
+    } else {
+      const href = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(built.body);
+      window.open(href, '_blank', 'noopener');
+      openedExternal = true;
+      channelLabel = 'WhatsApp';
+    }
+  }
+
+  if (typeof fireIntEvent === 'function') {
+    try {
+      fireIntEvent('invite.sent', {
+        invite: { clientId: c.id, method: method, link: link || '', channel: channelLabel, external: openedExternal },
+        client: { id: c.id, name: c.name || '', email: c.email || '', phone: c.phone || '' }
+      });
+    } catch (e) { console.warn('fireIntEvent invite', e); }
+  }
+
+  if (typeof addNotification === 'function') {
+    addNotification('system', 'Zaproszenie wysłane', c.name + ' · ' + channelLabel, 'clients');
+  }
   closeM('m-invite');
-  notify('✅ Zaproszenie do ' + c.name + ': ' + (methodLabels[inviteMethod]||'Inbox'));
-  maybeResumeOnboard(c.id);
+  if (method === 'wiadomosc' || !openedExternal) {
+    notify('✅ Zaproszenie do ' + c.name + ': ' + channelLabel);
+  } else {
+    notify('✅ Zapisano w Inbox · otwarto ' + channelLabel + ' — dokończ wysyłkę');
+  }
+  if (typeof maybeResumeOnboard === 'function') maybeResumeOnboard(c.id);
+  if (typeof renderClients === 'function') try { renderClients(); } catch (e) {}
+  if (typeof renderDash === 'function') try { renderDash(); } catch (e) {}
 }
 
 window.openInviteModal = openInviteModal;
