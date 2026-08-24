@@ -1979,7 +1979,8 @@ function renderCPSettings(c){
         .map(tz=>`<option value="${tz}" ${(s.timezone||'Europe/Warsaw')===tz?'selected':''}>${tz.replace('_',' ')}</option>`).join('')}
     </select>
 
-    <button class="btn btn-danger btn-sm" style="width:100%;" onclick="archiveClient('${c.id}')">🗃 Zarchiwizuj klienta</button>`;
+    <button class="btn btn-danger btn-sm" style="width:100%;margin-bottom:8px;" onclick="archiveClient('${c.id}')">🗃 Zarchiwizuj klienta</button>
+    <button class="btn btn-ghost btn-sm" style="width:100%;color:var(--red);" onclick="deleteClientPermanently('${c.id}')">🗑 Usuń klienta na zawsze</button>`;
 }
 function updateClientUnit(clientId,key,value){
   const c=CL.find(x=>x.id===clientId);if(!c)return;

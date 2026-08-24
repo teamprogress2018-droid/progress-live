@@ -286,16 +286,57 @@ function saveCPEdit(id){
 }
 
 function archiveClient(id){
-  if(!confirm('Zarchiwizować klienta?'))return;
   const c=CL.find(x=>x.id===id);
-  if(c){
-    c.status='archived';
-    persistById('clients',c);
-    try{renderClients();}catch(e){}
-    try{document.getElementById('nb-clients').textContent=CL.length;}catch(e){}
-    closeClientProfile();
-    notify('✓ Klient '+c.name+' zarchiwizowany');
+  if(!c)return;
+  if(c.status==='archived'){notify('Klient jest już w archiwum');return;}
+  if(!confirm('Zarchiwizować klienta „'+(c.name||'')+'”?\n\nZniknie z aktywnej listy (filtr „Zarchiwizowani”). Możesz go później przywrócić lub usunąć na zawsze.'))return;
+  c.status='archived';
+  persistById('clients',c);
+  try{renderClients();}catch(e){}
+  try{renderClientFilters();}catch(e){}
+  try{document.getElementById('nb-clients').textContent=CL.filter(x=>x.status!=='archived').length;}catch(e){}
+  if(typeof closeClientProfile==='function')closeClientProfile();
+  notify('✓ Klient '+c.name+' zarchiwizowany');
+}
+
+function restoreClient(id){
+  const c=CL.find(x=>x.id===id);
+  if(!c)return;
+  c.status='active';
+  persistById('clients',c);
+  try{renderClients();}catch(e){}
+  try{renderClientFilters();}catch(e){}
+  try{document.getElementById('nb-clients').textContent=CL.filter(x=>x.status!=='archived').length;}catch(e){}
+  if(typeof refreshClientProfileRemoveActions==='function')refreshClientProfileRemoveActions(c);
+  notify('✓ Klient '+c.name+' przywrócony');
+}
+
+/** Trwałe usunięcie rekordu klienta (nie archiwum). */
+function deleteClientPermanently(id){
+  const c=CL.find(x=>x.id===id);
+  if(!c)return;
+  if(!confirm('Usunąć klienta „'+(c.name||'')+'” na zawsze?\n\nTej operacji nie da się cofnąć. Jeśli chcesz tylko schować go z listy — anuluj i użyj „Zarchiwizuj”.'))return;
+  if(!confirm('Na pewno usunąć „'+(c.name||'')+'”?'))return;
+  const idx=CL.findIndex(x=>x.id===id);
+  if(idx>=0)CL.splice(idx,1);
+  if(window._db&&window._del&&window._doc){
+    window._del(window._doc(window._db,'clients',id)).catch(e=>console.warn('Firebase delete client:',e));
   }
+  if(typeof cpClientId!=='undefined'&&cpClientId===id&&typeof closeClientProfile==='function')closeClientProfile();
+  try{renderClients();}catch(e){}
+  try{renderClientFilters();}catch(e){}
+  try{document.getElementById('nb-clients').textContent=CL.filter(x=>x.status!=='archived').length;}catch(e){}
+  notify('Klient usunięty');
+}
+
+function refreshClientProfileRemoveActions(c){
+  const archBtn=document.getElementById('cp-archive-btn');
+  const restBtn=document.getElementById('cp-restore-btn');
+  const delBtn=document.getElementById('cp-delete-btn');
+  const archived=!(!c||c.status!=='archived');
+  if(archBtn&&archBtn.style)archBtn.style.display=archived?'none':'';
+  if(restBtn&&restBtn.style)restBtn.style.display=archived?'':'none';
+  if(delBtn&&delBtn.style)delBtn.style.display='';
 }
 var payTab='overview';
 window.PACKAGES=[];window.INVOICES=[];
@@ -2987,7 +3028,7 @@ window.usePackageSession=usePackageSession;window.markPaid=markPaid;
 window.requestPayment=requestPayment;window.deletePackage=deletePackage;window.copyPayTransfer=copyPayTransfer;
 window.viewInvoice=viewInvoice;window.filterPkgByClient=filterPkgByClient;
 window.openClientModal=openClientModal;
-window.setCPTab=setCPTab;window.saveCPEdit=saveCPEdit;window.startCPEdit=startCPEdit;window.cancelCPEdit=cancelCPEdit;window.archiveClient=archiveClient;
+window.setCPTab=setCPTab;window.saveCPEdit=saveCPEdit;window.startCPEdit=startCPEdit;window.cancelCPEdit=cancelCPEdit;window.archiveClient=archiveClient;window.restoreClient=restoreClient;window.deleteClientPermanently=deleteClientPermanently;window.refreshClientProfileRemoveActions=refreshClientProfileRemoveActions;
 window.renderCPTraining=renderCPTraining;window.renderCPFood=renderCPFood;
 window.renderCPDocuments=renderCPDocuments;window.renderCPSettings=renderCPSettings;
 window.toggleClientFeature=toggleClientFeature;window.updateClientUnit=updateClientUnit;
