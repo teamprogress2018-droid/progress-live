@@ -1537,6 +1537,85 @@ const DEMO_PROGRAMS=[
 ];
 
 function allPrograms(){return[...DEMO_PROGRAMS,...(window.USER_PROGRAMS||[])];}
+window.allPrograms=allPrograms;
+
+/** Rozwija fokus dnia programu (np. „Push A — Klatka”) do listy ćwiczeń startowych. */
+function expandSessionFromDayFocus(focus){
+  const s=String(focus||'').toLowerCase();
+  const ex=(name,sets,reps,rest)=>({name,sets:String(sets||'3'),reps:String(reps||'8-12'),rest:rest||'90s'});
+  if(/hiit|tabata|cardio|bieg/.test(s))return[ex('Rozgrzewka mobilność','2','8-10','45s'),ex(focus||'HIIT / cardio','1','20-30 min','—'),ex('Cool-down / stretch','1','5 min','—')];
+  if(/mobiln|mobility/.test(s))return[ex('Foam rolling','2','10','30s'),ex('Mobilność bioder/barków','2','10','30s'),ex(focus||'Mobilność','2','8','45s')];
+  if(/push/.test(s))return[
+    ex('Wyciskanie sztangi / maszyna (klatka)','4','6-10','2min'),
+    ex('Wyciskanie żołnierskie / barki','3','8-12','90s'),
+    ex('Rozpiętki / fly maszyna','3','10-15','75s'),
+    ex('Prostowanie triceps wyciąg','3','10-12','60s'),
+    ex('Unoszenie boczne','3','12-15','60s')
+  ];
+  if(/pull/.test(s))return[
+    ex('Martwy ciąg / RDL','3','6-10','2min'),
+    ex('Podciąganie / lat pulldown','4','6-10','2min'),
+    ex('Wiosłowanie (wyciąg / hantel)','3','8-12','90s'),
+    ex('Face pull','3','12-15','60s'),
+    ex('Uginanie biceps','3','10-12','60s')
+  ];
+  if(/leg|nóg|nogi|lower|przysiad|czwor|dwugł|poślad/.test(s))return[
+    ex('Przysiad / hack squat','4','6-10','2min'),
+    ex('Leg press / wykroki','3','8-12','90s'),
+    ex('RDL / leg curl','3','8-12','90s'),
+    ex('Wypychanie bioder / hip thrust','3','8-12','90s'),
+    ex('Wspięcia na palce','3','12-15','60s')
+  ];
+  if(/upper|góra/.test(s))return[
+    ex('Wyciskanie klatka (maszyna/Smith)','3','6-10','2min'),
+    ex('Ściąganie drążka / podciąganie','3','6-10','2min'),
+    ex('Wiosłowanie siedząc','3','8-12','90s'),
+    ex('Unoszenie boczne','3','10-15','60s'),
+    ex('Triceps + biceps (superset)','3','10-12','60s')
+  ];
+  if(/fbw|full\s*body/.test(s))return[
+    ex('Przysiad / goblet squat','3','6-10','2min'),
+    ex('Wyciskanie (klatka lub OHP)','3','6-10','2min'),
+    ex('Wiosłowanie','3','8-12','90s'),
+    ex('RDL / hip hinge','3','8-12','90s'),
+    ex('Core / plank','3','30-45s','45s')
+  ];
+  return[ex(focus||'Trening wg planu','3','8-12','90s')];
+}
+window.expandSessionFromDayFocus=expandSessionFromDayFocus;
+
+/** Dni planu treningowego z tygodnia programu (z ćwiczeniami, nie pustą skorupą). */
+function planDaysFromProgram(prog,weekIdx){
+  if(!prog)return[];
+  const weeks=prog.weeks||[];
+  const week=weeks[weekIdx||0]||weeks[0]||{};
+  const rawDays=week.days||prog.days||[];
+  return rawDays.map(d=>{
+    const label=d.d||d.day||d.dayName||'Dzień';
+    const focus=d.name||d.muscles||d.focus||'';
+    const isRest=!!d.rest||/^rest$/i.test(String(focus))||/^rest$/i.test(String(label))||String(focus).toUpperCase()==='REST';
+    let exercises=[];
+    if(!isRest){
+      if(Array.isArray(d.exercises)&&d.exercises.length){
+        exercises=d.exercises.map(e=>{
+          if(typeof e==='string')return{name:e,sets:'3',reps:'8-12',rest:'90s'};
+          return{
+            name:e.name||e.n||'Ćwiczenie',
+            sets:String(e.sets!=null?e.sets:(e.s!=null?e.s:'3')),
+            reps:String(e.reps!=null?e.reps:(e.r!=null?e.r:'8-12')),
+            rest:e.rest||'90s',
+            rpe:e.rpe||e.rir||'',
+            tempo:e.tempo||''
+          };
+        });
+      }else{
+        exercises=expandSessionFromDayFocus(focus||label);
+      }
+    }
+    return{day:label,muscles:focus,rest:isRest,exercises};
+  });
+}
+window.planDaysFromProgram=planDaysFromProgram;
 
 function setProgNav(n){
   progNav=n;
@@ -1748,7 +1827,7 @@ async function confirmAssignProgram(){
   const c=CL.find(x=>x.id===cid);
   if(!c){notify('Wybierz klienta!');return;}
 
-  // Buduj pełny obiekt planu z programu
+  // Buduj pełny obiekt planu z programu (z ćwiczeniami z tygodnia 1)
   const newPlan=withTrainer({
     id:newId('p'),
     name:p.name,
@@ -1762,17 +1841,7 @@ async function confirmAssignProgram(){
     programId:p.id,
     startDate,
     createdAt:new Date().toISOString(),
-    days:(p.weeks&&p.weeks[0]&&p.weeks[0].days
-      ? p.weeks[0].days.map(d=>{
-          const isRest=d.name==='REST'||d.rest||/^rest$/i.test(d.name||'');
-          return{
-            day:d.d||d.name||'',
-            muscles:d.name||'',
-            rest:isRest,
-            exercises:isRest?[]:[{name:d.name||'Trening wg planu',sets:'3',reps:'wg planu'}]
-          };
-        })
-      : [])
+    days:typeof planDaysFromProgram==='function'?planDaysFromProgram(p,0):[]
   });
 
   PL.push(newPlan);
@@ -1783,6 +1852,10 @@ async function confirmAssignProgram(){
 
   addNotification('system','Program przypisany!','"'+p.name+'" → '+c.name,'plans');
   notify('✓ Program "'+p.name+'" przypisany do: '+c.name+'!');
+
+  if(typeof schedulePlanToCalendar==='function'&&(newPlan.days||[]).some(d=>!d.rest&&(d.exercises||[]).length)){
+    if(confirm('Dodać dni programu do kalendarza na 4 tygodnie?'))schedulePlanToCalendar(newPlan.id,{weeks:4});
+  }
 
   // Jeśli profil klienta otwarty — odśwież zakładkę Plan
   if(typeof cpClientId!=='undefined'&&cpClientId===cid){

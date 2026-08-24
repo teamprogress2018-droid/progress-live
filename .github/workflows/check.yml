@@ -90,6 +90,9 @@ jobs:
       - name: 1n. Testy przepływu klienta (priorytet / baseline / kalendarz)
         run: node .github/scripts/test_client_flow_helpers.js
 
+      - name: 1n2. Testy programu → plan z ćwiczeniami (Automatyzacja)
+        run: node .github/scripts/test_program_plan_days.js
+
       - name: 1o. Testy edycji pomiarów w profilu klienta
         run: node .github/scripts/test_cp_metrics_edit.js
 
