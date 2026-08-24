@@ -1232,6 +1232,26 @@ function isHomework(t){
 }
 window.isHomework=isHomework;
 
+function openHomeworkTasks(tasks){
+  const live=new Set((window.CL||[]).filter(c=>c&&c.status!=='archived').map(c=>c.id));
+  return(tasks||window.TASKS||[]).filter(t=>t&&isHomework(t)&&t.status!=='done'&&t.clientId&&(!live.size||live.has(t.clientId)))
+    .slice()
+    .sort((a,b)=>{
+      const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
+      const ao=a.due&&a.due<today?0:1;
+      const bo=b.due&&b.due<today?0:1;
+      if(ao!==bo)return ao-bo;
+      return String(a.due||'9999').localeCompare(String(b.due||'9999'));
+    });
+}
+window.openHomeworkTasks=openHomeworkTasks;
+
+function clientOpenHomework(clientId,tasks){
+  if(!clientId)return[];
+  return openHomeworkTasks(tasks).filter(t=>t.clientId===clientId);
+}
+window.clientOpenHomework=clientOpenHomework;
+
 function isOneShot(t){
   return !!(t&&!isHabit(t)&&!isChallenge(t)&&!isHomework(t));
 }

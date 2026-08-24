@@ -309,9 +309,11 @@ function updateClientLiveNavBadges(c){
   const pendCi=cid&&typeof pendingCheckin==='function'?!!pendingCheckin(cid):false;
   const pendForms=cid&&typeof pendingFormSends==='function'?pendingFormSends(cid).length>0:false;
   const pendPay=cid&&typeof clientUnpaidPackages==='function'?clientUnpaidPackages(cid).length>0:false;
+  const pendHw=cid&&typeof clientOpenHomework==='function'?clientOpenHomework(cid).length>0:false;
   setBadge('clive-bn-checkin',pendCi);
   setBadge('clive-bn-messages',pendForms);
   setBadge('clive-bn-profile',pendPay);
+  setBadge('clive-bn-homework',pendHw);
 }
 window.updateClientLiveNavBadges=updateClientLiveNavBadges;
 
@@ -765,6 +767,12 @@ function clientCompleteHomework(taskId){
   t.updatedAt=new Date().toISOString();
   if(typeof persistById==='function')persistById('tasks',t);
   if(typeof notify==='function')notify('✓ Zadanie domowe zaliczone');
+  if(typeof pushClientMsg==='function')pushClientMsg('Zaliczyłem zadanie domowe: '+(t.title||'trening'));
+  if(typeof addNotification==='function'){
+    const c=(window.CL||[]).find(x=>x.id===t.clientId);
+    addNotification('task','Zadanie domowe zaliczone',((c&&c.name)||'Klient')+' · '+(t.title||''),'tasks');
+  }
+  try{if(typeof renderDashHwFollowup==='function')renderDashHwFollowup();}catch(e){}
   if(typeof renderClientLive==='function')renderClientLive();
 }
 

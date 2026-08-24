@@ -1212,9 +1212,31 @@ function assignHomeworkToClient(clientId,workoutId,opts){
     pushMsg(clientId,'[od:'+workoutId+']\n🏠 Zadanie domowe od trenera: "'+t.title+'"\n'+odWorkoutStructureText(w)+(odWorkoutMaterialsText(w)?'\nMateriały: '+odWorkoutMaterialsText(w):''));
   }
   try{if(typeof renderTasks==='function')renderTasks();}catch(e){}
+  try{if(typeof renderDashHwFollowup==='function')renderDashHwFollowup();}catch(e){}
   if(typeof cpClientId!=='undefined'&&cpClientId===clientId){try{if(typeof setCPTab==='function')setCPTab('tasks');}catch(e){}}
   return t;
 }
+
+function remindHomework(taskId){
+  const t=(window.TASKS||[]).find(x=>x&&x.id===taskId);
+  if(!t||!isHomework(t)){if(typeof notify==='function')notify('Nie znaleziono zadania domowego');return false;}
+  if(t.status==='done'){if(typeof notify==='function')notify('Zadanie jest już zaliczone');return false;}
+  const title=t.title||'Zadanie domowe';
+  const msg=t.odWorkoutId
+    ?('[od:'+t.odWorkoutId+']\n🏠 Przypomnienie: zadanie domowe "'+title+'" — odpal w zakładce Domowe.')
+    :('🏠 Przypomnienie: zadanie domowe "'+title+'" — odpal w zakładce Domowe.');
+  if(typeof pushMsg==='function')pushMsg(t.clientId,msg);
+  t.remindedAt=new Date().toISOString();
+  if(typeof persistById==='function')persistById('tasks',t);
+  if(typeof addNotification==='function'){
+    const c=(window.CL||[]).find(x=>x.id===t.clientId);
+    addNotification('task','Przypomnienie — zadanie domowe',((c&&c.name)||'Klient')+' · '+title,'tasks');
+  }
+  if(typeof notify==='function')notify('✓ Przypomnienie poszło do czatu klienta');
+  try{if(typeof renderDashHwFollowup==='function')renderDashHwFollowup();}catch(e){}
+  return true;
+}
+window.remindHomework=remindHomework;
 function openAssignHomeworkModal(workoutId,clientId){
   window._assignHwWorkoutId=workoutId||null;
   let m=document.getElementById('m-assign-homework');
@@ -1314,6 +1336,7 @@ window.odWorkoutStructureText=odWorkoutStructureText;
 window.odWorkoutMaterialsText=odWorkoutMaterialsText;
 window.odWorkoutMetaChipsHTML=odWorkoutMetaChipsHTML;
 window.assignHomeworkToClient=assignHomeworkToClient;
+window.remindHomework=remindHomework;
 window.openAssignHomeworkModal=openAssignHomeworkModal;
 window.openHomeworkPickerForClient=openHomeworkPickerForClient;
 window.ahwClientSearchInput=ahwClientSearchInput;
