@@ -4,17 +4,19 @@ Krótkie animacje pokazujące prawidłowe wykonanie ćwiczenia.
 
 ## Sposób 1 — pliki w repozytorium (GitHub Pages)
 
-1. Skopiuj GIF-y do tego folderu (`assets/ex/gifs/`).
+1. Skopiuj pliki do tego folderu (`assets/ex/gifs/`).
 2. Nazwij pliki **slugiem** z nazwy ćwiczenia, np.:
-   - `Wyciskanie sztangi leżąc` → `wyciskanie-sztangi-lezac.gif`
-   - `Podciąganie na drążku` → `podciaganie-na-drazku.gif`
+   - `Wyciskanie sztangi leżąc` → `wyciskanie-sztangi-lezac.mp4` (lub `.gif`)
+   - `Podciąganie na drążku` → `podciaganie-na-drazku.mp4`
 3. Uruchom generator mapowania:
    ```bash
    node .github/scripts/build_ex_gif_manifest.js
    ```
 4. Commit: `assets/ex/gifs/*`, `ex-gif-manifest.js`.
 
-Obsługiwane formaty: `.gif`, `.webp`, krótkie `.mp4` / `.webm`.
+W kreatorze planu pod każdym ćwiczeniem pojawi się podgląd techniki (`.mp4` / `.gif` / YouTube).
+
+Obsługiwane formaty: `.mp4`, `.webm`, `.gif`, `.webp`.
 
 ## Sposób 2 — import w aplikacji (Firebase Storage)
 

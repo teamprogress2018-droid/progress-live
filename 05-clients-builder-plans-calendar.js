@@ -624,7 +624,7 @@ function toggleR(id){const el=document.getElementById(id);const r=el.querySelect
 function addRow(dayId){
   const rows=document.querySelector('#'+dayId+' .ex-rows');
   const div=document.createElement('div');div.className='ex-row';
-  div.innerHTML='<input type="text" placeholder="Nazwa ćwiczenia..." class="ex-inp ex-inp-name ex-ac-input" style="width:100%;" autocomplete="off" data-f="name" oninput="builderPreviewKg(this.closest(\'.ex-row\'));builderRefreshPeriodPreview()">'
+  div.innerHTML='<input type="text" placeholder="Nazwa ćwiczenia..." class="ex-inp ex-inp-name ex-ac-input" style="width:100%;" autocomplete="off" data-f="name" oninput="builderOnExNameChange(this.closest(\'.ex-row\'))">'
     +'<input type="number" placeholder="4" class="ex-inp" data-f="sets" oninput="builderRefreshPeriodPreview()">'
     +'<input type="text" placeholder="8-10" class="ex-inp" data-f="reps" oninput="builderRefreshPeriodPreview()">'
     +'<input type="number" placeholder="kg" class="ex-inp" data-f="kg" title="Zostaw puste, jeśli liczysz z %1RM" oninput="builderRefreshPeriodPreview()">'
@@ -632,18 +632,25 @@ function addRow(dayId){
     +'<input type="number" placeholder="2" class="ex-inp" data-f="rir" oninput="builderRefreshPeriodPreview()">'
     +'<input type="text" placeholder="2min" class="ex-inp" data-f="rest" oninput="builderRefreshPeriodPreview()">'
     +'<input type="text" placeholder="2-0-2" class="ex-inp" data-f="tempo">'
-    +'<div class="builder-row-actions" style="display:flex;flex-direction:column;gap:2px;">'
-    +'<button type="button" class="builder-move-row" onclick="builderMoveRow(this,-1)" title="Przenieś wyżej" style="background:var(--s3);border:1px solid var(--border2);border-radius:4px;width:22px;height:18px;cursor:pointer;font-size:10px;line-height:1;color:var(--text);padding:0;">▲</button>'
-    +'<button type="button" class="builder-move-row" onclick="builderMoveRow(this,1)" title="Przenieś niżej" style="background:var(--s3);border:1px solid var(--border2);border-radius:4px;width:22px;height:18px;cursor:pointer;font-size:10px;line-height:1;color:var(--text);padding:0;">▼</button>'
+    +'<div class="builder-row-tools">'
+    +'<div class="builder-row-actions">'
+    +'<button type="button" class="builder-move-row" onclick="builderMoveRow(this,-1)" title="Przenieś wyżej">▲</button>'
+    +'<button type="button" class="builder-move-row" onclick="builderMoveRow(this,1)" title="Przenieś niżej">▼</button>'
     +'</div>'
     +'<button type="button" class="builder-remove-row" onclick="builderRemoveRow(this)">×</button>'
+    +'</div>'
     +'<div class="ex-row-extra">'
-    +'<input type="text" placeholder="Zamiennik (opcjonalnie, np. hantle zamiast sztangi)" class="ex-inp ex-inp-name builder-sub-input" data-f="alt">'
+    +'<div class="builder-alt-box">'
+    +'<div class="builder-alt-label">Zamienniki — kliknij, żeby podmienić w planie</div>'
+    +'<div class="builder-alt-chips"></div>'
+    +'<input type="text" placeholder="Własny zamiennik (opcjonalnie)" class="ex-inp ex-inp-name builder-sub-input" data-f="alt" oninput="builderRefreshAltChips(this.closest(\'.ex-row\'))">'
+    +'</div>'
     +'<input type="number" placeholder="%1RM" class="ex-inp" data-f="pct1rm" min="1" max="150" step="0.5" title="Procent 1RM — kg z Pomiary → Siła bazowa" oninput="builderPreviewKg(this.closest(\'.ex-row\'));builderRefreshPeriodPreview()">'
     +'<div class="ex-row-coach">'
     +'<input type="text" placeholder="Wskazówka dla klienta (np. łopatki ściągnięte)" class="ex-inp ex-inp-name builder-sub-input" data-f="note">'
-    +'<input type="url" placeholder="Film: YouTube / Vimeo / .mp4" class="ex-inp ex-inp-name builder-sub-input" data-f="video" title="Link do filmu techniki">'
+    +'<input type="url" placeholder="Film: YouTube / Vimeo / .mp4 (lub auto z biblioteki)" class="ex-inp ex-inp-name builder-sub-input" data-f="video" title="Link do filmu techniki" oninput="builderRefreshTechMedia(this.closest(\'.ex-row\'))">'
     +'</div>'
+    +'<div class="builder-tech-media"></div>'
     +'<div class="ex-kind-btns">'
     +'<input type="hidden" data-f="ss" value="">'
     +'<input type="hidden" data-f="wu" value="">'
@@ -661,8 +668,111 @@ function addRow(dayId){
   rows.appendChild(div);
   const nameInp=div.querySelector('[data-f="name"]');
   if(nameInp&&typeof exAcInitInput==='function')exAcInitInput(nameInp);
+  builderRefreshAltChips(div);
+  builderRefreshTechMedia(div);
   builderRefreshPeriodPreview();
 }
+function builderAltListForRow(row){
+  if(!row)return[];
+  const name=(row.querySelector('[data-f="name"]')||{}).value||'';
+  const raw=(row.querySelector('[data-f="alt"]')||{}).value||'';
+  const fromField=String(raw).split(/[,;/]/).map(s=>s.trim()).filter(Boolean);
+  const fromLib=typeof altsForExercise==='function'?altsForExercise(name):[];
+  const cur=String(name).trim().toLowerCase();
+  const seen=new Set();
+  const out=[];
+  fromField.concat(fromLib).forEach(a=>{
+    const k=String(a).trim();
+    if(!k)return;
+    const lk=k.toLowerCase();
+    if(lk===cur||seen.has(lk))return;
+    seen.add(lk);out.push(k);
+  });
+  return out;
+}
+function builderRefreshAltChips(row){
+  if(!row)return;
+  const box=row.querySelector('.builder-alt-chips');if(!box)return;
+  const alts=builderAltListForRow(row);
+  if(!alts.length){
+    box.innerHTML='<span class="builder-alt-empty">Brak zamienników w bibliotece — wpisz własny poniżej albo wybierz ćwiczenie z listy.</span>';
+    return;
+  }
+  box.innerHTML=alts.map(a=>{
+    const safe=typeof escHtml==='function'?escHtml(a):a;
+    const attr=String(a).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+    return `<button type="button" class="builder-alt-chip" data-alt="${attr}" onclick="builderApplyAlt(this)" title="Podmień to ćwiczenie w planie">↻ ${safe}</button>`;
+  }).join('');
+}
+window.builderRefreshAltChips=builderRefreshAltChips;
+function builderApplyAlt(btn){
+  const row=btn&&btn.closest('.ex-row');if(!row)return false;
+  const next=String(btn.dataset.alt||btn.getAttribute('data-alt')||'').trim();
+  if(!next)return false;
+  const nameInp=row.querySelector('[data-f="name"]');
+  const altInp=row.querySelector('[data-f="alt"]');
+  const prev=nameInp?(nameInp.value||'').trim():'';
+  const before=altInp?(altInp.value||''):'';
+  if(nameInp)nameInp.value=next;
+  if(altInp){
+    const keep=String(before).split(/[,;/]/).map(s=>s.trim()).filter(Boolean)
+      .filter(a=>a.toLowerCase()!==next.toLowerCase());
+    if(prev&&prev.toLowerCase()!==next.toLowerCase()&&!keep.some(a=>a.toLowerCase()===prev.toLowerCase()))keep.unshift(prev);
+    altInp.value=keep.join(', ');
+  }
+  if(typeof notify==='function')notify('✓ Podmieniono na: '+next);
+  builderOnExNameChange(row);
+  return true;
+}
+window.builderApplyAlt=builderApplyAlt;
+function builderRefreshTechMedia(row){
+  if(!row)return;
+  const box=row.querySelector('.builder-tech-media');if(!box)return;
+  const name=(row.querySelector('[data-f="name"]')||{}).value||'';
+  const videoInp=row.querySelector('[data-f="video"]');
+  const videoVal=videoInp?(videoInp.value||'').trim():'';
+  const media=typeof resolveCoachMedia==='function'?resolveCoachMedia({name,video:videoVal}):{gif:'',video:videoVal,isFile:false,img:''};
+  if(videoInp&&!videoVal&&media.video){
+    videoInp.value=media.video;
+  }
+  const gif=media.gif||'';
+  const video=media.video||videoInp?.value||'';
+  const file=!!media.isFile||(typeof coachVideoIsFile==='function'&&coachVideoIsFile(video));
+  let html='';
+  if(gif&&typeof exTechniqueMediaHtml==='function'){
+    html=exTechniqueMediaHtml({gif,name},{});
+  }else if(video&&file){
+    html=`<div class="cw-video-wrap" style="padding-top:0;height:200px;"><video src="${typeof escHtml==='function'?escHtml(video):video}" controls playsinline muted loop style="position:static;width:100%;height:100%;object-fit:contain;"></video></div>`;
+  }else if(video&&media.videoEmbed){
+    html=`<div class="cw-video-wrap"><iframe src="${typeof escHtml==='function'?escHtml(media.videoEmbed):media.videoEmbed}" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen title="Film techniki"></iframe></div>`;
+  }else if(media.img){
+    html=`<img src="${typeof escHtml==='function'?escHtml(media.img):media.img}" alt="${typeof escHtml==='function'?escHtml(name):name}" loading="lazy">`;
+  }else if(name.trim()){
+    html=`<div class="builder-tech-empty">Brak filmu techniki dla „${typeof escHtml==='function'?escHtml(name):name}”. Wrzuć <code>.mp4</code> do <code>assets/ex/gifs/</code> (slug nazwy) albo wklej link powyżej.</div>`;
+  }
+  box.innerHTML=html;
+}
+window.builderRefreshTechMedia=builderRefreshTechMedia;
+function builderOnExNameChange(row){
+  if(!row)return;
+  if(typeof builderPreviewKg==='function')builderPreviewKg(row);
+  if(typeof builderRefreshPeriodPreview==='function')builderRefreshPeriodPreview();
+  // Uzupełnij alt z biblioteki, gdy pole puste
+  const altInp=row.querySelector('[data-f="alt"]');
+  const name=(row.querySelector('[data-f="name"]')||{}).value||'';
+  if(altInp&&!(altInp.value||'').trim()&&typeof altsForExercise==='function'){
+    const alts=altsForExercise(name);
+    if(alts.length)altInp.value=alts.join(', ');
+  }
+  builderRefreshAltChips(row);
+  builderRefreshTechMedia(row);
+}
+window.builderOnExNameChange=builderOnExNameChange;
+function builderRefreshRowExtras(row){
+  builderRefreshAltChips(row);
+  builderRefreshTechMedia(row);
+}
+window.builderRefreshRowExtras=builderRefreshRowExtras;
 function builderRemoveRow(btn){
   const row=btn.closest('.ex-row');
   const box=row&&row.parentElement;
@@ -998,6 +1108,7 @@ function editPlan(id){
       if(typeof builderPreviewKg==='function')builderPreviewKg(row);
       if(typeof builderPaintEmom==='function')builderPaintEmom(row);
       if(typeof builderPaintKinds==='function')builderPaintKinds(row);
+      if(typeof builderRefreshRowExtras==='function')builderRefreshRowExtras(row);
     });
     if(typeof builderPaintSs==='function')builderPaintSs(dayEl.querySelector('.ex-rows'));
   });
