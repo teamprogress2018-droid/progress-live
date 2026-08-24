@@ -2324,15 +2324,19 @@ function runOnboardingForClient(client){
         }
       }
     }
-    if(flow.assignEnabled!==false && flow.forumGroupId){
-      const g=(window.FORUM_GROUPS||[]).find(x=>x.id===flow.forumGroupId);
-      if(g){
-        if(g.privacy==='private'){
+    if(flow.forumGroupId && (flow.assignEnabled!==false)){
+      const enrolled=typeof enrollClientInForumGroup==='function'
+        ?enrollClientInForumGroup(client.id,flow.forumGroupId,{notify:true})
+        :null;
+      if(enrolled&&enrolled.ok)parts.push('forum');
+      else{
+        const g=(window.FORUM_GROUPS||[]).find(x=>x.id===flow.forumGroupId);
+        if(g){
           g.memberIds=g.memberIds||[];
           if(g.memberIds.indexOf(client.id)<0){g.memberIds.push(client.id);persistById('forumGroups',g);}
+          if(typeof pushMsg==='function')pushMsg(client.id,'Jesteś w grupie na forum: '+(g.name||'Społeczność'));
+          parts.push('forum');
         }
-        if(typeof pushMsg==='function')pushMsg(client.id,'Jesteś w grupie na forum: '+(g.name||'Społeczność'));
-        parts.push('forum');
       }
     }
     if(flow.ondemandEnabled){

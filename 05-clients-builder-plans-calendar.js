@@ -396,6 +396,19 @@ function renderClientOnboardChecklist(){
       action:`openPackageForClient('${id}')`,cta:'+ Pakiet',
       extra:st.package?'':`<button class="btn btn-ghost btn-sm" onclick="skipClientPackage('${id}')">Pomiń</button>`},
   ];
+  const flow=window.ONBOARDING_FLOW;
+  if(flow&&flow.forumGroupId){
+    const g=(window.FORUM_GROUPS||[]).find(x=>x.id===flow.forumGroupId);
+    const inForum=typeof isClientInForumGroup==='function'?isClientInForumGroup(id,flow.forumGroupId):false;
+    steps.push({
+      done:inForum,
+      icon:'👥',
+      title:'Forum / społeczność',
+      desc:g?('Grupa: '+(g.name||'Forum')+(g.privacy==='private'?' (prywatna)':'')):'Dołącz klienta do grupy z Automatyzacji',
+      action:`enrollClientInOnboardForum('${id}')`,
+      cta:'Dołącz do forum'
+    });
+  }
   el.innerHTML=steps.map(s=>`
     <div style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:var(--s3);border:1px solid ${s.done?'var(--teal)':'var(--border)'};border-radius:10px;margin-bottom:8px;">
       <div style="width:32px;height:32px;border-radius:8px;background:${s.done?'rgba(62,207,178,0.18)':'var(--s2)'};display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">${s.done?'✓':s.icon}</div>
@@ -408,6 +421,26 @@ function renderClientOnboardChecklist(){
 }
 window.openClientOnboardChecklist=openClientOnboardChecklist;
 window.renderClientOnboardChecklist=renderClientOnboardChecklist;
+
+function enrollClientInOnboardForum(clientId){
+  const flow=window.ONBOARDING_FLOW;
+  if(!flow||!flow.forumGroupId){
+    if(typeof notify==='function')notify('Ustaw grupę forum w Automatyzacja → Onboarding');
+    return false;
+  }
+  const r=typeof enrollClientInForumGroup==='function'
+    ?enrollClientInForumGroup(clientId,flow.forumGroupId,{notify:true,forceNotify:true})
+    :{ok:false};
+  if(!r.ok){
+    if(typeof notify==='function')notify('Nie znaleziono grupy forum');
+    return false;
+  }
+  if(typeof renderClientOnboardChecklist==='function')renderClientOnboardChecklist();
+  if(typeof renderDash==='function')try{renderDash();}catch(e){}
+  if(typeof notify==='function')notify(r.added?'✓ Klient dołączony do forum':'Klient już jest w tej grupie');
+  return true;
+}
+window.enrollClientInOnboardForum=enrollClientInOnboardForum;
 
 function openClientScheduleFromOnboard(clientId){
   window._onboardResumeAfterEdit=clientId;
