@@ -2723,7 +2723,8 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <button class="cp-tab cp-tab-v" id="cpt-metrics" onclick="setCPTab('metrics')">📏 Pomiary</button>
         <button class="cp-tab cp-tab-v" id="cpt-tasks" onclick="setCPTab('tasks')">✅ Zadania</button>
         <button class="cp-tab cp-tab-v" id="cpt-forms" onclick="setCPTab('forms')">📋 Formularze</button>
-        <button class="cp-tab cp-tab-v" id="cpt-food" onclick="setCPTab('food')">🥗 Żywienie</button>
+        <!-- Żywienie ukryte: stub bez persistencji / bez apki klienta — wróci gdy będzie prawdziwy dziennik -->
+        <button class="cp-tab cp-tab-v" id="cpt-food" onclick="setCPTab('food')" style="display:none;" aria-hidden="true">🥗 Żywienie</button>
         <button class="cp-tab cp-tab-v" id="cpt-documents" onclick="setCPTab('documents')">📎 Dokumenty</button>
         <button class="cp-tab cp-tab-v" id="cpt-payments" onclick="setCPTab('payments')">💳 Płatności</button>
         <button class="cp-tab cp-tab-v" id="cpt-features" onclick="setCPTab('features')">⚙️ Funkcje</button>
@@ -3946,8 +3947,8 @@ async function load(){
 <script src="04-client-portal.js?v=19"></script>
 <script src="05-clients-builder-plans-calendar.js?v=17"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=19"></script>
-<script src="07-forms-metrics-calculator.js?v=17"></script>
-<script src="08-client-profile-extras.js?v=17"></script>
+<script src="07-forms-metrics-calculator.js?v=19"></script>
+<script src="08-client-profile-extras.js?v=19"></script>
 <script src="09-posture-kb-invites-private.js?v=18"></script>
 <script src="10-client-app.js?v=19"></script>
 </body>

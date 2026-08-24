@@ -1472,7 +1472,7 @@ function setCPTab(t){
   if(t==='metrics')renderCPMetrics(c);
   if(t==='tasks')renderCPTasks(c);
   if(t==='forms')renderCPForms(c);
-  if(t==='food')renderCPFood(c);
+  if(t==='food'){if(typeof notify==='function')notify('Żywienie jest w przygotowaniu');setCPTab('overview');return;}
   if(t==='documents')renderCPDocuments(c);
   if(t==='payments')renderCPPayments(c);
   if(t==='features')renderCPSettings(c);

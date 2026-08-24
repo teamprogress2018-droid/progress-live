@@ -1788,77 +1788,26 @@ function renderCPNotes(c){
 window.renderCPNotes=renderCPNotes;
 
 // ══════════════════════════════════════════════════════
-// CP — FOOD JOURNAL (dziennik żywieniowy)
+// CP — FOOD JOURNAL (stub — zakładka ukryta; brak persistencji i apki klienta)
 // ══════════════════════════════════════════════════════
 window.CLIENT_FOOD = window.CLIENT_FOOD || {};
 function renderCPFood(c){
-  if(!window.CLIENT_FOOD[c.id]) window.CLIENT_FOOD[c.id]=[];
-  const entries=window.CLIENT_FOOD[c.id];
-  const enabled=c.clientSettings?.foodJournal!==false;
-  const today=new Date().toISOString().split('T')[0];
-  const byDate={};
-  entries.forEach(e=>{if(!byDate[e.date])byDate[e.date]=[];byDate[e.date].push(e);});
-  const dates=Object.keys(byDate).sort((a,b)=>b.localeCompare(a));
-  const mealTypes={breakfast:'🌅 Śniadanie',lunch:'☀️ Obiad',snack:'🍎 Przekąska',dinner:'🌙 Kolacja',other:'🍽️ Inne'};
   document.getElementById('cp-body').innerHTML=`
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-      <div class="cp-section-title" style="margin:0;">DZIENNIK ŻYWIENIOWY</div>
-      <div style="display:flex;gap:6px;align-items:center;">
-        <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);cursor:pointer;">
-          <span>${enabled?'✅ Aktywny':'⛔ Wyłączony'}</span>
-          <div onclick="toggleClientFeature('${c.id}','foodJournal','food')" style="width:32px;height:18px;border-radius:9px;background:${enabled?'var(--accent)':'var(--s4)'};cursor:pointer;position:relative;transition:background 0.2s;">
-            <div style="width:14px;height:14px;border-radius:50%;background:#000;position:absolute;top:2px;left:${enabled?'16px':'2px'};transition:left 0.2s;"></div>
-          </div>
-        </label>
-        ${enabled?`<button class="btn btn-primary btn-sm" onclick="addFoodEntry('${c.id}')">+ Wpis</button>`:''}
+    <div class="cp-section-title">ŻYWIENIE</div>
+    <div style="text-align:center;padding:48px 20px;background:var(--s3);border-radius:12px;border:1px dashed var(--border2);">
+      <div style="font-size:36px;margin-bottom:10px;opacity:0.5;">🥗</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:6px;">Dziennik żywieniowy w przygotowaniu</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.55;max-width:360px;margin:0 auto 14px;">
+        Ta zakładka była tylko stubem (wpisy w pamięci, bez zapisu i bez widoku w apce klienta). Wróci, gdy będzie prawdziwy dziennik + zdjęcia posiłków.
       </div>
-    </div>
-    ${!enabled?`<div style="text-align:center;padding:40px 20px;background:var(--s3);border-radius:12px;border:1px dashed var(--border2);">
-      <div style="font-size:32px;margin-bottom:8px;">🥗</div>
-      <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Dziennik Żywieniowy wyłączony</div>
-      <div style="font-size:11px;color:var(--muted);">Włącz powyżej aby klient mógł dodawać zdjęcia posiłków</div>
-    </div>`:
-    !entries.length?`<div style="text-align:center;padding:40px 20px;">
-      <div style="font-size:32px;margin-bottom:8px;">📸</div>
-      <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Brak wpisów</div>
-      <div style="font-size:11px;color:var(--muted);">Klient jeszcze nie dodał żadnych posiłków</div>
-      <button class="btn btn-ghost btn-sm" style="margin-top:12px;" onclick="addFoodEntry('${c.id}')">+ Dodaj przykładowy wpis</button>
-    </div>`:
-    dates.map(date=>`
-      <div style="margin-bottom:16px;">
-        <div style="font-size:11px;font-weight:700;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:8px;text-transform:uppercase;">${date===today?'📅 DZIŚ':date}</div>
-        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">
-          ${byDate[date].map(e=>`
-            <div style="background:var(--s3);border-radius:10px;overflow:hidden;cursor:pointer;" onclick="viewFoodEntry('${c.id}','${e.id}')">
-              <div style="height:80px;background:linear-gradient(135deg,var(--s4),var(--s2));display:flex;align-items:center;justify-content:center;font-size:32px;">${e.emoji||'🍽️'}</div>
-              <div style="padding:8px;">
-                <div style="font-size:11px;font-weight:600;">${e.name||'Posiłek'}</div>
-                <div style="font-size:10px;color:var(--muted);">${mealTypes[e.type]||e.type||''}${e.kcal?' · '+e.kcal+' kcal':''}</div>
-                ${e.note?`<div style="font-size:10px;color:var(--muted2);margin-top:2px;font-style:italic;">${e.note}</div>`:''}
-              </div>
-            </div>`).join('')}
-        </div>
-      </div>`).join('')}`;
+      <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('overview')">← Wróć do przeglądu</button>
+    </div>`;
 }
-function addFoodEntry(clientId){
-  const name=prompt('Nazwa posiłku:');if(!name)return;
-  const type=prompt('Typ (breakfast/lunch/snack/dinner/other):','lunch')||'other';
-  const kcal=parseInt(prompt('Kalorie (opcjonalne):',''))||null;
-  const emojis={'breakfast':'🥣','lunch':'🍲','snack':'🍎','dinner':'🌮','other':'🍽️'};
-  if(!window.CLIENT_FOOD[clientId])window.CLIENT_FOOD[clientId]=[];
-  window.CLIENT_FOOD[clientId].push({
-    id:'fe'+Date.now(),date:new Date().toISOString().split('T')[0],
-    name,type,kcal,emoji:emojis[type]||'🍽️',note:'',addedAt:new Date().toISOString()
-  });
-  const c=CL.find(x=>x.id===clientId);if(c)renderCPFood(c);
+function addFoodEntry(){
+  if(typeof notify==='function')notify('Dziennik żywieniowy jest w przygotowaniu');
 }
-function viewFoodEntry(clientId,entryId){
-  const e=(window.CLIENT_FOOD[clientId]||[]).find(x=>x.id===entryId);
-  if(!e)return;
-  if(confirm(`${e.emoji||'🍽️'} ${e.name}\nData: ${e.date}\nKalorie: ${e.kcal||'—'}\n\nUsunąć ten wpis?`)){
-    window.CLIENT_FOOD[clientId]=(window.CLIENT_FOOD[clientId]||[]).filter(x=>x.id!==entryId);
-    const c=CL.find(x=>x.id===clientId);if(c)renderCPFood(c);
-  }
+function viewFoodEntry(){
+  if(typeof notify==='function')notify('Dziennik żywieniowy jest w przygotowaniu');
 }
 
 // ══════════════════════════════════════════════════════
@@ -1872,27 +1821,30 @@ function renderCPDocuments(c){
   document.getElementById('cp-body').innerHTML=`
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
       <div class="cp-section-title" style="margin:0;">DOKUMENTY (${docs.length})</div>
-      <button class="btn btn-primary btn-sm" onclick="addClientDoc('${c.id}')">+ Dodaj</button>
+      <button class="btn btn-primary btn-sm" onclick="addClientDoc('${c.id}')">+ Notatka / nazwa</button>
     </div>
-    ${!docs.length?`<div style="text-align:center;padding:60px 20px;background:var(--s3);border-radius:12px;border:1px dashed var(--border2);">
+    <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:12px;background:var(--s3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;">
+      Lista nazw dokumentów trenera (zapis w bazie). <b>Upload plików i widok w apce klienta — w przygotowaniu.</b> Ankiety wysyłaj z Formularzy (apką lub PDF).
+    </div>
+    ${!docs.length?`<div style="text-align:center;padding:40px 20px;background:var(--s3);border-radius:12px;border:1px dashed var(--border2);">
       <div style="font-size:40px;margin-bottom:12px;">📂</div>
-      <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Brak dokumentów</div>
-      <div style="font-size:11px;color:var(--muted);">Dokumenty przesłane przez klienta pojawią się tutaj</div>
-      <button class="btn btn-ghost btn-sm" style="margin-top:14px;" onclick="addClientDoc('${c.id}')">+ Dodaj dokument</button>
+      <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Brak wpisów</div>
+      <div style="font-size:11px;color:var(--muted);">Dodaj nazwę dokumentu / notatkę dla siebie (bez pliku).</div>
+      <button class="btn btn-ghost btn-sm" style="margin-top:14px;" onclick="addClientDoc('${c.id}')">+ Dodaj nazwę</button>
     </div>`:
     docs.map(d=>`
       <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--s3);border-radius:10px;margin-bottom:8px;">
         <div style="width:40px;height:40px;border-radius:8px;background:var(--s4);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">${typeIcon[d.type]||'📁'}</div>
         <div style="flex:1;overflow:hidden;">
-          <div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d.name}</div>
-          <div style="font-size:10px;color:var(--muted);">${d.date}${d.size?' · '+d.size:''}</div>
-          ${d.note?`<div style="font-size:10px;color:var(--muted2);font-style:italic;">${d.note}</div>`:''}
+          <div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(d.name||'')}</div>
+          <div style="font-size:10px;color:var(--muted);">${escHtml(d.date||'')}${d.size&&d.size!=='—'?' · '+escHtml(d.size):''}</div>
+          ${d.note?`<div style="font-size:10px;color:var(--muted2);font-style:italic;">${escHtml(d.note)}</div>`:''}
         </div>
-        <button onclick="delClientDoc('${c.id}','${d.id}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;padding:4px;">🗑</button>
+        <button type="button" onclick="delClientDoc('${escHtml(c.id)}','${escHtml(d.id)}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;padding:4px;" title="Usuń">🗑</button>
       </div>`).join('')}`;
 }
 function addClientDoc(clientId){
-  const name=prompt('Nazwa dokumentu (np. "Ankieta wstępna.pdf"):');if(!name)return;
+  const name=prompt('Nazwa / opis dokumentu (bez uploadu pliku):');if(!name)return;
   const type=name.endsWith('.pdf')?'pdf':name.match(/\.(jpg|png|jpeg)/i)?'image':'other';
   const note=prompt('Notatka (opcjonalne):','')||'';
   if(!window.CLIENT_DOCS[clientId])window.CLIENT_DOCS[clientId]=[];
@@ -1919,7 +1871,9 @@ function delClientDoc(clientId,docId){
 function toggleClientFeature(clientId,feature,tab){
   const c=CL.find(x=>x.id===clientId);if(!c)return;
   if(!c.clientSettings)c.clientSettings={};
-  c.clientSettings[feature]=!c.clientSettings[feature];
+  const defaults={training:true,tasks:true,messages:true,progressPhoto:true,bodyMetrics:true};
+  const cur=c.clientSettings[feature]!==undefined?!!c.clientSettings[feature]:!!defaults[feature];
+  c.clientSettings[feature]=!cur;
   persistById('clients',c);
   if(tab)setCPTab(tab);
   else renderCPSettings(c);
@@ -1928,15 +1882,15 @@ function toggleClientFeature(clientId,feature,tab){
 function renderCPSettings(c){
   if(!c.clientSettings)c.clientSettings={};
   const s=c.clientSettings;
+  // Tylko funkcje faktycznie respektowane w apce (progressPhoto) lub planowane jako realne przełączniki nawigacji.
+  // foodJournal / macros / mealPlan usunięte — były stubami bez implementacji.
   const feat=[
-    {key:'training',label:'Treningi',desc:'Przypisywanie i śledzenie treningów',icon:'💪',default:true},
-    {key:'tasks',label:'Zadania',desc:'Harmonogram zadań i materiały edukacyjne',icon:'✅',default:true},
-    {key:'foodJournal',label:'Dziennik żywieniowy',desc:'Klient przesyła zdjęcia posiłków',icon:'🥗',default:false},
-    {key:'macros',label:'Makroelementy',desc:'Śledzenie kalorii i makroskładników',icon:'🔢',default:false},
-    {key:'mealPlan',label:'Plan żywieniowy',desc:'Spersonalizowane plany diety',icon:'🍽️',default:false},
-    {key:'messages',label:'Wiadomości',desc:'Czat bezpośredni z trenerem',icon:'💬',default:true},
-    {key:'progressPhoto',label:'Zdjęcia postępu',desc:'Wizualizacja efektów — przed/po',icon:'📸',default:true},
-    {key:'bodyMetrics',label:'Pomiary ciała',desc:'Monitorowanie pomiarów ciała',icon:'📏',default:true},
+    {key:'progressPhoto',label:'Zdjęcia postępu',desc:'Klient może dodawać zdjęcia sylwetki w Progress',icon:'📸',default:true},
+    {key:'bodyMetrics',label:'Pomiary ciała',desc:'Widoczność pomiarów (gdy sekcja włączona globalnie)',icon:'📏',default:true},
+  ];
+  const coming=[
+    {icon:'🥗',label:'Dziennik żywieniowy',desc:'W przygotowaniu — nie włączamy przełącznika, żeby nie obiecywać funkcji'},
+    {icon:'📎',label:'Upload dokumentów',desc:'W przygotowaniu — dziś tylko lista nazw u trenera'},
   ];
   const toggle=(key,defaultVal)=>{
     const on=s[key]!==undefined?s[key]:defaultVal;
@@ -1946,7 +1900,7 @@ function renderCPSettings(c){
   };
   document.getElementById('cp-body').innerHTML=`
     <div class="cp-section-title">FUNKCJE W APLIKACJI KLIENTA</div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:14px;">Włącz lub wyłącz funkcje dla tego klienta. Wyłączone nie będą widoczne w aplikacji klienta.</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:14px;">Przełączniki tylko dla funkcji, które realnie działają. Reszta nawigacji klienta: Ustawienia → Aplikacja klienta.</div>
     ${feat.map(f=>{
       const on=s[f.key]!==undefined?s[f.key]:f.default;
       return `<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);">
@@ -1958,6 +1912,15 @@ function renderCPSettings(c){
         ${toggle(f.key,f.default)}
       </div>`;
     }).join('')}
+    <div style="margin-top:18px;" class="cp-section-title">W PRZYGOTOWANIU</div>
+    ${coming.map(f=>`<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);opacity:0.75;">
+      <div style="width:36px;height:36px;border-radius:10px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">${f.icon}</div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:600;color:var(--muted);">${f.label}</div>
+        <div style="font-size:11px;color:var(--muted);">${f.desc}</div>
+      </div>
+      <span class="pill pill-muted" style="font-size:9px;">WKRÓTCE</span>
+    </div>`).join('')}
 
     <div style="margin-top:20px;" class="cp-section-title">USTAWIENIA JEDNOSTEK</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
