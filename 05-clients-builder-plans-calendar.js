@@ -138,6 +138,10 @@ function openClientModal(clientId){
     document.getElementById('ac-height').value=c.height||'';
     document.getElementById('ac-goal').value=c.goal||'masa';
     document.getElementById('ac-level').value=c.level||'poczatkujacy';
+    const freqEl=document.getElementById('ac-freq');
+    if(freqEl)freqEl.value=c.trainingFreq?String(c.trainingFreq):'';
+    const timeEl=document.getElementById('ac-train-time');
+    if(timeEl)timeEl.value=c.preferredTrainTime||'';
     document.getElementById('ac-activity').value=c.activityLevel||'moderate';
     document.getElementById('ac-sport-notes').value=c.sportNotes||'';
     const injEl=document.getElementById('ac-injuries');
@@ -145,11 +149,15 @@ function openClientModal(clientId){
     document.getElementById('ac-notes').value=c.notes||'';
     if(typeof initPriorSportsForm==='function')initPriorSportsForm('ac',c.priorSports||[]);
     if(typeof initPhysiquePriorityForm==='function')initPhysiquePriorityForm('ac',c.physiquePriority||[]);
+    if(typeof initPreferredWeekdaysForm==='function')initPreferredWeekdaysForm('ac',c.preferredWeekdays||[]);
   }else{
     if(titleEl)titleEl.textContent='NOWY KLIENT';
     ['ac-name','ac-email','ac-phone','ac-age','ac-weight','ac-height','ac-sport-notes','ac-injuries','ac-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    const freqEl=document.getElementById('ac-freq');if(freqEl)freqEl.value='3';
+    const timeEl=document.getElementById('ac-train-time');if(timeEl)timeEl.value='';
     if(typeof initPriorSportsForm==='function')initPriorSportsForm('ac',[]);
     if(typeof initPhysiquePriorityForm==='function')initPhysiquePriorityForm('ac',[]);
+    if(typeof initPreferredWeekdaysForm==='function')initPreferredWeekdaysForm('ac',[1,3,5]);
   }
   openM('m-client');
 }
@@ -162,6 +170,12 @@ async function saveClient(){
   if(!name){notify('Wpisz imię!');return;}
 
   const editId=window._editingClientId;
+  const readFreq=()=>{
+    const n=typeof normalizeTrainingFreq==='function'?normalizeTrainingFreq(document.getElementById('ac-freq')?.value):parseInt(document.getElementById('ac-freq')?.value,10);
+    return n||undefined;
+  };
+  const readWeekdays=()=>typeof readPreferredWeekdaysFrom==='function'?readPreferredWeekdaysFrom('ac'):[];
+  const readTrainTime=()=>(document.getElementById('ac-train-time')?.value||'').trim();
   if(editId){
     const c=CL.find(x=>x.id===editId);
     if(!c){notify('Nie znaleziono klienta');return;}
@@ -174,6 +188,9 @@ async function saveClient(){
     c.height=+document.getElementById('ac-height').value||0;
     c.goal=document.getElementById('ac-goal').value;
     c.level=document.getElementById('ac-level').value;
+    const freq=readFreq();if(freq)c.trainingFreq=freq;else delete c.trainingFreq;
+    c.preferredWeekdays=readWeekdays();
+    c.preferredTrainTime=readTrainTime();
     c.priorSports=typeof readPriorSportsFrom==='function'?readPriorSportsFrom('ac'):[];
     c.physiquePriority=typeof readPhysiquePriorityFrom==='function'?readPhysiquePriorityFrom('ac'):(c.physiquePriority||[]);
     c.activityLevel=document.getElementById('ac-activity')?.value||'moderate';
@@ -192,6 +209,7 @@ async function saveClient(){
     return;
   }
 
+  const freqNew=readFreq();
   const c=withTrainer({
     id:newId('c'),
     name,
@@ -203,6 +221,9 @@ async function saveClient(){
     height:+document.getElementById('ac-height').value||0,
     goal:document.getElementById('ac-goal').value,
     level:document.getElementById('ac-level').value,
+    trainingFreq:freqNew||3,
+    preferredWeekdays:readWeekdays(),
+    preferredTrainTime:readTrainTime(),
     priorSports:typeof readPriorSportsFrom==='function'?readPriorSportsFrom('ac'):[],
     physiquePriority:typeof readPhysiquePriorityFrom==='function'?readPhysiquePriorityFrom('ac'):[],
     activityLevel:document.getElementById('ac-activity')?.value||'moderate',
@@ -337,6 +358,8 @@ function openClientBaselineModal(clientId){
   set('bl-hips','');
   set('bl-thigh','');
   set('bl-arm','');
+  const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
+  set('bl-date',today);
   const title=document.getElementById('m-baseline-title');
   if(title)title.textContent='POMIARY STARTOWE — '+(c.name||'').toUpperCase();
   openM('m-baseline');
@@ -345,6 +368,7 @@ async function saveClientBaselineModal(){
   const id=window._baselineClientId;if(!id)return;
   const g=id=>document.getElementById(id)?.value||'';
   const created=typeof saveClientBaselineFromFields==='function'?saveClientBaselineFromFields(id,{
+    date:g('bl-date'),
     weight:g('bl-weight'),
     bf:g('bl-bf'),
     chest:g('bl-chest'),
@@ -862,20 +886,38 @@ function planDayLabelToWeekday(label,fallbackIdx){
   const defaults=[1,3,5,2,4,6,1]; // Pon/Śr/Pt/Wt/Czw/Sob
   return defaults[(fallbackIdx||0)%defaults.length];
 }
+/** Preferowane dni klienta albo opts.weekdays — inaczej etykieta dnia / fallback indeksu. */
+function resolvePlanDayWeekday(dayLabel,dayIdx,preferredWeekdays){
+  const pref=typeof normalizePreferredWeekdays==='function'?normalizePreferredWeekdays(preferredWeekdays):((preferredWeekdays)||[]);
+  if(pref.length&&pref[dayIdx%pref.length]!=null)return pref[dayIdx%pref.length];
+  return planDayLabelToWeekday(dayLabel,dayIdx);
+}
+/** Godzina startu z preferowanej pory klienta (np. „Wieczór (18-22)”). */
+function scheduleTimeFromClient(client,fallback){
+  const fb=fallback||'18:00';
+  const t=String(client&&client.preferredTrainTime||'');
+  if(/rano|6-10|6–10/i.test(t))return'08:00';
+  if(/południe|10-14|10–14/i.test(t))return'12:00';
+  if(/po południu|14-18|14–18/i.test(t))return'16:00';
+  if(/wieczór|18-22|18–22/i.test(t))return'18:00';
+  return fb;
+}
 /** Tworzy sesje kalendarzowe z dni planu (planId + dayIdx) na N tygodni do przodu. */
 function schedulePlanToCalendar(planId,opts){
   const plan=PL.find(p=>p.id===planId);if(!plan){notify('Brak planu');return 0;}
   if(!plan.clientId){notify('Przypisz plan do klienta, żeby dodać do kalendarza');return 0;}
+  const client=CL.find(x=>x.id===plan.clientId);
   const weeks=Math.max(1,Math.min(12,(opts&&opts.weeks)||4));
-  const time=(opts&&opts.time)||'18:00';
+  const time=(opts&&opts.time)||scheduleTimeFromClient(client,'18:00');
   const duration=(opts&&opts.duration)||60;
+  const preferred=(opts&&opts.weekdays)!=null?(opts.weekdays):(client&&client.preferredWeekdays)||[];
   const trainDays=(plan.days||[]).map((d,i)=>({d,i})).filter(x=>x.d&&!x.d.rest&&(x.d.exercises||[]).length);
   if(!trainDays.length){notify('Plan nie ma dni treningowych');return 0;}
   const today=new Date();today.setHours(0,0,0,0);
   let created=0;
   for(let w=0;w<weeks;w++){
     trainDays.forEach(({d,i})=>{
-      const wd=planDayLabelToWeekday(d.day||d.dayName,i);
+      const wd=resolvePlanDayWeekday(d.day||d.dayName,i,preferred);
       const dt=new Date(today);
       const cur=dt.getDay();
       let add=(wd-cur+7)%7;
@@ -911,6 +953,8 @@ function schedulePlanToCalendar(planId,opts){
 }
 window.schedulePlanToCalendar=schedulePlanToCalendar;
 window.planDayLabelToWeekday=planDayLabelToWeekday;
+window.resolvePlanDayWeekday=resolvePlanDayWeekday;
+window.scheduleTimeFromClient=scheduleTimeFromClient;
 
 // ════════════════════════════════════════
 // PLANS

@@ -940,7 +940,8 @@ async function saveMetricEntry(){
 /** Zapis baseline (mg1 masa/%BF + opcjonalnie mg2 obwody) z prostych pól — onboarding / checklista. */
 function saveClientBaselineFromFields(clientId,fields){
   if(!clientId||!fields)return[];
-  const date=(typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10));
+  const rawDate=fields.date&&String(fields.date).trim();
+  const date=(rawDate&&/^\d{4}-\d{2}-\d{2}$/.test(rawDate))?rawDate:(typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10));
   const note=fields.notes||'Pomiar startowy (baseline)';
   const created=[];
   const massVals={};
