@@ -2067,6 +2067,57 @@ function defaultWeekdaysForFreq(freq){
   if(n===6)return[1,2,3,4,5,6];
   return[];
 }
+function ymdWeekday(ymd){
+  const d=new Date(String(ymd||'').slice(0,10)+'T12:00:00');
+  if(isNaN(d.getTime()))return -1;
+  return d.getDay();
+}
+function clientPreferredWeekdays(client){
+  if(!client)return null;
+  const pref=normalizePreferredWeekdays(client.preferredWeekdays);
+  if(pref.length)return pref;
+  const freq=normalizeTrainingFreq(client.trainingFreq);
+  if(freq)return defaultWeekdaysForFreq(freq);
+  return null;
+}
+function hasPlannedSessionOnDate(clientId,dateYmd){
+  const day=String(dateYmd||'').slice(0,10);
+  if(!clientId||!day)return false;
+  return(window.SE||[]).some(s=>s&&s.clientId===clientId&&s.date===day&&s.source==='planned');
+}
+/** Czy klient ma trening w harmonogramie (preferowane dni lub wpis planned w kalendarzu). */
+function isClientTrainingDay(clientId,dateYmd,clientOpt){
+  const day=String(dateYmd||(typeof todayYmd==='function'?todayYmd():'')).slice(0,10);
+  if(!clientId||!day)return true;
+  if(hasPlannedSessionOnDate(clientId,day))return true;
+  const c=clientOpt||(window.CL||[]).find(x=>x&&x.id===clientId);
+  const wds=clientPreferredWeekdays(c);
+  if(!wds||!wds.length)return true;
+  const dow=ymdWeekday(day);
+  if(dow<0)return true;
+  return wds.indexOf(dow)>=0;
+}
+function nextClientTrainingDayYmd(clientId,fromYmd){
+  const start=String(fromYmd||(typeof todayYmd==='function'?todayYmd():'')).slice(0,10);
+  const c=(window.CL||[]).find(x=>x&&x.id===clientId);
+  const wds=clientPreferredWeekdays(c);
+  if(!wds||!wds.length)return null;
+  for(let i=1;i<=14;i++){
+    const y=typeof ymdAdd==='function'?ymdAdd(start,i):'';
+    if(!y)continue;
+    if(wds.indexOf(ymdWeekday(y))>=0)return y;
+  }
+  return null;
+}
+function formatTrainingDayShortPl(ymd){
+  const dow=ymdWeekday(ymd);
+  const w=WEEKDAY_TRAIN_OPTIONS.find(x=>x.id===dow);
+  if(!w)return String(ymd||'');
+  const d=new Date(String(ymd||'').slice(0,10)+'T12:00:00');
+  if(isNaN(d.getTime()))return w.label;
+  const mon=['sty','lut','mar','kwi','maj','cze','lip','sie','wrz','paź','lis','gru'];
+  return w.label+' '+d.getDate()+' '+mon[d.getMonth()];
+}
 function preferredWeekdaysLabels(ids){
   const list=normalizePreferredWeekdays(ids);
   return list.map(id=>{
@@ -2181,6 +2232,12 @@ function syncClientFromIntakeForm(send){
 window.WEEKDAY_TRAIN_OPTIONS=WEEKDAY_TRAIN_OPTIONS;
 window.normalizeTrainingFreq=normalizeTrainingFreq;
 window.defaultWeekdaysForFreq=defaultWeekdaysForFreq;
+window.ymdWeekday=ymdWeekday;
+window.clientPreferredWeekdays=clientPreferredWeekdays;
+window.hasPlannedSessionOnDate=hasPlannedSessionOnDate;
+window.isClientTrainingDay=isClientTrainingDay;
+window.nextClientTrainingDayYmd=nextClientTrainingDayYmd;
+window.formatTrainingDayShortPl=formatTrainingDayShortPl;
 window.preferredWeekdaysLabels=preferredWeekdaysLabels;
 window.normalizePreferredWeekdays=normalizePreferredWeekdays;
 window.preferredWeekdaysChipsHTML=preferredWeekdaysChipsHTML;

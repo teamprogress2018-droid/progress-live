@@ -57,7 +57,9 @@ const {
   clientPhysiquePriorityForAI, planDayLabelToWeekday,
   normalizeTrainingFreq, normalizePreferredWeekdays, mapGoalFromIntakeText,
   mapLevelFromIntakeChoice, syncClientFromIntakeForm, resolvePlanDayWeekday,
-  scheduleTimeFromClient, defaultWeekdaysForFreq, preferredWeekdaysLabels
+  scheduleTimeFromClient, defaultWeekdaysForFreq, preferredWeekdaysLabels,
+  ymdWeekday, clientPreferredWeekdays, isClientTrainingDay, nextClientTrainingDayYmd,
+  hasPlannedSessionOnDate, formatTrainingDayShortPl
 } = ctx;
 
 let failed = 0;
@@ -115,6 +117,23 @@ if (typeof scheduleTimeFromClient === 'function') {
   eq('time evening', scheduleTimeFromClient({preferredTrainTime:'Wieczór (18-22)'}), '18:00');
   eq('time morning', scheduleTimeFromClient({preferredTrainTime:'Rano (6-10)'}), '08:00');
 }
+
+eq('ymdWeekday Mon', ymdWeekday('2026-08-24'), 1);
+eq('ymdWeekday Tue', ymdWeekday('2026-08-25'), 2);
+eq('clientPreferredWeekdays explicit', clientPreferredWeekdays({preferredWeekdays:[2,4,6]}), [2,4,6]);
+eq('clientPreferredWeekdays from freq', clientPreferredWeekdays({trainingFreq:3}), [1,3,5]);
+eq('clientPreferredWeekdays none', clientPreferredWeekdays({}), null);
+
+windowObj.CL = [{id:'c1', preferredWeekdays:[1,3,5]}];
+eq('training day Mon', isClientTrainingDay('c1','2026-08-24'), true);
+eq('training day Tue off', isClientTrainingDay('c1','2026-08-25'), false);
+eq('training day Wed', isClientTrainingDay('c1','2026-08-26'), true);
+windowObj.SE = [{clientId:'c1',date:'2026-08-25',source:'planned',dayIdx:0}];
+eq('planned overrides off-day', isClientTrainingDay('c1','2026-08-25'), true);
+windowObj.SE = [];
+eq('no prefs always train', isClientTrainingDay('c2','2026-08-25'), true);
+eq('next training from Tue', nextClientTrainingDayYmd('c1','2026-08-25'), '2026-08-26');
+eq('format training day', formatTrainingDayShortPl('2026-08-26').includes('Śr'), true);
 
 if (failed) {
   console.error('\n' + failed + ' failed');
