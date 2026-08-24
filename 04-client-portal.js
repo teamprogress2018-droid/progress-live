@@ -3529,7 +3529,44 @@ function applyCheckinAnswers(ci,answers,filledBy){
   ci.filledBy=filledBy||'client';
   ci.filledAt=new Date().toISOString();
   persistCheckin(ci);
+  if(typeof syncClientFromCheckin==='function'){
+    try{syncClientFromCheckin(ci);}catch(e){console.warn('syncClientFromCheckin',e);}
+  }
 }
+
+/** Po check-inie: waga → karta klienta + pomiar mg1; odśwież pipeline trenera. */
+function syncClientFromCheckin(ci){
+  if(!ci||!ci.clientId||!ci.answers)return null;
+  const w=parseFloat(ci.answers.weight);
+  const hasWeight=!isNaN(w)&&w>0;
+  const c=(window.CL||[]).find(x=>x&&x.id===ci.clientId);
+  let changed=false;
+  const bits=[];
+  if(hasWeight){
+    if(typeof saveClientBaselineFromFields==='function'){
+      const created=saveClientBaselineFromFields(ci.clientId,{
+        date:ci.date||(typeof todayYmd==='function'?todayYmd():''),
+        weight:w,
+        notes:'Waga z check-inu tygodniowego'
+      });
+      if(created&&created.length){changed=true;bits.push('waga '+w+' kg');}
+    }else if(c){
+      c.weight=w;changed=true;bits.push('waga '+w+' kg');
+      if(typeof persistById==='function')persistById('clients',c);
+    }
+  }
+  if(ci.answers.workouts!=null){
+    bits.push((+ci.answers.workouts||0)+' treningów');
+  }
+  if(changed&&typeof renderDash==='function')try{renderDash();}catch(e){}
+  if(changed&&typeof renderClients==='function')try{renderClients();}catch(e){}
+  if(typeof cpClientId!=='undefined'&&cpClientId===ci.clientId&&typeof renderCPOverview==='function'&&c){
+    try{renderCPOverview(c);}catch(e){}
+  }
+  if(!changed&&!bits.length)return null;
+  return{changed,summary:bits.join(' · '),client:c||null};
+}
+window.syncClientFromCheckin=syncClientFromCheckin;
 
 function openSimulateCheckin(id){openCIFill(id);}
 

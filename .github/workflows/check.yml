@@ -93,6 +93,9 @@ jobs:
       - name: 1n3. Testy tygodniowego check-inu (audit flow)
         run: node .github/scripts/test_checkin_weekly.js
 
+      - name: 1n4. Testy sync wagi z check-inu
+        run: node .github/scripts/test_checkin_sync.js
+
       - name: 1n2. Testy programu → plan z ćwiczeniami (Automatyzacja)
         run: node .github/scripts/test_program_plan_days.js
 
