@@ -113,6 +113,8 @@ jobs:
 
       - name: 1n12. Testy follow-upu formularzy (dashboard + ankieta wstępna)
         run: node .github/scripts/test_dash_forms_followup.js
+      - name: 1n11. Testy widoczności płatności (klient + dashboard)
+        run: node .github/scripts/test_client_payments_visible.js
 
       - name: 1n8. Testy webhooków integracji (Zapier/Make)
         run: node .github/scripts/test_integrations_webhooks.js

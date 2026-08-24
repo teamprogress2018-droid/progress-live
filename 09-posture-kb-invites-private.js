@@ -577,6 +577,68 @@ function usePackageSession(id){
   notify('✓ Sesja odliczona z pakietu ('+p.sessionsUsed+'/'+p.sessions+')');
 }
 
+function clientUnpaidPackages(clientId){
+  if(!clientId)return[];
+  return allPackages().filter(p=>p&&p.clientId===clientId&&p.payStatus==='pending'&&p.status!=='expired');
+}
+window.clientUnpaidPackages=clientUnpaidPackages;
+
+function packagesAwaitingPayment(){
+  return allPackages().filter(p=>p&&p.clientId&&p.payStatus==='pending'&&p.status!=='expired');
+}
+window.packagesAwaitingPayment=packagesAwaitingPayment;
+
+function payTransferText(p){
+  const seller=typeof paySeller==='function'?paySeller():{};
+  const amount=p&&p.price!=null?p.price:0;
+  const title=((p&&p.clientName)||'')+' '+((p&&(p.invoiceId||p.id))||'');
+  return[
+    'Konto: '+(seller.bank||'(brak numeru konta)'),
+    'Kwota: '+Number(amount).toLocaleString('pl')+' '+(seller.currency||'zł'),
+    'Tytuł: '+title.trim()
+  ].join('\n');
+}
+window.payTransferText=payTransferText;
+
+function copyPackageTransfer(pkgId){
+  const p=allPackages().find(x=>x.id===pkgId);
+  if(!p){if(typeof notify==='function')notify('Nie znaleziono pakietu');return false;}
+  const text=payTransferText(p);
+  window._payCopy={bank:(typeof paySeller==='function'?paySeller().bank:''),title:((p.clientName||'')+' '+(p.invoiceId||p.id||'')).trim(),amount:p.price||0};
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(()=>{if(typeof notify==='function')notify('✓ Skopiowano dane do przelewu');}).catch(()=>{
+      try{prompt('Skopiuj dane przelewu:',text);}catch(e){}
+    });
+  }else{
+    try{prompt('Skopiuj dane przelewu:',text);}catch(e){}
+  }
+  return true;
+}
+window.copyPackageTransfer=copyPackageTransfer;
+
+function clientNotifyPaid(pkgId){
+  const p=allPackages().find(x=>x.id===pkgId);
+  if(!p){if(typeof notify==='function')notify('Nie znaleziono pakietu');return false;}
+  const msg='Wpłaciłem za pakiet: '+(p.title||'pakiet')+' ('+Number(p.price||0).toLocaleString('pl')+' zł). Proszę o oznaczenie jako opłacony.';
+  if(typeof pushClientMsg==='function')pushClientMsg(msg);
+  else if(typeof pushMsg==='function'&&p.clientId)pushMsg(p.clientId,msg);
+  if(typeof addNotification==='function'){
+    addNotification('payment','Klient zgłasza wpłatę',(p.clientName||'Klient')+' · '+(p.title||'')+' · '+(p.price||0)+' zł','payments');
+  }
+  if(typeof notify==='function')notify('✓ Wiadomość poszła do trenera');
+  return true;
+}
+window.clientNotifyPaid=clientNotifyPaid;
+
+function refreshPaySurfaces(){
+  try{if(typeof renderDashPayFollowup==='function')renderDashPayFollowup();}catch(e){}
+  try{if(typeof renderClientLive==='function'&&window._clientAppMode)renderClientLive();}catch(e){}
+  try{if(typeof updateClientLiveNavBadges==='function'&&window._clientAppMode){
+    const c=(window.CL||[]).find(x=>x.id===window._clientId)||(window.CL||[])[0];
+    if(c)updateClientLiveNavBadges(c);
+  }}catch(e){}
+}
+
 function markPaid(id){
   const all=allPackages();
   const p=all.find(x=>x.id===id);
@@ -588,6 +650,7 @@ function markPaid(id){
     if(typeof fireIntEvent==='function'){
       fireIntEvent('package.paid',{package:{id:p.id,title:p.title,price:p.price,clientId:p.clientId,clientName:p.clientName}});
     }
+    refreshPaySurfaces();
   }
 }
 
@@ -612,6 +675,7 @@ function requestPayment(id){
   if(typeof renderClientOnboardChecklist==='function'&&window._onboardClientId===p.clientId){
     try{renderClientOnboardChecklist();}catch(e){}
   }
+  refreshPaySurfaces();
   return true;
 }
 
@@ -3130,6 +3194,8 @@ window.renderPayPackages=renderPayPackages;window.renderPayInvoices=renderPayInv
 window.renderPayHistory=renderPayHistory;window.savePackage=savePackage;
 window.usePackageSession=usePackageSession;window.markPaid=markPaid;
 window.requestPayment=requestPayment;window.deletePackage=deletePackage;window.copyPayTransfer=copyPayTransfer;
+window.copyPackageTransfer=copyPackageTransfer;window.clientNotifyPaid=clientNotifyPaid;
+window.clientUnpaidPackages=clientUnpaidPackages;window.packagesAwaitingPayment=packagesAwaitingPayment;window.payTransferText=payTransferText;
 window.viewInvoice=viewInvoice;window.filterPkgByClient=filterPkgByClient;
 window.openClientModal=openClientModal;
 window.setCPTab=setCPTab;window.saveCPEdit=saveCPEdit;window.startCPEdit=startCPEdit;window.cancelCPEdit=cancelCPEdit;window.archiveClient=archiveClient;window.restoreClient=restoreClient;window.deleteClientPermanently=deleteClientPermanently;window.refreshClientProfileRemoveActions=refreshClientProfileRemoveActions;

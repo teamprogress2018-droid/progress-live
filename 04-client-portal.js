@@ -734,6 +734,28 @@ function capScreenHTML(scr,c){
           <button type="button" class="cap-btn-primary" style="padding:10px;font-size:13px;" onclick="${pend.length===1?`clientOpenForm('${escHtml(pend[0].id)}')`:`setClientLiveScreen('forms')`}">${pend.length===1?'Wypełnij teraz':'Zobacz listę'}</button>
         </div>`;
       })()}
+      ${(()=>{
+        if(!live)return '';
+        const unpaid=typeof clientUnpaidPackages==='function'?clientUnpaidPackages(c.id):(window.PACKAGES||[]).filter(p=>p&&p.clientId===c.id&&p.payStatus==='pending');
+        if(!unpaid.length)return '';
+        const p=unpaid.find(x=>x.paymentRequestedAt)||unpaid[0];
+        const seller=typeof paySeller==='function'?paySeller():{};
+        const amount=Number(p.price||0).toLocaleString('pl');
+        const title=((p.clientName||c.name||'')+' '+(p.invoiceId||p.id||'')).trim();
+        return `<div style="background:linear-gradient(135deg,rgba(201,123,63,0.2),rgba(201,123,63,0.05));border:1px solid rgba(201,123,63,0.4);border-radius:18px;padding:16px;margin-bottom:14px;">
+          <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--orange);text-transform:uppercase;margin-bottom:6px;">💸 PŁATNOŚĆ</div>
+          <div style="font-size:14px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">${escHtml(p.title||'Pakiet')} · ${amount} ${escHtml(seller.currency||'zł')}</div>
+          <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:10px;">${p.paymentRequestedAt?'Trener prosi o przelew — dane poniżej.':'Pakiet czeka na opłatę. Po przelewie daj znać trenerowi.'}</div>
+          ${seller.bank?`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:12px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:${CAP_TEXT};line-height:1.55;">
+            <div><span style="color:${CAP_MUTED};">Konto:</span> <strong>${escHtml(seller.bank)}</strong></div>
+            <div><span style="color:${CAP_MUTED};">Tytuł:</span> ${escHtml(title)}</div>
+          </div>`:`<div style="font-size:11px;color:var(--orange);margin-bottom:10px;">Trener jeszcze nie podał numeru konta — napisz na czacie.</div>`}
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            ${seller.bank?`<button type="button" class="cap-btn-secondary" style="padding:10px;font-size:13px;flex:1;" onclick="copyPackageTransfer('${escHtml(p.id)}')">📋 Kopiuj przelew</button>`:''}
+            <button type="button" class="cap-btn-primary" style="padding:10px;font-size:13px;flex:1;" onclick="clientNotifyPaid('${escHtml(p.id)}')">✓ Zapłaciłem</button>
+          </div>
+        </div>`;
+      })()}
       ${habits.length?`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
         <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">🔥 Nawyki</div>
         ${habits.map(t=>{
@@ -1294,17 +1316,33 @@ function capScreenHTML(scr,c){
       <!-- aktywny pakiet -->
       ${(()=>{
         const pkgs=(typeof allPackages==='function'?allPackages():(window.PACKAGES||[])).filter(p=>p.clientId===c.id&&p.status!=='expired'&&p.payStatus!=='expired');
-        const p=pkgs[0];
+        const unpaid=pkgs.filter(p=>p.payStatus==='pending');
+        const p=unpaid[0]||pkgs[0];
         if(!p)return `<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:12px;text-align:center;color:${CAP_MUTED};font-size:12px;">Brak aktywnego pakietu</div>`;
         const left=Math.max(0,(p.sessions||0)-(p.sessionsUsed||0));
         const pct=p.sessions?Math.round((p.sessionsUsed||0)/p.sessions*100):0;
-        return `<div style="background:linear-gradient(135deg,${accent}22,${accent}08);border:1px solid ${accent}44;border-radius:18px;padding:16px;margin-bottom:12px;">
-        <div style="font-size:10px;color:${accent};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:8px;">Aktywny pakiet</div>
+        const seller=typeof paySeller==='function'?paySeller():{};
+        const pending=p.payStatus==='pending';
+        const title=((p.clientName||c.name||'')+' '+(p.invoiceId||p.id||'')).trim();
+        return `<div style="background:linear-gradient(135deg,${pending?'rgba(201,123,63,0.2)':accent+'22'},${pending?'rgba(201,123,63,0.05)':accent+'08'});border:1px solid ${pending?'rgba(201,123,63,0.45)':accent+'44'};border-radius:18px;padding:16px;margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">
+          <div style="font-size:10px;color:${pending?'var(--orange)':accent};font-family:'DM Mono',monospace;text-transform:uppercase;">${pending?'Do opłacenia':'Aktywny pakiet'}</div>
+          ${pending?`<span style="font-size:10px;color:var(--orange);font-family:'DM Mono',monospace;">${Number(p.price||0).toLocaleString('pl')} ${escHtml(seller.currency||'zł')}</span>`:''}
+        </div>
         <div style="font-size:14px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">${escHtml(p.title||'Pakiet')}</div>
         <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:10px;">${left}/${p.sessions||0} sesji pozostało${p.expiresDate?' · Ważny do '+p.expiresDate:''}</div>
-        <div style="height:6px;background:${CAP_S3};border-radius:99px;overflow:hidden;">
-          <div style="height:100%;background:${accent};width:${pct}%;border-radius:99px;"></div>
+        <div style="height:6px;background:${CAP_S3};border-radius:99px;overflow:hidden;margin-bottom:${pending?'12px':'0'};">
+          <div style="height:100%;background:${pending?'var(--orange)':accent};width:${pct}%;border-radius:99px;"></div>
         </div>
+        ${pending?`
+          ${seller.bank?`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:12px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:${CAP_TEXT};line-height:1.55;">
+            <div><span style="color:${CAP_MUTED};">Konto:</span> <strong>${escHtml(seller.bank)}</strong></div>
+            <div><span style="color:${CAP_MUTED};">Tytuł:</span> ${escHtml(title)}</div>
+          </div>`:`<div style="font-size:11px;color:var(--orange);margin-bottom:10px;">Brak numeru konta — napisz do trenera na czacie.</div>`}
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            ${seller.bank&&capIsLiveClient()?`<button type="button" class="cap-btn-secondary" style="padding:10px;font-size:12px;flex:1;" onclick="copyPackageTransfer('${escHtml(p.id)}')">📋 Kopiuj</button>`:''}
+            ${capIsLiveClient()?`<button type="button" class="cap-btn-primary" style="padding:10px;font-size:12px;flex:1;" onclick="clientNotifyPaid('${escHtml(p.id)}')">✓ Zapłaciłem</button>`:''}
+          </div>`:''}
       </div>`;
       })()}
       <button type="button" class="cap-btn-secondary" style="margin-bottom:8px;" onclick="setClientLiveScreen('forms')">📋 Moje formularze</button>
@@ -5571,6 +5609,7 @@ function renderDash(){
   renderDashClientPipeline();
   renderDashCheckinFollowup();
   renderDashFormFollowup();
+  renderDashPayFollowup();
   renderProfileSetupBanner();
 }
 
@@ -5754,6 +5793,52 @@ function renderDashFormFollowup(){
   </div>`;
 }
 window.renderDashFormFollowup=renderDashFormFollowup;
+function renderDashPayFollowup(){
+  const el=document.getElementById('dash-pay-followup');if(!el)return;
+  const pkgs=typeof packagesAwaitingPayment==='function'?packagesAwaitingPayment():(window.PACKAGES||[]).filter(p=>p&&p.clientId&&p.payStatus==='pending'&&p.status!=='expired');
+  if(!pkgs.length){el.style.display='none';el.innerHTML='';return;}
+  const requested=pkgs.filter(p=>p.paymentRequestedAt);
+  const waiting=pkgs.filter(p=>!p.paymentRequestedAt);
+  const rows=pkgs.slice().sort((a,b)=>{
+    const ar=a.paymentRequestedAt?1:0,br=b.paymentRequestedAt?1:0;
+    if(ar!==br)return br-ar;
+    return String(b.paymentRequestedAt||b.date||'').localeCompare(String(a.paymentRequestedAt||a.date||''));
+  }).slice(0,6);
+  el.style.display='block';
+  el.innerHTML=`<div class="card" style="margin-bottom:20px;border-color:rgba(201,123,63,0.4);background:linear-gradient(135deg,rgba(201,123,63,0.1),var(--s2));">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;">
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;">PŁATNOŚCI DO DOMKNIĘCIA</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5;">${requested.length?requested.length+' czekających na wpłatę · ':''}${waiting.length?waiting.length+' bez prośby':pkgs.length+' oczekujących'}</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="goTo('payments')">Płatności →</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      ${rows.map(p=>{
+        const name=escHtml(p.clientName||((window.CL||[]).find(c=>c.id===p.clientId)||{}).name||'Klient');
+        const tag=p.paymentRequestedAt?'Prośba wysłana':'Do poproszenia';
+        const col=p.paymentRequestedAt?'var(--orange)':'var(--accent)';
+        const cta=p.paymentRequestedAt
+          ?`markPaid('${escHtml(p.id)}')`
+          :`requestPayment('${escHtml(p.id)}')`;
+        const ctaLbl=p.paymentRequestedAt?'Oznacz opłacony':'Poproś o wpłatę';
+        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--s3);border:1px solid var(--border);border-radius:10px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:140px;">
+            <div style="font-size:13px;font-weight:700;">${name}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;">${escHtml(p.title||'Pakiet')} · ${Number(p.price||0).toLocaleString('pl')} zł</div>
+            <div style="font-size:11px;color:${col};margin-top:2px;">${tag}</div>
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:0;">
+            <button class="btn btn-ghost btn-sm" onclick="openClientProfile('${escHtml(p.clientId)}');setTimeout(()=>{if(typeof setCPTab==='function')setCPTab('payments');},150)">Profil</button>
+            <button class="btn btn-primary btn-sm" onclick="${cta}">${ctaLbl}</button>
+          </div>
+        </div>`;
+      }).join('')}
+      ${pkgs.length>6?`<div style="font-size:11px;color:var(--muted);text-align:center;">+ ${pkgs.length-6} więcej w Płatnościach</div>`:''}
+    </div>
+  </div>`;
+}
+window.renderDashPayFollowup=renderDashPayFollowup;
 
 function renderDashMiniCal(){
   const el=document.getElementById('d-mini-cal');if(!el)return;
