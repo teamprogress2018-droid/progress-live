@@ -176,13 +176,20 @@ ok('client resources youtube first', /youtube\.com/i.test((ctx.capClientResource
 ok('podcast filter youtube', ctx.capClientResourceList('podcast').every(r => /youtube\.com/i.test(r.url || '') && (r.type === 'podcast' || r.coll === 'podcasts')));
 
 const progressHtml = ctx.capScreenHTML('progress', anna);
-ok('client progress shows Morning Run', /Morning Run/i.test(progressHtml), progressHtml.slice(0, 400));
-ok('client progress shows 8432 steps', /8432/.test(progressHtml));
-ok('client progress shows 412 kcal', /412/.test(progressHtml));
-ok('client progress garmin label', /Garmin Connect/i.test(progressHtml));
+ok('client progress panel', /MOJE POSTĘPY/.test(progressHtml));
+ok('client progress calendar entry', /Kalendarz/.test(progressHtml));
+// Activity title / kcal live on home + calendar + session; Progress shows Kroki chart when ≥2 punktów.
+const day2 = [
+  'Activity Type,Date,Title,Distance,Calories,Time,Avg HR,Steps',
+  'Running,2024-03-13 07:00:00,Easy Jog,3.1,280,00:25:00,140,6200'
+].join('\n');
+ctx.importGarminCsvForClient('c-html', day2);
+const progressHtml2 = ctx.capScreenHTML('progress', anna);
+ok('client progress garmin steps chart', /Kroki \(Garmin\)/.test(progressHtml2));
+ok('client progress garmin sparkline data', /8432|6200/.test(progressHtml2));
 
 const homeHtml = ctx.capScreenHTML('home', anna);
-ok('client home garmin card', /Morning Run/i.test(homeHtml) && /8432/.test(homeHtml));
+ok('client home garmin card', /Easy Jog|Morning Run/i.test(homeHtml) && /6200|8432/.test(homeHtml));
 ok('client home youtube podcasts', /Podcasty YouTube/i.test(homeHtml) && /youtube\.com/i.test(homeHtml));
 
 windowObj._cliveCal = { y: 2024, m: 2 };
