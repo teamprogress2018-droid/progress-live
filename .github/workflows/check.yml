@@ -3,6 +3,8 @@ name: Sprawdzenie kodu
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -130,6 +132,10 @@ jobs:
 
       - name: 1n19. Testy ukrycia stuba żywienia / uczciwych dokumentów
         run: node .github/scripts/test_hide_food_stub.js
+      - name: "1n22. Testy: skrypty w index.html tylko raz"
+        run: node .github/scripts/test_index_scripts_once.js
+      - name: 1n23. Testy usunięcia DEMO_NOTIFS
+        run: node .github/scripts/test_demo_notifs_cleanup.js
       - name: 1n18. Testy dopełniania kalendarza / zdjęć sylwetki (dashboard)
         run: node .github/scripts/test_dash_cal_photo_followup.js
       - name: 1n17. Testy polish audytu (check-in refresh / badge / archiwum)
