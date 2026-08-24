@@ -368,6 +368,15 @@ function clientSubmitForm(sendId){
   }
   persistById('formSends',send);
   const name=send.formName||'Formularz';
+  if(typeof fireIntEvent==='function'){
+    try{
+      const c=(window.CL||[]).find(x=>x.id===send.clientId);
+      fireIntEvent('form.submitted',{
+        form:{id:send.id,formId:send.formId,formName:name,clientId:send.clientId,intake:!!(r.intakeSync&&r.intakeSync.changed)},
+        client:{id:send.clientId,name:(c&&c.name)||'',email:(c&&c.email)||''}
+      });
+    }catch(e){console.warn('fireIntEvent form',e);}
+  }
   if(typeof notify==='function')notify('✓ Wysłano: '+name);
   if(typeof pushClientMsg==='function')pushClientMsg('Wypełniłem formularz: '+name);
   if(typeof addNotification==='function'){

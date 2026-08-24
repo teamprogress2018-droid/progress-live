@@ -94,8 +94,10 @@ ctx.CL = windowObj.CL;
 ctx.SE = windowObj.SE;
 
 const progressHtml = capScreenHTML('progress', windowObj.CL[0]);
-const sessionsBlock = progressHtml.match(/🏋️ Sesje<\/div>\s*<div[^>]*>(\d+)<\/div>/);
+const sessionsBlock = progressHtml.match(/🏋️ Sesje(?: \(30 dni\))?<\/div>\s*<div[^>]*>(\d+)<\/div>/)
+  || progressHtml.match(/Sesje \(30 dni\)[\s\S]*?<div[^>]*font-size:28px[^>]*>(\d+)<\/div>/);
 eq('progress count ignores booked sessions', sessionsBlock && sessionsBlock[1], '0');
+eq('progress html has sesje label', /Sesje \(30 dni\)/.test(progressHtml), true);
 
 eq('safe snippet keeps amp entity whole', safeEscSnippet('A&B', 3), 'A&amp;B');
 eq('safe snippet keeps lt entity whole', safeEscSnippet('<ABC>', 2), '&lt;A');
