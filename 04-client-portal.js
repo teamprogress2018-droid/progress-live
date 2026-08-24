@@ -4951,6 +4951,33 @@ function forumCanSeeGroup(g){
   return (g.memberIds||[]).indexOf(window._clientId)>=0;
 }
 function visibleForumGroups(){return allForumGroups().filter(forumCanSeeGroup);}
+/** Czy klient jest na liście członków grupy (zapis z onboardu / ręczny). */
+function isClientInForumGroup(clientId,groupId){
+  if(!clientId||!groupId)return false;
+  const g=allForumGroups().find(x=>x.id===groupId);
+  if(!g)return false;
+  return (g.memberIds||[]).indexOf(clientId)>=0;
+}
+/** Zapisuje klienta do grupy forum (public + private). Idempotentne. */
+function enrollClientInForumGroup(clientId,groupId,opts){
+  opts=opts||{};
+  const g=allForumGroups().find(x=>x.id===groupId);
+  if(!g||!clientId)return{ok:false,added:false,group:null};
+  g.memberIds=Array.isArray(g.memberIds)?g.memberIds:[];
+  let added=false;
+  if(g.memberIds.indexOf(clientId)<0){
+    g.memberIds.push(clientId);
+    added=true;
+    if(typeof persistById==='function')persistById('forumGroups',g);
+  }
+  if(opts.notify!==false&&typeof pushMsg==='function'){
+    const label=g.name||'Społeczność';
+    if(added||opts.forceNotify)pushMsg(clientId,'Jesteś w grupie na forum: '+label);
+  }
+  return{ok:true,added,group:g};
+}
+window.isClientInForumGroup=isClientInForumGroup;
+window.enrollClientInForumGroup=enrollClientInForumGroup;
 function visibleForumPosts(){
   return allForumPosts().filter(p=>{
     const g=allForumGroups().find(x=>x.id===p.groupId);
