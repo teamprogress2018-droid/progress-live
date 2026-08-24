@@ -587,7 +587,8 @@ function clientUnpaidPackages(clientId){
 window.clientUnpaidPackages=clientUnpaidPackages;
 
 function packagesAwaitingPayment(){
-  return allPackages().filter(p=>p&&p.clientId&&p.payStatus==='pending'&&p.status!=='expired');
+  const live=new Set((window.CL||[]).filter(c=>c&&c.status!=='archived').map(c=>c.id));
+  return allPackages().filter(p=>p&&p.clientId&&p.payStatus==='pending'&&p.status!=='expired'&&(!live.size||live.has(p.clientId)));
 }
 window.packagesAwaitingPayment=packagesAwaitingPayment;
 
