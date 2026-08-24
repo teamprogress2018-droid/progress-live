@@ -1715,6 +1715,14 @@ function ppFeatureOn(c){
 }
 window.ppFeatureOn=ppFeatureOn;
 
+/** Per-client: masa / obwody / Garmin w Progress (domyślnie ON). */
+function bmFeatureOn(c){
+  if(!c)return true;
+  const s=c.clientSettings||{};
+  return s.bodyMetrics!==false;
+}
+window.bmFeatureOn=bmFeatureOn;
+
 function ppListFor(clientId){
   return (window.PROGRESS_PHOTOS||[]).filter(p=>p.clientId===clientId)
     .slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')||(a.createdAt||'').localeCompare(b.createdAt||''));
