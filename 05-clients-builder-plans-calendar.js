@@ -866,14 +866,14 @@ async function savePlan(){
       window._editingPlanId=null;
       goTo('plans');notify('Plan zaktualizowany!');
       await persistById('plans',PL[idx]);
-      if(cid&&confirm('Zaktualizować kalendarz — dodać sesje z planu na 4 tyg.?'))schedulePlanToCalendar(PL[idx].id,{weeks:4});
+      if(cid&&typeof maybeSchedulePlanToCalendar==='function')maybeSchedulePlanToCalendar(PL[idx].id,{weeks:4,confirmMsg:'Zaktualizować kalendarz — dodać sesje z planu na 4 tyg.?'});
       return;
     }
   }
   const plan=withTrainer({id:newId('p'),name,method:document.getElementById('b-method').value,duration:document.getElementById('b-duration').value,clientId:cid,clientName:c?c.name:'',level:c?c.level:'sredni',goal:c?c.goal:'masa',days,createdAt:new Date().toISOString()});
   PL.push(plan);goTo('plans');notify('Plan zapisany!');
   await persistById('plans',plan);
-  if(cid&&confirm('Dodać dni planu do kalendarza na najbliższe 4 tygodnie?'))schedulePlanToCalendar(plan.id,{weeks:4});
+  if(cid&&typeof maybeSchedulePlanToCalendar==='function')maybeSchedulePlanToCalendar(plan.id,{weeks:4});
   maybeResumeOnboard(cid);
 }
 
@@ -955,6 +955,31 @@ window.schedulePlanToCalendar=schedulePlanToCalendar;
 window.planDayLabelToWeekday=planDayLabelToWeekday;
 window.resolvePlanDayWeekday=resolvePlanDayWeekday;
 window.scheduleTimeFromClient=scheduleTimeFromClient;
+
+/** Auto-kalendarz gdy klient ma preferredWeekdays; inaczej confirm. */
+function maybeSchedulePlanToCalendar(planId,opts){
+  const plan=(window.PL||[]).find(p=>p.id===planId);
+  if(!plan||!plan.clientId||typeof schedulePlanToCalendar!=='function')return 0;
+  const client=(window.CL||[]).find(x=>x.id===plan.clientId);
+  const pref=typeof normalizePreferredWeekdays==='function'
+    ?normalizePreferredWeekdays(client&&client.preferredWeekdays)
+    :((client&&client.preferredWeekdays)||[]);
+  const weeks=(opts&&opts.weeks)||4;
+  const forceConfirm=opts&&opts.forceConfirm;
+  if(pref.length&&!forceConfirm){
+    const n=schedulePlanToCalendar(planId,{weeks,weekdays:pref});
+    if(n>0){
+      const labels=typeof preferredWeekdaysLabels==='function'?preferredWeekdaysLabels(pref).join('/'):pref.join(',');
+      const time=typeof scheduleTimeFromClient==='function'?scheduleTimeFromClient(client,'18:00'):'18:00';
+      if(typeof notify==='function')notify('📅 Zaplanowano '+n+' sesji ('+labels+' · '+time+')');
+    }
+    return n;
+  }
+  const msg=(opts&&opts.confirmMsg)||'Dodać dni planu do kalendarza na najbliższe 4 tygodnie?';
+  if(confirm(msg))return schedulePlanToCalendar(planId,{weeks});
+  return 0;
+}
+window.maybeSchedulePlanToCalendar=maybeSchedulePlanToCalendar;
 
 // ════════════════════════════════════════
 // PLANS

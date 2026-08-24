@@ -315,7 +315,15 @@ function clientSubmitForm(sendId){
   if(typeof pushClientMsg==='function')pushClientMsg('Wypełniłem formularz: '+name);
   if(typeof addNotification==='function'){
     const c=(window.CL||[]).find(x=>x.id===send.clientId);
-    addNotification('form','Formularz wypełniony',(c?c.name+' — ':'')+name,'forms');
+    const sync=r.intakeSync;
+    if(sync&&sync.changed){
+      addNotification('form','Ankieta — profil zaktualizowany',(c?c.name+': ':'')+(sync.summary||name),'clients');
+      if(typeof cpClientId!=='undefined'&&cpClientId===send.clientId&&typeof renderCPOverview==='function'&&c){
+        try{renderCPOverview(c);}catch(e){}
+      }
+    }else{
+      addNotification('form','Formularz wypełniony',(c?c.name+' — ':'')+name,'forms');
+    }
   }
   window._cliveFormSendId=null;
   setClientLiveScreen('forms');

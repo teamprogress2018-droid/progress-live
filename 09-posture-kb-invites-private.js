@@ -2196,7 +2196,12 @@ function runOnboardingForClient(client){
       const assigned=assignProgramPlanToClient(flow.programId,client);
       if(assigned){
         parts.push('program');
-        if(typeof schedulePlanToCalendar==='function'&&(assigned.days||[]).some(d=>!d.rest&&(d.exercises||[]).length)){
+        if(typeof maybeSchedulePlanToCalendar==='function'&&(assigned.days||[]).some(d=>!d.rest&&(d.exercises||[]).length)){
+          try{
+            const n=maybeSchedulePlanToCalendar(assigned.id,{weeks:4});
+            if(n>0)parts.push('kalendarz');
+          }catch(e){console.warn('schedule after onboard assign',e);}
+        }else if(typeof schedulePlanToCalendar==='function'&&(assigned.days||[]).some(d=>!d.rest&&(d.exercises||[]).length)){
           try{
             if(confirm('Program „'+(assigned.name||'')+'” przypisany. Dodać dni do kalendarza na 4 tyg.?')){
               schedulePlanToCalendar(assigned.id,{weeks:4});

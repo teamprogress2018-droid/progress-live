@@ -1853,7 +1853,9 @@ async function confirmAssignProgram(){
   addNotification('system','Program przypisany!','"'+p.name+'" → '+c.name,'plans');
   notify('✓ Program "'+p.name+'" przypisany do: '+c.name+'!');
 
-  if(typeof schedulePlanToCalendar==='function'&&(newPlan.days||[]).some(d=>!d.rest&&(d.exercises||[]).length)){
+  if(typeof maybeSchedulePlanToCalendar==='function'&&(newPlan.days||[]).some(d=>!d.rest&&(d.exercises||[]).length)){
+    maybeSchedulePlanToCalendar(newPlan.id,{weeks:4});
+  }else if(typeof schedulePlanToCalendar==='function'&&(newPlan.days||[]).some(d=>!d.rest&&(d.exercises||[]).length)){
     if(confirm('Dodać dni programu do kalendarza na 4 tygodnie?'))schedulePlanToCalendar(newPlan.id,{weeks:4});
   }
 
