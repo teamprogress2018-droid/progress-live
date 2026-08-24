@@ -471,7 +471,7 @@ function capClientProgressScreenHTML(c,accent){
     <div class="cap-section cap-progress-panel" style="padding-bottom:90px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-top:8px;gap:8px;">
         <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;">MOJE POSTĘPY</div>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="capGoScreen('calendar')">📅 Kalendarz</button>
+        ${capClientSectionVisible('calendar')?`<button type="button" class="btn btn-ghost btn-sm" onclick="capGoScreen('calendar')">📅 Kalendarz</button>`:''}
       </div>
       <div class="cap-stat-kpi-row" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;">
         <div class="cap-stat-card" style="background:${CAP_S2};border-radius:16px;padding:14px;border:1px solid ${CAP_S3};">
@@ -859,6 +859,7 @@ function capScreenHTML(scr,c){
     </div>`;
 
   if(scr==='calendar'){
+    if(!capClientSectionVisible('calendar'))return capScreenHTML('progress',c);
     const live=capIsLiveClient();
     const now=new Date();
     const cal=window._cliveCal||{y:now.getFullYear(),m:now.getMonth()};
@@ -1485,7 +1486,20 @@ function renderCapCustomize(){
       <div style="display:flex;flex-direction:column;gap:8px;">
         ${(()=>{
           const vs=(window.SETTINGS&&window.SETTINGS.clientApp&&window.SETTINGS.clientApp.visibleSections)||{};
-          const rows=[['home','🏠 Strona główna'],['plan','📋 Mój plan'],['homework','🏡 Zadania domowe'],['calendar','📅 Kalendarz'],['progress','📈 Postępy'],['checkin','✅ Check-in'],['messages','💬 Wiadomości'],['ondemand','▶️ On-demand'],['resources','📚 Zasoby']];
+          // Zgodne z capLiveNavScreens + kalendarz (ekran z Postępów, bez pozycji w dolnym nav).
+          const rows=[
+            ['home','🏠 Strona główna'],
+            ['plan','📋 Mój plan'],
+            ['homework','🏡 Zadania domowe'],
+            ['progress','📈 Postępy'],
+            ['calendar','📅 Kalendarz (z Postępów)'],
+            ['checkin','✅ Check-in'],
+            ['ondemand','▶️ On-demand'],
+            ['resources','📚 Zasoby'],
+            ['forum','👥 Forum'],
+            ['messages','💬 Wiadomości'],
+            ['profile','👤 Profil'],
+          ];
           return rows.map(([id,label])=>`<label style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;">
           <span style="font-size:13px;">${label}</span>
           <input type="checkbox" data-cap-section="${id}" ${vs[id]!==false?'checked':''} style="accent-color:var(--accent);width:18px;height:18px;">

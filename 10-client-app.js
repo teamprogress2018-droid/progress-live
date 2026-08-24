@@ -271,8 +271,9 @@ function renderClientLive(){
   if(!content)return;
   let scr=window._clientLiveScreen||'home';
   const navIds=(typeof capLiveNavScreens==='function'?capLiveNavScreens():[]).map(s=>s.id);
-  const subScreens=['forms','formfill','session','exercise','calendar','resources','odprogram'];
-  if(typeof capClientSectionVisible==='function'&&!capClientSectionVisible(scr)&&!subScreens.includes(scr))scr='home';
+  const subScreens=['forms','formfill','session','exercise','resources','odprogram'];
+  if(scr==='calendar'&&typeof capClientSectionVisible==='function'&&!capClientSectionVisible('calendar'))scr='progress';
+  else if(typeof capClientSectionVisible==='function'&&!capClientSectionVisible(scr)&&!subScreens.includes(scr))scr='home';
   window._clientLiveScreen=scr;
   ['home','plan','homework','progress','checkin','ondemand','resources','forum','messages','profile'].forEach(s=>{
     const bn=document.getElementById('clive-bn-'+s);
