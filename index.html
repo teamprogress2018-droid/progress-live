@@ -12,8 +12,8 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="globals.css?v=9">
-<link rel="stylesheet" href="styles.css?v=9">
+<link rel="stylesheet" href="globals.css?v=10">
+<link rel="stylesheet" href="styles.css?v=10">
 </head>
 <body>
 
@@ -245,7 +245,7 @@
         <span class="nav-badge" id="clients-segment-count">0</span>
         <span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-left:auto;">↑ Posortowano: kto wymaga uwagi najpierw</span>
       </div>
-      <div class="tbl-hdr" style="grid-template-columns:2fr 120px 120px 100px 150px;"><span>Klient</span><span>Ostatnia aktywność</span><span>Cel</span><span>Status</span><span style="text-align:right;">Szybkie akcje</span></div>
+      <div class="tbl-hdr" style="grid-template-columns:2fr 120px 120px 100px 190px;"><span>Klient</span><span>Ostatnia aktywność</span><span>Cel</span><span>Status</span><span style="text-align:right;">Szybkie akcje</span></div>
       <div id="clients-tbl"></div>
     </div>
   </div>
@@ -2690,6 +2690,9 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <button class="btn btn-ghost btn-sm" onclick="cpQuickCheckin()">✓ Check-in</button>
       <button class="btn btn-ghost btn-sm" onclick="openReportForClient(cpClientId)">📊 Podsumowanie</button>
       <button class="btn btn-primary btn-sm" onclick="cpStartLive()">▶ Trening Live</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="cp-archive-btn" onclick="archiveClient(cpClientId)" title="Schowaj z aktywnej listy">🗃 Zarchiwizuj</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="cp-restore-btn" onclick="restoreClient(cpClientId)" style="display:none;" title="Przywróć do aktywnych">↩ Przywróć</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="cp-delete-btn" onclick="deleteClientPermanently(cpClientId)" style="color:var(--red);" title="Usuń na zawsze">🗑 Usuń</button>
     </div>
   </div>
 
@@ -2720,7 +2723,8 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <button class="cp-tab cp-tab-v" id="cpt-payments" onclick="setCPTab('payments')">💳 Płatności</button>
         <button class="cp-tab cp-tab-v" id="cpt-features" onclick="setCPTab('features')">⚙️ Funkcje</button>
         <div style="height:1px;background:var(--border);margin:8px 6px;"></div>
-        <button type="button" class="btn btn-ghost btn-sm" style="width:calc(100% - 12px);margin:0 6px 8px;" onclick="archiveClient(cpClientId)">🗃 Zarchiwizuj klienta</button>
+        <button type="button" class="btn btn-ghost btn-sm" style="width:calc(100% - 12px);margin:0 6px 4px;" onclick="archiveClient(cpClientId)">🗃 Zarchiwizuj</button>
+        <button type="button" class="btn btn-ghost btn-sm" style="width:calc(100% - 12px);margin:0 6px 8px;color:var(--red);" onclick="deleteClientPermanently(cpClientId)">🗑 Usuń na zawsze</button>
       </div>
     </div>
 
@@ -3929,16 +3933,16 @@ async function load(){
 }
 </script>
 
-<script src="ex-gif-manifest.js?v=9"></script>
-<script src="01-core.js?v=9"></script>
-<script src="02-workouts-onboarding-templates-live.js?v=9"></script>
-<script src="03-ai-plangen-bizstats-aicoach.js?v=9"></script>
-<script src="04-client-portal.js?v=9"></script>
-<script src="05-clients-builder-plans-calendar.js?v=9"></script>
-<script src="06-inbox-exercises-ai-programs.js?v=9"></script>
-<script src="07-forms-metrics-calculator.js?v=9"></script>
-<script src="08-client-profile-extras.js?v=9"></script>
-<script src="09-posture-kb-invites-private.js?v=9"></script>
-<script src="10-client-app.js?v=9"></script>
+<script src="ex-gif-manifest.js?v=10"></script>
+<script src="01-core.js?v=10"></script>
+<script src="02-workouts-onboarding-templates-live.js?v=10"></script>
+<script src="03-ai-plangen-bizstats-aicoach.js?v=10"></script>
+<script src="04-client-portal.js?v=10"></script>
+<script src="05-clients-builder-plans-calendar.js?v=10"></script>
+<script src="06-inbox-exercises-ai-programs.js?v=10"></script>
+<script src="07-forms-metrics-calculator.js?v=10"></script>
+<script src="08-client-profile-extras.js?v=10"></script>
+<script src="09-posture-kb-invites-private.js?v=10"></script>
+<script src="10-client-app.js?v=10"></script>
 </body>
 </html>

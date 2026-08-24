@@ -52,6 +52,18 @@ function quickCheckin(e,clientId){
   e.stopPropagation();
   if(typeof sendCheckinTo==='function')sendCheckinTo(clientId);
 }
+function quickArchiveClient(e,clientId){
+  e.stopPropagation();
+  if(typeof archiveClient==='function')archiveClient(clientId);
+}
+function quickRestoreClient(e,clientId){
+  e.stopPropagation();
+  if(typeof restoreClient==='function')restoreClient(clientId);
+}
+function quickDeleteClient(e,clientId){
+  e.stopPropagation();
+  if(typeof deleteClientPermanently==='function')deleteClientPermanently(clientId);
+}
 
 function renderClientFilters(){
   const nonArchived=CL.filter(c=>c.status!=='archived');
@@ -101,7 +113,16 @@ function renderClients(){
   }
   el.innerHTML=filtered.map((c,i)=>{
     const act=formatClientActivity(c.id);
-    return `<div class="tbl-row" style="grid-template-columns:2fr 120px 120px 100px 150px;animation-delay:${i*0.03}s;cursor:pointer;" onclick="openClientProfile('${c.id}')">
+    const archived=c.status==='archived';
+    const actions=archived
+      ? `<button onclick="quickRestoreClient(event,'${c.id}')" title="Przywróć klienta" style="width:32px;height:32px;border-radius:8px;background:var(--s3);border:1px solid var(--border2);color:var(--teal);font-size:14px;cursor:pointer;">↩</button>
+      <button onclick="quickDeleteClient(event,'${c.id}')" title="Usuń klienta na zawsze" style="width:32px;height:32px;border-radius:8px;background:var(--s3);border:1px solid var(--border2);color:var(--red);font-size:14px;cursor:pointer;">🗑</button>`
+      : `<button onclick="quickMessageClient(event,'${c.id}')" title="Wyślij wiadomość" style="width:32px;height:32px;border-radius:8px;background:var(--s3);border:1px solid var(--border2);color:var(--text);font-size:14px;cursor:pointer;">💬</button>
+      <button onclick="quickStartWorkout(event,'${c.id}')" title="Rozpocznij dzisiejszy trening" style="width:32px;height:32px;border-radius:8px;background:var(--s3);border:1px solid var(--border2);color:var(--accent);font-size:14px;cursor:pointer;">▶</button>
+      <button onclick="quickCheckin(event,'${c.id}')" title="Wyślij prośbę o check-in" style="width:32px;height:32px;border-radius:8px;background:var(--s3);border:1px solid var(--border2);color:var(--teal);font-size:14px;cursor:pointer;">✓</button>
+      <button onclick="quickArchiveClient(event,'${c.id}')" title="Zarchiwizuj klienta" style="width:32px;height:32px;border-radius:8px;background:var(--s3);border:1px solid var(--border2);color:var(--muted);font-size:14px;cursor:pointer;">🗃</button>
+      <button onclick="quickDeleteClient(event,'${c.id}')" title="Usuń klienta na zawsze" style="width:32px;height:32px;border-radius:8px;background:var(--s3);border:1px solid var(--border2);color:var(--red);font-size:14px;cursor:pointer;">🗑</button>`;
+    return `<div class="tbl-row" style="grid-template-columns:2fr 120px 120px 100px 190px;animation-delay:${i*0.03}s;cursor:pointer;" onclick="openClientProfile('${c.id}')">
     <div style="display:flex;align-items:center;gap:10px;">
       <div style="width:32px;height:32px;border-radius:50%;background:${COLS[i%5]}22;color:${COLS[i%5]};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:13px;flex-shrink:0;">${escHtml(getInit(c.name))}</div>
       <div><div style="font-size:13px;font-weight:600;">${escHtml(c.name)}</div><div style="font-size:11px;color:var(--muted);">${escHtml(c.email||'⚠ Brak e-maila')}${c.phone?' · '+escHtml(c.phone):''}</div></div>
@@ -113,10 +134,8 @@ function renderClients(){
       ${c.inviteSent?'<span class="pill pill-blue" style="font-size:9px;">📱 Zaproszony</span>':''}
       ${(()=>{const ob=getClientOnboard(c);return ob.complete?'':'<span class="pill pill-orange" style="font-size:9px;" onclick="event.stopPropagation();openClientOnboardChecklist(\''+c.id+'\')">Start '+ob.done+'/'+ob.total+'</span>';})()}
     </div>
-    <div style="align-self:center;display:flex;gap:10px;justify-content:flex-end;">
-      <button onclick="quickMessageClient(event,'${c.id}')" title="Wyślij wiadomość" style="width:32px;height:32px;border-radius:8px;background:var(--s3);border:1px solid var(--border2);color:var(--text);font-size:14px;cursor:pointer;">💬</button>
-      <button onclick="quickStartWorkout(event,'${c.id}')" title="Rozpocznij dzisiejszy trening" style="width:32px;height:32px;border-radius:8px;background:var(--s3);border:1px solid var(--border2);color:var(--accent);font-size:14px;cursor:pointer;">▶</button>
-      <button onclick="quickCheckin(event,'${c.id}')" title="Wyślij prośbę o check-in" style="width:32px;height:32px;border-radius:8px;background:var(--s3);border:1px solid var(--border2);color:var(--teal);font-size:14px;cursor:pointer;">✓</button>
+    <div style="align-self:center;display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;">
+      ${actions}
     </div>
   </div>`;
   }).join('');
