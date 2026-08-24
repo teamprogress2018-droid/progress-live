@@ -701,9 +701,10 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
     <!-- legenda -->
     <div style="background:var(--s3);border:1px solid var(--border);border-radius:8px;padding:7px 14px;margin-bottom:14px;display:flex;gap:16px;flex-wrap:wrap;align-items:center;">
       <span style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px;">Legenda:</span>
-      <span style="font-size:10px;color:var(--teal);">✏️ <b>Powt./Serie/Przerwa</b> — edytuj przez ✏️</span>
+      <span style="font-size:10px;color:var(--teal);">✏️ <b>Powt./Serie/Przerwa/Tempo</b> — edytuj przez ✏️</span>
       <span style="font-size:10px;color:var(--accent);">🏷️ <b>RPE</b> — docelowy poziom wysiłku danego tygodnia</span>
       <span style="font-size:10px;color:var(--gold);">⚖️ <b>Ciężar ref.</b> — punkt startowy, koryguj wg odczucia</span>
+      <span style="font-size:10px;color:var(--muted);">⏱ <b>Tempo</b> — np. 3-1-1-0 (ekscentrum–pauza–koncentryk–pauza)</span>
     </div>`;
 
   // ── NAWIGATOR TYGODNI ──
@@ -769,6 +770,7 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
       const rest=wp.rest||ex.rest||'90s';
       const rpe=wp.rpe||ex.rir||'';
       const kg=wp.kg||'';
+      const tempo=ex.tempo||wp.tempo||'';
       const isLast=ei===(d.exercises.length-1);
       html+=`<div id="apl-ex-row-${di}-${ei}" style="padding:15px 20px;${!isLast?'border-bottom:1px solid rgba(255,255,255,0.05);':''}">
         <div style="display:flex;align-items:flex-start;gap:12px;">
@@ -789,7 +791,7 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
             </div>
           </div>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px;padding-left:42px;">
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px;padding-left:42px;">
           <div style="background:var(--s3);border-radius:8px;padding:8px 10px;text-align:center;">
             <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Serie</div>
             <div style="font-size:16px;font-family:'Bebas Neue',sans-serif;color:var(--accent);">${sets}</div>
@@ -801,6 +803,10 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
           <div style="background:var(--s3);border-radius:8px;padding:8px 10px;text-align:center;">
             <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Przerwa</div>
             <div style="font-size:16px;font-family:'Bebas Neue',sans-serif;color:var(--muted);">${rest}</div>
+          </div>
+          <div style="background:var(--s3);border-radius:8px;padding:8px 10px;text-align:center;">
+            <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Tempo</div>
+            <div style="font-size:13px;font-family:'DM Mono',monospace;color:${tempo?'var(--text)':'var(--muted)'};">${tempo||'—'}</div>
           </div>
           <div style="background:var(--s3);border-radius:8px;padding:8px 10px;text-align:center;">
             <div style="font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Ciężar ref.</div>
@@ -874,10 +880,11 @@ function aplEditExercise(di,ei){
         <button onclick="aplRerenderCurrent()" title="Anuluj" style="background:var(--input-bg);border:1px solid var(--border2);border-radius:6px;width:28px;height:28px;color:var(--red);cursor:pointer;font-size:13px;">✕</button>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px;padding-left:42px;">
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px;padding-left:42px;">
       <div><div class="form-lbl" style="margin-bottom:3px;font-size:10px;">Serie</div><input type="text" id="apl-edit-sets-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(wp.s||ex.sets||''):(wp.s||ex.sets||'').replace(/"/g,'&quot;')}" style="width:100%;text-align:center;font-size:13px;color:var(--accent);"></div>
       <div><div class="form-lbl" style="margin-bottom:3px;font-size:10px;">Powt.</div><input type="text" id="apl-edit-reps-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(wp.r||ex.reps||''):(wp.r||ex.reps||'').replace(/"/g,'&quot;')}" style="width:100%;text-align:center;font-size:13px;color:var(--teal);"></div>
       <div><div class="form-lbl" style="margin-bottom:3px;font-size:10px;">Przerwa</div><input type="text" id="apl-edit-rest-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(wp.rest||ex.rest||''):(wp.rest||ex.rest||'').replace(/"/g,'&quot;')}" style="width:100%;text-align:center;font-size:13px;"></div>
+      <div><div class="form-lbl" style="margin-bottom:3px;font-size:10px;">Tempo</div><input type="text" id="apl-edit-tempo-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(ex.tempo||wp.tempo||''):(ex.tempo||wp.tempo||'').replace(/"/g,'&quot;')}" placeholder="3-1-1-0" style="width:100%;text-align:center;font-size:13px;font-family:'DM Mono',monospace;"></div>
       <div><div class="form-lbl" style="margin-bottom:3px;font-size:10px;">RPE / kg</div><input type="text" id="apl-edit-rir-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(wp.rpe||ex.rir||''):(wp.rpe||ex.rir||'').replace(/"/g,'&quot;')}" style="width:100%;text-align:center;font-size:13px;color:var(--gold);"></div>
     </div>`;
   setTimeout(()=>aplInitExerciseNameInput(di,ei,true),30);
@@ -894,6 +901,10 @@ function aplSaveExerciseEdit(di,ei){
   ex[curWeek].r=document.getElementById(`apl-edit-reps-${di}-${ei}`).value.trim();
   ex[curWeek].rest=document.getElementById(`apl-edit-rest-${di}-${ei}`).value.trim();
   ex[curWeek].rpe=document.getElementById(`apl-edit-rir-${di}-${ei}`).value.trim();
+  const tempoEl=document.getElementById(`apl-edit-tempo-${di}-${ei}`);
+  const tempo=tempoEl?tempoEl.value.trim():'';
+  ex.tempo=tempo;
+  ex[curWeek].tempo=tempo;
   // zachowaj kompatybilność wsteczną (tydzień 1 = pola płaskie)
   if(curWeek===(aplLastPlan.weekKeys||['w1'])[0]){
     ex.sets=ex[curWeek].s;ex.reps=ex[curWeek].r;ex.rest=ex[curWeek].rest;ex.rir=ex[curWeek].rpe;
