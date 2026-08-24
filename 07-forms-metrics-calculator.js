@@ -867,6 +867,53 @@ async function saveMetricEntry(){
   await persistById('metricEntries',entry);
 }
 
+/** Zapis baseline (mg1 masa/%BF + opcjonalnie mg2 obwody) z prostych pól — onboarding / checklista. */
+function saveClientBaselineFromFields(clientId,fields){
+  if(!clientId||!fields)return[];
+  const date=(typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10));
+  const note=fields.notes||'Pomiar startowy (baseline)';
+  const created=[];
+  const massVals={};
+  if(fields.weight!=null&&fields.weight!==''&&!isNaN(+fields.weight))massVals.m1=+fields.weight;
+  if(fields.bf!=null&&fields.bf!==''&&!isNaN(+fields.bf))massVals.m2=+fields.bf;
+  if(fields.muscleMass!=null&&fields.muscleMass!==''&&!isNaN(+fields.muscleMass))massVals.m3=+fields.muscleMass;
+  if(fields.bmi!=null&&fields.bmi!==''&&!isNaN(+fields.bmi))massVals.m4=+fields.bmi;
+  if(Object.keys(massVals).length){
+    const entry=withTrainer({id:newId('me'),clientId,groupId:'mg1',date,values:massVals,notes:note,createdAt:new Date().toISOString()});
+    METRIC_ENTRIES.push(entry);
+    persistById('metricEntries',entry);
+    created.push(entry);
+  }
+  const circVals={};
+  if(fields.chest!=null&&fields.chest!==''&&!isNaN(+fields.chest))circVals.m1=+fields.chest;
+  if(fields.waist!=null&&fields.waist!==''&&!isNaN(+fields.waist))circVals.m2=+fields.waist;
+  if(fields.hips!=null&&fields.hips!==''&&!isNaN(+fields.hips))circVals.m3=+fields.hips;
+  if(fields.thigh!=null&&fields.thigh!==''&&!isNaN(+fields.thigh))circVals.m4=+fields.thigh;
+  if(fields.arm!=null&&fields.arm!==''&&!isNaN(+fields.arm))circVals.m5=+fields.arm;
+  if(Object.keys(circVals).length){
+    const entry=withTrainer({id:newId('me'),clientId,groupId:'mg2',date,values:circVals,notes:note,createdAt:new Date().toISOString()});
+    METRIC_ENTRIES.push(entry);
+    persistById('metricEntries',entry);
+    created.push(entry);
+  }
+  const c=(window.CL||[]).find(x=>x.id===clientId);
+  if(c){
+    if(massVals.m1)c.weight=massVals.m1;
+    c.baselineDone=true;
+    c.baselineAt=date;
+    persistById('clients',c);
+  }
+  return created;
+}
+function clientHasBaseline(clientId){
+  const c=(window.CL||[]).find(x=>x.id===clientId);
+  if(c&&c.baselineDone)return true;
+  const entries=(window.METRIC_ENTRIES||[]).filter(e=>e.clientId===clientId&&(e.groupId==='mg1'||e.groupId==='mg2'));
+  return entries.length>0;
+}
+window.saveClientBaselineFromFields=saveClientBaselineFromFields;
+window.clientHasBaseline=clientHasBaseline;
+
 async function askMetricAI(){
   const q=document.getElementById('metric-ai-q').value.trim();if(!q)return;
   document.getElementById('metric-ai-q').value='';

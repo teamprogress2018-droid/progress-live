@@ -69,6 +69,7 @@ function initAplangen(){
     aplShowWelcome();
   }
   if(typeof initPriorSportsForm==='function')initPriorSportsForm('apl',[]);
+  if(typeof initPhysiquePriorityForm==='function')initPhysiquePriorityForm('apl',[]);
 }
 
 function aplShowWelcome(){
@@ -107,6 +108,10 @@ function aplFillFromClient(){
   if(c.height)document.getElementById('apl-height').value=c.height;
   if(c.gender)document.getElementById('apl-gender').value=c.gender;
   if(c.injuries)document.getElementById('apl-injuries').value=c.injuries;
+  else if(typeof clientInjuriesText==='function'){
+    const inj=clientInjuriesText(c);
+    if(inj)document.getElementById('apl-injuries').value=inj;
+  }
   if(c.goal){
     document.querySelectorAll('#apl-goals .apl-opt').forEach(b=>{
       b.classList.toggle('active',b.dataset.val===c.goal);
@@ -118,6 +123,8 @@ function aplFillFromClient(){
     });
   }
   if(typeof setPriorSportsChips==='function')setPriorSportsChips('apl',c.priorSports||[]);
+  if(typeof initPhysiquePriorityForm==='function')initPhysiquePriorityForm('apl',c.physiquePriority||[]);
+  else if(typeof setPhysiquePriorityChips==='function')setPhysiquePriorityChips('apl',c.physiquePriority||[]);
   const actEl=document.getElementById('apl-activity');
   if(actEl&&c.activityLevel)actEl.value=c.activityLevel;
   const snEl=document.getElementById('apl-sport-notes');
@@ -438,7 +445,8 @@ WAŻNE — odpowiedz TYLKO w formacie JSON (bez żadnego dodatkowego tekstu, bez
           "reps": "8-10",
           "rest": "90s",
           "rpe": "7",
-          "kg": "60"
+          "kg": "60",
+          "tempo": "3-1-1-0"
         }
       ]
     }
@@ -477,7 +485,14 @@ UWZGLĘDNIJ ANATOMIĘ I BIOMECHANIKĘ KLIENTA przy doborze wariantów ćwiczeń 
 
 UWZGLĘDNIJ TŁO SPORTOWE: jeśli klient ma predyspozycję wytrzymałościową (bieganie, kolarstwo, pływanie) — więcej pracy tlenowej, wyższe zakresy powtórzeń na start, mniejszy nacisk na maksymalne obciążenia siłowe. Jeśli dominacja siłowa (siłownia, kulturystyka) — szybsza progresja kg, niższe powtórzenia, mniej cardio.
 
-Każdy dzień: 4 ćwiczenia główne + 1 core. Pole "notes" max 60 znaków — bez cudzysłowów w tekście (używaj apostrofów). warmupExercises: dokładnie 3 pozycje. Cała odpowiedź musi być poprawnym JSON bez komentarzy i bez markdown.`;
+ZASADY HIPERTROFII (STRICT — obowiązują zawsze, zwłaszcza przy celu masa/kształtowanie):
+1. CZĘSTOTLIWOŚĆ: każda główna partia (klatka, plecy, barki, czworogłowe, dwugłowe/pośladki, ramiona) musi być zastymulowana CO NAJMNIEJ 2× w tygodniu (suma serii z wielu dni). Przy 3 dniach użyj struktury: Dzień 1 = Push + czworogłowe; Dzień 2 = Pull + dwugłowe; Dzień 3 = Upper (klatka+plecy+barki+ramiona) — chyba że trener wybrał inną metodę i liczbę dni.
+2. PRIORYTET SYLWETKOWY: jeśli podano weak points — 1–2 PIERWSZE ćwiczenia danej sesji (po rozgrzewce) MUSZĄ celować w te partie, gdy sesja je stymuluje. Nie chowaj priorytetu na koniec.
+3. DOBÓR ĆWICZEŃ: przy priorytetach i izolacjach preferuj wysoką stabilizację (maszyny, suwnica Smitha, wyciągi) oraz warianty w pozycji wydłużonej (lengthened / stretch-mediated hypertrophy) z pauzą 1s w rozciągnięciu.
+4. PARAMETRY: 3–4 serie robocze na ćwiczenie; złożone 6–10 powt., izolacje 8–12 lub 10–15; intensywność blisko upadku (RPE 8–10 ≈ RIR 0–2). W JSON dodaj pole "tempo" w formacie "3-1-1-0" (ekscentryka–pauza w stretchu–koncentryka–pauza) dla ćwiczeń priorytetowych i izolacji.
+5. W schema ćwiczenia: name, notes, muscleGroup, sets, reps, rest, rpe, kg, tempo (opcjonalne ale wymagane dla priorytetów).
+
+Każdy dzień: 4–6 ćwiczeń głównych + opcjonalnie core. Pole "notes" max 60 znaków — bez cudzysłowów w tekście (używaj apostrofów). warmupExercises: dokładnie 3 pozycje. Cała odpowiedź musi być poprawnym JSON bez komentarzy i bez markdown.`;
 
   const userMsg=`Stwórz plan treningowy:
 - Cel: ${goal}
@@ -492,6 +507,7 @@ ${gender?`- Płeć: ${gender}`:''}
 ${weight?`- Waga: ${weight} kg`:''}
 ${height?`- Wzrost: ${height} cm`:''}
 ${injuries?`- Kontuzje/ograniczenia: ${injuries}`:''}
+${typeof readPhysiquePriorityFrom==='function'&&readPhysiquePriorityFrom('apl').length?clientPhysiquePriorityForAI(client,readPhysiquePriorityFrom('apl')):(client&&typeof clientPhysiquePriorityForAI==='function'?clientPhysiquePriorityForAI(client):'')}
 ${femur?`- Długość kości udowej: ${femur}`:''}
 ${wingspan?`- Zasięg ramion: ${wingspan}`:''}
 ${ankle?`- Mobilność stawu skokowego: ${ankle}`:''}
@@ -978,7 +994,10 @@ function aplSavePlan(){
           reps:wp.r||e.reps||'10',
           rest:wp.rest||e.rest||'90s',
           rpe:wp.rpe||e.rir||e.rpe||'',
+          rir:e.rir||'',
+          tempo:e.tempo||wp.tempo||'',
           kg:wp.kg||e.kg||'',
+          note:e.notes||e.note||'',
           alt:e.alt||(typeof altsForExercise==='function'?altsForExercise(name).join(', '):'')
         };
       })
@@ -990,8 +1009,23 @@ function aplSavePlan(){
   persistById('plans',newPlan);
   addNotification('system','Plan AI zapisany!','"'+newPlan.name+'" dodany do planów'+(client?' klienta '+client.name:''),'plans');
   notify(`✅ Plan "${newPlan.name}" zapisany${client?' dla '+client.name:''}!`);
+  if(cid&&client&&confirm('Dodać dni planu do kalendarza na najbliższe 4 tygodnie?')){
+    if(typeof schedulePlanToCalendar==='function')schedulePlanToCalendar(newPlan.id,{weeks:4});
+  }
   if(cid&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);
 }
+
+function aplApplyHypertrophy3DayPreset(){
+  document.querySelectorAll('#apl-days .apl-opt').forEach(b=>b.classList.toggle('active',b.dataset.val==='3'));
+  document.querySelectorAll('#apl-methods .apl-opt').forEach(b=>b.classList.toggle('active',b.dataset.val==='PPL'));
+  const notes=document.getElementById('apl-notes');
+  if(notes){
+    const extra='STRUKTURA 3 DNI: D1 Push+czworogłowe; D2 Pull+dwugłowe; D3 Upper (klatka+plecy+barki+ramiona). Priorytet sylwetkowy na start sesji. Stretch-mediated + maszyny/wyciągi. Serie 3-4, RIR 0-2, tempo 3-1-1-0.';
+    if(!notes.value.includes('STRUKTURA 3 DNI'))notes.value=(notes.value?notes.value+'\n':'')+extra;
+  }
+  notify('✓ Preset 3 dni hipertrofii — dopisz priorytet sylwetkowy i generuj');
+}
+window.aplApplyHypertrophy3DayPreset=aplApplyHypertrophy3DayPreset;
 
 function aplExportPlan(){
   if(!aplLastPlan){notify('Brak planu!');return;}

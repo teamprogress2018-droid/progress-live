@@ -111,7 +111,7 @@ function renderClients(){
     <div style="align-self:center;display:flex;gap:4px;flex-wrap:wrap;">
       <span class="pill ${c.status==='inactive'?'pill-red':c.status==='archived'?'pill-red':'pill-green'}"><span class="pill-dot"></span>${c.status==='inactive'?'Nieaktywny':c.status==='archived'?'Zarchiwizowany':'Aktywny'}</span>
       ${c.inviteSent?'<span class="pill pill-blue" style="font-size:9px;">📱 Zaproszony</span>':''}
-      ${(()=>{const ob=getClientOnboard(c);return ob.complete?'':'<span class="pill pill-orange" style="font-size:9px;" onclick="event.stopPropagation();openClientOnboardChecklist(\''+c.id+'\')">Start '+ob.done+'/3</span>';})()}
+      ${(()=>{const ob=getClientOnboard(c);return ob.complete?'':'<span class="pill pill-orange" style="font-size:9px;" onclick="event.stopPropagation();openClientOnboardChecklist(\''+c.id+'\')">Start '+ob.done+'/'+ob.total+'</span>';})()}
     </div>
     <div style="align-self:center;display:flex;gap:10px;justify-content:flex-end;">
       <button onclick="quickMessageClient(event,'${c.id}')" title="Wyślij wiadomość" style="width:32px;height:32px;border-radius:8px;background:var(--s3);border:1px solid var(--border2);color:var(--text);font-size:14px;cursor:pointer;">💬</button>
@@ -140,12 +140,16 @@ function openClientModal(clientId){
     document.getElementById('ac-level').value=c.level||'poczatkujacy';
     document.getElementById('ac-activity').value=c.activityLevel||'moderate';
     document.getElementById('ac-sport-notes').value=c.sportNotes||'';
+    const injEl=document.getElementById('ac-injuries');
+    if(injEl)injEl.value=(typeof clientInjuriesText==='function'?clientInjuriesText(c):(c.injuries||c.notes||''));
     document.getElementById('ac-notes').value=c.notes||'';
     if(typeof initPriorSportsForm==='function')initPriorSportsForm('ac',c.priorSports||[]);
+    if(typeof initPhysiquePriorityForm==='function')initPhysiquePriorityForm('ac',c.physiquePriority||[]);
   }else{
     if(titleEl)titleEl.textContent='NOWY KLIENT';
-    ['ac-name','ac-email','ac-phone','ac-age','ac-weight','ac-height','ac-sport-notes','ac-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    ['ac-name','ac-email','ac-phone','ac-age','ac-weight','ac-height','ac-sport-notes','ac-injuries','ac-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
     if(typeof initPriorSportsForm==='function')initPriorSportsForm('ac',[]);
+    if(typeof initPhysiquePriorityForm==='function')initPhysiquePriorityForm('ac',[]);
   }
   openM('m-client');
 }
@@ -171,8 +175,10 @@ async function saveClient(){
     c.goal=document.getElementById('ac-goal').value;
     c.level=document.getElementById('ac-level').value;
     c.priorSports=typeof readPriorSportsFrom==='function'?readPriorSportsFrom('ac'):[];
+    c.physiquePriority=typeof readPhysiquePriorityFrom==='function'?readPhysiquePriorityFrom('ac'):(c.physiquePriority||[]);
     c.activityLevel=document.getElementById('ac-activity')?.value||'moderate';
     c.sportNotes=document.getElementById('ac-sport-notes')?.value||'';
+    c.injuries=document.getElementById('ac-injuries')?.value||'';
     c.notes=document.getElementById('ac-notes').value;
     window._editingClientId=null;
     closeM('m-client');
@@ -198,8 +204,10 @@ async function saveClient(){
     goal:document.getElementById('ac-goal').value,
     level:document.getElementById('ac-level').value,
     priorSports:typeof readPriorSportsFrom==='function'?readPriorSportsFrom('ac'):[],
+    physiquePriority:typeof readPhysiquePriorityFrom==='function'?readPhysiquePriorityFrom('ac'):[],
     activityLevel:document.getElementById('ac-activity')?.value||'moderate',
     sportNotes:document.getElementById('ac-sport-notes')?.value||'',
+    injuries:document.getElementById('ac-injuries')?.value||'',
     notes:document.getElementById('ac-notes').value,
     status:'active',
     joinDate:new Date().toISOString().split('T')[0],
@@ -209,7 +217,7 @@ async function saveClient(){
   CL.push(c);
   window._editingClientId=null;
   closeM('m-client');
-  ['ac-name','ac-email','ac-phone','ac-age','ac-weight','ac-height','ac-notes'].forEach(id=>{
+  ['ac-name','ac-email','ac-phone','ac-age','ac-weight','ac-height','ac-injuries','ac-notes'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.value='';
   });
   try{renderAll();}catch(e){try{renderClients();}catch(e2){}}
@@ -223,12 +231,13 @@ async function saveClient(){
 }
 
 function getClientOnboard(c){
-  if(!c)return{invite:false,plan:false,session:false,done:0,total:3,complete:true};
+  if(!c)return{invite:false,plan:false,session:false,baseline:false,done:0,total:4,complete:true};
   const invite=!!(c.inviteSent||c.appInvited||c.inviteSentAt||c.inviteSkipped);
   const plan=PL.some(p=>p.clientId===c.id);
   const session=SE.some(s=>s.clientId===c.id);
-  const done=[invite,plan,session].filter(Boolean).length;
-  return{invite,plan,session,done,total:3,complete:done===3};
+  const baseline=typeof clientHasBaseline==='function'?clientHasBaseline(c.id):!!(c.baselineDone||c.weight);
+  const done=[invite,baseline,plan,session].filter(Boolean).length;
+  return{invite,baseline,plan,session,done,total:4,complete:done===4};
 }
 window.getClientOnboard=getClientOnboard;
 
@@ -296,6 +305,8 @@ function renderClientOnboardChecklist(){
     {done:st.invite,icon:'📱',title:'Wyślij zaproszenie',desc:'Link do aplikacji w wiadomości (możesz pominąć)',
       action:`closeM('m-client-onboard');openInviteModal('${id}')`,cta:'Wyślij',
       extra:st.invite?'':`<button class="btn btn-ghost btn-sm" onclick="skipClientInvite('${id}')">Pomiń</button>`},
+    {done:st.baseline,icon:'⚖️',title:'Pomiary startowe (baseline)',desc:'Waga, %BF i obwody z datą — historia progresu',
+      action:`openClientBaselineModal('${id}')`,cta:'Zapisz pomiary'},
     {done:st.plan,icon:'📋',title:'Przypisz plan treningowy',desc:'Najszybciej: generator AI z danymi klienta',
       action:`openAiPlanForClient('${id}')`,cta:'⚡ Plan AI',
       extra:st.plan?'':`<button class="btn btn-ghost btn-sm" onclick="closeM('m-client-onboard');openClientProfile('${id}');setTimeout(()=>setCPTab('plan'),300)">Szablon</button>`},
@@ -314,6 +325,43 @@ function renderClientOnboardChecklist(){
 }
 window.openClientOnboardChecklist=openClientOnboardChecklist;
 window.renderClientOnboardChecklist=renderClientOnboardChecklist;
+
+function openClientBaselineModal(clientId){
+  const c=CL.find(x=>x.id===clientId);if(!c)return;
+  window._baselineClientId=clientId;
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v!=null&&v!==''?v:'';};
+  set('bl-weight',c.weight||'');
+  set('bl-bf','');
+  set('bl-chest','');
+  set('bl-waist','');
+  set('bl-hips','');
+  set('bl-thigh','');
+  set('bl-arm','');
+  const title=document.getElementById('m-baseline-title');
+  if(title)title.textContent='POMIARY STARTOWE — '+(c.name||'').toUpperCase();
+  openM('m-baseline');
+}
+async function saveClientBaselineModal(){
+  const id=window._baselineClientId;if(!id)return;
+  const g=id=>document.getElementById(id)?.value||'';
+  const created=typeof saveClientBaselineFromFields==='function'?saveClientBaselineFromFields(id,{
+    weight:g('bl-weight'),
+    bf:g('bl-bf'),
+    chest:g('bl-chest'),
+    waist:g('bl-waist'),
+    hips:g('bl-hips'),
+    thigh:g('bl-thigh'),
+    arm:g('bl-arm'),
+    notes:'Pomiar startowy (baseline)'
+  }):[];
+  if(!created.length){notify('Wpisz przynajmniej wagę lub obwód');return;}
+  closeM('m-baseline');
+  notify('✓ Baseline zapisany ('+created.length+' wpisów)');
+  renderClientOnboardChecklist();
+  if(typeof maybeResumeOnboard==='function')maybeResumeOnboard(id);
+}
+window.openClientBaselineModal=openClientBaselineModal;
+window.saveClientBaselineModal=saveClientBaselineModal;
 
 // ════════════════════════════════════════
 // BUILDER
@@ -364,6 +412,10 @@ function addRow(dayId){
     +'<input type="number" placeholder="2" class="ex-inp" data-f="rir" oninput="builderRefreshPeriodPreview()">'
     +'<input type="text" placeholder="2min" class="ex-inp" data-f="rest" oninput="builderRefreshPeriodPreview()">'
     +'<input type="text" placeholder="2-0-2" class="ex-inp" data-f="tempo">'
+    +'<div class="builder-row-actions" style="display:flex;flex-direction:column;gap:2px;">'
+    +'<button type="button" class="builder-move-row" onclick="builderMoveRow(this,-1)" title="Przenieś wyżej" style="background:var(--s3);border:1px solid var(--border2);border-radius:4px;width:22px;height:18px;cursor:pointer;font-size:10px;line-height:1;color:var(--text);padding:0;">▲</button>'
+    +'<button type="button" class="builder-move-row" onclick="builderMoveRow(this,1)" title="Przenieś niżej" style="background:var(--s3);border:1px solid var(--border2);border-radius:4px;width:22px;height:18px;cursor:pointer;font-size:10px;line-height:1;color:var(--text);padding:0;">▼</button>'
+    +'</div>'
     +'<button type="button" class="builder-remove-row" onclick="builderRemoveRow(this)">×</button>'
     +'<div class="ex-row-extra">'
     +'<input type="text" placeholder="Zamiennik (opcjonalnie, np. hantle zamiast sztangi)" class="ex-inp ex-inp-name builder-sub-input" data-f="alt">'
@@ -398,6 +450,20 @@ function builderRemoveRow(btn){
   if(box)builderPaintSs(box);
 }
 window.builderRemoveRow=builderRemoveRow;
+function builderMoveRow(btn,dir){
+  const row=btn&&btn.closest('.ex-row');if(!row)return;
+  const box=row.parentElement;if(!box)return;
+  if(dir<0){
+    const prev=row.previousElementSibling;
+    if(prev)box.insertBefore(row,prev);
+  }else{
+    const next=row.nextElementSibling;
+    if(next)box.insertBefore(next,row);
+  }
+  builderPaintSs(box);
+  if(typeof builderRefreshPeriodPreview==='function')builderRefreshPeriodPreview();
+}
+window.builderMoveRow=builderMoveRow;
 function builderPaintSs(box){
   if(!box)return;
   const rows=[...box.querySelectorAll('.ex-row')];
@@ -776,14 +842,75 @@ async function savePlan(){
       window._editingPlanId=null;
       goTo('plans');notify('Plan zaktualizowany!');
       await persistById('plans',PL[idx]);
+      if(cid&&confirm('Zaktualizować kalendarz — dodać sesje z planu na 4 tyg.?'))schedulePlanToCalendar(PL[idx].id,{weeks:4});
       return;
     }
   }
   const plan=withTrainer({id:newId('p'),name,method:document.getElementById('b-method').value,duration:document.getElementById('b-duration').value,clientId:cid,clientName:c?c.name:'',level:c?c.level:'sredni',goal:c?c.goal:'masa',days,createdAt:new Date().toISOString()});
   PL.push(plan);goTo('plans');notify('Plan zapisany!');
   await persistById('plans',plan);
+  if(cid&&confirm('Dodać dni planu do kalendarza na najbliższe 4 tygodnie?'))schedulePlanToCalendar(plan.id,{weeks:4});
   maybeResumeOnboard(cid);
 }
+
+/** Mapuje etykietę dnia planu → JS getDay() (0=Nd … 6=Sob). */
+function planDayLabelToWeekday(label,fallbackIdx){
+  const s=String(label||'').toUpperCase();
+  const map={PON:1,WT:2,'ŚR':3,SR:3,CZ:4,PT:5,SO:6,ND:0,
+    PONIEDZIALEK:1,WTOREK:2,SRODA:3,'ŚRODA':3,CZWARTEK:4,PIATEK:5,'PIĄTEK':5,SOBOTA:6,NIEDZIELA:0};
+  for(const k of Object.keys(map)){if(s.startsWith(k)||s.includes(k+' ')||s.includes(k+':')||s.includes(k+'—')||s.includes(k+'-'))return map[k];}
+  const defaults=[1,3,5,2,4,6,1]; // Pon/Śr/Pt/Wt/Czw/Sob
+  return defaults[(fallbackIdx||0)%defaults.length];
+}
+/** Tworzy sesje kalendarzowe z dni planu (planId + dayIdx) na N tygodni do przodu. */
+function schedulePlanToCalendar(planId,opts){
+  const plan=PL.find(p=>p.id===planId);if(!plan){notify('Brak planu');return 0;}
+  if(!plan.clientId){notify('Przypisz plan do klienta, żeby dodać do kalendarza');return 0;}
+  const weeks=Math.max(1,Math.min(12,(opts&&opts.weeks)||4));
+  const time=(opts&&opts.time)||'18:00';
+  const duration=(opts&&opts.duration)||60;
+  const trainDays=(plan.days||[]).map((d,i)=>({d,i})).filter(x=>x.d&&!x.d.rest&&(x.d.exercises||[]).length);
+  if(!trainDays.length){notify('Plan nie ma dni treningowych');return 0;}
+  const today=new Date();today.setHours(0,0,0,0);
+  let created=0;
+  for(let w=0;w<weeks;w++){
+    trainDays.forEach(({d,i})=>{
+      const wd=planDayLabelToWeekday(d.day||d.dayName,i);
+      const dt=new Date(today);
+      const cur=dt.getDay();
+      let add=(wd-cur+7)%7;
+      if(add===0&&w===0)add=0; // dziś OK
+      dt.setDate(dt.getDate()+add+w*7);
+      const ymd=typeof dateStr==='function'?dateStr(dt):dt.toISOString().slice(0,10);
+      const exists=SE.some(s=>s.clientId===plan.clientId&&s.date===ymd&&s.planId===plan.id&&s.dayIdx===i);
+      if(exists)return;
+      const label=d.day||d.dayName||('Dzień '+(i+1));
+      const muscles=d.muscles||d.focus||'';
+      const sess=withTrainer({
+        id:newId('s'),
+        clientId:plan.clientId,
+        date:ymd,
+        time,
+        type:label+(muscles?' — '+muscles:''),
+        notes:'Z planu: '+(plan.name||'')+(muscles?' · '+muscles:''),
+        duration,
+        source:'planned',
+        planId:plan.id,
+        dayIdx:i,
+        createdAt:new Date().toISOString()
+      });
+      SE.push(sess);
+      persistById('sessions',sess);
+      created++;
+    });
+  }
+  try{renderCal();}catch(e){}
+  try{renderDash();}catch(e){}
+  notify(created?'📅 Dodano '+created+' sesji do kalendarza':'Brak nowych sesji (już zaplanowane)');
+  return created;
+}
+window.schedulePlanToCalendar=schedulePlanToCalendar;
+window.planDayLabelToWeekday=planDayLabelToWeekday;
 
 // ════════════════════════════════════════
 // PLANS

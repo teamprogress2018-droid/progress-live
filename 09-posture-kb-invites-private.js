@@ -255,8 +255,11 @@ function saveCPEdit(id){
   c.level=document.getElementById('cpe-level').value;
   c.status=document.getElementById('cpe-status').value;
   c.priorSports=typeof readPriorSportsFrom==='function'?readPriorSportsFrom('cpe'):(c.priorSports||[]);
+  c.physiquePriority=typeof readPhysiquePriorityFrom==='function'?readPhysiquePriorityFrom('cpe'):(c.physiquePriority||[]);
   c.activityLevel=document.getElementById('cpe-activity')?.value||c.activityLevel||'moderate';
   c.sportNotes=document.getElementById('cpe-sport-notes')?.value||'';
+  const injEl=document.getElementById('cpe-injuries');
+  if(injEl)c.injuries=injEl.value;
   c.notes=document.getElementById('cpe-notes').value;
   window._cpEditingClientId=null;
   persistById('clients',c);

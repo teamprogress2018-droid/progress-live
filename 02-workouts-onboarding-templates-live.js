@@ -570,6 +570,10 @@ function onbWizardStepHTML(step){
     <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">🩺 ZDROWIE I OGRANICZENIA</div>
     <div class="form-field"><label class="form-lbl">Kontuzje lub problemy zdrowotne</label>
       <textarea class="form-input" id="onb-injuries" rows="3" placeholder="np. ból kolan, przepuklina, nadciśnienie..." style="resize:none;font-size:13px;">${onbNewClient.injuries||''}</textarea></div>
+    <div class="form-field"><label class="form-lbl">Priorytet sylwetkowy</label>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Partie do akcentu na początku sesji.</div>
+      ${typeof physiquePriorityChipsHTML==='function'?physiquePriorityChipsHTML(onbNewClient.physiquePriority||[],'onb'):'<div id="onb-physique-priority-mount"></div>'}
+    </div>
     <div class="form-field"><label class="form-lbl">Leki stałe</label>
       <input type="text" class="form-input" id="onb-meds" placeholder="np. inhibitory ACE, metformina..." value="${onbNewClient.meds||''}"></div>
     <div class="form-field"><label class="form-lbl">Aktywność fizyczna dotychczas</label>
@@ -632,6 +636,8 @@ function onbWizardStepHTML(step){
         ['Telefon',onbNewClient.phone||'—'],
         ['Cel',onbNewClient.goal||'—'],
         ['Poziom',onbNewClient.level||'—'],
+        ['Częstotliwość',(onbNewClient.freq||'—')+'×/tyg.'],
+        ['Priorytet sylwetkowy',(onbNewClient.physiquePriority||[]).map(id=>typeof physiquePriorityLabel==='function'?physiquePriorityLabel(id):id).join(', ')||'—'],
         ['Flow',ONB_FLOWS.find(f=>f.id===onbNewClient.flow)?.name||'Standard'],
         ['Pakiet',onbNewClient.package||'Brak'],
         ['Szablon planu',onbNewClient.template?PLAN_TEMPLATES.find(t=>t.id===onbNewClient.template)?.name:'Brak'],
@@ -668,7 +674,7 @@ function onbWizardNext(){
   }
   if(onbStep===1){
     onbNewClient.level=document.getElementById('onb-level')?.value||'sredni';
-    onbNewClient.freq=document.getElementById('onb-freq')?.value||3;
+    onbNewClient.freq=+document.getElementById('onb-freq')?.value||3;
     onbNewClient.weight=document.getElementById('onb-weight')?.value||'';
     onbNewClient.height=document.getElementById('onb-height')?.value||'';
     onbNewClient.goalDesc=document.getElementById('onb-goal-desc')?.value||'';
@@ -679,6 +685,7 @@ function onbWizardNext(){
     onbNewClient.meds=document.getElementById('onb-meds')?.value||'';
     onbNewClient.activityLevel=document.getElementById('onb-activity')?.value||'moderate';
     onbNewClient.priorSports=typeof readPriorSportsFrom==='function'?readPriorSportsFrom('onb'):[];
+    onbNewClient.physiquePriority=typeof readPhysiquePriorityFrom==='function'?readPhysiquePriorityFrom('onb'):(onbNewClient.physiquePriority||[]);
     onbNewClient.rodo=document.getElementById('onb-rodo')?.checked||false;
     if(!onbNewClient.rodo){notify('⚠ Wymagana zgoda RODO!');return;}
   }
@@ -702,11 +709,15 @@ function onbCreateClient(){
     email:onbNewClient.email,
     phone:onbNewClient.phone||'',
     goal:onbNewClient.goal||'masa',
+    goalDesc:onbNewClient.goalDesc||'',
     level:onbNewClient.level||'sredni',
+    trainingFreq:+onbNewClient.freq||3,
     weight:onbNewClient.weight||'',
     height:onbNewClient.height||'',
     gender:onbNewClient.gender||'mężczyzna',
     injuries:onbNewClient.injuries||'',
+    meds:onbNewClient.meds||'',
+    physiquePriority:onbNewClient.physiquePriority||[],
     priorSports:onbNewClient.priorSports||[],
     activityLevel:onbNewClient.activityLevel||'moderate',
     notes:onbNewClient.privateNote||'',
@@ -716,6 +727,12 @@ function onbCreateClient(){
   });
   CL.push(newC);
   persistById('clients',newC);
+  if(typeof saveClientBaselineFromFields==='function'){
+    saveClientBaselineFromFields(newC.id,{
+      weight:onbNewClient.weight,
+      notes:'Baseline z onboardingu'
+    });
+  }
 
   // assign template plan
   if(onbNewClient.template){

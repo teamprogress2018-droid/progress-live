@@ -1922,6 +1922,102 @@ window.readPriorSportsFrom=readPriorSportsFrom;
 window.setPriorSportsChips=setPriorSportsChips;
 window.togglePriorSportChip=togglePriorSportChip;
 
+// ── Priorytet sylwetkowy (weak points / focus muscles) ──
+const PHYSIQUE_PRIORITY_CATALOG=[
+  {id:'upper_chest',label:'Góra klatki',icon:'⬆️'},
+  {id:'mid_chest',label:'Środek klatki',icon:'🫁'},
+  {id:'lats',label:'Szerokość pleców',icon:'🦇'},
+  {id:'upper_back',label:'Góra pleców',icon:'🔙'},
+  {id:'side_delts',label:'Boczny bark',icon:'📐'},
+  {id:'rear_delts',label:'Tył barku',icon:'↩️'},
+  {id:'front_delts',label:'Przód barku',icon:'➡️'},
+  {id:'biceps',label:'Biceps',icon:'💪'},
+  {id:'triceps',label:'Triceps',icon:'🔱'},
+  {id:'quads',label:'Czworogłowe',icon:'🦵'},
+  {id:'hamstrings',label:'Dwugłowe',icon:'🦿'},
+  {id:'glutes',label:'Pośladki',icon:'🍑'},
+  {id:'calves',label:'Łydki',icon:'🦶'},
+  {id:'abs',label:'Brzuch / core',icon:'🎯'},
+];
+const PHYSIQUE_PRIORITY_MAP=Object.fromEntries(PHYSIQUE_PRIORITY_CATALOG.map(p=>[p.id,p]));
+function normalizePhysiquePriority(ids){
+  if(!ids)return[];
+  const arr=Array.isArray(ids)?ids:String(ids).split(/[,;|]/).map(s=>s.trim()).filter(Boolean);
+  const known=new Set(PHYSIQUE_PRIORITY_CATALOG.map(p=>p.id));
+  return[...new Set(arr.map(x=>String(x).trim()).filter(id=>known.has(id)))];
+}
+function physiquePriorityLabel(id){
+  return(PHYSIQUE_PRIORITY_MAP[id]&&PHYSIQUE_PRIORITY_MAP[id].label)||id||'';
+}
+function physiquePriorityChipsHTML(selected,prefix,onclickFn){
+  const sel=new Set(normalizePhysiquePriority(selected));
+  const fn=onclickFn||("togglePhysiquePriorityChip(this,'"+prefix+"')");
+  return '<div class="physique-priority-grid" id="'+prefix+'-physique-priority" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px;">'+
+    PHYSIQUE_PRIORITY_CATALOG.map(p=>{
+      const on=sel.has(p.id);
+      return '<button type="button" class="physique-priority-chip'+(on?' active':'')+'" data-priority="'+p.id+'" onclick="'+fn+'" style="padding:8px 6px;border-radius:10px;border:1px solid '+(on?'var(--accent)':'var(--border2)')+';background:'+(on?'var(--adim)':'var(--s3)')+';cursor:pointer;font-size:11px;text-align:center;color:var(--text);">'+
+        '<span style="font-size:15px;display:block;margin-bottom:2px;">'+p.icon+'</span>'+p.label+
+      '</button>';
+    }).join('')+'</div>';
+}
+function readPhysiquePriorityFrom(prefix){
+  const root=document.getElementById(prefix+'-physique-priority');
+  if(!root)return[];
+  return[...root.querySelectorAll('.physique-priority-chip.active')].map(b=>b.dataset.priority).filter(Boolean);
+}
+function setPhysiquePriorityChips(prefix,ids){
+  const root=document.getElementById(prefix+'-physique-priority');
+  if(!root)return;
+  const sel=new Set(normalizePhysiquePriority(ids));
+  root.querySelectorAll('.physique-priority-chip').forEach(b=>{
+    const on=sel.has(b.dataset.priority);
+    b.classList.toggle('active',on);
+    b.style.borderColor=on?'var(--accent)':'var(--border2)';
+    b.style.background=on?'var(--adim)':'var(--s3)';
+  });
+}
+function togglePhysiquePriorityChip(btn){
+  if(!btn)return;
+  btn.classList.toggle('active');
+  const on=btn.classList.contains('active');
+  btn.style.borderColor=on?'var(--accent)':'var(--border2)';
+  btn.style.background=on?'var(--adim)':'var(--s3)';
+}
+function initPhysiquePriorityForm(prefix,selected){
+  const mountId=prefix+'-physique-priority-mount';
+  const mount=document.getElementById(mountId);
+  if(mount&&typeof physiquePriorityChipsHTML==='function'){
+    mount.outerHTML=physiquePriorityChipsHTML(selected||[],prefix);
+    return;
+  }
+  const direct=document.getElementById(prefix+'-physique-priority');
+  if(direct&&typeof setPhysiquePriorityChips==='function')setPhysiquePriorityChips(prefix,selected||[]);
+}
+/** Kontuzje: preferuj dedykowane pole, fallback na notes (stare karty). */
+function clientInjuriesText(c){
+  if(!c)return'';
+  const inj=String(c.injuries||'').trim();
+  if(inj)return inj;
+  return String(c.notes||'').trim();
+}
+function clientPhysiquePriorityForAI(c,overrideIds){
+  const ids=normalizePhysiquePriority(overrideIds!=null?overrideIds:(c&&c.physiquePriority));
+  if(!ids.length)return'';
+  const labels=ids.map(physiquePriorityLabel).filter(Boolean);
+  return'- PRIORYTET SYLWETKOWY (weak points): '+labels.join(', ')+'. Te partie MUSZĄ być 1-2 pierwszymi ćwiczeniami w sesjach, które je stymulują (świeży układ nerwowy). Preferuj maszyny/wyciągi/suwnicę i warianty w pozycji wydłużonej (stretch-mediated).\n';
+}
+window.PHYSIQUE_PRIORITY_CATALOG=PHYSIQUE_PRIORITY_CATALOG;
+window.PHYSIQUE_PRIORITY_MAP=PHYSIQUE_PRIORITY_MAP;
+window.normalizePhysiquePriority=normalizePhysiquePriority;
+window.physiquePriorityLabel=physiquePriorityLabel;
+window.physiquePriorityChipsHTML=physiquePriorityChipsHTML;
+window.readPhysiquePriorityFrom=readPhysiquePriorityFrom;
+window.setPhysiquePriorityChips=setPhysiquePriorityChips;
+window.togglePhysiquePriorityChip=togglePhysiquePriorityChip;
+window.initPhysiquePriorityForm=initPhysiquePriorityForm;
+window.clientInjuriesText=clientInjuriesText;
+window.clientPhysiquePriorityForAI=clientPhysiquePriorityForAI;
+
 // ── Motyw studia (czerwień + grafit) ──
 const STUDIO_THEME={
   accent:'#e60000',
