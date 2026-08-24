@@ -321,6 +321,8 @@ function clientSubmitForm(sendId){
       if(typeof cpClientId!=='undefined'&&cpClientId===send.clientId&&typeof renderCPOverview==='function'&&c){
         try{renderCPOverview(c);}catch(e){}
       }
+      if(typeof renderDash==='function')try{renderDash();}catch(e){}
+      if(typeof renderClients==='function')try{renderClients();}catch(e){}
     }else{
       addNotification('form','Formularz wypełniony',(c?c.name+' — ':'')+name,'forms');
     }

@@ -3913,6 +3913,8 @@ function toggleSetting(id){
     'auto-invoice':()=>{S.payments.autoInvoice=!S.payments.autoInvoice;},
   };
   if(map[id])map[id]();
+  if(typeof ensureReminderAutoflowsFromSettings==='function')try{ensureReminderAutoflowsFromSettings();}catch(e){}
+  if(typeof persistSettingsDoc==='function')persistSettingsDoc();
 }
 
 function setAccentColor(color){
@@ -4128,6 +4130,9 @@ function saveSettings(){
   if(g('company-address'))S.company.address=g('company-address').value;
   if(g('company-city'))S.company.city=g('company-city').value;
   if(g('company-website'))S.company.website=g('company-website').value;
+  if(g('sess-reminder-time'))S.notifications.sessionReminderTime=parseInt(g('sess-reminder-time').value,10)||60;
+  if(g('inactive-days'))S.notifications.inactiveDays=parseInt(g('inactive-days').value,10)||14;
+  if(typeof ensureReminderAutoflowsFromSettings==='function')try{ensureReminderAutoflowsFromSettings();}catch(e){}
   syncSidebarProfile();
   notify('✓ Ustawienia zapisane!');
   if(window._db){
@@ -5323,6 +5328,8 @@ function setDashPeriod(p){
 var dashCalDate = new Date();
 
 function renderDash(){
+  if(typeof ensureReminderAutoflowsFromSettings==='function')try{ensureReminderAutoflowsFromSettings();}catch(e){}
+  if(typeof runAutoflowsCheck==='function')try{runAutoflowsCheck(false);}catch(e){}
   const today=new Date();
   const todayStr=dateStr(today);
   // week bounds
