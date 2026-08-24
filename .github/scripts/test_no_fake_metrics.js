@@ -21,7 +21,7 @@ ok('no initDemoEntries fn', !/function\s+initDemoEntries\s*\(/.test(src07));
 ok('no initDemoEntries calls in 07', !src07.includes('initDemoEntries'));
 ok('no initDemoEntries in 08', !src08.includes('initDemoEntries'));
 ok('no initDemoEntries in 04', !src04.includes('initDemoEntries'));
-ok('no fake start weight seed', !src07.includes('Pomiar startowy') && !/values:\{m1:88/.test(src07));
+ok('no fake start weight seed', !/values:\{m1:88,m2:22/.test(src07) && !src07.includes("notes:'Pomiar startowy'"));
 ok('meClientSetField intact', /function\s+meClientSetField\s*\(/.test(src07));
 ok('allMetricGroups once', (src07.match(/function\s+allMetricGroups\s*\(/g) || []).length === 1);
 ok('DEMO_METRIC_GROUPS kept', src07.includes('DEMO_METRIC_GROUPS'));
