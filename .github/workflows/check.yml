@@ -134,7 +134,7 @@ jobs:
         run: node .github/scripts/test_hide_food_stub.js
       - name: 1n21. Testy sekcji nawigacji apki klienta (forum / kalendarz)
         run: node .github/scripts/test_cap_nav_sections.js
-      - name: 1n22. Testy: skrypty w index.html tylko raz
+      - name: "1n22. Testy: skrypty w index.html tylko raz"
         run: node .github/scripts/test_index_scripts_once.js
       - name: 1n18. Testy dopełniania kalendarza / zdjęć sylwetki (dashboard)
         run: node .github/scripts/test_dash_cal_photo_followup.js
