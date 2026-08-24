@@ -1026,71 +1026,114 @@ function renderCPMetrics(c){
   initDemoEntries(c.id);
   const groups=allMetricGroups();
   const entries=METRIC_ENTRIES.filter(e=>e.clientId===c.id);
-  const prs=typeof clientExercisePRs==='function'?clientExercisePRs(c.id).slice(0,10):[];
+  const prs=typeof clientExercisePRs==='function'?clientExercisePRs(c.id).slice(0,8):[];
+  const activeGid=window._cpMetricGroup||(groups.find(g=>entries.some(e=>e.groupId===g.id))||groups[0]||{}).id||'mg1';
+  window._cpMetricGroup=activeGid;
+  const activeGroup=groups.find(g=>g.id===activeGid)||groups[0];
+  const geAll=entries.filter(e=>e.groupId===activeGid).sort((a,b)=>b.date.localeCompare(a.date));
+  const last=geAll[0];const prev=geAll[1];
+  const safeName=(c.name||'').replace(/'/g,"\\'");
+
   document.getElementById('cp-body').innerHTML=`
-    <div class="cp-section-title">POMIARY CIAŁA</div>
-    ${prs.length?`<div class="card-sm" style="margin-bottom:12px;">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-        <span style="font-size:20px;">🏆</span>
-        <div style="font-size:13px;font-weight:700;">Rekordy z treningów</div>
+    <div style="position:sticky;top:0;z-index:5;background:var(--s1);padding-bottom:10px;margin-bottom:4px;border-bottom:1px solid var(--border);">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+        <div class="cp-section-title" style="margin:0;">POMIARY</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button type="button" class="btn btn-primary btn-sm" onclick="openMetricEntryForClient('${c.id}','${activeGid}')">+ Nowy pomiar</button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="typeof openClientBaselineModal==='function'&&openClientBaselineModal('${c.id}')">Baseline</button>
+        </div>
       </div>
-      ${prs.map(p=>{
+      <div style="display:flex;gap:4px;overflow-x:auto;padding-bottom:2px;">
+        ${groups.map(g=>{
+          const n=entries.filter(e=>e.groupId===g.id).length;
+          const on=g.id===activeGid;
+          return `<button type="button" onclick="setCPMetricGroup('${c.id}','${g.id}')" style="flex-shrink:0;padding:7px 10px;border-radius:8px;border:1px solid ${on?'var(--accent)':'var(--border2)'};background:${on?'var(--adim)':'var(--s3)'};color:var(--text);font-size:11px;cursor:pointer;white-space:nowrap;">
+            ${g.icon} ${g.name}${n?` <span style="color:var(--muted);font-family:'DM Mono',monospace;">${n}</span>`:''}
+          </button>`;
+        }).join('')}
+      </div>
+    </div>
+
+    ${prs.length?`<div class="card-sm" style="margin-bottom:12px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <span style="font-size:18px;">🏆</span>
+        <div style="font-size:12px;font-weight:700;">Rekordy z treningów</div>
+        <span style="font-size:10px;color:var(--muted);margin-left:auto;">z sesji Live / apki</span>
+      </div>
+      ${prs.slice(0,5).map(p=>{
         const est=typeof roundToPlate==='function'?roundToPlate(p.epley):Math.round(p.epley);
-        return `<div style="display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-top:1px solid var(--border);font-size:12px;">
+        return `<div style="display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-top:1px solid var(--border);font-size:12px;">
           <div>
             <div style="font-weight:600;">${escHtml(p.name)}</div>
-            <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${escHtml(p.date||'')}${est?' · szac. 1RM '+escHtml(String(est))+' kg':''}</div>
+            <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${escHtml(p.date||'')}${est?' · 1RM ~'+escHtml(String(est))+' kg':''}</div>
           </div>
           <div style="font-weight:700;color:var(--accent);white-space:nowrap;">${escHtml(formatSetLoad(p.kg,p.reps))}</div>
         </div>`;
       }).join('')}
     </div>`:''}
-    ${groups.map(g=>{
-      const ge=entries.filter(e=>e.groupId===g.id).sort((a,b)=>b.date.localeCompare(a.date));
-      if(!ge.length)return '';
-      const last=ge[0];const prev=ge[1];
-      return `<div class="card-sm" style="margin-bottom:10px;">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-          <span style="font-size:20px;">${g.icon}</span>
-          <div style="font-size:13px;font-weight:700;">${g.name}</div>
-          <span style="font-size:10px;color:var(--muted);margin-left:auto;font-family:'DM Mono',monospace;">${last.date}</span>
+
+    ${activeGroup?`<div class="card-sm" style="margin-bottom:12px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+        <span style="font-size:20px;">${activeGroup.icon}</span>
+        <div>
+          <div style="font-size:13px;font-weight:700;">${escHtml(activeGroup.name)} — ostatni</div>
+          <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${last?escHtml(last.date):'brak wpisów'}</div>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:6px;">
-          ${g.metrics.map(m=>{
-            const cv=last.values[m.id];const pv=prev?prev.values[m.id]:null;
-            const diff=cv!=null&&pv!=null?(cv-pv).toFixed(1):null;
-            const goodDown=['mg1','mg2'].includes(g.id);
-            const color=diff==null?'var(--muted)':parseFloat(diff)<0?(goodDown?'var(--teal)':'var(--red)'):parseFloat(diff)>0?(goodDown?'var(--red)':'var(--teal)'):'var(--muted)';
-            return `<div style="background:var(--s3);border-radius:8px;padding:8px;text-align:center;">
-              <div style="font-size:10px;color:var(--muted);margin-bottom:3px;">${m.name}</div>
-              <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--text);">${cv!=null?cv:'—'}${m.unit?'<span style="font-size:10px;color:var(--muted);"> '+m.unit+'</span>':''}</div>
-              ${diff!=null?`<div style="font-size:10px;color:${color};">${parseFloat(diff)>0?'+':''}${diff}</div>`:''}
+        <div style="margin-left:auto;display:flex;gap:6px;">
+          ${last?`<button type="button" class="btn btn-ghost btn-sm" onclick="editMetricEntry('${last.id}')">✎ Edytuj</button>`:''}
+          <button type="button" class="btn btn-primary btn-sm" onclick="openMetricEntryForClient('${c.id}','${activeGroup.id}')">+</button>
+        </div>
+      </div>
+      ${last?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:6px;">
+        ${activeGroup.metrics.map(m=>{
+          const cv=last.values[m.id];const pv=prev?prev.values[m.id]:null;
+          const diff=cv!=null&&pv!=null?(cv-pv).toFixed(1):null;
+          const goodDown=['mg1','mg2'].includes(activeGroup.id);
+          const color=diff==null?'var(--muted)':parseFloat(diff)<0?(goodDown?'var(--teal)':'var(--red)'):parseFloat(diff)>0?(goodDown?'var(--red)':'var(--teal)'):'var(--muted)';
+          return `<div style="background:var(--s3);border-radius:8px;padding:8px;text-align:center;">
+            <div style="font-size:10px;color:var(--muted);margin-bottom:3px;">${escHtml(m.name)}</div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--text);">${cv!=null?cv:'—'}${m.unit?'<span style="font-size:10px;color:var(--muted);"> '+escHtml(m.unit)+'</span>':''}</div>
+            ${diff!=null?`<div style="font-size:10px;color:${color};">${parseFloat(diff)>0?'+':''}${diff}</div>`:''}
+          </div>`;
+        }).join('')}
+      </div>`:`<div style="font-size:12px;color:var(--muted);padding:8px 0;">Brak pomiarów w tej grupie — dodaj pierwszy.</div>`}
+    </div>`:''}
+
+    <div style="margin-top:8px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div class="cp-section-title" style="margin:0;">HISTORIA — ${activeGroup?escHtml(activeGroup.name):''}</div>
+        <span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${geAll.length} wpisów</span>
+      </div>
+      ${!geAll.length
+        ?`<div style="text-align:center;padding:24px;color:var(--muted);font-size:12px;">Brak historii. <button type="button" class="btn btn-primary btn-sm" style="margin-top:10px;" onclick="openMetricEntryForClient('${c.id}','${activeGid}')">+ Dodaj pomiar</button></div>`
+        :`<div style="display:flex;flex-direction:column;gap:6px;">
+          ${geAll.map(e=>{
+            const vals=(activeGroup.metrics||[]).map(m=>e.values[m.id]!=null?`<span style="font-size:11px;"><span style="color:var(--muted);">${escHtml(m.name)}:</span> <strong>${e.values[m.id]}</strong>${m.unit?' '+escHtml(m.unit):''}</span>`:'').filter(Boolean).join(' · ');
+            return `<div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;display:flex;align-items:flex-start;gap:10px;">
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);margin-bottom:4px;">${escHtml(e.date)}${e.source==='garmin'?' · ⌚ Garmin':''}</div>
+                <div style="font-size:12px;line-height:1.5;">${vals||'—'}</div>
+                ${e.notes?`<div style="font-size:10px;color:var(--muted);margin-top:4px;">${escHtml(e.notes)}</div>`:''}
+              </div>
+              <div style="display:flex;gap:4px;flex-shrink:0;">
+                <button type="button" class="btn btn-ghost btn-sm" onclick="editMetricEntry('${e.id}')" title="Edytuj">✎</button>
+                <button type="button" class="btn btn-ghost btn-sm" onclick="if(confirm('Usunąć ten pomiar?'))delMetricEntry('${e.id}')" title="Usuń" style="color:var(--red);">×</button>
+              </div>
             </div>`;
           }).join('')}
-        </div>
-      </div>`;
-    }).join('')}
-    <div style="margin-top:16px;">
-      <div class="cp-section-title">HISTORIA POMIARÓW</div>
-      <div style="overflow-x:auto;">
-        <table style="width:100%;border-collapse:collapse;font-size:11px;">
-          <thead><tr style="background:var(--s3);">
-            <th style="padding:6px 10px;text-align:left;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border);">Data</th>
-            ${groups.slice(0,1).map(g=>g.metrics.map(m=>`<th style="padding:6px 10px;text-align:right;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border);">${m.name}</th>`).join('')).join('')}
-          </tr></thead>
-          <tbody>
-            ${(()=>{const g=groups[0];if(!g)return '<tr><td colspan="10" style="text-align:center;padding:16px;color:var(--muted);">Brak danych</td></tr>';
-              const ge=entries.filter(e=>e.groupId===g.id).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,6);
-              return ge.map(e=>`<tr style="border-bottom:1px solid var(--border);">
-                <td style="padding:6px 10px;font-family:'DM Mono',monospace;color:var(--muted);">${e.date}</td>
-                ${g.metrics.map(m=>`<td style="padding:6px 10px;text-align:right;font-weight:600;">${e.values[m.id]!=null?e.values[m.id]+' '+(m.unit||''):'—'}</td>`).join('')}
-              </tr>`).join('');})()}
-          </tbody>
-        </table>
-      </div>
+        </div>`}
     </div>
-    <button class="btn btn-primary btn-sm" style="width:100%;margin-top:12px;" onclick="goTo('metrics');closeClientProfile()">📊 Zarządzaj pomiarami</button>`;
+    <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:16px;line-height:1.5;">
+      Pełny ekran z wykresami: <button type="button" class="btn btn-ghost btn-sm" onclick="goTo('metrics');setTimeout(()=>{const s=document.getElementById('metric-client-sel');const q=document.getElementById('metric-client-sel-search');if(s)s.value='${c.id}';if(q)q.value='${safeName}';if(typeof metricClientSetField==='function')metricClientSetField('${c.id}','${safeName}');if(typeof setMetricGroup==='function')setMetricGroup('${activeGid}');},200);closeClientProfile()">Pomiary →</button>
+    </div>`;
 }
+function setCPMetricGroup(clientId,groupId){
+  window._cpMetricGroup=groupId;
+  const c=(window.CL||[]).find(x=>x.id===clientId);
+  if(c)renderCPMetrics(c);
+}
+window.setCPMetricGroup=setCPMetricGroup;
+window.renderCPMetrics=renderCPMetrics;
 
 function renderCPTasks(c){
   const tasks=TASKS.filter(t=>t.clientId===c.id);

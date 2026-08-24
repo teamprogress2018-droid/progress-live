@@ -881,7 +881,7 @@
     <div class="topbar-title">Pomiary ciała</div>
     <div class="topbar-actions">
       <button class="btn btn-ghost btn-sm" onclick="openM('m-metric-group')">+ Grupa pomiarów</button>
-      <button class="btn btn-primary btn-sm" onclick="openM('m-metric-entry')">+ Dodaj pomiar</button>
+      <button class="btn btn-primary btn-sm" onclick="window._editingMetricId=null;document.querySelector('#m-metric-entry .modal-title').textContent='NOWY POMIAR';openM('m-metric-entry')">+ Dodaj pomiar</button>
     </div>
   </div>
   <div style="display:flex;flex:1;overflow:hidden;">
