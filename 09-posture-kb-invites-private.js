@@ -333,7 +333,7 @@ function refreshClientProfileRemoveActions(c){
   const archBtn=document.getElementById('cp-archive-btn');
   const restBtn=document.getElementById('cp-restore-btn');
   const delBtn=document.getElementById('cp-delete-btn');
-  const archived=!(!c||c.status!=='archived');
+  const archived=!!(c&&c.status==='archived');
   if(archBtn&&archBtn.style)archBtn.style.display=archived?'none':'';
   if(restBtn&&restBtn.style)restBtn.style.display=archived?'':'none';
   if(delBtn&&delBtn.style)delBtn.style.display='';
