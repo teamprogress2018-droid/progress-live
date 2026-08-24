@@ -1237,6 +1237,34 @@ function remindHomework(taskId){
   return true;
 }
 window.remindHomework=remindHomework;
+
+function remindHabit(taskId){
+  const t=(window.TASKS||[]).find(x=>x&&x.id===taskId);
+  if(!t||!(isHabit(t)||isChallenge(t))){if(typeof notify==='function')notify('Nie znaleziono nawyku / wyzwania');return false;}
+  const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
+  if(habitDoneOn(t,today)){if(typeof notify==='function')notify('Już odhaczone dziś');return false;}
+  if(isChallenge(t)){
+    const p=typeof challengeProgress==='function'?challengeProgress(t,today):null;
+    if(p&&(p.won||!p.active)){if(typeof notify==='function')notify(p.won?'Wyzwanie ukończone':'Wyzwanie nieaktywne');return false;}
+  }
+  const title=t.title||(isChallenge(t)?'Wyzwanie':'Nawyk');
+  const streak=isHabit(t)&&typeof habitStreak==='function'?habitStreak(t,today):0;
+  const msg=isChallenge(t)
+    ?('🏆 Przypomnienie: wyzwanie "'+title+'" — odhacz dziś w zakładce Dziś.')
+    :('🔥 Przypomnienie: nawyk "'+title+'"'+(streak?' (seria '+streak+')':'')+' — odhacz dziś w aplikacji.');
+  if(typeof pushMsg==='function')pushMsg(t.clientId,msg);
+  t.remindedAt=new Date().toISOString();
+  if(typeof persistById==='function')persistById('tasks',t);
+  if(typeof addNotification==='function'){
+    const c=(window.CL||[]).find(x=>x.id===t.clientId);
+    addNotification('task',isChallenge(t)?'Przypomnienie — wyzwanie':'Przypomnienie — nawyk',((c&&c.name)||'Klient')+' · '+title,'tasks');
+  }
+  if(typeof notify==='function')notify('✓ Przypomnienie poszło do czatu klienta');
+  try{if(typeof renderDashHabitFollowup==='function')renderDashHabitFollowup();}catch(e){}
+  return true;
+}
+window.remindHabit=remindHabit;
+
 function openAssignHomeworkModal(workoutId,clientId){
   window._assignHwWorkoutId=workoutId||null;
   let m=document.getElementById('m-assign-homework');
@@ -1337,6 +1365,7 @@ window.odWorkoutMaterialsText=odWorkoutMaterialsText;
 window.odWorkoutMetaChipsHTML=odWorkoutMetaChipsHTML;
 window.assignHomeworkToClient=assignHomeworkToClient;
 window.remindHomework=remindHomework;
+window.remindHabit=remindHabit;
 window.openAssignHomeworkModal=openAssignHomeworkModal;
 window.openHomeworkPickerForClient=openHomeworkPickerForClient;
 window.ahwClientSearchInput=ahwClientSearchInput;

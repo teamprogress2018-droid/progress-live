@@ -310,10 +310,12 @@ function updateClientLiveNavBadges(c){
   const pendForms=cid&&typeof pendingFormSends==='function'?pendingFormSends(cid).length>0:false;
   const pendPay=cid&&typeof clientUnpaidPackages==='function'?clientUnpaidPackages(cid).length>0:false;
   const pendHw=cid&&typeof clientOpenHomework==='function'?clientOpenHomework(cid).length>0:false;
+  const pendHab=cid&&typeof clientPendingHabits==='function'?clientPendingHabits(cid).length>0:false;
   setBadge('clive-bn-checkin',pendCi);
   setBadge('clive-bn-messages',pendForms);
   setBadge('clive-bn-profile',pendPay);
   setBadge('clive-bn-homework',pendHw);
+  setBadge('clive-bn-home',pendHab);
 }
 window.updateClientLiveNavBadges=updateClientLiveNavBadges;
 
@@ -727,6 +729,7 @@ function clientToggleTask(id){
     const streak=habitStreak(t,today);
     if(typeof notify==='function')notify(done?('✓ Dziś zrobione'+(streak?' · 🔥 '+streak:'')):'Nawyk odznaczony');
     if(typeof renderClientLive==='function')renderClientLive();
+    try{if(typeof renderDashHabitFollowup==='function')renderDashHabitFollowup();}catch(e){}
     return;
   }
   if(typeof isChallenge==='function'&&isChallenge(t)){
@@ -744,6 +747,7 @@ function clientToggleTask(id){
       else notify(done?('✓ '+((p&&p.done)||0)+'/'+(p?p.target:'')+' dni'):'Wyzwanie odznaczone');
     }
     if(typeof renderClientLive==='function')renderClientLive();
+    try{if(typeof renderDashHabitFollowup==='function')renderDashHabitFollowup();}catch(e){}
     return;
   }
   t.status=t.status==='done'?'open':'done';
