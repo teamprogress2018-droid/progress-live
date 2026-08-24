@@ -1823,6 +1823,9 @@ function applyFormSubmit(send,answers,nowIso){
   send.status='filled';
   send.answers=map;
   send.filledAt=nowIso||new Date().toISOString();
+  if(typeof syncClientFromIntakeForm==='function'){
+    try{syncClientFromIntakeForm(send);}catch(e){console.warn('syncClientFromIntakeForm',e);}
+  }
   return{ok:true,send};
 }
 window.applyFormSubmit=applyFormSubmit;
@@ -2037,6 +2040,127 @@ window.togglePhysiquePriorityChip=togglePhysiquePriorityChip;
 window.initPhysiquePriorityForm=initPhysiquePriorityForm;
 window.clientInjuriesText=clientInjuriesText;
 window.clientPhysiquePriorityForAI=clientPhysiquePriorityForAI;
+
+// ── Częstotliwość i preferowane dni tygodnia (karta → AI → kalendarz) ──
+const WEEKDAY_TRAIN_OPTIONS=[
+  {id:1,label:'Pon',key:'PON'},
+  {id:2,label:'Wt',key:'WT'},
+  {id:3,label:'Śr',key:'ŚR'},
+  {id:4,label:'Czw',key:'CZ'},
+  {id:5,label:'Pt',key:'PT'},
+  {id:6,label:'Sob',key:'SO'},
+  {id:0,label:'Nd',key:'ND'}
+];
+function normalizeTrainingFreq(v){
+  const n=parseInt(v,10);
+  if(!n||n<2)return 0;
+  return Math.min(6,n);
+}
+function normalizePreferredWeekdays(list){
+  if(!list)return[];
+  const arr=Array.isArray(list)?list:String(list).split(/[,;|]/).map(s=>s.trim()).filter(Boolean);
+  const out=[];
+  arr.forEach(x=>{
+    if(typeof x==='number'&&x>=0&&x<=6){out.push(x);return;}
+    const s=String(x).toUpperCase();
+    const hit=WEEKDAY_TRAIN_OPTIONS.find(w=>w.key===s||w.label.toUpperCase()===s||String(w.id)===s);
+    if(hit&&!out.includes(hit.id))out.push(hit.id);
+    else{
+      const n=parseInt(x,10);
+      if(!isNaN(n)&&n>=0&&n<=6&&!out.includes(n))out.push(n);
+    }
+  });
+  return out;
+}
+function preferredWeekdaysChipsHTML(selected,prefix){
+  const sel=new Set(normalizePreferredWeekdays(selected));
+  return '<div class="preferred-weekdays-grid" id="'+prefix+'-preferred-weekdays" style="display:flex;flex-wrap:wrap;gap:6px;">'+
+    WEEKDAY_TRAIN_OPTIONS.map(w=>{
+      const on=sel.has(w.id);
+      return '<button type="button" class="preferred-weekday-chip'+(on?' active':'')+'" data-wd="'+w.id+'" onclick="togglePreferredWeekdayChip(this)" style="min-width:42px;padding:7px 10px;border-radius:8px;border:1px solid '+(on?'var(--accent)':'var(--border2)')+';background:'+(on?'var(--adim)':'var(--s3)')+';cursor:pointer;font-size:11px;font-weight:600;color:var(--text);">'+w.label+'</button>';
+    }).join('')+'</div>';
+}
+function readPreferredWeekdaysFrom(prefix){
+  const root=document.getElementById(prefix+'-preferred-weekdays');
+  if(!root)return[];
+  return[...root.querySelectorAll('.preferred-weekday-chip.active')].map(b=>parseInt(b.dataset.wd,10)).filter(n=>!isNaN(n));
+}
+function setPreferredWeekdayChips(prefix,ids){
+  const root=document.getElementById(prefix+'-preferred-weekdays');
+  if(!root)return;
+  const sel=new Set(normalizePreferredWeekdays(ids));
+  root.querySelectorAll('.preferred-weekday-chip').forEach(b=>{
+    const on=sel.has(parseInt(b.dataset.wd,10));
+    b.classList.toggle('active',on);
+    b.style.borderColor=on?'var(--accent)':'var(--border2)';
+    b.style.background=on?'var(--adim)':'var(--s3)';
+  });
+}
+function togglePreferredWeekdayChip(btn){
+  if(!btn)return;
+  btn.classList.toggle('active');
+  const on=btn.classList.contains('active');
+  btn.style.borderColor=on?'var(--accent)':'var(--border2)';
+  btn.style.background=on?'var(--adim)':'var(--s3)';
+}
+function initPreferredWeekdaysForm(prefix,selected){
+  const mount=document.getElementById(prefix+'-preferred-weekdays-mount');
+  if(mount){mount.outerHTML=preferredWeekdaysChipsHTML(selected||[],prefix);return;}
+  const direct=document.getElementById(prefix+'-preferred-weekdays');
+  if(direct)setPreferredWeekdayChips(prefix,selected||[]);
+}
+function mapGoalFromIntakeText(t){
+  const s=String(t||'').toLowerCase();
+  if(/si[lł]a|1\s*rm|max\.?\s*si|powerlift|ciężar/.test(s))return'sila';
+  if(/reduk|schud|odchudz|fat\s*loss|spal/.test(s))return'redukcja';
+  if(/kondyc|wytrzym|cardio|bieg|maraton/.test(s))return'kondycja';
+  if(/masa|hipertrof|mi[eę][sś]|sylwet|kształt|budow/.test(s))return'masa';
+  return null;
+}
+function mapLevelFromIntakeChoice(t){
+  const s=String(t||'').toLowerCase();
+  if(/pocz|0-1|0–1/.test(s))return'poczatkujacy';
+  if(/ponad\s*3|3\+|zaawans/.test(s))return'zaawansowany';
+  if(/1-3|1–3|śred|sred/.test(s))return'sredni';
+  return null;
+}
+/** Po wypełnieniu Ankiety wstępnej (df1) — nadpisz kartę klienta polami z odpowiedzi. */
+function syncClientFromIntakeForm(send){
+  if(!send||!send.clientId)return false;
+  const formId=String(send.formId||'');
+  const formName=String(send.formName||'').toLowerCase();
+  const isIntake=formId==='df1'||formName.includes('ankieta wstępna')||formName.includes('ankieta wstepna');
+  if(!isIntake)return false;
+  const c=(window.CL||[]).find(x=>x.id===send.clientId);
+  if(!c)return false;
+  const a=typeof formSendAnswersMap==='function'?formSendAnswersMap(send):(send.answers||{});
+  let changed=false;
+  const goal=mapGoalFromIntakeText(a.q1);
+  if(goal){c.goal=goal;changed=true;}
+  if(a.q1&&String(a.q1).trim()){c.goalDesc=String(a.q1).trim();changed=true;}
+  const level=mapLevelFromIntakeChoice(a.q2);
+  if(level){c.level=level;changed=true;}
+  const yesInj=/^(tak|true|1)$/i.test(String(a.q3||'').trim());
+  const injTxt=String(a.q4||'').trim();
+  if(yesInj&&injTxt){c.injuries=injTxt;changed=true;}
+  else if(yesInj&&!c.injuries){c.injuries='Zgłoszone w ankiecie (bez opisu)';changed=true;}
+  const freq=normalizeTrainingFreq(a.q5);
+  if(freq){c.trainingFreq=freq;changed=true;}
+  if(a.q6&&String(a.q6).trim()){c.preferredTrainTime=String(a.q6).trim();changed=true;}
+  if(changed&&typeof persistById==='function')persistById('clients',c);
+  return changed;
+}
+window.WEEKDAY_TRAIN_OPTIONS=WEEKDAY_TRAIN_OPTIONS;
+window.normalizeTrainingFreq=normalizeTrainingFreq;
+window.normalizePreferredWeekdays=normalizePreferredWeekdays;
+window.preferredWeekdaysChipsHTML=preferredWeekdaysChipsHTML;
+window.readPreferredWeekdaysFrom=readPreferredWeekdaysFrom;
+window.setPreferredWeekdayChips=setPreferredWeekdayChips;
+window.togglePreferredWeekdayChip=togglePreferredWeekdayChip;
+window.initPreferredWeekdaysForm=initPreferredWeekdaysForm;
+window.mapGoalFromIntakeText=mapGoalFromIntakeText;
+window.mapLevelFromIntakeChoice=mapLevelFromIntakeChoice;
+window.syncClientFromIntakeForm=syncClientFromIntakeForm;
 
 // ── Motyw studia (czerwień + grafit) ──
 const STUDIO_THEME={

@@ -730,6 +730,23 @@ function cpClientDataEditHTML(c){
           <option value="zaawansowany" ${c.level==='zaawansowany'?'selected':''}>Zaawansowany</option>
         </select>`)}
     </div>
+    <div class="form-grid">
+      ${field('cpe-freq','Dni / tydzień',`<select class="form-select" id="cpe-freq">
+          <option value="">—</option>
+          ${[2,3,4,5,6].map(n=>`<option value="${n}" ${Number(c.trainingFreq)===n?'selected':''}>${n}×</option>`).join('')}
+        </select>`)}
+      ${field('cpe-train-time','Preferowana pora',`<select class="form-select" id="cpe-train-time">
+          <option value="">— dowolna —</option>
+          ${['Rano (6-10)','Południe (10-14)','Po południu (14-18)','Wieczór (18-22)'].map(t=>`<option value="${t}" ${c.preferredTrainTime===t?'selected':''}>${t}</option>`).join('')}
+        </select>`)}
+    </div>
+    <div class="form-field cp-field-below">
+      <div class="cp-field-control">
+        <div class="cp-field-hint">Kolejność = Dzień 1, 2… przy zapisie do kalendarza.</div>
+        ${typeof preferredWeekdaysChipsHTML==='function'?preferredWeekdaysChipsHTML(c.preferredWeekdays||[],'cpe'):'<div id="cpe-preferred-weekdays-mount"></div>'}
+      </div>
+      <label class="form-lbl">Preferowane dni tygodnia</label>
+    </div>
     ${field('cpe-status','Status',`<select class="form-select" id="cpe-status">
         <option value="active" ${c.status==='active'?'selected':''}>Aktywny</option>
         <option value="inactive" ${c.status==='inactive'?'selected':''}>Nieaktywny</option>

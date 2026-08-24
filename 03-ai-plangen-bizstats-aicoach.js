@@ -124,6 +124,12 @@ function aplFillFromClient(){
       b.classList.toggle('active',b.dataset.val===c.level);
     });
   }
+  const freq=typeof normalizeTrainingFreq==='function'?normalizeTrainingFreq(c.trainingFreq):parseInt(c.trainingFreq,10);
+  if(freq>=2&&freq<=6){
+    document.querySelectorAll('#apl-days .apl-opt').forEach(b=>{
+      b.classList.toggle('active',b.dataset.val===String(freq));
+    });
+  }
   if(typeof setPriorSportsChips==='function')setPriorSportsChips('apl',c.priorSports||[]);
   if(typeof initPhysiquePriorityForm==='function')initPhysiquePriorityForm('apl',c.physiquePriority||[]);
   else if(typeof setPhysiquePriorityChips==='function')setPhysiquePriorityChips('apl',c.physiquePriority||[]);
@@ -131,6 +137,10 @@ function aplFillFromClient(){
   if(actEl&&c.activityLevel)actEl.value=c.activityLevel;
   const snEl=document.getElementById('apl-sport-notes');
   if(snEl&&c.sportNotes)snEl.value=c.sportNotes;
+  // 3× + masa/kształtowanie → preset hipertrofii Push+Quads / Pull+Hams / Upper
+  if(freq===3&&(c.goal==='masa'||c.goal==='redukcja')&&typeof aplApplyHypertrophy3DayPreset==='function'){
+    aplApplyHypertrophy3DayPreset();
+  }
   aplRenderMetricsHint(cid);
   const hasM=typeof clientMetricsContextForAI==='function'&&!!clientMetricsContextForAI(cid);
   notify(hasM?`✓ Dane ${c.name} + pomiary (baseline) wczytane`:`✓ Dane ${c.name} wczytane do formularza`);
@@ -571,7 +581,13 @@ ${client?`- Klient: ${client.name}, cel: ${client.goal}, poziom: ${client.level}
         if(isFirst){
           chunkSystem+=`\n\nW TEJ ODPOWIEDZI wygeneruj TYLKO dni ${from}–${to} z ${totalDays}. Dołącz pełną strukturę planu (planName, summary, periodization itd.), ale w "days" tylko te ${chunkDays} dni.`;
         }else{
-          chunkSystem=`Kontynuuj plan treningowy w języku polskim. Zwróć TYLKO JSON (bez markdown): {"days":[...]} z DOKŁADNIE ${chunkDays} dniami (numeracja ${from}–${to} z ${totalDays}). Każdy dzień: dayName, focus, warmupExercises (3), exercises (4 główne + 1 core) z polami name, notes (max 60 znaków), muscleGroup, sets, reps, rest, rpe, kg.`;
+          chunkSystem=`Kontynuuj plan treningowy w języku polskim. Zwróć TYLKO JSON (bez markdown): {"days":[...]} z DOKŁADNIE ${chunkDays} dniami (numeracja ${from}–${to} z ${totalDays}). Każdy dzień: dayName, focus, warmupExercises (3), exercises (4 główne + 1 core) z polami name, notes (max 60 znaków), muscleGroup, sets, reps, rest, rpe, kg, tempo.
+
+ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
+1. Każda główna partia ≥2×/tydzień (suma serii z wielu dni).
+2. PRIORYTET SYLWETKOWY: 1–2 pierwsze ćwiczenia sesji (po rozgrzewce) na weak points, gdy sesja je stymuluje.
+3. Preferuj maszyny / Smith / wyciągi i warianty lengthened / stretch-mediated z pauzą 1s w rozciągnięciu.
+4. 3–4 serie; złożone 6–10; izolacje 8–12 lub 10–15; RPE 8–10 ≈ RIR 0–2; tempo "3-1-1-0" dla priorytetów i izolacji.`;
           chunkUser=`Plan: ${plan?.planName||method}. Istniejące dni: ${(plan?.days||[]).map(d=>d.dayName).join('; ')}.\nDodaj dni ${from}–${to}.\n${userMsg}`;
         }
       }
@@ -874,11 +890,12 @@ function aplEditExercise(di,ei){
         <button onclick="aplRerenderCurrent()" title="Anuluj" style="background:var(--input-bg);border:1px solid var(--border2);border-radius:6px;width:28px;height:28px;color:var(--red);cursor:pointer;font-size:13px;">✕</button>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px;padding-left:42px;">
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px;padding-left:42px;">
       <div><div class="form-lbl" style="margin-bottom:3px;font-size:10px;">Serie</div><input type="text" id="apl-edit-sets-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(wp.s||ex.sets||''):(wp.s||ex.sets||'').replace(/"/g,'&quot;')}" style="width:100%;text-align:center;font-size:13px;color:var(--accent);"></div>
       <div><div class="form-lbl" style="margin-bottom:3px;font-size:10px;">Powt.</div><input type="text" id="apl-edit-reps-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(wp.r||ex.reps||''):(wp.r||ex.reps||'').replace(/"/g,'&quot;')}" style="width:100%;text-align:center;font-size:13px;color:var(--teal);"></div>
       <div><div class="form-lbl" style="margin-bottom:3px;font-size:10px;">Przerwa</div><input type="text" id="apl-edit-rest-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(wp.rest||ex.rest||''):(wp.rest||ex.rest||'').replace(/"/g,'&quot;')}" style="width:100%;text-align:center;font-size:13px;"></div>
-      <div><div class="form-lbl" style="margin-bottom:3px;font-size:10px;">RPE / kg</div><input type="text" id="apl-edit-rir-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(wp.rpe||ex.rir||''):(wp.rpe||ex.rir||'').replace(/"/g,'&quot;')}" style="width:100%;text-align:center;font-size:13px;color:var(--gold);"></div>
+      <div><div class="form-lbl" style="margin-bottom:3px;font-size:10px;">RIR / RPE</div><input type="text" id="apl-edit-rir-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(wp.rpe||ex.rir||ex.rpe||''):(wp.rpe||ex.rir||ex.rpe||'').replace(/"/g,'&quot;')}" style="width:100%;text-align:center;font-size:13px;color:var(--gold);"></div>
+      <div><div class="form-lbl" style="margin-bottom:3px;font-size:10px;">Tempo</div><input type="text" id="apl-edit-tempo-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(wp.tempo||ex.tempo||''):(wp.tempo||ex.tempo||'').replace(/"/g,'&quot;')}" placeholder="3-1-1-0" style="width:100%;text-align:center;font-size:12px;"></div>
     </div>`;
   setTimeout(()=>aplInitExerciseNameInput(di,ei,true),30);
 }
@@ -894,9 +911,12 @@ function aplSaveExerciseEdit(di,ei){
   ex[curWeek].r=document.getElementById(`apl-edit-reps-${di}-${ei}`).value.trim();
   ex[curWeek].rest=document.getElementById(`apl-edit-rest-${di}-${ei}`).value.trim();
   ex[curWeek].rpe=document.getElementById(`apl-edit-rir-${di}-${ei}`).value.trim();
+  const tempoEl=document.getElementById(`apl-edit-tempo-${di}-${ei}`);
+  const tempoVal=tempoEl?tempoEl.value.trim():'';
+  if(tempoVal){ex[curWeek].tempo=tempoVal;ex.tempo=tempoVal;}
   // zachowaj kompatybilność wsteczną (tydzień 1 = pola płaskie)
   if(curWeek===(aplLastPlan.weekKeys||['w1'])[0]){
-    ex.sets=ex[curWeek].s;ex.reps=ex[curWeek].r;ex.rest=ex[curWeek].rest;ex.rir=ex[curWeek].rpe;
+    ex.sets=ex[curWeek].s;ex.reps=ex[curWeek].r;ex.rest=ex[curWeek].rest;ex.rir=ex[curWeek].rpe;ex.rpe=ex[curWeek].rpe;
   }
   notify('✓ Ćwiczenie zaktualizowane');
   aplRerenderCurrent();

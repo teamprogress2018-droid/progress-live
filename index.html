@@ -2818,6 +2818,31 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <div class="form-field"><label class="form-lbl">Cel</label><select class="form-select" id="ac-goal"><option value="masa">Budowa masy</option><option value="sila">Wzrost siły</option><option value="redukcja">Redukcja</option><option value="kondycja">Kondycja</option></select></div>
         <div class="form-field"><label class="form-lbl">Poziom</label><select class="form-select" id="ac-level"><option value="poczatkujacy">Początkujący (0-1 rok)</option><option value="sredni">Średniozaawansowany (1-3 lata)</option><option value="zaawansowany">Zaawansowany (3+ lata)</option></select></div>
       </div>
+      <div class="form-grid">
+        <div class="form-field"><label class="form-lbl">Dni treningowe / tydzień</label>
+          <select class="form-select" id="ac-freq">
+            <option value="">— nie ustawiono —</option>
+            <option value="2">2× w tygodniu</option>
+            <option value="3" selected>3× w tygodniu</option>
+            <option value="4">4× w tygodniu</option>
+            <option value="5">5× w tygodniu</option>
+            <option value="6">6× w tygodniu</option>
+          </select>
+        </div>
+        <div class="form-field"><label class="form-lbl">Preferowana pora</label>
+          <select class="form-select" id="ac-train-time">
+            <option value="">— dowolna —</option>
+            <option value="Rano (6-10)">Rano (6–10)</option>
+            <option value="Południe (10-14)">Południe (10–14)</option>
+            <option value="Po południu (14-18)">Po południu (14–18)</option>
+            <option value="Wieczór (18-22)">Wieczór (18–22)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-field"><label class="form-lbl">Preferowane dni tygodnia</label>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Używane przy zapisie planu do kalendarza (kolejność = Dzień 1, 2…).</div>
+        <div id="ac-preferred-weekdays-mount"></div>
+      </div>
       <div class="form-field"><label class="form-lbl">Wcześniejsze sporty / aktywności</label>
         <div id="ac-prior-sports-mount" style="font-size:11px;color:var(--muted);margin-bottom:6px;">Zaznacz uprawiane wcześniej — wpływa na plan (wytrzymałość vs siła).</div>
       </div>
@@ -2855,7 +2880,8 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   <div class="modal" style="max-width:440px;">
     <div class="modal-hdr"><div class="modal-title" id="m-baseline-title">POMIARY STARTOWE</div><button class="modal-close" onclick="closeM('m-baseline')">×</button></div>
     <div class="modal-body">
-      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Zapisz baseline z dzisiejszą datą — historia w Pomiary.</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Zapisz baseline — historia w Pomiary (możesz zmienić datę).</div>
+      <div class="form-field"><label class="form-lbl">Data pomiaru</label><input type="date" class="form-input" id="bl-date"></div>
       <div class="form-grid">
         <div class="form-field"><label class="form-lbl">Waga (kg)</label><input type="number" class="form-input" id="bl-weight" step="0.1" placeholder="80"></div>
         <div class="form-field"><label class="form-lbl">% tkanki tłuszczowej</label><input type="number" class="form-input" id="bl-bf" step="0.1" placeholder="18"></div>
