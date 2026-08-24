@@ -132,6 +132,7 @@ function renderClients(){
     <div style="align-self:center;display:flex;gap:4px;flex-wrap:wrap;">
       <span class="pill ${c.status==='inactive'?'pill-red':c.status==='archived'?'pill-red':'pill-green'}"><span class="pill-dot"></span>${c.status==='inactive'?'Nieaktywny':c.status==='archived'?'Zarchiwizowany':'Aktywny'}</span>
       ${c.inviteSent?'<span class="pill pill-blue" style="font-size:9px;">📱 Zaproszony</span>':''}
+      ${c.appJoined?'<span class="pill pill-green" style="font-size:9px;">✓ W apce</span>':''}
       ${(()=>{const ob=getClientOnboard(c);return ob.complete?'':'<span class="pill pill-orange" style="font-size:9px;" onclick="event.stopPropagation();openClientOnboardChecklist(\''+c.id+'\')">Start '+ob.done+'/'+ob.total+'</span>';})()}
     </div>
     <div style="align-self:center;display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;">
@@ -336,9 +337,16 @@ function openPackageForClient(clientId){
   }
   const pkgDate=document.getElementById('pkg-date');
   if(pkgDate&&!pkgDate.value)pkgDate.value=new Date().toISOString().split('T')[0];
+  const paySt=document.getElementById('pkg-pay-status');
+  if(paySt)paySt.value='pending';
   openM('m-package');
 }
 window.openPackageForClient=openPackageForClient;
+
+function clientPendingPackage(clientId){
+  return(window.PACKAGES||[]).find(p=>p&&p.clientId===clientId&&p.payStatus==='pending'&&!p.paymentRequestedAt)||null;
+}
+window.clientPendingPackage=clientPendingPackage;
 
 function openAiPlanForClient(clientId){
   closeM('m-client-onboard');
@@ -394,7 +402,12 @@ function renderClientOnboardChecklist(){
       extra:st.calendar?'':`<button class="btn btn-ghost btn-sm" onclick="closeM('m-client-onboard');goTo('live');setTimeout(()=>liveClientSetField('${id}','${safeName}'),300)">Trening Live</button>`},
     {done:st.package,icon:'💳',title:'Pakiet / płatność',desc:'Przypisz pakiet sesji albo pomiń, jeśli rozliczacie się inaczej',
       action:`openPackageForClient('${id}')`,cta:'+ Pakiet',
-      extra:st.package?'':`<button class="btn btn-ghost btn-sm" onclick="skipClientPackage('${id}')">Pomiń</button>`},
+      extra:st.package?'':`<button class="btn btn-ghost btn-sm" onclick="skipClientPackage('${id}')">Pomiń</button>`,
+      afterDone:(()=>{
+        const pend=typeof clientPendingPackage==='function'?clientPendingPackage(id):null;
+        if(!pend)return'';
+        return `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"><button class="btn btn-primary btn-sm" onclick="requestPayment('${pend.id}');renderClientOnboardChecklist()">💸 Poproś o wpłatę</button><span style="font-size:10px;color:var(--muted);align-self:center;">${escHtml(pend.title||'Pakiet')} · ${(pend.price||0)} zł</span></div>`;
+      })()},
   ];
   const flow=window.ONBOARDING_FLOW;
   if(flow&&flow.forumGroupId){
@@ -409,13 +422,20 @@ function renderClientOnboardChecklist(){
       cta:'Dołącz do forum'
     });
   }
+  // Invite step: show app-joined hint when already invited
+  const inviteStep=steps.find(s=>s.title&&s.title.indexOf('zaproszenie')>=0);
+  if(inviteStep&&st.invite&&c.appJoined){
+    inviteStep.desc='Klient założył konto w aplikacji ('+(c.appJoinedAt?String(c.appJoinedAt).slice(0,10):'ok')+').';
+  }
   el.innerHTML=steps.map(s=>`
     <div style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:var(--s3);border:1px solid ${s.done?'var(--teal)':'var(--border)'};border-radius:10px;margin-bottom:8px;">
       <div style="width:32px;height:32px;border-radius:8px;background:${s.done?'rgba(62,207,178,0.18)':'var(--s2)'};display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">${s.done?'✓':s.icon}</div>
       <div style="flex:1;">
         <div style="font-size:13px;font-weight:700;margin-bottom:2px;">${s.title}</div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:${s.done?'0':'8px'};">${s.desc}</div>
-        ${s.done?'<div style="font-size:10px;color:var(--teal);font-family:\'DM Mono\',monospace;margin-top:4px;">GOTOWE</div>':`<div style="display:flex;gap:6px;flex-wrap:wrap;"><button class="btn btn-primary btn-sm" onclick="${s.action}">${s.cta}</button>${s.extra||''}</div>`}
+        <div style="font-size:11px;color:var(--muted);margin-bottom:${s.done&&!s.afterDone?'0':'8px'};">${s.desc}</div>
+        ${s.done
+          ?`<div style="font-size:10px;color:var(--teal);font-family:'DM Mono',monospace;margin-top:4px;">GOTOWE</div>${s.afterDone||''}`
+          :`<div style="display:flex;gap:6px;flex-wrap:wrap;"><button class="btn btn-primary btn-sm" onclick="${s.action}">${s.cta}</button>${s.extra||''}</div>`}
       </div>
     </div>`).join('')+(st.complete?`<button class="btn btn-primary" style="width:100%;margin-top:4px;" onclick="closeM('m-client-onboard')">Gotowe — zamknij</button>`:'');
 }

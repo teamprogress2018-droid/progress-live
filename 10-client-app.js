@@ -445,6 +445,12 @@ function authSetError(id,msg){
   el.style.display='block';
 }
 
+function clientAppJoinedPatch(nowIso){
+  const t=nowIso||new Date().toISOString();
+  return{appJoined:true,appJoinedAt:t,inviteAcceptedAt:t,inviteSent:true,appInvited:true};
+}
+window.clientAppJoinedPatch=clientAppJoinedPatch;
+
 async function doClientRegister(){
   const token=(document.getElementById('auth-reg-token')?.value||window._pendingInviteToken||clientInviteTokenFromUrl()||'').trim();
   const email=(document.getElementById('auth-reg-email')?.value||'').trim();
@@ -481,6 +487,40 @@ async function doClientRegister(){
       email,
       createdAt:new Date().toISOString()
     });
+    // Domknięcie pętli zaproszenia — trener widzi „W apce”
+    try{
+      const joinedAt=new Date().toISOString();
+      const patch=typeof clientAppJoinedPatch==='function'?clientAppJoinedPatch(joinedAt):{
+        appJoined:true,appJoinedAt:joinedAt,inviteAcceptedAt:joinedAt,inviteSent:true,appInvited:true
+      };
+      await window._setDoc(window._doc(window._db,'clients',inv.clientId),patch,{merge:true});
+      const nid='n_join_'+inv.clientId+'_'+Date.now().toString(36);
+      if(window._setDoc&&window._doc){
+        await window._setDoc(window._doc(window._db,'notifications',nid),{
+          id:nid,
+          trainerId:inv.trainerId,
+          type:'system',
+          title:'Klient w aplikacji',
+          body:(inv.clientName||email)+' założył konto',
+          action:'clients',
+          read:false,
+          createdAt:joinedAt,
+          time:'teraz'
+        },{merge:true});
+      }
+      if(typeof withTrainer==='function'&&typeof newId==='function'&&typeof persistById==='function'){
+        const msg=withTrainer({
+          id:newId('msg'),
+          clientId:inv.clientId,
+          text:'Założyłem konto w aplikacji Progress Live 👋',
+          out:false,
+          time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),
+          createdAt:joinedAt,
+          trainerId:inv.trainerId
+        });
+        await persistById('messages',msg);
+      }
+    }catch(e){console.warn('Oznaczenie appJoined:',e);}
     window._pendingInviteToken='';
     try{history.replaceState(null,'',location.pathname);}catch(e){}
   }catch(e){

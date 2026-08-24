@@ -593,8 +593,8 @@ function markPaid(id){
 
 function requestPayment(id){
   const p=allPackages().find(x=>x.id===id);
-  if(!p){notify('Nie znaleziono pakietu');return;}
-  if(!p.clientId){notify('Pakiet bez klienta');return;}
+  if(!p){notify('Nie znaleziono pakietu');return false;}
+  if(!p.clientId){notify('Pakiet bez klienta');return false;}
   const seller=paySeller();
   const lines=[
     'Prośba o płatność — '+p.title,
@@ -605,8 +605,14 @@ function requestPayment(id){
     'Po wpłacie daj znać — oznaczę pakiet jako opłacony.'
   ];
   if(typeof pushMsg==='function')pushMsg(p.clientId,lines.join('\n'));
+  p.paymentRequestedAt=new Date().toISOString();
+  if(typeof persistById==='function')persistById('packages',p);
   notify('✓ Prośba o wpłatę poszła do czatu klienta');
   if(typeof addNotification==='function')addNotification('payment','Wysłano prośbę o wpłatę',(p.clientName||'')+' · '+(p.price||0)+' zł','inbox');
+  if(typeof renderClientOnboardChecklist==='function'&&window._onboardClientId===p.clientId){
+    try{renderClientOnboardChecklist();}catch(e){}
+  }
+  return true;
 }
 
 function deletePackage(id){
@@ -760,7 +766,13 @@ async function savePackage(){
   else if(payTab==='packages')renderPayPackages();
   else if(payTab==='invoices')renderPayInvoices();
   const resumeId=window._onboardResumeAfterPackage||pkg.clientId;
+  const fromOnboard=!!window._onboardResumeAfterPackage;
   window._onboardResumeAfterPackage=null;
+  if(pkg.payStatus==='pending'&&pkg.clientId&&(fromOnboard||price>0)){
+    if(confirm('Pakiet oczekuje na wpłatę. Wysłać prośbę o płatność do czatu klienta teraz?')){
+      if(typeof requestPayment==='function')requestPayment(pkg.id);
+    }
+  }
   if(resumeId&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(resumeId);
   if(typeof renderDash==='function')try{renderDash();}catch(e){}
   if(typeof renderClients==='function')try{renderClients();}catch(e){}
