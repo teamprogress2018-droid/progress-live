@@ -128,6 +128,9 @@ jobs:
       - name: 1n15. Testy follow-upu nawyków / wyzwań (dashboard)
         run: node .github/scripts/test_dash_habits_followup.js
 
+      - name: 1n18. Testy dopełniania kalendarza / zdjęć sylwetki (dashboard)
+        run: node .github/scripts/test_dash_cal_photo_followup.js
+
       - name: 1n8. Testy webhooków integracji (Zapier/Make)
         run: node .github/scripts/test_integrations_webhooks.js
 

@@ -1223,9 +1223,10 @@ async function ppSave(clientId){
   if(window._clientAppMode){
     pushClientMsg('Dodałem zdjęcia sylwetki ('+entry.date+').');
     if(typeof addNotification==='function'){
-      const me=(window.CL||[])[0];
+      const me=(window.CL||[]).find(x=>x.id===cid)||(window.CL||[])[0];
       addNotification('task','Nowe zdjęcia sylwetki',(me&&me.name)||'Klient','clients');
     }
+    try{if(typeof renderDashPhotoFollowup==='function')renderDashPhotoFollowup();}catch(e){}
   }
   if(typeof notify==='function')notify('✓ Zdjęcia zapisane');
   if(window._clientAppMode){window._clientLiveScreen='progress';renderClientLive();}
