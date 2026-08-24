@@ -719,7 +719,10 @@ function renderMetricData(cid,gid){
         </div>
         <div style="font-size:12px;" class="${trendClass}">${change!=null?(parseFloat(change)>0?'+':'')+change+(firstMetric&&firstMetric.unit?' '+firstMetric.unit:''):'—'}</div>
         <div style="font-size:18px;" class="${trendClass}">${e.source==='garmin'?'⌚':change==null?'—':parseFloat(change)>0?'↑':parseFloat(change)<0?'↓':'→'}</div>
-        <div><button onclick="delMetricEntry('${e.id}')" style="background:none;border:none;color:var(--muted2);font-size:16px;cursor:pointer;">×</button></div>
+        <div style="display:flex;gap:4px;">
+          <button type="button" onclick="editMetricEntry('${e.id}')" title="Edytuj" style="background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;padding:2px 6px;">✎</button>
+          <button type="button" onclick="delMetricEntry('${e.id}')" title="Usuń" style="background:none;border:none;color:var(--muted2);font-size:16px;cursor:pointer;">×</button>
+        </div>
       </div>`;
     }).join('');
   }
@@ -791,16 +794,68 @@ function saveQuickEntry(cid,gid){
   renderMetrics();renderMetricData(cid,gid);
   notify('✓ Pomiar zapisany!');
   persistById('metricEntries',entry);
+  refreshClientProfileMetrics(cid);
+}
+
+function refreshClientProfileMetrics(clientId){
+  if(typeof cpClientId==='undefined'||cpClientId!==clientId)return;
+  if(typeof cpTab==='undefined'||cpTab!=='metrics')return;
+  const c=(window.CL||[]).find(x=>x.id===clientId);
+  if(c&&typeof renderCPMetrics==='function')renderCPMetrics(c);
 }
 
 function delMetricEntry(id){
+  const old=(window.METRIC_ENTRIES||[]).find(e=>e.id===id);
   window.METRIC_ENTRIES=METRIC_ENTRIES.filter(e=>e.id!==id);
-  const cid=(document.getElementById('metric-client-sel')||{}).value||'';
-  renderMetricData(cid,metricActiveGroup);
+  const cid=(document.getElementById('metric-client-sel')||{}).value||(old&&old.clientId)||'';
+  if(cid&&metricActiveGroup)renderMetricData(cid,metricActiveGroup);
+  try{renderMetrics();}catch(e){}
+  if(old)refreshClientProfileMetrics(old.clientId);
+  notify('Pomiar usunięty');
   if(window._db && id){
-    (async()=>{try{await window._del(window._doc(window._db,'metricEntries',id));}catch(e){/* wpis demo/niezsynchronizowany - nic do usunięcia w chmurze */}})();
+    (async()=>{try{await window._del(window._doc(window._db,'metricEntries',id));}catch(e){/* wpis demo/niezsynchronizowany */}})();
   }
 }
+window.delMetricEntry=delMetricEntry;
+
+/** Otwórz modal nowego/edycji pomiaru — z profilu klienta (bez zamykania drawera). */
+function openMetricEntryForClient(clientId,groupId,entryId){
+  const c=(window.CL||[]).find(x=>x.id===clientId);if(!c){notify('Brak klienta');return;}
+  window._editingMetricId=entryId||null;
+  const title=document.querySelector('#m-metric-entry .modal-title');
+  if(title)title.textContent=entryId?'EDYTUJ POMIAR':'NOWY POMIAR';
+  const hid=document.getElementById('me-client');
+  const search=document.getElementById('me-client-search');
+  if(hid)hid.value=clientId;
+  if(search)search.value=c.name||'';
+  const gsel=document.getElementById('me-group');
+  if(gsel){
+    gsel.innerHTML=allMetricGroups().map(g=>'<option value="'+g.id+'">'+g.icon+' '+g.name+'</option>').join('');
+    if(groupId)gsel.value=groupId;
+  }
+  updateMetricEntryForm();
+  const entry=entryId?(window.METRIC_ENTRIES||[]).find(e=>e.id===entryId):null;
+  const dateEl=document.getElementById('me-date');
+  if(dateEl)dateEl.value=entry&&entry.date?entry.date:(typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10));
+  const notesEl=document.getElementById('me-notes');
+  if(notesEl)notesEl.value=entry&&entry.notes?entry.notes:'';
+  if(entry&&entry.values){
+    const group=allMetricGroups().find(g=>g.id===(entry.groupId||groupId));
+    (group&&group.metrics||[]).forEach(m=>{
+      const el=document.getElementById('mef-'+m.id);
+      if(el&&entry.values[m.id]!=null)el.value=entry.values[m.id];
+    });
+  }
+  openM('m-metric-entry');
+}
+window.openMetricEntryForClient=openMetricEntryForClient;
+
+function editMetricEntry(id){
+  const e=(window.METRIC_ENTRIES||[]).find(x=>x.id===id);
+  if(!e){notify('Nie znaleziono pomiaru');return;}
+  openMetricEntryForClient(e.clientId,e.groupId,e.id);
+}
+window.editMetricEntry=editMetricEntry;
 
 // Metric group creator
 function addMetricField(){
@@ -857,12 +912,27 @@ async function saveMetricEntry(){
   if(!cid||!gid||!date){notify('Uzupełnij wszystkie pola!');return;}
   const group=allMetricGroups().find(g=>g.id===gid);if(!group)return;
   const values={};
-  group.metrics.forEach(m=>{const el=document.getElementById('mef-'+m.id);if(el&&el.value)values[m.id]=parseFloat(el.value);});
+  group.metrics.forEach(m=>{const el=document.getElementById('mef-'+m.id);if(el&&el.value!=='')values[m.id]=parseFloat(el.value);});
   if(!Object.keys(values).length){notify('Wpisz przynajmniej jedną wartość!');return;}
-  const entry=withTrainer({id:newId('me'),clientId:cid,groupId:gid,date,values,notes:document.getElementById('me-notes').value,createdAt:new Date().toISOString()});
+  const notes=document.getElementById('me-notes').value;
+  const editId=window._editingMetricId;
+  if(editId){
+    const idx=METRIC_ENTRIES.findIndex(e=>e.id===editId);
+    if(idx<0){notify('Nie znaleziono wpisu');window._editingMetricId=null;return;}
+    METRIC_ENTRIES[idx]={...METRIC_ENTRIES[idx],clientId:cid,groupId:gid,date,values,notes,updatedAt:new Date().toISOString()};
+    window._editingMetricId=null;
+    closeM('m-metric-entry');
+    if((document.getElementById('metric-client-sel')||{}).value===cid){renderMetrics();if(metricActiveGroup===gid)renderMetricData(cid,gid);}
+    refreshClientProfileMetrics(cid);
+    notify('✓ Pomiar zaktualizowany!');
+    await persistById('metricEntries',METRIC_ENTRIES[idx]);
+    return;
+  }
+  const entry=withTrainer({id:newId('me'),clientId:cid,groupId:gid,date,values,notes,createdAt:new Date().toISOString()});
   METRIC_ENTRIES.push(entry);
   closeM('m-metric-entry');
   if((document.getElementById('metric-client-sel')||{}).value===cid){renderMetrics();if(metricActiveGroup===gid)renderMetricData(cid,gid);}
+  refreshClientProfileMetrics(cid);
   notify('✓ Pomiar dodany!');
   await persistById('metricEntries',entry);
 }
