@@ -27,6 +27,8 @@ function eq(name,got,want){
 eq('css accent sets',css.includes('data-f="sets"'),true);
 eq('css alt chips',css.includes('builder-alt-chip'),true);
 eq('css tech media',css.includes('builder-tech-media'),true);
+eq('css compact numeric inputs',css.includes('ex-row>.ex-inp')&&css.includes('min-height:40px'),true);
+eq('css wider set col',css.includes('54px 78px 64px'),true);
 
 const altsForExercise=(name)=>{
   if(/sztangi leż/i.test(name))return['Wyciskanie hantli','Pompki'];
