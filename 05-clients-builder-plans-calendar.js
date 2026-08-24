@@ -1389,7 +1389,7 @@ function renderRecordedExercises(s){
   const hasDetailedSets=(s.exercises||[]).some(e=>Array.isArray(e.sets)&&e.sets.length&&typeof e.sets[0]==='object');
   const hasRating=Number(s.feedback)>=1&&Number(s.feedback)<=5;
   if(!hasDetailedSets&&!hasRating&&!(s.note||s.notes)){wrap.style.display='none';list.innerHTML='';return;}
-  const src=s.source==='client'?'klienta':s.source==='live'?'Treningu Live':'sesji';
+  const src=s.source==='client'?'klienta':s.source==='live'?'Treningu Live':s.source==='planned'?'planu':'sesji';
   const titleEl=wrap.querySelector('[data-rec-ex-title]');
   if(titleEl)titleEl.textContent='Zapisane serie i ocena (z '+src+')';
   const ratingLine=hasRating&&typeof sessionRatingLabel==='function'

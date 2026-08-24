@@ -1455,11 +1455,29 @@ function planTrainingDayIdxs(plan){
 }
 window.planTrainingDayIdxs=planTrainingDayIdxs;
 
+/** Sesja z kalendarza (source=planned) na dany dzień — dayIdx z planu. */
+function plannedSessionForDate(clientId,planId,dateYmd){
+  if(!clientId||!planId)return null;
+  const day=dateYmd||(typeof todayYmd==='function'?todayYmd():'');
+  if(!day)return null;
+  const list=(window.SE||[]).filter(s=>s&&s.clientId===clientId&&s.planId===planId&&s.date===day&&s.source==='planned'&&s.dayIdx!=null)
+    .sort((a,b)=>(a.time||'').localeCompare(b.time||'')||(a.createdAt||'').localeCompare(b.createdAt||''));
+  return list[0]||null;
+}
+window.plannedSessionForDate=plannedSessionForDate;
+
 function suggestedPlanDayIdx(clientId,plan){
   if(!plan||!plan.days||!plan.days.length)return 0;
-  if(plan.days.length===7)return(new Date().getDay()+6)%7;
   const train=planTrainingDayIdxs(plan);
   if(!train.length)return 0;
+  // Kalendarz: jeśli dziś jest zaplanowana sesja z tego planu — bierz jej dayIdx (Live / Today).
+  const today=typeof todayYmd==='function'?todayYmd():'';
+  const planned=plannedSessionForDate(clientId,plan.id,today);
+  if(planned){
+    const idx=Number(planned.dayIdx);
+    if(train.indexOf(idx)>=0)return idx;
+  }
+  if(plan.days.length===7)return(new Date().getDay()+6)%7;
   const past=(window.SE||[]).filter(s=>s.clientId===clientId&&s.planId===plan.id&&s.dayIdx!=null&&(s.source==='live'||s.source==='client'))
     .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''));
   if(!past.length)return train[0];
@@ -1699,6 +1717,7 @@ window.sessionRatingLabel=sessionRatingLabel;
 
 function isLoggedWorkout(s){
   if(!s)return false;
+  if(s.source==='planned'||s.source==='garmin')return false;
   if(s.source==='client'||s.source==='live')return true;
   return Array.isArray(s.exercises)&&s.exercises.length>0;
 }
@@ -1738,6 +1757,7 @@ function sessionSourceLabel(s){
   if(s.source==='garmin')return 'Garmin';
   if(s.source==='client')return 'Klient';
   if(s.source==='live')return 'Live';
+  if(s.source==='planned')return 'Plan';
   return 'Sala';
 }
 window.sessionSourceLabel=sessionSourceLabel;
