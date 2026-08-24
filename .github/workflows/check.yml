@@ -90,6 +90,9 @@ jobs:
       - name: 1o. Testy edycji pomiarów w profilu klienta
         run: node .github/scripts/test_cp_metrics_edit.js
 
+      - name: 1p. Testy kontekstu pomiarów w generatorze AI
+        run: node .github/scripts/test_ai_metrics_context.js
+
       - name: 2. Sprawdź duplikaty (funkcje / id / zmienne)
         run: python3 .github/scripts/check_duplicates.py
 

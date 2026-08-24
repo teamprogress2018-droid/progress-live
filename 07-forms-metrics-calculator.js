@@ -984,6 +984,71 @@ function clientHasBaseline(clientId){
 window.saveClientBaselineFromFields=saveClientBaselineFromFields;
 window.clientHasBaseline=clientHasBaseline;
 
+/** Ostatnie pomiary (masa/%BF/obwody/1RM) + krótki trend — kontekst dla generatora AI / AI Coach. */
+function clientMetricsContextForAI(clientId){
+  if(!clientId)return'';
+  const entries=(window.METRIC_ENTRIES||[]).filter(e=>e&&e.clientId===clientId&&e.values);
+  if(!entries.length)return'';
+  const byGroup=(gid)=>entries.filter(e=>e.groupId===gid).sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''));
+  const lines=['=== POMIARY KLIENTA (baseline / historia) ==='];
+  const mass=byGroup('mg1');
+  if(mass.length){
+    const last=mass[0],prev=mass[1];
+    const v=last.values||{};
+    const d=(k)=>v[k]!=null&&prev&&prev.values&&prev.values[k]!=null?(v[k]-prev.values[k]):null;
+    const fmtD=(x)=>x==null?'':(x>0?' (+'+x.toFixed(1)+')':x<0?' ('+x.toFixed(1)+')':' (±0)');
+    lines.push('Masa i skład (ostatni '+ (last.date||'?')+'):'
+      +(v.m1!=null?' masa '+v.m1+' kg'+fmtD(d('m1')):'')
+      +(v.m2!=null?', BF% '+v.m2+fmtD(d('m2')):'')
+      +(v.m3!=null?', masa mięśniowa '+v.m3+' kg'+fmtD(d('m3')):'')
+      +(v.m4!=null?', BMI '+v.m4+fmtD(d('m4')):''));
+    if(mass.length>=2){
+      const hist=mass.slice(0,4).map(e=>{
+        const w=e.values&&e.values.m1;const bf=e.values&&e.values.m2;
+        return (e.date||'?')+': '+(w!=null?w+' kg':'—')+(bf!=null?' / BF '+bf+'%':'');
+      }).join('; ');
+      lines.push('Historia masy (od najnowszej): '+hist);
+    }
+  }
+  const circ=byGroup('mg2');
+  if(circ.length){
+    const last=circ[0],prev=circ[1];
+    const v=last.values||{};
+    const labels={m1:'klatka',m2:'talia',m3:'biodra',m4:'udo',m5:'ramię'};
+    const parts=Object.keys(labels).filter(k=>v[k]!=null).map(k=>{
+      let s=labels[k]+' '+v[k]+' cm';
+      if(prev&&prev.values&&prev.values[k]!=null){
+        const diff=v[k]-prev.values[k];
+        s+=(diff>0?' (+'+diff.toFixed(1)+')':diff<0?' ('+diff.toFixed(1)+')':'');
+      }
+      return s;
+    });
+    if(parts.length)lines.push('Obwody (ostatni '+(last.date||'?')+'): '+parts.join(', '));
+  }
+  const str=byGroup('mg3');
+  if(str.length){
+    const v=str[0].values||{};
+    const parts=[];
+    if(v.m1!=null)parts.push('przysiad 1RM '+v.m1+' kg');
+    if(v.m2!=null)parts.push('martwy 1RM '+v.m2+' kg');
+    if(v.m3!=null)parts.push('wyciskanie 1RM '+v.m3+' kg');
+    if(v.m4!=null)parts.push('OHP 1RM '+v.m4+' kg');
+    if(parts.length)lines.push('Siła bazowa ('+(str[0].date||'?')+'): '+parts.join(', ')+' — użyj do sugerowanych kg w planie.');
+  }
+  if(lines.length<=1)return'';
+  lines.push('UWAGA: uwzględnij trendy (np. spadek BF / wzrost masy mięśniowej) i 1RM przy doborze obciążeń startowych. Nie wymyślaj innych pomiarów.');
+  return lines.join('\n')+'\n';
+}
+/** Ostatnia masa z pomiarów (mg1.m1) — do prefill formularza AI. */
+function clientLatestMetricWeight(clientId){
+  if(!clientId)return null;
+  const mass=(window.METRIC_ENTRIES||[]).filter(e=>e&&e.clientId===clientId&&e.groupId==='mg1'&&e.values&&e.values.m1!=null)
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''));
+  return mass.length?mass[0].values.m1:null;
+}
+window.clientMetricsContextForAI=clientMetricsContextForAI;
+window.clientLatestMetricWeight=clientLatestMetricWeight;
+
 async function askMetricAI(){
   const q=document.getElementById('metric-ai-q').value.trim();if(!q)return;
   document.getElementById('metric-ai-q').value='';
