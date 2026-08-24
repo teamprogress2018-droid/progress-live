@@ -242,9 +242,35 @@ function renderClientLive(){
     bn.classList.toggle('active',on);
     bn.style.opacity=on?'1':'0.55';
   });
+  updateClientLiveNavBadges(c);
   if(typeof capScreenHTML==='function'&&c)content.innerHTML=capScreenHTML(scr,c);
   else if(!c)content.innerHTML='<div style="padding:40px;text-align:center;color:var(--muted);">Nie znaleziono profilu klienta.</div>';
 }
+
+function updateClientLiveNavBadges(c){
+  const cid=c&&c.id;
+  const setBadge=(id,on)=>{
+    const bn=document.getElementById(id);if(!bn)return;
+    let dot=bn.querySelector('.clive-nav-badge');
+    if(on){
+      if(!dot){
+        dot=document.createElement('span');
+        dot.className='clive-nav-badge';
+        dot.style.cssText='position:absolute;top:4px;right:10px;width:8px;height:8px;border-radius:50%;background:var(--accent);border:1px solid var(--s1);';
+        bn.style.position=bn.style.position||'relative';
+        bn.appendChild(dot);
+      }
+      dot.style.display='block';
+    }else if(dot){
+      dot.style.display='none';
+    }
+  };
+  const pendCi=cid&&typeof pendingCheckin==='function'?!!pendingCheckin(cid):false;
+  const pendForms=cid&&typeof pendingFormSends==='function'?pendingFormSends(cid).length>0:false;
+  setBadge('clive-bn-checkin',pendCi);
+  setBadge('clive-bn-messages',pendForms);
+}
+window.updateClientLiveNavBadges=updateClientLiveNavBadges;
 
 function setClientLiveScreen(scr){
   window._clientLiveScreen=scr;
@@ -492,12 +518,14 @@ function clientSubmitCheckin(){
   else{
     ci.answers=answers;ci.status='filled';ci.score=Math.round(((answers.energy)+(answers.sleep)+(6-answers.stress)+answers.nutrition)/4*20);
     persistById('checkins',ci);
+    if(typeof syncClientFromCheckin==='function')try{syncClientFromCheckin(ci);}catch(e){}
   }
   window._cliveCheckin={};
-  pushClientMsg('Wypełniłem tygodniowy check-in.');
+  pushClientMsg('Wypełniłem tygodniowy check-in'+(answers.weight?' (waga '+answers.weight+' kg)':'')+'.');
   if(typeof addNotification==='function'){
-    const me=(window.CL||[])[0];
-    addNotification('task','Nowy check-in od klienta',(me&&me.name)||'Klient','checkin');
+    const me=(window.CL||[]).find(x=>x.id===clientId)||(window.CL||[])[0];
+    const wBit=answers.weight?' · waga '+answers.weight+' kg':'';
+    addNotification('task','Nowy check-in od klienta',((me&&me.name)||'Klient')+wBit,'checkin');
   }
   if(typeof notify==='function')notify('✓ Check-in wysłany do trenera');
   window._clientLiveScreen='home';
