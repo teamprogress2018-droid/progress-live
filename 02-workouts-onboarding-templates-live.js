@@ -1752,15 +1752,20 @@ function renderLivePlanPicker(){
   if(!livePlanId&&plans.length)liveSelectPlan(plans[0].id);
 }
 
-// Sprawdza ostatnią sesję live tego klienta z tym planem i sugeruje kolejny dzień w rotacji.
-// Jeśli brak historii — zaczyna od dnia 1 (indeks 0).
+// Sprawdza ostatnią sesję live/client tego klienta z tym planem i sugeruje kolejny dzień w rotacji.
+// Jeśli brak historii — zaczyna od pierwszego dnia treningowego.
 function liveGetSuggestedDayIdx(clientId,plan){
   if(typeof suggestedPlanDayIdx==='function')return suggestedPlanDayIdx(clientId,plan);
   if(!plan||!plan.days||!plan.days.length)return 0;
+  const train=typeof planTrainingDayIdxs==='function'?planTrainingDayIdxs(plan)
+    :(plan.days||[]).map((d,i)=>d&&!d.rest&&(d.exercises||[]).length?i:-1).filter(i=>i>=0);
+  if(!train.length)return 0;
   const past=SE.filter(s=>s.clientId===clientId&&(s.source==='live'||s.source==='client')&&s.planId===plan.id&&s.dayIdx!=null)
-    .sort((a,b)=>(b.date||'').localeCompare(a.date||''));
-  if(!past.length)return 0;
-  return (past[0].dayIdx+1)%plan.days.length;
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''));
+  if(!past.length)return train[0];
+  const pos=train.indexOf(Number(past[0].dayIdx));
+  if(pos<0)return train[0];
+  return train[(pos+1)%train.length];
 }
 
 function liveNormExName(n){

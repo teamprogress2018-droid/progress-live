@@ -1463,9 +1463,10 @@ function suggestedPlanDayIdx(clientId,plan){
   const past=(window.SE||[]).filter(s=>s.clientId===clientId&&s.planId===plan.id&&s.dayIdx!=null&&(s.source==='live'||s.source==='client'))
     .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''));
   if(!past.length)return train[0];
-  const today=todayYmd();
-  if(past[0].date===today)return past[0].dayIdx;
-  const pos=train.indexOf(past[0].dayIdx);
+  // Zawsze kolejny dzień treningowy po ostatniej sesji (także gdy była dziś) —
+  // Live „Kolejny dzień” i rotacja PPL. Widok „dziś zrobione” w portalu nadpisuje dayIdx osobno.
+  const lastIdx=Number(past[0].dayIdx);
+  const pos=train.indexOf(lastIdx);
   if(pos<0)return train[0];
   return train[(pos+1)%train.length];
 }
