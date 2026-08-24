@@ -183,7 +183,7 @@ function aplGetMulti(groupId){
 }
 
 function aplPlanTokenBudget(dayCount){
-  return Math.min(2800+Math.max(1,dayCount)*550,5000);
+  return Math.min(2400+Math.max(1,dayCount)*480,4200);
 }
 
 function aplExtractJsonObject(text){
@@ -241,6 +241,75 @@ function aplEscapeInnerQuotes(s){
   return out;
 }
 
+/** Zamień '...' na "..." poza stringami JSON (Claude czasem daje JS-owy styl). */
+function aplNormalizeSingleQuotes(input){
+  let s=String(input||'');
+  let out='';
+  let inDbl=false,inSgl=false,esc=false;
+  for(let i=0;i<s.length;i++){
+    const c=s[i];
+    if(inDbl){
+      out+=c;
+      if(esc){esc=false;continue;}
+      if(c==='\\'){esc=true;continue;}
+      if(c==='"')inDbl=false;
+      continue;
+    }
+    if(inSgl){
+      if(esc){out+=c;esc=false;continue;}
+      if(c==='\\'){out+='\\';esc=true;continue;}
+      if(c==="'"){out+='"';inSgl=false;continue;}
+      if(c==='"'){out+='\\"';continue;}
+      out+=c;
+      continue;
+    }
+    if(c==='"'){inDbl=true;out+=c;continue;}
+    if(c==="'"){inSgl=true;out+='"';continue;}
+    out+=c;
+  }
+  if(inSgl)out+='"';
+  return out;
+}
+
+/** Dopisz cudzysłowy do niecytowanych kluczy: {planName: → {"planName": */
+function aplQuoteBareKeys(input){
+  let s=String(input||'');
+  let out='';
+  let inStr=false,esc=false;
+  for(let i=0;i<s.length;i++){
+    const c=s[i];
+    if(inStr){
+      out+=c;
+      if(esc){esc=false;continue;}
+      if(c==='\\'){esc=true;continue;}
+      if(c==='"')inStr=false;
+      continue;
+    }
+    if(c==='"'){inStr=true;out+=c;continue;}
+    if((c==='{'||c===','||c==='[') ){
+      out+=c;
+      let j=i+1;
+      while(j<s.length&&/[\s\n\r\t]/.test(s[j])){out+=s[j];j++;}
+      if(j<s.length&&/[A-Za-z_$]/.test(s[j])){
+        const start=j;
+        j++;
+        while(j<s.length&&/[A-Za-z0-9_$]/.test(s[j]))j++;
+        let k=j;
+        while(k<s.length&&/[\s\n\r\t]/.test(s[k]))k++;
+        if(s[k]===':'){
+          out+='"'+s.slice(start,j)+'"';
+          i=j-1;
+          continue;
+        }
+      }
+      i=j-1;
+      continue;
+    }
+    out+=c;
+  }
+  return out;
+}
+
 function aplRepairJsonText(input){
   let s=String(input||'')
     .replace(/```(?:json)?/gi,'')
@@ -248,6 +317,8 @@ function aplRepairJsonText(input){
     .replace(/[\u2018\u2019]/g,"'")
     .trim();
   s=aplExtractJsonObject(s);
+  s=aplNormalizeSingleQuotes(s);
+  s=aplQuoteBareKeys(s);
   s=aplEscapeInnerQuotes(s);
 
   let inStr=false,esc=false;
@@ -265,26 +336,43 @@ function aplRepairJsonText(input){
   let out='';
   inStr=false;esc=false;
   let lastSig='';
+  let lit='';
+  const flushLit=()=>{
+    if(!lit)return;
+    out+=lit;
+    lastSig=lit[lit.length-1];
+    lit='';
+  };
   const maybeComma=()=>{
-    if(lastSig==='}'||lastSig===']'||lastSig==='"'||(lastSig>='0'&&lastSig<='9')||lastSig==='e'||lastSig==='l')out+=',';
+    if(lastSig==='}'||lastSig===']'||lastSig==='"'||(lastSig>='0'&&lastSig<='9')||lastSig==='e'||lastSig==='l'){
+      // e/l tylko po pełnym true/false/null
+      if(lastSig==='e'||lastSig==='l'){
+        const tail=out.slice(-5);
+        if(!/(true|false|null)$/.test(tail))return;
+      }
+      out+=',';
+    }
   };
   for(let i=0;i<s.length;i++){
     const c=s[i];
     if(inStr){
+      flushLit();
       out+=c;
       if(esc){esc=false;continue;}
       if(c==='\\'){esc=true;continue;}
       if(c==='"'){inStr=false;lastSig='"';}
       continue;
     }
-    if(isWs(c)){out+=c;continue;}
+    if(isWs(c)){flushLit();out+=c;continue;}
     if(c===','){
+      flushLit();
       out=out.replace(/,(\s*)$/,'$1');
       out+=c;
       lastSig=',';
       continue;
     }
     if(c==='"'){
+      flushLit();
       maybeComma();
       inStr=true;
       out+=c;
@@ -292,23 +380,35 @@ function aplRepairJsonText(input){
       continue;
     }
     if(c==='}'||c===']'){
+      flushLit();
       out=out.replace(/,(\s*)$/,'$1');
       out+=c;
       lastSig=c;
       continue;
     }
     if(c==='{'||c==='['){
+      flushLit();
       maybeComma();
       out+=c;
       lastSig=c;
       continue;
     }
-    if((c==='-'||(c>='0'&&c<='9')||c==='t'||c==='f'||c==='n')){
-      maybeComma();
+    if(c===':'){
+      flushLit();
+      out+=c;
+      lastSig=':';
+      continue;
     }
+    if(c==='-'||(c>='0'&&c<='9')||c==='.'||c==='e'||c==='E'||c==='+'||/[a-zA-Z_$]/.test(c)){
+      if(!lit)maybeComma();
+      lit+=c;
+      continue;
+    }
+    flushLit();
     out+=c;
     lastSig=c;
   }
+  flushLit();
 
   inStr=false;esc=false;
   const stack=[];
@@ -348,17 +448,23 @@ function aplParsePlanJson(raw){
 }
 window.aplExtractJsonObject=aplExtractJsonObject;
 window.aplEscapeInnerQuotes=aplEscapeInnerQuotes;
+window.aplNormalizeSingleQuotes=aplNormalizeSingleQuotes;
+window.aplQuoteBareKeys=aplQuoteBareKeys;
 window.aplRepairJsonText=aplRepairJsonText;
 window.aplParsePlanJson=aplParsePlanJson;
 
 async function aplAnthropicRequest(payload,maxRetries=3){
   const url=typeof W!=='undefined'?W:'https://anthropic-proxy.teamprogress2018.workers.dev/';
   let lastStatus=0;
+  let lastBody='';
   for(let attempt=0;attempt<=maxRetries;attempt++){
     if(attempt>0){
       await new Promise(r=>setTimeout(r,attempt*4000));
-      if((lastStatus===524||lastStatus===503)&&payload.max_tokens>3200){
-        payload.max_tokens=Math.max(3200,payload.max_tokens-600);
+      if((lastStatus===524||lastStatus===503||lastStatus===429)&&payload.max_tokens>2800){
+        payload.max_tokens=Math.max(2800,payload.max_tokens-800);
+      }
+      if(lastStatus===400&&payload.max_tokens>2400){
+        payload.max_tokens=Math.max(2400,Math.floor(payload.max_tokens*0.75));
       }
     }
     const resp=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
@@ -368,7 +474,13 @@ async function aplAnthropicRequest(payload,maxRetries=3){
       if(data?.error)throw new Error(data.error.message||String(data.error));
       return data;
     }
-    if(attempt===maxRetries)throw new Error('Serwer AI przeciążony (status '+resp.status+') po '+(attempt+1)+' próbach.');
+    try{lastBody=await resp.text();}catch(e){lastBody='';}
+    const retryable=lastStatus===429||lastStatus===503||lastStatus===524||lastStatus===502||lastStatus===400;
+    if(attempt===maxRetries||!retryable){
+      if(lastStatus===400)throw new Error('Żądanie AI odrzucone (status 400). Spróbuj krótszego planu lub mniejszej liczby dni.');
+      if(lastStatus===429||lastStatus===503||lastStatus===524)throw new Error('Serwer AI przeciążony (status '+lastStatus+') po '+(attempt+1)+' próbach.');
+      throw new Error('Błąd API AI (status '+lastStatus+')'+(lastBody?' — '+String(lastBody).slice(0,120):''));
+    }
   }
 }
 
@@ -593,13 +705,13 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
       }
       let chunkPlan=null;
       let chunkRaw='';
-      for(let parseTry=0;parseTry<2;parseTry++){
+      for(let parseTry=0;parseTry<3;parseTry++){
         try{
           const data=await aplAnthropicRequest({
             model:'claude-sonnet-4-20250514',
-            max_tokens:aplPlanTokenBudget(chunkDays),
-            system:chunkSystem+(parseTry?'\n\nKRYTYCZNE: zwróć WYŁĄCZNIE poprawny JSON. W polach tekstowych nie używaj cudzysłowów — zamień je na apostrofy. Bez markdown.': ''),
-            messages:[{role:'user',content:chunkUser+(parseTry?'\n\nPoprzednia odpowiedź miała błędny JSON. Zwróć sam czysty JSON zgodny ze schematem.': '')}]
+            max_tokens:aplPlanTokenBudget(chunkDays)-(parseTry?400*parseTry:0),
+            system:chunkSystem+(parseTry?'\n\nKRYTYCZNE: zwróć WYŁĄCZNIE poprawny JSON z podwójnymi cudzysłowami przy kluczach i stringach. W polach tekstowych nie używaj cudzysłowów — zamień je na apostrofy. Bez markdown, bez komentarzy.': ''),
+            messages:[{role:'user',content:chunkUser+(parseTry?'\n\nPoprzednia odpowiedź miała błędny JSON. Zwróć sam czysty JSON zgodny ze schematem (klucze w "cudzysłowach").': '')}]
           });
           chunkRaw=data?.content?.[0]?.text||'';
           if(!chunkRaw.trim())throw new Error('Pusta odpowiedź AI');
@@ -607,8 +719,9 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
           break;
         }catch(parseErr){
           const msg=String(parseErr?.message||parseErr||'');
-          const isJson=/JSON|parse|Expected|,|\]|Unexpected|Brak JSON/i.test(msg);
-          if(parseTry===0&&isJson)continue;
+          const isJson=/JSON|parse|Expected|,|\]|Unexpected|Brak JSON|property name/i.test(msg);
+          const isOverload=/przeciążon|429|503|524/i.test(msg);
+          if(parseTry<2&&(isJson||isOverload))continue;
           throw parseErr;
         }
       }
@@ -631,10 +744,11 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
   }catch(e){
     console.error('aplGenerate błąd:',e);
     const msg=String(e?.message||e||'');
-    const isTimeout=/524|przeciążon|timeout/i.test(msg);
-    const isJson=/JSON|parse|Expected|,|\]|Unexpected/i.test(msg);
-    const title=isTimeout?'Serwer AI jest chwilowo przeciążony':isJson?'AI zwróciło niekompletny plan':'Błąd generowania planu';
-    const hint=isTimeout?'To zwykle mija po chwili. Odczekaj 30-60 sekund i spróbuj ponownie.':isJson?'Spróbuj ponownie — generator naprawia uszkodzony JSON, ale czasem trzeba powtórzyć żądanie.':'Sprawdź połączenie internetowe i spróbuj ponownie.';
+    const isTimeout=/524|503|429|przeciążon|timeout/i.test(msg);
+    const isBadReq=/status 400|odrzucone/i.test(msg);
+    const isJson=/JSON|parse|Expected|,|\]|Unexpected|property name|Brak JSON/i.test(msg);
+    const title=isTimeout?'Serwer AI jest chwilowo przeciążony':isBadReq?'Żądanie AI zostało odrzucone':isJson?'AI zwróciło niekompletny plan':'Błąd generowania planu';
+    const hint=isTimeout?'To zwykle mija po chwili. Odczekaj 30-60 sekund i spróbuj ponownie.':isBadReq?'Spróbuj mniejszej liczby dni (np. 3–4) albo krótszego planu 4 tyg. i wygeneruj ponownie.':isJson?'Spróbuj ponownie — generator naprawia uszkodzony JSON, ale czasem trzeba powtórzyć żądanie.':'Sprawdź połączenie internetowe i spróbuj ponownie.';
     res.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;gap:14px;text-align:center;padding:40px;">
       <div style="font-size:40px;">${isTimeout?'⏱️':'❌'}</div>
       <div style="font-size:15px;font-weight:700;color:var(--red);">${title}</div>
