@@ -69,6 +69,9 @@ jobs:
       - name: 1i. Testy wiring kreatora WU/DROP/AMRAP + film
         run: node .github/scripts/test_builder_kinds_media.js
 
+      - name: 1i2. Testy kart ćwiczeń w builderze (zamienniki / kolory)
+        run: node .github/scripts/test_builder_ex_cards.js
+
       - name: 1j. Testy parsera JSON generatora AI
         run: node .github/scripts/test_ai_plan_json.js
 
