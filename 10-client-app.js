@@ -215,12 +215,13 @@ function enterClientLiveShell(){
   clientTryOpenPendingDeepLink();
 }
 
-/** URL ?checkin=1 / ?form=<sendId> albo auto-otwarcie gdy jest pending check-in/formularz. */
+/** URL ?checkin=1 / ?form=<sendId> / ?pay=1 albo auto-otwarcie gdy jest pending check-in/formularz. */
 function clientTryOpenPendingDeepLink(){
   try{
     const q=new URLSearchParams(location.search||'');
     const formId=q.get('form')||q.get('formId');
     const wantCi=q.get('checkin')==='1'||q.get('ci')==='1';
+    const wantPay=q.get('pay')==='1'||q.get('payment')==='1';
     const cid=window._clientId||(window.CL[0]&&window.CL[0].id);
     if(formId&&typeof clientOpenForm==='function'){
       setTimeout(()=>clientOpenForm(formId),350);
@@ -228,6 +229,10 @@ function clientTryOpenPendingDeepLink(){
     }
     if(wantCi){
       setTimeout(()=>setClientLiveScreen('checkin'),350);
+      return;
+    }
+    if(wantPay){
+      setTimeout(()=>setClientLiveScreen('profile'),350);
       return;
     }
     if(window._clientPendingDeepLinkDone)return;
@@ -240,6 +245,11 @@ function clientTryOpenPendingDeepLink(){
     const forms=cid&&typeof pendingFormSends==='function'?pendingFormSends(cid):[];
     if(forms&&forms.length&&typeof clientOpenForm==='function'){
       setTimeout(()=>clientOpenForm(forms[0].id),450);
+      return;
+    }
+    const unpaid=cid&&typeof clientUnpaidPackages==='function'?clientUnpaidPackages(cid):[];
+    if(unpaid.some(p=>p.paymentRequestedAt)){
+      setTimeout(()=>setClientLiveScreen('home'),450);
     }
   }catch(e){}
 }
@@ -298,8 +308,10 @@ function updateClientLiveNavBadges(c){
   };
   const pendCi=cid&&typeof pendingCheckin==='function'?!!pendingCheckin(cid):false;
   const pendForms=cid&&typeof pendingFormSends==='function'?pendingFormSends(cid).length>0:false;
+  const pendPay=cid&&typeof clientUnpaidPackages==='function'?clientUnpaidPackages(cid).length>0:false;
   setBadge('clive-bn-checkin',pendCi);
   setBadge('clive-bn-messages',pendForms);
+  setBadge('clive-bn-profile',pendPay);
 }
 window.updateClientLiveNavBadges=updateClientLiveNavBadges;
 
