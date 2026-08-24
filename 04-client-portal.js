@@ -5565,14 +5565,15 @@ function renderDashClientPipeline(){
     baseline:'Zapisz pomiary',
     schedule:'Ustaw dni treningu',
     plan:'Przypisz plan',
-    calendar:'Wrzuć do kalendarza'
+    calendar:'Wrzuć do kalendarza',
+    package:'Dodaj pakiet'
   };
   el.style.display='block';
   el.innerHTML=`<div class="card" style="margin-bottom:20px;border-color:rgba(201,123,63,0.35);background:linear-gradient(135deg,rgba(201,123,63,0.08),var(--s2));">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;">
       <div>
         <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;">START WSPÓŁPRACY</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5;">${rows.length===1?'1 klient wymaga dokończenia pipeline.':rows.length+' klientów wymaga dokończenia: pomiary → dni → plan → kalendarz.'}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5;">${rows.length===1?'1 klient wymaga dokończenia pipeline.':rows.length+' klientów wymaga dokończenia: pomiary → dni → plan → kalendarz → pakiet.'}</div>
       </div>
       <button class="btn btn-ghost btn-sm" onclick="goTo('clients')">Lista klientów →</button>
     </div>

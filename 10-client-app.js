@@ -212,7 +212,38 @@ function enterClientLiveShell(){
   window.capClientId=c?c.id:window._clientId;
   renderClientLive();
   clientTryOpenOdDeepLink();
+  clientTryOpenPendingDeepLink();
 }
+
+/** URL ?checkin=1 / ?form=<sendId> albo auto-otwarcie gdy jest pending check-in/formularz. */
+function clientTryOpenPendingDeepLink(){
+  try{
+    const q=new URLSearchParams(location.search||'');
+    const formId=q.get('form')||q.get('formId');
+    const wantCi=q.get('checkin')==='1'||q.get('ci')==='1';
+    const cid=window._clientId||(window.CL[0]&&window.CL[0].id);
+    if(formId&&typeof clientOpenForm==='function'){
+      setTimeout(()=>clientOpenForm(formId),350);
+      return;
+    }
+    if(wantCi){
+      setTimeout(()=>setClientLiveScreen('checkin'),350);
+      return;
+    }
+    if(window._clientPendingDeepLinkDone)return;
+    window._clientPendingDeepLinkDone=true;
+    const pendCi=cid&&typeof pendingCheckin==='function'?pendingCheckin(cid):null;
+    if(pendCi){
+      setTimeout(()=>setClientLiveScreen('checkin'),450);
+      return;
+    }
+    const forms=cid&&typeof pendingFormSends==='function'?pendingFormSends(cid):[];
+    if(forms&&forms.length&&typeof clientOpenForm==='function'){
+      setTimeout(()=>clientOpenForm(forms[0].id),450);
+    }
+  }catch(e){}
+}
+window.clientTryOpenPendingDeepLink=clientTryOpenPendingDeepLink;
 
 function clientTryOpenOdDeepLink(){
   try{

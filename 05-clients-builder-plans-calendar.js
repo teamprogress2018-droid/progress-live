@@ -276,15 +276,16 @@ async function saveClient(){
 
 function getClientOnboard(c){
   if(typeof clientOnboardStatus==='function')return clientOnboardStatus(c);
-  if(!c)return{invite:false,plan:false,session:false,baseline:false,schedule:false,calendar:false,done:0,total:5,complete:true,next:null,missing:[],missingLabels:[]};
+  if(!c)return{invite:false,plan:false,session:false,baseline:false,schedule:false,calendar:false,package:false,done:0,total:6,complete:true,next:null,missing:[],missingLabels:[]};
   const invite=!!(c.inviteSent||c.appInvited||c.inviteSentAt||c.inviteSkipped);
   const plan=PL.some(p=>p.clientId===c.id);
   const session=SE.some(s=>s.clientId===c.id);
   const baseline=typeof clientHasBaseline==='function'?clientHasBaseline(c.id):!!(c.baselineDone||c.weight);
   const schedule=typeof clientHasSchedulePrefs==='function'?clientHasSchedulePrefs(c):!!((c.preferredWeekdays||[]).length);
   const calendar=session;
-  const done=[invite,baseline,schedule,plan,calendar].filter(Boolean).length;
-  return{invite,baseline,schedule,plan,calendar,session,done,total:5,complete:done===5,next:null,missing:[],missingLabels:[]};
+  const packageDone=typeof clientHasPackage==='function'?clientHasPackage(c):!!(c.packageSkipped||(window.PACKAGES||[]).some(p=>p&&p.clientId===c.id));
+  const done=[invite,baseline,schedule,plan,calendar,packageDone].filter(Boolean).length;
+  return{invite,baseline,schedule,plan,calendar,package:packageDone,session,done,total:6,complete:done===6,next:null,missing:[],missingLabels:[]};
 }
 window.getClientOnboard=getClientOnboard;
 
@@ -311,6 +312,33 @@ function skipClientInvite(clientId){
   notify('Zaproszenie pominięte — możesz wrócić do niego później');
 }
 window.skipClientInvite=skipClientInvite;
+
+function skipClientPackage(clientId){
+  const c=CL.find(x=>x.id===clientId);if(!c)return;
+  c.packageSkipped=true;
+  persistById('clients',c);
+  if(typeof renderClientOnboardChecklist==='function')renderClientOnboardChecklist();
+  if(typeof renderDash==='function')try{renderDash();}catch(e){}
+  if(typeof renderClients==='function')try{renderClients();}catch(e){}
+  notify('Pakiet pominięty — możesz dodać go później w Płatnościach');
+}
+window.skipClientPackage=skipClientPackage;
+
+function openPackageForClient(clientId){
+  window._onboardResumeAfterPackage=clientId;
+  if(typeof closeM==='function')closeM('m-client-onboard');
+  const pkgEl=document.getElementById('pkg-client');
+  if(pkgEl){
+    if(!(pkgEl.options&&pkgEl.options.length)){
+      pkgEl.innerHTML=(window.CL||[]).filter(c=>c&&c.status!=='archived').map(c=>'<option value="'+escHtml(c.id)+'">'+escHtml(c.name)+'</option>').join('');
+    }
+    pkgEl.value=clientId;
+  }
+  const pkgDate=document.getElementById('pkg-date');
+  if(pkgDate&&!pkgDate.value)pkgDate.value=new Date().toISOString().split('T')[0];
+  openM('m-package');
+}
+window.openPackageForClient=openPackageForClient;
 
 function openAiPlanForClient(clientId){
   closeM('m-client-onboard');
@@ -364,6 +392,9 @@ function renderClientOnboardChecklist(){
     {done:st.calendar,icon:'🗓',title:'Wrzuć plan do kalendarza',desc:'4 tygodnie na preferowane dni — klient widzi trening w Dziś',
       action:`scheduleClientPlanToCalendar('${id}')`,cta:'Do kalendarza',
       extra:st.calendar?'':`<button class="btn btn-ghost btn-sm" onclick="closeM('m-client-onboard');goTo('live');setTimeout(()=>liveClientSetField('${id}','${safeName}'),300)">Trening Live</button>`},
+    {done:st.package,icon:'💳',title:'Pakiet / płatność',desc:'Przypisz pakiet sesji albo pomiń, jeśli rozliczacie się inaczej',
+      action:`openPackageForClient('${id}')`,cta:'+ Pakiet',
+      extra:st.package?'':`<button class="btn btn-ghost btn-sm" onclick="skipClientPackage('${id}')">Pomiń</button>`},
   ];
   el.innerHTML=steps.map(s=>`
     <div style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:var(--s3);border:1px solid ${s.done?'var(--teal)':'var(--border)'};border-radius:10px;margin-bottom:8px;">
