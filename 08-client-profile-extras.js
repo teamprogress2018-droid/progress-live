@@ -696,10 +696,29 @@ function buildClientInsight(c,sessions,plans,daysSince){
 
 function cpClientDataEditHTML(c){
   const field=(id,label,control)=>`<div class="form-field cp-field-below"><div class="cp-field-control">${control}</div><label class="form-lbl" for="${id}">${label}</label></div>`;
+  const intake=typeof clientIntakeFormState==='function'?clientIntakeFormState(c.id):null;
+  const intakeLbl=intake&&intake.filled?'Wypełniona':intake&&intake.pending?'Oczekuje na klienta':intake&&intake.sent?'Wysłana':'Nie wysłana';
+  const intakeCol=intake&&intake.filled?'var(--teal)':intake&&intake.pending?'var(--orange)':'var(--muted)';
+  const goalLabels={masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja'};
+  const levelLabels={poczatkujacy:'Początkujący',sredni:'Średni',zaawansowany:'Zaawansowany'};
   return `<div class="cp-edit-card">
     <div class="cp-edit-card-hdr">
       <div class="cp-edit-card-title">Edycja danych klienta</div>
       <button type="button" class="btn btn-ghost btn-sm" onclick="cancelCPEdit()">Anuluj</button>
+    </div>
+    <div style="background:rgba(225,31,46,0.08);border:1px solid rgba(225,31,46,0.25);border-radius:10px;padding:12px;margin-bottom:14px;">
+      <div style="font-size:12px;font-weight:700;margin-bottom:4px;">📋 Ankieta wstępna — tylko w Formularzach</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:8px;">Cel, poziom, dni/tydzień, pora treningu i kontuzje pochodzą z ankiety (apką lub PDF). Nie edytuj ich tu drugi raz.</div>
+      <div style="font-size:11px;margin-bottom:8px;">Status: <span style="color:${intakeCol};font-weight:700;">${intakeLbl}</span>
+        ${c.goal||c.level||c.trainingFreq?` · teraz: ${escHtml(goalLabels[c.goal]||c.goal||'—')} / ${escHtml(levelLabels[c.level]||c.level||'—')}${c.trainingFreq?' / '+c.trainingFreq+'×':''}`:''}
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button type="button" class="btn btn-primary btn-sm" onclick="goTo('forms');setTimeout(()=>{if(typeof openFormDetail==='function')openFormDetail('df1');},200)">Otwórz ankietę</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="printFormPdf('df1')">📄 PDF blank</button>
+        ${intake&&intake.pending?`<button type="button" class="btn btn-ghost btn-sm" onclick="remindFormSend('${escHtml(intake.pending.id)}')">Przypomnij</button>`:''}
+        ${!(intake&&(intake.filled||intake.pending))?`<button type="button" class="btn btn-ghost btn-sm" onclick="sendClientIntakeForm('${escHtml(c.id)}');cancelCPEdit();">Wyślij w apce</button>`:''}
+        <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('forms')">Historia w profilu</button>
+      </div>
     </div>
     ${field('cpe-name','Imię i nazwisko',`<input class="cp-edit-field form-input" id="cpe-name" value="${escHtml(c.name||'')}">`)}
     <div class="form-grid">
@@ -717,32 +736,9 @@ function cpClientDataEditHTML(c){
       ${field('cpe-weight','Waga (kg)',`<input type="number" class="cp-edit-field form-input" id="cpe-weight" value="${c.weight||''}" step="0.1">`)}
       ${field('cpe-height','Wzrost (cm)',`<input type="number" class="cp-edit-field form-input" id="cpe-height" value="${c.height||''}">`)}
     </div>
-    <div class="form-grid">
-      ${field('cpe-goal','Cel',`<select class="form-select" id="cpe-goal">
-          <option value="masa" ${c.goal==='masa'?'selected':''}>Budowa masy</option>
-          <option value="sila" ${c.goal==='sila'?'selected':''}>Wzrost siły</option>
-          <option value="redukcja" ${c.goal==='redukcja'?'selected':''}>Redukcja</option>
-          <option value="kondycja" ${c.goal==='kondycja'?'selected':''}>Kondycja</option>
-        </select>`)}
-      ${field('cpe-level','Poziom',`<select class="form-select" id="cpe-level">
-          <option value="poczatkujacy" ${c.level==='poczatkujacy'?'selected':''}>Początkujący</option>
-          <option value="sredni" ${c.level==='sredni'?'selected':''}>Średni</option>
-          <option value="zaawansowany" ${c.level==='zaawansowany'?'selected':''}>Zaawansowany</option>
-        </select>`)}
-    </div>
-    <div class="form-grid">
-      ${field('cpe-freq','Dni / tydzień',`<select class="form-select" id="cpe-freq">
-          <option value="">—</option>
-          ${[2,3,4,5,6].map(n=>`<option value="${n}" ${Number(c.trainingFreq)===n?'selected':''}>${n}×</option>`).join('')}
-        </select>`)}
-      ${field('cpe-train-time','Preferowana pora',`<select class="form-select" id="cpe-train-time">
-          <option value="">— dowolna —</option>
-          ${['Rano (6-10)','Południe (10-14)','Po południu (14-18)','Wieczór (18-22)'].map(t=>`<option value="${t}" ${c.preferredTrainTime===t?'selected':''}>${t}</option>`).join('')}
-        </select>`)}
-    </div>
     <div class="form-field cp-field-below">
       <div class="cp-field-control">
-        <div class="cp-field-hint">Kolejność = Dzień 1, 2… przy zapisie do kalendarza.</div>
+        <div class="cp-field-hint">Kolejność = Dzień 1, 2… przy zapisie do kalendarza (nie jest w ankiecie).</div>
         ${typeof preferredWeekdaysChipsHTML==='function'?preferredWeekdaysChipsHTML(c.preferredWeekdays||[],'cpe'):'<div id="cpe-preferred-weekdays-mount"></div>'}
       </div>
       <label class="form-lbl">Preferowane dni tygodnia</label>
@@ -776,7 +772,6 @@ function cpClientDataEditHTML(c){
       </div>
       <label class="form-lbl">Priorytet sylwetkowy</label>
     </div>
-    ${field('cpe-injuries','Kontuzje / ograniczenia',`<textarea class="form-select" id="cpe-injuries" rows="2" style="resize:none;">${escHtml(typeof clientInjuriesText==='function'?clientInjuriesText(c):(c.injuries||c.notes||''))}</textarea>`)}
     ${field('cpe-notes','Uwagi prywatne',`<textarea class="form-select" id="cpe-notes" rows="2" style="resize:none;">${escHtml(c.notes||'')}</textarea>`)}
     <button type="button" class="btn btn-primary" style="width:100%;" onclick="saveCPEdit('${c.id}')">💾 Zapisz zmiany</button>
   </div>`;

@@ -130,6 +130,12 @@ jobs:
 
       - name: 1n19. Testy ukrycia stuba żywienia / uczciwych dokumentów
         run: node .github/scripts/test_hide_food_stub.js
+      - name: 1n18. Testy dopełniania kalendarza / zdjęć sylwetki (dashboard)
+        run: node .github/scripts/test_dash_cal_photo_followup.js
+      - name: 1n17. Testy polish audytu (check-in refresh / badge / archiwum)
+        run: node .github/scripts/test_audit_polish.js
+      - name: 1n16. Testy PDF formularzy / dedupe ankiety wstępnej
+        run: node .github/scripts/test_form_pdf_dedupe.js
 
       - name: 1n8. Testy webhooków integracji (Zapier/Make)
         run: node .github/scripts/test_integrations_webhooks.js

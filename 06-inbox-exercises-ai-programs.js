@@ -56,6 +56,24 @@ window.clientsWithUnreadMsgs=clientsWithUnreadMsgs;
 window.unreadMsgCount=unreadMsgCount;
 window.updateInboxNavBadge=updateInboxNavBadge;
 
+/** Nieprzeczytane od trenera (out:true) w apce klienta. */
+function clientGetTrainerLastRead(clientId){
+  try{return localStorage.getItem('cmsg_last_read_'+clientId)||'';}catch(e){return '';}
+}
+function clientMarkTrainerMsgsRead(clientId){
+  if(!clientId)return;
+  try{localStorage.setItem('cmsg_last_read_'+clientId,new Date().toISOString());}catch(e){}
+}
+function clientHasUnreadFromTrainer(clientId){
+  if(!clientId)return false;
+  const msgs=((typeof MSGS!=='undefined'?MSGS:window.MSGS)||{})[clientId]||[];
+  const last=clientGetTrainerLastRead(clientId);
+  return msgs.some(m=>m&&m.out&&(!last||(m.createdAt||'')>last));
+}
+window.clientGetTrainerLastRead=clientGetTrainerLastRead;
+window.clientMarkTrainerMsgsRead=clientMarkTrainerMsgsRead;
+window.clientHasUnreadFromTrainer=clientHasUnreadFromTrainer;
+
 function initClientData(c){
   if(!CLIENT_NOTES[c.id])CLIENT_NOTES[c.id]=[];
   if(!CLIENT_ACTIVITY[c.id])CLIENT_ACTIVITY[c.id]=[];
@@ -70,7 +88,7 @@ function setInboxTab(t){
 
 function renderInbox(){
   const search=(document.getElementById('inbox-search')||{}).value||'';
-  let list=CL.filter(c=>!search||c.name.toLowerCase().includes(search.toLowerCase()));
+  let list=CL.filter(c=>c&&c.status!=='archived'&&(!search||c.name.toLowerCase().includes(search.toLowerCase())));
   if(inboxTab==='unread')list=list.filter(c=>msgHasUnread(c.id));
 
   const el=document.getElementById('msg-list');

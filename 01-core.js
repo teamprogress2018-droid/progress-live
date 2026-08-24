@@ -2280,6 +2280,68 @@ function clientHasSchedulePrefs(c){
 function clientHasAssignedPlan(clientId){
   return(window.PL||[]).some(p=>p&&p.clientId===clientId);
 }
+/** Najpóźniejsza zaplanowana sesja (source=planned) klienta. */
+function clientLastPlannedYmd(clientId){
+  if(!clientId)return'';
+  const dates=(window.SE||[]).filter(s=>s&&s.clientId===clientId&&s.source==='planned'&&s.date)
+    .map(s=>String(s.date).slice(0,10)).filter(Boolean).sort();
+  return dates.length?dates[dates.length-1]:'';
+}
+window.clientLastPlannedYmd=clientLastPlannedYmd;
+
+/** Plan klienta do dopełnienia kalendarza (najnowszy z dniami treningowymi). */
+function clientPlanForCalendar(clientId){
+  if(!clientId)return null;
+  const list=(window.PL||[]).filter(p=>p&&p.clientId===clientId&&(p.days||[]).some(d=>d&&!d.rest&&(d.exercises||[]).length));
+  if(!list.length)return null;
+  return list.slice().sort((a,b)=>String(b.updatedAt||b.createdAt||'').localeCompare(String(a.updatedAt||a.createdAt||'')))[0];
+}
+window.clientPlanForCalendar=clientPlanForCalendar;
+
+/**
+ * Klient z planem, którego ostatnia sesja planned jest ≤ withinDays od dziś
+ * (albo brak planned) — trzeba dopełnić kalendarz.
+ */
+function clientNeedsCalendarRefill(c,withinDays){
+  if(!c||c.status==='archived')return false;
+  const plan=clientPlanForCalendar(c.id);
+  if(!plan)return false;
+  const days=withinDays==null?7:withinDays;
+  const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
+  const last=clientLastPlannedYmd(c.id);
+  if(!last)return{client:c,plan,last:'',urgency:'empty'};
+  const horizon=typeof ymdAdd==='function'?ymdAdd(today,days):today;
+  if(last>horizon)return false;
+  return{client:c,plan,last,urgency:last<today?'past':'soon'};
+}
+window.clientNeedsCalendarRefill=clientNeedsCalendarRefill;
+
+function clientsNeedingCalendarRefill(withinDays){
+  return(window.CL||[]).filter(c=>c&&c.status!=='archived')
+    .map(c=>clientNeedsCalendarRefill(c,withinDays))
+    .filter(Boolean)
+    .sort((a,b)=>{
+      const u={past:0,empty:1,soon:2};
+      return(u[a.urgency]||9)-(u[b.urgency]||9)||String(a.last||'').localeCompare(String(b.last||''));
+    });
+}
+window.clientsNeedingCalendarRefill=clientsNeedingCalendarRefill;
+
+/** Nowe zdjęcia sylwetki od klientów (source=client), ostatnie N dni. */
+function recentClientProgressPhotos(withinDays){
+  const days=withinDays==null?14:withinDays;
+  const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
+  const from=typeof ymdAdd==='function'?ymdAdd(today,-days):today;
+  const live=new Set((window.CL||[]).filter(c=>c&&c.status!=='archived').map(c=>c.id));
+  return(window.PROGRESS_PHOTOS||[]).filter(p=>{
+    if(!p||!p.clientId||(live.size&&!live.has(p.clientId)))return false;
+    if(p.source&&p.source!=='client')return false;
+    const d=String(p.date||p.createdAt||'').slice(0,10);
+    return d&&d>=from;
+  }).slice().sort((a,b)=>String(b.createdAt||b.date||'').localeCompare(String(a.createdAt||a.date||'')));
+}
+window.recentClientProgressPhotos=recentClientProgressPhotos;
+
 function clientHasCalendarOrSession(clientId){
   return(window.SE||[]).some(s=>s&&s.clientId===clientId&&(s.source==='planned'||s.source==='live'||s.source==='client'));
 }

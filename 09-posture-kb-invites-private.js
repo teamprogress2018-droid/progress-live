@@ -251,8 +251,11 @@ function saveCPEdit(id){
   c.gender=(document.getElementById('cpe-gender')||{}).value||c.gender;
   c.weight=parseFloat(document.getElementById('cpe-weight').value)||c.weight;
   c.height=parseInt(document.getElementById('cpe-height').value)||c.height;
-  c.goal=document.getElementById('cpe-goal').value;
-  c.level=document.getElementById('cpe-level').value;
+  // Cel / poziom / częstotliwość / pora / kontuzje — wyłącznie z Ankiety wstępnej (Formularze)
+  const goalEl=document.getElementById('cpe-goal');
+  if(goalEl)c.goal=goalEl.value;
+  const levelEl=document.getElementById('cpe-level');
+  if(levelEl)c.level=levelEl.value;
   const freqEl=document.getElementById('cpe-freq');
   if(freqEl){
     const freq=typeof normalizeTrainingFreq==='function'?normalizeTrainingFreq(freqEl.value):parseInt(freqEl.value,10);
@@ -584,7 +587,8 @@ function clientUnpaidPackages(clientId){
 window.clientUnpaidPackages=clientUnpaidPackages;
 
 function packagesAwaitingPayment(){
-  return allPackages().filter(p=>p&&p.clientId&&p.payStatus==='pending'&&p.status!=='expired');
+  const live=new Set((window.CL||[]).filter(c=>c&&c.status!=='archived').map(c=>c.id));
+  return allPackages().filter(p=>p&&p.clientId&&p.payStatus==='pending'&&p.status!=='expired'&&(!live.size||live.has(p.clientId)));
 }
 window.packagesAwaitingPayment=packagesAwaitingPayment;
 

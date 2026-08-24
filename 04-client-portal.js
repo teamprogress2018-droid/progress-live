@@ -3675,6 +3675,7 @@ function saveCheckinFill(id){
   renderCIDetail(id);
   renderCheckinSummary(id);
   renderCheckinClientList();
+  try{if(typeof renderDashCheckinFollowup==='function')renderDashCheckinFollowup();}catch(e){}
   notify('✓ Check-in zapisany za klienta');
   const c=CL.find(x=>x.id===id);
   addNotification('task','Check-in (wpisany przez Ciebie)',(c?c.name:'Klient'),'checkin');
@@ -3685,6 +3686,7 @@ function sendCheckinTo(id){
   if(filledThisWeek(id)&&!pendingCheckin(id)){
     pushMsg(id,checkinChatText(c&&c.name,'Hej {imie}! Check-in z tego tygodnia już jest — dziękuję 💪'));
     notify('Ten klient już wypełnił check-in w tym tygodniu — przypomnienie poszło w czacie');
+    try{if(typeof renderDashCheckinFollowup==='function')renderDashCheckinFollowup();}catch(e){}
     return;
   }
   ensurePendingCheckin(id);
@@ -3692,6 +3694,7 @@ function sendCheckinTo(id){
   notify('✓ Check-in wysłany do '+(c?c.name:'klienta')+' (czat + oczekujący formularz)');
   renderCheckinClientList();
   if(ciActiveClient===id)renderCIDetail(id);
+  try{if(typeof renderDashCheckinFollowup==='function')renderDashCheckinFollowup();}catch(e){}
 }
 
 function sendCheckin(){
@@ -3717,6 +3720,7 @@ function sendCheckin(){
   notify('✓ Check-in wysłany do '+targets.length+' klientów (czat + oczekujący formularz)');
   renderCheckinClientList();
   if(ciActiveClient)renderCIDetail(ciActiveClient);
+  try{if(typeof renderDashCheckinFollowup==='function')renderDashCheckinFollowup();}catch(e){}
 }
 
 function replyToCheckin(id){
@@ -5613,6 +5617,8 @@ function renderDash(){
   renderDashHwFollowup();
   renderDashMsgFollowup();
   renderDashHabitFollowup();
+  renderDashCalRefillFollowup();
+  renderDashPhotoFollowup();
   renderProfileSetupBanner();
 }
 
@@ -5964,6 +5970,77 @@ function renderDashHabitFollowup(){
 }
 window.renderDashHabitFollowup=renderDashHabitFollowup;
 
+function renderDashCalRefillFollowup(){
+  const el=document.getElementById('dash-cal-refill');if(!el)return;
+  const rows=typeof clientsNeedingCalendarRefill==='function'?clientsNeedingCalendarRefill(7):[];
+  if(!rows.length){el.style.display='none';el.innerHTML='';return;}
+  el.style.display='block';
+  el.innerHTML=`<div class="card" style="margin-bottom:20px;border-color:rgba(62,207,178,0.35);background:linear-gradient(135deg,rgba(62,207,178,0.08),var(--s2));">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;">
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;">KALENDARZ DO DOPEŁNIENIA</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5;">${rows.length===1?'1 klient — plan kończy się w ≤7 dni.':rows.length+' klientów — zaplanowane sesje kończą się w ≤7 dni (lub brak).'}</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="goTo('calendar')">Kalendarz →</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      ${rows.slice(0,6).map(row=>{
+        const c=row.client;
+        const plan=row.plan||{};
+        const tag=row.urgency==='past'?'Sesje się skończyły':row.urgency==='empty'?'Brak sesji planned':'Kończy się wkrótce';
+        const col=row.urgency==='past'?'var(--red)':row.urgency==='empty'?'var(--orange)':'var(--teal)';
+        const lastLbl=row.last?('Ostatnia · '+escHtml(row.last)):'Brak planned';
+        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--s3);border:1px solid var(--border);border-radius:10px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:140px;">
+            <div style="font-size:13px;font-weight:700;">${escHtml(c.name||'Klient')}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;">${escHtml(plan.name||'Plan')}${plan.id?' · +4 tyg.':''}</div>
+            <div style="font-size:11px;color:${col};margin-top:2px;">${tag} · ${lastLbl}</div>
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:0;">
+            <button class="btn btn-ghost btn-sm" onclick="openClientProfile('${escHtml(c.id)}')">Profil</button>
+            <button class="btn btn-primary btn-sm" onclick="refillClientCalendar('${escHtml(c.id)}')">Dopełnij</button>
+          </div>
+        </div>`;
+      }).join('')}
+      ${rows.length>6?`<div style="font-size:11px;color:var(--muted);text-align:center;">+ ${rows.length-6} więcej</div>`:''}
+    </div>
+  </div>`;
+}
+window.renderDashCalRefillFollowup=renderDashCalRefillFollowup;
+
+function renderDashPhotoFollowup(){
+  const el=document.getElementById('dash-photo-followup');if(!el)return;
+  const photos=typeof recentClientProgressPhotos==='function'?recentClientProgressPhotos(14):[];
+  if(!photos.length){el.style.display='none';el.innerHTML='';return;}
+  const rows=photos.slice(0,6);
+  el.style.display='block';
+  el.innerHTML=`<div class="card" style="margin-bottom:20px;border-color:rgba(201,162,39,0.4);background:linear-gradient(135deg,rgba(201,162,39,0.1),var(--s2));">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;">
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;">NOWE ZDJĘCIA SYLWETKI</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5;">${photos.length===1?'1 zestaw od klienta (14 dni).':photos.length+' zestawów od klientów (ostatnie 14 dni).'}</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="goTo('clients')">Klienci →</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      ${rows.map(p=>{
+        const c=(window.CL||[]).find(x=>x.id===p.clientId)||{};
+        const n=[p.photos&&p.photos.front,p.photos&&p.photos.side,p.photos&&p.photos.back].filter(Boolean).length;
+        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--s3);border:1px solid var(--border);border-radius:10px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:140px;">
+            <div style="font-size:13px;font-weight:700;">${escHtml(c.name||'Klient')}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;">${escHtml(p.date||'')}${p.weight?' · '+escHtml(String(p.weight))+' kg':''} · ${n} ujęć</div>
+            <div style="font-size:11px;color:var(--gold);margin-top:2px;">Od klienta</div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="openClientProfile('${escHtml(p.clientId)}');setTimeout(()=>{if(typeof setCPTab==='function')setCPTab('photos');},150)">Zobacz</button>
+        </div>`;
+      }).join('')}
+      ${photos.length>6?`<div style="font-size:11px;color:var(--muted);text-align:center;">+ ${photos.length-6} więcej</div>`:''}
+    </div>
+  </div>`;
+}
+window.renderDashPhotoFollowup=renderDashPhotoFollowup;
+
 function renderDashMiniCal(){
   const el=document.getElementById('d-mini-cal');if(!el)return;
   const titleEl=document.getElementById('d-cal-title');
@@ -6188,18 +6265,24 @@ function renderDashTasks(){
   const today=dateStr(new Date());
   const tomorrow=dateStr(new Date(new Date().getFullYear(),new Date().getMonth(),new Date().getDate()+1));
 
-  const pendingHabits=TASKS.filter(t=>isHabit(t)&&!habitDoneOn(t,today));
-  const pendingCh=TASKS.filter(t=>typeof isChallenge==='function'&&isChallenge(t)&&typeof challengeProgress==='function'&&challengeProgress(t,today).active&&!habitDoneOn(t,today)&&!challengeProgress(t,today).won);
-  const oneShot=TASKS.filter(t=>(typeof isOneShot==='function'?isOneShot(t):!isHabit(t))&&t.status!=='done')
+  // Nawyki/wyzwania są na karcie dash-habit-followup (Przypomnij) — tu tylko one-shot / homework
+  const live=new Set((window.CL||[]).filter(c=>c&&c.status!=='archived').map(c=>c.id));
+  const oneShot=TASKS.filter(t=>{
+    if(!t||t.status==='done')return false;
+    if(typeof isHabit==='function'&&isHabit(t))return false;
+    if(typeof isChallenge==='function'&&isChallenge(t))return false;
+    if(t.clientId&&live.size&&!live.has(t.clientId))return false;
+    return typeof isOneShot==='function'?isOneShot(t):true;
+  })
     .sort((a,b)=>{
       const pri=v=>v.due===today?0:v.due&&v.due<today?-1:v.due===tomorrow?1:2;
       return pri(a)-pri(b)||(a.due||'9999').localeCompare(b.due||'9999');
     });
-  const tasks=pendingCh.concat(pendingHabits).concat(oneShot).slice(0,6);
+  const tasks=oneShot.slice(0,6);
 
-  const done=TASKS.filter(t=>(typeof isOneShot==='function'?isOneShot(t):!isHabit(t))&&t.status==='done');
+  const done=TASKS.filter(t=>(typeof isOneShot==='function'?isOneShot(t):!(typeof isHabit==='function'&&isHabit(t)))&&t.status==='done'&&(!t.clientId||!live.size||live.has(t.clientId)));
 
-  if(!tasks.length&&!done.length&&!TASKS.filter(isHabit).length&&!(typeof isChallenge==='function'?TASKS.filter(isChallenge).length:0)){
+  if(!tasks.length&&!done.length){
     el.innerHTML=`<div style="font-size:12px;color:var(--muted);text-align:center;padding:18px 0 8px;">
       <div style="margin-bottom:10px;">Nic pilnego na liście</div>
       <button class="btn btn-ghost btn-sm" onclick="openM('m-task')">+ Dodaj zadanie</button>
@@ -6212,25 +6295,19 @@ function renderDashTasks(){
   const recentDone=done.sort((a,b)=>(b.doneAt||b.due||'').localeCompare(a.doneAt||a.due||'')).slice(0,2);
 
   tasks.forEach(t=>{
-    const habit=isHabit(t);
-    const ch=typeof isChallenge==='function'&&isChallenge(t);
-    const isOverdue=!habit&&!ch&&t.due&&t.due<today;
+    const isOverdue=t.due&&t.due<today;
     const isToday=t.due===today;
     const isTomorrow=t.due===tomorrow;
     const c=CL.find(x=>x.id===t.clientId);
-    const streak=habit?habitStreak(t,today):0;
-    const chSt=ch&&typeof challengeStatusText==='function'?challengeStatusText(t,today):'';
     let badge='';
-    if(ch)badge=`<span style="background:rgba(201,162,39,0.15);color:var(--gold);border-radius:4px;padding:1px 6px;font-size:9px;font-family:'DM Mono',monospace;font-weight:700;">🏆 Wyzwanie</span>`;
-    else if(habit)badge=`<span style="background:rgba(157,124,244,0.15);color:var(--purple);border-radius:4px;padding:1px 6px;font-size:9px;font-family:'DM Mono',monospace;font-weight:700;">🔥 Nawyk</span>`;
-    else if(isOverdue)badge=`<span style="background:rgba(255,68,68,0.15);color:var(--red);border-radius:4px;padding:1px 6px;font-size:9px;font-family:'DM Mono',monospace;font-weight:700;">Pilne</span>`;
+    if(isOverdue)badge=`<span style="background:rgba(255,68,68,0.15);color:var(--red);border-radius:4px;padding:1px 6px;font-size:9px;font-family:'DM Mono',monospace;font-weight:700;">Pilne</span>`;
     else if(isTomorrow)badge=`<span style="background:rgba(201,123,63,0.15);color:var(--orange);border-radius:4px;padding:1px 6px;font-size:9px;font-family:'DM Mono',monospace;font-weight:700;">Wkrótce</span>`;
-    const dueText=ch?(c?c.name+' · '+chSt:chSt):habit?(c?(c.name+(streak?' · 🔥 '+streak:'')):(streak?'🔥 '+streak+' dni':'Odhacz dziś')):isOverdue?'Termin: dziś':isToday?'Termin: dziś':isTomorrow?c?c.name+' · jutro':'jutro':c?c.name+(t.due?' · '+t.due:''):t.due||'Bez terminu';
+    const dueText=isOverdue?'Termin: dziś':isToday?'Termin: dziś':isTomorrow?c?c.name+' · jutro':'jutro':c?c.name+(t.due?' · '+t.due:''):t.due||'Bez terminu';
     html+=`<div style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);">
       <div onclick="toggleTask('${t.id}');renderDash()" style="width:18px;height:18px;border-radius:4px;border:2px solid var(--border2);flex-shrink:0;cursor:pointer;margin-top:1px;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)'"></div>
       <div style="flex:1;min-width:0;">
-        <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${t.title}</div>
-        <div style="font-size:10px;color:var(--muted);margin-top:1px;">${dueText}</div>
+        <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(t.title||'')}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:1px;">${escHtml(dueText)}</div>
       </div>
       ${badge}
     </div>`;
