@@ -2173,6 +2173,7 @@ function runOnboardingForClient(client){
   const flow=window.ONBOARDING_FLOW;
   const first=(client.name||'').split(' ')[0];
   const parts=[];
+  let formSent=false;
   if(flow&&flow.active){
     if(flow.msgEnabled!==false && flow.welcomeMsg && typeof pushMsg==='function'){
       pushMsg(client.id,(flow.welcomeMsg||'').replace(/\{imie\}/g,first));
@@ -2191,7 +2192,7 @@ function runOnboardingForClient(client){
           if(typeof pushMsg==='function')pushMsg(client.id,'Formularz do wypełnienia: '+(form.name||'Ankieta'));
         }
       });
-      if(picked.length)parts.push('formularz');
+      if(picked.length){parts.push('formularz');formSent=true;}
     }
     if(flow.assignEnabled!==false && flow.programId){
       const assigned=assignProgramPlanToClient(flow.programId,client);
@@ -2249,6 +2250,14 @@ function runOnboardingForClient(client){
     if(parts.length){
       logOnboardRun(client,parts);
       if(typeof addNotification==='function')addNotification('system','Onboarding uruchomiony',client.name+' — '+parts.join(', '),'automation');
+    }
+  }
+  if(!formSent&&typeof createFormSend==='function'){
+    const forms=typeof allForms==='function'?allForms():[];
+    const intake=forms.find(f=>f.id==='df1')||forms.find(f=>(f.cat||'').includes('wstepna'))||forms[0];
+    if(intake){
+      createFormSend(intake,client.id);
+      parts.push('formularz (auto)');
     }
   }
   if(typeof enrollNewClientInAutoflows==='function')enrollNewClientInAutoflows(client);
