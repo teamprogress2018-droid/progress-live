@@ -146,17 +146,35 @@ const SAMPLE_CSV = [
   await page.click('text=Aplikacja klienta');
   await page.waitForSelector('#cap-screen-content');
   await page.waitForTimeout(400);
-  const capProgress = await page.evaluate(() => ({
+  await page.evaluate(() => {
+    if (typeof setCapScreen === 'function') setCapScreen('home');
+  });
+  await page.waitForTimeout(250);
+  const capHome = await page.evaluate(() => ({
     screen: !!(document.getElementById('screen-clientapp') && document.getElementById('screen-clientapp').classList.contains('active')),
     client: (document.getElementById('cap-client-sel') || {}).value || '',
     text: (document.getElementById('cap-screen-content') || {}).innerText || ''
   }));
+  await page.screenshot({ path: path.join(shotDir, 'client_app_garmin_home.png') });
+  ok('client app screen open', capHome.screen);
+  ok('client app client selected', capHome.client === 'c-anna', capHome.client);
+  ok('client home Morning Run', /Morning Run/i.test(capHome.text), capHome.text.slice(0, 400));
+  ok('client home 8432 steps', /8432/.test(capHome.text));
+  ok('client home 412 kcal', /412/.test(capHome.text));
+
+  await page.evaluate(() => {
+    const csv2 = [
+      'Activity Type,Date,Title,Distance,Calories,Time,Avg HR,Steps',
+      'Running,2024-03-13 07:00:00,Easy Jog,3.1,280,00:25:00,140,6200'
+    ].join('\n');
+    if (typeof importGarminCsvForClient === 'function') importGarminCsvForClient('c-anna', csv2);
+    if (typeof setCapScreen === 'function') setCapScreen('progress');
+  });
+  await page.waitForTimeout(250);
+  const capProgress = await page.evaluate(() => (document.getElementById('cap-screen-content') || {}).innerText || '');
   await page.screenshot({ path: path.join(shotDir, 'client_app_garmin_progress.png') });
-  ok('client app screen open', capProgress.screen);
-  ok('client app client selected', capProgress.client === 'c-anna', capProgress.client);
-  ok('client progress Morning Run', /Morning Run/i.test(capProgress.text), capProgress.text.slice(0, 400));
-  ok('client progress 8432 steps', /8432/.test(capProgress.text));
-  ok('client progress 412 kcal', /412/.test(capProgress.text));
+  ok('client progress panel', /MOJE POSTĘPY/.test(capProgress));
+  ok('client progress garmin steps chart', /Kroki \(Garmin\)/.test(capProgress));
 
   await page.evaluate(() => {
     if (typeof setCapScreen === 'function') setCapScreen('resources');
