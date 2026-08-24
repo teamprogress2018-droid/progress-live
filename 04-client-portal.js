@@ -248,6 +248,12 @@ function capTodaySlot(c){
   const day=days[dayIdx]||days[0]||null;
   const isRest=!day||day.rest||!(day.exercises||[]).length;
   if(doneToday)return{kind:'done',plan,day,dayIdx,session:doneToday,inPerson};
+  if(typeof isClientTrainingDay==='function'&&!isClientTrainingDay(c.id,today,c)){
+    const wds=typeof clientPreferredWeekdays==='function'?clientPreferredWeekdays(c):null;
+    const labels=wds&&typeof preferredWeekdaysLabels==='function'?preferredWeekdaysLabels(wds).join('/'):'';
+    const nextYmd=typeof nextClientTrainingDayYmd==='function'?nextClientTrainingDayYmd(c.id,today):null;
+    return{kind:'rest',plan,day,dayIdx,inPerson,scheduleRest:true,scheduleLabels:labels,nextTrainingYmd:nextYmd};
+  }
   if(days.length===7&&isRest)return{kind:'rest',plan,day,dayIdx,inPerson};
   const trainN=typeof planTrainingDayIdxs==='function'?planTrainingDayIdxs(plan).length:days.filter(d=>d&&!d.rest).length;
   const weekStart=typeof mondayYmd==='function'?mondayYmd():today;
@@ -598,11 +604,14 @@ function capScreenHTML(scr,c){
       }
       if(slot.kind==='rest'){
         const other=(slot.plan.days||[]).map((d,i)=>({d,i})).filter(x=>!x.d.rest&&(x.d.exercises||[]).length);
+        const restMsg=slot.scheduleRest
+          ?('Dziś nie masz treningu w harmonogramie'+(slot.scheduleLabels?' ('+escHtml(slot.scheduleLabels)+')':'')+'.'+(slot.nextTrainingYmd&&typeof formatTrainingDayShortPl==='function'?' Następny: '+escHtml(formatTrainingDayShortPl(slot.nextTrainingYmd))+'.':''))
+          :(slot.weekComplete?'W tym tygodniu plan jest odhaczony.':'Dziś regeneracja — sen, spacer, białko.');
         return `<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:22px 16px;margin-bottom:14px;text-align:center;">
           <div style="font-size:36px;margin-bottom:8px;">😴</div>
           <div style="font-size:16px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">Dzień wolny</div>
-          <div style="font-size:12px;color:${CAP_MUTED};line-height:1.6;margin-bottom:12px;">${slot.weekComplete?'W tym tygodniu plan jest odhaczony.':'Dziś regeneracja — sen, spacer, białko.'}</div>
-          ${other.length?`<div style="font-size:11px;color:${CAP_MUTED};margin-bottom:8px;">Albo odpal inny dzień planu:</div>
+          <div style="font-size:12px;color:${CAP_MUTED};line-height:1.6;margin-bottom:12px;">${restMsg}</div>
+          ${other.length?`<div style="font-size:11px;color:${CAP_MUTED};margin-bottom:8px;">${slot.scheduleRest?'Chcesz i tak trenować? Wybierz dzień planu:':'Albo odpal inny dzień planu:'}</div>
           <div style="display:flex;flex-direction:column;gap:6px;">${other.map(x=>`<button type="button" class="cap-btn-primary" style="padding:10px;font-size:13px;background:${CAP_S3};" ${startBtn(slot.plan.id,x.i)}>${escHtml(capDayLabel(x.d,x.i))}</button>`).join('')}</div>`:''}
         </div>`;
       }
