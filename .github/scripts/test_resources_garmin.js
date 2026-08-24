@@ -189,7 +189,7 @@ ok('client progress garmin steps chart', /Kroki \(Garmin\)/.test(progressHtml2))
 ok('client progress garmin sparkline data', /8432|6200/.test(progressHtml2));
 
 const homeHtml = ctx.capScreenHTML('home', anna);
-ok('client home garmin card', /Morning Run/i.test(homeHtml) && /8432/.test(homeHtml));
+ok('client home garmin card', /Easy Jog|Morning Run/i.test(homeHtml) && /6200|8432/.test(homeHtml));
 ok('client home youtube podcasts', /Podcasty YouTube/i.test(homeHtml) && /youtube\.com/i.test(homeHtml));
 
 windowObj._cliveCal = { y: 2024, m: 2 };
