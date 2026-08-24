@@ -104,7 +104,9 @@ function aplFillFromClient(){
   const c=CL.find(x=>x.id===cid);
   if(!c)return;
   if(c.age)document.getElementById('apl-age').value=c.age;
-  if(c.weight)document.getElementById('apl-weight').value=c.weight;
+  const metricW=typeof clientLatestMetricWeight==='function'?clientLatestMetricWeight(cid):null;
+  if(metricW!=null)document.getElementById('apl-weight').value=metricW;
+  else if(c.weight)document.getElementById('apl-weight').value=c.weight;
   if(c.height)document.getElementById('apl-height').value=c.height;
   if(c.gender)document.getElementById('apl-gender').value=c.gender;
   if(c.injuries)document.getElementById('apl-injuries').value=c.injuries;
@@ -129,8 +131,37 @@ function aplFillFromClient(){
   if(actEl&&c.activityLevel)actEl.value=c.activityLevel;
   const snEl=document.getElementById('apl-sport-notes');
   if(snEl&&c.sportNotes)snEl.value=c.sportNotes;
-  notify(`✓ Dane ${c.name} wczytane do formularza`);
+  aplRenderMetricsHint(cid);
+  const hasM=typeof clientMetricsContextForAI==='function'&&!!clientMetricsContextForAI(cid);
+  notify(hasM?`✓ Dane ${c.name} + pomiary (baseline) wczytane`:`✓ Dane ${c.name} wczytane do formularza`);
 }
+
+function aplRenderMetricsHint(clientId){
+  let el=document.getElementById('apl-metrics-hint');
+  if(!el){
+    const anchor=document.getElementById('apl-weight');
+    const field=anchor&&anchor.closest('.form-field');
+    const parent=field&&field.parentElement;
+    if(!parent)return;
+    el=document.createElement('div');
+    el.id='apl-metrics-hint';
+    el.style.cssText='font-size:11px;line-height:1.5;padding:8px 10px;border-radius:8px;margin:8px 0;border:1px solid var(--border2);background:var(--s3);color:var(--muted);';
+    parent.insertAdjacentElement('afterend',el);
+  }
+  const ctx=typeof clientMetricsContextForAI==='function'?clientMetricsContextForAI(clientId):'';
+  if(!ctx){
+    el.style.display='none';
+    el.textContent='';
+    return;
+  }
+  el.style.display='block';
+  el.style.borderColor='rgba(62,207,178,0.35)';
+  el.style.background='rgba(62,207,178,0.08)';
+  el.style.color='var(--text)';
+  const short=ctx.split('\n').filter(l=>l&&!l.startsWith('===')&&!l.startsWith('UWAGA')).slice(0,3).join(' · ');
+  el.innerHTML='<strong style="color:var(--teal);">📏 Pomiary z karty klienta</strong> trafią do AI.<br><span style="font-size:10px;color:var(--muted);">'+escHtml(short)+'</span>';
+}
+window.aplRenderMetricsHint=aplRenderMetricsHint;
 
 function aplGetVal(groupId){
   const active=document.querySelector(`#${groupId} .apl-opt.active`);
@@ -518,6 +549,7 @@ ${job?`- Rodzaj pracy (NEAT): ${job}`:''}
 - Poziom stresu: ${stress}
 ${notes?`- Dodatkowe uwagi: ${notes}`:''}
 ${client&&typeof clientSportProfileForAI==='function'?clientSportProfileForAI(Object.assign({},client,{priorSports:typeof readPriorSportsFrom==='function'?readPriorSportsFrom('apl'):(client.priorSports||[]),activityLevel:document.getElementById('apl-activity')?.value||client.activityLevel,sportNotes:document.getElementById('apl-sport-notes')?.value||client.sportNotes||''})):''}
+${cid&&typeof clientMetricsContextForAI==='function'?clientMetricsContextForAI(cid):''}
 ${client?`- Klient: ${client.name}, cel: ${client.goal}, poziom: ${client.level}`:''}${cid&&typeof sfrGetContextForAI==='function'?sfrGetContextForAI(cid):''}`;
 
   try{
@@ -1750,6 +1782,7 @@ async function sendAICMsg(){
       const tasks=TASKS.filter(t=>t.clientId===c.id);
       const checkins=window.CHECKINS?.[c.id]||[];
       const metrics=(window.METRIC_ENTRIES||[]).filter(e=>e.clientId===c.id);
+      const metricsTxt=typeof clientMetricsContextForAI==='function'?clientMetricsContextForAI(c.id):'';
       systemPrompt+=`\n\n=== DANE KLIENTA ===
 Imię: ${c.name}
 Cel: ${c.goal||'—'}
@@ -1761,7 +1794,7 @@ Liczba sesji: ${sessions.length}
 Liczba planów: ${plans.length}
 Liczba zadań: ${tasks.length}
 ${checkins.length?`Ostatni check-in: ${JSON.stringify(checkins[checkins.length-1])}`:'Brak check-inów'}
-${metrics.length?`Ostatnie pomiary: ${JSON.stringify(metrics.slice(-3))}`:'Brak pomiarów'}
+${metricsTxt||(metrics.length?`Ostatnie pomiary (raw): ${JSON.stringify(metrics.slice(-3))}`:'Brak pomiarów')}
 ${plans.length?`Aktualny plan: ${plans[plans.length-1].name}, metoda: ${plans[plans.length-1].method}`:'Brak planu'}
 Notatki: ${c.notes||'—'}`;
     }
