@@ -475,6 +475,7 @@ async function aplAnthropicRequest(payload,maxRetries=3){
       return data;
     }
     try{lastBody=await resp.text();}catch(e){lastBody='';}
+    try{console.warn('aplAnthropicRequest fail',lastStatus,String(lastBody||'').slice(0,240));}catch(e){}
     const retryable=lastStatus===429||lastStatus===503||lastStatus===524||lastStatus===502||lastStatus===400;
     if(attempt===maxRetries||!retryable){
       if(lastStatus===400)throw new Error('Żądanie AI odrzucone (status 400). Spróbuj krótszego planu lub mniejszej liczby dni.');
@@ -676,7 +677,8 @@ ${client?`- Klient: ${client.name}, cel: ${client.goal}, poziom: ${client.level}
 
   try{
     const totalDays=parseInt(days)||4;
-    const chunkSize=totalDays<=4?totalDays:3;
+    // Mniejsze chunki = krótsza odpowiedź JSON, mniej ucięć i błędów parse (4 dni naraz padało często).
+    const chunkSize=totalDays<=2?totalDays:2;
     const chunks=[];
     for(let i=0;i<totalDays;i+=chunkSize)chunks.push({from:i+1,to:Math.min(i+chunkSize,totalDays)});
     let plan=null;
