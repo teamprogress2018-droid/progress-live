@@ -84,10 +84,27 @@ ok('unescaped inner quotes repaired', rawInnerQuotes.planName === 'Plan' && rawI
 const dblComma = aplParsePlanJson('{"planName":"Test",, "days":[]}');
 ok('double comma', dblComma.planName === 'Test');
 
+const bareKeys = aplParsePlanJson('{planName:"FBW",days:[{dayName:"A",exercises:[{name:"Przysiad",sets:"4"}]}]}');
+ok('bare keys quoted', bareKeys.planName === 'FBW' && bareKeys.days[0].exercises[0].sets === '4');
+
+const singleQ = aplParsePlanJson("{'planName':'Masa','days':[]}");
+ok('single quotes normalized', singleQ.planName === 'Masa');
+
+const mixedBare = aplParsePlanJson('{"planName":"X","days":[{"dayName":"A",exercises:[{"name":"Wyciskanie"}]}]}');
+ok('mixed bare key in object', mixedBare.days[0].exercises[0].name === 'Wyciskanie');
+
+const spacedBare = aplParsePlanJson('{\n  planName: "Masa",\n  "days": []\n}');
+ok('bare key after newline', spacedBare.planName === 'Masa');
+
+const setsIntact = aplParsePlanJson('{"days":[{"exercises":[{"name":"X",sets:"3",reps:"10"}]}]}');
+ok('sets key not split by comma bug', setsIntact.days[0].exercises[0].sets === '3');
+
 const src = fs.readFileSync(path.join(root, '03-ai-plangen-bizstats-aicoach.js'), 'utf8');
 ok('parser exported', src.includes('window.aplParsePlanJson=aplParsePlanJson'));
 ok('repair exported', src.includes('function aplRepairJsonText'));
 ok('inner quote helper exported', src.includes('function aplEscapeInnerQuotes'));
+ok('bare key helper exported', src.includes('function aplQuoteBareKeys'));
+ok('single quote helper exported', src.includes('function aplNormalizeSingleQuotes'));
 
 if (failed) {
   console.error('\n' + failed + ' test(s) failed');
