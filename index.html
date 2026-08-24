@@ -2129,10 +2129,19 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         </div>
       </div>
 
-      <!-- kontuzje -->
+      <!-- kontuzje + priorytet sylwetkowy -->
       <div class="form-field">
         <label class="form-lbl">Kontuzje / ograniczenia</label>
         <input type="text" class="form-input" id="apl-injuries" placeholder="np. ból kolan, problem z barkiem..." style="font-size:13px;">
+      </div>
+      <div class="form-field">
+        <label class="form-lbl">Priorytet sylwetkowy</label>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">1–2 pierwsze ćwiczenia sesji = te partie (stretch / maszyny).</div>
+        <div id="apl-physique-priority-mount"></div>
+      </div>
+      <div class="form-field">
+        <label class="form-lbl">Preset struktury (3 dni hipertrofia)</label>
+        <button type="button" class="btn btn-ghost btn-sm" style="width:100%;" onclick="aplApplyHypertrophy3DayPreset()">Push+czworogłowe / Pull+dwugłowe / Upper</button>
       </div>
 
       <!-- anatomia i biomechanika -->
@@ -2816,7 +2825,12 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
           <select class="form-select" id="ac-activity"><option value="sedentary">Siedzący tryb</option><option value="light">Lekka</option><option value="moderate" selected>Umiarkowana</option><option value="active">Aktywny</option></select></div>
         <div class="form-field"><label class="form-lbl">Uwagi sportowe</label><input type="text" class="form-input" id="ac-sport-notes" placeholder="np. biegał 5 lat"></div>
       </div>
-      <div class="form-field"><label class="form-lbl">Uwagi / kontuzje</label><textarea class="form-textarea" id="ac-notes" rows="2" placeholder="np. ból kolana..."></textarea></div>
+      <div class="form-field"><label class="form-lbl">Priorytet sylwetkowy</label>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Partie do akcentu na początku sesji (AI / Live).</div>
+        <div id="ac-physique-priority-mount"></div>
+      </div>
+      <div class="form-field"><label class="form-lbl">Kontuzje / ograniczenia</label><textarea class="form-textarea" id="ac-injuries" rows="2" placeholder="np. ból kolana, ograniczona mobilność barku..."></textarea></div>
+      <div class="form-field"><label class="form-lbl">Uwagi prywatne</label><textarea class="form-textarea" id="ac-notes" rows="2" placeholder="Notatka tylko dla trenera..."></textarea></div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-client')">Anuluj</button><button class="btn btn-primary" onclick="saveClient()">Zapisz klienta</button></div>
   </div>
@@ -2832,6 +2846,31 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <div id="client-onboard-steps"></div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-client-onboard')">Zamknij</button></div>
+  </div>
+</div>
+
+<!-- MODAL: BASELINE POMIARÓW -->
+<div class="modal-ov" id="m-baseline">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-hdr"><div class="modal-title" id="m-baseline-title">POMIARY STARTOWE</div><button class="modal-close" onclick="closeM('m-baseline')">×</button></div>
+    <div class="modal-body">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Zapisz baseline z dzisiejszą datą — historia w Pomiary.</div>
+      <div class="form-grid">
+        <div class="form-field"><label class="form-lbl">Waga (kg)</label><input type="number" class="form-input" id="bl-weight" step="0.1" placeholder="80"></div>
+        <div class="form-field"><label class="form-lbl">% tkanki tłuszczowej</label><input type="number" class="form-input" id="bl-bf" step="0.1" placeholder="18"></div>
+      </div>
+      <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:10px 0 8px;">Obwody (cm)</div>
+      <div class="form-grid">
+        <div class="form-field"><label class="form-lbl">Klatka</label><input type="number" class="form-input" id="bl-chest" step="0.1"></div>
+        <div class="form-field"><label class="form-lbl">Talia</label><input type="number" class="form-input" id="bl-waist" step="0.1"></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-field"><label class="form-lbl">Biodra</label><input type="number" class="form-input" id="bl-hips" step="0.1"></div>
+        <div class="form-field"><label class="form-lbl">Udo</label><input type="number" class="form-input" id="bl-thigh" step="0.1"></div>
+      </div>
+      <div class="form-field"><label class="form-lbl">Ramię</label><input type="number" class="form-input" id="bl-arm" step="0.1"></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-baseline')">Anuluj</button><button class="btn btn-primary" onclick="saveClientBaselineModal()">Zapisz baseline</button></div>
   </div>
 </div>
 

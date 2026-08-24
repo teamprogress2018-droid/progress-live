@@ -84,6 +84,9 @@ jobs:
       - name: 1m. Testy sportów w planowaniu i statystyk klienta
         run: node .github/scripts/test_client_sports_stats.js
 
+      - name: 1n. Testy przepływu klienta (priorytet / baseline / kalendarz)
+        run: node .github/scripts/test_client_flow_helpers.js
+
       - name: 2. Sprawdź duplikaty (funkcje / id / zmienne)
         run: python3 .github/scripts/check_duplicates.py
 

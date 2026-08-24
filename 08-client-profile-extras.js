@@ -752,7 +752,15 @@ function cpClientDataEditHTML(c){
       ${field('cpe-profile-auto','Profil (auto)',`<div class="cp-profile-auto">${typeof clientSportProfileLabel==='function'?escHtml(clientSportProfileLabel(c)||'—'):'—'}</div>`)}
     </div>
     ${field('cpe-sport-notes','Uwagi sportowe',`<input class="form-input" id="cpe-sport-notes" value="${escHtml(c.sportNotes||'')}" placeholder="np. biegał 5 lat, teraz siłownia od zera">`)}
-    ${field('cpe-notes','Uwagi / kontuzje',`<textarea class="form-select" id="cpe-notes" rows="2" style="resize:none;">${escHtml(c.notes||'')}</textarea>`)}
+    <div class="form-field cp-field-below">
+      <div class="cp-field-control">
+        <div class="cp-field-hint">Partie na początku sesji (AI / Live).</div>
+        ${typeof physiquePriorityChipsHTML==='function'?physiquePriorityChipsHTML(c.physiquePriority,'cpe'):''}
+      </div>
+      <label class="form-lbl">Priorytet sylwetkowy</label>
+    </div>
+    ${field('cpe-injuries','Kontuzje / ograniczenia',`<textarea class="form-select" id="cpe-injuries" rows="2" style="resize:none;">${escHtml(typeof clientInjuriesText==='function'?clientInjuriesText(c):(c.injuries||c.notes||''))}</textarea>`)}
+    ${field('cpe-notes','Uwagi prywatne',`<textarea class="form-select" id="cpe-notes" rows="2" style="resize:none;">${escHtml(c.notes||'')}</textarea>`)}
     <button type="button" class="btn btn-primary" style="width:100%;" onclick="saveCPEdit('${c.id}')">💾 Zapisz zmiany</button>
   </div>`;
 }
@@ -835,7 +843,8 @@ function renderCPOverview(c){
         ${dataTile('Poziom',levelLabels[c.level]||c.level||'—')}
         ${dataTile('Status',statusLabel,{color:statusColor})}
       </div>
-      ${c.notes?`<div style="margin-top:12px;background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.2);border-radius:8px;padding:8px 12px;font-size:11px;"><span style="color:var(--red);">⚠ Kontuzje/uwagi:</span> ${escHtml(c.notes)}</div>`:''}
+      ${(()=>{const inj=typeof clientInjuriesText==='function'?clientInjuriesText(c):(c.injuries||c.notes||'');return inj?`<div style="margin-top:12px;background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.2);border-radius:8px;padding:8px 12px;font-size:11px;"><span style="color:var(--red);">⚠ Kontuzje/ograniczenia:</span> ${escHtml(inj)}</div>`:'';})()}
+      ${c.notes&&c.notes!==(c.injuries||'')?`<div style="margin-top:8px;font-size:11px;color:var(--muted);"><span style="font-weight:600;">Uwagi:</span> ${escHtml(c.notes)}</div>`:''}
     </div>
     ${!c.phone?`<div style="background:rgba(201,123,63,0.12);border:1px solid rgba(201,123,63,0.35);border-radius:8px;padding:10px 12px;margin-bottom:16px;font-size:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
       <span>Dodaj numer telefonu — potrzebny do WhatsApp i przypomnień.</span>
@@ -850,6 +859,7 @@ function renderCPOverview(c){
     <div style="background:var(--s2);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:16px;">
       ${sectionHdr('🏃','Wcześniejsze sporty / aktywności')}
       ${c.priorSports&&c.priorSports.length?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">${c.priorSports.map(s=>`<span class="pill" style="background:var(--adim);color:var(--accent);font-size:10px;">${escHtml(typeof PRIOR_SPORTS_MAP!=='undefined'&&PRIOR_SPORTS_MAP[s]?PRIOR_SPORTS_MAP[s].label:s)}</span>`).join('')}</div>`:'<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Brak danych — edytuj profil</div>'}
+      ${c.physiquePriority&&c.physiquePriority.length?`<div style="margin:8px 0 10px;"><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Priorytet sylwetkowy</div><div style="display:flex;gap:6px;flex-wrap:wrap;">${c.physiquePriority.map(id=>`<span class="pill" style="background:rgba(230,0,0,0.12);color:var(--accent);font-size:10px;">${escHtml(typeof physiquePriorityLabel==='function'?physiquePriorityLabel(id):id)}</span>`).join('')}</div></div>`:''}
       ${infoRow('Dotychczasowa aktywność',{sedentary:'Siedzący tryb',light:'Lekka',moderate:'Umiarkowana',active:'Aktywny'}[c.activityLevel]||c.activityLevel||'—')}
       ${infoRow('Profil sportowy (auto)',typeof clientSportProfileLabel==='function'?clientSportProfileLabel(c)||'—':'—')}
       ${c.sportNotes?infoRow('Uwagi sportowe',c.sportNotes):''}
@@ -884,7 +894,7 @@ function renderCPOverview(c){
       if(!ob||ob.complete)return'';
       return `<div style="background:rgba(201,123,63,0.1);border:1px solid rgba(201,123,63,0.35);border-radius:10px;padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
         <div>
-          <div style="font-size:12px;font-weight:700;margin-bottom:2px;">Start współpracy ${ob.done}/3</div>
+          <div style="font-size:12px;font-weight:700;margin-bottom:2px;">Start współpracy ${ob.done}/${ob.total}</div>
           <div style="font-size:11px;color:var(--muted);">${!ob.invite?'Brak zaproszenia. ':''}${!ob.plan?'Brak planu. ':''}${!ob.session?'Brak sesji. ':''}</div>
         </div>
         <button class="btn btn-primary btn-sm" onclick="openClientOnboardChecklist('${c.id}')">Dokończ</button>
