@@ -2855,6 +2855,14 @@ function sendInvitation() {
   persistById('clients', c);
 
   addNotification('system', 'Zaproszenie zapisane', c.name + ' — link w Inbox (' + (methodLabels[inviteMethod]||'wiadomość') + ')', 'clients');
+  if(typeof fireIntEvent==='function'){
+    try{
+      fireIntEvent('invite.sent',{
+        invite:{clientId:c.id,method:inviteMethod||'wiadomosc',link:link||c.inviteLink||''},
+        client:{id:c.id,name:c.name||'',email:c.email||'',phone:c.phone||''}
+      });
+    }catch(e){console.warn('fireIntEvent invite',e);}
+  }
   closeM('m-invite');
   notify('✅ Zaproszenie do ' + c.name + ': ' + (methodLabels[inviteMethod]||'Inbox'));
   maybeResumeOnboard(c.id);

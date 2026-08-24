@@ -1863,12 +1863,16 @@ const INTEGRATIONS=[
   {
     id:'zapier',cat:'automation',name:'Zapier',icon:'⚡',color:'#ff4a00',
     status:'available',
-    shortDesc:'Catch Hook — POST przy kliencie, sesji i płatności',
-    desc:'Wklej URL Catch Hook z Zapiera. Przy nowym kliencie, zapisanej sesji i oznaczeniu pakietu jako opłacony strona wysyła POST. Jeśli Zapier zablokuje CORS, i tak wyślemy w trybie no-cors.',
+    shortDesc:'Catch Hook — POST przy kliencie, sesji, check-inie, formularzu…',
+    desc:'Wklej URL Catch Hook z Zapiera. Wysyłamy POST przy: nowy klient, zaproszenie, sesja, pakiet opłacony, check-in wypełniony, formularz wypełniony, import Garmin. Jeśli Zapier zablokuje CORS, i tak wyślemy w trybie no-cors.',
     features:[
       {name:'Trigger: Nowy klient dodany',on:true},
+      {name:'Trigger: Zaproszenie wysłane',on:true},
+      {name:'Trigger: Sesja zapisana',on:true},
       {name:'Trigger: Płatność otrzymana',on:true},
       {name:'Trigger: Check-in wypełniony',on:true},
+      {name:'Trigger: Formularz wypełniony',on:true},
+      {name:'Trigger: Import Garmin CSV',on:true},
       {name:'Action: Dodaj do Google Sheets',on:true},
       {name:'Action: Wyślij email przez Gmail',on:true},
       {name:'Action: Utwórz zadanie w Notion/Trello',on:true},
@@ -1885,10 +1889,11 @@ const INTEGRATIONS=[
   {
     id:'make',cat:'automation',name:'Make (Integromat)',icon:'🔧',color:'#6d00cc',
     status:'available',
-    shortDesc:'Catch Hook Make — ten sam POST co Zapier',
-    desc:'Wklej Webhook URL z Make. Te same zdarzenia: nowy klient, sesja, pakiet opłacony.',
+    shortDesc:'Catch Hook Make — te same eventy co Zapier',
+    desc:'Wklej Webhook URL z Make. Te same zdarzenia co Zapier: klient, zaproszenie, sesja, pakiet, check-in, formularz, Garmin.',
     features:[
       {name:'Wizualny builder scenariuszy',on:true},
+      {name:'Te same trigger-y co Zapier (check-in, form, Garmin…)',on:true},
       {name:'Transformacje danych (JSON, XML)',on:true},
       {name:'Iteratory i agregatory',on:true},
       {name:'Webhooks i HTTP moduły',on:true},
@@ -1925,6 +1930,18 @@ window.INT_CONNECTIONS={}; // integrationId -> {id: firestoreDocId, integrationI
 window.INT_EVENT_LOG=window.INT_EVENT_LOG||[];
 const INT_DAILY_IDS=['google_calendar','outlook','calendly','whatsapp','email','zapier','make','garmin'];
 const INT_REQUIRED_CFG={calendly:'event_url',zapier:'webhook_url',make:'webhook_url'};
+/** Eventy POST na Catch Hook Zapier/Make (pole `event` w body). */
+const INT_WEBHOOK_EVENTS=[
+  {id:'client.created',label:'Nowy klient'},
+  {id:'invite.sent',label:'Zaproszenie'},
+  {id:'session.created',label:'Sesja'},
+  {id:'package.paid',label:'Pakiet opłacony'},
+  {id:'checkin.completed',label:'Check-in'},
+  {id:'form.submitted',label:'Formularz'},
+  {id:'garmin.imported',label:'Import Garmin'},
+  {id:'test',label:'Test ręczny'}
+];
+window.INT_WEBHOOK_EVENTS=INT_WEBHOOK_EVENTS;
 
 function intWorksNow(id){return INT_DAILY_IDS.includes(id);}
 function intDocId(integrationId){return (window._uid||'local')+'_'+integrationId;}
@@ -2172,6 +2189,15 @@ function intGarminImportFor(clientId,text){
     return result;
   }
   ensureGarminConnected({lastImport:{at:new Date().toISOString(),metrics:result.metrics,sessions:result.sessions,skipped:result.skipped,clientId:clientId,preview:result.preview||[]}});
+  if(typeof fireIntEvent==='function'){
+    try{
+      const cl=(window.CL||[]).find(x=>x&&x.id===clientId);
+      fireIntEvent('garmin.imported',{
+        import:{metrics:result.metrics,sessions:result.sessions,skipped:result.skipped,rows:result.rows||0},
+        client:{id:clientId,name:(cl&&cl.name)||'',email:(cl&&cl.email)||''}
+      });
+    }catch(e){console.warn('fireIntEvent garmin',e);}
+  }
   if(typeof notify==='function'){
     const m=result.metrics,s=result.sessions;
     const mTxt=m+' '+(m===1?'pomiar':m>1&&m<5?'pomiary':'pomiarów');
@@ -2274,6 +2300,7 @@ function renderIntDailyBar(){
   const calUrl=intCfg('calendly','event_url');
   const zapOn=!!(getIntConn('zapier')?.connected&&intCfg('zapier','webhook_url'));
   const makeOn=!!(getIntConn('make')?.connected&&intCfg('make','webhook_url'));
+  const hooksOn=zapOn||makeOn;
   el.innerHTML=`
     <div style="display:flex;flex-wrap:wrap;gap:8px;">
       <button class="btn btn-primary btn-sm" onclick="downloadSessionsIcs()">📅 Pobierz ICS (${(window.SE||[]).length} sesji)</button>
@@ -2281,10 +2308,23 @@ function renderIntDailyBar(){
       <button class="btn btn-ghost btn-sm" onclick="intRemindEmail()">✉️ E-mail dziś</button>
       <button class="btn btn-ghost btn-sm" onclick="intOpenCalendly()" ${calUrl?'':'disabled title="Najpierw zapisz link Calendly"'}>🗓 Otwórz Calendly</button>
       <button class="btn btn-ghost btn-sm" onclick="intSendCalendly()" ${calUrl?'':'disabled'}>Wyślij Calendly w czat</button>
-      <button class="btn btn-ghost btn-sm" onclick="intTestWebhook()" ${zapOn||makeOn?'':'disabled title="Włącz Zapier albo Make"'}>⚡ Sprawdź webhook</button>
+      <button class="btn btn-ghost btn-sm" onclick="intTestWebhook()" ${hooksOn?'':'disabled title="Włącz Zapier albo Make"'}>⚡ Sprawdź webhook</button>
       <button class="btn btn-ghost btn-sm" onclick="openIntDetail('garmin')">⌚ Import Garmin</button>
+      <button class="btn btn-ghost btn-sm" onclick="renderIntWebhookEventsHelp()">📋 Eventy webhook</button>
     </div>`;
 }
+
+function renderIntWebhookEventsHelp(){
+  const el=document.getElementById('int-daily-panel');if(!el)return;
+  const hooks=(INT_WEBHOOK_EVENTS||[]).map(e=>`<div style="display:flex;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;">
+    <code style="font-family:'DM Mono',monospace;color:var(--accent);flex-shrink:0;">${escHtml(e.id)}</code>
+    <span style="color:var(--muted);">${escHtml(e.label)}</span>
+  </div>`).join('');
+  el.innerHTML=`<div style="font-size:12px;font-weight:600;margin-bottom:8px;">Catch Hook — pole <code style="font-family:'DM Mono',monospace;">event</code> w JSON</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.5;">Filtruj w Zapier/Make po <code style="font-family:'DM Mono',monospace;">event</code>. Wysyłane gdy Zapier lub Make ma włączony Catch Hook.</div>
+    ${hooks}`;
+}
+window.renderIntWebhookEventsHelp=renderIntWebhookEventsHelp;
 
 function setIntTab(t){
   intTab=t;
@@ -2402,6 +2442,15 @@ function openIntDetail(id){
     </div>`:''}
 
     ${id==='garmin'?garminCsvPanelHtml(conn):''}
+
+    ${(id==='zapier'||id==='make')?`
+    <div style="margin-bottom:16px;background:var(--s3);border-radius:10px;padding:12px;">
+      <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:8px;">Eventy w body JSON</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.55;margin-bottom:8px;">Filtruj w scenariuszu po polu <code style="font-family:'DM Mono',monospace;">event</code>:</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">
+        ${(INT_WEBHOOK_EVENTS||[]).filter(e=>e.id!=='test').map(e=>`<span style="font-family:'DM Mono',monospace;font-size:10px;padding:4px 8px;border-radius:6px;background:var(--s2);border:1px solid var(--border);color:var(--text);">${escHtml(e.id)}</span>`).join('')}
+      </div>
+    </div>`:''}
 
     ${!daily?`
     <div style="margin-bottom:20px;background:rgba(201,123,63,0.1);border:1px solid rgba(201,123,63,0.3);border-radius:10px;padding:12px;font-size:12px;line-height:1.6;">
@@ -3531,6 +3580,15 @@ function applyCheckinAnswers(ci,answers,filledBy){
   persistCheckin(ci);
   if(typeof syncClientFromCheckin==='function'){
     try{syncClientFromCheckin(ci);}catch(e){console.warn('syncClientFromCheckin',e);}
+  }
+  if(typeof fireIntEvent==='function'){
+    try{
+      const cl=(window.CL||[]).find(x=>x&&x.id===ci.clientId);
+      fireIntEvent('checkin.completed',{
+        checkin:{id:ci.id,clientId:ci.clientId,date:ci.date,score:ci.score,filledBy:ci.filledBy||filledBy||'client',weight:ci.answers&&ci.answers.weight||''},
+        client:{id:ci.clientId,name:(cl&&cl.name)||'',email:(cl&&cl.email)||''}
+      });
+    }catch(e){console.warn('fireIntEvent checkin',e);}
   }
 }
 
