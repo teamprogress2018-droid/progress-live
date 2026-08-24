@@ -13,7 +13,7 @@ const DEMO_FORMS=[
   {
     id:'df1',type:'demo',status:'active',cat:'wstepna',
     name:'Ankieta wstępna',
-    desc:'Podstawowe informacje o stanie zdrowia, celach i historii treningowej klienta. Wysyłana automatycznie po dodaniu nowego klienta.',
+    desc:'Jedyna ankieta startowa (cel, poziom, zdrowie, preferencje). Wysyłana w apce albo jako PDF do wydruku / e-maila — nie wypełniaj tych pól ręcznie w profilu klienta.',
     questions:[
       {id:'q1',type:'text',text:'Jaki jest Twój główny cel treningowy?',required:true},
       {id:'q2',type:'choice',text:'Jak długo trenujesz?',options:['Jestem początkujący (0-1 rok)','1-3 lata','Ponad 3 lata'],required:true},
@@ -235,6 +235,7 @@ function renderForms(){
           <div style="font-size:11px;color:var(--muted);">Wysłanych: <span style="color:var(--text);font-weight:600;">${sends.length}</span> · Wypełnionych: <span style="color:var(--teal);font-weight:600;">${filled}</span></div>
           <div style="display:flex;gap:5px;" onclick="event.stopPropagation()">
             <button class="btn btn-ghost btn-sm" onclick="openFormDetail('${f.id}')">Podgląd</button>
+            <button class="btn btn-ghost btn-sm" onclick="printFormPdf('${f.id}')" title="Pusty formularz do PDF / wydruku">PDF</button>
             <button class="btn btn-primary btn-sm" onclick="openSendForm('${f.id}')">Wyślij</button>
           </div>
         </div>
@@ -268,12 +269,16 @@ function openFormDetail(id){
         const filled=s.status==='filled';
         const open=window._fdAnswersSendId===s.id;
         return `<div style="padding:7px 0;border-bottom:1px solid var(--border);">
-        <div ${filled?`onclick="toggleFormSendAnswers('${s.id}')"`:''} style="display:flex;align-items:center;gap:8px;font-size:12px;${filled?'cursor:pointer;':''}">
-          <span>${c?c.name:'Klient'}</span>
+        <div ${filled?`onclick="toggleFormSendAnswers('${escHtml(s.id)}')"`:''} style="display:flex;align-items:center;gap:8px;font-size:12px;${filled?'cursor:pointer;':''}">
+          <span>${c?escHtml(c.name):'Klient'}</span>
           <span class="sent-badge ${filled?'pill-green':'pill-orange'}">${filled?'✓ Wypełniony':'⏳ Oczekuje'}</span>
-          <span style="margin-left:auto;font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${s.sentAt||''}${filled?' · odpowiedzi':''}</span>
+          <span style="margin-left:auto;font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${escHtml(s.sentAt||'')}${filled?' · odpowiedzi':''}</span>
         </div>
         ${open?formAnswersHtml(s):''}
+        <div style="display:flex;gap:6px;margin-top:6px;">
+          ${filled?`<button type="button" class="btn btn-ghost btn-sm" onclick="printFormSendPdf('${escHtml(s.id)}')">PDF odpowiedzi</button>`:''}
+          ${!filled?`<button type="button" class="btn btn-ghost btn-sm" onclick="remindFormSend('${escHtml(s.id)}')">Przypomnij</button>`:''}
+        </div>
       </div>`;}).join('')}
     </div>`:''}
 
@@ -291,14 +296,100 @@ function openFormDetail(id){
     </div>`;
 
   document.getElementById('fd-actions').innerHTML=findCustomForm(id)
-    ?`<button class="btn btn-primary" style="flex:1;" onclick="openSendForm('${id}')">📤 Wyślij do klienta</button>
+    ?`<button class="btn btn-primary" style="flex:1;" onclick="openSendForm('${id}')">📤 Wyślij w apce</button>
+      <button class="btn btn-ghost" onclick="printFormPdf('${id}')" title="Pusty PDF / wydruk do e-maila">📄 PDF</button>
       <button class="btn btn-ghost" onclick="editForm('${id}')">✏</button>
       <button class="btn btn-ghost" style="color:var(--red);" onclick="delForm('${id}')">🗑</button>`
-    :`<button class="btn btn-primary" style="flex:1;" onclick="openSendForm('${id}')">📤 Wyślij do klienta</button>
+    :`<button class="btn btn-primary" style="flex:1;" onclick="openSendForm('${id}')">📤 Wyślij w apce</button>
+      <button class="btn btn-ghost" onclick="printFormPdf('${id}')" title="Pusty PDF / wydruk do e-maila">📄 PDF</button>
       <button class="btn btn-ghost" onclick="closeFormDetail()">Zamknij</button>`;
 
   document.getElementById('form-detail').style.transform='translateX(0)';
 }
+
+/** HTML do wydruku / „Zapisz jako PDF” (puste odpowiedzi albo wypełnione). */
+function buildFormPrintHtml(form,opts){
+  opts=opts||{};
+  const qs=form&&form.questions?form.questions:[];
+  const ans=opts.answers||{};
+  const filled=!!opts.filled;
+  const clientName=opts.clientName||'';
+  const trainer=(typeof getTrainerName==='function'?getTrainerName('Trener'):'Trener');
+  const when=opts.when||new Date().toLocaleDateString('pl-PL');
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const answerBlock=(q)=>{
+    if(filled){
+      const raw=ans[q.id];
+      const txt=typeof formatFormAnswer==='function'?formatFormAnswer(q,raw):(raw==null||raw===''?'—':String(raw));
+      return `<div class="ans">${esc(txt)}</div>`;
+    }
+    if(q.type==='yesno')return`<div class="blank yn"><span>☐ Tak</span><span>☐ Nie</span></div>`;
+    if(q.type==='choice'&&q.options&&q.options.length){
+      return`<div class="blank yn">${q.options.map(o=>`<div>☐ ${esc(o)}</div>`).join('')}</div>`;
+    }
+    if(q.type==='scale')return`<div class="blank yn">${[1,2,3,4,5,6,7,8,9,10].map(n=>'☐ '+n).join(' &nbsp; ')}</div>`;
+    if(q.type==='number')return`<div class="blank line short"></div>`;
+    return`<div class="blank line"></div><div class="blank line"></div>`;
+  };
+  return `<!DOCTYPE html><html lang="pl"><head><meta charset="utf-8"><title>${esc(form.name||'Formularz')}</title>
+<style>
+  body{font-family:Georgia,'Times New Roman',serif;color:#111;max-width:720px;margin:24px auto;padding:0 20px;line-height:1.45;}
+  h1{font-size:22px;margin:0 0 6px;font-family:Arial,sans-serif;}
+  .meta{font-size:12px;color:#444;margin-bottom:18px;font-family:Arial,sans-serif;}
+  .q{margin:0 0 16px;padding-bottom:12px;border-bottom:1px solid #ddd;page-break-inside:avoid;}
+  .q-t{font-size:13px;font-weight:700;margin-bottom:8px;font-family:Arial,sans-serif;}
+  .req{color:#b00;}
+  .ans{font-size:14px;padding:6px 0;}
+  .blank.line{border-bottom:1px solid #999;height:22px;margin:4px 0;}
+  .blank.line.short{width:120px;}
+  .blank.yn{font-size:13px;font-family:Arial,sans-serif;display:flex;flex-direction:column;gap:4px;}
+  .foot{margin-top:28px;font-size:11px;color:#666;font-family:Arial,sans-serif;}
+  @media print{body{margin:12px;} .no-print{display:none!important;}}
+</style></head><body>
+  <div class="no-print" style="margin-bottom:16px;font-family:Arial,sans-serif;font-size:13px;background:#f4f4f4;padding:10px 12px;border-radius:8px;">
+    Użyj <b>Drukuj → Zapisz jako PDF</b>, potem wyślij plik klientowi e-mailem / WhatsApp.
+    <button onclick="window.print()" style="margin-left:10px;padding:6px 12px;cursor:pointer;">Drukuj / PDF</button>
+  </div>
+  <h1>${esc(form.name||'Formularz')}</h1>
+  <div class="meta">${esc(form.desc||'')}<br>
+    Trener: ${esc(trainer)}${clientName?' · Klient: '+esc(clientName):''} · ${esc(when)}
+    ${filled?' · WYPEŁNIONE':''}
+  </div>
+  ${qs.map((q,i)=>`<div class="q"><div class="q-t">${i+1}. ${esc(q.text||'')}${q.required?' <span class="req">*</span>':''}</div>${answerBlock(q)}</div>`).join('')}
+  <div class="foot">Progress Live · ankieta do wypełnienia${filled?' (kopia odpowiedzi)':' (wersja papierowa / PDF)'}</div>
+  <script>window.addEventListener('load',function(){setTimeout(function(){try{window.print();}catch(e){}},250);});<\/script>
+</body></html>`;
+}
+function openFormPrintWindow(html){
+  const w=window.open('','_blank','noopener,noreferrer,width=800,height=900');
+  if(!w){if(typeof notify==='function')notify('Zablokowano okno — odblokuj pop-upy, żeby wygenerować PDF');return false;}
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+  return true;
+}
+function printFormPdf(formId){
+  const f=typeof allForms==='function'?allForms().find(x=>x.id===formId):null;
+  if(!f){if(typeof notify==='function')notify('Nie znaleziono formularza');return false;}
+  return openFormPrintWindow(buildFormPrintHtml(f,{filled:false}));
+}
+function printFormSendPdf(sendId){
+  const send=(window.FORM_SENDS||[]).find(s=>s&&s.id===sendId);
+  if(!send){if(typeof notify==='function')notify('Nie znaleziono wysyłki');return false;}
+  const f=(typeof allForms==='function'?allForms():[]).find(x=>x.id===send.formId)||{name:send.formName,questions:typeof formQuestionsForSend==='function'?formQuestionsForSend(send):[],desc:''};
+  const c=(window.CL||[]).find(x=>x.id===send.clientId);
+  const ans=typeof formSendAnswersMap==='function'?formSendAnswersMap(send):(send.answers||{});
+  const form={name:f.name||send.formName||'Formularz',desc:f.desc||'',questions:f.questions||[]};
+  return openFormPrintWindow(buildFormPrintHtml(form,{
+    filled:send.status==='filled',
+    answers:ans,
+    clientName:c&&c.name||'',
+    when:send.sentAt||send.filledAt||''
+  }));
+}
+window.buildFormPrintHtml=buildFormPrintHtml;
+window.printFormPdf=printFormPdf;
+window.printFormSendPdf=printFormSendPdf;
 
 function closeFormDetail(){
   document.getElementById('form-detail').style.transform='translateX(100%)';
@@ -491,16 +582,27 @@ function renderCPForms(c){
     .slice().sort((a,b)=>(b.sentAtIso||b.createdAt||b.sentAt||'').localeCompare(a.sentAtIso||a.createdAt||a.sentAt||''));
   const pending=sends.filter(s=>s.status!=='filled');
   const filled=sends.filter(s=>s.status==='filled');
+  const intake=typeof clientIntakeFormState==='function'?clientIntakeFormState(c.id):null;
   document.getElementById('cp-body').innerHTML=`
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
       <div class="cp-section-title" style="margin:0;">FORMULARZE (${sends.length})</div>
       <button class="btn btn-primary btn-sm" onclick="goTo('forms')">📋 Biblioteka</button>
     </div>
+    <div style="background:var(--s3);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:12px;">
+      <div style="font-size:12px;font-weight:700;margin-bottom:4px;">Ankieta wstępna</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:8px;">Źródło celu, poziomu i preferencji — wyślij w apce albo jako PDF. Nie duplikuj w Edytuj profil.</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        ${!(intake&&(intake.filled||intake.pending))?`<button class="btn btn-primary btn-sm" onclick="sendClientIntakeForm('${escHtml(c.id)}');renderCPForms(CL.find(x=>x.id==='${escHtml(c.id)}'))">Wyślij w apce</button>`:''}
+        ${intake&&intake.pending?`<button class="btn btn-primary btn-sm" onclick="remindFormSend('${escHtml(intake.pending.id)}')">Przypomnij</button>`:''}
+        <button class="btn btn-ghost btn-sm" onclick="printFormPdf('df1')">📄 PDF blank</button>
+        ${intake&&intake.filledSend?`<button class="btn btn-ghost btn-sm" onclick="printFormSendPdf('${escHtml(intake.filledSend.id)}')">PDF odpowiedzi</button>`:''}
+      </div>
+    </div>
     <div style="display:flex;gap:6px;margin-bottom:12px;">
       <div class="cp-stat-box" style="flex:1;"><div class="cp-stat-val" style="color:var(--orange);font-size:22px;">${pending.length}</div><div class="cp-stat-lbl">Oczekuje</div></div>
       <div class="cp-stat-box" style="flex:1;"><div class="cp-stat-val" style="color:var(--teal);font-size:22px;">${filled.length}</div><div class="cp-stat-lbl">Wypełnione</div></div>
     </div>
-    ${!sends.length?'<div style="text-align:center;padding:30px;color:var(--muted);">Brak wysłanych formularzy. Otwórz Formularze i kliknij Wyślij.</div>'
+    ${!sends.length?'<div style="text-align:center;padding:30px;color:var(--muted);">Brak wysłanych formularzy. Użyj przycisków powyżej albo biblioteki Formularze.</div>'
     :sends.map(s=>{
       const f=(typeof allForms==='function'?allForms():[]).find(x=>x.id===s.formId);
       const name=s.formName||(f&&f.name)||'Formularz';
@@ -515,6 +617,9 @@ function renderCPForms(c){
           <span class="pill ${isFilled?'pill-green':'pill-orange'}" style="font-size:9px;">${isFilled?'✓ Wypełniony':'⏳ Oczekuje'}</span>
         </div>
         ${open?formAnswersHtml(s):''}
+        <div style="display:flex;gap:6px;margin-top:6px;">
+          ${isFilled?`<button type="button" class="btn btn-ghost btn-sm" onclick="printFormSendPdf('${escHtml(s.id)}')">PDF</button>`:`<button type="button" class="btn btn-ghost btn-sm" onclick="remindFormSend('${escHtml(s.id)}')">Przypomnij</button>`}
+        </div>
       </div>`;
     }).join('')}
     <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:10px;" onclick="goTo('forms')">📤 Wyślij kolejny</button>`;
