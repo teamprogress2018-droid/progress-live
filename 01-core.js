@@ -1252,6 +1252,38 @@ function clientOpenHomework(clientId,tasks){
 }
 window.clientOpenHomework=clientOpenHomework;
 
+/** Nawyki aktywnych klientów nieodhachowane dziś (dłuższy streak na górze). */
+function pendingHabitTasks(tasks,today){
+  today=today||(typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10));
+  const live=new Set((window.CL||[]).filter(c=>c&&c.status!=='archived').map(c=>c.id));
+  return(tasks||window.TASKS||[]).filter(t=>t&&isHabit(t)&&t.clientId&&(!live.size||live.has(t.clientId))&&!habitDoneOn(t,today))
+    .slice()
+    .sort((a,b)=>habitStreak(b,today)-habitStreak(a,today)||String(a.title||'').localeCompare(String(b.title||''),'pl'));
+}
+window.pendingHabitTasks=pendingHabitTasks;
+
+/** Aktywne wyzwania bez odhaczenia dziś. */
+function pendingChallengeTasks(tasks,today){
+  today=today||(typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10));
+  const live=new Set((window.CL||[]).filter(c=>c&&c.status!=='archived').map(c=>c.id));
+  return(tasks||window.TASKS||[]).filter(t=>{
+    if(!t||!isChallenge(t)||!t.clientId||(live.size&&!live.has(t.clientId)))return false;
+    const p=challengeProgress(t,today);
+    return p.active&&!p.won&&!habitDoneOn(t,today);
+  }).slice().sort((a,b)=>{
+    const pa=challengeProgress(a,today),pb=challengeProgress(b,today);
+    return(pa.pct||0)-(pb.pct||0)||String(a.title||'').localeCompare(String(b.title||''),'pl');
+  });
+}
+window.pendingChallengeTasks=pendingChallengeTasks;
+
+function clientPendingHabits(clientId,tasks,today){
+  if(!clientId)return[];
+  return pendingHabitTasks(tasks,today).filter(t=>t.clientId===clientId)
+    .concat(pendingChallengeTasks(tasks,today).filter(t=>t.clientId===clientId));
+}
+window.clientPendingHabits=clientPendingHabits;
+
 function isOneShot(t){
   return !!(t&&!isHabit(t)&&!isChallenge(t)&&!isHomework(t));
 }

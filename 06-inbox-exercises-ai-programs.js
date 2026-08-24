@@ -2304,6 +2304,7 @@ function toggleTask(id){
     toggleHabitDay(t,today);
     persistById('tasks',t);
     renderTasks();
+    try{if(typeof renderDashHabitFollowup==='function')renderDashHabitFollowup();}catch(e){}
     return;
   }
   if(typeof isChallenge==='function'&&isChallenge(t)){
@@ -2315,6 +2316,7 @@ function toggleTask(id){
     toggleChallengeDay(t,today,today);
     persistById('tasks',t);
     renderTasks();
+    try{if(typeof renderDashHabitFollowup==='function')renderDashHabitFollowup();}catch(e){}
     return;
   }
   t.status=t.status==='done'?'open':'done';
