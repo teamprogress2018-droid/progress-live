@@ -90,6 +90,9 @@ jobs:
       - name: 1o. Testy edycji pomiarów w profilu klienta
         run: node .github/scripts/test_cp_metrics_edit.js
 
+      - name: 1o2. Testy zakładki Progress (statystyki klienta)
+        run: node .github/scripts/test_cp_progress_tab.js
+
       - name: 2. Sprawdź duplikaty (funkcje / id / zmienne)
         run: python3 .github/scripts/check_duplicates.py
 
