@@ -1043,7 +1043,6 @@ function liveSelectPlanForClient(planId,clientId){
 }
 
 function renderCPMetrics(c){
-  initDemoEntries(c.id);
   const groups=allMetricGroups();
   const entries=METRIC_ENTRIES.filter(e=>e.clientId===c.id);
   const activeGid=window._cpMetricGroup||(groups.find(g=>entries.some(e=>e.groupId===g.id))||groups[0]||{}).id||'mg1';
@@ -1320,7 +1319,6 @@ function cpPrBarChart(prs){
 }
 
 function renderCPProgress(c){
-  if(typeof initDemoEntries==='function')initDemoEntries(c.id);
   const logged=typeof completedWorkouts==='function'?completedWorkouts(c.id):(window.SE||[]).filter(s=>s.clientId===c.id&&(s.source==='live'||s.source==='client'||(s.exercises||[]).length));
   const prs=typeof clientExercisePRs==='function'?clientExercisePRs(c.id).slice(0,12):[];
   const volWeeks=clientWeeklyVolumeStats(c.id,8);
