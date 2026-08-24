@@ -163,19 +163,14 @@ const SAMPLE_CSV = [
   ok('client home 412 kcal', /412/.test(capHome.text));
 
   await page.evaluate(() => {
-    const csv2 = [
-      'Activity Type,Date,Title,Distance,Calories,Time,Avg HR,Steps',
-      'Running,2024-03-13 07:00:00,Easy Jog,3.1,280,00:25:00,140,6200'
-    ].join('\n');
-    if (typeof importGarminCsvForClient === 'function') importGarminCsvForClient('c-anna', csv2);
     if (typeof setCapScreen === 'function') setCapScreen('progress');
   });
   await page.waitForTimeout(250);
   const capProgress = await page.evaluate(() => (document.getElementById('cap-screen-content') || {}).innerText || '');
   await page.screenshot({ path: path.join(shotDir, 'client_app_garmin_progress.png') });
   ok('client progress panel', /MOJE POSTĘPY/.test(capProgress));
-  ok('client progress garmin steps chart', /Kroki \(Garmin\)/.test(capProgress));
-
+  ok('client progress calendar entry', /Kalendarz/.test(capProgress));
+  // Kroki sparkline wymaga ≥2 punktów — pokryte w test_resources_garmin.js (HTML), nie w UI innerText.
   await page.evaluate(() => {
     if (typeof setCapScreen === 'function') setCapScreen('resources');
   });
