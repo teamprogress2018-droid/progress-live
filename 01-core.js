@@ -2178,6 +2178,54 @@ function initPreferredWeekdaysForm(prefix,selected){
   const direct=document.getElementById(prefix+'-preferred-weekdays');
   if(direct)setPreferredWeekdayChips(prefix,selected||[]);
 }
+const CLIENT_ONBOARD_STEPS=[
+  {id:'invite',label:'Zaproszenie',missing:'brak zaproszenia'},
+  {id:'baseline',label:'Pomiary',missing:'brak pomiarów'},
+  {id:'schedule',label:'Harmonogram',missing:'brak dni treningowych'},
+  {id:'plan',label:'Plan',missing:'brak planu'},
+  {id:'calendar',label:'Kalendarz',missing:'brak w kalendarzu'}
+];
+function clientHasSchedulePrefs(c){
+  return normalizePreferredWeekdays(c&&c.preferredWeekdays).length>0;
+}
+function clientHasAssignedPlan(clientId){
+  return(window.PL||[]).some(p=>p&&p.clientId===clientId);
+}
+function clientHasCalendarOrSession(clientId){
+  return(window.SE||[]).some(s=>s&&s.clientId===clientId&&(s.source==='planned'||s.source==='live'||s.source==='client'));
+}
+function clientOnboardHasBaseline(c){
+  if(!c)return false;
+  if(c.baselineDone||c.weight)return true;
+  return(window.METRIC_ENTRIES||[]).some(e=>e&&e.clientId===c.id&&(e.groupId==='mg1'||e.groupId==='mg2'));
+}
+/** Status startu współpracy: zaproszenie → baseline → harmonogram → plan → kalendarz. */
+function clientOnboardStatus(c){
+  if(!c)return{invite:false,baseline:false,schedule:false,plan:false,calendar:false,session:false,done:0,total:5,complete:true,next:null,missing:[],missingLabels:[]};
+  const invite=!!(c.inviteSent||c.appInvited||c.inviteSentAt||c.inviteSkipped);
+  const baseline=clientOnboardHasBaseline(c);
+  const schedule=clientHasSchedulePrefs(c);
+  const plan=clientHasAssignedPlan(c.id);
+  const calendar=clientHasCalendarOrSession(c.id);
+  const flags={invite,baseline,schedule,plan,calendar};
+  const missing=CLIENT_ONBOARD_STEPS.filter(s=>!flags[s.id]).map(s=>s.id);
+  const missingLabels=CLIENT_ONBOARD_STEPS.filter(s=>!flags[s.id]).map(s=>s.missing);
+  const done=CLIENT_ONBOARD_STEPS.length-missing.length;
+  return{
+    invite,baseline,schedule,plan,calendar,
+    session:calendar,
+    done,total:CLIENT_ONBOARD_STEPS.length,
+    complete:missing.length===0,
+    next:missing[0]||null,
+    missing,missingLabels
+  };
+}
+function clientsWithIncompleteOnboard(){
+  return(window.CL||[]).filter(c=>c&&c.status!=='archived').map(c=>{
+    const st=clientOnboardStatus(c);
+    return{client:c,status:st};
+  }).filter(x=>!x.status.complete).sort((a,b)=>a.status.done-b.status.done||String(a.client.name||'').localeCompare(String(b.client.name||''),'pl'));
+}
 function mapGoalFromIntakeText(t){
   const s=String(t||'').toLowerCase();
   if(/si[lł]a|1\s*rm|max\.?\s*si|powerlift|ciężar/.test(s))return'sila';
@@ -2245,6 +2293,13 @@ window.readPreferredWeekdaysFrom=readPreferredWeekdaysFrom;
 window.setPreferredWeekdayChips=setPreferredWeekdayChips;
 window.togglePreferredWeekdayChip=togglePreferredWeekdayChip;
 window.initPreferredWeekdaysForm=initPreferredWeekdaysForm;
+window.CLIENT_ONBOARD_STEPS=CLIENT_ONBOARD_STEPS;
+window.clientHasSchedulePrefs=clientHasSchedulePrefs;
+window.clientHasAssignedPlan=clientHasAssignedPlan;
+window.clientHasCalendarOrSession=clientHasCalendarOrSession;
+window.clientOnboardHasBaseline=clientOnboardHasBaseline;
+window.clientOnboardStatus=clientOnboardStatus;
+window.clientsWithIncompleteOnboard=clientsWithIncompleteOnboard;
 window.mapGoalFromIntakeText=mapGoalFromIntakeText;
 window.mapLevelFromIntakeChoice=mapLevelFromIntakeChoice;
 window.syncClientFromIntakeForm=syncClientFromIntakeForm;

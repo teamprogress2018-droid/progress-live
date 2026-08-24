@@ -59,7 +59,8 @@ const {
   mapLevelFromIntakeChoice, syncClientFromIntakeForm, resolvePlanDayWeekday,
   scheduleTimeFromClient, defaultWeekdaysForFreq, preferredWeekdaysLabels,
   ymdWeekday, clientPreferredWeekdays, isClientTrainingDay, nextClientTrainingDayYmd,
-  hasPlannedSessionOnDate, formatTrainingDayShortPl
+  hasPlannedSessionOnDate, formatTrainingDayShortPl,
+  clientOnboardStatus, clientsWithIncompleteOnboard, clientHasSchedulePrefs
 } = ctx;
 
 let failed = 0;
@@ -134,6 +135,39 @@ windowObj.SE = [];
 eq('no prefs always train', isClientTrainingDay('c2','2026-08-25'), true);
 eq('next training from Tue', nextClientTrainingDayYmd('c1','2026-08-25'), '2026-08-26');
 eq('format training day', formatTrainingDayShortPl('2026-08-26').includes('Śr'), true);
+
+eq('schedule prefs explicit', clientHasSchedulePrefs({preferredWeekdays:[1,3,5]}), true);
+eq('schedule prefs empty', clientHasSchedulePrefs({trainingFreq:3}), false);
+
+windowObj.CL = [{id:'c-new', name:'Nowy', status:'active'}];
+windowObj.PL = [];
+windowObj.SE = [];
+windowObj.METRIC_ENTRIES = [];
+const emptySt = clientOnboardStatus(windowObj.CL[0]);
+eq('onboard empty total', emptySt.total, 5);
+eq('onboard empty complete', emptySt.complete, false);
+eq('onboard empty next', emptySt.next, 'invite');
+eq('onboard empty missing has schedule', emptySt.missing.indexOf('schedule')>=0, true);
+
+windowObj.CL = [{id:'c-full', name:'Gotowy', status:'active', inviteSent:true, weight:80, preferredWeekdays:[1,3,5]}];
+windowObj.PL = [{id:'p1', clientId:'c-full'}];
+windowObj.SE = [{clientId:'c-full', source:'planned', date:'2026-08-24', dayIdx:0}];
+const fullSt = clientOnboardStatus(windowObj.CL[0]);
+eq('onboard full complete', fullSt.complete, true);
+eq('onboard full next', fullSt.next, null);
+eq('onboard session alias', fullSt.session, true);
+
+windowObj.CL = [
+  {id:'c-a', name:'Ala', status:'active', inviteSkipped:true, preferredWeekdays:[1,3,5]},
+  {id:'c-b', name:'Bartek', status:'archived', inviteSent:true},
+  {id:'c-c', name:'Celina', status:'active', inviteSent:true, weight:60, preferredWeekdays:[1,3,5]}
+];
+windowObj.PL = [{id:'p-c', clientId:'c-c'}];
+windowObj.SE = [];
+const stuck = clientsWithIncompleteOnboard();
+eq('pipeline skips archived', stuck.map(x=>x.client.id), ['c-a','c-c']);
+eq('pipeline Ala next baseline', stuck[0].status.next, 'baseline');
+eq('pipeline Celina next calendar', stuck[1].status.next, 'calendar');
 
 if (failed) {
   console.error('\n' + failed + ' failed');
