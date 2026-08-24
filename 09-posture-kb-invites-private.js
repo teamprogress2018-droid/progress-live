@@ -253,6 +253,14 @@ function saveCPEdit(id){
   c.height=parseInt(document.getElementById('cpe-height').value)||c.height;
   c.goal=document.getElementById('cpe-goal').value;
   c.level=document.getElementById('cpe-level').value;
+  const freqEl=document.getElementById('cpe-freq');
+  if(freqEl){
+    const freq=typeof normalizeTrainingFreq==='function'?normalizeTrainingFreq(freqEl.value):parseInt(freqEl.value,10);
+    if(freq)c.trainingFreq=freq;else delete c.trainingFreq;
+  }
+  const timeEl=document.getElementById('cpe-train-time');
+  if(timeEl)c.preferredTrainTime=(timeEl.value||'').trim();
+  if(typeof readPreferredWeekdaysFrom==='function')c.preferredWeekdays=readPreferredWeekdaysFrom('cpe');
   c.status=document.getElementById('cpe-status').value;
   c.priorSports=typeof readPriorSportsFrom==='function'?readPriorSportsFrom('cpe'):(c.priorSports||[]);
   c.physiquePriority=typeof readPhysiquePriorityFrom==='function'?readPhysiquePriorityFrom('cpe'):(c.physiquePriority||[]);

@@ -703,6 +703,8 @@ function onbWizardNext(){
 }
 
 function onbCreateClient(){
+  const freq=+onbNewClient.freq||3;
+  const defaultWd=freq===2?[1,4]:freq===3?[1,3,5]:freq===4?[1,2,4,5]:freq===5?[1,2,3,4,5]:[1,2,3,4,5,6];
   const newC=withTrainer({
     id:newId('c'),
     name:onbNewClient.name,
@@ -711,7 +713,8 @@ function onbCreateClient(){
     goal:onbNewClient.goal||'masa',
     goalDesc:onbNewClient.goalDesc||'',
     level:onbNewClient.level||'sredni',
-    trainingFreq:+onbNewClient.freq||3,
+    trainingFreq:freq,
+    preferredWeekdays:onbNewClient.preferredWeekdays||defaultWd,
     weight:onbNewClient.weight||'',
     height:onbNewClient.height||'',
     gender:onbNewClient.gender||'mężczyzna',
@@ -735,14 +738,15 @@ function onbCreateClient(){
   }
 
   // assign template plan
+  let assignedPlan=null;
   if(onbNewClient.template){
     const t=PLAN_TEMPLATES.find(x=>x.id===onbNewClient.template);
     if(t){
-      const p=withTrainer({id:newId('p'),name:t.name,clientId:newC.id,method:t.method,duration:t.weeks,
+      assignedPlan=withTrainer({id:newId('p'),name:t.name,clientId:newC.id,method:t.method,duration:t.weeks,
         days:(t.days_detail||[]).map(d=>({day:d.name,exercises:(d.exercises||[]).map(e=>({name:e.n,sets:e.s,reps:e.r}))})),
         source:'template',createdAt:new Date().toISOString()});
-      PL.push(p);
-      persistById('plans',p);
+      PL.push(assignedPlan);
+      persistById('plans',assignedPlan);
     }
   }
 
@@ -762,9 +766,13 @@ function onbCreateClient(){
   addNotification('system','Nowy klient!',newC.name+' — onboarding uruchomiony','clients');
   notify('🎉 Klient '+newC.name+' dodany! Onboarding uruchomiony.');
   if(typeof runOnboardingForClient==='function')runOnboardingForClient(newC);
+  if(assignedPlan&&typeof schedulePlanToCalendar==='function'&&confirm('Dodać dni szablonu do kalendarza na 4 tygodnie?')){
+    schedulePlanToCalendar(assignedPlan.id,{weeks:4});
+  }
 
   onbNewClient={};onbStep=0;
   setOnbTab('overview');
+  if(typeof openClientOnboardChecklist==='function')setTimeout(()=>openClientOnboardChecklist(newC.id),400);
 }
 
 /* ── FLOWS ── */
