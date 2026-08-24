@@ -427,7 +427,56 @@ function renderClientOnboardChecklist(){
   if(inviteStep&&st.invite&&c.appJoined){
     inviteStep.desc='Klient założył konto w aplikacji ('+(c.appJoinedAt?String(c.appJoinedAt).slice(0,10):'ok')+').';
   }
-  el.innerHTML=steps.map(s=>`
+  // Soft intake / pending forms block (not counted in pipeline total)
+  const intake=typeof clientIntakeFormState==='function'?clientIntakeFormState(id):null;
+  let formBlock='';
+  if(intake){
+    if(intake.filled){
+      formBlock=`<div style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:var(--s3);border:1px solid var(--teal);border-radius:10px;margin-bottom:8px;">
+        <div style="width:32px;height:32px;border-radius:8px;background:rgba(62,207,178,0.18);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">✓</div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:700;margin-bottom:2px;">Ankieta wstępna</div>
+          <div style="font-size:11px;color:var(--muted);">Wypełniona — dane poszły do profilu / AI.</div>
+          <div style="font-size:10px;color:var(--teal);font-family:'DM Mono',monospace;margin-top:4px;">GOTOWE</div>
+        </div>
+      </div>`;
+    }else if(intake.pending){
+      formBlock=`<div style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:var(--s3);border:1px solid rgba(157,124,244,0.45);border-radius:10px;margin-bottom:8px;">
+        <div style="width:32px;height:32px;border-radius:8px;background:rgba(157,124,244,0.18);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">📋</div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:700;margin-bottom:2px;">Ankieta czeka na klienta</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${escHtml(intake.pending.formName||'Formularz')} — klient widzi ją w apce.</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="btn btn-primary btn-sm" onclick="remindFormSend('${escHtml(intake.pending.id)}');renderClientOnboardChecklist()">Przypomnij</button>
+            <button class="btn btn-ghost btn-sm" onclick="closeM('m-client-onboard');openClientProfile('${id}');setTimeout(()=>setCPTab('forms'),300)">Profil</button>
+          </div>
+        </div>
+      </div>`;
+    }else if(!intake.sent){
+      formBlock=`<div style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:var(--s3);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;">
+        <div style="width:32px;height:32px;border-radius:8px;background:var(--s2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">📋</div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:700;margin-bottom:2px;">Ankieta wstępna</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Cel, kontuzje, częstotliwość — sync do profilu po wypełnieniu.</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="btn btn-primary btn-sm" onclick="sendClientIntakeForm('${id}');renderClientOnboardChecklist()">Wyślij ankietę</button>
+            <button class="btn btn-ghost btn-sm" onclick="closeM('m-client-onboard');goTo('forms')">Biblioteka</button>
+          </div>
+        </div>
+      </div>`;
+    }else if(intake.anyPending&&intake.anyPending.length){
+      const p=intake.anyPending[0];
+      formBlock=`<div style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:var(--s3);border:1px solid rgba(157,124,244,0.45);border-radius:10px;margin-bottom:8px;">
+        <div style="width:32px;height:32px;border-radius:8px;background:rgba(157,124,244,0.18);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">📋</div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:700;margin-bottom:2px;">Formularz oczekuje</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${escHtml(p.formName||'Formularz')}${intake.anyPending.length>1?' · +'+(intake.anyPending.length-1):''}</div>
+          <button class="btn btn-primary btn-sm" onclick="remindFormSend('${escHtml(p.id)}');renderClientOnboardChecklist()">Przypomnij</button>
+        </div>
+      </div>`;
+    }
+  }
+  el.innerHTML=formBlock+steps.map(s=>`
     <div style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:var(--s3);border:1px solid ${s.done?'var(--teal)':'var(--border)'};border-radius:10px;margin-bottom:8px;">
       <div style="width:32px;height:32px;border-radius:8px;background:${s.done?'rgba(62,207,178,0.18)':'var(--s2)'};display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">${s.done?'✓':s.icon}</div>
       <div style="flex:1;">

@@ -117,9 +117,50 @@ function createFormSend(form,clientId,extraMsg){
   persistById('formSends',send);
   const msg=(extraMsg||'').trim()||('📋 Proszę wypełnić formularz: "'+(form.name||'Formularz')+'"');
   if(typeof pushMsg==='function')pushMsg(clientId,msg);
+  try{if(typeof renderDashFormFollowup==='function')renderDashFormFollowup();}catch(e){}
+  try{if(typeof renderClientOnboardChecklist==='function'&&window._onboardClientId===clientId)renderClientOnboardChecklist();}catch(e){}
   return send;
 }
 window.createFormSend=createFormSend;
+
+function remindFormSend(sendId){
+  const send=(window.FORM_SENDS||[]).find(s=>s&&s.id===sendId);
+  if(!send){if(typeof notify==='function')notify('Nie znaleziono formularza');return false;}
+  if(send.status==='filled'){if(typeof notify==='function')notify('Formularz jest już wypełniony');return false;}
+  const name=send.formName||'Formularz';
+  const msg='📋 Przypomnienie: proszę wypełnić formularz "'+name+'" w aplikacji.';
+  if(typeof pushMsg==='function')pushMsg(send.clientId,msg);
+  send.remindedAt=new Date().toISOString();
+  if(typeof persistById==='function')persistById('formSends',send);
+  if(typeof addNotification==='function'){
+    const c=(window.CL||[]).find(x=>x.id===send.clientId);
+    addNotification('form','Przypomnienie o formularzu',((c&&c.name)||'Klient')+' · '+name,'forms');
+  }
+  if(typeof notify==='function')notify('✓ Przypomnienie poszło do czatu klienta');
+  try{if(typeof renderDashFormFollowup==='function')renderDashFormFollowup();}catch(e){}
+  return true;
+}
+window.remindFormSend=remindFormSend;
+
+function sendClientIntakeForm(clientId){
+  const c=(window.CL||[]).find(x=>x.id===clientId);
+  if(!c){if(typeof notify==='function')notify('Nie znaleziono klienta');return null;}
+  const st=typeof clientIntakeFormState==='function'?clientIntakeFormState(clientId):null;
+  if(st&&st.pending){
+    if(typeof notify==='function')notify('Ankieta już czeka na klienta — możesz wysłać przypomnienie');
+    return st.pending;
+  }
+  if(st&&st.filled){
+    if(typeof notify==='function')notify('Ankieta wstępna jest już wypełniona');
+    return st.filledSend||null;
+  }
+  const form=typeof defaultIntakeForm==='function'?defaultIntakeForm():null;
+  if(!form){if(typeof notify==='function')notify('Brak formularza wstępnego w bibliotece (df1 / kategoria wstępna)');return null;}
+  const send=createFormSend(form,clientId,'📋 Ankieta startowa — wypełnij w apce, żebym mógł dopasować plan.');
+  if(send&&typeof notify==='function')notify('✓ Ankieta wstępna wysłana do '+c.name);
+  return send;
+}
+window.sendClientIntakeForm=sendClientIntakeForm;
 
 function setFormNav(n){
   formNav=n;

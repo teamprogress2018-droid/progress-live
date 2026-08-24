@@ -5570,6 +5570,7 @@ function renderDash(){
   renderDashGettingStarted();
   renderDashClientPipeline();
   renderDashCheckinFollowup();
+  renderDashFormFollowup();
   renderProfileSetupBanner();
 }
 
@@ -5715,6 +5716,44 @@ function renderDashCheckinFollowup(){
   </div>`;
 }
 window.renderDashCheckinFollowup=renderDashCheckinFollowup;
+
+function renderDashFormFollowup(){
+  const el=document.getElementById('dash-form-followup');if(!el)return;
+  const pending=typeof allPendingFormSends==='function'?allPendingFormSends():(window.FORM_SENDS||[]).filter(s=>s&&s.status!=='filled');
+  if(!pending.length){el.style.display='none';el.innerHTML='';return;}
+  const rows=pending.slice(0,6);
+  el.style.display='block';
+  el.innerHTML=`<div class="card" style="margin-bottom:20px;border-color:rgba(157,124,244,0.35);background:linear-gradient(135deg,rgba(157,124,244,0.1),var(--s2));">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;">
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;">FORMULARZE DO WYPEŁNIENIA</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5;">${pending.length===1?'1 ankieta czeka na klienta.':pending.length+' ankiet czeka na klientów.'}</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="goTo('forms')">Formularze →</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      ${rows.map(s=>{
+        const c=(window.CL||[]).find(x=>x.id===s.clientId)||{};
+        const name=escHtml(c.name||'Klient');
+        const title=escHtml(s.formName||'Formularz');
+        const when=escHtml(s.sentAt||String(s.sentAtIso||'').slice(0,10)||'');
+        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--s3);border:1px solid var(--border);border-radius:10px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:140px;">
+            <div style="font-size:13px;font-weight:700;">${name}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;">${title}${when?' · '+when:''}</div>
+            <div style="font-size:11px;color:var(--purple);margin-top:2px;">Oczekuje na odpowiedzi</div>
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:0;">
+            <button class="btn btn-ghost btn-sm" onclick="openClientProfile('${escHtml(s.clientId)}');setTimeout(()=>{if(typeof setCPTab==='function')setCPTab('forms');},150)">Profil</button>
+            <button class="btn btn-primary btn-sm" onclick="remindFormSend('${escHtml(s.id)}')">Przypomnij</button>
+          </div>
+        </div>`;
+      }).join('')}
+      ${pending.length>6?`<div style="font-size:11px;color:var(--muted);text-align:center;">+ ${pending.length-6} więcej w Formularzach</div>`:''}
+    </div>
+  </div>`;
+}
+window.renderDashFormFollowup=renderDashFormFollowup;
 
 function renderDashMiniCal(){
   const el=document.getElementById('d-mini-cal');if(!el)return;

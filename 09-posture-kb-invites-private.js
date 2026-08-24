@@ -2940,14 +2940,6 @@ function sendInvitation() {
 
   if (typeof addNotification === 'function') {
     addNotification('system', 'Zaproszenie wysłane', c.name + ' · ' + channelLabel, 'clients');
-  addNotification('system', 'Zaproszenie zapisane', c.name + ' — link w Inbox (' + (methodLabels[inviteMethod]||'wiadomość') + ')', 'clients');
-  if(typeof fireIntEvent==='function'){
-    try{
-      fireIntEvent('invite.sent',{
-        invite:{clientId:c.id,method:inviteMethod||'wiadomosc',link:link||c.inviteLink||''},
-        client:{id:c.id,name:c.name||'',email:c.email||'',phone:c.phone||''}
-      });
-    }catch(e){console.warn('fireIntEvent invite',e);}
   }
   closeM('m-invite');
   if (method === 'wiadomosc' || !openedExternal) {
