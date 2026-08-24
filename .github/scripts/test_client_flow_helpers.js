@@ -57,7 +57,7 @@ const {
   clientPhysiquePriorityForAI, planDayLabelToWeekday,
   normalizeTrainingFreq, normalizePreferredWeekdays, mapGoalFromIntakeText,
   mapLevelFromIntakeChoice, syncClientFromIntakeForm, resolvePlanDayWeekday,
-  scheduleTimeFromClient
+  scheduleTimeFromClient, defaultWeekdaysForFreq, preferredWeekdaysLabels
 } = ctx;
 
 let failed = 0;
@@ -94,12 +94,17 @@ const synced = syncClientFromIntakeForm({
   formId:'df1',formName:'Ankieta wstępna',clientId:'c1',
   answers:{q1:'hipertrofia i sylwetka',q2:'1-3 lata',q3:'tak',q4:'kolano prawe',q5:'3',q6:'Wieczór (18-22)'}
 });
-eq('intake sync ok', synced, true);
+eq('intake sync ok', !!(synced && synced.changed), true);
+eq('intake summary has freq', !!(synced && synced.summary && synced.summary.includes('3×')), true);
 eq('intake goal', windowObj.CL[0].goal, 'masa');
 eq('intake level', windowObj.CL[0].level, 'sredni');
 eq('intake injuries', windowObj.CL[0].injuries, 'kolano prawe');
 eq('intake freq', windowObj.CL[0].trainingFreq, 3);
 eq('intake time', windowObj.CL[0].preferredTrainTime, 'Wieczór (18-22)');
+eq('intake weekdays default', windowObj.CL[0].preferredWeekdays, [1, 3, 5]);
+eq('defaultWeekdays 3', defaultWeekdaysForFreq(3), [1, 3, 5]);
+eq('defaultWeekdays 4', defaultWeekdaysForFreq(4), [1, 2, 4, 5]);
+eq('weekday labels', preferredWeekdaysLabels([1, 3, 5]), ['Pon', 'Śr', 'Pt']);
 
 if (typeof resolvePlanDayWeekday === 'function') {
   eq('resolve preferred first', resolvePlanDayWeekday('Dzień 1', 0, [2,4,6]), 2);

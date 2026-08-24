@@ -858,8 +858,16 @@ function renderCPOverview(c){
         ${dataTile('Wzrost',c.height?c.height+' cm':'—',{color:'var(--blue)'})}
         ${dataTile('Cel',goalLabels[c.goal]||c.goal||'—',{color:'var(--accent)'})}
         ${dataTile('Poziom',levelLabels[c.level]||c.level||'—')}
+        ${dataTile('Dni / tydz.',c.trainingFreq?c.trainingFreq+'×':'—',{color:c.trainingFreq?'var(--teal)':'var(--muted)'})}
+        ${dataTile('Pora',c.preferredTrainTime||'—',{wide:!!c.preferredTrainTime})}
         ${dataTile('Status',statusLabel,{color:statusColor})}
       </div>
+      ${(()=>{
+        const wds=typeof normalizePreferredWeekdays==='function'?normalizePreferredWeekdays(c.preferredWeekdays):((c.preferredWeekdays)||[]);
+        if(!wds.length)return'';
+        const labels=typeof preferredWeekdaysLabels==='function'?preferredWeekdaysLabels(wds):wds;
+        return `<div style="margin-top:12px;"><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Preferowane dni treningowe</div><div style="display:flex;gap:6px;flex-wrap:wrap;">${labels.map(l=>`<span class="pill" style="background:var(--adim);color:var(--accent);font-size:10px;">${escHtml(l)}</span>`).join('')}</div></div>`;
+      })()}
       ${(()=>{const inj=typeof clientInjuriesText==='function'?clientInjuriesText(c):(c.injuries||c.notes||'');return inj?`<div style="margin-top:12px;background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.2);border-radius:8px;padding:8px 12px;font-size:11px;"><span style="color:var(--red);">⚠ Kontuzje/ograniczenia:</span> ${escHtml(inj)}</div>`:'';})()}
       ${c.notes&&c.notes!==(c.injuries||'')?`<div style="margin-top:8px;font-size:11px;color:var(--muted);"><span style="font-weight:600;">Uwagi:</span> ${escHtml(c.notes)}</div>`:''}
     </div>

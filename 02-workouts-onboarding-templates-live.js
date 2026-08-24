@@ -704,7 +704,7 @@ function onbWizardNext(){
 
 function onbCreateClient(){
   const freq=+onbNewClient.freq||3;
-  const defaultWd=freq===2?[1,4]:freq===3?[1,3,5]:freq===4?[1,2,4,5]:freq===5?[1,2,3,4,5]:[1,2,3,4,5,6];
+  const defaultWd=typeof defaultWeekdaysForFreq==='function'?defaultWeekdaysForFreq(freq):(freq===2?[1,4]:freq===3?[1,3,5]:freq===4?[1,2,4,5]:freq===5?[1,2,3,4,5]:[1,2,3,4,5,6]);
   const newC=withTrainer({
     id:newId('c'),
     name:onbNewClient.name,
@@ -766,7 +766,9 @@ function onbCreateClient(){
   addNotification('system','Nowy klient!',newC.name+' — onboarding uruchomiony','clients');
   notify('🎉 Klient '+newC.name+' dodany! Onboarding uruchomiony.');
   if(typeof runOnboardingForClient==='function')runOnboardingForClient(newC);
-  if(assignedPlan&&typeof schedulePlanToCalendar==='function'&&confirm('Dodać dni szablonu do kalendarza na 4 tygodnie?')){
+  if(assignedPlan&&typeof maybeSchedulePlanToCalendar==='function'){
+    maybeSchedulePlanToCalendar(assignedPlan.id,{weeks:4});
+  }else if(assignedPlan&&typeof schedulePlanToCalendar==='function'&&confirm('Dodać dni szablonu do kalendarza na 4 tygodnie?')){
     schedulePlanToCalendar(assignedPlan.id,{weeks:4});
   }
 

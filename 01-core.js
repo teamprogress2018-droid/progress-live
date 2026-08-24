@@ -1823,10 +1823,11 @@ function applyFormSubmit(send,answers,nowIso){
   send.status='filled';
   send.answers=map;
   send.filledAt=nowIso||new Date().toISOString();
+  let intakeSync=null;
   if(typeof syncClientFromIntakeForm==='function'){
-    try{syncClientFromIntakeForm(send);}catch(e){console.warn('syncClientFromIntakeForm',e);}
+    try{intakeSync=syncClientFromIntakeForm(send);}catch(e){console.warn('syncClientFromIntakeForm',e);}
   }
-  return{ok:true,send};
+  return{ok:true,send,intakeSync:intakeSync||null};
 }
 window.applyFormSubmit=applyFormSubmit;
 
@@ -2056,6 +2057,23 @@ function normalizeTrainingFreq(v){
   if(!n||n<2)return 0;
   return Math.min(6,n);
 }
+/** Domyślne dni tygodnia dla danej częstotliwości (JS getDay: 0=Nd…6=Sob). */
+function defaultWeekdaysForFreq(freq){
+  const n=normalizeTrainingFreq(freq);
+  if(n===2)return[1,4];
+  if(n===3)return[1,3,5];
+  if(n===4)return[1,2,4,5];
+  if(n===5)return[1,2,3,4,5];
+  if(n===6)return[1,2,3,4,5,6];
+  return[];
+}
+function preferredWeekdaysLabels(ids){
+  const list=normalizePreferredWeekdays(ids);
+  return list.map(id=>{
+    const w=WEEKDAY_TRAIN_OPTIONS.find(x=>x.id===id);
+    return w?w.label:String(id);
+  });
+}
 function normalizePreferredWeekdays(list){
   if(!list)return[];
   const arr=Array.isArray(list)?list:String(list).split(/[,;|]/).map(s=>s.trim()).filter(Boolean);
@@ -2124,7 +2142,8 @@ function mapLevelFromIntakeChoice(t){
   if(/1-3|1–3|śred|sred/.test(s))return'sredni';
   return null;
 }
-/** Po wypełnieniu Ankiety wstępnej (df1) — nadpisz kartę klienta polami z odpowiedzi. */
+/** Po wypełnieniu Ankiety wstępnej (df1) — nadpisz kartę klienta polami z odpowiedzi.
+ *  Zwraca false | {changed:true, summary:string, client} */
 function syncClientFromIntakeForm(send){
   if(!send||!send.clientId)return false;
   const formId=String(send.formId||'');
@@ -2135,23 +2154,34 @@ function syncClientFromIntakeForm(send){
   if(!c)return false;
   const a=typeof formSendAnswersMap==='function'?formSendAnswersMap(send):(send.answers||{});
   let changed=false;
+  const bits=[];
   const goal=mapGoalFromIntakeText(a.q1);
-  if(goal){c.goal=goal;changed=true;}
+  if(goal){c.goal=goal;changed=true;bits.push('cel '+goal);}
   if(a.q1&&String(a.q1).trim()){c.goalDesc=String(a.q1).trim();changed=true;}
   const level=mapLevelFromIntakeChoice(a.q2);
-  if(level){c.level=level;changed=true;}
+  if(level){c.level=level;changed=true;bits.push('poziom '+level);}
   const yesInj=/^(tak|true|1)$/i.test(String(a.q3||'').trim());
   const injTxt=String(a.q4||'').trim();
-  if(yesInj&&injTxt){c.injuries=injTxt;changed=true;}
-  else if(yesInj&&!c.injuries){c.injuries='Zgłoszone w ankiecie (bez opisu)';changed=true;}
+  if(yesInj&&injTxt){c.injuries=injTxt;changed=true;bits.push('kontuzje');}
+  else if(yesInj&&!c.injuries){c.injuries='Zgłoszone w ankiecie (bez opisu)';changed=true;bits.push('kontuzje');}
   const freq=normalizeTrainingFreq(a.q5);
-  if(freq){c.trainingFreq=freq;changed=true;}
-  if(a.q6&&String(a.q6).trim()){c.preferredTrainTime=String(a.q6).trim();changed=true;}
+  if(freq){
+    c.trainingFreq=freq;changed=true;bits.push(freq+'×/tydz');
+    const hasWd=normalizePreferredWeekdays(c.preferredWeekdays).length>0;
+    if(!hasWd){
+      c.preferredWeekdays=defaultWeekdaysForFreq(freq);
+      bits.push('dni '+preferredWeekdaysLabels(c.preferredWeekdays).join('/'));
+    }
+  }
+  if(a.q6&&String(a.q6).trim()){c.preferredTrainTime=String(a.q6).trim();changed=true;bits.push(c.preferredTrainTime);}
   if(changed&&typeof persistById==='function')persistById('clients',c);
-  return changed;
+  if(!changed)return false;
+  return{changed:true,summary:bits.join(' · '),client:c};
 }
 window.WEEKDAY_TRAIN_OPTIONS=WEEKDAY_TRAIN_OPTIONS;
 window.normalizeTrainingFreq=normalizeTrainingFreq;
+window.defaultWeekdaysForFreq=defaultWeekdaysForFreq;
+window.preferredWeekdaysLabels=preferredWeekdaysLabels;
 window.normalizePreferredWeekdays=normalizePreferredWeekdays;
 window.preferredWeekdaysChipsHTML=preferredWeekdaysChipsHTML;
 window.readPreferredWeekdaysFrom=readPreferredWeekdaysFrom;

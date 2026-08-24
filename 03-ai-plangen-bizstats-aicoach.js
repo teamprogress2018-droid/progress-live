@@ -900,10 +900,8 @@ function aplEditExercise(di,ei){
       <div><div class="form-lbl" style="margin-bottom:3px;font-size:10px;">Serie</div><input type="text" id="apl-edit-sets-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(wp.s||ex.sets||''):(wp.s||ex.sets||'').replace(/"/g,'&quot;')}" style="width:100%;text-align:center;font-size:13px;color:var(--accent);"></div>
       <div><div class="form-lbl" style="margin-bottom:3px;font-size:10px;">Powt.</div><input type="text" id="apl-edit-reps-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(wp.r||ex.reps||''):(wp.r||ex.reps||'').replace(/"/g,'&quot;')}" style="width:100%;text-align:center;font-size:13px;color:var(--teal);"></div>
       <div><div class="form-lbl" style="margin-bottom:3px;font-size:10px;">Przerwa</div><input type="text" id="apl-edit-rest-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(wp.rest||ex.rest||''):(wp.rest||ex.rest||'').replace(/"/g,'&quot;')}" style="width:100%;text-align:center;font-size:13px;"></div>
-      <div><div class="form-lbl" style="margin-bottom:3px;font-size:10px;">Tempo</div><input type="text" id="apl-edit-tempo-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(ex.tempo||wp.tempo||''):(ex.tempo||wp.tempo||'').replace(/"/g,'&quot;')}" placeholder="3-1-1-0" style="width:100%;text-align:center;font-size:13px;font-family:'DM Mono',monospace;"></div>
-      <div><div class="form-lbl" style="margin-bottom:3px;font-size:10px;">RPE / kg</div><input type="text" id="apl-edit-rir-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(wp.rpe||ex.rir||''):(wp.rpe||ex.rir||'').replace(/"/g,'&quot;')}" style="width:100%;text-align:center;font-size:13px;color:var(--gold);"></div>
       <div><div class="form-lbl" style="margin-bottom:3px;font-size:10px;">RIR / RPE</div><input type="text" id="apl-edit-rir-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(wp.rpe||ex.rir||ex.rpe||''):(wp.rpe||ex.rir||ex.rpe||'').replace(/"/g,'&quot;')}" style="width:100%;text-align:center;font-size:13px;color:var(--gold);"></div>
-      <div><div class="form-lbl" style="margin-bottom:3px;font-size:10px;">Tempo</div><input type="text" id="apl-edit-tempo-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(wp.tempo||ex.tempo||''):(wp.tempo||ex.tempo||'').replace(/"/g,'&quot;')}" placeholder="3-1-1-0" style="width:100%;text-align:center;font-size:12px;"></div>
+      <div><div class="form-lbl" style="margin-bottom:3px;font-size:10px;">Tempo</div><input type="text" id="apl-edit-tempo-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(wp.tempo||ex.tempo||''):(wp.tempo||ex.tempo||'').replace(/"/g,'&quot;')}" placeholder="3-1-1-0" style="width:100%;text-align:center;font-size:12px;font-family:'DM Mono',monospace;"></div>
     </div>`;
   setTimeout(()=>aplInitExerciseNameInput(di,ei,true),30);
 }
@@ -920,11 +918,9 @@ function aplSaveExerciseEdit(di,ei){
   ex[curWeek].rest=document.getElementById(`apl-edit-rest-${di}-${ei}`).value.trim();
   ex[curWeek].rpe=document.getElementById(`apl-edit-rir-${di}-${ei}`).value.trim();
   const tempoEl=document.getElementById(`apl-edit-tempo-${di}-${ei}`);
-  const tempo=tempoEl?tempoEl.value.trim():'';
-  ex.tempo=tempo;
-  ex[curWeek].tempo=tempo;
   const tempoVal=tempoEl?tempoEl.value.trim():'';
-  if(tempoVal){ex[curWeek].tempo=tempoVal;ex.tempo=tempoVal;}
+  ex.tempo=tempoVal;
+  ex[curWeek].tempo=tempoVal;
   // zachowaj kompatybilność wsteczną (tydzień 1 = pola płaskie)
   if(curWeek===(aplLastPlan.weekKeys||['w1'])[0]){
     ex.sets=ex[curWeek].s;ex.reps=ex[curWeek].r;ex.rest=ex[curWeek].rest;ex.rir=ex[curWeek].rpe;ex.rpe=ex[curWeek].rpe;
@@ -1057,7 +1053,7 @@ function aplSavePlan(){
           reps:wp.r||e.reps||'10',
           rest:wp.rest||e.rest||'90s',
           rpe:wp.rpe||e.rir||e.rpe||'',
-          rir:e.rir||'',
+          rir:wp.rpe||e.rir||e.rpe||'',
           tempo:e.tempo||wp.tempo||'',
           kg:wp.kg||e.kg||'',
           note:e.notes||e.note||'',
@@ -1072,7 +1068,9 @@ function aplSavePlan(){
   persistById('plans',newPlan);
   addNotification('system','Plan AI zapisany!','"'+newPlan.name+'" dodany do planów'+(client?' klienta '+client.name:''),'plans');
   notify(`✅ Plan "${newPlan.name}" zapisany${client?' dla '+client.name:''}!`);
-  if(cid&&client&&confirm('Dodać dni planu do kalendarza na najbliższe 4 tygodnie?')){
+  if(cid&&client&&typeof maybeSchedulePlanToCalendar==='function'){
+    maybeSchedulePlanToCalendar(newPlan.id,{weeks:4});
+  }else if(cid&&client&&confirm('Dodać dni planu do kalendarza na najbliższe 4 tygodnie?')){
     if(typeof schedulePlanToCalendar==='function')schedulePlanToCalendar(newPlan.id,{weeks:4});
   }
   if(cid&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);
