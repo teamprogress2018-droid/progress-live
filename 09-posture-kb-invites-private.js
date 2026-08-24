@@ -2151,11 +2151,15 @@ function renderOnboardHistory(){
 function assignProgramPlanToClient(programId, client){
   if(!programId||typeof allPrograms!=='function')return null;
   const prog=allPrograms().find(p=>p.id===programId);if(!prog)return null;
-  const week0=(prog.weeks&&prog.weeks[0])||{};
-  const days=(week0.days||[]).map(d=>({day:d.d||d.day||d.name||'Dzień',exercises:[]}));
+  const days=typeof planDaysFromProgram==='function'
+    ?planDaysFromProgram(prog,0)
+    :(((prog.weeks&&prog.weeks[0])||{}).days||[]).map(d=>({day:d.d||d.day||d.name||'Dzień',muscles:d.name||'',exercises:[]}));
   const plan=withTrainer({
-    id:newId('p'),name:prog.name,clientId:client.id,method:prog.method||'',
-    duration:prog.duration||0,days:days.length?days:[{day:'Pon',exercises:[]}],
+    id:newId('p'),name:prog.name,clientId:client.id,clientName:client.name||'',
+    method:prog.method||'',duration:prog.duration||0,
+    level:prog.level||'sredni',goal:prog.goal||'masa',
+    programId:prog.id,
+    days:days.length?days:[{day:'Pon',muscles:'',exercises:[{name:'Trening wg planu',sets:'3',reps:'8-12',rest:'90s'}]}],
     source:'onboarding',createdAt:new Date().toISOString()
   });
   (window.PL||(window.PL=[])).push(plan);
@@ -2189,7 +2193,18 @@ function runOnboardingForClient(client){
       if(picked.length)parts.push('formularz');
     }
     if(flow.assignEnabled!==false && flow.programId){
-      if(assignProgramPlanToClient(flow.programId,client))parts.push('program');
+      const assigned=assignProgramPlanToClient(flow.programId,client);
+      if(assigned){
+        parts.push('program');
+        if(typeof schedulePlanToCalendar==='function'&&(assigned.days||[]).some(d=>!d.rest&&(d.exercises||[]).length)){
+          try{
+            if(confirm('Program „'+(assigned.name||'')+'” przypisany. Dodać dni do kalendarza na 4 tyg.?')){
+              schedulePlanToCalendar(assigned.id,{weeks:4});
+              parts.push('kalendarz');
+            }
+          }catch(e){console.warn('schedule after onboard assign',e);}
+        }
+      }
     }
     if(flow.assignEnabled!==false && flow.forumGroupId){
       const g=(window.FORUM_GROUPS||[]).find(x=>x.id===flow.forumGroupId);
