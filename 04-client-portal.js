@@ -5610,6 +5610,7 @@ function renderDash(){
   renderDashCheckinFollowup();
   renderDashFormFollowup();
   renderDashPayFollowup();
+  renderDashHwFollowup();
   renderProfileSetupBanner();
 }
 
@@ -5839,6 +5840,47 @@ function renderDashPayFollowup(){
   </div>`;
 }
 window.renderDashPayFollowup=renderDashPayFollowup;
+
+function renderDashHwFollowup(){
+  const el=document.getElementById('dash-hw-followup');if(!el)return;
+  const open=typeof openHomeworkTasks==='function'?openHomeworkTasks():(window.TASKS||[]).filter(t=>t&&(t.kind==='homework'||t.odWorkoutId)&&t.status!=='done');
+  if(!open.length){el.style.display='none';el.innerHTML='';return;}
+  const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
+  const overdue=open.filter(t=>t.due&&t.due<today);
+  const rows=open.slice(0,6);
+  el.style.display='block';
+  el.innerHTML=`<div class="card" style="margin-bottom:20px;border-color:rgba(0,85,164,0.4);background:linear-gradient(135deg,rgba(0,85,164,0.1),var(--s2));">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;">
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;">ZADANIA DOMOWE</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5;">${overdue.length?overdue.length+' zaległych · ':''}${open.length===1?'1 otwarte':open.length+' otwartych'}</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="goTo('tasks')">Zadania →</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      ${rows.map(t=>{
+        const c=(window.CL||[]).find(x=>x.id===t.clientId)||{};
+        const name=escHtml(c.name||'Klient');
+        const title=escHtml(t.title||'Zadanie domowe');
+        const overdueRow=t.due&&t.due<today;
+        const dueLbl=t.due?(overdueRow?'Zaległe · '+escHtml(t.due):'Termin · '+escHtml(t.due)):'Bez terminu';
+        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--s3);border:1px solid var(--border);border-radius:10px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:140px;">
+            <div style="font-size:13px;font-weight:700;">${name}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;">${title}</div>
+            <div style="font-size:11px;color:${overdueRow?'var(--red)':'#5ec8ff'};margin-top:2px;">${dueLbl}</div>
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:0;">
+            <button class="btn btn-ghost btn-sm" onclick="openClientProfile('${escHtml(t.clientId)}');setTimeout(()=>{if(typeof setCPTab==='function')setCPTab('tasks');},150)">Profil</button>
+            <button class="btn btn-primary btn-sm" onclick="remindHomework('${escHtml(t.id)}')">Przypomnij</button>
+          </div>
+        </div>`;
+      }).join('')}
+      ${open.length>6?`<div style="font-size:11px;color:var(--muted);text-align:center;">+ ${open.length-6} więcej w Zadaniach</div>`:''}
+    </div>
+  </div>`;
+}
+window.renderDashHwFollowup=renderDashHwFollowup;
 
 function renderDashMiniCal(){
   const el=document.getElementById('d-mini-cal');if(!el)return;
