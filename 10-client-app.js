@@ -311,16 +311,20 @@ function updateClientLiveNavBadges(c){
   const pendPay=cid&&typeof clientUnpaidPackages==='function'?clientUnpaidPackages(cid).length>0:false;
   const pendHw=cid&&typeof clientOpenHomework==='function'?clientOpenHomework(cid).length>0:false;
   const pendHab=cid&&typeof clientPendingHabits==='function'?clientPendingHabits(cid).length>0:false;
+  const pendChat=cid&&typeof clientHasUnreadFromTrainer==='function'?clientHasUnreadFromTrainer(cid):false;
   setBadge('clive-bn-checkin',pendCi);
-  setBadge('clive-bn-messages',pendForms);
+  setBadge('clive-bn-messages',pendChat);
   setBadge('clive-bn-profile',pendPay);
   setBadge('clive-bn-homework',pendHw);
-  setBadge('clive-bn-home',pendHab);
+  setBadge('clive-bn-home',pendHab||pendForms);
 }
 window.updateClientLiveNavBadges=updateClientLiveNavBadges;
 
 function setClientLiveScreen(scr){
   window._clientLiveScreen=scr;
+  if(scr==='messages'&&window._clientId&&typeof clientMarkTrainerMsgsRead==='function'){
+    try{clientMarkTrainerMsgsRead(window._clientId);}catch(e){}
+  }
   renderClientLive();
 }
 
@@ -568,6 +572,10 @@ function pushClientMsg(text){
   });
   window.MSGS[clientId].push(msg);
   persistById('messages',msg);
+  // Jeśli trener ma już otwarty ten czat — oznacz jako przeczytane od razu
+  try{
+    if(typeof curChat!=='undefined'&&curChat===clientId&&typeof msgSetLastRead==='function')msgSetLastRead(clientId);
+  }catch(e){}
   renderClientLive();
   try{if(typeof updateInboxNavBadge==='function')updateInboxNavBadge();}catch(e){}
   try{if(typeof renderDashMsgFollowup==='function')renderDashMsgFollowup();}catch(e){}
@@ -631,6 +639,7 @@ function clientSubmitCheckin(){
   if(typeof notify==='function')notify('✓ Check-in wysłany do trenera');
   window._clientLiveScreen='home';
   renderClientLive();
+  try{if(typeof renderDashCheckinFollowup==='function')renderDashCheckinFollowup();}catch(e){}
 }
 
 async function ensureClientInvite(client){
