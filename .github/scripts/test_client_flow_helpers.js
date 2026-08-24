@@ -143,19 +143,31 @@ windowObj.CL = [{id:'c-new', name:'Nowy', status:'active'}];
 windowObj.PL = [];
 windowObj.SE = [];
 windowObj.METRIC_ENTRIES = [];
+windowObj.PACKAGES = [];
 const emptySt = clientOnboardStatus(windowObj.CL[0]);
-eq('onboard empty total', emptySt.total, 5);
+eq('onboard empty total', emptySt.total, 6);
 eq('onboard empty complete', emptySt.complete, false);
 eq('onboard empty next', emptySt.next, 'invite');
 eq('onboard empty missing has schedule', emptySt.missing.indexOf('schedule')>=0, true);
+eq('onboard empty missing has package', emptySt.missing.indexOf('package')>=0, true);
 
-windowObj.CL = [{id:'c-full', name:'Gotowy', status:'active', inviteSent:true, weight:80, preferredWeekdays:[1,3,5]}];
+windowObj.CL = [{id:'c-full', name:'Gotowy', status:'active', inviteSent:true, weight:80, preferredWeekdays:[1,3,5], packageSkipped:true}];
 windowObj.PL = [{id:'p1', clientId:'c-full'}];
 windowObj.SE = [{clientId:'c-full', source:'planned', date:'2026-08-24', dayIdx:0}];
+windowObj.PACKAGES = [];
 const fullSt = clientOnboardStatus(windowObj.CL[0]);
 eq('onboard full complete', fullSt.complete, true);
 eq('onboard full next', fullSt.next, null);
 eq('onboard session alias', fullSt.session, true);
+eq('onboard package skipped counts', fullSt.package, true);
+
+windowObj.CL = [{id:'c-pay', name:'Paid', status:'active', inviteSent:true, weight:70, preferredWeekdays:[1,3,5]}];
+windowObj.PL = [{id:'p-pay', clientId:'c-pay'}];
+windowObj.SE = [{clientId:'c-pay', source:'planned', date:'2026-08-24', dayIdx:0}];
+windowObj.PACKAGES = [];
+eq('onboard needs package', clientOnboardStatus(windowObj.CL[0]).next, 'package');
+windowObj.PACKAGES = [{id:'pkg1', clientId:'c-pay', title:'10 sesji'}];
+eq('onboard with package complete', clientOnboardStatus(windowObj.CL[0]).complete, true);
 
 windowObj.CL = [
   {id:'c-a', name:'Ala', status:'active', inviteSkipped:true, preferredWeekdays:[1,3,5]},
@@ -164,6 +176,7 @@ windowObj.CL = [
 ];
 windowObj.PL = [{id:'p-c', clientId:'c-c'}];
 windowObj.SE = [];
+windowObj.PACKAGES = [];
 const stuck = clientsWithIncompleteOnboard();
 eq('pipeline skips archived', stuck.map(x=>x.client.id), ['c-a','c-c']);
 eq('pipeline Ala next baseline', stuck[0].status.next, 'baseline');

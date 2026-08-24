@@ -2183,7 +2183,8 @@ const CLIENT_ONBOARD_STEPS=[
   {id:'baseline',label:'Pomiary',missing:'brak pomiarów'},
   {id:'schedule',label:'Harmonogram',missing:'brak dni treningowych'},
   {id:'plan',label:'Plan',missing:'brak planu'},
-  {id:'calendar',label:'Kalendarz',missing:'brak w kalendarzu'}
+  {id:'calendar',label:'Kalendarz',missing:'brak w kalendarzu'},
+  {id:'package',label:'Pakiet',missing:'brak pakietu'}
 ];
 function clientHasSchedulePrefs(c){
   return normalizePreferredWeekdays(c&&c.preferredWeekdays).length>0;
@@ -2199,20 +2200,27 @@ function clientOnboardHasBaseline(c){
   if(c.baselineDone||c.weight)return true;
   return(window.METRIC_ENTRIES||[]).some(e=>e&&e.clientId===c.id&&(e.groupId==='mg1'||e.groupId==='mg2'));
 }
-/** Status startu współpracy: zaproszenie → baseline → harmonogram → plan → kalendarz. */
+function clientHasPackage(c){
+  if(!c)return false;
+  if(c.packageSkipped)return true;
+  const pkgs=window.PACKAGES||[];
+  return pkgs.some(p=>p&&(p.clientId===c.id||(c.name&&p.clientName===c.name)));
+}
+/** Status startu współpracy: zaproszenie → baseline → harmonogram → plan → kalendarz → pakiet. */
 function clientOnboardStatus(c){
-  if(!c)return{invite:false,baseline:false,schedule:false,plan:false,calendar:false,session:false,done:0,total:5,complete:true,next:null,missing:[],missingLabels:[]};
+  if(!c)return{invite:false,baseline:false,schedule:false,plan:false,calendar:false,package:false,session:false,done:0,total:CLIENT_ONBOARD_STEPS.length,complete:true,next:null,missing:[],missingLabels:[]};
   const invite=!!(c.inviteSent||c.appInvited||c.inviteSentAt||c.inviteSkipped);
   const baseline=clientOnboardHasBaseline(c);
   const schedule=clientHasSchedulePrefs(c);
   const plan=clientHasAssignedPlan(c.id);
   const calendar=clientHasCalendarOrSession(c.id);
-  const flags={invite,baseline,schedule,plan,calendar};
+  const packageDone=clientHasPackage(c);
+  const flags={invite,baseline,schedule,plan,calendar,package:packageDone};
   const missing=CLIENT_ONBOARD_STEPS.filter(s=>!flags[s.id]).map(s=>s.id);
   const missingLabels=CLIENT_ONBOARD_STEPS.filter(s=>!flags[s.id]).map(s=>s.missing);
   const done=CLIENT_ONBOARD_STEPS.length-missing.length;
   return{
-    invite,baseline,schedule,plan,calendar,
+    invite,baseline,schedule,plan,calendar,package:packageDone,
     session:calendar,
     done,total:CLIENT_ONBOARD_STEPS.length,
     complete:missing.length===0,
@@ -2298,6 +2306,7 @@ window.clientHasSchedulePrefs=clientHasSchedulePrefs;
 window.clientHasAssignedPlan=clientHasAssignedPlan;
 window.clientHasCalendarOrSession=clientHasCalendarOrSession;
 window.clientOnboardHasBaseline=clientOnboardHasBaseline;
+window.clientHasPackage=clientHasPackage;
 window.clientOnboardStatus=clientOnboardStatus;
 window.clientsWithIncompleteOnboard=clientsWithIncompleteOnboard;
 window.mapGoalFromIntakeText=mapGoalFromIntakeText;

@@ -99,6 +99,9 @@ jobs:
       - name: 1n5. Testy archiwizacji / usuwania klienta
         run: node .github/scripts/test_client_delete.js
 
+      - name: 1n6. Testy deep-link check-inu / formularzy (apka klienta)
+        run: node .github/scripts/test_client_deeplink.js
+
       - name: 1n2. Testy programu → plan z ćwiczeniami (Automatyzacja)
         run: node .github/scripts/test_program_plan_days.js
 

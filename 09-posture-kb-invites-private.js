@@ -759,6 +759,14 @@ async function savePackage(){
   if(payTab==='overview')renderPayOverview();
   else if(payTab==='packages')renderPayPackages();
   else if(payTab==='invoices')renderPayInvoices();
+  const resumeId=window._onboardResumeAfterPackage||pkg.clientId;
+  window._onboardResumeAfterPackage=null;
+  if(resumeId&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(resumeId);
+  if(typeof renderDash==='function')try{renderDash();}catch(e){}
+  if(typeof renderClients==='function')try{renderClients();}catch(e){}
+  if(typeof cpClientId!=='undefined'&&cpClientId===pkg.clientId&&typeof renderCPPayments==='function'){
+    const cl=CL.find(x=>x.id===pkg.clientId);if(cl)try{renderCPPayments(cl);}catch(e){}
+  }
   notify('✓ Pakiet "'+title+'" dodany! Faktura '+invId+' wygenerowana.');
 }
 var odTab='browse';var odWorkoutFilter='all';var odProgramFilter='all';
