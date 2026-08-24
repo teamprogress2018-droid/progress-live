@@ -92,6 +92,8 @@ jobs:
 
       - name: 1p. Testy kontekstu pomiarów w generatorze AI
         run: node .github/scripts/test_ai_metrics_context.js
+      - name: 1o2. Testy zakładki Progress (statystyki klienta)
+        run: node .github/scripts/test_cp_progress_tab.js
 
       - name: 2. Sprawdź duplikaty (funkcje / id / zmienne)
         run: python3 .github/scripts/check_duplicates.py

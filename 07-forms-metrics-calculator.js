@@ -1424,6 +1424,7 @@ function setCPTab(t){
   if(t==='psycho')renderCPPsycho(c);
   if(t==='sfr')renderCPSfr(c);
   if(t==='training')renderCPTraining(c);
+  if(t==='progress')renderCPProgress(c);
   if(t==='plan')renderCPPlan(c);
   if(t==='metrics')renderCPMetrics(c);
   if(t==='tasks')renderCPTasks(c);

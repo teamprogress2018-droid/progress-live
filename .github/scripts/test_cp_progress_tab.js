@@ -1,0 +1,23 @@
+// Progress tab: rekordy nie w Pomiary, są w Progress.
+const fs = require('fs');
+const path = require('path');
+
+const src = fs.readFileSync(path.join(__dirname, '..', '..', '08-client-profile-extras.js'), 'utf8');
+const metricsFn = src.slice(src.indexOf('function renderCPMetrics'), src.indexOf('function setCPMetricGroup'));
+const progressFn = src.slice(src.indexOf('function renderCPProgress'), src.indexOf('window.renderCPProgress'));
+
+let failed = 0;
+function ok(name, cond) {
+  if (!cond) { console.error('FAIL ' + name); failed++; }
+  else console.log('OK   ' + name);
+}
+
+ok('metrics has no training PRs block', !/Rekordy z treningów/.test(metricsFn));
+ok('progress has training PRs', /Rekordy z treningów/.test(progressFn));
+ok('progress has weekly tonnage', /Tonaż tygodniowy/.test(progressFn));
+ok('progress has circumferences', /Obwody ciała/.test(progressFn));
+ok('index has progress tab', /cpt-progress/.test(fs.readFileSync(path.join(__dirname, '..', '..', 'index.html'), 'utf8')));
+ok('setCPTab wires progress', /t==='progress'/.test(fs.readFileSync(path.join(__dirname, '..', '..', '07-forms-metrics-calculator.js'), 'utf8')));
+
+if (failed) process.exit(1);
+console.log('\nAll cp-progress tests passed');

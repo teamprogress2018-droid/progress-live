@@ -1026,7 +1026,6 @@ function renderCPMetrics(c){
   initDemoEntries(c.id);
   const groups=allMetricGroups();
   const entries=METRIC_ENTRIES.filter(e=>e.clientId===c.id);
-  const prs=typeof clientExercisePRs==='function'?clientExercisePRs(c.id).slice(0,8):[];
   const activeGid=window._cpMetricGroup||(groups.find(g=>entries.some(e=>e.groupId===g.id))||groups[0]||{}).id||'mg1';
   window._cpMetricGroup=activeGid;
   const activeGroup=groups.find(g=>g.id===activeGid)||groups[0];
@@ -1041,6 +1040,7 @@ function renderCPMetrics(c){
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
           <button type="button" class="btn btn-primary btn-sm" onclick="openMetricEntryForClient('${c.id}','${activeGid}')">+ Nowy pomiar</button>
           <button type="button" class="btn btn-ghost btn-sm" onclick="typeof openClientBaselineModal==='function'&&openClientBaselineModal('${c.id}')">Baseline</button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('progress')">📈 Progress</button>
         </div>
       </div>
       <div style="display:flex;gap:4px;overflow-x:auto;padding-bottom:2px;">
@@ -1053,24 +1053,6 @@ function renderCPMetrics(c){
         }).join('')}
       </div>
     </div>
-
-    ${prs.length?`<div class="card-sm" style="margin-bottom:12px;">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-        <span style="font-size:18px;">🏆</span>
-        <div style="font-size:12px;font-weight:700;">Rekordy z treningów</div>
-        <span style="font-size:10px;color:var(--muted);margin-left:auto;">z sesji Live / apki</span>
-      </div>
-      ${prs.slice(0,5).map(p=>{
-        const est=typeof roundToPlate==='function'?roundToPlate(p.epley):Math.round(p.epley);
-        return `<div style="display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-top:1px solid var(--border);font-size:12px;">
-          <div>
-            <div style="font-weight:600;">${escHtml(p.name)}</div>
-            <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${escHtml(p.date||'')}${est?' · 1RM ~'+escHtml(String(est))+' kg':''}</div>
-          </div>
-          <div style="font-weight:700;color:var(--accent);white-space:nowrap;">${escHtml(formatSetLoad(p.kg,p.reps))}</div>
-        </div>`;
-      }).join('')}
-    </div>`:''}
 
     ${activeGroup?`<div class="card-sm" style="margin-bottom:12px;">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
@@ -1124,7 +1106,8 @@ function renderCPMetrics(c){
         </div>`}
     </div>
     <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:16px;line-height:1.5;">
-      Pełny ekran z wykresami: <button type="button" class="btn btn-ghost btn-sm" onclick="goTo('metrics');setTimeout(()=>{const s=document.getElementById('metric-client-sel');const q=document.getElementById('metric-client-sel-search');if(s)s.value='${c.id}';if(q)q.value='${safeName}';if(typeof metricClientSetField==='function')metricClientSetField('${c.id}','${safeName}');if(typeof setMetricGroup==='function')setMetricGroup('${activeGid}');},200);closeClientProfile()">Pomiary →</button>
+      Rekordy siłowe i tonaż → <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('progress')">Progress</button>
+      · Pełne wykresy: <button type="button" class="btn btn-ghost btn-sm" onclick="goTo('metrics');setTimeout(()=>{const s=document.getElementById('metric-client-sel');const q=document.getElementById('metric-client-sel-search');if(s)s.value='${c.id}';if(q)q.value='${safeName}';if(typeof metricClientSetField==='function')metricClientSetField('${c.id}','${safeName}');if(typeof setMetricGroup==='function')setMetricGroup('${activeGid}');},200);closeClientProfile()">Pomiary →</button>
     </div>`;
 }
 function setCPMetricGroup(clientId,groupId){
@@ -1134,6 +1117,152 @@ function setCPMetricGroup(clientId,groupId){
 }
 window.setCPMetricGroup=setCPMetricGroup;
 window.renderCPMetrics=renderCPMetrics;
+
+/** Tygodniowy tonaż / sesje / serie — wspólne dla Progress (trener) i portalu. */
+function clientWeeklyVolumeStats(clientId,weeks){
+  if(typeof capWeeklyVolume==='function')return capWeeklyVolume(clientId,weeks||8);
+  const logged=typeof completedWorkouts==='function'?completedWorkouts(clientId):(window.SE||[]).filter(s=>s.clientId===clientId&&(s.source==='live'||s.source==='client'||(s.exercises||[]).length));
+  const now=new Date();const buckets=[];
+  const n=weeks||8;
+  for(let i=n-1;i>=0;i--){
+    const end=new Date(now);end.setDate(end.getDate()-i*7);
+    const start=new Date(end);start.setDate(start.getDate()-6);
+    const ds=start.toISOString().slice(0,10);const de=end.toISOString().slice(0,10);
+    let vol=0,sessions=0,sets=0;
+    logged.forEach(s=>{
+      const d=s.date;if(!d||d<ds||d>de)return;
+      sessions++;vol+=Number(s.volume)||0;
+      sets+=typeof sessionSetsCount==='function'?sessionSetsCount(s):0;
+    });
+    buckets.push({l:'T'+(n-i),vol:Math.round(vol),sessions,sets});
+  }
+  return buckets;
+}
+window.clientWeeklyVolumeStats=clientWeeklyVolumeStats;
+
+function renderCPProgress(c){
+  if(typeof initDemoEntries==='function')initDemoEntries(c.id);
+  const logged=typeof completedWorkouts==='function'?completedWorkouts(c.id):(window.SE||[]).filter(s=>s.clientId===c.id&&(s.source==='live'||s.source==='client'||(s.exercises||[]).length));
+  const prs=typeof clientExercisePRs==='function'?clientExercisePRs(c.id).slice(0,12):[];
+  const volWeeks=clientWeeklyVolumeStats(c.id,8);
+  const totalVol=logged.reduce((s,x)=>s+(Number(x.volume)||0),0);
+  const totalSets=logged.reduce((s,x)=>s+(typeof sessionSetsCount==='function'?sessionSetsCount(x):0),0);
+  const avg=typeof avgSessionRating==='function'?avgSessionRating(logged):0;
+  const days30=Date.now()-30*86400000;
+  const sess30=logged.filter(s=>s.date&&new Date(s.date+'T12:00:00').getTime()>=days30).length;
+  const maxWeekVol=Math.max(...volWeeks.map(w=>w.vol),1);
+  const entries=(window.METRIC_ENTRIES||[]).filter(e=>e.clientId===c.id);
+  const byG=(gid)=>entries.filter(e=>e.groupId===gid).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const mass=byG('mg1');
+  const circ=byG('mg2');
+  const strength=byG('mg3');
+  const lastM=mass[0],prevM=mass[1];
+  const lastC=circ[0],prevC=circ[1];
+  const lastS=strength[0];
+  const delta=(a,b,k)=>{
+    if(!a||!b||a.values==null||b.values==null||a.values[k]==null||b.values[k]==null)return null;
+    return +(a.values[k]-b.values[k]).toFixed(1);
+  };
+  const deltaHtml=(d,goodDown)=>{
+    if(d==null)return'';
+    const good=goodDown?(d<=0):(d>=0);
+    return `<span style="font-size:10px;color:${good?'var(--teal)':'var(--orange)'};">${d>0?'+':''}${d}</span>`;
+  };
+  const metricTile=(label,val,unit,d,goodDown)=>`<div style="background:var(--s3);border-radius:8px;padding:10px;text-align:center;">
+    <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">${escHtml(label)}</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;line-height:1;">${val!=null?escHtml(String(val)):'—'}${unit?`<span style="font-size:11px;color:var(--muted);"> ${escHtml(unit)}</span>`:''}</div>
+    ${deltaHtml(d,goodDown)}
+  </div>`;
+
+  document.getElementById('cp-body').innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+      <div class="cp-section-title" style="margin:0;">PROGRESS — STATYSTYKI</div>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('metrics')">📏 Pomiary</button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;">
+      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--accent);">${sess30}</div><div class="cp-stat-lbl">Sesje 30 dni</div></div>
+      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--orange);">${Math.round(totalVol).toLocaleString('pl')}</div><div class="cp-stat-lbl">Tonaż kg</div></div>
+      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--blue);">${totalSets}</div><div class="cp-stat-lbl">Serie łącznie</div></div>
+      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--teal);">${avg?avg+'/5':'—'}</div><div class="cp-stat-lbl">Śr. ocena</div></div>
+    </div>
+
+    <div class="card-sm" style="margin-bottom:12px;">
+      <div style="font-size:12px;font-weight:700;margin-bottom:10px;">📊 Tonaż tygodniowy (8 tyg.)</div>
+      <div style="display:flex;align-items:flex-end;gap:6px;height:100px;padding:0 2px;">
+        ${volWeeks.map(w=>{
+          const pct=Math.max(4,Math.round((w.vol/maxWeekVol)*100));
+          return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px;" title="${w.vol} kg · ${w.sessions} sesji">
+            <div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);">${w.vol?Math.round(w.vol/1000*10)/10+'k':''}</div>
+            <div style="width:100%;max-width:28px;height:${pct}%;background:var(--accent);border-radius:4px 4px 2px 2px;opacity:${w.vol?0.9:0.2};"></div>
+            <div style="font-size:9px;color:var(--muted);">${escHtml(w.l)}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <div class="card-sm" style="margin-bottom:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-size:12px;font-weight:700;">⚖️ Masa / skład ciała</div>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="window._cpMetricGroup='mg1';setCPTab('metrics')">Historia →</button>
+      </div>
+      ${lastM?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:6px;">
+        ${metricTile('Masa',lastM.values.m1,'kg',delta(lastM,prevM,'m1'),true)}
+        ${metricTile('%BF',lastM.values.m2,'%',delta(lastM,prevM,'m2'),true)}
+        ${metricTile('Mięśnie',lastM.values.m3,'kg',delta(lastM,prevM,'m3'),false)}
+        ${metricTile('BMI',lastM.values.m4,'',delta(lastM,prevM,'m4'),true)}
+      </div>
+      <div style="font-size:10px;color:var(--muted);margin-top:8px;font-family:'DM Mono',monospace;">ostatni: ${escHtml(lastM.date||'')}</div>`
+      :`<div style="font-size:12px;color:var(--muted);">Brak pomiarów masy — dodaj w <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('metrics')">Pomiary</button></div>`}
+    </div>
+
+    <div class="card-sm" style="margin-bottom:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-size:12px;font-weight:700;">📏 Obwody ciała</div>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="window._cpMetricGroup='mg2';setCPTab('metrics')">Historia →</button>
+      </div>
+      ${lastC?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:6px;">
+        ${metricTile('Klatka',lastC.values.m1,'cm',delta(lastC,prevC,'m1'),false)}
+        ${metricTile('Talia',lastC.values.m2,'cm',delta(lastC,prevC,'m2'),true)}
+        ${metricTile('Biodra',lastC.values.m3,'cm',delta(lastC,prevC,'m3'),false)}
+        ${metricTile('Udo',lastC.values.m4,'cm',delta(lastC,prevC,'m4'),false)}
+        ${metricTile('Ramię',lastC.values.m5,'cm',delta(lastC,prevC,'m5'),false)}
+      </div>
+      <div style="font-size:10px;color:var(--muted);margin-top:8px;font-family:'DM Mono',monospace;">ostatni: ${escHtml(lastC.date||'')}</div>`
+      :`<div style="font-size:12px;color:var(--muted);">Brak obwodów.</div>`}
+    </div>
+
+    ${lastS?`<div class="card-sm" style="margin-bottom:12px;">
+      <div style="font-size:12px;font-weight:700;margin-bottom:10px;">💪 Siła bazowa (1RM z pomiarów)</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:6px;">
+        ${metricTile('Przysiad',lastS.values.m1,'kg',null,false)}
+        ${metricTile('Martwy',lastS.values.m2,'kg',null,false)}
+        ${metricTile('Wyciskanie',lastS.values.m3,'kg',null,false)}
+        ${metricTile('OHP',lastS.values.m4,'kg',null,false)}
+      </div>
+    </div>`:''}
+
+    <div class="card-sm" style="margin-bottom:12px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+        <span style="font-size:18px;">🏆</span>
+        <div style="font-size:12px;font-weight:700;">Rekordy z treningów</div>
+        <span style="font-size:10px;color:var(--muted);margin-left:auto;">Live / apka · szac. 1RM</span>
+      </div>
+      ${!prs.length
+        ?`<div style="font-size:12px;color:var(--muted);padding:8px 0;">Brak rekordów — pojawią się po zapisanych seriach.</div>`
+        :prs.map(p=>{
+          const est=typeof roundToPlate==='function'?roundToPlate(p.epley):Math.round(p.epley);
+          return `<div style="display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-top:1px solid var(--border);font-size:12px;">
+            <div>
+              <div style="font-weight:600;">${escHtml(p.name)}</div>
+              <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${escHtml(p.date||'')}${est?' · 1RM ~'+escHtml(String(est))+' kg':''}</div>
+            </div>
+            <div style="font-weight:700;color:var(--accent);white-space:nowrap;">${escHtml(typeof formatSetLoad==='function'?formatSetLoad(p.kg,p.reps):(p.kg+' × '+p.reps))}</div>
+          </div>`;
+        }).join('')}
+    </div>`;
+}
+window.renderCPProgress=renderCPProgress;
 
 function renderCPTasks(c){
   const tasks=TASKS.filter(t=>t.clientId===c.id);
