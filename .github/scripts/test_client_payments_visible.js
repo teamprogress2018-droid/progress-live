@@ -49,10 +49,11 @@ const sandbox={
       {id:'p4',clientId:'c3',clientName:'Celina',title:'Gone',price:50,payStatus:'pending',status:'expired'}
     ],
     SETTINGS:{payments:{bankAccount:'12 3456 7890',currency:'zł'}},
-    CL:[{id:'c1',name:'Anna'}],
+    CL:[{id:'c1',name:'Anna',status:'active'},{id:'c2',name:'Bartek',status:'active'},{id:'c9',name:'Arch',status:'archived'}],
     _clientAppMode:false
   },
   PACKAGES:null,
+  CL:null,
   notify:()=>{},
   addNotification:(t,title,body,screen)=>notes.push({t,title,body,screen}),
   pushClientMsg:(t)=>msgs.push(t),
@@ -70,6 +71,12 @@ const sandbox={
 };
 sandbox.PACKAGES=sandbox.window.PACKAGES;
 sandbox.window.PACKAGES=sandbox.PACKAGES;
+sandbox.CL=sandbox.window.CL;
+sandbox.window.CL=sandbox.CL;
+
+// archived client's pending package should not appear in awaiting
+sandbox.window.PACKAGES.push({id:'p5',clientId:'c9',clientName:'Arch',title:'Old',price:99,payStatus:'pending'});
+sandbox.PACKAGES=sandbox.window.PACKAGES;
 
 vm.runInNewContext(
   'function allPackages(){return window.PACKAGES;}\n'+
@@ -93,6 +100,7 @@ function eq(name,got,want){
 const unpaid=sandbox.clientUnpaidPackages('c1');
 eq('unpaid only pending',unpaid.map(p=>p.id),['p1']);
 eq('awaiting excludes expired',sandbox.packagesAwaitingPayment().map(p=>p.id).sort(),['p1','p3']);
+eq('awaiting excludes archived',sandbox.packagesAwaitingPayment().some(p=>p.id==='p5'),false);
 
 const text=sandbox.payTransferText(sandbox.window.PACKAGES[0]);
 eq('transfer has bank',text.includes('12 3456 7890'),true);
