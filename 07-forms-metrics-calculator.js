@@ -1175,6 +1175,118 @@ function clientLatestMetricWeight(clientId){
 window.clientMetricsContextForAI=clientMetricsContextForAI;
 window.clientLatestMetricWeight=clientLatestMetricWeight;
 
+/** BMI + zasady bezpieczeństwa przy wyższej masie ciała (dla generatora AI). */
+function clientBodyLoadContextForAI(weight,height){
+  const w=parseFloat(weight),h=parseFloat(height);
+  if(!(w>0))return'';
+  const lines=[];
+  let bmi=null;
+  if(h>0)bmi=+(w/((h/100)*(h/100))).toFixed(1);
+  lines.push('Masa ciała: '+w+' kg'+(h>0?', wzrost '+h+' cm':'')+(bmi!=null?', BMI ~'+bmi:''));
+  if((bmi!=null&&bmi>=30)||w>=95){
+    lines.push('BEZPIECZEŃSTWO (wyższa masa ciała) — OBOWIĄZKOWE przy doborze ćwiczeń:');
+    lines.push('- Preferuj maszyny, suwnicę, wyciągi i stabilne warianty zamiast wolnej sztangi pod dużym obciążeniem.');
+    lines.push('- Unikaj skoków, zeskoków, biegania i plyometrii o wysokim uderzeniu w stawy.');
+    lines.push('- Nogi: hack / leg press / goblet / step-up kontrolowany zamiast głębokiego back squat ze sztangą, jeśli technika lub stawy niepewne.');
+    lines.push('- Core: deska / dead bug / bird-dog OK; unikaj burpee i ciężkich wiszących unoszeń nóg, jeśli utrudniają technikę.');
+    lines.push('- Dłuższa rozgrzewka stawów; nie ustawiaj ciągłego RPE 10; ciężary startowe konserwatywne.');
+  }
+  return lines.join('\n');
+}
+
+/** Ostatnia wypełniona „Ocena postawy i zdrowia” (df2) — wady postawy, bóle, mobilność. */
+function clientPostureHealthFormContextForAI(clientId){
+  if(!clientId)return'';
+  const sends=(window.FORM_SENDS||[]).filter(s=>s&&s.clientId===clientId&&s.status==='filled')
+    .filter(s=>{
+      const id=String(s.formId||'');
+      const name=String(s.formName||'').toLowerCase();
+      return id==='df2'||/postaw|zdrow/.test(name);
+    })
+    .sort((a,b)=>String(b.filledAt||b.sentAt||'').localeCompare(String(a.filledAt||a.sentAt||'')));
+  if(!sends.length)return'';
+  const send=sends[0];
+  const a=typeof formSendAnswersMap==='function'?formSendAnswersMap(send):(send.answers||{});
+  const yes=v=>/^(tak|true|1)$/i.test(String(v||'').trim());
+  const bits=[];
+  if(yes(a.q1))bits.push('ból kręgosłupa lędźwiowego');
+  if(yes(a.q2))bits.push('ból kręgosłupa szyjnego/piersiowego');
+  const wad=String(a.q3||'').trim();
+  if(wad&&!/^nie$/i.test(wad))bits.push('wady postawy: '+wad);
+  if(yes(a.q4))bits.push('operacje ortopedyczne (≤2 lata)');
+  const ops=String(a.q5||'').trim();
+  if(ops)bits.push('urazy/operacje: '+ops);
+  const mob=String(a.q7||'').trim();
+  if(mob)bits.push('mobilność bioder: '+mob);
+  if(yes(a.q8))bits.push('problemy z kolanami');
+  if(yes(a.q9))bits.push('problemy z barkami');
+  if(!bits.length)return'';
+  const rules=[];
+  if(/hiperlordoza|lordoza/i.test(wad))rules.push('Hiperlordoza: unikaj nadmiernej ekstensji lędźwi pod obciążeniem; core w neutralnej miednicy (dead bug, bird-dog); ostrożnie z OH press i hiperekstensją.');
+  if(/hiperkifoza|kifoza/i.test(wad))rules.push('Hiperkifoza: więcej ściągania (face pull, wiosłowanie), mobilizacja klatki; unikaj wyciskania za kark i zbyt ciężkiego pressu przy protrakcji.');
+  if(/skolioza/i.test(wad))rules.push('Skolioza: równoważ stronami, unikaj forsownych rotacji pod dużym obciążeniem; kontroluj technikę jednostronnych ćwiczeń.');
+  if(/protrakcja/i.test(wad))rules.push('Protrakcja barków: face pull / Y-T-W / ściąganie łopatek przed ciężkim pressem; unikaj za-kark.');
+  if(yes(a.q1)||yes(a.q2))rules.push('Ból kręgosłupa: bez skłonów ze sztangą / good morning / ciężkiego SLDL na start; preferuj maszynę / hip hinge z kontrolą.');
+  if(yes(a.q8))rules.push('Kolana: unikaj głębokich przysiadów ze sztangą i skoków; leg press / hack / step-up niski, kontrola kolana nad stopą.');
+  if(yes(a.q9))rules.push('Barki: unikaj wyciskania za kark i szerokich dipów; landmine / maszyna / hantle z kontrolowanym ROM.');
+  if(/słaba|slaba|trudności|trudnosci/i.test(mob))rules.push('Słaba mobilność bioder: box squat / leg press / step-up; nie forsuj głębokiego ATG.');
+  return 'Ankieta postawy/zdrowia ('+(send.filledAt||send.sentAt||'ostatnia')+'): '+bits.join('; ')
+    +(rules.length?'\nZasady korekcyjne:\n- '+rules.join('\n- '):'');
+}
+
+/** Ostatnia analiza AI postawy ze zdjęć (Analityka → Postawa). */
+function clientPostureAiAnalysisContextForAI(clientId){
+  if(!clientId)return'';
+  const c=(window.CL||[]).find(x=>x&&x.id===clientId);
+  const list=c&&c._posture&&Array.isArray(c._posture.analyses)?c._posture.analyses:[];
+  if(!list.length)return'';
+  const last=list[list.length-1];
+  const raw=String(last&&last.result||'').trim();
+  if(!raw)return'';
+  const clip=raw.length>900?raw.slice(0,900)+'…':raw;
+  return 'Analiza postawy AI ('+(last.date||'?')+(last.view?', '+last.view:'')+'):\n'+clip;
+}
+
+/** Krótki tekst ograniczeń do pola „Kontuzje” (formularz AI). */
+function clientCombinedLimitationsText(c){
+  if(!c)return'';
+  const parts=[];
+  const inj=typeof clientInjuriesText==='function'?clientInjuriesText(c):String(c.injuries||'').trim();
+  if(inj)parts.push(inj);
+  const posture=clientPostureHealthFormContextForAI(c.id);
+  if(posture){
+    const m=posture.match(/Ankieta postawy\/zdrowia[^:]*:\s*([^\n]+)/);
+    if(m&&m[1]&&!inj)parts.push(m[1]);
+    else if(m&&m[1]&&inj&&!inj.toLowerCase().includes('postaw'))parts.push(m[1]);
+  }
+  return parts.filter(Boolean).join(' · ');
+}
+
+/** Pełny blok bezpieczeństwa dla promptu generatora planu AI. */
+function clientSafetyContextForAI(clientId,opts){
+  const o=opts||{};
+  const c=clientId?(window.CL||[]).find(x=>x&&x.id===clientId):null;
+  const weight=o.weight!=null&&o.weight!==''?o.weight:(c&&(c.weight||(typeof clientLatestMetricWeight==='function'?clientLatestMetricWeight(clientId):null)));
+  const height=o.height!=null&&o.height!==''?o.height:(c&&c.height);
+  const lines=['=== BEZPIECZEŃSTWO I OGRANICZENIA KLIENTA (OBOWIĄZKOWE — plan NIE MOŻE szkodzić) ==='];
+  const body=clientBodyLoadContextForAI(weight,height);
+  if(body)lines.push(body);
+  const inj=String(o.injuries!=null?o.injuries:(c?((typeof clientInjuriesText==='function'?clientInjuriesText(c):c.injuries)||''):'')).trim();
+  if(inj)lines.push('Kontuzje / ograniczenia z karty: '+inj);
+  const formCtx=clientId?clientPostureHealthFormContextForAI(clientId):'';
+  if(formCtx)lines.push(formCtx);
+  const aiPosture=clientId?clientPostureAiAnalysisContextForAI(clientId):'';
+  if(aiPosture)lines.push(aiPosture);
+  if(lines.length<=1)return'';
+  lines.push('PRIORYTET: bezpieczeństwo i wady postawy > objętość MEV. Nie dawaj ćwiczeń z listy ostrzeżeń. W "notes" napisz krótką uwagę bezpieczeństwa, gdy modyfikujesz wariant pod ograniczenie.');
+  return lines.join('\n')+'\n';
+}
+window.clientBodyLoadContextForAI=clientBodyLoadContextForAI;
+window.clientPostureHealthFormContextForAI=clientPostureHealthFormContextForAI;
+window.clientPostureAiAnalysisContextForAI=clientPostureAiAnalysisContextForAI;
+window.clientCombinedLimitationsText=clientCombinedLimitationsText;
+window.clientSafetyContextForAI=clientSafetyContextForAI;
+
 async function askMetricAI(){
   const q=document.getElementById('metric-ai-q').value.trim();if(!q)return;
   document.getElementById('metric-ai-q').value='';
