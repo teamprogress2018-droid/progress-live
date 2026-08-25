@@ -125,6 +125,53 @@ function renderClientFilters(){
 }
 function setClientSegment(seg){clientSegment=seg;renderClientFilters();renderClients();}
 function filterClients(){renderClients();}
+function getSidebarClientsFiltered(){
+  const q=((document.getElementById('nav-client-search')||{}).value||'').trim().toLowerCase();
+  let list=(window.CL||[]).filter(c=>c&&c.status!=='archived');
+  if(q){
+    list=list.filter(c=>{
+      const name=(c.name||'').toLowerCase();
+      const email=(c.email||'').toLowerCase();
+      return name.includes(q)||email.includes(q);
+    });
+  }
+  return list.map(c=>({c,act:typeof formatClientActivity==='function'?formatClientActivity(c.id):{days:0}}))
+    .sort((a,b)=>(b.act.days||0)-(a.act.days||0))
+    .map(x=>x.c);
+}
+function renderSidebarClients(){
+  const el=document.getElementById('nav-clients-list');
+  if(!el)return;
+  const list=getSidebarClientsFiltered();
+  const activeId=(typeof cpClientId!=='undefined'&&cpClientId)?cpClientId:null;
+  if(!list.length){
+    const q=((document.getElementById('nav-client-search')||{}).value||'').trim();
+    el.innerHTML=`<div class="nav-clients-empty">${q?'Brak wyników':'Brak klientów'}</div>`;
+    return;
+  }
+  el.innerHTML=list.map((c,i)=>{
+    const col=(typeof COLS!=='undefined'?COLS:['#e6302a','#4ade80','#60a5fa','#a78bfa','#f59e0b'])[i%5];
+    const on=activeId===c.id?' active':'';
+    const init=typeof getInit==='function'?getInit(c.name):(c.name||'?').slice(0,1);
+    const safeName=typeof escHtml==='function'?escHtml(c.name):String(c.name||'');
+    const safeInit=typeof escHtml==='function'?escHtml(init):String(init);
+    return `<button type="button" class="nav-client-item${on}" role="listitem" data-client-id="${c.id}" onclick="openClientFromSidebar('${c.id}')" title="${safeName}">
+      <span class="nav-client-av" style="background:${col}22;color:${col}">${safeInit}</span>
+      <span class="nav-client-name">${safeName}</span>
+    </button>`;
+  }).join('');
+}
+function filterSidebarClients(){renderSidebarClients();}
+function openClientFromSidebar(id){
+  if(typeof closeMobileSidebar==='function')try{closeMobileSidebar();}catch(e){}
+  if(typeof openClientProfile==='function')openClientProfile(id);
+  else if(typeof goTo==='function'){goTo('clients');}
+  renderSidebarClients();
+}
+window.renderSidebarClients=renderSidebarClients;
+window.filterSidebarClients=filterSidebarClients;
+window.openClientFromSidebar=openClientFromSidebar;
+
 function renderClients(){
   renderClientFilters();
   const search=(document.getElementById('client-search')||{}).value||'';
@@ -155,6 +202,7 @@ function renderClients(){
       <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.5;">${q?'Spróbuj innej frazy.':clientSegment==='archived'?'Nie masz zarchiwizowanych klientów.':'Dodaj pierwszego klienta — potem plan i Trening Live.'}</div>
       ${!q&&clientSegment!=='archived'?`<button class="btn btn-primary" onclick="openM('m-client')">+ Dodaj klienta</button>`:''}
     </div>`;
+    renderSidebarClients();
     return;
   }
   el.innerHTML=filtered.map((c,i)=>{
@@ -185,6 +233,7 @@ function renderClients(){
     </div>
   </div>`;
   }).join('');
+  renderSidebarClients();
 }
 
 function openClientModal(clientId){

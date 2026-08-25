@@ -13,7 +13,7 @@
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="globals.css?v=17">
-<link rel="stylesheet" href="styles.css?v=32">
+<link rel="stylesheet" href="styles.css?v=33">
 </head>
 <body>
 
@@ -77,6 +77,11 @@
   <nav class="sidebar-nav">
     <!-- Układ jak Everfit: Klienci → Biblioteka (flyout) → Inbox → reszta -->
     <button class="nav-item active" data-screen="clients" onclick="goTo('clients')"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Klienci<span class="nav-badge" id="nb-clients">0</span></button>
+    <div class="nav-clients-panel" id="nav-clients-panel">
+      <input type="search" id="nav-client-search" class="nav-clients-search" placeholder="Szukaj klienta…" oninput="filterSidebarClients()" autocomplete="off" aria-label="Szukaj klienta">
+      <div class="nav-clients-list" id="nav-clients-list" role="list"></div>
+      <button type="button" class="nav-clients-all" onclick="goTo('clients')">Wszyscy klienci →</button>
+    </div>
 
     <div class="nav-flyout-wrap" id="nav-library-wrap">
       <button type="button" class="nav-item nav-flyout-trigger" id="nav-library-btn" data-nav-group="library" onclick="toggleLibraryFlyout(event)" aria-haspopup="true" aria-expanded="false">
@@ -4008,9 +4013,9 @@ async function load(){
 <script src="02-workouts-onboarding-templates-live.js?v=20"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=21"></script>
 <script src="04-client-portal.js?v=24"></script>
-<script src="05-clients-builder-plans-calendar.js?v=25"></script>
+<script src="05-clients-builder-plans-calendar.js?v=26"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=24"></script>
-<script src="07-forms-metrics-calculator.js?v=22"></script>
+<script src="07-forms-metrics-calculator.js?v=23"></script>
 <script src="08-client-profile-extras.js?v=27"></script>
 <script src="09-posture-kb-invites-private.js?v=28"></script>
 <script src="10-client-app.js?v=22"></script>
