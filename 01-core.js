@@ -2717,6 +2717,55 @@ function normalizeRationaleMethod(method){
   if(/^ppl|push/i.test(m))return'PPL';
   return m;
 }
+/** Krótka, prosta mowa do klienta — bez RPE/MEV/żargonu. */
+function buildClientTalkPlain(opts){
+  const o=opts||{};
+  const methodKey=normalizeRationaleMethod(o.methodKey||o.method);
+  const goalKey=String(o.goalKey||o.goal||'masa').toLowerCase();
+  const levelKey=String(o.levelKey||o.level||'sredni').toLowerCase();
+  const weight=parseFloat(o.weight);
+  const methodTalk={
+    PPL:'Trenujemy Push / Pull / Nogi — dzielimy ciało na trzy dni ruchu, żeby mięśnie pracowały częściej niż raz w tygodniu.',
+    FBW:'Trenujemy całe ciało na każdej sesji — przy mniejszej liczbie dni w tygodniu to najprostszy i najskuteczniejszy układ.',
+    'Upper Lower':'Trenujemy na przemian górę i dół ciała — każda partia dostaje bodziec zwykle dwa razy w tygodniu.',
+    UL:'Trenujemy na przemian górę i dół ciała — każda partia dostaje bodziec zwykle dwa razy w tygodniu.',
+    Arnold:'Plan jest bardziej „sylwetkowy”: osobne dni na klatkę+plecy, barki+ramiona i nogi — dużo pracy na kształt.',
+    'Bro Split':'Każdy dzień to inna partia — dużo pracy lokalnie w jednej sesji; trzymamy jakość ruchu i regenerację.',
+    '531':'Główny cel to siła na wielostawach (przysiad, wyciskanie, martwy, wyciskanie nad głowę) z jasną progresją ciężaru.',
+    '5/3/1':'Główny cel to siła na wielostawach z jasną progresją ciężaru.',
+    Blokowa:'Plan idzie blokami: najpierw budujemy objętość, potem ciężar, potem domykamy — bez gonienia wszystkiego naraz.',
+    Obwodowy:'Trening w obwodach / stacjach: krótsze przerwy, więcej ruchu w krótszym czasie — dobre do kondycji i redukcji.',
+    Circuit:'Trening w obwodach / stacjach: krótsze przerwy, więcej ruchu w krótszym czasie.',
+    Custom:'Układ dni dobraliśmy pod Ciebie — ważne, żebyś ćwiczył regularnie i z dobrą techniką.',
+    'Własna':'Układ dni dobraliśmy pod Ciebie — ważne, żebyś ćwiczył regularnie i z dobrą techniką.'
+  };
+  const goalTalk={
+    masa:'Cel: budować mięśnie. Robimy kilka solidnych serii i stopniowo dokładamy ciężar, gdy idzie łatwiej.',
+    sila:'Cel: rosnąć w sile. Na początku sesji ciężkie ruchy główne, potem lżejsze uzupełnienia — bez pośpiechu między seriami.',
+    redukcja:'Cel: schudnąć bez gubienia mięśni. Na siłowni trzymamy solidne ciężary; tłuszcz schodzi głównie z diety.',
+    kondycja:'Cel: lepsza kondycja. Łączymy siłę z pracą oddechową / interwałami, bez przeciążania każdej sesji.',
+    atletyzm:'Cel: moc i atletyzm. Najpierw skoki / szybkie ruchy na świeżo, potem siła — jakość ważniejsza niż liczba serii.',
+    rehab:'Cel: bezpieczny powrót. Ćwiczymy z kontrolą, bez ostrego bólu i bez maksymalnych ciężarów.'
+  };
+  const levelTalk={
+    poczatkujacy:'Zaczynamy spokojnie: nauka ruchu i stały, mały postęp — nie skaczemy objętością co tydzień.',
+    sredni:'Masz już bazę — dokładamy obciążenie lub serie w tempie, które dasz radę regenerować.',
+    zaawansowany:'Masz doświadczenie — trzymamy wysoką jakość serii i zostawiamy zapas (nie musisz co raz iść na maksa).'
+  };
+  const parts=[
+    methodTalk[methodKey]||('Trenujemy metodą „'+(o.methodLabel||methodKey)+'”.'),
+    goalTalk[goalKey]||goalTalk.masa,
+    levelTalk[levelKey]||levelTalk.sredni
+  ];
+  if(!isNaN(weight)&&weight>0){
+    if(goalKey==='redukcja'){
+      parts.push('Przy ~'+Math.round(weight)+' kg dobieramy wygodniejsze warianty ćwiczeń i pilnujemy techniki — efekt wagi idzie z diety, nie z „cardio na siłowni”.');
+    }else{
+      parts.push('Przy ~'+Math.round(weight)+' kg dobieramy obciążenie i warianty pod Twój komfort stawów i technikę.');
+    }
+  }
+  return parts.join(' ');
+}
 function buildMethodRationale(opts){
   const o=opts||{};
   const methodKey=normalizeRationaleMethod(o.method);
@@ -2747,15 +2796,7 @@ function buildMethodRationale(opts){
       tips.push('Waga ~'+Math.round(weight)+' kg (kondycja): łącz obwody / interwały z 1–2 dniami siły, żeby nie tracić masy mięśniowej.');
     }
   }
-  const clientTalk=[
-    'Plan to '+method.label+': '+method.why,
-    'Cel („'+goal.label+'”): dlatego serie '+goal.sets+', powtórzenia '+goal.reps+', intensywność '+goal.rpe+'.',
-    (!isNaN(weight)&&weight>0)
-      ?('Uwzględniamy Twoją wagę (~'+Math.round(weight)+' kg) przy doborze wariantów i obciążenia — '+
-        (goalKey==='redukcja'?'trzymamy ciężary, a tłuszcz schodzi głównie przez dietę.':'progresujemy ciężar bezpiecznie względem poziomu.'))
-      :'Ciężary dobieramy pod poziom i RPE, nie „na ślepo”.',
-    'Poziom: '+levelTip
-  ].join(' ');
+  const clientTalk=buildClientTalkPlain({methodKey,methodLabel:method.label,goalKey,weight,levelKey});
   const trainerSources=typeof planningEvidenceSourceLines==='function'?planningEvidenceSourceLines():[];
   const trainerEntries=typeof getPlanningEvidenceEntries==='function'?getPlanningEvidenceEntries().filter(e=>!e.builtin).slice(0,5):[];
   return{
@@ -2795,7 +2836,7 @@ function renderMethodRationaleHTML(opts){
       <div class="mr-block mr-client-talk">
         <div class="mr-block-title">Jak wytłumaczyć klientowi</div>
         <div class="mr-text">${esc(r.clientTalk||'')}</div>
-        <div class="mr-meta">Skopiuj / parafrazuj na wiadomość lub briefing przed startem planu.</div>
+        <div class="mr-meta">Krótka wersja dla klienta — skopiuj do SMS / wiadomości.</div>
       </div>
       <div class="mr-block">
         <div class="mr-block-title">Metoda: ${esc(r.methodLabel)}</div>
@@ -2831,6 +2872,7 @@ function refreshMethodRationaleInto(el,opts){
 }
 window.METHOD_WHY=METHOD_WHY;
 window.GOAL_WHY=GOAL_WHY;
+window.buildClientTalkPlain=buildClientTalkPlain;
 window.buildMethodRationale=buildMethodRationale;
 window.renderMethodRationaleHTML=renderMethodRationaleHTML;
 window.refreshMethodRationaleInto=refreshMethodRationaleInto;

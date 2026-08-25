@@ -2754,7 +2754,8 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <div class="cp-hdr-more-menu" id="cp-hdr-more-menu" hidden>
           <button type="button" id="cp-edit-btn" onclick="toggleCpHdrMore(false);startCPEdit(cpClientId)">✏️ Edytuj profil</button>
           <button type="button" onclick="toggleCpHdrMore(false);cpQuickCheckin()">✓ Wyślij check-in</button>
-          <button type="button" onclick="toggleCpHdrMore(false);setCPTab('progress')">📈 Progress / podsumowanie</button>
+          <button type="button" onclick="toggleCpHdrMore(false);openReportForClient(cpClientId)">📊 Podsumowanie</button>
+          <button type="button" onclick="toggleCpHdrMore(false);setCPTab('progress')">📈 Progress</button>
           <div class="cp-hdr-more-sep"></div>
           <button type="button" id="cp-archive-btn" onclick="toggleCpHdrMore(false);archiveClient(cpClientId)">🗃 Zarchiwizuj</button>
           <button type="button" id="cp-restore-btn" onclick="toggleCpHdrMore(false);restoreClient(cpClientId)" style="display:none;">↩ Przywróć</button>
@@ -4016,10 +4017,14 @@ async function load(){
 
 <script src="ex-gif-manifest.js?v=17"></script>
 <script src="ex-photo-manifest.js?v=1"></script>
-<script src="01-core.js?v=32"></script>
+<script src="01-core.js?v=33"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=21"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=23"></script>
 <script src="04-client-portal.js?v=24"></script>
+<script src="05-clients-builder-plans-calendar.js?v=27"></script>
+<script src="06-inbox-exercises-ai-programs.js?v=24"></script>
+<script src="07-forms-metrics-calculator.js?v=23"></script>
+<script src="08-client-profile-extras.js?v=28"></script>
 <script src="05-clients-builder-plans-calendar.js?v=28"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=25"></script>
 <script src="07-forms-metrics-calculator.js?v=25"></script>

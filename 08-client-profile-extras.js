@@ -1498,16 +1498,9 @@ function renderCPProgress(c){
   ]:[];
 
   document.getElementById('cp-body').innerHTML=`
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
-      <div>
-        <div class="cp-section-title" style="margin:0;">PROGRESS</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px;">Statystyki, pomiary i podsumowanie dla klienta</div>
-      </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;">
-        <button type="button" class="btn btn-primary btn-sm" onclick="openReportForClient('${c.id}')">📊 Podsumowanie</button>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('metrics')">📏 Pomiary</button>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('photos')">📸 Zdjęcia</button>
-      </div>
+    <div style="margin-bottom:14px;">
+      <div class="cp-section-title" style="margin:0;">PROGRESS</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px;">Statystyki, pomiary i podsumowanie dla klienta</div>
     </div>
 
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;">

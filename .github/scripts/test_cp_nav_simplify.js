@@ -33,15 +33,17 @@ ok('slim header actions class', html.includes('cp-hdr-actions'));
 ok('header has message', /cpQuickMessage/.test(hdr));
 ok('header has live', /cpStartLive/.test(hdr));
 ok('header has overflow menu', html.includes('cp-hdr-more-menu') && /toggleCpHdrMore/.test(src09));
-ok('no top Podsumowanie button', !/openReportForClient\(cpClientId\)/.test(hdr));
+ok('no top Podsumowanie button', !/openReportForClient\(cpClientId\)/.test(hdr.replace(/cp-hdr-more-menu[\s\S]*?<\/div>/, '')));
 ok('no top Check-in button outside menu', !/cpQuickCheckin\(\)/.test(hdr.replace(/cp-hdr-more-menu[\s\S]*?<\/div>/, '')));
 ok('edit lives in overflow', /startCPEdit\(cpClientId\)/.test(html) && html.includes('cp-hdr-more-menu'));
 ok('archive in overflow', /cp-archive-btn/.test(html) && html.includes('cp-hdr-more-menu'));
-ok('progress hosts Podsumowanie', /openReportForClient/.test(progress) && /Podsumowanie/.test(progress));
-ok('progress links metrics and photos', /setCPTab\('metrics'\)/.test(progress) && /setCPTab\('photos'\)/.test(progress));
+ok('podsumowanie in overflow menu', /openReportForClient\(cpClientId\)/.test(html) && /cp-hdr-more-menu/.test(html));
+ok('progress has no CTA strip', !/Podsumowanie<\/button>/.test(progress) && !/setCPTab\('photos'\)/.test(progress));
+ok('progress still links metrics from cards', /setCPTab\('metrics'\)/.test(progress));
 ok('overview profile has no WhatsApp/Email CTAs', !/WhatsApp|mailto:/.test(overview));
 ok('css for header menu', css.includes('.cp-hdr-more-menu') && css.includes('.cp-hdr-actions'));
 ok('scripts not duplicated for 08', (html.match(/08-client-profile-extras\.js/g) || []).length === 1);
+ok('cache bump 08', html.includes('08-client-profile-extras.js?v=28'));
 
 if (failed) {
   console.error(failed + ' failed');
