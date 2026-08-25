@@ -145,6 +145,8 @@ jobs:
         run: node .github/scripts/test_app_shell_everfit.js
       - name: 1n28. Testy poziomych zakładek profilu klienta
         run: node .github/scripts/test_cp_tabs_top.js
+      - name: 1n28b. Testy przycisku własnego planu w profilu klienta
+        run: node .github/scripts/test_cp_own_plan_btn.js
       - name: 1n29. Testy przywrócenia konturów/czcionek kafelków
         run: node .github/scripts/test_tile_polish_restore.js
       - name: 1n30. Testy etykiet partii w autocomplete ćwiczeń

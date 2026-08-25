@@ -408,6 +408,20 @@ function openAiPlanForClient(clientId){
 }
 window.openAiPlanForClient=openAiPlanForClient;
 
+function openBuilderForClient(clientId){
+  closeM('m-client-onboard');
+  if(typeof closeClientProfile==='function')closeClientProfile();
+  goTo('builder');
+  setTimeout(()=>{
+    const sel=document.getElementById('b-client');
+    if(sel){
+      sel.value=clientId;
+      if(typeof updatePeriod==='function')updatePeriod();
+    }
+  },200);
+}
+window.openBuilderForClient=openBuilderForClient;
+
 function openClientOnboardChecklist(clientId){
   window._onboardClientId=clientId;
   renderClientOnboardChecklist();
