@@ -814,11 +814,46 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 /* ── CLIENT PROFILE ── */
 .cp-drawer{position:fixed;inset:0;width:100%;background:var(--bg-main);z-index:60;display:flex;flex-direction:column;transform:translateX(100%);transition:transform 0.24s cubic-bezier(.4,0,.2,1);}
 .cp-drawer.open{transform:translateX(0);}
-.cp-tab{padding:8px 16px;font-size:12px;font-weight:600;border:none;background:none;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.12s;}
+.cp-main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
+.cp-tabs-bar{
+  display:flex;align-items:center;gap:2px;flex-wrap:nowrap;
+  padding:0 24px;border-bottom:1px solid var(--border);flex-shrink:0;
+  overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;
+}
+.cp-tab{
+  padding:14px 14px 12px;font-size:13px;font-weight:600;border:none;background:none;
+  color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;
+  transition:color .12s,border-color .12s;white-space:nowrap;font-family:'DM Sans',sans-serif;
+}
+.cp-tab:hover{color:var(--text);}
 .cp-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
-.cp-tab-v{display:block;width:100%;text-align:left;padding:10px 14px;font-size:14px;font-weight:600;border:none;background:none;color:var(--muted);cursor:pointer;border-left:3px solid transparent;border-radius:0 8px 8px 0;transition:all 0.12s;margin-bottom:2px;}
-.cp-tab-v:hover{background:var(--s2);color:var(--text);}
-.cp-tab-v.active{color:var(--accent);border-left-color:var(--accent);background:var(--s2);}
+.cp-tabs-more-wrap{position:relative;flex-shrink:0;}
+.cp-tabs-more-btn{border-bottom-color:transparent;}
+.cp-tabs-more-menu{
+  position:absolute;right:0;top:calc(100% + 4px);min-width:200px;
+  background:var(--s1);border:1px solid var(--border2);border-radius:10px;
+  box-shadow:0 16px 40px rgba(0,0,0,.45);padding:6px;z-index:50;
+  display:flex;flex-direction:column;gap:2px;
+}
+.cp-tabs-more-menu[hidden]{display:none!important;}
+.cp-tab-menu{
+  display:block;width:100%;text-align:left;padding:9px 11px;border-radius:8px;
+  border:none;border-bottom:none;background:transparent;color:var(--text);
+  font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;
+}
+.cp-tab-menu:hover{background:var(--s3);color:var(--text);}
+.cp-tab-menu.active{color:var(--accent);background:rgba(var(--accent-rgb),0.1);}
+.cp-tab-menu-danger{
+  display:block;width:100%;text-align:left;padding:9px 11px;border-radius:8px;
+  border:none;background:transparent;color:var(--red);font-size:12px;cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+}
+.cp-tab-menu-danger:hover{background:rgba(220,60,60,.1);}
+.cp-tabs-more-sep{height:1px;background:var(--border);margin:4px 6px;}
+.cp-body-scroll{flex:1;overflow-y:auto;min-height:0;}
+.cp-body-inner{max-width:1120px;margin:0 auto;padding:24px 28px;}
+/* legacy vertical tabs — keep class harmless if referenced */
+.cp-tab-v{display:none;}
 .cp-section-title{font-family:var(--font-ui);font-size:1.05rem;letter-spacing:-0.01em;font-weight:700;color:var(--text-primary);margin:20px 0 12px;text-transform:none;position:relative;padding-bottom:0;}
 .cp-section-title::after{display:none;}
 .studio-hdr{font-family:var(--font-ui)!important;font-size:1.05rem!important;letter-spacing:-0.01em!important;font-weight:700!important;color:var(--text-primary)!important;text-transform:none!important;position:relative;padding-bottom:0!important;margin-bottom:4px!important;}
@@ -1185,13 +1220,13 @@ input[type=checkbox]{display:none;}
   .ex-list-row > *:nth-child(4),
   .ex-list-row > *:nth-child(5){display:none;}
 
-  /* profil klienta pelnoekranowy - pionowe menu zwezone */
+  /* profil klienta — poziome zakładki */
   .cp-drawer > div:first-child{flex-wrap:wrap;gap:10px;padding:12px 16px!important;}
   .cp-drawer > div:first-child > div:last-child{width:100%;justify-content:flex-start!important;}
   .cp-drawer #cp-edit-btn{order:-1;}
-  .cp-drawer > div:nth-child(2) > div:first-child{width:52px!important;padding:14px 4px!important;}
-  .cp-tab-v{padding:10px 4px;text-align:center;font-size:9px;}
-  .cp-drawer > div:nth-child(2) > div:last-child > div{padding:16px!important;}
+  .cp-tabs-bar{padding:0 12px;}
+  .cp-tab{padding:12px 10px 10px;font-size:12px;}
+  .cp-body-inner{padding:16px!important;}
   .cp-data-grid{grid-template-columns:repeat(2,minmax(160px,1fr))!important;}
   .cp-data-tile-wide{grid-column:span 2;}
 
