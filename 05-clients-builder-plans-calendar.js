@@ -411,6 +411,7 @@ window.openAiPlanForClient=openAiPlanForClient;
 function openBuilderForClient(clientId){
   closeM('m-client-onboard');
   if(typeof closeClientProfile==='function')closeClientProfile();
+  window._builderBack='clients';
   goTo('builder');
   setTimeout(()=>{
     const sel=document.getElementById('b-client');
@@ -731,6 +732,7 @@ window.builderEduCtx=builderEduCtx;
 function initBuilder(){
   window._editingPlanId=null;
   window._builderPeriodWeek=0;
+  if(!window._builderBack)window._builderBack='clients';
   const titleEl=document.querySelector('#screen-builder .topbar-title');
   if(titleEl)titleEl.textContent='Nowy plan treningowy';
   dayCount=0;
@@ -1289,6 +1291,7 @@ function getPeriod(level){
 function editPlan(id){
   const plan=PL.find(p=>p.id===id);
   if(!plan){notify('Nie znaleziono planu');return;}
+  window._builderBack='plans';
   goTo('builder'); // initBuilder() czyści formularz i resetuje _editingPlanId
   document.getElementById('b-name').value=plan.name||'';
   const clientSel=document.getElementById('b-client');
@@ -1556,10 +1559,10 @@ function renderPlans(){
   if(!list.length){el.innerHTML=`<div style="text-align:center;color:var(--muted);padding:60px 20px;">
     <div style="font-size:36px;margin-bottom:10px;opacity:0.35;">📋</div>
     <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">${search?'Brak planów pasujących do wyszukiwania':'Brak planów treningowych'}</div>
-    <div style="font-size:12px;margin-bottom:16px;">Przypisz plan klientowi, żeby móc od razu odpalić Trening Live.</div>
+    <div style="font-size:12px;margin-bottom:16px;">Twórz i przypisuj plany z profilu klienta → zakładka Plan (szablon, własny kreator lub AI).</div>
     ${search?'':`<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
-      <button class="btn btn-primary btn-sm" onclick="goTo('builder')">+ Nowy plan</button>
-      <button class="btn btn-ghost btn-sm" onclick="goTo('aiplangen')">⚡ Generuj plan AI</button>
+      <button class="btn btn-primary btn-sm" onclick="goTo('clients')">Otwórz klientów</button>
+      <button class="btn btn-ghost btn-sm" onclick="goTo('templates')">📋 Szablony</button>
     </div>`}
   </div>`;return;}
   el.innerHTML=`<div class="plans-grid">`+list.map((p,pi)=>{
