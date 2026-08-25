@@ -861,6 +861,28 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 .dash-task-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;}
 .dash-task-row:last-child{border-bottom:none;}
 .d-activity-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+/* Panel operacyjny trenera */
+.dash-kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px;}
+.dash-kpi-click{width:100%;text-align:left;cursor:pointer;font:inherit;color:inherit;}
+.dash-ops-grid{display:grid;grid-template-columns:1.55fr 1fr;gap:18px;align-items:start;margin-bottom:24px;}
+.dash-ops-main,.dash-ops-side{display:flex;flex-direction:column;gap:16px;}
+.dash-ops-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px;}
+.dash-ops-empty{font-size:12px;color:var(--muted);padding:10px 0;line-height:1.5;}
+.dash-ops-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+.dash-ops-item:last-child{border-bottom:none;}
+.dash-ops-item-body{flex:1;min-width:0;}
+.dash-ops-item-title{font-size:13px;font-weight:700;}
+.dash-ops-item-meta{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4;}
+.dash-ops-tag{font-size:9px;font-family:var(--font-ui);font-weight:700;padding:2px 7px;border-radius:4px;white-space:nowrap;flex-shrink:0;}
+.dash-qa-wrap{position:relative;}
+.dash-qa-menu{position:absolute;right:0;top:calc(100% + 6px);min-width:240px;background:var(--bg-elevated);border:1px solid var(--border2);border-radius:10px;padding:6px;box-shadow:var(--panel-glow);z-index:80;}
+.dash-qa-menu[hidden]{display:none!important;}
+.dash-qa-menu button{display:block;width:100%;text-align:left;background:transparent;border:none;color:var(--text);font-size:12px;padding:9px 10px;border-radius:7px;cursor:pointer;}
+.dash-qa-menu button:hover{background:var(--s3);color:var(--accent);}
+@media(max-width:1100px){
+  .dash-ops-grid{grid-template-columns:1fr;}
+  .dash-kpi-row{grid-template-columns:1fr;}
+}
 /* ── CALENDAR V2 ── */
 .cal-week-day-hdr{padding:12px 8px;text-align:center;border-right:1px solid var(--border-subtle);position:sticky;top:0;background:var(--bg-elevated);z-index:5;font-size:var(--font-size-sm);font-weight:600;color:var(--text-primary);}
 .cal-week-day-hdr.today{background:rgba(var(--accent-rgb),0.1);}
