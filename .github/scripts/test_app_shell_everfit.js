@@ -29,8 +29,12 @@ ok('library trimmed tools', !/data-screen="aiplangen"/.test(libFly) && !/data-sc
 ok('plan tools not in more nav', !/nav-more-items[\s\S]*data-screen="aiplangen"/.test(html) && !/nav-more-items[\s\S]*data-screen="builder"/.test(html));
 ok('calculator kb still under more', /nav-more-items[\s\S]*data-screen="calculator"[\s\S]*data-screen="kb"/.test(html));
 ok('inbox top-level', /data-screen="inbox"[\s\S]*?Wiadomości/.test(html.slice(html.indexOf('sidebar-nav'), html.indexOf('nav-more-items'))));
-ok('automation top-level', /data-screen="automation"/.test(html.slice(html.indexOf('sidebar-nav'), html.indexOf('nav-more-items'))));
-ok('payments top-level', /data-screen="payments"/.test(html.slice(html.indexOf('sidebar-nav'), html.indexOf('nav-more-items'))));
+ok('live calendar automation top-level', (()=>{
+  const primary=html.slice(html.indexOf('sidebar-nav'), html.indexOf('nav-more-items'));
+  return /data-screen="live"/.test(primary)&&/data-screen="calendar"/.test(primary)&&/data-screen="automation"/.test(primary);
+})());
+ok('ondemand forum payments in more', /nav-more-items[\s\S]*data-screen="ondemand"[\s\S]*data-screen="forum"[\s\S]*data-screen="payments"/.test(html));
+ok('ondemand not primary', !/data-screen="ondemand"/.test(html.slice(html.indexOf('sidebar-nav'), html.indexOf('nav-more-items'))));
 ok('single inbox badge', (html.match(/id="nb-inbox"/g) || []).length === 1);
 ok('clients screen everfit layout', html.includes('cl-everfit') && html.includes('cl-everfit-hdr'));
 ok('clients training columns', html.includes('Trening 7 dni') && html.includes('Trening 30 dni') && html.includes('Zadania 7 dni'));
@@ -42,6 +46,7 @@ ok('flyout positions from trigger rect', /function\s+_positionLibraryFlyout/.tes
 ok('flyout portals to body', /document\.body\.appendChild\(fly\)/.test(nine));
 ok('goTo marks library group', /libraryScreens=\['library','plans','programs','templates','tasks','forms','metrics'\]/.test(core) && core.includes('nav-library-btn'));
 ok('moreScreens without builder/ai', /moreScreens=\[[^\]]*\]/.test(core) && !/moreScreens=\[[^\]]*aiplangen/.test(core) && !/moreScreens=\[[^\]]*builder/.test(core));
+ok('moreScreens has ondemand payments', /moreScreens=\[[^\]]*ondemand[^\]]*forum[^\]]*payments/.test(core));
 ok('plans library client-first CTAs', html.includes('Utwórz z profilu klienta') && !/screen-plans[\s\S]{0,400}goTo\('builder'\)/.test(html));
 ok('training window stats', /function\s+clientTrainingWindowStats/.test(clients));
 ok('row message button', clients.includes('cl-msg-btn') && clients.includes('quickMessageClient'));

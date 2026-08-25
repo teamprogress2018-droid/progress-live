@@ -157,6 +157,8 @@ jobs:
         run: node .github/scripts/test_app_shell_everfit.js
       - name: 1n27b. Testy wejścia do planu tylko z klienta
         run: node .github/scripts/test_nav_plan_entry.js
+      - name: 1n27c. Testy skróconego primary nav
+        run: node .github/scripts/test_nav_primary_slim.js
       - name: 1n28. Testy poziomych zakładek profilu klienta
         run: node .github/scripts/test_cp_tabs_top.js
       - name: 1n28b. Testy przycisku własnego planu w profilu klienta

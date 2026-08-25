@@ -328,7 +328,7 @@ function goTo(n){
   closeMobileSidebar();
   if(typeof closeLibraryFlyout==='function')closeLibraryFlyout();
   const libraryScreens=['library','plans','programs','templates','tasks','forms','metrics'];
-  const moreScreens=['dashboard','calculator','kb','trainer-profile','checkin','integrations','resources','bizstats','settings','aicoach'];
+  const moreScreens=['dashboard','ondemand','forum','payments','calculator','kb','trainer-profile','checkin','integrations','resources','bizstats','settings','aicoach'];
   // builder + aiplangen celowo poza Więcej — wejście z profilu klienta (Plan)
   if(moreScreens.includes(n)){
     const moreEl=document.getElementById('nav-more-items');
