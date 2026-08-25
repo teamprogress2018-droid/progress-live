@@ -1627,4 +1627,30 @@ body,
 .apl-rationale-mount .method-rationale{margin-top:0;}
 #builder-rationale .method-rationale,#tplc-rationale .method-rationale{margin:0;}
 
+/* Tooltips edukacyjne */
+.edu-tip{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:16px;height:16px;margin-left:5px;padding:0;vertical-align:middle;
+  border-radius:50%;border:1px solid var(--border-subtle);
+  background:rgba(255,255,255,0.04);color:var(--text-label);
+  font-size:10px;font-weight:700;line-height:1;cursor:help;
+  font-family:var(--font-ui);position:relative;flex-shrink:0;
+}
+.edu-tip:hover,.edu-tip:focus,.edu-tip.is-open{border-color:var(--accent);color:var(--accent);background:rgba(var(--accent-rgb),0.1);outline:none;}
+.edu-tip::after{
+  content:attr(data-tip);position:absolute;z-index:80;
+  left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);
+  width:min(280px,70vw);padding:10px 12px;border-radius:8px;
+  background:var(--s1);border:1px solid var(--border-default);color:var(--text-primary);
+  font-size:11px;font-weight:500;line-height:1.45;text-align:left;letter-spacing:0;
+  box-shadow:0 8px 24px rgba(0,0,0,0.35);
+  opacity:0;pointer-events:none;visibility:hidden;transition:opacity .12s ease;
+  white-space:normal;
+}
+.edu-tip:hover::after,.edu-tip:focus::after,.edu-tip.is-open::after{opacity:1;visibility:visible;}
+.ex-tbl-hdr .edu-tip{margin-left:3px;width:14px;height:14px;font-size:9px;}
+.edu-inline-hint{font-size:11px;color:var(--text-label);line-height:1.45;margin-top:6px;}
+.edu-lbl{display:inline-flex;align-items:center;}
+.form-lbl .edu-tip{margin-top:-1px;}
+
 

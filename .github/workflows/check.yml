@@ -83,6 +83,9 @@ jobs:
       - name: 1i5. Testy bazy dowodów / zasad trenera
         run: node .github/scripts/test_evidence_base.js
 
+      - name: 1i6. Testy tooltipów edukacyjnych (serie/RPE/metoda)
+        run: node .github/scripts/test_edu_tooltips.js
+
       - name: 1j. Testy parsera JSON generatora AI
         run: node .github/scripts/test_ai_plan_json.js
 

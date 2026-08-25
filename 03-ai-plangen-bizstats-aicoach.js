@@ -71,6 +71,7 @@ function initAplangen(){
   if(typeof initPriorSportsForm==='function')initPriorSportsForm('apl',[]);
   if(typeof initPhysiquePriorityForm==='function')initPhysiquePriorityForm('apl',[]);
   if(typeof aplRefreshRationale==='function')aplRefreshRationale();
+  if(typeof hydrateEduTips==='function')hydrateEduTips(document.getElementById('screen-aiplangen'));
 }
 
 function aplShowWelcome(){
