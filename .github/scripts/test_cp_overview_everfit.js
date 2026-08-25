@@ -43,7 +43,10 @@ ok('no duplicate message in profile rail', !/WhatsApp|mailto:/.test(overview));
 ok('no giant profile grid on overview', !overview.includes('cp-data-grid'));
 ok('no food journal on overview', !/Żywienie|Meal Plan|food journal/i.test(overview));
 ok('css layout', css.includes('.cp-ov-layout') && css.includes('.cp-ov-rail'));
-ok('wider cp-body', html.includes('max-width:1120px') && html.includes('id="cp-body"'));
+ok('wider cp-body',
+  (html.includes('max-width:1120px') && html.includes('id="cp-body"')) ||
+  (css.includes('.cp-body-inner') && css.includes('max-width:1120px') && html.includes('id="cp-body"'))
+);
 
 if (failed) {
   console.error(failed + ' failed');

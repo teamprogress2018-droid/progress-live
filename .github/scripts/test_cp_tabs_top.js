@@ -20,14 +20,17 @@ function ok(name, cond) {
   } else console.log('OK  ', name);
 }
 
-ok('horizontal tabs bar', drawer.includes('cp-tabs-bar'));
+ok('horizontal tabs bar', drawer.includes('cp-tabs-bar') && drawer.includes('cp-tabs-inner'));
 ok('no vertical tab sidebar width', !/width:200px[\s\S]*cpt-overview/.test(drawer.replace(/\s+/g, ' ')));
 ok('top tabs order-ish', /cpt-overview[\s\S]*cpt-training[\s\S]*cpt-plan[\s\S]*cpt-tasks[\s\S]*cpt-progress[\s\S]*cpt-metrics[\s\S]*cpt-documents/.test(drawer));
 ok('more dropdown', drawer.includes('cp-tabs-more-menu') && drawer.includes('cpt-features'));
 ok('settings in more as Ustawienia', /cpt-features[\s\S]*Ustawienia/.test(drawer));
 ok('css horizontal bar', css.includes('.cp-tabs-bar') && css.includes('.cp-main'));
+ok('tabs centered', css.includes('justify-content:center') && /cp-tabs-bar\{[\s\S]*?justify-content:center/.test(css.replace(/\s+/g,' ')));
+ok('tabs red accent color', /\.cp-tab\{[^}]*color:var\(--accent\)/.test(css.replace(/\s+/g,' ')));
+ok('more menu not clipped', css.includes('overflow:visible') && css.includes('.cp-tabs-more-menu'));
 ok('setCPTab more list updated', src07.includes("moreTabs=['notes'") || /moreTabs=\['notes'/.test(src07));
-ok('toggleCpMoreNav hidden attr', /setAttribute\('hidden'/.test(src09) && /function\s+toggleCpMoreNav/.test(src09));
+ok('toggleCpMoreNav ignore race', /_cpMoreIgnoreUntil/.test(src09) && /function\s+toggleCpMoreNav/.test(src09));
 ok('cp-tab-v not used in drawer', !/cp-tab-v/.test(drawer));
 
 if (failed) {
