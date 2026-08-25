@@ -124,10 +124,13 @@ function aplFillFromClient(){
   else if(c.weight)document.getElementById('apl-weight').value=c.weight;
   if(c.height)document.getElementById('apl-height').value=c.height;
   if(c.gender)document.getElementById('apl-gender').value=c.gender;
-  if(c.injuries)document.getElementById('apl-injuries').value=c.injuries;
-  else if(typeof clientInjuriesText==='function'){
-    const inj=clientInjuriesText(c);
-    if(inj)document.getElementById('apl-injuries').value=inj;
+  {
+    const injEl=document.getElementById('apl-injuries');
+    if(injEl){
+      const lim=typeof clientCombinedLimitationsText==='function'?clientCombinedLimitationsText(c):'';
+      const base=lim||(c.injuries)||(typeof clientInjuriesText==='function'?clientInjuriesText(c):'')||'';
+      if(base)injEl.value=base;
+    }
   }
   if(c.goal){
     document.querySelectorAll('#apl-goals .apl-opt').forEach(b=>{
@@ -157,9 +160,15 @@ function aplFillFromClient(){
     aplApplyHypertrophy3DayPreset();
   }
   aplRenderMetricsHint(cid);
+  aplRenderSafetyHint(cid);
   const hasM=typeof clientMetricsContextForAI==='function'&&!!clientMetricsContextForAI(cid);
+  const hasS=typeof clientSafetyContextForAI==='function'&&!!clientSafetyContextForAI(cid,{
+    weight:document.getElementById('apl-weight')?.value,
+    height:document.getElementById('apl-height')?.value,
+    injuries:document.getElementById('apl-injuries')?.value
+  });
   if(typeof aplRefreshRationale==='function')aplRefreshRationale();
-  notify(hasM?`✓ Dane ${c.name} + pomiary (baseline) wczytane`:`✓ Dane ${c.name} wczytane do formularza`);
+  notify(hasS||hasM?`✓ Dane ${c.name} + bezpieczeństwo/pomiary wczytane`:`✓ Dane ${c.name} wczytane do formularza`);
 }
 
 function aplRenderMetricsHint(clientId){
@@ -188,6 +197,35 @@ function aplRenderMetricsHint(clientId){
   el.innerHTML='<strong style="color:var(--teal);">📏 Pomiary z karty klienta</strong> trafią do AI.<br><span style="font-size:10px;color:var(--muted);">'+escHtml(short)+'</span>';
 }
 window.aplRenderMetricsHint=aplRenderMetricsHint;
+
+function aplRenderSafetyHint(clientId){
+  let el=document.getElementById('apl-safety-hint');
+  if(!el){
+    const anchor=document.getElementById('apl-injuries');
+    const field=anchor&&anchor.closest('.form-field');
+    if(!field||!field.parentElement)return;
+    el=document.createElement('div');
+    el.id='apl-safety-hint';
+    el.style.cssText='font-size:11px;line-height:1.5;padding:8px 10px;border-radius:8px;margin:8px 0;border:1px solid var(--border2);background:var(--s3);color:var(--muted);';
+    field.insertAdjacentElement('afterend',el);
+  }
+  const w=document.getElementById('apl-weight')?.value;
+  const h=document.getElementById('apl-height')?.value;
+  const inj=document.getElementById('apl-injuries')?.value;
+  const ctx=typeof clientSafetyContextForAI==='function'?clientSafetyContextForAI(clientId,{weight:w,height:h,injuries:inj}):'';
+  if(!ctx){
+    el.style.display='none';
+    el.textContent='';
+    return;
+  }
+  el.style.display='block';
+  el.style.borderColor='rgba(230,0,0,0.28)';
+  el.style.background='rgba(230,0,0,0.06)';
+  el.style.color='var(--text)';
+  const short=ctx.split('\n').filter(l=>l&&!l.startsWith('===')&&!l.startsWith('PRIORYTET')&&!l.startsWith('- Preferuj')&&!l.startsWith('- Unikaj')&&!l.startsWith('- Nogi')&&!l.startsWith('- Core')&&!l.startsWith('- Dłuższa')).slice(0,4).join(' · ');
+  el.innerHTML='<strong style="color:var(--accent);">🛡 Bezpieczeństwo (waga, postawa, kontuzje)</strong> trafi do AI — plan ma nie szkodzić.<br><span style="font-size:10px;color:var(--muted);">'+escHtml(short)+'</span>';
+}
+window.aplRenderSafetyHint=aplRenderSafetyHint;
 
 function aplGetVal(groupId){
   const active=document.querySelector(`#${groupId} .apl-opt.active`);
@@ -653,6 +691,12 @@ METODY INTENSYFIKACJI DO WYKORZYSTANIA (zaznaczone przez trenera): ${intensify.l
 
 UWZGLĘDNIJ ANATOMIĘ I BIOMECHANIKĘ KLIENTA przy doborze wariantów ćwiczeń (np. długa kość udowa → przysiad na maszynie hack/suwnicy zamiast klasycznego przysiadu ze sztangą; ograniczona mobilność skokowa → dodaj podkładki pod pięty lub zamień na wykroki; długie ramiona → węższy chwyt w wyciskaniu).
 
+BEZPIECZEŃSTWO KLIENTA (OBOWIĄZKOWE — ponad objętością MEV):
+1. Uwzględnij WAŻĘ, BMI, kontuzje, wady postawy i analizę postawy z kontekstu użytkownika — plan NIE MOŻE szkodzić.
+2. Przy wyższej masie ciała (≥95 kg lub BMI≥30): maszyny/stabilne warianty, bez plyometrii i skoków, konserwatywne kg i RPE.
+3. Przy wadach postawy / bólu kręgosłupa / kolan / barków: stosuj zasady korekcyjne z kontekstu; unikaj ćwiczeń z ostrzeżeń analizy postawy.
+4. W notes ćwiczeń dodaj krótką uwagę bezpieczeństwa, gdy wariant jest zmodyfikowany pod ograniczenie.
+
 UWZGLĘDNIJ TŁO SPORTOWE: jeśli klient ma predyspozycję wytrzymałościową (bieganie, kolarstwo, pływanie) — więcej pracy tlenowej, wyższe zakresy powtórzeń na start, mniejszy nacisk na maksymalne obciążenia siłowe. Jeśli dominacja siłowa (siłownia, kulturystyka) — szybsza progresja kg, niższe powtórzenia, mniej cardio.
 
 ZASADY HIPERTROFII (STRICT — obowiązują zawsze, zwłaszcza przy celu masa/kształtowanie):
@@ -690,6 +734,7 @@ ${job?`- Rodzaj pracy (NEAT): ${job}`:''}
 ${notes?`- Dodatkowe uwagi: ${notes}`:''}
 ${client&&typeof clientSportProfileForAI==='function'?clientSportProfileForAI(Object.assign({},client,{priorSports:typeof readPriorSportsFrom==='function'?readPriorSportsFrom('apl'):(client.priorSports||[]),activityLevel:document.getElementById('apl-activity')?.value||client.activityLevel,sportNotes:document.getElementById('apl-sport-notes')?.value||client.sportNotes||''})):''}
 ${cid&&typeof clientMetricsContextForAI==='function'?clientMetricsContextForAI(cid):''}
+${(typeof clientSafetyContextForAI==='function'?clientSafetyContextForAI(cid||null,{weight,height,injuries,gender}):'')}
 ${client?`- Klient: ${client.name}, cel: ${client.goal}, poziom: ${client.level}`:''}${cid&&typeof sfrGetContextForAI==='function'?sfrGetContextForAI(cid):''}`
   +(method==='Obwodowy'||/^obwod|circuit/i.test(String(method||''))?`
 
@@ -725,7 +770,8 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
 1. Każda główna partia ≥2×/tydzień (suma serii z wielu dni).
 2. PRIORYTET SYLWETKOWY: 1–2 pierwsze ćwiczenia sesji (po rozgrzewce) na weak points, gdy sesja je stymuluje.
 3. Preferuj maszyny / Smith / wyciągi i warianty lengthened / stretch-mediated z pauzą 1s w rozciągnięciu.
-4. 3–4 serie; złożone 6–10; izolacje 8–12 lub 10–15; RPE 8–10 ≈ RIR 0–2; tempo "3-1-1-0" dla priorytetów i izolacji.`;
+4. 3–4 serie; złożone 6–10; izolacje 8–12 lub 10–15; RPE 8–10 ≈ RIR 0–2; tempo "3-1-1-0" dla priorytetów i izolacji.
+5. BEZPIECZEŃSTWO: respektuj wagę/BMI, wady postawy i kontuzje z wiadomości użytkownika — nie dawaj ćwiczeń szkodliwych.`;
           chunkUser=`Plan: ${plan?.planName||method}. Istniejące dni: ${(plan?.days||[]).map(d=>d.dayName).join('; ')}.\nDodaj dni ${from}–${to}.\n${userMsg}`;
         }
       }
