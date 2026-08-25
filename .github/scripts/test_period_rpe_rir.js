@@ -3,6 +3,7 @@
 /** Periodization week preview updates RPE and RIR in builder rows. */
 const fs = require('fs');
 const path = require('path');
+const vm = require('vm');
 
 const root = path.join(__dirname, '../..');
 const src = fs.readFileSync(path.join(root, '05-clients-builder-plans-calendar.js'), 'utf8');
@@ -22,10 +23,13 @@ function extractFn(name) {
   throw new Error('unclosed ' + name);
 }
 
-eval(
+const sandbox = { console };
+vm.createContext(sandbox);
+vm.runInContext(
   extractFn('builderRirFromRpe') + ';\n' +
   extractFn('builderNormalizeRpe') + ';\n' +
-  extractFn('builderWeekModel') + ';\n'
+  extractFn('builderWeekModel') + ';\n',
+  sandbox
 );
 
 let failed = 0;
@@ -36,12 +40,12 @@ function ok(name, cond) {
   } else console.log('OK  ', name);
 }
 
-ok('RIR from RPE 8 → 2', builderRirFromRpe('8') === '2');
-ok('RIR from RPE 7-8 → 2-3', builderRirFromRpe('7-8') === '2-3');
-ok('RIR from RPE label', builderRirFromRpe('RPE 9') === '1');
-ok('advanced week1 RPE 7-8', builderWeekModel('zaawansowany', 0).rpe === '7-8');
-ok('advanced week2 RPE 8', builderWeekModel('zaawansowany', 1).rpe === '8');
-ok('week2 RIR from model', builderRirFromRpe(builderWeekModel('zaawansowany', 1).rpe) === '2');
+ok('RIR from RPE 8 → 2', sandbox.builderRirFromRpe('8') === '2');
+ok('RIR from RPE 7-8 → 2-3', sandbox.builderRirFromRpe('7-8') === '2-3');
+ok('RIR from RPE label', sandbox.builderRirFromRpe('RPE 9') === '1');
+ok('advanced week1 RPE 7-8', sandbox.builderWeekModel('zaawansowany', 0).rpe === '7-8');
+ok('advanced week2 RPE 8', sandbox.builderWeekModel('zaawansowany', 1).rpe === '8');
+ok('week2 RIR from model', sandbox.builderRirFromRpe(sandbox.builderWeekModel('zaawansowany', 1).rpe) === '2');
 ok('refresh writes rpe/rir into inputs', /set\('rpe',pv\.rpe\)/.test(src) && /set\('rir',pv\.rir\)/.test(src));
 ok('apply week sets rir', /function\s+builderApplyPeriodWeek[\s\S]*?set\('rir',pv\.rir\)/.test(src));
 ok('rpe input is text for ranges', /data-f="rpe"[^>]*\btype="text"|\btype="text"[^>]*data-f="rpe"/.test(src));
