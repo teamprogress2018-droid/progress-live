@@ -16,10 +16,12 @@ ok('metrics has no training PRs block', !/Rekordy z treningów/.test(metricsFn))
 ok('progress has training PRs', /Rekordy z treningów/.test(progressFn));
 ok('progress has weekly tonnage', /Tonaż tygodniowy/.test(progressFn));
 ok('progress has circumferences', /Obwody ciała/.test(progressFn));
+ok('progress hosts Podsumowanie', /openReportForClient/.test(progressFn) && /Podsumowanie/.test(progressFn));
 ok('progress uses svg charts', /cp-chart-svg|cpLineChartSVG|cpWeeklyDualChart/.test(progressFn));
 ok('progress uses stat-card layout', /stat-card/.test(progressFn));
 ok('index has progress tab', /cpt-progress/.test(fs.readFileSync(path.join(__dirname, '..', '..', 'index.html'), 'utf8')));
 ok('setCPTab wires progress', /t==='progress'/.test(fs.readFileSync(path.join(__dirname, '..', '..', '07-forms-metrics-calculator.js'), 'utf8')));
+ok('index slim header', /cp-hdr-actions/.test(fs.readFileSync(path.join(__dirname, '..', '..', 'index.html'), 'utf8')));
 
 if (failed) process.exit(1);
 console.log('\nAll cp-progress tests passed');

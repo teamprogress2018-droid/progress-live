@@ -136,6 +136,8 @@ jobs:
         run: node .github/scripts/test_index_scripts_once.js
       - name: 1n25. Testy Overview profilu (układ Everfit)
         run: node .github/scripts/test_cp_overview_everfit.js
+      - name: 1n26. Testy uproszczenia nawigacji profilu klienta
+        run: node .github/scripts/test_cp_nav_simplify.js
       - name: 1n24. Testy braku fałszywych pomiarów demo
         run: node .github/scripts/test_no_fake_metrics.js
       - name: 1n23. Testy usunięcia DEMO_NOTIFS
