@@ -107,7 +107,8 @@ function aplRefreshRationale(){
   const level=typeof aplGetVal==='function'?aplGetVal('apl-levels'):'sredni';
   const method=typeof aplGetVal==='function'?aplGetVal('apl-methods'):'PPL';
   const days=typeof aplGetVal==='function'?parseInt(aplGetVal('apl-days'),10):0;
-  refreshMethodRationaleInto(el,{method,goal,level,daysPerWeek:days||undefined});
+  const weight=parseFloat(document.getElementById('apl-weight')?.value)||undefined;
+  refreshMethodRationaleInto(el,{method,goal,level,daysPerWeek:days||undefined,weight});
 }
 window.aplRefreshRationale=aplRefreshRationale;
 

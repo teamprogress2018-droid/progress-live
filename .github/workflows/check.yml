@@ -92,6 +92,9 @@ jobs:
       - name: 1i7. Testy scrolla sidebara kreatora
         run: node .github/scripts/test_builder_sidebar_scroll.js
 
+      - name: 1i7b. Testy korekt UX (Więcej / sidebar / rationale)
+        run: node .github/scripts/test_korekta_ux.js
+
       - name: 1j. Testy parsera JSON generatora AI
         run: node .github/scripts/test_ai_plan_json.js
 

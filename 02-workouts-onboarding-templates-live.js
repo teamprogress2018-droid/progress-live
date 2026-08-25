@@ -1407,7 +1407,8 @@ function openTplCreate(editId){
           </div>
           <div class="form-field"><label class="form-lbl">Metoda <button type="button" class="edu-tip" data-edu="method" aria-label="Wyjaśnienie metody">?</button></label>
             <select class="form-select" id="tplc-method" onchange="tplcRefreshRationale()">
-              <option>PPL</option><option>FBW</option><option>UL</option><option>531</option><option>Custom</option>
+              <option value="PPL">PPL</option><option value="FBW">FBW</option><option value="Upper Lower">Upper/Lower</option>
+              <option value="Obwodowy">Trening obwodowy</option><option value="531">531</option><option value="Custom">Custom</option>
             </select>
           </div>
           <div class="form-field"><label class="form-lbl">Tygodnie</label><input type="number" class="form-input" id="tplc-weeks" value="8" min="1" max="52"></div>

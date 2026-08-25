@@ -231,16 +231,33 @@ function closeCpMoreNav(){
   if(el)el.setAttribute('hidden','');
   if(btn){
     btn.setAttribute('aria-expanded','false');
-    if(!['notes','timeline','psycho','sfr','posture','photos','forms','payments','features'].includes(window.cpTab)){
-      btn.classList.remove('active');
-    }
+    const moreTabs=['tasks','notes','timeline','analytics','photos','forms','food','payments','features','documents'];
+    if(!moreTabs.includes(window.cpTab))btn.classList.remove('active');
   }
+}
+function _positionCpMoreMenu(){
+  const btn=document.getElementById('cp-more-toggle');
+  const el=document.getElementById('cp-more-items');
+  if(!btn||!el||el.hasAttribute('hidden'))return;
+  if(el.parentElement!==document.body)document.body.appendChild(el);
+  const r=btn.getBoundingClientRect();
+  const mw=Math.max(220,el.offsetWidth||220);
+  let left=r.left+r.width/2-mw/2;
+  left=Math.max(8,Math.min(left,window.innerWidth-mw-8));
+  let top=r.bottom+6;
+  const mh=el.offsetHeight||280;
+  if(top+mh>window.innerHeight-8&&r.top>mh+12)top=r.top-mh-6;
+  el.style.left=left+'px';
+  el.style.top=top+'px';
+  el.style.right='auto';
+  el.style.transform='none';
 }
 function openCpMoreNav(){
   const el=document.getElementById('cp-more-items');
   const btn=document.getElementById('cp-more-toggle');
   if(el)el.removeAttribute('hidden');
   if(btn)btn.setAttribute('aria-expanded','true');
+  _positionCpMoreMenu();
 }
 function toggleCpMoreNav(evOrForce){
   const el=document.getElementById('cp-more-items');
@@ -256,7 +273,6 @@ function toggleCpMoreNav(evOrForce){
   else open=el.hasAttribute('hidden');
   if(open){
     openCpMoreNav();
-    // Ignore the same click that opened the menu in the document listener.
     window._cpMoreIgnoreUntil=Date.now()+250;
   }else closeCpMoreNav();
 }
@@ -264,10 +280,15 @@ function _cpMoreOutside(e){
   if(window._cpMoreIgnoreUntil&&Date.now()<window._cpMoreIgnoreUntil)return;
   const wrap=document.querySelector('.cp-tabs-more-wrap');
   const el=document.getElementById('cp-more-items');
-  if(!wrap||!el||el.hasAttribute('hidden'))return;
-  if(wrap.contains(e.target))return;
+  const btn=document.getElementById('cp-more-toggle');
+  if(!el||el.hasAttribute('hidden'))return;
+  if(wrap&&wrap.contains(e.target))return;
+  if(el.contains(e.target))return;
+  if(btn&&btn.contains(e.target))return;
   closeCpMoreNav();
 }
+window.addEventListener('resize',()=>{try{_positionCpMoreMenu();}catch(e){}});
+window.addEventListener('scroll',()=>{try{_positionCpMoreMenu();}catch(e){}},true);
 document.addEventListener('click',_cpMoreOutside);
 window.toggleCpMoreNav=toggleCpMoreNav;
 window.openCpMoreNav=openCpMoreNav;
