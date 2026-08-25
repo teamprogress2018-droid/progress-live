@@ -13,7 +13,7 @@
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="globals.css?v=17">
-<link rel="stylesheet" href="styles.css?v=33">
+<link rel="stylesheet" href="styles.css?v=34">
 </head>
 <body>
 
@@ -324,7 +324,12 @@
       <div id="builder-days"></div>
       <button type="button" class="add-day-btn" onclick="addDay()">+ Dodaj dzień treningowy</button>
     </div>
-    <div class="builder-sidebar">
+    <div class="builder-sidebar" id="builder-sidebar">
+      <div class="builder-sidebar-toolbar">
+        <span class="builder-sidebar-toolbar-lbl">Panel metodyki</span>
+        <button type="button" class="btn btn-ghost btn-sm builder-sidebar-collapse" id="builder-sidebar-collapse" onclick="toggleBuilderSidebar(false)" title="Zwiń panel">Zwiń ⟩</button>
+      </div>
+      <div class="builder-sidebar-scroll" id="builder-sidebar-scroll">
       <div class="ai-panel">
         <div class="ai-hdr"><div class="ai-dot"></div><div class="ai-panel-title">Asystent AI</div><div class="ai-panel-badge">NSCA / NASM / ACSM</div></div>
         <div class="ai-body">
@@ -336,11 +341,13 @@
         <div class="ui-section-hdr">Dlaczego tak? (metodyka)</div>
         <div id="builder-rationale"><div class="ui-section-sub">Wybierz metodę i klienta</div></div>
       </div>
-      <div class="card">
+      <div class="card" id="builder-period-card">
         <div class="ui-section-hdr">Harmonogram periodyzacji</div>
         <div id="period-sched"><div class="ui-section-sub">Wybierz klienta</div></div>
       </div>
+      </div>
     </div>
+    <button type="button" class="builder-sidebar-expand" id="builder-sidebar-expand" hidden onclick="toggleBuilderSidebar(true)" title="Rozwiń panel metodyki">◀ Asystent / metodyka</button>
   </div>
 </div>
 
@@ -4009,15 +4016,15 @@ async function load(){
 
 <script src="ex-gif-manifest.js?v=17"></script>
 <script src="ex-photo-manifest.js?v=1"></script>
-<script src="01-core.js?v=31"></script>
-<script src="02-workouts-onboarding-templates-live.js?v=20"></script>
-<script src="03-ai-plangen-bizstats-aicoach.js?v=21"></script>
+<script src="01-core.js?v=32"></script>
+<script src="02-workouts-onboarding-templates-live.js?v=21"></script>
+<script src="03-ai-plangen-bizstats-aicoach.js?v=22"></script>
 <script src="04-client-portal.js?v=24"></script>
-<script src="05-clients-builder-plans-calendar.js?v=26"></script>
+<script src="05-clients-builder-plans-calendar.js?v=27"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=24"></script>
 <script src="07-forms-metrics-calculator.js?v=23"></script>
 <script src="08-client-profile-extras.js?v=27"></script>
-<script src="09-posture-kb-invites-private.js?v=28"></script>
+<script src="09-posture-kb-invites-private.js?v=29"></script>
 <script src="10-client-app.js?v=22"></script>
 </body>
 </html>

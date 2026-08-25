@@ -2723,6 +2723,7 @@ function buildMethodRationale(opts){
   const goalKey=String(o.goal||'masa').toLowerCase();
   const levelKey=String(o.level||'sredni').toLowerCase();
   const days=parseInt(o.daysPerWeek,10)||0;
+  const weight=parseFloat(o.weight);
   const method=METHOD_WHY[methodKey]||METHOD_WHY.Custom||METHOD_WHY.PPL;
   const goal=GOAL_WHY[goalKey]||GOAL_WHY.masa;
   const levelTip=LEVEL_WHY[levelKey]||LEVEL_WHY.sredni;
@@ -2734,10 +2735,31 @@ function buildMethodRationale(opts){
   if(methodKey==='Bro Split'&&(goalKey==='masa'||goalKey==='redukcja'))tips.push('Przy hipertrofii preferuj ≥2 stymulacje partii/tydzień — bro split daje zwykle 1×; świadomie zwiększ częstotliwość lub objętość priorytetów.');
   if(goalKey==='sila'&&methodKey==='PPL')tips.push('Siła + PPL OK, ale trzymaj ciężkie wielostawy na początku sesji i dłuższe przerwy (3–5 min).');
   tips.push('Zapisuj RPE/RIR — decyzje o +kg / +seriach opieraj na trendzie, nie na jednym „złym dniu”.');
+  if(!isNaN(weight)&&weight>0){
+    if(goalKey==='redukcja'){
+      tips.push('Waga ~'+Math.round(weight)+' kg (redukcja): utrzymaj ciężary robocze — nie zamieniaj treningu w cardio. Deficyt głównie z diety.');
+      if(weight>=95)tips.push('Wyższa masa ciała: więcej maszyn / stabilnych wariantów na stawy, dłuższa rozgrzewka, kontroluj lądowanie i głębokość przysiadu.');
+    }else if(goalKey==='masa'){
+      tips.push('Waga ~'+Math.round(weight)+' kg (masa): celuj w progresję obciążenia przy RPE 7–9; objętość w strefie MEV–MAV.');
+    }else if(goalKey==='sila'){
+      tips.push('Waga ~'+Math.round(weight)+' kg (siła): priorytet technika wielostawów; nie gonij objętości kosztem jakości %1RM.');
+    }else if(goalKey==='kondycja'){
+      tips.push('Waga ~'+Math.round(weight)+' kg (kondycja): łącz obwody / interwały z 1–2 dniami siły, żeby nie tracić masy mięśniowej.');
+    }
+  }
+  const clientTalk=[
+    'Plan to '+method.label+': '+method.why,
+    'Cel („'+goal.label+'”): dlatego serie '+goal.sets+', powtórzenia '+goal.reps+', intensywność '+goal.rpe+'.',
+    (!isNaN(weight)&&weight>0)
+      ?('Uwzględniamy Twoją wagę (~'+Math.round(weight)+' kg) przy doborze wariantów i obciążenia — '+
+        (goalKey==='redukcja'?'trzymamy ciężary, a tłuszcz schodzi głównie przez dietę.':'progresujemy ciężar bezpiecznie względem poziomu.'))
+      :'Ciężary dobieramy pod poziom i RPE, nie „na ślepo”.',
+    'Poziom: '+levelTip
+  ].join(' ');
   const trainerSources=typeof planningEvidenceSourceLines==='function'?planningEvidenceSourceLines():[];
   const trainerEntries=typeof getPlanningEvidenceEntries==='function'?getPlanningEvidenceEntries().filter(e=>!e.builtin).slice(0,5):[];
   return{
-    methodKey,goalKey,levelKey,daysPerWeek:days||null,
+    methodKey,goalKey,levelKey,daysPerWeek:days||null,weight:(!isNaN(weight)&&weight>0)?weight:null,
     methodLabel:method.label,
     methodWhy:method.why,
     methodBest:method.best,
@@ -2750,6 +2772,7 @@ function buildMethodRationale(opts){
     volume:goal.volume,
     levelTip,
     tips,
+    clientTalk,
     sources:RATIONALE_SOURCES.concat(trainerSources).slice(0,12),
     trainerEntries
   };
@@ -2769,6 +2792,11 @@ function renderMethodRationaleHTML(opts){
       <div class="method-rationale-badge">NSCA · ACSM · Twoja baza</div>
     </div>
     <div class="method-rationale-body">
+      <div class="mr-block mr-client-talk">
+        <div class="mr-block-title">Jak wytłumaczyć klientowi</div>
+        <div class="mr-text">${esc(r.clientTalk||'')}</div>
+        <div class="mr-meta">Skopiuj / parafrazuj na wiadomość lub briefing przed startem planu.</div>
+      </div>
       <div class="mr-block">
         <div class="mr-block-title">Metoda: ${esc(r.methodLabel)}</div>
         <div class="mr-text">${esc(r.methodWhy)}</div>
@@ -2787,10 +2815,13 @@ function renderMethodRationaleHTML(opts){
         <div class="mr-block-title">Poziom klienta</div>
         <div class="mr-text">${esc(r.levelTip)}</div>
       </div>
-      ${r.tips&&r.tips.length?`<div class="mr-block"><div class="mr-block-title">Wskazówki</div><ul class="mr-tips">${r.tips.map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div>`:''}
+      ${r.tips&&r.tips.length?`<div class="mr-block"><div class="mr-block-title">Wskazówki${r.weight?' · waga ~'+Math.round(r.weight)+' kg':''}</div><ul class="mr-tips">${r.tips.map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div>`:''}
       ${trainerBlock}
-      <div class="mr-sources"><div class="mr-block-title">Źródła (edukacyjne + baza)</div><ul class="mr-tips mr-tips-sm">${(r.sources||[]).map(s=>`<li>${esc(s)}</li>`).join('')}</ul>
-      <div class="mr-note">Brak live PubMed — wbudowane ramy + linki, które dodasz w Bazie wiedzy (zasady / badania). AI i kreator biorą je jako kontekst planowania.</div></div>
+      <details class="mr-sources">
+        <summary class="mr-block-title">Źródła (edukacyjne + baza) — rozwiń</summary>
+        <ul class="mr-tips mr-tips-sm">${(r.sources||[]).map(s=>`<li>${esc(s)}</li>`).join('')}</ul>
+        <div class="mr-note">Brak live PubMed — wbudowane ramy + linki, które dodasz w Bazie wiedzy (zasady / badania). AI i kreator biorą je jako kontekst planowania.</div>
+      </details>
     </div>
   </div>`;
 }

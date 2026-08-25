@@ -746,10 +746,16 @@ window.builderOnMethodChange=builderOnMethodChange;
 function builderEduCtx(){
   const cid=(document.getElementById('b-client')||{}).value||'';
   const c=(window.CL||[]).find(x=>x.id===cid)||{};
+  let weight=c.weight||null;
+  if(cid&&typeof clientLatestMetricWeight==='function'){
+    const mw=clientLatestMetricWeight(cid);
+    if(mw!=null)weight=mw;
+  }
   return{
     method:(document.getElementById('b-method')||{}).value||'PPL',
     goal:c.goal||'masa',
-    level:c.level||'sredni'
+    level:c.level||'sredni',
+    weight:weight
   };
 }
 function builderRefreshMethodHint(){
@@ -774,11 +780,35 @@ function builderRefreshRationale(){
     method:ctx.method,
     goal:ctx.goal,
     level:ctx.level,
-    daysPerWeek:days||undefined
+    daysPerWeek:days||undefined,
+    weight:ctx.weight
   });
 }
 window.builderRefreshRationale=builderRefreshRationale;
 window.builderEduCtx=builderEduCtx;
+
+function toggleBuilderSidebar(forceOpen){
+  const layout=document.querySelector('#screen-builder .builder-layout');
+  const expand=document.getElementById('builder-sidebar-expand');
+  if(!layout)return;
+  let open;
+  if(forceOpen===true)open=true;
+  else if(forceOpen===false)open=false;
+  else open=layout.classList.contains('builder-sidebar-collapsed');
+  layout.classList.toggle('builder-sidebar-collapsed',!open);
+  if(expand){
+    if(open)expand.setAttribute('hidden','');
+    else expand.removeAttribute('hidden');
+  }
+  try{localStorage.setItem('pl_builder_sidebar',open?'1':'0');}catch(e){}
+}
+function restoreBuilderSidebarState(){
+  let open=true;
+  try{open=localStorage.getItem('pl_builder_sidebar')!=='0';}catch(e){}
+  toggleBuilderSidebar(open);
+}
+window.toggleBuilderSidebar=toggleBuilderSidebar;
+window.restoreBuilderSidebarState=restoreBuilderSidebarState;
 function initBuilder(){
   window._editingPlanId=null;
   window._builderPeriodWeek=0;
@@ -795,6 +825,7 @@ function initBuilder(){
   }
   updatePeriod();
   builderRefreshRationale();
+  if(typeof restoreBuilderSidebarState==='function')restoreBuilderSidebarState();
   if(typeof hydrateEduTips==='function')hydrateEduTips(document.getElementById('screen-builder'));
 }
 function addDay(){
