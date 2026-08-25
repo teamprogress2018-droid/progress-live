@@ -235,7 +235,7 @@ function closeCpMoreNav(){
     }
   }
 }
-function openCpMoreNav(keep){
+function openCpMoreNav(){
   const el=document.getElementById('cp-more-items');
   const btn=document.getElementById('cp-more-toggle');
   if(el)el.removeAttribute('hidden');
@@ -244,15 +244,23 @@ function openCpMoreNav(keep){
 function toggleCpMoreNav(evOrForce){
   const el=document.getElementById('cp-more-items');
   if(!el)return;
-  if(evOrForce&&evOrForce.stopPropagation)evOrForce.stopPropagation();
+  if(evOrForce&&typeof evOrForce==='object'){
+    try{evOrForce.preventDefault();}catch(e){}
+    try{evOrForce.stopPropagation();}catch(e){}
+    try{evOrForce.stopImmediatePropagation&&evOrForce.stopImmediatePropagation();}catch(e){}
+  }
   let open;
   if(evOrForce===false)open=false;
   else if(evOrForce===true)open=true;
   else open=el.hasAttribute('hidden');
-  if(open)openCpMoreNav();
-  else closeCpMoreNav();
+  if(open){
+    openCpMoreNav();
+    // Ignore the same click that opened the menu in the document listener.
+    window._cpMoreIgnoreUntil=Date.now()+250;
+  }else closeCpMoreNav();
 }
 function _cpMoreOutside(e){
+  if(window._cpMoreIgnoreUntil&&Date.now()<window._cpMoreIgnoreUntil)return;
   const wrap=document.querySelector('.cp-tabs-more-wrap');
   const el=document.getElementById('cp-more-items');
   if(!wrap||!el||el.hasAttribute('hidden'))return;
