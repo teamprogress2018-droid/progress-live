@@ -48,6 +48,7 @@ function updateInboxNavBadge(){
   const n=unreadMsgCount();
   el.textContent=n?String(n):'';
   el.style.display=n?'inline-flex':'none';
+  if(typeof renderSidebarClients==='function')try{renderSidebarClients();}catch(e){}
 }
 window.msgGetLastRead=msgGetLastRead;
 window.msgSetLastRead=msgSetLastRead;
