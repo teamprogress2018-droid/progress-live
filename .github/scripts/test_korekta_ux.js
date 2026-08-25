@@ -28,7 +28,8 @@ ok('builder sidebar collapse', src05.includes('function toggleBuilderSidebar') &
 ok('period card reachable', html.includes('id="builder-period-card"') && html.includes('period-sched'));
 ok('client talk + details sources', core.includes('Jak wytłumaczyć klientowi') && core.includes('<details class="mr-sources">') && core.includes('clientTalk'));
 ok('weight tips in rationale', /weight>=95|Waga ~/.test(core) || core.includes("Waga ~"));
-ok('cache bumps', html.includes('styles.css?v=34') && html.includes('01-core.js?v=32') && html.includes('05-clients-builder-plans-calendar.js?v=27') && html.includes('09-posture-kb-invites-private.js?v=29'));
+ok('cache bumps', html.includes('styles.css?v=34') && html.includes('01-core.js?v=33') && html.includes('05-clients-builder-plans-calendar.js?v=27') && html.includes('09-posture-kb-invites-private.js?v=29'));
+ok('cache bumps', html.includes('styles.css?v=35') && html.includes('01-core.js?v=32') && html.includes('05-clients-builder-plans-calendar.js?v=28') && html.includes('09-posture-kb-invites-private.js?v=29'));
 ok('CI', wf.includes('test_korekta_ux.js'));
 
 const sandbox = { window: {}, console };
@@ -38,7 +39,8 @@ const end = core.indexOf('window.normalizeRationaleMethod=normalizeRationaleMeth
 ok('slice', start >= 0 && end > start);
 vm.runInContext(core.slice(start, end) + '\nwindow.buildMethodRationale=buildMethodRationale;window.renderMethodRationaleHTML=renderMethodRationaleHTML;', sandbox);
 const r = sandbox.buildMethodRationale({ method: 'PPL', goal: 'redukcja', level: 'zaawansowany', daysPerWeek: 4, weight: 100 });
-ok('clientTalk present', r.clientTalk && /Plan to/.test(r.clientTalk));
+ok('clientTalk present', r.clientTalk && /Trenujemy Push/.test(r.clientTalk) && /schudnąć bez gubienia/.test(r.clientTalk) && !/MEV|MRV|bro-split|RPE 7/.test(r.clientTalk));
+ok('clientTalk short', r.clientTalk.length < 520);
 ok('weight tip', r.tips.some(t => /100 kg|Wyższa masa/.test(t)));
 const htmlR = sandbox.renderMethodRationaleHTML(r);
 ok('html details sources', /<details class="mr-sources">/.test(htmlR) && /Jak wytłumaczyć klientowi/.test(htmlR));

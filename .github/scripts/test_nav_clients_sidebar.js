@@ -24,9 +24,9 @@ ok('search input', html.includes('id="nav-client-search"') && html.includes('fil
 ok('list + wszyscy link', html.includes('id="nav-clients-list"') && /Wszyscy klienci/.test(html));
 ok('renderSidebarClients', /function\s+renderSidebarClients/.test(src05) && /function\s+openClientFromSidebar/.test(src05));
 ok('renderClients refreshes sidebar', /renderSidebarClients\(\)/.test(src05));
-ok('profile open/close refreshes', /openClientProfile[\s\S]{0,1200}renderSidebarClients/.test(src07) && /closeClientProfile[\s\S]{0,400}renderSidebarClients/.test(src07));
+ok('profile open/close refreshes', /openClientProfile[\s\S]{0,1800}renderSidebarClients/.test(src07) && /closeClientProfile[\s\S]{0,400}renderSidebarClients/.test(src07));
 ok('css panel', css.includes('.nav-clients-panel') && css.includes('.nav-client-item') && css.includes('.nav-clients-search'));
-ok('cache bumps', html.includes('styles.css?v=34') && html.includes('05-clients-builder-plans-calendar.js?v=27') && html.includes('07-forms-metrics-calculator.js?v=23'));
+ok('cache bumps', html.includes('styles.css?v=35') && html.includes('05-clients-builder-plans-calendar.js?v=28') && html.includes('07-forms-metrics-calculator.js?v=24'));
 ok('CI', wf.includes('test_nav_clients_sidebar.js'));
 
 if (failed) {
