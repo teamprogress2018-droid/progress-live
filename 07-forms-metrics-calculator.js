@@ -1524,6 +1524,7 @@ function openClientProfile(id){
   document.querySelectorAll('.cp-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('cpt-overview').classList.add('active');
   renderCPOverview(c);
+  if(typeof renderSidebarClients==='function')try{renderSidebarClients();}catch(e){}
 }
 
 function closeClientProfile(){
@@ -1531,6 +1532,7 @@ function closeClientProfile(){
   document.getElementById('cp-drawer').classList.remove('open');
   document.getElementById('cp-overlay').classList.remove('show');
   cpClientId=null;
+  if(typeof renderSidebarClients==='function')try{renderSidebarClients();}catch(e){}
 }
 
 var cpAnalyticsSub='psycho';

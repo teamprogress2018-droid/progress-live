@@ -101,6 +101,47 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 }
 .nav-flyout-item:hover{background:rgba(255,255,255,0.06);color:#fff;}
 .nav-flyout-item.active{color:var(--accent);background:rgba(var(--accent-rgb),0.14);}
+/* Everfit: mini-lista klientów w sidebarze + szukajka */
+.nav-clients-panel{
+  margin:2px 10px 10px;padding:8px;
+  background:var(--s2);border:1px solid var(--border);border-radius:10px;
+}
+.nav-clients-search{
+  width:100%;box-sizing:border-box;margin:0 0 6px;
+  background:var(--s3);border:1px solid var(--border2);border-radius:8px;
+  padding:7px 10px;color:var(--text);font-size:12px;font-family:var(--font-ui);
+}
+.nav-clients-search::placeholder{color:var(--muted);}
+.nav-clients-search:focus{outline:none;border-color:rgba(var(--accent-rgb),0.45);}
+.nav-clients-list{
+  max-height:min(28vh,220px);overflow-y:auto;display:flex;flex-direction:column;gap:2px;
+}
+.nav-client-item{
+  display:flex;align-items:center;gap:8px;width:100%;text-align:left;
+  background:transparent;border:none;border-radius:8px;padding:6px 8px;
+  color:var(--text-secondary);cursor:pointer;font-family:var(--font-ui);
+}
+.nav-client-item:hover{background:var(--bg-hover);color:var(--text);}
+.nav-client-item.active{background:rgba(var(--accent-rgb),0.12);color:var(--accent);}
+.nav-client-av{
+  width:26px;height:26px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;
+}
+.nav-client-name{
+  font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;
+}
+.nav-clients-empty{padding:10px 6px;font-size:11px;color:var(--muted);text-align:center;}
+.nav-clients-all{
+  display:block;width:100%;margin-top:6px;padding:6px 8px;
+  background:transparent;border:none;border-radius:6px;
+  color:var(--accent);font-size:11px;font-weight:600;font-family:var(--font-ui);
+  cursor:pointer;text-align:left;
+}
+.nav-clients-all:hover{background:rgba(var(--accent-rgb),0.08);}
+@media(max-width:900px){
+  .nav-clients-list{max-height:min(22vh,160px);}
+}
 @media(max-width:900px){
   .nav-flyout{left:12px;right:12px;min-width:0;width:auto;top:auto;bottom:72px;max-height:60vh;}
 }

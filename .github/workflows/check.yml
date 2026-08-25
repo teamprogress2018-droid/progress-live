@@ -162,6 +162,8 @@ jobs:
         run: node .github/scripts/test_nav_plan_entry.js
       - name: 1n27c. Testy skróconego primary nav
         run: node .github/scripts/test_nav_primary_slim.js
+      - name: 1n27d. Testy mini-listy klientów w sidebarze
+        run: node .github/scripts/test_nav_clients_sidebar.js
       - name: 1n28. Testy poziomych zakładek profilu klienta
         run: node .github/scripts/test_cp_tabs_top.js
       - name: 1n28c. Testy slim zakładek profilu (Analityka)
