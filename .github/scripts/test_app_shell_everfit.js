@@ -26,7 +26,8 @@ ok('library flyout items', /Ćwiczenia/.test(html) && />Treningi</.test(html) &&
 const libFly = html.slice(html.indexOf('id="nav-library-flyout"'), html.indexOf('data-screen="inbox"'));
 ok('library has programs templates', /data-screen="programs"/.test(libFly) && /data-screen="templates"/.test(libFly));
 ok('library trimmed tools', !/data-screen="aiplangen"/.test(libFly) && !/data-screen="builder"/.test(libFly) && !/data-screen="calculator"/.test(libFly) && !/data-screen="kb"/.test(libFly));
-ok('tools under more not library', /nav-more-items[\s\S]*data-screen="aiplangen"[\s\S]*data-screen="builder"[\s\S]*data-screen="calculator"[\s\S]*data-screen="kb"/.test(html));
+ok('plan tools not in more nav', !/nav-more-items[\s\S]*data-screen="aiplangen"/.test(html) && !/nav-more-items[\s\S]*data-screen="builder"/.test(html));
+ok('calculator kb still under more', /nav-more-items[\s\S]*data-screen="calculator"[\s\S]*data-screen="kb"/.test(html));
 ok('inbox top-level', /data-screen="inbox"[\s\S]*?Wiadomości/.test(html.slice(html.indexOf('sidebar-nav'), html.indexOf('nav-more-items'))));
 ok('automation top-level', /data-screen="automation"/.test(html.slice(html.indexOf('sidebar-nav'), html.indexOf('nav-more-items'))));
 ok('payments top-level', /data-screen="payments"/.test(html.slice(html.indexOf('sidebar-nav'), html.indexOf('nav-more-items'))));
@@ -40,10 +41,12 @@ ok('flyout js race guard', /function\s+toggleLibraryFlyout/.test(nine) && /_libF
 ok('flyout positions from trigger rect', /function\s+_positionLibraryFlyout/.test(nine) && /getBoundingClientRect/.test(nine));
 ok('flyout portals to body', /document\.body\.appendChild\(fly\)/.test(nine));
 ok('goTo marks library group', /libraryScreens=\['library','plans','programs','templates','tasks','forms','metrics'\]/.test(core) && core.includes('nav-library-btn'));
-ok('goTo expands more for tools', /moreScreens=\[[^\]]*aiplangen[^\]]*builder[^\]]*calculator[^\]]*kb/.test(core));
+ok('moreScreens without builder/ai', /moreScreens=\[[^\]]*\]/.test(core) && !/moreScreens=\[[^\]]*aiplangen/.test(core) && !/moreScreens=\[[^\]]*builder/.test(core));
+ok('plans library client-first CTAs', html.includes('Utwórz z profilu klienta') && !/screen-plans[\s\S]{0,400}goTo\('builder'\)/.test(html));
 ok('training window stats', /function\s+clientTrainingWindowStats/.test(clients));
 ok('row message button', clients.includes('cl-msg-btn') && clients.includes('quickMessageClient'));
 ok('no action button spam in rows', !/quickStartWorkout\(event/.test(clients.slice(clients.indexOf('function renderClients'), clients.indexOf('function openClientModal'))));
+ok('openBuilderForClient sets back', /openBuilderForClient[\s\S]{0,200}_builderBack\s*=\s*'clients'/.test(clients));
 
 if (failed) {
   console.error(failed + ' failed');

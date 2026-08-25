@@ -113,8 +113,6 @@
     </div>
     <div id="nav-more-items" style="display:none;">
       <button class="nav-item" data-screen="dashboard" onclick="goTo('dashboard')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Panel główny</button>
-      <button class="nav-item" data-screen="aiplangen" onclick="goTo('aiplangen')"><svg viewBox="0 0 24 24"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/><path d="M19 14l.8 2.2L22 17l-2.2.8L19 20l-.8-2.2L16 17l2.2-.8L19 14z"/></svg>Generator AI</button>
-      <button class="nav-item" data-screen="builder" onclick="goTo('builder')"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>Kreator planu</button>
       <button class="nav-item" data-screen="calculator" onclick="goTo('calculator')"><svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="10" y2="18"/><line x1="14" y1="18" x2="16" y2="18"/></svg>Kalkulator</button>
       <button class="nav-item" data-screen="kb" onclick="goTo('kb')"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>Baza wiedzy</button>
       <button class="nav-item" data-screen="trainer-profile" onclick="goTo('trainer-profile')"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Mój profil</button>
@@ -288,14 +286,14 @@
 
 <!-- PLANS -->
 <div class="screen" id="screen-plans">
-  <div class="topbar"><div class="topbar-title">Plany treningowe</div><div class="topbar-actions"><button class="btn btn-ghost btn-sm" onclick="goTo('builder')">+ Nowy plan</button><button class="btn btn-primary btn-sm" onclick="goTo('aiplangen')">⚡ Generuj plan AI</button></div></div>
+  <div class="topbar"><div class="topbar-title">Plany treningowe</div><div class="topbar-actions"><button class="btn btn-primary btn-sm" onclick="goTo('clients')">+ Utwórz z profilu klienta</button><button class="btn btn-ghost btn-sm" onclick="goTo('templates')">📋 Szablony</button></div></div>
   <div style="padding:14px 20px 0;"><input type="text" class="form-input" id="plans-search" placeholder="🔍 Szukaj po nazwisku klienta..." oninput="renderPlans()" style="max-width:340px;"></div>
   <div class="content" id="plans-content"><div style="text-align:center;color:var(--muted);padding:60px;font-size:13px;">Brak planów — utwórz pierwszy!</div></div>
 </div>
 
 <!-- BUILDER -->
 <div class="screen" id="screen-builder">
-  <div class="topbar"><div class="topbar-title">Nowy plan treningowy</div><div class="topbar-actions"><button class="btn btn-ghost btn-sm" onclick="goTo('plans')">Anuluj</button><button class="btn btn-primary btn-sm" onclick="savePlan()">Zapisz plan</button></div></div>
+  <div class="topbar"><div class="topbar-title">Nowy plan treningowy</div><div class="topbar-actions"><button class="btn btn-ghost btn-sm" onclick="goTo(window._builderBack||'clients')">Anuluj</button><button class="btn btn-primary btn-sm" onclick="savePlan()">Zapisz plan</button></div></div>
   <div class="content builder-layout">
     <div class="builder-main">
       <div class="card builder-meta-card">
@@ -4005,11 +4003,11 @@ async function load(){
 
 <script src="ex-gif-manifest.js?v=17"></script>
 <script src="ex-photo-manifest.js?v=1"></script>
-<script src="01-core.js?v=28"></script>
+<script src="01-core.js?v=29"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=20"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=20"></script>
 <script src="04-client-portal.js?v=24"></script>
-<script src="05-clients-builder-plans-calendar.js?v=23"></script>
+<script src="05-clients-builder-plans-calendar.js?v=24"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=24"></script>
 <script src="07-forms-metrics-calculator.js?v=21"></script>
 <script src="08-client-profile-extras.js?v=26"></script>
