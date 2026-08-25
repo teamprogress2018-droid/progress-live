@@ -1027,14 +1027,10 @@ function renderCPOverview(c){
             ${(plans[plans.length-1].days||[]).slice(0,5).map(d=>`<span style="background:${d.rest?'var(--s3)':'rgba(230,0,0,0.12)'};color:${d.rest?'var(--muted)':'var(--accent)'};border-radius:5px;padding:3px 8px;font-size:11px;font-family:'DM Mono',monospace;">${escHtml(d.day||d.dayName||'?')}${d.rest?' REST':''}</span>`).join('')}
           </div>
         </div>`:`
-        <div class="cp-ov-card" style="text-align:center;">
+        <div class="cp-ov-card" style="text-align:center;cursor:pointer;" onclick="setCPTab('plan')">
           <div class="cp-ov-card-title" style="margin-bottom:10px;">Aktywny plan</div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Brak przypisanego planu</div>
-          <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
-            <button class="btn btn-primary btn-sm" onclick="openAiPlanForClient('${c.id}')">⚡ Plan AI</button>
-            <button class="btn btn-ghost btn-sm" onclick="openBuilderForClient('${c.id}')">✏ Własny plan</button>
-            <button class="btn btn-ghost btn-sm" onclick="cpAssignTemplate('${c.id}')">📋 Szablon</button>
-          </div>
+          <div style="font-size:13px;color:var(--muted);">Brak planu</div>
+          <div class="cp-ov-rail-hint" style="margin-top:8px;">Przejdź do zakładki Plan</div>
         </div>`}
       </div>
 
@@ -1103,12 +1099,7 @@ function renderCPPlan(c){
     ${!plans.length
       ?`<div style="text-align:center;padding:40px;color:var(--muted);">
           <div style="font-size:32px;margin-bottom:10px;opacity:0.3;">📋</div>
-          <div style="margin-bottom:14px;">Brak planów treningowych</div>
-          <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
-            <button class="btn btn-ghost btn-sm" onclick="cpAssignTemplate('${c.id}')">📋 Przypisz szablon</button>
-            <button class="btn btn-ghost btn-sm" onclick="openBuilderForClient('${c.id}')">✏ Stwórz własny plan</button>
-            <button class="btn btn-primary btn-sm" onclick="openAiPlanForClient('${c.id}')">⚡ Generuj plan AI</button>
-          </div>
+          <div>Brak planów treningowych</div>
         </div>`
       :plans.map((p,pi)=>`
         <div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;animation:fadeUp 0.15s ease ${pi*0.05}s both;">
