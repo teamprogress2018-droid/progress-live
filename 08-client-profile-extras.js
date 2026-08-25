@@ -1875,11 +1875,11 @@ function toggleClientFeature(clientId,feature,tab){
 function renderCPSettings(c){
   if(!c.clientSettings)c.clientSettings={};
   const s=c.clientSettings;
-  // Tylko funkcje faktycznie respektowane w apce (progressPhoto) lub planowane jako realne przełączniki nawigacji.
+  // Tylko funkcje faktycznie respektowane w apce (progressPhoto, bodyMetrics).
   // foodJournal / macros / mealPlan usunięte — były stubami bez implementacji.
   const feat=[
     {key:'progressPhoto',label:'Zdjęcia postępu',desc:'Klient może dodawać zdjęcia sylwetki w Progress',icon:'📸',default:true},
-    {key:'bodyMetrics',label:'Pomiary ciała',desc:'Widoczność pomiarów (gdy sekcja włączona globalnie)',icon:'📏',default:true},
+    {key:'bodyMetrics',label:'Pomiary ciała',desc:'Masa, obwody i Garmin w Progress klienta (treningi zostają)',icon:'📏',default:true},
   ];
   const coming=[
     {icon:'🥗',label:'Dziennik żywieniowy',desc:'W przygotowaniu — nie włączamy przełącznika, żeby nie obiecywać funkcji'},

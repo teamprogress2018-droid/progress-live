@@ -448,7 +448,8 @@ function capClientProgressScreenHTML(c,accent){
   const avg=typeof avgSessionRating==='function'?avgSessionRating(logged):0;
   const prs=typeof clientExercisePRs==='function'?clientExercisePRs(c.id).slice(0,10):[];
   const photosOn=typeof ppFeatureOn==='function'?ppFeatureOn(c):true;
-  const massEntries=capMetricEntries(c,'mg1');
+  const metricsOn=typeof bmFeatureOn==='function'?bmFeatureOn(c):true;
+  const massEntries=metricsOn?capMetricEntries(c,'mg1'):[];
   const firstMass=massEntries[0]&&massEntries[0].values&&massEntries[0].values.m1;
   const lastMass=massEntries.length&&massEntries[massEntries.length-1].values&&massEntries[massEntries.length-1].values.m1;
   const massDiff=firstMass&&lastMass?(Math.round((lastMass-firstMass)*10)/10):null;
@@ -461,24 +462,25 @@ function capClientProgressScreenHTML(c,accent){
   const checkins=(window.CHECKINS&&window.CHECKINS[c.id])||[];
   const ciFilled=checkins.filter(x=>x.status==='filled'&&x.answers).slice(-8);
   const ciPts=ciFilled.map(x=>({d:x.date,v:typeof scoreCheckinAnswers==='function'?scoreCheckinAnswers(x.answers):0})).filter(p=>p.v>0);
-  const measureEntries=capMetricEntries(c,'mg2');
+  const measureEntries=metricsOn?capMetricEntries(c,'mg2'):[];
   const lastMeas=measureEntries[measureEntries.length-1];
   const mv=lastMeas&&lastMeas.values||{};
-  const garmin=capGarminEntries(c);
+  const garmin=metricsOn?capGarminEntries(c):[];
   const stepsPts=garmin.slice(0,14).reverse().map(e=>({d:e.date,v:parseFloat(e.values&&e.values.m1)||0})).filter(p=>p.v>0);
   const maxPr=prs.length?Math.max(...prs.map(p=>p.epley||0),1):1;
   return `
     <div class="cap-section cap-progress-panel" style="padding-bottom:90px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-top:8px;gap:8px;">
         <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;">MOJE POSTĘPY</div>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="capGoScreen('calendar')">📅 Kalendarz</button>
+        ${capClientSectionVisible('calendar')?`<button type="button" class="btn btn-ghost btn-sm" onclick="capGoScreen('calendar')">📅 Kalendarz</button>`:''}
       </div>
+      ${!metricsOn?`<div style="background:var(--s3);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:12px;font-size:12px;color:${CAP_MUTED};line-height:1.45;">📏 Pomiary ciała (masa, obwody, Garmin) są wyłączone przez trenera — widać treningi, rekordy i historię.</div>`:''}
       <div class="cap-stat-kpi-row" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;">
-        <div class="cap-stat-card" style="background:${CAP_S2};border-radius:16px;padding:14px;border:1px solid ${CAP_S3};">
+        ${metricsOn?`<div class="cap-stat-card" style="background:${CAP_S2};border-radius:16px;padding:14px;border:1px solid ${CAP_S3};">
           <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:6px;">⚖️ Masa ciała</div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${CAP_TEXT};line-height:1;">${escHtml(String(w))}<span style="font-size:12px;color:${CAP_MUTED};"> kg</span></div>
           ${massDiff!=null?'<div style="font-size:11px;margin-top:4px;color:'+(massDiff<=0?'#3ecfb2':'#ff8c42')+';">'+(massDiff>0?'+':'')+massDiff+' kg od startu</div>':''}
-        </div>
+        </div>`:''}
         <div class="cap-stat-card" style="background:${CAP_S2};border-radius:16px;padding:14px;border:1px solid ${CAP_S3};">
           <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:6px;">🏋️ Sesje (30 dni)</div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${accent};line-height:1;">${sess30}</div>
@@ -495,7 +497,7 @@ function capClientProgressScreenHTML(c,accent){
           <div style="font-size:11px;color:${CAP_MUTED};margin-top:4px;">zapisane serie robocze</div>
         </div>
       </div>
-      ${massPts.length>=2?`<div class="cap-chart-card" style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
+      ${metricsOn&&massPts.length>=2?`<div class="cap-chart-card" style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
         <div style="font-size:12px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">Trend masy ciała</div>
         <div style="font-size:10px;color:${CAP_MUTED};margin-bottom:10px;">Pomiary od trenera · ostatnie ${massPts.length} wpisów</div>
         ${capSparklineSVG(massPts,accent,340,80)}
@@ -512,7 +514,7 @@ function capClientProgressScreenHTML(c,accent){
           ${capSparklineSVG(ciPts,'#0055a4',340,72)}
         </div>`:''}
       </div>
-      ${lastMeas?`<div class="cap-chart-card" style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
+      ${metricsOn&&lastMeas?`<div class="cap-chart-card" style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
         <div style="font-size:12px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">📏 Ostatnie obwody</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
           ${[{k:'m1',l:'Klatka'},{k:'m2',l:'Talia'},{k:'m3',l:'Biodra'},{k:'m4',l:'Udo'},{k:'m5',l:'Ramię'}].map(x=>{
@@ -522,7 +524,7 @@ function capClientProgressScreenHTML(c,accent){
         </div>
         <div style="font-size:10px;color:${CAP_MUTED};margin-top:8px;">${escHtml(lastMeas.date||'')}</div>
       </div>`:''}
-      ${stepsPts.length>=2?`<div class="cap-chart-card" style="background:linear-gradient(135deg,rgba(0,124,195,0.15),rgba(0,124,195,0.04));border:1px solid rgba(0,124,195,0.35);border-radius:18px;padding:16px;margin-bottom:14px;">
+      ${metricsOn&&stepsPts.length>=2?`<div class="cap-chart-card" style="background:linear-gradient(135deg,rgba(0,124,195,0.15),rgba(0,124,195,0.04));border:1px solid rgba(0,124,195,0.35);border-radius:18px;padding:16px;margin-bottom:14px;">
         <div style="font-size:10px;font-family:'DM Mono',monospace;color:#5ec8ff;text-transform:uppercase;margin-bottom:6px;">⌚ Kroki (Garmin)</div>
         ${capSparklineSVG(stepsPts,'#5ec8ff',340,72)}
       </div>`:''}
@@ -642,6 +644,7 @@ function capScreenHTML(scr,c){
       </div>
       ${hero}
       ${(()=>{
+        if(typeof bmFeatureOn==='function'&&!bmFeatureOn(c))return '';
         const g=capLastGarmin(c);
         if(!g)return '';
         const v=g.values||{};
@@ -859,6 +862,7 @@ function capScreenHTML(scr,c){
     </div>`;
 
   if(scr==='calendar'){
+    if(!capClientSectionVisible('calendar'))return capScreenHTML('progress',c);
     const live=capIsLiveClient();
     const now=new Date();
     const cal=window._cliveCal||{y:now.getFullYear(),m:now.getMonth()};
@@ -1485,7 +1489,20 @@ function renderCapCustomize(){
       <div style="display:flex;flex-direction:column;gap:8px;">
         ${(()=>{
           const vs=(window.SETTINGS&&window.SETTINGS.clientApp&&window.SETTINGS.clientApp.visibleSections)||{};
-          const rows=[['home','🏠 Strona główna'],['plan','📋 Mój plan'],['homework','🏡 Zadania domowe'],['calendar','📅 Kalendarz'],['progress','📈 Postępy'],['checkin','✅ Check-in'],['messages','💬 Wiadomości'],['ondemand','▶️ On-demand'],['resources','📚 Zasoby']];
+          // Zgodne z capLiveNavScreens + kalendarz (ekran z Postępów, bez pozycji w dolnym nav).
+          const rows=[
+            ['home','🏠 Strona główna'],
+            ['plan','📋 Mój plan'],
+            ['homework','🏡 Zadania domowe'],
+            ['progress','📈 Postępy'],
+            ['calendar','📅 Kalendarz (z Postępów)'],
+            ['checkin','✅ Check-in'],
+            ['ondemand','▶️ On-demand'],
+            ['resources','📚 Zasoby'],
+            ['forum','👥 Forum'],
+            ['messages','💬 Wiadomości'],
+            ['profile','👤 Profil'],
+          ];
           return rows.map(([id,label])=>`<label style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;">
           <span style="font-size:13px;">${label}</span>
           <input type="checkbox" data-cap-section="${id}" ${vs[id]!==false?'checked':''} style="accent-color:var(--accent);width:18px;height:18px;">
@@ -4386,20 +4403,6 @@ const NOTIF_TYPES={
   expiry:    {icon:'⏰',color:'var(--red)',bg:'rgba(255,77,77,0.12)'},
 };
 
-// Demo notifications
-const DEMO_NOTIFS=[
-  {id:'n1',type:'session',title:'Sesja za 1 godzinę',body:'Jan Kowalski · Trening siłowy · 10:00',time:'dziś 9:00',read:false,action:'calendar'},
-  {id:'n2',type:'expiry',title:'Pakiet wygasa za 3 dni',body:'Anna Nowak — Miesięczny coaching online',time:'dziś 8:30',read:false,action:'payments'},
-  {id:'n3',type:'payment',title:'Oczekująca płatność',body:'Marta Kowalczyk — Program 12-tygodniowy · 2 200 zł',time:'wczoraj',read:false,action:'payments'},
-  {id:'n4',type:'task',title:'Zadanie przeterminowane',body:'Tomasz Mazur — Wypełnij formularz postępów',time:'wczoraj',read:false,action:'tasks'},
-  {id:'n5',type:'message',title:'Nowa wiadomość',body:'Kristina Wilson: "Hej, będę poza miastem w przyszłym tygodniu..."',time:'2 dni temu',read:true,action:'inbox'},
-  {id:'n6',type:'alert',title:'Klient bez aktywności 14 dni',body:'Piotr Wiśniewski — ostatnia sesja 14 dni temu',time:'2 dni temu',read:true,action:'clients'},
-  {id:'n7',type:'metric',title:'Nowe pomiary klienta',body:'Jan Kowalski zaktualizował pomiary — masa: -0.5 kg',time:'3 dni temu',read:true,action:'metrics'},
-  {id:'n8',type:'session',title:'Sesja dodana do kalendarza',body:'Anna Nowak · Online · Środa 14:00',time:'3 dni temu',read:true,action:'calendar'},
-  {id:'n9',type:'payment',title:'Płatność otrzymana',body:'Tomasz Mazur — 20 sesji VIP · 3 500 zł ✓',time:'tydzień temu',read:true,action:'payments'},
-  {id:'n10',type:'system',title:'Raport wygenerowany',body:'Raport dla Jana Kowalskiego · 2 strony',time:'tydzień temu',read:true,action:null},
-];
-
 function allNotifs(){return window.NOTIFICATIONS||[];}
 function unreadCount(){return allNotifs().filter(n=>!n.read).length;}
 
@@ -4492,7 +4495,6 @@ function clearAllNotifs(){
   if(!confirm('Wyczyścić wszystkie powiadomienia?'))return;
   const ids=(window.NOTIFICATIONS||[]).map(n=>n.id);
   window.NOTIFICATIONS=[];
-  if(typeof DEMO_NOTIFS!=='undefined')DEMO_NOTIFS.forEach(n=>n.read=true);
   updateNotifBadge();
   renderNotifs();
   notify('Powiadomienia wyczyszczone');
