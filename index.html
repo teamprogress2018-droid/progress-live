@@ -96,10 +96,6 @@
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="tasks" onclick="goTo('tasks')">Zadania</button>
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="forms" onclick="goTo('forms')">Formularze i ankiety</button>
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="metrics" onclick="goTo('metrics')">Grupy pomiarów</button>
-        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="aiplangen" onclick="goTo('aiplangen')">Generator AI</button>
-        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="builder" onclick="goTo('builder')">Kreator planu</button>
-        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="calculator" onclick="goTo('calculator')">Kalkulator</button>
-        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="kb" onclick="goTo('kb')">Baza wiedzy</button>
       </div>
     </div>
 
@@ -117,6 +113,10 @@
     </div>
     <div id="nav-more-items" style="display:none;">
       <button class="nav-item" data-screen="dashboard" onclick="goTo('dashboard')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Panel główny</button>
+      <button class="nav-item" data-screen="aiplangen" onclick="goTo('aiplangen')"><svg viewBox="0 0 24 24"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/><path d="M19 14l.8 2.2L22 17l-2.2.8L19 20l-.8-2.2L16 17l2.2-.8L19 14z"/></svg>Generator AI</button>
+      <button class="nav-item" data-screen="builder" onclick="goTo('builder')"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>Kreator planu</button>
+      <button class="nav-item" data-screen="calculator" onclick="goTo('calculator')"><svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="10" y2="18"/><line x1="14" y1="18" x2="16" y2="18"/></svg>Kalkulator</button>
+      <button class="nav-item" data-screen="kb" onclick="goTo('kb')"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>Baza wiedzy</button>
       <button class="nav-item" data-screen="trainer-profile" onclick="goTo('trainer-profile')"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Mój profil</button>
       <button class="nav-item" data-screen="checkin" onclick="goTo('checkin')"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Check-in</button>
       <button class="nav-item" data-screen="integrations" onclick="goTo('integrations')"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Integracje</button>
@@ -3976,7 +3976,7 @@ async function load(){
 </script>
 
 <script src="ex-gif-manifest.js?v=17"></script>
-<script src="01-core.js?v=23"></script>
+<script src="01-core.js?v=24"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=18"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=17"></script>
 <script src="04-client-portal.js?v=24"></script>
