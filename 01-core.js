@@ -756,7 +756,7 @@ function exerciseSlug(name){
 }
 window.exerciseSlug=exerciseSlug;
 
-/** GIF techniki z manifestu repo, Firestore (EX_GIF_REMOTE) lub pola gif/img ćwiczenia. */
+/** GIF / zdjęcie techniki z manifestu repo, Firestore (EX_GIF_REMOTE) lub pola gif/img ćwiczenia. */
 function exGifMapLookup(name){
   const key=exerciseMediaKey(name);
   const slug=exerciseSlug(name);
@@ -772,6 +772,28 @@ function exGifMapLookup(name){
 }
 window.exGifMapLookup=exGifMapLookup;
 
+function exPhotoMapLookup(name){
+  const key=exerciseMediaKey(name);
+  const slug=exerciseSlug(name);
+  if(!key&&!slug)return '';
+  const photos=window.EX_PHOTO_MANIFEST||{};
+  if(photos[key])return photos[key];
+  if(photos[slug])return photos[slug];
+  if(photos[name])return photos[name];
+  return '';
+}
+window.exPhotoMapLookup=exPhotoMapLookup;
+
+/** Placeholdery SVG z assets/ex/*.svg nie są prawdziwymi zdjęciami techniki. */
+function isDecorativeExAsset(url){
+  const s=String(url||'').trim();
+  if(!s)return false;
+  if(/\/gifs\//i.test(s))return false;
+  return /(?:^|\/)assets\/ex\/(?:bench|curl|deadlift|ohp|pullup|squat)\.svg(?:\?|#|$)/i.test(s)
+    || /(?:^|\/)assets\/ex\/[^/]+\.svg(?:\?|#|$)/i.test(s);
+}
+window.isDecorativeExAsset=isDecorativeExAsset;
+
 function isSafeMediaUrl(url){
   const s=String(url||'').trim();
   if(!s||/^(javascript|data|vbscript):/i.test(s))return false;
@@ -786,9 +808,9 @@ function exGifUrl(exOrName){
   if(typeof exOrName==='string')ex=typeof libExerciseByName==='function'?libExerciseByName(exOrName):null;
   if(ex&&typeof ex==='object'){
     const gif=String(ex.gif||'').trim();
-    if(isSafeMediaUrl(gif))return gif;
+    if(isSafeMediaUrl(gif)&&!isDecorativeExAsset(gif))return gif;
     const img=String(ex.img||ex.thumb||ex.image||'').trim();
-    if(isSafeMediaUrl(img)&&/\.(gif|webp|mp4|webm)(\?|#|$)/i.test(img))return img;
+    if(isSafeMediaUrl(img)&&/\.(gif|webp|mp4|webm)(\?|#|$)/i.test(img)&&!isDecorativeExAsset(img))return img;
     const mapped=exGifMapLookup(ex.name);
     if(mapped)return mapped;
     return '';
@@ -797,15 +819,18 @@ function exGifUrl(exOrName){
 }
 window.exGifUrl=exGifUrl;
 
-/** Miniatura techniki: GIF > img > miniaturka YouTube z filmu ćwiczenia. */
+/** Miniatura: GIF > własne zdjęcie > manifest zdjęć > YouTube. Ignoruje placeholdery SVG. */
 function exThumbUrl(exOrName){
   let ex=exOrName;
   if(typeof exOrName==='string')ex=typeof libExerciseByName==='function'?libExerciseByName(exOrName):null;
   const gif=typeof exGifUrl==='function'?exGifUrl(ex||exOrName):'';
   if(gif)return gif;
+  const name=(ex&&ex.name)||(typeof exOrName==='string'?exOrName:'');
+  const photo=exPhotoMapLookup(name);
+  if(photo)return photo;
   if(!ex||typeof ex!=='object')return '';
   const img=String(ex.img||ex.thumb||ex.image||'').trim();
-  if(img&&isSafeMediaUrl(img))return img;
+  if(img&&isSafeMediaUrl(img)&&!isDecorativeExAsset(img))return img;
   let video=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl(ex.video||''):String(ex.video||'');
   if(!video&&ex.name&&typeof ownVideoForExercise==='function')video=ownVideoForExercise(ex.name);
   const yt=youtubeIdFromUrl(video);

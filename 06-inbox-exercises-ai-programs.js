@@ -899,10 +899,10 @@ window.exercisesGroupedByCat=exercisesGroupedByCat;
 function exCardHtml(e,i){
   const col=CAT_COLORS_EX[e.cat]||'var(--muted2)';
   const thumb=typeof exThumbUrl==='function'?exThumbUrl(e):'';
-  const letter=((e.name||'?').trim()[0]||'?').toUpperCase();
+  const part=e.cat||'Ćwiczenie';
   const media=thumb
-    ?`<div class="ex-card-thumb"><img src="${typeof escHtml==='function'?escHtml(thumb):thumb}" alt="" loading="lazy" referrerpolicy="no-referrer"></div>`
-    :`<div class="ex-card-thumb ex-card-thumb-ph" style="background:${col}22;color:${col};">${letter}</div>`;
+    ?`<div class="ex-card-thumb"><img src="${typeof escHtml==='function'?escHtml(thumb):thumb}" alt="${typeof escHtml==='function'?escHtml(e.name):e.name}" loading="lazy" referrerpolicy="no-referrer" onerror="this.closest('.ex-card-thumb').outerHTML='<div class=\\'ex-card-thumb ex-card-thumb-ph\\' style=\\'background:${col}22;color:${col};\\'><span class=\\'ex-card-part\\'>${typeof escHtml==='function'?escHtml(part):part}</span></div>';"></div>`
+    :`<div class="ex-card-thumb ex-card-thumb-ph" style="background:${col}22;color:${col};"><span class="ex-card-part">${typeof escHtml==='function'?escHtml(part):part}</span></div>`;
   return `<div class="ex-card${exSelId===e.name?' selected':''}" style="animation-delay:${(i||0)*0.025}s" onclick="openExDetail('${e.name.replace(/'/g,"\\'")}')">
     <div class="ex-card-accent" style="background:${col};"></div>
     <div class="ex-card-body">
