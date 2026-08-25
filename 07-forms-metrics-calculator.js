@@ -1508,8 +1508,13 @@ function calcSendToClient(){
 }
 var cpClientId=null;var cpTab='overview';
 
-function openClientProfile(id){
-  cpClientId=id;cpTab='overview';
+function openClientProfile(id,opts){
+  const o=opts||{};
+  const drawer=document.getElementById('cp-drawer');
+  const alreadyOpen=!!(drawer&&drawer.classList.contains('open'));
+  // Everfit: przy zmianie klienta z sidebara zostaw bieżącą zakładkę (Plan/Progress…)
+  const keepTab=o.tab||(alreadyOpen&&cpTab?cpTab:'overview');
+  cpClientId=id;
   window._cpEditingClientId=null;
   const c=CL.find(x=>x.id===id);if(!c)return;
   const ci=CL.indexOf(c);const col=COLS[ci%5];
@@ -1519,11 +1524,17 @@ function openClientProfile(id){
   document.getElementById('cp-name').textContent=c.name;
   document.getElementById('cp-sub').textContent=(({masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja'})[c.goal]||c.goal||'Brak celu')+' · '+(c.level||'')+(c.age?' · '+c.age+' lat':'');
   if(typeof refreshClientProfileRemoveActions==='function')refreshClientProfileRemoveActions(c);
-  document.getElementById('cp-drawer').classList.add('open');
+  if(drawer)drawer.classList.add('open');
   document.getElementById('cp-overlay').classList.add('show');
-  document.querySelectorAll('.cp-tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('cpt-overview').classList.add('active');
-  renderCPOverview(c);
+  if(typeof setCPTab==='function')setCPTab(keepTab);
+  else{
+    cpTab=keepTab;
+    document.querySelectorAll('.cp-tab').forEach(t=>t.classList.remove('active'));
+    const tabBtn=document.getElementById('cpt-'+keepTab);
+    if(tabBtn)tabBtn.classList.add('active');
+    else document.getElementById('cpt-overview')?.classList.add('active');
+    if(keepTab==='overview'||!tabBtn)renderCPOverview(c);
+  }
   if(typeof renderSidebarClients==='function')try{renderSidebarClients();}catch(e){}
 }
 

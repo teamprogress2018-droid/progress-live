@@ -155,9 +155,12 @@ function renderSidebarClients(){
     const init=typeof getInit==='function'?getInit(c.name):(c.name||'?').slice(0,1);
     const safeName=typeof escHtml==='function'?escHtml(c.name):String(c.name||'');
     const safeInit=typeof escHtml==='function'?escHtml(init):String(init);
+    const unread=typeof msgHasUnread==='function'?msgHasUnread(c.id):(typeof clientsWithUnreadMsgs==='function'&&clientsWithUnreadMsgs().some(x=>x.id===c.id));
+    const badge=unread?'<span class="nav-client-attn" title="Nieprzeczytana wiadomość" aria-label="Nieprzeczytana"></span>':'';
     return `<button type="button" class="nav-client-item${on}" role="listitem" data-client-id="${c.id}" onclick="openClientFromSidebar('${c.id}')" title="${safeName}">
       <span class="nav-client-av" style="background:${col}22;color:${col}">${safeInit}</span>
       <span class="nav-client-name">${safeName}</span>
+      ${badge}
     </button>`;
   }).join('');
 }
