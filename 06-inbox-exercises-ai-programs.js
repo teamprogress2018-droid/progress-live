@@ -755,13 +755,10 @@ function exAcRender(input){
       const name=e.name||'';
       const safe=typeof escHtml==='function'?escHtml(name):name;
       const attr=String(name).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
-      const thumb=typeof exThumbUrl==='function'?exThumbUrl(e):'';
-      const letter=(name.trim()[0]||'?').toUpperCase();
-      const thumbHtml=thumb
-        ?`<img class="ex-ac-thumb-img" src="${typeof escHtml==='function'?escHtml(thumb):thumb}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.classList.add('is-broken');this.nextElementSibling&&this.nextElementSibling.classList.add('is-shown');">
-           <span class="ex-ac-thumb-ph ex-ac-thumb-fallback">${letter}</span>`
-        :`<span class="ex-ac-thumb-ph" style="background:${col}33;color:${col};">${letter}</span>`;
-      html+=`<button type="button" class="ex-ac-item" data-name="${attr}"><span class="ex-ac-thumb">${thumbHtml}</span><span class="ex-ac-name">${safe}</span></button>`;
+      const part=e.cat||g.cat||'Inne';
+      const partSafe=typeof escHtml==='function'?escHtml(part):part;
+      const partCol=CAT_COLORS_EX[part]||col;
+      html+=`<button type="button" class="ex-ac-item" data-name="${attr}"><span class="ex-ac-part" style="color:${partCol};border-color:${partCol}55;background:${partCol}18;">${partSafe}</span><span class="ex-ac-name">${safe}</span></button>`;
     });
     if(!ql&&g.items.length>16)html+=`<div class="ex-ac-more">+ ${g.items.length-16} więcej — wpisz aby zawęzić</div>`;
   });

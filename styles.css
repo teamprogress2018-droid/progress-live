@@ -261,6 +261,12 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 .ex-ac-item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:8px 12px;border:none;border-bottom:1px solid var(--border-color);background:transparent;color:var(--accent-red);font-size:var(--font-size-min);font-weight:700;cursor:pointer;font-family:var(--font-body);line-height:1.35;transition:background 0.1s,color 0.1s;}
 .ex-ac-item:last-child{border-bottom:none;}
 .ex-ac-item:hover,.ex-ac-item.active{background:rgba(var(--accent-rgb),0.16);color:#ff6666;}
+.ex-ac-part{
+  flex-shrink:0;min-width:108px;max-width:132px;padding:5px 8px;border-radius:7px;
+  border:1px solid rgba(255,255,255,0.12);font-size:11px;font-weight:700;line-height:1.25;
+  font-family:var(--font-ui);text-align:center;white-space:normal;
+}
+.ex-ac-name{flex:1;min-width:0;}
 .ex-ac-thumb{position:relative;width:40px;height:40px;flex-shrink:0;border-radius:8px;overflow:hidden;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);}
 .ex-ac-thumb-img{display:block;width:100%;height:100%;object-fit:cover;}
 .ex-ac-thumb-img.is-broken{display:none;}
