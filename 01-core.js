@@ -2625,6 +2625,80 @@ const RATIONALE_SOURCES=[
   'Twoja Baza wiedzy w apce — dopisz własne zasady i doświadczenie'
 ];
 
+/** Wbudowany pakiet dowodów / zasad — zawsze dostępny przy planowaniu (bez live PubMed). */
+const BUILTIN_PLANNING_EVIDENCE=[
+  {id:'bev_freq',kind:'evidence',title:'Częstotliwość ≥2×/partię (hipertrofia)',
+    text:'Przy hipertrofii stymulacja głównych partii co najmniej 2× w tygodniu zwykle daje lepszy efekt niż 1× przy tej samej objętości tygodniowej — stąd PPL/UL/FBW zamiast klasycznego bro-splitu.',
+    citation:'Schoenfeld et al., frequency meta-analyses',sourceUrl:'https://pubmed.ncbi.nlm.nih.gov/30558493/',useInPlanning:true},
+  {id:'bev_vol',kind:'evidence',title:'Objętość tygodniowa (MEV→MAV)',
+    text:'Hipertrofia skaluje się z tygodniową liczbą serii roboczych blisko upadku. Celuj między MEV a MAV; MRV to sufit, nie domyślny cel. Początkujący: dolna połowa zakresu.',
+    citation:'Schoenfeld / Israetel volume landmarks (ramy praktyczne)',sourceUrl:'https://pubmed.ncbi.nlm.nih.gov/27433992/',useInPlanning:true},
+  {id:'bev_prox',kind:'evidence',title:'Bliskość upadku (RIR/RPE)',
+    text:'Serie hipertroficzne powinny kończyć się blisko upadku (ok. 0–3 RIR). Zbyt duży zapas ogranicza bodziec; ciągłe RPE 10 utrudnia progresję i regenerację.',
+    citation:'Refalo / proximity to failure reviews',sourceUrl:'https://pubmed.ncbi.nlm.nih.gov/33497853/',useInPlanning:true},
+  {id:'bev_str',kind:'evidence',title:'Siła: intensywność i przerwy',
+    text:'Rozwój siły maksymalnej opiera się na wysokim %1RM, niższych powtórzeniach i dłuższych przerwach (2–5 min) na wielostawach — objętość niższa niż w czystej hipertrofii.',
+    citation:'NSCA Essentials; ACSM resistance guidelines',sourceUrl:'https://pubmed.ncbi.nlm.nih.gov/19204579/',useInPlanning:true},
+  {id:'bev_deload',kind:'principle',title:'Deload co 4–6 tygodni',
+    text:'Planuj obniżenie objętości/intensywności co kilka tygodni (sen, staw, RPE drift). Deload to narzędzie progresji, nie „przegrana”.',
+    citation:'Praktyka periodyzacji (NSCA / coaching)',sourceUrl:'',useInPlanning:true}
+];
+
+function normalizeKbKind(k){
+  const v=String((k&&k.kind)||'note').toLowerCase();
+  if(v==='evidence'||v==='badanie'||v==='source')return'evidence';
+  if(v==='principle'||v==='zasada')return'principle';
+  return'note';
+}
+function kbEntryUsesInPlanning(k){
+  if(!k)return false;
+  if(k.useInPlanning===false)return false;
+  const kind=normalizeKbKind(k);
+  if(kind==='principle'||kind==='evidence')return true;
+  // stare notatki (bez kind) — domyślnie tak, jeśli nie wyłączono
+  return k.useInPlanning!==false;
+}
+/** Wpisy trenera + pakiet wbudowany do kontekstu planowania. */
+function getPlanningEvidenceEntries(){
+  const user=(window.KB||[]).filter(kbEntryUsesInPlanning);
+  const userTitles=new Set(user.map(k=>String(k.title||'').toLowerCase()));
+  const userBuiltin=new Set(user.map(k=>k.builtinId).filter(Boolean));
+  const builtins=BUILTIN_PLANNING_EVIDENCE.filter(b=>!userBuiltin.has(b.id)&&!userTitles.has(String(b.title).toLowerCase()));
+  return builtins.map(b=>({...b,builtin:true})).concat(user.map(k=>({
+    id:k.id,kind:normalizeKbKind(k),title:k.title,text:k.text,
+    citation:k.citation||'',sourceUrl:k.sourceUrl||'',useInPlanning:true,builtin:false
+  })));
+}
+function planningEvidenceContext(maxChars){
+  const list=getPlanningEvidenceEntries();
+  if(!list.length)return'';
+  const budget=maxChars||4500;
+  let out='\n\n=== DOWODY I ZASADY TRENERA (obowiązkowy kontekst planowania) ===\n';
+  out+='Uwzględnij te zasady przy doborze metody, serii, RPE i objętości. Preferuj zasady oznaczone jako „zasada trenera” nad ogólnikami, gdy kolidują.\n';
+  for(const e of list){
+    const kind=e.kind==='evidence'?'BADANIE/ŹRÓDŁO':(e.kind==='principle'?'ZASADA TRENERA':'NOTATKA');
+    const cite=e.citation?` [${e.citation}]`:'';
+    const url=e.sourceUrl?` URL: ${e.sourceUrl}`:'';
+    const block=`### [${kind}] ${e.title}${cite}${url}\n${String(e.text||'').substring(0,500)}\n\n`;
+    if(out.length+block.length>budget)break;
+    out+=block;
+  }
+  return out;
+}
+function planningEvidenceSourceLines(){
+  return getPlanningEvidenceEntries().slice(0,8).map(e=>{
+    const tag=e.kind==='evidence'?'Źródło':(e.kind==='principle'?'Zasada':'Notatka');
+    const cite=e.citation?` — ${e.citation}`:'';
+    return `${tag}: ${e.title}${cite}`;
+  });
+}
+window.BUILTIN_PLANNING_EVIDENCE=BUILTIN_PLANNING_EVIDENCE;
+window.getPlanningEvidenceEntries=getPlanningEvidenceEntries;
+window.planningEvidenceContext=planningEvidenceContext;
+window.planningEvidenceSourceLines=planningEvidenceSourceLines;
+window.kbEntryUsesInPlanning=kbEntryUsesInPlanning;
+window.normalizeKbKind=normalizeKbKind;
+
 function normalizeRationaleMethod(method){
   const m=String(method||'').trim();
   if(!m)return'PPL';
@@ -2654,6 +2728,8 @@ function buildMethodRationale(opts){
   if(methodKey==='Bro Split'&&(goalKey==='masa'||goalKey==='redukcja'))tips.push('Przy hipertrofii preferuj ≥2 stymulacje partii/tydzień — bro split daje zwykle 1×; świadomie zwiększ częstotliwość lub objętość priorytetów.');
   if(goalKey==='sila'&&methodKey==='PPL')tips.push('Siła + PPL OK, ale trzymaj ciężkie wielostawy na początku sesji i dłuższe przerwy (3–5 min).');
   tips.push('Zapisuj RPE/RIR — decyzje o +kg / +seriach opieraj na trendzie, nie na jednym „złym dniu”.');
+  const trainerSources=typeof planningEvidenceSourceLines==='function'?planningEvidenceSourceLines():[];
+  const trainerEntries=typeof getPlanningEvidenceEntries==='function'?getPlanningEvidenceEntries().filter(e=>!e.builtin).slice(0,5):[];
   return{
     methodKey,goalKey,levelKey,daysPerWeek:days||null,
     methodLabel:method.label,
@@ -2668,7 +2744,8 @@ function buildMethodRationale(opts){
     volume:goal.volume,
     levelTip,
     tips,
-    sources:RATIONALE_SOURCES.slice()
+    sources:RATIONALE_SOURCES.concat(trainerSources).slice(0,12),
+    trainerEntries
   };
 }
 function renderMethodRationaleHTML(opts){
@@ -2676,10 +2753,14 @@ function renderMethodRationaleHTML(opts){
   const escFn=(typeof window!=='undefined'&&typeof window.escHtml==='function')?window.escHtml:(typeof escHtml==='function'?escHtml:null);
   const esc=escFn||(s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'));
   const row=(k,v)=>`<div class="mr-row"><span class="mr-k">${esc(k)}</span><span class="mr-v">${esc(v)}</span></div>`;
+  const trainerBlock=(r.trainerEntries&&r.trainerEntries.length)?`<div class="mr-block"><div class="mr-block-title">Twoje zasady / dowody</div><ul class="mr-tips">${r.trainerEntries.map(e=>{
+    const tag=e.kind==='evidence'?'Źródło':(e.kind==='principle'?'Zasada':'Notatka');
+    return `<li><b>${esc(tag)}:</b> ${esc(e.title)}${e.citation?' — '+esc(e.citation):''}</li>`;
+  }).join('')}</ul></div>`:'';
   return`<div class="method-rationale">
     <div class="method-rationale-hdr">
       <div class="method-rationale-title">Dlaczego tak? — przewodnik trenera</div>
-      <div class="method-rationale-badge">NSCA · ACSM · ramy objętości</div>
+      <div class="method-rationale-badge">NSCA · ACSM · Twoja baza</div>
     </div>
     <div class="method-rationale-body">
       <div class="mr-block">
@@ -2701,8 +2782,9 @@ function renderMethodRationaleHTML(opts){
         <div class="mr-text">${esc(r.levelTip)}</div>
       </div>
       ${r.tips&&r.tips.length?`<div class="mr-block"><div class="mr-block-title">Wskazówki</div><ul class="mr-tips">${r.tips.map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div>`:''}
-      <div class="mr-sources"><div class="mr-block-title">Źródła (edukacyjne)</div><ul class="mr-tips mr-tips-sm">${(r.sources||[]).map(s=>`<li>${esc(s)}</li>`).join('')}</ul>
-      <div class="mr-note">Aplikacja nie pobiera live PubMed — to skondensowane ramy + Twoje doświadczenie w Bazie wiedzy. Kolejny krok: własne badania i notatki.</div></div>
+      ${trainerBlock}
+      <div class="mr-sources"><div class="mr-block-title">Źródła (edukacyjne + baza)</div><ul class="mr-tips mr-tips-sm">${(r.sources||[]).map(s=>`<li>${esc(s)}</li>`).join('')}</ul>
+      <div class="mr-note">Brak live PubMed — wbudowane ramy + linki, które dodasz w Bazie wiedzy (zasady / badania). AI i kreator biorą je jako kontekst planowania.</div></div>
     </div>
   </div>`;
 }

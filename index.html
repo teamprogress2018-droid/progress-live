@@ -1537,13 +1537,21 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   <div class="topbar">
     <div class="topbar-title">Baza wiedzy</div>
     <div class="topbar-actions">
-      <button class="btn btn-primary btn-sm" onclick="openM('m-kb')">+ Dodaj wpis</button>
+      <button class="btn btn-ghost btn-sm" onclick="kbImportBuiltinPack()">📚 Pakiet startowy</button>
+      <button class="btn btn-primary btn-sm" onclick="openKbModal()">+ Dodaj wpis</button>
     </div>
   </div>
   <div class="content">
-    <div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6;max-width:600px;">
-      Notatki, filozofia treningowa i wiedza, którą AI Coach automatycznie wykorzysta jako kontekst przy odpowiadaniu na Twoje pytania w zakładce AI Coach.
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6;max-width:700px;">
+      Zasady treningowe, badania (link PubMed/DOI) i notatki. Wpisy z włączonym „Używaj przy planowaniu” trafiają do Generatora AI, kreatora i panelu „Dlaczego tak?”.
     </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;" id="kb-filters">
+      <button type="button" class="wl-filter-chip active" data-kb-f="all" onclick="setKbFilter('all',this)">Wszystkie</button>
+      <button type="button" class="wl-filter-chip" data-kb-f="principle" onclick="setKbFilter('principle',this)">Zasady</button>
+      <button type="button" class="wl-filter-chip" data-kb-f="evidence" onclick="setKbFilter('evidence',this)">Badania</button>
+      <button type="button" class="wl-filter-chip" data-kb-f="note" onclick="setKbFilter('note',this)">Notatki</button>
+    </div>
+    <div id="kb-builtin-preview" style="max-width:700px;margin:0 auto 14px;"></div>
     <div id="kb-list" style="display:flex;flex-direction:column;gap:10px;max-width:700px;margin:0 auto;"></div>
   </div>
 </div>
@@ -2824,10 +2832,23 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 <!-- Baza Wiedzy -->
 <div class="modal-ov" id="m-kb">
   <div class="modal">
-    <div class="modal-hdr"><div class="modal-title">NOWY WPIS DO BAZY WIEDZY</div><button class="modal-close" onclick="closeM('m-kb')">×</button></div>
+    <div class="modal-hdr"><div class="modal-title" id="kb-modal-title">NOWY WPIS DO BAZY WIEDZY</div><button class="modal-close" onclick="closeM('m-kb')">×</button></div>
     <div class="modal-body">
-      <div class="form-field"><label class="form-lbl">Tytuł</label><input type="text" class="form-input" id="kb-title" placeholder="np. Moja filozofia treningowa"></div>
-      <div class="form-field"><label class="form-lbl">Treść</label><textarea class="form-textarea" id="kb-text" rows="6" placeholder="Wklej notatkę, zasady, artykuł którym się kierujesz..."></textarea></div>
+      <div class="form-field"><label class="form-lbl">Typ</label>
+        <select class="form-select" id="kb-kind" onchange="kbKindHint()">
+          <option value="principle">Zasada trenera (doświadczenie)</option>
+          <option value="evidence">Badanie / źródło (PubMed, DOI…)</option>
+          <option value="note">Notatka ogólna</option>
+        </select>
+      </div>
+      <div class="form-field"><label class="form-lbl">Tytuł</label><input type="text" class="form-input" id="kb-title" placeholder="np. Priorytet: 2× częstotliwość na słabe partie"></div>
+      <div class="form-field"><label class="form-lbl">Treść</label><textarea class="form-textarea" id="kb-text" rows="5" placeholder="Opisz zasadę lub wniosek z badania — AI i kreator użyją tego przy planowaniu."></textarea></div>
+      <div class="form-field"><label class="form-lbl">Cytowanie (opcjonalnie)</label><input type="text" class="form-input" id="kb-citation" placeholder="np. Schoenfeld 2016 · NSCA"></div>
+      <div class="form-field"><label class="form-lbl">Link źródła (PubMed / DOI / artykuł)</label><input type="url" class="form-input" id="kb-url" placeholder="https://pubmed.ncbi.nlm.nih.gov/…"></div>
+      <label class="builder-rest-toggle" style="margin-top:4px;">
+        <input type="checkbox" id="kb-use-planning" checked style="accent-color:var(--accent);"> Używaj przy planowaniu (AI + kreator + „Dlaczego tak?”)
+      </label>
+      <div id="kb-kind-hint" style="font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5;"></div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-kb')">Anuluj</button><button class="btn btn-primary" onclick="saveKBEntry()">Zapisz</button></div>
   </div>
@@ -3982,15 +4003,15 @@ async function load(){
 
 <script src="ex-gif-manifest.js?v=17"></script>
 <script src="ex-photo-manifest.js?v=1"></script>
-<script src="01-core.js?v=26"></script>
+<script src="01-core.js?v=27"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=19"></script>
-<script src="03-ai-plangen-bizstats-aicoach.js?v=18"></script>
+<script src="03-ai-plangen-bizstats-aicoach.js?v=19"></script>
 <script src="04-client-portal.js?v=24"></script>
 <script src="05-clients-builder-plans-calendar.js?v=22"></script>
-<script src="06-inbox-exercises-ai-programs.js?v=23"></script>
+<script src="06-inbox-exercises-ai-programs.js?v=24"></script>
 <script src="07-forms-metrics-calculator.js?v=21"></script>
 <script src="08-client-profile-extras.js?v=25"></script>
-<script src="09-posture-kb-invites-private.js?v=26"></script>
+<script src="09-posture-kb-invites-private.js?v=27"></script>
 <script src="10-client-app.js?v=22"></script>
 </body>
 </html>
