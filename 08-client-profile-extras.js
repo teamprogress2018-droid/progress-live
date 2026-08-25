@@ -797,19 +797,52 @@ function cancelCPEdit(){
 window.startCPEdit=startCPEdit;
 window.cancelCPEdit=cancelCPEdit;
 
+function cpOverviewUpdates(c){
+  const manual=(window.CLIENT_TIMELINE&&CLIENT_TIMELINE[c.id])||c.timeline||[];
+  const autoSess=(window.SE||[]).filter(s=>s.clientId===c.id).map(s=>({
+    type:'trening',
+    text:(typeof sessionTitle==='function'?sessionTitle(s):(s.type||'Trening')),
+    date:s.date+'T'+(s.time||'12:00')+':00'
+  }));
+  const autoPlans=(window.PL||[]).filter(p=>p.clientId===c.id).map(p=>({
+    type:'plan',text:'Przypisano plan: '+p.name,date:p.createdAt||new Date().toISOString()
+  }));
+  const autoMeas=(window.METRIC_ENTRIES||[]).filter(e=>e.clientId===c.id).slice(-12).map(m=>{
+    const g=typeof allMetricGroups==='function'?allMetricGroups().find(gr=>gr.id===m.groupId):null;
+    return{type:'pomiar',text:(g?(g.icon+' '+g.name):'Pomiar')+(m.notes?' — '+m.notes:''),date:(m.date||'')+'T10:00:00'};
+  });
+  return [...manual,...autoSess,...autoPlans,...autoMeas]
+    .sort((a,b)=>new Date(b.date)-new Date(a.date))
+    .slice(0,8);
+}
+
+function cpMetricLatest(clientId,groupId,metricId){
+  const list=(window.METRIC_ENTRIES||[]).filter(e=>e.clientId===clientId&&e.groupId===groupId&&e.values&&e.values[metricId]!=null)
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  return list[0]||null;
+}
+
+function cpMetricDeltaPct(clientId,groupId,metricId){
+  const list=(window.METRIC_ENTRIES||[]).filter(e=>e.clientId===clientId&&e.groupId===groupId&&e.values&&e.values[metricId]!=null)
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  if(list.length<2)return null;
+  const cur=parseFloat(list[0].values[metricId]);
+  const prev=parseFloat(list[1].values[metricId]);
+  if(!isFinite(cur)||!isFinite(prev)||!prev)return null;
+  return Math.round(((cur-prev)/Math.abs(prev))*1000)/10;
+}
+
 function renderCPOverview(c){
-  const today=new Date().toISOString().split('T')[0];
-  const ci=CL.indexOf(c);const col=COLS[ci%5];
+  const today=new Date();
+  const todayStr=today.toISOString().split('T')[0];
   const sessions=SE.filter(s=>s.clientId===c.id);
   const tasks=TASKS.filter(t=>t.clientId===c.id);
   const oneShot=tasks.filter(t=>typeof isOneShot==='function'?isOneShot(t):!isHabit(t));
   const tasksDone=oneShot.filter(t=>t.status==='done');
   const plans=PL.filter(p=>p.clientId===c.id);
-  const packages=allPackages().filter(p=>p.clientId===c.id||p.clientName===c.name);
-  const lastSess=sessions.sort((a,b)=>b.date.localeCompare(a.date))[0];
-  const daysSince=lastSess?Math.floor((new Date()-new Date(lastSess.date))/(1000*60*60*24)):null;
+  const lastSess=sessions.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0];
+  const daysSince=lastSess?Math.floor((today-new Date(lastSess.date))/(1000*60*60*24)):null;
   const notes=CLIENT_NOTES[c.id]||[];
-  const activity=CLIENT_ACTIVITY[c.id]||[];
   initClientData(c);
 
   const editing=window._cpEditingClientId===c.id;
@@ -819,96 +852,46 @@ function renderCPOverview(c){
 
   const goalLabels={masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja'};
   const levelLabels={poczatkujacy:'Początkujący',sredni:'Średni',zaawansowany:'Zaawansowany'};
-  const genderLabel=c.gender==='K'?'Kobieta':'Mężczyzna';
-  const sectionHdr=(icon,title,extra)=>`<div style="display:flex;align-items:center;justify-content:space-between;margin:20px 0 10px;flex-wrap:wrap;gap:6px;">
-    <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;letter-spacing:1px;">${icon} ${title}</div>
-    ${extra||''}
-  </div>`;
-  const infoRow=(label,val)=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;"><span style="color:var(--muted);">${label}</span><span style="font-weight:600;color:var(--text);">${escHtml(String(val||'—'))}</span></div>`;
-  const dataTile=(label,val,opts={})=>{
-    const v=val==null||val===''? '—':String(val);
-    const color=opts.color||'var(--text)';
-    const wide=opts.wide?' cp-data-tile-wide':'';
-    return `<div class="cp-data-tile${wide}"><div class="cp-data-val" style="color:${color};" title="${escHtml(v)}">${escHtml(v)}</div><div class="cp-data-lbl">${label}</div></div>`;
+  const goalText=goalLabels[c.goal]||c.goal||'—';
+  const levelText=levelLabels[c.level]||c.level||'';
+  const injuries=typeof clientInjuriesText==='function'?clientInjuriesText(c):(c.injuries||'');
+  const metricsOn=typeof bmFeatureOn==='function'?bmFeatureOn(c):true;
+  const photosOn=typeof ppFeatureOn==='function'?ppFeatureOn(c):true;
+
+  const logged=typeof completedWorkouts==='function'?completedWorkouts(c.id,sessions):sessions.filter(s=>s.source==='client'||s.source==='live');
+  const last7=logged.filter(s=>{const d=new Date(s.date+'T12:00:00');return(today-d)/86400000<=7;}).length;
+  const last30=logged.filter(s=>{const d=new Date(s.date+'T12:00:00');return(today-d)/86400000<=30;}).length;
+  const lastWorkout=logged.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0];
+  const lastWorkoutTitle=lastWorkout?(typeof sessionTitle==='function'?sessionTitle(lastWorkout):(lastWorkout.type||'Trening')):null;
+  const lastWorkoutDays=lastWorkout?Math.floor((today-new Date(lastWorkout.date+'T12:00:00'))/86400000):null;
+
+  const weightEntry=metricsOn?cpMetricLatest(c.id,'mg1','m1'):null;
+  const weightVal=weightEntry?weightEntry.values.m1:(c.weight||null);
+  const weightDelta=metricsOn?cpMetricDeltaPct(c.id,'mg1','m1'):null;
+  const stepsEntry=metricsOn?cpMetricLatest(c.id,'mg6','m1'):null;
+  const hrEntry=metricsOn?(cpMetricLatest(c.id,'mg4','m1')||cpMetricLatest(c.id,'mg6','m3')):null;
+  const sleepEntry=cpMetricLatest(c.id,'mg5','m2');
+
+  const photos=photosOn&&typeof ppListFor==='function'?ppListFor(c.id).slice().reverse().slice(0,2):[];
+  const updates=cpOverviewUpdates(c);
+
+  const metricCard=(title,value,unit,delta,empty)=>{
+    const has=value!=null&&value!==''&&value!=='—';
+    const dHtml=delta==null?'':`<div style="font-size:11px;margin-top:4px;color:${delta<=0?'var(--teal)':'var(--orange)'};">${delta>0?'↑':'↓'} ${Math.abs(delta)}%</div>`;
+    return `<div class="cp-ov-metric">
+      <div class="cp-ov-metric-lbl">${title}</div>
+      <div class="cp-ov-metric-val">${has?escHtml(String(value)):'—'}${has&&unit?`<span class="cp-ov-metric-unit">${unit}</span>`:''}</div>
+      ${has?dHtml:`<div style="font-size:10px;color:var(--muted);margin-top:4px;">${empty||'Brak danych'}</div>`}
+    </div>`;
   };
-  const statusLabel=c.status==='active'?'Aktywny':c.status==='inactive'?'Nieaktywny':'Zarchiwizowany';
-  const statusColor=c.status==='active'?'var(--teal)':c.status==='inactive'?'var(--orange)':'var(--muted)';
+
+  const railCard=(title,body,action)=>`<div class="cp-ov-rail-card">
+    <div class="cp-ov-rail-hd"><span>${title}</span>${action||''}</div>
+    ${body}
+  </div>`;
 
   document.getElementById('cp-body').innerHTML=`
     ${editing?cpClientDataEditHTML(c):''}
-    ${!editing?`
-    <!-- profil klienta — kafelki -->
-    <div style="background:var(--s2);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:16px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
-        <div style="font-size:14px;font-weight:700;">📋 Profil klienta</div>
-        <button type="button" class="btn btn-primary btn-sm" onclick="startCPEdit('${c.id}')">✏️ Edytuj</button>
-      </div>
-      <div class="cp-data-grid">
-        ${dataTile('Imię',c.name,{color:'var(--accent)'})}
-        ${dataTile('Email',c.email,{wide:true})}
-        ${dataTile('Telefon',c.phone||'—',{color:c.phone?'var(--text)':'var(--muted)'})}
-        ${dataTile('Wiek',c.age?c.age+' lat':'—',{color:'var(--blue)'})}
-        ${dataTile('Płeć',genderLabel)}
-        ${dataTile('Waga',c.weight?c.weight+' kg':'—',{color:'var(--gold)'})}
-        ${dataTile('Wzrost',c.height?c.height+' cm':'—',{color:'var(--blue)'})}
-        ${dataTile('Cel',goalLabels[c.goal]||c.goal||'—',{color:'var(--accent)'})}
-        ${dataTile('Poziom',levelLabels[c.level]||c.level||'—')}
-        ${dataTile('Dni / tydz.',c.trainingFreq?c.trainingFreq+'×':'—',{color:c.trainingFreq?'var(--teal)':'var(--muted)'})}
-        ${dataTile('Pora',c.preferredTrainTime||'—',{wide:!!c.preferredTrainTime})}
-        ${dataTile('Status',statusLabel,{color:statusColor})}
-      </div>
-      ${(()=>{
-        const wds=typeof normalizePreferredWeekdays==='function'?normalizePreferredWeekdays(c.preferredWeekdays):((c.preferredWeekdays)||[]);
-        if(!wds.length)return'';
-        const labels=typeof preferredWeekdaysLabels==='function'?preferredWeekdaysLabels(wds):wds;
-        return `<div style="margin-top:12px;"><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Preferowane dni treningowe</div><div style="display:flex;gap:6px;flex-wrap:wrap;">${labels.map(l=>`<span class="pill" style="background:var(--adim);color:var(--accent);font-size:10px;">${escHtml(l)}</span>`).join('')}</div></div>`;
-      })()}
-      ${(()=>{const inj=typeof clientInjuriesText==='function'?clientInjuriesText(c):(c.injuries||c.notes||'');return inj?`<div style="margin-top:12px;background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.2);border-radius:8px;padding:8px 12px;font-size:11px;"><span style="color:var(--red);">⚠ Kontuzje/ograniczenia:</span> ${escHtml(inj)}</div>`:'';})()}
-      ${c.notes&&c.notes!==(c.injuries||'')?`<div style="margin-top:8px;font-size:11px;color:var(--muted);"><span style="font-weight:600;">Uwagi:</span> ${escHtml(c.notes)}</div>`:''}
-    </div>
-    ${!c.phone?`<div style="background:rgba(201,123,63,0.12);border:1px solid rgba(201,123,63,0.35);border-radius:8px;padding:10px 12px;margin-bottom:16px;font-size:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-      <span>Dodaj numer telefonu — potrzebny do WhatsApp i przypomnień.</span>
-      <button type="button" class="btn btn-primary btn-sm" onclick="startCPEdit('${c.id}')">+ Telefon</button>
-    </div>`:''}
-    ${c.phone&&waHref?`<div style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;">
-      <a class="btn btn-ghost btn-sm" href="${escHtml(waHref)}" target="_blank" rel="noopener">💬 WhatsApp</a>
-      ${c.email?`<a class="btn btn-ghost btn-sm" href="mailto:${escHtml(c.email)}">📧 Email</a>`:''}
-    </div>`:''}
-
-    <!-- sporty i biomechanika -->
-    <div style="background:var(--s2);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:16px;">
-      ${sectionHdr('🏃','Wcześniejsze sporty / aktywności')}
-      ${c.priorSports&&c.priorSports.length?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">${c.priorSports.map(s=>`<span class="pill" style="background:var(--adim);color:var(--accent);font-size:10px;">${escHtml(typeof PRIOR_SPORTS_MAP!=='undefined'&&PRIOR_SPORTS_MAP[s]?PRIOR_SPORTS_MAP[s].label:s)}</span>`).join('')}</div>`:'<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Brak danych — edytuj profil</div>'}
-      ${c.physiquePriority&&c.physiquePriority.length?`<div style="margin:8px 0 10px;"><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Priorytet sylwetkowy</div><div style="display:flex;gap:6px;flex-wrap:wrap;">${c.physiquePriority.map(id=>`<span class="pill" style="background:rgba(230,0,0,0.12);color:var(--accent);font-size:10px;">${escHtml(typeof physiquePriorityLabel==='function'?physiquePriorityLabel(id):id)}</span>`).join('')}</div></div>`:''}
-      ${infoRow('Dotychczasowa aktywność',{sedentary:'Siedzący tryb',light:'Lekka',moderate:'Umiarkowana',active:'Aktywny'}[c.activityLevel]||c.activityLevel||'—')}
-      ${infoRow('Profil sportowy (auto)',typeof clientSportProfileLabel==='function'?clientSportProfileLabel(c)||'—':'—')}
-      ${c.sportNotes?infoRow('Uwagi sportowe',c.sportNotes):''}
-    </div>
-
-    <!-- kontakt szybki (jak w Studio AI) -->
-    `:''}
-
-    <!-- statystyki -->
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;">
-      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--accent);">${sessions.length}</div><div class="cp-stat-lbl">Sesji</div></div>
-      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--blue);">${plans.length}</div><div class="cp-stat-lbl">Planów</div></div>
-      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--teal);">${tasksDone.length}/${oneShot.length}</div><div class="cp-stat-lbl">Zadań</div></div>
-      <div class="cp-stat-box"><div class="cp-stat-val" style="color:${daysSince===null?'var(--muted)':daysSince>14?'var(--red)':daysSince>7?'var(--orange)':'var(--teal)'};">${daysSince!==null?daysSince+'d':'—'}</div><div class="cp-stat-lbl">Ost. sesja</div></div>
-    </div>
-
-    ${(()=>{const ins=buildClientInsight(c,sessions,plans,daysSince);
-      if(!ins.length)return'';
-      return `<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
-        ${ins.map(i=>`<div style="background:${i.color}14;border:1px solid ${i.color}44;border-radius:10px;padding:10px 14px;display:flex;gap:10px;align-items:flex-start;">
-          <span style="font-size:16px;flex-shrink:0;">${i.icon}</span>
-          <div style="font-size:12px;color:var(--text);line-height:1.6;">${i.text}</div>
-        </div>`).join('')}
-      </div>`;
-    })()}
-
-    <!-- dane kontaktowe po profilu -->
-
-    ${c.notes?`<div style="background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.2);border-radius:8px;padding:10px 12px;margin-bottom:16px;font-size:12px;"><span style="color:var(--red);">⚠ Kontuzje/uwagi: </span>${c.notes}</div>`:''}
 
     ${(()=>{const ob=typeof getClientOnboard==='function'?getClientOnboard(c):null;
       if(!ob||ob.complete)return'';
@@ -921,44 +904,134 @@ function renderCPOverview(c){
       </div>`;
     })()}
 
-    <!-- aktywny plan -->
-    ${plans.length?`
-    <div class="cp-section-title">AKTYWNY PLAN</div>
-    <div style="background:linear-gradient(135deg,var(--adim),transparent);border:1px solid rgba(230,0,0,0.2);border-radius:10px;padding:12px 14px;margin-bottom:16px;cursor:pointer;" onclick="setCPTab('plan')">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-        <div style="font-size:15px;font-weight:700;">${plans[plans.length-1].name}</div>
-        <span class="pill pill-green" style="font-size:11px;">${plans[plans.length-1].method||'—'}</span>
-      </div>
-      <div style="font-size:13px;color:var(--muted);margin-bottom:8px;">${plans[plans.length-1].method||'—'} · ${plans[plans.length-1].duration||'?'} tyg. · ${(plans[plans.length-1].days||[]).length} dni/tydzień</div>
-      <div style="display:flex;gap:4px;flex-wrap:wrap;">
-        ${(plans[plans.length-1].days||[]).slice(0,5).map(d=>`<span style="background:${d.rest?'var(--s3)':'rgba(230,0,0,0.12)'};color:${d.rest?'var(--muted)':'var(--accent)'};border-radius:5px;padding:3px 8px;font-size:12px;font-family:'DM Mono',monospace;">${d.day||d.dayName||'?'}${d.rest?' REST':''}</span>`).join('')}
-      </div>
-      <div style="font-size:12px;color:var(--accent);margin-top:8px;">→ Kliknij aby zobaczyć szczegóły</div>
-    </div>`:`
-    <div class="cp-section-title">AKTYWNY PLAN</div>
-    <div style="background:var(--s3);border:1px dashed var(--border2);border-radius:10px;padding:12px 14px;margin-bottom:16px;text-align:center;">
-      <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">Brak przypisanego planu</div>
-      <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
-        <button class="btn btn-primary btn-sm" onclick="openAiPlanForClient('${c.id}')">⚡ Plan AI</button>
-        <button class="btn btn-ghost btn-sm" onclick="cpAssignTemplate('${c.id}')">📋 Szablon</button>
-      </div>
-    </div>`}
-    <div style="display:flex;align-items:center;justify-content:space-between;">
-      <div class="cp-section-title" style="margin-bottom:0;">NOTATKI (${notes.length})</div>
-      <button onclick="setCPTab('notes')" style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;">Wszystkie →</button>
-    </div>
-    <div id="cp-notes-area" style="margin-bottom:16px;">
-      ${notes.slice(0,2).map((n,ni)=>`<div class="cip-note" style="position:relative;padding-right:24px;"><div>${n.text}</div><div class="cip-note-date">${n.date}</div></div>`).join('')}
-      ${!notes.length?'<div style="font-size:12px;color:var(--muted);padding:8px 0;">Brak notatek — dodaj w zakładce Notatki</div>':''}
-    </div>
+    ${(()=>{const ins=buildClientInsight(c,sessions,plans,daysSince);
+      if(!ins.length)return'';
+      return `<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+        ${ins.slice(0,2).map(i=>`<div style="background:${i.color}14;border:1px solid ${i.color}44;border-radius:10px;padding:10px 14px;display:flex;gap:10px;align-items:flex-start;">
+          <span style="font-size:16px;flex-shrink:0;">${i.icon}</span>
+          <div style="font-size:12px;color:var(--text);line-height:1.6;">${i.text}</div>
+        </div>`).join('')}
+      </div>`;
+    })()}
 
-    <!-- aktywność -->
-    <div class="cp-section-title">OSTATNIA AKTYWNOŚĆ</div>
-    ${(CLIENT_ACTIVITY[c.id]||[]).map((a,ai)=>`<div class="cp-mini-row">
-      <div class="cp-mini-icon" style="background:var(--s3);">${a.icon}</div>
-      <div style="flex:1;"><div>${a.text}</div><div style="font-size:12px;color:var(--muted);margin-top:1px;">${a.date}</div></div>
-      <button onclick="deleteClientActivity('${c.id}',${ai})" style="background:none;border:none;color:var(--muted2);font-size:14px;cursor:pointer;padding:0 4px;">×</button>
-    </div>`).join('')}`;
+    <div class="cp-ov-layout">
+      <div class="cp-ov-main">
+        <!-- Training -->
+        <div class="cp-ov-card">
+          <div class="cp-ov-card-hd">
+            <div class="cp-ov-card-title">Treningi</div>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('training')">Otwórz →</button>
+          </div>
+          <div class="cp-ov-train-stats">
+            <div>
+              <div class="cp-ov-stat-num" style="color:var(--accent);">${last7}</div>
+              <div class="cp-ov-stat-lbl">Ostatnie 7 dni</div>
+              <div class="cp-ov-stat-sub">${last7?last7+' zarejestrowane':'Brak treningów'}</div>
+            </div>
+            <div>
+              <div class="cp-ov-stat-num" style="color:var(--blue);">${last30}</div>
+              <div class="cp-ov-stat-lbl">Ostatnie 30 dni</div>
+              <div class="cp-ov-stat-sub">${logged.length} łącznie · ${tasksDone.length}/${oneShot.length} zadań</div>
+            </div>
+            <div>
+              <div class="cp-ov-stat-num" style="color:var(--teal);">${plans.length}</div>
+              <div class="cp-ov-stat-lbl">Plany</div>
+              <div class="cp-ov-stat-sub">${daysSince!=null?(daysSince+'d od sesji'):'Brak sesji'}</div>
+            </div>
+          </div>
+          ${lastWorkout?`<div class="cp-ov-last-wo" onclick="setCPTab('training')">
+            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px;">Ostatni trening</div>
+            <div style="font-size:14px;font-weight:700;">${escHtml(lastWorkoutTitle)}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;">${escHtml(lastWorkout.date||'')}${lastWorkoutDays!=null?' · '+lastWorkoutDays+' dni temu':''}${lastWorkout.feedback?' · '+lastWorkout.feedback+'/5':''}</div>
+          </div>`:`<div class="cp-ov-last-wo muted">Brak zarejestrowanych treningów — klient jeszcze nic nie odhaczył.</div>`}
+        </div>
+
+        <!-- Body metrics -->
+        <div class="cp-ov-card">
+          <div class="cp-ov-card-hd">
+            <div class="cp-ov-card-title">Pomiary ciała</div>
+            <div style="display:flex;gap:6px;">
+              ${metricsOn?`<button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('metrics')">Aktualizuj</button>`:''}
+              <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('progress')">Progress →</button>
+            </div>
+          </div>
+          ${metricsOn?`<div class="cp-ov-metrics-grid">
+            ${metricCard('Waga',weightVal,'kg',weightDelta,'Dodaj pomiar masy')}
+            ${metricCard('Sen',sleepEntry?sleepEntry.values.m2:null,'/10',null,'Brak danych snu')}
+            ${metricCard('Tętno spocz.',hrEntry?(hrEntry.values.m1||hrEntry.values.m3):null,'bpm',null,'Brak danych')}
+            ${metricCard('Kroki',stepsEntry?stepsEntry.values.m1:null,'',null,'Import Garmin / pomiar')}
+          </div>`:`<div style="font-size:12px;color:var(--muted);padding:8px 0;">Pomiary ciała wyłączone w Funkcjach klienta.</div>`}
+        </div>
+
+        <!-- Active plan -->
+        ${plans.length?`
+        <div class="cp-ov-card" style="cursor:pointer;" onclick="setCPTab('plan')">
+          <div class="cp-ov-card-hd">
+            <div class="cp-ov-card-title">Aktywny plan</div>
+            <span class="pill pill-green" style="font-size:11px;">${escHtml(plans[plans.length-1].method||'—')}</span>
+          </div>
+          <div style="font-size:15px;font-weight:700;margin-bottom:4px;">${escHtml(plans[plans.length-1].name)}</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">${escHtml(plans[plans.length-1].method||'—')} · ${plans[plans.length-1].duration||'?'} tyg. · ${(plans[plans.length-1].days||[]).length} dni/tydzień</div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;">
+            ${(plans[plans.length-1].days||[]).slice(0,5).map(d=>`<span style="background:${d.rest?'var(--s3)':'rgba(230,0,0,0.12)'};color:${d.rest?'var(--muted)':'var(--accent)'};border-radius:5px;padding:3px 8px;font-size:11px;font-family:'DM Mono',monospace;">${escHtml(d.day||d.dayName||'?')}${d.rest?' REST':''}</span>`).join('')}
+          </div>
+        </div>`:`
+        <div class="cp-ov-card" style="text-align:center;">
+          <div class="cp-ov-card-title" style="margin-bottom:10px;">Aktywny plan</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Brak przypisanego planu</div>
+          <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
+            <button class="btn btn-primary btn-sm" onclick="openAiPlanForClient('${c.id}')">⚡ Plan AI</button>
+            <button class="btn btn-ghost btn-sm" onclick="cpAssignTemplate('${c.id}')">📋 Szablon</button>
+          </div>
+        </div>`}
+      </div>
+
+      <aside class="cp-ov-rail">
+        ${railCard('Cel',
+          `<div style="font-size:14px;font-weight:700;line-height:1.4;margin-bottom:6px;">${escHtml(goalText)}</div>
+           <div style="font-size:11px;color:var(--muted);">${escHtml(levelText)}${c.trainingFreq?' · '+c.trainingFreq+'× / tydz.':''}${c.preferredTrainTime?' · '+escHtml(c.preferredTrainTime):''}</div>`,
+          `<button type="button" class="btn btn-ghost btn-sm" onclick="startCPEdit('${c.id}')">Edytuj</button>`)}
+
+        ${railCard('Notatki',
+          notes.length?notes.slice(0,2).map(n=>`<div class="cip-note" style="margin-bottom:8px;"><div>${escHtml(n.text)}</div><div class="cip-note-date">${escHtml(n.date||'')}</div></div>`).join('')
+            :'<div style="font-size:12px;color:var(--muted);">Brak notatek</div>',
+          `<button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('notes')">Wszystkie</button>`)}
+
+        ${railCard('Ograniczenia / kontuzje',
+          injuries?`<div style="font-size:12px;line-height:1.5;color:var(--text);">${escHtml(injuries)}</div>`
+            :'<div style="font-size:12px;color:var(--muted);">Brak wpisanych ograniczeń</div>',
+          `<button type="button" class="btn btn-ghost btn-sm" onclick="startCPEdit('${c.id}')">Edytuj</button>`)}
+
+        ${photosOn?railCard('Zdjęcia postępu',
+          photos.length?`<div class="cp-ov-photos">${photos.map(p=>{
+            const src=p.front||p.side||p.back||'';
+            return `<div class="cp-ov-photo">${src?`<img src="${src}" alt="">`:`<span>📷</span>`}<div class="cp-ov-photo-d">${escHtml(p.date||'')}</div></div>`;
+          }).join('')}</div>`
+            :'<div style="font-size:12px;color:var(--muted);">Brak zdjęć — dodaj w zakładce Zdjęcia</div>',
+          `<button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('photos')">Zobacz</button>`):''}
+
+        ${railCard('Profil',
+          `<div class="cp-ov-profile-rows">
+            <div><span>Email</span><b title="${escHtml(c.email||'')}">${escHtml(c.email||'—')}</b></div>
+            <div><span>Telefon</span><b>${escHtml(c.phone||'—')}</b></div>
+            <div><span>Wiek / wzrost</span><b>${c.age?c.age+' lat':'—'}${c.height?' · '+c.height+' cm':''}</b></div>
+            <div><span>Status</span><b style="color:${c.status==='active'?'var(--teal)':c.status==='inactive'?'var(--orange)':'var(--muted)'};">${c.status==='active'?'Aktywny':c.status==='inactive'?'Nieaktywny':'Zarchiwizowany'}</b></div>
+          </div>
+          ${waHref||c.email?`<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">
+            ${waHref?`<a class="btn btn-ghost btn-sm" href="${escHtml(waHref)}" target="_blank" rel="noopener">💬 WhatsApp</a>`:''}
+            ${c.email?`<a class="btn btn-ghost btn-sm" href="mailto:${escHtml(c.email)}">📧 Email</a>`:''}
+          </div>`:!c.phone?`<button type="button" class="btn btn-primary btn-sm" style="margin-top:10px;" onclick="startCPEdit('${c.id}')">+ Dodaj telefon</button>`:''}`,
+          `<button type="button" class="btn btn-ghost btn-sm" onclick="startCPEdit('${c.id}')">Edytuj</button>`)}
+
+        ${railCard('Aktualizacje',
+          updates.length?updates.map(u=>{
+            const dayStr=(()=>{try{return new Date(u.date).toLocaleDateString('pl',{day:'numeric',month:'short'});}catch(e){return'';}})();
+            return `<div class="cp-ov-update"><span class="cp-ov-update-ico">${(CTL_ICONS&&CTL_ICONS[u.type])||'•'}</span><div><div class="cp-ov-update-txt">${escHtml(u.text||'')}</div><div class="cp-ov-update-d">${escHtml(dayStr)}</div></div></div>`;
+          }).join('')
+            :'<div style="font-size:12px;color:var(--muted);">Brak aktywności — sesje i pomiary pojawią się tu automatycznie</div>',
+          `<button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('timeline')">Oś czasu</button>`)}
+      </aside>
+    </div>`;
 }
 
 function renderCPPlan(c){

@@ -784,6 +784,41 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 .cp-data-val.cp-data-val-sm{font-size:var(--font-size-sm);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;-webkit-line-clamp:unset;-webkit-box-orient:unset;}
 .cp-data-lbl{font-size:var(--font-size-label);color:var(--text-label);font-family:var(--font-ui);font-weight:600;text-transform:none;letter-spacing:0;margin-top:0;order:2;}
 .cp-data-val{order:1;}
+/* Overview Everfit-like: main + right rail */
+.cp-ov-layout{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(260px,320px);gap:16px;align-items:start;}
+.cp-ov-main{display:flex;flex-direction:column;gap:14px;min-width:0;}
+.cp-ov-rail{display:flex;flex-direction:column;gap:12px;min-width:0;}
+.cp-ov-card,.cp-ov-rail-card{background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
+.cp-ov-card-hd,.cp-ov-rail-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;}
+.cp-ov-card-title,.cp-ov-rail-hd>span{font-size:13px;font-weight:700;color:var(--text);}
+.cp-ov-train-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;}
+.cp-ov-stat-num{font-family:'Bebas Neue',sans-serif;font-size:28px;line-height:1;}
+.cp-ov-stat-lbl{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.4px;margin-top:4px;}
+.cp-ov-stat-sub{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.35;}
+.cp-ov-last-wo{background:var(--s3);border:1px solid var(--border);border-radius:10px;padding:12px 14px;cursor:pointer;}
+.cp-ov-last-wo.muted{cursor:default;font-size:12px;color:var(--muted);}
+.cp-ov-metrics-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.cp-ov-metric{background:var(--s3);border:1px solid var(--border);border-radius:10px;padding:12px;}
+.cp-ov-metric-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px;font-family:'DM Mono',monospace;}
+.cp-ov-metric-val{font-family:'Bebas Neue',sans-serif;font-size:26px;line-height:1;color:var(--text);}
+.cp-ov-metric-unit{font-size:12px;color:var(--muted);margin-left:4px;font-family:'DM Mono',monospace;}
+.cp-ov-photos{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.cp-ov-photo{border-radius:8px;overflow:hidden;background:var(--s3);border:1px solid var(--border);aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;position:relative;}
+.cp-ov-photo img{width:100%;height:100%;object-fit:cover;display:block;}
+.cp-ov-photo-d{position:absolute;left:0;right:0;bottom:0;padding:4px 6px;font-size:9px;background:rgba(0,0,0,.55);color:#fff;font-family:'DM Mono',monospace;}
+.cp-ov-profile-rows{display:flex;flex-direction:column;gap:8px;}
+.cp-ov-profile-rows>div{display:flex;justify-content:space-between;gap:10px;font-size:12px;}
+.cp-ov-profile-rows span{color:var(--muted);}
+.cp-ov-profile-rows b{font-weight:600;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:60%;}
+.cp-ov-update{display:flex;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);align-items:flex-start;}
+.cp-ov-update:last-child{border-bottom:none;}
+.cp-ov-update-ico{flex-shrink:0;font-size:12px;margin-top:1px;}
+.cp-ov-update-txt{font-size:12px;line-height:1.4;color:var(--text);}
+.cp-ov-update-d{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:2px;}
+@media (max-width:980px){
+  .cp-ov-layout{grid-template-columns:1fr;}
+  .cp-ov-train-stats{grid-template-columns:1fr 1fr;}
+}
 .cp-edit-card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--r2);padding:20px;margin-bottom:16px;box-shadow:var(--panel-glow);}
 .cp-edit-card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:8px;flex-wrap:wrap;}
 .cp-edit-card-title{font-size:var(--font-size-base);font-weight:700;color:var(--text-primary);}
