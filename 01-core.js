@@ -327,8 +327,8 @@ function goTo(n){
   const s=document.getElementById('screen-'+n);if(s)s.classList.add('active');
   closeMobileSidebar();
   if(typeof closeLibraryFlyout==='function')closeLibraryFlyout();
-  const libraryScreens=['library','plans','programs','tasks','forms','metrics','aiplangen','builder'];
-  const moreScreens=['dashboard','trainer-profile','checkin','calculator','integrations','resources','bizstats','settings','aicoach','kb'];
+  const libraryScreens=['library','plans','programs','templates','tasks','forms','metrics','aiplangen','builder','calculator','kb'];
+  const moreScreens=['dashboard','trainer-profile','checkin','integrations','resources','bizstats','settings','aicoach'];
   if(moreScreens.includes(n)){
     const moreEl=document.getElementById('nav-more-items');
     const arrow=document.getElementById('nav-more-arrow');

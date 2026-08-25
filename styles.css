@@ -76,24 +76,33 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 .nav-item svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.6;flex-shrink:0;}
 .nav-item:hover{color:var(--text-primary);background:var(--bg-hover);}
 .nav-item.active{color:var(--accent);background:rgba(var(--accent-rgb),0.1);border-left-color:var(--accent);}
-/* Everfit-style Library flyout */
-.nav-flyout-wrap{position:relative;}
+/* Everfit-style Library flyout panel */
+.nav-flyout-wrap{position:relative;z-index:5;}
 .nav-flyout-trigger{position:relative;}
 .nav-flyout-chevron{margin-left:auto;opacity:0.55;width:12px;height:12px;}
 .nav-flyout{
-  position:absolute;left:calc(100% + 8px);top:0;min-width:210px;
-  background:#121212;border:1px solid var(--border2);border-radius:12px;
-  box-shadow:0 18px 48px rgba(0,0,0,.55);padding:8px;z-index:80;
-  display:flex;flex-direction:column;gap:2px;
+  position:absolute;left:calc(100% + 10px);top:-8px;min-width:248px;
+  background:#0d0d0d;border:1px solid rgba(255,255,255,0.08);border-radius:14px;
+  box-shadow:0 22px 56px rgba(0,0,0,.65);padding:10px 8px 12px;z-index:90;
+  display:flex;flex-direction:column;gap:1px;
 }
 .nav-flyout[hidden]{display:none!important;}
-.nav-flyout-item{
-  background:transparent;border:none;color:var(--text);text-align:left;
-  padding:10px 12px;border-radius:8px;font-size:13px;cursor:pointer;
-  font-family:'DM Sans',sans-serif;font-weight:500;
+.nav-flyout-hd{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:10px 14px 12px;margin:0 4px 6px;border-bottom:1px solid rgba(255,255,255,0.08);
+  color:#fff;font-size:15px;font-weight:700;font-family:'DM Sans',sans-serif;
 }
-.nav-flyout-item:hover{background:var(--s3);}
-.nav-flyout-item.active{color:var(--accent);background:rgba(var(--accent-rgb),0.12);}
+.nav-flyout-hd svg{opacity:0.9;flex-shrink:0;}
+.nav-flyout-item{
+  background:transparent;border:none;color:rgba(255,255,255,0.92);text-align:left;
+  padding:12px 14px;border-radius:8px;font-size:14px;cursor:pointer;
+  font-family:'DM Sans',sans-serif;font-weight:500;letter-spacing:0.01em;
+}
+.nav-flyout-item:hover{background:rgba(255,255,255,0.06);color:#fff;}
+.nav-flyout-item.active{color:var(--accent);background:rgba(var(--accent-rgb),0.14);}
+@media(max-width:900px){
+  .nav-flyout{left:12px;right:12px;min-width:0;top:auto;bottom:calc(100% + 8px);}
+}
 /* Everfit All Clients table */
 .cl-everfit{flex:1;overflow:auto;display:flex;flex-direction:column;min-height:0;}
 .cl-everfit-filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:14px 18px;border-bottom:1px solid var(--border);}
