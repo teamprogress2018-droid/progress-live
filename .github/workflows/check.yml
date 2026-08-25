@@ -86,6 +86,9 @@ jobs:
       - name: 1i6. Testy tooltipów edukacyjnych (serie/RPE/metoda)
         run: node .github/scripts/test_edu_tooltips.js
 
+      - name: 1i7. Testy scrolla sidebara kreatora
+        run: node .github/scripts/test_builder_sidebar_scroll.js
+
       - name: 1j. Testy parsera JSON generatora AI
         run: node .github/scripts/test_ai_plan_json.js
 
