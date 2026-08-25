@@ -305,7 +305,8 @@
           <div class="form-field" style="margin-bottom:0;"><label class="form-lbl">Metoda <button type="button" class="edu-tip" data-edu="method" id="b-method-tip-btn" aria-label="Wyjaśnienie metody">?</button></label>
             <select class="form-select" id="b-method" onchange="builderOnMethodChange()">
               <option value="PPL">Push/Pull/Legs (PPL)</option><option value="FBW">Full Body (FBW)</option>
-              <option value="Upper Lower">Upper/Lower</option><option value="Arnold">Arnold Split</option>
+              <option value="Upper Lower">Upper/Lower</option><option value="Obwodowy">Trening obwodowy</option>
+              <option value="Arnold">Arnold Split</option>
               <option value="Bro Split">Bro Split</option><option value="Własna">Własna struktura</option>
             </select>
             <div class="edu-inline-hint" id="b-method-hint"></div>
@@ -2101,6 +2102,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
           <button class="apl-opt active" data-val="PPL" onclick="aplToggleOpt(this,'apl-methods')">🔁 PPL (Push/Pull/Legs)</button>
           <button class="apl-opt" data-val="FBW" onclick="aplToggleOpt(this,'apl-methods')">🏋️ FBW (Full Body)</button>
           <button class="apl-opt" data-val="Upper/Lower" onclick="aplToggleOpt(this,'apl-methods')">⬆ Upper/Lower</button>
+          <button class="apl-opt" data-val="Obwodowy" onclick="aplToggleOpt(this,'apl-methods')">🔄 Trening obwodowy</button>
           <button class="apl-opt" data-val="531" onclick="aplToggleOpt(this,'apl-methods')">💥 5/3/1 Wendler</button>
           <button class="apl-opt" data-val="Blokowa" onclick="aplToggleOpt(this,'apl-methods')">📦 Periodyzacja blokowa</button>
           <button class="apl-opt" data-val="Custom" onclick="aplToggleOpt(this,'apl-methods')">✏️ Dostosowana</button>
@@ -3241,6 +3243,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
           <option value="PPL">Push / Pull / Legs (PPL)</option>
           <option value="FBW">Full Body (FBW)</option>
           <option value="Upper/Lower">Upper / Lower Split</option>
+          <option value="Obwodowy">Trening obwodowy</option>
           <option value="Bro Split">Bro Split</option>
           <option value="Arnold">Arnold Split</option>
           <option value="HIIT">HIIT / Cardio</option>
@@ -4001,11 +4004,11 @@ async function load(){
 
 <script src="ex-gif-manifest.js?v=17"></script>
 <script src="ex-photo-manifest.js?v=1"></script>
-<script src="01-core.js?v=30"></script>
+<script src="01-core.js?v=31"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=20"></script>
-<script src="03-ai-plangen-bizstats-aicoach.js?v=20"></script>
+<script src="03-ai-plangen-bizstats-aicoach.js?v=21"></script>
 <script src="04-client-portal.js?v=24"></script>
-<script src="05-clients-builder-plans-calendar.js?v=24"></script>
+<script src="05-clients-builder-plans-calendar.js?v=25"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=24"></script>
 <script src="07-forms-metrics-calculator.js?v=22"></script>
 <script src="08-client-profile-extras.js?v=27"></script>

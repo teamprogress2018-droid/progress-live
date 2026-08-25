@@ -80,6 +80,9 @@ jobs:
       - name: 1i4. Testy uzasadnienia metodycznego (dlaczego serie/metoda)
         run: node .github/scripts/test_method_rationale.js
 
+      - name: 1i4b. Testy metody Trening obwodowy
+        run: node .github/scripts/test_circuit_method.js
+
       - name: 1i5. Testy bazy dowodów / zasad trenera
         run: node .github/scripts/test_evidence_base.js
 

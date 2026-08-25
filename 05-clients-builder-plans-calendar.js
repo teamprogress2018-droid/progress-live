@@ -650,6 +650,7 @@ const BUILDER_METHOD_DAYS={
   PPL:['Push','Pull','Legs'],
   FBW:['FBW'],
   'Upper Lower':['Upper','Lower'],
+  Obwodowy:['Obwód A','Obwód B','Obwód C'],
   Arnold:['Arnold A','Arnold B','Arnold C'],
   'Bro Split':['Bro 1','Bro 2','Bro 3','Bro 4','Bro 5'],
   'Własna':null
@@ -1538,7 +1539,7 @@ window.refillClientCalendar=refillClientCalendar;
 // PLANS
 // ════════════════════════════════════════
 // Kolor akcentu karty wg metody treningowej — ten sam wzorzec co w Zasobach i Bibliotece ćwiczeń.
-const PLAN_METHOD_COLORS={PPL:'var(--accent)',FBW:'var(--teal)',UL:'var(--blue)','531':'var(--purple)',HIIT:'var(--red)',GZCLP:'var(--orange)'};
+const PLAN_METHOD_COLORS={PPL:'var(--accent)',FBW:'var(--teal)',UL:'var(--blue)','531':'var(--purple)',HIIT:'var(--red)',GZCLP:'var(--orange)',Obwodowy:'var(--orange)',Circuit:'var(--orange)'};
 
 function renderPlans(){
   const el=document.getElementById('plans-content');
