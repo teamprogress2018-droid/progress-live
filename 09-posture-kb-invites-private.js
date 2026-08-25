@@ -3215,8 +3215,61 @@ window.toggleMoreNav=toggleMoreNav;
 function closeLibraryFlyout(){
   const fly=document.getElementById('nav-library-flyout');
   const btn=document.getElementById('nav-library-btn');
-  if(fly)fly.setAttribute('hidden','');
+  const wrap=document.getElementById('nav-library-wrap');
+  if(fly){
+    fly.setAttribute('hidden','');
+    fly.style.left='';fly.style.top='';fly.style.right='';fly.style.bottom='';
+    fly.style.width='';fly.style.maxHeight='';
+    if(wrap&&fly.parentElement!==wrap)wrap.appendChild(fly);
+  }
   if(btn)btn.setAttribute('aria-expanded','false');
+}
+function _positionLibraryFlyout(){
+  const fly=document.getElementById('nav-library-flyout');
+  const btn=document.getElementById('nav-library-btn');
+  if(!fly||!btn||fly.hasAttribute('hidden'))return;
+  // Portal to body so sidebar-nav overflow cannot clip the menu
+  if(fly.parentElement!==document.body)document.body.appendChild(fly);
+  const r=btn.getBoundingClientRect();
+  const gap=10;
+  const pad=8;
+  const isNarrow=window.matchMedia('(max-width:900px)').matches;
+  if(isNarrow){
+    fly.style.left=pad+'px';
+    fly.style.right=pad+'px';
+    fly.style.width='auto';
+    fly.style.top='auto';
+    const spaceBelow=window.innerHeight-(r.bottom+gap);
+    const preferAbove=spaceBelow<220;
+    if(preferAbove){
+      fly.style.bottom=(window.innerHeight-r.top+gap)+'px';
+      fly.style.maxHeight=Math.max(160,r.top-gap-pad)+'px';
+    }else{
+      fly.style.bottom='auto';
+      fly.style.top=(r.bottom+gap)+'px';
+      fly.style.maxHeight=Math.max(160,window.innerHeight-r.bottom-gap-pad)+'px';
+    }
+    return;
+  }
+  fly.style.right='auto';
+  fly.style.bottom='auto';
+  fly.style.width='';
+  let left=r.right+gap;
+  const maxW=Math.min(280,window.innerWidth-pad*2);
+  if(left+maxW>window.innerWidth-pad)left=Math.max(pad,r.left-maxW-gap);
+  let top=Math.max(pad,r.top-8);
+  fly.style.left=left+'px';
+  fly.style.top=top+'px';
+  fly.style.maxHeight=(window.innerHeight-top-pad)+'px';
+  requestAnimationFrame(function(){
+    if(fly.hasAttribute('hidden'))return;
+    const fr=fly.getBoundingClientRect();
+    let t=fr.top;
+    if(fr.bottom>window.innerHeight-pad)t=Math.max(pad,window.innerHeight-pad-fr.height);
+    if(t<pad)t=pad;
+    fly.style.top=t+'px';
+    fly.style.maxHeight=(window.innerHeight-t-pad)+'px';
+  });
 }
 function toggleLibraryFlyout(ev){
   if(ev&&typeof ev==='object'){
@@ -3231,7 +3284,8 @@ function toggleLibraryFlyout(ev){
   if(open){
     fly.removeAttribute('hidden');
     if(btn)btn.setAttribute('aria-expanded','true');
-    window._libFlyIgnoreUntil=Date.now()+250;
+    window._libFlyIgnoreUntil=Date.now()+280;
+    _positionLibraryFlyout();
   }else closeLibraryFlyout();
 }
 function _libraryFlyoutOutside(e){
@@ -3239,12 +3293,20 @@ function _libraryFlyoutOutside(e){
   const wrap=document.getElementById('nav-library-wrap');
   const fly=document.getElementById('nav-library-flyout');
   if(!wrap||!fly||fly.hasAttribute('hidden'))return;
-  if(wrap.contains(e.target))return;
+  if(wrap.contains(e.target)||fly.contains(e.target))return;
   closeLibraryFlyout();
 }
+function _libraryFlyoutReposition(){
+  const fly=document.getElementById('nav-library-flyout');
+  if(!fly||fly.hasAttribute('hidden'))return;
+  _positionLibraryFlyout();
+}
 document.addEventListener('click',_libraryFlyoutOutside);
+window.addEventListener('resize',_libraryFlyoutReposition);
+document.addEventListener('scroll',_libraryFlyoutReposition,true);
 window.toggleLibraryFlyout=toggleLibraryFlyout;
 window.closeLibraryFlyout=closeLibraryFlyout;
+window._positionLibraryFlyout=_positionLibraryFlyout;
 
 window.goTo=goTo;window.openM=openM;window.closeM=closeM;
 window.saveClient=saveClient;window.saveSess=saveSess;window.saveEx=saveEx;window.savePlan=savePlan;window.delPlan=delPlan;
