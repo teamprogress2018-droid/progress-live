@@ -371,15 +371,26 @@ function renderOnbOverview(){
   const el=document.getElementById('onb-overview-tab');if(!el)return;
   const completed=ONB_ACTIVE.filter(o=>o.step>=ONB_STEPS.length).length;
   const inProgress=ONB_ACTIVE.filter(o=>o.step<ONB_STEPS.length).length;
+  const waiting=Math.max(0,(window.CL||[]).filter(c=>c&&c.status!=='archived').length-ONB_ACTIVE.length);
+  const avgDays=(()=>{
+    const done=ONB_ACTIVE.filter(o=>o.step>=ONB_STEPS.length&&o.startDate);
+    if(!done.length)return'—';
+    const today=new Date();
+    const sum=done.reduce((s,o)=>{
+      const a=new Date(o.startDate);if(isNaN(a))return s;
+      return s+Math.max(0,Math.round((today-a)/86400000));
+    },0);
+    return Math.round((sum/done.length)*10)/10;
+  })();
 
   el.innerHTML=`
     <!-- KPI -->
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;">
       ${[
         {icon:'🔄',label:'W trakcie',val:inProgress,col:'var(--accent)'},
-        {icon:'✅',label:'Ukończone',val:completed+8,col:'var(--teal)'},
-        {icon:'⏳',label:'Oczekujące',val:CL.length-ONB_ACTIVE.length,col:'var(--orange)'},
-        {icon:'📊',label:'Śr. czas (dni)',val:4.2,col:'var(--blue)'},
+        {icon:'✅',label:'Ukończone',val:completed,col:'var(--teal)'},
+        {icon:'⏳',label:'Bez onboardingu',val:waiting,col:'var(--orange)'},
+        {icon:'📊',label:'Śr. czas (dni)',val:avgDays,col:'var(--blue)'},
       ].map(s=>`<div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:16px;">
         <div style="font-size:20px;margin-bottom:6px;">${s.icon}</div>
         <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${s.col};line-height:1;">${s.val}</div>

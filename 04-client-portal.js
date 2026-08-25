@@ -448,7 +448,8 @@ function capClientProgressScreenHTML(c,accent){
   const avg=typeof avgSessionRating==='function'?avgSessionRating(logged):0;
   const prs=typeof clientExercisePRs==='function'?clientExercisePRs(c.id).slice(0,10):[];
   const photosOn=typeof ppFeatureOn==='function'?ppFeatureOn(c):true;
-  const massEntries=capMetricEntries(c,'mg1');
+  const metricsOn=typeof bmFeatureOn==='function'?bmFeatureOn(c):true;
+  const massEntries=metricsOn?capMetricEntries(c,'mg1'):[];
   const firstMass=massEntries[0]&&massEntries[0].values&&massEntries[0].values.m1;
   const lastMass=massEntries.length&&massEntries[massEntries.length-1].values&&massEntries[massEntries.length-1].values.m1;
   const massDiff=firstMass&&lastMass?(Math.round((lastMass-firstMass)*10)/10):null;
@@ -461,10 +462,10 @@ function capClientProgressScreenHTML(c,accent){
   const checkins=(window.CHECKINS&&window.CHECKINS[c.id])||[];
   const ciFilled=checkins.filter(x=>x.status==='filled'&&x.answers).slice(-8);
   const ciPts=ciFilled.map(x=>({d:x.date,v:typeof scoreCheckinAnswers==='function'?scoreCheckinAnswers(x.answers):0})).filter(p=>p.v>0);
-  const measureEntries=capMetricEntries(c,'mg2');
+  const measureEntries=metricsOn?capMetricEntries(c,'mg2'):[];
   const lastMeas=measureEntries[measureEntries.length-1];
   const mv=lastMeas&&lastMeas.values||{};
-  const garmin=capGarminEntries(c);
+  const garmin=metricsOn?capGarminEntries(c):[];
   const stepsPts=garmin.slice(0,14).reverse().map(e=>({d:e.date,v:parseFloat(e.values&&e.values.m1)||0})).filter(p=>p.v>0);
   const maxPr=prs.length?Math.max(...prs.map(p=>p.epley||0),1):1;
   return `
@@ -473,12 +474,13 @@ function capClientProgressScreenHTML(c,accent){
         <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;">MOJE POSTĘPY</div>
         ${capClientSectionVisible('calendar')?`<button type="button" class="btn btn-ghost btn-sm" onclick="capGoScreen('calendar')">📅 Kalendarz</button>`:''}
       </div>
+      ${!metricsOn?`<div style="background:var(--s3);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:12px;font-size:12px;color:${CAP_MUTED};line-height:1.45;">📏 Pomiary ciała (masa, obwody, Garmin) są wyłączone przez trenera — widać treningi, rekordy i historię.</div>`:''}
       <div class="cap-stat-kpi-row" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;">
-        <div class="cap-stat-card" style="background:${CAP_S2};border-radius:16px;padding:14px;border:1px solid ${CAP_S3};">
+        ${metricsOn?`<div class="cap-stat-card" style="background:${CAP_S2};border-radius:16px;padding:14px;border:1px solid ${CAP_S3};">
           <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:6px;">⚖️ Masa ciała</div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${CAP_TEXT};line-height:1;">${escHtml(String(w))}<span style="font-size:12px;color:${CAP_MUTED};"> kg</span></div>
           ${massDiff!=null?'<div style="font-size:11px;margin-top:4px;color:'+(massDiff<=0?'#3ecfb2':'#ff8c42')+';">'+(massDiff>0?'+':'')+massDiff+' kg od startu</div>':''}
-        </div>
+        </div>`:''}
         <div class="cap-stat-card" style="background:${CAP_S2};border-radius:16px;padding:14px;border:1px solid ${CAP_S3};">
           <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:6px;">🏋️ Sesje (30 dni)</div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${accent};line-height:1;">${sess30}</div>
@@ -495,7 +497,7 @@ function capClientProgressScreenHTML(c,accent){
           <div style="font-size:11px;color:${CAP_MUTED};margin-top:4px;">zapisane serie robocze</div>
         </div>
       </div>
-      ${massPts.length>=2?`<div class="cap-chart-card" style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
+      ${metricsOn&&massPts.length>=2?`<div class="cap-chart-card" style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
         <div style="font-size:12px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">Trend masy ciała</div>
         <div style="font-size:10px;color:${CAP_MUTED};margin-bottom:10px;">Pomiary od trenera · ostatnie ${massPts.length} wpisów</div>
         ${capSparklineSVG(massPts,accent,340,80)}
@@ -512,7 +514,7 @@ function capClientProgressScreenHTML(c,accent){
           ${capSparklineSVG(ciPts,'#0055a4',340,72)}
         </div>`:''}
       </div>
-      ${lastMeas?`<div class="cap-chart-card" style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
+      ${metricsOn&&lastMeas?`<div class="cap-chart-card" style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
         <div style="font-size:12px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">📏 Ostatnie obwody</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
           ${[{k:'m1',l:'Klatka'},{k:'m2',l:'Talia'},{k:'m3',l:'Biodra'},{k:'m4',l:'Udo'},{k:'m5',l:'Ramię'}].map(x=>{
@@ -522,7 +524,7 @@ function capClientProgressScreenHTML(c,accent){
         </div>
         <div style="font-size:10px;color:${CAP_MUTED};margin-top:8px;">${escHtml(lastMeas.date||'')}</div>
       </div>`:''}
-      ${stepsPts.length>=2?`<div class="cap-chart-card" style="background:linear-gradient(135deg,rgba(0,124,195,0.15),rgba(0,124,195,0.04));border:1px solid rgba(0,124,195,0.35);border-radius:18px;padding:16px;margin-bottom:14px;">
+      ${metricsOn&&stepsPts.length>=2?`<div class="cap-chart-card" style="background:linear-gradient(135deg,rgba(0,124,195,0.15),rgba(0,124,195,0.04));border:1px solid rgba(0,124,195,0.35);border-radius:18px;padding:16px;margin-bottom:14px;">
         <div style="font-size:10px;font-family:'DM Mono',monospace;color:#5ec8ff;text-transform:uppercase;margin-bottom:6px;">⌚ Kroki (Garmin)</div>
         ${capSparklineSVG(stepsPts,'#5ec8ff',340,72)}
       </div>`:''}
@@ -642,6 +644,7 @@ function capScreenHTML(scr,c){
       </div>
       ${hero}
       ${(()=>{
+        if(typeof bmFeatureOn==='function'&&!bmFeatureOn(c))return '';
         const g=capLastGarmin(c);
         if(!g)return '';
         const v=g.values||{};
