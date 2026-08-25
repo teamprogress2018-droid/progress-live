@@ -146,6 +146,17 @@ ok('breath workouts demo', demo.filter((w) => w.format === 'breath').length >= 5
 ok('breath program op5', progs.some((p) => p.id === 'op5' && p.category === 'oddech'));
 ok('home no equipment program', progs.some((p) => p.id === 'op4' && p.category === 'dom' && ctx.odProgramSessionTotal(p) >= 4));
 ok('od programs for collection', ctx.odProgramsForCollection('mobilnosc').some((p) => p.id === 'op3'));
+ok('od workouts for collection', ctx.odWorkoutsForCollection('oddech').length >= 5);
+ok('sync missing demos', (() => {
+  windowObj.OD_WORKOUTS = [{ id: 'custom', name: 'X', url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', coll: 'fbw' }];
+  const n = ctx.syncMissingODDemoWorkouts();
+  return n >= 10 && ctx.odWorkoutsForCollection('dom').length >= 2 && ctx.odWorkoutsForCollection('oddech').length >= 5;
+})());
+ok('openODAddFilm exported', typeof ctx.openODAddFilm === 'function');
+ok('openODCollection exported', typeof ctx.openODCollection === 'function');
+ok('html collection films mount', fs.readFileSync(path.join(root, 'index.html'), 'utf8').includes('id="od-collection-films"'));
+ok('html coll options dom oddech', /id="odw-coll"[\s\S]*value="dom"[\s\S]*value="oddech"/.test(fs.readFileSync(path.join(root, 'index.html'), 'utf8')));
+ok('cache 09', /09-posture-kb-invites-private\.js\?v=30/.test(fs.readFileSync(path.join(root, 'index.html'), 'utf8')));
 windowObj._cliveOdProgId = 'op2';
 const odProgHtml2 = ctx.capScreenHTML('odprogram', { id: 'c-anna', name: 'Anna' });
 ok('client odprogram play buttons', /openODWorkout\('ow1'\)/.test(odProgHtml2));
