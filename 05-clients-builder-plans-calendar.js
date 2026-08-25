@@ -670,11 +670,11 @@ function addRow(dayId){
   const rows=document.querySelector('#'+dayId+' .ex-rows');
   const div=document.createElement('div');div.className='ex-row';
   div.innerHTML='<input type="text" placeholder="Nazwa ćwiczenia..." class="ex-inp ex-inp-name ex-ac-input" style="width:100%;" autocomplete="off" data-f="name" oninput="builderOnExNameChange(this.closest(\'.ex-row\'))">'
-    +'<input type="number" placeholder="4" class="ex-inp" data-f="sets" oninput="builderRefreshPeriodPreview()">'
-    +'<input type="text" placeholder="8-10" class="ex-inp" data-f="reps" oninput="builderRefreshPeriodPreview()">'
-    +'<input type="number" placeholder="kg" class="ex-inp" data-f="kg" title="Zostaw puste, jeśli liczysz z %1RM" oninput="builderRefreshPeriodPreview()">'
-    +'<input type="number" placeholder="8" class="ex-inp" data-f="rpe" oninput="builderRefreshPeriodPreview()">'
-    +'<input type="number" placeholder="2" class="ex-inp" data-f="rir" oninput="builderRefreshPeriodPreview()">'
+    +'<input type="number" placeholder="4" class="ex-inp" data-f="sets" oninput="builderOnPeriodFieldEdit(this)">'
+    +'<input type="text" placeholder="8-10" class="ex-inp" data-f="reps" oninput="builderOnPeriodFieldEdit(this)">'
+    +'<input type="number" placeholder="kg" class="ex-inp" data-f="kg" title="Zostaw puste, jeśli liczysz z %1RM" oninput="builderOnPeriodFieldEdit(this)">'
+    +'<input type="text" placeholder="8" class="ex-inp" data-f="rpe" inputmode="decimal" title="RPE — zmienia się z periodyzacją tygodnia" oninput="builderOnPeriodFieldEdit(this)">'
+    +'<input type="text" placeholder="2" class="ex-inp" data-f="rir" inputmode="decimal" title="RIR ≈ 10 − RPE — zmienia się z periodyzacją tygodnia" oninput="builderOnPeriodFieldEdit(this)">'
     +'<input type="text" placeholder="2min" class="ex-inp" data-f="rest" oninput="builderRefreshPeriodPreview()">'
     +'<input type="text" placeholder="2-0-2" class="ex-inp" data-f="tempo">'
     +'<div class="builder-row-tools">'
@@ -690,7 +690,7 @@ function addRow(dayId){
     +'<div class="builder-alt-chips"></div>'
     +'<input type="text" placeholder="Własny zamiennik (opcjonalnie)" class="ex-inp ex-inp-name builder-sub-input" data-f="alt" oninput="builderRefreshAltChips(this.closest(\'.ex-row\'))">'
     +'</div>'
-    +'<input type="number" placeholder="%1RM" class="ex-inp" data-f="pct1rm" min="1" max="150" step="0.5" title="Procent 1RM — kg z Pomiary → Siła bazowa" oninput="builderPreviewKg(this.closest(\'.ex-row\'));builderRefreshPeriodPreview()">'
+    +'<input type="number" placeholder="%1RM" class="ex-inp" data-f="pct1rm" min="1" max="150" step="0.5" title="Procent 1RM — kg z Pomiary → Siła bazowa" oninput="builderPreviewKg(this.closest(\'.ex-row\'));builderOnPeriodFieldEdit(this)">'
     +'<div class="ex-row-coach">'
     +'<input type="text" placeholder="Wskazówka dla klienta (np. łopatki ściągnięte)" class="ex-inp ex-inp-name builder-sub-input" data-f="note">'
     +'<input type="url" placeholder="Film: YouTube / Vimeo / .mp4 (lub auto z biblioteki)" class="ex-inp ex-inp-name builder-sub-input" data-f="video" title="Link do filmu techniki" oninput="builderRefreshTechMedia(this.closest(\'.ex-row\'))">'
@@ -964,6 +964,60 @@ function builderPreviewKg(row){
   kgEl.title=w.hint||'kg z %1RM';
 }
 window.builderPreviewKg=builderPreviewKg;
+function builderRirFromRpe(rpeStr){
+  const s=String(rpeStr||'').replace(/RPE\s*/ig,'').trim();
+  if(!s)return '';
+  const range=s.match(/(\d+(?:[.,]\d+)?)\s*[-–—]\s*(\d+(?:[.,]\d+)?)/);
+  if(range){
+    const a=10-parseFloat(String(range[1]).replace(',','.'));
+    const b=10-parseFloat(String(range[2]).replace(',','.'));
+    if(isNaN(a)||isNaN(b))return '';
+    const lo=Math.round(Math.min(a,b)*2)/2;
+    const hi=Math.round(Math.max(a,b)*2)/2;
+    return lo===hi?String(lo):(lo+'-'+hi);
+  }
+  const n=parseFloat(String(s).replace(',','.'));
+  if(isNaN(n))return '';
+  return String(Math.max(0,Math.round((10-n)*2)/2));
+}
+window.builderRirFromRpe=builderRirFromRpe;
+function builderNormalizeRpe(rpeStr){
+  return String(rpeStr||'').replace(/RPE\s*/ig,'').trim();
+}
+function builderCapturePeriodBase(row){
+  if(!row||row.dataset.periodBase)return;
+  const fields=['sets','reps','kg','rpe','rir','pct1rm'];
+  const o={};
+  fields.forEach(f=>{
+    const el=row.querySelector('[data-f="'+f+'"]');
+    o[f]=el?String(el.value||''):'';
+  });
+  row.dataset.periodBase=JSON.stringify(o);
+}
+function builderRestorePeriodBase(row){
+  if(!row||!row.dataset.periodBase)return;
+  try{
+    const o=JSON.parse(row.dataset.periodBase);
+    Object.keys(o).forEach(f=>{
+      const el=row.querySelector('[data-f="'+f+'"]');
+      if(el)el.value=o[f];
+    });
+  }catch(e){}
+  delete row.dataset.periodBase;
+}
+function builderOnPeriodFieldEdit(el){
+  const row=el&&el.closest('.ex-row');
+  if(row&&!(window._builderPeriodWeek>0))delete row.dataset.periodBase;
+  if(el&&el.getAttribute('data-f')==='rpe'&&row&&!(window._builderPeriodWeek>0)){
+    const rirEl=row.querySelector('[data-f="rir"]');
+    if(rirEl&&!String(rirEl.value||'').trim()){
+      const auto=builderRirFromRpe(el.value);
+      if(auto)rirEl.placeholder=auto;
+    }
+  }
+  builderRefreshPeriodPreview();
+}
+window.builderOnPeriodFieldEdit=builderOnPeriodFieldEdit;
 function builderShiftRepRange(val,delta){
   const s=String(val||'').trim();
   if(!s)return '';
@@ -999,20 +1053,30 @@ function builderWeekModel(level,idx){
   return arr[Math.max(0,Math.min(idx,arr.length-1))]||arr[0];
 }
 function builderWeekPreviewData(row,mod,idx){
-  const reps=(row.querySelector('[data-f="reps"]')||{}).value||'10';
-  const setsBase=parseInt((row.querySelector('[data-f="sets"]')||{}).value||'3',10)||3;
-  const kgBase=builderBaseKg(row);
+  const base=row&&row.dataset.periodBase?(()=>{try{return JSON.parse(row.dataset.periodBase);}catch(e){return null;}})():null;
+  const g=(f)=>{
+    if(base&&base[f]!=null&&base[f]!=='')return base[f];
+    return (row.querySelector('[data-f="'+f+'"]')||{}).value||'';
+  };
+  const reps=g('reps')||'10';
+  const setsBase=parseInt(g('sets')||'3',10)||3;
+  const kgRaw=g('kg');
+  const kgBase=kgRaw?parseFloat(kgRaw)||0:builderBaseKg(row);
   const nextSets=Math.max(1,setsBase+(mod.setDelta||0));
   const nextReps=builderShiftRepRange(reps,mod.repDelta||0);
   const nextKg=kgBase?Math.max(0,Math.round((kgBase*((100+(mod.loadPct||0))/100))*2)/2):0;
-  return {idx,sets:nextSets,reps:nextReps,kg:nextKg,rpe:mod.rpe||'',deload:!!mod.deload};
+  const rpe=builderNormalizeRpe(mod.rpe||g('rpe')||'');
+  const rir=builderRirFromRpe(rpe)||g('rir')||'';
+  return {idx,sets:nextSets,reps:nextReps,kg:nextKg,rpe,rir,deload:!!mod.deload};
 }
 function builderBaseKg(row){
-  const kgVal=(row.querySelector('[data-f="kg"]')||{}).value||'';
+  const base=row&&row.dataset.periodBase?(()=>{try{return JSON.parse(row.dataset.periodBase);}catch(e){return null;}})():null;
+  const kgVal=(base&&base.kg!=null&&base.kg!=='')?base.kg:((row.querySelector('[data-f="kg"]')||{}).value||'');
   if(kgVal)return parseFloat(kgVal)||0;
   const cid=(document.getElementById('b-client')||{}).value||'';
   const name=(row.querySelector('[data-f="name"]')||{}).value||'';
-  const pct=typeof parsePct1RM==='function'?parsePct1RM((row.querySelector('[data-f="pct1rm"]')||{}).value||''):'';
+  const pctRaw=(base&&base.pct1rm!=null&&base.pct1rm!=='')?base.pct1rm:((row.querySelector('[data-f="pct1rm"]')||{}).value||'');
+  const pct=typeof parsePct1RM==='function'?parsePct1RM(pctRaw):'';
   if(!pct||!cid||typeof weightFromPct1RM!=='function')return 0;
   const w=weightFromPct1RM(cid,name,pct);
   return parseFloat(w.kg)||0;
@@ -1024,19 +1088,33 @@ function builderRefreshPeriodPreview(){
   const mod=builderWeekModel(c.level||'sredni',idx);
   document.querySelectorAll('#builder-days .ex-row').forEach(row=>{
     const box=row.querySelector('.builder-period-preview');
-    if(!box)return;
-    const pv=builderWeekPreviewData(row,mod,idx);
-    const bits=[
-      `TYDZ ${idx+1}`,
-      pv.sets+' serie',
-      pv.reps+' powt.',
-      (pv.kg?pv.kg+' kg':'kg bez zmiany'),
-      'RPE '+pv.rpe,
-      pv.deload?'deload / mniej objętości':'progresja aktywna'
-    ];
-    box.style.display=idx>0?'block':'none';
-    box.innerHTML=`<div style="margin-top:8px;padding:8px 10px;border-radius:8px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.18);font-size:10px;color:var(--muted);line-height:1.5;font-family:'DM Mono',monospace;">📈 ${bits.join(' · ')}</div>`;
-    ['sets','reps','kg','rpe'].forEach(f=>{
+    if(idx>0){
+      builderCapturePeriodBase(row);
+      const pv=builderWeekPreviewData(row,mod,idx);
+      const set=(f,v)=>{const el=row.querySelector('[data-f="'+f+'"]');if(el)el.value=v==null||v===''?'':String(v);};
+      set('sets',pv.sets);
+      set('reps',pv.reps);
+      if(pv.kg)set('kg',pv.kg);
+      set('rpe',pv.rpe);
+      set('rir',pv.rir);
+      if(box){
+        box.style.display='block';
+        const bits=[
+          `TYDZ ${idx+1}`,
+          pv.sets+' serie',
+          pv.reps+' powt.',
+          (pv.kg?pv.kg+' kg':'kg bez zmiany'),
+          'RPE '+pv.rpe,
+          (pv.rir?'RIR '+pv.rir:''),
+          pv.deload?'deload / mniej objętości':'progresja aktywna'
+        ].filter(Boolean);
+        box.innerHTML=`<div style="margin-top:8px;padding:8px 10px;border-radius:8px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.18);font-size:10px;color:var(--muted);line-height:1.5;font-family:var(--font-ui);">📈 Podgląd tygodnia — ${bits.join(' · ')}. Kliknij „Użyj wartości…”, aby zapisać w formularzu.</div>`;
+      }
+    }else{
+      builderRestorePeriodBase(row);
+      if(box){box.style.display='none';box.innerHTML='';}
+    }
+    ['sets','reps','kg','rpe','rir'].forEach(f=>{
       const input=row.querySelector('[data-f="'+f+'"]');
       if(input)input.classList.toggle('period-preview-on',idx>0);
     });
@@ -1066,7 +1144,7 @@ function updatePeriod(){
     ${sportLbl}
   </div>`:'';
   const activeIdx=window._builderPeriodWeek||0;
-  el.innerHTML=sportBar+rmBar+`<div class="ui-section-sub" style="margin-bottom:12px;">Kliknij tydzień, aby podejrzeć jak zmienią się serie, powtórzenia i kg w planie.</div>`+sch.map((w,i)=>`<button type="button" class="period-row${activeIdx===i?' active':''}" onclick="builderSelectPeriodWeek(${i})"><div class="period-row-week" style="color:${w.cel.includes('DELOAD')?'var(--orange)':w.nr===1?'var(--accent)':'var(--blue)'};">Tydz. ${w.nr}</div><div style="min-width:0;flex:1;"><div class="period-row-title">${w.cel}</div><div class="period-row-sub">${w.rpe}</div></div></button>`).join('')+(activeIdx>0?`<button type="button" class="btn btn-primary btn-sm" style="width:100%;margin-top:12px;" onclick="builderApplyPeriodWeek()">Użyj wartości z tygodnia ${activeIdx+1} w formularzu</button>`:'');
+  el.innerHTML=sportBar+rmBar+`<div class="ui-section-sub" style="margin-bottom:12px;">Kliknij tydzień, aby podejrzeć serie, powtórzenia, kg, <b>RPE</b> i <b>RIR</b> w wierszach ćwiczeń.</div>`+sch.map((w,i)=>`<button type="button" class="period-row${activeIdx===i?' active':''}" onclick="builderSelectPeriodWeek(${i})"><div class="period-row-week" style="color:${w.cel.includes('DELOAD')?'var(--orange)':w.nr===1?'var(--accent)':'var(--blue)'};">Tydz. ${w.nr}</div><div style="min-width:0;flex:1;"><div class="period-row-title">${w.cel}</div><div class="period-row-sub">${w.rpe}</div></div></button>`).join('')+(activeIdx>0?`<button type="button" class="btn btn-primary btn-sm" style="width:100%;margin-top:12px;" onclick="builderApplyPeriodWeek()">Użyj wartości z tygodnia ${activeIdx+1} w formularzu</button>`:'');
   document.querySelectorAll('#builder-days .ex-row').forEach(r=>{if(typeof builderPreviewKg==='function')builderPreviewKg(r);});
   builderRefreshPeriodPreview();
 }
@@ -1082,19 +1160,19 @@ function builderApplyPeriodWeek(){
   const c=CL.find(x=>x.id===cid)||{};
   const mod=builderWeekModel(c.level||'sredni',idx);
   document.querySelectorAll('#builder-days .ex-row').forEach(row=>{
+    builderCapturePeriodBase(row);
     const pv=builderWeekPreviewData(row,mod,idx);
-    const setEl=row.querySelector('[data-f="sets"]');
-    const repsEl=row.querySelector('[data-f="reps"]');
-    const kgEl=row.querySelector('[data-f="kg"]');
-    const rpeEl=row.querySelector('[data-f="rpe"]');
-    if(setEl)setEl.value=String(pv.sets);
-    if(repsEl)repsEl.value=pv.reps;
-    if(kgEl&&pv.kg)kgEl.value=String(pv.kg);
-    if(rpeEl&&pv.rpe)rpeEl.value=String(pv.rpe).replace('RPE ','');
+    const set=(f,v)=>{const el=row.querySelector('[data-f="'+f+'"]');if(el)el.value=v==null||v===''?'':String(v);};
+    set('sets',pv.sets);
+    set('reps',pv.reps);
+    if(pv.kg)set('kg',pv.kg);
+    set('rpe',pv.rpe);
+    set('rir',pv.rir);
+    delete row.dataset.periodBase;
   });
   window._builderPeriodWeek=0;
   updatePeriod();
-  notify('✓ Wstawiono wartości z wybranego tygodnia');
+  notify('✓ Wstawiono wartości z wybranego tygodnia (serie, powt., kg, RPE, RIR)');
 }
 window.builderApplyPeriodWeek=builderApplyPeriodWeek;
 function getPeriod(level){
