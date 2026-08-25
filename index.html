@@ -13,7 +13,7 @@
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="globals.css?v=17">
-<link rel="stylesheet" href="styles.css?v=20">
+<link rel="stylesheet" href="styles.css?v=21">
 </head>
 <body>
 
@@ -2691,15 +2691,21 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <div style="font-size:11px;color:var(--muted);" id="cp-sub">—</div>
       </div>
     </div>
-    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
-      <button class="btn btn-primary btn-sm" id="cp-edit-btn" onclick="startCPEdit(cpClientId)">✏️ Edytuj profil</button>
-      <button class="btn btn-ghost btn-sm" onclick="cpQuickMessage()">💬 Wiadomość</button>
-      <button class="btn btn-ghost btn-sm" onclick="cpQuickCheckin()">✓ Check-in</button>
-      <button class="btn btn-ghost btn-sm" onclick="openReportForClient(cpClientId)">📊 Podsumowanie</button>
+    <div class="cp-hdr-actions">
+      <button class="btn btn-ghost btn-sm" onclick="cpQuickMessage()" title="Inbox">💬 Wiadomość</button>
       <button class="btn btn-primary btn-sm" onclick="cpStartLive()">▶ Trening Live</button>
-      <button type="button" class="btn btn-ghost btn-sm" id="cp-archive-btn" onclick="archiveClient(cpClientId)" title="Schowaj z aktywnej listy">🗃 Zarchiwizuj</button>
-      <button type="button" class="btn btn-ghost btn-sm" id="cp-restore-btn" onclick="restoreClient(cpClientId)" style="display:none;" title="Przywróć do aktywnych">↩ Przywróć</button>
-      <button type="button" class="btn btn-ghost btn-sm" id="cp-delete-btn" onclick="deleteClientPermanently(cpClientId)" style="color:var(--red);" title="Usuń na zawsze">🗑 Usuń</button>
+      <div class="cp-hdr-more-wrap">
+        <button type="button" class="btn btn-ghost btn-sm" id="cp-hdr-more-btn" onclick="toggleCpHdrMore(event)" aria-expanded="false" aria-haspopup="true" title="Więcej akcji">⋯</button>
+        <div class="cp-hdr-more-menu" id="cp-hdr-more-menu" hidden>
+          <button type="button" id="cp-edit-btn" onclick="toggleCpHdrMore(false);startCPEdit(cpClientId)">✏️ Edytuj profil</button>
+          <button type="button" onclick="toggleCpHdrMore(false);cpQuickCheckin()">✓ Wyślij check-in</button>
+          <button type="button" onclick="toggleCpHdrMore(false);setCPTab('progress')">📈 Progress / podsumowanie</button>
+          <div class="cp-hdr-more-sep"></div>
+          <button type="button" id="cp-archive-btn" onclick="toggleCpHdrMore(false);archiveClient(cpClientId)">🗃 Zarchiwizuj</button>
+          <button type="button" id="cp-restore-btn" onclick="toggleCpHdrMore(false);restoreClient(cpClientId)" style="display:none;">↩ Przywróć</button>
+          <button type="button" id="cp-delete-btn" onclick="toggleCpHdrMore(false);deleteClientPermanently(cpClientId)" style="color:var(--red);">🗑 Usuń</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -3950,9 +3956,8 @@ async function load(){
 <script src="05-clients-builder-plans-calendar.js?v=18"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=20"></script>
 <script src="07-forms-metrics-calculator.js?v=20"></script>
-<script src="08-client-profile-extras.js?v=21"></script>
-<script src="08-client-profile-extras.js?v=23"></script>
-<script src="09-posture-kb-invites-private.js?v=20"></script>
+<script src="08-client-profile-extras.js?v=24"></script>
+<script src="09-posture-kb-invites-private.js?v=21"></script>
 <script src="10-client-app.js?v=22"></script>
 </body>
 </html>

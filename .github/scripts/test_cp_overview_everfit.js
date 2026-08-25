@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 'use strict';
-/** Client profile Overview: Everfit-like main + right rail. */
+/** Client profile Overview: Everfit-like main + right rail (display-only). */
 const fs = require('fs');
 const path = require('path');
 
@@ -32,16 +32,18 @@ ok('last workout', overview.includes('Ostatni trening'));
 ok('body metrics cards', overview.includes('Pomiary ciała') && overview.includes('cp-ov-metrics-grid'));
 ok('weight metric', overview.includes("metricCard('Waga'"));
 ok('metric sparklines', overview.includes('cpOvSparkSVG') || /function\s+cpOvSparkSVG/.test(src));
-ok('update all metrics', overview.includes('Aktualizuj wszystkie'));
+ok('metrics link to progress', overview.includes("setCPTab('progress')") && overview.includes('Aktualizuj pomiary'));
 ok('goal rail', overview.includes("railCard('Cel'"));
 ok('notes rail', overview.includes("railCard('Notatki'"));
 ok('injuries rail', overview.includes('Ograniczenia'));
-ok('photos rail', overview.includes('Zdjęcia postępu') && overview.includes('Porównaj'));
+ok('photos rail clickable', overview.includes('Zdjęcia postępu') && overview.includes("setCPTab('photos')"));
 ok('updates from timeline', /function\s+cpOverviewUpdates/.test(src) && overview.includes('Aktualizacje'));
+ok('rail cards clickable not button spam', overview.includes('cp-ov-rail-card clickable') && !overview.includes('>Edytuj</button>'));
+ok('no duplicate message in profile rail', !/WhatsApp|mailto:/.test(overview));
 ok('no giant profile grid on overview', !overview.includes('cp-data-grid'));
 ok('no food journal on overview', !/Żywienie|Meal Plan|food journal/i.test(overview));
 ok('css layout', css.includes('.cp-ov-layout') && css.includes('.cp-ov-rail'));
-ok('wider cp-body', /id="cp-body"[^>]*max-width:1120px|max-width:1120px[^>]*id="cp-body"/.test(html.replace(/\s+/g,' ')) || html.includes('max-width:1120px') && html.includes('id="cp-body"'));
+ok('wider cp-body', html.includes('max-width:1120px') && html.includes('id="cp-body"'));
 
 if (failed) {
   console.error(failed + ' failed');

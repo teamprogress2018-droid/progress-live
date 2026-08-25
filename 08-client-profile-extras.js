@@ -878,10 +878,6 @@ function renderCPOverview(c){
   initClientData(c);
 
   const editing=window._cpEditingClientId===c.id;
-  const phoneDigits=String(c.phone||'').replace(/\D/g,'');
-  const waNum=phoneDigits?(phoneDigits.length===9?'48'+phoneDigits:phoneDigits):'';
-  const waHref=waNum?'https://wa.me/'+waNum:'';
-
   const goalLabels={masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja'};
   const levelLabels={poczatkujacy:'Początkujący',sredni:'Średni',zaawansowany:'Zaawansowany'};
   const goalText=goalLabels[c.goal]||c.goal||'—';
@@ -937,10 +933,13 @@ function renderCPOverview(c){
     </div>`;
   };
 
-  const railCard=(title,body,action)=>`<div class="cp-ov-rail-card">
-    <div class="cp-ov-rail-hd"><span>${title}</span>${action||''}</div>
+  const railCard=(title,body,onclick)=>{
+    const click=onclick?` class="cp-ov-rail-card clickable" role="button" tabindex="0" onclick="${onclick}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${onclick}}"`:` class="cp-ov-rail-card"`;
+    return `<div${click}>
+    <div class="cp-ov-rail-hd"><span>${title}</span></div>
     ${body}
   </div>`;
+  };
 
   document.getElementById('cp-body').innerHTML=`
     ${editing?cpClientDataEditHTML(c):''}
@@ -998,20 +997,20 @@ function renderCPOverview(c){
           </div>`:`<div class="cp-ov-last-wo muted">Brak zarejestrowanych treningów — klient jeszcze nic nie odhaczył.</div>`}
         </div>
 
-        <!-- Body metrics -->
-        <div class="cp-ov-card">
+        <!-- Body metrics → full story in Progress / Pomiary -->
+        <div class="cp-ov-card" style="cursor:pointer;" onclick="setCPTab('progress')">
           <div class="cp-ov-card-hd">
             <div class="cp-ov-card-title">Pomiary ciała</div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;">
-              ${metricsOn?`<button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('metrics')">Aktualizuj wszystkie</button>`:''}
-              <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('progress')">Progress →</button>
-            </div>
+            <span style="font-size:11px;color:var(--muted);">Progress →</span>
           </div>
-          ${metricsOn?`<div class="cp-ov-metrics-grid">
+          ${metricsOn?`<div class="cp-ov-metrics-grid" onclick="event.stopPropagation()">
             ${metricCard('Waga',weightVal,'kg',weightDelta,'Dodaj pomiar masy',weightSpark)}
             ${metricCard('Sen',sleepEntry?sleepEntry.values.m2:null,'/10',null,'Brak danych snu',sleepSpark)}
             ${metricCard('Tętno spocz.',hrEntry?(hrEntry.values.m1||hrEntry.values.m3):null,'bpm',hrDelta,'Brak danych',hrSpark)}
             ${metricCard('Kroki',stepsEntry?stepsEntry.values.m1:null,'',stepsDelta,'Import Garmin / pomiar',stepsSpark)}
+          </div>
+          <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;" onclick="event.stopPropagation()">
+            <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('metrics')">Aktualizuj pomiary</button>
           </div>`:`<div style="font-size:12px;color:var(--muted);padding:8px 0;">Pomiary ciała wyłączone w Funkcjach klienta.</div>`}
         </div>
 
@@ -1042,30 +1041,30 @@ function renderCPOverview(c){
         ${railCard('Cel',
           `<div style="font-size:14px;font-weight:700;line-height:1.4;margin-bottom:6px;">${escHtml(goalText)}</div>
            <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">${escHtml(levelText)}${c.trainingFreq?' · '+c.trainingFreq+'× / tydz.':''}${c.preferredTrainTime?' · '+escHtml(c.preferredTrainTime):''}</div>
-           <div class="cp-ov-shared-tag">Udostępnione klientowi</div>`,
-          `<button type="button" class="btn btn-ghost btn-sm" onclick="startCPEdit('${c.id}')">Edytuj</button>`)}
+           <div class="cp-ov-shared-tag">Udostępnione klientowi</div>
+           <div class="cp-ov-rail-hint">Kliknij, aby edytować profil</div>`,
+          `startCPEdit('${c.id}')`)}
 
         ${railCard('Notatki',
-          notes.length?notes.slice(0,2).map(n=>`<div class="cip-note" style="margin-bottom:8px;"><div>${escHtml(n.text)}</div><div class="cip-note-date">${escHtml(n.date||'')}</div></div>`).join('')
-            :'<div style="font-size:12px;color:var(--muted);">Brak notatek</div>',
-          `<button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('notes')">Wszystkie</button>`)}
+          (notes.length?notes.slice(0,2).map(n=>`<div class="cip-note" style="margin-bottom:8px;"><div>${escHtml(n.text)}</div><div class="cip-note-date">${escHtml(n.date||'')}</div></div>`).join('')
+            :'<div style="font-size:12px;color:var(--muted);">Brak notatek</div>')+
+          '<div class="cp-ov-rail-hint">Otwórz zakładkę Notatki</div>',
+          `setCPTab('notes')`)}
 
         ${railCard('Ograniczenia / kontuzje',
-          injuries?`<div style="font-size:12px;line-height:1.5;color:var(--text);">${escHtml(injuries)}</div>`
-            :'<div style="font-size:12px;color:var(--muted);">Brak wpisanych ograniczeń</div>',
-          `<button type="button" class="btn btn-ghost btn-sm" onclick="startCPEdit('${c.id}')">Edytuj</button>`)}
+          (injuries?`<div style="font-size:12px;line-height:1.5;color:var(--text);">${escHtml(injuries)}</div>`
+            :'<div style="font-size:12px;color:var(--muted);">Brak wpisanych ograniczeń</div>')+
+          '<div class="cp-ov-rail-hint">Kliknij, aby edytować profil</div>',
+          `startCPEdit('${c.id}')`)}
 
         ${photosOn?railCard('Zdjęcia postępu',
-          photos.length?`<div class="cp-ov-photos">${photos.map(p=>{
+          (photos.length?`<div class="cp-ov-photos">${photos.map(p=>{
             const src=p.front||p.side||p.back||'';
             return `<div class="cp-ov-photo">${src?`<img src="${src}" alt="">`:`<span>📷</span>`}<div class="cp-ov-photo-d">${escHtml(p.date||'')}</div></div>`;
-          }).join('')}</div>
-          <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
-            <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('photos')">Zobacz wszystkie</button>
-            ${photos.length>=2?`<button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('photos')">Porównaj</button>`:''}
-          </div>`
-            :'<div style="font-size:12px;color:var(--muted);">Brak zdjęć — dodaj w zakładce Zdjęcia</div>',
-          ''):''}
+          }).join('')}</div>`
+            :'<div style="font-size:12px;color:var(--muted);">Brak zdjęć</div>')+
+          '<div class="cp-ov-rail-hint">Zdjęcia w Progress</div>',
+          `setCPTab('photos')`):''}
 
         ${railCard('Profil',
           `<div class="cp-ov-profile-rows">
@@ -1074,19 +1073,17 @@ function renderCPOverview(c){
             <div><span>Wiek / wzrost</span><b>${c.age?c.age+' lat':'—'}${c.height?' · '+c.height+' cm':''}</b></div>
             <div><span>Status</span><b style="color:${c.status==='active'?'var(--teal)':c.status==='inactive'?'var(--orange)':'var(--muted)'};">${c.status==='active'?'Aktywny':c.status==='inactive'?'Nieaktywny':'Zarchiwizowany'}</b></div>
           </div>
-          ${waHref||c.email?`<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">
-            ${waHref?`<a class="btn btn-ghost btn-sm" href="${escHtml(waHref)}" target="_blank" rel="noopener">💬 WhatsApp</a>`:''}
-            ${c.email?`<a class="btn btn-ghost btn-sm" href="mailto:${escHtml(c.email)}">📧 Email</a>`:''}
-          </div>`:!c.phone?`<button type="button" class="btn btn-primary btn-sm" style="margin-top:10px;" onclick="startCPEdit('${c.id}')">+ Dodaj telefon</button>`:''}`,
-          `<button type="button" class="btn btn-ghost btn-sm" onclick="startCPEdit('${c.id}')">Edytuj</button>`)}
+          <div class="cp-ov-rail-hint">Kontakt: przycisk Wiadomość u góry</div>`,
+          `startCPEdit('${c.id}')`)}
 
         ${railCard('Aktualizacje',
-          updates.length?updates.map(u=>{
+          (updates.length?updates.map(u=>{
             const dayStr=(()=>{try{return new Date(u.date).toLocaleDateString('pl',{day:'numeric',month:'short'});}catch(e){return'';}})();
             return `<div class="cp-ov-update"><span class="cp-ov-update-ico">${(CTL_ICONS&&CTL_ICONS[u.type])||'•'}</span><div><div class="cp-ov-update-txt">${escHtml(u.text||'')}</div><div class="cp-ov-update-d">${escHtml(dayStr)}</div></div></div>`;
           }).join('')
-            :'<div style="font-size:12px;color:var(--muted);">Brak aktywności — sesje i pomiary pojawią się tu automatycznie</div>',
-          `<button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('timeline')">Oś czasu</button>`)}
+            :'<div style="font-size:12px;color:var(--muted);">Brak aktywności — sesje i pomiary pojawią się tu automatycznie</div>')+
+          '<div class="cp-ov-rail-hint">Pełna oś czasu</div>',
+          `setCPTab('timeline')`)}
       </aside>
     </div>`;
 }
@@ -1503,8 +1500,15 @@ function renderCPProgress(c){
 
   document.getElementById('cp-body').innerHTML=`
     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
-      <div class="cp-section-title" style="margin:0;">PROGRESS — STATYSTYKI</div>
-      <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('metrics')">📏 Pomiary</button>
+      <div>
+        <div class="cp-section-title" style="margin:0;">PROGRESS</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">Statystyki, pomiary i podsumowanie dla klienta</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button type="button" class="btn btn-primary btn-sm" onclick="openReportForClient('${c.id}')">📊 Podsumowanie</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('metrics')">📏 Pomiary</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('photos')">📸 Zdjęcia</button>
+      </div>
     </div>
 
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;">
