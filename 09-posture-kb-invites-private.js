@@ -2901,25 +2901,130 @@ function notify(msg){
 }
 
 // ════════════════════════════════════════
-// BAZA WIEDZY (KB) — kontekst dla AI Coach
+// BAZA WIEDZY (KB) — zasady, badania, kontekst planowania
 // ════════════════════════════════════════
 window.KB = window.KB || [];
+window._kbFilter = window._kbFilter || 'all';
+
+function setKbFilter(f,btn){
+  window._kbFilter=f||'all';
+  document.querySelectorAll('#kb-filters .wl-filter-chip').forEach(b=>b.classList.toggle('active',b===btn||b.dataset.kbF===window._kbFilter));
+  renderKB();
+}
+window.setKbFilter=setKbFilter;
+
+function openKbModal(prefill){
+  const p=prefill||{};
+  document.getElementById('kb-modal-title').textContent=p.title?'EDYTUJ WPIS':'NOWY WPIS DO BAZY WIEDZY';
+  document.getElementById('kb-kind').value=p.kind||'principle';
+  document.getElementById('kb-title').value=p.title||'';
+  document.getElementById('kb-text').value=p.text||'';
+  document.getElementById('kb-citation').value=p.citation||'';
+  document.getElementById('kb-url').value=p.sourceUrl||'';
+  document.getElementById('kb-use-planning').checked=p.useInPlanning!==false;
+  kbKindHint();
+  openM('m-kb');
+}
+window.openKbModal=openKbModal;
+
+function kbKindHint(){
+  const kind=document.getElementById('kb-kind')?.value||'note';
+  const el=document.getElementById('kb-kind-hint');
+  if(!el)return;
+  if(kind==='evidence')el.textContent='Dodaj link PubMed/DOI jeśli masz — aplikacja nie ściąga badań automatycznie, ale AI i panel „Dlaczego tak?” pokażą Twoje źródło.';
+  else if(kind==='principle')el.textContent='Twoje doświadczenie coachingowe ma priorytet w generatorze AI, gdy koliduje z ogólnikami.';
+  else el.textContent='Notatka ogólna — też może trafić do planu, jeśli zaznaczysz „Używaj przy planowaniu”.';
+}
+window.kbKindHint=kbKindHint;
+
+function kbKindLabel(kind){
+  const k=typeof normalizeKbKind==='function'?normalizeKbKind({kind}):kind;
+  return k==='evidence'?'Badanie':(k==='principle'?'Zasada':'Notatka');
+}
+function kbKindColor(kind){
+  const k=typeof normalizeKbKind==='function'?normalizeKbKind({kind}):kind;
+  return k==='evidence'?'var(--teal)':(k==='principle'?'var(--accent)':'var(--blue)');
+}
 
 function renderKB(){
   const el = document.getElementById('kb-list'); if(!el) return;
-  if(!KB.length){
-    el.innerHTML = '<div style="text-align:center;padding:50px;color:var(--muted);"><div style="font-size:36px;margin-bottom:10px;opacity:0.3;">📚</div><div>Brak wpisów. Dodaj pierwszą notatkę.</div></div>';
+  const filter=window._kbFilter||'all';
+  const list=(KB||[]).slice().reverse().filter(k=>{
+    if(filter==='all')return true;
+    const kind=typeof normalizeKbKind==='function'?normalizeKbKind(k):(k.kind||'note');
+    return kind===filter;
+  });
+  renderKbBuiltinPreview();
+  if(!list.length){
+    el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);"><div style="font-size:36px;margin-bottom:10px;opacity:0.3;">📚</div><div>Brak wpisów'+(filter!=='all'?' w tej kategorii':'')+'. Dodaj zasadę, badanie albo wczytaj pakiet startowy.</div></div>';
     return;
   }
-  el.innerHTML = KB.slice().reverse().map(k=>`
-    <div class="card-sm" style="border-left:3px solid var(--accent);">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
-        <div style="font-size:13px;font-weight:700;">${escHtml(k.title)}</div>
+  el.innerHTML = list.map(k=>{
+    const kind=typeof normalizeKbKind==='function'?normalizeKbKind(k):(k.kind||'note');
+    const planOn=typeof kbEntryUsesInPlanning==='function'?kbEntryUsesInPlanning(k):k.useInPlanning!==false;
+    const url=k.sourceUrl?`<a href="${escHtml(k.sourceUrl)}" target="_blank" rel="noopener noreferrer" style="font-size:11px;color:var(--teal);">Źródło ↗</a>`:'';
+    const cite=k.citation?`<div style="font-size:11px;color:var(--muted);margin-top:4px;">${escHtml(k.citation)}</div>`:'';
+    return `<div class="card-sm" style="border-left:3px solid ${kbKindColor(kind)};">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;">
+        <div>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:4px;">
+            <span class="pill" style="font-size:10px;background:rgba(255,255,255,0.06);color:${kbKindColor(kind)};">${kbKindLabel(kind)}</span>
+            ${planOn?'<span class="pill" style="font-size:10px;background:rgba(74,222,128,0.12);color:#4ade80;">Planowanie</span>':''}
+          </div>
+          <div style="font-size:13px;font-weight:700;">${escHtml(k.title)}</div>
+        </div>
         <button onclick="delKBEntry('${k.id}')" style="background:none;border:none;color:var(--muted2);font-size:16px;cursor:pointer;">×</button>
       </div>
       <div style="font-size:12px;color:var(--muted);line-height:1.6;white-space:pre-wrap;">${escHtml((k.text||'').substring(0,280))}${(k.text||'').length>280?'…':''}</div>
-    </div>`).join('');
+      ${cite}
+      <div style="margin-top:8px;display:flex;gap:10px;align-items:center;">${url}</div>
+    </div>`;
+  }).join('');
 }
+
+function renderKbBuiltinPreview(){
+  const wrap=document.getElementById('kb-builtin-preview');
+  if(!wrap)return;
+  const pack=window.BUILTIN_PLANNING_EVIDENCE||[];
+  if(!pack.length){wrap.innerHTML='';return;}
+  const imported=new Set((KB||[]).map(k=>k.builtinId).filter(Boolean));
+  const missing=pack.filter(b=>!imported.has(b.id));
+  wrap.innerHTML=`<div class="card-sm" style="border:1px dashed var(--border2);">
+    <div style="font-size:12px;font-weight:700;margin-bottom:6px;">Pakiet startowy (wbudowany)</div>
+    <div style="font-size:11px;color:var(--muted);line-height:1.55;margin-bottom:8px;">
+      ${pack.length} zasad/źródeł zawsze w kontekście AI i panelu „Dlaczego tak?”.
+      ${missing.length?` Możesz skopiować ${missing.length} do swojej bazy (edytowalne).`:' Wszystkie skopiowane do Twojej bazy.'}
+    </div>
+    <ul style="margin:0 0 10px;padding-left:16px;font-size:11px;color:var(--text-secondary);line-height:1.5;">
+      ${pack.slice(0,4).map(b=>`<li>${escHtml(b.title)}${b.sourceUrl?' · PubMed':''}</li>`).join('')}
+      ${pack.length>4?`<li>+${pack.length-4} więcej…</li>`:''}
+    </ul>
+    ${missing.length?`<button type="button" class="btn btn-ghost btn-sm" onclick="kbImportBuiltinPack()">📚 Dodaj pakiet do mojej bazy</button>`:''}
+  </div>`;
+}
+
+async function kbImportBuiltinPack(){
+  const pack=window.BUILTIN_PLANNING_EVIDENCE||[];
+  if(!pack.length){notify('Brak pakietu startowego');return;}
+  const have=new Set((KB||[]).map(k=>k.builtinId).filter(Boolean));
+  let n=0;
+  for(const b of pack){
+    if(have.has(b.id))continue;
+    const entry=withTrainer({
+      id:newId('kb'),kind:b.kind,title:b.title,text:b.text,
+      citation:b.citation||'',sourceUrl:b.sourceUrl||'',
+      useInPlanning:true,builtinId:b.id,createdAt:new Date().toISOString()
+    });
+    KB.push(entry);
+    n++;
+    await persistById('kb',entry);
+  }
+  renderKB();
+  if(typeof builderRefreshRationale==='function')try{builderRefreshRationale();}catch(e){}
+  if(typeof aplRefreshRationale==='function')try{aplRefreshRationale();}catch(e){}
+  notify(n?`✓ Dodano ${n} wpisów z pakietu startowego`:'✓ Pakiet już był w bazie');
+}
+window.kbImportBuiltinPack=kbImportBuiltinPack;
 
 async function saveKBEntry(){
   if(window._saveGuard_saveKBEntry)return;window._saveGuard_saveKBEntry=true;setTimeout(()=>window._saveGuard_saveKBEntry=false,1500);
@@ -2927,12 +3032,23 @@ async function saveKBEntry(){
   const title = document.getElementById('kb-title').value.trim();
   const text = document.getElementById('kb-text').value.trim();
   if(!title || !text){notify('Wpisz tytuł i treść!'); return;}
-  const entry = withTrainer({id:newId('kb'), title, text, createdAt:new Date().toISOString()});
+  const kind=document.getElementById('kb-kind')?.value||'note';
+  const citation=(document.getElementById('kb-citation')?.value||'').trim();
+  const sourceUrl=(document.getElementById('kb-url')?.value||'').trim();
+  const useInPlanning=!!document.getElementById('kb-use-planning')?.checked;
+  const entry = withTrainer({
+    id:newId('kb'), kind, title, text, citation, sourceUrl, useInPlanning,
+    createdAt:new Date().toISOString()
+  });
   KB.push(entry);
   closeM('m-kb');
-  document.getElementById('kb-title').value=''; document.getElementById('kb-text').value='';
+  ['kb-title','kb-text','kb-citation','kb-url'].forEach(id=>{const i=document.getElementById(id);if(i)i.value='';});
+  const kindEl=document.getElementById('kb-kind');if(kindEl)kindEl.value='principle';
+  const useEl=document.getElementById('kb-use-planning');if(useEl)useEl.checked=true;
   renderKB();
-  notify('✓ Wpis dodany do bazy wiedzy!');
+  if(typeof builderRefreshRationale==='function')try{builderRefreshRationale();}catch(e){}
+  if(typeof aplRefreshRationale==='function')try{aplRefreshRationale();}catch(e){}
+  notify('✓ Wpis dodany — '+(useInPlanning?'aktywny przy planowaniu':'tylko baza / AI Coach'));
   await persistById('kb', entry);
 }
 
@@ -2940,13 +3056,26 @@ async function delKBEntry(id){
   if(!confirm('Usunąć wpis?')) return;
   window.KB = KB.filter(k=>k.id!==id);
   renderKB();
+  if(typeof builderRefreshRationale==='function')try{builderRefreshRationale();}catch(e){}
   if(window._db){try{await window._del(window._doc(window._db,'kb',id));}catch(e){}}
 }
 
 function kbContextForAI(){
-  if(!KB.length) return '';
-  return '\n\n=== BAZA WIEDZY TRENERA (kontekst, wykorzystaj jeśli pomocne) ===\n'
-    + KB.map(k=>`### ${k.title}\n${(k.text||'').substring(0,600)}`).join('\n\n');
+  const planning=typeof planningEvidenceContext==='function'?planningEvidenceContext(3500):'';
+  const notes=(KB||[]).filter(k=>{
+    const kind=typeof normalizeKbKind==='function'?normalizeKbKind(k):(k.kind||'note');
+    return kind==='note'||k.useInPlanning===false;
+  });
+  let extra='';
+  if(notes.length){
+    extra='\n\n=== POZOSTAŁE NOTATKI TRENERA ===\n'+notes.map(k=>`### ${k.title}\n${(k.text||'').substring(0,500)}`).join('\n\n');
+  }
+  if(!planning&&!KB.length) return '';
+  if(!planning){
+    return '\n\n=== BAZA WIEDZY TRENERA (kontekst, wykorzystaj jeśli pomocne) ===\n'
+      + KB.map(k=>`### ${k.title}\n${(k.text||'').substring(0,600)}`).join('\n\n');
+  }
+  return planning+extra;
 }
 
 window.renderKB=renderKB; window.saveKBEntry=saveKBEntry; window.delKBEntry=delKBEntry; window.kbContextForAI=kbContextForAI;

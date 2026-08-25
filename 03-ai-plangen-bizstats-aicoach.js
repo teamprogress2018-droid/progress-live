@@ -660,7 +660,8 @@ ZASADY HIPERTROFII (STRICT — obowiązują zawsze, zwłaszcza przy celu masa/ks
 4. PARAMETRY: 3–4 serie robocze na ćwiczenie; złożone 6–10 powt., izolacje 8–12 lub 10–15; intensywność blisko upadku (RPE 8–10 ≈ RIR 0–2). W JSON dodaj pole "tempo" w formacie "3-1-1-0" (ekscentryka–pauza w stretchu–koncentryka–pauza) dla ćwiczeń priorytetowych i izolacji.
 5. W schema ćwiczenia: name, notes, muscleGroup, sets, reps, rest, rpe, kg, tempo (opcjonalne ale wymagane dla priorytetów).
 
-Każdy dzień: 4–6 ćwiczeń głównych + opcjonalnie core. Pole "notes" max 60 znaków — bez cudzysłowów w tekście (używaj apostrofów). warmupExercises: dokładnie 3 pozycje. Cała odpowiedź musi być poprawnym JSON bez komentarzy i bez markdown.`;
+Każdy dzień: 4–6 ćwiczeń głównych + opcjonalnie core. Pole "notes" max 60 znaków — bez cudzysłowów w tekście (używaj apostrofów). warmupExercises: dokładnie 3 pozycje. Cała odpowiedź musi być poprawnym JSON bez komentarzy i bez markdown.`
+  +(typeof kbContextForAI==='function'?kbContextForAI():(typeof planningEvidenceContext==='function'?planningEvidenceContext(3200):''));
 
   const userMsg=`Stwórz plan treningowy:
 - Cel: ${goal}

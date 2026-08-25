@@ -27,7 +27,7 @@ ok('buildMethodRationale exported',core.includes('function buildMethodRationale'
 ok('renderMethodRationaleHTML',core.includes('function renderMethodRationaleHTML'));
 ok('METHOD_WHY PPL',core.includes("PPL:{label:"));
 ok('GOAL_WHY masa sets',core.includes("masa:{")&&core.includes('3–4 serie'));
-ok('sources educational',core.includes('NSCA')&&core.includes('nie pobiera live PubMed'));
+ok('sources educational',core.includes('NSCA')&&(core.includes('nie pobiera live PubMed')||core.includes('Brak live PubMed')));
 ok('builder panel mount',html.includes('id="builder-rationale"'));
 ok('apl panel mount',html.includes('id="apl-rationale"'));
 ok('builder refresh hook',src05.includes('builderRefreshRationale'));
@@ -37,14 +37,14 @@ ok('aplRenderPlan embeds',src03.includes('renderMethodRationaleHTML'));
 ok('summary prompt longer',src03.includes('3–5 zdań dla trenera początkującego'));
 ok('template rationale',src02.includes('tplcRefreshRationale')&&src02.includes('tplc-rationale'));
 ok('css method-rationale',css.includes('.method-rationale'));
-ok('cache bumps',html.includes('01-core.js?v=26')&&html.includes('05-clients-builder-plans-calendar.js?v=22')&&html.includes('styles.css?v=29'));
+ok('cache bumps',html.includes('01-core.js?v=27')&&html.includes('05-clients-builder-plans-calendar.js?v=22')&&html.includes('styles.css?v=29'));
 
 const sandbox={window:{},console};
 vm.createContext(sandbox);
 const start=core.indexOf('// ════════════════════════════════════════\n// UZASADNIENIE METODYCZNE');
 const end=core.indexOf('window.normalizeRationaleMethod=normalizeRationaleMethod;')+'window.normalizeRationaleMethod=normalizeRationaleMethod;'.length;
 ok('slice found',start>=0&&end>start);
-vm.runInContext(core.slice(start,end),sandbox);
+vm.runInContext(core.slice(start,end)+'\nwindow.buildMethodRationale=buildMethodRationale;window.renderMethodRationaleHTML=renderMethodRationaleHTML;',sandbox);
 const b=sandbox.buildMethodRationale({method:'PPL',goal:'masa',level:'poczatkujacy',daysPerWeek:3});
 eq('PPL label',b.methodLabel,'Push / Pull / Legs');
 ok('PPL tip for 3 days',b.tips.some(t=>/PPL przy 3/.test(t)));
