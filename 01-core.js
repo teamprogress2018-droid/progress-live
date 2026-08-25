@@ -2555,6 +2555,8 @@ const METHOD_WHY={
   '531':{label:'5/3/1 Wendler',why:'Progresja %1RM na głównych wielostawach (przysiad, bench, deadlift, OHP) + asysty. Priorytet siły i długoterminowej progresji, nie maksymalnej objętości sylwetkowej.',best:'3–4 dni, cel siła'},
   '5/3/1':{label:'5/3/1 Wendler',why:'Progresja %1RM na głównych wielostawach + asysty. Priorytet siły.',best:'3–4 dni, cel siła'},
   Blokowa:{label:'Periodyzacja blokowa',why:'Bloki akumulacji → intensyfikacji → realizacji (+ deload). Objętość i intensywność nie rosną naraz — chroni przed stagnacją i przetrenowaniem.',best:'8–12+ tygodni, średni/zaawansowany'},
+  Obwodowy:{label:'Trening obwodowy (circuit)',why:'Stacje / rundy z krótkimi przerwami (lub bez) — wysoka gęstość pracy, tętno i wydatek energetyczny. Dobry do kondycji, redukcji i ograniczonego czasu sesji; słabszy wybór pod maksymalne 1RM.',best:'2–4 dni, redukcja, kondycja, sesje 30–45 min'},
+  Circuit:{label:'Trening obwodowy (circuit)',why:'Stacje / rundy z krótkimi przerwami — wysoka gęstość pracy i wydatek energetyczny. Dobry do kondycji i redukcji.',best:'2–4 dni, redukcja, kondycja'},
   Custom:{label:'Dostosowana',why:'Struktura pod klienta — uzasadnij częstotliwość partii (≥2×/tydzień przy hipertrofii) i objętość względem MEV/MAV.',best:'gdy sztywny split nie pasuje'},
   'Własna':{label:'Własna struktura',why:'Pełna kontrola trenera. Zapisz w notatkach planu, dlaczego taki układ dni i objętości.',best:'doświadczeni trenerzy'}
 };
@@ -2710,6 +2712,7 @@ function normalizeRationaleMethod(method){
   if(/^w[lł]asna/i.test(m))return'Własna';
   if(/^custom|dostosow/i.test(m))return'Custom';
   if(/^blok/i.test(m))return'Blokowa';
+  if(/^obwod|circuit|okr[eę]ż/i.test(m))return'Obwodowy';
   if(/^fbw|full\s*body/i.test(m))return'FBW';
   if(/^ppl|push/i.test(m))return'PPL';
   return m;
@@ -2726,6 +2729,8 @@ function buildMethodRationale(opts){
   const tips=[];
   if(methodKey==='PPL'&&days&&days<4)tips.push('PPL przy '+days+' dniach: rozważ FBW lub Upper/Lower, albo skrócone PPL (np. Push+quad / Pull+ham / Upper).');
   if(methodKey==='FBW'&&days>=5)tips.push('FBW przy '+days+' dniach bywa zbyt częste — rozważ Upper/Lower lub PPL, żeby dać partiom regenerację.');
+  if(methodKey==='Obwodowy'&&goalKey==='sila')tips.push('Obwód słabo buduje max 1RM — do siły dodaj 1–2 ciężkie wielostawy na początku albo wybierz PPL/531.');
+  if(methodKey==='Obwodowy'&&days&&days>=5)tips.push('Obwód ≥5×/tydzień mocno obciąża regenerację — skróć rundy lub przeplataj dni lżejsze.');
   if(methodKey==='Bro Split'&&(goalKey==='masa'||goalKey==='redukcja'))tips.push('Przy hipertrofii preferuj ≥2 stymulacje partii/tydzień — bro split daje zwykle 1×; świadomie zwiększ częstotliwość lub objętość priorytetów.');
   if(goalKey==='sila'&&methodKey==='PPL')tips.push('Siła + PPL OK, ale trzymaj ciężkie wielostawy na początku sesji i dłuższe przerwy (3–5 min).');
   tips.push('Zapisuj RPE/RIR — decyzje o +kg / +seriach opieraj na trendzie, nie na jednym „złym dniu”.');

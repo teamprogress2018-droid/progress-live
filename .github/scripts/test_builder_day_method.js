@@ -18,19 +18,20 @@ function ok(name,cond){
   else console.log('OK  ',name);
 }
 
-ok('BUILDER_METHOD_DAYS map',src.includes('BUILDER_METHOD_DAYS')&&src.includes("PPL:['Push','Pull','Legs']"));
+ok('BUILDER_METHOD_DAYS map',src.includes('BUILDER_METHOD_DAYS')&&src.includes("PPL:['Push','Pull','Legs']")&&src.includes("Obwodowy:['Obwód A'"));
 ok('builderDayFocusLabel helper',src.includes('function builderDayFocusLabel'));
 ok('builderRefreshAllDayFocus',src.includes('function builderRefreshAllDayFocus'));
 ok('addDay refreshes focus',src.includes('builderRefreshAllDayFocus()'));
 ok('toggleR refreshes focus',/function toggleR\(id\).{0,200}builderRefreshAllDayFocus/.test(src));
 ok('placeholder updated',src.includes('placeholder="Push, Pull, FBW…"'));
 ok('b-method onchange wired',html.includes('id="b-method" onchange="builderOnMethodChange()"'));
-ok('cache bump v24',html.includes('05-clients-builder-plans-calendar.js?v=24'));
+ok('cache bump v25',html.includes('05-clients-builder-plans-calendar.js?v=25'));
 
 const BUILDER_METHOD_DAYS={
   PPL:['Push','Pull','Legs'],
   FBW:['FBW'],
   'Upper Lower':['Upper','Lower'],
+  Obwodowy:['Obwód A','Obwód B','Obwód C'],
   Arnold:['Arnold A','Arnold B','Arnold C'],
   'Bro Split':['Bro 1','Bro 2','Bro 3','Bro 4','Bro 5'],
   'Własna':null
@@ -47,6 +48,8 @@ eq('PPL day 2',builderDayFocusLabel('PPL',2),'Legs');
 eq('PPL day 3 cycles',builderDayFocusLabel('PPL',3),'Push');
 eq('FBW always',builderDayFocusLabel('FBW',4),'FBW');
 eq('Upper/Lower alt',builderDayFocusLabel('Upper Lower',1),'Lower');
+eq('Obwodowy day 0',builderDayFocusLabel('Obwodowy',0),'Obwód A');
+eq('Obwodowy day 3 cycles',builderDayFocusLabel('Obwodowy',3),'Obwód A');
 eq('Własna empty',builderDayFocusLabel('Własna',0),'');
 
 if(failed){console.error(failed+' failed');process.exit(1);}

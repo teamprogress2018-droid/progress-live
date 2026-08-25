@@ -86,7 +86,7 @@ function aplShowWelcome(){
           {icon:'📅',txt:'Dni i czas sesji'},
           {icon:'🏋️',txt:'Dostępny sprzęt'},
           {icon:'🩺',txt:'Kontuzje i limity'},
-          {icon:'📋',txt:'Metoda (PPL/FBW/531)'},
+          {icon:'📋',txt:'Metoda (PPL/FBW/obwód/531)'},
           {icon:'✏️',txt:'Dodatkowe życzenia'},
         ].map(i=>`<div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:11px;color:var(--muted);"><div style="font-size:20px;margin-bottom:5px;">${i.icon}</div>${i.txt}</div>`).join('')}
       </div>
@@ -689,7 +689,14 @@ ${job?`- Rodzaj pracy (NEAT): ${job}`:''}
 ${notes?`- Dodatkowe uwagi: ${notes}`:''}
 ${client&&typeof clientSportProfileForAI==='function'?clientSportProfileForAI(Object.assign({},client,{priorSports:typeof readPriorSportsFrom==='function'?readPriorSportsFrom('apl'):(client.priorSports||[]),activityLevel:document.getElementById('apl-activity')?.value||client.activityLevel,sportNotes:document.getElementById('apl-sport-notes')?.value||client.sportNotes||''})):''}
 ${cid&&typeof clientMetricsContextForAI==='function'?clientMetricsContextForAI(cid):''}
-${client?`- Klient: ${client.name}, cel: ${client.goal}, poziom: ${client.level}`:''}${cid&&typeof sfrGetContextForAI==='function'?sfrGetContextForAI(cid):''}`;
+${client?`- Klient: ${client.name}, cel: ${client.goal}, poziom: ${client.level}`:''}${cid&&typeof sfrGetContextForAI==='function'?sfrGetContextForAI(cid):''}`
+  +(method==='Obwodowy'||/^obwod|circuit/i.test(String(method||''))?`
+
+STRUKTURA TRENINGU OBWODOWEGO (obowiązkowa przy tej metodzie):
+- Każdy dzień = 1–2 obwody (stacje). W "exercises" ułóż 5–8 stacji wykonywanych po kolei; w "notes" napisz np. "Stacja 1/6 — przejście bez odpoczynku" lub "Runda 2/3".
+- Przerwy: 0–30 s między stacjami, 90–180 s między rundami (pole "rest"). Powtórzenia często czasowe (np. "40s") lub 10–15.
+- RPE 6–8 (kondycja), nie gonij RPE 10 na każdej stacji. Dla redukcji OK; przy sile dodaj 1 ciężki wielostaw na start dnia z dłuższą przerwą.
+- dayName np. "Dzień 1 — Obwód A (full body)" / "Obwód B (góra+core)".`:'');
 
   try{
     const totalDays=parseInt(days)||4;
@@ -1742,7 +1749,7 @@ Bądź konkretny i profesjonalny, ale przyjazny.`,
   },
   plan:{
     label:'📋 Generator planu',
-    system:`Jesteś ekspertem od programowania treningowego. Tworzysz spersonalizowane plany treningowe oparte o zasady periodyzacji, specyfice celu klienta i jego możliwościach. Znasz metody PPL, FBW, Upper/Lower, 5/3/1, Block Periodization i inne. Komunikujesz się po polsku.
+    system:`Jesteś ekspertem od programowania treningowego. Tworzysz spersonalizowane plany treningowe oparte o zasady periodyzacji, specyfice celu klienta i jego możliwościach. Znasz metody PPL, FBW, Upper/Lower, trening obwodowy (circuit), 5/3/1, Block Periodization i inne. Komunikujesz się po polsku.
 Gdy generujesz plan:
 - Podaj strukturę tygodnia (np. PN/ŚR/PT)
 - Dla każdego dnia podaj ćwiczenia z seriami×powtórzeniami
@@ -1861,6 +1868,7 @@ function renderAICTools(){
       {icon:'📋',title:'PPL 3-dniowy',desc:'Push/Pull/Legs — 3 sesje w tygodniu',q:'Wygeneruj plan PPL na 3 dni w tygodniu dla klienta.'},
       {icon:'🏋️',title:'FBW 3x/tydzień',desc:'Full Body Workout — dla początkujących',q:'Stwórz plan FBW 3 razy w tygodniu.'},
       {icon:'📅',title:'Upper/Lower 4x',desc:'4 treningi — górna/dolna partia',q:'Wygeneruj plan Upper/Lower na 4 dni w tygodniu.'},
+      {icon:'🔄',title:'Trening obwodowy',desc:'Circuit — kondycja i redukcja',q:'Wygeneruj plan treningu obwodowego na 3 dni w tygodniu.'},
       {icon:'⚡',title:'5/3/1 Wendler',desc:'Program siłowy na 16 tygodni',q:'Opisz jak wdrożyć metodę 5/3/1 Wendlera dla tego klienta.'},
     ],
     nutrition:[
