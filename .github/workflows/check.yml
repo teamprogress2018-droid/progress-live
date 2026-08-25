@@ -140,6 +140,8 @@ jobs:
         run: node .github/scripts/test_cp_nav_simplify.js
       - name: 1n27. Testy układu aplikacji (sidebar Everfit)
         run: node .github/scripts/test_app_shell_everfit.js
+      - name: 1n28. Testy poziomych zakładek profilu klienta
+        run: node .github/scripts/test_cp_tabs_top.js
       - name: 1n24. Testy braku fałszywych pomiarów demo
         run: node .github/scripts/test_no_fake_metrics.js
       - name: 1n23. Testy usunięcia DEMO_NOTIFS

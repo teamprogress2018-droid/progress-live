@@ -1535,15 +1535,14 @@ function closeClientProfile(){
 
 function setCPTab(t){
   cpTab=t;
-  const moreTabs=['timeline','psycho','sfr','posture','photos','metrics','tasks','forms','food','documents','payments','features'];
-  if(moreTabs.includes(t)){
-    const moreEl=document.getElementById('cp-more-items');
-    const arrow=document.getElementById('cp-more-arrow');
-    if(moreEl)moreEl.style.display='block';
-    if(arrow)arrow.style.transform='rotate(180deg)';
-  }
+  const moreTabs=['notes','timeline','psycho','sfr','posture','photos','forms','food','payments','features'];
+  if(typeof closeCpMoreNav==='function')closeCpMoreNav();
   document.querySelectorAll('.cp-tab').forEach(el=>el.classList.remove('active'));
   const btn=document.getElementById('cpt-'+t);if(btn)btn.classList.add('active');
+  if(moreTabs.includes(t)){
+    const moreBtn=document.getElementById('cp-more-toggle');
+    if(moreBtn)moreBtn.classList.add('active');
+  }
   const c=CL.find(x=>x.id===cpClientId);if(!c)return;
   if(t==='overview')renderCPOverview(c);
   if(t==='notes')renderCPNotes(c);
