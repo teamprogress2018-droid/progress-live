@@ -144,6 +144,8 @@ jobs:
         run: node .github/scripts/test_cp_tabs_top.js
       - name: 1n29. Testy przywrócenia konturów/czcionek kafelków
         run: node .github/scripts/test_tile_polish_restore.js
+      - name: 1n30. Testy etykiet partii w autocomplete ćwiczeń
+        run: node .github/scripts/test_ex_ac_muscle_label.js
       - name: 1n24. Testy braku fałszywych pomiarów demo
         run: node .github/scripts/test_no_fake_metrics.js
       - name: 1n23. Testy usunięcia DEMO_NOTIFS
