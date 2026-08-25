@@ -161,6 +161,8 @@ jobs:
         run: node .github/scripts/test_nav_primary_slim.js
       - name: 1n28. Testy poziomych zakładek profilu klienta
         run: node .github/scripts/test_cp_tabs_top.js
+      - name: 1n28c. Testy slim zakładek profilu (Analityka)
+        run: node .github/scripts/test_cp_tabs_slim.js
       - name: 1n28b. Testy przycisku własnego planu w profilu klienta
         run: node .github/scripts/test_cp_own_plan_btn.js
       - name: 1n28c. Testy braku duplikacji CTA planu w profilu

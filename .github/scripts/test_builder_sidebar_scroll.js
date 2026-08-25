@@ -20,7 +20,7 @@ ok('builder-sidebar overflow-y auto',/\.builder-sidebar\{[\s\S]*?overflow-y:\s*a
 ok('builder-layout no fixed 100vh',!/\.builder-layout\{[^}]*height:\s*calc\(100vh/.test(css));
 ok('builder-layout min-height 0',/\.builder-layout\{[\s\S]*?min-height:\s*0/.test(css));
 ok('screen-builder content overflow hidden',css.includes('#screen-builder > .content.builder-layout{overflow:hidden;}'));
-ok('cache bump styles v31',html.includes('styles.css?v=31'));
+ok('cache bump styles v32',html.includes('styles.css?v=32'));
 
 if(failed){console.error(failed+' failed');process.exit(1);}
 console.log('\nAll builder-sidebar-scroll tests passed');

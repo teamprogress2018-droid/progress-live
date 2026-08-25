@@ -13,7 +13,7 @@
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="globals.css?v=17">
-<link rel="stylesheet" href="styles.css?v=31">
+<link rel="stylesheet" href="styles.css?v=32">
 </head>
 <body>
 
@@ -2757,21 +2757,19 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <button class="cp-tab active" id="cpt-overview" onclick="setCPTab('overview')">Przegląd</button>
         <button class="cp-tab" id="cpt-training" onclick="setCPTab('training')">Treningi</button>
         <button class="cp-tab" id="cpt-plan" onclick="setCPTab('plan')">Plan</button>
-        <button class="cp-tab" id="cpt-tasks" onclick="setCPTab('tasks')">Zadania</button>
         <button class="cp-tab" id="cpt-progress" onclick="setCPTab('progress')">Progress</button>
         <button class="cp-tab" id="cpt-metrics" onclick="setCPTab('metrics')">Pomiary</button>
-        <button class="cp-tab" id="cpt-documents" onclick="setCPTab('documents')">Dokumenty</button>
         <div class="cp-tabs-more-wrap">
           <button type="button" class="cp-tab cp-tabs-more-btn" id="cp-more-toggle" onclick="toggleCpMoreNav(event)" aria-expanded="false" aria-haspopup="true">Więcej ▾</button>
           <div class="cp-tabs-more-menu" id="cp-more-items" hidden>
+            <button class="cp-tab cp-tab-menu" id="cpt-tasks" onclick="setCPTab('tasks')">Zadania</button>
             <button class="cp-tab cp-tab-menu" id="cpt-notes" onclick="setCPTab('notes')">Notatki</button>
             <button class="cp-tab cp-tab-menu" id="cpt-photos" onclick="setCPTab('photos')">Zdjęcia</button>
             <button class="cp-tab cp-tab-menu" id="cpt-forms" onclick="setCPTab('forms')">Formularze</button>
+            <button class="cp-tab cp-tab-menu" id="cpt-documents" onclick="setCPTab('documents')">Dokumenty</button>
             <button class="cp-tab cp-tab-menu" id="cpt-timeline" onclick="setCPTab('timeline')">Oś czasu</button>
             <button class="cp-tab cp-tab-menu" id="cpt-payments" onclick="setCPTab('payments')">Płatności</button>
-            <button class="cp-tab cp-tab-menu" id="cpt-psycho" onclick="setCPTab('psycho')">Psycho</button>
-            <button class="cp-tab cp-tab-menu" id="cpt-sfr" onclick="setCPTab('sfr')">SFR</button>
-            <button class="cp-tab cp-tab-menu" id="cpt-posture" onclick="setCPTab('posture')">Postawa</button>
+            <button class="cp-tab cp-tab-menu" id="cpt-analytics" onclick="setCPTab('analytics')">Analityka</button>
             <button class="cp-tab cp-tab-menu" id="cpt-features" onclick="setCPTab('features')">Ustawienia</button>
             <!-- Żywienie ukryte: stub — wróci gdy będzie prawdziwy dziennik -->
             <button class="cp-tab cp-tab-menu" id="cpt-food" onclick="setCPTab('food')" style="display:none;" aria-hidden="true">Żywienie</button>
@@ -4009,9 +4007,9 @@ async function load(){
 <script src="04-client-portal.js?v=24"></script>
 <script src="05-clients-builder-plans-calendar.js?v=24"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=24"></script>
-<script src="07-forms-metrics-calculator.js?v=21"></script>
-<script src="08-client-profile-extras.js?v=26"></script>
-<script src="09-posture-kb-invites-private.js?v=27"></script>
+<script src="07-forms-metrics-calculator.js?v=22"></script>
+<script src="08-client-profile-extras.js?v=27"></script>
+<script src="09-posture-kb-invites-private.js?v=28"></script>
 <script src="10-client-app.js?v=22"></script>
 </body>
 </html>

@@ -905,6 +905,20 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 }
 .cp-tab-menu-danger:hover{background:rgba(220,60,60,.1);}
 .cp-tabs-more-sep{height:1px;background:var(--border);margin:4px 6px;}
+.cp-analytics-nav{
+  display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px;padding:0 0 12px;
+  border-bottom:1px solid var(--border);
+}
+.cp-analytics-chip{
+  border:1px solid var(--border2);background:var(--s3);color:var(--muted);
+  border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;
+  cursor:pointer;font-family:var(--font-ui);transition:color .12s,border-color .12s,background .12s;
+}
+.cp-analytics-chip:hover{color:var(--text);border-color:var(--border);}
+.cp-analytics-chip.active{
+  color:var(--accent);border-color:rgba(var(--accent-rgb),0.45);
+  background:rgba(var(--accent-rgb),0.1);
+}
 .cp-body-scroll{flex:1;overflow-y:auto;min-height:0;}
 .cp-body-inner{max-width:1120px;margin:0 auto;padding:24px 28px;}
 /* legacy vertical tabs — keep class harmless if referenced */
