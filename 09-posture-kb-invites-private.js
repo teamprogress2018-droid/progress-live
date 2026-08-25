@@ -3174,6 +3174,34 @@ function toggleMoreNav(){
 }
 window.toggleMoreNav=toggleMoreNav;
 
+function closeLibraryFlyout(){
+  const fly=document.getElementById('nav-library-flyout');
+  const btn=document.getElementById('nav-library-btn');
+  if(fly)fly.setAttribute('hidden','');
+  if(btn)btn.setAttribute('aria-expanded','false');
+}
+function toggleLibraryFlyout(ev){
+  if(ev){ev.preventDefault();ev.stopPropagation();}
+  const fly=document.getElementById('nav-library-flyout');
+  const btn=document.getElementById('nav-library-btn');
+  if(!fly)return;
+  const open=fly.hasAttribute('hidden');
+  if(open){
+    fly.removeAttribute('hidden');
+    if(btn)btn.setAttribute('aria-expanded','true');
+  }else closeLibraryFlyout();
+}
+function _libraryFlyoutOutside(e){
+  const wrap=document.getElementById('nav-library-wrap');
+  const fly=document.getElementById('nav-library-flyout');
+  if(!wrap||!fly||fly.hasAttribute('hidden'))return;
+  if(wrap.contains(e.target))return;
+  closeLibraryFlyout();
+}
+document.addEventListener('click',_libraryFlyoutOutside);
+window.toggleLibraryFlyout=toggleLibraryFlyout;
+window.closeLibraryFlyout=closeLibraryFlyout;
+
 window.goTo=goTo;window.openM=openM;window.closeM=closeM;
 window.saveClient=saveClient;window.saveSess=saveSess;window.saveEx=saveEx;window.savePlan=savePlan;window.delPlan=delPlan;
 window.addDay=addDay;window.addRow=addRow;window.toggleR=toggleR;window.updatePeriod=updatePeriod;

@@ -34,6 +34,48 @@ function formatClientActivity(clientId){
   return{label,color,days};
 }
 
+/** Everfit-style tracked / assigned for last N days. */
+function clientTrainingWindowStats(clientId,days){
+  const today=new Date();
+  const sessions=(window.SE||[]).filter(s=>{
+    if(s.clientId!==clientId||!s.date)return false;
+    const d=new Date(s.date+'T12:00:00');
+    const diff=(today-d)/86400000;
+    return diff>=0&&diff<=days;
+  });
+  const logged=typeof completedWorkouts==='function'
+    ? completedWorkouts(clientId,sessions)
+    : sessions.filter(s=>s.source==='client'||s.source==='live');
+  const assigned=sessions.length;
+  const done=logged.length;
+  const pct=assigned?Math.round((done/assigned)*100):null;
+  return{done,assigned,pct};
+}
+
+function clientTasksWindowStats(clientId,days){
+  const today=new Date();
+  const tasks=(window.TASKS||[]).filter(t=>{
+    if(t.clientId!==clientId)return false;
+    const raw=t.completedAt||t.doneAt||t.dueDate||t.createdAt||t.date;
+    if(!raw)return t.status==='done'||t.status==='open'||!t.status;
+    const d=new Date(raw);
+    if(isNaN(d))return true;
+    const diff=(today-d)/86400000;
+    return diff>=0&&diff<=days;
+  });
+  const assigned=tasks.length;
+  const done=tasks.filter(t=>t.status==='done').length;
+  const pct=assigned?Math.round((done/assigned)*100):null;
+  return{done,assigned,pct};
+}
+
+function clPctCell(stats){
+  if(!stats.assigned)return`<span class="cl-pct muted">—</span>`;
+  const ok=stats.pct>=80;
+  const mid=stats.pct>=40;
+  return`<span class="cl-pct ${ok?'ok':mid?'mid':'low'}">${stats.done}/${stats.assigned} · ${stats.pct}%</span>`;
+}
+
 // ── Szybkie akcje z listy klientów (bez otwierania pełnego profilu) ──
 function quickMessageClient(e,clientId){
   e.stopPropagation();
@@ -66,6 +108,8 @@ function quickDeleteClient(e,clientId){
 }
 
 function renderClientFilters(){
+  const sel=document.getElementById('client-status-filter');
+  if(sel&&sel.value!==clientSegment)sel.value=clientSegment;
   const nonArchived=CL.filter(c=>c.status!=='archived');
   const segments=[
     {id:'all',label:'Wszyscy klienci',count:nonArchived.length},
@@ -92,14 +136,16 @@ function renderClients(){
     if(clientSegment==='all')return c.status!=='archived';
     return true;
   });
-  // Priorytet: klienci wymagający uwagi (dawno nieaktywni / brak danych) na górze listy.
   filtered=filtered.map(c=>({c,act:formatClientActivity(c.id)}))
     .sort((a,b)=>b.act.days-a.act.days)
     .map(x=>x.c);
   const countEl=document.getElementById('clients-segment-count');
   if(countEl)countEl.textContent=filtered.length;
   const titleEl=document.getElementById('clients-segment-title');
-  if(titleEl)titleEl.textContent=CLIENT_SEGMENT_TITLES[clientSegment]||'Klienci';
+  if(titleEl){
+    const base=CLIENT_SEGMENT_TITLES[clientSegment]||'Klienci';
+    titleEl.innerHTML=`${base} <span class="nav-badge" id="clients-segment-count">${filtered.length}</span>`;
+  }
   const el=document.getElementById('clients-tbl');
   if(!filtered.length){
     const q=search.trim();
@@ -113,30 +159,29 @@ function renderClients(){
   }
   el.innerHTML=filtered.map((c,i)=>{
     const act=formatClientActivity(c.id);
+    const t7=clientTrainingWindowStats(c.id,7);
+    const t30=clientTrainingWindowStats(c.id,30);
+    const tasks7=clientTasksWindowStats(c.id,7);
     const archived=c.status==='archived';
-    const actions=archived
-      ? `<button onclick="quickRestoreClient(event,'${c.id}')" title="Przywróć klienta" style="width:32px;height:32px;border-radius:8px;background:var(--s3);border:1px solid var(--border2);color:var(--teal);font-size:14px;cursor:pointer;">↩</button>
-      <button onclick="quickDeleteClient(event,'${c.id}')" title="Usuń klienta na zawsze" style="width:32px;height:32px;border-radius:8px;background:var(--s3);border:1px solid var(--border2);color:var(--red);font-size:14px;cursor:pointer;">🗑</button>`
-      : `<button onclick="quickMessageClient(event,'${c.id}')" title="Wyślij wiadomość" style="width:32px;height:32px;border-radius:8px;background:var(--s3);border:1px solid var(--border2);color:var(--text);font-size:14px;cursor:pointer;">💬</button>
-      <button onclick="quickStartWorkout(event,'${c.id}')" title="Rozpocznij dzisiejszy trening" style="width:32px;height:32px;border-radius:8px;background:var(--s3);border:1px solid var(--border2);color:var(--accent);font-size:14px;cursor:pointer;">▶</button>
-      <button onclick="quickCheckin(event,'${c.id}')" title="Wyślij prośbę o check-in" style="width:32px;height:32px;border-radius:8px;background:var(--s3);border:1px solid var(--border2);color:var(--teal);font-size:14px;cursor:pointer;">✓</button>
-      <button onclick="quickArchiveClient(event,'${c.id}')" title="Zarchiwizuj klienta" style="width:32px;height:32px;border-radius:8px;background:var(--s3);border:1px solid var(--border2);color:var(--muted);font-size:14px;cursor:pointer;">🗃</button>
-      <button onclick="quickDeleteClient(event,'${c.id}')" title="Usuń klienta na zawsze" style="width:32px;height:32px;border-radius:8px;background:var(--s3);border:1px solid var(--border2);color:var(--red);font-size:14px;cursor:pointer;">🗑</button>`;
-    return `<div class="tbl-row" style="grid-template-columns:2fr 120px 120px 100px 190px;animation-delay:${i*0.03}s;cursor:pointer;" onclick="openClientProfile('${c.id}')">
-    <div style="display:flex;align-items:center;gap:10px;">
-      <div style="width:32px;height:32px;border-radius:50%;background:${COLS[i%5]}22;color:${COLS[i%5]};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:13px;flex-shrink:0;">${escHtml(getInit(c.name))}</div>
-      <div><div style="font-size:13px;font-weight:600;">${escHtml(c.name)}</div><div style="font-size:11px;color:var(--muted);">${escHtml(c.email||'⚠ Brak e-maila')}${c.phone?' · '+escHtml(c.phone):''}</div></div>
+    const msgBtn=archived
+      ? `<button type="button" class="cl-msg-btn" onclick="quickRestoreClient(event,'${c.id}')" title="Przywróć">↩</button>`
+      : `<button type="button" class="cl-msg-btn" onclick="quickMessageClient(event,'${c.id}')" title="Wiadomość">💬</button>`;
+    return `<div class="tbl-row cl-everfit-row" style="animation-delay:${i*0.03}s;" onclick="openClientProfile('${c.id}')">
+    <div class="cl-name-cell">
+      <div class="cl-av" style="background:${COLS[i%5]}22;color:${COLS[i%5]};">${escHtml(getInit(c.name))}</div>
+      <div>
+        <div class="cl-name">${escHtml(c.name)}</div>
+        <div class="cl-sub">${escHtml(c.email||'Brak e-maila')}</div>
+      </div>
     </div>
-    <div style="font-size:12px;color:${act.color};align-self:center;font-weight:600;">${act.label}</div>
-    <div style="font-size:12px;color:var(--muted);align-self:center;">${CLIENT_GOAL_LABELS[c.goal]||c.goal||'—'}</div>
-    <div style="align-self:center;display:flex;gap:4px;flex-wrap:wrap;">
-      <span class="pill ${c.status==='inactive'?'pill-red':c.status==='archived'?'pill-red':'pill-green'}"><span class="pill-dot"></span>${c.status==='inactive'?'Nieaktywny':c.status==='archived'?'Zarchiwizowany':'Aktywny'}</span>
-      ${c.inviteSent?'<span class="pill pill-blue" style="font-size:9px;">📱 Zaproszony</span>':''}
-      ${c.appJoined?'<span class="pill pill-green" style="font-size:9px;">✓ W apce</span>':''}
-      ${(()=>{const ob=getClientOnboard(c);return ob.complete?'':'<span class="pill pill-orange" style="font-size:9px;" onclick="event.stopPropagation();openClientOnboardChecklist(\''+c.id+'\')">Start '+ob.done+'/'+ob.total+'</span>';})()}
-    </div>
-    <div style="align-self:center;display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;">
-      ${actions}
+    <div class="cl-msg-cell" onclick="event.stopPropagation()">${msgBtn}</div>
+    <div class="cl-act" style="color:${act.color};">${act.label}</div>
+    <div>${clPctCell(t7)}</div>
+    <div>${clPctCell(t30)}</div>
+    <div>${clPctCell(tasks7)}</div>
+    <div class="cl-goal">${CLIENT_GOAL_LABELS[c.goal]||c.goal||'—'}</div>
+    <div class="cl-status">
+      <span class="pill ${c.status==='inactive'?'pill-red':c.status==='archived'?'pill-red':'pill-green'}"><span class="pill-dot"></span>${c.status==='inactive'?'Nieaktywny':c.status==='archived'?'Zarchiwizowany':(c.appJoined?'Połączony':'Aktywny')}</span>
     </div>
   </div>`;
   }).join('');
