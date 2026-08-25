@@ -23,8 +23,10 @@ ok('clients first in sidebar', /sidebar-nav[\s\S]*?data-screen="clients"[\s\S]*?
 ok('library flyout markup', html.includes('nav-library-flyout') && html.includes('toggleLibraryFlyout'));
 ok('library flyout header', html.includes('nav-flyout-hd') && /Biblioteka/.test(html));
 ok('library flyout items', /Ćwiczenia/.test(html) && />Treningi</.test(html) && /Programy/.test(html) && /Formularze i ankiety/.test(html) && /Grupy pomiarów/.test(html));
-ok('library has programs templates ai', /data-screen="programs"/.test(html) && /data-screen="templates"/.test(html) && /data-screen="aiplangen"/.test(html));
-ok('calculator and kb in library not more', /nav-library-flyout[\s\S]*data-screen="calculator"[\s\S]*data-screen="kb"/.test(html) && !/nav-more-items[\s\S]*data-screen="calculator"/.test(html));
+const libFly = html.slice(html.indexOf('id="nav-library-flyout"'), html.indexOf('data-screen="inbox"'));
+ok('library has programs templates', /data-screen="programs"/.test(libFly) && /data-screen="templates"/.test(libFly));
+ok('library trimmed tools', !/data-screen="aiplangen"/.test(libFly) && !/data-screen="builder"/.test(libFly) && !/data-screen="calculator"/.test(libFly) && !/data-screen="kb"/.test(libFly));
+ok('tools under more not library', /nav-more-items[\s\S]*data-screen="aiplangen"[\s\S]*data-screen="builder"[\s\S]*data-screen="calculator"[\s\S]*data-screen="kb"/.test(html));
 ok('inbox top-level', /data-screen="inbox"[\s\S]*?Wiadomości/.test(html.slice(html.indexOf('sidebar-nav'), html.indexOf('nav-more-items'))));
 ok('automation top-level', /data-screen="automation"/.test(html.slice(html.indexOf('sidebar-nav'), html.indexOf('nav-more-items'))));
 ok('payments top-level', /data-screen="payments"/.test(html.slice(html.indexOf('sidebar-nav'), html.indexOf('nav-more-items'))));
@@ -37,7 +39,8 @@ ok('flyout not clipped by absolute-in-scroll', /\.nav-flyout\{[^}]*position:fixe
 ok('flyout js race guard', /function\s+toggleLibraryFlyout/.test(nine) && /_libFlyIgnoreUntil/.test(nine));
 ok('flyout positions from trigger rect', /function\s+_positionLibraryFlyout/.test(nine) && /getBoundingClientRect/.test(nine));
 ok('flyout portals to body', /document\.body\.appendChild\(fly\)/.test(nine));
-ok('goTo marks library group', core.includes("libraryScreens") && core.includes('templates') && core.includes('nav-library-btn'));
+ok('goTo marks library group', /libraryScreens=\['library','plans','programs','templates','tasks','forms','metrics'\]/.test(core) && core.includes('nav-library-btn'));
+ok('goTo expands more for tools', /moreScreens=\[[^\]]*aiplangen[^\]]*builder[^\]]*calculator[^\]]*kb/.test(core));
 ok('training window stats', /function\s+clientTrainingWindowStats/.test(clients));
 ok('row message button', clients.includes('cl-msg-btn') && clients.includes('quickMessageClient'));
 ok('no action button spam in rows', !/quickStartWorkout\(event/.test(clients.slice(clients.indexOf('function renderClients'), clients.indexOf('function openClientModal'))));
