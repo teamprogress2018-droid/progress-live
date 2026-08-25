@@ -4403,20 +4403,6 @@ const NOTIF_TYPES={
   expiry:    {icon:'⏰',color:'var(--red)',bg:'rgba(255,77,77,0.12)'},
 };
 
-// Demo notifications
-const DEMO_NOTIFS=[
-  {id:'n1',type:'session',title:'Sesja za 1 godzinę',body:'Jan Kowalski · Trening siłowy · 10:00',time:'dziś 9:00',read:false,action:'calendar'},
-  {id:'n2',type:'expiry',title:'Pakiet wygasa za 3 dni',body:'Anna Nowak — Miesięczny coaching online',time:'dziś 8:30',read:false,action:'payments'},
-  {id:'n3',type:'payment',title:'Oczekująca płatność',body:'Marta Kowalczyk — Program 12-tygodniowy · 2 200 zł',time:'wczoraj',read:false,action:'payments'},
-  {id:'n4',type:'task',title:'Zadanie przeterminowane',body:'Tomasz Mazur — Wypełnij formularz postępów',time:'wczoraj',read:false,action:'tasks'},
-  {id:'n5',type:'message',title:'Nowa wiadomość',body:'Kristina Wilson: "Hej, będę poza miastem w przyszłym tygodniu..."',time:'2 dni temu',read:true,action:'inbox'},
-  {id:'n6',type:'alert',title:'Klient bez aktywności 14 dni',body:'Piotr Wiśniewski — ostatnia sesja 14 dni temu',time:'2 dni temu',read:true,action:'clients'},
-  {id:'n7',type:'metric',title:'Nowe pomiary klienta',body:'Jan Kowalski zaktualizował pomiary — masa: -0.5 kg',time:'3 dni temu',read:true,action:'metrics'},
-  {id:'n8',type:'session',title:'Sesja dodana do kalendarza',body:'Anna Nowak · Online · Środa 14:00',time:'3 dni temu',read:true,action:'calendar'},
-  {id:'n9',type:'payment',title:'Płatność otrzymana',body:'Tomasz Mazur — 20 sesji VIP · 3 500 zł ✓',time:'tydzień temu',read:true,action:'payments'},
-  {id:'n10',type:'system',title:'Raport wygenerowany',body:'Raport dla Jana Kowalskiego · 2 strony',time:'tydzień temu',read:true,action:null},
-];
-
 function allNotifs(){return window.NOTIFICATIONS||[];}
 function unreadCount(){return allNotifs().filter(n=>!n.read).length;}
 
@@ -4509,7 +4495,6 @@ function clearAllNotifs(){
   if(!confirm('Wyczyścić wszystkie powiadomienia?'))return;
   const ids=(window.NOTIFICATIONS||[]).map(n=>n.id);
   window.NOTIFICATIONS=[];
-  if(typeof DEMO_NOTIFS!=='undefined')DEMO_NOTIFS.forEach(n=>n.read=true);
   updateNotifBadge();
   renderNotifs();
   notify('Powiadomienia wyczyszczone');

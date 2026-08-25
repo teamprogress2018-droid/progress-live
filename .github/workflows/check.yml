@@ -132,6 +132,10 @@ jobs:
 
       - name: 1n19. Testy ukrycia stuba żywienia / uczciwych dokumentów
         run: node .github/scripts/test_hide_food_stub.js
+      - name: "1n22. Testy: skrypty w index.html tylko raz"
+        run: node .github/scripts/test_index_scripts_once.js
+      - name: 1n23. Testy usunięcia DEMO_NOTIFS
+        run: node .github/scripts/test_demo_notifs_cleanup.js
       - name: 1n21. Testy sekcji nawigacji apki klienta (forum / kalendarz)
         run: node .github/scripts/test_cap_nav_sections.js
       - name: 1n20. Testy przełącznika pomiarów ciała (bodyMetrics)
