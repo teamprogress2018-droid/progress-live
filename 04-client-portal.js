@@ -4678,7 +4678,6 @@ function buildReportHTML(c,from,to,sec,template){
   const entries=METRIC_ENTRIES.filter(e=>e.clientId===c.id);
   const pkgs=allPackages().filter(p=>p.clientId===c.id||p.clientName===c.name);
   const notes=CLIENT_NOTES[c.id]||[];
-  initDemoEntries(c.id);
 
   const totalRevenue=pkgs.filter(p=>p.payStatus==='paid').reduce((s,p)=>s+p.price,0);
 

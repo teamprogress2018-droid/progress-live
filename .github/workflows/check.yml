@@ -134,6 +134,8 @@ jobs:
         run: node .github/scripts/test_hide_food_stub.js
       - name: "1n22. Testy: skrypty w index.html tylko raz"
         run: node .github/scripts/test_index_scripts_once.js
+      - name: 1n24. Testy braku fałszywych pomiarów demo
+        run: node .github/scripts/test_no_fake_metrics.js
       - name: 1n23. Testy usunięcia DEMO_NOTIFS
         run: node .github/scripts/test_demo_notifs_cleanup.js
       - name: 1n21. Testy sekcji nawigacji apki klienta (forum / kalendarz)

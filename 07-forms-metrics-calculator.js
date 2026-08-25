@@ -673,26 +673,6 @@ const DEMO_METRIC_GROUPS=[
 ];
 window.DEMO_METRIC_GROUPS=DEMO_METRIC_GROUPS;
 
-// demo entries for first client
-function initDemoEntries(clientId){
-  if(!clientId||METRIC_ENTRIES.some(e=>e.clientId===clientId))return;
-  const now=new Date();
-  const makeDate=(daysAgo)=>{const d=new Date(now);d.setDate(d.getDate()-daysAgo);return d.toISOString().split('T')[0];};
-  const entries=[
-    {id:'de1',clientId,groupId:'mg1',date:makeDate(60),values:{m1:88,m2:22,m3:58,m4:27.2},notes:'Pomiar startowy'},
-    {id:'de2',clientId,groupId:'mg1',date:makeDate(30),values:{m1:85.5,m2:20.5,m3:59.5,m4:26.4},notes:'Po pierwszym miesięcu'},
-    {id:'de3',clientId,groupId:'mg1',date:makeDate(0),values:{m1:83,m2:18.8,m3:61,m4:25.6},notes:'Aktualne'},
-    {id:'de4',clientId,groupId:'mg2',date:makeDate(60),values:{m1:102,m2:90,m3:100,m4:62,m5:38},notes:'Startowe'},
-    {id:'de5',clientId,groupId:'mg2',date:makeDate(30),values:{m1:100,m2:87,m3:99,m4:61,m5:39},notes:''},
-    {id:'de6',clientId,groupId:'mg2',date:makeDate(0),values:{m1:98,m2:84,m3:97,m4:60,m5:40},notes:'Aktualne'},
-    {id:'de7',clientId,groupId:'mg3',date:makeDate(60),values:{m1:100,m2:120,m3:80,m4:60},notes:'Testy startowe'},
-    {id:'de8',clientId,groupId:'mg3',date:makeDate(0),values:{m1:120,m2:145,m3:95,m4:72},notes:'Po 8 tygodniach'},
-    {id:'de9',clientId,groupId:'mg5',date:makeDate(14),values:{m1:6,m2:5,m3:7,m4:6},notes:''},
-    {id:'de10',clientId,groupId:'mg5',date:makeDate(0),values:{m1:8,m2:7,m3:8,m4:4},notes:'Aktualne'},
-  ];
-  entries.forEach(e=>METRIC_ENTRIES.push(e));
-}
-
 // Ustawia pole klienta w oknie dodawania pomiaru: widoczny tekst + ukryte id.
 function meClientSetField(clientId,clientName){
   const hid=document.getElementById('me-client');
@@ -766,7 +746,6 @@ function renderMetrics(){
   // populate client sel
   const csel=document.getElementById('metric-client-sel');
   if(csel){const cur=csel.value;csel.innerHTML='<option value="">Wybierz klienta...</option>'+CL.map(c=>'<option value="'+c.id+'"'+(c.id===cur?' selected':'')+'>'+c.name+'</option>').join('');}
-  if(cid)initDemoEntries(cid);
 
   // groups nav
   const groups=allMetricGroups();
