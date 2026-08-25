@@ -1354,6 +1354,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   <!-- PROGRAMS TAB -->
   <div id="odtab-programs-view" style="flex:1;overflow-y:auto;padding:20px 24px;display:none;">
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;" id="od-program-filters"></div>
+    <div id="od-collection-films" style="margin-bottom:22px;"></div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;" id="od-all-programs-grid"></div>
   </div>
 
@@ -3340,7 +3341,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 <!-- ON-DEMAND WORKOUT MODAL -->
 <div class="modal-ov" id="m-od-workout">
   <div class="modal modal-wide">
-    <div class="modal-hdr"><div class="modal-title">NOWY TRENING ON-DEMAND</div><button class="modal-close" onclick="closeM('m-od-workout')">×</button></div>
+    <div class="modal-hdr"><div class="modal-title">NOWY FILM YOUTUBE</div><button class="modal-close" onclick="closeM('m-od-workout')">×</button></div>
     <div class="modal-body">
       <div class="form-field"><label class="form-lbl">Nazwa treningu</label><input type="text" class="form-input" id="odw-name" placeholder="np. Full Body HIIT 30 min"></div>
       <div class="form-grid">
@@ -3364,17 +3365,19 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <div class="form-field"><label class="form-lbl">Kolekcja</label>
           <select class="form-select" id="odw-coll">
             <option value="">Brak kolekcji</option>
-            <option value="fbw">Full Body</option>
-            <option value="hiit">HIIT</option>
-            <option value="sila">Siła</option>
-            <option value="mobilnosc">Mobilność</option>
+            <option value="dom">🏠 Dom bez sprzętu</option>
+            <option value="mobilnosc">🧘 Mobilność</option>
+            <option value="fbw">⚡ Full Body</option>
+            <option value="hiit">🔥 HIIT / Cardio</option>
+            <option value="oddech">🌬 Oddech i relaks</option>
+            <option value="sila">💪 Siła</option>
           </select>
         </div>
       </div>
       <div class="form-field"><label class="form-lbl">URL wideo (YouTube)</label><input type="url" class="form-input" id="odw-url" placeholder="https://www.youtube.com/watch?v=..."><div style="font-size:11px;color:var(--muted);margin-top:6px;">Wklej link do odcinka (watch?v= albo youtu.be/...), nie do kanału.</div></div>
       <div class="form-field"><label class="form-lbl">Opis</label><textarea class="form-textarea" id="odw-desc" rows="2" placeholder="Krótki opis treningu..."></textarea></div>
     </div>
-    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-od-workout')">Anuluj</button><button class="btn btn-primary" onclick="saveODWorkout()">Zapisz trening</button></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-od-workout')">Anuluj</button><button class="btn btn-primary" onclick="saveODWorkout()">Zapisz film</button></div>
   </div>
 </div>
 
@@ -4021,15 +4024,11 @@ async function load(){
 <script src="02-workouts-onboarding-templates-live.js?v=21"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=23"></script>
 <script src="04-client-portal.js?v=24"></script>
-<script src="05-clients-builder-plans-calendar.js?v=27"></script>
-<script src="06-inbox-exercises-ai-programs.js?v=24"></script>
-<script src="07-forms-metrics-calculator.js?v=23"></script>
-<script src="08-client-profile-extras.js?v=28"></script>
 <script src="05-clients-builder-plans-calendar.js?v=28"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=25"></script>
 <script src="07-forms-metrics-calculator.js?v=25"></script>
-<script src="08-client-profile-extras.js?v=27"></script>
-<script src="09-posture-kb-invites-private.js?v=29"></script>
+<script src="08-client-profile-extras.js?v=28"></script>
+<script src="09-posture-kb-invites-private.js?v=30"></script>
 <script src="10-client-app.js?v=22"></script>
 </body>
 </html>

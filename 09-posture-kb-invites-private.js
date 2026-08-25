@@ -1462,9 +1462,27 @@ window.ahwClientSearchInput=ahwClientSearchInput;
 window.ahwPickClient=ahwPickClient;
 window.saveAssignHomework=saveAssignHomework;
 function ensureODWorkouts(){
-  if(window.OD_WORKOUTS&&window.OD_WORKOUTS.length)return window.OD_WORKOUTS;
+  if(window.OD_WORKOUTS&&window.OD_WORKOUTS.length){
+    syncMissingODDemoWorkouts();
+    return window.OD_WORKOUTS;
+  }
   window.OD_WORKOUTS=OD_DEMO_WORKOUTS.map(w=>Object.assign({},w));
   return window.OD_WORKOUTS;
+}
+/** Dopisz brakujące demo-filmy YouTube (np. Oddech / Dom) gdy w Firebase są tylko stare wpisy. */
+function syncMissingODDemoWorkouts(){
+  if(!window.OD_WORKOUTS)window.OD_WORKOUTS=[];
+  const have=new Set(window.OD_WORKOUTS.map(w=>w&&w.id).filter(Boolean));
+  let n=0;
+  OD_DEMO_WORKOUTS.forEach(d=>{
+    if(!d||!d.id||have.has(d.id))return;
+    const copy=Object.assign({},d);
+    window.OD_WORKOUTS.push(copy);
+    have.add(d.id);
+    n++;
+    if(typeof persistById==='function')persistById('odWorkouts',copy);
+  });
+  return n;
 }
 function migrateODYoutubeWorkouts(){
   const demoById={};const demoByName={};
@@ -1479,6 +1497,7 @@ function migrateODYoutubeWorkouts(){
     w.type='video';
     if(demo.time)w.time=demo.time;
     if(demo.desc)w.desc=demo.desc;
+    if(demo.coll&&!w.coll)w.coll=demo.coll;
     n++;
     if(typeof persistById==='function')persistById('odWorkouts',w);
   });
@@ -1488,6 +1507,7 @@ window.allODWorkouts=allODWorkouts;
 window.odYoutubeId=odYoutubeId;
 window.odThumbUrl=odThumbUrl;
 window.ensureODWorkouts=ensureODWorkouts;
+window.syncMissingODDemoWorkouts=syncMissingODDemoWorkouts;
 window.migrateODYoutubeWorkouts=migrateODYoutubeWorkouts;
 
 const LEVEL_MAP={poczatkujacy:'Początkujący',sredni:'Średni',zaawansowany:'Zaawansowany'};
@@ -1495,14 +1515,31 @@ const LEVEL_MAP={poczatkujacy:'Początkujący',sredni:'Średni',zaawansowany:'Za
 function odProgramsForCollection(collId){
   const progs=allODPrograms().filter(p=>p.status!=='draft'&&odProgramWorkoutCount(p)>0);
   if(!collId||collId==='all')return progs;
-  if(['dom','mobilnosc','fbw'].includes(collId))return progs.filter(p=>p.category===collId);
   const allW=allODWorkouts();
-  return progs.filter(p=>odProgramWorkoutIds(p).some(wid=>{
+  return progs.filter(p=>p.category===collId||odProgramWorkoutIds(p).some(wid=>{
     const w=allW.find(x=>x.id===wid);
     return w&&w.coll===collId;
   }));
 }
 window.odProgramsForCollection=odProgramsForCollection;
+
+function odWorkoutsForCollection(collId){
+  const allW=allODWorkouts();
+  if(!collId||collId==='all')return allW.slice();
+  return allW.filter(w=>w&&w.coll===collId);
+}
+window.odWorkoutsForCollection=odWorkoutsForCollection;
+
+function openODAddFilm(collId){
+  const sel=document.getElementById('odw-coll');
+  if(sel&&collId)sel.value=collId;
+  ['odw-name','odw-url','odw-desc','odw-time'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+  const type=document.getElementById('odw-type');if(type)type.value='video';
+  if(typeof openM==='function')openM('m-od-workout');
+}
+window.openODAddFilm=openODAddFilm;
 
 function setODTab(t){
   ensureODWorkouts();
@@ -1517,8 +1554,13 @@ function setODTab(t){
   });
   const addBtn=document.getElementById('od-add-btn');
   if(addBtn){
-    if(t==='programs'){addBtn.textContent='+ Nowy program';addBtn.onclick=()=>openODProgramModal();}
-    else{addBtn.textContent='+ Dodaj film';addBtn.onclick=()=>openM('m-od-workout');}
+    if(t==='programs'){
+      addBtn.textContent='+ Dodaj film';
+      addBtn.onclick=()=>openODAddFilm(odProgramFilter&&odProgramFilter!=='all'?odProgramFilter:'');
+    }else{
+      addBtn.textContent='+ Dodaj film';
+      addBtn.onclick=()=>openODAddFilm('');
+    }
   }
   if(t==='browse')renderODBrowse();
   if(t==='programs')renderODPrograms();
@@ -1534,9 +1576,9 @@ function renderODBrowse(){
   const cg=document.getElementById('od-collections-grid');
   if(cg)cg.innerHTML=OD_COLLECTIONS.map((c,i)=>{
     const progN=odProgramsForCollection(c.id).length;
-    const woN=allW.filter(w=>w.coll===c.id).length;
-    const cntLabel=progN?`${progN} program${progN===1?'':'ów'}`:`${woN} film${woN===1?'':'ów'}`;
-    return `<div class="od-coll-card" style="animation-delay:${i*0.05}s;border-top:3px solid ${c.color};" onclick="setODTab('programs');odProgramFilter='${c.id}';renderODPrograms()">
+    const woN=odWorkoutsForCollection(c.id).length;
+    const cntLabel=woN?`${woN} film${woN===1?'':'ów'}${progN?` · ${progN} program${progN===1?'':'ów'}`:''}`:(progN?`${progN} program${progN===1?'':'ów'}`:'0 filmów');
+    return `<div class="od-coll-card" style="animation-delay:${i*0.05}s;border-top:3px solid ${c.color};" onclick="openODCollection('${c.id}')">
       <div style="font-size:28px;margin-bottom:8px;">${c.icon}</div>
       <div style="font-size:14px;font-weight:700;margin-bottom:4px;">${c.name}</div>
       <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${c.desc}</div>
@@ -1547,6 +1589,12 @@ function renderODBrowse(){
   const pg=document.getElementById('od-programs-grid');
   if(pg)pg.innerHTML=activeProgs.slice(0,6).map((p,i)=>odProgramCardHTML(p,i)).join('');
 }
+
+function openODCollection(collId){
+  odProgramFilter=collId||'all';
+  setODTab('programs');
+}
+window.openODCollection=openODCollection;
 
 function renderODWorkouts(){
   const allW=allODWorkouts();
@@ -1566,21 +1614,52 @@ function renderODWorkouts(){
   const g=document.getElementById('od-all-workouts-grid');
   if(!g)return;
   g.innerHTML=res.length?res.map((w,i)=>odWorkoutCardHTML(w,i)).join('')
-    :`<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--muted);"><div style="font-size:40px;margin-bottom:12px;opacity:0.3;">▶️</div><div style="font-size:14px;font-weight:600;margin-bottom:6px;">Brak treningów</div><button class="btn btn-primary" onclick="openM('m-od-workout')">+ Dodaj trening</button></div>`;
+    :`<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--muted);"><div style="font-size:40px;margin-bottom:12px;opacity:0.3;">▶️</div><div style="font-size:14px;font-weight:600;margin-bottom:6px;">Brak treningów</div><button class="btn btn-primary" onclick="openODAddFilm('${odWorkoutFilter!=='all'?odWorkoutFilter:''}')">+ Dodaj film YouTube</button></div>`;
 }
 
 function renderODPrograms(){
   const g=document.getElementById('od-all-programs-grid');
+  const filmsEl=document.getElementById('od-collection-films');
   if(!g)return;
-  let list=odProgramsForCollection(odProgramFilter||'all');
+  const filter=odProgramFilter||'all';
+  let list=odProgramsForCollection(filter);
   const fEl=document.getElementById('od-program-filters');
   if(fEl){
-    const filters=[{id:'all',label:'Wszystkie programy'},
-      ...OD_COLLECTIONS.filter(c=>odProgramsForCollection(c.id).length).map(c=>({id:c.id,label:c.icon+' '+c.name}))];
-    fEl.innerHTML=filters.map(f=>`<button class="wl-filter-chip${(odProgramFilter||'all')===f.id?' active':''}" onclick="odProgramFilter='${f.id}';renderODPrograms()">${f.label}</button>`).join('');
+    const filters=[{id:'all',label:'Wszystkie'},
+      ...OD_COLLECTIONS.map(c=>({id:c.id,label:c.icon+' '+c.name}))];
+    fEl.innerHTML=filters.map(f=>`<button class="wl-filter-chip${filter===f.id?' active':''}" onclick="odProgramFilter='${f.id}';renderODPrograms()">${f.label}</button>`).join('')
+      +`<button class="btn btn-primary btn-sm" type="button" style="margin-left:4px;" onclick="openODAddFilm('${filter!=='all'?filter:''}')">+ Film YouTube</button>`;
   }
-  g.innerHTML=(list.length?list.map((p,i)=>odProgramCardHTML(p,i)).join(''):`<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--muted);"><div style="font-size:40px;margin-bottom:12px;opacity:0.3;">📋</div><div style="font-size:14px;font-weight:600;margin-bottom:6px;">Brak programów w tej kolekcji</div><button class="btn btn-primary" onclick="odProgramFilter='all';renderODPrograms()">Pokaż wszystkie</button></div>`)
-    +`<div style="border:1px dashed var(--border2);border-radius:var(--r2);padding:18px;display:flex;align-items:center;justify-content:center;min-height:180px;cursor:pointer;background:transparent;" onclick="openODProgramModal()"><div style="text-align:center;color:var(--muted);"><div style="font-size:32px;margin-bottom:8px;">+</div><div style="font-size:13px;font-weight:600;">Nowy program on-demand</div><div style="font-size:11px;margin-top:4px;">Klienci startują sami</div></div></div>`;
+  const films=odWorkoutsForCollection(filter);
+  const coll=OD_COLLECTIONS.find(c=>c.id===filter);
+  if(filmsEl){
+    if(filter==='all'){
+      filmsEl.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px;">FILMY YOUTUBE · ${films.length}</div>
+        <button class="btn btn-ghost btn-sm" type="button" onclick="openODAddFilm('')">+ Dodaj film</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:8px;">${films.slice(0,8).map((w,i)=>odWorkoutCardHTML(w,i)).join('')}</div>
+      ${films.length>8?`<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Pokazano 8 z ${films.length} — wybierz kategorię, żeby zobaczyć wszystkie.</div>`:''}`;
+    }else{
+      filmsEl.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+        <div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px;">${coll?coll.icon+' '+coll.name.toUpperCase():'KATEGORIA'} · FILMY</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px;">${films.length} film${films.length===1?'':'ów'} YouTube w tej kolekcji</div>
+        </div>
+        <button class="btn btn-primary btn-sm" type="button" onclick="openODAddFilm('${filter}')">+ Dodaj film do kategorii</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:18px;">${
+        films.length?films.map((w,i)=>odWorkoutCardHTML(w,i)).join('')
+        :`<div style="grid-column:1/-1;padding:28px;text-align:center;border:1px dashed var(--border2);border-radius:12px;color:var(--muted);">
+            <div style="font-size:13px;font-weight:600;margin-bottom:8px;">Brak filmów w tej kategorii</div>
+            <button class="btn btn-primary btn-sm" type="button" onclick="openODAddFilm('${filter}')">+ Wklej link YouTube</button>
+          </div>`
+      }</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:1px;margin-bottom:12px;">PROGRAMY W TEJ KOLEKCJI</div>`;
+    }
+  }
+  g.innerHTML=(list.length?list.map((p,i)=>odProgramCardHTML(p,i)).join(''):`<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);"><div style="font-size:14px;font-weight:600;margin-bottom:6px;">Brak programów${coll?' w „'+coll.name+'”':''}</div><div style="font-size:12px;margin-bottom:10px;">Możesz dodać pojedyncze filmy YouTube powyżej albo złożyć program.</div><button class="btn btn-ghost btn-sm" onclick="odProgramFilter='all';renderODPrograms()">Pokaż wszystkie programy</button></div>`)
+    +`<div style="border:1px dashed var(--border2);border-radius:var(--r2);padding:18px;display:flex;align-items:center;justify-content:center;min-height:140px;cursor:pointer;background:transparent;" onclick="openODProgramModal()"><div style="text-align:center;color:var(--muted);"><div style="font-size:32px;margin-bottom:8px;">+</div><div style="font-size:13px;font-weight:600;">Nowy program on-demand</div><div style="font-size:11px;margin-top:4px;">Klienci startują sami</div></div></div>`;
 }
 
 function odWorkoutCardHTML(w,i){
@@ -1891,9 +1970,10 @@ async function saveODWorkout(){
   window.OD_WORKOUTS.push(w);
   await persistById('odWorkouts',w);
   closeM('m-od-workout');
+  if(w.coll)odProgramFilter=w.coll;
   if(odTab==='browse')renderODBrowse();
-  else if(odTab==='programs')renderODPrograms();
-  notify('✓ Trening "'+name+'" dodany!');
+  else renderODPrograms();
+  notify('✓ Film "'+name+'" dodany'+(w.coll?' do kategorii':'')+'!');
 }
 
 function shareODProgram(id){
