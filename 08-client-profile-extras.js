@@ -832,6 +832,38 @@ function cpMetricDeltaPct(clientId,groupId,metricId){
   return Math.round(((cur-prev)/Math.abs(prev))*1000)/10;
 }
 
+function cpMetricSeries(clientId,groupId,metricId,limit){
+  return (window.METRIC_ENTRIES||[]).filter(e=>e.clientId===clientId&&e.groupId===groupId&&e.values&&e.values[metricId]!=null)
+    .sort((a,b)=>(a.date||'').localeCompare(b.date||''))
+    .slice(-(limit||8))
+    .map(e=>({d:e.date,v:parseFloat(e.values[metricId])}))
+    .filter(p=>isFinite(p.v));
+}
+
+/** Mini sparkline for Overview metric cards (Everfit-style). */
+function cpOvSparkSVG(points,color,bars){
+  const pts=(points||[]).filter(p=>p&&isFinite(p.v));
+  if(pts.length<2)return'';
+  const W=160,H=36,pad=2;
+  const col=color||'var(--accent)';
+  if(bars){
+    const max=Math.max(...pts.map(p=>p.v),1);
+    const bw=Math.max(3,Math.floor((W-pad*2)/pts.length)-2);
+    return `<svg class="cp-ov-spark" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">${pts.map((p,i)=>{
+      const bh=Math.max(2,Math.round((p.v/max)*(H-pad*2)));
+      const x=pad+i*(bw+2);const y=H-pad-bh;
+      return `<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="1.5" fill="${col}" opacity="0.85"/>`;
+    }).join('')}</svg>`;
+  }
+  const minV=Math.min(...pts.map(p=>p.v));
+  const maxV=Math.max(...pts.map(p=>p.v));
+  const range=(maxV-minV)||1;
+  const xs=pts.map((_,i)=>pad+(i/(pts.length-1))*(W-pad*2));
+  const ys=pts.map(p=>pad+(H-pad*2)-((p.v-minV)/range)*(H-pad*2));
+  const path='M'+xs.map((x,i)=>x.toFixed(1)+','+ys[i].toFixed(1)).join('L');
+  return `<svg class="cp-ov-spark" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="${path}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+}
+
 function renderCPOverview(c){
   const today=new Date();
   const todayStr=today.toISOString().split('T')[0];
@@ -859,8 +891,19 @@ function renderCPOverview(c){
   const photosOn=typeof ppFeatureOn==='function'?ppFeatureOn(c):true;
 
   const logged=typeof completedWorkouts==='function'?completedWorkouts(c.id,sessions):sessions.filter(s=>s.source==='client'||s.source==='live');
-  const last7=logged.filter(s=>{const d=new Date(s.date+'T12:00:00');return(today-d)/86400000<=7;}).length;
-  const last30=logged.filter(s=>{const d=new Date(s.date+'T12:00:00');return(today-d)/86400000<=30;}).length;
+  const inPastDays=(s,n)=>{const d=new Date(s.date+'T12:00:00');const diff=(today-d)/86400000;return diff>=0&&diff<=n;};
+  const assigned7=sessions.filter(s=>inPastDays(s,7)).length;
+  const assigned30=sessions.filter(s=>inPastDays(s,30)).length;
+  const last7=logged.filter(s=>inPastDays(s,7)).length;
+  const last30=logged.filter(s=>inPastDays(s,30)).length;
+  // Next calendar week (Mon–Sun after current week)
+  const dow=today.getDay(); // 0 Sun
+  const daysToNextMon=((8-dow)%7)||7;
+  const nextMon=new Date(today);nextMon.setDate(today.getDate()+daysToNextMon);
+  const nextSun=new Date(nextMon);nextSun.setDate(nextMon.getDate()+6);
+  const nextMonStr=nextMon.toISOString().split('T')[0];
+  const nextSunStr=nextSun.toISOString().split('T')[0];
+  const nextWeekAssigned=sessions.filter(s=>s.date>=nextMonStr&&s.date<=nextSunStr).length;
   const lastWorkout=logged.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0];
   const lastWorkoutTitle=lastWorkout?(typeof sessionTitle==='function'?sessionTitle(lastWorkout):(lastWorkout.type||'Trening')):null;
   const lastWorkoutDays=lastWorkout?Math.floor((today-new Date(lastWorkout.date+'T12:00:00'))/86400000):null;
@@ -868,20 +911,29 @@ function renderCPOverview(c){
   const weightEntry=metricsOn?cpMetricLatest(c.id,'mg1','m1'):null;
   const weightVal=weightEntry?weightEntry.values.m1:(c.weight||null);
   const weightDelta=metricsOn?cpMetricDeltaPct(c.id,'mg1','m1'):null;
+  const weightSpark=metricsOn?cpOvSparkSVG(cpMetricSeries(c.id,'mg1','m1'),'var(--accent)'):'';
   const stepsEntry=metricsOn?cpMetricLatest(c.id,'mg6','m1'):null;
+  const stepsDelta=metricsOn?cpMetricDeltaPct(c.id,'mg6','m1'):null;
+  const stepsSpark=metricsOn?cpOvSparkSVG(cpMetricSeries(c.id,'mg6','m1'),'var(--blue)',true):'';
   const hrEntry=metricsOn?(cpMetricLatest(c.id,'mg4','m1')||cpMetricLatest(c.id,'mg6','m3')):null;
+  const hrGroup=hrEntry?hrEntry.groupId:'mg4';
+  const hrKey=hrEntry&&hrEntry.values&&hrEntry.values.m1!=null?'m1':'m3';
+  const hrDelta=metricsOn&&hrEntry?cpMetricDeltaPct(c.id,hrGroup,hrKey):null;
+  const hrSpark=metricsOn&&hrEntry?cpOvSparkSVG(cpMetricSeries(c.id,hrGroup,hrKey),'var(--teal)'):'';
   const sleepEntry=cpMetricLatest(c.id,'mg5','m2');
+  const sleepSpark=cpOvSparkSVG(cpMetricSeries(c.id,'mg5','m2'),'var(--blue)',true);
 
   const photos=photosOn&&typeof ppListFor==='function'?ppListFor(c.id).slice().reverse().slice(0,2):[];
   const updates=cpOverviewUpdates(c);
 
-  const metricCard=(title,value,unit,delta,empty)=>{
+  const metricCard=(title,value,unit,delta,empty,spark)=>{
     const has=value!=null&&value!==''&&value!=='—';
-    const dHtml=delta==null?'':`<div style="font-size:11px;margin-top:4px;color:${delta<=0?'var(--teal)':'var(--orange)'};">${delta>0?'↑':'↓'} ${Math.abs(delta)}%</div>`;
+    const dHtml=delta==null?'':`<div class="cp-ov-metric-delta" style="color:${delta<=0?'var(--teal)':'var(--orange)'};">${delta>0?'↑':'↓'} ${Math.abs(delta)}%</div>`;
     return `<div class="cp-ov-metric">
       <div class="cp-ov-metric-lbl">${title}</div>
       <div class="cp-ov-metric-val">${has?escHtml(String(value)):'—'}${has&&unit?`<span class="cp-ov-metric-unit">${unit}</span>`:''}</div>
       ${has?dHtml:`<div style="font-size:10px;color:var(--muted);margin-top:4px;">${empty||'Brak danych'}</div>`}
+      ${spark?`<div class="cp-ov-metric-spark">${spark}</div>`:''}
     </div>`;
   };
 
@@ -924,19 +976,19 @@ function renderCPOverview(c){
           </div>
           <div class="cp-ov-train-stats">
             <div>
-              <div class="cp-ov-stat-num" style="color:var(--accent);">${last7}</div>
+              <div class="cp-ov-stat-num" style="color:var(--accent);">${last7}${assigned7?`<span class="cp-ov-stat-of">/${assigned7}</span>`:''}</div>
               <div class="cp-ov-stat-lbl">Ostatnie 7 dni</div>
-              <div class="cp-ov-stat-sub">${last7?last7+' zarejestrowane':'Brak treningów'}</div>
+              <div class="cp-ov-stat-sub">${assigned7?last7+'/'+assigned7+' odhaczone':(last7?last7+' zarejestrowane':'Brak treningów')}</div>
             </div>
             <div>
-              <div class="cp-ov-stat-num" style="color:var(--blue);">${last30}</div>
+              <div class="cp-ov-stat-num" style="color:var(--blue);">${last30}${assigned30?`<span class="cp-ov-stat-of">/${assigned30}</span>`:''}</div>
               <div class="cp-ov-stat-lbl">Ostatnie 30 dni</div>
-              <div class="cp-ov-stat-sub">${logged.length} łącznie · ${tasksDone.length}/${oneShot.length} zadań</div>
+              <div class="cp-ov-stat-sub">${assigned30?last30+'/'+assigned30+' odhaczone':(logged.length+' łącznie · '+tasksDone.length+'/'+oneShot.length+' zadań')}</div>
             </div>
             <div>
-              <div class="cp-ov-stat-num" style="color:var(--teal);">${plans.length}</div>
-              <div class="cp-ov-stat-lbl">Plany</div>
-              <div class="cp-ov-stat-sub">${daysSince!=null?(daysSince+'d od sesji'):'Brak sesji'}</div>
+              <div class="cp-ov-stat-num" style="color:var(--teal);">${nextWeekAssigned}</div>
+              <div class="cp-ov-stat-lbl">Następny tydzień</div>
+              <div class="cp-ov-stat-sub">${nextWeekAssigned?nextWeekAssigned+' w kalendarzu':'Jeszcze nie przypisano'}</div>
             </div>
           </div>
           ${lastWorkout?`<div class="cp-ov-last-wo" onclick="setCPTab('training')">
@@ -950,16 +1002,16 @@ function renderCPOverview(c){
         <div class="cp-ov-card">
           <div class="cp-ov-card-hd">
             <div class="cp-ov-card-title">Pomiary ciała</div>
-            <div style="display:flex;gap:6px;">
-              ${metricsOn?`<button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('metrics')">Aktualizuj</button>`:''}
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              ${metricsOn?`<button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('metrics')">Aktualizuj wszystkie</button>`:''}
               <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('progress')">Progress →</button>
             </div>
           </div>
           ${metricsOn?`<div class="cp-ov-metrics-grid">
-            ${metricCard('Waga',weightVal,'kg',weightDelta,'Dodaj pomiar masy')}
-            ${metricCard('Sen',sleepEntry?sleepEntry.values.m2:null,'/10',null,'Brak danych snu')}
-            ${metricCard('Tętno spocz.',hrEntry?(hrEntry.values.m1||hrEntry.values.m3):null,'bpm',null,'Brak danych')}
-            ${metricCard('Kroki',stepsEntry?stepsEntry.values.m1:null,'',null,'Import Garmin / pomiar')}
+            ${metricCard('Waga',weightVal,'kg',weightDelta,'Dodaj pomiar masy',weightSpark)}
+            ${metricCard('Sen',sleepEntry?sleepEntry.values.m2:null,'/10',null,'Brak danych snu',sleepSpark)}
+            ${metricCard('Tętno spocz.',hrEntry?(hrEntry.values.m1||hrEntry.values.m3):null,'bpm',hrDelta,'Brak danych',hrSpark)}
+            ${metricCard('Kroki',stepsEntry?stepsEntry.values.m1:null,'',stepsDelta,'Import Garmin / pomiar',stepsSpark)}
           </div>`:`<div style="font-size:12px;color:var(--muted);padding:8px 0;">Pomiary ciała wyłączone w Funkcjach klienta.</div>`}
         </div>
 
@@ -989,7 +1041,8 @@ function renderCPOverview(c){
       <aside class="cp-ov-rail">
         ${railCard('Cel',
           `<div style="font-size:14px;font-weight:700;line-height:1.4;margin-bottom:6px;">${escHtml(goalText)}</div>
-           <div style="font-size:11px;color:var(--muted);">${escHtml(levelText)}${c.trainingFreq?' · '+c.trainingFreq+'× / tydz.':''}${c.preferredTrainTime?' · '+escHtml(c.preferredTrainTime):''}</div>`,
+           <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">${escHtml(levelText)}${c.trainingFreq?' · '+c.trainingFreq+'× / tydz.':''}${c.preferredTrainTime?' · '+escHtml(c.preferredTrainTime):''}</div>
+           <div class="cp-ov-shared-tag">Udostępnione klientowi</div>`,
           `<button type="button" class="btn btn-ghost btn-sm" onclick="startCPEdit('${c.id}')">Edytuj</button>`)}
 
         ${railCard('Notatki',
@@ -1006,9 +1059,13 @@ function renderCPOverview(c){
           photos.length?`<div class="cp-ov-photos">${photos.map(p=>{
             const src=p.front||p.side||p.back||'';
             return `<div class="cp-ov-photo">${src?`<img src="${src}" alt="">`:`<span>📷</span>`}<div class="cp-ov-photo-d">${escHtml(p.date||'')}</div></div>`;
-          }).join('')}</div>`
+          }).join('')}</div>
+          <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
+            <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('photos')">Zobacz wszystkie</button>
+            ${photos.length>=2?`<button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('photos')">Porównaj</button>`:''}
+          </div>`
             :'<div style="font-size:12px;color:var(--muted);">Brak zdjęć — dodaj w zakładce Zdjęcia</div>',
-          `<button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('photos')">Zobacz</button>`):''}
+          ''):''}
 
         ${railCard('Profil',
           `<div class="cp-ov-profile-rows">
