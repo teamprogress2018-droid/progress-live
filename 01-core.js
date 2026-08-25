@@ -323,9 +323,12 @@ function goTo(n){
   }
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.nav-flyout-item').forEach(b=>b.classList.remove('active'));
   const s=document.getElementById('screen-'+n);if(s)s.classList.add('active');
   closeMobileSidebar();
-  const moreScreens=['library','programs','tasks','forms','payments','calculator','automation','integrations','metrics','checkin','aiplangen','ondemand','resources','bizstats','forum','inbox','settings','trainer-profile','aicoach','kb'];
+  if(typeof closeLibraryFlyout==='function')closeLibraryFlyout();
+  const libraryScreens=['library','plans','programs','tasks','forms','metrics','aiplangen','builder'];
+  const moreScreens=['dashboard','trainer-profile','checkin','calculator','integrations','resources','bizstats','settings','aicoach','kb'];
   if(moreScreens.includes(n)){
     const moreEl=document.getElementById('nav-more-items');
     const arrow=document.getElementById('nav-more-arrow');
@@ -334,6 +337,12 @@ function goTo(n){
   }
   const activeBtn=document.querySelector('.nav-item[data-screen="'+n+'"]');
   if(activeBtn)activeBtn.classList.add('active');
+  const flyItem=document.querySelector('.nav-flyout-item[data-screen="'+n+'"]');
+  if(flyItem)flyItem.classList.add('active');
+  if(libraryScreens.includes(n)){
+    const libBtn=document.getElementById('nav-library-btn');
+    if(libBtn)libBtn.classList.add('active');
+  }
   try{ _goToRender(n); }catch(e){ console.warn('goTo render error ('+n+'):', e); }
 }
 function _goToRender(n){
