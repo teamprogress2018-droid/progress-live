@@ -1533,9 +1533,16 @@ function closeClientProfile(){
   cpClientId=null;
 }
 
+var cpAnalyticsSub='psycho';
+
 function setCPTab(t){
+  // Legacy deep-links Psycho/SFR/Postawa → Analityka + podsekcja
+  if(t==='psycho'||t==='sfr'||t==='posture'){
+    cpAnalyticsSub=t;
+    t='analytics';
+  }
   cpTab=t;
-  const moreTabs=['notes','timeline','psycho','sfr','posture','photos','forms','food','payments','features'];
+  const moreTabs=['tasks','notes','timeline','analytics','photos','forms','food','payments','features','documents'];
   if(typeof closeCpMoreNav==='function')closeCpMoreNav();
   document.querySelectorAll('.cp-tab').forEach(el=>el.classList.remove('active'));
   const btn=document.getElementById('cpt-'+t);if(btn)btn.classList.add('active');
@@ -1547,8 +1554,7 @@ function setCPTab(t){
   if(t==='overview')renderCPOverview(c);
   if(t==='notes')renderCPNotes(c);
   if(t==='timeline')renderCPTimeline(c);
-  if(t==='psycho')renderCPPsycho(c);
-  if(t==='sfr')renderCPSfr(c);
+  if(t==='analytics')renderCPAnalytics(c);
   if(t==='training')renderCPTraining(c);
   if(t==='progress')renderCPProgress(c);
   if(t==='plan')renderCPPlan(c);
@@ -1559,7 +1565,42 @@ function setCPTab(t){
   if(t==='documents')renderCPDocuments(c);
   if(t==='payments')renderCPPayments(c);
   if(t==='features')renderCPSettings(c);
-  if(t==='posture')renderCPPosture(c);
   if(t==='photos')renderCPPhotos(c);
 }
+
+function setCPAnalyticsSub(sub){
+  if(sub!=='psycho'&&sub!=='sfr'&&sub!=='posture')return;
+  cpAnalyticsSub=sub;
+  const c=CL.find(x=>x.id===cpClientId);if(!c)return;
+  if(typeof renderCPAnalytics==='function')renderCPAnalytics(c);
+}
+
+function cpAnalyticsNavHTML(){
+  const subs=[['psycho','Psycho'],['sfr','SFR'],['posture','Postawa']];
+  return `<div class="cp-analytics-nav" role="tablist" aria-label="Analityka">
+    ${subs.map(([id,label])=>`<button type="button" role="tab" class="cp-analytics-chip${cpAnalyticsSub===id?' active':''}" aria-selected="${cpAnalyticsSub===id?'true':'false'}" onclick="setCPAnalyticsSub('${id}')">${label}</button>`).join('')}
+  </div>`;
+}
+
+function renderCPAnalytics(c){
+  if(!c)return;
+  if(cpAnalyticsSub==='sfr'&&typeof renderCPSfr==='function')renderCPSfr(c);
+  else if(cpAnalyticsSub==='posture'&&typeof renderCPPosture==='function')renderCPPosture(c);
+  else if(typeof renderCPPsycho==='function')renderCPPsycho(c);
+  else{
+    const body=document.getElementById('cp-body');
+    if(body)body.innerHTML=cpAnalyticsNavHTML()+'<div style="font-size:12px;color:var(--muted);padding:12px 0;">Brak modułu Analityka.</div>';
+  }
+}
+
+/** Prefix Psycho/SFR/Postawa content with Analityka sub-nav when that tab is active. */
+function withAnalyticsShell(html){
+  if(typeof cpTab!=='undefined'&&cpTab==='analytics'&&typeof cpAnalyticsNavHTML==='function'){
+    return cpAnalyticsNavHTML()+html;
+  }
+  return html;
+}
+window.setCPAnalyticsSub=setCPAnalyticsSub;
+window.renderCPAnalytics=renderCPAnalytics;
+window.withAnalyticsShell=withAnalyticsShell;
 

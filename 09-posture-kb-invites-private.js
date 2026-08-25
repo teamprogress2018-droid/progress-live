@@ -27,7 +27,7 @@ function renderCPPosture(c){
     `<button onclick="postureSetActive('${c.id}','${v}')" style="padding:5px 14px;border-radius:6px;border:1px solid ${p.currentPhoto===v?'var(--accent)':'var(--border2)'};background:${p.currentPhoto===v?'rgba(230,0,0,0.1)':'var(--s3)'};color:${p.currentPhoto===v?'var(--accent)':'var(--muted)'};font-size:11px;font-weight:${p.currentPhoto===v?700:400};cursor:pointer;transition:all 0.12s;">${l}</button>`
   ).join('');
 
-  document.getElementById('cp-body').innerHTML=`
+  const _postureHtml=`
     <div style="margin-bottom:14px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1.5px;color:var(--text);margin-bottom:4px;">🧍 OCENA POSTAWY — AI</div>
       <div style="font-size:11px;color:var(--muted);line-height:1.5;">Wgraj zdjęcie klienta i uruchom analizę AI. Wynik zawiera wady postawy, słabe i skrócone mięśnie oraz gotowy program korekcyjny.</div>
@@ -54,6 +54,7 @@ function renderCPPosture(c){
           <div style="font-size:11px;">Wgraj zdjęcie i kliknij Analizuj</div>
         </div>`}
     </div>`;
+  document.getElementById('cp-body').innerHTML=(typeof withAnalyticsShell==='function'?withAnalyticsShell(_postureHtml):_postureHtml);
 }
 
 function postureUploadPhoto(clientId, view, input){

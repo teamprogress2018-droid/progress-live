@@ -120,7 +120,7 @@ function renderCPPsycho(c){
   const p = psyGet(c.id);
   const todayMood = (p.daily||[]).find(d=>d.date===new Date().toISOString().split('T')[0]);
 
-  document.getElementById('cp-body').innerHTML = `
+  const _psyHtml = `
     <div style="background:linear-gradient(135deg,rgba(157,124,244,0.1),rgba(232,48,42,0.06));border:1px solid rgba(157,124,244,0.2);border-radius:10px;padding:14px;margin-bottom:14px;">
       <div style="font-size:10px;color:var(--purple);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">😊 Dzienny tracker nastroju</div>
       <div style="display:flex;gap:6px;justify-content:space-between;margin-bottom:10px;" id="psy-mood-btns">
@@ -207,6 +207,7 @@ function renderCPPsycho(c){
       <div id="psy-yoyo-result"></div>
       <div id="psy-ai-result"></div>
     </div>`;
+  document.getElementById('cp-body').innerHTML=(typeof withAnalyticsShell==='function'?withAnalyticsShell(_psyHtml):_psyHtml);
 
   psyRenderMoodHistory(c.id);
 }
@@ -383,7 +384,7 @@ function sfrGetMultiplier(clientId){
 
 function renderCPSfr(c){
   if(!c) return;
-  document.getElementById('cp-body').innerHTML=`
+  const _sfrHtml=`
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
       <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">TYDZIEŃ ${sfrWeekKey()}</div>
       <button onclick="sfrReset('${c.id}')" style="background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.2);border-radius:6px;padding:5px 10px;color:var(--red);font-size:10px;cursor:pointer;">↺ Reset tygodnia</button>
@@ -391,6 +392,7 @@ function renderCPSfr(c){
     <div id="sfr-mult-info" style="font-size:10px;color:var(--muted);background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;margin-bottom:12px;"></div>
     <div id="sfr-warning" style="display:none;background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.25);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:11px;color:var(--red);line-height:1.6;"></div>
     <div id="sfr-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"></div>`;
+  document.getElementById('cp-body').innerHTML=(typeof withAnalyticsShell==='function'?withAnalyticsShell(_sfrHtml):_sfrHtml);
   sfrRender(c.id);
 }
 
