@@ -2538,3 +2538,181 @@ window.applyBrandTheme=applyBrandTheme;
 if(typeof document!=='undefined'&&document.documentElement){
   try{applyBrandTheme(window.SETTINGS);}catch(e){}
 }
+
+// ════════════════════════════════════════
+// UZASADNIENIE METODYCZNE (dla trenera)
+// Ramy edukacyjne oparte o NSCA / ACSM / literaturę objętościową —
+// bez live PubMed; cytowania to punkty startowe do dalszej nauki.
+// ════════════════════════════════════════
+const METHOD_WHY={
+  PPL:{label:'Push / Pull / Legs',why:'Dzieli ciało na wzorce push, pull i nogi — każda partia ~2×/tydzień przy 6 dniach (lub 1–2× przy 3–4 dniach). Dobrze skaluje objętość hipertrofii bez „bro-splitu” 1×/tydzień.',best:'4–6 dni/tydzień, masa i kształtowanie'},
+  FBW:{label:'Full Body (FBW)',why:'Całe ciało w każdej sesji → wysoka częstotliwość stymulacji (3×/tydzień na partie). Idealne przy 2–3 dniach i dla początkujących (adaptacja nerwowo-mięśniowa).',best:'2–3 dni/tydzień, nowicjusze, utrzymanie'},
+  'Upper Lower':{label:'Upper / Lower',why:'Góra i dół na przemian — zwykle 4 dni, każda partia 2×/tydzień. Kompromis między FBW a PPL: więcej objętości na sesję niż FBW, mniej dni niż pełne PPL 6×.',best:'3–4 dni/tydzień, masa lub siła'},
+  UL:{label:'Upper / Lower',why:'Góra i dół na przemian — zwykle 4 dni, każda partia 2×/tydzień. Kompromis między FBW a PPL.',best:'3–4 dni/tydzień'},
+  Arnold:{label:'Arnold Split',why:'Klatka+plecy, barki+ramiona, nogi (×2) — wysoka objętość na partie sylwetkowe. Wymaga dobrej regeneracji i doświadczenia z objętością.',best:'5–6 dni, zaawansowani, hipertrofia'},
+  'Bro Split':{label:'Bro Split',why:'Jedna partia / dzień — wysoka objętość lokalna, ale niska częstotliwość (~1×/tydzień). Używaj świadomie; przy hipertrofii częściej lepsze 2×/tydzień.',best:'5–6 dni, zaawansowani z priorytetami'},
+  '531':{label:'5/3/1 Wendler',why:'Progresja %1RM na głównych wielostawach (przysiad, bench, deadlift, OHP) + asysty. Priorytet siły i długoterminowej progresji, nie maksymalnej objętości sylwetkowej.',best:'3–4 dni, cel siła'},
+  '5/3/1':{label:'5/3/1 Wendler',why:'Progresja %1RM na głównych wielostawach + asysty. Priorytet siły.',best:'3–4 dni, cel siła'},
+  Blokowa:{label:'Periodyzacja blokowa',why:'Bloki akumulacji → intensyfikacji → realizacji (+ deload). Objętość i intensywność nie rosną naraz — chroni przed stagnacją i przetrenowaniem.',best:'8–12+ tygodni, średni/zaawansowany'},
+  Custom:{label:'Dostosowana',why:'Struktura pod klienta — uzasadnij częstotliwość partii (≥2×/tydzień przy hipertrofii) i objętość względem MEV/MAV.',best:'gdy sztywny split nie pasuje'},
+  'Własna':{label:'Własna struktura',why:'Pełna kontrola trenera. Zapisz w notatkach planu, dlaczego taki układ dni i objętości.',best:'doświadczeni trenerzy'}
+};
+const GOAL_WHY={
+  masa:{
+    label:'Budowa masy (hipertrofia)',
+    sets:'3–4 serie robocze / ćwiczenie',
+    reps:'złożone 6–10 · izolacje 8–15',
+    rpe:'RPE 7–9 (RIR 1–3)',
+    rest:'60–120 s (izolacje krócej, wielostawy dłużej)',
+    why:'Hipertrofia reaguje na tygodniową objętość blisko upadku. Celuj w MEV–MAV na partię; częstotliwość ≥2×/tydzień na główne partie.',
+    volume:'Klatka/plecy ~10–18 serii/tyg · barki ~12–20 · nogi ~12–20 · ramiona ~8–14'
+  },
+  sila:{
+    label:'Wzrost siły',
+    sets:'3–6 serii / ćwiczenie główne',
+    reps:'główne 1–6 · asysty 6–10',
+    rpe:'RPE 7–9 (ciężkie serie), zapas na technikę',
+    rest:'2–5 min na wielostawach',
+    why:'Siła wymaga wysokiej intensywności (%1RM) i pełnej regeneracji między seriami. Objętość niższa niż przy masie; priorytet: przysiad, wyciskanie, martwy, OHP.',
+    volume:'Główne ruchy 10–20 ciężkich serii/tyg łącznie · asysty umiarkowanie'
+  },
+  redukcja:{
+    label:'Redukcja (zachowanie mięśni)',
+    sets:'3–4 serie / ćwiczenie',
+    reps:'6–12 (utrzymaj ciężar, nie „cardio na siłowni”)',
+    rpe:'RPE 7–8 — unikaj ciągłego RPE 10 przy deficycie',
+    rest:'60–120 s',
+    why:'Przy deficycie kalorycznym trening siłowy chroni masę mięśniową. Nie tnij drastycznie objętości na starcie; dodaj NEAT/cardio osobno.',
+    volume:'Utrzymaj blisko MEV–dolne MAV; deload wcześniej przy słabym śnie/stresie'
+  },
+  kondycja:{
+    label:'Kondycja ogólna',
+    sets:'2–4 serie',
+    reps:'8–15 + praca tlenowa / interwały',
+    rpe:'RPE 6–8 siłowo · wyżej w HIIT',
+    rest:'45–90 s siłowo',
+    why:'Łączysz bazę siłową z pojemnością tlenową. Nie maksymalizuj MRV siłowego — zostaw energię na cardio/HIIT.',
+    volume:'Siła: okolice MEV · osobno 1–3 sesje kondycyjne'
+  },
+  atletyzm:{
+    label:'Atletyzm / moc',
+    sets:'3–5 (moc: niższa objętość, wyższa jakość)',
+    reps:'moc 1–5 · siła 3–6 · hipertrofia asyst 6–10',
+    rpe:'RPE 6–8 na plyo/moc (świeżość)',
+    rest:'2–5 min przy mocy',
+    why:'Moc wymaga świeżego układu nerwowego — najpierw skoki/rzuty/olympic, potem siła, na końcu objętość.',
+    volume:'Niska–średnia objętość hipertrofii; jakość ruchu > liczba serii'
+  },
+  rehab:{
+    label:'Rehabilitacja / powrót',
+    sets:'2–3 serie kontrolowane',
+    reps:'8–15, bez bólu ostrego',
+    rpe:'RPE 5–7',
+    rest:'60–90 s',
+    why:'Priorytet: zakres ruchu, kontrola i tolerancja obciążenia. Unikaj maksymalnych ciężarów i metod intensyfikacji do konsultacji z fizjo.',
+    volume:'Poniżej typowego MEV na obszar kontuzji; buduj stopniowo'
+  }
+};
+const LEVEL_WHY={
+  poczatkujacy:'Nowicjusz: dolna połowa MEV–MAV, nauka wzorców, progresja liniowa. Scięgna adaptują się wolniej niż mięśnie — nie skacz objętością co tydzień.',
+  sredni:'Średni: środek/góra MAV, możliwa DUP lub falowanie. Deload co 4–6 tygodni.',
+  zaawansowany:'Zaawansowany: góra MAV, blisko MRV na priorytetach, bloki i specjalizacja. Wymaga snu, białka i monitorowania RPE.'
+};
+const RATIONALE_SOURCES=[
+  'NSCA — Essentials of Strength Training and Conditioning (serie/powt./%1RM)',
+  'ACSM — Guidelines: częstotliwość i progresja oporu',
+  'Schoenfeld i in. — metaanalizy objętości i częstotliwości hipertrofii (punkty orientacyjne MEV/MAV)',
+  'Twoja Baza wiedzy w apce — dopisz własne zasady i doświadczenie'
+];
+
+function normalizeRationaleMethod(method){
+  const m=String(method||'').trim();
+  if(!m)return'PPL';
+  if(/^upper\s*\/?\s*lower$/i.test(m)||m==='UL')return'Upper Lower';
+  if(/^5\s*\/\s*3\s*\/\s*1|531$/i.test(m))return'531';
+  if(/^bro/i.test(m))return'Bro Split';
+  if(/^arnold/i.test(m))return'Arnold';
+  if(/^w[lł]asna/i.test(m))return'Własna';
+  if(/^custom|dostosow/i.test(m))return'Custom';
+  if(/^blok/i.test(m))return'Blokowa';
+  if(/^fbw|full\s*body/i.test(m))return'FBW';
+  if(/^ppl|push/i.test(m))return'PPL';
+  return m;
+}
+function buildMethodRationale(opts){
+  const o=opts||{};
+  const methodKey=normalizeRationaleMethod(o.method);
+  const goalKey=String(o.goal||'masa').toLowerCase();
+  const levelKey=String(o.level||'sredni').toLowerCase();
+  const days=parseInt(o.daysPerWeek,10)||0;
+  const method=METHOD_WHY[methodKey]||METHOD_WHY.Custom||METHOD_WHY.PPL;
+  const goal=GOAL_WHY[goalKey]||GOAL_WHY.masa;
+  const levelTip=LEVEL_WHY[levelKey]||LEVEL_WHY.sredni;
+  const tips=[];
+  if(methodKey==='PPL'&&days&&days<4)tips.push('PPL przy '+days+' dniach: rozważ FBW lub Upper/Lower, albo skrócone PPL (np. Push+quad / Pull+ham / Upper).');
+  if(methodKey==='FBW'&&days>=5)tips.push('FBW przy '+days+' dniach bywa zbyt częste — rozważ Upper/Lower lub PPL, żeby dać partiom regenerację.');
+  if(methodKey==='Bro Split'&&(goalKey==='masa'||goalKey==='redukcja'))tips.push('Przy hipertrofii preferuj ≥2 stymulacje partii/tydzień — bro split daje zwykle 1×; świadomie zwiększ częstotliwość lub objętość priorytetów.');
+  if(goalKey==='sila'&&methodKey==='PPL')tips.push('Siła + PPL OK, ale trzymaj ciężkie wielostawy na początku sesji i dłuższe przerwy (3–5 min).');
+  tips.push('Zapisuj RPE/RIR — decyzje o +kg / +seriach opieraj na trendzie, nie na jednym „złym dniu”.');
+  return{
+    methodKey,goalKey,levelKey,daysPerWeek:days||null,
+    methodLabel:method.label,
+    methodWhy:method.why,
+    methodBest:method.best,
+    goalLabel:goal.label,
+    sets:goal.sets,
+    reps:goal.reps,
+    rpe:goal.rpe,
+    rest:goal.rest,
+    goalWhy:goal.why,
+    volume:goal.volume,
+    levelTip,
+    tips,
+    sources:RATIONALE_SOURCES.slice()
+  };
+}
+function renderMethodRationaleHTML(opts){
+  const r=typeof opts==='object'&&opts.methodWhy?opts:buildMethodRationale(opts||{});
+  const escFn=(typeof window!=='undefined'&&typeof window.escHtml==='function')?window.escHtml:(typeof escHtml==='function'?escHtml:null);
+  const esc=escFn||(s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'));
+  const row=(k,v)=>`<div class="mr-row"><span class="mr-k">${esc(k)}</span><span class="mr-v">${esc(v)}</span></div>`;
+  return`<div class="method-rationale">
+    <div class="method-rationale-hdr">
+      <div class="method-rationale-title">Dlaczego tak? — przewodnik trenera</div>
+      <div class="method-rationale-badge">NSCA · ACSM · ramy objętości</div>
+    </div>
+    <div class="method-rationale-body">
+      <div class="mr-block">
+        <div class="mr-block-title">Metoda: ${esc(r.methodLabel)}</div>
+        <div class="mr-text">${esc(r.methodWhy)}</div>
+        <div class="mr-meta">Najlepiej: ${esc(r.methodBest)}</div>
+      </div>
+      <div class="mr-block">
+        <div class="mr-block-title">Cel: ${esc(r.goalLabel)}</div>
+        <div class="mr-text">${esc(r.goalWhy)}</div>
+        ${row('Serie',r.sets)}
+        ${row('Powtórzenia',r.reps)}
+        ${row('RPE / RIR',r.rpe)}
+        ${row('Przerwy',r.rest)}
+        ${row('Objętość/tyg.',r.volume)}
+      </div>
+      <div class="mr-block">
+        <div class="mr-block-title">Poziom klienta</div>
+        <div class="mr-text">${esc(r.levelTip)}</div>
+      </div>
+      ${r.tips&&r.tips.length?`<div class="mr-block"><div class="mr-block-title">Wskazówki</div><ul class="mr-tips">${r.tips.map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div>`:''}
+      <div class="mr-sources"><div class="mr-block-title">Źródła (edukacyjne)</div><ul class="mr-tips mr-tips-sm">${(r.sources||[]).map(s=>`<li>${esc(s)}</li>`).join('')}</ul>
+      <div class="mr-note">Aplikacja nie pobiera live PubMed — to skondensowane ramy + Twoje doświadczenie w Bazie wiedzy. Kolejny krok: własne badania i notatki.</div></div>
+    </div>
+  </div>`;
+}
+function refreshMethodRationaleInto(el,opts){
+  if(!el)return;
+  el.innerHTML=renderMethodRationaleHTML(opts||{});
+}
+window.METHOD_WHY=METHOD_WHY;
+window.GOAL_WHY=GOAL_WHY;
+window.buildMethodRationale=buildMethodRationale;
+window.renderMethodRationaleHTML=renderMethodRationaleHTML;
+window.refreshMethodRationaleInto=refreshMethodRationaleInto;
+window.normalizeRationaleMethod=normalizeRationaleMethod;

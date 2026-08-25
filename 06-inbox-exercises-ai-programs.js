@@ -1272,7 +1272,7 @@ async function askAI(){
   msgs.scrollTop=msgs.scrollHeight;
   const cid=document.getElementById('b-client').value;const c=CL.find(x=>x.id===cid);
   const ctx=c?'Klient: '+c.name+', '+c.age+'lat, '+c.weight+'kg, cel: '+c.goal+', poziom: '+c.level+'. ':'';
-  const sys='Asystent trenera personalnego. Odpowiadaj KRÓTKO po polsku, max 100 słów. NSCA: hipertrofia 3-6 serii/8-10 powt/67-85% 1RM; siła 2-6 serii/1-6 powt/85%+ 1RM. RPE 8=RIR 2. Facepull i HipThrust zawsze. Dawaj konkretne liczby.';
+  const sys='Asystent trenera personalnego. Odpowiadaj KRÓTKO po polsku, max 120 słów. Zawsze podaj DLACZEGO (1 zdanie) przy liczbach. NSCA: hipertrofia 3-6 serii/8-12 powt/67-85% 1RM; siła 2-6 serii/1-6 powt/85%+ 1RM. RPE 8=RIR 2. Objętość tygodniowa: trzymaj MEV–MAV. Facepull i HipThrust zawsze. Dawaj konkretne liczby.';
   try{
     const r=await fetch(W,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:250,system:sys,messages:[{role:'user',content:ctx+q}]})});
     const d=await r.json();

@@ -77,6 +77,9 @@ jobs:
       - name: 1i3. Testy etykiet dnia wg metody (Push/Pull/FBW)
         run: node .github/scripts/test_builder_day_method.js
 
+      - name: 1i4. Testy uzasadnienia metodycznego (dlaczego serie/metoda)
+        run: node .github/scripts/test_method_rationale.js
+
       - name: 1j. Testy parsera JSON generatora AI
         run: node .github/scripts/test_ai_plan_json.js
 

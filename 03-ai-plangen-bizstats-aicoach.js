@@ -70,6 +70,7 @@ function initAplangen(){
   }
   if(typeof initPriorSportsForm==='function')initPriorSportsForm('apl',[]);
   if(typeof initPhysiquePriorityForm==='function')initPhysiquePriorityForm('apl',[]);
+  if(typeof aplRefreshRationale==='function')aplRefreshRationale();
 }
 
 function aplShowWelcome(){
@@ -95,7 +96,19 @@ function aplToggleOpt(btn,groupId){
   const grp=document.getElementById(groupId);
   grp.querySelectorAll('.apl-opt').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
+  if(typeof aplRefreshRationale==='function')aplRefreshRationale();
 }
+
+function aplRefreshRationale(){
+  const el=document.getElementById('apl-rationale');
+  if(!el||typeof refreshMethodRationaleInto!=='function')return;
+  const goal=typeof aplGetVal==='function'?aplGetVal('apl-goals'):'masa';
+  const level=typeof aplGetVal==='function'?aplGetVal('apl-levels'):'sredni';
+  const method=typeof aplGetVal==='function'?aplGetVal('apl-methods'):'PPL';
+  const days=typeof aplGetVal==='function'?parseInt(aplGetVal('apl-days'),10):0;
+  refreshMethodRationaleInto(el,{method,goal,level,daysPerWeek:days||undefined});
+}
+window.aplRefreshRationale=aplRefreshRationale;
 
 function aplFillFromClient(){
   const sel=document.getElementById('apl-client');
@@ -143,6 +156,7 @@ function aplFillFromClient(){
   }
   aplRenderMetricsHint(cid);
   const hasM=typeof clientMetricsContextForAI==='function'&&!!clientMetricsContextForAI(cid);
+  if(typeof aplRefreshRationale==='function')aplRefreshRationale();
   notify(hasM?`✓ Dane ${c.name} + pomiary (baseline) wczytane`:`✓ Dane ${c.name} wczytane do formularza`);
 }
 
@@ -575,7 +589,7 @@ async function aplGenerate(){
 WAŻNE — odpowiedz TYLKO w formacie JSON (bez żadnego dodatkowego tekstu, bez markdown, bez \`\`\`):
 {
   "planName": "Nazwa planu",
-  "summary": "Krótkie 2-zdaniowe uzasadnienie metodyczne",
+  "summary": "3–5 zdań dla trenera początkującego: dlaczego ta metoda, dlaczego taka objętość serii (nawiąż do MEV/MAV), dlaczego ten RPE/zakres powtórzeń dla poziomu klienta",
   "method": "Nazwa metody",
   "weeks": ${weeksNum},
   "daysPerWeek": liczba,
@@ -801,6 +815,13 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
         <span class="pill" style="background:var(--s3);color:var(--muted);">🔁 ${plan.method||method}</span>
       </div>
     </div>
+
+    ${typeof renderMethodRationaleHTML==='function'?renderMethodRationaleHTML({
+      method:plan.method||method,
+      goal:goal,
+      level:(client&&client.level)||(typeof aplGetVal==='function'?aplGetVal('apl-levels'):'sredni'),
+      daysPerWeek:plan.daysPerWeek||days
+    }):''}
 
     <!-- 3-panel: zasady progresji / rozgrzewka / schłodzenie (kolory dopasowane 1:1 do Progress Studio AI) -->
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-bottom:16px;">

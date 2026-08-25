@@ -673,8 +673,26 @@ function builderRefreshAllDayFocus(){
     wi++;
   });
 }
-function builderOnMethodChange(){builderRefreshAllDayFocus();}
+function builderOnMethodChange(){
+  builderRefreshAllDayFocus();
+  builderRefreshRationale();
+}
 window.builderOnMethodChange=builderOnMethodChange;
+function builderRefreshRationale(){
+  const el=document.getElementById('builder-rationale');
+  if(!el||typeof buildMethodRationale!=='function')return;
+  const cid=(document.getElementById('b-client')||{}).value||'';
+  const c=(window.CL||[]).find(x=>x.id===cid)||{};
+  const method=(document.getElementById('b-method')||{}).value||'PPL';
+  const days=document.querySelectorAll('#builder-days .builder-day').length;
+  refreshMethodRationaleInto(el,{
+    method,
+    goal:c.goal||'masa',
+    level:c.level||'sredni',
+    daysPerWeek:days||undefined
+  });
+}
+window.builderRefreshRationale=builderRefreshRationale;
 function initBuilder(){
   window._editingPlanId=null;
   window._builderPeriodWeek=0;
@@ -689,6 +707,7 @@ function initBuilder(){
     sel.innerHTML='<option value="">-- Wybierz klienta --</option>'+CL.map(c=>`<option value="${escHtml(c.id)}">${escHtml(c.name)}</option>`).join('');
   }
   updatePeriod();
+  builderRefreshRationale();
 }
 function addDay(){
   dayCount++;const id='bd-'+dayCount;
@@ -709,8 +728,9 @@ function addDay(){
   </div>`;
   document.getElementById('builder-days').appendChild(div);
   builderRefreshAllDayFocus();
+  builderRefreshRationale();
 }
-function toggleR(id){const el=document.getElementById(id);const r=el.querySelector('.rc').checked;el.querySelector('.rest-s').style.display=r?'block':'none';el.querySelector('.work-s').style.display=r?'none':'block';builderRefreshAllDayFocus();}
+function toggleR(id){const el=document.getElementById(id);const r=el.querySelector('.rc').checked;el.querySelector('.rest-s').style.display=r?'block':'none';el.querySelector('.work-s').style.display=r?'none':'block';builderRefreshAllDayFocus();builderRefreshRationale();}
 function addRow(dayId){
   const rows=document.querySelector('#'+dayId+' .ex-rows');
   const div=document.createElement('div');div.className='ex-row';
@@ -1192,6 +1212,7 @@ function updatePeriod(){
   el.innerHTML=sportBar+rmBar+`<div class="ui-section-sub" style="margin-bottom:12px;">Kliknij tydzień, aby podejrzeć serie, powtórzenia, kg, <b>RPE</b> i <b>RIR</b> w wierszach ćwiczeń.</div>`+sch.map((w,i)=>`<button type="button" class="period-row${activeIdx===i?' active':''}" onclick="builderSelectPeriodWeek(${i})"><div class="period-row-week" style="color:${w.cel.includes('DELOAD')?'var(--orange)':w.nr===1?'var(--accent)':'var(--blue)'};">Tydz. ${w.nr}</div><div style="min-width:0;flex:1;"><div class="period-row-title">${w.cel}</div><div class="period-row-sub">${w.rpe}</div></div></button>`).join('')+(activeIdx>0?`<button type="button" class="btn btn-primary btn-sm" style="width:100%;margin-top:12px;" onclick="builderApplyPeriodWeek()">Użyj wartości z tygodnia ${activeIdx+1} w formularzu</button>`:'');
   document.querySelectorAll('#builder-days .ex-row').forEach(r=>{if(typeof builderPreviewKg==='function')builderPreviewKg(r);});
   builderRefreshPeriodPreview();
+  builderRefreshRationale();
 }
 function builderSelectPeriodWeek(idx){
   window._builderPeriodWeek=idx||0;
