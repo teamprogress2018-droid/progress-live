@@ -74,6 +74,9 @@ jobs:
       - name: 1i2. Testy kart ćwiczeń w builderze (zamienniki / kolory)
         run: node .github/scripts/test_builder_ex_cards.js
 
+      - name: 1i3. Testy etykiet dnia wg metody (Push/Pull/FBW)
+        run: node .github/scripts/test_builder_day_method.js
+
       - name: 1j. Testy parsera JSON generatora AI
         run: node .github/scripts/test_ai_plan_json.js
 

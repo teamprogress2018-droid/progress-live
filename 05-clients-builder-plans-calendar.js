@@ -631,6 +631,50 @@ window.saveClientBaselineModal=saveClientBaselineModal;
 // ════════════════════════════════════════
 // BUILDER
 // ════════════════════════════════════════
+const BUILDER_METHOD_DAYS={
+  PPL:['Push','Pull','Legs'],
+  FBW:['FBW'],
+  'Upper Lower':['Upper','Lower'],
+  Arnold:['Arnold A','Arnold B','Arnold C'],
+  'Bro Split':['Bro 1','Bro 2','Bro 3','Bro 4','Bro 5'],
+  'Własna':null
+};
+function builderGetMethod(){
+  const sel=document.getElementById('b-method');
+  return sel?sel.value:'PPL';
+}
+function builderDayFocusLabel(method,workoutDayIndex){
+  const labels=BUILDER_METHOD_DAYS[method];
+  if(!labels||!labels.length)return '';
+  return labels[((workoutDayIndex%labels.length)+labels.length)%labels.length];
+}
+function builderFillDayFocus(dayEl,workoutDayIndex){
+  if(!dayEl)return;
+  const inp=dayEl.querySelector('.builder-day-focus');
+  if(!inp)return;
+  const method=builderGetMethod();
+  if(method==='Własna'){
+    inp.placeholder='np. Push, FBW, własna nazwa';
+    return;
+  }
+  inp.placeholder='Push, Pull, FBW…';
+  if(dayEl.querySelector('.rc')?.checked){inp.value='';return;}
+  inp.value=builderDayFocusLabel(method,workoutDayIndex);
+}
+function builderRefreshAllDayFocus(){
+  let wi=0;
+  document.querySelectorAll('.builder-day').forEach(de=>{
+    if(de.querySelector('.rc')?.checked){
+      const inp=de.querySelector('.builder-day-focus');
+      if(inp)inp.value='';
+      return;
+    }
+    builderFillDayFocus(de,wi);
+    wi++;
+  });
+}
+function builderOnMethodChange(){builderRefreshAllDayFocus();}
+window.builderOnMethodChange=builderOnMethodChange;
 function initBuilder(){
   window._editingPlanId=null;
   window._builderPeriodWeek=0;
@@ -653,7 +697,7 @@ function addDay(){
   const div=document.createElement('div');div.id=id;div.className='builder-day';
   div.innerHTML=`<div class="builder-day-hdr">
     <select class="builder-day-select">${sel}</select>
-    <input type="text" class="builder-day-focus" placeholder="np. Klatka + Triceps">
+    <input type="text" class="builder-day-focus" placeholder="Push, Pull, FBW…">
     <label class="builder-rest-toggle"><input type="checkbox" class="rc" style="accent-color:var(--accent);" onchange="toggleR('${id}')"> Dzień odpoczynku</label>
     <button type="button" class="builder-remove-day" onclick="document.getElementById('${id}').remove()">×</button>
   </div>
@@ -664,8 +708,9 @@ function addDay(){
     <button class="add-ex-btn" onclick="addRow('${id}')">+ DODAJ ĆWICZENIE</button>
   </div>`;
   document.getElementById('builder-days').appendChild(div);
+  builderRefreshAllDayFocus();
 }
-function toggleR(id){const el=document.getElementById(id);const r=el.querySelector('.rc').checked;el.querySelector('.rest-s').style.display=r?'block':'none';el.querySelector('.work-s').style.display=r?'none':'block';}
+function toggleR(id){const el=document.getElementById(id);const r=el.querySelector('.rc').checked;el.querySelector('.rest-s').style.display=r?'block':'none';el.querySelector('.work-s').style.display=r?'none':'block';builderRefreshAllDayFocus();}
 function addRow(dayId){
   const rows=document.querySelector('#'+dayId+' .ex-rows');
   const div=document.createElement('div');div.className='ex-row';
