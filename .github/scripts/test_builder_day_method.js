@@ -25,7 +25,7 @@ ok('addDay refreshes focus',src.includes('builderRefreshAllDayFocus()'));
 ok('toggleR refreshes focus',/function toggleR\(id\).{0,200}builderRefreshAllDayFocus/.test(src));
 ok('placeholder updated',src.includes('placeholder="Push, Pull, FBW…"'));
 ok('b-method onchange wired',html.includes('id="b-method" onchange="builderOnMethodChange()"'));
-ok('cache bump v21',html.includes('05-clients-builder-plans-calendar.js?v=21'));
+ok('cache bump v22',html.includes('05-clients-builder-plans-calendar.js?v=22'));
 
 const BUILDER_METHOD_DAYS={
   PPL:['Push','Pull','Legs'],

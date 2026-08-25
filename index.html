@@ -13,7 +13,7 @@
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="globals.css?v=17">
-<link rel="stylesheet" href="styles.css?v=28">
+<link rel="stylesheet" href="styles.css?v=29">
 </head>
 <body>
 
@@ -326,6 +326,10 @@
           <div class="ai-msgs" id="ai-msgs"><div class="ai-msg bot"><div class="ai-bubble">Witaj! Zapytaj mnie o dobór ćwiczeń, serie, RPE, przerwy lub korekty dla klienta.</div></div></div>
           <div class="ai-input-row"><input type="text" class="ai-inp" id="ai-q" placeholder="Zapytaj o plan..." onkeydown="if(event.key==='Enter')askAI()"><button class="ai-send" onclick="askAI()">→</button></div>
         </div>
+      </div>
+      <div class="card">
+        <div class="ui-section-hdr">Dlaczego tak? (metodyka)</div>
+        <div id="builder-rationale"><div class="ui-section-sub">Wybierz metodę i klienta</div></div>
       </div>
       <div class="card">
         <div class="ui-section-hdr">Harmonogram periodyzacji</div>
@@ -2093,6 +2097,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
           <button class="apl-opt" data-val="Blokowa" onclick="aplToggleOpt(this,'apl-methods')">📦 Periodyzacja blokowa</button>
           <button class="apl-opt" data-val="Custom" onclick="aplToggleOpt(this,'apl-methods')">✏️ Dostosowana</button>
         </div>
+        <div id="apl-rationale" class="apl-rationale-mount" style="margin-top:10px;"></div>
       </div>
 
       <!-- metody intensyfikacji -->
@@ -3977,12 +3982,12 @@ async function load(){
 
 <script src="ex-gif-manifest.js?v=17"></script>
 <script src="ex-photo-manifest.js?v=1"></script>
-<script src="01-core.js?v=25"></script>
-<script src="02-workouts-onboarding-templates-live.js?v=18"></script>
-<script src="03-ai-plangen-bizstats-aicoach.js?v=17"></script>
+<script src="01-core.js?v=26"></script>
+<script src="02-workouts-onboarding-templates-live.js?v=19"></script>
+<script src="03-ai-plangen-bizstats-aicoach.js?v=18"></script>
 <script src="04-client-portal.js?v=24"></script>
-<script src="05-clients-builder-plans-calendar.js?v=21"></script>
-<script src="06-inbox-exercises-ai-programs.js?v=22"></script>
+<script src="05-clients-builder-plans-calendar.js?v=22"></script>
+<script src="06-inbox-exercises-ai-programs.js?v=23"></script>
 <script src="07-forms-metrics-calculator.js?v=21"></script>
 <script src="08-client-profile-extras.js?v=25"></script>
 <script src="09-posture-kb-invites-private.js?v=26"></script>
