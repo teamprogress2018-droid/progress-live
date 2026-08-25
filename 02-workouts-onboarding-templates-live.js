@@ -1386,6 +1386,7 @@ function openTplCreate(editId){
   window._editingTplId=editId||null;
   let m=document.getElementById('m-tpl-create');
   if(m&&!document.getElementById('tplc-rationale')){m.remove();m=null;}
+  if(m&&!m.querySelector('.edu-tip')){m.remove();m=null;}
   if(!m){
     m=document.createElement('div');m.id='m-tpl-create';m.className='modal-ov';
     m.innerHTML=`<div class="modal modal-wide" style="max-width:640px;">
@@ -1394,7 +1395,7 @@ function openTplCreate(editId){
         <div class="form-field"><label class="form-lbl">Nazwa</label><input type="text" class="form-input" id="tplc-name" placeholder="np. PPL 4× — Moja wersja"></div>
         <div class="form-field"><label class="form-lbl">Opis</label><textarea class="form-textarea" id="tplc-desc" rows="2" placeholder="Krótki opis szablonu..."></textarea></div>
         <div class="form-grid">
-          <div class="form-field"><label class="form-lbl">Cel</label>
+          <div class="form-field"><label class="form-lbl">Cel <button type="button" class="edu-tip" data-edu="goal" aria-label="Wyjaśnienie celu">?</button></label>
             <select class="form-select" id="tplc-goal" onchange="tplcRefreshRationale()">
               <option value="masa">Masa</option><option value="sila">Siła</option><option value="redukcja">Redukcja</option><option value="kondycja">Kondycja</option>
             </select>
@@ -1404,7 +1405,7 @@ function openTplCreate(editId){
               <option value="poczatkujacy">Początkujący</option><option value="sredni" selected>Średni</option><option value="zaawansowany">Zaawansowany</option>
             </select>
           </div>
-          <div class="form-field"><label class="form-lbl">Metoda</label>
+          <div class="form-field"><label class="form-lbl">Metoda <button type="button" class="edu-tip" data-edu="method" aria-label="Wyjaśnienie metody">?</button></label>
             <select class="form-select" id="tplc-method" onchange="tplcRefreshRationale()">
               <option>PPL</option><option>FBW</option><option>UL</option><option>531</option><option>Custom</option>
             </select>
@@ -1442,6 +1443,7 @@ function openTplCreate(editId){
   const del=document.getElementById('tplc-del');
   if(del)del.style.display=existing?'inline-flex':'none';
   tplcRefreshRationale();
+  if(typeof hydrateEduTips==='function')hydrateEduTips(m||document.getElementById('m-tpl-create'));
   openM('m-tpl-create');
 }
 
@@ -1486,8 +1488,8 @@ function tplcAddExRow(list,ex){
   row.style.cssText='display:grid;grid-template-columns:1fr 54px 64px 28px;gap:6px;align-items:center;';
   row.innerHTML=`
     <input type="text" class="form-input tplc-ex-n ex-ac-input" placeholder="Ćwiczenie" value="${escHtml(ex.n||'')}" style="font-size:12px;" autocomplete="off">
-    <input type="text" class="form-input tplc-ex-s" placeholder="Serie" value="${escHtml(ex.s||'3')}" style="font-size:12px;">
-    <input type="text" class="form-input tplc-ex-r" placeholder="Powt." value="${escHtml(ex.r||'10')}" style="font-size:12px;">
+    <input type="text" class="form-input tplc-ex-s" placeholder="Serie" value="${escHtml(ex.s||'3')}" style="font-size:12px;" title="${typeof eduTipText==='function'?escHtml(eduTipText('sets',{goal:document.getElementById('tplc-goal')?.value||'masa'})):'Serie robocze'}">
+    <input type="text" class="form-input tplc-ex-r" placeholder="Powt." value="${escHtml(ex.r||'10')}" style="font-size:12px;" title="${typeof eduTipText==='function'?escHtml(eduTipText('reps',{goal:document.getElementById('tplc-goal')?.value||'masa'})):'Powtórzenia'}">
     <button type="button" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:16px;" onclick="this.parentElement.remove()">×</button>`;
   list.appendChild(row);
   const nameInp=row.querySelector('.tplc-ex-n');

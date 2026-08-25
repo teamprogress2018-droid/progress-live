@@ -2798,3 +2798,96 @@ window.buildMethodRationale=buildMethodRationale;
 window.renderMethodRationaleHTML=renderMethodRationaleHTML;
 window.refreshMethodRationaleInto=refreshMethodRationaleInto;
 window.normalizeRationaleMethod=normalizeRationaleMethod;
+
+// ════════════════════════════════════════
+// TOOLTIPY EDUKACYJNE (Serie / RPE / Metoda…)
+// ════════════════════════════════════════
+const EDU_TIPS={
+  method:'Metoda = jak dzielisz ciało na dni (PPL, FBW, Upper/Lower…). Przy hipertrofii celuj w ≥2 stymulacje partii/tydzień. Szczegóły w panelu „Dlaczego tak?”.',
+  goal:'Cel ustala zakresy: masa → objętość i RIR 0–3; siła → wyższy %1RM i dłuższe przerwy; redukcja → utrzymaj ciężar, nie tnij od razu objętości.',
+  sets:'Serie robocze na ćwiczenie. Hipertrofia zwykle 3–4; siła 3–6 na głównych. Licz sumę tygodniową partii (MEV–MAV), nie tylko jeden dzień.',
+  reps:'Powtórzenia: hipertrofia złożone ~6–10, izolacje ~8–15; siła główne ~1–6. Dobierz tak, by ostatnie powt. były blisko upadku (patrz RPE/RIR).',
+  kg:'Ciężar roboczy. Możesz liczyć z %1RM (Pomiary → Siła bazowa). Zostaw puste, jeśli klient dobiera wg RPE.',
+  rpe:'RPE 1–10: jak trudna była seria. RPE 8 ≈ zostały ~2 powtórzenia (RIR 2). Hipertrofia często RPE 7–9; unikaj ciągłego RPE 10.',
+  rir:'RIR = powtórzenia w zapasie. RIR 0 = upadek; RIR 2 ≈ RPE 8. Łatwiejsze w komunikacji z klientem niż samo RPE.',
+  rest:'Przerwa: izolacje ~60–90 s; wielostawy hipertrofia ~90–120 s; siła 2–5 min. Za krótka przerwa psuje jakość kolejnej serii.',
+  tempo:'Tempo np. 3-1-1-0 = ekscentryka 3 s – pauza w rozciągnięciu 1 s – koncentryka 1 s – pauza 0. Pomaga w kontroli i stretch-mediated hypertrophy.',
+  focus:'Etykieta dnia (Push/Pull/FBW…). Uzupełnia się z metody — możesz nadpisać własną nazwą.',
+  days:'Liczba dni/tydzień musi pasować do metody: FBW 2–3, Upper/Lower 3–4, PPL 4–6. Za mało dni przy PPL = słaba częstotliwość partii.'
+};
+function eduTipText(key,ctx){
+  const k=String(key||'');
+  const o=ctx||{};
+  if(k==='method'&&o.method&&typeof METHOD_WHY==='object'){
+    const mk=typeof normalizeRationaleMethod==='function'?normalizeRationaleMethod(o.method):o.method;
+    const m=METHOD_WHY[mk];
+    if(m)return m.label+': '+m.why+(m.best?' Najlepiej: '+m.best+'.':'');
+  }
+  if((k==='sets'||k==='reps'||k==='rpe')&&o.goal&&typeof GOAL_WHY==='object'){
+    const g=GOAL_WHY[String(o.goal).toLowerCase()];
+    if(g){
+      if(k==='sets')return g.sets+'. '+g.why;
+      if(k==='reps')return g.reps+'. '+g.why;
+      if(k==='rpe')return g.rpe+'. RIR ≈ 10 − RPE.';
+    }
+  }
+  return EDU_TIPS[k]||'Podpowiedź metodyczna — zobacz panel „Dlaczego tak?”.';
+}
+function eduTipMark(key,opts){
+  const text=eduTipText(key,opts);
+  const esc=(typeof window!=='undefined'&&window.escHtml)?window.escHtml:(s=>String(s??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'));
+  const safe=esc(text);
+  return `<button type="button" class="edu-tip" data-edu="${esc(key)}" data-tip="${safe}" title="${safe}" aria-label="Wyjaśnienie: ${esc(key)}">?</button>`;
+}
+function eduLbl(label,key,opts){
+  return `<span class="edu-lbl">${label}${eduTipMark(key,opts)}</span>`;
+}
+window.EDU_TIPS=EDU_TIPS;
+window.eduTipText=eduTipText;
+window.eduTipMark=eduTipMark;
+window.eduLbl=eduLbl;
+
+function hydrateEduTips(root){
+  const scope=root&&root.querySelectorAll?root:document;
+  scope.querySelectorAll('.edu-tip[data-edu]').forEach(btn=>{
+    const key=btn.getAttribute('data-edu');
+    const ctx={};
+    if(key==='method'){
+      const m=document.getElementById('b-method')||document.getElementById('tplc-method');
+      if(m)ctx.method=m.value;
+      if(typeof aplGetVal==='function'){try{ctx.method=aplGetVal('apl-methods')||ctx.method;}catch(e){}}
+    }
+    if(key==='goal'||key==='sets'||key==='reps'||key==='rpe'){
+      const g=document.getElementById('tplc-goal');
+      if(g)ctx.goal=g.value;
+      if(typeof aplGetVal==='function'){try{ctx.goal=aplGetVal('apl-goals')||ctx.goal;}catch(e){}}
+      if(typeof builderEduCtx==='function'){try{Object.assign(ctx,builderEduCtx());}catch(e){}}
+    }
+    const text=eduTipText(key,ctx);
+    btn.setAttribute('data-tip',text);
+    btn.setAttribute('title',text);
+  });
+}
+function bindEduTipClicks(){
+  if(window._eduTipsBound)return;
+  window._eduTipsBound=true;
+  document.addEventListener('click',e=>{
+    const tip=e.target.closest&&e.target.closest('.edu-tip');
+    if(!tip){
+      document.querySelectorAll('.edu-tip.is-open').forEach(b=>b.classList.remove('is-open'));
+      return;
+    }
+    e.preventDefault();
+    e.stopPropagation();
+    hydrateEduTips(tip.parentElement||document);
+    const open=tip.classList.contains('is-open');
+    document.querySelectorAll('.edu-tip.is-open').forEach(b=>b.classList.remove('is-open'));
+    if(!open)tip.classList.add('is-open');
+  });
+}
+window.hydrateEduTips=hydrateEduTips;
+window.bindEduTipClicks=bindEduTipClicks;
+if(typeof document!=='undefined'){
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{bindEduTipClicks();hydrateEduTips();});
+  else{bindEduTipClicks();hydrateEduTips();}
+}

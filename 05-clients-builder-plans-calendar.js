@@ -692,21 +692,42 @@ function builderOnMethodChange(){
   builderRefreshRationale();
 }
 window.builderOnMethodChange=builderOnMethodChange;
-function builderRefreshRationale(){
-  const el=document.getElementById('builder-rationale');
-  if(!el||typeof buildMethodRationale!=='function')return;
+function builderEduCtx(){
   const cid=(document.getElementById('b-client')||{}).value||'';
   const c=(window.CL||[]).find(x=>x.id===cid)||{};
-  const method=(document.getElementById('b-method')||{}).value||'PPL';
-  const days=document.querySelectorAll('#builder-days .builder-day').length;
-  refreshMethodRationaleInto(el,{
-    method,
+  return{
+    method:(document.getElementById('b-method')||{}).value||'PPL',
     goal:c.goal||'masa',
-    level:c.level||'sredni',
+    level:c.level||'sredni'
+  };
+}
+function builderRefreshMethodHint(){
+  const hint=document.getElementById('b-method-hint');
+  const btn=document.getElementById('b-method-tip-btn');
+  const ctx=builderEduCtx();
+  const text=typeof eduTipText==='function'?eduTipText('method',ctx):'';
+  if(hint)hint.textContent=text;
+  if(btn){
+    btn.setAttribute('data-tip',text);
+    btn.setAttribute('title',text);
+    btn.setAttribute('data-edu','method');
+  }
+}
+function builderRefreshRationale(){
+  const el=document.getElementById('builder-rationale');
+  const ctx=builderEduCtx();
+  const days=document.querySelectorAll('#builder-days .builder-day').length;
+  builderRefreshMethodHint();
+  if(!el||typeof refreshMethodRationaleInto!=='function')return;
+  refreshMethodRationaleInto(el,{
+    method:ctx.method,
+    goal:ctx.goal,
+    level:ctx.level,
     daysPerWeek:days||undefined
   });
 }
 window.builderRefreshRationale=builderRefreshRationale;
+window.builderEduCtx=builderEduCtx;
 function initBuilder(){
   window._editingPlanId=null;
   window._builderPeriodWeek=0;
@@ -722,21 +743,23 @@ function initBuilder(){
   }
   updatePeriod();
   builderRefreshRationale();
+  if(typeof hydrateEduTips==='function')hydrateEduTips(document.getElementById('screen-builder'));
 }
 function addDay(){
   dayCount++;const id='bd-'+dayCount;
   const days=['PON','WT','ŚR','CZ','PT','SO','ND'];
   const sel=days.map((d,i)=>`<option value="${d}"${i===dayCount-1?' selected':''}>${d}</option>`).join('');
   const div=document.createElement('div');div.id=id;div.className='builder-day';
+  const tip=k=>typeof eduTipMark==='function'?eduTipMark(k,builderEduCtx()):'';
   div.innerHTML=`<div class="builder-day-hdr">
     <select class="builder-day-select">${sel}</select>
-    <input type="text" class="builder-day-focus" placeholder="Push, Pull, FBW…">
+    <input type="text" class="builder-day-focus" placeholder="Push, Pull, FBW…" title="${typeof eduTipText==='function'?eduTipText('focus').replace(/"/g,'&quot;'):''}">
     <label class="builder-rest-toggle"><input type="checkbox" class="rc" style="accent-color:var(--accent);" onchange="toggleR('${id}')"> Dzień odpoczynku</label>
-    <button type="button" class="builder-remove-day" onclick="document.getElementById('${id}').remove()">×</button>
+    <button type="button" class="builder-remove-day" onclick="document.getElementById('${id}').remove();builderRefreshAllDayFocus();builderRefreshRationale()">×</button>
   </div>
   <div class="rest-s builder-rest-state" style="display:none;">— Dzień odpoczynku / regeneracja aktywna</div>
   <div class="work-s">
-    <div class="ex-tbl-hdr"><span>ĆWICZENIE</span><span>SER</span><span>POWT</span><span>KG</span><span>RPE</span><span>RIR</span><span>PRZERWA</span><span>TEMPO</span><span></span></div>
+    <div class="ex-tbl-hdr"><span>ĆWICZENIE</span><span>SER${tip('sets')}</span><span>POWT${tip('reps')}</span><span>KG${tip('kg')}</span><span>RPE${tip('rpe')}</span><span>RIR${tip('rir')}</span><span>PRZERWA${tip('rest')}</span><span>TEMPO${tip('tempo')}</span><span></span></div>
     <div class="ex-rows"></div>
     <button class="add-ex-btn" onclick="addRow('${id}')">+ DODAJ ĆWICZENIE</button>
   </div>`;
@@ -748,14 +771,16 @@ function toggleR(id){const el=document.getElementById(id);const r=el.querySelect
 function addRow(dayId){
   const rows=document.querySelector('#'+dayId+' .ex-rows');
   const div=document.createElement('div');div.className='ex-row';
+  const ctx=typeof builderEduCtx==='function'?builderEduCtx():{};
+  const t=k=>typeof eduTipText==='function'?String(eduTipText(k,ctx)).replace(/"/g,'&quot;'):'';
   div.innerHTML='<input type="text" placeholder="Nazwa ćwiczenia..." class="ex-inp ex-inp-name ex-ac-input" style="width:100%;" autocomplete="off" data-f="name" oninput="builderOnExNameChange(this.closest(\'.ex-row\'))">'
-    +'<input type="number" placeholder="4" class="ex-inp" data-f="sets" oninput="builderOnPeriodFieldEdit(this)">'
-    +'<input type="text" placeholder="8-10" class="ex-inp" data-f="reps" oninput="builderOnPeriodFieldEdit(this)">'
-    +'<input type="number" placeholder="kg" class="ex-inp" data-f="kg" title="Zostaw puste, jeśli liczysz z %1RM" oninput="builderOnPeriodFieldEdit(this)">'
-    +'<input type="text" placeholder="8" class="ex-inp" data-f="rpe" inputmode="decimal" title="RPE — zmienia się z periodyzacją tygodnia" oninput="builderOnPeriodFieldEdit(this)">'
-    +'<input type="text" placeholder="2" class="ex-inp" data-f="rir" inputmode="decimal" title="RIR ≈ 10 − RPE — zmienia się z periodyzacją tygodnia" oninput="builderOnPeriodFieldEdit(this)">'
-    +'<input type="text" placeholder="2min" class="ex-inp" data-f="rest" oninput="builderRefreshPeriodPreview()">'
-    +'<input type="text" placeholder="2-0-2" class="ex-inp" data-f="tempo">'
+    +'<input type="number" placeholder="4" class="ex-inp" data-f="sets" title="'+t('sets')+'" oninput="builderOnPeriodFieldEdit(this)">'
+    +'<input type="text" placeholder="8-10" class="ex-inp" data-f="reps" title="'+t('reps')+'" oninput="builderOnPeriodFieldEdit(this)">'
+    +'<input type="number" placeholder="kg" class="ex-inp" data-f="kg" title="'+t('kg')+'" oninput="builderOnPeriodFieldEdit(this)">'
+    +'<input type="text" placeholder="8" class="ex-inp" data-f="rpe" inputmode="decimal" title="'+t('rpe')+'" oninput="builderOnPeriodFieldEdit(this)">'
+    +'<input type="text" placeholder="2" class="ex-inp" data-f="rir" inputmode="decimal" title="'+t('rir')+'" oninput="builderOnPeriodFieldEdit(this)">'
+    +'<input type="text" placeholder="2min" class="ex-inp" data-f="rest" title="'+t('rest')+'" oninput="builderRefreshPeriodPreview()">'
+    +'<input type="text" placeholder="2-0-2" class="ex-inp" data-f="tempo" title="'+t('tempo')+'">'
     +'<div class="builder-row-tools">'
     +'<div class="builder-row-actions">'
     +'<button type="button" class="builder-move-row" onclick="builderMoveRow(this,-1)" title="Przenieś wyżej">▲</button>'

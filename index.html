@@ -13,7 +13,7 @@
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="globals.css?v=17">
-<link rel="stylesheet" href="styles.css?v=29">
+<link rel="stylesheet" href="styles.css?v=30">
 </head>
 <body>
 
@@ -304,12 +304,13 @@
           <div class="form-field" style="margin-bottom:0;"><label class="form-lbl">Nazwa planu</label><input type="text" class="form-input" id="b-name" placeholder="np. PPL Masa - Tydzień 1"></div>
         </div>
         <div class="form-grid">
-          <div class="form-field" style="margin-bottom:0;"><label class="form-lbl">Metoda</label>
+          <div class="form-field" style="margin-bottom:0;"><label class="form-lbl">Metoda <button type="button" class="edu-tip" data-edu="method" id="b-method-tip-btn" aria-label="Wyjaśnienie metody">?</button></label>
             <select class="form-select" id="b-method" onchange="builderOnMethodChange()">
               <option value="PPL">Push/Pull/Legs (PPL)</option><option value="FBW">Full Body (FBW)</option>
               <option value="Upper Lower">Upper/Lower</option><option value="Arnold">Arnold Split</option>
               <option value="Bro Split">Bro Split</option><option value="Własna">Własna struktura</option>
             </select>
+            <div class="edu-inline-hint" id="b-method-hint"></div>
           </div>
           <div class="form-field" style="margin-bottom:0;"><label class="form-lbl">Czas trwania</label>
             <select class="form-select" id="b-duration"><option value="4">4 tygodnie</option><option value="8">8 tygodni</option><option value="12">12 tygodni</option></select>
@@ -2082,6 +2083,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
           <button class="apl-opt" data-val="atletyzm" onclick="aplToggleOpt(this,'apl-goals')">⚡ Atletyzm / moc</button>
           <button class="apl-opt" data-val="rehab" onclick="aplToggleOpt(this,'apl-goals')">🩺 Rehabilitacja</button>
         </div>
+        <div class="edu-inline-hint" style="margin-top:6px;">Cel ustala zakresy serii, powtórzeń i RPE — najedź „?” przy Metodzie / dniach albo zobacz panel poniżej.</div>
       </div>
 
       <!-- poziom -->
@@ -2096,7 +2098,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 
       <!-- metoda / typ planu -->
       <div class="form-field">
-        <label class="form-lbl">Metoda treningowa *</label>
+        <label class="form-lbl">Metoda treningowa * <button type="button" class="edu-tip" data-edu="method" aria-label="Wyjaśnienie metody">?</button></label>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;" id="apl-methods">
           <button class="apl-opt active" data-val="PPL" onclick="aplToggleOpt(this,'apl-methods')">🔁 PPL (Push/Pull/Legs)</button>
           <button class="apl-opt" data-val="FBW" onclick="aplToggleOpt(this,'apl-methods')">🏋️ FBW (Full Body)</button>
@@ -2122,7 +2124,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 
       <!-- dni w tygodniu -->
       <div class="form-field">
-        <label class="form-lbl">Dni treningowe w tygodniu *</label>
+        <label class="form-lbl">Dni treningowe w tygodniu * <button type="button" class="edu-tip" data-edu="days" aria-label="Wyjaśnienie liczby dni">?</button></label>
         <div style="display:flex;gap:6px;" id="apl-days">
           <button class="apl-opt" data-val="2" onclick="aplToggleOpt(this,'apl-days')" style="flex:1;">2×</button>
           <button class="apl-opt" data-val="3" onclick="aplToggleOpt(this,'apl-days')" style="flex:1;">3×</button>
@@ -4003,11 +4005,11 @@ async function load(){
 
 <script src="ex-gif-manifest.js?v=17"></script>
 <script src="ex-photo-manifest.js?v=1"></script>
-<script src="01-core.js?v=27"></script>
-<script src="02-workouts-onboarding-templates-live.js?v=19"></script>
-<script src="03-ai-plangen-bizstats-aicoach.js?v=19"></script>
+<script src="01-core.js?v=28"></script>
+<script src="02-workouts-onboarding-templates-live.js?v=20"></script>
+<script src="03-ai-plangen-bizstats-aicoach.js?v=20"></script>
 <script src="04-client-portal.js?v=24"></script>
-<script src="05-clients-builder-plans-calendar.js?v=22"></script>
+<script src="05-clients-builder-plans-calendar.js?v=23"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=24"></script>
 <script src="07-forms-metrics-calculator.js?v=21"></script>
 <script src="08-client-profile-extras.js?v=25"></script>
