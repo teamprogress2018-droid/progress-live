@@ -193,6 +193,8 @@ jobs:
         run: node .github/scripts/test_ex_ac_muscle_label.js
       - name: 1n31. Testy zdjęć w bibliotece ćwiczeń
         run: node .github/scripts/test_lib_ex_photos.js
+      - name: 1n31b. Testy polskich nazw ćwiczeń w bibliotece
+        run: node .github/scripts/test_ex_names_pl.js
       - name: 1n32. Testy periodyzacji RPE/RIR w kreatorze
         run: node .github/scripts/test_period_rpe_rir.js
       - name: 1n24. Testy braku fałszywych pomiarów demo
