@@ -13,7 +13,7 @@
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="globals.css?v=17">
-<link rel="stylesheet" href="styles.css?v=42">
+<link rel="stylesheet" href="styles.css?v=43">
 </head>
 <body>
 
@@ -2811,8 +2811,10 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <div class="cp-hdr-more-menu" id="cp-hdr-more-menu" hidden>
           <button type="button" id="cp-edit-btn" onclick="toggleCpHdrMore(false);startCPEdit(cpClientId)">✏️ Edytuj profil</button>
           <button type="button" onclick="toggleCpHdrMore(false);cpQuickCheckin()">✓ Wyślij check-in</button>
-          <button type="button" onclick="toggleCpHdrMore(false);openReportForClient(cpClientId)">📊 Podsumowanie</button>
-          <button type="button" onclick="toggleCpHdrMore(false);setCPTab('progress')">📈 Progress</button>
+          <button type="button" onclick="toggleCpHdrMore(false);openClientOnboardSummary(cpClientId)">Podsumowanie start</button>
+          <button type="button" onclick="toggleCpHdrMore(false);openClientMonitorSummary(cpClientId)">Monitoring progresu</button>
+          <button type="button" onclick="toggleCpHdrMore(false);openReportForClient(cpClientId)">Raport szczegółowy</button>
+          <button type="button" onclick="toggleCpHdrMore(false);setCPTab('progress')">Progress</button>
           <div class="cp-hdr-more-sep"></div>
           <button type="button" id="cp-archive-btn" onclick="toggleCpHdrMore(false);archiveClient(cpClientId)">🗃 Zarchiwizuj</button>
           <button type="button" id="cp-restore-btn" onclick="toggleCpHdrMore(false);restoreClient(cpClientId)" style="display:none;">↩ Przywróć</button>
@@ -3600,10 +3602,17 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         </div>
       </div>
       <div id="rep-preview-info" style="background:var(--adim);border:1px solid rgba(230,0,0,0.15);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--muted);line-height:1.6;"></div>
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);">
+        <div style="font-size:11px;font-weight:700;color:var(--text-label);margin-bottom:8px;font-family:var(--font-ui);">Szybkie podsumowania</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="openClientOnboardSummary(document.getElementById('rep-client').value)">Start: plan + ankieta + makro</button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="openClientMonitorSummary(document.getElementById('rep-client').value)">Monitoring: progres / regres</button>
+        </div>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeM('m-report')">Anuluj</button>
-      <button class="btn btn-primary" onclick="generateReport()">📊 Generuj raport</button>
+      <button class="btn btn-primary" onclick="generateReport()">Generuj raport</button>
     </div>
   </div>
 </div>
@@ -4117,15 +4126,12 @@ async function load(){
 <script src="ex-photo-manifest.js?v=2"></script>
 <script src="01-core.js?v=37"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=22"></script>
-<script src="ex-photo-manifest.js?v=1"></script>
-<script src="01-core.js?v=37"></script>
-<script src="02-workouts-onboarding-templates-live.js?v=21"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=24"></script>
 <script src="04-client-portal.js?v=32"></script>
 <script src="05-clients-builder-plans-calendar.js?v=28"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=27"></script>
-<script src="07-forms-metrics-calculator.js?v=25"></script>
-<script src="08-client-profile-extras.js?v=29"></script>
+<script src="07-forms-metrics-calculator.js?v=26"></script>
+<script src="08-client-profile-extras.js?v=30"></script>
 <script src="09-posture-kb-invites-private.js?v=33"></script>
 <script src="10-client-app.js?v=24"></script>
 </body>

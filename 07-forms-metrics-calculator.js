@@ -1615,6 +1615,16 @@ function calcSendToClient(){
   const proteinG=Math.round(target*(calcMacroP/100)/4);
   const fatG=Math.round(target*(calcMacroF/100)/9);
   const carbG=Math.round(target*(calcMacroC/100)/4);
+  if(c){
+    c.macros={
+      tdee,targetKcal:target,proteinG,fatG,carbG,
+      activityMult:calcActivity,goalDelta:calcGoalDelta,
+      macroPct:{p:calcMacroP,f:calcMacroF,c:calcMacroC},
+      weight:parseFloat(weight)||c.weight||null,
+      updatedAt:new Date().toISOString()
+    };
+    if(typeof persistById==='function')persistById('clients',c);
+  }
   pushMsg(cid,`📊 Twoje zapotrzebowanie kaloryczne:\n\nTDEE: ${tdee} kcal\nCel: ${target} kcal\n\nMakroskładniki:\n🟢 Białko: ${proteinG}g\n🟡 Tłuszcze: ${fatG}g\n🔵 Węglowodany: ${carbG}g\n\nWoda: min. ${Math.round(weight*0.035*10)/10}l/dzień`);
   notify('✓ Wyniki wysłane do '+(c?c.name:'klienta')+' w wiadomościach!');
 }
