@@ -967,6 +967,17 @@ function renderCPOverview(c){
       </div>`;
     })()}
 
+    <div class="cp-ov-card" style="margin-bottom:16px;">
+      <div class="cp-ov-card-hd">
+        <div class="cp-ov-card-title">Podsumowania klienta</div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:10px;">Start: plan + ankieta + makro. Monitoring: werdykt progres / regres z wskazówkami „co dalej”.</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        <button type="button" class="btn btn-primary btn-sm" onclick="openClientOnboardSummary('${c.id}')">Podsumowanie start</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="openClientMonitorSummary('${c.id}')">Monitoring progresu</button>
+      </div>
+    </div>
+
     <div class="cp-ov-layout">
       <div class="cp-ov-main">
         <!-- Training -->
@@ -2249,3 +2260,295 @@ function updateClientUnit(clientId,key,value){
 }
 
 
+
+// ════════════════════════════════════════
+// PODSUMOWANIE START + MONITORING PROGRESU
+// ════════════════════════════════════════
+
+const JOURNEY_ACT_MULT={sedentary:1.2,light:1.375,moderate:1.55,active:1.725,very_active:1.9};
+const JOURNEY_GOAL_DELTA={redukcja:-300,masa:300,sila:0,kondycja:0,atletyzm:0,rehab:0};
+const JOURNEY_MACRO_PCT={
+  masa:{p:35,f:25,c:40},redukcja:{p:40,f:30,c:30},sila:{p:35,f:25,c:40},
+  kondycja:{p:30,f:30,c:40},atletyzm:{p:30,f:25,c:45},rehab:{p:30,f:30,c:40}
+};
+
+function estimateClientMacros(c,opts){
+  const o=opts||{};
+  if(c&&c.macros&&c.macros.targetKcal&&!o.force){
+    return{...c.macros,source:'saved'};
+  }
+  const weight=parseFloat(o.weight!=null?o.weight:(c&&c.weight))||0;
+  const height=parseFloat(o.height!=null?o.height:(c&&c.height))||0;
+  const age=parseFloat(o.age!=null?o.age:(c&&c.age))||30;
+  const gender=(o.gender||(c&&c.gender)||'M');
+  if(!weight||!height)return null;
+  const bmr=gender==='K'?(10*weight+6.25*height-5*age-161):(10*weight+6.25*height-5*age+5);
+  const actKey=String((c&&c.activityLevel)||'moderate').toLowerCase();
+  const mult=JOURNEY_ACT_MULT[actKey]||1.55;
+  const goal=String((c&&c.goal)||'masa').toLowerCase();
+  const delta=JOURNEY_GOAL_DELTA[goal]!=null?JOURNEY_GOAL_DELTA[goal]:0;
+  const pct=JOURNEY_MACRO_PCT[goal]||JOURNEY_MACRO_PCT.masa;
+  const tdee=Math.round(bmr*mult);
+  const target=tdee+delta;
+  return{
+    tdee,targetKcal:target,
+    proteinG:Math.round(target*(pct.p/100)/4),
+    fatG:Math.round(target*(pct.f/100)/9),
+    carbG:Math.round(target*(pct.c/100)/4),
+    activityMult:mult,goalDelta:delta,macroPct:pct,weight,
+    source:'estimate',updatedAt:new Date().toISOString()
+  };
+}
+window.estimateClientMacros=estimateClientMacros;
+
+function journeyIntakeHighlights(c){
+  const state=typeof clientIntakeFormState==='function'?clientIntakeFormState(c.id):null;
+  const send=state&&state.filledSend;
+  const out={filled:!!(state&&state.filled),pending:!!(state&&state.pending),rows:[]};
+  if(!send){
+    out.rows.push({k:'Status ankiety',v:state&&state.pending?'Wysłana — czekamy na klienta':(state&&state.sent?'Wysłana':'Nie wypełniona')});
+    if(c.goal)out.rows.push({k:'Cel (z profilu)',v:({masa:'Budowa masy',sila:'Siła',redukcja:'Redukcja',kondycja:'Kondycja'})[c.goal]||c.goal});
+    if(c.level)out.rows.push({k:'Poziom',v:({poczatkujacy:'Początkujący',sredni:'Średni',zaawansowany:'Zaawansowany'})[c.level]||c.level});
+    if(c.trainingFreq)out.rows.push({k:'Dni/tydzień',v:String(c.trainingFreq)});
+    if(c.injuries)out.rows.push({k:'Kontuzje / ograniczenia',v:String(c.injuries)});
+    return out;
+  }
+  const qs=typeof formQuestionsForSend==='function'?formQuestionsForSend(send):(send.questions||[]);
+  const map=typeof formSendAnswersMap==='function'?formSendAnswersMap(send):(send.answers||{});
+  (qs||[]).slice(0,8).forEach(q=>{
+    if(!q)return;
+    const raw=map[q.id];
+    const val=typeof formatFormAnswer==='function'?formatFormAnswer(q,raw):(raw!=null&&String(raw).trim()!==''?String(raw):'—');
+    out.rows.push({k:q.label||q.id,v:val});
+  });
+  return out;
+}
+
+function journeyPlanHighlights(c){
+  const plan=typeof latestClientPlan==='function'?latestClientPlan(c.id):((window.PL||[]).filter(p=>p.clientId===c.id)[0]||null);
+  if(!plan)return{hasPlan:false,plan:null,days:[]};
+  const days=(plan.days||[]).map(d=>({
+    label:d.d||d.day||d.name||'Dzień',
+    focus:d.focus||d.name||'',
+    exCount:(d.exercises||d.ex||[]).length
+  }));
+  return{hasPlan:true,plan,days,method:plan.method||'',duration:plan.duration||plan.weeks||''};
+}
+
+function buildOnboardNextSteps(c,ctx){
+  const steps=[];
+  const intake=ctx.intake||{};
+  const plan=ctx.plan||{};
+  const macros=ctx.macros;
+  if(!intake.filled)steps.push({prio:'high',text:'Dokończ ankietę wstępną — bez niej cel, poziom i ograniczenia są niekompletne.'});
+  if(!plan.hasPlan)steps.push({prio:'high',text:'Przypisz / wygeneruj plan treningowy dopasowany do ankiety i stażu.'});
+  else if(plan.days&&plan.days.length&&typeof scheduleClientPlanToCalendar==='function'){
+    const sess=(window.SE||[]).filter(s=>s.clientId===c.id).length;
+    if(sess<3)steps.push({prio:'med',text:'Wrzuć plan do kalendarza (4 tyg.), żeby klient widział kolejne treningi w apce.'});
+  }
+  if(!macros)steps.push({prio:'med',text:'Policz makro w Kalkulatorze i wyślij klientowi (zapisze się w profilu).'});
+  else if(macros.source==='estimate')steps.push({prio:'low',text:'Makro jest szacunkowe — potwierdź w Kalkulatorze i wyślij klientowi.'});
+  if(!(c.weight&&c.height))steps.push({prio:'med',text:'Uzupełnij wagę i wzrost (pomiary bazowe) — potrzebne do makro i monitoringu.'});
+  steps.push({prio:'low',text:'Umów pierwszy check-in za 7 dni — punkt startowy do oceny progresu.'});
+  steps.push({prio:'low',text:'Wyjaśnij klientowi metodę i cele prostym językiem (ściągawka / „Jak wytłumaczyć klientowi”).'});
+  return steps.slice(0,6);
+}
+
+function buildMonitorVerdict(c){
+  const signals=[];
+  const goal=String(c.goal||'masa').toLowerCase();
+  const massDelta=typeof cpMetricDeltaPct==='function'?cpMetricDeltaPct(c.id,'mg1','m1'):null;
+  const bfDelta=typeof cpMetricDeltaPct==='function'?cpMetricDeltaPct(c.id,'mg1','m2'):null;
+  const squatDelta=typeof cpMetricDeltaPct==='function'?cpMetricDeltaPct(c.id,'mg3','m1'):null;
+  const adh30=typeof cpClientAdherence==='function'?cpClientAdherence(c.id,30):{pct:0,logged:0,assigned:0};
+  const adh7=typeof cpClientAdherence==='function'?cpClientAdherence(c.id,7):{pct:0,logged:0,assigned:0};
+  const checkins=typeof cpCheckinTrendPoints==='function'?cpCheckinTrendPoints(c.id):[];
+  let checkTrend=null;
+  if(checkins.length>=2){
+    const a=checkins[checkins.length-1].v;
+    const b=checkins[Math.max(0,checkins.length-3)].v;
+    checkTrend=a-b;
+  }
+  const vol=typeof clientWeeklyVolumeStats==='function'?clientWeeklyVolumeStats(c.id,6):null;
+  const plans=(window.PL||[]).filter(p=>p.clientId===c.id);
+  const sessions=(window.SE||[]).filter(s=>s.clientId===c.id).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  const lastDate=sessions[0]&&sessions[0].date;
+  const daysSince=lastDate?Math.round((Date.now()-new Date(lastDate+'T12:00:00').getTime())/86400000):null;
+  const insights=typeof buildClientInsight==='function'?buildClientInsight(c,sessions,plans,daysSince):[];
+
+  let score=0; // >0 progress, <0 regress
+  if(massDelta!=null){
+    if(goal==='redukcja'){
+      if(massDelta< -0.5){score+=2;signals.push({tone:'good',label:'Masa ciała',text:`Spadek ${Math.abs(massDelta)}% vs poprzedni pomiar — zgodne z redukcją.`});}
+      else if(massDelta>1){score-=2;signals.push({tone:'bad',label:'Masa ciała',text:`Wzrost ${massDelta}% — sprawdź deficyt / adherence żywieniową.`});}
+      else signals.push({tone:'neutral',label:'Masa ciała',text:`Zmiana ${massDelta}% — stabilnie; obserwuj trend 2–3 pomiarów.`});
+    }else if(goal==='masa'||goal==='sila'){
+      if(massDelta>0.5){score+=2;signals.push({tone:'good',label:'Masa ciała',text:`Wzrost ${massDelta}% — dobry sygnał przy budowie masy / sile.`});}
+      else if(massDelta< -1){score-=1;signals.push({tone:'warn',label:'Masa ciała',text:`Spadek ${Math.abs(massDelta)}% — upewnij się, że nadwyżka kaloryczna i regeneracja są OK.`});}
+      else signals.push({tone:'neutral',label:'Masa ciała',text:`Zmiana ${massDelta}% — powoli; to nie musi być problem.`});
+    }else{
+      signals.push({tone:'neutral',label:'Masa ciała',text:massDelta!=null?`Zmiana ${massDelta}%.`:'Brak drugiego pomiaru masy.'});
+    }
+  }else signals.push({tone:'neutral',label:'Masa ciała',text:'Za mało pomiarów masy (potrzeba ≥2).'});
+
+  if(bfDelta!=null){
+    if(bfDelta< -1){score+=1;signals.push({tone:'good',label:'% tkanki tłuszczowej',text:`Spadek ${Math.abs(bfDelta)}%.`});}
+    else if(bfDelta>2){score-=1;signals.push({tone:'warn',label:'% tkanki tłuszczowej',text:`Wzrost ${bfDelta}% — warto skorygować makro / NEAT.`});}
+  }
+
+  if(squatDelta!=null){
+    if(squatDelta>0){score+=2;signals.push({tone:'good',label:'Siła (przysiad 1RM)',text:`+${squatDelta}% — progres siłowy.`});}
+    else if(squatDelta< -3){score-=2;signals.push({tone:'bad',label:'Siła (przysiad 1RM)',text:`${squatDelta}% — możliwy regres; sprawdź objętość i sen.`});}
+    else signals.push({tone:'neutral',label:'Siła (przysiad 1RM)',text:`${squatDelta}% — plateau / szum pomiaru.`});
+  }
+
+  if(adh30.assigned||adh30.logged){
+    if(adh30.pct>=75){score+=2;signals.push({tone:'good',label:'Adherencja 30 dni',text:`${adh30.pct}% (${adh30.logged}/${adh30.assigned}) — solidna regularność.`});}
+    else if(adh30.pct>=50){score+=0;signals.push({tone:'warn',label:'Adherencja 30 dni',text:`${adh30.pct}% — średnio; uprość plan albo usuń bariery.`});}
+    else{score-=2;signals.push({tone:'bad',label:'Adherencja 30 dni',text:`${adh30.pct}% — ryzyko regresu przez brak bodźca.`});}
+  }
+  if(adh7.logged===0&&adh7.assigned>0){
+    score-=1;signals.push({tone:'warn',label:'Ostatni tydzień',text:`0 z ${adh7.assigned} zaplanowanych — krótki kontakt check-inowy.`});
+  }
+  if(daysSince!=null&&daysSince>10){
+    score-=2;signals.push({tone:'bad',label:'Nieobecność',text:`Brak sesji od ${daysSince} dni.`});
+  }
+  if(checkTrend!=null){
+    if(checkTrend>=5){score+=1;signals.push({tone:'good',label:'Check-in',text:`Samopoczucie ↑ (+${Math.round(checkTrend)} pkt).`});}
+    else if(checkTrend<=-8){score-=2;signals.push({tone:'bad',label:'Check-in',text:`Samopoczucie ↓ (${Math.round(checkTrend)} pkt) — obniż intensywność / dopytaj o sen i stres.`});}
+  }
+
+  let verdict='stabilnie';
+  let verdictTone='neutral';
+  if(score>=3){verdict='progres';verdictTone='good';}
+  else if(score<=-3){verdict='regres';verdictTone='bad';}
+  else if(score<=-1){verdict='ryzyko stagnacji';verdictTone='warn';}
+
+  const next=[];
+  if(verdict==='progres'){
+    next.push('Utrzymaj volume w MAV; dokładaj obciążenie tylko gdy RPE/RIR na to pozwala.');
+    next.push('Zaplanuj deload za 1–2 tygodnie, zanim pojawi się plateau.');
+  }else if(verdict==='regres'){
+    next.push('Skróć objętość o ~20–30% na 7–10 dni i wróć do MEV.');
+    next.push('Zweryfikuj sen, stres i makro — trening nie nadrobi deficytu regeneracji.');
+    next.push('Napisz krótką wiadomość / wyślij check-in, żeby złapać kontekst poza siłownią.');
+  }else{
+    next.push('Zbierz jeszcze 1–2 pomiary i check-in — decyzje opieraj na trendzie, nie na jednym punkcie.');
+    if(adh30.pct<75)next.push('Popraw adherencję (mniej dni albo krótsze sesje), zanim zwiększysz objętość.');
+    if(!massDelta&&!squatDelta)next.push('Uzupełnij pomiary masy i siły bazowej — bez nich monitoring jest ślepy.');
+  }
+  insights.forEach(i=>{if(i&&i.text)next.push(i.text.replace(/^[^—]*—\s*/,''));});
+
+  return{
+    verdict,verdictTone,score,signals,next:next.slice(0,6),
+    stats:{massDelta,bfDelta,squatDelta,adh30,adh7,daysSince,checkTrend,vol}
+  };
+}
+window.buildMonitorVerdict=buildMonitorVerdict;
+
+function buildClientJourneySummary(clientId,mode){
+  const c=(window.CL||[]).find(x=>x.id===clientId);
+  if(!c)return null;
+  const m=mode==='monitor'?'monitor':'onboard';
+  const intake=journeyIntakeHighlights(c);
+  const plan=journeyPlanHighlights(c);
+  const macros=estimateClientMacros(c);
+  const monitor=m==='monitor'?buildMonitorVerdict(c):null;
+  const next=m==='monitor'?(monitor.next||[]):buildOnboardNextSteps(c,{intake,plan,macros});
+  return{client:c,mode:m,intake,plan,macros,monitor,next,generatedAt:new Date().toISOString()};
+}
+window.buildClientJourneySummary=buildClientJourneySummary;
+
+function renderClientJourneyHTML(summary){
+  if(!summary||!summary.client)return'<div style="padding:24px;color:#666;">Brak danych klienta.</div>';
+  const c=summary.client;
+  const esc=(typeof escHtml==='function'?escHtml:(s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')));
+  const goalLbl=({masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja',atletyzm:'Atletyzm',rehab:'Rehab'})[c.goal]||c.goal||'—';
+  const levelLbl=({poczatkujacy:'Początkujący',sredni:'Średni',zaawansowany:'Zaawansowany'})[c.level]||c.level||'—';
+  const row=(k,v)=>`<div class="cj-row"><span class="cj-k">${esc(k)}</span><span class="cj-v">${esc(v)}</span></div>`;
+  const toneColor={good:'#15803d',bad:'#b91c1c',warn:'#b45309',neutral:'#4b5563'};
+  let hero='';
+  if(summary.mode==='monitor'&&summary.monitor){
+    const v=summary.monitor;
+    hero=`<div class="cj-verdict cj-verdict-${esc(v.verdictTone)}">
+      <div class="cj-verdict-lbl">Werdykt monitoringu</div>
+      <div class="cj-verdict-val">${esc(v.verdict.toUpperCase())}</div>
+      <div class="cj-verdict-sub">Na podstawie pomiarów, adherencji, check-inów i planu</div>
+    </div>`;
+  }else{
+    hero=`<div class="cj-verdict cj-verdict-neutral">
+      <div class="cj-verdict-lbl">Podsumowanie startowe</div>
+      <div class="cj-verdict-val">PLAN · ANKIETA · MAKRO</div>
+      <div class="cj-verdict-sub">Co ustalone + co zrobić dalej z klientem</div>
+    </div>`;
+  }
+  const intakeHtml=`<div class="cj-card"><div class="cj-h">Ankieta wstępna</div>
+    ${summary.intake.rows.map(r=>row(r.k,r.v)).join('')||'<div class="cj-empty">Brak odpowiedzi — wyślij ankietę.</div>'}
+  </div>`;
+  const plan=summary.plan;
+  const planHtml=`<div class="cj-card"><div class="cj-h">Plan treningowy</div>
+    ${plan.hasPlan?`
+      ${row('Nazwa',plan.plan.name||'—')}
+      ${row('Metoda',plan.method||'—')}
+      ${row('Czas',plan.duration?plan.duration+' tyg.':'—')}
+      <div class="cj-days">${(plan.days||[]).map(d=>`<div class="cj-day"><b>${esc(d.label)}</b> ${esc(d.focus||'')} <span>${d.exCount?d.exCount+' ćw.':'—'}</span></div>`).join('')}</div>
+    `:'<div class="cj-empty">Brak przypisanego planu.</div>'}
+  </div>`;
+  const mac=summary.macros;
+  const macrosHtml=`<div class="cj-card"><div class="cj-h">Makro / energia ${mac&&mac.source==='estimate'?'(szacunek)':''}</div>
+    ${mac?`
+      ${row('TDEE',mac.tdee+' kcal')}
+      ${row('Cel kcal',mac.targetKcal+' kcal')}
+      ${row('Białko',mac.proteinG+' g')}
+      ${row('Tłuszcze',mac.fatG+' g')}
+      ${row('Węglowodany',mac.carbG+' g')}
+      ${row('Woda (min.)',mac.weight?((Math.round(mac.weight*0.035*10)/10)+' l/dzień'):'—')}
+      ${mac.source==='estimate'?'<div class="cj-note">Szacunek z danych klienta — potwierdź w Kalkulatorze i wyślij, żeby zapisać.</div>':`<div class="cj-note">Zapisano ${mac.updatedAt?new Date(mac.updatedAt).toLocaleDateString('pl'):''}.</div>`}
+    `:'<div class="cj-empty">Brak wagi/wzrostu — nie da się policzyć makro.</div>'}
+  </div>`;
+  let monitorHtml='';
+  if(summary.mode==='monitor'&&summary.monitor){
+    monitorHtml=`<div class="cj-card"><div class="cj-h">Sygnały progres / regres</div>
+      <div class="cj-signals">${summary.monitor.signals.map(s=>`<div class="cj-sig" style="border-left-color:${toneColor[s.tone]||toneColor.neutral}"><b>${esc(s.label)}</b><span>${esc(s.text)}</span></div>`).join('')}</div>
+    </div>`;
+  }
+  const nextHtml=`<div class="cj-card cj-next"><div class="cj-h">Co dalej — wskazówki</div>
+    <ol class="cj-ol">${(summary.next||[]).map(t=>`<li>${esc(typeof t==='string'?t:(t.text||''))}</li>`).join('')}</ol>
+  </div>`;
+  const when=new Date(summary.generatedAt||Date.now()).toLocaleString('pl');
+  return`<div class="client-journey" id="client-journey-root">
+    <div class="cj-top">
+      <div>
+        <div class="cj-name">${esc(c.name)}</div>
+        <div class="cj-meta">${esc(goalLbl)} · ${esc(levelLbl)}${c.age?' · '+c.age+' lat':''}${c.weight?' · '+c.weight+' kg':''}</div>
+      </div>
+      <div class="cj-date">${esc(when)}</div>
+    </div>
+    ${hero}
+    <div class="cj-grid">${intakeHtml}${planHtml}${macrosHtml}</div>
+    ${monitorHtml}
+    ${nextHtml}
+    <div class="cj-foot">Progress Live — podsumowanie dla trenera i klienta · możesz wydrukować / zapisać jako PDF</div>
+  </div>`;
+}
+window.renderClientJourneyHTML=renderClientJourneyHTML;
+
+function openClientJourneySummary(clientId,mode){
+  const id=clientId||window.cpClientId;
+  if(!id){if(typeof notify==='function')notify('Wybierz klienta');return;}
+  const summary=buildClientJourneySummary(id,mode||'onboard');
+  if(!summary){if(typeof notify==='function')notify('Nie znaleziono klienta');return;}
+  try{if(typeof closeClientProfile==='function')closeClientProfile();}catch(e){}
+  try{if(typeof closeM==='function')closeM('m-report');}catch(e){}
+  const html=renderClientJourneyHTML(summary);
+  const box=document.getElementById('report-container');
+  const title=document.getElementById('report-overlay-title');
+  const ov=document.getElementById('report-overlay');
+  if(!box||!ov){if(typeof notify==='function')notify('Brak podglądu raportu');return;}
+  box.innerHTML=html;
+  if(title)title.textContent=(summary.mode==='monitor'?'MONITORING — ':'PODSUMOWANIE START — ')+String(summary.client.name||'').toUpperCase();
+  ov.style.display='flex';
+}
+window.openClientJourneySummary=openClientJourneySummary;
+window.openClientOnboardSummary=(id)=>openClientJourneySummary(id,'onboard');
+window.openClientMonitorSummary=(id)=>openClientJourneySummary(id,'monitor');

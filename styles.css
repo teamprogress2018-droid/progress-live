@@ -1952,3 +1952,37 @@ body,
 .form-lbl .edu-tip{margin-top:-1px;}
 
 
+
+/* Client journey summary (onboard + monitoring) */
+.client-journey{max-width:920px;margin:24px auto;padding:28px 32px;background:#fff;color:#111;font-family:system-ui,-apple-system,sans-serif;}
+.cj-top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #e5e7eb;}
+.cj-name{font-size:22px;font-weight:800;letter-spacing:-0.02em;}
+.cj-meta,.cj-date{font-size:12px;color:#6b7280;}
+.cj-verdict{border-radius:12px;padding:16px 18px;margin-bottom:16px;border:1px solid #e5e7eb;background:#f9fafb;}
+.cj-verdict-good{background:#ecfdf5;border-color:#a7f3d0;}
+.cj-verdict-bad{background:#fef2f2;border-color:#fecaca;}
+.cj-verdict-warn{background:#fffbeb;border-color:#fde68a;}
+.cj-verdict-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#6b7280;}
+.cj-verdict-val{font-size:26px;font-weight:800;margin-top:4px;letter-spacing:-0.02em;}
+.cj-verdict-sub{font-size:12px;color:#4b5563;margin-top:4px;}
+.cj-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;}
+@media(max-width:860px){.cj-grid{grid-template-columns:1fr;}}
+.cj-card{border:1px solid #e5e7eb;border-radius:12px;padding:14px 16px;background:#fff;break-inside:avoid;}
+.cj-h{font-size:13px;font-weight:800;margin-bottom:10px;}
+.cj-row{display:grid;grid-template-columns:110px 1fr;gap:8px;font-size:12px;margin-top:4px;line-height:1.4;}
+.cj-k{color:#6b7280;font-weight:600;}
+.cj-v{color:#111;overflow-wrap:anywhere;}
+.cj-days{margin-top:10px;display:flex;flex-direction:column;gap:4px;}
+.cj-day{font-size:12px;display:flex;justify-content:space-between;gap:8px;padding:6px 8px;background:#f9fafb;border-radius:6px;}
+.cj-empty,.cj-note{font-size:12px;color:#6b7280;line-height:1.45;margin-top:6px;}
+.cj-signals{display:flex;flex-direction:column;gap:8px;}
+.cj-sig{border-left:3px solid #9ca3af;padding:6px 10px;font-size:12px;line-height:1.45;background:#f9fafb;border-radius:0 8px 8px 0;}
+.cj-sig b{display:block;margin-bottom:2px;}
+.cj-next{margin-top:4px;}
+.cj-ol{margin:0;padding-left:18px;font-size:13px;line-height:1.55;}
+.cj-ol li{margin-bottom:6px;}
+.cj-foot{margin-top:16px;padding-top:10px;border-top:1px solid #e5e7eb;font-size:11px;color:#9ca3af;}
+@media print{
+  #report-overlay>div:first-child{display:none!important;}
+  #report-container{background:#fff!important;}
+}

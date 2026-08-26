@@ -41,6 +41,8 @@ ok('template rationale',src02.includes('tplcRefreshRationale')&&src02.includes('
 ok('css method-rationale',css.includes('.method-rationale')&&css.includes('.mr-vol-table')&&css.includes('.mr-volume'));
 ok('sidebar no clip cards',css.includes('.builder-sidebar-scroll>.card')&&/flex-shrink:\s*0/.test(css));
 ok('openMethodRationaleModal',core.includes('function openMethodRationaleModal'));
+ok('full guide modal',html.includes('id="m-method-rationale"')&&html.includes('method-rationale-modal-body'));
+ok('cache bumps',html.includes('01-core.js?v=37')&&html.includes('05-clients-builder-plans-calendar.js?v=28')&&html.includes('styles.css?v=43'));
 ok('cheat sheet renderer',core.includes('function renderTrainerCheatSheetHTML')&&core.includes('function printTrainerCheatSheet'));
 ok('full guide modal',html.includes('id="m-method-rationale"')&&html.includes('method-rationale-modal-body')&&html.includes('printTrainerCheatSheet'));
 ok('builder topbar cheat btn',html.includes('id="builder-cheat-btn"')&&html.includes('openMethodRationaleModal()'));
