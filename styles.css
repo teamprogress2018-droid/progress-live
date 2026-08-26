@@ -707,6 +707,32 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 .apl-opt.active{background:var(--adim);border-color:var(--accent);color:var(--accent);}
 .apl-opt-multi{padding:8px 10px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;color:var(--muted);font-size:11px;cursor:pointer;transition:all 0.1s;font-family:var(--font-ui);}
 .apl-opt-multi.active{background:var(--adim);border-color:var(--accent);color:var(--accent);}
+.apl-pharma-gate{display:flex;flex-direction:column;gap:8px;}
+.apl-pharma-reveal-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;align-self:flex-start;
+  padding:8px 12px;border-radius:8px;cursor:pointer;font-family:var(--font-ui);
+  border:1px dashed var(--border-subtle);background:rgba(255,255,255,0.02);
+  color:var(--text-label);font-size:11px;font-weight:700;letter-spacing:0.01em;
+  transition:border-color .12s,background .12s,color .12s;
+}
+.apl-pharma-reveal-btn:hover{border-color:rgba(var(--accent-rgb),0.4);color:var(--text-secondary);background:rgba(var(--accent-rgb),0.06);}
+.apl-pharma-reveal-btn.is-open{border-style:solid;border-color:rgba(var(--accent-rgb),0.35);color:var(--accent);background:rgba(var(--accent-rgb),0.1);}
+.apl-pharma-reveal-ico{font-size:12px;line-height:1;}
+.apl-pharma-panel{
+  border:1px solid rgba(var(--accent-rgb),0.28);border-radius:10px;padding:12px;
+  background:linear-gradient(135deg,rgba(var(--accent-rgb),0.08),rgba(255,255,255,0.02));
+}
+.apl-pharma-panel[hidden]{display:none!important;}
+.apl-pharma-panel-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px;}
+.apl-pharma-panel-title{font-size:13px;font-weight:800;color:var(--text-primary);font-family:var(--font-ui);}
+.apl-pharma-panel-sub{font-size:10px;color:var(--text-label);margin-top:2px;line-height:1.35;}
+.apl-pharma-hide-btn{
+  appearance:none;border:1px solid var(--border-subtle);background:rgba(255,255,255,0.03);
+  color:var(--text-secondary);font-size:11px;font-weight:700;font-family:var(--font-ui);
+  padding:5px 9px;border-radius:7px;cursor:pointer;
+}
+.apl-pharma-hide-btn:hover{border-color:var(--border-default);color:var(--text-primary);}
+.apl-pharma-note{font-size:11px;color:var(--text-label);line-height:1.55;margin-bottom:10px;}
 .apl-day-block{background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;animation:fadeUp 0.2s ease both;}
 .apl-ex-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
 .apl-ex-row:last-child{border-bottom:none;}

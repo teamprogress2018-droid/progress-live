@@ -25,9 +25,11 @@ ok('aplGenerate uses safety', /clientSafetyContextForAI/.test(src03) && /BEZPIEC
 ok('aplFill safety hint', /aplRenderSafetyHint/.test(src03) && /clientCombinedLimitationsText/.test(src03));
 ok('injuries label posture', /Kontuzje \/ ograniczenia \/ wady postawy/.test(html));
 ok('pharma ui fields', html.includes('id="apl-pharma-status"') && html.includes('id="apl-pharma-details"') && /Status farmakologiczny/.test(html));
+ok('pharma hidden by default', html.includes('id="apl-pharma-panel"') && /apl-pharma-panel"[^>]*hidden/.test(html) && html.includes('toggleAplPharmaPanel') && html.includes('Pokaż pole poufne'));
 ok('pharma prompt wiring', src03.includes("getElementById('apl-pharma-status')") && /Status farmakologiczny/.test(src03) && /WSPOMAGANY/.test(src03));
+ok('pharma toggle helper', /function toggleAplPharmaPanel/.test(src03) && /window\.toggleAplPharmaPanel/.test(src03));
 ok('pharma resets on client change', /BEZPIECZEŃSTWO: zawsze zeruj status farmakologiczny/.test(src03));
-ok('cache bumps', html.includes('03-ai-plangen-bizstats-aicoach.js?v=24') && html.includes('07-forms-metrics-calculator.js?v=26'));
+ok('cache bumps', html.includes('03-ai-plangen-bizstats-aicoach.js?v=25') && html.includes('07-forms-metrics-calculator.js?v=26') && html.includes('styles.css?v=45'));
 ok('CI', wf.includes('test_ai_plan_safety.js'));
 
 const document = { getElementById: () => null, querySelectorAll: () => [], addEventListener() {} };
