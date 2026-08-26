@@ -13,7 +13,7 @@
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="globals.css?v=17">
-<link rel="stylesheet" href="styles.css?v=37">
+<link rel="stylesheet" href="styles.css?v=38">
 </head>
 <body>
 
@@ -167,11 +167,40 @@
       </div>
     </div>
   </div>
-  <div class="content" style="overflow-y:auto;">
+  <div class="content dash-content" id="dash-content">
+    <!-- KPI zawsze na górze -->
+    <div class="dash-kpi-row" id="d-kpi-row">
+      <button type="button" class="dash-kpi-card dash-kpi-click" onclick="goTo('clients')">
+        <div class="dash-kpi-icon" style="background:var(--adim);color:var(--accent);">👥</div>
+        <div class="dash-kpi-body">
+          <div class="dash-kpi-val" id="d-clients">0</div>
+          <div class="dash-kpi-lbl">Aktywnych klientów</div>
+          <div class="dash-kpi-trend" id="d-clients-trend"></div>
+        </div>
+      </button>
+      <button type="button" class="dash-kpi-card dash-kpi-click" onclick="document.getElementById('dash-ops-reports')?.scrollIntoView({behavior:'smooth',block:'nearest'})">
+        <div class="dash-kpi-icon" style="background:rgba(62,207,178,0.12);color:var(--teal);">📝</div>
+        <div class="dash-kpi-body">
+          <div class="dash-kpi-val" style="color:var(--teal);" id="d-reports">0</div>
+          <div class="dash-kpi-lbl">Raporty do sprawdzenia</div>
+          <div class="dash-kpi-trend" id="d-reports-trend"></div>
+        </div>
+      </button>
+      <button type="button" class="dash-kpi-card dash-kpi-click" onclick="document.getElementById('dash-ops-pay')?.scrollIntoView({behavior:'smooth',block:'nearest'})">
+        <div class="dash-kpi-icon" style="background:rgba(201,123,63,0.12);color:var(--orange);">💳</div>
+        <div class="dash-kpi-body">
+          <div class="dash-kpi-val" style="color:var(--orange);" id="d-expiring">0</div>
+          <div class="dash-kpi-lbl">Wygasające pakiety (7 dni)</div>
+          <div class="dash-kpi-trend" id="d-expiring-trend"></div>
+        </div>
+      </button>
+    </div>
+
     <div id="dash-getting-started" style="display:none;"></div>
-    <div id="dash-client-pipeline" style="display:none;"></div>
     <div id="dash-profile-setup" style="display:none;"></div>
-    <!-- stare followupy — ukryte; dane idą do sekcji operacyjnych -->
+    <div id="dash-client-pipeline" style="display:none;"></div>
+
+    <!-- stare followupy — ukryte na stałe; treść w sekcjach operacyjnych -->
     <div id="dash-checkin-followup" style="display:none;"></div>
     <div id="dash-form-followup" style="display:none;"></div>
     <div id="dash-pay-followup" style="display:none;"></div>
@@ -180,28 +209,6 @@
     <div id="dash-habit-followup" style="display:none;"></div>
     <div id="dash-cal-refill" style="display:none;"></div>
     <div id="dash-photo-followup" style="display:none;"></div>
-
-    <!-- KPI: Aktywni | Raporty | Wygasające pakiety -->
-    <div class="dash-kpi-row" id="d-kpi-row">
-      <button type="button" class="dash-kpi-card dash-kpi-click" onclick="goTo('clients')">
-        <div class="dash-kpi-icon" style="background:var(--adim);color:var(--accent);">👥</div>
-        <div class="dash-kpi-val" id="d-clients">0</div>
-        <div class="dash-kpi-lbl">Aktywnych klientów</div>
-        <div class="dash-kpi-trend" id="d-clients-trend"></div>
-      </button>
-      <button type="button" class="dash-kpi-card dash-kpi-click" onclick="document.getElementById('dash-ops-reports')?.scrollIntoView({behavior:'smooth',block:'start'})">
-        <div class="dash-kpi-icon" style="background:rgba(62,207,178,0.12);color:var(--teal);">📝</div>
-        <div class="dash-kpi-val" style="color:var(--teal);" id="d-reports">0</div>
-        <div class="dash-kpi-lbl">Raporty do sprawdzenia</div>
-        <div class="dash-kpi-trend" id="d-reports-trend"></div>
-      </button>
-      <button type="button" class="dash-kpi-card dash-kpi-click" onclick="document.getElementById('dash-ops-pay')?.scrollIntoView({behavior:'smooth',block:'start'})">
-        <div class="dash-kpi-icon" style="background:rgba(201,123,63,0.12);color:var(--orange);">💳</div>
-        <div class="dash-kpi-val" style="color:var(--orange);" id="d-expiring">0</div>
-        <div class="dash-kpi-lbl">Wygasające pakiety (7 dni)</div>
-        <div class="dash-kpi-trend" id="d-expiring-trend"></div>
-      </button>
-    </div>
 
     <div class="dash-ops-grid">
       <div class="dash-ops-main">
@@ -218,7 +225,7 @@
           <div class="dash-ops-hdr">
             <div>
               <div class="studio-hdr">Ostatnie raporty</div>
-              <div class="studio-sub">Check-iny z wagą / samopoczuciem — do weryfikacji</div>
+              <div class="studio-sub">Check-iny do weryfikacji</div>
             </div>
             <button class="btn btn-ghost btn-sm" onclick="goTo('checkin')">Check-iny →</button>
           </div>
@@ -228,7 +235,7 @@
           <div class="dash-ops-hdr">
             <div>
               <div class="studio-hdr">Ostatnia aktywność</div>
-              <div class="studio-sub">Ukończone treningi, uwagi i ciężary</div>
+              <div class="studio-sub">Ukończone treningi</div>
             </div>
           </div>
           <div id="d-ops-activity"></div>
@@ -249,7 +256,7 @@
           <div class="dash-ops-hdr">
             <div>
               <div class="studio-hdr">Płatności do odnowienia</div>
-              <div class="studio-sub">Pakiety kończą się w ciągu 7 dni</div>
+              <div class="studio-sub">W ciągu 7 dni</div>
             </div>
             <button class="btn btn-ghost btn-sm" onclick="goTo('payments')">Płatności →</button>
           </div>
@@ -259,7 +266,7 @@
           <div class="dash-ops-hdr">
             <div>
               <div class="studio-hdr">Przypomnienia</div>
-              <div class="studio-sub">Terminy raportów i wygasające pakiety</div>
+              <div class="studio-sub">Raporty i pakiety</div>
             </div>
           </div>
           <div id="d-ops-reminders"></div>
@@ -4056,7 +4063,7 @@ async function load(){
 <script src="01-core.js?v=34"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=21"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=23"></script>
-<script src="04-client-portal.js?v=28"></script>
+<script src="04-client-portal.js?v=29"></script>
 <script src="05-clients-builder-plans-calendar.js?v=28"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=25"></script>
 <script src="07-forms-metrics-calculator.js?v=25"></script>

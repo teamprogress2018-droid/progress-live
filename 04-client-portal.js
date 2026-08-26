@@ -5642,7 +5642,7 @@ function toggleDashQuickActions(evOrClose){
 window.toggleDashQuickActions=toggleDashQuickActions;
 document.addEventListener('click',()=>{const m=document.getElementById('dash-qa-menu');if(m&&!m.hidden)toggleDashQuickActions(false);});
 
-var DASH_LIST_PREVIEW=3;
+var DASH_LIST_PREVIEW=2;
 window._dashListExpanded=window._dashListExpanded||{};
 function dashListExpanded(listId){
   return!!(window._dashListExpanded&&window._dashListExpanded[listId]);
@@ -5974,23 +5974,23 @@ function renderDashClientPipeline(){
     package:'Dodaj pakiet'
   };
   el.style.display='block';
-  el.innerHTML=`<div class="card" style="margin-bottom:20px;border-color:rgba(201,123,63,0.35);background:linear-gradient(135deg,rgba(201,123,63,0.08),var(--s2));">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;">
+  el.innerHTML=`<div class="card dash-pipeline-card">
+    <div class="dash-ops-hdr">
       <div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;">START WSPÓŁPRACY</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5;">${rows.length===1?'1 klient wymaga dokończenia pipeline.':rows.length+' klientów wymaga dokończenia: pomiary → dni → plan → kalendarz → pakiet.'}</div>
+        <div class="studio-hdr">START WSPÓŁPRACY</div>
+        <div class="studio-sub">${rows.length===1?'1 klient wymaga dokończenia.':rows.length+' klientów: pomiary → dni → plan → kalendarz → pakiet'}</div>
       </div>
-      <button class="btn btn-ghost btn-sm" onclick="goTo('clients')">Lista klientów →</button>
+      <button class="btn btn-ghost btn-sm" onclick="goTo('clients')">Lista →</button>
     </div>
     <div class="dash-pipeline-list">
       ${dashListSection('dash-pipeline',rows,row=>{
         const c=row.client;const st=row.status;
-        const miss=(st.missingLabels||[]).slice(0,3).join(' · ');
+        const miss=(st.missingLabels||[]).slice(0,2).join(' · ');
         const cta=nextLabel[st.next]||'Dokończ';
         return `<div class="dash-pipeline-row">
-          <div style="flex:1;min-width:0;">
-            <div style="font-size:13px;font-weight:700;">${escHtml(c.name||'Klient')}</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:2px;">${st.done}/${st.total} · ${escHtml(miss)}</div>
+          <div class="dash-ops-item-body">
+            <div class="dash-ops-item-title">${escHtml(c.name||'Klient')}</div>
+            <div class="dash-ops-item-meta">${st.done}/${st.total} · ${escHtml(miss)}</div>
           </div>
           <button class="btn btn-primary btn-sm" onclick="openClientOnboardChecklist('${escHtml(c.id)}')">${escHtml(cta)}</button>
         </div>`;
@@ -6002,305 +6002,49 @@ window.renderDashClientPipeline=renderDashClientPipeline;
 
 function renderDashCheckinFollowup(){
   const el=document.getElementById('dash-checkin-followup');if(!el)return;
-  const clients=(window.CL||[]).filter(c=>c&&c.status!=='archived');
-  clients.forEach(c=>{ if(typeof ensureCheckins==='function')ensureCheckins(c.id); });
-  const pending=clients.filter(c=>typeof getCIStatus==='function'&&getCIStatus(c.id)==='pending');
-  const overdue=clients.filter(c=>typeof getCIStatus==='function'&&getCIStatus(c.id)==='overdue');
-  const need=clients.filter(c=>typeof clientEligibleForWeeklyCheckin==='function'&&clientEligibleForWeeklyCheckin(c)&&typeof needsWeeklyCheckin==='function'&&needsWeeklyCheckin(c.id));
-  if(!pending.length&&!overdue.length&&!need.length){el.style.display='none';el.innerHTML='';return;}
-  const rows=[
-    ...overdue.map(c=>({c,tag:'Zaległy',col:'var(--red)',cta:`sendCheckinTo('${escHtml(c.id)}')`})),
-    ...pending.map(c=>({c,tag:'Oczekuje',col:'var(--orange)',cta:`goTo('checkin');setTimeout(()=>openCIClient('${escHtml(c.id)}'),200)`})),
-    ...need.filter(c=>!pending.includes(c)&&!overdue.includes(c)).map(c=>({c,tag:'Do wysłania',col:'var(--accent)',cta:`sendCheckinTo('${escHtml(c.id)}')`}))
-  ];
-  el.style.display='block';
-  el.innerHTML=`<div class="card" style="margin-bottom:20px;border-color:rgba(62,207,178,0.3);background:linear-gradient(135deg,rgba(62,207,178,0.08),var(--s2));">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;">
-      <div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;">CHECK-IN TYGODNIOWY</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5;">${overdue.length?overdue.length+' zaległych · ':''}${pending.length?pending.length+' oczekuje · ':''}${need.length?need.length+' do wysłania':''}</div>
-      </div>
-      <button class="btn btn-ghost btn-sm" onclick="goTo('checkin')">Check-iny →</button>
-    </div>
-    <div class="dash-pipeline-list">
-      ${dashListSection('dash-checkin',rows,row=>`<div class="dash-pipeline-row">
-        <div style="flex:1;min-width:0;">
-          <div style="font-size:13px;font-weight:700;">${escHtml(row.c.name||'Klient')}</div>
-          <div style="font-size:11px;color:${row.col};margin-top:2px;">${row.tag}</div>
-        </div>
-        <button class="btn btn-primary btn-sm" onclick="${row.cta}">${row.tag==='Oczekuje'?'Otwórz':'Wyślij'}</button>
-      </div>`,'')}
-    </div>
-  </div>`;
+  el.style.display='none';el.innerHTML='';
 }
 window.renderDashCheckinFollowup=renderDashCheckinFollowup;
 
 function renderDashFormFollowup(){
   const el=document.getElementById('dash-form-followup');if(!el)return;
-  const pending=typeof allPendingFormSends==='function'?allPendingFormSends():(window.FORM_SENDS||[]).filter(s=>s&&s.status!=='filled');
-  if(!pending.length){el.style.display='none';el.innerHTML='';return;}
-  const rows=pending;
-  el.style.display='block';
-  el.innerHTML=`<div class="card" style="margin-bottom:20px;border-color:rgba(157,124,244,0.35);background:linear-gradient(135deg,rgba(157,124,244,0.1),var(--s2));">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;">
-      <div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;">FORMULARZE DO WYPEŁNIENIA</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5;">${pending.length===1?'1 ankieta czeka na klienta.':pending.length+' ankiet czeka na klientów.'}</div>
-      </div>
-      <button class="btn btn-ghost btn-sm" onclick="goTo('forms')">Formularze →</button>
-    </div>
-    <div class="dash-pipeline-list">
-      ${dashListSection('dash-form',rows,s=>{
-        const c=(window.CL||[]).find(x=>x.id===s.clientId)||{};
-        const name=escHtml(c.name||'Klient');
-        const title=escHtml(s.formName||'Formularz');
-        const when=escHtml(s.sentAt||String(s.sentAtIso||'').slice(0,10)||'');
-        return `<div class="dash-pipeline-row" style="flex-wrap:wrap;">
-          <div style="flex:1;min-width:140px;">
-            <div style="font-size:13px;font-weight:700;">${name}</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:2px;">${title}${when?' · '+when:''}</div>
-            <div style="font-size:11px;color:var(--purple);margin-top:2px;">Oczekuje na odpowiedzi</div>
-          </div>
-          <div style="display:flex;gap:6px;flex-shrink:0;">
-            <button class="btn btn-ghost btn-sm" onclick="openClientProfile('${escHtml(s.clientId)}');setTimeout(()=>{if(typeof setCPTab==='function')setCPTab('forms');},150)">Profil</button>
-            <button class="btn btn-primary btn-sm" onclick="remindFormSend('${escHtml(s.id)}')">Przypomnij</button>
-          </div>
-        </div>`;
-      },'')}
-    </div>
-  </div>`;
+  el.style.display='none';el.innerHTML='';
 }
 window.renderDashFormFollowup=renderDashFormFollowup;
 function renderDashPayFollowup(){
   const el=document.getElementById('dash-pay-followup');if(!el)return;
-  const pkgs=typeof packagesAwaitingPayment==='function'?packagesAwaitingPayment():(window.PACKAGES||[]).filter(p=>p&&p.clientId&&p.payStatus==='pending'&&p.status!=='expired');
-  if(!pkgs.length){el.style.display='none';el.innerHTML='';return;}
-  const requested=pkgs.filter(p=>p.paymentRequestedAt);
-  const waiting=pkgs.filter(p=>!p.paymentRequestedAt);
-  const rows=pkgs.slice().sort((a,b)=>{
-    const ar=a.paymentRequestedAt?1:0,br=b.paymentRequestedAt?1:0;
-    if(ar!==br)return br-ar;
-    return String(b.paymentRequestedAt||b.date||'').localeCompare(String(a.paymentRequestedAt||a.date||''));
-  });
-  el.style.display='block';
-  el.innerHTML=`<div class="card" style="margin-bottom:20px;border-color:rgba(201,123,63,0.4);background:linear-gradient(135deg,rgba(201,123,63,0.1),var(--s2));">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;">
-      <div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;">PŁATNOŚCI DO DOMKNIĘCIA</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5;">${requested.length?requested.length+' czekających na wpłatę · ':''}${waiting.length?waiting.length+' bez prośby':pkgs.length+' oczekujących'}</div>
-      </div>
-      <button class="btn btn-ghost btn-sm" onclick="goTo('payments')">Płatności →</button>
-    </div>
-    <div class="dash-pipeline-list">
-      ${dashListSection('dash-pay',rows,p=>{
-        const name=escHtml(p.clientName||((window.CL||[]).find(c=>c.id===p.clientId)||{}).name||'Klient');
-        const tag=p.paymentRequestedAt?'Prośba wysłana':'Do poproszenia';
-        const col=p.paymentRequestedAt?'var(--orange)':'var(--accent)';
-        const cta=p.paymentRequestedAt
-          ?`markPaid('${escHtml(p.id)}')`
-          :`requestPayment('${escHtml(p.id)}')`;
-        const ctaLbl=p.paymentRequestedAt?'Oznacz opłacony':'Poproś o wpłatę';
-        return `<div class="dash-pipeline-row" style="flex-wrap:wrap;">
-          <div style="flex:1;min-width:140px;">
-            <div style="font-size:13px;font-weight:700;">${name}</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:2px;">${escHtml(p.title||'Pakiet')} · ${Number(p.price||0).toLocaleString('pl')} zł</div>
-            <div style="font-size:11px;color:${col};margin-top:2px;">${tag}</div>
-          </div>
-          <div style="display:flex;gap:6px;flex-shrink:0;">
-            <button class="btn btn-ghost btn-sm" onclick="openClientProfile('${escHtml(p.clientId)}');setTimeout(()=>{if(typeof setCPTab==='function')setCPTab('payments');},150)">Profil</button>
-            <button class="btn btn-primary btn-sm" onclick="${cta}">${ctaLbl}</button>
-          </div>
-        </div>`;
-      },'')}
-    </div>
-  </div>`;
+  el.style.display='none';el.innerHTML='';
 }
 window.renderDashPayFollowup=renderDashPayFollowup;
 
 function renderDashHwFollowup(){
   const el=document.getElementById('dash-hw-followup');if(!el)return;
-  const open=typeof openHomeworkTasks==='function'?openHomeworkTasks():(window.TASKS||[]).filter(t=>t&&(t.kind==='homework'||t.odWorkoutId)&&t.status!=='done');
-  if(!open.length){el.style.display='none';el.innerHTML='';return;}
-  const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
-  const overdue=open.filter(t=>t.due&&t.due<today);
-  const rows=open;
-  el.style.display='block';
-  el.innerHTML=`<div class="card" style="margin-bottom:20px;border-color:rgba(0,85,164,0.4);background:linear-gradient(135deg,rgba(0,85,164,0.1),var(--s2));">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;">
-      <div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;">ZADANIA DOMOWE</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5;">${overdue.length?overdue.length+' zaległych · ':''}${open.length===1?'1 otwarte':open.length+' otwartych'}</div>
-      </div>
-      <button class="btn btn-ghost btn-sm" onclick="goTo('tasks')">Zadania →</button>
-    </div>
-    <div class="dash-pipeline-list">
-      ${dashListSection('dash-hw',rows,t=>{
-        const c=(window.CL||[]).find(x=>x.id===t.clientId)||{};
-        const name=escHtml(c.name||'Klient');
-        const title=escHtml(t.title||'Zadanie domowe');
-        const overdueRow=t.due&&t.due<today;
-        const dueLbl=t.due?(overdueRow?'Zaległe · '+escHtml(t.due):'Termin · '+escHtml(t.due)):'Bez terminu';
-        return `<div class="dash-pipeline-row" style="flex-wrap:wrap;">
-          <div style="flex:1;min-width:140px;">
-            <div style="font-size:13px;font-weight:700;">${name}</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:2px;">${title}</div>
-            <div style="font-size:11px;color:${overdueRow?'var(--red)':'#5ec8ff'};margin-top:2px;">${dueLbl}</div>
-          </div>
-          <div style="display:flex;gap:6px;flex-shrink:0;">
-            <button class="btn btn-ghost btn-sm" onclick="openClientProfile('${escHtml(t.clientId)}');setTimeout(()=>{if(typeof setCPTab==='function')setCPTab('tasks');},150)">Profil</button>
-            <button class="btn btn-primary btn-sm" onclick="remindHomework('${escHtml(t.id)}')">Przypomnij</button>
-          </div>
-        </div>`;
-      },'')}
-    </div>
-  </div>`;
+  el.style.display='none';el.innerHTML='';
 }
 window.renderDashHwFollowup=renderDashHwFollowup;
 
 function renderDashMsgFollowup(){
   const el=document.getElementById('dash-msg-followup');if(!el)return;
-  const rows=typeof clientsWithUnreadMsgs==='function'?clientsWithUnreadMsgs():[];
+  el.style.display='none';el.innerHTML='';
   try{if(typeof updateInboxNavBadge==='function')updateInboxNavBadge();}catch(e){}
-  if(!rows.length){el.style.display='none';el.innerHTML='';return;}
-  el.style.display='block';
-  el.innerHTML=`<div class="card" style="margin-bottom:20px;border-color:rgba(77,159,255,0.4);background:linear-gradient(135deg,rgba(77,159,255,0.1),var(--s2));">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;">
-      <div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;">WIADOMOŚCI DO ODBIORU</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5;">${rows.length===1?'1 klient napisał — nieprzeczytane.':rows.length+' klientów z nieprzeczytanymi wiadomościami.'}</div>
-      </div>
-      <button class="btn btn-ghost btn-sm" onclick="goTo('inbox');setTimeout(()=>{if(typeof setInboxTab==='function')setInboxTab('unread');},120)">Skrzynka →</button>
-    </div>
-    <div class="dash-pipeline-list">
-      ${dashListSection('dash-msg',rows,row=>{
-        const c=row.client;
-        const preview=escHtml((row.last&&row.last.text)||'Nowa wiadomość');
-        const when=escHtml((row.last&&(row.last.time||String(row.last.createdAt||'').slice(11,16)))||'');
-        return `<div class="dash-pipeline-row" style="flex-wrap:wrap;">
-          <div style="flex:1;min-width:140px;">
-            <div style="font-size:13px;font-weight:700;">${escHtml(c.name||'Klient')}</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:420px;">${preview}</div>
-            <div style="font-size:11px;color:var(--blue);margin-top:2px;">Nieprzeczytane${when?' · '+when:''}</div>
-          </div>
-          <button class="btn btn-primary btn-sm" onclick="goTo('inbox');setTimeout(()=>openChat('${escHtml(c.id)}'),150)">Otwórz</button>
-        </div>`;
-      },'')}
-    </div>
-  </div>`;
 }
 window.renderDashMsgFollowup=renderDashMsgFollowup;
 
 function renderDashHabitFollowup(){
   const el=document.getElementById('dash-habit-followup');if(!el)return;
-  const today=typeof todayYmd==='function'?todayYmd():dateStr(new Date());
-  const habits=typeof pendingHabitTasks==='function'?pendingHabitTasks(null,today):[];
-  const chals=typeof pendingChallengeTasks==='function'?pendingChallengeTasks(null,today):[];
-  const open=chals.concat(habits);
-  if(!open.length){el.style.display='none';el.innerHTML='';return;}
-  const rows=open;
-  el.style.display='block';
-  el.innerHTML=`<div class="card" style="margin-bottom:20px;border-color:rgba(157,124,244,0.4);background:linear-gradient(135deg,rgba(157,124,244,0.1),var(--s2));">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;">
-      <div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;">NAWYKI I WYZWANIA DZIŚ</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5;">${chals.length?chals.length+' wyzwań · ':''}${habits.length?habits.length+' nawyków bez odhaczenia':open.length+' bez odhaczenia'}</div>
-      </div>
-      <button class="btn btn-ghost btn-sm" onclick="goTo('tasks')">Zadania →</button>
-    </div>
-    <div class="dash-pipeline-list">
-      ${dashListSection('dash-habit',rows,t=>{
-        const c=(window.CL||[]).find(x=>x.id===t.clientId)||{};
-        const name=escHtml(c.name||'Klient');
-        const title=escHtml(t.title||'Zadanie');
-        const ch=typeof isChallenge==='function'&&isChallenge(t);
-        const streak=!ch&&typeof habitStreak==='function'?habitStreak(t,today):0;
-        const chSt=ch&&typeof challengeStatusText==='function'?challengeStatusText(t,today):'';
-        const tag=ch?'Wyzwanie':'Nawyk';
-        const col=ch?'var(--gold)':'var(--purple)';
-        const sub=ch?(chSt||'Do odhaczenia dziś'):(streak?'Seria 🔥 '+streak+' · brak dziś':'Brak odhaczenia dziś');
-        return `<div class="dash-pipeline-row" style="flex-wrap:wrap;">
-          <div style="flex:1;min-width:140px;">
-            <div style="font-size:13px;font-weight:700;">${name}</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:2px;">${title}</div>
-            <div style="font-size:11px;color:${col};margin-top:2px;">${tag} · ${escHtml(sub)}</div>
-          </div>
-          <div style="display:flex;gap:6px;flex-shrink:0;">
-            <button class="btn btn-ghost btn-sm" onclick="openClientProfile('${escHtml(t.clientId)}');setTimeout(()=>{if(typeof setCPTab==='function')setCPTab('tasks');},150)">Profil</button>
-            <button class="btn btn-primary btn-sm" onclick="remindHabit('${escHtml(t.id)}')">Przypomnij</button>
-          </div>
-        </div>`;
-      },'')}
-    </div>
-  </div>`;
+  el.style.display='none';el.innerHTML='';
 }
 window.renderDashHabitFollowup=renderDashHabitFollowup;
 
 function renderDashCalRefillFollowup(){
   const el=document.getElementById('dash-cal-refill');if(!el)return;
-  const rows=typeof clientsNeedingCalendarRefill==='function'?clientsNeedingCalendarRefill(7):[];
-  if(!rows.length){el.style.display='none';el.innerHTML='';return;}
-  el.style.display='block';
-  el.innerHTML=`<div class="card" style="margin-bottom:20px;border-color:rgba(62,207,178,0.35);background:linear-gradient(135deg,rgba(62,207,178,0.08),var(--s2));">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;">
-      <div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;">KALENDARZ DO DOPEŁNIENIA</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5;">${rows.length===1?'1 klient — plan kończy się w ≤7 dni.':rows.length+' klientów — zaplanowane sesje kończą się w ≤7 dni (lub brak).'}</div>
-      </div>
-      <button class="btn btn-ghost btn-sm" onclick="goTo('calendar')">Kalendarz →</button>
-    </div>
-    <div class="dash-pipeline-list">
-      ${dashListSection('dash-cal-refill',rows,row=>{
-        const c=row.client;
-        const plan=row.plan||{};
-        const tag=row.urgency==='past'?'Sesje się skończyły':row.urgency==='empty'?'Brak sesji planned':'Kończy się wkrótce';
-        const col=row.urgency==='past'?'var(--red)':row.urgency==='empty'?'var(--orange)':'var(--teal)';
-        const lastLbl=row.last?('Ostatnia · '+escHtml(row.last)):'Brak planned';
-        return `<div class="dash-pipeline-row" style="flex-wrap:wrap;">
-          <div style="flex:1;min-width:140px;">
-            <div style="font-size:13px;font-weight:700;">${escHtml(c.name||'Klient')}</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:2px;">${escHtml(plan.name||'Plan')}${plan.id?' · +4 tyg.':''}</div>
-            <div style="font-size:11px;color:${col};margin-top:2px;">${tag} · ${lastLbl}</div>
-          </div>
-          <div style="display:flex;gap:6px;flex-shrink:0;">
-            <button class="btn btn-ghost btn-sm" onclick="openClientProfile('${escHtml(c.id)}')">Profil</button>
-            <button class="btn btn-primary btn-sm" onclick="refillClientCalendar('${escHtml(c.id)}')">Dopełnij</button>
-          </div>
-        </div>`;
-      },'')}
-    </div>
-  </div>`;
+  el.style.display='none';el.innerHTML='';
 }
 window.renderDashCalRefillFollowup=renderDashCalRefillFollowup;
 
 function renderDashPhotoFollowup(){
   const el=document.getElementById('dash-photo-followup');if(!el)return;
-  const photos=typeof recentClientProgressPhotos==='function'?recentClientProgressPhotos(14):[];
-  if(!photos.length){el.style.display='none';el.innerHTML='';return;}
-  const rows=photos;
-  el.style.display='block';
-  el.innerHTML=`<div class="card" style="margin-bottom:20px;border-color:rgba(201,162,39,0.4);background:linear-gradient(135deg,rgba(201,162,39,0.1),var(--s2));">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;">
-      <div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;">NOWE ZDJĘCIA SYLWETKI</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5;">${photos.length===1?'1 zestaw od klienta (14 dni).':photos.length+' zestawów od klientów (ostatnie 14 dni).'}</div>
-      </div>
-      <button class="btn btn-ghost btn-sm" onclick="goTo('clients')">Klienci →</button>
-    </div>
-    <div class="dash-pipeline-list">
-      ${dashListSection('dash-photo',rows,p=>{
-        const c=(window.CL||[]).find(x=>x.id===p.clientId)||{};
-        const n=[p.photos&&p.photos.front,p.photos&&p.photos.side,p.photos&&p.photos.back].filter(Boolean).length;
-        return `<div class="dash-pipeline-row" style="flex-wrap:wrap;">
-          <div style="flex:1;min-width:140px;">
-            <div style="font-size:13px;font-weight:700;">${escHtml(c.name||'Klient')}</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:2px;">${escHtml(p.date||'')}${p.weight?' · '+escHtml(String(p.weight))+' kg':''} · ${n} ujęć</div>
-            <div style="font-size:11px;color:var(--gold);margin-top:2px;">Od klienta</div>
-          </div>
-          <button class="btn btn-primary btn-sm" onclick="openClientProfile('${escHtml(p.clientId)}');setTimeout(()=>{if(typeof setCPTab==='function')setCPTab('photos');},150)">Zobacz</button>
-        </div>`;
-      },'')}
-    </div>
-  </div>`;
+  el.style.display='none';el.innerHTML='';
 }
 window.renderDashPhotoFollowup=renderDashPhotoFollowup;
 
