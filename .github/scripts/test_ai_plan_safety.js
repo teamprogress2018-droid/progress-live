@@ -24,7 +24,10 @@ ok('body load + posture form', /clientBodyLoadContextForAI/.test(src07) && /clie
 ok('aplGenerate uses safety', /clientSafetyContextForAI/.test(src03) && /BEZPIECZEŃSTWO KLIENTA/.test(src03));
 ok('aplFill safety hint', /aplRenderSafetyHint/.test(src03) && /clientCombinedLimitationsText/.test(src03));
 ok('injuries label posture', /Kontuzje \/ ograniczenia \/ wady postawy/.test(html));
-ok('cache bumps', html.includes('03-ai-plangen-bizstats-aicoach.js?v=23') && html.includes('07-forms-metrics-calculator.js?v=25'));
+ok('pharma ui fields', html.includes('id="apl-pharma-status"') && html.includes('id="apl-pharma-details"') && /Status farmakologiczny/.test(html));
+ok('pharma prompt wiring', src03.includes("getElementById('apl-pharma-status')") && /Status farmakologiczny/.test(src03) && /WSPOMAGANY/.test(src03));
+ok('pharma resets on client change', /BEZPIECZEŃSTWO: zawsze zeruj status farmakologiczny/.test(src03));
+ok('cache bumps', html.includes('03-ai-plangen-bizstats-aicoach.js?v=24') && html.includes('07-forms-metrics-calculator.js?v=25'));
 ok('CI', wf.includes('test_ai_plan_safety.js'));
 
 const document = { getElementById: () => null, querySelectorAll: () => [], addEventListener() {} };

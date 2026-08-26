@@ -34,7 +34,7 @@ ok('legacy psycho→analytics', /t==='psycho'\|\|t==='sfr'\|\|t==='posture'/.tes
 ok('renderCPAnalytics + sub nav', /function\s+renderCPAnalytics/.test(src07) && /cpAnalyticsNavHTML/.test(src07) && /setCPAnalyticsSub/.test(src07));
 ok('withAnalyticsShell wraps specialty', /withAnalyticsShell/.test(src08) && /withAnalyticsShell/.test(src09));
 ok('css analytics chips', css.includes('.cp-analytics-nav') && css.includes('.cp-analytics-chip'));
-ok('cache bumps', html.includes('07-forms-metrics-calculator.js?v=25') && html.includes('08-client-profile-extras.js?v=29') && html.includes('09-posture-kb-invites-private.js?v=33') && html.includes('styles.css?v=40'));
+ok('cache bumps', html.includes('07-forms-metrics-calculator.js?v=25') && html.includes('08-client-profile-extras.js?v=29') && html.includes('09-posture-kb-invites-private.js?v=33') && html.includes('styles.css?v=41'));
 ok('CI step', wf.includes('test_cp_tabs_slim.js'));
 
 if (failed) {
