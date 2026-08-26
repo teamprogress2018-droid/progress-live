@@ -222,6 +222,8 @@ jobs:
         run: node .github/scripts/test_ai_plan_safety.js
       - name: 1o2. Testy zakładki Progress (statystyki klienta)
         run: node .github/scripts/test_cp_progress_tab.js
+      - name: Panel analityczny klienta (Progress)
+        run: node .github/scripts/test_cp_analytics_panel.js
 
       - name: 2. Sprawdź duplikaty (funkcje / id / zmienne)
         run: python3 .github/scripts/check_duplicates.py

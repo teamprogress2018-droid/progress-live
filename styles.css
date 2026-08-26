@@ -1085,6 +1085,21 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 .cp-stat-val{font-family:var(--font-display);font-size:28px;line-height:1;margin-bottom:4px;color:var(--accent);}
 .cp-stat-lbl{font-size:var(--font-size-sm);color:var(--text-label);font-family:var(--font-ui);font-weight:600;text-transform:none;}
 .cp-chart-svg{max-height:150px;display:block;width:100%;}
+.cp-analytics-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.cp-analytics-chip{
+  appearance:none;border:1px solid var(--border);background:var(--s3);color:var(--muted);
+  font-size:11px;font-family:var(--font-ui);font-weight:600;padding:6px 10px;border-radius:8px;cursor:pointer;
+}
+.cp-analytics-chip:hover{color:var(--text);border-color:var(--border2);}
+.cp-analytics-chip.active{background:var(--adim);border-color:var(--accent);color:var(--accent);}
+.cp-analytics-photos img{background:var(--s2);}
+.cp-panel-hidden{display:none!important;}
+@media(max-width:720px){
+  #cp-body [data-cp-panel="kpi"]{grid-template-columns:repeat(2,1fr)!important;}
+  #cp-body [data-cp-panel="train"],
+  #cp-body [data-cp-panel="body"],
+  #cp-body [data-cp-panel="habits"]{grid-template-columns:1fr!important;}
+}
 .cp-data-grid{display:grid;grid-template-columns:repeat(3,minmax(180px,1fr));gap:var(--space-sm);margin-bottom:var(--space-sm);}
 .cp-data-tile{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--r);padding:16px 14px;text-align:center;min-width:0;box-shadow:var(--panel-glow);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;}
 .cp-data-tile-wide{grid-column:span 2;}
