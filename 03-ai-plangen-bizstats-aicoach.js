@@ -112,6 +112,31 @@ function aplRefreshRationale(){
 }
 window.aplRefreshRationale=aplRefreshRationale;
 
+function toggleAplPharmaPanel(force){
+  const panel=document.getElementById('apl-pharma-panel');
+  const btn=document.getElementById('apl-pharma-reveal');
+  if(!panel)return;
+  const open=typeof force==='boolean'?force:panel.hasAttribute('hidden');
+  if(open){
+    panel.removeAttribute('hidden');
+    if(btn){
+      btn.setAttribute('aria-expanded','true');
+      btn.classList.add('is-open');
+      const txt=btn.querySelector('.apl-pharma-reveal-txt');
+      if(txt)txt.textContent='Ukryj pole poufne';
+    }
+  }else{
+    panel.setAttribute('hidden','');
+    if(btn){
+      btn.setAttribute('aria-expanded','false');
+      btn.classList.remove('is-open');
+      const txt=btn.querySelector('.apl-pharma-reveal-txt');
+      if(txt)txt.textContent='Pokaż pole poufne';
+    }
+  }
+}
+window.toggleAplPharmaPanel=toggleAplPharmaPanel;
+
 function aplFillFromClient(){
   const sel=document.getElementById('apl-client');
   const cid=sel.value;
@@ -121,6 +146,7 @@ function aplFillFromClient(){
   const pharmaDetailsEl=document.getElementById('apl-pharma-details');
   if(pharmaStatusEl)pharmaStatusEl.value='';
   if(pharmaDetailsEl)pharmaDetailsEl.value='';
+  if(typeof toggleAplPharmaPanel==='function')toggleAplPharmaPanel(false);
   if(!cid)return;
   const c=CL.find(x=>x.id===cid);
   if(!c)return;

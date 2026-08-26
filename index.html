@@ -13,7 +13,7 @@
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="globals.css?v=17">
-<link rel="stylesheet" href="styles.css?v=44">
+<link rel="stylesheet" href="styles.css?v=45">
 </head>
 <body>
 
@@ -2244,11 +2244,21 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <label class="form-lbl">Kontuzje / ograniczenia / wady postawy</label>
         <input type="text" class="form-input" id="apl-injuries" placeholder="np. hiperlordoza, ból kolan, protrakcja barków…" style="font-size:13px;">
       </div>
-      <div class="form-field">
-        <details style="border:1px solid var(--border); border-radius:8px; padding:10px 12px; background:var(--s2);">
-          <summary class="form-lbl" style="cursor:pointer; user-select:none;">🔒 Status farmakologiczny (opcjonalnie, poufne)</summary>
-          <div style="margin-top:10px;">
-            <div style="font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.6;">Wpływa na dobór objętości i częstotliwości — sportowiec wspomagany farmakologicznie ma wyższą zdolność regeneracji (MRV) niż naturalny. Widoczne tylko dla Ciebie, nigdy dla klienta.</div>
+      <div class="form-field apl-pharma-gate">
+        <button type="button" class="apl-pharma-reveal-btn" id="apl-pharma-reveal" onclick="toggleAplPharmaPanel()" aria-expanded="false" aria-controls="apl-pharma-panel">
+          <span class="apl-pharma-reveal-ico" aria-hidden="true">🔒</span>
+          <span class="apl-pharma-reveal-txt">Pokaż pole poufne</span>
+        </button>
+        <div id="apl-pharma-panel" class="apl-pharma-panel" hidden>
+          <div class="apl-pharma-panel-hdr">
+            <div>
+              <div class="apl-pharma-panel-title">Status farmakologiczny</div>
+              <div class="apl-pharma-panel-sub">Opcjonalnie · tylko dla Ciebie, nigdy dla klienta</div>
+            </div>
+            <button type="button" class="apl-pharma-hide-btn" onclick="toggleAplPharmaPanel(false)" title="Ukryj pole">Ukryj</button>
+          </div>
+          <div class="apl-pharma-panel-body">
+            <div class="apl-pharma-note">Wpływa na dobór objętości i częstotliwości — sportowiec wspomagany farmakologicznie ma wyższą zdolność regeneracji (MRV) niż naturalny.</div>
             <select class="form-select" id="apl-pharma-status" style="font-size:13px; margin-bottom:8px;">
               <option value="">— Nie wskazano —</option>
               <option value="naturalny">🟢 Naturalny (bez wspomagania)</option>
@@ -2257,7 +2267,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
             </select>
             <input type="text" class="form-input" id="apl-pharma-details" placeholder="Szczegóły (opcjonalnie) — np. związki, faza cyklu…" style="font-size:13px;">
           </div>
-        </details>
+        </div>
       </div>
       <div class="form-field">
         <label class="form-lbl">Priorytet sylwetkowy</label>
@@ -4129,7 +4139,7 @@ async function load(){
 <script src="ex-photo-manifest.js?v=2"></script>
 <script src="01-core.js?v=39"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=22"></script>
-<script src="03-ai-plangen-bizstats-aicoach.js?v=24"></script>
+<script src="03-ai-plangen-bizstats-aicoach.js?v=25"></script>
 <script src="04-client-portal.js?v=32"></script>
 <script src="05-clients-builder-plans-calendar.js?v=28"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=27"></script>
