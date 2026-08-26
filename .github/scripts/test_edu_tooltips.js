@@ -27,9 +27,6 @@ ok('builder headers tips',src05.includes("tip('sets')")&&src05.includes("tip('rp
 ok('addRow titles',src05.includes("t('sets')")&&src05.includes("t('rpe')"));
 ok('apl method tip',html.includes('data-edu="method"')&&html.includes('data-edu="days"'));
 ok('template tips',src02.includes('data-edu="goal"')&&src02.includes('data-edu="method"'));
-ok('cache bumps',html.includes('01-core.js?v=39')&&html.includes('05-clients-builder-plans-calendar.js?v=28')&&html.includes('styles.css?v=43'));
-ok('cache bumps',html.includes('01-core.js?v=37')&&html.includes('05-clients-builder-plans-calendar.js?v=28')&&html.includes('styles.css?v=41'));
-ok('cache bumps',html.includes('01-core.js?v=37')&&html.includes('05-clients-builder-plans-calendar.js?v=28')&&html.includes('styles.css?v=42'));
 
 const sandbox={window:{escHtml:s=>String(s??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')},console};
 vm.createContext(sandbox);
@@ -47,6 +44,8 @@ ok('sets tip length',sandbox.eduTipText('sets').length>40);
 ok('rpe mentions RIR',/RIR|RPE/.test(sandbox.eduTipText('rpe')));
 ok('method dynamic',sandbox.eduTipText('method',{method:'PPL'}).includes('Push'));
 ok('mark has data-tip',sandbox.eduTipMark('sets').includes('data-tip=')&&sandbox.eduTipMark('sets').includes('edu-tip'));
+
+ok('cache bumps',html.includes('01-core.js?v=39')&&html.includes('05-clients-builder-plans-calendar.js?v=28')&&html.includes('styles.css?v=43'));
 
 if(failed){console.error(failed+' failed');process.exit(1);}
 console.log('\nAll edu-tooltips tests passed');

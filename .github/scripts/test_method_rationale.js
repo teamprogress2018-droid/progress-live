@@ -39,15 +39,14 @@ ok('aplRenderPlan embeds',src03.includes('renderMethodRationaleHTML'));
 ok('summary prompt longer',src03.includes('3–5 zdań dla trenera początkującego'));
 ok('template rationale',src02.includes('tplcRefreshRationale')&&src02.includes('tplc-rationale'));
 ok('css method-rationale',css.includes('.method-rationale')&&css.includes('.mr-vol-table')&&css.includes('.mr-volume'));
-ok('cache bumps',html.includes('01-core.js?v=37')&&html.includes('05-clients-builder-plans-calendar.js?v=28')&&html.includes('styles.css?v=41'));
 ok('sidebar no clip cards',css.includes('.builder-sidebar-scroll>.card')&&/flex-shrink:\s*0/.test(css));
 ok('openMethodRationaleModal',core.includes('function openMethodRationaleModal'));
 ok('cheat sheet renderer',core.includes('function renderTrainerCheatSheetHTML')&&core.includes('function printTrainerCheatSheet'));
 ok('full guide modal',html.includes('id="m-method-rationale"')&&html.includes('method-rationale-modal-body')&&html.includes('printTrainerCheatSheet'));
 ok('builder topbar cheat btn',html.includes('id="builder-cheat-btn"')&&html.includes('openMethodRationaleModal()'));
 ok('builder topbar print btn',html.includes('id="builder-cheat-print-btn"')&&html.includes('printTrainerCheatSheet()'));
-ok('cache bumps',html.includes('01-core.js?v=39')&&html.includes('05-clients-builder-plans-calendar.js?v=28')&&html.includes('styles.css?v=43'));
 ok('css cheat sheet',css.includes('.trainer-cheat')&&css.includes('.tch-volume')&&css.includes('#builder-cheat-btn'));
+ok('cache bumps',html.includes('01-core.js?v=39')&&html.includes('05-clients-builder-plans-calendar.js?v=28')&&html.includes('styles.css?v=43'));
 ok('print refreshes sheet',/function printTrainerCheatSheet[\s\S]*renderTrainerCheatSheetHTML/.test(core));
 
 const sandbox={window:{},console};
