@@ -1114,8 +1114,8 @@ function capScreenHTML(scr,c){
       if(f==='dom')return w.coll==='dom'||w.equipment==='none';
       if(f==='mobilnosc')return w.coll==='mobilnosc'||w.format==='mobility'||w.format==='stretch';
       if(f==='hiit')return w.format==='hiit'||w.coll==='hiit';
-      if(f==='tabata')return w.format==='tabata';
-      if(f==='cardio')return w.format==='hiit'||w.format==='tabata'||w.format==='cardio';
+      if(f==='tabata')return w.format==='tabata'||w.coll==='tabata';
+      if(f==='cardio')return w.format==='hiit'||w.format==='tabata'||w.format==='cardio'||w.coll==='hiit'||w.coll==='tabata';
       if(f==='oddech')return w.coll==='oddech'||w.format==='breath';
       return w.format===f||w.coll===f;
     };
@@ -1155,7 +1155,7 @@ function capScreenHTML(scr,c){
       progList.map(p=>{
         const n=typeof odProgramWorkoutCount==='function'?odProgramWorkoutCount(p):0;
         const pct=typeof odProgramProgressPct==='function'?odProgramProgressPct(c.id,p):0;
-        const catLabel=p.category==='mobilnosc'?'🧘 Mobilność':p.category==='dom'?'🏠 Dom bez sprzętu':p.category==='oddech'?'🌬 Oddech i relaks':p.category==='fbw'?'⚡ Full Body':'';
+        const catLabel=p.category==='mobilnosc'?'🧘 Mobilność':p.category==='dom'?'🏠 Dom bez sprzętu':p.category==='oddech'?'🌬 Oddech i relaks':p.category==='fbw'?'⚡ Full Body':p.category==='hiit'?'🔥 HIIT':p.category==='tabata'?'⏱ Tabata':'';
         return `<button type="button" onclick="openODProgramClient('${escHtml(p.id)}')" style="width:100%;text-align:left;background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:14px;margin-bottom:12px;cursor:pointer;color:inherit;">
           <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;">
             <div>

@@ -85,17 +85,20 @@ function ok(name, cond, extra) {
 }
 
 const demo = windowObj.OD_DEMO_WORKOUTS || [];
-ok('demo workouts exist', demo.length >= 13, 'n=' + demo.length);
+ok('demo workouts exist', demo.length >= 18, 'n=' + demo.length);
 ok('every demo has youtube url', demo.every(w => /youtube\.com\/watch\?v=/i.test(w.url || '')), demo.map(w => w.url).join(','));
 ok('every demo embeds', demo.every(w => /youtube-nocookie\.com\/embed\//.test(ctx.coachVideoEmbed(w.url) || '')), demo.map(w => ctx.coachVideoEmbed(w.url)).join(','));
 ok('no channel-only urls', demo.every(w => !/youtube\.com\/@/.test(w.url || '')));
 ok('hiit is madfit', demo.some(w => w.id === 'ow2' && /HhdYlniTjvg/.test(w.url)));
 ok('hips is adriene', demo.some(w => w.id === 'ow5' && /zwoVcrdmLOE/.test(w.url)));
+ok('tabata collection', demo.filter((w) => w.coll === 'tabata').length >= 3 && demo.some((w) => w.id === 'ow8' && w.coll === 'tabata' && w.format === 'tabata'));
+ok('hiit collection films', demo.filter((w) => w.coll === 'hiit').length >= 4);
+ok('assign to client on cards', /openAssignHomeworkModal/.test(ctx.odWorkoutCardHTML(demo.find((w) => w.id === 'ow15') || demo[0], 0)));
 
 windowObj.OD_WORKOUTS = [];
-ok('fallback to demo', ctx.allODWorkouts().length >= 13);
+ok('fallback to demo', ctx.allODWorkouts().length >= 18);
 ctx.ensureODWorkouts();
-ok('ensure copies demo', windowObj.OD_WORKOUTS.length >= 13 && windowObj.OD_WORKOUTS[0].url);
+ok('ensure copies demo', windowObj.OD_WORKOUTS.length >= 18 && windowObj.OD_WORKOUTS[0].url);
 
 windowObj.OD_WORKOUTS = [
   { id: 'ow1', name: 'Full Body 30 min (HASfit)', type: 'workout', url: '', desc: 'stub' },
@@ -145,18 +148,30 @@ ok('mobility program demo', progs.some((p) => p.id === 'op3' && p.category === '
 ok('breath workouts demo', demo.filter((w) => w.format === 'breath').length >= 5);
 ok('breath program op5', progs.some((p) => p.id === 'op5' && p.category === 'oddech'));
 ok('home no equipment program', progs.some((p) => p.id === 'op4' && p.category === 'dom' && ctx.odProgramSessionTotal(p) >= 4));
+ok('hiit program op6', progs.some((p) => p.id === 'op6' && p.category === 'hiit' && ctx.odProgramSessionTotal(p) >= 4));
+ok('tabata program op7', progs.some((p) => p.id === 'op7' && p.category === 'tabata' && ctx.odProgramSessionTotal(p) >= 4));
 ok('od programs for collection', ctx.odProgramsForCollection('mobilnosc').some((p) => p.id === 'op3'));
 ok('od workouts for collection', ctx.odWorkoutsForCollection('oddech').length >= 5);
+ok('od workouts tabata', ctx.odWorkoutsForCollection('tabata').length >= 3);
+ok('od workouts hiit', ctx.odWorkoutsForCollection('hiit').length >= 4);
 ok('sync missing demos', (() => {
   windowObj.OD_WORKOUTS = [{ id: 'custom', name: 'X', url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', coll: 'fbw' }];
   const n = ctx.syncMissingODDemoWorkouts();
-  return n >= 10 && ctx.odWorkoutsForCollection('dom').length >= 2 && ctx.odWorkoutsForCollection('oddech').length >= 5;
+  return n >= 10 && ctx.odWorkoutsForCollection('dom').length >= 2 && ctx.odWorkoutsForCollection('oddech').length >= 5 && ctx.odWorkoutsForCollection('tabata').length >= 3;
+})());
+ok('sync moves ow8 to tabata', (() => {
+  windowObj.OD_WORKOUTS = [{ id: 'ow8', name: 'Tabata 16 min — cardio (MadFit)', type: 'video', url: 'https://www.youtube.com/watch?v=XI0YfASj5gY', coll: 'hiit', format: 'tabata' }];
+  ctx.syncMissingODDemoWorkouts();
+  const w = windowObj.OD_WORKOUTS.find((x) => x.id === 'ow8');
+  return w && w.coll === 'tabata';
 })());
 ok('openODAddFilm exported', typeof ctx.openODAddFilm === 'function');
 ok('openODCollection exported', typeof ctx.openODCollection === 'function');
 ok('html collection films mount', fs.readFileSync(path.join(root, 'index.html'), 'utf8').includes('id="od-collection-films"'));
-ok('html coll options dom oddech', /id="odw-coll"[\s\S]*value="dom"[\s\S]*value="oddech"/.test(fs.readFileSync(path.join(root, 'index.html'), 'utf8')));
-ok('cache 09', /09-posture-kb-invites-private\.js\?v=31/.test(fs.readFileSync(path.join(root, 'index.html'), 'utf8')));
+ok('html coll options tabata hiit', /id="odw-coll"[\s\S]*value="hiit"[\s\S]*value="tabata"[\s\S]*value="oddech"/.test(fs.readFileSync(path.join(root, 'index.html'), 'utf8')));
+ok('cache 09', /09-posture-kb-invites-private\.js\?v=32/.test(fs.readFileSync(path.join(root, 'index.html'), 'utf8')));
+ok('cache 04', /04-client-portal\.js\?v=30/.test(fs.readFileSync(path.join(root, 'index.html'), 'utf8')));
+ok('collections include tabata', /id:'tabata'/.test(fs.readFileSync(path.join(root, '09-posture-kb-invites-private.js'), 'utf8')));
 windowObj._cliveOdProgId = 'op2';
 const odProgHtml2 = ctx.capScreenHTML('odprogram', { id: 'c-anna', name: 'Anna' });
 ok('client odprogram play buttons', /openODWorkout\('ow1'\)/.test(odProgHtml2));
