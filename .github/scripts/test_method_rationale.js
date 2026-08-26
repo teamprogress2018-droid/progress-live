@@ -38,7 +38,7 @@ ok('aplToggle refreshes',src03.includes('aplRefreshRationale'));
 ok('aplRenderPlan embeds',src03.includes('renderMethodRationaleHTML'));
 ok('summary prompt longer',src03.includes('3–5 zdań dla trenera początkującego'));
 ok('template rationale',src02.includes('tplcRefreshRationale')&&src02.includes('tplc-rationale'));
-ok('css method-rationale',css.includes('.method-rationale')&&css.includes('.mr-vol-table')&&css.includes('.mr-volume')&&css.includes('.mr-action-btn')&&css.includes('.mr-chips')&&css.includes('.mr-expand-cta'));
+ok('css method-rationale',css.includes('.method-rationale')&&css.includes('.mr-vol-table')&&css.includes('.mr-volume')&&css.includes('.mr-action-btn')&&css.includes('.mr-chips')&&css.includes('.mr-more-btn'));
 ok('sidebar no clip cards',css.includes('.builder-sidebar-scroll>.card')&&/flex-shrink:\s*0/.test(css));
 ok('openMethodRationaleModal',core.includes('function openMethodRationaleModal'));
 ok('full guide modal',html.includes('id="m-method-rationale"')&&html.includes('method-rationale-modal-body'));
@@ -63,8 +63,8 @@ ok('volume parts beginner',b.levelVolumeParts&&b.levelVolumeParts.Klatka==='6–
 const htmlR=sandbox.renderMethodRationaleHTML(b);
 ok('html render',htmlR.includes('Dlaczego tak?'));
 ok('html collapsible',/<details class="method-rationale">/.test(htmlR)&&/mr-volume/.test(htmlR)&&/mr-vol-table/.test(htmlR)&&/Asystent trenera/.test(htmlR)&&!/<details class="method-rationale" open>/.test(htmlR));
-ok('html full guide btn',/openMethodRationaleModal\(/.test(htmlR)&&(/Ściągawka/.test(htmlR)||/title="[^"]*objętość/.test(htmlR)));
-ok('html expand cta',/mr-expand-cta/.test(htmlR)&&/Rozwiń/.test(htmlR));
+ok('html more btn',/openMethodRationaleModal\(/.test(htmlR)&&/Więcej/.test(htmlR)&&/mr-more-btn/.test(htmlR));
+ok('html no print in panel',!/printTrainerCheatSheet\(/.test(htmlR));
 ok('html highlights beginner col',/mr-vol-th is-current/.test(htmlR));
 ok('clientTalk plain',b.clientTalk&&/Trenujemy/.test(b.clientTalk)&&!/MEV|MRV/.test(b.clientTalk));
 eq('normalize UL',sandbox.normalizeRationaleMethod('Upper/Lower'),'Upper Lower');
@@ -75,8 +75,7 @@ const adv=sandbox.buildMethodRationale({method:'PPL',goal:'redukcja',level:'zaaw
 ok('advanced chest volume',adv.levelVolumeParts.Klatka==='12–20');
 ok('advanced html current col',/Zaaw\./.test(sandbox.renderMethodRationaleHTML(adv))&&/is-current/.test(sandbox.renderMethodRationaleHTML(adv)));
 
-ok('cache bumps',html.includes('01-core.js?v=39')&&html.includes('05-clients-builder-plans-calendar.js?v=28')&&html.includes('styles.css?v=45'));
-ok('cache bumps',html.includes('01-core.js?v=41')&&html.includes('05-clients-builder-plans-calendar.js?v=28')&&html.includes('styles.css?v=46'));
+ok('cache bumps',html.includes('01-core.js?v=42')&&html.includes('05-clients-builder-plans-calendar.js?v=28')&&html.includes('styles.css?v=47'));
 
 if(failed){console.error(failed+' failed');process.exit(1);}
 console.log('\nAll method-rationale tests passed');
