@@ -5570,30 +5570,33 @@ function renderDash(){
   if(typeof runWeeklyCheckinSweep==='function')try{runWeeklyCheckinSweep({silent:true});}catch(e){}
   const today=new Date();
   const todayStr=dateStr(today);
-  // week bounds
   const dow=(today.getDay()+6)%7;
   const weekStart=new Date(today);weekStart.setDate(today.getDate()-dow);
   const weekEnd=new Date(weekStart);weekEnd.setDate(weekStart.getDate()+6);
   const weekStartStr=dateStr(weekStart);
   const weekEndStr=dateStr(weekEnd);
 
-  // KPI
   const activeClients=CL.filter(c=>c.status==='active'||!c.status).length;
   const weekSessions=SE.filter(s=>s.date>=weekStartStr&&s.date<=weekEndStr);
   const activePlans=PL.length;
+  const reports=dashOpsRecentReports();
+  const expiring=dashOpsExpiringPackages(7);
 
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
   const setHTML=(id,v)=>{const el=document.getElementById(id);if(el)el.innerHTML=v;};
 
   set('d-clients',activeClients);
+  set('d-reports',reports.length);
+  set('d-expiring',expiring.length);
   set('d-sessions',weekSessions.length);
   set('d-plans',activePlans);
 
   const done7=SE.filter(s=>s.date<todayStr&&s.date>=weekStartStr).length;
   setHTML('d-sessions-trend','<span style="color:var(--muted);">'+done7+' ukończone · '+weekSessions.length+' zaplanowane</span>');
-  setHTML('d-clients-trend','<span style="color:var(--muted);">'+CL.length+' łącznie</span>');
+  setHTML('d-clients-trend','<span style="color:var(--muted);">'+CL.length+' łącznie · stała współpraca</span>');
+  setHTML('d-reports-trend','<span style="color:var(--muted);">'+(reports.length?reports.length+' czeka na odpowiedź':'Brak do sprawdzenia')+'</span>');
+  setHTML('d-expiring-trend','<span style="color:var(--muted);">'+(expiring.length?expiring.length+' w ciągu 7 dni':'Nic nie wygasa')+'</span>');
 
-  // data label
   const MONTHS_PL=['stycznia','lutego','marca','kwietnia','maja','czerwca','lipca','sierpnia','września','października','listopada','grudnia'];
   const DAYS_PL=['Niedziela','Poniedziałek','Wtorek','Środa','Czwartek','Piątek','Sobota'];
   const dateLbl=document.getElementById('d-date-lbl');
@@ -5603,25 +5606,255 @@ function renderDash(){
   try{document.getElementById('b-client').innerHTML=CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');}catch(e){}
   try{updateExDl();}catch(e){}
 
-  // compat hidden elements
   set('d-revenue','0 zł');
   set('d-active-count',activeClients+' aktywnych');
 
   renderDashToday();
-  renderDashTasks();
-  renderDashMiniCal();
+  renderDashOps();
   renderDashGettingStarted();
   renderDashClientPipeline();
-  renderDashCheckinFollowup();
-  renderDashFormFollowup();
-  renderDashPayFollowup();
-  renderDashHwFollowup();
-  renderDashMsgFollowup();
-  renderDashHabitFollowup();
-  renderDashCalRefillFollowup();
-  renderDashPhotoFollowup();
   renderProfileSetupBanner();
+  // legacy followupy — elementy ukryte, ale odświeżamy na wypadek innych ekranów
+  try{renderDashCheckinFollowup();}catch(e){}
+  try{renderDashFormFollowup();}catch(e){}
+  try{renderDashPayFollowup();}catch(e){}
+  try{renderDashHwFollowup();}catch(e){}
+  try{renderDashMsgFollowup();}catch(e){}
+  try{renderDashHabitFollowup();}catch(e){}
+  try{renderDashCalRefillFollowup();}catch(e){}
+  try{renderDashPhotoFollowup();}catch(e){}
 }
+
+function toggleDashQuickActions(evOrClose){
+  const menu=document.getElementById('dash-qa-menu');
+  const btn=document.getElementById('dash-qa-btn');
+  if(!menu)return;
+  if(evOrClose===false){
+    menu.hidden=true;
+    if(btn)btn.setAttribute('aria-expanded','false');
+    return;
+  }
+  if(evOrClose&&evOrClose.stopPropagation)evOrClose.stopPropagation();
+  menu.hidden=!menu.hidden;
+  if(btn)btn.setAttribute('aria-expanded',menu.hidden?'false':'true');
+}
+window.toggleDashQuickActions=toggleDashQuickActions;
+document.addEventListener('click',()=>{const m=document.getElementById('dash-qa-menu');if(m&&!m.hidden)toggleDashQuickActions(false);});
+
+function dashOpsLiveClients(){
+  return(window.CL||[]).filter(c=>c&&c.status!=='archived');
+}
+function dashOpsExpiringPackages(withinDays){
+  const days=withinDays==null?7:withinDays;
+  const today=new Date();today.setHours(0,0,0,0);
+  const live=new Set(dashOpsLiveClients().map(c=>c.id));
+  const pkgs=typeof allPackages==='function'?allPackages():(window.PACKAGES||[]);
+  return pkgs.filter(p=>{
+    if(!p||!p.expiresDate||p.status==='expired'||p.payStatus==='expired')return false;
+    if(p.clientId&&live.size&&!live.has(p.clientId))return false;
+    const d=new Date(p.expiresDate+'T12:00:00');
+    if(isNaN(d))return false;
+    const diff=Math.ceil((d-today)/86400000);
+    return diff>=0&&diff<=days;
+  }).sort((a,b)=>String(a.expiresDate).localeCompare(String(b.expiresDate)));
+}
+function dashOpsRecentReports(){
+  const out=[];
+  const clients=dashOpsLiveClients();
+  clients.forEach(c=>{
+    if(typeof ensureCheckins==='function')ensureCheckins(c.id);
+    const list=(window.CHECKINS&&window.CHECKINS[c.id])||[];
+    list.filter(ci=>ci&&ci.status==='filled').forEach(ci=>{
+      out.push({
+        kind:'checkin',clientId:c.id,clientName:c.name,ci,
+        date:ci.date||ci.filledAt||ci.createdAt||'',
+        score:ci.score,answers:ci.answers||{}
+      });
+    });
+  });
+  const filledForms=(window.FORM_SENDS||[]).filter(s=>s&&s.status==='filled'&&s.clientId);
+  filledForms.forEach(s=>{
+    const c=clients.find(x=>x.id===s.clientId);
+    if(!c)return;
+    const name=String(s.formName||'').toLowerCase();
+    if(!/post[eę]p|check|raport|miesi[eę]|tygod/.test(name)&&s.formId!=='df3')return;
+    out.push({
+      kind:'form',clientId:c.id,clientName:c.name,send:s,
+      date:s.filledAt||s.sentAt||'',
+      formName:s.formName||'Formularz'
+    });
+  });
+  return out.sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,12);
+}
+function dashOpsAttentionItems(){
+  const items=[];
+  const clients=dashOpsLiveClients();
+  clients.forEach(c=>{
+    if(typeof ensureCheckins==='function')ensureCheckins(c.id);
+    const st=typeof getCIStatus==='function'?getCIStatus(c.id):'none';
+    if(st==='overdue'){
+      items.push({pri:0,clientId:c.id,name:c.name,tag:'Raport zaległy',col:'var(--red)',
+        meta:'Spóźniony check-in tygodniowy',
+        cta:`sendCheckinTo('${escHtml(c.id)}')`,ctaLbl:'Przypomnij'});
+    }else if(st==='pending'){
+      items.push({pri:1,clientId:c.id,name:c.name,tag:'Czeka na raport',col:'var(--orange)',
+        meta:'Check-in wysłany — brak odpowiedzi',
+        cta:`goTo('checkin');setTimeout(()=>openCIClient('${escHtml(c.id)}'),200)`,ctaLbl:'Otwórz'});
+    }
+    if(typeof clientTrainingWindowStats==='function'){
+      const st7=clientTrainingWindowStats(c.id,7);
+      if(st7.assigned>=2&&st7.pct!=null&&st7.pct<70){
+        items.push({pri:2,clientId:c.id,name:c.name,tag:'<70% planu',col:'var(--orange)',
+          meta:`Trening 7 dni: ${st7.done}/${st7.assigned} (${st7.pct}%)`,
+          cta:`openClientProfile('${escHtml(c.id)}')`,ctaLbl:'Profil'});
+      }
+      const today=typeof dateStr==='function'?dateStr(new Date()):new Date().toISOString().slice(0,10);
+      const missed=(window.SE||[]).filter(s=>{
+        if(s.clientId!==c.id||!s.date||s.date>=today)return false;
+        const age=(Date.now()-new Date(s.date+'T12:00:00').getTime())/86400000;
+        if(age>14||age<0)return false;
+        return typeof isLoggedWorkout==='function'?!isLoggedWorkout(s):!(s.source==='client'||s.source==='live');
+      });
+      if(missed.length>=2){
+        items.push({pri:1,clientId:c.id,name:c.name,tag:'Opuszczone treningi',col:'var(--red)',
+          meta:missed.length+' zaplanowanych bez logu (14 dni)',
+          cta:`openClientProfile('${escHtml(c.id)}');setTimeout(()=>{if(typeof setCPTab==='function')setCPTab('training');},150)`,ctaLbl:'Treningi'});
+      }
+    }
+  });
+  // dedupe by clientId+tag
+  const seen=new Set();
+  return items.filter(it=>{
+    const k=it.clientId+'|'+it.tag;
+    if(seen.has(k))return false;seen.add(k);return true;
+  }).sort((a,b)=>a.pri-b.pri||String(a.name).localeCompare(String(b.name),'pl')).slice(0,10);
+}
+function dashOpsRecentActivity(limit){
+  limit=limit||8;
+  const all=(window.SE||[]).filter(s=>s&&(typeof isLoggedWorkout==='function'?isLoggedWorkout(s):(s.source==='client'||s.source==='live'||(Array.isArray(s.exercises)&&s.exercises.length))))
+    .slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''));
+  return all.slice(0,limit);
+}
+function dashOpsReminders(){
+  const rem=[];
+  dashOpsExpiringPackages(7).forEach(p=>{
+    const name=p.clientName||((window.CL||[]).find(c=>c.id===p.clientId)||{}).name||'Klient';
+    const d=Math.ceil((new Date(p.expiresDate+'T12:00:00')-new Date())/86400000);
+    rem.push({txt:`Pakiet „${p.title||'Pakiet'}” — ${name}`,meta:d<=0?'Wygasa dziś':`Wygasa za ${d} dni`,col:'var(--orange)'});
+  });
+  dashOpsLiveClients().forEach(c=>{
+    if(typeof ensureCheckins==='function')ensureCheckins(c.id);
+    const st=typeof getCIStatus==='function'?getCIStatus(c.id):'';
+    if(st==='overdue'||st==='pending'){
+      rem.push({txt:`Termin raportu — ${c.name}`,meta:st==='overdue'?'Zaległy check-in':'Oczekuje na wypełnienie',col:st==='overdue'?'var(--red)':'var(--teal)'});
+    }
+  });
+  return rem.slice(0,8);
+}
+function renderDashOps(){
+  const attEl=document.getElementById('d-ops-attention');
+  const repEl=document.getElementById('d-ops-reports');
+  const actEl=document.getElementById('d-ops-activity');
+  const expEl=document.getElementById('d-ops-expiring');
+  const remEl=document.getElementById('d-ops-reminders');
+  const esc=typeof escHtml==='function'?escHtml:(s=>String(s??''));
+
+  if(attEl){
+    const items=dashOpsAttentionItems();
+    attEl.innerHTML=items.length?items.map(it=>`<div class="dash-ops-item">
+      <span class="dash-ops-tag" style="background:${it.col}22;color:${it.col};">${esc(it.tag)}</span>
+      <div class="dash-ops-item-body">
+        <div class="dash-ops-item-title">${esc(it.name)}</div>
+        <div class="dash-ops-item-meta">${esc(it.meta)}</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="${it.cta}">${esc(it.ctaLbl)}</button>
+    </div>`).join(''):`<div class="dash-ops-empty">Wszystko na bieżąco — brak alertów.</div>`;
+  }
+
+  if(repEl){
+    const reps=dashOpsRecentReports().slice(0,8);
+    repEl.innerHTML=reps.length?reps.map(r=>{
+      if(r.kind==='checkin'){
+        const a=r.answers||{};
+        const bits=[
+          a.weight!=null&&a.weight!==''?`⚖️ ${a.weight} kg`:'',
+          a.energy!=null?`⚡ ${a.energy}/5`:'',
+          a.sleep!=null?`💤 ${a.sleep}/5`:'',
+          a.stress!=null?`😤 ${a.stress}/5`:'',
+          a.workouts!=null?`🏋️ ${a.workouts}`:'',
+          r.score!=null?`score ${r.score}%`:''
+        ].filter(Boolean).join(' · ');
+        return `<div class="dash-ops-item">
+          <div class="dash-ops-item-body">
+            <div class="dash-ops-item-title">${esc(r.clientName)}</div>
+            <div class="dash-ops-item-meta">Check-in ${esc(String(r.date).slice(0,10))}${bits?' · '+esc(bits):''}${a.notes?' · „'+esc(String(a.notes).slice(0,60))+'”':''}</div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="goTo('checkin');setTimeout(()=>openCIClient('${esc(r.clientId)}'),200)">Sprawdź</button>
+        </div>`;
+      }
+      return `<div class="dash-ops-item">
+        <div class="dash-ops-item-body">
+          <div class="dash-ops-item-title">${esc(r.clientName)}</div>
+          <div class="dash-ops-item-meta">${esc(r.formName)} · ${esc(String(r.date).slice(0,10))}</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="openClientProfile('${esc(r.clientId)}');setTimeout(()=>{if(typeof setCPTab==='function')setCPTab('forms');},150)">Profil</button>
+      </div>`;
+    }).join(''):`<div class="dash-ops-empty">Brak nowych raportów do sprawdzenia.</div>`;
+  }
+
+  if(actEl){
+    const acts=dashOpsRecentActivity();
+    actEl.innerHTML=acts.length?acts.map(s=>{
+      const c=(window.CL||[]).find(x=>x.id===s.clientId);
+      const title=typeof sessionTitle==='function'?sessionTitle(s):(s.type||s.name||'Trening');
+      const sets=typeof sessionSetsCount==='function'?sessionSetsCount(s):0;
+      const note=s.notes||s.feedbackNote||s.clientNote||'';
+      let kgHint='';
+      if(Array.isArray(s.exercises)){
+        const withKg=s.exercises.filter(e=>e&&(e.kg||(Array.isArray(e.sets)&&e.sets.some(x=>x&&x.kg)))).slice(0,2);
+        if(withKg.length)kgHint=withKg.map(e=>esc(e.name||'Ćw.')+(e.kg?' '+e.kg+'kg':'')).join(', ');
+      }
+      return `<div class="dash-ops-item">
+        <div class="dash-ops-item-body">
+          <div class="dash-ops-item-title">${esc(c?c.name:'Klient')} · ${esc(title)}</div>
+          <div class="dash-ops-item-meta">${esc(s.date||'')}${sets?' · '+sets+' serii':''}${kgHint?' · '+kgHint:''}${note?' · „'+esc(String(note).slice(0,50))+'”':''}${s.feedback?' · ocena '+esc(s.feedback)+'/5':''}</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="editSession('${esc(s.id)}')">Szczegóły</button>
+      </div>`;
+    }).join(''):`<div class="dash-ops-empty">Brak niedawno ukończonych treningów.</div>`;
+  }
+
+  if(expEl){
+    const pkgs=dashOpsExpiringPackages(7);
+    expEl.innerHTML=pkgs.length?pkgs.map(p=>{
+      const name=esc(p.clientName||((window.CL||[]).find(c=>c.id===p.clientId)||{}).name||'Klient');
+      const d=Math.ceil((new Date(p.expiresDate+'T12:00:00')-new Date())/86400000);
+      return `<div class="dash-ops-item">
+        <div class="dash-ops-item-body">
+          <div class="dash-ops-item-title">${name}</div>
+          <div class="dash-ops-item-meta">${esc(p.title||'Pakiet')} · ${Number(p.price||0).toLocaleString('pl')} zł · ${d<=0?'dziś':('za '+d+' dni')} (${esc(p.expiresDate)})</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openClientProfile('${esc(p.clientId)}');setTimeout(()=>{if(typeof setCPTab==='function')setCPTab('payments');},150)">Odnów</button>
+      </div>`;
+    }).join(''):`<div class="dash-ops-empty">Żaden pakiet nie wygasa w ciągu 7 dni.</div>`;
+  }
+
+  if(remEl){
+    const rem=dashOpsReminders();
+    remEl.innerHTML=rem.length?rem.map(r=>`<div class="dash-ops-item">
+      <span class="dash-ops-tag" style="background:${r.col}22;color:${r.col};">!</span>
+      <div class="dash-ops-item-body">
+        <div class="dash-ops-item-title">${esc(r.txt)}</div>
+        <div class="dash-ops-item-meta">${esc(r.meta)}</div>
+      </div>
+    </div>`).join(''):`<div class="dash-ops-empty">Brak nadchodzących terminów.</div>`;
+  }
+}
+window.dashOpsExpiringPackages=dashOpsExpiringPackages;
+window.dashOpsRecentReports=dashOpsRecentReports;
+window.dashOpsAttentionItems=dashOpsAttentionItems;
+window.dashOpsRecentActivity=dashOpsRecentActivity;
+window.renderDashOps=renderDashOps;
 
 function dismissProfileSetupBanner(){
   try{localStorage.setItem('pl_profile_prompt','1');}catch(e){}
