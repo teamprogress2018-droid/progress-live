@@ -23,6 +23,7 @@ ok('builder-layout min-height 0',/\.builder-layout\{[\s\S]*?min-height:\s*0/.tes
 ok('screen-builder content overflow hidden',css.includes('#screen-builder > .content.builder-layout{overflow:hidden;}'));
 
 ok('cache bump styles v34',html.includes('styles.css?v=45'));
+ok('cache bump styles v34',html.includes('styles.css?v=46'));
 
 if(failed){console.error(failed+' failed');process.exit(1);}
 console.log('\nAll builder-sidebar-scroll tests passed');
