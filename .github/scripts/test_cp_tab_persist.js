@@ -26,7 +26,7 @@ ok('opts.tab force', /o\.tab\|\|/.test(src07));
 ok('sidebar unread badge', src05.includes('nav-client-attn') && src05.includes('msgHasUnread'));
 ok('inbox badge refreshes sidebar', /updateInboxNavBadge[\s\S]{0,200}renderSidebarClients/.test(src06));
 ok('css attn dot', css.includes('.nav-client-attn'));
-ok('cache', html.includes('07-forms-metrics-calculator.js?v=25') && html.includes('05-clients-builder-plans-calendar.js?v=28') && html.includes('06-inbox-exercises-ai-programs.js?v=26') && html.includes('styles.css?v=41'));
+ok('cache', html.includes('07-forms-metrics-calculator.js?v=25') && html.includes('05-clients-builder-plans-calendar.js?v=28') && html.includes('06-inbox-exercises-ai-programs.js?v=26') && html.includes('styles.css?v=42'));
 ok('CI', wf.includes('test_cp_tab_persist.js'));
 
 if (failed) {
