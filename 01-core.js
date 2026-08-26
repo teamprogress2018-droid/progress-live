@@ -3013,7 +3013,7 @@ function renderMethodRationaleHTML(opts){
       </div>
       <div class="method-rationale-actions">
         <div class="method-rationale-badge">NSCA · ACSM · Twoja baza</div>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="event.preventDefault();event.stopPropagation();openMethodRationaleModal()" title="Ściągawka: objętość, serie, powtórzenia">📋 Ściągawka</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="event.preventDefault();event.stopPropagation();openMethodRationaleModal()" title="Ściągawka: objętość, serie, powtórzenia">Ściągawka</button>
       </div>
     </summary>
     <div class="method-rationale-body">
