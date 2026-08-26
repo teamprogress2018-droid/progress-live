@@ -39,7 +39,7 @@ ok('list collapse',src04.includes('function dashListSection')&&src04.includes('D
 ok('legacy followups stubbed',/function renderDashCheckinFollowup\(\)\{[\s\S]*?el\.style\.display='none'/.test(src04)&&src04.includes("'dash-checkin':renderDashCheckinFollowup"));
 ok('kpi first + dense css',html.indexOf('id="d-kpi-row"')<html.indexOf('id="dash-client-pipeline"')&&css.includes('.dash-kpi-body')&&css.includes('#screen-dashboard .dash-content'));
 ok('renderDash wires ops',src04.includes('renderDashOps()')&&src04.includes('dashOpsRecentReports()')&&src04.includes('dashOpsExpiringPackages(7)'));
-ok('cache bumps',html.includes('04-client-portal.js?v=32')&&html.includes('styles.css?v=42'));
+ok('cache bumps',html.includes('04-client-portal.js?v=32')&&html.includes('styles.css?v=43'));
 
 const today=new Date();
 today.setHours(12,0,0,0);

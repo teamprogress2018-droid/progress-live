@@ -27,7 +27,7 @@ ok('import pack',src09.includes('kbImportBuiltinPack'));
 ok('kbContext uses planning',/function kbContextForAI[\s\S]{0,400}planningEvidenceContext/.test(src09));
 ok('aplGenerate uses kb context',src03.includes('kbContextForAI()'));
 ok('builder askAI uses evidence',src06.includes('planningEvidenceContext'));
-ok('cache bumps',html.includes('01-core.js?v=37')&&html.includes('09-posture-kb-invites-private.js?v=33'));
+ok('cache bumps',html.includes('01-core.js?v=38')&&html.includes('09-posture-kb-invites-private.js?v=33'));
 
 const sandbox={window:{KB:[]},console};
 vm.createContext(sandbox);

@@ -13,7 +13,7 @@
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="globals.css?v=17">
-<link rel="stylesheet" href="styles.css?v=42">
+<link rel="stylesheet" href="styles.css?v=43">
 </head>
 <body>
 
@@ -342,7 +342,7 @@
 
 <!-- BUILDER -->
 <div class="screen" id="screen-builder">
-  <div class="topbar"><div class="topbar-title">Nowy plan treningowy</div><div class="topbar-actions"><button class="btn btn-ghost btn-sm" onclick="goTo(window._builderBack||'clients')">Anuluj</button><button class="btn btn-primary btn-sm" onclick="savePlan()">Zapisz plan</button></div></div>
+  <div class="topbar"><div class="topbar-title">Nowy plan treningowy</div><div class="topbar-actions"><button type="button" class="btn btn-ghost btn-sm" id="builder-cheat-btn" onclick="openMethodRationaleModal()" title="Ściągawka trenera: objętość, serie, powtórzenia, zależności">📋 Ściągawka</button><button class="btn btn-ghost btn-sm" onclick="goTo(window._builderBack||'clients')">Anuluj</button><button class="btn btn-primary btn-sm" onclick="savePlan()">Zapisz plan</button></div></div>
   <div class="content builder-layout">
     <div class="builder-main">
       <div class="card builder-meta-card">
@@ -2901,10 +2901,13 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 
 <!-- Baza Wiedzy -->
 <div class="modal-ov" id="m-method-rationale">
-  <div class="modal" style="max-width:720px;">
-    <div class="modal-hdr"><div class="modal-title">PRZEWODNIK TRENERA</div><button class="modal-close" onclick="closeM('m-method-rationale')">×</button></div>
+  <div class="modal trainer-cheat-modal" style="max-width:820px;">
+    <div class="modal-hdr"><div class="modal-title">ŚCIĄGAWKA TRENERA</div><button class="modal-close" onclick="closeM('m-method-rationale')">×</button></div>
     <div class="modal-body" id="method-rationale-modal-body"></div>
-    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-method-rationale')">Zamknij</button></div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-ghost" onclick="printTrainerCheatSheet()">🖨 Drukuj</button>
+      <button type="button" class="btn btn-ghost" onclick="closeM('m-method-rationale')">Zamknij</button>
+    </div>
   </div>
 </div>
 
@@ -4115,7 +4118,7 @@ async function load(){
 
 <script src="ex-gif-manifest.js?v=17"></script>
 <script src="ex-photo-manifest.js?v=1"></script>
-<script src="01-core.js?v=37"></script>
+<script src="01-core.js?v=38"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=21"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=24"></script>
 <script src="04-client-portal.js?v=32"></script>

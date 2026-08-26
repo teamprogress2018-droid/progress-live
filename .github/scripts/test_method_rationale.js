@@ -41,8 +41,11 @@ ok('template rationale',src02.includes('tplcRefreshRationale')&&src02.includes('
 ok('css method-rationale',css.includes('.method-rationale')&&css.includes('.mr-vol-table')&&css.includes('.mr-volume'));
 ok('sidebar no clip cards',css.includes('.builder-sidebar-scroll>.card')&&/flex-shrink:\s*0/.test(css));
 ok('openMethodRationaleModal',core.includes('function openMethodRationaleModal'));
-ok('full guide modal',html.includes('id="m-method-rationale"')&&html.includes('method-rationale-modal-body'));
-ok('cache bumps',html.includes('01-core.js?v=37')&&html.includes('05-clients-builder-plans-calendar.js?v=28')&&html.includes('styles.css?v=42'));
+ok('cheat sheet renderer',core.includes('function renderTrainerCheatSheetHTML')&&core.includes('function printTrainerCheatSheet'));
+ok('full guide modal',html.includes('id="m-method-rationale"')&&html.includes('method-rationale-modal-body')&&html.includes('printTrainerCheatSheet'));
+ok('builder topbar cheat btn',html.includes('id="builder-cheat-btn"')&&html.includes('openMethodRationaleModal()'));
+ok('cache bumps',html.includes('01-core.js?v=38')&&html.includes('05-clients-builder-plans-calendar.js?v=28')&&html.includes('styles.css?v=43'));
+ok('css cheat sheet',css.includes('.trainer-cheat')&&css.includes('.tch-volume')&&css.includes('#builder-cheat-btn'));
 
 const sandbox={window:{},console};
 vm.createContext(sandbox);
@@ -58,10 +61,12 @@ ok('volume parts beginner',b.levelVolumeParts&&b.levelVolumeParts.Klatka==='6–
 const htmlR=sandbox.renderMethodRationaleHTML(b);
 ok('html render',htmlR.includes('Dlaczego tak?'));
 ok('html collapsible',/<details class="method-rationale" open>/.test(htmlR)&&/mr-volume/.test(htmlR)&&/mr-vol-table/.test(htmlR));
-ok('html full guide btn',/openMethodRationaleModal\(/.test(htmlR)&&/Pełny przewodnik/.test(htmlR));
+ok('html full guide btn',/openMethodRationaleModal\(/.test(htmlR)&&(/Ściągawka/.test(htmlR)||/title="[^"]*objętość/.test(htmlR)));
 ok('html highlights beginner col',/mr-vol-th is-current/.test(htmlR));
 ok('clientTalk plain',b.clientTalk&&/Trenujemy/.test(b.clientTalk)&&!/MEV|MRV/.test(b.clientTalk));
 eq('normalize UL',sandbox.normalizeRationaleMethod('Upper/Lower'),'Upper Lower');
+const cheatHtml=sandbox.renderTrainerCheatSheetHTML(b);
+ok('cheat sheet html',typeof sandbox.renderTrainerCheatSheetHTML==='function'&&/Serie robocze/.test(cheatHtml)&&/tch-rules/.test(cheatHtml)&&/trainer-cheat/.test(cheatHtml));
 
 const adv=sandbox.buildMethodRationale({method:'PPL',goal:'redukcja',level:'zaawansowany',daysPerWeek:4});
 ok('advanced chest volume',adv.levelVolumeParts.Klatka==='12–20');
