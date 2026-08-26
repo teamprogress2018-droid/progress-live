@@ -910,7 +910,7 @@ const PLAN_TEMPLATES=[
      ]},
      {name:'Legs — Nogi, Pośladki',exercises:[
        {n:'Przysiad ze sztangą',s:'4',r:'6-8',rest:'180s'},
-       {n:'Leg press',s:'3',r:'10-12',rest:'120s'},
+       {n:'Wyciskanie nogami',s:'3',r:'10-12',rest:'120s'},
        {n:'Wypady z hantlami',s:'3',r:'12/stronę',rest:'90s'},
        {n:'Prostowanie nóg maszyna',s:'3',r:'15',rest:'60s'},
        {n:'Uginanie nóg leżąc',s:'3',r:'12-15',rest:'60s'},
@@ -983,7 +983,7 @@ const PLAN_TEMPLATES=[
        {n:'Przysiad 65% 1RM',s:'1',r:'5',rest:'180s'},
        {n:'Przysiad 75% 1RM',s:'1',r:'5',rest:'180s'},
        {n:'Przysiad 85% 1RM',s:'1',r:'5+',rest:'240s'},
-       {n:'Leg press (BBB)',s:'5',r:'10',rest:'90s'},
+       {n:'Wyciskanie nogami (BBB)',s:'5',r:'10',rest:'90s'},
        {n:'Uginanie nóg',s:'5',r:'10',rest:'60s'},
      ]},
    ]},

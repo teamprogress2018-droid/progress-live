@@ -617,8 +617,8 @@ function guessLiftFamily(name){
   if(/wyciskan/.test(n)&&/(siedz|stoj)/.test(n)&&!/lez/.test(n))return 'ohp';
   if(/przysiad|squat|hack|goblet/.test(n))return 'squat';
   if(/martw|deadlift|\brdl\b|rumunsk|trap\s*bar/.test(n))return 'deadlift';
-  if(/bench/.test(n))return 'bench';
-  if(/wyciskan/.test(n)&&/(lez|skos|incline|decline|klatk)/.test(n))return 'bench';
+  if(/bench|floor press|podlogi/.test(n))return 'bench';
+  if(/wyciskan/.test(n)&&/(lez|skos|incline|decline|klatk|podlog)/.test(n))return 'bench';
   if(/^wyciskanie( sztangi| hantli)?$/.test(n))return 'bench';
   return '';
 }
@@ -844,7 +844,13 @@ function libExerciseByName(name){
   const key=String(name||'').toLowerCase().replace(/\s+/g,' ').trim();
   if(!key)return null;
   const lib=typeof allExercises==='function'?allExercises():[].concat(window.EX||[],window.DEF_EX||[]);
-  return lib.find(e=>String(e.name||'').toLowerCase().replace(/\s+/g,' ').trim()===key)||null;
+  const byName=lib.find(e=>String(e.name||'').toLowerCase().replace(/\s+/g,' ').trim()===key);
+  if(byName)return byName;
+  return lib.find(e=>{
+    const aka=String(e.aka||'').toLowerCase().replace(/\s+/g,' ');
+    if(!aka)return false;
+    return aka.split(/[,;/|]/).map(s=>s.trim()).filter(Boolean).includes(key);
+  })||null;
 }
 window.libExerciseByName=libExerciseByName;
 
@@ -1215,10 +1221,7 @@ window.formatDayExerciseLines=formatDayExerciseLines;
 function altsForExercise(name,explicit){
   const fromPlan=String(explicit||'').split(/[,;/|]/).map(s=>s.trim()).filter(Boolean);
   if(fromPlan.length)return fromPlan;
-  const key=String(name||'').toLowerCase().replace(/\s+/g,' ').trim();
-  if(!key)return [];
-  const lib=typeof allExercises==='function'?allExercises():(window.DEF_EX||[]);
-  const hit=lib.find(e=>String(e.name||'').toLowerCase().replace(/\s+/g,' ').trim()===key);
+  const hit=typeof libExerciseByName==='function'?libExerciseByName(name):null;
   if(!hit||!hit.alt)return [];
   return String(hit.alt).split(/[,;/]/).map(s=>s.trim()).filter(Boolean);
 }
