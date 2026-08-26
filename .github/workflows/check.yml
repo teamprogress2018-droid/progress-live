@@ -134,6 +134,9 @@ jobs:
       - name: 1n9. Testy kanałów zaproszenia (mailto / WhatsApp)
         run: node .github/scripts/test_invite_channels.js
 
+      - name: 1n9b. Testy logowania klienta / zapisu invites
+        run: node .github/scripts/test_client_app_login.js
+
       - name: 1n10. Testy prośby o wpłatę / appJoined
         run: node .github/scripts/test_onboard_pay_join.js
 

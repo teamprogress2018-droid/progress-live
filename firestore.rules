@@ -65,7 +65,15 @@ service cloud.firestore {
         || (hasClientAcc() && docId == clientAcc().clientId
             && resource.data.trainerId == clientAcc().trainerId);
       allow create: if creatingAsOwner();
-      allow update, delete: if isOwner()
+      allow update: if (isOwner()
+          && request.resource.data.trainerId == request.auth.uid)
+        || (hasClientAcc()
+          && docId == clientAcc().clientId
+          && resource.data.trainerId == clientAcc().trainerId
+          && request.resource.data.trainerId == resource.data.trainerId
+          && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['appJoined', 'appJoinedAt', 'inviteAcceptedAt', 'inviteSent', 'appInvited']));
+      allow delete: if isOwner()
         && request.resource.data.trainerId == request.auth.uid;
     }
 

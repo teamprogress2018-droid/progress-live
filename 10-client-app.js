@@ -489,8 +489,12 @@ async function doClientRegister(){
   if(btn){btn.disabled=true;btn.textContent='Zakładanie konta...';}
   try{
     const inv=await fetchInviteDoc(token);
-    if(!inv||!inv.clientId||!inv.trainerId){
-      authSetError('auth-reg-error','To zaproszenie jest nieważne. Poproś trenera o nowy link.');
+    if(!inv){
+      authSetError('auth-reg-error','Kod z linku zaproszenia jest nieważny lub wygasł. Poproś trenera o nowy link (Wyślij zaproszenie).');
+      return;
+    }
+    if(!inv.clientId||!inv.trainerId){
+      authSetError('auth-reg-error','To zaproszenie jest niekompletne. Poproś trenera o nowy link.');
       return;
     }
     if(inv.email&&email.toLowerCase()!==String(inv.email).toLowerCase()){
@@ -522,6 +526,7 @@ async function doClientRegister(){
         await window._setDoc(window._doc(window._db,'notifications',nid),{
           id:nid,
           trainerId:inv.trainerId,
+          clientId:inv.clientId,
           type:'system',
           title:'Klient w aplikacji',
           body:(inv.clientName||email)+' założył konto',
@@ -545,13 +550,14 @@ async function doClientRegister(){
       }
     }catch(e){console.warn('Oznaczenie appJoined:',e);}
     window._pendingInviteToken='';
-    try{history.replaceState(null,'',location.pathname);}catch(e){}
+    try{history.replaceState(null,'',location.pathname+(location.search||'').replace(/[?&]invite=[^&]*/g,'').replace(/^&/,'?')||location.pathname);}catch(e){}
   }catch(e){
     const msgs={
-      'auth/email-already-in-use':'To konto już istnieje — zaloguj się hasłem.',
+      'auth/email-already-in-use':'Ten e-mail ma już konto. Jeśli to Ty — wróć i zaloguj się hasłem. Jeśli to e-mail trenera — użyj innego (swój) z zaproszenia.',
       'auth/invalid-email':'Nieprawidłowy adres e-mail.',
       'auth/weak-password':'Hasło jest za słabe (min. 6 znaków).',
-      'auth/operation-not-allowed':'Rejestracja e-mail/hasło jest wyłączona w Firebase.'
+      'auth/operation-not-allowed':'Rejestracja e-mail/hasło jest wyłączona w Firebase.',
+      'permission-denied':'Brak uprawnień do założenia konta. Poproś trenera o nowy link i spróbuj ponownie.'
     };
     authSetError('auth-reg-error',msgs[e.code]||('Nie udało się założyć konta: '+(e.message||e)));
   }finally{
@@ -645,13 +651,11 @@ function clientSubmitCheckin(){
 
 async function ensureClientInvite(client){
   if(!client)return '';
-  if(client.inviteToken){
-    const link=clientAppUrl()+'?invite='+encodeURIComponent(client.inviteToken);
-    client.inviteLink=link;
-    return link;
+  let token=(client.inviteToken||'').trim();
+  if(!token||token===client.id){
+    token=newInviteToken();
+    client.inviteToken=token;
   }
-  const token=newInviteToken();
-  client.inviteToken=token;
   const link=clientAppUrl()+'?invite='+encodeURIComponent(token);
   client.inviteLink=link;
   const payload=withTrainer({
@@ -660,8 +664,10 @@ async function ensureClientInvite(client){
     clientName:client.name||'',
     email:client.email||'',
     trainerName:typeof getTrainerName==='function'?getTrainerName('Trener'):'Trener',
-    createdAt:new Date().toISOString()
+    createdAt:client.inviteCreatedAt||new Date().toISOString(),
+    updatedAt:new Date().toISOString()
   });
+  if(!client.inviteCreatedAt)client.inviteCreatedAt=payload.createdAt;
   try{
     if(window._db&&window._setDoc)await window._setDoc(window._doc(window._db,'invites',token),payload,{merge:true});
   }catch(e){
