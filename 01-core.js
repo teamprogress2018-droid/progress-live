@@ -3014,14 +3014,12 @@ function renderMethodRationaleHTML(opts){
       <div class="method-rationale-hdr-main">
         <div class="method-rationale-kicker">Dlaczego tak? · przewodnik</div>
         <div class="method-rationale-title">Asystent trenera</div>
-        <div class="method-rationale-toggle-hint method-rationale-hint-closed">Naciśnij, aby rozwinąć metodykę, objętość i wskazówki</div>
-        <div class="method-rationale-toggle-hint method-rationale-hint-open">Kliknij nagłówek, aby zwinąć · pełny widok w ściągawce</div>
+        <div class="method-rationale-toggle-hint method-rationale-hint-closed">Naciśnij nagłówek, aby rozwinąć · Więcej = pełny przewodnik</div>
+        <div class="method-rationale-toggle-hint method-rationale-hint-open">Kliknij nagłówek, aby zwinąć · Więcej = pełny przewodnik</div>
         ${ctxBits?`<div class="method-rationale-ctx">${esc(ctxBits)}</div>`:''}
       </div>
       <div class="method-rationale-actions" onclick="event.preventDefault();event.stopPropagation();">
-        <span class="mr-expand-cta" aria-hidden="true">Rozwiń</span>
-        <button type="button" class="mr-action-btn" onclick="openMethodRationaleModal()" title="Ściągawka: objętość, serie, powtórzenia">Ściągawka</button>
-        <button type="button" class="mr-action-btn mr-action-btn--ghost" onclick="printTrainerCheatSheet()" title="Drukuj ściągawkę / PDF">Drukuj</button>
+        <button type="button" class="mr-action-btn mr-more-btn" onclick="openMethodRationaleModal()" title="Pełny przewodnik: objętość, serie, powtórzenia">Więcej</button>
         <span class="method-rationale-badge" aria-hidden="true"></span>
       </div>
     </summary>
