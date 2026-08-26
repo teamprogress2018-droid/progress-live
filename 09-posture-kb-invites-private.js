@@ -3672,6 +3672,8 @@ window.calMiniNav=calMiniNav;window.calClickDay=calClickDay;window.calJumpTo=cal
 window.quickAddSession=quickAddSession;window.openSessDetail=openSessDetail;
 window.editSession=editSession;window.delSession=delSession;window.saveTask=saveTask;window.toggleTask=toggleTask;window.delTask=delTask;
 window.editTask=editTask;window.renderTasks=renderTasks;window.setTaskFilter=setTaskFilter;window.applyHabitChip=applyHabitChip;window.applyChallengeChip=applyChallengeChip;
+window.openHabitPackModal=openHabitPackModal;window.confirmHabitPackAssign=confirmHabitPackAssign;
+window.habitPackSelectAll=habitPackSelectAll;window.habitPackSelectPhase=habitPackSelectPhase;
 window.openTaskTemplates=openTaskTemplates;window.closeTaskTemplates=closeTaskTemplates;
 window.applyTemplate=applyTemplate;window.askTaskAI=askTaskAI;window.addAITask=addAITask;
 window.setClientSegment=setClientSegment;window.filterClients=filterClients;

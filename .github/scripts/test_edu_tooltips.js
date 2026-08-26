@@ -27,7 +27,7 @@ ok('builder headers tips',src05.includes("tip('sets')")&&src05.includes("tip('rp
 ok('addRow titles',src05.includes("t('sets')")&&src05.includes("t('rpe')"));
 ok('apl method tip',html.includes('data-edu="method"')&&html.includes('data-edu="days"'));
 ok('template tips',src02.includes('data-edu="goal"')&&src02.includes('data-edu="method"'));
-ok('cache bumps',html.includes('01-core.js?v=34')&&html.includes('05-clients-builder-plans-calendar.js?v=28')&&html.includes('styles.css?v=39'));
+ok('cache bumps',html.includes('01-core.js?v=35')&&html.includes('05-clients-builder-plans-calendar.js?v=28')&&html.includes('styles.css?v=40'));
 
 const sandbox={window:{escHtml:s=>String(s??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')},console};
 vm.createContext(sandbox);
