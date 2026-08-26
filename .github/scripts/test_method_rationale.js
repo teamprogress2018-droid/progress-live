@@ -38,7 +38,7 @@ ok('aplToggle refreshes',src03.includes('aplRefreshRationale'));
 ok('aplRenderPlan embeds',src03.includes('renderMethodRationaleHTML'));
 ok('summary prompt longer',src03.includes('3–5 zdań dla trenera początkującego'));
 ok('template rationale',src02.includes('tplcRefreshRationale')&&src02.includes('tplc-rationale'));
-ok('css method-rationale',css.includes('.method-rationale')&&css.includes('.mr-vol-table')&&css.includes('.mr-volume'));
+ok('css method-rationale',css.includes('.method-rationale')&&css.includes('.mr-vol-table')&&css.includes('.mr-volume')&&css.includes('.mr-action-btn')&&css.includes('.mr-chips'));
 ok('sidebar no clip cards',css.includes('.builder-sidebar-scroll>.card')&&/flex-shrink:\s*0/.test(css));
 ok('openMethodRationaleModal',core.includes('function openMethodRationaleModal'));
 ok('full guide modal',html.includes('id="m-method-rationale"')&&html.includes('method-rationale-modal-body'));
@@ -74,7 +74,7 @@ const adv=sandbox.buildMethodRationale({method:'PPL',goal:'redukcja',level:'zaaw
 ok('advanced chest volume',adv.levelVolumeParts.Klatka==='12–20');
 ok('advanced html current col',/Zaaw\./.test(sandbox.renderMethodRationaleHTML(adv))&&/is-current/.test(sandbox.renderMethodRationaleHTML(adv)));
 
-ok('cache bumps',html.includes('01-core.js?v=39')&&html.includes('05-clients-builder-plans-calendar.js?v=28')&&html.includes('styles.css?v=44'));
+ok('cache bumps',html.includes('01-core.js?v=40')&&html.includes('05-clients-builder-plans-calendar.js?v=28')&&html.includes('styles.css?v=45'));
 
 if(failed){console.error(failed+' failed');process.exit(1);}
 console.log('\nAll method-rationale tests passed');

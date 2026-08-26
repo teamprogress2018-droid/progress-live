@@ -3002,7 +3002,7 @@ function renderMethodRationaleHTML(opts){
   const escFn=(typeof window!=='undefined'&&typeof window.escHtml==='function')?window.escHtml:(typeof escHtml==='function'?escHtml:null);
   const esc=escFn||(s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'));
   const row=(k,v)=>`<div class="mr-row"><span class="mr-k">${esc(k)}</span><span class="mr-v">${esc(v)}</span></div>`;
-  const trainerBlock=(r.trainerEntries&&r.trainerEntries.length)?`<div class="mr-block"><div class="mr-block-title">Twoje zasady / dowody</div><ul class="mr-tips">${r.trainerEntries.map(e=>{
+  const trainerBlock=(r.trainerEntries&&r.trainerEntries.length)?`<div class="mr-block mr-card"><div class="mr-block-head"><span class="mr-eyebrow">Baza</span><span class="mr-block-title">Twoje zasady / dowody</span></div><ul class="mr-tips">${r.trainerEntries.map(e=>{
     const tag=e.kind==='evidence'?'Źródło':(e.kind==='principle'?'Zasada':'Notatka');
     return `<li><b>${esc(tag)}:</b> ${esc(e.title)}${e.citation?' — '+esc(e.citation):''}</li>`;
   }).join('')}</ul></div>`:'';
@@ -3010,48 +3010,68 @@ function renderMethodRationaleHTML(opts){
   try{window._lastMethodRationale=r;}catch(e){}
   return`<details class="method-rationale" open>
     <summary class="method-rationale-hdr">
-      <div>
-        <div class="method-rationale-title">Dlaczego tak? — przewodnik trenera</div>
+      <div class="method-rationale-hdr-main">
+        <div class="method-rationale-kicker">Przewodnik trenera</div>
+        <div class="method-rationale-title">Dlaczego tak?</div>
         <div class="method-rationale-toggle-hint">Kliknij nagłówek, aby zwinąć / rozwinąć · lub otwórz pełny widok</div>
       </div>
-      <div class="method-rationale-actions">
-        <div class="method-rationale-badge">NSCA · ACSM · Twoja baza</div>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="event.preventDefault();event.stopPropagation();openMethodRationaleModal()" title="Ściągawka: objętość, serie, powtórzenia">Ściągawka</button>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="event.preventDefault();event.stopPropagation();printTrainerCheatSheet()" title="Drukuj ściągawkę / PDF">Drukuj</button>
+      <div class="method-rationale-actions" onclick="event.preventDefault();event.stopPropagation();">
+        <button type="button" class="mr-action-btn" onclick="openMethodRationaleModal()" title="Ściągawka: objętość, serie, powtórzenia">Ściągawka</button>
+        <button type="button" class="mr-action-btn mr-action-btn--ghost" onclick="printTrainerCheatSheet()" title="Drukuj ściągawkę / PDF">Drukuj</button>
+        <span class="method-rationale-badge" aria-hidden="true"></span>
       </div>
     </summary>
     <div class="method-rationale-body">
-      <div class="mr-block mr-client-talk">
-        <div class="mr-block-title">Jak wytłumaczyć klientowi</div>
-        <div class="mr-text">${esc(r.clientTalk||'')}</div>
-        <div class="mr-meta">Krótka wersja dla klienta — skopiuj do SMS / wiadomości.</div>
+      <div class="mr-chips" aria-label="Źródła">
+        <span class="mr-chip">NSCA</span>
+        <span class="mr-chip">ACSM</span>
+        <span class="mr-chip mr-chip--accent">Twoja baza</span>
       </div>
-      <div class="mr-block">
-        <div class="mr-block-title">Metoda: ${esc(r.methodLabel)}</div>
+      <div class="mr-block mr-card mr-client-talk">
+        <div class="mr-block-head">
+          <span class="mr-eyebrow">Dla klienta</span>
+          <span class="mr-block-title">Jak wytłumaczyć klientowi</span>
+        </div>
+        <div class="mr-text">${esc(r.clientTalk||'')}</div>
+        <div class="mr-meta">Krótka wersja — skopiuj do SMS / wiadomości.</div>
+      </div>
+      <div class="mr-block mr-card">
+        <div class="mr-block-head">
+          <span class="mr-eyebrow">Metoda</span>
+          <span class="mr-block-title">${esc(r.methodLabel)}</span>
+        </div>
         <div class="mr-text">${esc(r.methodWhy)}</div>
         <div class="mr-meta">Najlepiej: ${esc(r.methodBest)}</div>
       </div>
-      <div class="mr-block">
-        <div class="mr-block-title">Cel: ${esc(r.goalLabel)}</div>
+      <div class="mr-block mr-card">
+        <div class="mr-block-head">
+          <span class="mr-eyebrow">Cel</span>
+          <span class="mr-block-title">${esc(r.goalLabel)}</span>
+        </div>
         <div class="mr-text">${esc(r.goalWhy)}</div>
-        ${row('Serie',r.sets)}
-        ${row('Powtórzenia',r.reps)}
-        ${row('RPE / RIR',r.rpe)}
-        ${row('Przerwy',r.rest)}
-        ${row('Objętość/tyg.',r.volume)}
+        <div class="mr-stats">
+          ${row('Serie',r.sets)}
+          ${row('Powtórzenia',r.reps)}
+          ${row('RPE / RIR',r.rpe)}
+          ${row('Przerwy',r.rest)}
+          ${row('Objętość/tyg.',r.volume)}
+        </div>
       </div>
-      <div class="mr-block">
-        <div class="mr-block-title">Poziom / staż: ${esc(r.levelVolumeLabel||'')}</div>
+      <div class="mr-block mr-card">
+        <div class="mr-block-head">
+          <span class="mr-eyebrow">Poziom / staż</span>
+          <span class="mr-block-title">${esc(r.levelVolumeLabel||'')}</span>
+        </div>
         <div class="mr-text">${esc(r.levelTip)}</div>
         ${volPreview}
       </div>
-      <details class="mr-volume" open>
+      <details class="mr-volume mr-card" open>
         <summary class="mr-block-title">Serie na partię wg stażu — rozwiń tabelę</summary>
         ${renderVolumeByLevelTable(r,esc)}
       </details>
-      ${r.tips&&r.tips.length?`<div class="mr-block"><div class="mr-block-title">Wskazówki${r.weight?' · waga ~'+Math.round(r.weight)+' kg':''}</div><ul class="mr-tips">${r.tips.map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div>`:''}
+      ${r.tips&&r.tips.length?`<div class="mr-block mr-card"><div class="mr-block-head"><span class="mr-eyebrow">Wskazówki</span><span class="mr-block-title">${r.weight?'Waga ~'+Math.round(r.weight)+' kg':'Na co uważać'}</span></div><ul class="mr-tips">${r.tips.map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div>`:''}
       ${trainerBlock}
-      <details class="mr-sources">
+      <details class="mr-sources mr-card">
         <summary class="mr-block-title">Źródła (edukacyjne + baza) — rozwiń</summary>
         <ul class="mr-tips mr-tips-sm">${(r.sources||[]).map(s=>`<li>${esc(s)}</li>`).join('')}</ul>
         <div class="mr-note">Brak live PubMed — wbudowane ramy + linki, które dodasz w Bazie wiedzy (zasady / badania). AI i kreator biorą je jako kontekst planowania.</div>
