@@ -3004,13 +3004,17 @@ function renderMethodRationaleHTML(opts){
     return `<li><b>${esc(tag)}:</b> ${esc(e.title)}${e.citation?' — '+esc(e.citation):''}</li>`;
   }).join('')}</ul></div>`:'';
   const volPreview=r.levelVolumeSummary?`<div class="mr-vol-preview">${esc(r.levelVolumeSummary)}</div>`:'';
+  try{window._lastMethodRationale=r;}catch(e){}
   return`<details class="method-rationale" open>
     <summary class="method-rationale-hdr">
       <div>
         <div class="method-rationale-title">Dlaczego tak? — przewodnik trenera</div>
-        <div class="method-rationale-toggle-hint">Kliknij, aby zwinąć / rozwinąć cały przewodnik</div>
+        <div class="method-rationale-toggle-hint">Kliknij nagłówek, aby zwinąć / rozwinąć · lub otwórz pełny widok</div>
       </div>
-      <div class="method-rationale-badge">NSCA · ACSM · Twoja baza</div>
+      <div class="method-rationale-actions">
+        <div class="method-rationale-badge">NSCA · ACSM · Twoja baza</div>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="event.preventDefault();event.stopPropagation();openMethodRationaleModal()">⛶ Pełny przewodnik</button>
+      </div>
     </summary>
     <div class="method-rationale-body">
       <div class="mr-block mr-client-talk">
@@ -3037,7 +3041,7 @@ function renderMethodRationaleHTML(opts){
         <div class="mr-text">${esc(r.levelTip)}</div>
         ${volPreview}
       </div>
-      <details class="mr-volume">
+      <details class="mr-volume" open>
         <summary class="mr-block-title">Serie na partię wg stażu — rozwiń tabelę</summary>
         ${renderVolumeByLevelTable(r,esc)}
       </details>
@@ -3051,6 +3055,19 @@ function renderMethodRationaleHTML(opts){
     </div>
   </details>`;
 }
+function openMethodRationaleModal(opts){
+  const mount=document.getElementById('method-rationale-modal-body');
+  if(!mount){if(typeof notify==='function')notify('Brak okna przewodnika');return;}
+  const src=opts||window._lastMethodRationale||{};
+  const r=typeof src==='object'&&src.methodWhy?src:buildMethodRationale(src||{});
+  const full=renderMethodRationaleHTML(r);
+  const tmp=document.createElement('div');
+  tmp.innerHTML=full;
+  const body=tmp.querySelector('.method-rationale-body');
+  mount.innerHTML=body?body.outerHTML:full;
+  mount.querySelectorAll('details').forEach(d=>{d.open=true;});
+  if(typeof openM==='function')openM('m-method-rationale');
+}
 function refreshMethodRationaleInto(el,opts){
   if(!el)return;
   el.innerHTML=renderMethodRationaleHTML(opts||{});
@@ -3062,6 +3079,7 @@ window.buildClientTalkPlain=buildClientTalkPlain;
 window.buildMethodRationale=buildMethodRationale;
 window.renderMethodRationaleHTML=renderMethodRationaleHTML;
 window.renderVolumeByLevelTable=renderVolumeByLevelTable;
+window.openMethodRationaleModal=openMethodRationaleModal;
 window.refreshMethodRationaleInto=refreshMethodRationaleInto;
 window.normalizeRationaleMethod=normalizeRationaleMethod;
 

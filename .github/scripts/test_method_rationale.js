@@ -39,7 +39,10 @@ ok('aplRenderPlan embeds',src03.includes('renderMethodRationaleHTML'));
 ok('summary prompt longer',src03.includes('3–5 zdań dla trenera początkującego'));
 ok('template rationale',src02.includes('tplcRefreshRationale')&&src02.includes('tplc-rationale'));
 ok('css method-rationale',css.includes('.method-rationale')&&css.includes('.mr-vol-table')&&css.includes('.mr-volume'));
-ok('cache bumps',html.includes('01-core.js?v=36')&&html.includes('05-clients-builder-plans-calendar.js?v=28')&&html.includes('styles.css?v=41'));
+ok('sidebar no clip cards',css.includes('.builder-sidebar-scroll>.card')&&/flex-shrink:\s*0/.test(css));
+ok('openMethodRationaleModal',core.includes('function openMethodRationaleModal'));
+ok('full guide modal',html.includes('id="m-method-rationale"')&&html.includes('method-rationale-modal-body'));
+ok('cache bumps',html.includes('01-core.js?v=37')&&html.includes('05-clients-builder-plans-calendar.js?v=28')&&html.includes('styles.css?v=42'));
 
 const sandbox={window:{},console};
 vm.createContext(sandbox);
@@ -55,6 +58,7 @@ ok('volume parts beginner',b.levelVolumeParts&&b.levelVolumeParts.Klatka==='6–
 const htmlR=sandbox.renderMethodRationaleHTML(b);
 ok('html render',htmlR.includes('Dlaczego tak?'));
 ok('html collapsible',/<details class="method-rationale" open>/.test(htmlR)&&/mr-volume/.test(htmlR)&&/mr-vol-table/.test(htmlR));
+ok('html full guide btn',/openMethodRationaleModal\(/.test(htmlR)&&/Pełny przewodnik/.test(htmlR));
 ok('html highlights beginner col',/mr-vol-th is-current/.test(htmlR));
 ok('clientTalk plain',b.clientTalk&&/Trenujemy/.test(b.clientTalk)&&!/MEV|MRV/.test(b.clientTalk));
 eq('normalize UL',sandbox.normalizeRationaleMethod('Upper/Lower'),'Upper Lower');
