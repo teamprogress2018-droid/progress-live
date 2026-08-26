@@ -2070,23 +2070,23 @@ const DEMO_RESOURCES=[
   {id:'r2',name:'Znaczenie białka w diecie',type:'link',cat:'odżywianie',url:'https://nutritionsource.hsph.harvard.edu/what-should-you-eat/protein/',desc:'Harvard Nutrition Source — po co białko w budowie mięśni i regeneracji.',coll:'edu'},
   {id:'r3',name:'Mikroelementy — przewodnik',type:'link',cat:'odżywianie',url:'https://www.healthline.com/nutrition/micronutrients',desc:'Darmowy przewodnik po witaminach i minerałach (bez logowania).',coll:'edu'},
   {id:'r4',name:'Znaczenie błonnika',type:'link',cat:'odżywianie',url:'https://www.houstonmethodist.org/blog/articles/2022/sep/why-is-fiber-good-for-you/',desc:'Jak błonnik wpływa na zdrowie jelit i metabolizm.',coll:'edu'},
-  {id:'r5',name:'Mind Pump — trening siłowy (YouTube)',type:'podcast',cat:'trening',url:'https://www.youtube.com/@MindPumpTV',desc:'Darmowy podcast/wideo o treningu siłowym i coachingu. Bez Spotify Premium.',coll:'podcasts'},
-  {id:'r6',name:'Barbell Medicine — siła i rehab (YouTube)',type:'podcast',cat:'regeneracja',url:'https://www.youtube.com/@BarbellMedicine',desc:'Jak łączyć trening siłowy z profilaktyką urazów. Kanał YouTube, darmowy dostęp.',coll:'podcasts'},
-  {id:'r7',name:'Yoga With Adriene — mobilność (YouTube)',type:'podcast',cat:'regeneracja',url:'https://www.youtube.com/@yogawithadriene',desc:'Darmowe sesje mobilności i regeneracji na YouTube.',coll:'podcasts'},
-  {id:'r8',name:'Huberman Lab — mindset i sen (YouTube)',type:'podcast',cat:'psychologia',url:'https://www.youtube.com/@hubermanlab',desc:'Nauka o śnie, stresie i nawykach. Pełne odcinki za darmo na YouTube.',coll:'podcasts'},
-  {id:'r9',name:'Andy Galpin — fizjologia treningu (YouTube)',type:'podcast',cat:'psychologia',url:'https://www.youtube.com/@andygalpin',desc:'Wyjaśnienia adaptacji, recovery i wydolności. Darmowy kanał YouTube.',coll:'podcasts'},
-  {id:'r10',name:'The Workout Mix — muzyka na siłownię',type:'video',cat:'muzyka',url:'https://www.youtube.com/@TheWorkoutMix',desc:'Darmowe mixy treningowe na YouTube — bez konta Premium.',coll:'music'},
-  {id:'r11',name:'Power Music Workout — cardio (YouTube)',type:'video',cat:'muzyka',url:'https://www.youtube.com/@PowerMusicWorkout',desc:'Darmowa muzyka do cardio i biegania na YouTube, zamiast Spotify.',coll:'music'},
-  {id:'r12',name:'NCS — muzyka bez copyrightu',type:'video',cat:'muzyka',url:'https://www.youtube.com/@NoCopyrightSounds',desc:'Darmowe utwory do treningu, legalne do odtwarzania bez subskrypcji.',coll:'music'},
-  {id:'r13',name:'FoundMyFitness — odżywianie (YouTube)',type:'podcast',cat:'odżywianie',url:'https://www.youtube.com/@FoundMyFitness',desc:'Rhonda Patrick — nauka o diecie i regeneracji. Darmowe odcinki na YouTube.',coll:'podcasts'},
-  {id:'r14',name:'The Proof — dieta i zdrowie (YouTube)',type:'podcast',cat:'odżywianie',url:'https://www.youtube.com/@TheProofWithSimonHill',desc:'Podcast żywieniowy na YouTube. Bez płatnej aplikacji muzycznej.',coll:'podcasts'},
-  {id:'r15',name:'Renaissance Periodization (YouTube)',type:'podcast',cat:'trening',url:'https://www.youtube.com/@RenaissancePeriodization',desc:'Dr Mike Israetel — hipertrofia i programowanie. Darmowy kanał YouTube.',coll:'podcasts'},
+  {id:'r5',name:'Mind Pump — jak być najsilniejszym',type:'podcast',cat:'trening',url:'https://www.youtube.com/watch?v=m0ApkrgL3b0',desc:'Odcinek Mind Pump 2835 — blueprint siłowy. Pełne wideo na YouTube, bez Spotify.',coll:'podcasts'},
+  {id:'r6',name:'Barbell Medicine — Valsalva i bezpieczeństwo',type:'podcast',cat:'regeneracja',url:'https://www.youtube.com/watch?v=yL0PWJdz38Q',desc:'Podcast Barbell Medicine o manewrze Valsalvy i ciśnieniu przy ciężarach. YouTube.',coll:'podcasts'},
+  {id:'r7',name:'Yoga With Adriene — 20 min dla początkujących',type:'podcast',cat:'regeneracja',url:'https://www.youtube.com/watch?v=v7AYKMP6rOE',desc:'Sesja mobilności / jogi na YouTube — follow-along bez subskrypcji.',coll:'podcasts'},
+  {id:'r8',name:'Huberman Lab — sen i czujność',type:'podcast',cat:'psychologia',url:'https://www.youtube.com/watch?v=nm1TxQj9IsQ',desc:'Master Your Sleep — pełny odcinek Huberman Lab na YouTube.',coll:'podcasts'},
+  {id:'r9',name:'Andy Galpin × Huberman — program treningowy',type:'podcast',cat:'psychologia',url:'https://www.youtube.com/watch?v=UIy-WQCZd4M',desc:'Guest series: optymalizacja programu pod fitness i longevity. YouTube.',coll:'podcasts'},
+  {id:'r10',name:'The Workout Mix — 1h trap gym',type:'video',cat:'muzyka',url:'https://www.youtube.com/watch?v=m1Iz9hcnsuY',desc:'Mix treningowy 60 min na YouTube — bass-boosted, bez Spotify Premium.',coll:'music'},
+  {id:'r11',name:'Power Music Workout — motivation mix',type:'video',cat:'muzyka',url:'https://www.youtube.com/watch?v=TAqfqs0sFHE',desc:'Nonstop workout mix (multi-BPM) z kanału Power Music Workout. YouTube.',coll:'music'},
+  {id:'r12',name:'NCS — On & On (bez copyrightu)',type:'video',cat:'muzyka',url:'https://www.youtube.com/watch?v=K4DyBUG242c',desc:'Cartoon / NCS — darmowy utwór do treningu, legalny do odtwarzania.',coll:'music'},
+  {id:'r13',name:'FoundMyFitness — omega-3 i starzenie',type:'podcast',cat:'odżywianie',url:'https://www.youtube.com/watch?v=nmReeTIZMos',desc:'Rhonda Patrick — jak omega-3 mogą spowalniać starzenie biologiczne. YouTube.',coll:'podcasts'},
+  {id:'r14',name:'The Proof — debata o białku',type:'podcast',cat:'odżywianie',url:'https://www.youtube.com/watch?v=tbIBQgriEIM',desc:'Simon Hill EP#390 — optymalne białko dla mięśni i zdrowia. YouTube.',coll:'podcasts'},
+  {id:'r15',name:'RP — ile serii na hipertrofię',type:'podcast',cat:'trening',url:'https://www.youtube.com/watch?v=cfXTQmFRjWU',desc:'Dr Mike Israetel — ile serii naprawdę potrzebujesz. Renaissance Periodization / YouTube.',coll:'podcasts'},
 ];
 
 const DEMO_COLLECTIONS=[
   {id:'edu',name:'Poradniki edukacyjne',icon:'📚',desc:'Artykuły i przewodniki o żywieniu, treningu i zdrowiu (darmowe strony)',count:4,color:'var(--blue)',clients:0},
-  {id:'music',name:'Muzyka do treningu',icon:'🎵',desc:'Mixy treningowe na YouTube — darmowe, bez Spotify Premium',count:3,color:'var(--accent)',clients:0},
-  {id:'podcasts',name:'Podcasty fitness na YouTube',icon:'🎧',desc:'Darmowe podcasty i kanały YouTube o treningu, diecie i mindsetcie',count:8,color:'var(--purple)',clients:0},
+  {id:'music',name:'Muzyka do treningu',icon:'🎵',desc:'Mixy treningowe na YouTube (odcinki watch?v=) — bez Spotify Premium',count:3,color:'var(--accent)',clients:0},
+  {id:'podcasts',name:'Podcasty fitness na YouTube',icon:'🎧',desc:'Konkretne odcinki YouTube o treningu, diecie i mindsetcie',count:8,color:'var(--purple)',clients:0},
 ];
 window.DEMO_RESOURCES=DEMO_RESOURCES;
 window.DEMO_COLLECTIONS=DEMO_COLLECTIONS;
@@ -2098,6 +2098,21 @@ function isGenericSpotifyUrl(url){
   if(!/spotify\.com/.test(s))return false;
   return !/\/(playlist|episode|show|album|track|user)\//.test(s);
 }
+
+/** Kanał / search / brak watch — nie da się odtworzyć jako odcinka. */
+function isYoutubeChannelOrNonEpisodeUrl(url){
+  const s=String(url||'').trim();
+  if(!s)return true;
+  if(/spotify\.com/i.test(s))return true;
+  if(!/youtube\.com|youtu\.be/i.test(s))return false;
+  if(/youtube\.com\/@|youtube\.com\/(c|channel|user)\//i.test(s))return true;
+  if(/youtube\.com\/results\?/i.test(s))return true;
+  if(/[?&]v=([A-Za-z0-9_-]{11})/.test(s))return false;
+  if(/youtu\.be\/([A-Za-z0-9_-]{11})/.test(s))return false;
+  if(/youtube\.com\/(?:embed|shorts)\/([A-Za-z0-9_-]{11})/.test(s))return false;
+  return true;
+}
+window.isYoutubeChannelOrNonEpisodeUrl=isYoutubeChannelOrNonEpisodeUrl;
 
 function migrateSpotifyDemoResources(){
   const list=window.USER_RESOURCES||[];
@@ -2121,6 +2136,26 @@ function migrateSpotifyDemoResources(){
 }
 window.isGenericSpotifyUrl=isGenericSpotifyUrl;
 window.migrateSpotifyDemoResources=migrateSpotifyDemoResources;
+
+/** Podmienia demo muzykę/podcasty z @kanału na konkretne odcinki watch?v=. */
+function migrateDemoYoutubeEpisodeResources(){
+  const list=window.USER_RESOURCES||[];
+  const demoById={};
+  DEMO_RESOURCES.forEach(r=>{demoById[r.id]=r;});
+  let changed=0;
+  list.forEach(r=>{
+    if(!r||!r.id)return;
+    const demo=demoById[r.id];
+    if(!demo)return;
+    if(demo.coll!=='music'&&demo.coll!=='podcasts')return;
+    if(!isYoutubeChannelOrNonEpisodeUrl(r.url))return;
+    r.url=demo.url;r.name=demo.name;r.desc=demo.desc;r.type=demo.type;r.cat=demo.cat;r.coll=demo.coll;
+    changed++;
+    if(typeof persistById==='function')persistById('resources',r);
+  });
+  return changed;
+}
+window.migrateDemoYoutubeEpisodeResources=migrateDemoYoutubeEpisodeResources;
 
 function setResTab(t){
   resTab=t;

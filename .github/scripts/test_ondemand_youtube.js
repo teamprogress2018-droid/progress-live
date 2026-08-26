@@ -169,7 +169,7 @@ ok('openODAddFilm exported', typeof ctx.openODAddFilm === 'function');
 ok('openODCollection exported', typeof ctx.openODCollection === 'function');
 ok('html collection films mount', fs.readFileSync(path.join(root, 'index.html'), 'utf8').includes('id="od-collection-films"'));
 ok('html coll options tabata hiit', /id="odw-coll"[\s\S]*value="hiit"[\s\S]*value="tabata"[\s\S]*value="oddech"/.test(fs.readFileSync(path.join(root, 'index.html'), 'utf8')));
-ok('cache 09', /09-posture-kb-invites-private\.js\?v=32/.test(fs.readFileSync(path.join(root, 'index.html'), 'utf8')));
+ok('cache 09', /09-posture-kb-invites-private\.js\?v=33/.test(fs.readFileSync(path.join(root, 'index.html'), 'utf8')));
 ok('cache 04', /04-client-portal\.js\?v=32/.test(fs.readFileSync(path.join(root, 'index.html'), 'utf8')));
 ok('collections include tabata', /id:'tabata'/.test(fs.readFileSync(path.join(root, '09-posture-kb-invites-private.js'), 'utf8')));
 windowObj._cliveOdProgId = 'op2';

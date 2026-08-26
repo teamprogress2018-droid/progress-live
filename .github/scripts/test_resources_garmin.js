@@ -71,13 +71,18 @@ const demo = windowObj.DEMO_RESOURCES || ctx.DEMO_RESOURCES || [];
 ok('demo resources exist', demo.length >= 10, 'n=' + demo.length);
 ok('no spotify stubs in demo', demo.every(r => !/spotify\.com/i.test(r.url || '')), demo.map(r => r.url).join(','));
 ok('youtube podcasts present', demo.filter(r => /youtube\.com/i.test(r.url || '')).length >= 8);
-ok('huberman youtube', demo.some(r => /hubermanlab/i.test(r.url || '') && /youtube/i.test(r.url || '')));
-ok('mindpump youtube', demo.some(r => /MindPumpTV/i.test(r.url || '')));
+ok('huberman youtube', demo.some(r => /nm1TxQj9IsQ/.test(r.url || '') && /youtube/i.test(r.url || '')));
+ok('mindpump youtube', demo.some(r => /m0ApkrgL3b0/.test(r.url || '')));
+ok('music watch urls', demo.filter(r => r.coll === 'music').every(r => /[?&]v=([A-Za-z0-9_-]{11})/.test(r.url || '')));
+ok('podcast watch urls', demo.filter(r => r.coll === 'podcasts').every(r => /[?&]v=([A-Za-z0-9_-]{11})/.test(r.url || '')));
+ok('no channel @ urls in demo music/podcasts', demo.filter(r => r.coll === 'music' || r.coll === 'podcasts').every(r => !/youtube\.com\/@/.test(r.url || '')));
 
 ok('generic spotify homepage', windowObj.isGenericSpotifyUrl('https://open.spotify.com') === true);
 ok('generic creators stub', windowObj.isGenericSpotifyUrl('https://creators.spotify.com') === true);
 ok('real playlist kept', windowObj.isGenericSpotifyUrl('https://open.spotify.com/playlist/abc123') === false);
 ok('youtube not generic spotify', windowObj.isGenericSpotifyUrl('https://www.youtube.com/@hubermanlab') === false);
+ok('channel url detected', windowObj.isYoutubeChannelOrNonEpisodeUrl('https://www.youtube.com/@hubermanlab') === true);
+ok('watch url not channel', windowObj.isYoutubeChannelOrNonEpisodeUrl('https://www.youtube.com/watch?v=nm1TxQj9IsQ') === false);
 
 windowObj.USER_RESOURCES = [
   { id: 'r5', name: 'old', url: 'https://open.spotify.com', type: 'podcast', cat: 'trening', desc: 'stub', coll: 'podcasts' },
@@ -85,8 +90,19 @@ windowObj.USER_RESOURCES = [
 ];
 const migrated = windowObj.migrateSpotifyDemoResources();
 ok('migrated stub count', migrated === 1, 'changed=' + migrated);
-ok('r5 now youtube', /youtube\.com/i.test(windowObj.USER_RESOURCES[0].url));
+ok('r5 now youtube', /youtube\.com\/watch\?v=/i.test(windowObj.USER_RESOURCES[0].url));
 ok('custom playlist kept', windowObj.USER_RESOURCES[1].url === 'https://open.spotify.com/playlist/xyz');
+
+windowObj.USER_RESOURCES = [
+  { id: 'r8', name: 'old huberman channel', url: 'https://www.youtube.com/@hubermanlab', type: 'podcast', cat: 'psychologia', desc: 'channel', coll: 'podcasts' },
+  { id: 'r10', name: 'old music channel', url: 'https://www.youtube.com/@TheWorkoutMix', type: 'video', cat: 'muzyka', desc: 'channel', coll: 'music' },
+  { id: 'custom2', name: 'mój odcinek', url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', type: 'video', cat: 'muzyka', coll: 'music' }
+];
+const epMig = windowObj.migrateDemoYoutubeEpisodeResources();
+ok('episode migrate count', epMig === 2, 'changed=' + epMig);
+ok('r8 now watch episode', /watch\?v=nm1TxQj9IsQ/.test(windowObj.USER_RESOURCES[0].url));
+ok('r10 now watch mix', /watch\?v=m1Iz9hcnsuY/.test(windowObj.USER_RESOURCES[1].url));
+ok('custom watch kept', windowObj.USER_RESOURCES[2].url === 'https://www.youtube.com/watch?v=dQw4w9WgXcQ');
 
 ok('garmin is daily', ctx.intWorksNow('garmin') === true);
 ok('stripe still server', ctx.intWorksNow('stripe') !== true);
