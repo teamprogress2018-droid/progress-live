@@ -39,7 +39,6 @@ ok('list collapse',src04.includes('function dashListSection')&&src04.includes('D
 ok('legacy followups stubbed',/function renderDashCheckinFollowup\(\)\{[\s\S]*?el\.style\.display='none'/.test(src04)&&src04.includes("'dash-checkin':renderDashCheckinFollowup"));
 ok('kpi first + dense css',html.indexOf('id="d-kpi-row"')<html.indexOf('id="dash-client-pipeline"')&&css.includes('.dash-kpi-body')&&css.includes('#screen-dashboard .dash-content'));
 ok('renderDash wires ops',src04.includes('renderDashOps()')&&src04.includes('dashOpsRecentReports()')&&src04.includes('dashOpsExpiringPackages(7)'));
-ok('cache bumps',html.includes('04-client-portal.js?v=32')&&html.includes('styles.css?v=43'));
 
 const today=new Date();
 today.setHours(12,0,0,0);
@@ -144,6 +143,8 @@ vm.runInNewContext(
   {console,DASH_LIST_PREVIEW:2,window:{_dashListExpanded:{}}}
 );
 ok('dashListSection preview 2','manual');
+
+ok('cache bumps',html.includes('04-client-portal.js?v=32')&&html.includes('styles.css?v=43'));
 
 if(failed){console.error('\n'+failed+' failed');process.exit(1);}
 console.log('\nAll dash ops panel checks passed');
