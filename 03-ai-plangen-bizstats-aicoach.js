@@ -115,6 +115,12 @@ window.aplRefreshRationale=aplRefreshRationale;
 function aplFillFromClient(){
   const sel=document.getElementById('apl-client');
   const cid=sel.value;
+  // BEZPIECZEŃSTWO: zawsze zeruj status farmakologiczny przy zmianie klienta —
+  // to zbyt wrażliwe pole, żeby mogło przypadkiem "przejść" z poprzedniego klienta.
+  const pharmaStatusEl=document.getElementById('apl-pharma-status');
+  const pharmaDetailsEl=document.getElementById('apl-pharma-details');
+  if(pharmaStatusEl)pharmaStatusEl.value='';
+  if(pharmaDetailsEl)pharmaDetailsEl.value='';
   if(!cid)return;
   const c=CL.find(x=>x.id===cid);
   if(!c)return;
@@ -559,6 +565,8 @@ async function aplGenerate(){
   const height=document.getElementById('apl-height').value;
   const gender=document.getElementById('apl-gender').value;
   const injuries=document.getElementById('apl-injuries').value;
+  const pharmaStatus=document.getElementById('apl-pharma-status')?.value||'';
+  const pharmaDetails=document.getElementById('apl-pharma-details')?.value||'';
   const notes=document.getElementById('apl-notes').value;
   const cid=document.getElementById('apl-client').value;
   const client=cid?CL.find(x=>x.id===cid):null;
@@ -683,6 +691,10 @@ Nogi (czworogłowe): MEV 12 / MAV 16-20 / MRV 24
 Pośladki: MEV 6 / MAV 10-14 / MRV 16
 Core: MEV 8 / MAV 10-14 / MRV 16
 Wg stażu: Początkujący → doln half MEV-MAV. Średni → środek/góra MAV. Zaawansowany → góra MAV, blisko MRV.
+${pharmaStatus?`
+DOSTOSOWANIE OBJĘTOŚCI DO STATUSU FARMAKOLOGICZNEGO (nadrzędne wobec progów "Wg stażu" powyżej):
+${pharmaStatus==='wspomagany'?'Klient WSPOMAGANY farmakologicznie (sterydy anaboliczno-androgenne) — jego zdolność regeneracji (MRV) jest istotnie wyższa niż u naturalnego sportowca o tym samym stażu. Planuj objętość w GÓRNEJ części MAV lub PONAD standardowe MRV z tabeli (nawet +20-40% serii tygodniowo na partię), krótsze przerwy między seriami są tolerowane lepiej, częstotliwość 2-3×/tydzień na partię jest bezpieczna nawet przy wyższej intensywności. Mimo to zachowaj progresję stopniowo — nie zaczynaj od razu od maksimum.':pharmaStatus==='TRT'?'Klient na TRT (fizjologiczne dawki testosteronu) — regeneracja umiarkowanie lepsza niż przy niedoborze naturalnym, ale NIE traktuj jak wspomaganego. Planuj górną część MAV z tabeli, bez przekraczania MRV.':'Klient naturalny — trzymaj się dokładnie progów MEV/MAV/MRV z tabeli powyżej, bez podwyższania.'}
+`:''}
 
 OBOWIĄZKOWA WERYFIKACJA PRZED ZWRÓCENIEM JSON: Dla KAŻDEJ partii zsumuj w pamięci liczbę serii roboczych ze WSZYSTKICH dni treningowych tygodnia (licz tylko ćwiczenia, gdzie ta partia jest głównym celem). Jeśli suma dla jakiejkolwiek partii jest PONIŻEJ MEV z tabeli — to błąd krytyczny: dodaj kolejne ćwiczenie lub serię w jednym z dni, zanim oddasz plan. Pole "weeklyVolume" w JSON MUSI odzwierciedlać faktyczną, sprawdzoną sumę, nie szacunek.
 SZCZEGÓLNA UWAGA przy podziałach Upper/Lower, Push/Pull/Legs: gdy dana partia (np. barki, biceps) pojawia się tylko w części dni tygodnia, łatwo przypadkiem zejść poniżej MEV mimo że pojedynczy dzień "wygląda nieźle" — zawsze licz sumę tygodniową, nie objętość jednego dnia.
@@ -722,6 +734,7 @@ ${gender?`- Płeć: ${gender}`:''}
 ${weight?`- Waga: ${weight} kg`:''}
 ${height?`- Wzrost: ${height} cm`:''}
 ${injuries?`- Kontuzje/ograniczenia: ${injuries}`:''}
+${pharmaStatus?`- Status farmakologiczny: ${pharmaStatus==='wspomagany'?'WSPOMAGANY (sterydy anaboliczno-androgenne)':pharmaStatus==='TRT'?'TRT (dawki fizjologiczne)':'Naturalny'}${pharmaDetails?` — ${pharmaDetails}`:''}`:''}
 ${typeof readPhysiquePriorityFrom==='function'&&readPhysiquePriorityFrom('apl').length?clientPhysiquePriorityForAI(client,readPhysiquePriorityFrom('apl')):(client&&typeof clientPhysiquePriorityForAI==='function'?clientPhysiquePriorityForAI(client):'')}
 ${femur?`- Długość kości udowej: ${femur}`:''}
 ${wingspan?`- Zasięg ramion: ${wingspan}`:''}

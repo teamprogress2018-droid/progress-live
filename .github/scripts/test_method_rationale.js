@@ -25,6 +25,8 @@ function eq(name,got,want){
 
 ok('buildMethodRationale exported',core.includes('function buildMethodRationale')&&core.includes('window.buildMethodRationale'));
 ok('renderMethodRationaleHTML',core.includes('function renderMethodRationaleHTML'));
+ok('VOLUME_BY_LEVEL',core.includes('const VOLUME_BY_LEVEL')&&core.includes("Klatka:'6–10'")&&core.includes("Klatka:'12–20'"));
+ok('collapsible guide',core.includes('<details class="method-rationale"')&&core.includes('mr-volume')&&core.includes('Serie na partię wg stażu'));
 ok('METHOD_WHY PPL',core.includes("PPL:{label:"));
 ok('GOAL_WHY masa sets',core.includes("masa:{")&&core.includes('3–4 serie'));
 ok('sources educational',core.includes('NSCA')&&(core.includes('nie pobiera live PubMed')||core.includes('Brak live PubMed')));
@@ -36,8 +38,8 @@ ok('aplToggle refreshes',src03.includes('aplRefreshRationale'));
 ok('aplRenderPlan embeds',src03.includes('renderMethodRationaleHTML'));
 ok('summary prompt longer',src03.includes('3–5 zdań dla trenera początkującego'));
 ok('template rationale',src02.includes('tplcRefreshRationale')&&src02.includes('tplc-rationale'));
-ok('css method-rationale',css.includes('.method-rationale'));
-ok('cache bumps',html.includes('01-core.js?v=35')&&html.includes('05-clients-builder-plans-calendar.js?v=28')&&html.includes('styles.css?v=40'));
+ok('css method-rationale',css.includes('.method-rationale')&&css.includes('.mr-vol-table')&&css.includes('.mr-volume'));
+ok('cache bumps',html.includes('01-core.js?v=36')&&html.includes('05-clients-builder-plans-calendar.js?v=28')&&html.includes('styles.css?v=41'));
 
 const sandbox={window:{},console};
 vm.createContext(sandbox);
@@ -49,9 +51,17 @@ const b=sandbox.buildMethodRationale({method:'PPL',goal:'masa',level:'poczatkuja
 eq('PPL label',b.methodLabel,'Push / Pull / Legs');
 ok('PPL tip for 3 days',b.tips.some(t=>/PPL przy 3/.test(t)));
 ok('masa sets',/3–4/.test(b.sets));
-ok('html render',sandbox.renderMethodRationaleHTML(b).includes('Dlaczego tak?'));
+ok('volume parts beginner',b.levelVolumeParts&&b.levelVolumeParts.Klatka==='6–10'&&b.levelVolumeParts.Plecy==='8–12');
+const htmlR=sandbox.renderMethodRationaleHTML(b);
+ok('html render',htmlR.includes('Dlaczego tak?'));
+ok('html collapsible',/<details class="method-rationale" open>/.test(htmlR)&&/mr-volume/.test(htmlR)&&/mr-vol-table/.test(htmlR));
+ok('html highlights beginner col',/mr-vol-th is-current/.test(htmlR));
 ok('clientTalk plain',b.clientTalk&&/Trenujemy/.test(b.clientTalk)&&!/MEV|MRV/.test(b.clientTalk));
 eq('normalize UL',sandbox.normalizeRationaleMethod('Upper/Lower'),'Upper Lower');
+
+const adv=sandbox.buildMethodRationale({method:'PPL',goal:'redukcja',level:'zaawansowany',daysPerWeek:4});
+ok('advanced chest volume',adv.levelVolumeParts.Klatka==='12–20');
+ok('advanced html current col',/Zaaw\./.test(sandbox.renderMethodRationaleHTML(adv))&&/is-current/.test(sandbox.renderMethodRationaleHTML(adv)));
 
 if(failed){console.error(failed+' failed');process.exit(1);}
 console.log('\nAll method-rationale tests passed');

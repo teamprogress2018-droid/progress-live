@@ -25,7 +25,7 @@ ok('trainer button',html.includes('openHabitPackModal()')&&/Progress Nawyki/.tes
 ok('pack js',src06.includes('function openHabitPackModal')&&src06.includes('function confirmHabitPackAssign')&&src06.includes('habitPackBannerHTML'));
 ok('banner css',css.includes('.habit-pack-banner')&&css.includes('.habit-pack-row'));
 ok('client phases',/clientHabitXpTotal/.test(src04)&&/HABIT_PHASE_ORDER/.test(src04));
-ok('cache bumps',html.includes('01-core.js?v=35')&&html.includes('06-inbox-exercises-ai-programs.js?v=26')&&html.includes('04-client-portal.js?v=32')&&html.includes('styles.css?v=40'));
+ok('cache bumps',html.includes('01-core.js?v=36')&&html.includes('06-inbox-exercises-ai-programs.js?v=26')&&html.includes('04-client-portal.js?v=32')&&html.includes('styles.css?v=41'));
 
 const document={
   querySelectorAll:()=>[],

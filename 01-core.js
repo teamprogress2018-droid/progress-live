@@ -2727,10 +2727,52 @@ const LEVEL_WHY={
   sredni:'Średni: środek/góra MAV, możliwa DUP lub falowanie. Deload co 4–6 tygodni.',
   zaawansowany:'Zaawansowany: góra MAV, blisko MRV na priorytetach, bloki i specjalizacja. Wymaga snu, białka i monitorowania RPE.'
 };
+
+/** Tygodniowa liczba serii roboczych na partię wg stażu (orientacja MEV–MAV; hipertrofia). */
+const VOLUME_PART_ORDER=['Klatka','Plecy','Barki','Biceps','Triceps','Quady','Tył uda','Pośladki','Brzuch','Łydki'];
+const VOLUME_BY_LEVEL={
+  poczatkujacy:{
+    label:'Początkujący',
+    tenure:'0–1 rok',
+    note:'Startuj nisko (MEV). +1–2 serie/partię co 1–2 tyg. tylko gdy regeneracja OK.',
+    parts:{
+      Klatka:'6–10',Plecy:'8–12',Barki:'8–12',Biceps:'6–8',Triceps:'6–8',
+      Quady:'8–12','Tył uda':'6–10',Pośladki:'6–10',Brzuch:'4–8',Łydki:'6–10'
+    }
+  },
+  sredni:{
+    label:'Średni',
+    tenure:'1–3 lata',
+    note:'Środek MAV. Priorytety +2–4 serie vs. utrzymanie. Deload co 4–6 tyg.',
+    parts:{
+      Klatka:'10–16',Plecy:'12–18',Barki:'12–18',Biceps:'8–12',Triceps:'8–12',
+      Quady:'12–18','Tył uda':'10–16',Pośladki:'10–14',Brzuch:'6–10',Łydki:'8–14'
+    }
+  },
+  zaawansowany:{
+    label:'Zaawansowany',
+    tenure:'3+ lata',
+    note:'Góra MAV / lokalnie blisko MRV na priorytetach. Specjalizacja + bloki; nie trzymaj wszystkich partii na suficie naraz.',
+    parts:{
+      Klatka:'12–20',Plecy:'14–22',Barki:'14–22',Biceps:'10–16',Triceps:'10–16',
+      Quady:'14–22','Tył uda':'12–20',Pośladki:'12–18',Brzuch:'6–12',Łydki:'10–16'
+    }
+  }
+};
+window.VOLUME_BY_LEVEL=VOLUME_BY_LEVEL;
+window.VOLUME_PART_ORDER=VOLUME_PART_ORDER;
+
+function volumeGuideForLevel(levelKey){
+  const k=String(levelKey||'sredni').toLowerCase();
+  return VOLUME_BY_LEVEL[k]||VOLUME_BY_LEVEL.sredni;
+}
+window.volumeGuideForLevel=volumeGuideForLevel;
+
 const RATIONALE_SOURCES=[
   'NSCA — Essentials of Strength Training and Conditioning (serie/powt./%1RM)',
   'ACSM — Guidelines: częstotliwość i progresja oporu',
   'Schoenfeld i in. — metaanalizy objętości i częstotliwości hipertrofii (punkty orientacyjne MEV/MAV)',
+  'Israetel / RP — landmarks objętości (MEV / MAV / MRV) jako ramy, nie sztywne normy',
   'Twoja Baza wiedzy w apce — dopisz własne zasady i doświadczenie'
 ];
 
@@ -2905,6 +2947,8 @@ function buildMethodRationale(opts){
   const clientTalk=buildClientTalkPlain({methodKey,methodLabel:method.label,goalKey,weight,levelKey});
   const trainerSources=typeof planningEvidenceSourceLines==='function'?planningEvidenceSourceLines():[];
   const trainerEntries=typeof getPlanningEvidenceEntries==='function'?getPlanningEvidenceEntries().filter(e=>!e.builtin).slice(0,5):[];
+  const volGuide=volumeGuideForLevel(levelKey);
+  const volSummary=VOLUME_PART_ORDER.slice(0,6).map(p=>p+': '+(volGuide.parts[p]||'—')+' s/tyg').join(' · ');
   return{
     methodKey,goalKey,levelKey,daysPerWeek:days||null,weight:(!isNaN(weight)&&weight>0)?weight:null,
     methodLabel:method.label,
@@ -2918,11 +2962,37 @@ function buildMethodRationale(opts){
     goalWhy:goal.why,
     volume:goal.volume,
     levelTip,
+    levelVolumeLabel:volGuide.label+' ('+volGuide.tenure+')',
+    levelVolumeNote:volGuide.note,
+    levelVolumeParts:volGuide.parts,
+    levelVolumeSummary:volSummary,
+    volumeByLevel:VOLUME_BY_LEVEL,
+    volumePartOrder:VOLUME_PART_ORDER,
     tips,
     clientTalk,
     sources:RATIONALE_SOURCES.concat(trainerSources).slice(0,12),
     trainerEntries
   };
+}
+function renderVolumeByLevelTable(r,esc){
+  const order=r.volumePartOrder||VOLUME_PART_ORDER;
+  const levels=['poczatkujacy','sredni','zaawansowany'];
+  const labels={poczatkujacy:'Pocz.',sredni:'Średni',zaawansowany:'Zaaw.'};
+  const cur=String(r.levelKey||'sredni').toLowerCase();
+  const head=levels.map(l=>`<th class="mr-vol-th${l===cur?' is-current':''}">${esc(labels[l])}</th>`).join('');
+  const rows=order.map(part=>{
+    const cells=levels.map(l=>{
+      const v=(r.volumeByLevel&&r.volumeByLevel[l]&&r.volumeByLevel[l].parts&&r.volumeByLevel[l].parts[part])||'—';
+      return `<td class="mr-vol-td${l===cur?' is-current':''}">${esc(v)}</td>`;
+    }).join('');
+    return `<tr><th scope="row" class="mr-vol-part">${esc(part)}</th>${cells}</tr>`;
+  }).join('');
+  return `<div class="mr-vol-wrap">
+    <div class="mr-meta" style="margin-bottom:6px;">Serie robocze / partię / <b>tydzień</b> (hipertrofia · MEV–MAV). Kolumna <b>${esc(r.levelVolumeLabel||'')}</b> = wybrany staż klienta.</div>
+    <table class="mr-vol-table"><thead><tr><th class="mr-vol-part">Partia</th>${head}</tr></thead><tbody>${rows}</tbody></table>
+    <div class="mr-meta" style="margin-top:6px;">${esc(r.levelVolumeNote||'')}</div>
+    <div class="mr-note">Siła / rehab: trzymaj dolną połowę zakresu; kondycja: okolice MEV + osobne sesje cardio. Nie sumuj „wszystkie partie na MRV” naraz.</div>
+  </div>`;
 }
 function renderMethodRationaleHTML(opts){
   const r=typeof opts==='object'&&opts.methodWhy?opts:buildMethodRationale(opts||{});
@@ -2933,11 +3003,15 @@ function renderMethodRationaleHTML(opts){
     const tag=e.kind==='evidence'?'Źródło':(e.kind==='principle'?'Zasada':'Notatka');
     return `<li><b>${esc(tag)}:</b> ${esc(e.title)}${e.citation?' — '+esc(e.citation):''}</li>`;
   }).join('')}</ul></div>`:'';
-  return`<div class="method-rationale">
-    <div class="method-rationale-hdr">
-      <div class="method-rationale-title">Dlaczego tak? — przewodnik trenera</div>
+  const volPreview=r.levelVolumeSummary?`<div class="mr-vol-preview">${esc(r.levelVolumeSummary)}</div>`:'';
+  return`<details class="method-rationale" open>
+    <summary class="method-rationale-hdr">
+      <div>
+        <div class="method-rationale-title">Dlaczego tak? — przewodnik trenera</div>
+        <div class="method-rationale-toggle-hint">Kliknij, aby zwinąć / rozwinąć cały przewodnik</div>
+      </div>
       <div class="method-rationale-badge">NSCA · ACSM · Twoja baza</div>
-    </div>
+    </summary>
     <div class="method-rationale-body">
       <div class="mr-block mr-client-talk">
         <div class="mr-block-title">Jak wytłumaczyć klientowi</div>
@@ -2959,9 +3033,14 @@ function renderMethodRationaleHTML(opts){
         ${row('Objętość/tyg.',r.volume)}
       </div>
       <div class="mr-block">
-        <div class="mr-block-title">Poziom klienta</div>
+        <div class="mr-block-title">Poziom / staż: ${esc(r.levelVolumeLabel||'')}</div>
         <div class="mr-text">${esc(r.levelTip)}</div>
+        ${volPreview}
       </div>
+      <details class="mr-volume">
+        <summary class="mr-block-title">Serie na partię wg stażu — rozwiń tabelę</summary>
+        ${renderVolumeByLevelTable(r,esc)}
+      </details>
       ${r.tips&&r.tips.length?`<div class="mr-block"><div class="mr-block-title">Wskazówki${r.weight?' · waga ~'+Math.round(r.weight)+' kg':''}</div><ul class="mr-tips">${r.tips.map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div>`:''}
       ${trainerBlock}
       <details class="mr-sources">
@@ -2970,7 +3049,7 @@ function renderMethodRationaleHTML(opts){
         <div class="mr-note">Brak live PubMed — wbudowane ramy + linki, które dodasz w Bazie wiedzy (zasady / badania). AI i kreator biorą je jako kontekst planowania.</div>
       </details>
     </div>
-  </div>`;
+  </details>`;
 }
 function refreshMethodRationaleInto(el,opts){
   if(!el)return;
@@ -2978,9 +3057,11 @@ function refreshMethodRationaleInto(el,opts){
 }
 window.METHOD_WHY=METHOD_WHY;
 window.GOAL_WHY=GOAL_WHY;
+window.LEVEL_WHY=LEVEL_WHY;
 window.buildClientTalkPlain=buildClientTalkPlain;
 window.buildMethodRationale=buildMethodRationale;
 window.renderMethodRationaleHTML=renderMethodRationaleHTML;
+window.renderVolumeByLevelTable=renderVolumeByLevelTable;
 window.refreshMethodRationaleInto=refreshMethodRationaleInto;
 window.normalizeRationaleMethod=normalizeRationaleMethod;
 
@@ -2990,7 +3071,7 @@ window.normalizeRationaleMethod=normalizeRationaleMethod;
 const EDU_TIPS={
   method:'Metoda = jak dzielisz ciało na dni (PPL, FBW, Upper/Lower…). Przy hipertrofii celuj w ≥2 stymulacje partii/tydzień. Szczegóły w panelu „Dlaczego tak?”.',
   goal:'Cel ustala zakresy: masa → objętość i RIR 0–3; siła → wyższy %1RM i dłuższe przerwy; redukcja → utrzymaj ciężar, nie tnij od razu objętości.',
-  sets:'Serie robocze na ćwiczenie. Hipertrofia zwykle 3–4; siła 3–6 na głównych. Licz sumę tygodniową partii (MEV–MAV), nie tylko jeden dzień.',
+  sets:'Serie robocze na ćwiczenie. Hipertrofia zwykle 3–4; siła 3–6 na głównych. Sumę tygodniową partii (MEV–MAV) wg stażu zobaczysz w przewodniku „Serie na partię”.',
   reps:'Powtórzenia: hipertrofia złożone ~6–10, izolacje ~8–15; siła główne ~1–6. Dobierz tak, by ostatnie powt. były blisko upadku (patrz RPE/RIR).',
   kg:'Ciężar roboczy. Możesz liczyć z %1RM (Pomiary → Siła bazowa). Zostaw puste, jeśli klient dobiera wg RPE.',
   rpe:'RPE 1–10: jak trudna była seria. RPE 8 ≈ zostały ~2 powtórzenia (RIR 2). Hipertrofia często RPE 7–9; unikaj ciągłego RPE 10.',
