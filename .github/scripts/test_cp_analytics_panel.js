@@ -103,7 +103,8 @@ ok('habit weeks',hw.length===4&&hw.some(w=>w.due>0));
 const svg=sandbox.cpPctBarChart([{l:'T1',pct:50},{l:'T2',pct:80}]);
 ok('pct svg',/cp-chart-svg/.test(svg)&&/50%/.test(svg));
 
-ok('cache bumps',html.includes('08-client-profile-extras.js?v=31')&&html.includes('04-client-portal.js?v=32')&&html.includes('styles.css?v=44'));
+ok('cache bumps',html.includes('08-client-profile-extras.js?v=31')&&html.includes('04-client-portal.js?v=32')&&html.includes('styles.css?v=45'));
+ok('cache bumps',html.includes('08-client-profile-extras.js?v=31')&&html.includes('04-client-portal.js?v=32')&&html.includes('styles.css?v=46'));
 
 if(failed){console.error('\n'+failed+' failed');process.exit(1);}
 console.log('\nAll cp-analytics-panel tests passed');

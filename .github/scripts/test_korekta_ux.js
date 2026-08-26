@@ -26,10 +26,11 @@ ok('positionCpMoreMenu', src09.includes('function _positionCpMoreMenu') && src09
 ok('builder sidebar scroll wrap', html.includes('builder-sidebar-scroll') && css.includes('.builder-sidebar-scroll'));
 ok('builder sidebar collapse', src05.includes('function toggleBuilderSidebar') && html.includes('builder-sidebar-expand') && html.includes('Zwiń'));
 ok('period card reachable', html.includes('id="builder-period-card"') && html.includes('period-sched'));
-ok('client talk + details sources', core.includes('Jak wytłumaczyć klientowi') && core.includes('<details class="mr-sources">') && core.includes('clientTalk'));
+ok('client talk + details sources', core.includes('Jak wytłumaczyć klientowi') && /<details class="mr-sources[^"]*">/.test(core) && core.includes('clientTalk'));
 ok('weight tips in rationale', /weight>=95|Waga ~/.test(core) || core.includes("Waga ~"));
 ok('volume by tenure', core.includes('VOLUME_BY_LEVEL') && core.includes('Serie na partię wg stażu') && css.includes('.mr-vol-table'));
-ok('cache bumps', html.includes('styles.css?v=44') && html.includes('01-core.js?v=39') && html.includes('05-clients-builder-plans-calendar.js?v=28') && html.includes('09-posture-kb-invites-private.js?v=33'));
+ok('cache bumps', html.includes('styles.css?v=45') && html.includes('01-core.js?v=39') && html.includes('05-clients-builder-plans-calendar.js?v=28') && html.includes('09-posture-kb-invites-private.js?v=33'));
+ok('cache bumps', html.includes('styles.css?v=46') && html.includes('01-core.js?v=41') && html.includes('05-clients-builder-plans-calendar.js?v=28') && html.includes('09-posture-kb-invites-private.js?v=33'));
 ok('CI', wf.includes('test_korekta_ux.js'));
 
 const sandbox = { window: {}, console };
@@ -43,7 +44,7 @@ ok('clientTalk present', r.clientTalk && /Trenujemy Push/.test(r.clientTalk) && 
 ok('clientTalk short', r.clientTalk.length < 520);
 ok('weight tip', r.tips.some(t => /100 kg|Wyższa masa/.test(t)));
 const htmlR = sandbox.renderMethodRationaleHTML(r);
-ok('html details sources', /<details class="mr-sources">/.test(htmlR) && /Jak wytłumaczyć klientowi/.test(htmlR));
+ok('html details sources', /<details class="mr-sources[^"]*">/.test(htmlR) && /Jak wytłumaczyć klientowi/.test(htmlR));
 ok('html volume table', /mr-vol-table/.test(htmlR) && /Serie na partię wg stażu/.test(htmlR) && r.levelVolumeParts.Klatka === '12–20');
 
 if (failed) {
