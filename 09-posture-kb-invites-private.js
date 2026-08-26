@@ -942,7 +942,8 @@ const OD_COLLECTIONS=[
   {id:'dom',name:'Dom bez sprzętu',icon:'🏠',color:'var(--blue)',desc:'Ćwiczenia w domu — zero sprzętu, follow-along YouTube',count:2},
   {id:'mobilnosc',name:'Mobilność',icon:'🧘',color:'var(--teal)',desc:'Stretching, mobilność i regeneracja',count:2},
   {id:'fbw',name:'Full Body',icon:'⚡',color:'var(--accent)',desc:'Programy angażujące całe ciało',count:1},
-  {id:'hiit',name:'HIIT / Cardio',icon:'🔥',color:'var(--red)',desc:'Intensywne interwały, tabata i cardio',count:2},
+  {id:'hiit',name:'HIIT / Cardio',icon:'🔥',color:'var(--red)',desc:'Intensywne interwały i cardio — bez sprzętu',count:4},
+  {id:'tabata',name:'Tabata',icon:'⏱',color:'var(--orange)',desc:'Klasyczne protokoły 20s/10s — krótko i ostro',count:3},
   {id:'oddech',name:'Oddech i relaks',icon:'🌬',color:'var(--purple)',desc:'Box breathing, 4-7-8, oddech przeponowy — przed snem lub po treningu',count:5},
   {id:'sila',name:'Siła',icon:'💪',color:'var(--orange)',desc:'Treningi siłowe z obciążeniem',count:0},
 ];
@@ -955,13 +956,19 @@ const OD_DEMO_WORKOUTS=[
   {id:'ow5',name:'Mobilność bioder 20 min',type:'video',level:'poczatkujacy',time:20,coll:'mobilnosc',format:'mobility',equipment:'mat',color:'#0a1a1a',emoji:'🧘',desc:'Yoga With Adriene — Feel Good Flow na biodra. Za darmo na YouTube.',url:'https://www.youtube.com/watch?v=zwoVcrdmLOE',views:0,likes:9,structure:{label:'Flow',durationMin:20,materials:'Mata, wygodny strój'}},
   {id:'ow6',name:'Lower Body — nogi i pośladki',type:'video',level:'sredni',time:20,coll:'dom',format:'strength',equipment:'none',color:'#1a1000',emoji:'🦵',desc:'MadFit, bez sprzętu. Darmowy follow-along na YouTube.',url:'https://www.youtube.com/watch?v=9hQTvrP6EsM',views:0,likes:14,structure:{label:'Obwód',rounds:3,setsDesc:'3 obwody · nogi i pośladki · bez sprzętu',materials:'Brak — własne ciało'}},
   {id:'ow7',name:'Stretch i elastyczność 28 min (Adriene)',type:'video',level:'poczatkujacy',time:28,coll:'mobilnosc',format:'stretch',equipment:'mat',color:'#0a1a1a',emoji:'🧘',desc:'Yoga With Adriene — pełny stretching w domu, bez sprzętu.',url:'https://www.youtube.com/watch?v=g_tea8ZNr5A',views:0,likes:10,structure:{label:'Stretch',durationMin:28,materials:'Mata'}},
-  {id:'ow8',name:'Tabata 16 min — cardio (MadFit)',type:'video',level:'sredni',time:16,coll:'hiit',format:'tabata',equipment:'none',color:'#2a0a0a',emoji:'⏱',desc:'Klasyczna tabata 20s/10s × 8 rund na ćwiczenie. Zero sprzętu, follow-along YouTube.',url:'https://www.youtube.com/watch?v=XI0YfASj5gY',views:0,likes:6,structure:{label:'Tabata',rounds:8,workSec:20,restSec:10,note:'8 rund tabata · 20s praca / 10s przerwa · cardio'}},
+  {id:'ow8',name:'Tabata 16 min — cardio (MadFit)',type:'video',level:'sredni',time:16,coll:'tabata',format:'tabata',equipment:'none',color:'#2a0a0a',emoji:'⏱',desc:'Klasyczna tabata 20s/10s × 8 rund na ćwiczenie. Zero sprzętu, follow-along YouTube.',url:'https://www.youtube.com/watch?v=XI0YfASj5gY',views:0,likes:6,structure:{label:'Tabata',rounds:8,workSec:20,restSec:10,note:'8 rund tabata · 20s praca / 10s przerwa · cardio'}},
   {id:'ow9',name:'Box breathing 4-4-4-4 — 5 min',type:'video',level:'poczatkujacy',time:5,coll:'oddech',format:'breath',equipment:'none',color:'#0a0a2a',emoji:'🌬',desc:'Technika Navy SEAL — wyrównuje układ nerwowy. Idealna przed snem lub po stresie.',url:'https://www.youtube.com/watch?v=tEmt1RCBKw0',views:0,likes:18,structure:{label:'Box 4-4-4-4',inhaleSec:4,holdInSec:4,exhaleSec:4,holdOutSec:4,cycles:8,note:'8 cykli · 4s wdech / 4s zatrzymanie / 4s wydech / 4s pauza · stres / sen',materials:'Wygodne siedzenie, cisza',when:'Po treningu, przed snem, stres'}},
   {id:'ow10',name:'Oddychanie 4-7-8 (Dr Weil) — 5 min',type:'video',level:'poczatkujacy',time:5,coll:'oddech',format:'breath',equipment:'none',color:'#1a0a2a',emoji:'😴',desc:'Klasyczna metoda relaksacyjna — wdech 4s, zatrzymanie 7s, wydech 8s. Uspokaja przed snem.',url:'https://www.youtube.com/watch?v=1Dv-ldGLsyg',views:0,likes:14,structure:{label:'4-7-8',inhaleSec:4,holdInSec:7,exhaleSec:8,cycles:4,note:'4 cykle · 4s wdech / 7s zatrzymanie / 8s wydech · bez pauzy między cyklami',materials:'Brak — język dotyka podniebienia przy wydechu',when:'Wieczorem, lęk, trudność z zasypianiem'}},
   {id:'ow11',name:'Oddech przeponowy — baza 8 min',type:'video',level:'poczatkujacy',time:8,coll:'oddech',format:'breath',equipment:'none',color:'#0a1a2a',emoji:'🫁',desc:'Oddychanie brzuszne — obniża tętno spoczynkowe i napięcie w klatce. Fundament pod inne metody.',url:'https://www.youtube.com/watch?v=0Ua9butB5nU',views:0,likes:11,structure:{label:'Przeponowy',inhaleSec:4,exhaleSec:6,cycles:10,note:'10 powtórzeń · wdech nosem (brzuch się unosi) · wydech ustami 6s',materials:'Leżenie lub siedzenie, ręka na brzuchu',when:'Regeneracja, ból pleców, rozgrzewka oddechowa'}},
   {id:'ow12',name:'Oddychanie spójne 5-5 — 6 min',type:'video',level:'poczatkujacy',time:6,coll:'oddech',format:'breath',equipment:'none',color:'#0a2a1a',emoji:'💚',desc:'Równy rytm ~6 oddechów/min (wdech 5s, wydech 5s) — wspiera HRV i spokój w ciągu dnia.',url:'https://www.youtube.com/watch?v=aNXKjGFUlMs',views:0,likes:9,structure:{label:'Spójne 5-5',inhaleSec:5,exhaleSec:5,cycles:12,note:'12 cykli · 5s wdech / 5s wydech · bez zatrzymania · ~6 oddechów/min',materials:'Brak',when:'Między spotkaniami, cooldown po cardio'}},
   {id:'ow13',name:'Wim Hof — wprowadzenie (początkujący) — 11 min',type:'video',level:'sredni',time:11,coll:'oddech',format:'breath',equipment:'none',color:'#0a1520',emoji:'❄️',desc:'Pierwsza sesja metody Wim Hofa z oficjalnym przewodnikiem. Nie w wannie, nie w wodzie — tylko oddech.',url:'https://www.youtube.com/watch?v=tybOi4hjZFQ',views:0,likes:22,structure:{label:'Wim Hof intro',rounds:3,note:'3 serie głębokich wdechów + wydech passively · retencja po wydechu · NIE w wodzie · unikaj przy ciąży/urazach',materials:'Mata/koc, miejsce do leżenia',when:'Rano na czczo (zaawansowani), NIE bez konsultacji przy schorzeniach'}},
   {id:'ow14',name:'Oddech przed treningiem — aktywacja 4 min',type:'video',level:'poczatkujacy',time:4,coll:'oddech',format:'breath',equipment:'none',color:'#1a1a0a',emoji:'⚡',desc:'Krótka sekwencja oddechowa przed siłownią — pobudza bez stresu jak kawa.',url:'https://www.youtube.com/watch?v=kwOTAl9NOnw',views:0,likes:7,structure:{label:'Pre-workout',inhaleSec:3,exhaleSec:3,cycles:15,note:'15 cykli · szybszy rytm 3s/3s · przez nos · przed rozgrzewką',materials:'Brak',when:'5 min przed Start treningu w apce'}},
+  {id:'ow15',name:'Tabata pośladki + brzuch (FitnessBlender)',type:'video',level:'sredni',time:18,coll:'tabata',format:'tabata',equipment:'none',color:'#2a1208',emoji:'🔥',desc:'Butt & Abs Tabata — interwały cardio bez sprzętu. Idealne do wysyłki klientowi jako zadanie domowe.',url:'https://www.youtube.com/watch?v=FSRu6D_0rVE',views:0,likes:9,structure:{label:'Tabata',rounds:8,workSec:20,restSec:10,note:'Tabata · pośladki i brzuch · zero sprzętu',materials:'Mata opcjonalnie'}},
+  {id:'ow16',name:'Cardio Tabata 23 min (FitnessBlender)',type:'video',level:'sredni',time:23,coll:'tabata',format:'tabata',equipment:'none',color:'#1a0a12',emoji:'⏱',desc:'Bodyweight cardio w protokole interwałowym — rozgrzewka + rundy Tabata. Darmowy follow-along.',url:'https://www.youtube.com/watch?v=wvau9wZ6_8k',views:0,likes:8,structure:{label:'Tabata cardio',rounds:8,workSec:30,restSec:10,note:'Interwały cardio · warm-up + cooldown · bez sprzętu',materials:'Brak — własne ciało'}},
+  {id:'ow17',name:'HIIT 15 min — zero sprzętu',type:'video',level:'sredni',time:15,coll:'hiit',format:'hiit',equipment:'none',color:'#1a0808',emoji:'🔥',desc:'Krótki HIIT w domu (20s/10s). Szybka sesja do wrzucenia klientowi między treningami siłowymi.',url:'https://www.youtube.com/watch?v=0DSrudz6IVY',views:0,likes:11,structure:{label:'Interwały',rounds:6,workSec:20,restSec:10,note:'15 min · 20s praca / 10s przerwa · full body',materials:'Brak'}},
+  {id:'ow18',name:'HIIT 25 min — dla początkujących',type:'video',level:'poczatkujacy',time:25,coll:'hiit',format:'hiit',equipment:'none',color:'#120808',emoji:'💥',desc:'Full body HIIT bez powtórzeń i bez sprzętu. Łagodniejszy start pod wysoką intensywność.',url:'https://www.youtube.com/watch?v=cbKkB3POqaY',views:0,likes:10,structure:{label:'Interwały',rounds:5,workSec:40,restSec:20,note:'25 min · no-repeat · początkujący',materials:'Mata opcjonalnie'}},
+  {id:'ow19',name:'HIIT cardio 30 min (SELF)',type:'video',level:'sredni',time:30,coll:'hiit',format:'hiit',equipment:'none',color:'#1a0a14',emoji:'❤️',desc:'30-minutowy HIIT z rozgrzewką — bez sprzętu. Dobra „bomba” na dzień bez siłowni.',url:'https://www.youtube.com/watch?v=ml6cT4AZdqI',views:0,likes:13,structure:{label:'Interwały',rounds:6,workSec:45,restSec:15,note:'30 min · warm-up + HIIT · zero sprzętu',materials:'Brak'}},
+  {id:'ow20',name:'HIIT low-impact — bez skoków',type:'video',level:'poczatkujacy',time:20,coll:'hiit',format:'hiit',equipment:'none',color:'#0a141a',emoji:'🦵',desc:'Full body HIIT bez skakania — bezpieczniejsze dla stawów. Świetne dla klientów wracających po przerwie.',url:'https://www.youtube.com/watch?v=JkVHrA5o23o',views:0,likes:12,structure:{label:'Interwały',rounds:5,workSec:45,restSec:15,note:'Low impact · zero skoków · zero sprzętu',materials:'Mata'}},
 ];
 window.OD_DEMO_WORKOUTS=OD_DEMO_WORKOUTS;
 
@@ -1030,16 +1037,66 @@ const OD_DEMO_PROGRAMS=[
       {label:'Dzień 5 — Nogi i pośladki',workoutId:'ow6'},
     ]},
   ]},
+  {id:'op6',name:'HIIT starter — 2 tygodnie',category:'hiit',level:'poczatkujacy',duration:'2 tygodnie',status:'active',color:'linear-gradient(135deg,#2a0a0a,#1a0808)',emoji:'🔥',desc:'Interwały HIIT bez sprzętu — od low-impact po 25 min full body. Wysyłaj klientom jako start cardio.',clients:0,weeks:[
+    {label:'Tydzień 1',days:[
+      {label:'Dzień 1 — Low-impact HIIT',workoutId:'ow20'},
+      {label:'Dzień 2 — Regeneracja',rest:true},
+      {label:'Dzień 3 — HIIT 15 min',workoutId:'ow17'},
+      {label:'Dzień 4 — Regeneracja',rest:true},
+      {label:'Dzień 5 — HIIT dla początkujących',workoutId:'ow18'},
+    ]},
+    {label:'Tydzień 2',days:[
+      {label:'Dzień 1 — HIIT 15 min',workoutId:'ow17'},
+      {label:'Dzień 2 — Regeneracja',rest:true},
+      {label:'Dzień 3 — HIIT cardio 30 min',workoutId:'ow19'},
+      {label:'Dzień 4 — Regeneracja',rest:true},
+      {label:'Dzień 5 — Low-impact HIIT',workoutId:'ow20'},
+    ]},
+  ]},
+  {id:'op7',name:'Tabata blast — 2 tygodnie',category:'tabata',level:'sredni',duration:'2 tygodnie',status:'active',color:'linear-gradient(135deg,#2a1208,#1a0a12)',emoji:'⏱',desc:'Protokoły Tabata 20s/10s — pośladki, brzuch i cardio. Krótko, ostro, do wysyłki z przycisku Klientowi.',clients:0,weeks:[
+    {label:'Tydzień 1',days:[
+      {label:'Dzień 1 — Tabata 16 min',workoutId:'ow8'},
+      {label:'Dzień 2 — Regeneracja',rest:true},
+      {label:'Dzień 3 — Pośladki + brzuch',workoutId:'ow15'},
+      {label:'Dzień 4 — Regeneracja',rest:true},
+      {label:'Dzień 5 — Cardio Tabata 23 min',workoutId:'ow16'},
+    ]},
+    {label:'Tydzień 2',days:[
+      {label:'Dzień 1 — Pośladki + brzuch',workoutId:'ow15'},
+      {label:'Dzień 2 — Regeneracja',rest:true},
+      {label:'Dzień 3 — Tabata 16 min',workoutId:'ow8'},
+      {label:'Dzień 4 — Regeneracja',rest:true},
+      {label:'Dzień 5 — Cardio Tabata 23 min',workoutId:'ow16'},
+    ]},
+  ]},
   {id:'op1',name:'Starting Strength — szkic',level:'poczatkujacy',duration:'4 tygodnie',color:'linear-gradient(135deg,#1a0a0a,#2a1a0a)',emoji:'🏋️',desc:'Szkic programu siłowego — dodaj filmy YouTube w panelu On-demand.',clients:0,status:'draft'},
 ];
 window.OD_PROGRAMS=window.OD_PROGRAMS||[];
 window.OD_PROGRESS=window.OD_PROGRESS||[];
 function allODPrograms(){return window.OD_PROGRAMS&&window.OD_PROGRAMS.length?window.OD_PROGRAMS:OD_DEMO_PROGRAMS;}
 function ensureODPrograms(){
-  if(window.OD_PROGRAMS&&window.OD_PROGRAMS.length)return window.OD_PROGRAMS;
+  if(window.OD_PROGRAMS&&window.OD_PROGRAMS.length){
+    syncMissingODDemoPrograms();
+    return window.OD_PROGRAMS;
+  }
   window.OD_PROGRAMS=OD_DEMO_PROGRAMS.map(p=>JSON.parse(JSON.stringify(p)));
   return window.OD_PROGRAMS;
 }
+function syncMissingODDemoPrograms(){
+  if(!window.OD_PROGRAMS)window.OD_PROGRAMS=[];
+  const have=new Set(window.OD_PROGRAMS.map(p=>p&&p.id).filter(Boolean));
+  let n=0;
+  OD_DEMO_PROGRAMS.forEach(d=>{
+    if(!d||!d.id||have.has(d.id)||d.status==='draft')return;
+    const copy=JSON.parse(JSON.stringify(d));
+    window.OD_PROGRAMS.push(copy);
+    have.add(d.id);
+    n++;
+    if(typeof persistById==='function')persistById('odPrograms',copy);
+  });
+  return n;
+}
+window.syncMissingODDemoPrograms=syncMissingODDemoPrograms;
 function odProgramWorkoutIds(prog){
   const ids=new Set();
   (prog&&prog.weeks||[]).forEach(w=>(w.days||[]).forEach(d=>{if(d.workoutId)ids.add(d.workoutId);}));
@@ -1469,10 +1526,12 @@ function ensureODWorkouts(){
   window.OD_WORKOUTS=OD_DEMO_WORKOUTS.map(w=>Object.assign({},w));
   return window.OD_WORKOUTS;
 }
-/** Dopisz brakujące demo-filmy YouTube (np. Oddech / Dom) gdy w Firebase są tylko stare wpisy. */
+/** Dopisz brakujące demo-filmy YouTube (np. Tabata / HIIT) gdy w Firebase są tylko stare wpisy. */
 function syncMissingODDemoWorkouts(){
   if(!window.OD_WORKOUTS)window.OD_WORKOUTS=[];
   const have=new Set(window.OD_WORKOUTS.map(w=>w&&w.id).filter(Boolean));
+  const demoById={};
+  OD_DEMO_WORKOUTS.forEach(d=>{if(d&&d.id)demoById[d.id]=d;});
   let n=0;
   OD_DEMO_WORKOUTS.forEach(d=>{
     if(!d||!d.id||have.has(d.id))return;
@@ -1481,6 +1540,16 @@ function syncMissingODDemoWorkouts(){
     have.add(d.id);
     n++;
     if(typeof persistById==='function')persistById('odWorkouts',copy);
+  });
+  // Odśwież kategorię/format demo (np. ow8 → Tabata), bez nadpisywania custom URL.
+  window.OD_WORKOUTS.forEach(w=>{
+    if(!w||!w.id)return;
+    const d=demoById[w.id];if(!d)return;
+    let ch=false;
+    if(d.coll&&w.coll!==d.coll){w.coll=d.coll;ch=true;}
+    if(d.format&&w.format!==d.format){w.format=d.format;ch=true;}
+    if(d.structure&&!w.structure){w.structure=Object.assign({},d.structure);ch=true;}
+    if(ch){n++;if(typeof persistById==='function')persistById('odWorkouts',w);}
   });
   return n;
 }
