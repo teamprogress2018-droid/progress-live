@@ -47,8 +47,8 @@ ok('cheat sheet renderer',core.includes('function renderTrainerCheatSheetHTML')&
 ok('full guide modal',html.includes('id="m-method-rationale"')&&html.includes('method-rationale-modal-body')&&html.includes('printTrainerCheatSheet'));
 ok('builder topbar cheat btn',html.includes('id="builder-cheat-btn"')&&html.includes('openMethodRationaleModal()'));
 ok('builder topbar print btn',html.includes('id="builder-cheat-print-btn"')&&html.includes('printTrainerCheatSheet()'));
-ok('cache bumps',html.includes('01-core.js?v=39')&&html.includes('05-clients-builder-plans-calendar.js?v=28')&&html.includes('styles.css?v=43'));
 ok('css cheat sheet',css.includes('.trainer-cheat')&&css.includes('.tch-volume')&&css.includes('#builder-cheat-btn'));
+ok('cache bumps',html.includes('01-core.js?v=39')&&html.includes('05-clients-builder-plans-calendar.js?v=28')&&html.includes('styles.css?v=43'));
 ok('print refreshes sheet',/function printTrainerCheatSheet[\s\S]*renderTrainerCheatSheetHTML/.test(core));
 
 const sandbox={window:{},console};
