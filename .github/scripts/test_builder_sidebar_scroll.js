@@ -17,10 +17,11 @@ function ok(name,cond){
 ok('builder-sidebar min-height 0',/\.builder-sidebar\{[^}]*min-height:\s*0/.test(css)||/\.builder-sidebar\{[\s\S]*?min-height:\s*0/.test(css));
 ok('builder-main min-height 0',/\.builder-main\{[\s\S]*?min-height:\s*0/.test(css));
 ok('builder-sidebar-scroll overflow-y auto',/\.builder-sidebar-scroll\{[\s\S]*?overflow-y:\s*auto/.test(css));
+ok('sidebar cards flex-shrink 0',/\.builder-sidebar-scroll>\.card\{[\s\S]*?flex-shrink:\s*0/.test(css)||css.includes('.builder-sidebar-scroll>.card'));
 ok('builder-layout no fixed 100vh',!/\.builder-layout\{[^}]*height:\s*calc\(100vh/.test(css));
 ok('builder-layout min-height 0',/\.builder-layout\{[\s\S]*?min-height:\s*0/.test(css));
 ok('screen-builder content overflow hidden',css.includes('#screen-builder > .content.builder-layout{overflow:hidden;}'));
-ok('cache bump styles v34',html.includes('styles.css?v=41'));
+ok('cache bump styles v34',html.includes('styles.css?v=42'));
 
 if(failed){console.error(failed+' failed');process.exit(1);}
 console.log('\nAll builder-sidebar-scroll tests passed');

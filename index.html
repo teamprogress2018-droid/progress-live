@@ -13,7 +13,7 @@
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="globals.css?v=17">
-<link rel="stylesheet" href="styles.css?v=41">
+<link rel="stylesheet" href="styles.css?v=42">
 </head>
 <body>
 
@@ -2900,6 +2900,14 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 <!-- ═══════════ MODALS ═══════════ -->
 
 <!-- Baza Wiedzy -->
+<div class="modal-ov" id="m-method-rationale">
+  <div class="modal" style="max-width:720px;">
+    <div class="modal-hdr"><div class="modal-title">PRZEWODNIK TRENERA</div><button class="modal-close" onclick="closeM('m-method-rationale')">×</button></div>
+    <div class="modal-body" id="method-rationale-modal-body"></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-method-rationale')">Zamknij</button></div>
+  </div>
+</div>
+
 <div class="modal-ov" id="m-kb">
   <div class="modal">
     <div class="modal-hdr"><div class="modal-title" id="kb-modal-title">NOWY WPIS DO BAZY WIEDZY</div><button class="modal-close" onclick="closeM('m-kb')">×</button></div>
@@ -4109,6 +4117,9 @@ async function load(){
 <script src="ex-photo-manifest.js?v=2"></script>
 <script src="01-core.js?v=37"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=22"></script>
+<script src="ex-photo-manifest.js?v=1"></script>
+<script src="01-core.js?v=37"></script>
+<script src="02-workouts-onboarding-templates-live.js?v=21"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=24"></script>
 <script src="04-client-portal.js?v=32"></script>
 <script src="05-clients-builder-plans-calendar.js?v=28"></script>
