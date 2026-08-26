@@ -3014,6 +3014,7 @@ function renderMethodRationaleHTML(opts){
       <div class="method-rationale-actions">
         <div class="method-rationale-badge">NSCA · ACSM · Twoja baza</div>
         <button type="button" class="btn btn-ghost btn-sm" onclick="event.preventDefault();event.stopPropagation();openMethodRationaleModal()" title="Ściągawka: objętość, serie, powtórzenia">Ściągawka</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="event.preventDefault();event.stopPropagation();printTrainerCheatSheet()" title="Drukuj ściągawkę / PDF">Drukuj</button>
       </div>
     </summary>
     <div class="method-rationale-body">
@@ -3147,14 +3148,22 @@ function openMethodRationaleModal(opts){
   if(typeof openM==='function')openM('m-method-rationale');
 }
 function printTrainerCheatSheet(){
-  const root=document.getElementById('trainer-cheat-root')||document.getElementById('method-rationale-modal-body');
-  if(!root||!root.innerHTML.trim()){
-    openMethodRationaleModal();
+  // Zawsze odśwież treść spod aktualnego klienta / metody w builderze
+  const mount=document.getElementById('method-rationale-modal-body');
+  const src=resolveMethodRationaleOpts();
+  const r=typeof src==='object'&&src.methodWhy?src:buildMethodRationale(src||{});
+  try{window._lastMethodRationale=r;}catch(e){}
+  const sheet=renderTrainerCheatSheetHTML(r);
+  if(mount){
+    mount.innerHTML=sheet;
+    const title=document.querySelector('#m-method-rationale .modal-title');
+    if(title)title.textContent='ŚCIĄGAWKA TRENERA';
   }
-  const html=(document.getElementById('trainer-cheat-root')||document.getElementById('method-rationale-modal-body')||{}).innerHTML||'';
+  const html=(document.getElementById('trainer-cheat-root')||{innerHTML:sheet}).innerHTML||sheet;
   if(!html){if(typeof notify==='function')notify('Brak treści do druku');return;}
   const w=window.open('','_blank','noopener,noreferrer,width=900,height=700');
   if(!w){
+    if(typeof openM==='function')openM('m-method-rationale');
     document.body.classList.add('printing-cheat-sheet');
     window.print();
     setTimeout(()=>document.body.classList.remove('printing-cheat-sheet'),800);
