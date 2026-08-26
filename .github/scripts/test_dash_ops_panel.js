@@ -35,10 +35,11 @@ ok('today plan',html.includes('Dzisiejszy plan')&&html.includes('id="d-today-ses
 ok('quick actions',html.includes('id="dash-qa-btn"')&&html.includes('id="dash-qa-menu"')&&html.includes("openM('m-broadcast')")&&html.includes("openM('m-invite')"));
 ok('ops css',css.includes('.dash-ops-grid')&&css.includes('.dash-qa-menu')&&css.includes('.dash-kpi-row'));
 ok('helpers',src04.includes('function dashOpsAttentionItems')&&src04.includes('function dashOpsRecentReports')&&src04.includes('function dashOpsExpiringPackages')&&src04.includes('function dashOpsRecentActivity')&&src04.includes('function renderDashOps'));
-ok('list collapse',src04.includes('function dashListSection')&&src04.includes('DASH_LIST_PREVIEW=3')&&src04.includes('function toggleDashListExpand')&&css.includes('.dash-list-more'));
-ok('followup collapse',src04.includes("dashListSection('dash-checkin'")&&src04.includes("'dash-checkin':renderDashCheckinFollowup"));
+ok('list collapse',src04.includes('function dashListSection')&&src04.includes('DASH_LIST_PREVIEW=2')&&src04.includes('function toggleDashListExpand')&&css.includes('.dash-list-more'));
+ok('legacy followups stubbed',/function renderDashCheckinFollowup\(\)\{[\s\S]*?el\.style\.display='none'/.test(src04)&&src04.includes("'dash-checkin':renderDashCheckinFollowup"));
+ok('kpi first + dense css',html.indexOf('id="d-kpi-row"')<html.indexOf('id="dash-client-pipeline"')&&css.includes('.dash-kpi-body')&&css.includes('#screen-dashboard .dash-content'));
 ok('renderDash wires ops',src04.includes('renderDashOps()')&&src04.includes('dashOpsRecentReports()')&&src04.includes('dashOpsExpiringPackages(7)'));
-ok('cache bumps',html.includes('04-client-portal.js?v=28')&&html.includes('styles.css?v=37'));
+ok('cache bumps',html.includes('04-client-portal.js?v=29')&&html.includes('styles.css?v=38'));
 
 const today=new Date();
 today.setHours(12,0,0,0);
@@ -133,16 +134,16 @@ ok('reminders has report deadline',rem.some(r=>/raport/i.test(r.txt)&&/Bartek/.t
 vm.runInNewContext(
   extract(src04,'dashListExpanded')+'\n'+
   extract(src04,'dashListSection')+'\n'+
-  'var DASH_LIST_PREVIEW=3;window._dashListExpanded={};'+
+  'var DASH_LIST_PREVIEW=2;window._dashListExpanded={};'+
   'const html=dashListSection("t",[1,2,3,4,5],x=>"<i>"+x+"</i>","");'+
-  'const collapsed=!window._dashListExpanded.t&&html.includes("Pokaż więcej (2)")&&html.includes("<i>1</i>")&&!html.includes("<i>4</i>");'+
+  'const collapsed=!window._dashListExpanded.t&&html.includes("Pokaż więcej (3)")&&html.includes("<i>1</i>")&&html.includes("<i>2</i>")&&!html.includes("<i>3</i>");'+
   'window._dashListExpanded.t=true;'+
   'const expanded=dashListSection("t",[1,2,3,4,5],x=>"<i>"+x+"</i>","");'+
   'const expandedOk=expanded.includes("Zwiń listę")&&expanded.includes("<i>5</i>");'+
   'if(!collapsed||!expandedOk)throw new Error("dashListSection collapse failed");',
-  {console,DASH_LIST_PREVIEW:3,window:{_dashListExpanded:{}}}
+  {console,DASH_LIST_PREVIEW:2,window:{_dashListExpanded:{}}}
 );
-ok('dashListSection preview 3','manual');
+ok('dashListSection preview 2','manual');
 
 if(failed){console.error('\n'+failed+' failed');process.exit(1);}
 console.log('\nAll dash ops panel checks passed');
