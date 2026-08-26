@@ -40,6 +40,7 @@ ok('chip css',css.includes('.cp-analytics-chip')&&css.includes('.cp-analytics-ch
 ok('pct bar chart',src08.includes('function cpPctBarChart'));
 ok('client app adherence',/Adherencja 30d/.test(src04)&&/cpHabitAdherenceWeekly/.test(src04));
 ok('cache bumps',html.includes('08-client-profile-extras.js?v=30')&&html.includes('04-client-portal.js?v=32')&&html.includes('styles.css?v=43'));
+ok('cache bumps',html.includes('08-client-profile-extras.js?v=29')&&html.includes('04-client-portal.js?v=32')&&html.includes('styles.css?v=43'));
 
 const today=new Date();
 today.setHours(12,0,0,0);
