@@ -1921,27 +1921,20 @@ body,
 }
 .method-rationale:not([open]) .method-rationale-ctx{display:block;}
 .method-rationale:not([open]) .method-rationale-hint-open,
-.method-rationale[open] .method-rationale-hint-closed,
-.method-rationale[open] .mr-expand-cta{display:none;}
-.method-rationale:not([open]) .mr-action-btn--ghost{display:none;}
-.mr-expand-cta{
-  display:inline-flex;align-items:center;padding:6px 12px;border-radius:8px;
-  border:1px solid rgba(var(--accent-rgb),0.45);background:var(--accent);color:#fff;
-  font-size:11px;font-weight:800;font-family:var(--font-ui);letter-spacing:0.02em;
-  pointer-events:none;
+.method-rationale[open] .method-rationale-hint-closed{display:none;}
+.method-rationale:not([open]) .mr-more-btn{
+  border-color:rgba(var(--accent-rgb),0.5);background:var(--accent);color:#fff;
 }
+.method-rationale:not([open]) .mr-more-btn:hover{background:var(--accent-red-hover);border-color:var(--accent-red-hover);color:#fff;}
 .method-rationale-actions{display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:6px;}
 .mr-action-btn{
   appearance:none;border:1px solid rgba(var(--accent-rgb),0.4);background:rgba(var(--accent-rgb),0.12);
   color:var(--accent);font-size:11px;font-weight:700;font-family:var(--font-ui);
-  padding:6px 10px;border-radius:8px;cursor:pointer;line-height:1.2;
+  padding:6px 12px;border-radius:8px;cursor:pointer;line-height:1.2;
   transition:background .12s,border-color .12s,color .12s;
 }
 .mr-action-btn:hover{background:rgba(var(--accent-rgb),0.2);border-color:var(--accent);}
-.mr-action-btn--ghost{
-  border-color:var(--border-subtle);background:rgba(255,255,255,0.03);color:var(--text-secondary);
-}
-.mr-action-btn--ghost:hover{border-color:var(--border-default);color:var(--text-primary);background:var(--bg-hover);}
+.mr-more-btn{display:inline-flex;align-items:center;justify-content:center;min-width:72px;}
 .method-rationale-badge{
   display:inline-flex;align-items:center;justify-content:center;
   width:28px;height:28px;border-radius:8px;border:1px solid var(--border-subtle);
