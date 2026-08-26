@@ -35,8 +35,9 @@ ok('today plan',html.includes('Dzisiejszy plan')&&html.includes('id="d-today-ses
 ok('quick actions',html.includes('id="dash-qa-btn"')&&html.includes('id="dash-qa-menu"')&&html.includes("openM('m-broadcast')")&&html.includes("openM('m-invite')"));
 ok('ops css',css.includes('.dash-ops-grid')&&css.includes('.dash-qa-menu')&&css.includes('.dash-kpi-row'));
 ok('helpers',src04.includes('function dashOpsAttentionItems')&&src04.includes('function dashOpsRecentReports')&&src04.includes('function dashOpsExpiringPackages')&&src04.includes('function dashOpsRecentActivity')&&src04.includes('function renderDashOps'));
+ok('list collapse',src04.includes('function dashListSection')&&src04.includes('DASH_LIST_PREVIEW=3')&&src04.includes('function toggleDashListExpand')&&css.includes('.dash-list-more'));
 ok('renderDash wires ops',src04.includes('renderDashOps()')&&src04.includes('dashOpsRecentReports()')&&src04.includes('dashOpsExpiringPackages(7)'));
-ok('cache bumps',html.includes('04-client-portal.js?v=25')&&html.includes('styles.css?v=36'));
+ok('cache bumps',html.includes('04-client-portal.js?v=26')&&html.includes('styles.css?v=37'));
 
 const today=new Date();
 today.setHours(12,0,0,0);
@@ -127,6 +128,20 @@ ok('activity skips planned',!acts.some(s=>s.id==='s1'||s.id==='s2'||s.id==='s4')
 const rem=sandbox.dashOpsReminders();
 ok('reminders has package',rem.some(r=>/Pakiet/.test(r.txt)&&/Anna/.test(r.txt)));
 ok('reminders has report deadline',rem.some(r=>/raport/i.test(r.txt)&&/Bartek/.test(r.txt)));
+
+vm.runInNewContext(
+  extract(src04,'dashListExpanded')+'\n'+
+  extract(src04,'dashListSection')+'\n'+
+  'var DASH_LIST_PREVIEW=3;window._dashListExpanded={};'+
+  'const html=dashListSection("t",[1,2,3,4,5],x=>"<i>"+x+"</i>","");'+
+  'const collapsed=!window._dashListExpanded.t&&html.includes("Pokaż więcej (2)")&&html.includes("<i>1</i>")&&!html.includes("<i>4</i>");'+
+  'window._dashListExpanded.t=true;'+
+  'const expanded=dashListSection("t",[1,2,3,4,5],x=>"<i>"+x+"</i>","");'+
+  'const expandedOk=expanded.includes("Zwiń listę")&&expanded.includes("<i>5</i>");'+
+  'if(!collapsed||!expandedOk)throw new Error("dashListSection collapse failed");',
+  {console,DASH_LIST_PREVIEW:3,window:{_dashListExpanded:{}}}
+);
+ok('dashListSection preview 3','manual');
 
 if(failed){console.error('\n'+failed+' failed');process.exit(1);}
 console.log('\nAll dash ops panel checks passed');

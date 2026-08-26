@@ -5641,6 +5641,31 @@ function toggleDashQuickActions(evOrClose){
 window.toggleDashQuickActions=toggleDashQuickActions;
 document.addEventListener('click',()=>{const m=document.getElementById('dash-qa-menu');if(m&&!m.hidden)toggleDashQuickActions(false);});
 
+var DASH_LIST_PREVIEW=3;
+window._dashListExpanded=window._dashListExpanded||{};
+function dashListExpanded(listId){
+  return!!(window._dashListExpanded&&window._dashListExpanded[listId]);
+}
+function dashListSection(listId,items,renderItem,emptyHtml){
+  const preview=DASH_LIST_PREVIEW;
+  if(!items||!items.length)return emptyHtml||'';
+  const expanded=dashListExpanded(listId);
+  const visible=expanded?items:items.slice(0,preview);
+  const rest=items.length-preview;
+  const body=visible.map((it,i)=>renderItem(it,i)).join('');
+  const more=items.length>preview?`<button type="button" class="dash-list-more" onclick="toggleDashListExpand('${listId}')" aria-expanded="${expanded?'true':'false'}">${expanded?'Zwiń listę ▲':('Pokaż więcej ('+rest+') ▾')}</button>`:'';
+  return body+more;
+}
+function toggleDashListExpand(listId){
+  window._dashListExpanded=window._dashListExpanded||{};
+  window._dashListExpanded[listId]=!window._dashListExpanded[listId];
+  if(listId==='dash-pipeline')renderDashClientPipeline();
+  else if(listId==='dash-today')renderDashToday();
+  else renderDashOps();
+}
+window.toggleDashListExpand=toggleDashListExpand;
+window.dashListSection=dashListSection;
+
 function dashOpsLiveClients(){
   return(window.CL||[]).filter(c=>c&&c.status!=='archived');
 }
@@ -5761,19 +5786,19 @@ function renderDashOps(){
 
   if(attEl){
     const items=dashOpsAttentionItems();
-    attEl.innerHTML=items.length?items.map(it=>`<div class="dash-ops-item">
+    attEl.innerHTML=dashListSection('dash-attention',items,it=>`<div class="dash-ops-item">
       <span class="dash-ops-tag" style="background:${it.col}22;color:${it.col};">${esc(it.tag)}</span>
       <div class="dash-ops-item-body">
         <div class="dash-ops-item-title">${esc(it.name)}</div>
         <div class="dash-ops-item-meta">${esc(it.meta)}</div>
       </div>
       <button class="btn btn-ghost btn-sm" onclick="${it.cta}">${esc(it.ctaLbl)}</button>
-    </div>`).join(''):`<div class="dash-ops-empty">Wszystko na bieżąco — brak alertów.</div>`;
+    </div>`,`<div class="dash-ops-empty">Wszystko na bieżąco — brak alertów.</div>`);
   }
 
   if(repEl){
-    const reps=dashOpsRecentReports().slice(0,8);
-    repEl.innerHTML=reps.length?reps.map(r=>{
+    const reps=dashOpsRecentReports();
+    repEl.innerHTML=dashListSection('dash-reports',reps,r=>{
       if(r.kind==='checkin'){
         const a=r.answers||{};
         const bits=[
@@ -5799,12 +5824,12 @@ function renderDashOps(){
         </div>
         <button class="btn btn-ghost btn-sm" onclick="openClientProfile('${esc(r.clientId)}');setTimeout(()=>{if(typeof setCPTab==='function')setCPTab('forms');},150)">Profil</button>
       </div>`;
-    }).join(''):`<div class="dash-ops-empty">Brak nowych raportów do sprawdzenia.</div>`;
+    },`<div class="dash-ops-empty">Brak nowych raportów do sprawdzenia.</div>`);
   }
 
   if(actEl){
-    const acts=dashOpsRecentActivity();
-    actEl.innerHTML=acts.length?acts.map(s=>{
+    const acts=dashOpsRecentActivity(12);
+    actEl.innerHTML=dashListSection('dash-activity',acts,s=>{
       const c=(window.CL||[]).find(x=>x.id===s.clientId);
       const title=typeof sessionTitle==='function'?sessionTitle(s):(s.type||s.name||'Trening');
       const sets=typeof sessionSetsCount==='function'?sessionSetsCount(s):0;
@@ -5821,12 +5846,12 @@ function renderDashOps(){
         </div>
         <button class="btn btn-ghost btn-sm" onclick="editSession('${esc(s.id)}')">Szczegóły</button>
       </div>`;
-    }).join(''):`<div class="dash-ops-empty">Brak niedawno ukończonych treningów.</div>`;
+    },`<div class="dash-ops-empty">Brak niedawno ukończonych treningów.</div>`);
   }
 
   if(expEl){
     const pkgs=dashOpsExpiringPackages(7);
-    expEl.innerHTML=pkgs.length?pkgs.map(p=>{
+    expEl.innerHTML=dashListSection('dash-expiring',pkgs,p=>{
       const name=esc(p.clientName||((window.CL||[]).find(c=>c.id===p.clientId)||{}).name||'Klient');
       const d=Math.ceil((new Date(p.expiresDate+'T12:00:00')-new Date())/86400000);
       return `<div class="dash-ops-item">
@@ -5836,18 +5861,18 @@ function renderDashOps(){
         </div>
         <button class="btn btn-primary btn-sm" onclick="openClientProfile('${esc(p.clientId)}');setTimeout(()=>{if(typeof setCPTab==='function')setCPTab('payments');},150)">Odnów</button>
       </div>`;
-    }).join(''):`<div class="dash-ops-empty">Żaden pakiet nie wygasa w ciągu 7 dni.</div>`;
+    },`<div class="dash-ops-empty">Żaden pakiet nie wygasa w ciągu 7 dni.</div>`);
   }
 
   if(remEl){
     const rem=dashOpsReminders();
-    remEl.innerHTML=rem.length?rem.map(r=>`<div class="dash-ops-item">
+    remEl.innerHTML=dashListSection('dash-reminders',rem,r=>`<div class="dash-ops-item">
       <span class="dash-ops-tag" style="background:${r.col}22;color:${r.col};">!</span>
       <div class="dash-ops-item-body">
         <div class="dash-ops-item-title">${esc(r.txt)}</div>
         <div class="dash-ops-item-meta">${esc(r.meta)}</div>
       </div>
-    </div>`).join(''):`<div class="dash-ops-empty">Brak nadchodzących terminów.</div>`;
+    </div>`,`<div class="dash-ops-empty">Brak nadchodzących terminów.</div>`);
   }
 }
 window.dashOpsExpiringPackages=dashOpsExpiringPackages;
@@ -5945,20 +5970,19 @@ function renderDashClientPipeline(){
       </div>
       <button class="btn btn-ghost btn-sm" onclick="goTo('clients')">Lista klientów →</button>
     </div>
-    <div style="display:flex;flex-direction:column;gap:8px;">
-      ${rows.slice(0,8).map(row=>{
+    <div class="dash-pipeline-list">
+      ${dashListSection('dash-pipeline',rows,row=>{
         const c=row.client;const st=row.status;
         const miss=(st.missingLabels||[]).slice(0,3).join(' · ');
         const cta=nextLabel[st.next]||'Dokończ';
-        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--s3);border:1px solid var(--border);border-radius:10px;">
+        return `<div class="dash-pipeline-row">
           <div style="flex:1;min-width:0;">
             <div style="font-size:13px;font-weight:700;">${escHtml(c.name||'Klient')}</div>
             <div style="font-size:11px;color:var(--muted);margin-top:2px;">${st.done}/${st.total} · ${escHtml(miss)}</div>
           </div>
           <button class="btn btn-primary btn-sm" onclick="openClientOnboardChecklist('${escHtml(c.id)}')">${escHtml(cta)}</button>
         </div>`;
-      }).join('')}
-      ${rows.length>8?`<div style="font-size:11px;color:var(--muted);text-align:center;">+ ${rows.length-8} więcej na liście klientów</div>`:''}
+      },'')}
     </div>
   </div>`;
 }
@@ -6453,35 +6477,28 @@ function renderDashToday(){
     return {txt:s.date,col:'var(--muted)'};
   }
 
-  function sessRow(s,i,col){
+  function sessRow(s,i){
     const c=CL.find(x=>x.id===s.clientId);
     const ci=CL.findIndex(x=>x.id===s.clientId);
     const clCol=SESS_COLORS[(ci>=0?ci:i)%6];
     const av=c?(c.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase()):'?';
     const tl=timeLabel(s);
-    return `<div style="display:flex;align-items:center;gap:12px;padding:16px 4px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.1s;" onclick="editSession('${s.id}')" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background=''">
-      <div style="width:3px;height:44px;background:${clCol};border-radius:99px;flex-shrink:0;"></div>
-      <div style="width:36px;height:36px;border-radius:50%;background:${clCol}22;color:${clCol};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:13px;flex-shrink:0;">${av}</div>
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:13px;font-weight:700;">${c?c.name:'Klient'}</div>
-        <div style="font-size:11px;color:var(--muted);">${s.type||'Trening personalny'} · ${s.duration||60} min</div>
+    return `<div class="dash-today-row" onclick="editSession('${s.id}')">
+      <div class="dash-today-bar" style="background:${clCol};"></div>
+      <div class="dash-today-av" style="background:${clCol}22;color:${clCol};">${av}</div>
+      <div class="dash-today-body">
+        <div class="dash-today-name">${c?c.name:'Klient'}</div>
+        <div class="dash-today-meta">${s.type||'Trening personalny'} · ${s.duration||60} min</div>
       </div>
-      ${tl?`<div style="font-size:11px;font-weight:600;color:${tl.col};background:${tl.col}18;padding:3px 10px;border-radius:99px;white-space:nowrap;">${tl.txt}</div>`:''}
-      <button onclick="event.stopPropagation();editSession('${s.id}')" class="btn btn-ghost btn-sm" style="font-size:12px;padding:8px 16px;flex-shrink:0;">Szczegóły</button>
+      ${tl?`<div class="dash-today-badge" style="color:${tl.col};background:${tl.col}18;">${tl.txt}</div>`:''}
+      <button onclick="event.stopPropagation();editSession('${s.id}')" class="btn btn-ghost btn-sm">Szczegóły</button>
     </div>`;
   }
 
-  let html='';
+  const allSess=[...todaySess,...tomorrowSess];
 
-  if(todaySess.length){
-    html+=todaySess.map((s,i)=>sessRow(s,i)).join('');
-  }
-  if(tomorrowSess.length){
-    html+=tomorrowSess.map((s,i)=>sessRow(s,todaySess.length+i)).join('');
-  }
-
-  if(!todaySess.length&&!tomorrowSess.length){
-    html=`<div style="padding:8px 0 4px;">
+  if(!allSess.length){
+    el.innerHTML=`<div style="padding:8px 0 4px;">
       <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Brak sesji na dziś i jutro</div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Odpal trening od razu albo dopisz sesję do kalendarza.</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -6489,9 +6506,10 @@ function renderDashToday(){
         <button class="btn btn-ghost btn-sm" onclick="openM('m-session')">+ Dodaj do kalendarza</button>
       </div>
     </div>`;
+    return;
   }
 
-  el.innerHTML=html;
+  el.innerHTML=dashListSection('dash-today',allSess,(s,i)=>sessRow(s,i),'');
 }
 
 function renderDashTasks(){
