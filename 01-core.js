@@ -1380,6 +1380,112 @@ function habitWeekHtml(t,today){
 }
 window.habitWeekHtml=habitWeekHtml;
 
+/** Biblioteka z progress-nawyki: fazy dnia + XP. */
+const HABIT_LIBRARY=[
+  {id:'m1',phase:'morning',phaseLabel:'🌅 Poranek',name:'Wstań bez odkładania alarmu',meta:'W ciągu 5 min od budzika',xp:15,cat:'lifestyle',emoji:'⏰'},
+  {id:'m2',phase:'morning',name:'Szklanka wody',meta:'Nawodnienie przed kawą',xp:5,cat:'lifestyle',emoji:'💧'},
+  {id:'m3',phase:'morning',name:'5 min planowania dnia',meta:'3 priorytety na dziś',xp:10,cat:'lifestyle',emoji:'📝'},
+  {id:'mv1',phase:'move',phaseLabel:'🏃 Ruch',name:'Trening / aktywność fizyczna',meta:'Min. 30 min',xp:25,cat:'trening',emoji:'🏋️'},
+  {id:'mv2',phase:'move',name:'10 000 kroków',meta:'Rozbij na kilka wyjść',xp:10,cat:'trening',emoji:'🚶'},
+  {id:'n1',phase:'nutrition',phaseLabel:'🥗 Odżywianie',name:'Zdrowe śniadanie',meta:'Białko + warzywa',xp:10,cat:'dieta',emoji:'🍳'},
+  {id:'n2',phase:'nutrition',name:'Bez cukru / słodyczy',meta:'Zero przetworzonego cukru',xp:15,cat:'dieta',emoji:'🚫'},
+  {id:'n3',phase:'nutrition',name:'2L wody',meta:'Przez cały dzień',xp:10,cat:'dieta',emoji:'💧'},
+  {id:'f1',phase:'focus',phaseLabel:'📚 Fokus',name:'Czytanie — min. 20 stron',meta:'Książka, nie social media',xp:20,cat:'lifestyle',emoji:'📖'},
+  {id:'f2',phase:'focus',name:'Nauka języka — 15 min',meta:'Aplikacja lub kurs',xp:15,cat:'lifestyle',emoji:'🗣️'},
+  {id:'f3',phase:'focus',name:'Bez telefonu przez 2h',meta:'Brak powiadomień',xp:15,cat:'lifestyle',emoji:'📵'},
+  {id:'s1',phase:'social',phaseLabel:'👨‍👧 Rodzina',name:'Czas z dziećmi — 30 min',meta:'Bez telefonu, pełna obecność',xp:25,cat:'lifestyle',emoji:'👨‍👧'},
+  {id:'e1',phase:'evening',phaseLabel:'🌙 Wieczór',name:'Przegląd dnia — 5 min',meta:'Co poszło? Co zmienić?',xp:10,cat:'lifestyle',emoji:'🪞'},
+  {id:'e2',phase:'evening',name:'Sen przed 23:00',meta:'Min. 7h snu',xp:15,cat:'lifestyle',emoji:'😴'},
+];
+window.HABIT_LIBRARY=HABIT_LIBRARY;
+
+const HABIT_PHASE_ORDER=['morning','move','nutrition','focus','social','evening'];
+window.HABIT_PHASE_ORDER=HABIT_PHASE_ORDER;
+
+function habitLibraryById(id){
+  return HABIT_LIBRARY.find(h=>h.id===id)||null;
+}
+window.habitLibraryById=habitLibraryById;
+
+function habitPhaseLabel(phase){
+  const hit=HABIT_LIBRARY.find(h=>h.phase===phase&&h.phaseLabel);
+  return hit?hit.phaseLabel:phase||'';
+}
+window.habitPhaseLabel=habitPhaseLabel;
+
+function habitXpOf(t){
+  const n=Number(t&&t.xp);
+  if(n>0)return n;
+  const lib=t&&t.libId?habitLibraryById(t.libId):null;
+  return lib?Number(lib.xp)||0:10;
+}
+window.habitXpOf=habitXpOf;
+
+/** XP z odhaczeń nawyków klienta (suma doneDates × xp). */
+function clientHabitXpTotal(clientId,tasks){
+  const list=(tasks||window.TASKS||[]).filter(t=>t&&t.clientId===clientId&&isHabit(t));
+  let xp=0;
+  list.forEach(t=>{
+    const per=habitXpOf(t);
+    xp+=((t.doneDates||[]).length)*per;
+  });
+  return xp;
+}
+window.clientHabitXpTotal=clientHabitXpTotal;
+
+function clientHabitBestStreak(clientId,tasks,today){
+  today=today||(typeof todayYmd==='function'?todayYmd():'');
+  const list=(tasks||window.TASKS||[]).filter(t=>t&&t.clientId===clientId&&isHabit(t));
+  if(!list.length)return 0;
+  return Math.max(...list.map(t=>habitStreak(t,today)),0);
+}
+window.clientHabitBestStreak=clientHabitBestStreak;
+
+function habitTaskFromLibrary(lib,clientId){
+  const h=typeof lib==='string'?habitLibraryById(lib):lib;
+  if(!h||!clientId)return null;
+  const base={
+    id:typeof newId==='function'?newId('t'):('t_'+Date.now()),
+    title:h.name,
+    clientId,
+    due:'',
+    priority:'medium',
+    cat:h.cat||'lifestyle',
+    desc:h.meta||'',
+    status:'open',
+    kind:'habit',
+    repeat:'daily',
+    doneDates:[],
+    libId:h.id,
+    phase:h.phase,
+    emoji:h.emoji||'🔥',
+    xp:Number(h.xp)||10,
+    meta:h.meta||'',
+    createdAt:new Date().toISOString()
+  };
+  return typeof withTrainer==='function'?withTrainer(base):base;
+}
+window.habitTaskFromLibrary=habitTaskFromLibrary;
+
+async function assignHabitLibraryToClient(clientId,libIds){
+  if(!clientId){if(typeof notify==='function')notify('Wybierz klienta!');return 0;}
+  const ids=libIds&&libIds.length?libIds:HABIT_LIBRARY.map(h=>h.id);
+  const existing=(window.TASKS||[]).filter(t=>t&&t.clientId===clientId&&isHabit(t));
+  const haveLib=new Set(existing.map(t=>t.libId).filter(Boolean));
+  const haveTitle=new Set(existing.map(t=>String(t.title||'').toLowerCase()));
+  let n=0;
+  for(const id of ids){
+    const lib=habitLibraryById(id);if(!lib)continue;
+    if(haveLib.has(lib.id)||haveTitle.has(String(lib.name).toLowerCase()))continue;
+    const task=habitTaskFromLibrary(lib,clientId);if(!task)continue;
+    (window.TASKS||(window.TASKS=[])).push(task);
+    if(typeof persistById==='function')await persistById('tasks',task);
+    haveLib.add(lib.id);haveTitle.add(String(lib.name).toLowerCase());n++;
+  }
+  return n;
+}
+window.assignHabitLibraryToClient=assignHabitLibraryToClient;
+
 function onHabitToggle(){
   const h=document.getElementById('task-habit');
   const c=document.getElementById('task-challenge');

@@ -2078,10 +2078,14 @@ function renderTasks(){
   const lbl=document.getElementById('task-count-lbl');if(lbl)lbl.textContent=filtered.length+' '+(filtered.length===1?'zadanie':filtered.length<5?'zadania':'zadań');
   const el=document.getElementById('tasks-list');
   if(!el)return;
-  if(!filtered.length){el.innerHTML=`<div style="text-align:center;padding:60px;color:var(--muted);"><div style="font-size:40px;margin-bottom:12px;opacity:0.3;">✅</div><div style="font-size:15px;font-weight:600;margin-bottom:6px;">Brak zadań</div><div style="font-size:12px;margin-bottom:20px;">Dodaj zadanie lub użyj szablonu</div><div style="display:flex;gap:8px;justify-content:center;"><button class="btn btn-ghost btn-sm" onclick="openTaskTemplates()">📋 Szablony</button><button class="btn btn-primary btn-sm" onclick="openM('m-task')">+ Zadanie</button></div></div>`;return;}
+  const banner=taskFilter==='habits'?habitPackBannerHTML():'';
+  if(!filtered.length){
+    el.innerHTML=banner+`<div style="text-align:center;padding:60px;color:var(--muted);"><div style="font-size:40px;margin-bottom:12px;opacity:0.3;">${taskFilter==='habits'?'🔥':'✅'}</div><div style="font-size:15px;font-weight:600;margin-bottom:6px;">${taskFilter==='habits'?'Brak nawyków':'Brak zadań'}</div><div style="font-size:12px;margin-bottom:20px;">${taskFilter==='habits'?'Przypisz pakiet Progress Nawyki albo dodaj pojedynczy nawyk.':'Dodaj zadanie lub użyj szablonu'}</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">${taskFilter==='habits'?`<button class="btn btn-primary btn-sm" onclick="openHabitPackModal()">🔥 Progress Nawyki</button>`:`<button class="btn btn-ghost btn-sm" onclick="openTaskTemplates()">📋 Szablony</button>`}<button class="btn ${taskFilter==='habits'?'btn-ghost':'btn-primary'} btn-sm" onclick="openM('m-task')">+ ${taskFilter==='habits'?'Nawyk':'Zadanie'}</button></div></div>`;
+    return;
+  }
   const groups={};
   filtered.forEach(t=>{const key=t.clientId||'__general';if(!groups[key])groups[key]=[];groups[key].push(t);});
-  let html='';
+  let html=banner;
   Object.entries(groups).forEach(([cid,tasks])=>{
     const c=CL.find(x=>x.id===cid);const cname=c?c.name:'Ogólne';const ci=CL.indexOf(c);
     html+=`<div style="margin-bottom:16px;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">${c?`<div style="width:24px;height:24px;border-radius:50%;background:${COLS[ci%5]}22;color:${COLS[ci%5]};display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:11px;flex-shrink:0;">${getInit(cname)}</div>`:'<div style="width:24px;height:24px;border-radius:50%;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:12px;">📋</div>'}<span style="font-size:13px;font-weight:700;">${cname}</span><span class="pill pill-muted" style="font-size:10px;">${tasks.length}</span><div style="flex:1;height:1px;background:var(--border);"></div></div>`;
@@ -2101,7 +2105,8 @@ function renderTasks(){
         <div class="task-body" onclick="editTask('${t.id}')" style="cursor:pointer;">
           <div class="task-title${isDone?' done':''}">${t.title}</div>
           <div class="task-meta">
-            ${habit?`<span class="pill" style="background:rgba(201,123,63,0.18);color:var(--orange);font-size:9px;">🔥 Nawyk</span>`:''}
+            ${habit?`<span class="pill" style="background:rgba(201,123,63,0.18);color:var(--orange);font-size:9px;">🔥 Nawyk${t.xp?' · +'+t.xp+' XP':''}</span>`:''}
+            ${habit&&t.phase?`<span class="pill" style="background:var(--s3);color:var(--muted);font-size:9px;">${escHtml((t.emoji?t.emoji+' ':'')+(typeof habitPhaseLabel==='function'?habitPhaseLabel(t.phase).replace(/^[^ ]+ /,'') :t.phase))}</span>`:''}
             ${ch?`<span class="pill" style="background:rgba(201,162,39,0.18);color:var(--gold);font-size:9px;">🏆 Wyzwanie</span>`:''}
             ${t.cat?`<span class="pill" style="background:${catCol}22;color:${catCol};font-size:9px;">${TASK_CAT_LABELS[t.cat]||t.cat}</span>`:''}
             ${habit||ch?'':`<div class="task-prio-dot" style="background:${prioCol};"></div><span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${TASK_PRIO_LABELS[t.priority]||''}</span>`}
@@ -2297,6 +2302,100 @@ function applyHabitChip(title,cat){
   if(chb)chb.checked=false;
   if(typeof syncTaskKindUi==='function')syncTaskKindUi();
   else if(typeof onHabitToggle==='function')onHabitToggle();
+}
+
+function habitPackSetClient(id,name){
+  const hid=document.getElementById('habit-pack-client');
+  const inp=document.getElementById('habit-pack-client-search');
+  if(hid)hid.value=id||'';
+  if(inp)inp.value=name||'';
+  const box=document.getElementById('habit-pack-client-results');
+  if(box)box.style.display='none';
+}
+window.habitPackSetClient=habitPackSetClient;
+
+function habitPackClientSearch(){
+  const q=String((document.getElementById('habit-pack-client-search')||{}).value||'').toLowerCase().trim();
+  const box=document.getElementById('habit-pack-client-results');if(!box)return;
+  const list=(window.CL||[]).filter(c=>c&&c.status!=='archived'&&(!q||String(c.name||'').toLowerCase().includes(q))).slice(0,12);
+  if(!list.length){box.style.display='none';box.innerHTML='';return;}
+  box.style.display='block';
+  box.innerHTML=list.map(c=>`<button type="button" style="display:block;width:100%;text-align:left;padding:8px 10px;background:transparent;border:none;color:var(--text);cursor:pointer;font-size:12px;" onclick="habitPackSetClient('${escHtml(c.id)}','${escHtml(c.name||'').replace(/'/g,"\\'")}')">${escHtml(c.name||'Klient')}</button>`).join('');
+}
+window.habitPackClientSearch=habitPackClientSearch;
+
+function openHabitPackModal(preClientId){
+  const lib=window.HABIT_LIBRARY||[];
+  const list=document.getElementById('habit-pack-list');
+  if(list){
+    let html='';
+    let lastPhase='';
+    lib.forEach(h=>{
+      if(h.phase!==lastPhase){
+        lastPhase=h.phase;
+        html+=`<div class="habit-pack-phase">${escHtml(h.phaseLabel||(typeof habitPhaseLabel==='function'?habitPhaseLabel(h.phase):h.phase))}</div>`;
+      }
+      html+=`<label class="habit-pack-row">
+        <input type="checkbox" class="habit-pack-cb" data-lib="${escHtml(h.id)}" data-phase="${escHtml(h.phase)}" checked>
+        <span class="habit-pack-emoji">${escHtml(h.emoji||'🔥')}</span>
+        <span class="habit-pack-body">
+          <span class="habit-pack-name">${escHtml(h.name)}</span>
+          <span class="habit-pack-meta">${escHtml(h.meta||'')}</span>
+        </span>
+        <span class="habit-pack-xp">+${Number(h.xp)||0} XP</span>
+      </label>`;
+    });
+    list.innerHTML=html;
+  }
+  if(preClientId){
+    const c=(window.CL||[]).find(x=>x.id===preClientId);
+    habitPackSetClient(preClientId,c?c.name:'');
+  }else{
+    const fromFilter=(document.getElementById('task-client-filter')||{}).value||'';
+    if(fromFilter){
+      const c=(window.CL||[]).find(x=>x.id===fromFilter);
+      habitPackSetClient(fromFilter,c?c.name:'');
+    }else habitPackSetClient('','');
+  }
+  openM('m-habit-pack');
+}
+window.openHabitPackModal=openHabitPackModal;
+
+function habitPackSelectAll(on){
+  document.querySelectorAll('.habit-pack-cb').forEach(cb=>{cb.checked=!!on;});
+}
+window.habitPackSelectAll=habitPackSelectAll;
+
+function habitPackSelectPhase(phase){
+  document.querySelectorAll('.habit-pack-cb').forEach(cb=>{
+    cb.checked=cb.getAttribute('data-phase')===phase;
+  });
+}
+window.habitPackSelectPhase=habitPackSelectPhase;
+
+async function confirmHabitPackAssign(){
+  const cid=(document.getElementById('habit-pack-client')||{}).value||'';
+  if(!cid){notify('Wybierz klienta!');return;}
+  const ids=[...document.querySelectorAll('.habit-pack-cb:checked')].map(cb=>cb.getAttribute('data-lib')).filter(Boolean);
+  if(!ids.length){notify('Zaznacz przynajmniej jeden nawyk');return;}
+  const n=typeof assignHabitLibraryToClient==='function'?await assignHabitLibraryToClient(cid,ids):0;
+  closeM('m-habit-pack');
+  if(typeof setTaskFilter==='function')setTaskFilter('habits');
+  else if(typeof renderTasks==='function')renderTasks();
+  const c=(window.CL||[]).find(x=>x.id===cid);
+  notify(n?('✓ Przypisano '+n+' nawyków'+(c?' → '+c.name:'')):'Te nawyki są już u klienta');
+  try{if(typeof renderDashHabitFollowup==='function')renderDashHabitFollowup();}catch(e){}
+}
+window.confirmHabitPackAssign=confirmHabitPackAssign;
+
+function habitPackBannerHTML(){
+  return `<div class="habit-pack-banner">
+    <div>
+      <div class="habit-pack-banner-title">🔥 Progress Nawyki</div>
+      <div class="habit-pack-banner-sub">Pula z aplikacji progress-nawyki — poranek, ruch, odżywianie, fokus, wieczór + XP. Przypisz klientowi pakiet dnia.</div>
+    </div>
+    <button type="button" class="btn btn-primary btn-sm" onclick="openHabitPackModal()">Przypisz pakiet →</button>
+  </div>`;
 }
 
 function applyChallengeChip(title,cat,days){

@@ -777,17 +777,39 @@ function capScreenHTML(scr,c){
         </div>`;
       })()}
       ${habits.length?`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
-        <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">🔥 Nawyki</div>
-        ${habits.map(t=>{
-          const done=typeof habitDoneOn==='function'&&today?habitDoneOn(t,today):false;
-          const streak=typeof habitStreak==='function'&&today?habitStreak(t,today):0;
-          return `<button type="button" class="cap-list-item" style="width:100%;text-align:left;background:none;border:none;cursor:pointer;padding:8px 0;" ${live?`onclick="clientToggleTask('${escHtml(t.id)}')"`:''}>
-          <div class="cap-check-circle">${done?'✓':''}</div>
-          <div style="flex:1;"><div style="font-size:12px;color:${CAP_TEXT};">${escHtml(t.title)}</div>
-          <div style="font-size:10px;color:${CAP_MUTED};">${streak?'🔥 '+streak+' '+(streak===1?'dzień':'dni')+' z rzędu':'Odhacz na dziś'}</div>
-          </div>
-        </button>`;
-        }).join('')}
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:10px;">
+          <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};">🔥 Nawyki</div>
+          <div style="font-size:11px;color:${CAP_MUTED};">${typeof clientHabitXpTotal==='function'?clientHabitXpTotal(c.id)+' XP · ':''}${typeof clientHabitBestStreak==='function'&&today?('streak '+clientHabitBestStreak(c.id,null,today)+'d'):''}</div>
+        </div>
+        ${(()=>{
+          const byPhase={};
+          habits.forEach(t=>{
+            const ph=t.phase||'other';
+            if(!byPhase[ph])byPhase[ph]=[];
+            byPhase[ph].push(t);
+          });
+          const order=(window.HABIT_PHASE_ORDER||[]).concat(['other']);
+          const phases=order.filter(p=>byPhase[p]&&byPhase[p].length);
+          const extra=Object.keys(byPhase).filter(p=>!order.includes(p));
+          return phases.concat(extra).map(ph=>{
+            const rows=byPhase[ph];
+            const label=ph==='other'?'⭐ Inne':(rows[0].phaseLabel||(typeof habitPhaseLabel==='function'?habitPhaseLabel(ph):ph));
+            const showPhase=phases.length+extra.length>1||ph!=='other';
+            return `${showPhase?`<div style="font-size:10px;color:${CAP_MUTED};text-transform:uppercase;letter-spacing:0.4px;margin:10px 0 4px;">${escHtml(label)}</div>`:''}
+            ${rows.map(t=>{
+              const done=typeof habitDoneOn==='function'&&today?habitDoneOn(t,today):false;
+              const streak=typeof habitStreak==='function'&&today?habitStreak(t,today):0;
+              const xp=typeof habitXpOf==='function'?habitXpOf(t):(Number(t.xp)||0);
+              return `<button type="button" class="cap-list-item" style="width:100%;text-align:left;background:none;border:none;cursor:pointer;padding:8px 0;" ${live?`onclick="clientToggleTask('${escHtml(t.id)}')"`:''}>
+              <div class="cap-check-circle">${done?'✓':''}</div>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:12px;color:${CAP_TEXT};">${t.emoji?escHtml(t.emoji)+' ':''}${escHtml(t.title)}</div>
+                <div style="font-size:10px;color:${CAP_MUTED};">${streak?'🔥 '+streak+' '+(streak===1?'dzień':'dni')+' z rzędu':(t.meta||'Odhacz na dziś')}${xp?' · +'+xp+' XP':''}</div>
+              </div>
+            </button>`;
+            }).join('')}`;
+          }).join('');
+        })()}
       </div>`:''}
       ${challenges.length?`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
         <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">🏆 Wyzwania</div>

@@ -13,7 +13,7 @@
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="globals.css?v=17">
-<link rel="stylesheet" href="styles.css?v=39">
+<link rel="stylesheet" href="styles.css?v=40">
 </head>
 <body>
 
@@ -718,6 +718,7 @@
     <div class="topbar-title">Zadania</div>
     <div class="topbar-actions">
       <button class="btn btn-ghost btn-sm" onclick="openTaskTemplates()">📋 Szablony</button>
+      <button class="btn btn-ghost btn-sm" onclick="openHabitPackModal()">🔥 Progress Nawyki</button>
       <button class="btn btn-primary btn-sm" onclick="openM('m-task')">+ Zadanie</button>
     </div>
   </div>
@@ -3196,10 +3197,11 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       </div>
       <div class="form-field"><label class="form-lbl">Zadanie</label><input type="text" class="form-input" id="task-title" placeholder="np. Wykonaj 3 treningi w tym tygodniu"></div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin:-4px 0 10px;">
-        <button type="button" class="btn btn-ghost btn-sm" onclick="applyHabitChip('Wypij 3L wody','lifestyle')">💧 Woda 3L</button>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="applyHabitChip('Sen 7–8h','lifestyle')">😴 Sen</button>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="applyHabitChip('8 000 kroków','lifestyle')">🚶 Kroki</button>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="applyHabitChip('Białko na każdym posiłku','dieta')">🥗 Białko</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="applyHabitChip('Szklanka wody','lifestyle')">💧 Woda</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="applyHabitChip('Sen przed 23:00','lifestyle')">😴 Sen</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="applyHabitChip('10 000 kroków','trening')">🚶 Kroki</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="applyHabitChip('Zdrowe śniadanie','dieta')">🍳 Śniadanie</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="openHabitPackModal()">🔥 Pakiet Nawyki</button>
         <button type="button" class="btn btn-ghost btn-sm" onclick="applyChallengeChip('21 dni bez słodyczy','dieta',21)">🏆 21 dni bez słodyczy</button>
         <button type="button" class="btn btn-ghost btn-sm" onclick="applyChallengeChip('14 dni treningu','trening',14)">🏆 14 dni treningu</button>
       </div>
@@ -3244,6 +3246,34 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <div class="form-field" id="task-due-wrap"><label class="form-lbl">Termin</label><input type="date" class="form-input" id="task-due"></div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-task')">Anuluj</button><button class="btn btn-primary" onclick="saveTask()">Dodaj zadanie</button></div>
+  </div>
+</div>
+
+<!-- PROGRESS NAWYKI — pakiet z progress-nawyki -->
+<div class="modal-ov" id="m-habit-pack">
+  <div class="modal modal-wide">
+    <div class="modal-hdr"><div class="modal-title">🔥 PROGRESS NAWYKI</div><button class="modal-close" onclick="closeM('m-habit-pack')">×</button></div>
+    <div class="modal-body">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Pula z aplikacji <strong>progress-nawyki</strong> — fazy dnia (poranek → wieczór) i XP. Przypisz klientowi cały dzień albo wybrane nawyki.</div>
+      <div class="form-field" style="position:relative;">
+        <label class="form-lbl">Klient</label>
+        <input class="form-select" id="habit-pack-client-search" placeholder="Wpisz imię i nazwisko..." autocomplete="off" oninput="habitPackClientSearch()" onfocus="habitPackClientSearch()">
+        <input type="hidden" id="habit-pack-client">
+        <div id="habit-pack-client-results" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;background:var(--s2);border:1px solid var(--border2);border-radius:8px;margin-top:4px;max-height:220px;overflow-y:auto;box-shadow:0 8px 20px rgba(0,0,0,0.4);"></div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">
+        <button type="button" class="btn btn-ghost btn-sm" onclick="habitPackSelectAll(true)">Zaznacz wszystkie</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="habitPackSelectAll(false)">Odznacz</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="habitPackSelectPhase('morning')">Tylko poranek</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="habitPackSelectPhase('move')">Tylko ruch</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="habitPackSelectPhase('nutrition')">Tylko odżywianie</button>
+      </div>
+      <div id="habit-pack-list" class="habit-pack-list"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeM('m-habit-pack')">Anuluj</button>
+      <button class="btn btn-primary" onclick="confirmHabitPackAssign()">Przypisz zaznaczone</button>
+    </div>
   </div>
 </div>
 
@@ -4061,12 +4091,12 @@ async function load(){
 
 <script src="ex-gif-manifest.js?v=17"></script>
 <script src="ex-photo-manifest.js?v=1"></script>
-<script src="01-core.js?v=34"></script>
+<script src="01-core.js?v=35"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=21"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=23"></script>
-<script src="04-client-portal.js?v=31"></script>
+<script src="04-client-portal.js?v=32"></script>
 <script src="05-clients-builder-plans-calendar.js?v=28"></script>
-<script src="06-inbox-exercises-ai-programs.js?v=25"></script>
+<script src="06-inbox-exercises-ai-programs.js?v=26"></script>
 <script src="07-forms-metrics-calculator.js?v=25"></script>
 <script src="08-client-profile-extras.js?v=29"></script>
 <script src="09-posture-kb-invites-private.js?v=32"></script>

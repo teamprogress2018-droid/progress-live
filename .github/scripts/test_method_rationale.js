@@ -37,7 +37,7 @@ ok('aplRenderPlan embeds',src03.includes('renderMethodRationaleHTML'));
 ok('summary prompt longer',src03.includes('3–5 zdań dla trenera początkującego'));
 ok('template rationale',src02.includes('tplcRefreshRationale')&&src02.includes('tplc-rationale'));
 ok('css method-rationale',css.includes('.method-rationale'));
-ok('cache bumps',html.includes('01-core.js?v=34')&&html.includes('05-clients-builder-plans-calendar.js?v=28')&&html.includes('styles.css?v=39'));
+ok('cache bumps',html.includes('01-core.js?v=35')&&html.includes('05-clients-builder-plans-calendar.js?v=28')&&html.includes('styles.css?v=40'));
 
 const sandbox={window:{},console};
 vm.createContext(sandbox);
