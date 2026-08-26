@@ -29,7 +29,7 @@ ok('dashboard active nav', /nav-item active" data-screen="dashboard"/.test(prima
 ok('no sidebar client panel', !html.includes('id="nav-clients-panel"'));
 ok('dashboard not under Więcej', !more.includes('data-screen="dashboard"'));
 ok('moreScreens without dashboard', /moreScreens=\[[^\]]*ondemand/.test(core) && !/moreScreens=\[[^\]]*dashboard/.test(core));
-ok('cache bump core v34', html.includes('01-core.js?v=37'));
+ok('cache bump core v34', html.includes('01-core.js?v=39'));
 ok('CI step', wf.includes('test_nav_home_default.js'));
 
 if (failed) {
