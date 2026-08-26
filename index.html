@@ -75,13 +75,9 @@
     <div class="logo-text">PROGRESS<span>LIVE</span></div>
   </div>
   <nav class="sidebar-nav">
-    <!-- Układ jak Everfit: Klienci → Biblioteka (flyout) → Inbox → reszta -->
-    <button class="nav-item active" data-screen="clients" onclick="goTo('clients')"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Klienci<span class="nav-badge" id="nb-clients">0</span></button>
-    <div class="nav-clients-panel" id="nav-clients-panel">
-      <input type="search" id="nav-client-search" class="nav-clients-search" placeholder="Szukaj klienta…" oninput="filterSidebarClients()" autocomplete="off" aria-label="Szukaj klienta">
-      <div class="nav-clients-list" id="nav-clients-list" role="list"></div>
-      <button type="button" class="nav-clients-all" onclick="goTo('clients')">Wszyscy klienci →</button>
-    </div>
+    <!-- Panel główny = start; Klienci bez mini-listy w sidebarze -->
+    <button class="nav-item active" data-screen="dashboard" onclick="goTo('dashboard')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Panel główny</button>
+    <button class="nav-item" data-screen="clients" onclick="goTo('clients')"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Klienci<span class="nav-badge" id="nb-clients">0</span></button>
 
     <div class="nav-flyout-wrap" id="nav-library-wrap">
       <button type="button" class="nav-item nav-flyout-trigger" id="nav-library-btn" data-nav-group="library" onclick="toggleLibraryFlyout(event)" aria-haspopup="true" aria-expanded="false">
@@ -114,7 +110,6 @@
       <svg id="nav-more-arrow" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
     <div id="nav-more-items" style="display:none;">
-      <button class="nav-item" data-screen="dashboard" onclick="goTo('dashboard')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Panel główny</button>
       <button class="nav-item" data-screen="ondemand" onclick="goTo('ondemand')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>On-demand</button>
       <button class="nav-item" data-screen="forum" onclick="goTo('forum')"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="13" y2="13"/></svg>Społeczność</button>
       <button class="nav-item" data-screen="payments" onclick="goTo('payments')"><svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Płatności</button>
@@ -156,7 +151,7 @@
 
 <!-- DASHBOARD -->
 <!-- DASHBOARD V2 -->
-<div class="screen" id="screen-dashboard">
+<div class="screen active" id="screen-dashboard">
   <div class="topbar">
     <div class="topbar-title">Panel główny</div>
     <div class="topbar-actions">
@@ -298,7 +293,7 @@
 </div>
 
 <!-- CLIENTS — układ jak Everfit All Clients -->
-<div class="screen active" id="screen-clients">
+<div class="screen" id="screen-clients">
   <div class="topbar">
     <div class="topbar-title" id="clients-segment-title">Wszyscy klienci <span class="nav-badge" id="clients-segment-count">0</span></div>
     <div class="topbar-actions">
@@ -4058,7 +4053,7 @@ async function load(){
 
 <script src="ex-gif-manifest.js?v=17"></script>
 <script src="ex-photo-manifest.js?v=1"></script>
-<script src="01-core.js?v=33"></script>
+<script src="01-core.js?v=34"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=21"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=23"></script>
 <script src="04-client-portal.js?v=27"></script>
