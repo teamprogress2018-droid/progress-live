@@ -2460,17 +2460,16 @@ function buildClientJourneySummary(clientId,mode){
 window.buildClientJourneySummary=buildClientJourneySummary;
 
 function renderClientJourneyHTML(summary){
-  if(!summary||!summary.client)return'<div style="padding:24px;color:#666;">Brak danych klienta.</div>';
+  if(!summary||!summary.client)return'<div class="client-journey" style="padding:24px;color:var(--text-label);">Brak danych klienta.</div>';
   const c=summary.client;
   const esc=(typeof escHtml==='function'?escHtml:(s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')));
   const goalLbl=({masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja',atletyzm:'Atletyzm',rehab:'Rehab'})[c.goal]||c.goal||'—';
   const levelLbl=({poczatkujacy:'Początkujący',sredni:'Średni',zaawansowany:'Zaawansowany'})[c.level]||c.level||'—';
   const row=(k,v)=>`<div class="cj-row"><span class="cj-k">${esc(k)}</span><span class="cj-v">${esc(v)}</span></div>`;
-  const toneColor={good:'#15803d',bad:'#b91c1c',warn:'#b45309',neutral:'#4b5563'};
   let hero='';
   if(summary.mode==='monitor'&&summary.monitor){
     const v=summary.monitor;
-    hero=`<div class="cj-verdict cj-verdict-${esc(v.verdictTone)}">
+    hero=`<div class="cj-verdict cj-verdict-${esc(v.verdictTone||'neutral')}">
       <div class="cj-verdict-lbl">Werdykt monitoringu</div>
       <div class="cj-verdict-val">${esc(v.verdict.toUpperCase())}</div>
       <div class="cj-verdict-sub">Na podstawie pomiarów, adherencji, check-inów i planu</div>
@@ -2509,7 +2508,7 @@ function renderClientJourneyHTML(summary){
   let monitorHtml='';
   if(summary.mode==='monitor'&&summary.monitor){
     monitorHtml=`<div class="cj-card"><div class="cj-h">Sygnały progres / regres</div>
-      <div class="cj-signals">${summary.monitor.signals.map(s=>`<div class="cj-sig" style="border-left-color:${toneColor[s.tone]||toneColor.neutral}"><b>${esc(s.label)}</b><span>${esc(s.text)}</span></div>`).join('')}</div>
+      <div class="cj-signals">${summary.monitor.signals.map(s=>`<div class="cj-sig cj-sig-${esc(s.tone||'neutral')}"><b>${esc(s.label)}</b><span>${esc(s.text)}</span></div>`).join('')}</div>
     </div>`;
   }
   const nextHtml=`<div class="cj-card cj-next"><div class="cj-h">Co dalej — wskazówki</div>
