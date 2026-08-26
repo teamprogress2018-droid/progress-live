@@ -120,7 +120,7 @@ const client = ctx.CL[0];
 const progressHtml = ctx.capScreenHTML('progress', client);
 ok('progress panel title', /MOJE POSTĘPY/i.test(progressHtml));
 ok('progress tonaz kpi', /Tonaż/i.test(progressHtml));
-ok('progress serie kpi', /Serie/i.test(progressHtml));
+ok('progress adherence kpi', /Adherencja/i.test(progressHtml));
 ok('progress weight trend', /Trend masy/i.test(progressHtml));
 ok('progress weekly volume chart', /Tonaż tygodniowy/i.test(progressHtml));
 ok('progress pr bars', /Rekordy siłowe/i.test(progressHtml));
