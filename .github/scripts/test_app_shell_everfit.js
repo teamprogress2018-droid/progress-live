@@ -38,7 +38,7 @@ ok('ondemand not primary', !/data-screen="ondemand"/.test(html.slice(html.indexO
 ok('single inbox badge', (html.match(/id="nb-inbox"/g) || []).length === 1);
 ok('clients screen everfit layout', html.includes('cl-everfit') && html.includes('cl-everfit-hdr'));
 ok('clients training columns', html.includes('Trening 7 dni') && html.includes('Trening 30 dni') && html.includes('Zadania 7 dni'));
-ok('clients default active screen', /class="screen active" id="screen-clients"/.test(html) || /id="screen-clients" class="screen active"/.test(html));
+ok('clients default active screen', /class="screen active" id="screen-dashboard"/.test(html) || /id="screen-dashboard" class="screen active"/.test(html));
 ok('flyout css panel', css.includes('.nav-flyout') && css.includes('.nav-flyout-hd') && css.includes('.cl-everfit-row'));
 ok('flyout not clipped by absolute-in-scroll', /\.nav-flyout\{[^}]*position:fixed/.test(css));
 ok('flyout js race guard', /function\s+toggleLibraryFlyout/.test(nine) && /_libFlyIgnoreUntil/.test(nine));

@@ -36,8 +36,8 @@ function test(name, fn) {
 test('primary top-level is slim (~6)', () => {
   assert.deepStrictEqual(
     topLevel,
-    ['clients', 'inbox', 'live', 'calendar', 'automation'],
-    'top-level: Klienci, Wiadomości, Live, Kalendarz, Automatyzacja (+ Biblioteka flyout)'
+    ['dashboard', 'clients', 'inbox', 'live', 'calendar', 'automation'],
+    'top-level: Panel główny, Klienci, Wiadomości, Live, Kalendarz, Automatyzacja (+ Biblioteka flyout)'
   );
   assert.ok(primary.includes('nav-library-btn') || primary.includes('Biblioteka'), 'Biblioteka in primary');
   assert.ok(primary.includes('nav-more-toggle') || primary.includes('Więcej'), 'Więcej toggle present');
@@ -52,10 +52,11 @@ test('On-demand / Społeczność / Płatności under Więcej only', () => {
 
 test('goTo moreScreens includes secondary products', () => {
   assert.match(core, /moreScreens=\[[^\]]*ondemand[^\]]*forum[^\]]*payments/);
+  assert.doesNotMatch(core, /moreScreens=\[[^\]]*dashboard/);
 });
 
 test('cache + CI', () => {
-  assert.match(html, /01-core\.js\?v=33/);
+  assert.match(html, /01-core\.js\?v=34/);
   assert.ok(wf.includes('test_nav_primary_slim.js'), 'CI runs nav slim test');
 });
 
