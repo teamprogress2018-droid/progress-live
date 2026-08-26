@@ -3193,10 +3193,13 @@ const APP_URL = 'https://teamprogress2018-droid.github.io/progress-live/';
 
 function generateInviteLink(client) {
   if(typeof ensureClientInvite==='function'){
-    // synchroniczny fallback — token jeśli już jest, inaczej tymczasowy link
-    if(client.inviteToken)return (typeof clientAppUrl==='function'?clientAppUrl():APP_URL)+'?invite='+encodeURIComponent(client.inviteToken);
+    // synchroniczny fallback — tylko gdy token już jest (prawdziwy zapis robi ensureClientInvite)
+    if(client.inviteToken&&client.inviteToken!==client.id){
+      return (typeof clientAppUrl==='function'?clientAppUrl():APP_URL)+'?invite='+encodeURIComponent(client.inviteToken);
+    }
   }
-  return APP_URL + '?invite=' + encodeURIComponent(client.inviteToken||client.id);
+  // Bez losowego tokena nie generuj linku z id klienta (nie ma dokumentu invites/)
+  return APP_URL + '?invite=';
 }
 
 async function openInviteModal(clientId) {

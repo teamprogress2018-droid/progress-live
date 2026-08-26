@@ -1624,9 +1624,10 @@ function shareAppLink(){
 }
 
 function buildClientInviteLink(c){
-  if(c&&c.inviteToken&&typeof clientAppUrl==='function')return clientAppUrl()+'?invite='+encodeURIComponent(c.inviteToken);
+  if(c&&c.inviteToken&&c.inviteToken!==c.id&&typeof clientAppUrl==='function')return clientAppUrl()+'?invite='+encodeURIComponent(c.inviteToken);
   const base=(location.origin+location.pathname).replace(/index\.html$/,'');
-  return base+'?invite='+encodeURIComponent(c.inviteToken||c.id);
+  if(c&&c.inviteToken&&c.inviteToken!==c.id)return base+'?invite='+encodeURIComponent(c.inviteToken);
+  return base+'?invite=';
 }
 
 function inviteClientToApp(cid){

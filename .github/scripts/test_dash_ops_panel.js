@@ -38,7 +38,7 @@ ok('helpers',src04.includes('function dashOpsAttentionItems')&&src04.includes('f
 ok('list collapse',src04.includes('function dashListSection')&&src04.includes('DASH_LIST_PREVIEW=3')&&src04.includes('function toggleDashListExpand')&&css.includes('.dash-list-more'));
 ok('followup collapse',src04.includes("dashListSection('dash-checkin'")&&src04.includes("'dash-checkin':renderDashCheckinFollowup"));
 ok('renderDash wires ops',src04.includes('renderDashOps()')&&src04.includes('dashOpsRecentReports()')&&src04.includes('dashOpsExpiringPackages(7)'));
-ok('cache bumps',html.includes('04-client-portal.js?v=27')&&html.includes('styles.css?v=37'));
+ok('cache bumps',html.includes('04-client-portal.js?v=28')&&html.includes('styles.css?v=37'));
 
 const today=new Date();
 today.setHours(12,0,0,0);
