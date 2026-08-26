@@ -153,6 +153,8 @@ async function loadClientApp(account){
   }catch(e){
     window.USER_RESOURCES=(window.DEMO_RESOURCES||[]).map(r=>Object.assign({},r));
   }
+  try{if(typeof migrateSpotifyDemoResources==='function')migrateSpotifyDemoResources();}catch(e){}
+  try{if(typeof migrateDemoYoutubeEpisodeResources==='function')migrateDemoYoutubeEpisodeResources();}catch(e){}
   try{
     const od=await queryByTrainerId('odWorkouts',account.trainerId);
     window.OD_WORKOUTS=(od&&od.length)?od:((window.OD_DEMO_WORKOUTS||[]).map(w=>Object.assign({},w)));

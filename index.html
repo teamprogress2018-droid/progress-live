@@ -4070,6 +4070,7 @@ async function load(){
       }
     }
     if(typeof migrateSpotifyDemoResources==='function')migrateSpotifyDemoResources();
+    if(typeof migrateDemoYoutubeEpisodeResources==='function')migrateDemoYoutubeEpisodeResources();
   }catch(e){console.warn('Wczytywanie zasobów nie powiodło się:',e);window.USER_RESOURCES=window.USER_RESOURCES||[];}
   window.AF_STATE=window.AF_STATE||{enrollments:{},executed:{},lastFired:{}};
   try{
@@ -4099,7 +4100,7 @@ async function load(){
 <script src="06-inbox-exercises-ai-programs.js?v=26"></script>
 <script src="07-forms-metrics-calculator.js?v=25"></script>
 <script src="08-client-profile-extras.js?v=29"></script>
-<script src="09-posture-kb-invites-private.js?v=32"></script>
-<script src="10-client-app.js?v=23"></script>
+<script src="09-posture-kb-invites-private.js?v=33"></script>
+<script src="10-client-app.js?v=24"></script>
 </body>
 </html>
