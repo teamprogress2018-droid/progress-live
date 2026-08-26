@@ -5659,8 +5659,19 @@ function dashListSection(listId,items,renderItem,emptyHtml){
 function toggleDashListExpand(listId){
   window._dashListExpanded=window._dashListExpanded||{};
   window._dashListExpanded[listId]=!window._dashListExpanded[listId];
-  if(listId==='dash-pipeline')renderDashClientPipeline();
-  else if(listId==='dash-today')renderDashToday();
+  const rerender={
+    'dash-pipeline':renderDashClientPipeline,
+    'dash-today':renderDashToday,
+    'dash-checkin':renderDashCheckinFollowup,
+    'dash-form':renderDashFormFollowup,
+    'dash-pay':renderDashPayFollowup,
+    'dash-hw':renderDashHwFollowup,
+    'dash-msg':renderDashMsgFollowup,
+    'dash-habit':renderDashHabitFollowup,
+    'dash-cal-refill':renderDashCalRefillFollowup,
+    'dash-photo':renderDashPhotoFollowup
+  };
+  if(rerender[listId])rerender[listId]();
   else renderDashOps();
 }
 window.toggleDashListExpand=toggleDashListExpand;
@@ -6000,7 +6011,7 @@ function renderDashCheckinFollowup(){
     ...overdue.map(c=>({c,tag:'Zaległy',col:'var(--red)',cta:`sendCheckinTo('${escHtml(c.id)}')`})),
     ...pending.map(c=>({c,tag:'Oczekuje',col:'var(--orange)',cta:`goTo('checkin');setTimeout(()=>openCIClient('${escHtml(c.id)}'),200)`})),
     ...need.filter(c=>!pending.includes(c)&&!overdue.includes(c)).map(c=>({c,tag:'Do wysłania',col:'var(--accent)',cta:`sendCheckinTo('${escHtml(c.id)}')`}))
-  ].slice(0,6);
+  ];
   el.style.display='block';
   el.innerHTML=`<div class="card" style="margin-bottom:20px;border-color:rgba(62,207,178,0.3);background:linear-gradient(135deg,rgba(62,207,178,0.08),var(--s2));">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;">
@@ -6010,14 +6021,14 @@ function renderDashCheckinFollowup(){
       </div>
       <button class="btn btn-ghost btn-sm" onclick="goTo('checkin')">Check-iny →</button>
     </div>
-    <div style="display:flex;flex-direction:column;gap:8px;">
-      ${rows.map(row=>`<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--s3);border:1px solid var(--border);border-radius:10px;">
+    <div class="dash-pipeline-list">
+      ${dashListSection('dash-checkin',rows,row=>`<div class="dash-pipeline-row">
         <div style="flex:1;min-width:0;">
           <div style="font-size:13px;font-weight:700;">${escHtml(row.c.name||'Klient')}</div>
           <div style="font-size:11px;color:${row.col};margin-top:2px;">${row.tag}</div>
         </div>
         <button class="btn btn-primary btn-sm" onclick="${row.cta}">${row.tag==='Oczekuje'?'Otwórz':'Wyślij'}</button>
-      </div>`).join('')}
+      </div>`,'')}
     </div>
   </div>`;
 }
@@ -6027,7 +6038,7 @@ function renderDashFormFollowup(){
   const el=document.getElementById('dash-form-followup');if(!el)return;
   const pending=typeof allPendingFormSends==='function'?allPendingFormSends():(window.FORM_SENDS||[]).filter(s=>s&&s.status!=='filled');
   if(!pending.length){el.style.display='none';el.innerHTML='';return;}
-  const rows=pending.slice(0,6);
+  const rows=pending;
   el.style.display='block';
   el.innerHTML=`<div class="card" style="margin-bottom:20px;border-color:rgba(157,124,244,0.35);background:linear-gradient(135deg,rgba(157,124,244,0.1),var(--s2));">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;">
@@ -6037,13 +6048,13 @@ function renderDashFormFollowup(){
       </div>
       <button class="btn btn-ghost btn-sm" onclick="goTo('forms')">Formularze →</button>
     </div>
-    <div style="display:flex;flex-direction:column;gap:8px;">
-      ${rows.map(s=>{
+    <div class="dash-pipeline-list">
+      ${dashListSection('dash-form',rows,s=>{
         const c=(window.CL||[]).find(x=>x.id===s.clientId)||{};
         const name=escHtml(c.name||'Klient');
         const title=escHtml(s.formName||'Formularz');
         const when=escHtml(s.sentAt||String(s.sentAtIso||'').slice(0,10)||'');
-        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--s3);border:1px solid var(--border);border-radius:10px;flex-wrap:wrap;">
+        return `<div class="dash-pipeline-row" style="flex-wrap:wrap;">
           <div style="flex:1;min-width:140px;">
             <div style="font-size:13px;font-weight:700;">${name}</div>
             <div style="font-size:11px;color:var(--muted);margin-top:2px;">${title}${when?' · '+when:''}</div>
@@ -6054,8 +6065,7 @@ function renderDashFormFollowup(){
             <button class="btn btn-primary btn-sm" onclick="remindFormSend('${escHtml(s.id)}')">Przypomnij</button>
           </div>
         </div>`;
-      }).join('')}
-      ${pending.length>6?`<div style="font-size:11px;color:var(--muted);text-align:center;">+ ${pending.length-6} więcej w Formularzach</div>`:''}
+      },'')}
     </div>
   </div>`;
 }
@@ -6070,7 +6080,7 @@ function renderDashPayFollowup(){
     const ar=a.paymentRequestedAt?1:0,br=b.paymentRequestedAt?1:0;
     if(ar!==br)return br-ar;
     return String(b.paymentRequestedAt||b.date||'').localeCompare(String(a.paymentRequestedAt||a.date||''));
-  }).slice(0,6);
+  });
   el.style.display='block';
   el.innerHTML=`<div class="card" style="margin-bottom:20px;border-color:rgba(201,123,63,0.4);background:linear-gradient(135deg,rgba(201,123,63,0.1),var(--s2));">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;">
@@ -6080,8 +6090,8 @@ function renderDashPayFollowup(){
       </div>
       <button class="btn btn-ghost btn-sm" onclick="goTo('payments')">Płatności →</button>
     </div>
-    <div style="display:flex;flex-direction:column;gap:8px;">
-      ${rows.map(p=>{
+    <div class="dash-pipeline-list">
+      ${dashListSection('dash-pay',rows,p=>{
         const name=escHtml(p.clientName||((window.CL||[]).find(c=>c.id===p.clientId)||{}).name||'Klient');
         const tag=p.paymentRequestedAt?'Prośba wysłana':'Do poproszenia';
         const col=p.paymentRequestedAt?'var(--orange)':'var(--accent)';
@@ -6089,7 +6099,7 @@ function renderDashPayFollowup(){
           ?`markPaid('${escHtml(p.id)}')`
           :`requestPayment('${escHtml(p.id)}')`;
         const ctaLbl=p.paymentRequestedAt?'Oznacz opłacony':'Poproś o wpłatę';
-        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--s3);border:1px solid var(--border);border-radius:10px;flex-wrap:wrap;">
+        return `<div class="dash-pipeline-row" style="flex-wrap:wrap;">
           <div style="flex:1;min-width:140px;">
             <div style="font-size:13px;font-weight:700;">${name}</div>
             <div style="font-size:11px;color:var(--muted);margin-top:2px;">${escHtml(p.title||'Pakiet')} · ${Number(p.price||0).toLocaleString('pl')} zł</div>
@@ -6100,8 +6110,7 @@ function renderDashPayFollowup(){
             <button class="btn btn-primary btn-sm" onclick="${cta}">${ctaLbl}</button>
           </div>
         </div>`;
-      }).join('')}
-      ${pkgs.length>6?`<div style="font-size:11px;color:var(--muted);text-align:center;">+ ${pkgs.length-6} więcej w Płatnościach</div>`:''}
+      },'')}
     </div>
   </div>`;
 }
@@ -6113,7 +6122,7 @@ function renderDashHwFollowup(){
   if(!open.length){el.style.display='none';el.innerHTML='';return;}
   const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
   const overdue=open.filter(t=>t.due&&t.due<today);
-  const rows=open.slice(0,6);
+  const rows=open;
   el.style.display='block';
   el.innerHTML=`<div class="card" style="margin-bottom:20px;border-color:rgba(0,85,164,0.4);background:linear-gradient(135deg,rgba(0,85,164,0.1),var(--s2));">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;">
@@ -6123,14 +6132,14 @@ function renderDashHwFollowup(){
       </div>
       <button class="btn btn-ghost btn-sm" onclick="goTo('tasks')">Zadania →</button>
     </div>
-    <div style="display:flex;flex-direction:column;gap:8px;">
-      ${rows.map(t=>{
+    <div class="dash-pipeline-list">
+      ${dashListSection('dash-hw',rows,t=>{
         const c=(window.CL||[]).find(x=>x.id===t.clientId)||{};
         const name=escHtml(c.name||'Klient');
         const title=escHtml(t.title||'Zadanie domowe');
         const overdueRow=t.due&&t.due<today;
         const dueLbl=t.due?(overdueRow?'Zaległe · '+escHtml(t.due):'Termin · '+escHtml(t.due)):'Bez terminu';
-        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--s3);border:1px solid var(--border);border-radius:10px;flex-wrap:wrap;">
+        return `<div class="dash-pipeline-row" style="flex-wrap:wrap;">
           <div style="flex:1;min-width:140px;">
             <div style="font-size:13px;font-weight:700;">${name}</div>
             <div style="font-size:11px;color:var(--muted);margin-top:2px;">${title}</div>
@@ -6141,8 +6150,7 @@ function renderDashHwFollowup(){
             <button class="btn btn-primary btn-sm" onclick="remindHomework('${escHtml(t.id)}')">Przypomnij</button>
           </div>
         </div>`;
-      }).join('')}
-      ${open.length>6?`<div style="font-size:11px;color:var(--muted);text-align:center;">+ ${open.length-6} więcej w Zadaniach</div>`:''}
+      },'')}
     </div>
   </div>`;
 }
@@ -6162,12 +6170,12 @@ function renderDashMsgFollowup(){
       </div>
       <button class="btn btn-ghost btn-sm" onclick="goTo('inbox');setTimeout(()=>{if(typeof setInboxTab==='function')setInboxTab('unread');},120)">Skrzynka →</button>
     </div>
-    <div style="display:flex;flex-direction:column;gap:8px;">
-      ${rows.slice(0,6).map(row=>{
+    <div class="dash-pipeline-list">
+      ${dashListSection('dash-msg',rows,row=>{
         const c=row.client;
         const preview=escHtml((row.last&&row.last.text)||'Nowa wiadomość');
         const when=escHtml((row.last&&(row.last.time||String(row.last.createdAt||'').slice(11,16)))||'');
-        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--s3);border:1px solid var(--border);border-radius:10px;flex-wrap:wrap;">
+        return `<div class="dash-pipeline-row" style="flex-wrap:wrap;">
           <div style="flex:1;min-width:140px;">
             <div style="font-size:13px;font-weight:700;">${escHtml(c.name||'Klient')}</div>
             <div style="font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:420px;">${preview}</div>
@@ -6175,8 +6183,7 @@ function renderDashMsgFollowup(){
           </div>
           <button class="btn btn-primary btn-sm" onclick="goTo('inbox');setTimeout(()=>openChat('${escHtml(c.id)}'),150)">Otwórz</button>
         </div>`;
-      }).join('')}
-      ${rows.length>6?`<div style="font-size:11px;color:var(--muted);text-align:center;">+ ${rows.length-6} więcej w Wiadomościach</div>`:''}
+      },'')}
     </div>
   </div>`;
 }
@@ -6189,7 +6196,7 @@ function renderDashHabitFollowup(){
   const chals=typeof pendingChallengeTasks==='function'?pendingChallengeTasks(null,today):[];
   const open=chals.concat(habits);
   if(!open.length){el.style.display='none';el.innerHTML='';return;}
-  const rows=open.slice(0,6);
+  const rows=open;
   el.style.display='block';
   el.innerHTML=`<div class="card" style="margin-bottom:20px;border-color:rgba(157,124,244,0.4);background:linear-gradient(135deg,rgba(157,124,244,0.1),var(--s2));">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;">
@@ -6199,8 +6206,8 @@ function renderDashHabitFollowup(){
       </div>
       <button class="btn btn-ghost btn-sm" onclick="goTo('tasks')">Zadania →</button>
     </div>
-    <div style="display:flex;flex-direction:column;gap:8px;">
-      ${rows.map(t=>{
+    <div class="dash-pipeline-list">
+      ${dashListSection('dash-habit',rows,t=>{
         const c=(window.CL||[]).find(x=>x.id===t.clientId)||{};
         const name=escHtml(c.name||'Klient');
         const title=escHtml(t.title||'Zadanie');
@@ -6210,7 +6217,7 @@ function renderDashHabitFollowup(){
         const tag=ch?'Wyzwanie':'Nawyk';
         const col=ch?'var(--gold)':'var(--purple)';
         const sub=ch?(chSt||'Do odhaczenia dziś'):(streak?'Seria 🔥 '+streak+' · brak dziś':'Brak odhaczenia dziś');
-        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--s3);border:1px solid var(--border);border-radius:10px;flex-wrap:wrap;">
+        return `<div class="dash-pipeline-row" style="flex-wrap:wrap;">
           <div style="flex:1;min-width:140px;">
             <div style="font-size:13px;font-weight:700;">${name}</div>
             <div style="font-size:11px;color:var(--muted);margin-top:2px;">${title}</div>
@@ -6221,8 +6228,7 @@ function renderDashHabitFollowup(){
             <button class="btn btn-primary btn-sm" onclick="remindHabit('${escHtml(t.id)}')">Przypomnij</button>
           </div>
         </div>`;
-      }).join('')}
-      ${open.length>6?`<div style="font-size:11px;color:var(--muted);text-align:center;">+ ${open.length-6} więcej w Zadaniach</div>`:''}
+      },'')}
     </div>
   </div>`;
 }
@@ -6241,14 +6247,14 @@ function renderDashCalRefillFollowup(){
       </div>
       <button class="btn btn-ghost btn-sm" onclick="goTo('calendar')">Kalendarz →</button>
     </div>
-    <div style="display:flex;flex-direction:column;gap:8px;">
-      ${rows.slice(0,6).map(row=>{
+    <div class="dash-pipeline-list">
+      ${dashListSection('dash-cal-refill',rows,row=>{
         const c=row.client;
         const plan=row.plan||{};
         const tag=row.urgency==='past'?'Sesje się skończyły':row.urgency==='empty'?'Brak sesji planned':'Kończy się wkrótce';
         const col=row.urgency==='past'?'var(--red)':row.urgency==='empty'?'var(--orange)':'var(--teal)';
         const lastLbl=row.last?('Ostatnia · '+escHtml(row.last)):'Brak planned';
-        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--s3);border:1px solid var(--border);border-radius:10px;flex-wrap:wrap;">
+        return `<div class="dash-pipeline-row" style="flex-wrap:wrap;">
           <div style="flex:1;min-width:140px;">
             <div style="font-size:13px;font-weight:700;">${escHtml(c.name||'Klient')}</div>
             <div style="font-size:11px;color:var(--muted);margin-top:2px;">${escHtml(plan.name||'Plan')}${plan.id?' · +4 tyg.':''}</div>
@@ -6259,8 +6265,7 @@ function renderDashCalRefillFollowup(){
             <button class="btn btn-primary btn-sm" onclick="refillClientCalendar('${escHtml(c.id)}')">Dopełnij</button>
           </div>
         </div>`;
-      }).join('')}
-      ${rows.length>6?`<div style="font-size:11px;color:var(--muted);text-align:center;">+ ${rows.length-6} więcej</div>`:''}
+      },'')}
     </div>
   </div>`;
 }
@@ -6270,7 +6275,7 @@ function renderDashPhotoFollowup(){
   const el=document.getElementById('dash-photo-followup');if(!el)return;
   const photos=typeof recentClientProgressPhotos==='function'?recentClientProgressPhotos(14):[];
   if(!photos.length){el.style.display='none';el.innerHTML='';return;}
-  const rows=photos.slice(0,6);
+  const rows=photos;
   el.style.display='block';
   el.innerHTML=`<div class="card" style="margin-bottom:20px;border-color:rgba(201,162,39,0.4);background:linear-gradient(135deg,rgba(201,162,39,0.1),var(--s2));">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;">
@@ -6280,11 +6285,11 @@ function renderDashPhotoFollowup(){
       </div>
       <button class="btn btn-ghost btn-sm" onclick="goTo('clients')">Klienci →</button>
     </div>
-    <div style="display:flex;flex-direction:column;gap:8px;">
-      ${rows.map(p=>{
+    <div class="dash-pipeline-list">
+      ${dashListSection('dash-photo',rows,p=>{
         const c=(window.CL||[]).find(x=>x.id===p.clientId)||{};
         const n=[p.photos&&p.photos.front,p.photos&&p.photos.side,p.photos&&p.photos.back].filter(Boolean).length;
-        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--s3);border:1px solid var(--border);border-radius:10px;flex-wrap:wrap;">
+        return `<div class="dash-pipeline-row" style="flex-wrap:wrap;">
           <div style="flex:1;min-width:140px;">
             <div style="font-size:13px;font-weight:700;">${escHtml(c.name||'Klient')}</div>
             <div style="font-size:11px;color:var(--muted);margin-top:2px;">${escHtml(p.date||'')}${p.weight?' · '+escHtml(String(p.weight))+' kg':''} · ${n} ujęć</div>
@@ -6292,8 +6297,7 @@ function renderDashPhotoFollowup(){
           </div>
           <button class="btn btn-primary btn-sm" onclick="openClientProfile('${escHtml(p.clientId)}');setTimeout(()=>{if(typeof setCPTab==='function')setCPTab('photos');},150)">Zobacz</button>
         </div>`;
-      }).join('')}
-      ${photos.length>6?`<div style="font-size:11px;color:var(--muted);text-align:center;">+ ${photos.length-6} więcej</div>`:''}
+      },'')}
     </div>
   </div>`;
 }
