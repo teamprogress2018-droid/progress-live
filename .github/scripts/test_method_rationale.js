@@ -42,7 +42,6 @@ ok('css method-rationale',css.includes('.method-rationale')&&css.includes('.mr-v
 ok('sidebar no clip cards',css.includes('.builder-sidebar-scroll>.card')&&/flex-shrink:\s*0/.test(css));
 ok('openMethodRationaleModal',core.includes('function openMethodRationaleModal'));
 ok('full guide modal',html.includes('id="m-method-rationale"')&&html.includes('method-rationale-modal-body'));
-ok('cache bumps',html.includes('01-core.js?v=37')&&html.includes('05-clients-builder-plans-calendar.js?v=28')&&html.includes('styles.css?v=43'));
 ok('cheat sheet renderer',core.includes('function renderTrainerCheatSheetHTML')&&core.includes('function printTrainerCheatSheet'));
 ok('full guide modal',html.includes('id="m-method-rationale"')&&html.includes('method-rationale-modal-body')&&html.includes('printTrainerCheatSheet'));
 ok('builder topbar cheat btn',html.includes('id="builder-cheat-btn"')&&html.includes('openMethodRationaleModal()'));
@@ -75,6 +74,8 @@ ok('cheat sheet html',typeof sandbox.renderTrainerCheatSheetHTML==='function'&&/
 const adv=sandbox.buildMethodRationale({method:'PPL',goal:'redukcja',level:'zaawansowany',daysPerWeek:4});
 ok('advanced chest volume',adv.levelVolumeParts.Klatka==='12–20');
 ok('advanced html current col',/Zaaw\./.test(sandbox.renderMethodRationaleHTML(adv))&&/is-current/.test(sandbox.renderMethodRationaleHTML(adv)));
+
+ok('cache bumps',html.includes('01-core.js?v=39')&&html.includes('05-clients-builder-plans-calendar.js?v=28')&&html.includes('styles.css?v=43'));
 
 if(failed){console.error(failed+' failed');process.exit(1);}
 console.log('\nAll method-rationale tests passed');
