@@ -39,8 +39,6 @@ ok('no photos tab jump',!/setCPTab\('photos'\)/.test(progressFn));
 ok('chip css',css.includes('.cp-analytics-chip')&&css.includes('.cp-analytics-chips'));
 ok('pct bar chart',src08.includes('function cpPctBarChart'));
 ok('client app adherence',/Adherencja 30d/.test(src04)&&/cpHabitAdherenceWeekly/.test(src04));
-ok('cache bumps',html.includes('08-client-profile-extras.js?v=30')&&html.includes('04-client-portal.js?v=32')&&html.includes('styles.css?v=43'));
-ok('cache bumps',html.includes('08-client-profile-extras.js?v=29')&&html.includes('04-client-portal.js?v=32')&&html.includes('styles.css?v=43'));
 
 const today=new Date();
 today.setHours(12,0,0,0);
@@ -104,6 +102,8 @@ const hw=sandbox.cpHabitAdherenceWeekly('c1',4);
 ok('habit weeks',hw.length===4&&hw.some(w=>w.due>0));
 const svg=sandbox.cpPctBarChart([{l:'T1',pct:50},{l:'T2',pct:80}]);
 ok('pct svg',/cp-chart-svg/.test(svg)&&/50%/.test(svg));
+
+ok('cache bumps',html.includes('08-client-profile-extras.js?v=30')&&html.includes('04-client-portal.js?v=32')&&html.includes('styles.css?v=43'));
 
 if(failed){console.error('\n'+failed+' failed');process.exit(1);}
 console.log('\nAll cp-analytics-panel tests passed');

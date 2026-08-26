@@ -27,7 +27,6 @@ ok('import pack',src09.includes('kbImportBuiltinPack'));
 ok('kbContext uses planning',/function kbContextForAI[\s\S]{0,400}planningEvidenceContext/.test(src09));
 ok('aplGenerate uses kb context',src03.includes('kbContextForAI()'));
 ok('builder askAI uses evidence',src06.includes('planningEvidenceContext'));
-ok('cache bumps',html.includes('01-core.js?v=39')&&html.includes('09-posture-kb-invites-private.js?v=33'));
 
 const sandbox={window:{KB:[]},console};
 vm.createContext(sandbox);
@@ -43,6 +42,8 @@ sandbox.window.KB=[{id:'k1',kind:'principle',title:'Moja zasada: deload wcześni
 const mixed=sandbox.getPlanningEvidenceEntries();
 ok('merges user principle',mixed.some(e=>e.title.includes('Moja zasada')));
 ok('user not duplicated builtin by title skip',true);
+
+ok('cache bumps',html.includes('01-core.js?v=39')&&html.includes('09-posture-kb-invites-private.js?v=33'));
 
 if(failed){console.error(failed+' failed');process.exit(1);}
 console.log('\nAll evidence-base tests passed');
