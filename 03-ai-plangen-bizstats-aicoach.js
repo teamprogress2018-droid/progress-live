@@ -97,6 +97,9 @@ function aplToggleOpt(btn,groupId){
   const grp=document.getElementById(groupId);
   grp.querySelectorAll('.apl-opt').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
+  if(groupId==='apl-methods'||groupId==='apl-days'){
+    if(typeof aplSyncAutoStructureNotes==='function')aplSyncAutoStructureNotes();
+  }
   if(typeof aplRefreshRationale==='function')aplRefreshRationale();
 }
 
@@ -593,7 +596,8 @@ async function aplGenerate(){
   const injuries=document.getElementById('apl-injuries').value;
   const pharmaStatus=document.getElementById('apl-pharma-status')?.value||'';
   const pharmaDetails=document.getElementById('apl-pharma-details')?.value||'';
-  const notes=document.getElementById('apl-notes').value;
+  const notesRaw=document.getElementById('apl-notes')?.value||'';
+  const notes=String(notesRaw).replace(/<!--\/?APL-AUTO-STRUCT-->/g,'').replace(/\n{3,}/g,'\n\n').trim();
   const cid=document.getElementById('apl-client').value;
   const client=cid?CL.find(x=>x.id===cid):null;
 
@@ -1308,15 +1312,57 @@ function aplSavePlan(){
   if(cid&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);
 }
 
+function aplStripAutoStructureNotes(raw){
+  const text=String(raw||'');
+  if(!text)return'';
+  // Usuń auto-wstawione bloki presetu (stare i z markerem), zostaw ręczne uwagi trenera.
+  return text
+    .replace(/\n?<!--APL-AUTO-STRUCT-->[\s\S]*?<!--\/APL-AUTO-STRUCT-->/g,'')
+    .split(/\n/)
+    .filter(line=>{
+      const t=line.trim();
+      if(!t)return true;
+      if(/^STRUKTURA 3 DNI:/i.test(t))return false;
+      if(/Push\+czworogłowe|Pull\+dwugłowe|D3 Upper \(klatka\+plecy\+barki\+ramiona\)/i.test(t))return false;
+      return true;
+    })
+    .join('\n')
+    .replace(/\n{3,}/g,'\n\n')
+    .trim();
+}
+function aplAutoStructureNoteBlock(){
+  return'<!--APL-AUTO-STRUCT-->\nSTRUKTURA 3 DNI: D1 Push+czworogłowe; D2 Pull+dwugłowe; D3 Upper (klatka+plecy+barki+ramiona). Priorytet sylwetkowy na start sesji. Stretch-mediated + maszyny/wyciągi. Serie 3-4, RIR 0-2, tempo 3-1-1-0.\n<!--/APL-AUTO-STRUCT-->';
+}
+function aplSyncAutoStructureNotes(){
+  const notes=document.getElementById('apl-notes');
+  if(!notes)return;
+  const method=typeof aplGetVal==='function'?String(aplGetVal('apl-methods')||''):'';
+  const days=typeof aplGetVal==='function'?parseInt(aplGetVal('apl-days'),10):0;
+  const cleaned=aplStripAutoStructureNotes(notes.value);
+  // Preset PPL 3-dniowy tylko gdy faktycznie wybrano PPL + 3 dni — inaczej nie trzymaj starej struktury w uwagach.
+  if(method==='PPL'&&days===3){
+    if(/STRUKTURA 3 DNI:/i.test(notes.value)||/<!--APL-AUTO-STRUCT-->/.test(notes.value)){
+      notes.value=cleaned?(cleaned+'\n'+aplAutoStructureNoteBlock()):aplAutoStructureNoteBlock();
+    }
+    return;
+  }
+  if(cleaned!==String(notes.value||'').trim()){
+    notes.value=cleaned;
+  }
+}
+window.aplStripAutoStructureNotes=aplStripAutoStructureNotes;
+window.aplSyncAutoStructureNotes=aplSyncAutoStructureNotes;
+
 function aplApplyHypertrophy3DayPreset(){
   document.querySelectorAll('#apl-days .apl-opt').forEach(b=>b.classList.toggle('active',b.dataset.val==='3'));
   document.querySelectorAll('#apl-methods .apl-opt').forEach(b=>b.classList.toggle('active',b.dataset.val==='PPL'));
   const notes=document.getElementById('apl-notes');
   if(notes){
-    const extra='STRUKTURA 3 DNI: D1 Push+czworogłowe; D2 Pull+dwugłowe; D3 Upper (klatka+plecy+barki+ramiona). Priorytet sylwetkowy na start sesji. Stretch-mediated + maszyny/wyciągi. Serie 3-4, RIR 0-2, tempo 3-1-1-0.';
-    if(!notes.value.includes('STRUKTURA 3 DNI'))notes.value=(notes.value?notes.value+'\n':'')+extra;
+    const manual=aplStripAutoStructureNotes(notes.value);
+    notes.value=manual?(manual+'\n'+aplAutoStructureNoteBlock()):aplAutoStructureNoteBlock();
   }
-  notify('✓ Preset 3 dni hipertrofii — dopisz priorytet sylwetkowy i generuj');
+  if(typeof aplRefreshRationale==='function')aplRefreshRationale();
+  notify('✓ Preset 3 dni hipertrofii (PPL) — zmiana metody/dni usunie auto-strukturę z uwag');
 }
 window.aplApplyHypertrophy3DayPreset=aplApplyHypertrophy3DayPreset;
 
