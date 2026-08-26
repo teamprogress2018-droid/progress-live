@@ -1444,6 +1444,87 @@ function cpPrBarChart(prs){
   return cpHorizontalBars(rows);
 }
 
+/** Adherencja treningowa: ukończone / zaplanowane w oknie dni. */
+function cpClientAdherence(clientId,days){
+  const n=days==null?30:days;
+  const sessions=(window.SE||[]).filter(s=>s&&s.clientId===clientId&&s.date);
+  const today=new Date();today.setHours(12,0,0,0);
+  const inPast=s=>{
+    const d=new Date(s.date+'T12:00:00');
+    if(isNaN(d))return false;
+    const diff=(today-d)/86400000;
+    return diff>=0&&diff<=n;
+  };
+  const assigned=sessions.filter(inPast);
+  const logged=(typeof completedWorkouts==='function'?completedWorkouts(clientId,sessions):assigned.filter(s=>s.source==='client'||s.source==='live'||(s.exercises||[]).length)).filter(inPast);
+  const pct=assigned.length?Math.round((logged.length/assigned.length)*100):(logged.length?100:0);
+  return{assigned:assigned.length,logged:logged.length,pct:Math.min(100,pct)};
+}
+window.cpClientAdherence=cpClientAdherence;
+
+function cpCheckinTrendPoints(clientId){
+  const list=((window.CHECKINS&&window.CHECKINS[clientId])||[]).filter(x=>x&&x.status==='filled'&&x.answers);
+  return list.slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))).slice(-12)
+    .map(x=>({d:x.date||'',v:typeof scoreCheckinAnswers==='function'?scoreCheckinAnswers(x.answers):(Number(x.score)||0)}))
+    .filter(p=>p.v>0);
+}
+window.cpCheckinTrendPoints=cpCheckinTrendPoints;
+
+/** Tygodniowa adherencja nawyków (% odhaczeń). */
+function cpHabitAdherenceWeekly(clientId,weeks){
+  const n=weeks||8;
+  const habits=(window.TASKS||[]).filter(t=>t&&t.clientId===clientId&&typeof isHabit==='function'&&isHabit(t));
+  const today=new Date();today.setHours(12,0,0,0);
+  const out=[];
+  for(let i=n-1;i>=0;i--){
+    let due=0,done=0;
+    for(let d=0;d<7;d++){
+      const day=new Date(today);
+      day.setDate(today.getDate()-(i*7+(6-d)));
+      const ymd=day.getFullYear()+'-'+String(day.getMonth()+1).padStart(2,'0')+'-'+String(day.getDate()).padStart(2,'0');
+      habits.forEach(h=>{due++;if(typeof habitDoneOn==='function'&&habitDoneOn(h,ymd))done++;});
+    }
+    out.push({l:'T'+(n-i),pct:due?Math.round((done/due)*100):0,done,due});
+  }
+  return out;
+}
+window.cpHabitAdherenceWeekly=cpHabitAdherenceWeekly;
+
+function cpPctBarChart(rows,opts){
+  const list=rows||[];
+  if(!list.length)return`<div style="font-size:11px;color:var(--muted);padding:20px 8px;text-align:center;">Brak danych</div>`;
+  const W=(opts&&opts.w)||480,H=(opts&&opts.h)||120,pad=28;
+  const n=list.length;
+  const slot=(W-pad*2)/n;
+  const bW=Math.max(8,Math.floor(slot*0.55));
+  const col=(opts&&opts.color)||'var(--teal)';
+  let bars='';
+  list.forEach((w,i)=>{
+    const pct=Math.max(0,Math.min(100,Number(w.pct)||0));
+    const x=pad+i*slot+(slot-bW)/2;
+    const h=Math.round((pct/100)*(H-pad-16));
+    bars+=`<rect x="${x}" y="${H-pad-h}" width="${bW}" height="${h}" rx="4" fill="${col}" opacity="${pct?0.9:0.2}"/>`;
+    if(pct)bars+=`<text x="${x+bW/2}" y="${H-pad-h-4}" text-anchor="middle" font-size="8" fill="${col}" font-family="'DM Mono',monospace">${pct}%</text>`;
+    bars+=`<text x="${x+slot/2}" y="${H-6}" text-anchor="middle" font-size="8" fill="var(--muted)">${escHtml(w.l||'')}</text>`;
+  });
+  return`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" class="cp-chart-svg" style="width:100%;display:block;">${bars}</svg>`;
+}
+window.cpPctBarChart=cpPctBarChart;
+
+function setCPProgressPanel(panel){
+  const p=panel||'all';
+  window._cpProgressPanel=p;
+  document.querySelectorAll('#cp-body [data-cp-panel]').forEach(el=>{
+    const id=el.getAttribute('data-cp-panel');
+    const show=p==='all'||id==='kpi'||id===p;
+    el.classList.toggle('cp-panel-hidden',!show);
+  });
+  document.querySelectorAll('#cp-body [data-cp-panel-chip]').forEach(btn=>{
+    btn.classList.toggle('active',btn.getAttribute('data-cp-panel-chip')===p);
+  });
+}
+window.setCPProgressPanel=setCPProgressPanel;
+
 function renderCPProgress(c){
   const logged=typeof completedWorkouts==='function'?completedWorkouts(c.id):(window.SE||[]).filter(s=>s.clientId===c.id&&(s.source==='live'||s.source==='client'||(s.exercises||[]).length));
   const prs=typeof clientExercisePRs==='function'?clientExercisePRs(c.id).slice(0,12):[];
@@ -1451,8 +1532,9 @@ function renderCPProgress(c){
   const totalVol=logged.reduce((s,x)=>s+(Number(x.volume)||0),0);
   const totalSets=logged.reduce((s,x)=>s+(typeof sessionSetsCount==='function'?sessionSetsCount(x):0),0);
   const avg=typeof avgSessionRating==='function'?avgSessionRating(logged):0;
-  const days30=Date.now()-30*86400000;
-  const sess30=logged.filter(s=>s.date&&new Date(s.date+'T12:00:00').getTime()>=days30).length;
+  const adh7=cpClientAdherence(c.id,7);
+  const adh30=cpClientAdherence(c.id,30);
+  const sess30=adh30.logged;
   const entries=(window.METRIC_ENTRIES||[]).filter(e=>e.clientId===c.id);
   const byG=(gid)=>entries.filter(e=>e.groupId===gid).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   const mass=byG('mg1');
@@ -1497,20 +1579,41 @@ function renderCPProgress(c){
     {label:'OHP',v:parseFloat(lastS.values.m4)||0,col:'var(--teal)',unit:'kg'},
   ]:[];
 
+  const ciPts=cpCheckinTrendPoints(c.id);
+  const ciAvg=ciPts.length?Math.round(ciPts.reduce((s,p)=>s+p.v,0)/ciPts.length):0;
+  const habitWeeks=cpHabitAdherenceWeekly(c.id,8);
+  const habits=(window.TASKS||[]).filter(t=>t&&t.clientId===c.id&&typeof isHabit==='function'&&isHabit(t));
+  const todayY=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
+  const bestStreak=habits.length?Math.max(...habits.map(h=>typeof habitStreak==='function'?habitStreak(h,todayY):0),0):0;
+  const habitPct7=habitWeeks.length?habitWeeks[habitWeeks.length-1].pct:0;
+  const photosOn=typeof ppFeatureOn==='function'?ppFeatureOn(c):true;
+  const photos=photosOn&&typeof ppListFor==='function'?ppListFor(c.id).slice().sort((a,b)=>String(b.date||b.createdAt||'').localeCompare(String(a.date||a.createdAt||''))).slice(0,6):[];
+  const panel=window._cpProgressPanel||'all';
+  const chip=(id,label)=>`<button type="button" class="cp-analytics-chip${panel===id?' active':''}" data-cp-panel-chip="${id}" onclick="setCPProgressPanel('${id}')">${label}</button>`;
+
   document.getElementById('cp-body').innerHTML=`
-    <div style="margin-bottom:14px;">
-      <div class="cp-section-title" style="margin:0;">PROGRESS</div>
-      <div style="font-size:11px;color:var(--muted);margin-top:2px;">Statystyki, pomiary i podsumowanie dla klienta</div>
+    <div style="margin-bottom:12px;">
+      <div class="cp-section-title" style="margin:0;">ANALITYKA KLIENTA</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px;">Jeden panel: trening · ciało · check-in · nawyki · zdjęcia</div>
     </div>
 
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;">
-      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--accent);">${sess30}</div><div class="cp-stat-lbl">Sesje 30 dni</div></div>
-      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--orange);">${Math.round(totalVol).toLocaleString('pl')}</div><div class="cp-stat-lbl">Tonaż kg</div></div>
-      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--blue);">${totalSets}</div><div class="cp-stat-lbl">Serie łącznie</div></div>
-      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--teal);">${avg?avg+'/5':'—'}</div><div class="cp-stat-lbl">Śr. ocena</div></div>
+    <div class="cp-analytics-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">
+      ${chip('all','Wszystko')}
+      ${chip('train','Trening')}
+      ${chip('body','Ciało')}
+      ${chip('checkin','Check-in')}
+      ${chip('habits','Nawyki')}
+      ${chip('photos','Zdjęcia')}
     </div>
 
-    <div style="display:grid;grid-template-columns:1.55fr 1fr;gap:14px;margin-bottom:14px;">
+    <div data-cp-panel="kpi" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;">
+      <div class="cp-stat-box"><div class="cp-stat-val" style="color:${adh30.pct>=70?'var(--teal)':adh30.pct>=40?'var(--orange)':'var(--accent)'};">${adh30.pct}%</div><div class="cp-stat-lbl">Adherencja 30 dni</div><div style="font-size:9px;color:var(--muted);margin-top:2px;">${adh30.logged}/${adh30.assigned||'—'} · 7d ${adh7.pct}%</div></div>
+      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--accent);">${sess30}</div><div class="cp-stat-lbl">Sesje 30 dni</div><div style="font-size:9px;color:var(--muted);margin-top:2px;">${Math.round(totalVol).toLocaleString('pl')} kg</div></div>
+      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--blue);">${ciAvg||'—'}</div><div class="cp-stat-lbl">Check-in śr.</div><div style="font-size:9px;color:var(--muted);margin-top:2px;">${ciPts.length?ciPts.length+' raportów':'brak'}</div></div>
+      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--teal);">${bestStreak||habitPct7||'—'}</div><div class="cp-stat-lbl">${bestStreak?'Streak nawyków':'Nawyki 7d'}</div><div style="font-size:9px;color:var(--muted);margin-top:2px;">${habits.length?habits.length+' aktywnych':(bestStreak?'dni':'brak nawyków')}${habitPct7?' · '+habitPct7+'%':''}</div></div>
+    </div>
+
+    <div data-cp-panel="train" style="display:grid;grid-template-columns:1.55fr 1fr;gap:14px;margin-bottom:14px;">
       <div class="stat-card">
         <div class="stat-card-hdr">
           <div>
@@ -1525,15 +1628,18 @@ function renderCPProgress(c){
         <div class="stat-card-hdr">
           <div>
             <div class="stat-card-title">⭐ Ocena sesji</div>
-            <div class="stat-card-sub">Trend ostatnich treningów</div>
+            <div class="stat-card-sub">Trend ostatnich treningów · śr. ${avg?avg+'/5':'—'}</div>
           </div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--teal);">${avg?avg+'/5':'—'}</div>
         </div>
         ${cpRatingTrendChart(logged)}
+        <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);">
+          Serie łącznie: <strong style="color:var(--text);">${totalSets}</strong>
+        </div>
       </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+    <div data-cp-panel="body" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
       <div class="stat-card">
         <div class="stat-card-hdr">
           <div>
@@ -1576,7 +1682,7 @@ function renderCPProgress(c){
       </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+    <div data-cp-panel="train" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
       ${lastS||strengthAsc.length>=2?`<div class="stat-card">
         <div class="stat-card-hdr">
           <div>
@@ -1588,7 +1694,7 @@ function renderCPProgress(c){
         ${strengthBars.length?cpHorizontalBars(strengthBars):''}
       </div>`:''}
 
-      <div class="stat-card"${lastS?'':' style="grid-column:1/-1;"'}>
+      <div class="stat-card"${lastS||strengthAsc.length>=2?'':' style="grid-column:1/-1;"'}>
         <div class="stat-card-hdr">
           <div>
             <div class="stat-card-title">🏆 Rekordy z treningów</div>
@@ -1607,7 +1713,73 @@ function renderCPProgress(c){
           }).join('')}
         </div>`:''}
       </div>
-    </div>`;
+    </div>
+
+    <div data-cp-panel="checkin" style="display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:14px;">
+      <div class="stat-card">
+        <div class="stat-card-hdr">
+          <div>
+            <div class="stat-card-title">📝 Samopoczucie (check-in)</div>
+            <div class="stat-card-sub">Energia · sen · stres · odżywianie · ostatnie ${ciPts.length||0} raportów</div>
+          </div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--blue);">${ciAvg||'—'}</div>
+        </div>
+        ${ciPts.length>=2?cpLineChartSVG(ciPts,'var(--blue)',{h:120,unit:'/100'})
+          :`<div style="font-size:12px;color:var(--muted);padding:16px 0;">Za mało wypełnionych check-inów do wykresu — pojawią się po 2+ raportach klienta.</div>`}
+      </div>
+    </div>
+
+    <div data-cp-panel="habits" style="display:grid;grid-template-columns:1.4fr 1fr;gap:14px;margin-bottom:14px;">
+      <div class="stat-card">
+        <div class="stat-card-hdr">
+          <div>
+            <div class="stat-card-title">✅ Adherencja nawyków</div>
+            <div class="stat-card-sub">% odhaczeń tygodniowo · ${habits.length} aktywnych</div>
+          </div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--teal);">${habitPct7}%</div>
+        </div>
+        ${habits.length?cpPctBarChart(habitWeeks,{color:'var(--teal)',h:120})
+          :`<div style="font-size:12px;color:var(--muted);padding:16px 0;">Brak nawyków — dodaj w zakładce Zadania.</div>`}
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-hdr">
+          <div>
+            <div class="stat-card-title">🔥 Streaki</div>
+            <div class="stat-card-sub">Najdłuższe serie</div>
+          </div>
+        </div>
+        ${habits.length?`<div style="display:flex;flex-direction:column;gap:8px;">
+          ${habits.slice().sort((a,b)=>(typeof habitStreak==='function'?habitStreak(b,todayY):0)-(typeof habitStreak==='function'?habitStreak(a,todayY):0)).slice(0,6).map(h=>{
+            const st=typeof habitStreak==='function'?habitStreak(h,todayY):0;
+            return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;background:var(--s3);border-radius:8px;">
+              <span style="font-size:12px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(h.title||'Nawyk')}</span>
+              <span style="font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:var(--teal);flex-shrink:0;">${st}d</span>
+            </div>`;
+          }).join('')}
+        </div>`:`<div style="font-size:12px;color:var(--muted);">Brak streaków.</div>`}
+      </div>
+    </div>
+
+    <div data-cp-panel="photos" class="stat-card" style="margin-bottom:8px;">
+      <div class="stat-card-hdr">
+        <div>
+          <div class="stat-card-title">📷 Zdjęcia postępów</div>
+          <div class="stat-card-sub">${photos.length?photos.length+' ostatnich':'Brak zdjęć'}</div>
+        </div>
+      </div>
+      ${photos.length?`<div class="cp-analytics-photos" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;">
+        ${photos.map(ph=>{
+          const src=ph.url||ph.dataUrl||ph.thumb||'';
+          const when=escHtml(String(ph.date||ph.createdAt||'').slice(0,10));
+          return `<div style="background:var(--s3);border-radius:10px;overflow:hidden;border:1px solid var(--border);">
+            ${src?`<img src="${escHtml(src)}" alt="" style="width:100%;aspect-ratio:3/4;object-fit:cover;display:block;">`:`<div style="aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:20px;">📷</div>`}
+            <div style="padding:6px 8px;font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${when||'—'}</div>
+          </div>`;
+        }).join('')}
+      </div>`:`<div style="font-size:12px;color:var(--muted);padding:8px 0;">Klient jeszcze nie dodał zdjęć postępów.</div>`}
+    </div>
+  `;
+  setCPProgressPanel(panel);
 }
 window.renderCPProgress=renderCPProgress;
 

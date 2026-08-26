@@ -457,8 +457,8 @@ function capClientProgressScreenHTML(c,accent){
   const volWeeks=capWeeklyVolume(c.id,8);
   const totalVol=logged.reduce((s,x)=>s+(Number(x.volume)||0),0);
   const totalSets=logged.reduce((s,x)=>s+(typeof sessionSetsCount==='function'?sessionSetsCount(x):0),0);
-  const days30=Date.now()-30*86400000;
-  const sess30=logged.filter(s=>s.date&&new Date(s.date).getTime()>=days30).length;
+  const adh=typeof cpClientAdherence==='function'?cpClientAdherence(c.id,30):{pct:0,logged:0,assigned:0};
+  const sess30=adh.logged||logged.filter(s=>s.date&&new Date(s.date).getTime()>=Date.now()-30*86400000).length;
   const checkins=(window.CHECKINS&&window.CHECKINS[c.id])||[];
   const ciFilled=checkins.filter(x=>x.status==='filled'&&x.answers).slice(-8);
   const ciPts=ciFilled.map(x=>({d:x.date,v:typeof scoreCheckinAnswers==='function'?scoreCheckinAnswers(x.answers):0})).filter(p=>p.v>0);
@@ -468,6 +468,11 @@ function capClientProgressScreenHTML(c,accent){
   const garmin=metricsOn?capGarminEntries(c):[];
   const stepsPts=garmin.slice(0,14).reverse().map(e=>({d:e.date,v:parseFloat(e.values&&e.values.m1)||0})).filter(p=>p.v>0);
   const maxPr=prs.length?Math.max(...prs.map(p=>p.epley||0),1):1;
+  const habitWeeks=typeof cpHabitAdherenceWeekly==='function'?cpHabitAdherenceWeekly(c.id,6):[];
+  const habits=(window.TASKS||[]).filter(t=>t&&t.clientId===c.id&&typeof isHabit==='function'&&isHabit(t));
+  const todayY=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
+  const bestStreak=habits.length?Math.max(...habits.map(h=>typeof habitStreak==='function'?habitStreak(h,todayY):0),0):0;
+  const habitPct=habitWeeks.length?habitWeeks[habitWeeks.length-1].pct:0;
   return `
     <div class="cap-section cap-progress-panel" style="padding-bottom:90px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-top:8px;gap:8px;">
@@ -476,11 +481,20 @@ function capClientProgressScreenHTML(c,accent){
       </div>
       ${!metricsOn?`<div style="background:var(--s3);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:12px;font-size:12px;color:${CAP_MUTED};line-height:1.45;">📏 Pomiary ciała (masa, obwody, Garmin) są wyłączone przez trenera — widać treningi, rekordy i historię.</div>`:''}
       <div class="cap-stat-kpi-row" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;">
+        <div class="cap-stat-card" style="background:${CAP_S2};border-radius:16px;padding:14px;border:1px solid ${CAP_S3};">
+          <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:6px;">✅ Adherencja 30d</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${adh.pct>=70?'#3ecfb2':accent};line-height:1;">${adh.pct}%</div>
+          <div style="font-size:11px;color:${CAP_MUTED};margin-top:4px;">${adh.logged}/${adh.assigned||'—'} treningów</div>
+        </div>
         ${metricsOn?`<div class="cap-stat-card" style="background:${CAP_S2};border-radius:16px;padding:14px;border:1px solid ${CAP_S3};">
           <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:6px;">⚖️ Masa ciała</div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${CAP_TEXT};line-height:1;">${escHtml(String(w))}<span style="font-size:12px;color:${CAP_MUTED};"> kg</span></div>
           ${massDiff!=null?'<div style="font-size:11px;margin-top:4px;color:'+(massDiff<=0?'#3ecfb2':'#ff8c42')+';">'+(massDiff>0?'+':'')+massDiff+' kg od startu</div>':''}
-        </div>`:''}
+        </div>`:`<div class="cap-stat-card" style="background:${CAP_S2};border-radius:16px;padding:14px;border:1px solid ${CAP_S3};">
+          <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:6px;">🔥 Streak nawyków</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${CAP_TEXT};line-height:1;">${bestStreak||'—'}</div>
+          <div style="font-size:11px;color:${CAP_MUTED};margin-top:4px;">${habitPct?habitPct+'% w tym tyg.':(habits.length?habits.length+' nawyków':'brak nawyków')}</div>
+        </div>`}
         <div class="cap-stat-card" style="background:${CAP_S2};border-radius:16px;padding:14px;border:1px solid ${CAP_S3};">
           <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:6px;">🏋️ Sesje (30 dni)</div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${accent};line-height:1;">${sess30}</div>
@@ -489,12 +503,7 @@ function capClientProgressScreenHTML(c,accent){
         <div class="cap-stat-card" style="background:${CAP_S2};border-radius:16px;padding:14px;border:1px solid ${CAP_S3};">
           <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:6px;">📦 Tonaż</div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:${CAP_TEXT};line-height:1;">${totalVol>=1000?(Math.round(totalVol/100)/10)+'t':Math.round(totalVol)}<span style="font-size:11px;color:${CAP_MUTED};"> kg</span></div>
-          <div style="font-size:11px;color:${CAP_MUTED};margin-top:4px;">objętość (kg × powt.)</div>
-        </div>
-        <div class="cap-stat-card" style="background:${CAP_S2};border-radius:16px;padding:14px;border:1px solid ${CAP_S3};">
-          <div style="font-size:10px;color:${CAP_MUTED};font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:6px;">🔢 Serie</div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${CAP_TEXT};line-height:1;">${totalSets}</div>
-          <div style="font-size:11px;color:${CAP_MUTED};margin-top:4px;">zapisane serie robocze</div>
+          <div style="font-size:11px;color:${CAP_MUTED};margin-top:4px;">${totalSets} serii roboczych</div>
         </div>
       </div>
       ${metricsOn&&massPts.length>=2?`<div class="cap-chart-card" style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
@@ -512,6 +521,14 @@ function capClientProgressScreenHTML(c,accent){
           <div style="font-size:12px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">Samopoczucie (check-in)</div>
           <div style="font-size:10px;color:${CAP_MUTED};margin-bottom:10px;">Energia · sen · stres · odżywianie</div>
           ${capSparklineSVG(ciPts,'#0055a4',340,72)}
+        </div>`:''}
+        ${habits.length?`<div class="cap-chart-card" style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+            <div style="font-size:12px;font-weight:700;color:${CAP_TEXT};">Nawyki — adherencja</div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:#3ecfb2;">${habitPct}%</div>
+          </div>
+          <div style="font-size:10px;color:${CAP_MUTED};margin-bottom:10px;">Ostatnie 6 tygodni · streak ${bestStreak}d</div>
+          ${typeof cpPctBarChart==='function'?cpPctBarChart(habitWeeks,{color:'#3ecfb2',w:340,h:88}):capBarChartSVG(habitWeeks.map(wk=>({l:wk.l,v:wk.pct})),'#3ecfb2',340,72)}
         </div>`:''}
       </div>
       ${metricsOn&&lastMeas?`<div class="cap-chart-card" style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
