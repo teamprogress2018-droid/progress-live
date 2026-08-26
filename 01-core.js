@@ -3008,14 +3008,18 @@ function renderMethodRationaleHTML(opts){
   }).join('')}</ul></div>`:'';
   const volPreview=r.levelVolumeSummary?`<div class="mr-vol-preview">${esc(r.levelVolumeSummary)}</div>`:'';
   try{window._lastMethodRationale=r;}catch(e){}
-  return`<details class="method-rationale" open>
+  const ctxBits=[r.methodLabel,r.goalLabel,r.levelVolumeLabel].filter(Boolean).join(' · ');
+  return`<details class="method-rationale">
     <summary class="method-rationale-hdr">
       <div class="method-rationale-hdr-main">
-        <div class="method-rationale-kicker">Przewodnik trenera</div>
-        <div class="method-rationale-title">Dlaczego tak?</div>
-        <div class="method-rationale-toggle-hint">Kliknij nagłówek, aby zwinąć / rozwinąć · lub otwórz pełny widok</div>
+        <div class="method-rationale-kicker">Dlaczego tak? · przewodnik</div>
+        <div class="method-rationale-title">Asystent trenera</div>
+        <div class="method-rationale-toggle-hint method-rationale-hint-closed">Naciśnij, aby rozwinąć metodykę, objętość i wskazówki</div>
+        <div class="method-rationale-toggle-hint method-rationale-hint-open">Kliknij nagłówek, aby zwinąć · pełny widok w ściągawce</div>
+        ${ctxBits?`<div class="method-rationale-ctx">${esc(ctxBits)}</div>`:''}
       </div>
       <div class="method-rationale-actions" onclick="event.preventDefault();event.stopPropagation();">
+        <span class="mr-expand-cta" aria-hidden="true">Rozwiń</span>
         <button type="button" class="mr-action-btn" onclick="openMethodRationaleModal()" title="Ściągawka: objętość, serie, powtórzenia">Ściągawka</button>
         <button type="button" class="mr-action-btn mr-action-btn--ghost" onclick="printTrainerCheatSheet()" title="Drukuj ściągawkę / PDF">Drukuj</button>
         <span class="method-rationale-badge" aria-hidden="true"></span>
@@ -3065,7 +3069,7 @@ function renderMethodRationaleHTML(opts){
         <div class="mr-text">${esc(r.levelTip)}</div>
         ${volPreview}
       </div>
-      <details class="mr-volume mr-card" open>
+      <details class="mr-volume mr-card">
         <summary class="mr-block-title">Serie na partię wg stażu — rozwiń tabelę</summary>
         ${renderVolumeByLevelTable(r,esc)}
       </details>
