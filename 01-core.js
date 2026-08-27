@@ -3384,6 +3384,7 @@ var _ssClockTimer=null;
 var _ssVisible=false;
 var _ssBound=false;
 var _ssGraceUntil=0;
+var _ssPtr0=null;
 
 function ensureScreensaverSettings(){
   if(!window.SETTINGS)window.SETTINGS={};
@@ -3456,7 +3457,8 @@ function showScreensaver(force){
     el.removeAttribute('hidden');
   }
   _ssVisible=true;
-  _ssGraceUntil=Date.now()+400;
+  _ssGraceUntil=Date.now()+600;
+  _ssPtr0=null;
   if(_ssTimer){clearTimeout(_ssTimer);_ssTimer=null;}
   _ssTickClock();
   if(_ssClockTimer)clearInterval(_ssClockTimer);
@@ -3493,7 +3495,13 @@ function resetScreensaverIdle(){
 }
 function _ssOnActivity(e){
   if(_ssVisible){
-    if(e&&e.type==='mousemove'&&Date.now()<_ssGraceUntil)return;
+    if(e&&e.type==='mousemove'){
+      if(Date.now()<_ssGraceUntil)return;
+      var x=e.clientX,y=e.clientY;
+      if(_ssPtr0==null){_ssPtr0={x:x,y:y};return;}
+      var dx=x-_ssPtr0.x,dy=y-_ssPtr0.y;
+      if(dx*dx+dy*dy<576)return;
+    }
     hideScreensaver();
     return;
   }

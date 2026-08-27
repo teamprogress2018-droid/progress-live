@@ -2120,14 +2120,14 @@ body,
 /* Wygaszacz z logo studia (TV / tablet w klubie) */
 .pl-ss{
   display:none;
-  position:fixed;inset:0;z-index:9000;
+  position:fixed;inset:0;z-index:11000;
   align-items:center;justify-content:center;
   background:#0a0b0e;
   color:#f5f5f5;
   user-select:none;
   overflow:hidden;
 }
-.pl-ss.on{display:flex;}
+.pl-ss.on{display:flex;pointer-events:auto;}
 .pl-ss-bg{
   position:absolute;inset:0;
   background:
@@ -2164,9 +2164,9 @@ body,
   margin-top:-8px;
 }
 .pl-ss-hint{
-  position:absolute;bottom:28px;left:0;right:0;
+  position:absolute;bottom:28px;left:0;right:0;z-index:2;
   font-size:12px;letter-spacing:0.08em;text-transform:uppercase;
-  color:rgba(255,255,255,0.38);
+  color:rgba(255,255,255,0.38);text-align:center;
 }
 @keyframes pl-ss-ken{
   from{transform:scale(1);}

@@ -87,13 +87,46 @@ function bypassAuth() {
   ok('clock text', shown.clock.length >= 4);
   ok('covers viewport', shown.w >= 1400 && shown.h >= 850);
 
-  await page.click('#pl-screensaver');
+  const layout = await page.evaluate(() => {
+    const date = document.getElementById('pl-ss-date');
+    const hint = document.querySelector('.pl-ss-hint');
+    const dr = date && date.getBoundingClientRect();
+    const hr = hint && hint.getBoundingClientRect();
+    return {
+      dateBottom: dr ? dr.bottom : 0,
+      hintTop: hr ? hr.top : 0,
+      hintBottom: hr ? hr.bottom : 0,
+      vh: window.innerHeight
+    };
+  });
+  ok('hint below date', layout.hintTop > layout.dateBottom + 8, JSON.stringify(layout));
+  ok('hint near viewport bottom', layout.hintBottom > layout.vh - 80, JSON.stringify(layout));
+
+  await page.keyboard.press('Escape');
   await page.waitForTimeout(200);
   const hidden = await page.evaluate(() => {
     const el = document.getElementById('pl-screensaver');
     return !!(el && el.classList.contains('on'));
   });
   ok('click dismisses', hidden === false);
+
+  await page.evaluate(() => { if (typeof previewScreensaver === 'function') previewScreensaver(); });
+  await page.waitForTimeout(300);
+  const shown2 = await page.evaluate(() => {
+    const el = document.getElementById('pl-screensaver');
+    return !!(el && el.classList.contains('on'));
+  });
+  ok('preview again', shown2);
+  await page.evaluate(() => {
+    const el = document.getElementById('pl-screensaver');
+    if (el) el.click();
+  });
+  await page.waitForTimeout(200);
+  const hidden2 = await page.evaluate(() => {
+    const el = document.getElementById('pl-screensaver');
+    return !!(el && el.classList.contains('on'));
+  });
+  ok('overlay click dismisses', hidden2 === false);
 
   await page.evaluate(() => {
     if (window.SETTINGS && window.SETTINGS.screensaver) window.SETTINGS.screensaver.enabled = false;
