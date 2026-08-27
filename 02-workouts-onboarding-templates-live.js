@@ -280,7 +280,9 @@ function addWExRow(){
 async function saveWorkout(){
   if(window._saveGuard_saveWorkout)return;window._saveGuard_saveWorkout=true;setTimeout(()=>window._saveGuard_saveWorkout=false,1500);
 
-  const name=document.getElementById('w-name').value.trim();
+  const nameEl=document.getElementById('w-name');
+  if(!nameEl)return;
+  const name=nameEl.value.trim();
   if(!name){notify('Wpisz nazwę treningu!');return;}
   const exercises=[];
   document.querySelectorAll('#w-ex-rows .wb-ex-row').forEach(r=>{
@@ -290,16 +292,17 @@ async function saveWorkout(){
     exercises.push({name:n,sets:inps[1].value||'3',reps:inps[2].value||'10',rest:inps[3].value||'60s'});
   });
   if(!exercises.length){notify('Dodaj przynajmniej jedno ćwiczenie!');return;}
+  const val=id=>(document.getElementById(id)||{}).value||'';
   const w=withTrainer({
     id:newId('w'),
     name,
-    cat:document.getElementById('w-cat').value,
-    level:document.getElementById('w-level').value,
-    time:parseInt(document.getElementById('w-time').value)||45,
-    equip:document.getElementById('w-equip').value,
-    type:document.getElementById('w-type').value,
-    desc:document.getElementById('w-desc').value,
-    notes:document.getElementById('w-notes').value,
+    cat:val('w-cat'),
+    level:val('w-level'),
+    time:parseInt(val('w-time'))||45,
+    equip:val('w-equip'),
+    type:val('w-type'),
+    desc:val('w-desc'),
+    notes:val('w-notes'),
     exercises,
     createdAt:new Date().toISOString().split('T')[0]
   });

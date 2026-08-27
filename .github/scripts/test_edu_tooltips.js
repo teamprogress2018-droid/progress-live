@@ -46,7 +46,6 @@ ok('method dynamic',sandbox.eduTipText('method',{method:'PPL'}).includes('Push')
 ok('mark has data-tip',sandbox.eduTipMark('sets').includes('data-tip=')&&sandbox.eduTipMark('sets').includes('edu-tip'));
 
 ok('cache bumps',html.includes('01-core.js?v=44')&&html.includes('05-clients-builder-plans-calendar.js?v=29')&&html.includes('styles.css?v=47'));
-ok('cache bumps',html.includes('01-core.js?v=42')&&html.includes('05-clients-builder-plans-calendar.js?v=29')&&html.includes('styles.css?v=47'));
 
 if(failed){console.error(failed+' failed');process.exit(1);}
 console.log('\nAll edu-tooltips tests passed');
