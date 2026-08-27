@@ -50,7 +50,6 @@ ok('photo EN alias floor', !!photos['floor press']);
 ok('photo PL cable', !!photos['krzyżowanie wyciągów góra–dół']);
 
 ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=30'));
-ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=29'));
 ok('cache photo', html.includes('ex-photo-manifest.js?v=2'));
 ok('cache core', html.includes('01-core.js?v=45'));
 
