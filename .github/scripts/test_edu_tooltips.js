@@ -45,7 +45,7 @@ ok('rpe mentions RIR',/RIR|RPE/.test(sandbox.eduTipText('rpe')));
 ok('method dynamic',sandbox.eduTipText('method',{method:'PPL'}).includes('Push'));
 ok('mark has data-tip',sandbox.eduTipMark('sets').includes('data-tip=')&&sandbox.eduTipMark('sets').includes('edu-tip'));
 
-ok('cache bumps',html.includes('01-core.js?v=45')&&html.includes('05-clients-builder-plans-calendar.js?v=30')&&html.includes('styles.css?v=48'));
+ok('cache bumps',html.includes('01-core.js?v=45')&&html.includes('05-clients-builder-plans-calendar.js?v=30')&&html.includes('styles.css?v=49'));
 
 if(failed){console.error(failed+' failed');process.exit(1);}
 console.log('\nAll edu-tooltips tests passed');

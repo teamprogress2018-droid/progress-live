@@ -727,6 +727,8 @@ function exAcHide(input){
   const wrap=input&&input.closest('.ex-ac-wrap');
   const dd=wrap&&wrap.querySelector('.ex-ac-dropdown');
   if(dd)dd.style.display='none';
+  const day=input&&input.closest('.builder-day');
+  if(day)day.classList.remove('ex-ac-open');
   if(_exAcState&&(!input||_exAcState.input===input))_exAcState=null;
 }
 
@@ -755,6 +757,8 @@ function exAcRender(input){
   if(!total){
     dd.innerHTML='<div class="ex-ac-empty">Brak wyników — wpisz nazwę lub partię (np. klatka, plecy)</div>';
     dd.style.display='block';
+    const emptyDay=input.closest('.builder-day');
+    if(emptyDay)emptyDay.classList.add('ex-ac-open');
     _exAcState={input,dd,idx:-1};
     return;
   }
@@ -777,6 +781,8 @@ function exAcRender(input){
   });
   dd.innerHTML=html;
   dd.style.display='block';
+  const day=input.closest('.builder-day');
+  if(day)day.classList.add('ex-ac-open');
   _exAcState={input,dd,idx:-1};
 }
 

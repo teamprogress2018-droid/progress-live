@@ -21,5 +21,7 @@ ok('exAcRender includes category text', /e\.cat\|\|g\.cat/.test(render) || /part
 ok('exAcRender no thumb icons in list', !/ex-ac-thumb/.test(render) && !/exThumbUrl/.test(render));
 ok('css defines part label', /\.ex-ac-part\{/.test(css));
 ok('part uses design font', /\.ex-ac-part\{[^}]*font-family:var\(--font-ui\)/.test(css));
+ok('name does not collapse in narrow column', /\.ex-ac-name\{[^}]*min-width:min\(10em,100%\)/.test(css));
+ok('dropdown wider than name cell', /\.ex-ac-dropdown\{[^}]*width:max\(100%,280px\)/.test(css));
 
 console.log('\nAll ex-ac-muscle-label tests passed');

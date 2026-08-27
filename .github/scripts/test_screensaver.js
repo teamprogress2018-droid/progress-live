@@ -24,7 +24,7 @@ ok('overlay html', html.includes('id="pl-screensaver"') && html.includes('assets
 ok('css overlay', css.includes('.pl-ss.on') && css.includes('@keyframes pl-ss-ken') && css.includes('prefers-reduced-motion'));
 ok('settings ui', src04.includes("card('Wygaszacz'") && src04.includes('previewScreensaver()') && src04.includes("toggle('screensaver'"));
 ok('settings default', src04.includes('screensaver:{') && src04.includes('idleMinutes:3'));
-ok('cache bumps', html.includes('01-core.js?v=45') && html.includes('04-client-portal.js?v=33') && html.includes('styles.css?v=48'));
+ok('cache bumps', html.includes('01-core.js?v=45') && html.includes('04-client-portal.js?v=33') && html.includes('styles.css?v=49'));
 ok('CI', wf.includes('test_screensaver.js') && wf.includes('test_screensaver_ui.js'));
 
 const attrs = {};
