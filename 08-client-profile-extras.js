@@ -957,6 +957,24 @@ function renderCPOverview(c){
       </div>`;
     })()}
 
+    ${(()=>{
+      const w=c.weight||(typeof clientLatestMetricWeight==='function'?clientLatestMetricWeight(c.id):null);
+      const bmi=typeof clientBmiStatus==='function'?clientBmiStatus(w,c.height):null;
+      const mon=typeof buildMonitorVerdict==='function'?buildMonitorVerdict(c):null;
+      if(!bmi&&!mon)return'';
+      const tone=mon?(mon.verdictTone||'neutral'):(bmi&&bmi.overweight?'warn':'ok');
+      const dir=mon?(mon.verdict==='progres'?'Dobra strona':(mon.verdict==='regres'?'Zła strona':mon.verdict)):'';
+      const tips=(bmi&&bmi.overweight?(bmi.tips||[]).slice(0,3):[]).concat((mon&&mon.next||[]).slice(0,2));
+      if(!tips.length&&!(bmi&&bmi.overweight)&&!(mon&&(mon.verdict==='regres'||mon.verdict==='ryzyko stagnacji')))return'';
+      return `<div class="cp-bmi-banner cp-bmi-${tone}">
+        <div>
+          <div class="cp-bmi-k">Asystent trenera · ${bmi&&bmi.overweight?escHtml(bmi.label)+(bmi.bmi?' · BMI '+bmi.bmi:''):'Strażnik postępów'}${dir?' · '+escHtml(dir):''}</div>
+          <ul class="cp-bmi-tips">${tips.slice(0,4).map(t=>`<li>${escHtml(t)}</li>`).join('')}</ul>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="openClientMonitorSummary('${c.id}')">Monitoring</button>
+      </div>`;
+    })()}
+
     ${(()=>{const ins=buildClientInsight(c,sessions,plans,daysSince);
       if(!ins.length)return'';
       return `<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
@@ -2380,6 +2398,15 @@ function buildMonitorVerdict(c){
   const daysSince=lastDate?Math.round((Date.now()-new Date(lastDate+'T12:00:00').getTime())/86400000):null;
   const insights=typeof buildClientInsight==='function'?buildClientInsight(c,sessions,plans,daysSince):[];
 
+  const logged=sessions.filter(s=>s&&(typeof isLoggedWorkout==='function'?isLoggedWorkout(s):(s.source==='client'||s.source==='live'||(Array.isArray(s.exercises)&&s.exercises.length))));
+  const recent=logged.slice(0,3);
+  const prev=logged.slice(3,6);
+  const avgNum=(arr,fn)=>{const xs=arr.map(fn).filter(n=>typeof n==='number'&&isFinite(n));return xs.length?xs.reduce((a,b)=>a+b,0)/xs.length:null;};
+  const volOf=s=>parseFloat(s.volume)||0;
+  const fbOf=s=>parseFloat(s.feedback)||0;
+  const volNow=avgNum(recent,volOf),volPrev=avgNum(prev,volOf);
+  const fbNow=avgNum(recent,fbOf),fbPrev=avgNum(prev,fbOf);
+
   let score=0; // >0 progress, <0 regress
   if(massDelta!=null){
     if(goal==='redukcja'){
@@ -2421,6 +2448,16 @@ function buildMonitorVerdict(c){
     if(checkTrend>=5){score+=1;signals.push({tone:'good',label:'Check-in',text:`Samopoczucie ↑ (+${Math.round(checkTrend)} pkt).`});}
     else if(checkTrend<=-8){score-=2;signals.push({tone:'bad',label:'Check-in',text:`Samopoczucie ↓ (${Math.round(checkTrend)} pkt) — obniż intensywność / dopytaj o sen i stres.`});}
   }
+  if(volNow!=null&&volPrev!=null&&volPrev>0){
+    const d=Math.round(((volNow-volPrev)/volPrev)*100);
+    if(d<=-20){score-=1;signals.push({tone:'warn',label:'Objętość sesji',text:`Ostatnie treningi ${d}% vs wcześniejsze — możliwy spadek bodźca albo zmęczenie.`});}
+    else if(d>=15){score+=1;signals.push({tone:'good',label:'Objętość sesji',text:`Objętość ↑ ${d}% — idziemy do przodu, pilnuj regeneracji.`});}
+  }
+  if(fbNow!=null&&fbPrev!=null&&fbPrev>0){
+    const d=+(fbNow-fbPrev).toFixed(1);
+    if(d<=-1){score-=1;signals.push({tone:'bad',label:'Ocena treningu',text:`Średnia ocena ${fbNow.toFixed(1)}/5 (↓ ${Math.abs(d)}) — sesje idą gorzej; skróć objętość albo dopytaj.`});}
+    else if(d>=0.6){score+=1;signals.push({tone:'good',label:'Ocena treningu',text:`Ocena sesji ↑ do ${fbNow.toFixed(1)}/5.`});}
+  }
 
   let verdict='stabilnie';
   let verdictTone='neutral';
@@ -2430,10 +2467,10 @@ function buildMonitorVerdict(c){
 
   const next=[];
   if(verdict==='progres'){
-    next.push('Utrzymaj volume w MAV; dokładaj obciążenie tylko gdy RPE/RIR na to pozwala.');
+    next.push('Idziemy w dobrą stronę — utrzymaj volume w MAV; dokładaj obciążenie tylko gdy RPE/RIR na to pozwala.');
     next.push('Zaplanuj deload za 1–2 tygodnie, zanim pojawi się plateau.');
   }else if(verdict==='regres'){
-    next.push('Skróć objętość o ~20–30% na 7–10 dni i wróć do MEV.');
+    next.push('Zła strona — skróć objętość o ~20–30% na 7–10 dni i wróć do MEV.');
     next.push('Zweryfikuj sen, stres i makro — trening nie nadrobi deficytu regeneracji.');
     next.push('Napisz krótką wiadomość / wyślij check-in, żeby złapać kontekst poza siłownią.');
   }else{
@@ -2441,14 +2478,69 @@ function buildMonitorVerdict(c){
     if(adh30.pct<75)next.push('Popraw adherencję (mniej dni albo krótsze sesje), zanim zwiększysz objętość.');
     if(!massDelta&&!squatDelta)next.push('Uzupełnij pomiary masy i siły bazowej — bez nich monitoring jest ślepy.');
   }
+  const bmiSt=typeof clientBmiStatus==='function'?clientBmiStatus(c.weight||(typeof clientLatestMetricWeight==='function'?clientLatestMetricWeight(c.id):null),c.height):null;
+  if(bmiSt&&bmiSt.overweight&&bmiSt.tips[0]){
+    next.push((bmiSt.obese?'Otyłość':'Nadwaga')+' (BMI '+(bmiSt.bmi||'?')+'): '+bmiSt.tips[0]);
+  }
   insights.forEach(i=>{if(i&&i.text)next.push(i.text.replace(/^[^—]*—\s*/,''));});
 
   return{
-    verdict,verdictTone,score,signals,next:next.slice(0,6),
-    stats:{massDelta,bfDelta,squatDelta,adh30,adh7,daysSince,checkTrend,vol}
+    verdict,verdictTone,score,signals,next:next.slice(0,7),
+    stats:{massDelta,bfDelta,squatDelta,adh30,adh7,daysSince,checkTrend,vol,bmi:bmiSt&&bmiSt.bmi,bmiLabel:bmiSt&&bmiSt.label}
   };
 }
 window.buildMonitorVerdict=buildMonitorVerdict;
+
+function monitorWeekKey(d){
+  const dt=d?new Date(d):new Date();
+  const t=new Date(Date.UTC(dt.getFullYear(),dt.getMonth(),dt.getDate()));
+  const day=t.getUTCDay()||7;
+  t.setUTCDate(t.getUTCDate()+4-day);
+  const yStart=new Date(Date.UTC(t.getUTCFullYear(),0,1));
+  const wk=Math.ceil((((t-yStart)/86400000)+1)/7);
+  return t.getUTCFullYear()+'-W'+String(wk).padStart(2,'0');
+}
+
+function clientMonitorContextForAI(clientId){
+  const c=(window.CL||[]).find(x=>x&&x.id===clientId);
+  if(!c||typeof buildMonitorVerdict!=='function')return'';
+  const v=buildMonitorVerdict(c);
+  if(!v)return'';
+  const dir=v.verdict==='progres'?'DOBRA STRONA — utrzymuj kurs'
+    :(v.verdict==='regres'?'ZŁA STRONA — korekta teraz'
+    :(v.verdict==='ryzyko stagnacji'?'UWAGA — ryzyko stagnacji':'STABILNIE — zbieraj dane'));
+  const lines=['=== STRAŻNIK POSTĘPÓW (OBOWIĄZKOWE) ==='];
+  lines.push('Werdykt: '+String(v.verdict||'').toUpperCase()+' (score '+(v.score??'?')+'). '+dir+'.');
+  (v.signals||[]).forEach(s=>lines.push('- ['+(s.tone||'')+'] '+(s.label||'')+': '+(s.text||'')));
+  if(v.next&&v.next.length){
+    lines.push('Jak zrobić, żeby było dobrze:');
+    v.next.forEach(t=>lines.push('- '+t));
+  }
+  lines.push('Powiedz trenerowi wprost: czy idziemy w dobrą czy złą stronę. Podaj 2–4 konkretne korekty planu / obciążenia / adherencji. Nie bądź ogólnikowy.');
+  return lines.join('\n')+'\n';
+}
+window.clientMonitorContextForAI=clientMonitorContextForAI;
+
+function maybeNotifyTrainerMonitor(clientId,source){
+  const c=(window.CL||[]).find(x=>x&&x.id===clientId);
+  if(!c||typeof buildMonitorVerdict!=='function')return null;
+  const v=buildMonitorVerdict(c);
+  if(!v)return v;
+  const src=source||'auto';
+  if(v.verdict==='stabilnie')return v;
+  if(v.verdict==='progres'&&src!=='session')return v;
+  if(typeof addNotification!=='function')return v;
+  const key='monitor_'+clientId+'_'+v.verdict+'_'+monitorWeekKey();
+  const list=typeof allNotifs==='function'?allNotifs():(window.NOTIFICATIONS||[]);
+  if((list||[]).some(n=>n&&(n.id===key||n.autoKey===key)))return v;
+  const title=v.verdict==='progres'?'Idziemy w dobrą stronę'
+    :(v.verdict==='regres'?'Regres — korekta planu':'Ryzyko stagnacji');
+  const advice=(v.next||[]).slice(0,2).join(' ');
+  addNotification(v.verdict==='regres'?'alert':'system',title,(c.name||'Klient')+' · '+advice,'clients',key);
+  return v;
+}
+window.maybeNotifyTrainerMonitor=maybeNotifyTrainerMonitor;
+window.trainerWatchdogAfterSession=(id)=>maybeNotifyTrainerMonitor(id,'session');
 
 function buildClientJourneySummary(clientId,mode){
   const c=(window.CL||[]).find(x=>x.id===clientId);

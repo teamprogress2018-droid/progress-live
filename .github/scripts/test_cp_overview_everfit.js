@@ -22,7 +22,7 @@ function ok(name, cond) {
   } else console.log('OK  ', name);
 }
 
-ok('layout class', overview.includes('cp-ov-layout'));
+ok('bmi/watch banner', overview.includes('cp-bmi-banner') && overview.includes('Asystent trenera'));
 ok('main column', overview.includes('cp-ov-main'));
 ok('right rail', overview.includes('cp-ov-rail'));
 ok('training 7 days', overview.includes('last7') && overview.includes('Ostatnie 7 dni'));

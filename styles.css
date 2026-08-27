@@ -459,6 +459,20 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 .ai-inp{flex:1;background:var(--s3);border:1px solid var(--border2);border-radius:7px;padding:7px 10px;color:var(--text);font-size:12px;}
 .ai-inp:focus{border-color:var(--accent);}
 .ai-send{padding:7px 12px;background:var(--accent);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;}
+.ai-watch-card{margin:0 0 10px;padding:10px 12px;border-radius:10px;border:1px solid rgba(245,158,11,0.4);background:rgba(245,158,11,0.1);font-size:12px;line-height:1.5;color:var(--text);}
+.ai-watch-card.ok{border-color:rgba(20,184,166,0.35);background:rgba(20,184,166,0.08);}
+.ai-watch-card.bad{border-color:rgba(255,59,48,0.35);background:rgba(255,59,48,0.1);}
+.ai-watch-card.warn{border-color:rgba(245,158,11,0.4);background:rgba(245,158,11,0.1);}
+.ai-watch-k{font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+.ai-watch-tips{margin:6px 0 0;padding-left:16px;}
+.ai-watch-tips li{margin:0 0 4px;}
+.cp-bmi-banner{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px;padding:12px 14px;border-radius:10px;border:1px solid rgba(245,158,11,0.4);background:rgba(245,158,11,0.1);}
+.cp-bmi-banner.cp-bmi-ok{border-color:rgba(20,184,166,0.35);background:rgba(20,184,166,0.08);}
+.cp-bmi-banner.cp-bmi-bad{border-color:rgba(255,59,48,0.35);background:rgba(255,59,48,0.1);}
+.cp-bmi-banner.cp-bmi-warn,.cp-bmi-banner.cp-bmi-neutral{border-color:rgba(245,158,11,0.4);background:rgba(245,158,11,0.1);}
+.cp-bmi-k{font-size:11px;font-weight:700;margin-bottom:6px;}
+.cp-bmi-tips{margin:0;padding-left:16px;font-size:12px;line-height:1.5;color:var(--text);}
+.cp-bmi-tips li{margin:0 0 4px;}
 .modal-ov{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:100;display:none;align-items:center;justify-content:center;}
 .modal-ov.show{display:flex;}
 .modal{width:92%;max-width:580px;max-height:90vh;display:flex;flex-direction:column;}

@@ -2187,6 +2187,7 @@ function liveEndSession(){
     }
   }
   addNotification('system','Sesja zapisana!','Trening '+c?.name+' · '+durationMin+' min · '+totalSets+' serii','clients');
+  if(typeof trainerWatchdogAfterSession==='function')try{trainerWatchdogAfterSession(liveClientId);}catch(e){}
   const leftTxt=pkg?(' · pakiet '+(pkg.sessionsUsed)+'/'+pkg.sessions):'';
   notify('✅ Sesja zapisana! '+durationMin+' min, '+totalSets+' serii, '+volume+' kg obj.'+leftTxt);
   window._liveSavedClientId=liveClientId;

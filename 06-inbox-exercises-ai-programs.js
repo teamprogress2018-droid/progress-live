@@ -1271,17 +1271,46 @@ async function askAI(){
   msgs.innerHTML+='<div class="ai-msg bot" id="ai-t"><div class="ai-bubble" style="opacity:0.5;">Analizuję...</div></div>';
   msgs.scrollTop=msgs.scrollHeight;
   const cid=document.getElementById('b-client').value;const c=CL.find(x=>x.id===cid);
-  const ctx=c?'Klient: '+c.name+', '+c.age+'lat, '+c.weight+'kg, cel: '+c.goal+', poziom: '+c.level+'. ':'';
-  const sys='Asystent trenera personalnego. Odpowiadaj KRÓTKO po polsku, max 120 słów. Zawsze podaj DLACZEGO (1 zdanie) przy liczbach. NSCA: hipertrofia 3-6 serii/8-12 powt/67-85% 1RM; siła 2-6 serii/1-6 powt/85%+ 1RM. RPE 8=RIR 2. Objętość tygodniowa: trzymaj MEV–MAV. Facepull i HipThrust zawsze. Dawaj konkretne liczby.'
+  let ctx=c?'Klient: '+c.name+', '+c.age+'lat, '+c.weight+'kg'+(c.height?', '+c.height+' cm':'')+', cel: '+c.goal+', poziom: '+c.level+'. ':'';
+  if(c&&typeof clientSafetyContextForAI==='function')ctx+=clientSafetyContextForAI(c.id,{weight:c.weight,height:c.height,injuries:c.injuries,gender:c.gender})+'\n';
+  if(c&&typeof clientMonitorContextForAI==='function')ctx+=clientMonitorContextForAI(c.id);
+  const sys='Asystent trenera personalnego. Odpowiadaj KRÓTKO po polsku, max 140 słów. Zawsze podaj DLACZEGO (1 zdanie) przy liczbach. NSCA: hipertrofia 3-6 serii/8-12 powt/67-85% 1RM; siła 2-6 serii/1-6 powt/85%+ 1RM. RPE 8=RIR 2. Objętość tygodniowa: trzymaj MEV–MAV. Facepull i HipThrust zawsze. Dawaj konkretne liczby. Jeśli klient ma nadwagę lub otyłość — stosuj zasady z bloku BEZPIECZEŃSTWO/NADWAGA (maszyny, strefa 2, bez plyo). Jeśli jest STRAŻNIK POSTĘPÓW, powiedz wprost czy idziemy w dobrą czy złą stronę i podaj 2–4 korekty.'
     +(typeof planningEvidenceContext==='function'?planningEvidenceContext(1800):'');
   try{
-    const r=await fetch(W,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:250,system:sys,messages:[{role:'user',content:ctx+q}]})});
+    const r=await fetch(W,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:280,system:sys,messages:[{role:'user',content:ctx+q}]})});
     const d=await r.json();
     const ans=d.content.map(i=>i.text||'').join('');
     document.getElementById('ai-t').outerHTML='<div class="ai-msg bot"><div class="ai-bubble">'+ans.replace(/\n/g,'<br>')+'</div></div>';
   }catch(e){document.getElementById('ai-t').outerHTML='<div class="ai-msg bot"><div class="ai-bubble" style="color:var(--red);">Błąd połączenia</div></div>';}
   msgs.scrollTop=msgs.scrollHeight;
 }
+
+function refreshBuilderAiCoachCard(){
+  const el=document.getElementById('ai-watch-card');
+  if(!el)return;
+  const cid=(document.getElementById('b-client')||{}).value;
+  const c=(window.CL||[]).find(x=>x&&x.id===cid);
+  if(!c){el.hidden=true;el.innerHTML='';return;}
+  const w=c.weight||(typeof clientLatestMetricWeight==='function'?clientLatestMetricWeight(c.id):null);
+  const bmi=typeof clientBmiStatus==='function'?clientBmiStatus(w,c.height):null;
+  const mon=typeof buildMonitorVerdict==='function'?buildMonitorVerdict(c):null;
+  const esc=typeof escHtml==='function'?escHtml:(s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;'));
+  const tips=[];
+  if(bmi&&bmi.overweight)(bmi.tips||[]).slice(0,4).forEach(t=>tips.push(t));
+  if(mon&&mon.next)mon.next.slice(0,2).forEach(t=>{if(!tips.includes(t))tips.push(t);});
+  const show=(bmi&&bmi.overweight)||(mon&&(mon.verdict==='regres'||mon.verdict==='ryzyko stagnacji'||mon.verdict==='progres'));
+  if(!show||!tips.length){el.hidden=true;el.innerHTML='';return;}
+  const tone=mon&&mon.verdict==='progres'?'ok':(mon&&mon.verdict==='regres'?'bad':(bmi&&bmi.overweight?'warn':'ok'));
+  const head=bmi&&bmi.overweight
+    ?(esc(bmi.label)+(bmi.bmi?' · BMI '+bmi.bmi:''))
+    :('Strażnik: '+esc(mon.verdict));
+  const dir=mon?(mon.verdict==='progres'?' — dobra strona':(mon.verdict==='regres'?' — zła strona':'')):'';
+  el.hidden=false;
+  el.className='ai-watch-card '+tone;
+  el.innerHTML=`<div class="ai-watch-k">${head}${dir}</div>
+    <ul class="ai-watch-tips">${tips.slice(0,5).map(t=>'<li>'+esc(t)+'</li>').join('')}</ul>`;
+}
+window.refreshBuilderAiCoachCard=refreshBuilderAiCoachCard;
 
 // ════════════════════════════════════════
 // PROGRAMS LIBRARY
