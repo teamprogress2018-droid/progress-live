@@ -40,7 +40,7 @@ ok('PL peck deck', chestNames.includes('Butterfly (peck deck)'));
 const floor = DEF_EX.find((e) => e.name === 'Wyciskanie z podłogi');
 ok('aka keeps Floor press', floor && /Floor press/i.test(floor.aka || ''));
 
-ok('search blob helper', /function exerciseSearchBlob/.test(six));
+ok('search blob helper', /function exerciseSearchBlob/.test(six) && /function exerciseSearchNorm/.test(six));
 ok('aka in search', /e\.aka/.test(six));
 ok('libExerciseByName aka', /aka/.test(core.slice(core.indexOf('function libExerciseByName'), core.indexOf('function ownVideoForExercise'))));
 
@@ -49,7 +49,7 @@ ok('photo PL key floor', !!photos['wyciskanie z podłogi']);
 ok('photo EN alias floor', !!photos['floor press']);
 ok('photo PL cable', !!photos['krzyżowanie wyciągów góra–dół']);
 
-ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=28'));
+ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=29'));
 ok('cache photo', html.includes('ex-photo-manifest.js?v=2'));
 ok('cache core', html.includes('01-core.js?v=45'));
 
@@ -81,9 +81,10 @@ vm.runInContext(core, ctx);
 vm.runInContext(`
 function allExercises(){const all=[...(EX||[]),...DEF_EX];const seen=new Set();return all.filter(e=>{if(seen.has(e.name))return false;seen.add(e.name);return true;});}
 window.allExercises=allExercises;
-function exerciseSearchBlob(e){return [e.name,e.aka,e.cat,e.muscle,e.eq].map(x=>String(x||'').toLowerCase()).join(' ');}
+function exerciseSearchNorm(s){return String(s||'').toLowerCase().replace(/ł/g,'l').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'');}
+function exerciseSearchBlob(e){return exerciseSearchNorm([e.name,e.aka,e.cat,e.muscle,e.eq].join(' '));}
 function exercisesGroupedByCat(q){
-  const ql=(q||'').trim().toLowerCase();
+  const ql=exerciseSearchNorm((q||'').trim());
   const all=allExercises();
   const filtered=ql?all.filter(e=>exerciseSearchBlob(e).includes(ql)):all;
   const byCat={};
@@ -97,6 +98,16 @@ ok('lookup PL', !!ctx.libExerciseByName('Wyciskanie z podłogi'));
 ok('lookup EN aka', ctx.libExerciseByName('Floor press')?.name === 'Wyciskanie z podłogi');
 ok('search finds EN aka', ctx.exercisesGroupedByCat('floor press').some((g) => g.items.some((e) => e.name === 'Wyciskanie z podłogi')));
 ok('thumb PL name', /free-exercise-db/.test(ctx.exThumbUrl({ name: 'Wyciskanie z podłogi' }) || ''));
+
+const namesOf = (q) => ctx.exercisesGroupedByCat(q).flatMap((g) => g.items.map((e) => e.name));
+ok('search liny', namesOf('liny').includes('Liny treningowe'));
+ok('search pajacyki', namesOf('pajacyki').includes('Pajacyki'));
+ok('search rower', namesOf('rower').includes('Rower stacjonarny') && namesOf('rower').includes('Airbike'));
+ok('search airbike', namesOf('airbike').includes('Airbike'));
+ok('search assault', namesOf('assault').includes('Airbike'));
+ok('search wioslarz ascii', namesOf('wioslarz').includes('Wioślarz'));
+ok('search wioślarz', namesOf('wioślarz').includes('Wioślarz'));
+ok('cardio machines in DEF_EX', ['Liny treningowe','Rower stacjonarny','Airbike','Wioślarz','Skakanka'].every((n) => DEF_EX.some((e) => e.name === n)));
 
 if (failed) {
   console.error(failed + ' failed');

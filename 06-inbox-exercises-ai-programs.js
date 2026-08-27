@@ -594,7 +594,7 @@ const DEF_EX=[
 {name:'Palce do drążka',aka:'Toes to bar',cat:'Core',eq:'Własna masa',muscle:'Core (cały), Biodra',tip:'Wisisz na drążku. Nogi proste do drążka.',nsca:'3x8-10.',alt:'Unoszenie kolan w zwisie'},
 {name:'V-upy',aka:'V-up',cat:'Core',eq:'Własna masa',muscle:'Core (cały), Biodra',tip:'Unieś jednocześnie nogi i tułów.',nsca:'3x12-15.',alt:'Brzuszki, Hollow hold'},
 {name:'Zwisy na drążku',aka:'Dead hang',cat:'Core',eq:'Własna masa',muscle:'Chwyt, Barki, Kręgosłup (dekompresja)',tip:'Wisisz swobodnie na drążku.',nsca:'3xmax czas.',alt:'Spacer farmera, Podciąganie'},
-{name:'Pajacyki',aka:'Jumping jacks',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Całe ciało, Cardio',tip:'Zacznij powoli, przyspieszaj.',nsca:'2-3 min.',alt:'Wysokie kolana, Bieganie w miejscu'},
+{name:'Pajacyki',aka:'Jumping jacks, Jumping jack',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Całe ciało, Cardio',tip:'Zacznij powoli, przyspieszaj.',nsca:'2-3 min.',alt:'Wysokie kolana, Bieganie w miejscu'},
 {name:'Wysokie kolana',aka:'High knees',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Biodra, Czworogłowy, Cardio',tip:'Kolana do klatki. Ramiona aktywnie.',nsca:'3x30 sek.',alt:'Pajacyki, Pięty do pośladków'},
 {name:'Pięty do pośladków',aka:'Butt kicks',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Dwugłowy uda, Łydki, Cardio',tip:'Pięty do pośladków.',nsca:'3x30 sek.',alt:'Wysokie kolana'},
 {name:'Gąsienica (inchworm)',aka:'Inchworm',cat:'Rozgrzewka',eq:'Własna masa',muscle:'Łańcuch tylny, Core, Barki',tip:'Powoli przemieszczaj ręce do przodu.',nsca:'3x8-10 powt.',alt:'Chód niedźwiedzia'},
@@ -651,7 +651,14 @@ const DEF_EX=[
 {name:'Skoki na skrzynię',aka:'Box jump',cat:'Cardio',eq:'Własna masa',muscle:'Czworogłowy, Pośladki, Moc eksplozywna',tip:'Miękkie lądowanie na lekko ugiętych kolanach.',nsca:'3-4x5-8.',alt:'Przysiad z wyskokiem'},
 {name:'Przysiad z wyskokiem',aka:'Jump squat',cat:'Cardio',eq:'Własna masa',muscle:'Czworogłowy, Pośladki, Moc',tip:'Przysiad — wybij się explosywnie.',nsca:'3x8-10.',alt:'Skoki na skrzynię'},
 {name:'Swing kettlebell',aka:'Kettlebell swing',cat:'Cardio',eq:'Kettlebell',muscle:'Pośladki, Dwugłowy uda, Core, Cardio',tip:'Napęd biodrami — nie przysiadem. Hip hinge!',nsca:'3-5x15-20.',alt:'Martwy ciąg klasyczny, Wypychanie bioder (hip thrust)'},
-{name:'Turkish get-up',cat:'Cardio',eq:'Kettlebell',muscle:'Całe ciało, Stabilizacja, Core',tip:'Powolne. Każda faza kontrolowana.',nsca:'3x3-5/stronę.',alt:'Swing kettlebell'}
+{name:'Turkish get-up',cat:'Cardio',eq:'Kettlebell',muscle:'Całe ciało, Stabilizacja, Core',tip:'Powolne. Każda faza kontrolowana.',nsca:'3x3-5/stronę.',alt:'Swing kettlebell'},
+{name:'Liny treningowe',aka:'Liny, Battle ropes, Battle rope, Liny battle',cat:'Cardio',eq:'Liny',muscle:'Całe ciało, Barki, Core, Cardio',tip:'Fale naprzemienne lub oburącz. Stabilny tułów, kolana lekko ugięte.',nsca:'3–5×30–45 s.',alt:'Airbike, Burpees, Mountain climbers'},
+{name:'Rower stacjonarny',aka:'Rower, Bike, Cycling, Spinning, Rower treningowy',cat:'Cardio',eq:'Rower',muscle:'Czworogłowy, Łydki, Cardio (tlenowo)',tip:'Strefa 2: da się rozmawiać. Siodełko na wysokości biodra.',nsca:'10–30 min zona 2 albo interwały.',alt:'Airbike, Orbitrek, Wioślarz'},
+{name:'Airbike',aka:'Assault bike, Rower powietrzny, Fan bike, Echo bike, Air bike',cat:'Cardio',eq:'Airbike',muscle:'Całe ciało, Cardio (HIIT)',tip:'Pchaj i ciągnij ramionami. Interwały 20/10 albo 30/30.',nsca:'5–15 min HIIT albo 10–20 min tempo.',alt:'Rower stacjonarny, Liny treningowe, Wioślarz'},
+{name:'Wioślarz',aka:'Wioslarz, Rowing, Concept2, Ergometr wioślarski, Row',cat:'Cardio',eq:'Wioślarz',muscle:'Plecy, Nogi, Core, Cardio',tip:'Nogi → tułów → ramiona. Nie garb się. Długi, równy pociąg.',nsca:'500–2000 m albo 10–20 min zona 2.',alt:'Rower stacjonarny, Airbike'},
+{name:'Skakanka',aka:'Jump rope, Skipping, Skakanka bokserska',cat:'Cardio',eq:'Skakanka',muscle:'Łydki, Barki, Cardio',tip:'Lekkie podskoki, nadgarstki kręcą skakanką.',nsca:'5×1–2 min albo 10 min ciągle.',alt:'Pajacyki, Wysokie kolana'},
+{name:'Orbitrek',aka:'Eliptyk, Elliptical, Crosstrainer',cat:'Cardio',eq:'Orbitrek',muscle:'Całe ciało (niski impact), Cardio',tip:'Pięty nie odrywaj. Ręce pracują z nogami.',nsca:'15–30 min zona 2.',alt:'Rower stacjonarny, Bieganie w miejscu'},
+{name:'Bieganie w miejscu',aka:'Running in place, Jog w miejscu, Bieg w miejscu',cat:'Cardio',eq:'Własna masa',muscle:'Łydki, Czworogłowy, Cardio',tip:'Lekkie lądowanie na śródstopiu.',nsca:'3×45–60 s albo 5–10 min.',alt:'Wysokie kolana, Pajacyki'}
 ];
 window.DEF_EX=DEF_EX;
 
@@ -667,12 +674,15 @@ function allExercises(){
 // Ciemna lista podpowiedzi ćwiczeń (zamiast natywnego białego datalist)
 let _exAcState=null;
 
+function exerciseSearchNorm(s){
+  return String(s||'').toLowerCase().replace(/ł/g,'l').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+}
 function exerciseSearchBlob(e){
-  return [e.name,e.aka,e.cat,e.muscle,e.eq].map(x=>String(x||'').toLowerCase()).join(' ');
+  return exerciseSearchNorm([e.name,e.aka,e.cat,e.muscle,e.eq].join(' '));
 }
 
 function exercisesGroupedByCat(q){
-  const ql=(q||'').trim().toLowerCase();
+  const ql=exerciseSearchNorm((q||'').trim());
   const all=allExercises();
   const filtered=ql?all.filter(e=>exerciseSearchBlob(e).includes(ql)):all;
   const byCat={};
@@ -685,6 +695,9 @@ function exercisesGroupedByCat(q){
   const order=[...Object.keys(CAT_COLORS_EX),...Object.keys(byCat).filter(c=>!CAT_COLORS_EX[c])];
   return order.filter(cat=>byCat[cat]?.length).map(cat=>({cat,items:byCat[cat]}));
 }
+window.exerciseSearchNorm=exerciseSearchNorm;
+window.exerciseSearchBlob=exerciseSearchBlob;
+window.exercisesGroupedByCat=exercisesGroupedByCat;
 
 function exAcFilter(q){
   const groups=exercisesGroupedByCat(q);
@@ -1007,7 +1020,7 @@ function renderLib(){
   let filtered=all.filter(e=>{
     if(exCatFilter!=='Wszystkie'&&e.cat!==exCatFilter)return false;
     if(exEquipFilter&&e.eq!==exEquipFilter)return false;
-    if(search){const s=search.toLowerCase();if(!exerciseSearchBlob(e).includes(s))return false;}
+    if(search){const s=exerciseSearchNorm(search);if(!exerciseSearchBlob(e).includes(s))return false;}
     return true;
   });
 
