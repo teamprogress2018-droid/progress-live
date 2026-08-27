@@ -38,6 +38,10 @@ jobs:
 
       - name: 1c. Testy warstwy klienta dla coach media
         run: node .github/scripts/test_client_portal_coach_media.js
+      - name: 1c2. Testy GIF-ów techniki ćwiczeń
+        run: node .github/scripts/test_ex_gif.js
+      - name: 1c3. Testy własnych filmów trenera
+        run: node .github/scripts/test_own_videos.js
       - name: 1c4. Testy wygaszacza z logo
         run: node .github/scripts/test_screensaver.js
       - name: 1b. Testy %1RM → kg
@@ -70,6 +74,8 @@ jobs:
 
       - name: 1h. Testy regresji historii treningów
         run: node .github/scripts/test_workout_rate_history_fixes.js
+      - name: 1h2. Testy rotacji sugerowanego dnia planu
+        run: node .github/scripts/test_suggested_plan_day.js
       - name: 1g. Testy EMOM
         run: node .github/scripts/test_emom.js
 
@@ -258,6 +264,8 @@ jobs:
         run: node .github/scripts/test_plan_preview_layout.js
       - name: 6b. Testy layoutu generatora / biblioteki / kalkulatora
         run: node .github/scripts/test_ai_gen_layout.js
+      - name: 6b2. Testy UI zamienników i miniatury techniki w kreatorze
+        run: node .github/scripts/test_builder_alts_media_ui.js
 
       - name: 6c. Testy UI zasobów YouTube i Garmin CSV
         run: node .github/scripts/test_resources_garmin_ui.js
