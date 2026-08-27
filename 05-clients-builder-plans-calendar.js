@@ -506,12 +506,17 @@ function renderClientOnboardChecklist(){
       action:`openClientBaselineModal('${id}')`,cta:'Zapisz pomiary'},
     {done:st.schedule,icon:'📅',title:'Dni treningowe',desc:'Preferowane dni tygodnia — apka i auto-kalendarz z nich korzystają',
       action:`openClientScheduleFromOnboard('${id}')`,cta:'Ustaw dni'},
-    {done:st.plan,icon:'📋',title:'Przypisz plan treningowy',desc:'Najszybciej: generator AI z danymi klienta',
+    {done:st.plan,icon:'📋',title:'Przypisz plan treningowy',
+      desc:st.plan
+        ?`Plan już przypisany${(()=>{const lp=typeof latestClientPlan==='function'?latestClientPlan(id):null;return lp&&lp.name?' (“'+lp.name+'”)':'';})()}. Możesz dodać kolejny — najnowszy trafia do kalendarza.`
+        :'Najszybciej: generator AI z danymi klienta',
       action:`openAiPlanForClient('${id}')`,cta:'⚡ Plan AI',
-      extra:st.plan?'':`<button class="btn btn-ghost btn-sm" onclick="closeM('m-client-onboard');openClientProfile('${id}');setTimeout(()=>setCPTab('plan'),300)">Szablon</button>`},
+      extra:`<button class="btn btn-ghost btn-sm" onclick="closeM('m-client-onboard');openClientProfile('${id}');setTimeout(()=>setCPTab('plan'),300)">Szablon</button>`,
+      doneExtra:`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"><button class="btn btn-primary btn-sm" onclick="openAiPlanForClient('${id}')">⚡ Nowy plan AI</button><button class="btn btn-ghost btn-sm" onclick="closeM('m-client-onboard');openClientProfile('${id}');setTimeout(()=>setCPTab('plan'),300)">📋 Szablon / kreator</button></div>`},
     {done:st.calendar,icon:'🗓',title:'Wrzuć plan do kalendarza',desc:'4 tygodnie na preferowane dni — klient widzi trening w Dziś',
       action:`scheduleClientPlanToCalendar('${id}')`,cta:'Do kalendarza',
-      extra:st.calendar?'':`<button class="btn btn-ghost btn-sm" onclick="closeM('m-client-onboard');goTo('live');setTimeout(()=>liveClientSetField('${id}','${safeName}'),300)">Trening Live</button>`},
+      extra:st.calendar?'':`<button class="btn btn-ghost btn-sm" onclick="closeM('m-client-onboard');goTo('live');setTimeout(()=>liveClientSetField('${id}','${safeName}'),300)">Trening Live</button>`,
+      doneExtra:st.calendar?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"><button class="btn btn-ghost btn-sm" onclick="scheduleClientPlanToCalendar('${id}')">🗓 Dodaj najnowszy plan do kalendarza</button></div>`:''},
     {done:st.package,icon:'💳',title:'Pakiet / płatność',desc:'Przypisz pakiet sesji albo pomiń, jeśli rozliczacie się inaczej',
       action:`openPackageForClient('${id}')`,cta:'+ Pakiet',
       extra:st.package?'':`<button class="btn btn-ghost btn-sm" onclick="skipClientPackage('${id}')">Pomiń</button>`,
@@ -593,9 +598,9 @@ function renderClientOnboardChecklist(){
       <div style="width:32px;height:32px;border-radius:8px;background:${s.done?'rgba(62,207,178,0.18)':'var(--s2)'};display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">${s.done?'✓':s.icon}</div>
       <div style="flex:1;">
         <div style="font-size:13px;font-weight:700;margin-bottom:2px;">${s.title}</div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:${s.done&&!s.afterDone?'0':'8px'};">${s.desc}</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:${(s.done&&!s.afterDone&&!s.doneExtra)||!s.done?'8px':'0'};">${s.desc}</div>
         ${s.done
-          ?`<div style="font-size:10px;color:var(--teal);font-family:'DM Mono',monospace;margin-top:4px;">GOTOWE</div>${s.afterDone||''}`
+          ?`<div style="font-size:10px;color:var(--teal);font-family:'DM Mono',monospace;margin-top:4px;">GOTOWE</div>${s.doneExtra||''}${s.afterDone||''}`
           :`<div style="display:flex;gap:6px;flex-wrap:wrap;"><button class="btn btn-primary btn-sm" onclick="${s.action}">${s.cta}</button>${s.extra||''}</div>`}
       </div>
     </div>`).join('')+(st.complete?`<button class="btn btn-primary" style="width:100%;margin-top:4px;" onclick="closeM('m-client-onboard')">Gotowe — zamknij</button>`:'');
