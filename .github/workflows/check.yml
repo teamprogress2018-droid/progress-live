@@ -235,6 +235,8 @@ jobs:
         run: node .github/scripts/test_ai_metrics_context.js
       - name: 1p2. Testy bezpieczeństwa planu AI (waga/postawa)
         run: node .github/scripts/test_ai_plan_safety.js
+      - name: Testy PDF planu AI (kolory wzoru)
+        run: node .github/scripts/test_plan_pdf.js
       - name: 1p3. Testy nadwagi i strażnika postępów AI
         run: node .github/scripts/test_ai_bmi_watchdog.js
 
@@ -268,6 +270,8 @@ jobs:
         run: node .github/scripts/test_plan_preview_layout.js
       - name: 6b. Testy layoutu generatora / biblioteki / kalkulatora
         run: node .github/scripts/test_ai_gen_layout.js
+      - name: 6b1. Testy UI PDF planu AI
+        run: node .github/scripts/test_plan_pdf_ui.js
       - name: 6b2. Testy UI zamienników i miniatury techniki w kreatorze
         run: node .github/scripts/test_builder_alts_media_ui.js
 
