@@ -1100,6 +1100,8 @@ function renderCPOverview(c){
 
 function renderCPPlan(c){
   const plans=PL.filter(p=>p.clientId===c.id);
+  const activePlan=typeof latestClientPlan==='function'?latestClientPlan(c.id):plans.slice(-1)[0]||null;
+  const activeId=activePlan?activePlan.id:null;
   document.getElementById('cp-body').innerHTML=`
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
       <div class="cp-section-title" style="margin:0;">PLANY TRENINGOWE (${plans.length})</div>
@@ -1109,6 +1111,7 @@ function renderCPPlan(c){
         <button class="btn btn-primary btn-sm" onclick="goTo('aiplangen');document.getElementById('apl-client').value='${c.id}';aplFillFromClient();closeClientProfile()">⚡ Generuj plan AI</button>
       </div>
     </div>
+    ${plans.length?`<div style="font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:12px;padding:10px 12px;background:var(--s3);border:1px solid var(--border);border-radius:8px;">Nowy plan dodajesz przyciskami powyżej — trafia na listę, a <strong>najnowszy</strong> idzie do kalendarza. Stary usuń ×, jeśli nieaktualny.</div>`:''}
     ${!plans.length
       ?`<div style="text-align:center;padding:40px;color:var(--muted);">
           <div style="font-size:32px;margin-bottom:10px;opacity:0.3;">📋</div>
@@ -1121,7 +1124,8 @@ function renderCPPlan(c){
               <div style="font-size:17px;font-weight:700;">${p.name}</div>
               <div style="font-size:13px;color:var(--muted);margin-top:3px;">${p.method||'—'} · ${p.duration||'?'} tyg. · ${(p.days||[]).length} dni</div>
             </div>
-            <div style="display:flex;gap:5px;">
+            <div style="display:flex;gap:5px;align-items:center;">
+              ${p.id===activeId?`<span class="pill pill-teal" style="font-size:9px;">AKTYWNY</span>`:''}
               <span class="pill pill-green" style="font-size:11px;">${p.method||'—'}</span>
               <button onclick="delPlanFromProfile('${p.id}','${c.id}')" style="background:none;border:none;color:var(--muted2);font-size:16px;cursor:pointer;line-height:1;" title="Usuń plan">×</button>
             </div>
