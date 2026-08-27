@@ -583,6 +583,8 @@ function renderCPForms(c){
   const pending=sends.filter(s=>s.status!=='filled');
   const filled=sends.filter(s=>s.status==='filled');
   const intake=typeof clientIntakeFormState==='function'?clientIntakeFormState(c.id):null;
+  const intakePendingId=intake&&intake.pending?intake.pending.id:null;
+  const listSends=intakePendingId?sends.filter(s=>s.id!==intakePendingId):sends;
   document.getElementById('cp-body').innerHTML=`
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
       <div class="cp-section-title" style="margin:0;">FORMULARZE (${sends.length})</div>
@@ -602,8 +604,11 @@ function renderCPForms(c){
       <div class="cp-stat-box" style="flex:1;"><div class="cp-stat-val" style="color:var(--orange);font-size:22px;">${pending.length}</div><div class="cp-stat-lbl">Oczekuje</div></div>
       <div class="cp-stat-box" style="flex:1;"><div class="cp-stat-val" style="color:var(--teal);font-size:22px;">${filled.length}</div><div class="cp-stat-lbl">Wypełnione</div></div>
     </div>
-    ${!sends.length?'<div style="text-align:center;padding:30px;color:var(--muted);">Brak wysłanych formularzy. Użyj przycisków powyżej albo biblioteki Formularze.</div>'
-    :sends.map(s=>{
+    ${!listSends.length
+      ?(intakePendingId
+        ?'<div style="text-align:center;padding:16px 12px;color:var(--muted);font-size:11px;line-height:1.45;">Oczekująca ankieta wstępna jest powyżej. Inne formularze wyślij z biblioteki.</div>'
+        :'<div style="text-align:center;padding:30px;color:var(--muted);">Brak wysłanych formularzy. Użyj przycisków powyżej albo biblioteki Formularze.</div>')
+    :listSends.map(s=>{
       const f=(typeof allForms==='function'?allForms():[]).find(x=>x.id===s.formId);
       const name=s.formName||(f&&f.name)||'Formularz';
       const open=window._fdAnswersSendId===s.id;
