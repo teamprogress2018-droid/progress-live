@@ -42,6 +42,8 @@ jobs:
         run: node .github/scripts/test_ex_gif.js
       - name: 1c3. Testy własnych filmów trenera
         run: node .github/scripts/test_own_videos.js
+      - name: 1c4. Testy wygaszacza z logo
+        run: node .github/scripts/test_screensaver.js
       - name: 1b. Testy %1RM → kg
         run: node .github/scripts/test_1rm.js
 
@@ -270,6 +272,9 @@ jobs:
 
       - name: 6d. Testy UI portalu On-demand YouTube
         run: node .github/scripts/test_ondemand_youtube_ui.js
+
+      - name: 6e. Testy UI wygaszacza z logo
+        run: node .github/scripts/test_screensaver_ui.js
 
       - name: 7. Sprawdź stronę w prawdziwej przeglądarce
         run: node .github/scripts/check_browser.js

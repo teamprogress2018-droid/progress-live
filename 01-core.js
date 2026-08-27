@@ -3406,7 +3406,181 @@ function bindEduTipClicks(){
 }
 window.hydrateEduTips=hydrateEduTips;
 window.bindEduTipClicks=bindEduTipClicks;
+
+// ════════════════════════════════════════
+// WYGASZACZ — logo studia na TV / tablecie w klubie
+// ════════════════════════════════════════
+var PL_SS_DEFAULT_LOGO='assets/brand/progress-logo.jpg';
+var _ssTimer=null;
+var _ssClockTimer=null;
+var _ssVisible=false;
+var _ssBound=false;
+var _ssGraceUntil=0;
+var _ssPtr0=null;
+
+function ensureScreensaverSettings(){
+  if(!window.SETTINGS)window.SETTINGS={};
+  var ss=window.SETTINGS.screensaver;
+  if(!ss||typeof ss!=='object')ss=window.SETTINGS.screensaver={enabled:true,idleMinutes:3};
+  if(ss.enabled==null)ss.enabled=true;
+  var m=parseInt(ss.idleMinutes,10);
+  if(!m||m<1)m=3;
+  if(m>60)m=60;
+  ss.idleMinutes=m;
+  return ss;
+}
+function screensaverEnabled(){
+  return ensureScreensaverSettings().enabled!==false;
+}
+function screensaverIdleMs(){
+  return ensureScreensaverSettings().idleMinutes*60*1000;
+}
+function screensaverLogoUrl(){
+  var logo=window.SETTINGS&&window.SETTINGS.brand&&window.SETTINGS.brand.logo;
+  if(typeof logo==='string'&&logo.trim())return logo.trim();
+  return PL_SS_DEFAULT_LOGO;
+}
+function screensaverMediaBusy(){
+  if(typeof document==='undefined'||!document.querySelectorAll)return false;
+  try{
+    var nodes=document.querySelectorAll('video,audio');
+    for(var i=0;i<nodes.length;i++){
+      if(nodes[i]&&nodes[i].paused===false)return true;
+    }
+  }catch(e){}
+  return false;
+}
+function screensaverQueryForce(){
+  var search='';
+  try{search=(window.location&&window.location.search)||'';}catch(e){}
+  return /[?&](ss|wygaszacz)=1(?:&|$)/.test(search);
+}
+function _ssTickClock(){
+  if(!_ssVisible||typeof document==='undefined'||!document.getElementById)return;
+  var clock=document.getElementById('pl-ss-clock');
+  var dateEl=document.getElementById('pl-ss-date');
+  var now=new Date();
+  try{
+    if(clock)clock.textContent=now.toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'});
+    if(dateEl)dateEl.textContent=now.toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long'});
+  }catch(e){
+    if(clock){
+      var hh=now.getHours(),mm=now.getMinutes();
+      clock.textContent=(hh<10?'0':'')+hh+':'+(mm<10?'0':'')+mm;
+    }
+  }
+}
+function screensaverOverlayEl(){
+  if(typeof document==='undefined'||!document.getElementById)return null;
+  var el=document.getElementById('pl-screensaver');
+  if(!el||typeof el.querySelector!=='function')return null;
+  if(!el.querySelector('.pl-ss-logo'))return null;
+  return el;
+}
+function showScreensaver(force){
+  if(!force&&!screensaverEnabled())return false;
+  if(!force&&typeof document!=='undefined'&&document.hidden)return false;
+  if(!force&&screensaverMediaBusy())return false;
+  var el=screensaverOverlayEl();
+  if(!el)return false;
+  var img=el.querySelector('.pl-ss-logo');
+  if(img){
+    var url=screensaverLogoUrl();
+    if(img.getAttribute&&img.getAttribute('src')!==url)img.setAttribute('src',url);
+    else if(!img.getAttribute)img.src=url;
+  }
+  if(el.classList&&el.classList.add)el.classList.add('on');
+  if(el.setAttribute){
+    el.setAttribute('aria-hidden','false');
+    el.removeAttribute('hidden');
+  }
+  _ssVisible=true;
+  _ssGraceUntil=Date.now()+600;
+  _ssPtr0=null;
+  if(_ssTimer){clearTimeout(_ssTimer);_ssTimer=null;}
+  _ssTickClock();
+  if(_ssClockTimer){
+    if(typeof clearInterval==='function')clearInterval(_ssClockTimer);
+    _ssClockTimer=null;
+  }
+  if(typeof setInterval==='function')_ssClockTimer=setInterval(_ssTickClock,1000);
+  return true;
+}
+function hideScreensaver(){
+  _ssVisible=false;
+  _ssGraceUntil=0;
+  if(_ssClockTimer){
+    if(typeof clearInterval==='function')clearInterval(_ssClockTimer);
+    _ssClockTimer=null;
+  }
+  var el=screensaverOverlayEl();
+  if(el){
+    if(el.classList&&el.classList.remove)el.classList.remove('on');
+    if(el.setAttribute){
+      el.setAttribute('aria-hidden','true');
+      el.setAttribute('hidden','');
+    }
+  }
+  resetScreensaverIdle();
+}
+function previewScreensaver(){
+  return showScreensaver(true);
+}
+function resetScreensaverIdle(){
+  if(_ssTimer){clearTimeout(_ssTimer);_ssTimer=null;}
+  if(_ssVisible)return;
+  if(!screensaverEnabled())return;
+  if(typeof document==='undefined'||!document.getElementById)return;
+  if(!screensaverOverlayEl())return;
+  if(document.hidden)return;
+  _ssTimer=setTimeout(function(){showScreensaver(false);},screensaverIdleMs());
+}
+function _ssOnActivity(e){
+  if(_ssVisible){
+    if(e&&e.type==='mousemove'){
+      if(Date.now()<_ssGraceUntil)return;
+      var x=e.clientX,y=e.clientY;
+      if(_ssPtr0==null){_ssPtr0={x:x,y:y};return;}
+      var dx=x-_ssPtr0.x,dy=y-_ssPtr0.y;
+      if(dx*dx+dy*dy<576)return;
+    }
+    hideScreensaver();
+    return;
+  }
+  resetScreensaverIdle();
+}
+function initScreensaver(){
+  ensureScreensaverSettings();
+  if(!_ssBound&&typeof document!=='undefined'&&document.addEventListener){
+    _ssBound=true;
+    ['pointerdown','keydown','touchstart','mousemove','wheel'].forEach(function(ev){
+      document.addEventListener(ev,_ssOnActivity,{passive:true});
+    });
+    document.addEventListener('visibilitychange',function(){
+      if(document.hidden){
+        if(_ssTimer){clearTimeout(_ssTimer);_ssTimer=null;}
+      }else resetScreensaverIdle();
+    });
+    var el=screensaverOverlayEl();
+    if(el&&el.addEventListener)el.addEventListener('click',function(){hideScreensaver();});
+  }
+  resetScreensaverIdle();
+  if(screensaverQueryForce())showScreensaver(true);
+}
+window.PL_SS_DEFAULT_LOGO=PL_SS_DEFAULT_LOGO;
+window.ensureScreensaverSettings=ensureScreensaverSettings;
+window.screensaverEnabled=screensaverEnabled;
+window.screensaverIdleMs=screensaverIdleMs;
+window.screensaverLogoUrl=screensaverLogoUrl;
+window.showScreensaver=showScreensaver;
+window.hideScreensaver=hideScreensaver;
+window.previewScreensaver=previewScreensaver;
+window.resetScreensaverIdle=resetScreensaverIdle;
+window.initScreensaver=initScreensaver;
+window.screensaverQueryForce=screensaverQueryForce;
+window.screensaverOverlayEl=screensaverOverlayEl;
+
 if(typeof document!=='undefined'){
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{bindEduTipClicks();hydrateEduTips();});
-  else{bindEduTipClicks();hydrateEduTips();}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{bindEduTipClicks();hydrateEduTips();initScreensaver();});
+  else{bindEduTipClicks();hydrateEduTips();initScreensaver();}
 }

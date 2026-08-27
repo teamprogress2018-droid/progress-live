@@ -3804,6 +3804,17 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   </div>
 </div>
 
+<!-- Wygaszacz: logo studia po bezczynności (TV / tablet w klubie) -->
+<div id="pl-screensaver" class="pl-ss" hidden aria-hidden="true" role="dialog" aria-label="Wygaszacz Progress">
+  <div class="pl-ss-bg"></div>
+  <div class="pl-ss-stage">
+    <img class="pl-ss-logo" src="assets/brand/progress-logo.jpg" alt="Progress — Studio treningu personalnego">
+    <div class="pl-ss-clock" id="pl-ss-clock"></div>
+    <div class="pl-ss-date" id="pl-ss-date"></div>
+  </div>
+  <div class="pl-ss-hint">Kliknij lub naciśnij klawisz, aby wrócić</div>
+</div>
+
 <datalist id="ex-dl"></datalist>
 
 <script>
@@ -4013,6 +4024,10 @@ async function load(){
   try{const s11=await getDocs(collection(db,'settings'));s11.forEach(d=>{const data=d.data()||{};if(typeof window.belongsToTrainer==='function'&&!window.belongsToTrainer(data)&&data.trainerId)return;window.SETTINGS={...window.SETTINGS,...data};if(data.profile)window.SETTINGS.profile={...window.SETTINGS.profile,...data.profile};window._settingsDocId=d.id;});}catch(e){console.warn('Wczytywanie ustawień nie powiodło się:',e);}
   if(typeof applyBrandTheme==='function')applyBrandTheme(window.SETTINGS);
   try{
+    if(typeof ensureScreensaverSettings==='function')ensureScreensaverSettings();
+    if(typeof initScreensaver==='function')initScreensaver();
+  }catch(e){}
+  try{
     if(typeof window.applyAuthToTrainerProfile==='function')window.applyAuthToTrainerProfile();
     if(window.SETTINGS&&window.SETTINGS.profile){
       const hadDoc=!!window._settingsDocId;
@@ -4144,9 +4159,14 @@ async function load(){
 <script src="04-client-portal.js?v=32"></script>
 <script src="05-clients-builder-plans-calendar.js?v=30"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=28"></script>
+<script src="02-workouts-onboarding-templates-live.js?v=22"></script>
+<script src="03-ai-plangen-bizstats-aicoach.js?v=26"></script>
+<script src="04-client-portal.js?v=33"></script>
+<script src="05-clients-builder-plans-calendar.js?v=29"></script>
+<script src="06-inbox-exercises-ai-programs.js?v=27"></script>
 <script src="07-forms-metrics-calculator.js?v=27"></script>
 <script src="08-client-profile-extras.js?v=32"></script>
 <script src="09-posture-kb-invites-private.js?v=33"></script>
-<script src="10-client-app.js?v=24"></script>
+<script src="10-client-app.js?v=25"></script>
 </body>
 </html>
