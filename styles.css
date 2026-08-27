@@ -2116,3 +2116,62 @@ body,
   .cj-name,.cj-h,.cj-v,.cj-verdict-val,.cj-sig b,.cj-day b{color:#111!important;}
   .cj-meta,.cj-date,.cj-k,.cj-empty,.cj-note,.cj-verdict-lbl,.cj-verdict-sub,.cj-foot,.cj-ol{color:#4b5563!important;}
 }
+
+/* Wygaszacz z logo studia (TV / tablet w klubie) */
+.pl-ss{
+  display:none;
+  position:fixed;inset:0;z-index:11000;
+  align-items:center;justify-content:center;
+  background:#0a0b0e;
+  color:#f5f5f5;
+  user-select:none;
+  overflow:hidden;
+}
+.pl-ss.on{display:flex;pointer-events:auto;}
+.pl-ss-bg{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 42%,rgba(var(--accent-rgb,230,0,0),0.18),transparent 62%),
+    radial-gradient(ellipse 90% 80% at 50% 100%,rgba(255,255,255,0.04),transparent 55%),
+    #0a0b0e;
+}
+.pl-ss-stage{
+  position:relative;z-index:1;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:18px;padding:24px;text-align:center;
+}
+.pl-ss-logo{
+  width:min(72vmin,560px);
+  height:min(72vmin,560px);
+  object-fit:contain;
+  filter:drop-shadow(0 16px 48px rgba(0,0,0,0.55));
+  animation:pl-ss-ken 22s ease-in-out infinite alternate;
+}
+.pl-ss-clock{
+  font-family:Inter,system-ui,sans-serif;
+  font-size:clamp(28px,6vw,56px);
+  font-weight:700;
+  letter-spacing:0.04em;
+  line-height:1;
+  color:#fff;
+  text-shadow:0 2px 16px rgba(0,0,0,0.45);
+}
+.pl-ss-date{
+  font-size:clamp(13px,2.2vw,18px);
+  font-weight:500;
+  color:rgba(255,255,255,0.72);
+  text-transform:capitalize;
+  margin-top:-8px;
+}
+.pl-ss-hint{
+  position:absolute;bottom:28px;left:0;right:0;z-index:2;
+  font-size:12px;letter-spacing:0.08em;text-transform:uppercase;
+  color:rgba(255,255,255,0.38);text-align:center;
+}
+@keyframes pl-ss-ken{
+  from{transform:scale(1);}
+  to{transform:scale(1.045);}
+}
+@media (prefers-reduced-motion:reduce){
+  .pl-ss-logo{animation:none;}
+}

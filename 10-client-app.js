@@ -196,6 +196,10 @@ async function loadClientApp(account){
     window.SETTINGS=window.SETTINGS||{};
     window.SETTINGS.profile=Object.assign({},window.SETTINGS.profile||{},{name:account.trainerName});
   }
+  try{
+    if(typeof ensureScreensaverSettings==='function')ensureScreensaverSettings();
+    if(typeof resetScreensaverIdle==='function')resetScreensaverIdle();
+  }catch(e){}
   enterClientLiveShell();
 }
 
