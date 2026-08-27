@@ -235,6 +235,8 @@ jobs:
         run: node .github/scripts/test_ai_metrics_context.js
       - name: 1p2. Testy bezpieczeństwa planu AI (waga/postawa)
         run: node .github/scripts/test_ai_plan_safety.js
+      - name: 1p3. Testy nadwagi i strażnika postępów AI
+        run: node .github/scripts/test_ai_bmi_watchdog.js
 
       - name: Testy sync uwag AI vs metoda
         run: node .github/scripts/test_apl_notes_method_sync.js
@@ -277,6 +279,8 @@ jobs:
 
       - name: 6e. Testy UI wygaszacza z logo
         run: node .github/scripts/test_screensaver_ui.js
+      - name: 6f. Testy UI nadwagi i strażnika w asystencie
+        run: node .github/scripts/test_ai_bmi_watchdog_ui.js
 
       - name: 7. Sprawdź stronę w prawdziwej przeglądarce
         run: node .github/scripts/check_browser.js

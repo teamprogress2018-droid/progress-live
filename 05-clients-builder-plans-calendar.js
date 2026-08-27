@@ -1424,6 +1424,7 @@ function updatePeriod(){
   document.querySelectorAll('#builder-days .ex-row').forEach(r=>{if(typeof builderPreviewKg==='function')builderPreviewKg(r);});
   builderRefreshPeriodPreview();
   builderRefreshRationale();
+  if(typeof refreshBuilderAiCoachCard==='function')refreshBuilderAiCoachCard();
 }
 function builderSelectPeriodWeek(idx){
   window._builderPeriodWeek=idx||0;

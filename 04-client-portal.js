@@ -4643,6 +4643,12 @@ function generateAutoNotifs(){
     }
   });
 
+  if(typeof maybeNotifyTrainerMonitor==='function'){
+    (window.CL||[]).filter(c=>c&&c.status!=='archived').forEach(c=>{
+      try{maybeNotifyTrainerMonitor(c.id,'auto');}catch(e){}
+    });
+  }
+
   updateNotifBadge();
 }
 
@@ -5826,6 +5832,18 @@ function dashOpsAttentionItems(){
           meta:missed.length+' zaplanowanych bez logu (14 dni)',
           cta:`openClientProfile('${escHtml(c.id)}');setTimeout(()=>{if(typeof setCPTab==='function')setCPTab('training');},150)`,ctaLbl:'Treningi'});
       }
+    }
+    if(typeof buildMonitorVerdict==='function'){
+      try{
+        const v=buildMonitorVerdict(c);
+        if(v&&(v.verdict==='regres'||v.verdict==='ryzyko stagnacji')){
+          items.push({pri:v.verdict==='regres'?0:1,clientId:c.id,name:c.name,
+            tag:v.verdict==='regres'?'Regres':'Ryzyko stagnacji',
+            col:v.verdict==='regres'?'var(--red)':'var(--orange)',
+            meta:(v.next&&v.next[0])||'Sprawdź monitoring postępów',
+            cta:`openClientMonitorSummary('${escHtml(c.id)}')`,ctaLbl:'Rada AI'});
+        }
+      }catch(e){}
     }
   });
   // dedupe by clientId+tag

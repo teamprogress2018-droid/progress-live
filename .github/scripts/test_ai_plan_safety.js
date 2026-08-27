@@ -29,9 +29,8 @@ ok('pharma hidden by default', html.includes('id="apl-pharma-panel"') && /apl-ph
 ok('pharma prompt wiring', src03.includes("getElementById('apl-pharma-status')") && /Status farmakologiczny/.test(src03) && /WSPOMAGANY/.test(src03));
 ok('pharma toggle helper', /function toggleAplPharmaPanel/.test(src03) && /window\.toggleAplPharmaPanel/.test(src03));
 ok('pharma resets on client change', /BEZPIECZEŃSTWO: zawsze zeruj status farmakologiczny/.test(src03));
-ok('cache bumps', html.includes('03-ai-plangen-bizstats-aicoach.js?v=26') && html.includes('07-forms-metrics-calculator.js?v=27'));
-ok('cache bumps', html.includes('03-ai-plangen-bizstats-aicoach.js?v=26') && html.includes('07-forms-metrics-calculator.js?v=27') && html.includes('styles.css?v=47'));
-ok('cache bumps', html.includes('03-ai-plangen-bizstats-aicoach.js?v=26') && html.includes('07-forms-metrics-calculator.js?v=27') && html.includes('styles.css?v=48'));
+ok('cache bumps', html.includes('03-ai-plangen-bizstats-aicoach.js?v=27') && html.includes('07-forms-metrics-calculator.js?v=28'));
+ok('cache bumps', html.includes('03-ai-plangen-bizstats-aicoach.js?v=27') && html.includes('07-forms-metrics-calculator.js?v=28') && html.includes('styles.css?v=49'));
 ok('CI', wf.includes('test_ai_plan_safety.js'));
 
 const document = { getElementById: () => null, querySelectorAll: () => [], addEventListener() {} };
@@ -68,6 +67,7 @@ ok('safety slice', !!safetySlice);
 vm.runInContext(safetySlice[0], ctx);
 
 const {
+  clientBmiStatus,
   clientBodyLoadContextForAI,
   clientPostureHealthFormContextForAI,
   clientSafetyContextForAI,
@@ -76,6 +76,11 @@ const {
 
 const body = clientBodyLoadContextForAI(122.5, 175);
 ok('BMI high rules', /BMI ~40/.test(body) && /maszyny/.test(body) && /skok/.test(body));
+
+const nad = clientBodyLoadContextForAI(80, 170);
+ok('BMI overweight rules', /NADWAGA/.test(nad) && /strefa 2/.test(nad));
+ok('BMI normal quiet', !/NADWAGA/.test(clientBodyLoadContextForAI(62, 170)));
+ok('clientBmiStatus nadwaga', clientBmiStatus(80, 170).overweight && !clientBmiStatus(80, 170).obese);
 
 const form = clientPostureHealthFormContextForAI('c1');
 ok('posture form wad', /Hiperlordoza/.test(form) && /kolan/.test(form));

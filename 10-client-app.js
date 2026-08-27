@@ -1178,6 +1178,7 @@ async function cwFinish(){
   if(typeof addNotification==='function'){
     addNotification('system','Trening klienta',name+' · '+cw.dayName+' · ocena '+cw.rating+'/5 · '+durationMin+' min · '+totalSets+' serii','live');
   }
+  if(typeof trainerWatchdogAfterSession==='function')try{trainerWatchdogAfterSession(clientId);}catch(e){}
   if(typeof notify==='function')notify('✓ Trening zapisany');
   cwClearTimers();
   window._cw=null;
