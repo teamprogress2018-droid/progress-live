@@ -95,6 +95,22 @@ function ok(name, cond, extra) {
   const picked = await page.locator('.ex-row [data-f="name"]').first().inputValue();
   ok('click fills Wioślarz', picked === 'Wioślarz', picked);
 
+  const rzut = await acFor('rzut');
+  await page.screenshot({ path: path.join(shotDir, 'cardio_ac_rzut.png') });
+  ok('rzut finds Rzut piłką o ścianę', rzut.items.includes('Rzut piłką o ścianę'), JSON.stringify(rzut));
+  ok('rzut finds Rzut piłką o podłogę', rzut.items.includes('Rzut piłką o podłogę'), JSON.stringify(rzut));
+  ok('rzut not empty', !rzut.empty, rzut.empty);
+
+  const pilka = await acFor('pilka');
+  ok('pilka finds Rzut piłką o ścianę', pilka.items.includes('Rzut piłką o ścianę'), JSON.stringify(pilka));
+
+  const wall = await acFor('wall ball');
+  ok('wall ball finds Rzut piłką o ścianę', wall.items.includes('Rzut piłką o ścianę'), JSON.stringify(wall));
+
+  await page.locator('.ex-row .ex-ac-item').filter({ hasText: 'Rzut piłką o ścianę' }).first().click();
+  const pickedRzut = await page.locator('.ex-row [data-f="name"]').first().inputValue();
+  ok('click fills Rzut piłką o ścianę', pickedRzut === 'Rzut piłką o ścianę', pickedRzut);
+
   await page.evaluate(() => {
     if (typeof goTo === 'function') goTo('library');
     if (typeof renderLib === 'function') renderLib();
@@ -105,6 +121,13 @@ function ok(name, cond, extra) {
   await page.waitForTimeout(200);
   const lib = await page.evaluate(() => (document.getElementById('lib-grid') || {}).innerText || '');
   ok('library search liny', /Liny treningowe/.test(lib), lib.slice(0, 200));
+
+  await page.fill('#ex-search', 'rzut');
+  await page.evaluate(() => { if (typeof renderLib === 'function') renderLib(); });
+  await page.waitForTimeout(200);
+  const libRzut = await page.evaluate(() => (document.getElementById('lib-grid') || {}).innerText || '');
+  ok('library search rzut wall ball', /Rzut piłką o ścianę/.test(libRzut), libRzut.slice(0, 240));
+  ok('library search rzut slam', /Rzut piłką o podłogę/.test(libRzut), libRzut.slice(0, 240));
 
   await browser.close();
   if (failed) {
