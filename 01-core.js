@@ -757,31 +757,56 @@ function exerciseSlug(name){
 }
 window.exerciseSlug=exerciseSlug;
 
+/** Klucze do szukania mediów: pełna nazwa, alias w nawiasie, część przed pauzą. */
+function exerciseLookupKeys(name){
+  const raw=String(name||'').trim();
+  if(!raw)return[];
+  const out=[];
+  const add=s=>{
+    const k=exerciseMediaKey(s);
+    if(k&&!out.includes(k))out.push(k);
+    const slug=exerciseSlug(s);
+    if(slug&&!out.includes(slug))out.push(slug);
+  };
+  add(raw);
+  raw.split(/\s+[—–|]\s+/).forEach(p=>add(p));
+  add(raw.replace(/\s*\([^)]*\)/g,' ').replace(/\s+/g,' ').trim());
+  const re=/\(([^)]+)\)/g;
+  let m;
+  while((m=re.exec(raw))){
+    add(m[1]);
+    add(String(m[1]).replace(/-/g,' '));
+  }
+  out.slice().forEach(k=>{
+    if(/pec[- ]deck/.test(k)){
+      add('peck deck');
+      add('butterfly (peck deck)');
+      add('pec-deck');
+    }
+  });
+  return out;
+}
+window.exerciseLookupKeys=exerciseLookupKeys;
+
+function mediaMapGet(map,name){
+  if(!map||typeof map!=='object')return '';
+  const keys=typeof exerciseLookupKeys==='function'?exerciseLookupKeys(name):[exerciseMediaKey(name),exerciseSlug(name)];
+  for(let i=0;i<keys.length;i++){
+    const k=keys[i];
+    if(k&&map[k])return map[k];
+  }
+  if(map[name])return map[name];
+  return '';
+}
+
 /** GIF / zdjęcie techniki z manifestu repo, Firestore (EX_GIF_REMOTE) lub pola gif/img ćwiczenia. */
 function exGifMapLookup(name){
-  const key=exerciseMediaKey(name);
-  const slug=exerciseSlug(name);
-  if(!key&&!slug)return '';
-  const remote=window.EX_GIF_REMOTE||{};
-  if(remote[key])return remote[key];
-  if(remote[slug])return remote[slug];
-  const manifest=window.EX_GIF_MANIFEST||{};
-  if(manifest[key])return manifest[key];
-  if(manifest[slug])return manifest[slug];
-  if(manifest[name])return manifest[name];
-  return '';
+  return mediaMapGet(window.EX_GIF_REMOTE,name)||mediaMapGet(window.EX_GIF_MANIFEST,name);
 }
 window.exGifMapLookup=exGifMapLookup;
 
 function exPhotoMapLookup(name){
-  const key=exerciseMediaKey(name);
-  const slug=exerciseSlug(name);
-  if(!key&&!slug)return '';
-  const photos=window.EX_PHOTO_MANIFEST||{};
-  if(photos[key])return photos[key];
-  if(photos[slug])return photos[slug];
-  if(photos[name])return photos[name];
-  return '';
+  return mediaMapGet(window.EX_PHOTO_MANIFEST,name);
 }
 window.exPhotoMapLookup=exPhotoMapLookup;
 
@@ -846,10 +871,17 @@ function libExerciseByName(name){
   const lib=typeof allExercises==='function'?allExercises():[].concat(window.EX||[],window.DEF_EX||[]);
   const byName=lib.find(e=>String(e.name||'').toLowerCase().replace(/\s+/g,' ').trim()===key);
   if(byName)return byName;
-  return lib.find(e=>{
+  const akaHit=lib.find(e=>{
     const aka=String(e.aka||'').toLowerCase().replace(/\s+/g,' ');
     if(!aka)return false;
     return aka.split(/[,;/|]/).map(s=>s.trim()).filter(Boolean).includes(key);
+  });
+  if(akaHit)return akaHit;
+  const keys=typeof exerciseLookupKeys==='function'?exerciseLookupKeys(name):[key];
+  return lib.find(e=>{
+    const blob=[e.name,e.aka].filter(Boolean).join(' ');
+    const names=typeof exerciseLookupKeys==='function'?exerciseLookupKeys(blob):[exerciseMediaKey(blob)];
+    return keys.some(k=>k&&names.includes(k));
   })||null;
 }
 window.libExerciseByName=libExerciseByName;
@@ -2959,6 +2991,8 @@ function buildMethodRationale(opts){
   const volSummary=VOLUME_PART_ORDER.slice(0,6).map(p=>p+': '+(volGuide.parts[p]||'—')+' s/tyg').join(' · ');
   return{
     methodKey,goalKey,levelKey,daysPerWeek:days||null,weight:(!isNaN(weight)&&weight>0)?weight:null,
+    clientName:o.clientName||undefined,
+    clientId:o.clientId||undefined,
     methodLabel:method.label,
     methodWhy:method.why,
     methodBest:method.best,
@@ -2982,11 +3016,31 @@ function buildMethodRationale(opts){
     trainerEntries
   };
 }
-function renderVolumeByLevelTable(r,esc){
+function renderVolumeByLevelTable(r,esc,tableOpts){
   const order=r.volumePartOrder||VOLUME_PART_ORDER;
   const levels=['poczatkujacy','sredni','zaawansowany'];
   const labels={poczatkujacy:'Pocz.',sredni:'Średni',zaawansowany:'Zaaw.'};
   const cur=String(r.levelKey||'sredni').toLowerCase();
+  const personalized=!!(tableOpts&&tableOpts.personalizedOnly);
+  const innerOnly=!!(tableOpts&&tableOpts.innerOnly);
+  if(personalized){
+    const guide=r.volumeByLevel&&r.volumeByLevel[cur];
+    const rows=order.map(part=>{
+      const v=(guide&&guide.parts&&guide.parts[part])||'—';
+      return `<tr><th scope="row" class="mr-vol-part">${esc(part)}</th><td class="mr-vol-td is-current">${esc(v)}</td></tr>`;
+    }).join('');
+    const who=r.clientName?(' klienta '+r.clientName):'';
+    const table=`<table class="mr-vol-table mr-vol-table--solo"><thead><tr><th class="mr-vol-part">Partia</th><th class="mr-vol-th is-current">${esc(r.levelVolumeLabel||labels[cur]||cur)}</th></tr></thead><tbody>${rows}</tbody></table>`;
+    const compare=`<details class="mr-vol-compare"><summary class="mr-block-title" style="font-size:11px;cursor:pointer;margin-top:8px;">Porównaj z innymi stażami</summary>${renderVolumeByLevelTable(r,esc,{innerOnly:true})}</details>`;
+    if(innerOnly)return table;
+    return `<div class="mr-vol-wrap mr-vol-personal">
+      <div class="mr-meta" style="margin-bottom:6px;">Serie robocze / partię / <b>tydzień</b> (MEV–MAV) dopasowane do${esc(who)} · staż <b>${esc(r.levelVolumeLabel||labels[cur]||cur)}</b>.</div>
+      ${table}
+      <div class="mr-meta" style="margin-top:6px;">${esc(r.levelVolumeNote||'')}</div>
+      ${compare}
+      <div class="mr-note">Siła / rehab: trzymaj dolną połowę zakresu; kondycja: okolice MEV + osobne sesje cardio.</div>
+    </div>`;
+  }
   const head=levels.map(l=>`<th class="mr-vol-th${l===cur?' is-current':''}">${esc(labels[l])}</th>`).join('');
   const rows=order.map(part=>{
     const cells=levels.map(l=>{
@@ -2995,9 +3049,13 @@ function renderVolumeByLevelTable(r,esc){
     }).join('');
     return `<tr><th scope="row" class="mr-vol-part">${esc(part)}</th>${cells}</tr>`;
   }).join('');
+  const table=`<table class="mr-vol-table"><thead><tr><th class="mr-vol-part">Partia</th>${head}</tr></thead><tbody>${rows}</tbody></table>`;
+  if(innerOnly){
+    return `<div class="mr-meta" style="margin:8px 0 6px;">Pełna tabela — kolumna <b>${esc(r.levelVolumeLabel||'')}</b> to wybrany staż.</div>${table}`;
+  }
   return `<div class="mr-vol-wrap">
     <div class="mr-meta" style="margin-bottom:6px;">Serie robocze / partię / <b>tydzień</b> (hipertrofia · MEV–MAV). Kolumna <b>${esc(r.levelVolumeLabel||'')}</b> = wybrany staż klienta.</div>
-    <table class="mr-vol-table"><thead><tr><th class="mr-vol-part">Partia</th>${head}</tr></thead><tbody>${rows}</tbody></table>
+    ${table}
     <div class="mr-meta" style="margin-top:6px;">${esc(r.levelVolumeNote||'')}</div>
     <div class="mr-note">Siła / rehab: trzymaj dolną połowę zakresu; kondycja: okolice MEV + osobne sesje cardio. Nie sumuj „wszystkie partie na MRV” naraz.</div>
   </div>`;
@@ -3093,6 +3151,7 @@ function renderTrainerCheatSheetHTML(opts){
   const esc=escFn||(s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'));
   const row=(k,v)=>`<div class="mr-row"><span class="mr-k">${esc(k)}</span><span class="mr-v">${esc(v)}</span></div>`;
   const ctxBits=[
+    r.clientName?('Klient: '+r.clientName):'',
     r.methodLabel?('Metoda: '+r.methodLabel):'',
     r.goalLabel?('Cel: '+r.goalLabel):'',
     r.levelVolumeLabel?('Staż: '+r.levelVolumeLabel):'',
@@ -3141,7 +3200,7 @@ function renderTrainerCheatSheetHTML(opts){
     </div>
     <div class="mr-block tch-card tch-volume">
       <div class="mr-block-title">Serie robocze / partię / tydzień (MEV–MAV)</div>
-      ${renderVolumeByLevelTable(r,esc)}
+      ${renderVolumeByLevelTable(r,esc,{personalizedOnly:!!(r.clientName||r.clientId)})}
     </div>
     <div class="mr-block tch-card">
       <div class="mr-block-title">Szybkie reguły przy wpisywaniu serii</div>
@@ -3157,11 +3216,28 @@ function renderTrainerCheatSheetHTML(opts){
 }
 function resolveMethodRationaleOpts(opts){
   if(opts&&typeof opts==='object'&&(opts.methodWhy||opts.method||opts.goal||opts.level))return opts;
-  if(typeof builderEduCtx==='function'){
+  const screenActive=(id)=>{const el=document.getElementById(id);return!!(el&&el.classList.contains('active'));};
+  if(screenActive('screen-aiplangen')&&typeof aplEduCtx==='function'){
+    try{
+      const ctx=aplEduCtx()||{};
+      if(ctx.method||ctx.goal||ctx.level||ctx.clientName)return ctx;
+    }catch(e){}
+  }
+  if(screenActive('screen-builder')&&typeof builderEduCtx==='function'){
     try{
       const ctx=builderEduCtx()||{};
       const days=document.querySelectorAll('#builder-days .builder-day').length;
-      return{method:ctx.method,goal:ctx.goal,level:ctx.level,weight:ctx.weight,daysPerWeek:days||undefined};
+      return{method:ctx.method,goal:ctx.goal,level:ctx.level,weight:ctx.weight,daysPerWeek:days||undefined,clientId:ctx.clientId,clientName:ctx.clientName};
+    }catch(e){}
+  }
+  if(typeof aplEduCtx==='function'&&document.getElementById('apl-client')?.value){
+    try{return aplEduCtx()||{};}catch(e){}
+  }
+  if(typeof builderEduCtx==='function'&&document.getElementById('b-client')?.value){
+    try{
+      const ctx=builderEduCtx()||{};
+      const days=document.querySelectorAll('#builder-days .builder-day').length;
+      return{method:ctx.method,goal:ctx.goal,level:ctx.level,weight:ctx.weight,daysPerWeek:days||undefined,clientId:ctx.clientId,clientName:ctx.clientName};
     }catch(e){}
   }
   return window._lastMethodRationale||{};
@@ -3171,10 +3247,12 @@ function openMethodRationaleModal(opts){
   if(!mount){if(typeof notify==='function')notify('Brak okna ściągawki');return;}
   const src=resolveMethodRationaleOpts(opts);
   const r=typeof src==='object'&&src.methodWhy?src:buildMethodRationale(src||{});
+  if(src.clientName&&!r.clientName)r.clientName=src.clientName;
+  if(src.clientId&&!r.clientId)r.clientId=src.clientId;
   try{window._lastMethodRationale=r;}catch(e){}
   mount.innerHTML=renderTrainerCheatSheetHTML(r);
   const title=document.querySelector('#m-method-rationale .modal-title');
-  if(title)title.textContent='ŚCIĄGAWKA TRENERA';
+  if(title)title.textContent=r.clientName?('ŚCIĄGAWKA — '+String(r.clientName).toUpperCase()):'ŚCIĄGAWKA TRENERA';
   if(typeof openM==='function')openM('m-method-rationale');
 }
 function printTrainerCheatSheet(){
@@ -3333,7 +3411,181 @@ function bindEduTipClicks(){
 }
 window.hydrateEduTips=hydrateEduTips;
 window.bindEduTipClicks=bindEduTipClicks;
+
+// ════════════════════════════════════════
+// WYGASZACZ — logo studia na TV / tablecie w klubie
+// ════════════════════════════════════════
+var PL_SS_DEFAULT_LOGO='assets/brand/progress-logo.jpg';
+var _ssTimer=null;
+var _ssClockTimer=null;
+var _ssVisible=false;
+var _ssBound=false;
+var _ssGraceUntil=0;
+var _ssPtr0=null;
+
+function ensureScreensaverSettings(){
+  if(!window.SETTINGS)window.SETTINGS={};
+  var ss=window.SETTINGS.screensaver;
+  if(!ss||typeof ss!=='object')ss=window.SETTINGS.screensaver={enabled:true,idleMinutes:3};
+  if(ss.enabled==null)ss.enabled=true;
+  var m=parseInt(ss.idleMinutes,10);
+  if(!m||m<1)m=3;
+  if(m>60)m=60;
+  ss.idleMinutes=m;
+  return ss;
+}
+function screensaverEnabled(){
+  return ensureScreensaverSettings().enabled!==false;
+}
+function screensaverIdleMs(){
+  return ensureScreensaverSettings().idleMinutes*60*1000;
+}
+function screensaverLogoUrl(){
+  var logo=window.SETTINGS&&window.SETTINGS.brand&&window.SETTINGS.brand.logo;
+  if(typeof logo==='string'&&logo.trim())return logo.trim();
+  return PL_SS_DEFAULT_LOGO;
+}
+function screensaverMediaBusy(){
+  if(typeof document==='undefined'||!document.querySelectorAll)return false;
+  try{
+    var nodes=document.querySelectorAll('video,audio');
+    for(var i=0;i<nodes.length;i++){
+      if(nodes[i]&&nodes[i].paused===false)return true;
+    }
+  }catch(e){}
+  return false;
+}
+function screensaverQueryForce(){
+  var search='';
+  try{search=(window.location&&window.location.search)||'';}catch(e){}
+  return /[?&](ss|wygaszacz)=1(?:&|$)/.test(search);
+}
+function _ssTickClock(){
+  if(!_ssVisible||typeof document==='undefined'||!document.getElementById)return;
+  var clock=document.getElementById('pl-ss-clock');
+  var dateEl=document.getElementById('pl-ss-date');
+  var now=new Date();
+  try{
+    if(clock)clock.textContent=now.toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'});
+    if(dateEl)dateEl.textContent=now.toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long'});
+  }catch(e){
+    if(clock){
+      var hh=now.getHours(),mm=now.getMinutes();
+      clock.textContent=(hh<10?'0':'')+hh+':'+(mm<10?'0':'')+mm;
+    }
+  }
+}
+function screensaverOverlayEl(){
+  if(typeof document==='undefined'||!document.getElementById)return null;
+  var el=document.getElementById('pl-screensaver');
+  if(!el||typeof el.querySelector!=='function')return null;
+  if(!el.querySelector('.pl-ss-logo'))return null;
+  return el;
+}
+function showScreensaver(force){
+  if(!force&&!screensaverEnabled())return false;
+  if(!force&&typeof document!=='undefined'&&document.hidden)return false;
+  if(!force&&screensaverMediaBusy())return false;
+  var el=screensaverOverlayEl();
+  if(!el)return false;
+  var img=el.querySelector('.pl-ss-logo');
+  if(img){
+    var url=screensaverLogoUrl();
+    if(img.getAttribute&&img.getAttribute('src')!==url)img.setAttribute('src',url);
+    else if(!img.getAttribute)img.src=url;
+  }
+  if(el.classList&&el.classList.add)el.classList.add('on');
+  if(el.setAttribute){
+    el.setAttribute('aria-hidden','false');
+    el.removeAttribute('hidden');
+  }
+  _ssVisible=true;
+  _ssGraceUntil=Date.now()+600;
+  _ssPtr0=null;
+  if(_ssTimer){clearTimeout(_ssTimer);_ssTimer=null;}
+  _ssTickClock();
+  if(_ssClockTimer){
+    if(typeof clearInterval==='function')clearInterval(_ssClockTimer);
+    _ssClockTimer=null;
+  }
+  if(typeof setInterval==='function')_ssClockTimer=setInterval(_ssTickClock,1000);
+  return true;
+}
+function hideScreensaver(){
+  _ssVisible=false;
+  _ssGraceUntil=0;
+  if(_ssClockTimer){
+    if(typeof clearInterval==='function')clearInterval(_ssClockTimer);
+    _ssClockTimer=null;
+  }
+  var el=screensaverOverlayEl();
+  if(el){
+    if(el.classList&&el.classList.remove)el.classList.remove('on');
+    if(el.setAttribute){
+      el.setAttribute('aria-hidden','true');
+      el.setAttribute('hidden','');
+    }
+  }
+  resetScreensaverIdle();
+}
+function previewScreensaver(){
+  return showScreensaver(true);
+}
+function resetScreensaverIdle(){
+  if(_ssTimer){clearTimeout(_ssTimer);_ssTimer=null;}
+  if(_ssVisible)return;
+  if(!screensaverEnabled())return;
+  if(typeof document==='undefined'||!document.getElementById)return;
+  if(!screensaverOverlayEl())return;
+  if(document.hidden)return;
+  _ssTimer=setTimeout(function(){showScreensaver(false);},screensaverIdleMs());
+}
+function _ssOnActivity(e){
+  if(_ssVisible){
+    if(e&&e.type==='mousemove'){
+      if(Date.now()<_ssGraceUntil)return;
+      var x=e.clientX,y=e.clientY;
+      if(_ssPtr0==null){_ssPtr0={x:x,y:y};return;}
+      var dx=x-_ssPtr0.x,dy=y-_ssPtr0.y;
+      if(dx*dx+dy*dy<576)return;
+    }
+    hideScreensaver();
+    return;
+  }
+  resetScreensaverIdle();
+}
+function initScreensaver(){
+  ensureScreensaverSettings();
+  if(!_ssBound&&typeof document!=='undefined'&&document.addEventListener){
+    _ssBound=true;
+    ['pointerdown','keydown','touchstart','mousemove','wheel'].forEach(function(ev){
+      document.addEventListener(ev,_ssOnActivity,{passive:true});
+    });
+    document.addEventListener('visibilitychange',function(){
+      if(document.hidden){
+        if(_ssTimer){clearTimeout(_ssTimer);_ssTimer=null;}
+      }else resetScreensaverIdle();
+    });
+    var el=screensaverOverlayEl();
+    if(el&&el.addEventListener)el.addEventListener('click',function(){hideScreensaver();});
+  }
+  resetScreensaverIdle();
+  if(screensaverQueryForce())showScreensaver(true);
+}
+window.PL_SS_DEFAULT_LOGO=PL_SS_DEFAULT_LOGO;
+window.ensureScreensaverSettings=ensureScreensaverSettings;
+window.screensaverEnabled=screensaverEnabled;
+window.screensaverIdleMs=screensaverIdleMs;
+window.screensaverLogoUrl=screensaverLogoUrl;
+window.showScreensaver=showScreensaver;
+window.hideScreensaver=hideScreensaver;
+window.previewScreensaver=previewScreensaver;
+window.resetScreensaverIdle=resetScreensaverIdle;
+window.initScreensaver=initScreensaver;
+window.screensaverQueryForce=screensaverQueryForce;
+window.screensaverOverlayEl=screensaverOverlayEl;
+
 if(typeof document!=='undefined'){
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{bindEduTipClicks();hydrateEduTips();});
-  else{bindEduTipClicks();hydrateEduTips();}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{bindEduTipClicks();hydrateEduTips();initScreensaver();});
+  else{bindEduTipClicks();hydrateEduTips();initScreensaver();}
 }

@@ -28,6 +28,8 @@ ok('inbox badge refreshes sidebar', /updateInboxNavBadge[\s\S]{0,200}renderSideb
 ok('css attn dot', css.includes('.nav-client-attn'));
 ok('cache', html.includes('07-forms-metrics-calculator.js?v=26') && html.includes('05-clients-builder-plans-calendar.js?v=30') && html.includes('06-inbox-exercises-ai-programs.js?v=27') && html.includes('styles.css?v=47'));
 ok('cache', html.includes('07-forms-metrics-calculator.js?v=27') && html.includes('05-clients-builder-plans-calendar.js?v=30') && html.includes('06-inbox-exercises-ai-programs.js?v=27') && html.includes('styles.css?v=47'));
+ok('cache', html.includes('07-forms-metrics-calculator.js?v=27') && html.includes('05-clients-builder-plans-calendar.js?v=30') && html.includes('06-inbox-exercises-ai-programs.js?v=28') && html.includes('styles.css?v=48'));
+ok('cache', html.includes('07-forms-metrics-calculator.js?v=27') && html.includes('05-clients-builder-plans-calendar.js?v=29') && html.includes('06-inbox-exercises-ai-programs.js?v=27') && html.includes('styles.css?v=48'));
 ok('CI', wf.includes('test_cp_tab_persist.js'));
 
 if (failed) {

@@ -22,6 +22,7 @@ const windowObj = {
     { name: 'Wyciskanie sztangi leżąc', img: 'assets/ex/bench.svg' },
     { name: 'Pompki', img: 'assets/ex/bench.svg' },
     { name: 'Rozpiętki hantlami' },
+    { name: 'Butterfly (peck deck)', aka: 'Peck deck, Pec-Deck, Rozpiętki na maszynie', img: 'assets/ex/bench.svg' },
   ],
   EX_GIF_MANIFEST: {},
   EX_GIF_REMOTE: {},
@@ -54,6 +55,10 @@ ok('decorative svg detected', ctx.isDecorativeExAsset('assets/ex/bench.svg'));
 ok('gif path not decorative', !ctx.isDecorativeExAsset('assets/ex/gifs/bench.gif'));
 ok('bench uses photo not svg', /free-exercise-db|githubusercontent/.test(ctx.exThumbUrl({ name: 'Wyciskanie sztangi leżąc', img: 'assets/ex/bench.svg' })));
 ok('pompki uses photo', /Pushups/.test(ctx.exThumbUrl({ name: 'Pompki', img: 'assets/ex/bench.svg' })));
+ok('pec-deck parenthetical keys', (ctx.exerciseLookupKeys('Rozpiętki na maszynie (Pec-Deck) — środek klatki')||[]).some(k=>/peck deck|pec-deck|pec deck/.test(k)));
+ok('pec-deck photo from long name', /Butterfly/.test(ctx.exPhotoMapLookup('Rozpiętki na maszynie (Pec-Deck) — środek klatki')||''));
+ok('pec-deck lib match', (ctx.libExerciseByName('Rozpiętki na maszynie (Pec-Deck) — środek klatki')||{}).name==='Butterfly (peck deck)');
+ok('pec-deck thumb photo not svg', /free-exercise-db|githubusercontent/.test(ctx.exThumbUrl('Rozpiętki na maszynie (Pec-Deck) — środek klatki')||''));
 ok('index loads photo manifest', fs.readFileSync(path.join(root, 'index.html'), 'utf8').includes('ex-photo-manifest.js'));
 
 const six = fs.readFileSync(path.join(root, '06-inbox-exercises-ai-programs.js'), 'utf8');

@@ -108,14 +108,36 @@ function aplToggleOpt(btn,groupId){
 function aplRefreshRationale(){
   const el=document.getElementById('apl-rationale');
   if(!el||typeof refreshMethodRationaleInto!=='function')return;
-  const goal=typeof aplGetVal==='function'?aplGetVal('apl-goals'):'masa';
-  const level=typeof aplGetVal==='function'?aplGetVal('apl-levels'):'sredni';
-  const method=typeof aplGetVal==='function'?aplGetVal('apl-methods'):'PPL';
-  const days=typeof aplGetVal==='function'?parseInt(aplGetVal('apl-days'),10):0;
-  const weight=parseFloat(document.getElementById('apl-weight')?.value)||undefined;
-  refreshMethodRationaleInto(el,{method,goal,level,daysPerWeek:days||undefined,weight});
+  const ctx=typeof aplEduCtx==='function'?aplEduCtx():{};
+  refreshMethodRationaleInto(el,ctx);
 }
 window.aplRefreshRationale=aplRefreshRationale;
+
+/** Kontekst ściągawki / „Dlaczego tak?” z formularza AI + profilu wybranego klienta. */
+function aplEduCtx(){
+  const cid=document.getElementById('apl-client')?.value||'';
+  const c=cid?(window.CL||[]).find(x=>x.id===cid):null;
+  const goal=typeof aplGetVal==='function'?aplGetVal('apl-goals'):(c?.goal||'masa');
+  const level=typeof aplGetVal==='function'?aplGetVal('apl-levels'):(c?.level||'sredni');
+  const method=typeof aplGetVal==='function'?aplGetVal('apl-methods'):'PPL';
+  const days=typeof aplGetVal==='function'?parseInt(aplGetVal('apl-days'),10):0;
+  let weight=parseFloat(document.getElementById('apl-weight')?.value);
+  if((isNaN(weight)||!weight)&&cid&&typeof clientLatestMetricWeight==='function'){
+    const mw=clientLatestMetricWeight(cid);
+    if(mw!=null)weight=mw;
+  }
+  if((isNaN(weight)||!weight)&&c?.weight)weight=parseFloat(c.weight);
+  return{
+    method,
+    goal,
+    level,
+    daysPerWeek:days||undefined,
+    weight:(!isNaN(weight)&&weight>0)?weight:undefined,
+    clientId:cid||undefined,
+    clientName:c?.name||undefined
+  };
+}
+window.aplEduCtx=aplEduCtx;
 
 /** Domyślna metoda progresji dla układu treningowego (auto-sync przy zmianie metody). */
 const APL_METHOD_PROGRESSION={
@@ -988,12 +1010,16 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
       </div>
     </div>
 
-    ${typeof renderMethodRationaleHTML==='function'?renderMethodRationaleHTML({
-      method:plan.method||method,
-      goal:goal,
-      level:(client&&client.level)||(typeof aplGetVal==='function'?aplGetVal('apl-levels'):'sredni'),
-      daysPerWeek:plan.daysPerWeek||days
-    }):''}
+    ${typeof renderMethodRationaleHTML==='function'?renderMethodRationaleHTML(
+      typeof aplEduCtx==='function'?aplEduCtx():{
+        method:plan.method||method,
+        goal:goal,
+        level:(typeof aplGetVal==='function'?aplGetVal('apl-levels'):null)||(client&&client.level)||'sredni',
+        daysPerWeek:plan.daysPerWeek||days,
+        weight:parseFloat(document.getElementById('apl-weight')?.value)||undefined,
+        clientName:client&&client.name
+      }
+    ):''}
 
     <!-- 3-panel: zasady progresji / rozgrzewka / schłodzenie (kolory dopasowane 1:1 do Progress Studio AI) -->
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-bottom:16px;">

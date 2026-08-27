@@ -32,6 +32,7 @@ ok('moreScreens without dashboard', /moreScreens=\[[^\]]*ondemand/.test(core) &&
 ok('CI step', wf.includes('test_nav_home_default.js'));
 
 ok('cache bump core v34', html.includes('01-core.js?v=43'));
+ok('cache bump core v34', html.includes('01-core.js?v=45'));
 
 if (failed) {
   console.error(failed + ' failed');

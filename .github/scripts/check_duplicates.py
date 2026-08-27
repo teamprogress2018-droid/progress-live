@@ -17,9 +17,9 @@ def report(title, items_dict, empty_msg):
     print()
     return len(dupes)
 
-files = sorted(glob.glob('0*.js'))
+files = sorted(f for f in glob.glob('*.js') if re.match(r'^\d{2}-.+\.js$', os.path.basename(f)))
 if not files:
-    print("Nie znaleziono plikow 0*.js")
+    print("Nie znaleziono plikow 00-99-*.js")
     sys.exit(1)
 
 total_problems = 0
@@ -32,7 +32,7 @@ for fname in files:
         name = m.group(1)
         line_no = content[:m.start()].count('\n') + 1
         funcs.setdefault(name, []).append((fname, line_no))
-total_problems += report("FUNKCJE (0*.js)", funcs, "Zero powielonych funkcji.")
+total_problems += report("FUNKCJE (NN-*.js)", funcs, "Zero powielonych funkcji.")
 
 if os.path.exists('index.html'):
     html = open('index.html', encoding='utf-8').read()
@@ -52,7 +52,7 @@ for fname in files:
         name = m.group(1)
         line_no = content[:m.start()].count('\n') + 1
         vars_.setdefault(name, []).append((fname, line_no))
-total_problems += report("ZMIENNE const/let (0*.js)", vars_, "Zero powielonych zmiennych.")
+total_problems += report("ZMIENNE const/let (NN-*.js)", vars_, "Zero powielonych zmiennych.")
 
 print("=" * 50)
 if total_problems == 0:
