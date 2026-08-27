@@ -244,6 +244,8 @@ jobs:
         run: node .github/scripts/test_apl_notes_method_sync.js
       - name: Testy metod AI (Split/Smolov) + progresja
         run: node .github/scripts/test_apl_method_progression.js
+      - name: Testy zapisu płci i sprzętu w generatorze AI
+        run: node .github/scripts/test_apl_form_persist.js
       - name: 1o2. Testy zakładki Progress (statystyki klienta)
         run: node .github/scripts/test_cp_progress_tab.js
       - name: Panel analityczny klienta (Progress)
@@ -272,6 +274,8 @@ jobs:
         run: node .github/scripts/test_ai_gen_layout.js
       - name: 6b1. Testy UI PDF planu AI
         run: node .github/scripts/test_plan_pdf_ui.js
+      - name: 6b1. Testy UI zapisu płci i sprzętu w generatorze
+        run: node .github/scripts/test_apl_form_persist_ui.js
       - name: 6b2. Testy UI zamienników i miniatury techniki w kreatorze
         run: node .github/scripts/test_builder_alts_media_ui.js
 

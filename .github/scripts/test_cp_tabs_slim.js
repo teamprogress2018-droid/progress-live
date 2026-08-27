@@ -37,6 +37,7 @@ ok('css analytics chips', css.includes('.cp-analytics-nav') && css.includes('.cp
 ok('CI step', wf.includes('test_cp_tabs_slim.js'));
 
 ok('cache bumps', html.includes('07-forms-metrics-calculator.js?v=28') && html.includes('08-client-profile-extras.js?v=33') && html.includes('09-posture-kb-invites-private.js?v=33') && html.includes('styles.css?v=51'));
+ok('cache bumps', html.includes('07-forms-metrics-calculator.js?v=29') && html.includes('08-client-profile-extras.js?v=34') && html.includes('09-posture-kb-invites-private.js?v=34') && html.includes('styles.css?v=50'));
 
 if (failed) {
   console.error(failed + ' failed');
