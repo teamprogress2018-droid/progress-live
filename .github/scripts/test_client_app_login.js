@@ -34,7 +34,7 @@ ok('ensure upserts existing token',/if\(!token\|\|token===client\.id\)/.test(src
 ok('no client.id as invite fallback in 09',!/encodeURIComponent\(client\.inviteToken\|\|client\.id\)/.test(src09));
 ok('clear invalid invite message',src10.includes('Kod z linku zaproszenia jest nieważny'));
 ok('rules allow client appJoined',/hasOnly\(\['appJoined'/.test(rules));
-ok('cache bumps',html.includes('10-client-app.js?v=24')&&html.includes('09-posture-kb-invites-private.js?v=33'));
+ok('cache bumps',html.includes('10-client-app.js?v=25')&&html.includes('09-posture-kb-invites-private.js?v=33'));
 ok('CI',wf.includes('test_client_app_login.js'));
 
 const writes=[];

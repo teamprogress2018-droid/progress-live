@@ -3374,7 +3374,162 @@ function bindEduTipClicks(){
 }
 window.hydrateEduTips=hydrateEduTips;
 window.bindEduTipClicks=bindEduTipClicks;
+
+// ════════════════════════════════════════
+// WYGASZACZ — logo studia na TV / tablecie w klubie
+// ════════════════════════════════════════
+var PL_SS_DEFAULT_LOGO='assets/brand/progress-logo.jpg';
+var _ssTimer=null;
+var _ssClockTimer=null;
+var _ssVisible=false;
+var _ssBound=false;
+var _ssGraceUntil=0;
+
+function ensureScreensaverSettings(){
+  if(!window.SETTINGS)window.SETTINGS={};
+  var ss=window.SETTINGS.screensaver;
+  if(!ss||typeof ss!=='object')ss=window.SETTINGS.screensaver={enabled:true,idleMinutes:3};
+  if(ss.enabled==null)ss.enabled=true;
+  var m=parseInt(ss.idleMinutes,10);
+  if(!m||m<1)m=3;
+  if(m>60)m=60;
+  ss.idleMinutes=m;
+  return ss;
+}
+function screensaverEnabled(){
+  return ensureScreensaverSettings().enabled!==false;
+}
+function screensaverIdleMs(){
+  return ensureScreensaverSettings().idleMinutes*60*1000;
+}
+function screensaverLogoUrl(){
+  var logo=window.SETTINGS&&window.SETTINGS.brand&&window.SETTINGS.brand.logo;
+  if(typeof logo==='string'&&logo.trim())return logo.trim();
+  return PL_SS_DEFAULT_LOGO;
+}
+function screensaverMediaBusy(){
+  if(typeof document==='undefined'||!document.querySelectorAll)return false;
+  try{
+    var nodes=document.querySelectorAll('video,audio');
+    for(var i=0;i<nodes.length;i++){
+      if(nodes[i]&&nodes[i].paused===false)return true;
+    }
+  }catch(e){}
+  return false;
+}
+function screensaverQueryForce(){
+  var search='';
+  try{search=(window.location&&window.location.search)||'';}catch(e){}
+  return /[?&](ss|wygaszacz)=1(?:&|$)/.test(search);
+}
+function _ssTickClock(){
+  if(!_ssVisible||typeof document==='undefined'||!document.getElementById)return;
+  var clock=document.getElementById('pl-ss-clock');
+  var dateEl=document.getElementById('pl-ss-date');
+  var now=new Date();
+  try{
+    if(clock)clock.textContent=now.toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'});
+    if(dateEl)dateEl.textContent=now.toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long'});
+  }catch(e){
+    if(clock){
+      var hh=now.getHours(),mm=now.getMinutes();
+      clock.textContent=(hh<10?'0':'')+hh+':'+(mm<10?'0':'')+mm;
+    }
+  }
+}
+function showScreensaver(force){
+  if(!force&&!screensaverEnabled())return false;
+  if(!force&&typeof document!=='undefined'&&document.hidden)return false;
+  if(!force&&screensaverMediaBusy())return false;
+  if(typeof document==='undefined'||!document.getElementById)return false;
+  var el=document.getElementById('pl-screensaver');
+  if(!el)return false;
+  var img=el.querySelector?el.querySelector('.pl-ss-logo'):null;
+  if(img){
+    var url=screensaverLogoUrl();
+    if(img.getAttribute&&img.getAttribute('src')!==url)img.setAttribute('src',url);
+    else if(!img.getAttribute)img.src=url;
+  }
+  if(el.classList&&el.classList.add)el.classList.add('on');
+  if(el.setAttribute){
+    el.setAttribute('aria-hidden','false');
+    el.removeAttribute('hidden');
+  }
+  _ssVisible=true;
+  _ssGraceUntil=Date.now()+400;
+  if(_ssTimer){clearTimeout(_ssTimer);_ssTimer=null;}
+  _ssTickClock();
+  if(_ssClockTimer)clearInterval(_ssClockTimer);
+  _ssClockTimer=setInterval(_ssTickClock,1000);
+  return true;
+}
+function hideScreensaver(){
+  _ssVisible=false;
+  _ssGraceUntil=0;
+  if(_ssClockTimer){clearInterval(_ssClockTimer);_ssClockTimer=null;}
+  if(typeof document!=='undefined'&&document.getElementById){
+    var el=document.getElementById('pl-screensaver');
+    if(el){
+      if(el.classList&&el.classList.remove)el.classList.remove('on');
+      if(el.setAttribute){
+        el.setAttribute('aria-hidden','true');
+        el.setAttribute('hidden','');
+      }
+    }
+  }
+  resetScreensaverIdle();
+}
+function previewScreensaver(){
+  return showScreensaver(true);
+}
+function resetScreensaverIdle(){
+  if(_ssTimer){clearTimeout(_ssTimer);_ssTimer=null;}
+  if(_ssVisible)return;
+  if(!screensaverEnabled())return;
+  if(typeof document==='undefined'||!document.getElementById)return;
+  if(!document.getElementById('pl-screensaver'))return;
+  if(document.hidden)return;
+  _ssTimer=setTimeout(function(){showScreensaver(false);},screensaverIdleMs());
+}
+function _ssOnActivity(e){
+  if(_ssVisible){
+    if(e&&e.type==='mousemove'&&Date.now()<_ssGraceUntil)return;
+    hideScreensaver();
+    return;
+  }
+  resetScreensaverIdle();
+}
+function initScreensaver(){
+  ensureScreensaverSettings();
+  if(!_ssBound&&typeof document!=='undefined'&&document.addEventListener){
+    _ssBound=true;
+    ['pointerdown','keydown','touchstart','mousemove','wheel'].forEach(function(ev){
+      document.addEventListener(ev,_ssOnActivity,{passive:true});
+    });
+    document.addEventListener('visibilitychange',function(){
+      if(document.hidden){
+        if(_ssTimer){clearTimeout(_ssTimer);_ssTimer=null;}
+      }else resetScreensaverIdle();
+    });
+    var el=document.getElementById('pl-screensaver');
+    if(el&&el.addEventListener)el.addEventListener('click',function(){hideScreensaver();});
+  }
+  resetScreensaverIdle();
+  if(screensaverQueryForce())showScreensaver(true);
+}
+window.PL_SS_DEFAULT_LOGO=PL_SS_DEFAULT_LOGO;
+window.ensureScreensaverSettings=ensureScreensaverSettings;
+window.screensaverEnabled=screensaverEnabled;
+window.screensaverIdleMs=screensaverIdleMs;
+window.screensaverLogoUrl=screensaverLogoUrl;
+window.showScreensaver=showScreensaver;
+window.hideScreensaver=hideScreensaver;
+window.previewScreensaver=previewScreensaver;
+window.resetScreensaverIdle=resetScreensaverIdle;
+window.initScreensaver=initScreensaver;
+window.screensaverQueryForce=screensaverQueryForce;
+
 if(typeof document!=='undefined'){
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{bindEduTipClicks();hydrateEduTips();});
-  else{bindEduTipClicks();hydrateEduTips();}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{bindEduTipClicks();hydrateEduTips();initScreensaver();});
+  else{bindEduTipClicks();hydrateEduTips();initScreensaver();}
 }

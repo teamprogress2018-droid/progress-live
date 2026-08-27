@@ -3805,6 +3805,10 @@ window.SETTINGS={
     logo:null,
     font:'DM Sans',
   },
+  screensaver:{
+    enabled:true,
+    idleMinutes:3,
+  },
   company:{
     name:'Progress Live',
     nip:'',
@@ -3920,6 +3924,8 @@ function renderSettingsContent(t,targetId){
   }
 
   else if(t==='brand'){
+    if(typeof ensureScreensaverSettings==='function')ensureScreensaverSettings();
+    const ss=S.screensaver||{enabled:true,idleMinutes:3};
     const colors=['#e60000','#b80000','#0055a4','#ffd700','#2ecc71','#3e3e3e','#ffffff','#121212'];
     el.innerHTML=`<div class="settings-section">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">MARKA I WYGLĄD</div>
@@ -3952,6 +3958,13 @@ function renderSettingsContent(t,targetId){
             <div style="font-size:11px;color:var(--muted);margin-top:6px;">Zalecany rozmiar: 200×200 px · zapis lokalnie w ustawieniach (max ~400 KB)</div>
           </div>
         </div>
+      `)}
+
+      ${card('Wygaszacz','Po bezczynności na tablecie lub TV w klubie pokazuje logo studia.',`
+        ${row('Włącz wygaszacz','Logo Progress po czasie bez ruchu',toggle('screensaver',ss.enabled!==false))}
+        ${row('Czas bezczynności','Po ilu minutach bez ruchu',`<select class="form-select" id="set-ss-idle" onchange="setScreensaverIdleMinutes(this.value)" style="width:auto;font-size:13px;">${[1,2,3,5,10].map(n=>`<option value="${n}"${n===(ss.idleMinutes||3)?' selected':''}>${n} min</option>`).join('')}</select>`)}
+        <div style="margin-top:12px;"><button class="btn btn-primary btn-sm" type="button" onclick="previewScreensaver()">▶ Podgląd wygaszacza</button></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:8px;">Kiosk: otwórz aplikację z <code>?ss=1</code> — wygaszacz od razu. Kliknięcie wraca do panelu.</div>
       `)}
 
       ${card('Podgląd marki','',`
@@ -4176,6 +4189,12 @@ function toggleSetting(id){
     'push-notif':()=>{S.notifications.pushNotif=!S.notifications.pushNotif;},
     'email-digest':()=>{S.notifications.emailDigest=!S.notifications.emailDigest;},
     'auto-invoice':()=>{S.payments.autoInvoice=!S.payments.autoInvoice;},
+    'screensaver':()=>{
+      if(typeof ensureScreensaverSettings==='function')ensureScreensaverSettings();
+      S.screensaver.enabled=!(S.screensaver.enabled!==false);
+      if(S.screensaver.enabled===false&&typeof hideScreensaver==='function')hideScreensaver();
+      else if(typeof resetScreensaverIdle==='function')resetScreensaverIdle();
+    },
   };
   if(map[id])map[id]();
   if(typeof ensureReminderAutoflowsFromSettings==='function')try{ensureReminderAutoflowsFromSettings();}catch(e){}
@@ -4196,6 +4215,14 @@ function setAccentColor(color){
   document.querySelectorAll('.color-swatch').forEach(s=>s.classList.toggle('active',s.style.background===color||s.style.backgroundColor===color));
   notify('✓ Kolor akcentu zmieniony na '+color);
 }
+
+function setScreensaverIdleMinutes(v){
+  if(typeof ensureScreensaverSettings==='function')ensureScreensaverSettings();
+  window.SETTINGS.screensaver.idleMinutes=Math.max(1,Math.min(60,parseInt(v,10)||3));
+  if(typeof persistSettingsDoc==='function')persistSettingsDoc();
+  if(typeof resetScreensaverIdle==='function')resetScreensaverIdle();
+}
+window.setScreensaverIdleMinutes=setScreensaverIdleMinutes;
 
 function addSpecialty(){
   const inp=document.getElementById('set-new-specialty');
@@ -4398,6 +4425,9 @@ function saveSettings(){
   if(g('sess-reminder-time'))S.notifications.sessionReminderTime=parseInt(g('sess-reminder-time').value,10)||60;
   if(g('inactive-days'))S.notifications.inactiveDays=parseInt(g('inactive-days').value,10)||14;
   if(g('weekly-checkin-day'))S.notifications.weeklyCheckinDay=parseInt(g('weekly-checkin-day').value,10);
+  if(typeof ensureScreensaverSettings==='function')ensureScreensaverSettings();
+  if(g('ss-idle'))S.screensaver.idleMinutes=Math.max(1,Math.min(60,parseInt(g('ss-idle').value,10)||3));
+  if(typeof resetScreensaverIdle==='function')try{resetScreensaverIdle();}catch(e){}
   if(typeof ensureReminderAutoflowsFromSettings==='function')try{ensureReminderAutoflowsFromSettings();}catch(e){}
   syncSidebarProfile();
   notify('✓ Ustawienia zapisane!');
