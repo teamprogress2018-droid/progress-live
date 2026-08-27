@@ -983,6 +983,7 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
     aplLastClient=client;
     plan.phases=phasesMap;
     plan.weekKeys=weekKeys;
+    plan.progression=progression||plan.progression||'linear';
     plan.currentWeek=plan.currentWeek||weekKeys[0];
     (plan.days||[]).forEach(d=>{
       (d.exercises||[]).forEach(ex=>{
@@ -1529,100 +1530,136 @@ function aplExportPlanPDF(){
   document.getElementById('report-overlay').style.display='flex';
 }
 
+function planPdfEsc(s){
+  if(typeof escHtml==='function')return escHtml(s);
+  return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function planPdfSplitLabel(plan){
+  const days=plan.days||[];
+  const parts=days.map(d=>{
+    const focus=String(d.focus||'').trim();
+    if(focus)return focus;
+    return String(d.dayName||'').replace(/^dzień\s*\d+\s*[—–-]\s*/i,'').trim();
+  }).filter(Boolean);
+  if(parts.length)return parts.join(' / ');
+  return plan.method||'—';
+}
+function planPdfProgressionLabel(plan){
+  const raw=String(plan.progression||plan.progressionType||'').toLowerCase();
+  const map={linear:'linear',dup:'DUP',wave:'falowa',block:'blokowa',double:'podwójna',ai:'AI'};
+  if(map[raw])return map[raw];
+  if(/liniow/.test(String(plan.periodization||'')))return 'linear';
+  return raw||'linear';
+}
+function planPdfIsPriority(ex,client){
+  if(!ex)return false;
+  if(ex.priority===true||ex.priorytet===true)return true;
+  if(/priorytet/i.test(String(ex.notes||ex.note||'')))return true;
+  const pri=(client&&client.physiquePriority)||[];
+  if(!pri.length)return false;
+  const blob=(String(ex.muscleGroup||'')+' '+String(ex.name||'')).toLowerCase();
+  return pri.some(p=>p&&blob.includes(String(p).toLowerCase().slice(0,4)));
+}
+function planPdfWeekArrow(ex,wk,prevWk){
+  if(!prevWk||!ex)return '';
+  const cur=ex[wk]||{},prev=ex[prevWk]||{};
+  const kg=parseFloat(cur.kg),pkg=parseFloat(prev.kg);
+  const rpe=parseFloat(cur.rpe),prpe=parseFloat(prev.rpe);
+  let dir=0;
+  if(!isNaN(kg)&&!isNaN(pkg)&&kg!==pkg)dir=kg>pkg?1:-1;
+  else if(!isNaN(rpe)&&!isNaN(prpe)&&rpe!==prpe)dir=rpe>prpe?1:-1;
+  if(dir>0)return '<span class="plan-pdf-arrow-up">▲</span>';
+  if(dir<0)return '<span class="plan-pdf-arrow-dn">▼</span>';
+  return '';
+}
+function planPdfWeekCell(ex,wk,prevWk){
+  const w=(ex&&ex[wk])||{};
+  const s=w.s||ex.sets||'3';
+  const r=w.r||ex.reps||'10';
+  const rpe=w.rpe||ex.rpe||ex.rir||'';
+  return `<div class="plan-pdf-wk"><div class="plan-pdf-wk-sr">${planPdfEsc(s)}×${planPdfEsc(r)}${planPdfWeekArrow(ex,wk,prevWk)}</div>${rpe?`<div class="plan-pdf-wk-rpe">RPE ${planPdfEsc(rpe)}</div>`:''}</div>`;
+}
+
 function buildPlanPDFHTML(plan,client){
-  const bg='#ffffff',surface='#f8f9fa',border='#e0e0e0',text='#1a1a2a',muted='#6b7280';
-  const accent='#7c3aed',accentDim='rgba(124,58,237,0.08)',orange='#ea580c',teal='#0d9488';
+  plan=plan||{};
   const today=new Date().toLocaleDateString('pl',{day:'numeric',month:'long',year:'numeric'});
+  const weekKeys=plan.weekKeys||['w1'];
+  const phases=plan.phases||{};
+  const split=planPdfSplitLabel(plan);
+  const sessions=plan.daysPerWeek||(plan.days||[]).length||'—';
+  const weeks=plan.weeks||weekKeys.length||'—';
+  const prog=planPdfProgressionLabel(plan);
+  const rules=(plan.progressionRules&&plan.progressionRules.length)?plan.progressionRules:(
+    plan.periodization?String(plan.periodization).split(/[.;]\s+/).map(s=>s.trim()).filter(s=>s.length>8):[
+      'Progresja liniowa: co tydzień +2.5 kg na wielostawach, gdy RPE ≤ 8.',
+      'Izolacje: najpierw +1 powtórzenie w zakresie, potem +1.25 kg.',
+      (plan.deload||'Deload co 4–6 tygodni: 50–70% objętości, RPE 5–6.')
+    ]
+  );
+  const warmupBits=[];
+  if(plan.warmup)warmupBits.push(plan.warmup);
+  const wuEx=((plan.days||[])[0]||{}).warmupExercises||[];
+  if(wuEx.length)warmupBits.push(wuEx.map(w=>w.name+(w.note?' — '+w.note:'')).join('; '));
+  const warmupText=warmupBits.join(' ')||'5 min rower stacjonarny + mobilizacja barków/bioder + 2 serie rozjazdowe na pierwszym wielostawie.';
 
-  const card=(content,extra='')=>`<div style="background:${surface};border:1px solid ${border};border-radius:14px;padding:20px 24px;margin-bottom:16px;${extra}">${content}</div>`;
-  const sectionTitle=(t,icon,col=accent)=>`<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid ${col}40;">
-    <div style="font-size:20px;">${icon}</div>
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1.5px;color:${col};">${t}</div>
-  </div>`;
-
-  let html=`<div style="max-width:850px;margin:0 auto;padding:40px 30px;font-family:'DM Sans',sans-serif;color:${text};">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+  let html=`<div class="plan-pdf">
+    <div class="plan-pdf-brand">
+      <img class="plan-pdf-logo" src="assets/brand/progress-logo.jpg" alt="">
       <div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:1px;color:${accent};">${plan.planName||'Plan treningowy AI'}</div>
-        <div style="font-size:13px;color:${muted};margin-top:4px;">${client?'Klient: '+client.name+' · ':''}Wygenerowano: ${today}</div>
+        <div class="plan-pdf-title">PLAN TRENINGOWY</div>
+        <div class="plan-pdf-sub">${client&&client.name?planPdfEsc(client.name)+' · ':''}${planPdfEsc(plan.planName||'Progress Live')} · ${today}</div>
       </div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;color:${muted};">PROGRESS LIVE</div>
     </div>
-    ${plan.summary?`<div style="font-size:13px;color:${text};line-height:1.6;margin:14px 0 20px;padding:14px 16px;background:${accentDim};border-radius:10px;border-left:3px solid ${accent};">${plan.summary}</div>`:''}
-
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;">
-      ${[['📅',plan.daysPerWeek||'-','dni/tydz.'],['⏱',(plan.sessionDuration||60)+'min','sesja'],['📆',plan.weeks||'-','tygodni'],['🎯',plan.method||'-','metoda']].map(([icon,val,lbl])=>
-        `<div style="background:${bg};border:1px solid ${border};border-radius:10px;padding:12px;text-align:center;">
-          <div style="font-size:18px;">${icon}</div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;color:${accent};margin:2px 0;">${val}</div>
-          <div style="font-size:9px;color:${muted};text-transform:uppercase;">${lbl}</div>
-        </div>`
-      ).join('')}
+    <div class="plan-pdf-kpis">
+      <div class="plan-pdf-kpi"><div class="plan-pdf-kpi-lbl">Split</div><div class="plan-pdf-kpi-val is-red">${planPdfEsc(split)}</div></div>
+      <div class="plan-pdf-kpi"><div class="plan-pdf-kpi-lbl">Sesje / tydzień</div><div class="plan-pdf-kpi-val">${planPdfEsc(sessions)}</div></div>
+      <div class="plan-pdf-kpi"><div class="plan-pdf-kpi-lbl">Tygodnie</div><div class="plan-pdf-kpi-val">${planPdfEsc(weeks)}</div></div>
+      <div class="plan-pdf-kpi"><div class="plan-pdf-kpi-lbl">Progresja</div><div class="plan-pdf-kpi-val">${planPdfEsc(prog)}</div></div>
+    </div>
+    <div class="plan-pdf-cols">
+      <div class="plan-pdf-box">
+        <div class="plan-pdf-box-h">📓 Zasady progresji</div>
+        <ul>${rules.map(r=>`<li>${planPdfEsc(r)}</li>`).join('')}</ul>
+      </div>
+      <div class="plan-pdf-box">
+        <div class="plan-pdf-box-h">🔥 Rozgrzewka</div>
+        <p>${planPdfEsc(warmupText)}</p>
+      </div>
     </div>`;
 
-  if(plan.periodization||plan.deload){
-    html+=card(`
-      ${plan.periodization?`<div style="margin-bottom:10px;"><b style="color:${accent};font-size:12px;">📈 Periodyzacja:</b> <span style="font-size:12px;">${plan.periodization}</span></div>`:''}
-      ${plan.deload?`<div><b style="color:${orange};font-size:12px;">🔄 Deload:</b> <span style="font-size:12px;">${plan.deload}</span></div>`:''}
-    `);
-  }
-
-  (plan.days||[]).forEach((day,i)=>{
-    html+=card(`
-      ${sectionTitle(day.dayName||('Dzień '+(i+1)),'💪')}
-      ${day.focus?`<div style="font-size:11px;color:${muted};margin-bottom:12px;">Focus: ${day.focus}</div>`:''}
-      <table style="width:100%;border-collapse:collapse;font-size:11px;">
-        <thead><tr style="border-bottom:2px solid ${border};text-align:left;">
-          <th style="padding:6px 8px;color:${muted};font-weight:600;">Ćwiczenie</th>
-          <th style="padding:6px 8px;color:${muted};font-weight:600;">Serie</th>
-          <th style="padding:6px 8px;color:${muted};font-weight:600;">Powt.</th>
-          <th style="padding:6px 8px;color:${muted};font-weight:600;">Przerwa</th>
-          <th style="padding:6px 8px;color:${muted};font-weight:600;">Tempo</th>
-          <th style="padding:6px 8px;color:${muted};font-weight:600;">RIR</th>
+  (plan.days||[]).forEach((day,di)=>{
+    const title=day.dayName||('Dzień '+(di+1));
+    html+=`<div class="plan-pdf-day">
+      <div class="plan-pdf-day-h">${planPdfEsc(String(title).toUpperCase())}</div>
+      <table class="plan-pdf-tbl">
+        <thead><tr>
+          <th class="plan-pdf-ex">Ćwiczenie</th>
+          ${weekKeys.map((wk,i)=>`<th>Tydzień ${i+1}${phases[wk]?`<span class="plan-pdf-phase">${planPdfEsc(phases[wk])}</span>`:''}</th>`).join('')}
+          <th class="plan-pdf-tip">Pauza / wskazówka</th>
         </tr></thead>
         <tbody>
-        ${(day.exercises||[]).map(e=>`<tr style="border-bottom:1px solid ${border};">
-          <td style="padding:7px 8px;font-weight:600;">${e.name||''}${e.notes?`<div style="font-size:9px;color:${muted};font-weight:400;margin-top:2px;">${e.notes}</div>`:''}</td>
-          <td style="padding:7px 8px;">${e.sets||'-'}</td>
-          <td style="padding:7px 8px;">${e.reps||'-'}</td>
-          <td style="padding:7px 8px;">${e.rest||'-'}</td>
-          <td style="padding:7px 8px;">${e.tempo||'-'}</td>
-          <td style="padding:7px 8px;">${e.rir||'-'}</td>
-        </tr>`).join('')}
+        ${(day.exercises||[]).map((e,ei)=>{
+          const pri=planPdfIsPriority(e,client)||ei===0;
+          const rest=e.rest||((e.w1||{}).rest)||'90s';
+          const tip=e.notes||e.note||e.tempo||'';
+          return `<tr>
+            <td class="plan-pdf-ex">${pri?'<div class="plan-pdf-pri">PRIORYTET</div>':''}<div class="plan-pdf-ex-name">${planPdfEsc(e.name||'Ćwiczenie')}</div></td>
+            ${weekKeys.map((wk,wi)=>`<td>${planPdfWeekCell(e,wk,wi?weekKeys[wi-1]:'')}</td>`).join('')}
+            <td class="plan-pdf-tip-cell"><div class="plan-pdf-rest">⏱ ${planPdfEsc(rest)}</div>${tip?planPdfEsc(tip):''}</td>
+          </tr>`;
+        }).join('')}
         </tbody>
       </table>
-    `);
+    </div>`;
   });
 
-  if(plan.warmup||plan.cooldown){
-    html+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
-      ${plan.warmup?card(`<div style="font-size:11px;"><b style="color:${teal};">🔥 Rozgrzewka:</b><br>${plan.warmup}</div>`):''}
-      ${plan.cooldown?card(`<div style="font-size:11px;"><b style="color:${accent};">🧊 Cool-down:</b><br>${plan.cooldown}</div>`):''}
-    </div>`;
+  if(plan.weeklyVolume&&typeof plan.weeklyVolume==='object'){
+    html+=`<div class="plan-pdf-box" style="margin-bottom:16px;"><div class="plan-pdf-box-h">📊 Objętość tygodniowa</div><div class="plan-pdf-vol">${Object.entries(plan.weeklyVolume).map(([k,v])=>`<span>${planPdfEsc(k)}: <b>${planPdfEsc(v)}</b></span>`).join('')}</div></div>`;
   }
-
-  if(plan.weeklyVolume){
-    html+=card(`
-      ${sectionTitle('Objętość tygodniowa wg partii','📊')}
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        ${Object.entries(plan.weeklyVolume).map(([k,v])=>`<span style="background:${bg};border:1px solid ${border};border-radius:20px;padding:5px 12px;font-size:11px;">${k}: <b>${v}</b></span>`).join('')}
-      </div>
-    `);
-  }
-
-  if(plan.progressionRules?.length){
-    html+=card(`
-      ${sectionTitle('Zasady progresji','📈',teal)}
-      <ul style="margin:0;padding-left:18px;font-size:12px;line-height:1.8;">${plan.progressionRules.map(r=>`<li>${r}</li>`).join('')}</ul>
-    `);
-  }
-
   if(plan.nutritionTip){
-    html+=card(`<div style="font-size:12px;"><b style="color:${orange};">🥗 Wskazówka żywieniowa:</b> ${plan.nutritionTip}</div>`);
+    html+=`<div class="plan-pdf-box"><p><b style="color:#e11f2e;">Wskazówka żywieniowa:</b> ${planPdfEsc(plan.nutritionTip)}</p></div>`;
   }
-
-  html+=`<div style="text-align:center;margin-top:24px;font-size:10px;color:${muted};">Plan wygenerowany przez AI · Progress Live · ${today}</div>
-    </div>`;
+  html+=`<div class="plan-pdf-foot">Plan wygenerowany przez Progress Live · ${today}</div></div>`;
   return html;
 }
 
@@ -1635,6 +1672,7 @@ window.initAplangen=initAplangen;window.aplToggleOpt=aplToggleOpt;
 window.aplToggleMulti=aplToggleMulti;window.aplSetEquipment=aplSetEquipment;window.aplPersistClientForm=aplPersistClientForm;
 window.aplFillFromClient=aplFillFromClient;window.aplGenerate=aplGenerate;
 window.aplSavePlan=aplSavePlan;window.aplExportPlan=aplExportPlan;window.aplExportPlanPDF=aplExportPlanPDF;window.aplReset=aplReset;
+window.buildPlanPDFHTML=buildPlanPDFHTML;
 window.aplEditExercise=aplEditExercise;window.aplSaveExerciseEdit=aplSaveExerciseEdit;window.aplRerenderCurrent=aplRerenderCurrent;
 
 // ════════════════════════════════════════
