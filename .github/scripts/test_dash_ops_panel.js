@@ -144,7 +144,6 @@ vm.runInNewContext(
 );
 ok('dashListSection preview 2','manual');
 
-ok('cache bumps',html.includes('04-client-portal.js?v=33')&&html.includes('styles.css?v=49'));
 ok('cache bumps',html.includes('04-client-portal.js?v=34')&&html.includes('styles.css?v=49'));
 
 if(failed){console.error('\n'+failed+' failed');process.exit(1);}
