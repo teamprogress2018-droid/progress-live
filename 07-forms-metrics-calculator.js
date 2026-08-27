@@ -1423,7 +1423,10 @@ function calcLoadFromClient(){
   if(c.age)document.getElementById('calc-age').value=c.age;
   if(c.weight)document.getElementById('calc-weight').value=c.weight;
   if(c.height)document.getElementById('calc-height').value=c.height;
-  if(c.gender)document.getElementById('calc-gender').value=c.gender;
+  if(c.gender){
+    const g=typeof normalizeClientGender==='function'?normalizeClientGender(c.gender):c.gender;
+    if(g)document.getElementById('calc-gender').value=g;
+  }
   // set goal preset based on client goal
   const goalMap={redukcja:-300,masa:300,sila:0,kondycja:0};
   const delta=goalMap[c.goal]||0;

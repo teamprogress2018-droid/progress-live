@@ -611,7 +611,7 @@ async function fbImportSelected(){
     const newClient = withTrainer({
       id: newId('c'), name: c.name,
       email:'', phone:'',
-      age: c.age||'', gender: c.gender==='K'?'K':'M',
+      age: c.age||'', gender: (typeof normalizeClientGender==='function'?normalizeClientGender(c.gender):c.gender)||'M',
       weight: c.weight||'', height: c.height||'',
       goal: c.goal||'masa', level: c.level||'sredni',
       injuries: c.injuries||'', notes: c.notes||'',
@@ -730,8 +730,8 @@ function cpClientDataEditHTML(c){
     <div class="form-grid">
       ${field('cpe-age','Wiek',`<input type="number" class="cp-edit-field form-input" id="cpe-age" value="${c.age||''}">`)}
       ${field('cpe-gender','Płeć',`<select class="form-select" id="cpe-gender">
-          <option value="M" ${c.gender==='M'?'selected':''}>Mężczyzna</option>
-          <option value="K" ${c.gender==='K'?'selected':''}>Kobieta</option>
+          <option value="M" ${((typeof normalizeClientGender==='function'?normalizeClientGender(c.gender):c.gender)||'M')==='M'?'selected':''}>Mężczyzna</option>
+          <option value="K" ${((typeof normalizeClientGender==='function'?normalizeClientGender(c.gender):c.gender)||'M')==='K'?'selected':''}>Kobieta</option>
         </select>`)}
     </div>
     <div class="form-grid">
@@ -2302,7 +2302,7 @@ function estimateClientMacros(c,opts){
   const weight=parseFloat(o.weight!=null?o.weight:(c&&c.weight))||0;
   const height=parseFloat(o.height!=null?o.height:(c&&c.height))||0;
   const age=parseFloat(o.age!=null?o.age:(c&&c.age))||30;
-  const gender=(o.gender||(c&&c.gender)||'M');
+  const gender=(typeof normalizeClientGender==='function'?normalizeClientGender(o.gender||(c&&c.gender)):(o.gender||(c&&c.gender)))||'M';
   if(!weight||!height)return null;
   const bmr=gender==='K'?(10*weight+6.25*height-5*age-161):(10*weight+6.25*height-5*age+5);
   const actKey=String((c&&c.activityLevel)||'moderate').toLowerCase();

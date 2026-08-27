@@ -334,7 +334,7 @@ function saveCPEdit(id){
   c.email=document.getElementById('cpe-email').value;
   c.phone=(document.getElementById('cpe-phone')||{}).value||'';
   c.age=parseInt(document.getElementById('cpe-age').value)||c.age;
-  c.gender=(document.getElementById('cpe-gender')||{}).value||c.gender;
+  c.gender=(typeof normalizeClientGender==='function'?normalizeClientGender((document.getElementById('cpe-gender')||{}).value):((document.getElementById('cpe-gender')||{}).value))||c.gender;
   c.weight=parseFloat(document.getElementById('cpe-weight').value)||c.weight;
   c.height=parseInt(document.getElementById('cpe-height').value)||c.height;
   // Cel / poziom / częstotliwość / pora / kontuzje — wyłącznie z Ankiety wstępnej (Formularze)
