@@ -710,6 +710,7 @@ const BUILDER_METHOD_DAYS={
   Obwodowy:['Obwód A','Obwód B','Obwód C'],
   Arnold:['Arnold A','Arnold B','Arnold C'],
   'Bro Split':['Bro 1','Bro 2','Bro 3','Bro 4','Bro 5'],
+  Smolov:['Smolov T1','Smolov T2','Smolov T3','Smolov T4','Utrzymanie góry','Deload'],
   'Własna':null
 };
 function builderGetMethod(){

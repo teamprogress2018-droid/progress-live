@@ -356,7 +356,9 @@
               <option value="PPL">Push/Pull/Legs (PPL)</option><option value="FBW">Full Body (FBW)</option>
               <option value="Upper Lower">Upper/Lower</option><option value="Obwodowy">Trening obwodowy</option>
               <option value="Arnold">Arnold Split</option>
-              <option value="Bro Split">Bro Split</option><option value="Własna">Własna struktura</option>
+              <option value="Bro Split">Bro Split</option>
+              <option value="Smolov">Smolov (przysiad)</option>
+              <option value="Własna">Własna struktura</option>
             </select>
             <div class="edu-inline-hint" id="b-method-hint"></div>
           </div>
@@ -2163,6 +2165,9 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
           <button class="apl-opt" data-val="Obwodowy" onclick="aplToggleOpt(this,'apl-methods')">🔄 Trening obwodowy</button>
           <button class="apl-opt" data-val="531" onclick="aplToggleOpt(this,'apl-methods')">💥 5/3/1 Wendler</button>
           <button class="apl-opt" data-val="Blokowa" onclick="aplToggleOpt(this,'apl-methods')">📦 Periodyzacja blokowa</button>
+          <button class="apl-opt" data-val="Bro Split" onclick="aplToggleOpt(this,'apl-methods')">💪 Bro Split</button>
+          <button class="apl-opt" data-val="Arnold" onclick="aplToggleOpt(this,'apl-methods')">🏆 Arnold Split</button>
+          <button class="apl-opt" data-val="Smolov" onclick="aplToggleOpt(this,'apl-methods')">🏋️ Smolov (przysiad)</button>
           <button class="apl-opt" data-val="Custom" onclick="aplToggleOpt(this,'apl-methods')">✏️ Dostosowana</button>
         </div>
         <div id="apl-rationale" class="apl-rationale-mount" style="margin-top:10px;"></div>
@@ -2357,14 +2362,16 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
           <button class="apl-opt" data-val="wave" onclick="aplToggleOpt(this,'apl-progression')" title="Tygodnie obj. przeplatane z intensywnością">〰️ Falowa</button>
           <button class="apl-opt" data-val="block" onclick="aplToggleOpt(this,'apl-progression')" title="Akumulacja → Intensyfikacja → Realizacja">🧱 Blokowa</button>
           <button class="apl-opt" data-val="double" onclick="aplToggleOpt(this,'apl-progression')" title="Najpierw +powt., potem +ciężar">⏫ Podwójna</button>
+          <button class="apl-opt" data-val="smolov" onclick="aplToggleOpt(this,'apl-progression')" title="Mikrocykl %1RM na przysiadzie">🏋️ Smolov</button>
         </div>
+        <div id="apl-progression-hint" style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.45;"></div>
       </div>
 
       <!-- dodatkowe uwagi -->
       <div class="form-field">
         <label class="form-lbl">Dodatkowe uwagi dla AI</label>
         <textarea class="form-input" id="apl-notes" rows="3" placeholder="np. preferuje dużo pracy na klatkę, nie lubi martwego ciągu..." style="font-size:13px;resize:none;"></textarea>
-        <div style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.45;">Auto-struktura dni (np. PPL 3×) zależy od <b>metody treningowej</b> i liczby dni — znika po zmianie metody (np. na blokową). Progresja (liniowa/blokowa) tego nie nadpisuje.</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.45;">Auto-struktura dni (np. PPL 3×) zależy od <b>metody treningowej</b> i liczby dni — znika po zmianie metody. Zmiana metody (np. Smolov, Bro Split) dopasowuje też <b>metodę progresji</b> — możesz ją potem ręcznie nadpisać.</div>
       </div>
 
       <!-- długość planu -->
@@ -4153,6 +4160,11 @@ async function load(){
 
 <script src="ex-gif-manifest.js?v=17"></script>
 <script src="ex-photo-manifest.js?v=2"></script>
+<script src="01-core.js?v=43"></script>
+<script src="02-workouts-onboarding-templates-live.js?v=22"></script>
+<script src="03-ai-plangen-bizstats-aicoach.js?v=26"></script>
+<script src="04-client-portal.js?v=32"></script>
+<script src="05-clients-builder-plans-calendar.js?v=30"></script>
 <script src="01-core.js?v=45"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=23"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=26"></script>
