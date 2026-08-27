@@ -104,6 +104,7 @@ const svg=sandbox.cpPctBarChart([{l:'T1',pct:50},{l:'T2',pct:80}]);
 ok('pct svg',/cp-chart-svg/.test(svg)&&/50%/.test(svg));
 
 ok('cache bumps',html.includes('08-client-profile-extras.js?v=32')&&html.includes('04-client-portal.js?v=33')&&html.includes('styles.css?v=49'));
+ok('cache bumps',html.includes('08-client-profile-extras.js?v=33')&&html.includes('04-client-portal.js?v=34')&&html.includes('styles.css?v=49'));
 
 if(failed){console.error('\n'+failed+' failed');process.exit(1);}
 console.log('\nAll cp-analytics-panel tests passed');

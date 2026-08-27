@@ -1971,6 +1971,8 @@ const AIC_MODES={
   coach:{
     label:'🧠 Analiza klienta',
     system:`Jesteś AI Coach — zaawansowanym asystentem trenera personalnego Piotra Urbaniaka. Masz wiedzę na poziomie NSCA CSCS, NASM CPT i ACSM. Komunikujesz się po polsku. Analizujesz klientów, ich postępy, check-iny i plany treningowe. Dajesz konkretne, spersonalizowane rekomendacje.
+Gdy klient ma nadwagę lub otyłość (blok BEZPIECZEŃSTWO/NADWAGA), układaj trening pod stawy: maszyny, strefa 2, bez plyo, RPE 6–8.
+Gdy dostaniesz STRAŻNIK POSTĘPÓW — powiedz wprost czy idziemy w dobrą czy złą stronę i podaj 2–4 konkretne korekty.
 Formatuj odpowiedzi używając:
 - **pogrubień** dla ważnych terminów
 - ### nagłówki dla sekcji
@@ -2058,7 +2060,11 @@ function aicLoadClient(){
       const sessions=SE.filter(s=>s.clientId===c.id).length;
       const plans=PL.filter(p=>p.clientId===c.id).length;
       bar.style.display='block';
-      txt.textContent=`${c.name} · ${c.goal||'brak celu'} · ${c.level||'brak poziomu'} · ${sessions} sesji · ${plans} planów`;
+      const w=c.weight||(typeof clientLatestMetricWeight==='function'?clientLatestMetricWeight(c.id):null);
+      const bmi=typeof clientBmiStatus==='function'?clientBmiStatus(w,c.height):null;
+      const mon=typeof buildMonitorVerdict==='function'?buildMonitorVerdict(c):null;
+      const extra=[bmi&&bmi.bmi!=null?('BMI '+bmi.bmi+' · '+bmi.label):'',mon?('strażnik: '+mon.verdict):''].filter(Boolean).join(' · ');
+      txt.textContent=`${c.name} · ${c.goal||'brak celu'} · ${c.level||'brak poziomu'} · ${sessions} sesji · ${plans} planów${extra?' · '+extra:''}`;
     }
   } else {
     if(bar)bar.style.display='none';
@@ -2204,6 +2210,8 @@ ${checkins.length?`Ostatni check-in: ${JSON.stringify(checkins[checkins.length-1
 ${metricsTxt||(metrics.length?`Ostatnie pomiary (raw): ${JSON.stringify(metrics.slice(-3))}`:'Brak pomiarów')}
 ${plans.length?`Aktualny plan: ${plans[plans.length-1].name}, metoda: ${plans[plans.length-1].method}`:'Brak planu'}
 Notatki: ${c.notes||'—'}`;
+      if(typeof clientSafetyContextForAI==='function')systemPrompt+='\n'+(clientSafetyContextForAI(c.id,{weight:c.weight,height:c.height,injuries:c.injuries,gender:c.gender})||'');
+      if(typeof clientMonitorContextForAI==='function')systemPrompt+='\n'+(clientMonitorContextForAI(c.id)||'');
     }
   }
 

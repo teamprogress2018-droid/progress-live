@@ -1181,20 +1181,53 @@ window.clientMetricsContextForAI=clientMetricsContextForAI;
 window.clientLatestMetricWeight=clientLatestMetricWeight;
 
 /** BMI + zasady bezpieczeństwa przy wyższej masie ciała (dla generatora AI). */
-function clientBodyLoadContextForAI(weight,height){
+function clientBmiStatus(weight,height){
   const w=parseFloat(weight),h=parseFloat(height);
-  if(!(w>0))return'';
-  const lines=[];
+  if(!(w>0))return null;
   let bmi=null;
   if(h>0)bmi=+(w/((h/100)*(h/100))).toFixed(1);
-  lines.push('Masa ciała: '+w+' kg'+(h>0?', wzrost '+h+' cm':'')+(bmi!=null?', BMI ~'+bmi:''));
-  if((bmi!=null&&bmi>=30)||w>=95){
-    lines.push('BEZPIECZEŃSTWO (wyższa masa ciała) — OBOWIĄZKOWE przy doborze ćwiczeń:');
-    lines.push('- Preferuj maszyny, suwnicę, wyciągi i stabilne warianty zamiast wolnej sztangi pod dużym obciążeniem.');
-    lines.push('- Unikaj skoków, zeskoków, biegania i plyometrii o wysokim uderzeniu w stawy.');
-    lines.push('- Nogi: hack / leg press / goblet / step-up kontrolowany zamiast głębokiego back squat ze sztangą, jeśli technika lub stawy niepewne.');
-    lines.push('- Core: deska / dead bug / bird-dog OK; unikaj burpee i ciężkich wiszących unoszeń nóg, jeśli utrudniają technikę.');
-    lines.push('- Dłuższa rozgrzewka stawów; nie ustawiaj ciągłego RPE 10; ciężary startowe konserwatywne.');
+  let cls='unknown',label='Brak wzrostu — nie liczę BMI';
+  if(bmi!=null){
+    if(bmi<18.5){cls='niedowaga';label='Niedowaga';}
+    else if(bmi<25){cls='norma';label='Waga w normie';}
+    else if(bmi<30){cls='nadwaga';label='Nadwaga';}
+    else if(bmi<35){cls='otylosc1';label='Otyłość I stopnia';}
+    else{cls='otylosc2';label='Otyłość II+ stopnia';}
+  }
+  const overweight=bmi!=null&&bmi>=25;
+  const obese=bmi!=null&&bmi>=30;
+  const tips=[];
+  if(overweight&&!obese){
+    tips.push('Siła 3× w tygodniu (FBW albo Upper/Lower), sesje 45–60 min, RPE 6–8 — nie gonitwa za 1RM.');
+    tips.push('Na start maszyny, hantle i suwnica; wolna sztanga dopiero gdy technika jest pewna.');
+    tips.push('Cardio: strefa 2 (rower, orbitrek, marsz, wioślarz) 2× 20–30 min. Bez skoków, burpee i biegania na twardej nawierzchni na start.');
+    tips.push('Objętość przy MEV, nie MRV. Dłuższa rozgrzewka kolan, bioder i kręgosłupa.');
+    tips.push('Cel: regularność i zachowanie mięśni przy lekkim deficycie — nie „kara cardio”.');
+  }else if(obese||(!(h>0)&&w>=95)){
+    tips.push('Preferuj maszyny, suwnicę, wyciągi i stabilne warianty zamiast wolnej sztangi pod dużym obciążeniem.');
+    tips.push('Unikaj skoków, zeskoków, biegania i plyometrii o wysokim uderzeniu w stawy.');
+    tips.push('Nogi: hack / leg press / goblet / step-up kontrolowany zamiast głębokiego back squat ze sztangą, jeśli technika lub stawy niepewne.');
+    tips.push('Core: deska / dead bug / bird-dog OK; unikaj burpee i ciężkich wiszących unoszeń nóg, jeśli utrudniają technikę.');
+    tips.push('2–4 sesje siłowe 45–60 min, RPE ≤8, dłuższa rozgrzewka stawów; cardio tylko strefa 2 (rower, orbitrek, marsz).');
+  }else if(cls==='niedowaga'){
+    tips.push('Priorytet: budowa masy i siły (3–4× FBW/PPL). Unikaj dużej objętości cardio.');
+  }
+  return{weight:w,height:h>0?h:null,bmi,cls,label,overweight,obese,tips};
+}
+
+function clientBodyLoadContextForAI(weight,height){
+  const st=clientBmiStatus(weight,height);
+  if(!st)return'';
+  const lines=[];
+  lines.push('Masa ciała: '+st.weight+' kg'+(st.height?', wzrost '+st.height+' cm':'')+(st.bmi!=null?', BMI ~'+st.bmi+' ('+st.label+')':''));
+  if(st.tips.length){
+    const hdr=st.obese||(st.bmi==null&&st.weight>=95)
+      ?'BEZPIECZEŃSTWO (wyższa masa ciała / otyłość) — OBOWIĄZKOWE przy doborze ćwiczeń:'
+      :st.overweight
+        ?'NADWAGA — jak ma wyglądać trening z tą osobą (OBOWIĄZKOWE):'
+        :'Uwagi do masy ciała:';
+    lines.push(hdr);
+    st.tips.forEach(t=>lines.push('- '+t));
   }
   return lines.join('\n');
 }
@@ -1286,6 +1319,7 @@ function clientSafetyContextForAI(clientId,opts){
   lines.push('PRIORYTET: bezpieczeństwo i wady postawy > objętość MEV. Nie dawaj ćwiczeń z listy ostrzeżeń. W "notes" napisz krótką uwagę bezpieczeństwa, gdy modyfikujesz wariant pod ograniczenie.');
   return lines.join('\n')+'\n';
 }
+window.clientBmiStatus=clientBmiStatus;
 window.clientBodyLoadContextForAI=clientBodyLoadContextForAI;
 window.clientPostureHealthFormContextForAI=clientPostureHealthFormContextForAI;
 window.clientPostureAiAnalysisContextForAI=clientPostureAiAnalysisContextForAI;

@@ -26,7 +26,7 @@ ok('kb filters',html.includes('setKbFilter')&&html.includes('kb-builtin-preview'
 ok('import pack',src09.includes('kbImportBuiltinPack'));
 ok('kbContext uses planning',/function kbContextForAI[\s\S]{0,400}planningEvidenceContext/.test(src09));
 ok('aplGenerate uses kb context',src03.includes('kbContextForAI()'));
-ok('builder askAI uses evidence',src06.includes('planningEvidenceContext'));
+ok('askAI safety+watch', /clientSafetyContextForAI/.test(src06) && /clientMonitorContextForAI/.test(src06));
 
 const sandbox={window:{KB:[]},console};
 vm.createContext(sandbox);
