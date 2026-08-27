@@ -2954,6 +2954,7 @@ function buildMethodRationale(opts){
   const volSummary=VOLUME_PART_ORDER.slice(0,6).map(p=>p+': '+(volGuide.parts[p]||'—')+' s/tyg').join(' · ');
   return{
     methodKey,goalKey,levelKey,daysPerWeek:days||null,weight:(!isNaN(weight)&&weight>0)?weight:null,
+    clientName:o.clientName||undefined,
     methodLabel:method.label,
     methodWhy:method.why,
     methodBest:method.best,
@@ -3088,6 +3089,7 @@ function renderTrainerCheatSheetHTML(opts){
   const esc=escFn||(s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'));
   const row=(k,v)=>`<div class="mr-row"><span class="mr-k">${esc(k)}</span><span class="mr-v">${esc(v)}</span></div>`;
   const ctxBits=[
+    r.clientName?('Klient: '+r.clientName):'',
     r.methodLabel?('Metoda: '+r.methodLabel):'',
     r.goalLabel?('Cel: '+r.goalLabel):'',
     r.levelVolumeLabel?('Staż: '+r.levelVolumeLabel):'',
@@ -3152,11 +3154,28 @@ function renderTrainerCheatSheetHTML(opts){
 }
 function resolveMethodRationaleOpts(opts){
   if(opts&&typeof opts==='object'&&(opts.methodWhy||opts.method||opts.goal||opts.level))return opts;
-  if(typeof builderEduCtx==='function'){
+  const screenActive=(id)=>{const el=document.getElementById(id);return!!(el&&el.classList.contains('active'));};
+  if(screenActive('screen-aiplangen')&&typeof aplEduCtx==='function'){
+    try{
+      const ctx=aplEduCtx()||{};
+      if(ctx.method||ctx.goal||ctx.level||ctx.clientName)return ctx;
+    }catch(e){}
+  }
+  if(screenActive('screen-builder')&&typeof builderEduCtx==='function'){
     try{
       const ctx=builderEduCtx()||{};
       const days=document.querySelectorAll('#builder-days .builder-day').length;
-      return{method:ctx.method,goal:ctx.goal,level:ctx.level,weight:ctx.weight,daysPerWeek:days||undefined};
+      return{method:ctx.method,goal:ctx.goal,level:ctx.level,weight:ctx.weight,daysPerWeek:days||undefined,clientId:ctx.clientId,clientName:ctx.clientName};
+    }catch(e){}
+  }
+  if(typeof aplEduCtx==='function'&&document.getElementById('apl-client')?.value){
+    try{return aplEduCtx()||{};}catch(e){}
+  }
+  if(typeof builderEduCtx==='function'&&document.getElementById('b-client')?.value){
+    try{
+      const ctx=builderEduCtx()||{};
+      const days=document.querySelectorAll('#builder-days .builder-day').length;
+      return{method:ctx.method,goal:ctx.goal,level:ctx.level,weight:ctx.weight,daysPerWeek:days||undefined,clientId:ctx.clientId,clientName:ctx.clientName};
     }catch(e){}
   }
   return window._lastMethodRationale||{};
@@ -3166,10 +3185,11 @@ function openMethodRationaleModal(opts){
   if(!mount){if(typeof notify==='function')notify('Brak okna ściągawki');return;}
   const src=resolveMethodRationaleOpts(opts);
   const r=typeof src==='object'&&src.methodWhy?src:buildMethodRationale(src||{});
+  if(src.clientName&&!r.clientName)r.clientName=src.clientName;
   try{window._lastMethodRationale=r;}catch(e){}
   mount.innerHTML=renderTrainerCheatSheetHTML(r);
   const title=document.querySelector('#m-method-rationale .modal-title');
-  if(title)title.textContent='ŚCIĄGAWKA TRENERA';
+  if(title)title.textContent=r.clientName?('ŚCIĄGAWKA — '+String(r.clientName).toUpperCase()):'ŚCIĄGAWKA TRENERA';
   if(typeof openM==='function')openM('m-method-rationale');
 }
 function printTrainerCheatSheet(){
