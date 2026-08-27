@@ -35,6 +35,7 @@ if(!src09.includes('wyłącznie z Ankiety wstępnej')&&!src09.includes('cpe-goal
   // saveCPEdit should guard missing fields
 }
 if(!src09.includes('if(goalEl)c.goal=goalEl.value')){console.error('FAIL saveCPEdit not tolerant of removed fields');process.exit(1);}
+if(!src07.includes('intakePendingId')||!src07.includes('listSends')){console.error('FAIL renderCPForms missing intake list dedupe');process.exit(1);}
 
 const sandbox={
   window:{},
@@ -76,6 +77,9 @@ const filled=sandbox.buildFormPrintHtml(form,{
 ok('filled shows answer',filled.includes('Redukcja'));
 ok('filled client',filled.includes('Piotr Urbaniak'));
 ok('filled flag',filled.includes('WYPEŁNIONE'));
+
+ok('list excludes intake pending',/listSends=intakePendingId\?sends\.filter\(s=>s\.id!==intakePendingId\)/.test(src07));
+ok('cp forms maps listSends',/listSends\.map\(s=>/.test(src07)&&!/[^a-zA-Z]sends\.map\(s=>/.test(src07.slice(src07.indexOf('function renderCPForms'),src07.indexOf('function renderCPMetrics'))));
 
 if(failed){console.error(failed+' failed');process.exit(1);}
 console.log('\nAll form PDF / intake dedupe tests passed');
