@@ -866,7 +866,10 @@ function addRow(dayId){
   const div=document.createElement('div');div.className='ex-row';
   const ctx=typeof builderEduCtx==='function'?builderEduCtx():{};
   const t=k=>typeof eduTipText==='function'?String(eduTipText(k,ctx)).replace(/"/g,'&quot;'):'';
-  div.innerHTML='<input type="text" placeholder="Nazwa ćwiczenia..." class="ex-inp ex-inp-name ex-ac-input" style="width:100%;" autocomplete="off" data-f="name" oninput="builderOnExNameChange(this.closest(\'.ex-row\'))">'
+  div.innerHTML='<div class="builder-ex-namecell">'
+    +'<button type="button" class="builder-ex-thumb" hidden title="Podgląd techniki" onclick="builderOpenExMedia(this.closest(\'.ex-row\'))"></button>'
+    +'<input type="text" placeholder="Nazwa ćwiczenia..." class="ex-inp ex-inp-name ex-ac-input" style="width:100%;" autocomplete="off" data-f="name" oninput="builderOnExNameChange(this.closest(\'.ex-row\'))">'
+    +'</div>'
     +'<input type="number" placeholder="4" class="ex-inp" data-f="sets" title="'+t('sets')+'" oninput="builderOnPeriodFieldEdit(this)">'
     +'<input type="text" placeholder="8-10" class="ex-inp" data-f="reps" title="'+t('reps')+'" oninput="builderOnPeriodFieldEdit(this)">'
     +'<input type="number" placeholder="kg" class="ex-inp" data-f="kg" title="'+t('kg')+'" oninput="builderOnPeriodFieldEdit(this)">'
@@ -882,7 +885,7 @@ function addRow(dayId){
     +'<button type="button" class="builder-remove-row" onclick="builderRemoveRow(this)">×</button>'
     +'</div>'
     +'<div class="ex-row-extra">'
-    +'<div class="builder-alt-box">'
+    +'<div class="builder-alt-box" hidden>'
     +'<div class="builder-alt-label">Zamienniki — kliknij, żeby podmienić w planie</div>'
     +'<div class="builder-alt-chips"></div>'
     +'<input type="text" placeholder="Własny zamiennik (opcjonalnie)" class="ex-inp ex-inp-name builder-sub-input" data-f="alt" oninput="builderRefreshAltChips(this.closest(\'.ex-row\'))">'
@@ -890,15 +893,15 @@ function addRow(dayId){
     +'<input type="number" placeholder="%1RM" class="ex-inp" data-f="pct1rm" min="1" max="150" step="0.5" title="Procent 1RM — kg z Pomiary → Siła bazowa" oninput="builderPreviewKg(this.closest(\'.ex-row\'));builderOnPeriodFieldEdit(this)">'
     +'<div class="ex-row-coach">'
     +'<input type="text" placeholder="Wskazówka dla klienta (np. łopatki ściągnięte)" class="ex-inp ex-inp-name builder-sub-input" data-f="note">'
-    +'<input type="url" placeholder="Film: YouTube / Vimeo / .mp4 (lub auto z biblioteki)" class="ex-inp ex-inp-name builder-sub-input" data-f="video" title="Link do filmu techniki" oninput="builderRefreshTechMedia(this.closest(\'.ex-row\'))">'
+    +'<input type="url" placeholder="Własny film (opcjonalnie): YouTube / Vimeo / .mp4" class="ex-inp ex-inp-name builder-sub-input" data-f="video" title="Nadpisz film techniki z biblioteki" oninput="builderRefreshTechMedia(this.closest(\'.ex-row\'))">'
     +'</div>'
-    +'<div class="builder-tech-media"></div>'
     +'<div class="ex-kind-btns">'
     +'<input type="hidden" data-f="ss" value="">'
     +'<input type="hidden" data-f="wu" value="">'
     +'<input type="hidden" data-f="drop" value="">'
     +'<input type="hidden" data-f="amrap" value="">'
     +'<input type="hidden" data-f="emom" value="">'
+    +'<button type="button" class="ex-ss-btn builder-alt-toggle" onclick="builderToggleAlts(this.closest(\'.ex-row\'))" title="Pokaż zamienniki" aria-expanded="false">Zamienniki</button>'
     +'<button type="button" class="ex-ss-btn" onclick="builderToggleSs(this)" title="Połącz z następnym ćwiczeniem w super-serię">⚡ SS</button>'
     +'<button type="button" class="ex-ss-btn ex-kind-btn wu" onclick="builderCycleKind(this,\'wu\',2)" title="Serie rozgrzewkowe (1–2) — lżejsze kg, krótsza przerwa">WU</button>'
     +'<button type="button" class="ex-ss-btn ex-kind-btn drop" onclick="builderCycleKind(this,\'drop\',2)" title="Drop sety po roboczych — bez przerwy, mniejszy ciężar">DROP</button>'
@@ -967,34 +970,109 @@ function builderApplyAlt(btn){
   return true;
 }
 window.builderApplyAlt=builderApplyAlt;
-function builderRefreshTechMedia(row){
+function builderToggleAlts(row){
   if(!row)return;
-  const box=row.querySelector('.builder-tech-media');if(!box)return;
+  const box=row.querySelector('.builder-alt-box');
+  const btn=row.querySelector('.builder-alt-toggle');
+  if(!box)return;
+  const open=!box.hasAttribute('hidden');
+  if(open){
+    box.setAttribute('hidden','');
+    row.classList.remove('alts-open');
+    if(btn){btn.classList.remove('on');btn.setAttribute('aria-expanded','false');}
+  }else{
+    box.removeAttribute('hidden');
+    row.classList.add('alts-open');
+    if(btn){btn.classList.add('on');btn.setAttribute('aria-expanded','true');}
+    builderRefreshAltChips(row);
+  }
+}
+window.builderToggleAlts=builderToggleAlts;
+function builderExMediaFromRow(row){
   const name=(row.querySelector('[data-f="name"]')||{}).value||'';
   const videoInp=row.querySelector('[data-f="video"]');
   const videoVal=videoInp?(videoInp.value||'').trim():'';
-  const media=typeof resolveCoachMedia==='function'?resolveCoachMedia({name,video:videoVal}):{gif:'',video:videoVal,isFile:false,img:''};
-  if(videoInp&&!videoVal&&media.video){
-    videoInp.value=media.video;
-  }
+  const media=typeof resolveCoachMedia==='function'?resolveCoachMedia({name,video:videoVal}):{gif:'',video:videoVal,isFile:false,img:'',videoEmbed:''};
+  if(videoInp&&!videoVal&&media.video)videoInp.value=media.video;
+  media.name=name;
+  return media;
+}
+function builderRefreshTechMedia(row){
+  if(!row)return;
+  const thumb=row.querySelector('.builder-ex-thumb');
+  const media=builderExMediaFromRow(row);
   const gif=media.gif||'';
-  const video=media.video||videoInp?.value||'';
+  const video=media.video||'';
   const file=!!media.isFile||(typeof coachVideoIsFile==='function'&&coachVideoIsFile(video));
   let html='';
   if(gif&&typeof exTechniqueMediaHtml==='function'){
-    html=exTechniqueMediaHtml({gif,name},{});
+    html=exTechniqueMediaHtml({gif,name:media.name},{compact:true});
   }else if(video&&file){
-    html=`<div class="cw-video-wrap" style="padding-top:0;height:200px;"><video src="${typeof escHtml==='function'?escHtml(video):video}" controls playsinline muted loop style="position:static;width:100%;height:100%;object-fit:contain;"></video></div>`;
-  }else if(video&&media.videoEmbed){
-    html=`<div class="cw-video-wrap"><iframe src="${typeof escHtml==='function'?escHtml(media.videoEmbed):media.videoEmbed}" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen title="Film techniki"></iframe></div>`;
+    html=`<video src="${typeof escHtml==='function'?escHtml(video):video}" muted loop playsinline preload="metadata"></video>`;
   }else if(media.img){
-    html=`<img src="${typeof escHtml==='function'?escHtml(media.img):media.img}" alt="${typeof escHtml==='function'?escHtml(name):name}" loading="lazy">`;
-  }else if(name.trim()){
-    html=`<div class="builder-tech-empty">Brak filmu techniki dla „${typeof escHtml==='function'?escHtml(name):name}”. Wrzuć <code>.mp4</code> do <code>assets/ex/gifs/</code> (slug nazwy) albo wklej link powyżej.</div>`;
+    html=`<img src="${typeof escHtml==='function'?escHtml(media.img):media.img}" alt="${typeof escHtml==='function'?escHtml(media.name):media.name}" loading="lazy" referrerpolicy="no-referrer">`;
   }
-  box.innerHTML=html;
+  if(thumb){
+    if(html){
+      thumb.innerHTML=html;
+      thumb.hidden=false;
+      thumb.setAttribute('aria-label','Podgląd techniki: '+(media.name||''));
+    }else{
+      thumb.innerHTML='';
+      thumb.hidden=true;
+    }
+  }
+  const pop=document.getElementById('builder-ex-media-pop');
+  if(pop&&pop.dataset.row===String(row.dataset.builderRow||'')&&!pop.hidden)builderFillExMediaPop(media);
 }
 window.builderRefreshTechMedia=builderRefreshTechMedia;
+function builderFillExMediaPop(media){
+  const pop=document.getElementById('builder-ex-media-pop');
+  if(!pop)return;
+  const gif=media.gif||'';
+  const video=media.video||'';
+  const file=!!media.isFile||(typeof coachVideoIsFile==='function'&&coachVideoIsFile(video));
+  let html='';
+  if(gif&&typeof exTechniqueMediaHtml==='function')html=exTechniqueMediaHtml({gif,name:media.name},{});
+  else if(video&&file)html=`<video src="${typeof escHtml==='function'?escHtml(video):video}" controls playsinline muted loop></video>`;
+  else if(video&&media.videoEmbed)html=`<iframe src="${typeof escHtml==='function'?escHtml(media.videoEmbed):media.videoEmbed}" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen title="Film techniki"></iframe>`;
+  else if(media.img)html=`<img src="${typeof escHtml==='function'?escHtml(media.img):media.img}" alt="${typeof escHtml==='function'?escHtml(media.name):media.name}">`;
+  pop.querySelector('.builder-ex-media-pop-body').innerHTML=html||'<div class="builder-alt-empty">Brak podglądu techniki w bibliotece.</div>';
+  const title=pop.querySelector('.builder-ex-media-pop-title');
+  if(title)title.textContent=media.name||'Technika';
+}
+function builderCloseExMedia(){
+  const pop=document.getElementById('builder-ex-media-pop');
+  if(!pop)return;
+  pop.hidden=true;
+  pop.dataset.row='';
+  const body=pop.querySelector('.builder-ex-media-pop-body');
+  if(body)body.innerHTML='';
+}
+window.builderCloseExMedia=builderCloseExMedia;
+function builderOpenExMedia(row){
+  if(!row)return;
+  const media=builderExMediaFromRow(row);
+  if(!media.gif&&!media.video&&!media.img){
+    if(typeof notify==='function')notify('Brak filmu/zdjęcia techniki w bibliotece — wklej link poniżej.');
+    return;
+  }
+  let pop=document.getElementById('builder-ex-media-pop');
+  if(!pop){
+    pop=document.createElement('div');
+    pop.id='builder-ex-media-pop';
+    pop.className='builder-ex-media-pop';
+    pop.innerHTML='<div class="builder-ex-media-pop-card"><div class="builder-ex-media-pop-bar"><span class="builder-ex-media-pop-title"></span><button type="button" class="builder-ex-media-pop-close" onclick="builderCloseExMedia()" aria-label="Zamknij">×</button></div><div class="builder-ex-media-pop-body"></div></div>';
+    pop.addEventListener('click',e=>{if(e.target===pop)builderCloseExMedia();});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape')builderCloseExMedia();});
+    document.body.appendChild(pop);
+  }
+  if(!row.dataset.builderRow)row.dataset.builderRow='r'+Math.random().toString(36).slice(2,8);
+  pop.dataset.row=row.dataset.builderRow;
+  builderFillExMediaPop(media);
+  pop.hidden=false;
+}
+window.builderOpenExMedia=builderOpenExMedia;
 function builderOnExNameChange(row){
   if(!row)return;
   if(typeof builderPreviewKg==='function')builderPreviewKg(row);

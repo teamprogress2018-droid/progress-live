@@ -757,31 +757,56 @@ function exerciseSlug(name){
 }
 window.exerciseSlug=exerciseSlug;
 
+/** Klucze do szukania mediów: pełna nazwa, alias w nawiasie, część przed pauzą. */
+function exerciseLookupKeys(name){
+  const raw=String(name||'').trim();
+  if(!raw)return[];
+  const out=[];
+  const add=s=>{
+    const k=exerciseMediaKey(s);
+    if(k&&!out.includes(k))out.push(k);
+    const slug=exerciseSlug(s);
+    if(slug&&!out.includes(slug))out.push(slug);
+  };
+  add(raw);
+  raw.split(/\s+[—–|]\s+/).forEach(p=>add(p));
+  add(raw.replace(/\s*\([^)]*\)/g,' ').replace(/\s+/g,' ').trim());
+  const re=/\(([^)]+)\)/g;
+  let m;
+  while((m=re.exec(raw))){
+    add(m[1]);
+    add(String(m[1]).replace(/-/g,' '));
+  }
+  out.slice().forEach(k=>{
+    if(/pec[- ]deck/.test(k)){
+      add('peck deck');
+      add('butterfly (peck deck)');
+      add('pec-deck');
+    }
+  });
+  return out;
+}
+window.exerciseLookupKeys=exerciseLookupKeys;
+
+function mediaMapGet(map,name){
+  if(!map||typeof map!=='object')return '';
+  const keys=typeof exerciseLookupKeys==='function'?exerciseLookupKeys(name):[exerciseMediaKey(name),exerciseSlug(name)];
+  for(let i=0;i<keys.length;i++){
+    const k=keys[i];
+    if(k&&map[k])return map[k];
+  }
+  if(map[name])return map[name];
+  return '';
+}
+
 /** GIF / zdjęcie techniki z manifestu repo, Firestore (EX_GIF_REMOTE) lub pola gif/img ćwiczenia. */
 function exGifMapLookup(name){
-  const key=exerciseMediaKey(name);
-  const slug=exerciseSlug(name);
-  if(!key&&!slug)return '';
-  const remote=window.EX_GIF_REMOTE||{};
-  if(remote[key])return remote[key];
-  if(remote[slug])return remote[slug];
-  const manifest=window.EX_GIF_MANIFEST||{};
-  if(manifest[key])return manifest[key];
-  if(manifest[slug])return manifest[slug];
-  if(manifest[name])return manifest[name];
-  return '';
+  return mediaMapGet(window.EX_GIF_REMOTE,name)||mediaMapGet(window.EX_GIF_MANIFEST,name);
 }
 window.exGifMapLookup=exGifMapLookup;
 
 function exPhotoMapLookup(name){
-  const key=exerciseMediaKey(name);
-  const slug=exerciseSlug(name);
-  if(!key&&!slug)return '';
-  const photos=window.EX_PHOTO_MANIFEST||{};
-  if(photos[key])return photos[key];
-  if(photos[slug])return photos[slug];
-  if(photos[name])return photos[name];
-  return '';
+  return mediaMapGet(window.EX_PHOTO_MANIFEST,name);
 }
 window.exPhotoMapLookup=exPhotoMapLookup;
 
@@ -846,10 +871,17 @@ function libExerciseByName(name){
   const lib=typeof allExercises==='function'?allExercises():[].concat(window.EX||[],window.DEF_EX||[]);
   const byName=lib.find(e=>String(e.name||'').toLowerCase().replace(/\s+/g,' ').trim()===key);
   if(byName)return byName;
-  return lib.find(e=>{
+  const akaHit=lib.find(e=>{
     const aka=String(e.aka||'').toLowerCase().replace(/\s+/g,' ');
     if(!aka)return false;
     return aka.split(/[,;/|]/).map(s=>s.trim()).filter(Boolean).includes(key);
+  });
+  if(akaHit)return akaHit;
+  const keys=typeof exerciseLookupKeys==='function'?exerciseLookupKeys(name):[key];
+  return lib.find(e=>{
+    const blob=[e.name,e.aka].filter(Boolean).join(' ');
+    const names=typeof exerciseLookupKeys==='function'?exerciseLookupKeys(blob):[exerciseMediaKey(blob)];
+    return keys.some(k=>k&&names.includes(k));
   })||null;
 }
 window.libExerciseByName=libExerciseByName;

@@ -7,14 +7,15 @@ const path=require('path');
 const root=path.join(__dirname,'../..');
 const src05=fs.readFileSync(path.join(root,'05-clients-builder-plans-calendar.js'),'utf8');
 const css=fs.readFileSync(path.join(root,'styles.css'),'utf8');
+const core=fs.readFileSync(path.join(root,'01-core.js'),'utf8');
 
-if(!src05.includes('builderApplyAlt')||!src05.includes('builderRefreshTechMedia')){
+if(!src05.includes('builderApplyAlt')||!src05.includes('builderRefreshTechMedia')||!src05.includes('builderToggleAlts')){
   console.error('FAIL missing builder alt/media helpers');process.exit(1);
 }
 if(!css.includes('.builder-alt-chip')||!css.includes('.ex-rows{display:flex')){
   console.error('FAIL missing builder card CSS');process.exit(1);
 }
-if(!src05.includes('builder-tech-media')||!src05.includes('Zamienniki — kliknij')){
+if(!src05.includes('builder-ex-thumb')||!src05.includes('builder-alt-toggle')||!src05.includes('Zamienniki — kliknij')){
   console.error('FAIL addRow markup missing');process.exit(1);
 }
 
@@ -23,12 +24,20 @@ function eq(name,got,want){
   if(JSON.stringify(got)!==JSON.stringify(want)){console.error('FAIL',name,got,want);failed++;}
   else console.log('OK  ',name);
 }
+function ok(name,cond){
+  if(!cond){console.error('FAIL',name);failed++;}
+  else console.log('OK  ',name);
+}
 
 eq('css accent sets',css.includes('data-f="sets"'),true);
 eq('css alt chips',css.includes('builder-alt-chip'),true);
-eq('css tech media',css.includes('builder-tech-media'),true);
+eq('css thumb',css.includes('builder-ex-thumb'),true);
 eq('css compact numeric inputs',css.includes('ex-row>.ex-inp')&&css.includes('min-height:40px'),true);
 eq('css wider set col',css.includes('54px 78px 64px'),true);
+ok('alts hidden by default', /builder-alt-box" hidden/.test(src05)||/builder-alt-box' hidden/.test(src05));
+ok('no empty film box', !src05.includes('Brak filmu techniki'));
+ok('lookup keys helper', core.includes('function exerciseLookupKeys'));
+ok('media popover', src05.includes('builderOpenExMedia')&&css.includes('builder-ex-media-pop'));
 
 const altsForExercise=(name)=>{
   if(/sztangi leż/i.test(name))return['Wyciskanie hantli','Pompki'];

@@ -461,7 +461,7 @@ const DEF_EX=[
 {name:'Pompki',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka piersiowa, Triceps, Core',tip:'Ciało w jednej linii.',nsca:'3-4xmax.',alt:'Wyciskanie sztangi, Wyciskanie hantli',img:'assets/ex/bench.svg'},
 {name:'Pompki na rączkach',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka (dolna), Triceps',tip:'Głębszy zakres ruchu.',nsca:'3x10-15.',alt:'Dipy, Pompki',img:'assets/ex/bench.svg'},
 {name:'Dipy na poręczach',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka (dolna), Triceps, Barki',tip:'Pochylenie do przodu = więcej klatki.',nsca:'3x8-12.',alt:'Pompki na rączkach',img:'assets/ex/bench.svg'},
-{name:'Butterfly (peck deck)',aka:'Peck deck',cat:'Klatka piersiowa',eq:'Maszyna',muscle:'Klatka (izolacja)',tip:'Łokcie na poziomie barków.',nsca:'3x12-15.',alt:'Rozpiętki hantlami',img:'assets/ex/bench.svg'},
+{name:'Butterfly (peck deck)',aka:'Peck deck, Pec-Deck, Pec deck, Rozpiętki na maszynie',cat:'Klatka piersiowa',eq:'Maszyna',muscle:'Klatka (izolacja)',tip:'Łokcie na poziomie barków.',nsca:'3x12-15.',alt:'Rozpiętki hantlami',img:'assets/ex/bench.svg'},
 {name:'Pullover hantlem',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka, Najszerszy',tip:'Pełny zakres ruchu. Rozciągnięcie na dole.',nsca:'3x12-15.',alt:'Pullover sztangą'},
 {name:'Pompki plyometryczne',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka, Triceps, Moc',tip:'Wybij się z podłogi.',nsca:'3x5-8.',alt:'Pompki',img:'assets/ex/bench.svg'},
 {name:'Wyciskanie wąskim chwytem',cat:'Klatka piersiowa',eq:'Sztanga',muscle:'Triceps (główny), Klatka (wewnętrzna)',tip:'Łokcie blisko tułowia.',nsca:'3x8-12.',alt:'Wyciskanie francuskie, Dipy',img:'assets/ex/bench.svg'},
