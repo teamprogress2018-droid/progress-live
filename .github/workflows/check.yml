@@ -271,6 +271,9 @@ jobs:
       - name: 6b2. Testy UI zamienników i miniatury techniki w kreatorze
         run: node .github/scripts/test_builder_alts_media_ui.js
 
+      - name: 6b3. Testy UI cardio w wyszukiwarce ćwiczeń
+        run: node .github/scripts/test_cardio_ex_ac_ui.js
+
       - name: 6c. Testy UI zasobów YouTube i Garmin CSV
         run: node .github/scripts/test_resources_garmin_ui.js
 
