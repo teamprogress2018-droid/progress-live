@@ -604,7 +604,7 @@ function onbWizardStepHTML(step){
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
         ${[['gym','🏋️','Pełna siłownia'],['dumbbells','💪','Hantle'],['home','🏠','Ćwiczenia domowe'],['pool','🏊','Basen'],['outdoor','🌳','Na zewnątrz'],['none','❌','Bez sprzętu']].map(([v,ico,l])=>`
           <label style="display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--s3);border-radius:7px;cursor:pointer;font-size:11px;">
-            <input type="checkbox" value="${v}" class="onb-equip-check" style="accent-color:var(--accent);">${ico} ${l}
+            <input type="checkbox" value="${v}" class="onb-equip-check" ${(onbNewClient.equipment||[]).includes(v)?'checked':''} style="accent-color:var(--accent);">${ico} ${l}
           </label>`).join('')}
       </div></div>
     <div class="form-field"><label class="form-lbl">Czy wyraża zgodę na przetwarzanie danych (RODO)?</label>
@@ -700,6 +700,7 @@ function onbWizardNext(){
     onbNewClient.activityLevel=document.getElementById('onb-activity')?.value||'moderate';
     onbNewClient.priorSports=typeof readPriorSportsFrom==='function'?readPriorSportsFrom('onb'):[];
     onbNewClient.physiquePriority=typeof readPhysiquePriorityFrom==='function'?readPhysiquePriorityFrom('onb'):(onbNewClient.physiquePriority||[]);
+    onbNewClient.equipment=[...document.querySelectorAll('.onb-equip-check:checked')].map(i=>i.value);
     onbNewClient.rodo=document.getElementById('onb-rodo')?.checked||false;
     if(!onbNewClient.rodo){notify('⚠ Wymagana zgoda RODO!');return;}
   }
@@ -731,7 +732,8 @@ function onbCreateClient(){
     preferredWeekdays:onbNewClient.preferredWeekdays||defaultWd,
     weight:onbNewClient.weight||'',
     height:onbNewClient.height||'',
-    gender:onbNewClient.gender||'mężczyzna',
+    gender:(typeof normalizeClientGender==='function'?normalizeClientGender(onbNewClient.gender):onbNewClient.gender)||'M',
+    availableEquipment:typeof mapStoredEquipmentToApl==='function'?mapStoredEquipmentToApl(onbNewClient.equipment||[]):(onbNewClient.equipment||[]),
     injuries:onbNewClient.injuries||'',
     meds:onbNewClient.meds||'',
     physiquePriority:onbNewClient.physiquePriority||[],

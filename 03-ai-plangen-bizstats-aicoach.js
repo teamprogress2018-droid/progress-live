@@ -57,19 +57,21 @@ function aplComputeProgression(ex,weekKeys,phasesMap,progressionType){
 
 function initAplangen(){
   const sel=document.getElementById('apl-client');
+  const prev=sel?sel.value:'';
   if(sel){
     sel.innerHTML='<option value="">Nowy / ręcznie wpisz</option>'+CL.map(c=>`<option value="${escHtml(c.id)}">${escHtml(c.name)}</option>`).join('');
-    if(window._aplPrefillClientId){
-      sel.value=window._aplPrefillClientId;
-      window._aplPrefillClientId=null;
-      aplFillFromClient();
+    const pref=window._aplPrefillClientId||prev;
+    window._aplPrefillClientId=null;
+    if(pref)sel.value=pref;
+    if(sel.value)aplFillFromClient();
+    else{
+      if(typeof initPriorSportsForm==='function')initPriorSportsForm('apl',[]);
+      if(typeof initPhysiquePriorityForm==='function')initPhysiquePriorityForm('apl',[]);
     }
   }
   if(!document.getElementById('apl-result').innerHTML){
     aplShowWelcome();
   }
-  if(typeof initPriorSportsForm==='function')initPriorSportsForm('apl',[]);
-  if(typeof initPhysiquePriorityForm==='function')initPhysiquePriorityForm('apl',[]);
   if(typeof aplRefreshRationale==='function')aplRefreshRationale();
   if(typeof aplSyncProgressionFromMethod==='function')aplSyncProgressionFromMethod();
   if(typeof hydrateEduTips==='function')hydrateEduTips(document.getElementById('screen-aiplangen'));
@@ -255,7 +257,13 @@ function aplFillFromClient(){
   if(metricW!=null)document.getElementById('apl-weight').value=metricW;
   else if(c.weight)document.getElementById('apl-weight').value=c.weight;
   if(c.height)document.getElementById('apl-height').value=c.height;
-  if(c.gender)document.getElementById('apl-gender').value=c.gender;
+  {
+    const gEl=document.getElementById('apl-gender');
+    if(gEl){
+      const mapped=typeof genderForAplSelect==='function'?genderForAplSelect(c.gender):c.gender;
+      if(mapped)gEl.value=mapped;
+    }
+  }
   {
     const injEl=document.getElementById('apl-injuries');
     if(injEl){
@@ -287,6 +295,10 @@ function aplFillFromClient(){
   if(actEl&&c.activityLevel)actEl.value=c.activityLevel;
   const snEl=document.getElementById('apl-sport-notes');
   if(snEl&&c.sportNotes)snEl.value=c.sportNotes;
+  {
+    const stored=typeof clientAvailableEquipment==='function'?clientAvailableEquipment(c):[];
+    aplSetEquipment(stored.length?stored:(window.APL_EQ_GYM_DEFAULT||['Sztanga i wolne ciężary','Maszyny siłowe','Wyciągi i linki','Hantle','Drążek i poręcze']));
+  }
   // 3× + masa/kształtowanie → preset hipertrofii Push+Quads / Pull+Hams / Upper
   if(freq===3&&(c.goal==='masa'||c.goal==='redukcja')&&typeof aplApplyHypertrophy3DayPreset==='function'){
     aplApplyHypertrophy3DayPreset();
@@ -366,6 +378,33 @@ function aplGetVal(groupId){
 
 function aplGetMulti(groupId){
   return [...document.querySelectorAll(`#${groupId} .apl-opt-multi.active`)].map(b=>b.dataset.val);
+}
+
+function aplSetEquipment(vals){
+  const wanted=(vals||[]).map(v=>String(v));
+  const mapped=typeof mapStoredEquipmentToApl==='function'?mapStoredEquipmentToApl(wanted):wanted;
+  const set=new Set(mapped.map(v=>String(v)));
+  document.querySelectorAll('#apl-equipment .apl-opt-multi').forEach(b=>{
+    b.classList.toggle('active',set.has(b.dataset.val));
+  });
+}
+
+function aplToggleMulti(btn){
+  if(!btn)return;
+  btn.classList.toggle('active');
+  if(typeof aplPersistClientForm==='function')aplPersistClientForm();
+}
+
+function aplPersistClientForm(){
+  const cid=document.getElementById('apl-client')?.value;
+  if(!cid)return;
+  const c=(window.CL||[]).find(x=>x&&x.id===cid);
+  if(!c)return;
+  const g=typeof normalizeClientGender==='function'?normalizeClientGender(document.getElementById('apl-gender')?.value):'';
+  if(g)c.gender=g;
+  const eq=aplGetMulti('apl-equipment');
+  c.availableEquipment=eq;
+  if(typeof persistById==='function')persistById('clients',c);
 }
 
 function aplPlanTokenBudget(dayCount){
@@ -697,6 +736,7 @@ async function aplGenerate(){
   const notes=String(notesRaw).replace(/<!--\/?APL-AUTO-STRUCT-->/g,'').replace(/\n{3,}/g,'\n\n').trim();
   const cid=document.getElementById('apl-client').value;
   const client=cid?CL.find(x=>x.id===cid):null;
+  if(typeof aplPersistClientForm==='function')aplPersistClientForm();
 
   // anatomia i biomechanika
   const femur=document.getElementById('apl-femur')?.value||'';
@@ -1592,6 +1632,7 @@ function aplReset(){
 }
 
 window.initAplangen=initAplangen;window.aplToggleOpt=aplToggleOpt;
+window.aplToggleMulti=aplToggleMulti;window.aplSetEquipment=aplSetEquipment;window.aplPersistClientForm=aplPersistClientForm;
 window.aplFillFromClient=aplFillFromClient;window.aplGenerate=aplGenerate;
 window.aplSavePlan=aplSavePlan;window.aplExportPlan=aplExportPlan;window.aplExportPlanPDF=aplExportPlanPDF;window.aplReset=aplReset;
 window.aplEditExercise=aplEditExercise;window.aplSaveExerciseEdit=aplSaveExerciseEdit;window.aplRerenderCurrent=aplRerenderCurrent;

@@ -2329,6 +2329,50 @@ function normalizeTrainingFreq(v){
   if(!n||n<2)return 0;
   return Math.min(6,n);
 }
+function foldPlKey(s){
+  return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ł/g,'l').replace(/Ł/g,'l').trim();
+}
+/** Kanon na karcie klienta: M / K (onboarding bywa „mężczyzna” / „kobieta”). */
+function normalizeClientGender(g){
+  const s=foldPlKey(g).replace(/\s+/g,'');
+  if(!s)return'';
+  if(s==='k'||s==='f'||s==='female'||s==='kobieta'||s==='woman'||s==='w')return'K';
+  if(s==='m'||s==='male'||s==='mezczyzna'||s==='man')return'M';
+  return'';
+}
+function genderForAplSelect(g){
+  const n=normalizeClientGender(g);
+  return n==='K'?'kobieta':n==='M'?'mężczyzna':'';
+}
+const APL_EQ_GYM_DEFAULT=['Sztanga i wolne ciężary','Maszyny siłowe','Wyciągi i linki','Hantle','Drążek i poręcze'];
+const APL_EQ_BUTTONS=[
+  {val:'Sztanga i wolne ciężary',aliases:['sztanga','wolne','barbell']},
+  {val:'Maszyny siłowe',aliases:['maszyn','machine']},
+  {val:'Wyciągi i linki',aliases:['wyciag','cable','linki']},
+  {val:'Hantle',aliases:['hantl','dumbbell']},
+  {val:'Drążek i poręcze',aliases:['drazek','porecz','pullup','pull-up']},
+  {val:'Bez sprzętu',aliases:['bez sprzetu','none','bodyweight','home']}
+];
+function mapStoredEquipmentToApl(raw){
+  const items=Array.isArray(raw)?raw.slice():(raw?String(raw).split(/[,;|]/).map(s=>s.trim()).filter(Boolean):[]);
+  if(!items.length)return[];
+  const folded=items.map(foldPlKey).filter(Boolean);
+  if(folded.some(s=>s==='gym'||s==='pelna silownia'||s==='siłownia'||s==='silownia'))return APL_EQ_GYM_DEFAULT.slice();
+  const out=[];
+  APL_EQ_BUTTONS.forEach(btn=>{
+    const bv=foldPlKey(btn.val);
+    const hit=folded.some(s=>{
+      if(s===bv||(s.length>=4&&(bv.includes(s)||s.includes(bv))))return true;
+      return btn.aliases.some(a=>s===a||s.includes(a)||(a.length>=4&&a.includes(s)));
+    });
+    if(hit&&!out.includes(btn.val))out.push(btn.val);
+  });
+  return out;
+}
+function clientAvailableEquipment(c){
+  if(!c)return[];
+  return mapStoredEquipmentToApl(c.availableEquipment||c.equipment||c.equip||[]);
+}
 /** Domyślne dni tygodnia dla danej częstotliwości (JS getDay: 0=Nd…6=Sob). */
 function defaultWeekdaysForFreq(freq){
   const n=normalizeTrainingFreq(freq);
@@ -2621,6 +2665,12 @@ function syncClientFromIntakeForm(send){
 }
 window.WEEKDAY_TRAIN_OPTIONS=WEEKDAY_TRAIN_OPTIONS;
 window.normalizeTrainingFreq=normalizeTrainingFreq;
+window.foldPlKey=foldPlKey;
+window.normalizeClientGender=normalizeClientGender;
+window.genderForAplSelect=genderForAplSelect;
+window.APL_EQ_GYM_DEFAULT=APL_EQ_GYM_DEFAULT;
+window.mapStoredEquipmentToApl=mapStoredEquipmentToApl;
+window.clientAvailableEquipment=clientAvailableEquipment;
 window.defaultWeekdaysForFreq=defaultWeekdaysForFreq;
 window.ymdWeekday=ymdWeekday;
 window.clientPreferredWeekdays=clientPreferredWeekdays;

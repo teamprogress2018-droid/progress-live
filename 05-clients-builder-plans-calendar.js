@@ -250,7 +250,7 @@ function openClientModal(clientId){
     document.getElementById('ac-email').value=c.email||'';
     document.getElementById('ac-phone').value=c.phone||'';
     document.getElementById('ac-age').value=c.age||'';
-    document.getElementById('ac-gender').value=c.gender||'M';
+    document.getElementById('ac-gender').value=(typeof normalizeClientGender==='function'?normalizeClientGender(c.gender):c.gender)||'M';
     document.getElementById('ac-weight').value=c.weight||'';
     document.getElementById('ac-height').value=c.height||'';
     document.getElementById('ac-goal').value=c.goal||'masa';
@@ -300,7 +300,7 @@ async function saveClient(){
     c.email=document.getElementById('ac-email').value;
     c.phone=document.getElementById('ac-phone')?.value||'';
     c.age=+document.getElementById('ac-age').value||0;
-    c.gender=document.getElementById('ac-gender').value;
+    c.gender=(typeof normalizeClientGender==='function'?normalizeClientGender(document.getElementById('ac-gender').value):document.getElementById('ac-gender').value)||'M';
     c.weight=+document.getElementById('ac-weight').value||0;
     c.height=+document.getElementById('ac-height').value||0;
     c.goal=document.getElementById('ac-goal').value;
@@ -337,7 +337,7 @@ async function saveClient(){
     email:document.getElementById('ac-email').value,
     phone:document.getElementById('ac-phone')?.value||'',
     age:+document.getElementById('ac-age').value||0,
-    gender:document.getElementById('ac-gender').value,
+    gender:(typeof normalizeClientGender==='function'?normalizeClientGender(document.getElementById('ac-gender').value):document.getElementById('ac-gender').value)||'M',
     weight:+document.getElementById('ac-weight').value||0,
     height:+document.getElementById('ac-height').value||0,
     goal:document.getElementById('ac-goal').value,
