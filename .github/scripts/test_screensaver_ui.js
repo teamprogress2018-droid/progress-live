@@ -77,6 +77,7 @@ function bypassAuth() {
       aria: el && el.getAttribute('aria-hidden'),
       src: img ? img.getAttribute('src') : '',
       clock: (clock && clock.textContent) || '',
+      color: clock ? getComputedStyle(clock).color : '',
       w: box ? box.width : 0,
       h: box ? box.height : 0
     };
@@ -85,6 +86,7 @@ function bypassAuth() {
   ok('preview shows overlay', shown.on && shown.aria === 'false');
   ok('logo visible src', /progress-logo\.jpg/.test(shown.src));
   ok('clock text', shown.clock.length >= 4);
+  ok('clock color red', /rgb\(\s*255\s*,\s*59\s*,\s*48\s*\)/.test(shown.color), shown.color);
   ok('covers viewport', shown.w >= 1400 && shown.h >= 850);
 
   const layout = await page.evaluate(() => {
