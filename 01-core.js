@@ -3438,14 +3438,20 @@ function _ssTickClock(){
     }
   }
 }
+function screensaverOverlayEl(){
+  if(typeof document==='undefined'||!document.getElementById)return null;
+  var el=document.getElementById('pl-screensaver');
+  if(!el||typeof el.querySelector!=='function')return null;
+  if(!el.querySelector('.pl-ss-logo'))return null;
+  return el;
+}
 function showScreensaver(force){
   if(!force&&!screensaverEnabled())return false;
   if(!force&&typeof document!=='undefined'&&document.hidden)return false;
   if(!force&&screensaverMediaBusy())return false;
-  if(typeof document==='undefined'||!document.getElementById)return false;
-  var el=document.getElementById('pl-screensaver');
+  var el=screensaverOverlayEl();
   if(!el)return false;
-  var img=el.querySelector?el.querySelector('.pl-ss-logo'):null;
+  var img=el.querySelector('.pl-ss-logo');
   if(img){
     var url=screensaverLogoUrl();
     if(img.getAttribute&&img.getAttribute('src')!==url)img.setAttribute('src',url);
@@ -3461,22 +3467,26 @@ function showScreensaver(force){
   _ssPtr0=null;
   if(_ssTimer){clearTimeout(_ssTimer);_ssTimer=null;}
   _ssTickClock();
-  if(_ssClockTimer)clearInterval(_ssClockTimer);
-  _ssClockTimer=setInterval(_ssTickClock,1000);
+  if(_ssClockTimer){
+    if(typeof clearInterval==='function')clearInterval(_ssClockTimer);
+    _ssClockTimer=null;
+  }
+  if(typeof setInterval==='function')_ssClockTimer=setInterval(_ssTickClock,1000);
   return true;
 }
 function hideScreensaver(){
   _ssVisible=false;
   _ssGraceUntil=0;
-  if(_ssClockTimer){clearInterval(_ssClockTimer);_ssClockTimer=null;}
-  if(typeof document!=='undefined'&&document.getElementById){
-    var el=document.getElementById('pl-screensaver');
-    if(el){
-      if(el.classList&&el.classList.remove)el.classList.remove('on');
-      if(el.setAttribute){
-        el.setAttribute('aria-hidden','true');
-        el.setAttribute('hidden','');
-      }
+  if(_ssClockTimer){
+    if(typeof clearInterval==='function')clearInterval(_ssClockTimer);
+    _ssClockTimer=null;
+  }
+  var el=screensaverOverlayEl();
+  if(el){
+    if(el.classList&&el.classList.remove)el.classList.remove('on');
+    if(el.setAttribute){
+      el.setAttribute('aria-hidden','true');
+      el.setAttribute('hidden','');
     }
   }
   resetScreensaverIdle();
@@ -3489,7 +3499,7 @@ function resetScreensaverIdle(){
   if(_ssVisible)return;
   if(!screensaverEnabled())return;
   if(typeof document==='undefined'||!document.getElementById)return;
-  if(!document.getElementById('pl-screensaver'))return;
+  if(!screensaverOverlayEl())return;
   if(document.hidden)return;
   _ssTimer=setTimeout(function(){showScreensaver(false);},screensaverIdleMs());
 }
@@ -3519,7 +3529,7 @@ function initScreensaver(){
         if(_ssTimer){clearTimeout(_ssTimer);_ssTimer=null;}
       }else resetScreensaverIdle();
     });
-    var el=document.getElementById('pl-screensaver');
+    var el=screensaverOverlayEl();
     if(el&&el.addEventListener)el.addEventListener('click',function(){hideScreensaver();});
   }
   resetScreensaverIdle();
@@ -3536,6 +3546,7 @@ window.previewScreensaver=previewScreensaver;
 window.resetScreensaverIdle=resetScreensaverIdle;
 window.initScreensaver=initScreensaver;
 window.screensaverQueryForce=screensaverQueryForce;
+window.screensaverOverlayEl=screensaverOverlayEl;
 
 if(typeof document!=='undefined'){
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{bindEduTipClicks();hydrateEduTips();initScreensaver();});

@@ -110,6 +110,12 @@ ok('kiosk query', (windowObj.location.search = '?ss=1', ctx.screensaverQueryForc
 ok('kiosk alias', (windowObj.location.search = '?foo=1&wygaszacz=1', ctx.screensaverQueryForce() === true));
 ok('kiosk off', (windowObj.location.search = '', ctx.screensaverQueryForce() === false));
 
+const prevGet = documentStub.getElementById;
+documentStub.getElementById = () => ({ querySelector() { return null; }, classList: { add() {}, remove() {} } });
+ok('stub overlay ignored', ctx.screensaverOverlayEl() === null);
+ok('stub no show', ctx.showScreensaver(true) === false);
+documentStub.getElementById = prevGet;
+
 if (failed) {
   console.error(failed + ' failed');
   process.exit(1);
