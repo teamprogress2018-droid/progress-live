@@ -111,6 +111,18 @@ function ok(name, cond, extra) {
   const pickedRzut = await page.locator('.ex-row [data-f="name"]').first().inputValue();
   ok('click fills Rzut piłką o ścianę', pickedRzut === 'Rzut piłką o ścianę', pickedRzut);
 
+  const zarzut = await acFor('zarzut');
+  ok('zarzut finds Zarzut siłowy', zarzut.items.includes('Zarzut siłowy'), JSON.stringify(zarzut));
+  ok('zarzut finds Zarzut', zarzut.items.includes('Zarzut'), JSON.stringify(zarzut));
+
+  const wykrok = await acFor('wykrok');
+  ok('wykrok finds Wykrok chodzony', wykrok.items.includes('Wykrok chodzony'), JSON.stringify(wykrok));
+  ok('wykrok finds Wykrok wsteczny', wykrok.items.includes('Wykrok wsteczny'), JSON.stringify(wykrok));
+
+  const biez = await acFor('bieznia');
+  await page.screenshot({ path: path.join(shotDir, 'cardio_ac_bieznia.png') });
+  ok('bieznia finds Bieżnia', biez.items.includes('Bieżnia'), JSON.stringify(biez));
+
   await page.evaluate(() => {
     if (typeof goTo === 'function') goTo('library');
     if (typeof renderLib === 'function') renderLib();
@@ -128,6 +140,15 @@ function ok(name, cond, extra) {
   const libRzut = await page.evaluate(() => (document.getElementById('lib-grid') || {}).innerText || '');
   ok('library search rzut wall ball', /Rzut piłką o ścianę/.test(libRzut), libRzut.slice(0, 240));
   ok('library search rzut slam', /Rzut piłką o podłogę/.test(libRzut), libRzut.slice(0, 240));
+
+  await page.fill('#ex-search', 'zarzut');
+  await page.evaluate(() => { if (typeof renderLib === 'function') renderLib(); });
+  await page.waitForTimeout(200);
+  const libZ = await page.evaluate(() => (document.getElementById('lib-grid') || {}).innerText || '');
+  ok('library search zarzut', /Zarzut siłowy/.test(libZ), libZ.slice(0, 240));
+
+  const cats = await page.evaluate(() => (document.getElementById('ex-cat-nav') || {}).innerText || '');
+  ok('library nav olimpijskie', /Olimpijskie/.test(cats), cats.slice(0, 300));
 
   await browser.close();
   if (failed) {
