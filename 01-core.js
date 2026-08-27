@@ -2954,6 +2954,8 @@ function buildMethodRationale(opts){
   const volSummary=VOLUME_PART_ORDER.slice(0,6).map(p=>p+': '+(volGuide.parts[p]||'—')+' s/tyg').join(' · ');
   return{
     methodKey,goalKey,levelKey,daysPerWeek:days||null,weight:(!isNaN(weight)&&weight>0)?weight:null,
+    clientName:o.clientName||undefined,
+    clientId:o.clientId||undefined,
     methodLabel:method.label,
     methodWhy:method.why,
     methodBest:method.best,
@@ -2977,11 +2979,31 @@ function buildMethodRationale(opts){
     trainerEntries
   };
 }
-function renderVolumeByLevelTable(r,esc){
+function renderVolumeByLevelTable(r,esc,tableOpts){
   const order=r.volumePartOrder||VOLUME_PART_ORDER;
   const levels=['poczatkujacy','sredni','zaawansowany'];
   const labels={poczatkujacy:'Pocz.',sredni:'Średni',zaawansowany:'Zaaw.'};
   const cur=String(r.levelKey||'sredni').toLowerCase();
+  const personalized=!!(tableOpts&&tableOpts.personalizedOnly);
+  const innerOnly=!!(tableOpts&&tableOpts.innerOnly);
+  if(personalized){
+    const guide=r.volumeByLevel&&r.volumeByLevel[cur];
+    const rows=order.map(part=>{
+      const v=(guide&&guide.parts&&guide.parts[part])||'—';
+      return `<tr><th scope="row" class="mr-vol-part">${esc(part)}</th><td class="mr-vol-td is-current">${esc(v)}</td></tr>`;
+    }).join('');
+    const who=r.clientName?(' klienta '+r.clientName):'';
+    const table=`<table class="mr-vol-table mr-vol-table--solo"><thead><tr><th class="mr-vol-part">Partia</th><th class="mr-vol-th is-current">${esc(r.levelVolumeLabel||labels[cur]||cur)}</th></tr></thead><tbody>${rows}</tbody></table>`;
+    const compare=`<details class="mr-vol-compare"><summary class="mr-block-title" style="font-size:11px;cursor:pointer;margin-top:8px;">Porównaj z innymi stażami</summary>${renderVolumeByLevelTable(r,esc,{innerOnly:true})}</details>`;
+    if(innerOnly)return table;
+    return `<div class="mr-vol-wrap mr-vol-personal">
+      <div class="mr-meta" style="margin-bottom:6px;">Serie robocze / partię / <b>tydzień</b> (MEV–MAV) dopasowane do${esc(who)} · staż <b>${esc(r.levelVolumeLabel||labels[cur]||cur)}</b>.</div>
+      ${table}
+      <div class="mr-meta" style="margin-top:6px;">${esc(r.levelVolumeNote||'')}</div>
+      ${compare}
+      <div class="mr-note">Siła / rehab: trzymaj dolną połowę zakresu; kondycja: okolice MEV + osobne sesje cardio.</div>
+    </div>`;
+  }
   const head=levels.map(l=>`<th class="mr-vol-th${l===cur?' is-current':''}">${esc(labels[l])}</th>`).join('');
   const rows=order.map(part=>{
     const cells=levels.map(l=>{
@@ -2990,9 +3012,13 @@ function renderVolumeByLevelTable(r,esc){
     }).join('');
     return `<tr><th scope="row" class="mr-vol-part">${esc(part)}</th>${cells}</tr>`;
   }).join('');
+  const table=`<table class="mr-vol-table"><thead><tr><th class="mr-vol-part">Partia</th>${head}</tr></thead><tbody>${rows}</tbody></table>`;
+  if(innerOnly){
+    return `<div class="mr-meta" style="margin:8px 0 6px;">Pełna tabela — kolumna <b>${esc(r.levelVolumeLabel||'')}</b> to wybrany staż.</div>${table}`;
+  }
   return `<div class="mr-vol-wrap">
     <div class="mr-meta" style="margin-bottom:6px;">Serie robocze / partię / <b>tydzień</b> (hipertrofia · MEV–MAV). Kolumna <b>${esc(r.levelVolumeLabel||'')}</b> = wybrany staż klienta.</div>
-    <table class="mr-vol-table"><thead><tr><th class="mr-vol-part">Partia</th>${head}</tr></thead><tbody>${rows}</tbody></table>
+    ${table}
     <div class="mr-meta" style="margin-top:6px;">${esc(r.levelVolumeNote||'')}</div>
     <div class="mr-note">Siła / rehab: trzymaj dolną połowę zakresu; kondycja: okolice MEV + osobne sesje cardio. Nie sumuj „wszystkie partie na MRV” naraz.</div>
   </div>`;
@@ -3088,6 +3114,7 @@ function renderTrainerCheatSheetHTML(opts){
   const esc=escFn||(s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'));
   const row=(k,v)=>`<div class="mr-row"><span class="mr-k">${esc(k)}</span><span class="mr-v">${esc(v)}</span></div>`;
   const ctxBits=[
+    r.clientName?('Klient: '+r.clientName):'',
     r.methodLabel?('Metoda: '+r.methodLabel):'',
     r.goalLabel?('Cel: '+r.goalLabel):'',
     r.levelVolumeLabel?('Staż: '+r.levelVolumeLabel):'',
@@ -3136,7 +3163,7 @@ function renderTrainerCheatSheetHTML(opts){
     </div>
     <div class="mr-block tch-card tch-volume">
       <div class="mr-block-title">Serie robocze / partię / tydzień (MEV–MAV)</div>
-      ${renderVolumeByLevelTable(r,esc)}
+      ${renderVolumeByLevelTable(r,esc,{personalizedOnly:!!(r.clientName||r.clientId)})}
     </div>
     <div class="mr-block tch-card">
       <div class="mr-block-title">Szybkie reguły przy wpisywaniu serii</div>
@@ -3152,11 +3179,28 @@ function renderTrainerCheatSheetHTML(opts){
 }
 function resolveMethodRationaleOpts(opts){
   if(opts&&typeof opts==='object'&&(opts.methodWhy||opts.method||opts.goal||opts.level))return opts;
-  if(typeof builderEduCtx==='function'){
+  const screenActive=(id)=>{const el=document.getElementById(id);return!!(el&&el.classList.contains('active'));};
+  if(screenActive('screen-aiplangen')&&typeof aplEduCtx==='function'){
+    try{
+      const ctx=aplEduCtx()||{};
+      if(ctx.method||ctx.goal||ctx.level||ctx.clientName)return ctx;
+    }catch(e){}
+  }
+  if(screenActive('screen-builder')&&typeof builderEduCtx==='function'){
     try{
       const ctx=builderEduCtx()||{};
       const days=document.querySelectorAll('#builder-days .builder-day').length;
-      return{method:ctx.method,goal:ctx.goal,level:ctx.level,weight:ctx.weight,daysPerWeek:days||undefined};
+      return{method:ctx.method,goal:ctx.goal,level:ctx.level,weight:ctx.weight,daysPerWeek:days||undefined,clientId:ctx.clientId,clientName:ctx.clientName};
+    }catch(e){}
+  }
+  if(typeof aplEduCtx==='function'&&document.getElementById('apl-client')?.value){
+    try{return aplEduCtx()||{};}catch(e){}
+  }
+  if(typeof builderEduCtx==='function'&&document.getElementById('b-client')?.value){
+    try{
+      const ctx=builderEduCtx()||{};
+      const days=document.querySelectorAll('#builder-days .builder-day').length;
+      return{method:ctx.method,goal:ctx.goal,level:ctx.level,weight:ctx.weight,daysPerWeek:days||undefined,clientId:ctx.clientId,clientName:ctx.clientName};
     }catch(e){}
   }
   return window._lastMethodRationale||{};
@@ -3166,10 +3210,12 @@ function openMethodRationaleModal(opts){
   if(!mount){if(typeof notify==='function')notify('Brak okna ściągawki');return;}
   const src=resolveMethodRationaleOpts(opts);
   const r=typeof src==='object'&&src.methodWhy?src:buildMethodRationale(src||{});
+  if(src.clientName&&!r.clientName)r.clientName=src.clientName;
+  if(src.clientId&&!r.clientId)r.clientId=src.clientId;
   try{window._lastMethodRationale=r;}catch(e){}
   mount.innerHTML=renderTrainerCheatSheetHTML(r);
   const title=document.querySelector('#m-method-rationale .modal-title');
-  if(title)title.textContent='ŚCIĄGAWKA TRENERA';
+  if(title)title.textContent=r.clientName?('ŚCIĄGAWKA — '+String(r.clientName).toUpperCase()):'ŚCIĄGAWKA TRENERA';
   if(typeof openM==='function')openM('m-method-rationale');
 }
 function printTrainerCheatSheet(){

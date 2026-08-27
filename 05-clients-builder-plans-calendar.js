@@ -763,7 +763,9 @@ function builderEduCtx(){
     method:(document.getElementById('b-method')||{}).value||'PPL',
     goal:c.goal||'masa',
     level:c.level||'sredni',
-    weight:weight
+    weight:weight,
+    clientId:cid||undefined,
+    clientName:c.name||undefined
   };
 }
 function builderRefreshMethodHint(){

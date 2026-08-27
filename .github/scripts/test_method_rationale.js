@@ -47,7 +47,12 @@ ok('full guide modal',html.includes('id="m-method-rationale"')&&html.includes('m
 ok('builder topbar cheat btn',html.includes('id="builder-cheat-btn"')&&html.includes('openMethodRationaleModal()'));
 ok('builder topbar print btn',html.includes('id="builder-cheat-print-btn"')&&html.includes('printTrainerCheatSheet()'));
 ok('css cheat sheet',css.includes('.trainer-cheat')&&css.includes('.tch-volume')&&css.includes('#builder-cheat-btn'));
-ok('print refreshes sheet',/function printTrainerCheatSheet[\s\S]*renderTrainerCheatSheetHTML/.test(core));
+ok('aplEduCtx exported',src03.includes('function aplEduCtx')&&src03.includes('window.aplEduCtx'));
+ok('resolve screen-aware',core.includes("screenActive('screen-aiplangen')")&&core.includes('aplEduCtx'));
+ok('cheat client chip',core.includes("Klient: '+r.clientName"));
+ok('cheat personalized volume',core.includes('personalizedOnly')&&core.includes('mr-vol-personal'));
+ok('builder ctx clientName',src05.includes('clientName:c.name'));
+ok('apl render uses edu ctx',src03.includes('aplEduCtx()'));
 
 const sandbox={window:{},console};
 vm.createContext(sandbox);
@@ -75,6 +80,7 @@ const adv=sandbox.buildMethodRationale({method:'PPL',goal:'redukcja',level:'zaaw
 ok('advanced chest volume',adv.levelVolumeParts.Klatka==='12–20');
 ok('advanced html current col',/Zaaw\./.test(sandbox.renderMethodRationaleHTML(adv))&&/is-current/.test(sandbox.renderMethodRationaleHTML(adv)));
 
+ok('cache bumps',html.includes('01-core.js?v=44')&&html.includes('03-ai-plangen-bizstats-aicoach.js?v=26')&&html.includes('05-clients-builder-plans-calendar.js?v=29')&&html.includes('styles.css?v=47'));
 ok('cache bumps',html.includes('01-core.js?v=42')&&html.includes('05-clients-builder-plans-calendar.js?v=29')&&html.includes('styles.css?v=47'));
 
 if(failed){console.error(failed+' failed');process.exit(1);}
