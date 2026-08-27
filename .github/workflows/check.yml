@@ -230,6 +230,8 @@ jobs:
 
       - name: Testy sync uwag AI vs metoda
         run: node .github/scripts/test_apl_notes_method_sync.js
+      - name: Testy metod AI (Split/Smolov) + progresja
+        run: node .github/scripts/test_apl_method_progression.js
       - name: 1o2. Testy zakładki Progress (statystyki klienta)
         run: node .github/scripts/test_cp_progress_tab.js
       - name: Panel analityczny klienta (Progress)

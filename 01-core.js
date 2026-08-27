@@ -2661,6 +2661,7 @@ const METHOD_WHY={
   UL:{label:'Upper / Lower',why:'Góra i dół na przemian — zwykle 4 dni, każda partia 2×/tydzień. Kompromis między FBW a PPL.',best:'3–4 dni/tydzień'},
   Arnold:{label:'Arnold Split',why:'Klatka+plecy, barki+ramiona, nogi (×2) — wysoka objętość na partie sylwetkowe. Wymaga dobrej regeneracji i doświadczenia z objętością.',best:'5–6 dni, zaawansowani, hipertrofia'},
   'Bro Split':{label:'Bro Split',why:'Jedna partia / dzień — wysoka objętość lokalna, ale niska częstotliwość (~1×/tydzień). Używaj świadomie; przy hipertrofii częściej lepsze 2×/tydzień.',best:'5–6 dni, zaawansowani z priorytetami'},
+  Smolov:{label:'Smolov (przysiad)',why:'Specjalizacja siłowa na przysiadzie — mikrocykl %1RM (T1–T4+), wysoka częstotliwość przysiadu, reszta ciała w utrzymaniu. Tylko dla zaawansowanych z solidną techniką przysiadu.',best:'4–8 tyg. cykl, cel siła/przysiad, zaawansowany'},
   '531':{label:'5/3/1 Wendler',why:'Progresja %1RM na głównych wielostawach (przysiad, bench, deadlift, OHP) + asysty. Priorytet siły i długoterminowej progresji, nie maksymalnej objętości sylwetkowej.',best:'3–4 dni, cel siła'},
   '5/3/1':{label:'5/3/1 Wendler',why:'Progresja %1RM na głównych wielostawach + asysty. Priorytet siły.',best:'3–4 dni, cel siła'},
   Blokowa:{label:'Periodyzacja blokowa',why:'Bloki akumulacji → intensyfikacji → realizacji (+ deload). Objętość i intensywność nie rosną naraz — chroni przed stagnacją i przetrenowaniem.',best:'8–12+ tygodni, średni/zaawansowany'},
@@ -2859,6 +2860,7 @@ function normalizeRationaleMethod(method){
   if(/^upper\s*\/?\s*lower$/i.test(m)||m==='UL')return'Upper Lower';
   if(/^5\s*\/\s*3\s*\/\s*1|531$/i.test(m))return'531';
   if(/^bro/i.test(m))return'Bro Split';
+  if(/^smolov|smol/i.test(m))return'Smolov';
   if(/^arnold/i.test(m))return'Arnold';
   if(/^w[lł]asna/i.test(m))return'Własna';
   if(/^custom|dostosow/i.test(m))return'Custom';
@@ -2882,6 +2884,7 @@ function buildClientTalkPlain(opts){
     UL:'Trenujemy na przemian górę i dół ciała — każda partia dostaje bodziec zwykle dwa razy w tygodniu.',
     Arnold:'Plan jest bardziej „sylwetkowy”: osobne dni na klatkę+plecy, barki+ramiona i nogi — dużo pracy na kształt.',
     'Bro Split':'Każdy dzień to inna partia — dużo pracy lokalnie w jednej sesji; trzymamy jakość ruchu i regenerację.',
+    Smolov:'Skupiamy się na progresji przysiadu wg cyklu Smolova (%1RM, wysoka częstotliwość). Reszta ciała tylko w utrzymaniu — bez dokładania objętości na nogach poza planem przysiadu.',
     '531':'Główny cel to siła na wielostawach (przysiad, wyciskanie, martwy, wyciskanie nad głowę) z jasną progresją ciężaru.',
     '5/3/1':'Główny cel to siła na wielostawach z jasną progresją ciężaru.',
     Blokowa:'Plan idzie blokami: najpierw budujemy objętość, potem ciężar, potem domykamy — bez gonienia wszystkiego naraz.',
@@ -2933,6 +2936,8 @@ function buildMethodRationale(opts){
   if(methodKey==='Obwodowy'&&goalKey==='sila')tips.push('Obwód słabo buduje max 1RM — do siły dodaj 1–2 ciężkie wielostawy na początku albo wybierz PPL/531.');
   if(methodKey==='Obwodowy'&&days&&days>=5)tips.push('Obwód ≥5×/tydzień mocno obciąża regenerację — skróć rundy lub przeplataj dni lżejsze.');
   if(methodKey==='Bro Split'&&(goalKey==='masa'||goalKey==='redukcja'))tips.push('Przy hipertrofii preferuj ≥2 stymulacje partii/tydzień — bro split daje zwykle 1×; świadomie zwiększ częstotliwość lub objętość priorytetów.');
+  if(methodKey==='Smolov'&&goalKey!=='sila')tips.push('Smolov to program pod przysiad/siłę — przy celu '+goalKey+' traktuj resztę planu jako utrzymanie, nie hipertrofię.');
+  if(methodKey==='Smolov')tips.push('Przed Smolovem: technika przysiadu, mobilność kostek/bioder, sen i białko — nie zaczynaj od maksymalnych % bez deloadu po cyklu.');
   if(goalKey==='sila'&&methodKey==='PPL')tips.push('Siła + PPL OK, ale trzymaj ciężkie wielostawy na początku sesji i dłuższe przerwy (3–5 min).');
   tips.push('Zapisuj RPE/RIR — decyzje o +kg / +seriach opieraj na trendzie, nie na jednym „złym dniu”.');
   if(!isNaN(weight)&&weight>0){

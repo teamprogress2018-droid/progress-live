@@ -71,6 +71,7 @@ function initAplangen(){
   if(typeof initPriorSportsForm==='function')initPriorSportsForm('apl',[]);
   if(typeof initPhysiquePriorityForm==='function')initPhysiquePriorityForm('apl',[]);
   if(typeof aplRefreshRationale==='function')aplRefreshRationale();
+  if(typeof aplSyncProgressionFromMethod==='function')aplSyncProgressionFromMethod();
   if(typeof hydrateEduTips==='function')hydrateEduTips(document.getElementById('screen-aiplangen'));
 }
 
@@ -99,6 +100,7 @@ function aplToggleOpt(btn,groupId){
   btn.classList.add('active');
   if(groupId==='apl-methods'||groupId==='apl-days'){
     if(typeof aplSyncAutoStructureNotes==='function')aplSyncAutoStructureNotes();
+    if(groupId==='apl-methods'&&typeof aplSyncProgressionFromMethod==='function')aplSyncProgressionFromMethod();
   }
   if(typeof aplRefreshRationale==='function')aplRefreshRationale();
 }
@@ -114,6 +116,79 @@ function aplRefreshRationale(){
   refreshMethodRationaleInto(el,{method,goal,level,daysPerWeek:days||undefined,weight});
 }
 window.aplRefreshRationale=aplRefreshRationale;
+
+/** Domyślna metoda progresji dla układu treningowego (auto-sync przy zmianie metody). */
+const APL_METHOD_PROGRESSION={
+  PPL:'dup',
+  FBW:'linear',
+  'Upper/Lower':'dup',
+  Obwodowy:'wave',
+  '531':'linear',
+  Blokowa:'block',
+  'Bro Split':'linear',
+  Arnold:'block',
+  Smolov:'smolov',
+  Custom:'ai'
+};
+window.APL_METHOD_PROGRESSION=APL_METHOD_PROGRESSION;
+
+const APL_PROGRESSION_LABELS={
+  ai:'🤖 AI Auto',
+  linear:'📈 Liniowa',
+  dup:'🔄 DUP',
+  wave:'〰️ Falowa',
+  block:'🧱 Blokowa',
+  double:'⏫ Podwójna',
+  smolov:'🏋️ Smolov'
+};
+
+function aplSyncProgressionFromMethod(){
+  const method=typeof aplGetVal==='function'?aplGetVal('apl-methods'):'';
+  const prog=APL_METHOD_PROGRESSION[method]||'ai';
+  document.querySelectorAll('#apl-progression .apl-opt').forEach(b=>{
+    b.classList.toggle('active',b.dataset.val===prog);
+  });
+  const hint=document.getElementById('apl-progression-hint');
+  if(hint){
+    const lbl=APL_PROGRESSION_LABELS[prog]||prog;
+    hint.textContent=method?('Dopasowano do metody '+method+': '+lbl):'';
+  }
+}
+window.aplSyncProgressionFromMethod=aplSyncProgressionFromMethod;
+
+function aplMethodStructureHint(method){
+  const hints={
+    'Bro Split':'BRO SPLIT: 5–6 dni, 1 partia główna/dzień (np. klatka, plecy, barki, ramiona, nogi). Progresja liniowa +2.5 kg/tyg na wielostawach gdy RPE≤8.',
+    Smolov:'SMOLOV: priorytet PRZYSIAD — mikrocykl %1RM (T1 70%×9×6, T2 75%×7×6, T3 80%×5×6, T4 85%×3×6). Inne dni: utrzymanie góry ciała, max 2–3 ćwiczenia, niska objętość nóg poza przysiadami Smolova.',
+    Arnold:'ARNOLD SPLIT: rotacja klatka+plecy / barki+ramiona / nogi (×2). Wysoka objętość sylwetkowa — periodyzacja blokowa lub falowa.',
+    Blokowa:'BLOKOWA: tygodnie Akumulacja → Intensyfikacja → Realizacja (+ deload). Objętość i intensywność nie rosną naraz.',
+    '531':'5/3/1: 4 główne wielostawy wg cyklu %1RM + asysty BBB. Progresja co tydzień wg tablic Wendlera.',
+    PPL:'PPL: dni Push / Pull / Legs — każda partia ~2×/tydz. przy 6 dniach.',
+    FBW:'FBW: całe ciało każda sesja — progresja liniowa kg lub powtórzeń.',
+    'Upper/Lower':'Upper/Lower: naprzemiennie góra/dół — DUP (siła/hiper/objętość) dobrze pasuje.',
+    Obwodowy:'OBWÓD: stacje/rundy, krótkie przerwy — progresja falowa objętości lub czasu rundy.'
+  };
+  return hints[method]||'';
+}
+window.aplMethodStructureHint=aplMethodStructureHint;
+
+function aplPhasesForPlan(method,weeksNum,weekKeys){
+  const SMOLOV_PHASES={
+    4:{w1:'Smolov T1 70%',w2:'Smolov T2 75%',w3:'Smolov T3 80%',w4:'Smolov T4 85%'},
+    6:{w1:'Smolov T1',w2:'Smolov T2',w3:'Smolov T3',w4:'Smolov T4',w5:'Deload',w6:'Test/Realizacja'},
+    8:{w1:'Smolov T1',w2:'Smolov T2',w3:'Smolov T3',w4:'Smolov T4',w5:'Deload',w6:'Utrzymanie',w7:'Realizacja',w8:'Test PR'}
+  };
+  if(method==='Smolov'&&SMOLOV_PHASES[weeksNum])return SMOLOV_PHASES[weeksNum];
+  const PHASE_TABLES={
+    1:{w1:'Tydzień 1'},
+    4:{w1:'Adaptacja',w2:'Hipertrofia I',w3:'Hipertrofia II',w4:'Deload'},
+    6:{w1:'Adaptacja',w2:'Hipertrofia I',w3:'Hipertrofia I',w4:'Hipertrofia II',w5:'Intensyfikacja',w6:'Deload'},
+    8:{w1:'Adaptacja',w2:'Adaptacja',w3:'Hipertrofia I',w4:'Hipertrofia I',w5:'Hipertrofia II',w6:'Siła',w7:'Deload',w8:'Szczyt'},
+    12:{w1:'Adaptacja',w2:'Adaptacja',w3:'Hipertrofia I',w4:'Hipertrofia I',w5:'Hipertrofia II',w6:'Hipertrofia II',w7:'Siła',w8:'Siła',w9:'Deload',w10:'Intensyfikacja',w11:'Szczyt',w12:'Test/Realizacja'}
+  };
+  return PHASE_TABLES[weeksNum]||(()=>{const o={};weekKeys.forEach((k,i)=>o[k]=i===weekKeys.length-1?'Deload':'Tydzień '+(i+1));return o;})();
+}
+window.aplPhasesForPlan=aplPhasesForPlan;
 
 function toggleAplPharmaPanel(force){
   const panel=document.getElementById('apl-pharma-panel');
@@ -620,14 +695,7 @@ async function aplGenerate(){
 
   const weeksNum = parseInt(weeks)||8;
   const weekKeys = ['w1','w2','w3','w4','w5','w6','w7','w8','w9','w10','w11','w12'].slice(0,weeksNum);
-  const PHASE_TABLES={
-    1:{w1:'Tydzień 1'},
-    4:{w1:'Adaptacja',w2:'Hipertrofia I',w3:'Hipertrofia II',w4:'Deload'},
-    6:{w1:'Adaptacja',w2:'Hipertrofia I',w3:'Hipertrofia I',w4:'Hipertrofia II',w5:'Intensyfikacja',w6:'Deload'},
-    8:{w1:'Adaptacja',w2:'Adaptacja',w3:'Hipertrofia I',w4:'Hipertrofia I',w5:'Hipertrofia II',w6:'Siła',w7:'Deload',w8:'Szczyt'},
-    12:{w1:'Adaptacja',w2:'Adaptacja',w3:'Hipertrofia I',w4:'Hipertrofia I',w5:'Hipertrofia II',w6:'Hipertrofia II',w7:'Siła',w8:'Siła',w9:'Deload',w10:'Intensyfikacja',w11:'Szczyt',w12:'Test/Realizacja'},
-  };
-  const phasesMap = PHASE_TABLES[weeksNum] || (()=>{const o={};weekKeys.forEach((k,i)=>o[k]=i===weekKeys.length-1?'Deload':'Tydzień '+(i+1));return o;})();
+  const phasesMap=typeof aplPhasesForPlan==='function'?aplPhasesForPlan(method,weeksNum,weekKeys):{};
 
   if(!goal||!level||!method||!days){
     notify('⚠ Uzupełnij wymagane pola!');return;
@@ -655,10 +723,14 @@ async function aplGenerate(){
     wave:'FALUJĄCA TYGODNIOWA: tygodnie nieparzyste = wyższa objętość RPE 7-8, parzyste = wyższa intensywność RPE 8-9.',
     block:'BLOKOWA: pierwsze tygodnie Akumulacja (10-15 powt. RPE 6-7), środkowe Intensyfikacja (6-8 powt. RPE 8-9), ostatni tydzień Deload, potem Realizacja.',
     double:'PODWÓJNA PROGRESJA: dodawaj 1 powt./tydzień do górnego zakresu, potem +2.5-5kg i reset do dolnego zakresu powtórzeń.',
+    smolov:'SMOLOV (przysiad): mikrocykl %1RM — T1 70%×9×6, T2 75%×7×6, T3 80%×5×6, T4 85%×3×6 (dostosuj do długości planu). Reszta ciała: utrzymanie, bez dokładania objętości nóg poza przysiadami Smolova. Deload po cyklu.',
   };
+  const methodDefaultProg=APL_METHOD_PROGRESSION[method]||'linear';
+  const effectiveProg=progression==='ai'?methodDefaultProg:progression;
   const progressionInstruction = progression==='ai'
-    ? 'Dobierz OPTYMALNĄ metodę progresji dla tego klienta i uzasadnij wybór w polu "periodization".'
-    : progressionInstructions[progression];
+    ? ('AI dobiera progresję — dla metody „'+method+'” domyślnie: '+progressionInstructions[effectiveProg||'linear']+'. Uzasadnij wybór w polu "periodization".')
+    : progressionInstructions[effectiveProg]||progressionInstructions.linear;
+  const structureHint=typeof aplMethodStructureHint==='function'?aplMethodStructureHint(method):'';
 
   const wuEx = `[{"name":"Krążenia ramion","emoji":"🔄","sets":"2x","reps":"15","note":"mobilizacja"},{"name":"Aktywacja pośladków z gumą","emoji":"🍑","sets":"2x","reps":"12","note":"aktywacja"}]`;
 
@@ -710,6 +782,7 @@ FAZY TYGODNI (kontekst dla treści "periodization"/"deload", NIE umieszczaj w JS
 
 
 METODA PROGRESJI (obowiązkowa): ${progressionInstruction}
+${structureHint?`\nSTRUKTURA METODY (obowiązkowa): ${structureHint}`:''}
 
 OBOWIĄZKOWE PROGI OBJĘTOŚCI (MEV/MAV/MRV) NA PARTIĘ NA TYDZIEŃ — liczba serii roboczych zsumowana ze WSZYSTKICH dni treningowych w całym tygodniu:
 Klatka: MEV 10 / MAV 14-18 / MRV 20
