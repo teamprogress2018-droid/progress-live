@@ -537,9 +537,10 @@ function capClientProgressScreenHTML(c,accent){
       ${metricsOn&&lastMeas?`<div class="cap-chart-card" style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:18px;padding:16px;margin-bottom:14px;">
         <div style="font-size:12px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">📏 Ostatnie obwody</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
-          ${[{k:'m1',l:'Klatka'},{k:'m2',l:'Talia'},{k:'m3',l:'Biodra'},{k:'m4',l:'Udo'},{k:'m5',l:'Ramię'}].map(x=>{
-            const v=mv[x.k];if(!v)return'';
-            return '<div style="background:'+CAP_S1+';border-radius:12px;padding:10px;text-align:center;border:1px solid '+CAP_S3+';"><div style="font-size:9px;color:'+CAP_MUTED+';text-transform:uppercase;">'+x.l+'</div><div style="font-family:\'Bebas Neue\',sans-serif;font-size:22px;color:'+CAP_TEXT+';">'+escHtml(String(v))+'<span style="font-size:10px;color:'+CAP_MUTED+';"> cm</span></div></div>';
+          ${(typeof circMetricDefs==='function'?circMetricDefs():[{id:'m1',name:'Klatka'},{id:'m2',name:'Talia'},{id:'m3',name:'Biodra'},{id:'m4',name:'Udo'},{id:'m5',name:'Ramię'}]).map(x=>{
+            const k=x.id;const l=x.name||k;
+            const v=mv[k];if(!v)return'';
+            return '<div style="background:'+CAP_S1+';border-radius:12px;padding:10px;text-align:center;border:1px solid '+CAP_S3+';"><div style="font-size:9px;color:'+CAP_MUTED+';text-transform:uppercase;">'+escHtml(String(l))+'</div><div style="font-family:\'Bebas Neue\',sans-serif;font-size:22px;color:'+CAP_TEXT+';">'+escHtml(String(v))+'<span style="font-size:10px;color:'+CAP_MUTED+';"> cm</span></div></div>';
           }).join('')}
         </div>
         <div style="font-size:10px;color:${CAP_MUTED};margin-top:8px;">${escHtml(lastMeas.date||'')}</div>

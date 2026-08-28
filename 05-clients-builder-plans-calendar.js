@@ -665,11 +665,7 @@ function openClientBaselineModal(clientId){
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v!=null&&v!==''?v:'';};
   set('bl-weight',c.weight||'');
   set('bl-bf','');
-  set('bl-chest','');
-  set('bl-waist','');
-  set('bl-hips','');
-  set('bl-thigh','');
-  set('bl-arm','');
+  if(typeof renderBaselineCircFields==='function')renderBaselineCircFields();
   const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
   set('bl-date',today);
   const title=document.getElementById('m-baseline-title');
@@ -679,15 +675,12 @@ function openClientBaselineModal(clientId){
 async function saveClientBaselineModal(){
   const id=window._baselineClientId;if(!id)return;
   const g=id=>document.getElementById(id)?.value||'';
+  const circ=typeof collectBaselineCircFields==='function'?collectBaselineCircFields():{};
   const created=typeof saveClientBaselineFromFields==='function'?saveClientBaselineFromFields(id,{
     date:g('bl-date'),
     weight:g('bl-weight'),
     bf:g('bl-bf'),
-    chest:g('bl-chest'),
-    waist:g('bl-waist'),
-    hips:g('bl-hips'),
-    thigh:g('bl-thigh'),
-    arm:g('bl-arm'),
+    circ,
     notes:'Pomiar startowy (baseline)'
   }):[];
   if(!created.length){notify('Wpisz przynajmniej wagę lub obwód');return;}

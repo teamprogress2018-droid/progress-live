@@ -1227,7 +1227,7 @@ function renderCPMetrics(c){
             ${diff!=null?`<div style="font-size:10px;color:${color};">${parseFloat(diff)>0?'+':''}${diff}</div>`:''}
           </div>`;
         }).join('')}
-      </div>`:`<div style="font-size:12px;color:var(--muted);padding:8px 0;">Brak pomiarów w tej grupie — dodaj pierwszy.</div>`}
+      </div>`:`<div style="font-size:12px;color:var(--muted);padding:8px 0;">${activeGroup.id==='mg2'?'Brak obwodów centymetrem — dodaj szyję, klatkę, talię, biodra, ramiona, uda i łydki.':'Brak pomiarów w tej grupie — dodaj pierwszy.'}</div>`}
     </div>`:''}
 
     <div style="margin-top:8px;">
@@ -1569,13 +1569,13 @@ function renderCPProgress(c){
   const bfPts=cpMetricPoints(mass,'m2');
   const musclePts=cpMetricPoints(mass,'m3');
   const squatPts=cpMetricPoints(strength,'m1');
-  const circBars=lastC?[
+  const circBars=typeof circBarItems==='function'?circBarItems(lastC):(lastC?[
     {label:'Klatka',v:parseFloat(lastC.values.m1)||0,col:'var(--accent)',unit:'cm'},
     {label:'Talia',v:parseFloat(lastC.values.m2)||0,col:'var(--orange)',unit:'cm'},
     {label:'Biodra',v:parseFloat(lastC.values.m3)||0,col:'var(--purple)',unit:'cm'},
     {label:'Udo',v:parseFloat(lastC.values.m4)||0,col:'var(--blue)',unit:'cm'},
     {label:'Ramię',v:parseFloat(lastC.values.m5)||0,col:'var(--teal)',unit:'cm'},
-  ]:[];
+  ]:[]);
   const strengthBars=lastS?[
     {label:'Przysiad',v:parseFloat(lastS.values.m1)||0,col:'var(--accent)',unit:'kg'},
     {label:'Martwy',v:parseFloat(lastS.values.m2)||0,col:'var(--orange)',unit:'kg'},
