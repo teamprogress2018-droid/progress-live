@@ -42,7 +42,6 @@ ok('init syncs progression', /function initAplangen[\s\S]{0,800}aplSyncProgressi
 ok('smolov progression prompt', src03.includes("smolov:'SMOLOV"));
 ok('aplPhasesForPlan smolov', /function aplPhasesForPlan[\s\S]*Smolov T1/.test(src03));
 ok('BUILDER_METHOD_DAYS Smolov', /Smolov:\['Smolov T1'/.test(src05));
-ok('cache bumps', html.includes('01-core.js?v=47') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=28') && html.includes('05-clients-builder-plans-calendar.js?v=32'));
 ok('cache bumps', html.includes('01-core.js?v=47') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=28') && html.includes('05-clients-builder-plans-calendar.js?v=33'));
 ok('CI', wf.includes('test_apl_method_progression.js'));
 
