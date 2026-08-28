@@ -829,6 +829,11 @@ function isSafeMediaUrl(url){
 }
 window.isSafeMediaUrl=isSafeMediaUrl;
 
+function isVideoMediaUrl(url){
+  return /\.(mp4|webm)(\?|#|$)/i.test(String(url||'').trim());
+}
+window.isVideoMediaUrl=isVideoMediaUrl;
+
 function exGifUrl(exOrName){
   let ex=exOrName;
   if(typeof exOrName==='string')ex=typeof libExerciseByName==='function'?libExerciseByName(exOrName):null;
@@ -845,12 +850,12 @@ function exGifUrl(exOrName){
 }
 window.exGifUrl=exGifUrl;
 
-/** Miniatura: GIF > własne zdjęcie > manifest zdjęć > YouTube. Ignoruje placeholdery SVG. */
+/** Miniatura kart: GIF/zdjęcie (nie MP4 — <img> nie odtwarza wideo). Film zostaje w szczegółach / builderze przez exGifUrl. */
 function exThumbUrl(exOrName){
   let ex=exOrName;
   if(typeof exOrName==='string')ex=typeof libExerciseByName==='function'?libExerciseByName(exOrName):null;
   const gif=typeof exGifUrl==='function'?exGifUrl(ex||exOrName):'';
-  if(gif)return gif;
+  if(gif&&!(typeof isVideoMediaUrl==='function'?isVideoMediaUrl(gif):/\.(mp4|webm)(\?|#|$)/i.test(gif)))return gif;
   const name=(ex&&ex.name)||(typeof exOrName==='string'?exOrName:'');
   const photo=exPhotoMapLookup(name);
   if(photo)return photo;
@@ -971,15 +976,17 @@ window.coachMediaHtml=coachMediaHtml;
 
 /** Ćwiczenie z planu: obiekt AI albo string z kreatora ("Wyciskanie 4x8 @75%"). */
 function parsePlanExercise(ex){
-  if(ex==null)return{name:'Ćwiczenie',sets:'3',reps:'10',rest:'90s',kg:'',pct1rm:'',ss:'',emom:false,note:'',video:'',wu:0,drop:0,amrap:false};
+  if(ex==null)return{name:'Ćwiczenie',sets:'3',reps:'10',rest:'90s',kg:'',pct1rm:'',ss:'',emom:false,note:'',video:'',wu:0,drop:0,amrap:false,loadUnit:''};
   if(typeof ex==='string'){
     const raw=ex.trim();
-    const m=raw.match(/^(.*?)(?:\s+(\d+)\s*[x×]\s*(\d+(?:\s*-\s*\d+)?))?(?:\s*@\s*(\d+(?:[.,]\d+)?)\s*(%|kg)?)?\s*$/i);
+    const m=raw.match(/^(.*?)(?:\s+(\d+)\s*[x×]\s*(\d+(?:\s*-\s*\d+)?))?(?:\s*@\s*(\d+(?:[.,]\d+)?)\s*(%|kg|s|sec|sek|m)?)?\s*$/i);
     const amt=m&&m[4]?String(m[4]).replace(',','.'):'';
     const unit=((m&&m[5])||'').toLowerCase();
     const isPct=unit==='%';
+    const name=(m&&m[1]?m[1]:raw).trim()||'Ćwiczenie';
+    const parsedUnit=isPct?'':normalizeLoadUnit(unit==='s'||unit==='sec'||unit==='sek'?'sec':unit);
     return{
-      name:(m&&m[1]?m[1]:raw).trim()||'Ćwiczenie',
+      name,
       sets:(m&&m[2])||'3',
       reps:((m&&m[3])||'10').replace(/\s/g,''),
       rest:'90s',
@@ -991,15 +998,17 @@ function parsePlanExercise(ex){
       video:'',
       wu:0,
       drop:0,
-      amrap:false
+      amrap:false,
+      loadUnit:parsedUnit||(typeof exLoadUnit==='function'?exLoadUnit(name):'')
     };
   }
   let kg=ex.kg!=null&&ex.kg!==''?String(ex.kg):'';
   let pct1rm=parsePct1RM(ex.pct1rm);
   const fromKg=parsePct1RM(/^\s*\d+(?:[.,]\d+)?\s*%\s*$/.test(kg)?kg:'');
   if(fromKg){pct1rm=pct1rm||fromKg;kg='';}
+  const name=ex.name||ex.n||'Ćwiczenie';
   return{
-    name:ex.name||ex.n||'Ćwiczenie',
+    name,
     sets:String(ex.sets||ex.s||'3'),
     reps:String(ex.reps||ex.r||'10'),
     rest:String(ex.rest||ex.rs||'90s'),
@@ -1015,7 +1024,8 @@ function parsePlanExercise(ex){
     video:normalizeCoachVideoUrl(ex.video||ex.url||''),
     wu:parseSetKindCount(ex.wu,2),
     drop:parseSetKindCount(ex.drop,2),
-    amrap:isAmrapFlag(ex.amrap)
+    amrap:isAmrapFlag(ex.amrap),
+    loadUnit:normalizeLoadUnit(ex.loadUnit||ex.load)||''
   };
 }
 window.parsePlanExercise=parsePlanExercise;
@@ -1211,13 +1221,7 @@ window.ssAdvanceIdx=ssAdvanceIdx;
 function formatPlanExerciseLine(ex,clientId){
   const p=parsePlanExercise(ex);
   if(ex&&typeof ex==='object'&&ex.ssLabel)p.ssLabel=ex.ssLabel;
-  let kgPart='';
-  if(p.pct1rm){
-    const w=weightFromPct1RM(clientId,p.name,p.pct1rm);
-    kgPart=w.kg?(' @'+p.pct1rm+'% → '+w.kg+'kg'):(' @'+p.pct1rm+'%');
-  }else if(p.kg){
-    kgPart=' @'+p.kg+'kg';
-  }
+  const kgPart=formatPlanLoadSuffix(p,clientId);
   const tag=formatSetKindTag(p);
   const emom=isEmomFlag(p.emom)&&!p.ss?' EMOM':'';
   return(p.ssLabel?p.ssLabel+' ':'')+(p.name||'')+(p.sets?' '+p.sets+'×'+p.reps:'')+kgPart+(tag?' '+tag:'')+emom;
@@ -1740,12 +1744,112 @@ function exerciseNameKey(name){
 }
 window.exerciseNameKey=exerciseNameKey;
 
-function formatSetLoad(kg,reps){
+/** kg | sec | m — pole „KG” w kreatorze to obciążenie albo czas (liny, deska…). */
+const EX_LOAD_SEC_SLUGS={
+  'liny-treningowe':1,'liny':1,'battle-ropes':1,'battle-rope':1,'liny-battle':1,
+  'deska':1,'plank':1,'deska-boczna':1,'side-plank':1,
+  'deska-kopenhaska':1,'copenhagen-plank':1,'copenhagen-adductor':1,
+  'hollow-hold':1,'hollow-rock':1,'hollow-body-rock':1,
+  'zwisy-na-drazku':1,'dead-hang':1,
+  'mountain-climbers':1,'mountain-climber':1,
+  'przysiad-przy-scianie':1,'wall-sit':1,
+  'siad-w-l':1,'l-sit':1,'l-sit-hold':1,
+  'bieganie-w-miejscu':1,'running-in-place':1,'jog-w-miejscu':1,'bieg-w-miejscu':1
+};
+function normalizeLoadUnit(u){
+  const s=String(u||'').toLowerCase().trim();
+  if(s==='sec'||s==='s'||s==='sek'||s==='sekundy'||s==='seconds'||s==='czas')return 'sec';
+  if(s==='m'||s==='m.'||s==='metr'||s==='metry')return 'm';
+  if(s==='kg'||s==='kilo'||s==='kilogram'||s==='kilogramy')return 'kg';
+  return '';
+}
+window.normalizeLoadUnit=normalizeLoadUnit;
+function loadUnitSuffix(unit){
+  const u=normalizeLoadUnit(unit)||'kg';
+  if(u==='sec')return 's';
+  if(u==='m')return 'm';
+  return 'kg';
+}
+window.loadUnitSuffix=loadUnitSuffix;
+function loadUnitPlaceholder(unit){
+  const u=normalizeLoadUnit(unit)||'kg';
+  if(u==='sec')return 'sec';
+  if(u==='m')return 'm';
+  return 'kg';
+}
+window.loadUnitPlaceholder=loadUnitPlaceholder;
+function loadUnitTitle(unit){
+  const u=normalizeLoadUnit(unit)||'kg';
+  if(u==='sec')return 'Czas (s)';
+  if(u==='m')return 'Dystans (m)';
+  return 'Obciążenie (kg)';
+}
+window.loadUnitTitle=loadUnitTitle;
+function isWeightLoadUnit(unit){
+  return (normalizeLoadUnit(unit)||'kg')==='kg';
+}
+window.isWeightLoadUnit=isWeightLoadUnit;
+function inferLoadUnitFromName(name){
+  const keys=typeof exerciseLookupKeys==='function'?exerciseLookupKeys(name):[];
+  const slug=typeof exerciseSlug==='function'?exerciseSlug(name):'';
+  const slugs=keys.map(k=>typeof exerciseSlug==='function'?exerciseSlug(k):k).concat(slug?[slug]:[]);
+  for(let i=0;i<slugs.length;i++){
+    if(EX_LOAD_SEC_SLUGS[slugs[i]])return 'sec';
+  }
+  const n=String(name||'').toLowerCase();
+  if(/\bliny\b|battle\s*rope/.test(n))return 'sec';
+  if(/hollow\s*(hold|rock)/.test(n))return 'sec';
+  if(/mountain\s*climber/.test(n))return 'sec';
+  if(/wall\s*sit|przysiad przy [śs]cianie/.test(n))return 'sec';
+  if(/\bl-sit\b|siad w l/.test(n))return 'sec';
+  if(/dead\s*hang|zwisy na dr/.test(n))return 'sec';
+  if(/^(deska|plank)$/i.test(String(name||'').trim()))return 'sec';
+  if(/^deska boczna|^deska kopenhaska|^side plank/i.test(n))return 'sec';
+  return 'kg';
+}
+window.inferLoadUnitFromName=inferLoadUnitFromName;
+function exLoadUnit(nameOrEx, maybeEx){
+  let name='', ex=null;
+  if(nameOrEx&&typeof nameOrEx==='object'){
+    ex=nameOrEx;
+    name=ex.name||ex.n||'';
+  }else{
+    name=nameOrEx||'';
+    ex=maybeEx&&typeof maybeEx==='object'?maybeEx:null;
+  }
+  const stored=normalizeLoadUnit(ex&&(ex.loadUnit||ex.load));
+  if(stored)return stored;
+  const lib=typeof libExerciseByName==='function'?libExerciseByName(name):null;
+  const fromLib=normalizeLoadUnit(lib&&(lib.load||lib.loadUnit));
+  if(fromLib)return fromLib;
+  return inferLoadUnitFromName(name)||'kg';
+}
+window.exLoadUnit=exLoadUnit;
+function formatPlanLoadSuffix(p, clientId){
+  if(!p)return '';
+  const unit=exLoadUnit(p);
+  if(p.pct1rm&&isWeightLoadUnit(unit)){
+    const w=typeof weightFromPct1RM==='function'?weightFromPct1RM(clientId,p.name,p.pct1rm):null;
+    return w&&w.kg?(' @'+p.pct1rm+'% → '+w.kg+'kg'):(' @'+p.pct1rm+'%');
+  }
+  if(p.kg==null||p.kg==='')return '';
+  return ' @'+p.kg+loadUnitSuffix(unit);
+}
+window.formatPlanLoadSuffix=formatPlanLoadSuffix;
+function formatSetLoad(kg,reps,nameOrEx){
+  const unit=exLoadUnit(nameOrEx);
   const k=(kg==null||kg==='')?'—':String(kg);
   const r=(reps==null||reps==='')?'—':String(reps);
-  return k+' kg × '+r;
+  return k+' '+loadUnitSuffix(unit)+' × '+r;
 }
 window.formatSetLoad=formatSetLoad;
+function exerciseSetVolumeKg(exercises){
+  return (exercises||[]).reduce((a,ex)=>{
+    if(typeof isWeightLoadUnit==='function'&&!isWeightLoadUnit(exLoadUnit(ex)))return a;
+    return a+(ex.sets||[]).filter(s=>s&&s.done&&s.kg).reduce((b,s)=>b+(parseFloat(s.kg)||0)*(parseFloat(s.reps)||0),0);
+  },0);
+}
+window.exerciseSetVolumeKg=exerciseSetVolumeKg;
 
 function loggedSetRows(clientId,name,sessions){
   const key=exerciseNameKey(name);
@@ -1755,6 +1859,7 @@ function loggedSetRows(clientId,name,sessions){
     if(!s||s.clientId!==clientId)return;
     (s.exercises||[]).forEach(ex=>{
       if(exerciseNameKey(ex.name)!==key)return;
+      if(typeof isWeightLoadUnit==='function'&&!isWeightLoadUnit(exLoadUnit(ex)))return;
       (ex.sets||[]).forEach(st=>{
         const est=epley1RM(st&&st.kg,st&&st.reps);
         if(est==null)return;
@@ -1792,7 +1897,7 @@ window.setBeatsPR=setBeatsPR;
 function prToastText(clientId,name,kg,reps,sessions){
   const prev=exercisePR(clientId,name,sessions);
   if(!setBeatsPR(prev,kg,reps))return '';
-  return '🏆 Rekord: '+name+' · '+formatSetLoad(kg,reps);
+  return '🏆 Rekord: '+name+' · '+formatSetLoad(kg,reps,name);
 }
 window.prToastText=prToastText;
 
@@ -1844,7 +1949,8 @@ function mapPlanExercisesForClient(rawEx,clientId){
     const ex=parsePlanExercise(raw);
     const last=lastLoadForExercise(clientId,ex.name);
     const rest=parseRestSeconds(ex.rest);
-    const pct=ex.pct1rm||'';
+    const loadUnit=typeof exLoadUnit==='function'?exLoadUnit(ex):'kg';
+    const pct=isWeightLoadUnit(loadUnit)?(ex.pct1rm||''):'';
     const fromPct=pct?weightFromPct1RM(clientId,ex.name,pct):null;
     const plannedKg=(fromPct&&fromPct.kg)?fromPct.kg:(ex.kg||'');
     const lockPct=!!pct;
@@ -1858,6 +1964,7 @@ function mapPlanExercisesForClient(rawEx,clientId){
       restSec:rest,
       rpe:ex.rpe||'',
       pct1rm:pct,
+      loadUnit,
       kgHint:fromPct?fromPct.hint:'',
       lastKg:last&&last.kg!=null&&last.kg!==''?last.kg:(plannedKg||''),
       lastReps:last&&last.reps!=null&&last.reps!==''?last.reps:'',

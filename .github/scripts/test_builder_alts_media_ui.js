@@ -56,7 +56,7 @@ function ok(name, cond, extra) {
       hasThumbBtn: !!(thumb),
       thumbHidden: !!(thumb && thumb.hidden),
       thumbHasImg: !!(thumb && thumb.querySelector('img,video')),
-      thumbSrc: thumb && (thumb.querySelector('img') || {}).src || '',
+      thumbSrc: (thumb && ((thumb.querySelector('video') || thumb.querySelector('img') || {}).src)) || '',
       altHidden: !!(altBox && altBox.hasAttribute('hidden')),
       hasToggle: !!(toggle),
       emptyFilm,
@@ -66,7 +66,7 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'builder_ex_thumb.png') });
   ok('thumb button present', state.hasThumbBtn);
   ok('thumb visible after pec-deck name', !state.thumbHidden && state.thumbHasImg, JSON.stringify(state));
-  ok('thumb uses real photo', /free-exercise-db|githubusercontent|Butterfly/i.test(state.thumbSrc + state.mediaImg), state.thumbSrc);
+  ok('thumb uses real technique media', /free-exercise-db|githubusercontent|jsdelivr|video-assets|Pec(?:%20|[- ])?Deck|Butterfly|\.mp4/i.test(state.thumbSrc + state.mediaImg), state.thumbSrc);
   ok('alts panel hidden by default', state.altHidden);
   ok('zamienniki toggle present', state.hasToggle);
   ok('no duplicate empty film box', !state.emptyFilm);
