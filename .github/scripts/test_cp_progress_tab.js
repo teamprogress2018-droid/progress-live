@@ -24,7 +24,7 @@ ok('index has progress tab', /cpt-progress/.test(fs.readFileSync(path.join(__dir
 ok('setCPTab wires progress', /t==='progress'/.test(fs.readFileSync(path.join(__dirname, '..', '..', '07-forms-metrics-calculator.js'), 'utf8')));
 ok('index slim header', /cp-hdr-actions/.test(fs.readFileSync(path.join(__dirname, '..', '..', 'index.html'), 'utf8')));
 ok('podsumowanie in overflow', /openReportForClient\(cpClientId\)/.test(fs.readFileSync(path.join(__dirname, '..', '..', 'index.html'), 'utf8')));
-ok('cache bump 08', /08-client-profile-extras\.js\?v=34/.test(fs.readFileSync(path.join(__dirname, '..', '..', 'index.html'), 'utf8')));
+ok('cache bump 08', /08-client-profile-extras\.js\?v=35/.test(fs.readFileSync(path.join(__dirname, '..', '..', 'index.html'), 'utf8')));
 
 if (failed) process.exit(1);
 console.log('\nAll cp-progress tests passed');
