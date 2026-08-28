@@ -827,6 +827,7 @@ function allExercises(){
 
 // Ciemna lista podpowiedzi ćwiczeń (zamiast natywnego białego datalist)
 let _exAcState=null;
+let _exAcPicking=false;
 
 function exerciseSearchNorm(s){
   return String(s||'').toLowerCase().replace(/ł/g,'l').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
@@ -873,6 +874,9 @@ function exAcEnsureWrap(input){
   wrap.appendChild(dd);
   input.removeAttribute('list');
   input.setAttribute('autocomplete','off');
+  input.setAttribute('spellcheck','false');
+  input.setAttribute('autocorrect','off');
+  input.setAttribute('autocapitalize','off');
   input.classList.add('ex-ac-input');
   return wrap;
 }
@@ -896,13 +900,20 @@ function exAcHighlight(dd,idx){
 
 function exAcPick(input,name){
   if(!input)return;
+  _exAcPicking=true;
   input.value=name;
-  exAcHide(input);
   input.dispatchEvent(new Event('input',{bubbles:true}));
   input.dispatchEvent(new Event('change',{bubbles:true}));
+  exAcHide(input);
+  _exAcPicking=false;
+  const row=input.closest('.ex-row');
+  const next=row&&row.querySelector('[data-f="sets"]');
+  if(next)next.focus();
+  else input.blur();
 }
 
 function exAcRender(input){
+  if(_exAcPicking)return;
   if(!input||typeof allExercises!=='function')return;
   const wrap=exAcEnsureWrap(input);
   const dd=wrap.querySelector('.ex-ac-dropdown');
@@ -944,8 +955,8 @@ function exAcInitInput(input){
   if(!input||input.dataset.exAcInit)return;
   input.dataset.exAcInit='1';
   exAcEnsureWrap(input);
-  input.addEventListener('focus',()=>exAcRender(input));
-  input.addEventListener('input',()=>exAcRender(input));
+  input.addEventListener('focus',()=>{if(!_exAcPicking)exAcRender(input);});
+  input.addEventListener('input',()=>{if(!_exAcPicking)exAcRender(input);});
   input.addEventListener('keydown',e=>{
     const st=_exAcState&&_exAcState.input===input?_exAcState:null;
     const dd=st&&st.dd;
@@ -977,13 +988,16 @@ function exAcInitAll(root){
   scope.querySelectorAll('input[list="ex-dl"], input.ex-ac-input').forEach(exAcInitInput);
 }
 
-document.addEventListener('mousedown',e=>{
+document.addEventListener('pointerdown',exAcOnItemPointer,true);
+document.addEventListener('mousedown',exAcOnItemPointer,true);
+function exAcOnItemPointer(e){
   const item=e.target.closest('.ex-ac-item');
   if(!item)return;
   e.preventDefault();
-  const input=item.closest('.ex-ac-wrap')?.querySelector('input');
+  e.stopPropagation();
+  const input=item.closest('.ex-ac-wrap')&&item.closest('.ex-ac-wrap').querySelector('input');
   exAcPick(input,item.dataset.name||item.textContent.trim());
-});
+}
 
 document.addEventListener('focusin',e=>{
   if(e.target.matches&&e.target.matches('input[list="ex-dl"], input.ex-ac-input'))exAcInitInput(e.target);
