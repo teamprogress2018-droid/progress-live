@@ -829,6 +829,11 @@ function isSafeMediaUrl(url){
 }
 window.isSafeMediaUrl=isSafeMediaUrl;
 
+function isVideoMediaUrl(url){
+  return /\.(mp4|webm)(\?|#|$)/i.test(String(url||'').trim());
+}
+window.isVideoMediaUrl=isVideoMediaUrl;
+
 function exGifUrl(exOrName){
   let ex=exOrName;
   if(typeof exOrName==='string')ex=typeof libExerciseByName==='function'?libExerciseByName(exOrName):null;
@@ -845,12 +850,12 @@ function exGifUrl(exOrName){
 }
 window.exGifUrl=exGifUrl;
 
-/** Miniatura: GIF > własne zdjęcie > manifest zdjęć > YouTube. Ignoruje placeholdery SVG. */
+/** Miniatura kart: GIF/zdjęcie (nie MP4 — <img> nie odtwarza wideo). Film zostaje w szczegółach / builderze przez exGifUrl. */
 function exThumbUrl(exOrName){
   let ex=exOrName;
   if(typeof exOrName==='string')ex=typeof libExerciseByName==='function'?libExerciseByName(exOrName):null;
   const gif=typeof exGifUrl==='function'?exGifUrl(ex||exOrName):'';
-  if(gif)return gif;
+  if(gif&&!(typeof isVideoMediaUrl==='function'?isVideoMediaUrl(gif):/\.(mp4|webm)(\?|#|$)/i.test(gif)))return gif;
   const name=(ex&&ex.name)||(typeof exOrName==='string'?exOrName:'');
   const photo=exPhotoMapLookup(name);
   if(photo)return photo;

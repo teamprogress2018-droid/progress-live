@@ -65,6 +65,13 @@ const six = fs.readFileSync(path.join(root, '06-inbox-exercises-ai-programs.js')
 const card = six.slice(six.indexOf('function exCardHtml'), six.indexOf('function renderLibGroupedSections'));
 ok('cards fall back to muscle part label', /ex-card-part/.test(card));
 
+windowObj.EX_GIF_MANIFEST = {
+  'wyciskanie sztangi leżąc': 'https://cdn.jsdelivr.net/gh/x/y@1/bench.mp4',
+  'wyciskanie-sztangi-lezac': 'https://cdn.jsdelivr.net/gh/x/y@1/bench.mp4',
+};
+ok('thumb skips mp4 keeps photo', /free-exercise-db|githubusercontent/.test(ctx.exThumbUrl({ name: 'Wyciskanie sztangi leżąc', img: 'assets/ex/bench.svg' })));
+ok('gif url still mp4', /\.mp4/.test(ctx.exGifUrl({ name: 'Wyciskanie sztangi leżąc' })));
+
 if (failed) {
   console.error(failed + ' failed');
   process.exit(1);

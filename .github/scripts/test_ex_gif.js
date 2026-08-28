@@ -41,5 +41,15 @@ ok('resolveCoachMedia gif', coach.gif === 'assets/ex/gifs/bench.gif');
 
 const html = ctx.coachMediaHtml(coach, { showGif: true });
 ok('coachMediaHtml has gif', html.includes('cw-technique-gif') && html.includes('bench.gif'));
+ok('isVideoMediaUrl mp4', ctx.isVideoMediaUrl('https://cdn.example.com/a.mp4'));
+ok('isVideoMediaUrl gif false', !ctx.isVideoMediaUrl('assets/ex/gifs/bench.gif'));
+
+const mp4 = 'https://cdn.jsdelivr.net/gh/x/y@1/bench.mp4';
+windowObj.EX_GIF_MANIFEST = { 'wyciskanie sztangi leżąc': mp4, 'wyciskanie-sztangi-lezac': mp4 };
+windowObj.EX_PHOTO_MANIFEST = { 'wyciskanie sztangi leżąc': 'https://example.com/bench.jpg' };
+ok('exGifUrl prefers mp4 from manifest', ctx.exGifUrl({ name: 'Wyciskanie sztangi leżąc' }) === mp4);
+ok('exThumbUrl skips mp4 for photo', ctx.exThumbUrl({ name: 'Wyciskanie sztangi leżąc', img: 'assets/ex/bench.svg' }) === 'https://example.com/bench.jpg');
+const vhtml = ctx.exTechniqueMediaHtml({ gif: mp4, name: 'Wyciskanie sztangi leżąc' }, {});
+ok('mp4 technique uses video tag', vhtml.includes('<video') && vhtml.includes(mp4) && !vhtml.includes('<img'));
 
 process.exit(failed ? 1 : 0);

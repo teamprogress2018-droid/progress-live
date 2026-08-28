@@ -40,6 +40,8 @@ jobs:
         run: node .github/scripts/test_client_portal_coach_media.js
       - name: 1c2. Testy GIF-ów techniki ćwiczeń
         run: node .github/scripts/test_ex_gif.js
+      - name: 1c2b. Testy filmów MP4 w bibliotece ćwiczeń
+        run: node .github/scripts/test_ex_video_manifest.js
       - name: 1c3. Testy własnych filmów trenera
         run: node .github/scripts/test_own_videos.js
       - name: 1c4. Testy wygaszacza z logo
@@ -284,6 +286,8 @@ jobs:
 
       - name: 6b3. Testy UI cardio w wyszukiwarce ćwiczeń
         run: node .github/scripts/test_cardio_ex_ac_ui.js
+      - name: 6b3b. Testy UI filmów MP4 w bibliotece ćwiczeń
+        run: node .github/scripts/test_lib_ex_video_ui.js
 
       - name: 6b4. Testy UI jednostki sec przy linach
         run: node .github/scripts/test_ex_load_unit_ui.js
