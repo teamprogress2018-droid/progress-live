@@ -799,25 +799,6 @@ function cancelCPEdit(){
 window.startCPEdit=startCPEdit;
 window.cancelCPEdit=cancelCPEdit;
 
-function cpOverviewUpdates(c){
-  const manual=(window.CLIENT_TIMELINE&&CLIENT_TIMELINE[c.id])||c.timeline||[];
-  const autoSess=(window.SE||[]).filter(s=>s.clientId===c.id).map(s=>({
-    type:'trening',
-    text:(typeof sessionTitle==='function'?sessionTitle(s):(s.type||'Trening')),
-    date:s.date+'T'+(s.time||'12:00')+':00'
-  }));
-  const autoPlans=(window.PL||[]).filter(p=>p.clientId===c.id).map(p=>({
-    type:'plan',text:'Przypisano plan: '+p.name,date:p.createdAt||new Date().toISOString()
-  }));
-  const autoMeas=(window.METRIC_ENTRIES||[]).filter(e=>e.clientId===c.id).slice(-12).map(m=>{
-    const g=typeof allMetricGroups==='function'?allMetricGroups().find(gr=>gr.id===m.groupId):null;
-    return{type:'pomiar',text:(g?(g.icon+' '+g.name):'Pomiar')+(m.notes?' — '+m.notes:''),date:(m.date||'')+'T10:00:00'};
-  });
-  return [...manual,...autoSess,...autoPlans,...autoMeas]
-    .sort((a,b)=>new Date(b.date)-new Date(a.date))
-    .slice(0,8);
-}
-
 function cpMetricLatest(clientId,groupId,metricId){
   const list=(window.METRIC_ENTRIES||[]).filter(e=>e.clientId===clientId&&e.groupId===groupId&&e.values&&e.values[metricId]!=null)
     .sort((a,b)=>(b.date||'').localeCompare(a.date||''));
@@ -922,7 +903,6 @@ function renderCPOverview(c){
   const sleepSpark=cpOvSparkSVG(cpMetricSeries(c.id,'mg5','m2'),'var(--blue)',true);
 
   const photos=photosOn&&typeof ppListFor==='function'?ppListFor(c.id).slice().reverse().slice(0,2):[];
-  const updates=cpOverviewUpdates(c);
 
   const metricCard=(title,value,unit,delta,empty,spark)=>{
     const has=value!=null&&value!==''&&value!=='—';
@@ -1103,15 +1083,6 @@ function renderCPOverview(c){
           </div>
           <div class="cp-ov-rail-hint">Kontakt: przycisk Wiadomość u góry</div>`,
           `startCPEdit('${c.id}')`)}
-
-        ${railCard('Aktualizacje',
-          (updates.length?updates.map(u=>{
-            const dayStr=(()=>{try{return new Date(u.date).toLocaleDateString('pl',{day:'numeric',month:'short'});}catch(e){return'';}})();
-            return `<div class="cp-ov-update"><span class="cp-ov-update-ico">${(CTL_ICONS&&CTL_ICONS[u.type])||'•'}</span><div><div class="cp-ov-update-txt">${escHtml(u.text||'')}</div><div class="cp-ov-update-d">${escHtml(dayStr)}</div></div></div>`;
-          }).join('')
-            :'<div style="font-size:12px;color:var(--muted);">Brak aktywności — sesje i pomiary pojawią się tu automatycznie</div>')+
-          '<div class="cp-ov-rail-hint">Pełna oś czasu</div>',
-          `setCPTab('timeline')`)}
       </aside>
     </div>`;
 }
