@@ -1,0 +1,123 @@
+// UI: biblioteka ćwiczeń odtwarza MP4 techniki w szczegółach, karty zostają ze zdjęciem.
+const fs = require('fs');
+const path = require('path');
+const { chromium } = require('playwright');
+
+const root = path.join(__dirname, '..', '..');
+const shotDir = process.env.LIB_VIDEO_SHOT_DIR || (fs.existsSync('/opt/cursor/artifacts') ? '/opt/cursor/artifacts' : path.join(require('os').tmpdir(), 'pl-lib-video'));
+fs.mkdirSync(shotDir, { recursive: true });
+
+let failed = 0;
+function ok(name, cond, extra) {
+  if (!cond) {
+    console.error('FAIL ' + name + (extra ? ' — ' + extra : ''));
+    failed++;
+  } else console.log('OK   ' + name);
+}
+
+(async () => {
+  const port = process.env.LAYOUT_PORT || '8080';
+  const browser = await chromium.launch({ headless: process.env.LAYOUT_HEADED !== '1' });
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  page.setDefaultTimeout(20000);
+  await page.goto('http://localhost:' + port + '/index.html', { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(700);
+
+  await page.evaluate(() => {
+    window.persistById = async (_c, o) => o;
+    const auth = document.getElementById('auth-screen');
+    const app = document.getElementById('app-root');
+    if (auth) auth.style.display = 'none';
+    if (app) app.style.display = '';
+    const loading = document.getElementById('app-loading');
+    if (loading) loading.style.display = 'none';
+    window.CL = [{ id: 'c1', name: 'Piotr' }];
+  });
+
+  await page.evaluate(() => {
+    if (typeof goTo === 'function') goTo('library');
+    const inp = document.getElementById('ex-search');
+    if (inp) inp.value = 'Wyciskanie sztangi leżąc';
+    if (typeof renderLib === 'function') renderLib();
+  });
+  await page.waitForSelector('.ex-card');
+
+  const card = await page.evaluate(() => {
+    const cards = [...document.querySelectorAll('.ex-card')];
+    const hit = cards.find((el) => (el.querySelector('.ex-card-name') || {}).textContent === 'Wyciskanie sztangi leżąc');
+    const img = hit && hit.querySelector('.ex-card-thumb img');
+    const vid = hit && hit.querySelector('.ex-card-thumb video');
+    return {
+      found: !!hit,
+      img: img ? img.getAttribute('src') : '',
+      hasVideo: !!vid
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'lib_bench_card.png') });
+  ok('bench card rendered', card.found, JSON.stringify(card));
+  ok('bench card uses still photo', /free-exercise-db|githubusercontent/i.test(card.img) && !/\.mp4/i.test(card.img), card.img);
+  ok('bench card has no video tag', !card.hasVideo);
+
+  await page.evaluate(() => {
+    if (typeof openExDetail === 'function') openExDetail('Wyciskanie sztangi leżąc');
+  });
+  await page.waitForSelector('#exd-body video');
+  const detail = await page.evaluate(() => {
+    const video = document.querySelector('#exd-body video');
+    const title = (document.getElementById('exd-title') || {}).textContent || '';
+    return {
+      title,
+      src: video ? video.getAttribute('src') : '',
+      autoplay: video ? video.hasAttribute('autoplay') : false,
+      loop: video ? video.hasAttribute('loop') : false
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'lib_bench_detail.png') });
+  ok('detail title is bench', detail.title === 'Wyciskanie sztangi leżąc', detail.title);
+  ok('detail plays mp4', /progress-live-video-assets/.test(detail.src) && /\.mp4/i.test(detail.src), detail.src.slice(0, 160));
+  ok('detail video loops muted autoplay', detail.autoplay && detail.loop);
+
+  await page.evaluate(() => {
+    if (typeof openExDetail === 'function') openExDetail('Ściąganie do twarzy (face pull)');
+  });
+  await page.waitForTimeout(300);
+  const face = await page.evaluate(() => {
+    const video = document.querySelector('#exd-body video');
+    return {
+      title: (document.getElementById('exd-title') || {}).textContent || '',
+      src: video ? video.getAttribute('src') : ''
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'lib_facepull_detail.png') });
+  ok('face pull detail video', /Face%20Pull|Face Pull/i.test(decodeURIComponent(face.src || '')) && /\.mp4/i.test(face.src), face.src.slice(0, 160));
+
+  await page.evaluate(() => {
+    if (typeof goTo === 'function') goTo('builder');
+    if (typeof initBuilder === 'function') initBuilder();
+    if (typeof addDay === 'function') addDay();
+    const day = document.querySelector('.builder-day');
+    if (day && typeof addRow === 'function') addRow(day.id);
+  });
+  await page.waitForSelector('.ex-row [data-f="name"]');
+  await page.fill('.ex-row [data-f="name"]', 'Pompki');
+  await page.waitForTimeout(400);
+  const builder = await page.evaluate(() => {
+    const row = document.querySelector('.ex-row');
+    const thumb = row && row.querySelector('.builder-ex-thumb');
+    const video = thumb && thumb.querySelector('video');
+    return {
+      hidden: !!(thumb && thumb.hidden),
+      src: video ? video.getAttribute('src') : '',
+      hasVideo: !!video
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'builder_pompki_video.png') });
+  ok('builder pompki shows technique video', builder.hasVideo && !builder.hidden && /Push-up/i.test(decodeURIComponent(builder.src || '')), JSON.stringify(builder).slice(0, 220));
+
+  await browser.close();
+  if (failed) process.exit(1);
+  console.log('\nAll lib-ex-video UI tests passed');
+})().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

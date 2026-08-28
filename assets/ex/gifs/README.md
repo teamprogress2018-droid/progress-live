@@ -1,6 +1,16 @@
-# Biblioteka GIF-ów techniki
+# Biblioteka GIF-ów / filmów techniki
 
-Krótkie animacje pokazujące prawidłowe wykonanie ćwiczenia.
+Krótkie animacje i MP4 pokazujące prawidłowe wykonanie ćwiczenia.
+
+## Sposób 0 — osobne repo z MP4 (obecne demo)
+
+Filmy leżą w [progress-live-video-assets](https://github.com/teamprogress2018-droid/progress-live-video-assets) (nie w tym repo — GitHub Pages nie uniesie ~380 MB). Mapowanie do biblioteki:
+
+```bash
+node .github/scripts/build_ex_video_manifest.js
+```
+
+Zapisuje URL-e jsDelivr w `ex-gif-manifest.js`. Karty zostają ze zdjęciem; odtwarzanie jest w szczegółach ćwiczenia i w kreatorze.
 
 ## Sposób 1 — pliki w repozytorium (GitHub Pages)
 
