@@ -74,6 +74,11 @@ function ok(name, cond, extra) {
   });
   await page.screenshot({ path: path.join(shotDir, 'ai_watch_profile.png') });
   ok('profile banner', banner.has && /Nadwaga|BMI|Asystent/i.test(banner.text), JSON.stringify(banner).slice(0, 400));
+  const rail = await page.evaluate(() => {
+    const el = document.querySelector('.cp-ov-rail');
+    return el ? (el.innerText || '') : '';
+  });
+  ok('no Aktualizacje on overview', !/Aktualizacje/.test(rail), rail.slice(0, 400));
 
   const ctx = await page.evaluate(() => {
     const s = typeof clientSafetyContextForAI === 'function' ? clientSafetyContextForAI('c-justyna') : '';

@@ -271,7 +271,9 @@ function capTodayExercises(c){
   return parsed.map((p,i)=>{
     const coach=typeof resolveCoachMedia==='function'?resolveCoachMedia(p):{note:p.note||'',libTip:'',video:p.video||''};
     let sets=(p.sets&&p.reps)?(p.sets+'×'+p.reps):(p.sets||p.reps||'—');
-    if(p.pct1rm&&typeof weightFromPct1RM==='function'){
+    if(typeof formatPlanLoadSuffix==='function'){
+      sets+=formatPlanLoadSuffix(p,c.id);
+    }else if(p.pct1rm&&typeof weightFromPct1RM==='function'){
       const w=weightFromPct1RM(c.id,p.name,p.pct1rm);
       sets+=w&&w.kg?` @${p.pct1rm}% → ${w.kg}kg`:` @${p.pct1rm}%`;
     }else if(p.kg){
@@ -300,10 +302,11 @@ function capDayLabel(day,idx){
 
 function capSessionSetsText(e){
   if(!e)return '—';
+  const suf=typeof loadUnitSuffix==='function'?loadUnitSuffix(typeof exLoadUnit==='function'?exLoadUnit(e):'kg'):'kg';
   if(Array.isArray(e.sets)&&e.sets.length&&typeof e.sets[0]==='object'){
-    return e.sets.map((st,i)=>(st.setNo||(i+1))+': '+(st.kg||0)+' kg × '+(st.reps||0)).join(' · ');
+    return e.sets.map((st,i)=>(st.setNo||(i+1))+': '+(st.kg||0)+' '+suf+' × '+(st.reps||0)).join(' · ');
   }
-  if(e.sets&&e.reps)return e.sets+'×'+e.reps+(e.kg?' @'+e.kg+'kg':'');
+  if(e.sets&&e.reps)return e.sets+'×'+e.reps+(e.kg?' @'+e.kg+suf:'');
   if(typeof e.sets==='string')return e.sets;
   return '—';
 }
@@ -554,7 +557,7 @@ function capClientProgressScreenHTML(c,accent){
           '<div style="font-size:16px;">🏆</div>'+
           '<div style="flex:1;min-width:0;">'+
             '<div style="font-size:13px;font-weight:700;color:'+CAP_TEXT+';">'+escHtml(p.name)+'</div>'+
-            '<div style="font-size:11px;color:'+CAP_MUTED+';margin-top:2px;">'+escHtml(formatSetLoad(p.kg,p.reps))+(est?' · 1RM ~'+escHtml(String(est))+' kg':'')+'</div>'+
+            '<div style="font-size:11px;color:'+CAP_MUTED+';margin-top:2px;">'+escHtml(formatSetLoad(p.kg,p.reps,p.name))+(est?' · 1RM ~'+escHtml(String(est))+' kg':'')+'</div>'+
             '<div style="height:4px;background:'+CAP_S3+';border-radius:99px;margin-top:8px;overflow:hidden;"><div style="height:100%;width:'+pct+'%;background:linear-gradient(90deg,'+accent+',#ff8c42);"></div></div>'+
           '</div>'+
           '<span style="font-size:10px;color:'+accent+';">→</span>'+
@@ -1044,12 +1047,12 @@ function capScreenHTML(scr,c){
       <div style="font-size:12px;color:${CAP_MUTED};margin-bottom:14px;">Historia serii — jak w Everfit: ostatnio i rekord.</div>
       ${pr?`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:16px;padding:16px;margin-bottom:14px;text-align:center;">
         <div style="font-size:11px;color:${CAP_MUTED};text-transform:uppercase;margin-bottom:6px;">🏆 Rekord</div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${accent};">${escHtml(formatSetLoad(pr.kg,pr.reps))}</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:${accent};">${escHtml(formatSetLoad(pr.kg,pr.reps,name))}</div>
         <div style="font-size:11px;color:${CAP_MUTED};margin-top:4px;">${escHtml(pr.date||'')}${est?' · szac. 1RM '+escHtml(String(est))+' kg':''}</div>
       </div>`:`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:16px;text-align:center;color:${CAP_MUTED};font-size:12px;margin-bottom:14px;">Brak zapisanych serii tego ćwiczenia.</div>`}
       ${days.map(d=>`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:12px;margin-bottom:8px;">
         <div style="font-size:12px;font-weight:700;color:${CAP_TEXT};margin-bottom:6px;">${escHtml(d.date)}</div>
-        <div style="font-size:11px;color:${CAP_MUTED};font-family:'DM Mono',monospace;">${(d.sets||[]).slice().reverse().map(st=>escHtml(formatSetLoad(st.kg,st.reps))).join(' · ')}</div>
+        <div style="font-size:11px;color:${CAP_MUTED};font-family:'DM Mono',monospace;">${(d.sets||[]).slice().reverse().map(st=>escHtml(formatSetLoad(st.kg,st.reps,name))).join(' · ')}</div>
       </div>`).join('')}
       ${!live?'<div style="font-size:11px;color:'+CAP_MUTED+';margin-top:12px;text-align:center;">Podgląd — klient otwiera to w swojej apce</div>':''}
     </div>`;
@@ -5936,7 +5939,7 @@ function renderDashOps(){
       let kgHint='';
       if(Array.isArray(s.exercises)){
         const withKg=s.exercises.filter(e=>e&&(e.kg||(Array.isArray(e.sets)&&e.sets.some(x=>x&&x.kg)))).slice(0,2);
-        if(withKg.length)kgHint=withKg.map(e=>esc(e.name||'Ćw.')+(e.kg?' '+e.kg+'kg':'')).join(', ');
+        if(withKg.length)kgHint=withKg.map(e=>esc(e.name||'Ćw.')+(e.kg?' '+e.kg+(typeof loadUnitSuffix==='function'?loadUnitSuffix(typeof exLoadUnit==='function'?exLoadUnit(e):'kg'):'kg'):'')).join(', ');
       }
       return `<div class="dash-ops-item">
         <div class="dash-ops-item-body">

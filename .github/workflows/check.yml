@@ -61,6 +61,9 @@ jobs:
       - name: 1e. Testy rekordów / historii ćwiczenia
         run: node .github/scripts/test_exercise_pr.js
 
+      - name: 1e2. Testy jednostki kg/sec w ćwiczeniach czasowych
+        run: node .github/scripts/test_ex_load_unit.js
+
       - name: 1f. Testy regresji portalu rekordów
         run: node .github/scripts/test_exercise_pr_portal.js
       - name: 1e. Testy warmup / drop / AMRAP
@@ -285,6 +288,9 @@ jobs:
         run: node .github/scripts/test_cardio_ex_ac_ui.js
       - name: 6b3b. Testy UI filmów MP4 w bibliotece ćwiczeń
         run: node .github/scripts/test_lib_ex_video_ui.js
+
+      - name: 6b4. Testy UI jednostki sec przy linach
+        run: node .github/scripts/test_ex_load_unit_ui.js
 
       - name: 6c. Testy UI zasobów YouTube i Garmin CSV
         run: node .github/scripts/test_resources_garmin_ui.js

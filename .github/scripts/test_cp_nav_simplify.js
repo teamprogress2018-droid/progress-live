@@ -44,7 +44,7 @@ ok('overview profile has no WhatsApp/Email CTAs', !/WhatsApp|mailto:/.test(overv
 ok('css for header menu', css.includes('.cp-hdr-more-menu') && css.includes('.cp-hdr-actions'));
 ok('scripts not duplicated for 08', (html.match(/08-client-profile-extras\.js/g) || []).length === 1);
 
-ok('cache bump 08', html.includes('08-client-profile-extras.js?v=34'));
+ok('cache bump 08', html.includes('08-client-profile-extras.js?v=35'));
 
 if (failed) {
   console.error(failed + ' failed');
