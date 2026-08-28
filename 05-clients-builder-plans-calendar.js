@@ -853,7 +853,7 @@ function addDay(){
   </div>
   <div class="rest-s builder-rest-state" style="display:none;">— Dzień odpoczynku / regeneracja aktywna</div>
   <div class="work-s">
-    <div class="ex-tbl-hdr"><span>ĆWICZENIE</span><span>SER${tip('sets')}</span><span>POWT${tip('reps')}</span><span>KG${tip('kg')}</span><span>RPE${tip('rpe')}</span><span>RIR${tip('rir')}</span><span>PRZERWA${tip('rest')}</span><span>TEMPO${tip('tempo')}</span><span></span></div>
+    <div class="ex-tbl-hdr"><span>ĆWICZENIE</span><span>SER${tip('sets')}</span><span>POWT${tip('reps')}</span><span>KG/S${tip('kg')}</span><span>RPE${tip('rpe')}</span><span>RIR${tip('rir')}</span><span>PRZERWA${tip('rest')}</span><span>TEMPO${tip('tempo')}</span><span></span></div>
     <div class="ex-rows"></div>
     <button class="add-ex-btn" onclick="addRow('${id}')">+ DODAJ ĆWICZENIE</button>
   </div>`;
@@ -1076,6 +1076,7 @@ function builderOpenExMedia(row){
 window.builderOpenExMedia=builderOpenExMedia;
 function builderOnExNameChange(row){
   if(!row)return;
+  if(typeof builderApplyLoadUnit==='function')builderApplyLoadUnit(row);
   if(typeof builderPreviewKg==='function')builderPreviewKg(row);
   if(typeof builderRefreshPeriodPreview==='function')builderRefreshPeriodPreview();
   // Uzupełnij alt z biblioteki, gdy pole puste
@@ -1228,18 +1229,45 @@ function builderPreviewKg(row){
   if(!row)return;
   const kgEl=row.querySelector('[data-f="kg"]');
   if(!kgEl)return;
+  const unit=typeof builderApplyLoadUnit==='function'?builderApplyLoadUnit(row):(typeof exLoadUnit==='function'?exLoadUnit((row.querySelector('[data-f="name"]')||{}).value||''):'kg');
+  if(unit&&unit!=='kg')return;
   const cid=(document.getElementById('b-client')||{}).value||'';
   const name=(row.querySelector('[data-f="name"]')||{}).value||'';
   const pct=typeof parsePct1RM==='function'?parsePct1RM((row.querySelector('[data-f="pct1rm"]')||{}).value||''):'';
   if(!pct||!cid||typeof weightFromPct1RM!=='function'){
-    if(!kgEl.value)kgEl.placeholder='kg';
+    if(!kgEl.value)kgEl.placeholder=typeof loadUnitPlaceholder==='function'?loadUnitPlaceholder('kg'):'kg';
     return;
   }
   const w=weightFromPct1RM(cid,name,pct);
-  kgEl.placeholder=w.kg?String(w.kg):'kg';
+  kgEl.placeholder=w.kg?String(w.kg):(typeof loadUnitPlaceholder==='function'?loadUnitPlaceholder('kg'):'kg');
   kgEl.title=w.hint||'kg z %1RM';
 }
 window.builderPreviewKg=builderPreviewKg;
+function builderApplyLoadUnit(row){
+  if(!row)return 'kg';
+  const name=(row.querySelector('[data-f="name"]')||{}).value||'';
+  const unit=typeof exLoadUnit==='function'?exLoadUnit(name):'kg';
+  row.dataset.loadUnit=unit;
+  const kgEl=row.querySelector('[data-f="kg"]');
+  if(kgEl){
+    kgEl.dataset.loadUnit=unit;
+    kgEl.placeholder=typeof loadUnitPlaceholder==='function'?loadUnitPlaceholder(unit):(unit==='sec'?'sec':'kg');
+    kgEl.title=typeof loadUnitTitle==='function'?loadUnitTitle(unit):(unit==='sec'?'Czas (s)':'Obciążenie (kg)');
+  }
+  const pct=row.querySelector('[data-f="pct1rm"]');
+  if(pct){
+    const timed=unit==='sec'||unit==='m';
+    pct.disabled=!!timed;
+    if(timed){
+      pct.value='';
+      pct.title='Nie dotyczy — to pole to czas, nie ciężar';
+    }else{
+      pct.title='Procent 1RM — kg z Pomiary → Siła bazowa';
+    }
+  }
+  return unit;
+}
+window.builderApplyLoadUnit=builderApplyLoadUnit;
 function builderRirFromRpe(rpeStr){
   const s=String(rpeStr||'').replace(/RPE\s*/ig,'').trim();
   if(!s)return '';
@@ -1375,11 +1403,14 @@ function builderRefreshPeriodPreview(){
       set('rir',pv.rir);
       if(box){
         box.style.display='block';
+        const name=(row.querySelector('[data-f="name"]')||{}).value||'';
+        const unit=row.dataset.loadUnit||(typeof exLoadUnit==='function'?exLoadUnit(name):'kg');
+        const suf=typeof loadUnitSuffix==='function'?loadUnitSuffix(unit):'kg';
         const bits=[
           `TYDZ ${idx+1}`,
           pv.sets+' serie',
           pv.reps+' powt.',
-          (pv.kg?pv.kg+' kg':'kg bez zmiany'),
+          (pv.kg?pv.kg+' '+suf:suf+' bez zmiany'),
           'RPE '+pv.rpe,
           (pv.rir?'RIR '+pv.rir:''),
           pv.deload?'deload / mniej objętości':'progresja aktywna'
@@ -1508,6 +1539,7 @@ function editPlan(id){
       set('drop',parsed.drop||(ex&&typeof ex==='object'&&ex.drop)||'');
       set('amrap',((ex&&typeof ex==='object'&&ex.amrap)||parsed.amrap)?'1':'');
       if(typeof builderPreviewKg==='function')builderPreviewKg(row);
+      if(typeof builderApplyLoadUnit==='function')builderApplyLoadUnit(row);
       if(typeof builderPaintEmom==='function')builderPaintEmom(row);
       if(typeof builderPaintKinds==='function')builderPaintKinds(row);
       if(typeof builderRefreshRowExtras==='function')builderRefreshRowExtras(row);
@@ -1544,6 +1576,7 @@ async function savePlan(){
         sets:setN,
         reps:g('reps')||'10',
         kg:g('kg'),
+        loadUnit:typeof exLoadUnit==='function'?exLoadUnit(n):'kg',
         pct1rm:pct,
         rpe:g('rpe'),
         rir:g('rir'),

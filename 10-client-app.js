@@ -1117,8 +1117,8 @@ function cwRender(){
     ${(ex.alts||[]).length?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px;">${ex.alts.map(a=>`<button type="button" class="btn btn-ghost btn-sm" onclick='cwSwapEx(${JSON.stringify(a)})'>↻ ${escHtml(a)}</button>`).join('')}</div>`:''}
     ${ex.kgHint?`<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${escHtml(ex.kgHint)}</div>`:''}
     ${(()=>{
-      const last=ex.lastKg?('Ostatnio: '+escHtml(String(ex.lastKg))+' kg'+(ex.lastReps?' × '+escHtml(String(ex.lastReps)):'')):'';
-      const pr=typeof exercisePR==='function'?exercisePR(window._clientId,ex.name):null;
+      const last=ex.lastKg?('Ostatnio: '+escHtml(String(ex.lastKg))+' '+escHtml(typeof loadUnitSuffix==='function'?loadUnitSuffix(typeof exLoadUnit==='function'?exLoadUnit(ex):'kg'):'kg')+(ex.lastReps?' × '+escHtml(String(ex.lastReps)):'')):'';
+      const pr=typeof exercisePR==='function'&&(typeof isWeightLoadUnit!=='function'||isWeightLoadUnit(typeof exLoadUnit==='function'?exLoadUnit(ex):'kg'))?exercisePR(window._clientId,ex.name):null;
       const rec=pr?('Rekord: '+escHtml(String(pr.kg))+' kg × '+escHtml(String(pr.reps))):'';
       const same=pr&&ex.lastKg!=null&&Number(ex.lastKg)===Number(pr.kg)&&Number(ex.lastReps)===Number(pr.reps);
       const line=same?(last?last+' · rekord':rec):(last&&rec?last+' · '+rec:(last||rec));
@@ -1129,11 +1129,11 @@ function cwRender(){
       <div style="height:100%;width:${Math.round((cw.exIdx+doneSets/Math.max(1,ex.sets.length))/cw.exercises.length*100)}%;background:${accent};"></div>
     </div>
     <div class="cw-set-row" style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">
-      <div>#</div><div>Kg</div><div>Powt.</div><div></div>
+      <div>#</div><div>${typeof exLoadUnit==='function'&&exLoadUnit(ex)==='sec'?'Sec':typeof exLoadUnit==='function'&&exLoadUnit(ex)==='m'?'M':'Kg'}</div><div>Powt.</div><div></div>
     </div>
     ${ex.sets.map((s,i)=>`<div class="cw-set-row">
       <div style="text-align:center;font-weight:700;color:${s.done?'var(--teal)':'var(--muted)'};">${s.done?'✓':s.setNo}${s.kind&&s.kind!=='work'?`<div class="cw-set-kind ${s.kind}">${escHtml((typeof setKindBadge==='function'&&setKindBadge(s.kind))||s.kind)}</div>`:''}</div>
-      <input type="number" inputmode="decimal" value="${escHtml(s.kg)}" ${s.done?'disabled':''} oninput="cwPatchSet(${i},'kg',this.value)" class="${s.done?'cw-set-done':''}">
+      <input type="number" inputmode="decimal" value="${escHtml(s.kg)}" ${s.done?'disabled':''} placeholder="${escHtml(typeof loadUnitPlaceholder==='function'?loadUnitPlaceholder(typeof exLoadUnit==='function'?exLoadUnit(ex):'kg'):'kg')}" oninput="cwPatchSet(${i},'kg',this.value)" class="${s.done?'cw-set-done':''}">
       <input type="text" inputmode="numeric" value="${escHtml(s.reps)}" ${s.done?'disabled':''} placeholder="${s.kind==='amrap'?'max':''}" oninput="cwPatchSet(${i},'reps',this.value)" class="${s.done?'cw-set-done':''}">
       <button type="button" class="btn ${s.done?'btn-ghost':'btn-primary'} btn-sm" onclick="cwCheckSet(${i})">${s.done?'↩':'+'}</button>
     </div>`).join('')}
@@ -1148,7 +1148,7 @@ async function cwFinish(){
   if(!cw.rating){if(typeof notify==='function')notify('Wybierz ocenę 1–5 — trener to widzi');return;}
   const clientId=window._clientId;
   const totalSets=cw.exercises.flatMap(e=>e.sets).filter(s=>s.done).length;
-  const volume=Math.round(cw.exercises.flatMap(e=>e.sets).filter(s=>s.done&&s.kg).reduce((a,s)=>a+(parseFloat(s.kg)||0)*(parseFloat(s.reps)||0),0));
+  const volume=Math.round(typeof exerciseSetVolumeKg==='function'?exerciseSetVolumeKg(cw.exercises):cw.exercises.flatMap(e=>e.sets).filter(s=>s.done&&s.kg).reduce((a,s)=>a+(parseFloat(s.kg)||0)*(parseFloat(s.reps)||0),0));
   const durationMin=Math.max(1,Math.round((cw.elapsed||0)/60));
   const newSession=withTrainer({
     id:newId('s'),
@@ -1159,6 +1159,7 @@ async function cwFinish(){
     duration:durationMin,
     exercises:cw.exercises.map(e=>({
       name:e.name,
+      loadUnit:typeof exLoadUnit==='function'?exLoadUnit(e):'kg',
       sets:e.sets.filter(s=>s.done).map(s=>({kg:parseFloat(s.kg)||0,reps:parseFloat(s.reps)||0,setNo:s.setNo,kind:s.kind||'work'}))
     })),
     volume,
