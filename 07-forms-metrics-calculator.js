@@ -1025,6 +1025,7 @@ window.delMetricEntry=delMetricEntry;
 function openMetricEntryForClient(clientId,groupId,entryId){
   const c=(window.CL||[]).find(x=>x.id===clientId);if(!c){notify('Brak klienta');return;}
   window._editingMetricId=entryId||null;
+  openM('m-metric-entry');
   const title=document.querySelector('#m-metric-entry .modal-title');
   if(title)title.textContent=entryId?'EDYTUJ POMIAR':'NOWY POMIAR';
   const hid=document.getElementById('me-client');
@@ -1049,7 +1050,6 @@ function openMetricEntryForClient(clientId,groupId,entryId){
       if(el&&entry.values[m.id]!=null)el.value=entry.values[m.id];
     });
   }
-  openM('m-metric-entry');
 }
 window.openMetricEntryForClient=openMetricEntryForClient;
 
