@@ -23,5 +23,8 @@ ok('css defines part label', /\.ex-ac-part\{/.test(css));
 ok('part uses design font', /\.ex-ac-part\{[^}]*font-family:var\(--font-ui\)/.test(css));
 ok('name does not collapse in narrow column', /\.ex-ac-name\{[^}]*min-width:min\(10em,100%\)/.test(css));
 ok('dropdown wider than name cell', /\.ex-ac-dropdown\{[^}]*width:max\(100%,280px\)/.test(css));
+ok('pick lock skips re-render', /_exAcPicking/.test(six) && /if\(!_exAcPicking\)exAcRender/.test(six));
+ok('pick hides after filling', /function exAcPick[\s\S]{0,400}exAcHide\(input\)/.test(six));
+ok('spellcheck off', /spellcheck','false'/.test(six));
 
 console.log('\nAll ex-ac-muscle-label tests passed');

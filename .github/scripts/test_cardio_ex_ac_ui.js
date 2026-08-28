@@ -94,6 +94,13 @@ function ok(name, cond, extra) {
   await page.locator('.ex-row .ex-ac-item').filter({ hasText: 'Wioślarz' }).first().click();
   const picked = await page.locator('.ex-row [data-f="name"]').first().inputValue();
   ok('click fills Wioślarz', picked === 'Wioślarz', picked);
+  const afterPick = await page.evaluate(() => {
+    const dd = document.querySelector('.ex-row .ex-ac-dropdown');
+    const hidden = !dd || dd.style.display === 'none' || getComputedStyle(dd).display === 'none';
+    return { hidden, focus: document.activeElement && document.activeElement.getAttribute('data-f') };
+  });
+  ok('dropdown closes on pick', afterPick.hidden, JSON.stringify(afterPick));
+  ok('pick moves to sets', afterPick.focus === 'sets', JSON.stringify(afterPick));
 
   const rzut = await acFor('rzut');
   await page.screenshot({ path: path.join(shotDir, 'cardio_ac_rzut.png') });
@@ -110,6 +117,11 @@ function ok(name, cond, extra) {
   await page.locator('.ex-row .ex-ac-item').filter({ hasText: 'Rzut piłką o ścianę' }).first().click();
   const pickedRzut = await page.locator('.ex-row [data-f="name"]').first().inputValue();
   ok('click fills Rzut piłką o ścianę', pickedRzut === 'Rzut piłką o ścianę', pickedRzut);
+  const afterRzut = await page.evaluate(() => {
+    const dd = document.querySelector('.ex-row .ex-ac-dropdown');
+    return !dd || dd.style.display === 'none' || getComputedStyle(dd).display === 'none';
+  });
+  ok('dropdown stays closed after rzut pick', afterRzut);
 
   const zarzut = await acFor('zarzut');
   ok('zarzut finds Zarzut siłowy', zarzut.items.includes('Zarzut siłowy'), JSON.stringify(zarzut));
