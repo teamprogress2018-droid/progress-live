@@ -1958,7 +1958,7 @@ function renderLiveExercises(){
   const doneCnt=liveExercises.filter(e=>e.done).length;
   const total=liveExercises.length;
   const setsDone=liveExercises.flatMap(e=>e.sets).filter(s=>s.done).length;
-  const volume=liveExercises.flatMap(e=>e.sets).filter(s=>s.done&&s.kg).reduce((a,s)=>a+parseFloat(s.kg||0)*parseFloat(s.reps||0),0);
+  const volume=typeof exerciseSetVolumeKg==='function'?exerciseSetVolumeKg(liveExercises):liveExercises.flatMap(e=>e.sets).filter(s=>s.done&&s.kg).reduce((a,s)=>a+parseFloat(s.kg||0)*parseFloat(s.reps||0),0);
 
   // update stats panel
   const setEl=v=>id=>{const e=document.getElementById(id);if(e)e.textContent=v;};
@@ -1988,9 +1988,13 @@ function renderLiveExercises(){
 }
 
 function liveExCard(ex,i){
+  const unit=typeof exLoadUnit==='function'?exLoadUnit(ex):'kg';
+  const suf=typeof loadUnitSuffix==='function'?loadUnitSuffix(unit):'kg';
+  const loadPh=typeof loadUnitPlaceholder==='function'?loadUnitPlaceholder(unit):'kg';
+  const loadLbl=unit==='sec'?'Czas':unit==='m'?'Dystans':'Ciężar';
   const setsDone=ex.sets.filter(s=>s.done).length;
-  const lastHint=ex.lastKg!==''&&ex.lastKg!=null?`Ostatnio: ${ex.lastKg} kg${ex.lastReps?' × '+ex.lastReps:''}`:'';
-  const pr=typeof exercisePR==='function'?exercisePR(liveClientId,ex.name):null;
+  const lastHint=ex.lastKg!==''&&ex.lastKg!=null?`Ostatnio: ${ex.lastKg} ${suf}${ex.lastReps?' × '+ex.lastReps:''}`:'';
+  const pr=typeof exercisePR==='function'&&(typeof isWeightLoadUnit!=='function'||isWeightLoadUnit(unit))?exercisePR(liveClientId,ex.name):null;
   const prHint=pr?`Rekord: ${pr.kg} kg × ${pr.reps}`:'';
   const pctHint=ex.kgHint||'';
   const sub=[pctHint,lastHint,prHint].filter(Boolean).join(' · ');
@@ -2011,12 +2015,12 @@ function liveExCard(ex,i){
     <div>
       ${typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:!!ex.showVideo}):''}
       <div class="live-set-grid live-set-head">
-        <span></span><span>Seria</span><span style="text-align:center;">Ciężar</span><span style="text-align:center;">Powt.</span><span></span>
+        <span></span><span>Seria</span><span style="text-align:center;">${loadLbl}</span><span style="text-align:center;">Powt.</span><span></span>
       </div>
       ${ex.sets.map((s,si)=>`<div class="live-set-row">
         <div class="live-set-check${s.done?' done':''}" onclick="liveToggleSet(${i},${si})" title="Oznacz serię">${s.done?'✓':''}</div>
         <div class="live-set-label"><span class="live-set-label-full">Seria </span>${s.setNo}${s.kind&&s.kind!=='work'?` <span class="cw-set-kind ${s.kind}">${escHtml(typeof setKindBadge==='function'?setKindBadge(s.kind):s.kind)}</span>`:''}</div>
-        <input type="number" inputmode="decimal" class="live-kg-input" placeholder="${ex.lastKg!==''&&ex.lastKg!=null?ex.lastKg:'kg'}" value="${s.kg}" oninput="liveSetKg(${i},${si},this.value)" onkeydown="liveSetKey(event,${i},${si})" onclick="event.stopPropagation()">
+        <input type="number" inputmode="decimal" class="live-kg-input" placeholder="${ex.lastKg!==''&&ex.lastKg!=null?ex.lastKg:loadPh}" value="${s.kg}" oninput="liveSetKg(${i},${si},this.value)" onkeydown="liveSetKey(event,${i},${si})" onclick="event.stopPropagation()">
         <input type="number" inputmode="numeric" class="live-kg-input" placeholder="${s.kind==='amrap'?'max':'powt.'}" value="${s.reps}" oninput="liveSetReps(${i},${si},this.value)" onkeydown="liveSetKey(event,${i},${si})" onclick="event.stopPropagation()">
         <button type="button" class="live-set-rest" onclick="liveStartRest(${typeof restSecAfterSet==='function'?restSecAfterSet(ex,s,ex.sets[si+1]):90})" title="Przerwa">⏱</button>
       </div>`).join('')}
@@ -2154,7 +2158,7 @@ function liveEndSession(){
   liveClearDraft();
   const c=CL.find(x=>x.id===liveClientId);
   const totalSets=liveExercises.flatMap(e=>e.sets).filter(s=>s.done).length;
-  const volume=Math.round(liveExercises.flatMap(e=>e.sets).filter(s=>s.done&&s.kg).reduce((a,s)=>a+parseFloat(s.kg||0)*parseFloat(s.reps||0),0));
+  const volume=Math.round(typeof exerciseSetVolumeKg==='function'?exerciseSetVolumeKg(liveExercises):liveExercises.flatMap(e=>e.sets).filter(s=>s.done&&s.kg).reduce((a,s)=>a+parseFloat(s.kg||0)*parseFloat(s.reps||0),0));
   const durationMin=Math.round(liveTimerSec/60);
   const newSession=withTrainer({
     id:newId('s'),
@@ -2165,6 +2169,7 @@ function liveEndSession(){
     duration:durationMin||60,
     exercises:liveExercises.map(e=>({
       name:e.name,
+      loadUnit:typeof exLoadUnit==='function'?exLoadUnit(e):'kg',
       sets:e.sets.filter(s=>s.done).map(s=>({kg:parseFloat(s.kg)||0,reps:parseFloat(s.reps)||0,setNo:s.setNo,kind:s.kind||'work'}))
     })),
     volume,feedback:liveFeedbackVal,

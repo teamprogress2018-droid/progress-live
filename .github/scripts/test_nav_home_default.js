@@ -31,7 +31,7 @@ ok('dashboard not under Więcej', !more.includes('data-screen="dashboard"'));
 ok('moreScreens without dashboard', /moreScreens=\[[^\]]*ondemand/.test(core) && !/moreScreens=\[[^\]]*dashboard/.test(core));
 ok('CI step', wf.includes('test_nav_home_default.js'));
 
-ok('cache bump core v34', html.includes('01-core.js?v=46'));
+ok('cache bump core v34', html.includes('01-core.js?v=47'));
 
 if (failed) {
   console.error(failed + ' failed');
