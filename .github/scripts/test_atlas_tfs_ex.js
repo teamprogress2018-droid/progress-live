@@ -36,7 +36,7 @@ function exerciseSearchBlob(e) {
 
 ok('library size atlas', DEF_EX.length >= 750, DEF_EX.length);
 ok('unique names', new Set(DEF_EX.map((e) => e.name)).size === DEF_EX.length);
-ok('cache 06 v35', html.includes('06-inbox-exercises-ai-programs.js?v=35'));
+ok('cache 06 v36', html.includes('06-inbox-exercises-ai-programs.js?v=36'));
 
 function findByQuery(q) {
   const n = exerciseSearchNorm(q);
