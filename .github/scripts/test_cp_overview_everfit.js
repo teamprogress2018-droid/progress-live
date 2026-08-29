@@ -38,7 +38,7 @@ ok('notes rail', overview.includes("railCard('Notatki'"));
 ok('injuries rail', overview.includes('Ograniczenia'));
 ok('photos rail clickable', overview.includes('Zdjęcia postępu') && overview.includes("setCPTab('photos')"));
 ok('no updates rail', !overview.includes('Aktualizacje') && !/function\s+cpOverviewUpdates/.test(src));
-ok('cache 08', html.includes('08-client-profile-extras.js?v=35'));
+ok('cache 08', html.includes('08-client-profile-extras.js?v=36'));
 ok('rail cards clickable not button spam', overview.includes('cp-ov-rail-card clickable') && !overview.includes('>Edytuj</button>'));
 ok('no duplicate message in profile rail', !/WhatsApp|mailto:/.test(overview));
 ok('no giant profile grid on overview', !overview.includes('cp-data-grid'));

@@ -214,6 +214,8 @@ jobs:
         run: node .github/scripts/test_period_rpe_rir.js
       - name: 1n24. Testy braku fałszywych pomiarów demo
         run: node .github/scripts/test_no_fake_metrics.js
+      - name: 1n24b. Testy obwodów centymetrem
+        run: node .github/scripts/test_circ_metrics.js
       - name: 1n23. Testy usunięcia DEMO_NOTIFS
         run: node .github/scripts/test_demo_notifs_cleanup.js
       - name: 1n21. Testy sekcji nawigacji apki klienta (forum / kalendarz)
@@ -302,6 +304,8 @@ jobs:
         run: node .github/scripts/test_screensaver_ui.js
       - name: 6f. Testy UI nadwagi i strażnika w asystencie
         run: node .github/scripts/test_ai_bmi_watchdog_ui.js
+      - name: 6g. Testy UI obwodów centymetrem w profilu klienta
+        run: node .github/scripts/test_circ_metrics_ui.js
 
       - name: 7. Sprawdź stronę w prawdziwej przeglądarce
         run: node .github/scripts/check_browser.js

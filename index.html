@@ -3052,7 +3052,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 
 <!-- MODAL: BASELINE POMIARÓW -->
 <div class="modal-ov" id="m-baseline">
-  <div class="modal" style="max-width:440px;">
+  <div class="modal" style="max-width:520px;">
     <div class="modal-hdr"><div class="modal-title" id="m-baseline-title">POMIARY STARTOWE</div><button class="modal-close" onclick="closeM('m-baseline')">×</button></div>
     <div class="modal-body">
       <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Zapisz baseline — historia w Pomiary (możesz zmienić datę).</div>
@@ -3061,16 +3061,8 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <div class="form-field"><label class="form-lbl">Waga (kg)</label><input type="number" class="form-input" id="bl-weight" step="0.1" placeholder="80"></div>
         <div class="form-field"><label class="form-lbl">% tkanki tłuszczowej</label><input type="number" class="form-input" id="bl-bf" step="0.1" placeholder="18"></div>
       </div>
-      <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:10px 0 8px;">Obwody (cm)</div>
-      <div class="form-grid">
-        <div class="form-field"><label class="form-lbl">Klatka</label><input type="number" class="form-input" id="bl-chest" step="0.1"></div>
-        <div class="form-field"><label class="form-lbl">Talia</label><input type="number" class="form-input" id="bl-waist" step="0.1"></div>
-      </div>
-      <div class="form-grid">
-        <div class="form-field"><label class="form-lbl">Biodra</label><input type="number" class="form-input" id="bl-hips" step="0.1"></div>
-        <div class="form-field"><label class="form-lbl">Udo</label><input type="number" class="form-input" id="bl-thigh" step="0.1"></div>
-      </div>
-      <div class="form-field"><label class="form-lbl">Ramię</label><input type="number" class="form-input" id="bl-arm" step="0.1"></div>
+      <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:10px 0 8px;">Obwody centymetrem (cm)</div>
+      <div class="form-grid" id="bl-circ-fields"></div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-baseline')">Anuluj</button><button class="btn btn-primary" onclick="saveClientBaselineModal()">Zapisz baseline</button></div>
   </div>
@@ -3992,7 +3984,7 @@ async function load(){
   try{const s3=await getDocs(collection(db,'kb'));window.KB=[];s3.forEach(d=>{const x=_takeFb(d);if(x)window.KB.push(x);});}catch(e){window.KB=[];}
   try{const s4=await getDocs(collection(db,'metricEntries'));window.METRIC_ENTRIES=[];s4.forEach(d=>{const x=_takeFb(d);if(x)window.METRIC_ENTRIES.push(x);});}catch(e){window.METRIC_ENTRIES=[];}
   try{const sPP=await getDocs(collection(db,'progressPhotos'));window.PROGRESS_PHOTOS=[];sPP.forEach(d=>{const x=_takeFb(d);if(x)window.PROGRESS_PHOTOS.push(x);});}catch(e){window.PROGRESS_PHOTOS=[];}
-  try{const s5=await getDocs(collection(db,'metricGroups'));window.METRIC_GROUPS=[];s5.forEach(d=>{const x=_takeFb(d);if(x)window.METRIC_GROUPS.push(x);});}catch(e){window.METRIC_GROUPS=[];}
+  try{const s5=await getDocs(collection(db,'metricGroups'));window.METRIC_GROUPS=[];s5.forEach(d=>{const x=_takeFb(d);if(x)window.METRIC_GROUPS.push(x);});if(typeof migrateEnsureCircMetrics==='function')migrateEnsureCircMetrics();}catch(e){window.METRIC_GROUPS=[];}
   try{const s6=await getDocs(collection(db,'messages'));const grouped={};s6.forEach(d=>{const m=_takeFb(d);if(!m)return;const cid=m.clientId;if(!cid)return;if(!grouped[cid])grouped[cid]=[];grouped[cid].push(m);});
     Object.keys(grouped).forEach(cid=>grouped[cid].sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||'')));
     if(window.MSGS){Object.keys(window.MSGS).forEach(k=>delete window.MSGS[k]);Object.assign(window.MSGS,grouped);}
@@ -4164,13 +4156,11 @@ async function load(){
 <script src="01-core.js?v=47"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=26"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=28"></script>
-<script src="04-client-portal.js?v=34"></script>
-<script src="05-clients-builder-plans-calendar.js?v=32"></script>
-<script src="04-client-portal.js?v=35"></script>
-<script src="05-clients-builder-plans-calendar.js?v=33"></script>
+<script src="04-client-portal.js?v=36"></script>
+<script src="05-clients-builder-plans-calendar.js?v=34"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=33"></script>
-<script src="07-forms-metrics-calculator.js?v=29"></script>
-<script src="08-client-profile-extras.js?v=35"></script>
+<script src="07-forms-metrics-calculator.js?v=30"></script>
+<script src="08-client-profile-extras.js?v=36"></script>
 <script src="09-posture-kb-invites-private.js?v=34"></script>
 <script src="10-client-app.js?v=27"></script>
 </body>
