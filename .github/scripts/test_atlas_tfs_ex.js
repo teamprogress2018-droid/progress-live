@@ -34,9 +34,9 @@ function exerciseSearchBlob(e) {
   return exerciseSearchNorm([e.name, e.aka, e.cat, e.muscle, e.eq].join(' '));
 }
 
-ok('library size atlas', DEF_EX.length >= 540, DEF_EX.length);
+ok('library size atlas', DEF_EX.length >= 750, DEF_EX.length);
 ok('unique names', new Set(DEF_EX.map((e) => e.name)).size === DEF_EX.length);
-ok('cache 06 v34', html.includes('06-inbox-exercises-ai-programs.js?v=34'));
+ok('cache 06 v35', html.includes('06-inbox-exercises-ai-programs.js?v=35'));
 
 function findByQuery(q) {
   const n = exerciseSearchNorm(q);
@@ -74,6 +74,13 @@ const expect = [
   ['TGU', 'Turkish get-up'],
   ['Single Arm DB Thruster', 'Thruster hantlem jednorącz'],
   ['Miniband Air Squat', 'Przysiad powietrzny z mini band'],
+  ['DB Man Maker', 'Man maker hantle'],
+  ['Kang Squat with Barbell', 'Przysiad Kang ze sztangą'],
+  ['NCM - Vertical Jump', 'Skok pionowy NCM'],
+  ['Hindu Push Ups', 'Pompki hindu'],
+  ['DB Zottman Curls', 'Uginanie Zottman'],
+  ['Landing - 2 to 2', 'Lądowanie 2 na 2'],
+  ['Wall Handstand', 'Stanie na rękach przy ścianie'],
 ];
 
 for (const [q, name] of expect) {

@@ -49,7 +49,7 @@ ok('photo PL key floor', !!photos['wyciskanie z podłogi']);
 ok('photo EN alias floor', !!photos['floor press']);
 ok('photo PL cable', !!photos['krzyżowanie wyciągów góra–dół']);
 
-ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=34'));
+ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=35'));
 ok('cache photo', html.includes('ex-photo-manifest.js?v=2'));
 ok('cache core', html.includes('01-core.js?v=47'));
 
@@ -115,7 +115,7 @@ ok('search wall ball', namesOf('wall ball').includes('Rzut piłką o ścianę'))
 ok('search slam', namesOf('slam').includes('Rzut piłką o podłogę'));
 ok('ball throws in DEF_EX', ['Rzut piłką o ścianę','Rzut piłką o podłogę','Rzut piłką z klatki','Rzut piłką rotacyjny','Rzut piłką z przysiadu'].every((n) => DEF_EX.some((e) => e.name === n)));
 ok('ball throws count', DEF_EX.filter((e) => /^Rzut piłką/.test(e.name)).length >= 12);
-ok('library size', DEF_EX.length >= 540);
+ok('library size', DEF_EX.length >= 750);
 ok('unique names', new Set(DEF_EX.map((e) => e.name)).size === DEF_EX.length);
 ok('olympic cat', DEF_EX.filter((e) => e.cat === 'Olimpijskie').length >= 8);
 ok('search zarzut', namesOf('zarzut').includes('Zarzut siłowy') && namesOf('zarzut').includes('Zarzut'));
@@ -131,6 +131,9 @@ ok('search gorilla burpee', namesOf('gorilla burpee').includes('Gorilla burpee')
 ok('search ghd', namesOf('ghd').some((n) => n.startsWith('GHD')));
 ok('search landmine rainbow', namesOf('landmine rainbow').includes('Landmine rainbow'));
 ok('search kb gorilla', namesOf('gorilla row').includes('Wiosłowanie gorilla KB'));
+ok('search man maker hantle', namesOf('db man maker').includes('Man maker hantle'));
+ok('search kang', namesOf('kang squat').includes('Przysiad Kang ze sztangą'));
+ok('search hindu', namesOf('hindu').includes('Pompki hindu'));
 ok('search sanie', namesOf('sanie').includes('Pchanie sań') || namesOf('sled').includes('Pchanie sań'));
 ok('search uginanie nog', namesOf('uginanie nog').includes('Uginanie nóg leżąc') && namesOf('uginanie nog').includes('Uginanie nóg siedząc'));
 ok('search thruster', namesOf('thruster').includes('Wyciskanie z przysiadu (thruster)'));
