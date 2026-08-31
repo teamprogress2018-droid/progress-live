@@ -49,7 +49,7 @@ ok('photo PL key floor', !!photos['wyciskanie z podłogi']);
 ok('photo EN alias floor', !!photos['floor press']);
 ok('photo PL cable', !!photos['krzyżowanie wyciągów góra–dół']);
 
-ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=33'));
+ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=37'));
 ok('cache photo', html.includes('ex-photo-manifest.js?v=2'));
 ok('cache core', html.includes('01-core.js?v=47'));
 
@@ -83,13 +83,32 @@ function allExercises(){const all=[...(EX||[]),...DEF_EX];const seen=new Set();r
 window.allExercises=allExercises;
 function exerciseSearchNorm(s){return String(s||'').toLowerCase().replace(/ł/g,'l').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'');}
 function exerciseSearchBlob(e){return exerciseSearchNorm([e.name,e.aka,e.cat,e.muscle,e.eq].join(' '));}
+function exerciseSearchRank(e,ql){
+  if(!ql)return 50;
+  const n=exerciseSearchNorm(e.name);
+  if(n===ql)return 0;
+  if(n.startsWith(ql))return 1;
+  if(n.includes(ql))return 2;
+  const aka=exerciseSearchNorm(e.aka||'');
+  if(aka.split(',').map(s=>s.trim()).includes(ql))return 3;
+  if(aka.includes(ql))return 4;
+  if(exerciseSearchNorm(e.eq||'')===ql)return 5;
+  return 6;
+}
 function exercisesGroupedByCat(q){
   const ql=exerciseSearchNorm((q||'').trim());
   const all=allExercises();
   const filtered=ql?all.filter(e=>exerciseSearchBlob(e).includes(ql)):all;
   const byCat={};
   filtered.forEach(e=>{const cat=e.cat||'Inne';if(!byCat[cat])byCat[cat]=[];byCat[cat].push(e);});
-  return Object.keys(byCat).map(cat=>({cat,items:byCat[cat]}));
+  Object.keys(byCat).forEach(cat=>byCat[cat].sort((a,b)=>{
+    const ra=exerciseSearchRank(a,ql),rb=exerciseSearchRank(b,ql);
+    if(ra!==rb)return ra-rb;
+    return a.name.localeCompare(b.name,'pl');
+  }));
+  const cats=Object.keys(byCat);
+  if(ql)cats.sort((a,b)=>Math.min(...byCat[a].map(e=>exerciseSearchRank(e,ql)))-Math.min(...byCat[b].map(e=>exerciseSearchRank(e,ql))));
+  return cats.map(cat=>({cat,items:byCat[cat]}));
 }
 window.exercisesGroupedByCat=exercisesGroupedByCat;
 `, ctx);
@@ -107,6 +126,7 @@ ok('search airbike', namesOf('airbike').includes('Airbike'));
 ok('search assault', namesOf('assault').includes('Airbike'));
 ok('search wioslarz ascii', namesOf('wioslarz').includes('Wioślarz'));
 ok('search wioślarz', namesOf('wioślarz').includes('Wioślarz'));
+ok('wioslarz ranks machine first', namesOf('wioslarz')[0] === 'Wioślarz');
 ok('cardio machines in DEF_EX', ['Liny treningowe','Rower stacjonarny','Airbike','Wioślarz','Skakanka'].every((n) => DEF_EX.some((e) => e.name === n)));
 ok('search rzut', namesOf('rzut').includes('Rzut piłką o ścianę') && namesOf('rzut').includes('Rzut piłką o podłogę'));
 ok('search pilka', namesOf('pilka').includes('Rzut piłką o ścianę'));
@@ -115,7 +135,7 @@ ok('search wall ball', namesOf('wall ball').includes('Rzut piłką o ścianę'))
 ok('search slam', namesOf('slam').includes('Rzut piłką o podłogę'));
 ok('ball throws in DEF_EX', ['Rzut piłką o ścianę','Rzut piłką o podłogę','Rzut piłką z klatki','Rzut piłką rotacyjny','Rzut piłką z przysiadu'].every((n) => DEF_EX.some((e) => e.name === n)));
 ok('ball throws count', DEF_EX.filter((e) => /^Rzut piłką/.test(e.name)).length >= 12);
-ok('library size', DEF_EX.length >= 340);
+ok('library size', DEF_EX.length >= 750);
 ok('unique names', new Set(DEF_EX.map((e) => e.name)).size === DEF_EX.length);
 ok('olympic cat', DEF_EX.filter((e) => e.cat === 'Olimpijskie').length >= 8);
 ok('search zarzut', namesOf('zarzut').includes('Zarzut siłowy') && namesOf('zarzut').includes('Zarzut'));
@@ -126,6 +146,14 @@ ok('search bieznia', namesOf('bieznia').includes('Bieżnia'));
 ok('search bieżnia', namesOf('bieżnia').includes('Bieżnia'));
 ok('search smith', namesOf('smith').includes('Przysiad w bramie Smith') && namesOf('smith').includes('Wyciskanie w bramie Smith'));
 ok('search trx', namesOf('trx').includes('Wiosłowanie TRX'));
+ok('search man maker', namesOf('man maker').includes('Man maker (masa ciała)'));
+ok('search gorilla burpee', namesOf('gorilla burpee').includes('Gorilla burpee'));
+ok('search ghd', namesOf('ghd').some((n) => n.startsWith('GHD')));
+ok('search landmine rainbow', namesOf('landmine rainbow').includes('Landmine rainbow'));
+ok('search kb gorilla', namesOf('gorilla row').includes('Wiosłowanie gorilla KB'));
+ok('search man maker hantle', namesOf('db man maker').includes('Man maker hantle'));
+ok('search kang', namesOf('kang squat').includes('Przysiad Kang ze sztangą'));
+ok('search hindu', namesOf('hindu').includes('Pompki hindu'));
 ok('search sanie', namesOf('sanie').includes('Pchanie sań') || namesOf('sled').includes('Pchanie sań'));
 ok('search uginanie nog', namesOf('uginanie nog').includes('Uginanie nóg leżąc') && namesOf('uginanie nog').includes('Uginanie nóg siedząc'));
 ok('search thruster', namesOf('thruster').includes('Wyciskanie z przysiadu (thruster)'));

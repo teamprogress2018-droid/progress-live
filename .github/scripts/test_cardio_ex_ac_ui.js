@@ -91,7 +91,7 @@ function ok(name, cond, extra) {
   ok('wioślarz finds Wioślarz', wios2.items.includes('Wioślarz'), JSON.stringify(wios2));
   ok('wioślarz name visible', wios2.nameW >= 80, JSON.stringify(wios2));
 
-  await page.locator('.ex-row .ex-ac-item').filter({ hasText: 'Wioślarz' }).first().click();
+  await page.locator('.ex-row .ex-ac-item .ex-ac-name').filter({ hasText: /^Wioślarz$/ }).click();
   const picked = await page.locator('.ex-row [data-f="name"]').first().inputValue();
   ok('click fills Wioślarz', picked === 'Wioślarz', picked);
   const afterPick = await page.evaluate(() => {
