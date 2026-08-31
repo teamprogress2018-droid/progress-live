@@ -2348,6 +2348,19 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         </div>
       </div>
       <div class="form-field">
+        <label class="form-lbl">🧍 Charakter pracy stojącej / zawód (opcjonalnie)</label>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Zawody stojące dają przewidywalne wzorce przeciążeń — pomaga to dobrać ćwiczenia korekcyjne (trochę jak fizjo).</div>
+        <select class="form-select" id="apl-standing-pattern" style="font-size:13px;margin-bottom:8px;">
+          <option value="">— nie dotyczy / nie wiadomo —</option>
+          <option value="stojąca jednostronna z uniesionymi rękami">Stojąca jednostronna, ręce uniesione (np. fryzjer/ka)</option>
+          <option value="stojąca pochylona do przodu z rotacją tułowia">Stojąca pochylona do przodu z rotacją (np. stomatolog)</option>
+          <option value="stojąca symetryczna długotrwała">Stojąca symetryczna, długotrwała (np. sprzedawca, kucharz)</option>
+          <option value="stojąca z częstym dźwiganiem/przenoszeniem">Stojąca z dźwiganiem/przenoszeniem (np. magazynier)</option>
+          <option value="inny wzorzec — opisano poniżej">Inny wzorzec — opisz w polu poniżej</option>
+        </select>
+        <input type="text" class="form-input" id="apl-job-detail" placeholder="np. fryzjerka 8h dziennie, głównie praca prawą ręką nad głową klienta..." style="font-size:13px;">
+      </div>
+      <div class="form-field">
         <label class="form-lbl">🌙 Poziom stresu (1-5)</label>
         <input type="range" id="apl-stress" min="1" max="5" value="3" style="width:100%;accent-color:var(--red);" oninput="document.getElementById('apl-stress-val').textContent=['😌 Niski','🙂 Lekki','😐 Średni','😣 Wysoki','🤯 B. wysoki'][this.value-1]">
         <div style="font-size:10px;color:var(--muted);text-align:right;" id="apl-stress-val">😐 Średni</div>
@@ -4158,7 +4171,7 @@ async function load(){
 <script src="03-ai-plangen-bizstats-aicoach.js?v=28"></script>
 <script src="04-client-portal.js?v=36"></script>
 <script src="05-clients-builder-plans-calendar.js?v=34"></script>
-<script src="06-inbox-exercises-ai-programs.js?v=37"></script>
+<script src="06-inbox-exercises-ai-programs.js?v=33"></script>
 <script src="07-forms-metrics-calculator.js?v=30"></script>
 <script src="08-client-profile-extras.js?v=36"></script>
 <script src="09-posture-kb-invites-private.js?v=34"></script>
