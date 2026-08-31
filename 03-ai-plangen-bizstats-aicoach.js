@@ -715,6 +715,42 @@ function aplSetGenProgress(msg){
   if(el)el.textContent=msg;
 }
 
+// Twarda, programistyczna gwarancja poprawnej kolejności ćwiczeń — niezależna od tego,
+// czy model AI zastosował się do instrukcji w prompcie. Grupuje ćwiczenia tej samej
+// partii razem (stabilnie, wg kolejności pierwszego wystąpienia), zachowując ćwiczenia
+// priorytetowe na początku sesji.
+function aplNormalizeMuscleCategory(ex){
+  const blob=(String(ex.muscleGroup||'')+' '+String(ex.name||'')).toLowerCase();
+  const categories=[
+    ['klatka',/klatk/],
+    ['plecy',/plec|grzbiet/],
+    ['barki',/bark/],
+    ['biceps',/biceps/],
+    ['triceps',/triceps/],
+    ['posladki',/po[śs]ladk|hip thrust|glute/],
+    ['nogi',/czworog[łl]ow|dwug[łl]ow.*uda|\buda\b|przysiad|wykrok|leg press|quad/],
+    ['lydki',/[łl]ydk|calf/],
+    ['core',/brzuch|\bcore\b|skos.*brzuch|abs\b/],
+  ];
+  for(const [key,re] of categories){ if(re.test(blob))return key; }
+  return 'inne';
+}
+
+function aplRegroupExercisesByMuscle(plan,client){
+  (plan.days||[]).forEach(day=>{
+    const exs=day.exercises||[];
+    if(exs.length<3)return;
+
+    const seenOrder=[],groups={};
+    exs.forEach(ex=>{
+      const cat=aplNormalizeMuscleCategory(ex);
+      if(!groups[cat]){groups[cat]=[];seenOrder.push(cat);}
+      groups[cat].push(ex);
+    });
+    day.exercises=seenOrder.flatMap(cat=>groups[cat]);
+  });
+}
+
 async function aplGenerate(){
   if(aplGenerating)return;
   const goal=aplGetVal('apl-goals');
@@ -996,6 +1032,7 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
         aplComputeProgression(ex,weekKeys,phasesMap,progression);
       });
     });
+    aplRegroupExercisesByMuscle(plan,client);
     aplRenderPlan(plan,client,goal,method,days,weeks);
   }catch(e){
     console.error('aplGenerate błąd:',e);
