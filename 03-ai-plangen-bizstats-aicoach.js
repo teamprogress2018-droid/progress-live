@@ -747,6 +747,8 @@ async function aplGenerate(){
 
   // styl zycia
   const job=document.getElementById('apl-job')?.value||'';
+  const standingPattern=document.getElementById('apl-standing-pattern')?.value||'';
+  const jobDetail=document.getElementById('apl-job-detail')?.value||'';
   const sleepLabels=['fatalna','słaba','średnia','dobra','świetna'];
   const stressLabels=['niski','lekki','średni','wysoki','bardzo wysoki'];
   const sleep=sleepLabels[(document.getElementById('apl-sleep')?.value||3)-1];
@@ -879,6 +881,7 @@ UWZGLĘDNIJ TŁO SPORTOWE: jeśli klient ma predyspozycję wytrzymałościową (
 ZASADY HIPERTROFII (STRICT — obowiązują zawsze, zwłaszcza przy celu masa/kształtowanie):
 1. CZĘSTOTLIWOŚĆ: każda główna partia (klatka, plecy, barki, czworogłowe, dwugłowe/pośladki, ramiona) musi być zastymulowana CO NAJMNIEJ 2× w tygodniu (suma serii z wielu dni). Przy 3 dniach użyj struktury: Dzień 1 = Push + czworogłowe; Dzień 2 = Pull + dwugłowe; Dzień 3 = Upper (klatka+plecy+barki+ramiona) — chyba że trener wybrał inną metodę i liczbę dni.
 2. PRIORYTET SYLWETKOWY: jeśli podano weak points — 1–2 PIERWSZE ćwiczenia danej sesji (po rozgrzewce) MUSZĄ celować w te partie, gdy sesja je stymuluje. Nie chowaj priorytetu na koniec.
+2b. GRUPOWANIE PARTII (KRYTYCZNE): po ustaleniu kolejności ćwiczeń NIGDY nie wracaj do partii mięśniowej, która już się skończyła w tej sesji. Wszystkie ćwiczenia tej samej głównej partii (np. plecy) muszą stać RAZEM, jedno po drugim — dopiero potem przechodzisz do kolejnej partii i zostajesz przy niej do końca jej ćwiczeń. Błędny przykład (ZABRONIONE): Plecy, Plecy, Pośladki, Plecy, Nogi — bo "Plecy" wraca po przerwie na "Pośladki". Poprawny przykład: Plecy, Plecy, Plecy, Pośladki, Nogi, Nogi.
 3. DOBÓR ĆWICZEŃ: przy priorytetach i izolacjach preferuj wysoką stabilizację (maszyny, suwnica Smitha, wyciągi) oraz warianty w pozycji wydłużonej (lengthened / stretch-mediated hypertrophy) z pauzą 1s w rozciągnięciu.
 4. PARAMETRY: 3–4 serie robocze na ćwiczenie; złożone 6–10 powt., izolacje 8–12 lub 10–15; intensywność blisko upadku (RPE 8–10 ≈ RIR 0–2). W JSON dodaj pole "tempo" w formacie "3-1-1-0" (ekscentryka–pauza w stretchu–koncentryka–pauza) dla ćwiczeń priorytetowych i izolacji.
 5. W schema ćwiczenia: name, notes, muscleGroup, sets, reps, rest, rpe, kg, tempo (opcjonalne ale wymagane dla priorytetów).
@@ -907,6 +910,7 @@ ${ankle?`- Mobilność stawu skokowego: ${ankle}`:''}
 ${pelvis?`- Budowa miednicy: ${pelvis}`:''}
 ${asymmetry?`- Dominacja stron/asymetrie: ${asymmetry}`:''}
 ${job?`- Rodzaj pracy (NEAT): ${job}`:''}
+${standingPattern?`- Wzorzec pracy stojącej: ${standingPattern}${jobDetail?` (${jobDetail})`:''} — WNIOSKUJ prawdopodobne przeciążenia/wady postawy wynikające z tego wzorca (np. jednostronna praca z uniesionymi rękami → przeciążenie barku dominującego, skrócenie górnego czworobocznego, asymetria łopatek; praca pochylona z rotacją → przeciążenie odcinka L-S, jednostronne skrócenie zginaczy bioder) i UWZGLĘDNIJ to w doborze ćwiczeń korekcyjnych/mobilizacyjnych oraz w priorytetach sesji, nawet jeśli klient nie zgłosił wprost kontuzji.`:''}
 - Jakość snu: ${sleep}
 - Poziom stresu: ${stress}
 ${notes?`- Dodatkowe uwagi: ${notes}`:''}
@@ -947,6 +951,7 @@ STRUKTURA TRENINGU OBWODOWEGO (obowiązkowa przy tej metodzie):
 ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
 1. Każda główna partia ≥2×/tydzień (suma serii z wielu dni).
 2. PRIORYTET SYLWETKOWY: 1–2 pierwsze ćwiczenia sesji (po rozgrzewce) na weak points, gdy sesja je stymuluje.
+2b. GRUPOWANIE PARTII: nigdy nie wracaj do partii, która już się skończyła w tej sesji — wszystkie ćwiczenia tej samej partii stoją razem, jedno po drugim (np. Plecy,Plecy,Plecy,Nogi,Nogi — NIE: Plecy,Nogi,Plecy).
 3. Preferuj maszyny / Smith / wyciągi i warianty lengthened / stretch-mediated z pauzą 1s w rozciągnięciu.
 4. 3–4 serie; złożone 6–10; izolacje 8–12 lub 10–15; RPE 8–10 ≈ RIR 0–2; tempo "3-1-1-0" dla priorytetów i izolacji.
 5. BEZPIECZEŃSTWO: respektuj wagę/BMI, wady postawy i kontuzje z wiadomości użytkownika — nie dawaj ćwiczeń szkodliwych.`;
