@@ -370,6 +370,51 @@ function ok(name, cond, extra) {
   const arnold = await detailMedia('Wyciskanie Arnolda');
   ok('arnold has no lying mp4', !arnold.hasVideo, JSON.stringify(arnold).slice(0, 200));
 
+  const squat = await detailMedia('Przysiad ze sztangą');
+  await page.screenshot({ path: path.join(shotDir, 'lib_quad_back_squat_detail.png') });
+  ok('barbell squat detail title', squat.title === 'Przysiad ze sztangą', squat.title);
+  ok(
+    'barbell squat plays classic clip',
+    squat.hasVideo && /przysiad%20klasyczny|na%20karku/i.test(squat.src),
+    (squat.src || '').slice(0, 180)
+  );
+
+  const bss = await detailMedia('Przysiad bułgarski');
+  await page.screenshot({ path: path.join(shotDir, 'lib_quad_bulgarian_detail.png') });
+  ok('bulgarian detail title', bss.title === 'Przysiad bułgarski', bss.title);
+  ok(
+    'bulgarian plays rear-foot-on-bench clip',
+    bss.hasVideo && /bu%C5%82garski%20przysiad%20split|tylna%20nog%C4%85%20uniesion%C4%85/i.test(bss.src),
+    (bss.src || '').slice(0, 180)
+  );
+
+  const press = await detailMedia('Wyciskanie nogami');
+  await page.screenshot({ path: path.join(shotDir, 'lib_quad_leg_press_detail.png') });
+  ok('leg press detail title', press.title === 'Wyciskanie nogami', press.title);
+  ok(
+    'leg press plays foot-alignment clip',
+    press.hasVideo && /footknee|ustawienie%20st%C3%B3p/i.test(press.src),
+    (press.src || '').slice(0, 180)
+  );
+
+  const dbLunge = await detailMedia('Wykrok z hantlami');
+  await page.screenshot({ path: path.join(shotDir, 'lib_quad_db_lunge_detail.png') });
+  ok('db lunge detail title', dbLunge.title === 'Wykrok z hantlami', dbLunge.title);
+  ok(
+    'db lunge plays stationary lunge clip',
+    dbLunge.hasVideo && /Dumbbell%20Lunge/i.test(dbLunge.src) && !/Walking/i.test(dbLunge.src),
+    (dbLunge.src || '').slice(0, 180)
+  );
+
+  const goblet = await detailMedia('Przysiad Goblet');
+  ok('goblet has no lying mp4', !goblet.hasVideo, JSON.stringify(goblet).slice(0, 200));
+  const frontSq = await detailMedia('Przysiad przedni');
+  ok('front squat has no lying mp4', !frontSq.hasVideo, JSON.stringify(frontSq).slice(0, 200));
+  const walkLunge = await detailMedia('Wykrok chodzony');
+  ok('walking lunge has no lying mp4', !walkLunge.hasVideo, JSON.stringify(walkLunge).slice(0, 200));
+  const smithSq = await detailMedia('Przysiad w bramie Smith');
+  ok('smith squat has no lying mp4', !smithSq.hasVideo, JSON.stringify(smithSq).slice(0, 200));
+
   const shoulderCard = await libCard('Unoszenie bokiem');
   await page.screenshot({ path: path.join(shotDir, 'lib_shoulder_lateral_card.png') });
   ok(
