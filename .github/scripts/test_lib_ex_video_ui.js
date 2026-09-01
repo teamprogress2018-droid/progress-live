@@ -320,6 +320,22 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'lib_yates_row_card.png') });
   ok('yates row card has photo', yates.found && /Reverse_Grip_Bent-Over/.test(yates.img) && !yates.placeholder && yates.w > 0, JSON.stringify(yates));
 
+  const airbike = await libCard('Airbike');
+  await page.screenshot({ path: path.join(shotDir, 'lib_airbike_card.png') });
+  ok('airbike card has photo', airbike.found && /Air_Bike/.test(airbike.img) && !airbike.placeholder && airbike.w > 0, JSON.stringify(airbike));
+
+  const clean = await libCard('Zarzut siłowy');
+  await page.screenshot({ path: path.join(shotDir, 'lib_power_clean_card.png') });
+  ok('power clean card has photo', clean.found && /Power_Clean/.test(clean.img) && !clean.placeholder && clean.w > 0, JSON.stringify(clean));
+
+  const foam = await libCard('Foam roller łydki');
+  await page.screenshot({ path: path.join(shotDir, 'lib_foam_calf_card.png') });
+  ok('foam calf card has photo', foam.found && /Calves-SMR/.test(foam.img) && !foam.placeholder && foam.w > 0, JSON.stringify(foam));
+
+  const seatedCurl = await libCard('Uginanie nóg siedząc');
+  await page.screenshot({ path: path.join(shotDir, 'lib_seated_leg_curl_card.png') });
+  ok('seated leg curl card has photo', seatedCurl.found && /Seated_Leg_Curl/.test(seatedCurl.img) && !seatedCurl.placeholder && seatedCurl.w > 0, JSON.stringify(seatedCurl));
+
   await page.evaluate(() => {
     if (typeof goTo === 'function') goTo('builder');
     if (typeof initBuilder === 'function') initBuilder();
