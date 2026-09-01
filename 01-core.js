@@ -750,12 +750,320 @@ window.exerciseMediaKey=exerciseMediaKey;
 
 function exerciseSlug(name){
   return exerciseMediaKey(name)
+    .replace(/\+/g,' plus ')
+    .replace(/−/g,' minus ')
     .normalize('NFD').replace(/\p{M}/gu,'')
     .replace(/ł/g,'l')
     .replace(/[^a-z0-9]+/g,'-')
     .replace(/^-|-$/g,'');
 }
 window.exerciseSlug=exerciseSlug;
+
+function exerciseMediaNorm(s){
+  return String(s||'')
+    .toLowerCase()
+    .replace(/ł/g,'l')
+    .normalize('NFD').replace(/\p{M}/gu,'')
+    .replace(/[''`´]/g,'')
+    .replace(/&/g,' and ')
+    .replace(/[^a-z0-9]+/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+window.exerciseMediaNorm=exerciseMediaNorm;
+
+function exerciseMediaExpand(s){
+  return exerciseMediaNorm(s)
+    .replace(/\bdumb bell\b/g,'dumbbell')
+    .replace(/\bdb\b/g,'dumbbell')
+    .replace(/\bbb\b/g,'barbell')
+    .replace(/\bkb\b/g,'kettlebell')
+    .replace(/\bohp\b/g,'overhead press')
+    .replace(/\brdl\b/g,'romanian deadlift')
+    .replace(/\bsldl\b/g,'stiff leg deadlift')
+    .replace(/\bpush ups\b/g,'push up')
+    .replace(/\bpush-ups\b/g,'push up')
+    .replace(/\bpush up\b/g,'push up')
+    .replace(/\bpull ups\b/g,'pull up')
+    .replace(/\bchin ups\b/g,'chin up')
+    .replace(/\bpec deck\b/g,'peck deck');
+}
+window.exerciseMediaExpand=exerciseMediaExpand;
+
+function exerciseMediaExplode(s){
+  const out=[];
+  const add=x=>{
+    const t=exerciseMediaExpand(x);
+    if(t&&!out.includes(t))out.push(t);
+  };
+  add(s);
+  String(s||'').replace(/\(([^)]+)\)/g,(_,inner)=>{add(inner);return ' ';});
+  add(String(s||'').replace(/\s*\([^)]*\)/g,' ').replace(/\s+/g,' ').trim());
+  String(s||'').split(/[,;/|]/).map(p=>p.trim()).filter(Boolean).forEach(add);
+  return out;
+}
+
+function splitExerciseFilenameParts(base){
+  const s=String(base||'').trim();
+  let depth=0,lastOpen=-1,lastClose=-1;
+  for(let i=0;i<s.length;i++){
+    if(s[i]==='('){if(depth===0)lastOpen=i;depth++;}
+    else if(s[i]===')'){depth--;if(depth===0)lastClose=i;}
+  }
+  if(lastOpen>0&&lastClose===s.length-1){
+    return{pl:s.slice(0,lastOpen).trim(),en:s.slice(lastOpen+1,lastClose).trim()};
+  }
+  return{pl:s,en:''};
+}
+
+function isJunkExerciseMediaFilename(filename){
+  const n=exerciseMediaNorm(filename);
+  return /brak cwiczenia|no exercise|nie dotyczy|splash|youcan|cannot identify|nie mozna zidentyfikowac|app logo|app splash/.test(n);
+}
+
+function parseExerciseMediaFilename(filename){
+  let raw=String(filename||'').split(/[/\\]/).pop()||'';
+  try{raw=decodeURIComponent(raw);}catch(e){}
+  const ext=((raw.match(/\.(gif|webp|mp4|webm)$/i)||[])[1]||'').toLowerCase();
+  let base=raw.replace(/\.(gif|webp|mp4|webm)$/i,'').trim();
+  const dupM=base.match(/\s*\((\d+)\)$/);
+  const dup=dupM?Number(dupM[1]):0;
+  if(dup)base=base.replace(/\s*\(\d+\)$/,'').trim();
+  const {pl,en}=splitExerciseFilenameParts(base);
+  const phrases=[];
+  exerciseMediaExplode(base).forEach(p=>phrases.push(p));
+  exerciseMediaExplode(pl).forEach(p=>phrases.push(p));
+  exerciseMediaExplode(en).forEach(p=>phrases.push(p));
+  const uniq=[];
+  phrases.forEach(p=>{if(p&&!uniq.includes(p))uniq.push(p);});
+  return{
+    filename:String(filename||''),
+    base,
+    ext,
+    dup,
+    junk:isJunkExerciseMediaFilename(base),
+    pl,
+    en,
+    phrases:uniq
+  };
+}
+window.parseExerciseMediaFilename=parseExerciseMediaFilename;
+
+function exerciseIdentityKeys(ex){
+  const keys=[];
+  const add=s=>{
+    exerciseMediaExplode(s).forEach(p=>{
+      if(p&&p.length>=3&&!keys.includes(p))keys.push(p);
+    });
+  };
+  if(!ex)return keys;
+  add(ex.name);
+  add(ex.aka);
+  return keys;
+}
+
+function exerciseMediaFlags(s){
+  const n=' '+exerciseMediaExpand(s)+' ';
+  return{
+    incline:/\bincline\b|skos plus|skosnej dodat|glowa w gore/.test(n),
+    decline:/\bdecline\b|skos minus|glowa w dol/.test(n),
+    close:/close ?grip|waski chwyt|narrow grip/.test(n),
+    wide:/wide ?grip|szerokim chwytem|szeroki chwyt/.test(n),
+    single:/single ?arm|one ?arm|jednoracz|jedna reka/.test(n),
+    seated:/\bseated\b|siedz/.test(n),
+    smith:/\bsmith\b/.test(n),
+    sumo:/\bsumo\b/.test(n),
+    bulgarian:/bulgarian|bulgarsk/.test(n),
+    behindneck:/behind the neck|za kark|za glow/.test(n),
+    hammer:/\bhammer\b|mlotk/.test(n),
+    preacher:/\bpreacher\b|modlitewnik/.test(n),
+    side:/\bside plank\b|deska boczna|\bboczn/.test(n),
+    rdl:/romanian deadlift|\brdl\b|rumunsk/.test(n),
+    arnold:/\barnold\b/.test(n),
+    walking:/\bwalking\b|chodzony|\bchod\b/.test(n),
+    floor:/\bfloor press\b|na podlodze/.test(n),
+    landmine:/\blandmine\b/.test(n),
+    narrowstance:/narrow stance|waski rozstaw/.test(n)
+  };
+}
+
+function exerciseMediaFlagConflict(fileStr,exStr){
+  const a=exerciseMediaFlags(fileStr);
+  const b=exerciseMediaFlags(exStr);
+  const keys=['incline','decline','close','wide','single','smith','sumo','bulgarian','behindneck','hammer','preacher','side','rdl','arnold','walking','floor','landmine','narrowstance'];
+  let n=0;
+  keys.forEach(k=>{if(a[k]!==b[k])n++;});
+  return n;
+}
+
+function aliasSpecMatchesFile(spec,parsed){
+  if(!spec||!parsed)return false;
+  const hay=[parsed.filename,parsed.base,parsed.pl,parsed.en].filter(Boolean).join(' \n ');
+  const include=[].concat(spec.include||[]);
+  const exclude=[].concat(spec.exclude||[]);
+  if(!include.length||!include.some(re=>re.test(hay)))return false;
+  if(exclude.some(re=>re.test(hay)))return false;
+  return true;
+}
+window.aliasSpecMatchesFile=aliasSpecMatchesFile;
+
+function scoreFilenameAgainstExercise(parsed,ex){
+  if(!parsed||parsed.junk||!ex||!ex.name)return -1;
+  const spec=(window.EX_MEDIA_FILE_ALIASES||{})[ex.name];
+  if(spec&&aliasSpecMatchesFile(spec,parsed)){
+    let s=320-parsed.dup*12;
+    if(parsed.ext==='mp4')s+=8;
+    if(/\/VIDEOS\//i.test(parsed.filename)||/VÍDEOS\//.test(parsed.filename))s-=15;
+    const prefer=[].concat(spec.prefer||[]);
+    const hay=[parsed.filename,parsed.base].join(' ');
+    if(prefer.some(re=>re.test(hay)))s+=25;
+    return s;
+  }
+  const keys=exerciseIdentityKeys(ex);
+  const fkeys=parsed.phrases||[];
+  let best=0;
+  const pl=exerciseMediaExpand(parsed.pl);
+  const en=exerciseMediaExpand(parsed.en);
+  const name=exerciseMediaExpand(ex.name);
+  if(pl&&pl===name)best=Math.max(best,220);
+  fkeys.forEach(fk=>{
+    if(fk===name)best=Math.max(best,210);
+  });
+  if(en){
+    keys.forEach(k=>{if(k===en)best=Math.max(best,200+Math.min(24,k.length));});
+  }
+  fkeys.forEach(fk=>{
+    keys.forEach(k=>{
+      if(fk===k&&k.length>=8)best=Math.max(best,160+Math.min(30,k.length));
+      else if(fk===k&&k.length>=5)best=Math.max(best,90+k.length);
+    });
+  });
+  if(best<80)return -1;
+  const blob=[ex.name,ex.aka||''].join(' ');
+  const conflicts=exerciseMediaFlagConflict(parsed.base,blob);
+  if(conflicts&&best<200)best-=conflicts*45;
+  if(best<80)return -1;
+  if(parsed.ext==='mp4')best+=6;
+  best-=parsed.dup*12;
+  if(/\/VIDEOS\//i.test(parsed.filename)||/VÍDEOS\//.test(parsed.filename))best-=12;
+  return best;
+}
+window.scoreFilenameAgainstExercise=scoreFilenameAgainstExercise;
+
+function matchFilenameToExercise(filename,exercises){
+  const parsed=parseExerciseMediaFilename(filename);
+  if(!parsed||parsed.junk)return '';
+  const list=exercises||window.DEF_EX||[];
+  const scored=[];
+  for(let i=0;i<list.length;i++){
+    const s=scoreFilenameAgainstExercise(parsed,list[i]);
+    if(s>=80)scored.push({name:list[i].name,score:s});
+  }
+  scored.sort((a,b)=>b.score-a.score||a.name.localeCompare(b.name,'pl'));
+  if(!scored.length)return '';
+  if(scored.length>1&&scored[0].score-scored[1].score<12&&scored[1].score>=90)return '';
+  return scored[0].name;
+}
+window.matchFilenameToExercise=matchFilenameToExercise;
+
+/** PL nazwa DEF_EX → filtry na nazwę pliku (PL + EN). Dopasowanie ostrożne — bez zgadywania. */
+const EX_MEDIA_FILE_ALIASES={
+  'Wyciskanie sztangi leżąc':{include:[/barbell bench press/i],exclude:[/close[- ]?grip/i,/wąski/i,/smith/i,/incline/i,/decline/i]},
+  'Wyciskanie hantli leżąc':{include:[/dumbbell bench press/i],exclude:[/incline/i,/sko[sś]n/i,/narrow/i,/wąsk/i,/shoulder/i,/nad głow/i,/decline/i,/floor/i]},
+  'Wyciskanie hantli skos+':{include:[/incline dumbbell (chest )?press/i],exclude:[/shoulder/i,/nad głow/i,/decline/i]},
+  'Wyciskanie hantli skos−':{include:[/decline dumbbell (bench )?press/i],exclude:[/incline/i]},
+  'Wyciskanie sztangi skos+':{include:[/incline barbell (bench )?press/i],exclude:[/dumbbell/i,/smith/i,/decline/i]},
+  'Wyciskanie sztangi skos−':{include:[/decline barbell (bench )?press/i],exclude:[/dumbbell/i,/incline/i]},
+  'Rozpiętki hantlami':{include:[/dumbbell chest fly/i,/dumbbell flat bench fly/i],exclude:[/decline/i,/głow[aą] w d[oó]ł/i,/lateral raise/i,/pec deck/i,/reverse/i,/rear delt/i,/odwrotn/i,/opadzie/i]},
+  'Rozpiętki na wyciągu':{include:[/cable crossover/i,/high (pulley|cable) fly/i,/standing cable fly/i],exclude:[/reverse/i,/single[- ]arm/i,/low cable/i,/pec deck/i,/middle chest/i]},
+  'Krzyżowanie wyciągów góra–dół':{include:[/cable crossover \(high/i,/high pulley fly/i,/high cable fly/i],exclude:[/reverse/i,/single[- ]arm/i,/low /i]},
+  'Rozpiętki na wyciągu w poziomie':{include:[/cable crossover fly \(middle chest\)/i]},
+  'Rozpiętki jednorącz wyciąg':{include:[/single[- ]arm low cable fly/i,/single[- ]arm cable fly/i]},
+  'Pompki':{include:[/push[- ]?ups?/i],exclude:[/wall/i,/dip/i,/poręcz/i,/ławc/i,/kolan/i,/pike/i,/diamond/i,/diament/i,/knee/i,/hindu/i,/szerok/i,/wide/i,/plyo/i]},
+  'Dipy na poręczach':{include:[/parallel bar dips/i],exclude:[/bench dip/i,/ławc/i]},
+  'Dipy na ławce':{include:[/bench dips?/i],exclude:[/parallel bar/i]},
+  'Butterfly (peck deck)':{include:[/pec deck/i,/machine chest fly/i],exclude:[/reverse/i,/odwróc/i,/rear delt/i]},
+  'Wyciskanie wąskim chwytem':{include:[/close[- ]?grip barbell bench press/i,/narrow grip (barbell )?bench press/i]},
+  'Pullover sztangą':{include:[/barbell pullover/i]},
+  'Pullover hantlem':{include:[/dumbbell pullover/i],exclude:[/barbell/i]},
+  'Martwy ciąg klasyczny':{include:[/barbell deadlift/i],exclude:[/dumbbell/i,/sumo/i,/rdl/i,/romanian/i,/straight[- ]leg/i,/stiff/i,/bodyweight/i,/hantl/i,/deficit/i,/snatch/i]},
+  'Martwy ciąg RDL':{include:[/romanian deadlift/i,/\brdl\b/i],exclude:[/dumbbell/i,/hantl/i,/stiff/i,/bodyweight/i]},
+  'Podciąganie na drążku':{include:[/pull[- ]?up \(overhand/i],exclude:[/wide[- ]grip/i,/szerok/i,/australian/i,/chin/i]},
+  'Podciąganie szerokim chwytem':{include:[/wide[- ]grip pull[- ]?up/i]},
+  'Podciąganie podchwytem':{include:[/chin[- ]?ups?/i],exclude:[/overhand/i,/nachwyt/i,/wide[- ]grip/i,/szerok/i,/neutral/i,/pull[- ]?up/i]},
+  'Ściąganie drążka wyciąg':{include:[/lat pulldown/i],exclude:[/behind the neck/i,/kark/i,/za głow/i,/single[- ]arm/i,/jednor[aą]cz/i,/straight[- ]arm/i,/wide[- ]grip/i,/szerok/i],prefer:[/to chest/i,/overhand grip/i,/do klatki/i]},
+  'Ściąganie drążka szerokim chwytem':{include:[/wide[- ]grip lat pulldown/i],exclude:[/behind the neck/i,/kark/i]},
+  'Ściąganie drążka jednorącz':{include:[/single[- ]arm lat pulldown/i,/single[- ]arm cable pulldown/i],exclude:[/straight[- ]arm/i,/triceps/i]},
+  'Ściąganie prostymi rękami':{include:[/straight[- ]arm pulldown/i],exclude:[/lat pulldown/i,/triceps/i,/one[- ]arm/i]},
+  'Ściąganie do twarzy (face pull)':{include:[/face pull/i]},
+  'Wiosłowanie sztangą':{include:[/barbell bent[- ]over row/i],exclude:[/underhand/i,/incline/i,/neutral grip/i,/dumbbell/i,/pendlay/i]},
+  'Wiosłowanie hantlem':{include:[/one[- ]arm dumbbell row/i,/single[- ]arm dumbbell row/i],exclude:[/bent[- ]over row\)/i]},
+  'Wiosłowanie hantlami oburącz':{include:[/dumbbell bent[- ]over row/i],exclude:[/one[- ]arm/i,/single[- ]arm/i,/rear delt/i,/jednor[aą]cz/i]},
+  'Wiosłowanie wyciągiem siedząc':{include:[/seated cable row/i],exclude:[/machine/i,/maszynie/i,/single/i,/jednor/i]},
+  'Wiosłowanie na maszynie':{include:[/seated cable row \(machine/i,/cable row machine/i,/machine row/i]},
+  'Wiosłowanie odwrócone':{include:[/inverted row/i,/australian pull[- ]?up/i]},
+  'Wiosłowanie T-bar':{include:[/t[- ]?bar row/i],exclude:[/landmine/i,/meadows/i]},
+  'Prostowanie tułowia':{include:[/hyperextension/i,/back extension/i],exclude:[/reverse hyper/i]},
+  'Odwrotne rozpiętki':{include:[/dumbbell (bent[- ]over )?(rear delt fly|reverse fly)/i,/bent[- ]over dumbbell (rear delt fly|reverse fly)/i],exclude:[/cable/i,/machine/i,/pec deck/i,/seated/i,/prone/i,/siadzie/i]},
+  'Odwrotne rozpiętki maszyna':{include:[/reverse pec deck/i,/rear delt machine fly/i]},
+  'Odwrotne rozpiętki na wyciągu':{include:[/cable rear delt fly/i]},
+  'Unoszenie bokiem w opadzie':{include:[/dumbbell bent[- ]over (lateral raise|rear delt fly)/i],exclude:[/cable/i]},
+  'Unoszenie bokiem':{include:[/dumbbell lateral raise/i],exclude:[/bent[- ]over/i,/opadzie/i,/seated/i,/siadzie/i,/barbell/i,/sztang/i],prefer:[/w staniu/i,/standing/i]},
+  'Wyciskanie hantli siedząc':{include:[/seated dumbbell (shoulder|overhead) press/i],exclude:[/single[- ]arm/i,/jednostronn/i,/incline/i,/arnold/i]},
+  'Wyciskanie barków maszyna':{include:[/machine shoulder press/i]},
+  'Wyciskanie hantla jednorącz nad głowę':{include:[/single[- ]arm seated dumbbell shoulder press/i,/single[- ]arm dumbbell overhead press/i]},
+  'Wyciskanie żołnierskie OHP':{include:[/barbell (overhead|military|shoulder) press/i],exclude:[/dumbbell/i,/hantl/i,/seated/i,/siedz/i,/push press/i,/arnold/i]},
+  'Wyciskanie Arnolda':{include:[/arnold press/i],exclude:[/military press/i,/overhead press\)/i]},
+  'Unoszenie przodem':{include:[/dumbbell front raise/i],exclude:[/plate/i,/talerz/i,/lateral/i]},
+  'Wiosłowanie pionowe':{include:[/upright row/i]},
+  'Uginanie biceps sztangą':{include:[/barbell bicep curl/i],exclude:[/preacher/i,/modlitewnik/i,/ez bar/i]},
+  'Uginanie młotkowe':{include:[/dumbbell hammer curl/i],exclude:[/seated/i,/siedz/i,/preacher/i,/scott/i,/incline/i,/sko[sś]n/i]},
+  'Uginanie hantlami naprzemiennie':{include:[/dumbbell bicep curl/i],exclude:[/hammer/i,/młotk/i,/preacher/i,/incline/i]},
+  'Uginanie na wyciągu':{include:[/standing cable curl/i],exclude:[/high pulley/i,/górnym/i]},
+  'Uginanie na modlitewniku':{include:[/preacher curl/i],exclude:[/hammer/i,/młotk/i,/incline/i]},
+  'Uginanie na skosie':{include:[/incline dumbbell bicep curl/i]},
+  'Prostowanie tricepsa wyciąg':{include:[/cable triceps? pushdown/i],exclude:[/one[- ]arm/i,/single[- ]arm/i,/jednor[aą]cz/i,/kickback/i,/overhead/i,/rope/i]},
+  'Prostowanie jednorącz wyciąg':{include:[/single[- ]arm cable triceps pushdown/i,/one[- ]arm cable tricep/i]},
+  'Kickback na wyciągu':{include:[/cable tricep kickback/i]},
+  'Kickback triceps':{include:[/cable tricep kickback/i]},
+  'Przysiad ze sztangą':{include:[/barbell back squat/i],exclude:[/smith/i,/suwnic/i,/wide stance/i,/szeroki/i,/sumo/i,/front squat/i,/karku/i,/narrow/i,/wąski rozstaw/i]},
+  'Przysiad w bramie Smith':{include:[/smith machine (barbell back )?squat/i]},
+  'Przysiad sumo':{include:[/sumo squat/i,/wide stance squat/i],exclude:[/dumbbell/i,/hantel/i,/goblet/i,/barbell sumo squat \(front/i,/smith/i]},
+  'Przysiad sumo z hantlem':{include:[/dumbbell sumo squat/i,/sumo (goblet )?squat with dumbbell/i]},
+  'Przysiad Goblet':{include:[/goblet squat/i],exclude:[/sumo/i,/bulgarian/i]},
+  'Przysiad bułgarski':{include:[/bulgarian split squat/i]},
+  'Przysiad przedni':{include:[/barbell front squat/i],exclude:[/goblet/i,/smith/i,/sumo/i]},
+  'Wyciskanie nogami':{include:[/leg press/i],exclude:[/single[- ]leg/i,/jednon[oó]/i,/jednostronn/i]},
+  'Wyciskanie nogami jednonóż':{include:[/single[- ]leg press/i]},
+  'Wykrok z hantlami':{include:[/dumbbell lunge/i],exclude:[/barbell/i,/step[- ]up/i,/bulgarian/i,/walking/i,/chód/i]},
+  'Wykrok chodzony':{include:[/walking lunge/i]},
+  'Wykrok ze sztangą':{include:[/barbell lunge/i]},
+  'Wyprosty nóg maszyna':{include:[/leg extension/i]},
+  'Uginanie nóg maszyna':{include:[/lying leg curl/i]},
+  'Uginanie nóg leżąc':{include:[/lying leg curl/i]},
+  'Wspięcia na palce':{include:[/standing (dumbbell )?calf raise/i],exclude:[/band/i,/gum[aą]/i,/ankle/i,/dorsiflexion/i,/mobility/i],prefer:[/dumbbell/i,/hantl/i]},
+  'Wspięcia na palce stojąc':{include:[/standing (dumbbell )?calf raise/i],exclude:[/ankle/i,/dorsiflexion/i,/mobility/i]},
+  'Abdukcja biodra maszyna':{include:[/hip abduction machine/i],exclude:[/lying/i,/leż/i,/kickback/i],prefer:[/seated/i]},
+  'Przywodzenie biodra maszyna':{include:[/przywodzenie n[oó]g na maszynie/i,/seated hip adduction/i],exclude:[/odwodzen/i,/abduction/i,/standing/i,/ta[sś]m/i,/band/i]},
+  'Odwodzenie biodra leżąc':{include:[/side[- ]lying hip abduction/i],exclude:[/machine/i,/maszyn/i]},
+  'Kickback na maszynie':{include:[/machine glute kickback/i,/kickback na maszynie/i],exclude:[/cable glute/i,/na wyci[aą]gu/i,/prone/i,/le[zż]eniu/i]},
+  'Kickback pośladki':{include:[/glute kickback/i]},
+  'Mostek biodrowy':{include:[/glute bridge/i],exclude:[/hip thrust/i,/mini band/i,/aktywacja/i]},
+  'Wypychanie bioder (hip thrust)':{include:[/hip thrust/i],exclude:[/glute bridge/i]},
+  'Rollout z kółkiem':{include:[/ab wheel rollout/i]},
+  'Nożyce':{include:[/scissor kicks/i],exclude:[/flutter/i]},
+  'Unoszenie nóg leżąc':{include:[/lying leg raises?/i],exclude:[/decline/i,/reverse crunch/i,/hip lift/i,/scissor/i,/bicycle/i,/no[zż]yc/i]},
+  'Brzuszki rowerowe':{include:[/bicycle crunch/i]},
+  'Skręty rosyjskie':{include:[/russian twist/i]},
+  'Wyciskanie z podłogi':{include:[/barbell floor press/i],exclude:[/dumbbell/i]},
+  'Wyciskanie hantli na podłodze':{include:[/dumbbell floor press/i]},
+  'Wyciskanie na maszynie':{include:[/machine chest press/i],exclude:[/incline/i,/shoulder/i,/leg press/i,/fly/i,/crossover/i,/pulldown/i,/ściąganie/i,/cable/i]},
+  'Wyciskanie landmine':{include:[/landmine press/i],exclude:[/lateral/i,/thruster/i]},
+  'Hip hinge z taśmą':{include:[/band hip hinge/i,/hip hinge.*band/i],exclude:[/bodyweight/i,/bez obciążenia/i]},
+  'Deska':{include:[/prone plank/i,/\bfront plank\b/i],exclude:[/side plank/i,/boczn/i,/shoulder tap/i]},
+  'Prostowanie za głowę (skull crusher)':{include:[/skull crusher/i,/lying (dumbbell )?tricep/i],exclude:[/overhead/i,/seated/i]}
+};
+window.EX_MEDIA_FILE_ALIASES=EX_MEDIA_FILE_ALIASES;
 
 /** Klucze do szukania mediów: pełna nazwa, alias w nawiasie, część przed pauzą. */
 function exerciseLookupKeys(name){

@@ -32,6 +32,7 @@ function ok(name, cond, extra) {
 }
 
 ok('exerciseSlug', ctx.exerciseSlug('Wyciskanie sztangi leżąc') === 'wyciskanie-sztangi-lezac');
+ok('exerciseSlug plus', ctx.exerciseSlug('Wyciskanie hantli skos+') === 'wyciskanie-hantli-skos-plus');
 ok('manifest lookup', ctx.exGifMapLookup('Wyciskanie sztangi leżąc') === 'assets/ex/gifs/bench.gif');
 ok('remote lookup', ctx.exGifMapLookup('Podciąganie na drążku') === 'https://cdn.example.com/pull.gif');
 ok('exGifUrl from manifest', ctx.exGifUrl('Wyciskanie sztangi leżąc') === 'assets/ex/gifs/bench.gif');
