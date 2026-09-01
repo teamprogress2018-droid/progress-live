@@ -50,6 +50,10 @@ windowObj.EX_GIF_MANIFEST = { 'wyciskanie sztangi leżąc': mp4, 'wyciskanie-szt
 windowObj.EX_PHOTO_MANIFEST = { 'wyciskanie sztangi leżąc': 'https://example.com/bench.jpg' };
 ok('exGifUrl prefers mp4 from manifest', ctx.exGifUrl({ name: 'Wyciskanie sztangi leżąc' }) === mp4);
 ok('exThumbUrl skips mp4 for photo', ctx.exThumbUrl({ name: 'Wyciskanie sztangi leżąc', img: 'assets/ex/bench.svg' }) === 'https://example.com/bench.jpg');
+const hackGif = 'assets/ex/gifs/przysiad-hack-maszyna.gif';
+windowObj.EX_GIF_MANIFEST = { 'przysiad hack maszyna': hackGif, 'przysiad-hack-maszyna': hackGif };
+windowObj.EX_PHOTO_MANIFEST = { 'przysiad hack maszyna': 'https://example.com/hack.jpg' };
+ok('exThumbUrl prefers gif over photo', ctx.exThumbUrl({ name: 'Przysiad hack maszyna' }) === hackGif);
 const vhtml = ctx.exTechniqueMediaHtml({ gif: mp4, name: 'Wyciskanie sztangi leżąc' }, {});
 ok('mp4 technique uses video tag', vhtml.includes('<video') && vhtml.includes(mp4) && !vhtml.includes('<img'));
 

@@ -1,4 +1,5 @@
-/** Filmy techniki (progress-live-video-assets @ d7dcf95c296a). Generuj: node .github/scripts/build_ex_video_manifest.js */
+/** Filmy techniki (progress-live-video-assets @ d7dcf95c296a). Generuj: node .github/scripts/build_ex_video_manifest.js
+ *  Wyjątek: Przysiad hack maszyna → lokalny GIF (karty biblioteki; MP4 nie odtwarza się w <img>). */
 window.EX_GIF_MANIFEST={
   "wyciskanie sztangi leżąc": "https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Wyciskanie%20sztangi%20na%20%C5%82awce%20poziomej%20(Barbell%20Bench%20Press).mp4",
   "wyciskanie-sztangi-lezac": "https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Wyciskanie%20sztangi%20na%20%C5%82awce%20poziomej%20(Barbell%20Bench%20Press).mp4",
@@ -237,6 +238,12 @@ window.EX_GIF_MANIFEST={
   "przysiad-przedni": "https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Przysiad%20ze%20sztang%C4%85%20trzyman%C4%85%20z%20przodu%20(front%20squat)%20(Barbell%20Front%20Squat).mp4",
   "front squat": "https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Przysiad%20ze%20sztang%C4%85%20trzyman%C4%85%20z%20przodu%20(front%20squat)%20(Barbell%20Front%20Squat).mp4",
   "front-squat": "https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Przysiad%20ze%20sztang%C4%85%20trzyman%C4%85%20z%20przodu%20(front%20squat)%20(Barbell%20Front%20Squat).mp4",
+  "przysiad hack maszyna": "assets/ex/gifs/przysiad-hack-maszyna.gif",
+  "przysiad-hack-maszyna": "assets/ex/gifs/przysiad-hack-maszyna.gif",
+  "hack squat maszyna": "assets/ex/gifs/przysiad-hack-maszyna.gif",
+  "hack-squat-maszyna": "assets/ex/gifs/przysiad-hack-maszyna.gif",
+  "hack squat": "assets/ex/gifs/przysiad-hack-maszyna.gif",
+  "hack-squat": "assets/ex/gifs/przysiad-hack-maszyna.gif",
   "wyciskanie nogami": "https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Wyciskanie%20n%C3%B3g%20na%20suwnicy%20(leg%20press)%20(Leg%20Press%20Machine).mp4",
   "wyciskanie-nogami": "https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Wyciskanie%20n%C3%B3g%20na%20suwnicy%20(leg%20press)%20(Leg%20Press%20Machine).mp4",
   "leg press": "https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Wyciskanie%20n%C3%B3g%20na%20suwnicy%20(leg%20press)%20(Leg%20Press%20Machine).mp4",

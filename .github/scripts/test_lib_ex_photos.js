@@ -72,6 +72,18 @@ windowObj.EX_GIF_MANIFEST = {
 ok('thumb skips mp4 keeps photo', /free-exercise-db|githubusercontent/.test(ctx.exThumbUrl({ name: 'Wyciskanie sztangi leżąc', img: 'assets/ex/bench.svg' })));
 ok('gif url still mp4', /\.mp4/.test(ctx.exGifUrl({ name: 'Wyciskanie sztangi leżąc' })));
 
+const hackGif = 'assets/ex/gifs/przysiad-hack-maszyna.gif';
+ok('hack squat gif file', fs.existsSync(path.join(root, hackGif)));
+windowObj.EX_GIF_MANIFEST = {
+  'przysiad hack maszyna': hackGif,
+  'przysiad-hack-maszyna': hackGif,
+  'hack squat maszyna': hackGif,
+  'hack-squat-maszyna': hackGif,
+};
+ok('hack squat thumb is gif not jpg', ctx.exThumbUrl({ name: 'Przysiad hack maszyna' }) === hackGif);
+ok('hack squat aka thumb is gif', ctx.exThumbUrl({ name: 'Hack squat maszyna' }) === hackGif);
+ok('hack squat gif is not treated as video', !ctx.isVideoMediaUrl(hackGif));
+
 if (failed) {
   console.error(failed + ' failed');
   process.exit(1);
