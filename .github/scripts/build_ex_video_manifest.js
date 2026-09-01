@@ -108,6 +108,7 @@ function pickBestAliasFile(ctx, files, spec, usedFiles) {
   let best = null;
   for (const file of files) {
     if (usedFiles.has(file)) continue;
+    if (ctx.isKnownLyingMediaFilename && ctx.isKnownLyingMediaFilename(file)) continue;
     const parsed = ctx.parseExerciseMediaFilename(file);
     if (!parsed || parsed.junk) continue;
     if (!ctx.aliasSpecMatchesFile(spec, parsed)) continue;
@@ -209,7 +210,39 @@ function main() {
     }
   }
   const CHEST_UNMAP = ['Wyciskanie sztangi skos−', 'Rozpiętki jednorącz wyciąg', 'Pompki szerokie'];
-  for (const name of CHEST_UNMAP) {
+  const BACK_FORCE = [
+    { name: 'Wiosłowanie sztangą', file: 'Podciąganie na drążku nachwytem (podciąganie na drążku) (Pull-up (overhand grip)).mp4' },
+    { name: 'Wiosłowanie hantlem', file: 'Wiosłowanie hantlem w opadzie tułowia z podporem na ławce (jednorącz) (Single-Arm Dumbbell Row).mp4' },
+    { name: 'Wiosłowanie hantlami oburącz', file: 'Odwrotne rozpiętki z hantlami w opadzie tułowia (Bent-Over Dumbbell Reverse Fly).mp4' },
+    { name: 'Unoszenie barków hantlami', file: 'Wiosłowanie hantlą w opadzie tułowia (Dumbbell Bent-Over Row).mp4' },
+    { name: 'Ściąganie prostymi rękami', file: 'Odciąganie linek wyciągu górnego w opadzie tułowia (prostowanie ramion na wyciągu) (Cable Pull-Through Straight-Arm Cable Pulldown (bent-over)).mp4' },
+  ];
+  for (const loc of BACK_FORCE) {
+    const ex = byName.get(loc.name);
+    if (!ex || !files.includes(loc.file)) continue;
+    addKeys(ctx, manifest, ex, videoUrl(sha, loc.file), true);
+    const row = matched.find((m) => m.name === loc.name);
+    if (row) {
+      row.file = loc.file;
+      row.via = 'back';
+    } else {
+      matched.push({ name: loc.name, file: loc.file, score: 0, via: 'back' });
+    }
+  }
+  const BACK_UNMAP = [
+    'Wiosłowanie Pendlay',
+    'Podciąganie na drążku',
+    'Martwy ciąg RDL',
+    'Wiosłowanie odwrócone',
+    'Wiosłowanie wyciągiem jednorącz',
+    'Ściąganie drążka jednorącz',
+    'Odwrotne rozpiętki',
+    'Unoszenie barków sztangą',
+    'Unoszenie bokiem w opadzie',
+    'Odwrotne rozpiętki na wyciągu',
+  ];
+  const CHEST_AND_BACK_UNMAP = CHEST_UNMAP.concat(BACK_UNMAP);
+  for (const name of CHEST_AND_BACK_UNMAP) {
     const ex = byName.get(name);
     if (!ex) continue;
     const keys = [];

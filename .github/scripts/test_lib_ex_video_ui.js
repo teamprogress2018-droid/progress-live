@@ -194,6 +194,27 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'lib_facepull_detail.png') });
   ok('face pull detail video', /Face%20Pull|Face Pull/i.test(decodeURIComponent(face.src || '')) && /\.mp4/i.test(face.src), face.src.slice(0, 160));
 
+  const bbrow = await detailMedia('Wiosłowanie sztangą');
+  await page.screenshot({ path: path.join(shotDir, 'lib_barbell_row_detail.png') });
+  ok('barbell row detail title', bbrow.title === 'Wiosłowanie sztangą', bbrow.title);
+  ok(
+    'barbell row plays verified clip',
+    bbrow.hasVideo && /podci%C4%85ganie%20na%20dr%C4%85%C5%BCku%20nachwytem%20\(podci%C4%85ganie/i.test(bbrow.src),
+    (bbrow.src || '').slice(0, 180)
+  );
+
+  const shrugs = await detailMedia('Unoszenie barków hantlami');
+  await page.screenshot({ path: path.join(shotDir, 'lib_db_shrug_detail.png') });
+  ok('db shrug detail title', shrugs.title === 'Unoszenie barków hantlami', shrugs.title);
+  ok(
+    'db shrug plays bent-over-row-named clip',
+    shrugs.hasVideo && /Dumbbell%20Bent-Over%20Row/i.test(shrugs.src),
+    (shrugs.src || '').slice(0, 180)
+  );
+
+  const pendlay = await detailMedia('Wiosłowanie Pendlay');
+  ok('pendlay has no lying mp4', !pendlay.hasVideo, JSON.stringify(pendlay).slice(0, 200));
+
   await page.evaluate(() => {
     if (typeof goTo === 'function') goTo('library');
     const inp = document.getElementById('ex-search');
