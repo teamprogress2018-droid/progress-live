@@ -909,6 +909,7 @@ window.aliasSpecMatchesFile=aliasSpecMatchesFile;
 
 function scoreFilenameAgainstExercise(parsed,ex){
   if(!parsed||parsed.junk||!ex||!ex.name)return -1;
+  if(isKnownLyingMediaFilename(parsed.filename||parsed.base))return -1;
   const spec=(window.EX_MEDIA_FILE_ALIASES||{})[ex.name];
   if(spec){
     const hayAll=[parsed.filename,parsed.base,parsed.pl,parsed.en].filter(Boolean).join(' \n ');
@@ -970,6 +971,61 @@ function matchFilenameToExercise(filename,exercises){
   return scored[0].name;
 }
 window.matchFilenameToExercise=matchFilenameToExercise;
+
+/** Pliki, których treść (klatki) nie zgadza się z etykietą. Matcher ich nie przypisuje. */
+const EX_MEDIA_FILENAME_LIES={
+  'Wiosłowanie sztangą w opadzie tułowia (Barbell Bent-Over Row).mp4':1,
+  'Wiosłowanie sztangą w opadzie tułowia (Barbell Row) (Barbell Bent-Over Row).mp4':1,
+  'Wiosłowanie sztangą w opadzie tułowia (podchwytem) (Barbell Bent-Over Row (underhand grip)).mp4':1,
+  'Wiosłowanie sztangą w opadzie tułowia (podchwyt) (Barbell Bent-Over Row (underhand grip)).mp4':1,
+  'Wiosłowanie sztangą w opadzie tułowia (Bent-Over Barbell Row).mp4':1,
+  'Wiosłowanie sztangą w podporze (Pendlay Row) (Barbell Row Pendlay Row).mp4':1,
+  'Wiosłowanie sztangą w oparciu o klatkę piersiową (wiosłowanie Pendlaya) (Pendlay Row Barbell Row (chest-supported incline bench barbell row)).mp4':1,
+  'Wiosłowanie sztangą w oparciu o ławkę (wiosłowanie Pendlay\'a wiosłowanie podchwytem) (Barbell Row (Chest-Supported Barbell Row Seal Row)).mp4':1,
+  'Wiosłowanie sztangą w oparciu o ławkę (wiosłowanie Pendlay\'a wiosłowanie poziome sztangą) (Barbell Row (Pendlay Row Bent-Over Barbell Row)).mp4':1,
+  'Wiosłowanie sztangą podchwytem (wiosłowanie Pendlay) (Barbell Bent-Over Row (Underhand Grip Pendlay Row)).mp4':1,
+  'Wiosłowanie sztangą podchwytem (wiosłowanie Pendlay\'a) w oparciu o ławkę poziomą (Barbell Bent-Over Row (Chest-Supported Barbell Row on Incline Bench)).mp4':1,
+  'Wiosłowanie sztangą podchwytem (odwrotnym chwytem) (Barbell Bent-Over Row (Underhand Grip Reverse Grip)).mp4':1,
+  'Wiosłowanie sztangą podchwytem (uchwyt neutralny) w opadzie tułowia (Barbell Row with Neutral Grip).mp4':1,
+  'Wiosłowanie sztangą na ławce skośnej (podparte) (Incline Bench Barbell Row).mp4':1,
+  'Wiosłowanie sztangą podchwytem na ławce skośnej (Incline Bench Barbell Row (underhand grip)).mp4':1,
+  'Wiosłowanie sztangą podchwytem na ławce skośnej (Pendlay Row) (Incline Bench Barbell Row).mp4':1,
+  'Wiosłowanie jednorączne na ławce (z hantlem) (Single-Arm Dumbbell Row).mp4':1,
+  'Wiosłowanie hantlą w opadzie tułowia (Dumbbell Bent-Over Row).mp4':1,
+  'Wiosłowanie hantlami w opadzie tułowia (Dumbbell Bent-Over Row).mp4':1,
+  'Odwrotne rozpiętki z hantlami w opadzie tułowia (Bent-Over Dumbbell Reverse Fly).mp4':1,
+  'Odwodzenie ramienia z hantlą w opadzie tułowia (odwrotne rozpięcie z hantlami) (Dumbbell Bent-Over Rear Delt Fly (Reverse Dumbbell Fly)).mp4':1,
+  'Odwodzenie ramienia z hantlą w opadzie tułowia (Dumbbell Bent-Over Rear Delt Fly).mp4':1,
+  'Odwodzenie ramion w opadzie tułowia na wyciągu (Bent-Over Cable Rear Delt Fly).mp4':1,
+  'Podciąganie na drążku nachwytem (Pull-up (overhand grip)).mp4':1,
+  'Podciąganie nachwytem na drążku (Pull-Up (Overhand Grip)).mp4':1,
+  'Podciąganie na drążku nachwytem (podciąganie na drążku) (Pull-up (overhand grip)).mp4':1,
+  'Ściąganie drążka wyciągu górnego nachwytem (przed głowę) (Lat Pulldown (overhand grip)).mp4':1,
+  'Wiosłowanie w leżeniu na drążku (Australian Pull-up) (Australian Pull-up Inverted Row).mp4':1,
+  'Wiosłowanie w leżeniu na drążku (Australian Pull-up) (Australian Pull-up (Inverted Row Body Row)).mp4':1,
+  'Wiosłowanie w leżeniu na drążku (Australian Pull-up Inverted Row) (Inverted Row (Australian Pull-up Body Row)).mp4':1,
+  'Australijskie podciąganie (wiosłowanie w leżeniu na drążku) (Australian Pull-Up (Inverted Row)).mp4':1,
+  'Australijskie podciąganie na drążku (wiosłowanie w leżeniu na drążku) (Australian Pull-Up (Inverted Row)).mp4':1,
+  'Martwy ciąg rumuński ze sztangą (Barbell Romanian Deadlift (RDL)).mp4':1,
+  'Martwy ciąg na prostych nogach (bez obciążenia bodyweight) (Bodyweight Stiff-Leg Deadlift (Good Morning)).mp4':1,
+  'Odpychanie na wyciągu górnym (prostowanie ramion na wyciągu) (Cable Straight-Arm Pulldown).mp4':1,
+  'Przyciąganie linki wyciągu górnego jednorącz w opadzie tułowia (rowing jednoręczne na wyciągu) (Single-arm cable row (bent-over)).mp4':1,
+  'Ściąganie drążka wyciągu górnego jednorącz (w poprzek ciała) (Single-Arm Cable Pulldown (Cross-Body)).mp4':1,
+  'Wznosy ramion ze sztangą hantlami (szrugsy) – wzruszanie ramionami (Barbell Dumbbell Shrugs).mp4':1,
+  'Wznosy ramion z hantlami w górę (szragi z hantlami) (Dumbbell Shrugs).mp4':1,
+  'Wzruszanie ramionami (szragi) z hantlami (Dumbbell Shrugs).mp4':1,
+  'Wiosłowanie siedząc na wyciągu dolnym (uchwyt jednorączny) (Seated Single-Arm Cable Row).mp4':1
+};
+function exerciseMediaBasename(filename){
+  let raw=String(filename||'').split(/[/\\]/).pop()||'';
+  try{raw=decodeURIComponent(raw);}catch(e){}
+  return raw.replace(/\s*\(\d+\)(?=\.(gif|webp|mp4|webm)$)/i,'').trim();
+}
+function isKnownLyingMediaFilename(filename){
+  return !!EX_MEDIA_FILENAME_LIES[exerciseMediaBasename(filename)];
+}
+window.isKnownLyingMediaFilename=isKnownLyingMediaFilename;
+window.EX_MEDIA_FILENAME_LIES=EX_MEDIA_FILENAME_LIES;
 
 /** PL nazwa DEF_EX → filtry na nazwę pliku (PL + EN). Dopasowanie ostrożne — bez zgadywania. */
 const EX_MEDIA_FILE_ALIASES={

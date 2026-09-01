@@ -79,6 +79,44 @@ ok('hack squat maps to local gif', /przysiad-hack-maszyna\.gif$/.test(MAN['przys
 ok('pec deck maps to local gif', /butterfly-peck-deck\.gif$/.test(MAN['butterfly (peck deck)'] || ''));
 ok('pec deck aka maps to local gif', /butterfly-peck-deck\.gif$/.test(MAN['rozpiętki na maszynie'] || ''));
 ok('pec deck not mislabeled mp4', !/\.mp4/i.test(MAN['butterfly (peck deck)'] || ''));
+ok(
+  'barbell row uses pull-up-named clip',
+  /podci%C4%85ganie%20na%20dr%C4%85%C5%BCku%20nachwytem%20\(podci%C4%85ganie/i.test(MAN['wiosłowanie sztangą'] || ''),
+  (MAN['wiosłowanie sztangą'] || '').slice(0, 180)
+);
+ok(
+  'one-arm db row is bench-supported',
+  /podporem%20na%20%C5%82awce|Single-Arm%20Dumbbell%20Row/i.test(MAN['wiosłowanie hantlem'] || '') &&
+    !/jednor%C4%85czne%20na%20%C5%82awce%20\(z%20hantlem\)/i.test(MAN['wiosłowanie hantlem'] || ''),
+  (MAN['wiosłowanie hantlem'] || '').slice(0, 180)
+);
+ok(
+  'db shrugs uses bent-over-row-named clip',
+  /Wios%C5%82owanie%20hantl%C4%85%20w%20opadzie%20tu%C5%82owia%20\(Dumbbell%20Bent-Over%20Row\)/i.test(MAN['unoszenie barków hantlami'] || ''),
+  (MAN['unoszenie barków hantlami'] || '').slice(0, 180)
+);
+ok(
+  'two-arm db row uses reverse-fly-named clip',
+  /Bent-Over%20Dumbbell%20Reverse%20Fly/i.test(MAN['wiosłowanie hantlami oburącz'] || ''),
+  (MAN['wiosłowanie hantlami oburącz'] || '').slice(0, 180)
+);
+ok(
+  'straight-arm pulldown is bent-over cable',
+  /Straight-Arm%20Cable%20Pulldown%20\(bent-over\)/i.test(MAN['ściąganie prostymi rękami'] || ''),
+  (MAN['ściąganie prostymi rękami'] || '').slice(0, 180)
+);
+ok(
+  'lat pulldown is to-chest clip not pec-deck-named',
+  /do%20klatki%20piersiowej/i.test(MAN['ściąganie drążka wyciąg'] || '') &&
+    !/przed%20g%C5%82ow/i.test(MAN['ściąganie drążka wyciąg'] || ''),
+  (MAN['ściąganie drążka wyciąg'] || '').slice(0, 180)
+);
+ok('no pendlay lying clip', !MAN['wiosłowanie pendlay'] && !MAN['pendlay row']);
+ok('no rdl lying clip', !MAN['martwy ciąg rdl'] && !MAN['martwy-ciag-rdl']);
+ok('no inverted-row lying clip', !MAN['wiosłowanie odwrócone'] && !MAN['inverted row']);
+ok('no standard pull-up pec-deck clip', !MAN['podciąganie na drążku']);
+ok('wide pull-up stays mapped', /Wide-Grip%20Pull-Up/i.test(MAN['podciąganie szerokim chwytem'] || ''));
+ok('deadlift stays mapped', /Barbell%20Deadlift/i.test(MAN['martwy ciąg klasyczny'] || ''));
 
 const document = { querySelectorAll: () => [], getElementById: () => null, addEventListener() {} };
 const windowObj = {
@@ -124,6 +162,9 @@ ok('single-arm fly has no technique clip', !ctx.exGifUrl({ name: 'Rozpiętki jed
 ok('wide push-up has no technique clip', !ctx.exGifUrl({ name: 'Pompki szerokie' }));
 ok('knee push-up gif is wide-grip-named mp4', /Wide-Grip%20Push-Up/i.test(ctx.exGifUrl({ name: 'Pompki na kolanach' }) || ''));
 ok('low-to-high gif is standing crossover', /stoj%C4%85c/i.test(ctx.exGifUrl({ name: 'Krzyżowanie wyciągów dół–góra' }) || ''));
+ok('barbell row gif is verified clip', /podci%C4%85ganie%20na%20dr%C4%85%C5%BCku%20nachwytem%20\(podci%C4%85ganie/i.test(ctx.exGifUrl({ name: 'Wiosłowanie sztangą' }) || ''));
+ok('pendlay has no technique clip', !ctx.exGifUrl({ name: 'Wiosłowanie Pendlay' }));
+ok('rdl has no technique clip', !ctx.exGifUrl({ name: 'Martwy ciąg RDL' }));
 
 const html = ctx.exTechniqueMediaHtml({ gif, name: 'Wyciskanie sztangi leżąc' }, {});
 ok('technique html is video', /<video/.test(html) && /autoplay/.test(html) && !/<img/.test(html), html.slice(0, 180));
