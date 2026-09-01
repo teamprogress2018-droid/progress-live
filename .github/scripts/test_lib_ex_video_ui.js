@@ -415,6 +415,31 @@ function ok(name, cond, extra) {
   const smithSq = await detailMedia('Przysiad w bramie Smith');
   ok('smith squat has no lying mp4', !smithSq.hasVideo, JSON.stringify(smithSq).slice(0, 200));
 
+  const lyingCurl = await detailMedia('Uginanie nóg leżąc');
+  await page.screenshot({ path: path.join(shotDir, 'lib_ham_lying_curl_detail.png') });
+  ok('lying curl detail title', lyingCurl.title === 'Uginanie nóg leżąc', lyingCurl.title);
+  ok(
+    'lying curl plays outer-hamstrings clip',
+    lyingCurl.hasVideo && /Outer%20Hamstrings|cz%C4%99%C5%9B%C4%87%20zewn%C4%99trzna/i.test(lyingCurl.src),
+    (lyingCurl.src || '').slice(0, 180)
+  );
+
+  const machineCurl = await detailMedia('Uginanie nóg maszyna');
+  await page.screenshot({ path: path.join(shotDir, 'lib_ham_machine_curl_detail.png') });
+  ok('machine curl detail title', machineCurl.title === 'Uginanie nóg maszyna', machineCurl.title);
+  ok(
+    'machine curl plays wide-stance clip',
+    machineCurl.hasVideo && /wide%20stance|g%C5%82owa%20g%C5%82%C4%99boka/i.test(machineCurl.src),
+    (machineCurl.src || '').slice(0, 180)
+  );
+
+  const rdl = await detailMedia('Martwy ciąg RDL');
+  ok('rdl has no lying mp4', !rdl.hasVideo, JSON.stringify(rdl).slice(0, 200));
+  const nordic = await detailMedia('Uginanie nordyckie');
+  ok('nordic has no lying mp4', !nordic.hasVideo, JSON.stringify(nordic).slice(0, 200));
+  const seatedHam = await detailMedia('Uginanie nóg siedząc');
+  ok('seated curl has no lying mp4', !seatedHam.hasVideo, JSON.stringify(seatedHam).slice(0, 200));
+
   const shoulderCard = await libCard('Unoszenie bokiem');
   await page.screenshot({ path: path.join(shotDir, 'lib_shoulder_lateral_card.png') });
   ok(

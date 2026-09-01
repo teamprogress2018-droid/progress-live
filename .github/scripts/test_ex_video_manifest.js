@@ -172,6 +172,20 @@ ok(
   /Leg%20Extension/i.test(MAN['wyprosty nóg maszyna'] || MAN['seated leg extension machine'] || ''),
   (MAN['wyprosty nóg maszyna'] || MAN['seated leg extension machine'] || '').slice(0, 160)
 );
+ok(
+  'lying leg curl is outer-hamstrings clip',
+  /Outer%20Hamstrings|cz%C4%99%C5%9B%C4%87%20zewn%C4%99trzna/i.test(MAN['uginanie nóg leżąc'] || ''),
+  (MAN['uginanie nóg leżąc'] || '').slice(0, 180)
+);
+ok(
+  'machine leg curl is wide-stance clip',
+  /wide%20stance|g%C5%82owa%20g%C5%82%C4%99boka/i.test(MAN['uginanie nóg maszyna'] || ''),
+  (MAN['uginanie nóg maszyna'] || '').slice(0, 180)
+);
+ok('no seated leg curl clip', !MAN['uginanie nóg siedząc'] && !MAN['seated leg curl']);
+ok('no nordic curl clip', !MAN['uginanie nordyckie'] && !MAN['nordic curl']);
+ok('no stiff-leg deadlift clip', !MAN['martwy ciąg na sztywnych nogach'] && !MAN['stiff-leg deadlift']);
+ok('no good-morning clip', !MAN['good morning (skłon)'] && !MAN['good morning']);
 
 const document = { querySelectorAll: () => [], getElementById: () => null, addEventListener() {} };
 const windowObj = {
@@ -262,6 +276,20 @@ ok(
   /Dumbbell%20Lunge/i.test(ctx.exGifUrl({ name: 'Wykrok z hantlami' }) || '') &&
     !/Walking/i.test(ctx.exGifUrl({ name: 'Wykrok z hantlami' }) || '')
 );
+ok(
+  'lying leg curl gif is outer-hamstrings clip',
+  /Outer%20Hamstrings|cz%C4%99%C5%9B%C4%87%20zewn%C4%99trzna/i.test(ctx.exGifUrl({ name: 'Uginanie nóg leżąc' }) || ''),
+  (ctx.exGifUrl({ name: 'Uginanie nóg leżąc' }) || '').slice(0, 180)
+);
+ok(
+  'machine leg curl gif is wide-stance clip',
+  /wide%20stance|g%C5%82owa%20g%C5%82%C4%99boka/i.test(ctx.exGifUrl({ name: 'Uginanie nóg maszyna' }) || ''),
+  (ctx.exGifUrl({ name: 'Uginanie nóg maszyna' }) || '').slice(0, 180)
+);
+ok('seated leg curl has no lying clip', !ctx.exGifUrl({ name: 'Uginanie nóg siedząc' }));
+ok('nordic curl has no lying clip', !ctx.exGifUrl({ name: 'Uginanie nordyckie' }));
+ok('stiff-leg deadlift has no lying clip', !ctx.exGifUrl({ name: 'Martwy ciąg na sztywnych nogach' }));
+ok('good morning has no lying clip', !ctx.exGifUrl({ name: 'Good morning (skłon)' }));
 
 const html = ctx.exTechniqueMediaHtml({ gif, name: 'Wyciskanie sztangi leżąc' }, {});
 ok('technique html is video', /<video/.test(html) && /autoplay/.test(html) && !/<img/.test(html), html.slice(0, 180));
