@@ -288,6 +288,7 @@ const ALIASES = {
   'Fire hydrant': 'Glute Kickback',
   'Mostek biodrowy — aktywacja': 'Butt Lift (Bridge)',
   'Wykrok boczny': 'Barbell Side Split Squat',
+  'Airbike': 'Recumbent Bike',
 };
 
 function normPhotoKey(s) {
@@ -399,7 +400,7 @@ function pickFedbName(pl, aka, cat, byNorm) {
   if (t(/\bclean\b|zarzut/)) return 'Clean';
   if (t(/thruster/)) return 'Kettlebell Thruster';
 
-  if (t(/airbike|air bike|assault|echo bike|fan bike/)) return 'Air Bike';
+  if (t(/airbike|assault bike|echo bike|fan bike|rower powietrzny/)) return 'Recumbent Bike';
   if (t(/recumbent|rower poziomy/)) return 'Recumbent Bike';
   if (t(/elliptical|orbitrek|eliptyk|crosstrainer/)) return 'Elliptical Trainer';
   if (t(/row(ing|er)|wioslarz|concept2|ergometr wios/)) return 'Rowing, Stationary';

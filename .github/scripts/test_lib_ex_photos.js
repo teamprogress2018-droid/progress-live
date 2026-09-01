@@ -137,7 +137,7 @@ const libMissing = allLib.filter((e) => {
   return !/free-exercise-db|githubusercontent/.test(thumb) || ctx.isDecorativeExAsset(thumb);
 });
 ok('all library exercises have still photos' + (libMissing.length ? ' — ' + libMissing.slice(0, 12).map((e) => e.name).join(', ') : ''), libMissing.length === 0);
-ok('airbike photo', /Air_Bike/.test(ctx.exThumbUrl({ name: 'Airbike' }) || ''));
+ok('airbike photo', /Recumbent_Bike/.test(ctx.exThumbUrl({ name: 'Airbike' }) || ''));
 ok('power clean photo', /Power_Clean/.test(ctx.exThumbUrl({ name: 'Zarzut siłowy' }) || ''));
 ok('snatch photo', /Snatch/.test(ctx.exThumbUrl({ name: 'Rwanie' }) || ''));
 ok('smith squat photo', /Smith_Machine_Squat/.test(ctx.exThumbUrl({ name: 'Przysiad w bramie Smith' }) || ''));

@@ -322,7 +322,7 @@ function ok(name, cond, extra) {
 
   const airbike = await libCard('Airbike');
   await page.screenshot({ path: path.join(shotDir, 'lib_airbike_card.png') });
-  ok('airbike card has photo', airbike.found && /Air_Bike/.test(airbike.img) && !airbike.placeholder && airbike.w > 0, JSON.stringify(airbike));
+  ok('airbike card has photo', airbike.found && /Recumbent_Bike/.test(airbike.img) && !airbike.placeholder && airbike.w > 0, JSON.stringify(airbike));
 
   const clean = await libCard('Zarzut siłowy');
   await page.screenshot({ path: path.join(shotDir, 'lib_power_clean_card.png') });
