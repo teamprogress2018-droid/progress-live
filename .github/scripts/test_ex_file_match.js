@@ -19,7 +19,7 @@ function ok(name, cond, extra) {
 
 ok('cache manifest v21', html.includes('ex-gif-manifest.js?v=21'));
 ok('cache 01 v48', html.includes('01-core.js?v=48'));
-ok('cache 06 v38', html.includes('06-inbox-exercises-ai-programs.js?v=38'));
+ok('cache 06 v38', html.includes('06-inbox-exercises-ai-programs.js?v=39'));
 
 const m = six.match(/const DEF_EX=\[([\s\S]*?)\];\s*window\.DEF_EX/);
 ok('DEF_EX block', !!m);

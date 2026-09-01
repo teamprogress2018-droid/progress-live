@@ -94,20 +94,33 @@ function ok(name, cond, extra) {
   await page.evaluate(() => {
     if (typeof openExDetail === 'function') openExDetail('Przysiad hack maszyna');
   });
+  await page.waitForSelector('#exd-body .ex-guide');
   await page.waitForSelector('#exd-body img.cw-technique-gif-img, #exd-body .cw-technique-gif img');
   const hackDetail = await page.evaluate(() => {
     const img = document.querySelector('#exd-body img.cw-technique-gif-img') || document.querySelector('#exd-body .cw-technique-gif img');
     const video = document.querySelector('#exd-body video');
+    const guide = document.querySelector('#exd-body .ex-guide');
+    const phases = [...document.querySelectorAll('#exd-body .ex-phase img')].map((el) => el.getAttribute('src') || '');
     return {
       title: (document.getElementById('exd-title') || {}).textContent || '',
       src: img ? img.getAttribute('src') : '',
-      hasVideo: !!video
+      hasVideo: !!video,
+      hasGuide: !!guide,
+      phases,
+      anatomy: !!(guide && guide.querySelector('.ex-anatomy img')),
+      stretch: !!(guide && guide.querySelector('.ex-stretch-lens img')),
+      heat: !!(guide && guide.querySelector('.ex-phase-heat')),
+      copy: guide ? (guide.innerText || '') : ''
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'lib_hack_squat_detail.png') });
   ok('hack squat detail title', hackDetail.title === 'Przysiad hack maszyna', hackDetail.title);
   ok('hack squat detail shows gif', /przysiad-hack-maszyna\.gif/.test(hackDetail.src), hackDetail.src);
   ok('hack squat detail has no mp4 video', !hackDetail.hasVideo);
+  ok('hack squat guide rendered', hackDetail.hasGuide && hackDetail.phases.length === 3, JSON.stringify(hackDetail.phases));
+  ok('hack squat phases from gif stills', hackDetail.phases.some((s) => /phase-start/.test(s)) && hackDetail.phases.some((s) => /phase-bottom/.test(s)));
+  ok('hack squat anatomy + stretch', hackDetail.anatomy && hackDetail.stretch && hackDetail.heat);
+  ok('hack squat stretch copy', /Pełne rozciągnięcie/i.test(hackDetail.copy) && /czworogł/i.test(hackDetail.copy));
 
   await page.evaluate(() => {
     if (typeof openExDetail === 'function') openExDetail('Wyciskanie sztangi leżąc');

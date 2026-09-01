@@ -563,7 +563,7 @@ const DEF_EX=[
 {name:'Wspięcia na palce jednonóż',cat:'Nogi',eq:'Własna masa',muscle:'Łydki (jednostronnie)',tip:'Trzymaj się czegoś dla balansu.',nsca:'3x15-20/noga.',alt:'Wspięcia na palce'},
 {name:'Wejścia na skrzynię',aka:'Step-up, Box Step Up',cat:'Nogi',eq:'Hantle',muscle:'Czworogłowy, Pośladki (jednostronnie)',tip:'Ciężar na pięcie.',nsca:'3x10-12/noga.',alt:'Wykrok, Przysiad bułgarski'},
 {name:'Martwy ciąg sumo',aka:'Sumo deadlift',cat:'Nogi',eq:'Sztanga',muscle:'Pośladki, Przywodziciele, Czworogłowy, Grzbiet',tip:'Szerokie ustawienie, palce na zewnątrz.',nsca:'3-5x3-6.',alt:'Martwy ciąg klasyczny'},
-{name:'Przysiad hack maszyna',aka:'Hack squat maszyna',cat:'Nogi',eq:'Maszyna',muscle:'Czworogłowy (głównie), Pośladki',tip:'Plecy płasko przy podparciu.',nsca:'3x10-12.',alt:'Wyciskanie nogami'},
+{name:'Przysiad hack maszyna',aka:'Hack squat maszyna, Hack squat, Przysiad na suwnicy',cat:'Nogi',eq:'Maszyna',muscle:'Czworogłowy (głównie), Pośladki',tip:'Plecy płasko przy podparciu. Schodź do pełnego rozciągnięcia czworogłowych — kolano wędruje w dół i lekko w przód.',nsca:'3x10-12.',alt:'Wyciskanie nogami'},
 {name:'Przysiad jednonóż (pistol)',aka:'Pistol Squat - Home, Pistol Squat',cat:'Nogi',eq:'Własna masa',muscle:'Czworogłowy, Pośladki, Stabilizacja',tip:'Zacznij od wersji na skrzynię.',nsca:'3x5-8/noga.',alt:'Przysiad bułgarski'},
 {name:'Przysiad na skrzynię',aka:'Box squat, Box Back Squat',cat:'Nogi',eq:'Sztanga',muscle:'Pośladki, Czworogłowy',tip:'Usiąść na skrzynię, zatrzymać się, wstać.',nsca:'4x5-6.',alt:'Przysiad ze sztangą'},
 {name:'RDL jednonóż',aka:'Single leg RDL, Single Leg DB RDL',cat:'Nogi',eq:'Hantle',muscle:'Pośladki, Dwugłowy uda (jednostronnie)',tip:'Biodra równo. Powolne opuszczanie.',nsca:'3x10-12/noga.',alt:'Martwy ciąg RDL, Przysiad bułgarski'},
@@ -1893,6 +1893,50 @@ function renderLib(){
   }
 }
 
+function exTechniqueGuideFor(ex){
+  const blob=[ex&&ex.name,ex&&ex.aka].filter(Boolean).join(' ').toLowerCase();
+  if(/przysiad hack|hack squat|przysiad na suwnicy/.test(blob))return 'hack-squat';
+  return '';
+}
+window.exTechniqueGuideFor=exTechniqueGuideFor;
+
+function exTechniqueGuideHtml(ex){
+  const id=exTechniqueGuideFor(ex);
+  if(id!=='hack-squat')return '';
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
+  const gif='assets/ex/gifs/przysiad-hack-maszyna.gif';
+  const phase=(src,label,extra)=>`<figure class="ex-phase${extra||''}"><img src="${esc(src)}" alt="${esc(label)}" loading="lazy" referrerpolicy="no-referrer">${extra&&extra.includes('is-depth')?'<span class="ex-phase-heat" aria-hidden="true"></span><span class="ex-phase-badge">Głęboko</span>':''}<figcaption>${esc(label)}</figcaption></figure>`;
+  return `<div class="ex-guide" data-guide="hack-squat">
+    <div class="ex-guide-kicker">Fazy ruchu</div>
+    <div class="ex-phase-row">
+      ${phase('assets/ex/hack/phase-start.jpg','Start')}
+      ${phase(gif,'Środek')}
+      ${phase('assets/ex/hack/phase-bottom.jpg','Dół · rozciągnięcie',' is-depth')}
+    </div>
+    <div class="ex-anatomy">
+      <img src="assets/ex/hack/anatomy.jpg" alt="Hack squat — czworogłowe jako cel" loading="lazy">
+      <div class="ex-anatomy-cap"><span class="ex-anatomy-dot"></span>Czworogłowy · cel</div>
+      <div class="ex-stretch-lens">
+        <img src="assets/ex/hack/stretch-lens.jpg" alt="Zbliżenie stawu kolanowego i biodrowego — pełne rozciągnięcie" loading="lazy">
+        <span class="ex-stretch-chip">Głęboko</span>
+      </div>
+    </div>
+    <div class="ex-stretch">
+      <div>
+        <div class="ex-stretch-h">Pełne rozciągnięcie</div>
+        <p class="ex-stretch-p">Maksymalna hipertrofia generowana rozciągnięciem czworogłowych.</p>
+        <p class="ex-stretch-note">Kolano idzie <strong>w dół i do przodu</strong> po torze suwnicy. Biodro i kolano zginają się razem — bez odrywania pleców od podparcia.</p>
+        <svg class="ex-stretch-path" viewBox="0 0 120 28" aria-hidden="true">
+          <defs><marker id="ex-hs-arr" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0 L7 3.5 L0 7 Z" fill="#FF3B30"/></marker></defs>
+          <path d="M6 6 C 28 8, 48 12, 72 22" fill="none" stroke="#FF3B30" stroke-width="2.2" stroke-linecap="round" marker-end="url(#ex-hs-arr)"/>
+          <text x="78" y="18" fill="#FF8A82" font-size="8" font-family="Inter,sans-serif">dół + przód</text>
+        </svg>
+      </div>
+    </div>
+  </div>`;
+}
+window.exTechniqueGuideHtml=exTechniqueGuideHtml;
+
 var currentExDetail='';
 function openExDetail(name){
   const all=allExercises();
@@ -1907,7 +1951,7 @@ function openExDetail(name){
       <span class="pill" style="background:${col}22;color:${col};">${e.cat}</span>
       <span class="pill pill-muted">${e.eq}</span>
     </div>
-    ${(()=>{const media=typeof resolveCoachMedia==='function'?resolveCoachMedia(e):null;if(!media)return'';let h='';if(media.gif&&typeof exTechniqueMediaHtml==='function')h+=exTechniqueMediaHtml({gif:media.gif,name:e.name},{});else if(media.img){h+=`<div class="ex-detail-thumb"><img src="${typeof escHtml==='function'?escHtml(media.img):media.img}" alt="Technika: ${typeof escHtml==='function'?escHtml(e.name):e.name}" loading="lazy" referrerpolicy="no-referrer"></div>`;}if(typeof coachMediaHtml==='function')h+=coachMediaHtml({...media,name:e.name},{showVideo:!!media.video,showGif:false});return h;})()}
+    ${(()=>{const media=typeof resolveCoachMedia==='function'?resolveCoachMedia(e):null;if(!media)return'';let h='';if(media.gif&&typeof exTechniqueMediaHtml==='function')h+=exTechniqueMediaHtml({gif:media.gif,name:e.name},{});else if(media.img){h+=`<div class="ex-detail-thumb"><img src="${typeof escHtml==='function'?escHtml(media.img):media.img}" alt="Technika: ${typeof escHtml==='function'?escHtml(e.name):e.name}" loading="lazy" referrerpolicy="no-referrer"></div>`;}if(typeof coachMediaHtml==='function')h+=coachMediaHtml({...media,name:e.name},{showVideo:!!media.video,showGif:false});if(typeof exTechniqueGuideHtml==='function')h+=exTechniqueGuideHtml(e);return h;})()}
     ${e.muscle?`<div style="margin-bottom:12px;">
       <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Mięśnie</div>
       <div style="font-size:12px;line-height:1.6;">${e.muscle}</div>
