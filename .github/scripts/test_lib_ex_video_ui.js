@@ -141,6 +141,45 @@ function ok(name, cond, extra) {
   ok('detail plays mp4', /progress-live-video-assets/.test(detail.src) && /\.mp4/i.test(detail.src), detail.src.slice(0, 160));
   ok('detail video loops muted autoplay', detail.autoplay && detail.loop);
 
+  async function detailMedia(name) {
+    await page.evaluate((n) => {
+      if (typeof openExDetail === 'function') openExDetail(n);
+    }, name);
+    await page.waitForTimeout(400);
+    return page.evaluate(() => {
+      const video = document.querySelector('#exd-body video');
+      const img = document.querySelector('#exd-body img.cw-technique-gif-img') || document.querySelector('#exd-body .cw-technique-gif img');
+      return {
+        title: (document.getElementById('exd-title') || {}).textContent || '',
+        src: video ? video.getAttribute('src') : '',
+        img: img ? img.getAttribute('src') : '',
+        hasVideo: !!video
+      };
+    });
+  }
+
+  const incline = await detailMedia('Wyciskanie hantli skos+');
+  await page.screenshot({ path: path.join(shotDir, 'lib_incline_db_detail.png') });
+  ok('incline detail title', incline.title === 'Wyciskanie hantli skos+', incline.title);
+  ok('incline plays dodatniej clip', /dodatniej|sko%C5%9Bnej%20dodatniej/i.test(incline.src) && /\.mp4/i.test(incline.src), incline.src.slice(0, 180));
+  ok('incline not fake OHP incline file', !/%20\(incline\)%20\(Incline/i.test(incline.src));
+
+  const lowHigh = await detailMedia('Krzyżowanie wyciągów dół–góra');
+  await page.screenshot({ path: path.join(shotDir, 'lib_crossover_low_high_detail.png') });
+  ok('low-high detail title', /dół–góra|dol–gora/i.test(lowHigh.title), lowHigh.title);
+  ok('low-high plays standing crossover', /stoj%C4%85c|Cable%20Crossover/i.test(lowHigh.src) && /\.mp4/i.test(lowHigh.src), lowHigh.src.slice(0, 180));
+
+  const flies = await detailMedia('Rozpiętki na wyciągu');
+  await page.screenshot({ path: path.join(shotDir, 'lib_cable_fly_detail.png') });
+  ok('cable fly plays krzeselko overview', /krzese%C5%82ko|Cable%20Crossover/i.test(flies.src) && /\.mp4/i.test(flies.src), flies.src.slice(0, 180));
+
+  const knees = await detailMedia('Pompki na kolanach');
+  await page.screenshot({ path: path.join(shotDir, 'lib_knee_pushup_detail.png') });
+  ok('knee push-up plays wide-grip-named clip', /Wide-Grip%20Push-Up/i.test(knees.src) && /\.mp4/i.test(knees.src), knees.src.slice(0, 180));
+
+  const decline = await detailMedia('Wyciskanie sztangi skos−');
+  ok('decline barbell has no lying mp4', !decline.hasVideo, JSON.stringify(decline).slice(0, 200));
+
   await page.evaluate(() => {
     if (typeof openExDetail === 'function') openExDetail('Ściąganie do twarzy (face pull)');
   });

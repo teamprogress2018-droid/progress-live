@@ -190,6 +190,48 @@ function main() {
     }
   }
 
+  /** Ręcznie sprawdzona treść klipu (nazwa pliku bywa myląca). */
+  const CHEST_FORCE = [
+    { name: 'Wyciskanie hantli skos+', file: 'Wyciskanie hantli na ławce skośnej dodatniej (Incline Dumbbell Press).mp4' },
+    { name: 'Pompki na kolanach', file: 'Pompka szeroka (rozstaw rąk szerszy niż ramiona) (Wide-Grip Push-Up).mp4' },
+    { name: 'Krzyżowanie wyciągów dół–góra', file: 'Krzyżowanie ramion na wyciągu (wyciąg górny, stojąc) (Cable Crossover).mp4' },
+  ];
+  for (const loc of CHEST_FORCE) {
+    const ex = byName.get(loc.name);
+    if (!ex || !files.includes(loc.file)) continue;
+    addKeys(ctx, manifest, ex, videoUrl(sha, loc.file), true);
+    const row = matched.find((m) => m.name === loc.name);
+    if (row) {
+      row.file = loc.file;
+      row.via = 'chest';
+    } else {
+      matched.push({ name: loc.name, file: loc.file, score: 0, via: 'chest' });
+    }
+  }
+  const CHEST_UNMAP = ['Wyciskanie sztangi skos−', 'Rozpiętki jednorącz wyciąg', 'Pompki szerokie'];
+  for (const name of CHEST_UNMAP) {
+    const ex = byName.get(name);
+    if (!ex) continue;
+    const keys = [];
+    const add = (s) => {
+      const k = ctx.exerciseMediaKey(s);
+      if (k) keys.push(k);
+      const sl = ctx.exerciseSlug(s);
+      if (sl) keys.push(sl);
+    };
+    add(ex.name);
+    String(ex.aka || '')
+      .split(/[,;/|]/)
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .forEach(add);
+    keys.forEach((k) => {
+      delete manifest[k];
+    });
+    const idx = matched.findIndex((m) => m.name === name);
+    if (idx >= 0) matched.splice(idx, 1);
+  }
+
   const unused = files.filter(
     (f) => !usedFiles.has(f) && !/\(\d+\)\.mp4$/i.test(f) && !ctx.parseExerciseMediaFilename(f).junk
   );
