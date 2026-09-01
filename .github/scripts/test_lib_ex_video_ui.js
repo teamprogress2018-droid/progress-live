@@ -276,6 +276,22 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'lib_hindu_pushup_card.png') });
   ok('hindu push-up card has photo', hindu.found && /free-exercise-db|githubusercontent/.test(hindu.img) && !hindu.placeholder, JSON.stringify(hindu));
 
+  const trxRow = await libCard('Wiosłowanie TRX');
+  await page.screenshot({ path: path.join(shotDir, 'lib_trx_row_card.png') });
+  ok('trx row card has photo', trxRow.found && /Inverted_Row_with_Straps/.test(trxRow.img) && !trxRow.placeholder, JSON.stringify(trxRow));
+
+  const superman = await libCard('Superman');
+  await page.screenshot({ path: path.join(shotDir, 'lib_superman_card.png') });
+  ok('superman card has photo', superman.found && /Superman/.test(superman.img) && !superman.placeholder, JSON.stringify(superman));
+
+  const rack = await libCard('Ciąg z racka');
+  await page.screenshot({ path: path.join(shotDir, 'lib_rack_pull_card.png') });
+  ok('rack pull card has photo', rack.found && /Rack_Pulls/.test(rack.img) && !rack.placeholder, JSON.stringify(rack));
+
+  const yates = await libCard('Wiosłowanie Yatesa');
+  await page.screenshot({ path: path.join(shotDir, 'lib_yates_row_card.png') });
+  ok('yates row card has photo', yates.found && /Reverse_Grip_Bent-Over/.test(yates.img) && !yates.placeholder, JSON.stringify(yates));
+
   await page.evaluate(() => {
     if (typeof goTo === 'function') goTo('builder');
     if (typeof initBuilder === 'function') initBuilder();
