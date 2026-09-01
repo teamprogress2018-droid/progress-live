@@ -264,7 +264,8 @@ function main() {
     'Przysiad w bramie Smith',
     'Wyciskanie nogami jednonóż',
   ];
-  const CHEST_AND_BACK_UNMAP = CHEST_UNMAP.concat(BACK_UNMAP, SHOULDER_UNMAP, QUAD_UNMAP);
+  const HAM_UNMAP = ['Uginanie nóg maszyna', 'Uginanie nóg leżąc'];
+  const CHEST_AND_BACK_UNMAP = CHEST_UNMAP.concat(BACK_UNMAP, SHOULDER_UNMAP, QUAD_UNMAP, HAM_UNMAP);
   for (const name of CHEST_AND_BACK_UNMAP) {
     const ex = byName.get(name);
     if (!ex) continue;
@@ -341,6 +342,30 @@ function main() {
       row.via = 'quad';
     } else {
       matched.push({ name: loc.name, file: loc.file, score: 0, via: 'quad' });
+    }
+  }
+
+  /** Ręcznie sprawdzona treść klipu dwugłowych (nazwa pliku bywa myląca). */
+  const HAM_FORCE = [
+    {
+      name: 'Uginanie nóg leżąc',
+      file: 'Uginanie nóg leżąc na maszynie (głowa nóg dwugłowych – część zewnętrzna) (Lying Leg Curl Machine (Outer Hamstrings)).mp4',
+    },
+    {
+      name: 'Uginanie nóg maszyna',
+      file: 'Uginanie nóg w leżeniu na maszynie (szeroki chwyt – głowa głęboka dwugłowego) (Lying Leg Curl Machine (wide stance – outer hamstrings emphasis)).mp4',
+    },
+  ];
+  for (const loc of HAM_FORCE) {
+    const ex = byName.get(loc.name);
+    if (!ex || !filesHas(files, loc.file)) continue;
+    addKeys(ctx, manifest, ex, videoUrl(sha, loc.file), true);
+    const row = matched.find((m) => m.name === loc.name);
+    if (row) {
+      row.file = loc.file;
+      row.via = 'ham';
+    } else {
+      matched.push({ name: loc.name, file: loc.file, score: 0, via: 'ham' });
     }
   }
 

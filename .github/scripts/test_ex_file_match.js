@@ -17,8 +17,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache manifest v26', html.includes('ex-gif-manifest.js?v=26'));
-ok('cache 01 v53', html.includes('01-core.js?v=53'));
+ok('cache manifest v27', html.includes('ex-gif-manifest.js?v=27'));
+ok('cache 01 v54', html.includes('01-core.js?v=54'));
 ok('cache 06 v38', html.includes('06-inbox-exercises-ai-programs.js?v=40'));
 
 const m = six.match(/const DEF_EX=\[([\s\S]*?)\];\s*window\.DEF_EX/);
@@ -184,6 +184,30 @@ ok(
 ok(
   'bodyweight good morning not band hinge',
   hit('Martwy ciąg na prostych nogach (bez obciążenia bodyweight) (Bodyweight Stiff-Leg Deadlift (Good Morning)).mp4') !== 'Hip hinge z taśmą'
+);
+ok(
+  'lying hip-thrust-as-curl filename not assigned',
+  hit('Uginanie nóg leżąc na maszynie (Lying Leg Curl (Machine)).mp4') === ''
+);
+ok(
+  'lying extension-as-curl filename not assigned',
+  hit('Uginanie nóg w leżeniu na maszynie (Lying Leg Curl Machine).mp4') === ''
+);
+ok(
+  'lying nordic-named curl filename not assigned',
+  hit('Uginanie nóg leżąc na plecach (Nordic Curl Glute-Ham Raise na ławce) (Nordic Hamstring Curl (Lying)).mp4') === ''
+);
+ok(
+  'seated-named lying curl filename not assigned',
+  hit('Uginanie nóg w leżeniu na maszynie (Seated Leg Curl Machine).mp4') === ''
+);
+ok(
+  'honest outer lying curl maps',
+  hit('Uginanie nóg leżąc na maszynie (głowa nóg dwugłowych – część zewnętrzna) (Lying Leg Curl Machine (Outer Hamstrings)).mp4') === 'Uginanie nóg leżąc'
+);
+ok(
+  'honest wide lying curl maps',
+  hit('Uginanie nóg w leżeniu na maszynie (szeroki chwyt – głowa głęboka dwugłowego) (Lying Leg Curl Machine (wide stance – outer hamstrings emphasis)).mp4') === 'Uginanie nóg maszyna'
 );
 ok(
   'reverse pec deck not butterfly',
