@@ -56,5 +56,8 @@ windowObj.EX_PHOTO_MANIFEST = { 'przysiad hack maszyna': 'https://example.com/ha
 ok('exThumbUrl prefers gif over photo', ctx.exThumbUrl({ name: 'Przysiad hack maszyna' }) === hackGif);
 const vhtml = ctx.exTechniqueMediaHtml({ gif: mp4, name: 'Wyciskanie sztangi leżąc' }, {});
 ok('mp4 technique uses video tag', vhtml.includes('<video') && vhtml.includes(mp4) && !vhtml.includes('<img'));
+ok('technique caption has name', vhtml.includes('cw-technique-cap') && vhtml.includes('Wyciskanie sztangi leżąc'));
+const compact = ctx.exTechniqueMediaHtml({ gif: mp4, name: 'Wyciskanie sztangi leżąc' }, { compact: true });
+ok('compact has no caption', !compact.includes('cw-technique-cap'));
 
 process.exit(failed ? 1 : 0);

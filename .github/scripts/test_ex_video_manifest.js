@@ -28,7 +28,6 @@ const names = [
   'Przysiad ze sztangą',
   'Ściąganie do twarzy (face pull)',
   'Martwy ciąg klasyczny',
-  'Butterfly (peck deck)',
 ];
 ok('many mapped keys', Object.keys(MAN).length >= 80, String(Object.keys(MAN).length));
 
@@ -49,11 +48,14 @@ const blob = Object.values(MAN).join('\n');
 ok('no behind-the-neck pulldown', !/Behind%20the%20Neck/i.test(blob));
 const localGifs = Object.values(MAN).filter((u) => /assets\/ex\/gifs/.test(u));
 ok(
-  'local gifs only hack squat',
-  localGifs.length > 0 && localGifs.every((u) => /przysiad-hack-maszyna\.gif$/.test(u)),
+  'local gifs only known technique loops',
+  localGifs.length > 0 && localGifs.every((u) => /przysiad-hack-maszyna\.gif$|butterfly-peck-deck\.gif$/.test(u)),
   localGifs.join(',')
 );
 ok('hack squat maps to local gif', /przysiad-hack-maszyna\.gif$/.test(MAN['przysiad hack maszyna'] || ''));
+ok('pec deck maps to local gif', /butterfly-peck-deck\.gif$/.test(MAN['butterfly (peck deck)'] || ''));
+ok('pec deck aka maps to local gif', /butterfly-peck-deck\.gif$/.test(MAN['rozpiętki na maszynie'] || ''));
+ok('pec deck not mislabeled mp4', !/\.mp4/i.test(MAN['butterfly (peck deck)'] || ''));
 
 const document = { querySelectorAll: () => [], getElementById: () => null, addEventListener() {} };
 const windowObj = {
@@ -92,6 +94,7 @@ const thumb = ctx.exThumbUrl({ name: 'Wyciskanie sztangi leżąc', img: 'assets/
 ok('thumb stays photo', /free-exercise-db/.test(thumb) && !/\.mp4/i.test(thumb), thumb);
 ok('svend has no gif', !ctx.exGifUrl({ name: 'Wyciskanie Svenda' }));
 ok('hack squat thumb is local gif', ctx.exThumbUrl({ name: 'Przysiad hack maszyna' }) === 'assets/ex/gifs/przysiad-hack-maszyna.gif');
+ok('pec deck thumb is local gif', ctx.exThumbUrl({ name: 'Butterfly (peck deck)' }) === 'assets/ex/gifs/butterfly-peck-deck.gif');
 
 const html = ctx.exTechniqueMediaHtml({ gif, name: 'Wyciskanie sztangi leżąc' }, {});
 ok('technique html is video', /<video/.test(html) && /autoplay/.test(html) && !/<img/.test(html), html.slice(0, 180));

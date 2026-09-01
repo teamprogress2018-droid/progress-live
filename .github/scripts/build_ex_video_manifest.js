@@ -85,7 +85,7 @@ function videoUrl(sha, file) {
   return 'https://cdn.jsdelivr.net/gh/' + VIDEO_REPO + '@' + sha + '/' + encodeURIComponent(file);
 }
 
-function addKeys(ctx, manifest, ex, url) {
+function addKeys(ctx, manifest, ex, url, force) {
   const keys = new Set();
   const add = (s) => {
     const k = ctx.exerciseMediaKey(s);
@@ -100,7 +100,7 @@ function addKeys(ctx, manifest, ex, url) {
     .filter(Boolean)
     .forEach(add);
   for (const k of keys) {
-    if (!manifest[k]) manifest[k] = url;
+    if (force || !manifest[k]) manifest[k] = url;
   }
 }
 
@@ -171,6 +171,23 @@ function main() {
     usedEx.add(p.ex.name);
     addKeys(ctx, manifest, p.ex, videoUrl(sha, p.file));
     matched.push({ name: p.ex.name, file: p.file, score: p.score, via: 'auto' });
+  }
+
+  const LOCAL_GIF = [
+    { name: 'Przysiad hack maszyna', url: 'assets/ex/gifs/przysiad-hack-maszyna.gif' },
+    { name: 'Butterfly (peck deck)', url: 'assets/ex/gifs/butterfly-peck-deck.gif' },
+  ];
+  for (const loc of LOCAL_GIF) {
+    const ex = byName.get(loc.name);
+    if (!ex) continue;
+    addKeys(ctx, manifest, ex, loc.url, true);
+    const row = matched.find((m) => m.name === loc.name);
+    if (row) {
+      row.file = loc.url;
+      row.via = 'local';
+    } else {
+      matched.push({ name: loc.name, file: loc.url, score: 0, via: 'local' });
+    }
   }
 
   const unused = files.filter(

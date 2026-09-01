@@ -982,7 +982,7 @@ const EX_MEDIA_FILE_ALIASES={
   'Pompki':{include:[/push[- ]?ups?/i],exclude:[/wall/i,/dip/i,/poręcz/i,/ławc/i,/kolan/i,/pike/i,/diamond/i,/diament/i,/knee/i,/hindu/i,/szerok/i,/wide/i,/plyo/i]},
   'Dipy na poręczach':{include:[/parallel bar dips/i],exclude:[/bench dip/i,/ławc/i]},
   'Dipy na ławce':{include:[/bench dips?/i],exclude:[/parallel bar/i]},
-  'Butterfly (peck deck)':{include:[/pec deck/i,/machine chest fly/i],exclude:[/reverse/i,/odwróc/i,/rear delt/i]},
+  'Butterfly (peck deck)':{include:[/pec deck/i,/machine chest fly/i],exclude:[/reverse/i,/odwróc/i,/odwrotn/i,/rear delt/i,/pulldown/i,/lat pulldown/i,/cable/i,/lunge/i]},
   'Wyciskanie wąskim chwytem':{include:[/close[- ]?grip barbell bench press/i,/narrow grip (barbell )?bench press/i]},
   'Pullover sztangą':{include:[/barbell pullover/i]},
   'Pullover hantlem':{include:[/dumbbell pullover/i],exclude:[/barbell/i]},
@@ -1247,12 +1247,14 @@ function exTechniqueMediaHtml(media,opts){
   const gif=String((media&&media.gif)||'').trim();
   const compact=!!opts.compact;
   if(!gif||!isSafeMediaUrl(gif))return '';
-  const alt=escHtml((media&&media.name)||'Technika wykonania');
+  const rawName=String((media&&media.name)||'').trim();
+  const alt=escHtml(rawName||'Technika wykonania');
   const cls=compact?'ex-ac-thumb-img cw-technique-gif-img':'cw-technique-gif-img';
+  const cap=(!compact&&rawName)?`<div class="cw-technique-cap">${alt}</div>`:'';
   if(/\.(mp4|webm)(\?|#|$)/i.test(gif)){
-    return `<div class="cw-technique-media cw-technique-gif${compact?' is-compact':''}"><video class="${cls}" src="${escHtml(gif)}" autoplay loop muted playsinline preload="metadata" title="${alt}"></video></div>`;
+    return `<div class="cw-technique-media cw-technique-gif${compact?' is-compact':''}"><video class="${cls}" src="${escHtml(gif)}" autoplay loop muted playsinline preload="metadata" title="${alt}"></video>${cap}</div>`;
   }
-  return `<div class="cw-technique-media cw-technique-gif${compact?' is-compact':''}"><img class="${cls}" src="${escHtml(gif)}" alt="${alt}" loading="lazy" referrerpolicy="no-referrer"></div>`;
+  return `<div class="cw-technique-media cw-technique-gif${compact?' is-compact':''}"><img class="${cls}" src="${escHtml(gif)}" alt="${alt}" loading="lazy" referrerpolicy="no-referrer">${cap}</div>`;
 }
 window.exTechniqueMediaHtml=exTechniqueMediaHtml;
 

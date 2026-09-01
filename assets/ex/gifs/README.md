@@ -24,7 +24,10 @@ Zapisuje URL-e jsDelivr w `ex-gif-manifest.js`. Karty zostają ze zdjęciem; odt
    ```
 4. Commit: `assets/ex/gifs/*`, `ex-gif-manifest.js`.
 
-**Hack Squat:** `przysiad-hack-maszyna.gif` jest w tym folderze ręcznie (karty biblioteki pokazują GIF, nie statyczne zdjęcie). Nie odpalaj `build_ex_gif_manifest.js` na całym folderze, jeśli w manifeście są już URL-e MP4 z video-assets — skrypt nadpisze cały plik.
+**Hack Squat:** `przysiad-hack-maszyna.gif` jest w tym folderze ręcznie (karty biblioteki pokazują GIF, nie statyczne zdjęcie).
+**Butterfly (peck deck):** `butterfly-peck-deck.gif` — pętla open→ściśnięcie z klatek free-exercise-db `Butterfly/` (Unlicense). MP4-y w video-assets o nazwie Pec Deck pokazują inne ćwiczenia.
+
+Nie odpalaj `build_ex_gif_manifest.js` na całym folderze, jeśli w manifeście są już URL-e MP4 z video-assets — skrypt nadpisze cały plik. `build_ex_video_manifest.js` ponownie wkleja te dwa lokalne GIF-y na końcu.
 
 W kreatorze planu pod każdym ćwiczeniem pojawi się podgląd techniki (`.mp4` / `.gif` / YouTube).
 

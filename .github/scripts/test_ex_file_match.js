@@ -17,9 +17,9 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache manifest v21', html.includes('ex-gif-manifest.js?v=21'));
-ok('cache 01 v48', html.includes('01-core.js?v=48'));
-ok('cache 06 v38', html.includes('06-inbox-exercises-ai-programs.js?v=39'));
+ok('cache manifest v21', html.includes('ex-gif-manifest.js?v=22'));
+ok('cache 01 v48', html.includes('01-core.js?v=49'));
+ok('cache 06 v38', html.includes('06-inbox-exercises-ai-programs.js?v=40'));
 
 const m = six.match(/const DEF_EX=\[([\s\S]*?)\];\s*window\.DEF_EX/);
 ok('DEF_EX block', !!m);
@@ -128,6 +128,14 @@ ok(
 ok(
   'bodyweight good morning not band hinge',
   hit('Martwy ciąg na prostych nogach (bez obciążenia bodyweight) (Bodyweight Stiff-Leg Deadlift (Good Morning)).mp4') !== 'Hip hinge z taśmą'
+);
+ok(
+  'reverse pec deck not butterfly',
+  hit('Odwrotne rozpiętki na maszynie (tylne ramiona) (Reverse Pec Deck Fly (Rear Delt Fly Machine)).mp4') !== 'Butterfly (peck deck)'
+);
+ok(
+  'reverse pec deck is machine reverse',
+  hit('Odwrotne rozpiętki na maszynie (tylne ramiona) (Reverse Pec Deck Fly (Rear Delt Fly Machine)).mp4') === 'Odwrotne rozpiętki maszyna'
 );
 
 vm.runInContext(six, ctx);
