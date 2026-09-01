@@ -17,8 +17,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache manifest v23', html.includes('ex-gif-manifest.js?v=24'));
-ok('cache 01 v50', html.includes('01-core.js?v=51'));
+ok('cache manifest v25', html.includes('ex-gif-manifest.js?v=25'));
+ok('cache 01 v52', html.includes('01-core.js?v=52'));
 ok('cache 06 v38', html.includes('06-inbox-exercises-ai-programs.js?v=40'));
 
 const m = six.match(/const DEF_EX=\[([\s\S]*?)\];\s*window\.DEF_EX/);
@@ -150,8 +150,32 @@ ok(
   hit('Odwrotne rozpiętki na maszynie (tylne ramiona) (Reverse Pec Deck Fly (Rear Delt Fly Machine)).mp4') !== 'Butterfly (peck deck)'
 );
 ok(
-  'reverse pec deck is machine reverse',
-  hit('Odwrotne rozpiętki na maszynie (tylne ramiona) (Reverse Pec Deck Fly (Rear Delt Fly Machine)).mp4') === 'Odwrotne rozpiętki maszyna'
+  'lying reverse pec deck filename not assigned',
+  hit('Odwrotne rozpiętki na maszynie (tylne ramiona) (Reverse Pec Deck Fly (Rear Delt Fly Machine)).mp4') === ''
+);
+ok(
+  'lying barbell OHP filename not assigned',
+  hit('Wyciskanie sztangi nad głowę stojąc (OHP) (Standing Barbell Overhead Press (OHP)).mp4') === ''
+);
+ok(
+  'lying db front raise filename not assigned',
+  hit('Wznosy ramion w przód z hantlami (Dumbbell Front Raise).mp4') === ''
+);
+ok(
+  'lying machine shoulder press filename not assigned',
+  hit('Wyciskanie żołnierskie na maszynie (naramienne) (Machine Shoulder Press).mp4') === ''
+);
+ok(
+  'lying standing db ohp filename not assigned',
+  hit('Wyciskanie hantli nad głowę (żołnierskie) (Dumbbell Overhead Press (Military Press)).mp4') === ''
+);
+ok(
+  'lying arnold-named seated press not arnold',
+  hit('Wyciskanie hantli nad głowę siedząc (Arnold press wyciskanie żołnierskie) (Seated Dumbbell Overhead Press).mp4') !== 'Wyciskanie Arnolda'
+);
+ok(
+  'cable lateral maps to one-arm cable raise',
+  hit('Odwodzenie ramienia na wyciągu dolnym (stojąc bokiem) (Cable lateral raise (low pulley)).mp4') === 'Unoszenie bokiem na wyciągu jednorącz'
 );
 ok(
   'lying barbell-row filename not assigned',
