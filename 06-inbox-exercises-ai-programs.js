@@ -3398,22 +3398,24 @@ async function persistExerciseGifUrl(exerciseName,gifUrl){
 window.persistExerciseGifUrl=persistExerciseGifUrl;
 
 function matchGifFileToExercise(filename){
+  const all=typeof allExercises==='function'?allExercises():(window.DEF_EX||[]);
+  if(typeof matchFilenameToExercise==='function'){
+    const mapped=matchFilenameToExercise(filename,all);
+    if(mapped)return mapped;
+  }
   const base=String(filename||'').replace(/\.(gif|webp|mp4|webm)$/i,'').trim();
   if(!base)return '';
-  const fileSlug=base.toLowerCase().replace(/[^a-z0-9-]+/g,'-').replace(/^-|-$/g,'');
-  const all=typeof allExercises==='function'?allExercises():[];
+  const fileSlug=typeof exerciseSlug==='function'
+    ?exerciseSlug(base)
+    :base.toLowerCase().replace(/[^a-z0-9-]+/g,'-').replace(/^-|-$/g,'');
   let hit=all.find(e=>typeof exerciseSlug==='function'&&exerciseSlug(e.name)===fileSlug);
   if(hit)return hit.name;
-  const norm=base.toLowerCase().replace(/[-_]+/g,' ').trim();
-  hit=all.find(e=>typeof exerciseMediaKey==='function'&&exerciseMediaKey(e.name)===norm);
+  const key=typeof exerciseMediaKey==='function'?exerciseMediaKey(base):base.toLowerCase().replace(/[-_]+/g,' ').trim();
+  hit=all.find(e=>typeof exerciseMediaKey==='function'&&exerciseMediaKey(e.name)===key);
   if(hit)return hit.name;
-  const partial=all.filter(e=>{
-    const s=typeof exerciseSlug==='function'?exerciseSlug(e.name):'';
-    return s&&(s.includes(fileSlug)||fileSlug.includes(s));
-  });
-  if(partial.length===1)return partial[0].name;
   return '';
 }
+window.matchGifFileToExercise=matchGifFileToExercise;
 
 function buildExGifImportRows(files){
   return (files||[]).filter(f=>/\.(gif|webp|mp4|webm)$/i.test(f.name||'')).map(file=>{

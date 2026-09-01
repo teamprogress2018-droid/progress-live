@@ -43,7 +43,7 @@ const mixed=sandbox.getPlanningEvidenceEntries();
 ok('merges user principle',mixed.some(e=>e.title.includes('Moja zasada')));
 ok('user not duplicated builtin by title skip',true);
 
-ok('cache bumps',html.includes('01-core.js?v=47')&&html.includes('09-posture-kb-invites-private.js?v=34'));
+ok('cache bumps',html.includes('01-core.js?v=48')&&html.includes('09-posture-kb-invites-private.js?v=34'));
 
 if(failed){console.error(failed+' failed');process.exit(1);}
 console.log('\nAll evidence-base tests passed');

@@ -6,10 +6,12 @@
  *   node .github/scripts/build_ex_video_manifest.js
  *
  * Filmy zostają w osobnym repo (~380 MB) — GitHub Pages aplikacji ich nie hostuje.
+ * Aliasów i scorera używa ten sam kod co import w aplikacji (01-core.js).
  */
 'use strict';
 const fs = require('fs');
 const path = require('path');
+const vm = require('vm');
 const { execSync } = require('child_process');
 
 const root = path.join(__dirname, '../..');
@@ -17,288 +19,42 @@ const outFile = path.join(root, 'ex-gif-manifest.js');
 const VIDEO_REPO = 'teamprogress2018-droid/progress-live-video-assets';
 const VIDEO_OWNER_REPO = VIDEO_REPO;
 
-/** PL nazwa DEF_EX → filtry na nazwę pliku (PL + EN). Dopasowanie ostrożne — bez zgadywania. */
-const ALIASES = {
-  'Wyciskanie sztangi leżąc': {
-    include: [/barbell bench press/i],
-    exclude: [/close[- ]?grip/i, /wąski/i, /smith/i, /incline/i, /decline/i],
-  },
-  'Wyciskanie hantli leżąc': {
-    include: [/dumbbell bench press/i],
-    exclude: [/incline/i, /sko[sś]n/i, /narrow/i, /wąsk/i, /shoulder/i, /nad głow/i],
-  },
-  'Wyciskanie hantli skos+': {
-    include: [/incline dumbbell (chest )?press/i],
-    exclude: [/shoulder/i, /nad głow/i, /decline/i],
-  },
-  'Rozpiętki hantlami': {
-    include: [/dumbbell (chest )?fly/i, /dumbbell flat bench fly/i],
-    exclude: [/decline/i, /głow[aą] w d[oó]ł/i, /lateral raise/i, /pec deck/i],
-  },
-  'Rozpiętki na wyciągu': {
-    include: [/cable crossover/i, /high (pulley|cable) fly/i, /standing cable fly/i],
-    exclude: [/reverse/i, /single[- ]arm/i, /low cable/i, /pec deck/i, /middle chest/i],
-  },
-  'Krzyżowanie wyciągów góra–dół': {
-    include: [/cable crossover \(high/i, /high pulley fly/i, /high cable fly/i],
-    exclude: [/reverse/i, /single[- ]arm/i, /low /i],
-  },
-  'Rozpiętki na wyciągu w poziomie': {
-    include: [/cable crossover fly \(middle chest\)/i],
-  },
-  'Rozpiętki jednorącz wyciąg': {
-    include: [/single[- ]arm low cable fly/i],
-  },
-  'Pompki': {
-    include: [/push[- ]?ups?/i],
-    exclude: [/wall/i, /dip/i, /poręcz/i, /ławc/i, /kolan/i, /pike/i],
-  },
-  'Dipy na poręczach': {
-    include: [/parallel bar dips/i],
-    exclude: [/bench dip/i, /ławc/i],
-  },
-  'Dipy na ławce': {
-    include: [/bench dips/i],
-    exclude: [/parallel bar/i],
-  },
-  'Butterfly (peck deck)': {
-    include: [/pec deck/i, /machine chest fly/i],
-    exclude: [/reverse/i, /odwróc/i, /rear delt/i],
-  },
-  'Wyciskanie wąskim chwytem': {
-    include: [/close[- ]?grip barbell bench press/i],
-  },
-  'Pullover sztangą': {
-    include: [/barbell pullover/i],
-  },
-  'Martwy ciąg klasyczny': {
-    include: [/barbell deadlift/i],
-    exclude: [/dumbbell/i, /sumo/i, /rdl/i, /straight[- ]leg/i, /bodyweight/i, /hantl/i],
-  },
-  'Podciąganie na drążku': {
-    include: [/pull[- ]?up \(overhand/i],
-    exclude: [/wide[- ]grip/i, /szerok/i, /australian/i, /chin/i],
-  },
-  'Podciąganie szerokim chwytem': {
-    include: [/wide[- ]grip pull[- ]?up/i],
-  },
-  'Ściąganie drążka wyciąg': {
-    include: [/lat pulldown/i],
-    exclude: [/behind the neck/i, /kark/i, /za głow/i, /single[- ]arm/i, /jednor[aą]cz/i, /straight[- ]arm/i, /wide[- ]grip/i, /szerok/i],
-    prefer: [/to chest/i, /overhand grip/i, /do klatki/i],
-  },
-  'Ściąganie drążka szerokim chwytem': {
-    include: [/wide[- ]grip lat pulldown/i],
-    exclude: [/behind the neck/i, /kark/i],
-  },
-  'Ściąganie drążka jednorącz': {
-    include: [/single[- ]arm lat pulldown/i, /single[- ]arm cable pulldown/i],
-    exclude: [/straight[- ]arm/i, /triceps/i],
-  },
-  'Ściąganie prostymi rękami': {
-    include: [/straight[- ]arm pulldown/i],
-    exclude: [/lat pulldown/i, /triceps/i, /one[- ]arm/i],
-  },
-  'Ściąganie do twarzy (face pull)': {
-    include: [/face pull/i],
-  },
-  'Wiosłowanie sztangą': {
-    include: [/barbell bent[- ]over row/i],
-    exclude: [/underhand/i, /incline/i, /neutral grip/i, /dumbbell/i],
-  },
-  'Wiosłowanie hantlem': {
-    include: [/one[- ]arm dumbbell row/i, /single[- ]arm dumbbell row/i],
-    exclude: [/bent[- ]over row\)/i],
-  },
-  'Wiosłowanie hantlami oburącz': {
-    include: [/dumbbell bent[- ]over row/i],
-    exclude: [/one[- ]arm/i, /single[- ]arm/i, /rear delt/i, /jednor[aą]cz/i],
-  },
-  'Wiosłowanie wyciągiem siedząc': {
-    include: [/seated cable row/i],
-    exclude: [/machine/i, /maszynie/i],
-  },
-  'Wiosłowanie na maszynie': {
-    include: [/seated cable row \(machine/i, /cable row machine/i, /machine row/i],
-  },
-  'Wiosłowanie odwrócone': {
-    include: [/inverted row/i, /australian pull[- ]?up/i],
-  },
-  'Prostowanie tułowia': {
-    include: [/hyperextension/i, /back extension/i],
-    exclude: [/reverse hyper/i],
-  },
-  'Odwrotne rozpiętki': {
-    include: [/dumbbell (bent[- ]over )?(rear delt fly|reverse fly)/i, /bent[- ]over dumbbell (rear delt fly|reverse fly)/i],
-    exclude: [/cable/i, /machine/i, /pec deck/i, /seated/i, /prone/i, /siadzie/i],
-  },
-  'Odwrotne rozpiętki maszyna': {
-    include: [/reverse pec deck/i, /rear delt machine fly/i],
-  },
-  'Odwrotne rozpiętki na wyciągu': {
-    include: [/cable rear delt fly/i],
-  },
-  'Unoszenie bokiem w opadzie': {
-    include: [/dumbbell bent[- ]over (lateral raise|rear delt fly)/i],
-    exclude: [/cable/i],
-  },
-  'Unoszenie bokiem': {
-    include: [/dumbbell lateral raise/i],
-    exclude: [/bent[- ]over/i, /opadzie/i, /seated/i, /siadzie/i, /barbell/i, /sztang/i],
-    prefer: [/w staniu/i, /standing/i],
-  },
-  'Wyciskanie hantli siedząc': {
-    include: [/seated dumbbell (shoulder|overhead) press/i],
-    exclude: [/single[- ]arm/i, /jednostronn/i, /incline/i, /arnold/i],
-  },
-  'Wyciskanie barków maszyna': {
-    include: [/machine shoulder press/i],
-  },
-  'Wyciskanie hantla jednorącz nad głowę': {
-    include: [/single[- ]arm seated dumbbell shoulder press/i],
-  },
-  'Uginanie biceps sztangą': {
-    include: [/barbell bicep curl/i],
-    exclude: [/preacher/i, /modlitewnik/i, /ez bar/i],
-  },
-  'Uginanie młotkowe': {
-    include: [/dumbbell hammer curl/i],
-    exclude: [/seated/i, /siedz/i, /preacher/i, /scott/i, /incline/i, /sko[sś]n/i],
-  },
-  'Uginanie hantlami naprzemiennie': {
-    include: [/dumbbell bicep curl/i],
-    exclude: [/hammer/i, /młotk/i, /preacher/i, /incline/i],
-  },
-  'Uginanie na wyciągu': {
-    include: [/standing cable curl/i],
-    exclude: [/high pulley/i, /górnym/i],
-  },
-  'Uginanie na modlitewniku': {
-    include: [/preacher curl/i],
-    exclude: [/hammer/i, /młotk/i, /incline/i],
-  },
-  'Uginanie na skosie': {
-    include: [/incline dumbbell bicep curl/i],
-  },
-  'Prostowanie tricepsa wyciąg': {
-    include: [/cable triceps? pushdown/i],
-    exclude: [/one[- ]arm/i, /single[- ]arm/i, /jednor[aą]cz/i, /kickback/i, /overhead/i, /rope/i],
-  },
-  'Prostowanie jednorącz wyciąg': {
-    include: [/single[- ]arm cable triceps pushdown/i, /one[- ]arm cable tricep/i],
-  },
-  'Kickback na wyciągu': {
-    include: [/cable tricep kickback/i],
-  },
-  'Kickback triceps': {
-    include: [/cable tricep kickback/i],
-  },
-  'Prostowanie za głowę hantlem': {
-    include: [/dumbbell overhead triceps? extension/i],
-    exclude: [/seated/i, /siedz/i],
-  },
-  'Wyciskanie francuskie': {
-    include: [/seated dumbbell overhead tricep extension/i],
-  },
-  'Przysiad ze sztangą': {
-    include: [/barbell back squat/i],
-    exclude: [/smith/i, /suwnic/i, /wide stance/i, /szeroki/i, /sumo/i, /front squat/i, /karku/i],
-  },
-  'Przysiad w bramie Smith': {
-    include: [/smith machine (barbell back )?squat/i],
-  },
-  'Przysiad sumo': {
-    include: [/sumo squat/i, /wide stance squat/i],
-    exclude: [/dumbbell/i, /hantel/i, /goblet/i, /barbell sumo squat \(front/i, /smith/i],
-  },
-  'Przysiad sumo z hantlem': {
-    include: [/dumbbell sumo squat/i, /sumo (goblet )?squat with dumbbell/i],
-  },
-  'Przysiad Goblet': {
-    include: [/dumbbell squat/i],
-    exclude: [/sumo/i, /bulgarian/i],
-  },
-  'Przysiad bułgarski': {
-    include: [/bulgarian split squat/i],
-  },
-  'Wyciskanie nogami': {
-    include: [/leg press/i],
-  },
-  'Wykrok z hantlami': {
-    include: [/dumbbell lunge/i],
-    exclude: [/barbell/i, /step[- ]up/i, /bulgarian/i],
-  },
-  'Wykrok ze sztangą': {
-    include: [/barbell lunge/i],
-  },
-  'Wyprosty nóg maszyna': {
-    include: [/leg extension/i],
-  },
-  'Uginanie nóg maszyna': {
-    include: [/lying leg curl/i],
-  },
-  'Uginanie nóg leżąc': {
-    include: [/lying leg curl/i],
-  },
-  'Wspięcia na palce': {
-    include: [/standing (dumbbell )?calf raise/i],
-    exclude: [/band/i, /gum[aą]/i],
-    prefer: [/dumbbell/i, /hantl/i],
-  },
-  'Wspięcia na palce stojąc': {
-    include: [/standing dumbbell calf raise/i],
-  },
-  'Abdukcja biodra maszyna': {
-    include: [/hip abduction machine/i],
-    exclude: [/lying/i, /leż/i, /kickback/i],
-    prefer: [/seated/i],
-  },
-  'Przywodzenie biodra maszyna': {
-    include: [/hip adduction/i],
-  },
-  'Odwodzenie biodra leżąc': {
-    include: [/side[- ]lying hip abduction/i],
-    exclude: [/machine/i, /maszyn/i],
-  },
-  'Kickback na maszynie': {
-    include: [/glute kickback/i],
-  },
-  'Kickback pośladki': {
-    include: [/glute kickback/i],
-  },
-  'Mostek biodrowy': {
-    include: [/glute bridge/i],
-  },
-  'Rollout z kółkiem': {
-    include: [/ab wheel rollout/i],
-  },
-  'Nożyce': {
-    include: [/scissor kicks/i],
-    exclude: [/flutter/i],
-  },
-  'Unoszenie nóg leżąc': {
-    include: [/lying leg raises/i],
-    exclude: [/decline/i],
-  },
-  'Brzuszki rowerowe': {
-    include: [/bicycle crunches/i],
-  },
-  'Skręty rosyjskie': {
-    include: [/russian twist/i],
-  },
-};
-
-function mediaKey(name) {
-  return String(name || '').toLowerCase().replace(/\s+/g, ' ').trim();
-}
-
-function slug(name) {
-  return mediaKey(name)
-    .normalize('NFD')
-    .replace(/\p{M}/gu, '')
-    .replace(/ł/g, 'l')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
+function loadCore() {
+  const document = { querySelectorAll: () => [], getElementById: () => null, addEventListener() {} };
+  const windowObj = {
+    addEventListener() {},
+    CL: [],
+    EX: [],
+    DEF_EX: [],
+    EX_GIF_MANIFEST: {},
+    EX_GIF_REMOTE: {},
+    COACH_VIDEOS: [],
+    document,
+  };
+  windowObj.window = windowObj;
+  const ctx = {
+    window: windowObj,
+    document,
+    console,
+    Date,
+    Math,
+    parseInt,
+    parseFloat,
+    Number,
+    String,
+    Array,
+    Object,
+    JSON,
+    setTimeout,
+    clearTimeout,
+    isNaN,
+    Infinity,
+    undefined,
+  };
+  ctx.globalThis = ctx;
+  vm.createContext(ctx);
+  vm.runInContext(fs.readFileSync(path.join(root, '01-core.js'), 'utf8'), ctx);
+  return ctx;
 }
 
 function gh(args) {
@@ -315,27 +71,6 @@ function headSha() {
   return gh(`repos/${VIDEO_OWNER_REPO}/commits/main --jq .sha`);
 }
 
-function dupPenalty(file) {
-  const m = file.match(/\s*\((\d+)\)\.mp4$/i);
-  return m ? Number(m[1]) * 8 : 0;
-}
-
-function pickFile(files, spec) {
-  const include = [].concat(spec.include || []);
-  const exclude = [].concat(spec.exclude || []);
-  const prefer = [].concat(spec.prefer || []);
-  const scored = [];
-  for (const file of files) {
-    if (!include.some((re) => re.test(file))) continue;
-    if (exclude.some((re) => re.test(file))) continue;
-    let score = 100 - dupPenalty(file) - file.length * 0.02;
-    if (prefer.some((re) => re.test(file))) score += 25;
-    scored.push({ file, score });
-  }
-  scored.sort((a, b) => b.score - a.score || a.file.localeCompare(b.file, 'pl'));
-  return scored[0] ? scored[0].file : null;
-}
-
 function parseDefEx() {
   const src = fs.readFileSync(path.join(root, '06-inbox-exercises-ai-programs.js'), 'utf8');
   const m = src.match(/const DEF_EX=\[([\s\S]*?)\];\s*window\.DEF_EX/);
@@ -350,12 +85,12 @@ function videoUrl(sha, file) {
   return 'https://cdn.jsdelivr.net/gh/' + VIDEO_REPO + '@' + sha + '/' + encodeURIComponent(file);
 }
 
-function addKeys(manifest, ex, url) {
+function addKeys(ctx, manifest, ex, url) {
   const keys = new Set();
   const add = (s) => {
-    const k = mediaKey(s);
+    const k = ctx.exerciseMediaKey(s);
     if (k) keys.add(k);
-    const sl = slug(s);
+    const sl = ctx.exerciseSlug(s);
     if (sl) keys.add(sl);
   };
   add(ex.name);
@@ -364,10 +99,32 @@ function addKeys(manifest, ex, url) {
     .map((s) => s.trim())
     .filter(Boolean)
     .forEach(add);
-  for (const k of keys) manifest[k] = url;
+  for (const k of keys) {
+    if (!manifest[k]) manifest[k] = url;
+  }
+}
+
+function pickBestAliasFile(ctx, files, spec, usedFiles) {
+  let best = null;
+  for (const file of files) {
+    if (usedFiles.has(file)) continue;
+    const parsed = ctx.parseExerciseMediaFilename(file);
+    if (!parsed || parsed.junk) continue;
+    if (!ctx.aliasSpecMatchesFile(spec, parsed)) continue;
+    const score = ctx.scoreFilenameAgainstExercise(parsed, { name: '', aka: '' }) || 0;
+    const prefer = [].concat(spec.prefer || []);
+    let s = 100 - parsed.dup * 12 - file.length * 0.02;
+    if (parsed.ext === 'mp4') s += 8;
+    if (/VÍDEOS\//.test(file) || /\/VIDEOS\//i.test(file)) s -= 15;
+    if (prefer.some((re) => re.test(file) || re.test(parsed.base))) s += 25;
+    if (!best || s > best.score) best = { file, score: s };
+  }
+  return best;
 }
 
 function main() {
+  const ctx = loadCore();
+  const aliases = (ctx.window && ctx.window.EX_MEDIA_FILE_ALIASES) || ctx.EX_MEDIA_FILE_ALIASES || {};
   const files = listMp4();
   const sha = headSha();
   const exercises = parseDefEx();
@@ -376,24 +133,49 @@ function main() {
   const matched = [];
   const missing = [];
   const usedFiles = new Set();
+  const usedEx = new Set();
 
-  for (const [name, spec] of Object.entries(ALIASES)) {
+  for (const [name, spec] of Object.entries(aliases)) {
     const ex = byName.get(name);
     if (!ex) {
       missing.push(name + ' (brak w DEF_EX)');
       continue;
     }
-    const file = pickFile(files, spec);
-    if (!file) {
+    const picked = pickBestAliasFile(ctx, files, spec, usedFiles);
+    if (!picked) {
       missing.push(name);
       continue;
     }
-    usedFiles.add(file);
-    addKeys(manifest, ex, videoUrl(sha, file));
-    matched.push({ name, file });
+    usedFiles.add(picked.file);
+    usedEx.add(name);
+    addKeys(ctx, manifest, ex, videoUrl(sha, picked.file));
+    matched.push({ name, file: picked.file, score: picked.score, via: 'alias' });
   }
 
-  const unused = files.filter((f) => !usedFiles.has(f) && !/\(\d+\)\.mp4$/i.test(f));
+  const aliased = new Set(Object.keys(aliases));
+  const pairs = [];
+  for (const file of files) {
+    if (usedFiles.has(file)) continue;
+    const parsed = ctx.parseExerciseMediaFilename(file);
+    if (!parsed || parsed.junk) continue;
+    for (const ex of exercises) {
+      if (usedEx.has(ex.name) || aliased.has(ex.name)) continue;
+      const score = ctx.scoreFilenameAgainstExercise(parsed, ex);
+      if (score >= 180) pairs.push({ file, ex, score });
+    }
+  }
+  pairs.sort((a, b) => b.score - a.score || a.file.localeCompare(b.file, 'pl'));
+  for (const p of pairs) {
+    if (usedFiles.has(p.file) || usedEx.has(p.ex.name)) continue;
+    usedFiles.add(p.file);
+    usedEx.add(p.ex.name);
+    addKeys(ctx, manifest, p.ex, videoUrl(sha, p.file));
+    matched.push({ name: p.ex.name, file: p.file, score: p.score, via: 'auto' });
+  }
+
+  const unused = files.filter(
+    (f) => !usedFiles.has(f) && !/\(\d+\)\.mp4$/i.test(f) && !ctx.parseExerciseMediaFilename(f).junk
+  );
   const body =
     '/** Filmy techniki (progress-live-video-assets @ ' +
     sha.slice(0, 12) +
@@ -405,13 +187,16 @@ function main() {
 
   console.log('Zapisano', path.relative(root, outFile));
   console.log('Ćwiczeń z filmem:', matched.length);
-  matched.forEach((m) => console.log('  OK  ', m.name, '←', m.file));
+  matched
+    .sort((a, b) => a.name.localeCompare(b.name, 'pl'))
+    .forEach((m) => console.log('  OK  ', m.via, String(m.score).padStart(4), m.name, '←', m.file));
   if (missing.length) {
     console.log('\nBez filmu (alias):', missing.length);
     missing.forEach((n) => console.log('  --  ', n));
   }
-  console.log('\nNieużyte pliki (bez kopii (2)/(3)):', unused.length);
-  unused.forEach((f) => console.log('  ..  ', f));
+  console.log('\nNieużyte pliki (bez kopii (2)/(3) i śmieci):', unused.length);
+  unused.slice(0, 80).forEach((f) => console.log('  ..  ', f));
+  if (unused.length > 80) console.log('  ..  … i jeszcze', unused.length - 80);
 }
 
 main();
