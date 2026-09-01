@@ -117,6 +117,18 @@ ok('no inverted-row lying clip', !MAN['wiosłowanie odwrócone'] && !MAN['invert
 ok('no standard pull-up pec-deck clip', !MAN['podciąganie na drążku']);
 ok('wide pull-up stays mapped', /Wide-Grip%20Pull-Up/i.test(MAN['podciąganie szerokim chwytem'] || ''));
 ok('deadlift stays mapped', /Barbell%20Deadlift/i.test(MAN['martwy ciąg klasyczny'] || ''));
+ok('no lying barbell ohp clip', !MAN['wyciskanie żołnierskie ohp'] && !MAN['wyciskanie-zolnierskie-ohp']);
+ok('no lying front raise clip', !MAN['unoszenie przodem'] && !MAN['unoszenie-przodem']);
+ok('no lying reverse pec clip', !MAN['odwrotne rozpiętki maszyna']);
+ok('no lying machine shoulder press clip', !MAN['wyciskanie barków maszyna']);
+ok('no lying standing db ohp clip', !MAN['wyciskanie hantli stojąc']);
+ok('no lying single-arm seated press clip', !MAN['wyciskanie hantla jednorącz nad głowę']);
+ok('no lying arnold clip', !MAN['wyciskanie arnolda']);
+ok(
+  'one-arm cable lateral in manifest',
+  /Cable%20lateral%20raise/i.test(MAN['unoszenie bokiem na wyciągu jednorącz'] || ''),
+  (MAN['unoszenie bokiem na wyciągu jednorącz'] || '').slice(0, 160)
+);
 
 const document = { querySelectorAll: () => [], getElementById: () => null, addEventListener() {} };
 const windowObj = {
@@ -165,6 +177,21 @@ ok('low-to-high gif is standing crossover', /stoj%C4%85c/i.test(ctx.exGifUrl({ n
 ok('barbell row gif is verified clip', /podci%C4%85ganie%20na%20dr%C4%85%C5%BCku%20nachwytem%20\(podci%C4%85ganie/i.test(ctx.exGifUrl({ name: 'Wiosłowanie sztangą' }) || ''));
 ok('pendlay has no technique clip', !ctx.exGifUrl({ name: 'Wiosłowanie Pendlay' }));
 ok('rdl has no technique clip', !ctx.exGifUrl({ name: 'Martwy ciąg RDL' }));
+ok('seated db press gif is seated press', /Seated%20Dumbbell%20Shoulder%20Press/i.test(ctx.exGifUrl({ name: 'Wyciskanie hantli siedząc' }) || ''));
+ok('db lateral gif is standing lateral', /Dumbbell%20Lateral%20Raise/i.test(ctx.exGifUrl({ name: 'Unoszenie bokiem' }) || ''));
+ok('upright row gif is upright-row clip', /Upright%20Row/i.test(ctx.exGifUrl({ name: 'Wiosłowanie pionowe' }) || ''));
+ok(
+  'one-arm cable lateral gif is low-pulley clip',
+  /Cable%20lateral%20raise%20\(low%20pulley\)/i.test(ctx.exGifUrl({ name: 'Unoszenie bokiem na wyciągu jednorącz' }) || ''),
+  (ctx.exGifUrl({ name: 'Unoszenie bokiem na wyciągu jednorącz' }) || '').slice(0, 180)
+);
+ok('barbell ohp has no lying clip', !ctx.exGifUrl({ name: 'Wyciskanie żołnierskie OHP' }));
+ok('db front raise has no lying clip', !ctx.exGifUrl({ name: 'Unoszenie przodem' }));
+ok('reverse pec deck has no lying clip', !ctx.exGifUrl({ name: 'Odwrotne rozpiętki maszyna' }));
+ok('machine shoulder press has no lying clip', !ctx.exGifUrl({ name: 'Wyciskanie barków maszyna' }));
+ok('standing db ohp has no lying clip', !ctx.exGifUrl({ name: 'Wyciskanie hantli stojąc' }));
+ok('single-arm db press has no lying clip', !ctx.exGifUrl({ name: 'Wyciskanie hantla jednorącz nad głowę' }));
+ok('arnold has no lying clip', !ctx.exGifUrl({ name: 'Wyciskanie Arnolda' }));
 
 const html = ctx.exTechniqueMediaHtml({ gif, name: 'Wyciskanie sztangi leżąc' }, {});
 ok('technique html is video', /<video/.test(html) && /autoplay/.test(html) && !/<img/.test(html), html.slice(0, 180));

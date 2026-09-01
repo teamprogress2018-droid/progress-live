@@ -241,7 +241,16 @@ function main() {
     'Unoszenie bokiem w opadzie',
     'Odwrotne rozpiętki na wyciągu',
   ];
-  const CHEST_AND_BACK_UNMAP = CHEST_UNMAP.concat(BACK_UNMAP);
+  const SHOULDER_UNMAP = [
+    'Wyciskanie żołnierskie OHP',
+    'Unoszenie przodem',
+    'Odwrotne rozpiętki maszyna',
+    'Wyciskanie barków maszyna',
+    'Wyciskanie hantli stojąc',
+    'Wyciskanie hantla jednorącz nad głowę',
+    'Wyciskanie Arnolda',
+  ];
+  const CHEST_AND_BACK_UNMAP = CHEST_UNMAP.concat(BACK_UNMAP, SHOULDER_UNMAP);
   for (const name of CHEST_AND_BACK_UNMAP) {
     const ex = byName.get(name);
     if (!ex) continue;
@@ -263,6 +272,26 @@ function main() {
     });
     const idx = matched.findIndex((m) => m.name === name);
     if (idx >= 0) matched.splice(idx, 1);
+  }
+
+  /** Ręcznie sprawdzona treść klipu barków (nazwa pliku bywa myląca). */
+  const SHOULDER_FORCE = [
+    {
+      name: 'Unoszenie bokiem na wyciągu jednorącz',
+      file: 'Odwodzenie ramienia na wyciągu dolnym (stojąc bokiem) (Cable lateral raise (low pulley)).mp4',
+    },
+  ];
+  for (const loc of SHOULDER_FORCE) {
+    const ex = byName.get(loc.name);
+    if (!ex || !files.includes(loc.file)) continue;
+    addKeys(ctx, manifest, ex, videoUrl(sha, loc.file), true);
+    const row = matched.find((m) => m.name === loc.name);
+    if (row) {
+      row.file = loc.file;
+      row.via = 'shoulder';
+    } else {
+      matched.push({ name: loc.name, file: loc.file, score: 0, via: 'shoulder' });
+    }
   }
 
   const unused = files.filter(
