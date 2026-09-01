@@ -41,6 +41,9 @@ names.forEach((n) => {
 
 ok('bench is barbell bench press', /Barbell%20Bench%20Press/i.test(MAN['wyciskanie sztangi leżąc'] || ''));
 ok('face pull clip', /Face%20Pull/i.test(MAN['ściąganie do twarzy (face pull)'] || MAN['facepull'] || ''));
+ok('incline db not decline', /Incline/i.test(MAN['wyciskanie hantli skos+'] || MAN['wyciskanie-hantli-skos-plus'] || '') && !/Decline/i.test(MAN['wyciskanie hantli skos+'] || MAN['wyciskanie-hantli-skos-plus'] || ''));
+ok('chest fly not reverse delt', /Fly/i.test(MAN['rozpiętki hantlami'] || '') && !/Rear%20Delt|Reverse%20Dumbbell%20Fly/i.test(MAN['rozpiętki hantlami'] || ''));
+ok('no colliding skos slug', !MAN['wyciskanie-hantli-skos']);
 ok('no svend key', !MAN['wyciskanie svenda'] && !MAN['svend press']);
 const blob = Object.values(MAN).join('\n');
 ok('no behind-the-neck pulldown', !/Behind%20the%20Neck/i.test(blob));
