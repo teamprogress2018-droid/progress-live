@@ -17,8 +17,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache manifest v21', html.includes('ex-gif-manifest.js?v=22'));
-ok('cache 01 v48', html.includes('01-core.js?v=49'));
+ok('cache manifest v23', html.includes('ex-gif-manifest.js?v=23'));
+ok('cache 01 v50', html.includes('01-core.js?v=50'));
 ok('cache 06 v38', html.includes('06-inbox-exercises-ai-programs.js?v=40'));
 
 const m = six.match(/const DEF_EX=\[([\s\S]*?)\];\s*window\.DEF_EX/);
@@ -82,6 +82,22 @@ ok(
 ok(
   'incline db',
   hit('Wyciskanie hantli na ławce skośnej dodatniej (Incline Dumbbell Press).mp4') === 'Wyciskanie hantli skos+'
+);
+ok(
+  'fake incline OHP not chest incline',
+  hit('Wyciskanie hantli na ławce skośnej (incline) (Incline Dumbbell Press).mp4') !== 'Wyciskanie hantli skos+'
+);
+ok(
+  'krzeselko is cable fly overview',
+  hit('Krzyżowanie ramion na wyciągu (krzesełko) (Cable Crossover).mp4') === 'Rozpiętki na wyciągu'
+);
+ok(
+  'standing compilation is low-to-high',
+  hit('Krzyżowanie ramion na wyciągu (wyciąg górny, stojąc) (Cable Crossover).mp4') === 'Krzyżowanie wyciągów dół–góra'
+);
+ok(
+  'high pulley is high-to-low',
+  hit('Rozpiętki na wyciągu górnym (skrzyżowanie linek) (Cable Crossover (High Pulley)).mp4') === 'Krzyżowanie wyciągów góra–dół'
 );
 ok(
   'decline db not incline',

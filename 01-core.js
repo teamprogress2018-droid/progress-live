@@ -910,6 +910,11 @@ window.aliasSpecMatchesFile=aliasSpecMatchesFile;
 function scoreFilenameAgainstExercise(parsed,ex){
   if(!parsed||parsed.junk||!ex||!ex.name)return -1;
   const spec=(window.EX_MEDIA_FILE_ALIASES||{})[ex.name];
+  if(spec){
+    const hayAll=[parsed.filename,parsed.base,parsed.pl,parsed.en].filter(Boolean).join(' \n ');
+    const exclude=[].concat(spec.exclude||[]);
+    if(exclude.some(re=>re.test(hayAll)))return -1;
+  }
   if(spec&&aliasSpecMatchesFile(spec,parsed)){
     let s=320-parsed.dup*12;
     if(parsed.ext==='mp4')s+=8;
@@ -970,16 +975,20 @@ window.matchFilenameToExercise=matchFilenameToExercise;
 const EX_MEDIA_FILE_ALIASES={
   'Wyciskanie sztangi leżąc':{include:[/barbell bench press/i],exclude:[/close[- ]?grip/i,/wąski/i,/smith/i,/incline/i,/decline/i]},
   'Wyciskanie hantli leżąc':{include:[/dumbbell bench press/i],exclude:[/incline/i,/sko[sś]n/i,/narrow/i,/wąsk/i,/shoulder/i,/nad głow/i,/decline/i,/floor/i]},
-  'Wyciskanie hantli skos+':{include:[/incline dumbbell (chest )?press/i],exclude:[/shoulder/i,/nad głow/i,/decline/i]},
+  'Wyciskanie hantli skos+':{include:[/incline dumbbell (chest )?press/i],exclude:[/shoulder/i,/nad głow/i,/decline/i,/sko[sś]nej \(incline\)/i],prefer:[/sko[sś]nej dodatniej/i,/górna część klatki/i]},
   'Wyciskanie hantli skos−':{include:[/decline dumbbell (bench )?press/i],exclude:[/incline/i]},
   'Wyciskanie sztangi skos+':{include:[/incline barbell (bench )?press/i],exclude:[/dumbbell/i,/smith/i,/decline/i]},
   'Wyciskanie sztangi skos−':{include:[/decline barbell (bench )?press/i],exclude:[/dumbbell/i,/incline/i]},
   'Rozpiętki hantlami':{include:[/dumbbell chest fly/i,/dumbbell flat bench fly/i],exclude:[/decline/i,/głow[aą] w d[oó]ł/i,/lateral raise/i,/pec deck/i,/reverse/i,/rear delt/i,/odwrotn/i,/opadzie/i]},
-  'Rozpiętki na wyciągu':{include:[/cable crossover/i,/high (pulley|cable) fly/i,/standing cable fly/i],exclude:[/reverse/i,/single[- ]arm/i,/low cable/i,/pec deck/i,/middle chest/i]},
-  'Krzyżowanie wyciągów góra–dół':{include:[/cable crossover \(high/i,/high pulley fly/i,/high cable fly/i],exclude:[/reverse/i,/single[- ]arm/i,/low /i]},
+  'Rozpiętki na wyciągu':{include:[/cable crossover/i],exclude:[/reverse/i,/single[- ]arm/i,/low cable/i,/pec deck/i,/middle chest/i,/stojąc/i,/high pulley/i],prefer:[/krzesełko/i]},
+  'Krzyżowanie wyciągów góra–dół':{include:[/cable crossover \(high/i,/high pulley fly/i,/high cable fly/i],exclude:[/reverse/i,/single[- ]arm/i,/low /i,/stojąc/i,/krzesełko/i]},
+  'Krzyżowanie wyciągów dół–góra':{include:[/cable crossover/i],exclude:[/reverse/i,/single[- ]arm/i,/high pulley/i,/krzesełko/i],prefer:[/wyciąg górny, stojąc/i,/standing\) \(cable crossover\)/i]},
   'Rozpiętki na wyciągu w poziomie':{include:[/cable crossover fly \(middle chest\)/i]},
-  'Rozpiętki jednorącz wyciąg':{include:[/single[- ]arm low cable fly/i,/single[- ]arm cable fly/i]},
+  'Rozpiętki jednorącz wyciąg':{include:[/single[- ]arm low cable fly/i,/single[- ]arm cable fly/i],exclude:[/lateral raise/i]},
   'Pompki':{include:[/push[- ]?ups?/i],exclude:[/wall/i,/dip/i,/poręcz/i,/ławc/i,/kolan/i,/pike/i,/diamond/i,/diament/i,/knee/i,/hindu/i,/szerok/i,/wide/i,/plyo/i]},
+  'Pompki diamentowe':{include:[/diamond push[- ]?up/i],exclude:[/knee/i,/kolan/i]},
+  'Pompki na hantlach':{include:[/dumbbell push[- ]?ups?/i]},
+  'Pompki na kolanach':{include:[/knee push[- ]?up/i,/kneeling push[- ]?up/i],exclude:[/incorrect/i,/błędn/i]},
   'Dipy na poręczach':{include:[/parallel bar dips/i],exclude:[/bench dip/i,/ławc/i]},
   'Dipy na ławce':{include:[/bench dips?/i],exclude:[/parallel bar/i]},
   'Butterfly (peck deck)':{include:[/pec deck/i,/machine chest fly/i],exclude:[/reverse/i,/odwróc/i,/odwrotn/i,/rear delt/i,/pulldown/i,/lat pulldown/i,/cable/i,/lunge/i]},
