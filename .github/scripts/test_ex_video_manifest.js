@@ -47,7 +47,13 @@ ok('no colliding skos slug', !MAN['wyciskanie-hantli-skos']);
 ok('no svend key', !MAN['wyciskanie svenda'] && !MAN['svend press']);
 const blob = Object.values(MAN).join('\n');
 ok('no behind-the-neck pulldown', !/Behind%20the%20Neck/i.test(blob));
-ok('no local gif leftovers', !/assets\/ex\/gifs/.test(blob));
+const localGifs = Object.values(MAN).filter((u) => /assets\/ex\/gifs/.test(u));
+ok(
+  'local gifs only hack squat',
+  localGifs.length > 0 && localGifs.every((u) => /przysiad-hack-maszyna\.gif$/.test(u)),
+  localGifs.join(',')
+);
+ok('hack squat maps to local gif', /przysiad-hack-maszyna\.gif$/.test(MAN['przysiad hack maszyna'] || ''));
 
 const document = { querySelectorAll: () => [], getElementById: () => null, addEventListener() {} };
 const windowObj = {
@@ -85,6 +91,7 @@ ok('isVideoMediaUrl', ctx.isVideoMediaUrl(gif));
 const thumb = ctx.exThumbUrl({ name: 'Wyciskanie sztangi leżąc', img: 'assets/ex/bench.svg' });
 ok('thumb stays photo', /free-exercise-db/.test(thumb) && !/\.mp4/i.test(thumb), thumb);
 ok('svend has no gif', !ctx.exGifUrl({ name: 'Wyciskanie Svenda' }));
+ok('hack squat thumb is local gif', ctx.exThumbUrl({ name: 'Przysiad hack maszyna' }) === 'assets/ex/gifs/przysiad-hack-maszyna.gif');
 
 const html = ctx.exTechniqueMediaHtml({ gif, name: 'Wyciskanie sztangi leżąc' }, {});
 ok('technique html is video', /<video/.test(html) && /autoplay/.test(html) && !/<img/.test(html), html.slice(0, 180));

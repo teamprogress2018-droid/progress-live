@@ -24,6 +24,8 @@ Zapisuje URL-e jsDelivr w `ex-gif-manifest.js`. Karty zostają ze zdjęciem; odt
    ```
 4. Commit: `assets/ex/gifs/*`, `ex-gif-manifest.js`.
 
+**Hack Squat:** `przysiad-hack-maszyna.gif` jest w tym folderze ręcznie (karty biblioteki pokazują GIF, nie statyczne zdjęcie). Nie odpalaj `build_ex_gif_manifest.js` na całym folderze, jeśli w manifeście są już URL-e MP4 z video-assets — skrypt nadpisze cały plik.
+
 W kreatorze planu pod każdym ćwiczeniem pojawi się podgląd techniki (`.mp4` / `.gif` / YouTube).
 
 Obsługiwane formaty: `.mp4`, `.webm`, `.gif`, `.webp`.
