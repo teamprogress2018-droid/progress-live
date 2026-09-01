@@ -186,6 +186,28 @@ ok('no seated leg curl clip', !MAN['uginanie nóg siedząc'] && !MAN['seated leg
 ok('no nordic curl clip', !MAN['uginanie nordyckie'] && !MAN['nordic curl']);
 ok('no stiff-leg deadlift clip', !MAN['martwy ciąg na sztywnych nogach'] && !MAN['stiff-leg deadlift']);
 ok('no good-morning clip', !MAN['good morning (skłon)'] && !MAN['good morning']);
+ok(
+  'cable glute kickback is wyciag clip',
+  /Cable%20Glute%20Kickback/i.test(MAN['kickback pośladki'] || '') &&
+    /na%20wyci%C4%85gu|na%20wyciagu/i.test(MAN['kickback pośladki'] || ''),
+  (MAN['kickback pośladki'] || '').slice(0, 180)
+);
+ok(
+  'hip thrust is db hip thrust clip',
+  /Dumbbell%20hip%20thrust/i.test(MAN['wypychanie bioder (hip thrust)'] || ''),
+  (MAN['wypychanie bioder (hip thrust)'] || '').slice(0, 180)
+);
+ok(
+  'abduction is seated machine clip',
+  /Seated%20Hip%20Abduction/i.test(MAN['abdukcja biodra maszyna'] || ''),
+  (MAN['abdukcja biodra maszyna'] || '').slice(0, 180)
+);
+ok('no plank-as-glute-bridge clip', !MAN['mostek biodrowy']);
+ok('no cable-as-machine-kickback clip', !MAN['kickback na maszynie']);
+ok('no extension-as-adduction clip', !MAN['przywodzenie biodra maszyna']);
+ok('no rdl-as-side-lying clip', !MAN['odwodzenie biodra leżąc']);
+ok('no crunch-as-donkey-kick clip', !MAN['donkey kick']);
+ok('no rear-delt-as-pull-through clip', !MAN['pull-through wyciąg'] && !MAN['cable pull-through']);
 
 const document = { querySelectorAll: () => [], getElementById: () => null, addEventListener() {} };
 const windowObj = {
@@ -290,6 +312,28 @@ ok('seated leg curl has no lying clip', !ctx.exGifUrl({ name: 'Uginanie nóg sie
 ok('nordic curl has no lying clip', !ctx.exGifUrl({ name: 'Uginanie nordyckie' }));
 ok('stiff-leg deadlift has no lying clip', !ctx.exGifUrl({ name: 'Martwy ciąg na sztywnych nogach' }));
 ok('good morning has no lying clip', !ctx.exGifUrl({ name: 'Good morning (skłon)' }));
+ok(
+  'cable glute kickback gif is cable clip',
+  /Cable%20Glute%20Kickback/i.test(ctx.exGifUrl({ name: 'Kickback pośladki' }) || '') &&
+    /na%20wyci%C4%85gu|na%20wyciagu/i.test(ctx.exGifUrl({ name: 'Kickback pośladki' }) || ''),
+  (ctx.exGifUrl({ name: 'Kickback pośladki' }) || '').slice(0, 180)
+);
+ok(
+  'hip thrust gif is db hip thrust clip',
+  /Dumbbell%20hip%20thrust/i.test(ctx.exGifUrl({ name: 'Wypychanie bioder (hip thrust)' }) || ''),
+  (ctx.exGifUrl({ name: 'Wypychanie bioder (hip thrust)' }) || '').slice(0, 180)
+);
+ok(
+  'seated abduction gif is seated machine clip',
+  /Seated%20Hip%20Abduction/i.test(ctx.exGifUrl({ name: 'Abdukcja biodra maszyna' }) || ''),
+  (ctx.exGifUrl({ name: 'Abdukcja biodra maszyna' }) || '').slice(0, 180)
+);
+ok('glute bridge has no plank clip', !ctx.exGifUrl({ name: 'Mostek biodrowy' }));
+ok('machine glute kickback has no cable clip', !ctx.exGifUrl({ name: 'Kickback na maszynie' }));
+ok('hip adduction has no extension clip', !ctx.exGifUrl({ name: 'Przywodzenie biodra maszyna' }));
+ok('side-lying abduction has no rdl clip', !ctx.exGifUrl({ name: 'Odwodzenie biodra leżąc' }));
+ok('donkey kick has no crunch clip', !ctx.exGifUrl({ name: 'Donkey kick' }));
+ok('pull-through has no rear-delt clip', !ctx.exGifUrl({ name: 'Pull-through wyciąg' }));
 
 const html = ctx.exTechniqueMediaHtml({ gif, name: 'Wyciskanie sztangi leżąc' }, {});
 ok('technique html is video', /<video/.test(html) && /autoplay/.test(html) && !/<img/.test(html), html.slice(0, 180));

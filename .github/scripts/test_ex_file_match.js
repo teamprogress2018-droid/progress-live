@@ -17,8 +17,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache manifest v27', html.includes('ex-gif-manifest.js?v=27'));
-ok('cache 01 v54', html.includes('01-core.js?v=54'));
+ok('cache manifest v28', html.includes('ex-gif-manifest.js?v=28'));
+ok('cache 01 v55', html.includes('01-core.js?v=55'));
 ok('cache 06 v38', html.includes('06-inbox-exercises-ai-programs.js?v=40'));
 
 const m = six.match(/const DEF_EX=\[([\s\S]*?)\];\s*window\.DEF_EX/);
@@ -174,8 +174,40 @@ ok(
   hit('Podciąganie nachwytem na drążku (szerokie) (Wide-Grip Pull-Up Wide-Grip Chin-Up (overhand)).mp4') !== 'Podciąganie podchwytem'
 );
 ok(
-  'adduction not abduction clip',
-  hit('Przywodzenie nóg na maszynie (adduktor) (Seated Hip Adduction Machine).mp4') === 'Przywodzenie biodra maszyna'
+  'adduction-named extension not assigned',
+  hit('Przywodzenie nóg na maszynie (adduktor) (Seated Hip Adduction Machine).mp4') === ''
+);
+ok(
+  'lying glute-bridge-as-plank filename not assigned',
+  hit('Mostek biodrowy (uginanie bioder w leżeniu) (Glute Bridge).mp4') === ''
+);
+ok(
+  'lying donkey-kick-as-crunch filename not assigned',
+  hit('Odwodzenie nogi w tył w klęku podpartym (kopnięcie osła) (Donkey Kick (Quadruped Hip Extension)).mp4') === ''
+);
+ok(
+  'lying side-lying-as-rdl filename not assigned',
+  hit('Unieisienie nogi w leżeniu bokiem (Side-Lying Hip Abduction).mp4') === ''
+);
+ok(
+  'lying seated-abduction-as-extension filename not assigned',
+  hit('Odwodzenie nóg na maszynie (siedzące) (Seated Hip Abduction Machine).mp4') === ''
+);
+ok(
+  'lying machine-kickback-as-cable filename not assigned',
+  hit('Odwodzenie nogi w tył na maszynie (kickback na maszynie) (Machine Glute Kickback).mp4') === ''
+);
+ok(
+  'cable glute kickback maps to glute kickback',
+  hit('Odwodzenie nogi w tył na wyciągu (kickback na wyciągu) (Cable Glute Kickback).mp4') === 'Kickback pośladki'
+);
+ok(
+  'db hip thrust maps to hip thrust',
+  hit('Hip thrust z hantlą (Dumbbell hip thrust).mp4') === 'Wypychanie bioder (hip thrust)'
+);
+ok(
+  'seated abduction maps to abduction machine',
+  hit('Odwodzenie nogi w maszynie (abduktor) (Seated Hip Abduction Machine).mp4') === 'Abdukcja biodra maszyna'
 );
 ok(
   'machine fly not chest press',

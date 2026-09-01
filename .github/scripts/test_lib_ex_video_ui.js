@@ -440,6 +440,52 @@ function ok(name, cond, extra) {
   const seatedHam = await detailMedia('Uginanie nóg siedząc');
   ok('seated curl has no lying mp4', !seatedHam.hasVideo, JSON.stringify(seatedHam).slice(0, 200));
 
+  const gluteKick = await detailMedia('Kickback pośladki');
+  await page.screenshot({ path: path.join(shotDir, 'lib_glute_cable_kickback_detail.png') });
+  ok('glute kickback detail title', gluteKick.title === 'Kickback pośladki', gluteKick.title);
+  ok(
+    'glute kickback plays cable clip',
+    gluteKick.hasVideo && /Cable%20Glute%20Kickback/i.test(gluteKick.src) && /na%20wyci/i.test(gluteKick.src),
+    (gluteKick.src || '').slice(0, 180)
+  );
+
+  const hipThrust = await detailMedia('Wypychanie bioder (hip thrust)');
+  await page.screenshot({ path: path.join(shotDir, 'lib_glute_hip_thrust_detail.png') });
+  ok('hip thrust detail title', hipThrust.title === 'Wypychanie bioder (hip thrust)', hipThrust.title);
+  ok(
+    'hip thrust plays db hip thrust clip',
+    hipThrust.hasVideo && /Dumbbell%20hip%20thrust/i.test(hipThrust.src),
+    (hipThrust.src || '').slice(0, 180)
+  );
+
+  const abduction = await detailMedia('Abdukcja biodra maszyna');
+  await page.screenshot({ path: path.join(shotDir, 'lib_glute_abduction_detail.png') });
+  ok('abduction detail title', abduction.title === 'Abdukcja biodra maszyna', abduction.title);
+  ok(
+    'abduction plays seated machine clip',
+    abduction.hasVideo && /Seated%20Hip%20Abduction/i.test(abduction.src),
+    (abduction.src || '').slice(0, 180)
+  );
+
+  const bridge = await detailMedia('Mostek biodrowy');
+  ok('glute bridge has no plank mp4', !bridge.hasVideo, JSON.stringify(bridge).slice(0, 200));
+  const machineKick = await detailMedia('Kickback na maszynie');
+  ok('machine kickback has no cable mp4', !machineKick.hasVideo, JSON.stringify(machineKick).slice(0, 200));
+  const adduction = await detailMedia('Przywodzenie biodra maszyna');
+  ok('adduction has no extension mp4', !adduction.hasVideo, JSON.stringify(adduction).slice(0, 200));
+  const sideLie = await detailMedia('Odwodzenie biodra leżąc');
+  ok('side-lying abduction has no rdl mp4', !sideLie.hasVideo, JSON.stringify(sideLie).slice(0, 200));
+  const donkey = await detailMedia('Donkey kick');
+  ok('donkey kick has no crunch mp4', !donkey.hasVideo, JSON.stringify(donkey).slice(0, 200));
+
+  const gluteCard = await libCard('Kickback pośladki');
+  await page.screenshot({ path: path.join(shotDir, 'lib_glute_kickback_card.png') });
+  ok(
+    'glute kickback card uses still photo',
+    gluteCard.found && /free-exercise-db|githubusercontent/.test(gluteCard.img) && !/\.mp4/i.test(gluteCard.img) && gluteCard.w > 0,
+    JSON.stringify(gluteCard)
+  );
+
   const shoulderCard = await libCard('Unoszenie bokiem');
   await page.screenshot({ path: path.join(shotDir, 'lib_shoulder_lateral_card.png') });
   ok(
