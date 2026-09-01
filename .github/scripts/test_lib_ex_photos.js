@@ -94,6 +94,15 @@ windowObj.EX_GIF_MANIFEST = {
 ok('pec deck thumb is gif not jpg', ctx.exThumbUrl({ name: 'Butterfly (peck deck)' }) === pecGif);
 ok('pec deck gif is not treated as video', !ctx.isVideoMediaUrl(pecGif));
 
+ok('ring dips photo', /Ring_Dips/.test(ctx.exThumbUrl({ name: 'Dipy na kółkach' }) || ''));
+ok('weighted dips photo', /Dips_-_Chest_Version|Dips_-_Chest/.test(ctx.exThumbUrl({ name: 'Dipy z obciążeniem' }) || ''));
+ok('hindu push-up photo', /free-exercise-db/.test(ctx.exThumbUrl({ name: 'Pompki hindu' }) || ''));
+ok('single-leg push-up photo', /free-exercise-db/.test(ctx.exThumbUrl({ name: 'Pompki jednonóż' }) || ''));
+ok('knee push-up photo', /free-exercise-db/.test(ctx.exThumbUrl({ name: 'Pompki na kolanach' }) || ''));
+ok('trx push-up photo', /Suspended_Push-Up/.test(ctx.exThumbUrl({ name: 'Pompki TRX' }) || ''));
+ok('smith bench photo', /Smith_Machine_Bench_Press/.test(ctx.exThumbUrl({ name: 'Wyciskanie w bramie Smith' }) || ''));
+ok('ring dip aka photo', /Ring_Dips/.test(ctx.exPhotoMapLookup('Ring dip') || ''));
+
 if (failed) {
   console.error(failed + ' failed');
   process.exit(1);
