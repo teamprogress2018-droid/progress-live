@@ -17,8 +17,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache manifest v23', html.includes('ex-gif-manifest.js?v=23'));
-ok('cache 01 v50', html.includes('01-core.js?v=50'));
+ok('cache manifest v23', html.includes('ex-gif-manifest.js?v=24'));
+ok('cache 01 v50', html.includes('01-core.js?v=51'));
 ok('cache 06 v38', html.includes('06-inbox-exercises-ai-programs.js?v=40'));
 
 const m = six.match(/const DEF_EX=\[([\s\S]*?)\];\s*window\.DEF_EX/);
@@ -152,6 +152,22 @@ ok(
 ok(
   'reverse pec deck is machine reverse',
   hit('Odwrotne rozpiętki na maszynie (tylne ramiona) (Reverse Pec Deck Fly (Rear Delt Fly Machine)).mp4') === 'Odwrotne rozpiętki maszyna'
+);
+ok(
+  'lying barbell-row filename not assigned',
+  hit('Wiosłowanie sztangą w opadzie tułowia (Barbell Bent-Over Row).mp4') === ''
+);
+ok(
+  'lying pendlay filename not assigned',
+  hit('Wiosłowanie sztangą podchwytem (wiosłowanie Pendlay) (Barbell Bent-Over Row (Underhand Grip Pendlay Row)).mp4') === ''
+);
+ok(
+  'lying preacher-as-db-row not assigned',
+  hit('Wiosłowanie jednorączne na ławce (z hantlem) (Single-Arm Dumbbell Row).mp4') === ''
+);
+ok(
+  'lying pec-deck-as-pull-up not assigned',
+  hit('Podciąganie na drążku nachwytem (Pull-up (overhand grip)).mp4') === ''
 );
 
 vm.runInContext(six, ctx);
