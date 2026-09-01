@@ -245,6 +245,37 @@ function ok(name, cond, extra) {
   ok('pec deck guide phases', pecDetail.hasGuide && pecDetail.phases.some((s) => /phase-open/.test(s)) && pecDetail.phases.some((s) => /phase-close/.test(s)));
   ok('pec deck guide copy', /Łokcie na poziomie barków/i.test(pecDetail.copy) && /motyl/i.test(pecDetail.copy));
 
+  async function libCard(name) {
+    await page.evaluate((n) => {
+      if (typeof goTo === 'function') goTo('library');
+      if (typeof setExView === 'function') setExView('grid');
+      const inp = document.getElementById('ex-search');
+      if (inp) inp.value = n;
+      if (typeof renderLib === 'function') renderLib();
+    }, name);
+    await page.waitForSelector('.ex-card');
+    return page.evaluate((n) => {
+      const cards = [...document.querySelectorAll('.ex-card')];
+      const hit = cards.find((el) => (el.querySelector('.ex-card-name') || {}).textContent === n);
+      const img = hit && hit.querySelector('.ex-card-thumb img');
+      const ph = hit && hit.querySelector('.ex-card-thumb-ph');
+      return {
+        found: !!hit,
+        img: img ? img.getAttribute('src') : '',
+        placeholder: !!ph
+      };
+    }, name);
+  }
+
+  const rings = await libCard('Dipy na kółkach');
+  await page.screenshot({ path: path.join(shotDir, 'lib_ring_dips_card.png') });
+  ok('ring dips card rendered', rings.found, JSON.stringify(rings));
+  ok('ring dips card has photo not placeholder', /Ring_Dips/.test(rings.img) && !rings.placeholder, JSON.stringify(rings));
+
+  const hindu = await libCard('Pompki hindu');
+  await page.screenshot({ path: path.join(shotDir, 'lib_hindu_pushup_card.png') });
+  ok('hindu push-up card has photo', hindu.found && /free-exercise-db|githubusercontent/.test(hindu.img) && !hindu.placeholder, JSON.stringify(hindu));
+
   await page.evaluate(() => {
     if (typeof goTo === 'function') goTo('builder');
     if (typeof initBuilder === 'function') initBuilder();

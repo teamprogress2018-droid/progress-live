@@ -40,7 +40,61 @@ const ALIASES = {
   'Krzyżowanie wyciągów dół–góra': 'Low Cable Crossover',
   'Wyciskanie landmine': 'Landmine Linear Jammer',
   'Pompki diamentowe': 'Close-Grip Push-Up off of a Dumbbell',
-  'Pompki szerokie': 'Pushups',
+  'Pompki szerokie': 'Push-Up Wide',
+  'Dipy na kółkach': 'Ring Dips',
+  'Dipy z obciążeniem': 'Dips - Chest Version',
+  'Pompki hindu': 'Pushups',
+  'Pompki jednonóż': 'Pushups',
+  'Pompki na kolanach': 'Pushups',
+  'Pompki z nogami na podwyższeniu': 'Push-Ups With Feet Elevated',
+  'Pompki łucznicze': 'Clock Push-Up',
+  'Pompki TRX': 'Suspended Push-Up',
+  'Pompki TRX z przyciągnięciem kolan': 'Suspended Push-Up',
+  'Pompki na hantlach': 'Close-Grip Push-Up off of a Dumbbell',
+  'Pompki T hantlami': 'Push Up to Side Plank',
+  'Pompki z nogami na piłce swiss': 'Push-Ups With Feet On An Exercise Ball',
+  'Pompki na piłce swiss': 'Incline Push-Up',
+  'Pompki z rękami na piłce': 'Incline Push-Up',
+  'Pompki z przetaczaniem piłki bokiem': 'Clock Push-Up',
+  'Pompki jednorącz na piłce': 'Single-Arm Push-Up',
+  'Pompki na dwóch piłkach lekarskich': 'Close-Grip Push-Up off of a Dumbbell',
+  'Pompki plyo z nogami na podwyższeniu': 'Plyo Push-up',
+  'Pompki z przeciągnięciem': 'Pushups',
+  'Pompki offset': 'Clock Push-Up',
+  'Pompki z dłońmi na podwyższeniu': 'Incline Push-Up',
+  'Pompki z gąsienicy': 'Inchworm',
+  'Pompki typewriter': 'Clock Push-Up',
+  'Pompki podchwytem': 'Incline Push-Up Reverse Grip',
+  'Rozpiętki na wyciągu w poziomie': 'Flat Bench Cable Flyes',
+  'Rozpiętki jednorącz wyciąg': 'Single-Arm Cable Crossover',
+  'Rozpiętki z taśmą stojąc': 'Cross Over - With Bands',
+  'Rozpiętki hantlami na piłce swiss': 'Dumbbell Flyes',
+  'Pullover sztangą': 'Bent-Arm Barbell Pullover',
+  'Wyciskanie hantli na podłodze': 'Dumbbell Floor Press',
+  'Wyciskanie na maszynie skos+': 'Leverage Incline Chest Press',
+  'Wyciskanie w bramie Smith': 'Smith Machine Bench Press',
+  'Wyciskanie hantli jednorącz leżąc': 'One Arm Dumbbell Bench Press',
+  'Wyciskanie hantli na piłce swiss': 'Dumbbell Bench Press',
+  'Wyciskanie hantla na piłce swiss jednorącz': 'One Arm Dumbbell Bench Press',
+  'Wyciskanie hantli na piłce swiss naprzemiennie': 'Dumbbell Bench Press',
+  'Wyciskanie z podłogi dwa KB': 'Dumbbell Floor Press',
+  'Wyciskanie z podłogi dwa KB w mostku': 'Dumbbell Floor Press',
+  'Wyciskanie z podłogi KB jednorącz w mostku': 'One-Arm Kettlebell Floor Press',
+  'Wyciskanie z podłogi KB naprzemiennie': 'Alternating Floor Press',
+  'Wyciskanie z podłogi KB jednorącz': 'One-Arm Kettlebell Floor Press',
+  'Wyciskanie z podłogi hantlem w mostku jednonóż': 'Dumbbell Floor Press',
+  'Wyciskanie hantli na podłodze naprzemiennie': 'Alternating Floor Press',
+  'Wyciskanie hantli w mostku': 'Dumbbell Floor Press',
+  'Wyciskanie hantli w mostku na ławce': 'Dumbbell Bench Press',
+  'Wyciskanie hantli wąsko': 'Dumbbell Bench Press with Neutral Grip',
+  'Wyciskanie hantli naprzemiennie leżąc': 'Dumbbell Bench Press',
+  'Wyciskanie hantla w mostku jednorącz': 'One Arm Dumbbell Bench Press',
+  'Wyciskanie hantla z podłogi jednorącz': 'One Arm Floor Press',
+  'Wyciskanie klatki z taśmą stojąc': 'Standing Cable Chest Press',
+  'Wyciskanie sztangi ekscentryczne': 'Barbell Bench Press - Medium Grip',
+  'Wyciskanie sztangi szeroko': 'Wide-Grip Barbell Bench Press',
+  'Wyciskanie sztangi 1.5': 'Barbell Bench Press - Medium Grip',
+  'Wyciskanie sztangi z pauzą izometryczną': 'Barbell Bench Press - Medium Grip',
   'Wyciskanie Svenda': 'Isometric Wipers',
   'Martwy ciąg klasyczny': 'Barbell Deadlift',
   'Martwy ciąg RDL': 'Romanian Deadlift',
@@ -214,25 +268,58 @@ async function loadFedb() {
 async function main() {
   const fedb = await loadFedb();
   const byName = new Map(fedb.map((e) => [String(e.name || '').toLowerCase(), e]));
+  const six = fs.readFileSync(path.join(root, '06-inbox-exercises-ai-programs.js'), 'utf8');
+  const block = six.match(/const DEF_EX=\[([\s\S]*?)\];\s*window\.DEF_EX/);
+  const akaByPl = new Map();
+  if (block) {
+    for (const x of block[1].matchAll(/\{name:'([^']+)'([^}]*)\}/g)) {
+      akaByPl.set(x[1], (x[2].match(/aka:'([^']+)'/) || [])[1] || '');
+    }
+  }
+  function mediaKey(s) {
+    return String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
+  }
+  const prev = {};
+  if (fs.existsSync(outFile)) {
+    const src = fs.readFileSync(outFile, 'utf8');
+    const m = src.match(/window\.EX_PHOTO_MANIFEST\s*=\s*(\{[\s\S]*\});/);
+    if (m) Object.assign(prev, JSON.parse(m[1]));
+  }
   const manifest = {};
   const missing = [];
+  function addKeys(pl, url) {
+    const labels = [pl];
+    String(akaByPl.get(pl) || '')
+      .split(/[,;/|]/)
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .forEach((s) => labels.push(s));
+    for (const label of labels) {
+      const k = mediaKey(label);
+      if (k && !manifest[k]) manifest[k] = url;
+    }
+  }
   for (const [pl, en] of Object.entries(ALIASES)) {
     const ex = byName.get(en.toLowerCase());
     if (!ex || !ex.images || !ex.images[0]) {
       missing.push(pl + ' -> ' + en);
       continue;
     }
-    const key = pl.toLowerCase().replace(/\s+/g, ' ').trim();
-    manifest[key] = IMG_BASE + ex.images[0];
+    addKeys(pl, IMG_BASE + ex.images[0]);
+  }
+  for (const [k, url] of Object.entries(prev)) {
+    if (!manifest[k]) manifest[k] = url;
   }
   const body =
     '/** Zdjęcia techniki (free-exercise-db / Unlicense). Generuj: node .github/scripts/build_ex_photo_manifest.js */\n' +
-    'window.EX_PHOTO_MANIFEST=' + JSON.stringify(manifest, null, 2) + ';\n';
+    'window.EX_PHOTO_MANIFEST=' +
+    JSON.stringify(manifest, null, 2) +
+    ';\n';
   fs.writeFileSync(outFile, body);
   console.log('Wrote', Object.keys(manifest).length, 'photos →', path.relative(root, outFile));
   if (missing.length) {
     console.warn('Unmatched aliases:', missing.length);
-    missing.forEach((m) => console.warn(' ', m));
+    missing.forEach((row) => console.warn(' ', row));
     process.exitCode = 1;
   }
 }
