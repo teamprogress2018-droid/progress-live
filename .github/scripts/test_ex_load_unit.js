@@ -33,7 +33,7 @@ ok('builder apply helper', src05.includes('function builderApplyLoadUnit'));
 ok('builder header KG/S', src05.includes('KG/S'));
 ok('save loadUnit', src05.includes("loadUnit:typeof exLoadUnit==='function'?exLoadUnit(n):'kg'"));
 ok('liny tagged sec', /name:'Liny treningowe'[\s\S]{0,280}load:'sec'/.test(six));
-ok('deska tagged sec', /name:'Deska',aka:'Plank'[\s\S]{0,220}load:'sec'/.test(six));
+ok('deska tagged sec', /name:'Deska',aka:'Plank[^']*'[\s\S]{0,240}load:'sec'/.test(six));
 ok('taps not tagged', !/name:'Deska z unoszeniem ramienia'[^}]*load:'sec'/.test(six));
 
 const document = {

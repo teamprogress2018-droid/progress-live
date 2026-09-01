@@ -34,8 +34,11 @@ function exerciseSearchBlob(e) {
   return exerciseSearchNorm([e.name, e.aka, e.cat, e.muscle, e.eq].join(' '));
 }
 
-ok('library size atlas', DEF_EX.length >= 750, DEF_EX.length);
+ok('library size atlas', DEF_EX.length >= 950, DEF_EX.length);
 ok('unique names', new Set(DEF_EX.map((e) => e.name)).size === DEF_EX.length);
+ok('cache 06 v38', html.includes('06-inbox-exercises-ai-programs.js?v=38'));
+ok('cat Mobilność', six.includes("'Mobilność'") && html.includes('<option>Mobilność</option>'));
+ok('mobilność count', DEF_EX.filter((e) => e.cat === 'Mobilność').length >= 80, DEF_EX.filter((e) => e.cat === 'Mobilność').length);
 ok('cache 06 v37', html.includes('06-inbox-exercises-ai-programs.js?v=38'));
 
 function findByQuery(q) {
@@ -81,6 +84,15 @@ const expect = [
   ['DB Zottman Curls', 'Uginanie Zottman'],
   ['Landing - 2 to 2', 'Lądowanie 2 na 2'],
   ['Wall Handstand', 'Stanie na rękach przy ścianie'],
+  ['Skin The Cat', 'Skin the cat'],
+  ['Tall Kneeling Pallof Press', 'Pallof w wysokim klęku'],
+  ['Plank Walk Up', 'Wejścia w deskę (high to low)'],
+  ['Quadruped Hip CARS', 'CARs biodra na czworaka'],
+  ['Foam Roll - Foot', 'Foam roller — stopa'],
+  ['Jefferson Curl Bodyweight', 'Jefferson curl (masa ciała)'],
+  ['Pancake Stretch', 'Pancake (rozciąganie)'],
+  ['Bretzel Stretch', 'Bretzel'],
+  ['Home - Mobility A', 'Mobilność w domu A'],
 ];
 
 for (const [q, name] of expect) {

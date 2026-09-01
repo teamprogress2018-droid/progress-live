@@ -135,7 +135,7 @@ ok('search wall ball', namesOf('wall ball').includes('Rzut piłką o ścianę'))
 ok('search slam', namesOf('slam').includes('Rzut piłką o podłogę'));
 ok('ball throws in DEF_EX', ['Rzut piłką o ścianę','Rzut piłką o podłogę','Rzut piłką z klatki','Rzut piłką rotacyjny','Rzut piłką z przysiadu'].every((n) => DEF_EX.some((e) => e.name === n)));
 ok('ball throws count', DEF_EX.filter((e) => /^Rzut piłką/.test(e.name)).length >= 12);
-ok('library size', DEF_EX.length >= 750);
+ok('library size', DEF_EX.length >= 950);
 ok('unique names', new Set(DEF_EX.map((e) => e.name)).size === DEF_EX.length);
 ok('olympic cat', DEF_EX.filter((e) => e.cat === 'Olimpijskie').length >= 8);
 ok('search zarzut', namesOf('zarzut').includes('Zarzut siłowy') && namesOf('zarzut').includes('Zarzut'));
@@ -157,7 +157,11 @@ ok('search hindu', namesOf('hindu').includes('Pompki hindu'));
 ok('search sanie', namesOf('sanie').includes('Pchanie sań') || namesOf('sled').includes('Pchanie sań'));
 ok('search uginanie nog', namesOf('uginanie nog').includes('Uginanie nóg leżąc') && namesOf('uginanie nog').includes('Uginanie nóg siedząc'));
 ok('search thruster', namesOf('thruster').includes('Wyciskanie z przysiadu (thruster)'));
-ok('nav cats in form', html.includes('<option>Olimpijskie</option>') && html.includes('<option>Rozgrzewka</option>') && html.includes('<option>Taśmy</option>'));
+ok('nav cats in form', html.includes('<option>Olimpijskie</option>') && html.includes('<option>Rozgrzewka</option>') && html.includes('<option>Mobilność</option>') && html.includes('<option>Taśmy</option>'));
+ok('search cars', namesOf('cars').includes('CARs biodra na czworaka') && namesOf('cars').includes('CARs barków naprzemiennie'));
+ok('search jefferson', namesOf('jefferson curl').includes('Jefferson curl (masa ciała)'));
+ok('search mobilnosc cat', namesOf('mobilnosc').some((n) => DEF_EX.find((e) => e.name === n && e.cat === 'Mobilność')));
+ok('mobilność category', DEF_EX.filter((e) => e.cat === 'Mobilność').length >= 80);
 
 if (failed) {
   console.error(failed + ' failed');
