@@ -59,6 +59,57 @@ function ok(name, cond, extra) {
   ok('bench card has no video tag', !card.hasVideo);
 
   await page.evaluate(() => {
+    if (typeof setExView === 'function') setExView('grid');
+    const inp = document.getElementById('ex-search');
+    if (inp) inp.value = 'Przysiad hack maszyna';
+    if (typeof renderLib === 'function') renderLib();
+  });
+  await page.waitForSelector('.ex-card');
+  await page.waitForFunction(() => {
+    const cards = [...document.querySelectorAll('.ex-card')];
+    const hit = cards.find((el) => (el.querySelector('.ex-card-name') || {}).textContent === 'Przysiad hack maszyna');
+    const img = hit && hit.querySelector('.ex-card-thumb img');
+    return !!(img && img.complete && img.naturalWidth > 0);
+  });
+  const hack = await page.evaluate(() => {
+    const cards = [...document.querySelectorAll('.ex-card')];
+    const hit = cards.find((el) => (el.querySelector('.ex-card-name') || {}).textContent === 'Przysiad hack maszyna');
+    const img = hit && hit.querySelector('.ex-card-thumb img');
+    const vid = hit && hit.querySelector('.ex-card-thumb video');
+    return {
+      found: !!hit,
+      img: img ? img.getAttribute('src') : '',
+      complete: img ? img.complete : false,
+      w: img ? img.naturalWidth : 0,
+      h: img ? img.naturalHeight : 0,
+      hasVideo: !!vid
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'lib_hack_squat_card.png') });
+  ok('hack squat card rendered', hack.found, JSON.stringify(hack));
+  ok('hack squat card uses local gif', /przysiad-hack-maszyna\.gif/.test(hack.img) && !/\.mp4/i.test(hack.img) && !/Hack_Squat\/0\.jpg/.test(hack.img), hack.img);
+  ok('hack squat gif loaded', hack.complete && hack.w > 0 && hack.h > 0, JSON.stringify(hack));
+  ok('hack squat card has no video tag', !hack.hasVideo);
+
+  await page.evaluate(() => {
+    if (typeof openExDetail === 'function') openExDetail('Przysiad hack maszyna');
+  });
+  await page.waitForSelector('#exd-body img.cw-technique-gif-img, #exd-body .cw-technique-gif img');
+  const hackDetail = await page.evaluate(() => {
+    const img = document.querySelector('#exd-body img.cw-technique-gif-img') || document.querySelector('#exd-body .cw-technique-gif img');
+    const video = document.querySelector('#exd-body video');
+    return {
+      title: (document.getElementById('exd-title') || {}).textContent || '',
+      src: img ? img.getAttribute('src') : '',
+      hasVideo: !!video
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'lib_hack_squat_detail.png') });
+  ok('hack squat detail title', hackDetail.title === 'Przysiad hack maszyna', hackDetail.title);
+  ok('hack squat detail shows gif', /przysiad-hack-maszyna\.gif/.test(hackDetail.src), hackDetail.src);
+  ok('hack squat detail has no mp4 video', !hackDetail.hasVideo);
+
+  await page.evaluate(() => {
     if (typeof openExDetail === 'function') openExDetail('Wyciskanie sztangi leżąc');
   });
   await page.waitForSelector('#exd-body video');
