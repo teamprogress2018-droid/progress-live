@@ -336,6 +336,48 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'lib_seated_leg_curl_card.png') });
   ok('seated leg curl card has photo', seatedCurl.found && /Seated_Leg_Curl/.test(seatedCurl.img) && !seatedCurl.placeholder && seatedCurl.w > 0, JSON.stringify(seatedCurl));
 
+  const seatedPress = await detailMedia('Wyciskanie hantli siedząc');
+  await page.screenshot({ path: path.join(shotDir, 'lib_shoulder_seated_press_detail.png') });
+  ok('seated db press detail title', seatedPress.title === 'Wyciskanie hantli siedząc', seatedPress.title);
+  ok(
+    'seated db press plays seated press clip',
+    seatedPress.hasVideo && /Seated%20Dumbbell%20Shoulder%20Press/i.test(seatedPress.src),
+    (seatedPress.src || '').slice(0, 180)
+  );
+
+  const laterals = await detailMedia('Unoszenie bokiem');
+  await page.screenshot({ path: path.join(shotDir, 'lib_shoulder_lateral_detail.png') });
+  ok('db lateral detail title', laterals.title === 'Unoszenie bokiem', laterals.title);
+  ok(
+    'db lateral plays standing lateral clip',
+    laterals.hasVideo && /Dumbbell%20Lateral%20Raise/i.test(laterals.src),
+    (laterals.src || '').slice(0, 180)
+  );
+
+  const cableLat = await detailMedia('Unoszenie bokiem na wyciągu jednorącz');
+  await page.screenshot({ path: path.join(shotDir, 'lib_shoulder_cable_lateral_detail.png') });
+  ok('cable lateral detail title', cableLat.title === 'Unoszenie bokiem na wyciągu jednorącz', cableLat.title);
+  ok(
+    'cable lateral plays low-pulley clip',
+    cableLat.hasVideo && /Cable%20lateral%20raise%20\(low%20pulley\)/i.test(cableLat.src),
+    (cableLat.src || '').slice(0, 180)
+  );
+
+  const ohp = await detailMedia('Wyciskanie żołnierskie OHP');
+  ok('barbell ohp has no lying mp4', !ohp.hasVideo, JSON.stringify(ohp).slice(0, 200));
+  const frontRaise = await detailMedia('Unoszenie przodem');
+  ok('front raise has no lying mp4', !frontRaise.hasVideo, JSON.stringify(frontRaise).slice(0, 200));
+  const arnold = await detailMedia('Wyciskanie Arnolda');
+  ok('arnold has no lying mp4', !arnold.hasVideo, JSON.stringify(arnold).slice(0, 200));
+
+  const shoulderCard = await libCard('Unoszenie bokiem');
+  await page.screenshot({ path: path.join(shotDir, 'lib_shoulder_lateral_card.png') });
+  ok(
+    'db lateral card uses still photo',
+    shoulderCard.found && /free-exercise-db|githubusercontent/.test(shoulderCard.img) && !/\.mp4/i.test(shoulderCard.img) && shoulderCard.w > 0,
+    JSON.stringify(shoulderCard)
+  );
+
   await page.evaluate(() => {
     if (typeof goTo === 'function') goTo('builder');
     if (typeof initBuilder === 'function') initBuilder();
