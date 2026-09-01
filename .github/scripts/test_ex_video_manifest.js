@@ -129,6 +129,49 @@ ok(
   /Cable%20lateral%20raise/i.test(MAN['unoszenie bokiem na wyciągu jednorącz'] || ''),
   (MAN['unoszenie bokiem na wyciągu jednorącz'] || '').slice(0, 160)
 );
+ok(
+  'barbell squat is classic back squat clip',
+  /przysiad%20klasyczny|na%20karku/i.test(MAN['przysiad ze sztangą'] || '') &&
+    /Barbell%20Back%20Squat/i.test(MAN['przysiad ze sztangą'] || ''),
+  (MAN['przysiad ze sztangą'] || '').slice(0, 180)
+);
+ok(
+  'bulgarian split squat is rear-foot-on-bench clip',
+  /bu%C5%82garski%20przysiad%20split|tylna%20nog%C4%85%20uniesion%C4%85%20na%20%C5%82awce/i.test(MAN['przysiad bułgarski'] || ''),
+  (MAN['przysiad bułgarski'] || '').slice(0, 180)
+);
+ok(
+  'leg press is foot-alignment clip',
+  /footknee|ustawienie%20st%C3%B3p/i.test(MAN['wyciskanie nogami'] || ''),
+  (MAN['wyciskanie nogami'] || '').slice(0, 180)
+);
+ok(
+  'heel-elevated squat is heel clip',
+  /Heel%20Elevated/i.test(MAN['przysiad z piętami na podwyższeniu'] || ''),
+  (MAN['przysiad z piętami na podwyższeniu'] || '').slice(0, 180)
+);
+ok(
+  'heel-elevated goblet is same heel clip',
+  /Heel%20Elevated/i.test(MAN['przysiad goblet na podwyższeniu pięt'] || ''),
+  (MAN['przysiad goblet na podwyższeniu pięt'] || '').slice(0, 180)
+);
+ok('no lying goblet clip', !MAN['przysiad goblet'] && !MAN['db goblet squat']);
+ok('no lying front squat clip', !MAN['przysiad przedni'] && !MAN['front squat']);
+ok('no lying sumo squat clip', !MAN['przysiad sumo']);
+ok('no lying walking lunge clip', !MAN['wykrok chodzony'] && !MAN['walking lunge']);
+ok('no lying barbell lunge clip', !MAN['wykrok ze sztangą']);
+ok('no lying smith squat clip', !MAN['przysiad w bramie smith'] && !MAN['smith squat']);
+ok('no lying single-leg press clip', !MAN['wyciskanie nogami jednonóż'] && !MAN['single-leg press']);
+ok(
+  'db lunge stays mapped',
+  /Dumbbell%20Lunge/i.test(MAN['wykrok z hantlami'] || '') && !/Walking/i.test(MAN['wykrok z hantlami'] || ''),
+  (MAN['wykrok z hantlami'] || '').slice(0, 160)
+);
+ok(
+  'leg extension stays mapped',
+  /Leg%20Extension/i.test(MAN['wyprosty nóg maszyna'] || MAN['seated leg extension machine'] || ''),
+  (MAN['wyprosty nóg maszyna'] || MAN['seated leg extension machine'] || '').slice(0, 160)
+);
 
 const document = { querySelectorAll: () => [], getElementById: () => null, addEventListener() {} };
 const windowObj = {
@@ -192,6 +235,33 @@ ok('machine shoulder press has no lying clip', !ctx.exGifUrl({ name: 'Wyciskanie
 ok('standing db ohp has no lying clip', !ctx.exGifUrl({ name: 'Wyciskanie hantli stojąc' }));
 ok('single-arm db press has no lying clip', !ctx.exGifUrl({ name: 'Wyciskanie hantla jednorącz nad głowę' }));
 ok('arnold has no lying clip', !ctx.exGifUrl({ name: 'Wyciskanie Arnolda' }));
+ok(
+  'barbell squat gif is classic clip',
+  /przysiad%20klasyczny|na%20karku/i.test(ctx.exGifUrl({ name: 'Przysiad ze sztangą' }) || ''),
+  (ctx.exGifUrl({ name: 'Przysiad ze sztangą' }) || '').slice(0, 180)
+);
+ok(
+  'bulgarian gif is rear-foot-on-bench clip',
+  /bu%C5%82garski%20przysiad%20split|tylna%20nog%C4%85/i.test(ctx.exGifUrl({ name: 'Przysiad bułgarski' }) || ''),
+  (ctx.exGifUrl({ name: 'Przysiad bułgarski' }) || '').slice(0, 180)
+);
+ok(
+  'leg press gif is foot-alignment clip',
+  /footknee|ustawienie%20st%C3%B3p/i.test(ctx.exGifUrl({ name: 'Wyciskanie nogami' }) || ''),
+  (ctx.exGifUrl({ name: 'Wyciskanie nogami' }) || '').slice(0, 180)
+);
+ok('goblet squat has no lying clip', !ctx.exGifUrl({ name: 'Przysiad Goblet' }));
+ok('front squat has no lying clip', !ctx.exGifUrl({ name: 'Przysiad przedni' }));
+ok('sumo squat has no lying clip', !ctx.exGifUrl({ name: 'Przysiad sumo' }));
+ok('walking lunge has no lying clip', !ctx.exGifUrl({ name: 'Wykrok chodzony' }));
+ok('barbell lunge has no lying clip', !ctx.exGifUrl({ name: 'Wykrok ze sztangą' }));
+ok('smith squat has no lying clip', !ctx.exGifUrl({ name: 'Przysiad w bramie Smith' }));
+ok('single-leg press has no lying clip', !ctx.exGifUrl({ name: 'Wyciskanie nogami jednonóż' }));
+ok(
+  'db lunge gif is stationary lunge',
+  /Dumbbell%20Lunge/i.test(ctx.exGifUrl({ name: 'Wykrok z hantlami' }) || '') &&
+    !/Walking/i.test(ctx.exGifUrl({ name: 'Wykrok z hantlami' }) || '')
+);
 
 const html = ctx.exTechniqueMediaHtml({ gif, name: 'Wyciskanie sztangi leżąc' }, {});
 ok('technique html is video', /<video/.test(html) && /autoplay/.test(html) && !/<img/.test(html), html.slice(0, 180));

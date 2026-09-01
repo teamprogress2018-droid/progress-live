@@ -17,8 +17,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache manifest v25', html.includes('ex-gif-manifest.js?v=25'));
-ok('cache 01 v52', html.includes('01-core.js?v=52'));
+ok('cache manifest v26', html.includes('ex-gif-manifest.js?v=26'));
+ok('cache 01 v53', html.includes('01-core.js?v=53'));
 ok('cache 06 v38', html.includes('06-inbox-exercises-ai-programs.js?v=40'));
 
 const m = six.match(/const DEF_EX=\[([\s\S]*?)\];\s*window\.DEF_EX/);
@@ -122,8 +122,48 @@ ok(
   hit('Odwodzenie ramienia z hantlą w opadzie tułowia (odwrotne rozpięcie z hantlami) (Dumbbell Bent-Over Rear Delt Fly (Reverse Dumbbell Fly)).mp4') !== 'Rozpiętki hantlami'
 );
 ok(
-  'front squat not sumo',
-  hit('Przysiad ze sztangą trzymaną z przodu (front squat) (Barbell Front Squat).mp4') === 'Przysiad przedni'
+  'lying front-squat filename not assigned',
+  hit('Przysiad ze sztangą trzymaną z przodu (front squat) (Barbell Front Squat).mp4') === ''
+);
+ok(
+  'classic back squat maps to barbell squat',
+  hit('Przysiad ze sztangą na karku (przysiad klasyczny) (Barbell Back Squat).mp4') === 'Przysiad ze sztangą'
+);
+ok(
+  'lying goblet filename not assigned',
+  hit('Przysiad ze sztangielkami (goblet squat z hantlami) (Dumbbell Goblet Squat).mp4') === ''
+);
+ok(
+  'lying walking-lunge filename not assigned',
+  hit('Wykrok z hantlami (chód) (Dumbbell Walking Lunges).mp4') === ''
+);
+ok(
+  'lying smith squat filename not assigned',
+  hit('Przysiad ze sztangą na suwnicy Smitha (Smith Machine Squat).mp4') === ''
+);
+ok(
+  'lying chair-dip bulgarian filename not assigned',
+  hit('Wykrok bułgarski (tylna noga na ławce) (Bulgarian Split Squat).mp4') === ''
+);
+ok(
+  'honest bulgarian split squat maps',
+  hit('Wykrok z tylną nogą uniesioną na ławce (bułgarski przysiad split) (Bulgarian Split Squat).mp4') === 'Przysiad bułgarski'
+);
+ok(
+  'honest leg-press foot alignment maps',
+  hit('Wypychanie nóg na suwnicy (leg press) – ustawienie stópkolan (Leg Press (machine) – footknee alignment).mp4') === 'Wyciskanie nogami'
+);
+ok(
+  'db lunge maps to dumbbell lunge',
+  hit('Wykrok z hantlami (Dumbbell Lunge).mp4') === 'Wykrok z hantlami'
+);
+ok(
+  'lying barbell-lunge filename not assigned',
+  hit('Wykrok ze sztangą (Barbell Lunge).mp4') === ''
+);
+ok(
+  'lying single-leg-press filename not assigned',
+  hit('Wyciskanie nogami na suwnicy (jednotnie) (Single-Leg Press (Leg Press Machine)).mp4') === ''
 );
 ok(
   'sumo front not front squat',

@@ -85,6 +85,11 @@ function videoUrl(sha, file) {
   return 'https://cdn.jsdelivr.net/gh/' + VIDEO_REPO + '@' + sha + '/' + encodeURIComponent(file);
 }
 
+function filesHas(files, name) {
+  const base = String(name).split('/').pop();
+  return files.some((f) => f === name || String(f).split('/').pop() === base);
+}
+
 function addKeys(ctx, manifest, ex, url, force) {
   const keys = new Set();
   const add = (s) => {
@@ -250,7 +255,16 @@ function main() {
     'Wyciskanie hantla jednorącz nad głowę',
     'Wyciskanie Arnolda',
   ];
-  const CHEST_AND_BACK_UNMAP = CHEST_UNMAP.concat(BACK_UNMAP, SHOULDER_UNMAP);
+  const QUAD_UNMAP = [
+    'Przysiad Goblet',
+    'Przysiad przedni',
+    'Przysiad sumo',
+    'Wykrok ze sztangą',
+    'Wykrok chodzony',
+    'Przysiad w bramie Smith',
+    'Wyciskanie nogami jednonóż',
+  ];
+  const CHEST_AND_BACK_UNMAP = CHEST_UNMAP.concat(BACK_UNMAP, SHOULDER_UNMAP, QUAD_UNMAP);
   for (const name of CHEST_AND_BACK_UNMAP) {
     const ex = byName.get(name);
     if (!ex) continue;
@@ -291,6 +305,42 @@ function main() {
       row.via = 'shoulder';
     } else {
       matched.push({ name: loc.name, file: loc.file, score: 0, via: 'shoulder' });
+    }
+  }
+
+  /** Ręcznie sprawdzona treść klipu czworogłowych (nazwa pliku bywa myląca). */
+  const QUAD_FORCE = [
+    {
+      name: 'Przysiad ze sztangą',
+      file: 'Przysiad ze sztangą na karku (przysiad klasyczny) (Barbell Back Squat).mp4',
+    },
+    {
+      name: 'Przysiad bułgarski',
+      file: 'Wykrok z tylną nogą uniesioną na ławce (bułgarski przysiad split) (Bulgarian Split Squat).mp4',
+    },
+    {
+      name: 'Wyciskanie nogami',
+      file: 'Wypychanie nóg na suwnicy (leg press) – ustawienie stópkolan (Leg Press (machine) – footknee alignment).mp4',
+    },
+    {
+      name: 'Przysiad z piętami na podwyższeniu',
+      file: 'Przysiad ze złączonymi stopami (na podwyższeniu pod piętami) (Heel Elevated Bodyweight Squat).mp4',
+    },
+    {
+      name: 'Przysiad goblet na podwyższeniu pięt',
+      file: 'Przysiad ze złączonymi stopami (na podwyższeniu pod piętami) (Heel Elevated Bodyweight Squat).mp4',
+    },
+  ];
+  for (const loc of QUAD_FORCE) {
+    const ex = byName.get(loc.name);
+    if (!ex || !filesHas(files, loc.file)) continue;
+    addKeys(ctx, manifest, ex, videoUrl(sha, loc.file), true);
+    const row = matched.find((m) => m.name === loc.name);
+    if (row) {
+      row.file = loc.file;
+      row.via = 'quad';
+    } else {
+      matched.push({ name: loc.name, file: loc.file, score: 0, via: 'quad' });
     }
   }
 
