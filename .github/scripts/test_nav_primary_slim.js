@@ -56,7 +56,7 @@ test('goTo moreScreens includes secondary products', () => {
 });
 
 test('cache + CI', () => {
-  assert.match(html, /01-core.js\?v=51/);
+  assert.match(html, /01-core.js\?v=52/);
   assert.ok(wf.includes('test_nav_primary_slim.js'), 'CI runs nav slim test');
 });
 
