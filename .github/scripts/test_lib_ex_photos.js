@@ -127,6 +127,32 @@ ok('meadows row photo', /Long_Bar_Row/.test(ctx.exThumbUrl({ name: 'Wiosłowanie
 ok('machine row photo', /Leverage_Iso_Row/.test(ctx.exThumbUrl({ name: 'Wiosłowanie na maszynie' }) || ''));
 ok('yates row photo', /Reverse_Grip_Bent-Over/.test(ctx.exThumbUrl({ name: 'Wiosłowanie Yatesa' }) || ''));
 
+windowObj.EX_GIF_MANIFEST = {};
+windowObj.EX_GIF_REMOTE = {};
+const allLib = [...defBlock[1].matchAll(/\{name:'([^']+)'([^}]*)\}/g)]
+  .map((x) => ({ name: x[1], cat: (x[2].match(/cat:'([^']+)'/) || [])[1] || '' }));
+ok('library size for photos', allLib.length >= 900);
+const libMissing = allLib.filter((e) => {
+  const thumb = ctx.exThumbUrl(e) || '';
+  return !/free-exercise-db|githubusercontent/.test(thumb) || ctx.isDecorativeExAsset(thumb);
+});
+ok('all library exercises have still photos' + (libMissing.length ? ' — ' + libMissing.slice(0, 12).map((e) => e.name).join(', ') : ''), libMissing.length === 0);
+ok('airbike photo', /Recumbent_Bike/.test(ctx.exThumbUrl({ name: 'Airbike' }) || ''));
+ok('power clean photo', /Power_Clean/.test(ctx.exThumbUrl({ name: 'Zarzut siłowy' }) || ''));
+ok('snatch photo', /Snatch/.test(ctx.exThumbUrl({ name: 'Rwanie' }) || ''));
+ok('smith squat photo', /Smith_Machine_Squat/.test(ctx.exThumbUrl({ name: 'Przysiad w bramie Smith' }) || ''));
+ok('seated leg curl photo', /Seated_Leg_Curl/.test(ctx.exThumbUrl({ name: 'Uginanie nóg siedząc' }) || ''));
+ok('foam calf smr photo', /Calves-SMR/.test(ctx.exThumbUrl({ name: 'Foam roller łydki' }) || ''));
+ok('tate press photo', /Tate_Press/.test(ctx.exThumbUrl({ name: 'Wyciskanie Tate' }) || ''));
+ok('sled push photo', /Sled_Push/.test(ctx.exThumbUrl({ name: 'Pchanie sań' }) || ''));
+ok('rower photo', /Rowing/.test(ctx.exThumbUrl({ name: 'Wioślarz' }) || ''));
+ok('jump rope photo', /Rope_Jumping/.test(ctx.exThumbUrl({ name: 'Skakanka' }) || ''));
+ok('ez-bar curl photo', /EZ-Bar_Curl|EZ_Bar/.test(ctx.exThumbUrl({ name: 'Uginanie gryfem łamanym' }) || ''));
+ok('cable kickback is triceps not glute', /Tricep_Dumbbell_Kickback/.test(ctx.exThumbUrl({ name: 'Kickback na wyciągu' }) || ''));
+ok('butterfly stretch not pec-deck', /Groin/.test(ctx.exThumbUrl({ name: 'Rozciąganie butterfly' }) || '') && !/exercises\/Butterfly\//.test(ctx.exThumbUrl({ name: 'Rozciąganie butterfly' }) || ''));
+ok('kb halo photo', /Around_The_Worlds/.test(ctx.exThumbUrl({ name: 'Okrążenie kettlebell (halo)' }) || ''));
+ok('push jerk photo', /Jerk/.test(ctx.exThumbUrl({ name: 'Pchanie sztangi (jerk)' }) || ''));
+
 if (failed) {
   console.error(failed + ' failed');
   process.exit(1);
