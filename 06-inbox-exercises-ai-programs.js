@@ -1896,12 +1896,34 @@ function renderLib(){
 function exTechniqueGuideFor(ex){
   const blob=[ex&&ex.name,ex&&ex.aka].filter(Boolean).join(' ').toLowerCase();
   if(/przysiad hack|hack squat|przysiad na suwnicy/.test(blob))return 'hack-squat';
+  if(/odwrotn/.test(blob))return '';
+  if(/butterfly|peck deck|pec-deck|\bpec deck\b|rozpiętki na maszynie/.test(blob))return 'pec-deck';
   return '';
 }
 window.exTechniqueGuideFor=exTechniqueGuideFor;
 
 function exTechniqueGuideHtml(ex){
   const id=exTechniqueGuideFor(ex);
+  if(id==='pec-deck'){
+    const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
+    const gif='assets/ex/gifs/butterfly-peck-deck.gif';
+    const phase=(src,label)=>`<figure class="ex-phase"><img src="${esc(src)}" alt="${esc(label)}" loading="lazy" referrerpolicy="no-referrer"><figcaption>${esc(label)}</figcaption></figure>`;
+    return `<div class="ex-guide" data-guide="pec-deck">
+    <div class="ex-guide-kicker">Fazy ruchu — Butterfly (peck deck)</div>
+    <div class="ex-phase-row">
+      ${phase('assets/ex/pec/phase-open.jpg','Start · rozciągnięcie')}
+      ${phase(gif,'Ruch')}
+      ${phase('assets/ex/pec/phase-close.jpg','Ściśnięcie')}
+    </div>
+    <div class="ex-stretch">
+      <div>
+        <div class="ex-stretch-h">Łokcie na poziomie barków</div>
+        <p class="ex-stretch-p">Siedząc, oprzyj plecy. Łokcie na wysokości barków — ramiona zbliżają się przed klatką jak w uścisku, bez wyciskania w przód.</p>
+        <p class="ex-stretch-note">Pełne rozciągnięcie na starcie, kontrolowane ściśnięcie przy mostku. To <strong>motyl / pec deck</strong>, nie odwrotne rozpiętki.</p>
+      </div>
+    </div>
+  </div>`;
+  }
   if(id!=='hack-squat')return '';
   const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
   const gif='assets/ex/gifs/przysiad-hack-maszyna.gif';

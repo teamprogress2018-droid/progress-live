@@ -18,8 +18,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 06 v39', html.includes('06-inbox-exercises-ai-programs.js?v=39'));
-ok('cache styles v52', html.includes('styles.css?v=52'));
+ok('cache 06 v39', html.includes('06-inbox-exercises-ai-programs.js?v=40'));
+ok('cache styles v52', html.includes('styles.css?v=53'));
 ['anatomy.jpg', 'stretch-lens.jpg', 'phase-start.jpg', 'phase-bottom.jpg'].forEach((f) => {
   ok('asset ' + f, fs.existsSync(path.join(root, 'assets/ex/hack', f)));
 });
@@ -38,6 +38,9 @@ vm.runInContext(six.slice(start, end), ctx);
 
 ok('guide id hack squat', ctx.exTechniqueGuideFor({ name: 'Przysiad hack maszyna' }) === 'hack-squat');
 ok('guide id aka', ctx.exTechniqueGuideFor({ name: 'X', aka: 'Hack squat' }) === 'hack-squat');
+ok('guide id pec deck', ctx.exTechniqueGuideFor({ name: 'Butterfly (peck deck)' }) === 'pec-deck');
+ok('guide id pec aka', ctx.exTechniqueGuideFor({ name: 'X', aka: 'Rozpiętki na maszynie' }) === 'pec-deck');
+ok('no reverse pec deck guide', ctx.exTechniqueGuideFor({ name: 'Odwrotne rozpiętki maszyna' }) === '');
 ok('no guide bench', ctx.exTechniqueGuideFor({ name: 'Wyciskanie sztangi leżąc' }) === '');
 ok('empty guide html', ctx.exTechniqueGuideHtml({ name: 'Pompki' }) === '');
 
@@ -47,6 +50,12 @@ ok('depth overlay', /ex-phase-heat/.test(g) && /ex-phase-badge/.test(g));
 ok('anatomy quads', /anatomy\.jpg/.test(g) && /Czworogłowy/.test(g));
 ok('full stretch', /stretch-lens\.jpg/.test(g) && /Pełne rozciągnięcie/.test(g) && /hipertrofia/.test(g));
 ok('knee path', /dół \+ przód/.test(g) && /Głęboko/.test(g));
+
+const pec = ctx.exTechniqueGuideHtml({ name: 'Butterfly (peck deck)' });
+ok('pec guide phases', /phase-open\.jpg/.test(pec) && /butterfly-peck-deck\.gif/.test(pec) && /phase-close\.jpg/.test(pec));
+ok('pec guide name', /Butterfly \(peck deck\)/.test(pec) && /motyl \/ pec deck/.test(pec));
+ok('pec guide cue', /Łokcie na poziomie barków/.test(pec));
+ok('assets pec', fs.existsSync(path.join(root, 'assets/ex/pec/phase-open.jpg')) && fs.existsSync(path.join(root, 'assets/ex/gifs/butterfly-peck-deck.gif')));
 
 if (failed) {
   console.error('\n' + failed + ' failed');

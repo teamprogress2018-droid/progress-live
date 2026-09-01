@@ -84,6 +84,16 @@ ok('hack squat thumb is gif not jpg', ctx.exThumbUrl({ name: 'Przysiad hack masz
 ok('hack squat aka thumb is gif', ctx.exThumbUrl({ name: 'Hack squat maszyna' }) === hackGif);
 ok('hack squat gif is not treated as video', !ctx.isVideoMediaUrl(hackGif));
 
+const pecGif = 'assets/ex/gifs/butterfly-peck-deck.gif';
+ok('pec deck gif file', fs.existsSync(path.join(root, pecGif)));
+windowObj.EX_GIF_MANIFEST = {
+  'butterfly (peck deck)': pecGif,
+  'butterfly-peck-deck': pecGif,
+  'rozpiętki na maszynie': pecGif,
+};
+ok('pec deck thumb is gif not jpg', ctx.exThumbUrl({ name: 'Butterfly (peck deck)' }) === pecGif);
+ok('pec deck gif is not treated as video', !ctx.isVideoMediaUrl(pecGif));
+
 if (failed) {
   console.error(failed + ' failed');
   process.exit(1);

@@ -1,5 +1,7 @@
 /** Filmy techniki (progress-live-video-assets @ d7dcf95c296a). Generuj: node .github/scripts/build_ex_video_manifest.js
- *  Wyjątek: Przysiad hack maszyna → lokalny GIF (karty biblioteki; MP4 nie odtwarza się w <img>). */
+ *  Wyjątki lokalne (karty + szczegóły; MP4 z video-assets dla tych ćwiczeń jest źle podpisany):
+ *  Przysiad hack maszyna → assets/ex/gifs/przysiad-hack-maszyna.gif
+ *  Butterfly (peck deck) → assets/ex/gifs/butterfly-peck-deck.gif */
 window.EX_GIF_MANIFEST={
   "wyciskanie sztangi leżąc": "https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Wyciskanie%20sztangi%20na%20%C5%82awce%20poziomej%20(Barbell%20Bench%20Press).mp4",
   "wyciskanie-sztangi-lezac": "https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Wyciskanie%20sztangi%20na%20%C5%82awce%20poziomej%20(Barbell%20Bench%20Press).mp4",
@@ -38,14 +40,14 @@ window.EX_GIF_MANIFEST={
   "dipy-na-lawce": "https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Dipy%20na%20%C5%82awce%20(Bench%20Dip).mp4",
   "bench dip": "https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Dipy%20na%20%C5%82awce%20(Bench%20Dip).mp4",
   "bench-dip": "https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Dipy%20na%20%C5%82awce%20(Bench%20Dip).mp4",
-  "butterfly (peck deck)": "https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Rozpi%C4%99tki%20na%20maszynie%20(motyl)%20(Machine%20Chest%20Fly%20(Pec%20Deck)).mp4",
-  "butterfly-peck-deck": "https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Rozpi%C4%99tki%20na%20maszynie%20(motyl)%20(Machine%20Chest%20Fly%20(Pec%20Deck)).mp4",
-  "peck deck": "https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Rozpi%C4%99tki%20na%20maszynie%20(motyl)%20(Machine%20Chest%20Fly%20(Pec%20Deck)).mp4",
-  "peck-deck": "https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Rozpi%C4%99tki%20na%20maszynie%20(motyl)%20(Machine%20Chest%20Fly%20(Pec%20Deck)).mp4",
-  "pec-deck": "https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Rozpi%C4%99tki%20na%20maszynie%20(motyl)%20(Machine%20Chest%20Fly%20(Pec%20Deck)).mp4",
-  "pec deck": "https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Rozpi%C4%99tki%20na%20maszynie%20(motyl)%20(Machine%20Chest%20Fly%20(Pec%20Deck)).mp4",
-  "rozpiętki na maszynie": "https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Rozpi%C4%99tki%20na%20maszynie%20(motyl)%20(Machine%20Chest%20Fly%20(Pec%20Deck)).mp4",
-  "rozpietki-na-maszynie": "https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Rozpi%C4%99tki%20na%20maszynie%20(motyl)%20(Machine%20Chest%20Fly%20(Pec%20Deck)).mp4",
+  "butterfly (peck deck)": "assets/ex/gifs/butterfly-peck-deck.gif",
+  "butterfly-peck-deck": "assets/ex/gifs/butterfly-peck-deck.gif",
+  "peck deck": "assets/ex/gifs/butterfly-peck-deck.gif",
+  "peck-deck": "assets/ex/gifs/butterfly-peck-deck.gif",
+  "pec-deck": "assets/ex/gifs/butterfly-peck-deck.gif",
+  "pec deck": "assets/ex/gifs/butterfly-peck-deck.gif",
+  "rozpiętki na maszynie": "assets/ex/gifs/butterfly-peck-deck.gif",
+  "rozpietki-na-maszynie": "assets/ex/gifs/butterfly-peck-deck.gif",
   "wyciskanie wąskim chwytem": "https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Wyciskanie%20sztangi%20w%C4%85skim%20chwytem%20w%20le%C5%BCeniu%20(Close%20Grip%20Barbell%20Bench%20Press).mp4",
   "wyciskanie-waskim-chwytem": "https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Wyciskanie%20sztangi%20w%C4%85skim%20chwytem%20w%20le%C5%BCeniu%20(Close%20Grip%20Barbell%20Bench%20Press).mp4",
   "narrow grip bench press": "https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Wyciskanie%20sztangi%20w%C4%85skim%20chwytem%20w%20le%C5%BCeniu%20(Close%20Grip%20Barbell%20Bench%20Press).mp4",

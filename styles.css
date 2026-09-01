@@ -362,8 +362,10 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 .ex-stretch-p{font-size:11px;line-height:1.45;color:var(--text);margin:0;}
 .ex-stretch-note{font-size:10px;color:var(--muted);margin:5px 0 0;line-height:1.4;}
 .ex-stretch-path{display:block;width:100%;height:22px;margin-top:6px;}
-.cw-technique-media{margin:0 0 12px;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.1);background:#000;}
+.cw-technique-media{position:relative;margin:0 0 12px;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.1);background:#000;}
 .cw-technique-gif img,.cw-technique-gif video{display:block;width:100%;max-height:280px;object-fit:contain;background:#000;}
+.cw-technique-cap{position:absolute;left:0;right:0;bottom:0;padding:22px 10px 8px;background:linear-gradient(transparent,rgba(0,0,0,0.82));font-size:11px;font-weight:800;letter-spacing:0.45px;text-transform:uppercase;color:#fff;line-height:1.25;}
+.cw-technique-media.is-compact .cw-technique-cap{display:none;}
 .cw-technique-gif.is-compact img,.cw-technique-gif.is-compact video{max-height:40px;object-fit:cover;}
 .exgif-preview{max-height:320px;overflow-y:auto;border:1px solid var(--border-color);border-radius:8px;background:rgba(0,0,0,0.2);}
 .exgif-row{display:grid;grid-template-columns:28px 1fr minmax(180px,1.2fr) 24px;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,0.06);font-size:11px;}

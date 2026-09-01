@@ -156,6 +156,57 @@ function ok(name, cond, extra) {
   ok('face pull detail video', /Face%20Pull|Face Pull/i.test(decodeURIComponent(face.src || '')) && /\.mp4/i.test(face.src), face.src.slice(0, 160));
 
   await page.evaluate(() => {
+    if (typeof goTo === 'function') goTo('library');
+    const inp = document.getElementById('ex-search');
+    if (inp) inp.value = 'Butterfly (peck deck)';
+    if (typeof renderLib === 'function') renderLib();
+  });
+  await page.waitForSelector('.ex-card');
+  const pecCard = await page.evaluate(() => {
+    const cards = [...document.querySelectorAll('.ex-card')];
+    const hit = cards.find((el) => (el.querySelector('.ex-card-name') || {}).textContent === 'Butterfly (peck deck)');
+    const img = hit && hit.querySelector('.ex-card-thumb img');
+    const vid = hit && hit.querySelector('.ex-card-thumb video');
+    return {
+      found: !!hit,
+      img: img ? img.getAttribute('src') : '',
+      hasVideo: !!vid
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'lib_pec_deck_card.png') });
+  ok('pec deck card rendered', pecCard.found, JSON.stringify(pecCard));
+  ok('pec deck card uses local gif', /butterfly-peck-deck\.gif/.test(pecCard.img) && !/\.mp4/i.test(pecCard.img), pecCard.img);
+  ok('pec deck card has no video tag', !pecCard.hasVideo);
+
+  await page.evaluate(() => {
+    if (typeof openExDetail === 'function') openExDetail('Butterfly (peck deck)');
+  });
+  await page.waitForSelector('#exd-body .ex-guide[data-guide="pec-deck"]');
+  const pecDetail = await page.evaluate(() => {
+    const img = document.querySelector('#exd-body img.cw-technique-gif-img') || document.querySelector('#exd-body .cw-technique-gif img');
+    const video = document.querySelector('#exd-body video');
+    const cap = document.querySelector('#exd-body .cw-technique-cap');
+    const guide = document.querySelector('#exd-body .ex-guide[data-guide="pec-deck"]');
+    const phases = [...document.querySelectorAll('#exd-body .ex-guide[data-guide="pec-deck"] .ex-phase img')].map((el) => el.getAttribute('src') || '');
+    return {
+      title: (document.getElementById('exd-title') || {}).textContent || '',
+      src: img ? img.getAttribute('src') : '',
+      hasVideo: !!video,
+      cap: cap ? (cap.textContent || '') : '',
+      hasGuide: !!guide,
+      phases,
+      copy: guide ? (guide.innerText || '') : ''
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'lib_pec_deck_detail.png') });
+  ok('pec deck detail title', pecDetail.title === 'Butterfly (peck deck)', pecDetail.title);
+  ok('pec deck detail shows matching gif', /butterfly-peck-deck\.gif/.test(pecDetail.src), pecDetail.src);
+  ok('pec deck detail has no mp4 video', !pecDetail.hasVideo);
+  ok('pec deck caption is exercise name', /Butterfly \(peck deck\)/i.test(pecDetail.cap), pecDetail.cap);
+  ok('pec deck guide phases', pecDetail.hasGuide && pecDetail.phases.some((s) => /phase-open/.test(s)) && pecDetail.phases.some((s) => /phase-close/.test(s)));
+  ok('pec deck guide copy', /Łokcie na poziomie barków/i.test(pecDetail.copy) && /motyl/i.test(pecDetail.copy));
+
+  await page.evaluate(() => {
     if (typeof goTo === 'function') goTo('builder');
     if (typeof initBuilder === 'function') initBuilder();
     if (typeof addDay === 'function') addDay();
