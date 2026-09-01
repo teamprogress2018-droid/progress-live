@@ -50,7 +50,7 @@ function ok(name, cond) {
   } else console.log('OK  ', name);
 }
 
-ok('photo manifest has many entries', Object.keys(EX_PHOTO_MANIFEST).length >= 100);
+ok('photo manifest has many entries', Object.keys(EX_PHOTO_MANIFEST).length >= 500);
 ok('decorative svg detected', ctx.isDecorativeExAsset('assets/ex/bench.svg'));
 ok('gif path not decorative', !ctx.isDecorativeExAsset('assets/ex/gifs/bench.gif'));
 ok('bench uses photo not svg', /free-exercise-db|githubusercontent/.test(ctx.exThumbUrl({ name: 'Wyciskanie sztangi leżąc', img: 'assets/ex/bench.svg' })));
@@ -102,6 +102,30 @@ ok('knee push-up photo', /free-exercise-db/.test(ctx.exThumbUrl({ name: 'Pompki 
 ok('trx push-up photo', /Suspended_Push-Up/.test(ctx.exThumbUrl({ name: 'Pompki TRX' }) || ''));
 ok('smith bench photo', /Smith_Machine_Bench_Press/.test(ctx.exThumbUrl({ name: 'Wyciskanie w bramie Smith' }) || ''));
 ok('ring dip aka photo', /Ring_Dips/.test(ctx.exPhotoMapLookup('Ring dip') || ''));
+
+const defBlock = six.match(/const DEF_EX=\[([\s\S]*?)\];\s*window\.DEF_EX/);
+const plecy = [...defBlock[1].matchAll(/\{name:'([^']+)'([^}]*)\}/g)]
+  .map((x) => ({ name: x[1], cat: (x[2].match(/cat:'([^']+)'/) || [])[1] || '' }))
+  .filter((e) => e.cat === 'Plecy');
+ok('plecy library size', plecy.length >= 70);
+const plecyMissing = plecy.filter((e) => {
+  const thumb = ctx.exThumbUrl(e) || '';
+  return !/free-exercise-db|githubusercontent/.test(thumb) || ctx.isDecorativeExAsset(thumb);
+});
+ok('all plecy have still photos' + (plecyMissing.length ? ' — ' + plecyMissing.map((e) => e.name).join(', ') : ''), plecyMissing.length === 0);
+ok('trx row photo', /Inverted_Row_with_Straps/.test(ctx.exThumbUrl({ name: 'Wiosłowanie TRX' }) || ''));
+ok('ring row photo', /Suspended_Row/.test(ctx.exThumbUrl({ name: 'Wiosłowanie na kółkach' }) || ''));
+ok('rack pull photo', /Rack_Pulls/.test(ctx.exThumbUrl({ name: 'Ciąg z racka' }) || ''));
+ok('deficit deadlift photo', /Deficit_Deadlift/.test(ctx.exThumbUrl({ name: 'Martwy ciąg z deficytu' }) || ''));
+ok('snatch deadlift photo', /Snatch_Deadlift/.test(ctx.exThumbUrl({ name: 'Martwy ciąg chwyt rwaniowy' }) || ''));
+ok('superman photo', /Superman/.test(ctx.exThumbUrl({ name: 'Superman' }) || ''));
+ok('muscle-up photo', /Muscle_Up/.test(ctx.exThumbUrl({ name: 'Podciągnięcie z wyjściem (muscle-up)' }) || ''));
+ok('renegade row photo', /Renegade_Row/.test(ctx.exThumbUrl({ name: 'Wiosłowanie renegade z pompkami' }) || ''));
+ok('band pull-apart photo', /Band_Pull_Apart/.test(ctx.exThumbUrl({ name: 'Rozciąganie taśmy' }) || ''));
+ok('neutral pull-up photo', /V-Bar_Pullup/.test(ctx.exThumbUrl({ name: 'Podciąganie neutralnym chwytem' }) || ''));
+ok('meadows row photo', /Long_Bar_Row/.test(ctx.exThumbUrl({ name: 'Wiosłowanie Meadowsa' }) || ''));
+ok('machine row photo', /Leverage_Iso_Row/.test(ctx.exThumbUrl({ name: 'Wiosłowanie na maszynie' }) || ''));
+ok('yates row photo', /Reverse_Grip_Bent-Over/.test(ctx.exThumbUrl({ name: 'Wiosłowanie Yatesa' }) || ''));
 
 if (failed) {
   console.error(failed + ' failed');

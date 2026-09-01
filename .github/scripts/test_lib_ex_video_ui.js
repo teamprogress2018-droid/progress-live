@@ -275,6 +275,12 @@ function ok(name, cond, extra) {
       if (typeof renderLib === 'function') renderLib();
     }, name);
     await page.waitForSelector('.ex-card');
+    await page.waitForFunction((n) => {
+      const cards = [...document.querySelectorAll('.ex-card')];
+      const hit = cards.find((el) => (el.querySelector('.ex-card-name') || {}).textContent === n);
+      const img = hit && hit.querySelector('.ex-card-thumb img');
+      return !!(img && img.complete && img.naturalWidth > 0);
+    }, name);
     return page.evaluate((n) => {
       const cards = [...document.querySelectorAll('.ex-card')];
       const hit = cards.find((el) => (el.querySelector('.ex-card-name') || {}).textContent === n);
@@ -283,7 +289,8 @@ function ok(name, cond, extra) {
       return {
         found: !!hit,
         img: img ? img.getAttribute('src') : '',
-        placeholder: !!ph
+        placeholder: !!ph,
+        w: img ? img.naturalWidth : 0
       };
     }, name);
   }
@@ -291,11 +298,27 @@ function ok(name, cond, extra) {
   const rings = await libCard('Dipy na kółkach');
   await page.screenshot({ path: path.join(shotDir, 'lib_ring_dips_card.png') });
   ok('ring dips card rendered', rings.found, JSON.stringify(rings));
-  ok('ring dips card has photo not placeholder', /Ring_Dips/.test(rings.img) && !rings.placeholder, JSON.stringify(rings));
+  ok('ring dips card has photo not placeholder', /Ring_Dips/.test(rings.img) && !rings.placeholder && rings.w > 0, JSON.stringify(rings));
 
   const hindu = await libCard('Pompki hindu');
   await page.screenshot({ path: path.join(shotDir, 'lib_hindu_pushup_card.png') });
-  ok('hindu push-up card has photo', hindu.found && /free-exercise-db|githubusercontent/.test(hindu.img) && !hindu.placeholder, JSON.stringify(hindu));
+  ok('hindu push-up card has photo', hindu.found && /free-exercise-db|githubusercontent/.test(hindu.img) && !hindu.placeholder && hindu.w > 0, JSON.stringify(hindu));
+
+  const trxRow = await libCard('Wiosłowanie TRX');
+  await page.screenshot({ path: path.join(shotDir, 'lib_trx_row_card.png') });
+  ok('trx row card has photo', trxRow.found && /Inverted_Row_with_Straps/.test(trxRow.img) && !trxRow.placeholder && trxRow.w > 0, JSON.stringify(trxRow));
+
+  const superman = await libCard('Superman');
+  await page.screenshot({ path: path.join(shotDir, 'lib_superman_card.png') });
+  ok('superman card has photo', superman.found && /Superman/.test(superman.img) && !superman.placeholder && superman.w > 0, JSON.stringify(superman));
+
+  const rack = await libCard('Ciąg z racka');
+  await page.screenshot({ path: path.join(shotDir, 'lib_rack_pull_card.png') });
+  ok('rack pull card has photo', rack.found && /Rack_Pulls/.test(rack.img) && !rack.placeholder && rack.w > 0, JSON.stringify(rack));
+
+  const yates = await libCard('Wiosłowanie Yatesa');
+  await page.screenshot({ path: path.join(shotDir, 'lib_yates_row_card.png') });
+  ok('yates row card has photo', yates.found && /Reverse_Grip_Bent-Over/.test(yates.img) && !yates.placeholder && yates.w > 0, JSON.stringify(yates));
 
   await page.evaluate(() => {
     if (typeof goTo === 'function') goTo('builder');
