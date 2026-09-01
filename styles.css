@@ -340,6 +340,28 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 .ex-card-part{display:block;max-width:100%;}
 .ex-detail-thumb{margin:0 0 14px;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.1);background:#000;max-height:220px;}
 .ex-detail-thumb img{display:block;width:100%;max-height:220px;object-fit:cover;}
+.ex-guide{margin:0 0 14px;}
+.ex-guide-kicker{font-size:10px;font-family:var(--font-mono,'DM Mono',monospace);color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;}
+.ex-phase-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:0 0 12px;}
+.ex-phase{margin:0;position:relative;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.1);background:#0c0d12;}
+.ex-phase img{display:block;width:100%;aspect-ratio:1;object-fit:cover;}
+.ex-phase figcaption{position:absolute;left:0;right:0;bottom:0;padding:18px 6px 5px;background:linear-gradient(transparent,rgba(0,0,0,0.85));font-size:8px;font-weight:700;letter-spacing:0.25px;text-transform:uppercase;color:#fff;line-height:1.2;}
+.ex-phase.is-depth{border-color:rgba(255,59,48,0.5);}
+.ex-phase-heat{position:absolute;inset:0;background:radial-gradient(ellipse 44% 40% at 40% 58%,rgba(255,59,48,0.55),rgba(255,59,48,0.1) 52%,transparent 70%);mix-blend-mode:screen;pointer-events:none;}
+.ex-phase-badge{position:absolute;top:5px;right:5px;background:#FF3B30;color:#fff;font-size:7px;font-weight:800;letter-spacing:0.35px;text-transform:uppercase;padding:3px 5px;border-radius:999px;}
+.ex-anatomy{margin:0 0 12px;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.1);background:#000;position:relative;}
+.ex-anatomy img{display:block;width:100%;max-height:260px;object-fit:contain;background:#000;}
+.ex-anatomy .ex-stretch-lens{position:absolute;left:8px;bottom:8px;width:78px;height:78px;z-index:2;}
+.ex-anatomy-cap{position:absolute;right:8px;bottom:8px;left:auto;display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:999px;background:rgba(0,0,0,0.72);border:1px solid rgba(255,59,48,0.35);font-size:10px;font-weight:700;color:#fff;}
+.ex-anatomy-dot{width:8px;height:8px;border-radius:50%;background:#FF3B30;box-shadow:0 0 8px #FF3B30;}
+.ex-stretch{display:flex;gap:10px;align-items:center;padding:10px;border-radius:12px;border:1px solid rgba(255,59,48,0.22);background:rgba(255,59,48,0.06);}
+.ex-stretch-lens{position:relative;width:92px;height:92px;flex-shrink:0;border-radius:50%;overflow:hidden;border:2px solid rgba(255,59,48,0.55);box-shadow:0 0 0 4px rgba(255,59,48,0.12);background:#000;}
+.ex-stretch-lens img{width:100%;height:100%;object-fit:cover;display:block;}
+.ex-stretch-chip{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);background:#FF3B30;color:#fff;font-size:7px;font-weight:800;letter-spacing:0.4px;text-transform:uppercase;padding:2px 6px;border-radius:999px;white-space:nowrap;}
+.ex-stretch-h{font-size:11px;font-weight:800;letter-spacing:0.55px;text-transform:uppercase;color:var(--accent);margin:0 0 4px;font-family:var(--font-ui);}
+.ex-stretch-p{font-size:11px;line-height:1.45;color:var(--text);margin:0;}
+.ex-stretch-note{font-size:10px;color:var(--muted);margin:5px 0 0;line-height:1.4;}
+.ex-stretch-path{display:block;width:100%;height:22px;margin-top:6px;}
 .cw-technique-media{margin:0 0 12px;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.1);background:#000;}
 .cw-technique-gif img,.cw-technique-gif video{display:block;width:100%;max-height:280px;object-fit:contain;background:#000;}
 .cw-technique-gif.is-compact img,.cw-technique-gif.is-compact video{max-height:40px;object-fit:cover;}
