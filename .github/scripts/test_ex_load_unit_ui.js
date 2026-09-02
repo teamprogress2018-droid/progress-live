@@ -91,6 +91,88 @@ function ok(name, cond, extra) {
   ok('goblet back to kg', squat.ph === 'kg' && squat.unit === 'kg', JSON.stringify(squat));
   ok('%1RM enabled for kg', squat.pctDisabled === false, JSON.stringify(squat));
 
+  await input.fill('');
+  await input.fill('wioślarz');
+  await page.waitForTimeout(250);
+  const pickedRower = await page.evaluate(() => {
+    const items = [...document.querySelectorAll('.ex-row .ex-ac-item')];
+    const hit = items.find((el) => {
+      const n = ((el.querySelector('.ex-ac-name') || el).textContent || '').trim();
+      return n === 'Wioślarz';
+    });
+    if (hit) hit.click();
+    return !!hit;
+  });
+  ok('ac has exact Wioślarz', pickedRower);
+  await page.waitForTimeout(200);
+  const rower = await page.evaluate(() => {
+    const row = document.querySelector('.ex-row');
+    const kg = row && row.querySelector('[data-f="kg"]');
+    const name = row && row.querySelector('[data-f="name"]');
+    const pct = row && row.querySelector('[data-f="pct1rm"]');
+    return {
+      name: name ? name.value : '',
+      ph: kg ? kg.placeholder : '',
+      title: kg ? kg.title : '',
+      unit: kg ? kg.dataset.loadUnit : '',
+      pctDisabled: pct ? !!pct.disabled : false,
+      helper: typeof exLoadUnit === 'function' ? exLoadUnit('Wioślarz') : ''
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'builder_wioslarz_min.png') });
+  ok('pick fills Wioślarz', rower.name === 'Wioślarz', JSON.stringify(rower));
+  ok('placeholder min', rower.ph === 'min', JSON.stringify(rower));
+  ok('title czas min', /czas|min/i.test(rower.title), rower.title);
+  ok('data-load-unit min', rower.unit === 'min', JSON.stringify(rower));
+  ok('%1RM disabled for min', rower.pctDisabled, JSON.stringify(rower));
+  ok('exLoadUnit wioslarz', rower.helper === 'min', rower.helper);
+
+  await input.fill('');
+  await input.fill('airbike');
+  await page.waitForTimeout(250);
+  const pickedAir = await page.evaluate(() => {
+    const items = [...document.querySelectorAll('.ex-row .ex-ac-item')];
+    const hit = items.find((el) => {
+      const n = ((el.querySelector('.ex-ac-name') || el).textContent || '').trim();
+      return n === 'Airbike';
+    });
+    if (hit) hit.click();
+    return !!hit;
+  });
+  ok('ac has exact Airbike', pickedAir);
+  await page.waitForTimeout(200);
+  const air = await page.evaluate(() => {
+    const kg = document.querySelector('.ex-row [data-f="kg"]');
+    return { ph: kg ? kg.placeholder : '', unit: kg ? kg.dataset.loadUnit : '' };
+  });
+  ok('airbike placeholder min', air.ph === 'min' && air.unit === 'min', JSON.stringify(air));
+
+  await page.evaluate(() => {
+    if (typeof goTo === 'function') goTo('live');
+    window.liveClientId = 'c1';
+    window.liveExercises = [{
+      name: 'Wioślarz',
+      loadUnit: 'kg',
+      sets: [{ setNo: 1, kg: '', reps: '', done: false, kind: 'work' }],
+      done: false,
+      collapsed: false
+    }];
+    if (typeof renderLiveExercises === 'function') renderLiveExercises();
+  });
+  await page.waitForSelector('#live-ex-0');
+  const liveCard = await page.evaluate(() => {
+    const head = document.querySelector('#live-ex-0 .live-set-head');
+    const input = document.querySelector('#live-ex-0 .live-kg-input');
+    return {
+      head: head ? head.innerText : '',
+      ph: input ? input.getAttribute('placeholder') : ''
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'live_wioslarz_czas.png') });
+  ok('live header czas min', /czas/i.test(liveCard.head) && /min/i.test(liveCard.head), liveCard.head);
+  ok('live placeholder min', liveCard.ph === 'min', JSON.stringify(liveCard));
+  ok('live not ciezar kg', !/ciężar/i.test(liveCard.head), liveCard.head);
+
   await browser.close();
   if (failed) process.exit(1);
 })().catch((err) => {

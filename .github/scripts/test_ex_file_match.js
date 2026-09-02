@@ -18,8 +18,8 @@ function ok(name, cond, extra) {
 }
 
 ok('cache manifest v31', html.includes('ex-gif-manifest.js?v=31'));
-ok('cache 01 v58', html.includes('01-core.js?v=58'));
-ok('cache 06 v38', html.includes('06-inbox-exercises-ai-programs.js?v=40'));
+ok('cache 01 v58', html.includes('01-core.js?v=59'));
+ok('cache 06 v38', html.includes('06-inbox-exercises-ai-programs.js?v=41'));
 
 const m = six.match(/const DEF_EX=\[([\s\S]*?)\];\s*window\.DEF_EX/);
 ok('DEF_EX block', !!m);

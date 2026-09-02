@@ -1991,7 +1991,7 @@ function liveExCard(ex,i){
   const unit=typeof exLoadUnit==='function'?exLoadUnit(ex):'kg';
   const suf=typeof loadUnitSuffix==='function'?loadUnitSuffix(unit):'kg';
   const loadPh=typeof loadUnitPlaceholder==='function'?loadUnitPlaceholder(unit):'kg';
-  const loadLbl=unit==='sec'?'Czas':unit==='m'?'Dystans':'Ciężar';
+  const loadLbl=typeof loadUnitColumnLabel==='function'?loadUnitColumnLabel(unit):(unit==='sec'||unit==='min'?'Czas':unit==='m'?'Dystans':'Ciężar');
   const setsDone=ex.sets.filter(s=>s.done).length;
   const lastHint=ex.lastKg!==''&&ex.lastKg!=null?`Ostatnio: ${ex.lastKg} ${suf}${ex.lastReps?' × '+ex.lastReps:''}`:'';
   const pr=typeof exercisePR==='function'&&(typeof isWeightLoadUnit!=='function'||isWeightLoadUnit(unit))?exercisePR(liveClientId,ex.name):null;

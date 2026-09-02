@@ -36,7 +36,7 @@ ok('live+client watchdog', /trainerWatchdogAfterSession/.test(src02) && /trainer
 ok('dash + auto notifs', /Regres/.test(src04) && /maybeNotifyTrainerMonitor/.test(src04) && /Rada AI/.test(src04));
 ok('monitor context', /function clientMonitorContextForAI/.test(src08) && /function maybeNotifyTrainerMonitor/.test(src08));
 ok('profile banner', /cp-bmi-banner/.test(src08) && css.includes('.ai-watch-card') && css.includes('.cp-bmi-banner'));
-ok('cache', html.includes('07-forms-metrics-calculator.js?v=30') && html.includes('08-client-profile-extras.js?v=37') && html.includes('06-inbox-exercises-ai-programs.js?v=40') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=28') && html.includes('04-client-portal.js?v=36') && html.includes('styles.css?v=55'));
+ok('cache', html.includes('07-forms-metrics-calculator.js?v=30') && html.includes('08-client-profile-extras.js?v=37') && html.includes('06-inbox-exercises-ai-programs.js?v=41') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=28') && html.includes('04-client-portal.js?v=36') && html.includes('styles.css?v=55'));
 ok('CI', wf.includes('test_ai_bmi_watchdog.js') && wf.includes('test_ai_bmi_watchdog_ui.js'));
 
 const document = { getElementById: () => null, querySelectorAll: () => [], addEventListener() {} };
