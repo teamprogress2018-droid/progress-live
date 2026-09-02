@@ -703,9 +703,12 @@ function cpClientDataEditHTML(c){
   const intakeCol=intake&&intake.filled?'var(--teal)':intake&&intake.pending?'var(--orange)':'var(--muted)';
   const goalLabels={masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja'};
   const levelLabels={poczatkujacy:'Początkujący',sredni:'Średni',zaawansowany:'Zaawansowany'};
-  return `<div class="cp-edit-card">
+  return `<div class="cp-edit-card" id="cp-edit-card">
     <div class="cp-edit-card-hdr">
-      <div class="cp-edit-card-title">Edycja danych klienta</div>
+      <div>
+        <div class="cp-edit-card-title">Dane osobowe</div>
+        <div class="cp-edit-card-sub">Imię i nazwisko, telefon, e-mail, waga, wzrost, sport — dopisz lub popraw</div>
+      </div>
       <button type="button" class="btn btn-ghost btn-sm" onclick="cancelCPEdit()">Anuluj</button>
     </div>
     <div style="background:rgba(225,31,46,0.08);border:1px solid rgba(225,31,46,0.25);border-radius:10px;padding:12px;margin-bottom:14px;">
@@ -722,7 +725,7 @@ function cpClientDataEditHTML(c){
         <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('forms')">Historia w profilu</button>
       </div>
     </div>
-    ${field('cpe-name','Imię i nazwisko',`<input class="cp-edit-field form-input" id="cpe-name" value="${escHtml(c.name||'')}">`)}
+    ${field('cpe-name','Imię i nazwisko',`<input class="cp-edit-field form-input" id="cpe-name" autocomplete="name" placeholder="np. Jan Kowalski" value="${escHtml(c.name||'')}">`)}
     <div class="form-grid">
       ${field('cpe-email','Email',`<input class="cp-edit-field form-input" id="cpe-email" type="email" value="${escHtml(c.email||'')}">`)}
       ${field('cpe-phone','Telefon',`<input class="cp-edit-field form-input" id="cpe-phone" type="tel" placeholder="+48 123 456 789" value="${escHtml(c.phone||'')}">`)}
@@ -779,17 +782,27 @@ function cpClientDataEditHTML(c){
   </div>`;
 }
 function startCPEdit(clientId){
-  window._cpEditingClientId=clientId;
-  if(typeof cpClientId!=='undefined'&&cpClientId===clientId){
-    const c=CL.find(x=>x.id===clientId);
-    if(c&&typeof setCPTab==='function')setCPTab('overview');
-    else if(c&&typeof renderCPOverview==='function')renderCPOverview(c);
-    return;
+  const id=clientId||(typeof cpClientId!=='undefined'?cpClientId:window.cpClientId);
+  if(!id)return;
+  window._cpEditingClientId=id;
+  const alreadyOpen=typeof cpClientId!=='undefined'&&cpClientId===id;
+  if(!alreadyOpen&&typeof openClientProfile==='function'){
+    openClientProfile(id);
+    window._cpEditingClientId=id;
   }
-  if(typeof openClientProfile==='function')openClientProfile(clientId);
-  window._cpEditingClientId=clientId;
-  const c=CL.find(x=>x.id===clientId);
-  if(c&&typeof renderCPOverview==='function')renderCPOverview(c);
+  const c=CL.find(x=>x.id===id);
+  if(!c)return;
+  if(typeof setCPTab==='function')setCPTab('overview');
+  else if(typeof renderCPOverview==='function')renderCPOverview(c);
+  requestAnimationFrame(()=>{
+    const card=document.getElementById('cp-edit-card')||document.querySelector('.cp-edit-card');
+    if(card&&card.scrollIntoView)card.scrollIntoView({behavior:'smooth',block:'start'});
+    const nameEl=document.getElementById('cpe-name');
+    if(nameEl){
+      nameEl.focus();
+      try{const n=nameEl.value.length;nameEl.setSelectionRange(n,n);}catch(e){}
+    }
+  });
 }
 function cancelCPEdit(){
   window._cpEditingClientId=null;
@@ -924,6 +937,13 @@ function renderCPOverview(c){
   };
 
   document.getElementById('cp-body').innerHTML=`
+    ${editing?'':`<div class="cp-ov-edit-cta" role="button" tabindex="0" onclick="startCPEdit('${c.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startCPEdit('${c.id}')}">
+      <div>
+        <div class="cp-ov-edit-cta-title">Dane osobowe</div>
+        <div class="cp-ov-edit-cta-sub">Imię i nazwisko, telefon, e-mail, waga, wzrost, sport — kliknij, aby dopisać lub poprawić</div>
+      </div>
+      <span class="cp-ov-edit-cta-go">✏️ Edytuj dane</span>
+    </div>`}
     ${editing?cpClientDataEditHTML(c):''}
 
     ${(()=>{const ob=typeof getClientOnboard==='function'?getClientOnboard(c):null;
@@ -1050,7 +1070,7 @@ function renderCPOverview(c){
           `<div style="font-size:14px;font-weight:700;line-height:1.4;margin-bottom:6px;">${escHtml(goalText)}</div>
            <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">${escHtml(levelText)}${c.trainingFreq?' · '+c.trainingFreq+'× / tydz.':''}${c.preferredTrainTime?' · '+escHtml(c.preferredTrainTime):''}</div>
            <div class="cp-ov-shared-tag">Udostępnione klientowi</div>
-           <div class="cp-ov-rail-hint">Kliknij, aby edytować profil</div>`,
+           <div class="cp-ov-rail-hint">Cel i poziom są w ankiecie — kliknij, aby otworzyć dane klienta</div>`,
           `startCPEdit('${c.id}')`)}
 
         ${railCard('Notatki',
@@ -1062,7 +1082,7 @@ function renderCPOverview(c){
         ${railCard('Ograniczenia / kontuzje',
           (injuries?`<div style="font-size:12px;line-height:1.5;color:var(--text);">${escHtml(injuries)}</div>`
             :'<div style="font-size:12px;color:var(--muted);">Brak wpisanych ograniczeń</div>')+
-          '<div class="cp-ov-rail-hint">Kliknij, aby edytować profil</div>',
+          '<div class="cp-ov-rail-hint">Kontuzje z ankiety — kliknij, aby otworzyć dane i ankietę</div>',
           `startCPEdit('${c.id}')`)}
 
         ${photosOn?railCard('Zdjęcia postępu',
@@ -1076,12 +1096,13 @@ function renderCPOverview(c){
 
         ${railCard('Profil',
           `<div class="cp-ov-profile-rows">
+            <div><span>Imię i nazwisko</span><b title="${escHtml(c.name||'')}">${escHtml(c.name||'—')}</b></div>
             <div><span>Email</span><b title="${escHtml(c.email||'')}">${escHtml(c.email||'—')}</b></div>
             <div><span>Telefon</span><b>${escHtml(c.phone||'—')}</b></div>
             <div><span>Wiek / wzrost</span><b>${c.age?c.age+' lat':'—'}${c.height?' · '+c.height+' cm':''}</b></div>
             <div><span>Status</span><b style="color:${c.status==='active'?'var(--teal)':c.status==='inactive'?'var(--orange)':'var(--muted)'};">${c.status==='active'?'Aktywny':c.status==='inactive'?'Nieaktywny':'Zarchiwizowany'}</b></div>
           </div>
-          <div class="cp-ov-rail-hint">Kontakt: przycisk Wiadomość u góry</div>`,
+          <div class="cp-ov-rail-hint">Kliknij: imię i nazwisko, telefon, waga, sport…</div>`,
           `startCPEdit('${c.id}')`)}
       </aside>
     </div>`;

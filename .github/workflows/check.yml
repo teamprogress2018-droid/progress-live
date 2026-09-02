@@ -184,6 +184,8 @@ jobs:
         run: node .github/scripts/test_cp_overview_everfit.js
       - name: 1n26. Testy uproszczenia nawigacji profilu klienta
         run: node .github/scripts/test_cp_nav_simplify.js
+      - name: 1n26b. Testy widocznej edycji danych klienta
+        run: node .github/scripts/test_cp_edit_visible.js
       - name: 1n27. Testy układu aplikacji (sidebar Everfit)
         run: node .github/scripts/test_app_shell_everfit.js
       - name: 1n27b. Testy wejścia do planu tylko z klienta
@@ -310,6 +312,8 @@ jobs:
         run: node .github/scripts/test_screensaver_ui.js
       - name: 6f. Testy UI nadwagi i strażnika w asystencie
         run: node .github/scripts/test_ai_bmi_watchdog_ui.js
+      - name: 6f2. Testy UI edycji imienia i nazwiska w profilu
+        run: node .github/scripts/test_cp_edit_visible_ui.js
       - name: 6g. Testy UI obwodów centymetrem w profilu klienta
         run: node .github/scripts/test_circ_metrics_ui.js
 

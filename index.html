@@ -13,7 +13,7 @@
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="globals.css?v=17">
-<link rel="stylesheet" href="styles.css?v=53">
+<link rel="stylesheet" href="styles.css?v=54">
 </head>
 <body>
 
@@ -2831,7 +2831,10 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <button onclick="closeClientProfile()" style="background:var(--s2);border:1px solid var(--border2);border-radius:8px;color:var(--muted);font-size:13px;cursor:pointer;padding:7px 12px;display:flex;align-items:center;gap:6px;">← Wróć</button>
       <div id="cp-avatar" style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:18px;flex-shrink:0;"></div>
       <div>
-        <div style="font-size:17px;font-weight:700;" id="cp-name">—</div>
+        <div class="cp-hdr-name-row">
+          <div style="font-size:17px;font-weight:700;" id="cp-name">—</div>
+          <button type="button" class="cp-edit-data-btn" id="cp-edit-data-btn" onclick="startCPEdit(cpClientId)">✏️ Edytuj dane</button>
+        </div>
         <div style="font-size:11px;color:var(--muted);" id="cp-sub">—</div>
       </div>
     </div>
@@ -2841,7 +2844,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <div class="cp-hdr-more-wrap">
         <button type="button" class="btn btn-ghost btn-sm" id="cp-hdr-more-btn" onclick="toggleCpHdrMore(event)" aria-expanded="false" aria-haspopup="true" title="Więcej akcji">⋯</button>
         <div class="cp-hdr-more-menu" id="cp-hdr-more-menu" hidden>
-          <button type="button" id="cp-edit-btn" onclick="toggleCpHdrMore(false);startCPEdit(cpClientId)">✏️ Edytuj profil</button>
+          <button type="button" id="cp-edit-btn" onclick="toggleCpHdrMore(false);startCPEdit(cpClientId)">✏️ Edytuj dane</button>
           <button type="button" onclick="toggleCpHdrMore(false);cpQuickCheckin()">✓ Wyślij check-in</button>
           <button type="button" onclick="toggleCpHdrMore(false);openClientOnboardSummary(cpClientId)">Podsumowanie start</button>
           <button type="button" onclick="toggleCpHdrMore(false);openClientMonitorSummary(cpClientId)">Monitoring progresu</button>
@@ -4173,7 +4176,7 @@ async function load(){
 <script src="05-clients-builder-plans-calendar.js?v=34"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=40"></script>
 <script src="07-forms-metrics-calculator.js?v=30"></script>
-<script src="08-client-profile-extras.js?v=36"></script>
+<script src="08-client-profile-extras.js?v=37"></script>
 <script src="09-posture-kb-invites-private.js?v=34"></script>
 <script src="10-client-app.js?v=27"></script>
 </body>

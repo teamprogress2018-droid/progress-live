@@ -35,7 +35,8 @@ ok('header has live', /cpStartLive/.test(hdr));
 ok('header has overflow menu', html.includes('cp-hdr-more-menu') && /toggleCpHdrMore/.test(src09));
 ok('no top Podsumowanie button', !/openReportForClient\(cpClientId\)/.test(hdr.replace(/cp-hdr-more-menu[\s\S]*?<\/div>/, '')));
 ok('no top Check-in button outside menu', !/cpQuickCheckin\(\)/.test(hdr.replace(/cp-hdr-more-menu[\s\S]*?<\/div>/, '')));
-ok('edit lives in overflow', /startCPEdit\(cpClientId\)/.test(html) && html.includes('cp-hdr-more-menu'));
+ok('visible Edytuj dane next to name', html.includes('id="cp-edit-data-btn"') && /startCPEdit\(cpClientId\)/.test(html));
+ok('edit still in overflow', /id="cp-edit-btn"/.test(html) && html.includes('cp-hdr-more-menu'));
 ok('archive in overflow', /cp-archive-btn/.test(html) && html.includes('cp-hdr-more-menu'));
 ok('podsumowanie in overflow menu', /openReportForClient\(cpClientId\)/.test(html) && /cp-hdr-more-menu/.test(html));
 ok('progress has no CTA strip', !/Podsumowanie<\/button>/.test(progress) && !/setCPTab\('photos'\)/.test(progress));
@@ -44,7 +45,7 @@ ok('overview profile has no WhatsApp/Email CTAs', !/WhatsApp|mailto:/.test(overv
 ok('css for header menu', css.includes('.cp-hdr-more-menu') && css.includes('.cp-hdr-actions'));
 ok('scripts not duplicated for 08', (html.match(/08-client-profile-extras\.js/g) || []).length === 1);
 
-ok('cache bump 08', html.includes('08-client-profile-extras.js?v=36'));
+ok('cache bump 08', html.includes('08-client-profile-extras.js?v=37'));
 
 if (failed) {
   console.error(failed + ' failed');

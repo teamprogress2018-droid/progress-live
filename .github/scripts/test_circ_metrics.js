@@ -54,7 +54,7 @@ ok('08 uses circBarItems', src08.includes('circBarItems'));
 ok('04 last circ dynamic', src04.includes('circMetricDefs'));
 ok('index migrate after load', html.includes('migrateEnsureCircMetrics'));
 ok('cache 07', html.includes('07-forms-metrics-calculator.js?v=30'));
-ok('cache 04/05/08', html.includes('04-client-portal.js?v=36') && html.includes('05-clients-builder-plans-calendar.js?v=34') && html.includes('08-client-profile-extras.js?v=36'));
+ok('cache 04/05/08', html.includes('04-client-portal.js?v=36') && html.includes('05-clients-builder-plans-calendar.js?v=34') && html.includes('08-client-profile-extras.js?v=37'));
 ok('CI unit', wf.includes('test_circ_metrics.js'));
 ok('openMetricEntry fills after openM', /openM\('m-metric-entry'\);[\s\S]{0,500}if\(groupId\)gsel\.value=groupId/.test(src07));
 
