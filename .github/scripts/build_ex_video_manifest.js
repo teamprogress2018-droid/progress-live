@@ -290,12 +290,36 @@ function main() {
     'Muszla (clamshell)',
     'Odwrócone prostowanie tułowia',
   ];
+  const TRI_UNMAP = [
+    'Prostowanie tricepsa wyciąg',
+    'Prostowanie linką',
+    'Prostowanie za głowę hantlem',
+    'Prostowanie za głowę (skull crusher)',
+    'Dipy na ławce',
+    'Prostowanie jednorącz wyciąg',
+    'Kickback na wyciągu',
+    'Kickback triceps',
+    'Wyciskanie francuskie',
+    'Prostowanie za głowę wyciąg',
+    'Prostowanie za głowę hantlami',
+    'Dipy triceps (pionowe)',
+    'Dipy triceps maszyna',
+    'Wyciskanie JM',
+    'Wyciskanie Tate',
+    'Wyciskanie wąskim chwytem w Smith',
+    'Prostowanie tricepsa na maszynie',
+    'Prostowanie tricepsa taśmą jednorącz',
+    'Prostowanie na drążku',
+    'Skull crusher hantle z wyprostem ramienia',
+    'Prostowanie tricepsa hantlami na podłodze',
+  ];
   const CHEST_AND_BACK_UNMAP = CHEST_UNMAP.concat(
     BACK_UNMAP,
     SHOULDER_UNMAP,
     QUAD_UNMAP,
     HAM_UNMAP,
-    GLUTE_UNMAP
+    GLUTE_UNMAP,
+    TRI_UNMAP
   );
   for (const name of CHEST_AND_BACK_UNMAP) {
     const ex = byName.get(name);
@@ -425,6 +449,43 @@ function main() {
       row.via = 'glute';
     } else {
       matched.push({ name: loc.name, file: loc.file, score: 0, via: 'glute' });
+    }
+  }
+
+  /** Ręcznie sprawdzona treść klipu tricepsa (nazwa pliku bywa myląca). */
+  const TRI_FORCE = [
+    {
+      name: 'Prostowanie tricepsa wyciąg',
+      file: 'Prostowanie ramion na wyciągu górnym (triceps pushdown) (Cable Triceps Pushdown) (2).mp4',
+    },
+    {
+      name: 'Prostowanie linką',
+      file: 'Prostowanie ramion na wyciągu górnym (triceps pushdown) – uchwyt linowy (Cable Triceps Pushdown with Rope Attachment).mp4',
+    },
+    {
+      name: 'Prostowanie za głowę hantlem',
+      file: 'Francuskie wyciskanie hantli nad głową (triceps overhead extension z hantlami) (Dumbbell Overhead Triceps Extension).mp4',
+    },
+    {
+      // Filename says seated DB OH — content is barbell lying skull crusher (SHA 22b6474f32ca).
+      name: 'Prostowanie za głowę (skull crusher)',
+      file: 'Francuskie wyciskanie hantli siedząc (prostowanie ramion nad głową z hantlą) (Seated Dumbbell Overhead Tricep Extension).mp4',
+    },
+    {
+      name: 'Dipy na ławce',
+      file: 'Dipy na ławce (triceps dips na ławce) (Bench Dips).mp4',
+    },
+  ];
+  for (const loc of TRI_FORCE) {
+    const ex = byName.get(loc.name);
+    if (!ex || !filesHas(files, loc.file)) continue;
+    addKeys(ctx, manifest, ex, videoUrl(sha, loc.file), true);
+    const row = matched.find((m) => m.name === loc.name);
+    if (row) {
+      row.file = loc.file;
+      row.via = 'tri';
+    } else {
+      matched.push({ name: loc.name, file: loc.file, score: 0, via: 'tri' });
     }
   }
 

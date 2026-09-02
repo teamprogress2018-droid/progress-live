@@ -80,7 +80,7 @@ const adv=sandbox.buildMethodRationale({method:'PPL',goal:'redukcja',level:'zaaw
 ok('advanced chest volume',adv.levelVolumeParts.Klatka==='12–20');
 ok('advanced html current col',/Zaaw\./.test(sandbox.renderMethodRationaleHTML(adv))&&/is-current/.test(sandbox.renderMethodRationaleHTML(adv)));
 
-ok('cache bumps',html.includes('01-core.js?v=55')&&html.includes('03-ai-plangen-bizstats-aicoach.js?v=28')&&html.includes('05-clients-builder-plans-calendar.js?v=34')&&html.includes('styles.css?v=53'));
+ok('cache bumps',html.includes('01-core.js?v=56')&&html.includes('03-ai-plangen-bizstats-aicoach.js?v=28')&&html.includes('05-clients-builder-plans-calendar.js?v=34')&&html.includes('styles.css?v=53'));
 
 if(failed){console.error(failed+' failed');process.exit(1);}
 console.log('\nAll method-rationale tests passed');

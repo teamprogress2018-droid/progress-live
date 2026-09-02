@@ -17,8 +17,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache manifest v28', html.includes('ex-gif-manifest.js?v=28'));
-ok('cache 01 v55', html.includes('01-core.js?v=55'));
+ok('cache manifest v29', html.includes('ex-gif-manifest.js?v=29'));
+ok('cache 01 v56', html.includes('01-core.js?v=56'));
 ok('cache 06 v38', html.includes('06-inbox-exercises-ai-programs.js?v=40'));
 
 const m = six.match(/const DEF_EX=\[([\s\S]*?)\];\s*window\.DEF_EX/);
@@ -108,7 +108,42 @@ ok(
   hit('Wyciskanie sztangi wąskim chwytem (Close-Grip Barbell Bench Press).mp4') !== 'Wyciskanie sztangi leżąc'
 );
 ok('dips', hit('Dipy na poręczach (Parallel Bar Dips).mp4') === 'Dipy na poręczach');
-ok('bench dips', hit('Dipy na ławce (Bench Dip).mp4') === 'Dipy na ławce');
+ok(
+  'lying bench-dip-as-pushup filename not assigned',
+  hit('Dipy na ławce (Bench Dip).mp4') === ''
+);
+ok(
+  'honest bench dips maps',
+  hit('Dipy na ławce (triceps dips na ławce) (Bench Dips).mp4') === 'Dipy na ławce'
+);
+ok(
+  'straight-bar pushdown maps',
+  hit('Prostowanie ramion na wyciągu górnym (triceps pushdown) (Cable Triceps Pushdown) (2).mp4') === 'Prostowanie tricepsa wyciąg'
+);
+ok(
+  'rope pushdown maps',
+  hit('Prostowanie ramion na wyciągu górnym (triceps pushdown) – uchwyt linowy (Cable Triceps Pushdown with Rope Attachment).mp4') === 'Prostowanie linką'
+);
+ok(
+  'standing db overhead maps',
+  hit('Francuskie wyciskanie hantli nad głową (triceps overhead extension z hantlami) (Dumbbell Overhead Triceps Extension).mp4') === 'Prostowanie za głowę hantlem'
+);
+ok(
+  'lying skull-as-seated-oh filename not assigned',
+  hit('Francuskie wyciskanie hantli leżąc (skull crusher z hantlą) (Dumbbell Skull Crusher (Lying Dumbbell Tricep Extension)).mp4') === ''
+);
+ok(
+  'lateral-raise named as one-arm pushdown not assigned',
+  hit('Odpychanie na wyciągu dolnym (triceps pushdown jednorącz) (Single-arm cable triceps pushdown).mp4') === ''
+);
+ok(
+  'cable kickback mix not assigned',
+  hit('Prostowanie ramienia na wyciągu dolnym (triceps kickback na wyciągu) (Cable Tricep Kickback).mp4') === ''
+);
+ok(
+  'compilation kickback not db kickback',
+  hit('Odciąganie ramienia w tył na wyciągu górnym (triceps kickback na wyciągu) (Cable Tricep Kickback).mp4') === ''
+);
 ok('plank', hit('Deska w leżeniu przodem (plank) (Prone Plank).mp4') === 'Deska');
 ok('face pull', hit('Ściąganie drążka wyciągu górnego do twarzy (face pull) (Cable Face Pull).mp4') === 'Ściąganie do twarzy (face pull)');
 ok('junk splash', hit('Brak ćwiczenia – ekran powitalny aplikacji YouCan (No exercise – YouCan app splash screen).mp4') === '');

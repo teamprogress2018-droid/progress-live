@@ -486,6 +486,68 @@ function ok(name, cond, extra) {
     JSON.stringify(gluteCard)
   );
 
+  const barPush = await detailMedia('Prostowanie tricepsa wyciąg');
+  await page.screenshot({ path: path.join(shotDir, 'lib_tri_bar_pushdown_detail.png') });
+  ok('bar pushdown detail title', barPush.title === 'Prostowanie tricepsa wyciąg', barPush.title);
+  ok(
+    'bar pushdown plays straight-bar (2) clip',
+    barPush.hasVideo && /\(Cable%20Triceps%20Pushdown\)%20\(2\)\.mp4/i.test(barPush.src),
+    (barPush.src || '').slice(0, 180)
+  );
+
+  const ropePush = await detailMedia('Prostowanie linką');
+  await page.screenshot({ path: path.join(shotDir, 'lib_tri_rope_pushdown_detail.png') });
+  ok('rope pushdown detail title', ropePush.title === 'Prostowanie linką', ropePush.title);
+  ok(
+    'rope pushdown plays rope-attachment clip',
+    ropePush.hasVideo && /with%20Rope%20Attachment/i.test(ropePush.src),
+    (ropePush.src || '').slice(0, 180)
+  );
+
+  const dbOh = await detailMedia('Prostowanie za głowę hantlem');
+  await page.screenshot({ path: path.join(shotDir, 'lib_tri_db_oh_detail.png') });
+  ok('standing db oh detail title', dbOh.title === 'Prostowanie za głowę hantlem', dbOh.title);
+  ok(
+    'standing db oh plays two-db clip',
+    dbOh.hasVideo && /Dumbbell%20Overhead%20Triceps%20Extension/i.test(dbOh.src) && !/Seated/i.test(dbOh.src),
+    (dbOh.src || '').slice(0, 180)
+  );
+
+  const skull = await detailMedia('Prostowanie za głowę (skull crusher)');
+  await page.screenshot({ path: path.join(shotDir, 'lib_tri_skull_detail.png') });
+  ok('skull crusher detail title', skull.title === 'Prostowanie za głowę (skull crusher)', skull.title);
+  ok(
+    'skull crusher plays verified lying-bar clip',
+    skull.hasVideo && /Seated%20Dumbbell%20Overhead%20Tricep%20Extension/i.test(skull.src),
+    (skull.src || '').slice(0, 180)
+  );
+
+  const benchDip = await detailMedia('Dipy na ławce');
+  await page.screenshot({ path: path.join(shotDir, 'lib_tri_bench_dip_detail.png') });
+  ok('bench dip detail title', benchDip.title === 'Dipy na ławce', benchDip.title);
+  ok(
+    'bench dip plays honest bench dips clip',
+    benchDip.hasVideo && /Bench%20Dips/i.test(benchDip.src) && !/Bench%20Dip\)\.mp4/i.test(benchDip.src),
+    (benchDip.src || '').slice(0, 180)
+  );
+
+  const oneArm = await detailMedia('Prostowanie jednorącz wyciąg');
+  ok('one-arm pushdown has no lateral-raise mp4', !oneArm.hasVideo, JSON.stringify(oneArm).slice(0, 200));
+  const cableKb = await detailMedia('Kickback na wyciągu');
+  ok('cable tricep kickback has no mix mp4', !cableKb.hasVideo, JSON.stringify(cableKb).slice(0, 200));
+  const dbKb = await detailMedia('Kickback triceps');
+  ok('db kickback has no cable mp4', !dbKb.hasVideo, JSON.stringify(dbKb).slice(0, 200));
+  const french = await detailMedia('Wyciskanie francuskie');
+  ok('french press has no mp4', !french.hasVideo, JSON.stringify(french).slice(0, 200));
+
+  const triCard = await libCard('Prostowanie tricepsa wyciąg');
+  await page.screenshot({ path: path.join(shotDir, 'lib_tri_pushdown_card.png') });
+  ok(
+    'bar pushdown card uses still photo',
+    triCard.found && /free-exercise-db|githubusercontent/.test(triCard.img) && !/\.mp4/i.test(triCard.img) && triCard.w > 0,
+    JSON.stringify(triCard)
+  );
+
   const shoulderCard = await libCard('Unoszenie bokiem');
   await page.screenshot({ path: path.join(shotDir, 'lib_shoulder_lateral_card.png') });
   ok(
