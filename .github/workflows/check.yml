@@ -91,6 +91,9 @@ jobs:
       - name: 1i. Testy wiring kreatora WU/DROP/AMRAP + film
         run: node .github/scripts/test_builder_kinds_media.js
 
+      - name: 1i0. Testy własnego czasu w timerze przerwy live
+        run: node .github/scripts/test_live_rest_custom.js
+
       - name: 1i2. Testy kart ćwiczeń w builderze (zamienniki / kolory)
         run: node .github/scripts/test_builder_ex_cards.js
 
@@ -298,6 +301,8 @@ jobs:
         run: node .github/scripts/test_cardio_ex_ac_ui.js
       - name: 6b3b. Testy UI filmów MP4 w bibliotece ćwiczeń
         run: node .github/scripts/test_lib_ex_video_ui.js
+      - name: 6b3c. Testy UI timera przerwy live (30s / własny)
+        run: node .github/scripts/test_live_rest_ui.js
 
       - name: 6b4. Testy UI jednostki sec przy linach
         run: node .github/scripts/test_ex_load_unit_ui.js
