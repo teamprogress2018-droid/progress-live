@@ -2225,6 +2225,13 @@ function liveRepeatSameClient(){
 }
 window.liveRepeatSameClient=liveRepeatSameClient;
 
+function parseLiveRestCustomSec(raw){
+  const n=parseInt(String(raw==null?'':raw).trim(),10);
+  if(!Number.isFinite(n)||n<1)return 0;
+  return Math.min(600,Math.max(5,n));
+}
+window.parseLiveRestCustomSec=parseLiveRestCustomSec;
+
 function liveStartRest(sec){
   clearInterval(liveRestInterval);
   liveRestSec=sec;
@@ -2244,6 +2251,17 @@ function liveStartRest(sec){
   };
   update();
   liveRestInterval=setInterval(update,1000);
+}
+
+function liveStartRestCustom(){
+  const inp=document.getElementById('live-rest-custom');
+  const sec=parseLiveRestCustomSec(inp&&inp.value);
+  if(!sec){
+    if(typeof notify==='function')notify('Podaj czas przerwy w sekundach (5–600)');
+    return;
+  }
+  if(inp)inp.value=String(sec);
+  liveStartRest(sec);
 }
 
 function liveFeedback(v){
@@ -2355,7 +2373,7 @@ window.liveStartSession=liveStartSession;window.liveEndSession=liveEndSession;
 window.liveToggleSet=liveToggleSet;window.liveToggleCollapse=liveToggleCollapse;
 window.liveSetKg=liveSetKg;window.liveSetReps=liveSetReps;
 window.liveAddSet=liveAddSet;window.liveSkipEx=liveSkipEx;window.liveAddExercise=liveAddExercise;
-window.liveStartRest=liveStartRest;window.liveFeedback=liveFeedback;
+window.liveStartRest=liveStartRest;window.liveStartRestCustom=liveStartRestCustom;window.liveFeedback=liveFeedback;
 
 // ════════════════════════════════════════
 // RAPORTY POSTĘPÓW

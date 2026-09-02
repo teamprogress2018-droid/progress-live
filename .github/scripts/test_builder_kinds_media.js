@@ -31,6 +31,8 @@ ok('savePlan persists wu', /wu:g\('ss'\)\?0:/.test(builder));
 ok('live uses setKindBadge', live.includes('setKindBadge'));
 ok('live uses skipRestBeforeSet', live.includes('skipRestBeforeSet'));
 ok('live uses restSecAfterSet', live.includes('restSecAfterSet'));
+ok('live has custom rest parser', live.includes('parseLiveRestCustomSec'));
+ok('live has custom rest starter', live.includes('function liveStartRestCustom'));
 ok('live shows coach note without film toggle', /coachMediaHtml\(ex,\s*\{\s*showVideo:!!ex\.showVideo\s*\}/.test(live));
 ok('client uses setKindBadge', client.includes('setKindBadge'));
 ok('client skip drop rest', client.includes('skipRestBeforeSet'));
