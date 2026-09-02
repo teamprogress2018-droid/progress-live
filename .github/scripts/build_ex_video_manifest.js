@@ -313,13 +313,43 @@ function main() {
     'Skull crusher hantle z wyprostem ramienia',
     'Prostowanie tricepsa hantlami na podłodze',
   ];
+  const BI_UNMAP = [
+    'Uginanie biceps sztangą',
+    'Uginanie młotkowe',
+    'Uginanie hantlami naprzemiennie',
+    'Uginanie na wyciągu',
+    'Uginanie spider',
+    'Uginanie Zottman',
+    'Uginanie reverse',
+    'Uginanie nadgarstka',
+    'Uginanie koncentryczne',
+    'Uginanie na modlitewniku',
+    'Uginanie na skosie',
+    'Uginanie Bayesian',
+    'Uginanie drag',
+    '21-ki biceps',
+    'Uginanie gryfem łamanym',
+    'Uginanie młotkowe na wyciągu',
+    'Uginanie na maszynie',
+    'Prostowanie nadgarstka',
+    'Uginanie młotkowe na skosie',
+    'Uginanie w poprzek ciała',
+    'Uginanie z linką',
+    'Uginanie biceps na kółkach bokiem',
+    'Uginanie hantlami 1.5',
+    'Uginanie hantlami elevator',
+    'Uginanie nadgarstków hantlami',
+    'Uginanie nadgarstków młotkowo',
+    'Uginanie nadgarstków nachwytem',
+  ];
   const CHEST_AND_BACK_UNMAP = CHEST_UNMAP.concat(
     BACK_UNMAP,
     SHOULDER_UNMAP,
     QUAD_UNMAP,
     HAM_UNMAP,
     GLUTE_UNMAP,
-    TRI_UNMAP
+    TRI_UNMAP,
+    BI_UNMAP
   );
   for (const name of CHEST_AND_BACK_UNMAP) {
     const ex = byName.get(name);
@@ -486,6 +516,40 @@ function main() {
       row.via = 'tri';
     } else {
       matched.push({ name: loc.name, file: loc.file, score: 0, via: 'tri' });
+    }
+  }
+
+  /** Ręcznie sprawdzona treść klipu bicepsa (nazwa pliku bywa myląca). */
+  const BI_FORCE = [
+    {
+      // Filename says DB bicep curl — content is standing hammer do/don’t (SHA 6e89c692c574).
+      name: 'Uginanie młotkowe',
+      file: 'Uginanie ramion z hantlami (biceps curl z hantlami) (Dumbbell Bicep Curl).mp4',
+    },
+    {
+      // Filename says hammer — content is standing DB curl with supination (SHA 22fce23b86ab).
+      name: 'Uginanie hantlami naprzemiennie',
+      file: 'Uginanie ramion z hantlą (uchwyt młotkowy) (Dumbbell Hammer Curl).mp4',
+    },
+    {
+      name: 'Uginanie koncentryczne',
+      file: 'Uginanie przedramion z hantlą w oparciu o kolano (uginanie koncentryczne) (Dumbbell Concentration Curl).mp4',
+    },
+    {
+      name: 'Uginanie reverse',
+      file: 'Uginanie ramion ze sztangą (uchwyt nachwytem) (Barbell Reverse Curl).mp4',
+    },
+  ];
+  for (const loc of BI_FORCE) {
+    const ex = byName.get(loc.name);
+    if (!ex || !filesHas(files, loc.file)) continue;
+    addKeys(ctx, manifest, ex, videoUrl(sha, loc.file), true);
+    const row = matched.find((m) => m.name === loc.name);
+    if (row) {
+      row.file = loc.file;
+      row.via = 'bi';
+    } else {
+      matched.push({ name: loc.name, file: loc.file, score: 0, via: 'bi' });
     }
   }
 

@@ -17,8 +17,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache manifest v29', html.includes('ex-gif-manifest.js?v=29'));
-ok('cache 01 v56', html.includes('01-core.js?v=56'));
+ok('cache manifest v30', html.includes('ex-gif-manifest.js?v=30'));
+ok('cache 01 v57', html.includes('01-core.js?v=57'));
 ok('cache 06 v38', html.includes('06-inbox-exercises-ai-programs.js?v=40'));
 
 const m = six.match(/const DEF_EX=\[([\s\S]*?)\];\s*window\.DEF_EX/);
@@ -143,6 +143,34 @@ ok(
 ok(
   'compilation kickback not db kickback',
   hit('Odciąganie ramienia w tył na wyciągu górnym (triceps kickback na wyciągu) (Cable Tricep Kickback).mp4') === ''
+);
+ok(
+  'honest concentration curl maps',
+  hit('Uginanie przedramion z hantlą w oparciu o kolano (uginanie koncentryczne) (Dumbbell Concentration Curl).mp4') === 'Uginanie koncentryczne'
+);
+ok(
+  'honest reverse barbell curl maps',
+  hit('Uginanie ramion ze sztangą (uchwyt nachwytem) (Barbell Reverse Curl).mp4') === 'Uginanie reverse'
+);
+ok(
+  'lying barbell-curl-as-lateral filename not assigned',
+  hit('Uginanie ramion ze sztangą (uchwyt podchwytem) (Barbell Bicep Curl).mp4') === ''
+);
+ok(
+  'lying preacher-as-leg-press filename not assigned',
+  hit('Uginanie ramion ze sztangą łamaną (EZ) na modlitewniku (EZ Bar Preacher Curl).mp4') === ''
+);
+ok(
+  'lying cable-curl mix filename not assigned',
+  hit('Uginanie ramion na wyciągu dolnym (stojąc) (Standing Cable Curl).mp4') === ''
+);
+ok(
+  'lying hammer-named db-curl filename not assigned',
+  hit('Uginanie ramion z hantlą (uchwyt młotkowy) (Dumbbell Hammer Curl).mp4') === ''
+);
+ok(
+  'lying bicep-curl-named hammer filename not assigned',
+  hit('Uginanie ramion z hantlami (biceps curl z hantlami) (Dumbbell Bicep Curl).mp4') === ''
 );
 ok('plank', hit('Deska w leżeniu przodem (plank) (Prone Plank).mp4') === 'Deska');
 ok('face pull', hit('Ściąganie drążka wyciągu górnego do twarzy (face pull) (Cable Face Pull).mp4') === 'Ściąganie do twarzy (face pull)');

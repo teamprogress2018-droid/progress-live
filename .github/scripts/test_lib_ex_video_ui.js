@@ -540,6 +540,59 @@ function ok(name, cond, extra) {
   const french = await detailMedia('Wyciskanie francuskie');
   ok('french press has no mp4', !french.hasVideo, JSON.stringify(french).slice(0, 200));
 
+  const hammer = await detailMedia('Uginanie młotkowe');
+  await page.screenshot({ path: path.join(shotDir, 'lib_bi_hammer_detail.png') });
+  ok('hammer detail title', hammer.title === 'Uginanie młotkowe', hammer.title);
+  ok(
+    'hammer plays db-curl-named clip',
+    hammer.hasVideo && /Dumbbell%20Bicep%20Curl/i.test(hammer.src) && /z%20hantlami|hantlami/i.test(hammer.src),
+    (hammer.src || '').slice(0, 180)
+  );
+
+  const dbCurl = await detailMedia('Uginanie hantlami naprzemiennie');
+  await page.screenshot({ path: path.join(shotDir, 'lib_bi_db_curl_detail.png') });
+  ok('db curl detail title', dbCurl.title === 'Uginanie hantlami naprzemiennie', dbCurl.title);
+  ok(
+    'db curl plays hammer-named clip',
+    dbCurl.hasVideo && /Dumbbell%20Hammer%20Curl/i.test(dbCurl.src),
+    (dbCurl.src || '').slice(0, 180)
+  );
+
+  const conc = await detailMedia('Uginanie koncentryczne');
+  await page.screenshot({ path: path.join(shotDir, 'lib_bi_concentration_detail.png') });
+  ok('concentration detail title', conc.title === 'Uginanie koncentryczne', conc.title);
+  ok(
+    'concentration plays knee-braced clip',
+    conc.hasVideo && /kolano/i.test(conc.src),
+    (conc.src || '').slice(0, 180)
+  );
+
+  const rev = await detailMedia('Uginanie reverse');
+  await page.screenshot({ path: path.join(shotDir, 'lib_bi_reverse_detail.png') });
+  ok('reverse curl detail title', rev.title === 'Uginanie reverse', rev.title);
+  ok(
+    'reverse curl plays nachwytem clip',
+    rev.hasVideo && /Barbell%20Reverse%20Curl/i.test(rev.src),
+    (rev.src || '').slice(0, 180)
+  );
+
+  const bbCurl = await detailMedia('Uginanie biceps sztangą');
+  ok('barbell curl has no lying mp4', !bbCurl.hasVideo, JSON.stringify(bbCurl).slice(0, 200));
+  const preacher = await detailMedia('Uginanie na modlitewniku');
+  ok('preacher has no lying mp4', !preacher.hasVideo, JSON.stringify(preacher).slice(0, 200));
+  const inclineCurl = await detailMedia('Uginanie na skosie');
+  ok('incline curl has no lying mp4', !inclineCurl.hasVideo, JSON.stringify(inclineCurl).slice(0, 200));
+  const cableCurl = await detailMedia('Uginanie na wyciągu');
+  ok('cable curl has no mix mp4', !cableCurl.hasVideo, JSON.stringify(cableCurl).slice(0, 200));
+
+  const hammerCard = await libCard('Uginanie młotkowe');
+  await page.screenshot({ path: path.join(shotDir, 'lib_bi_hammer_card.png') });
+  ok(
+    'hammer card uses still photo',
+    hammerCard.found && /free-exercise-db|githubusercontent/.test(hammerCard.img) && !/\.mp4/i.test(hammerCard.img) && hammerCard.w > 0,
+    JSON.stringify(hammerCard)
+  );
+
   const triCard = await libCard('Prostowanie tricepsa wyciąg');
   await page.screenshot({ path: path.join(shotDir, 'lib_tri_pushdown_card.png') });
   ok(
