@@ -94,16 +94,7 @@ function ok(name, cond, extra) {
   await input.fill('');
   await input.fill('wioślarz');
   await page.waitForTimeout(250);
-  const pickedRower = await page.evaluate(() => {
-    const items = [...document.querySelectorAll('.ex-row .ex-ac-item')];
-    const hit = items.find((el) => {
-      const n = ((el.querySelector('.ex-ac-name') || el).textContent || '').trim();
-      return n === 'Wioślarz';
-    });
-    if (hit) hit.click();
-    return !!hit;
-  });
-  ok('ac has exact Wioślarz', pickedRower);
+  await page.locator('.ex-row .ex-ac-item .ex-ac-name').filter({ hasText: /^Wioślarz$/ }).click();
   await page.waitForTimeout(200);
   const rower = await page.evaluate(() => {
     const row = document.querySelector('.ex-row');
@@ -130,16 +121,7 @@ function ok(name, cond, extra) {
   await input.fill('');
   await input.fill('airbike');
   await page.waitForTimeout(250);
-  const pickedAir = await page.evaluate(() => {
-    const items = [...document.querySelectorAll('.ex-row .ex-ac-item')];
-    const hit = items.find((el) => {
-      const n = ((el.querySelector('.ex-ac-name') || el).textContent || '').trim();
-      return n === 'Airbike';
-    });
-    if (hit) hit.click();
-    return !!hit;
-  });
-  ok('ac has exact Airbike', pickedAir);
+  await page.locator('.ex-row .ex-ac-item .ex-ac-name').filter({ hasText: /^Airbike$/ }).click();
   await page.waitForTimeout(200);
   const air = await page.evaluate(() => {
     const kg = document.querySelector('.ex-row [data-f="kg"]');
