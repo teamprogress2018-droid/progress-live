@@ -265,7 +265,38 @@ function main() {
     'Wyciskanie nogami jednonóż',
   ];
   const HAM_UNMAP = ['Uginanie nóg maszyna', 'Uginanie nóg leżąc'];
-  const CHEST_AND_BACK_UNMAP = CHEST_UNMAP.concat(BACK_UNMAP, SHOULDER_UNMAP, QUAD_UNMAP, HAM_UNMAP);
+  const GLUTE_UNMAP = [
+    'Mostek biodrowy',
+    'Mostek biodrowy — aktywacja',
+    'Mostek biodrowy z mini band',
+    'Mostek KAS',
+    'Kickback na maszynie',
+    'Kickback pośladki',
+    'Wypychanie bioder (hip thrust)',
+    'Wypychanie bioder jednonóż',
+    'Wypychanie bioder na maszynie',
+    'Wypychanie bioder B-stance',
+    'Wypychanie bioder z taśmą',
+    'Wypychanie bioder ze stopą na podwyższeniu',
+    'Wypychanie bioder z odwodzeniem mini band',
+    'Abdukcja biodra maszyna',
+    'Przywodzenie biodra maszyna',
+    'Odwodzenie biodra leżąc',
+    'Odwodzenie biodra na wyciągu',
+    'Donkey kick',
+    'Donkey kick z mini band',
+    'Pull-through wyciąg',
+    'Frog pump',
+    'Muszla (clamshell)',
+    'Odwrócone prostowanie tułowia',
+  ];
+  const CHEST_AND_BACK_UNMAP = CHEST_UNMAP.concat(
+    BACK_UNMAP,
+    SHOULDER_UNMAP,
+    QUAD_UNMAP,
+    HAM_UNMAP,
+    GLUTE_UNMAP
+  );
   for (const name of CHEST_AND_BACK_UNMAP) {
     const ex = byName.get(name);
     if (!ex) continue;
@@ -366,6 +397,34 @@ function main() {
       row.via = 'ham';
     } else {
       matched.push({ name: loc.name, file: loc.file, score: 0, via: 'ham' });
+    }
+  }
+
+  /** Ręcznie sprawdzona treść klipu pośladków (nazwa pliku bywa myląca). */
+  const GLUTE_FORCE = [
+    {
+      name: 'Kickback pośladki',
+      file: 'Odwodzenie nogi w tył na wyciągu (kickback na wyciągu) (Cable Glute Kickback).mp4',
+    },
+    {
+      name: 'Wypychanie bioder (hip thrust)',
+      file: 'Hip thrust z hantlą (Dumbbell hip thrust).mp4',
+    },
+    {
+      name: 'Abdukcja biodra maszyna',
+      file: 'Odwodzenie nogi w maszynie (abduktor) (Seated Hip Abduction Machine).mp4',
+    },
+  ];
+  for (const loc of GLUTE_FORCE) {
+    const ex = byName.get(loc.name);
+    if (!ex || !filesHas(files, loc.file)) continue;
+    addKeys(ctx, manifest, ex, videoUrl(sha, loc.file), true);
+    const row = matched.find((m) => m.name === loc.name);
+    if (row) {
+      row.file = loc.file;
+      row.via = 'glute';
+    } else {
+      matched.push({ name: loc.name, file: loc.file, score: 0, via: 'glute' });
     }
   }
 
