@@ -243,6 +243,33 @@ ok('no db kickback clip', !MAN['kickback triceps']);
 ok('no french press clip', !MAN['wyciskanie francuskie']);
 ok('no overhead cable tricep clip', !MAN['prostowanie za głowę wyciąg']);
 ok('no machine tricep dip clip', !MAN['dipy triceps maszyna']);
+ok(
+  'hammer curl is db-curl-named clip',
+  /biceps%20curl%20z%20hantlami|Dumbbell%20Bicep%20Curl/i.test(MAN['uginanie młotkowe'] || '') &&
+    /z%20hantlami/i.test(MAN['uginanie młotkowe'] || ''),
+  (MAN['uginanie młotkowe'] || '').slice(0, 180)
+);
+ok(
+  'alternating db curl is hammer-named clip',
+  /Dumbbell%20Hammer%20Curl/i.test(MAN['uginanie hantlami naprzemiennie'] || '') &&
+    /hantl%C4%85/i.test(MAN['uginanie hantlami naprzemiennie'] || ''),
+  (MAN['uginanie hantlami naprzemiennie'] || '').slice(0, 180)
+);
+ok(
+  'concentration is knee-braced clip',
+  /oparcie%20o%20kolano|oparciu%20o%20kolano|Concentration%20Curl/i.test(MAN['uginanie koncentryczne'] || '') &&
+    /kolano/i.test(MAN['uginanie koncentryczne'] || ''),
+  (MAN['uginanie koncentryczne'] || '').slice(0, 180)
+);
+ok(
+  'reverse curl is nachwytem clip',
+  /Barbell%20Reverse%20Curl/i.test(MAN['uginanie reverse'] || ''),
+  (MAN['uginanie reverse'] || '').slice(0, 180)
+);
+ok('no lying barbell curl clip', !MAN['uginanie biceps sztangą']);
+ok('no lying preacher clip', !MAN['uginanie na modlitewniku'] && !MAN['preacher curl']);
+ok('no lying incline curl clip', !MAN['uginanie na skosie'] && !MAN['incline curl']);
+ok('no lying cable curl clip', !MAN['uginanie na wyciągu']);
 
 const document = { querySelectorAll: () => [], getElementById: () => null, addEventListener() {} };
 const windowObj = {
@@ -401,6 +428,30 @@ ok('cable tricep kickback has no mix clip', !ctx.exGifUrl({ name: 'Kickback na w
 ok('db kickback has no cable clip', !ctx.exGifUrl({ name: 'Kickback triceps' }));
 ok('french press has no clip', !ctx.exGifUrl({ name: 'Wyciskanie francuskie' }));
 ok('overhead cable tricep has no clip', !ctx.exGifUrl({ name: 'Prostowanie za głowę wyciąg' }));
+ok(
+  'hammer gif is db-curl-named clip',
+  /biceps%20curl%20z%20hantlami|Dumbbell%20Bicep%20Curl/i.test(ctx.exGifUrl({ name: 'Uginanie młotkowe' }) || ''),
+  (ctx.exGifUrl({ name: 'Uginanie młotkowe' }) || '').slice(0, 180)
+);
+ok(
+  'alternating db curl gif is hammer-named clip',
+  /Dumbbell%20Hammer%20Curl/i.test(ctx.exGifUrl({ name: 'Uginanie hantlami naprzemiennie' }) || ''),
+  (ctx.exGifUrl({ name: 'Uginanie hantlami naprzemiennie' }) || '').slice(0, 180)
+);
+ok(
+  'concentration gif is knee-braced clip',
+  /kolano/i.test(ctx.exGifUrl({ name: 'Uginanie koncentryczne' }) || ''),
+  (ctx.exGifUrl({ name: 'Uginanie koncentryczne' }) || '').slice(0, 180)
+);
+ok(
+  'reverse curl gif is nachwytem clip',
+  /Barbell%20Reverse%20Curl/i.test(ctx.exGifUrl({ name: 'Uginanie reverse' }) || ''),
+  (ctx.exGifUrl({ name: 'Uginanie reverse' }) || '').slice(0, 180)
+);
+ok('barbell curl has no lying clip', !ctx.exGifUrl({ name: 'Uginanie biceps sztangą' }));
+ok('preacher has no lying clip', !ctx.exGifUrl({ name: 'Uginanie na modlitewniku' }));
+ok('incline curl has no lying clip', !ctx.exGifUrl({ name: 'Uginanie na skosie' }));
+ok('cable curl has no mix clip', !ctx.exGifUrl({ name: 'Uginanie na wyciągu' }));
 
 const html = ctx.exTechniqueMediaHtml({ gif, name: 'Wyciskanie sztangi leżąc' }, {});
 ok('technique html is video', /<video/.test(html) && /autoplay/.test(html) && !/<img/.test(html), html.slice(0, 180));
