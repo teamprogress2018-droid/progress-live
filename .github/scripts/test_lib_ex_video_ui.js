@@ -595,6 +595,27 @@ function ok(name, cond, extra) {
   const legRaise = await detailMedia('Unoszenie nóg leżąc');
   ok('lying leg raise has no mix mp4', !legRaise.hasVideo, JSON.stringify(legRaise).slice(0, 200));
 
+  const dbCalf = await detailMedia('Wspięcia na palce hantlami');
+  await page.screenshot({ path: path.join(shotDir, 'lib_calf_db_detail.png') });
+  ok('db calf detail title', dbCalf.title === 'Wspięcia na palce hantlami', dbCalf.title);
+  ok(
+    'db calf plays dumbbell standing clip',
+    dbCalf.hasVideo && /Standing%20Dumbbell%20Calf%20Raises/i.test(dbCalf.src),
+    (dbCalf.src || '').slice(0, 180)
+  );
+  const standCalf = await detailMedia('Wspięcia na palce stojąc');
+  await page.screenshot({ path: path.join(shotDir, 'lib_calf_standing_detail.png') });
+  ok('standing calf detail title', standCalf.title === 'Wspięcia na palce stojąc', standCalf.title);
+  ok(
+    'standing calf plays on-step clip',
+    standCalf.hasVideo && /Standing%20Calf%20Raise%20on%20Step/i.test(standCalf.src),
+    (standCalf.src || '').slice(0, 180)
+  );
+  const machineCalf = await detailMedia('Wspięcia na palce');
+  ok('machine calf has no mp4', !machineCalf.hasVideo, JSON.stringify(machineCalf).slice(0, 200));
+  const seatedCalf = await detailMedia('Wspięcia na palce siedząc');
+  ok('seated calf has no mp4', !seatedCalf.hasVideo, JSON.stringify(seatedCalf).slice(0, 200));
+
   const bbCurl = await detailMedia('Uginanie biceps sztangą');
   ok('barbell curl has no lying mp4', !bbCurl.hasVideo, JSON.stringify(bbCurl).slice(0, 200));
   const preacher = await detailMedia('Uginanie na modlitewniku');

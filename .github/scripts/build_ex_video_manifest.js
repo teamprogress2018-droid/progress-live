@@ -370,6 +370,15 @@ function main() {
     'Skłony boczne',
     'Mountain climbers',
   ];
+  const CALF_UNMAP = [
+    'Wspięcia na palce',
+    'Wspięcia na palce stojąc',
+    'Wspięcia na palce jednonóż',
+    'Wspięcia na palce siedząc',
+    'Wspięcia na palce hantlami',
+    'Wspięcia na palce jednonóż hantlem',
+    'Wspięcia na palce na suwnicy',
+  ];
   const CHEST_AND_BACK_UNMAP = CHEST_UNMAP.concat(
     BACK_UNMAP,
     SHOULDER_UNMAP,
@@ -378,7 +387,8 @@ function main() {
     GLUTE_UNMAP,
     TRI_UNMAP,
     BI_UNMAP,
-    CORE_UNMAP
+    CORE_UNMAP,
+    CALF_UNMAP
   );
   for (const name of CHEST_AND_BACK_UNMAP) {
     const ex = byName.get(name);
@@ -599,6 +609,30 @@ function main() {
       row.via = 'core';
     } else {
       matched.push({ name: loc.name, file: loc.file, score: 0, via: 'core' });
+    }
+  }
+
+  /** Ręcznie sprawdzona treść klipu łydek (nazwa pliku bywa myląca). */
+  const CALF_FORCE = [
+    {
+      name: 'Wspięcia na palce hantlami',
+      file: 'Wspięcia na palce z hantlami (stojąc) (Standing Dumbbell Calf Raises).mp4',
+    },
+    {
+      name: 'Wspięcia na palce stojąc',
+      file: 'Wspięcia na palce (stojąc) – unoszenie łydek na stopniu (Standing Calf Raise on Step).mp4',
+    },
+  ];
+  for (const loc of CALF_FORCE) {
+    const ex = byName.get(loc.name);
+    if (!ex || !filesHas(files, loc.file)) continue;
+    addKeys(ctx, manifest, ex, videoUrl(sha, loc.file), true);
+    const row = matched.find((m) => m.name === loc.name);
+    if (row) {
+      row.file = loc.file;
+      row.via = 'calf';
+    } else {
+      matched.push({ name: loc.name, file: loc.file, score: 0, via: 'calf' });
     }
   }
 

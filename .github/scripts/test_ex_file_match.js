@@ -17,8 +17,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache manifest v31', html.includes('ex-gif-manifest.js?v=31'));
-ok('cache 01 v58', html.includes('01-core.js?v=58'));
+ok('cache manifest v32', html.includes('ex-gif-manifest.js?v=32'));
+ok('cache 01 v59', html.includes('01-core.js?v=59'));
 ok('cache 06 v38', html.includes('06-inbox-exercises-ai-programs.js?v=40'));
 
 const m = six.match(/const DEF_EX=\[([\s\S]*?)\];\s*window\.DEF_EX/);
@@ -199,6 +199,26 @@ ok(
 ok(
   'lying mountain-climbers mix filename not assigned',
   hit('Wspinaczka górska (mountain climbers) (Mountain Climbers).mp4') === ''
+);
+ok(
+  'honest db standing calf maps to db calf raise',
+  hit('Wspięcia na palce z hantlami (stojąc) (Standing Dumbbell Calf Raises).mp4') === 'Wspięcia na palce hantlami'
+);
+ok(
+  'honest standing calf on-step maps to standing calf',
+  hit('Wspięcia na palce (stojąc) – unoszenie łydek na stopniu (Standing Calf Raise on Step).mp4') === 'Wspięcia na palce stojąc'
+);
+ok(
+  'lying ankle-mobility-as-calf filename not assigned',
+  hit('Wspięcia na palce (rozciąganie ścięgna Achillesa zakres ruchu kostki) (Ankle Dorsiflexion Plantar Flexion Mobility Drill).mp4') === ''
+);
+ok(
+  'lying band-named plank mix not assigned',
+  hit('Wspięcia na palce stojąc (z gumą oporową) (Standing Calf Raises (with resistance band)).mp4') === ''
+);
+ok(
+  'lying foot-width-named renegade mix not assigned',
+  hit('Wspięcia na palce stojąc (szerokość stóp) (Standing Calf Raise – Foot Width Position Check).mp4') === ''
 );
 ok('face pull', hit('Ściąganie drążka wyciągu górnego do twarzy (face pull) (Cable Face Pull).mp4') === 'Ściąganie do twarzy (face pull)');
 ok('junk splash', hit('Brak ćwiczenia – ekran powitalny aplikacji YouCan (No exercise – YouCan app splash screen).mp4') === '');
