@@ -17,8 +17,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache manifest v30', html.includes('ex-gif-manifest.js?v=30'));
-ok('cache 01 v57', html.includes('01-core.js?v=57'));
+ok('cache manifest v31', html.includes('ex-gif-manifest.js?v=31'));
+ok('cache 01 v58', html.includes('01-core.js?v=58'));
 ok('cache 06 v38', html.includes('06-inbox-exercises-ai-programs.js?v=40'));
 
 const m = six.match(/const DEF_EX=\[([\s\S]*?)\];\s*window\.DEF_EX/);
@@ -172,7 +172,34 @@ ok(
   'lying bicep-curl-named hammer filename not assigned',
   hit('Uginanie ramion z hantlami (biceps curl z hantlami) (Dumbbell Bicep Curl).mp4') === ''
 );
-ok('plank', hit('Deska w leżeniu przodem (plank) (Prone Plank).mp4') === 'Deska');
+ok(
+  'lying prone-plank-as-crunch filename not assigned',
+  hit('Deska w leżeniu przodem (plank) (Prone Plank).mp4') === ''
+);
+ok(
+  'honest kneeling ab-wheel maps to rollout',
+  hit('Rollout na kółku ab wheel z kolan (Kneeling Ab Wheel Rollout).mp4') === 'Rollout z kółkiem'
+);
+ok(
+  'lying bicycle-crunch mix filename not assigned',
+  hit('Rowerek (leżąc na plecach) (Bicycle Crunch).mp4') === ''
+);
+ok(
+  'lying russian-twist mix filename not assigned',
+  hit('Skręty tułowia w siadzie (Russian twist) (Russian Twist).mp4') === ''
+);
+ok(
+  'lying scissor-kicks mix filename not assigned',
+  hit('Nożyce w leżeniu na plecach (Scissor Kicks).mp4') === ''
+);
+ok(
+  'lying leg-raise mix filename not assigned',
+  hit('Unoszenie nóg w leżeniu na plecach (Lying Leg Raises).mp4') === ''
+);
+ok(
+  'lying mountain-climbers mix filename not assigned',
+  hit('Wspinaczka górska (mountain climbers) (Mountain Climbers).mp4') === ''
+);
 ok('face pull', hit('Ściąganie drążka wyciągu górnego do twarzy (face pull) (Cable Face Pull).mp4') === 'Ściąganie do twarzy (face pull)');
 ok('junk splash', hit('Brak ćwiczenia – ekran powitalny aplikacji YouCan (No exercise – YouCan app splash screen).mp4') === '');
 ok('junk na', hit('Nie dotyczy – brak ćwiczenia na obrazie (NA – no exercise depicted).mp4') === '');

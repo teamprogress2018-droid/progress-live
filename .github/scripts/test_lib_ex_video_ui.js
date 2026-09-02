@@ -576,6 +576,25 @@ function ok(name, cond, extra) {
     (rev.src || '').slice(0, 180)
   );
 
+  const rollout = await detailMedia('Rollout z kółkiem');
+  await page.screenshot({ path: path.join(shotDir, 'lib_core_rollout_detail.png') });
+  ok('rollout detail title', rollout.title === 'Rollout z kółkiem', rollout.title);
+  ok(
+    'rollout plays kneeling ab-wheel clip',
+    rollout.hasVideo && /Kneeling%20Ab%20Wheel%20Rollout/i.test(rollout.src) && /z%20kolan|kolan/i.test(rollout.src),
+    (rollout.src || '').slice(0, 180)
+  );
+  const plank = await detailMedia('Deska');
+  ok('plank has no lying mp4', !plank.hasVideo, JSON.stringify(plank).slice(0, 200));
+  const bicycle = await detailMedia('Brzuszki rowerowe');
+  ok('bicycle crunch has no mix mp4', !bicycle.hasVideo, JSON.stringify(bicycle).slice(0, 200));
+  const russian = await detailMedia('Skręty rosyjskie');
+  ok('russian twist has no mix mp4', !russian.hasVideo, JSON.stringify(russian).slice(0, 200));
+  const scissors = await detailMedia('Nożyce');
+  ok('scissors have no mix mp4', !scissors.hasVideo, JSON.stringify(scissors).slice(0, 200));
+  const legRaise = await detailMedia('Unoszenie nóg leżąc');
+  ok('lying leg raise has no mix mp4', !legRaise.hasVideo, JSON.stringify(legRaise).slice(0, 200));
+
   const bbCurl = await detailMedia('Uginanie biceps sztangą');
   ok('barbell curl has no lying mp4', !bbCurl.hasVideo, JSON.stringify(bbCurl).slice(0, 200));
   const preacher = await detailMedia('Uginanie na modlitewniku');

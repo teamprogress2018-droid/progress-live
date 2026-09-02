@@ -342,6 +342,34 @@ function main() {
     'Uginanie nadgarstków młotkowo',
     'Uginanie nadgarstków nachwytem',
   ];
+  const CORE_UNMAP = [
+    'Deska',
+    'Deska boczna',
+    'Deska z unoszeniem ramienia',
+    'Deska kopenhaska',
+    'Rollout z kółkiem',
+    'Hollow hold',
+    'Hollow rock',
+    'Dragon flag',
+    'Martwy robak',
+    'Bird dog',
+    'Brzuszki klasyczne',
+    'Brzuszki rowerowe',
+    'Brzuszki odwrotne',
+    'Brzuszki na maszynie',
+    'Brzuszki na wyciągu',
+    'Zwisy nóg drążek',
+    'Skręty rosyjskie',
+    'Woodchop wyciąg',
+    'Wyciskanie Pallofa',
+    'Unoszenie kolan w zwisie',
+    'Palce do drążka',
+    'V-upy',
+    'Nożyce',
+    'Unoszenie nóg leżąc',
+    'Skłony boczne',
+    'Mountain climbers',
+  ];
   const CHEST_AND_BACK_UNMAP = CHEST_UNMAP.concat(
     BACK_UNMAP,
     SHOULDER_UNMAP,
@@ -349,7 +377,8 @@ function main() {
     HAM_UNMAP,
     GLUTE_UNMAP,
     TRI_UNMAP,
-    BI_UNMAP
+    BI_UNMAP,
+    CORE_UNMAP
   );
   for (const name of CHEST_AND_BACK_UNMAP) {
     const ex = byName.get(name);
@@ -550,6 +579,26 @@ function main() {
       row.via = 'bi';
     } else {
       matched.push({ name: loc.name, file: loc.file, score: 0, via: 'bi' });
+    }
+  }
+
+  /** Ręcznie sprawdzona treść klipu core (nazwa pliku bywa myląca). */
+  const CORE_FORCE = [
+    {
+      name: 'Rollout z kółkiem',
+      file: 'Rollout na kółku ab wheel z kolan (Kneeling Ab Wheel Rollout).mp4',
+    },
+  ];
+  for (const loc of CORE_FORCE) {
+    const ex = byName.get(loc.name);
+    if (!ex || !filesHas(files, loc.file)) continue;
+    addKeys(ctx, manifest, ex, videoUrl(sha, loc.file), true);
+    const row = matched.find((m) => m.name === loc.name);
+    if (row) {
+      row.file = loc.file;
+      row.via = 'core';
+    } else {
+      matched.push({ name: loc.name, file: loc.file, score: 0, via: 'core' });
     }
   }
 
