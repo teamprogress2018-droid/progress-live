@@ -270,6 +270,18 @@ ok('no lying barbell curl clip', !MAN['uginanie biceps sztangą']);
 ok('no lying preacher clip', !MAN['uginanie na modlitewniku'] && !MAN['preacher curl']);
 ok('no lying incline curl clip', !MAN['uginanie na skosie'] && !MAN['incline curl']);
 ok('no lying cable curl clip', !MAN['uginanie na wyciągu']);
+ok(
+  'rollout is kneeling ab-wheel clip',
+  /Kneeling%20Ab%20Wheel%20Rollout/i.test(MAN['rollout z kółkiem'] || '') &&
+    /z%20kolan/i.test(MAN['rollout z kółkiem'] || ''),
+  (MAN['rollout z kółkiem'] || '').slice(0, 220)
+);
+ok('no lying plank clip', !MAN['deska'] && !MAN['plank'] && !MAN['front plank']);
+ok('no lying bicycle clip', !MAN['brzuszki rowerowe'] && !MAN['bicycle crunch']);
+ok('no lying russian-twist clip', !MAN['skręty rosyjskie'] && !MAN['russian twist']);
+ok('no lying scissors clip', !MAN['nożyce'] && !MAN['nozyce'] && !MAN['scissor kicks']);
+ok('no lying leg-raise clip', !MAN['unoszenie nóg leżąc'] && !MAN['lying leg raise']);
+ok('no lying mountain-climbers clip', !MAN['mountain climbers'] && !MAN['mountain-climbers']);
 
 const document = { querySelectorAll: () => [], getElementById: () => null, addEventListener() {} };
 const windowObj = {
