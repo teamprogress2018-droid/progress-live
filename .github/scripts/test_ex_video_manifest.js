@@ -208,6 +208,41 @@ ok('no extension-as-adduction clip', !MAN['przywodzenie biodra maszyna']);
 ok('no rdl-as-side-lying clip', !MAN['odwodzenie biodra leżąc']);
 ok('no crunch-as-donkey-kick clip', !MAN['donkey kick']);
 ok('no rear-delt-as-pull-through clip', !MAN['pull-through wyciąg'] && !MAN['cable pull-through']);
+ok(
+  'bar pushdown is straight-bar do/dont clip',
+  /\(Cable%20Triceps%20Pushdown\)%20\(2\)\.mp4/i.test(MAN['prostowanie tricepsa wyciąg'] || ''),
+  (MAN['prostowanie tricepsa wyciąg'] || '').slice(0, 180)
+);
+ok(
+  'rope pushdown is with-rope-attachment clip',
+  /with%20Rope%20Attachment/i.test(MAN['prostowanie linką'] || ''),
+  (MAN['prostowanie linką'] || '').slice(0, 180)
+);
+ok(
+  'standing db oh is two-db clip',
+  /Dumbbell%20Overhead%20Triceps%20Extension/i.test(MAN['prostowanie za głowę hantlem'] || '') &&
+    !/Seated/i.test(MAN['prostowanie za głowę hantlem'] || '') &&
+    !/Skull/i.test(MAN['prostowanie za głowę hantlem'] || ''),
+  (MAN['prostowanie za głowę hantlem'] || '').slice(0, 180)
+);
+ok(
+  'skull crusher uses verified lying-bar clip',
+  /Seated%20Dumbbell%20Overhead%20Tricep%20Extension/i.test(MAN['prostowanie za głowę (skull crusher)'] || '') &&
+    /prostowanie%20ramion%20nad%20g%C5%82ow%C4%85%20z%20hantl%C4%85\)/i.test(MAN['prostowanie za głowę (skull crusher)'] || ''),
+  (MAN['prostowanie za głowę (skull crusher)'] || '').slice(0, 220)
+);
+ok(
+  'bench dips is honest triceps bench dips clip',
+  /triceps%20dips%20na%20%C5%82awce|Bench%20Dips/i.test(MAN['dipy na ławce'] || '') &&
+    !/Bench%20Dip\)\.mp4/i.test(MAN['dipy na ławce'] || ''),
+  (MAN['dipy na ławce'] || '').slice(0, 180)
+);
+ok('no one-arm pushdown clip', !MAN['prostowanie jednorącz wyciąg']);
+ok('no cable tricep kickback clip', !MAN['kickback na wyciągu'] && !MAN['cable kickback']);
+ok('no db kickback clip', !MAN['kickback triceps']);
+ok('no french press clip', !MAN['wyciskanie francuskie']);
+ok('no overhead cable tricep clip', !MAN['prostowanie za głowę wyciąg']);
+ok('no machine tricep dip clip', !MAN['dipy triceps maszyna']);
 
 const document = { querySelectorAll: () => [], getElementById: () => null, addEventListener() {} };
 const windowObj = {
@@ -334,6 +369,38 @@ ok('hip adduction has no extension clip', !ctx.exGifUrl({ name: 'Przywodzenie bi
 ok('side-lying abduction has no rdl clip', !ctx.exGifUrl({ name: 'Odwodzenie biodra leżąc' }));
 ok('donkey kick has no crunch clip', !ctx.exGifUrl({ name: 'Donkey kick' }));
 ok('pull-through has no rear-delt clip', !ctx.exGifUrl({ name: 'Pull-through wyciąg' }));
+ok(
+  'bar pushdown gif is (2) straight-bar clip',
+  /\(Cable%20Triceps%20Pushdown\)%20\(2\)\.mp4/i.test(ctx.exGifUrl({ name: 'Prostowanie tricepsa wyciąg' }) || ''),
+  (ctx.exGifUrl({ name: 'Prostowanie tricepsa wyciąg' }) || '').slice(0, 180)
+);
+ok(
+  'rope pushdown gif is rope-attachment clip',
+  /with%20Rope%20Attachment/i.test(ctx.exGifUrl({ name: 'Prostowanie linką' }) || ''),
+  (ctx.exGifUrl({ name: 'Prostowanie linką' }) || '').slice(0, 180)
+);
+ok(
+  'standing db oh gif is two-db clip',
+  /Dumbbell%20Overhead%20Triceps%20Extension/i.test(ctx.exGifUrl({ name: 'Prostowanie za głowę hantlem' }) || '') &&
+    !/Seated/i.test(ctx.exGifUrl({ name: 'Prostowanie za głowę hantlem' }) || ''),
+  (ctx.exGifUrl({ name: 'Prostowanie za głowę hantlem' }) || '').slice(0, 180)
+);
+ok(
+  'skull crusher gif is verified lying-bar clip',
+  /Seated%20Dumbbell%20Overhead%20Tricep%20Extension/i.test(ctx.exGifUrl({ name: 'Prostowanie za głowę (skull crusher)' }) || ''),
+  (ctx.exGifUrl({ name: 'Prostowanie za głowę (skull crusher)' }) || '').slice(0, 180)
+);
+ok(
+  'bench dip gif is honest bench dips clip',
+  /triceps%20dips%20na%20%C5%82awce|Bench%20Dips/i.test(ctx.exGifUrl({ name: 'Dipy na ławce' }) || '') &&
+    !/Bench%20Dip\)\.mp4/i.test(ctx.exGifUrl({ name: 'Dipy na ławce' }) || ''),
+  (ctx.exGifUrl({ name: 'Dipy na ławce' }) || '').slice(0, 180)
+);
+ok('one-arm pushdown has no lateral-raise clip', !ctx.exGifUrl({ name: 'Prostowanie jednorącz wyciąg' }));
+ok('cable tricep kickback has no mix clip', !ctx.exGifUrl({ name: 'Kickback na wyciągu' }));
+ok('db kickback has no cable clip', !ctx.exGifUrl({ name: 'Kickback triceps' }));
+ok('french press has no clip', !ctx.exGifUrl({ name: 'Wyciskanie francuskie' }));
+ok('overhead cable tricep has no clip', !ctx.exGifUrl({ name: 'Prostowanie za głowę wyciąg' }));
 
 const html = ctx.exTechniqueMediaHtml({ gif, name: 'Wyciskanie sztangi leżąc' }, {});
 ok('technique html is video', /<video/.test(html) && /autoplay/.test(html) && !/<img/.test(html), html.slice(0, 180));
