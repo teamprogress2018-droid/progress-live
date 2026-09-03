@@ -162,6 +162,7 @@ function main() {
   const pairs = [];
   for (const file of files) {
     if (usedFiles.has(file)) continue;
+    if (ctx.isKnownLyingMediaFilename && ctx.isKnownLyingMediaFilename(file)) continue;
     const parsed = ctx.parseExerciseMediaFilename(file);
     if (!parsed || parsed.junk) continue;
     for (const ex of exercises) {
@@ -379,6 +380,30 @@ function main() {
     'Wspięcia na palce jednonóż hantlem',
     'Wspięcia na palce na suwnicy',
   ];
+  /** Mix/circuit klipy nazwana jako cardio — bez uczciwego KEEP. */
+  const CARDIO_UNMAP = [
+    'Burpees',
+    'Mountain climbers',
+    'Przysiad z wyskokiem',
+    'Skoki na skrzynię',
+    'Pajacyki',
+    'Wysokie kolana',
+    'Skakanka',
+    'Bieganie w miejscu',
+    'Sprawl',
+    'Wypady z wyskokiem',
+  ];
+  /** Stretch/mobility: nazwy plików kłamią (klatki ≠ etykieta). Brak KEEP. */
+  const STRETCH_UNMAP = [
+    'Poza dziecka',
+    'Pancake (rozciąganie)',
+    'Rozciąganie biodrowo-lędźwiowego',
+    'Rozciąganie szyi bokiem',
+    'Rozciąganie czworogłowego stojąc',
+    'Rozciąganie łydek',
+    'Rozciąganie barku przez klatkę',
+    'Rozciąganie w framudze',
+  ];
   const CHEST_AND_BACK_UNMAP = CHEST_UNMAP.concat(
     BACK_UNMAP,
     SHOULDER_UNMAP,
@@ -388,7 +413,9 @@ function main() {
     TRI_UNMAP,
     BI_UNMAP,
     CORE_UNMAP,
-    CALF_UNMAP
+    CALF_UNMAP,
+    CARDIO_UNMAP,
+    STRETCH_UNMAP
   );
   for (const name of CHEST_AND_BACK_UNMAP) {
     const ex = byName.get(name);

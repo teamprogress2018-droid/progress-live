@@ -615,6 +615,14 @@ function ok(name, cond, extra) {
   ok('machine calf has no mp4', !machineCalf.hasVideo, JSON.stringify(machineCalf).slice(0, 200));
   const seatedCalf = await detailMedia('Wspięcia na palce siedząc');
   ok('seated calf has no mp4', !seatedCalf.hasVideo, JSON.stringify(seatedCalf).slice(0, 200));
+  const childPose = await detailMedia('Poza dziecka');
+  ok('child pose has no mix mp4', !childPose.hasVideo, JSON.stringify(childPose).slice(0, 200));
+  const pancakeStretch = await detailMedia('Pancake (rozciąganie)');
+  ok('pancake stretch has no mix mp4', !pancakeStretch.hasVideo, JSON.stringify(pancakeStretch).slice(0, 200));
+  const jumpSquat = await detailMedia('Przysiad z wyskokiem');
+  ok('jump squat has no mix mp4', !jumpSquat.hasVideo, JSON.stringify(jumpSquat).slice(0, 200));
+  const hipFlexorStretch = await detailMedia('Rozciąganie biodrowo-lędźwiowego');
+  ok('hip flexor stretch has no mix mp4', !hipFlexorStretch.hasVideo, JSON.stringify(hipFlexorStretch).slice(0, 200));
 
   const bbCurl = await detailMedia('Uginanie biceps sztangą');
   ok('barbell curl has no lying mp4', !bbCurl.hasVideo, JSON.stringify(bbCurl).slice(0, 200));
