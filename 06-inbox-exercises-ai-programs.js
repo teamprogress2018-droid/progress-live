@@ -1978,7 +1978,7 @@ function openExDetail(name){
       <span class="pill" style="background:${col}22;color:${col};">${e.cat}</span>
       <span class="pill pill-muted">${e.eq}</span>
     </div>
-    ${(()=>{const media=typeof resolveCoachMedia==='function'?resolveCoachMedia(e):null;if(!media)return'';let h='';if(media.gif&&typeof exTechniqueMediaHtml==='function')h+=exTechniqueMediaHtml({gif:media.gif,name:e.name},{});else if(media.img){h+=`<div class="ex-detail-thumb"><img src="${typeof escHtml==='function'?escHtml(media.img):media.img}" alt="Technika: ${typeof escHtml==='function'?escHtml(e.name):e.name}" loading="lazy" referrerpolicy="no-referrer"></div>`;}if(typeof coachMediaHtml==='function')h+=coachMediaHtml({...media,name:e.name},{showVideo:!!media.video,showGif:false});if(typeof exTechniqueGuideHtml==='function')h+=exTechniqueGuideHtml(e);return h;})()}
+    ${(()=>{const media=typeof resolveCoachMedia==='function'?resolveCoachMedia(e):null;if(!media)return'';let h='';if(media.gif&&typeof exTechniqueMediaHtml==='function')h+=exTechniqueMediaHtml({gif:media.gif,name:e.name},{});else if(media.img){h+=`<div class="ex-detail-thumb"><img src="${typeof escHtml==='function'?escHtml(media.img):media.img}" alt="Technika: ${typeof escHtml==='function'?escHtml(e.name):e.name}" loading="lazy" referrerpolicy="no-referrer"></div>`;}const showVid=!!media.video&&!(media.gif&&typeof sameMediaUrl==='function'&&sameMediaUrl(media.gif,media.video));if(typeof coachMediaHtml==='function')h+=coachMediaHtml({...media,name:e.name,video:showVid?media.video:'',videoEmbed:showVid?media.videoEmbed:''},{showVideo:showVid,showGif:false});if(typeof exTechniqueGuideHtml==='function')h+=exTechniqueGuideHtml(e);return h;})()}
     ${e.muscle?`<div style="margin-bottom:12px;">
       <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Mięśnie</div>
       <div style="font-size:12px;line-height:1.6;">${e.muscle}</div>
@@ -1995,6 +1995,7 @@ function openExDetail(name){
       <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Zamienniki</div>
       <div style="display:flex;gap:4px;flex-wrap:wrap;">${e.alt.split(',').map(a=>`<span class="pill pill-muted" style="font-size:10px;cursor:pointer;" onclick="openExDetail('${a.trim().replace(/'/g,"\\'")}')">→ ${a.trim()}</span>`).join('')}</div>
     </div>`:''}
+    ${typeof exDetailAssignHtml==='function'?exDetailAssignHtml(e):''}
     <div style="display:flex;gap:6px;margin-top:4px;">
       <button class="btn btn-primary btn-sm" style="flex:1;" onclick="prefillExInBuilder('${e.name.replace(/'/g,"\\'")}')">Użyj w builderze</button>
     </div>
@@ -2097,6 +2098,9 @@ async function saveOwnVideo(){
       renderOwnVideos();
       notify('Film zaktualizowany');
       await persistById('coachVideos',window.COACH_VIDEOS[idx]);
+      if(exName&&(typeof coachVideoIsFile==='function'?coachVideoIsFile(url):/\.(mp4|webm)(\?|#|$)/i.test(url))&&typeof persistExerciseGifUrl==='function'){
+        await persistExerciseGifUrl(exName,url);
+      }
       return;
     }
   }
@@ -2107,6 +2111,9 @@ async function saveOwnVideo(){
   renderOwnVideos();
   notify('Film dodany — klient zobaczy go przy ćwiczeniu w Starcie');
   await persistById('coachVideos',v);
+  if(exName&&(typeof coachVideoIsFile==='function'?coachVideoIsFile(url):/\.(mp4|webm)(\?|#|$)/i.test(url))&&typeof persistExerciseGifUrl==='function'){
+    await persistExerciseGifUrl(exName,url);
+  }
 }
 window.saveOwnVideo=saveOwnVideo;
 
@@ -3493,6 +3500,107 @@ async function persistExerciseGifUrl(exerciseName,gifUrl){
   return true;
 }
 window.persistExerciseGifUrl=persistExerciseGifUrl;
+
+function exDetailAssignHtml(e){
+  const name=e&&e.name?e.name:'';
+  const esc=typeof escHtml==='function'?escHtml:(s=>String(s||''));
+  const current=typeof exGifUrl==='function'?exGifUrl(e):'';
+  const currentIsVideo=/\.(mp4|webm)(\?|#|$)/i.test(current);
+  const currentHint=currentIsVideo
+    ?`<div id="exd-mp4-current" style="font-size:11px;color:var(--muted);margin-bottom:6px;word-break:break-all;">Obecny film: <code>${esc(current)}</code></div>`
+    :'';
+  const own=(window.COACH_VIDEOS||[]).filter(v=>{
+    const u=typeof normalizeImportedMediaUrl==='function'?normalizeImportedMediaUrl(v.url):String(v.url||'');
+    return typeof coachVideoIsFile==='function'?coachVideoIsFile(u):/\.(mp4|webm)(\?|#|$)/i.test(u);
+  });
+  const opts=own.map(v=>`<option value="${esc(v.id||'')}">${esc(v.name||v.url||'Film')}</option>`).join('');
+  const ownBlock=opts
+    ?`<label class="form-lbl" style="margin-top:8px;">Z moich filmów MP4</label>
+      <select class="form-select" id="exd-mp4-own" style="margin-bottom:6px;"><option value="">— wybierz film —</option>${opts}</select>
+      <button type="button" class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:8px;" onclick="assignExTechniqueFromOwn(currentExDetail)">Przypisz wybrany film</button>`
+    :'';
+  return `<div id="exd-assign" style="margin:14px 0;padding:12px;background:var(--s3);border:1px solid var(--border);border-radius:10px;">
+    <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Przypisz film MP4</div>
+    <div style="font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:8px;">Do <b>${esc(name)}</b> — wklej link / ścieżkę z <code>progress-live-video-assets</code>, wybierz plik .mp4 z dysku albo film z <b>Moje filmy</b>.</div>
+    ${currentHint}
+    <input class="form-input" id="exd-mp4-url" type="text" inputmode="url" placeholder="https://…mp4 albo D:/progress-live-video-assets/…mp4" style="margin-bottom:6px;font-size:12px;" value="${currentIsVideo?esc(current):''}">
+    <button type="button" class="btn btn-primary btn-sm" style="width:100%;margin-bottom:8px;" onclick="assignExTechniqueFromPaste(currentExDetail)">Wklej i zapisz przy tym ćwiczeniu</button>
+    <label class="form-lbl">Albo wybierz plik z dysku</label>
+    <input type="file" class="form-input" id="exd-mp4-file" accept=".mp4,.webm,video/mp4,video/webm" onchange="assignExTechniqueFromFile(currentExDetail,this)">
+    ${ownBlock}
+  </div>`;
+}
+window.exDetailAssignHtml=exDetailAssignHtml;
+
+async function saveAssignedExTechnique(name,rawUrl){
+  const n=name||(typeof currentExDetail!=='undefined'?currentExDetail:'');
+  const url=typeof normalizeImportedMediaUrl==='function'?normalizeImportedMediaUrl(rawUrl):String(rawUrl||'').trim();
+  if(!n||!url){notify('Brak ćwiczenia albo linku do filmu');return false;}
+  if(typeof isLocalDiskMediaPath==='function'&&isLocalDiskMediaPath(url)){
+    notify('Ścieżka z dysku poza folderem progress-live-video-assets się nie zapisze');
+    return false;
+  }
+  if(typeof isSafeMediaUrl==='function'&&!isSafeMediaUrl(url)){notify('Wklej https://…mp4 albo plik z progress-live-video-assets');return false;}
+  if(!window._uid){notify('Zaloguj się, aby zapisać film przy ćwiczeniu');return false;}
+  const saved=await persistExerciseGifUrl(n,url);
+  if(!saved){notify('Nie udało się zapisać filmu');return false;}
+  const custom=typeof findCustomEx==='function'?findCustomEx(n):null;
+  if(custom){
+    custom.gif=url;
+    if(typeof persistById==='function')await persistById('exercises',custom);
+  }
+  notify('Film przypisany do: '+n);
+  if(typeof renderLib==='function')renderLib();
+  if(typeof openExDetail==='function')openExDetail(n);
+  return true;
+}
+window.saveAssignedExTechnique=saveAssignedExTechnique;
+
+async function assignExTechniqueFromPaste(name){
+  const n=name||(typeof currentExDetail!=='undefined'?currentExDetail:'');
+  const inp=document.getElementById('exd-mp4-url');
+  await saveAssignedExTechnique(n,inp?inp.value:'');
+}
+window.assignExTechniqueFromPaste=assignExTechniqueFromPaste;
+
+async function assignExTechniqueFromOwn(name){
+  const n=name||(typeof currentExDetail!=='undefined'?currentExDetail:'');
+  const sel=document.getElementById('exd-mp4-own');
+  const id=sel?sel.value:'';
+  const v=(window.COACH_VIDEOS||[]).find(x=>x.id===id);
+  if(!v){notify('Wybierz film z listy');return;}
+  v.exName=n;
+  if(typeof persistById==='function')try{await persistById('coachVideos',v);}catch(e){}
+  await saveAssignedExTechnique(n,v.url);
+}
+window.assignExTechniqueFromOwn=assignExTechniqueFromOwn;
+
+async function assignExTechniqueFromFile(name,input){
+  const n=name||(typeof currentExDetail!=='undefined'?currentExDetail:'');
+  const file=input&&input.files&&input.files[0];
+  if(input)input.value='';
+  if(!file){notify('Wybierz plik MP4');return;}
+  const cdn=typeof cdnUrlFromVideoFilename==='function'?cdnUrlFromVideoFilename(file.name):'';
+  if(cdn){await saveAssignedExTechnique(n,cdn);return;}
+  if(!window._uid||!window._storage||!window._storageRef||!window._uploadBytes||!window._getDownloadURL){
+    notify('Ten plik nie jest z folderu progress-live-video-assets. Wybierz MP4 stamtąd albo wklej https://…mp4');
+    return;
+  }
+  try{
+    const slug=typeof exerciseSlug==='function'?exerciseSlug(n):String(n).toLowerCase();
+    const ext=(file.name.match(/\.(gif|webp|mp4|webm)$/i)||['','mp4'])[1].toLowerCase();
+    const path='exercise-gifs/'+window._uid+'/'+slug+'.'+ext;
+    const ref=window._storageRef(window._storage,path);
+    const mime={gif:'image/gif',webp:'image/webp',mp4:'video/mp4',webm:'video/webm'};
+    await window._uploadBytes(ref,file,{contentType:file.type||mime[ext]||'application/octet-stream'});
+    const url=await window._getDownloadURL(ref);
+    await saveAssignedExTechnique(n,url);
+  }catch(err){
+    console.warn('assignExTechniqueFromFile',err);
+    notify('Nie udało się wgrać pliku');
+  }
+}
+window.assignExTechniqueFromFile=assignExTechniqueFromFile;
 
 function matchGifFileToExercise(filename){
   const all=typeof allExercises==='function'?allExercises():(window.DEF_EX||[]);

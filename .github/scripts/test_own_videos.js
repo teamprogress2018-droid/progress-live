@@ -43,7 +43,7 @@ vm.runInContext(fs.readFileSync(path.join(__dirname, '..', '..', '01-core.js'), 
 const {
   normalizeCoachVideoUrl, coachVideoEmbed, coachVideoIsFile,
   ownVideoForExercise, resolveCoachMedia, parsePlanExercise,
-  mapPlanExercisesForClient
+  mapPlanExercisesForClient, cdnUrlFromVideoFilename
 } = ctx;
 
 let failed = 0;
@@ -79,6 +79,10 @@ eq(
   true
 );
 eq('desktop mp4 rejected', normalizeCoachVideoUrl('D:/Desktop/bench.mp4'), '');
+eq('filename youcan to cdn', cdnUrlFromVideoFilename('Rozpiętki na maszynie (motyl) (Machine Chest Fly).mp4').indexOf('https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@abc1234/') === 0, true);
+eq('plain filename not auto-cdn', cdnUrlFromVideoFilename('bench.mp4'), '');
+eq('windows (1) not auto-cdn', cdnUrlFromVideoFilename('film (1).mp4'), '');
+eq('copy suffix not auto-cdn', cdnUrlFromVideoFilename('nagranie (copy).mp4'), '');
 
 eq('yt watch', coachVideoEmbed('https://www.youtube.com/watch?v=abcdefghijk'), 'https://www.youtube-nocookie.com/embed/abcdefghijk');
 eq('yt short', coachVideoEmbed('https://youtu.be/abcdefghijk'), 'https://www.youtube-nocookie.com/embed/abcdefghijk');
@@ -105,6 +109,22 @@ eq('parse js video empty', parsePlanExercise({name: 'X', video: 'javascript:x'})
 const mapped = mapPlanExercisesForClient([{name: 'Przysiad', sets: '3', reps: '5'}], 'c1');
 eq('mapped video from lib', mapped[0].video, 'https://vimeo.com/111');
 eq('mapped embed', mapped[0].videoEmbed, 'https://player.vimeo.com/video/111');
+
+windowObj.EX_GIF_REMOTE = { 'butterfly (peck deck)': 'https://cdn.example.com/filmy/motyl.mp4' };
+windowObj.COACH_VIDEOS = [
+  { id: 'cv-pec', name: 'Motyl', url: 'https://cdn.example.com/filmy/motyl.mp4', exName: 'Butterfly (peck deck)', createdAt: '2026-09-01' }
+];
+const dup = resolveCoachMedia({ name: 'Butterfly (peck deck)' });
+eq('same mp4 gif kept', dup.gif, 'https://cdn.example.com/filmy/motyl.mp4');
+eq('same mp4 video dropped', dup.video, '');
+eq('same mp4 no embed', dup.videoEmbed, '');
+
+windowObj.COACH_VIDEOS = [
+  { id: 'cv-yt', name: 'YT', url: 'https://youtu.be/abcdefghijk', exName: 'Butterfly (peck deck)', createdAt: '2026-09-01' }
+];
+const mix = resolveCoachMedia({ name: 'Butterfly (peck deck)' });
+eq('youtube kept beside technique mp4', mix.video, 'https://youtu.be/abcdefghijk');
+eq('technique mp4 still gif', mix.gif, 'https://cdn.example.com/filmy/motyl.mp4');
 
 if (failed) {
   console.error('\n' + failed + ' test(s) failed');

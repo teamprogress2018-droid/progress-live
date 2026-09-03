@@ -17,8 +17,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 06 v43', html.includes('06-inbox-exercises-ai-programs.js?v=43'));
-ok('cache 01 v61', html.includes('01-core.js?v=61'));
+ok('cache 06 v45', html.includes('06-inbox-exercises-ai-programs.js?v=45'));
+ok('cache 01 v63', html.includes('01-core.js?v=63'));
 ok('modal title mp4', html.includes('IMPORT GIF / MP4 — MASOWO'));
 ok('example mp4', html.includes('https://link-do-filmu.mp4'));
 ok('placeholder mp4', html.includes('bench.mp4'));
@@ -139,6 +139,8 @@ ok('desktop path stays local', ctx.rewriteLocalMediaUrl('D:/Desktop/film.mp4') =
 
   ok('save without parse in source', /ensureExGifPasteParsed\(\)/.test(six) && /async function runExGifImport/.test(six));
   ok('upload mp4 mime', /video\/mp4/.test(six));
+  ok('detail assign panel', /function exDetailAssignHtml/.test(six) && /id="exd-assign"/.test(six) && /id="exd-mp4-url"/.test(six));
+  ok('detail assign wired', /exDetailAssignHtml\(e\)/.test(six) && /function saveAssignedExTechnique/.test(six));
 
   if (failed) {
     console.error('\n' + failed + ' failed');
