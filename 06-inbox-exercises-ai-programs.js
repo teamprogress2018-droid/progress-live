@@ -1700,8 +1700,9 @@ async function saveEx(){
   if(window._saveGuard_saveEx)return;window._saveGuard_saveEx=true;setTimeout(()=>window._saveGuard_saveEx=false,1500);
 
   const name=document.getElementById('ex-name').value.trim();if(!name){notify('Wpisz nazwę!');return;}
-  const video=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl((document.getElementById('ex-video')||{}).value):((document.getElementById('ex-video')||{}).value||'');
-  const imgRaw=String((document.getElementById('ex-img')||{}).value||'').trim();
+  const videoRaw=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl((document.getElementById('ex-video')||{}).value):((document.getElementById('ex-video')||{}).value||'');
+  const video=typeof normalizeImportedMediaUrl==='function'?normalizeImportedMediaUrl(videoRaw):videoRaw;
+  const imgRaw=typeof normalizeImportedMediaUrl==='function'?normalizeImportedMediaUrl((document.getElementById('ex-img')||{}).value):String((document.getElementById('ex-img')||{}).value||'').trim();
   const mediaUrl=(imgRaw&&!/^(javascript|data|vbscript):/i.test(imgRaw)&&(/^(https?:\/\/)/i.test(imgRaw)||imgRaw.startsWith('assets/')||/\.(png|jpe?g|gif|webp|svg|mp4|webm)(\?.*)?$/i.test(imgRaw)))?imgRaw:'';
   const isGif=/\.(gif|webp|mp4|webm)(\?.*)?$/i.test(mediaUrl);
   const gif=isGif?mediaUrl:'';
@@ -2077,7 +2078,8 @@ async function saveOwnVideo(){
   if(window._saveGuard_saveOwnVideo)return;window._saveGuard_saveOwnVideo=true;setTimeout(()=>window._saveGuard_saveOwnVideo=false,1500);
   const name=(document.getElementById('ov-name')||{}).value.trim();
   const raw=(document.getElementById('ov-url')||{}).value;
-  const url=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl(raw):String(raw||'').trim();
+  let url=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl(raw):String(raw||'').trim();
+  if(typeof normalizeImportedMediaUrl==='function')url=normalizeImportedMediaUrl(url);
   const exName=(document.getElementById('ov-ex')||{}).value.trim();
   if(!name){notify('Wpisz nazwę filmu');return;}
   if(!url){notify('Wklej poprawny link https (YouTube, Vimeo albo .mp4)');return;}
@@ -3403,6 +3405,39 @@ function resolveExerciseName(input){
   return raw;
 }
 
+function mediaFilenameFromUrl(url){
+  const raw=String(url||'').trim().split('#')[0].split('?')[0];
+  const pop=raw.split('/').pop()||'';
+  try{return decodeURIComponent(pop);}catch(e){return pop;}
+}
+window.mediaFilenameFromUrl=mediaFilenameFromUrl;
+
+function normalizeImportedMediaUrl(url){
+  return String(url||'').trim().replace(/ /g,'%20');
+}
+window.normalizeImportedMediaUrl=normalizeImportedMediaUrl;
+
+function splitPasteNameUrl(line){
+  const s=String(line||'').trim();
+  if(!s)return{name:'',url:''};
+  const http=s.match(/https?:\/\/.+/i);
+  if(http){
+    const url=normalizeImportedMediaUrl(http[0]);
+    const name=s.slice(0,http.index).replace(/[\s|;,]+$/g,'').trim();
+    return{name,url};
+  }
+  const sep=s.includes('\t')?'\t':(s.includes('|')?'|':(s.includes(';')?';':''));
+  if(sep){
+    const p=s.split(sep);
+    return{name:(p[0]||'').trim(),url:normalizeImportedMediaUrl(p.slice(1).join(sep))};
+  }
+  const assets=s.match(/^(.*?)\s+((?:assets\/|\.?\.?\/)[^\s].+\.(?:gif|webp|mp4|webm|png|jpe?g|svg))$/i);
+  if(assets)return{name:assets[1].trim(),url:assets[2].trim()};
+  if(/\.(gif|webp|mp4|webm)(\?|#|$)/i.test(s))return{name:'',url:s};
+  return{name:s,url:''};
+}
+window.splitPasteNameUrl=splitPasteNameUrl;
+
 function parseExGifBulkPaste(text){
   const t=String(text||'').trim();
   if(!t)return [];
@@ -3411,40 +3446,30 @@ function parseExGifBulkPaste(text){
       const j=JSON.parse(t);
       const arr=Array.isArray(j)?j:(typeof j==='object'?Object.entries(j).map(([name,url])=>({name,url})) :[]);
       return arr.map(o=>{
-        const url=String(o.url||o.gif||o.link||o.href||'').trim();
+        const url=normalizeImportedMediaUrl(o.url||o.gif||o.video||o.mp4||o.link||o.href||'');
         const name=String(o.name||o.exercise||o.exerciseName||'').trim();
-        const exerciseName=resolveExerciseName(name||matchGifFileToExercise(url.split('/').pop()||''));
-        return{presetUrl:url,label:name||url.split('/').pop()||url,exerciseName,selected:!!(exerciseName&&url),status:'',url:''};
+        const exerciseName=resolveExerciseName(name||matchGifFileToExercise(mediaFilenameFromUrl(url)));
+        return{presetUrl:url,label:name||mediaFilenameFromUrl(url)||url,exerciseName,selected:!!(exerciseName&&url),status:'',url:''};
       }).filter(r=>r.presetUrl);
     }catch(e){/* fall through to lines */}
   }
   const lines=t.split(/\r?\n/).map(l=>l.trim()).filter(l=>l&&!l.startsWith('#'));
   const rows=[];
   lines.forEach(line=>{
-    let name='';let url='';
-    if(line.includes('\t')){const p=line.split('\t');name=(p[0]||'').trim();url=(p[1]||'').trim();}
-    else if(/\s\|\s/.test(line)){const p=line.split(/\s\|\s/);name=(p[0]||'').trim();url=(p[1]||'').trim();}
-    else if(line.includes(';')){const p=line.split(';');name=(p[0]||'').trim();url=(p.slice(1).join(';')||'').trim();}
-    else{
-      const um=line.match(/^(.*?)\s+(https?:\/\/\S+)\s*$/i);
-      if(um){name=um[1].trim();url=um[2].trim();}
-      else{
-        const cm=line.match(/^(.*),\s*(https?:\/\/\S+)\s*$/i);
-        if(cm){name=cm[1].trim();url=cm[2].trim();}
-        else if(/^https?:\/\//i.test(line))url=line;
-        else name=line;
-      }
-    }
-    if(!url&&name&&/^https?:\/\//i.test(name)){url=name;name='';}
+    const parts=splitPasteNameUrl(line);
+    let name=parts.name;
+    let url=parts.url;
+    if(!url&&name&&(/^(https?:\/\/|assets\/)/i.test(name)||/\.(gif|webp|mp4|webm)(\?|#|$)/i.test(name))){url=normalizeImportedMediaUrl(name);name='';}
     if(!url)return;
-    const exerciseName=resolveExerciseName(name||matchGifFileToExercise(url.split('/').pop()||''));
-    rows.push({presetUrl:url,label:name||url.split('/').pop()||url,exerciseName,selected:!!(exerciseName&&url),status:'',url:''});
+    url=normalizeImportedMediaUrl(url);
+    const exerciseName=resolveExerciseName(name||matchGifFileToExercise(mediaFilenameFromUrl(url)));
+    rows.push({presetUrl:url,label:name||mediaFilenameFromUrl(url)||url,exerciseName,selected:!!(exerciseName&&url),status:'',url:''});
   });
   return rows;
 }
 
 async function persistExerciseGifUrl(exerciseName,gifUrl){
-  const url=String(gifUrl||'').trim();
+  const url=normalizeImportedMediaUrl(gifUrl);
   if(!url||!exerciseName)return false;
   if(typeof isSafeMediaUrl==='function'&&!isSafeMediaUrl(url))return false;
   const key=typeof exerciseMediaKey==='function'?exerciseMediaKey(exerciseName):exerciseName.toLowerCase();
@@ -3498,8 +3523,8 @@ function renderExGifImportPreview(){
   if(cnt)cnt.textContent=matched+' / '+_exGifImportRows.length+' dopasowanych';
   if(!_exGifImportRows.length){
     const msg=_exGifImportMode==='paste'
-      ?'Wklej listę ćwiczeń z linkami (jedna linia = jedno ćwiczenie) i kliknij „Parsuj listę”'
-      :'Wybierz pliki GIF / WEBP / MP4 z biblioteki';
+      ?'Wklej listę (GIF / WEBP / MP4 / WEBM) i kliknij „Zapisz masowo” — nie musisz osobno parsować'
+      :'Wybierz pliki GIF / WEBP / MP4 / WEBM z dysku';
     el.innerHTML='<div style="text-align:center;padding:24px;color:var(--muted);font-size:12px;">'+msg+'</div>';
     return;
   }
@@ -3592,13 +3617,27 @@ function openExGifImport(){
   openM('m-ex-gif-import');
 }
 
+function ensureExGifPasteParsed(){
+  if(_exGifImportRows.length)return;
+  const ta=document.getElementById('exgif-paste');
+  const raw=ta?String(ta.value||'').trim():'';
+  if(!raw)return;
+  _exGifImportMode='paste';
+  _exGifImportRows=parseExGifBulkPaste(raw);
+  renderExGifImportPreview();
+  syncExGifImportBtnLabel();
+}
+
 async function runExGifImport(){
+  ensureExGifPasteParsed();
+  const parsed=_exGifImportRows.length;
   const rows=_exGifImportRows.filter(r=>r.selected&&r.exerciseName);
-  if(!rows.length){notify('Zaznacz wiersze i przypisz ćwiczenia');return;}
-  if(!window._uid){notify('Zaloguj się, aby zapisać bibliotekę GIF');return;}
+  if(!parsed){notify('Wklej listę: Nazwa | https://link.mp4 (albo .gif / .webm) i kliknij Zapisz');return;}
+  if(!rows.length){notify('Wybierz ćwiczenie z listy przy każdym filmie — potem Zapisz masowo');return;}
+  if(!window._uid){notify('Zaloguj się, aby zapisać GIF-y i filmy MP4');return;}
   const fileRows=rows.filter(r=>r.file&&!r.presetUrl);
   if(fileRows.length&&(!window._storage||!window._storageRef||!window._uploadBytes||!window._getDownloadURL)){
-    notify('Firebase Storage niedostępny do plików — użyj zakładki „Wklej listę” z URL-ami lub folderu assets/ex/gifs/');
+    notify('Firebase Storage niedostępny do plików — wklej bezpośredni URL .mp4 / .gif');
     if(!rows.some(r=>r.presetUrl))return;
   }
   const btn=document.getElementById('exgif-import-btn');
@@ -3624,7 +3663,8 @@ async function runExGifImport(){
         const ext=(row.file.name.match(/\.(gif|webp|mp4|webm)$/i)||['','gif'])[1].toLowerCase();
         const path='exercise-gifs/'+window._uid+'/'+slug+'.'+ext;
         const ref=window._storageRef(window._storage,path);
-        await window._uploadBytes(ref,row.file,{contentType:row.file.type||'image/gif'});
+        const mime={gif:'image/gif',webp:'image/webp',mp4:'video/mp4',webm:'video/webm'};
+        await window._uploadBytes(ref,row.file,{contentType:row.file.type||mime[ext]||'application/octet-stream'});
         const url=await window._getDownloadURL(ref);
         row.url=url;
         await persistExerciseGifUrl(row.exerciseName,url);
@@ -3636,7 +3676,7 @@ async function runExGifImport(){
         ok++;
       }else row.status='err';
     }catch(e){
-      console.warn('GIF import',row.label||row.file&&row.file.name,e);
+      console.warn('GIF/MP4 import',row.label||row.file&&row.file.name,e);
       row.status='err';
     }
     step++;
@@ -3645,7 +3685,7 @@ async function runExGifImport(){
   }
   if(btn){btn.disabled=false;syncExGifImportBtnLabel();}
   if(typeof renderLib==='function')renderLib();
-  notify('✓ Zapisano '+ok+' / '+total+' animacji techniki');
+  notify('✓ Zapisano '+ok+' / '+total+' animacji / filmów techniki');
   if(ok===total)closeM('m-ex-gif-import');
 }
 
@@ -3655,6 +3695,7 @@ window.onExGifBulkPastePreview=onExGifBulkPastePreview;
 window.setExGifImportTab=setExGifImportTab;
 window.runExGifImport=runExGifImport;
 window.parseExGifBulkPaste=parseExGifBulkPaste;
+window.ensureExGifPasteParsed=ensureExGifPasteParsed;
 window.toggleExGifImportRow=toggleExGifImportRow;
 window.setExGifImportExercise=setExGifImportExercise;
 
