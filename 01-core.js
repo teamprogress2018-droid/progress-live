@@ -1280,7 +1280,20 @@ const EX_MEDIA_FILENAME_LIES={
   'Zgięcie podeszwowe stopy (rozciąganie ścięgna Achillesa mięśni łydki) (Ankle Plantar Flexion stretch).mp4':1,
   'Wspięcia na palce stojąc (szerokość stóp) (Standing Calf Raise – Foot Width Position Check).mp4':1,
   'Wspięcia na palce stojąc z gumą oporową (Standing Calf Raises with Resistance Band).mp4':1,
-  'Wspięcia na palce stojąc (z gumą oporową) (Standing Calf Raises (with resistance band)).mp4':1
+  'Wspięcia na palce stojąc (z gumą oporową) (Standing Calf Raises (with resistance band)).mp4':1,
+  'Pozycja dziecka (rozciąganie) (Child\'s Pose (stretch)).mp4':1,
+  'Wykrok w klęku – rozciąganie zginacza biodra (hip flexor stretch) (Kneeling Hip Flexor Stretch).mp4':1,
+  'Wykrok w klęku – rozciąganie zginacza biodra (półklęk) (Kneeling Hip Flexor Stretch (Low Lunge Stretch)).mp4':1,
+  'Wykrok z rozciąganiem zginacza biodra (klęk jednonóż) (Kneeling Hip Flexor Stretch (Lunge Stretch)).mp4':1,
+  'Rozciąganie mięśni czworobocznych rozciąganie karku (Neck and Upper Trapezius Stretch).mp4':1,
+  'Rozciąganie tricepsów (za plecami) (Triceps Stretch (behind back)).mp4':1,
+  'Rozciąganie mięśnia czworogłowego uda w siadzie (stretching statyczny) (Seated Quadriceps Stretch).mp4':1,
+  'Rozciąganie mięśnia czworogłowego uda w siadzie (na ławce) (Seated Quadriceps Stretch (on bench)).mp4':1,
+  'Rozciąganie mięśnia czworogłowego uda w siadzie (z hantlem) (Seated Quadriceps Stretch (with dumbbell)).mp4':1,
+  'Rozciąganie mięśnia czworogłowego uda w siadzie (ze hantlą) (Seated Quadriceps Stretch).mp4':1,
+  'Rozciąganie mięśnia czworogłowego uda w siadzie na ławce (Seated Quadriceps Stretch).mp4':1,
+  'Rozpiętki w leżeniu na podłodze (bez sprzętu ćwiczenie rozciągające klatkę piersiową) (Floor Chest Stretch Lying Chest Opener).mp4':1,
+  'Zgięcie podeszwowe stopy (rozciąganie ścięgna Achillesa mobilizacja stawu skokowego) (Ankle Plantar Flexion Stretch).mp4':1
 };
 function exerciseMediaBasename(filename){
   let raw=String(filename||'').split(/[/\\]/).pop()||'';

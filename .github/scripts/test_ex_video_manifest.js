@@ -282,6 +282,15 @@ ok('no lying russian-twist clip', !MAN['skręty rosyjskie'] && !MAN['russian twi
 ok('no lying scissors clip', !MAN['nożyce'] && !MAN['nozyce'] && !MAN['scissor kicks']);
 ok('no lying leg-raise clip', !MAN['unoszenie nóg leżąc'] && !MAN['lying leg raise']);
 ok('no lying mountain-climbers clip', !MAN['mountain climbers'] && !MAN['mountain-climbers']);
+ok('no lying jump-squat clip', !MAN['przysiad z wyskokiem'] && !MAN['jump squat'] && !MAN['squat jump']);
+ok('no lying child-pose clip', !MAN['poza dziecka'] && !MAN['child pose'] && !MAN['childs pose breath and stretch']);
+ok('no lying pancake-stretch clip', !MAN['pancake (rozciąganie)'] && !MAN['pancake stretch']);
+ok('no lying hip-flexor-stretch clip', !MAN['rozciąganie biodrowo-lędźwiowego'] && !MAN['half kneeling hip flexors stretch']);
+ok('no lying neck-stretch clip', !MAN['rozciąganie szyi bokiem']);
+ok('no lying standing-quad-stretch clip', !MAN['rozciąganie czworogłowego stojąc']);
+ok('no lying calf-stretch clip', !MAN['rozciąganie łydek']);
+ok('no lying jumping-jacks clip', !MAN['pajacyki'] && !MAN['jumping jacks']);
+ok('no lying high-knees clip', !MAN['wysokie kolana'] && !MAN['high knees']);
 ok(
   'db standing calf is dumbbell clip',
   /Standing%20Dumbbell%20Calf%20Raises/i.test(MAN['wspięcia na palce hantlami'] || '') &&

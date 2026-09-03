@@ -17,6 +17,12 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
+ok('cache manifest v33', html.includes('ex-gif-manifest.js?v=33'));
+ok('cache 01 v60', html.includes('01-core.js?v=60'));
+ok('cache 06 v41', html.includes('06-inbox-exercises-ai-programs.js?v=41'));
+ok('cache manifest v32', html.includes('ex-gif-manifest.js?v=33'));
+ok('cache 01 v59', html.includes('01-core.js?v=60'));
+ok('cache 06 v38', html.includes('06-inbox-exercises-ai-programs.js?v=41'));
 ok('cache manifest v32', html.includes('ex-gif-manifest.js?v=32'));
 ok('cache 01 v59', html.includes('01-core.js?v=59'));
 ok('cache 06 v38', html.includes('06-inbox-exercises-ai-programs.js?v=42'));
@@ -202,6 +208,42 @@ ok(
 ok(
   'lying mountain-climbers mix filename not assigned',
   hit('Wspinaczka górska (mountain climbers) (Mountain Climbers).mp4') === ''
+);
+ok(
+  'lying jump-squat mix filename not assigned',
+  hit('Przysiad z wyskokiem i klaśnięciem nad głową (Jump Squat with Overhead Clap).mp4') === ''
+);
+ok(
+  'lying child-pose mix filename not assigned',
+  hit("Pozycja dziecka (rozciąganie) (Child's Pose (stretch)).mp4") === ''
+);
+ok(
+  'lying hip-flexor mix filename not assigned',
+  hit('Wykrok w klęku – rozciąganie zginacza biodra (hip flexor stretch) (Kneeling Hip Flexor Stretch).mp4') === ''
+);
+ok(
+  'lying neck-trap-stretch mix filename not assigned',
+  hit('Rozciąganie mięśni czworobocznych rozciąganie karku (Neck and Upper Trapezius Stretch).mp4') === ''
+);
+ok(
+  'lying triceps-stretch mix filename not assigned',
+  hit('Rozciąganie tricepsów (za plecami) (Triceps Stretch (behind back)).mp4') === ''
+);
+ok(
+  'lying seated-quad-as-curl filename not assigned',
+  hit('Rozciąganie mięśnia czworogłowego uda w siadzie (stretching statyczny) (Seated Quadriceps Stretch).mp4') === ''
+);
+ok(
+  'lying seated-quad-on-bench-as-curl filename not assigned',
+  hit('Rozciąganie mięśnia czworogłowego uda w siadzie (na ławce) (Seated Quadriceps Stretch (on bench)).mp4') === ''
+);
+ok(
+  'lying floor-chest-stretch-as-pushup filename not assigned',
+  hit('Rozpiętki w leżeniu na podłodze (bez sprzętu ćwiczenie rozciągające klatkę piersiową) (Floor Chest Stretch Lying Chest Opener).mp4') === ''
+);
+ok(
+  'lying ankle-stretch mix filename not assigned',
+  hit('Zgięcie podeszwowe stopy (rozciąganie ścięgna Achillesa mobilizacja stawu skokowego) (Ankle Plantar Flexion Stretch).mp4') === ''
 );
 ok(
   'honest db standing calf maps to db calf raise',
