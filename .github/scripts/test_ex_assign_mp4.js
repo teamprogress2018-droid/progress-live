@@ -18,14 +18,17 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01 v66', html.includes('01-core.js?v=66'));
-ok('cache 06 v49', html.includes('06-inbox-exercises-ai-programs.js?v=49'));
+ok('cache 01 v67', html.includes('01-core.js?v=67'));
+ok('cache 06 v50', html.includes('06-inbox-exercises-ai-programs.js?v=50'));
 ok('ci unit', wf.includes('test_ex_assign_mp4.js'));
 ok('ci ui', wf.includes('test_ex_assign_mp4_ui.js'));
 ok('openExDetail includes assign panel', /exDetailAssignHtml\(e\)/.test(six));
-ok('assign panel ids', /id="exd-assign"/.test(six) && /id="exd-mp4-url"/.test(six) && /id="exd-mp4-file"/.test(six));
+const openEx = six.slice(six.indexOf('function openExDetail'), six.indexOf('window.EX=window.EX||[]'));
+ok('assign panel before technique guide', openEx.indexOf('exDetailAssignHtml(e)') >= 0 && openEx.indexOf('exDetailAssignHtml(e)') < openEx.indexOf('exTechniqueGuideHtml(e)'));
+ok('assign panel ids', /id="exd-assign"/.test(six) && /id="exd-mp4-url"/.test(six) && /id="exd-mp4-file"/.test(six) && /id="exd-mp4-player"/.test(six));
 ok('uses currentExDetail', /assignExTechniqueFromPaste\(currentExDetail\)/.test(six));
 ok('own videos dropdown', /id="exd-mp4-own"/.test(six));
+ok('card film badge', /▶ FILM/.test(six));
 
 const documentStub = {
   querySelectorAll: () => [],
@@ -102,7 +105,8 @@ const htmlPanel = ctx.exDetailAssignHtml(windowObj.DEF_EX[0]);
 ok('panel html has paste field', /id="exd-mp4-url"/.test(htmlPanel));
 ok('panel html has own videos', /id="exd-mp4-own"/.test(htmlPanel) && /Motyl pec deck/.test(htmlPanel));
 ok('panel html has status', /id="exd-assign-msg"/.test(htmlPanel));
-ok('panel mentions cors', /CORS Storage/.test(htmlPanel));
+ok('panel title match', /Dopasuj film do ćwiczenia/.test(htmlPanel));
+ok('panel save label', /Dopasuj i zapisz przy tym ćwiczeniu/.test(htmlPanel));
 
 (async () => {
   const localWin = 'D:/progress-live-video-assets/POGRUPOWANE/Klatka piersiowa/Rozpiętki na maszynie (motyl) (Machine Chest Fly).mp4';
