@@ -27,8 +27,8 @@ function eq(name, got, want) {
 }
 
 ok('cache 01', html.includes('01-core.js?v=60'));
-ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=34'));
-ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=40'));
+ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=35'));
+ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=41'));
 ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=35'));
 ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=41'));
 ok('builder apply helper', src05.includes('function builderApplyLoadUnit'));
