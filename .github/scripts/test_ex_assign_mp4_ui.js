@@ -75,6 +75,12 @@ function ok(name, cond, extra) {
   ok('own videos listed', panel.hasOwn && /Motyl z biblioteki/.test(panel.ownText), panel.ownText);
   ok('current exercise set', panel.current === 'Butterfly (peck deck)', panel.current);
 
+  await page.fill('#exd-mp4-url', '');
+  await page.click('#exd-assign .btn-primary');
+  await page.waitForTimeout(200);
+  const emptyMsg = await page.evaluate(() => (document.getElementById('exd-assign-msg') || {}).textContent || '');
+  ok('empty paste shows hint', /wklej pełną ścieżkę/i.test(emptyMsg), emptyMsg);
+
   const localWin = 'D:/progress-live-video-assets/POGRUPOWANE/Klatka piersiowa/Rozpiętki na maszynie (motyl) (Machine Chest Fly).mp4';
   await page.fill('#exd-mp4-url', localWin);
   await page.click('#exd-assign .btn-primary');

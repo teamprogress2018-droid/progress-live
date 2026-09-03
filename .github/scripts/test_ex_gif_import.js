@@ -17,7 +17,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 06 v45', html.includes('06-inbox-exercises-ai-programs.js?v=45'));
+ok('cache 06 v46', html.includes('06-inbox-exercises-ai-programs.js?v=46'));
 ok('cache 01 v63', html.includes('01-core.js?v=63'));
 ok('modal title mp4', html.includes('IMPORT GIF / MP4 — MASOWO'));
 ok('example mp4', html.includes('https://link-do-filmu.mp4'));

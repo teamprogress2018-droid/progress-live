@@ -3489,17 +3489,43 @@ async function persistExerciseGifUrl(exerciseName,gifUrl){
   const slug=typeof exerciseSlug==='function'?exerciseSlug(exerciseName):exerciseName.toLowerCase();
   window.EX_GIF_REMOTE=window.EX_GIF_REMOTE||{};
   window.EX_GIF_REMOTE[key]=url;
+  window._exGifPersistCloudErr=null;
   if(window._db&&window._setDoc&&window._doc&&window._uid){
-    await window._setDoc(window._doc(window._db,'exerciseGifs',slug),{
-      exerciseName,
-      gifUrl:url,
-      trainerId:window._uid,
-      updatedAt:new Date().toISOString()
-    },{merge:true});
+    try{
+      await window._setDoc(window._doc(window._db,'exerciseGifs',slug),{
+        exerciseName,
+        gifUrl:url,
+        trainerId:window._uid,
+        updatedAt:new Date().toISOString()
+      },{merge:true});
+    }catch(err){
+      console.warn('persistExerciseGifUrl',err);
+      window._exGifPersistCloudErr=err;
+    }
   }
   return true;
 }
 window.persistExerciseGifUrl=persistExerciseGifUrl;
+
+function hostBlocksFirebaseStorageUpload(){
+  try{
+    const h=String((typeof location!=='undefined'&&location&&location.hostname)||'');
+    return /github\.io$/i.test(h);
+  }catch(e){return false;}
+}
+window.hostBlocksFirebaseStorageUpload=hostBlocksFirebaseStorageUpload;
+
+function exAssignSetMsg(text,ok){
+  const s=String(text||'');
+  const el=document.getElementById('exd-assign-msg');
+  if(el){
+    el.style.display=s?'block':'none';
+    el.style.color=ok?'#8fd19a':'#ff8a80';
+    el.textContent=s;
+  }
+  if(s)notify(s);
+}
+window.exAssignSetMsg=exAssignSetMsg;
 
 function exDetailAssignHtml(e){
   const name=e&&e.name?e.name:'';
@@ -3519,14 +3545,19 @@ function exDetailAssignHtml(e){
       <select class="form-select" id="exd-mp4-own" style="margin-bottom:6px;"><option value="">— wybierz film —</option>${opts}</select>
       <button type="button" class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:8px;" onclick="assignExTechniqueFromOwn(currentExDetail)">Przypisz wybrany film</button>`
     :'';
+  const flash=window._exAssignFlash;
+  window._exAssignFlash=null;
+  if(flash&&flash.text)notify(flash.text);
+  const msgHtml=`<div id="exd-assign-msg" style="display:${flash&&flash.text?'block':'none'};margin-top:8px;font-size:12px;line-height:1.45;color:${flash&&flash.ok?'#8fd19a':'#ff8a80'};">${flash&&flash.text?esc(flash.text):''}</div>`;
   return `<div id="exd-assign" style="margin:14px 0;padding:12px;background:var(--s3);border:1px solid var(--border);border-radius:10px;">
     <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Przypisz film MP4</div>
-    <div style="font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:8px;">Do <b>${esc(name)}</b> — wklej link / ścieżkę z <code>progress-live-video-assets</code>, wybierz plik .mp4 z dysku albo film z <b>Moje filmy</b>.</div>
+    <div style="font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:8px;">Do <b>${esc(name)}</b> — wklej <b>pełną</b> ścieżkę z folderu <code>progress-live-video-assets</code> (np. <code>D:/progress-live-video-assets/POGRUPOWANE/…mp4</code>). Sam przycisk „Wybierz plik” z GitHub Pages nie wgra filmu (CORS Storage).</div>
     ${currentHint}
-    <input class="form-input" id="exd-mp4-url" type="text" inputmode="url" placeholder="https://…mp4 albo D:/progress-live-video-assets/…mp4" style="margin-bottom:6px;font-size:12px;" value="${currentIsVideo?esc(current):''}">
+    <input class="form-input" id="exd-mp4-url" type="text" inputmode="url" placeholder="D:/progress-live-video-assets/POGRUPOWANE/Klatka piersiowa/plik.mp4" style="margin-bottom:6px;font-size:12px;" value="${currentIsVideo?esc(current):''}">
     <button type="button" class="btn btn-primary btn-sm" style="width:100%;margin-bottom:8px;" onclick="assignExTechniqueFromPaste(currentExDetail)">Wklej i zapisz przy tym ćwiczeniu</button>
-    <label class="form-lbl">Albo wybierz plik z dysku</label>
+    <label class="form-lbl">Albo wybierz plik YouCan (.mp4 z angielską nazwą w nawiasie)</label>
     <input type="file" class="form-input" id="exd-mp4-file" accept=".mp4,.webm,video/mp4,video/webm" onchange="assignExTechniqueFromFile(currentExDetail,this)">
+    ${msgHtml}
     ${ownBlock}
   </div>`;
 }
@@ -3535,23 +3566,32 @@ window.exDetailAssignHtml=exDetailAssignHtml;
 async function saveAssignedExTechnique(name,rawUrl){
   const n=name||(typeof currentExDetail!=='undefined'?currentExDetail:'');
   const url=typeof normalizeImportedMediaUrl==='function'?normalizeImportedMediaUrl(rawUrl):String(rawUrl||'').trim();
-  if(!n||!url){notify('Brak ćwiczenia albo linku do filmu');return false;}
-  if(typeof isLocalDiskMediaPath==='function'&&isLocalDiskMediaPath(url)){
-    notify('Ścieżka z dysku poza folderem progress-live-video-assets się nie zapisze');
+  if(!n||!url){
+    exAssignSetMsg('Najpierw wklej pełną ścieżkę D:/progress-live-video-assets/…/plik.mp4 (albo https://…mp4) — samo kliknięcie nic nie zapisze',false);
     return false;
   }
-  if(typeof isSafeMediaUrl==='function'&&!isSafeMediaUrl(url)){notify('Wklej https://…mp4 albo plik z progress-live-video-assets');return false;}
-  if(!window._uid){notify('Zaloguj się, aby zapisać film przy ćwiczeniu');return false;}
+  if(typeof isLocalDiskMediaPath==='function'&&isLocalDiskMediaPath(url)){
+    exAssignSetMsg('Ścieżka z dysku poza folderem progress-live-video-assets się nie zapisze. Wklej plik z D:/progress-live-video-assets/…',false);
+    return false;
+  }
+  if(typeof isSafeMediaUrl==='function'&&!isSafeMediaUrl(url)){
+    exAssignSetMsg('Wklej https://…mp4 albo pełną ścieżkę z progress-live-video-assets',false);
+    return false;
+  }
+  if(!window._uid){exAssignSetMsg('Zaloguj się, aby zapisać film przy ćwiczeniu',false);return false;}
   const saved=await persistExerciseGifUrl(n,url);
-  if(!saved){notify('Nie udało się zapisać filmu');return false;}
+  if(!saved){exAssignSetMsg('Nie udało się zapisać filmu',false);return false;}
   const custom=typeof findCustomEx==='function'?findCustomEx(n):null;
   if(custom){
     custom.gif=url;
-    if(typeof persistById==='function')await persistById('exercises',custom);
+    if(typeof persistById==='function')try{await persistById('exercises',custom);}catch(e){}
   }
-  notify('Film przypisany do: '+n);
+  window._exAssignFlash=window._exGifPersistCloudErr
+    ?{text:'Film widać teraz, ale chmura nie zapisała — po odświeżeniu zniknie',ok:false}
+    :{text:'Film przypisany do: '+n,ok:true};
   if(typeof renderLib==='function')renderLib();
   if(typeof openExDetail==='function')openExDetail(n);
+  else exAssignSetMsg(window._exAssignFlash.text,window._exAssignFlash.ok);
   return true;
 }
 window.saveAssignedExTechnique=saveAssignedExTechnique;
@@ -3559,7 +3599,7 @@ window.saveAssignedExTechnique=saveAssignedExTechnique;
 async function assignExTechniqueFromPaste(name){
   const n=name||(typeof currentExDetail!=='undefined'?currentExDetail:'');
   const inp=document.getElementById('exd-mp4-url');
-  await saveAssignedExTechnique(n,inp?inp.value:'');
+  return saveAssignedExTechnique(n,inp?inp.value:'');
 }
 window.assignExTechniqueFromPaste=assignExTechniqueFromPaste;
 
@@ -3568,7 +3608,7 @@ async function assignExTechniqueFromOwn(name){
   const sel=document.getElementById('exd-mp4-own');
   const id=sel?sel.value:'';
   const v=(window.COACH_VIDEOS||[]).find(x=>x.id===id);
-  if(!v){notify('Wybierz film z listy');return;}
+  if(!v){exAssignSetMsg('Wybierz film z listy Moje filmy',false);return;}
   v.exName=n;
   if(typeof persistById==='function')try{await persistById('coachVideos',v);}catch(e){}
   await saveAssignedExTechnique(n,v.url);
@@ -3579,11 +3619,16 @@ async function assignExTechniqueFromFile(name,input){
   const n=name||(typeof currentExDetail!=='undefined'?currentExDetail:'');
   const file=input&&input.files&&input.files[0];
   if(input)input.value='';
-  if(!file){notify('Wybierz plik MP4');return;}
+  if(!file){exAssignSetMsg('Wybierz plik MP4',false);return;}
   const cdn=typeof cdnUrlFromVideoFilename==='function'?cdnUrlFromVideoFilename(file.name):'';
   if(cdn){await saveAssignedExTechnique(n,cdn);return;}
-  if(!window._uid||!window._storage||!window._storageRef||!window._uploadBytes||!window._getDownloadURL){
-    notify('Ten plik nie jest z folderu progress-live-video-assets. Wybierz MP4 stamtąd albo wklej https://…mp4');
+  const blocked=typeof hostBlocksFirebaseStorageUpload==='function'&&hostBlocksFirebaseStorageUpload();
+  const canStore=!blocked&&window._uid&&window._storage&&window._storageRef&&window._uploadBytes&&window._getDownloadURL;
+  if(!canStore){
+    const base=String(file.name||'').replace(/\\/g,'/').split('/').pop();
+    const inp=document.getElementById('exd-mp4-url');
+    if(inp)inp.value=base;
+    exAssignSetMsg('Z GitHub Pages nie wgramy pliku (CORS Storage). Wklej pełną ścieżkę, np. D:/progress-live-video-assets/POGRUPOWANE/…/'+base+' i kliknij „Wklej i zapisz”.',false);
     return;
   }
   try{
@@ -3597,7 +3642,10 @@ async function assignExTechniqueFromFile(name,input){
     await saveAssignedExTechnique(n,url);
   }catch(err){
     console.warn('assignExTechniqueFromFile',err);
-    notify('Nie udało się wgrać pliku');
+    const base=String(file.name||'').replace(/\\/g,'/').split('/').pop();
+    const inp=document.getElementById('exd-mp4-url');
+    if(inp)inp.value=base;
+    exAssignSetMsg('Wgrywanie padło (często CORS). Wklej D:/progress-live-video-assets/…/'+base+' i zapisz.',false);
   }
 }
 window.assignExTechniqueFromFile=assignExTechniqueFromFile;
@@ -3750,8 +3798,9 @@ async function runExGifImport(){
   if(!rows.length){notify('Wybierz ćwiczenie z listy przy każdym filmie — potem Zapisz masowo');return;}
   if(!window._uid){notify('Zaloguj się, aby zapisać GIF-y i filmy MP4');return;}
   const fileRows=rows.filter(r=>r.file&&!r.presetUrl);
-  if(fileRows.length&&(!window._storage||!window._storageRef||!window._uploadBytes||!window._getDownloadURL)){
-    notify('Firebase Storage niedostępny do plików — wklej bezpośredni URL .mp4 / .gif');
+  const storageBlocked=typeof hostBlocksFirebaseStorageUpload==='function'&&hostBlocksFirebaseStorageUpload();
+  if(fileRows.length&&(storageBlocked||!window._storage||!window._storageRef||!window._uploadBytes||!window._getDownloadURL)){
+    notify('Z GitHub Pages nie wgramy plików (CORS). Wklej ścieżki D:/progress-live-video-assets/…mp4 i Zapisz masowo');
     if(!rows.some(r=>r.presetUrl))return;
   }
   const btn=document.getElementById('exgif-import-btn');
@@ -3778,6 +3827,9 @@ async function runExGifImport(){
           }
         }
       }else if(row.file){
+        if(storageBlocked||!window._storage||!window._storageRef||!window._uploadBytes||!window._getDownloadURL){
+          row.status='err';
+        }else{
         const slug=typeof exerciseSlug==='function'?exerciseSlug(row.exerciseName):String(row.exerciseName).toLowerCase();
         const ext=(row.file.name.match(/\.(gif|webp|mp4|webm)$/i)||['','gif'])[1].toLowerCase();
         const path='exercise-gifs/'+window._uid+'/'+slug+'.'+ext;
@@ -3789,6 +3841,7 @@ async function runExGifImport(){
         await persistExerciseGifUrl(row.exerciseName,url);
         row.status='done';
         ok++;
+        }
       }else if(row.url){
         await persistExerciseGifUrl(row.exerciseName,row.url);
         row.status='done';
