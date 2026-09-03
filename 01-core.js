@@ -1625,7 +1625,7 @@ function parsePlanExercise(ex){
   if(ex==null)return{name:'Ćwiczenie',sets:'3',reps:'10',rest:'90s',kg:'',pct1rm:'',ss:'',emom:false,note:'',video:'',wu:0,drop:0,amrap:false,loadUnit:''};
   if(typeof ex==='string'){
     const raw=ex.trim();
-    const m=raw.match(/^(.*?)(?:\s+(\d+)\s*[x×]\s*(\d+(?:\s*-\s*\d+)?))?(?:\s*@\s*(\d+(?:[.,]\d+)?)\s*(%|kg|s|sec|sek|m)?)?\s*$/i);
+    const m=raw.match(/^(.*?)(?:\s+(\d+)\s*[x×]\s*(\d+(?:\s*-\s*\d+)?))?(?:\s*@\s*(\d+(?:[.,]\d+)?)\s*(%|kg|s|sec|sek|min|mins|minuta|minuty|m)?)?\s*$/i);
     const amt=m&&m[4]?String(m[4]).replace(',','.'):'';
     const unit=((m&&m[5])||'').toLowerCase();
     const isPct=unit==='%';
@@ -2390,7 +2390,7 @@ function exerciseNameKey(name){
 }
 window.exerciseNameKey=exerciseNameKey;
 
-/** kg | sec | m — pole „KG” w kreatorze to obciążenie albo czas (liny, deska…). */
+/** kg | sec | min | m — pole „KG” to obciążenie, czas (s/min) albo dystans. */
 const EX_LOAD_SEC_SLUGS={
   'liny-treningowe':1,'liny':1,'battle-ropes':1,'battle-rope':1,'liny-battle':1,
   'deska':1,'plank':1,'deska-boczna':1,'side-plank':1,
@@ -2402,9 +2402,23 @@ const EX_LOAD_SEC_SLUGS={
   'siad-w-l':1,'l-sit':1,'l-sit-hold':1,
   'bieganie-w-miejscu':1,'running-in-place':1,'jog-w-miejscu':1,'bieg-w-miejscu':1
 };
+const EX_LOAD_MIN_SLUGS={
+  'wioslarz':1,'rowing':1,'concept2':1,'ergometr-wioslarski':1,'row':1,
+  'airbike':1,'assault-bike':1,'rower-powietrzny':1,'fan-bike':1,'echo-bike':1,'air-bike':1,
+  'rower-stacjonarny':1,'cycling':1,'spinning':1,'rower-treningowy':1,
+  'rower-poziomy':1,'recumbent-bike':1,'rower-lezacy':1,
+  'orbitrek':1,'eliptyk':1,'elliptical':1,'crosstrainer':1,
+  'bieznia':1,'treadmill':1,'bieg-na-biezni':1,
+  'bieg':1,'run':1,'running':1,'bieganie':1,
+  'marsz':1,'walk':1,'walking':1,'spacer':1,
+  'schody':1,'stairmaster':1,'stair-climber':1,'stepper':1,
+  'ergometr-narciarski':1,'skierg':1,'ski-erg':1,
+  'skakanka':1,'jump-rope':1,'jump-rope-classic':1,'skipping':1,'skakanka-bokserska':1
+};
 function normalizeLoadUnit(u){
   const s=String(u||'').toLowerCase().trim();
   if(s==='sec'||s==='s'||s==='sek'||s==='sekundy'||s==='seconds'||s==='czas')return 'sec';
+  if(s==='min'||s==='mins'||s==='minute'||s==='minutes'||s==='minuta'||s==='minuty')return 'min';
   if(s==='m'||s==='m.'||s==='metr'||s==='metry')return 'm';
   if(s==='kg'||s==='kilo'||s==='kilogram'||s==='kilogramy')return 'kg';
   return '';
@@ -2413,6 +2427,7 @@ window.normalizeLoadUnit=normalizeLoadUnit;
 function loadUnitSuffix(unit){
   const u=normalizeLoadUnit(unit)||'kg';
   if(u==='sec')return 's';
+  if(u==='min')return 'min';
   if(u==='m')return 'm';
   return 'kg';
 }
@@ -2420,6 +2435,7 @@ window.loadUnitSuffix=loadUnitSuffix;
 function loadUnitPlaceholder(unit){
   const u=normalizeLoadUnit(unit)||'kg';
   if(u==='sec')return 'sec';
+  if(u==='min')return 'min';
   if(u==='m')return 'm';
   return 'kg';
 }
@@ -2427,10 +2443,27 @@ window.loadUnitPlaceholder=loadUnitPlaceholder;
 function loadUnitTitle(unit){
   const u=normalizeLoadUnit(unit)||'kg';
   if(u==='sec')return 'Czas (s)';
+  if(u==='min')return 'Czas (min)';
   if(u==='m')return 'Dystans (m)';
   return 'Obciążenie (kg)';
 }
 window.loadUnitTitle=loadUnitTitle;
+function loadUnitColumnLabel(unit){
+  const u=normalizeLoadUnit(unit)||'kg';
+  if(u==='sec')return 'Czas (s)';
+  if(u==='min')return 'Czas (min)';
+  if(u==='m')return 'Dystans';
+  return 'Ciężar';
+}
+window.loadUnitColumnLabel=loadUnitColumnLabel;
+function loadUnitShortLabel(unit){
+  const u=normalizeLoadUnit(unit)||'kg';
+  if(u==='sec')return 'Sec';
+  if(u==='min')return 'Min';
+  if(u==='m')return 'M';
+  return 'Kg';
+}
+window.loadUnitShortLabel=loadUnitShortLabel;
 function isWeightLoadUnit(unit){
   return (normalizeLoadUnit(unit)||'kg')==='kg';
 }
@@ -2442,6 +2475,9 @@ function inferLoadUnitFromName(name){
   for(let i=0;i<slugs.length;i++){
     if(EX_LOAD_SEC_SLUGS[slugs[i]])return 'sec';
   }
+  for(let i=0;i<slugs.length;i++){
+    if(EX_LOAD_MIN_SLUGS[slugs[i]])return 'min';
+  }
   const n=String(name||'').toLowerCase();
   if(/\bliny\b|battle\s*rope/.test(n))return 'sec';
   if(/hollow\s*(hold|rock)/.test(n))return 'sec';
@@ -2451,6 +2487,14 @@ function inferLoadUnitFromName(name){
   if(/dead\s*hang|zwisy na dr/.test(n))return 'sec';
   if(/^(deska|plank)$/i.test(String(name||'').trim()))return 'sec';
   if(/^deska boczna|^deska kopenhaska|^side plank/i.test(n))return 'sec';
+  if(/uginanie|leg\s*curl|hamstring\s*(leg\s*)?curl/.test(n))return 'kg';
+  if(/air\s*bike|assault\s*bike|echo\s*bike|fan\s*bike/.test(n))return 'min';
+  if(/\bwio[śs]larz\b|\browing\b|concept\s*2|ergometr wio/.test(n))return 'min';
+  if(/rower stacjonarny|rower poziomy|rower treningowy/.test(n))return 'min';
+  if(/orbitrek|eliptyk|elliptical|crosstrainer/.test(n))return 'min';
+  if(/bie[żz]nia|treadmill/.test(n))return 'min';
+  if(/ski\s*erg|skierg|ergometr narciarski/.test(n))return 'min';
+  if(/^(bieg|marsz|schody|skakanka|airbike|rower)$/i.test(String(name||'').trim()))return 'min';
   return 'kg';
 }
 window.inferLoadUnitFromName=inferLoadUnitFromName;
@@ -2464,11 +2508,13 @@ function exLoadUnit(nameOrEx, maybeEx){
     ex=maybeEx&&typeof maybeEx==='object'?maybeEx:null;
   }
   const stored=normalizeLoadUnit(ex&&(ex.loadUnit||ex.load));
-  if(stored)return stored;
   const lib=typeof libExerciseByName==='function'?libExerciseByName(name):null;
   const fromLib=normalizeLoadUnit(lib&&(lib.load||lib.loadUnit));
-  if(fromLib)return fromLib;
-  return inferLoadUnitFromName(name)||'kg';
+  const inferred=inferLoadUnitFromName(name)||'kg';
+  const resolved=fromLib||inferred;
+  if(stored==='kg'&&(resolved==='sec'||resolved==='min'||resolved==='m'))return resolved;
+  if(stored)return stored;
+  return resolved;
 }
 window.exLoadUnit=exLoadUnit;
 function formatPlanLoadSuffix(p, clientId){

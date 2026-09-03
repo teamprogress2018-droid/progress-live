@@ -49,9 +49,9 @@ ok('photo PL key floor', !!photos['wyciskanie z podłogi']);
 ok('photo EN alias floor', !!photos['floor press']);
 ok('photo PL cable', !!photos['krzyżowanie wyciągów góra–dół']);
 
-ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=40'));
+ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=41'));
 ok('cache photo', html.includes('ex-photo-manifest.js?v=5'));
-ok('cache core', html.includes('01-core.js?v=58'));
+ok('cache core', html.includes('01-core.js?v=59'));
 
 const document = { querySelectorAll: () => [], getElementById: () => null, addEventListener() {} };
 const windowObj = {

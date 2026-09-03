@@ -1244,12 +1244,12 @@ function builderApplyLoadUnit(row){
   const kgEl=row.querySelector('[data-f="kg"]');
   if(kgEl){
     kgEl.dataset.loadUnit=unit;
-    kgEl.placeholder=typeof loadUnitPlaceholder==='function'?loadUnitPlaceholder(unit):(unit==='sec'?'sec':'kg');
-    kgEl.title=typeof loadUnitTitle==='function'?loadUnitTitle(unit):(unit==='sec'?'Czas (s)':'Obciążenie (kg)');
+    kgEl.placeholder=typeof loadUnitPlaceholder==='function'?loadUnitPlaceholder(unit):(unit==='min'?'min':unit==='sec'?'sec':'kg');
+    kgEl.title=typeof loadUnitTitle==='function'?loadUnitTitle(unit):(unit==='min'?'Czas (min)':unit==='sec'?'Czas (s)':'Obciążenie (kg)');
   }
   const pct=row.querySelector('[data-f="pct1rm"]');
   if(pct){
-    const timed=unit==='sec'||unit==='m';
+    const timed=typeof isWeightLoadUnit==='function'?!isWeightLoadUnit(unit):(unit==='sec'||unit==='min'||unit==='m');
     pct.disabled=!!timed;
     if(timed){
       pct.value='';
