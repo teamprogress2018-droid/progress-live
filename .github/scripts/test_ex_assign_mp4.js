@@ -18,8 +18,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01 v67', html.includes('01-core.js?v=67'));
-ok('cache 06 v50', html.includes('06-inbox-exercises-ai-programs.js?v=50'));
+ok('cache 01 v68', html.includes('01-core.js?v=68'));
+ok('cache 06 v51', html.includes('06-inbox-exercises-ai-programs.js?v=51'));
 ok('ci unit', wf.includes('test_ex_assign_mp4.js'));
 ok('ci ui', wf.includes('test_ex_assign_mp4_ui.js'));
 ok('openExDetail includes assign panel', /exDetailAssignHtml\(e\)/.test(six));
@@ -105,6 +105,7 @@ const htmlPanel = ctx.exDetailAssignHtml(windowObj.DEF_EX[0]);
 ok('panel html has paste field', /id="exd-mp4-url"/.test(htmlPanel));
 ok('panel html has own videos', /id="exd-mp4-own"/.test(htmlPanel) && /Motyl pec deck/.test(htmlPanel));
 ok('panel html has status', /id="exd-assign-msg"/.test(htmlPanel));
+ok('panel player autoplay', /id="exd-mp4-player"/.test(six) && /autoplay loop muted/.test(six));
 ok('panel title match', /Dopasuj film do ćwiczenia/.test(htmlPanel));
 ok('panel save label', /Dopasuj i zapisz przy tym ćwiczeniu/.test(htmlPanel));
 

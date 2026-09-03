@@ -1642,6 +1642,15 @@ function exGifMapLookup(name){
 }
 window.exGifMapLookup=exGifMapLookup;
 
+function assignedExVideoUrl(exOrName){
+  const name=typeof exOrName==='string'?exOrName:((exOrName&&exOrName.name)||'');
+  if(!name)return '';
+  const remote=mediaMapGet(window.EX_GIF_REMOTE,name);
+  const u=typeof normalizeVideoAssetsCdnUrl==='function'?(normalizeVideoAssetsCdnUrl(remote)||remote):remote;
+  return (u&&typeof isVideoMediaUrl==='function'&&isVideoMediaUrl(u))?u:'';
+}
+window.assignedExVideoUrl=assignedExVideoUrl;
+
 function exPhotoMapLookup(name){
   return mediaMapGet(window.EX_PHOTO_MANIFEST,name);
 }

@@ -1742,8 +1742,8 @@ window.exercisesGroupedByCat=exercisesGroupedByCat;
 
 function exCardHtml(e,i){
   const col=CAT_COLORS_EX[e.cat]||'var(--muted2)';
-  const gif=typeof exGifUrl==='function'?exGifUrl(e):'';
-  const isVid=typeof isVideoMediaUrl==='function'?isVideoMediaUrl(gif):/\.(mp4|webm)(\?|#|$)/i.test(gif);
+  const gif=typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):'';
+  const isVid=!!gif;
   const thumb=typeof exThumbUrl==='function'?exThumbUrl(e):'';
   const part=e.cat||'Ćwiczenie';
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s||''));
@@ -1989,7 +1989,7 @@ function openExDetail(name){
       <span class="pill pill-muted">${e.eq}</span>
     </div>
     ${typeof exDetailAssignHtml==='function'?exDetailAssignHtml(e):''}
-    ${(()=>{const media=typeof resolveCoachMedia==='function'?resolveCoachMedia(e):null;if(!media)return'';let h='';const gifIsVid=!!(media.gif&&typeof isVideoMediaUrl==='function'&&isVideoMediaUrl(media.gif));if(media.gif&&!gifIsVid&&typeof exTechniqueMediaHtml==='function')h+=exTechniqueMediaHtml({gif:media.gif,name:e.name},{});else if(!gifIsVid&&media.img){h+=`<div class="ex-detail-thumb"><img src="${typeof escHtml==='function'?escHtml(media.img):media.img}" alt="Technika: ${typeof escHtml==='function'?escHtml(e.name):e.name}" loading="lazy" referrerpolicy="no-referrer"></div>`;}const showVid=!!media.video&&!(media.gif&&typeof sameMediaUrl==='function'&&sameMediaUrl(media.gif,media.video));if(typeof coachMediaHtml==='function')h+=coachMediaHtml({...media,name:e.name,video:showVid?media.video:'',videoEmbed:showVid?media.videoEmbed:''},{showVideo:showVid,showGif:false});if(typeof exTechniqueGuideHtml==='function')h+=exTechniqueGuideHtml(e);return h;})()}
+    ${(()=>{const media=typeof resolveCoachMedia==='function'?resolveCoachMedia(e):null;if(!media)return'';let h='';const assigned=typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):'';const skipGif=!!(assigned&&media.gif&&typeof sameMediaUrl==='function'&&sameMediaUrl(assigned,media.gif));if(media.gif&&!skipGif&&typeof exTechniqueMediaHtml==='function')h+=exTechniqueMediaHtml({gif:media.gif,name:e.name},{});else if(!media.gif&&media.img){h+=`<div class="ex-detail-thumb"><img src="${typeof escHtml==='function'?escHtml(media.img):media.img}" alt="Technika: ${typeof escHtml==='function'?escHtml(e.name):e.name}" loading="lazy" referrerpolicy="no-referrer"></div>`;}const showVid=!!media.video&&!(media.gif&&typeof sameMediaUrl==='function'&&sameMediaUrl(media.gif,media.video));if(typeof coachMediaHtml==='function')h+=coachMediaHtml({...media,name:e.name,video:showVid?media.video:'',videoEmbed:showVid?media.videoEmbed:''},{showVideo:showVid,showGif:false});if(typeof exTechniqueGuideHtml==='function')h+=exTechniqueGuideHtml(e);return h;})()}
     ${e.muscle?`<div style="margin-bottom:12px;">
       <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Mięśnie</div>
       <div style="font-size:12px;line-height:1.6;">${e.muscle}</div>
@@ -2021,6 +2021,13 @@ function openExDetail(name){
   detail.style.transform='translateX(0)';
   const body=document.getElementById('exd-body');
   if(body)body.scrollTop=0;
+  const play=document.getElementById('exd-mp4-player');
+  if(play&&typeof play.play==='function'){
+    play.muted=true;
+    const go=()=>play.play().catch(()=>{});
+    play.addEventListener('canplay',go,{once:true});
+    go();
+  }
   renderLib();
 }
 
@@ -3544,10 +3551,10 @@ window.exAssignSetMsg=exAssignSetMsg;
 function exDetailAssignHtml(e){
   const name=e&&e.name?e.name:'';
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s||''));
-  const current=typeof exGifUrl==='function'?exGifUrl(e):'';
+  const current=typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):(typeof exGifUrl==='function'?exGifUrl(e):'');
   const currentIsVideo=/\.(mp4|webm)(\?|#|$)/i.test(current);
   const player=currentIsVideo
-    ?`<video id="exd-mp4-player" src="${esc(current)}" controls playsinline preload="metadata" style="width:100%;max-height:220px;background:#000;border-radius:8px;margin-bottom:8px;"></video>`
+    ?`<video id="exd-mp4-player" class="cw-technique-gif-img" src="${esc(current)}" autoplay loop muted playsinline controls preload="auto" style="width:100%;max-height:220px;background:#000;border-radius:8px;margin-bottom:8px;"></video>`
     :'';
   const currentHint=currentIsVideo
     ?`<div id="exd-mp4-current" style="font-size:11px;color:#8fd19a;margin-bottom:6px;word-break:break-all;">Dopasowany film: <code>${esc(current)}</code></div>`
@@ -3621,7 +3628,8 @@ async function saveAssignedExTechnique(name,rawUrl){
     openExDetail(n);
     if(typeof document!=='undefined'&&typeof document.querySelector==='function'){
       setTimeout(()=>{
-        const v=document.querySelector('#exd-body video.cw-technique-gif-img,#exd-body .cw-technique-media video');
+        const v=document.getElementById('exd-mp4-player')||document.querySelector('#exd-body video.cw-technique-gif-img,#exd-body .cw-technique-media video');
+        if(v&&typeof v.play==='function'){v.muted=true;v.play().catch(()=>{});}
         if(v&&typeof v.scrollIntoView==='function')v.scrollIntoView({behavior:'smooth',block:'start'});
       },80);
     }
