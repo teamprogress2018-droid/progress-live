@@ -696,8 +696,56 @@ window.weightFromPct1RM=weightFromPct1RM;
 
 window.COACH_VIDEOS=window.COACH_VIDEOS||[];
 
+function videoAssetsCdnPrefix(){
+  const man=window.EX_GIF_MANIFEST||{};
+  const vals=typeof man==='object'?Object.keys(man).map(k=>man[k]):[];
+  for(let i=0;i<vals.length;i++){
+    const m=String(vals[i]||'').match(/cdn\.jsdelivr\.net\/gh\/teamprogress2018-droid\/progress-live-video-assets@([^/]+)\//i);
+    if(m)return 'https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@'+m[1]+'/';
+  }
+  return 'https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@main/';
+}
+window.videoAssetsCdnPrefix=videoAssetsCdnPrefix;
+
+function rewriteLocalMediaUrl(raw){
+  let s=String(raw||'').trim().replace(/^["']|["']$/g,'');
+  if(!s)return '';
+  if(/^(javascript|data|vbscript):/i.test(s))return '';
+  if(/^https?:\/\/cdn\.jsdelivr\.net\/gh\/teamprogress2018-droid\/progress-live-video-assets@/i.test(s))return s;
+  let path=s;
+  if(/^file:/i.test(path)){
+    path=path.replace(/^file:\/\/\/?/i,'');
+    path=path.replace(/^\/([A-Za-z]:)/,'$1');
+  }
+  try{path=decodeURIComponent(path);}catch(e){}
+  path=path.replace(/\\/g,'/');
+  const marker='progress-live-video-assets';
+  const idx=path.toLowerCase().indexOf(marker);
+  if(idx<0)return s;
+  const rest=path.slice(idx+marker.length).replace(/^[\\/]+/,'');
+  const base=(rest.split('/').filter(Boolean).pop()||'').split('?')[0].split('#')[0];
+  if(!/\.(mp4|webm|gif|webp)$/i.test(base))return s;
+  const man=window.EX_GIF_MANIFEST||{};
+  const keys=Object.keys(man);
+  for(let i=0;i<keys.length;i++){
+    const u=String(man[keys[i]]||'');
+    let end=(u.split('/').pop()||'').split('?')[0];
+    try{end=decodeURIComponent(end);}catch(e){}
+    if(end===base)return u;
+  }
+  return videoAssetsCdnPrefix()+encodeURIComponent(base);
+}
+window.rewriteLocalMediaUrl=rewriteLocalMediaUrl;
+
+function isLocalDiskMediaPath(url){
+  const s=String(url||'').trim();
+  return /^file:/i.test(s)||/^[A-Za-z]:[\\/]/.test(s)||/^\/[A-Za-z]:[\\/]/.test(s);
+}
+window.isLocalDiskMediaPath=isLocalDiskMediaPath;
+
 function normalizeCoachVideoUrl(raw){
-  const s=String(raw||'').trim();
+  const rewritten=typeof rewriteLocalMediaUrl==='function'?rewriteLocalMediaUrl(raw):String(raw||'').trim();
+  const s=rewritten||String(raw||'').trim();
   if(!s)return '';
   if(/^(javascript|data|vbscript):/i.test(s))return '';
   let url=s;
