@@ -105,6 +105,21 @@ function ok(name, cond, extra) {
   ok('detail plays assigned mp4', /Machine Chest Fly \(Pec Deck\)/.test(decodeURIComponent(pec.videoSrc || '')), pec.videoSrc);
   ok('shows current film', pec.currentHint);
 
+  const afterSave = await page.evaluate(() => {
+    const player = document.getElementById('exd-mp4-player');
+    const body = document.getElementById('exd-body');
+    const assign = document.getElementById('exd-assign');
+    const card = [...document.querySelectorAll('.ex-card')].find((el) => (el.querySelector('.ex-card-name') || {}).textContent === 'Butterfly (peck deck)');
+    return {
+      playerSrc: player ? player.getAttribute('src') : '',
+      assignBeforeGuide: !!(assign && body && assign.compareDocumentPosition(body.querySelector('.ex-guide') || body) & 4),
+      filmBadge: !!(card && /FILM/.test(card.textContent || '')),
+      cardVideo: !!(card && card.querySelector('video'))
+    };
+  });
+  ok('assign player after save', /Machine Chest Fly \(Pec Deck\)/.test(decodeURIComponent(afterSave.playerSrc || '')), afterSave.playerSrc);
+  ok('library card shows film badge', afterSave.filmBadge && afterSave.cardVideo, JSON.stringify(afterSave));
+
   const winCopy = 'Rozpiętki na maszynie (motyl) (Machine Chest Fly (Pec Deck)) (2).mp4';
   await page.fill('#exd-mp4-url', winCopy);
   await page.click('#exd-assign .btn-primary');

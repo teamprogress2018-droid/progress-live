@@ -1742,11 +1742,20 @@ window.exercisesGroupedByCat=exercisesGroupedByCat;
 
 function exCardHtml(e,i){
   const col=CAT_COLORS_EX[e.cat]||'var(--muted2)';
+  const gif=typeof exGifUrl==='function'?exGifUrl(e):'';
+  const isVid=typeof isVideoMediaUrl==='function'?isVideoMediaUrl(gif):/\.(mp4|webm)(\?|#|$)/i.test(gif);
   const thumb=typeof exThumbUrl==='function'?exThumbUrl(e):'';
   const part=e.cat||'Ćwiczenie';
-  const media=thumb
-    ?`<div class="ex-card-thumb"><img src="${typeof escHtml==='function'?escHtml(thumb):thumb}" alt="${typeof escHtml==='function'?escHtml(e.name):e.name}" loading="lazy" referrerpolicy="no-referrer" onerror="this.closest('.ex-card-thumb').outerHTML='<div class=\\'ex-card-thumb ex-card-thumb-ph\\' style=\\'background:${col}22;color:${col};\\'><span class=\\'ex-card-part\\'>${typeof escHtml==='function'?escHtml(part):part}</span></div>';"></div>`
-    :`<div class="ex-card-thumb ex-card-thumb-ph" style="background:${col}22;color:${col};"><span class="ex-card-part">${typeof escHtml==='function'?escHtml(part):part}</span></div>`;
+  const esc=typeof escHtml==='function'?escHtml:(s=>String(s||''));
+  const filmBadge=isVid?'<span class="pill" style="font-size:9px;background:rgba(255,59,48,.18);color:var(--red);">▶ FILM</span>':'';
+  let media;
+  if(isVid&&gif){
+    media=`<div class="ex-card-thumb"><video src="${esc(gif)}" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;"></video></div>`;
+  }else if(thumb){
+    media=`<div class="ex-card-thumb"><img src="${esc(thumb)}" alt="${esc(e.name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.closest('.ex-card-thumb').outerHTML='<div class=\\'ex-card-thumb ex-card-thumb-ph\\' style=\\'background:${col}22;color:${col};\\'><span class=\\'ex-card-part\\'>${esc(part)}</span></div>';"></div>`;
+  }else{
+    media=`<div class="ex-card-thumb ex-card-thumb-ph" style="background:${col}22;color:${col};"><span class="ex-card-part">${esc(part)}</span></div>`;
+  }
   return `<div class="ex-card${exSelId===e.name?' selected':''}" style="animation-delay:${(i||0)*0.025}s" onclick="openExDetail('${e.name.replace(/'/g,"\\'")}')">
     <div class="ex-card-accent" style="background:${col};"></div>
     <div class="ex-card-body">
@@ -1756,6 +1765,7 @@ function exCardHtml(e,i){
         <div class="ex-card-tags">
           <span class="pill pill-muted" style="font-size:9px;">${e.cat}</span>
           <span class="pill pill-muted" style="font-size:9px;">${e.eq}</span>
+          ${filmBadge}
         </div>
         ${e.muscle?`<div style="font-size:10px;color:var(--muted);margin-bottom:4px;">${e.muscle}</div>`:''}
         ${e.tip?`<div class="ex-card-tip">${e.tip.substring(0,80)}${e.tip.length>80?'…':''}</div>`:''}
@@ -1978,7 +1988,8 @@ function openExDetail(name){
       <span class="pill" style="background:${col}22;color:${col};">${e.cat}</span>
       <span class="pill pill-muted">${e.eq}</span>
     </div>
-    ${(()=>{const media=typeof resolveCoachMedia==='function'?resolveCoachMedia(e):null;if(!media)return'';let h='';if(media.gif&&typeof exTechniqueMediaHtml==='function')h+=exTechniqueMediaHtml({gif:media.gif,name:e.name},{});else if(media.img){h+=`<div class="ex-detail-thumb"><img src="${typeof escHtml==='function'?escHtml(media.img):media.img}" alt="Technika: ${typeof escHtml==='function'?escHtml(e.name):e.name}" loading="lazy" referrerpolicy="no-referrer"></div>`;}const showVid=!!media.video&&!(media.gif&&typeof sameMediaUrl==='function'&&sameMediaUrl(media.gif,media.video));if(typeof coachMediaHtml==='function')h+=coachMediaHtml({...media,name:e.name,video:showVid?media.video:'',videoEmbed:showVid?media.videoEmbed:''},{showVideo:showVid,showGif:false});if(typeof exTechniqueGuideHtml==='function')h+=exTechniqueGuideHtml(e);return h;})()}
+    ${typeof exDetailAssignHtml==='function'?exDetailAssignHtml(e):''}
+    ${(()=>{const media=typeof resolveCoachMedia==='function'?resolveCoachMedia(e):null;if(!media)return'';let h='';const gifIsVid=!!(media.gif&&typeof isVideoMediaUrl==='function'&&isVideoMediaUrl(media.gif));if(media.gif&&!gifIsVid&&typeof exTechniqueMediaHtml==='function')h+=exTechniqueMediaHtml({gif:media.gif,name:e.name},{});else if(!gifIsVid&&media.img){h+=`<div class="ex-detail-thumb"><img src="${typeof escHtml==='function'?escHtml(media.img):media.img}" alt="Technika: ${typeof escHtml==='function'?escHtml(e.name):e.name}" loading="lazy" referrerpolicy="no-referrer"></div>`;}const showVid=!!media.video&&!(media.gif&&typeof sameMediaUrl==='function'&&sameMediaUrl(media.gif,media.video));if(typeof coachMediaHtml==='function')h+=coachMediaHtml({...media,name:e.name,video:showVid?media.video:'',videoEmbed:showVid?media.videoEmbed:''},{showVideo:showVid,showGif:false});if(typeof exTechniqueGuideHtml==='function')h+=exTechniqueGuideHtml(e);return h;})()}
     ${e.muscle?`<div style="margin-bottom:12px;">
       <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Mięśnie</div>
       <div style="font-size:12px;line-height:1.6;">${e.muscle}</div>
@@ -1995,7 +2006,6 @@ function openExDetail(name){
       <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Zamienniki</div>
       <div style="display:flex;gap:4px;flex-wrap:wrap;">${e.alt.split(',').map(a=>`<span class="pill pill-muted" style="font-size:10px;cursor:pointer;" onclick="openExDetail('${a.trim().replace(/'/g,"\\'")}')">→ ${a.trim()}</span>`).join('')}</div>
     </div>`:''}
-    ${typeof exDetailAssignHtml==='function'?exDetailAssignHtml(e):''}
     <div style="display:flex;gap:6px;margin-top:4px;">
       <button class="btn btn-primary btn-sm" style="flex:1;" onclick="prefillExInBuilder('${e.name.replace(/'/g,"\\'")}')">Użyj w builderze</button>
     </div>
@@ -2009,6 +2019,8 @@ function openExDetail(name){
   document.getElementById('exd-ai-msgs').innerHTML='';
   const detail=document.getElementById('ex-detail');
   detail.style.transform='translateX(0)';
+  const body=document.getElementById('exd-body');
+  if(body)body.scrollTop=0;
   renderLib();
 }
 
@@ -3534,9 +3546,12 @@ function exDetailAssignHtml(e){
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s||''));
   const current=typeof exGifUrl==='function'?exGifUrl(e):'';
   const currentIsVideo=/\.(mp4|webm)(\?|#|$)/i.test(current);
-  const currentHint=currentIsVideo
-    ?`<div id="exd-mp4-current" style="font-size:11px;color:var(--muted);margin-bottom:6px;word-break:break-all;">Obecny film: <code>${esc(current)}</code></div>`
+  const player=currentIsVideo
+    ?`<video id="exd-mp4-player" src="${esc(current)}" controls playsinline preload="metadata" style="width:100%;max-height:220px;background:#000;border-radius:8px;margin-bottom:8px;"></video>`
     :'';
+  const currentHint=currentIsVideo
+    ?`<div id="exd-mp4-current" style="font-size:11px;color:#8fd19a;margin-bottom:6px;word-break:break-all;">Dopasowany film: <code>${esc(current)}</code></div>`
+    :'<div id="exd-mp4-current" style="font-size:11px;color:var(--muted);margin-bottom:6px;">Brak filmu MP4 przy tym ćwiczeniu — wklej ścieżkę albo wybierz plik YouCan.</div>';
   const own=(window.COACH_VIDEOS||[]).filter(v=>{
     const u=typeof normalizeImportedMediaUrl==='function'?normalizeImportedMediaUrl(v.url):String(v.url||'');
     return typeof coachVideoIsFile==='function'?coachVideoIsFile(u):/\.(mp4|webm)(\?|#|$)/i.test(u);
@@ -3551,13 +3566,14 @@ function exDetailAssignHtml(e){
   window._exAssignFlash=null;
   if(flash&&flash.text)notify(flash.text);
   const msgHtml=`<div id="exd-assign-msg" style="display:${flash&&flash.text?'block':'none'};margin-top:8px;font-size:12px;line-height:1.45;color:${flash&&flash.ok?'#8fd19a':'#ff8a80'};">${flash&&flash.text?esc(flash.text):''}</div>`;
-  return `<div id="exd-assign" style="margin:14px 0;padding:12px;background:var(--s3);border:1px solid var(--border);border-radius:10px;">
-    <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Przypisz film MP4</div>
-    <div style="font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:8px;">Do <b>${esc(name)}</b> — wklej <b>pełną</b> ścieżkę z folderu <code>progress-live-video-assets</code> (np. <code>D:/progress-live-video-assets/POGRUPOWANE/…mp4</code>). Sam przycisk „Wybierz plik” z GitHub Pages nie wgra filmu (CORS Storage).</div>
+  return `<div id="exd-assign" style="margin:0 0 14px;padding:12px;background:var(--s3);border:1px solid var(--border);border-radius:10px;">
+    <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Dopasuj film do ćwiczenia</div>
+    ${player}
     ${currentHint}
+    <div style="font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:8px;">Do <b>${esc(name)}</b> — wklej ścieżkę <code>D:/progress-live-video-assets/…mp4</code> albo wybierz plik YouCan (nazwa z angielskim w nawiasie). Po zapisie karta w bibliotece dostanie znacznik ▶ FILM.</div>
     <input class="form-input" id="exd-mp4-url" type="text" inputmode="url" placeholder="D:/progress-live-video-assets/POGRUPOWANE/Klatka piersiowa/plik.mp4" style="margin-bottom:6px;font-size:12px;" value="${currentIsVideo?esc(current):''}">
-    <button type="button" class="btn btn-primary btn-sm" style="width:100%;margin-bottom:8px;" onclick="assignExTechniqueFromPaste(currentExDetail)">Wklej i zapisz przy tym ćwiczeniu</button>
-    <label class="form-lbl">Albo wybierz plik YouCan (.mp4 z angielską nazwą w nawiasie)</label>
+    <button type="button" class="btn btn-primary btn-sm" style="width:100%;margin-bottom:8px;" onclick="assignExTechniqueFromPaste(currentExDetail)">Dopasuj i zapisz przy tym ćwiczeniu</button>
+    <label class="form-lbl">Albo wybierz plik YouCan (.mp4)</label>
     <input type="file" class="form-input" id="exd-mp4-file" accept=".mp4,.webm,video/mp4,video/webm" onchange="assignExTechniqueFromFile(currentExDetail,this)">
     ${msgHtml}
     ${ownBlock}
@@ -3649,9 +3665,9 @@ async function assignExTechniqueFromFile(name,input){
       ?canonicalYouCanBasename(base):base;
     const inp=document.getElementById('exd-mp4-url');
     if(inp)inp.value=suggest;
-    let msg='Firebase Storage jest niedostępny. Wklej pełną ścieżkę D:/progress-live-video-assets/…/'+suggest+' i kliknij „Wklej i zapisz”.';
+    let msg='Firebase Storage jest niedostępny. Wklej pełną ścieżkę D:/progress-live-video-assets/…/'+suggest+' i kliknij „Dopasuj i zapisz”.';
     if(!window._uid)msg='Zaloguj się, aby zapisać film przy ćwiczeniu';
-    else if(blocked)msg='Z GitHub Pages nie wgramy pliku (CORS Storage). Wklej pełną ścieżkę, np. D:/progress-live-video-assets/POGRUPOWANE/…/'+suggest+' i kliknij „Wklej i zapisz”.';
+    else if(blocked)msg='Z GitHub Pages nie wgramy pliku (CORS Storage). Wklej pełną ścieżkę, np. D:/progress-live-video-assets/POGRUPOWANE/…/'+suggest+' i kliknij „Dopasuj i zapisz”.';
     exAssignSetMsg(msg,false);
     return;
   }

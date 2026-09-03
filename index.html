@@ -3999,7 +3999,10 @@ async function load(){
       if(!x||!x.gifUrl)return;
       const n=x.exerciseName||x.name||'';
       const k=typeof window.exerciseMediaKey==='function'?window.exerciseMediaKey(n):String(n).toLowerCase().replace(/\s+/g,' ').trim();
-      if(k)window.EX_GIF_REMOTE[k]=x.gifUrl;
+      if(k){
+        const u=typeof window.normalizeVideoAssetsCdnUrl==='function'?window.normalizeVideoAssetsCdnUrl(x.gifUrl):x.gifUrl;
+        window.EX_GIF_REMOTE[k]=u||x.gifUrl;
+      }
     });
   }catch(e){window.EX_GIF_REMOTE=window.EX_GIF_REMOTE||{};}
   try{const sCV=await getDocs(collection(db,'coachVideos'));window.COACH_VIDEOS=[];sCV.forEach(d=>{const x=_takeFb(d);if(x)window.COACH_VIDEOS.push(x);});}catch(e){window.COACH_VIDEOS=window.COACH_VIDEOS||[];}
@@ -4177,12 +4180,12 @@ async function load(){
 
 <script src="ex-gif-manifest.js?v=33"></script>
 <script src="ex-photo-manifest.js?v=5"></script>
-<script src="01-core.js?v=66"></script>
+<script src="01-core.js?v=67"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=28"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=28"></script>
 <script src="04-client-portal.js?v=36"></script>
 <script src="05-clients-builder-plans-calendar.js?v=35"></script>
-<script src="06-inbox-exercises-ai-programs.js?v=49"></script>
+<script src="06-inbox-exercises-ai-programs.js?v=50"></script>
 <script src="07-forms-metrics-calculator.js?v=30"></script>
 <script src="08-client-profile-extras.js?v=37"></script>
 <script src="09-posture-kb-invites-private.js?v=34"></script>
