@@ -13,7 +13,7 @@
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="globals.css?v=17">
-<link rel="stylesheet" href="styles.css?v=54">
+<link rel="stylesheet" href="styles.css?v=55">
 </head>
 <body>
 
@@ -2628,10 +2628,16 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <div class="live-dock-lbl">Timer przerwy</div>
         <div class="live-rest-val" id="live-rest-timer">—</div>
         <div class="live-rest-presets">
+          <button type="button" class="live-rest-preset" onclick="liveStartRest(30)">30s</button>
           <button type="button" class="live-rest-preset" onclick="liveStartRest(60)">60s</button>
           <button type="button" class="live-rest-preset" onclick="liveStartRest(90)">90s</button>
           <button type="button" class="live-rest-preset" onclick="liveStartRest(120)">120s</button>
           <button type="button" class="live-rest-preset" onclick="liveStartRest(180)">180s</button>
+        </div>
+        <div class="live-rest-custom">
+          <input type="number" id="live-rest-custom" class="live-rest-custom-inp" min="5" max="600" step="1" placeholder="35" inputmode="numeric" aria-label="Własny czas przerwy w sekundach" onkeydown="if(event.key==='Enter'){event.preventDefault();liveStartRestCustom();}">
+          <span class="live-rest-custom-unit">s</span>
+          <button type="button" class="live-rest-preset live-rest-custom-go" onclick="liveStartRestCustom()">Start</button>
         </div>
       </div>
 
@@ -4171,13 +4177,14 @@ async function load(){
 <script src="ex-photo-manifest.js?v=5"></script>
 <script src="01-core.js?v=59"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=26"></script>
+<script src="02-workouts-onboarding-templates-live.js?v=28"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=28"></script>
 <script src="04-client-portal.js?v=36"></script>
-<script src="05-clients-builder-plans-calendar.js?v=34"></script>
-<script src="06-inbox-exercises-ai-programs.js?v=40"></script>
+<script src="05-clients-builder-plans-calendar.js?v=35"></script>
+<script src="06-inbox-exercises-ai-programs.js?v=41"></script>
 <script src="07-forms-metrics-calculator.js?v=30"></script>
 <script src="08-client-profile-extras.js?v=37"></script>
 <script src="09-posture-kb-invites-private.js?v=34"></script>
-<script src="10-client-app.js?v=27"></script>
+<script src="10-client-app.js?v=28"></script>
 </body>
 </html>
