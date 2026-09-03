@@ -18,8 +18,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01 v63', html.includes('01-core.js?v=63'));
-ok('cache 06 v46', html.includes('06-inbox-exercises-ai-programs.js?v=46'));
+ok('cache 01 v64', html.includes('01-core.js?v=64'));
+ok('cache 06 v47', html.includes('06-inbox-exercises-ai-programs.js?v=47'));
 ok('ci unit', wf.includes('test_ex_assign_mp4.js'));
 ok('ci ui', wf.includes('test_ex_assign_mp4_ui.js'));
 ok('openExDetail includes assign panel', /exDetailAssignHtml\(e\)/.test(six));
@@ -85,6 +85,10 @@ ok('cdn from youcan filename', ctx.cdnUrlFromVideoFilename('Rozpiętki na maszyn
 ok('plain filename not auto-cdn', ctx.cdnUrlFromVideoFilename('bench.mp4') === '');
 ok('windows duplicate not auto-cdn', ctx.cdnUrlFromVideoFilename('film (1).mp4') === '');
 ok('copy suffix not auto-cdn', ctx.cdnUrlFromVideoFilename('motyl (copy).mp4') === '');
+ok('bare filename detected', ctx.isBareMediaFilename('fly-peck-deck.mp4') === true);
+ok('assets path not bare', ctx.isBareMediaFilename('assets/ex/gifs/butterfly-peck-deck.gif') === false);
+ok('https not bare', ctx.isBareMediaFilename('https://cdn.example.com/x.mp4') === false);
+ok('bare not safe url', ctx.isSafeMediaUrl('fly-peck-deck.mp4') === false);
 
 const htmlPanel = ctx.exDetailAssignHtml(windowObj.DEF_EX[0]);
 ok('panel html has paste field', /id="exd-mp4-url"/.test(htmlPanel));
@@ -136,7 +140,23 @@ ok('panel mentions cors', /CORS Storage/.test(htmlPanel));
   ok('github.io fills filename', documentStub._els['exd-mp4-url'].value === 'fly-peck-deck.mp4');
   ok('github.io cors hint', /CORS/i.test((windowObj.__notices || []).join(' ')), (windowObj.__notices || []).join(' | '));
 
+  const beforeBare = windowObj.EX_GIF_REMOTE[pecKey];
+  documentStub._els['exd-mp4-url'].value = 'fly-peck-deck.mp4';
+  windowObj.__notices = [];
+  const bareSave = await ctx.assignExTechniqueFromPaste('Butterfly (peck deck)');
+  ok('bare filename rejected', bareSave === false);
+  ok('bare filename not persisted', windowObj.EX_GIF_REMOTE[pecKey] === beforeBare, windowObj.EX_GIF_REMOTE[pecKey]);
+  ok('bare filename hint', /sama nazwa pliku/i.test((windowObj.__notices || []).join(' ')), (windowObj.__notices || []).join(' | '));
+
   ctx.location = { hostname: 'localhost' };
+  delete windowObj._storage;
+  delete windowObj._storageRef;
+  delete windowObj._uploadBytes;
+  delete windowObj._getDownloadURL;
+  windowObj.__notices = [];
+  await ctx.assignExTechniqueFromFile('Butterfly (peck deck)', { files: [{ name: 'x.mp4' }] });
+  ok('localhost missing storage not cors', /Firebase Storage jest niedostępny/i.test((windowObj.__notices || []).join(' ')) && !/GitHub Pages/.test((windowObj.__notices || []).join(' ')), (windowObj.__notices || []).join(' | '));
+
   windowObj._setDoc = async () => { throw new Error('permission-denied'); };
   const cloudFail = await ctx.saveAssignedExTechnique('Butterfly (peck deck)', 'https://cdn.example.com/filmy/ok.mp4');
   ok('firestore throw still local', cloudFail === true && windowObj.EX_GIF_REMOTE[pecKey] === 'https://cdn.example.com/filmy/ok.mp4');

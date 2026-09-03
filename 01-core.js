@@ -1566,9 +1566,20 @@ function isDecorativeExAsset(url){
 }
 window.isDecorativeExAsset=isDecorativeExAsset;
 
+function isBareMediaFilename(url){
+  const s=String(url||'').trim().replace(/\\/g,'/');
+  if(!s)return false;
+  if(/^(https?:|file:)/i.test(s))return false;
+  if(/^[A-Za-z]:\//.test(s)||/^\/[A-Za-z]:\//.test(s))return false;
+  if(s.startsWith('assets/'))return false;
+  return s.indexOf('/')<0;
+}
+window.isBareMediaFilename=isBareMediaFilename;
+
 function isSafeMediaUrl(url){
   const s=String(url||'').trim();
   if(!s||/^(javascript|data|vbscript):/i.test(s))return false;
+  if(isBareMediaFilename(s))return false;
   if(/^https?:\/\//i.test(s))return true;
   if(s.startsWith('assets/'))return true;
   return /^\.?\.?\/?[A-Za-z0-9_./-]+\.(gif|webp|png|jpe?g|svg|mp4|webm)(\?.*)?$/i.test(s);

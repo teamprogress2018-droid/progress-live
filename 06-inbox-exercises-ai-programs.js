@@ -3570,6 +3570,10 @@ async function saveAssignedExTechnique(name,rawUrl){
     exAssignSetMsg('Najpierw wklej pełną ścieżkę D:/progress-live-video-assets/…/plik.mp4 (albo https://…mp4) — samo kliknięcie nic nie zapisze',false);
     return false;
   }
+  if(typeof isBareMediaFilename==='function'&&isBareMediaFilename(url)){
+    exAssignSetMsg('To sama nazwa pliku. Dopisz folder, np. D:/progress-live-video-assets/POGRUPOWANE/Klatka piersiowa/'+url,false);
+    return false;
+  }
   if(typeof isLocalDiskMediaPath==='function'&&isLocalDiskMediaPath(url)){
     exAssignSetMsg('Ścieżka z dysku poza folderem progress-live-video-assets się nie zapisze. Wklej plik z D:/progress-live-video-assets/…',false);
     return false;
@@ -3628,7 +3632,10 @@ async function assignExTechniqueFromFile(name,input){
     const base=String(file.name||'').replace(/\\/g,'/').split('/').pop();
     const inp=document.getElementById('exd-mp4-url');
     if(inp)inp.value=base;
-    exAssignSetMsg('Z GitHub Pages nie wgramy pliku (CORS Storage). Wklej pełną ścieżkę, np. D:/progress-live-video-assets/POGRUPOWANE/…/'+base+' i kliknij „Wklej i zapisz”.',false);
+    let msg='Firebase Storage jest niedostępny. Wklej pełną ścieżkę D:/progress-live-video-assets/…/'+base+' i kliknij „Wklej i zapisz”.';
+    if(!window._uid)msg='Zaloguj się, aby zapisać film przy ćwiczeniu';
+    else if(blocked)msg='Z GitHub Pages nie wgramy pliku (CORS Storage). Wklej pełną ścieżkę, np. D:/progress-live-video-assets/POGRUPOWANE/…/'+base+' i kliknij „Wklej i zapisz”.';
+    exAssignSetMsg(msg,false);
     return;
   }
   try{
