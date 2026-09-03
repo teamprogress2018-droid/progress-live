@@ -19,7 +19,7 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 01 v63', html.includes('01-core.js?v=63'));
-ok('cache 06 v45', html.includes('06-inbox-exercises-ai-programs.js?v=45'));
+ok('cache 06 v46', html.includes('06-inbox-exercises-ai-programs.js?v=46'));
 ok('ci unit', wf.includes('test_ex_assign_mp4.js'));
 ok('ci ui', wf.includes('test_ex_assign_mp4_ui.js'));
 ok('openExDetail includes assign panel', /exDetailAssignHtml\(e\)/.test(six));
@@ -54,11 +54,13 @@ const windowObj = {
 windowObj.window = windowObj;
 documentStub._els['exd-mp4-url'] = { value: '' };
 documentStub._els['exd-mp4-own'] = { value: 'cv1' };
+documentStub._els['exd-assign-msg'] = { style: { display: 'none', color: '' }, textContent: '' };
 
 const ctx = {
   window: windowObj,
   document: documentStub,
   console,
+  location: { hostname: 'localhost' },
   Date, Math, parseInt, parseFloat, Number, String, Array, Object, JSON,
   setTimeout, clearTimeout, isNaN, Infinity, undefined, Promise
 };
@@ -87,6 +89,8 @@ ok('copy suffix not auto-cdn', ctx.cdnUrlFromVideoFilename('motyl (copy).mp4') =
 const htmlPanel = ctx.exDetailAssignHtml(windowObj.DEF_EX[0]);
 ok('panel html has paste field', /id="exd-mp4-url"/.test(htmlPanel));
 ok('panel html has own videos', /id="exd-mp4-own"/.test(htmlPanel) && /Motyl pec deck/.test(htmlPanel));
+ok('panel html has status', /id="exd-assign-msg"/.test(htmlPanel));
+ok('panel mentions cors', /CORS Storage/.test(htmlPanel));
 
 (async () => {
   const localWin = 'D:/progress-live-video-assets/POGRUPOWANE/Klatka piersiowa/Rozpiętki na maszynie (motyl) (Machine Chest Fly).mp4';
@@ -112,6 +116,30 @@ ok('panel html has own videos', /id="exd-mp4-own"/.test(htmlPanel) && /Motyl pec
   const dupMedia = ctx.resolveCoachMedia({ name: 'Butterfly (peck deck)' });
   ok('own assign keeps technique mp4', dupMedia.gif === 'https://cdn.example.com/filmy/pec-deck.mp4', JSON.stringify(dupMedia));
   ok('own assign does not duplicate video', !dupMedia.video, JSON.stringify(dupMedia));
+
+  documentStub._els['exd-mp4-url'].value = '';
+  windowObj.__notices = [];
+  const empty = await ctx.assignExTechniqueFromPaste('Butterfly (peck deck)');
+  ok('empty paste rejected', empty === false, 'empty=' + empty);
+  ok('empty paste explains', /wklej pełną ścieżkę/i.test((windowObj.__notices || []).join(' ')), (windowObj.__notices || []).join(' | '));
+
+  ctx.location = { hostname: 'teamprogress2018-droid.github.io' };
+  windowObj._uploaded = false;
+  windowObj._storage = {};
+  windowObj._storageRef = () => ({});
+  windowObj._uploadBytes = async () => { windowObj._uploaded = true; };
+  windowObj._getDownloadURL = async () => 'https://firebasestorage.googleapis.com/v0/b/x/o/fly-peck-deck.mp4';
+  documentStub._els['exd-mp4-url'].value = '';
+  windowObj.__notices = [];
+  await ctx.assignExTechniqueFromFile('Butterfly (peck deck)', { files: [{ name: 'fly-peck-deck.mp4' }] });
+  ok('github.io skips storage', windowObj._uploaded === false);
+  ok('github.io fills filename', documentStub._els['exd-mp4-url'].value === 'fly-peck-deck.mp4');
+  ok('github.io cors hint', /CORS/i.test((windowObj.__notices || []).join(' ')), (windowObj.__notices || []).join(' | '));
+
+  ctx.location = { hostname: 'localhost' };
+  windowObj._setDoc = async () => { throw new Error('permission-denied'); };
+  const cloudFail = await ctx.saveAssignedExTechnique('Butterfly (peck deck)', 'https://cdn.example.com/filmy/ok.mp4');
+  ok('firestore throw still local', cloudFail === true && windowObj.EX_GIF_REMOTE[pecKey] === 'https://cdn.example.com/filmy/ok.mp4');
 
   if (failed) {
     console.error('\n' + failed + ' failed');
