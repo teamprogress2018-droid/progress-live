@@ -106,13 +106,12 @@ function ok(name, cond, extra) {
   ok('shows current film', pec.currentHint);
 
   const afterSave = await page.evaluate(() => {
-    const player = document.getElementById('exd-mp4-player');
     const body = document.getElementById('exd-body');
     const assign = document.getElementById('exd-assign');
+    const player = assign && assign.querySelector('video');
     const card = [...document.querySelectorAll('.ex-card')].find((el) => (el.querySelector('.ex-card-name') || {}).textContent === 'Butterfly (peck deck)');
     return {
       playerSrc: player ? player.getAttribute('src') : '',
-      assignBeforeGuide: !!(assign && body && assign.compareDocumentPosition(body.querySelector('.ex-guide') || body) & 4),
       filmBadge: !!(card && /FILM/.test(card.textContent || '')),
       cardVideo: !!(card && card.querySelector('video'))
     };

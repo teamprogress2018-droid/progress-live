@@ -1742,15 +1742,14 @@ window.exercisesGroupedByCat=exercisesGroupedByCat;
 
 function exCardHtml(e,i){
   const col=CAT_COLORS_EX[e.cat]||'var(--muted2)';
-  const gif=typeof exGifUrl==='function'?exGifUrl(e):'';
-  const isVid=typeof isVideoMediaUrl==='function'?isVideoMediaUrl(gif):/\.(mp4|webm)(\?|#|$)/i.test(gif);
+  const assigned=typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):'';
   const thumb=typeof exThumbUrl==='function'?exThumbUrl(e):'';
   const part=e.cat||'Ćwiczenie';
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s||''));
-  const filmBadge=isVid?'<span class="pill" style="font-size:9px;background:rgba(255,59,48,.18);color:var(--red);">▶ FILM</span>':'';
+  const filmBadge=assigned?'<span class="pill" style="font-size:9px;background:rgba(255,59,48,.18);color:var(--red);">▶ FILM</span>':'';
   let media;
-  if(isVid&&gif){
-    media=`<div class="ex-card-thumb"><video src="${esc(gif)}" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;"></video></div>`;
+  if(assigned){
+    media=`<div class="ex-card-thumb"><video src="${esc(assigned)}" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;"></video></div>`;
   }else if(thumb){
     media=`<div class="ex-card-thumb"><img src="${esc(thumb)}" alt="${esc(e.name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.closest('.ex-card-thumb').outerHTML='<div class=\\'ex-card-thumb ex-card-thumb-ph\\' style=\\'background:${col}22;color:${col};\\'><span class=\\'ex-card-part\\'>${esc(part)}</span></div>';"></div>`;
   }else{
@@ -1989,7 +1988,7 @@ function openExDetail(name){
       <span class="pill pill-muted">${e.eq}</span>
     </div>
     ${typeof exDetailAssignHtml==='function'?exDetailAssignHtml(e):''}
-    ${(()=>{const media=typeof resolveCoachMedia==='function'?resolveCoachMedia(e):null;if(!media)return'';let h='';const gifIsVid=!!(media.gif&&typeof isVideoMediaUrl==='function'&&isVideoMediaUrl(media.gif));if(media.gif&&!gifIsVid&&typeof exTechniqueMediaHtml==='function')h+=exTechniqueMediaHtml({gif:media.gif,name:e.name},{});else if(!gifIsVid&&media.img){h+=`<div class="ex-detail-thumb"><img src="${typeof escHtml==='function'?escHtml(media.img):media.img}" alt="Technika: ${typeof escHtml==='function'?escHtml(e.name):e.name}" loading="lazy" referrerpolicy="no-referrer"></div>`;}const showVid=!!media.video&&!(media.gif&&typeof sameMediaUrl==='function'&&sameMediaUrl(media.gif,media.video));if(typeof coachMediaHtml==='function')h+=coachMediaHtml({...media,name:e.name,video:showVid?media.video:'',videoEmbed:showVid?media.videoEmbed:''},{showVideo:showVid,showGif:false});if(typeof exTechniqueGuideHtml==='function')h+=exTechniqueGuideHtml(e);return h;})()}
+    ${(()=>{const media=typeof resolveCoachMedia==='function'?resolveCoachMedia(e):null;if(!media)return'';let h='';const assigned=typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):'';const skipGif=!!(assigned&&media.gif&&typeof sameMediaUrl==='function'&&sameMediaUrl(assigned,media.gif));if(media.gif&&!skipGif&&typeof exTechniqueMediaHtml==='function')h+=exTechniqueMediaHtml({gif:media.gif,name:e.name},{});else if(!media.gif&&media.img){h+=`<div class="ex-detail-thumb"><img src="${typeof escHtml==='function'?escHtml(media.img):media.img}" alt="Technika: ${typeof escHtml==='function'?escHtml(e.name):e.name}" loading="lazy" referrerpolicy="no-referrer"></div>`;}const showVid=!!media.video&&!(media.gif&&typeof sameMediaUrl==='function'&&sameMediaUrl(media.gif,media.video));if(typeof coachMediaHtml==='function')h+=coachMediaHtml({...media,name:e.name,video:showVid?media.video:'',videoEmbed:showVid?media.videoEmbed:''},{showVideo:showVid,showGif:false});if(typeof exTechniqueGuideHtml==='function')h+=exTechniqueGuideHtml(e);return h;})()}
     ${e.muscle?`<div style="margin-bottom:12px;">
       <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Mięśnie</div>
       <div style="font-size:12px;line-height:1.6;">${e.muscle}</div>
@@ -3544,10 +3543,10 @@ window.exAssignSetMsg=exAssignSetMsg;
 function exDetailAssignHtml(e){
   const name=e&&e.name?e.name:'';
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s||''));
-  const current=typeof exGifUrl==='function'?exGifUrl(e):'';
+  const current=typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):(typeof exGifUrl==='function'?exGifUrl(e):'');
   const currentIsVideo=/\.(mp4|webm)(\?|#|$)/i.test(current);
   const player=currentIsVideo
-    ?`<video id="exd-mp4-player" src="${esc(current)}" controls playsinline preload="metadata" style="width:100%;max-height:220px;background:#000;border-radius:8px;margin-bottom:8px;"></video>`
+    ?`<video class="cw-technique-gif-img" src="${esc(current)}" autoplay loop muted playsinline preload="metadata" style="width:100%;max-height:220px;background:#000;border-radius:8px;margin-bottom:8px;"></video>`
     :'';
   const currentHint=currentIsVideo
     ?`<div id="exd-mp4-current" style="font-size:11px;color:#8fd19a;margin-bottom:6px;word-break:break-all;">Dopasowany film: <code>${esc(current)}</code></div>`
