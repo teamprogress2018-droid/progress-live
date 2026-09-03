@@ -105,6 +105,24 @@ function ok(name, cond, extra) {
   ok('detail plays assigned mp4', /Machine Chest Fly/.test(decodeURIComponent(pec.videoSrc || '')), pec.videoSrc);
   ok('shows current film', pec.currentHint);
 
+  const winCopy = 'Rozpiętki na maszynie (motyl) (Machine Chest Fly (Pec Deck)) (2).mp4';
+  await page.fill('#exd-mp4-url', winCopy);
+  await page.click('#exd-assign .btn-primary');
+  await page.waitForTimeout(400);
+  const copyPec = await page.evaluate(() => {
+    const key = typeof exerciseMediaKey === 'function' ? exerciseMediaKey('Butterfly (peck deck)') : 'butterfly (peck deck)';
+    const url = (window.EX_GIF_REMOTE || {})[key] || '';
+    const decoded = decodeURIComponent(url);
+    return {
+      url,
+      cdn: /cdn\.jsdelivr\.net\/gh\/teamprogress2018-droid\/progress-live-video-assets@/.test(url),
+      canonical: decoded.indexOf('Machine Chest Fly).mp4') >= 0,
+      droppedCopy: decoded.indexOf('(2)') < 0 && decoded.indexOf('Pec Deck') < 0
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'ex_assign_windows_copy.png') });
+  ok('windows copy basename saved as canonical CDN', copyPec.cdn && copyPec.canonical && copyPec.droppedCopy, JSON.stringify(copyPec));
+
   await page.selectOption('#exd-mp4-own', 'cv-pec');
   await page.evaluate(() => {
     if (typeof assignExTechniqueFromOwn === 'function') assignExTechniqueFromOwn(currentExDetail);

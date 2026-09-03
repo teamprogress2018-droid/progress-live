@@ -43,7 +43,8 @@ vm.runInContext(fs.readFileSync(path.join(__dirname, '..', '..', '01-core.js'), 
 const {
   normalizeCoachVideoUrl, coachVideoEmbed, coachVideoIsFile,
   ownVideoForExercise, resolveCoachMedia, parsePlanExercise,
-  mapPlanExercisesForClient, cdnUrlFromVideoFilename
+  mapPlanExercisesForClient, cdnUrlFromVideoFilename,
+  isYouCanVideoFilename, canonicalYouCanBasename
 } = ctx;
 
 let failed = 0;
@@ -83,6 +84,18 @@ eq('filename youcan to cdn', cdnUrlFromVideoFilename('Rozpiętki na maszynie (mo
 eq('plain filename not auto-cdn', cdnUrlFromVideoFilename('bench.mp4'), '');
 eq('windows (1) not auto-cdn', cdnUrlFromVideoFilename('film (1).mp4'), '');
 eq('copy suffix not auto-cdn', cdnUrlFromVideoFilename('nagranie (copy).mp4'), '');
+const winCopy = 'Rozpiętki na maszynie (motyl) (Machine Chest Fly (Pec Deck)) (2).mp4';
+eq('windows (2) nested youcan', isYouCanVideoFilename(winCopy), true);
+eq('windows (2) nested canonical', canonicalYouCanBasename(winCopy), 'Rozpiętki na maszynie (motyl) (Machine Chest Fly).mp4');
+const winCopyCdn = cdnUrlFromVideoFilename(winCopy);
+eq('windows (2) nested to cdn', winCopyCdn.indexOf('https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@abc1234/') === 0, true);
+eq('windows (2) nested drops copy', decodeURIComponent(winCopyCdn).indexOf('(2)') < 0 && decodeURIComponent(winCopyCdn).indexOf('Pec Deck') < 0 && decodeURIComponent(winCopyCdn).indexOf('Machine Chest Fly).mp4') >= 0, true);
+eq(
+  'windows copy disk path to canonical cdn',
+  decodeURIComponent(normalizeCoachVideoUrl('D:/progress-live-video-assets/POGRUPOWANE/Klatka piersiowa/' + winCopy)).indexOf('Machine Chest Fly).mp4') >= 0
+    && decodeURIComponent(normalizeCoachVideoUrl('D:/progress-live-video-assets/POGRUPOWANE/Klatka piersiowa/' + winCopy)).indexOf('(2)') < 0,
+  true
+);
 
 eq('yt watch', coachVideoEmbed('https://www.youtube.com/watch?v=abcdefghijk'), 'https://www.youtube-nocookie.com/embed/abcdefghijk');
 eq('yt short', coachVideoEmbed('https://youtu.be/abcdefghijk'), 'https://www.youtube-nocookie.com/embed/abcdefghijk');
