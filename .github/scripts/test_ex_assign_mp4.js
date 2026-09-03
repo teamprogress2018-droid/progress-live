@@ -19,7 +19,7 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 01 v68', html.includes('01-core.js?v=68'));
-ok('cache 06 v51', html.includes('06-inbox-exercises-ai-programs.js?v=51'));
+ok('cache 06 v52', html.includes('06-inbox-exercises-ai-programs.js?v=52'));
 ok('ci unit', wf.includes('test_ex_assign_mp4.js'));
 ok('ci ui', wf.includes('test_ex_assign_mp4_ui.js'));
 ok('openExDetail includes assign panel', /exDetailAssignHtml\(e\)/.test(six));
@@ -55,7 +55,7 @@ const windowObj = {
   _setDoc: async (ref, data) => { windowObj._docs.push({ ref, data }); }
 };
 windowObj.window = windowObj;
-documentStub._els['exd-mp4-url'] = { value: '' };
+documentStub._els['exd-mp4-url'] = { value: '', focus() {}, select() {} };
 documentStub._els['exd-mp4-own'] = { value: 'cv1' };
 documentStub._els['exd-assign-msg'] = { style: { display: 'none', color: '' }, textContent: '' };
 
@@ -103,13 +103,37 @@ ok('bare not safe url', ctx.isSafeMediaUrl('fly-peck-deck.mp4') === false);
 
 const htmlPanel = ctx.exDetailAssignHtml(windowObj.DEF_EX[0]);
 ok('panel html has paste field', /id="exd-mp4-url"/.test(htmlPanel));
+ok('panel paste is empty textarea', /<textarea[^>]*id="exd-mp4-url"/.test(htmlPanel) && !/id="exd-mp4-url"[^>]*>https:\/\//.test(htmlPanel));
+ok('panel suggest pec deck path', /id="exd-mp4-suggest"/.test(htmlPanel) && /Wstaw ścieżkę motyl/.test(htmlPanel));
 ok('panel html has own videos', /id="exd-mp4-own"/.test(htmlPanel) && /Motyl pec deck/.test(htmlPanel));
 ok('panel html has status', /id="exd-assign-msg"/.test(htmlPanel));
 ok('panel player autoplay', /id="exd-mp4-player"/.test(six) && /autoplay loop muted/.test(six));
 ok('panel title match', /Dopasuj film do ćwiczenia/.test(htmlPanel));
 ok('panel save label', /Dopasuj i zapisz przy tym ćwiczeniu/.test(htmlPanel));
+ok('suggested pec deck path', /Machine Chest Fly \(Pec Deck\)\)\.mp4$/.test(ctx.suggestedAssignPathForExercise('Butterfly (peck deck)')));
+ok('suggested other path is folder', ctx.suggestedAssignPathForExercise('Bench press') === 'D:/progress-live-video-assets/POGRUPOWANE/');
+ok('truncated https detected', ctx.isTruncatedAssignUrl('https://cdn.jsdelivr.net/gh/teamprogress20') === true);
+ok('full mp4 https not truncated', ctx.isTruncatedAssignUrl('https://cdn.example.com/filmy/pec-deck.mp4') === false);
+ok('local path not truncated', ctx.isTruncatedAssignUrl('D:/progress-live-video-assets/x.mp4') === false);
 
 (async () => {
+  windowObj.__notices = [];
+  const trunc = await ctx.saveAssignedExTechnique('Butterfly (peck deck)', 'https://cdn.jsdelivr.net/gh/teamprogress20');
+  ok('truncated https rejected', trunc === false);
+  ok('truncated https not persisted', !windowObj.EX_GIF_REMOTE[ctx.exerciseMediaKey('Butterfly (peck deck)')], JSON.stringify(windowObj.EX_GIF_REMOTE));
+  ok('truncated https hint', /ucięty/i.test((windowObj.__notices || []).join(' ')), (windowObj.__notices || []).join(' | '));
+
+  ctx.fillSuggestedExAssignPath();
+  ok('suggest fills pec deck path', /Machine Chest Fly \(Pec Deck\)\)\.mp4$/.test(documentStub._els['exd-mp4-url'].value), documentStub._els['exd-mp4-url'].value);
+
+  const quoted = '"D:/progress-live-video-assets/POGRUPOWANE/Klatka piersiowa/Rozpiętki na maszynie (motyl) (Machine Chest Fly (Pec Deck)).mp4"';
+  const savedQuoted = await ctx.saveAssignedExTechnique('Butterfly (peck deck)', quoted);
+  ok('save quoted local path', savedQuoted === true);
+  ok('quoted path is pec deck cdn', /cdn\.jsdelivr\.net/.test(windowObj.EX_GIF_REMOTE[ctx.exerciseMediaKey('Butterfly (peck deck)')] || '') && decodeURIComponent(windowObj.EX_GIF_REMOTE[ctx.exerciseMediaKey('Butterfly (peck deck)')] || '').indexOf('Machine Chest Fly (Pec Deck)') >= 0);
+  windowObj.EX_GIF_REMOTE[ctx.exerciseMediaKey('Butterfly (peck deck)')] = '';
+  windowObj._docs = [];
+  windowObj.__opened = '';
+
   const localWin = 'D:/progress-live-video-assets/POGRUPOWANE/Klatka piersiowa/Rozpiętki na maszynie (motyl) (Machine Chest Fly).mp4';
   const saved = await ctx.saveAssignedExTechnique('Butterfly (peck deck)', localWin);
   ok('save local assets path', saved === true);

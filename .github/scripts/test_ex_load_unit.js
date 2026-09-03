@@ -28,7 +28,7 @@ function eq(name, got, want) {
 
 ok('cache 01', html.includes('01-core.js?v=68'));
 ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=35'));
-ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=51'));
+ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=52'));
 ok('builder apply helper', src05.includes('function builderApplyLoadUnit'));
 ok('builder header KG/S', src05.includes('KG/S'));
 ok('save loadUnit', src05.includes("loadUnit:typeof exLoadUnit==='function'?exLoadUnit(n):'kg'"));

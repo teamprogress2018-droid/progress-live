@@ -60,18 +60,26 @@ function ok(name, cond, extra) {
   await page.waitForSelector('#exd-assign');
   await page.waitForSelector('#exd-mp4-url');
 
-  const panel = await page.evaluate(() => ({
-    title: (document.getElementById('exd-title') || {}).textContent || '',
-    hasAssign: !!document.getElementById('exd-assign'),
-    hasPaste: !!document.getElementById('exd-mp4-url'),
-    hasFile: !!document.getElementById('exd-mp4-file'),
-    hasOwn: !!document.getElementById('exd-mp4-own'),
-    ownText: (document.getElementById('exd-mp4-own') || {}).innerText || '',
-    current: typeof currentExDetail !== 'undefined' ? currentExDetail : ''
-  }));
+  const panel = await page.evaluate(() => {
+    const inp = document.getElementById('exd-mp4-url');
+    return {
+      title: (document.getElementById('exd-title') || {}).textContent || '',
+      hasAssign: !!document.getElementById('exd-assign'),
+      hasPaste: !!inp,
+      pasteTag: inp ? inp.tagName : '',
+      pasteValue: inp ? inp.value : '',
+      hasSuggest: !!document.getElementById('exd-mp4-suggest'),
+      hasFile: !!document.getElementById('exd-mp4-file'),
+      hasOwn: !!document.getElementById('exd-mp4-own'),
+      ownText: (document.getElementById('exd-mp4-own') || {}).innerText || '',
+      current: typeof currentExDetail !== 'undefined' ? currentExDetail : ''
+    };
+  });
   await page.screenshot({ path: path.join(shotDir, 'ex_assign_panel.png') });
   ok('detail title pec deck', panel.title === 'Butterfly (peck deck)', panel.title);
   ok('assign panel visible', panel.hasAssign && panel.hasPaste && panel.hasFile, JSON.stringify(panel));
+  ok('paste field empty textarea', panel.pasteTag === 'TEXTAREA' && !/^https?:\/\//i.test(panel.pasteValue || ''), JSON.stringify(panel));
+  ok('suggest path button', panel.hasSuggest, JSON.stringify(panel));
   ok('own videos listed', panel.hasOwn && /Motyl z biblioteki/.test(panel.ownText), panel.ownText);
   ok('current exercise set', panel.current === 'Butterfly (peck deck)', panel.current);
 
@@ -81,8 +89,22 @@ function ok(name, cond, extra) {
   const emptyMsg = await page.evaluate(() => (document.getElementById('exd-assign-msg') || {}).textContent || '');
   ok('empty paste shows hint', /wklej pełną ścieżkę/i.test(emptyMsg), emptyMsg);
 
-  const localWin = 'D:/progress-live-video-assets/POGRUPOWANE/Klatka piersiowa/Rozpiętki na maszynie (motyl) (Machine Chest Fly).mp4';
-  await page.fill('#exd-mp4-url', localWin);
+  await page.fill('#exd-mp4-url', 'https://cdn.jsdelivr.net/gh/teamprogress20');
+  await page.click('#exd-assign .btn-primary');
+  await page.waitForTimeout(200);
+  const trunc = await page.evaluate(() => {
+    const key = typeof exerciseMediaKey === 'function' ? exerciseMediaKey('Butterfly (peck deck)') : 'butterfly (peck deck)';
+    return {
+      msg: (document.getElementById('exd-assign-msg') || {}).textContent || '',
+      remote: (window.EX_GIF_REMOTE || {})[key] || ''
+    };
+  });
+  ok('truncated https shows hint', /ucięty/i.test(trunc.msg), trunc.msg);
+  ok('truncated https not saved', !trunc.remote, trunc.remote);
+
+  await page.click('#exd-mp4-suggest');
+  const suggested = await page.evaluate(() => (document.getElementById('exd-mp4-url') || {}).value || '');
+  ok('suggest fills pec deck path', /Machine Chest Fly \(Pec Deck\)\)\.mp4$/.test(suggested), suggested);
   await page.click('#exd-assign .btn-primary');
   await page.waitForTimeout(400);
 
