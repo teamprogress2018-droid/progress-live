@@ -3565,9 +3565,18 @@ window.exDetailAssignHtml=exDetailAssignHtml;
 
 async function saveAssignedExTechnique(name,rawUrl){
   const n=name||(typeof currentExDetail!=='undefined'?currentExDetail:'');
-  const url=typeof normalizeImportedMediaUrl==='function'?normalizeImportedMediaUrl(rawUrl):String(rawUrl||'').trim();
+  const raw=String(rawUrl||'').trim();
+  let url=typeof normalizeImportedMediaUrl==='function'?normalizeImportedMediaUrl(raw):raw;
+  if(url&&!/^https?:\/\//i.test(url)&&typeof cdnUrlFromVideoFilename==='function'){
+    const cdn=cdnUrlFromVideoFilename(raw);
+    if(cdn)url=cdn;
+  }
   if(!n||!url){
     exAssignSetMsg('Najpierw wklej pełną ścieżkę D:/progress-live-video-assets/…/plik.mp4 (albo https://…mp4) — samo kliknięcie nic nie zapisze',false);
+    return false;
+  }
+  if(typeof isBareMediaFilename==='function'&&isBareMediaFilename(url)){
+    exAssignSetMsg('To sama nazwa pliku. Dopisz folder, np. D:/progress-live-video-assets/POGRUPOWANE/Klatka piersiowa/'+url,false);
     return false;
   }
   if(typeof isLocalDiskMediaPath==='function'&&isLocalDiskMediaPath(url)){
@@ -3626,9 +3635,14 @@ async function assignExTechniqueFromFile(name,input){
   const canStore=!blocked&&window._uid&&window._storage&&window._storageRef&&window._uploadBytes&&window._getDownloadURL;
   if(!canStore){
     const base=String(file.name||'').replace(/\\/g,'/').split('/').pop();
+    const suggest=typeof canonicalYouCanBasename==='function'&&typeof isYouCanVideoFilename==='function'&&isYouCanVideoFilename(base)
+      ?canonicalYouCanBasename(base):base;
     const inp=document.getElementById('exd-mp4-url');
-    if(inp)inp.value=base;
-    exAssignSetMsg('Z GitHub Pages nie wgramy pliku (CORS Storage). Wklej pełną ścieżkę, np. D:/progress-live-video-assets/POGRUPOWANE/…/'+base+' i kliknij „Wklej i zapisz”.',false);
+    if(inp)inp.value=suggest;
+    let msg='Firebase Storage jest niedostępny. Wklej pełną ścieżkę D:/progress-live-video-assets/…/'+suggest+' i kliknij „Wklej i zapisz”.';
+    if(!window._uid)msg='Zaloguj się, aby zapisać film przy ćwiczeniu';
+    else if(blocked)msg='Z GitHub Pages nie wgramy pliku (CORS Storage). Wklej pełną ścieżkę, np. D:/progress-live-video-assets/POGRUPOWANE/…/'+suggest+' i kliknij „Wklej i zapisz”.';
+    exAssignSetMsg(msg,false);
     return;
   }
   try{
@@ -3643,9 +3657,11 @@ async function assignExTechniqueFromFile(name,input){
   }catch(err){
     console.warn('assignExTechniqueFromFile',err);
     const base=String(file.name||'').replace(/\\/g,'/').split('/').pop();
+    const suggest=typeof canonicalYouCanBasename==='function'&&typeof isYouCanVideoFilename==='function'&&isYouCanVideoFilename(base)
+      ?canonicalYouCanBasename(base):base;
     const inp=document.getElementById('exd-mp4-url');
-    if(inp)inp.value=base;
-    exAssignSetMsg('Wgrywanie padło (często CORS). Wklej D:/progress-live-video-assets/…/'+base+' i zapisz.',false);
+    if(inp)inp.value=suggest;
+    exAssignSetMsg('Wgrywanie padło (często CORS). Wklej D:/progress-live-video-assets/…/'+suggest+' i zapisz.',false);
   }
 }
 window.assignExTechniqueFromFile=assignExTechniqueFromFile;
