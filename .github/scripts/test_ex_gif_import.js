@@ -106,7 +106,7 @@ windowObj.EX_GIF_MANIFEST = {
 const localWin = 'D:/progress-live-video-assets/POGRUPOWANE/Klatka piersiowa/Rozpiętki na maszynie (motyl) (Machine Chest Fly).mp4';
 const localRows = ctx.parseExGifBulkPaste('Butterfly (peck deck) | ' + localWin);
 ok('local disk path rewritten', localRows[0] && /cdn\.jsdelivr\.net\/gh\/teamprogress2018-droid\/progress-live-video-assets@d7dcf95/.test(localRows[0].presetUrl), JSON.stringify(localRows[0]));
-ok('local disk keeps filename', localRows[0] && decodeURIComponent(localRows[0].presetUrl).indexOf('Rozpiętki na maszynie (motyl) (Machine Chest Fly).mp4') >= 0, localRows[0] && localRows[0].presetUrl);
+ok('local disk keeps filename', localRows[0] && decodeURIComponent(localRows[0].presetUrl).indexOf('Rozpiętki na maszynie (motyl) (Machine Chest Fly (Pec Deck)).mp4') >= 0, localRows[0] && localRows[0].presetUrl);
 const fileUrl = 'file:///D:/progress-live-video-assets/POGRUPOWANE/Klatka%20piersiowa/Rozpi%C4%99tki%20na%20maszynie%20(motyl)%20(Machine%20Chest%20Fly).mp4';
 const fileRows = ctx.parseExGifBulkPaste(fileUrl);
 ok('file url rewritten', fileRows[0] && /cdn\.jsdelivr\.net/.test(fileRows[0].presetUrl) && decodeURIComponent(fileRows[0].presetUrl).indexOf('Machine Chest Fly') >= 0, JSON.stringify(fileRows[0]));
