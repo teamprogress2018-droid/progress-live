@@ -282,6 +282,22 @@ ok('no lying russian-twist clip', !MAN['skręty rosyjskie'] && !MAN['russian twi
 ok('no lying scissors clip', !MAN['nożyce'] && !MAN['nozyce'] && !MAN['scissor kicks']);
 ok('no lying leg-raise clip', !MAN['unoszenie nóg leżąc'] && !MAN['lying leg raise']);
 ok('no lying mountain-climbers clip', !MAN['mountain climbers'] && !MAN['mountain-climbers']);
+ok(
+  'db standing calf is dumbbell clip',
+  /Standing%20Dumbbell%20Calf%20Raises/i.test(MAN['wspięcia na palce hantlami'] || '') &&
+    /z%20hantlami/i.test(MAN['wspięcia na palce hantlami'] || ''),
+  (MAN['wspięcia na palce hantlami'] || '').slice(0, 220)
+);
+ok(
+  'standing calf is on-step clip',
+  /Standing%20Calf%20Raise%20on%20Step/i.test(MAN['wspięcia na palce stojąc'] || '') &&
+    /na%20stopniu/i.test(MAN['wspięcia na palce stojąc'] || ''),
+  (MAN['wspięcia na palce stojąc'] || '').slice(0, 220)
+);
+ok('no machine calf clip', !MAN['wspięcia na palce']);
+ok('no seated calf clip', !MAN['wspięcia na palce siedząc'] && !MAN['seated calf raise']);
+ok('no single-leg calf clip', !MAN['wspięcia na palce jednonóż'] && !MAN['wspięcia na palce jednonóż hantlem']);
+ok('no lying band-as-calf clip', !/with%20Resistance%20Band/i.test(MAN['wspięcia na palce stojąc'] || ''));
 
 const document = { querySelectorAll: () => [], getElementById: () => null, addEventListener() {} };
 const windowObj = {

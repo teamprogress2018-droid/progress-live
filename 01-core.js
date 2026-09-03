@@ -1273,7 +1273,14 @@ const EX_MEDIA_FILENAME_LIES={
   'Wznosy nóg na ławce skośnej (brzuch) (Decline Bench Leg Raises).mp4':1,
   'Wznosy nóg na ławce skośnej (brzuszki na ławce skośnej) (Decline Bench Leg Raises (Decline Sit-Ups)).mp4':1,
   'Wznosy nóg na ławce skośnej (leżenie na plecach) (Decline bench leg raises).mp4':1,
-  'Wznosy nóg na ławce skośnej (ujemny kąt) (Decline Bench Leg Raises).mp4':1
+  'Wznosy nóg na ławce skośnej (ujemny kąt) (Decline Bench Leg Raises).mp4':1,
+  'Wspięcia na palce (rozciąganie ścięgna Achillesa zakres ruchu kostki) (Ankle Dorsiflexion Plantar Flexion Mobility Drill).mp4':1,
+  'Wspięcia na palce (zgięcie podeszwowe stopy) – w leżeniu (Ankle Plantar Flexion (lying position)).mp4':1,
+  'Wspięcia na palce (zgięcie podeszwowe stopy) – ćwiczenie mobilizacyjne stawu skokowego (Ankle Plantar Flexion Mobility Exercise).mp4':1,
+  'Zgięcie podeszwowe stopy (rozciąganie ścięgna Achillesa mięśni łydki) (Ankle Plantar Flexion stretch).mp4':1,
+  'Wspięcia na palce stojąc (szerokość stóp) (Standing Calf Raise – Foot Width Position Check).mp4':1,
+  'Wspięcia na palce stojąc z gumą oporową (Standing Calf Raises with Resistance Band).mp4':1,
+  'Wspięcia na palce stojąc (z gumą oporową) (Standing Calf Raises (with resistance band)).mp4':1
 };
 function exerciseMediaBasename(filename){
   let raw=String(filename||'').split(/[/\\]/).pop()||'';
@@ -1377,8 +1384,10 @@ const EX_MEDIA_FILE_ALIASES={
   'Uginanie nordyckie':{include:[/nordic hamstring/i,/nordic curl/i],exclude:[/lying leg curl/i,/seated/i,/siadzie/i,/reverse nordic/i]},
   'Martwy ciąg na sztywnych nogach':{include:[/stiff[- ]leg deadlift/i],exclude:[/bodyweight/i,/bez obciążenia/i,/good morning/i,/dumbbell/i,/hantl/i]},
   'Good morning (skłon)':{include:[/good morning/i],exclude:[/bodyweight/i,/bez obciążenia/i,/deadlift/i,/martwy/i]},
-  'Wspięcia na palce':{include:[/standing (dumbbell )?calf raise/i],exclude:[/band/i,/gum[aą]/i,/ankle/i,/dorsiflexion/i,/mobility/i],prefer:[/dumbbell/i,/hantl/i]},
-  'Wspięcia na palce stojąc':{include:[/standing (dumbbell )?calf raise/i],exclude:[/ankle/i,/dorsiflexion/i,/mobility/i]},
+  'Wspięcia na palce':{include:[/machine calf raise/i,/calf raise.*maszyn/i],exclude:[/seated/i,/siad/i,/dumbbell/i,/hantl/i,/leg press/i,/suwnic/i,/band/i]},
+  'Wspięcia na palce stojąc':{include:[/standing calf raise/i],exclude:[/dumbbell/i,/hantl/i,/band/i,/gum[aą]/i,/ankle/i,/dorsiflexion/i,/mobility/i,/plantar/i,/seated/i,/single[- ]leg/i,/jednon[oó]ż/i],prefer:[/na stopniu/i,/on step/i,/obie nogi/i]},
+  'Wspięcia na palce hantlami':{include:[/standing dumbbell calf raise/i,/dumbbell calf raise/i],exclude:[/single[- ]leg/i,/jednon[oó]ż/i,/band/i,/gum[aą]/i]},
+  'Wspięcia na palce siedząc':{include:[/seated calf raise/i],exclude:[/standing/i,/stoj/i]},
   'Abdukcja biodra maszyna':{include:[/hip abduction machine/i],exclude:[/lying/i,/leż/i,/kickback/i,/przywod/i,/adduction/i],prefer:[/seated/i,/siadzie/i]},
   'Przywodzenie biodra maszyna':{include:[/przywodzenie n[oó]g na maszynie/i,/seated hip adduction/i],exclude:[/odwodzen/i,/abduction/i,/standing/i,/ta[sś]m/i,/band/i]},
   'Odwodzenie biodra leżąc':{include:[/side[- ]lying hip abduction/i],exclude:[/machine/i,/maszyn/i,/prone/i,/brzuchu/i]},
