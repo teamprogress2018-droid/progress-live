@@ -65,6 +65,21 @@ eq('https keep', normalizeCoachVideoUrl('https://youtu.be/abcdefghijk'), 'https:
 eq('www prefix', normalizeCoachVideoUrl('www.youtube.com/watch?v=abcdefghijk').indexOf('https://') === 0, true);
 eq('bare junk', normalizeCoachVideoUrl('not a url'), '');
 
+windowObj.EX_GIF_MANIFEST = {
+  x: 'https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@abc1234/foo.mp4'
+};
+eq(
+  'local video-assets path to cdn',
+  normalizeCoachVideoUrl('D:/progress-live-video-assets/POGRUPOWANE/Klatka piersiowa/Rozpiętki na maszynie (motyl) (Machine Chest Fly).mp4').indexOf('https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@abc1234/') === 0,
+  true
+);
+eq(
+  'file url to cdn',
+  /cdn\.jsdelivr\.net/.test(normalizeCoachVideoUrl('file:///D:/progress-live-video-assets/foo%20bar.mp4')),
+  true
+);
+eq('desktop mp4 rejected', normalizeCoachVideoUrl('D:/Desktop/bench.mp4'), '');
+
 eq('yt watch', coachVideoEmbed('https://www.youtube.com/watch?v=abcdefghijk'), 'https://www.youtube-nocookie.com/embed/abcdefghijk');
 eq('yt short', coachVideoEmbed('https://youtu.be/abcdefghijk'), 'https://www.youtube-nocookie.com/embed/abcdefghijk');
 eq('vimeo', coachVideoEmbed('https://vimeo.com/123456789'), 'https://player.vimeo.com/video/123456789');

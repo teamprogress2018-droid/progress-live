@@ -100,6 +100,22 @@ function ok(name, cond, extra) {
   ok('firestore wrote mp4', saved.docs.some((d) => d.data && d.data.gifUrl === mp4), JSON.stringify(saved.docs));
   ok('exGifUrl returns mp4', saved.gifUrl === mp4, saved.gifUrl);
 
+  await page.evaluate(() => {
+    if (typeof openExGifImport === 'function') openExGifImport();
+  });
+  await page.waitForSelector('#exgif-paste');
+  const localWin = 'D:/progress-live-video-assets/POGRUPOWANE/Klatka piersiowa/Rozpiętki na maszynie (motyl) (Machine Chest Fly).mp4';
+  await page.fill('#exgif-paste', 'Butterfly (peck deck) | ' + localWin);
+  await page.click('#exgif-import-btn');
+  await page.waitForTimeout(400);
+  const pec = await page.evaluate(() => {
+    const key = typeof exerciseMediaKey === 'function' ? exerciseMediaKey('Butterfly (peck deck)') : 'butterfly (peck deck)';
+    const url = (window.EX_GIF_REMOTE || {})[key] || '';
+    return { url, cdn: /cdn\.jsdelivr\.net\/gh\/teamprogress2018-droid\/progress-live-video-assets@/.test(url), name: decodeURIComponent(url).indexOf('Machine Chest Fly') >= 0 };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'gif_import_local_path.png') });
+  ok('local D: path saved as CDN', pec.cdn && pec.name, JSON.stringify(pec));
+
   await browser.close();
   if (failed) process.exit(1);
   console.log('\nAll GIF/MP4 import UI tests passed');

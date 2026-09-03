@@ -1703,6 +1703,10 @@ async function saveEx(){
   const videoRaw=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl((document.getElementById('ex-video')||{}).value):((document.getElementById('ex-video')||{}).value||'');
   const video=typeof normalizeImportedMediaUrl==='function'?normalizeImportedMediaUrl(videoRaw):videoRaw;
   const imgRaw=typeof normalizeImportedMediaUrl==='function'?normalizeImportedMediaUrl((document.getElementById('ex-img')||{}).value):String((document.getElementById('ex-img')||{}).value||'').trim();
+  if((typeof isLocalDiskMediaPath==='function')&&(isLocalDiskMediaPath(imgRaw)||isLocalDiskMediaPath(video))){
+    notify('Ścieżka z dysku (D:\\…) nie zapisze się dla klienta. Wklej plik z folderu progress-live-video-assets albo link https://…mp4');
+    return;
+  }
   const mediaUrl=(imgRaw&&!/^(javascript|data|vbscript):/i.test(imgRaw)&&(/^(https?:\/\/)/i.test(imgRaw)||imgRaw.startsWith('assets/')||/\.(png|jpe?g|gif|webp|svg|mp4|webm)(\?.*)?$/i.test(imgRaw)))?imgRaw:'';
   const isGif=/\.(gif|webp|mp4|webm)(\?.*)?$/i.test(mediaUrl);
   const gif=isGif?mediaUrl:'';
@@ -3413,7 +3417,8 @@ function mediaFilenameFromUrl(url){
 window.mediaFilenameFromUrl=mediaFilenameFromUrl;
 
 function normalizeImportedMediaUrl(url){
-  return String(url||'').trim().replace(/ /g,'%20');
+  const rewritten=typeof rewriteLocalMediaUrl==='function'?rewriteLocalMediaUrl(url):String(url||'').trim();
+  return String(rewritten||url||'').trim().replace(/ /g,'%20');
 }
 window.normalizeImportedMediaUrl=normalizeImportedMediaUrl;
 
@@ -3471,6 +3476,7 @@ function parseExGifBulkPaste(text){
 async function persistExerciseGifUrl(exerciseName,gifUrl){
   const url=normalizeImportedMediaUrl(gifUrl);
   if(!url||!exerciseName)return false;
+  if(typeof isLocalDiskMediaPath==='function'&&isLocalDiskMediaPath(url))return false;
   if(typeof isSafeMediaUrl==='function'&&!isSafeMediaUrl(url))return false;
   const key=typeof exerciseMediaKey==='function'?exerciseMediaKey(exerciseName):exerciseName.toLowerCase();
   const slug=typeof exerciseSlug==='function'?exerciseSlug(exerciseName):exerciseName.toLowerCase();
@@ -3657,7 +3663,12 @@ async function runExGifImport(){
       if(row.presetUrl){
         const saved=await persistExerciseGifUrl(row.exerciseName,row.presetUrl);
         if(saved){row.url=row.presetUrl;row.status='done';ok++;}
-        else row.status='err';
+        else{
+          row.status='err';
+          if(typeof isLocalDiskMediaPath==='function'&&isLocalDiskMediaPath(row.presetUrl)){
+            notify('Ścieżka z dysku nie zapisze się — wklej z folderu progress-live-video-assets (zamienimy na CDN)');
+          }
+        }
       }else if(row.file){
         const slug=typeof exerciseSlug==='function'?exerciseSlug(row.exerciseName):String(row.exerciseName).toLowerCase();
         const ext=(row.file.name.match(/\.(gif|webp|mp4|webm)$/i)||['','gif'])[1].toLowerCase();
