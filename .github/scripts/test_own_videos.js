@@ -43,7 +43,7 @@ vm.runInContext(fs.readFileSync(path.join(__dirname, '..', '..', '01-core.js'), 
 const {
   normalizeCoachVideoUrl, coachVideoEmbed, coachVideoIsFile,
   ownVideoForExercise, resolveCoachMedia, parsePlanExercise,
-  mapPlanExercisesForClient
+  mapPlanExercisesForClient, cdnUrlFromVideoFilename
 } = ctx;
 
 let failed = 0;
@@ -79,6 +79,8 @@ eq(
   true
 );
 eq('desktop mp4 rejected', normalizeCoachVideoUrl('D:/Desktop/bench.mp4'), '');
+eq('filename youcan to cdn', cdnUrlFromVideoFilename('Rozpiętki na maszynie (motyl) (Machine Chest Fly).mp4').indexOf('https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@abc1234/') === 0, true);
+eq('plain filename not auto-cdn', cdnUrlFromVideoFilename('bench.mp4'), '');
 
 eq('yt watch', coachVideoEmbed('https://www.youtube.com/watch?v=abcdefghijk'), 'https://www.youtube-nocookie.com/embed/abcdefghijk');
 eq('yt short', coachVideoEmbed('https://youtu.be/abcdefghijk'), 'https://www.youtube-nocookie.com/embed/abcdefghijk');

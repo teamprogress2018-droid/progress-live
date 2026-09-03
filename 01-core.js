@@ -737,6 +737,25 @@ function rewriteLocalMediaUrl(raw){
 }
 window.rewriteLocalMediaUrl=rewriteLocalMediaUrl;
 
+function cdnUrlFromVideoFilename(filename){
+  const base=String(filename||'').replace(/\\/g,'/').split('/').pop().split('?')[0].split('#')[0];
+  if(!/\.(mp4|webm|gif|webp)$/i.test(base))return '';
+  let decoded=base;
+  try{decoded=decodeURIComponent(base);}catch(e){}
+  const man=window.EX_GIF_MANIFEST||{};
+  const keys=Object.keys(man);
+  for(let i=0;i<keys.length;i++){
+    const u=String(man[keys[i]]||'');
+    let end=(u.split('/').pop()||'').split('?')[0];
+    try{end=decodeURIComponent(end);}catch(e){}
+    if(end===decoded||end===base)return u;
+  }
+  if(!/\([^)]+\)\.(mp4|webm|gif|webp)$/i.test(decoded))return '';
+  const u=rewriteLocalMediaUrl('progress-live-video-assets/'+decoded);
+  return /^https?:\/\//i.test(u)?u:'';
+}
+window.cdnUrlFromVideoFilename=cdnUrlFromVideoFilename;
+
 function isLocalDiskMediaPath(url){
   const s=String(url||'').trim();
   return /^file:/i.test(s)||/^[A-Za-z]:[\\/]/.test(s)||/^\/[A-Za-z]:[\\/]/.test(s);

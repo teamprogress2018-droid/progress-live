@@ -42,6 +42,8 @@ jobs:
         run: node .github/scripts/test_ex_gif.js
       - name: 1c2a. Testy importu GIF/MP4
         run: node .github/scripts/test_ex_gif_import.js
+      - name: 1c2a2. Testy przypisania MP4 do wybranego ćwiczenia
+        run: node .github/scripts/test_ex_assign_mp4.js
       - name: 1c2b. Testy filmów MP4 w bibliotece ćwiczeń
         run: node .github/scripts/test_ex_video_manifest.js
       - name: 1c2c. Testy dopasowania plików filmów do ćwiczeń
@@ -305,6 +307,8 @@ jobs:
         run: node .github/scripts/test_lib_ex_video_ui.js
       - name: 6b3b2. Testy UI importu MP4 do biblioteki
         run: node .github/scripts/test_ex_gif_import_ui.js
+      - name: 6b3b3. Testy UI przypisania MP4 do ćwiczenia
+        run: node .github/scripts/test_ex_assign_mp4_ui.js
       - name: 6b3c. Testy UI timera przerwy live (30s / własny)
         run: node .github/scripts/test_live_rest_ui.js
 
