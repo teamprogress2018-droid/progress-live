@@ -568,7 +568,7 @@
         <button class="btn btn-ghost btn-sm" id="ex-view-grid-btn" onclick="setExView('grid')">⊞ Karty</button>
         <button class="btn btn-primary btn-sm" id="ex-view-list-btn" onclick="setExView('list')">☰ Lista</button>
       </div>
-      <button class="btn btn-primary btn-sm" id="lib-import-gif" onclick="openExGifImport()" title="Masowy import animacji techniki">🎞 Import GIF-ów</button>
+      <button class="btn btn-primary btn-sm" id="lib-import-gif" onclick="openExGifImport()" title="Masowy import GIF / MP4 techniki">🎞 Import GIF / MP4</button>
       <button class="btn btn-ghost btn-sm" id="lib-add-ex" onclick="openM('m-ex')">+ Ćwiczenie</button>
       <button class="btn btn-primary btn-sm" id="lib-add-vid" onclick="openM('m-own-video')" style="display:none;">+ Film</button>
     </div>
@@ -578,7 +578,7 @@
     <div style="width:200px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;">
       <div style="padding:10px;">
         <input type="text" id="ex-search" placeholder="Szukaj ćwiczenia..." oninput="renderLib()" style="width:100%;background:var(--s3);border:1px solid var(--border);border-radius:6px;padding:6px 9px;color:var(--text);font-size:12px;">
-        <button type="button" class="btn btn-primary btn-sm" style="width:100%;margin-top:8px;" onclick="openExGifImport()">🎞 Import GIF-ów (masowo)</button>
+        <button type="button" class="btn btn-primary btn-sm" style="width:100%;margin-top:8px;" onclick="openExGifImport()">🎞 Import GIF / MP4</button>
       </div>
       <div style="overflow-y:auto;flex:1;padding:4px 0;" id="ex-cat-nav"></div>
       <div style="padding:10px;border-top:1px solid var(--border);">
@@ -3179,43 +3179,43 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <div class="form-field"><label class="form-lbl">Nazwa</label><input type="text" class="form-input" id="ex-name" placeholder="np. Wyciskanie sztangi leżąc"></div>
       <div class="form-grid"><div class="form-field"><label class="form-lbl">Kategoria</label><select class="form-select" id="ex-cat"><option>Klatka piersiowa</option><option>Plecy</option><option>Barki</option><option>Nogi</option><option>Biceps</option><option>Triceps</option><option>Core</option><option>Pośladki</option><option>Olimpijskie</option><option>Cardio</option><option>Rozgrzewka</option><option>Rozciąganie</option><option>Mobilność</option></select></div><div class="form-field"><label class="form-lbl">Sprzęt</label><select class="form-select" id="ex-eq"><option>Sztanga</option><option>Hantle</option><option>Maszyna</option><option>Wyciąg</option><option>Własna masa</option><option>Kettlebell</option><option>Piłka lekarska</option><option>Taśmy</option></select></div></div>
       <div class="form-field"><label class="form-lbl">Wskazówka techniczna</label><textarea class="form-textarea" id="ex-desc" rows="2" placeholder="np. Łopatki ściągnięte, pełny ROM..."></textarea></div>
-      <div class="form-field"><label class="form-lbl">Animacja / grafika techniki (opcjonalnie)</label><input type="url" class="form-input" id="ex-img" placeholder="GIF / WEBP / MP4 — URL lub assets/ex/gifs/nazwa.gif"><div style="font-size:11px;color:var(--muted);margin-top:6px;">Krótka animacja techniki — widać ją w bibliotece, builderze i u klienta na treningu. Możesz też użyć <b>Import GIF-ów</b> w bibliotece.</div></div>
-      <div class="form-field"><label class="form-lbl">Film techniki (opcjonalnie)</label><input type="url" class="form-input" id="ex-video" placeholder="https://youtube.com/watch?v=... albo .mp4"><div style="font-size:11px;color:var(--muted);margin-top:6px;">Przy filmie YouTube miniatura generuje się automatycznie, jeśli nie podasz osobnej grafiki.</div></div>
+      <div class="form-field"><label class="form-lbl">Animacja / grafika techniki (opcjonalnie)</label><input type="text" inputmode="url" class="form-input" id="ex-img" placeholder="GIF / WEBP / MP4 — https://…mp4 albo assets/ex/gifs/nazwa.gif"><div style="font-size:11px;color:var(--muted);margin-top:6px;">Krótka animacja lub film techniki — widać ją w bibliotece, builderze i u klienta na treningu. Możesz też użyć <b>Import GIF / MP4</b> w bibliotece.</div></div>
+      <div class="form-field"><label class="form-lbl">Film techniki (opcjonalnie)</label><input type="text" inputmode="url" class="form-input" id="ex-video" placeholder="https://youtube.com/watch?v=... albo bezpośredni .mp4"><div style="font-size:11px;color:var(--muted);margin-top:6px;">Przy filmie YouTube miniatura generuje się automatycznie, jeśli nie podasz osobnej grafiki.</div></div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-ex')">Anuluj</button><button class="btn btn-primary" onclick="saveEx()">Zapisz</button></div>
   </div>
 </div>
 
-<!-- Import biblioteki GIF -->
+<!-- Import biblioteki GIF / MP4 -->
 <div class="modal-ov" id="m-ex-gif-import">
   <div class="modal" style="max-width:760px;">
-    <div class="modal-hdr"><div class="modal-title">IMPORT BIBLIOTEKI GIF — MASOWO</div><button class="modal-close" onclick="closeM('m-ex-gif-import')">×</button></div>
+    <div class="modal-hdr"><div class="modal-title">IMPORT GIF / MP4 — MASOWO</div><button class="modal-close" onclick="closeM('m-ex-gif-import')">×</button></div>
     <div class="modal-body">
       <div style="display:flex;gap:6px;margin-bottom:14px;">
         <button type="button" class="btn btn-sm btn-ghost" id="exgif-tab-paste" onclick="setExGifImportTab('paste')">📋 Wklej listę (masowo)</button>
         <button type="button" class="btn btn-sm btn-ghost" id="exgif-tab-files" onclick="setExGifImportTab('files')">📁 Pliki z dysku</button>
       </div>
       <div id="exgif-panel-paste">
-        <div style="font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:10px;">Wklej <b>całą listę naraz</b> — jedna linia = jedno ćwiczenie. Formaty (wybierz jeden):</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:10px;">Wklej <b>całą listę naraz</b> — jedna linia = jedno ćwiczenie. Działa GIF, WEBP, <b>MP4</b> i WEBM. Potem od razu <b>Zapisz masowo</b> (Parsuj jest opcjonalne).</div>
         <div style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:10px;font-family:'DM Mono',monospace;background:rgba(0,0,0,0.25);padding:10px 12px;border-radius:8px;">
-          Nazwa ćwiczenia | https://link-do-gifa.gif<br>
+          Nazwa ćwiczenia | https://link-do-filmu.mp4<br>
           Nazwa ćwiczenia;https://link-do-gifa.gif<br>
-          Nazwa ćwiczenia[TAB]https://link-do-gifa.gif<br>
-          Nazwa ćwiczenia https://link-do-gifa.gif<br>
+          Nazwa ćwiczenia[TAB]https://link.webm<br>
+          Nazwa ćwiczenia https://link.mp4<br>
           # linie z # są ignorowane
         </div>
         <div class="form-field">
           <label class="form-lbl">Lista ćwiczeń + linki (wklej tutaj)</label>
-          <textarea class="form-textarea" id="exgif-paste" rows="12" placeholder="Wyciskanie sztangi leżąc | https://twoj-serwer.pl/gify/bench.gif&#10;Podciąganie na drążku | https://...&#10;Martwy ciąg klasyczny | https://..."></textarea>
+          <textarea class="form-textarea" id="exgif-paste" rows="12" placeholder="Wyciskanie sztangi leżąc | https://twoj-serwer.pl/filmy/bench.mp4&#10;Podciąganie na drążku | https://.../pull.gif&#10;Martwy ciąg klasyczny | https://.../deadlift.mp4"></textarea>
         </div>
         <button type="button" class="btn btn-ghost btn-sm" onclick="onExGifBulkPastePreview()">Parsuj listę</button>
       </div>
       <div id="exgif-panel-files" style="display:none;">
-        <div style="font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:14px;">Wybierz folder z GIF-ami — nazwy plików jak slug ćwiczenia (<code style="color:var(--text);">wyciskanie-sztangi-lezac.gif</code>).</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:14px;">Wybierz pliki <b>.gif / .webp / .mp4 / .webm</b> — nazwy jak slug ćwiczenia (<code style="color:var(--text);">wyciskanie-sztangi-lezac.mp4</code>) albo przypisz ręcznie z listy.</div>
         <div class="form-field">
           <label class="form-lbl">Pliki z dysku</label>
-          <input type="file" class="form-input" id="exgif-files" accept=".gif,.webp,.mp4,.webm,image/gif,video/mp4,video/webm" multiple webkitdirectory directory onchange="onExGifFilesPicked(this)">
-          <div style="font-size:11px;color:var(--muted);margin-top:6px;">Cały folder (Chrome / Edge) lub wiele plików naraz.</div>
+          <input type="file" class="form-input" id="exgif-files" accept=".gif,.webp,.mp4,.webm,image/gif,image/webp,video/mp4,video/webm" multiple onchange="onExGifFilesPicked(this)">
+          <div style="font-size:11px;color:var(--muted);margin-top:6px;">Możesz zaznaczyć wiele plików naraz (Ctrl / Cmd). Chrome: też cały folder, jeśli wkleisz listę URL-i — zakładka obok.</div>
         </div>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 8px;">
@@ -3237,7 +3237,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
     <div class="modal-hdr"><div class="modal-title">NOWY FILM</div><button class="modal-close" onclick="closeM('m-own-video')">×</button></div>
     <div class="modal-body">
       <div class="form-field"><label class="form-lbl">Nazwa</label><input type="text" class="form-input" id="ov-name" placeholder="np. Przysiad — technika"></div>
-      <div class="form-field"><label class="form-lbl">Link</label><input type="url" class="form-input" id="ov-url" placeholder="YouTube / Vimeo / bezpośredni .mp4"></div>
+      <div class="form-field"><label class="form-lbl">Link</label><input type="text" inputmode="url" class="form-input" id="ov-url" placeholder="YouTube / Vimeo / bezpośredni .mp4"></div>
       <div class="form-field"><label class="form-lbl">Ćwiczenie (opcjonalnie)</label><input type="text" class="form-input ex-ac-input" id="ov-ex" autocomplete="off" placeholder="Podpnij pod ćwiczenie z biblioteki"></div>
       <div style="font-size:11px;color:var(--muted);line-height:1.5;">Wrzuć film na YouTube jako <b>niewidoczny</b> i wklej link — klient zobaczy go tylko u Ciebie w apce. Albo wklej bezpośredni plik .mp4.</div>
     </div>
@@ -4180,7 +4180,7 @@ async function load(){
 <script src="03-ai-plangen-bizstats-aicoach.js?v=28"></script>
 <script src="04-client-portal.js?v=36"></script>
 <script src="05-clients-builder-plans-calendar.js?v=35"></script>
-<script src="06-inbox-exercises-ai-programs.js?v=41"></script>
+<script src="06-inbox-exercises-ai-programs.js?v=42"></script>
 <script src="07-forms-metrics-calculator.js?v=30"></script>
 <script src="08-client-profile-extras.js?v=37"></script>
 <script src="09-posture-kb-invites-private.js?v=34"></script>

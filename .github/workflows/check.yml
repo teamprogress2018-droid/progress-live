@@ -40,6 +40,8 @@ jobs:
         run: node .github/scripts/test_client_portal_coach_media.js
       - name: 1c2. Testy GIF-ów techniki ćwiczeń
         run: node .github/scripts/test_ex_gif.js
+      - name: 1c2a. Testy importu GIF/MP4
+        run: node .github/scripts/test_ex_gif_import.js
       - name: 1c2b. Testy filmów MP4 w bibliotece ćwiczeń
         run: node .github/scripts/test_ex_video_manifest.js
       - name: 1c2c. Testy dopasowania plików filmów do ćwiczeń
@@ -301,6 +303,8 @@ jobs:
         run: node .github/scripts/test_cardio_ex_ac_ui.js
       - name: 6b3b. Testy UI filmów MP4 w bibliotece ćwiczeń
         run: node .github/scripts/test_lib_ex_video_ui.js
+      - name: 6b3b2. Testy UI importu MP4 do biblioteki
+        run: node .github/scripts/test_ex_gif_import_ui.js
       - name: 6b3c. Testy UI timera przerwy live (30s / własny)
         run: node .github/scripts/test_live_rest_ui.js
 
