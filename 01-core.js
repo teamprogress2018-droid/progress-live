@@ -737,6 +737,19 @@ function rewriteLocalMediaUrl(raw){
 }
 window.rewriteLocalMediaUrl=rewriteLocalMediaUrl;
 
+function isYouCanVideoFilename(filename){
+  const base=String(filename||'').replace(/\\/g,'/').split('/').pop().split('?')[0].split('#')[0];
+  let decoded=base;
+  try{decoded=decodeURIComponent(base);}catch(e){}
+  const m=decoded.match(/\(([^)]+)\)\.(mp4|webm|gif|webp)$/i);
+  if(!m)return false;
+  const inner=String(m[1]||'').trim();
+  if(/^\d+$/.test(inner))return false;
+  if(/^(copy|copy\s*\d+|kopia|kopia\s*\d+)$/i.test(inner))return false;
+  return /[A-Za-z]{3,}/.test(inner);
+}
+window.isYouCanVideoFilename=isYouCanVideoFilename;
+
 function cdnUrlFromVideoFilename(filename){
   const base=String(filename||'').replace(/\\/g,'/').split('/').pop().split('?')[0].split('#')[0];
   if(!/\.(mp4|webm|gif|webp)$/i.test(base))return '';
@@ -750,7 +763,7 @@ function cdnUrlFromVideoFilename(filename){
     try{end=decodeURIComponent(end);}catch(e){}
     if(end===decoded||end===base)return u;
   }
-  if(!/\([^)]+\)\.(mp4|webm|gif|webp)$/i.test(decoded))return '';
+  if(!isYouCanVideoFilename(decoded))return '';
   const u=rewriteLocalMediaUrl('progress-live-video-assets/'+decoded);
   return /^https?:\/\//i.test(u)?u:'';
 }
@@ -1567,6 +1580,23 @@ function isVideoMediaUrl(url){
 }
 window.isVideoMediaUrl=isVideoMediaUrl;
 
+function sameMediaUrl(a,b){
+  const norm=u=>{
+    let s=String(u||'').trim();
+    if(!s)return '';
+    if(typeof rewriteLocalMediaUrl==='function'){
+      const r=rewriteLocalMediaUrl(s);
+      if(r)s=r;
+    }
+    s=s.replace(/ /g,'%20').split('#')[0].split('?')[0];
+    try{s=decodeURIComponent(s);}catch(e){}
+    return s.replace(/\/+$/,'').toLowerCase();
+  };
+  const x=norm(a), y=norm(b);
+  return !!x&&!!y&&x===y;
+}
+window.sameMediaUrl=sameMediaUrl;
+
 function exGifUrl(exOrName){
   let ex=exOrName;
   if(typeof exOrName==='string')ex=typeof libExerciseByName==='function'?libExerciseByName(exOrName):null;
@@ -1647,9 +1677,13 @@ function resolveCoachMedia(parsed){
     libTip=String(lib.tip||lib.desc||'').trim();
     if(libTip.length>160)libTip=libTip.slice(0,157)+'…';
   }
-  const embed=coachVideoEmbed(video);
+  let embed=coachVideoEmbed(video);
   const gif=exGifUrl({...ex,...(lib||{}),video:video||(lib&&lib.video)||'',gif:(ex.gif||(lib&&lib.gif)||''),img:(ex.img||ex.thumb||ex.image||(lib&&(lib.img||lib.thumb||lib.image))||'')});
   const img=gif||exThumbUrl({...ex,...(lib||{}),video:video||(lib&&lib.video)||'',img:(ex.img||ex.thumb||ex.image||(lib&&(lib.img||lib.thumb||lib.image))||'')});
+  if(gif&&video&&typeof isVideoMediaUrl==='function'&&isVideoMediaUrl(gif)&&sameMediaUrl(gif,video)){
+    video='';
+    embed='';
+  }
   return{note,libTip,video,videoEmbed:embed,isFile:coachVideoIsFile(video),img,gif};
 }
 window.resolveCoachMedia=resolveCoachMedia;

@@ -18,8 +18,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01 v62', html.includes('01-core.js?v=62'));
-ok('cache 06 v44', html.includes('06-inbox-exercises-ai-programs.js?v=44'));
+ok('cache 01 v63', html.includes('01-core.js?v=63'));
+ok('cache 06 v45', html.includes('06-inbox-exercises-ai-programs.js?v=45'));
 ok('ci unit', wf.includes('test_ex_assign_mp4.js'));
 ok('ci ui', wf.includes('test_ex_assign_mp4_ui.js'));
 ok('openExDetail includes assign panel', /exDetailAssignHtml\(e\)/.test(six));
@@ -81,6 +81,8 @@ vm.runInContext(six.slice(start, end), ctx);
 
 ok('cdn from youcan filename', ctx.cdnUrlFromVideoFilename('Rozpiętki na maszynie (motyl) (Machine Chest Fly).mp4').indexOf('https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95') === 0);
 ok('plain filename not auto-cdn', ctx.cdnUrlFromVideoFilename('bench.mp4') === '');
+ok('windows duplicate not auto-cdn', ctx.cdnUrlFromVideoFilename('film (1).mp4') === '');
+ok('copy suffix not auto-cdn', ctx.cdnUrlFromVideoFilename('motyl (copy).mp4') === '');
 
 const htmlPanel = ctx.exDetailAssignHtml(windowObj.DEF_EX[0]);
 ok('panel html has paste field', /id="exd-mp4-url"/.test(htmlPanel));
@@ -107,6 +109,9 @@ ok('panel html has own videos', /id="exd-mp4-own"/.test(htmlPanel) && /Motyl pec
   await ctx.assignExTechniqueFromOwn('Butterfly (peck deck)');
   ok('own video saved', windowObj.EX_GIF_REMOTE[pecKey] === 'https://cdn.example.com/filmy/pec-deck.mp4');
   ok('own video linked to exercise', windowObj.COACH_VIDEOS[0].exName === 'Butterfly (peck deck)');
+  const dupMedia = ctx.resolveCoachMedia({ name: 'Butterfly (peck deck)' });
+  ok('own assign keeps technique mp4', dupMedia.gif === 'https://cdn.example.com/filmy/pec-deck.mp4', JSON.stringify(dupMedia));
+  ok('own assign does not duplicate video', !dupMedia.video, JSON.stringify(dupMedia));
 
   if (failed) {
     console.error('\n' + failed + ' failed');

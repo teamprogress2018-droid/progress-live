@@ -109,13 +109,15 @@ function ok(name, cond, extra) {
     return {
       remote: (window.EX_GIF_REMOTE || {})[key] || '',
       exName: ((window.COACH_VIDEOS || [])[0] || {}).exName || '',
-      videoSrc: (document.querySelector('#exd-body video') || {}).getAttribute ? document.querySelector('#exd-body video').getAttribute('src') : ''
+      videoSrc: (document.querySelector('#exd-body video') || {}).getAttribute ? document.querySelector('#exd-body video').getAttribute('src') : '',
+      videoCount: document.querySelectorAll('#exd-body video').length
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'ex_assign_own.png') });
   ok('own mp4 assigned', own.remote === 'https://cdn.example.com/filmy/motyl.mp4', own.remote);
   ok('own video tagged with exercise', own.exName === 'Butterfly (peck deck)', own.exName);
   ok('detail video from own library', own.videoSrc === 'https://cdn.example.com/filmy/motyl.mp4', own.videoSrc);
+  ok('only one player after own assign', own.videoCount === 1, String(own.videoCount));
 
   await browser.close();
   if (failed) process.exit(1);
