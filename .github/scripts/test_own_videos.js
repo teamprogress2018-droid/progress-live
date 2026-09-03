@@ -44,7 +44,7 @@ const {
   normalizeCoachVideoUrl, coachVideoEmbed, coachVideoIsFile,
   ownVideoForExercise, resolveCoachMedia, parsePlanExercise,
   mapPlanExercisesForClient, cdnUrlFromVideoFilename,
-  isYouCanVideoFilename, canonicalYouCanBasename
+  isYouCanVideoFilename, canonicalYouCanBasename, normalizeVideoAssetsCdnUrl
 } = ctx;
 
 let failed = 0;
@@ -81,18 +81,20 @@ eq(
 );
 eq('desktop mp4 rejected', normalizeCoachVideoUrl('D:/Desktop/bench.mp4'), '');
 eq('filename youcan to cdn', cdnUrlFromVideoFilename('Rozpiętki na maszynie (motyl) (Machine Chest Fly).mp4').indexOf('https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@abc1234/') === 0, true);
+eq('flat chest fly maps to pec deck cdn', decodeURIComponent(cdnUrlFromVideoFilename('Rozpiętki na maszynie (motyl) (Machine Chest Fly).mp4')).indexOf('Machine Chest Fly (Pec Deck)') >= 0, true);
+eq('bad jsdelivr normalized', decodeURIComponent(normalizeVideoAssetsCdnUrl('https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@abc1234/Rozpi%C4%99tki%20na%20maszynie%20(motyl)%20(Machine%20Chest%20Fly).mp4')).indexOf('Machine Chest Fly (Pec Deck)') >= 0, true);
 eq('plain filename not auto-cdn', cdnUrlFromVideoFilename('bench.mp4'), '');
 eq('windows (1) not auto-cdn', cdnUrlFromVideoFilename('film (1).mp4'), '');
 eq('copy suffix not auto-cdn', cdnUrlFromVideoFilename('nagranie (copy).mp4'), '');
 const winCopy = 'Rozpiętki na maszynie (motyl) (Machine Chest Fly (Pec Deck)) (2).mp4';
 eq('windows (2) nested youcan', isYouCanVideoFilename(winCopy), true);
-eq('windows (2) nested canonical', canonicalYouCanBasename(winCopy), 'Rozpiętki na maszynie (motyl) (Machine Chest Fly).mp4');
+eq('windows (2) nested canonical', canonicalYouCanBasename(winCopy), 'Rozpiętki na maszynie (motyl) (Machine Chest Fly (Pec Deck)).mp4');
 const winCopyCdn = cdnUrlFromVideoFilename(winCopy);
 eq('windows (2) nested to cdn', winCopyCdn.indexOf('https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@abc1234/') === 0, true);
-eq('windows (2) nested drops copy', decodeURIComponent(winCopyCdn).indexOf('(2)') < 0 && decodeURIComponent(winCopyCdn).indexOf('Pec Deck') < 0 && decodeURIComponent(winCopyCdn).indexOf('Machine Chest Fly).mp4') >= 0, true);
+eq('windows (2) nested keeps pec deck', decodeURIComponent(winCopyCdn).indexOf('(2)') < 0 && decodeURIComponent(winCopyCdn).indexOf('Machine Chest Fly (Pec Deck)') >= 0, true);
 eq(
   'windows copy disk path to canonical cdn',
-  decodeURIComponent(normalizeCoachVideoUrl('D:/progress-live-video-assets/POGRUPOWANE/Klatka piersiowa/' + winCopy)).indexOf('Machine Chest Fly).mp4') >= 0
+  decodeURIComponent(normalizeCoachVideoUrl('D:/progress-live-video-assets/POGRUPOWANE/Klatka piersiowa/' + winCopy)).indexOf('Machine Chest Fly (Pec Deck)') >= 0
     && decodeURIComponent(normalizeCoachVideoUrl('D:/progress-live-video-assets/POGRUPOWANE/Klatka piersiowa/' + winCopy)).indexOf('(2)') < 0,
   true
 );

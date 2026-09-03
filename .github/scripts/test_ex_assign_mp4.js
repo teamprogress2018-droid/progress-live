@@ -18,8 +18,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01 v65', html.includes('01-core.js?v=65'));
-ok('cache 06 v48', html.includes('06-inbox-exercises-ai-programs.js?v=48'));
+ok('cache 01 v66', html.includes('01-core.js?v=66'));
+ok('cache 06 v49', html.includes('06-inbox-exercises-ai-programs.js?v=49'));
 ok('ci unit', wf.includes('test_ex_assign_mp4.js'));
 ok('ci ui', wf.includes('test_ex_assign_mp4_ui.js'));
 ok('openExDetail includes assign panel', /exDetailAssignHtml\(e\)/.test(six));
@@ -82,15 +82,17 @@ ok('extract assign helpers', start >= 0 && end > start);
 vm.runInContext(six.slice(start, end), ctx);
 
 ok('cdn from youcan filename', ctx.cdnUrlFromVideoFilename('Rozpiętki na maszynie (motyl) (Machine Chest Fly).mp4').indexOf('https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95') === 0);
+ok('flat chest fly maps to pec deck cdn', decodeURIComponent(ctx.cdnUrlFromVideoFilename('Rozpiętki na maszynie (motyl) (Machine Chest Fly).mp4')).indexOf('Machine Chest Fly (Pec Deck)') >= 0);
+ok('bad jsdelivr normalized', decodeURIComponent(ctx.normalizeVideoAssetsCdnUrl('https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@main/Rozpi%C4%99tki%20na%20maszynie%20(motyl)%20(Machine%20Chest%20Fly).mp4')).indexOf('Machine Chest Fly (Pec Deck)') >= 0);
 ok('plain filename not auto-cdn', ctx.cdnUrlFromVideoFilename('bench.mp4') === '');
 ok('windows duplicate not auto-cdn', ctx.cdnUrlFromVideoFilename('film (1).mp4') === '');
 ok('copy suffix not auto-cdn', ctx.cdnUrlFromVideoFilename('motyl (copy).mp4') === '');
 const winCopy = 'Rozpiętki na maszynie (motyl) (Machine Chest Fly (Pec Deck)) (2).mp4';
 ok('windows (2) nested youcan is youcan', ctx.isYouCanVideoFilename(winCopy) === true);
-ok('windows (2) nested canonical', ctx.canonicalYouCanBasename(winCopy) === 'Rozpiętki na maszynie (motyl) (Machine Chest Fly).mp4');
+ok('windows (2) nested canonical', ctx.canonicalYouCanBasename(winCopy) === 'Rozpiętki na maszynie (motyl) (Machine Chest Fly (Pec Deck)).mp4');
 const winCopyCdn = ctx.cdnUrlFromVideoFilename(winCopy);
 ok('windows (2) nested to cdn', winCopyCdn.indexOf('https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95') === 0);
-ok('windows (2) nested drops copy and pec deck', decodeURIComponent(winCopyCdn).indexOf('Machine Chest Fly).mp4') >= 0 && decodeURIComponent(winCopyCdn).indexOf('(2)') < 0 && decodeURIComponent(winCopyCdn).indexOf('Pec Deck') < 0, winCopyCdn);
+ok('windows (2) nested keeps pec deck', decodeURIComponent(winCopyCdn).indexOf('Machine Chest Fly (Pec Deck)') >= 0 && decodeURIComponent(winCopyCdn).indexOf('(2)') < 0, winCopyCdn);
 ok('bare filename detected', ctx.isBareMediaFilename('fly-peck-deck.mp4') === true);
 ok('assets path not bare', ctx.isBareMediaFilename('assets/ex/gifs/butterfly-peck-deck.gif') === false);
 ok('https not bare', ctx.isBareMediaFilename('https://cdn.example.com/x.mp4') === false);
@@ -108,7 +110,7 @@ ok('panel mentions cors', /CORS Storage/.test(htmlPanel));
   ok('save local assets path', saved === true);
   const pecKey = ctx.exerciseMediaKey('Butterfly (peck deck)');
   const remote = windowObj.EX_GIF_REMOTE[pecKey] || '';
-  ok('remote pec deck is cdn', /cdn\.jsdelivr\.net/.test(remote) && decodeURIComponent(remote).indexOf('Machine Chest Fly') >= 0, remote);
+  ok('remote pec deck is cdn', /cdn\.jsdelivr\.net/.test(remote) && decodeURIComponent(remote).indexOf('Machine Chest Fly (Pec Deck)') >= 0, remote);
   ok('firestore wrote pec deck', windowObj._docs.some((d) => d.data && d.data.exerciseName === 'Butterfly (peck deck)'), JSON.stringify(windowObj._docs[0]));
   ok('reopened detail', windowObj.__opened === 'Butterfly (peck deck)');
 
@@ -120,14 +122,14 @@ ok('panel mentions cors', /CORS Storage/.test(htmlPanel));
   const savedCopy = await ctx.saveAssignedExTechnique('Butterfly (peck deck)', winCopyPath);
   ok('save windows copy path', savedCopy === true);
   const remoteCopy = windowObj.EX_GIF_REMOTE[pecKey] || '';
-  ok('windows copy path is canonical cdn', /cdn\.jsdelivr\.net/.test(remoteCopy) && decodeURIComponent(remoteCopy).indexOf('Machine Chest Fly).mp4') >= 0 && decodeURIComponent(remoteCopy).indexOf('(2)') < 0 && decodeURIComponent(remoteCopy).indexOf('Pec Deck') < 0, remoteCopy);
+  ok('windows copy path is canonical cdn', /cdn\.jsdelivr\.net/.test(remoteCopy) && decodeURIComponent(remoteCopy).indexOf('Machine Chest Fly (Pec Deck)') >= 0 && decodeURIComponent(remoteCopy).indexOf('(2)') < 0, remoteCopy);
 
   windowObj.EX_GIF_REMOTE[pecKey] = '';
   documentStub._els['exd-mp4-url'].value = winCopy;
   const pastedCopy = await ctx.assignExTechniqueFromPaste('Butterfly (peck deck)');
   ok('paste windows copy basename', pastedCopy === true);
   const pastedRemote = windowObj.EX_GIF_REMOTE[pecKey] || '';
-  ok('paste windows copy is canonical cdn', /cdn\.jsdelivr\.net/.test(pastedRemote) && decodeURIComponent(pastedRemote).indexOf('(2)') < 0, pastedRemote);
+  ok('paste windows copy is canonical cdn', /cdn\.jsdelivr\.net/.test(pastedRemote) && decodeURIComponent(pastedRemote).indexOf('Machine Chest Fly (Pec Deck)') >= 0 && decodeURIComponent(pastedRemote).indexOf('(2)') < 0, pastedRemote);
 
   documentStub._els['exd-mp4-url'].value = 'https://cdn.example.com/filmy/pec-deck.mp4';
   await ctx.assignExTechniqueFromPaste('Butterfly (peck deck)');
@@ -166,7 +168,7 @@ ok('panel mentions cors', /CORS Storage/.test(htmlPanel));
   await ctx.assignExTechniqueFromFile('Butterfly (peck deck)', { files: [{ name: winCopy }] });
   ok('github.io youcan copy skips storage', windowObj._uploaded === false);
   const fileCopyRemote = windowObj.EX_GIF_REMOTE[pecKey] || '';
-  ok('github.io youcan copy uses cdn', /cdn\.jsdelivr\.net/.test(fileCopyRemote) && decodeURIComponent(fileCopyRemote).indexOf('Machine Chest Fly).mp4') >= 0 && decodeURIComponent(fileCopyRemote).indexOf('(2)') < 0, fileCopyRemote);
+  ok('github.io youcan copy uses cdn', /cdn\.jsdelivr\.net/.test(fileCopyRemote) && decodeURIComponent(fileCopyRemote).indexOf('Machine Chest Fly (Pec Deck)') >= 0 && decodeURIComponent(fileCopyRemote).indexOf('(2)') < 0, fileCopyRemote);
 
   const beforeBare = windowObj.EX_GIF_REMOTE[pecKey];
   documentStub._els['exd-mp4-url'].value = 'fly-peck-deck.mp4';

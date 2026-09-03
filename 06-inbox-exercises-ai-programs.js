@@ -3424,8 +3424,10 @@ function mediaFilenameFromUrl(url){
 window.mediaFilenameFromUrl=mediaFilenameFromUrl;
 
 function normalizeImportedMediaUrl(url){
-  const rewritten=typeof rewriteLocalMediaUrl==='function'?rewriteLocalMediaUrl(url):String(url||'').trim();
-  return String(rewritten||url||'').trim().replace(/ /g,'%20');
+  let rewritten=typeof rewriteLocalMediaUrl==='function'?rewriteLocalMediaUrl(url):String(url||'').trim();
+  rewritten=String(rewritten||url||'').trim();
+  if(typeof normalizeVideoAssetsCdnUrl==='function')rewritten=normalizeVideoAssetsCdnUrl(rewritten)||rewritten;
+  return rewritten.replace(/ /g,'%20');
 }
 window.normalizeImportedMediaUrl=normalizeImportedMediaUrl;
 
@@ -3599,7 +3601,15 @@ async function saveAssignedExTechnique(name,rawUrl){
     ?{text:'Film widać teraz, ale chmura nie zapisała — po odświeżeniu zniknie',ok:false}
     :{text:'Film przypisany do: '+n,ok:true};
   if(typeof renderLib==='function')renderLib();
-  if(typeof openExDetail==='function')openExDetail(n);
+  if(typeof openExDetail==='function'){
+    openExDetail(n);
+    if(typeof document!=='undefined'&&typeof document.querySelector==='function'){
+      setTimeout(()=>{
+        const v=document.querySelector('#exd-body video.cw-technique-gif-img,#exd-body .cw-technique-media video');
+        if(v&&typeof v.scrollIntoView==='function')v.scrollIntoView({behavior:'smooth',block:'start'});
+      },80);
+    }
+  }
   else exAssignSetMsg(window._exAssignFlash.text,window._exAssignFlash.ok);
   return true;
 }

@@ -723,18 +723,26 @@ function stripWindowsCopySuffix(stem){
 }
 window.stripWindowsCopySuffix=stripWindowsCopySuffix;
 
-function flattenNestedYouCanParens(stem){
-  return String(stem||'').replace(/\s*\(([^()]*)\)(?=\s*\)$)/,'');
+function youCanBasenameAliases(filename){
+  const full=videoFilenameDecodedBase(filename);
+  const m=full.match(/^(.*)(\.(mp4|webm|gif|webp))$/i);
+  if(!m)return [];
+  const stem=stripWindowsCopySuffix(m[1]);
+  const ext=m[2];
+  const out=[];
+  const add=s=>{const n=(s||'')+ext;if(n&&out.indexOf(n)<0)out.push(n);};
+  if(/\(Machine Chest Fly\)$/i.test(stem)&&!/\(Machine Chest Fly \(Pec Deck\)\)/i.test(stem)){
+    add(stem.replace(/\(Machine Chest Fly\)$/i,'(Machine Chest Fly (Pec Deck))'));
+  }
+  return out;
 }
-window.flattenNestedYouCanParens=flattenNestedYouCanParens;
+window.youCanBasenameAliases=youCanBasenameAliases;
 
 function canonicalYouCanBasename(filename){
   const full=videoFilenameDecodedBase(filename);
   const m=full.match(/^(.*)(\.(mp4|webm|gif|webp))$/i);
   if(!m)return full;
-  let stem=stripWindowsCopySuffix(m[1]);
-  stem=flattenNestedYouCanParens(stem);
-  return (stem||m[1])+m[2];
+  return stripWindowsCopySuffix(m[1])+m[2];
 }
 window.canonicalYouCanBasename=canonicalYouCanBasename;
 
@@ -748,17 +756,40 @@ function videoAssetBasenameCandidates(filename){
   const ext=m[2];
   const stripped=stripWindowsCopySuffix(m[1]);
   add(stripped+ext);
-  add(flattenNestedYouCanParens(stripped)+ext);
-  add(canonicalYouCanBasename(full));
+  youCanBasenameAliases(stripped+ext).forEach(add);
   return out;
 }
 window.videoAssetBasenameCandidates=videoAssetBasenameCandidates;
+
+function pickVideoAssetsCdnBasename(filename){
+  const names=videoAssetBasenameCandidates(filename);
+  const pool=names.filter(n=>!/\s\(\d+\)\.(mp4|webm|gif|webp)$/i.test(n));
+  const list=pool.length?pool:names;
+  for(let i=0;i<list.length;i++){
+    if(/\(Machine Chest Fly \(Pec Deck\)\)/i.test(list[i]))return list[i];
+  }
+  return canonicalYouCanBasename(filename);
+}
+window.pickVideoAssetsCdnBasename=pickVideoAssetsCdnBasename;
+
+function normalizeVideoAssetsCdnUrl(url){
+  const s=String(url||'').trim();
+  if(!/^https?:\/\/cdn\.jsdelivr\.net\/gh\/teamprogress2018-droid\/progress-live-video-assets@/i.test(s))return s;
+  const m=s.match(/^(https?:\/\/cdn\.jsdelivr\.net\/gh\/teamprogress2018-droid\/progress-live-video-assets@[^/]+\/)([^?#]+)/i);
+  if(!m)return s;
+  let base=m[2];
+  try{base=decodeURIComponent(base);}catch(e){}
+  const fixed=pickVideoAssetsCdnBasename(base);
+  if(fixed===base)return s;
+  return m[1]+encodeURIComponent(fixed);
+}
+window.normalizeVideoAssetsCdnUrl=normalizeVideoAssetsCdnUrl;
 
 function rewriteLocalMediaUrl(raw){
   let s=String(raw||'').trim().replace(/^["']|["']$/g,'');
   if(!s)return '';
   if(/^(javascript|data|vbscript):/i.test(s))return '';
-  if(/^https?:\/\/cdn\.jsdelivr\.net\/gh\/teamprogress2018-droid\/progress-live-video-assets@/i.test(s))return s;
+  if(/^https?:\/\/cdn\.jsdelivr\.net\/gh\/teamprogress2018-droid\/progress-live-video-assets@/i.test(s))return normalizeVideoAssetsCdnUrl(s);
   let path=s;
   if(/^file:/i.test(path)){
     path=path.replace(/^file:\/\/\/?/i,'');
@@ -783,7 +814,7 @@ function rewriteLocalMediaUrl(raw){
       if(end===names[n]||end===base)return u;
     }
   }
-  const cdnBase=isYouCanVideoFilename(base)?canonicalYouCanBasename(base):base;
+  const cdnBase=isYouCanVideoFilename(base)?pickVideoAssetsCdnBasename(base):base;
   return videoAssetsCdnPrefix()+encodeURIComponent(cdnBase);
 }
 window.rewriteLocalMediaUrl=rewriteLocalMediaUrl;
@@ -791,7 +822,9 @@ window.rewriteLocalMediaUrl=rewriteLocalMediaUrl;
 function isYouCanVideoFilename(filename){
   const names=videoAssetBasenameCandidates(filename);
   for(let i=0;i<names.length;i++){
-    const m=String(names[i]||'').match(/\(([^)]+)\)\.(mp4|webm|gif|webp)$/i);
+    const stem=String(names[i]||'').replace(/\.(mp4|webm|gif|webp)$/i,'');
+    if(/\(Machine Chest Fly \(Pec Deck\)\)$/i.test(stem))return true;
+    const m=stem.match(/\(([^()]+)\)$/);
     if(!m)continue;
     const inner=String(m[1]||'').trim();
     if(/^\d+$/.test(inner))continue;
@@ -817,7 +850,7 @@ function cdnUrlFromVideoFilename(filename){
     }
   }
   if(!isYouCanVideoFilename(decoded))return '';
-  const u=rewriteLocalMediaUrl('progress-live-video-assets/'+canonicalYouCanBasename(decoded));
+  const u=rewriteLocalMediaUrl('progress-live-video-assets/'+pickVideoAssetsCdnBasename(decoded));
   return /^https?:\/\//i.test(u)?u:'';
 }
 window.cdnUrlFromVideoFilename=cdnUrlFromVideoFilename;
@@ -1600,7 +1633,12 @@ function mediaMapGet(map,name){
 
 /** GIF / zdjęcie techniki z manifestu repo, Firestore (EX_GIF_REMOTE) lub pola gif/img ćwiczenia. */
 function exGifMapLookup(name){
-  return mediaMapGet(window.EX_GIF_REMOTE,name)||mediaMapGet(window.EX_GIF_MANIFEST,name);
+  const remote=mediaMapGet(window.EX_GIF_REMOTE,name);
+  if(remote){
+    const fixed=typeof normalizeVideoAssetsCdnUrl==='function'?normalizeVideoAssetsCdnUrl(remote):remote;
+    return fixed||remote;
+  }
+  return mediaMapGet(window.EX_GIF_MANIFEST,name);
 }
 window.exGifMapLookup=exGifMapLookup;
 

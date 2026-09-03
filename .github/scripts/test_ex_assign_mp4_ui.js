@@ -93,7 +93,7 @@ function ok(name, cond, extra) {
     return {
       url,
       cdn: /cdn\.jsdelivr\.net\/gh\/teamprogress2018-droid\/progress-live-video-assets@/.test(url),
-      name: decodeURIComponent(url).indexOf('Machine Chest Fly') >= 0,
+      name: decodeURIComponent(url).indexOf('Machine Chest Fly (Pec Deck)') >= 0,
       docs: (window.__savedGifs || []).some((d) => d.data && d.data.exerciseName === 'Butterfly (peck deck)'),
       videoSrc: video ? video.getAttribute('src') : '',
       currentHint: !!(document.getElementById('exd-mp4-current'))
@@ -102,7 +102,7 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'ex_assign_pasted.png') });
   ok('paste local path saved as CDN', pec.cdn && pec.name, JSON.stringify(pec));
   ok('firestore wrote assign', pec.docs);
-  ok('detail plays assigned mp4', /Machine Chest Fly/.test(decodeURIComponent(pec.videoSrc || '')), pec.videoSrc);
+  ok('detail plays assigned mp4', /Machine Chest Fly \(Pec Deck\)/.test(decodeURIComponent(pec.videoSrc || '')), pec.videoSrc);
   ok('shows current film', pec.currentHint);
 
   const winCopy = 'Rozpiętki na maszynie (motyl) (Machine Chest Fly (Pec Deck)) (2).mp4';
@@ -116,8 +116,8 @@ function ok(name, cond, extra) {
     return {
       url,
       cdn: /cdn\.jsdelivr\.net\/gh\/teamprogress2018-droid\/progress-live-video-assets@/.test(url),
-      canonical: decoded.indexOf('Machine Chest Fly).mp4') >= 0,
-      droppedCopy: decoded.indexOf('(2)') < 0 && decoded.indexOf('Pec Deck') < 0
+      canonical: decoded.indexOf('Machine Chest Fly (Pec Deck)') >= 0,
+      droppedCopy: decoded.indexOf('(2)') < 0
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'ex_assign_windows_copy.png') });

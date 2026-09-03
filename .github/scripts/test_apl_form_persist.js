@@ -26,8 +26,8 @@ ok('toggle persists', /function aplToggleMulti/.test(src03) && /aplPersistClient
 ok('html toggle helper', /data-val="Hantle"[^>]*aplToggleMulti/.test(html) && /data-val="Drążek i poręcze"[^>]*aplToggleMulti/.test(html));
 ok('html hantle class active', /class="apl-opt-multi active" data-val="Hantle"/.test(html) && /class="apl-opt-multi active" data-val="Drążek i poręcze"/.test(html));
 ok('onboard saves equipment', /onbNewClient\.equipment=/.test(src02) && /availableEquipment/.test(src02));
-ok('cache', html.includes('01-core.js?v=65') && html.includes('02-workouts-onboarding-templates-live.js?v=28') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=28') && html.includes('05-clients-builder-plans-calendar.js?v=35'));
-ok('cache', html.includes('01-core.js?v=65') && html.includes('02-workouts-onboarding-templates-live.js?v=28') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=28') && html.includes('05-clients-builder-plans-calendar.js?v=35'));
+ok('cache', html.includes('01-core.js?v=66') && html.includes('02-workouts-onboarding-templates-live.js?v=28') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=28') && html.includes('05-clients-builder-plans-calendar.js?v=35'));
+ok('cache', html.includes('01-core.js?v=66') && html.includes('02-workouts-onboarding-templates-live.js?v=28') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=28') && html.includes('05-clients-builder-plans-calendar.js?v=35'));
 ok('CI', wf.includes('test_apl_form_persist.js') && wf.includes('test_apl_form_persist_ui.js'));
 
 const slice = core.match(/function foldPlKey[\s\S]*?function clientAvailableEquipment[\s\S]*?\n\}/);
