@@ -29,7 +29,7 @@ function akaTokens(name) {
   const e = DEF_EX.find((x) => x.name === name);
   return String((e && e.aka) || '').split(',').map((s) => s.trim());
 }
-ok('cache 06 v59', html.includes('06-inbox-exercises-ai-programs.js?v=60'));
+ok('cache 06 v59', html.includes('06-inbox-exercises-ai-programs.js?v=61'));
 ok('ci unit', wf.includes('test_ex_lib_dedupe.js'));
 ok('unique names', new Set(names).size === names.length);
 ok('library still large', DEF_EX.length >= 900, String(DEF_EX.length));
