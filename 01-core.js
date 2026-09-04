@@ -2991,6 +2991,34 @@ function isLoggedWorkout(s){
 }
 window.isLoggedWorkout=isLoggedWorkout;
 
+function sessionHappened(s,sessions){
+  if(!s)return false;
+  if(typeof isLoggedWorkout==='function'&&isLoggedWorkout(s))return true;
+  if(s.source==='garmin')return true;
+  if(!s.clientId||!s.date)return false;
+  const list=sessions||window.SE||[];
+  return list.some(o=>o&&o.id!==s.id&&o.clientId===s.clientId&&o.date===s.date&&typeof isLoggedWorkout==='function'&&isLoggedWorkout(o));
+}
+window.sessionHappened=sessionHappened;
+
+function sessionHappenedTip(s,sessions){
+  if(!s)return '';
+  const title=typeof sessionTitle==='function'?sessionTitle(s):(s.type||s.title||'Trening');
+  const t=s.time||'';
+  const src=typeof sessionSourceLabel==='function'?sessionSourceLabel(s):'';
+  const prefix=t?t+' · ':'';
+  if(s.source==='garmin')return prefix+title+' · Garmin (z zegarka)';
+  if(typeof isLoggedWorkout==='function'&&isLoggedWorkout(s)){
+    const how=s.source==='live'?'Live':s.source==='client'?'aplikacja klienta':'zapisany trening';
+    const n=(s.exercises||[]).length;
+    const fb=s.feedback?' · ocena '+s.feedback+'/5':'';
+    return prefix+'✓ Odbył się ('+how+') · '+title+(n?' · '+n+' ćw.':'')+fb;
+  }
+  if(sessionHappened(s,sessions))return prefix+title+' · ✓ odbył się (jest zapis z tego dnia)';
+  return prefix+title+(src?' · '+src:'')+' · zaplanowany';
+}
+window.sessionHappenedTip=sessionHappenedTip;
+
 function completedWorkouts(clientId,sessions){
   return(sessions||window.SE||[]).filter(s=>s&&s.clientId===clientId&&isLoggedWorkout(s))
     .slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''));

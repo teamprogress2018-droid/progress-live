@@ -84,6 +84,8 @@ jobs:
 
       - name: 1g. Testy oceny treningu i historii
         run: node .github/scripts/test_session_history.js
+      - name: 1g2. Testy oznaczenia odbytego treningu w kalendarzu
+        run: node .github/scripts/test_cal_session_done.js
 
       - name: 1h. Testy regresji historii treningów
         run: node .github/scripts/test_workout_rate_history_fixes.js
