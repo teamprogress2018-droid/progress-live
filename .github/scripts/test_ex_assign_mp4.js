@@ -19,7 +19,7 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 01 v69', html.includes('01-core.js?v=69'));
-ok('cache 06 v56', html.includes('06-inbox-exercises-ai-programs.js?v=56'));
+ok('cache 06 v57', html.includes('06-inbox-exercises-ai-programs.js?v=57'));
 ok('ci unit', wf.includes('test_ex_assign_mp4.js'));
 ok('ci ui', wf.includes('test_ex_assign_mp4_ui.js'));
 ok('openExDetail includes assign panel', /exDetailAssignHtml\(e\)/.test(six));
@@ -56,7 +56,8 @@ const windowObj = {
 };
 windowObj.window = windowObj;
 documentStub._els['exd-mp4-url'] = { value: '', focus() {}, select() {} };
-documentStub._els['exd-mp4-own'] = { value: 'cv1' };
+documentStub._els['exd-mp4-own'] = { value: '' };
+documentStub._els['exd-mp4-file'] = { files: [], value: '' };
 documentStub._els['exd-assign-msg'] = { style: { display: 'none', color: '' }, textContent: '' };
 
 const ctx = {
@@ -106,7 +107,8 @@ ok('bare not safe url', ctx.isSafeMediaUrl('fly-peck-deck.mp4') === false);
 
 const htmlPanel = ctx.exDetailAssignHtml(windowObj.DEF_EX[0]);
 ok('panel html has paste field', /id="exd-mp4-url"/.test(htmlPanel));
-ok('placeholder not fake path', /placeholder="[^"]*Pole puste/.test(htmlPanel) && !/placeholder="D:\//.test(htmlPanel));
+ok('placeholder not fake path', /placeholder="[^"]*Opcjonalnie wklej/.test(htmlPanel) && !/placeholder="D:\//.test(htmlPanel));
+ok('own select previews', /onchange="previewAssignedExOwnVideo\(\)"/.test(htmlPanel));
 ok('panel suggest pec deck path', /id="exd-mp4-suggest"/.test(htmlPanel) && /Wstaw ścieżkę motyl/.test(htmlPanel));
 ok('stretch panel has no pec deck suggest', !/id="exd-mp4-suggest"/.test(ctx.exDetailAssignHtml({ name: 'Rozciąganie butterfly' })));
 ok('panel html has status', /id="exd-assign-msg"/.test(htmlPanel));
@@ -180,6 +182,7 @@ ok('empty other how-to', /Kopiuj jako ścieżkę/.test(ctx.exAssignEmptyPathMsg(
   ok('paste https saved', windowObj.EX_GIF_REMOTE[pecKey] === 'https://cdn.example.com/filmy/pec-deck.mp4');
 
   windowObj.EX_GIF_REMOTE[pecKey] = '';
+  documentStub._els['exd-mp4-own'].value = 'cv1';
   await ctx.assignExTechniqueFromOwn('Butterfly (peck deck)');
   ok('own video saved', windowObj.EX_GIF_REMOTE[pecKey] === 'https://cdn.example.com/filmy/pec-deck.mp4');
   ok('own video linked to exercise', windowObj.COACH_VIDEOS[0].exName === 'Butterfly (peck deck)');
@@ -187,7 +190,22 @@ ok('empty other how-to', /Kopiuj jako ścieżkę/.test(ctx.exAssignEmptyPathMsg(
   ok('own assign keeps technique mp4', dupMedia.gif === 'https://cdn.example.com/filmy/pec-deck.mp4', JSON.stringify(dupMedia));
   ok('own assign does not duplicate video', !dupMedia.video, JSON.stringify(dupMedia));
 
+  documentStub._els['exd-mp4-own'].value = '';
+  documentStub._els['exd-mp4-url'].value = '';
+  windowObj.__notices = [];
+  const keepPicked = await ctx.assignExTechniqueFromPaste('Butterfly (peck deck)');
+  ok('empty save keeps picked film', keepPicked === true);
+  ok('empty save does not revert pec deck cdn', windowObj.EX_GIF_REMOTE[pecKey] === 'https://cdn.example.com/filmy/pec-deck.mp4', windowObj.EX_GIF_REMOTE[pecKey]);
+  ok('empty save keep hint', /już zapisany|nie zmienia/i.test((windowObj.__notices || []).join(' ')), (windowObj.__notices || []).join(' | '));
+
   windowObj.EX_GIF_REMOTE[pecKey] = '';
+  documentStub._els['exd-mp4-url'].value = '';
+  documentStub._els['exd-mp4-own'].value = 'cv1';
+  const fromList = await ctx.assignExTechniqueFromPaste('Butterfly (peck deck)');
+  ok('red save uses list selection', fromList === true && windowObj.EX_GIF_REMOTE[pecKey] === 'https://cdn.example.com/filmy/pec-deck.mp4', windowObj.EX_GIF_REMOTE[pecKey]);
+
+  windowObj.EX_GIF_REMOTE[pecKey] = '';
+  documentStub._els['exd-mp4-own'].value = '';
   documentStub._els['exd-mp4-url'].value = '';
   windowObj.__notices = [];
   const emptyPec = await ctx.assignExTechniqueFromPaste('Butterfly (peck deck)');
