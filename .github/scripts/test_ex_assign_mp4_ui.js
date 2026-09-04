@@ -154,16 +154,16 @@ function ok(name, cond, extra) {
   ok('windows copy basename saved as canonical CDN', copyPec.cdn && copyPec.canonical && copyPec.droppedCopy, JSON.stringify(copyPec));
 
   await page.selectOption('#exd-mp4-own', 'cv-pec');
-  await page.evaluate(() => {
-    if (typeof assignExTechniqueFromOwn === 'function') assignExTechniqueFromOwn(currentExDetail);
-  });
+  await page.fill('#exd-mp4-url', '');
+  await page.click('#exd-assign .btn-primary');
   await page.waitForTimeout(400);
   const own = await page.evaluate(() => {
     const key = typeof exerciseMediaKey === 'function' ? exerciseMediaKey('Butterfly (peck deck)') : 'butterfly (peck deck)';
+    const video = document.querySelector('#exd-body video');
     return {
       remote: (window.EX_GIF_REMOTE || {})[key] || '',
       exName: ((window.COACH_VIDEOS || [])[0] || {}).exName || '',
-      videoSrc: (document.querySelector('#exd-body video') || {}).getAttribute ? document.querySelector('#exd-body video').getAttribute('src') : '',
+      videoSrc: video && video.getAttribute ? video.getAttribute('src') : '',
       videoCount: document.querySelectorAll('#exd-body video').length
     };
   });
@@ -172,6 +172,20 @@ function ok(name, cond, extra) {
   ok('own video tagged with exercise', own.exName === 'Butterfly (peck deck)', own.exName);
   ok('detail video from own library', own.videoSrc === 'https://cdn.example.com/filmy/motyl.mp4', own.videoSrc);
   ok('only one player after own assign', own.videoCount === 1, String(own.videoCount));
+
+  await page.fill('#exd-mp4-url', '');
+  await page.click('#exd-assign .btn-primary');
+  await page.waitForTimeout(400);
+  const kept = await page.evaluate(() => {
+    const key = typeof exerciseMediaKey === 'function' ? exerciseMediaKey('Butterfly (peck deck)') : 'butterfly (peck deck)';
+    const video = document.querySelector('#exd-body video');
+    return {
+      remote: (window.EX_GIF_REMOTE || {})[key] || '',
+      videoSrc: video && video.getAttribute ? video.getAttribute('src') : ''
+    };
+  });
+  ok('empty confirm keeps picked film', kept.remote === 'https://cdn.example.com/filmy/motyl.mp4', kept.remote);
+  ok('empty confirm player still picked film', kept.videoSrc === 'https://cdn.example.com/filmy/motyl.mp4', kept.videoSrc);
 
   await browser.close();
   if (failed) process.exit(1);

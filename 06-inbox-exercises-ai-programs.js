@@ -3608,7 +3608,7 @@ function exDetailAssignHtml(e){
   const opts=own.map(v=>`<option value="${esc(v.id||'')}">${esc(v.name||v.url||'Film')}</option>`).join('');
   const ownBlock=opts
     ?`<label class="form-lbl" style="margin-top:8px;">Z moich filmów MP4</label>
-      <select class="form-select" id="exd-mp4-own" style="margin-bottom:6px;"><option value="">— wybierz film —</option>${opts}</select>
+      <select class="form-select" id="exd-mp4-own" style="margin-bottom:6px;" onchange="previewAssignedExOwnVideo()"><option value="">— wybierz film —</option>${opts}</select>
       <button type="button" class="btn btn-ghost btn-sm" style="width:100%;margin-bottom:8px;" onclick="assignExTechniqueFromOwn(currentExDetail)">Przypisz wybrany film</button>`
     :'';
   const flash=window._exAssignFlash;
@@ -3619,8 +3619,8 @@ function exDetailAssignHtml(e){
     <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Dopasuj film do ćwiczenia</div>
     ${player}
     ${currentHint}
-    <div style="font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:8px;">Do <b>${esc(name)}</b> — szary tekst w polu to tylko podpowiedź (pole jest puste).${isPecDeckAssignExercise(name)?' Przy motylu kliknij czerwony przycisk — wstawi i zapisze ścieżkę.':' W Eksploratorze <b>Shift+PPM</b> na .mp4 → <b>Kopiuj jako ścieżkę</b> i wklej.'}</div>
-    <textarea class="form-input" id="exd-mp4-url" rows="3" placeholder="Pole puste — kliknij „Dopasuj i zapisz” (motyl) albo wklej ścieżkę (Shift+PPM → Kopiuj jako ścieżkę)" style="margin-bottom:6px;font-size:12px;min-height:64px;resize:vertical;"></textarea>
+    <div style="font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:8px;">Do <b>${esc(name)}</b> — wybierz film z listy albo plik YouCan, potem <b>Dopasuj i zapisz</b>. Szary tekst w polu nic nie zapisuje.${isPecDeckAssignExercise(name)?' Puste pole nie cofnie już przypisanego filmu.':''}</div>
+    <textarea class="form-input" id="exd-mp4-url" rows="3" placeholder="Opcjonalnie wklej ścieżkę (Shift+PPM → Kopiuj jako ścieżkę)" style="margin-bottom:6px;font-size:12px;min-height:64px;resize:vertical;"></textarea>
     ${isPecDeckAssignExercise(name)?'<button type="button" class="btn btn-ghost btn-sm" id="exd-mp4-suggest" style="width:100%;margin-bottom:6px;" onclick="fillSuggestedExAssignPath()">Wstaw ścieżkę motyl / pec deck</button>':''}
     <button type="button" class="btn btn-primary btn-sm" style="width:100%;margin-bottom:8px;" onclick="assignExTechniqueFromPaste(currentExDetail)">Dopasuj i zapisz przy tym ćwiczeniu</button>
     <label class="form-lbl">Albo wybierz plik YouCan (.mp4)</label>
@@ -3644,12 +3644,19 @@ async function saveAssignedExTechnique(name,rawUrl){
     if(cdn)url=cdn;
   }
   if(!n||!url){
-    if(n&&!raw&&typeof isPecDeckAssignExercise==='function'&&isPecDeckAssignExercise(n)){
-      const suggested=typeof suggestedAssignPathForExercise==='function'?suggestedAssignPathForExercise(n):'';
-      if(suggested){
-        const inp=typeof document!=='undefined'?document.getElementById('exd-mp4-url'):null;
-        if(inp)inp.value=suggested;
-        return saveAssignedExTechnique(n,suggested);
+    if(n&&!raw){
+      const existing=typeof assignedExVideoUrl==='function'?assignedExVideoUrl(n):'';
+      if(existing){
+        exAssignSetMsg('Ten film jest już zapisany. Puste „Dopasuj i zapisz” go nie zmienia. Wybierz inny z listy albo wklej nową ścieżkę.',true);
+        return true;
+      }
+      if(typeof isPecDeckAssignExercise==='function'&&isPecDeckAssignExercise(n)){
+        const suggested=typeof suggestedAssignPathForExercise==='function'?suggestedAssignPathForExercise(n):'';
+        if(suggested){
+          const inp=typeof document!=='undefined'?document.getElementById('exd-mp4-url'):null;
+          if(inp)inp.value=suggested;
+          return saveAssignedExTechnique(n,suggested);
+        }
       }
     }
     exAssignSetMsg(typeof exAssignEmptyPathMsg==='function'?exAssignEmptyPathMsg(n):'Pole jest puste. Wklej pełną ścieżkę z Eksploratora (Shift+PPM → Kopiuj jako ścieżkę).',false);
@@ -3701,19 +3708,56 @@ window.saveAssignedExTechnique=saveAssignedExTechnique;
 async function assignExTechniqueFromPaste(name){
   const n=name||(typeof currentExDetail!=='undefined'?currentExDetail:'');
   const inp=document.getElementById('exd-mp4-url');
-  return saveAssignedExTechnique(n,inp?inp.value:'');
+  const pasted=inp?String(inp.value||'').trim().replace(/^["']+|["']+$/g,''):'';
+  if(pasted)return saveAssignedExTechnique(n,pasted);
+  const sel=document.getElementById('exd-mp4-own');
+  if(sel&&sel.value)return assignExTechniqueFromOwn(n);
+  const fileInp=document.getElementById('exd-mp4-file');
+  if(fileInp&&fileInp.files&&fileInp.files[0])return assignExTechniqueFromFile(n,fileInp);
+  return saveAssignedExTechnique(n,'');
 }
 window.assignExTechniqueFromPaste=assignExTechniqueFromPaste;
+
+function previewAssignedExOwnVideo(){
+  const sel=document.getElementById('exd-mp4-own');
+  const id=sel?sel.value:'';
+  const v=(window.COACH_VIDEOS||[]).find(x=>x.id===id);
+  const raw=v&&v.url?v.url:'';
+  const url=raw&&typeof normalizeImportedMediaUrl==='function'?normalizeImportedMediaUrl(raw):raw;
+  if(!url)return;
+  let player=document.getElementById('exd-mp4-player');
+  if(!player&&typeof document!=='undefined'&&document.createElement){
+    const box=document.getElementById('exd-assign');
+    if(!box)return;
+    player=document.createElement('video');
+    player.id='exd-mp4-player';
+    player.className='cw-technique-gif-img';
+    player.autoplay=true;
+    player.loop=true;
+    player.muted=true;
+    player.playsInline=true;
+    player.controls=true;
+    player.preload='auto';
+    player.style.cssText='width:100%;max-height:220px;background:#000;border-radius:8px;margin-bottom:8px;';
+    const after=box.querySelector('#exd-mp4-current')||box.firstChild;
+    box.insertBefore(player, after);
+  }
+  if(!player)return;
+  player.src=url;
+  player.muted=true;
+  if(typeof player.play==='function')player.play().catch(()=>{});
+}
+window.previewAssignedExOwnVideo=previewAssignedExOwnVideo;
 
 async function assignExTechniqueFromOwn(name){
   const n=name||(typeof currentExDetail!=='undefined'?currentExDetail:'');
   const sel=document.getElementById('exd-mp4-own');
   const id=sel?sel.value:'';
   const v=(window.COACH_VIDEOS||[]).find(x=>x.id===id);
-  if(!v){exAssignSetMsg('Wybierz film z listy Moje filmy',false);return;}
+  if(!v){exAssignSetMsg('Wybierz film z listy Moje filmy',false);return false;}
   v.exName=n;
   if(typeof persistById==='function')try{await persistById('coachVideos',v);}catch(e){}
-  await saveAssignedExTechnique(n,v.url);
+  return saveAssignedExTechnique(n,v.url);
 }
 window.assignExTechniqueFromOwn=assignExTechniqueFromOwn;
 
