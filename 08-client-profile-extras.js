@@ -863,9 +863,15 @@ function cpOvSparkSVG(points,color,bars){
 function cpDaysSinceYmd(raw){
   const s=String(raw||'').slice(0,10);
   if(!/^\d{4}-\d{2}-\d{2}$/.test(s))return 999;
-  const t=new Date(s+'T12:00:00').getTime();
-  if(!t||isNaN(t))return 999;
-  return Math.max(0,Math.floor((Date.now()-t)/86400000));
+  const today=typeof todayYmd==='function'?todayYmd():(function(){
+    const d=new Date();const p=n=>String(n).padStart(2,'0');
+    return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+  })();
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(today))return 999;
+  const a=new Date(s+'T12:00:00').getTime();
+  const b=new Date(today+'T12:00:00').getTime();
+  if(!a||!b||isNaN(a)||isNaN(b))return 999;
+  return Math.max(0,Math.round((b-a)/86400000));
 }
 
 /** Zielony = wpis ≤2 dni; żółty = 3–6 dni; czerwony = ≥7 dni lub brak. */

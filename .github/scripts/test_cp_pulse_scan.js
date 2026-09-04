@@ -19,7 +19,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 08 v40', html.includes('08-client-profile-extras.js?v=40'));
+ok('cache 08 v41', html.includes('08-client-profile-extras.js?v=41'));
 ok('cache styles v58', html.includes('styles.css?v=58'));
 ok('ci unit', wf.includes('test_cp_pulse_scan.js'));
 ok('metrics stacked toolbar', /cp-metrics-head/.test(src) && /cp-metrics-groups/.test(src) && /cp-metrics-actions/.test(src));
@@ -35,7 +35,8 @@ ok('helper slice', start > 0 && end > start);
 function ymdAgo(n) {
   const d = new Date();
   d.setDate(d.getDate() - n);
-  return d.toISOString().slice(0, 10);
+  const p = (x) => String(x).padStart(2, '0');
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
 }
 
 const pushed = [];
@@ -85,6 +86,20 @@ ok('pulse 10d bad', ctx.cpClientPulseStatus('c1').tone === 'bad');
 windowObj.CHECKINS.c1 = [];
 windowObj.SE = [{ clientId: 'c1', date: ymdAgo(1), source: 'live' }];
 ok('pulse from workout good', ctx.cpClientPulseStatus('c1').tone === 'good');
+
+ctx.todayYmd = () => '2026-09-04';
+windowObj.SE = [];
+windowObj.CHECKINS.c1 = [{ status: 'filled', date: '2026-09-01', answers: { energy: 4 } }];
+const p3 = ctx.cpClientPulseStatus('c1');
+ok('pulse 3 calendar days is warn', p3.tone === 'warn' && p3.days === 3);
+windowObj.CHECKINS.c1 = [{ status: 'filled', date: '2026-09-02', answers: { energy: 4 } }];
+const p2 = ctx.cpClientPulseStatus('c1');
+ok('pulse 2 calendar days is good', p2.tone === 'good' && p2.days === 2);
+windowObj.CHECKINS.c1 = [{ status: 'filled', date: '2026-08-28', answers: { energy: 4 } }];
+const p7 = ctx.cpClientPulseStatus('c1');
+ok('pulse 7 calendar days is bad', p7.tone === 'bad' && p7.days === 7);
+ctx.todayYmd = () => ymdAgo(0);
+windowObj.CHECKINS.c1 = [];
 
 windowObj._photos = [{
   clientId: 'c1',
