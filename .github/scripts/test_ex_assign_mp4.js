@@ -19,7 +19,7 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 01 v69', html.includes('01-core.js?v=69'));
-ok('cache 06 v55', html.includes('06-inbox-exercises-ai-programs.js?v=55'));
+ok('cache 06 v56', html.includes('06-inbox-exercises-ai-programs.js?v=56'));
 ok('ci unit', wf.includes('test_ex_assign_mp4.js'));
 ok('ci ui', wf.includes('test_ex_assign_mp4_ui.js'));
 ok('openExDetail includes assign panel', /exDetailAssignHtml\(e\)/.test(six));
@@ -106,7 +106,7 @@ ok('bare not safe url', ctx.isSafeMediaUrl('fly-peck-deck.mp4') === false);
 
 const htmlPanel = ctx.exDetailAssignHtml(windowObj.DEF_EX[0]);
 ok('panel html has paste field', /id="exd-mp4-url"/.test(htmlPanel));
-ok('panel paste is empty textarea', /<textarea[^>]*id="exd-mp4-url"/.test(htmlPanel) && !/id="exd-mp4-url"[^>]*>https:\/\//.test(htmlPanel));
+ok('placeholder not fake path', /placeholder="[^"]*Pole puste/.test(htmlPanel) && !/placeholder="D:\//.test(htmlPanel));
 ok('panel suggest pec deck path', /id="exd-mp4-suggest"/.test(htmlPanel) && /Wstaw ścieżkę motyl/.test(htmlPanel));
 ok('stretch panel has no pec deck suggest', !/id="exd-mp4-suggest"/.test(ctx.exDetailAssignHtml({ name: 'Rozciąganie butterfly' })));
 ok('panel html has status', /id="exd-assign-msg"/.test(htmlPanel));
@@ -187,11 +187,18 @@ ok('empty other how-to', /Kopiuj jako ścieżkę/.test(ctx.exAssignEmptyPathMsg(
   ok('own assign keeps technique mp4', dupMedia.gif === 'https://cdn.example.com/filmy/pec-deck.mp4', JSON.stringify(dupMedia));
   ok('own assign does not duplicate video', !dupMedia.video, JSON.stringify(dupMedia));
 
+  windowObj.EX_GIF_REMOTE[pecKey] = '';
   documentStub._els['exd-mp4-url'].value = '';
   windowObj.__notices = [];
-  const empty = await ctx.assignExTechniqueFromPaste('Butterfly (peck deck)');
-  ok('empty paste rejected', empty === false, 'empty=' + empty);
-  ok('empty paste explains', /Kopiuj jako ścieżkę|Wstaw ścieżkę motyl/i.test((windowObj.__notices || []).join(' ')), (windowObj.__notices || []).join(' | '));
+  const emptyPec = await ctx.assignExTechniqueFromPaste('Butterfly (peck deck)');
+  ok('empty pec deck auto-saves', emptyPec === true);
+  ok('empty pec deck uses suggested cdn', /cdn\.jsdelivr\.net/.test(windowObj.EX_GIF_REMOTE[pecKey] || '') && decodeURIComponent(windowObj.EX_GIF_REMOTE[pecKey] || '').indexOf('Machine Chest Fly (Pec Deck)') >= 0, windowObj.EX_GIF_REMOTE[pecKey]);
+
+  documentStub._els['exd-mp4-url'].value = '';
+  windowObj.__notices = [];
+  const emptyOther = await ctx.assignExTechniqueFromPaste('Bench press');
+  ok('empty other rejected', emptyOther === false, 'empty=' + emptyOther);
+  ok('empty other explains', /Kopiuj jako ścieżkę/i.test((windowObj.__notices || []).join(' ')), (windowObj.__notices || []).join(' | '));
 
   ctx.location = { hostname: 'teamprogress2018-droid.github.io' };
   windowObj._uploaded = false;

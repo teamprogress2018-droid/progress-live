@@ -83,12 +83,6 @@ function ok(name, cond, extra) {
   ok('own videos listed', panel.hasOwn && /Motyl z biblioteki/.test(panel.ownText), panel.ownText);
   ok('current exercise set', panel.current === 'Butterfly (peck deck)', panel.current);
 
-  await page.fill('#exd-mp4-url', '');
-  await page.click('#exd-assign .btn-primary');
-  await page.waitForTimeout(200);
-  const emptyMsg = await page.evaluate(() => (document.getElementById('exd-assign-msg') || {}).textContent || '');
-  ok('empty paste shows hint', /Kopiuj jako ścieżkę|Wstaw ścieżkę motyl/i.test(emptyMsg), emptyMsg);
-
   await page.fill('#exd-mp4-url', 'https://cdn.jsdelivr.net/gh/teamprogress20');
   await page.click('#exd-assign .btn-primary');
   await page.waitForTimeout(200);
@@ -102,9 +96,7 @@ function ok(name, cond, extra) {
   ok('truncated https shows hint', /ucięty/i.test(trunc.msg), trunc.msg);
   ok('truncated https not saved', !trunc.remote, trunc.remote);
 
-  await page.click('#exd-mp4-suggest');
-  const suggested = await page.evaluate(() => (document.getElementById('exd-mp4-url') || {}).value || '');
-  ok('suggest fills pec deck path', /Machine Chest Fly \(Pec Deck\)\)\.mp4$/.test(suggested), suggested);
+  await page.fill('#exd-mp4-url', '');
   await page.click('#exd-assign .btn-primary');
   await page.waitForTimeout(400);
 
