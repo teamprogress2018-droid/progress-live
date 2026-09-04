@@ -823,10 +823,9 @@ function isYouCanVideoFilename(filename){
   const names=videoAssetBasenameCandidates(filename);
   for(let i=0;i<names.length;i++){
     const stem=String(names[i]||'').replace(/\.(mp4|webm|gif|webp)$/i,'');
-    if(/\(Machine Chest Fly \(Pec Deck\)\)$/i.test(stem))return true;
-    const m=stem.match(/\(([^()]+)\)$/);
+    const m=stem.match(/\((?:[^()]+|\([^()]*\))+\)$/);
     if(!m)continue;
-    const inner=String(m[1]||'').trim();
+    const inner=String(m[0]||'').slice(1,-1).trim();
     if(/^\d+$/.test(inner))continue;
     if(/^(copy|copy\s*\d+|kopia|kopia\s*\d+)$/i.test(inner))continue;
     if(/[A-Za-z]{3,}/.test(inner))return true;

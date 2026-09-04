@@ -18,8 +18,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01 v68', html.includes('01-core.js?v=68'));
-ok('cache 06 v53', html.includes('06-inbox-exercises-ai-programs.js?v=53'));
+ok('cache 01 v69', html.includes('01-core.js?v=69'));
+ok('cache 06 v54', html.includes('06-inbox-exercises-ai-programs.js?v=54'));
 ok('ci unit', wf.includes('test_ex_assign_mp4.js'));
 ok('ci ui', wf.includes('test_ex_assign_mp4_ui.js'));
 ok('openExDetail includes assign panel', /exDetailAssignHtml\(e\)/.test(six));
@@ -96,6 +96,9 @@ ok('windows (2) nested canonical', ctx.canonicalYouCanBasename(winCopy) === 'Roz
 const winCopyCdn = ctx.cdnUrlFromVideoFilename(winCopy);
 ok('windows (2) nested to cdn', winCopyCdn.indexOf('https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95') === 0);
 ok('windows (2) nested keeps pec deck', decodeURIComponent(winCopyCdn).indexOf('Machine Chest Fly (Pec Deck)') >= 0 && decodeURIComponent(winCopyCdn).indexOf('(2)') < 0, winCopyCdn);
+const cableNested = 'Rozpiętki na wyciągu górnym (stojąc) (Standing Cable Fly (High Pulley Cable Crossover2)).mp4';
+ok('nested cable fly is youcan', ctx.isYouCanVideoFilename(cableNested) === true);
+ok('nested cable fly to cdn', ctx.cdnUrlFromVideoFilename(cableNested).indexOf('https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@') === 0);
 ok('bare filename detected', ctx.isBareMediaFilename('fly-peck-deck.mp4') === true);
 ok('assets path not bare', ctx.isBareMediaFilename('assets/ex/gifs/butterfly-peck-deck.gif') === false);
 ok('https not bare', ctx.isBareMediaFilename('https://cdn.example.com/x.mp4') === false);
@@ -163,6 +166,13 @@ ok('local path not truncated', ctx.isTruncatedAssignUrl('D:/progress-live-video-
   const pastedRemote = windowObj.EX_GIF_REMOTE[pecKey] || '';
   ok('paste windows copy is canonical cdn', /cdn\.jsdelivr\.net/.test(pastedRemote) && decodeURIComponent(pastedRemote).indexOf('Machine Chest Fly (Pec Deck)') >= 0 && decodeURIComponent(pastedRemote).indexOf('(2)') < 0, pastedRemote);
 
+  windowObj.EX_GIF_REMOTE[pecKey] = '';
+  documentStub._els['exd-mp4-url'].value = cableNested;
+  windowObj.__notices = [];
+  const nestedPaste = await ctx.assignExTechniqueFromPaste('Butterfly (peck deck)');
+  ok('paste nested cable basename', nestedPaste === true);
+  ok('paste nested cable is cdn', /cdn\.jsdelivr\.net/.test(windowObj.EX_GIF_REMOTE[pecKey] || ''), windowObj.EX_GIF_REMOTE[pecKey]);
+
   documentStub._els['exd-mp4-url'].value = 'https://cdn.example.com/filmy/pec-deck.mp4';
   await ctx.assignExTechniqueFromPaste('Butterfly (peck deck)');
   ok('paste https saved', windowObj.EX_GIF_REMOTE[pecKey] === 'https://cdn.example.com/filmy/pec-deck.mp4');
@@ -208,7 +218,7 @@ ok('local path not truncated', ctx.isTruncatedAssignUrl('D:/progress-live-video-
   const bareSave = await ctx.assignExTechniqueFromPaste('Butterfly (peck deck)');
   ok('bare filename rejected', bareSave === false);
   ok('bare filename not persisted', windowObj.EX_GIF_REMOTE[pecKey] === beforeBare, windowObj.EX_GIF_REMOTE[pecKey]);
-  ok('bare filename hint', /sama nazwa pliku/i.test((windowObj.__notices || []).join(' ')), (windowObj.__notices || []).join(' | '));
+  ok('bare filename hint', /tylko nazwa pliku|bez folderu/i.test((windowObj.__notices || []).join(' ')), (windowObj.__notices || []).join(' | '));
 
   ctx.location = { hostname: 'localhost' };
   delete windowObj._storage;
