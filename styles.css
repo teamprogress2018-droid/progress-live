@@ -1414,7 +1414,7 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 .cp-metrics-chip.active{border-color:var(--accent);background:var(--adim);}
 .cp-metrics-chip span{color:var(--muted);font-family:'DM Mono',monospace;}
 .cp-metrics-actions{display:flex;gap:6px;flex-wrap:wrap;}
-.cp-cal-day{max-height:148px;overflow:hidden;}
+.cp-cal-day{min-height:0;}
 .cp-ov-profile-rows{display:flex;flex-direction:column;gap:10px;position:relative;z-index:1;font-family:var(--font-ui);}
 .cp-ov-profile-rows>div{display:flex;justify-content:space-between;gap:10px;font-size:var(--font-size-label);}
 .cp-ov-profile-rows span{color:var(--text-label);font-weight:600;}

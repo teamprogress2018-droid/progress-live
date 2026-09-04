@@ -19,13 +19,14 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 08 v39', html.includes('08-client-profile-extras.js?v=39'));
-ok('cache styles v57', html.includes('styles.css?v=57'));
+ok('cache 08 v40', html.includes('08-client-profile-extras.js?v=40'));
+ok('cache styles v58', html.includes('styles.css?v=58'));
 ok('ci unit', wf.includes('test_cp_pulse_scan.js'));
 ok('metrics stacked toolbar', /cp-metrics-head/.test(src) && /cp-metrics-groups/.test(src) && /cp-metrics-actions/.test(src));
 ok('collapse helper', /function cpCollapseDaySessions/.test(src));
 ok('default 1w', /if\(!c\._mpView\)c\._mpView='1w'/.test(src));
-ok('css cal cap', css.includes('.cp-cal-day') && css.includes('.cp-metrics-chip'));
+ok('css no day clip', css.includes('.cp-cal-day') && !/cp-cal-day\{[^}]*max-height/.test(css) && !/cp-cal-day\{[^}]*overflow:hidden/.test(css) && css.includes('.cp-metrics-chip'));
+ok('collapsed tiles skip duration', /function renderCPTraining/.test(src) && !/⏱ \$\{s\.duration\} min/.test(src));
 
 const start = src.indexOf('function cpDaysSinceYmd');
 const end = src.indexOf('function renderCPOverview');
@@ -101,6 +102,13 @@ windowObj.METRIC_ENTRIES = [
 ];
 const g = ctx.cpGarminWeekAvg('c1');
 ok('garmin 7d ignores old', g.n === 2 && g.steps === 9000 && g.hr === 62);
+
+windowObj.METRIC_ENTRIES = [
+  { clientId: 'c1', groupId: 'mg6', date: ymdAgo(1), values: { m1: 3000, m2: 400, m3: 50 } },
+  { clientId: 'c1', groupId: 'mg6', date: ymdAgo(1), values: { m1: 5000, m2: 600, m3: 70 } }
+];
+const gSame = ctx.cpGarminWeekAvg('c1');
+ok('garmin same day is 1 day and sums steps', gSame.n === 1 && gSame.steps === 8000 && gSame.kcal === 1000 && gSame.hr === 60);
 
 const row = ctx.cpTrainIconRow(2, 5);
 ok('icons 2 done 3 plan', (row.match(/cp-ov-ico done/g) || []).length === 2 && (row.match(/cp-ov-ico plan/g) || []).length === 3);

@@ -904,12 +904,29 @@ function cpGarminWeekAvg(clientId){
   const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
   const from=(()=>{const d=new Date(today+'T12:00:00');d.setDate(d.getDate()-6);return d.toISOString().slice(0,10);})();
   const entries=(window.METRIC_ENTRIES||[]).filter(e=>e&&e.clientId===clientId&&e.groupId==='mg6'&&e.date>=from&&e.date<=today);
-  const avg=(key)=>{
-    const vals=entries.map(e=>parseFloat(e.values&&e.values[key])).filter(n=>isFinite(n));
+  if(!entries.length)return{n:0,steps:null,kcal:null,hr:null};
+  const byDay={};
+  entries.forEach(e=>{
+    const day=e.date;
+    if(!byDay[day])byDay[day]={steps:0,kcal:0,hrSum:0,hrN:0};
+    const v=e.values||{};
+    const st=parseFloat(v.m1);if(isFinite(st)&&st>0)byDay[day].steps+=st;
+    const kcal=parseFloat(v.m2);if(isFinite(kcal)&&kcal>0)byDay[day].kcal+=kcal;
+    const hr=parseFloat(v.m3);if(isFinite(hr)&&hr>0){byDay[day].hrSum+=hr;byDay[day].hrN++;}
+  });
+  const days=Object.keys(byDay);
+  const n=days.length;
+  const avgDays=(pick)=>{
+    const vals=days.map(pick).filter(v=>v>0);
     if(!vals.length)return null;
     return Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);
   };
-  return{n:entries.length,steps:avg('m1'),kcal:avg('m2'),hr:avg('m3')};
+  return{
+    n,
+    steps:avgDays(d=>byDay[d].steps),
+    kcal:avgDays(d=>byDay[d].kcal),
+    hr:avgDays(d=>byDay[d].hrN?byDay[d].hrSum/byDay[d].hrN:0)
+  };
 }
 window.cpGarminWeekAvg=cpGarminWeekAvg;
 
@@ -2157,7 +2174,6 @@ function renderCPTraining(c){
           <span style="background:${typeCol}25;color:${typeCol};border-radius:3px;padding:1px 4px;font-size:9px;font-family:'DM Mono',monospace;">${happened?'✓ ':''}${safeEscSnippet(String(typeLabel).toUpperCase(),8)}</span>
           <span style="font-size:9px;color:var(--muted);">${emoji||''}${exCount?` ⚡ ${exCount}`:''}</span>
         </div>
-        ${s.duration?`<div style="font-size:9px;color:var(--muted);margin-top:2px;">⏱ ${s.duration} min</div>`:''}
       </div>`;
     }).join('')+(collapsed.extra?`<div style="font-size:9px;color:var(--muted);margin-top:4px;text-align:center;">+${collapsed.extra} więcej</div>`:'');
 

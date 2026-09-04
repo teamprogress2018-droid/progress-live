@@ -29,7 +29,7 @@ ok('cp menu onboard', html.includes('openClientOnboardSummary(cpClientId)'));
 ok('cp menu monitor', html.includes('openClientMonitorSummary(cpClientId)'));
 ok('report modal shortcuts', html.includes('Start: plan + ankieta + makro') && html.includes('Monitoring: progres / regres'));
 ok('no duplicate core script', (html.match(/01-core\.js\?v=/g) || []).length === 1);
-ok('cache 07/08', html.includes('07-forms-metrics-calculator.js?v=30') && html.includes('08-client-profile-extras.js?v=39'));
+ok('cache 07/08', html.includes('07-forms-metrics-calculator.js?v=30') && html.includes('08-client-profile-extras.js?v=40'));
 ok('css journey', css.includes('.client-journey') && css.includes('.cj-verdict') && css.includes('var(--bg-card)') && css.includes('.cj-sig-bad'));
 ok('dark report container', /id="report-container"[^>]*background:\s*var\(--bg\)/.test(html) || html.includes('id="report-container"') && html.includes('background:var(--bg)'));
 
