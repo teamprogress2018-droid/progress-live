@@ -3619,8 +3619,8 @@ function exDetailAssignHtml(e){
     <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Dopasuj film do ćwiczenia</div>
     ${player}
     ${currentHint}
-    <div style="font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:8px;">Do <b>${esc(name)}</b> — pełna ścieżka: w Eksploratorze <b>Shift+PPM</b> na pliku .mp4 → <b>Kopiuj jako ścieżkę</b> (folder <code>D:\\progress-live-video-assets\\POGRUPOWANE</code>).${isPecDeckAssignExercise(name)?' Albo kliknij „Wstaw ścieżkę motyl” — wstawi ją za Ciebie.':''}</div>
-    <textarea class="form-input" id="exd-mp4-url" rows="3" placeholder="D:/progress-live-video-assets/POGRUPOWANE/Klatka piersiowa/Rozpiętki na maszynie (motyl) (Machine Chest Fly (Pec Deck)).mp4" style="margin-bottom:6px;font-size:12px;min-height:64px;resize:vertical;"></textarea>
+    <div style="font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:8px;">Do <b>${esc(name)}</b> — szary tekst w polu to tylko podpowiedź (pole jest puste).${isPecDeckAssignExercise(name)?' Przy motylu kliknij czerwony przycisk — wstawi i zapisze ścieżkę.':' W Eksploratorze <b>Shift+PPM</b> na .mp4 → <b>Kopiuj jako ścieżkę</b> i wklej.'}</div>
+    <textarea class="form-input" id="exd-mp4-url" rows="3" placeholder="Pole puste — kliknij „Dopasuj i zapisz” (motyl) albo wklej ścieżkę (Shift+PPM → Kopiuj jako ścieżkę)" style="margin-bottom:6px;font-size:12px;min-height:64px;resize:vertical;"></textarea>
     ${isPecDeckAssignExercise(name)?'<button type="button" class="btn btn-ghost btn-sm" id="exd-mp4-suggest" style="width:100%;margin-bottom:6px;" onclick="fillSuggestedExAssignPath()">Wstaw ścieżkę motyl / pec deck</button>':''}
     <button type="button" class="btn btn-primary btn-sm" style="width:100%;margin-bottom:8px;" onclick="assignExTechniqueFromPaste(currentExDetail)">Dopasuj i zapisz przy tym ćwiczeniu</button>
     <label class="form-lbl">Albo wybierz plik YouCan (.mp4)</label>
@@ -3644,6 +3644,14 @@ async function saveAssignedExTechnique(name,rawUrl){
     if(cdn)url=cdn;
   }
   if(!n||!url){
+    if(n&&!raw&&typeof isPecDeckAssignExercise==='function'&&isPecDeckAssignExercise(n)){
+      const suggested=typeof suggestedAssignPathForExercise==='function'?suggestedAssignPathForExercise(n):'';
+      if(suggested){
+        const inp=typeof document!=='undefined'?document.getElementById('exd-mp4-url'):null;
+        if(inp)inp.value=suggested;
+        return saveAssignedExTechnique(n,suggested);
+      }
+    }
     exAssignSetMsg(typeof exAssignEmptyPathMsg==='function'?exAssignEmptyPathMsg(n):'Pole jest puste. Wklej pełną ścieżkę z Eksploratora (Shift+PPM → Kopiuj jako ścieżkę).',false);
     return false;
   }
