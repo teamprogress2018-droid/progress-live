@@ -65,7 +65,7 @@ ok('task from lib',!!(task&&task.kind==='habit'&&task.libId==='m2'&&task.xp===5&
   windowObj.TASKS[0].doneDates=['2026-08-01','2026-08-02'];
   const xp=ctx.clientHabitXpTotal('c1');
   ok('xp total',xp===30); // m1=15 * 2 days
-  ok('cache bumps',html.includes('01-core.js?v=71')&&html.includes('06-inbox-exercises-ai-programs.js?v=60')&&html.includes('04-client-portal.js?v=36')&&html.includes('styles.css?v=56'));
+  ok('cache bumps',html.includes('01-core.js?v=71')&&html.includes('06-inbox-exercises-ai-programs.js?v=60')&&html.includes('04-client-portal.js?v=36')&&html.includes('styles.css?v=57'));
 
   if(failed){console.error('\n'+failed+' failed');process.exit(1);}
   console.log('\nAll progress-nawyki port tests passed');
