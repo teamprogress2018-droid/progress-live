@@ -1912,6 +1912,14 @@ function updateCalTitle(){
   }
 }
 
+function calSessionDoneBits(s){
+  const happened=typeof sessionHappened==='function'&&sessionHappened(s);
+  const tipRaw=typeof sessionHappenedTip==='function'?sessionHappenedTip(s):((s&&s.type||'')+' '+(s&&s.time||''));
+  const tip=typeof escHtml==='function'?escHtml(tipRaw):String(tipRaw||'').replace(/"/g,'&quot;');
+  return{happened,cls:happened?' cal-session-done':'',mark:happened?'✓ ':'',tip};
+}
+window.calSessionDoneBits=calSessionDoneBits;
+
 function renderCalWeek(){
   const ws=getWeekStart(calCurrentDate);
   const today=new Date();today.setHours(0,0,0,0);
@@ -1955,9 +1963,11 @@ function renderCalWeek(){
         const topPct=(timeMin/60)*100;
         const dur=s.duration||60;
         const heightPx=Math.max(20,(dur/60)*56);
-        return `<div class="cal-session-block" style="background:var(--input-bg);border:1px solid rgba(255,255,255,0.1);border-left:3px solid ${col};color:var(--text);top:${topPct}%;height:${heightPx}px;" onclick="editSession('${s.id}')" title="${c?c.name:'Klient'} — ${s.type||''} ${s.time||''}">
-          <div class="cal-session-name">${s.source==='garmin'?'⌚ ':''}${c?c.name.split(' ')[0]:'Klient'}</div>
-          <div class="cal-session-meta">${s.time||''}${s.type?' · '+s.type:''}</div>
+        const bits=typeof calSessionDoneBits==='function'?calSessionDoneBits(s):{cls:'',mark:'',tip:''};
+        const who=c?c.name:'Klient';
+        return `<div class="cal-session-block${bits.cls}" style="background:var(--input-bg);border:1px solid rgba(255,255,255,0.1);border-left:3px solid ${col};color:var(--text);top:${topPct}%;height:${heightPx}px;" onclick="editSession('${s.id}')" title="${typeof escHtml==='function'?escHtml(who):who} — ${bits.tip}">
+          <div class="cal-session-name">${bits.mark}${s.source==='garmin'?'⌚ ':''}${c?c.name.split(' ')[0]:'Klient'}</div>
+          <div class="cal-session-meta">${s.time||''}${s.type?' · '+s.type:''}${bits.happened?' · odbył się':''}</div>
         </div>`;
       }).join('');
       gridHTML+=`<div class="cal-cell${isToday?' today-col':''}" onclick="quickAddSession('${ds}','${String(h).padStart(2,'0')}:00')">${sessHTML}</div>`;
@@ -2015,7 +2025,8 @@ function renderCalMonth(){
         const c=CL.find(x=>x.id===s.clientId);
         const ci=c?CL.indexOf(c):-1;
         const col=SESS_COLORS[(ci>=0?ci:0)%6];
-        return `<div class="cal-month-sess" style="background:var(--input-bg);border-left:3px solid ${col};color:var(--text);" onclick="event.stopPropagation();editSession('${s.id}')"><span style="color:var(--muted);">${s.time||''}</span> ${c?c.name.split(' ')[0]:'Klient'}</div>`;
+        const bits=typeof calSessionDoneBits==='function'?calSessionDoneBits(s):{cls:'',mark:'',tip:''};
+        return `<div class="cal-month-sess${bits.cls}" style="background:var(--input-bg);border-left:3px solid ${col};color:var(--text);" onclick="event.stopPropagation();editSession('${s.id}')" title="${bits.tip}">${bits.mark}<span style="color:var(--muted);">${s.time||''}</span> ${c?c.name.split(' ')[0]:'Klient'}</div>`;
       }).join('')}
       ${daySess.length>3?`<div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">+${daySess.length-3} więcej</div>`:''}
     </div>`;
@@ -2066,12 +2077,13 @@ function renderCalList(){
         const c=CL.find(x=>x.id===s.clientId);
         const ci=c?CL.indexOf(c):-1;
         const col=s.source==='garmin'?'#007cc3':SESS_COLORS[(ci>=0?ci:0)%6];
-        return `<div class="cal-list-sess" onclick="editSession('${s.id}')">
+        const bits=typeof calSessionDoneBits==='function'?calSessionDoneBits(s):{cls:'',mark:'',tip:''};
+        return `<div class="cal-list-sess${bits.cls}" onclick="editSession('${s.id}')" title="${bits.tip}">
           <div style="width:4px;border-radius:2px;background:${col};flex-shrink:0;align-self:stretch;"></div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:${col};min-width:44px;line-height:1.1;">${s.time||'—'}</div>
           <div style="flex:1;">
-            <div style="font-size:13px;font-weight:700;">${s.source==='garmin'?'⌚ ':''}${c?c.name:'Klient'}</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:2px;">${s.source==='garmin'?'Garmin · ':''}${s.type||'Sesja'} · ${s.duration||60} min</div>
+            <div style="font-size:13px;font-weight:700;">${bits.mark}${s.source==='garmin'?'⌚ ':''}${c?c.name:'Klient'}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;">${s.source==='garmin'?'Garmin · ':''}${s.type||'Sesja'} · ${s.duration||60} min${bits.happened?' · odbył się':''}</div>
             ${s.notes?`<div style="font-size:11px;color:var(--muted2);margin-top:3px;font-style:italic;">${s.notes}</div>`:''}
           </div>
           <div style="display:flex;flex-direction:column;gap:4px;align-self:center;">
@@ -2103,8 +2115,9 @@ function renderCalMini(){
     const ds=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
     const isToday=ds===dateStr(today);
     const hasSess=SE.some(s=>s.date===ds);
+    const hasDone=typeof sessionHappened==='function'&&SE.some(s=>s.date===ds&&sessionHappened(s));
     const isSel=calSelectedDate===ds;
-    html+=`<div class="cal-mini-day${isToday?' today':hasSess?' has-sess':''}${isSel?' selected':''}" onclick="calJumpTo('${ds}')">${d}</div>`;
+    html+=`<div class="cal-mini-day${isToday?' today':hasDone?' has-done':hasSess?' has-sess':''}${isSel?' selected':''}" onclick="calJumpTo('${ds}')">${d}</div>`;
   }
   const grid=document.getElementById('cal-mini-grid');
   if(grid)grid.innerHTML=html;
@@ -2128,8 +2141,8 @@ function renderCalSidebar(){
       <div class="ui-kpi-mini-lbl">Klientów</div>
     </div>
     <div class="ui-kpi-mini">
-      <div class="ui-kpi-mini-val" style="color:var(--teal);">${weekSess.reduce((s,sess)=>s+(sess.duration||60),0)}</div>
-      <div class="ui-kpi-mini-lbl">Minut</div>
+      <div class="ui-kpi-mini-val" style="color:var(--teal);">${weekSess.filter(s=>typeof sessionIsRecorded==='function'&&sessionIsRecorded(s)).length}</div>
+      <div class="ui-kpi-mini-lbl">Odbyte</div>
     </div>
     <div class="ui-kpi-mini">
       <div class="ui-kpi-mini-val" style="color:var(--orange);">${SE.filter(s=>s.date===dateStr(today)).length}</div>
@@ -2148,14 +2161,15 @@ function renderCalSidebar(){
       const col=SESS_COLORS[(ci>=0?ci:0)%6];
       const d=new Date(s.date+'T12:00:00');
       const isToday=s.date===nowStr;
-      return `<div style="display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border-subtle);cursor:pointer;" onclick="editSession('${s.id}')">
+      const bits=typeof calSessionDoneBits==='function'?calSessionDoneBits(s):{cls:'',mark:'',tip:''};
+      return `<div style="display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border-subtle);cursor:pointer;" onclick="editSession('${s.id}')" title="${bits.tip}">
         <div style="text-align:center;min-width:40px;">
           <div style="font-size:var(--font-size-label);color:var(--text-label);font-weight:600;">${isToday?'Dziś':CAL_DAYS_PL[(d.getDay()+6)%7]}</div>
           <div class="ui-kpi-mini-val" style="font-size:22px;color:${col};">${d.getDate()}</div>
         </div>
         <div style="flex:1;min-width:0;">
-          <div style="font-size:var(--font-size-sm);font-weight:700;color:var(--text-primary);">${c?c.name:'Klient'}</div>
-          <div style="font-size:var(--font-size-label);color:var(--text-label);margin-top:4px;">${s.time||'—'} · ${s.type||'Sesja'}</div>
+          <div style="font-size:var(--font-size-sm);font-weight:700;color:var(--text-primary);">${bits.mark}${c?c.name:'Klient'}</div>
+          <div style="font-size:var(--font-size-label);color:var(--text-label);margin-top:4px;">${s.time||'—'} · ${s.type||'Sesja'}${bits.happened?' · odbył się':''}</div>
         </div>
       </div>`;
     }).join('');

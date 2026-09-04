@@ -1961,12 +1961,14 @@ function renderCPTraining(c){
       const exCount=(s.exercises||[]).length;
       const emoji=typeof sessionRatingEmoji==='function'?sessionRatingEmoji(s.feedback):'';
       const src=typeof sessionSourceLabel==='function'?sessionSourceLabel(s):(s.type||'sesja');
-      const typeCol=s.source==='client'?'var(--teal)':s.source==='live'?'var(--orange)':'var(--accent)';
       const title=typeof sessionTitle==='function'?sessionTitle(s):(s.type||s.title||'Sesja');
-      return `<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="editSession('${s.id}')">
-        <div style="width:38px;height:38px;border-radius:10px;background:${typeCol}18;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">${emoji||'💪'}</div>
+      const happened=typeof sessionHappened==='function'&&sessionHappened(s);
+      const tip=typeof sessionHappenedTip==='function'?sessionHappenedTip(s):title;
+      const typeCol=s.source==='client'?'var(--teal)':s.source==='live'?'var(--orange)':happened?'var(--teal)':'var(--accent)';
+      return `<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="editSession('${s.id}')" title="${escHtml(tip)}">
+        <div style="width:38px;height:38px;border-radius:10px;background:${typeCol}18;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">${happened?'✓':(emoji||'💪')}</div>
         <div style="flex:1;min-width:0;">
-          <div style="font-size:13px;font-weight:600;">${escHtml(title)}</div>
+          <div style="font-size:13px;font-weight:600;">${happened?'✓ ':''}${escHtml(title)}</div>
           <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;">${escHtml(s.date||'')}${s.duration?' · '+s.duration+' min':''}${exCount?' · '+exCount+' ćw.':''}${s.feedback?' · '+s.feedback+'/5':''}</div>
         </div>
         <span style="background:${typeCol}18;color:${typeCol};border-radius:4px;padding:2px 8px;font-size:10px;font-family:'DM Mono',monospace;font-weight:700;text-transform:uppercase;">${escHtml(src)}</span>
@@ -1985,12 +1987,14 @@ function renderCPTraining(c){
       const exCount=(s.exercises||[]).length;
       const title=typeof sessionTitle==='function'?sessionTitle(s):(s.type||s.title||'Sesja');
       const typeLabel=typeof sessionSourceLabel==='function'?sessionSourceLabel(s):(s.type||'REGULAR');
-      const typeCol=s.source==='client'?'var(--teal)':s.source==='live'?'var(--orange)':'var(--accent)';
+      const happened=typeof sessionHappened==='function'&&sessionHappened(s);
+      const tip=typeof sessionHappenedTip==='function'?sessionHappenedTip(s):title;
+      const typeCol=s.source==='client'?'var(--teal)':s.source==='live'?'var(--orange)':happened?'var(--teal)':'var(--accent)';
       const emoji=typeof sessionRatingEmoji==='function'?sessionRatingEmoji(s.feedback):'';
-      return `<div style="background:${typeCol}15;border:1px solid ${typeCol}40;border-radius:6px;padding:5px 6px;margin-top:4px;cursor:pointer;" onclick="event.stopPropagation();editSession('${s.id}')">
-        <div style="font-size:10px;font-weight:700;color:${typeCol};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${safeEscSnippet(String(title).toUpperCase(),18)}</div>
+      return `<div class="${happened?'cp-sess-done':''}" style="background:${typeCol}15;border:1px solid ${typeCol}40;border-radius:6px;padding:5px 6px;margin-top:4px;cursor:pointer;" onclick="event.stopPropagation();editSession('${s.id}')" title="${escHtml(tip)}">
+        <div style="font-size:10px;font-weight:700;color:${typeCol};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${happened?'✓ ':''}${safeEscSnippet(String(title).toUpperCase(),18)}</div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:2px;">
-          <span style="background:${typeCol}25;color:${typeCol};border-radius:3px;padding:1px 4px;font-size:9px;font-family:'DM Mono',monospace;">${safeEscSnippet(String(typeLabel).toUpperCase(),8)}</span>
+          <span style="background:${typeCol}25;color:${typeCol};border-radius:3px;padding:1px 4px;font-size:9px;font-family:'DM Mono',monospace;">${happened?'✓ ':''}${safeEscSnippet(String(typeLabel).toUpperCase(),8)}</span>
           <span style="font-size:9px;color:var(--muted);">${emoji||''}${exCount?` ⚡ ${exCount}`:''}</span>
         </div>
         ${s.duration?`<div style="font-size:9px;color:var(--muted);margin-top:2px;">⏱ ${s.duration} min</div>`:''}
