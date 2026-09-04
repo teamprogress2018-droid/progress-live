@@ -36,10 +36,10 @@ function exerciseSearchBlob(e) {
 
 ok('library size atlas', DEF_EX.length >= 900, DEF_EX.length);
 ok('unique names', new Set(DEF_EX.map((e) => e.name)).size === DEF_EX.length);
-ok('cache 06 v38', html.includes('06-inbox-exercises-ai-programs.js?v=58'));
+ok('cache 06 v38', html.includes('06-inbox-exercises-ai-programs.js?v=59'));
 ok('cat Mobilność', six.includes("'Mobilność'") && html.includes('<option>Mobilność</option>'));
 ok('mobilność count', DEF_EX.filter((e) => e.cat === 'Mobilność').length >= 80, DEF_EX.filter((e) => e.cat === 'Mobilność').length);
-ok('cache 06 v37', html.includes('06-inbox-exercises-ai-programs.js?v=58'));
+ok('cache 06 v37', html.includes('06-inbox-exercises-ai-programs.js?v=59'));
 
 function findByQuery(q) {
   const n = exerciseSearchNorm(q);

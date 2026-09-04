@@ -25,16 +25,23 @@ vm.runInNewContext('const DEF_EX=[' + m[1] + ']; window.DEF_EX=DEF_EX;', sandbox
 const DEF_EX = sandbox.window.DEF_EX;
 const names = DEF_EX.map((e) => e.name);
 
-ok('cache 06 v58', html.includes('06-inbox-exercises-ai-programs.js?v=58'));
+function akaTokens(name) {
+  const e = DEF_EX.find((x) => x.name === name);
+  return String((e && e.aka) || '').split(',').map((s) => s.trim());
+}
+ok('cache 06 v59', html.includes('06-inbox-exercises-ai-programs.js?v=59'));
 ok('ci unit', wf.includes('test_ex_lib_dedupe.js'));
 ok('unique names', new Set(names).size === names.length);
 ok('library still large', DEF_EX.length >= 900, String(DEF_EX.length));
 ok('no rumuński clone', !names.includes('Rumuński martwy ciąg'));
-ok('rdl keeps rumuński aka', /Rumuński martwy ciąg/.test(DEF_EX.find((e) => e.name === 'Martwy ciąg RDL').aka || ''));
+ok('rdl keeps rumuński aka', akaTokens('Martwy ciąg RDL').includes('Rumuński martwy ciąg'));
 ok('no opadzie hantle clone', !names.includes('Unoszenie bokiem w opadzie hantle'));
-ok('opadzie keeps db aka', /Bent Over DB Lateral Raises/.test(DEF_EX.find((e) => e.name === 'Unoszenie bokiem w opadzie').aka || ''));
+ok('opadzie keeps old pl name', akaTokens('Unoszenie bokiem w opadzie').includes('Unoszenie bokiem w opadzie hantle'));
 ok('no bench hamstring clone', !names.includes('Uginanie ud na ławce (ugięte kolana)'));
+ok('bench hamstring keeps old pl name', akaTokens('Uginanie ud o ławkę z ugiętym kolanem').includes('Uginanie ud na ławce (ugięte kolana)'));
 ok('no swiss glute clone', !names.includes('Mostek izometryczny na piłce swiss (pośladki)'));
+ok('swiss keeps old pl name', akaTokens('Mostek izometryczny na piłce swiss').includes('Mostek izometryczny na piłce swiss (pośladki)'));
+ok('drop jump pl aka', ['Drop jump niska skrzynia', 'Drop jump wysoka skrzynia', 'Drop jump na skrzynię'].every((n) => akaTokens('Depth jump').includes(n)));
 ok('keeps ncm jump', names.includes('Skok pionowy NCM'));
 ok('keeps cm jump', names.includes('Skok pionowy CM'));
 ok('keeps lying curl', names.includes('Uginanie nóg leżąc'));
