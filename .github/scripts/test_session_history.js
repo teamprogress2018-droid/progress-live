@@ -41,7 +41,7 @@ vm.runInContext(fs.readFileSync(path.join(__dirname, '..', '..', '01-core.js'), 
 const {
   sessionRatingEmoji, sessionRatingLabel, isLoggedWorkout, completedWorkouts,
   sessionSetsCount, avgSessionRating, sessionTitle, sessionSourceLabel,
-  sessionHappened, sessionHappenedTip
+  sessionIsRecorded, sessionHappened, sessionHappenedTip
 } = ctx;
 
 let failed = 0;
@@ -109,6 +109,14 @@ const pair = [
 ];
 eq('planned happened when same-day log', sessionHappened(pair[0], pair), true);
 eq('other client planned not happened', sessionHappened({id: 'p2', clientId: 'c9', date: '2026-08-10', source: 'planned'}, pair), false);
+eq('recorded live', sessionIsRecorded({source: 'live'}), true);
+eq('recorded garmin', sessionIsRecorded({source: 'garmin'}), true);
+eq('recorded planned false', sessionIsRecorded({source: 'planned'}), false);
+eq('kpi skips planned pair', pair.filter(sessionIsRecorded).length, 1);
+eq('kpi two logs same day', [
+  {id: 'a', source: 'live'},
+  {id: 'b', source: 'client'}
+].filter(sessionIsRecorded).length, 2);
 eq('tip logged has check', /Odbył się/.test(sessionHappenedTip({source: 'live', type: 'TP', time: '18:00'})), true);
 eq('tip planned says zaplanowany', /zaplanowany/.test(sessionHappenedTip({source: 'planned', type: 'Push'})), true);
 eq('tip planned fulfilled', /odbył się/.test(sessionHappenedTip(pair[0], pair)), true);

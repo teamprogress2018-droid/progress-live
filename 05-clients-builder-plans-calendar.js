@@ -2141,7 +2141,7 @@ function renderCalSidebar(){
       <div class="ui-kpi-mini-lbl">Klientów</div>
     </div>
     <div class="ui-kpi-mini">
-      <div class="ui-kpi-mini-val" style="color:var(--teal);">${weekSess.filter(s=>typeof sessionHappened==='function'&&sessionHappened(s)).length}</div>
+      <div class="ui-kpi-mini-val" style="color:var(--teal);">${weekSess.filter(s=>typeof sessionIsRecorded==='function'&&sessionIsRecorded(s)).length}</div>
       <div class="ui-kpi-mini-lbl">Odbyte</div>
     </div>
     <div class="ui-kpi-mini">

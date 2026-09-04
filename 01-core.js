@@ -2991,10 +2991,16 @@ function isLoggedWorkout(s){
 }
 window.isLoggedWorkout=isLoggedWorkout;
 
+function sessionIsRecorded(s){
+  if(!s)return false;
+  if(s.source==='garmin')return true;
+  return typeof isLoggedWorkout==='function'&&isLoggedWorkout(s);
+}
+window.sessionIsRecorded=sessionIsRecorded;
+
 function sessionHappened(s,sessions){
   if(!s)return false;
-  if(typeof isLoggedWorkout==='function'&&isLoggedWorkout(s))return true;
-  if(s.source==='garmin')return true;
+  if(sessionIsRecorded(s))return true;
   if(!s.clientId||!s.date)return false;
   const list=sessions||window.SE||[];
   return list.some(o=>o&&o.id!==s.id&&o.clientId===s.clientId&&o.date===s.date&&typeof isLoggedWorkout==='function'&&isLoggedWorkout(o));
