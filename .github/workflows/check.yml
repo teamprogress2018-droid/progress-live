@@ -225,6 +225,8 @@ jobs:
         run: node .github/scripts/test_ex_names_pl.js
       - name: 1n31b2. Testy ćwiczeń z atlasu TFS
         run: node .github/scripts/test_atlas_tfs_ex.js
+      - name: 1n31b3. Testy deduplikacji biblioteki ćwiczeń
+        run: node .github/scripts/test_ex_lib_dedupe.js
       - name: 1n31c. Testy podsumowania start + monitoring klienta
         run: node .github/scripts/test_client_journey_summary.js
       - name: 1n32. Testy periodyzacji RPE/RIR w kreatorze
