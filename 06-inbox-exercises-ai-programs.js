@@ -3641,7 +3641,11 @@ async function saveAssignedExTechnique(name,rawUrl){
     return false;
   }
   if(typeof isBareMediaFilename==='function'&&isBareMediaFilename(url)){
-    exAssignSetMsg('To sama nazwa pliku. Dopisz folder, np. D:/progress-live-video-assets/POGRUPOWANE/Klatka piersiowa/'+url,false);
+    const base=typeof videoFilenameDecodedBase==='function'?videoFilenameDecodedBase(raw):String(raw||'').replace(/\\/g,'/').split('/').pop();
+    let msg='To tylko nazwa pliku, bez folderu — nie zmieniaj nazwy filmu. Wklej pełną ścieżkę z Eksploratora, np. D:/progress-live-video-assets/POGRUPOWANE/Klatka piersiowa/'+base;
+    if(typeof isPecDeckAssignExercise==='function'&&isPecDeckAssignExercise(n))
+      msg+=' Albo kliknij „Wstaw ścieżkę motyl / pec deck”.';
+    exAssignSetMsg(msg,false);
     return false;
   }
   if(typeof isLocalDiskMediaPath==='function'&&isLocalDiskMediaPath(url)){

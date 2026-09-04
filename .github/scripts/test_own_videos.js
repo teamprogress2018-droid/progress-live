@@ -92,6 +92,8 @@ eq('windows (2) nested canonical', canonicalYouCanBasename(winCopy), 'Rozpiętki
 const winCopyCdn = cdnUrlFromVideoFilename(winCopy);
 eq('windows (2) nested to cdn', winCopyCdn.indexOf('https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@abc1234/') === 0, true);
 eq('windows (2) nested keeps pec deck', decodeURIComponent(winCopyCdn).indexOf('(2)') < 0 && decodeURIComponent(winCopyCdn).indexOf('Machine Chest Fly (Pec Deck)') >= 0, true);
+eq('nested cable fly is youcan', isYouCanVideoFilename('Rozpiętki na wyciągu górnym (stojąc) (Standing Cable Fly (High Pulley Cable Crossover2)).mp4'), true);
+eq('nested cable fly to cdn', cdnUrlFromVideoFilename('Rozpiętki na wyciągu górnym (stojąc) (Standing Cable Fly (High Pulley Cable Crossover2)).mp4').indexOf('https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@abc1234/') === 0, true);
 eq(
   'windows copy disk path to canonical cdn',
   decodeURIComponent(normalizeCoachVideoUrl('D:/progress-live-video-assets/POGRUPOWANE/Klatka piersiowa/' + winCopy)).indexOf('Machine Chest Fly (Pec Deck)') >= 0
