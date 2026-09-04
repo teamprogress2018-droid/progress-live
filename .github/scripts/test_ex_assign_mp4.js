@@ -19,7 +19,7 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 01 v69', html.includes('01-core.js?v=69'));
-ok('cache 06 v54', html.includes('06-inbox-exercises-ai-programs.js?v=54'));
+ok('cache 06 v55', html.includes('06-inbox-exercises-ai-programs.js?v=55'));
 ok('ci unit', wf.includes('test_ex_assign_mp4.js'));
 ok('ci ui', wf.includes('test_ex_assign_mp4_ui.js'));
 ok('openExDetail includes assign panel', /exDetailAssignHtml\(e\)/.test(six));
@@ -111,7 +111,7 @@ ok('panel suggest pec deck path', /id="exd-mp4-suggest"/.test(htmlPanel) && /Wst
 ok('stretch panel has no pec deck suggest', !/id="exd-mp4-suggest"/.test(ctx.exDetailAssignHtml({ name: 'Rozciąganie butterfly' })));
 ok('panel html has status', /id="exd-assign-msg"/.test(htmlPanel));
 ok('panel player autoplay', /id="exd-mp4-player"/.test(six) && /autoplay loop muted/.test(six));
-ok('panel title match', /Dopasuj film do ćwiczenia/.test(htmlPanel));
+ok('panel copy-as-path hint', /Kopiuj jako ścieżkę/.test(htmlPanel) && /Shift\+PPM/.test(htmlPanel));
 ok('panel save label', /Dopasuj i zapisz przy tym ćwiczeniu/.test(htmlPanel));
 ok('suggested pec deck path', /Machine Chest Fly \(Pec Deck\)\)\.mp4$/.test(ctx.suggestedAssignPathForExercise('Butterfly (peck deck)')));
 ok('suggested other path is folder', ctx.suggestedAssignPathForExercise('Bench press') === 'D:/progress-live-video-assets/POGRUPOWANE/');
@@ -121,6 +121,8 @@ ok('pec deck matcher', ctx.isPecDeckAssignExercise('Butterfly (peck deck)') === 
 ok('truncated https detected', ctx.isTruncatedAssignUrl('https://cdn.jsdelivr.net/gh/teamprogress20') === true);
 ok('full mp4 https not truncated', ctx.isTruncatedAssignUrl('https://cdn.example.com/filmy/pec-deck.mp4') === false);
 ok('local path not truncated', ctx.isTruncatedAssignUrl('D:/progress-live-video-assets/x.mp4') === false);
+ok('empty pec deck how-to', /Wstaw ścieżkę motyl/.test(ctx.exAssignEmptyPathMsg('Butterfly (peck deck)')) && /Kopiuj jako ścieżkę/.test(ctx.exAssignEmptyPathMsg('Butterfly (peck deck)')));
+ok('empty other how-to', /Kopiuj jako ścieżkę/.test(ctx.exAssignEmptyPathMsg('Bench press')) && !/Wstaw ścieżkę motyl/.test(ctx.exAssignEmptyPathMsg('Bench press')));
 
 (async () => {
   windowObj.__notices = [];
@@ -189,7 +191,7 @@ ok('local path not truncated', ctx.isTruncatedAssignUrl('D:/progress-live-video-
   windowObj.__notices = [];
   const empty = await ctx.assignExTechniqueFromPaste('Butterfly (peck deck)');
   ok('empty paste rejected', empty === false, 'empty=' + empty);
-  ok('empty paste explains', /wklej pełną ścieżkę/i.test((windowObj.__notices || []).join(' ')), (windowObj.__notices || []).join(' | '));
+  ok('empty paste explains', /Kopiuj jako ścieżkę|Wstaw ścieżkę motyl/i.test((windowObj.__notices || []).join(' ')), (windowObj.__notices || []).join(' | '));
 
   ctx.location = { hostname: 'teamprogress2018-droid.github.io' };
   windowObj._uploaded = false;
