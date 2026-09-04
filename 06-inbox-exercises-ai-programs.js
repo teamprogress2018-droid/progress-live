@@ -1383,12 +1383,34 @@ const DEF_EX=[
 window.DEF_EX=DEF_EX;
 
 
+function hiddenExNames(){
+  const s=(window.SETTINGS&&window.SETTINGS.hiddenExercises)||[];
+  return Array.isArray(s)?s.map(n=>String(n||'').trim()).filter(Boolean):[];
+}
+window.hiddenExNames=hiddenExNames;
+
+function persistHiddenExercises(list){
+  if(!window.SETTINGS)window.SETTINGS={};
+  window.SETTINGS.hiddenExercises=Array.from(new Set((list||[]).map(n=>String(n||'').trim()).filter(Boolean)));
+  const persist=typeof persistSettingsDoc==='function'?persistSettingsDoc:(window.persistSettingsDoc||null);
+  if(typeof persist==='function')persist();
+  return window.SETTINGS.hiddenExercises;
+}
+window.persistHiddenExercises=persistHiddenExercises;
+
 function allExercises(){
   // Własne ćwiczenia trenera (EX) mają PIERWSZEŃSTWO nad domyślnymi (DEF_EX) o tej samej nazwie —
   // wcześniej było odwrotnie, przez co własne ćwiczenie znikało bez ostrzeżenia.
-  const all=[...(EX||[]),...DEF_EX];
+  const hidden=new Set(hiddenExNames());
+  const all=[...(window.EX||EX||[]),...(window.DEF_EX||DEF_EX||[])];
   const seen=new Set();
-  return all.filter(e=>{if(seen.has(e.name))return false;seen.add(e.name);return true;});
+  return all.filter(e=>{
+    if(!e||!e.name)return false;
+    if(hidden.has(e.name))return false;
+    if(seen.has(e.name))return false;
+    seen.add(e.name);
+    return true;
+  });
 }
 
 // Ciemna lista podpowiedzi ćwiczeń (zamiast natywnego białego datalist)
@@ -1625,15 +1647,32 @@ function editEx(name){
 }
 
 async function delEx(name){
+  if(!name)return;
+  if(!confirm('Usunąć ćwiczenie "'+name+'" z biblioteki?'))return;
   const ex=findCustomEx(name);
-  if(!ex){notify('To ćwiczenie z domyślnej biblioteki — nie można go usunąć');return;}
-  if(!confirm('Usunąć ćwiczenie "'+name+'"?'))return;
-  window.EX=(EX||[]).filter(e=>e.name!==name);
-  document.getElementById('ex-detail').style.transform='translateX(100%)';
-  renderLib();
-  notify('Ćwiczenie usunięte');
-  if(window._db&&ex.id){try{await window._del(window._doc(window._db,'exercises',ex.id));}catch(e){console.warn('Firebase delEx:',e);}}
+  if(ex){
+    window.EX=(window.EX||EX||[]).filter(e=>e.name!==name);
+    if(window._db&&ex.id){try{await window._del(window._doc(window._db,'exercises',ex.id));}catch(e){console.warn('Firebase delEx:',e);}}
+  }else{
+    const list=hiddenExNames();
+    if(!list.includes(name))list.push(name);
+    persistHiddenExercises(list);
+  }
+  if(document&&document.getElementById&&document.getElementById('ex-detail')&&typeof closeExDetail==='function')closeExDetail();
+  else if(typeof renderLib==='function')renderLib();
+  notify('Ćwiczenie usunięte z biblioteki');
 }
+window.delEx=delEx;
+
+function restoreHiddenExercises(){
+  const n=hiddenExNames().length;
+  if(!n){notify('Brak ukrytych ćwiczeń');return;}
+  if(!confirm('Przywrócić '+n+' ukrytych ćwiczeń do biblioteki?'))return;
+  persistHiddenExercises([]);
+  if(typeof renderLib==='function')renderLib();
+  notify('Przywrócono '+n+' ćwiczeń');
+}
+window.restoreHiddenExercises=restoreHiddenExercises;
 
 async function saveEx(){
   if(window._saveGuard_saveEx)return;window._saveGuard_saveEx=true;setTimeout(()=>window._saveGuard_saveEx=false,1500);
@@ -1708,6 +1747,7 @@ function exCardHtml(e,i){
         </div>
         ${e.muscle?`<div style="font-size:10px;color:var(--muted);margin-bottom:4px;">${e.muscle}</div>`:''}
         ${e.tip?`<div class="ex-card-tip">${e.tip.substring(0,80)}${e.tip.length>80?'…':''}</div>`:''}
+        <button type="button" class="btn btn-ghost btn-sm" style="color:var(--red);margin-top:6px;" onclick="event.stopPropagation();delEx('${e.name.replace(/'/g,"\\'")}')">Usuń</button>
       </div>
     </div>
   </div>`;
@@ -1757,7 +1797,10 @@ function renderLibGroupedSections(filtered,mode){
         <span class="pill pill-muted" style="font-size:10px;align-self:center;">${e.cat}</span>
         <span class="pill pill-muted" style="font-size:10px;align-self:center;">${e.eq}</span>
         <div style="font-size:11px;color:var(--muted);align-self:center;">${(e.tip||'').substring(0,60)}${(e.tip||'').length>60?'…':''}</div>
-        <div style="align-self:center;"><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openExDetail('${e.name.replace(/'/g,"\\'")}')">Szczegóły</button></div>
+        <div style="align-self:center;display:flex;gap:4px;flex-wrap:wrap;">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openExDetail('${e.name.replace(/'/g,"\\'")}')">Szczegóły</button>
+          <button type="button" class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="event.stopPropagation();delEx('${e.name.replace(/'/g,"\\'")}')">Usuń</button>
+        </div>
       </div>`;
     });
   });
@@ -1767,6 +1810,12 @@ function renderLibGroupedSections(filtered,mode){
 function renderLib(){
   updateExDl();
   const all=allExercises();
+  const hiddenN=hiddenExNames().length;
+  const restoreBtn=document.getElementById('lib-restore-hidden');
+  if(restoreBtn){
+    restoreBtn.style.display=hiddenN?'block':'none';
+    restoreBtn.textContent=hiddenN?('Przywróć ukryte ('+hiddenN+')'):'Przywróć ukryte';
+  }
   const search=(document.getElementById('ex-search')||{}).value||'';
   const sort=(document.getElementById('ex-sort')||{}).value||'az';
 
@@ -1841,7 +1890,10 @@ function renderLib(){
         <span class="pill pill-muted" style="font-size:10px;align-self:center;">${e.cat}</span>
         <span class="pill pill-muted" style="font-size:10px;align-self:center;">${e.eq}</span>
         <div style="font-size:11px;color:var(--muted);align-self:center;">${(e.tip||'').substring(0,60)}${(e.tip||'').length>60?'…':''}</div>
-        <div style="align-self:center;"><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openExDetail('${e.name.replace(/'/g,"\\'")}')">Szczegóły</button></div>
+        <div style="align-self:center;display:flex;gap:4px;flex-wrap:wrap;">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openExDetail('${e.name.replace(/'/g,"\\'")}')">Szczegóły</button>
+          <button type="button" class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="event.stopPropagation();delEx('${e.name.replace(/'/g,"\\'")}')">Usuń</button>
+        </div>
       </div>`;
     }).join('');
   }
@@ -1927,6 +1979,11 @@ function openExDetail(name){
       <span class="pill" style="background:${col}22;color:${col};">${e.cat}</span>
       <span class="pill pill-muted">${e.eq}</span>
     </div>
+    <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
+      <button class="btn btn-primary btn-sm" style="flex:1;" onclick="prefillExInBuilder('${e.name.replace(/'/g,"\\'")}')">Użyj w builderze</button>
+      ${findCustomEx(e.name)?`<button class="btn btn-ghost btn-sm" style="flex:1;" onclick="editEx('${e.name.replace(/'/g,"\\'")}')">✏ Edytuj</button>`:''}
+      <button type="button" class="btn btn-ghost btn-sm" id="exd-del" style="flex:1;color:var(--red);" onclick="delEx('${e.name.replace(/'/g,"\\'")}')">🗑 Usuń ćwiczenie</button>
+    </div>
     ${typeof exDetailAssignHtml==='function'?exDetailAssignHtml(e):''}
     ${(()=>{const media=typeof resolveCoachMedia==='function'?resolveCoachMedia(e):null;if(!media)return'';let h='';const assigned=typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):'';const skipGif=!!(assigned&&media.gif&&typeof sameMediaUrl==='function'&&sameMediaUrl(assigned,media.gif));if(media.gif&&!skipGif&&typeof exTechniqueMediaHtml==='function')h+=exTechniqueMediaHtml({gif:media.gif,name:e.name},{});else if(!media.gif&&media.img){h+=`<div class="ex-detail-thumb"><img src="${typeof escHtml==='function'?escHtml(media.img):media.img}" alt="Technika: ${typeof escHtml==='function'?escHtml(e.name):e.name}" loading="lazy" referrerpolicy="no-referrer"></div>`;}const showVid=!!media.video&&!(media.gif&&typeof sameMediaUrl==='function'&&sameMediaUrl(media.gif,media.video));if(typeof coachMediaHtml==='function')h+=coachMediaHtml({...media,name:e.name,video:showVid?media.video:'',videoEmbed:showVid?media.videoEmbed:''},{showVideo:showVid,showGif:false});if(typeof exTechniqueGuideHtml==='function')h+=exTechniqueGuideHtml(e);return h;})()}
     ${e.muscle?`<div style="margin-bottom:12px;">
@@ -1945,17 +2002,12 @@ function openExDetail(name){
       <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Zamienniki</div>
       <div style="display:flex;gap:4px;flex-wrap:wrap;">${e.alt.split(',').map(a=>`<span class="pill pill-muted" style="font-size:10px;cursor:pointer;" onclick="openExDetail('${a.trim().replace(/'/g,"\\'")}')">→ ${a.trim()}</span>`).join('')}</div>
     </div>`:''}
-    <div style="display:flex;gap:6px;margin-top:4px;">
-      <button class="btn btn-primary btn-sm" style="flex:1;" onclick="prefillExInBuilder('${e.name.replace(/'/g,"\\'")}')">Użyj w builderze</button>
-    </div>
-    ${findCustomEx(e.name)?`<div style="display:flex;gap:6px;margin-top:6px;">
-      <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="editEx('${e.name.replace(/'/g,"\\'")}')">✏ Edytuj</button>
-      <button class="btn btn-ghost btn-sm" style="flex:1;color:var(--red);" onclick="delEx('${e.name.replace(/'/g,"\\'")}')">🗑 Usuń</button>
-    </div>`:''}
     ${typeof ownVideoForExercise==='function'&&ownVideoForExercise(e.name)?'':`<button onclick="event.stopPropagation();(function(){window.open('https://www.youtube.com/results?search_query='+encodeURIComponent(currentExDetail+' cwiczenie technika wykonania'),'_blank');})()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;padding:10px;background:rgba(255,0,0,0.1);border:1px solid rgba(255,0,0,0.3);border-radius:8px;color:#ff4444;font-size:12px;font-weight:700;cursor:pointer;" onmouseover="this.style.background='rgba(255,0,0,0.2)'" onmouseout="this.style.background='rgba(255,0,0,0.1)'">&#9654; Szukaj na YouTube &#8212; technika</button>`}
     `;
   // clear AI msgs
   document.getElementById('exd-ai-msgs').innerHTML='';
+  const hdrDel=document.getElementById('exd-del-hdr');
+  if(hdrDel)hdrDel.style.display='';
   const detail=document.getElementById('ex-detail');
   detail.style.transform='translateX(0)';
   const body=document.getElementById('exd-body');
@@ -2103,6 +2155,8 @@ window.delOwnVideo=delOwnVideo;
 
 function closeExDetail(){
   document.getElementById('ex-detail').style.transform='translateX(100%)';
+  const hdrDel=document.getElementById('exd-del-hdr');
+  if(hdrDel)hdrDel.style.display='none';
   exSelId=null;renderLib();
 }
 
