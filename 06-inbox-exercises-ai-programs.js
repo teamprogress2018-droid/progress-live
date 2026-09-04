@@ -1401,16 +1401,24 @@ window.persistHiddenExercises=persistHiddenExercises;
 function allExercises(){
   // Własne ćwiczenia trenera (EX) mają PIERWSZEŃSTWO nad domyślnymi (DEF_EX) o tej samej nazwie —
   // wcześniej było odwrotnie, przez co własne ćwiczenie znikało bez ostrzeżenia.
+  // hiddenExercises chowa tylko DEF_EX — własne karty zostają, nawet przy tej samej nazwie.
   const hidden=new Set(hiddenExNames());
-  const all=[...(window.EX||EX||[]),...(window.DEF_EX||DEF_EX||[])];
+  const custom=window.EX||EX||[];
+  const defs=window.DEF_EX||DEF_EX||[];
   const seen=new Set();
-  return all.filter(e=>{
-    if(!e||!e.name)return false;
-    if(hidden.has(e.name))return false;
-    if(seen.has(e.name))return false;
+  const out=[];
+  custom.forEach(e=>{
+    if(!e||!e.name||seen.has(e.name))return;
     seen.add(e.name);
-    return true;
+    out.push(e);
   });
+  defs.forEach(e=>{
+    if(!e||!e.name||seen.has(e.name))return;
+    if(hidden.has(e.name))return;
+    seen.add(e.name);
+    out.push(e);
+  });
+  return out;
 }
 
 // Ciemna lista podpowiedzi ćwiczeń (zamiast natywnego białego datalist)
@@ -1646,21 +1654,34 @@ function editEx(name){
   window._editingExName=name;
 }
 
-async function delEx(name){
-  if(!name)return;
-  if(!confirm('Usunąć ćwiczenie "'+name+'" z biblioteki?'))return;
-  const ex=findCustomEx(name);
-  if(ex){
-    window.EX=(window.EX||EX||[]).filter(e=>e.name!==name);
-    if(window._db&&ex.id){try{await window._del(window._doc(window._db,'exercises',ex.id));}catch(e){console.warn('Firebase delEx:',e);}}
-  }else{
-    const list=hiddenExNames();
-    if(!list.includes(name))list.push(name);
-    persistHiddenExercises(list);
-  }
+function refreshLibAfterDel(){
   if(document&&document.getElementById&&document.getElementById('ex-detail')&&typeof closeExDetail==='function')closeExDetail();
   else if(typeof renderLib==='function')renderLib();
-  notify('Ćwiczenie usunięte z biblioteki');
+}
+
+async function delEx(name){
+  if(!name||window._delExBusy)return;
+  if(!confirm('Usunąć ćwiczenie "'+name+'" z biblioteki?'))return;
+  window._delExBusy=true;
+  try{
+    const ex=findCustomEx(name);
+    if(ex){
+      window.EX=(window.EX||EX||[]).filter(e=>e.name!==name);
+      refreshLibAfterDel();
+      if(window._db&&ex.id){try{await window._del(window._doc(window._db,'exercises',ex.id));}catch(e){console.warn('Firebase delEx:',e);}}
+    }else{
+      const inDef=(window.DEF_EX||DEF_EX||[]).some(e=>e&&e.name===name);
+      if(inDef){
+        const list=hiddenExNames();
+        if(!list.includes(name))list.push(name);
+        persistHiddenExercises(list);
+      }
+      refreshLibAfterDel();
+    }
+    notify('Ćwiczenie usunięte z biblioteki');
+  }finally{
+    window._delExBusy=false;
+  }
 }
 window.delEx=delEx;
 
