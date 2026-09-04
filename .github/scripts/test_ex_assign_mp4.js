@@ -19,7 +19,7 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 01 v68', html.includes('01-core.js?v=68'));
-ok('cache 06 v52', html.includes('06-inbox-exercises-ai-programs.js?v=52'));
+ok('cache 06 v53', html.includes('06-inbox-exercises-ai-programs.js?v=53'));
 ok('ci unit', wf.includes('test_ex_assign_mp4.js'));
 ok('ci ui', wf.includes('test_ex_assign_mp4_ui.js'));
 ok('openExDetail includes assign panel', /exDetailAssignHtml\(e\)/.test(six));
@@ -105,13 +105,16 @@ const htmlPanel = ctx.exDetailAssignHtml(windowObj.DEF_EX[0]);
 ok('panel html has paste field', /id="exd-mp4-url"/.test(htmlPanel));
 ok('panel paste is empty textarea', /<textarea[^>]*id="exd-mp4-url"/.test(htmlPanel) && !/id="exd-mp4-url"[^>]*>https:\/\//.test(htmlPanel));
 ok('panel suggest pec deck path', /id="exd-mp4-suggest"/.test(htmlPanel) && /Wstaw ścieżkę motyl/.test(htmlPanel));
-ok('panel html has own videos', /id="exd-mp4-own"/.test(htmlPanel) && /Motyl pec deck/.test(htmlPanel));
+ok('stretch panel has no pec deck suggest', !/id="exd-mp4-suggest"/.test(ctx.exDetailAssignHtml({ name: 'Rozciąganie butterfly' })));
 ok('panel html has status', /id="exd-assign-msg"/.test(htmlPanel));
 ok('panel player autoplay', /id="exd-mp4-player"/.test(six) && /autoplay loop muted/.test(six));
 ok('panel title match', /Dopasuj film do ćwiczenia/.test(htmlPanel));
 ok('panel save label', /Dopasuj i zapisz przy tym ćwiczeniu/.test(htmlPanel));
 ok('suggested pec deck path', /Machine Chest Fly \(Pec Deck\)\)\.mp4$/.test(ctx.suggestedAssignPathForExercise('Butterfly (peck deck)')));
 ok('suggested other path is folder', ctx.suggestedAssignPathForExercise('Bench press') === 'D:/progress-live-video-assets/POGRUPOWANE/');
+ok('suggested stretch butterfly is folder', ctx.suggestedAssignPathForExercise('Rozciąganie butterfly') === 'D:/progress-live-video-assets/POGRUPOWANE/');
+ok('suggested butterfly stretch aka is folder', ctx.suggestedAssignPathForExercise('Butterfly stretch') === 'D:/progress-live-video-assets/POGRUPOWANE/');
+ok('pec deck matcher', ctx.isPecDeckAssignExercise('Butterfly (peck deck)') === true && ctx.isPecDeckAssignExercise('Rozciąganie butterfly') === false);
 ok('truncated https detected', ctx.isTruncatedAssignUrl('https://cdn.jsdelivr.net/gh/teamprogress20') === true);
 ok('full mp4 https not truncated', ctx.isTruncatedAssignUrl('https://cdn.example.com/filmy/pec-deck.mp4') === false);
 ok('local path not truncated', ctx.isTruncatedAssignUrl('D:/progress-live-video-assets/x.mp4') === false);

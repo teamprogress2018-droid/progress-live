@@ -3548,9 +3548,16 @@ function exAssignSetMsg(text,ok){
 }
 window.exAssignSetMsg=exAssignSetMsg;
 
-function suggestedAssignPathForExercise(name){
+function isPecDeckAssignExercise(name){
   const n=String(name||'').toLowerCase();
-  if(/butterfly|peck deck|pec-deck|\bpec deck\b/.test(n)&&!/reverse|odwrot/.test(n))
+  if(/stretch|rozciągan|reverse|odwrot/.test(n))return false;
+  if(/peck\s*deck|pec-deck|\bpec deck\b/.test(n))return true;
+  return /butterfly/.test(n)&&/peck|motyl|maszyn/.test(n);
+}
+window.isPecDeckAssignExercise=isPecDeckAssignExercise;
+
+function suggestedAssignPathForExercise(name){
+  if(isPecDeckAssignExercise(name))
     return 'D:/progress-live-video-assets/POGRUPOWANE/Klatka piersiowa/Rozpiętki na maszynie (motyl) (Machine Chest Fly (Pec Deck)).mp4';
   return 'D:/progress-live-video-assets/POGRUPOWANE/';
 }
@@ -3605,9 +3612,9 @@ function exDetailAssignHtml(e){
     <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Dopasuj film do ćwiczenia</div>
     ${player}
     ${currentHint}
-    <div style="font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:8px;">Do <b>${esc(name)}</b> — wklej <b>pełną</b> ścieżkę z Eksploratora (nie ucięty https). Albo kliknij „Wstaw ścieżkę motyl” i zapisz.</div>
+    <div style="font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:8px;">Do <b>${esc(name)}</b> — wklej <b>pełną</b> ścieżkę z Eksploratora (nie ucięty https).${isPecDeckAssignExercise(name)?' Albo kliknij „Wstaw ścieżkę motyl” i zapisz.':''}</div>
     <textarea class="form-input" id="exd-mp4-url" rows="3" placeholder="D:/progress-live-video-assets/POGRUPOWANE/Klatka piersiowa/Rozpiętki na maszynie (motyl) (Machine Chest Fly (Pec Deck)).mp4" style="margin-bottom:6px;font-size:12px;min-height:64px;resize:vertical;"></textarea>
-    <button type="button" class="btn btn-ghost btn-sm" id="exd-mp4-suggest" style="width:100%;margin-bottom:6px;" onclick="fillSuggestedExAssignPath()">Wstaw ścieżkę motyl / pec deck</button>
+    ${isPecDeckAssignExercise(name)?'<button type="button" class="btn btn-ghost btn-sm" id="exd-mp4-suggest" style="width:100%;margin-bottom:6px;" onclick="fillSuggestedExAssignPath()">Wstaw ścieżkę motyl / pec deck</button>':''}
     <button type="button" class="btn btn-primary btn-sm" style="width:100%;margin-bottom:8px;" onclick="assignExTechniqueFromPaste(currentExDetail)">Dopasuj i zapisz przy tym ćwiczeniu</button>
     <label class="form-lbl">Albo wybierz plik YouCan (.mp4)</label>
     <input type="file" class="form-input" id="exd-mp4-file" accept=".mp4,.webm,video/mp4,video/webm" onchange="assignExTechniqueFromFile(currentExDetail,this)">
