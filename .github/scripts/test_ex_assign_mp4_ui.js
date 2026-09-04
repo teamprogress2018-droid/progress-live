@@ -87,7 +87,7 @@ function ok(name, cond, extra) {
   await page.click('#exd-assign .btn-primary');
   await page.waitForTimeout(200);
   const emptyMsg = await page.evaluate(() => (document.getElementById('exd-assign-msg') || {}).textContent || '');
-  ok('empty paste shows hint', /wklej pełną ścieżkę/i.test(emptyMsg), emptyMsg);
+  ok('empty paste shows hint', /Kopiuj jako ścieżkę|Wstaw ścieżkę motyl/i.test(emptyMsg), emptyMsg);
 
   await page.fill('#exd-mp4-url', 'https://cdn.jsdelivr.net/gh/teamprogress20');
   await page.click('#exd-assign .btn-primary');
