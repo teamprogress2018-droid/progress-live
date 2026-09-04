@@ -37,8 +37,13 @@ ok('goal rail', overview.includes("railCard('Cel'"));
 ok('notes rail', overview.includes("railCard('Notatki'"));
 ok('injuries rail', overview.includes('Ograniczenia'));
 ok('photos rail clickable', overview.includes('Zdjęcia postępu') && overview.includes("setCPTab('photos')"));
+ok('pulse status', overview.includes('cp-ov-pulse') && /function\s+cpClientPulseStatus/.test(src));
+ok('physique card', overview.includes('Aktualna sylwetka') && overview.includes('cp-ov-physique'));
+ok('feel + garmin 7d', overview.includes('Samopoczucie (check-in)') && overview.includes('Garmin · 7 dni'));
+ok('train icons', overview.includes('cpTrainIconRow') && /function\s+cpTrainIconRow/.test(src));
+ok('remind in overview', overview.includes("cpRemindClient('") && overview.includes('Przypomnij'));
 ok('no updates rail', !overview.includes('Aktualizacje') && !/function\s+cpOverviewUpdates/.test(src));
-ok('cache 08', html.includes('08-client-profile-extras.js?v=38'));
+ok('cache 08', html.includes('08-client-profile-extras.js?v=40'));
 ok('overview edit CTA', overview.includes('cp-ov-edit-cta') && overview.includes('Dane osobowe'));
 ok('profil rail shows name', overview.includes('Imię i nazwisko'));
 ok('rail cards clickable not button spam', overview.includes('cp-ov-rail-card clickable') && !overview.includes('>Edytuj</button>'));
@@ -46,6 +51,7 @@ ok('no duplicate message in profile rail', !/WhatsApp|mailto:/.test(overview));
 ok('no giant profile grid on overview', !overview.includes('cp-data-grid'));
 ok('no food journal on overview', !/Żywienie|Meal Plan|food journal/i.test(overview));
 ok('css layout', css.includes('.cp-ov-layout') && css.includes('.cp-ov-rail'));
+ok('css pulse physique metrics', css.includes('.cp-ov-pulse') && css.includes('.cp-ov-physique') && css.includes('.cp-metrics-head'));
 ok('wider cp-body',
   (html.includes('max-width:1120px') && html.includes('id="cp-body"')) ||
   (css.includes('.cp-body-inner') && css.includes('max-width:1120px') && html.includes('id="cp-body"'))

@@ -22,7 +22,7 @@ ok('css red navy pink', css.includes('--pdf-red:#e11f2e') && css.includes('--pdf
 ok('css priorytet + week cell', css.includes('.plan-pdf-pri') && css.includes('.plan-pdf-wk') && css.includes('.plan-pdf-day-h'));
 ok('export helper', /window\.buildPlanPDFHTML=buildPlanPDFHTML/.test(src03));
 ok('saves progression', /plan\.progression=progression/.test(src03));
-ok('cache', html.includes('03-ai-plangen-bizstats-aicoach.js?v=28') && html.includes('styles.css?v=56'));
+ok('cache', html.includes('03-ai-plangen-bizstats-aicoach.js?v=28') && html.includes('styles.css?v=58'));
 ok('CI', wf.includes('test_plan_pdf.js') && wf.includes('test_plan_pdf_ui.js'));
 
 const slice = src03.match(/function planPdfEsc[\s\S]*?^function aplReset/m);
