@@ -82,6 +82,10 @@ function quickMessageClient(e,clientId){
   goTo('inbox');
   setTimeout(()=>{ if(typeof openChat==='function')openChat(clientId); },200);
 }
+function quickEditClient(e,clientId){
+  e.stopPropagation();
+  if(typeof openClientModal==='function')openClientModal(clientId);
+}
 function quickStartWorkout(e,clientId){
   e.stopPropagation();
   goTo('live');
@@ -220,10 +224,11 @@ function renderClients(){
     return `<div class="tbl-row cl-everfit-row" style="animation-delay:${i*0.03}s;" onclick="openClientProfile('${c.id}')">
     <div class="cl-name-cell">
       <div class="cl-av" style="background:${COLS[i%5]}22;color:${COLS[i%5]};">${escHtml(getInit(c.name))}</div>
-      <div>
+      <div class="cl-name-meta">
         <div class="cl-name">${escHtml(c.name)}</div>
         <div class="cl-sub">${escHtml(c.email||'Brak e-maila')}</div>
       </div>
+      <button type="button" class="cl-edit-btn" onclick="quickEditClient(event,'${c.id}')" title="Edytuj dane klienta">Edycja</button>
     </div>
     <div class="cl-msg-cell" onclick="event.stopPropagation()">${msgBtn}</div>
     <div class="cl-act" style="color:${act.color};">${act.label}</div>
@@ -279,6 +284,7 @@ function openClientModal(clientId){
   openM('m-client');
 }
 window.openClientModal=openClientModal;
+window.quickEditClient=quickEditClient;
 
 async function saveClient(){
   if(window._saveGuard_saveClient)return;window._saveGuard_saveClient=true;setTimeout(()=>window._saveGuard_saveClient=false,1500);
