@@ -30,8 +30,8 @@ ok('builder cancel uses back',html.includes("_builderBack||'clients'"));
 
 ok('cache bumps',html.includes('01-core.js?v=73')&&html.includes('05-clients-builder-plans-calendar.js?v=40'));
 ok('cache bumps',html.includes('01-core.js?v=73')&&html.includes('05-clients-builder-plans-calendar.js?v=40'));
-ok('cache bumps',html.includes('01-core.js?v=72')&&html.includes('05-clients-builder-plans-calendar.js?v=40'));
-ok('cache bumps',html.includes('01-core.js?v=72')&&html.includes('05-clients-builder-plans-calendar.js?v=40'));
+ok('cache bumps',html.includes('01-core.js?v=73')&&html.includes('05-clients-builder-plans-calendar.js?v=40'));
+ok('cache bumps',html.includes('01-core.js?v=73')&&html.includes('05-clients-builder-plans-calendar.js?v=40'));
 ok('onboard plan doneExtra',/doneExtra.*Nowy plan AI/.test(src05));
 
 if(failed){console.error(failed+' failed');process.exit(1);}
