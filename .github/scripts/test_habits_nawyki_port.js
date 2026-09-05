@@ -65,6 +65,7 @@ ok('task from lib',!!(task&&task.kind==='habit'&&task.libId==='m2'&&task.xp===5&
   windowObj.TASKS[0].doneDates=['2026-08-01','2026-08-02'];
   const xp=ctx.clientHabitXpTotal('c1');
   ok('xp total',xp===30); // m1=15 * 2 days
+  ok('cache bumps',html.includes('01-core.js?v=72')&&html.includes('06-inbox-exercises-ai-programs.js?v=62')&&html.includes('04-client-portal.js?v=37')&&html.includes('styles.css?v=60'));
   ok('cache bumps',html.includes('01-core.js?v=73')&&html.includes('06-inbox-exercises-ai-programs.js?v=61')&&html.includes('04-client-portal.js?v=37')&&html.includes('styles.css?v=59'));
   ok('cache bumps',html.includes('01-core.js?v=72')&&html.includes('06-inbox-exercises-ai-programs.js?v=61')&&html.includes('04-client-portal.js?v=37')&&html.includes('styles.css?v=60'));
 

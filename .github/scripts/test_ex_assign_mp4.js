@@ -18,6 +18,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
+ok('cache 01 v69', html.includes('01-core.js?v=72'));
+ok('cache 06 v57', html.includes('06-inbox-exercises-ai-programs.js?v=62'));
 ok('cache 01 v69', html.includes('01-core.js?v=73'));
 ok('cache 06 v57', html.includes('06-inbox-exercises-ai-programs.js?v=61'));
 ok('ci unit', wf.includes('test_ex_assign_mp4.js'));

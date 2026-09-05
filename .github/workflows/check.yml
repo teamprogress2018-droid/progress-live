@@ -201,6 +201,8 @@ jobs:
         run: node .github/scripts/test_client_hover_edit.js
       - name: 1n27. Testy układu aplikacji (sidebar Everfit)
         run: node .github/scripts/test_app_shell_everfit.js
+      - name: Szablony vs Programy (mikro/makro)
+        run: node .github/scripts/test_templates_vs_programs.js
       - name: 1n27b. Testy wejścia do planu tylko z klienta
         run: node .github/scripts/test_nav_plan_entry.js
       - name: 1n27c. Testy skróconego primary nav
