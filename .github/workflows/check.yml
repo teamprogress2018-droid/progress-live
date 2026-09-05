@@ -84,6 +84,8 @@ jobs:
 
       - name: 1g. Testy oceny treningu i historii
         run: node .github/scripts/test_session_history.js
+      - name: 1g1. Testy Live Postęp → zapis sesji
+        run: node .github/scripts/test_live_session_progress.js
       - name: 1g2. Testy oznaczenia odbytego treningu w kalendarzu
         run: node .github/scripts/test_cal_session_done.js
 
@@ -325,6 +327,8 @@ jobs:
         run: node .github/scripts/test_ex_assign_mp4_ui.js
       - name: 6b3c. Testy UI timera przerwy live (30s / własny)
         run: node .github/scripts/test_live_rest_ui.js
+      - name: 6b3c2. Testy UI Live Postęp i zapisu do Progress
+        run: node .github/scripts/test_live_progress_ui.js
 
       - name: 6b4. Testy UI jednostki sec przy linach
         run: node .github/scripts/test_ex_load_unit_ui.js
