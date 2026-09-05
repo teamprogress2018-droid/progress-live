@@ -1390,7 +1390,6 @@ function tplDuplicate(tid){
 function openTplCreate(editId){
   window._editingTplId=editId||null;
   let m=document.getElementById('m-tpl-create');
-  if(m&&!document.getElementById('tplc-rationale')){m.remove();m=null;}
   if(m&&!m.querySelector('.edu-tip')){m.remove();m=null;}
   if(!m){
     m=document.createElement('div');m.id='m-tpl-create';m.className='modal-ov';
@@ -1401,24 +1400,23 @@ function openTplCreate(editId){
         <div class="form-field"><label class="form-lbl">Opis</label><textarea class="form-textarea" id="tplc-desc" rows="2" placeholder="Krótki opis szablonu..."></textarea></div>
         <div class="form-grid">
           <div class="form-field"><label class="form-lbl">Cel <button type="button" class="edu-tip" data-edu="goal" aria-label="Wyjaśnienie celu">?</button></label>
-            <select class="form-select" id="tplc-goal" onchange="tplcRefreshRationale()">
+            <select class="form-select" id="tplc-goal">
               <option value="masa">Masa</option><option value="sila">Siła</option><option value="redukcja">Redukcja</option><option value="kondycja">Kondycja</option>
             </select>
           </div>
           <div class="form-field"><label class="form-lbl">Poziom</label>
-            <select class="form-select" id="tplc-level" onchange="tplcRefreshRationale()">
+            <select class="form-select" id="tplc-level">
               <option value="poczatkujacy">Początkujący</option><option value="sredni" selected>Średni</option><option value="zaawansowany">Zaawansowany</option>
             </select>
           </div>
           <div class="form-field"><label class="form-lbl">Metoda <button type="button" class="edu-tip" data-edu="method" aria-label="Wyjaśnienie metody">?</button></label>
-            <select class="form-select" id="tplc-method" onchange="tplcRefreshRationale()">
+            <select class="form-select" id="tplc-method">
               <option value="PPL">PPL</option><option value="FBW">FBW</option><option value="Upper Lower">Upper/Lower</option>
               <option value="Obwodowy">Trening obwodowy</option><option value="531">531</option><option value="Custom">Custom</option>
             </select>
           </div>
           <div class="form-field"><label class="form-lbl">Tygodnie</label><input type="number" class="form-input" id="tplc-weeks" value="8" min="1" max="52"></div>
         </div>
-        <div id="tplc-rationale" style="margin:10px 0 4px;"></div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0 8px;">
           <div style="font-size:12px;font-weight:700;">Dni treningowe</div>
           <button type="button" class="btn btn-ghost btn-sm" onclick="tplcAddDay()">+ Dzień</button>
@@ -1454,13 +1452,7 @@ function openTplCreate(editId){
 }
 
 function tplcRefreshRationale(){
-  const el=document.getElementById('tplc-rationale');
-  if(!el||typeof refreshMethodRationaleInto!=='function')return;
-  const goal=document.getElementById('tplc-goal')?.value||'masa';
-  const level=document.getElementById('tplc-level')?.value||'sredni';
-  const method=document.getElementById('tplc-method')?.value||'PPL';
-  const days=document.querySelectorAll('#tplc-days .tplc-day').length;
-  refreshMethodRationaleInto(el,{method,goal,level,daysPerWeek:days||undefined});
+  /* Panel „Dlaczego tak?” usunięty — zostaje Asystent AI w kreatorze. */
 }
 window.tplcRefreshRationale=tplcRefreshRationale;
 

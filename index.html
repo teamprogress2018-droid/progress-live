@@ -13,7 +13,7 @@
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="globals.css?v=17">
-<link rel="stylesheet" href="styles.css?v=58">
+<link rel="stylesheet" href="styles.css?v=59">
 </head>
 <body>
 
@@ -346,7 +346,7 @@
 
 <!-- BUILDER -->
 <div class="screen" id="screen-builder">
-  <div class="topbar"><div class="topbar-title">Nowy plan treningowy</div><div class="topbar-actions"><button type="button" class="btn btn-ghost btn-sm" id="builder-cheat-btn" onclick="openMethodRationaleModal()" title="Ściągawka trenera: objętość, serie, powtórzenia, zależności">Ściągawka</button><button type="button" class="btn btn-ghost btn-sm" id="builder-cheat-print-btn" onclick="printTrainerCheatSheet()" title="Drukuj ściągawkę / zapisz jako PDF">Drukuj</button><button class="btn btn-ghost btn-sm" onclick="goTo(window._builderBack||'clients')">Anuluj</button><button class="btn btn-primary btn-sm" onclick="savePlan()">Zapisz plan</button></div></div>
+  <div class="topbar"><div class="topbar-title">Nowy plan treningowy</div><div class="topbar-actions"><button class="btn btn-ghost btn-sm" onclick="goTo(window._builderBack||'clients')">Anuluj</button><button class="btn btn-primary btn-sm" onclick="savePlan()">Zapisz plan</button></div></div>
   <div class="content builder-layout">
     <div class="builder-main">
       <div class="card builder-meta-card">
@@ -388,17 +388,13 @@
           <div class="ai-input-row"><input type="text" class="ai-inp" id="ai-q" placeholder="Zapytaj o plan..." onkeydown="if(event.key==='Enter')askAI()"><button class="ai-send" onclick="askAI()">→</button></div>
         </div>
       </div>
-      <div class="card">
-        <div class="ui-section-hdr">Dlaczego tak? (metodyka)</div>
-        <div id="builder-rationale"><div class="ui-section-sub">Wybierz metodę i klienta</div></div>
-      </div>
       <div class="card" id="builder-period-card">
         <div class="ui-section-hdr">Harmonogram periodyzacji</div>
         <div id="period-sched"><div class="ui-section-sub">Wybierz klienta</div></div>
       </div>
       </div>
     </div>
-    <button type="button" class="builder-sidebar-expand" id="builder-sidebar-expand" hidden onclick="toggleBuilderSidebar(true)" title="Rozwiń panel metodyki">◀ Asystent / metodyka</button>
+    <button type="button" class="builder-sidebar-expand" id="builder-sidebar-expand" hidden onclick="toggleBuilderSidebar(true)" title="Rozwiń asystenta AI">◀ Asystent AI</button>
   </div>
 </div>
 
@@ -1612,7 +1608,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   </div>
   <div class="content">
     <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6;max-width:700px;">
-      Zasady treningowe, badania (link PubMed/DOI) i notatki. Wpisy z włączonym „Używaj przy planowaniu” trafiają do Generatora AI, kreatora i panelu „Dlaczego tak?”.
+      Zasady treningowe, badania (link PubMed/DOI) i notatki. Wpisy z włączonym „Używaj przy planowaniu” trafiają do Generatora AI i kreatora planów.
     </div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;" id="kb-filters">
       <button type="button" class="wl-filter-chip active" data-kb-f="all" onclick="setKbFilter('all',this)">Wszystkie</button>
@@ -2179,7 +2175,6 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
           <button class="apl-opt" data-val="Smolov" onclick="aplToggleOpt(this,'apl-methods')">🏋️ Smolov (przysiad)</button>
           <button class="apl-opt" data-val="Custom" onclick="aplToggleOpt(this,'apl-methods')">✏️ Dostosowana</button>
         </div>
-        <div id="apl-rationale" class="apl-rationale-mount" style="margin-top:10px;"></div>
       </div>
 
       <!-- metody intensyfikacji -->
@@ -2951,17 +2946,6 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 <!-- ═══════════ MODALS ═══════════ -->
 
 <!-- Baza Wiedzy -->
-<div class="modal-ov" id="m-method-rationale">
-  <div class="modal trainer-cheat-modal" style="max-width:820px;">
-    <div class="modal-hdr"><div class="modal-title">ŚCIĄGAWKA TRENERA</div><button class="modal-close" onclick="closeM('m-method-rationale')">×</button></div>
-    <div class="modal-body" id="method-rationale-modal-body"></div>
-    <div class="modal-footer">
-      <button type="button" class="btn btn-ghost" onclick="printTrainerCheatSheet()">Drukuj</button>
-      <button type="button" class="btn btn-ghost" onclick="closeM('m-method-rationale')">Zamknij</button>
-    </div>
-  </div>
-</div>
-
 <div class="modal-ov" id="m-kb">
   <div class="modal">
     <div class="modal-hdr"><div class="modal-title" id="kb-modal-title">NOWY WPIS DO BAZY WIEDZY</div><button class="modal-close" onclick="closeM('m-kb')">×</button></div>
@@ -2978,7 +2962,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <div class="form-field"><label class="form-lbl">Cytowanie (opcjonalnie)</label><input type="text" class="form-input" id="kb-citation" placeholder="np. Schoenfeld 2016 · NSCA"></div>
       <div class="form-field"><label class="form-lbl">Link źródła (PubMed / DOI / artykuł)</label><input type="url" class="form-input" id="kb-url" placeholder="https://pubmed.ncbi.nlm.nih.gov/…"></div>
       <label class="builder-rest-toggle" style="margin-top:4px;">
-        <input type="checkbox" id="kb-use-planning" checked style="accent-color:var(--accent);"> Używaj przy planowaniu (AI + kreator + „Dlaczego tak?”)
+        <input type="checkbox" id="kb-use-planning" checked style="accent-color:var(--accent);"> Używaj przy planowaniu (AI + kreator)
       </label>
       <div id="kb-kind-hint" style="font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5;"></div>
     </div>
@@ -4184,15 +4168,15 @@ async function load(){
 
 <script src="ex-gif-manifest.js?v=33"></script>
 <script src="ex-photo-manifest.js?v=5"></script>
-<script src="01-core.js?v=71"></script>
-<script src="02-workouts-onboarding-templates-live.js?v=28"></script>
-<script src="03-ai-plangen-bizstats-aicoach.js?v=28"></script>
+<script src="01-core.js?v=72"></script>
+<script src="02-workouts-onboarding-templates-live.js?v=29"></script>
+<script src="03-ai-plangen-bizstats-aicoach.js?v=29"></script>
 <script src="04-client-portal.js?v=36"></script>
-<script src="05-clients-builder-plans-calendar.js?v=38"></script>
+<script src="05-clients-builder-plans-calendar.js?v=39"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=61"></script>
 <script src="07-forms-metrics-calculator.js?v=30"></script>
 <script src="08-client-profile-extras.js?v=42"></script>
-<script src="09-posture-kb-invites-private.js?v=34"></script>
+<script src="09-posture-kb-invites-private.js?v=35"></script>
 <script src="10-client-app.js?v=28"></script>
 </body>
 </html>
