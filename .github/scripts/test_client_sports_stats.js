@@ -83,27 +83,33 @@ ok('lifter high strength', prLift.strength >= 8, 's=' + prLift.strength);
 ok('ai context mentions wytrzymalosc', /wytrzymałościow/i.test(ctx.clientSportProfileForAI(runner)));
 ok('ai context mentions silowa', /siłow/i.test(ctx.clientSportProfileForAI(lifter)));
 
+function ymdAgo(n) {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  const p = (x) => String(x).padStart(2, '0');
+  return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+}
 windowObj.SE = [
   {
-    id: 's1', clientId: 'c-run', date: '2026-08-01', source: 'client', feedback: 4,
+    id: 's1', clientId: 'c-run', date: ymdAgo(3), source: 'client', feedback: 4,
     volume: 4200,
     exercises: [{ name: 'Przysiad', sets: [{ kg: 80, reps: 5 }, { kg: 80, reps: 5 }] }]
   },
   {
-    id: 's2', clientId: 'c-run', date: '2026-08-08', source: 'client', feedback: 5,
+    id: 's2', clientId: 'c-run', date: ymdAgo(10), source: 'client', feedback: 5,
     volume: 5100,
     exercises: [{ name: 'Martwy', sets: [{ kg: 100, reps: 5 }] }]
   }
 ];
 windowObj.METRIC_ENTRIES = [
-  { id: 'm1', clientId: 'c-run', groupId: 'mg1', date: '2026-07-01', values: { m1: 74 } },
-  { id: 'm2', clientId: 'c-run', groupId: 'mg1', date: '2026-08-01', values: { m1: 72 } },
-  { id: 'm3', clientId: 'c-run', groupId: 'mg2', date: '2026-08-01', values: { m1: 98, m2: 78, m3: 96 } }
+  { id: 'm1', clientId: 'c-run', groupId: 'mg1', date: ymdAgo(40), values: { m1: 74 } },
+  { id: 'm2', clientId: 'c-run', groupId: 'mg1', date: ymdAgo(5), values: { m1: 72 } },
+  { id: 'm3', clientId: 'c-run', groupId: 'mg2', date: ymdAgo(5), values: { m1: 98, m2: 78, m3: 96 } }
 ];
 windowObj.CHECKINS = {
   'c-run': [
-    { status: 'filled', date: '2026-07-20', answers: { energy: 4, sleep: 4, stress: 2, nutrition: 4 } },
-    { status: 'filled', date: '2026-08-10', answers: { energy: 5, sleep: 5, stress: 2, nutrition: 4 } }
+    { status: 'filled', date: ymdAgo(20), answers: { energy: 4, sleep: 4, stress: 2, nutrition: 4 } },
+    { status: 'filled', date: ymdAgo(4), answers: { energy: 5, sleep: 5, stress: 2, nutrition: 4 } }
   ]
 };
 
