@@ -29,6 +29,8 @@ ok('AI prompt circuit structure', src03.includes('STRUKTURA TRENINGU OBWODOWEGO'
 ok('AI coach knows circuit', /trening obwodowy \(circuit\)/.test(src03));
 ok('cache bumps', html.includes('01-core.js?v=73') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=29') && html.includes('05-clients-builder-plans-calendar.js?v=40'));
 ok('cache bumps', html.includes('01-core.js?v=73') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=29') && html.includes('05-clients-builder-plans-calendar.js?v=40'));
+ok('cache bumps', html.includes('01-core.js?v=72') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=29') && html.includes('05-clients-builder-plans-calendar.js?v=40'));
+ok('cache bumps', html.includes('01-core.js?v=72') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=29') && html.includes('05-clients-builder-plans-calendar.js?v=40'));
 ok('CI', wf.includes('test_circuit_method.js'));
 
 if (failed) {

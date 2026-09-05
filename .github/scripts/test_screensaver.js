@@ -27,6 +27,8 @@ ok('settings ui', src04.includes("card('Wygaszacz'") && src04.includes('previewS
 ok('settings default', src04.includes('screensaver:{') && src04.includes('idleMinutes:3'));
 ok('cache bumps', html.includes('01-core.js?v=73') && html.includes('04-client-portal.js?v=37') && html.includes('styles.css?v=59'));
 ok('cache bumps', html.includes('01-core.js?v=73') && html.includes('04-client-portal.js?v=37') && html.includes('styles.css?v=59'));
+ok('cache bumps', html.includes('01-core.js?v=72') && html.includes('04-client-portal.js?v=37') && html.includes('styles.css?v=60'));
+ok('cache bumps', html.includes('01-core.js?v=72') && html.includes('04-client-portal.js?v=37') && html.includes('styles.css?v=60'));
 ok('CI', wf.includes('test_screensaver.js') && wf.includes('test_screensaver_ui.js'));
 
 const attrs = {};
