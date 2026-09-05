@@ -1923,6 +1923,19 @@ function liveQuickAdd(){
   liveSaveDraft();
 }
 
+function liveProgressStats(exercises){
+  const list=Array.isArray(exercises)?exercises:[];
+  const doneCnt=list.filter(e=>e&&e.done).length;
+  const total=list.length;
+  const sets=list.flatMap(e=>Array.isArray(e&&e.sets)?e.sets:[]);
+  const setsDone=sets.filter(s=>s&&s.done).length;
+  let volume=0;
+  if(typeof exerciseSetVolumeKg==='function')volume=exerciseSetVolumeKg(list);
+  else volume=sets.filter(s=>s&&s.done).reduce((a,s)=>a+(parseFloat(s.kg)||0)*(parseFloat(s.reps)||0),0);
+  return{doneCnt,total,setsDone,volume:Math.round(volume||0)};
+}
+window.liveProgressStats=liveProgressStats;
+
 function renderLiveExercises(){
   const el=document.getElementById('live-exercises-panel');if(!el)return;
   if(!liveExercises.length){
@@ -1947,19 +1960,19 @@ function renderLiveExercises(){
     </div>`;
     return;
   }
-  const doneCnt=liveExercises.filter(e=>e.done).length;
-  const total=liveExercises.length;
-  const setsDone=liveExercises.flatMap(e=>e.sets).filter(s=>s.done).length;
-  const volume=typeof exerciseSetVolumeKg==='function'?exerciseSetVolumeKg(liveExercises):liveExercises.flatMap(e=>e.sets).filter(s=>s.done&&s.kg).reduce((a,s)=>a+parseFloat(s.kg||0)*parseFloat(s.reps||0),0);
+  const st=typeof liveProgressStats==='function'?liveProgressStats(liveExercises):{doneCnt:0,total:liveExercises.length,setsDone:0,volume:0};
+  const doneCnt=st.doneCnt,total=st.total,setsDone=st.setsDone,volume=st.volume;
 
   // update stats panel
-  const setEl=v=>id=>{const e=document.getElementById(id);if(e)e.textContent=v;};
-  document.getElementById('live-ex-done').textContent=doneCnt;
-  document.getElementById('live-ex-total').textContent=total;
-  document.getElementById('live-sets-done').textContent=setsDone;
-  document.getElementById('live-volume').textContent=Math.round(volume);
+  const setTxt=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  setTxt('live-ex-done',doneCnt);
+  setTxt('live-ex-total',total);
+  setTxt('live-sets-done',setsDone);
+  setTxt('live-volume',Math.round(volume));
   const pb=document.getElementById('live-progress-bar');
   if(pb)pb.style.width=(total?Math.round(doneCnt/total*100):0)+'%';
+  const hint=document.getElementById('live-progress-hint');
+  if(hint)hint.textContent=setsDone?'Po „Zakończ i zapisz” ten trening wejdzie do Progress.':(total?'Odhacz serie ✓ — sam plan w kalendarzu się nie liczy.':'');
 
   el.innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
@@ -2144,18 +2157,22 @@ function liveStartSession(){
 }
 
 function liveEndSession(){
-  if(!confirm('Zakończyć i zapisać sesję?'))return;
+  const st=typeof liveProgressStats==='function'?liveProgressStats(liveExercises):{setsDone:0,volume:0};
+  const totalSets=st.setsDone;
+  const msg=totalSets
+    ?'Zakończyć i zapisać sesję?'
+    :'Nie odhaczono żadnej serii — w Progress będzie dzień, ale 0 kg i bez rekordów. Zapisać mimo to?';
+  if(!confirm(msg))return;
   clearInterval(liveTimerInterval);
   liveSessionActive=false;
   liveClearDraft();
   const c=CL.find(x=>x.id===liveClientId);
-  const totalSets=liveExercises.flatMap(e=>e.sets).filter(s=>s.done).length;
-  const volume=Math.round(typeof exerciseSetVolumeKg==='function'?exerciseSetVolumeKg(liveExercises):liveExercises.flatMap(e=>e.sets).filter(s=>s.done&&s.kg).reduce((a,s)=>a+parseFloat(s.kg||0)*parseFloat(s.reps||0),0));
+  const volume=st.volume;
   const durationMin=Math.round(liveTimerSec/60);
   const newSession=withTrainer({
     id:newId('s'),
     clientId:liveClientId,
-    date:dateStr(new Date()),
+    date:(typeof todayYmd==='function'?todayYmd():(typeof dateStr==='function'?dateStr(new Date()):dateStrLocal(new Date()))),
     time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),
     type:'Trening personalny',
     duration:durationMin||60,
@@ -2363,6 +2380,7 @@ window.initLive=initLive;window.setLiveTab=setLiveTab;window.liveLoadClient=live
 window.liveSelectPlan=liveSelectPlan;window.liveQuickAdd=liveQuickAdd;
 window.liveStartSession=liveStartSession;window.liveEndSession=liveEndSession;
 window.liveToggleSet=liveToggleSet;window.liveToggleCollapse=liveToggleCollapse;
+window.liveProgressStats=liveProgressStats;window.renderLiveExercises=renderLiveExercises;
 window.liveSetKg=liveSetKg;window.liveSetReps=liveSetReps;
 window.liveAddSet=liveAddSet;window.liveSkipEx=liveSkipEx;window.liveAddExercise=liveAddExercise;
 window.liveStartRest=liveStartRest;window.liveStartRestCustom=liveStartRestCustom;window.liveFeedback=liveFeedback;
