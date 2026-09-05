@@ -1773,63 +1773,213 @@ window.refillClientCalendar=refillClientCalendar;
 // ════════════════════════════════════════
 // Kolor akcentu karty wg metody treningowej — ten sam wzorzec co w Zasobach i Bibliotece ćwiczeń.
 const PLAN_METHOD_COLORS={PPL:'var(--accent)',FBW:'var(--teal)',UL:'var(--blue)','531':'var(--purple)',HIIT:'var(--red)',GZCLP:'var(--orange)',Obwodowy:'var(--orange)',Circuit:'var(--orange)'};
+const PLANS_VIEW_KEY='pl_plans_view';
+var plansLibStatus='active';
+var plansLibSort='newest';
+var plansLibClientId='';
+var plansLibView=(function(){
+  try{
+    const v=localStorage.getItem(PLANS_VIEW_KEY);
+    if(v==='cards'||v==='table')return v;
+  }catch(e){}
+  return 'table';
+})();
+
+function planIsUnassigned(p){return !p||!p.clientId;}
+function planIsArchived(p){return !!(p&&(p.archived===true||p.status==='archived'));}
+function planStamp(p){return String((p&&(p.updatedAt||p.createdAt))||'');}
+function planDateLabel(p){
+  const y=String(planStamp(p)).slice(0,10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(y)?y:'—';
+}
+function planStatusMeta(p){
+  if(planIsArchived(p))return{key:'archived',label:'Archiwum',pill:'pill-muted'};
+  if(planIsUnassigned(p))return{key:'template',label:'Szablon',pill:'pill-blue'};
+  return{key:'active',label:'Aktywny',pill:'pill-green'};
+}
+function filterSortPlans(plans,clients,opts){
+  const o=opts||{};
+  const search=String(o.search||'').trim().toLowerCase();
+  const status=o.status||'active';
+  const clientId=o.clientId||'';
+  const sort=o.sort||'newest';
+  const byId={};
+  (clients||[]).forEach(c=>{if(c&&c.id)byId[c.id]=c;});
+  let list=(plans||[]).filter(p=>{
+    if(!p)return false;
+    const archived=planIsArchived(p);
+    const unassigned=planIsUnassigned(p);
+    if(status==='archived'){if(!archived)return false;}
+    else if(status==='templates'){if(archived||!unassigned)return false;}
+    else if(archived||unassigned)return false;
+    if(clientId&&p.clientId!==clientId)return false;
+    if(search){
+      const client=byId[p.clientId];
+      const clientName=String(client&&client.name||p.clientName||'').toLowerCase();
+      const name=String(p.name||'').toLowerCase();
+      if(!clientName.includes(search)&&!name.includes(search))return false;
+    }
+    return true;
+  });
+  list=list.slice().sort((a,b)=>{
+    if(sort==='alpha')return String(a.name||'').localeCompare(String(b.name||''),'pl',{sensitivity:'base'});
+    const da=Date.parse(planStamp(a))||0;
+    const db=Date.parse(planStamp(b))||0;
+    return sort==='oldest'?da-db:db-da;
+  });
+  return list;
+}
+window.planIsUnassigned=planIsUnassigned;
+window.planIsArchived=planIsArchived;
+window.planStamp=planStamp;
+window.planDateLabel=planDateLabel;
+window.planStatusMeta=planStatusMeta;
+window.filterSortPlans=filterSortPlans;
+
+function setPlansLibStatus(s){
+  plansLibStatus=s==='templates'||s==='archived'?s:'active';
+  renderPlans();
+}
+function setPlansLibSort(s){
+  plansLibSort=s==='oldest'||s==='alpha'?s:'newest';
+  renderPlans();
+}
+function setPlansLibClient(id){
+  plansLibClientId=String(id||'');
+  renderPlans();
+}
+function setPlansLibView(v){
+  plansLibView=v==='cards'?'cards':'table';
+  try{localStorage.setItem(PLANS_VIEW_KEY,plansLibView);}catch(e){}
+  renderPlans();
+}
+window.setPlansLibStatus=setPlansLibStatus;
+window.setPlansLibSort=setPlansLibSort;
+window.setPlansLibClient=setPlansLibClient;
+window.setPlansLibView=setPlansLibView;
+
+function planActionButtons(p,client){
+  const hasClient=!!client;
+  const arch=planIsArchived(p);
+  const id=p.id;
+  return `<button class="btn btn-ghost btn-sm" type="button" onclick="event.stopPropagation();togglePlanExpand('${id}')" id="plan-toggle-${id}">👁️ Podgląd</button>
+    <button class="btn btn-ghost btn-sm" type="button" onclick="event.stopPropagation();editPlan('${id}')" title="Edytuj">✏️</button>
+    ${hasClient?`<button class="btn btn-ghost btn-sm" type="button" onclick="event.stopPropagation();openClientProfile('${client.id}')" title="Profil">👤</button>`:''}
+    ${arch
+      ?`<button class="btn btn-ghost btn-sm" type="button" onclick="event.stopPropagation();restorePlan('${id}')" title="Przywróć">↩</button>`
+      :`<button class="btn btn-ghost btn-sm" type="button" onclick="event.stopPropagation();archivePlan('${id}')" title="Archiwizuj">📦</button>`}
+    <button class="btn btn-danger btn-sm" type="button" onclick="event.stopPropagation();delPlan('${id}')" title="Usuń">🗑️</button>`;
+}
 
 function renderPlans(){
   const el=document.getElementById('plans-content');
   if(!el)return;
   const search=(document.getElementById('plans-search')||{}).value?.trim().toLowerCase()||'';
-  let list=PL.filter(p=>{
-    if(!search)return true;
-    const client=CL.find(c=>c.id===p.clientId);
-    const clientName=(client?.name||p.clientName||'').toLowerCase();
-    return clientName.includes(search)||(p.name||'').toLowerCase().includes(search);
+  const all=window.PL||[];
+  const clients=window.CL||[];
+  const nActive=all.filter(p=>!planIsArchived(p)&&!planIsUnassigned(p)).length;
+  const nTpl=all.filter(p=>!planIsArchived(p)&&planIsUnassigned(p)).length;
+  const nArch=all.filter(p=>planIsArchived(p)).length;
+  const setN=(id,n)=>{const e=document.getElementById(id);if(e)e.textContent=n;};
+  setN('plans-n-active',nActive);setN('plans-n-templates',nTpl);setN('plans-n-archived',nArch);
+  ['active','templates','archived'].forEach(s=>{
+    const b=document.getElementById('plans-st-'+s);
+    if(b)b.classList.toggle('is-on',plansLibStatus===s);
   });
-  // Najnowsze / ostatnio aktualizowane na górze.
-  list=list.slice().sort((a,b)=>{
-    const da=new Date(a.updatedAt||a.createdAt||0).getTime();
-    const db=new Date(b.updatedAt||b.createdAt||0).getTime();
-    return db-da;
-  });
-  if(!list.length){el.innerHTML=`<div style="text-align:center;color:var(--muted);padding:60px 20px;">
+  const sortEl=document.getElementById('plans-sort');
+  if(sortEl&&sortEl.value!==plansLibSort)sortEl.value=plansLibSort;
+  const clientSel=document.getElementById('plans-client');
+  if(clientSel){
+    const opts=['<option value="">Wszyscy podopieczni</option>'].concat(
+      clients.filter(c=>c&&c.id&&c.status!=='archived').slice().sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'pl'))
+        .map(c=>`<option value="${escHtml(c.id)}">${escHtml(c.name||c.id)}</option>`)
+    );
+    clientSel.innerHTML=opts.join('');
+    clientSel.value=plansLibClientId;
+    clientSel.disabled=plansLibStatus==='templates';
+  }
+  const vc=document.getElementById('plans-view-cards');
+  const vt=document.getElementById('plans-view-table');
+  if(vc)vc.classList.toggle('is-on',plansLibView==='cards');
+  if(vt)vt.classList.toggle('is-on',plansLibView==='table');
+
+  const list=filterSortPlans(all,clients,{search,status:plansLibStatus,clientId:plansLibClientId,sort:plansLibSort});
+  const emptyHint=plansLibStatus==='templates'
+    ?'Tu lądują kopie bez przypisanego klienta. Mikrocykle są w Bibliotece szablonów.'
+    :plansLibStatus==='archived'
+      ?'Zarchiwizowane plany nie mieszają się z aktywnymi.'
+      :'Twórz i przypisuj plany z profilu klienta → zakładka Plan.';
+  if(!list.length){
+    el.innerHTML=`<div style="text-align:center;color:var(--muted);padding:60px 20px;">
     <div style="font-size:36px;margin-bottom:10px;opacity:0.35;">📋</div>
-    <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">${search?'Brak planów pasujących do wyszukiwania':'Brak planów treningowych'}</div>
-    <div style="font-size:12px;margin-bottom:16px;">Twórz i przypisuj plany z profilu klienta → zakładka Plan (szablon, własny kreator lub AI).</div>
-    ${search?'':`<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+    <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;">${search||plansLibClientId?'Brak planów pasujących do filtrów':'Brak planów w tej zakładce'}</div>
+    <div style="font-size:12px;margin-bottom:16px;">${emptyHint}</div>
+    ${search||plansLibClientId?'':`<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
       <button class="btn btn-primary btn-sm" onclick="goTo('clients')">Otwórz klientów</button>
-      <button class="btn btn-ghost btn-sm" onclick="goTo('templates')">📋 Szablony</button>
+      <button class="btn btn-ghost btn-sm" onclick="goTo('templates')">📋 Biblioteka szablonów</button>
     </div>`}
   </div>`;return;}
-  el.innerHTML=`<div class="plans-grid">`+list.map((p,pi)=>{
-    const client=CL.find(c=>c.id===p.clientId);
+
+  const cardHtml=(p,pi)=>{
+    const client=clients.find(c=>c.id===p.clientId);
     const clientName=client?.name||p.clientName||'Bez klienta';
     const hasClient=!!client;
     const dayChips=(p.days||[]).map(d=>d.rest?'💤':(d.day||d.dayName||d.muscles||d.focus||d.name||'—')).slice(0,6);
     const accentCol=PLAN_METHOD_COLORS[p.method]||'var(--muted)';
+    const st=planStatusMeta(p);
+    const nm=typeof escHtml==='function'?escHtml(p.name||''):String(p.name||'');
+    const cn=typeof escHtml==='function'?escHtml(clientName):String(clientName);
     return `<div class="plan-card" id="plan-card-${p.id}" style="animation-delay:${pi*0.03}s;">
       <div class="plan-card-accent" style="background:${accentCol};"></div>
       <div style="padding:16px 18px;">
         <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
           ${hasClient?`<div style="width:36px;height:36px;border-radius:9px;background:var(--adim);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:13px;color:var(--accent);flex-shrink:0;">${getInit(clientName)}</div>`:'<div style="width:36px;height:36px;border-radius:9px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">📋</div>'}
           <div style="min-width:0;flex:1;">
-            <div style="font-size:15px;font-weight:700;color:var(--text);line-height:1.3;">${p.name}</div>
-            <div style="font-size:12px;color:var(--muted);margin-top:3px;">${hasClient?'👤 '+clientName:'Brak klienta'} · ⏱️ ${p.duration||'?'} tyg.</div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <div style="font-size:15px;font-weight:700;color:var(--text);line-height:1.3;">${nm}</div>
+              <span class="pill ${st.pill}"><span class="pill-dot"></span>${st.label}</span>
+            </div>
+            <div style="font-size:12px;color:var(--muted);margin-top:3px;">${hasClient?'👤 '+cn:'Brak klienta'} · ⏱️ ${p.duration||'?'} tyg. · ${planDateLabel(p)}</div>
           </div>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
-          ${dayChips.map(d=>`<span class="plan-day-chip">${d}</span>`).join('')}
+          ${dayChips.map(d=>`<span class="plan-day-chip">${typeof escHtml==='function'?escHtml(String(d)):d}</span>`).join('')}
         </div>
-        <div style="display:flex;gap:6px;">
-          <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="togglePlanExpand('${p.id}')" id="plan-toggle-${p.id}">👁️ Podgląd</button>
-          <button class="btn btn-ghost btn-sm" onclick="editPlan('${p.id}')">✏️</button>
-          ${hasClient?`<button class="btn btn-ghost btn-sm" onclick="openClientProfile('${client.id}')">👤</button>`:''}
-          <button class="btn btn-danger btn-sm" onclick="delPlan('${p.id}')">🗑️</button>
-        </div>
+        <div class="plan-card-actions">${planActionButtons(p,client)}</div>
       </div>
       <div id="plan-detail-${p.id}" class="plan-card-detail" style="display:none;">
         ${(p.days||[]).map(d=>planDayPreviewHtml(d,p.clientId)).join('')}
       </div>
     </div>`;
-  }).join('')+`</div>`;
+  };
+
+  if(plansLibView==='table'){
+    el.innerHTML=`<div class="plans-tbl-wrap">
+      <div class="plans-tbl-hdr" role="row">
+        <span>Data</span><span>Nazwa planu</span><span>Podopieczny</span><span>Czas</span><span>Status</span><span>Akcje</span>
+      </div>
+      ${list.map((p,pi)=>{
+        const client=clients.find(c=>c.id===p.clientId);
+        const clientName=client?.name||p.clientName||'—';
+        const st=planStatusMeta(p);
+        const nm=typeof escHtml==='function'?escHtml(p.name||''):String(p.name||'');
+        const cn=typeof escHtml==='function'?escHtml(clientName):String(clientName);
+        return `<div class="plans-tbl-row plan-card" id="plan-card-${p.id}" style="animation-delay:${pi*0.02}s;">
+          <span class="plans-tbl-date">${planDateLabel(p)}</span>
+          <span class="plans-tbl-name">${nm}</span>
+          <span class="plans-tbl-client">${client?'👤 '+cn:'—'}</span>
+          <span>${p.duration||'—'} tyg.</span>
+          <span><span class="pill ${st.pill}"><span class="pill-dot"></span>${st.label}</span></span>
+          <span class="plans-tbl-actions">${planActionButtons(p,client)}</span>
+          <div id="plan-detail-${p.id}" class="plan-card-detail plans-tbl-detail" style="display:none;">
+            ${(p.days||[]).map(d=>planDayPreviewHtml(d,p.clientId)).join('')}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+    return;
+  }
+  el.innerHTML=`<div class="plans-grid">`+list.map((p,pi)=>cardHtml(p,pi)).join('')+`</div>`;
 }
 
 function planDayPreviewHtml(d,clientId){
@@ -1876,6 +2026,30 @@ async function delPlan(id){
   if(typeof cpClientId!=='undefined'&&cpClientId){try{setCPTab('plan');}catch(e){}}
   notify('✓ Plan usunięty');
 }
+
+async function archivePlan(id){
+  const p=(window.PL||[]).find(x=>x&&x.id===id);
+  if(!p){notify('Nie znaleziono planu');return;}
+  if(planIsArchived(p)){notify('Plan jest już w archiwum');return;}
+  if(!confirm('Zarchiwizować plan? Zniknie z listy aktywnych.'))return;
+  p.archived=true;
+  p.updatedAt=new Date().toISOString();
+  try{if(typeof persistById==='function')await persistById('plans',p);}catch(e){console.warn('archivePlan:',e);}
+  renderPlans();
+  notify('Plan w archiwum');
+}
+async function restorePlan(id){
+  const p=(window.PL||[]).find(x=>x&&x.id===id);
+  if(!p){notify('Nie znaleziono planu');return;}
+  p.archived=false;
+  if(p.status==='archived')delete p.status;
+  p.updatedAt=new Date().toISOString();
+  try{if(typeof persistById==='function')await persistById('plans',p);}catch(e){console.warn('restorePlan:',e);}
+  renderPlans();
+  notify('Plan przywrócony');
+}
+window.archivePlan=archivePlan;
+window.restorePlan=restorePlan;
 
 // ════════════════════════════════════════
 // CALENDAR V2 — WEEK / MONTH / LIST

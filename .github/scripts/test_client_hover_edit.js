@@ -25,7 +25,7 @@ ok('hover reveals edit btn', css.includes('.tbl-row.cl-everfit-row:hover .cl-edi
 ok('touch fallback always visible', css.includes('@media (hover:none)') && /hover:none[\s\S]{0,80}\.cl-edit-btn\{opacity:1/.test(css));
 ok('exported', src05.includes('window.quickEditClient=quickEditClient'));
 ok('dash hover edit', src04.includes('dash-client-edit') && src04.includes("quickEditClient(event,'${c.id}')"));
-ok('cache bumps', html.includes('05-clients-builder-plans-calendar.js?v=40') && html.includes('styles.css?v=60') && html.includes('04-client-portal.js?v=37'));
+ok('cache bumps', html.includes('05-clients-builder-plans-calendar.js?v=41') && html.includes('styles.css?v=61') && html.includes('04-client-portal.js?v=37'));
 ok('CI', wf.includes('test_client_hover_edit.js'));
 
 if (failed) {

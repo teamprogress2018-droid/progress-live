@@ -20,6 +20,9 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 08 v41', html.includes('08-client-profile-extras.js?v=43'));
+ok('cache styles v58', html.includes('styles.css?v=61'));
+ok('cache 08 v41', html.includes('08-client-profile-extras.js?v=43'));
+ok('cache styles v58', html.includes('styles.css?v=61'));
 ok('cache styles v58', html.includes('styles.css?v=60'));
 ok('cache 08 v41', html.includes('08-client-profile-extras.js?v=43'));
 ok('cache styles v58', html.includes('styles.css?v=60'));

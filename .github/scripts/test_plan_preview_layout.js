@@ -146,6 +146,8 @@ const SAMPLE_PLAN = {
       { id: 'plan-ppl', name: 'PPL 3x – Budowa masy', clientId: 'c-rado', method: 'PPL', duration: 6, days: [{ day: 'Push' }, { day: 'Pull' }, { day: 'Legs' }] },
       { id: 'plan-hiit', name: 'HIIT Spalacz', clientId: 'c-rado', method: 'HIIT', duration: 4, days: [{ day: 'HIIT A' }, { day: 'HIIT B' }] }
     ];
+    if (typeof setPlansLibView === 'function') setPlansLibView('cards');
+    if (typeof setPlansLibStatus === 'function') setPlansLibStatus('active');
     goTo('plans');
   }, SAMPLE_PLAN);
 
