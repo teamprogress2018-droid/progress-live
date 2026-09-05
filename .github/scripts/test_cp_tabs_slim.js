@@ -38,6 +38,8 @@ ok('CI step', wf.includes('test_cp_tabs_slim.js'));
 
 ok('cache bumps', html.includes('07-forms-metrics-calculator.js?v=30') && html.includes('08-client-profile-extras.js?v=43') && html.includes('09-posture-kb-invites-private.js?v=35') && html.includes('styles.css?v=61'));
 ok('cache bumps', html.includes('07-forms-metrics-calculator.js?v=30') && html.includes('08-client-profile-extras.js?v=43') && html.includes('09-posture-kb-invites-private.js?v=35') && html.includes('styles.css?v=61'));
+ok('cache bumps', html.includes('07-forms-metrics-calculator.js?v=30') && html.includes('08-client-profile-extras.js?v=43') && html.includes('09-posture-kb-invites-private.js?v=35') && html.includes('styles.css?v=60'));
+ok('cache bumps', html.includes('07-forms-metrics-calculator.js?v=30') && html.includes('08-client-profile-extras.js?v=43') && html.includes('09-posture-kb-invites-private.js?v=35') && html.includes('styles.css?v=60'));
 
 if (failed) {
   console.error(failed + ' failed');

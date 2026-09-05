@@ -105,6 +105,8 @@ ok('pct svg',/cp-chart-svg/.test(svg)&&/50%/.test(svg));
 
 ok('cache bumps',html.includes('08-client-profile-extras.js?v=43')&&html.includes('04-client-portal.js?v=37')&&html.includes('styles.css?v=61'));
 ok('cache bumps',html.includes('08-client-profile-extras.js?v=43')&&html.includes('04-client-portal.js?v=37')&&html.includes('styles.css?v=61'));
+ok('cache bumps',html.includes('08-client-profile-extras.js?v=43')&&html.includes('04-client-portal.js?v=37')&&html.includes('styles.css?v=60'));
+ok('cache bumps',html.includes('08-client-profile-extras.js?v=43')&&html.includes('04-client-portal.js?v=37')&&html.includes('styles.css?v=60'));
 
 if(failed){console.error('\n'+failed+' failed');process.exit(1);}
 console.log('\nAll cp-analytics-panel tests passed');

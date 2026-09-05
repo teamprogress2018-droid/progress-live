@@ -75,6 +75,7 @@ ok('advanced html current col',/Zaaw\./.test(sandbox.renderMethodRationaleHTML(a
 ok('cache bumps',html.includes('01-core.js?v=73')&&html.includes('02-workouts-onboarding-templates-live.js?v=30')&&html.includes('03-ai-plangen-bizstats-aicoach.js?v=29')&&html.includes('05-clients-builder-plans-calendar.js?v=41')&&html.includes('09-posture-kb-invites-private.js?v=35')&&html.includes('styles.css?v=61'));
 ok('cache bumps',html.includes('01-core.js?v=73')&&html.includes('02-workouts-onboarding-templates-live.js?v=30')&&html.includes('03-ai-plangen-bizstats-aicoach.js?v=29')&&html.includes('05-clients-builder-plans-calendar.js?v=41')&&html.includes('09-posture-kb-invites-private.js?v=35')&&html.includes('styles.css?v=61'));
 ok('cache bumps',html.includes('01-core.js?v=73')&&html.includes('02-workouts-onboarding-templates-live.js?v=30')&&html.includes('03-ai-plangen-bizstats-aicoach.js?v=29')&&html.includes('05-clients-builder-plans-calendar.js?v=41')&&html.includes('09-posture-kb-invites-private.js?v=35')&&html.includes('styles.css?v=61'));
+ok('cache bumps',html.includes('01-core.js?v=73')&&html.includes('02-workouts-onboarding-templates-live.js?v=31')&&html.includes('03-ai-plangen-bizstats-aicoach.js?v=29')&&html.includes('05-clients-builder-plans-calendar.js?v=40')&&html.includes('09-posture-kb-invites-private.js?v=35')&&html.includes('styles.css?v=60'));
 
 if(failed){console.error(failed+' failed');process.exit(1);}
 console.log('\nAll method-rationale tests passed');
