@@ -1621,11 +1621,23 @@ function planDayLabelToWeekday(label,fallbackIdx){
   const defaults=[1,3,5,2,4,6,1]; // Pon/Śr/Pt/Wt/Czw/Sob
   return defaults[(fallbackIdx||0)%defaults.length];
 }
-/** Preferowane dni klienta albo opts.weekdays — inaczej etykieta dnia / fallback indeksu. */
-function resolvePlanDayWeekday(dayLabel,dayIdx,preferredWeekdays){
+/** Unikalne dni tygodnia: najpierw preferencje, potem wolne Pon–Nd — bez owijania dwóch treningów na ten sam dzień. */
+function uniqueWeekdaysForTrainDays(trainCount,preferredWeekdays){
+  const n=Math.max(0,Number(trainCount)||0);
   const pref=typeof normalizePreferredWeekdays==='function'?normalizePreferredWeekdays(preferredWeekdays):((preferredWeekdays)||[]);
-  if(pref.length&&pref[dayIdx%pref.length]!=null)return pref[dayIdx%pref.length];
-  return planDayLabelToWeekday(dayLabel,dayIdx);
+  const out=[];const used=new Set();
+  pref.forEach(d=>{if(out.length<n&&!used.has(d)){used.add(d);out.push(d);}});
+  [1,2,3,4,5,6,0].forEach(d=>{if(out.length<n&&!used.has(d)){used.add(d);out.push(d);}});
+  return out;
+}
+function resolvePlanDayWeekday(dayLabel,dayIdx,preferredWeekdays){
+  const idx=Math.max(0,Number(dayIdx)||0);
+  const pref=typeof normalizePreferredWeekdays==='function'?normalizePreferredWeekdays(preferredWeekdays):((preferredWeekdays)||[]);
+  if(pref.length){
+    const map=uniqueWeekdaysForTrainDays(idx+1,pref);
+    if(map[idx]!=null)return map[idx];
+  }
+  return planDayLabelToWeekday(dayLabel,idx);
 }
 /** Godzina startu z preferowanej pory klienta (np. „Wieczór (18-22)”). */
 function scheduleTimeFromClient(client,fallback){
@@ -1636,6 +1648,28 @@ function scheduleTimeFromClient(client,fallback){
   if(/po południu|14-18|14–18/i.test(t))return'16:00';
   if(/wieczór|18-22|18–22/i.test(t))return'18:00';
   return fb;
+}
+/** Usuwa sesje source=planned klienta od danej daty (domyślnie dziś) — stary plan nie zostaje pod nowym. */
+function dropPlannedSessionsFrom(clientId,fromYmd){
+  const cid=String(clientId||'');
+  const from=String(fromYmd||(typeof todayYmd==='function'?todayYmd():'')||'').slice(0,10);
+  if(!cid)return 0;
+  const list=window.SE||[];
+  const drop=[];
+  for(let i=list.length-1;i>=0;i--){
+    const s=list[i];
+    const d=String(s&&s.date||'').slice(0,10);
+    if(s&&s.clientId===cid&&s.source==='planned'&&(!from||d>=from)){
+      drop.push(s);
+      list.splice(i,1);
+    }
+  }
+  drop.forEach(s=>{
+    if(window._db&&typeof window._del==='function'&&typeof window._doc==='function'){
+      try{window._del(window._doc(window._db,'sessions',s.id));}catch(e){}
+    }
+  });
+  return drop.length;
 }
 /** Tworzy sesje kalendarzowe z dni planu (planId + dayIdx) na N tygodni do przodu. */
 function schedulePlanToCalendar(planId,opts){
@@ -1649,17 +1683,19 @@ function schedulePlanToCalendar(planId,opts){
   const trainDays=(plan.days||[]).map((d,i)=>({d,i})).filter(x=>x.d&&!x.d.rest&&(x.d.exercises||[]).length);
   if(!trainDays.length){notify('Plan nie ma dni treningowych');return 0;}
   const today=new Date();today.setHours(0,0,0,0);
+  const todayStr=typeof dateStr==='function'?dateStr(today):(typeof todayYmd==='function'?todayYmd():today.toISOString().slice(0,10));
+  if(typeof dropPlannedSessionsFrom==='function')dropPlannedSessionsFrom(plan.clientId,todayStr);
   let created=0;
   for(let w=0;w<weeks;w++){
-    trainDays.forEach(({d,i})=>{
-      const wd=resolvePlanDayWeekday(d.day||d.dayName,i,preferred);
+    trainDays.forEach(({d,i},trainI)=>{
+      const wd=resolvePlanDayWeekday(d.day||d.dayName,trainI,preferred);
       const dt=new Date(today);
       const cur=dt.getDay();
       let add=(wd-cur+7)%7;
       if(add===0&&w===0)add=0; // dziś OK
       dt.setDate(dt.getDate()+add+w*7);
       const ymd=typeof dateStr==='function'?dateStr(dt):dt.toISOString().slice(0,10);
-      const exists=SE.some(s=>s.clientId===plan.clientId&&s.date===ymd&&s.planId===plan.id&&s.dayIdx===i);
+      const exists=SE.some(s=>s.clientId===plan.clientId&&s.date===ymd&&s.source==='planned');
       if(exists)return;
       const label=d.day||d.dayName||('Dzień '+(i+1));
       const muscles=d.muscles||d.focus||'';
@@ -1689,8 +1725,10 @@ function schedulePlanToCalendar(planId,opts){
 }
 window.schedulePlanToCalendar=schedulePlanToCalendar;
 window.planDayLabelToWeekday=planDayLabelToWeekday;
+window.uniqueWeekdaysForTrainDays=uniqueWeekdaysForTrainDays;
 window.resolvePlanDayWeekday=resolvePlanDayWeekday;
 window.scheduleTimeFromClient=scheduleTimeFromClient;
+window.dropPlannedSessionsFrom=dropPlannedSessionsFrom;
 
 /** Auto-kalendarz gdy klient ma preferredWeekdays; inaczej confirm. */
 function maybeSchedulePlanToCalendar(planId,opts){
