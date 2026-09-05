@@ -20,6 +20,10 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
+ok('cache 01 v71', html.includes('01-core.js?v=73'));
+ok('cache 05 v37', html.includes('05-clients-builder-plans-calendar.js?v=40'));
+ok('cache 08 v38', html.includes('08-client-profile-extras.js?v=43'));
+ok('cache styles v56', html.includes('styles.css?v=59'));
 ok('cache 01 v71', html.includes('01-core.js?v=72'));
 ok('cache 05 v37', html.includes('05-clients-builder-plans-calendar.js?v=40'));
 ok('cache 08 v38', html.includes('08-client-profile-extras.js?v=42'));
