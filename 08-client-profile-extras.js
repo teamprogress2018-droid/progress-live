@@ -1025,11 +1025,12 @@ function renderCPOverview(c){
   const photosOn=typeof ppFeatureOn==='function'?ppFeatureOn(c):true;
 
   const logged=typeof completedWorkouts==='function'?completedWorkouts(c.id,sessions):sessions.filter(s=>s.source==='client'||s.source==='live');
-  const inPastDays=(s,n)=>{const d=new Date(s.date+'T12:00:00');const diff=(today-d)/86400000;return diff>=0&&diff<=n;};
-  const assigned7=sessions.filter(s=>inPastDays(s,7)).length;
-  const assigned30=sessions.filter(s=>inPastDays(s,30)).length;
-  const last7=logged.filter(s=>inPastDays(s,7)).length;
-  const last30=logged.filter(s=>inPastDays(s,30)).length;
+  const adh7=typeof clientAdherenceStats==='function'?clientAdherenceStats(c.id,7):{logged:0,assigned:0,pct:0};
+  const adh30=typeof clientAdherenceStats==='function'?clientAdherenceStats(c.id,30):{logged:0,assigned:0,pct:0};
+  const last7=adh7.logged;
+  const last30=adh30.logged;
+  const assigned7=adh7.assigned;
+  const assigned30=adh30.assigned;
   // Next calendar week (Mon–Sun after current week)
   const dow=today.getDay(); // 0 Sun
   const daysToNextMon=((8-dow)%7)||7;
@@ -1039,8 +1040,11 @@ function renderCPOverview(c){
   const nextSunStr=nextSun.toISOString().split('T')[0];
   const nextWeekAssigned=sessions.filter(s=>s.date>=nextMonStr&&s.date<=nextSunStr).length;
   const lastWorkout=logged.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0];
-  const lastWorkoutTitle=lastWorkout?(typeof sessionTitle==='function'?sessionTitle(lastWorkout):(lastWorkout.type||'Trening')):null;
-  const lastWorkoutDays=lastWorkout?Math.floor((today-new Date(lastWorkout.date+'T12:00:00'))/86400000):null;
+  const lastHw=(typeof homeworkCompletions==='function'?homeworkCompletions(c.id,365):[]).slice().sort((a,b)=>String(b.doneAt||'').localeCompare(String(a.doneAt||'')))[0];
+  const lastWorkoutTitle=lastWorkout?(typeof sessionTitle==='function'?sessionTitle(lastWorkout):(lastWorkout.type||'Trening')):(lastHw?(lastHw.title||'Zadanie domowe'):null);
+  const lastWorkoutDays=lastWorkout?Math.floor((today-new Date(lastWorkout.date+'T12:00:00'))/86400000):(lastHw&&homeworkDoneYmd(lastHw)?Math.floor((today-new Date(homeworkDoneYmd(lastHw)+'T12:00:00'))/86400000):null);
+  const lastWorkoutDate=lastWorkout?(lastWorkout.date||''):(lastHw&&typeof homeworkDoneYmd==='function'?homeworkDoneYmd(lastHw):'');
+  const lastWorkoutFb=lastWorkout&&lastWorkout.feedback;
 
   const weightEntry=metricsOn?cpMetricLatest(c.id,'mg1','m1'):null;
   const weightVal=weightEntry?weightEntry.values.m1:(c.weight||null);
@@ -1184,11 +1188,11 @@ function renderCPOverview(c){
               <div class="cp-ov-stat-sub">${nextWeekAssigned?nextWeekAssigned+' zaplanowane':'Jeszcze nie przypisano'}</div>
             </div>
           </div>
-          ${lastWorkout?`<div class="cp-ov-last-wo" onclick="setCPTab('training')">
+          ${lastWorkout||lastHw?`<div class="cp-ov-last-wo" onclick="setCPTab('training')">
             <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px;">Ostatni trening</div>
             <div style="font-size:14px;font-weight:700;">${escHtml(lastWorkoutTitle)}</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:2px;">${escHtml(lastWorkout.date||'')}${lastWorkoutDays!=null?' · '+lastWorkoutDays+' dni temu':''}${lastWorkout.feedback?' · '+lastWorkout.feedback+'/5':''}</div>
-          </div>`:`<div class="cp-ov-last-wo muted">Brak zarejestrowanych treningów — klient jeszcze nic nie odhaczył.</div>`}
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;">${escHtml(lastWorkoutDate||'')}${lastWorkoutDays!=null?' · '+lastWorkoutDays+' dni temu':''}${lastWorkoutFb?' · '+lastWorkoutFb+'/5':''}${!lastWorkout&&lastHw?' · zadanie domowe':''}</div>
+          </div>`:`<div class="cp-ov-last-wo muted">Brak zapisanych treningów — Live, apka (serie) albo zadanie domowe. Same terminy w kalendarzu się nie liczą.</div>`}
           ${(assigned7&&last7===0)||(pulse.tone!=='good')?`<div style="margin-top:10px;position:relative;z-index:1;"><button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();cpRemindClient('${c.id}','workout')">Przypomnij o treningu</button></div>`:''}
         </div>
 
@@ -1683,6 +1687,7 @@ function cpPrBarChart(prs){
 
 /** Adherencja treningowa: ukończone / zaplanowane w oknie dni. */
 function cpClientAdherence(clientId,days){
+  if(typeof clientAdherenceStats==='function')return clientAdherenceStats(clientId,days);
   const n=days==null?30:days;
   const sessions=(window.SE||[]).filter(s=>s&&s.clientId===clientId&&s.date);
   const today=new Date();today.setHours(12,0,0,0);
@@ -1849,6 +1854,7 @@ function renderCPProgress(c){
       <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--blue);">${ciAvg||'—'}</div><div class="cp-stat-lbl">Check-in śr.</div><div style="font-size:9px;color:var(--muted);margin-top:2px;">${ciPts.length?ciPts.length+' raportów':'brak'}</div></div>
       <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--teal);">${bestStreak||habitPct7||'—'}</div><div class="cp-stat-lbl">${bestStreak?'Streak nawyków':'Nawyki 7d'}</div><div style="font-size:9px;color:var(--muted);margin-top:2px;">${habits.length?habits.length+' aktywnych':(bestStreak?'dni':'brak nawyków')}${habitPct7?' · '+habitPct7+'%':''}</div></div>
     </div>
+    ${adh30.assigned&&!adh30.logged?`<div style="font-size:11px;color:var(--muted);line-height:1.45;margin:-8px 0 14px;">Kalendarz ma ${adh30.assigned} zaplanowanych dni, ale brak zapisu z Live / apki (serie) / zadania domowego — same terminy nie wchodzą do Progress.</div>`:''}
 
     <div data-cp-panel="train" style="display:grid;grid-template-columns:1.55fr 1fr;gap:14px;margin-bottom:14px;">
       <div class="stat-card">
@@ -2150,10 +2156,12 @@ function renderCPTraining(c){
   const todayStr=today.toISOString().split('T')[0];
   const logged=typeof completedWorkouts==='function'?completedWorkouts(c.id,allSessions):allSessions.filter(s=>s.source==='client'||s.source==='live');
   const avgRate=typeof avgSessionRating==='function'?avgSessionRating(logged):0;
+  const adh7=typeof clientAdherenceStats==='function'?clientAdherenceStats(c.id,7):null;
+  const adh30t=typeof clientAdherenceStats==='function'?clientAdherenceStats(c.id,30):null;
 
-  // Statystyki — zrobione treningi, nie same wpisy w kalendarzu
-  const last7=logged.filter(s=>{const d=new Date(s.date);return(today-d)/86400000<=7;}).length;
-  const last30=logged.filter(s=>{const d=new Date(s.date);return(today-d)/86400000<=30;}).length;
+  // Statystyki — zrobione treningi (Live / apka / zadanie domowe), nie same wpisy w kalendarzu
+  const last7=adh7?adh7.logged:logged.filter(s=>{const d=new Date(s.date);return(today-d)/86400000<=7;}).length;
+  const last30=adh30t?adh30t.logged:logged.filter(s=>{const d=new Date(s.date);return(today-d)/86400000<=30;}).length;
 
   // Oblicz zakres kalendarza
   const getMonday=(d)=>{const dt=new Date(d);const day=dt.getDay();dt.setDate(dt.getDate()-(day===0?6:day-1));dt.setHours(0,0,0,0);return dt;};

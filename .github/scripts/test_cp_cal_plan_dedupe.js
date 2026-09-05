@@ -20,6 +20,7 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 05 v38', html.includes('05-clients-builder-plans-calendar.js?v=40'));
+ok('cache 08 v42', html.includes('08-client-profile-extras.js?v=43'));
 ok('cache 08 v42', html.includes('08-client-profile-extras.js?v=42'));
 ok('ci unit', wf.includes('test_cp_cal_plan_dedupe.js'));
 ok('assignment helper', /function cpAssignmentSessions/.test(src08));

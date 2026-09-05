@@ -10,7 +10,7 @@ const document = {
 };
 const windowObj = {
   addEventListener() {},
-  CL: [], PL: [], SE: [], EX: [], WO: [],
+  CL: [], PL: [], SE: [], EX: [], WO: [], TASKS: [],
   METRIC_ENTRIES: [],
   document
 };
@@ -41,7 +41,8 @@ vm.runInContext(fs.readFileSync(path.join(__dirname, '..', '..', '01-core.js'), 
 const {
   sessionRatingEmoji, sessionRatingLabel, isLoggedWorkout, completedWorkouts,
   sessionSetsCount, avgSessionRating, sessionTitle, sessionSourceLabel,
-  sessionIsRecorded, sessionHappened, sessionHappenedTip
+  sessionIsRecorded, sessionHappened, sessionHappenedTip,
+  clientAdherenceStats, homeworkCompletions, dateStrLocal, ymdAdd, todayYmd
 } = ctx;
 
 let failed = 0;
@@ -120,6 +121,28 @@ eq('kpi two logs same day', [
 eq('tip logged has check', /Odbył się/.test(sessionHappenedTip({source: 'live', type: 'TP', time: '18:00'})), true);
 eq('tip planned says zaplanowany', /zaplanowany/.test(sessionHappenedTip({source: 'planned', type: 'Push'})), true);
 eq('tip planned fulfilled', /odbył się/.test(sessionHappenedTip(pair[0], pair)), true);
+
+const localMidnight = new Date(2026, 8, 5, 0, 0, 0);
+eq('dateStrLocal calendar day', dateStrLocal(localMidnight), '2026-09-05');
+
+const today = todayYmd();
+const d3 = ymdAdd(today, -3);
+const d10 = ymdAdd(today, -10);
+const d1 = ymdAdd(today, -1);
+windowObj.SE = [
+  {id: 'p1', clientId: 'c1', date: d3, source: 'planned'},
+  {id: 'p1b', clientId: 'c1', date: d3, source: 'planned'},
+  {id: 'l1', clientId: 'c1', date: d3, source: 'client'},
+  {id: 'p2', clientId: 'c1', date: d10, source: 'planned'}
+];
+windowObj.TASKS = [
+  {id: 'hw1', clientId: 'c1', kind: 'homework', status: 'done', doneAt: d1 + 'T18:00:00.000Z', title: 'HIIT'}
+];
+const adh = clientAdherenceStats('c1', 30);
+eq('adherence unique assigned days', adh.assigned, 2);
+eq('adherence logged client+homework days', adh.logged, 2);
+eq('homework listed', homeworkCompletions('c1', 30).length, 1);
+eq('planned happened via homework date', sessionHappened({id: 'px', clientId: 'c1', date: d1, source: 'planned'}), true);
 
 if (failed) {
   console.error('\n' + failed + ' test(s) failed');
