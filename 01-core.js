@@ -2150,11 +2150,16 @@ function parseRestSeconds(rest){
 }
 window.parseRestSeconds=parseRestSeconds;
 
-function todayYmd(){
-  if(typeof dateStr==='function')return dateStr(new Date());
-  const d=new Date();
+function dateStrLocal(d){
+  const x=d instanceof Date?d:new Date(d);
+  if(isNaN(x.getTime()))return '';
   const p=n=>String(n).padStart(2,'0');
-  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+  return x.getFullYear()+'-'+p(x.getMonth()+1)+'-'+p(x.getDate());
+}
+window.dateStrLocal=dateStrLocal;
+
+function todayYmd(){
+  return dateStrLocal(new Date());
 }
 window.todayYmd=todayYmd;
 
@@ -3002,6 +3007,8 @@ function sessionHappened(s,sessions){
   if(!s)return false;
   if(sessionIsRecorded(s))return true;
   if(!s.clientId||!s.date)return false;
+  const y=String(s.date).slice(0,10);
+  if(typeof homeworkDoneOnDate==='function'&&homeworkDoneOnDate(s.clientId,y))return true;
   const list=sessions||window.SE||[];
   return list.some(o=>o&&o.id!==s.id&&o.clientId===s.clientId&&o.date===s.date&&typeof isLoggedWorkout==='function'&&isLoggedWorkout(o));
 }
@@ -3030,6 +3037,75 @@ function completedWorkouts(clientId,sessions){
     .slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''));
 }
 window.completedWorkouts=completedWorkouts;
+
+function ymdInPastWindow(ymd,days,todayY){
+  const y=String(ymd||'').slice(0,10);
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(y))return false;
+  const n=days==null?30:Number(days);
+  if(!Number.isFinite(n))return false;
+  const today=todayY||(typeof todayYmd==='function'?todayYmd():'');
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(today))return false;
+  const a=new Date(y+'T12:00:00').getTime();
+  const b=new Date(today+'T12:00:00').getTime();
+  if(!a||!b||isNaN(a)||isNaN(b))return false;
+  const diff=Math.round((b-a)/86400000);
+  return diff>=0&&diff<=n;
+}
+window.ymdInPastWindow=ymdInPastWindow;
+
+function homeworkDoneYmd(t){
+  if(!t)return '';
+  const y=String(t.doneAt||t.updatedAt||t.completedAt||'').slice(0,10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(y)?y:'';
+}
+window.homeworkDoneYmd=homeworkDoneYmd;
+
+function homeworkCompletions(clientId,days){
+  const n=days==null?30:days;
+  return(window.TASKS||[]).filter(t=>{
+    if(!t||t.clientId!==clientId||t.status!=='done')return false;
+    if(typeof isHomework==='function'? !isHomework(t):!(t.kind==='homework'||t.odWorkoutId||t.odProgramId))return false;
+    const y=homeworkDoneYmd(t);
+    if(!y)return false;
+    return ymdInPastWindow(y,n);
+  });
+}
+window.homeworkCompletions=homeworkCompletions;
+
+function homeworkDoneOnDate(clientId,ymd){
+  const y=String(ymd||'').slice(0,10);
+  if(!clientId||!y)return false;
+  return(window.TASKS||[]).some(t=>t&&t.clientId===clientId&&t.status==='done'&&(typeof isHomework==='function'?isHomework(t):(t.kind==='homework'||t.odWorkoutId||t.odProgramId))&&homeworkDoneYmd(t)===y);
+}
+window.homeworkDoneOnDate=homeworkDoneOnDate;
+
+/** Adherencja: unikalne dni. Licznik = Live / apka / zadanie domowe. Mianownik = dni z kalendarza (plan). */
+function clientAdherenceStats(clientId,days){
+  const n=days==null?30:days;
+  const sessions=(window.SE||[]).filter(s=>s&&s.clientId===clientId&&s.date);
+  let planned=sessions.filter(s=>s.source==='planned'&&ymdInPastWindow(s.date,n));
+  if(typeof cpAssignmentSessions==='function'){
+    try{
+      planned=cpAssignmentSessions(clientId).filter(s=>s&&s.source==='planned'&&ymdInPastWindow(s.date,n));
+    }catch(e){}
+  }
+  const assignedDates=new Set();
+  planned.forEach(s=>assignedDates.add(String(s.date).slice(0,10)));
+  const loggedDates=new Set();
+  completedWorkouts(clientId,sessions).forEach(s=>{
+    if(ymdInPastWindow(s.date,n))loggedDates.add(String(s.date).slice(0,10));
+  });
+  homeworkCompletions(clientId,n).forEach(t=>{
+    const y=homeworkDoneYmd(t);
+    if(y)loggedDates.add(y);
+  });
+  const assigned=assignedDates.size;
+  const logged=loggedDates.size;
+  const denom=assigned||logged;
+  const pct=denom?Math.round((logged/denom)*100):0;
+  return{assigned,logged,pct:Math.min(100,pct)};
+}
+window.clientAdherenceStats=clientAdherenceStats;
 
 function sessionSetsCount(s){
   if(!s||!s.exercises)return 0;

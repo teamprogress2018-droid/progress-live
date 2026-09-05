@@ -4692,13 +4692,15 @@ function previewReportOptions(){
   const to=document.getElementById('rep-to').value;
   if(!c){return;}
   const sessions=SE.filter(s=>s.clientId===cid&&s.date>=from&&s.date<=to);
+  const loggedN=sessions.filter(s=>typeof isLoggedWorkout==='function'?isLoggedWorkout(s):(s.source==='client'||s.source==='live')).length;
+  const plannedN=sessions.filter(s=>s.source==='planned').length;
   const tasks=TASKS.filter(t=>t.clientId===cid);
   const plans=PL.filter(p=>p.clientId===cid);
   const entries=METRIC_ENTRIES.filter(e=>e.clientId===cid);
   const pkgs=allPackages().filter(p=>p.clientId===cid||p.clientName===c.name);
   const el=document.getElementById('rep-preview-info');
   if(el)el.innerHTML=`<strong style="color:var(--accent);">Podgląd dla: ${c.name}</strong> · Okres: ${from} — ${to}<br>
-    📅 ${sessions.length} sesji · 📏 ${entries.length} pomiarów · ✅ ${tasks.length} zadań · 🏋️ ${plans.length} planów · 💰 ${pkgs.length} pakietów`;
+    📅 ${loggedN} odbytych · ${plannedN} zaplanowanych · 📏 ${entries.length} pomiarów · ✅ ${tasks.length} zadań · 🏋️ ${plans.length} planów · 💰 ${pkgs.length} pakietów`;
 }
 
 function generateReport(){
@@ -4749,6 +4751,8 @@ function buildReportHTML(c,from,to,sec,template){
 
   // data
   const sessions=SE.filter(s=>s.clientId===c.id&&s.date>=from&&s.date<=to).sort((a,b)=>b.date.localeCompare(a.date));
+  const loggedSess=sessions.filter(s=>typeof isLoggedWorkout==='function'?isLoggedWorkout(s):(s.source==='client'||s.source==='live'));
+  const plannedSess=sessions.filter(s=>s.source==='planned');
   const allSessions=SE.filter(s=>s.clientId===c.id);
   const tasks=TASKS.filter(t=>t.clientId===c.id);
   const oneShot=tasks.filter(t=>typeof isOneShot==='function'?isOneShot(t):!isHabit(t));
@@ -4862,8 +4866,8 @@ function buildReportHTML(c,from,to,sec,template){
   if(sec.overview){
     html+=`<div style="margin-bottom:24px;">${sectionTitle('PRZEGLĄD OGÓLNY','📋',accent)}
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
-      ${kpiBox(allSessions.length,'Łącznie sesji',accent)}
-      ${kpiBox(sessions.length,'Sesji w okresie',blue)}
+      ${kpiBox(loggedSess.length,'Odbyte w okresie',accent)}
+      ${kpiBox(plannedSess.length,'Zaplanowane (kalendarz)',blue)}
       ${kpiBox(oneShot.length?tasksDone.length+'/'+oneShot.length:habits.length?habits.length+' nawyków':'0/0','Zadań ukończonych',teal)}
       ${kpiBox(totalRevenue.toLocaleString('pl')+' zł','Łączna wartość',orange)}
     </div>

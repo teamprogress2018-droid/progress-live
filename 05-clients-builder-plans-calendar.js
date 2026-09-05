@@ -36,6 +36,10 @@ function formatClientActivity(clientId){
 
 /** Everfit-style tracked / assigned for last N days. */
 function clientTrainingWindowStats(clientId,days){
+  if(typeof clientAdherenceStats==='function'){
+    const st=clientAdherenceStats(clientId,days);
+    return{done:st.logged,assigned:st.assigned,pct:st.assigned||st.logged?st.pct:null};
+  }
   const today=new Date();
   const sessions=(window.SE||[]).filter(s=>{
     if(s.clientId!==clientId||!s.date)return false;
@@ -1889,7 +1893,13 @@ function getWeekStart(d){
   return dt;
 }
 
-function dateStr(d){return d.toISOString().split('T')[0];}
+function dateStr(d){
+  if(typeof dateStrLocal==='function')return dateStrLocal(d);
+  const x=d instanceof Date?d:new Date(d);
+  if(isNaN(x.getTime()))return '';
+  const p=n=>String(n).padStart(2,'0');
+  return x.getFullYear()+'-'+p(x.getMonth()+1)+'-'+p(x.getDate());
+}
 
 function setCalView(v){
   calView=v;
