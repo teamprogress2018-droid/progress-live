@@ -92,8 +92,8 @@
         </div>
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="library" onclick="goTo('library')">Ćwiczenia</button>
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="plans" onclick="goTo('plans')">Treningi</button>
-        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="programs" onclick="goTo('programs')">Programy</button>
-        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="templates" onclick="goTo('templates')">Szablony planów</button>
+        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="programs" onclick="goTo('programs')">Programy (makrocykle)</button>
+        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="templates" onclick="goTo('templates')">Szablony (mikrocykle)</button>
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="tasks" onclick="goTo('tasks')">Zadania</button>
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="forms" onclick="goTo('forms')">Formularze i ankiety</button>
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="metrics" onclick="goTo('metrics')">Grupy pomiarów</button>
@@ -647,7 +647,10 @@
 <!-- PROGRAMS LIBRARY -->
 <div class="screen" id="screen-programs">
   <div class="topbar">
-    <div class="topbar-title">Biblioteka programów</div>
+    <div>
+      <div class="topbar-title">Programy — makrocykle</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4;max-width:640px;">Gotowe <b>bloki 4–16 tygodni</b> z periodyzacją (akumulacja → intensyfikacja → deload). Schematy 1-tygodniowe są w <button type="button" class="linkish" onclick="goTo('templates')" style="background:none;border:none;color:var(--accent);cursor:pointer;padding:0;font:inherit;text-decoration:underline;">Szablonach</button>.</div>
+    </div>
     <div class="topbar-actions">
       <button class="btn btn-ghost btn-sm" onclick="openM('m-program')">+ Własny program</button>
     </div>
@@ -2677,10 +2680,13 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 <!-- SZABLONY PLANÓW -->
 <div class="screen" id="screen-templates">
   <div class="topbar">
-    <div class="topbar-title">Biblioteka szablonów planów</div>
+    <div>
+      <div class="topbar-title">Szablony planów — mikrocykle</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4;max-width:640px;">Gotowe <b>schematy tygodnia</b> (PPL, FBW, Upper/Lower…). Bez faz i deloadów — te są w <button type="button" class="linkish" onclick="goTo('programs')" style="background:none;border:none;color:var(--accent);cursor:pointer;padding:0;font:inherit;text-decoration:underline;">Programach</button>.</div>
+    </div>
     <div class="topbar-actions">
-      <input type="text" id="tpl-search" placeholder="Szukaj szablonu..." class="form-input" style="width:200px;font-size:12px;padding:6px 10px;" oninput="renderTemplates()">
-      <button class="btn btn-ghost btn-sm" onclick="openTplCreate()">+ Utwórz własny</button>
+      <input type="text" id="tpl-search" placeholder="Szukaj schematu tygodnia..." class="form-input" style="width:220px;font-size:12px;padding:6px 10px;" oninput="renderTemplates()">
+      <button class="btn btn-ghost btn-sm" onclick="openTplCreate()">+ Własny schemat</button>
     </div>
   </div>
 
@@ -4169,11 +4175,11 @@ async function load(){
 <script src="ex-gif-manifest.js?v=33"></script>
 <script src="ex-photo-manifest.js?v=5"></script>
 <script src="01-core.js?v=72"></script>
-<script src="02-workouts-onboarding-templates-live.js?v=29"></script>
+<script src="02-workouts-onboarding-templates-live.js?v=30"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=29"></script>
 <script src="04-client-portal.js?v=37"></script>
 <script src="05-clients-builder-plans-calendar.js?v=40"></script>
-<script src="06-inbox-exercises-ai-programs.js?v=61"></script>
+<script src="06-inbox-exercises-ai-programs.js?v=62"></script>
 <script src="07-forms-metrics-calculator.js?v=30"></script>
 <script src="08-client-profile-extras.js?v=42"></script>
 <script src="09-posture-kb-invites-private.js?v=35"></script>

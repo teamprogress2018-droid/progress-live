@@ -758,7 +758,8 @@ function onbCreateClient(){
   if(onbNewClient.template){
     const t=PLAN_TEMPLATES.find(x=>x.id===onbNewClient.template);
     if(t){
-      assignedPlan=withTrainer({id:newId('p'),name:t.name,clientId:newC.id,method:t.method,duration:t.weeks,
+      assignedPlan=withTrainer({id:newId('p'),name:t.name,clientId:newC.id,method:t.method,duration:t.weeks||1, // mikrocykl — trener zapętla w kalendarzu / Programy = pełny blok
+    _sourceKind:'template-microcycle',
         days:(t.days_detail||[]).map(d=>({day:d.name,exercises:(d.exercises||[]).map(e=>({name:e.n,sets:e.s,reps:e.r}))})),
         source:'template',createdAt:new Date().toISOString()});
       PL.push(assignedPlan);
@@ -888,10 +889,10 @@ var TPL_CUSTOM=[];
 window.TPL_CUSTOM=TPL_CUSTOM;
 
 const PLAN_TEMPLATES=[
-  // ── MASA ──
-  {id:'t01',name:'PPL 3× — Budowa masy',goal:'masa',level:'sredni',method:'PPL',days:3,weeks:8,
-   desc:'Klasyczny Push/Pull/Legs 3 razy w tygodniu. Ideał dla osób z ograniczonym czasem, szukających solidnego wzrostu masy mięśniowej.',
-   tags:['masa','PPL','3×/tydzień','sztanga'],
+  // Mikrocykle / schematy tygodnia (bez periodyzacji — ta jest w Programach)
+  {id:'t01',name:'Schemat PPL 3× — Push / Pull / Legs',goal:'masa',level:'sredni',method:'PPL',days:3,weeks:1,
+   desc:'Mikrocykl tygodnia: Push, Pull, Legs. Przypisz i zapętlaj w kalendarzu. Pełna periodyzacja 8–12 tyg. → Biblioteka programów.',
+   tags:['mikrocykl','schemat tygodnia','masa','PPL','3×/tydzień','sztanga'],
    color:'var(--accent)',popularity:98,
    schedule:['Pon: Push','Śr: Pull','Pt: Legs'],
    days_detail:[
@@ -923,16 +924,16 @@ const PLAN_TEMPLATES=[
      ]},
    ]},
 
-  {id:'t02',name:'PPL 6× — Zaawansowana masa',goal:'masa',level:'zaawansowany',method:'PPL',days:6,weeks:12,
-   desc:'PPL 6 dni w tygodniu — każda partia trenowana 2× w tygodniu. Maksymalna częstotliwość dla szybkiego wzrostu masy.',
-   tags:['masa','PPL','6×/tydzień','zaawansowany'],
+  {id:'t02',name:'Schemat PPL 6× — wysoka częstotliwość',goal:'masa',level:'zaawansowany',method:'PPL',days:6,weeks:1,
+   desc:'Mikrocykl 6-dniowy PPL (każda partia 2×/tydzień). Schemat tygodnia — bez gotowej ścieżki progresji wielotygodniowej.',
+   tags:['mikrocykl','schemat tygodnia','masa','PPL','6×/tydzień','zaawansowany'],
    color:'var(--accent)',popularity:85,
    schedule:['Pon: Push','Wt: Pull','Śr: Legs','Czw: Push','Pt: Pull','Sob: Legs'],
    days_detail:[]},
 
-  {id:'t03',name:'FBW 3× — Początkujący',goal:'masa',level:'poczatkujacy',method:'FBW',days:3,weeks:8,
-   desc:'Full Body Workout 3 razy w tygodniu. Idealny start dla osób bez doświadczenia. Trenuje całe ciało każdego dnia.',
-   tags:['masa','FBW','3×/tydzień','początkujący'],
+  {id:'t03',name:'Schemat FBW 3× — pełne ciało',goal:'masa',level:'poczatkujacy',method:'FBW',days:3,weeks:1,
+   desc:'Mikrocykl Full Body 3×/tydzień. Klocek na start; gotowy blok 4 tyg. z fazami znajdziesz w Programach.',
+   tags:['mikrocykl','schemat tygodnia','masa','FBW','3×/tydzień','początkujący'],
    color:'var(--teal)',popularity:95,
    schedule:['Pon: Full Body A','Śr: Full Body B','Pt: Full Body A/B'],
    days_detail:[
@@ -952,58 +953,23 @@ const PLAN_TEMPLATES=[
      ]},
    ]},
 
-  {id:'t04',name:'Upper/Lower 4× — Masa',goal:'masa',level:'sredni',method:'UL',days:4,weeks:10,
-   desc:'4 dni w tygodniu — 2 treningi górne i 2 dolne. Dobry balans między częstotliwością a regeneracją.',
-   tags:['masa','Upper/Lower','4×/tydzień'],
+  {id:'t04',name:'Schemat Upper / Lower 4×',goal:'masa',level:'sredni',method:'UL',days:4,weeks:1,
+   desc:'Mikrocykl: 2× góra + 2× dół. Schemat tygodnia do ręcznego zapętlenia.',
+   tags:['mikrocykl','schemat tygodnia','masa','Upper/Lower','4×/tydzień'],
    color:'var(--blue)',popularity:88,
    schedule:['Pon: Upper A','Wt: Lower A','Czw: Upper B','Pt: Lower B'],
    days_detail:[]},
 
-  {id:'t05',name:'Stronglifts 5×5',goal:'sila',level:'poczatkujacy',method:'FBW',days:3,weeks:12,
-   desc:'Legendarny program siłowy 5×5. Trzy ćwiczenia bazowe, 5 serii po 5 powtórzeń. Progresja 2.5 kg każdy trening.',
-   tags:['siła','5×5','3×/tydzień','klasyk'],
-   color:'var(--orange)',popularity:97,
-   schedule:['Pon: Workout A','Śr: Workout B','Pt: Workout A'],
-   days_detail:[
-     {name:'Workout A',exercises:[
-       {n:'Przysiad ze sztangą',s:'5',r:'5',rest:'180s'},
-       {n:'Wyciskanie sztangi leżąc',s:'5',r:'5',rest:'180s'},
-       {n:'Wiosłowanie sztangą',s:'5',r:'5',rest:'180s'},
-     ]},
-     {name:'Workout B',exercises:[
-       {n:'Przysiad ze sztangą',s:'5',r:'5',rest:'180s'},
-       {n:'OHP ze sztangą',s:'5',r:'5',rest:'180s'},
-       {n:'Martwy ciąg',s:'1',r:'5',rest:'300s'},
-     ]},
-   ]},
-
-  {id:'t06',name:'5/3/1 Wendler — Siła',goal:'sila',level:'sredni',method:'531',days:4,weeks:16,
-   desc:'Kultowy program siłowy Jima Wendlera. Cykl 4-tygodniowy z progresją. Skupiony na 4 ćwiczeniach bazowych + praca uzupełniająca.',
-   tags:['siła','5/3/1','4×/tydzień','cykl'],
-   color:'var(--orange)',popularity:92,
-   schedule:['Pon: Przysiad','Wt: Bench','Czw: Martwy ciąg','Pt: OHP'],
-   days_detail:[
-     {name:'Tydzień 1 — Przysiad (dzień przykładowy)',exercises:[
-       {n:'Przysiad — rozgrzewka',s:'2',r:'5',rest:'120s'},
-       {n:'Przysiad 65% 1RM',s:'1',r:'5',rest:'180s'},
-       {n:'Przysiad 75% 1RM',s:'1',r:'5',rest:'180s'},
-       {n:'Przysiad 85% 1RM',s:'1',r:'5+',rest:'240s'},
-       {n:'Wyciskanie nogami (BBB)',s:'5',r:'10',rest:'90s'},
-       {n:'Uginanie nóg',s:'5',r:'10',rest:'60s'},
-     ]},
-   ]},
-
-  {id:'t07',name:'PHUL — Power Hypertrophy',goal:'masa',level:'zaawansowany',method:'UL',days:4,weeks:12,
-   desc:'Power Hypertrophy Upper Lower — łączy trening siłowy i hipertroficzny. 2 dni mocy + 2 dni objętościowe.',
-   tags:['masa','siła','PHUL','4×/tydzień'],
+  {id:'t07',name:'Schemat PHUL — Power / Hypertrophy',goal:'masa',level:'zaawansowany',method:'UL',days:4,weeks:1,
+   desc:'Tygodniowy split Power Hypertrophy Upper/Lower (4 sesje). Bez wbudowanego deloadu — to klocek, nie makrocykl.',
+   tags:['mikrocykl','schemat tygodnia','masa','siła','PHUL','4×/tydzień'],
    color:'var(--purple)',popularity:80,
    schedule:['Pon: Upper Power','Wt: Lower Power','Czw: Upper Hyper','Pt: Lower Hyper'],
    days_detail:[]},
 
-  // ── REDUKCJA ──
-  {id:'t08',name:'Fat Loss — FBW 4×',goal:'redukcja',level:'sredni',method:'FBW',days:4,weeks:8,
-   desc:'Full Body z deficytem kalorycznym. Wysoka częstotliwość treningu przy niskiej objętości — utrzymanie masy mięśniowej podczas redukcji.',
-   tags:['redukcja','FBW','4×/tydzień','cardio'],
+  {id:'t08',name:'Schemat Fat Loss — FBW 4×',goal:'redukcja',level:'sredni',method:'FBW',days:4,weeks:1,
+   desc:'Mikrocykl redukcyjny FBW 4×/tydzień z krótkimi przerwami. Schemat tygodnia.',
+   tags:['mikrocykl','schemat tygodnia','redukcja','FBW','4×/tydzień','cardio'],
    color:'var(--red)',popularity:82,
    schedule:['Pon: FBW','Wt: Cardio LISS','Śr: FBW','Czw: Cardio HIIT','Pt: FBW','Sob: Cardio LISS'],
    days_detail:[
@@ -1018,32 +984,30 @@ const PLAN_TEMPLATES=[
      ]},
    ]},
 
-  {id:'t09',name:'HIIT + Siła — 3×',goal:'redukcja',level:'sredni',method:'FBW',days:3,weeks:6,
-   desc:'Trening obwodowy HIIT połączony z pracą siłową. Ideał dla szybkiej redukcji przy zachowaniu mięśni.',
-   tags:['redukcja','HIIT','obwód','3×/tydzień'],
+  {id:'t09',name:'Schemat HIIT + Siła 3×',goal:'redukcja',level:'sredni',method:'FBW',days:3,weeks:1,
+   desc:'Mikrocykl: siła + interwały w jednym tygodniu. Bez faz 6–8 tyg.',
+   tags:['mikrocykl','schemat tygodnia','redukcja','HIIT','obwód','3×/tydzień'],
    color:'var(--red)',popularity:75,
    schedule:['Pon/Śr/Pt: HIIT+Siła'],
    days_detail:[]},
 
-  // ── KONDYCJA ──
-  {id:'t10',name:'Kondycja ogólna — 3×',goal:'kondycja',level:'poczatkujacy',method:'FBW',days:3,weeks:8,
-   desc:'Program dla osób chcących poprawić ogólną sprawność fizyczną. Łączy siłę, wytrzymałość i mobilność.',
-   tags:['kondycja','3×/tydzień','mobilność','dla każdego'],
+  {id:'t10',name:'Schemat Kondycja ogólna 3×',goal:'kondycja',level:'poczatkujacy',method:'FBW',days:3,weeks:1,
+   desc:'Mikrocykl sprawnościowy 3×/tydzień. Klocek do zapętlenia.',
+   tags:['mikrocykl','schemat tygodnia','kondycja','3×/tydzień','mobilność','dla każdego'],
    color:'var(--blue)',popularity:79,
    schedule:['Pon: Siła','Śr: Cardio + Core','Pt: Funkcjonalny'],
    days_detail:[]},
 
-  {id:'t11',name:'Atletyzm — 4×',goal:'kondycja',level:'sredni',method:'UL',days:4,weeks:10,
-   desc:'Program atletyczny rozwijający siłę, moc, szybkość i wytrzymałość. Ideał dla sportowców i osób aktywnych.',
-   tags:['kondycja','atletyzm','moc','4×/tydzień'],
+  {id:'t11',name:'Schemat Atletyzm 4×',goal:'kondycja',level:'sredni',method:'UL',days:4,weeks:1,
+   desc:'Mikrocykl atletyczny (siła/moc/wytrzymałość) na 4 dni. Schemat tygodnia.',
+   tags:['mikrocykl','schemat tygodnia','kondycja','atletyzm','moc','4×/tydzień'],
    color:'var(--blue)',popularity:72,
    schedule:['Pon: Siła górna','Wt: Moc+sprint','Czw: Siła dolna','Pt: Wytrzymałość'],
    days_detail:[]},
 
-  // ── KOBIETY ──
-  {id:'t12',name:'Glute & Legs — 3×',goal:'kobieta',level:'sredni',method:'UL',days:3,weeks:8,
-   desc:'Dedykowany program dla kobiet skupiony na pośladkach i nogach. Progresja ciężarów, ćwiczenia izolowane i złożone.',
-   tags:['kobieta','pośladki','nogi','3×/tydzień'],
+  {id:'t12',name:'Schemat Glute & Legs 3×',goal:'kobieta',level:'sredni',method:'UL',days:3,weeks:1,
+   desc:'Mikrocykl z priorytetem pośladków i nóg. Schemat tygodnia.',
+   tags:['mikrocykl','schemat tygodnia','kobieta','pośladki','nogi','3×/tydzień'],
    color:'var(--purple)',popularity:94,
    schedule:['Pon: Glutes+Legs A','Śr: Upper Body','Pt: Glutes+Legs B'],
    days_detail:[
@@ -1067,24 +1031,23 @@ const PLAN_TEMPLATES=[
      ]},
    ]},
 
-  {id:'t13',name:'Full Body Kobiety — 3×',goal:'kobieta',level:'poczatkujacy',method:'FBW',days:3,weeks:8,
-   desc:'Pełne ciało dla kobiet zaczynających przygodę z siłownią. Ćwiczenia funkcjonalne, bezpieczne dla kolan i pleców.',
-   tags:['kobieta','FBW','3×/tydzień','początkujący'],
+  {id:'t13',name:'Schemat Full Body — kobiety 3×',goal:'kobieta',level:'poczatkujacy',method:'FBW',days:3,weeks:1,
+   desc:'Mikrocykl FBW pod sylwetkę kobiet. Schemat tygodnia.',
+   tags:['mikrocykl','schemat tygodnia','kobieta','FBW','3×/tydzień','początkujący'],
    color:'var(--purple)',popularity:88,
    schedule:['Pon/Śr/Pt: Full Body'],
    days_detail:[]},
 
-  {id:'t14',name:'Tone & Sculpt — 4×',goal:'kobieta',level:'sredni',method:'UL',days:4,weeks:10,
-   desc:'Program rzeźby dla kobiet — wysoka objętość, umiarkowane ciężary. Definiuje sylwetkę bez nadmiernej masy.',
-   tags:['kobieta','rzeźba','4×/tydzień','ton'],
+  {id:'t14',name:'Schemat Tone & Sculpt 4×',goal:'kobieta',level:'sredni',method:'UL',days:4,weeks:1,
+   desc:'Mikrocykl rzeźbiący 4×/tydzień. Schemat tygodnia.',
+   tags:['mikrocykl','schemat tygodnia','kobieta','rzeźba','4×/tydzień','ton'],
    color:'var(--purple)',popularity:82,
    schedule:['Pon: Upper A','Wt: Lower A','Czw: Upper B','Pt: Lower B'],
    days_detail:[]},
 
-  // ── SENIOR ──
-  {id:'t15',name:'Senior Active — 3×',goal:'senior',level:'poczatkujacy',method:'FBW',days:3,weeks:8,
-   desc:'Bezpieczny program dla osób 50+. Skupiony na mobilności, sile funkcjonalnej i równowadze. Bez obciążeń osiowych.',
-   tags:['senior','3×/tydzień','mobilność','bezpieczny'],
+  {id:'t15',name:'Schemat Senior Active 3×',goal:'senior',level:'poczatkujacy',method:'FBW',days:3,weeks:1,
+   desc:'Mikrocykl bezpieczny dla seniorów. Schemat tygodnia.',
+   tags:['mikrocykl','schemat tygodnia','senior','3×/tydzień','mobilność','bezpieczny'],
    color:'var(--teal)',popularity:76,
    schedule:['Pon/Śr/Pt: Full Body + Mobilność'],
    days_detail:[
@@ -1099,39 +1062,9 @@ const PLAN_TEMPLATES=[
      ]},
    ]},
 
-  // ── SIŁA ──
-  {id:'t16',name:'GZCLP — Siła dla każdego',goal:'sila',level:'poczatkujacy',method:'FBW',days:3,weeks:10,
-   desc:'Program GZCLP — prosta progresja dla zaczynających przygodę z treningiem siłowym. 3 poziomy ćwiczeń (T1/T2/T3).',
-   tags:['siła','GZCLP','3×/tydzień','progresja'],
-   color:'var(--orange)',popularity:83,
-   schedule:['Pon: A','Śr: B','Pt: C'],
-   days_detail:[]},
-
-  {id:'t17',name:'Texas Method — Siła',goal:'sila',level:'zaawansowany',method:'FBW',days:3,weeks:12,
-   desc:'Legendarny Texas Method. Poniedziałek: wysoka objętość, środa: regeneracja, piątek: maksymalna intensywność.',
-   tags:['siła','Texas Method','3×/tydzień','zaawansowany'],
-   color:'var(--orange)',popularity:78,
-   schedule:['Pon: Volume','Śr: Recovery','Pt: Intensity'],
-   days_detail:[]},
-
-  {id:'t18',name:'Starting Strength',goal:'sila',level:'poczatkujacy',method:'FBW',days:3,weeks:12,
-   desc:'Program Marka Rippetoe. Dwa treningi zmieniane naprzemiennie, 3 podstawowe ćwiczenia na sesję. Prosta progresja liniowa.',
-   tags:['siła','Starting Strength','3×/tydzień','klasyk'],
-   color:'var(--orange)',popularity:91,
-   schedule:['Pon: Workout A','Śr: Workout B','Pt: Workout A'],
-   days_detail:[]},
-
-  {id:'t19',name:'Nsuns 5/3/1 — 4 dni',goal:'sila',level:'zaawansowany',method:'531',days:4,weeks:16,
-   desc:'Zmodyfikowany 5/3/1 z wyższą objętością. Program nSuns — popularny na Reddit /r/fitness. Szybki przyrost siły.',
-   tags:['siła','5/3/1','nSuns','4×/tydzień'],
-   color:'var(--orange)',popularity:80,
-   schedule:['Pon: Bench+OHP','Wt: Squat+Deadlift','Czw: OHP+Bench','Pt: Deadlift+Squat'],
-   days_detail:[]},
-
-  // ── BEZ SPRZĘTU ──
-  {id:'t20',name:'Calisthenics — Bez sprzętu',goal:'masa',level:'sredni',method:'UL',days:4,weeks:10,
-   desc:'Program kalisteniki bez żadnego sprzętu. Pompki, podciągania, dipy, przysiady. Można ćwiczyć wszędzie.',
-   tags:['masa','kalistenika','bez sprzętu','4×/tydzień'],
+  {id:'t20',name:'Schemat Calisthenics 4×',goal:'masa',level:'sredni',method:'UL',days:4,weeks:1,
+   desc:'Mikrocykl kalisteniki (push/pull/legs/core). Schemat tygodnia.',
+   tags:['mikrocykl','schemat tygodnia','masa','kalistenika','bez sprzętu','4×/tydzień'],
    color:'var(--teal)',popularity:77,
    schedule:['Pon: Push','Wt: Pull','Czw: Push','Pt: Pull+Legs'],
    days_detail:[
@@ -1152,33 +1085,33 @@ const PLAN_TEMPLATES=[
      ]},
    ]},
 
-  {id:'t21',name:'Home Workout — Hantle',goal:'masa',level:'poczatkujacy',method:'FBW',days:3,weeks:8,
-   desc:'Program domowy z hantlami. Ideał dla osób trenujących w domu. Kompleksowy trening całego ciała.',
-   tags:['masa','hantle','dom','3×/tydzień'],
+  {id:'t21',name:'Schemat Home — hantle 3×',goal:'masa',level:'poczatkujacy',method:'FBW',days:3,weeks:1,
+   desc:'Mikrocykl domowy z hantlami. Schemat tygodnia.',
+   tags:['mikrocykl','schemat tygodnia','masa','hantle','dom','3×/tydzień'],
    color:'var(--blue)',popularity:85,
    schedule:['Pon/Śr/Pt: Full Body'],
    days_detail:[]},
 
-  {id:'t22',name:'Crossfit-Style — 5×',goal:'kondycja',level:'sredni',method:'FBW',days:5,weeks:8,
-   desc:'Trening w stylu CrossFit — WOD (Workout of the Day). Wysoka intensywność, różnorodność ćwiczeń, codzienna zmiana.',
-   tags:['kondycja','crossfit','5×/tydzień','intensywny'],
+  {id:'t22',name:'Schemat Crossfit-Style 5×',goal:'kondycja',level:'sredni',method:'FBW',days:5,weeks:1,
+   desc:'Mikrocykl wysokiej gęstości 5×/tydzień. Schemat tygodnia — bloki Tabata/AMRAP/EMOM są w Programach.',
+   tags:['mikrocykl','schemat tygodnia','kondycja','crossfit','5×/tydzień','intensywny'],
    color:'var(--red)',popularity:70,
    schedule:['Pon–Pt: WOD (zmienny)'],
    days_detail:[]},
 
-  {id:'t23',name:'Rekompo — Masa+Redukcja',goal:'masa',level:'sredni',method:'UL',days:4,weeks:12,
-   desc:'Program rekompo — jednoczesna budowa masy i redukcja tkanki tłuszczowej. Dla osób na utrzymaniu kalorycznym.',
-   tags:['masa','redukcja','rekompo','4×/tydzień'],
+  {id:'t23',name:'Schemat Rekompozycja 4×',goal:'masa',level:'sredni',method:'UL',days:4,weeks:1,
+   desc:'Mikrocykl Upper/Lower pod rekompozycję. Schemat tygodnia.',
+   tags:['mikrocykl','schemat tygodnia','masa','redukcja','rekompo','4×/tydzień'],
    color:'var(--purple)',popularity:73,
    schedule:['Pon: Upper','Wt: Lower','Czw: Upper','Pt: Lower'],
    days_detail:[]},
 
-  {id:'t24',name:'3-dniowy FBW + Cardio',goal:'redukcja',level:'poczatkujacy',method:'FBW',days:3,weeks:6,
-   desc:'Idealny program na start przygody z odchudzaniem. 3 treningi siłowe + 2 sesje cardio LISS w tygodniu.',
-   tags:['redukcja','FBW','3×/tydzień','cardio','początkujący'],
+  {id:'t24',name:'Schemat FBW + Cardio 3×',goal:'redukcja',level:'poczatkujacy',method:'FBW',days:3,weeks:1,
+   desc:'Mikrocykl FBW z sesją cardio. Schemat tygodnia.',
+   tags:['mikrocykl','schemat tygodnia','redukcja','FBW','3×/tydzień','cardio','początkujący'],
    color:'var(--red)',popularity:86,
    schedule:['Pon: FBW','Wt: Cardio','Śr: FBW','Czw: Cardio','Pt: FBW'],
-   days_detail:[]},
+   days_detail:[]}
 ];
 
 function initTemplates(){
@@ -1215,8 +1148,8 @@ function renderTemplates(){
   if(!list.length){
     el.innerHTML=`<div style="text-align:center;padding:80px;color:var(--muted);">
       <div style="font-size:36px;opacity:0.3;margin-bottom:12px;">📋</div>
-      <div style="font-size:14px;font-weight:600;margin-bottom:6px;">Brak szablonów</div>
-      <div style="font-size:12px;">Zmień filtry lub utwórz własny szablon.</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:6px;">Brak schematów tygodnia</div>
+      <div style="font-size:12px;">Zmień filtry lub utwórz własny mikrocykl. Programy z fazami → ekran Programy.</div>
     </div>`;return;
   }
 
@@ -1236,7 +1169,7 @@ function renderTemplates(){
         <div style="display:flex;gap:3px;">
           ${Array.from({length:5},(_,i)=>`<div style="height:3px;width:14px;border-radius:99px;background:${i<Math.round(t.popularity/20)?t.color:'var(--s3)'};"></div>`).join('')}
         </div>
-        <div style="font-size:10px;color:var(--muted);">${t.weeks} tyg.</div>
+        <div style="font-size:10px;color:var(--muted);">1 tydz. · schemat</div>
       </div>
     </div>`).join('')}
   </div>`;
@@ -1263,7 +1196,7 @@ function openTplDetail(id){
           <span class="tpl-tag">${levelLabels[t.level]||t.level}</span>
           <span class="tpl-tag">🔁 ${t.method}</span>
           <span class="tpl-tag">📅 ${t.days}× /tydzień</span>
-          <span class="tpl-tag">📆 ${t.weeks} tygodni</span>
+          <span class="tpl-tag">📆 Mikrocykl (1 tydzień)</span>
         </div>
       </div>
 
@@ -1339,7 +1272,8 @@ function tplAssignToClient(tid){
     clientId:cid,
     clientName:c.name,
     method:t.method,
-    duration:t.weeks,
+    duration:t.weeks||1, // mikrocykl — trener zapętla w kalendarzu / Programy = pełny blok
+    _sourceKind:'template-microcycle',
     days:(t.days_detail||[]).map(d=>({day:d.name,exercises:(d.exercises||[]).map(e=>({name:e.n,sets:e.s,reps:e.r}))})),
     source:'template',
     templateId:tid,
@@ -1415,7 +1349,7 @@ function openTplCreate(editId){
               <option value="Obwodowy">Trening obwodowy</option><option value="531">531</option><option value="Custom">Custom</option>
             </select>
           </div>
-          <div class="form-field"><label class="form-lbl">Tygodnie</label><input type="number" class="form-input" id="tplc-weeks" value="8" min="1" max="52"></div>
+          <div class="form-field"><label class="form-lbl">Długość schematu</label><input type="number" class="form-input" id="tplc-weeks" value="1" min="1" max="4" title="Szablony = mikrocykl (zwykle 1 tydzień). Dłuższe bloki z fazami → Programy."></div>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0 8px;">
           <div style="font-size:12px;font-weight:700;">Dni treningowe</div>
@@ -1439,7 +1373,7 @@ function openTplCreate(editId){
   document.getElementById('tplc-goal').value=existing?.goal||'masa';
   document.getElementById('tplc-level').value=existing?.level||'sredni';
   document.getElementById('tplc-method').value=existing?.method||'PPL';
-  document.getElementById('tplc-weeks').value=existing?.weeks||8;
+  document.getElementById('tplc-weeks').value=existing?.weeks||1;
   const daysEl=document.getElementById('tplc-days');
   daysEl.innerHTML='';
   const days=existing?.days_detail?.length?existing.days_detail:[{name:'Dzień 1',exercises:[{n:'',s:'3',r:'10'}]}];
@@ -1517,21 +1451,21 @@ async function saveCustomTemplate(){
   const goal=document.getElementById('tplc-goal').value;
   const level=document.getElementById('tplc-level').value;
   const method=document.getElementById('tplc-method').value;
-  const weeks=parseInt(document.getElementById('tplc-weeks').value)||8;
-  const desc=document.getElementById('tplc-desc').value.trim()||'Własny szablon';
+  const weeks=Math.max(1,parseInt(document.getElementById('tplc-weeks').value)||1);
+  const desc=document.getElementById('tplc-desc').value.trim()||'Własny mikrocykl (schemat tygodnia)';
   const color={masa:'var(--accent)',sila:'var(--orange)',redukcja:'var(--red)',kondycja:'var(--teal)'}[goal]||'var(--accent)';
   let tpl;
   if(window._editingTplId){
     tpl=TPL_CUSTOM.find(x=>x.id===window._editingTplId);
   }
   if(tpl){
-    Object.assign(tpl,{name,desc,goal,level,method,weeks,days:days.length,days_detail:days,schedule:days.map(d=>d.name),tags:[goal,method,days.length+'×/tydzień','własny'],color,custom:true,updatedAt:new Date().toISOString()});
+    Object.assign(tpl,{name,desc,goal,level,method,weeks,days:days.length,days_detail:days,schedule:days.map(d=>d.name),tags:['mikrocykl','schemat tygodnia',goal,method,days.length+'×/tydzień','własny'],color,custom:true,updatedAt:new Date().toISOString()});
     withTrainer(tpl);
   }else{
     tpl=withTrainer({
       id:newId('tpl'),name,desc,goal,level,method,weeks,days:days.length,
       days_detail:days,schedule:days.map(d=>d.name),
-      tags:[goal,method,days.length+'×/tydzień','własny'],
+      tags:['mikrocykl','schemat tygodnia',goal,method,days.length+'×/tydzień','własny'],
       color,popularity:50,custom:true,createdAt:new Date().toISOString()
     });
     TPL_CUSTOM.push(tpl);

@@ -18,7 +18,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 06 v61', html.includes('06-inbox-exercises-ai-programs.js?v=61'));
+ok('cache 06 v61', html.includes('06-inbox-exercises-ai-programs.js?v=62'));
 ok('ci unit', wf.includes('test_lib_del_ex.js'));
 ok('detail always has delete', /id="exd-del"/.test(six) && /Usuń ćwiczenie/.test(six));
 ok('header delete sticky', html.includes('id="exd-del-hdr"') && /exd-del-hdr/.test(six));
