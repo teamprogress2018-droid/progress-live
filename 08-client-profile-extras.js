@@ -981,6 +981,27 @@ function cpCollapseDaySessions(sessDay){
 }
 window.cpCollapseDaySessions=cpCollapseDaySessions;
 
+/** Assignment: tylko plan aktywny, jedna zaplanowana sesja na dzień (bez starych kopii PPL+FBW). */
+function cpAssignmentSessions(clientId){
+  const all=(window.SE||[]).filter(s=>s&&s.clientId===clientId);
+  const active=typeof latestClientPlan==='function'?latestClientPlan(clientId):(typeof clientPlanForCalendar==='function'?clientPlanForCalendar(clientId):null);
+  const activeId=active&&active.id;
+  const other=all.filter(s=>s.source!=='planned');
+  let planned=all.filter(s=>s.source==='planned');
+  if(activeId)planned=planned.filter(s=>s.planId===activeId);
+  const byDate={};
+  planned.forEach(s=>{
+    const d=s.date;
+    if(!d)return;
+    const cur=byDate[d];
+    if(!cur){byDate[d]=s;return;}
+    const a=cur.dayIdx,b=s.dayIdx;
+    if(b!=null&&(a==null||Number(b)<Number(a)))byDate[d]=s;
+  });
+  return other.concat(Object.keys(byDate).map(k=>byDate[k]));
+}
+window.cpAssignmentSessions=cpAssignmentSessions;
+
 function renderCPOverview(c){
   const today=new Date();
   const todayStr=today.toISOString().split('T')[0];
@@ -1346,6 +1367,17 @@ function renderCPPlan(c){
 async function delPlanFromProfile(planId,clientId){
   if(!confirm('Usunąć plan?'))return;
   window.PL=PL.filter(p=>p.id!==planId);
+  const list=window.SE||[];
+  for(let i=list.length-1;i>=0;i--){
+    const s=list[i];
+    if(s&&s.planId===planId&&s.source==='planned'){
+      const id=s.id;
+      list.splice(i,1);
+      if(window._db&&typeof window._del==='function'&&typeof window._doc==='function'){
+        try{window._del(window._doc(window._db,'sessions',id));}catch(e){}
+      }
+    }
+  }
   if(window._db){try{await window._del(window._doc(window._db,'plans',planId));}catch(e){console.warn('Firebase:',e);}}
   const c=CL.find(x=>x.id===clientId);
   if(c)renderCPPlan(c);
@@ -2110,10 +2142,13 @@ function renderCPTraining(c){
   if(!c._mpView)c._mpView='1w';
   if(!c._mpTab)c._mpTab='assignment';
 
-  const sessions=SE.filter(s=>s.clientId===c.id);
+  const allSessions=SE.filter(s=>s.clientId===c.id);
+  const assignSessions=typeof cpAssignmentSessions==='function'?cpAssignmentSessions(c.id):allSessions;
+  const activePlan=typeof latestClientPlan==='function'?latestClientPlan(c.id):(typeof clientPlanForCalendar==='function'?clientPlanForCalendar(c.id):null);
+  const activePlanName=activePlan&&activePlan.name||'';
   const today=new Date();
   const todayStr=today.toISOString().split('T')[0];
-  const logged=typeof completedWorkouts==='function'?completedWorkouts(c.id,sessions):sessions.filter(s=>s.source==='client'||s.source==='live');
+  const logged=typeof completedWorkouts==='function'?completedWorkouts(c.id,allSessions):allSessions.filter(s=>s.source==='client'||s.source==='live');
   const avgRate=typeof avgSessionRating==='function'?avgSessionRating(logged):0;
 
   // Statystyki — zrobione treningi, nie same wpisy w kalendarzu
@@ -2136,8 +2171,8 @@ function renderCPTraining(c){
   const rangeLabel=rangeStart.getDate()+' '+MONTHS_PL[rangeStart.getMonth()]+' – '+rangeEnd.getDate()+' '+MONTHS_PL[rangeEnd.getMonth()];
 
   // Historia sesji
-  const historyHTML=sessions.length
-    ?sessions.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,15).map(s=>{
+  const historyHTML=allSessions.length
+    ?allSessions.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,15).map(s=>{
       const exCount=(s.exercises||[]).length;
       const emoji=typeof sessionRatingEmoji==='function'?sessionRatingEmoji(s.feedback):'';
       const src=typeof sessionSourceLabel==='function'?sessionSourceLabel(s):(s.type||'sesja');
@@ -2161,7 +2196,7 @@ function renderCPTraining(c){
     const ds=d.toISOString().split('T')[0];
     const isToday=ds===todayStr;
     const isPast=d<today&&!isToday;
-    const sessDay=sessions.filter(s=>s.date===ds);
+    const sessDay=assignSessions.filter(s=>s.date===ds);
     const dayName=dayNamesShort[d.getDay()===0?6:d.getDay()-1];
     const collapsed=typeof cpCollapseDaySessions==='function'?cpCollapseDaySessions(sessDay):{shown:sessDay.map(s=>({title:s.type||'Sesja',items:[s],happened:false,s})),extra:0};
     const sessCards=collapsed.shown.map(g=>{
@@ -2222,7 +2257,7 @@ function renderCPTraining(c){
         <button onclick="cpMpTab('${c.id}','history')" style="padding:5px 14px;border-radius:6px;border:none;font-size:12px;font-weight:600;cursor:pointer;background:${c._mpTab==='history'?'var(--accent)':'none'};color:${c._mpTab==='history'?'#000':'var(--muted)'};">History</button>
       </div>
       <!-- Zakres dat -->
-      <div style="font-size:12px;color:var(--muted);padding:0 4px;">📅 ${rangeLabel}</div>
+      <div style="font-size:12px;color:var(--muted);padding:0 4px;">📅 ${rangeLabel}${activePlanName?` · ${escHtml(activePlanName)}`:''}</div>
       <!-- Przycisk + Sesja -->
       <button class="btn btn-primary btn-sm" style="margin-left:auto;" onclick="openAddSessionFromCP('${c.id}','${todayStr}')">+ Sesja</button>
       <!-- Widok: 1W / 2W / 4W -->

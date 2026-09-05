@@ -217,6 +217,8 @@ jobs:
         run: node .github/scripts/test_cp_own_plan_btn.js
       - name: 1n28c. Testy braku duplikacji CTA planu w profilu
         run: node .github/scripts/test_cp_plan_dedupe.js
+      - name: 1n28d. Testy jednego planu na dzień w grafiku Assignment
+        run: node .github/scripts/test_cp_cal_plan_dedupe.js
       - name: 1n29. Testy przywrócenia konturów/czcionek kafelków
         run: node .github/scripts/test_tile_polish_restore.js
       - name: 1n30. Testy etykiet partii w autocomplete ćwiczeń

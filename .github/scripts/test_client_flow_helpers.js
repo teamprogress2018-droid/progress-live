@@ -112,6 +112,8 @@ eq('weekday labels', preferredWeekdaysLabels([1, 3, 5]), ['Pon', 'Śr', 'Pt']);
 if (typeof resolvePlanDayWeekday === 'function') {
   eq('resolve preferred first', resolvePlanDayWeekday('Dzień 1', 0, [2,4,6]), 2);
   eq('resolve preferred second', resolvePlanDayWeekday('Dzień 2', 1, [2,4,6]), 4);
+  eq('resolve preferred third', resolvePlanDayWeekday('Dzień 3', 2, [2,4,6]), 6);
+  eq('resolve extra not wrap Monday', resolvePlanDayWeekday('Dzień 3', 2, [1,3]), 2);
   eq('resolve fallback label', resolvePlanDayWeekday('PON', 0, []), 1);
 }
 if (typeof scheduleTimeFromClient === 'function') {
