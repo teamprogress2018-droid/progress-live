@@ -20,10 +20,10 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01 v71', html.includes('01-core.js?v=71'));
-ok('cache 05 v37', html.includes('05-clients-builder-plans-calendar.js?v=38'));
+ok('cache 01 v71', html.includes('01-core.js?v=72'));
+ok('cache 05 v37', html.includes('05-clients-builder-plans-calendar.js?v=39'));
 ok('cache 08 v38', html.includes('08-client-profile-extras.js?v=42'));
-ok('cache styles v56', html.includes('styles.css?v=58'));
+ok('cache styles v56', html.includes('styles.css?v=59'));
 ok('ci unit', wf.includes('test_cal_session_done.js'));
 ok('helpers in core', /function sessionHappened/.test(core) && /function sessionHappenedTip/.test(core) && /function sessionIsRecorded/.test(core));
 ok('cal helper', /function calSessionDoneBits/.test(cal));

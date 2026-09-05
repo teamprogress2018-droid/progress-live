@@ -775,18 +775,7 @@ function builderRefreshMethodHint(){
   }
 }
 function builderRefreshRationale(){
-  const el=document.getElementById('builder-rationale');
-  const ctx=builderEduCtx();
-  const days=document.querySelectorAll('#builder-days .builder-day').length;
   builderRefreshMethodHint();
-  if(!el||typeof refreshMethodRationaleInto!=='function')return;
-  refreshMethodRationaleInto(el,{
-    method:ctx.method,
-    goal:ctx.goal,
-    level:ctx.level,
-    daysPerWeek:days||undefined,
-    weight:ctx.weight
-  });
 }
 window.builderRefreshRationale=builderRefreshRationale;
 window.builderEduCtx=builderEduCtx;

@@ -3137,7 +3137,7 @@ function kbKindHint(){
   const kind=document.getElementById('kb-kind')?.value||'note';
   const el=document.getElementById('kb-kind-hint');
   if(!el)return;
-  if(kind==='evidence')el.textContent='Dodaj link PubMed/DOI jeśli masz — aplikacja nie ściąga badań automatycznie, ale AI i panel „Dlaczego tak?” pokażą Twoje źródło.';
+  if(kind==='evidence')el.textContent='Dodaj link PubMed/DOI jeśli masz — aplikacja nie ściąga badań automatycznie, ale Generator AI i Asystent AI pokażą Twoje źródło.';
   else if(kind==='principle')el.textContent='Twoje doświadczenie coachingowe ma priorytet w generatorze AI, gdy koliduje z ogólnikami.';
   else el.textContent='Notatka ogólna — też może trafić do planu, jeśli zaznaczysz „Używaj przy planowaniu”.';
 }
@@ -3198,7 +3198,7 @@ function renderKbBuiltinPreview(){
   wrap.innerHTML=`<div class="card-sm" style="border:1px dashed var(--border2);">
     <div style="font-size:12px;font-weight:700;margin-bottom:6px;">Pakiet startowy (wbudowany)</div>
     <div style="font-size:11px;color:var(--muted);line-height:1.55;margin-bottom:8px;">
-      ${pack.length} zasad/źródeł zawsze w kontekście AI i panelu „Dlaczego tak?”.
+      ${pack.length} zasad/źródeł zawsze w kontekście Generatora AI i Asystenta AI.
       ${missing.length?` Możesz skopiować ${missing.length} do swojej bazy (edytowalne).`:' Wszystkie skopiowane do Twojej bazy.'}
     </div>
     <ul style="margin:0 0 10px;padding-left:16px;font-size:11px;color:var(--text-secondary);line-height:1.5;">

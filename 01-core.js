@@ -4193,12 +4193,11 @@ function renderMethodRationaleHTML(opts){
       <div class="method-rationale-hdr-main">
         <div class="method-rationale-kicker">Dlaczego tak? · przewodnik</div>
         <div class="method-rationale-title">Asystent trenera</div>
-        <div class="method-rationale-toggle-hint method-rationale-hint-closed">Naciśnij nagłówek, aby rozwinąć · Więcej = pełny przewodnik</div>
-        <div class="method-rationale-toggle-hint method-rationale-hint-open">Kliknij nagłówek, aby zwinąć · Więcej = pełny przewodnik</div>
+        <div class="method-rationale-toggle-hint method-rationale-hint-closed">Naciśnij nagłówek, aby rozwinąć</div>
+        <div class="method-rationale-toggle-hint method-rationale-hint-open">Kliknij nagłówek, aby zwinąć</div>
         ${ctxBits?`<div class="method-rationale-ctx">${esc(ctxBits)}</div>`:''}
       </div>
       <div class="method-rationale-actions" onclick="event.preventDefault();event.stopPropagation();">
-        <button type="button" class="mr-action-btn mr-more-btn" onclick="openMethodRationaleModal()" title="Pełny przewodnik: objętość, serie, powtórzenia">Więcej</button>
         <span class="method-rationale-badge" aria-hidden="true"></span>
       </div>
     </summary>
@@ -4260,167 +4259,6 @@ function renderMethodRationaleHTML(opts){
     </div>
   </details>`;
 }
-/** Jedna ściągawka: objętość / serie / powt. / RPE / zależności — pod przyciskiem w builderze. */
-function renderTrainerCheatSheetHTML(opts){
-  const r=typeof opts==='object'&&opts.methodWhy?opts:buildMethodRationale(opts||{});
-  const escFn=(typeof window!=='undefined'&&typeof window.escHtml==='function')?window.escHtml:(typeof escHtml==='function'?escHtml:null);
-  const esc=escFn||(s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'));
-  const row=(k,v)=>`<div class="mr-row"><span class="mr-k">${esc(k)}</span><span class="mr-v">${esc(v)}</span></div>`;
-  const ctxBits=[
-    r.clientName?('Klient: '+r.clientName):'',
-    r.methodLabel?('Metoda: '+r.methodLabel):'',
-    r.goalLabel?('Cel: '+r.goalLabel):'',
-    r.levelVolumeLabel?('Staż: '+r.levelVolumeLabel):'',
-    r.daysPerWeek?('Dni/tyg.: '+r.daysPerWeek):'',
-    r.weight?('Waga ~'+Math.round(r.weight)+' kg'):''
-  ].filter(Boolean);
-  const fieldRules=[
-    {k:'Serie / ćw.',v:r.sets||'3–4 robocze'},
-    {k:'Powtórzenia',v:r.reps||'6–12'},
-    {k:'RPE / RIR',v:(r.rpe||'RPE 7–9')+' · RIR ≈ 10 − RPE'},
-    {k:'Przerwy',v:r.rest||'60–120 s'},
-    {k:'Tempo',v:'np. 3-1-1-0 (ekscentryka–pauza–koncentryka–pauza)'},
-    {k:'Częstotliwość',v:'Hipertrofia: ≥2 stymulacje partii / tydzień'},
-    {k:'Deload',v:'Co 4–6 tyg. lub wcześniej przy dryfie RPE / słabym śnie'}
-  ];
-  const periodByLevel={
-    poczatkujacy:'4 tyg.: adaptacja → budowa → deload (RPE ~7→6). Mało serii, nauka ruchu.',
-    sredni:'4 tyg. DUP: objętość / intensywność na przemian, deload w 4. RPE 7→9.',
-    zaawansowany:'Blok 6 tyg.: akumulacja → intensyfikacja → realizacja → deload. Nie trzymaj wszystkich partii na MRV.'
-  };
-  const period=periodByLevel[String(r.levelKey||'sredni').toLowerCase()]||periodByLevel.sredni;
-  return`<div class="trainer-cheat" id="trainer-cheat-root">
-    <div class="tch-hero">
-      <div class="tch-kicker">Ściągawka trenera</div>
-      <div class="tch-sub">Objętość · serie · powtórzenia · RPE · zależności — bez szukania po apce</div>
-      <div class="tch-ctx">${ctxBits.map(b=>`<span class="tch-chip">${esc(b)}</span>`).join('')}</div>
-    </div>
-    <div class="tch-grid">
-      <div class="mr-block tch-card">
-        <div class="mr-block-title">Parametry pod cel: ${esc(r.goalLabel||'')}</div>
-        <div class="mr-text">${esc(r.goalWhy||'')}</div>
-        ${row('Serie',r.sets)}
-        ${row('Powtórzenia',r.reps)}
-        ${row('RPE / RIR',r.rpe)}
-        ${row('Przerwy',r.rest)}
-        ${row('Objętość/tyg.',r.volume)}
-      </div>
-      <div class="mr-block tch-card">
-        <div class="mr-block-title">Metoda: ${esc(r.methodLabel||'')}</div>
-        <div class="mr-text">${esc(r.methodWhy||'')}</div>
-        <div class="mr-meta">Najlepiej: ${esc(r.methodBest||'')}</div>
-        <div class="mr-block-title" style="margin-top:10px;">Periodyzacja (${esc(r.levelVolumeLabel||'staż')})</div>
-        <div class="mr-text">${esc(period)}</div>
-        <div class="mr-meta">${esc(r.levelTip||'')}</div>
-      </div>
-    </div>
-    <div class="mr-block tch-card tch-volume">
-      <div class="mr-block-title">Serie robocze / partię / tydzień (MEV–MAV)</div>
-      ${renderVolumeByLevelTable(r,esc,{personalizedOnly:!!(r.clientName||r.clientId)})}
-    </div>
-    <div class="mr-block tch-card">
-      <div class="mr-block-title">Szybkie reguły przy wpisywaniu serii</div>
-      <div class="tch-rules">${fieldRules.map(x=>`<div class="tch-rule"><span class="tch-rule-k">${esc(x.k)}</span><span class="tch-rule-v">${esc(x.v)}</span></div>`).join('')}</div>
-    </div>
-    ${r.tips&&r.tips.length?`<div class="mr-block tch-card"><div class="mr-block-title">Zależności / ostrzeżenia${r.weight?' · waga ~'+Math.round(r.weight)+' kg':''}</div><ul class="mr-tips">${r.tips.map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div>`:''}
-    <div class="mr-block tch-card mr-client-talk">
-      <div class="mr-block-title">Jak wytłumaczyć klientowi</div>
-      <div class="mr-text">${esc(r.clientTalk||'')}</div>
-    </div>
-    <div class="tch-foot">NSCA · ACSM · Schoenfeld / Israetel (ramy MEV–MAV) · Twoja Baza wiedzy</div>
-  </div>`;
-}
-function resolveMethodRationaleOpts(opts){
-  if(opts&&typeof opts==='object'&&(opts.methodWhy||opts.method||opts.goal||opts.level))return opts;
-  const screenActive=(id)=>{const el=document.getElementById(id);return!!(el&&el.classList.contains('active'));};
-  if(screenActive('screen-aiplangen')&&typeof aplEduCtx==='function'){
-    try{
-      const ctx=aplEduCtx()||{};
-      if(ctx.method||ctx.goal||ctx.level||ctx.clientName)return ctx;
-    }catch(e){}
-  }
-  if(screenActive('screen-builder')&&typeof builderEduCtx==='function'){
-    try{
-      const ctx=builderEduCtx()||{};
-      const days=document.querySelectorAll('#builder-days .builder-day').length;
-      return{method:ctx.method,goal:ctx.goal,level:ctx.level,weight:ctx.weight,daysPerWeek:days||undefined,clientId:ctx.clientId,clientName:ctx.clientName};
-    }catch(e){}
-  }
-  if(typeof aplEduCtx==='function'&&document.getElementById('apl-client')?.value){
-    try{return aplEduCtx()||{};}catch(e){}
-  }
-  if(typeof builderEduCtx==='function'&&document.getElementById('b-client')?.value){
-    try{
-      const ctx=builderEduCtx()||{};
-      const days=document.querySelectorAll('#builder-days .builder-day').length;
-      return{method:ctx.method,goal:ctx.goal,level:ctx.level,weight:ctx.weight,daysPerWeek:days||undefined,clientId:ctx.clientId,clientName:ctx.clientName};
-    }catch(e){}
-  }
-  return window._lastMethodRationale||{};
-}
-function openMethodRationaleModal(opts){
-  const mount=document.getElementById('method-rationale-modal-body');
-  if(!mount){if(typeof notify==='function')notify('Brak okna ściągawki');return;}
-  const src=resolveMethodRationaleOpts(opts);
-  const r=typeof src==='object'&&src.methodWhy?src:buildMethodRationale(src||{});
-  if(src.clientName&&!r.clientName)r.clientName=src.clientName;
-  if(src.clientId&&!r.clientId)r.clientId=src.clientId;
-  try{window._lastMethodRationale=r;}catch(e){}
-  mount.innerHTML=renderTrainerCheatSheetHTML(r);
-  const title=document.querySelector('#m-method-rationale .modal-title');
-  if(title)title.textContent=r.clientName?('ŚCIĄGAWKA — '+String(r.clientName).toUpperCase()):'ŚCIĄGAWKA TRENERA';
-  if(typeof openM==='function')openM('m-method-rationale');
-}
-function printTrainerCheatSheet(){
-  // Zawsze odśwież treść spod aktualnego klienta / metody w builderze
-  const mount=document.getElementById('method-rationale-modal-body');
-  const src=resolveMethodRationaleOpts();
-  const r=typeof src==='object'&&src.methodWhy?src:buildMethodRationale(src||{});
-  try{window._lastMethodRationale=r;}catch(e){}
-  const sheet=renderTrainerCheatSheetHTML(r);
-  if(mount){
-    mount.innerHTML=sheet;
-    const title=document.querySelector('#m-method-rationale .modal-title');
-    if(title)title.textContent='ŚCIĄGAWKA TRENERA';
-  }
-  const html=(document.getElementById('trainer-cheat-root')||{innerHTML:sheet}).innerHTML||sheet;
-  if(!html){if(typeof notify==='function')notify('Brak treści do druku');return;}
-  const w=window.open('','_blank','noopener,noreferrer,width=900,height=700');
-  if(!w){
-    if(typeof openM==='function')openM('m-method-rationale');
-    document.body.classList.add('printing-cheat-sheet');
-    window.print();
-    setTimeout(()=>document.body.classList.remove('printing-cheat-sheet'),800);
-    return;
-  }
-  w.document.open();
-  w.document.write(`<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>Ściągawka trenera — Progress Live</title>
-<style>
-  body{font-family:Georgia,'Times New Roman',serif;color:#111;background:#fff;padding:18px 22px;font-size:12px;line-height:1.45;}
-  .tch-kicker{font-size:18px;font-weight:700;margin:0 0 4px;font-family:system-ui,sans-serif;}
-  .tch-sub,.mr-meta,.tch-foot{color:#444;font-size:11px;}
-  .tch-ctx{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 14px;}
-  .tch-chip{border:1px solid #ccc;border-radius:4px;padding:2px 8px;font-size:11px;font-family:system-ui,sans-serif;}
-  .tch-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-  @media(max-width:720px){.tch-grid{grid-template-columns:1fr;}}
-  .tch-card,.mr-block{border:1px solid #ddd;border-radius:6px;padding:10px 12px;margin-bottom:12px;break-inside:avoid;}
-  .mr-block-title{font-weight:700;font-size:12px;margin:0 0 6px;font-family:system-ui,sans-serif;}
-  .mr-row{display:grid;grid-template-columns:100px 1fr;gap:6px;margin-top:3px;}
-  .mr-k{color:#555;font-weight:600;}
-  .mr-vol-table{width:100%;border-collapse:collapse;margin-top:6px;}
-  .mr-vol-table th,.mr-vol-table td{border:1px solid #ccc;padding:4px 6px;text-align:left;}
-  .mr-vol-table .is-current{background:#f0f0f0;font-weight:700;}
-  .tch-rules{display:grid;gap:4px;}
-  .tch-rule{display:grid;grid-template-columns:110px 1fr;gap:8px;}
-  .tch-rule-k{font-weight:700;font-family:system-ui,sans-serif;}
-  .mr-tips{margin:4px 0 0;padding-left:18px;}
-  .tch-foot{margin-top:8px;border-top:1px solid #ddd;padding-top:8px;}
-  @media print{body{padding:0;} .tch-card{break-inside:avoid;}}
-</style></head><body>${html}</body></html>`);
-  w.document.close();
-  w.focus();
-  setTimeout(()=>{try{w.print();}catch(e){}},250);
-}
 function refreshMethodRationaleInto(el,opts){
   if(!el)return;
   el.innerHTML=renderMethodRationaleHTML(opts||{});
@@ -4431,11 +4269,7 @@ window.LEVEL_WHY=LEVEL_WHY;
 window.buildClientTalkPlain=buildClientTalkPlain;
 window.buildMethodRationale=buildMethodRationale;
 window.renderMethodRationaleHTML=renderMethodRationaleHTML;
-window.renderTrainerCheatSheetHTML=renderTrainerCheatSheetHTML;
 window.renderVolumeByLevelTable=renderVolumeByLevelTable;
-window.openMethodRationaleModal=openMethodRationaleModal;
-window.openTrainerCheatSheet=openMethodRationaleModal;
-window.printTrainerCheatSheet=printTrainerCheatSheet;
 window.refreshMethodRationaleInto=refreshMethodRationaleInto;
 window.normalizeRationaleMethod=normalizeRationaleMethod;
 
@@ -4443,7 +4277,7 @@ window.normalizeRationaleMethod=normalizeRationaleMethod;
 // TOOLTIPY EDUKACYJNE (Serie / RPE / Metoda…)
 // ════════════════════════════════════════
 const EDU_TIPS={
-  method:'Metoda = jak dzielisz ciało na dni (PPL, FBW, Upper/Lower…). Przy hipertrofii celuj w ≥2 stymulacje partii/tydzień. Szczegóły w panelu „Dlaczego tak?”.',
+  method:'Metoda = jak dzielisz ciało na dni (PPL, FBW, Upper/Lower…). Przy hipertrofii celuj w ≥2 stymulacje partii/tydzień. Szczegóły zapytaj Asystenta AI w panelu metodyki.',
   goal:'Cel ustala zakresy: masa → objętość i RIR 0–3; siła → wyższy %1RM i dłuższe przerwy; redukcja → utrzymaj ciężar, nie tnij od razu objętości.',
   sets:'Serie robocze na ćwiczenie. Hipertrofia zwykle 3–4; siła 3–6 na głównych. Sumę tygodniową partii (MEV–MAV) wg stażu zobaczysz w przewodniku „Serie na partię”.',
   reps:'Powtórzenia: hipertrofia złożone ~6–10, izolacje ~8–15; siła główne ~1–6. Dobierz tak, by ostatnie powt. były blisko upadku (patrz RPE/RIR).',
@@ -4471,7 +4305,7 @@ function eduTipText(key,ctx){
       if(k==='rpe')return g.rpe+'. RIR ≈ 10 − RPE.';
     }
   }
-  return EDU_TIPS[k]||'Podpowiedź metodyczna — zobacz panel „Dlaczego tak?”.';
+  return EDU_TIPS[k]||'Podpowiedź metodyczna — zapytaj Asystenta AI w panelu metodyki.';
 }
 function eduTipMark(key,opts){
   const text=eduTipText(key,opts);

@@ -108,14 +108,11 @@ function aplToggleOpt(btn,groupId){
 }
 
 function aplRefreshRationale(){
-  const el=document.getElementById('apl-rationale');
-  if(!el||typeof refreshMethodRationaleInto!=='function')return;
-  const ctx=typeof aplEduCtx==='function'?aplEduCtx():{};
-  refreshMethodRationaleInto(el,ctx);
+  /* Panel „Dlaczego tak?” usunięty — metodyka zostaje w Asystencie AI. */
 }
 window.aplRefreshRationale=aplRefreshRationale;
 
-/** Kontekst ściągawki / „Dlaczego tak?” z formularza AI + profilu wybranego klienta. */
+/** Kontekst metodyki z formularza AI + profilu wybranego klienta. */
 function aplEduCtx(){
   const cid=document.getElementById('apl-client')?.value||'';
   const c=cid?(window.CL||[]).find(x=>x.id===cid):null;
@@ -1092,17 +1089,6 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
         <span class="pill" style="background:var(--s3);color:var(--muted);">🔁 ${plan.method||method}</span>
       </div>
     </div>
-
-    ${typeof renderMethodRationaleHTML==='function'?renderMethodRationaleHTML(
-      typeof aplEduCtx==='function'?aplEduCtx():{
-        method:plan.method||method,
-        goal:goal,
-        level:(typeof aplGetVal==='function'?aplGetVal('apl-levels'):null)||(client&&client.level)||'sredni',
-        daysPerWeek:plan.daysPerWeek||days,
-        weight:parseFloat(document.getElementById('apl-weight')?.value)||undefined,
-        clientName:client&&client.name
-      }
-    ):''}
 
     <!-- 3-panel: zasady progresji / rozgrzewka / schłodzenie (kolory dopasowane 1:1 do Progress Studio AI) -->
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-bottom:16px;">
