@@ -205,6 +205,8 @@ jobs:
         run: node .github/scripts/test_templates_vs_programs.js
       - name: 1n27b. Testy wejścia do planu tylko z klienta
         run: node .github/scripts/test_nav_plan_entry.js
+      - name: 1n27b2. Testy biblioteki planów (filtry / tabela)
+        run: node .github/scripts/test_plans_library.js
       - name: 1n27c. Testy skróconego primary nav
         run: node .github/scripts/test_nav_primary_slim.js
       - name: 1n27c2. Testy domyślnego Panelu głównego
@@ -306,6 +308,8 @@ jobs:
 
       - name: 6b. Testy layoutu podglądu planu w przeglądarce
         run: node .github/scripts/test_plan_preview_layout.js
+      - name: 6b0. Testy UI biblioteki planów (tabela / filtry)
+        run: node .github/scripts/test_plans_library_ui.js
       - name: 6b. Testy layoutu generatora / biblioteki / kalkulatora
         run: node .github/scripts/test_ai_gen_layout.js
       - name: 6b1. Testy UI PDF planu AI

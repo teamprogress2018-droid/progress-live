@@ -13,7 +13,7 @@
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="globals.css?v=17">
-<link rel="stylesheet" href="styles.css?v=60">
+<link rel="stylesheet" href="styles.css?v=61">
 </head>
 <body>
 
@@ -339,8 +339,27 @@
 
 <!-- PLANS -->
 <div class="screen" id="screen-plans">
-  <div class="topbar"><div class="topbar-title">Plany treningowe</div><div class="topbar-actions"><button class="btn btn-primary btn-sm" onclick="goTo('clients')">+ Utwórz z profilu klienta</button><button class="btn btn-ghost btn-sm" onclick="goTo('templates')">📋 Szablony</button></div></div>
-  <div style="padding:14px 20px 0;"><input type="text" class="form-input" id="plans-search" placeholder="🔍 Szukaj po nazwisku klienta..." oninput="renderPlans()" style="max-width:340px;"></div>
+  <div class="topbar"><div class="topbar-title">Plany treningowe</div><div class="topbar-actions"><button class="btn btn-primary btn-sm" onclick="goTo('clients')">+ Utwórz z profilu klienta</button><button class="btn btn-ghost btn-sm" onclick="goTo('templates')">📋 Biblioteka szablonów</button></div></div>
+  <div class="plans-toolbar">
+    <input type="text" class="form-input plans-search" id="plans-search" placeholder="🔍 Szukaj nazwy lub nazwiska..." oninput="renderPlans()">
+    <div class="plans-chips" id="plans-status-chips" role="tablist" aria-label="Status planu">
+      <button type="button" class="plans-chip is-on" id="plans-st-active" onclick="setPlansLibStatus('active')">Aktywne <span class="plans-chip-n" id="plans-n-active">0</span></button>
+      <button type="button" class="plans-chip" id="plans-st-templates" onclick="setPlansLibStatus('templates')">Szablony <span class="plans-chip-n" id="plans-n-templates">0</span></button>
+      <button type="button" class="plans-chip" id="plans-st-archived" onclick="setPlansLibStatus('archived')">Zarchiwizowane <span class="plans-chip-n" id="plans-n-archived">0</span></button>
+    </div>
+    <select class="form-select plans-filter" id="plans-sort" onchange="setPlansLibSort(this.value)" aria-label="Sortowanie">
+      <option value="newest">Od najnowszych</option>
+      <option value="oldest">Od najstarszych</option>
+      <option value="alpha">Alfabetycznie</option>
+    </select>
+    <select class="form-select plans-filter" id="plans-client" onchange="setPlansLibClient(this.value)" aria-label="Filtr klienta">
+      <option value="">Wszyscy podopieczni</option>
+    </select>
+    <div class="plans-view-toggle" role="group" aria-label="Widok listy">
+      <button type="button" class="plans-view-btn" id="plans-view-cards" onclick="setPlansLibView('cards')">Karty</button>
+      <button type="button" class="plans-view-btn is-on" id="plans-view-table" onclick="setPlansLibView('table')">Tabela</button>
+    </div>
+  </div>
   <div class="content" id="plans-content"><div style="text-align:center;color:var(--muted);padding:60px;font-size:13px;">Brak planów — utwórz pierwszy!</div></div>
 </div>
 
@@ -4174,13 +4193,11 @@ async function load(){
 
 <script src="ex-gif-manifest.js?v=33"></script>
 <script src="ex-photo-manifest.js?v=5"></script>
-<script src="01-core.js?v=72"></script>
-<script src="02-workouts-onboarding-templates-live.js?v=30"></script>
 <script src="01-core.js?v=73"></script>
-<script src="02-workouts-onboarding-templates-live.js?v=29"></script>
+<script src="02-workouts-onboarding-templates-live.js?v=30"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=29"></script>
 <script src="04-client-portal.js?v=37"></script>
-<script src="05-clients-builder-plans-calendar.js?v=40"></script>
+<script src="05-clients-builder-plans-calendar.js?v=41"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=62"></script>
 <script src="07-forms-metrics-calculator.js?v=30"></script>
 <script src="08-client-profile-extras.js?v=43"></script>
