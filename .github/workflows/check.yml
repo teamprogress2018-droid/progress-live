@@ -197,6 +197,8 @@ jobs:
         run: node .github/scripts/test_cp_nav_simplify.js
       - name: 1n26b. Testy widocznej edycji danych klienta
         run: node .github/scripts/test_cp_edit_visible.js
+      - name: Hover Edycja na liście klientów
+        run: node .github/scripts/test_client_hover_edit.js
       - name: 1n27. Testy układu aplikacji (sidebar Everfit)
         run: node .github/scripts/test_app_shell_everfit.js
       - name: 1n27b. Testy wejścia do planu tylko z klienta

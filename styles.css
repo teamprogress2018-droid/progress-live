@@ -161,9 +161,22 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 .cl-everfit-tbl{padding:10px 12px 24px;}
 .cl-everfit-row{margin:0 6px 8px;}
 .cl-name-cell{display:flex;align-items:center;gap:10px;min-width:0;}
+.cl-name-meta{min-width:0;flex:1;}
 .cl-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-ui);font-size:12px;font-weight:700;flex-shrink:0;}
 .cl-name{font-size:var(--font-size-sm);font-weight:600;font-family:var(--font-ui);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .cl-sub{font-size:var(--font-size-label);color:var(--muted);font-family:var(--font-ui);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cl-edit-btn{
+  flex-shrink:0;margin-left:auto;opacity:0;pointer-events:none;
+  background:var(--bg-input);border:1px solid var(--border-subtle);color:var(--text-primary);
+  font-size:11px;font-weight:700;font-family:var(--font-ui);padding:5px 10px;border-radius:8px;
+  cursor:pointer;white-space:nowrap;transition:opacity 0.12s,border-color 0.12s,color 0.12s;
+}
+.cl-edit-btn:hover{border-color:var(--accent);color:var(--accent);}
+.tbl-row.cl-everfit-row:hover .cl-edit-btn,
+.tbl-row.cl-everfit-row:focus-within .cl-edit-btn{opacity:1;pointer-events:auto;}
+@media (hover:none){
+  .cl-edit-btn{opacity:1;pointer-events:auto;}
+}
 .cl-msg-cell{display:flex;justify-content:center;}
 .cl-msg-btn{width:32px;height:32px;border-radius:50%;background:var(--bg-input);border:1px solid var(--border-subtle);color:var(--text);font-size:14px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,0.03);}
 .cl-msg-btn:hover{border-color:var(--accent);color:var(--accent);}
@@ -1066,6 +1079,12 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 .dash-bar-val{font-size:8px;font-family:var(--font-ui);}
 .dash-client-row{display:grid;grid-template-columns:1fr 80px 70px 60px;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);align-items:center;cursor:pointer;transition:background 0.1s;animation:fadeUp 0.18s ease both;}
 .dash-client-row:hover{background:rgba(255,255,255,0.02);}
+.dash-client-actions{display:flex;align-items:center;gap:6px;justify-content:flex-end;}
+.dash-client-row .dash-client-edit{opacity:0;pointer-events:none;}
+.dash-client-row:hover .dash-client-edit,
+.dash-client-row:focus-within .dash-client-edit{opacity:1;pointer-events:auto;}
+@media (hover:none){.dash-client-row .dash-client-edit{opacity:1;pointer-events:auto;}}
+
 .dash-sess-card{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;display:flex;gap:10px;cursor:pointer;transition:border-color 0.1s;animation:fadeUp 0.18s ease both;}
 .dash-sess-card:hover{border-color:var(--border2);}
 .dash-task-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;}

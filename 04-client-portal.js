@@ -6285,7 +6285,10 @@ function renderDashClients(){
       </div>
       <div style="font-size:11px;color:var(--muted);">${goalLabels[c.goal]||c.goal||'—'}</div>
       <div><span class="pill ${isInactive?'pill-orange':c.status==='inactive'?'pill-red':'pill-green'}" style="font-size:9px;"><span class="pill-dot"></span>${isInactive?'Zastój':c.status==='inactive'?'Offline':'Aktywny'}</span></div>
-      <div><button class="btn btn-ghost btn-sm" style="font-size:10px;padding:3px 7px;" onclick="event.stopPropagation();openClientProfile('${c.id}')">Profil</button></div>
+      <div class="dash-client-actions" onclick="event.stopPropagation()">
+        <button type="button" class="cl-edit-btn dash-client-edit" onclick="quickEditClient(event,'${c.id}')" title="Edytuj dane klienta">Edycja</button>
+        <button class="btn btn-ghost btn-sm" style="font-size:10px;padding:3px 7px;" onclick="openClientProfile('${c.id}')">Profil</button>
+      </div>
     </div>`;
   }).join('');
   cl.innerHTML=html;
