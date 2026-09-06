@@ -29,9 +29,9 @@ ok('css attn dot', css.includes('.nav-client-attn'));
 ok('cache', html.includes('07-forms-metrics-calculator.js?v=30') && html.includes('05-clients-builder-plans-calendar.js?v=41') && html.includes('06-inbox-exercises-ai-programs.js?v=62') && html.includes('styles.css?v=61'));
 ok('cache', html.includes('07-forms-metrics-calculator.js?v=30') && html.includes('05-clients-builder-plans-calendar.js?v=41') && html.includes('06-inbox-exercises-ai-programs.js?v=62') && html.includes('styles.css?v=61'));
 ok('cache', html.includes('07-forms-metrics-calculator.js?v=30') && html.includes('05-clients-builder-plans-calendar.js?v=41') && html.includes('06-inbox-exercises-ai-programs.js?v=62') && html.includes('styles.css?v=61'));
-ok('cache', html.includes('07-forms-metrics-calculator.js?v=30') && html.includes('05-clients-builder-plans-calendar.js?v=40') && html.includes('06-inbox-exercises-ai-programs.js?v=62') && html.includes('styles.css?v=60'));
-ok('cache', html.includes('07-forms-metrics-calculator.js?v=30') && html.includes('05-clients-builder-plans-calendar.js?v=40') && html.includes('06-inbox-exercises-ai-programs.js?v=62') && html.includes('styles.css?v=60'));
-ok('cache', html.includes('07-forms-metrics-calculator.js?v=30') && html.includes('05-clients-builder-plans-calendar.js?v=40') && html.includes('06-inbox-exercises-ai-programs.js?v=62') && html.includes('styles.css?v=60'));
+ok('cache', html.includes('07-forms-metrics-calculator.js?v=30') && html.includes('05-clients-builder-plans-calendar.js?v=41') && html.includes('06-inbox-exercises-ai-programs.js?v=62') && html.includes('styles.css?v=61'));
+ok('cache', html.includes('07-forms-metrics-calculator.js?v=30') && html.includes('05-clients-builder-plans-calendar.js?v=41') && html.includes('06-inbox-exercises-ai-programs.js?v=62') && html.includes('styles.css?v=61'));
+ok('cache', html.includes('07-forms-metrics-calculator.js?v=30') && html.includes('05-clients-builder-plans-calendar.js?v=41') && html.includes('06-inbox-exercises-ai-programs.js?v=62') && html.includes('styles.css?v=61'));
 ok('CI', wf.includes('test_cp_tab_persist.js'));
 
 if (failed) {
