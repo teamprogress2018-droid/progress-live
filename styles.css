@@ -745,6 +745,33 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 }
 .live-view-tabs{display:flex;gap:4px;background:var(--bg-input);border:1px solid var(--border-subtle);border-radius:var(--r);padding:4px;}
 .live-plan-toggle{display:none;}
+.live-floor{flex:1;display:flex;overflow:hidden;min-height:0;}
+.live-pane{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden;}
+#live-pane-1{display:none;}
+#screen-live.live-dual #live-pane-1{display:flex;}
+.live-slot-controls{display:flex;align-items:center;gap:8px;min-width:0;}
+.live-slot-b{display:none;}
+.live-dual-only{display:none;}
+.live-slot-tag{
+  font-size:10px;font-family:var(--font-ui);font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--text-label);white-space:nowrap;flex-shrink:0;
+}
+#live-dual-btn.active{border-color:var(--accent);color:var(--accent);}
+#screen-live.live-dual .live-slot-b{display:flex;}
+#screen-live.live-dual .live-dual-only{display:inline-flex;}
+#screen-live.live-dual .live-floor{gap:8px;padding:0 8px 8px;}
+#screen-live.live-dual .live-pane{
+  border:1px solid var(--border-subtle);border-radius:var(--r2);background:var(--bg-card);
+}
+#screen-live.live-dual .live-side-left{width:210px;padding:10px;}
+#screen-live.live-dual .live-stats-panel{width:200px;padding:10px;gap:8px;}
+#screen-live.live-dual .live-timer-val{font-size:32px;}
+#screen-live.live-dual .live-rest-val{font-size:28px;}
+#screen-live.live-dual .live-ex-col{padding:10px 12px;}
+#screen-live.live-dual .live-note-input{height:64px;}
+#screen-live.live-dual .live-plan-toggle{display:none!important;}
+#screen-live.live-dual.live-session-on .live-side-left{display:block;}
+#screen-live.live-dual .live-tab-client-view{display:none;}
 .live-trainer-tab{flex:1;display:flex;overflow:hidden;min-height:0;}
 .live-side-left{width:340px;flex-shrink:0;border-right:1px solid var(--border-subtle);overflow-y:auto;padding:var(--space-lg);}
 .live-ex-col{flex:1;overflow-y:auto;padding:var(--space-lg) var(--space-xl);min-width:0;}
@@ -1837,6 +1864,12 @@ input[type=checkbox]{display:none;}
   .live-tab-client-view{display:none;}
   .live-session-btn{min-height:44px;flex:1 1 auto;}
   #screen-live.live-session-on .live-plan-toggle{display:inline-flex;min-height:44px;align-items:center;}
+  #screen-live.live-dual .live-floor{flex-direction:column;padding:0 8px 8px;gap:8px;}
+  #screen-live.live-dual .live-pane{min-height:42vh;flex:1 1 42vh;}
+  #screen-live.live-dual .live-slot-controls,
+  #screen-live.live-dual .live-slot-b{width:100%;flex-wrap:wrap;}
+  #screen-live.live-dual.live-session-on .live-side-left{display:block;max-height:28vh;}
+  #screen-live.live-dual .live-side-left{width:100%;}
 
   .live-trainer-tab{flex-direction:column;overflow:hidden;}
   .live-side-left{
