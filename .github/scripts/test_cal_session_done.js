@@ -20,18 +20,18 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01 v71', html.includes('01-core.js?v=74'));
+ok('cache 01 v71', html.includes('01-core.js?v=75'));
 ok('cache 05 v37', html.includes('05-clients-builder-plans-calendar.js?v=41'));
-ok('cache 08 v38', html.includes('08-client-profile-extras.js?v=44'));
+ok('cache 08 v38', html.includes('08-client-profile-extras.js?v=45'));
 ok('cache styles v56', html.includes('styles.css?v=61'));
-ok('cache 01 v71', html.includes('01-core.js?v=74'));
+ok('cache 01 v71', html.includes('01-core.js?v=75'));
 ok('cache 05 v37', html.includes('05-clients-builder-plans-calendar.js?v=41'));
-ok('cache 08 v38', html.includes('08-client-profile-extras.js?v=44'));
+ok('cache 08 v38', html.includes('08-client-profile-extras.js?v=45'));
 ok('cache styles v56', html.includes('styles.css?v=61'));
 ok('cache styles v56', html.includes('styles.css?v=61'));
-ok('cache 01 v71', html.includes('01-core.js?v=74'));
+ok('cache 01 v71', html.includes('01-core.js?v=75'));
 ok('cache 05 v37', html.includes('05-clients-builder-plans-calendar.js?v=41'));
-ok('cache 08 v38', html.includes('08-client-profile-extras.js?v=44'));
+ok('cache 08 v38', html.includes('08-client-profile-extras.js?v=45'));
 ok('cache styles v56', html.includes('styles.css?v=61'));
 ok('ci unit', wf.includes('test_cal_session_done.js'));
 ok('ci ui log done', wf.includes('test_cal_log_done_ui.js'));
@@ -56,6 +56,7 @@ ok('mark done in profile', /function markCpSessionDone/.test(cp) && /cp-mark-don
 ok('calendar local ymd', /cellYmd/.test(cp) && /todayYmd/.test(cp));
 ok('no-logged banner', /cp-no-logged-banner/.test(cp) && /Brak zapisu treningu/.test(cp));
 ok('history skips planned', /sessionIsRecorded/.test(cp) && /historyList/.test(cp));
+ok('assignment hides planned when logged', /loggedDates/.test(cp));
 
 if (failed) {
   console.error('\n' + failed + ' failed');

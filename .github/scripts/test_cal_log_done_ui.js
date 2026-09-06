@@ -17,11 +17,12 @@ function ok(name, cond, extra) {
 
 (async () => {
   const port = process.env.LAYOUT_PORT || '8080';
+  const host = process.env.LAYOUT_HOST || '127.0.0.1';
   const browser = await chromium.launch({ headless: process.env.LAYOUT_HEADED !== '1' });
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   page.setDefaultTimeout(20000);
   page.on('dialog', d => d.accept());
-  await page.goto('http://localhost:' + port + '/index.html', { waitUntil: 'domcontentloaded' });
+  await page.goto('http://' + host + ':' + port + '/index.html', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(700);
 
   await page.evaluate(() => {
@@ -102,12 +103,14 @@ function ok(name, cond, extra) {
   ok('one card still pending', after.btns === 1);
   ok('banner gone after one log', !after.banner);
   ok('done class on fulfilled card', after.doneClass);
+  ok('no planned duplicate on logged day', !/×2/.test(after.body), after.body.slice(0, 400));
 
-  await page.click('button[onclick*="history"]');
+  await page.click('button[onclick="cpMpTab(\'c-justyna\',\'history\')"]');
   await page.waitForTimeout(200);
   const hist = await page.evaluate(() => (document.getElementById('cp-mp-content') || {}).innerText || '');
   await page.screenshot({ path: path.join(shotDir, 'cp_training_history.png') });
-  ok('history shows sala not planned leftover', /Sala/i.test(hist) && !/OBWÓD A PLAN/.test(hist), hist.slice(0, 400));
+  ok('history shows sala session', /Sala/i.test(hist) && /OBWÓD A PLAN/.test(hist), hist.slice(0, 400));
+  ok('history hides unlogged plan day', !/OBWÓD B PLAN/.test(hist), hist.slice(0, 400));
 
   await browser.close();
   if (failed) {

@@ -51,7 +51,7 @@ ok('photo PL cable', !!photos['krzyżowanie wyciągów góra–dół']);
 
 ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=62'));
 ok('cache photo', html.includes('ex-photo-manifest.js?v=5'));
-ok('cache core', html.includes('01-core.js?v=74'));
+ok('cache core', html.includes('01-core.js?v=75'));
 
 const document = { querySelectorAll: () => [], getElementById: () => null, addEventListener() {} };
 const windowObj = {

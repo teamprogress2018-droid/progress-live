@@ -3062,7 +3062,8 @@ function logSessionFromPlanned(plannedId,sessions){
   });
   list.push(sess);
   if(sessions==null)window.SE=list;
-  if(typeof persistById==='function')try{persistById('sessions',sess);}catch(e){}
+  const save=typeof window!=='undefined'&&typeof window.persistById==='function'?window.persistById:(typeof persistById==='function'?persistById:null);
+  if(save)try{save('sessions',sess);}catch(e){}
   return sess;
 }
 window.logSessionFromPlanned=logSessionFromPlanned;

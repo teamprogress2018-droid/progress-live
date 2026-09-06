@@ -989,6 +989,7 @@ function cpAssignmentSessions(clientId){
   const other=all.filter(s=>s.source!=='planned');
   let planned=all.filter(s=>s.source==='planned');
   if(activeId)planned=planned.filter(s=>s.planId===activeId);
+  const loggedDates=new Set(other.filter(s=>typeof isLoggedWorkout==='function'?isLoggedWorkout(s):(s.source==='client'||s.source==='live'||s.source==='sala')).map(s=>String(s.date||'').slice(0,10)));
   const byDate={};
   planned.forEach(s=>{
     const d=s.date;
@@ -998,7 +999,7 @@ function cpAssignmentSessions(clientId){
     const a=cur.dayIdx,b=s.dayIdx;
     if(b!=null&&(a==null||Number(b)<Number(a)))byDate[d]=s;
   });
-  return other.concat(Object.keys(byDate).map(k=>byDate[k]));
+  return other.concat(Object.keys(byDate).map(k=>byDate[k]).filter(s=>!loggedDates.has(String(s.date||'').slice(0,10))));
 }
 window.cpAssignmentSessions=cpAssignmentSessions;
 
@@ -2288,10 +2289,9 @@ function renderCPTraining(c){
       </div>
     </div>
 
-    <!-- Nagłówki dni -->
-    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px;">
+    ${c._mpTab==='assignment'?`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px;">
       ${dayNamesShort.map(n=>`<div style="text-align:center;font-size:10px;color:var(--muted);font-weight:600;font-family:'DM Mono',monospace;text-transform:uppercase;">${n}</div>`).join('')}
-    </div>
+    </div>`:''}
 
     <!-- Siatka kalendarza / Historia -->
     <div id="cp-mp-content">
