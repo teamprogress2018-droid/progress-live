@@ -41,7 +41,7 @@ vm.runInContext(fs.readFileSync(path.join(__dirname, '..', '..', '01-core.js'), 
 const {
   sessionRatingEmoji, sessionRatingLabel, isLoggedWorkout, completedWorkouts,
   sessionSetsCount, avgSessionRating, sessionTitle, sessionSourceLabel,
-  sessionIsRecorded, sessionHappened, sessionHappenedTip,
+  sessionIsRecorded, sessionHappened, sessionHappenedTip, logSessionFromPlanned,
   clientAdherenceStats, homeworkCompletions, dateStrLocal, ymdAdd, todayYmd
 } = ctx;
 
@@ -66,6 +66,7 @@ eq('label missing', sessionRatingLabel(9), '');
 
 eq('logged client', isLoggedWorkout({source: 'client'}), true);
 eq('logged live', isLoggedWorkout({source: 'live'}), true);
+eq('logged sala', isLoggedWorkout({source: 'sala'}), true);
 eq('logged exercises', isLoggedWorkout({exercises: [{name: 'Przysiad'}]}), true);
 eq('booked not logged', isLoggedWorkout({source: 'gym', type: 'Sesja'}), false);
 eq('empty not logged', isLoggedWorkout({}), false);
@@ -99,6 +100,7 @@ eq('title fallback', sessionTitle({title: 'Sesja'}), 'Sesja');
 eq('title default', sessionTitle({}), 'Trening');
 eq('source client', sessionSourceLabel({source: 'client'}), 'Klient');
 eq('source live', sessionSourceLabel({source: 'live'}), 'Live');
+eq('source sala explicit', sessionSourceLabel({source: 'sala'}), 'Sala');
 eq('source sala', sessionSourceLabel({type: 'personalny'}), 'Sala');
 
 eq('happened live', sessionHappened({source: 'live'}), true);
@@ -143,6 +145,28 @@ eq('adherence unique assigned days', adh.assigned, 2);
 eq('adherence logged client+homework days', adh.logged, 2);
 eq('homework listed', homeworkCompletions('c1', 30).length, 1);
 eq('planned happened via homework date', sessionHappened({id: 'px', clientId: 'c1', date: d1, source: 'planned'}), true);
+
+windowObj.persistById = function persistById() {};
+windowObj.PL = [{
+  id: 'pl1',
+  days: [{ exercises: [{ name: 'Przysiad' }, { name: 'Wyciskanie' }] }]
+}];
+const salaList = [
+  { id: 'p-sala', clientId: 'c9', date: '2026-09-02', source: 'planned', type: 'ŚR — OBWÓD B PLAN', planId: 'pl1', dayIdx: 0 }
+];
+const salaSess = logSessionFromPlanned('p-sala', salaList);
+eq('sala log created', !!(salaSess && salaSess.source === 'sala'), true);
+eq('sala log date', salaSess && salaSess.date, '2026-09-02');
+eq('sala copies exercise names', (salaSess.exercises || []).map(e => e.name), ['Przysiad', 'Wyciskanie']);
+eq('sala sets empty', (salaSess.exercises || []).every(e => Array.isArray(e.sets) && e.sets.length === 0), true);
+eq('sala is logged', isLoggedWorkout(salaSess), true);
+eq('sala happened planned', sessionHappened(salaList[0], salaList), true);
+eq('sala completed count', completedWorkouts('c9', salaList).length, 1);
+const again = logSessionFromPlanned('p-sala', salaList);
+eq('sala no duplicate', salaList.filter(s => s.source === 'sala').length, 1);
+eq('sala returns existing', again && again.id, salaSess.id);
+eq('tip sala', /sala/.test(sessionHappenedTip(salaSess)), true);
+eq('missing planned returns null', logSessionFromPlanned('nope', salaList), null);
 
 if (failed) {
   console.error('\n' + failed + ' test(s) failed');

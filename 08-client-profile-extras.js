@@ -989,6 +989,7 @@ function cpAssignmentSessions(clientId){
   const other=all.filter(s=>s.source!=='planned');
   let planned=all.filter(s=>s.source==='planned');
   if(activeId)planned=planned.filter(s=>s.planId===activeId);
+  const loggedDates=new Set(other.filter(s=>typeof isLoggedWorkout==='function'?isLoggedWorkout(s):(s.source==='client'||s.source==='live'||s.source==='sala')).map(s=>String(s.date||'').slice(0,10)));
   const byDate={};
   planned.forEach(s=>{
     const d=s.date;
@@ -998,13 +999,13 @@ function cpAssignmentSessions(clientId){
     const a=cur.dayIdx,b=s.dayIdx;
     if(b!=null&&(a==null||Number(b)<Number(a)))byDate[d]=s;
   });
-  return other.concat(Object.keys(byDate).map(k=>byDate[k]));
+  return other.concat(Object.keys(byDate).map(k=>byDate[k]).filter(s=>!loggedDates.has(String(s.date||'').slice(0,10))));
 }
 window.cpAssignmentSessions=cpAssignmentSessions;
 
 function renderCPOverview(c){
   const today=new Date();
-  const todayStr=today.toISOString().split('T')[0];
+  const todayStr=typeof todayYmd==='function'?todayYmd():(typeof dateStrLocal==='function'?dateStrLocal(today):today.toISOString().split('T')[0]);
   const sessions=SE.filter(s=>s.clientId===c.id);
   const tasks=TASKS.filter(t=>t.clientId===c.id);
   const oneShot=tasks.filter(t=>typeof isOneShot==='function'?isOneShot(t):!isHabit(t));
@@ -1036,8 +1037,8 @@ function renderCPOverview(c){
   const daysToNextMon=((8-dow)%7)||7;
   const nextMon=new Date(today);nextMon.setDate(today.getDate()+daysToNextMon);
   const nextSun=new Date(nextMon);nextSun.setDate(nextMon.getDate()+6);
-  const nextMonStr=nextMon.toISOString().split('T')[0];
-  const nextSunStr=nextSun.toISOString().split('T')[0];
+  const nextMonStr=typeof dateStrLocal==='function'?dateStrLocal(nextMon):nextMon.toISOString().split('T')[0];
+  const nextSunStr=typeof dateStrLocal==='function'?dateStrLocal(nextSun):nextSun.toISOString().split('T')[0];
   const nextWeekAssigned=sessions.filter(s=>s.date>=nextMonStr&&s.date<=nextSunStr).length;
   const lastWorkout=logged.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0];
   const lastHw=(typeof homeworkCompletions==='function'?homeworkCompletions(c.id,365):[]).slice().sort((a,b)=>String(b.doneAt||'').localeCompare(String(a.doneAt||'')))[0];
@@ -2153,13 +2154,14 @@ function renderCPTraining(c){
   const activePlan=typeof latestClientPlan==='function'?latestClientPlan(c.id):(typeof clientPlanForCalendar==='function'?clientPlanForCalendar(c.id):null);
   const activePlanName=activePlan&&activePlan.name||'';
   const today=new Date();
-  const todayStr=today.toISOString().split('T')[0];
-  const logged=typeof completedWorkouts==='function'?completedWorkouts(c.id,allSessions):allSessions.filter(s=>s.source==='client'||s.source==='live');
+  const cellYmd=d=>typeof dateStrLocal==='function'?dateStrLocal(d):(typeof dateStr==='function'?dateStr(d):d.toISOString().split('T')[0]);
+  const todayStr=typeof todayYmd==='function'?todayYmd():cellYmd(today);
+  const logged=typeof completedWorkouts==='function'?completedWorkouts(c.id,allSessions):allSessions.filter(s=>s.source==='client'||s.source==='live'||s.source==='sala');
   const avgRate=typeof avgSessionRating==='function'?avgSessionRating(logged):0;
   const adh7=typeof clientAdherenceStats==='function'?clientAdherenceStats(c.id,7):null;
   const adh30t=typeof clientAdherenceStats==='function'?clientAdherenceStats(c.id,30):null;
 
-  // Statystyki — zrobione treningi (Live / apka / zadanie domowe), nie same wpisy w kalendarzu
+  // Statystyki — zrobione treningi (Live / apka / sala / zadanie domowe), nie same wpisy w kalendarzu
   const last7=adh7?adh7.logged:logged.filter(s=>{const d=new Date(s.date);return(today-d)/86400000<=7;}).length;
   const last30=adh30t?adh30t.logged:logged.filter(s=>{const d=new Date(s.date);return(today-d)/86400000<=30;}).length;
 
@@ -2178,16 +2180,24 @@ function renderCPTraining(c){
   const rangeEnd=days[days.length-1];
   const rangeLabel=rangeStart.getDate()+' '+MONTHS_PL[rangeStart.getMonth()]+' – '+rangeEnd.getDate()+' '+MONTHS_PL[rangeEnd.getMonth()];
 
-  // Historia sesji
-  const historyHTML=allSessions.length
-    ?allSessions.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,15).map(s=>{
+  const plannedN=allSessions.filter(s=>s&&s.source==='planned').length;
+  const noLoggedBanner=logged.length===0&&plannedN
+    ?`<div class="cp-no-logged-banner" style="background:rgba(230,0,0,0.08);border:1px solid rgba(230,0,0,0.35);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12px;line-height:1.45;">
+        <div style="font-weight:700;margin-bottom:4px;">Brak zapisu treningu</div>
+        Czerwone karty to <b>plan</b>, nie odbyte sesje. Zrobione liczy Live, apkę klienta albo ✓ Odbył się (sala). Bez tego statystyki zostają na 0.
+      </div>`:'';
+
+  // Historia sesji — tylko zapisane (Live / apka / sala / Garmin), nie terminy z planu
+  const historyList=allSessions.filter(s=>typeof sessionIsRecorded==='function'?sessionIsRecorded(s):(s.source==='client'||s.source==='live'||s.source==='sala'||s.source==='garmin'));
+  const historyHTML=historyList.length
+    ?historyList.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,15).map(s=>{
       const exCount=(s.exercises||[]).length;
       const emoji=typeof sessionRatingEmoji==='function'?sessionRatingEmoji(s.feedback):'';
       const src=typeof sessionSourceLabel==='function'?sessionSourceLabel(s):(s.type||'sesja');
       const title=typeof sessionTitle==='function'?sessionTitle(s):(s.type||s.title||'Sesja');
       const happened=typeof sessionHappened==='function'&&sessionHappened(s);
       const tip=typeof sessionHappenedTip==='function'?sessionHappenedTip(s):title;
-      const typeCol=s.source==='client'?'var(--teal)':s.source==='live'?'var(--orange)':happened?'var(--teal)':'var(--accent)';
+      const typeCol=s.source==='client'||s.source==='sala'?'var(--teal)':s.source==='live'?'var(--orange)':happened?'var(--teal)':'var(--accent)';
       return `<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="editSession('${s.id}')" title="${escHtml(tip)}">
         <div style="width:38px;height:38px;border-radius:10px;background:${typeCol}18;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">${happened?'✓':(emoji||'💪')}</div>
         <div style="flex:1;min-width:0;">
@@ -2197,13 +2207,13 @@ function renderCPTraining(c){
         <span style="background:${typeCol}18;color:${typeCol};border-radius:4px;padding:2px 8px;font-size:10px;font-family:'DM Mono',monospace;font-weight:700;text-transform:uppercase;">${escHtml(src)}</span>
       </div>`;
     }).join('')
-    :'<div style="text-align:center;padding:32px;color:var(--muted);font-size:12px;">Brak historii sesji</div>';
+    :`<div style="text-align:center;padding:32px;color:var(--muted);font-size:12px;line-height:1.5;">${plannedN?'Brak zapisanych treningów (Live / apka / sala). Czerwone karty w Assignment to plan — nie liczą się do Zrobione. Kliknij ✓ Odbył się na karcie albo zakończ sesję Live.':'Brak historii sesji'}</div>`;
 
   // Siatka kalendarza
   const calGrid=days.map((d,i)=>{
-    const ds=d.toISOString().split('T')[0];
+    const ds=cellYmd(d);
     const isToday=ds===todayStr;
-    const isPast=d<today&&!isToday;
+    const isPast=ds<todayStr;
     const sessDay=assignSessions.filter(s=>s.date===ds);
     const dayName=dayNamesShort[d.getDay()===0?6:d.getDay()-1];
     const collapsed=typeof cpCollapseDaySessions==='function'?cpCollapseDaySessions(sessDay):{shown:sessDay.map(s=>({title:s.type||'Sesja',items:[s],happened:false,s})),extra:0};
@@ -2214,15 +2224,17 @@ function renderCPTraining(c){
       const typeLabel=typeof sessionSourceLabel==='function'?sessionSourceLabel(s):(s.type||'REGULAR');
       const happened=!!g.happened||(typeof sessionHappened==='function'&&sessionHappened(s));
       const tip=typeof sessionHappenedTip==='function'?sessionHappenedTip(s):title;
-      const typeCol=s.source==='client'?'var(--teal)':s.source==='live'?'var(--orange)':happened?'var(--teal)':'var(--accent)';
+      const typeCol=s.source==='client'||s.source==='sala'?'var(--teal)':s.source==='live'?'var(--orange)':happened?'var(--teal)':'var(--accent)';
       const emoji=typeof sessionRatingEmoji==='function'?sessionRatingEmoji(s.feedback):'';
       const n=g.items&&g.items.length>1?g.items.length:0;
+      const markBtn=s.source==='planned'&&!happened?`<button type="button" class="cp-mark-done" onclick="event.stopPropagation();markCpSessionDone('${s.id}')" style="margin-top:4px;width:100%;border:none;border-radius:4px;padding:3px 4px;font-size:9px;font-weight:700;cursor:pointer;background:var(--accent);color:#fff;">✓ Odbył się</button>`:'';
       return `<div class="${happened?'cp-sess-done':''}" style="background:${typeCol}15;border:1px solid ${typeCol}40;border-radius:6px;padding:5px 6px;margin-top:4px;cursor:pointer;" onclick="event.stopPropagation();editSession('${s.id}')" title="${escHtml(tip)}">
         <div style="font-size:10px;font-weight:700;color:${typeCol};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${happened?'✓ ':''}${safeEscSnippet(String(title).toUpperCase(),18)}${n?` ×${n}`:''}</div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:2px;">
           <span style="background:${typeCol}25;color:${typeCol};border-radius:3px;padding:1px 4px;font-size:9px;font-family:'DM Mono',monospace;">${happened?'✓ ':''}${safeEscSnippet(String(typeLabel).toUpperCase(),8)}</span>
           <span style="font-size:9px;color:var(--muted);">${emoji||''}${exCount?` ⚡ ${exCount}`:''}</span>
         </div>
+        ${markBtn}
       </div>`;
     }).join('')+(collapsed.extra?`<div style="font-size:9px;color:var(--muted);margin-top:4px;text-align:center;">+${collapsed.extra} więcej</div>`:'');
 
@@ -2241,6 +2253,7 @@ function renderCPTraining(c){
   }
 
   document.getElementById('cp-body').innerHTML=`
+    ${noLoggedBanner}
     <!-- Statystyki -->
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;">
       <div style="background:var(--s3);border-radius:10px;padding:14px;text-align:center;">
@@ -2276,10 +2289,9 @@ function renderCPTraining(c){
       </div>
     </div>
 
-    <!-- Nagłówki dni -->
-    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px;">
+    ${c._mpTab==='assignment'?`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px;">
       ${dayNamesShort.map(n=>`<div style="text-align:center;font-size:10px;color:var(--muted);font-weight:600;font-family:'DM Mono',monospace;text-transform:uppercase;">${n}</div>`).join('')}
-    </div>
+    </div>`:''}
 
     <!-- Siatka kalendarza / Historia -->
     <div id="cp-mp-content">
@@ -2302,12 +2314,31 @@ function cpMpTab(clientId, tab){
 window.cpMpView=cpMpView;
 window.cpMpTab=cpMpTab;
 
+function markCpSessionDone(plannedId){
+  const p=(window.SE||[]).find(s=>s&&s.id===plannedId);
+  if(!p){if(typeof notify==='function')notify('Nie znaleziono terminu');return;}
+  const y=String(p.date||'').slice(0,10);
+  const already=(window.SE||[]).find(s=>s&&s.id!==p.id&&s.clientId===p.clientId&&String(s.date).slice(0,10)===y&&typeof isLoggedWorkout==='function'&&isLoggedWorkout(s));
+  if(already){
+    if(typeof notify==='function')notify('Ten dzień ma już zapis treningu');
+    const c=CL.find(x=>x.id===p.clientId);if(c)renderCPTraining(c);
+    return;
+  }
+  if(!confirm('Oznaczyć trening '+y+' jako odbyte na sali?\n\nDzień wejdzie do Zrobione. Tonaż zostaje 0, dopóki nie zapiszesz serii (Live albo apka).'))return;
+  const sess=typeof logSessionFromPlanned==='function'?logSessionFromPlanned(plannedId):null;
+  if(!sess){if(typeof notify==='function')notify('Nie udało się zapisać');return;}
+  const c=CL.find(x=>x.id===p.clientId);
+  if(c)renderCPTraining(c);
+  if(typeof notify==='function')notify('Zapisano trening na sali · '+y);
+}
+window.markCpSessionDone=markCpSessionDone;
+
 function openAddSessionFromCP(clientId,date){
   openM('m-session');
   setTimeout(()=>{
     const c=CL.find(x=>x.id===clientId);
     if(typeof asSetClientField==='function')asSetClientField(clientId,c?c.name:'');
-    const sd=document.getElementById('as-date');if(sd)sd.value=date||new Date().toISOString().split('T')[0];
+    const sd=document.getElementById('as-date');if(sd)sd.value=date||(typeof todayYmd==='function'?todayYmd():new Date().toISOString().split('T')[0]);
   },50);
 }
 

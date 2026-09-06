@@ -2991,7 +2991,7 @@ window.sessionRatingLabel=sessionRatingLabel;
 function isLoggedWorkout(s){
   if(!s)return false;
   if(s.source==='planned'||s.source==='garmin')return false;
-  if(s.source==='client'||s.source==='live')return true;
+  if(s.source==='client'||s.source==='live'||s.source==='sala')return true;
   return Array.isArray(s.exercises)&&s.exercises.length>0;
 }
 window.isLoggedWorkout=isLoggedWorkout;
@@ -3022,7 +3022,7 @@ function sessionHappenedTip(s,sessions){
   const prefix=t?t+' · ':'';
   if(s.source==='garmin')return prefix+title+' · Garmin (z zegarka)';
   if(typeof isLoggedWorkout==='function'&&isLoggedWorkout(s)){
-    const how=s.source==='live'?'Live':s.source==='client'?'aplikacja klienta':'zapisany trening';
+    const how=s.source==='live'?'Live':s.source==='sala'?'sala':s.source==='client'?'aplikacja klienta':'zapisany trening';
     const n=(s.exercises||[]).length;
     const fb=s.feedback?' · ocena '+s.feedback+'/5':'';
     return prefix+'✓ Odbył się ('+how+') · '+title+(n?' · '+n+' ćw.':'')+fb;
@@ -3031,6 +3031,42 @@ function sessionHappenedTip(s,sessions){
   return prefix+title+(src?' · '+src:'')+' · zaplanowany';
 }
 window.sessionHappenedTip=sessionHappenedTip;
+
+/** Zapis sali z terminu w kalendarzu — dzień się liczy, bez wymuszania kg. */
+function logSessionFromPlanned(plannedId,sessions){
+  const list=sessions||window.SE||[];
+  const p=list.find(s=>s&&s.id===plannedId);
+  if(!p||!p.clientId||!p.date)return null;
+  const y=String(p.date).slice(0,10);
+  const existing=list.find(s=>s&&s.id!==p.id&&s.clientId===p.clientId&&String(s.date).slice(0,10)===y&&typeof isLoggedWorkout==='function'&&isLoggedWorkout(s));
+  if(existing)return existing;
+  let exercises=[];
+  const plan=(window.PL||[]).find(x=>x&&x.id===p.planId);
+  const day=plan&&Array.isArray(plan.days)?plan.days[p.dayIdx]:null;
+  if(day&&Array.isArray(day.exercises)){
+    exercises=day.exercises.map(e=>({name:(e&&e.name)||e,sets:[]})).filter(e=>e.name);
+  }
+  const sess=(typeof withTrainer==='function'?withTrainer:x=>x)({
+    id:typeof newId==='function'?newId('s'):('s'+Date.now()),
+    clientId:p.clientId,
+    date:y,
+    time:p.time||'',
+    type:p.type||'Trening personalny',
+    duration:p.duration||60,
+    exercises,
+    source:'sala',
+    planId:p.planId||null,
+    dayIdx:p.dayIdx!=null?p.dayIdx:null,
+    note:'Oznaczone z kalendarza (trening na sali)',
+    createdAt:new Date().toISOString()
+  });
+  list.push(sess);
+  if(sessions==null)window.SE=list;
+  const save=typeof window!=='undefined'&&typeof window.persistById==='function'?window.persistById:(typeof persistById==='function'?persistById:null);
+  if(save)try{save('sessions',sess);}catch(e){}
+  return sess;
+}
+window.logSessionFromPlanned=logSessionFromPlanned;
 
 function completedWorkouts(clientId,sessions){
   return(sessions||window.SE||[]).filter(s=>s&&s.clientId===clientId&&isLoggedWorkout(s))
@@ -3135,6 +3171,7 @@ function sessionSourceLabel(s){
   if(s.source==='garmin')return 'Garmin';
   if(s.source==='client')return 'Klient';
   if(s.source==='live')return 'Live';
+  if(s.source==='sala')return 'Sala';
   if(s.source==='planned')return 'Plan';
   return 'Sala';
 }

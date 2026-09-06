@@ -349,6 +349,8 @@ jobs:
         run: node .github/scripts/test_ai_bmi_watchdog_ui.js
       - name: 6f2. Testy UI edycji imienia i nazwiska w profilu
         run: node .github/scripts/test_cp_edit_visible_ui.js
+      - name: 6f3. Testy UI ✓ Odbył się (zapis sali z planu)
+        run: node .github/scripts/test_cal_log_done_ui.js
       - name: 6g. Testy UI obwodów centymetrem w profilu klienta
         run: node .github/scripts/test_circ_metrics_ui.js
 
