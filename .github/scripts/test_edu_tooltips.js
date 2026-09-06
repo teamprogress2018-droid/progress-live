@@ -45,6 +45,14 @@ ok('rpe mentions RIR',/RIR|RPE/.test(sandbox.eduTipText('rpe')));
 ok('method dynamic',sandbox.eduTipText('method',{method:'PPL'}).includes('Push'));
 ok('mark has data-tip',sandbox.eduTipMark('sets').includes('data-tip=')&&sandbox.eduTipMark('sets').includes('edu-tip'));
 
+ok('cache bumps',html.includes('01-core.js?v=75')&&html.includes('05-clients-builder-plans-calendar.js?v=41')&&html.includes('styles.css?v=62'));
+ok('cache bumps',html.includes('01-core.js?v=75')&&html.includes('05-clients-builder-plans-calendar.js?v=41')&&html.includes('styles.css?v=62'));
+ok('cache bumps',html.includes('01-core.js?v=75')&&html.includes('05-clients-builder-plans-calendar.js?v=41')&&html.includes('styles.css?v=62'));
+ok('cache bumps',html.includes('01-core.js?v=75')&&html.includes('05-clients-builder-plans-calendar.js?v=41')&&html.includes('styles.css?v=62'));
+ok('cache bumps',html.includes('01-core.js?v=75')&&html.includes('05-clients-builder-plans-calendar.js?v=41')&&html.includes('styles.css?v=62'));
+ok('cache bumps',html.includes('01-core.js?v=75')&&html.includes('05-clients-builder-plans-calendar.js?v=41')&&html.includes('styles.css?v=62'));
+ok('cache bumps',html.includes('01-core.js?v=75')&&html.includes('05-clients-builder-plans-calendar.js?v=41')&&html.includes('styles.css?v=62'));
+ok('cache bumps',html.includes('01-core.js?v=75')&&html.includes('05-clients-builder-plans-calendar.js?v=41')&&html.includes('styles.css?v=62'));
 ok('cache bumps',html.includes('01-core.js?v=75')&&html.includes('05-clients-builder-plans-calendar.js?v=42')&&html.includes('styles.css?v=61'));
 ok('cache bumps',html.includes('01-core.js?v=75')&&html.includes('05-clients-builder-plans-calendar.js?v=42')&&html.includes('styles.css?v=61'));
 ok('cache bumps',html.includes('01-core.js?v=75')&&html.includes('05-clients-builder-plans-calendar.js?v=42')&&html.includes('styles.css?v=61'));

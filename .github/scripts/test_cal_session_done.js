@@ -21,6 +21,18 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 01 v71', html.includes('01-core.js?v=75'));
+ok('cache 05 v37', html.includes('05-clients-builder-plans-calendar.js?v=41'));
+ok('cache 08 v38', html.includes('08-client-profile-extras.js?v=45'));
+ok('cache styles v56', html.includes('styles.css?v=62'));
+ok('cache 01 v71', html.includes('01-core.js?v=75'));
+ok('cache 05 v37', html.includes('05-clients-builder-plans-calendar.js?v=41'));
+ok('cache 08 v38', html.includes('08-client-profile-extras.js?v=45'));
+ok('cache styles v56', html.includes('styles.css?v=62'));
+ok('cache styles v56', html.includes('styles.css?v=62'));
+ok('cache 01 v71', html.includes('01-core.js?v=75'));
+ok('cache 05 v37', html.includes('05-clients-builder-plans-calendar.js?v=41'));
+ok('cache 08 v38', html.includes('08-client-profile-extras.js?v=45'));
+ok('cache styles v56', html.includes('styles.css?v=62'));
 ok('cache 05 v37', html.includes('05-clients-builder-plans-calendar.js?v=42'));
 ok('cache 08 v38', html.includes('08-client-profile-extras.js?v=46'));
 ok('cache styles v56', html.includes('styles.css?v=61'));

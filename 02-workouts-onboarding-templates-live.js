@@ -1514,77 +1514,195 @@ var liveRestSec=0;var liveRestInterval=null;
 var liveExercises=[];  // [{name,sets:[{kg,reps,done}],done}]
 var liveFeedbackVal=0;
 var LIVE_HISTORY=[];
-const LIVE_DRAFT_KEY='pl_live_draft';
+var liveDual=false;
+const LIVE_DRAFT_KEYS=['pl_live_draft','pl_live_draft_b'];
+const LIVE_DRAFT_KEY=LIVE_DRAFT_KEYS[0];
 
-function liveSaveDraft(){
-  if(!liveClientId&&!liveExercises.length)return;
+function liveNewSlotState(){
+  return {
+    clientId:null,planId:null,currentDayIdx:0,sessionActive:false,
+    timerSec:0,timerInterval:null,restSec:0,restInterval:null,
+    exercises:[],feedbackVal:0,emomClock:{},savedClientId:null,savedClientName:''
+  };
+}
+var liveB=liveNewSlotState();
+
+function liveN(slot){
+  return slot===1||slot==='1'?1:0;
+}
+function liveRef(slot){
+  if(liveN(slot)===1)return liveB;
+  return {
+    get clientId(){return liveClientId;}, set clientId(v){liveClientId=v;},
+    get planId(){return livePlanId;}, set planId(v){livePlanId=v;},
+    get currentDayIdx(){return liveCurrentDayIdx;}, set currentDayIdx(v){liveCurrentDayIdx=v;},
+    get sessionActive(){return liveSessionActive;}, set sessionActive(v){liveSessionActive=v;},
+    get timerSec(){return liveTimerSec;}, set timerSec(v){liveTimerSec=v;},
+    get timerInterval(){return liveTimerInterval;}, set timerInterval(v){liveTimerInterval=v;},
+    get restSec(){return liveRestSec;}, set restSec(v){liveRestSec=v;},
+    get restInterval(){return liveRestInterval;}, set restInterval(v){liveRestInterval=v;},
+    get exercises(){return liveExercises;}, set exercises(v){liveExercises=v;},
+    get feedbackVal(){return liveFeedbackVal;}, set feedbackVal(v){liveFeedbackVal=v;},
+    get emomClock(){return window._liveEmomClock||(window._liveEmomClock={});},
+    set emomClock(v){window._liveEmomClock=v||{};},
+    get savedClientId(){return window._liveSavedClientId;},
+    set savedClientId(v){window._liveSavedClientId=v;},
+    get savedClientName(){return window._liveSavedClientName;},
+    set savedClientName(v){window._liveSavedClientName=v;}
+  };
+}
+function liveEl(id,slot){
+  if(liveN(slot)===1&&String(id||'').indexOf('live-')===0){
+    return document.getElementById('live-b-'+String(id).slice(5));
+  }
+  return document.getElementById(id);
+}
+function liveSlotArg(slot){
+  return liveN(slot)===1?',1':'';
+}
+function liveAnySessionActive(){
+  return !!(liveSessionActive||liveB.sessionActive);
+}
+function livePaintTimer(slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  const m=String(Math.floor((st.timerSec||0)/60)).padStart(2,'0');
+  const s=String((st.timerSec||0)%60).padStart(2,'0');
+  const el=liveEl('live-timer',n);
+  if(el)el.textContent=m+':'+s;
+  if(n===0){
+    const mt=document.getElementById('live-mock-timer');
+    if(mt)mt.textContent=m+':'+s;
+  }
+}
+function liveArmTimer(slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  clearInterval(st.timerInterval);
+  st.timerInterval=setInterval(()=>{
+    st.timerSec=(st.timerSec||0)+1;
+    livePaintTimer(n);
+  },1000);
+}
+function liveBindSessionButtons(slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  const start=liveEl('live-start-btn',n);
+  const end=liveEl('live-end-btn',n);
+  const status=liveEl('live-timer-status',n);
+  if(start)start.style.display=st.sessionActive?'none':'';
+  if(end)end.style.display=st.sessionActive?'':'none';
+  if(status)status.textContent=st.sessionActive?'W toku':'Nieaktywny';
+  livePaintTimer(n);
+}
+
+function liveSaveDraft(slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  if(!st.clientId&&!(st.exercises||[]).length)return;
   try{
-    localStorage.setItem(LIVE_DRAFT_KEY,JSON.stringify({
-      clientId:liveClientId,
-      planId:livePlanId,
-      dayIdx:liveCurrentDayIdx,
-      exercises:liveExercises,
-      sessionActive:liveSessionActive,
-      timerSec:liveTimerSec,
-      feedback:liveFeedbackVal,
-      note:document.getElementById('live-note')?.value||'',
+    localStorage.setItem(LIVE_DRAFT_KEYS[n],JSON.stringify({
+      clientId:st.clientId,
+      planId:st.planId,
+      dayIdx:st.currentDayIdx,
+      exercises:st.exercises,
+      sessionActive:st.sessionActive,
+      timerSec:st.timerSec,
+      feedback:st.feedbackVal,
+      note:liveEl('live-note',n)?.value||'',
       savedAt:Date.now()
     }));
   }catch(e){}
 }
 
-function liveClearDraft(){
-  try{localStorage.removeItem(LIVE_DRAFT_KEY);}catch(e){}
+function liveClearDraft(slot){
+  try{localStorage.removeItem(LIVE_DRAFT_KEYS[liveN(slot)]);}catch(e){}
+}
+
+function liveApplyDraft(slot,draft){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  const c=CL.find(x=>x.id===draft.clientId);
+  if(!c)return false;
+  st.clientId=draft.clientId;
+  st.planId=draft.planId||null;
+  st.currentDayIdx=draft.dayIdx||0;
+  st.exercises=draft.exercises||[];
+  st.sessionActive=!!draft.sessionActive;
+  st.timerSec=draft.timerSec||0;
+  st.feedbackVal=draft.feedback||0;
+  const noteEl=liveEl('live-note',n);
+  if(noteEl)noteEl.value=draft.note||'';
+  liveClientSetField(draft.clientId,c.name,true,n);
+  if(st.sessionActive)liveArmTimer(n);
+  liveBindSessionButtons(n);
+  renderLivePlanPicker(n);
+  renderLiveExercises(n);
+  return true;
 }
 
 function liveTryRecoverDraft(){
-  let raw;
-  try{raw=localStorage.getItem(LIVE_DRAFT_KEY);}catch(e){return false;}
-  if(!raw)return false;
-  try{
-    const draft=JSON.parse(raw);
-    if(!draft.clientId||Date.now()-(draft.savedAt||0)>7*24*60*60*1000){liveClearDraft();return false;}
-    const c=CL.find(x=>x.id===draft.clientId);
-    if(!c){liveClearDraft();return false;}
-    if(!confirm('Masz niedokończoną sesję treningową ('+c.name+'). Wznowić?')){liveClearDraft();return false;}
-    liveClientId=draft.clientId;
-    livePlanId=draft.planId||null;
-    liveCurrentDayIdx=draft.dayIdx||0;
-    liveExercises=draft.exercises||[];
-    liveSessionActive=!!draft.sessionActive;
-    liveTimerSec=draft.timerSec||0;
-    liveFeedbackVal=draft.feedback||0;
-    const noteEl=document.getElementById('live-note');
-    if(noteEl)noteEl.value=draft.note||'';
-    liveClientSetField(draft.clientId,c.name,true);
-    if(liveSessionActive){
-      clearInterval(liveTimerInterval);
-      liveTimerInterval=setInterval(()=>{
-        liveTimerSec++;
-        const m=String(Math.floor(liveTimerSec/60)).padStart(2,'0');
-        const s=String(liveTimerSec%60).padStart(2,'0');
-        const el=document.getElementById('live-timer');
-        if(el)el.textContent=m+':'+s;
-      },1000);
-      document.getElementById('live-timer-status').textContent='W toku';
-      document.getElementById('live-start-btn').style.display='none';
-      document.getElementById('live-end-btn').style.display='';
+  const read=key=>{
+    try{
+      const raw=localStorage.getItem(key);
+      if(!raw)return null;
+      const draft=JSON.parse(raw);
+      if(!draft.clientId||Date.now()-(draft.savedAt||0)>7*24*60*60*1000){
+        try{localStorage.removeItem(key);}catch(e){}
+        return null;
+      }
+      if(!CL.find(x=>x.id===draft.clientId)){
+        try{localStorage.removeItem(key);}catch(e){}
+        return null;
+      }
+      return draft;
+    }catch(e){return null;}
+  };
+  const d0=read(LIVE_DRAFT_KEYS[0]);
+  const d1=read(LIVE_DRAFT_KEYS[1]);
+  if(!d0&&!d1)return false;
+  const nameOf=d=>{
+    const c=CL.find(x=>x.id===d.clientId);
+    return c?c.name:'klient';
+  };
+  if(d0&&d1){
+    if(!confirm('Masz niedokończone sesje ('+nameOf(d0)+' i '+nameOf(d1)+'). Wznowić obie na podzielonym ekranie?')){
+      liveClearDraft(0);liveClearDraft(1);return false;
     }
-    liveSyncFloorUi();
-    renderLivePlanPicker();
-    renderLiveExercises();
-    notify('Sesja wznowiona z kopii zapasowej');
+    liveDual=true;
+    liveApplyDraft(0,d0);
+    liveApplyDraft(1,d1);
+    notify('Sesje wznowione z kopii zapasowej');
     return true;
-  }catch(e){liveClearDraft();return false;}
+  }
+  const n=d0?0:1;
+  const d=d0||d1;
+  const c=CL.find(x=>x.id===d.clientId);
+  if(!confirm('Masz niedokończoną sesję treningową ('+(c?c.name:'klient')+'). Wznowić?')){
+    liveClearDraft(n);return false;
+  }
+  if(n===1)liveDual=true;
+  liveApplyDraft(n,d);
+  notify('Sesja wznowiona z kopii zapasowej');
+  return true;
 }
 
 function liveSyncFloorUi(){
   const sc=document.getElementById('screen-live');
   if(!sc)return;
-  sc.classList.toggle('live-session-on',!!liveSessionActive);
-  if(!liveSessionActive)sc.classList.remove('live-plan-open');
+  sc.classList.toggle('live-session-on',liveAnySessionActive());
+  sc.classList.toggle('live-dual',!!liveDual);
+  if(!liveAnySessionActive())sc.classList.remove('live-plan-open');
   const tog=document.getElementById('live-plan-toggle');
   if(tog)tog.textContent=sc.classList.contains('live-plan-open')?'Ukryj plan':'Plan';
+  const dualBtn=document.getElementById('live-dual-btn');
+  if(dualBtn){
+    dualBtn.classList.toggle('active',!!liveDual);
+    dualBtn.textContent=liveDual?'1 osoba':'Dwie osoby';
+    dualBtn.setAttribute('aria-pressed',liveDual?'true':'false');
+  }
+  const floor=document.getElementById('live-floor');
+  if(floor&&liveTab==='trainer')floor.style.display='flex';
 }
 function liveTogglePlanPanel(){
   const sc=document.getElementById('screen-live');
@@ -1594,50 +1712,89 @@ function liveTogglePlanPanel(){
 }
 window.liveTogglePlanPanel=liveTogglePlanPanel;
 
+function liveToggleDual(){
+  if(liveDual){
+    if(liveB.sessionActive&&!confirm('Osoba 2 ma trening w toku. Wrócić do jednego ekranu? Sesja 2 zostanie w tle (kopia zapasowa).'))return;
+    liveDual=false;
+  }else{
+    liveDual=true;
+    setLiveTab('trainer');
+    renderLiveClientCard(1);
+    renderLivePlanPicker(1);
+    renderLiveExercises(1);
+    liveBindSessionButtons(1);
+  }
+  try{sessionStorage.setItem('pl_live_dual',liveDual?'1':'0');}catch(e){}
+  liveSyncFloorUi();
+}
+window.liveToggleDual=liveToggleDual;
+
 function initLive(){
+  try{if(sessionStorage.getItem('pl_live_dual')==='1')liveDual=true;}catch(e){}
   const recovered=liveTryRecoverDraft();
   liveSyncFloorUi();
-  if(recovered){renderLiveHistory();return;}
-  if(liveClientId){
-    liveLoadClient();
-  }else{
-    liveClientSetField('','',true);
-    livePlanId=null;
-    liveExercises=[];
-    renderLiveClientCard();
-    renderLivePlanPicker();
-    renderLiveExercises();
-  }
+  [0,1].forEach(slot=>{
+    const st=liveRef(slot);
+    if(recovered&&st.clientId){
+      liveBindSessionButtons(slot);
+      return;
+    }
+    if(st.clientId){
+      liveLoadClient(slot);
+    }else{
+      liveClientSetField('','',true,slot);
+      st.planId=null;
+      st.exercises=[];
+      renderLiveClientCard(slot);
+      renderLivePlanPicker(slot);
+      renderLiveExercises(slot);
+      liveBindSessionButtons(slot);
+    }
+  });
   renderLiveHistory();
 }
 
 function setLiveTab(t){
   liveTab=t;
-  ['trainer','client','history'].forEach(x=>{
+  const floor=document.getElementById('live-floor');
+  if(floor)floor.style.display=t==='trainer'?'flex':'none';
+  const trainer=document.getElementById('live-trainer-tab');
+  if(trainer)trainer.style.display='flex';
+  ['client','history'].forEach(x=>{
     const el=document.getElementById('live-'+x+'-tab');
-    if(el)el.style.display=x===t?'flex':'none';
+    if(el)el.style.display=x===t?(x==='client'?'flex':'none'):'none';
     document.getElementById('live-tab-'+x)?.classList.toggle('active',x===t);
   });
+  document.getElementById('live-tab-trainer')?.classList.toggle('active',t==='trainer');
+  if(t==='history'){
+    const h=document.getElementById('live-history-tab');
+    if(h)h.style.display='block';
+  }
   if(t==='client')renderLiveClientMock();
   if(t==='history')renderLiveHistory();
 }
 
-// Ustawia pole klienta na ekranie Trening Live: widoczny tekst + ukryte id.
-function liveClientSetField(clientId,clientName,skipLoad){
-  const hid=document.getElementById('live-client-sel');
-  const vis=document.getElementById('live-client-sel-search');
+function liveClientSetField(clientId,clientName,skipLoad,slot){
+  const n=liveN(slot);
+  if(clientId&&liveRef(n===1?0:1).clientId===clientId){
+    if(typeof notify==='function')notify('Ten klient jest już na drugim ekranie');
+    return;
+  }
+  const hid=liveEl('live-client-sel',n);
+  const vis=liveEl('live-client-sel-search',n);
   if(hid)hid.value=clientId;
   if(vis)vis.value=clientName;
-  const res=document.getElementById('live-client-sel-results');
+  const res=liveEl('live-client-sel-results',n);
   if(res)res.style.display='none';
-  liveClientId=clientId;
-  if(!skipLoad)liveLoadClient();
-  else renderLiveClientCard();
+  liveRef(n).clientId=clientId;
+  if(!skipLoad)liveLoadClient(n);
+  else renderLiveClientCard(n);
 }
 
-function liveClientSearchInput(){
-  const q=(document.getElementById('live-client-sel-search')?.value||'').trim().toLowerCase();
-  const res=document.getElementById('live-client-sel-results');
+function liveClientSearchInput(slot){
+  const n=liveN(slot);
+  const q=(liveEl('live-client-sel-search',n)?.value||'').trim().toLowerCase();
+  const res=liveEl('live-client-sel-results',n);
   if(!res)return;
   let list=CL;
   if(q)list=list.filter(c=>c.name.toLowerCase().includes(q));
@@ -1649,25 +1806,30 @@ function liveClientSearchInput(){
     res.style.display='block';
     return;
   }
+  const sl=liveSlotArg(n);
   res.innerHTML=list.map(({c,act})=>`
-    <div onclick="liveClientSetField('${c.id}','${c.name.replace(/'/g,"\\'")}')" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background='transparent'">
+    <div onclick="liveClientSetField('${c.id}','${c.name.replace(/'/g,"\\'")}',false${sl})" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--s3)'" onmouseout="this.style.background='transparent'">
       <span style="font-size:13px;">${c.name}</span>
       <span style="font-size:10px;color:${act.color};font-family:'DM Mono',monospace;">${act.label||''}</span>
     </div>`).join('');
   res.style.display='block';
 }
 
-function liveLoadClient(){
-  const sel=document.getElementById('live-client-sel');
-  liveClientId=sel?.value||null;
-  renderLiveClientCard();
-  renderLivePlanPicker();
-  renderLiveExercises();
+function liveLoadClient(slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  const sel=liveEl('live-client-sel',n);
+  st.clientId=sel?.value||st.clientId||null;
+  renderLiveClientCard(n);
+  renderLivePlanPicker(n);
+  renderLiveExercises(n);
 }
 
-function renderLiveClientCard(){
-  const el=document.getElementById('live-client-card');if(!el)return;
-  const c=CL.find(x=>x.id===liveClientId);
+function renderLiveClientCard(slot){
+  const n=liveN(slot);
+  const el=liveEl('live-client-card',n);if(!el)return;
+  const st=liveRef(n);
+  const c=CL.find(x=>x.id===st.clientId);
   if(!c){el.innerHTML='';return;}
   const sessCount=SE.filter(s=>s.clientId===c.id).length;
   el.innerHTML=`<div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;">
@@ -1695,52 +1857,53 @@ function renderLiveClientCard(){
   </div>`;
 }
 
-function renderLivePlanPicker(){
-  const el=document.getElementById('live-plan-picker');if(!el)return;
-  if(!liveClientId){
+function renderLivePlanPicker(slot){
+  const n=liveN(slot);
+  const el=liveEl('live-plan-picker',n);if(!el)return;
+  const st=liveRef(n);
+  const sl=liveSlotArg(n);
+  if(!st.clientId){
     el.innerHTML=`<div style="font-size:12px;color:var(--muted);text-align:center;padding:16px;background:var(--s2);border-radius:10px;border:1px dashed var(--border2);line-height:1.5;">
       Wybierz klienta u góry, żeby załadować jego plan i zacząć sesję.
     </div>`;
     return;
   }
-  const plans=PL.filter(p=>p.clientId===liveClientId);
+  const plans=PL.filter(p=>p.clientId===st.clientId);
   if(!plans.length){
     el.innerHTML=`<div style="font-size:11px;color:var(--muted);text-align:center;padding:12px;background:var(--s2);border-radius:10px;border:1px solid var(--border);">
       Brak planów dla klienta.<br>
-      <button class="btn btn-ghost btn-sm" style="margin-top:6px;" onclick="goTo('aiplangen');if(liveClientId){document.getElementById('apl-client').value=liveClientId;aplFillFromClient();}">⚡ Generuj plan AI</button>
+      <button class="btn btn-ghost btn-sm" style="margin-top:6px;" onclick="goTo('aiplangen');document.getElementById('apl-client').value='${st.clientId}';if(typeof aplFillFromClient==='function')aplFillFromClient();">⚡ Generuj plan AI</button>
     </div>
     <div style="margin-top:10px;">
-      <button class="btn btn-ghost btn-sm" style="width:100%;" onclick="liveQuickAdd()">⚡ Szybki trening bez planu</button>
+      <button class="btn btn-ghost btn-sm" style="width:100%;" onclick="liveQuickAdd(${n})">⚡ Szybki trening bez planu</button>
     </div>`;
     return;
   }
-  const activePlan=plans.find(p=>p.id===livePlanId)||plans[0];
+  const activePlan=plans.find(p=>p.id===st.planId)||plans[0];
   const days=activePlan?.days||[];
 
   el.innerHTML=`
     <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:8px;letter-spacing:1px;">Wybierz plan</div>
     <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:10px;">
-      ${plans.map(p=>`<div style="background:var(--s2);border:1px solid ${livePlanId===p.id?'var(--accent)':'var(--border)'};border-radius:10px;padding:10px 12px;cursor:pointer;transition:border-color 0.12s;" onclick="liveSelectPlan('${p.id}')" onmouseover="this.style.borderColor='var(--border2)'" onmouseout="this.style.borderColor='${livePlanId===p.id?'var(--accent)':'var(--border)'}'">
-        <div style="font-size:12px;font-weight:700;color:${livePlanId===p.id?'var(--accent)':'var(--text)'};">${p.name}</div>
+      ${plans.map(p=>`<div style="background:var(--s2);border:1px solid ${st.planId===p.id?'var(--accent)':'var(--border)'};border-radius:10px;padding:10px 12px;cursor:pointer;transition:border-color 0.12s;" onclick="liveSelectPlan('${p.id}'${sl})" onmouseover="this.style.borderColor='var(--border2)'" onmouseout="this.style.borderColor='${st.planId===p.id?'var(--accent)':'var(--border)'}'">
+        <div style="font-size:12px;font-weight:700;color:${st.planId===p.id?'var(--accent)':'var(--text)'};">${p.name}</div>
         <div style="font-size:10px;color:var(--muted);margin-top:2px;">${p.method||''} · ${p.duration||'?'} tyg. · ${(p.days||[]).length} dni</div>
       </div>`).join('')}
     </div>
     ${days.length>1?`
-    <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:6px;letter-spacing:1px;">Dzień treningu ${liveExercises.length?`<span style="color:var(--accent);normal-case;text-transform:none;letter-spacing:0;">— sugerowany na dziś</span>`:''}</div>
+    <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:6px;letter-spacing:1px;">Dzień treningu ${st.exercises.length?`<span style="color:var(--accent);normal-case;text-transform:none;letter-spacing:0;">— sugerowany na dziś</span>`:''}</div>
     <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:10px;">
-      ${days.map((d,i)=>`<button onclick="liveSelectDay(${i})" style="background:${liveExercises.length&&i===liveCurrentDayIdx?'rgba(230,0,0,0.08)':'var(--s3)'};border:1px solid ${liveExercises.length&&i===liveCurrentDayIdx?'var(--accent)':'var(--border2)'};border-radius:8px;padding:7px 12px;cursor:pointer;text-align:left;display:flex;align-items:center;justify-content:space-between;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)'">
+      ${days.map((d,i)=>`<button onclick="liveSelectDay(${i}${sl})" style="background:${st.exercises.length&&i===st.currentDayIdx?'rgba(230,0,0,0.08)':'var(--s3)'};border:1px solid ${st.exercises.length&&i===st.currentDayIdx?'var(--accent)':'var(--border2)'};border-radius:8px;padding:7px 12px;cursor:pointer;text-align:left;display:flex;align-items:center;justify-content:space-between;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)'">
         <div style="font-size:11px;font-weight:600;">${d.day||'Dzień '+(i+1)}</div>
         <div style="font-size:10px;color:var(--muted);">${(d.exercises||[]).length} ćw.</div>
       </button>`).join('')}
     </div>`:''}
     <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:6px;letter-spacing:1px;">Lub quick-add</div>
-    <button class="btn btn-ghost btn-sm" style="width:100%;" onclick="liveQuickAdd()">⚡ Szybki trening bez planu</button>`;
+    <button class="btn btn-ghost btn-sm" style="width:100%;" onclick="liveQuickAdd(${n})">⚡ Szybki trening bez planu</button>`;
 
-  if(!livePlanId&&plans.length)liveSelectPlan(plans[0].id);
+  if(!st.planId&&plans.length)liveSelectPlan(plans[0].id,n);
 }
 
-// Sprawdza ostatnią sesję live/client tego klienta z tym planem i sugeruje kolejny dzień w rotacji.
-// Jeśli brak historii — zaczyna od pierwszego dnia treningowego.
 function liveGetSuggestedDayIdx(clientId,plan){
   if(typeof suggestedPlanDayIdx==='function')return suggestedPlanDayIdx(clientId,plan);
   if(!plan||!plan.days||!plan.days.length)return 0;
@@ -1759,7 +1922,6 @@ function liveNormExName(n){
   return String(n||'').toLowerCase().replace(/\s+/g,' ').trim();
 }
 
-/** Ostatnie kg/powt. tego ćwiczenia u tego klienta (z zapisanych sesji). */
 function liveLastLoad(clientId,name){
   if(!clientId||!name)return null;
   const key=liveNormExName(name);
@@ -1776,42 +1938,46 @@ function liveLastLoad(clientId,name){
   return null;
 }
 
-function liveMapPlanExercises(rawEx){
+function liveMapPlanExercises(rawEx,slot){
+  const st=liveRef(slot);
   const mapped=typeof mapPlanExercisesForClient==='function'
-    ?mapPlanExercisesForClient(rawEx,liveClientId)
+    ?mapPlanExercisesForClient(rawEx,st.clientId)
     :(rawEx||[]).map(ex=>({name:ex.name||ex.n||'Ćwiczenie',sets:[{setNo:1,kg:'',reps:'10',done:false}]}));
   return mapped.map(ex=>({...ex,done:false,collapsed:false}));
 }
 
-function liveSelectPlan(pid){
-  livePlanId=pid;
+function liveSelectPlan(pid,slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  st.planId=pid;
   const p=PL.find(x=>x.id===pid);if(!p)return;
 
-  // Preferuj dzień z kalendarza (source=planned) na dziś; inaczej rotacja po live/client.
-  const suggestedIdx=liveGetSuggestedDayIdx(liveClientId,p);
-  liveCurrentDayIdx=suggestedIdx;
-  const planned=typeof plannedSessionForDate==='function'?plannedSessionForDate(liveClientId,pid,typeof todayYmd==='function'?todayYmd():null):null;
+  const suggestedIdx=liveGetSuggestedDayIdx(st.clientId,p);
+  st.currentDayIdx=suggestedIdx;
+  const planned=typeof plannedSessionForDate==='function'?plannedSessionForDate(st.clientId,pid,typeof todayYmd==='function'?todayYmd():null):null;
   const day=(p.days||[])[suggestedIdx];
   const rawEx=day?.exercises||[];
 
   if(rawEx.length>0){
-    liveExercises=liveMapPlanExercises(rawEx);
+    st.exercises=liveMapPlanExercises(rawEx,n);
   } else {
-    liveExercises=[];
-    liveShowDayPicker(p);
+    st.exercises=[];
+    liveShowDayPicker(p,n);
   }
 
-  renderLivePlanPicker();
-  renderLiveExercises();
-  liveSaveDraft();
+  renderLivePlanPicker(n);
+  renderLiveExercises(n);
+  liveSaveDraft(n);
   if(planned&&Number(planned.dayIdx)===suggestedIdx){
     const label=day&&(day.day||day.dayName)||('Dzień '+(suggestedIdx+1));
     notify('📅 Z kalendarza: '+label);
   }
 }
 
-function liveShowDayPicker(p){
-  const el=document.getElementById('live-exercises-panel');if(!el)return;
+function liveShowDayPicker(p,slot){
+  const n=liveN(slot);
+  const el=liveEl('live-exercises-panel',n);if(!el)return;
+  const sl=liveSlotArg(n);
   const days=p.days||[];
   if(!days.length){
     el.innerHTML=`<div style="text-align:center;padding:40px 20px;color:var(--muted);">
@@ -1826,7 +1992,7 @@ function liveShowDayPicker(p){
     <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Wybierz dzień treningu</div>
     <div style="display:flex;flex-direction:column;gap:6px;">
       ${days.map((d,i)=>`
-        <button onclick="liveSelectDay(${i})" style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;cursor:pointer;text-align:left;transition:border-color 0.12s;display:flex;align-items:center;justify-content:space-between;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+        <button onclick="liveSelectDay(${i}${sl})" style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;cursor:pointer;text-align:left;transition:border-color 0.12s;display:flex;align-items:center;justify-content:space-between;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
           <div>
             <div style="font-size:12px;font-weight:700;color:var(--text);">${d.day||'Dzień '+(i+1)}</div>
             <div style="font-size:10px;color:var(--muted);margin-top:2px;">${(d.exercises||[]).length} ćwiczeń</div>
@@ -1837,24 +2003,28 @@ function liveShowDayPicker(p){
   </div>`;
 }
 
-function liveSelectDay(dayIdx){
-  const p=PL.find(x=>x.id===livePlanId);if(!p)return;
+function liveSelectDay(dayIdx,slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  const p=PL.find(x=>x.id===st.planId);if(!p)return;
   const day=(p.days||[])[dayIdx];if(!day)return;
-  liveCurrentDayIdx=dayIdx;
+  st.currentDayIdx=dayIdx;
   const rawEx=day.exercises||[];
-  liveExercises=liveMapPlanExercises(rawEx);
-  renderLivePlanPicker();
-  renderLiveExercises();
-  liveSaveDraft();
+  st.exercises=liveMapPlanExercises(rawEx,n);
+  renderLivePlanPicker(n);
+  renderLiveExercises(n);
+  liveSaveDraft(n);
 }
 window.liveSelectDay=liveSelectDay;
 
-function liveQuickAdd(){
-  liveExercises=[
+function liveQuickAdd(slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  st.exercises=[
     {name:'Ćwiczenie 1',sets:[{setNo:1,kg:'',reps:'10',done:false},{setNo:2,kg:'',reps:'10',done:false},{setNo:3,kg:'',reps:'10',done:false}],done:false},
   ];
-  renderLiveExercises();
-  liveSaveDraft();
+  renderLiveExercises(n);
+  liveSaveDraft(n);
 }
 
 function liveProgressStats(exercises){
@@ -1870,17 +2040,20 @@ function liveProgressStats(exercises){
 }
 window.liveProgressStats=liveProgressStats;
 
-function renderLiveExercises(){
-  const el=document.getElementById('live-exercises-panel');if(!el)return;
-  if(!liveExercises.length){
-    if(window._liveSavedClientId){
-      const nm=window._liveSavedClientName||'klient';
+function renderLiveExercises(slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  const el=liveEl('live-exercises-panel',n);if(!el)return;
+  const sl=liveSlotArg(n);
+  if(!st.exercises.length){
+    if(st.savedClientId){
+      const nm=st.savedClientName||'klient';
       el.innerHTML=`<div style="text-align:center;padding:48px 20px;">
         <div style="font-size:36px;margin-bottom:10px;">✅</div>
         <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:6px;">SESJA ZAPISANA</div>
         <div style="font-size:13px;color:var(--muted);margin-bottom:18px;line-height:1.5;">${escHtml(nm)} · trening jest w kalendarzu i historii.</div>
         <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
-          <button class="btn btn-primary" onclick="liveRepeatSameClient()">▶ Kolejny dzień tego klienta</button>
+          <button class="btn btn-primary" onclick="liveRepeatSameClient(${n})">▶ Kolejny dzień tego klienta</button>
           <button class="btn btn-ghost" onclick="goTo('clients')">Lista klientów</button>
           <button class="btn btn-ghost" onclick="goTo('dashboard')">Panel</button>
         </div>
@@ -1894,59 +2067,62 @@ function renderLiveExercises(){
     </div>`;
     return;
   }
-  const st=typeof liveProgressStats==='function'?liveProgressStats(liveExercises):{doneCnt:0,total:liveExercises.length,setsDone:0,volume:0};
-  const doneCnt=st.doneCnt,total=st.total,setsDone=st.setsDone,volume=st.volume;
+  const stats=typeof liveProgressStats==='function'?liveProgressStats(st.exercises):{doneCnt:0,total:st.exercises.length,setsDone:0,volume:0};
+  const doneCnt=stats.doneCnt,total=stats.total,setsDone=stats.setsDone,volume=stats.volume;
 
-  // update stats panel
-  const setTxt=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  const setTxt=(id,v)=>{const e=liveEl(id,n);if(e)e.textContent=v;};
   setTxt('live-ex-done',doneCnt);
   setTxt('live-ex-total',total);
   setTxt('live-sets-done',setsDone);
   setTxt('live-volume',Math.round(volume));
-  const pb=document.getElementById('live-progress-bar');
+  const pb=liveEl('live-progress-bar',n);
   if(pb)pb.style.width=(total?Math.round(doneCnt/total*100):0)+'%';
-  const hint=document.getElementById('live-progress-hint');
+  const hint=liveEl('live-progress-hint',n);
   if(hint)hint.textContent=setsDone?'Po „Zakończ i zapisz” ten trening wejdzie do Progress.':(total?'Odhacz serie ✓ — sam plan w kalendarzu się nie liczy.':'');
 
   el.innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
       <div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;">${liveSessionActive?'TRENING W TOKU':'PLAN TRENINGU'}</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;">${st.sessionActive?'TRENING W TOKU':'PLAN TRENINGU'}</div>
         <div style="font-size:11px;color:var(--muted);">${doneCnt}/${total} ćwiczeń ukończonych</div>
       </div>
-      <button class="btn btn-ghost btn-sm" onclick="liveAddExercise()">+ Dodaj ćwiczenie</button>
+      <button class="btn btn-ghost btn-sm" onclick="liveAddExercise(${n})">+ Dodaj ćwiczenie</button>
     </div>
-    ${liveExercises.map((ex,i)=>liveExCard(ex,i)).join('')}
-    ${liveSessionActive&&doneCnt===total&&total>0?`
+    ${st.exercises.map((ex,i)=>liveExCard(ex,i,n)).join('')}
+    ${st.sessionActive&&doneCnt===total&&total>0?`
     <div style="background:linear-gradient(135deg,var(--adim),transparent);border:1px solid rgba(230,0,0,0.3);border-radius:14px;padding:20px;text-align:center;margin-top:10px;">
       <div style="font-size:28px;margin-bottom:8px;">🎉</div>
       <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:4px;">TRENING UKOŃCZONY!</div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">${setsDone} serii · ${Math.round(volume)} kg objętości</div>
-      <button class="btn btn-primary" onclick="liveEndSession()">Zakończ i zapisz sesję</button>
+      <button class="btn btn-primary" onclick="liveEndSession(${n})">Zakończ i zapisz sesję</button>
     </div>`:''}`;
 }
 
-function liveExCard(ex,i){
+function liveExCard(ex,i,slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  const sl=liveSlotArg(n);
   const unit=typeof exLoadUnit==='function'?exLoadUnit(ex):'kg';
   const suf=typeof loadUnitSuffix==='function'?loadUnitSuffix(unit):'kg';
   const loadPh=typeof loadUnitPlaceholder==='function'?loadUnitPlaceholder(unit):'kg';
   const loadLbl=typeof loadUnitColumnLabel==='function'?loadUnitColumnLabel(unit):(unit==='sec'||unit==='min'?'Czas':unit==='m'?'Dystans':'Ciężar');
   const setsDone=ex.sets.filter(s=>s.done).length;
   const lastHint=ex.lastKg!==''&&ex.lastKg!=null?`Ostatnio: ${ex.lastKg} ${suf}${ex.lastReps?' × '+ex.lastReps:''}`:'';
-  const pr=typeof exercisePR==='function'&&(typeof isWeightLoadUnit!=='function'||isWeightLoadUnit(unit))?exercisePR(liveClientId,ex.name):null;
+  const pr=typeof exercisePR==='function'&&(typeof isWeightLoadUnit!=='function'||isWeightLoadUnit(unit))?exercisePR(st.clientId,ex.name):null;
   const prHint=pr?`Rekord: ${pr.kg} kg × ${pr.reps}`:'';
   const pctHint=ex.kgHint||'';
   const sub=[pctHint,lastHint,prHint].filter(Boolean).join(' · ');
-  return `<div class="live-ex-card${ex.ss?' ss':''}${ex.done?' done':liveSessionActive&&!ex.done&&i===liveExercises.findIndex(e=>!e.done)?' active':''}" id="live-ex-${i}">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:${ex.collapsed?0:10}px;cursor:pointer;" onclick="liveToggleCollapse(${i})">
+  const cardId=n===1?('live-b-ex-'+i):('live-ex-'+i);
+  return `<div class="live-ex-card${ex.ss?' ss':''}${ex.done?' done':st.sessionActive&&!ex.done&&i===st.exercises.findIndex(e=>!e.done)?' active':''}" id="${cardId}">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:${ex.collapsed?0:10}px;cursor:pointer;" onclick="liveToggleCollapse(${i}${sl})">
       <div style="width:30px;height:30px;border-radius:8px;background:${ex.done?'var(--teal)':'var(--adim)'};display:flex;align-items:center;justify-content:center;font-size:${ex.done?'14px':'12px'};font-weight:700;color:${ex.done?'#000':'var(--accent)'};flex-shrink:0;">${ex.done?'✓':i+1}</div>
       <div style="flex:1;">
         <div style="font-size:13px;font-weight:700;">${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}</div>
         <div style="font-size:10px;color:var(--muted);">${ex.sets.length} serie · ${setsDone}/${ex.sets.length} ukończono${ex.ssLabel?' · super-seria':''}${ex.emom?' · EMOM':''}${sub?' · '+escHtml(sub):''}</div>
       </div>
       <div style="display:flex;gap:6px;align-items:center;">
-        ${!ex.done?`<button type="button" class="live-skip-btn" onclick="event.stopPropagation();liveSkipEx(${i})">Pomiń</button>`:''}
-        ${ex.video?`<button type="button" class="live-skip-btn" onclick="event.stopPropagation();liveToggleExVideo(${i})">${ex.showVideo?'▾ Film':'▶ Film'}</button>`:''}
+        ${!ex.done?`<button type="button" class="live-skip-btn" onclick="event.stopPropagation();liveSkipEx(${i}${sl})">Pomiń</button>`:''}
+        ${ex.video?`<button type="button" class="live-skip-btn" onclick="event.stopPropagation();liveToggleExVideo(${i}${sl})">${ex.showVideo?'▾ Film':'▶ Film'}</button>`:''}
         <span style="color:var(--muted);font-size:14px;">${ex.collapsed?'▶':'▼'}</span>
       </div>
     </div>
@@ -1957,44 +2133,50 @@ function liveExCard(ex,i){
         <span></span><span>Seria</span><span style="text-align:center;">${loadLbl}</span><span style="text-align:center;">Powt.</span><span></span>
       </div>
       ${ex.sets.map((s,si)=>`<div class="live-set-row">
-        <div class="live-set-check${s.done?' done':''}" onclick="liveToggleSet(${i},${si})" title="Oznacz serię">${s.done?'✓':''}</div>
+        <div class="live-set-check${s.done?' done':''}" onclick="liveToggleSet(${i},${si}${sl})" title="Oznacz serię">${s.done?'✓':''}</div>
         <div class="live-set-label"><span class="live-set-label-full">Seria </span>${s.setNo}${s.kind&&s.kind!=='work'?` <span class="cw-set-kind ${s.kind}">${escHtml(typeof setKindBadge==='function'?setKindBadge(s.kind):s.kind)}</span>`:''}</div>
-        <input type="number" inputmode="decimal" class="live-kg-input" placeholder="${ex.lastKg!==''&&ex.lastKg!=null?ex.lastKg:loadPh}" value="${s.kg}" oninput="liveSetKg(${i},${si},this.value)" onkeydown="liveSetKey(event,${i},${si})" onclick="event.stopPropagation()">
-        <input type="number" inputmode="numeric" class="live-kg-input" placeholder="${s.kind==='amrap'?'max':'powt.'}" value="${s.reps}" oninput="liveSetReps(${i},${si},this.value)" onkeydown="liveSetKey(event,${i},${si})" onclick="event.stopPropagation()">
-        <button type="button" class="live-set-rest" onclick="liveStartRest(${typeof restSecAfterSet==='function'?restSecAfterSet(ex,s,ex.sets[si+1]):90})" title="Przerwa">⏱</button>
+        <input type="number" inputmode="decimal" class="live-kg-input" placeholder="${ex.lastKg!==''&&ex.lastKg!=null?ex.lastKg:loadPh}" value="${s.kg}" oninput="liveSetKg(${i},${si},this.value${sl})" onkeydown="liveSetKey(event,${i},${si}${sl})" onclick="event.stopPropagation()">
+        <input type="number" inputmode="numeric" class="live-kg-input" placeholder="${s.kind==='amrap'?'max':'powt.'}" value="${s.reps}" oninput="liveSetReps(${i},${si},this.value${sl})" onkeydown="liveSetKey(event,${i},${si}${sl})" onclick="event.stopPropagation()">
+        <button type="button" class="live-set-rest" onclick="liveStartRest(${typeof restSecAfterSet==='function'?restSecAfterSet(ex,s,ex.sets[si+1]):90}${sl})" title="Przerwa">⏱</button>
       </div>`).join('')}
-      <button type="button" class="live-add-set" onclick="liveAddSet(${i})">+ Dodaj serię</button>
+      <button type="button" class="live-add-set" onclick="liveAddSet(${i}${sl})">+ Dodaj serię</button>
     </div>`:''}
   </div>`;
 }
 
-function liveSetKey(e,ei,si){
+function liveSetKey(e,ei,si,slot){
   if(e.key==='Enter'){
     e.preventDefault();
-    liveToggleSet(ei,si);
+    liveToggleSet(ei,si,slot);
   }
 }
 window.liveSetKey=liveSetKey;
 
-function liveToggleExVideo(i){
-  if(!liveExercises[i])return;
-  liveExercises[i].showVideo=!liveExercises[i].showVideo;
-  liveExercises[i].collapsed=false;
-  renderLiveExercises();
+function liveToggleExVideo(i,slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  if(!st.exercises[i])return;
+  st.exercises[i].showVideo=!st.exercises[i].showVideo;
+  st.exercises[i].collapsed=false;
+  renderLiveExercises(n);
 }
 window.liveToggleExVideo=liveToggleExVideo;
 
-function liveToggleCollapse(i){
-  liveExercises[i].collapsed=!liveExercises[i].collapsed;
-  renderLiveExercises();
+function liveToggleCollapse(i,slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  st.exercises[i].collapsed=!st.exercises[i].collapsed;
+  renderLiveExercises(n);
 }
 
-function liveToggleSet(ei,si){
-  const ex=liveExercises[ei];if(!ex)return;
+function liveToggleSet(ei,si,slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  const ex=st.exercises[ei];if(!ex)return;
   const s=ex.sets[si];
   s.done=!s.done;
   if(s.done){
-    const prMsg=typeof prToastText==='function'?prToastText(liveClientId,ex.name,s.kg,s.reps):'';
+    const prMsg=typeof prToastText==='function'?prToastText(st.clientId,ex.name,s.kg,s.reps):'';
     const next=ex.sets[si+1];
     if(next){
       if(next.kind!=='drop'&&(next.kg===''||next.kg==null)&&s.kg!==''&&s.kg!=null)next.kg=s.kg;
@@ -2003,130 +2185,131 @@ function liveToggleSet(ei,si){
     if(ex.sets.every(x=>x.done)){
       ex.done=true;
       ex.collapsed=true;
-      const nxt=liveExercises.find(e=>!e.done);
+      const nxt=st.exercises.find(e=>!e.done);
       if(nxt)nxt.collapsed=false;
     }
     if(next&&typeof skipRestBeforeSet==='function'&&skipRestBeforeSet(next)){
       if(typeof notify==='function')notify((prMsg?prMsg+' · ':'')+'Drop set — bez przerwy, zdejmij ciężar');
     }else if(typeof isEmomExercise==='function'&&isEmomExercise(ex)&&next){
-      window._liveEmomClock=window._liveEmomClock||{};
-      if(!window._liveEmomClock[ei])window._liveEmomClock[ei]=Date.now();
+      const clock=st.emomClock||{};
+      if(!clock[ei])clock[ei]=Date.now();
+      st.emomClock=clock;
       const done=ex.sets.filter(x=>x.done).length;
-      const elapsed=(Date.now()-window._liveEmomClock[ei])/1000;
+      const elapsed=(Date.now()-clock[ei])/1000;
       const wait=typeof emomRestSec==='function'?emomRestSec(done,elapsed):0;
       if(wait>0){
         if(typeof notify==='function')notify('EMOM — czekaj na minutę · '+wait+' s');
-        liveStartRest(wait);
+        liveStartRest(wait,n);
       }else if(typeof notify==='function'){
         notify('EMOM — poza minutą, jedź dalej');
       }
     }else{
-      const act=typeof ssNextAfterSet==='function'?ssNextAfterSet(liveExercises,ei):null;
+      const act=typeof ssNextAfterSet==='function'?ssNextAfterSet(st.exercises,ei):null;
       if(act&&act.kind==='partner'){
-        liveExercises[act.exIdx].collapsed=false;
-        const nxt=liveExercises[act.exIdx];
+        st.exercises[act.exIdx].collapsed=false;
+        const nxt=st.exercises[act.exIdx];
         if(typeof notify==='function')notify(typeof superseriesToastText==='function'?superseriesToastText(nxt,{prMsg,noRest:true}):('Super-seria → '+(nxt.ssLabel?nxt.ssLabel+' ':'')+nxt.name+' (bez przerwy)'));
       }else{
         if(prMsg&&typeof notify==='function')notify(prMsg);
         const sec=typeof restSecAfterSet==='function'?restSecAfterSet(ex,s,next):(ex.restSec||90);
-        liveStartRest(sec);
+        liveStartRest(sec,n);
       }
     }
   }else{
     ex.done=false;
   }
-  liveSaveDraft();
-  renderLiveExercises();
+  liveSaveDraft(n);
+  renderLiveExercises(n);
 }
 
-function liveSetKg(ei,si,v){liveExercises[ei].sets[si].kg=v;liveSaveDraft();}
-function liveSetReps(ei,si,v){liveExercises[ei].sets[si].reps=v;liveSaveDraft();}
+function liveSetKg(ei,si,v,slot){liveRef(slot).exercises[ei].sets[si].kg=v;liveSaveDraft(slot);}
+function liveSetReps(ei,si,v,slot){liveRef(slot).exercises[ei].sets[si].reps=v;liveSaveDraft(slot);}
 
-function liveAddSet(ei){
-  const ex=liveExercises[ei];
+function liveAddSet(ei,slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  const ex=st.exercises[ei];
   const prev=ex.sets[ex.sets.length-1];
   ex.sets.push({setNo:ex.sets.length+1,kg:prev&&prev.kg!=null?prev.kg:'',reps:prev&&prev.reps?prev.reps:'8-12',done:false});
-  renderLiveExercises();
-  liveSaveDraft();
+  renderLiveExercises(n);
+  liveSaveDraft(n);
 }
 
-function liveSkipEx(i){
-  liveExercises[i].done=true;
-  liveExercises[i].collapsed=true;
-  renderLiveExercises();
+function liveSkipEx(i,slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  st.exercises[i].done=true;
+  st.exercises[i].collapsed=true;
+  renderLiveExercises(n);
 }
 
-function liveAddExercise(){
-  liveExercises.push({
+function liveAddExercise(slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  st.exercises.push({
     name:'Nowe ćwiczenie',
     sets:[{setNo:1,kg:'',reps:'10',done:false},{setNo:2,kg:'',reps:'10',done:false},{setNo:3,kg:'',reps:'10',done:false}],
     done:false,collapsed:false
   });
-  renderLiveExercises();
+  renderLiveExercises(n);
 }
 
-function liveStartSession(){
-  if(!liveClientId){notify('Wybierz klienta!');return;}
-  if(!liveExercises.length){notify('Wybierz plan lub dodaj ćwiczenia!');return;}
-  window._liveSavedClientId=null;
-  window._liveSavedClientName='';
-  liveSessionActive=true;
-  liveTimerSec=0;
-  window._liveEmomClock={};
-  clearInterval(liveTimerInterval);
-  liveTimerInterval=setInterval(()=>{
-    liveTimerSec++;
-    const m=String(Math.floor(liveTimerSec/60)).padStart(2,'0');
-    const s=String(liveTimerSec%60).padStart(2,'0');
-    const el=document.getElementById('live-timer');
-    if(el)el.textContent=m+':'+s;
-  },1000);
-  document.getElementById('live-timer-status').textContent='W toku';
-  document.getElementById('live-start-btn').style.display='none';
-  document.getElementById('live-end-btn').style.display='';
+function liveStartSession(slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  if(!st.clientId){notify('Wybierz klienta!');return;}
+  if(!st.exercises.length){notify('Wybierz plan lub dodaj ćwiczenia!');return;}
+  st.savedClientId=null;
+  st.savedClientName='';
+  st.sessionActive=true;
+  st.timerSec=0;
+  st.emomClock={};
+  liveArmTimer(n);
+  liveBindSessionButtons(n);
   liveSyncFloorUi();
-  notify('▶ Sesja rozpoczęta!');
-  liveSaveDraft();
-  renderLiveExercises();
+  notify(n===1?'▶ Sesja osoby 2 rozpoczęta!':'▶ Sesja rozpoczęta!');
+  liveSaveDraft(n);
+  renderLiveExercises(n);
 }
 
-function liveEndSession(){
-  const st=typeof liveProgressStats==='function'?liveProgressStats(liveExercises):{setsDone:0,volume:0};
-  const totalSets=st.setsDone;
+function liveEndSession(slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  const stats=typeof liveProgressStats==='function'?liveProgressStats(st.exercises):{setsDone:0,volume:0};
+  const totalSets=stats.setsDone;
   const msg=totalSets
     ?'Zakończyć i zapisać sesję?'
     :'Nie odhaczono żadnej serii — w Progress będzie dzień, ale 0 kg i bez rekordów. Zapisać mimo to?';
   if(!confirm(msg))return;
-  clearInterval(liveTimerInterval);
-  liveSessionActive=false;
-  liveClearDraft();
-  const c=CL.find(x=>x.id===liveClientId);
-  const volume=st.volume;
-  const durationMin=Math.round(liveTimerSec/60);
+  clearInterval(st.timerInterval);
+  st.sessionActive=false;
+  liveClearDraft(n);
+  const c=CL.find(x=>x.id===st.clientId);
+  const volume=stats.volume;
+  const durationMin=Math.round(st.timerSec/60);
   const newSession=withTrainer({
     id:newId('s'),
-    clientId:liveClientId,
+    clientId:st.clientId,
     date:(typeof todayYmd==='function'?todayYmd():(typeof dateStr==='function'?dateStr(new Date()):dateStrLocal(new Date()))),
     time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),
     type:'Trening personalny',
     duration:durationMin||60,
-    exercises:liveExercises.map(e=>({
+    exercises:st.exercises.map(e=>({
       name:e.name,
       loadUnit:typeof exLoadUnit==='function'?exLoadUnit(e):'kg',
       sets:e.sets.filter(s=>s.done).map(s=>({kg:parseFloat(s.kg)||0,reps:parseFloat(s.reps)||0,setNo:s.setNo,kind:s.kind||'work'}))
     })),
-    volume,feedback:liveFeedbackVal,
-    note:document.getElementById('live-note')?.value||'',
+    volume,feedback:st.feedbackVal,
+    note:liveEl('live-note',n)?.value||'',
     source:'live',
-    planId:livePlanId||null,
-    dayIdx:livePlanId!=null?liveCurrentDayIdx:null,
+    planId:st.planId||null,
+    dayIdx:st.planId!=null?st.currentDayIdx:null,
     createdAt:new Date().toISOString()
   });
   SE.push(newSession);
   persistById('sessions',newSession);
   LIVE_HISTORY.unshift({...newSession,clientName:c?.name||'Klient'});
-  // Odlicz sesję z aktywnego pakietu klienta jeśli jest
-  const pkg=(window.PACKAGES||[]).filter(p=>p.clientId===liveClientId&&(p.sessionsUsed||0)<(p.sessions||0)&&p.payStatus!=='expired')
+  const pkg=(window.PACKAGES||[]).filter(p=>p.clientId===st.clientId&&(p.sessionsUsed||0)<(p.sessions||0)&&p.payStatus!=='expired')
     .sort((a,b)=>(a.payStatus==='paid'?0:1)-(b.payStatus==='paid'?0:1))[0];
   if(pkg){
     pkg.sessionsUsed=(pkg.sessionsUsed||0)+1;
@@ -2137,33 +2320,33 @@ function liveEndSession(){
     }
   }
   addNotification('system','Sesja zapisana!','Trening '+c?.name+' · '+durationMin+' min · '+totalSets+' serii','clients');
-  if(typeof trainerWatchdogAfterSession==='function')try{trainerWatchdogAfterSession(liveClientId);}catch(e){}
+  if(typeof trainerWatchdogAfterSession==='function')try{trainerWatchdogAfterSession(st.clientId);}catch(e){}
   const leftTxt=pkg?(' · pakiet '+(pkg.sessionsUsed)+'/'+pkg.sessions):'';
   notify('✅ Sesja zapisana! '+durationMin+' min, '+totalSets+' serii, '+volume+' kg obj.'+leftTxt);
-  window._liveSavedClientId=liveClientId;
-  window._liveSavedClientName=c?.name||'';
-  document.getElementById('live-timer').textContent='00:00';
-  document.getElementById('live-timer-status').textContent='Nieaktywny';
-  document.getElementById('live-start-btn').style.display='';
-  document.getElementById('live-end-btn').style.display='none';
+  st.savedClientId=st.clientId;
+  st.savedClientName=c?.name||'';
+  st.timerSec=0;
+  liveBindSessionButtons(n);
   liveSyncFloorUi();
-  liveFeedbackVal=0;
-  const fb=document.getElementById('live-feedback-text');
+  st.feedbackVal=0;
+  const fb=liveEl('live-feedback-text',n);
   if(fb)fb.textContent='Brak oceny';
-  liveExercises=[];
-  livePlanId=null;
-  renderLiveExercises();
+  st.exercises=[];
+  st.planId=null;
+  renderLiveExercises(n);
   renderLiveHistory();
-  if(typeof maybeResumeOnboard==='function')maybeResumeOnboard(window._liveSavedClientId||liveClientId);
+  if(typeof maybeResumeOnboard==='function')maybeResumeOnboard(st.savedClientId);
 }
 
-function liveRepeatSameClient(){
-  const id=window._liveSavedClientId||liveClientId;
-  const name=window._liveSavedClientName||(CL.find(x=>x.id===id)||{}).name||'';
-  window._liveSavedClientId=null;
-  window._liveSavedClientName='';
+function liveRepeatSameClient(slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  const id=st.savedClientId||st.clientId;
+  const name=st.savedClientName||(CL.find(x=>x.id===id)||{}).name||'';
+  st.savedClientId=null;
+  st.savedClientName='';
   if(!id){notify('Wybierz klienta');return;}
-  liveClientSetField(id,name);
+  liveClientSetField(id,name,false,n);
   notify('Kolejny dzień — kg z poprzedniej sesji są już w polach');
 }
 window.liveRepeatSameClient=liveRepeatSameClient;
@@ -2175,42 +2358,48 @@ function parseLiveRestCustomSec(raw){
 }
 window.parseLiveRestCustomSec=parseLiveRestCustomSec;
 
-function liveStartRest(sec){
-  clearInterval(liveRestInterval);
-  liveRestSec=sec;
-  const el=document.getElementById('live-rest-timer');
+function liveStartRest(sec,slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  clearInterval(st.restInterval);
+  st.restSec=sec;
+  const el=liveEl('live-rest-timer',n);
   const update=()=>{
     if(!el)return;
-    if(liveRestSec<=0){
-      clearInterval(liveRestInterval);
+    if(st.restSec<=0){
+      clearInterval(st.restInterval);
       el.textContent='GO!';
       el.style.color='var(--accent)';
       setTimeout(()=>{if(el)el.textContent='—';el.style.color='var(--text)';},2000);
       return;
     }
-    el.textContent=liveRestSec+'s';
-    el.style.color=liveRestSec<=10?'var(--red)':'var(--text)';
-    liveRestSec--;
+    el.textContent=st.restSec+'s';
+    el.style.color=st.restSec<=10?'var(--red)':'var(--text)';
+    st.restSec--;
   };
   update();
-  liveRestInterval=setInterval(update,1000);
+  st.restInterval=setInterval(update,1000);
 }
 
-function liveStartRestCustom(){
-  const inp=document.getElementById('live-rest-custom');
+function liveStartRestCustom(slot){
+  const n=liveN(slot);
+  const inp=liveEl('live-rest-custom',n);
   const sec=parseLiveRestCustomSec(inp&&inp.value);
   if(!sec){
     if(typeof notify==='function')notify('Podaj czas przerwy w sekundach (5–600)');
     return;
   }
   if(inp)inp.value=String(sec);
-  liveStartRest(sec);
+  liveStartRest(sec,n);
 }
 
-function liveFeedback(v){
-  liveFeedbackVal=v;
+function liveFeedback(v,slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  st.feedbackVal=v;
   const labels={1:'😓 Bardzo ciężko',2:'😐 Ciężko',3:'🙂 OK',4:'💪 Dobre',5:'🔥 Świetne!'};
-  document.getElementById('live-feedback-text').textContent=labels[v]||'';
+  const el=liveEl('live-feedback-text',n);
+  if(el)el.textContent=labels[v]||'';
   notify('Feedback: '+labels[v]);
 }
 
@@ -2223,11 +2412,9 @@ function renderLiveClientMock(){
   const accent=window.SETTINGS?.brand?.accentColor||'#e60000';
   el.innerHTML=`
     <div style="background:#07080a;border-radius:40px;border:6px solid #1a1a2a;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.8);">
-      <!-- status bar -->
       <div style="padding:12px 20px 6px;display:flex;justify-content:space-between;font-size:10px;font-family:'DM Mono',monospace;color:rgba(255,255,255,0.5);">
         <span>9:41</span><span>▲▲▲ 🔋</span>
       </div>
-      <!-- header -->
       <div style="padding:10px 20px 16px;border-bottom:1px solid rgba(255,255,255,0.06);">
         <div style="display:flex;align-items:center;gap:10px;">
           <div style="width:36px;height:36px;border-radius:10px;background:${accent}22;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;color:${accent};">${c?getInit(c.name):'PL'}</div>
@@ -2237,7 +2424,6 @@ function renderLiveClientMock(){
           </div>
           ${liveSessionActive?`<div style="margin-left:auto;font-family:'Bebas Neue',sans-serif;font-size:18px;color:${accent};" id="live-mock-timer">--:--</div>`:''}
         </div>
-        <!-- progress bar -->
         <div style="margin-top:10px;">
           <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:4px;">
             <span style="color:rgba(255,255,255,0.4);">Postęp</span>
@@ -2248,7 +2434,6 @@ function renderLiveClientMock(){
           </div>
         </div>
       </div>
-      <!-- exercises list -->
       <div style="padding:12px 16px;max-height:500px;overflow-y:auto;">
         ${liveExercises.length?liveExercises.map((ex,i)=>`
           <div style="margin-bottom:10px;background:${ex.done?'rgba(62,207,178,0.06)':'rgba(255,255,255,0.03)'};border:1px solid ${ex.done?'rgba(62,207,178,0.2)':'rgba(255,255,255,0.06)'};border-radius:14px;padding:12px;">
@@ -2262,7 +2447,6 @@ function renderLiveClientMock(){
           </div>`).join(''):`<div style="text-align:center;padding:30px;color:rgba(255,255,255,0.3);font-size:12px;">Wybierz plan treningowy</div>`}
       </div>
     </div>`;
-  // sync mock timer
   if(liveSessionActive){
     const mt=document.getElementById('live-mock-timer');
     if(mt){
@@ -2318,6 +2502,15 @@ window.liveProgressStats=liveProgressStats;window.renderLiveExercises=renderLive
 window.liveSetKg=liveSetKg;window.liveSetReps=liveSetReps;
 window.liveAddSet=liveAddSet;window.liveSkipEx=liveSkipEx;window.liveAddExercise=liveAddExercise;
 window.liveStartRest=liveStartRest;window.liveStartRestCustom=liveStartRestCustom;window.liveFeedback=liveFeedback;
+window.liveClientSetField=liveClientSetField;window.liveClientSearchInput=liveClientSearchInput;
+window.liveAnySessionActive=liveAnySessionActive;window.liveN=liveN;window.liveRef=liveRef;
+window.liveB=liveB;
+window.addEventListener('beforeunload',e=>{
+  if(liveAnySessionActive()){
+    e.preventDefault();
+    e.returnValue='';
+  }
+});
 
 // ════════════════════════════════════════
 // RAPORTY POSTĘPÓW
