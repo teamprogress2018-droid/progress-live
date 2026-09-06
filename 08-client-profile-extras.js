@@ -982,13 +982,14 @@ function cpCollapseDaySessions(sessDay){
 window.cpCollapseDaySessions=cpCollapseDaySessions;
 
 /** Assignment: tylko plan aktywny, jedna zaplanowana sesja na dzień (bez starych kopii PPL+FBW). */
-function cpAssignmentSessions(clientId){
+function cpAssignmentSessions(clientId,opts){
   const all=(window.SE||[]).filter(s=>s&&s.clientId===clientId);
   const active=typeof latestClientPlan==='function'?latestClientPlan(clientId):(typeof clientPlanForCalendar==='function'?clientPlanForCalendar(clientId):null);
   const activeId=active&&active.id;
   const other=all.filter(s=>s.source!=='planned');
   let planned=all.filter(s=>s.source==='planned');
   if(activeId)planned=planned.filter(s=>s.planId===activeId);
+  const keepPlanned=opts&&opts.keepPlanned;
   const loggedDates=new Set(other.filter(s=>typeof isLoggedWorkout==='function'?isLoggedWorkout(s):(s.source==='client'||s.source==='live'||s.source==='sala')).map(s=>String(s.date||'').slice(0,10)));
   const byDate={};
   planned.forEach(s=>{
@@ -999,7 +1000,9 @@ function cpAssignmentSessions(clientId){
     const a=cur.dayIdx,b=s.dayIdx;
     if(b!=null&&(a==null||Number(b)<Number(a)))byDate[d]=s;
   });
-  return other.concat(Object.keys(byDate).map(k=>byDate[k]).filter(s=>!loggedDates.has(String(s.date||'').slice(0,10))));
+  const plannedRows=Object.keys(byDate).map(k=>byDate[k]);
+  const plannedShown=keepPlanned?plannedRows:plannedRows.filter(s=>!loggedDates.has(String(s.date||'').slice(0,10)));
+  return other.concat(plannedShown);
 }
 window.cpAssignmentSessions=cpAssignmentSessions;
 

@@ -168,6 +168,25 @@ eq('sala returns existing', again && again.id, salaSess.id);
 eq('tip sala', /sala/.test(sessionHappenedTip(salaSess)), true);
 eq('missing planned returns null', logSessionFromPlanned('nope', salaList), null);
 
+ctx.cpAssignmentSessions = function (clientId, opts) {
+  const all = (windowObj.SE || []).filter(s => s && s.clientId === clientId);
+  if (opts && opts.keepPlanned) return all;
+  const logged = new Set(all.filter(s => s.source === 'live' || s.source === 'sala' || s.source === 'client').map(s => String(s.date).slice(0, 10)));
+  return all.filter(s => s.source !== 'planned' || !logged.has(String(s.date).slice(0, 10)));
+};
+const dA = ymdAdd(today, -2);
+const dB = ymdAdd(today, -5);
+windowObj.SE = [
+  { id: 'pA', clientId: 'c-adh', date: dA, source: 'planned' },
+  { id: 'pB', clientId: 'c-adh', date: dB, source: 'planned' },
+  { id: 'lA', clientId: 'c-adh', date: dA, source: 'sala' }
+];
+windowObj.TASKS = [];
+const adhKeep = clientAdherenceStats('c-adh', 30);
+eq('assigned keeps fulfilled plan day', adhKeep.assigned, 2);
+eq('logged sala day', adhKeep.logged, 1);
+eq('pct half after one sala', adhKeep.pct, 50);
+
 if (failed) {
   console.error('\n' + failed + ' test(s) failed');
   process.exit(1);

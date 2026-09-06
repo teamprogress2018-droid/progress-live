@@ -3122,7 +3122,7 @@ function clientAdherenceStats(clientId,days){
   let planned=sessions.filter(s=>s.source==='planned'&&ymdInPastWindow(s.date,n));
   if(typeof cpAssignmentSessions==='function'){
     try{
-      planned=cpAssignmentSessions(clientId).filter(s=>s&&s.source==='planned'&&ymdInPastWindow(s.date,n));
+      planned=cpAssignmentSessions(clientId,{keepPlanned:true}).filter(s=>s&&s.source==='planned'&&ymdInPastWindow(s.date,n));
     }catch(e){}
   }
   const assignedDates=new Set();
