@@ -1457,7 +1457,7 @@ function renderCPMetrics(c){
         ${activeGroup.metrics.map(m=>{
           const cv=last.values[m.id];const pv=prev?prev.values[m.id]:null;
           const diff=cv!=null&&pv!=null?(cv-pv).toFixed(1):null;
-          const goodDown=['mg1','mg2'].includes(activeGroup.id);
+          const goodDown=typeof metricDeltaIsGoodDown==='function'?metricDeltaIsGoodDown(activeGroup.id,m):['mg1','mg2'].includes(activeGroup.id);
           const color=diff==null?'var(--muted)':parseFloat(diff)<0?(goodDown?'var(--teal)':'var(--red)'):parseFloat(diff)>0?(goodDown?'var(--red)':'var(--teal)'):'var(--muted)';
           return `<div style="background:var(--s3);border-radius:8px;padding:8px;text-align:center;">
             <div style="font-size:10px;color:var(--muted);margin-bottom:3px;">${escHtml(m.name)}</div>
@@ -1900,11 +1900,14 @@ function renderCPProgress(c){
           {label:'%BF',color:'var(--orange)',points:bfPts},
           {label:'Mięśnie',color:'var(--teal)',points:musclePts},
         ],{h:95})}</div>`:''}
-        ${lastM?`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:12px;">
+        ${lastM?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:6px;margin-top:12px;">
           ${metricTile('Masa',lastM.values.m1,'kg',delta(lastM,prevM,'m1'),true)}
           ${metricTile('%BF',lastM.values.m2,'%',delta(lastM,prevM,'m2'),true)}
           ${metricTile('Mięśnie',lastM.values.m3,'kg',delta(lastM,prevM,'m3'),false)}
           ${metricTile('BMI',lastM.values.m4,'',delta(lastM,prevM,'m4'),true)}
+          ${metricTile('Wiek met.',lastM.values.m5,'lat',delta(lastM,prevM,'m5'),true)}
+          ${metricTile('Nawodn.',lastM.values.m6,'%',delta(lastM,prevM,'m6'),false)}
+          ${metricTile('Fizyczność',lastM.values.m7,'',delta(lastM,prevM,'m7'),false)}
         </div>`
         :`<div style="font-size:12px;color:var(--muted);">Brak pomiarów — dodaj w <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('metrics')">Pomiary</button></div>`}
       </div>

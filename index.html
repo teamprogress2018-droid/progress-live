@@ -4025,7 +4025,7 @@ async function load(){
   try{const s3=await getDocs(collection(db,'kb'));window.KB=[];s3.forEach(d=>{const x=_takeFb(d);if(x)window.KB.push(x);});}catch(e){window.KB=[];}
   try{const s4=await getDocs(collection(db,'metricEntries'));window.METRIC_ENTRIES=[];s4.forEach(d=>{const x=_takeFb(d);if(x)window.METRIC_ENTRIES.push(x);});}catch(e){window.METRIC_ENTRIES=[];}
   try{const sPP=await getDocs(collection(db,'progressPhotos'));window.PROGRESS_PHOTOS=[];sPP.forEach(d=>{const x=_takeFb(d);if(x)window.PROGRESS_PHOTOS.push(x);});}catch(e){window.PROGRESS_PHOTOS=[];}
-  try{const s5=await getDocs(collection(db,'metricGroups'));window.METRIC_GROUPS=[];s5.forEach(d=>{const x=_takeFb(d);if(x)window.METRIC_GROUPS.push(x);});if(typeof migrateEnsureCircMetrics==='function')migrateEnsureCircMetrics();}catch(e){window.METRIC_GROUPS=[];}
+  try{const s5=await getDocs(collection(db,'metricGroups'));window.METRIC_GROUPS=[];s5.forEach(d=>{const x=_takeFb(d);if(x)window.METRIC_GROUPS.push(x);});if(typeof migrateEnsureMetricGroups==='function')migrateEnsureMetricGroups();else if(typeof migrateEnsureCircMetrics==='function')migrateEnsureCircMetrics();}catch(e){window.METRIC_GROUPS=[];}
   try{const s6=await getDocs(collection(db,'messages'));const grouped={};s6.forEach(d=>{const m=_takeFb(d);if(!m)return;const cid=m.clientId;if(!cid)return;if(!grouped[cid])grouped[cid]=[];grouped[cid].push(m);});
     Object.keys(grouped).forEach(cid=>grouped[cid].sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||'')));
     if(window.MSGS){Object.keys(window.MSGS).forEach(k=>delete window.MSGS[k]);Object.assign(window.MSGS,grouped);}
@@ -4197,11 +4197,11 @@ async function load(){
 <script src="01-core.js?v=75"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=31"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=29"></script>
-<script src="04-client-portal.js?v=37"></script>
+<script src="04-client-portal.js?v=38"></script>
 <script src="05-clients-builder-plans-calendar.js?v=41"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=62"></script>
-<script src="07-forms-metrics-calculator.js?v=30"></script>
-<script src="08-client-profile-extras.js?v=45"></script>
+<script src="07-forms-metrics-calculator.js?v=31"></script>
+<script src="08-client-profile-extras.js?v=46"></script>
 <script src="09-posture-kb-invites-private.js?v=35"></script>
 <script src="10-client-app.js?v=28"></script>
 </body>

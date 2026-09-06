@@ -4950,7 +4950,7 @@ function buildReportHTML(c,from,to,sec,template){
                 const vals=ge.slice(0,4).map(e=>e.values[m.id]);
                 const first2=ge[ge.length-1]?.values[m.id];const last2=ge[0]?.values[m.id];
                 const diff=first2!=null&&last2!=null?(last2-first2).toFixed(1):null;
-                const goodDown=['mg1','mg2'].includes(g.id);
+                const goodDown=typeof metricDeltaIsGoodDown==='function'?metricDeltaIsGoodDown(g.id,m):['mg1','mg2'].includes(g.id);
                 const diffColor=diff==null?muted:parseFloat(diff)<0?(goodDown?teal:red):parseFloat(diff)>0?(goodDown?red:teal):muted;
                 return `<tr style="border-bottom:1px solid ${border};">
                   <td style="padding:7px 10px;font-weight:600;">${m.name}${m.unit?' ('+m.unit+')':''}</td>
