@@ -3278,7 +3278,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <div id="as-recorded-exercises-list" style="display:flex;flex-direction:column;gap:8px;"></div>
       </div>
     </div>
-    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-session')">Anuluj</button><button class="btn btn-primary" onclick="saveSess()">Zapisz</button></div>
+    <div class="modal-footer"><button class="btn btn-danger" id="as-del-btn" style="display:none;margin-right:auto;" onclick="delSessionFromModal()">Usuń</button><button class="btn btn-ghost" onclick="closeM('m-session')">Anuluj</button><button class="btn btn-primary" onclick="saveSess()">Zapisz</button></div>
   </div>
 </div>
 
@@ -4291,10 +4291,10 @@ async function load(){
 <script src="02-workouts-onboarding-templates-live.js?v=32"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=29"></script>
 <script src="04-client-portal.js?v=37"></script>
-<script src="05-clients-builder-plans-calendar.js?v=41"></script>
+<script src="05-clients-builder-plans-calendar.js?v=42"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=62"></script>
 <script src="07-forms-metrics-calculator.js?v=30"></script>
-<script src="08-client-profile-extras.js?v=45"></script>
+<script src="08-client-profile-extras.js?v=46"></script>
 <script src="09-posture-kb-invites-private.js?v=35"></script>
 <script src="10-client-app.js?v=28"></script>
 </body>

@@ -48,6 +48,13 @@ ok('cache styles v54', html.includes('styles.css?v=62'));
 ok('cache styles v54', html.includes('styles.css?v=62'));
 ok('cache 08 v37', html.includes('08-client-profile-extras.js?v=45'));
 ok('cache styles v54', html.includes('styles.css?v=62'));
+ok('cache 08 v37', html.includes('08-client-profile-extras.js?v=46'));
+ok('cache styles v54', html.includes('styles.css?v=61'));
+ok('cache 08 v37', html.includes('08-client-profile-extras.js?v=46'));
+ok('cache styles v54', html.includes('styles.css?v=61'));
+ok('cache styles v54', html.includes('styles.css?v=61'));
+ok('cache 08 v37', html.includes('08-client-profile-extras.js?v=46'));
+ok('cache styles v54', html.includes('styles.css?v=61'));
 ok('CI unit', wf.includes('test_cp_edit_visible.js'));
 ok('CI ui', wf.includes('test_cp_edit_visible_ui.js'));
 

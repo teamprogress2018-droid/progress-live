@@ -37,6 +37,14 @@ ok('cache bumps', html.includes('styles.css?v=62') && html.includes('01-core.js?
 ok('cache bumps', html.includes('styles.css?v=62') && html.includes('01-core.js?v=75') && html.includes('05-clients-builder-plans-calendar.js?v=41') && html.includes('09-posture-kb-invites-private.js?v=35'));
 ok('cache bumps', html.includes('styles.css?v=62') && html.includes('01-core.js?v=75') && html.includes('05-clients-builder-plans-calendar.js?v=41') && html.includes('09-posture-kb-invites-private.js?v=35'));
 ok('cache bumps', html.includes('styles.css?v=62') && html.includes('01-core.js?v=75') && html.includes('05-clients-builder-plans-calendar.js?v=41') && html.includes('09-posture-kb-invites-private.js?v=35'));
+ok('cache bumps', html.includes('styles.css?v=61') && html.includes('01-core.js?v=75') && html.includes('05-clients-builder-plans-calendar.js?v=42') && html.includes('09-posture-kb-invites-private.js?v=35'));
+ok('cache bumps', html.includes('styles.css?v=61') && html.includes('01-core.js?v=75') && html.includes('05-clients-builder-plans-calendar.js?v=42') && html.includes('09-posture-kb-invites-private.js?v=35'));
+ok('cache bumps', html.includes('styles.css?v=61') && html.includes('01-core.js?v=75') && html.includes('05-clients-builder-plans-calendar.js?v=42') && html.includes('09-posture-kb-invites-private.js?v=35'));
+ok('cache bumps', html.includes('styles.css?v=61') && html.includes('01-core.js?v=75') && html.includes('05-clients-builder-plans-calendar.js?v=42') && html.includes('09-posture-kb-invites-private.js?v=35'));
+ok('cache bumps', html.includes('styles.css?v=61') && html.includes('01-core.js?v=75') && html.includes('05-clients-builder-plans-calendar.js?v=42') && html.includes('09-posture-kb-invites-private.js?v=35'));
+ok('cache bumps', html.includes('styles.css?v=61') && html.includes('01-core.js?v=75') && html.includes('05-clients-builder-plans-calendar.js?v=42') && html.includes('09-posture-kb-invites-private.js?v=35'));
+ok('cache bumps', html.includes('styles.css?v=61') && html.includes('01-core.js?v=75') && html.includes('05-clients-builder-plans-calendar.js?v=42') && html.includes('09-posture-kb-invites-private.js?v=35'));
+ok('cache bumps', html.includes('styles.css?v=61') && html.includes('01-core.js?v=75') && html.includes('05-clients-builder-plans-calendar.js?v=42') && html.includes('09-posture-kb-invites-private.js?v=35'));
 ok('CI', wf.includes('test_korekta_ux.js'));
 
 const sandbox = { window: {}, console };

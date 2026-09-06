@@ -2227,14 +2227,15 @@ function renderCPTraining(c){
       const typeCol=s.source==='client'||s.source==='sala'?'var(--teal)':s.source==='live'?'var(--orange)':happened?'var(--teal)':'var(--accent)';
       const emoji=typeof sessionRatingEmoji==='function'?sessionRatingEmoji(s.feedback):'';
       const n=g.items&&g.items.length>1?g.items.length:0;
-      const markBtn=s.source==='planned'&&!happened?`<button type="button" class="cp-mark-done" onclick="event.stopPropagation();markCpSessionDone('${s.id}')" style="margin-top:4px;width:100%;border:none;border-radius:4px;padding:3px 4px;font-size:9px;font-weight:700;cursor:pointer;background:var(--accent);color:#fff;">✓ Odbył się</button>`:'';
-      return `<div class="${happened?'cp-sess-done':''}" style="background:${typeCol}15;border:1px solid ${typeCol}40;border-radius:6px;padding:5px 6px;margin-top:4px;cursor:pointer;" onclick="event.stopPropagation();editSession('${s.id}')" title="${escHtml(tip)}">
+      const markBtn=s.source==='planned'&&!happened?`<button type="button" class="cp-mark-done" onclick="event.stopPropagation();markCpSessionDone('${s.id}')" style="margin-top:4px;flex:1;border:none;border-radius:4px;padding:3px 4px;font-size:9px;font-weight:700;cursor:pointer;background:var(--accent);color:#fff;">✓ Odbył się</button>`:'';
+      const delBtn=`<button type="button" class="cp-del-sess" onclick="event.stopPropagation();delCpSession('${s.id}')" title="Usuń z kalendarza" style="margin-top:4px;${markBtn?'width:28px;':'width:100%;'}border:1px solid var(--border2);border-radius:4px;padding:3px 0;font-size:12px;font-weight:700;cursor:pointer;background:transparent;color:var(--muted);line-height:1;">×</button>`;
+      return `<div class="${happened?'cp-sess-done':''}" style="background:${typeCol}15;border:1px solid ${typeCol}40;border-radius:6px;padding:5px 6px;margin-top:4px;cursor:pointer;position:relative;" onclick="event.stopPropagation();editSession('${s.id}')" title="${escHtml(tip)}">
         <div style="font-size:10px;font-weight:700;color:${typeCol};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${happened?'✓ ':''}${safeEscSnippet(String(title).toUpperCase(),18)}${n?` ×${n}`:''}</div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:2px;">
           <span style="background:${typeCol}25;color:${typeCol};border-radius:3px;padding:1px 4px;font-size:9px;font-family:'DM Mono',monospace;">${happened?'✓ ':''}${safeEscSnippet(String(typeLabel).toUpperCase(),8)}</span>
           <span style="font-size:9px;color:var(--muted);">${emoji||''}${exCount?` ⚡ ${exCount}`:''}</span>
         </div>
-        ${markBtn}
+        <div style="display:flex;gap:4px;align-items:stretch;">${markBtn}${delBtn}</div>
       </div>`;
     }).join('')+(collapsed.extra?`<div style="font-size:9px;color:var(--muted);margin-top:4px;text-align:center;">+${collapsed.extra} więcej</div>`:'');
 
@@ -2281,6 +2282,7 @@ function renderCPTraining(c){
       <div style="font-size:12px;color:var(--muted);padding:0 4px;">📅 ${rangeLabel}${activePlanName?` · ${escHtml(activePlanName)}`:''}</div>
       <!-- Przycisk + Sesja -->
       <button class="btn btn-primary btn-sm" style="margin-left:auto;" onclick="openAddSessionFromCP('${c.id}','${todayStr}')">+ Sesja</button>
+      ${plannedN?`<button type="button" class="btn btn-ghost btn-sm" id="cp-clear-planned" onclick="clearClientPlannedSessions('${c.id}')" title="Usuń czerwone karty planu z kalendarza">Usuń terminy planu</button>`:''}
       <!-- Widok: 1W / 2W / 4W -->
       <div style="display:flex;gap:2px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:2px;">
         <button onclick="cpMpView('${c.id}','1w')" style="padding:4px 10px;border-radius:6px;border:none;font-size:11px;font-weight:600;cursor:pointer;background:${c._mpView==='1w'?'var(--s1)':'none'};color:${c._mpView==='1w'?'var(--text)':'var(--muted)'};">1 Tydzień</button>
@@ -2332,6 +2334,27 @@ function markCpSessionDone(plannedId){
   if(typeof notify==='function')notify('Zapisano trening na sali · '+y);
 }
 window.markCpSessionDone=markCpSessionDone;
+
+function delCpSession(id){
+  if(typeof delSession==='function')return delSession(id);
+  if(typeof notify==='function')notify('Nie można usunąć sesji');
+}
+window.delCpSession=delCpSession;
+
+function clearClientPlannedSessions(clientId){
+  const cid=String(clientId||'');
+  const c=CL.find(x=>x.id===cid);
+  const n=(window.SE||[]).filter(s=>s&&s.clientId===cid&&s.source==='planned').length;
+  if(!n){if(typeof notify==='function')notify('Brak terminów planu w kalendarzu');return 0;}
+  if(!confirm('Usunąć '+n+' terminów planu z kalendarza'+(c?' ('+c.name+')':'')+'?\n\nZapisane treningi (Live / sala / apka) zostaną. Sam plan w bibliotece też zostaje.'))return 0;
+  const dropped=typeof dropPlannedSessionsFrom==='function'?dropPlannedSessionsFrom(cid,'1970-01-01'):0;
+  try{if(typeof renderCal==='function')renderCal();}catch(e){}
+  try{if(typeof renderDash==='function')renderDash();}catch(e){}
+  if(c&&typeof renderCPTraining==='function')renderCPTraining(c);
+  if(typeof notify==='function')notify('Usunięto '+dropped+' terminów planu z kalendarza');
+  return dropped;
+}
+window.clearClientPlannedSessions=clearClientPlannedSessions;
 
 function openAddSessionFromCP(clientId,date){
   openM('m-session');
