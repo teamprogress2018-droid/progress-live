@@ -20,7 +20,7 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 05 v42', html.includes('05-clients-builder-plans-calendar.js?v=42'));
-ok('cache 08 v46', html.includes('08-client-profile-extras.js?v=46'));
+ok('cache 08 v46', html.includes('08-client-profile-extras.js?v=47'));
 ok('card delete btn', /class="cp-del-sess"/.test(cp) && /delCpSession\(/.test(cp));
 ok('bulk clear', /function clearClientPlannedSessions/.test(cp) && /Usuń terminy planu/.test(cp));
 ok('bulk in render', /clearClientPlannedSessions\(/.test(cp) && /Usuń terminy planu/.test(cp));
