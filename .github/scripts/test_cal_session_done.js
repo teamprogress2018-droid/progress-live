@@ -20,20 +20,21 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01 v71', html.includes('01-core.js?v=73'));
+ok('cache 01 v71', html.includes('01-core.js?v=74'));
 ok('cache 05 v37', html.includes('05-clients-builder-plans-calendar.js?v=41'));
-ok('cache 08 v38', html.includes('08-client-profile-extras.js?v=43'));
+ok('cache 08 v38', html.includes('08-client-profile-extras.js?v=44'));
 ok('cache styles v56', html.includes('styles.css?v=61'));
-ok('cache 01 v71', html.includes('01-core.js?v=73'));
+ok('cache 01 v71', html.includes('01-core.js?v=74'));
 ok('cache 05 v37', html.includes('05-clients-builder-plans-calendar.js?v=41'));
-ok('cache 08 v38', html.includes('08-client-profile-extras.js?v=43'));
+ok('cache 08 v38', html.includes('08-client-profile-extras.js?v=44'));
 ok('cache styles v56', html.includes('styles.css?v=61'));
 ok('cache styles v56', html.includes('styles.css?v=61'));
-ok('cache 01 v71', html.includes('01-core.js?v=73'));
+ok('cache 01 v71', html.includes('01-core.js?v=74'));
 ok('cache 05 v37', html.includes('05-clients-builder-plans-calendar.js?v=41'));
-ok('cache 08 v38', html.includes('08-client-profile-extras.js?v=43'));
+ok('cache 08 v38', html.includes('08-client-profile-extras.js?v=44'));
 ok('cache styles v56', html.includes('styles.css?v=61'));
 ok('ci unit', wf.includes('test_cal_session_done.js'));
+ok('ci ui log done', wf.includes('test_cal_log_done_ui.js'));
 ok('helpers in core', /function sessionHappened/.test(core) && /function sessionHappenedTip/.test(core) && /function sessionIsRecorded/.test(core));
 ok('cal helper', /function calSessionDoneBits/.test(cal));
 ok('week uses done class', /cal-session-block\$\{bits\.cls\}/.test(cal));
@@ -50,6 +51,11 @@ ok('css mini done', /\.cal-mini-day\.has-done/.test(css));
 ok('profile hover title', /title="\$\{escHtml\(tip\)\}"/.test(cp));
 ok('profile checkmark', /happened\?'✓ ':''/.test(cp) || /happened\?'✓ '/.test(cp));
 ok('profile done class', /cp-sess-done/.test(cp) && /\.cp-sess-done/.test(css));
+ok('log from planned in core', /function logSessionFromPlanned/.test(core) && /source:'sala'/.test(core));
+ok('mark done in profile', /function markCpSessionDone/.test(cp) && /cp-mark-done/.test(cp) && /Odbył się/.test(cp));
+ok('calendar local ymd', /cellYmd/.test(cp) && /todayYmd/.test(cp));
+ok('no-logged banner', /cp-no-logged-banner/.test(cp) && /Brak zapisu treningu/.test(cp));
+ok('history skips planned', /sessionIsRecorded/.test(cp) && /historyList/.test(cp));
 
 if (failed) {
   console.error('\n' + failed + ' failed');

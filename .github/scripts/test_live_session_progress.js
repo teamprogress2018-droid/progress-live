@@ -19,7 +19,7 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 02 v31', html.includes('02-workouts-onboarding-templates-live.js?v=31'));
-ok('cache 01 v73', html.includes('01-core.js?v=73'));
+ok('cache 01 v73', html.includes('01-core.js?v=74'));
 ok('dock Postęp ids', html.includes('id="live-ex-done"') && html.includes('id="live-sets-done"') && html.includes('id="live-volume"'));
 ok('dock hint', html.includes('id="live-progress-hint"'));
 ok('end warns empty sets', /Nie odhaczono żadnej serii/.test(live));

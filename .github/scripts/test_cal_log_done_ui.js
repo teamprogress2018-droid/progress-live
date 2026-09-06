@@ -1,0 +1,121 @@
+// UI: profil klienta → Treningi — plan ≠ zapis; ✓ Odbył się tworzy sesję sala.
+const fs = require('fs');
+const path = require('path');
+const { chromium } = require('playwright');
+
+const root = path.join(__dirname, '..', '..');
+const shotDir = process.env.CAL_LOG_SHOT_DIR || (fs.existsSync('/opt/cursor/artifacts') ? '/opt/cursor/artifacts' : path.join(require('os').tmpdir(), 'pl-cal-log'));
+fs.mkdirSync(shotDir, { recursive: true });
+
+let failed = 0;
+function ok(name, cond, extra) {
+  if (!cond) {
+    console.error('FAIL ' + name + (extra ? ' — ' + extra : ''));
+    failed++;
+  } else console.log('OK   ' + name);
+}
+
+(async () => {
+  const port = process.env.LAYOUT_PORT || '8080';
+  const browser = await chromium.launch({ headless: process.env.LAYOUT_HEADED !== '1' });
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  page.setDefaultTimeout(20000);
+  page.on('dialog', d => d.accept());
+  await page.goto('http://localhost:' + port + '/index.html', { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(700);
+
+  await page.evaluate(() => {
+    window.persistById = async (_c, o) => o;
+    window.notify = () => {};
+    const auth = document.getElementById('auth-screen');
+    const app = document.getElementById('app-root');
+    if (auth) auth.style.display = 'none';
+    if (app) app.style.display = '';
+    const loading = document.getElementById('app-loading');
+    if (loading) loading.style.display = 'none';
+    const today = typeof todayYmd === 'function' ? todayYmd() : '';
+    const d = new Date();
+    const dow = d.getDay();
+    const mondayOff = dow === 0 ? -6 : 1 - dow;
+    const mon = typeof ymdAdd === 'function' ? ymdAdd(today, mondayOff) : today;
+    const wed = typeof ymdAdd === 'function' ? ymdAdd(mon, 2) : today;
+    window.CL = [{
+      id: 'c-justyna',
+      name: 'Justyna Chylińska',
+      goal: 'redukcja',
+      level: 'poczatkujacy',
+      age: 35,
+      status: 'active'
+    }];
+    window.PL = [{
+      id: 'pl-justyna',
+      clientId: 'c-justyna',
+      name: 'Obwód A/B',
+      days: [{ exercises: [{ name: 'Przysiad goblet' }, { name: 'Wyciskanie' }] }]
+    }];
+    window.SE = [
+      { id: 'p-mon', clientId: 'c-justyna', date: mon, source: 'planned', type: 'PON — OBWÓD A PLAN', planId: 'pl-justyna', dayIdx: 0 },
+      { id: 'p-wed', clientId: 'c-justyna', date: wed, source: 'planned', type: 'ŚR — OBWÓD B PLAN', planId: 'pl-justyna', dayIdx: 0 }
+    ];
+    window.TASKS = [];
+    window.METRIC_ENTRIES = [];
+    if (typeof openClientProfile === 'function') openClientProfile('c-justyna');
+  });
+
+  await page.waitForSelector('#cp-drawer.open');
+  await page.click('#cpt-training');
+  await page.waitForSelector('.cp-no-logged-banner');
+  const before = await page.evaluate(() => {
+    const body = (document.getElementById('cp-body') || {}).innerText || '';
+    const btns = [...document.querySelectorAll('.cp-mark-done')].map(b => (b.textContent || '').trim());
+    const logged = typeof completedWorkouts === 'function' ? completedWorkouts('c-justyna').length : 0;
+    return { body, btns, logged, banner: !!document.querySelector('.cp-no-logged-banner') };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'cp_training_no_log.png') });
+  ok('banner when only plan', before.banner && /Brak zapisu treningu/.test(before.body));
+  ok('zrobione 0', before.logged === 0 && /\b0\b/.test(before.body), 'logged=' + before.logged);
+  ok('two mark-done buttons', before.btns.length === 2, JSON.stringify(before.btns));
+  ok('button label', before.btns.every(t => /Odbył się/.test(t)));
+
+  await page.click('.cp-mark-done');
+  await page.waitForTimeout(400);
+  const after = await page.evaluate(() => {
+    const body = (document.getElementById('cp-body') || {}).innerText || '';
+    const sala = (window.SE || []).filter(s => s && s.source === 'sala');
+    const logged = typeof completedWorkouts === 'function' ? completedWorkouts('c-justyna') : [];
+    const btns = document.querySelectorAll('.cp-mark-done').length;
+    return {
+      body,
+      salaN: sala.length,
+      loggedN: logged.length,
+      salaDate: sala[0] && sala[0].date,
+      ex: ((sala[0] && sala[0].exercises) || []).map(e => e.name),
+      btns,
+      banner: !!document.querySelector('.cp-no-logged-banner'),
+      doneClass: !!document.querySelector('.cp-sess-done')
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'cp_training_sala_logged.png') });
+  ok('sala session saved', after.salaN === 1 && after.loggedN === 1, JSON.stringify(after));
+  ok('zrobione 1 in kpi', after.loggedN === 1);
+  ok('copied exercises', after.ex.includes('Przysiad goblet') && after.ex.includes('Wyciskanie'), JSON.stringify(after.ex));
+  ok('one card still pending', after.btns === 1);
+  ok('banner gone after one log', !after.banner);
+  ok('done class on fulfilled card', after.doneClass);
+
+  await page.click('button[onclick*="history"]');
+  await page.waitForTimeout(200);
+  const hist = await page.evaluate(() => (document.getElementById('cp-mp-content') || {}).innerText || '');
+  await page.screenshot({ path: path.join(shotDir, 'cp_training_history.png') });
+  ok('history shows sala not planned leftover', /Sala/i.test(hist) && !/OBWÓD A PLAN/.test(hist), hist.slice(0, 400));
+
+  await browser.close();
+  if (failed) {
+    console.error(failed + ' failed');
+    process.exit(1);
+  }
+  console.log('\nAll cal-log-done UI checks passed');
+})().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
