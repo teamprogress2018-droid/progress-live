@@ -88,6 +88,8 @@ jobs:
         run: node .github/scripts/test_live_session_progress.js
       - name: 1g2. Testy oznaczenia odbytego treningu w kalendarzu
         run: node .github/scripts/test_cal_session_done.js
+      - name: 1g2b. Testy usuwania kart z kalendarza klienta
+        run: node .github/scripts/test_cal_del_card.js
 
       - name: 1h. Testy regresji historii treningów
         run: node .github/scripts/test_workout_rate_history_fixes.js
@@ -353,6 +355,8 @@ jobs:
         run: node .github/scripts/test_cp_edit_visible_ui.js
       - name: 6f3. Testy UI ✓ Odbył się (zapis sali z planu)
         run: node .github/scripts/test_cal_log_done_ui.js
+      - name: 6f3b. Testy UI usuwania kart z kalendarza
+        run: node .github/scripts/test_cal_del_card_ui.js
       - name: 6g. Testy UI obwodów centymetrem w profilu klienta
         run: node .github/scripts/test_circ_metrics_ui.js
       - name: 6g2. Testy UI składu ciała (wiek metaboliczny / nawodnienie)

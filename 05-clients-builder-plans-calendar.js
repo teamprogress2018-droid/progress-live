@@ -2423,13 +2423,26 @@ function editSession(id){
   const s=SE.find(x=>x.id===id);if(!s)return;
   const c=CL.find(x=>x.id===s.clientId);
   openM('m-session'); // resetuje formularz (w tym ukrywa sekcję zarejestrowanych ćwiczeń)
+  window._editingSessionId=id;
   asSetClientField(s.clientId||'',c?c.name:'');
   document.getElementById('as-date').value=s.date;
   document.getElementById('as-time').value=s.time||'';
   document.getElementById('as-type').value=s.type||'';
   document.getElementById('as-notes').value=s.notes||'';
+  const del=document.getElementById('as-del-btn');
+  if(del)del.style.display='';
+  const titleEl=document.querySelector('#m-session .modal-title');
+  if(titleEl)titleEl.textContent=s.source==='planned'?'TERMIN PLANU':'SESJA';
   renderRecordedExercises(s);
 }
+
+function delSessionFromModal(){
+  const id=window._editingSessionId;
+  if(!id)return;
+  if(typeof closeM==='function')closeM('m-session');
+  delSession(id);
+}
+window.delSessionFromModal=delSessionFromModal;
 
 // Pokazuje zarejestrowane ćwiczenia (ciężary/powtórzenia) i ocenę z sesji klienta lub Treningu Live.
 function renderRecordedExercises(s){
@@ -2516,12 +2529,39 @@ function asClientSearchInput(){
 
 
 async function delSession(id){
-  if(!confirm('Usunąć sesję?'))return;
-  window.SE=SE.filter(s=>s.id!==id);
-  renderCal();renderDash();
-  notify('Sesja usunięta');
+  const s=(window.SE||[]).find(x=>x&&x.id===id);
+  const planned=s&&s.source==='planned';
+  const msg=planned
+    ?'Usunąć ten termin z kalendarza?\nPlan klienta zostaje — znika tylko ten dzień.'
+    :'Usunąć sesję z kalendarza?';
+  if(!confirm(msg))return;
+  const cid=s&&s.clientId;
+  window.SE=SE.filter(x=>x.id!==id);
+  try{renderCal();}catch(e){}
+  try{renderDash();}catch(e){}
+  if(cid&&typeof renderCPTraining==='function'){
+    const c=CL.find(x=>x.id===cid);
+    if(c&&typeof cpTab!=='undefined'&&cpTab==='training')try{renderCPTraining(c);}catch(e){}
+  }
+  notify(planned?'Termin usunięty z kalendarza':'Sesja usunięta');
   if(window._db){try{await window._del(window._doc(window._db,'sessions',id));}catch(e){console.warn('Firebase delSession:',e);}}
 }
+window.delSession=delSession;
+
+(function wrapOpenSessionModal(){
+  const orig=window.openM;
+  if(typeof orig!=='function')return;
+  window.openM=function(id){
+    orig.apply(this,arguments);
+    if(id==='m-session'){
+      window._editingSessionId=null;
+      const del=document.getElementById('as-del-btn');
+      if(del)del.style.display='none';
+      const t=document.querySelector('#m-session .modal-title');
+      if(t)t.textContent='NOWA SESJA';
+    }
+  };
+})();
 async function saveSess(){
   if(window._saveGuard_saveSess)return;window._saveGuard_saveSess=true;setTimeout(()=>window._saveGuard_saveSess=false,1500);
 

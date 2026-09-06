@@ -53,6 +53,14 @@ ok('cache bumps',html.includes('01-core.js?v=76')&&html.includes('05-clients-bui
 ok('cache bumps',html.includes('01-core.js?v=76')&&html.includes('05-clients-builder-plans-calendar.js?v=41')&&html.includes('styles.css?v=61'));
 ok('cache bumps',html.includes('01-core.js?v=76')&&html.includes('05-clients-builder-plans-calendar.js?v=41')&&html.includes('styles.css?v=61'));
 ok('cache bumps',html.includes('01-core.js?v=76')&&html.includes('05-clients-builder-plans-calendar.js?v=41')&&html.includes('styles.css?v=61'));
+ok('cache bumps',html.includes('01-core.js?v=75')&&html.includes('05-clients-builder-plans-calendar.js?v=42')&&html.includes('styles.css?v=61'));
+ok('cache bumps',html.includes('01-core.js?v=75')&&html.includes('05-clients-builder-plans-calendar.js?v=42')&&html.includes('styles.css?v=61'));
+ok('cache bumps',html.includes('01-core.js?v=75')&&html.includes('05-clients-builder-plans-calendar.js?v=42')&&html.includes('styles.css?v=61'));
+ok('cache bumps',html.includes('01-core.js?v=75')&&html.includes('05-clients-builder-plans-calendar.js?v=42')&&html.includes('styles.css?v=61'));
+ok('cache bumps',html.includes('01-core.js?v=75')&&html.includes('05-clients-builder-plans-calendar.js?v=42')&&html.includes('styles.css?v=61'));
+ok('cache bumps',html.includes('01-core.js?v=75')&&html.includes('05-clients-builder-plans-calendar.js?v=42')&&html.includes('styles.css?v=61'));
+ok('cache bumps',html.includes('01-core.js?v=75')&&html.includes('05-clients-builder-plans-calendar.js?v=42')&&html.includes('styles.css?v=61'));
+ok('cache bumps',html.includes('01-core.js?v=75')&&html.includes('05-clients-builder-plans-calendar.js?v=42')&&html.includes('styles.css?v=61'));
 
 if(failed){console.error(failed+' failed');process.exit(1);}
 console.log('\nAll edu-tooltips tests passed');

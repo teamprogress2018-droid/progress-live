@@ -35,6 +35,14 @@ ok('cache bumps', html.includes('01-core.js?v=76') && html.includes('03-ai-plang
 ok('cache bumps', html.includes('01-core.js?v=76') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=29') && html.includes('05-clients-builder-plans-calendar.js?v=41'));
 ok('cache bumps', html.includes('01-core.js?v=76') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=29') && html.includes('05-clients-builder-plans-calendar.js?v=41'));
 ok('cache bumps', html.includes('01-core.js?v=76') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=29') && html.includes('05-clients-builder-plans-calendar.js?v=41'));
+ok('cache bumps', html.includes('01-core.js?v=75') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=29') && html.includes('05-clients-builder-plans-calendar.js?v=42'));
+ok('cache bumps', html.includes('01-core.js?v=75') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=29') && html.includes('05-clients-builder-plans-calendar.js?v=42'));
+ok('cache bumps', html.includes('01-core.js?v=75') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=29') && html.includes('05-clients-builder-plans-calendar.js?v=42'));
+ok('cache bumps', html.includes('01-core.js?v=75') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=29') && html.includes('05-clients-builder-plans-calendar.js?v=42'));
+ok('cache bumps', html.includes('01-core.js?v=75') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=29') && html.includes('05-clients-builder-plans-calendar.js?v=42'));
+ok('cache bumps', html.includes('01-core.js?v=75') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=29') && html.includes('05-clients-builder-plans-calendar.js?v=42'));
+ok('cache bumps', html.includes('01-core.js?v=75') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=29') && html.includes('05-clients-builder-plans-calendar.js?v=42'));
+ok('cache bumps', html.includes('01-core.js?v=75') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=29') && html.includes('05-clients-builder-plans-calendar.js?v=42'));
 ok('CI', wf.includes('test_circuit_method.js'));
 
 if (failed) {

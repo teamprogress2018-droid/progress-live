@@ -25,6 +25,7 @@ ok('overview just brak planu',overview.includes('Brak planu')&&!overview.include
 ok('overview links to plan tab',/Brak planu[\s\S]{0,200}setCPTab\('plan'\)/.test(overview)||overview.includes("onclick=\"setCPTab('plan')\""));
 
 ok('cache bump',html.includes('08-client-profile-extras.js?v=47'));
+ok('cache bump',html.includes('08-client-profile-extras.js?v=46'));
 
 if(failed){console.error(failed+' failed');process.exit(1);}
 console.log('\nAll cp-plan-dedupe tests passed');
