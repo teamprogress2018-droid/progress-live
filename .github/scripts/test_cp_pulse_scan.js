@@ -19,6 +19,12 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
+ok('cache 08 v41', html.includes('08-client-profile-extras.js?v=47'));
+ok('cache styles v58', html.includes('styles.css?v=61'));
+ok('cache 08 v41', html.includes('08-client-profile-extras.js?v=47'));
+ok('cache styles v58', html.includes('styles.css?v=61'));
+ok('cache styles v58', html.includes('styles.css?v=61'));
+ok('cache 08 v41', html.includes('08-client-profile-extras.js?v=47'));
 ok('cache 08 v41', html.includes('08-client-profile-extras.js?v=45'));
 ok('cache styles v58', html.includes('styles.css?v=62'));
 ok('cache 08 v41', html.includes('08-client-profile-extras.js?v=45'));

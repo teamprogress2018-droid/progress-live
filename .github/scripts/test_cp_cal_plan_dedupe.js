@@ -19,6 +19,10 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
+ok('cache 05 v38', html.includes('05-clients-builder-plans-calendar.js?v=41'));
+ok('cache 08 v42', html.includes('08-client-profile-extras.js?v=47'));
+ok('cache 08 v42', html.includes('08-client-profile-extras.js?v=47'));
+ok('cache 08 v42', html.includes('08-client-profile-extras.js?v=47'));
 ok('cache 05 v38', html.includes('05-clients-builder-plans-calendar.js?v=42'));
 ok('cache 08 v42', html.includes('08-client-profile-extras.js?v=46'));
 ok('cache 08 v42', html.includes('08-client-profile-extras.js?v=46'));
@@ -71,6 +75,8 @@ const assign = ctx.cpAssignmentSessions('c1');
 const planned = assign.filter((s) => s.source === 'planned');
 ok('hides planned when live same day', planned.length === 0, 'n=' + planned.length);
 ok('keeps live session', assign.some((s) => s.source === 'live'));
+const keep = ctx.cpAssignmentSessions('c1', { keepPlanned: true });
+ok('keepPlanned still has plan day', keep.filter((s) => s.source === 'planned').length === 1, 'n=' + keep.filter((s) => s.source === 'planned').length);
 
 const dropSrc = src05.slice(
   src05.indexOf('function dropPlannedSessionsFrom'),

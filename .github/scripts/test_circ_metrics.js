@@ -53,6 +53,11 @@ ok('08 empty circ copy', src08.includes('Brak obwodów centymetrem'));
 ok('08 uses circBarItems', src08.includes('circBarItems'));
 ok('04 last circ dynamic', src04.includes('circMetricDefs'));
 ok('index migrate after load', html.includes('migrateEnsureCircMetrics'));
+ok('cache 07', html.includes('07-forms-metrics-calculator.js?v=31'));
+ok('cache 04/05/08', html.includes('04-client-portal.js?v=38') && html.includes('05-clients-builder-plans-calendar.js?v=41') && html.includes('08-client-profile-extras.js?v=47'));
+ok('cache 04/05/08', html.includes('04-client-portal.js?v=38') && html.includes('05-clients-builder-plans-calendar.js?v=41') && html.includes('08-client-profile-extras.js?v=47'));
+ok('cache 04/05/08', html.includes('04-client-portal.js?v=38') && html.includes('05-clients-builder-plans-calendar.js?v=41') && html.includes('08-client-profile-extras.js?v=47'));
+ok('cache 04/05/08', html.includes('04-client-portal.js?v=38') && html.includes('05-clients-builder-plans-calendar.js?v=41') && html.includes('08-client-profile-extras.js?v=47'));
 ok('cache 07', html.includes('07-forms-metrics-calculator.js?v=30'));
 ok('cache 04/05/08', html.includes('04-client-portal.js?v=37') && html.includes('05-clients-builder-plans-calendar.js?v=42') && html.includes('08-client-profile-extras.js?v=46'));
 ok('cache 04/05/08', html.includes('04-client-portal.js?v=37') && html.includes('05-clients-builder-plans-calendar.js?v=42') && html.includes('08-client-profile-extras.js?v=46'));
@@ -73,7 +78,7 @@ function sliceFn(src, name) {
 }
 
 const demoBlock = src07.slice(src07.indexOf('const DEMO_METRIC_GROUPS='), src07.indexOf('window.DEMO_METRIC_GROUPS=DEMO_METRIC_GROUPS;') + 'window.DEMO_METRIC_GROUPS=DEMO_METRIC_GROUPS;'.length);
-const helperNames = ['mergeMetricDefs', 'allMetricGroups', 'metricGroupById', 'circMetricDefs', 'circMetricLabels', 'circBarItems', 'migrateEnsureCircMetrics', 'saveClientBaselineFromFields'];
+const helperNames = ['mergeMetricDefs', 'allMetricGroups', 'metricGroupById', 'circMetricDefs', 'circMetricLabels', 'circBarItems', 'migrateEnsureDemoGroupMetrics', 'migrateEnsureCircMetrics', 'saveClientBaselineFromFields'];
 const persisted = [];
 const documentStub = {
   getElementById: () => null,

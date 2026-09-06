@@ -144,6 +144,10 @@ vm.runInNewContext(
 );
 ok('dashListSection preview 2','manual');
 
+ok('cache bumps',html.includes('04-client-portal.js?v=38')&&html.includes('styles.css?v=61'));
+ok('cache bumps',html.includes('04-client-portal.js?v=38')&&html.includes('styles.css?v=61'));
+ok('cache bumps',html.includes('04-client-portal.js?v=38')&&html.includes('styles.css?v=61'));
+ok('cache bumps',html.includes('04-client-portal.js?v=38')&&html.includes('styles.css?v=61'));
 ok('cache bumps',html.includes('04-client-portal.js?v=37')&&html.includes('styles.css?v=62'));
 ok('cache bumps',html.includes('04-client-portal.js?v=37')&&html.includes('styles.css?v=62'));
 ok('cache bumps',html.includes('04-client-portal.js?v=37')&&html.includes('styles.css?v=62'));

@@ -46,7 +46,7 @@ ok('empty without entries', clientMetricsContextForAI('c1') === '');
 
 windowObj.METRIC_ENTRIES = [
   { id: 'a', clientId: 'c1', groupId: 'mg1', date: '2026-07-01', values: { m1: 88, m2: 22, m3: 58, m4: 27.2 } },
-  { id: 'b', clientId: 'c1', groupId: 'mg1', date: '2026-08-24', values: { m1: 83, m2: 18.8, m3: 61, m4: 25.6 } },
+  { id: 'b', clientId: 'c1', groupId: 'mg1', date: '2026-08-24', values: { m1: 83, m2: 18.8, m3: 61, m4: 25.6, m5: 41, m6: 52, m7: 5 } },
   { id: 'c', clientId: 'c1', groupId: 'mg2', date: '2026-08-24', values: { m1: 98, m2: 84, m3: 97 } },
   { id: 'd', clientId: 'c1', groupId: 'mg3', date: '2026-08-20', values: { m1: 120, m3: 95 } },
   { id: 'e', clientId: 'c2', groupId: 'mg1', date: '2026-08-24', values: { m1: 70 } }
@@ -56,6 +56,7 @@ const txt = clientMetricsContextForAI('c1');
 ok('includes section header', txt.includes('POMIARY KLIENTA'));
 ok('latest mass 83', txt.includes('masa 83'));
 ok('bf trend', txt.includes('BF% 18.8') && txt.includes('-3.2'));
+ok('inbody extras', txt.includes('wiek metaboliczny 41') && txt.includes('nawodnienie 52') && txt.includes('ocena fizyczności 5'));
 ok('history has older', txt.includes('88 kg'));
 ok('obwody', txt.includes('klatka 98') && txt.includes('talia 84'));
 ok('1RM', txt.includes('przysiad 1RM 120') && txt.includes('wyciskanie 1RM 95'));

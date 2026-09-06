@@ -253,6 +253,8 @@ jobs:
         run: node .github/scripts/test_no_fake_metrics.js
       - name: 1n24b. Testy obwodów centymetrem
         run: node .github/scripts/test_circ_metrics.js
+      - name: 1n24c. Testy składu ciała (wiek metaboliczny / nawodnienie)
+        run: node .github/scripts/test_mass_inbody_metrics.js
       - name: 1n23. Testy usunięcia DEMO_NOTIFS
         run: node .github/scripts/test_demo_notifs_cleanup.js
       - name: 1n21. Testy sekcji nawigacji apki klienta (forum / kalendarz)
@@ -361,6 +363,8 @@ jobs:
         run: node .github/scripts/test_cal_del_card_ui.js
       - name: 6g. Testy UI obwodów centymetrem w profilu klienta
         run: node .github/scripts/test_circ_metrics_ui.js
+      - name: 6g2. Testy UI składu ciała (wiek metaboliczny / nawodnienie)
+        run: node .github/scripts/test_mass_inbody_ui.js
 
       - name: 7. Sprawdź stronę w prawdziwej przeglądarce
         run: node .github/scripts/check_browser.js

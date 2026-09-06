@@ -638,10 +638,13 @@ window.METRIC_GROUPS=[];window.METRIC_ENTRIES=[];
 
 const DEMO_METRIC_GROUPS=[
   {id:'mg1',name:'Masa i BMI',icon:'⚖️',color:'var(--accent)',metrics:[
-    {id:'m1',name:'Masa ciała',unit:'kg',type:'number'},
-    {id:'m2',name:'% tkanki tłuszczowej',unit:'%',type:'number'},
-    {id:'m3',name:'Masa mięśniowa',unit:'kg',type:'number'},
-    {id:'m4',name:'BMI',unit:'',type:'number'},
+    {id:'m1',name:'Masa ciała',unit:'kg',type:'number',better:'down'},
+    {id:'m2',name:'% tkanki tłuszczowej',unit:'%',type:'number',better:'down'},
+    {id:'m3',name:'Masa mięśniowa',unit:'kg',type:'number',better:'up'},
+    {id:'m4',name:'BMI',unit:'',type:'number',better:'down'},
+    {id:'m5',name:'Wiek metaboliczny',unit:'lat',type:'number',better:'down'},
+    {id:'m6',name:'Nawodnienie',unit:'%',type:'number',better:'up'},
+    {id:'m7',name:'Ocena fizyczności',unit:'',type:'number',better:'up',placeholder:'1–9'},
   ]},
   {id:'mg2',name:'Obwody ciała',icon:'📏',color:'var(--blue)',metrics:[
     {id:'m6',name:'Szyja',unit:'cm',type:'number'},
@@ -798,11 +801,11 @@ function circBarItems(entry){
     return {label:m.name,v,col:colors[i%colors.length],unit:m.unit||'cm'};
   }).filter(Boolean);
 }
-/** Dopina brakujące miejsca obwodów (cm) do zapisanej grupy mg2 — bez kasowania własnych pól. */
-function migrateEnsureCircMetrics(){
-  const demo=DEMO_METRIC_GROUPS.find(g=>g.id==='mg2');
+/** Dopina brakujące pola demo do zapisanej grupy (mg1 skład / mg2 obwody) — bez kasowania własnych. */
+function migrateEnsureDemoGroupMetrics(gid){
+  const demo=DEMO_METRIC_GROUPS.find(g=>g.id===gid);
   if(!demo||!demo.metrics)return false;
-  const stored=(window.METRIC_GROUPS||[]).find(g=>g&&g.id==='mg2');
+  const stored=(window.METRIC_GROUPS||[]).find(g=>g&&g.id===gid);
   if(!stored)return false;
   const have=new Set((stored.metrics||[]).map(m=>m&&m.id));
   const missing=demo.metrics.filter(m=>m&&m.id&&!have.has(m.id));
@@ -811,13 +814,33 @@ function migrateEnsureCircMetrics(){
   if(typeof persistById==='function')persistById('metricGroups',stored);
   return true;
 }
+function migrateEnsureCircMetrics(){
+  return migrateEnsureDemoGroupMetrics('mg2');
+}
+function migrateEnsureMassMetrics(){
+  return migrateEnsureDemoGroupMetrics('mg1');
+}
+function migrateEnsureMetricGroups(){
+  const a=migrateEnsureCircMetrics();
+  const b=migrateEnsureMassMetrics();
+  return !!(a||b);
+}
+function metricDeltaIsGoodDown(groupId,metric){
+  if(metric&&metric.better==='up')return false;
+  if(metric&&metric.better==='down')return true;
+  return groupId==='mg1'||groupId==='mg2';
+}
 window.mergeMetricDefs=mergeMetricDefs;
 window.allMetricGroups=allMetricGroups;
 window.metricGroupById=metricGroupById;
 window.circMetricDefs=circMetricDefs;
 window.circMetricLabels=circMetricLabels;
 window.circBarItems=circBarItems;
+window.migrateEnsureDemoGroupMetrics=migrateEnsureDemoGroupMetrics;
 window.migrateEnsureCircMetrics=migrateEnsureCircMetrics;
+window.migrateEnsureMassMetrics=migrateEnsureMassMetrics;
+window.migrateEnsureMetricGroups=migrateEnsureMetricGroups;
+window.metricDeltaIsGoodDown=metricDeltaIsGoodDown;
 
 function renderMetrics(){
   const cid=(document.getElementById('metric-client-sel')||{}).value||'';
@@ -892,7 +915,7 @@ function renderMetricData(cid,gid){
         <label style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;display:block;margin-bottom:3px;">${m.name}${m.unit?' ('+m.unit+')':''}</label>
         ${m.type==='scale'
           ?'<div style="display:flex;gap:3px;">'+(Array.from({length:10},(_,i)=>`<button onclick="this.parentElement.querySelectorAll('button').forEach(b=>b.style.background='var(--s3)');this.style.background='var(--accent)';this.style.color='#000';" style="flex:1;padding:4px 2px;background:var(--s3);border:1px solid var(--border);border-radius:4px;color:var(--muted);font-size:10px;cursor:pointer;" data-qm="${m.id}">${i+1}</button>`).join(''))+'</div>'
-          :`<input type="number" step="0.1" id="qm-${m.id}" placeholder="${m.unit||'wartość'}" style="width:100%;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:5px 8px;color:var(--text);font-size:12px;">`
+          :`<input type="number" step="0.1" id="qm-${m.id}" placeholder="${m.placeholder||m.unit||'wartość'}" style="width:100%;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:5px 8px;color:var(--text);font-size:12px;">`
         }
       </div>`).join('')}
       <button onclick="saveQuickEntry('${cid}','${gid}')" class="btn btn-primary" style="width:100%;margin-top:6px;">Zapisz pomiar</button>`;
@@ -912,7 +935,7 @@ function renderMetricData(cid,gid){
       const trendUp=change&&parseFloat(change)>0;
       const trendDown=change&&parseFloat(change)<0;
       // for weight, down=good; for strength, up=good
-      const goodDown=['mg1','mg2'].includes(gid);
+      const goodDown=typeof metricDeltaIsGoodDown==='function'?metricDeltaIsGoodDown(gid,firstMetric):['mg1','mg2'].includes(gid);
       const trendClass=change==null?'trend-neutral':trendUp?(goodDown?'trend-down':'trend-up'):trendDown?(goodDown?'trend-up':'trend-down'):'trend-neutral';
       return `<div class="metric-table-row" style="animation-delay:${i*0.03}s">
         <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);">${e.date}</div>
@@ -1103,9 +1126,11 @@ function updateMetricEntryForm(){
   const group=allMetricGroups().find(g=>g.id===gsel.value);
   const fields=document.getElementById('me-fields');
   if(!fields||!group)return;
-  const hint=gsel.value==='mg2'?'<div style="font-size:11px;color:var(--muted);margin:0 0 10px;line-height:1.45;">Obwody taśmą centymetrową (cm) — rano, taśma przy skórze, bez ubrania.</div>':'';
+  const hint=gsel.value==='mg2'
+    ?'<div style="font-size:11px;color:var(--muted);margin:0 0 10px;line-height:1.45;">Obwody taśmą centymetrową (cm) — rano, taśma przy skórze, bez ubrania.</div>'
+    :(gsel.value==='mg1'?'<div style="font-size:11px;color:var(--muted);margin:0 0 10px;line-height:1.45;">Skład ciała z wagi (Tanita / InBody): wiek metaboliczny, nawodnienie i ocena fizyczności — opcjonalnie.</div>':'');
   const wrap=(group.metrics||[]).length>3;
-  const rows=(group.metrics||[]).map(m=>`<div class="form-field"><label class="form-lbl">${m.name}${m.unit?' ('+m.unit+')':''}</label><input type="number" step="0.1" class="form-input" id="mef-${m.id}" placeholder="${m.unit||'wartość'}"></div>`).join('');
+  const rows=(group.metrics||[]).map(m=>`<div class="form-field"><label class="form-lbl">${m.name}${m.unit?' ('+m.unit+')':''}</label><input type="number" step="0.1" class="form-input" id="mef-${m.id}" placeholder="${m.placeholder||m.unit||'wartość'}"></div>`).join('');
   fields.innerHTML=hint+(wrap?'<div class="form-grid">':'')+rows+(wrap?'</div>':'');
 }
 
@@ -1231,7 +1256,10 @@ function clientMetricsContextForAI(clientId){
       +(v.m1!=null?' masa '+v.m1+' kg'+fmtD(d('m1')):'')
       +(v.m2!=null?', BF% '+v.m2+fmtD(d('m2')):'')
       +(v.m3!=null?', masa mięśniowa '+v.m3+' kg'+fmtD(d('m3')):'')
-      +(v.m4!=null?', BMI '+v.m4+fmtD(d('m4')):''));
+      +(v.m4!=null?', BMI '+v.m4+fmtD(d('m4')):'')
+      +(v.m5!=null?', wiek metaboliczny '+v.m5+' lat'+fmtD(d('m5')):'')
+      +(v.m6!=null?', nawodnienie '+v.m6+'%'+fmtD(d('m6')):'')
+      +(v.m7!=null?', ocena fizyczności '+v.m7+fmtD(d('m7')):''));
     if(mass.length>=2){
       const hist=mass.slice(0,4).map(e=>{
         const w=e.values&&e.values.m1;const bf=e.values&&e.values.m2;
