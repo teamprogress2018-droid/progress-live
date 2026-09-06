@@ -71,6 +71,12 @@ ok('task from lib',!!(task&&task.kind==='habit'&&task.libId==='m2'&&task.xp===5&
   ok('cache bumps',html.includes('01-core.js?v=76')&&html.includes('06-inbox-exercises-ai-programs.js?v=62')&&html.includes('04-client-portal.js?v=38')&&html.includes('styles.css?v=61'));
   ok('cache bumps',html.includes('01-core.js?v=76')&&html.includes('06-inbox-exercises-ai-programs.js?v=62')&&html.includes('04-client-portal.js?v=38')&&html.includes('styles.css?v=61'));
   ok('cache bumps',html.includes('01-core.js?v=76')&&html.includes('06-inbox-exercises-ai-programs.js?v=62')&&html.includes('04-client-portal.js?v=38')&&html.includes('styles.css?v=61'));
+  ok('cache bumps',html.includes('01-core.js?v=75')&&html.includes('06-inbox-exercises-ai-programs.js?v=62')&&html.includes('04-client-portal.js?v=37')&&html.includes('styles.css?v=62'));
+  ok('cache bumps',html.includes('01-core.js?v=75')&&html.includes('06-inbox-exercises-ai-programs.js?v=62')&&html.includes('04-client-portal.js?v=37')&&html.includes('styles.css?v=62'));
+  ok('cache bumps',html.includes('01-core.js?v=75')&&html.includes('06-inbox-exercises-ai-programs.js?v=62')&&html.includes('04-client-portal.js?v=37')&&html.includes('styles.css?v=62'));
+  ok('cache bumps',html.includes('01-core.js?v=75')&&html.includes('06-inbox-exercises-ai-programs.js?v=62')&&html.includes('04-client-portal.js?v=37')&&html.includes('styles.css?v=62'));
+  ok('cache bumps',html.includes('01-core.js?v=75')&&html.includes('06-inbox-exercises-ai-programs.js?v=62')&&html.includes('04-client-portal.js?v=37')&&html.includes('styles.css?v=62'));
+  ok('cache bumps',html.includes('01-core.js?v=75')&&html.includes('06-inbox-exercises-ai-programs.js?v=62')&&html.includes('04-client-portal.js?v=37')&&html.includes('styles.css?v=62'));
 
   if(failed){console.error('\n'+failed+' failed');process.exit(1);}
   console.log('\nAll progress-nawyki port tests passed');

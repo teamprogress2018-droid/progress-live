@@ -148,6 +148,10 @@ ok('cache bumps',html.includes('04-client-portal.js?v=38')&&html.includes('style
 ok('cache bumps',html.includes('04-client-portal.js?v=38')&&html.includes('styles.css?v=61'));
 ok('cache bumps',html.includes('04-client-portal.js?v=38')&&html.includes('styles.css?v=61'));
 ok('cache bumps',html.includes('04-client-portal.js?v=38')&&html.includes('styles.css?v=61'));
+ok('cache bumps',html.includes('04-client-portal.js?v=37')&&html.includes('styles.css?v=62'));
+ok('cache bumps',html.includes('04-client-portal.js?v=37')&&html.includes('styles.css?v=62'));
+ok('cache bumps',html.includes('04-client-portal.js?v=37')&&html.includes('styles.css?v=62'));
+ok('cache bumps',html.includes('04-client-portal.js?v=37')&&html.includes('styles.css?v=62'));
 
 if(failed){console.error('\n'+failed+' failed');process.exit(1);}
 console.log('\nAll dash ops panel checks passed');

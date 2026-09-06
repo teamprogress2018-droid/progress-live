@@ -30,6 +30,7 @@ ok('pharma prompt wiring', src03.includes("getElementById('apl-pharma-status')")
 ok('pharma toggle helper', /function toggleAplPharmaPanel/.test(src03) && /window\.toggleAplPharmaPanel/.test(src03));
 ok('pharma resets on client change', /BEZPIECZEŃSTWO: zawsze zeruj status farmakologiczny/.test(src03));
 ok('cache bumps', html.includes('03-ai-plangen-bizstats-aicoach.js?v=29') && html.includes('07-forms-metrics-calculator.js?v=31') && html.includes('styles.css?v=61'));
+ok('cache bumps', html.includes('03-ai-plangen-bizstats-aicoach.js?v=29') && html.includes('07-forms-metrics-calculator.js?v=30') && html.includes('styles.css?v=62'));
 ok('CI', wf.includes('test_ai_plan_safety.js'));
 
 const document = { getElementById: () => null, querySelectorAll: () => [], addEventListener() {} };

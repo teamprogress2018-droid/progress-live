@@ -33,6 +33,14 @@ ok('cache bumps', html.includes('01-core.js?v=76') && html.includes('04-client-p
 ok('cache bumps', html.includes('01-core.js?v=76') && html.includes('04-client-portal.js?v=38') && html.includes('styles.css?v=61'));
 ok('cache bumps', html.includes('01-core.js?v=76') && html.includes('04-client-portal.js?v=38') && html.includes('styles.css?v=61'));
 ok('cache bumps', html.includes('01-core.js?v=76') && html.includes('04-client-portal.js?v=38') && html.includes('styles.css?v=61'));
+ok('cache bumps', html.includes('01-core.js?v=75') && html.includes('04-client-portal.js?v=37') && html.includes('styles.css?v=62'));
+ok('cache bumps', html.includes('01-core.js?v=75') && html.includes('04-client-portal.js?v=37') && html.includes('styles.css?v=62'));
+ok('cache bumps', html.includes('01-core.js?v=75') && html.includes('04-client-portal.js?v=37') && html.includes('styles.css?v=62'));
+ok('cache bumps', html.includes('01-core.js?v=75') && html.includes('04-client-portal.js?v=37') && html.includes('styles.css?v=62'));
+ok('cache bumps', html.includes('01-core.js?v=75') && html.includes('04-client-portal.js?v=37') && html.includes('styles.css?v=62'));
+ok('cache bumps', html.includes('01-core.js?v=75') && html.includes('04-client-portal.js?v=37') && html.includes('styles.css?v=62'));
+ok('cache bumps', html.includes('01-core.js?v=75') && html.includes('04-client-portal.js?v=37') && html.includes('styles.css?v=62'));
+ok('cache bumps', html.includes('01-core.js?v=75') && html.includes('04-client-portal.js?v=37') && html.includes('styles.css?v=62'));
 ok('CI', wf.includes('test_screensaver.js') && wf.includes('test_screensaver_ui.js'));
 
 const attrs = {};
