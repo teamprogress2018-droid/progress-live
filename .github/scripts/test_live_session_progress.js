@@ -18,15 +18,15 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 02 v31', html.includes('02-workouts-onboarding-templates-live.js?v=36'));
+ok('cache 02 v31', html.includes('02-workouts-onboarding-templates-live.js?v=37'));
 ok('cache 01 v73', html.includes('01-core.js?v=82'));
-ok('cache 01 v73', html.includes('01-core.js?v=81'));
 ok('dock Postęp ids', html.includes('id="live-ex-done"') && html.includes('id="live-sets-done"') && html.includes('id="live-volume"'));
 ok('dock hint', html.includes('id="live-progress-hint"'));
 ok('end warns empty sets', /Nie odhaczono żadnej serii/.test(live));
 ok('end uses todayYmd', /date:\(typeof todayYmd===/.test(live));
 ok('live rir field', /function liveSetRir\(/.test(live) && live.includes('live-rir-input') && live.includes('title="Powtórzenia w zapasie"'));
 ok('live save rir', /rir:s\.rir!=null/.test(live));
+ok('live remove set', /function liveRemoveSet\(/.test(live) && live.includes('live-set-del') && live.includes('Zostaw przynajmniej jedną serię'));
 ok('CI unit', wf.includes('test_live_session_progress.js'));
 ok('CI ui', wf.includes('test_live_progress_ui.js'));
 

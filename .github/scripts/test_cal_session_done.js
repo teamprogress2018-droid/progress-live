@@ -23,7 +23,7 @@ function ok(name, cond, extra) {
 ok('cache 01 v71', html.includes('01-core.js?v=82'));
 ok('cache 05 v37', html.includes('05-clients-builder-plans-calendar.js?v=44'));
 ok('cache 08 v38', html.includes('08-client-profile-extras.js?v=47'));
-ok('cache styles v56', html.includes('styles.css?v=66'));
+ok('cache styles v56', html.includes('styles.css?v=67'));
 ok('ci unit', wf.includes('test_cal_session_done.js'));
 ok('ci ui log done', wf.includes('test_cal_log_done_ui.js'));
 ok('helpers in core', /function sessionHappened/.test(core) && /function sessionHappenedTip/.test(core) && /function sessionIsRecorded/.test(core));

@@ -72,6 +72,44 @@ function ok(name, cond, extra) {
   });
   await page.screenshot({ path: path.join(shotDir, 'live_rir_column.png') });
   ok('rir column in live', /RIR/.test(rirUi.head) && rirUi.n === 4 && rirUi.val === '2', JSON.stringify(rirUi));
+  const delUi = await page.evaluate(() => {
+    const btns = [...document.querySelectorAll('#live-ex-0 .live-set-del')];
+    return { n: btns.length, disabled: btns.filter(b => b.disabled).length };
+  });
+  ok('delete buttons on sets', delUi.n === 4 && delUi.disabled === 0, JSON.stringify(delUi));
+  await page.evaluate(() => { if (typeof liveRemoveSet === 'function') liveRemoveSet(0, 3); });
+  const afterDel = await page.evaluate(() => ({
+    rows: document.querySelectorAll('#live-ex-0 .live-set-row').length,
+    sets: (window.liveExercises[0].sets || []).map(s => s.setNo)
+  }));
+  await page.screenshot({ path: path.join(shotDir, 'live_set_deleted.png') });
+  ok('removed last set → 3', afterDel.rows === 3 && JSON.stringify(afterDel.sets) === '[1,2,3]', JSON.stringify(afterDel));
+  await page.evaluate(() => {
+    if (typeof liveRemoveSet === 'function') {
+      liveRemoveSet(0, 0);
+      liveRemoveSet(0, 0);
+    }
+  });
+  const lastSet = await page.evaluate(() => {
+    if (typeof liveRemoveSet === 'function') liveRemoveSet(0, 0);
+    const btns = [...document.querySelectorAll('#live-ex-0 .live-set-del')];
+    return {
+      n: (window.liveExercises[0].sets || []).length,
+      disabled: btns.length > 0 && btns.every(b => b.disabled)
+    };
+  });
+  ok('cannot drop last set', lastSet.n === 1 && lastSet.disabled === true, JSON.stringify(lastSet));
+  await page.evaluate(() => {
+    window.liveExercises[0].sets = [
+      { setNo: 1, kg: '6', reps: '12', rir: '2', done: false },
+      { setNo: 2, kg: '6', reps: '12', rir: '2', done: false },
+      { setNo: 3, kg: '6', reps: '12', rir: '2', done: false },
+      { setNo: 4, kg: '6', reps: '12', rir: '3', done: false }
+    ];
+    window.liveExercises[0].done = false;
+    window.liveExercises[0].collapsed = false;
+    if (typeof renderLiveExercises === 'function') renderLiveExercises();
+  });
 
   await page.evaluate(() => {
     if (typeof liveToggleSet === 'function') {
