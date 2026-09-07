@@ -93,6 +93,12 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'builder_media_pop.png') });
   ok('thumb opens technique popover', pop.open && pop.hasMedia);
 
+  await page.evaluate(() => { if (typeof builderCloseExMedia === 'function') builderCloseExMedia(); });
+  await page.waitForFunction(() => {
+    const el = document.getElementById('builder-ex-media-pop');
+    return !el || el.hidden || getComputedStyle(el).display === 'none';
+  });
+
   await page.fill('.ex-row [data-f="name"]', 'Wiosłowanie na maszynie siedząc (Cable Row / maszyna)');
   await page.click('.ex-row [data-f="name"]');
   await page.waitForFunction(() => {
