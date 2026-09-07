@@ -111,12 +111,19 @@ function ok(name, cond, extra) {
     if (typeof renderLiveExercises === 'function') renderLiveExercises(0);
     const card = document.getElementById('live-ex-0');
     const cap = card && card.querySelector('.cw-technique-cap');
+    const chips = [...(card ? card.querySelectorAll('.live-alt-chip') : [])].map((el) => (el.textContent || '').trim());
     const media = {
       titleCount: card ? (card.textContent.match(/Przysiad na suwnicy/gi) || []).length : 0,
       capCount: card ? card.querySelectorAll('.cw-technique-cap').length : -1,
       capDisplay: cap ? getComputedStyle(cap).display : 'none',
-      noteVisible: !!(card && /PRIORYTET czworogłowe/.test(card.textContent))
+      noteVisible: !!(card && /PRIORYTET czworogłowe/.test(card.textContent)),
+      altsLbl: !!(card && /Zamienniki \(gdy nie ma maszyny\)/.test(card.textContent)),
+      chips
     };
+    if (typeof liveSwapEx === 'function' && chips.length) {
+      liveSwapEx(0, chips[0].replace(/^↻\s*/, ''));
+      media.swappedName = (window.liveExercises[0] && window.liveExercises[0].name) || '';
+    }
     window.liveExercises = [ex('Przysiad', '40')];
     if (typeof renderLiveExercises === 'function') renderLiveExercises(0);
     liveToggleSet(0, 0);
@@ -144,6 +151,8 @@ function ok(name, cond, extra) {
   ok('same client blocked', afterSets.sameGuard, afterSets.blocked);
   ok('live gif has no caption overlay', afterSets.media && afterSets.media.capCount === 0 && afterSets.media.titleCount === 1, JSON.stringify(afterSets.media));
   ok('coach note still visible', afterSets.media && afterSets.media.noteVisible, JSON.stringify(afterSets.media));
+  ok('live machine alts chips', afterSets.media && afterSets.media.altsLbl && afterSets.media.chips.some((c) => /nogami|przysiad/i.test(c)), JSON.stringify(afterSets.media && afterSets.media.chips));
+  ok('live swap changes name', afterSets.media && afterSets.media.swappedName && afterSets.media.swappedName !== 'Przysiad na suwnicy (Hack Squat / maszyna)', afterSets.media && afterSets.media.swappedName);
 
   const saved = await page.evaluate(() => {
     if (typeof liveStartSession === 'function') {

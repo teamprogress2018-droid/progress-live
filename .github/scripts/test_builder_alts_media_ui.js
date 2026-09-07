@@ -93,6 +93,35 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'builder_media_pop.png') });
   ok('thumb opens technique popover', pop.open && pop.hasMedia);
 
+  await page.fill('.ex-row [data-f="name"]', 'Wiosłowanie na maszynie siedząc (Cable Row / maszyna)');
+  await page.click('.ex-row [data-f="name"]');
+  await page.waitForFunction(() => {
+    const dd = document.querySelector('.ex-ac-dropdown');
+    if (!dd || dd.style.display === 'none') return false;
+    if (dd.querySelector('.ex-ac-empty')) return false;
+    return dd.querySelectorAll('.ex-ac-item').length > 0;
+  }, null, { timeout: 8000 });
+  const ac = await page.evaluate(() => {
+    const dd = document.querySelector('.ex-ac-dropdown');
+    const items = [...(dd ? dd.querySelectorAll('.ex-ac-item') : [])].map((el) => el.textContent.trim());
+    const empty = !!(dd && /Brak wyników/.test(dd.textContent || ''));
+    const hdr = !!(dd && /Zamienniki/.test(dd.textContent || ''));
+    return { display: dd ? dd.style.display : 'missing', items, empty, hdr };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'builder_machine_alts_ac.png') });
+  ok('machine name not empty ac', !ac.empty && ac.items.length > 0, JSON.stringify(ac));
+  ok('ac shows zamienniki header', ac.hdr, JSON.stringify(ac));
+  ok('ac has cable row alt', ac.items.some((t) => /wyciągiem siedząc|hantlem/i.test(t)), ac.items.slice(0, 8).join(' | '));
+
+  await page.click('.builder-alt-toggle');
+  const machineAlts = await page.evaluate(() => {
+    const chips = [...document.querySelectorAll('.builder-alt-chip')].map((el) => el.textContent.trim());
+    const btn = document.querySelector('.builder-alt-toggle');
+    return { chips, btn: btn ? btn.textContent.trim() : '' };
+  });
+  ok('toggle shows alt count', /Zamienniki · \d/.test(machineAlts.btn), machineAlts.btn);
+  ok('machine chips without machine', machineAlts.chips.some((c) => /wyciągiem siedząc|hantlem/i.test(c)), machineAlts.chips.join(' | '));
+
   await browser.close();
   if (failed) process.exit(1);
   console.log('\nBuilder alts/media UI OK. Shots: ' + shotDir);
