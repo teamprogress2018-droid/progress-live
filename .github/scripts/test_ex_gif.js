@@ -57,6 +57,10 @@ ok('exThumbUrl prefers gif over photo', ctx.exThumbUrl({ name: 'Przysiad hack ma
 const vhtml = ctx.exTechniqueMediaHtml({ gif: mp4, name: 'Wyciskanie sztangi leżąc' }, {});
 ok('mp4 technique uses video tag', vhtml.includes('<video') && vhtml.includes(mp4) && !vhtml.includes('<img'));
 ok('technique caption has name', vhtml.includes('cw-technique-cap') && vhtml.includes('Wyciskanie sztangi leżąc'));
+const ihtml = ctx.exTechniqueMediaHtml({ gif: hackGif, name: 'Wyciskanie sztangi leżąc' }, {});
+ok('caption img skips alt', ihtml.includes('<img') && ihtml.includes('alt=""') && ihtml.includes('cw-technique-cap'));
+ok('caption false skips overlay', !ctx.exTechniqueMediaHtml({ gif: mp4, name: 'Wyciskanie sztangi leżąc' }, { caption: false }).includes('cw-technique-cap'));
+ok('broken media helper', typeof ctx.hideBrokenTechniqueMedia === 'function');
 const compact = ctx.exTechniqueMediaHtml({ gif: mp4, name: 'Wyciskanie sztangi leżąc' }, { compact: true });
 ok('compact has no caption', !compact.includes('cw-technique-cap'));
 

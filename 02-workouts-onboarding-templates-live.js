@@ -2128,7 +2128,7 @@ function liveExCard(ex,i,slot){
     </div>
     ${!ex.collapsed?`
     <div>
-      ${typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:!!ex.showVideo}):''}
+      ${typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:!!ex.showVideo,caption:false}):''}
       <div class="live-set-grid live-set-head">
         <span></span><span>Seria</span><span style="text-align:center;">${loadLbl}</span><span style="text-align:center;">Powt.</span><span></span>
       </div>

@@ -18,8 +18,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 02 v31', html.includes('02-workouts-onboarding-templates-live.js?v=32'));
-ok('cache 01 v73', html.includes('01-core.js?v=76'));
+ok('cache 02 v31', html.includes('02-workouts-onboarding-templates-live.js?v=33'));
+ok('cache 01 v73', html.includes('01-core.js?v=77'));
 ok('dock Postęp ids', html.includes('id="live-ex-done"') && html.includes('id="live-sets-done"') && html.includes('id="live-volume"'));
 ok('dock hint', html.includes('id="live-progress-hint"'));
 ok('end warns empty sets', /Nie odhaczono żadnej serii/.test(live));
