@@ -31,6 +31,9 @@ ok('css table', css.includes('.plans-tbl-hdr') && css.includes('.plans-toolbar')
 ok('cache 05 v41', html.includes('05-clients-builder-plans-calendar.js?v=43'));
 ok('cache styles v61', html.includes('styles.css?v=64'));
 ok('cache 05 v41', html.includes('05-clients-builder-plans-calendar.js?v=43'));
+ok('cache 05 v41', html.includes('05-clients-builder-plans-calendar.js?v=42'));
+ok('cache styles v61', html.includes('styles.css?v=64'));
+ok('cache 05 v41', html.includes('05-clients-builder-plans-calendar.js?v=42'));
 ok('cache styles v61', html.includes('styles.css?v=64'));
 ok('CI unit', wf.includes('test_plans_library.js'));
 ok('CI ui', wf.includes('test_plans_library_ui.js'));

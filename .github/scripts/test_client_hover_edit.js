@@ -26,6 +26,7 @@ ok('touch fallback always visible', css.includes('@media (hover:none)') && /hove
 ok('exported', src05.includes('window.quickEditClient=quickEditClient'));
 ok('dash hover edit', src04.includes('dash-client-edit') && src04.includes("quickEditClient(event,'${c.id}')"));
 ok('cache bumps', html.includes('05-clients-builder-plans-calendar.js?v=43') && html.includes('styles.css?v=64') && html.includes('04-client-portal.js?v=38'));
+ok('cache bumps', html.includes('05-clients-builder-plans-calendar.js?v=42') && html.includes('styles.css?v=64') && html.includes('04-client-portal.js?v=38'));
 ok('CI', wf.includes('test_client_hover_edit.js'));
 
 if (failed) {

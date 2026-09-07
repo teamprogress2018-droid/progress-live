@@ -2668,7 +2668,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <!-- przerwa timer -->
       <div class="live-dock-card live-rest-card">
         <div class="live-dock-lbl">Timer przerwy</div>
-        <div class="live-rest-val" id="live-rest-timer">—</div>
+        <div class="live-rest-val" id="live-rest-timer" aria-live="assertive">—</div>
         <div class="live-rest-presets">
           <button type="button" class="live-rest-preset" onclick="liveStartRest(30)">30s</button>
           <button type="button" class="live-rest-preset" onclick="liveStartRest(60)">60s</button>
@@ -2747,7 +2747,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       </div>
       <div class="live-dock-card live-rest-card">
         <div class="live-dock-lbl">Timer przerwy</div>
-        <div class="live-rest-val" id="live-b-rest-timer">—</div>
+        <div class="live-rest-val" id="live-b-rest-timer" aria-live="assertive">—</div>
         <div class="live-rest-presets">
           <button type="button" class="live-rest-preset" onclick="liveStartRest(30,1)">30s</button>
           <button type="button" class="live-rest-preset" onclick="liveStartRest(60,1)">60s</button>
@@ -4288,6 +4288,7 @@ async function load(){
 <script src="ex-gif-manifest.js?v=33"></script>
 <script src="ex-photo-manifest.js?v=5"></script>
 <script src="01-core.js?v=78"></script>
+<script src="01-core.js?v=77"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=34"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=29"></script>
 <script src="04-client-portal.js?v=38"></script>

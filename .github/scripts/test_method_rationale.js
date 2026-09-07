@@ -73,6 +73,7 @@ ok('advanced chest volume',adv.levelVolumeParts.Klatka==='12–20');
 ok('advanced html current col',/Zaaw\./.test(sandbox.renderMethodRationaleHTML(adv))&&/is-current/.test(sandbox.renderMethodRationaleHTML(adv)));
 
 ok('cache bumps',html.includes('01-core.js?v=78')&&html.includes('02-workouts-onboarding-templates-live.js?v=34')&&html.includes('03-ai-plangen-bizstats-aicoach.js?v=29')&&html.includes('05-clients-builder-plans-calendar.js?v=43')&&html.includes('09-posture-kb-invites-private.js?v=35')&&html.includes('styles.css?v=64'));
+ok('cache bumps',html.includes('01-core.js?v=77')&&html.includes('02-workouts-onboarding-templates-live.js?v=34')&&html.includes('03-ai-plangen-bizstats-aicoach.js?v=29')&&html.includes('05-clients-builder-plans-calendar.js?v=42')&&html.includes('09-posture-kb-invites-private.js?v=35')&&html.includes('styles.css?v=64'));
 
 if(failed){console.error(failed+' failed');process.exit(1);}
 console.log('\nAll method-rationale tests passed');
