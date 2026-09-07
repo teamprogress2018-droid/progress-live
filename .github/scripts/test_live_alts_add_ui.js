@@ -100,7 +100,7 @@ function ok(name, cond, extra) {
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'live_add_ex_name.png') });
-  ok('new exercise has name search', named.hasName && /Nazwa ćwiczenia/i.test(named.placeholder), JSON.stringify(named));
+  ok('new exercise has name search', named.hasName && /bibliotece|wpisz/i.test(named.placeholder), JSON.stringify(named));
   ok('new exercise name focused', named.focused && named.emptyName, JSON.stringify(named));
 
   await page.evaluate(() => {
@@ -113,6 +113,24 @@ function ok(name, cond, extra) {
     title: ((document.getElementById('live-ex-1') || {}).innerText || '').slice(0, 80)
   }));
   ok('typed name sticks', afterName.name === 'Pompki' && afterName.inputGone, JSON.stringify(afterName));
+
+  await page.evaluate(() => {
+    window.liveExercises.push({
+      name: 'Nowe ćwiczenie',
+      done: false,
+      collapsed: false,
+      sets: [{ setNo: 1, kg: '', reps: '10', done: false }]
+    });
+    if (typeof renderLiveExercises === 'function') renderLiveExercises();
+  });
+  await page.waitForSelector('#live-ex-name-0-2');
+  const stub = await page.evaluate(() => ({
+    hasBox: !!(document.querySelector('#live-ex-2 .live-ex-name-box')),
+    label: (document.querySelector('#live-ex-2 .live-ex-name-box .live-alts-lbl') || {}).textContent || '',
+    staticNew: ((document.querySelector('#live-ex-2') || {}).innerText || '').includes('Wybierz ćwiczenie')
+  }));
+  await page.screenshot({ path: path.join(shotDir, 'live_stub_nowe_cwiczenie.png') });
+  ok('legacy Nowe ćwiczenie shows name field', stub.hasBox && /Nazwa ćwiczenia/i.test(stub.label) && stub.staticNew, JSON.stringify(stub));
 
   await browser.close();
   if (failed) process.exit(1);

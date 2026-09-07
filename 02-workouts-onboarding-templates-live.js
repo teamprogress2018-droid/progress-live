@@ -2135,7 +2135,7 @@ function liveExCard(ex,i,slot){
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:${showBody?10:0}px;cursor:pointer;" onclick="liveToggleCollapse(${i}${sl})">
       <div style="width:30px;height:30px;border-radius:8px;background:${ex.done?'var(--teal)':'var(--adim)'};display:flex;align-items:center;justify-content:center;font-size:${ex.done?'14px':'12px'};font-weight:700;color:${ex.done?'#000':'var(--accent)'};flex-shrink:0;">${ex.done?'✓':i+1}</div>
       <div style="flex:1;">
-        ${needsName?`<input type="text" class="form-input live-ex-name-search ex-ac-input" id="live-ex-name-${n}-${i}" data-live-name-ei="${i}" data-live-slot="${n}" placeholder="Nazwa ćwiczenia — szukaj lub wpisz…" autocomplete="off" spellcheck="false" onclick="event.stopPropagation()">`:`<div style="font-size:13px;font-weight:700;">${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}</div>`}
+        ${needsName?`<div style="font-size:13px;font-weight:700;color:var(--muted);">Wybierz ćwiczenie</div>`:`<div style="font-size:13px;font-weight:700;">${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}</div>`}
         <div style="font-size:10px;color:var(--muted);">${ex.sets.length} serie · ${setsDone}/${ex.sets.length} ukończono${ex.ssLabel?' · super-seria':''}${ex.emom?' · EMOM':''}${sub?' · '+escHtml(sub):''}</div>
       </div>
       <div style="display:flex;gap:6px;align-items:center;">
@@ -2147,6 +2147,13 @@ function liveExCard(ex,i,slot){
     ${showBody?`
     <div>
       ${typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:!!ex.showVideo,caption:false}):''}
+      ${needsName?`<div class="live-ex-name-box" onclick="event.stopPropagation()">
+        <div class="live-alts-lbl">Nazwa ćwiczenia</div>
+        <div class="live-alts-add">
+          <input type="text" class="form-input live-ex-name-search ex-ac-input" id="live-ex-name-${n}-${i}" data-live-name-ei="${i}" data-live-slot="${n}" placeholder="Szukaj w bibliotece albo wpisz nazwę…" autocomplete="off" spellcheck="false">
+          <button type="button" class="btn btn-primary btn-sm" onclick="liveConfirmExName(${i}${sl})">Wybierz</button>
+        </div>
+      </div>`:''}
       ${needsName?'':liveAltsHtml(ex,i,n)}
       <div class="live-set-grid live-set-head">
         <span></span><span>Seria</span><span style="text-align:center;">${loadLbl}</span><span style="text-align:center;">Powt.</span><span></span>
@@ -2347,6 +2354,22 @@ function liveSetExName(i,name,slot){
   if(typeof liveSaveDraft==='function')liveSaveDraft(n);
 }
 window.liveSetExName=liveSetExName;
+
+function liveConfirmExName(i,slot){
+  const n=liveN(slot);
+  const inp=document.getElementById('live-ex-name-'+n+'-'+i);
+  const name=String(inp&&inp.value||'').trim();
+  if(!name){
+    if(inp){
+      inp.focus();
+      if(typeof exAcInitInput==='function')exAcInitInput(inp);
+      if(typeof exAcRender==='function')exAcRender(inp);
+    }
+    return;
+  }
+  liveSetExName(i,name,n);
+}
+window.liveConfirmExName=liveConfirmExName;
 
 function liveAddExercise(slot){
   const n=liveN(slot);

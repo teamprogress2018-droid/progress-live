@@ -739,6 +739,7 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 .live-alts-lbl{font-size:10px;font-family:var(--font-ui);color:var(--text-label);font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px;}
 .live-alts-chips{display:flex;flex-wrap:wrap;gap:6px;}
 .live-alts-add{display:flex;gap:6px;align-items:center;margin-top:8px;}
+.live-ex-name-box{margin:0 0 12px;padding:10px;background:rgba(230,0,0,0.08);border:1px solid rgba(230,0,0,0.28);border-radius:10px;position:relative;overflow:visible;}
 .live-alt-search,.live-ex-name-search{flex:1;min-width:0;font-size:13px;}
 .live-ex-card .ex-ac-dropdown,.live-alts .ex-ac-dropdown{z-index:220;}
 .live-alt-chip{appearance:none;border:1px solid rgba(62,207,178,0.4);background:rgba(62,207,178,0.12);color:var(--teal);border-radius:8px;padding:6px 10px;font-size:12px;font-weight:600;cursor:pointer;line-height:1.2;text-align:left;}
