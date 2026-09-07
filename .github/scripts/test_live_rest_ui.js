@@ -54,7 +54,45 @@ function ok(name, cond, extra) {
   const after35 = await page.locator('#live-rest-timer').textContent();
   ok('35s custom starts countdown', /35s|34s/.test(after35 || ''), after35);
 
-  await page.screenshot({ path: path.join(shotDir, 'live_rest_custom_35.png') });
+  const mid = await page.evaluate(() => {
+    const card = document.querySelector('#live-rest-timer') && document.querySelector('#live-rest-timer').closest('.live-rest-card');
+    return {
+      ending: !!(card && card.classList.contains('is-ending')),
+      text: (document.getElementById('live-rest-timer') || {}).textContent
+    };
+  });
+  ok('35s not yet ending pulse', !mid.ending, JSON.stringify(mid));
+
+  const cues = await page.evaluate(() => {
+    window.__restCues = [];
+    const prev = window.liveRestBeep;
+    window.liveRestBeep = (k) => { window.__restCues.push(k); };
+    if (typeof liveStartRest === 'function') liveStartRest(5);
+    const card = document.querySelector('#live-rest-timer').closest('.live-rest-card');
+    const five = {
+      text: document.getElementById('live-rest-timer').textContent,
+      ending: card.classList.contains('is-ending'),
+      warn: card.classList.contains('is-warn'),
+      cues: window.__restCues.slice()
+    };
+    if (typeof liveStartRest === 'function') liveStartRest(0);
+    const goCard = document.querySelector('#live-rest-timer').closest('.live-rest-card');
+    const go = {
+      text: document.getElementById('live-rest-timer').textContent,
+      go: goCard.classList.contains('is-go'),
+      cues: window.__restCues.slice()
+    };
+    window.liveRestBeep = prev;
+    return { five, go };
+  });
+  ok('last 5s pulse + tick', cues.five.ending && cues.five.warn && /5s/.test(cues.five.text || '') && cues.five.cues.includes('tick'), JSON.stringify(cues.five));
+  ok('GO flash + beep', cues.go.go && /GO/.test(cues.go.text || '') && cues.go.cues.includes('go'), JSON.stringify(cues.go));
+
+  try {
+    await page.screenshot({ path: path.join(shotDir, 'live_rest_custom_35.png') });
+  } catch (e) {
+    console.warn('shot skip', e.message);
+  }
 
   await browser.close();
   if (failed) process.exit(1);
