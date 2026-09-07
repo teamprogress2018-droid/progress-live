@@ -54,7 +54,7 @@ ok('photo PL cable', !!photos['krzyżowanie wyciągów góra–dół']);
 ok('photo PL incline db', !!photos['wyciskanie hantli na ławce skośnej']);
 ok('photo PL incline cable', !!photos['rozpiętki na bramie na ławce skośnej']);
 
-ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=66'));
+ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=67'));
 ok('cache photo', html.includes('ex-photo-manifest.js?v=6'));
 ok('cache core', html.includes('01-core.js?v=81'));
 

@@ -1548,7 +1548,24 @@ function exAcHighlight(dd,idx){
 
 function exAcPick(input,name){
   if(!input)return;
+  const swapEi=input.dataset?input.dataset.liveSwapEi:'';
+  const nameEi=input.dataset?input.dataset.liveNameEi:'';
+  const slotRaw=input.dataset?input.dataset.liveSlot:'';
   if(input.dataset)delete input.dataset.altFor;
+  if(swapEi!==''&&swapEi!=null&&typeof liveSwapEx==='function'){
+    _exAcPicking=true;
+    exAcHide(input);
+    _exAcPicking=false;
+    liveSwapEx(parseInt(swapEi,10),name,slotRaw===''||slotRaw==null?undefined:parseInt(slotRaw,10));
+    return;
+  }
+  if(nameEi!==''&&nameEi!=null&&typeof liveSetExName==='function'){
+    _exAcPicking=true;
+    exAcHide(input);
+    _exAcPicking=false;
+    liveSetExName(parseInt(nameEi,10),name,slotRaw===''||slotRaw==null?undefined:parseInt(slotRaw,10));
+    return;
+  }
   _exAcPicking=true;
   input.value=name;
   input.dispatchEvent(new Event('input',{bubbles:true}));
@@ -1669,9 +1686,13 @@ function exAcInitInput(input){
       st.idx=Math.max(st.idx-1,0);
       exAcHighlight(dd,st.idx);
     }else if(e.key==='Enter'){
-      if(!open||st.idx<0||!items[st.idx])return;
-      e.preventDefault();
-      exAcPick(input,items[st.idx].dataset.name||items[st.idx].textContent.trim());
+      if(open&&st.idx>=0&&items[st.idx]){
+        e.preventDefault();
+        exAcPick(input,items[st.idx].dataset.name||items[st.idx].textContent.trim());
+      }else if((input.dataset.liveNameEi!=null||input.dataset.liveSwapEi!=null)&&String(input.value||'').trim()){
+        e.preventDefault();
+        exAcPick(input,input.value.trim());
+      }
     }else if(e.key==='Escape'){
       exAcHide(input);
     }

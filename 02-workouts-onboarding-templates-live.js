@@ -2096,7 +2096,23 @@ function renderLiveExercises(slot){
       <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">${setsDone} serii · ${Math.round(volume)} kg objętości</div>
       <button class="btn btn-primary" onclick="liveEndSession(${n})">Zakończ i zapisz sesję</button>
     </div>`:''}`;
+  if(typeof exAcInitAll==='function')exAcInitAll(el);
 }
+
+function liveAltsHtml(ex,i,n){
+  const sl=liveSlotArg(n);
+  const alts=(ex.alts&&ex.alts.length)?ex.alts:(typeof altsForExercise==='function'?altsForExercise(ex.name):[]);
+  const chips=alts.map(a=>`<button type="button" class="live-alt-chip" onclick="liveSwapEx(${i},${JSON.stringify(a)}${sl})">↻ ${escHtml(a)}</button>`).join('');
+  return `<div class="live-alts" onclick="event.stopPropagation()">
+      <div class="live-alts-lbl">Zamienniki (gdy nie ma maszyny)</div>
+      ${chips?`<div class="live-alts-chips">${chips}</div>`:''}
+      <div class="live-alts-add">
+        <input type="text" class="form-input live-alt-search ex-ac-input" id="live-alt-search-${n}-${i}" data-live-swap-ei="${i}" data-live-slot="${n}" data-alt-for="${escHtml(ex.name)}" placeholder="Dodaj zamiennik: sztanga / hantle / brama / ławka…" autocomplete="off" spellcheck="false" onclick="event.stopPropagation()">
+        <button type="button" class="btn btn-ghost btn-sm" onclick="liveConfirmAltSearch(${i}${sl})">Dodaj</button>
+      </div>
+    </div>`;
+}
+window.liveAltsHtml=liveAltsHtml;
 
 function liveExCard(ex,i,slot){
   const n=liveN(slot);
@@ -2113,23 +2129,25 @@ function liveExCard(ex,i,slot){
   const pctHint=ex.kgHint||'';
   const sub=[pctHint,lastHint,prHint].filter(Boolean).join(' · ');
   const cardId=n===1?('live-b-ex-'+i):('live-ex-'+i);
+  const needsName=!String(ex.name||'').trim()||ex.name==='Nowe ćwiczenie';
+  const showBody=!ex.collapsed||needsName;
   return `<div class="live-ex-card${ex.ss?' ss':''}${ex.done?' done':st.sessionActive&&!ex.done&&i===st.exercises.findIndex(e=>!e.done)?' active':''}" id="${cardId}">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:${ex.collapsed?0:10}px;cursor:pointer;" onclick="liveToggleCollapse(${i}${sl})">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:${showBody?10:0}px;cursor:pointer;" onclick="liveToggleCollapse(${i}${sl})">
       <div style="width:30px;height:30px;border-radius:8px;background:${ex.done?'var(--teal)':'var(--adim)'};display:flex;align-items:center;justify-content:center;font-size:${ex.done?'14px':'12px'};font-weight:700;color:${ex.done?'#000':'var(--accent)'};flex-shrink:0;">${ex.done?'✓':i+1}</div>
       <div style="flex:1;">
-        <div style="font-size:13px;font-weight:700;">${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}</div>
+        ${needsName?`<input type="text" class="form-input live-ex-name-search ex-ac-input" id="live-ex-name-${n}-${i}" data-live-name-ei="${i}" data-live-slot="${n}" placeholder="Nazwa ćwiczenia — szukaj lub wpisz…" autocomplete="off" spellcheck="false" onclick="event.stopPropagation()">`:`<div style="font-size:13px;font-weight:700;">${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}</div>`}
         <div style="font-size:10px;color:var(--muted);">${ex.sets.length} serie · ${setsDone}/${ex.sets.length} ukończono${ex.ssLabel?' · super-seria':''}${ex.emom?' · EMOM':''}${sub?' · '+escHtml(sub):''}</div>
       </div>
       <div style="display:flex;gap:6px;align-items:center;">
         ${!ex.done?`<button type="button" class="live-skip-btn" onclick="event.stopPropagation();liveSkipEx(${i}${sl})">Pomiń</button>`:''}
         ${ex.video?`<button type="button" class="live-skip-btn" onclick="event.stopPropagation();liveToggleExVideo(${i}${sl})">${ex.showVideo?'▾ Film':'▶ Film'}</button>`:''}
-        <span style="color:var(--muted);font-size:14px;">${ex.collapsed?'▶':'▼'}</span>
+        <span style="color:var(--muted);font-size:14px;">${ex.collapsed&&!needsName?'▶':'▼'}</span>
       </div>
     </div>
-    ${!ex.collapsed?`
+    ${showBody?`
     <div>
       ${typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:!!ex.showVideo,caption:false}):''}
-      ${(()=>{const alts=(ex.alts&&ex.alts.length)?ex.alts:(typeof altsForExercise==='function'?altsForExercise(ex.name):[]);if(!alts.length)return '';return `<div class="live-alts" onclick="event.stopPropagation()"><div class="live-alts-lbl">Zamienniki (gdy nie ma maszyny)</div><div class="live-alts-chips">${alts.map(a=>`<button type="button" class="live-alt-chip" onclick="liveSwapEx(${i},${JSON.stringify(a)}${sl})">↻ ${escHtml(a)}</button>`).join('')}</div></div>`;})()}
+      ${needsName?'':liveAltsHtml(ex,i,n)}
       <div class="live-set-grid live-set-head">
         <span></span><span>Seria</span><span style="text-align:center;">${loadLbl}</span><span style="text-align:center;">Powt.</span><span></span>
       </div>
@@ -2285,15 +2303,68 @@ function liveSwapEx(i,name,slot){
 }
 window.liveSwapEx=liveSwapEx;
 
+function liveConfirmAltSearch(i,slot){
+  const n=liveN(slot);
+  const inp=document.getElementById('live-alt-search-'+n+'-'+i);
+  const name=String(inp&&inp.value||'').trim();
+  if(!name){
+    if(inp){
+      inp.focus();
+      if(typeof exAcInitInput==='function')exAcInitInput(inp);
+      if(typeof exAcRender==='function')exAcRender(inp);
+    }else if(typeof notify==='function')notify('Wpisz lub wybierz zamiennik');
+    return;
+  }
+  liveSwapEx(i,name,n);
+}
+window.liveConfirmAltSearch=liveConfirmAltSearch;
+
+function liveSetExName(i,name,slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  const cur=st.exercises[i];if(!cur)return;
+  name=String(name||'').trim();
+  if(!name)return;
+  const prev=String(cur.name||'').trim();
+  if(prev&&prev!=='Nowe ćwiczenie'&&prev!==name){
+    liveSwapEx(i,name,n);
+    return;
+  }
+  cur.name=name;
+  if(typeof resolveCoachMedia==='function'){
+    const m=resolveCoachMedia({name});
+    cur.video=m.video||'';
+    cur.videoEmbed=m.videoEmbed||'';
+    cur.isFile=!!m.isFile;
+    cur.gif=m.gif||'';
+    cur.img=m.img||'';
+    cur.libTip=m.libTip||'';
+  }
+  cur.showVideo=false;
+  cur.collapsed=false;
+  if(typeof notify==='function')notify('Ćwiczenie: '+name);
+  renderLiveExercises(n);
+  if(typeof liveSaveDraft==='function')liveSaveDraft(n);
+}
+window.liveSetExName=liveSetExName;
+
 function liveAddExercise(slot){
   const n=liveN(slot);
   const st=liveRef(n);
   st.exercises.push({
-    name:'Nowe ćwiczenie',
+    name:'',
     sets:[{setNo:1,kg:'',reps:'10',done:false},{setNo:2,kg:'',reps:'10',done:false},{setNo:3,kg:'',reps:'10',done:false}],
     done:false,collapsed:false
   });
   renderLiveExercises(n);
+  if(typeof liveSaveDraft==='function')liveSaveDraft(n);
+  const ei=st.exercises.length-1;
+  const inp=document.getElementById('live-ex-name-'+n+'-'+ei);
+  if(inp){
+    if(typeof exAcInitInput==='function')exAcInitInput(inp);
+    inp.focus();
+    if(typeof exAcRender==='function')exAcRender(inp);
+  }
 }
 
 function liveStartSession(slot){
