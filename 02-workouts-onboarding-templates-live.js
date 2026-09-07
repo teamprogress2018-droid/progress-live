@@ -1302,7 +1302,7 @@ function tplStartLive(tid){
     if(day){
       liveExercises=(day.exercises||[]).map(ex=>({
         name:ex.n,
-        sets:Array.from({length:parseInt(ex.s)||3},(_,i)=>({setNo:i+1,kg:'',reps:ex.r||'10',done:false})),
+        sets:Array.from({length:parseInt(ex.s)||3},(_,i)=>({setNo:i+1,kg:'',reps:ex.r||'10',rir:'',done:false})),
         done:false,collapsed:false,
       }));
       renderLiveExercises();
@@ -2149,13 +2149,14 @@ function liveExCard(ex,i,slot){
       ${typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:!!ex.showVideo,caption:false}):''}
       ${needsName?'':liveAltsHtml(ex,i,n)}
       <div class="live-set-grid live-set-head">
-        <span></span><span>Seria</span><span style="text-align:center;">${loadLbl}</span><span style="text-align:center;">Powt.</span><span></span>
+        <span></span><span>Seria</span><span style="text-align:center;">${loadLbl}</span><span style="text-align:center;">Powt.</span><span style="text-align:center;" title="Powtórzenia w zapasie">RIR</span><span></span>
       </div>
       ${ex.sets.map((s,si)=>`<div class="live-set-row">
         <div class="live-set-check${s.done?' done':''}" onclick="liveToggleSet(${i},${si}${sl})" title="Oznacz serię">${s.done?'✓':''}</div>
         <div class="live-set-label"><span class="live-set-label-full">Seria </span>${s.setNo}${s.kind&&s.kind!=='work'?` <span class="cw-set-kind ${s.kind}">${escHtml(typeof setKindBadge==='function'?setKindBadge(s.kind):s.kind)}</span>`:''}</div>
         <input type="number" inputmode="decimal" class="live-kg-input" placeholder="${ex.lastKg!==''&&ex.lastKg!=null?ex.lastKg:loadPh}" value="${s.kg}" oninput="liveSetKg(${i},${si},this.value${sl})" onkeydown="liveSetKey(event,${i},${si}${sl})" onclick="event.stopPropagation()">
         <input type="number" inputmode="numeric" class="live-kg-input" placeholder="${s.kind==='amrap'?'max':'powt.'}" value="${s.reps}" oninput="liveSetReps(${i},${si},this.value${sl})" onkeydown="liveSetKey(event,${i},${si}${sl})" onclick="event.stopPropagation()">
+        <input type="text" inputmode="decimal" class="live-kg-input live-rir-input" placeholder="${escHtml((ex.rir!=null&&ex.rir!=='')?ex.rir:'RIR')}" value="${escHtml(s.rir!=null&&s.rir!==''?s.rir:'')}" oninput="liveSetRir(${i},${si},this.value${sl})" onkeydown="liveSetKey(event,${i},${si}${sl})" onclick="event.stopPropagation()" title="RIR — powtórzenia w zapasie">
         <button type="button" class="live-set-rest" onclick="liveStartRest(${typeof restSecAfterSet==='function'?restSecAfterSet(ex,s,ex.sets[si+1]):90}${sl})" title="Przerwa">⏱</button>
       </div>`).join('')}
       <button type="button" class="live-add-set" onclick="liveAddSet(${i}${sl})">+ Dodaj serię</button>
@@ -2243,13 +2244,14 @@ function liveToggleSet(ei,si,slot){
 
 function liveSetKg(ei,si,v,slot){liveRef(slot).exercises[ei].sets[si].kg=v;liveSaveDraft(slot);}
 function liveSetReps(ei,si,v,slot){liveRef(slot).exercises[ei].sets[si].reps=v;liveSaveDraft(slot);}
+function liveSetRir(ei,si,v,slot){liveRef(slot).exercises[ei].sets[si].rir=v;liveSaveDraft(slot);}
 
 function liveAddSet(ei,slot){
   const n=liveN(slot);
   const st=liveRef(n);
   const ex=st.exercises[ei];
   const prev=ex.sets[ex.sets.length-1];
-  ex.sets.push({setNo:ex.sets.length+1,kg:prev&&prev.kg!=null?prev.kg:'',reps:prev&&prev.reps?prev.reps:'8-12',done:false});
+  ex.sets.push({setNo:ex.sets.length+1,kg:prev&&prev.kg!=null?prev.kg:'',reps:prev&&prev.reps?prev.reps:'8-12',rir:prev&&prev.rir!=null&&prev.rir!==''?prev.rir:(ex.rir||''),done:false});
   renderLiveExercises(n);
   liveSaveDraft(n);
 }
@@ -2410,7 +2412,7 @@ function liveEndSession(slot){
     exercises:st.exercises.map(e=>({
       name:e.name,
       loadUnit:typeof exLoadUnit==='function'?exLoadUnit(e):'kg',
-      sets:e.sets.filter(s=>s.done).map(s=>({kg:parseFloat(s.kg)||0,reps:parseFloat(s.reps)||0,setNo:s.setNo,kind:s.kind||'work'}))
+      sets:e.sets.filter(s=>s.done).map(s=>({kg:parseFloat(s.kg)||0,reps:parseFloat(s.reps)||0,setNo:s.setNo,kind:s.kind||'work',rir:s.rir!=null&&s.rir!==''?String(s.rir):''}))
     })),
     volume,feedback:st.feedbackVal,
     note:liveEl('live-note',n)?.value||'',
@@ -2700,7 +2702,7 @@ window.liveSelectPlan=liveSelectPlan;window.liveQuickAdd=liveQuickAdd;
 window.liveStartSession=liveStartSession;window.liveEndSession=liveEndSession;
 window.liveToggleSet=liveToggleSet;window.liveToggleCollapse=liveToggleCollapse;
 window.liveProgressStats=liveProgressStats;window.renderLiveExercises=renderLiveExercises;
-window.liveSetKg=liveSetKg;window.liveSetReps=liveSetReps;
+window.liveSetKg=liveSetKg;window.liveSetReps=liveSetReps;window.liveSetRir=liveSetRir;
 window.liveAddSet=liveAddSet;window.liveSkipEx=liveSkipEx;window.liveAddExercise=liveAddExercise;
 window.liveStartRest=liveStartRest;window.liveStartRestCustom=liveStartRestCustom;window.liveFeedback=liveFeedback;
 window.liveClientSetField=liveClientSetField;window.liveClientSearchInput=liveClientSearchInput;

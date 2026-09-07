@@ -17,10 +17,10 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 02 v27', html.includes('02-workouts-onboarding-templates-live.js?v=35'));
-ok('cache styles v55', html.includes('styles.css?v=65'));
-ok('cache 02 v31', html.includes('02-workouts-onboarding-templates-live.js?v=35'));
-ok('cache styles v60', html.includes('styles.css?v=65'));
+ok('cache 02 v27', html.includes('02-workouts-onboarding-templates-live.js?v=36'));
+ok('cache styles v55', html.includes('styles.css?v=66'));
+ok('cache 02 v31', html.includes('02-workouts-onboarding-templates-live.js?v=36'));
+ok('cache styles v60', html.includes('styles.css?v=66'));
 ok('30s preset', html.includes('liveStartRest(30)') && /live-rest-preset[^>]*>30s</.test(html));
 ok('60s preset stays', html.includes('liveStartRest(60)'));
 ok('custom input', html.includes('id="live-rest-custom"') && html.includes('placeholder="35"'));

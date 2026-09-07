@@ -1129,12 +1129,13 @@ function cwRender(){
       <div style="height:100%;width:${Math.round((cw.exIdx+doneSets/Math.max(1,ex.sets.length))/cw.exercises.length*100)}%;background:${accent};"></div>
     </div>
     <div class="cw-set-row" style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">
-      <div>#</div><div>${typeof loadUnitShortLabel==='function'?loadUnitShortLabel(typeof exLoadUnit==='function'?exLoadUnit(ex):'kg'):(typeof exLoadUnit==='function'&&exLoadUnit(ex)==='sec'?'Sec':typeof exLoadUnit==='function'&&exLoadUnit(ex)==='min'?'Min':typeof exLoadUnit==='function'&&exLoadUnit(ex)==='m'?'M':'Kg')}</div><div>Powt.</div><div></div>
+      <div>#</div><div>${typeof loadUnitShortLabel==='function'?loadUnitShortLabel(typeof exLoadUnit==='function'?exLoadUnit(ex):'kg'):(typeof exLoadUnit==='function'&&exLoadUnit(ex)==='sec'?'Sec':typeof exLoadUnit==='function'&&exLoadUnit(ex)==='min'?'Min':typeof exLoadUnit==='function'&&exLoadUnit(ex)==='m'?'M':'Kg')}</div><div>Powt.</div><div title="Powtórzenia w zapasie">RIR</div><div></div>
     </div>
     ${ex.sets.map((s,i)=>`<div class="cw-set-row">
       <div style="text-align:center;font-weight:700;color:${s.done?'var(--teal)':'var(--muted)'};">${s.done?'✓':s.setNo}${s.kind&&s.kind!=='work'?`<div class="cw-set-kind ${s.kind}">${escHtml((typeof setKindBadge==='function'&&setKindBadge(s.kind))||s.kind)}</div>`:''}</div>
       <input type="number" inputmode="decimal" value="${escHtml(s.kg)}" ${s.done?'disabled':''} placeholder="${escHtml(typeof loadUnitPlaceholder==='function'?loadUnitPlaceholder(typeof exLoadUnit==='function'?exLoadUnit(ex):'kg'):'kg')}" oninput="cwPatchSet(${i},'kg',this.value)" class="${s.done?'cw-set-done':''}">
       <input type="text" inputmode="numeric" value="${escHtml(s.reps)}" ${s.done?'disabled':''} placeholder="${s.kind==='amrap'?'max':''}" oninput="cwPatchSet(${i},'reps',this.value)" class="${s.done?'cw-set-done':''}">
+      <input type="text" inputmode="decimal" value="${escHtml(s.rir!=null&&s.rir!==''?s.rir:'')}" ${s.done?'disabled':''} placeholder="${escHtml((ex.rir!=null&&ex.rir!=='')?ex.rir:'RIR')}" oninput="cwPatchSet(${i},'rir',this.value)" class="${s.done?'cw-set-done':''}" title="RIR">
       <button type="button" class="btn ${s.done?'btn-ghost':'btn-primary'} btn-sm" onclick="cwCheckSet(${i})">${s.done?'↩':'+'}</button>
     </div>`).join('')}
     <div style="display:flex;gap:8px;margin-top:18px;">
@@ -1160,7 +1161,7 @@ async function cwFinish(){
     exercises:cw.exercises.map(e=>({
       name:e.name,
       loadUnit:typeof exLoadUnit==='function'?exLoadUnit(e):'kg',
-      sets:e.sets.filter(s=>s.done).map(s=>({kg:parseFloat(s.kg)||0,reps:parseFloat(s.reps)||0,setNo:s.setNo,kind:s.kind||'work'}))
+      sets:e.sets.filter(s=>s.done).map(s=>({kg:parseFloat(s.kg)||0,reps:parseFloat(s.reps)||0,setNo:s.setNo,kind:s.kind||'work',rir:s.rir!=null&&s.rir!==''?String(s.rir):''}))
     })),
     volume,
     feedback:cw.rating||0,

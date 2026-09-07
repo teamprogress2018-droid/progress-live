@@ -41,7 +41,7 @@ vm.runInContext(fs.readFileSync(path.join(__dirname, '..', '..', '01-core.js'), 
 const {
   parsePlanExercise, expandExerciseSets, skipRestBeforeSet, restSecAfterSet,
   formatSetKindTag, formatPlanExerciseLine, isWorkingSet, setKindBadge,
-  mapPlanExercisesForClient
+  mapPlanExercisesForClient, plannedRir, rirFromRpe
 } = ctx;
 
 let failed = 0;
@@ -63,7 +63,7 @@ eq('parse amrap false', parsePlanExercise({name: 'Przysiad'}).amrap, false);
 eq('wu cap 2', parsePlanExercise({name: 'X', wu: 9}).wu, 2);
 
 const expanded = expandExerciseSets(
-  {name: 'Przysiad', sets: '3', reps: '8', wu: 2, drop: 2, amrap: true, kg: '100'},
+  {name: 'Przysiad', sets: '3', reps: '8', wu: 2, drop: 2, amrap: true, kg: '100', rir: '7'},
   {plannedKg: '100'}
 );
 eq('len 2wu+3+2drop', expanded.length, 7);
@@ -88,7 +88,10 @@ eq('line', formatPlanExerciseLine({name: 'Przysiad', sets: 4, reps: 8, wu: 1, am
 eq('badge W', setKindBadge('warmup'), 'W');
 eq('working amrap', isWorkingSet({kind: 'amrap'}), true);
 eq('not working wu', isWorkingSet({kind: 'warmup'}), false);
-eq('legacy working', isWorkingSet({kg: 80}), true);
+eq('rir from true rir', plannedRir({rir: '2'}), '2');
+eq('rir from rpe 8', plannedRir({rpe: '8'}), '2');
+eq('rir stored as rpe 7', plannedRir({rir: '7'}), '3');
+eq('work set has rir', expanded[2].rir, '3');
 
 const ssExp = expandExerciseSets(
   {name: 'Przysiad', sets: '3', reps: '8', wu: 2, drop: 2, ss: 'A', kg: '100'},

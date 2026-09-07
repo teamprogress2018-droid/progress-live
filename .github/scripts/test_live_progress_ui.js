@@ -44,10 +44,10 @@ function ok(name, cond, extra) {
     window.liveClientId = 'c1';
     window.liveExercises = [
       { name: 'Przysiad Goblet', done: false, collapsed: false, sets: [
-        { setNo: 1, kg: '6', reps: '12', done: false },
-        { setNo: 2, kg: '6', reps: '12', done: false },
-        { setNo: 3, kg: '6', reps: '12', done: false },
-        { setNo: 4, kg: '6', reps: '12', done: false }
+        { setNo: 1, kg: '6', reps: '12', rir: '2', done: false },
+        { setNo: 2, kg: '6', reps: '12', rir: '2', done: false },
+        { setNo: 3, kg: '6', reps: '12', rir: '2', done: false },
+        { setNo: 4, kg: '6', reps: '12', rir: '3', done: false }
       ]}
     ];
     window.liveSessionActive = false;
@@ -65,6 +65,13 @@ function ok(name, cond, extra) {
   ok('unchecked 0/1 ćw', before.ex === '0' && before.total === '1', JSON.stringify(before));
   ok('unchecked 0 serii / 0 kg', before.sets === '0' && before.vol === '0');
   ok('hint says check sets', /Odhacz serie/.test(before.hint), before.hint);
+  const rirUi = await page.evaluate(() => {
+    const head = document.querySelector('#live-ex-0 .live-set-head');
+    const inp = document.querySelector('#live-ex-0 .live-rir-input');
+    return { head: head ? head.innerText : '', val: inp ? inp.value : '', n: document.querySelectorAll('#live-ex-0 .live-rir-input').length };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'live_rir_column.png') });
+  ok('rir column in live', /RIR/.test(rirUi.head) && rirUi.n === 4 && rirUi.val === '2', JSON.stringify(rirUi));
 
   await page.evaluate(() => {
     if (typeof liveToggleSet === 'function') {
@@ -99,13 +106,15 @@ function ok(name, cond, extra) {
       source: liveSess && liveSess.source,
       sets: liveSess && (liveSess.exercises || []).reduce((n, e) => n + ((e.sets || []).length), 0),
       volume: liveSess && liveSess.volume,
-      logged: adh && adh.logged
+      logged: adh && adh.logged,
+      rir: liveSess && liveSess.exercises && liveSess.exercises[0] && liveSess.exercises[0].sets && liveSess.exercises[0].sets[0] && liveSess.exercises[0].sets[0].rir
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'live_progress_saved.png') });
   ok('session saved as live', saved.source === 'live' && saved.n >= 1, JSON.stringify(saved));
   ok('saved 4 sets / 288 kg', saved.sets === 4 && saved.volume === 288, JSON.stringify(saved));
   ok('Progress logged day = 1', saved.logged === 1, JSON.stringify(saved));
+  ok('saved rir', saved.rir === '2', JSON.stringify(saved));
 
   await browser.close();
   if (failed) process.exit(1);

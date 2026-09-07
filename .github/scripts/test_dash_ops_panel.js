@@ -144,7 +144,7 @@ vm.runInNewContext(
 );
 ok('dashListSection preview 2','manual');
 
-ok('cache bumps',html.includes('04-client-portal.js?v=38')&&html.includes('styles.css?v=65'));
+ok('cache bumps',html.includes('04-client-portal.js?v=38')&&html.includes('styles.css?v=66'));
 
 if(failed){console.error('\n'+failed+' failed');process.exit(1);}
 console.log('\nAll dash ops panel checks passed');

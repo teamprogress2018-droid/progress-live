@@ -1997,12 +1997,42 @@ function scaleKg(kg,frac){
 }
 window.scaleKg=scaleKg;
 
+function rirFromRpe(rpeStr){
+  const s=String(rpeStr||'').replace(/RPE\s*/ig,'').trim();
+  if(!s)return '';
+  const range=s.match(/(\d+(?:[.,]\d+)?)\s*[-–—]\s*(\d+(?:[.,]\d+)?)/);
+  if(range){
+    const a=10-parseFloat(String(range[1]).replace(',','.'));
+    const b=10-parseFloat(String(range[2]).replace(',','.'));
+    if(isNaN(a)||isNaN(b))return '';
+    const lo=Math.round(Math.min(a,b)*2)/2;
+    const hi=Math.round(Math.max(a,b)*2)/2;
+    return lo===hi?String(lo):(lo+'-'+hi);
+  }
+  const n=parseFloat(String(s).replace(',','.'));
+  if(isNaN(n))return '';
+  return String(Math.max(0,Math.round((10-n)*2)/2));
+}
+window.rirFromRpe=rirFromRpe;
+
+function plannedRir(ex){
+  const rir=String((ex&&ex.rir)||'').replace(/^\s*RIR\s*/i,'').trim();
+  if(rir){
+    const n=parseFloat(String(rir).replace(',','.'));
+    if(!isNaN(n)&&n>=6)return rirFromRpe(rir);
+    return rir;
+  }
+  return rirFromRpe((ex&&ex.rpe)||'');
+}
+window.plannedRir=plannedRir;
+
 function expandExerciseSets(ex,opts){
   opts=opts||{};
   const last=opts.last;
   const plannedKg=opts.plannedKg||'';
   const lockPct=!!opts.lockPct;
   const defaultReps=ex.reps||'10';
+  const plannedRirVal=typeof plannedRir==='function'?plannedRir(ex):String(ex.rir||'');
   const inSs=!!String(ex.ss||'').trim();
   const nWork=Math.max(1,parseInt(ex.sets,10)||3);
   const nWu=inSs?0:parseSetKindCount(ex.wu,2);
@@ -2013,7 +2043,7 @@ function expandExerciseSets(ex,opts){
   let no=1;
   const wuFrac=nWu===1?[0.6]:[0.5,0.7];
   for(let i=0;i<nWu;i++){
-    sets.push({setNo:no++,kg:scaleKg(plannedKg,wuFrac[i])||'',reps:defaultReps,done:false,kind:'warmup'});
+    sets.push({setNo:no++,kg:scaleKg(plannedKg,wuFrac[i])||'',reps:defaultReps,done:false,kind:'warmup',rir:plannedRirVal});
   }
   for(let i=0;i<nWork;i++){
     const kind=(amrap&&i===nWork-1)?'amrap':(!inSs&&isEmomFlag(ex.emom)?'emom':'work');
@@ -2024,11 +2054,12 @@ function expandExerciseSets(ex,opts){
     if(kind!=='amrap'){
       reps=prev&&prev.reps!=null&&prev.reps!==''?String(prev.reps):defaultReps;
     }
-    sets.push({setNo:no++,kg:kg||'',reps,done:false,kind});
+    const rir=prev&&prev.rir!=null&&prev.rir!==''?String(prev.rir):plannedRirVal;
+    sets.push({setNo:no++,kg:kg||'',reps,done:false,kind,rir});
   }
   const dropFrac=nDrop===1?[0.75]:[0.8,0.6];
   for(let i=0;i<nDrop;i++){
-    sets.push({setNo:no++,kg:scaleKg(plannedKg,dropFrac[i])||'',reps:defaultReps,done:false,kind:'drop'});
+    sets.push({setNo:no++,kg:scaleKg(plannedKg,dropFrac[i])||'',reps:defaultReps,done:false,kind:'drop',rir:plannedRirVal});
   }
   return sets;
 }
@@ -3027,6 +3058,7 @@ function mapPlanExercisesForClient(rawEx,clientId){
       alts:altsForExercise(ex.name,ex.alt),
       restSec:rest,
       rpe:ex.rpe||'',
+      rir:typeof plannedRir==='function'?plannedRir(ex):(ex.rir||''),
       pct1rm:pct,
       loadUnit,
       kgHint:fromPct?fromPct.hint:'',
