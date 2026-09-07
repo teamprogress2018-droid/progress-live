@@ -1884,7 +1884,7 @@ function coachMediaHtml(ex,opts){
     if(toggle)html+=`<button type="button" class="btn btn-ghost btn-sm" onclick="${toggle}">${show?'▾ Ukryj film':'▶ Film techniki'}</button>`;
     html+=`<a class="btn btn-ghost btn-sm" href="${escHtml(video)}" target="_blank" rel="noopener noreferrer">↗ Otwórz film</a></div>`;
     if(show&&embed)html+=`<div class="cw-video-wrap"><iframe src="${escHtml(embed)}" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen title="Film techniki"></iframe></div>`;
-    else if(show&&file)html+=`<div class="cw-video-wrap"><video src="${escHtml(video)}" controls playsinline></video></div>`;
+    else if(show&&file)html+=`<div class="cw-video-wrap cw-video-file"><video src="${escHtml(video)}" controls playsinline></video></div>`;
   }
   return html;
 }

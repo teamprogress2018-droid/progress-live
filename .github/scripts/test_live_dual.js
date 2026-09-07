@@ -32,7 +32,9 @@ ok('live add name', /function liveSetExName\(/.test(live) && /function liveConfi
 ok('draft B key', live.includes("pl_live_draft_b"));
 ok('same-client guard', live.includes('Ten klient jest już na drugim ekranie'));
 ok('live hides gif caption', /caption:false/.test(live) && css.includes('.live-ex-card .cw-technique-cap') && css.includes('display:none'));
-ok('dual gif shorter', css.includes('#screen-live.live-dual .live-ex-card .cw-technique-gif'));
+ok('live gif tall', css.includes('max-height:min(72vh, 640px)') && !css.includes('max-height:140px'));
+ok('dual gif shorter', css.includes('#screen-live.live-dual .live-ex-card .cw-technique-gif') && css.includes('max-height:min(48vh, 420px)'));
+ok('file video wrap', css.includes('.cw-video-file') && css.includes('cw-video-wrap.cw-video-file'));
 ok('CI unit', wf.includes('test_live_dual.js'));
 ok('CI ui', wf.includes('test_live_dual_ui.js'));
 ok('CI live alts ui', wf.includes('test_live_alts_add_ui.js'));

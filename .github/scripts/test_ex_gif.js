@@ -63,5 +63,8 @@ ok('caption false skips overlay', !ctx.exTechniqueMediaHtml({ gif: mp4, name: 'W
 ok('broken media helper', typeof ctx.hideBrokenTechniqueMedia === 'function');
 const compact = ctx.exTechniqueMediaHtml({ gif: mp4, name: 'Wyciskanie sztangi leżąc' }, { compact: true });
 ok('compact has no caption', !compact.includes('cw-technique-cap'));
+const fileVid = ctx.coachMediaHtml({ name: 'X', video: 'https://cdn.example.com/a.mp4', isFile: true }, { showVideo: true, showGif: false });
+ok('file video large wrap', fileVid.includes('cw-video-file') && fileVid.includes('<video'));
+ok('youtube stays 16x9 wrap', ctx.coachMediaHtml({ name: 'X', video: 'https://youtu.be/dQw4w9WgXcQ', videoEmbed: 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ' }, { showVideo: true, showGif: false }).includes('cw-video-wrap') && !ctx.coachMediaHtml({ name: 'X', video: 'https://youtu.be/dQw4w9WgXcQ', videoEmbed: 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ' }, { showVideo: true, showGif: false }).includes('cw-video-file'));
 
 process.exit(failed ? 1 : 0);
