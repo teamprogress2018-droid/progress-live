@@ -88,6 +88,21 @@ function ok(name, cond, extra) {
   ok('last 5s pulse + tick', cues.five.ending && cues.five.warn && /5s/.test(cues.five.text || '') && cues.five.cues.includes('tick'), JSON.stringify(cues.five));
   ok('GO flash + beep', cues.go.go && /GO/.test(cues.go.text || '') && cues.go.cues.includes('go'), JSON.stringify(cues.go));
 
+  const dual = await page.evaluate(() => {
+    if (typeof liveToggleDual === 'function') liveToggleDual();
+    window.__restCuesB = [];
+    window.liveRestBeep = (k) => { window.__restCuesB.push(k); };
+    if (typeof liveStartRest === 'function') liveStartRest(5, 1);
+    const el = document.getElementById('live-b-rest-timer');
+    const card = el && el.closest('.live-rest-card');
+    return {
+      text: el && el.textContent,
+      ending: !!(card && card.classList.contains('is-ending')),
+      cues: window.__restCuesB.slice()
+    };
+  });
+  ok('slot B ending pulse', dual.ending && /5s/.test(dual.text || '') && dual.cues.includes('tick'), JSON.stringify(dual));
+
   try {
     await page.screenshot({ path: path.join(shotDir, 'live_rest_custom_35.png') });
   } catch (e) {
