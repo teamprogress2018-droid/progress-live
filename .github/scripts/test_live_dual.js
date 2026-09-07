@@ -26,6 +26,7 @@ ok('pane 0/1', html.includes('id="live-pane-0"') && html.includes('id="live-pane
 ok('slot B ids', html.includes('id="live-b-timer"') && html.includes('id="live-b-exercises-panel"') && html.includes('id="live-b-start-btn"'));
 ok('slot B rest', html.includes('liveStartRest(30,1)') && html.includes('id="live-b-rest-custom"'));
 ok('helpers', /function liveN\(/.test(live) && /function liveRef\(/.test(live) && /function liveToggleDual\(/.test(live));
+ok('live swap', /function liveSwapEx\(/.test(live));
 ok('draft B key', live.includes("pl_live_draft_b"));
 ok('same-client guard', live.includes('Ten klient jest już na drugim ekranie'));
 ok('live hides gif caption', /caption:false/.test(live) && css.includes('.live-ex-card .cw-technique-cap') && css.includes('display:none'));

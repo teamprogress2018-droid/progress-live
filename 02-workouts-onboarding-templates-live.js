@@ -2129,6 +2129,7 @@ function liveExCard(ex,i,slot){
     ${!ex.collapsed?`
     <div>
       ${typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:!!ex.showVideo,caption:false}):''}
+      ${(()=>{const alts=(ex.alts&&ex.alts.length)?ex.alts:(typeof altsForExercise==='function'?altsForExercise(ex.name):[]);if(!alts.length)return '';return `<div class="live-alts" onclick="event.stopPropagation()"><div class="live-alts-lbl">Zamienniki (gdy nie ma maszyny)</div><div class="live-alts-chips">${alts.map(a=>`<button type="button" class="live-alt-chip" onclick="liveSwapEx(${i},${JSON.stringify(a)}${sl})">↻ ${escHtml(a)}</button>`).join('')}</div></div>`;})()}
       <div class="live-set-grid live-set-head">
         <span></span><span>Seria</span><span style="text-align:center;">${loadLbl}</span><span style="text-align:center;">Powt.</span><span></span>
       </div>
@@ -2242,6 +2243,47 @@ function liveSkipEx(i,slot){
   st.exercises[i].collapsed=true;
   renderLiveExercises(n);
 }
+
+function liveSwapEx(i,name,slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  const cur=st.exercises[i];if(!cur)return;
+  name=String(name||'').trim();
+  if(!name||name===cur.name)return;
+  const orig=cur.plannedName||cur.name;
+  cur.plannedName=orig;
+  cur.name=name;
+  const extra=typeof altsForExercise==='function'?altsForExercise(name):[];
+  cur.alts=[orig].concat(cur.alts||[]).concat(extra).filter((x,idx,a)=>x&&x!==cur.name&&a.indexOf(x)===idx);
+  const last=typeof lastLoadForExercise==='function'?lastLoadForExercise(st.clientId,name):null;
+  if(last){
+    cur.lastKg=last.kg||'';
+    cur.lastReps=last.reps||'';
+    (cur.sets||[]).forEach((s,si)=>{
+      if(s.done)return;
+      const prev=last.sets&&last.sets[si];
+      if(!prev)return;
+      if(prev.kg!=null&&prev.kg!=='')s.kg=String(prev.kg);
+      if(prev.reps!=null&&prev.reps!=='')s.reps=String(prev.reps);
+    });
+  }
+  if(typeof resolveCoachMedia==='function'){
+    const m=resolveCoachMedia({name});
+    cur.video=m.video||'';
+    cur.videoEmbed=m.videoEmbed||'';
+    cur.isFile=!!m.isFile;
+    cur.gif=m.gif||'';
+    cur.img=m.img||'';
+    cur.note='';
+    cur.libTip=m.libTip||'';
+  }
+  cur.showVideo=false;
+  cur.collapsed=false;
+  if(typeof notify==='function')notify('Zamieniono na: '+name);
+  renderLiveExercises(n);
+  if(typeof liveSaveDraft==='function')liveSaveDraft(n);
+}
+window.liveSwapEx=liveSwapEx;
 
 function liveAddExercise(slot){
   const n=liveN(slot);

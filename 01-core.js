@@ -1743,25 +1743,50 @@ function exThumbUrl(exOrName){
 }
 window.exThumbUrl=exThumbUrl;
 
+function libExerciseNormName(s){
+  return String(s||'').toLowerCase().replace(/\s+/g,' ').trim();
+}
+
+function libExerciseMatchScore(ex,raw){
+  const key=libExerciseNormName(raw);
+  if(!key||!ex)return 0;
+  const n=libExerciseNormName(ex.name);
+  if(!n)return 0;
+  if(n===key)return 1000;
+  const stripped=key.replace(/\s*\([^)]*\)/g,' ').replace(/\s+/g,' ').trim();
+  if(n===stripped)return 900;
+  const aka=String(ex.aka||'').toLowerCase().replace(/\s+/g,' ');
+  const akaList=aka.split(/[,;/|]/).map(s=>s.trim()).filter(Boolean);
+  if(akaList.includes(key)||akaList.includes(stripped))return 850;
+  const keys=typeof exerciseLookupKeys==='function'?exerciseLookupKeys(raw):[key];
+  const names=typeof exerciseLookupKeys==='function'?exerciseLookupKeys([ex.name,ex.aka].filter(Boolean).join(' ')):[n];
+  if(keys.some(k=>k&&names.includes(k)))return 800;
+  if(n.length>=12&&(key.startsWith(n+' ')||stripped.startsWith(n+' ')||key.includes(n)||stripped.includes(n)))return 500+n.length;
+  const stop=new Set(['siedząc','siedzacy','siedzac','stojąc','stojacy','leżąc','lezac','sitting','seated','standing','na','do','dla','the','and','with']);
+  const stem=w=>w.length>=5?w.slice(0,5):w;
+  const toks=stripped.replace(/[()\/,._-]+/g,' ').split(/\s+/).filter(w=>w.length>=3&&!stop.has(w)).map(stem);
+  const nt=n.replace(/[()\/,._-]+/g,' ').split(/\s+/).filter(w=>w.length>=3&&!stop.has(w)).map(stem);
+  if(nt.length>=2){
+    const hit=nt.filter(w=>toks.includes(w)).length;
+    if(hit===nt.length)return 400+hit*20+n.length;
+  }
+  return 0;
+}
+
 function libExerciseByName(name){
-  const key=String(name||'').toLowerCase().replace(/\s+/g,' ').trim();
+  const key=libExerciseNormName(name);
   if(!key)return null;
   const lib=typeof allExercises==='function'?allExercises():[].concat(window.EX||[],window.DEF_EX||[]);
-  const byName=lib.find(e=>String(e.name||'').toLowerCase().replace(/\s+/g,' ').trim()===key);
-  if(byName)return byName;
-  const akaHit=lib.find(e=>{
-    const aka=String(e.aka||'').toLowerCase().replace(/\s+/g,' ');
-    if(!aka)return false;
-    return aka.split(/[,;/|]/).map(s=>s.trim()).filter(Boolean).includes(key);
-  });
-  if(akaHit)return akaHit;
-  const keys=typeof exerciseLookupKeys==='function'?exerciseLookupKeys(name):[key];
-  return lib.find(e=>{
-    const blob=[e.name,e.aka].filter(Boolean).join(' ');
-    const names=typeof exerciseLookupKeys==='function'?exerciseLookupKeys(blob):[exerciseMediaKey(blob)];
-    return keys.some(k=>k&&names.includes(k));
-  })||null;
+  let best=null,bestScore=0;
+  for(let i=0;i<lib.length;i++){
+    const s=libExerciseMatchScore(lib[i],name);
+    if(s>bestScore){best=lib[i];bestScore=s;}
+    if(s>=1000)break;
+  }
+  return bestScore>=400?best:null;
 }
+window.libExerciseNormName=libExerciseNormName;
+window.libExerciseMatchScore=libExerciseMatchScore;
 window.libExerciseByName=libExerciseByName;
 
 function ownVideoForExercise(name){

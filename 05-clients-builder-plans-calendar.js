@@ -879,7 +879,7 @@ function addRow(dayId){
     +'</div>'
     +'<div class="ex-row-extra">'
     +'<div class="builder-alt-box" hidden>'
-    +'<div class="builder-alt-label">Zamienniki — kliknij, żeby podmienić w planie</div>'
+    +'<div class="builder-alt-label">Zamienniki gdy nie ma maszyny / sprzętu — kliknij, żeby podmienić w planie</div>'
     +'<div class="builder-alt-chips"></div>'
     +'<input type="text" placeholder="Własny zamiennik (opcjonalnie)" class="ex-inp ex-inp-name builder-sub-input" data-f="alt" oninput="builderRefreshAltChips(this.closest(\'.ex-row\'))">'
     +'</div>'
@@ -932,6 +932,11 @@ function builderRefreshAltChips(row){
   if(!row)return;
   const box=row.querySelector('.builder-alt-chips');if(!box)return;
   const alts=builderAltListForRow(row);
+  const btn=row.querySelector('.builder-alt-toggle');
+  if(btn){
+    btn.textContent=alts.length?('Zamienniki · '+alts.length):'Zamienniki';
+    btn.title=alts.length?'Pokaż zamienniki (gdy nie ma maszyny w studio)':'Pokaż zamienniki';
+  }
   if(!alts.length){
     box.innerHTML='<span class="builder-alt-empty">Brak zamienników w bibliotece — wpisz własny poniżej albo wybierz ćwiczenie z listy.</span>';
     return;

@@ -695,7 +695,7 @@ const DEF_EX=[
 {name:'Ściąganie drążka podchwytem',aka:'Underhand pulldown, Chin-down',cat:'Plecy',eq:'Wyciąg',muscle:'Plecy, Biceps',tip:'Podchwyt na szerokość barków. Drążek do klatki.',nsca:'3x10–12.',alt:'Podciąganie podchwytem, Ściąganie drążka wąskim chwytem'},
 {name:'Wiosłowanie wyciągiem jednorącz',aka:'Single-arm cable row',cat:'Plecy',eq:'Wyciąg',muscle:'Plecy (jednostronnie), Tylne barki',tip:'Ciągnij łokieć do biodra. Tułów stabilny.',nsca:'3x10–12/stronę.',alt:'Wiosłowanie hantlem, Wiosłowanie wyciągiem siedząc'},
 {name:'Wiosłowanie hantlami oburącz',aka:'Bent over dumbbell row, DB row oburącz',cat:'Plecy',eq:'Hantle',muscle:'Plecy środkowe, Biceps',tip:'Tułów ~45°. Ciągnij do bioder, nie do klatki.',nsca:'3–4x8–12.',alt:'Wiosłowanie sztangą, Wiosłowanie hantlem'},
-{name:'Wiosłowanie na maszynie',aka:'Seated row machine, Chest supported machine row',cat:'Plecy',eq:'Maszyna',muscle:'Plecy środkowe, Biceps',tip:'Klatka o podparcie. Ściągaj łopatki.',nsca:'3x10–15.',alt:'Wiosłowanie wyciągiem siedząc, Wiosłowanie z oparciem klatki'},
+{name:'Wiosłowanie na maszynie',aka:'Seated row machine, Chest supported machine row, Wiosłowanie na maszynie siedząc, Cable Row, Cable Row / maszyna',cat:'Plecy',eq:'Maszyna',muscle:'Plecy środkowe, Biceps',tip:'Klatka o podparcie. Ściągaj łopatki.',nsca:'3x10–15.',alt:'Wiosłowanie wyciągiem siedząc, Wiosłowanie z oparciem klatki, Wiosłowanie hantlem'},
 {name:'Ciąg z racka',aka:'Rack pull, Block pull',cat:'Plecy',eq:'Sztanga',muscle:'Prostownicy, Trapez, Chwyt',tip:'Sztanga z wysokości kolan/piszczeli. Neutralny kręgosłup.',nsca:'3–5x3–6.',alt:'Martwy ciąg klasyczny, Unoszenie barków sztangą',img:'assets/ex/deadlift.svg'},
 {name:'Martwy ciąg z deficytu',aka:'Deficit deadlift, Feet Elevated Deadlift, Elevated Deadlift, Deficit deadlift',cat:'Plecy',eq:'Sztanga',muscle:'Łańcuch tylny, Czworogłowy (głębszy start)',tip:'Stój na talerzu 2–5 cm. Nie zaokrąglaj lędźwi.',nsca:'3–4x4–6.',alt:'Martwy ciąg klasyczny, Martwy ciąg trap bar',img:'assets/ex/deadlift.svg'},
 {name:'Martwy ciąg chwyt rwaniowy',aka:'Snatch grip deadlift',cat:'Plecy',eq:'Sztanga',muscle:'Plecy górne, Trapez, Łańcuch tylny',tip:'Szeroki chwyt. Klatka duma, biodra nie za wysoko.',nsca:'3x5–8.',alt:'Martwy ciąg klasyczny, Ciąg rwaniowy',img:'assets/ex/deadlift.svg'},
@@ -716,7 +716,7 @@ const DEF_EX=[
 {name:'Unoszenie Lu',aka:'Lu raise',cat:'Barki',eq:'Hantle',muscle:'Barki (wszystkie głowy), Trapez',tip:'Od ud łukiem nad głowę, kciuki do góry. Lekkie hantle.',nsca:'3x10–15.',alt:'Unoszenie bokiem, Unoszenie Y'},
 {name:'Uginanie gryfem łamanym',aka:'EZ bar curl, Uginanie EZ',cat:'Biceps',eq:'Sztanga',muscle:'Biceps',tip:'Łagodniejszy kąt nadgarstków niż sztanga prosta.',nsca:'3x8–12.',alt:'Uginanie biceps sztangą, Uginanie na modlitewniku',img:'assets/ex/curl.svg'},
 {name:'Uginanie młotkowe na wyciągu',aka:'Cable hammer curl, Rope hammer curl',cat:'Biceps',eq:'Wyciąg',muscle:'Ramiennopromieniowy, Biceps',tip:'Linka, kciuki w górę. Łokcie przy tułowiu.',nsca:'3x10–15.',alt:'Uginanie młotkowe, Uginanie na wyciągu',img:'assets/ex/curl.svg'},
-{name:'Uginanie na maszynie',aka:'Machine curl, Preacher machine curl',cat:'Biceps',eq:'Maszyna',muscle:'Biceps (izolacja)',tip:'Ramię przylega do poduszki. Nie odrywaj łokci.',nsca:'3x10–12.',alt:'Uginanie na modlitewniku, Uginanie spider',img:'assets/ex/curl.svg'},
+{name:'Uginanie na maszynie',aka:'Machine curl, Preacher machine curl, Uginanie ramion na maszynie, Biceps Curl Machine',cat:'Biceps',eq:'Maszyna',muscle:'Biceps (izolacja)',tip:'Ramię przylega do poduszki. Nie odrywaj łokci.',nsca:'3x10–12.',alt:'Uginanie na modlitewniku, Uginanie hantlami naprzemiennie, Uginanie na wyciągu',img:'assets/ex/curl.svg'},
 {name:'Prostowanie nadgarstka',aka:'Wrist extension',cat:'Biceps',eq:'Sztanga',muscle:'Prostowniki nadgarstka, Przedramię',tip:'Przedramiona na ławce, dłonie zwisają. Unoś nadgarstki.',nsca:'3x15–20.',alt:'Uginanie nadgarstka, Uginanie reverse'},
 {name:'Uginanie młotkowe na skosie',aka:'Incline hammer curl',cat:'Biceps',eq:'Hantle',muscle:'Biceps (głowa długa), Ramiennopromieniowy',tip:'Ławka 45–60°. Ramiona swobodnie w tył.',nsca:'3x10–12.',alt:'Uginanie na skosie, Uginanie młotkowe',img:'assets/ex/curl.svg'},
 {name:'Uginanie w poprzek ciała',aka:'Cross-body hammer curl, Across body curl',cat:'Biceps',eq:'Hantle',muscle:'Ramiennopromieniowy, Biceps',tip:'Hantel prowadzi do przeciwnego barku.',nsca:'3x10–12/stronę.',alt:'Uginanie młotkowe, Uginanie Zottman',img:'assets/ex/curl.svg'},
@@ -1444,9 +1444,35 @@ function exerciseSearchRank(e,ql){
   return 6;
 }
 function exercisesGroupedByCat(q){
-  const ql=exerciseSearchNorm((q||'').trim());
+  const raw=(q||'').trim();
+  const ql=exerciseSearchNorm(raw);
   const all=allExercises();
-  const filtered=ql?all.filter(e=>exerciseSearchBlob(e).includes(ql)):all;
+  let filtered;
+  if(!ql){
+    filtered=all;
+  }else{
+    filtered=all.filter(e=>exerciseSearchBlob(e).includes(ql));
+    if(!filtered.length){
+      const stripped=ql.replace(/\([^)]*\)/g,' ').replace(/[/|,]+/g,' ').replace(/\s+/g,' ').trim();
+      filtered=all.filter(e=>{
+        const blob=exerciseSearchBlob(e);
+        const n=exerciseSearchNorm(e.name);
+        if(blob.includes(stripped)||(n.length>=8&&stripped.includes(n)))return true;
+        const words=n.split(/\s+/).filter(w=>w.length>=4);
+        return words.length>=2&&words.every(w=>stripped.includes(w));
+      });
+    }
+    if(!filtered.length){
+      const toks=ql.replace(/[()\/,._-]+/g,' ').split(/\s+/).filter(t=>t.length>=4);
+      const need=Math.min(2,toks.length);
+      if(need){
+        filtered=all.filter(e=>{
+          const blob=exerciseSearchBlob(e);
+          return toks.filter(t=>blob.includes(t)).length>=need;
+        });
+      }
+    }
+  }
   const byCat={};
   filtered.forEach(e=>{
     const cat=e.cat||'Inne';
@@ -1533,14 +1559,48 @@ function exAcPick(input,name){
   else input.blur();
 }
 
+function exAcShouldShowAlts(query){
+  const q=String(query||'').trim();
+  if(!q)return false;
+  const hit=typeof libExerciseByName==='function'?libExerciseByName(q):null;
+  if(!hit)return false;
+  const score=typeof libExerciseMatchScore==='function'?libExerciseMatchScore(hit,q):0;
+  const n=typeof libExerciseNormName==='function'?libExerciseNormName(q):q.toLowerCase();
+  if(score>=900)return true;
+  if(score>=800&&/[\s(/]/.test(n))return true;
+  if(score>=500&&n.length>=12)return true;
+  return false;
+}
+window.exAcShouldShowAlts=exAcShouldShowAlts;
+
+function exAcAltItems(query){
+  if(!exAcShouldShowAlts(query))return [];
+  const alts=typeof altsForExercise==='function'?altsForExercise(query):[];
+  const lib=typeof libExerciseByName==='function'?libExerciseByName(query):null;
+  const fromLib=lib&&lib.alt?String(lib.alt).split(/[,;/]/).map(s=>s.trim()).filter(Boolean):[];
+  const cur=String(query||'').trim().toLowerCase();
+  const seen=new Set();
+  const out=[];
+  alts.concat(fromLib).forEach(a=>{
+    const k=String(a).trim();
+    const lk=k.toLowerCase();
+    if(!k||lk===cur||seen.has(lk))return;
+    seen.add(lk);out.push(k);
+  });
+  return out;
+}
+window.exAcAltItems=exAcAltItems;
+
 function exAcRender(input){
   if(_exAcPicking)return;
   if(!input||typeof allExercises!=='function')return;
   const wrap=exAcEnsureWrap(input);
   const dd=wrap.querySelector('.ex-ac-dropdown');
-  const groups=exercisesGroupedByCat(input.value);
+  const q=input.value||'';
+  const groups=exercisesGroupedByCat(q);
+  const alts=q.trim()?exAcAltItems(q):[];
   const total=groups.reduce((s,g)=>s+g.items.length,0);
-  if(!total){
+  if(!total&&!alts.length){
     dd.innerHTML='<div class="ex-ac-empty">Brak wyników — wpisz nazwę lub partię (np. klatka, plecy)</div>';
     dd.style.display='block';
     const emptyDay=input.closest('.builder-day');
@@ -1548,8 +1608,16 @@ function exAcRender(input){
     _exAcState={input,dd,idx:-1};
     return;
   }
-  const ql=(input.value||'').trim();
+  const ql=(q||'').trim();
   let html='';
+  if(alts.length){
+    html+=`<div class="ex-ac-group-hdr">Zamienniki — gdy nie ma maszyny / sprzętu <span style="opacity:0.65;font-weight:500;">(${alts.length})</span></div>`;
+    alts.forEach(name=>{
+      const safe=typeof escHtml==='function'?escHtml(name):name;
+      const attr=String(name).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+      html+=`<button type="button" class="ex-ac-item ex-ac-alt" data-name="${attr}"><span class="ex-ac-part" style="color:var(--teal);border-color:rgba(62,207,178,0.45);background:rgba(62,207,178,0.12);">↻</span><span class="ex-ac-name">${safe}</span></button>`;
+    });
+  }
   groups.forEach(g=>{
     const col=CAT_COLORS_EX[g.cat]||'var(--muted)';
     const slice=ql?g.items.slice(0,40):g.items.slice(0,16);
