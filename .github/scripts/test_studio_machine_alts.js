@@ -22,10 +22,10 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=79'));
+ok('cache 01', html.includes('01-core.js?v=80'));
 ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=34'));
 ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=43'));
-ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=64'));
+ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=65'));
 ok('cache styles', html.includes('styles.css?v=64'));
 ok('live swap helper', /function liveSwapEx\(/.test(live) && live.includes('Zamienniki (gdy nie ma maszyny)'));
 ok('live chips css', css.includes('.live-alt-chip') && css.includes('.live-alts'));

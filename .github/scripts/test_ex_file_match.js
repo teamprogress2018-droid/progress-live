@@ -17,9 +17,9 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache manifest v33', html.includes('ex-gif-manifest.js?v=33'));
-ok('cache 01 v60', html.includes('01-core.js?v=79'));
-ok('cache 06 v42', html.includes('06-inbox-exercises-ai-programs.js?v=64'));
+ok('cache manifest v33', html.includes('ex-gif-manifest.js?v=34'));
+ok('cache 01 v60', html.includes('01-core.js?v=80'));
+ok('cache 06 v42', html.includes('06-inbox-exercises-ai-programs.js?v=65'));
 
 const m = six.match(/const DEF_EX=\[([\s\S]*?)\];\s*window\.DEF_EX/);
 ok('DEF_EX block', !!m);
@@ -81,11 +81,11 @@ ok(
 );
 ok(
   'incline db',
-  hit('Wyciskanie hantli na ławce skośnej dodatniej (Incline Dumbbell Press).mp4') === 'Wyciskanie hantli skos+'
+  hit('Wyciskanie hantli na ławce skośnej dodatniej (Incline Dumbbell Press).mp4') === 'Wyciskanie hantli na ławce skośnej'
 );
 ok(
   'fake incline OHP not chest incline',
-  hit('Wyciskanie hantli na ławce skośnej (incline) (Incline Dumbbell Press).mp4') !== 'Wyciskanie hantli skos+'
+  hit('Wyciskanie hantli na ławce skośnej (incline) (Incline Dumbbell Press).mp4') !== 'Wyciskanie hantli na ławce skośnej'
 );
 ok(
   'krzeselko is cable fly overview',

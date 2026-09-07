@@ -22,6 +22,8 @@ const ALIASES = {
   'Wyciskanie sztangi leżąc': 'Barbell Bench Press - Medium Grip',
   'Wyciskanie hantli leżąc': 'Dumbbell Bench Press',
   'Wyciskanie hantli skos+': 'Incline Dumbbell Press',
+  'Wyciskanie hantli na ławce skośnej': 'Incline Dumbbell Press',
+  'Rozpiętki na bramie na ławce skośnej': 'Incline Dumbbell Flyes',
   'Rozpiętki hantlami': 'Dumbbell Flyes',
   'Rozpiętki na wyciągu': 'Cable Crossover',
   'Pompki': 'Pushups',

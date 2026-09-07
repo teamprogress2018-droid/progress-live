@@ -158,11 +158,21 @@ function ok(name, cond, extra) {
     });
   }
 
-  const incline = await detailMedia('Wyciskanie hantli skos+');
+  const incline = await detailMedia('Wyciskanie hantli na ławce skośnej');
   await page.screenshot({ path: path.join(shotDir, 'lib_incline_db_detail.png') });
-  ok('incline detail title', incline.title === 'Wyciskanie hantli skos+', incline.title);
+  ok('incline detail title', incline.title === 'Wyciskanie hantli na ławce skośnej', incline.title);
   ok('incline plays dodatniej clip', /dodatniej|sko%C5%9Bnej%20dodatniej/i.test(incline.src) && /\.mp4/i.test(incline.src), incline.src.slice(0, 180));
   ok('incline not fake OHP incline file', !/%20\(incline\)%20\(Incline/i.test(incline.src));
+
+  const inclineAka = await detailMedia('Wyciskanie hantli skos+');
+  ok('incline aka opens full name', inclineAka.title === 'Wyciskanie hantli na ławce skośnej', inclineAka.title);
+
+  const cableIncline = await detailMedia('Rozpiętki na bramie na ławce skośnej');
+  ok('cable incline detail title', cableIncline.title === 'Rozpiętki na bramie na ławce skośnej', cableIncline.title);
+  ok('cable incline has photo or video', !!(cableIncline.src || cableIncline.img), JSON.stringify(cableIncline).slice(0, 180));
+
+  const cableAka = await detailMedia('Na bramie na skosie ławki');
+  ok('cable incline aka opens', cableAka.title === 'Rozpiętki na bramie na ławce skośnej', cableAka.title);
 
   const lowHigh = await detailMedia('Krzyżowanie wyciągów dół–góra');
   await page.screenshot({ path: path.join(shotDir, 'lib_crossover_low_high_detail.png') });

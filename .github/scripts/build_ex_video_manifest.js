@@ -200,6 +200,7 @@ function main() {
   /** Ręcznie sprawdzona treść klipu (nazwa pliku bywa myląca). */
   const CHEST_FORCE = [
     { name: 'Wyciskanie hantli skos+', file: 'Wyciskanie hantli na ławce skośnej dodatniej (Incline Dumbbell Press).mp4' },
+    { name: 'Wyciskanie hantli na ławce skośnej', file: 'Wyciskanie hantli na ławce skośnej dodatniej (Incline Dumbbell Press).mp4' },
     { name: 'Pompki na kolanach', file: 'Pompka szeroka (rozstaw rąk szerszy niż ramiona) (Wide-Grip Push-Up).mp4' },
     { name: 'Krzyżowanie wyciągów dół–góra', file: 'Krzyżowanie ramion na wyciągu (wyciąg górny, stojąc) (Cable Crossover).mp4' },
   ];

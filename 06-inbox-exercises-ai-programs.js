@@ -460,7 +460,7 @@ window.CAT_COLORS_EX=CAT_COLORS_EX;
 const DEF_EX=[
 {name:'Wyciskanie sztangi leżąc',cat:'Klatka piersiowa',eq:'Sztanga',muscle:'Klatka (główna), Triceps, Barki (przednie)',tip:'Łopatki ściągnięte i wciśnięte w ławkę. Pełny ROM.',nsca:'Hipertrofia: 3-4x8-12, RPE 8. Siła: 4-6x3-5.',alt:'Wyciskanie hantli, Pompki',img:'assets/ex/bench.svg'},
 {name:'Wyciskanie hantli leżąc',aka:'DB Bench Press',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka (główna), Triceps',tip:'Hantle w jednej linii z klatką.',nsca:'3x10-12.',alt:'Wyciskanie sztangi, Pompki',img:'assets/ex/bench.svg'},
-{name:'Wyciskanie hantli skos+',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka górna, Barki (przednie)',tip:'Kąt ławki 30-45°.',nsca:'3x10-12.',alt:'Wyciskanie sztangi skos, Pompki na rączkach',img:'assets/ex/bench.svg'},
+{name:'Wyciskanie hantli na ławce skośnej',aka:'Wyciskanie hantli skos+, Incline Dumbbell Press, Incline DB Press',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka górna, Barki (przednie)',tip:'Kąt ławki 30–45°. Łopatki ściągnięte, hantle w linii z górną klatką.',nsca:'3x10-12.',alt:'Wyciskanie sztangi skos+, Rozpiętki na bramie na ławce skośnej, Pompki na rączkach',img:'assets/ex/bench.svg'},
 {name:'Rozpiętki hantlami',aka:'DB Chest Fly',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka (izolacja)',tip:'Lekkie ugięcie łokci. Skup się na rozciągnięciu klatki.',nsca:'3x12-15.',alt:'Rozpiętki na wyciągu, Butterfly (peck deck)'},
 {name:'Rozpiętki na wyciągu',cat:'Klatka piersiowa',eq:'Wyciąg',muscle:'Klatka (izolacja), stałe napięcie',tip:'Stałe napięcie przez cały ruch.',nsca:'3x12-15.',alt:'Rozpiętki hantlami, Butterfly (peck deck)'},
 {name:'Pompki',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka piersiowa, Triceps, Core',tip:'Ciało w jednej linii.',nsca:'3-4xmax.',alt:'Wyciskanie sztangi, Wyciskanie hantli',img:'assets/ex/bench.svg'},
@@ -470,13 +470,13 @@ const DEF_EX=[
 {name:'Pullover hantlem',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka, Najszerszy',tip:'Pełny zakres ruchu. Rozciągnięcie na dole.',nsca:'3x12-15.',alt:'Pullover sztangą'},
 {name:'Pompki plyometryczne',aka:'Plyo Dynamic Push Ups',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka, Triceps, Moc',tip:'Wybij się z podłogi.',nsca:'3x5-8.',alt:'Pompki',img:'assets/ex/bench.svg'},
 {name:'Wyciskanie wąskim chwytem',aka:'Narrow Grip Bench Press',cat:'Klatka piersiowa',eq:'Sztanga',muscle:'Triceps (główny), Klatka (wewnętrzna)',tip:'Łokcie blisko tułowia.',nsca:'3x8-12.',alt:'Wyciskanie francuskie, Dipy',img:'assets/ex/bench.svg'},
-{name:'Wyciskanie sztangi skos+',cat:'Klatka piersiowa',eq:'Sztanga',muscle:'Klatka górna, Barki (przednie), Triceps',tip:'Ławka 30–45°. Łopatki ściągnięte.',nsca:'3–4x8–12.',alt:'Wyciskanie hantli skos+, Wyciskanie landmine',img:'assets/ex/bench.svg'},
+{name:'Wyciskanie sztangi skos+',cat:'Klatka piersiowa',eq:'Sztanga',muscle:'Klatka górna, Barki (przednie), Triceps',tip:'Ławka 30–45°. Łopatki ściągnięte.',nsca:'3–4x8–12.',alt:'Wyciskanie hantli na ławce skośnej, Wyciskanie landmine',img:'assets/ex/bench.svg'},
 {name:'Wyciskanie sztangi skos−',cat:'Klatka piersiowa',eq:'Sztanga',muscle:'Klatka dolna, Triceps',tip:'Ławka lekko w dół. Nie odrywaj bioder.',nsca:'3x8–12.',alt:'Dipy, Pompki na rączkach',img:'assets/ex/bench.svg'},
 {name:'Wyciskanie hantli skos−',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka dolna, Triceps',tip:'Kontroluj hantle w dolnej pozycji.',nsca:'3x10–12.',alt:'Wyciskanie sztangi skos−, Dipy',img:'assets/ex/bench.svg'},
 {name:'Wyciskanie z podłogi',aka:'Floor press, Barbell Floor Press, Floor press',cat:'Klatka piersiowa',eq:'Sztanga',muscle:'Klatka, Triceps (bez pełnego rozciągnięcia)',tip:'Łokcie zatrzymują się o podłogę — bezpieczniej dla barków.',nsca:'3–4x6–10.',alt:'Wyciskanie wąskim chwytem, Wyciskanie sztangi leżąc',img:'assets/ex/bench.svg'},
 {name:'Wyciskanie na maszynie',cat:'Klatka piersiowa',eq:'Maszyna',muscle:'Klatka, Triceps',tip:'Łopatki oparte. Nie blokuj łokci.',nsca:'3x10–15.',alt:'Wyciskanie hantli, Butterfly (peck deck)',img:'assets/ex/bench.svg'},
 {name:'Krzyżowanie wyciągów góra–dół',aka:'Cable crossover góra–dół',cat:'Klatka piersiowa',eq:'Wyciąg',muscle:'Klatka (dolna i środkowa)',tip:'Ruch od góry do bioder. Lekkie ugięcie łokci.',nsca:'3x12–15.',alt:'Rozpiętki na wyciągu, Butterfly (peck deck)',img:'assets/ex/bench.svg'},
-{name:'Krzyżowanie wyciągów dół–góra',aka:'Cable crossover dół–góra',cat:'Klatka piersiowa',eq:'Wyciąg',muscle:'Klatka górna',tip:'Ruch od dołu do góry, jak „wyciskanie w górę”.',nsca:'3x12–15.',alt:'Wyciskanie hantli skos+, Rozpiętki',img:'assets/ex/bench.svg'},
+{name:'Krzyżowanie wyciągów dół–góra',aka:'Cable crossover dół–góra',cat:'Klatka piersiowa',eq:'Wyciąg',muscle:'Klatka górna',tip:'Ruch od dołu do góry, jak „wyciskanie w górę”.',nsca:'3x12–15.',alt:'Wyciskanie hantli na ławce skośnej, Rozpiętki na bramie na ławce skośnej',img:'assets/ex/bench.svg'},
 {name:'Wyciskanie landmine',aka:'Landmine press',cat:'Klatka piersiowa',eq:'Sztanga',muscle:'Klatka górna, Barki, Core',tip:'Jedna lub dwie ręce. Stabilny tułów.',nsca:'3x8–12.',alt:'Wyciskanie skos+, Wyciskanie z wybiciem',img:'assets/ex/bench.svg'},
 {name:'Pompki diamentowe',aka:'Narrow Push Ups, Diamond Push Ups',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Triceps, Klatka wewnętrzna',tip:'Dłonie blisko siebie w kształt diamentu.',nsca:'3xmax.',alt:'Wyciskanie wąskim chwytem, Dipy',img:'assets/ex/bench.svg'},
 {name:'Pompki szerokie',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka (główna), Barki',tip:'Dłonie szerzej niż barki. Ciało w linii.',nsca:'3xmax.',alt:'Pompki, Rozpiętki',img:'assets/ex/bench.svg'},
@@ -678,12 +678,13 @@ const DEF_EX=[
 {name:'Rzut piłką z wykroku',aka:'Lunge to throw, Split stance throw, Rzut piłką w wykroku',cat:'Cardio',eq:'Piłka lekarska',muscle:'Czworogłowy, Pośladki, Core, Cardio',tip:'Wykrok, z tej pozycji rzut z klatki albo rotacyjny. Kolano nad palcami.',nsca:'3×8/stronę.',alt:'Rzut piłką z klatki, Rzut piłką rotacyjny'},
 {name:'Rzut piłką z rotacją tułowia',aka:'Rotational wall throw, Woodchop throw, Med ball woodchop throw, Rzut piłką woodchop',cat:'Cardio',eq:'Piłka lekarska',muscle:'Skośne brzucha, Core rotacyjny, Cardio',tip:'Piłka z biodra po skosie w górę, o ścianę. Ruch jak woodchop, ale z rzutem.',nsca:'3×8–12/stronę.',alt:'Rzut piłką rotacyjny, Woodchop wyciąg'},
 {name:'Wyciskanie hantli na podłodze',aka:'Dumbbell floor press, Floor press hantle, DB Floor Press, Lying DB Floor Press',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka, Triceps',tip:'Łokcie zatrzymują się o podłogę. Stabilne barki.',nsca:'3–4x8–12.',alt:'Wyciskanie z podłogi, Wyciskanie hantli leżąc',img:'assets/ex/bench.svg'},
-{name:'Wyciskanie na maszynie skos+',aka:'Incline machine press, Hammer strength incline',cat:'Klatka piersiowa',eq:'Maszyna',muscle:'Klatka górna, Barki (przednie)',tip:'Łopatki oparte. Nie odrywaj bioder.',nsca:'3x10–12.',alt:'Wyciskanie hantli skos+, Wyciskanie na maszynie',img:'assets/ex/bench.svg'},
+{name:'Wyciskanie na maszynie skos+',aka:'Incline machine press, Hammer strength incline',cat:'Klatka piersiowa',eq:'Maszyna',muscle:'Klatka górna, Barki (przednie)',tip:'Łopatki oparte. Nie odrywaj bioder.',nsca:'3x10–12.',alt:'Wyciskanie hantli na ławce skośnej, Wyciskanie na maszynie',img:'assets/ex/bench.svg'},
 {name:'Wyciskanie w bramie Smith',aka:'Smith machine bench, Bench Smith',cat:'Klatka piersiowa',eq:'Maszyna',muscle:'Klatka, Triceps',tip:'Łopatki ściągnięte. Smith prowadzi tor — kontroluj dolną pozycję.',nsca:'3x8–12.',alt:'Wyciskanie sztangi leżąc, Wyciskanie na maszynie',img:'assets/ex/bench.svg'},
 {name:'Pompki na kolanach',aka:'Knee push-up, Pompki z kolan, Kneeling Push Ups',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka, Triceps',tip:'Ciało od kolan w linii. Łokcie ~45°.',nsca:'3xmax.',alt:'Pompki, Pompki na rączkach',img:'assets/ex/bench.svg'},
 {name:'Pompki z nogami na podwyższeniu',aka:'Decline push-up, Pompki decline, Feet Elevated Push Ups',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka górna, Barki, Triceps',tip:'Stopy na ławce. Nie zapadaj się w barkach.',nsca:'3xmax.',alt:'Pompki, Wyciskanie skos+',img:'assets/ex/bench.svg'},
 {name:'Pompki łucznicze',aka:'Archer push-up',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka (jednostronnie), Triceps',tip:'Jedna ręka ugięta, druga prawie prosta. Zmieniaj strony.',nsca:'3x6–8/stronę.',alt:'Pompki szerokie, Pompki',img:'assets/ex/bench.svg'},
 {name:'Rozpiętki na wyciągu w poziomie',aka:'Mid cable fly, Cable fly poziome',cat:'Klatka piersiowa',eq:'Wyciąg',muscle:'Klatka środkowa (izolacja)',tip:'Linki na wysokości klatki. Lekkie ugięcie łokci.',nsca:'3x12–15.',alt:'Rozpiętki na wyciągu, Butterfly (peck deck)'},
+{name:'Rozpiętki na bramie na ławce skośnej',aka:'Na bramie na skosie ławki, Incline cable fly, Incline cable flyes, Cable fly incline bench',cat:'Klatka piersiowa',eq:'Wyciąg',muscle:'Klatka górna (izolacja)',tip:'Ławka 30–45° w bramie. Linki poniżej barków, lekkie ugięcie łokci, ścisk na górze.',nsca:'3x12–15.',alt:'Wyciskanie hantli na ławce skośnej, Krzyżowanie wyciągów dół–góra, Rozpiętki hantlami',img:'assets/ex/bench.svg'},
 {name:'Rozpiętki jednorącz wyciąg',aka:'Single-arm cable fly',cat:'Klatka piersiowa',eq:'Wyciąg',muscle:'Klatka (jednostronnie)',tip:'Stabilny tułów. Nie rotuj bioder.',nsca:'3x12–15/stronę.',alt:'Rozpiętki na wyciągu, Krzyżowanie wyciągów góra–dół'},
 {name:'Pullover sztangą',aka:'Barbell pullover',cat:'Klatka piersiowa',eq:'Sztanga',muscle:'Klatka, Najszerszy, Zębaty',tip:'Lekkie ugięcie łokci. Nie wyginaj lędźwi.',nsca:'3x10–12.',alt:'Pullover hantlem, Ściąganie prostymi rękami'},
 {name:'Dipy z obciążeniem',aka:'Weighted dip, Dipy obciążone',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka dolna, Triceps, Barki',tip:'Pas z talerzem albo hantel między stopami. Pochylenie = więcej klatki.',nsca:'3x6–10.',alt:'Dipy na poręczach, Wyciskanie wąskim chwytem',img:'assets/ex/bench.svg'},
@@ -2057,7 +2058,7 @@ window.exTechniqueGuideHtml=exTechniqueGuideHtml;
 var currentExDetail='';
 function openExDetail(name){
   const all=allExercises();
-  const e=all.find(x=>x.name===name);
+  const e=all.find(x=>x.name===name)||(typeof libExerciseByName==='function'?libExerciseByName(name):null);
   if(!e)return;
   currentExDetail=name;
   exSelId=name;
@@ -3533,6 +3534,10 @@ function resolveExerciseName(input){
     return k&&(k.includes(key)||key.includes(k));
   });
   if(partial.length===1)return partial[0].name;
+  if(typeof libExerciseByName==='function'){
+    const lib=libExerciseByName(raw);
+    if(lib&&lib.name)return lib.name;
+  }
   return raw;
 }
 
