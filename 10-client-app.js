@@ -1020,6 +1020,8 @@ function cwSwapEx(name){
   if(last){
     cur.lastKg=last.kg||'';
     cur.lastReps=last.reps||'';
+    cur.lastDate=last.date||'';
+    cur.lastSets=last.sets||[];
     (cur.sets||[]).forEach((s,i)=>{
       if(s.done)return;
       const prev=last.sets&&last.sets[i];
@@ -1117,9 +1119,11 @@ function cwRender(){
     ${(ex.alts||[]).length?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px;">${ex.alts.map(a=>`<button type="button" class="btn btn-ghost btn-sm" onclick='cwSwapEx(${JSON.stringify(a)})'>↻ ${escHtml(a)}</button>`).join('')}</div>`:''}
     ${ex.kgHint?`<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${escHtml(ex.kgHint)}</div>`:''}
     ${(()=>{
-      const last=ex.lastKg?('Ostatnio: '+escHtml(String(ex.lastKg))+' '+escHtml(typeof loadUnitSuffix==='function'?loadUnitSuffix(typeof exLoadUnit==='function'?exLoadUnit(ex):'kg'):'kg')+(ex.lastReps?' × '+escHtml(String(ex.lastReps)):'')):'';
+      const lastHtml=typeof lastSetsBlockHtml==='function'?lastSetsBlockHtml(ex):'';
       const pr=typeof exercisePR==='function'&&(typeof isWeightLoadUnit!=='function'||isWeightLoadUnit(typeof exLoadUnit==='function'?exLoadUnit(ex):'kg'))?exercisePR(window._clientId,ex.name):null;
       const rec=pr?('Rekord: '+escHtml(String(pr.kg))+' kg × '+escHtml(String(pr.reps))):'';
+      if(lastHtml)return lastHtml+(rec?`<div style="font-size:11px;color:var(--muted);margin:0 0 12px;">${rec}</div>`:'');
+      const last=ex.lastKg?('Ostatnio: '+escHtml(String(ex.lastKg))+' '+escHtml(typeof loadUnitSuffix==='function'?loadUnitSuffix(typeof exLoadUnit==='function'?exLoadUnit(ex):'kg'):'kg')+(ex.lastReps?' × '+escHtml(String(ex.lastReps)):'')):'';
       const same=pr&&ex.lastKg!=null&&Number(ex.lastKg)===Number(pr.kg)&&Number(ex.lastReps)===Number(pr.reps);
       const line=same?(last?last+' · rekord':rec):(last&&rec?last+' · '+rec:(last||rec));
       return line?`<div style="font-size:11px;color:var(--muted);margin-bottom:12px;">${line}</div>`:'<div style="height:8px;"></div>';

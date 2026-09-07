@@ -2123,7 +2123,8 @@ function liveExCard(ex,i,slot){
   const loadPh=typeof loadUnitPlaceholder==='function'?loadUnitPlaceholder(unit):'kg';
   const loadLbl=typeof loadUnitColumnLabel==='function'?loadUnitColumnLabel(unit):(unit==='sec'||unit==='min'?'Czas':unit==='m'?'Dystans':'Ciężar');
   const setsDone=ex.sets.filter(s=>s.done).length;
-  const lastHint=ex.lastKg!==''&&ex.lastKg!=null?`Ostatnio: ${ex.lastKg} ${suf}${ex.lastReps?' × '+ex.lastReps:''}`:'';
+  const lastBlock=typeof lastSetsBlockHtml==='function'?lastSetsBlockHtml(ex):'';
+  const lastHint=lastBlock?'':(ex.lastKg!==''&&ex.lastKg!=null?`Ostatnio: ${ex.lastKg} ${suf}${ex.lastReps?' × '+ex.lastReps:''}`:'');
   const pr=typeof exercisePR==='function'&&(typeof isWeightLoadUnit!=='function'||isWeightLoadUnit(unit))?exercisePR(st.clientId,ex.name):null;
   const prHint=pr?`Rekord: ${pr.kg} kg × ${pr.reps}`:'';
   const pctHint=ex.kgHint||'';
@@ -2137,6 +2138,7 @@ function liveExCard(ex,i,slot){
       <div style="flex:1;">
         ${needsName?`<div style="font-size:13px;font-weight:700;color:var(--muted);">Wybierz ćwiczenie</div>`:`<div style="font-size:13px;font-weight:700;">${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}</div>`}
         <div style="font-size:10px;color:var(--muted);">${ex.sets.length} serie · ${setsDone}/${ex.sets.length} ukończono${ex.ssLabel?' · super-seria':''}${ex.emom?' · EMOM':''}${sub?' · '+escHtml(sub):''}</div>
+        ${lastBlock}
       </div>
       <div style="display:flex;gap:6px;align-items:center;">
         ${!ex.done?`<button type="button" class="live-skip-btn" onclick="event.stopPropagation();liveSkipEx(${i}${sl})">Pomiń</button>`:''}
@@ -2306,6 +2308,8 @@ function liveSwapEx(i,name,slot){
   if(last){
     cur.lastKg=last.kg||'';
     cur.lastReps=last.reps||'';
+    cur.lastDate=last.date||'';
+    cur.lastSets=last.sets||[];
     (cur.sets||[]).forEach((s,si)=>{
       if(s.done)return;
       const prev=last.sets&&last.sets[si];

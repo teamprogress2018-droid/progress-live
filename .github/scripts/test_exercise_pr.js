@@ -42,7 +42,8 @@ vm.runInContext(fs.readFileSync(path.join(__dirname, '..', '..', '01-core.js'), 
 
 const {
   exerciseNameKey, formatSetLoad, loggedSetRows, exercisePR, setBeatsPR,
-  prToastText, clientExercisePRs, exerciseHistoryByDay, epley1RM, superseriesToastText
+  prToastText, clientExercisePRs, exerciseHistoryByDay, epley1RM, superseriesToastText,
+  lastLoadForExercise, formatLastSetsSummary, lastSetsBlockHtml
 } = ctx;
 
 let failed = 0;
@@ -84,6 +85,27 @@ eq('strongest first', clientExercisePRs('c1', sessions)[0].name, 'Martwy ciąg')
 eq('days', exerciseHistoryByDay('c1', 'Przysiad', sessions).length, 2);
 eq('other client isolated', !!exercisePR('c2', 'Przysiad', sessions), true);
 eq('missing empty', exercisePR('c1', 'OHP', sessions), null);
+
+windowObj.SE = sessions.concat([
+  {id: 's5', clientId: 'c1', date: '2026-08-20', source: 'planned', exercises: [{name: 'Przysiad', sets: [{kg: 999, reps: 1, setNo: 1}]}]}
+]);
+const last = lastLoadForExercise('c1', 'Przysiad');
+eq('last skips planned', last && last.date, '2026-08-10');
+eq('last sets count', last && last.sets && last.sets.length, 1);
+eq('last summary', formatLastSetsSummary([
+  {kg: 22.5, reps: 12}, {kg: 22.5, reps: 11}, {kg: 22.5, reps: 10, rir: '2'}
+]), '22.5 × 12 · 22.5 × 11 · 22.5 × 10');
+const block = lastSetsBlockHtml({
+  name: 'Przysiad',
+  lastDate: '2026-08-10',
+  lastSets: [
+    {setNo: 1, kg: 80, reps: 8, rir: '3'},
+    {setNo: 2, kg: 85, reps: 5, rir: '2'}
+  ]
+});
+eq('last html widget', /live-last-sets/.test(block) && /Ostatnio:/.test(block), true);
+eq('last html rows', /RIR 3/.test(block) && /RIR 2/.test(block) && /80 kg × 8/.test(block), true);
+eq('empty last html', lastSetsBlockHtml({lastSets: []}), '');
 
 if (failed) {
   console.error('\n' + failed + ' test(s) failed');
