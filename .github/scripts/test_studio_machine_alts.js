@@ -24,6 +24,7 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 01', html.includes('01-core.js?v=82'));
+ok('cache 01', html.includes('01-core.js?v=81'));
 ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=36'));
 ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=44'));
 ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=67'));
@@ -32,7 +33,7 @@ ok('apl swap altFor', src03.includes('dataset.altFor') && src03.includes('sztang
 ok('live swap helper', /function liveSwapEx\(/.test(live) && live.includes('Zamienniki (gdy nie ma maszyny)'));
 ok('live chips css', css.includes('.live-alt-chip') && css.includes('.live-alts'));
 ok('live add alt search', live.includes('live-alt-search') && live.includes('data-live-swap-ei') && /function liveConfirmAltSearch\(/.test(live));
-ok('live add exercise name', live.includes('data-live-name-ei') && live.includes('Nazwa ćwiczenia — szukaj') && /function liveSetExName\(/.test(live));
+ok('live add exercise name', live.includes('data-live-name-ei') && live.includes('Szukaj w bibliotece') && /function liveSetExName\(/.test(live) && /function liveConfirmExName\(/.test(live));
 ok('builder label', src05.includes('Zamienniki gdy nie ma maszyny'));
 ok('builder count on btn', src05.includes("Zamienniki · '"));
 ok('ac alt group', six.includes('Zamienniki — sztanga / hantle / brama / ławka') && /function exAcAltItems\(/.test(six));

@@ -26,6 +26,7 @@ ok('clock red', /color:\s*var\(--accent-red/.test(css) && css.includes('.pl-ss-c
 ok('settings ui', src04.includes("card('Wygaszacz'") && src04.includes('previewScreensaver()') && src04.includes("toggle('screensaver'"));
 ok('settings default', src04.includes('screensaver:{') && src04.includes('idleMinutes:3'));
 ok('cache bumps', html.includes('01-core.js?v=82') && html.includes('04-client-portal.js?v=38') && html.includes('styles.css?v=66'));
+ok('cache bumps', html.includes('01-core.js?v=81') && html.includes('04-client-portal.js?v=38') && html.includes('styles.css?v=66'));
 ok('CI', wf.includes('test_screensaver.js') && wf.includes('test_screensaver_ui.js'));
 
 const attrs = {};

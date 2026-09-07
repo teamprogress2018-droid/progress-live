@@ -28,7 +28,7 @@ ok('slot B rest', html.includes('liveStartRest(30,1)') && html.includes('id="liv
 ok('helpers', /function liveN\(/.test(live) && /function liveRef\(/.test(live) && /function liveToggleDual\(/.test(live));
 ok('live swap', /function liveSwapEx\(/.test(live));
 ok('live add alt', /function liveConfirmAltSearch\(/.test(live) && live.includes('live-alt-search'));
-ok('live add name', /function liveSetExName\(/.test(live) && live.includes('live-ex-name-search'));
+ok('live add name', /function liveSetExName\(/.test(live) && /function liveConfirmExName\(/.test(live) && live.includes('live-ex-name-search'));
 ok('draft B key', live.includes("pl_live_draft_b"));
 ok('same-client guard', live.includes('Ten klient jest już na drugim ekranie'));
 ok('live hides gif caption', /caption:false/.test(live) && css.includes('.live-ex-card .cw-technique-cap') && css.includes('display:none'));
