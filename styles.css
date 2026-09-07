@@ -712,7 +712,7 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 .live-ex-card.done{border-color:rgba(62,207,178,0.35);background:rgba(62,207,178,0.06);opacity:0.85;}
 .live-set-grid,.live-set-row{
   display:grid;
-  grid-template-columns:48px minmax(52px,1fr) minmax(72px,1fr) minmax(64px,1fr) minmax(48px,0.7fr) 48px;
+  grid-template-columns:48px minmax(52px,1fr) minmax(72px,1fr) minmax(64px,1fr) minmax(48px,0.7fr) auto;
   gap:10px;align-items:center;
 }
 .live-set-row{padding:10px 0;border-bottom:1px solid var(--border-subtle);}
@@ -727,10 +727,17 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
   text-transform:none;border-bottom:1px solid var(--border-subtle);
 }
 .live-skip-btn{background:none;border:none;color:var(--text-label);font-size:var(--font-size-sm);cursor:pointer;padding:10px 12px;min-height:44px;}
+.live-set-row-btns{display:flex;align-items:center;gap:4px;justify-self:end;}
 .live-set-rest{
   width:48px;height:48px;background:var(--bg-input);border:1px solid var(--border-subtle);border-radius:var(--r);
   font-size:18px;color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;
 }
+.live-set-del{
+  width:40px;height:48px;background:transparent;border:1px solid var(--border-subtle);border-radius:var(--r);
+  font-size:22px;line-height:1;color:var(--text-label);cursor:pointer;display:flex;align-items:center;justify-content:center;
+}
+.live-set-del:hover{border-color:rgba(239,68,68,0.45);color:#fca5a5;background:rgba(239,68,68,0.12);}
+.live-set-del:disabled{opacity:0.28;cursor:not-allowed;pointer-events:none;}
 .live-add-set{
   width:100%;margin-top:10px;min-height:48px;padding:12px;background:transparent;
   border:1px dashed var(--border-default);border-radius:var(--r);color:var(--text-label);font-size:var(--font-size-sm);cursor:pointer;
@@ -1947,9 +1954,11 @@ input[type=checkbox]{display:none;}
   .topbar-actions{flex-wrap:wrap;gap:6px;}
   .topbar-actions .btn{font-size:11px;padding:6px 10px;}
   .live-set-grid,.live-set-row{
-    grid-template-columns:40px 20px minmax(52px,1fr) minmax(48px,1fr) minmax(40px,0.7fr) 40px;
+    grid-template-columns:40px 20px minmax(52px,1fr) minmax(48px,1fr) minmax(40px,0.7fr) auto;
     gap:4px;
   }
+  .live-set-rest{width:40px;height:40px;font-size:16px;}
+  .live-set-del{width:32px;height:40px;font-size:20px;}
   .live-set-label-full{display:none;}
   .live-ex-card{padding:12px 10px;}
 }

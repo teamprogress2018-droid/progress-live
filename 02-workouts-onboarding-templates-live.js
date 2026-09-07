@@ -2164,7 +2164,10 @@ function liveExCard(ex,i,slot){
         <input type="number" inputmode="decimal" class="live-kg-input" placeholder="${ex.lastKg!==''&&ex.lastKg!=null?ex.lastKg:loadPh}" value="${s.kg}" oninput="liveSetKg(${i},${si},this.value${sl})" onkeydown="liveSetKey(event,${i},${si}${sl})" onclick="event.stopPropagation()">
         <input type="number" inputmode="numeric" class="live-kg-input" placeholder="${s.kind==='amrap'?'max':'powt.'}" value="${s.reps}" oninput="liveSetReps(${i},${si},this.value${sl})" onkeydown="liveSetKey(event,${i},${si}${sl})" onclick="event.stopPropagation()">
         <input type="text" inputmode="decimal" class="live-kg-input live-rir-input" placeholder="${escHtml((ex.rir!=null&&ex.rir!=='')?ex.rir:'RIR')}" value="${escHtml(s.rir!=null&&s.rir!==''?s.rir:'')}" oninput="liveSetRir(${i},${si},this.value${sl})" onkeydown="liveSetKey(event,${i},${si}${sl})" onclick="event.stopPropagation()" title="RIR — powtórzenia w zapasie">
-        <button type="button" class="live-set-rest" onclick="liveStartRest(${typeof restSecAfterSet==='function'?restSecAfterSet(ex,s,ex.sets[si+1]):90}${sl})" title="Przerwa">⏱</button>
+        <div class="live-set-row-btns">
+          <button type="button" class="live-set-rest" onclick="liveStartRest(${typeof restSecAfterSet==='function'?restSecAfterSet(ex,s,ex.sets[si+1]):90}${sl})" title="Przerwa">⏱</button>
+          <button type="button" class="live-set-del" onclick="event.stopPropagation();liveRemoveSet(${i},${si}${sl})" ${ex.sets.length<=1?'disabled':''} title="${ex.sets.length<=1?'Zostaw przynajmniej jedną serię':'Usuń serię'}" aria-label="Usuń serię">×</button>
+        </div>
       </div>`).join('')}
       <button type="button" class="live-add-set" onclick="liveAddSet(${i}${sl})">+ Dodaj serię</button>
     </div>`:''}
@@ -2261,6 +2264,23 @@ function liveAddSet(ei,slot){
   ex.sets.push({setNo:ex.sets.length+1,kg:prev&&prev.kg!=null?prev.kg:'',reps:prev&&prev.reps?prev.reps:'8-12',rir:prev&&prev.rir!=null&&prev.rir!==''?prev.rir:(ex.rir||''),done:false});
   renderLiveExercises(n);
   liveSaveDraft(n);
+}
+
+function liveRemoveSet(ei,si,slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  const ex=st.exercises[ei];
+  if(!ex||!Array.isArray(ex.sets)||ex.sets.length<=1){
+    if(typeof notify==='function')notify('Zostaw przynajmniej jedną serię');
+    return;
+  }
+  if(si<0||si>=ex.sets.length)return;
+  ex.sets.splice(si,1);
+  ex.sets.forEach((s,i)=>{s.setNo=i+1;});
+  ex.done=!!(ex.sets.length&&ex.sets.every(s=>s.done));
+  if(!ex.done)ex.collapsed=false;
+  liveSaveDraft(n);
+  renderLiveExercises(n);
 }
 
 function liveSkipEx(i,slot){
@@ -2726,7 +2746,7 @@ window.liveStartSession=liveStartSession;window.liveEndSession=liveEndSession;
 window.liveToggleSet=liveToggleSet;window.liveToggleCollapse=liveToggleCollapse;
 window.liveProgressStats=liveProgressStats;window.renderLiveExercises=renderLiveExercises;
 window.liveSetKg=liveSetKg;window.liveSetReps=liveSetReps;window.liveSetRir=liveSetRir;
-window.liveAddSet=liveAddSet;window.liveSkipEx=liveSkipEx;window.liveAddExercise=liveAddExercise;
+window.liveAddSet=liveAddSet;window.liveRemoveSet=liveRemoveSet;window.liveSkipEx=liveSkipEx;window.liveAddExercise=liveAddExercise;
 window.liveStartRest=liveStartRest;window.liveStartRestCustom=liveStartRestCustom;window.liveFeedback=liveFeedback;
 window.liveClientSetField=liveClientSetField;window.liveClientSearchInput=liveClientSearchInput;
 window.liveAnySessionActive=liveAnySessionActive;window.liveN=liveN;window.liveRef=liveRef;
