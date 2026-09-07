@@ -1559,7 +1559,22 @@ function exAcPick(input,name){
   else input.blur();
 }
 
+function exAcShouldShowAlts(query){
+  const q=String(query||'').trim();
+  if(!q)return false;
+  const hit=typeof libExerciseByName==='function'?libExerciseByName(q):null;
+  if(!hit)return false;
+  const score=typeof libExerciseMatchScore==='function'?libExerciseMatchScore(hit,q):0;
+  const n=typeof libExerciseNormName==='function'?libExerciseNormName(q):q.toLowerCase();
+  if(score>=900)return true;
+  if(score>=800&&/[\s(/]/.test(n))return true;
+  if(score>=500&&n.length>=12)return true;
+  return false;
+}
+window.exAcShouldShowAlts=exAcShouldShowAlts;
+
 function exAcAltItems(query){
+  if(!exAcShouldShowAlts(query))return [];
   const alts=typeof altsForExercise==='function'?altsForExercise(query):[];
   const lib=typeof libExerciseByName==='function'?libExerciseByName(query):null;
   const fromLib=lib&&lib.alt?String(lib.alt).split(/[,;/]/).map(s=>s.trim()).filter(Boolean):[];

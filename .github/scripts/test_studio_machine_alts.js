@@ -25,7 +25,7 @@ function ok(name, cond, extra) {
 ok('cache 01', html.includes('01-core.js?v=78'));
 ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=34'));
 ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=43'));
-ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=63'));
+ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=64'));
 ok('cache styles', html.includes('styles.css?v=64'));
 ok('live swap helper', /function liveSwapEx\(/.test(live) && live.includes('Zamienniki (gdy nie ma maszyny)'));
 ok('live chips css', css.includes('.live-alt-chip') && css.includes('.live-alts'));
@@ -59,6 +59,10 @@ const searchStart = six.indexOf('function exerciseSearchNorm');
 const searchEnd = six.indexOf('function exAcFilter');
 ok('search slice', searchStart >= 0 && searchEnd > searchStart);
 vm.runInContext(six.slice(searchStart, searchEnd), ctx);
+const altStart = six.indexOf('function exAcShouldShowAlts');
+const altEnd = six.indexOf('function exAcRender');
+ok('alt slice', altStart >= 0 && altEnd > altStart);
+vm.runInContext(six.slice(altStart, altEnd), ctx);
 
 const row = ctx.libExerciseByName('Wiosłowanie na maszynie siedząc (Cable Row / maszyna)');
 ok('row lib hit', row && row.name === 'Wiosłowanie na maszynie', row && row.name);
@@ -77,6 +81,8 @@ ok('no false hamstring', ctx.libExerciseByName('Uginanie ramion na maszynie (Bic
 const hack = ctx.libExerciseByName('Przysiad na suwnicy (Hack Squat / maszyna)');
 ok('hack lib hit', hack && /hack/i.test(hack.name), hack && hack.name);
 ok('hack alts', (ctx.altsForExercise('Przysiad na suwnicy (Hack Squat / maszyna)') || []).some((a) => /nogami|przysiad/i.test(a)));
+ok('short liny no ac alts', (ctx.exAcAltItems('liny') || []).length === 0);
+ok('AI row still ac alts', (ctx.exAcAltItems('Wiosłowanie na maszynie siedząc (Cable Row / maszyna)') || []).some((a) => /wyciągiem|hantlem/i.test(a)));
 
 if (failed) process.exit(1);
 console.log('\nAll studio-machine-alts tests passed');
