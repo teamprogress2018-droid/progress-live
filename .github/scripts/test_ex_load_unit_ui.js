@@ -155,6 +155,34 @@ function ok(name, cond, extra) {
   ok('live placeholder min', liveCard.ph === 'min', JSON.stringify(liveCard));
   ok('live not ciezar kg', !/ciężar/i.test(liveCard.head), liveCard.head);
 
+  await page.evaluate(() => {
+    window.liveExercises = [{
+      name: 'Plank na przedramionach z oddychaniem przeponowym',
+      loadUnit: 'kg',
+      sets: [{ setNo: 1, kg: '40', reps: '', done: false, kind: 'work' }],
+      done: false,
+      collapsed: false
+    }];
+    if (typeof renderLiveExercises === 'function') renderLiveExercises();
+  });
+  const plank = await page.evaluate(() => {
+    const head = document.querySelector('#live-ex-0 .live-set-head');
+    const input = document.querySelector('#live-ex-0 .live-kg-input');
+    const helper = typeof exLoadUnit === 'function'
+      ? exLoadUnit({ name: 'Plank na przedramionach z oddychaniem przeponowym', loadUnit: 'kg' })
+      : '';
+    return {
+      head: head ? head.innerText : '',
+      ph: input ? input.getAttribute('placeholder') : '',
+      helper
+    };
+  });
+  try { await page.screenshot({ path: path.join(shotDir, 'live_plank_sec.png') }); } catch (e) { console.warn('shot skip', e.message); }
+  ok('live plank header czas s', /czas/i.test(plank.head) && /\(s\)/.test(plank.head), plank.head);
+  ok('live plank placeholder sec', plank.ph === 'sec', JSON.stringify(plank));
+  ok('live plank not ciezar', !/ciężar/i.test(plank.head), plank.head);
+  ok('live plank helper sec', plank.helper === 'sec', plank.helper);
+
   await browser.close();
   if (failed) process.exit(1);
 })().catch((err) => {

@@ -26,9 +26,7 @@ function eq(name, got, want) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=78'));
-ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=43'));
-ok('cache 01', html.includes('01-core.js?v=78'));
+ok('cache 01', html.includes('01-core.js?v=79'));
 ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=43'));
 ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=64'));
 ok('builder apply helper', src05.includes('function builderApplyLoadUnit'));
@@ -36,6 +34,7 @@ ok('builder header KG/S', src05.includes('KG/S'));
 ok('save loadUnit', src05.includes("loadUnit:typeof exLoadUnit==='function'?exLoadUnit(n):'kg'"));
 ok('liny tagged sec', /name:'Liny treningowe'[\s\S]{0,280}load:'sec'/.test(six));
 ok('deska tagged sec', /name:'Deska',aka:'Plank[^']*'[\s\S]{0,240}load:'sec'/.test(six));
+ok('plank forearm infer', /plank na \(przedramion\|łokci\|lokci\)/.test(fs.readFileSync(path.join(root, '01-core.js'), 'utf8')));
 ok('taps not tagged', !/name:'Deska z unoszeniem ramienia'[^}]*load:'sec'/.test(six));
 ok('wioslarz tagged min', /name:'Wioślarz'[^}]*load:'min'/.test(six));
 ok('airbike tagged min', /name:'Airbike'[^}]*load:'min'/.test(six));
@@ -90,6 +89,11 @@ eq('liny sec', exLoadUnit('Liny treningowe'), 'sec');
 eq('liny aka', exLoadUnit('Battle ropes'), 'sec');
 eq('deska sec', exLoadUnit('Deska'), 'sec');
 eq('deska taps stay kg', exLoadUnit('Deska z unoszeniem ramienia'), 'kg');
+eq('plank forearm sec', exLoadUnit('Plank na przedramionach z oddychaniem przeponowym'), 'sec');
+eq('plank elbows sec', exLoadUnit('Plank na łokciach (deska)'), 'sec');
+eq('forearm plank en', exLoadUnit('Forearm plank'), 'sec');
+eq('curl forearm stays kg', exLoadUnit('Uginanie przedramion z hantlą'), 'kg');
+eq('stale kg on plank becomes sec', exLoadUnit({name: 'Plank na przedramionach z oddychaniem przeponowym', loadUnit: 'kg'}), 'sec');
 eq('wall sit sec', exLoadUnit('Przysiad przy ścianie'), 'sec');
 eq('dead hang sec', exLoadUnit('Zwisy na drążku'), 'sec');
 eq('leg raises kg', exLoadUnit('Zwisy nóg drążek'), 'kg');
