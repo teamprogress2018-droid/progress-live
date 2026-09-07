@@ -126,6 +126,7 @@ ok('alts without machine', (ctx.altsForExercise('Wiosłowanie na maszynie siedz�
 ok('pec-deck still matches', ctx.libExerciseByName('Rozpiętki na maszynie (Pec-Deck) — środek klatki')?.name === 'Butterfly (peck deck)');
 ok('search finds EN aka', ctx.exercisesGroupedByCat('floor press').some((g) => g.items.some((e) => e.name === 'Wyciskanie z podłogi')));
 ok('thumb PL name', /free-exercise-db/.test(ctx.exThumbUrl({ name: 'Wyciskanie z podłogi' }) || ''));
+ok('thumb incline cable', /Incline_Dumbbell_Flyes/.test(ctx.exThumbUrl({ name: 'Rozpiętki na bramie na ławce skośnej' }) || ''));
 
 const namesOf = (q) => ctx.exercisesGroupedByCat(q).flatMap((g) => g.items.map((e) => e.name));
 ok('search liny', namesOf('liny').includes('Liny treningowe'));

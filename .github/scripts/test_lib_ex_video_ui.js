@@ -169,7 +169,11 @@ function ok(name, cond, extra) {
 
   const cableIncline = await detailMedia('Rozpiętki na bramie na ławce skośnej');
   ok('cable incline detail title', cableIncline.title === 'Rozpiętki na bramie na ławce skośnej', cableIncline.title);
-  ok('cable incline has photo or video', !!(cableIncline.src || cableIncline.img), JSON.stringify(cableIncline).slice(0, 180));
+  const cableInclineThumb = await page.evaluate(() => {
+    const img = document.querySelector('#exd-body .ex-detail-thumb img');
+    return img ? img.getAttribute('src') : '';
+  });
+  ok('cable incline shows photo', /Incline_Dumbbell_Flyes|free-exercise-db/i.test(cableInclineThumb), cableInclineThumb);
 
   const cableAka = await detailMedia('Na bramie na skosie ławki');
   ok('cable incline aka opens', cableAka.title === 'Rozpiętki na bramie na ławce skośnej', cableAka.title);
