@@ -707,7 +707,9 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 /* ── LIVE WORKOUT ── */
 .live-dot-wrap{width:32px;height:32px;border-radius:var(--r);background:rgba(var(--accent-rgb),0.15);display:flex;align-items:center;justify-content:center;}
 .live-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);animation:pulse 1.2s infinite;}
-.live-ex-card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--r2);padding:20px;margin-bottom:var(--space-md);transition:border-color 0.15s,box-shadow 0.15s;}
+.live-ex-card{background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--r2);padding:20px;margin-bottom:var(--space-md);transition:border-color 0.15s,box-shadow 0.15s;position:relative;}
+.live-ex-card:has(.live-last-sets:hover),
+.live-ex-card:has(.live-last-sets[open]){z-index:8;}
 .live-ex-card.active{border-color:var(--accent);background:rgba(var(--accent-rgb),0.06);box-shadow:var(--focus-ring);}
 .live-ex-card.done{border-color:rgba(62,207,178,0.35);background:rgba(62,207,178,0.06);opacity:0.85;}
 .live-set-grid,.live-set-row{
