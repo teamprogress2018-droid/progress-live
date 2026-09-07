@@ -2170,12 +2170,108 @@ function formatDayExerciseLines(exercises,clientId){
 }
 window.formatDayExerciseLines=formatDayExerciseLines;
 
+function isMachineExercise(exOrName){
+  const ex=exOrName&&typeof exOrName==='object'?exOrName:(typeof libExerciseByName==='function'?libExerciseByName(exOrName):null);
+  const name=String((ex&&ex.name)||(typeof exOrName==='string'?exOrName:'')||'');
+  const eq=String((ex&&ex.eq)||'').toLowerCase();
+  const n=name.toLowerCase();
+  if(eq==='maszyna')return true;
+  if(/\bsmith\b|w bramie smith|suwnic|hack squat|leg press|peck?[- ]?deck|pec-deck/.test(n))return true;
+  if(/\bmaszynie\b|\bmaszyna\b/.test(n))return true;
+  return false;
+}
+window.isMachineExercise=isMachineExercise;
+
+function isStudioFreeEx(ex){
+  if(!ex||!ex.name)return false;
+  if(isMachineExercise(ex))return false;
+  const eq=String(ex.eq||'');
+  if(/Hantle|Sztanga|Wyciąg/.test(eq))return true;
+  const n=String(ex.name).toLowerCase();
+  if(/ławce|ławka/.test(n))return true;
+  if(/bramie/.test(n)&&!/smith/.test(n))return true;
+  if(/Własna masa/.test(eq)&&!/cardio/i.test(String(ex.cat||'')))return true;
+  return false;
+}
+window.isStudioFreeEx=isStudioFreeEx;
+
+function studioMuscleOverlap(src,ex){
+  const sm=String(src&&src.muscle||'').toLowerCase();
+  const em=String(ex&&ex.muscle||'').toLowerCase();
+  if(!sm||!em)return true;
+  const toks=sm.split(/[,;/]/).map(t=>t.trim().replace(/[()]/g,'').split(/\s+/)[0]).filter(t=>t.length>=4);
+  if(!toks.length)return true;
+  return toks.some(t=>em.includes(t));
+}
+
+function studioIsolationHint(ex){
+  return /izolac|fly|rozpiętk|uginan|wyprost|wznos|unoszen|kickback|face pull|ściąganie do twarzy/i.test([ex&&ex.name,ex&&ex.muscle,ex&&ex.tip].join(' '));
+}
+
+function studioAltScore(ex,src,listed){
+  if(!ex||!ex.name)return -1;
+  if(src&&String(ex.name).toLowerCase()===String(src.name||'').toLowerCase())return -1;
+  if(isMachineExercise(ex))return listed?8:0;
+  let s=12;
+  if(listed)s+=50;
+  const eq=String(ex.eq||'');
+  if(/Hantle/.test(eq))s+=40;
+  else if(/Sztanga/.test(eq))s+=38;
+  else if(/Wyciąg/.test(eq))s+=36;
+  else if(/Własna masa/.test(eq))s+=10;
+  const n=String(ex.name||'').toLowerCase();
+  if(/ławce|ławka/.test(n))s+=14;
+  if(/bramie/.test(n)&&!/smith/.test(n))s+=14;
+  if(src&&ex.cat&&src.cat&&ex.cat===src.cat)s+=25;
+  const sm=String(src&&src.muscle||'').toLowerCase();
+  const em=String(ex.muscle||'').toLowerCase();
+  if(sm&&em){
+    const toks=sm.split(/[,;/]/).map(t=>t.trim().replace(/[()]/g,'').split(/\s+/)[0]).filter(t=>t.length>=4);
+    if(toks.some(t=>em.includes(t)))s+=16;
+  }
+  if(src&&studioIsolationHint(src)&&studioIsolationHint(ex))s+=18;
+  else if(src&&studioIsolationHint(src)&&!studioIsolationHint(ex))s-=8;
+  return s;
+}
+
 function altsForExercise(name,explicit){
   const fromPlan=String(explicit||'').split(/[,;/|]/).map(s=>s.trim()).filter(Boolean);
-  if(fromPlan.length)return fromPlan;
   const hit=typeof libExerciseByName==='function'?libExerciseByName(name):null;
-  if(!hit||!hit.alt)return [];
-  return String(hit.alt).split(/[,;/]/).map(s=>s.trim()).filter(Boolean);
+  const fromLib=hit&&hit.alt?String(hit.alt).split(/[,;/]/).map(s=>s.trim()).filter(Boolean):[];
+  const cur=String((hit&&hit.name)||name||'').trim().toLowerCase();
+  const seen=new Set();
+  const listed=[];
+  fromPlan.concat(fromLib).forEach(a=>{
+    const k=String(a).trim();
+    if(!k||k.toLowerCase()===cur||seen.has(k.toLowerCase()))return;
+    seen.add(k.toLowerCase());listed.push(k);
+  });
+  const lib=typeof allExercises==='function'?allExercises():[].concat(window.EX||[],window.DEF_EX||[]);
+  if(hit&&isMachineExercise(hit)&&lib.length){
+    let extras=lib.filter(e=>e&&e.name&&e.name.toLowerCase()!==cur&&e.cat===hit.cat&&isStudioFreeEx(e)&&studioMuscleOverlap(hit,e));
+    if(studioIsolationHint(hit)){
+      const iso=extras.filter(e=>studioIsolationHint(e));
+      if(iso.length>=2)extras=iso.concat(extras.filter(e=>!studioIsolationHint(e)));
+    }
+    extras.sort((a,b)=>studioAltScore(b,hit,false)-studioAltScore(a,hit,false));
+    extras.slice(0,8).forEach(e=>{
+      if(seen.has(e.name.toLowerCase()))return;
+      seen.add(e.name.toLowerCase());listed.push(e.name);
+    });
+  }
+  const ranked=listed.map(n=>{
+    const ex=typeof libExerciseByName==='function'?libExerciseByName(n):null;
+    return {n,s:studioAltScore(ex||{name:n},hit,fromPlan.concat(fromLib).some(x=>String(x).toLowerCase()===n.toLowerCase()))};
+  }).filter(x=>x.s>0).sort((a,b)=>b.s-a.s);
+  let out=ranked.map(x=>x.n);
+  if(hit&&isMachineExercise(hit)){
+    const free=ranked.filter(x=>{
+      const ex=typeof libExerciseByName==='function'?libExerciseByName(x.n):null;
+      return ex?isStudioFreeEx(ex):x.s>=20;
+    }).map(x=>x.n);
+    if(free.length)out=free;
+  }
+  return out.slice(0,8);
 }
 window.altsForExercise=altsForExercise;
 

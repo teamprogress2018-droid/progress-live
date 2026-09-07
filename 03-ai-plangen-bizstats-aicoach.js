@@ -1366,15 +1366,16 @@ function aplSwapExercise(di,ei){
   setTimeout(()=>{
     const inp=document.getElementById(`apl-edit-name-${di}-${ei}`);
     if(!inp)return;
+    inp.dataset.altFor=ex.name||'';
     const alts=typeof altsForExercise==='function'?altsForExercise(ex.name):[];
-    if(alts.length){
-      inp.value='';
-      inp.placeholder='Zamienniki: '+alts.slice(0,3).join(', ')+'…';
-      if(typeof exAcRender==='function')exAcRender(inp);
-    }
+    inp.value='';
+    inp.placeholder=alts.length
+      ?('Zamienniki (sztanga / hantle / brama / ławka): '+alts.slice(0,3).join(', ')+'…')
+      :'Szukaj ćwiczenia…';
+    if(typeof exAcRender==='function')exAcRender(inp);
     inp.focus();
   },60);
-  notify('Wybierz zamiennik z listy');
+  notify('Wybierz zamiennik: sztanga, hantle, brama lub ławka');
 }
 function aplAddDay(){
   if(!aplLastPlan)return;

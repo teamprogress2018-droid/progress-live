@@ -879,7 +879,7 @@ function addRow(dayId){
     +'</div>'
     +'<div class="ex-row-extra">'
     +'<div class="builder-alt-box" hidden>'
-    +'<div class="builder-alt-label">Zamienniki gdy nie ma maszyny / sprzętu — kliknij, żeby podmienić w planie</div>'
+    +'<div class="builder-alt-label">Zamienniki gdy nie ma maszyny — sztanga / hantle / brama / ławka — kliknij, żeby podmienić w planie</div>'
     +'<div class="builder-alt-chips"></div>'
     +'<input type="text" placeholder="Własny zamiennik (opcjonalnie)" class="ex-inp ex-inp-name builder-sub-input" data-f="alt" oninput="builderRefreshAltChips(this.closest(\'.ex-row\'))">'
     +'</div>'

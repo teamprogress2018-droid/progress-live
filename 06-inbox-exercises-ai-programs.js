@@ -466,7 +466,7 @@ const DEF_EX=[
 {name:'Pompki',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka piersiowa, Triceps, Core',tip:'Ciało w jednej linii.',nsca:'3-4xmax.',alt:'Wyciskanie sztangi, Wyciskanie hantli',img:'assets/ex/bench.svg'},
 {name:'Pompki na rączkach',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka (dolna), Triceps',tip:'Głębszy zakres ruchu.',nsca:'3x10-15.',alt:'Dipy, Pompki',img:'assets/ex/bench.svg'},
 {name:'Dipy na poręczach',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka (dolna), Triceps, Barki',tip:'Pochylenie do przodu = więcej klatki.',nsca:'3x8-12.',alt:'Pompki na rączkach',img:'assets/ex/bench.svg'},
-{name:'Butterfly (peck deck)',aka:'Peck deck, Pec-Deck, Pec deck, Rozpiętki na maszynie',cat:'Klatka piersiowa',eq:'Maszyna',muscle:'Klatka (izolacja)',tip:'Łokcie na poziomie barków.',nsca:'3x12-15.',alt:'Rozpiętki hantlami',img:'assets/ex/bench.svg'},
+{name:'Butterfly (peck deck)',aka:'Peck deck, Pec-Deck, Pec deck, Rozpiętki na maszynie',cat:'Klatka piersiowa',eq:'Maszyna',muscle:'Klatka (izolacja)',tip:'Łokcie na poziomie barków.',nsca:'3x12-15.',alt:'Rozpiętki hantlami, Rozpiętki na wyciągu, Rozpiętki na bramie na ławce skośnej',img:'assets/ex/bench.svg'},
 {name:'Pullover hantlem',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka, Najszerszy',tip:'Pełny zakres ruchu. Rozciągnięcie na dole.',nsca:'3x12-15.',alt:'Pullover sztangą'},
 {name:'Pompki plyometryczne',aka:'Plyo Dynamic Push Ups',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka, Triceps, Moc',tip:'Wybij się z podłogi.',nsca:'3x5-8.',alt:'Pompki',img:'assets/ex/bench.svg'},
 {name:'Wyciskanie wąskim chwytem',aka:'Narrow Grip Bench Press',cat:'Klatka piersiowa',eq:'Sztanga',muscle:'Triceps (główny), Klatka (wewnętrzna)',tip:'Łokcie blisko tułowia.',nsca:'3x8-12.',alt:'Wyciskanie francuskie, Dipy',img:'assets/ex/bench.svg'},
@@ -474,7 +474,7 @@ const DEF_EX=[
 {name:'Wyciskanie sztangi skos−',cat:'Klatka piersiowa',eq:'Sztanga',muscle:'Klatka dolna, Triceps',tip:'Ławka lekko w dół. Nie odrywaj bioder.',nsca:'3x8–12.',alt:'Dipy, Pompki na rączkach',img:'assets/ex/bench.svg'},
 {name:'Wyciskanie hantli skos−',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka dolna, Triceps',tip:'Kontroluj hantle w dolnej pozycji.',nsca:'3x10–12.',alt:'Wyciskanie sztangi skos−, Dipy',img:'assets/ex/bench.svg'},
 {name:'Wyciskanie z podłogi',aka:'Floor press, Barbell Floor Press, Floor press',cat:'Klatka piersiowa',eq:'Sztanga',muscle:'Klatka, Triceps (bez pełnego rozciągnięcia)',tip:'Łokcie zatrzymują się o podłogę — bezpieczniej dla barków.',nsca:'3–4x6–10.',alt:'Wyciskanie wąskim chwytem, Wyciskanie sztangi leżąc',img:'assets/ex/bench.svg'},
-{name:'Wyciskanie na maszynie',cat:'Klatka piersiowa',eq:'Maszyna',muscle:'Klatka, Triceps',tip:'Łopatki oparte. Nie blokuj łokci.',nsca:'3x10–15.',alt:'Wyciskanie hantli, Butterfly (peck deck)',img:'assets/ex/bench.svg'},
+{name:'Wyciskanie na maszynie',cat:'Klatka piersiowa',eq:'Maszyna',muscle:'Klatka, Triceps',tip:'Łopatki oparte. Nie blokuj łokci.',nsca:'3x10–15.',alt:'Wyciskanie hantli leżąc, Wyciskanie sztangi leżąc, Wyciskanie hantli na ławce skośnej',img:'assets/ex/bench.svg'},
 {name:'Krzyżowanie wyciągów góra–dół',aka:'Cable crossover góra–dół',cat:'Klatka piersiowa',eq:'Wyciąg',muscle:'Klatka (dolna i środkowa)',tip:'Ruch od góry do bioder. Lekkie ugięcie łokci.',nsca:'3x12–15.',alt:'Rozpiętki na wyciągu, Butterfly (peck deck)',img:'assets/ex/bench.svg'},
 {name:'Krzyżowanie wyciągów dół–góra',aka:'Cable crossover dół–góra',cat:'Klatka piersiowa',eq:'Wyciąg',muscle:'Klatka górna',tip:'Ruch od dołu do góry, jak „wyciskanie w górę”.',nsca:'3x12–15.',alt:'Wyciskanie hantli na ławce skośnej, Rozpiętki na bramie na ławce skośnej',img:'assets/ex/bench.svg'},
 {name:'Wyciskanie landmine',aka:'Landmine press',cat:'Klatka piersiowa',eq:'Sztanga',muscle:'Klatka górna, Barki, Core',tip:'Jedna lub dwie ręce. Stabilny tułów.',nsca:'3x8–12.',alt:'Wyciskanie skos+, Wyciskanie z wybiciem',img:'assets/ex/bench.svg'},
@@ -511,7 +511,7 @@ const DEF_EX=[
 {name:'Unoszenie bokiem',aka:'DB Lateral Raises, DB lateral Raises',cat:'Barki',eq:'Hantle',muscle:'Barki (środkowe)',tip:'Lekkie ugięcie łokci. Nie zamachy!',nsca:'3x15-20.',alt:'Unoszenie wyciągiem'},
 {name:'Unoszenie przodem',aka:'DB Shoulder Front Raises',cat:'Barki',eq:'Hantle',muscle:'Barki (przednie)',tip:'Do wysokości barków, nie wyżej.',nsca:'3x12-15.',alt:'Wyciskanie żołnierskie OHP, Unoszenie wyciągiem'},
 {name:'Unoszenie wyciągiem bokiem',cat:'Barki',eq:'Wyciąg',muscle:'Barki (środkowe), stałe napięcie',tip:'Lepsza aktywacja niż hantle.',nsca:'3x15-20.',alt:'Unoszenie bokiem hantlami'},
-{name:'Odwrotne rozpiętki maszyna',cat:'Barki',eq:'Maszyna',muscle:'Tylne barki, Rombowate',tip:'Łokcie na poziomie barków.',nsca:'3x15.',alt:'Ściąganie do twarzy (face pull), Odwrotne rozpiętki'},
+{name:'Odwrotne rozpiętki maszyna',cat:'Barki',eq:'Maszyna',muscle:'Tylne barki, Rombowate',tip:'Łokcie na poziomie barków.',nsca:'3x15.',alt:'Odwrotne rozpiętki, Ściąganie do twarzy (face pull), Odwrotne rozpiętki na wyciągu'},
 {name:'Rotacja zewnętrzna',aka:'Shoulder External Rotation with Band, External rotation',cat:'Barki',eq:'Hantle',muscle:'Rotatory barku, Podgrzebieniowy',tip:'Łokieć przy boku pod kątem 90°.',nsca:'2-3x15-20.',alt:'Rotacja na wyciągu, Ściąganie do twarzy (face pull)'},
 {name:'Wyciskanie z wybiciem',aka:'Push press',cat:'Barki',eq:'Sztanga',muscle:'Barki, Triceps, Moc eksplozywna',tip:'Lekki dip kolanami i wybicie.',nsca:'3x5-8.',alt:'Wyciskanie żołnierskie OHP'},
 {name:'Wyciskanie kubańskie',aka:'Cuban press, Single Arm DB Cuban Press',cat:'Barki',eq:'Hantle',muscle:'Rotatory barku, Tylne barki',tip:'Zewnętrzna rotacja + wyciskanie.',nsca:'3x10-12.',alt:'Rotacja zewnętrzna, Ściąganie do twarzy (face pull)'},
@@ -546,23 +546,23 @@ const DEF_EX=[
 {name:'Dipy na ławce',aka:'Bench dip',cat:'Triceps',eq:'Własna masa',muscle:'Triceps, Klatka przednia, Barki',tip:'Biodra blisko ławki. Nie schodź za głęboko przy wrażliwych barkach.',nsca:'3x10–15.',alt:'Dipy na poręczach, Pompki diamentowe'},
 {name:'Dipy triceps (pionowe)',cat:'Triceps',eq:'Własna masa',muscle:'Triceps (główny), Klatka mniej',tip:'Tułów bardziej pionowo niż przy dipach na klatkę.',nsca:'3x8–12.',alt:'Dipy na ławce, Wyciskanie wąskim chwytem'},
 {name:'Wyciskanie JM',aka:'JM press',cat:'Triceps',eq:'Sztanga',muscle:'Triceps, Klatka górna',tip:'Hybryda skull crusher + wąski bench. Łokcie pod kątem.',nsca:'3x6–10.',alt:'Prostowanie za głowę (skull crusher), Wyciskanie wąskim chwytem'},
-{name:'Dipy triceps maszyna',aka:'Triceps dip maszyna',cat:'Triceps',eq:'Maszyna',muscle:'Triceps (wszystkie głowy)',tip:'Ramiona blisko tułowia. Kontrolowany ruch.',nsca:'3x10–15.',alt:'Prostowanie wyciąg, Dipy'},
+{name:'Dipy triceps maszyna',aka:'Triceps dip maszyna',cat:'Triceps',eq:'Maszyna',muscle:'Triceps (wszystkie głowy)',tip:'Ramiona blisko tułowia. Kontrolowany ruch.',nsca:'3x10–15.',alt:'Prostowanie tricepsa wyciąg, Dipy na poręczach'},
 {name:'Przysiad ze sztangą',aka:'Barbell Back Squat, Empty Barbell Back Squat',cat:'Nogi',eq:'Sztanga',muscle:'Czworogłowy, Pośladki, Dwugłowy, Prostownicy',tip:'Kolana w kierunku palców. Biodra poniżej kolan.',nsca:'Siła: 4-6x3-5. Hipertrofia: 3-4x8-12.',alt:'Przysiad goblet, Przysiad przedni, Wyciskanie nogami',img:'assets/ex/squat.svg'},
 {name:'Przysiad Goblet',aka:'DB Goblet Squat',cat:'Nogi',eq:'Hantle',muscle:'Czworogłowy, Pośladki, Core',tip:'Hantel trzymaj przy klatce.',nsca:'3x12-15.',alt:'Przysiad ze sztangą',img:'assets/ex/squat.svg'},
 {name:'Przysiad przedni',aka:'Front squat',cat:'Nogi',eq:'Sztanga',muscle:'Czworogłowy (głównie), Pośladki, Core',tip:'Łokcie wysoko, klatka dumna.',nsca:'3-4x6-10.',alt:'Przysiad ze sztangą',img:'assets/ex/squat.svg'},
 {name:'Przysiad sumo',cat:'Nogi',eq:'Sztanga',muscle:'Pośladki, Przywodziciele, Czworogłowy',tip:'Szerokie ustawienie stóp, palce na zewnątrz.',nsca:'3x8-12.',alt:'Przysiad klasyczny'},
-{name:'Wyciskanie nogami',aka:'Leg press, Leg Press Machine, Leg Press Mchine',cat:'Nogi',eq:'Maszyna',muscle:'Czworogłowy, Pośladki, Dwugłowy uda',tip:'Nie blokuj kolan całkowicie.',nsca:'3-4x10-15.',alt:'Przysiad ze sztangą'},
+{name:'Wyciskanie nogami',aka:'Leg press, Leg Press Machine, Leg Press Mchine',cat:'Nogi',eq:'Maszyna',muscle:'Czworogłowy, Pośladki, Dwugłowy uda',tip:'Nie blokuj kolan całkowicie.',nsca:'3-4x10-15.',alt:'Przysiad ze sztangą, Przysiad Goblet'},
 {name:'Wykrok ze sztangą',cat:'Nogi',eq:'Sztanga',muscle:'Czworogłowy, Pośladki (jednostronnie)',tip:'Kolano tylne blisko podłogi.',nsca:'3x10-12/noga.',alt:'Wykrok z hantlami, Przysiad bułgarski'},
 {name:'Przysiad bułgarski',aka:'Bulgarian split squat, RFE DB Split Squat, Bulgarian split squat DB',cat:'Nogi',eq:'Hantle',muscle:'Czworogłowy, Pośladki (izolacja jednostronna)',tip:'Tylna noga na ławce.',nsca:'3x8-12/noga.',alt:'Wykrok'},
 {name:'Wypychanie bioder (hip thrust)',aka:'Hip thrust',cat:'Nogi',eq:'Sztanga',muscle:'Pośladki (izolacja), Dwugłowy uda',tip:'Ściśnij pośladki maksymalnie na górze.',nsca:'3-4x10-15.',alt:'Mostek biodrowy'},
 {name:'Mostek biodrowy',aka:'DB Glute Bridge, Glute Bridge, Glute Bridge Bodyweight',cat:'Nogi',eq:'Własna masa',muscle:'Pośladki, Dwugłowy uda',tip:'Zatrzymanie na górze 2 sek.',nsca:'3x15-20.',alt:'Wypychanie bioder (hip thrust)'},
-{name:'Uginanie nóg maszyna',aka:'Hamstring Leg Curl Machine',cat:'Nogi',eq:'Maszyna',muscle:'Dwugłowy uda (izolacja)',tip:'Pełny zakres ruchu.',nsca:'3x12-15.',alt:'Martwy ciąg RDL'},
-{name:'Wyprosty nóg maszyna',aka:'Seated Leg Extension Machine',cat:'Nogi',eq:'Maszyna',muscle:'Czworogłowy (izolacja)',tip:'Zatrzymaj na górze 1 sek.',nsca:'3x12-15.',alt:'Przysiad, Wyciskanie nogami'},
-{name:'Wspięcia na palce',cat:'Nogi',eq:'Maszyna',muscle:'Łydki (brzuchaty i płaszczkowaty)',tip:'Pełny zakres. Powolne tempo.',nsca:'4x15-20.',alt:'Wspięcia na palce stojąc'},
+{name:'Uginanie nóg maszyna',aka:'Hamstring Leg Curl Machine',cat:'Nogi',eq:'Maszyna',muscle:'Dwugłowy uda (izolacja)',tip:'Pełny zakres ruchu.',nsca:'3x12-15.',alt:'Martwy ciąg RDL, RDL jednonóż, Uginanie nordyckie'},
+{name:'Wyprosty nóg maszyna',aka:'Seated Leg Extension Machine',cat:'Nogi',eq:'Maszyna',muscle:'Czworogłowy (izolacja)',tip:'Zatrzymaj na górze 1 sek.',nsca:'3x12-15.',alt:'Przysiad Goblet, Wykrok chodzony'},
+{name:'Wspięcia na palce',cat:'Nogi',eq:'Maszyna',muscle:'Łydki (brzuchaty i płaszczkowaty)',tip:'Pełny zakres. Powolne tempo.',nsca:'4x15-20.',alt:'Wspięcia na palce jednonóż'},
 {name:'Wspięcia na palce jednonóż',cat:'Nogi',eq:'Własna masa',muscle:'Łydki (jednostronnie)',tip:'Trzymaj się czegoś dla balansu.',nsca:'3x15-20/noga.',alt:'Wspięcia na palce'},
 {name:'Wejścia na skrzynię',aka:'Step-up, Box Step Up',cat:'Nogi',eq:'Hantle',muscle:'Czworogłowy, Pośladki (jednostronnie)',tip:'Ciężar na pięcie.',nsca:'3x10-12/noga.',alt:'Wykrok, Przysiad bułgarski'},
 {name:'Martwy ciąg sumo',aka:'Sumo deadlift',cat:'Nogi',eq:'Sztanga',muscle:'Pośladki, Przywodziciele, Czworogłowy, Grzbiet',tip:'Szerokie ustawienie, palce na zewnątrz.',nsca:'3-5x3-6.',alt:'Martwy ciąg klasyczny'},
-{name:'Przysiad hack maszyna',aka:'Hack squat maszyna, Hack squat, Przysiad na suwnicy',cat:'Nogi',eq:'Maszyna',muscle:'Czworogłowy (głównie), Pośladki',tip:'Plecy płasko przy podparciu. Schodź do pełnego rozciągnięcia czworogłowych — kolano wędruje w dół i lekko w przód.',nsca:'3x10-12.',alt:'Wyciskanie nogami'},
+{name:'Przysiad hack maszyna',aka:'Hack squat maszyna, Hack squat, Przysiad na suwnicy',cat:'Nogi',eq:'Maszyna',muscle:'Czworogłowy (głównie), Pośladki',tip:'Plecy płasko przy podparciu. Schodź do pełnego rozciągnięcia czworogłowych — kolano wędruje w dół i lekko w przód.',nsca:'3x10-12.',alt:'Przysiad ze sztangą, Przysiad Goblet, Wykrok chodzony'},
 {name:'Przysiad jednonóż (pistol)',aka:'Pistol Squat - Home, Pistol Squat',cat:'Nogi',eq:'Własna masa',muscle:'Czworogłowy, Pośladki, Stabilizacja',tip:'Zacznij od wersji na skrzynię.',nsca:'3x5-8/noga.',alt:'Przysiad bułgarski'},
 {name:'Przysiad na skrzynię',aka:'Box squat, Box Back Squat',cat:'Nogi',eq:'Sztanga',muscle:'Pośladki, Czworogłowy',tip:'Usiąść na skrzynię, zatrzymać się, wstać.',nsca:'4x5-6.',alt:'Przysiad ze sztangą'},
 {name:'RDL jednonóż',aka:'Single leg RDL, Single Leg DB RDL',cat:'Nogi',eq:'Hantle',muscle:'Pośladki, Dwugłowy uda (jednostronnie)',tip:'Biodra równo. Powolne opuszczanie.',nsca:'3x10-12/noga.',alt:'Martwy ciąg RDL, Przysiad bułgarski'},
@@ -678,8 +678,8 @@ const DEF_EX=[
 {name:'Rzut piłką z wykroku',aka:'Lunge to throw, Split stance throw, Rzut piłką w wykroku',cat:'Cardio',eq:'Piłka lekarska',muscle:'Czworogłowy, Pośladki, Core, Cardio',tip:'Wykrok, z tej pozycji rzut z klatki albo rotacyjny. Kolano nad palcami.',nsca:'3×8/stronę.',alt:'Rzut piłką z klatki, Rzut piłką rotacyjny'},
 {name:'Rzut piłką z rotacją tułowia',aka:'Rotational wall throw, Woodchop throw, Med ball woodchop throw, Rzut piłką woodchop',cat:'Cardio',eq:'Piłka lekarska',muscle:'Skośne brzucha, Core rotacyjny, Cardio',tip:'Piłka z biodra po skosie w górę, o ścianę. Ruch jak woodchop, ale z rzutem.',nsca:'3×8–12/stronę.',alt:'Rzut piłką rotacyjny, Woodchop wyciąg'},
 {name:'Wyciskanie hantli na podłodze',aka:'Dumbbell floor press, Floor press hantle, DB Floor Press, Lying DB Floor Press',cat:'Klatka piersiowa',eq:'Hantle',muscle:'Klatka, Triceps',tip:'Łokcie zatrzymują się o podłogę. Stabilne barki.',nsca:'3–4x8–12.',alt:'Wyciskanie z podłogi, Wyciskanie hantli leżąc',img:'assets/ex/bench.svg'},
-{name:'Wyciskanie na maszynie skos+',aka:'Incline machine press, Hammer strength incline',cat:'Klatka piersiowa',eq:'Maszyna',muscle:'Klatka górna, Barki (przednie)',tip:'Łopatki oparte. Nie odrywaj bioder.',nsca:'3x10–12.',alt:'Wyciskanie hantli na ławce skośnej, Wyciskanie na maszynie',img:'assets/ex/bench.svg'},
-{name:'Wyciskanie w bramie Smith',aka:'Smith machine bench, Bench Smith',cat:'Klatka piersiowa',eq:'Maszyna',muscle:'Klatka, Triceps',tip:'Łopatki ściągnięte. Smith prowadzi tor — kontroluj dolną pozycję.',nsca:'3x8–12.',alt:'Wyciskanie sztangi leżąc, Wyciskanie na maszynie',img:'assets/ex/bench.svg'},
+{name:'Wyciskanie na maszynie skos+',aka:'Incline machine press, Hammer strength incline',cat:'Klatka piersiowa',eq:'Maszyna',muscle:'Klatka górna, Barki (przednie)',tip:'Łopatki oparte. Nie odrywaj bioder.',nsca:'3x10–12.',alt:'Wyciskanie hantli na ławce skośnej, Wyciskanie sztangi skos+, Rozpiętki na bramie na ławce skośnej',img:'assets/ex/bench.svg'},
+{name:'Wyciskanie w bramie Smith',aka:'Smith machine bench, Bench Smith',cat:'Klatka piersiowa',eq:'Maszyna',muscle:'Klatka, Triceps',tip:'Łopatki ściągnięte. Smith prowadzi tor — kontroluj dolną pozycję.',nsca:'3x8–12.',alt:'Wyciskanie sztangi leżąc, Wyciskanie hantli leżąc',img:'assets/ex/bench.svg'},
 {name:'Pompki na kolanach',aka:'Knee push-up, Pompki z kolan, Kneeling Push Ups',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka, Triceps',tip:'Ciało od kolan w linii. Łokcie ~45°.',nsca:'3xmax.',alt:'Pompki, Pompki na rączkach',img:'assets/ex/bench.svg'},
 {name:'Pompki z nogami na podwyższeniu',aka:'Decline push-up, Pompki decline, Feet Elevated Push Ups',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka górna, Barki, Triceps',tip:'Stopy na ławce. Nie zapadaj się w barkach.',nsca:'3xmax.',alt:'Pompki, Wyciskanie skos+',img:'assets/ex/bench.svg'},
 {name:'Pompki łucznicze',aka:'Archer push-up',cat:'Klatka piersiowa',eq:'Własna masa',muscle:'Klatka (jednostronnie), Triceps',tip:'Jedna ręka ugięta, druga prawie prosta. Zmieniaj strony.',nsca:'3x6–8/stronę.',alt:'Pompki szerokie, Pompki',img:'assets/ex/bench.svg'},
@@ -727,27 +727,27 @@ const DEF_EX=[
 {name:'Kickback na wyciągu',aka:'Cable kickback',cat:'Triceps',eq:'Wyciąg',muscle:'Triceps (izolacja)',tip:'Tułów pochylony. Pełny wyprost, pauza.',nsca:'3x12–15/stronę.',alt:'Kickback triceps, Prostowanie jednorącz wyciąg'},
 {name:'Wyciskanie wąskim chwytem w Smith',aka:'Smith close-grip bench',cat:'Triceps',eq:'Maszyna',muscle:'Triceps, Klatka wewnętrzna',tip:'Chwyt na szerokość barków. Łokcie blisko.',nsca:'3x8–12.',alt:'Wyciskanie wąskim chwytem, Wyciskanie JM',img:'assets/ex/bench.svg'},
 {name:'Prostowanie na drążku',aka:'Bodyweight skull crusher, Bar skull crusher',cat:'Triceps',eq:'Własna masa',muscle:'Triceps, Core',tip:'Drążek nisko. Zginaj tylko łokcie, biodra sztywne.',nsca:'3x8–12.',alt:'Prostowanie za głowę (skull crusher), Dipy na ławce'},
-{name:'Prostowanie tricepsa na maszynie',aka:'Machine triceps extension',cat:'Triceps',eq:'Maszyna',muscle:'Triceps (wszystkie głowy)',tip:'Łokcie nieruchomo. Pełny wyprost bez bolesnego zablokowania.',nsca:'3x10–15.',alt:'Dipy triceps maszyna, Prostowanie tricepsa wyciąg'},
+{name:'Prostowanie tricepsa na maszynie',aka:'Machine triceps extension',cat:'Triceps',eq:'Maszyna',muscle:'Triceps (wszystkie głowy)',tip:'Łokcie nieruchomo. Pełny wyprost bez bolesnego zablokowania.',nsca:'3x10–15.',alt:'Prostowanie tricepsa wyciąg, Prostowanie za głowę hantlami'},
 {name:'Wykrok chodzony',aka:'Walking lunge, Wykroki chodzone, DB Walking Lunges',cat:'Nogi',eq:'Hantle',muscle:'Czworogłowy, Pośladki',tip:'Długi krok, kolano tylne nisko. Tułów pionowo.',nsca:'3x10–12/noga.',alt:'Wykrok ze sztangą, Wykrok z hantlami',img:'assets/ex/squat.svg'},
 {name:'Wykrok wsteczny',aka:'Reverse lunge, Wykrok w tył, DB Reverse Lunges',cat:'Nogi',eq:'Hantle',muscle:'Czworogłowy, Pośladki (łagodniej dla kolan)',tip:'Krok w tył. Ciężar na przedniej pięcie.',nsca:'3x8–12/noga.',alt:'Wykrok chodzony, Przysiad bułgarski',img:'assets/ex/squat.svg'},
 {name:'Wykrok z hantlami',aka:'Dumbbell lunge, DB lunge',cat:'Nogi',eq:'Hantle',muscle:'Czworogłowy, Pośladki',tip:'Hantle wzdłuż ciała. Kolano w linii palców.',nsca:'3x10/noga.',alt:'Wykrok ze sztangą, Wykrok chodzony',img:'assets/ex/squat.svg'},
 {name:'Zakroki',aka:'Split squat, Stationary lunge, Zakrok',cat:'Nogi',eq:'Hantle',muscle:'Czworogłowy, Pośladki (stacjonarnie)',tip:'Stopy w rozkroku, góra-dół bez kroku. Tylna pięta uniesiona.',nsca:'3x8–12/noga.',alt:'Przysiad bułgarski, Wykrok wsteczny',img:'assets/ex/squat.svg'},
-{name:'Przysiad w bramie Smith',aka:'Smith squat, Smith machine squat',cat:'Nogi',eq:'Maszyna',muscle:'Czworogłowy, Pośladki',tip:'Stopy lekko przed linią sztangi. Plecy neutralne.',nsca:'3x8–12.',alt:'Przysiad ze sztangą, Przysiad hack maszyna',img:'assets/ex/squat.svg'},
+{name:'Przysiad w bramie Smith',aka:'Smith squat, Smith machine squat',cat:'Nogi',eq:'Maszyna',muscle:'Czworogłowy, Pośladki',tip:'Stopy lekko przed linią sztangi. Plecy neutralne.',nsca:'3x8–12.',alt:'Przysiad ze sztangą, Przysiad Goblet',img:'assets/ex/squat.svg'},
 {name:'Przysiad z piętami na podwyższeniu',aka:'Heels-elevated squat, Cyclist squat',cat:'Nogi',eq:'Hantle',muscle:'Czworogłowy (mocniej)',tip:'Pięty na talerzach 2–4 cm. Tułów bardziej pionowo.',nsca:'3x10–15.',alt:'Przysiad Goblet, Wyprosty nóg maszyna',img:'assets/ex/squat.svg'},
 {name:'Przysiad sissy',aka:'Sissy squat, Sisi Squat - Home, Sissy squat',cat:'Nogi',eq:'Własna masa',muscle:'Czworogłowy (izolacja)',tip:'Kolana do przodu, biodra wyprostowane. Trzymaj się ramy.',nsca:'3x8–15.',alt:'Wyprosty nóg maszyna, Przysiad z piętami na podwyższeniu'},
 {name:'Przysiad kozacki',aka:'Cossack squat, Cossack Squat - Home',cat:'Nogi',eq:'Własna masa',muscle:'Przywodziciele, Czworogłowy, Mobilność',tip:'Szeroki rozkrok. Jedna noga ugięta, druga prosta na pięcie.',nsca:'3x6–10/stronę.',alt:'Wykrok boczny, Przysiad sumo',img:'assets/ex/squat.svg'},
 {name:'Przysiad Zercher',aka:'Zercher squat',cat:'Nogi',eq:'Sztanga',muscle:'Czworogłowy, Core, Górne plecy',tip:'Sztanga w zgięciach łokci. Klatka duma.',nsca:'3x5–8.',alt:'Przysiad przedni, Przysiad Goblet',img:'assets/ex/squat.svg'},
-{name:'Uginanie nóg leżąc',aka:'Lying leg curl, Leg curl leżąc',cat:'Nogi',eq:'Maszyna',muscle:'Dwugłowy uda',tip:'Biodra przyciśnięte. Pełny ROM, nie zginaj lędźwi.',nsca:'3x10–15.',alt:'Uginanie nóg maszyna, Uginanie nordyckie'},
-{name:'Uginanie nóg siedząc',aka:'Seated leg curl',cat:'Nogi',eq:'Maszyna',muscle:'Dwugłowy uda (długa głowa — rozciągnięcie)',tip:'Plecy oparte. Pięty do pośladków.',nsca:'3x10–15.',alt:'Uginanie nóg leżąc, Martwy ciąg RDL'},
-{name:'Wspięcia na palce siedząc',aka:'Seated calf raise',cat:'Nogi',eq:'Maszyna',muscle:'Płaszczkowaty (łydka)',tip:'Kolana 90°. Pełne opuszczenie i wspięcie.',nsca:'4x12–20.',alt:'Wspięcia na palce, Wspięcia na palce stojąc'},
-{name:'Wspięcia na palce stojąc',aka:'Standing calf raise',cat:'Nogi',eq:'Maszyna',muscle:'Brzuchaty łydki',tip:'Nogi prawie proste. Pauza na górze.',nsca:'4x10–15.',alt:'Wspięcia na palce, Wspięcia na palce siedząc'},
+{name:'Uginanie nóg leżąc',aka:'Lying leg curl, Leg curl leżąc',cat:'Nogi',eq:'Maszyna',muscle:'Dwugłowy uda',tip:'Biodra przyciśnięte. Pełny ROM, nie zginaj lędźwi.',nsca:'3x10–15.',alt:'Martwy ciąg RDL, Uginanie nordyckie, RDL jednonóż'},
+{name:'Uginanie nóg siedząc',aka:'Seated leg curl',cat:'Nogi',eq:'Maszyna',muscle:'Dwugłowy uda (długa głowa — rozciągnięcie)',tip:'Plecy oparte. Pięty do pośladków.',nsca:'3x10–15.',alt:'Martwy ciąg RDL, Uginanie nordyckie, RDL jednonóż'},
+{name:'Wspięcia na palce siedząc',aka:'Seated calf raise',cat:'Nogi',eq:'Maszyna',muscle:'Płaszczkowaty (łydka)',tip:'Kolana 90°. Pełne opuszczenie i wspięcie.',nsca:'4x12–20.',alt:'Wspięcia na palce jednonóż'},
+{name:'Wspięcia na palce stojąc',aka:'Standing calf raise',cat:'Nogi',eq:'Maszyna',muscle:'Brzuchaty łydki',tip:'Nogi prawie proste. Pauza na górze.',nsca:'4x10–15.',alt:'Wspięcia na palce jednonóż'},
 {name:'Przywodzenie biodra maszyna',aka:'Hip adduction machine, Adductor machine',cat:'Nogi',eq:'Maszyna',muscle:'Przywodziciele',tip:'Kontrolowane zamykanie ud. Nie szarp.',nsca:'3x12–20.',alt:'Przysiad sumo, Przysiad kozacki'},
-{name:'Przysiad z pasem',aka:'Belt squat',cat:'Nogi',eq:'Maszyna',muscle:'Czworogłowy, Pośladki (mniej obciążenia kręgosłupa)',tip:'Pas na biodrach. Tułów pionowo.',nsca:'3x10–15.',alt:'Przysiad hack maszyna, Wyciskanie nogami',img:'assets/ex/squat.svg'},
+{name:'Przysiad z pasem',aka:'Belt squat',cat:'Nogi',eq:'Maszyna',muscle:'Czworogłowy, Pośladki (mniej obciążenia kręgosłupa)',tip:'Pas na biodrach. Tułów pionowo.',nsca:'3x10–15.',alt:'Przysiad ze sztangą, Przysiad Goblet',img:'assets/ex/squat.svg'},
 {name:'Uginanie nordyckie odwrotne',aka:'Reverse nordic, Reverse nordic curl',cat:'Nogi',eq:'Własna masa',muscle:'Czworogłowy (ekscentryka)',tip:'Klęczysz, odchyl tułów w tył. Biodra wyprostowane.',nsca:'3x6–10.',alt:'Wyprosty nóg maszyna, Przysiad sissy'},
-{name:'Wyciskanie nogami jednonóż',aka:'Single-leg press, Single Leg Press Machine, Single-leg press',cat:'Nogi',eq:'Maszyna',muscle:'Czworogłowy, Pośladki (jednostronnie)',tip:'Stopa na środku platformy. Nie blokuj kolana.',nsca:'3x8–12/noga.',alt:'Wyciskanie nogami, Przysiad bułgarski'},
+{name:'Wyciskanie nogami jednonóż',aka:'Single-leg press, Single Leg Press Machine, Single-leg press',cat:'Nogi',eq:'Maszyna',muscle:'Czworogłowy, Pośladki (jednostronnie)',tip:'Stopa na środku platformy. Nie blokuj kolana.',nsca:'3x8–12/noga.',alt:'Przysiad bułgarski, Wykrok chodzony'},
 {name:'Zejścia ze skrzyni',aka:'Step-down, Box step-down',cat:'Nogi',eq:'Własna masa',muscle:'Czworogłowy, Pośladki, Kolano (kontrola)',tip:'Wolne zejście. Kolano nad palcami, nie zapadaj w koślawość.',nsca:'3x8–12/noga.',alt:'Wejścia na skrzynię, Przysiad bułgarski'},
 {name:'Martwy ciąg na sztywnych nogach',aka:'Stiff-leg deadlift, SLDL',cat:'Nogi',eq:'Sztanga',muscle:'Dwugłowy uda, Pośladki, Grzbiet',tip:'Nogi prawie proste. Biodra do tyłu, sztanga blisko łydek.',nsca:'3x8–12.',alt:'Martwy ciąg RDL, Martwy ciąg klasyczny',img:'assets/ex/deadlift.svg'},
-{name:'Wyprosty nóg jednonóż',aka:'Single-leg extension, Seated Single Leg Extension, Single-leg extension',cat:'Nogi',eq:'Maszyna',muscle:'Czworogłowy (izolacja jednostronna)',tip:'Pełny wyprost z pauzą. Druga noga odpoczywa.',nsca:'3x10–15/noga.',alt:'Wyprosty nóg maszyna, Przysiad sissy'},
+{name:'Wyprosty nóg jednonóż',aka:'Single-leg extension, Seated Single Leg Extension, Single-leg extension',cat:'Nogi',eq:'Maszyna',muscle:'Czworogłowy (izolacja jednostronna)',tip:'Pełny wyprost z pauzą. Druga noga odpoczywa.',nsca:'3x10–15/noga.',alt:'Przysiad sissy, Przysiad Goblet'},
 {name:'Wypychanie bioder na maszynie',aka:'Machine hip thrust, Hip thrust maszyna',cat:'Pośladki',eq:'Maszyna',muscle:'Pośladki',tip:'Podparcie pod łopatkami. Ścisk na górze.',nsca:'3–4x10–15.',alt:'Wypychanie bioder (hip thrust), Mostek biodrowy'},
 {name:'Wypychanie bioder B-stance',aka:'B-stance hip thrust, B Stance Banded Hip Thrust',cat:'Pośladki',eq:'Sztanga',muscle:'Pośladki (jednostronnie, stabilniej niż jednonóż)',tip:'Tylna stopa na palcach, 80% ciężaru na przedniej.',nsca:'3x8–12/stronę.',alt:'Wypychanie bioder jednonóż, Wypychanie bioder (hip thrust)'},
 {name:'Mostek KAS',aka:'KAS glute bridge, Kas bridge',cat:'Pośladki',eq:'Sztanga',muscle:'Pośladki (krótki zakres, pump)',tip:'Krótki ruch przy pełnym wyproście bioder. Duży ścisk.',nsca:'3x12–20.',alt:'Mostek biodrowy, Wypychanie bioder (hip thrust)'},
@@ -1168,7 +1168,7 @@ const DEF_EX=[
 {name:'Deska kopenhaska z ugiętymi kolanami',aka:'Knees Bent Copenhagen',cat:'Core',eq:'Własna masa',muscle:'Przywodziciele (łatwiejsza)',tip:'Kolana ugięte. Górna noga na ławce.',nsca:'3x20–40 s/stronę.',alt:'Deska kopenhaska',load:'sec'},
 {name:'Przysiad na palcach więzienny',aka:'Prisoner Tiptoe Squat',cat:'Nogi',eq:'Własna masa',muscle:'Łydki, Czworogłowy',tip:'Dłonie za głową, pięty w górze. Przysiad na palcach.',nsca:'3x10–15.',alt:'Przysiad więzienny, Wspięcia na palce'},
 {name:'Przysiad na palcach w rozkroku więzienny',aka:'Split Stance Prisoner Tiptoe',cat:'Nogi',eq:'Własna masa',muscle:'Łydki, Czworogłowy',tip:'Rozkrok na palcach, dłonie za głową.',nsca:'3x8–12/stronę.',alt:'Przysiad na palcach więzienny'},
-{name:'Wspięcia na palce na suwnicy',aka:'Calf Raises on Leg Press Machine, Single Leg Calf Raises - Leg Press',cat:'Nogi',eq:'Maszyna',muscle:'Łydki',tip:'Stopy na dole platformy. Pełny ROM kostki.',nsca:'4x12–20.',alt:'Wspięcia na palce'},
+{name:'Wspięcia na palce na suwnicy',aka:'Calf Raises on Leg Press Machine, Single Leg Calf Raises - Leg Press',cat:'Nogi',eq:'Maszyna',muscle:'Łydki',tip:'Stopy na dole platformy. Pełny ROM kostki.',nsca:'4x12–20.',alt:'Wspięcia na palce jednonóż'},
 {name:'Mostek V walk-out',aka:'Glute Bridge V Walk Outs, Glute Bridge V Walk Out 2, Glute Bridge Hamstring Walk Out',cat:'Pośladki',eq:'Własna masa',muscle:'Pośladki, Dwugłowy',tip:'Mostek. Kroki piętami w V, biodra wysoko.',nsca:'3x8–12.',alt:'Mostek biodrowy, Marsz w mostku'},
 {name:'Uginanie ud o ławkę z ugiętym kolanem',aka:'Bent Knee Bench Hamstring, Bent Knee Bench Hamstring Curl, Uginanie ud na ławce (ugięte kolana)',cat:'Nogi',eq:'Własna masa',muscle:'Dwugłowy',tip:'Pięty na ławce, kolana ugięte. Przyciągaj / isometric.',nsca:'3x8–12.',alt:'Uginanie ud na ślizgach'},
 {name:'Wyciskanie klatki z taśmą stojąc',aka:'Standing Band Chest Press',cat:'Klatka piersiowa',eq:'Taśmy',muscle:'Klatka, Triceps',tip:'Taśma za sobą. Wyciskaj przed klatkę.',nsca:'3x12–15.',alt:'Rozpiętki z taśmą stojąc, Pompki'},
@@ -1548,6 +1548,7 @@ function exAcHighlight(dd,idx){
 
 function exAcPick(input,name){
   if(!input)return;
+  if(input.dataset)delete input.dataset.altFor;
   _exAcPicking=true;
   input.value=name;
   input.dispatchEvent(new Event('input',{bubbles:true}));
@@ -1574,12 +1575,16 @@ function exAcShouldShowAlts(query){
 }
 window.exAcShouldShowAlts=exAcShouldShowAlts;
 
-function exAcAltItems(query){
-  if(!exAcShouldShowAlts(query))return [];
-  const alts=typeof altsForExercise==='function'?altsForExercise(query):[];
-  const lib=typeof libExerciseByName==='function'?libExerciseByName(query):null;
+function exAcAltItems(query,input){
+  const q=String(query||'').trim();
+  const from=input&&input.dataset?String(input.dataset.altFor||'').trim():'';
+  const src=from||q;
+  if(!src)return [];
+  if(!from&&!exAcShouldShowAlts(q))return [];
+  const alts=typeof altsForExercise==='function'?altsForExercise(src):[];
+  const lib=typeof libExerciseByName==='function'?libExerciseByName(src):null;
   const fromLib=lib&&lib.alt?String(lib.alt).split(/[,;/]/).map(s=>s.trim()).filter(Boolean):[];
-  const cur=String(query||'').trim().toLowerCase();
+  const cur=String(src||'').trim().toLowerCase();
   const seen=new Set();
   const out=[];
   alts.concat(fromLib).forEach(a=>{
@@ -1598,8 +1603,9 @@ function exAcRender(input){
   const wrap=exAcEnsureWrap(input);
   const dd=wrap.querySelector('.ex-ac-dropdown');
   const q=input.value||'';
-  const groups=exercisesGroupedByCat(q);
-  const alts=q.trim()?exAcAltItems(q):[];
+  const alts=exAcAltItems(q,input);
+  const swapOnly=!String(q).trim()&&!!(input.dataset&&input.dataset.altFor)&&alts.length;
+  const groups=swapOnly?[]:exercisesGroupedByCat(q);
   const total=groups.reduce((s,g)=>s+g.items.length,0);
   if(!total&&!alts.length){
     dd.innerHTML='<div class="ex-ac-empty">Brak wyników — wpisz nazwę lub partię (np. klatka, plecy)</div>';
@@ -1612,7 +1618,7 @@ function exAcRender(input){
   const ql=(q||'').trim();
   let html='';
   if(alts.length){
-    html+=`<div class="ex-ac-group-hdr">Zamienniki — gdy nie ma maszyny / sprzętu <span style="opacity:0.65;font-weight:500;">(${alts.length})</span></div>`;
+    html+=`<div class="ex-ac-group-hdr">Zamienniki — sztanga / hantle / brama / ławka <span style="opacity:0.65;font-weight:500;">(${alts.length})</span></div>`;
     alts.forEach(name=>{
       const safe=typeof escHtml==='function'?escHtml(name):name;
       const attr=String(name).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
