@@ -36,6 +36,9 @@ ok('PL cable high-low', chestNames.includes('Krzyżowanie wyciągów góra–dó
 ok('PL cable low-high', chestNames.includes('Krzyżowanie wyciągów dół–góra'));
 ok('PL landmine', chestNames.includes('Wyciskanie landmine'));
 ok('PL peck deck', chestNames.includes('Butterfly (peck deck)'));
+ok('PL incline db press', chestNames.includes('Wyciskanie hantli na ławce skośnej'));
+ok('no cryptic incline db display', !chestNames.includes('Wyciskanie hantli skos+'));
+ok('PL incline cable fly', chestNames.includes('Rozpiętki na bramie na ławce skośnej'));
 
 const floor = DEF_EX.find((e) => e.name === 'Wyciskanie z podłogi');
 ok('aka keeps Floor press', floor && /Floor press/i.test(floor.aka || ''));
@@ -48,10 +51,12 @@ const photos = JSON.parse(photoSrc.match(/window\.EX_PHOTO_MANIFEST=(\{[\s\S]*?\
 ok('photo PL key floor', !!photos['wyciskanie z podłogi']);
 ok('photo EN alias floor', !!photos['floor press']);
 ok('photo PL cable', !!photos['krzyżowanie wyciągów góra–dół']);
+ok('photo PL incline db', !!photos['wyciskanie hantli na ławce skośnej']);
+ok('photo PL incline cable', !!photos['rozpiętki na bramie na ławce skośnej']);
 
-ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=64'));
-ok('cache photo', html.includes('ex-photo-manifest.js?v=5'));
-ok('cache core', html.includes('01-core.js?v=79'));
+ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=65'));
+ok('cache photo', html.includes('ex-photo-manifest.js?v=6'));
+ok('cache core', html.includes('01-core.js?v=80'));
 
 const document = { querySelectorAll: () => [], getElementById: () => null, addEventListener() {} };
 const windowObj = {
@@ -149,6 +154,13 @@ ok('search wykrok', namesOf('wykrok').includes('Wykrok chodzony') && namesOf('wy
 ok('search bieznia', namesOf('bieznia').includes('Bieżnia'));
 ok('search bieżnia', namesOf('bieżnia').includes('Bieżnia'));
 ok('search smith', namesOf('smith').includes('Przysiad w bramie Smith') && namesOf('smith').includes('Wyciskanie w bramie Smith'));
+ok('search lawce skosnej', namesOf('ławce skośnej').includes('Wyciskanie hantli na ławce skośnej'));
+ok('search skos+', namesOf('skos+').includes('Wyciskanie hantli na ławce skośnej'));
+ok('search incline db', namesOf('incline dumbbell').includes('Wyciskanie hantli na ławce skośnej'));
+ok('search bramie skosie', namesOf('bramie na skosie').includes('Rozpiętki na bramie na ławce skośnej'));
+ok('lookup old incline aka', ctx.libExerciseByName('Wyciskanie hantli skos+')?.name === 'Wyciskanie hantli na ławce skośnej');
+ok('lookup incline phrase', ctx.libExerciseByName('Wyciskanie hantli na ławce skośnej')?.name === 'Wyciskanie hantli na ławce skośnej');
+ok('lookup cable incline phrase', ctx.libExerciseByName('Na bramie na skosie ławki')?.name === 'Rozpiętki na bramie na ławce skośnej');
 ok('search trx', namesOf('trx').includes('Wiosłowanie TRX'));
 ok('search man maker', namesOf('man maker').includes('Man maker (masa ciała)'));
 ok('search gorilla burpee', namesOf('gorilla burpee').includes('Gorilla burpee'));

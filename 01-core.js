@@ -1030,7 +1030,7 @@ function exerciseIdentityKeys(ex){
 function exerciseMediaFlags(s){
   const n=' '+exerciseMediaExpand(s)+' ';
   return{
-    incline:/\bincline\b|skos plus|skosnej dodat|glowa w gore/.test(n),
+    incline:/\bincline\b|skos plus|skosnej dodat|na lawce skosnej|glowa w gore/.test(n),
     decline:/\bdecline\b|skos minus|glowa w dol/.test(n),
     close:/close ?grip|waski chwyt|narrow grip/.test(n),
     wide:/wide ?grip|szerokim chwytem|szeroki chwyt/.test(n),
@@ -1476,6 +1476,8 @@ const EX_MEDIA_FILE_ALIASES={
   'Wyciskanie sztangi leżąc':{include:[/barbell bench press/i],exclude:[/close[- ]?grip/i,/wąski/i,/smith/i,/incline/i,/decline/i]},
   'Wyciskanie hantli leżąc':{include:[/dumbbell bench press/i],exclude:[/incline/i,/sko[sś]n/i,/narrow/i,/wąsk/i,/shoulder/i,/nad głow/i,/decline/i,/floor/i]},
   'Wyciskanie hantli skos+':{include:[/incline dumbbell (chest )?press/i],exclude:[/shoulder/i,/nad głow/i,/decline/i,/sko[sś]nej \(incline\)/i],prefer:[/sko[sś]nej dodatniej/i,/górna część klatki/i]},
+  'Wyciskanie hantli na ławce skośnej':{include:[/incline dumbbell (chest )?press/i],exclude:[/shoulder/i,/nad głow/i,/decline/i,/sko[sś]nej \(incline\)/i],prefer:[/sko[sś]nej dodatniej/i,/górna część klatki/i]},
+  'Rozpiętki na bramie na ławce skośnej':{include:[/incline cable fly/i,/incline bench cable fly/i],exclude:[/reverse/i,/decline/i,/flat bench/i]},
   'Wyciskanie hantli skos−':{include:[/decline dumbbell (bench )?press/i],exclude:[/incline/i]},
   'Wyciskanie sztangi skos+':{include:[/incline barbell (bench )?press/i],exclude:[/dumbbell/i,/smith/i,/decline/i]},
   'Wyciskanie sztangi skos−':{include:[/decline barbell (bench )?press/i],exclude:[/dumbbell/i,/incline/i]},
