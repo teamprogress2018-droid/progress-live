@@ -2735,6 +2735,7 @@ function inferLoadUnitFromName(name){
   if(/dead\s*hang|zwisy na dr/.test(n))return 'sec';
   if(/^(deska|plank)$/i.test(String(name||'').trim()))return 'sec';
   if(/^deska boczna|^deska kopenhaska|^side plank/i.test(n))return 'sec';
+  if(/\bplank na (przedramion|łokci|lokci)|\bdeska na (przedramion|łokci|lokci)|forearm plank|elbow plank/.test(n))return 'sec';
   if(/uginanie|leg\s*curl|hamstring\s*(leg\s*)?curl/.test(n))return 'kg';
   if(/air\s*bike|assault\s*bike|echo\s*bike|fan\s*bike/.test(n))return 'min';
   if(/\bwio[śs]larz\b|\browing\b|concept\s*2|ergometr wio/.test(n))return 'min';
