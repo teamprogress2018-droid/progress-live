@@ -19,20 +19,23 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 02 v33', html.includes('02-workouts-onboarding-templates-live.js?v=34'));
-ok('cache styles v63', html.includes('styles.css?v=64'));
+ok('cache 02 v33', html.includes('02-workouts-onboarding-templates-live.js?v=35'));
+ok('cache styles v63', html.includes('styles.css?v=65'));
 ok('dual button', html.includes('id="live-dual-btn"') && html.includes('liveToggleDual()'));
 ok('pane 0/1', html.includes('id="live-pane-0"') && html.includes('id="live-pane-1"'));
 ok('slot B ids', html.includes('id="live-b-timer"') && html.includes('id="live-b-exercises-panel"') && html.includes('id="live-b-start-btn"'));
 ok('slot B rest', html.includes('liveStartRest(30,1)') && html.includes('id="live-b-rest-custom"'));
 ok('helpers', /function liveN\(/.test(live) && /function liveRef\(/.test(live) && /function liveToggleDual\(/.test(live));
 ok('live swap', /function liveSwapEx\(/.test(live));
+ok('live add alt', /function liveConfirmAltSearch\(/.test(live) && live.includes('live-alt-search'));
+ok('live add name', /function liveSetExName\(/.test(live) && live.includes('live-ex-name-search'));
 ok('draft B key', live.includes("pl_live_draft_b"));
 ok('same-client guard', live.includes('Ten klient jest już na drugim ekranie'));
 ok('live hides gif caption', /caption:false/.test(live) && css.includes('.live-ex-card .cw-technique-cap') && css.includes('display:none'));
 ok('dual gif shorter', css.includes('#screen-live.live-dual .live-ex-card .cw-technique-gif'));
 ok('CI unit', wf.includes('test_live_dual.js'));
 ok('CI ui', wf.includes('test_live_dual_ui.js'));
+ok('CI live alts ui', wf.includes('test_live_alts_add_ui.js'));
 
 const m = live.match(/function liveN\(slot\)\{[\s\S]*?\n\}/);
 ok('liveN extract', !!m);
