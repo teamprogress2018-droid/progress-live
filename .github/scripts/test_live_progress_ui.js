@@ -43,7 +43,13 @@ function ok(name, cond, extra) {
   await page.evaluate(() => {
     window.liveClientId = 'c1';
     window.liveExercises = [
-      { name: 'Przysiad Goblet', done: false, collapsed: false, sets: [
+      { name: 'Przysiad Goblet', done: false, collapsed: false,
+        lastDate: '2026-08-10',
+        lastSets: [
+          { setNo: 1, kg: '20', reps: '12', rir: '2' },
+          { setNo: 2, kg: '22.5', reps: '10', rir: '1' }
+        ],
+        sets: [
         { setNo: 1, kg: '6', reps: '12', rir: '2', done: false },
         { setNo: 2, kg: '6', reps: '12', rir: '2', done: false },
         { setNo: 3, kg: '6', reps: '12', rir: '2', done: false },
@@ -72,6 +78,13 @@ function ok(name, cond, extra) {
   });
   await page.screenshot({ path: path.join(shotDir, 'live_rir_column.png') });
   ok('rir column in live', /RIR/.test(rirUi.head) && rirUi.n === 4 && rirUi.val === '2', JSON.stringify(rirUi));
+  const lastUi = await page.evaluate(() => {
+    const box = document.querySelector('#live-ex-0 .live-last-sets');
+    const sum = box && box.querySelector('summary');
+    const rows = box ? box.querySelectorAll('.live-last-row').length : 0;
+    return { has: !!box, text: sum ? sum.innerText : '', rows };
+  });
+  ok('last sets preview', lastUi.has && /20 × 12/.test(lastUi.text) && /22\.5 × 10/.test(lastUi.text) && lastUi.rows === 2, JSON.stringify(lastUi));
   const delUi = await page.evaluate(() => {
     const btns = [...document.querySelectorAll('#live-ex-0 .live-set-del')];
     return { n: btns.length, disabled: btns.filter(b => b.disabled).length };

@@ -2773,7 +2773,7 @@ window.suggestedPlanDayIdx=suggestedPlanDayIdx;
 function lastLoadForExercise(clientId,name){
   if(!clientId||!name)return null;
   const key=exerciseNameKey(name);
-  const sessions=(window.SE||[]).filter(s=>s.clientId===clientId&&Array.isArray(s.exercises))
+  const sessions=(window.SE||[]).filter(s=>s&&s.clientId===clientId&&Array.isArray(s.exercises)&&s.source!=='planned')
     .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''));
   for(const s of sessions){
     const ex=(s.exercises||[]).find(e=>exerciseNameKey(e.name)===key);
@@ -2781,11 +2781,52 @@ function lastLoadForExercise(clientId,name){
     const sets=(ex.sets||[]).filter(x=>x&&(x.kg||x.reps));
     if(!sets.length)continue;
     const last=sets[sets.length-1];
-    return{kg:last.kg,reps:last.reps,sets};
+    return{kg:last.kg,reps:last.reps,rir:last.rir,sets,date:s.date||'',source:s.source||''};
   }
   return null;
 }
 window.lastLoadForExercise=lastLoadForExercise;
+
+function formatLastSetsSummary(sets){
+  const parts=(Array.isArray(sets)?sets:[]).map(s=>{
+    const k=(s&&s.kg!=null&&s.kg!=='')?String(s.kg):'';
+    const r=(s&&s.reps!=null&&s.reps!=='')?String(s.reps):'';
+    if(k&&r)return k+' × '+r;
+    if(k)return k;
+    if(r)return r+' powt.';
+    return '';
+  }).filter(Boolean);
+  if(!parts.length)return '';
+  if(parts.length<=5)return parts.join(' · ');
+  return parts.slice(0,5).join(' · ')+' …';
+}
+window.formatLastSetsSummary=formatLastSetsSummary;
+
+function lastSetsBlockHtml(ex){
+  const sets=ex&&Array.isArray(ex.lastSets)?ex.lastSets:[];
+  if(!sets.length)return '';
+  let date='';
+  if(ex.lastDate){
+    date=typeof formatTrainingDayShortPl==='function'?formatTrainingDayShortPl(ex.lastDate):String(ex.lastDate);
+  }
+  const summary=formatLastSetsSummary(sets);
+  const rows=sets.map((s,i)=>{
+    const no=s.setNo||(i+1);
+    const kind=s.kind&&s.kind!=='work'&&typeof setKindBadge==='function'
+      ?`<span class="cw-set-kind ${escHtml(String(s.kind))}">${escHtml(setKindBadge(s.kind))}</span>`:'';
+    const rir=s.rir!=null&&s.rir!==''?`<span class="live-last-rir">RIR ${escHtml(String(s.rir))}</span>`:'';
+    const load=typeof formatSetLoad==='function'?formatSetLoad(s.kg,s.reps,ex):(String(s.kg||'')+' × '+String(s.reps||''));
+    return `<div class="live-last-row"><span class="live-last-no">${escHtml(String(no))}</span><span class="live-last-load">${escHtml(load)}</span>${rir}${kind}</div>`;
+  }).join('');
+  return `<details class="live-last-sets" onclick="event.stopPropagation()">
+    <summary class="live-last-sum" title="Układ serii z poprzedniego treningu"><span class="live-last-ico" aria-hidden="true">🕒</span> Ostatnio: ${escHtml(summary)}${date?' · '+escHtml(date):''}</summary>
+    <div class="live-last-pop">
+      <div class="live-last-hd">Poprzedni trening${date?' · '+escHtml(date):''}</div>
+      ${rows}
+    </div>
+  </details>`;
+}
+window.lastSetsBlockHtml=lastSetsBlockHtml;
 
 function exerciseNameKey(name){
   return String(name||'').toLowerCase().replace(/\s+/g,' ').trim();
@@ -3064,6 +3105,8 @@ function mapPlanExercisesForClient(rawEx,clientId){
       kgHint:fromPct?fromPct.hint:'',
       lastKg:last&&last.kg!=null&&last.kg!==''?last.kg:(plannedKg||''),
       lastReps:last&&last.reps!=null&&last.reps!==''?last.reps:'',
+      lastDate:last&&last.date||'',
+      lastSets:(last&&last.sets)||[],
       ss:ex.ss||'',
       wu:ex.ss?0:(ex.wu||0),
       drop:ex.ss?0:(ex.drop||0),
