@@ -20,7 +20,7 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 02 v33', html.includes('02-workouts-onboarding-templates-live.js?v=38'));
-ok('cache styles v63', html.includes('styles.css?v=68'));
+ok('cache styles v63', html.includes('styles.css?v=69'));
 ok('dual button', html.includes('id="live-dual-btn"') && html.includes('liveToggleDual()'));
 ok('pane 0/1', html.includes('id="live-pane-0"') && html.includes('id="live-pane-1"'));
 ok('slot B ids', html.includes('id="live-b-timer"') && html.includes('id="live-b-exercises-panel"') && html.includes('id="live-b-start-btn"'));
@@ -32,12 +32,13 @@ ok('live add name', /function liveSetExName\(/.test(live) && /function liveConfi
 ok('draft B key', live.includes("pl_live_draft_b"));
 ok('same-client guard', live.includes('Ten klient jest już na drugim ekranie'));
 ok('live hides gif caption', /caption:false/.test(live) && css.includes('.live-ex-card .cw-technique-cap') && css.includes('display:none'));
-ok('live gif tall', css.includes('max-height:min(72vh, 640px)') && !css.includes('max-height:140px'));
+ok('live gif tall', css.includes('max-height:min(70vh, 660px)') && css.includes('min-height:min(68vh, 620px)') && !css.includes('max-height:140px'));
 ok('dual gif shorter', css.includes('#screen-live.live-dual .live-ex-card .cw-technique-gif') && css.includes('max-height:min(48vh, 420px)'));
-ok('file video wrap', css.includes('.cw-video-file') && css.includes('cw-video-wrap.cw-video-file'));
+ok('file video wrap', css.includes('.cw-file-player') && css.includes('cw-video-wrap.cw-video-file'));
 ok('CI unit', wf.includes('test_live_dual.js'));
 ok('CI ui', wf.includes('test_live_dual_ui.js'));
 ok('CI live alts ui', wf.includes('test_live_alts_add_ui.js'));
+ok('CI live video ui', wf.includes('test_live_video_ui.js'));
 
 const m = live.match(/function liveN\(slot\)\{[\s\S]*?\n\}/);
 ok('liveN extract', !!m);
