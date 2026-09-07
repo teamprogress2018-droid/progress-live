@@ -26,13 +26,9 @@ function eq(name, got, want) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=76'));
-ok('cache 01', html.includes('01-core.js?v=76'));
-ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=41'));
-ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=41'));
-ok('cache 01', html.includes('01-core.js?v=75'));
-ok('cache 01', html.includes('01-core.js?v=75'));
+ok('cache 01', html.includes('01-core.js?v=77'));
 ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=42'));
+ok('cache 01', html.includes('01-core.js?v=77'));
 ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=42'));
 ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=62'));
 ok('builder apply helper', src05.includes('function builderApplyLoadUnit'));

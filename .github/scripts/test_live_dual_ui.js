@@ -99,6 +99,26 @@ function ok(name, cond, extra) {
       renderLiveExercises(0);
       renderLiveExercises(1);
     }
+    const named = {
+      name: 'Przysiad na suwnicy (Hack Squat / maszyna)',
+      gif: 'assets/ex/gifs/przysiad-hack-maszyna.gif',
+      note: 'PRIORYTET czworogłowe+pośladki. Stopy wysoko — odciąża lędźwie.',
+      done: false,
+      collapsed: false,
+      sets: [{ setNo: 1, kg: '60', reps: '10', done: false }]
+    };
+    window.liveExercises = [named];
+    if (typeof renderLiveExercises === 'function') renderLiveExercises(0);
+    const card = document.getElementById('live-ex-0');
+    const cap = card && card.querySelector('.cw-technique-cap');
+    const media = {
+      titleCount: card ? (card.textContent.match(/Przysiad na suwnicy/gi) || []).length : 0,
+      capCount: card ? card.querySelectorAll('.cw-technique-cap').length : -1,
+      capDisplay: cap ? getComputedStyle(cap).display : 'none',
+      noteVisible: !!(card && /PRIORYTET czworogłowe/.test(card.textContent))
+    };
+    window.liveExercises = [ex('Przysiad', '40')];
+    if (typeof renderLiveExercises === 'function') renderLiveExercises(0);
     liveToggleSet(0, 0);
     liveToggleSet(0, 0, 1);
     liveStartRest(30);
@@ -113,7 +133,8 @@ function ok(name, cond, extra) {
       aClient: window.liveClientId,
       bClient: window.liveB && window.liveB.clientId,
       blocked: blocked.msg || '',
-      sameGuard: /drugim ekranie/.test(blocked.msg || '')
+      sameGuard: /drugim ekranie/.test(blocked.msg || ''),
+      media
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'live_dual_sets.png') });
@@ -121,6 +142,8 @@ function ok(name, cond, extra) {
   ok('rest timers differ', afterSets.aRest !== afterSets.bRest && /30/.test(afterSets.aRest) && /90/.test(afterSets.bRest), JSON.stringify({ a: afterSets.aRest, b: afterSets.bRest }));
   ok('clients A/B', afterSets.aClient === 'c1' && afterSets.bClient === 'c2', JSON.stringify(afterSets));
   ok('same client blocked', afterSets.sameGuard, afterSets.blocked);
+  ok('live gif has no caption overlay', afterSets.media && afterSets.media.capCount === 0 && afterSets.media.titleCount === 1, JSON.stringify(afterSets.media));
+  ok('coach note still visible', afterSets.media && afterSets.media.noteVisible, JSON.stringify(afterSets.media));
 
   const saved = await page.evaluate(() => {
     if (typeof liveStartSession === 'function') {

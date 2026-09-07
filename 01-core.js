@@ -1811,6 +1811,13 @@ function coachMediaIcons(ex){
 }
 window.coachMediaIcons=coachMediaIcons;
 
+function hideBrokenTechniqueMedia(el){
+  if(!el)return;
+  const box=el.closest?el.closest('.cw-technique-media'):null;
+  if(box)box.setAttribute('hidden','');
+}
+window.hideBrokenTechniqueMedia=hideBrokenTechniqueMedia;
+
 function exTechniqueMediaHtml(media,opts){
   opts=opts||{};
   const gif=String((media&&media.gif)||'').trim();
@@ -1819,11 +1826,14 @@ function exTechniqueMediaHtml(media,opts){
   const rawName=String((media&&media.name)||'').trim();
   const alt=escHtml(rawName||'Technika wykonania');
   const cls=compact?'ex-ac-thumb-img cw-technique-gif-img':'cw-technique-gif-img';
-  const cap=(!compact&&rawName)?`<div class="cw-technique-cap">${alt}</div>`:'';
+  const showCap=!compact&&opts.caption!==false&&!!rawName;
+  const cap=showCap?`<div class="cw-technique-cap">${alt}</div>`:'';
+  const imgAlt=showCap?'':alt;
+  const onErr='this.onerror=null;if(typeof hideBrokenTechniqueMedia===\'function\')hideBrokenTechniqueMedia(this);';
   if(/\.(mp4|webm)(\?|#|$)/i.test(gif)){
-    return `<div class="cw-technique-media cw-technique-gif${compact?' is-compact':''}"><video class="${cls}" src="${escHtml(gif)}" autoplay loop muted playsinline preload="metadata" title="${alt}"></video>${cap}</div>`;
+    return `<div class="cw-technique-media cw-technique-gif${compact?' is-compact':''}"><video class="${cls}" src="${escHtml(gif)}" autoplay loop muted playsinline preload="metadata" title="${alt}" onerror="${onErr}"></video>${cap}</div>`;
   }
-  return `<div class="cw-technique-media cw-technique-gif${compact?' is-compact':''}"><img class="${cls}" src="${escHtml(gif)}" alt="${alt}" loading="lazy" referrerpolicy="no-referrer">${cap}</div>`;
+  return `<div class="cw-technique-media cw-technique-gif${compact?' is-compact':''}"><img class="${cls}" src="${escHtml(gif)}" alt="${imgAlt}" title="${alt}" loading="lazy" referrerpolicy="no-referrer" onerror="${onErr}">${cap}</div>`;
 }
 window.exTechniqueMediaHtml=exTechniqueMediaHtml;
 
