@@ -20,8 +20,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01 v71', html.includes('01-core.js?v=80'));
-ok('cache 05 v37', html.includes('05-clients-builder-plans-calendar.js?v=43'));
+ok('cache 01 v71', html.includes('01-core.js?v=81'));
+ok('cache 05 v37', html.includes('05-clients-builder-plans-calendar.js?v=44'));
 ok('cache 08 v38', html.includes('08-client-profile-extras.js?v=47'));
 ok('cache styles v56', html.includes('styles.css?v=64'));
 ok('ci unit', wf.includes('test_cal_session_done.js'));

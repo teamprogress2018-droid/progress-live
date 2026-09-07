@@ -19,8 +19,8 @@ const render = six.slice(six.indexOf('function exAcRender'), six.indexOf('functi
 ok('exAcRender uses muscle part class', /ex-ac-part/.test(render));
 ok('exAcRender includes category text', /e\.cat\|\|g\.cat/.test(render) || /part=e\.cat/.test(render));
 ok('exAcRender no thumb icons in list', !/ex-ac-thumb/.test(render) && !/exThumbUrl/.test(render));
-ok('zamienniki group in autocomplete', /Zamienniki — gdy nie ma maszyny/.test(render) && /exAcAltItems/.test(render));
-ok('alts gated on strong name', /function exAcShouldShowAlts\(/.test(six) && /exAcShouldShowAlts\(query\)/.test(six));
+ok('zamienniki group in autocomplete', /Zamienniki — sztanga \/ hantle \/ brama \/ ławka/.test(render) && /exAcAltItems/.test(render));
+ok('alts gated on strong name', /function exAcShouldShowAlts\(/.test(six) && /exAcShouldShowAlts\(q\)/.test(six));
 ok('css defines part label', /\.ex-ac-part\{/.test(css));
 ok('part uses design font', /\.ex-ac-part\{[^}]*font-family:var\(--font-ui\)/.test(css));
 ok('name does not collapse in narrow column', /\.ex-ac-name\{[^}]*min-width:min\(10em,100%\)/.test(css));

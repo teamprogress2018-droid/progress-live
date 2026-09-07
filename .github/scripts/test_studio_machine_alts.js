@@ -10,6 +10,7 @@ const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const core = fs.readFileSync(path.join(root, '01-core.js'), 'utf8');
 const six = fs.readFileSync(path.join(root, '06-inbox-exercises-ai-programs.js'), 'utf8');
 const live = fs.readFileSync(path.join(root, '02-workouts-onboarding-templates-live.js'), 'utf8');
+const src03 = fs.readFileSync(path.join(root, '03-ai-plangen-bizstats-aicoach.js'), 'utf8');
 const src05 = fs.readFileSync(path.join(root, '05-clients-builder-plans-calendar.js'), 'utf8');
 const css = fs.readFileSync(path.join(root, 'styles.css'), 'utf8');
 const wf = fs.readFileSync(path.join(root, '.github/workflows/check.yml'), 'utf8');
@@ -22,16 +23,17 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=80'));
+ok('cache 01', html.includes('01-core.js?v=81'));
 ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=34'));
-ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=43'));
-ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=65'));
-ok('cache styles', html.includes('styles.css?v=64'));
+ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=44'));
+ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=66'));
+ok('cache 03', html.includes('03-ai-plangen-bizstats-aicoach.js?v=30'));
+ok('apl swap altFor', src03.includes('dataset.altFor') && src03.includes('sztanga / hantle / brama / ławka'));
 ok('live swap helper', /function liveSwapEx\(/.test(live) && live.includes('Zamienniki (gdy nie ma maszyny)'));
 ok('live chips css', css.includes('.live-alt-chip') && css.includes('.live-alts'));
 ok('builder label', src05.includes('Zamienniki gdy nie ma maszyny'));
 ok('builder count on btn', src05.includes("Zamienniki · '"));
-ok('ac alt group', six.includes('Zamienniki — gdy nie ma maszyny') && /function exAcAltItems\(/.test(six));
+ok('ac alt group', six.includes('Zamienniki — sztanga / hantle / brama / ławka') && /function exAcAltItems\(/.test(six));
 ok('CI', wf.includes('test_studio_machine_alts.js'));
 
 const m = six.match(/const DEF_EX=\[([\s\S]*?)\];\nwindow\.DEF_EX=DEF_EX;/);
@@ -80,7 +82,14 @@ ok('floor press still', ctx.libExerciseByName('Floor press')?.name === 'Wyciskan
 ok('no false hamstring', ctx.libExerciseByName('Uginanie ramion na maszynie (Biceps Curl Machine)')?.name !== 'Uginanie nóg maszyna');
 const hack = ctx.libExerciseByName('Przysiad na suwnicy (Hack Squat / maszyna)');
 ok('hack lib hit', hack && /hack/i.test(hack.name), hack && hack.name);
-ok('hack alts', (ctx.altsForExercise('Przysiad na suwnicy (Hack Squat / maszyna)') || []).some((a) => /nogami|przysiad/i.test(a)));
+ok('hack alts', (ctx.altsForExercise('Przysiad na suwnicy (Hack Squat / maszyna)') || []).some((a) => /przysiad/i.test(a)));
+const pecAlts = ctx.altsForExercise('Rozpiętki na maszynie (Pec-Deck) — środek klatki') || [];
+ok('pec deck studio alts', pecAlts.some((a) => /hantlami|wyciągu|bramie/i.test(a)), pecAlts.join(', '));
+ok('pec deck first is fly', /rozpiętk/i.test(pecAlts[0] || ''), pecAlts.join(', '));
+ok('pec deck not another machine', !(ctx.altsForExercise('Butterfly (peck deck)') || []).some((a) => /peck deck|maszynie|hack|nogami/i.test(a)));
+ok('chest press studio alts', (ctx.altsForExercise('Wyciskanie na maszynie') || []).some((a) => /hantli leżąc|sztangi leżąc/i.test(a)));
+ok('empty query no alts', (ctx.exAcAltItems('') || []).length === 0);
+ok('swap-from empty shows alts', (ctx.exAcAltItems('', { dataset: { altFor: 'Wiosłowanie na maszynie siedząc (Cable Row / maszyna)' } }) || []).some((a) => /wyciągiem|hantlem/i.test(a)));
 ok('short liny no ac alts', (ctx.exAcAltItems('liny') || []).length === 0);
 ok('AI row still ac alts', (ctx.exAcAltItems('Wiosłowanie na maszynie siedząc (Cable Row / maszyna)') || []).some((a) => /wyciągiem|hantlem/i.test(a)));
 

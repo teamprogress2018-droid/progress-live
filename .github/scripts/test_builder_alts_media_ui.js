@@ -128,6 +128,25 @@ function ok(name, cond, extra) {
   ok('toggle shows alt count', /Zamienniki · \d/.test(machineAlts.btn), machineAlts.btn);
   ok('machine chips without machine', machineAlts.chips.some((c) => /wyciągiem siedząc|hantlem/i.test(c)), machineAlts.chips.join(' | '));
 
+  await page.evaluate(() => {
+    const inp = document.querySelector('.ex-row [data-f="name"]');
+    if (!inp) return;
+    inp.dataset.altFor = 'Butterfly (peck deck)';
+    inp.value = '';
+    if (typeof exAcRender === 'function') exAcRender(inp);
+  });
+  await page.waitForTimeout(250);
+  const swap = await page.evaluate(() => {
+    const dd = document.querySelector('.ex-ac-dropdown');
+    const items = [...(dd ? dd.querySelectorAll('.ex-ac-item .ex-ac-name') : [])].map((el) => (el.textContent || '').trim());
+    const hdr = dd ? (dd.textContent || '') : '';
+    return { items, hdr, first: items[0] || '' };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'builder_swap_empty_alts.png') });
+  ok('empty swap shows studio header', /sztanga \/ hantle \/ brama \/ ławka/i.test(swap.hdr), swap.hdr.slice(0, 120));
+  ok('empty swap lists flyes not pec deck catalog', swap.items.some((t) => /Rozpiętki hantlami|Rozpiętki na wyciągu|bramie/i.test(t)), swap.items.slice(0, 8).join(' | '));
+  ok('empty swap does not dump butterfly first', !/^Butterfly/i.test(swap.first), swap.first);
+
   await browser.close();
   if (failed) process.exit(1);
   console.log('\nBuilder alts/media UI OK. Shots: ' + shotDir);
