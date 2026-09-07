@@ -42,16 +42,16 @@ ok('aka keeps Floor press', floor && /Floor press/i.test(floor.aka || ''));
 
 ok('search blob helper', /function exerciseSearchBlob/.test(six) && /function exerciseSearchNorm/.test(six));
 ok('aka in search', /e\.aka/.test(six));
-ok('libExerciseByName aka', /aka/.test(core.slice(core.indexOf('function libExerciseByName'), core.indexOf('function ownVideoForExercise'))));
+ok('libExerciseByName aka', /aka/.test(core.slice(core.indexOf('function libExerciseMatchScore'), core.indexOf('function ownVideoForExercise'))));
 
 const photos = JSON.parse(photoSrc.match(/window\.EX_PHOTO_MANIFEST=(\{[\s\S]*?\});/)[1]);
 ok('photo PL key floor', !!photos['wyciskanie z podłogi']);
 ok('photo EN alias floor', !!photos['floor press']);
 ok('photo PL cable', !!photos['krzyżowanie wyciągów góra–dół']);
 
-ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=62'));
+ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=64'));
 ok('cache photo', html.includes('ex-photo-manifest.js?v=5'));
-ok('cache core', html.includes('01-core.js?v=78'));
+ok('cache core', html.includes('01-core.js?v=79'));
 
 const document = { querySelectorAll: () => [], getElementById: () => null, addEventListener() {} };
 const windowObj = {
@@ -115,6 +115,10 @@ window.exercisesGroupedByCat=exercisesGroupedByCat;
 
 ok('lookup PL', !!ctx.libExerciseByName('Wyciskanie z podłogi'));
 ok('lookup EN aka', ctx.libExerciseByName('Floor press')?.name === 'Wyciskanie z podłogi');
+ok('ai seated row', ctx.libExerciseByName('Wiosłowanie na maszynie siedząc (Cable Row / maszyna)')?.name === 'Wiosłowanie na maszynie');
+ok('ai biceps machine', ctx.libExerciseByName('Uginanie ramion na maszynie (Biceps Curl Machine)')?.name === 'Uginanie na maszynie');
+ok('alts without machine', (ctx.altsForExercise('Wiosłowanie na maszynie siedząc (Cable Row / maszyna)') || []).some((a) => /wyciągiem siedząc/.test(a)));
+ok('pec-deck still matches', ctx.libExerciseByName('Rozpiętki na maszynie (Pec-Deck) — środek klatki')?.name === 'Butterfly (peck deck)');
 ok('search finds EN aka', ctx.exercisesGroupedByCat('floor press').some((g) => g.items.some((e) => e.name === 'Wyciskanie z podłogi')));
 ok('thumb PL name', /free-exercise-db/.test(ctx.exThumbUrl({ name: 'Wyciskanie z podłogi' }) || ''));
 

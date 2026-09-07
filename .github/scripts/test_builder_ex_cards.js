@@ -15,7 +15,7 @@ if(!src05.includes('builderApplyAlt')||!src05.includes('builderRefreshTechMedia'
 if(!css.includes('.builder-alt-chip')||!css.includes('.ex-rows{display:flex')){
   console.error('FAIL missing builder card CSS');process.exit(1);
 }
-if(!src05.includes('builder-ex-thumb')||!src05.includes('builder-alt-toggle')||!src05.includes('Zamienniki — kliknij')){
+if(!src05.includes('builder-ex-thumb')||!src05.includes('builder-alt-toggle')||!src05.includes('Zamienniki gdy nie ma maszyny')){
   console.error('FAIL addRow markup missing');process.exit(1);
 }
 
