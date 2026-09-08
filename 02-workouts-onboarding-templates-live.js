@@ -2147,8 +2147,9 @@ function liveExCard(ex,i,slot){
       </div>
     </div>
     ${showBody?`
-    <div>
-      ${typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:!!ex.showVideo,caption:false}):''}
+    <div class="live-ex-body">
+      <div class="live-ex-media">${typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:!!ex.showVideo,caption:false}):''}</div>
+      <div class="live-ex-log" onclick="event.stopPropagation()">
       ${needsName?`<div class="live-ex-name-box" onclick="event.stopPropagation()">
         <div class="live-alts-lbl">Nazwa ćwiczenia</div>
         <div class="live-alts-add">
@@ -2172,6 +2173,7 @@ function liveExCard(ex,i,slot){
         </div>
       </div>`).join('')}
       <button type="button" class="live-add-set" onclick="liveAddSet(${i}${sl})">+ Dodaj serię</button>
+      </div>
     </div>`:''}
   </div>`;
 }
