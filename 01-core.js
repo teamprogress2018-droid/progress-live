@@ -2032,11 +2032,123 @@ function plannedRir(ex){
 }
 window.plannedRir=plannedRir;
 
+function parseRepRange(reps){
+  const s=String(reps==null?'':reps).replace(/powt\.?/ig,'').trim();
+  if(!s)return{lo:0,hi:0};
+  const m=s.match(/(\d+(?:[.,]\d+)?)\s*[-–—/]\s*(\d+(?:[.,]\d+)?)/);
+  if(m){
+    const a=parseFloat(String(m[1]).replace(',','.'));
+    const b=parseFloat(String(m[2]).replace(',','.'));
+    if(!Number.isFinite(a)||!Number.isFinite(b))return{lo:0,hi:0};
+    return{lo:Math.min(a,b),hi:Math.max(a,b)};
+  }
+  const n=parseFloat(String(s).replace(',','.'));
+  if(!Number.isFinite(n)||n<=0)return{lo:0,hi:0};
+  return{lo:n,hi:n};
+}
+window.parseRepRange=parseRepRange;
+
+function normalizePlanProgression(v){
+  const s=String(v||'').toLowerCase().trim();
+  if(s==='off'||s==='none'||s==='copy'||s==='ostatni'||s==='keep')return 'off';
+  if(s==='linear'||s==='liniowa')return 'linear';
+  return 'double';
+}
+window.normalizePlanProgression=normalizePlanProgression;
+
+function progressLoadStep(ex){
+  const unit=typeof exLoadUnit==='function'?exLoadUnit(ex):(ex&&ex.loadUnit)||'kg';
+  const u=typeof normalizeLoadUnit==='function'?normalizeLoadUnit(unit)||'kg':'kg';
+  if(u==='min')return 1;
+  if(u==='sec')return 15;
+  if(u==='m')return 100;
+  const name=String((ex&&ex.name)||'').toLowerCase();
+  if(/kettle|kettl/.test(name))return 2;
+  if(/hantel|dumbbell|\bdb\b/.test(name))return 1;
+  return 2.5;
+}
+window.progressLoadStep=progressLoadStep;
+
+function addLoadStep(val,step,unit){
+  const n=parseFloat(String(val==null?'':val).replace(',','.'));
+  if(!Number.isFinite(n)||n<=0)return '';
+  const next=n+(Number(step)||0);
+  const u=typeof normalizeLoadUnit==='function'?normalizeLoadUnit(unit)||'kg':'kg';
+  if(u==='kg'){
+    if(step===2||step===1){
+      const x=Math.round(next*10)/10;
+      return Number.isInteger(x)?String(x):String(x);
+    }
+    return roundToPlate(next,2.5);
+  }
+  const x=Math.round(next*10)/10;
+  return Number.isInteger(x)?String(x):String(x);
+}
+window.addLoadStep=addLoadStep;
+
+/** Z planu trenera + ostatniej sesji: kolejny ciężar / powt. (podwójna albo liniowa). */
+function progressWorkingSet(prev,ex,opts){
+  opts=opts||{};
+  const mode=normalizePlanProgression(opts.progression);
+  const plannedKg=opts.plannedKg!=null?String(opts.plannedKg):String((ex&&ex.kg)||'');
+  const range=parseRepRange(ex&&ex.reps);
+  const defaultReps=range.lo?String(range.lo):(ex&&ex.reps)||'10';
+  const unit=typeof exLoadUnit==='function'?exLoadUnit(ex):(ex&&ex.loadUnit)||'kg';
+  const isWt=typeof isWeightLoadUnit!=='function'||isWeightLoadUnit(unit);
+  const amrap=!!opts.amrap;
+  const prevKg=prev&&prev.kg!=null&&prev.kg!==''?String(prev.kg):'';
+  const prevReps=prev&&prev.reps!=null&&prev.reps!==''?String(prev.reps):'';
+  const prevRir=prev&&prev.rir!=null&&prev.rir!==''?parseFloat(String(prev.rir).replace(',','.')):NaN;
+  const failed=Number.isFinite(prevRir)&&prevRir<=0;
+  const lastN=parseFloat(String(prevReps).replace(',','.'));
+  const hitTop=Number.isFinite(lastN)&&range.hi>0&&lastN>=range.hi;
+  const hitLo=Number.isFinite(lastN)&&range.lo>0&&lastN>=range.lo;
+  const fillReps=amrap?'':(prevReps||defaultReps);
+  if(opts.lockPct)return{kg:plannedKg,reps:amrap?'':(prevReps||defaultReps),hint:''};
+  if(!prev||(prevKg===''&&prevReps===''))return{kg:plannedKg,reps:amrap?'':defaultReps,hint:''};
+  if(mode==='off'||failed)return{kg:prevKg||plannedKg,reps:fillReps,hint:''};
+  const step=progressLoadStep(ex);
+  const suf=typeof loadUnitSuffix==='function'?loadUnitSuffix(unit):(isWt?'kg':'');
+  if(!isWt){
+    const lastLoad=parseFloat(String(prevKg).replace(',','.'));
+    const planLoad=parseFloat(String(plannedKg).replace(',','.'));
+    const reached=!Number.isFinite(planLoad)||(Number.isFinite(lastLoad)&&lastLoad>=planLoad);
+    if(reached){
+      const next=addLoadStep(prevKg||plannedKg,step,unit);
+      return{kg:next||prevKg||plannedKg,reps:fillReps,hint:next&&next!==prevKg?('Progresja +'+step+' '+suf):''};
+    }
+    return{kg:prevKg||plannedKg,reps:fillReps,hint:''};
+  }
+  if(mode==='linear'){
+    if(hitLo||hitTop){
+      const next=addLoadStep(prevKg,step,'kg');
+      return{kg:next||prevKg||plannedKg,reps:amrap?'':defaultReps,hint:next&&next!==prevKg?('Progresja +'+step+' kg'):''};
+    }
+    if(Number.isFinite(lastN)&&range.hi&&lastN<range.hi){
+      const nr=Math.min(range.hi,lastN+1);
+      return{kg:prevKg||plannedKg,reps:amrap?'':String(nr),hint:amrap?'':('Progresja +1 powt.')};
+    }
+    return{kg:prevKg||plannedKg,reps:fillReps,hint:''};
+  }
+  if(hitTop){
+    const next=addLoadStep(prevKg,step,'kg');
+    const reset=range.lo&&range.lo<range.hi?String(range.lo):defaultReps;
+    return{kg:next||prevKg||plannedKg,reps:amrap?'':reset,hint:next&&next!==prevKg?('Progresja +'+step+' kg'):''};
+  }
+  if(Number.isFinite(lastN)&&range.hi&&lastN<range.hi){
+    const nr=Math.min(range.hi,lastN+1);
+    return{kg:prevKg||plannedKg,reps:amrap?'':String(nr),hint:amrap?'':('Progresja +1 powt.')};
+  }
+  return{kg:prevKg||plannedKg,reps:fillReps,hint:''};
+}
+window.progressWorkingSet=progressWorkingSet;
+
 function expandExerciseSets(ex,opts){
   opts=opts||{};
   const last=opts.last;
   const plannedKg=opts.plannedKg||'';
   const lockPct=!!opts.lockPct;
+  const mode=normalizePlanProgression(opts.progression);
   const defaultReps=ex.reps||'10';
   const plannedRirVal=typeof plannedRir==='function'?plannedRir(ex):String(ex.rir||'');
   const inSs=!!String(ex.ss||'').trim();
@@ -2045,28 +2157,31 @@ function expandExerciseSets(ex,opts){
   const nDrop=inSs?0:parseSetKindCount(ex.drop,2);
   const amrap=isAmrapFlag(ex.amrap);
   const lastWork=((last&&last.sets)||[]).filter(isWorkingSet);
+  const work=[];
+  let hint='';
+  for(let i=0;i<nWork;i++){
+    const kind=(amrap&&i===nWork-1)?'amrap':(!inSs&&isEmomFlag(ex.emom)?'emom':'work');
+    const prev=lastWork[i]||lastWork[lastWork.length-1];
+    const nxt=progressWorkingSet(prev,ex,{plannedKg,lockPct,progression:mode,amrap:kind==='amrap'});
+    if(nxt.hint&&!hint)hint=nxt.hint;
+    const rir=prev&&prev.rir!=null&&prev.rir!==''?String(prev.rir):plannedRirVal;
+    work.push({kg:nxt.kg||'',reps:nxt.reps,kind,rir});
+  }
+  const workKg=work.length&&work[0].kg?work[0].kg:plannedKg;
   const sets=[];
   let no=1;
   const wuFrac=nWu===1?[0.6]:[0.5,0.7];
   for(let i=0;i<nWu;i++){
-    sets.push({setNo:no++,kg:scaleKg(plannedKg,wuFrac[i])||'',reps:defaultReps,done:false,kind:'warmup',rir:plannedRirVal});
+    sets.push({setNo:no++,kg:scaleKg(workKg,wuFrac[i])||'',reps:defaultReps,done:false,kind:'warmup',rir:plannedRirVal});
   }
-  for(let i=0;i<nWork;i++){
-    const kind=(amrap&&i===nWork-1)?'amrap':(!inSs&&isEmomFlag(ex.emom)?'emom':'work');
-    const prev=lastWork[i];
-    let kg=plannedKg;
-    if(!lockPct&&prev&&prev.kg!=null&&prev.kg!=='')kg=String(prev.kg);
-    let reps='';
-    if(kind!=='amrap'){
-      reps=prev&&prev.reps!=null&&prev.reps!==''?String(prev.reps):defaultReps;
-    }
-    const rir=prev&&prev.rir!=null&&prev.rir!==''?String(prev.rir):plannedRirVal;
-    sets.push({setNo:no++,kg:kg||'',reps,done:false,kind,rir});
-  }
+  work.forEach(w=>{
+    sets.push({setNo:no++,kg:w.kg,reps:w.reps,done:false,kind:w.kind,rir:w.rir});
+  });
   const dropFrac=nDrop===1?[0.75]:[0.8,0.6];
   for(let i=0;i<nDrop;i++){
-    sets.push({setNo:no++,kg:scaleKg(plannedKg,dropFrac[i])||'',reps:defaultReps,done:false,kind:'drop',rir:plannedRirVal});
+    sets.push({setNo:no++,kg:scaleKg(workKg,dropFrac[i])||'',reps:defaultReps,done:false,kind:'drop',rir:plannedRirVal});
   }
+  sets._progHint=hint;
   return sets;
 }
 window.expandExerciseSets=expandExerciseSets;
@@ -3086,7 +3201,7 @@ function exerciseHistoryByDay(clientId,name,sessions){
 }
 window.exerciseHistoryByDay=exerciseHistoryByDay;
 
-function mapPlanExercisesForClient(rawEx,clientId){
+function mapPlanExercisesForClient(rawEx,clientId,plan){
   const mapped=(rawEx||[]).map(raw=>{
     const ex=parsePlanExercise(raw);
     const last=lastLoadForExercise(clientId,ex.name);
@@ -3098,7 +3213,8 @@ function mapPlanExercisesForClient(rawEx,clientId){
     const lockPct=!!pct;
     const emom=isEmomExercise(ex);
     const coach=typeof resolveCoachMedia==='function'?resolveCoachMedia(ex):{video:'',videoEmbed:'',isFile:false};
-    const sets=expandExerciseSets(ex,{last,plannedKg,lockPct});
+    const progression=normalizePlanProgression(plan&&(plan.progression||plan.progressionType));
+    const sets=expandExerciseSets(ex,{last,plannedKg,lockPct,progression});
     return{
       name:ex.name,
       plannedName:ex.name,
@@ -3109,6 +3225,7 @@ function mapPlanExercisesForClient(rawEx,clientId){
       pct1rm:pct,
       loadUnit,
       kgHint:fromPct?fromPct.hint:'',
+      progHint:sets._progHint||'',
       lastKg:last&&last.kg!=null&&last.kg!==''?last.kg:(plannedKg||''),
       lastReps:last&&last.reps!=null&&last.reps!==''?last.reps:'',
       lastDate:last&&last.date||'',

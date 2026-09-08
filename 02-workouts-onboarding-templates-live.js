@@ -2717,7 +2717,7 @@ function liveLastLoad(clientId,name){
 function liveMapPlanExercises(rawEx,slot){
   const st=liveRef(slot);
   const mapped=typeof mapPlanExercisesForClient==='function'
-    ?mapPlanExercisesForClient(rawEx,st.clientId)
+    ?mapPlanExercisesForClient(rawEx,st.clientId,(window.PL||[]).find(p=>p.id===st.planId))
     :(rawEx||[]).map(ex=>({name:ex.name||ex.n||'Ćwiczenie',sets:[{setNo:1,kg:'',reps:'10',done:false}]}));
   return mapped.map(ex=>({...ex,done:false,collapsed:false}));
 }
@@ -2904,7 +2904,8 @@ function liveExCard(ex,i,slot){
   const pr=typeof exercisePR==='function'&&(typeof isWeightLoadUnit!=='function'||isWeightLoadUnit(unit))?exercisePR(st.clientId,ex.name):null;
   const prHint=pr?`Rekord: ${pr.kg} kg × ${pr.reps}`:'';
   const pctHint=ex.kgHint||'';
-  const sub=[pctHint,lastHint,prHint].filter(Boolean).join(' · ');
+  const progHint=ex.progHint||'';
+  const sub=[pctHint,lastHint,prHint,progHint].filter(Boolean).join(' · ');
   const cardId=n===1?('live-b-ex-'+i):('live-ex-'+i);
   const needsName=!String(ex.name||'').trim()||ex.name==='Nowe ćwiczenie';
   const showBody=!ex.collapsed||needsName;
@@ -3088,13 +3089,26 @@ function liveSwapEx(i,name,slot){
     cur.lastReps=last.reps||'';
     cur.lastDate=last.date||'';
     cur.lastSets=last.sets||[];
-    (cur.sets||[]).forEach((s,si)=>{
+    const plan=(window.PL||[]).find(p=>p.id===st.planId);
+    const progression=typeof normalizePlanProgression==='function'?normalizePlanProgression(plan&&(plan.progression||plan.progressionType)):'double';
+    const work=(cur.sets||[]).filter(s=>typeof isWorkingSet==='function'?isWorkingSet(s):true);
+    const lastWork=(last.sets||[]).filter(s=>typeof isWorkingSet==='function'?isWorkingSet(s):true);
+    let hint='';
+    work.forEach((s,si)=>{
       if(s.done)return;
-      const prev=last.sets&&last.sets[si];
+      const prev=lastWork[si]||lastWork[lastWork.length-1];
       if(!prev)return;
-      if(prev.kg!=null&&prev.kg!=='')s.kg=String(prev.kg);
-      if(prev.reps!=null&&prev.reps!=='')s.reps=String(prev.reps);
+      const nxt=typeof progressWorkingSet==='function'?progressWorkingSet(prev,cur,{
+        plannedKg:s.kg||cur.lastKg||'',
+        progression,
+        amrap:s.kind==='amrap'
+      }):null;
+      if(!nxt)return;
+      if(nxt.kg!=null&&nxt.kg!=='')s.kg=String(nxt.kg);
+      if(s.kind!=='amrap'&&nxt.reps!=null)s.reps=String(nxt.reps);
+      if(nxt.hint&&!hint)hint=nxt.hint;
     });
+    cur.progHint=hint;
   }
   if(typeof resolveCoachMedia==='function'){
     const m=resolveCoachMedia({name});

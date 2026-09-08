@@ -1508,6 +1508,8 @@ function editPlan(id){
   if(methodSel)methodSel.value=plan.method||methodSel.value;
   const durInp=document.getElementById('b-duration');
   if(durInp)durInp.value=plan.duration||'';
+  const progSel=document.getElementById('b-progression');
+  if(progSel)progSel.value=typeof normalizePlanProgression==='function'?normalizePlanProgression(plan.progression||plan.progressionType):'double';
   updatePeriod();
   (plan.days||[]).forEach(d=>{
     addDay();
@@ -1606,11 +1608,12 @@ async function savePlan(){
     days.push({day:dn,muscles,exercises,sets,rest:false});
   });
   if(!days.length){notify('Dodaj przynajmniej jeden dzień!');return;}
+  const progression=typeof normalizePlanProgression==='function'?normalizePlanProgression((document.getElementById('b-progression')||{}).value):'double';
   const editingId=window._editingPlanId;
   if(editingId){
     const idx=PL.findIndex(p=>p.id===editingId);
     if(idx>=0){
-      PL[idx]={...PL[idx],name,method:document.getElementById('b-method').value,duration:document.getElementById('b-duration').value,clientId:cid,clientName:c?c.name:'',level:c?c.level:PL[idx].level,goal:c?c.goal:PL[idx].goal,days,updatedAt:new Date().toISOString()};
+      PL[idx]={...PL[idx],name,method:document.getElementById('b-method').value,duration:document.getElementById('b-duration').value,progression,clientId:cid,clientName:c?c.name:'',level:c?c.level:PL[idx].level,goal:c?c.goal:PL[idx].goal,days,updatedAt:new Date().toISOString()};
       window._editingPlanId=null;
       goTo('plans');notify('Plan zaktualizowany!');
       await persistById('plans',PL[idx]);
@@ -1618,7 +1621,7 @@ async function savePlan(){
       return;
     }
   }
-  const plan=withTrainer({id:newId('p'),name,method:document.getElementById('b-method').value,duration:document.getElementById('b-duration').value,clientId:cid,clientName:c?c.name:'',level:c?c.level:'sredni',goal:c?c.goal:'masa',days,createdAt:new Date().toISOString()});
+  const plan=withTrainer({id:newId('p'),name,method:document.getElementById('b-method').value,duration:document.getElementById('b-duration').value,progression,clientId:cid,clientName:c?c.name:'',level:c?c.level:'sredni',goal:c?c.goal:'masa',days,createdAt:new Date().toISOString()});
   PL.push(plan);goTo('plans');notify('Plan zapisany!');
   await persistById('plans',plan);
   if(cid&&typeof maybeSchedulePlanToCalendar==='function')maybeSchedulePlanToCalendar(plan.id,{weeks:4});

@@ -824,7 +824,7 @@ function cwOpen(planId,dayIdx){
   if(!plan){if(typeof notify==='function')notify('Nie znaleziono planu');return;}
   const day=(plan.days||[])[dayIdx];
   if(!day||day.rest||!(day.exercises||[]).length){if(typeof notify==='function')notify('Ten dzień nie ma ćwiczeń');return;}
-  const exercises=mapPlanExercisesForClient(day.exercises,window._clientId);
+  const exercises=mapPlanExercisesForClient(day.exercises,window._clientId,plan);
   if(!exercises.length){if(typeof notify==='function')notify('Brak ćwiczeń w tym dniu');return;}
   cwClearTimers();
   window._cw={
@@ -1022,13 +1022,26 @@ function cwSwapEx(name){
     cur.lastReps=last.reps||'';
     cur.lastDate=last.date||'';
     cur.lastSets=last.sets||[];
-    (cur.sets||[]).forEach((s,i)=>{
+    const plan=(window.PL||[]).find(p=>p.id===cw.planId);
+    const progression=typeof normalizePlanProgression==='function'?normalizePlanProgression(plan&&(plan.progression||plan.progressionType)):'double';
+    const work=(cur.sets||[]).filter(s=>typeof isWorkingSet==='function'?isWorkingSet(s):true);
+    const lastWork=(last.sets||[]).filter(s=>typeof isWorkingSet==='function'?isWorkingSet(s):true);
+    let hint='';
+    work.forEach((s,i)=>{
       if(s.done)return;
-      const prev=last.sets&&last.sets[i];
+      const prev=lastWork[i]||lastWork[lastWork.length-1];
       if(!prev)return;
-      if(prev.kg!=null&&prev.kg!=='')s.kg=String(prev.kg);
-      if(prev.reps!=null&&prev.reps!=='')s.reps=String(prev.reps);
+      const nxt=typeof progressWorkingSet==='function'?progressWorkingSet(prev,cur,{
+        plannedKg:s.kg||cur.lastKg||'',
+        progression,
+        amrap:s.kind==='amrap'
+      }):null;
+      if(!nxt)return;
+      if(nxt.kg!=null&&nxt.kg!=='')s.kg=String(nxt.kg);
+      if(s.kind!=='amrap'&&nxt.reps!=null)s.reps=String(nxt.reps);
+      if(nxt.hint&&!hint)hint=nxt.hint;
     });
+    cur.progHint=hint;
   }
   if(cur.pct1rm&&typeof weightFromPct1RM==='function'){
     const w=weightFromPct1RM(window._clientId,name,cur.pct1rm);
@@ -1118,6 +1131,7 @@ function cwRender(){
     ${(ex.plannedName&&ex.plannedName!==ex.name)?`<div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Z planu: ${escHtml(ex.plannedName)}</div>`:''}
     ${(ex.alts||[]).length?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px;">${ex.alts.map(a=>`<button type="button" class="btn btn-ghost btn-sm" onclick='cwSwapEx(${JSON.stringify(a)})'>↻ ${escHtml(a)}</button>`).join('')}</div>`:''}
     ${ex.kgHint?`<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${escHtml(ex.kgHint)}</div>`:''}
+    ${ex.progHint?`<div style="font-size:11px;color:var(--teal);margin-bottom:8px;">${escHtml(ex.progHint)}</div>`:''}
     ${(()=>{
       const lastHtml=typeof lastSetsBlockHtml==='function'?lastSetsBlockHtml(ex):'';
       const pr=typeof exercisePR==='function'&&(typeof isWeightLoadUnit!=='function'||isWeightLoadUnit(typeof exLoadUnit==='function'?exLoadUnit(ex):'kg'))?exercisePR(window._clientId,ex.name):null;
