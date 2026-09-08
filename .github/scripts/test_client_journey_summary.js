@@ -24,7 +24,7 @@ ok('buildMonitorVerdict', /function buildMonitorVerdict/.test(eight));
 ok('buildClientJourneySummary', /function buildClientJourneySummary/.test(eight));
 ok('renderClientJourneyHTML', /function renderClientJourneyHTML/.test(eight));
 ok('open helpers', /openClientOnboardSummary/.test(eight) && /openClientMonitorSummary/.test(eight));
-ok('calc persists macros', /c\.macros\s*=/.test(seven) && /persistById\('clients'/.test(seven));
+ok('calc persists macros', /function applyMacrosToClient/.test(seven) && /client\.macros\s*=/.test(seven) && /persistById\('clients'/.test(seven) && /function calcSaveToClient/.test(seven));
 ok('cp menu onboard', html.includes('openClientOnboardSummary(cpClientId)'));
 ok('cp menu monitor', html.includes('openClientMonitorSummary(cpClientId)'));
 ok('report modal shortcuts', html.includes('Start: plan + ankieta + makro') && html.includes('Monitoring: progres / regres'));
