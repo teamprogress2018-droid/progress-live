@@ -391,6 +391,10 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 .cw-technique-media.is-compact .cw-technique-cap{display:none;}
 .cw-technique-gif.is-compact img,.cw-technique-gif.is-compact video{max-height:40px;object-fit:cover;}
 .live-ex-card .cw-technique-cap{display:none;}
+.live-ex-body{display:flex;flex-wrap:nowrap;gap:14px;align-items:flex-start;}
+.live-ex-media{flex:0 1 280px;min-width:180px;max-width:360px;}
+.live-ex-media:empty{display:none;}
+.live-ex-log{flex:1 1 0;min-width:0;}
 .live-ex-card .cw-technique-media:not(.is-compact),
 .clive-content .cw-technique-media:not(.is-compact),
 .live-ex-card .cw-file-player,
@@ -400,6 +404,11 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
   display:flex;justify-content:center;align-items:center;
   width:100%;min-height:min(68vh, 620px);background:#000;
 }
+.live-ex-card .live-ex-media .cw-technique-media:not(.is-compact),
+.live-ex-card .live-ex-media .cw-file-player,
+.live-ex-card .live-ex-media .cw-video-file{
+  min-height:min(52vh, 520px);
+}
 .live-ex-card .cw-technique-gif img,.live-ex-card .cw-technique-gif video,
 .clive-content .cw-technique-gif img,.clive-content .cw-technique-gif video,
 .live-ex-card .cw-file-player video,.clive-content .cw-file-player video,
@@ -408,6 +417,14 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
   height:min(70vh, 660px)!important;max-height:min(70vh, 660px)!important;
   object-fit:contain!important;position:static!important;inset:auto!important;
 }
+.live-ex-card .live-ex-media .cw-technique-gif img,
+.live-ex-card .live-ex-media .cw-technique-gif video,
+.live-ex-card .live-ex-media .cw-file-player video,
+.live-ex-card .live-ex-media .cw-video-file video{
+  height:min(52vh, 520px)!important;max-height:min(52vh, 520px)!important;
+}
+#screen-live.live-dual .live-ex-body{flex-wrap:wrap;}
+#screen-live.live-dual .live-ex-media{flex:1 1 100%;max-width:100%;}
 #screen-live.live-dual .live-ex-card .cw-technique-gif,
 #screen-live.live-dual .live-ex-card .cw-file-player,
 #screen-live.live-dual .live-ex-card .cw-video-file{
@@ -418,6 +435,10 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 #screen-live.live-dual .live-ex-card .cw-file-player video,
 #screen-live.live-dual .live-ex-card .cw-video-file video{
   height:min(48vh, 420px)!important;max-height:min(48vh, 420px)!important;
+}
+@media (max-width: 900px){
+  .live-ex-body{flex-wrap:wrap;}
+  .live-ex-media{flex:1 1 100%;max-width:100%;}
 }
 .exgif-preview{max-height:320px;overflow-y:auto;border:1px solid var(--border-color);border-radius:8px;background:rgba(0,0,0,0.2);}
 .exgif-row{display:grid;grid-template-columns:28px 1fr minmax(180px,1.2fr) 24px;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,0.06);font-size:11px;}
