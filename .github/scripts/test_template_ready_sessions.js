@@ -65,6 +65,11 @@ ok('expander arnold', fn('Klatka + Plecy — Wyciskanie').length >= 4);
 ok('expander rest empty', fn('REST lub spacer').length === 0);
 ok('expander gvt', fn('Klatka + Plecy: 10×10').some(e => e.s === '10'));
 ok('expander trening A', fn('Trening A').length >= 4);
+const hiitDay = fn('HIIT: 8× (20s max + 40s przerwa)');
+ok('hiit has burpees', hiitDay.some(e => e.n === 'Burpees'));
+ok('hiit rest 40s', hiitDay.filter(e => e.n === 'Burpees').every(e => e.rest === '40s'));
+ok('hiit reps max', hiitDay.some(e => e.n === 'Burpees' && e.r === 'max'));
+ok('hiit 8 work rounds', hiitDay.filter(e => !/rozgrzewka|cool-down/i.test(e.n)).reduce((a, e) => a + (parseInt(e.s, 10) || 0), 0) === 8);
 
 const m1 = src06.match(/function expandSessionFromDayFocus[\s\S]*?window\.expandSessionFromDayFocus=expandSessionFromDayFocus;/);
 const m2 = src06.match(/function planDaysFromProgram[\s\S]*?window\.planDaysFromProgram=planDaysFromProgram;/);

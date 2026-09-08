@@ -98,6 +98,11 @@ eq('rest spacer flag', restSpacer[0].rest, true);
 const test1 = expandSessionFromDayFocus('Test 1RM (opcja)');
 ok('test 1RM expands', test1.length >= 3);
 
+const hiit = expandSessionFromDayFocus('HIIT: 8× (20s max + 40s przerwa)');
+ok('hiit not 8 dummy sets', hiit.some(e => /burpee/i.test(e.name) && e.sets === '2'));
+ok('hiit rest 40s', hiit.some(e => /burpee/i.test(e.name) && e.rest === '40s'));
+ok('hiit reps max', hiit.some(e => /burpee/i.test(e.name) && e.reps === 'max'));
+
 if (failed) {
   console.error('\n' + failed + ' failed');
   process.exit(1);
