@@ -651,6 +651,7 @@ const DEMO_METRIC_GROUPS=[
     {id:'m7',name:'Barki',unit:'cm',type:'number'},
     {id:'m1',name:'Klatka piersiowa',unit:'cm',type:'number'},
     {id:'m2',name:'Talia',unit:'cm',type:'number'},
+    {id:'m14',name:'Pas',unit:'cm',type:'number'},
     {id:'m3',name:'Biodra',unit:'cm',type:'number'},
     {id:'m5',name:'Ramię (lewe)',unit:'cm',type:'number'},
     {id:'m8',name:'Ramię (prawe)',unit:'cm',type:'number'},
@@ -783,7 +784,7 @@ function circMetricDefs(){
   return (metricGroupById('mg2')||{}).metrics||[];
 }
 const FALLBACK_CIRC_LABELS={
-  m1:'klatka',m2:'talia',m3:'biodra',m4:'udo (lewe)',m5:'ramię (lewe)',
+  m1:'klatka',m2:'talia',m14:'pas',m3:'biodra',m4:'udo (lewe)',m5:'ramię (lewe)',
   m6:'szyja',m7:'barki',m8:'ramię (prawe)',m9:'udo (prawe)',
   m10:'łydka (lewa)',m11:'łydka (prawa)',m12:'przedramię (lewe)',m13:'przedramię (prawe)'
 };
@@ -1127,7 +1128,7 @@ function updateMetricEntryForm(){
   const fields=document.getElementById('me-fields');
   if(!fields||!group)return;
   const hint=gsel.value==='mg2'
-    ?'<div style="font-size:11px;color:var(--muted);margin:0 0 10px;line-height:1.45;">Obwody taśmą centymetrową (cm) — rano, taśma przy skórze, bez ubrania.</div>'
+    ?'<div style="font-size:11px;color:var(--muted);margin:0 0 10px;line-height:1.45;">Obwody taśmą centymetrową (cm) — rano, taśma przy skórze, bez ubrania. Talia = najwęższe miejsce, pas = na wysokości pępka.</div>'
     :(gsel.value==='mg1'?'<div style="font-size:11px;color:var(--muted);margin:0 0 10px;line-height:1.45;">Skład ciała z wagi (Tanita / InBody): wiek metaboliczny, nawodnienie i ocena fizyczności — opcjonalnie.</div>':'');
   const wrap=(group.metrics||[]).length>3;
   const rows=(group.metrics||[]).map(m=>`<div class="form-field"><label class="form-lbl">${m.name}${m.unit?' ('+m.unit+')':''}</label><input type="number" step="0.1" class="form-input" id="mef-${m.id}" placeholder="${m.placeholder||m.unit||'wartość'}"></div>`).join('');
@@ -1210,7 +1211,7 @@ function saveClientBaselineFromFields(clientId,fields){
       if(n!=null&&n!==''&&!isNaN(+n))circVals[k]=+n;
     });
   }
-  const legacyCirc={chest:'m1',waist:'m2',hips:'m3',thigh:'m4',arm:'m5',neck:'m6',shoulders:'m7',armR:'m8',thighR:'m9',calfL:'m10',calfR:'m11',forearmL:'m12',forearmR:'m13'};
+  const legacyCirc={chest:'m1',waist:'m2',pas:'m14',belt:'m14',hips:'m3',thigh:'m4',arm:'m5',neck:'m6',shoulders:'m7',armR:'m8',thighR:'m9',calfL:'m10',calfR:'m11',forearmL:'m12',forearmR:'m13'};
   Object.keys(legacyCirc).forEach(k=>{
     const n=fields[k];
     if(n!=null&&n!==''&&!isNaN(+n)&&circVals[legacyCirc[k]]==null)circVals[legacyCirc[k]]=+n;
@@ -1272,7 +1273,7 @@ function clientMetricsContextForAI(clientId){
   if(circ.length){
     const last=circ[0],prev=circ[1];
     const v=last.values||{};
-    const labels=typeof circMetricLabels==='function'?circMetricLabels():{m1:'klatka',m2:'talia',m3:'biodra',m4:'udo (lewe)',m5:'ramię (lewe)',m6:'szyja',m7:'barki',m8:'ramię (prawe)',m9:'udo (prawe)',m10:'łydka (lewa)',m11:'łydka (prawa)',m12:'przedramię (lewe)',m13:'przedramię (prawe)'};
+    const labels=typeof circMetricLabels==='function'?circMetricLabels():{m1:'klatka',m2:'talia',m14:'pas',m3:'biodra',m4:'udo (lewe)',m5:'ramię (lewe)',m6:'szyja',m7:'barki',m8:'ramię (prawe)',m9:'udo (prawe)',m10:'łydka (lewa)',m11:'łydka (prawa)',m12:'przedramię (lewe)',m13:'przedramię (prawe)'};
     const keys=Object.keys(v).filter(k=>v[k]!=null&&v[k]!=='');
     const parts=keys.map(k=>{
       let s=(labels[k]||k)+' '+v[k]+' cm';

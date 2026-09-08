@@ -27,6 +27,7 @@ const g = mg2 ? mg2[0] : '';
 const need = [
   ['m1', 'Klatka piersiowa'],
   ['m2', 'Talia'],
+  ['m14', 'Pas'],
   ['m3', 'Biodra'],
   ['m4', 'Udo (lewe)'],
   ['m5', 'Ramię (lewe)'],
@@ -42,7 +43,7 @@ const need = [
 need.forEach(([id, name]) => {
   ok('mg2 has ' + id + ' ' + name, g.includes("id:'" + id + "',name:'" + name + "',unit:'cm'"));
 });
-ok('mg2 all cm', (g.match(/unit:'cm'/g) || []).length >= 13);
+ok('mg2 all cm', (g.match(/unit:'cm'/g) || []).length >= 14);
 ok('no fake circ seed', !/values:\{m1:88,m2:22/.test(src07) && !src07.includes("notes:'Pomiar startowy'"));
 ok('migrate helper', /function migrateEnsureCircMetrics/.test(src07));
 ok('allMetricGroups merges by id', /function allMetricGroups/.test(src07) && /demoIds/.test(src07));
@@ -53,7 +54,7 @@ ok('08 empty circ copy', src08.includes('Brak obwodów centymetrem'));
 ok('08 uses circBarItems', src08.includes('circBarItems'));
 ok('04 last circ dynamic', src04.includes('circMetricDefs'));
 ok('index migrate after load', html.includes('migrateEnsureCircMetrics'));
-ok('cache 07', html.includes('07-forms-metrics-calculator.js?v=32'));
+ok('cache 07', html.includes('07-forms-metrics-calculator.js?v=33'));
 ok('cache 04/05/08', html.includes('04-client-portal.js?v=39') && html.includes('05-clients-builder-plans-calendar.js?v=47') && html.includes('08-client-profile-extras.js?v=47'));
 ok('CI unit', wf.includes('test_circ_metrics.js'));
 ok('openMetricEntry fills after openM', /openM\('m-metric-entry'\);[\s\S]{0,500}if\(groupId\)gsel\.value=groupId/.test(src07));
@@ -110,9 +111,9 @@ window.saveClientBaselineFromFields=saveClientBaselineFromFields;
 
 const groups = ctx.allMetricGroups();
 const circ = groups.find((g) => g.id === 'mg2');
-ok('vm mg2 13 sites', circ && circ.metrics.length === 13, circ && String(circ.metrics.length));
+ok('vm mg2 14 sites', circ && circ.metrics.length === 14, circ && String(circ.metrics.length));
 ok('vm all cm', circ.metrics.every((m) => m.unit === 'cm'));
-ok('vm ids include szyja/lydka', circ.metrics.some((m) => m.id === 'm6') && circ.metrics.some((m) => m.id === 'm10'));
+ok('vm ids include szyja/lydka/pas', circ.metrics.some((m) => m.id === 'm6') && circ.metrics.some((m) => m.id === 'm10') && circ.metrics.some((m) => m.id === 'm14'));
 
 windowObj.METRIC_GROUPS = [{
   id: 'mg2', name: 'Obwody ciała', metrics: [
@@ -129,7 +130,7 @@ ok('no duplicate mg2 nav', ctx.allMetricGroups().filter((g) => g.id === 'mg2').l
 persisted.length = 0;
 ok('migrate patches stored', ctx.migrateEnsureCircMetrics() === true);
 const stored = windowObj.METRIC_GROUPS.find((g) => g.id === 'mg2');
-ok('stored has m6 after migrate', stored.metrics.some((m) => m.id === 'm6') && stored.metrics.some((m) => m.id === 'm10'));
+ok('stored has m6 after migrate', stored.metrics.some((m) => m.id === 'm6') && stored.metrics.some((m) => m.id === 'm10') && stored.metrics.some((m) => m.id === 'm14'));
 ok('stored keeps custom', stored.metrics.some((m) => m.id === 'm99'));
 ok('migrate persisted', persisted.some((p) => p.col === 'metricGroups'));
 ok('migrate idempotent', ctx.migrateEnsureCircMetrics() === false);
@@ -141,8 +142,8 @@ const created = ctx.saveClientBaselineFromFields('c1', {
 });
 ok('baseline circ entry', created.length === 1 && created[0].groupId === 'mg2');
 ok('baseline values cm sites', created[0].values.m2 === 74 && created[0].values.m6 === 34 && created[0].values.m10 === 36);
-const legacy = ctx.saveClientBaselineFromFields('c1', { chest: 95, waist: 70, arm: 28 });
-ok('legacy chest/waist/arm', legacy[0].values.m1 === 95 && legacy[0].values.m2 === 70 && legacy[0].values.m5 === 28);
+const legacy = ctx.saveClientBaselineFromFields('c1', { chest: 95, waist: 70, pas: 88, arm: 28 });
+ok('legacy chest/waist/pas/arm', legacy[0].values.m1 === 95 && legacy[0].values.m2 === 70 && legacy[0].values.m14 === 88 && legacy[0].values.m5 === 28);
 
 const bars = ctx.circBarItems({ values: { m1: 90, m2: 70, m6: 33 } });
 ok('bars skip empty', bars.length === 3 && bars.some((b) => b.label === 'Szyja' && b.v === 33 && b.unit === 'cm'));
