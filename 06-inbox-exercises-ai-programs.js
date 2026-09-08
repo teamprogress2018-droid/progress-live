@@ -2711,7 +2711,7 @@ function expandSessionFromDayFocus(focus){
     if(/bark|ramion|ohp/.test(s))return[ex('Wyciskanie żołnierskie OHP','10','10','90s'),ex('Uginanie biceps sztangą','10','10','60s'),ex('Prostowanie tricepsa wyciąg','3','12-15','60s'),ex('Unoszenie bokiem','3','15','45s')];
     return[ex('Wyciskanie sztangi leżąc','10','10','90s'),ex('Podciąganie na drążku','10','10','90s'),ex('Rozpiętki na wyciągu','3','12-15','60s'),ex('Ściąganie do twarzy (face pull)','3','15','45s')];
   }
-  if(/tabata/.test(s))return[ex('Burpees','8','20s / 10s','Tabata'),ex('Przysiad powietrzny z mini band','8','20s / 10s','Tabata'),ex('Mountain climbers','8','20s / 10s','Tabata'),ex('Pompki','8','20s / 10s','Tabata'),ex('Wysokie kolana','8','20s / 10s','Tabata')];
+  if(/tabata/.test(s))return[ex('Rozgrzewka mobilność','2','8-10','45s'),ex('Burpees','2','max','10s'),ex('Przysiad powietrzny z mini band','2','max','10s'),ex('Mountain climbers','2','max','10s'),ex('Pompki','2','max','10s'),ex('Cool-down / stretch','1','5 min','—')];
   if(/emom/.test(s))return[ex('Przysiad ze sztangą','10-20','5 / min','EMOM'),ex('Podciąganie na drążku','10-20','5 / min','EMOM'),ex('Pompki','10-20','8 / min','EMOM'),ex('Swing kettlebell','10-20','8 / min','EMOM')];
   if(/amrap|cindy/.test(s))return[ex('Podciąganie na drążku','AMRAP','5','—'),ex('Pompki','AMRAP','10','—'),ex('Przysiad powietrzny z mini band','AMRAP','15','—'),ex('Burpees','AMRAP','5','—')];
   if(/klatka/.test(s)&&/plecy/.test(s))return[ex('Wyciskanie sztangi leżąc','4','8-10','120s'),ex('Wiosłowanie sztangą','4','8-10','120s'),ex('Wyciskanie hantli na ławce skośnej','3','10-12','90s'),ex('Podciąganie na drążku','3','6-10','120s'),ex('Rozpiętki na wyciągu','3','12-15','60s')];
@@ -2719,7 +2719,16 @@ function expandSessionFromDayFocus(focus){
   if(/trening a\/b/.test(s))return[ex('Przysiad ze sztangą','5','5','180s'),ex('Wyciskanie sztangi leżąc','5','5','180s'),ex('Wyciskanie żołnierskie OHP','3','5','150s'),ex('Wiosłowanie sztangą','5','5','150s'),ex('Martwy ciąg klasyczny','1','5','240s')];
   if(/trening a/.test(s))return[ex('Przysiad ze sztangą','5','5','180s'),ex('Wyciskanie sztangi leżąc','5','5','180s'),ex('Martwy ciąg klasyczny','1','5','240s'),ex('Wiosłowanie sztangą','3','8','120s')];
   if(/trening b/.test(s))return[ex('Przysiad ze sztangą','5','5','180s'),ex('Wyciskanie żołnierskie OHP','5','5','150s'),ex('Wiosłowanie sztangą','5','5','150s'),ex('Podciąganie na drążku','3','6-8','120s')];
-  if(/hiit|cardio|bieg/.test(s))return[ex('Rozgrzewka mobilność','2','8-10','45s'),ex(focus||'HIIT / cardio','1','20-30 min','—'),ex('Cool-down / stretch','1','5 min','—')];
+  if(/hiit/.test(s)){
+    let rest='40s',setsEach='2';
+    const paren=raw.match(/(\d+)\s*[×x]\s*\(\s*(\d+)\s*s[^\d]+(\d+)\s*s/i);
+    if(paren){
+      rest=paren[3]+'s';
+      setsEach=String(Math.max(1,Math.floor((+paren[1])/4)||2));
+    }
+    return[ex('Rozgrzewka mobilność','2','8-10','45s'),ex('Burpees',setsEach,'max',rest),ex('Przysiad powietrzny z mini band',setsEach,'max',rest),ex('Mountain climbers',setsEach,'max',rest),ex('Pompki',setsEach,'max',rest),ex('Cool-down / stretch','1','5 min','—')];
+  }
+  if(/cardio|bieg/.test(s))return[ex('Rozgrzewka mobilność','2','8-10','45s'),ex(focus||'HIIT / cardio','1','20-30 min','—'),ex('Cool-down / stretch','1','5 min','—')];
   if(/mobiln|mobility/.test(s))return[ex('Foam rolling','2','10','30s'),ex('Mobilność bioder/barków','2','10','30s'),ex(focus||'Mobilność','2','8','45s')];
   if(/push/.test(s))return[
     ex('Wyciskanie sztangi / maszyna (klatka)','4','6-10','2min'),

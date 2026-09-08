@@ -40,6 +40,7 @@ function ok(name, cond, extra) {
     [...document.querySelectorAll('.live-rest-preset')].map((b) => b.textContent.trim())
   );
   ok('has 30s preset', presets.includes('30s'), JSON.stringify(presets));
+  ok('has 40s HIIT preset', presets.includes('40s'), JSON.stringify(presets));
   ok('keeps 60s', presets.includes('60s'));
   ok('custom field present', await page.locator('#live-rest-custom').count() === 1);
 

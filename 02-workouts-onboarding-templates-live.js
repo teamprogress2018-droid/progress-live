@@ -890,6 +890,39 @@ window.TPL_CUSTOM=TPL_CUSTOM;
 
 function tplEx(n,s,r,rest){return{n:n,s:String(s),r:String(r),rest:rest||'90s'};}
 
+/** Interwał z nazwy dnia, np. „HIIT: 8× (20s max + 40s przerwa)”. */
+function parseIntervalProtocol(focus){
+  const s=String(focus||'');
+  const paren=s.match(/(\d+)\s*[×x]\s*\(\s*(\d+)\s*s[^\d]+(\d+)\s*s/i);
+  if(paren)return{rounds:+paren[1],workSec:+paren[2],restSec:+paren[3]};
+  let rounds=0;
+  const rund=s.match(/(\d+)\s*rund/i);
+  if(rund)rounds=+rund[1];
+  const pair=s.match(/(\d+)\s*s[^\d]{0,40}(\d+)\s*s/i);
+  if(pair)return{rounds:rounds||8,workSec:+pair[1],restSec:+pair[2]};
+  return null;
+}
+
+function splitRoundCounts(n,k){
+  n=Math.max(1,parseInt(n,10)||8);
+  k=Math.max(1,k||1);
+  const base=Math.floor(n/k),extra=n%k;
+  return Array.from({length:k},(_,i)=>base+(i<extra?1:0));
+}
+
+/** HIIT/Tabata pod Live: serie = rundy, powt. = max w oknie pracy, rest w sekundach. */
+function hiitIntervalSession(proto){
+  const X=tplEx;
+  const p=proto||{rounds:8,workSec:20,restSec:40};
+  const rest=String(p.restSec||40)+'s';
+  const moves=['Burpees','Przysiad powietrzny z mini band','Mountain climbers','Pompki'];
+  const counts=splitRoundCounts(p.rounds,moves.length);
+  const list=[X('Rozgrzewka mobilność','2','8-10','45s')];
+  moves.forEach((name,i)=>{if(counts[i]>0)list.push(X(name,String(counts[i]),'max',rest));});
+  list.push(X('Cool-down / stretch','1','5 min','—'));
+  return list;
+}
+
 const TPL_SESSIONS=(function(){
   const X=tplEx;
   return{
@@ -1047,14 +1080,7 @@ const TPL_SESSIONS=(function(){
       X('Deska','2','30s','30s'),
       X('Stretching statyczny','1','5 min','—')
     ],
-    hiit:[
-      X('Rozgrzewka mobilność','2','8-10','45s'),
-      X('Burpees','8','20s / 40s','HIIT'),
-      X('Przysiad powietrzny z mini band','8','20s / 40s','HIIT'),
-      X('Mountain climbers','8','20s / 40s','HIIT'),
-      X('Pompki','8','20s / 40s','HIIT'),
-      X('Cool-down / stretch','1','5 min','—')
-    ],
+    hiit:hiitIntervalSession({rounds:8,workSec:20,restSec:40}),
     hiitStrength:[
       X('Przysiad Goblet','4','10-12','60s'),
       X('Wyciskanie hantli leżąc','3','10-12','60s'),
@@ -1407,14 +1433,7 @@ const TPL_SESSIONS=(function(){
       X('Burpees','AMRAP','5','—'),
       X('Deska','3','30s','30s')
     ],
-    tabata:[
-      X('Burpees','8','20s / 10s','Tabata'),
-      X('Przysiad powietrzny z mini band','8','20s / 10s','Tabata'),
-      X('Mountain climbers','8','20s / 10s','Tabata'),
-      X('Pompki','8','20s / 10s','Tabata'),
-      X('Wysokie kolana','8','20s / 10s','Tabata'),
-      X('Cool-down / stretch','1','5 min','—')
-    ],
+    tabata:hiitIntervalSession({rounds:8,workSec:20,restSec:10}),
     test1rm:[
       X('Przysiad ze sztangą','1-3','1-3','3min'),
       X('Wyciskanie sztangi leżąc','1-3','1-3','3min'),
@@ -1475,7 +1494,7 @@ function sessionExercisesForFocus(focus){
     if(/bark|ramion|ohp|biceps/.test(s))return P.gvtShoulders;
     return P.gvtChestBack;
   }
-  if(/tabata/.test(s))return P.tabata;
+  if(/tabata/.test(s))return hiitIntervalSession(parseIntervalProtocol(raw)||{rounds:8,workSec:20,restSec:10});
   if(/emom/.test(s))return P.emom;
   if(/amrap|cindy/.test(s))return P.amrap;
   if(/klatka/.test(s)&&/plecy/.test(s))return P.arnoldChestBack;
@@ -1504,7 +1523,7 @@ function sessionExercisesForFocus(focus){
   if(/trening a/.test(s))return P.ssA;
   if(/trening b/.test(s))return P.ssB;
   if(/hiit/.test(s)&&/sił/.test(s))return P.hiitStrength;
-  if(/hiit/.test(s))return P.hiit;
+  if(/hiit/.test(s))return hiitIntervalSession(parseIntervalProtocol(raw)||{rounds:8,workSec:20,restSec:40});
   if(/liss/.test(s))return P.liss;
   if(/kettlebell|\bkb:|\bkb |swing/.test(s))return P.wod2;
   if(/funkcjonal|bear crawl|farmer/.test(s))return P.functional;
@@ -1522,6 +1541,8 @@ function sessionExercisesForFocus(focus){
 }
 
 window.tplEx=tplEx;
+window.parseIntervalProtocol=parseIntervalProtocol;
+window.hiitIntervalSession=hiitIntervalSession;
 window.TPL_SESSIONS=TPL_SESSIONS;
 window.sessionIsRestFocus=sessionIsRestFocus;
 window.sessionExercisesForFocus=sessionExercisesForFocus;
