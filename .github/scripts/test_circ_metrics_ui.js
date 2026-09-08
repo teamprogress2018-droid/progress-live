@@ -73,11 +73,12 @@ function ok(name, cond, extra) {
   });
   await page.screenshot({ path: path.join(shotDir, 'cp_metrics_circ_form.png') });
   ok('form has cm hint', form.hint, form.text.slice(0, 200));
-  ['mef-m1', 'mef-m2', 'mef-m3', 'mef-m4', 'mef-m5', 'mef-m6', 'mef-m8', 'mef-m10', 'mef-m11'].forEach((id) => {
+  ok('form explains pas vs talia', /pępek|pas/i.test(form.text), form.text.slice(0, 250));
+  ['mef-m1', 'mef-m2', 'mef-m3', 'mef-m4', 'mef-m5', 'mef-m6', 'mef-m8', 'mef-m10', 'mef-m11', 'mef-m14'].forEach((id) => {
     ok('field ' + id, form.ids.includes(id), form.ids.join(','));
   });
-  ok('labels szyja klatka talia biodra ramie udo lydka',
-    /Szyja/.test(form.text) && /Klatka/.test(form.text) && /Talia/.test(form.text) && /Biodra/.test(form.text)
+  ok('labels szyja klatka talia pas biodra ramie udo lydka',
+    /Szyja/.test(form.text) && /Klatka/.test(form.text) && /Talia/.test(form.text) && /Pas/.test(form.text) && /Biodra/.test(form.text)
     && /Ramię/.test(form.text) && /Udo/.test(form.text) && /Łydka/.test(form.text),
     form.text.slice(0, 400));
   ok('units cm', /\(cm\)/.test(form.text));
