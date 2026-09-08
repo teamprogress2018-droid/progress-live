@@ -2191,7 +2191,7 @@ function renderOwnVideos(){
     const file=typeof coachVideoIsFile==='function'&&coachVideoIsFile(url);
     let player='';
     if(embed)player=`<div class="cw-video-wrap" style="margin-bottom:8px;"><iframe src="${escHtml(embed)}" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen title="${escHtml(v.name||'Film')}"></iframe></div>`;
-    else if(file)player=`<div class="cw-video-wrap" style="margin-bottom:8px;"><video src="${escHtml(url)}" controls playsinline></video></div>`;
+    else if(file)player=`<div class="cw-file-player cw-video-file" style="margin-bottom:8px;"><video src="${escHtml(url)}" controls playsinline></video></div>`;
     else if(url)player=`<a href="${escHtml(url)}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" style="margin-bottom:8px;">↗ Otwórz link</a>`;
     return `<div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:12px;">
       ${player}

@@ -347,6 +347,8 @@ jobs:
         run: node .github/scripts/test_live_dual_ui.js
       - name: 6b3c4. Testy UI dodawania zamiennika w Live
         run: node .github/scripts/test_live_alts_add_ui.js
+      - name: 6b3c5. Testy UI dużego filmu techniki w Live
+        run: node .github/scripts/test_live_video_ui.js
 
       - name: 6b4. Testy UI jednostki sec przy linach
         run: node .github/scripts/test_ex_load_unit_ui.js

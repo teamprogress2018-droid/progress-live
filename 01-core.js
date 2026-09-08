@@ -1875,16 +1875,17 @@ function coachMediaHtml(ex,opts){
   const show=!!opts.showVideo;
   const showGif=opts.showGif!==false;
   const toggle=opts.toggleFn||'';
+  const sameGifVideo=!!(gif&&video&&typeof sameMediaUrl==='function'&&sameMediaUrl(gif,video));
   let html='';
   if(showGif&&gif)html+=exTechniqueMediaHtml({gif,name:ex&&ex.name},opts);
   if(note)html+=`<div class="cw-coach-note">${escHtml(note)}</div>`;
   else if(libTip)html+=`<div style="font-size:11px;color:var(--muted);margin:0 0 10px;line-height:1.45;">${escHtml(libTip)}</div>`;
-  if(video){
+  if(video&&!sameGifVideo){
     html+=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px;">`;
     if(toggle)html+=`<button type="button" class="btn btn-ghost btn-sm" onclick="${toggle}">${show?'▾ Ukryj film':'▶ Film techniki'}</button>`;
     html+=`<a class="btn btn-ghost btn-sm" href="${escHtml(video)}" target="_blank" rel="noopener noreferrer">↗ Otwórz film</a></div>`;
     if(show&&embed)html+=`<div class="cw-video-wrap"><iframe src="${escHtml(embed)}" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen title="Film techniki"></iframe></div>`;
-    else if(show&&file)html+=`<div class="cw-video-wrap"><video src="${escHtml(video)}" controls playsinline></video></div>`;
+    else if(show&&file)html+=`<div class="cw-file-player cw-video-file"><video src="${escHtml(video)}" controls playsinline></video></div>`;
   }
   return html;
 }
