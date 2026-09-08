@@ -760,7 +760,7 @@ function onbCreateClient(){
     if(t){
       assignedPlan=withTrainer({id:newId('p'),name:t.name,clientId:newC.id,method:t.method,duration:t.weeks||1, // mikrocykl — trener zapętla w kalendarzu / Programy = pełny blok
     _sourceKind:'template-microcycle',
-        days:(t.days_detail||[]).map(d=>({day:d.name,exercises:(d.exercises||[]).map(e=>({name:e.n,sets:e.s,reps:e.r}))})),
+        days:(t.days_detail||[]).map(d=>({day:d.name,exercises:(d.exercises||[]).map(e=>({name:e.n,sets:e.s,reps:e.r,rest:e.rest}))})),
         source:'template',createdAt:new Date().toISOString()});
       PL.push(assignedPlan);
       persistById('plans',assignedPlan);
@@ -887,6 +887,645 @@ var tplFilter='all';
 var tplDetailId=null;
 var TPL_CUSTOM=[];
 window.TPL_CUSTOM=TPL_CUSTOM;
+
+function tplEx(n,s,r,rest){return{n:n,s:String(s),r:String(r),rest:rest||'90s'};}
+
+const TPL_SESSIONS=(function(){
+  const X=tplEx;
+  return{
+    pushA:[
+      X('Wyciskanie sztangi leżąc','4','6-8','180s'),
+      X('Wyciskanie hantli na ławce skośnej','3','10-12','90s'),
+      X('Rozpiętki na wyciągu','3','12-15','60s'),
+      X('Wyciskanie żołnierskie OHP','4','8-10','120s'),
+      X('Unoszenie bokiem','4','12-15','60s'),
+      X('Prostowanie tricepsa wyciąg','3','12-15','60s'),
+      X('Dipy na poręczach','3','10-12','90s')
+    ],
+    pushB:[
+      X('Wyciskanie hantli na ławce skośnej','4','8-12','120s'),
+      X('Wyciskanie na maszynie','3','10-12','90s'),
+      X('Wyciskanie żołnierskie OHP','3','10-12','90s'),
+      X('Unoszenie bokiem','3','15-20','45s'),
+      X('Wyciskanie francuskie','3','10-12','75s'),
+      X('Prostowanie linką','3','12-15','60s'),
+      X('Pompki','2','max','60s')
+    ],
+    pullA:[
+      X('Martwy ciąg klasyczny','4','5-6','240s'),
+      X('Podciąganie na drążku','4','6-10','120s'),
+      X('Wiosłowanie sztangą','3','8-12','90s'),
+      X('Ściąganie do twarzy (face pull)','3','12-15','60s'),
+      X('Uginanie biceps sztangą','3','10-12','60s'),
+      X('Wiosłowanie hantlem','3','10-12','75s')
+    ],
+    pullB:[
+      X('Martwy ciąg RDL','4','8-10','180s'),
+      X('Ściąganie drążka wyciąg','4','8-12','90s'),
+      X('Wiosłowanie wyciągiem siedząc','3','10-12','75s'),
+      X('Ściąganie do twarzy (face pull)','3','15-20','45s'),
+      X('Uginanie biceps sztangą','3','12-15','60s'),
+      X('Prostowanie tułowia','3','12-15','60s')
+    ],
+    legsA:[
+      X('Przysiad ze sztangą','4','6-8','180s'),
+      X('Wyciskanie nogami','3','10-12','90s'),
+      X('Wykrok z hantlami','3','10/stronę','90s'),
+      X('Uginanie nóg leżąc','3','12-15','60s'),
+      X('Wypychanie bioder (hip thrust)','3','10-12','90s'),
+      X('Wspięcia na palce stojąc','4','15-20','45s')
+    ],
+    legsB:[
+      X('Wypychanie bioder (hip thrust)','4','8-12','90s'),
+      X('Martwy ciąg RDL','4','8-10','150s'),
+      X('Przysiad bułgarski','3','10/stronę','90s'),
+      X('Uginanie nóg siedząc','3','12-15','60s'),
+      X('Abdukcja biodra maszyna','3','15-20','45s'),
+      X('Wspięcia na palce','4','15-20','45s')
+    ],
+    fbwA:[
+      X('Przysiad ze sztangą','3','5','180s'),
+      X('Wyciskanie sztangi leżąc','3','5','180s'),
+      X('Wiosłowanie sztangą','3','5','180s'),
+      X('Wyciskanie żołnierskie OHP','2','5','120s'),
+      X('Martwy ciąg klasyczny','1','5','240s'),
+      X('Deska','3','45s','45s')
+    ],
+    fbwB:[
+      X('Przysiad Goblet','3','8-10','120s'),
+      X('Wyciskanie hantli leżąc','3','8-10','120s'),
+      X('Podciąganie na drążku','3','6-10','120s'),
+      X('Wyciskanie żołnierskie OHP','3','8-10','90s'),
+      X('Martwy ciąg RDL','3','8-10','150s'),
+      X('Deska','3','40s','45s')
+    ],
+    fbwC:[
+      X('Przysiad ze sztangą','3','6-8','150s'),
+      X('Wyciskanie hantli leżąc','3','8-10','120s'),
+      X('Wiosłowanie hantlem','3','8-12','90s'),
+      X('Wyciskanie hantli siedząc','2','10-12','90s'),
+      X('Wypychanie bioder (hip thrust)','3','10-12','90s'),
+      X('Uginanie biceps sztangą','2','12-15','60s')
+    ],
+    upperA:[
+      X('Wyciskanie sztangi leżąc','4','6-8','150s'),
+      X('Podciąganie na drążku','4','6-10','120s'),
+      X('Wyciskanie żołnierskie OHP','3','8-10','90s'),
+      X('Wiosłowanie sztangą','3','8-12','90s'),
+      X('Unoszenie bokiem','3','12-15','60s'),
+      X('Prostowanie tricepsa wyciąg','3','12-15','60s'),
+      X('Uginanie biceps sztangą','3','10-12','60s')
+    ],
+    upperB:[
+      X('Wyciskanie hantli na ławce skośnej','4','8-12','120s'),
+      X('Wiosłowanie wyciągiem siedząc','4','10-12','75s'),
+      X('Wyciskanie hantli siedząc','3','10-12','90s'),
+      X('Ściąganie do twarzy (face pull)','3','15-20','45s'),
+      X('Unoszenie bokiem','3','15','45s'),
+      X('Wyciskanie francuskie','3','10-12','75s'),
+      X('Uginanie biceps sztangą','3','12-15','60s')
+    ],
+    lowerA:[
+      X('Przysiad ze sztangą','4','6-8','180s'),
+      X('Martwy ciąg RDL','3','8-10','150s'),
+      X('Wyciskanie nogami','3','10-12','90s'),
+      X('Wypychanie bioder (hip thrust)','3','10-12','90s'),
+      X('Wykrok z hantlami','3','10/stronę','90s'),
+      X('Wspięcia na palce stojąc','4','15-20','45s')
+    ],
+    lowerB:[
+      X('Wykrok chodzony','3','10/stronę','90s'),
+      X('Przysiad Goblet','3','10-12','90s'),
+      X('Uginanie nóg leżąc','3','12-15','60s'),
+      X('Wypychanie bioder (hip thrust)','3','12-15','75s'),
+      X('Abdukcja biodra maszyna','3','15-20','45s'),
+      X('Wspięcia na palce','4','15-20','45s')
+    ],
+    upperPower:[
+      X('Wyciskanie sztangi leżąc','5','3-5','180s'),
+      X('Wyciskanie żołnierskie OHP','4','3-5','150s'),
+      X('Wiosłowanie sztangą','4','5','150s'),
+      X('Podciąganie na drążku','3','5','120s'),
+      X('Dipy na poręczach','3','6-8','90s'),
+      X('Ściąganie do twarzy (face pull)','3','12-15','60s')
+    ],
+    lowerPower:[
+      X('Przysiad ze sztangą','5','3-5','180s'),
+      X('Martwy ciąg klasyczny','3','3-5','240s'),
+      X('Wyciskanie nogami','3','6-8','120s'),
+      X('Wypychanie bioder (hip thrust)','3','6-8','120s'),
+      X('Wspięcia na palce stojąc','3','10-12','60s')
+    ],
+    upperHyper:[
+      X('Wyciskanie hantli na ławce skośnej','4','10-12','90s'),
+      X('Ściąganie drążka wyciąg','4','10-12','75s'),
+      X('Wiosłowanie hantlem','3','12-15','75s'),
+      X('Unoszenie bokiem','4','12-15','45s'),
+      X('Prostowanie tricepsa wyciąg','3','12-15','45s'),
+      X('Uginanie biceps sztangą','3','12-15','45s')
+    ],
+    lowerHyper:[
+      X('Przysiad Goblet','4','10-12','90s'),
+      X('Martwy ciąg RDL','3','10-12','90s'),
+      X('Wypychanie bioder (hip thrust)','4','10-15','75s'),
+      X('Wykrok z hantlami','3','12/stronę','75s'),
+      X('Uginanie nóg leżąc','3','12-15','60s'),
+      X('Wspięcia na palce','4','15-20','45s')
+    ],
+    fbwCut:[
+      X('Przysiad Goblet','4','12-15','60s'),
+      X('Wyciskanie hantli leżąc','3','12-15','60s'),
+      X('Wiosłowanie hantlem','3','12-15','60s'),
+      X('Wykrok z hantlami','3','12/stronę','60s'),
+      X('Wyciskanie hantli siedząc','3','12-15','60s'),
+      X('Deska','3','45s','45s'),
+      X('Mountain climbers','3','30s','30s')
+    ],
+    liss:[
+      X('Rozgrzewka marsz','1','5 min','—'),
+      X('Rower stacjonarny','1','30-40 min','—'),
+      X('Deska','2','30s','30s'),
+      X('Stretching statyczny','1','5 min','—')
+    ],
+    hiit:[
+      X('Rozgrzewka mobilność','2','8-10','45s'),
+      X('Burpees','8','20s / 40s','HIIT'),
+      X('Przysiad powietrzny z mini band','8','20s / 40s','HIIT'),
+      X('Mountain climbers','8','20s / 40s','HIIT'),
+      X('Pompki','8','20s / 40s','HIIT'),
+      X('Cool-down / stretch','1','5 min','—')
+    ],
+    hiitStrength:[
+      X('Przysiad Goblet','4','10-12','60s'),
+      X('Wyciskanie hantli leżąc','3','10-12','60s'),
+      X('Wiosłowanie hantlem','3','10-12','60s'),
+      X('Burpees','4','8-10','45s'),
+      X('Mountain climbers','3','30s','30s'),
+      X('Deska','3','40s','30s')
+    ],
+    condStrength:[
+      X('Przysiad Goblet','3','10-12','90s'),
+      X('Pompki','3','10-15','60s'),
+      X('Wiosłowanie hantlem','3','10-12','75s'),
+      X('Wykrok wsteczny','3','10/stronę','75s'),
+      X('Deska','3','30s','45s'),
+      X('Bird dog','2','8/stronę','30s')
+    ],
+    cardioCore:[
+      X('Rower stacjonarny','1','20 min','—'),
+      X('Deska','3','40s','30s'),
+      X('Deska boczna','3','30s/stronę','30s'),
+      X('Mountain climbers','3','30s','30s'),
+      X('Unoszenie nóg leżąc','3','12-15','45s')
+    ],
+    functional:[
+      X('Przysiad Goblet','3','12','75s'),
+      X('Wykrok chodzony','3','10/stronę','75s'),
+      X('Pompki','3','10-15','60s'),
+      X('Wiosłowanie hantlem','3','10/stronę','60s'),
+      X('Deska','3','40s','30s'),
+      X('Gąsienica (inchworm)','2','6-8','45s')
+    ],
+    athUpper:[
+      X('Wyciskanie sztangi leżąc','4','5','150s'),
+      X('Podciąganie na drążku','4','5-8','120s'),
+      X('Wyciskanie żołnierskie OHP','3','5','120s'),
+      X('Wiosłowanie sztangą','3','6-8','90s'),
+      X('Dipy na poręczach','3','8','90s'),
+      X('Deska','3','45s','45s')
+    ],
+    athPower:[
+      X('Przysiad ze sztangą','4','3-5','150s'),
+      X('Pompki plyometryczne','4','5-8','90s'),
+      X('Burpees','4','6-8','60s'),
+      X('Wykrok z hantlami','3','8/stronę','75s'),
+      X('Skakanka','5','45s','45s'),
+      X('Deska','3','30s','30s')
+    ],
+    athLower:[
+      X('Przysiad ze sztangą','4','5','180s'),
+      X('Martwy ciąg RDL','3','6-8','150s'),
+      X('Wypychanie bioder (hip thrust)','3','8','90s'),
+      X('Przysiad bułgarski','3','8/stronę','90s'),
+      X('Wspięcia na palce stojąc','3','12','60s')
+    ],
+    athEnd:[
+      X('Bieg / rower strefa 2','1','25-35 min','—'),
+      X('Skakanka','4','60s','45s'),
+      X('Burpees','3','8-10','45s'),
+      X('Mountain climbers','3','40s','30s'),
+      X('Deska','3','45s','30s')
+    ],
+    gluteA:[
+      X('Wypychanie bioder (hip thrust)','4','10-12','90s'),
+      X('Przysiad sumo','4','10-12','90s'),
+      X('Martwy ciąg RDL','3','10-12','90s'),
+      X('Abdukcja biodra maszyna','4','15-20','60s'),
+      X('Przysiad bułgarski','3','10/stronę','75s'),
+      X('Uginanie nóg leżąc','3','12-15','60s'),
+      X('Wspięcia na palce','4','15-20','45s')
+    ],
+    gluteB:[
+      X('Wypychanie bioder na maszynie','4','12-15','75s'),
+      X('Przysiad Goblet','3','12-15','75s'),
+      X('Wykrok wsteczny','3','12/stronę','75s'),
+      X('Odwodzenie biodra na wyciągu','3','15/stronę','45s'),
+      X('Uginanie nóg siedząc','3','12-15','60s'),
+      X('Mostek biodrowy','3','15','45s'),
+      X('Wspięcia na palce','3','15-20','45s')
+    ],
+    upperWomen:[
+      X('Wyciskanie hantli siedząc','3','12-15','75s'),
+      X('Butterfly (peck deck)','3','12-15','60s'),
+      X('Ściąganie drążka wyciąg','3','12-15','75s'),
+      X('Wiosłowanie wyciągiem siedząc','3','12-15','75s'),
+      X('Unoszenie bokiem','3','15','60s'),
+      X('Uginanie biceps sztangą','3','12-15','60s'),
+      X('Deska','3','40s','30s')
+    ],
+    fbwWomenA:[
+      X('Przysiad Goblet','3','12-15','75s'),
+      X('Wypychanie bioder (hip thrust)','3','12-15','75s'),
+      X('Wyciskanie hantli leżąc','3','12-15','75s'),
+      X('Wiosłowanie hantlem','3','12/stronę','75s'),
+      X('Unoszenie bokiem','3','15','45s'),
+      X('Deska','3','30s','30s')
+    ],
+    fbwWomenB:[
+      X('Przysiad sumo z hantlem','3','12-15','75s'),
+      X('Wykrok wsteczny','3','12/stronę','75s'),
+      X('Wyciskanie hantli siedząc','3','12-15','75s'),
+      X('Ściąganie drążka wyciąg','3','12-15','75s'),
+      X('Abdukcja biodra maszyna','3','15-20','45s'),
+      X('Deska boczna','3','25s/stronę','30s')
+    ],
+    fbwWomenC:[
+      X('Wypychanie bioder (hip thrust)','4','12-15','75s'),
+      X('Przysiad Goblet','3','12-15','75s'),
+      X('Wyciskanie hantli na ławce skośnej','3','12-15','75s'),
+      X('Wiosłowanie wyciągiem siedząc','3','12-15','75s'),
+      X('Unoszenie bokiem','3','15','45s'),
+      X('Deska','3','40s','30s')
+    ],
+    toneUpperA:[
+      X('Wyciskanie hantli na ławce skośnej','3','12-15','75s'),
+      X('Ściąganie drążka wyciąg','3','12-15','75s'),
+      X('Wyciskanie hantli siedząc','3','12-15','75s'),
+      X('Wiosłowanie hantlem','3','12/stronę','75s'),
+      X('Unoszenie bokiem','3','15-20','45s'),
+      X('Prostowanie tricepsa wyciąg','3','15','45s')
+    ],
+    toneLowerA:[
+      X('Wypychanie bioder (hip thrust)','4','12-15','75s'),
+      X('Przysiad Goblet','3','12-15','75s'),
+      X('Wykrok z hantlami','3','12/stronę','75s'),
+      X('Abdukcja biodra maszyna','3','15-20','45s'),
+      X('Uginanie nóg leżąc','3','15','45s'),
+      X('Wspięcia na palce','3','15-20','45s')
+    ],
+    toneUpperB:[
+      X('Wyciskanie hantli leżąc','3','12-15','75s'),
+      X('Wiosłowanie wyciągiem siedząc','3','12-15','75s'),
+      X('Wyciskanie hantli siedząc','3','15','60s'),
+      X('Ściąganie do twarzy (face pull)','3','15','45s'),
+      X('Uginanie biceps sztangą','3','15','45s'),
+      X('Deska','3','40s','30s')
+    ],
+    toneLowerB:[
+      X('Przysiad sumo z hantlem','3','12-15','75s'),
+      X('Martwy ciąg RDL','3','12-15','75s'),
+      X('Przysiad bułgarski','3','12/stronę','75s'),
+      X('Odwodzenie biodra na wyciągu','3','15/stronę','45s'),
+      X('Mostek biodrowy','3','15','45s'),
+      X('Wspięcia na palce','3','20','45s')
+    ],
+    seniorA:[
+      X('Przysiad do krzesła','3','10-15','90s'),
+      X('Wyciskanie hantli siedząc','3','12-15','90s'),
+      X('Wiosłowanie hantlem','3','12-15','90s'),
+      X('Wykrok wsteczny','3','8/stronę','90s'),
+      X('Deska na kolanach','3','20-30s','60s'),
+      X('Stretching statyczny','1','8 min','—')
+    ],
+    seniorB:[
+      X('Przysiad Goblet','3','8-12','90s'),
+      X('Wyciskanie hantli siedząc','3','10-12','90s'),
+      X('Wiosłowanie wyciągiem siedząc','3','12-15','90s'),
+      X('Wspięcia na palce','3','12-15','60s'),
+      X('Deska boczna','2','15s/stronę','45s'),
+      X('Stretching statyczny','1','8 min','—')
+    ],
+    seniorC:[
+      X('Przysiad do krzesła','3','10-12','90s'),
+      X('Wyciskanie hantli siedząc','3','12','90s'),
+      X('Wiosłowanie hantlem','3','10/stronę','90s'),
+      X('Mostek biodrowy','3','10-12','60s'),
+      X('Deska na kolanach','3','20s','60s'),
+      X('Mobilność bioder/barków','2','8','30s')
+    ],
+    calPush:[
+      X('Pompki szerokie','4','12-20','90s'),
+      X('Pompki','3','10-15','75s'),
+      X('Pompki diamentowe','3','8-12','75s'),
+      X('Dipy na poręczach','4','8-12','75s'),
+      X('Pompki na rączkach','3','8-12','60s'),
+      X('Deska','3','40s','30s')
+    ],
+    calPull:[
+      X('Podciąganie na drążku','4','6-10','120s'),
+      X('Podciąganie neutralnym chwytem','3','6-10','120s'),
+      X('Wiosłowanie hantlem','3','10-12','90s'),
+      X('Ściąganie do twarzy (face pull)','3','15','60s'),
+      X('Uginanie biceps sztangą','3','12-15','60s'),
+      X('Deska','3','40s','30s')
+    ],
+    calPushB:[
+      X('Pompki','4','12-20','75s'),
+      X('Pompki diamentowe','3','8-12','75s'),
+      X('Dipy na poręczach','3','8-12','75s'),
+      X('Pompki plyometryczne','3','5-8','75s'),
+      X('Deska z unoszeniem ramienia','3','8/stronę','45s'),
+      X('Prostowanie tricepsa wyciąg','3','12-15','45s')
+    ],
+    calPullLegs:[
+      X('Podciąganie na drążku','3','6-10','120s'),
+      X('Przysiad powietrzny z mini band','4','15-20','75s'),
+      X('Wypychanie bioder (hip thrust)','3','12-15','75s'),
+      X('Wykrok wsteczny','3','10/stronę','75s'),
+      X('Deska','3','40s','30s'),
+      X('Uginanie nóg leżąc','3','12-15','60s')
+    ],
+    homeA:[
+      X('Przysiad Goblet','4','10-12','75s'),
+      X('Wyciskanie hantli leżąc','3','10-12','75s'),
+      X('Wiosłowanie hantlem','3','10/stronę','75s'),
+      X('Wykrok z hantlami','3','10/stronę','75s'),
+      X('Wyciskanie hantli siedząc','3','10-12','75s'),
+      X('Deska','3','40s','30s')
+    ],
+    homeB:[
+      X('Wypychanie bioder (hip thrust)','4','12','75s'),
+      X('Wyciskanie hantli na ławce skośnej','3','10-12','75s'),
+      X('Wiosłowanie hantlem','3','12/stronę','75s'),
+      X('Przysiad bułgarski','3','10/stronę','75s'),
+      X('Unoszenie bokiem','3','15','45s'),
+      X('Deska','3','40s','30s')
+    ],
+    homeC:[
+      X('Przysiad Goblet','3','12-15','75s'),
+      X('Pompki','3','10-15','60s'),
+      X('Wiosłowanie hantlem','3','12/stronę','75s'),
+      X('Martwy ciąg RDL','3','10-12','75s'),
+      X('Wyciskanie hantli siedząc','3','12','75s'),
+      X('Deska','3','45s','30s')
+    ],
+    wod1:[
+      X('Przysiad powietrzny z mini band','5','15','45s'),
+      X('Pompki','5','10','45s'),
+      X('Burpees','5','8','45s'),
+      X('Podciąganie na drążku','5','5','60s'),
+      X('Deska','3','40s','30s')
+    ],
+    wod2:[
+      X('Swing kettlebell','5','15','45s'),
+      X('Pompki','5','10','45s'),
+      X('Przysiad Goblet','4','12','45s'),
+      X('Mountain climbers','4','30s','30s'),
+      X('Deska','3','40s','30s')
+    ],
+    wod3:[
+      X('Burpees','4','10','45s'),
+      X('Wykrok z hantlami','4','10/stronę','45s'),
+      X('Wiosłowanie hantlem','4','10/stronę','60s'),
+      X('Skakanka','5','45s','30s'),
+      X('Deska','3','30s','30s')
+    ],
+    wod4:[
+      X('Przysiad ze sztangą','5','5','90s'),
+      X('Pompki','5','10','60s'),
+      X('Podciąganie na drążku','5','5','90s'),
+      X('Burpees','3','8','45s'),
+      X('Deska','3','40s','30s')
+    ],
+    wod5:[
+      X('Rower stacjonarny','1','10 min','—'),
+      X('Przysiad Goblet','4','12','60s'),
+      X('Pompki','4','12','45s'),
+      X('Wiosłowanie hantlem','3','12','60s'),
+      X('Burpees','3','8','45s'),
+      X('Deska','3','40s','30s')
+    ],
+    recompUpper:[
+      X('Wyciskanie sztangi leżąc','4','8','120s'),
+      X('Podciąganie na drążku','4','8','120s'),
+      X('Wyciskanie żołnierskie OHP','3','10','90s'),
+      X('Wiosłowanie sztangą','3','10','90s'),
+      X('Unoszenie bokiem','3','15','45s'),
+      X('Prostowanie tricepsa wyciąg','3','12','60s')
+    ],
+    recompLower:[
+      X('Przysiad ze sztangą','4','8','150s'),
+      X('Martwy ciąg RDL','3','10','120s'),
+      X('Wypychanie bioder (hip thrust)','3','10-12','90s'),
+      X('Wykrok z hantlami','3','10/stronę','75s'),
+      X('Uginanie nóg leżąc','3','12','60s'),
+      X('Wspięcia na palce','3','15','45s')
+    ],
+    arnoldChestBack:[
+      X('Wyciskanie sztangi leżąc','4','8-10','120s'),
+      X('Wiosłowanie sztangą','4','8-10','120s'),
+      X('Wyciskanie hantli na ławce skośnej','3','10-12','90s'),
+      X('Podciąganie na drążku','3','6-10','120s'),
+      X('Rozpiętki na wyciągu','3','12-15','60s'),
+      X('Ściąganie do twarzy (face pull)','3','15','45s')
+    ],
+    arnoldShoulders:[
+      X('Wyciskanie żołnierskie OHP','4','8-10','120s'),
+      X('Unoszenie bokiem','4','12-15','45s'),
+      X('Uginanie biceps sztangą','4','10-12','60s'),
+      X('Prostowanie tricepsa wyciąg','3','12-15','60s'),
+      X('Wyciskanie francuskie','3','10-12','75s'),
+      X('Ściąganie do twarzy (face pull)','3','15','45s')
+    ],
+    gvtChestBack:[
+      X('Wyciskanie sztangi leżąc','10','10','90s'),
+      X('Podciąganie na drążku','10','10','90s'),
+      X('Rozpiętki na wyciągu','3','12-15','60s'),
+      X('Ściąganie do twarzy (face pull)','3','15','45s')
+    ],
+    gvtLegs:[
+      X('Przysiad ze sztangą','10','10','90s'),
+      X('Martwy ciąg RDL','10','10','90s'),
+      X('Wypychanie bioder (hip thrust)','3','12','75s'),
+      X('Wspięcia na palce stojąc','3','15','45s')
+    ],
+    gvtShoulders:[
+      X('Wyciskanie żołnierskie OHP','10','10','90s'),
+      X('Uginanie biceps sztangą','10','10','60s'),
+      X('Prostowanie tricepsa wyciąg','3','12-15','60s'),
+      X('Unoszenie bokiem','3','15','45s')
+    ],
+    wendlerOHP:[
+      X('Wyciskanie żołnierskie OHP','3','5 / 5 / 5+','180s'),
+      X('Wyciskanie hantli siedząc','5','10','90s'),
+      X('Dipy na poręczach','3','8-12','90s'),
+      X('Unoszenie bokiem','4','12-15','60s'),
+      X('Prostowanie tricepsa wyciąg','3','12-15','60s')
+    ],
+    wendlerDL:[
+      X('Martwy ciąg klasyczny','3','5 / 5 / 5+','240s'),
+      X('Martwy ciąg RDL','3','8-10','150s'),
+      X('Wiosłowanie sztangą','3','8-12','90s'),
+      X('Ściąganie do twarzy (face pull)','3','15','45s'),
+      X('Prostowanie tułowia','3','12-15','60s')
+    ],
+    wendlerBP:[
+      X('Wyciskanie sztangi leżąc','3','5 / 5 / 5+','180s'),
+      X('Wyciskanie hantli na ławce skośnej','5','10','90s'),
+      X('Dipy na poręczach','3','8-12','90s'),
+      X('Rozpiętki na wyciągu','3','12-15','60s'),
+      X('Prostowanie tricepsa wyciąg','3','12-15','60s')
+    ],
+    wendlerSQ:[
+      X('Przysiad ze sztangą','3','5 / 5 / 5+','180s'),
+      X('Wyciskanie nogami','5','10','90s'),
+      X('Wykrok z hantlami','3','10/stronę','90s'),
+      X('Uginanie nóg leżąc','3','12-15','60s'),
+      X('Wspięcia na palce stojąc','4','15','45s')
+    ],
+    emom:[
+      X('Przysiad ze sztangą','10-20','5 / min','EMOM'),
+      X('Podciąganie na drążku','10-20','5 / min','EMOM'),
+      X('Pompki','10-20','8 / min','EMOM'),
+      X('Swing kettlebell','10-20','8 / min','EMOM'),
+      X('Deska','5','40s','30s')
+    ],
+    amrap:[
+      X('Podciąganie na drążku','AMRAP','5','—'),
+      X('Pompki','AMRAP','10','—'),
+      X('Przysiad powietrzny z mini band','AMRAP','15','—'),
+      X('Burpees','AMRAP','5','—'),
+      X('Deska','3','30s','30s')
+    ],
+    tabata:[
+      X('Burpees','8','20s / 10s','Tabata'),
+      X('Przysiad powietrzny z mini band','8','20s / 10s','Tabata'),
+      X('Mountain climbers','8','20s / 10s','Tabata'),
+      X('Pompki','8','20s / 10s','Tabata'),
+      X('Wysokie kolana','8','20s / 10s','Tabata'),
+      X('Cool-down / stretch','1','5 min','—')
+    ],
+    test1rm:[
+      X('Przysiad ze sztangą','1-3','1-3','3min'),
+      X('Wyciskanie sztangi leżąc','1-3','1-3','3min'),
+      X('Martwy ciąg klasyczny','1-3','1-3','3min'),
+      X('Wyciskanie żołnierskie OHP','1-3','1-3','3min')
+    ],
+    ssA:[
+      X('Przysiad ze sztangą','5','5','180s'),
+      X('Wyciskanie sztangi leżąc','5','5','180s'),
+      X('Martwy ciąg klasyczny','1','5','240s'),
+      X('Wiosłowanie sztangą','3','8','120s'),
+      X('Deska','3','40s','45s')
+    ],
+    ssB:[
+      X('Przysiad ze sztangą','5','5','180s'),
+      X('Wyciskanie żołnierskie OHP','5','5','150s'),
+      X('Wiosłowanie sztangą','5','5','150s'),
+      X('Podciąganie na drążku','3','6-8','120s'),
+      X('Deska','3','40s','45s')
+    ],
+    ssAB:[
+      X('Przysiad ze sztangą','5','5','180s'),
+      X('Wyciskanie sztangi leżąc','5','5','180s'),
+      X('Wyciskanie żołnierskie OHP','3','5','150s'),
+      X('Wiosłowanie sztangą','5','5','150s'),
+      X('Martwy ciąg klasyczny','1','5','240s')
+    ],
+    mobility:[
+      X('Foam rolling','2','10','30s'),
+      X('Mobilność bioder/barków','2','10','30s'),
+      X('Deska do psa z głową w dół','2','8-10','30s'),
+      X('Stretching statyczny','1','8 min','—')
+    ],
+    run:[
+      X('Rozgrzewka marsz','1','5 min','—'),
+      X('Bieg / trucht','1','20-30 min','—'),
+      X('Cool-down / stretch','1','5 min','—')
+    ]
+  };
+})();
+
+function sessionIsRestFocus(focus){
+  const s=String(focus||'').trim();
+  if(!s)return false;
+  if(/^rest$/i.test(s))return true;
+  if(/^rest\b/i.test(s)&&!/test/i.test(s))return true;
+  return false;
+}
+
+function sessionExercisesForFocus(focus){
+  const raw=String(focus||'');
+  const s=raw.toLowerCase();
+  const P=TPL_SESSIONS;
+  if(sessionIsRestFocus(raw))return[];
+  if(/test\s*1\s*rm|test 1rm|test sił|1rm \(opcja\)|test sił —|test: maks/.test(s))return P.test1rm;
+  if(/10\s*[×x]\s*10|gvt/.test(s)){
+    if(/nóg|nogi|przysiad|rdl|leg press/.test(s))return P.gvtLegs;
+    if(/bark|ramion|ohp|biceps/.test(s))return P.gvtShoulders;
+    return P.gvtChestBack;
+  }
+  if(/tabata/.test(s))return P.tabata;
+  if(/emom/.test(s))return P.emom;
+  if(/amrap|cindy/.test(s))return P.amrap;
+  if(/klatka/.test(s)&&/plecy/.test(s))return P.arnoldChestBack;
+  if(/barki/.test(s)&&/ramion/.test(s))return P.arnoldShoulders;
+  if(/upper power/.test(s))return P.upperPower;
+  if(/lower power/.test(s))return P.lowerPower;
+  if(/upper hyper/.test(s))return P.upperHyper;
+  if(/lower hyper/.test(s))return P.lowerHyper;
+  if(/ohp:/.test(s)||(/^ohp/.test(s)))return P.wendlerOHP;
+  if(/martwy ciąg:|martwy:/.test(s))return P.wendlerDL;
+  if(/wyciskanie:/.test(s)&&!/hantli/.test(s))return P.wendlerBP;
+  if(/przysiad:/.test(s))return P.wendlerSQ;
+  if(/push b|push — objętość|push — lekki/.test(s))return P.pushB;
+  if(/push/.test(s))return P.pushA;
+  if(/pull b|pull — martwy|pull — lekki/.test(s))return P.pullB;
+  if(/pull/.test(s))return P.pullA;
+  if(/legs b|legs b|pośladki \+ dwugł/.test(s))return P.legsB;
+  if(/legs a|legs —|legs — ciężki|legs — lekki/.test(s))return P.legsA;
+  if(/glute.*legs b|legs b/.test(s))return P.gluteB;
+  if(/glute/.test(s))return P.gluteA;
+  if(/upper b/.test(s))return P.upperB;
+  if(/upper a|upper —/.test(s)||(/upper/.test(s)&&!/lower/.test(s)))return P.upperA;
+  if(/lower b/.test(s))return P.lowerB;
+  if(/lower a|lower —|lower/.test(s))return P.lowerA;
+  if(/trening a\/b/.test(s))return P.ssAB;
+  if(/trening a/.test(s))return P.ssA;
+  if(/trening b/.test(s))return P.ssB;
+  if(/hiit/.test(s)&&/sił/.test(s))return P.hiitStrength;
+  if(/hiit/.test(s))return P.hiit;
+  if(/liss/.test(s))return P.liss;
+  if(/kettlebell|\bkb:|\bkb |swing/.test(s))return P.wod2;
+  if(/funkcjonal|bear crawl|farmer/.test(s))return P.functional;
+  if(/wod/.test(s))return P.wod1;
+  if(/mobiln|mobility|foam roller|stretch|joga/.test(s))return P.mobility;
+  if(/bieg|c25k|cardio|marsz|trucht|cooper/.test(s))return P.run;
+  if(/fbw b/.test(s))return P.fbwB;
+  if(/fbw c/.test(s))return P.fbwC;
+  if(/fbw|full\s*body/.test(s))return P.fbwA;
+  if(/klatka/.test(s))return P.pushA;
+  if(/plecy/.test(s))return P.pullA;
+  if(/barki/.test(s))return P.arnoldShoulders;
+  if(/nóg|nogi|przysiad|czwor|dwugł|poślad/.test(s))return P.legsA;
+  return P.fbwA;
+}
+
+window.tplEx=tplEx;
+window.TPL_SESSIONS=TPL_SESSIONS;
+window.sessionIsRestFocus=sessionIsRestFocus;
+window.sessionExercisesForFocus=sessionExercisesForFocus;
+
 
 const PLAN_TEMPLATES=[
   // Mikrocykle / schematy tygodnia (bez periodyzacji — ta jest w Programach)
@@ -1114,6 +1753,117 @@ const PLAN_TEMPLATES=[
    days_detail:[]}
 ];
 
+function fillReadyTemplateSessions(){
+  const P=TPL_SESSIONS;
+  function D(name,key){
+    return{name:name,exercises:(P[key]||P.fbwA).map(e=>({n:e.n,s:e.s,r:e.r,rest:e.rest}))};
+  }
+  const by={};
+  PLAN_TEMPLATES.forEach(t=>{by[t.id]=t;});
+  function set(id,days){if(by[id])by[id].days_detail=days;}
+
+  set('t02',[
+    D('Push A — Klatka, Barki, Triceps','pushA'),
+    D('Pull A — Plecy, Biceps','pullA'),
+    D('Legs A — Czworogłowe','legsA'),
+    D('Push B — Objętość','pushB'),
+    D('Pull B — Martwy ciąg','pullB'),
+    D('Legs B — Pośladki + Dwugłowe','legsB')
+  ]);
+  if(by.t03&&(by.t03.days_detail||[]).length<3){
+    by.t03.days_detail=by.t03.days_detail.concat([D('Full Body A/B','fbwC')]);
+  }
+  set('t04',[
+    D('Upper A','upperA'),
+    D('Lower A','lowerA'),
+    D('Upper B','upperB'),
+    D('Lower B','lowerB')
+  ]);
+  set('t07',[
+    D('Upper Power','upperPower'),
+    D('Lower Power','lowerPower'),
+    D('Upper Hyper','upperHyper'),
+    D('Lower Hyper','lowerHyper')
+  ]);
+  set('t08',[
+    D('Full Body — Redukcja','fbwCut'),
+    D('Cardio LISS','liss'),
+    D('Full Body — Redukcja B','fbwCut'),
+    D('Cardio HIIT','hiit')
+  ]);
+  set('t09',[
+    D('HIIT + Siła A','hiitStrength'),
+    D('HIIT + Siła B','hiitStrength'),
+    D('HIIT + Siła C','fbwCut')
+  ]);
+  set('t10',[
+    D('Siła','condStrength'),
+    D('Cardio + Core','cardioCore'),
+    D('Funkcjonalny','functional')
+  ]);
+  set('t11',[
+    D('Siła górna','athUpper'),
+    D('Moc+sprint','athPower'),
+    D('Siła dolna','athLower'),
+    D('Wytrzymałość','athEnd')
+  ]);
+  set('t12',[
+    D('Glutes & Legs A','gluteA'),
+    D('Upper Body — Kobiecy','upperWomen'),
+    D('Glutes & Legs B','gluteB')
+  ]);
+  set('t13',[
+    D('Full Body A','fbwWomenA'),
+    D('Full Body B','fbwWomenB'),
+    D('Full Body C','fbwWomenC')
+  ]);
+  set('t14',[
+    D('Upper A','toneUpperA'),
+    D('Lower A','toneLowerA'),
+    D('Upper B','toneUpperB'),
+    D('Lower B','toneLowerB')
+  ]);
+  set('t15',[
+    D('Senior — Full Body A','seniorA'),
+    D('Senior — Full Body B','seniorB'),
+    D('Senior — Full Body C','seniorC')
+  ]);
+  set('t20',[
+    D('Push — Klatka, Barki, Triceps','calPush'),
+    D('Pull — Plecy, Biceps','calPull'),
+    D('Push B','calPushB'),
+    D('Pull+Legs','calPullLegs')
+  ]);
+  set('t21',[
+    D('Full Body A — hantle','homeA'),
+    D('Full Body B — hantle','homeB'),
+    D('Full Body C — hantle','homeC')
+  ]);
+  set('t22',[
+    D('WOD 1 — Cindy-style','wod1'),
+    D('WOD 2 — KB + pompki','wod2'),
+    D('WOD 3 — mieszany','wod3'),
+    D('WOD 4 — siłowy','wod4'),
+    D('WOD 5 — engine','wod5')
+  ]);
+  set('t23',[
+    D('Upper','recompUpper'),
+    D('Lower','recompLower'),
+    D('Upper B','upperB'),
+    D('Lower B','lowerB')
+  ]);
+  set('t24',[
+    D('FBW','fbwCut'),
+    D('Cardio','liss'),
+    D('FBW B','fbwB'),
+    D('Cardio HIIT','hiit'),
+    D('FBW C','fbwC')
+  ]);
+}
+fillReadyTemplateSessions();
+window.PLAN_TEMPLATES=PLAN_TEMPLATES;
+window.fillReadyTemplateSessions=fillReadyTemplateSessions;
+
 function initTemplates(){
   renderTemplates();
   updateTplMyCount();
@@ -1208,14 +1958,14 @@ function openTplDetail(id){
         </div>`).join('')}
       </div>
 
-      <!-- przykładowe ćwiczenia -->
+      <!-- dni treningowe (gotowe do przypisania) -->
       ${t.days_detail?.length?`
       <div style="margin-bottom:16px;">
-        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:8px;">Przykładowy dzień treningowy</div>
-        ${t.days_detail.slice(0,1).map(d=>`
-          <div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:12px;">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;margin-bottom:8px;">Dni treningowe (${t.days_detail.length})</div>
+        ${t.days_detail.map(d=>`
+          <div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;">
             <div style="font-size:12px;font-weight:700;margin-bottom:8px;">${d.name}</div>
-            ${d.exercises.map((ex,i)=>`<div style="display:flex;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:11px;align-items:center;">
+            ${(d.exercises||[]).map((ex,i)=>`<div style="display:flex;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:11px;align-items:center;">
               <span style="width:16px;height:16px;border-radius:4px;background:var(--adim);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--accent);flex-shrink:0;">${i+1}</span>
               <span style="flex:1;">${ex.n}</span>
               <span style="font-family:'DM Mono',monospace;color:var(--accent);">${ex.s}×${ex.r}</span>
@@ -1274,7 +2024,7 @@ function tplAssignToClient(tid){
     method:t.method,
     duration:t.weeks||1, // mikrocykl — trener zapętla w kalendarzu / Programy = pełny blok
     _sourceKind:'template-microcycle',
-    days:(t.days_detail||[]).map(d=>({day:d.name,exercises:(d.exercises||[]).map(e=>({name:e.n,sets:e.s,reps:e.r}))})),
+    days:(t.days_detail||[]).map(d=>({day:d.name,exercises:(d.exercises||[]).map(e=>({name:e.n,sets:e.s,reps:e.r,rest:e.rest}))})),
     source:'template',
     templateId:tid,
     createdAt:new Date().toISOString(),

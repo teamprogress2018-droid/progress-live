@@ -2685,9 +2685,41 @@ window.allPrograms=allPrograms;
 
 /** Rozwija fokus dnia programu (np. „Push A — Klatka”) do listy ćwiczeń startowych. */
 function expandSessionFromDayFocus(focus){
-  const s=String(focus||'').toLowerCase();
+  const raw=String(focus||'');
+  const s=raw.toLowerCase();
   const ex=(name,sets,reps,rest)=>({name,sets:String(sets||'3'),reps:String(reps||'8-12'),rest:rest||'90s'});
-  if(/hiit|tabata|cardio|bieg/.test(s))return[ex('Rozgrzewka mobilność','2','8-10','45s'),ex(focus||'HIIT / cardio','1','20-30 min','—'),ex('Cool-down / stretch','1','5 min','—')];
+  if(typeof sessionExercisesForFocus==='function'){
+    const packed=sessionExercisesForFocus(raw);
+    if(Array.isArray(packed)&&packed.length){
+      return packed.map(e=>({
+        name:e.name||e.n||'Ćwiczenie',
+        sets:String(e.sets!=null?e.sets:(e.s!=null?e.s:'3')),
+        reps:String(e.reps!=null?e.reps:(e.r!=null?e.r:'8-12')),
+        rest:e.rest||'90s'
+      }));
+    }
+  }
+  if((typeof sessionIsRestFocus==='function'?sessionIsRestFocus(raw):false)||(/^\s*rest\b/i.test(raw)&&!/test/i.test(s)))return[];
+  if(/test\s*1\s*rm|test 1rm|test sił/.test(s))return[
+    ex('Przysiad ze sztangą','1-3','1-3','3min'),
+    ex('Wyciskanie sztangi leżąc','1-3','1-3','3min'),
+    ex('Martwy ciąg klasyczny','1-3','1-3','3min'),
+    ex('Wyciskanie żołnierskie OHP','1-3','1-3','3min')
+  ];
+  if(/10\s*[×x]\s*10|gvt/.test(s)){
+    if(/nóg|nogi|przysiad|rdl/.test(s))return[ex('Przysiad ze sztangą','10','10','90s'),ex('Martwy ciąg RDL','10','10','90s'),ex('Wypychanie bioder (hip thrust)','3','12','75s'),ex('Wspięcia na palce stojąc','3','15','45s')];
+    if(/bark|ramion|ohp/.test(s))return[ex('Wyciskanie żołnierskie OHP','10','10','90s'),ex('Uginanie biceps sztangą','10','10','60s'),ex('Prostowanie tricepsa wyciąg','3','12-15','60s'),ex('Unoszenie bokiem','3','15','45s')];
+    return[ex('Wyciskanie sztangi leżąc','10','10','90s'),ex('Podciąganie na drążku','10','10','90s'),ex('Rozpiętki na wyciągu','3','12-15','60s'),ex('Ściąganie do twarzy (face pull)','3','15','45s')];
+  }
+  if(/tabata/.test(s))return[ex('Burpees','8','20s / 10s','Tabata'),ex('Przysiad powietrzny z mini band','8','20s / 10s','Tabata'),ex('Mountain climbers','8','20s / 10s','Tabata'),ex('Pompki','8','20s / 10s','Tabata'),ex('Wysokie kolana','8','20s / 10s','Tabata')];
+  if(/emom/.test(s))return[ex('Przysiad ze sztangą','10-20','5 / min','EMOM'),ex('Podciąganie na drążku','10-20','5 / min','EMOM'),ex('Pompki','10-20','8 / min','EMOM'),ex('Swing kettlebell','10-20','8 / min','EMOM')];
+  if(/amrap|cindy/.test(s))return[ex('Podciąganie na drążku','AMRAP','5','—'),ex('Pompki','AMRAP','10','—'),ex('Przysiad powietrzny z mini band','AMRAP','15','—'),ex('Burpees','AMRAP','5','—')];
+  if(/klatka/.test(s)&&/plecy/.test(s))return[ex('Wyciskanie sztangi leżąc','4','8-10','120s'),ex('Wiosłowanie sztangą','4','8-10','120s'),ex('Wyciskanie hantli na ławce skośnej','3','10-12','90s'),ex('Podciąganie na drążku','3','6-10','120s'),ex('Rozpiętki na wyciągu','3','12-15','60s')];
+  if(/barki/.test(s)&&/ramion/.test(s))return[ex('Wyciskanie żołnierskie OHP','4','8-10','120s'),ex('Unoszenie bokiem','4','12-15','45s'),ex('Uginanie biceps sztangą','4','10-12','60s'),ex('Prostowanie tricepsa wyciąg','3','12-15','60s')];
+  if(/trening a\/b/.test(s))return[ex('Przysiad ze sztangą','5','5','180s'),ex('Wyciskanie sztangi leżąc','5','5','180s'),ex('Wyciskanie żołnierskie OHP','3','5','150s'),ex('Wiosłowanie sztangą','5','5','150s'),ex('Martwy ciąg klasyczny','1','5','240s')];
+  if(/trening a/.test(s))return[ex('Przysiad ze sztangą','5','5','180s'),ex('Wyciskanie sztangi leżąc','5','5','180s'),ex('Martwy ciąg klasyczny','1','5','240s'),ex('Wiosłowanie sztangą','3','8','120s')];
+  if(/trening b/.test(s))return[ex('Przysiad ze sztangą','5','5','180s'),ex('Wyciskanie żołnierskie OHP','5','5','150s'),ex('Wiosłowanie sztangą','5','5','150s'),ex('Podciąganie na drążku','3','6-8','120s')];
+  if(/hiit|cardio|bieg/.test(s))return[ex('Rozgrzewka mobilność','2','8-10','45s'),ex(focus||'HIIT / cardio','1','20-30 min','—'),ex('Cool-down / stretch','1','5 min','—')];
   if(/mobiln|mobility/.test(s))return[ex('Foam rolling','2','10','30s'),ex('Mobilność bioder/barków','2','10','30s'),ex(focus||'Mobilność','2','8','45s')];
   if(/push/.test(s))return[
     ex('Wyciskanie sztangi / maszyna (klatka)','4','6-10','2min'),
@@ -2737,7 +2769,7 @@ function planDaysFromProgram(prog,weekIdx){
   return rawDays.map(d=>{
     const label=d.d||d.day||d.dayName||'Dzień';
     const focus=d.name||d.muscles||d.focus||'';
-    const isRest=!!d.rest||/^rest$/i.test(String(focus))||/^rest$/i.test(String(label))||String(focus).toUpperCase()==='REST';
+    const isRest=!!d.rest||(typeof sessionIsRestFocus==='function'&&sessionIsRestFocus(focus))||/^\s*rest\b/i.test(String(focus))&&!/test/i.test(String(focus))||/^rest$/i.test(String(label))||String(focus).toUpperCase()==='REST';
     let exercises=[];
     if(!isRest){
       if(Array.isArray(d.exercises)&&d.exercises.length){
