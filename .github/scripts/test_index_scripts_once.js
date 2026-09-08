@@ -5,9 +5,7 @@ const fs = require('fs');
 const path = require('path');
 
 const html = fs.readFileSync(path.join(__dirname, '../..', 'index.html'), 'utf8');
-const idx = html.lastIndexOf('<script src="ex-gif-manifest.js');
-const tail = idx >= 0 ? html.slice(idx) : html;
-const names = [...tail.matchAll(/<script src="([^"?]+\.js)\?v=\d+"><\/script>/g)].map((m) => m[1]);
+const names = [...html.matchAll(/<script src="([^"?]+\.js)(?:\?v=\d+)?"><\/script>/g)].map((m) => m[1]);
 
 let failed = 0;
 function ok(name, cond, extra) {
@@ -31,6 +29,9 @@ ok('includes 08-client-profile-extras.js', seen.has('08-client-profile-extras.js
 ok('includes 10-client-app.js', seen.has('10-client-app.js'));
 ok('07 loaded once', names.filter((n) => n === '07-forms-metrics-calculator.js').length === 1);
 ok('08 loaded once', names.filter((n) => n === '08-client-profile-extras.js').length === 1);
+ok('01 loaded once', names.filter((n) => n === '01-core.js').length === 1);
+ok('06 loaded once', names.filter((n) => n === '06-inbox-exercises-ai-programs.js').length === 1);
+ok('exactly 12 app scripts', names.length === 12, 'got ' + names.length + ': ' + names.join(','));
 
 const root = path.join(__dirname, '../..');
 ok('no leftover trener_ai_v2.html', !fs.existsSync(path.join(root, 'trener_ai_v2.html')));
