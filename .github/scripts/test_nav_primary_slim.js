@@ -7,6 +7,7 @@ const path = require('path');
 
 const root = path.join(__dirname, '..', '..');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+const css = fs.readFileSync(path.join(root, 'styles.css'), 'utf8');
 const core = fs.readFileSync(path.join(root, '01-core.js'), 'utf8');
 const wf = fs.readFileSync(path.join(root, '.github', 'workflows', 'check.yml'), 'utf8');
 
@@ -43,6 +44,16 @@ test('primary top-level is slim (~6)', () => {
   assert.ok(primary.includes('nav-more-toggle') || primary.includes('Więcej'), 'Więcej toggle present');
 });
 
+test('Więcej grouped into Oferta / Biznes / Narzędzia / Konto', () => {
+  assert.ok(more.includes('Oferta') && more.includes('Biznes') && more.includes('Narzędzia') && more.includes('Konto'));
+  const iOferta = more.indexOf('Oferta');
+  const iBiz = more.indexOf('Biznes');
+  const iNarz = more.indexOf('Narzędzia');
+  const iKonto = more.indexOf('Konto');
+  assert.ok(iOferta < iBiz && iBiz < iNarz && iNarz < iKonto, 'group order');
+  assert.ok(css.includes('#nav-more-items .nav-sec'), 'more-group label css');
+});
+
 test('On-demand / Społeczność / Płatności under Więcej only', () => {
   for (const s of ['ondemand', 'forum', 'payments']) {
     assert.ok(more.includes(`data-screen="${s}"`), `${s} under Więcej`);
@@ -56,7 +67,7 @@ test('goTo moreScreens includes secondary products', () => {
 });
 
 test('cache + CI', () => {
-  assert.match(html, /01-core.js\?v=84/);
+  assert.match(html, /01-core.js\?v=85/);
   assert.ok(wf.includes('test_nav_primary_slim.js'), 'CI runs nav slim test');
 });
 

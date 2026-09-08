@@ -34,7 +34,7 @@ ok('ops sections',html.includes('id="dash-ops-attention"')&&html.includes('id="d
 ok('today plan',html.includes('Dzisiejszy plan')&&html.includes('id="d-today-sessions"'));
 ok('quick actions',html.includes('id="dash-qa-btn"')&&html.includes('id="dash-qa-menu"')&&html.includes("openM('m-broadcast')")&&html.includes("openM('m-invite')"));
 ok('ops css',css.includes('.dash-ops-grid')&&css.includes('.dash-qa-menu')&&css.includes('.dash-kpi-row'));
-ok('helpers',src04.includes('function dashOpsAttentionItems')&&src04.includes('function dashOpsRecentReports')&&src04.includes('function dashOpsExpiringPackages')&&src04.includes('function dashOpsRecentActivity')&&src04.includes('function renderDashOps'));
+ok('helpers',src04.includes('function dashOpsAttentionItems')&&src04.includes('function dashOpsRecentReports')&&src04.includes('function dashOpsExpiringPackages')&&src04.includes('function dashOpsRecentActivity')&&src04.includes('function renderDashOps')&&src04.includes('function collectOpsEvents'));
 ok('list collapse',src04.includes('function dashListSection')&&src04.includes('DASH_LIST_PREVIEW=2')&&src04.includes('function toggleDashListExpand')&&css.includes('.dash-list-more'));
 ok('legacy followups stubbed',/function renderDashCheckinFollowup\(\)\{[\s\S]*?el\.style\.display='none'/.test(src04)&&src04.includes("'dash-checkin':renderDashCheckinFollowup"));
 ok('kpi first + dense css',html.indexOf('id="d-kpi-row"')<html.indexOf('id="dash-client-pipeline"')&&css.includes('.dash-kpi-body')&&css.includes('#screen-dashboard .dash-content'));
@@ -81,7 +81,7 @@ const sandbox={
   CL:null,SE:null,
   ensureCheckins:()=>{},
   escHtml:(s)=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),
-  console
+  console, Date, Math, Set, JSON, parseInt, Number, String, Array, Object
 };
 sandbox.CL=sandbox.window.CL;
 sandbox.SE=sandbox.window.SE;
@@ -100,6 +100,7 @@ vm.runInNewContext(
   extract(src04,'dashOpsLiveClients')+'\n'+
   extract(src04,'dashOpsExpiringPackages')+'\n'+
   extract(src04,'dashOpsRecentReports')+'\n'+
+  extract(src04,'collectOpsEvents')+'\n'+
   extract(src04,'dashOpsAttentionItems')+'\n'+
   extract(src04,'dashOpsRecentActivity')+'\n'+
   extract(src04,'dashOpsReminders')+'\n'+
@@ -107,7 +108,8 @@ vm.runInNewContext(
   'window.clientTrainingWindowStats=clientTrainingWindowStats;window.getCIStatus=getCIStatus;'+
   'window.dashOpsLiveClients=dashOpsLiveClients;window.dashOpsExpiringPackages=dashOpsExpiringPackages;'+
   'window.dashOpsRecentReports=dashOpsRecentReports;window.dashOpsAttentionItems=dashOpsAttentionItems;'+
-  'window.dashOpsRecentActivity=dashOpsRecentActivity;window.dashOpsReminders=dashOpsReminders;',
+  'window.collectOpsEvents=collectOpsEvents;window.dashOpsRecentActivity=dashOpsRecentActivity;window.dashOpsReminders=dashOpsReminders;'+
+  'window._opsEventsCache={at:0,items:null};',
   sandbox
 );
 
@@ -128,7 +130,7 @@ ok('activity skips planned',!acts.some(s=>s.id==='s1'||s.id==='s2'||s.id==='s4')
 
 const rem=sandbox.dashOpsReminders();
 ok('reminders has package',rem.some(r=>/Pakiet/.test(r.txt)&&/Anna/.test(r.txt)));
-ok('reminders has report deadline',rem.some(r=>/raport/i.test(r.txt)&&/Bartek/.test(r.txt)));
+ok('reminders skip checkin (already in attention)',!rem.some(r=>/raport/i.test(r.txt)));
 
 vm.runInNewContext(
   extract(src04,'dashListExpanded')+'\n'+
@@ -144,7 +146,7 @@ vm.runInNewContext(
 );
 ok('dashListSection preview 2','manual');
 
-ok('cache bumps',html.includes('04-client-portal.js?v=38')&&html.includes('styles.css?v=70'));
+ok('cache bumps',html.includes('04-client-portal.js?v=39')&&html.includes('styles.css?v=71'));
 
 if(failed){console.error('\n'+failed+' failed');process.exit(1);}
 console.log('\nAll dash ops panel checks passed');

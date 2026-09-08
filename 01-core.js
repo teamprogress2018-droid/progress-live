@@ -1,5 +1,10 @@
 const W='https://anthropic-proxy.teamprogress2018.workers.dev/';
 window.CL=[];window.PL=[];window.SE=[];window.EX=[];window.WO=[];
+/* Relacje CRM (Firestore = kolekcje, klucz = obj.id):
+ * clients.id  ←  plans.clientId, sessions.clientId, packages.clientId,
+ *   formSends.clientId, tasks.clientId, messages, checkins, odProgress
+ * clientName na planie/pakiecie = cache UI, NIE klucz. Pipeline: assignClientPipeline().
+ */
 var dayCount=0;var curChat=null;var libF='Wszystkie';
 var wlNav='all';var wlView='grid';var wlSort='nazwa';var wlDetailId=null;
 
@@ -3971,7 +3976,174 @@ function clientHasPackage(c){
   if(!c)return false;
   if(c.packageSkipped)return true;
   const pkgs=window.PACKAGES||[];
-  return pkgs.some(p=>p&&(p.clientId===c.id||(c.name&&p.clientName===c.name)));
+  return pkgs.some(p=>p&&p.clientId===c.id);
+}
+function normalizeClientEmail(s){
+  return String(s||'').trim().toLowerCase();
+}
+function clientEmailValid(email){
+  const e=normalizeClientEmail(email);
+  return !!e&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+}
+function clientHasEmail(c){
+  return clientEmailValid(c&&c.email);
+}
+function clientActivePackage(clientId){
+  if(!clientId)return null;
+  const pkgs=(window.PACKAGES||[]).filter(p=>p&&p.clientId===clientId&&p.status!=='expired'&&p.payStatus!=='expired');
+  if(!pkgs.length)return null;
+  return pkgs.slice().sort((a,b)=>String(b.expiresDate||b.createdAt||'').localeCompare(String(a.expiresDate||a.createdAt||'')))[0];
+}
+/**
+ * Cykl życia: onboarding → brak e-maila → pakiet wygasł → nieaktywny / ryzyko → aktywny.
+ * Źródło: relacje po clientId (SE, PACKAGES), nie kopia karty.
+ */
+function clientLifecycleStatus(c){
+  if(!c)return{key:'unknown',label:'—',pri:9};
+  if(c.status==='archived')return{key:'archived',label:'Archiwum',pri:8};
+  if(c.status==='inactive')return{key:'inactive',label:'Nieaktywny',pri:3};
+  if(!clientHasEmail(c))return{key:'noemail',label:'Brak e-maila',pri:0};
+  const onboard=typeof clientOnboardStatus==='function'?clientOnboardStatus(c):null;
+  if(onboard&&!onboard.complete){
+    return{key:'onboarding',label:'Onboarding '+onboard.done+'/'+onboard.total,pri:1,next:onboard.next};
+  }
+  const pkg=clientActivePackage(c.id);
+  if(pkg&&pkg.expiresDate){
+    const d=Math.ceil((new Date(pkg.expiresDate+'T12:00:00')-Date.now())/86400000);
+    if(d<0)return{key:'expired',label:'Pakiet wygasł',pri:0,expiresDate:pkg.expiresDate};
+    if(d<=7)return{key:'expiring',label:'Pakiet '+d+' d.',pri:2,expiresDate:pkg.expiresDate,pkg};
+  }
+  let days=Infinity;
+  if(typeof getClientLastActivity==='function'){
+    const last=getClientLastActivity(c.id);
+    if(last)days=Math.floor((Date.now()-last.getTime())/86400000);
+  }else{
+    const dates=(window.SE||[]).filter(s=>s&&s.clientId===c.id&&s.date).map(s=>String(s.date).slice(0,10)).sort();
+    if(dates.length){
+      const last=dates[dates.length-1];
+      const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
+      const t=Date.parse(last+'T12:00:00');
+      const n=Date.parse(today+'T12:00:00');
+      if(!isNaN(t)&&!isNaN(n))days=Math.floor((n-t)/86400000);
+    }
+  }
+  if(days>30)return{key:'idle',label:'Nieaktywny',pri:3,idleDays:days};
+  if(days>14)return{key:'atrisk',label:'Ryzyko odejścia',pri:4,idleDays:days};
+  return{key:'active',label:'Aktywny',pri:5,idleDays:days,expiresDate:pkg&&pkg.expiresDate};
+}
+/**
+ * Szyna zdarzeń CRM (in-memory + webhook Integracji).
+ * Typy: client.created | plan.assigned | calendar.scheduled | macros.saved
+ */
+function emitAppEvent(type,payload){
+  const ev={type:String(type||''),at:new Date().toISOString(),payload:payload||{}};
+  try{
+    window._appEvents=window._appEvents||[];
+    window._appEvents.push(ev);
+    if(window._appEvents.length>120)window._appEvents.shift();
+  }catch(e){}
+  if(typeof fireIntEvent==='function'){
+    try{fireIntEvent(type,payload);}catch(e){}
+  }
+  try{
+    if(typeof document!=='undefined'&&document.dispatchEvent){
+      document.dispatchEvent(new CustomEvent('pl:'+ev.type,{detail:payload||{}}));
+    }
+  }catch(e){}
+  return ev;
+}
+function assignTemplatePlanToClient(templateId,client,opts){
+  opts=opts||{};
+  if(!templateId||!client||!client.id)return null;
+  if(!opts.force&&typeof clientHasAssignedPlan==='function'&&clientHasAssignedPlan(client.id))return null;
+  const t=(window.PLAN_TEMPLATES||[]).find(x=>x&&x.id===templateId);
+  if(!t)return null;
+  const days=(t.days_detail||[]).map(d=>({
+    day:d.name||d.day||'Dzień',
+    rest:!!d.rest,
+    exercises:(d.exercises||[]).map(e=>({name:e.n||e.name,sets:e.s||e.sets,reps:e.r||e.reps,rest:e.rest}))
+  }));
+  const plan=withTrainer({
+    id:newId('p'),
+    name:t.name,
+    clientId:client.id,
+    clientName:client.name||'',
+    method:t.method,
+    duration:t.weeks||1,
+    _sourceKind:'template-microcycle',
+    days:days.length?days:[{day:'Dzień 1',exercises:[]}],
+    source:'template',
+    templateId:t.id,
+    createdAt:new Date().toISOString()
+  });
+  (window.PL||(window.PL=[])).push(plan);
+  if(typeof persistById==='function')persistById('plans',plan);
+  return plan;
+}
+/**
+ * Jednolity pipeline po dodaniu klienta (karta → ankieta → plan → kalendarz).
+ * Relacje wyłącznie po clientId. Nie duplikuje karty w plans/sessions.
+ *
+ * opts: {
+ *   persist, runFlow, skipAssign, schedule, weeks,
+ *   templateId, programId, baseline,
+ *   notify, fireEvent, onboardingRec, tasks
+ * }
+ */
+function assignClientPipeline(client,opts){
+  opts=opts||{};
+  const out={ok:false,client:client||null,parts:[],plan:null,sessions:0,emailOk:false};
+  if(!client||!client.id)return out;
+  out.emailOk=clientEmailValid(client.email);
+  if(opts.persist!==false&&typeof persistById==='function')persistById('clients',client);
+  out.parts.push('karta');
+
+  if(opts.baseline&&typeof saveClientBaselineFromFields==='function'){
+    try{
+      saveClientBaselineFromFields(client.id,opts.baseline);
+      out.parts.push('pomiary');
+    }catch(e){console.warn('pipeline baseline',e);}
+  }
+
+  if(opts.templateId){
+    out.plan=assignTemplatePlanToClient(opts.templateId,client,{force:!!opts.forcePlan});
+    if(out.plan)out.parts.push('plan');
+  }
+  if(!out.plan&&opts.programId&&typeof assignProgramPlanToClient==='function'){
+    try{
+      out.plan=assignProgramPlanToClient(opts.programId,client);
+      if(out.plan)out.parts.push('program');
+    }catch(e){console.warn('pipeline program',e);}
+  }
+
+  if(opts.runFlow!==false&&typeof runOnboardingForClient==='function'){
+    try{
+      const skipAssign=opts.skipAssign||!!out.plan;
+      const flowRet=runOnboardingForClient(client,{skipAssign,skipSchedule:opts.schedule!==false});
+      if(Array.isArray(flowRet)&&flowRet.length){
+        flowRet.forEach(p=>{if(out.parts.indexOf(p)<0)out.parts.push(p);});
+      }
+    }catch(e){console.warn('pipeline flow',e);}
+  }
+
+  if(opts.schedule!==false&&typeof clientHasCalendarOrSession==='function'&&!clientHasCalendarOrSession(client.id)){
+    const plan=out.plan||(typeof clientPlanForCalendar==='function'?clientPlanForCalendar(client.id):null);
+    if(plan&&typeof maybeSchedulePlanToCalendar==='function'){
+      try{
+        const n=maybeSchedulePlanToCalendar(plan.id,{weeks:opts.weeks||4,forceConfirm:false})||0;
+        if(n>0){out.sessions=n;out.parts.push('kalendarz');}
+      }catch(e){console.warn('pipeline calendar',e);}
+    }
+  }
+
+  if(opts.notify!==false&&typeof addNotification==='function'){
+    addNotification('system','Nowy klient!',client.name+(out.parts.length?' — '+out.parts.join(', '):' dodany'),'clients');
+  }
+  if(opts.fireEvent!==false){
+    emitAppEvent('client.created',{client:{id:client.id,name:client.name,email:client.email||'',phone:client.phone||''},parts:out.parts.slice()});
+  }
+  out.ok=true;
+  return out;
 }
 /** Status startu współpracy: zaproszenie → baseline → harmonogram → plan → kalendarz → pakiet. */
 function clientOnboardStatus(c){
@@ -4080,6 +4252,14 @@ window.clientHasAssignedPlan=clientHasAssignedPlan;
 window.clientHasCalendarOrSession=clientHasCalendarOrSession;
 window.clientOnboardHasBaseline=clientOnboardHasBaseline;
 window.clientHasPackage=clientHasPackage;
+window.normalizeClientEmail=normalizeClientEmail;
+window.clientEmailValid=clientEmailValid;
+window.clientHasEmail=clientHasEmail;
+window.clientActivePackage=clientActivePackage;
+window.clientLifecycleStatus=clientLifecycleStatus;
+window.emitAppEvent=emitAppEvent;
+window.assignTemplatePlanToClient=assignTemplatePlanToClient;
+window.assignClientPipeline=assignClientPipeline;
 window.clientOnboardStatus=clientOnboardStatus;
 window.clientsWithIncompleteOnboard=clientsWithIncompleteOnboard;
 window.mapGoalFromIntakeText=mapGoalFromIntakeText;

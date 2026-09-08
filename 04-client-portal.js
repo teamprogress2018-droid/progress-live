@@ -4611,11 +4611,11 @@ function generateAutoNotifs(){
     }
   });
 
-  allPackages().filter(p=>{
+  (typeof dashOpsExpiringPackages==='function'?dashOpsExpiringPackages(7):allPackages().filter(p=>{
     if(!p.expiresDate)return false;
     const diff=Math.ceil((new Date(p.expiresDate)-today)/(1000*60*60*24));
     return diff>=0&&diff<=7;
-  }).forEach(p=>{
+  })).forEach(p=>{
     const diff=Math.ceil((new Date(p.expiresDate)-today)/(1000*60*60*24));
     const key='auto_exp_'+p.id;
     if(!hasNotif(key)){
@@ -5807,24 +5807,38 @@ function dashOpsRecentReports(){
   return out.sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,12);
 }
 function dashOpsAttentionItems(){
+  return collectOpsEvents().filter(it=>it.channel==='attention');
+}
+function dashOpsReminders(){
+  return collectOpsEvents().filter(it=>it.channel==='reminder').map(it=>({
+    txt:it.txt||((it.tag||'')+' — '+(it.name||'')),
+    meta:it.meta,col:it.col
+  })).slice(0,8);
+}
+function invalidateOpsEventsCache(){ window._opsEventsCache={at:0,items:null}; }
+function collectOpsEvents(force){
+  const now=Date.now();
+  if(!window._opsEventsCache)window._opsEventsCache={at:0,items:null};
+  const cache=window._opsEventsCache;
+  if(!force&&cache.items&&(now-cache.at)<15000)return cache.items;
   const items=[];
   const clients=dashOpsLiveClients();
   clients.forEach(c=>{
     if(typeof ensureCheckins==='function')ensureCheckins(c.id);
     const st=typeof getCIStatus==='function'?getCIStatus(c.id):'none';
     if(st==='overdue'){
-      items.push({pri:0,clientId:c.id,name:c.name,tag:'Raport zaległy',col:'var(--red)',
+      items.push({channel:'attention',pri:0,clientId:c.id,name:c.name,tag:'Raport zaległy',col:'var(--red)',
         meta:'Spóźniony check-in tygodniowy',
         cta:`sendCheckinTo('${escHtml(c.id)}')`,ctaLbl:'Przypomnij'});
     }else if(st==='pending'){
-      items.push({pri:1,clientId:c.id,name:c.name,tag:'Czeka na raport',col:'var(--orange)',
+      items.push({channel:'attention',pri:1,clientId:c.id,name:c.name,tag:'Czeka na raport',col:'var(--orange)',
         meta:'Check-in wysłany — brak odpowiedzi',
         cta:`goTo('checkin');setTimeout(()=>openCIClient('${escHtml(c.id)}'),200)`,ctaLbl:'Otwórz'});
     }
     if(typeof clientTrainingWindowStats==='function'){
       const st7=clientTrainingWindowStats(c.id,7);
       if(st7.assigned>=2&&st7.pct!=null&&st7.pct<70){
-        items.push({pri:2,clientId:c.id,name:c.name,tag:'<70% planu',col:'var(--orange)',
+        items.push({channel:'attention',pri:2,clientId:c.id,name:c.name,tag:'<70% planu',col:'var(--orange)',
           meta:`Trening 7 dni: ${st7.done}/${st7.assigned} (${st7.pct}%)`,
           cta:`openClientProfile('${escHtml(c.id)}')`,ctaLbl:'Profil'});
       }
@@ -5836,7 +5850,7 @@ function dashOpsAttentionItems(){
         return typeof isLoggedWorkout==='function'?!isLoggedWorkout(s):!(s.source==='client'||s.source==='live');
       });
       if(missed.length>=2){
-        items.push({pri:1,clientId:c.id,name:c.name,tag:'Opuszczone treningi',col:'var(--red)',
+        items.push({channel:'attention',pri:1,clientId:c.id,name:c.name,tag:'Opuszczone treningi',col:'var(--red)',
           meta:missed.length+' zaplanowanych bez logu (14 dni)',
           cta:`openClientProfile('${escHtml(c.id)}');setTimeout(()=>{if(typeof setCPTab==='function')setCPTab('training');},150)`,ctaLbl:'Treningi'});
       }
@@ -5845,7 +5859,7 @@ function dashOpsAttentionItems(){
       try{
         const v=buildMonitorVerdict(c);
         if(v&&(v.verdict==='regres'||v.verdict==='ryzyko stagnacji')){
-          items.push({pri:v.verdict==='regres'?0:1,clientId:c.id,name:c.name,
+          items.push({channel:'attention',pri:v.verdict==='regres'?0:1,clientId:c.id,name:c.name,
             tag:v.verdict==='regres'?'Regres':'Ryzyko stagnacji',
             col:v.verdict==='regres'?'var(--red)':'var(--orange)',
             meta:(v.next&&v.next[0])||'Sprawdź monitoring postępów',
@@ -5854,34 +5868,32 @@ function dashOpsAttentionItems(){
       }catch(e){}
     }
   });
-  // dedupe by clientId+tag
+  dashOpsExpiringPackages(7).forEach(p=>{
+    const name=p.clientName||((window.CL||[]).find(x=>x.id===p.clientId)||{}).name||'Klient';
+    const d=Math.ceil((new Date(p.expiresDate+'T12:00:00')-new Date())/86400000);
+    items.push({
+      channel:'reminder',pri:2,clientId:p.clientId,name,
+      tag:'Pakiet',col:'var(--orange)',
+      txt:`Pakiet „${p.title||'Pakiet'}” — ${name}`,
+      meta:d<=0?'Wygasa dziś':`Wygasa za ${d} dni`
+    });
+  });
   const seen=new Set();
-  return items.filter(it=>{
-    const k=it.clientId+'|'+it.tag;
+  const deduped=items.filter(it=>{
+    const k=(it.channel||'')+'|'+(it.clientId||'')+'|'+(it.tag||it.txt||'');
     if(seen.has(k))return false;seen.add(k);return true;
-  }).sort((a,b)=>a.pri-b.pri||String(a.name).localeCompare(String(b.name),'pl')).slice(0,10);
+  }).sort((a,b)=>(a.pri-b.pri)||String(a.name||'').localeCompare(String(b.name||''),'pl'));
+  const attention=deduped.filter(it=>it.channel==='attention').slice(0,10);
+  const reminder=deduped.filter(it=>it.channel==='reminder');
+  const out=attention.concat(reminder);
+  window._opsEventsCache={at:now,items:out};
+  return out;
 }
 function dashOpsRecentActivity(limit){
   limit=limit||8;
   const all=(window.SE||[]).filter(s=>s&&(typeof isLoggedWorkout==='function'?isLoggedWorkout(s):(s.source==='client'||s.source==='live'||(Array.isArray(s.exercises)&&s.exercises.length))))
     .slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''));
   return all.slice(0,limit);
-}
-function dashOpsReminders(){
-  const rem=[];
-  dashOpsExpiringPackages(7).forEach(p=>{
-    const name=p.clientName||((window.CL||[]).find(c=>c.id===p.clientId)||{}).name||'Klient';
-    const d=Math.ceil((new Date(p.expiresDate+'T12:00:00')-new Date())/86400000);
-    rem.push({txt:`Pakiet „${p.title||'Pakiet'}” — ${name}`,meta:d<=0?'Wygasa dziś':`Wygasa za ${d} dni`,col:'var(--orange)'});
-  });
-  dashOpsLiveClients().forEach(c=>{
-    if(typeof ensureCheckins==='function')ensureCheckins(c.id);
-    const st=typeof getCIStatus==='function'?getCIStatus(c.id):'';
-    if(st==='overdue'||st==='pending'){
-      rem.push({txt:`Termin raportu — ${c.name}`,meta:st==='overdue'?'Zaległy check-in':'Oczekuje na wypełnienie',col:st==='overdue'?'var(--red)':'var(--teal)'});
-    }
-  });
-  return rem.slice(0,8);
 }
 function renderDashOps(){
   const attEl=document.getElementById('d-ops-attention');
@@ -5985,6 +5997,9 @@ function renderDashOps(){
 window.dashOpsExpiringPackages=dashOpsExpiringPackages;
 window.dashOpsRecentReports=dashOpsRecentReports;
 window.dashOpsAttentionItems=dashOpsAttentionItems;
+window.dashOpsReminders=dashOpsReminders;
+window.collectOpsEvents=collectOpsEvents;
+window.invalidateOpsEventsCache=invalidateOpsEventsCache;
 window.dashOpsRecentActivity=dashOpsRecentActivity;
 window.renderDashOps=renderDashOps;
 

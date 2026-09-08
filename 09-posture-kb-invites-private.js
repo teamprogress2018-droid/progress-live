@@ -2681,8 +2681,9 @@ function assignProgramPlanToClient(programId, client){
   return plan;
 }
 
-function runOnboardingForClient(client){
-  if(!client)return false;
+function runOnboardingForClient(client,opts){
+  if(!client)return [];
+  opts=opts||{};
   const flow=window.ONBOARDING_FLOW;
   const first=(client.name||'').split(' ')[0];
   const parts=[];
@@ -2707,16 +2708,16 @@ function runOnboardingForClient(client){
       });
       if(picked.length){parts.push('formularz');formSent=true;}
     }
-    if(flow.assignEnabled!==false && flow.programId){
+    if(!opts.skipAssign && flow.assignEnabled!==false && flow.programId){
       const assigned=assignProgramPlanToClient(flow.programId,client);
       if(assigned){
         parts.push('program');
-        if(typeof maybeSchedulePlanToCalendar==='function'&&(assigned.days||[]).some(d=>!d.rest&&(d.exercises||[]).length)){
+        if(!opts.skipSchedule && typeof maybeSchedulePlanToCalendar==='function'&&(assigned.days||[]).some(d=>!d.rest&&(d.exercises||[]).length)){
           try{
             const n=maybeSchedulePlanToCalendar(assigned.id,{weeks:4});
             if(n>0)parts.push('kalendarz');
           }catch(e){console.warn('schedule after onboard assign',e);}
-        }else if(typeof schedulePlanToCalendar==='function'&&(assigned.days||[]).some(d=>!d.rest&&(d.exercises||[]).length)){
+        }else if(!opts.skipSchedule && typeof schedulePlanToCalendar==='function'&&(assigned.days||[]).some(d=>!d.rest&&(d.exercises||[]).length)){
           try{
             if(confirm('Program „'+(assigned.name||'')+'” przypisany. Dodać dni do kalendarza na 4 tyg.?')){
               schedulePlanToCalendar(assigned.id,{weeks:4});
@@ -2778,7 +2779,7 @@ function runOnboardingForClient(client){
     }
   }
   if(typeof enrollNewClientInAutoflows==='function')enrollNewClientInAutoflows(client);
-  return parts.length>0;
+  return parts;
 }
 window.runOnboardingForClient=runOnboardingForClient;
 
@@ -3769,6 +3770,8 @@ window.openClientDetail=openClientProfile;
 window.calcTDEE=calcTDEE;window.setCalcActivity=setCalcActivity;window.setCalcGoal=setCalcGoal;
 window.setCalcMacro=setCalcMacro;window.syncSliders=syncSliders;
 window.calcLoadFromClient=calcLoadFromClient;window.calcSendToClient=calcSendToClient;
+window.calcSaveToClient=calcSaveToClient;window.calcMacrosFromInputs=calcMacrosFromInputs;
+window.applyMacrosToClient=applyMacrosToClient;
 
 updateExDl();
 // init notifications

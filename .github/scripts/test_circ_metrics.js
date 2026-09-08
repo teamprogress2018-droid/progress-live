@@ -53,8 +53,8 @@ ok('08 empty circ copy', src08.includes('Brak obwodów centymetrem'));
 ok('08 uses circBarItems', src08.includes('circBarItems'));
 ok('04 last circ dynamic', src04.includes('circMetricDefs'));
 ok('index migrate after load', html.includes('migrateEnsureCircMetrics'));
-ok('cache 07', html.includes('07-forms-metrics-calculator.js?v=31'));
-ok('cache 04/05/08', html.includes('04-client-portal.js?v=38') && html.includes('05-clients-builder-plans-calendar.js?v=44') && html.includes('08-client-profile-extras.js?v=47'));
+ok('cache 07', html.includes('07-forms-metrics-calculator.js?v=32'));
+ok('cache 04/05/08', html.includes('04-client-portal.js?v=39') && html.includes('05-clients-builder-plans-calendar.js?v=45') && html.includes('08-client-profile-extras.js?v=47'));
 ok('CI unit', wf.includes('test_circ_metrics.js'));
 ok('openMetricEntry fills after openM', /openM\('m-metric-entry'\);[\s\S]{0,500}if\(groupId\)gsel\.value=groupId/.test(src07));
 

@@ -218,6 +218,7 @@ function renderClients(){
   }
   el.innerHTML=filtered.map((c,i)=>{
     const act=formatClientActivity(c.id);
+    const life=typeof clientLifecycleStatus==='function'?clientLifecycleStatus(c):null;
     const t7=clientTrainingWindowStats(c.id,7);
     const t30=clientTrainingWindowStats(c.id,30);
     const tasks7=clientTasksWindowStats(c.id,7);
@@ -230,7 +231,7 @@ function renderClients(){
       <div class="cl-av" style="background:${COLS[i%5]}22;color:${COLS[i%5]};">${escHtml(getInit(c.name))}</div>
       <div class="cl-name-meta">
         <div class="cl-name">${escHtml(c.name)}</div>
-        <div class="cl-sub">${escHtml(c.email||'Brak e-maila')}</div>
+        <div class="cl-sub">${escHtml(c.email||'Brak e-maila')}${life&&life.key!=='active'&&life.key!=='onboarding'?' · '+escHtml(life.label):''}</div>
       </div>
       <button type="button" class="cl-edit-btn" onclick="quickEditClient(event,'${c.id}')" title="Edytuj dane klienta">Edycja</button>
     </div>
@@ -241,7 +242,7 @@ function renderClients(){
     <div>${clPctCell(tasks7)}</div>
     <div class="cl-goal">${CLIENT_GOAL_LABELS[c.goal]||c.goal||'—'}</div>
     <div class="cl-status">
-      <span class="pill ${c.status==='inactive'?'pill-red':c.status==='archived'?'pill-red':'pill-green'}"><span class="pill-dot"></span>${c.status==='inactive'?'Nieaktywny':c.status==='archived'?'Zarchiwizowany':(c.appJoined?'Połączony':'Aktywny')}</span>
+      <span class="pill ${archived?'pill-red':c.status==='inactive'?'pill-red':life&&(life.key==='noemail'||life.key==='expired')?'pill-red':life&&(life.key==='onboarding'||life.key==='expiring'||life.key==='atrisk')?'pill-orange':c.appJoined?'pill-green':'pill-green'}"><span class="pill-dot"></span>${archived?'Zarchiwizowany':c.status==='inactive'?'Nieaktywny':life&&life.key==='onboarding'?life.label:life&&life.key==='noemail'?'Brak e-maila':life&&life.key==='expired'?'Pakiet wygasł':c.appJoined?'Połączony':(life&&life.label)||'Aktywny'}</span>
     </div>
   </div>`;
   }).join('');
@@ -291,10 +292,15 @@ window.openClientModal=openClientModal;
 window.quickEditClient=quickEditClient;
 
 async function saveClient(){
-  if(window._saveGuard_saveClient)return;window._saveGuard_saveClient=true;setTimeout(()=>window._saveGuard_saveClient=false,1500);
-
   const name=document.getElementById('ac-name').value.trim();
   if(!name){notify('Wpisz imię!');return;}
+  const emailRaw=document.getElementById('ac-email').value;
+  const email=typeof normalizeClientEmail==='function'?normalizeClientEmail(emailRaw):String(emailRaw||'').trim().toLowerCase();
+  if(typeof clientEmailValid==='function'? !clientEmailValid(email) : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    notify('Podaj prawidłowy e-mail — bez niego klient nie zaloguje się do aplikacji.');
+    return;
+  }
+  if(window._saveGuard_saveClient)return;window._saveGuard_saveClient=true;setTimeout(()=>window._saveGuard_saveClient=false,1500);
 
   const editId=window._editingClientId;
   const readFreq=()=>{
@@ -307,7 +313,7 @@ async function saveClient(){
     const c=CL.find(x=>x.id===editId);
     if(!c){notify('Nie znaleziono klienta');return;}
     c.name=name;
-    c.email=document.getElementById('ac-email').value;
+    c.email=email;
     c.phone=document.getElementById('ac-phone')?.value||'';
     c.age=+document.getElementById('ac-age').value||0;
     c.gender=(typeof normalizeClientGender==='function'?normalizeClientGender(document.getElementById('ac-gender').value):document.getElementById('ac-gender').value)||'M';
@@ -344,7 +350,7 @@ async function saveClient(){
   const c=withTrainer({
     id:newId('c'),
     name,
-    email:document.getElementById('ac-email').value,
+    email,
     phone:document.getElementById('ac-phone')?.value||'',
     age:+document.getElementById('ac-age').value||0,
     gender:(typeof normalizeClientGender==='function'?normalizeClientGender(document.getElementById('ac-gender').value):document.getElementById('ac-gender').value)||'M',
@@ -374,12 +380,15 @@ async function saveClient(){
   });
   try{renderAll();}catch(e){try{renderClients();}catch(e2){}}
   notify('✅ Klient '+c.name+' dodany!');
-  addNotification('system','Nowy klient!',c.name+' dodany do listy','clients');
-  if(typeof runOnboardingForClient==='function')runOnboardingForClient(c);
+  if(typeof assignClientPipeline==='function'){
+    assignClientPipeline(c,{persist:true,runFlow:true,schedule:true,notify:true,fireEvent:true});
+  }else{
+    addNotification('system','Nowy klient!',c.name+' dodany do listy','clients');
+    if(typeof runOnboardingForClient==='function')runOnboardingForClient(c);
+    await persistById('clients',c);
+    if(typeof fireIntEvent==='function')fireIntEvent('client.created',{client:{id:c.id,name:c.name,email:c.email||'',phone:c.phone||''}});
+  }
   setTimeout(()=>openClientOnboardChecklist(c.id),400);
-  // Firebase w tle — to samo id lokalnie i w Firestore
-  await persistById('clients',c);
-  if(typeof fireIntEvent==='function')fireIntEvent('client.created',{client:{id:c.id,name:c.name,email:c.email||'',phone:c.phone||''}});
 }
 
 function getClientOnboard(c){
