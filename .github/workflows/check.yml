@@ -72,6 +72,9 @@ jobs:
       - name: 1e0. Testy auto-progresji z planu trenera
         run: node .github/scripts/test_plan_auto_progression.js
 
+      - name: 1e0b. Testy podpowiedzi przerwy/tempa i periodyzacji Live
+        run: node .github/scripts/test_live_coach_hints.js
+
       - name: 1e2. Testy jednostki kg/sec w ćwiczeniach czasowych
         run: node .github/scripts/test_ex_load_unit.js
 
@@ -349,6 +352,8 @@ jobs:
         run: node .github/scripts/test_ex_assign_mp4_ui.js
       - name: 6b3c. Testy UI timera przerwy live (30s / własny)
         run: node .github/scripts/test_live_rest_ui.js
+      - name: 6b3c0. Testy UI podpowiedzi Live (przerwa / tempo / periodyzacja)
+        run: node .github/scripts/test_live_coach_hints_ui.js
       - name: 6b3c2. Testy UI Live Postęp i zapisu do Progress
         run: node .github/scripts/test_live_progress_ui.js
       - name: 6b3c3. Testy UI Live dual (dwie osoby)
