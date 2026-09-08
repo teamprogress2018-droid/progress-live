@@ -32,6 +32,8 @@ ok('08 loaded once', names.filter((n) => n === '08-client-profile-extras.js').le
 ok('01 loaded once', names.filter((n) => n === '01-core.js').length === 1);
 ok('06 loaded once', names.filter((n) => n === '06-inbox-exercises-ai-programs.js').length === 1);
 ok('exactly 12 app scripts', names.length === 12, 'got ' + names.length + ': ' + names.join(','));
+const moreTail = html.slice(html.lastIndexOf('data-screen="settings"'), html.indexOf('id="private-bar"'));
+ok('nav-more single close before nav', (moreTail.match(/<\/div>/g) || []).length === 1, moreTail.replace(/\s+/g, ' ').slice(0, 160));
 
 const root = path.join(__dirname, '../..');
 ok('no leftover trener_ai_v2.html', !fs.existsSync(path.join(root, 'trener_ai_v2.html')));

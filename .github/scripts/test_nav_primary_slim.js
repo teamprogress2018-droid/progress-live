@@ -66,6 +66,15 @@ test('goTo moreScreens includes secondary products', () => {
   assert.doesNotMatch(core, /moreScreens=\[[^\]]*dashboard/);
 });
 
+test('Więcej does not close #app-root before .main', () => {
+  const fromMore = html.slice(moreStart, html.indexOf('sidebar-footer'));
+  assert.ok(!/<\/div>\s*<\/div>\s*<\/nav>/.test(fromMore), 'one </div> after nav-more-items, then </nav>');
+  const appOpen = html.indexOf('id="app-root"');
+  const mainOpen = html.indexOf('class="main"');
+  const appClose = html.indexOf('<!-- /app -->');
+  assert.ok(appOpen >= 0 && mainOpen > appOpen && mainOpen < appClose, '.main stays inside #app-root');
+});
+
 test('cache + CI', () => {
   assert.match(html, /01-core.js\?v=85/);
   assert.ok(wf.includes('test_nav_primary_slim.js'), 'CI runs nav slim test');
