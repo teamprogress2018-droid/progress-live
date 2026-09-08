@@ -59,6 +59,7 @@ function eq(name, got, want) {
 }
 
 eq('key trim', exerciseNameKey('  Przysiad  tylni '), 'przysiad tylni');
+eq('key folds diacritics', exerciseNameKey('Rumuński ciąg z kettlem'), exerciseNameKey('rumunski ciag z kettlem'));
 eq('format', formatSetLoad(80, 8), '80 kg × 8');
 
 const sessions = [
@@ -106,6 +107,14 @@ const block = lastSetsBlockHtml({
 eq('last html widget', /live-last-sets/.test(block) && /Ostatnio:/.test(block), true);
 eq('last html rows', /RIR 3/.test(block) && /RIR 2/.test(block) && /80 kg × 8/.test(block), true);
 eq('empty last html', lastSetsBlockHtml({lastSets: []}), '');
+
+windowObj.SE = sessions.concat([
+  {id: 's5', clientId: 'c1', date: '2026-08-20', source: 'planned', exercises: [{name: 'Przysiad', sets: [{kg: 999, reps: 1, setNo: 1}]}]},
+  {id: 's6', clientId: 'c1', date: '2026-09-06', source: 'live', exercises: [{name: 'Rumuński ciąg z kettlem', sets: [{kg: '16', reps: '12', setNo: 1}]}]}
+]);
+const lastAscii = lastLoadForExercise('c1', 'rumunski ciag z kettlem');
+eq('last matches folded name', lastAscii && lastAscii.kg, '16');
+eq('last folded date', lastAscii && lastAscii.date, '2026-09-06');
 
 if (failed) {
   console.error('\n' + failed + ' test(s) failed');

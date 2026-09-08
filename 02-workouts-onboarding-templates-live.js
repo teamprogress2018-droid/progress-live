@@ -2410,6 +2410,7 @@ function liveApplyDraft(slot,draft){
   const noteEl=liveEl('live-note',n);
   if(noteEl)noteEl.value=draft.note||'';
   liveClientSetField(draft.clientId,c.name,true,n);
+  if(!st.sessionActive)liveRefreshPlanLoads(n);
   if(st.sessionActive)liveArmTimer(n);
   liveBindSessionButtons(n);
   renderLivePlanPicker(n);
@@ -2596,6 +2597,7 @@ function liveLoadClient(slot){
   const st=liveRef(n);
   const sel=liveEl('live-client-sel',n);
   st.clientId=sel?.value||st.clientId||null;
+  liveRefreshPlanLoads(n);
   renderLiveClientCard(n);
   renderLivePlanPicker(n);
   renderLiveExercises(n);
@@ -2695,7 +2697,7 @@ function liveGetSuggestedDayIdx(clientId,plan){
 }
 
 function liveNormExName(n){
-  return String(n||'').toLowerCase().replace(/\s+/g,' ').trim();
+  return typeof exerciseNameKey==='function'?exerciseNameKey(n):String(n||'').toLowerCase().replace(/\s+/g,' ').trim();
 }
 
 function liveLastLoad(clientId,name){
@@ -2721,6 +2723,18 @@ function liveMapPlanExercises(rawEx,slot){
     :(rawEx||[]).map(ex=>({name:ex.name||ex.n||'Ćwiczenie',sets:[{setNo:1,kg:'',reps:'10',done:false}]}));
   return mapped.map(ex=>({...ex,done:false,collapsed:false}));
 }
+
+function liveRefreshPlanLoads(slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  if(st.sessionActive||!st.planId||!st.clientId)return;
+  const p=(window.PL||[]).find(x=>x.id===st.planId);
+  if(!p||(p.clientId&&p.clientId!==st.clientId))return;
+  const day=(p.days||[])[st.currentDayIdx||0];
+  if(!day||!(day.exercises||[]).length)return;
+  st.exercises=liveMapPlanExercises(day.exercises,n);
+}
+window.liveRefreshPlanLoads=liveRefreshPlanLoads;
 
 function liveSelectPlan(pid,slot){
   const n=liveN(slot);
@@ -2900,12 +2914,12 @@ function liveExCard(ex,i,slot){
   const loadLbl=typeof loadUnitColumnLabel==='function'?loadUnitColumnLabel(unit):(unit==='sec'||unit==='min'?'Czas':unit==='m'?'Dystans':'Ciężar');
   const setsDone=ex.sets.filter(s=>s.done).length;
   const lastBlock=typeof lastSetsBlockHtml==='function'?lastSetsBlockHtml(ex):'';
-  const lastHint=lastBlock?'':(ex.lastKg!==''&&ex.lastKg!=null?`Ostatnio: ${ex.lastKg} ${suf}${ex.lastReps?' × '+ex.lastReps:''}`:'');
+  const lastHint=lastBlock?'':(ex.lastDate&&ex.lastKg!==''&&ex.lastKg!=null?`Ostatnio: ${ex.lastKg} ${suf}${ex.lastReps?' × '+ex.lastReps:''}`:'');
   const pr=typeof exercisePR==='function'&&(typeof isWeightLoadUnit!=='function'||isWeightLoadUnit(unit))?exercisePR(st.clientId,ex.name):null;
   const prHint=pr?`Rekord: ${pr.kg} kg × ${pr.reps}`:'';
   const pctHint=ex.kgHint||'';
   const progHint=ex.progHint||'';
-  const sub=[pctHint,lastHint,prHint,progHint].filter(Boolean).join(' · ');
+  const sub=[pctHint,lastHint,prHint].filter(Boolean).join(' · ');
   const cardId=n===1?('live-b-ex-'+i):('live-ex-'+i);
   const needsName=!String(ex.name||'').trim()||ex.name==='Nowe ćwiczenie';
   const showBody=!ex.collapsed||needsName;
@@ -2915,6 +2929,7 @@ function liveExCard(ex,i,slot){
       <div style="flex:1;">
         ${needsName?`<div style="font-size:13px;font-weight:700;color:var(--muted);">Wybierz ćwiczenie</div>`:`<div style="font-size:13px;font-weight:700;">${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}</div>`}
         <div style="font-size:10px;color:var(--muted);">${ex.sets.length} serie · ${setsDone}/${ex.sets.length} ukończono${ex.ssLabel?' · super-seria':''}${ex.emom?' · EMOM':''}${sub?' · '+escHtml(sub):''}</div>
+        ${progHint?`<div style="font-size:11px;color:var(--teal);font-weight:600;margin-top:4px;">${escHtml(progHint)}</div>`:''}
         ${lastBlock}
       </div>
       <div style="display:flex;gap:6px;align-items:center;">

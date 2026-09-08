@@ -23,8 +23,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=86'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=42'));
+ok('cache 01', html.includes('01-core.js?v=87'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=43'));
 ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=46'));
 ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=71'));
 ok('cache 03', html.includes('03-ai-plangen-bizstats-aicoach.js?v=30'));
