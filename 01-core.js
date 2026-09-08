@@ -2436,6 +2436,153 @@ function parseRestSeconds(rest){
 }
 window.parseRestSeconds=parseRestSeconds;
 
+function formatDurationHint(sec){
+  const n=Math.round(Number(sec)||0);
+  if(n<=0)return '';
+  if(n>=120&&n%60===0)return (n/60)+' min';
+  return n+' s';
+}
+window.formatDurationHint=formatDurationHint;
+
+function parseTempoSeconds(tempo){
+  const parts=String(tempo||'').match(/\d+(?:[.,]\d+)?/g);
+  if(!parts||!parts.length)return 0;
+  return parts.reduce((a,x)=>a+(parseFloat(String(x).replace(',','.'))||0),0);
+}
+window.parseTempoSeconds=parseTempoSeconds;
+
+function plannedWorkSeconds(ex){
+  const unit=typeof exLoadUnit==='function'?exLoadUnit(ex):(ex&&ex.loadUnit)||'kg';
+  const repsRaw=String(((ex&&Array.isArray(ex.sets)?ex.sets:[]).find(s=>s&&(s.kind==='work'||!s.kind))||{}).reps
+    ||(ex&&ex.sets&&ex.sets[0]&&ex.sets[0].reps)
+    ||(ex&&ex.reps)||'');
+  if(unit==='sec'||/\d+\s*(s|sec|sek)\b/i.test(repsRaw)){
+    const n=parseFloat(String(repsRaw).replace(',','.'));
+    if(Number.isFinite(n)&&n>0)return Math.round(n);
+  }
+  if(unit==='min'||/\d+\s*min/i.test(repsRaw)){
+    const n=parseFloat(String(repsRaw).replace(',','.'));
+    if(Number.isFinite(n)&&n>0)return Math.round(n*60);
+  }
+  const tempoSec=parseTempoSeconds(ex&&ex.tempo);
+  if(!(tempoSec>0))return 0;
+  const range=typeof parseRepRange==='function'?parseRepRange(repsRaw):{lo:parseFloat(repsRaw)||0};
+  const reps=range&&range.lo>0?range.lo:(parseFloat(String(repsRaw).replace(',','.'))||0);
+  if(!(reps>0))return 0;
+  return Math.round(tempoSec*reps);
+}
+window.plannedWorkSeconds=plannedWorkSeconds;
+
+function exerciseCoachHints(ex){
+  if(!ex||typeof ex!=='object')return{restSec:0,restLabel:'',workSec:0,workLabel:'',tempo:'',rpe:''};
+  const hasRest=(ex.restSec!=null&&ex.restSec!=='')||(ex.rest!=null&&String(ex.rest).trim()!=='');
+  const restSec=hasRest?(ex.restSec!=null&&ex.restSec!==''?Number(ex.restSec):parseRestSeconds(ex.rest)):0;
+  const workSec=plannedWorkSeconds(ex);
+  const tempo=String(ex.tempo||'').trim();
+  const rpe=String(ex.rpe||'').replace(/^\s*RPE\s*/i,'').trim();
+  return{
+    restSec:Number.isFinite(restSec)&&restSec>0?restSec:0,
+    restLabel:formatDurationHint(restSec),
+    workSec,
+    workLabel:formatDurationHint(workSec),
+    tempo,
+    rpe
+  };
+}
+window.exerciseCoachHints=exerciseCoachHints;
+
+function exerciseCoachHintsHtml(ex){
+  const h=exerciseCoachHints(ex);
+  const esc=typeof escHtml==='function'?escHtml:(s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;'));
+  const bits=[];
+  if(h.workLabel)bits.push(`<span class="live-coach-chip" title="Szacowany czas serii (tempo × powt. albo czas z planu)">Praca ${esc(h.workLabel)}</span>`);
+  if(h.restLabel)bits.push(`<span class="live-coach-chip" title="Przerwa z planu trenera">Przerwa ${esc(h.restLabel)}</span>`);
+  if(h.tempo)bits.push(`<span class="live-coach-chip" title="Ekscentryka – pauza – koncentryka – pauza">Tempo ${esc(h.tempo)}</span>`);
+  if(h.rpe)bits.push(`<span class="live-coach-chip" title="Cel RPE z planu">RPE ${esc(h.rpe)}</span>`);
+  if(!bits.length)return '';
+  return `<div class="live-coach-hints">${bits.join('')}</div>`;
+}
+window.exerciseCoachHintsHtml=exerciseCoachHintsHtml;
+
+function periodScheduleForLevel(level){
+  if(level==='poczatkujacy')return[{nr:1,cel:'Adaptacja — nauka wzorców',rpe:'RPE 7'},{nr:2,cel:'Utrwalenie techniki',rpe:'RPE 7'},{nr:3,cel:'Progresja liniowa',rpe:'RPE 8'},{nr:4,cel:'DELOAD — regeneracja CNS',rpe:'RPE 6'}];
+  if(level==='sredni')return[{nr:1,cel:'DUP Akumulacja — wysoka objętość',rpe:'RPE 7'},{nr:2,cel:'DUP Intensyfikacja',rpe:'RPE 8'},{nr:3,cel:'DUP Szczyt',rpe:'RPE 9'},{nr:4,cel:'DELOAD',rpe:'RPE 6'}];
+  return[{nr:1,cel:'Blok Akumulacji',rpe:'RPE 7-8'},{nr:2,cel:'Blok Akumulacji +',rpe:'RPE 8'},{nr:3,cel:'Blok Intensyfikacji',rpe:'RPE 8-9'},{nr:4,cel:'Blok Intensyfikacji peak',rpe:'RPE 9'},{nr:5,cel:'Blok Realizacji',rpe:'RPE 9-10'},{nr:6,cel:'DELOAD + Pivot Week',rpe:'RPE 6'}];
+}
+window.periodScheduleForLevel=periodScheduleForLevel;
+
+function periodWeekModel(level,idx){
+  const ls=String(level||'sredni');
+  const beginner=[
+    {loadPct:0,repDelta:0,setDelta:0,rpe:'7'},
+    {loadPct:2.5,repDelta:0,setDelta:0,rpe:'7'},
+    {loadPct:5,repDelta:-1,setDelta:0,rpe:'8'},
+    {loadPct:-12,repDelta:-2,setDelta:-1,rpe:'6',deload:true},
+  ];
+  const intermediate=[
+    {loadPct:-2.5,repDelta:2,setDelta:1,rpe:'7'},
+    {loadPct:0,repDelta:0,setDelta:0,rpe:'8'},
+    {loadPct:5,repDelta:-2,setDelta:0,rpe:'9'},
+    {loadPct:-15,repDelta:-2,setDelta:-1,rpe:'6',deload:true},
+  ];
+  const advanced=[
+    {loadPct:-2.5,repDelta:1,setDelta:1,rpe:'7-8'},
+    {loadPct:2.5,repDelta:0,setDelta:0,rpe:'8'},
+    {loadPct:5,repDelta:-1,setDelta:0,rpe:'8-9'},
+    {loadPct:7.5,repDelta:-2,setDelta:0,rpe:'9'},
+    {loadPct:10,repDelta:-3,setDelta:-1,rpe:'9-10'},
+    {loadPct:-15,repDelta:-2,setDelta:-1,rpe:'6',deload:true},
+  ];
+  const arr=ls==='poczatkujacy'?beginner:ls==='sredni'?intermediate:advanced;
+  return arr[Math.max(0,Math.min(idx,arr.length-1))]||arr[0];
+}
+window.periodWeekModel=periodWeekModel;
+
+function periodWeekDeltaLabel(mod,isBase){
+  const m=mod||{};
+  if(isBase)return 'wartości z planu · RPE '+(m.rpe||'7');
+  const bits=[];
+  if(m.setDelta)bits.push((m.setDelta>0?'+':'')+m.setDelta+' ser.');
+  if(m.repDelta)bits.push((m.repDelta>0?'+':'')+m.repDelta+' powt.');
+  if(m.loadPct)bits.push((m.loadPct>0?'+':'')+m.loadPct+'% kg');
+  if(m.rpe)bits.push('RPE '+m.rpe);
+  if(m.deload)bits.push('deload');
+  return bits.join(' · ')||('RPE '+(m.rpe||''));
+}
+window.periodWeekDeltaLabel=periodWeekDeltaLabel;
+
+function planStartYmd(plan,clientId){
+  const dates=[];
+  if(plan&&plan.startDate)dates.push(String(plan.startDate).slice(0,10));
+  if(plan&&plan.createdAt)dates.push(String(plan.createdAt).slice(0,10));
+  const pid=plan&&plan.id;
+  ((typeof window!=='undefined'&&window.SE)||[]).forEach(s=>{
+    if(!s||s.source==='planned')return;
+    if(clientId&&s.clientId!==clientId)return;
+    if(pid&&s.planId&&s.planId!==pid)return;
+    if(!pid&&s.clientId!==clientId)return;
+    if(s.date)dates.push(String(s.date).slice(0,10));
+  });
+  dates.sort();
+  return dates[0]||'';
+}
+window.planStartYmd=planStartYmd;
+
+function planPeriodWeekIndex(clientId,plan,nowMs){
+  const c=((typeof window!=='undefined'&&window.CL)||[]).find(x=>x&&x.id===clientId)||{};
+  const level=(plan&&plan.level)||c.level||'sredni';
+  const sch=periodScheduleForLevel(level);
+  const n=sch.length||4;
+  const start=planStartYmd(plan,clientId);
+  const startMs=start?Date.parse(start):NaN;
+  if(!Number.isFinite(startMs))return 0;
+  const t=nowMs!=null?Number(nowMs):Date.now();
+  const days=Math.floor((t-startMs)/86400000);
+  if(!(days>=0))return 0;
+  return Math.floor(days/7)%n;
+}
+window.planPeriodWeekIndex=planPeriodWeekIndex;
+
 function dateStrLocal(d){
   const x=d instanceof Date?d:new Date(d);
   if(isNaN(x.getTime()))return '';
@@ -3223,6 +3370,7 @@ function mapPlanExercisesForClient(rawEx,clientId,plan){
       plannedName:ex.name,
       alts:altsForExercise(ex.name,ex.alt),
       restSec:rest,
+      tempo:ex.tempo||'',
       rpe:ex.rpe||'',
       rir:typeof plannedRir==='function'?plannedRir(ex):(ex.rir||''),
       pct1rm:pct,

@@ -1132,6 +1132,7 @@ function cwRender(){
     ${(ex.alts||[]).length?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px;">${ex.alts.map(a=>`<button type="button" class="btn btn-ghost btn-sm" onclick='cwSwapEx(${JSON.stringify(a)})'>↻ ${escHtml(a)}</button>`).join('')}</div>`:''}
     ${ex.kgHint?`<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${escHtml(ex.kgHint)}</div>`:''}
     ${ex.progHint?`<div style="font-size:11px;color:var(--teal);margin-bottom:8px;">${escHtml(ex.progHint)}</div>`:''}
+    ${typeof exerciseCoachHintsHtml==='function'?exerciseCoachHintsHtml(ex):''}
     ${(()=>{
       const lastHtml=typeof lastSetsBlockHtml==='function'?lastSetsBlockHtml(ex):'';
       const pr=typeof exercisePR==='function'&&(typeof isWeightLoadUnit!=='function'||isWeightLoadUnit(typeof exLoadUnit==='function'?exLoadUnit(ex):'kg'))?exercisePR(window._clientId,ex.name):null;

@@ -2298,7 +2298,8 @@ function liveNewSlotState(){
   return {
     clientId:null,planId:null,currentDayIdx:0,sessionActive:false,
     timerSec:0,timerInterval:null,restSec:0,restInterval:null,
-    exercises:[],feedbackVal:0,emomClock:{},savedClientId:null,savedClientName:''
+    exercises:[],feedbackVal:0,emomClock:{},savedClientId:null,savedClientName:'',
+    periodWeekOverride:null
   };
 }
 var liveB=liveNewSlotState();
@@ -2324,7 +2325,9 @@ function liveRef(slot){
     get savedClientId(){return window._liveSavedClientId;},
     set savedClientId(v){window._liveSavedClientId=v;},
     get savedClientName(){return window._liveSavedClientName;},
-    set savedClientName(v){window._liveSavedClientName=v;}
+    set savedClientName(v){window._liveSavedClientName=v;},
+    get periodWeekOverride(){return window._livePeriodWeekOverride;},
+    set periodWeekOverride(v){window._livePeriodWeekOverride=v;}
   };
 }
 function liveEl(id,slot){
@@ -2736,10 +2739,109 @@ function liveRefreshPlanLoads(slot){
 }
 window.liveRefreshPlanLoads=liveRefreshPlanLoads;
 
+function liveCurrentExercise(slot){
+  const st=liveRef(slot);
+  return (st.exercises||[]).find(e=>e&&!e.done)||(st.exercises||[])[0]||null;
+}
+
+function livePeriodState(slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  const plan=(window.PL||[]).find(p=>p.id===st.planId);
+  const c=(window.CL||[]).find(x=>x.id===st.clientId)||{};
+  const level=(plan&&plan.level)||c.level||'sredni';
+  const sch=typeof periodScheduleForLevel==='function'?periodScheduleForLevel(level):[];
+  if(!plan||!sch.length)return null;
+  const auto=typeof planPeriodWeekIndex==='function'?planPeriodWeekIndex(st.clientId,plan):0;
+  const idx=st.periodWeekOverride!=null?st.periodWeekOverride:auto;
+  const week=sch[Math.max(0,Math.min(idx,sch.length-1))]||sch[0];
+  const mod=typeof periodWeekModel==='function'?periodWeekModel(level,idx):{};
+  return{plan,level,sch,auto,idx,week,mod};
+}
+window.livePeriodState=livePeriodState;
+
+function renderLivePeriod(slot){
+  const n=liveN(slot);
+  const card=liveEl('live-period-card',n);
+  const nowEl=liveEl('live-period-now',n);
+  const list=liveEl('live-period-sched',n);
+  if(!card||!list)return;
+  const st=livePeriodState(n);
+  if(!st){
+    card.hidden=true;
+    list.innerHTML='';
+    if(nowEl)nowEl.textContent='';
+    return;
+  }
+  card.hidden=false;
+  const sl=liveSlotArg(n);
+  if(nowEl){
+    nowEl.textContent='Ten tydzień: Tydz. '+(st.auto+1)+' · '+(st.sch[st.auto]&&st.sch[st.auto].cel||'')+' · '+(st.sch[st.auto]&&st.sch[st.auto].rpe||'');
+  }
+  list.innerHTML=st.sch.map((w,i)=>{
+    const mod=typeof periodWeekModel==='function'?periodWeekModel(st.level,i):{};
+    const sub=typeof periodWeekDeltaLabel==='function'?periodWeekDeltaLabel(mod,i===0): (w.rpe||'');
+    const on=i===st.idx?' active':'';
+    const auto=i===st.auto?' is-now':'';
+    const col=String(w.cel||'').includes('DELOAD')?'var(--orange)':w.nr===1?'var(--accent)':'var(--blue)';
+    return `<button type="button" class="live-period-row${on}${auto}" onclick="liveSelectPeriodWeek(${i}${sl})">
+      <div class="live-period-week" style="color:${col};">Tydz. ${w.nr}</div>
+      <div class="live-period-body">
+        <div class="live-period-title">${escHtml(w.cel)}</div>
+        <div class="live-period-sub">${escHtml(w.rpe)} · ${escHtml(sub)}</div>
+      </div>
+    </button>`;
+  }).join('');
+}
+window.renderLivePeriod=renderLivePeriod;
+
+function liveSelectPeriodWeek(idx,slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  st.periodWeekOverride=idx;
+  renderLivePeriod(n);
+  renderLiveExercises(n);
+}
+window.liveSelectPeriodWeek=liveSelectPeriodWeek;
+
+function liveSyncRestRecommend(slot){
+  const n=liveN(slot);
+  const ex=liveCurrentExercise(n);
+  const h=typeof exerciseCoachHints==='function'?exerciseCoachHints(ex):{restSec:0,restLabel:''};
+  const sec=h.restSec||0;
+  const hint=liveEl('live-rest-plan-hint',n);
+  if(hint)hint.textContent=h.restLabel?('Z planu: '+h.restLabel):'';
+  const btn=liveEl('live-rest-plan-btn',n);
+  if(btn){
+    btn.textContent=h.restLabel?('Z planu '+h.restLabel.replace(' ','')):'Z planu';
+    btn.disabled=!sec;
+    btn.hidden=!sec;
+  }
+  const custom=liveEl('live-rest-custom',n);
+  if(custom&&sec)custom.placeholder=String(sec);
+  const card=liveEl('live-rest-timer',n)&&liveEl('live-rest-timer',n).closest('.live-rest-card');
+  if(card){
+    card.querySelectorAll('.live-rest-presets .live-rest-preset').forEach(b=>{
+      const nsec=parseInt(String(b.textContent||''),10);
+      b.classList.toggle('plan-hit',!!sec&&nsec===sec);
+    });
+  }
+}
+window.liveSyncRestRecommend=liveSyncRestRecommend;
+
+function liveStartRestFromPlan(slot){
+  const n=liveN(slot);
+  const ex=liveCurrentExercise(n);
+  const h=typeof exerciseCoachHints==='function'?exerciseCoachHints(ex||{}):{restSec:0};
+  liveStartRest(h.restSec||90,n);
+}
+window.liveStartRestFromPlan=liveStartRestFromPlan;
+
 function liveSelectPlan(pid,slot){
   const n=liveN(slot);
   const st=liveRef(n);
   st.planId=pid;
+  st.periodWeekOverride=null;
   const p=PL.find(x=>x.id===pid);if(!p)return;
 
   const suggestedIdx=liveGetSuggestedDayIdx(st.clientId,p);
@@ -2848,6 +2950,8 @@ function renderLiveExercises(slot){
           <button class="btn btn-ghost" onclick="goTo('dashboard')">Panel</button>
         </div>
       </div>`;
+      renderLivePeriod(n);
+      liveSyncRestRecommend(n);
       return;
     }
     el.innerHTML=`<div style="text-align:center;padding:60px 20px;color:var(--muted);">
@@ -2855,6 +2959,8 @@ function renderLiveExercises(slot){
       <div style="font-size:14px;font-weight:600;margin-bottom:6px;">Wybierz klienta i plan</div>
       <div style="font-size:12px;">Potem Start sesji — kg z poprzedniego treningu wstawią się same.</div>
     </div>`;
+    renderLivePeriod(n);
+    liveSyncRestRecommend(n);
     return;
   }
   const stats=typeof liveProgressStats==='function'?liveProgressStats(st.exercises):{doneCnt:0,total:st.exercises.length,setsDone:0,volume:0};
@@ -2887,6 +2993,8 @@ function renderLiveExercises(slot){
       <button class="btn btn-primary" onclick="liveEndSession(${n})">Zakończ i zapisz sesję</button>
     </div>`:''}`;
   if(typeof exAcInitAll==='function')exAcInitAll(el);
+  renderLivePeriod(n);
+  liveSyncRestRecommend(n);
 }
 
 function liveAltsHtml(ex,i,n){
@@ -2930,6 +3038,13 @@ function liveExCard(ex,i,slot){
         ${needsName?`<div style="font-size:13px;font-weight:700;color:var(--muted);">Wybierz ćwiczenie</div>`:`<div style="font-size:13px;font-weight:700;">${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}</div>`}
         <div style="font-size:10px;color:var(--muted);">${ex.sets.length} serie · ${setsDone}/${ex.sets.length} ukończono${ex.ssLabel?' · super-seria':''}${ex.emom?' · EMOM':''}${sub?' · '+escHtml(sub):''}</div>
         ${progHint?`<div style="font-size:11px;color:var(--teal);font-weight:600;margin-top:4px;">${escHtml(progHint)}</div>`:''}
+        ${typeof exerciseCoachHintsHtml==='function'?exerciseCoachHintsHtml(ex):''}
+        ${(()=>{
+          const ps=livePeriodState(n);
+          if(!ps||!ps.week)return '';
+          const extra=ps.idx>0&&typeof periodWeekDeltaLabel==='function'?(' · '+periodWeekDeltaLabel(ps.mod,false)):'';
+          return `<div class="live-week-hint">Tydz. ${ps.week.nr} · ${escHtml(ps.week.cel)}${ps.week.rpe?' · '+escHtml(ps.week.rpe):''}${escHtml(extra)}</div>`;
+        })()}
         ${lastBlock}
       </div>
       <div style="display:flex;gap:6px;align-items:center;">

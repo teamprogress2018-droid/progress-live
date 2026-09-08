@@ -17,8 +17,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 02 v27', html.includes('02-workouts-onboarding-templates-live.js?v=43'));
-ok('cache styles v55', html.includes('styles.css?v=71'));
+ok('cache 02 v27', html.includes('02-workouts-onboarding-templates-live.js?v=44'));
+ok('cache styles v55', html.includes('styles.css?v=72'));
 ok('30s preset', html.includes('liveStartRest(30)') && /live-rest-preset[^>]*>30s</.test(html));
 ok('40s HIIT preset', html.includes('liveStartRest(40)') && /live-rest-preset[^>]*>40s</.test(html));
 ok('60s preset stays', html.includes('liveStartRest(60)'));
