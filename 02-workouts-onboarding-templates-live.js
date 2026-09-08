@@ -723,7 +723,7 @@ function onbCreateClient(){
   const newC=withTrainer({
     id:newId('c'),
     name:onbNewClient.name,
-    email:onbNewClient.email,
+    email:typeof normalizeClientEmail==='function'?normalizeClientEmail(onbNewClient.email):onbNewClient.email,
     phone:onbNewClient.phone||'',
     goal:onbNewClient.goal||'masa',
     goalDesc:onbNewClient.goalDesc||'',
@@ -745,34 +745,11 @@ function onbCreateClient(){
     source:onbNewClient.source||'',
   });
   CL.push(newC);
-  persistById('clients',newC);
-  if(typeof saveClientBaselineFromFields==='function'){
-    saveClientBaselineFromFields(newC.id,{
-      weight:onbNewClient.weight,
-      notes:'Baseline z onboardingu'
-    });
-  }
 
-  // assign template plan
-  let assignedPlan=null;
-  if(onbNewClient.template){
-    const t=PLAN_TEMPLATES.find(x=>x.id===onbNewClient.template);
-    if(t){
-      assignedPlan=withTrainer({id:newId('p'),name:t.name,clientId:newC.id,method:t.method,duration:t.weeks||1, // mikrocykl — trener zapętla w kalendarzu / Programy = pełny blok
-    _sourceKind:'template-microcycle',
-        days:(t.days_detail||[]).map(d=>({day:d.name,exercises:(d.exercises||[]).map(e=>({name:e.n,sets:e.s,reps:e.r,rest:e.rest}))})),
-        source:'template',createdAt:new Date().toISOString()});
-      PL.push(assignedPlan);
-      persistById('plans',assignedPlan);
-    }
-  }
-
-  // start onboarding flow
   const onbRec=withTrainer({id:newId('onba'),clientId:newC.id,step:1,startDate:new Date().toISOString().split('T')[0],flow:onbNewClient.flow||'standard'});
   ONB_ACTIVE.push(onbRec);
   persistById('onboardingActive',onbRec);
 
-  // add first tasks
   const tasks=[
     withTrainer({id:newId('t'),clientId:newC.id,title:'Wypełnij ankietę wstępną',status:'open',priority:'high',cat:'lifestyle',due:new Date(Date.now()+86400000).toISOString().split('T')[0],createdAt:new Date().toISOString()}),
     withTrainer({id:newId('t'),clientId:newC.id,title:'Zaakceptuj kontrakt współpracy',status:'open',priority:'high',cat:'lifestyle',due:new Date(Date.now()+2*86400000).toISOString().split('T')[0],createdAt:new Date().toISOString()}),
@@ -780,15 +757,43 @@ function onbCreateClient(){
   ];
   tasks.forEach(t=>{TASKS.push(t);persistById('tasks',t);});
 
-  addNotification('system','Nowy klient!',newC.name+' — onboarding uruchomiony','clients');
-  notify('🎉 Klient '+newC.name+' dodany! Onboarding uruchomiony.');
-  if(typeof runOnboardingForClient==='function')runOnboardingForClient(newC);
-  if(assignedPlan&&typeof maybeSchedulePlanToCalendar==='function'){
-    maybeSchedulePlanToCalendar(assignedPlan.id,{weeks:4});
-  }else if(assignedPlan&&typeof schedulePlanToCalendar==='function'&&confirm('Dodać dni szablonu do kalendarza na 4 tygodnie?')){
-    schedulePlanToCalendar(assignedPlan.id,{weeks:4});
+  const pipeOpts={
+    persist:true,
+    runFlow:true,
+    schedule:true,
+    weeks:4,
+    templateId:onbNewClient.template||'',
+    notify:true,
+    fireEvent:true,
+    baseline:onbNewClient.weight?{weight:onbNewClient.weight,notes:'Baseline z onboardingu'}:null
+  };
+  if(typeof assignClientPipeline==='function'){
+    assignClientPipeline(newC,pipeOpts);
+  }else{
+    persistById('clients',newC);
+    if(typeof saveClientBaselineFromFields==='function'&&onbNewClient.weight){
+      saveClientBaselineFromFields(newC.id,{weight:onbNewClient.weight,notes:'Baseline z onboardingu'});
+    }
+    let assignedPlan=null;
+    if(onbNewClient.template){
+      const t=PLAN_TEMPLATES.find(x=>x.id===onbNewClient.template);
+      if(t){
+        assignedPlan=withTrainer({id:newId('p'),name:t.name,clientId:newC.id,method:t.method,duration:t.weeks||1,
+          _sourceKind:'template-microcycle',
+          days:(t.days_detail||[]).map(d=>({day:d.name,exercises:(d.exercises||[]).map(e=>({name:e.n,sets:e.s,reps:e.r,rest:e.rest}))})),
+          source:'template',createdAt:new Date().toISOString()});
+        PL.push(assignedPlan);
+        persistById('plans',assignedPlan);
+      }
+    }
+    addNotification('system','Nowy klient!',newC.name+' — onboarding uruchomiony','clients');
+    if(typeof runOnboardingForClient==='function')runOnboardingForClient(newC);
+    if(assignedPlan&&typeof maybeSchedulePlanToCalendar==='function'){
+      maybeSchedulePlanToCalendar(assignedPlan.id,{weeks:4});
+    }
   }
 
+  notify('🎉 Klient '+newC.name+' dodany! Onboarding uruchomiony.');
   onbNewClient={};onbStep=0;
   setOnbTab('overview');
   if(typeof openClientOnboardChecklist==='function')setTimeout(()=>openClientOnboardChecklist(newC.id),400);

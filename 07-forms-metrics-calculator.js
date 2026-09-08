@@ -1769,33 +1769,67 @@ function calcTDEE(){
     </div>`;
 }
 
+function calcMacrosFromInputs(o){
+  o=o||{};
+  const age=+o.age||25;
+  const weight=+o.weight||80;
+  const height=+o.height||180;
+  const gender=(o.gender==='K'||o.gender==='F'||String(o.gender||'').toLowerCase().indexOf('kob')===0)?'K':'M';
+  const activity=+o.activity||1.55;
+  const goalDelta=+o.goalDelta||0;
+  const p=+o.macroP||30,f=+o.macroF||25,c=+o.macroC||45;
+  const bmr=gender==='M'?10*weight+6.25*height-5*age+5:10*weight+6.25*height-5*age-161;
+  const tdee=Math.round(bmr*activity);
+  const target=tdee+goalDelta;
+  return{
+    tdee,targetKcal:target,
+    proteinG:Math.round(target*(p/100)/4),
+    fatG:Math.round(target*(f/100)/9),
+    carbG:Math.round(target*(c/100)/4),
+    activityMult:activity,goalDelta,
+    macroPct:{p,f,c},
+    weight:weight||null,
+    updatedAt:new Date().toISOString()
+  };
+}
+function calcReadFormMacros(){
+  return calcMacrosFromInputs({
+    age:document.getElementById('calc-age')?.value,
+    weight:document.getElementById('calc-weight')?.value,
+    height:document.getElementById('calc-height')?.value,
+    gender:document.getElementById('calc-gender')?.value,
+    activity:typeof calcActivity!=='undefined'?calcActivity:1.55,
+    goalDelta:typeof calcGoalDelta!=='undefined'?calcGoalDelta:0,
+    macroP:typeof calcMacroP!=='undefined'?calcMacroP:30,
+    macroF:typeof calcMacroF!=='undefined'?calcMacroF:25,
+    macroC:typeof calcMacroC!=='undefined'?calcMacroC:45
+  });
+}
+function applyMacrosToClient(client,macros,opts){
+  opts=opts||{};
+  if(!client||!macros)return false;
+  client.macros=Object.assign({},macros,{updatedAt:new Date().toISOString()});
+  if(opts.persist!==false&&typeof persistById==='function')persistById('clients',client);
+  if(typeof emitAppEvent==='function')emitAppEvent('macros.saved',{clientId:client.id,macros:client.macros});
+  return true;
+}
+function calcSaveToClient(){
+  const cid=document.getElementById('calc-client')?.value;
+  if(!cid){notify('Wybierz klienta!');return false;}
+  const c=CL.find(x=>x.id===cid);
+  if(!c){notify('Nie znaleziono klienta');return false;}
+  applyMacrosToClient(c,calcReadFormMacros(),{persist:true});
+  notify('✓ Makra zapisane w profilu '+(c.name||''));
+  return true;
+}
 function calcSendToClient(){
   const cid=document.getElementById('calc-client').value;
   if(!cid){notify('Wybierz klienta!');return;}
   const c=CL.find(x=>x.id===cid);
-  const age=document.getElementById('calc-age').value;
-  const weight=document.getElementById('calc-weight').value;
-  const height=document.getElementById('calc-height').value;
-  const gender=document.getElementById('calc-gender').value;
-  let bmr;
-  if(gender==='M')bmr=10*weight+6.25*height-5*age+5;
-  else bmr=10*weight+6.25*height-5*age-161;
-  const tdee=Math.round(bmr*calcActivity);
-  const target=tdee+calcGoalDelta;
-  const proteinG=Math.round(target*(calcMacroP/100)/4);
-  const fatG=Math.round(target*(calcMacroF/100)/9);
-  const carbG=Math.round(target*(calcMacroC/100)/4);
-  if(c){
-    c.macros={
-      tdee,targetKcal:target,proteinG,fatG,carbG,
-      activityMult:calcActivity,goalDelta:calcGoalDelta,
-      macroPct:{p:calcMacroP,f:calcMacroF,c:calcMacroC},
-      weight:parseFloat(weight)||c.weight||null,
-      updatedAt:new Date().toISOString()
-    };
-    if(typeof persistById==='function')persistById('clients',c);
-  }
-  pushMsg(cid,`📊 Twoje zapotrzebowanie kaloryczne:\n\nTDEE: ${tdee} kcal\nCel: ${target} kcal\n\nMakroskładniki:\n🟢 Białko: ${proteinG}g\n🟡 Tłuszcze: ${fatG}g\n🔵 Węglowodany: ${carbG}g\n\nWoda: min. ${Math.round(weight*0.035*10)/10}l/dzień`);
+  const macros=calcReadFormMacros();
+  if(c)applyMacrosToClient(c,macros,{persist:true});
+  const weight=macros.weight||(c&&c.weight)||80;
+  pushMsg(cid,`📊 Twoje zapotrzebowanie kaloryczne:\n\nTDEE: ${macros.tdee} kcal\nCel: ${macros.targetKcal} kcal\n\nMakroskładniki:\n🟢 Białko: ${macros.proteinG}g\n🟡 Tłuszcze: ${macros.fatG}g\n🔵 Węglowodany: ${macros.carbG}g\n\nWoda: min. ${Math.round(weight*0.035*10)/10}l/dzień`);
   notify('✓ Wyniki wysłane do '+(c?c.name:'klienta')+' w wiadomościach!');
 }
 var cpClientId=null;var cpTab='overview';

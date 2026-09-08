@@ -2182,6 +2182,19 @@ body.od-playing .clive-content{display:none;}
   text-transform: none !important;
   letter-spacing: 0 !important;
 }
+#nav-more-items .nav-sec{
+  padding:12px 18px 4px;
+  margin-top:4px;
+  font-size:10px;
+  font-weight:700;
+  text-transform:uppercase !important;
+  letter-spacing:0.1em !important;
+  color:var(--text-label) !important;
+  border-top:1px solid var(--border-subtle);
+}
+#nav-more-items .nav-sec:first-child{border-top:none;margin-top:0;}
+#screen-calculator .topbar{height:auto;min-height:60px;flex-wrap:wrap;gap:8px;padding-top:10px;padding-bottom:10px;}
+#screen-calculator .topbar-actions{flex-wrap:wrap;}
 
 /* Bebas tylko na duże liczby KPI */
 .stat-val,

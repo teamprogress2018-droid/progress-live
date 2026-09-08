@@ -18,6 +18,9 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 02 v27', html.includes('02-workouts-onboarding-templates-live.js?v=41'));
+ok('cache styles v55', html.includes('styles.css?v=71'));
+ok('cache 02 v31', html.includes('02-workouts-onboarding-templates-live.js?v=41'));
+ok('cache styles v60', html.includes('styles.css?v=71'));
 ok('cache styles v55', html.includes('styles.css?v=70'));
 ok('cache 02 v31', html.includes('02-workouts-onboarding-templates-live.js?v=41'));
 ok('cache styles v60', html.includes('styles.css?v=70'));

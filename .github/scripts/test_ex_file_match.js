@@ -18,6 +18,8 @@ function ok(name, cond, extra) {
 }
 
 ok('cache manifest v33', html.includes('ex-gif-manifest.js?v=34'));
+ok('cache 01 v60', html.includes('01-core.js?v=85'));
+ok('cache 06 v42', html.includes('06-inbox-exercises-ai-programs.js?v=70'));
 ok('cache 01 v60', html.includes('01-core.js?v=84'));
 ok('cache 06 v42', html.includes('06-inbox-exercises-ai-programs.js?v=71'));
 

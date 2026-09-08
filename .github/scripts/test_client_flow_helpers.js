@@ -60,7 +60,9 @@ const {
   scheduleTimeFromClient, defaultWeekdaysForFreq, preferredWeekdaysLabels,
   ymdWeekday, clientPreferredWeekdays, isClientTrainingDay, nextClientTrainingDayYmd,
   hasPlannedSessionOnDate, formatTrainingDayShortPl,
-  clientOnboardStatus, clientsWithIncompleteOnboard, clientHasSchedulePrefs
+  clientOnboardStatus, clientsWithIncompleteOnboard, clientHasSchedulePrefs,
+  clientEmailValid, normalizeClientEmail, clientHasPackage, clientLifecycleStatus,
+  assignClientPipeline
 } = ctx;
 
 let failed = 0;
@@ -183,6 +185,42 @@ const stuck = clientsWithIncompleteOnboard();
 eq('pipeline skips archived', stuck.map(x=>x.client.id), ['c-a','c-c']);
 eq('pipeline Ala next baseline', stuck[0].status.next, 'baseline');
 eq('pipeline Celina next calendar', stuck[1].status.next, 'calendar');
+
+eq('email valid', clientEmailValid('jan@studio.pl'), true);
+eq('email invalid empty', clientEmailValid(''), false);
+eq('email invalid spaces', clientEmailValid('  '), false);
+eq('normalize email', normalizeClientEmail('  Jan@Studio.PL '), 'jan@studio.pl');
+
+windowObj.PACKAGES = [{id:'pk-name', clientId:'c-other', clientName:'Nowy'}];
+eq('package not by name', clientHasPackage({id:'c-new', name:'Nowy'}), false);
+windowObj.PACKAGES = [{id:'pk-id', clientId:'c-new', clientName:'Inna'}];
+eq('package by clientId', clientHasPackage({id:'c-new', name:'Nowy'}), true);
+
+windowObj.CL = [{id:'c-life', name:'Ewa', email:'ewa@x.pl', status:'active'}];
+windowObj.PL = [];
+windowObj.SE = [];
+windowObj.PACKAGES = [];
+eq('lifecycle onboarding', clientLifecycleStatus(windowObj.CL[0]).key, 'onboarding');
+eq('lifecycle noemail', clientLifecycleStatus({id:'c-x', name:'X', status:'active', inviteSent:true, weight:70, preferredWeekdays:[1,3,5]}).key, 'noemail');
+
+windowObj.PLAN_TEMPLATES = [{
+  id:'t-pipe', name:'PPL test', method:'PPL', weeks:1,
+  days_detail:[{name:'Push', exercises:[{n:'Wyciskanie',s:'3',r:'8',rest:'90s'}]}]
+}];
+windowObj.CL = [{id:'c-pipe', name:'Piotr', email:'piotr@studio.pl', status:'active'}];
+windowObj.PL = [];
+const persisted = [];
+ctx.persistById = function(col, obj){ persisted.push(col+':'+(obj&&obj.id)); return obj; };
+windowObj.persistById = ctx.persistById;
+const pipe = assignClientPipeline(windowObj.CL[0], {
+  persist:true, runFlow:false, schedule:false, notify:false, fireEvent:true, templateId:'t-pipe'
+});
+eq('pipeline ok', pipe.ok, true);
+eq('pipeline email', pipe.emailOk, true);
+eq('pipeline has plan part', pipe.parts.indexOf('plan')>=0, true);
+eq('pipeline plan clientId', !!(pipe.plan && pipe.plan.clientId==='c-pipe'), true);
+eq('pipeline plan not nested client object', pipe.plan && !pipe.plan.client, true);
+eq('event emitted', (windowObj._appEvents||[]).some(e=>e.type==='client.created'), true);
 
 if (failed) {
   console.error('\n' + failed + ' failed');
