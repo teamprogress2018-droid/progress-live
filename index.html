@@ -393,6 +393,18 @@
             <select class="form-select" id="b-duration"><option value="4">4 tygodnie</option><option value="8">8 tygodni</option><option value="12">12 tygodni</option></select>
           </div>
         </div>
+        <div class="form-grid">
+          <div class="form-field" style="margin-bottom:0;"><label class="form-lbl">Progresja</label>
+            <select class="form-select" id="b-progression" title="Live i apka klienta dokładają kg lub powtórzenia z poprzedniej sesji według serii/powt. z tego planu">
+              <option value="double">Podwójna — najpierw powt., potem ciężar</option>
+              <option value="linear">Liniowa — +kg gdy jest cel powt.</option>
+              <option value="off">Bez zmian — kopiuj ostatni ciężar</option>
+            </select>
+          </div>
+          <div class="form-field" style="margin-bottom:0;">
+            <div class="edu-inline-hint" style="margin-top:22px;">Gdy klient zrobi górę zakresu powtórzeń, kolejna sesja dostaje większy ciężar. Jeśli nie — to samo kg i +1 powt.</div>
+          </div>
+        </div>
       </div>
       <div id="builder-days"></div>
       <button type="button" class="add-day-btn" onclick="addDay()">+ Dodaj dzień treningowy</button>
@@ -4294,15 +4306,15 @@ async function load(){
 
 <script src="ex-gif-manifest.js?v=34"></script>
 <script src="ex-photo-manifest.js?v=6"></script>
-<script src="01-core.js?v=85"></script>
-<script src="02-workouts-onboarding-templates-live.js?v=41"></script>
+<script src="01-core.js?v=86"></script>
+<script src="02-workouts-onboarding-templates-live.js?v=42"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=30"></script>
 <script src="04-client-portal.js?v=39"></script>
-<script src="05-clients-builder-plans-calendar.js?v=45"></script>
+<script src="05-clients-builder-plans-calendar.js?v=46"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=71"></script>
 <script src="07-forms-metrics-calculator.js?v=32"></script>
 <script src="08-client-profile-extras.js?v=47"></script>
 <script src="09-posture-kb-invites-private.js?v=36"></script>
-<script src="10-client-app.js?v=31"></script>
+<script src="10-client-app.js?v=32"></script>
 </body>
 </html>

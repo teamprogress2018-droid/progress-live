@@ -69,6 +69,9 @@ jobs:
       - name: 1e. Testy rekordów / historii ćwiczenia
         run: node .github/scripts/test_exercise_pr.js
 
+      - name: 1e0. Testy auto-progresji z planu trenera
+        run: node .github/scripts/test_plan_auto_progression.js
+
       - name: 1e2. Testy jednostki kg/sec w ćwiczeniach czasowych
         run: node .github/scripts/test_ex_load_unit.js
 
