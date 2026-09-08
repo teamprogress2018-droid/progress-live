@@ -63,6 +63,8 @@ function ok(name, cond, extra) {
     const box = video ? video.getBoundingClientRect() : { height: 0, width: 0, left: 0, right: 0, top: 0 };
     const setBox = setRow ? setRow.getBoundingClientRect() : { top: 0, left: 0 };
     const mediaBox = media ? media.getBoundingClientRect() : { height: 0, width: 0 };
+    const live = document.getElementById('screen-live');
+    const main = document.querySelector('.main');
     return {
       videos: card ? card.querySelectorAll('video').length : 0,
       wraps: card ? card.querySelectorAll('.cw-video-wrap').length : -1,
@@ -75,6 +77,8 @@ function ok(name, cond, extra) {
       videoRight: Math.round(box.right),
       sideBySide: !!(setRow && video && setBox.left >= box.right - 12 && setBox.top < box.bottom - 20),
       setInView: !!(setRow && setBox.top > 0 && setBox.top < 880),
+      mainParent: main && main.parentElement && main.parentElement.id,
+      screenTop: live ? Math.round(live.getBoundingClientRect().top) : -1,
       cssHeight: cs ? cs.height : '',
       cssMax: cs ? cs.maxHeight : '',
       cssPos: cs ? cs.position : '',
@@ -86,6 +90,7 @@ function ok(name, cond, extra) {
   ok('one technique video', gifStats.videos === 1 && gifStats.wraps === 0, JSON.stringify(gifStats));
   ok('gif video tall', gifStats.height >= 400, JSON.stringify(gifStats));
   ok('gif video not full-width stamp', gifStats.width > 0 && gifStats.width < 900, JSON.stringify(gifStats));
+  ok('live stays in app shell', gifStats.mainParent === 'app-root' && gifStats.screenTop >= 0 && gifStats.screenTop < 80, JSON.stringify(gifStats));
   ok('media beside sets', gifStats.hasBody && gifStats.sideBySide, JSON.stringify(gifStats));
   ok('sets stay on screen', gifStats.setInView, JSON.stringify(gifStats));
 

@@ -21,7 +21,6 @@ function ok(name, cond, extra) {
 
 ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=41'));
 ok('cache styles', html.includes('styles.css?v=71'));
-ok('cache styles', html.includes('styles.css?v=70'));
 ok('aria live A', html.includes('id="live-rest-timer" aria-live="assertive"'));
 ok('aria live B', html.includes('id="live-b-rest-timer" aria-live="assertive"'));
 ok('phase helper', /function liveRestPhase\(/.test(live));
