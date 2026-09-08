@@ -78,6 +78,26 @@ const d2 = planDaysFromProgram(withEx, 0);
 eq('keeps explicit ex', d2[0].exercises[0].name, 'Przysiad');
 eq('keeps sets', d2[0].exercises[0].sets, '4');
 
+const arnold = expandSessionFromDayFocus('Klatka + Plecy — Wyciskanie, Wiosłowanie');
+ok('arnold split expands', arnold.length >= 4);
+ok('arnold has press', arnold.some(e => /wycisk/i.test(e.name)));
+ok('arnold has row', arnold.some(e => /wiosł/i.test(e.name)));
+
+const gvt = expandSessionFromDayFocus('Klatka + Plecy: 10×10 Wyciskanie + 10×10 Podciąganie');
+ok('gvt 10x10', gvt.length >= 3 && gvt.some(e => e.sets === '10'));
+
+const ssA = expandSessionFromDayFocus('Trening A');
+ok('gzclp/ss trening A', ssA.length >= 4);
+
+const restSpacer = planDaysFromProgram({
+  weeks: [{ days: [{ d: 'WT', name: 'REST lub spacer' }] }]
+}, 0);
+eq('rest spacer empty', restSpacer[0].exercises.length, 0);
+eq('rest spacer flag', restSpacer[0].rest, true);
+
+const test1 = expandSessionFromDayFocus('Test 1RM (opcja)');
+ok('test 1RM expands', test1.length >= 3);
+
 if (failed) {
   console.error('\n' + failed + ' failed');
   process.exit(1);

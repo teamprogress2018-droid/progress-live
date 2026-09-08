@@ -211,6 +211,8 @@ jobs:
         run: node .github/scripts/test_app_shell_everfit.js
       - name: Szablony vs Programy (mikro/makro)
         run: node .github/scripts/test_templates_vs_programs.js
+      - name: Szablony i programy — kompletne sesje ćwiczeń
+        run: node .github/scripts/test_template_ready_sessions.js
       - name: 1n27b. Testy wejścia do planu tylko z klienta
         run: node .github/scripts/test_nav_plan_entry.js
       - name: 1n27b2. Testy biblioteki planów (filtry / tabela)
