@@ -2119,8 +2119,9 @@ function progressWorkingSet(prev,ex,opts){
     }
     return{kg:prevKg||plannedKg,reps:fillReps,hint:''};
   }
+  const assumeHit=!Number.isFinite(lastN)&&prevKg!=='';
   if(mode==='linear'){
-    if(hitLo||hitTop){
+    if(hitLo||hitTop||assumeHit){
       const next=addLoadStep(prevKg,step,'kg');
       return{kg:next||prevKg||plannedKg,reps:amrap?'':defaultReps,hint:next&&next!==prevKg?('Progresja +'+step+' kg'):''};
     }
@@ -2130,7 +2131,7 @@ function progressWorkingSet(prev,ex,opts){
     }
     return{kg:prevKg||plannedKg,reps:fillReps,hint:''};
   }
-  if(hitTop){
+  if(hitTop||assumeHit){
     const next=addLoadStep(prevKg,step,'kg');
     const reset=range.lo&&range.lo<range.hi?String(range.lo):defaultReps;
     return{kg:next||prevKg||plannedKg,reps:amrap?'':reset,hint:next&&next!==prevKg?('Progresja +'+step+' kg'):''};
@@ -2901,7 +2902,8 @@ function lastLoadForExercise(clientId,name){
     if(!ex)continue;
     const sets=(ex.sets||[]).filter(x=>x&&(x.kg||x.reps));
     if(!sets.length)continue;
-    const last=sets[sets.length-1];
+    const work=sets.filter(x=>typeof isWorkingSet!=='function'||isWorkingSet(x));
+    const last=(work.length?work:sets)[(work.length?work:sets).length-1];
     return{kg:last.kg,reps:last.reps,rir:last.rir,sets,date:s.date||'',source:s.source||''};
   }
   return null;
@@ -2950,7 +2952,8 @@ function lastSetsBlockHtml(ex){
 window.lastSetsBlockHtml=lastSetsBlockHtml;
 
 function exerciseNameKey(name){
-  return String(name||'').toLowerCase().replace(/\s+/g,' ').trim();
+  const folded=typeof foldPlKey==='function'?foldPlKey(name):String(name||'').toLowerCase();
+  return folded.replace(/\s+/g,' ').trim();
 }
 window.exerciseNameKey=exerciseNameKey;
 
@@ -3226,7 +3229,7 @@ function mapPlanExercisesForClient(rawEx,clientId,plan){
       loadUnit,
       kgHint:fromPct?fromPct.hint:'',
       progHint:sets._progHint||'',
-      lastKg:last&&last.kg!=null&&last.kg!==''?last.kg:(plannedKg||''),
+      lastKg:last&&last.kg!=null&&last.kg!==''?last.kg:'',
       lastReps:last&&last.reps!=null&&last.reps!==''?last.reps:'',
       lastDate:last&&last.date||'',
       lastSets:(last&&last.sets)||[],

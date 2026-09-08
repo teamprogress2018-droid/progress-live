@@ -26,7 +26,7 @@ function eq(name, got, want) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=86'));
+ok('cache 01', html.includes('01-core.js?v=87'));
 ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=46'));
 ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=71'));
 ok('builder apply helper', src05.includes('function builderApplyLoadUnit'));
