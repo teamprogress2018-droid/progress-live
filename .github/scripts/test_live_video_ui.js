@@ -57,15 +57,24 @@ function ok(name, cond, extra) {
     const card = document.getElementById('live-ex-0');
     const media = card && card.querySelector('.cw-technique-media');
     const video = card && card.querySelector('.cw-technique-gif video');
+    const setRow = card && card.querySelector('.live-set-row');
+    const body = card && card.querySelector('.live-ex-body');
     const cs = video ? getComputedStyle(video) : null;
-    const box = video ? video.getBoundingClientRect() : { height: 0, width: 0 };
+    const box = video ? video.getBoundingClientRect() : { height: 0, width: 0, left: 0, right: 0, top: 0 };
+    const setBox = setRow ? setRow.getBoundingClientRect() : { top: 0, left: 0 };
     const mediaBox = media ? media.getBoundingClientRect() : { height: 0, width: 0 };
     return {
       videos: card ? card.querySelectorAll('video').length : 0,
       wraps: card ? card.querySelectorAll('.cw-video-wrap').length : -1,
+      hasBody: !!(body && card.querySelector('.live-ex-media') && card.querySelector('.live-ex-log')),
       height: Math.round(box.height),
       width: Math.round(box.width),
       mediaH: Math.round(mediaBox.height),
+      setTop: Math.round(setBox.top),
+      setLeft: Math.round(setBox.left),
+      videoRight: Math.round(box.right),
+      sideBySide: !!(setRow && video && setBox.left >= box.right - 12 && setBox.top < box.bottom - 20),
+      setInView: !!(setRow && setBox.top > 0 && setBox.top < 880),
       cssHeight: cs ? cs.height : '',
       cssMax: cs ? cs.maxHeight : '',
       cssPos: cs ? cs.position : '',
@@ -75,8 +84,10 @@ function ok(name, cond, extra) {
 
   await page.screenshot({ path: path.join(shotDir, 'live_video_gif_tall.png') });
   ok('one technique video', gifStats.videos === 1 && gifStats.wraps === 0, JSON.stringify(gifStats));
-  ok('gif video tall', gifStats.height >= 500, JSON.stringify(gifStats));
+  ok('gif video tall', gifStats.height >= 400, JSON.stringify(gifStats));
   ok('gif video not full-width stamp', gifStats.width > 0 && gifStats.width < 900, JSON.stringify(gifStats));
+  ok('media beside sets', gifStats.hasBody && gifStats.sideBySide, JSON.stringify(gifStats));
+  ok('sets stay on screen', gifStats.setInView, JSON.stringify(gifStats));
 
   const fileStats = await page.evaluate((src) => {
     window.liveExercises = [{
@@ -108,7 +119,7 @@ function ok(name, cond, extra) {
 
   await page.screenshot({ path: path.join(shotDir, 'live_video_file_tall.png') });
   ok('file player not 16x9 wrap', !fileStats.hasWrap && fileStats.hasPlayer && fileStats.pad === '0px', JSON.stringify(fileStats));
-  ok('file video tall', fileStats.height >= 500, JSON.stringify(fileStats));
+  ok('file video tall', fileStats.height >= 400, JSON.stringify(fileStats));
 
   const dupStats = await page.evaluate((src) => {
     window.liveExercises = [{
