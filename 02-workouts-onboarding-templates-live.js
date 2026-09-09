@@ -1476,6 +1476,86 @@ const TPL_SESSIONS=(function(){
       X('Rozgrzewka marsz','1','5 min','—'),
       X('Bieg / trucht','1','20-30 min','—'),
       X('Cool-down / stretch','1','5 min','—')
+    ],
+    nwEasy:[
+      X('World’s greatest stretch','2','6/stronę','30s'),
+      X('Rozciąganie taśmy','3','15','45s'),
+      X('Marsz','1','35-45 min','—'),
+      X('Unoszenie Y','3','12','45s'),
+      X('Bird dog','3','8/stronę','30s'),
+      X('Rozciąganie łydek','2','45s/stronę','—'),
+      X('Rozciąganie w framudze','2','30s','—')
+    ],
+    nwStrength:[
+      X('Przysiad Goblet','3','10-12','90s'),
+      X('Martwy ciąg RDL','3','8-10','120s'),
+      X('Wykrok wsteczny','3','10/stronę','75s'),
+      X('Ściąganie do twarzy (face pull)','3','15','45s'),
+      X('Wspięcia na palce stojąc','3','15-20','45s'),
+      X('Deska','3','40s','45s'),
+      X('Rozciąganie biodrowo-lędźwiowego','2','45s/stronę','—')
+    ],
+    nwLong:[
+      X('Rozciąganie zginaczy biodra (dynamiczne)','2','8/stronę','30s'),
+      X('Marsz','1','50-70 min','—'),
+      X('Gąsienica (inchworm)','2','6-8','45s'),
+      X('Mostek biodrowy','3','12-15','45s'),
+      X('Rozciąganie figure-4','2','45s/stronę','—'),
+      X('Rozciąganie łydek','2','45s/stronę','—')
+    ],
+    fnPrev:[
+      X('Muszla (clamshell)','3','15/stronę','45s'),
+      X('Monster walk (chód)','3','12 kroków/stronę','45s'),
+      X('Przywodzenie piłkarskie z taśmą','3','12/stronę','45s'),
+      X('Deska kopenhaska','3','25s/stronę','45s'),
+      X('Uginanie nordyckie','3','5-8','90s'),
+      X('Mostek biodrowy','3','12','45s'),
+      X('Wyciskanie Pallofa','3','10/stronę','45s')
+    ],
+    fnPower:[
+      X('World’s greatest stretch','2','5/stronę','30s'),
+      X('Przysiad Goblet','3','8-10','90s'),
+      X('Martwy ciąg RDL','3','8','120s'),
+      X('Wykrok boczny','3','8/stronę','60s'),
+      X('Wykrok wsteczny','3','8/stronę','75s'),
+      X('Przysiad z wyskokiem','3','6-8','75s'),
+      X('Deska boczna','3','30s/stronę','30s')
+    ],
+    fnPitch:[
+      X('A-skip','3','20 m','30s'),
+      X('B-skip','3','20 m','30s'),
+      X('Wysokie kolana','3','20s','30s'),
+      X('Bieg','6','1 min','90s'),
+      X('Skakanka','4','45s','45s'),
+      X('Rozciąganie butterfly','2','45s','—'),
+      X('Rozciąganie łydek','2','45s/stronę','—')
+    ],
+    runEasy:[
+      X('World’s greatest stretch','2','6/stronę','30s'),
+      X('A-skip','3','20 m','30s'),
+      X('B-skip','3','20 m','30s'),
+      X('Pięty do pośladków','2','20s','20s'),
+      X('Bieg','1','25-40 min','—'),
+      X('Rozciąganie łydek','2','45s/stronę','—'),
+      X('Rozciąganie figure-4','2','45s/stronę','—')
+    ],
+    runStrength:[
+      X('Mostek biodrowy — aktywacja','2','12','30s'),
+      X('Martwy ciąg RDL','3','8-10','120s'),
+      X('Wykrok wsteczny','3','8/stronę','75s'),
+      X('Uginanie nordyckie','3','5-8','90s'),
+      X('Wspięcia na palce stojąc','3','15-20','45s'),
+      X('Deska','3','40s','45s'),
+      X('Bird dog','3','8/stronę','30s'),
+      X('Rozciąganie biodrowo-lędźwiowego','2','45s/stronę','—')
+    ],
+    runQuality:[
+      X('A-skip','3','20 m','30s'),
+      X('Wysokie kolana','3','20s','20s'),
+      X('Bieg','8','1 min','90s'),
+      X('Marsz','1','5 min','—'),
+      X('Rozciąganie łydek','2','45s/stronę','—'),
+      X('Rozciąganie figure-4','2','45s/stronę','—')
     ]
   };
 })();
@@ -1534,6 +1614,19 @@ function sessionExercisesForFocus(focus){
   if(/funkcjonal|bear crawl|farmer/.test(s))return P.functional;
   if(/wod/.test(s))return P.wod1;
   if(/mobiln|mobility|foam roller|stretch|joga/.test(s))return P.mobility;
+  if(/nordic|kijk/.test(s)){
+    if(/sił/.test(s))return P.nwStrength;
+    if(/dłuższy|long/.test(s))return P.nwLong;
+    return P.nwEasy;
+  }
+  if(/piłk|piłka|soccer|boisk/.test(s)){
+    if(/prewenc|uraz|kopenh/.test(s))return P.fnPrev;
+    if(/sił|kierunk|moc/.test(s))return P.fnPower;
+    return P.fnPitch;
+  }
+  if(/bieg/.test(s)&&(/skip|łatwy/.test(s)))return P.runEasy;
+  if(/siła bieg|siła pod bieg|siła biegacza/.test(s))return P.runStrength;
+  if(/interwał|jakość bieg|długi bieg/.test(s))return P.runQuality;
   if(/bieg|c25k|cardio|marsz|trucht|cooper/.test(s))return P.run;
   if(/fbw b/.test(s))return P.fbwB;
   if(/fbw c/.test(s))return P.fbwC;
@@ -1776,6 +1869,27 @@ const PLAN_TEMPLATES=[
    tags:['mikrocykl','schemat tygodnia','redukcja','FBW','3×/tydzień','cardio','początkujący'],
    color:'var(--red)',popularity:86,
    schedule:['Pon: FBW','Wt: Cardio','Śr: FBW','Czw: Cardio','Pt: FBW'],
+   days_detail:[]},
+
+  {id:'t25',name:'Schemat Nordic walking 3×',goal:'kondycja',level:'poczatkujacy',method:'FBW',days:3,weeks:1,
+   desc:'Mikrocykl: marsz z kijkami + siła postawy (plecy, pośladki, łydki). Schemat tygodnia do zapętlenia.',
+   tags:['mikrocykl','schemat tygodnia','kondycja','nordic walking','kije','marsz','3×/tydzień'],
+   color:'var(--blue)',popularity:84,
+   schedule:['Pon: NW łatwy','Śr: Siła pod kije','Pt: NW dłuższy'],
+   days_detail:[]},
+
+  {id:'t26',name:'Schemat Piłka nożna 4×',goal:'kondycja',level:'sredni',method:'FBW',days:4,weeks:1,
+   desc:'Mikrocykl piłkarski: prewencja pachwin/dwugłowych, siła, zmiana kierunku i kondycja boiskowa.',
+   tags:['mikrocykl','schemat tygodnia','kondycja','piłka nożna','soccer','prewencja','4×/tydzień'],
+   color:'var(--teal)',popularity:87,
+   schedule:['Pon: Prewencja','Wt: Siła + COD','Czw: Kondycja boiskowa','Pt: Prewencja B'],
+   days_detail:[]},
+
+  {id:'t27',name:'Schemat Bieganie 3×',goal:'kondycja',level:'poczatkujacy',method:'FBW',days:3,weeks:1,
+   desc:'Mikrocykl biegowy: łatwy bieg + skipy, siła biegacza i interwały. Program 8 tyg. C25K → Programy.',
+   tags:['mikrocykl','schemat tygodnia','kondycja','bieganie','bieg','skipy','3×/tydzień'],
+   color:'var(--blue)',popularity:90,
+   schedule:['Pon: Bieg łatwy + skipy','Śr: Siła biegacza','Pt: Interwały'],
    days_detail:[]}
 ];
 
@@ -1884,6 +1998,22 @@ function fillReadyTemplateSessions(){
     D('FBW B','fbwB'),
     D('Cardio HIIT','hiit'),
     D('FBW C','fbwC')
+  ]);
+  set('t25',[
+    D('Nordic walking — łatwy','nwEasy'),
+    D('Nordic walking — siła pod kije','nwStrength'),
+    D('Nordic walking — dłuższy','nwLong')
+  ]);
+  set('t26',[
+    D('Piłka — prewencja urazów','fnPrev'),
+    D('Piłka — siła i zmiana kierunku','fnPower'),
+    D('Piłka — kondycja boiskowa','fnPitch'),
+    D('Piłka — prewencja B','fnPrev')
+  ]);
+  set('t27',[
+    D('Bieg łatwy + skipy','runEasy'),
+    D('Siła biegacza','runStrength'),
+    D('Bieg — interwały','runQuality')
   ]);
 }
 fillReadyTemplateSessions();
