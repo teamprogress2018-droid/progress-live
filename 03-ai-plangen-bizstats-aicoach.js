@@ -372,6 +372,11 @@ function aplGetVal(groupId){
   const active=document.querySelector(`#${groupId} .apl-opt.active`);
   return active?.dataset?.val||'';
 }
+function aplSetVal(groupId,val){
+  const btn=document.querySelector('#'+groupId+' .apl-opt[data-val="'+String(val)+'"]');
+  if(btn&&typeof aplToggleOpt==='function')aplToggleOpt(btn,groupId);
+}
+window.aplSetVal=aplSetVal;
 
 function aplGetMulti(groupId){
   return [...document.querySelectorAll(`#${groupId} .apl-opt-multi.active`)].map(b=>b.dataset.val);
@@ -947,6 +952,14 @@ ${standingPattern?`- Wzorzec pracy stojącej: ${standingPattern}${jobDetail?` ($
 - Jakość snu: ${sleep}
 - Poziom stresu: ${stress}
 ${notes?`- Dodatkowe uwagi: ${notes}`:''}
+${window._aplFiteboContinue&&window._aplFiteboContinue.context?`
+KONTYNUACJA PLANU Z FITEBO (OBOWIĄZKOWE):
+To kolejny mezocykl na bazie treningów zaimportowanych z Fitebo.
+ZACHOWAJ te same ćwiczenia i podział dni (Push/Pull/Legs albo jak w logach). Nie zamieniaj na inne warianty bez powodu (kontuzja / brak sprzętu).
+Tydzień 1 = ostatnie ciężary i zakresy z logów. Dalej progresja (podwójna: +1 powt. do górnego zakresu, potem +2.5–5 kg i reset powtórzeń). Nie zaniżaj kg poniżej logów.
+LOG / STRUKTURA:
+${window._aplFiteboContinue.context}
+`:''}
 ${client&&typeof clientSportProfileForAI==='function'?clientSportProfileForAI(Object.assign({},client,{priorSports:typeof readPriorSportsFrom==='function'?readPriorSportsFrom('apl'):(client.priorSports||[]),activityLevel:document.getElementById('apl-activity')?.value||client.activityLevel,sportNotes:document.getElementById('apl-sport-notes')?.value||client.sportNotes||''})):''}
 ${cid&&typeof clientMetricsContextForAI==='function'?clientMetricsContextForAI(cid):''}
 ${(typeof clientSafetyContextForAI==='function'?clientSafetyContextForAI(cid||null,{weight,height,injuries,gender}):'')}

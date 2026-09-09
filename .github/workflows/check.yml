@@ -244,6 +244,8 @@ jobs:
         run: node .github/scripts/test_cp_own_plan_btn.js
       - name: 1n28c. Testy braku duplikacji CTA planu w profilu
         run: node .github/scripts/test_cp_plan_dedupe.js
+      - name: 1n28c2. Testy kontynuacji planu z Fitebo
+        run: node .github/scripts/test_fitebo_continue.js
       - name: 1n28d. Testy jednego planu na dzień w grafiku Assignment
         run: node .github/scripts/test_cp_cal_plan_dedupe.js
       - name: 1n29. Testy przywrócenia konturów/czcionek kafelków
@@ -390,6 +392,8 @@ jobs:
         run: node .github/scripts/test_cal_del_card_ui.js
       - name: 6f3c. Testy UI nachodzących sesji w tygodniu
         run: node .github/scripts/test_cal_week_overlap_ui.js
+      - name: 6f3d. Testy UI kontynuacji planu z Fitebo
+        run: node .github/scripts/test_fitebo_continue_ui.js
       - name: 6g. Testy UI obwodów centymetrem w profilu klienta
         run: node .github/scripts/test_circ_metrics_ui.js
       - name: 6g2. Testy UI składu ciała (wiek metaboliczny / nawodnienie)
