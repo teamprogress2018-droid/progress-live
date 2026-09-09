@@ -1988,7 +1988,7 @@ const PLAN_TEMPLATES=[
    days_detail:[]},
 
   {id:'t28',name:'Schemat Siła — Nordic walking 3×',goal:'kondycja',level:'poczatkujacy',method:'FBW',days:3,weeks:1,
-   desc:'Tylko siłownia pod marsz z kijkami: łańcuch tylny, postawa barków, jednonóż. Marsz zostaw na osobny dzień.',
+   desc:'Tylko siłownia pod kije: łańcuch tylny, postawa barków, jednonóż. Sesję z kijkami zostaw na inny dzień.',
    tags:['mikrocykl','schemat tygodnia','siła','nordic walking','kije','siłownia','3×/tydzień'],
    color:'var(--teal)',popularity:83,
    schedule:['Pon: Łańcuch tylny + kije','Śr: Nogi i postawa','Pt: Jednonóż'],
@@ -2002,7 +2002,7 @@ const PLAN_TEMPLATES=[
    days_detail:[]},
 
   {id:'t30',name:'Schemat Siła — Biegacz 3×',goal:'kondycja',level:'sredni',method:'FBW',days:3,weeks:1,
-   desc:'Tylko siłownia pod bieganie: RDL, nordic curl, jednonóż, łydki i core. Bieg zostaw na osobny dzień.',
+   desc:'Tylko siłownia pod biegacza: RDL, nordic curl, jednonóż, łydki i core. Sesję biegową zostaw na inny dzień.',
    tags:['mikrocykl','schemat tygodnia','siła','bieganie','biegacz','siłownia','3×/tydzień'],
    color:'var(--teal)',popularity:88,
    schedule:['Pon: Łańcuch tylny','Śr: Jednonóż','Pt: Łydki i core'],

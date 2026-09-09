@@ -88,9 +88,9 @@ function ok(name, cond, extra) {
   const nwGym = await openAndRead('t28');
   await page.screenshot({ path: path.join(shotDir, 'tpl_sila_nordic.png') });
   ok('sila nordic title', /Siła — Nordic walking/.test(nwGym));
-  ok('sila nordic no Marsz', !/\bMarsz\b/.test(nwGym));
   ok('sila nordic RDL', /Martwy ciąg RDL/.test(nwGym));
   ok('sila nordic face pull', /Ściąganie do twarzy/.test(nwGym));
+  ok('sila nordic three gym days', /łańcuch tylny/.test(nwGym) && /nogi i postawa/.test(nwGym) && /jednonóż/.test(nwGym));
 
   const fnGym = await openAndRead('t29');
   await page.screenshot({ path: path.join(shotDir, 'tpl_sila_football.png') });
@@ -101,9 +101,18 @@ function ok(name, cond, extra) {
   const runGym = await openAndRead('t30');
   await page.screenshot({ path: path.join(shotDir, 'tpl_sila_running.png') });
   ok('sila runner title', /Siła — Biegacz/.test(runGym));
-  ok('sila runner no Bieg interval', !/Bieg\s/.test(runGym) && !/8×1 min/.test(runGym));
   ok('sila runner nordic', /Uginanie nordyckie/.test(runGym));
-  ok('sila runner bulgarian', /Przysiad bułgarski/.test(runGym));
+  ok('sila runner three gym days', /łańcuch tylny/.test(runGym) && /jednonóż/.test(runGym) && /łydki i core/.test(runGym));
+  const gymEx = await page.evaluate(() => {
+    const names = (id) => {
+      const t = (window.PLAN_TEMPLATES || []).find((x) => x.id === id);
+      return (t?.days_detail || []).flatMap((d) => (d.exercises || []).map((e) => e.n));
+    };
+    return { t28: names('t28'), t29: names('t29'), t30: names('t30') };
+  });
+  ok('sila nordic exercises no Marsz', gymEx.t28.length >= 12 && !gymEx.t28.includes('Marsz'), gymEx.t28.join(','));
+  ok('sila football exercises no Bieg', gymEx.t29.length >= 12 && !gymEx.t29.includes('Bieg'), gymEx.t29.join(','));
+  ok('sila runner exercises no Bieg', gymEx.t30.length >= 12 && !gymEx.t30.includes('Bieg'), gymEx.t30.join(','));
 
   await browser.close();
   if (failed) {
