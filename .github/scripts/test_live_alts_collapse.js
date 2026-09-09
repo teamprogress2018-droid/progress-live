@@ -60,7 +60,8 @@ const few = ctx.liveAltsHtml({ name: 'Pompki', alts: ['A', 'B', 'C'] }, 2, 0);
 ok('three no more', (few.match(chipRe) || []).length === 3 && !/live-alts-more/.test(few));
 
 const slotB = ctx.liveAltsHtml({ name: 'Maszyna', alts: eight }, 1, 1);
-ok('slot B toggle', /liveToggleAlts\(1,1\)/.test(slotB) && /liveSwapEx\(1,"A",1\)/.test(slotB));
+ok('slot B toggle', /liveToggleAlts\(1,1\)/.test(slotB) && /liveSwapEx\(1,&quot;A&quot;,1\)/.test(slotB));
+ok('onclick quoted', /liveSwapEx\(0,&quot;A&quot;\)/.test(collapsed));
 
 if (failed) process.exit(1);
 console.log('\nLive alts collapse OK');
