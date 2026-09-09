@@ -19,7 +19,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=45'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=46'));
 ok('cache styles', html.includes('styles.css?v=72'));
 ok('aria live A', html.includes('id="live-rest-timer" aria-live="assertive"'));
 ok('aria live B', html.includes('id="live-b-rest-timer" aria-live="assertive"'));
