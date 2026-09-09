@@ -3258,20 +3258,42 @@ function renderLiveExercises(slot){
   liveSyncRestRecommend(n);
 }
 
+const LIVE_ALT_MAX=3;
+function liveAltsToShow(alts, expanded){
+  const list=Array.isArray(alts)?alts.filter(Boolean):[];
+  if(expanded || list.length<=LIVE_ALT_MAX) return list;
+  return list.slice(0, LIVE_ALT_MAX);
+}
 function liveAltsHtml(ex,i,n){
   const sl=liveSlotArg(n);
   const alts=(ex.alts&&ex.alts.length)?ex.alts:(typeof altsForExercise==='function'?altsForExercise(ex.name):[]);
-  const chips=alts.map(a=>`<button type="button" class="live-alt-chip" onclick="liveSwapEx(${i},${JSON.stringify(a)}${sl})">↻ ${escHtml(a)}</button>`).join('');
+  const expanded=!!(ex&&ex.altsExpanded);
+  const shown=liveAltsToShow(alts, expanded);
+  const chips=shown.map(a=>`<button type="button" class="live-alt-chip" onclick="liveSwapEx(${i},${JSON.stringify(a)}${sl})">↻ ${escHtml(a)}</button>`).join('');
+  const hidden=Math.max(0, alts.length-LIVE_ALT_MAX);
+  const more=hidden
+    ? `<button type="button" class="live-alts-more" onclick="liveToggleAlts(${i}${sl})" aria-expanded="${expanded?'true':'false'}">${expanded?'Zwiń':'Więcej opcji · '+hidden}</button>`
+    : '';
   return `<div class="live-alts" onclick="event.stopPropagation()">
       <div class="live-alts-lbl">Zamienniki (gdy nie ma maszyny)</div>
-      ${chips?`<div class="live-alts-chips">${chips}</div>`:''}
+      ${chips||more?`<div class="live-alts-chips">${chips}${more}</div>`:''}
       <div class="live-alts-add">
         <input type="text" class="form-input live-alt-search ex-ac-input" id="live-alt-search-${n}-${i}" data-live-swap-ei="${i}" data-live-slot="${n}" data-alt-for="${escHtml(ex.name)}" placeholder="Dodaj zamiennik: sztanga / hantle / brama / ławka…" autocomplete="off" spellcheck="false" onclick="event.stopPropagation()">
         <button type="button" class="btn btn-ghost btn-sm" onclick="liveConfirmAltSearch(${i}${sl})">Dodaj</button>
       </div>
     </div>`;
 }
+window.LIVE_ALT_MAX=LIVE_ALT_MAX;
+window.liveAltsToShow=liveAltsToShow;
 window.liveAltsHtml=liveAltsHtml;
+function liveToggleAlts(i,slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  const ex=st.exercises[i];if(!ex)return;
+  ex.altsExpanded=!ex.altsExpanded;
+  renderLiveExercises(n);
+}
+window.liveToggleAlts=liveToggleAlts;
 
 function liveExCard(ex,i,slot){
   const n=liveN(slot);
@@ -3513,6 +3535,7 @@ function liveSwapEx(i,name,slot){
   }
   cur.showVideo=false;
   cur.collapsed=false;
+  cur.altsExpanded=false;
   if(typeof notify==='function')notify('Zamieniono na: '+name);
   renderLiveExercises(n);
   if(typeof liveSaveDraft==='function')liveSaveDraft(n);

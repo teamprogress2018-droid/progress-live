@@ -829,6 +829,9 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 .live-ex-card .ex-ac-dropdown,.live-alts .ex-ac-dropdown{z-index:220;}
 .live-alt-chip{appearance:none;border:1px solid rgba(62,207,178,0.4);background:rgba(62,207,178,0.12);color:var(--teal);border-radius:8px;padding:6px 10px;font-size:12px;font-weight:600;cursor:pointer;line-height:1.2;text-align:left;}
 .live-alt-chip:hover{background:rgba(62,207,178,0.22);border-color:var(--teal);}
+.live-alts-more{appearance:none;border:1px dashed rgba(255,255,255,0.18);background:transparent;color:var(--muted);border-radius:8px;padding:6px 10px;font-size:12px;font-weight:600;cursor:pointer;line-height:1.2;}
+.live-alts-more:hover{border-color:rgba(255,255,255,0.35);color:var(--text);}
+.live-alts-more[aria-expanded="true"]{border-style:solid;border-color:rgba(255,255,255,0.22);}
 .live-ex-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;cursor:pointer;}
 .live-ex-card.collapsed-head .live-ex-head{margin-bottom:0;}
 .btn-danger{background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.35);color:#fca5a5;}
