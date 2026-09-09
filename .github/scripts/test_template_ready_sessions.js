@@ -87,6 +87,12 @@ ok('t30 sila biegacz', /Siła — Biegacz/.test(t30.name || '') && t30.days_deta
 ok('t30 gym no Bieg', !(t30.days_detail || []).some(d => (d.exercises || []).some(e => e.n === 'Bieg')));
 ok('t30 nordic and bulgarian', (t30.days_detail[0]?.exercises || []).some(e => e.n === 'Uginanie nordyckie') && (t30.days_detail[1]?.exercises || []).some(e => e.n === 'Przysiad bułgarski'));
 
+const t31 = templates.find(t => t.id === 't31') || { days_detail: [] };
+ok('t31 sila ppl studio', /Siła PPL 3×/.test(t31.name || '') && t31.goal === 'sila' && t31.days_detail.length === 3);
+ok('t31 push has db bench and hack', (t31.days_detail[0]?.exercises || []).some(e => e.n === 'Wyciskanie hantli leżąc') && (t31.days_detail[0]?.exercises || []).some(e => e.n === 'Przysiad hack maszyna'));
+ok('t31 push strength reps', (t31.days_detail[0]?.exercises || []).some(e => e.n === 'Wyciskanie hantli leżąc' && e.r === '4-6' && e.rest === '180s'));
+ok('t31 pull machine row', (t31.days_detail[1]?.exercises || []).some(e => e.n === 'Wiosłowanie na maszynie'));
+
 const fn = ctx.window.sessionExercisesForFocus;
 ok('expander push', fn('Push A — Klatka').length >= 5);
 ok('expander arnold', fn('Klatka + Plecy — Wyciskanie').length >= 4);
@@ -109,6 +115,11 @@ ok('expander sila nordic gym', fn('Siła Nordic — łańcuch tylny i kije').som
 ok('expander sila pilka gym', fn('Siła piłka — dwugłowe i pachwiny').some(e => e.n === 'Deska kopenhaska') && !fn('Siła piłka — moc').some(e => e.n === 'Bieg'));
 ok('expander sila biegacz gym', fn('Siła biegacza — łańcuch tylny').some(e => e.n === 'Martwy ciąg RDL') && fn('Siła biegacza — łańcuch tylny').every(e => e.n !== 'Bieg'));
 ok('expander sila biegacz still mixed', fn('Siła biegacza').some(e => e.n === 'Uginanie nordyckie'));
+ok('expander sila ppl push', fn('Siła PPL — Push + czworogłowe').some(e => e.n === 'Wyciskanie hantli leżąc') && fn('Siła PPL — Push + czworogłowe').some(e => e.n === 'Przysiad hack maszyna'));
+ok('expander sila ppl pull', fn('Siła PPL — Pull + dwugłowe').some(e => e.n === 'Wiosłowanie na maszynie') && fn('Siła PPL — Pull + dwugłowe').some(e => e.n === 'Martwy ciąg RDL'));
+ok('expander sila ppl legs', fn('Siła PPL — Nogi').some(e => e.n === 'Przysiad hack maszyna') && fn('Siła PPL — Nogi').some(e => e.n === 'Wypychanie bioder (hip thrust)'));
+ok('expander live push+quads', fn('Push + Czworogłowe').some(e => e.n === 'Wyciskanie na maszynie skos+'));
+ok('expander push A still bench', fn('Push A — Klatka').some(e => e.n === 'Wyciskanie sztangi leżąc'));
 
 const m1 = src06.match(/function expandSessionFromDayFocus[\s\S]*?window\.expandSessionFromDayFocus=expandSessionFromDayFocus;/);
 const m2 = src06.match(/function planDaysFromProgram[\s\S]*?window\.planDaysFromProgram=planDaysFromProgram;/);
