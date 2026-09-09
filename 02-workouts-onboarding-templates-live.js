@@ -3269,7 +3269,7 @@ function liveAltsHtml(ex,i,n){
   const alts=(ex.alts&&ex.alts.length)?ex.alts:(typeof altsForExercise==='function'?altsForExercise(ex.name):[]);
   const expanded=!!(ex&&ex.altsExpanded);
   const shown=liveAltsToShow(alts, expanded);
-  const chips=shown.map(a=>`<button type="button" class="live-alt-chip" onclick="liveSwapEx(${i},${JSON.stringify(a)}${sl})">↻ ${escHtml(a)}</button>`).join('');
+  const chips=shown.map(a=>`<button type="button" class="live-alt-chip" onclick="liveSwapEx(${i},${escHtml(JSON.stringify(a))}${sl})">↻ ${escHtml(a)}</button>`).join('');
   const hidden=Math.max(0, alts.length-LIVE_ALT_MAX);
   const more=hidden
     ? `<button type="button" class="live-alts-more" onclick="liveToggleAlts(${i}${sl})" aria-expanded="${expanded?'true':'false'}">${expanded?'Zwiń':'Więcej opcji · '+hidden}</button>`
