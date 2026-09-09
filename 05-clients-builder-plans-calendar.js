@@ -2076,6 +2076,9 @@ var calMiniDate=new Date();
 var calSelectedDate=null;
 
 const CAL_HOURS=Array.from({length:24},(_,i)=>i); // 0-23
+const CAL_HOUR_H=60;
+const CAL_WEEK_H0=6;
+const CAL_WEEK_H1=23;
 const CAL_DAYS_PL=['Pon','Wt','Śr','Czw','Pt','Sob','Nie'];
 const CAL_MONTHS_PL=['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec','Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
 const SESS_COLORS=['var(--accent)','var(--blue)','var(--purple)','var(--teal)','var(--orange)','var(--red)'];
@@ -2153,11 +2156,67 @@ function calSessionDoneBits(s){
 }
 window.calSessionDoneBits=calSessionDoneBits;
 
+function calSessionStartMin(s){
+  const parts=String(s&&s.time||'0:0').split(':');
+  const h=parseInt(parts[0],10);
+  const m=parseInt(parts[1],10);
+  return (isFinite(h)?h:0)*60+(isFinite(m)?m:0);
+}
+function calSessionEndMin(s){
+  const dur=parseInt(s&&s.duration,10);
+  return calSessionStartMin(s)+(isFinite(dur)&&dur>0?dur:60);
+}
+/** Kolumny jak w Google Calendar: zachodzące sesje obok siebie, nie jedna na drugiej. */
+function calWeekOverlapLayout(sessions){
+  const items=(sessions||[]).filter(Boolean).map(s=>{
+    const start=calSessionStartMin(s);
+    const end=Math.max(start+15,calSessionEndMin(s));
+    return{s,start,end,col:0,cols:1};
+  });
+  items.sort((a,b)=>a.start-b.start||a.end-b.end||String(a.s&&a.s.id||'').localeCompare(String(b.s&&b.s.id||'')));
+  const colEnds=[];
+  items.forEach(it=>{
+    let placed=false;
+    for(let c=0;c<colEnds.length;c++){
+      if(colEnds[c]<=it.start){
+        it.col=c;
+        colEnds[c]=it.end;
+        placed=true;
+        break;
+      }
+    }
+    if(!placed){
+      it.col=colEnds.length;
+      colEnds.push(it.end);
+    }
+  });
+  let i=0;
+  while(i<items.length){
+    let j=i;
+    let clusterEnd=items[i].end;
+    while(j+1<items.length&&items[j+1].start<clusterEnd){
+      j++;
+      clusterEnd=Math.max(clusterEnd,items[j].end);
+    }
+    const n=Math.max.apply(null,items.slice(i,j+1).map(x=>x.col))+1;
+    for(let k=i;k<=j;k++)items[k].cols=n;
+    i=j+1;
+  }
+  return items;
+}
+window.calSessionStartMin=calSessionStartMin;
+window.calSessionEndMin=calSessionEndMin;
+window.calWeekOverlapLayout=calWeekOverlapLayout;
+
 function renderCalWeek(){
   const ws=getWeekStart(calCurrentDate);
   const today=new Date();today.setHours(0,0,0,0);
   const hdr=document.getElementById('cal-week-header');
   if(!hdr)return;
+  const hourH=CAL_HOUR_H;
+  const h0=CAL_WEEK_H0;
+  const h1=CAL_WEEK_H1;
+  const hourCount=h1-h0;
 
   // header — dni tygodnia
   let hdrHTML='<div style="height:48px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--s1);position:sticky;top:0;z-index:6;"></div>';
@@ -2173,61 +2232,64 @@ function renderCalWeek(){
   }
   hdr.innerHTML=hdrHTML;
 
-  // grid — godziny × dni
+  // grid — godziny × dni (puste komórki pod klik); karty w pasie dnia, żeby nachodzące godziny szły obok siebie
   const grid=document.getElementById('cal-week-grid');
   let gridHTML='';
-  const nowHour=new Date().getHours();
-  const nowMin=new Date().getMinutes();
+  const now=new Date();
+  const nowHour=now.getHours();
+  const nowMin=now.getMinutes();
   const todayIdx=[...Array(7)].findIndex((_,i)=>{const d=new Date(ws);d.setDate(d.getDate()+i);return dateStr(d)===dateStr(today);});
 
-  for(let h=6;h<23;h++){
-    // hour label
+  for(let h=h0;h<h1;h++){
     gridHTML+=`<div class="cal-hour-label">${String(h).padStart(2,'0')}:00</div>`;
     for(let i=0;i<7;i++){
       const d=new Date(ws);d.setDate(d.getDate()+i);
       const ds=dateStr(d);
       const isToday=i===todayIdx;
-      const cellSessions=SE.filter(s=>s.date===ds&&parseInt((s.time||'0:0').split(':')[0])===h);
-      const sessHTML=cellSessions.map((s,si)=>{
-        const c=CL.find(x=>x.id===s.clientId);
-        const cIdx=c?CL.indexOf(c):-1;
-        const col=s.source==='garmin'?'#007cc3':SESS_COLORS[(cIdx>=0?cIdx:0)%6];
-        const timeMin=parseInt((s.time||'0:0').split(':')[1]||0);
-        const topPct=(timeMin/60)*100;
-        const dur=s.duration||60;
-        const heightPx=Math.max(20,(dur/60)*56);
-        const bits=typeof calSessionDoneBits==='function'?calSessionDoneBits(s):{cls:'',mark:'',tip:''};
-        const who=c?c.name:'Klient';
-        return `<div class="cal-session-block${bits.cls}" style="background:var(--input-bg);border:1px solid rgba(255,255,255,0.1);border-left:3px solid ${col};color:var(--text);top:${topPct}%;height:${heightPx}px;" onclick="editSession('${s.id}')" title="${typeof escHtml==='function'?escHtml(who):who} — ${bits.tip}">
-          <div class="cal-session-name">${bits.mark}${s.source==='garmin'?'⌚ ':''}${c?c.name.split(' ')[0]:'Klient'}</div>
-          <div class="cal-session-meta">${s.time||''}${s.type?' · '+s.type:''}${bits.happened?' · odbył się':''}</div>
-        </div>`;
-      }).join('');
-      gridHTML+=`<div class="cal-cell${isToday?' today-col':''}" onclick="quickAddSession('${ds}','${String(h).padStart(2,'0')}:00')">${sessHTML}</div>`;
+      gridHTML+=`<div class="cal-cell${isToday?' today-col':''}" onclick="quickAddSession('${ds}','${String(h).padStart(2,'0')}:00')"></div>`;
     }
   }
 
-  // current time line
-  if(todayIdx>=0){
-    const topPx=((nowHour-6)*56)+(nowMin/60*56);
-    gridHTML+=`<div style="grid-column:${todayIdx+2};grid-row:1;display:none;"></div>`; // placeholder
+  const minStart=h0*60;
+  const maxEnd=h1*60;
+  for(let i=0;i<7;i++){
+    const d=new Date(ws);d.setDate(d.getDate()+i);
+    const ds=dateStr(d);
+    const laid=calWeekOverlapLayout(SE.filter(s=>s&&s.date===ds));
+    const blocks=laid.map(it=>{
+      const visStart=Math.max(it.start,minStart);
+      const visEnd=Math.min(it.end,maxEnd);
+      if(visEnd<=minStart||visStart>=maxEnd)return '';
+      const s=it.s;
+      const c=CL.find(x=>x.id===s.clientId);
+      const cIdx=c?CL.indexOf(c):-1;
+      const col=s.source==='garmin'?'#007cc3':SESS_COLORS[(cIdx>=0?cIdx:0)%6];
+      const topPx=((visStart-minStart)/60)*hourH;
+      const heightPx=Math.max(22,((visEnd-visStart)/60)*hourH);
+      const widthPct=100/it.cols;
+      const leftPct=it.col*widthPct;
+      const bits=typeof calSessionDoneBits==='function'?calSessionDoneBits(s):{cls:'',mark:'',tip:''};
+      const who=c?c.name:'Klient';
+      const sid=s&&s.id?String(s.id).replace(/"/g,''):'';
+      return `<div class="cal-session-block${bits.cls}" data-cal-sess="${sid}" style="background:var(--input-bg);border:1px solid rgba(255,255,255,0.1);border-left:3px solid ${col};color:var(--text);top:${topPx}px;height:${heightPx}px;left:calc(${leftPct}% + 2px);width:calc(${widthPct}% - 4px);right:auto;" onclick="event.stopPropagation();editSession('${s.id}')" title="${typeof escHtml==='function'?escHtml(who):who} — ${bits.tip}">
+          <div class="cal-session-name">${bits.mark}${s.source==='garmin'?'⌚ ':''}${c?c.name.split(' ')[0]:'Klient'}</div>
+          <div class="cal-session-meta">${s.time||''}${s.type?' · '+s.type:''}${bits.happened?' · odbył się':''}</div>
+        </div>`;
+    }).join('');
+    gridHTML+=`<div class="cal-week-day-lane" data-cal-day="${ds}" style="grid-column:${i+2};grid-row:1 / span ${hourCount};">${blocks}</div>`;
   }
+
   grid.innerHTML=gridHTML;
+  grid.style.position='relative';
 
-  // scroll to 8:00
   const scroll=document.getElementById('cal-week-scroll');
-  if(scroll)setTimeout(()=>{scroll.scrollTop=2*56;},50);
+  if(scroll)setTimeout(()=>{scroll.scrollTop=2*hourH;},50);
 
-  // current time overlay
-  if(todayIdx>=0){
-    const topPx=((nowHour-6)*56)+(nowMin/60*56);
-    const col=grid.children[todayIdx+1+8]; // approx
-    // add absolute line
+  if(todayIdx>=0&&nowHour>=h0&&nowHour<h1){
+    const topPx=((nowHour-h0)*hourH)+(nowMin/60*hourH);
     const line=document.createElement('div');
     line.className='cal-time-now';
-    line.style.top=(topPx+48)+'px'; // +48 for header
-    line.style.gridColumn=(todayIdx+2)+'';
-    grid.style.position='relative';
+    line.style.top=topPx+'px';
     grid.appendChild(line);
   }
 }
