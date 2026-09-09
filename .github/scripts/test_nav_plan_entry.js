@@ -23,7 +23,7 @@ ok('no Generator AI in Więcej',!/data-screen="aiplangen"/.test(more));
 ok('no Kreator in Więcej',!/data-screen="builder"/.test(more));
 ok('moreScreens without plan tools',!/moreScreens=\[[^\]]*(aiplangen|builder)/.test(core));
 ok('screens still exist',html.includes('id="screen-builder"')&&html.includes('id="screen-aiplangen"'));
-ok('plan tab keeps CTAs',planTab.includes('Stwórz własny plan')&&planTab.includes('Generuj plan AI')&&planTab.includes('Przypisz szablon'));
+ok('plan tab keeps CTAs',planTab.includes('Stwórz własny plan')&&planTab.includes('Generuj plan AI')&&planTab.includes('Przypisz szablon')&&planTab.includes('Kontynuuj plan z Fitebo'));
 ok('openBuilderForClient + openAiPlanForClient',src05.includes('function openBuilderForClient')&&src05.includes('function openAiPlanForClient'));
 ok('plans library points to clients',html.includes('Utwórz z profilu klienta')&&src05.includes("goTo('clients')")&&src05.includes('zakładka Plan'));
 ok('builder cancel uses back',html.includes("_builderBack||'clients'"));

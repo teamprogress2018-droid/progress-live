@@ -508,6 +508,140 @@ window.sfrSetFatigue=sfrSetFatigue; window.sfrReset=sfrReset; window.sfrGetConte
 let fbImages = [];
 let fbParsed = [];
 
+function fbNormName(n){
+  return String(n||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim();
+}
+function fbFindClientByName(name){
+  const n=fbNormName(name);
+  if(!n)return null;
+  const list=window.CL||[];
+  return list.find(x=>fbNormName(x.name)===n)
+    || list.find(x=>{const xn=fbNormName(x.name);return xn&&(xn.includes(n)||n.includes(xn));})
+    || null;
+}
+function fbMapExercises(list){
+  return (list||[]).filter(e=>e&&(e.name||e.n)).map(e=>{
+    const name=e.name||e.n||'';
+    const kg=e.kg!=null&&e.kg!==''?String(e.kg):(e.load!=null&&e.load!==''?String(e.load):'');
+    return{
+      name,
+      sets:String(e.sets||e.serie||'3'),
+      reps:String(e.reps||e.powt||'8-10'),
+      rest:String(e.rest||e.przerwa||'90s'),
+      kg,
+      rpe:e.rpe||e.rir||'',
+      note:e.note||e.notes||''
+    };
+  });
+}
+function inferFiteboMethod(days){
+  const labels=(days||[]).map(d=>String((d&&(d.day||d.muscles||d.dayName))||'').toLowerCase()).join(' ');
+  if(/push/.test(labels)&&/pull/.test(labels))return 'PPL';
+  if(/upper/.test(labels)&&/lower/.test(labels))return 'Upper/Lower';
+  if((days||[]).length<=2)return 'FBW';
+  return 'Custom';
+}
+function fbPlanDaysFromClientPayload(c){
+  if(Array.isArray(c&&c.planDays)&&c.planDays.length){
+    return c.planDays.filter(d=>d&&!d.rest).map((d,i)=>({
+      day:d.day||d.dayName||('Dzień '+(i+1)),
+      muscles:d.muscles||d.focus||d.dayName||'',
+      rest:false,
+      exercises:fbMapExercises(d.exercises)
+    })).filter(d=>d.exercises.length);
+  }
+  const byType=new Map();
+  (c&&c.sessions||[]).forEach(s=>{
+    const ex=fbMapExercises(s.exercises);
+    if(!ex.length)return;
+    const key=String(s.type||s.dayName||'Trening').trim()||'Trening';
+    const prev=byType.get(key);
+    if(!prev||ex.length>(prev.exercises||[]).length){
+      byType.set(key,{day:key,muscles:s.focus||key,rest:false,exercises:ex});
+    }
+  });
+  return [...byType.values()];
+}
+function isFiteboPlan(p){
+  return !!(p&&(p.source==='fitebo'||p.fromFitebo));
+}
+function isFiteboSession(s){
+  return !!(s&&(s.source==='fitebo'||/fitebo/i.test(s.notes||'')||/import fitebo/i.test(s.type||'')));
+}
+function clientHasFiteboWorkouts(clientId){
+  if((window.PL||[]).some(p=>p&&p.clientId===clientId&&isFiteboPlan(p)))return true;
+  return (window.SE||[]).some(s=>s&&s.clientId===clientId&&isFiteboSession(s));
+}
+function fiteboWorkoutsForAI(clientId){
+  const lines=[];
+  const plan=(window.PL||[]).find(p=>p&&p.clientId===clientId&&isFiteboPlan(p));
+  if(plan&&(plan.days||[]).length){
+    lines.push('Struktura planu z Fitebo ('+(plan.method||'')+'):');
+    (plan.days||[]).forEach(d=>{
+      lines.push((d.day||'Dzień')+':');
+      (d.exercises||[]).forEach(e=>{
+        lines.push('  - '+(e.name||'')+' '+(e.sets||'')+'x'+(e.reps||'')+(e.kg?' @'+e.kg+'kg':''));
+      });
+    });
+  }
+  const sess=(window.SE||[]).filter(s=>s&&s.clientId===clientId&&isFiteboSession(s))
+    .sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')))
+    .slice(0,16);
+  if(sess.length){
+    lines.push('Logi Fitebo:');
+    sess.forEach(s=>{
+      lines.push((s.date||'')+' '+(s.type||'Trening')+':');
+      const ex=s.exercises||[];
+      if(!ex.length)return;
+      ex.forEach(e=>{
+        const name=e.name||e.n||'';
+        const kg=e.kg!=null&&e.kg!==''?e.kg:(e.sets&&e.sets[0]&&e.sets[0].kg)||'';
+        lines.push('  - '+name+(kg?' @'+kg+'kg':''));
+      });
+    });
+  }
+  return lines.join('\n').trim();
+}
+function cpContinueFiteboPlan(clientId){
+  const c=(window.CL||[]).find(x=>x.id===clientId);if(!c)return;
+  const ctx=fiteboWorkoutsForAI(clientId);
+  if(!ctx){
+    window._fbAttachClientId=clientId;
+    if(typeof closeClientProfile==='function')closeClientProfile();
+    if(typeof openM==='function')openM('m-fitebo');
+    if(typeof notify==='function')notify('Wklej treningi z Fitebo tego klienta — zapiszą się w zakładce Plan.');
+    return;
+  }
+  window._aplFiteboContinue={clientId,context:ctx};
+  if(typeof closeClientProfile==='function')closeClientProfile();
+  if(typeof goTo==='function')goTo('aiplangen');
+  setTimeout(()=>{
+    const sel=document.getElementById('apl-client');
+    if(sel)sel.value=clientId;
+    if(typeof aplFillFromClient==='function')aplFillFromClient();
+    const plan=(window.PL||[]).find(p=>p&&p.clientId===clientId&&isFiteboPlan(p));
+    const method=(plan&&plan.method)||inferFiteboMethod(plan&&plan.days);
+    if(typeof aplSetVal==='function'){
+      if(method)aplSetVal('apl-methods',method);
+      const n=plan&&plan.days?plan.days.filter(d=>d&&!d.rest).length:0;
+      if(n>=2&&n<=6)aplSetVal('apl-days',String(n));
+      aplSetVal('apl-progression','double');
+      aplSetVal('apl-weeks','8');
+    }
+    const notes=document.getElementById('apl-notes');
+    if(notes)notes.value='KONTYNUACJA FITEBO — te same ćwiczenia, dalsza progresja (podwójna: +powt., potem +kg). Ciężary startowe z logów.\n'+ctx;
+    if(typeof notify==='function')notify('Kontynuacja planu z Fitebo — generuję cykl z progresją…');
+    if(typeof aplGenerate==='function')aplGenerate();
+  },200);
+}
+window.fbNormName=fbNormName;
+window.fbFindClientByName=fbFindClientByName;
+window.fbPlanDaysFromClientPayload=fbPlanDaysFromClientPayload;
+window.inferFiteboMethod=inferFiteboMethod;
+window.fiteboWorkoutsForAI=fiteboWorkoutsForAI;
+window.clientHasFiteboWorkouts=clientHasFiteboWorkouts;
+window.cpContinueFiteboPlan=cpContinueFiteboPlan;
+
 function fbFileLoad(input){
   const file = input.files[0]; if(!file) return;
   const reader = new FileReader();
@@ -557,17 +691,18 @@ async function fbAnalyze(){
   "level":"poczatkujacy"|"sredni"|"zaawansowany"|null,
   "injuries":"tekst_lub_null",
   "measurements":[{"date":"YYYY-MM-DD","weight":liczba_lub_null,"waist":liczba_lub_null,"chest":liczba_lub_null,"hips":liczba_lub_null}],
-  "sessions":[{"date":"YYYY-MM-DD","type":"opis treningu","exercisesCount":liczba_lub_null}],
+  "sessions":[{"date":"YYYY-MM-DD","type":"Push|Pull|Legs|FBW|opis dnia","exercises":[{"name":"nazwa ćwiczenia","sets":"4","reps":"8-10","kg":"60","rest":"90s"}]}],
+  "planDays":[{"dayName":"Push","focus":"klatka barki triceps","exercises":[{"name":"...","sets":"4","reps":"8-10","kg":"60","rest":"180s"}]}],
   "notes":"dodatkowe uwagi tekstowe lub null"
 }]}
-Zasady: jeśli danych brak, użyj null / pustej tablicy — NIE zmyślaj. Daty w formacie YYYY-MM-DD; jeśli nie da się ustalić dokładnej daty, pomiń wpis. Jeśli w danych jest wielu klientów, zwróć każdego osobno w tablicy.`;
+Zasady: jeśli danych brak, użyj null / pustej tablicy — NIE zmyślaj. Daty w formacie YYYY-MM-DD; jeśli nie da się ustalić dokładnej daty, pomiń wpis daty, ale ZACHOWAJ ćwiczenia w planDays. Zrzuty logu treningowego (serie, kg, powtórzenia, nazwy dni Push/Pull/Legs) MUSZĄ trafić do sessions.exercises i planDays — to baza do kontynuacji planu. Jeśli w danych jest wielu klientów, zwróć każdego osobno w tablicy.`;
 
   const content = fbImages.length
     ? [...fbImages.map(img => ({ type:'image', source:{ type:'base64', media_type: img.mediaType, data: img.base64 } })), { type:'text', text: raw || 'Przeanalizuj załączone zrzuty ekranu z Fitebo.' }]
     : raw.substring(0, 15000);
 
   try{
-    const resp = await fetch(W, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:4000, system, messages:[{ role:'user', content }] }) });
+    const resp = await fetch(W, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:8000, system, messages:[{ role:'user', content }] }) });
     const data = await resp.json();
     const rawText = (data.content||[]).map(b=>b.text||'').join('');
     let parsed;
@@ -593,7 +728,7 @@ function renderFbPreview(){
     h += `<label style="display:flex;align-items:flex-start;gap:8px;background:var(--s3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:6px;cursor:pointer;">
       <input type="checkbox" id="fb-chk-${i}" checked style="margin-top:2px;">
       <div><div style="font-weight:600;font-size:12px;">${c.name || '(bez imienia)'}</div>
-      <div style="font-size:10px;color:var(--muted);margin-top:2px;">${(c.measurements||[]).length} pomiarów · ${(c.sessions||[]).length} sesji</div></div>
+      <div style="font-size:10px;color:var(--muted);margin-top:2px;">${(c.measurements||[]).length} pomiarów · ${(c.sessions||[]).length} sesji · ${(typeof fbPlanDaysFromClientPayload==='function'?fbPlanDaysFromClientPayload(c):[]).length} dni planu</div></div>
     </label>`;
   });
   h += '<button class="btn btn-primary" style="width:100%;margin-top:8px;" onclick="fbImportSelected()">📥 Importuj zaznaczone</button>';
@@ -602,59 +737,114 @@ function renderFbPreview(){
 
 async function fbImportSelected(){
   let imported = 0;
+  let lastClient = null;
+  const attachId=window._fbAttachClientId;
   for(let i=0; i<fbParsed.length; i++){
     const chk = document.getElementById('fb-chk-'+i);
     if(!chk || !chk.checked) continue;
     const c = fbParsed[i];
     if(!c.name) continue;
 
-    const newClient = withTrainer({
-      id: newId('c'), name: c.name,
-      email:'', phone:'',
-      age: c.age||'', gender: (typeof normalizeClientGender==='function'?normalizeClientGender(c.gender):c.gender)||'M',
-      weight: c.weight||'', height: c.height||'',
-      goal: c.goal||'masa', level: c.level||'sredni',
-      injuries: c.injuries||'', notes: c.notes||'',
-      status:'active', joinDate: new Date().toISOString().split('T')[0],
-      source:'Fitebo import'
-    });
-    CL.push(newClient);
-    await persistById('clients', newClient);
+    const attached=(attachId&&imported===0)?(window.CL||[]).find(x=>x.id===attachId):null;
+    let target = attached || fbFindClientByName(c.name);
+    if(!target){
+      target = withTrainer({
+        id: newId('c'), name: c.name,
+        email:'', phone:'',
+        age: c.age||'', gender: (typeof normalizeClientGender==='function'?normalizeClientGender(c.gender):c.gender)||'M',
+        weight: c.weight||'', height: c.height||'',
+        goal: c.goal||'masa', level: c.level||'sredni',
+        injuries: c.injuries||'', notes: c.notes||'',
+        status:'active', joinDate: new Date().toISOString().split('T')[0],
+        source:'Fitebo import'
+      });
+      CL.push(target);
+    } else {
+      if(c.age&&!target.age)target.age=c.age;
+      if(c.weight&&!target.weight)target.weight=c.weight;
+      if(c.height&&!target.height)target.height=c.height;
+      if(c.goal)target.goal=c.goal;
+      if(c.level&&!target.level)target.level=c.level;
+      if(c.injuries&&!target.injuries)target.injuries=c.injuries;
+      target.source=target.source||'Fitebo import';
+    }
+    await persistById('clients', target);
 
     for(const m of (c.measurements||[]).filter(m=>m.date)){
       if(m.weight!=null){
-        const me=withTrainer({ id:newId('me'), clientId:newClient.id, groupId:'mg1', date:m.date, values:{ m1:m.weight }, notes:'Import z Fitebo' });
+        const me=withTrainer({ id:newId('me'), clientId:target.id, groupId:'mg1', date:m.date, values:{ m1:m.weight }, notes:'Import z Fitebo' });
         window.METRIC_ENTRIES.push(me);
         await persistById('metricEntries', me);
       }
       if(m.waist!=null || m.chest!=null || m.hips!=null){
-        const me=withTrainer({ id:newId('me'), clientId:newClient.id, groupId:'mg2', date:m.date, values:{ m1:m.chest||null, m2:m.waist||null, m3:m.hips||null }, notes:'Import z Fitebo' });
+        const me=withTrainer({ id:newId('me'), clientId:target.id, groupId:'mg2', date:m.date, values:{ m1:m.chest||null, m2:m.waist||null, m3:m.hips||null }, notes:'Import z Fitebo' });
         window.METRIC_ENTRIES.push(me);
         await persistById('metricEntries', me);
       }
     }
 
-    for(const s of (c.sessions||[]).filter(s=>s.date)){
-      const sess = withTrainer({ id:newId('s'), clientId:newClient.id, date:s.date, time:'', type: s.type || 'Trening (import Fitebo)', duration:60, notes:'Zaimportowano z Fitebo', createdAt: new Date().toISOString() });
+    for(const s of (c.sessions||[])){
+      const ex=fbMapExercises(s.exercises);
+      if(!s.date&&!ex.length)continue;
+      const sess = withTrainer({
+        id:newId('s'), clientId:target.id, date:s.date||'', time:'',
+        type: s.type || 'Trening (import Fitebo)', duration:60,
+        notes:'Zaimportowano z Fitebo', source:'fitebo',
+        exercises:ex,
+        createdAt: new Date().toISOString()
+      });
       SE.push(sess);
       await persistById('sessions', sess);
     }
 
-    if(c.notes){
-      if(!window.CLIENT_TIMELINE) window.CLIENT_TIMELINE = {};
-      if(!CLIENT_TIMELINE[newClient.id]) CLIENT_TIMELINE[newClient.id] = [];
-      CLIENT_TIMELINE[newClient.id].push({ id:'fbn_'+Date.now(), text:'Import z Fitebo: '+c.notes, type:'notatka', date:new Date().toISOString() });
-      if(window._db){ try{ window._setDoc(window._doc(window._db,'clients',newClient.id), { timeline: CLIENT_TIMELINE[newClient.id] }, { merge:true }); }catch(e){} }
+    const planDays=fbPlanDaysFromClientPayload(c);
+    if(planDays.length){
+      let plan=(window.PL||[]).find(p=>p&&p.clientId===target.id&&isFiteboPlan(p));
+      const payload={
+        name:'Plan z Fitebo',
+        clientId:target.id,
+        clientName:target.name,
+        method:inferFiteboMethod(planDays),
+        duration:4,
+        days:planDays,
+        source:'fitebo',
+        fromFitebo:true,
+        updatedAt:new Date().toISOString()
+      };
+      if(!plan){
+        plan=withTrainer(Object.assign({id:newId('p'),createdAt:new Date().toISOString()},payload));
+        (window.PL||(window.PL=[])).push(plan);
+      }else{
+        Object.assign(plan,payload);
+      }
+      await persistById('plans', plan);
     }
 
+    if(c.notes){
+      if(!window.CLIENT_TIMELINE) window.CLIENT_TIMELINE = {};
+      if(!CLIENT_TIMELINE[target.id]) CLIENT_TIMELINE[target.id] = [];
+      CLIENT_TIMELINE[target.id].push({ id:'fbn_'+Date.now(), text:'Import z Fitebo: '+c.notes, type:'notatka', date:new Date().toISOString() });
+      if(window._db){ try{ window._setDoc(window._doc(window._db,'clients',target.id), { timeline: CLIENT_TIMELINE[target.id] }, { merge:true }); }catch(e){} }
+    }
+
+    lastClient=target;
     imported++;
   }
 
+  window._fbAttachClientId=null;
   try{ renderClients(); }catch(e){}
   try{ document.getElementById('nb-clients').textContent = CL.length; }catch(e){}
   fbImages = []; renderFbImagePreviews();
-  document.getElementById('fb-result').innerHTML = '<div style="color:var(--teal);font-size:13px;font-weight:600;">✅ Zaimportowano ' + imported + ' klient(ów)! Znajdziesz ich na liście Klienci.</div>';
-  notify('✓ Import z Fitebo zakończony — ' + imported + ' klient(ów)');
+  const planNote=lastClient&&(window.PL||[]).some(p=>p&&p.clientId===lastClient.id&&isFiteboPlan(p))
+    ?' Plan z Fitebo jest w zakładce Plan — możesz go kontynuować AI z progresją.'
+    :'';
+  document.getElementById('fb-result').innerHTML = '<div style="color:var(--teal);font-size:13px;font-weight:600;">✅ Zaimportowano ' + imported + ' klient(ów)!'+planNote+'</div>';
+  notify('✓ Import z Fitebo zakończony — ' + imported + ' klient(ów)'+(planNote?' Plan zapisany.':''));
+  if(imported===1&&lastClient&&typeof openClientProfile==='function'){
+    try{ closeM('m-fitebo'); }catch(e){}
+    openClientProfile(lastClient.id);
+    if(typeof setCPTab==='function')setCPTab('plan');
+  }
 }
 
 window.fbFileLoad=fbFileLoad; window.fbImagesLoad=fbImagesLoad; window.fbRemoveImage=fbRemoveImage;
@@ -1329,6 +1519,7 @@ function renderCPPlan(c){
       <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
         <button class="btn btn-ghost btn-sm" onclick="cpAssignTemplate('${c.id}')">📋 Przypisz szablon</button>
         <button class="btn btn-ghost btn-sm" onclick="openBuilderForClient('${c.id}')">✏ Stwórz własny plan</button>
+        <button class="btn btn-ghost btn-sm" onclick="cpContinueFiteboPlan('${c.id}')">🔁 Kontynuuj plan z Fitebo</button>
         <button class="btn btn-primary btn-sm" onclick="goTo('aiplangen');document.getElementById('apl-client').value='${c.id}';aplFillFromClient();closeClientProfile()">⚡ Generuj plan AI</button>
       </div>
     </div>
@@ -1337,6 +1528,7 @@ function renderCPPlan(c){
       ?`<div style="text-align:center;padding:40px;color:var(--muted);">
           <div style="font-size:32px;margin-bottom:10px;opacity:0.3;">📋</div>
           <div>Brak planów treningowych</div>
+          <div style="font-size:12px;max-width:360px;margin:10px auto 0;line-height:1.5;">Import z Fitebo zapisuje treningi tutaj jako „Plan z Fitebo”. Potem <strong>Kontynuuj plan z Fitebo</strong> — AI zrobi kolejny cykl z progresją.</div>
         </div>`
       :plans.map((p,pi)=>`
         <div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;animation:fadeUp 0.15s ease ${pi*0.05}s both;">
