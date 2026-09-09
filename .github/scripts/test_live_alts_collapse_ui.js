@@ -88,7 +88,7 @@ function ok(name, cond, extra) {
   ok('expanded shows rest', open.chips.length === 8 && open.chips.includes('Pullover hantlem'), JSON.stringify(open.chips));
   ok('zwin label', open.more === 'Zwiń' && open.expanded === 'true', open.more);
 
-  await page.click('#live-ex-0 .live-alt-chip:nth-of-type(5)');
+  await page.locator('#live-ex-0 .live-alt-chip', { hasText: 'Rozpiętki na bramie na ławce skośnej' }).click();
   await page.waitForTimeout(200);
   const swapped = await page.evaluate(() => ({
     name: (window.liveExercises[0] && window.liveExercises[0].name) || '',
