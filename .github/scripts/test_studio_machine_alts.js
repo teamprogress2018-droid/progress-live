@@ -24,9 +24,9 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 01', html.includes('01-core.js?v=88'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=47'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=48'));
 ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=47'));
-ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=71'));
+ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=72'));
 ok('cache 03', html.includes('03-ai-plangen-bizstats-aicoach.js?v=30'));
 ok('apl swap altFor', src03.includes('dataset.altFor') && src03.includes('sztanga / hantle / brama / ławka'));
 ok('live swap helper', /function liveSwapEx\(/.test(live) && live.includes('Zamienniki (gdy nie ma maszyny)'));

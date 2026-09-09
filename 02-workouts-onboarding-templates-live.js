@@ -1635,6 +1635,31 @@ const TPL_SESSIONS=(function(){
       X('Deska boczna','3','30s/stronę','30s'),
       X('Rozciąganie łydek','2','45s/stronę','—'),
       X('Rozciąganie figure-4','2','45s/stronę','—')
+    ],
+    pplStrPush:[
+      X('Wyciskanie hantli leżąc','4','4-6','180s'),
+      X('Wyciskanie na maszynie skos+','4','5-6','180s'),
+      X('Krzyżowanie wyciągów dół–góra','3','8-10','90s'),
+      X('Wyciskanie hantli siedząc','4','5-6','150s'),
+      X('Prostowanie tricepsa wyciąg','3','8-10','90s'),
+      X('Przysiad hack maszyna','4','5-6','180s'),
+      X('Wyciskanie nogami','3','6-8','120s')
+    ],
+    pplStrPull:[
+      X('Martwy ciąg RDL','4','4-6','210s'),
+      X('Ściąganie drążka szerokim chwytem','4','6-8','150s'),
+      X('Wiosłowanie na maszynie','4','6-8','150s'),
+      X('Ściąganie do twarzy (face pull)','3','10-12','75s'),
+      X('Uginanie na maszynie','3','8-10','90s'),
+      X('Uginanie nóg leżąc','3','8-10','90s')
+    ],
+    pplStrLegs:[
+      X('Przysiad hack maszyna','4','4-6','180s'),
+      X('Martwy ciąg RDL','4','5-6','180s'),
+      X('Wyciskanie nogami','4','6-8','150s'),
+      X('Uginanie nóg leżąc','3','8-10','90s'),
+      X('Wypychanie bioder (hip thrust)','3','6-8','120s'),
+      X('Wspięcia na palce stojąc','4','8-12','60s')
     ]
   };
 })();
@@ -1667,6 +1692,12 @@ function sessionExercisesForFocus(focus){
   if(/lower power/.test(s))return P.lowerPower;
   if(/upper hyper/.test(s))return P.upperHyper;
   if(/lower hyper/.test(s))return P.lowerHyper;
+  if(/siła ppl/.test(s)||(/push/.test(s)&&/czwor/.test(s))){
+    if(/pull|plecy|dwugł/.test(s)&&!/czwor/.test(s)&&!/push/.test(s))return P.pplStrPull;
+    if(/nogi|legs/.test(s)&&!/czwor/.test(s)&&!/push/.test(s))return P.pplStrLegs;
+    if(/pull|plecy/.test(s)&&!/push/.test(s))return P.pplStrPull;
+    return P.pplStrPush;
+  }
   if(/ohp:/.test(s)||(/^ohp/.test(s)))return P.wendlerOHP;
   if(/martwy ciąg:|martwy:/.test(s))return P.wendlerDL;
   if(/wyciskanie:/.test(s)&&!/hantli/.test(s))return P.wendlerBP;
@@ -2006,6 +2037,13 @@ const PLAN_TEMPLATES=[
    tags:['mikrocykl','schemat tygodnia','siła','bieganie','biegacz','siłownia','3×/tydzień'],
    color:'var(--teal)',popularity:88,
    schedule:['Pon: Łańcuch tylny','Śr: Jednonóż','Pt: Łydki i core'],
+   days_detail:[]},
+
+  {id:'t31',name:'Schemat Siła PPL 3× — studio',goal:'sila',level:'sredni',method:'PPL',days:3,weeks:1,
+   desc:'Te same ćwiczenia co PPL hipertrofia ze studia (hantle, skos maszyna, hack, wiosłowanie maszyna), ale pod siłę: 4–6 powt., przerwy 3 min. Progresja: najpierw powt. w zakresie, potem +kg. Pełny blok 8 tyg. (DUP) → Programy.',
+   tags:['mikrocykl','schemat tygodnia','siła','PPL','3×/tydzień','studio','hantle','hack squat'],
+   color:'var(--gold)',popularity:90,
+   schedule:['Pon: Push + czworogłowe','Śr: Pull + dwugłowe','Pt: Nogi'],
    days_detail:[]}
 ];
 
@@ -2145,6 +2183,11 @@ function fillReadyTemplateSessions(){
     D('Siła biegacza — łańcuch tylny','runGymA'),
     D('Siła biegacza — jednonóż','runGymB'),
     D('Siła biegacza — łydki i core','runGymC')
+  ]);
+  set('t31',[
+    D('Siła PPL — Push + czworogłowe','pplStrPush'),
+    D('Siła PPL — Pull + dwugłowe','pplStrPull'),
+    D('Siła PPL — Nogi','pplStrLegs')
   ]);
 }
 fillReadyTemplateSessions();
