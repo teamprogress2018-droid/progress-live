@@ -19,8 +19,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 02 v33', html.includes('02-workouts-onboarding-templates-live.js?v=46'));
-ok('cache styles v63', html.includes('styles.css?v=72'));
+ok('cache 02 v33', html.includes('02-workouts-onboarding-templates-live.js?v=47'));
+ok('cache styles v63', html.includes('styles.css?v=73'));
 ok('dual button', html.includes('id="live-dual-btn"') && html.includes('liveToggleDual()'));
 ok('pane 0/1', html.includes('id="live-pane-0"') && html.includes('id="live-pane-1"'));
 ok('slot B ids', html.includes('id="live-b-timer"') && html.includes('id="live-b-exercises-panel"') && html.includes('id="live-b-start-btn"'));
@@ -39,6 +39,7 @@ ok('file video wrap', css.includes('.cw-file-player') && css.includes('cw-video-
 ok('CI unit', wf.includes('test_live_dual.js'));
 ok('CI ui', wf.includes('test_live_dual_ui.js'));
 ok('CI live alts ui', wf.includes('test_live_alts_add_ui.js'));
+ok('CI live alts collapse', wf.includes('test_live_alts_collapse.js') && wf.includes('test_live_alts_collapse_ui.js'));
 ok('CI live video ui', wf.includes('test_live_video_ui.js'));
 
 const m = live.match(/function liveN\(slot\)\{[\s\S]*?\n\}/);
