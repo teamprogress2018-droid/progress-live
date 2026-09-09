@@ -20,7 +20,7 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 02 v33', html.includes('02-workouts-onboarding-templates-live.js?v=48'));
-ok('cache styles v63', html.includes('styles.css?v=73'));
+ok('cache styles v63', html.includes('styles.css?v=74'));
 ok('dual button', html.includes('id="live-dual-btn"') && html.includes('liveToggleDual()'));
 ok('pane 0/1', html.includes('id="live-pane-0"') && html.includes('id="live-pane-1"'));
 ok('slot B ids', html.includes('id="live-b-timer"') && html.includes('id="live-b-exercises-panel"') && html.includes('id="live-b-start-btn"'));
