@@ -81,6 +81,30 @@ function ok(name, cond, extra) {
   ok('running Bieg', /Bieg/.test(run));
   ok('running strength day', /Siła biegacza/.test(run) && /Uginanie nordyckie/.test(run));
 
+  ok('sila nordic card', cards.some((n) => /Siła/.test(n) && /Nordic walking/i.test(n)), cards.join(' | '));
+  ok('sila football card', cards.some((n) => /Siła/.test(n) && /Piłka nożna/i.test(n)), cards.join(' | '));
+  ok('sila runner card', cards.some((n) => /Siła/.test(n) && /Biegacz/i.test(n)), cards.join(' | '));
+
+  const nwGym = await openAndRead('t28');
+  await page.screenshot({ path: path.join(shotDir, 'tpl_sila_nordic.png') });
+  ok('sila nordic title', /Siła — Nordic walking/.test(nwGym));
+  ok('sila nordic no Marsz', !/\bMarsz\b/.test(nwGym));
+  ok('sila nordic RDL', /Martwy ciąg RDL/.test(nwGym));
+  ok('sila nordic face pull', /Ściąganie do twarzy/.test(nwGym));
+
+  const fnGym = await openAndRead('t29');
+  await page.screenshot({ path: path.join(shotDir, 'tpl_sila_football.png') });
+  ok('sila football title', /Siła — Piłka nożna/.test(fnGym));
+  ok('sila football copenhagen', /Deska kopenhaska/.test(fnGym));
+  ok('sila football jump', /Przysiad z wyskokiem/.test(fnGym));
+
+  const runGym = await openAndRead('t30');
+  await page.screenshot({ path: path.join(shotDir, 'tpl_sila_running.png') });
+  ok('sila runner title', /Siła — Biegacz/.test(runGym));
+  ok('sila runner no Bieg interval', !/Bieg\s/.test(runGym) && !/8×1 min/.test(runGym));
+  ok('sila runner nordic', /Uginanie nordyckie/.test(runGym));
+  ok('sila runner bulgarian', /Przysiad bułgarski/.test(runGym));
+
   await browser.close();
   if (failed) {
     console.error('\n' + failed + ' failed');

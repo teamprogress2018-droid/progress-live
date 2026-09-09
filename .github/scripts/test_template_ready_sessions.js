@@ -74,6 +74,19 @@ ok('t27 A-skip', (t27.days_detail[0]?.exercises || []).some(e => e.n === 'A-skip
 ok('t27 Bieg', (t27.days_detail[0]?.exercises || []).some(e => e.n === 'Bieg'));
 ok('t27 strength nordic', (t27.days_detail[1]?.exercises || []).some(e => e.n === 'Uginanie nordyckie'));
 
+const t28 = templates.find(t => t.id === 't28') || { days_detail: [] };
+const t29 = templates.find(t => t.id === 't29') || { days_detail: [] };
+const t30 = templates.find(t => t.id === 't30') || { days_detail: [] };
+ok('t28 sila nordic', /Siła — Nordic walking/.test(t28.name || '') && t28.days_detail.length === 3);
+ok('t28 gym no Marsz', !(t28.days_detail || []).some(d => (d.exercises || []).some(e => e.n === 'Marsz')));
+ok('t28 has RDL and face pull', (t28.days_detail[0]?.exercises || []).some(e => e.n === 'Martwy ciąg RDL') && (t28.days_detail[0]?.exercises || []).some(e => e.n === 'Ściąganie do twarzy (face pull)'));
+ok('t29 sila pilka', /Siła — Piłka nożna/.test(t29.name || '') && t29.days_detail.length === 3);
+ok('t29 gym no Bieg', !(t29.days_detail || []).some(d => (d.exercises || []).some(e => e.n === 'Bieg')));
+ok('t29 hamstring adductor', (t29.days_detail[0]?.exercises || []).some(e => e.n === 'Uginanie nordyckie') && (t29.days_detail[0]?.exercises || []).some(e => e.n === 'Deska kopenhaska'));
+ok('t30 sila biegacz', /Siła — Biegacz/.test(t30.name || '') && t30.days_detail.length === 3);
+ok('t30 gym no Bieg', !(t30.days_detail || []).some(d => (d.exercises || []).some(e => e.n === 'Bieg')));
+ok('t30 nordic and bulgarian', (t30.days_detail[0]?.exercises || []).some(e => e.n === 'Uginanie nordyckie') && (t30.days_detail[1]?.exercises || []).some(e => e.n === 'Przysiad bułgarski'));
+
 const fn = ctx.window.sessionExercisesForFocus;
 ok('expander push', fn('Push A — Klatka').length >= 5);
 ok('expander arnold', fn('Klatka + Plecy — Wyciskanie').length >= 4);
@@ -92,6 +105,10 @@ ok('expander football pitch', fn('Piłka — kondycja boiskowa').some(e => e.n =
 ok('expander run easy skips', fn('Bieg łatwy + skipy').some(e => e.n === 'A-skip'));
 ok('expander run strength', fn('Siła biegacza').some(e => e.n === 'Uginanie nordyckie'));
 ok('expander run intervals', fn('Bieg — interwały').some(e => e.n === 'Bieg' && e.s === '8'));
+ok('expander sila nordic gym', fn('Siła Nordic — łańcuch tylny i kije').some(e => e.n === 'Wypychanie bioder (hip thrust)') && !fn('Siła Nordic — łańcuch tylny i kije').some(e => e.n === 'Marsz'));
+ok('expander sila pilka gym', fn('Siła piłka — dwugłowe i pachwiny').some(e => e.n === 'Deska kopenhaska') && !fn('Siła piłka — moc').some(e => e.n === 'Bieg'));
+ok('expander sila biegacz gym', fn('Siła biegacza — łańcuch tylny').some(e => e.n === 'Martwy ciąg RDL') && fn('Siła biegacza — łańcuch tylny').every(e => e.n !== 'Bieg'));
+ok('expander sila biegacz still mixed', fn('Siła biegacza').some(e => e.n === 'Uginanie nordyckie'));
 
 const m1 = src06.match(/function expandSessionFromDayFocus[\s\S]*?window\.expandSessionFromDayFocus=expandSessionFromDayFocus;/);
 const m2 = src06.match(/function planDaysFromProgram[\s\S]*?window\.planDaysFromProgram=planDaysFromProgram;/);

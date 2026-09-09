@@ -1556,6 +1556,85 @@ const TPL_SESSIONS=(function(){
       X('Marsz','1','5 min','—'),
       X('Rozciąganie łydek','2','45s/stronę','—'),
       X('Rozciąganie figure-4','2','45s/stronę','—')
+    ],
+    nwGymA:[
+      X('Mostek biodrowy — aktywacja','2','12','30s'),
+      X('Martwy ciąg RDL','4','8-10','120s'),
+      X('Wypychanie bioder (hip thrust)','3','10-12','90s'),
+      X('Wiosłowanie hantlem','3','10/stronę','75s'),
+      X('Ściąganie do twarzy (face pull)','3','15','45s'),
+      X('Unoszenie Y','3','12','45s'),
+      X('Deska','3','40s','45s')
+    ],
+    nwGymB:[
+      X('Przysiad Goblet','3','10-12','90s'),
+      X('Wykrok wsteczny','3','10/stronę','75s'),
+      X('Wspięcia na palce stojąc','3','15-20','45s'),
+      X('Rozciąganie taśmy','3','15','45s'),
+      X('Wyciskanie Pallofa','3','10/stronę','45s'),
+      X('Bird dog','3','8/stronę','30s'),
+      X('Rozciąganie biodrowo-lędźwiowego','2','45s/stronę','—')
+    ],
+    nwGymC:[
+      X('Przysiad bułgarski','3','8/stronę','90s'),
+      X('Mostek biodrowy','3','12-15','45s'),
+      X('Pompki','3','8-12','60s'),
+      X('Unoszenie Y','3','12','45s'),
+      X('Deska boczna','3','30s/stronę','30s'),
+      X('Rozciąganie w framudze','2','30s','—')
+    ],
+    fnGymA:[
+      X('Muszla (clamshell)','3','15/stronę','45s'),
+      X('Monster walk (chód)','3','12 kroków/stronę','45s'),
+      X('Uginanie nordyckie','3','5-8','90s'),
+      X('Deska kopenhaska','3','25s/stronę','45s'),
+      X('Martwy ciąg RDL','3','8','120s'),
+      X('Przywodzenie piłkarskie z taśmą','3','12/stronę','45s'),
+      X('Wyciskanie Pallofa','3','10/stronę','45s')
+    ],
+    fnGymB:[
+      X('Przysiad Goblet','3','8-10','90s'),
+      X('Przysiad bułgarski','3','8/stronę','90s'),
+      X('Wykrok boczny','3','8/stronę','60s'),
+      X('Wypychanie bioder (hip thrust)','3','8-10','90s'),
+      X('Wspięcia na palce stojąc','3','12-15','45s'),
+      X('Deska boczna','3','30s/stronę','30s')
+    ],
+    fnGymC:[
+      X('Przysiad z wyskokiem','3','6-8','75s'),
+      X('Wykrok wsteczny','3','8/stronę','75s'),
+      X('Wypady z wyskokiem','3','6/stronę','75s'),
+      X('Wiosłowanie hantlem','3','10/stronę','75s'),
+      X('Pompki','3','8-12','60s'),
+      X('Wyciskanie Pallofa','3','8/stronę','45s'),
+      X('Deska','3','40s','30s')
+    ],
+    runGymA:[
+      X('Mostek biodrowy — aktywacja','2','12','30s'),
+      X('Martwy ciąg RDL','4','8-10','120s'),
+      X('Uginanie nordyckie','3','5-8','90s'),
+      X('Wykrok wsteczny','3','8/stronę','75s'),
+      X('Wspięcia na palce stojąc','3','15-20','45s'),
+      X('Deska','3','40s','45s'),
+      X('Bird dog','3','8/stronę','30s')
+    ],
+    runGymB:[
+      X('Przysiad bułgarski','3','8/stronę','90s'),
+      X('Wypychanie bioder (hip thrust)','3','10-12','90s'),
+      X('Wykrok boczny','3','8/stronę','60s'),
+      X('Muszla (clamshell)','3','15/stronę','45s'),
+      X('Monster walk (chód)','3','10 kroków/stronę','45s'),
+      X('Wyciskanie Pallofa','3','10/stronę','45s'),
+      X('Rozciąganie biodrowo-lędźwiowego','2','45s/stronę','—')
+    ],
+    runGymC:[
+      X('Przysiad Goblet','3','10-12','90s'),
+      X('Wspięcia na palce stojąc','3','15-20','45s'),
+      X('Wspięcia na palce jednonóż','3','12/noga','45s'),
+      X('Wiosłowanie hantlem','3','10/stronę','75s'),
+      X('Deska boczna','3','30s/stronę','30s'),
+      X('Rozciąganie łydek','2','45s/stronę','—'),
+      X('Rozciąganie figure-4','2','45s/stronę','—')
     ]
   };
 })();
@@ -1614,6 +1693,22 @@ function sessionExercisesForFocus(focus){
   if(/funkcjonal|bear crawl|farmer/.test(s))return P.functional;
   if(/wod/.test(s))return P.wod1;
   if(/mobiln|mobility|foam roller|stretch|joga/.test(s))return P.mobility;
+  if(/siła nordic/.test(s)){
+    if(/łańcuch/.test(s))return P.nwGymA;
+    if(/jednonóż/.test(s))return P.nwGymC;
+    return P.nwGymB;
+  }
+  if(/siła piłk/.test(s)){
+    if(/pachwin|dwugł/.test(s))return P.fnGymA;
+    if(/moc/.test(s))return P.fnGymC;
+    return P.fnGymB;
+  }
+  if(/siła biegacza\s+[—-]/.test(s)){
+    if(/łańcuch/.test(s))return P.runGymA;
+    if(/jednonóż/.test(s))return P.runGymB;
+    if(/łydk/.test(s))return P.runGymC;
+    return P.runGymA;
+  }
   if(/nordic|kijk/.test(s)){
     if(/sił/.test(s))return P.nwStrength;
     if(/dłuższy|long/.test(s))return P.nwLong;
@@ -1890,6 +1985,27 @@ const PLAN_TEMPLATES=[
    tags:['mikrocykl','schemat tygodnia','kondycja','bieganie','bieg','skipy','3×/tydzień'],
    color:'var(--blue)',popularity:90,
    schedule:['Pon: Bieg łatwy + skipy','Śr: Siła biegacza','Pt: Interwały'],
+   days_detail:[]},
+
+  {id:'t28',name:'Schemat Siła — Nordic walking 3×',goal:'kondycja',level:'poczatkujacy',method:'FBW',days:3,weeks:1,
+   desc:'Tylko siłownia pod marsz z kijkami: łańcuch tylny, postawa barków, jednonóż. Marsz zostaw na osobny dzień.',
+   tags:['mikrocykl','schemat tygodnia','siła','nordic walking','kije','siłownia','3×/tydzień'],
+   color:'var(--teal)',popularity:83,
+   schedule:['Pon: Łańcuch tylny + kije','Śr: Nogi i postawa','Pt: Jednonóż'],
+   days_detail:[]},
+
+  {id:'t29',name:'Schemat Siła — Piłka nożna 3×',goal:'kondycja',level:'sredni',method:'FBW',days:3,weeks:1,
+   desc:'Tylko siłownia pod piłkę: dwugłowe, pachwiny, jednonóż, zmiana kierunku i moc. Boisko zostaw na osobny dzień.',
+   tags:['mikrocykl','schemat tygodnia','siła','piłka nożna','prewencja','siłownia','3×/tydzień'],
+   color:'var(--teal)',popularity:86,
+   schedule:['Pon: Dwugłowe + pachwiny','Śr: Nogi + COD','Pt: Moc'],
+   days_detail:[]},
+
+  {id:'t30',name:'Schemat Siła — Biegacz 3×',goal:'kondycja',level:'sredni',method:'FBW',days:3,weeks:1,
+   desc:'Tylko siłownia pod bieganie: RDL, nordic curl, jednonóż, łydki i core. Bieg zostaw na osobny dzień.',
+   tags:['mikrocykl','schemat tygodnia','siła','bieganie','biegacz','siłownia','3×/tydzień'],
+   color:'var(--teal)',popularity:88,
+   schedule:['Pon: Łańcuch tylny','Śr: Jednonóż','Pt: Łydki i core'],
    days_detail:[]}
 ];
 
@@ -2014,6 +2130,21 @@ function fillReadyTemplateSessions(){
     D('Bieg łatwy + skipy','runEasy'),
     D('Siła biegacza','runStrength'),
     D('Bieg — interwały','runQuality')
+  ]);
+  set('t28',[
+    D('Siła Nordic — łańcuch tylny i kije','nwGymA'),
+    D('Siła Nordic — nogi i postawa','nwGymB'),
+    D('Siła Nordic — jednonóż','nwGymC')
+  ]);
+  set('t29',[
+    D('Siła piłka — dwugłowe i pachwiny','fnGymA'),
+    D('Siła piłka — nogi i COD','fnGymB'),
+    D('Siła piłka — moc','fnGymC')
+  ]);
+  set('t30',[
+    D('Siła biegacza — łańcuch tylny','runGymA'),
+    D('Siła biegacza — jednonóż','runGymB'),
+    D('Siła biegacza — łydki i core','runGymC')
   ]);
 }
 fillReadyTemplateSessions();
