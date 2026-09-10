@@ -3983,8 +3983,8 @@ function liveStartRest(sec,slot){
     const cue=liveRestCue(left);
     liveRestPaint(n,phase);
     if(cue){
-      const spoken=typeof liveRestSpeak==='function'&&liveRestSpeak(left);
-      if(!spoken)liveRestBeep(cue);
+      if(typeof liveRestSpeak==='function')liveRestSpeak(left);
+      liveRestBeep(cue);
     }
     if(left<=0){
       clearInterval(st.restInterval);
