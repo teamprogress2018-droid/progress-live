@@ -602,37 +602,150 @@ function fiteboWorkoutsForAI(clientId){
   }
   return lines.join('\n').trim();
 }
-function cpContinueFiteboPlan(clientId){
+function fiteboParseReps(r){
+  const s=String(r||'').replace(/powt\.?/i,'').trim();
+  const m=s.match(/(\d+)\s*[-–\/]\s*(\d+)/);
+  if(m)return{lo:+m[1],hi:+m[2]};
+  const n=parseInt(s,10);
+  return{lo:isFinite(n)?n:8,hi:isFinite(n)?n:10};
+}
+function fiteboFmtReps(lo,hi){
+  lo=Math.max(1,Math.round(lo));
+  hi=Math.max(lo,Math.round(hi));
+  return lo===hi?String(lo):(lo+'-'+hi);
+}
+function fiteboWeekStep(i,n,baseSets,baseReps,kg,phase){
+  const sets0=Math.max(1,parseInt(String(baseSets),10)||3);
+  const{lo,hi}=fiteboParseReps(baseReps);
+  const kgNum=parseFloat(String(kg||'').replace(',','.'));
+  const hasKg=isFinite(kgNum)&&kgNum>0;
+  const ph=String(phase||'').toLowerCase();
+  let sets=sets0,rlo=lo,rhi=hi,rpe=7,k=hasKg?kgNum:null;
+  if(/adapt/.test(ph)){
+    sets=Math.max(2,sets0-1);
+    if(i===0){rlo=lo;rhi=Math.max(lo,Math.min(hi,lo+1));rpe=6;}
+    else{rlo=Math.min(hi,lo+1);rhi=hi;rpe=6;}
+  }else if(/deload/.test(ph)){
+    sets=Math.max(2,sets0-2);
+    rlo=lo;rhi=lo;rpe=5;
+    if(hasKg)k=Math.round(kgNum*0.85*10)/10;
+  }else if(/hipertrof/.test(ph)&&/ii|2/.test(ph)){
+    sets=sets0+1;rlo=hi;rhi=hi+1;rpe=8;
+    if(hasKg)k=kgNum+2.5;
+  }else if(/hipertrof/.test(ph)){
+    sets=sets0;rpe=7;
+    if(i%2===1){rlo=hi;rhi=hi;}
+    else{rlo=lo;rhi=hi;}
+  }else if(/si[lł]a|szczyt|intensyf/.test(ph)){
+    sets=sets0;rlo=Math.max(3,lo-2);rhi=Math.max(rlo,lo);rpe=8;
+    if(hasKg)k=kgNum+5;
+  }
+  return{s:String(sets),r:fiteboFmtReps(rlo,rhi),rest:'90s',rpe:String(rpe),kg:k==null?'':String(k)};
+}
+function fiteboSourceDays(clientId){
+  const list=(window.PL||[]).filter(p=>p&&p.clientId===clientId&&isFiteboPlan(p)&&(p.days||[]).some(d=>((d&&d.exercises)||[]).length));
+  const plan=list.find(p=>p.source==='fitebo')||list.find(p=>p.source!=='fitebo-continue')||list[0];
+  if(plan){
+    return(plan.days||[]).filter(d=>d&&!d.rest).map(d=>({
+      day:d.day||d.dayName||'Dzień',
+      muscles:d.muscles||d.focus||'',
+      rest:false,
+      exercises:fbMapExercises(d.exercises)
+    })).filter(d=>d.exercises.length);
+  }
+  return fbPlanDaysFromClientPayload({
+    sessions:(window.SE||[]).filter(s=>s&&s.clientId===clientId&&isFiteboSession(s))
+  });
+}
+function buildFiteboContinuationPlan(clientId,weeksNum){
+  const c=(window.CL||[]).find(x=>x.id===clientId);
+  const srcDays=fiteboSourceDays(clientId);
+  if(!srcDays.length)return null;
+  const n=parseInt(weeksNum,10)||8;
+  const weekKeys=['w1','w2','w3','w4','w5','w6','w7','w8','w9','w10','w11','w12'].slice(0,n);
+  const phases=typeof aplPhasesForPlan==='function'?aplPhasesForPlan('PPL',n,weekKeys):{};
+  const days=srcDays.map(d=>({
+    day:d.day,
+    muscles:d.muscles||'',
+    rest:false,
+    exercises:(d.exercises||[]).map(e=>{
+      const ex={
+        name:e.name,
+        sets:e.sets||'3',
+        reps:e.reps||'8-10',
+        rest:e.rest||'90s',
+        kg:e.kg||'',
+        rpe:e.rpe||'',
+        note:e.note||''
+      };
+      weekKeys.forEach((wk,i)=>{
+        ex[wk]=fiteboWeekStep(i,n,ex.sets,ex.reps,ex.kg,phases[wk]||'');
+      });
+      const w1=ex[weekKeys[0]];
+      if(w1){ex.sets=w1.s;ex.reps=w1.r;ex.kg=w1.kg;ex.rpe=w1.rpe;}
+      return ex;
+    })
+  }));
+  return{
+    name:'Kontynuacja Fitebo — '+n+' tyg.',
+    clientId,
+    clientName:c?c.name:'',
+    method:inferFiteboMethod(srcDays),
+    duration:n,
+    days,
+    weekKeys,
+    phases,
+    currentWeek:weekKeys[0],
+    source:'fitebo-continue',
+    fromFitebo:true
+  };
+}
+function cpExWeekView(e,weekKey){
+  if(typeof e==='string')return{name:e,sets:'',reps:'',kg:''};
+  const wp=weekKey&&e[weekKey];
+  return{
+    name:e.name||e.n||'',
+    sets:wp&&wp.s!=null?wp.s:(e.sets||''),
+    reps:wp&&wp.r!=null?wp.r:(e.reps||''),
+    kg:wp&&wp.kg!=null&&wp.kg!==''?wp.kg:(e.kg||'')
+  };
+}
+function cpSetPlanWeek(planId,idx,clientId){
+  const p=(window.PL||[]).find(x=>x&&x.id===planId);if(!p||!(p.weekKeys||[]).length)return;
+  const keys=p.weekKeys;
+  const i=Math.max(0,Math.min(keys.length-1,idx));
+  p.currentWeek=keys[i];
+  const c=(window.CL||[]).find(x=>x.id===clientId);
+  if(c&&typeof renderCPPlan==='function')renderCPPlan(c);
+}
+async function cpContinueFiteboPlan(clientId){
   const c=(window.CL||[]).find(x=>x.id===clientId);if(!c)return;
-  const ctx=fiteboWorkoutsForAI(clientId);
-  if(!ctx){
+  const draft=buildFiteboContinuationPlan(clientId,8);
+  if(!draft||!(draft.days||[]).length){
     window._fbAttachClientId=clientId;
     if(typeof closeClientProfile==='function')closeClientProfile();
     if(typeof openM==='function')openM('m-fitebo');
-    if(typeof notify==='function')notify('Wklej treningi z Fitebo tego klienta — zapiszą się w zakładce Plan.');
+    if(typeof notify==='function')notify('Wklej treningi z Fitebo tego klienta — skopiuję te same ćwiczenia i rozpiszę tygodnie.');
     return;
   }
-  window._aplFiteboContinue={clientId,context:ctx};
-  if(typeof closeClientProfile==='function')closeClientProfile();
-  if(typeof goTo==='function')goTo('aiplangen');
-  setTimeout(()=>{
-    const sel=document.getElementById('apl-client');
-    if(sel)sel.value=clientId;
-    if(typeof aplFillFromClient==='function')aplFillFromClient();
-    const plan=(window.PL||[]).find(p=>p&&p.clientId===clientId&&isFiteboPlan(p));
-    const method=(plan&&plan.method)||inferFiteboMethod(plan&&plan.days);
-    if(typeof aplSetVal==='function'){
-      if(method)aplSetVal('apl-methods',method);
-      const n=plan&&plan.days?plan.days.filter(d=>d&&!d.rest).length:0;
-      if(n>=2&&n<=6)aplSetVal('apl-days',String(n));
-      aplSetVal('apl-progression','double');
-      aplSetVal('apl-weeks','8');
-    }
-    const notes=document.getElementById('apl-notes');
-    if(notes)notes.value='KONTYNUACJA FITEBO — te same ćwiczenia, dalsza progresja (podwójna: +powt., potem +kg). Ciężary startowe z logów.\n'+ctx;
-    if(typeof notify==='function')notify('Kontynuacja planu z Fitebo — generuję cykl z progresją…');
-    if(typeof aplGenerate==='function')aplGenerate();
-  },200);
+  const names=(draft.days||[]).flatMap(d=>(d.exercises||[]).map(e=>e.name));
+  if(!names.length){
+    if(typeof notify==='function')notify('W logu Fitebo nie ma ćwiczeń — wgraj zrzut z nazwami i seriami.');
+    return;
+  }
+  let plan=(window.PL||[]).find(p=>p&&p.clientId===clientId&&p.source==='fitebo-continue');
+  const now=new Date().toISOString();
+  if(!plan){
+    plan=typeof withTrainer==='function'?withTrainer(Object.assign({id:typeof newId==='function'?newId('p'):('p_fb_'+Date.now()),createdAt:now},draft)):Object.assign({id:'p_fb_'+Date.now(),createdAt:now},draft);
+    (window.PL||(window.PL=[])).push(plan);
+  }else{
+    Object.assign(plan,draft,{updatedAt:now});
+  }
+  if(typeof persistById==='function'){
+    try{await persistById('plans',plan);}catch(e){console.warn('fitebo continue persist',e);}
+  }
+  if(typeof renderCPPlan==='function')renderCPPlan(c);
+  if(typeof notify==='function')notify('✓ Skopiowano ćwiczenia z Fitebo — przełączaj tygodnie (adaptacja → hipertrofia).');
 }
 window.fbNormName=fbNormName;
 window.fbFindClientByName=fbFindClientByName;
@@ -640,6 +753,12 @@ window.fbPlanDaysFromClientPayload=fbPlanDaysFromClientPayload;
 window.inferFiteboMethod=inferFiteboMethod;
 window.fiteboWorkoutsForAI=fiteboWorkoutsForAI;
 window.clientHasFiteboWorkouts=clientHasFiteboWorkouts;
+window.fiteboParseReps=fiteboParseReps;
+window.fiteboWeekStep=fiteboWeekStep;
+window.fiteboSourceDays=fiteboSourceDays;
+window.buildFiteboContinuationPlan=buildFiteboContinuationPlan;
+window.cpExWeekView=cpExWeekView;
+window.cpSetPlanWeek=cpSetPlanWeek;
 window.cpContinueFiteboPlan=cpContinueFiteboPlan;
 
 function fbFileLoad(input){
@@ -1528,7 +1647,7 @@ function renderCPPlan(c){
       ?`<div style="text-align:center;padding:40px;color:var(--muted);">
           <div style="font-size:32px;margin-bottom:10px;opacity:0.3;">📋</div>
           <div>Brak planów treningowych</div>
-          <div style="font-size:12px;max-width:360px;margin:10px auto 0;line-height:1.5;">Import z Fitebo zapisuje treningi tutaj jako „Plan z Fitebo”. Potem <strong>Kontynuuj plan z Fitebo</strong> — AI zrobi kolejny cykl z progresją.</div>
+          <div style="font-size:12px;max-width:380px;margin:10px auto 0;line-height:1.5;">Import z Fitebo zapisuje Twoje ćwiczenia. <strong>Kontynuuj plan z Fitebo</strong> kopiuje je 1:1 i rozpisuje tygodnie (adaptacja → hipertrofia) — bez dopisywania nowych.</div>
         </div>`
       :plans.map((p,pi)=>`
         <div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;animation:fadeUp 0.15s ease ${pi*0.05}s both;">
@@ -1543,19 +1662,31 @@ function renderCPPlan(c){
               <button onclick="delPlanFromProfile('${p.id}','${c.id}')" style="background:none;border:none;color:var(--muted2);font-size:16px;cursor:pointer;line-height:1;" title="Usuń plan">×</button>
             </div>
           </div>
+          ${(p.weekKeys||[]).length>1?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;">${(p.weekKeys||[]).map((wk,wi)=>{
+            const on=wk===(p.currentWeek||p.weekKeys[0]);
+            const ph=(p.phases&&p.phases[wk])||('Tyg '+(wi+1));
+            return `<button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();cpSetPlanWeek('${p.id}',${wi},'${c.id}')" style="border-color:${on?'var(--accent)':'var(--border)'};color:${on?'var(--accent)':'var(--muted)'};">${wi+1}. ${typeof escHtml==='function'?escHtml(ph):ph}</button>`;
+          }).join('')}</div>`:''}
           <!-- dni treningowe -->
           <div style="display:flex;flex-direction:column;gap:5px;">
-            ${(p.days||[]).map(d=>`
+            ${(p.days||[]).map(d=>{
+              const wk=p.currentWeek||(p.weekKeys&&p.weekKeys[0]);
+              const exs=d.exercises||[];
+              return `
               <div style="background:var(--s3);border-radius:8px;padding:8px 10px;">
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:${d.rest||!(d.exercises&&d.exercises.length)?0:5}px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:${d.rest||!exs.length?0:5}px;">
                   <span style="font-size:12px;font-family:'DM Mono',monospace;color:${d.rest?'var(--muted)':'var(--accent)'};font-weight:700;min-width:32px;">${d.day||d.dayName||'—'}</span>
                   <span style="font-size:14px;font-weight:600;color:${d.rest?'var(--muted)':'var(--text)'};">${d.rest?'Odpoczynek':(d.muscles||d.name||d.focus||'Trening')}</span>
                 </div>
-                ${!d.rest&&(d.exercises||[]).length?`<div style="padding-left:40px;display:flex;flex-wrap:wrap;gap:4px;">
-                  ${(d.exercises||[]).slice(0,4).map(e=>`<span style="font-size:12px;color:var(--muted);background:var(--s2);border-radius:4px;padding:2px 7px;">${typeof e==='string'?e:e.name||e.n||''}</span>`).join('')}
-                  ${(d.exercises||[]).length>4?`<span style="font-size:12px;color:var(--muted2);">+${(d.exercises||[]).length-4} więcej</span>`:''}
+                ${!d.rest&&exs.length?`<div style="padding-left:12px;display:flex;flex-direction:column;gap:4px;">
+                  ${exs.map(e=>{
+                    const v=typeof cpExWeekView==='function'?cpExWeekView(e,wk):{name:(e&&e.name)||e,sets:e&&e.sets,reps:e.reps,kg:e&&e.kg};
+                    const meta=[v.sets&&v.reps?(v.sets+'×'+v.reps):'',v.kg?v.kg+' kg':''].filter(Boolean).join(' · ');
+                    return `<div style="font-size:12px;color:var(--text);background:var(--s2);border-radius:4px;padding:4px 8px;display:flex;justify-content:space-between;gap:8px;"><span>${typeof escHtml==='function'?escHtml(v.name||''):v.name}</span><span style="color:var(--muted);font-family:'DM Mono',monospace;white-space:nowrap;">${typeof escHtml==='function'?escHtml(meta):meta}</span></div>`;
+                  }).join('')}
                 </div>`:''}
-              </div>`).join('')}
+              </div>`;
+            }).join('')}
           </div>
           <div style="margin-top:10px;display:flex;gap:6px;">
             <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="liveSelectPlanForClient('${p.id}','${c.id}')">▶ Trenuj teraz</button>
