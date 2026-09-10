@@ -793,6 +793,13 @@ function builderRefreshAllDayFocus(){
 function builderOnMethodChange(){
   builderRefreshAllDayFocus();
   builderRefreshRationale();
+  const circ=typeof normalizeRationaleMethod==='function'&&normalizeRationaleMethod(builderGetMethod())==='Obwodowy';
+  if(circ){
+    document.querySelectorAll('.builder-day').forEach(de=>{
+      const cb=de.querySelector('.circ');
+      if(cb&&!cb.checked){cb.checked=true;builderOnCircuitToggle(de.id);}
+    });
+  }
 }
 window.builderOnMethodChange=builderOnMethodChange;
 function builderEduCtx(){
@@ -885,14 +892,42 @@ function addDay(){
   </div>
   <div class="rest-s builder-rest-state" style="display:none;">— Dzień odpoczynku / regeneracja aktywna</div>
   <div class="work-s">
+    <div class="builder-circuit-bar">
+      <label class="builder-circuit-toggle"><input type="checkbox" class="circ" style="accent-color:var(--accent);" onchange="builderOnCircuitToggle('${id}')"> Obwód (stacje)</label>
+      <input type="text" class="ex-inp builder-round-rest" data-f="roundRest" placeholder="90s rundy" title="Przerwa między rundami obwodu" hidden>
+    </div>
     <div class="ex-tbl-hdr"><span>ĆWICZENIE</span><span>SER${tip('sets')}</span><span>POWT${tip('reps')}</span><span>KG/S${tip('kg')}</span><span>RPE${tip('rpe')}</span><span>RIR${tip('rir')}</span><span>PRZERWA${tip('rest')}</span><span>TEMPO${tip('tempo')}</span><span></span></div>
     <div class="ex-rows"></div>
     <button class="add-ex-btn" onclick="addRow('${id}')">+ DODAJ ĆWICZENIE</button>
   </div>`;
   document.getElementById('builder-days').appendChild(div);
+  if(typeof normalizeRationaleMethod==='function'&&normalizeRationaleMethod(builderGetMethod())==='Obwodowy'){
+    const cb=div.querySelector('.circ');
+    if(cb){cb.checked=true;builderOnCircuitToggle(id);}
+  }
   builderRefreshAllDayFocus();
   builderRefreshRationale();
 }
+function builderOnCircuitToggle(id){
+  const el=document.getElementById(id);
+  if(!el)return;
+  builderPaintCircuitDay(el);
+}
+window.builderOnCircuitToggle=builderOnCircuitToggle;
+function builderPaintCircuitDay(dayEl){
+  if(!dayEl)return;
+  const on=!!(dayEl.querySelector('.circ')||{}).checked;
+  dayEl.classList.toggle('is-circuit',on);
+  const rr=dayEl.querySelector('.builder-round-rest');
+  if(rr)rr.hidden=!on;
+  [...dayEl.querySelectorAll('.ex-row')].forEach((r,i)=>{
+    const badge=r.querySelector('.builder-station-badge');
+    if(badge){badge.hidden=!on;badge.textContent='S'+(i+1);}
+    const tr=r.querySelector('[data-f="trans"]');
+    if(tr)tr.hidden=!on;
+  });
+}
+window.builderPaintCircuitDay=builderPaintCircuitDay;
 function toggleR(id){const el=document.getElementById(id);const r=el.querySelector('.rc').checked;el.querySelector('.rest-s').style.display=r?'block':'none';el.querySelector('.work-s').style.display=r?'none':'block';builderRefreshAllDayFocus();builderRefreshRationale();}
 function addRow(dayId){
   const rows=document.querySelector('#'+dayId+' .ex-rows');
@@ -900,6 +935,7 @@ function addRow(dayId){
   const ctx=typeof builderEduCtx==='function'?builderEduCtx():{};
   const t=k=>typeof eduTipText==='function'?String(eduTipText(k,ctx)).replace(/"/g,'&quot;'):'';
   div.innerHTML='<div class="builder-ex-namecell">'
+    +'<span class="builder-station-badge" hidden>S1</span>'
     +'<button type="button" class="builder-ex-thumb" hidden title="Podgląd techniki" onclick="builderOpenExMedia(this.closest(\'.ex-row\'))"></button>'
     +'<input type="text" placeholder="Nazwa ćwiczenia..." class="ex-inp ex-inp-name ex-ac-input" style="width:100%;" autocomplete="off" data-f="name" oninput="builderOnExNameChange(this.closest(\'.ex-row\'))">'
     +'</div>'
@@ -939,11 +975,13 @@ function addRow(dayId){
     +'<button type="button" class="ex-ss-btn builder-alt-toggle" onclick="builderToggleAlts(this.closest(\'.ex-row\'))" title="Pokaż zamienniki" aria-expanded="false">Zamienniki</button>'
     +'<button type="button" class="ex-ss-btn" onclick="builderToggleSs(this)" title="Połącz z następnym ćwiczeniem w super-serię">⚡ SS</button>'
     +'<button type="button" class="ex-ss-btn ex-kind-btn wu" onclick="builderCycleKind(this,\'wu\',2)" title="Serie rozgrzewkowe (1–2) — lżejsze kg, krótsza przerwa">WU</button>'
-    +'<button type="button" class="ex-ss-btn ex-kind-btn drop" onclick="builderCycleKind(this,\'drop\',2)" title="Drop sety po roboczych — bez przerwy, mniejszy ciężar (80%/60%)">DROP</button>'
+    +'<button type="button" class="ex-ss-btn ex-kind-btn drop" onclick="builderCycleKind(this,\'drop\',2)" title="Drop sety po roboczych — bez przerwy, zrzut 20% lub kg">DROP</button>'
+    +'<input type="text" class="ex-inp ex-drop-step" data-f="dropStep" placeholder="20% / 10kg" title="Zrzut między dropami: 20% ciężaru roboczego albo 10kg" hidden>'
     +'<button type="button" class="ex-ss-btn ex-kind-btn cluster" onclick="builderCycleKind(this,\'cluster\',3)" title="Klaster: mini-serie z 20 s wewnątrz (1–3)">KL</button>'
     +'<button type="button" class="ex-ss-btn ex-kind-btn rp" onclick="builderCycleKind(this,\'rp\',2)" title="Rest-pause: 1–2 dogrywki po 15 s">RP</button>'
     +'<button type="button" class="ex-ss-btn ex-kind-btn amrap" onclick="builderToggleAmrap(this)" title="Ostatnia seria robocza = AMRAP (max powtórzeń)">AMRAP</button>'
     +'<button type="button" class="ex-ss-btn ex-emom-btn" onclick="builderToggleEmom(this)" title="EMOM: każda seria na starcie minuty, reszta minuty to przerwa">EMOM</button>'
+    +'<input type="text" class="ex-inp ex-trans-inp" data-f="trans" placeholder="20s przejście" title="Czas przejścia do następnej stacji obwodu" hidden>'
     +'</div>'
     +'<div class="builder-period-preview" style="grid-column:1/-1;display:none;"></div>'
     +'</div>';
@@ -953,6 +991,9 @@ function addRow(dayId){
   builderRefreshAltChips(div);
   builderRefreshTechMedia(div);
   builderRefreshPeriodPreview();
+  builderPaintKinds(div);
+  const dayEl=document.getElementById(dayId);
+  if(dayEl)builderPaintCircuitDay(dayEl);
 }
 function builderAltListForRow(row){
   if(!row)return[];
@@ -1139,8 +1180,10 @@ window.builderRefreshRowExtras=builderRefreshRowExtras;
 function builderRemoveRow(btn){
   const row=btn.closest('.ex-row');
   const box=row&&row.parentElement;
+  const dayEl=row&&row.closest('.builder-day');
   if(row)row.remove();
   if(box)builderPaintSs(box);
+  if(dayEl)builderPaintCircuitDay(dayEl);
 }
 window.builderRemoveRow=builderRemoveRow;
 function builderMoveRow(btn,dir){
@@ -1243,7 +1286,9 @@ function builderPaintKinds(row){
   const rpBtn=row.querySelector('.ex-kind-btn.rp');
   const amBtn=row.querySelector('.ex-kind-btn.amrap');
   if(wuBtn){wuBtn.textContent=wu?('WU '+wu):'WU';wuBtn.classList.toggle('on',!!wu);wuBtn.disabled=inSs;wuBtn.title=inSs?'WU/DROP nie w super-serii':'Serie rozgrzewkowe (1–2) — lżejsze kg, krótsza przerwa';}
-  if(drBtn){drBtn.textContent=dr?('DROP '+dr):'DROP';drBtn.classList.toggle('on',!!dr);drBtn.disabled=inSs;drBtn.title=inSs?'WU/DROP nie w super-serii':'Drop sety po roboczych — bez przerwy, mniejszy ciężar (80%/60%)';}
+  if(drBtn){drBtn.textContent=dr?('DROP '+dr):'DROP';drBtn.classList.toggle('on',!!dr);drBtn.disabled=inSs;drBtn.title=inSs?'WU/DROP nie w super-serii':'Drop sety po roboczych — bez przerwy; wpisz 20% albo 10kg';}
+  const stepInp=row.querySelector('[data-f="dropStep"]');
+  if(stepInp){stepInp.hidden=!dr||inSs;if(!dr)stepInp.value=stepInp.value;}
   if(clBtn){clBtn.textContent=cl?('KL '+cl):'KL';clBtn.classList.toggle('on',!!cl);clBtn.disabled=inSs;clBtn.title=inSs?'Klaster nie w super-serii':'Klaster: mini-serie z 20 s wewnątrz (1–3)';}
   if(rpBtn){rpBtn.textContent=rp?('RP '+rp):'RP';rpBtn.classList.toggle('on',!!rp);rpBtn.disabled=inSs;rpBtn.title=inSs?'Rest-pause nie w super-serii':'Rest-pause: 1–2 dogrywki po 15 s';}
   if(amBtn)amBtn.classList.toggle('on',am);
@@ -1563,6 +1608,12 @@ function editPlan(id){
       if(rc){rc.checked=true;toggleR(dayEl.id);}
       return;
     }
+    const circOn=!!d.circuit||(typeof normalizeRationaleMethod==='function'&&normalizeRationaleMethod(plan.method)==='Obwodowy');
+    const circCb=dayEl.querySelector('.circ');
+    if(circCb&&circOn)circCb.checked=true;
+    const rr=dayEl.querySelector('[data-f="roundRest"]');
+    if(rr&&d.roundRest)rr.value=d.roundRest;
+    if(circOn)builderPaintCircuitDay(dayEl);
     (d.exercises||[]).forEach(ex=>{
       addRow(dayEl.id);
       const rows=dayEl.querySelectorAll('.ex-row');
@@ -1585,6 +1636,8 @@ function editPlan(id){
       set('video',parsed.video||(ex&&typeof ex==='object'&&ex.video)||'');
       set('wu',parsed.wu||(ex&&typeof ex==='object'&&ex.wu)||'');
       set('drop',parsed.drop||(ex&&typeof ex==='object'&&ex.drop)||'');
+      set('dropStep',(ex&&typeof ex==='object'&&ex.dropStep)||parsed.dropStep||'');
+      set('trans',(ex&&typeof ex==='object'&&(ex.trans||ex.transSec))||parsed.trans||'');
       set('cluster',parsed.cluster||(ex&&typeof ex==='object'&&ex.cluster)||'');
       set('rp',parsed.rp||(ex&&typeof ex==='object'&&ex.rp)||'');
       set('amrap',((ex&&typeof ex==='object'&&ex.amrap)||parsed.amrap)?'1':'');
@@ -1595,6 +1648,7 @@ function editPlan(id){
       if(typeof builderRefreshRowExtras==='function')builderRefreshRowExtras(row);
     });
     if(typeof builderPaintSs==='function')builderPaintSs(dayEl.querySelector('.ex-rows'));
+    if(typeof builderPaintCircuitDay==='function')builderPaintCircuitDay(dayEl);
   });
   const titleEl=document.querySelector('#screen-builder .topbar-title');
   if(titleEl)titleEl.textContent='Edytuj plan: '+(plan.name||'');
@@ -1639,6 +1693,8 @@ async function savePlan(){
         video:typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl(g('video')):g('video').trim(),
         wu:g('ss')?0:(typeof parseSetKindCount==='function'?parseSetKindCount(g('wu'),2):(parseInt(g('wu'),10)||0)),
         drop:g('ss')?0:(typeof parseSetKindCount==='function'?parseSetKindCount(g('drop'),2):(parseInt(g('drop'),10)||0)),
+        dropStep:g('ss')?'':String(g('dropStep')||'').trim(),
+        trans:g('trans').trim(),
         cluster:g('ss')?0:(typeof parseSetKindCount==='function'?parseSetKindCount(g('cluster'),3):(parseInt(g('cluster'),10)||0)),
         rp:g('ss')?0:(typeof parseSetKindCount==='function'?parseSetKindCount(g('rp'),2):(parseInt(g('rp'),10)||0)),
         amrap:g('amrap')==='1'
@@ -1649,7 +1705,7 @@ async function savePlan(){
       applySsLabels(exercises);
       exercises.forEach(e=>{e.ss=e.ssLetter||'';delete e.ssLabel;delete e.ssLetter;});
     }
-    days.push({day:dn,muscles,exercises,sets,rest:false});
+    days.push({day:dn,muscles,exercises,sets,rest:false,circuit:!!(de.querySelector('.circ')||{}).checked,roundRest:(de.querySelector('[data-f="roundRest"]')||{}).value||''});
   });
   if(!days.length){notify('Dodaj przynajmniej jeden dzień!');return;}
   const progression=typeof normalizePlanProgression==='function'?normalizePlanProgression((document.getElementById('b-progression')||{}).value):'double';

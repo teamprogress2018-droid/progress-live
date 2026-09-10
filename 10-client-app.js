@@ -866,7 +866,7 @@ function cwOpen(planId,dayIdx){
   if(!plan){if(typeof notify==='function')notify('Nie znaleziono planu');return;}
   const day=(plan.days||[])[dayIdx];
   if(!day||day.rest||!(day.exercises||[]).length){if(typeof notify==='function')notify('Ten dzień nie ma ćwiczeń');return;}
-  const exercises=mapPlanExercisesForClient(day.exercises,window._clientId,plan);
+  const exercises=mapPlanExercisesForClient(day.exercises,window._clientId,plan,day);
   if(!exercises.length){if(typeof notify==='function')notify('Brak ćwiczeń w tym dniu');return;}
   cwClearTimers();
   window._cw={
@@ -989,13 +989,21 @@ function cwCheckSet(setIdx){
   }
   const nxtSet=ex.sets.find(s=>!s.done);
   if(nxtSet&&typeof skipRestBeforeSet==='function'&&skipRestBeforeSet(nxtSet)){
-    if(typeof notify==='function')notify((prMsg?prMsg+' · ':'')+'Drop set — bez przerwy, zdejmij ciężar');
+    const msg=typeof dropToastText==='function'?dropToastText(nxtSet):'Drop set — bez przerwy, zdejmij ciężar';
+    if(typeof notify==='function')notify((prMsg?prMsg+' · ':'')+msg);
     cwRender();
     return;
   }
   const act=typeof ssNextAfterSet==='function'?ssNextAfterSet(cw.exercises,cw.exIdx):null;
   if(act&&act.kind==='partner'){
     const nxt=cw.exercises[act.exIdx];
+    if(ex.circuit||(nxt&&nxt.circuit)){
+      const sec=Number(nxt&&nxt.transSec)||Number(ex.transSec)||20;
+      cw.exIdx=act.exIdx;
+      if(typeof notify==='function')notify((prMsg?prMsg+' · ':'')+'Stacja → '+(nxt&&nxt.ssLabel?nxt.ssLabel+' ':'')+(nxt?nxt.name:'')+' · '+sec+' s przejścia');
+      cwStartRest(sec);
+      return;
+    }
     cwGoEx(act.exIdx);
     if(typeof notify==='function')notify(typeof superseriesToastText==='function'?superseriesToastText(nxt,{prMsg}):('Super-seria → '+(nxt&&nxt.ssLabel?nxt.ssLabel+' ':'')+(nxt?nxt.name:'')));
     return;
@@ -1005,7 +1013,9 @@ function cwCheckSet(setIdx){
     cw.exIdx=act.exIdx;
     const nextEx=cw.exercises[act.exIdx];
     const nextSt=(nextEx.sets||[]).find(x=>!x.done);
-    const sec=typeof restSecAfterSet==='function'?restSecAfterSet(nextEx,st,nextSt):(nextEx&&nextEx.restSec)||90;
+    const circ=!!(ex.circuit||(nextEx&&nextEx.circuit));
+    const sec=circ?(Number(ex.roundRestSec)||90):(typeof restSecAfterSet==='function'?restSecAfterSet(nextEx,st,nextSt):(nextEx&&nextEx.restSec)||90);
+    if(circ&&typeof notify==='function')notify('Runda obwodu — '+sec+' s');
     cwStartRest(sec);
     return;
   }

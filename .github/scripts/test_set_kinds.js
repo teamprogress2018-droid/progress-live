@@ -41,7 +41,8 @@ vm.runInContext(fs.readFileSync(path.join(__dirname, '..', '..', '01-core.js'), 
 const {
   parsePlanExercise, expandExerciseSets, skipRestBeforeSet, restSecAfterSet,
   formatSetKindTag, formatPlanExerciseLine, isWorkingSet, setKindBadge,
-  mapPlanExercisesForClient, plannedRir, rirFromRpe
+  mapPlanExercisesForClient, plannedRir, rirFromRpe,
+  parseDropStep, dropKgAt, dropToastText, isCircuitDay, applyCircuitStations, ssNextAfterSet
 } = ctx;
 
 let failed = 0;
@@ -125,6 +126,43 @@ eq('working cluster', isWorkingSet({kind: 'cluster'}), true);
 eq('rest after work before cluster', restSecAfterSet({restSec: 90}, clExp[1], clExp[2]), 20);
 eq('skip rest before rp', skipRestBeforeSet(clExp.find(s => s.kind === 'restpause')), true);
 eq('tag KL RP', formatSetKindTag({cluster: 2, rp: 1}), 'KL2 RP1');
+
+eq('parse dropStep', parsePlanExercise({name: 'X', drop: 2, dropStep: '20%'}).dropStep, '20%');
+eq('parseDrop 20%', parseDropStep('20%'), {mode: 'pct', n: 20});
+eq('parseDrop 10kg', parseDropStep('10kg'), {mode: 'kg', n: 10});
+eq('drop 20% first', dropKgAt('100', 0, 2, '20%'), '80');
+eq('drop 20% second', dropKgAt('100', 1, 2, '20%'), '60');
+eq('drop 10kg first', dropKgAt('100', 0, 2, '10kg'), '90');
+eq('drop 10kg second', dropKgAt('100', 1, 2, '10kg'), '80');
+const dropExp = expandExerciseSets(
+  {name: 'Przysiad', sets: '1', reps: '8', drop: 2, dropStep: '25%', kg: '100'},
+  {plannedKg: '100'}
+);
+eq('custom drop kg', dropExp.filter(s => s.kind === 'drop').map(s => s.kg), ['75', '50']);
+eq('tag drop step', formatSetKindTag({drop: 2, dropStep: '20%'}), 'DROP2 −20%');
+eq('toast drop kg', dropToastText({kg: '80'}), 'Drop — zejdź do 80 kg, bez przerwy');
+
+eq('circuit day flag', isCircuitDay({circuit: true}, {method: 'PPL'}), true);
+eq('circuit method', isCircuitDay({}, {method: 'Obwodowy'}), true);
+eq('not circuit ppl', isCircuitDay({muscles: 'Push'}, {method: 'PPL'}), false);
+const circ = applyCircuitStations([
+  {name: 'Goblet', sets: '3'},
+  {name: 'Wiosło', sets: '3'},
+  {name: 'Pompki', sets: '3'}
+], {method: 'PPL'}, {circuit: true, roundRest: '120s'});
+eq('station labels', circ.map(e => e.ssLabel), ['S1', 'S2', 'S3']);
+eq('trans default', circ[0].transSec, 20);
+eq('round rest', circ[0].roundRestSec, 120);
+eq('circuit ss group', circ[0].ss, '○');
+circ.forEach((e, i) => {
+  e.sets = [{done: false}, {done: false}];
+});
+circ[0].sets[0].done = true;
+eq('circuit after S1 → S2', ssNextAfterSet(circ, 0), {kind: 'partner', exIdx: 1});
+circ[1].sets[0].done = true;
+eq('circuit after S2 → S3', ssNextAfterSet(circ, 1), {kind: 'partner', exIdx: 2});
+circ[2].sets[0].done = true;
+eq('circuit after S3 → round rest S1', ssNextAfterSet(circ, 2), {kind: 'rest', exIdx: 0});
 
 if (failed) {
   console.error('\n' + failed + ' test(s) failed');
