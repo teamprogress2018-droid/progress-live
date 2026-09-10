@@ -1,0 +1,1118 @@
+From 45c49bd46c040f09b6b6e9610b375b2ac3e76415 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Sun, 23 Aug 2026 17:34:09 +0000
+Subject: [PATCH] fix: napraw generowanie planu (puste tygodnie w1/w2)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+AI zwracało JSON z niezeskejpowanymi cudzysłowami w polach tekstowych,
+więc parser padał i UI pokazywał "Pusta odpowiedź dla tygodni w1, w2".
+Parser teraz naprawia typowe błędy JSON, a tygodnie 2–8 liczy aplikacja
+z bazy tygodnia 1 zamiast kolejnych wywołań API.
+---
+ index.html        | 407 ++++++++++++++++++++++++++++++++++------------
+ test_plan_json.js | 113 +++++++++++++
+ trener_ai_v3.html | 397 +++++++++++++++++++++++++++++++-------------
+ 3 files changed, 698 insertions(+), 219 deletions(-)
+ create mode 100644 test_plan_json.js
+
+diff --git a/index.html b/index.html
+index 88caa8a..cd40bf3 100644
+--- a/index.html
++++ b/index.html
+@@ -3012,18 +3012,9 @@ WAŻNE:
+       raw = raw.replace(/```json|```/g, '').trim();
+       const first = raw.indexOf('{'); const last = raw.lastIndexOf('}');
+       if (first === -1) throw new Error(`Brak JSON w części ${chunkIdx+1}`);
+-      let jsonStr = raw.substring(first, last+1);
+       let chunkPlan;
+-      try { chunkPlan = JSON.parse(jsonStr); }
+-      catch(e) {
+-        let rep = jsonStr.replace(/[\u0000-\u001F\u007F]/g, ' ').replace(/,\s*([}\]])/g, '$1');
+-        rep = rep.replace(/,?\s*"[^"]*$/, '').replace(/,\s*$/, '');
+-        const o = (rep.match(/\[/g)||[]).length - (rep.match(/\]/g)||[]).length;
+-        const b = (rep.match(/\{/g)||[]).length - (rep.match(/\}/g)||[]).length;
+-        for(let i=0;i<Math.max(0,o);i++) rep+=']';
+-        for(let i=0;i<Math.max(0,b);i++) rep+='}';
+-        chunkPlan = JSON.parse(rep);
+-      }
++      try { chunkPlan = parseAIJson(raw); }
++      catch(e) { throw new Error(`Niepoprawny JSON w części ${chunkIdx+1}: ${e.message}`); }
+ 
+       if (isFirstChunk) {
+         planMeta = chunkPlan;
+@@ -7520,6 +7511,190 @@ function renderKnowledgeBase(){const list=document.getElementById('kb-list');if(
+ async function addYouTube(){const url=document.getElementById('yt-url').value.trim();if(!url||url.length<20){alert('Wklej transkrypcję (minimum 20 znaków)!');return;}const status=document.getElementById('yt-status');status.style.display='block';status.textContent='⏳ Tworzę notatki...';try{const resp=await fetch('https://anthropic-proxy.teamprogress2018.workers.dev',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,messages:[{role:'user',content:`Przeanalizuj poniższą transkrypcję/napisy z YouTube i stwórz profesjonalne notatki trenera:\n\n${url}`}]})});const data=await resp.json();const text=data.content?.[0]?.text||'';if(!text)throw new Error('Brak odpowiedzi');addToKnowledgeBase('YouTube: notatki',text);status.textContent='✅ Dodano do bazy wiedzy!';document.getElementById('yt-url').value='';setTimeout(()=>{status.style.display='none';},3000);}catch(e){status.textContent='❌ Błąd. Spróbuj ponownie.';}}
+ 
+ // CHAT
++// ── AI JSON PARSER ──
++function extractJsonObject(text){
++  const s=String(text||'');
++  const start=s.search(/[\[{]/);
++  if(start<0)return s.trim();
++  let depth=0,inStr=false,esc=false;
++  for(let i=start;i<s.length;i++){
++    const c=s[i];
++    if(inStr){
++      if(esc){esc=false;continue;}
++      if(c==='\\'){esc=true;continue;}
++      if(c==='"')inStr=false;
++      continue;
++    }
++    if(c==='"'){inStr=true;continue;}
++    if(c==='{'||c==='[')depth++;
++    else if(c==='}'||c===']'){
++      depth--;
++      if(depth===0)return s.slice(start,i+1);
++    }
++  }
++  return s.slice(start);
++}
++function repairJsonInternalQuotes(s){
++  let out='';
++  let i=0;
++  let inStr=false;
++  let esc=false;
++  while(i<s.length){
++    const c=s[i];
++    if(inStr){
++      if(esc){out+=c;esc=false;i++;continue;}
++      if(c==='\\'){out+=c;esc=true;i++;continue;}
++      if(c!=='"'){out+=c;i++;continue;}
++      let j=i+1;
++      while(j<s.length&&/[\s\n\r\t]/.test(s[j]))j++;
++      const n=s[j];
++      if(!n||n===','||n===':'||n==='}'||n===']'){
++        inStr=false;
++        out+=c;
++        i++;
++        continue;
++      }
++      out+='\\"';
++      i++;
++      continue;
++    }
++    out+=c;
++    if(c==='"')inStr=true;
++    i++;
++  }
++  if(inStr)out+='"';
++  return out;
++}
++function repairJsonText(input){
++  let s=String(input||'')
++    .replace(/```(?:json)?/gi,'')
++    .replace(/[\u201C\u201D\u00AB\u00BB]/g,'"')
++    .replace(/[\u2018\u2019]/g,"'")
++    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g,' ')
++    .trim();
++  s=extractJsonObject(s);
++  s=repairJsonInternalQuotes(s);
++  let inStr=false,esc=false;
++  for(let i=0;i<s.length;i++){
++    const c=s[i];
++    if(inStr){
++      if(esc){esc=false;continue;}
++      if(c==='\\'){esc=true;continue;}
++      if(c==='"')inStr=false;
++    }else if(c==='"')inStr=true;
++  }
++  if(inStr)s+='"';
++  const isWs=c=>c===' '||c==='\n'||c==='\r'||c==='\t';
++  let out='';
++  inStr=false;esc=false;
++  let lastSig='';
++  const maybeComma=()=>{
++    if(lastSig==='}'||lastSig===']'||lastSig==='"'||(lastSig>='0'&&lastSig<='9')||lastSig==='e'||lastSig==='l')out+=',';
++  };
++  for(let i=0;i<s.length;i++){
++    const c=s[i];
++    if(inStr){
++      out+=c;
++      if(esc){esc=false;continue;}
++      if(c==='\\'){esc=true;continue;}
++      if(c==='"'){inStr=false;lastSig='"';}
++      continue;
++    }
++    if(isWs(c)){out+=c;continue;}
++    if(c===','){
++      out=out.replace(/,(\s*)$/,'$1');
++      out+=c;
++      lastSig=',';
++      continue;
++    }
++    if(c==='"'){
++      maybeComma();
++      inStr=true;
++      out+=c;
++      lastSig='"';
++      continue;
++    }
++    if(c==='}'||c===']'){
++      out=out.replace(/,(\s*)$/,'$1');
++      out+=c;
++      lastSig=c;
++      continue;
++    }
++    if(c==='{'||c==='['){
++      maybeComma();
++      out+=c;
++      lastSig=c;
++      continue;
++    }
++    if((c==='-'||(c>='0'&&c<='9')||c==='t'||c==='f'||c==='n')){
++      maybeComma();
++    }
++    out+=c;
++    lastSig=c;
++  }
++  inStr=false;esc=false;
++  const stack=[];
++  for(let i=0;i<out.length;i++){
++    const c=out[i];
++    if(inStr){
++      if(esc){esc=false;continue;}
++      if(c==='\\'){esc=true;continue;}
++      if(c==='"')inStr=false;
++      continue;
++    }
++    if(c==='"'){inStr=true;continue;}
++    if(c==='{')stack.push('}');
++    else if(c==='[')stack.push(']');
++    else if(c==='}'||c===']')stack.pop();
++  }
++  while(stack.length)out+=stack.pop();
++  return out.replace(/,(\s*[}\]])/g,'$1').replace(/,\s*,+/g,',');
++}
++function salvagePlanJson(repaired){
++  const markers=[',{"name":',',{"sessionName":'];
++  for(const marker of markers){
++    const cut=repaired.lastIndexOf(marker);
++    if(cut<=0)continue;
++    let t=repaired.substring(0,cut).replace(/,\s*$/,'');
++    const stack=[];
++    let inStr=false,esc=false;
++    for(let i=0;i<t.length;i++){
++      const c=t[i];
++      if(inStr){
++        if(esc){esc=false;continue;}
++        if(c==='\\'){esc=true;continue;}
++        if(c==='"')inStr=false;
++        continue;
++      }
++      if(c==='"'){inStr=true;continue;}
++      if(c==='{')stack.push('}');
++      else if(c==='[')stack.push(']');
++      else if(c==='}'||c===']')stack.pop();
++    }
++    while(stack.length)t+=stack.pop();
++    try{return JSON.parse(t);}catch(e){}
++  }
++  throw new Error('Nie udało się odzyskać JSON');
++}
++function parseAIJson(raw){
++  const attempts=[
++    ()=>JSON.parse(repairJsonText(raw)),
++    ()=>JSON.parse(repairJsonInternalQuotes(extractJsonObject(String(raw||'').replace(/```(?:json)?/gi,'').trim()))),
++    ()=>{
++      const clean=String(raw||'').replace(/```(?:json)?/gi,'').trim();
++      const m=clean.match(/\{[\s\S]*\}/);
++      if(!m)throw new Error('Brak JSON w odpowiedzi AI');
++      return JSON.parse(repairJsonText(m[0]));
++    },
++    ()=>salvagePlanJson(repairJsonText(raw))
++  ];
++  let lastErr=null;
++  for(const tryParse of attempts){
++    try{return tryParse();}catch(e){lastErr=e;}
++  }
++  throw lastErr||new Error('Nie udało się sparsować planu AI');
++}
++
+ async function callAPI(system, userMsg, maxTokens, images) {
+   const content = (images && images.length)
+     ? [...images.map(img => ({type:'image', source:{type:'base64', media_type:img.mediaType, data:img.base64}})), {type:'text', text:userMsg}]
+@@ -7543,56 +7718,10 @@ async function callAPI(system, userMsg, maxTokens, images) {
+     break;
+   }
+   const raw = (data?.content||[]).map(b=>b.text||'').join('');
+-  console.log('API raw length:', raw.length, 'preview:', raw.substring(0,80));
+-  const first = raw.indexOf('{'); const last = raw.lastIndexOf('}');
+-  if (first === -1) { console.error('No { in response'); return null; }
+-  let jsonStr = last > first ? raw.substring(first, last+1) : raw.substring(first);
+-
+-  // Pre-processing: napraw typowe problemy z JSON od AI
+-  jsonStr = jsonStr
+-    .replace(/[\u0000-\u001F\u007F]/g, ' ') // usuń control chars
+-    .replace(/,\s*([}\]])/g, '$1');          // trailing commas
+-
+-  try { return JSON.parse(jsonStr); }
+-  catch(e) {
+-    let rep = jsonStr;
+-    // Usuń niezakończone stringi na końcu
+-    rep = rep.replace(/,?\s*"[^"]*$/, '');
+-    rep = rep.replace(/,?\s*"[^"]*":\s*"[^"]*$/, '');
+-    rep = rep.replace(/,?\s*"[^"]*":\s*\[[^\]]*$/, '');
+-    rep = rep.replace(/,\s*$/, '');
+-    // Zamknij nawiasy
+-    const opens = (rep.match(/\[/g)||[]).length - (rep.match(/\]/g)||[]).length;
+-    const openb = (rep.match(/\{/g)||[]).length - (rep.match(/\}/g)||[]).length;
+-    for(let i=0;i<Math.max(0,opens);i++) rep+=']';
+-    for(let i=0;i<Math.max(0,openb);i++) rep+='}';
+-    try { const r=JSON.parse(rep); console.log('Repair OK'); return r; }
+-    catch(e2) {
+-      // Cofnij do ostatniego kompletnego ćwiczenia
+-      const cut = rep.lastIndexOf(',{"name":');
+-      if(cut>0) {
+-        let t=rep.substring(0,cut);
+-        t=t.replace(/,\s*$/,'');
+-        const o=(t.match(/\[/g)||[]).length-(t.match(/\]/g)||[]).length;
+-        const b=(t.match(/\{/g)||[]).length-(t.match(/\}/g)||[]).length;
+-        for(let i=0;i<Math.max(0,o);i++) t+=']';
+-        for(let i=0;i<Math.max(0,b);i++) t+='}';
+-        try { return JSON.parse(t); } catch(e3) {}
+-      }
+-      // Cofnij do ostatniej sesji
+-      const cut2 = rep.lastIndexOf(',{"sessionName":');
+-      if(cut2>0) {
+-        let t=rep.substring(0,cut2);
+-        t=t.replace(/,\s*$/,'');
+-        const o=(t.match(/\[/g)||[]).length-(t.match(/\]/g)||[]).length;
+-        const b=(t.match(/\{/g)||[]).length-(t.match(/\}/g)||[]).length;
+-        for(let i=0;i<Math.max(0,o);i++) t+=']';
+-        for(let i=0;i<Math.max(0,b);i++) t+='}';
+-        try { return JSON.parse(t); } catch(e4) {}
+-      }
+-      console.error('Repair failed:', e2.message); return null;
+-    }
+-  }
++  console.log('API raw length:', raw.length, 'stop:', data?.stop_reason, 'preview:', raw.substring(0,80));
++  if (!raw.trim()) { console.error('Empty API response'); return null; }
++  try { return parseAIJson(raw); }
++  catch(e) { console.error('Repair failed:', e.message); return null; }
+ }
+ 
+ async function sendMessage(userMsg) {
+@@ -7721,23 +7850,108 @@ function getPhaseColor(phase) {
+ }
+ 
+ 
+-function buildPlanPrompt(weeks, chunkKeys) {
+-  const weekNames = chunkKeys || ['w1','w2','w3','w4','w5','w6','w7','w8'].slice(0, weeks);
++function getPlanPhases(weeks) {
+   const phases = {
+     1: {'w1':'Tydzień 1'},
+     4: {'w1':'Adaptacja','w2':'Hipertrofia I','w3':'Hipertrofia II','w4':'Deload'},
+     8: {'w1':'Adaptacja','w2':'Adaptacja','w3':'Hipertrofia I','w4':'Hipertrofia I','w5':'Hipertrofia II','w6':'Siła','w7':'Deload','w8':'Szczyt'}
+   };
+-  const ph = phases[weeks] || phases[1];
++  if (phases[weeks]) return phases[weeks];
++  const keys = ['w1','w2','w3','w4','w5','w6','w7','w8'].slice(0, weeks);
++  const o = {};
++  keys.forEach((k,i)=>o[k]=i===keys.length-1?'Deload':'Tydzień '+(i+1));
++  return o;
++}
++
++function computeExerciseProgression(ex, weekKeys, phasesMap, progressionType) {
++  const base = ex.w1 || {};
++  const baseS = base.s != null ? base.s : (ex.sets || 3);
++  const baseR = base.r != null ? base.r : (ex.reps || '10');
++  const baseRest = base.rest || ex.rest || '90s';
++  const baseRpe = parseFloat(base.rpe || ex.rpe) || 7;
++  let baseKgNum = null, kgSuffix = '', skipKg = false;
++  const kgStr = String(base.kg || '');
++  if (kgStr) {
++    const m = kgStr.match(/^(\d+(?:\.\d+)?)(.*)$/);
++    if (m) {
++      baseKgNum = parseFloat(m[1]);
++      kgSuffix = m[2] || '';
++      skipKg = /HR|min|:|–|—/.test(kgSuffix) || /[-x×]/i.test(kgSuffix.replace(/%/g,''));
++    } else skipKg = true;
++  }
++  weekKeys.forEach((wk, i) => {
++    if (i === 0) {
++      ex[wk] = {
++        s: base.s != null ? base.s : baseS,
++        r: base.r != null ? base.r : baseR,
++        rest: base.rest || baseRest,
++        rpe: base.rpe != null ? String(base.rpe) : String(baseRpe),
++        kg: base.kg || ''
++      };
++      return;
++    }
++    const phase = (phasesMap[wk] || '').toLowerCase();
++    const isDeload = phase.includes('deload');
++    let s = base.s != null ? base.s : baseS;
++    let r = base.r != null ? base.r : baseR;
++    let rest = base.rest || baseRest;
++    let rpe = baseRpe;
++    let kg = base.kg || '';
++    if (isDeload) {
++      rpe = Math.max(5, baseRpe - 2);
++      s = Math.max(1, Math.round((parseInt(s) || 3) * 0.6));
++      if (baseKgNum != null && !skipKg) kg = (Math.round(baseKgNum * 0.7 * 10) / 10) + kgSuffix;
++    } else {
++      switch (progressionType) {
++        case 'dup':
++          rpe = Math.min(9, baseRpe + Math.floor(i / 3));
++          if (baseKgNum != null && !skipKg) kg = (Math.round((baseKgNum + 1.25 * i) * 10) / 10) + kgSuffix;
++          break;
++        case 'wave':
++          rpe = (i % 2 === 0) ? Math.min(8, baseRpe) : Math.min(9, baseRpe + 1);
++          if (baseKgNum != null && !skipKg) kg = (Math.round((baseKgNum + (i % 2 === 0 ? 0 : 2.5)) * 10) / 10) + kgSuffix;
++          break;
++        case 'block':
++          if (i < weekKeys.length * 0.4) rpe = Math.min(7, baseRpe);
++          else if (i < weekKeys.length * 0.8) rpe = Math.min(9, baseRpe + 2);
++          else rpe = Math.min(10, baseRpe + 3);
++          if (baseKgNum != null && !skipKg) kg = (Math.round((baseKgNum + 2 * i) * 10) / 10) + kgSuffix;
++          break;
++        case 'double':
++          rpe = Math.min(9, baseRpe + Math.floor(i / 2));
++          if (baseKgNum != null && !skipKg) kg = (Math.round((baseKgNum + 2 * Math.floor(i / 2)) * 10) / 10) + kgSuffix;
++          break;
++        default:
++          rpe = Math.min(9, baseRpe + Math.floor(i / 2));
++          if (baseKgNum != null && !skipKg) kg = (Math.round((baseKgNum + 2.5 * i) * 10) / 10) + kgSuffix;
++      }
++    }
++    ex[wk] = {s, r, rest, rpe: String(rpe), kg};
++  });
++}
++
++function applyLocalProgression(plan, weekKeys, phasesMap, progressionType) {
++  (plan.sessions || []).forEach(session => {
++    (session.exercises || []).forEach(ex => {
++      computeExerciseProgression(ex, weekKeys, phasesMap, progressionType);
++    });
++  });
++  plan.phases = phasesMap;
++  plan.progressionType = plan.progressionType || progressionType;
++}
++
++function buildPlanPrompt(weeks, chunkKeys) {
++  const weekNames = ['w1'];
++  const ph = getPlanPhases(weeks);
+   const progInstruction = getProgressionInstruction(weeks);
+   const progLabel = PROGRESSION_LABELS[planProgression]?.name || 'Auto';
+-  const wEx = weekNames.map(wk => `"${wk}":{"s":3,"r":"10","rest":"90s","rpe":"7","kg":"65%"}`).join(',');
+-  // notes field example
+-  const notesEx = `"notes":"Uwagi techniczne i wyjaśnienie metody dla klienta"`;
++  const wEx = weekNames.map(wk => `"${wk}":{"s":3,"r":"10","rest":"90s","rpe":"7","kg":"60"}`).join(',');
+   const wuEx = `[{"name":"Krążenia bioder","emoji":"🔄","sets":"2x","reps":"10","note":"mobilizacja"}]`;
+ 
+-  return `Elitarny AI Coach (NSCA CSCS). Wygeneruj plan ${weeks} tyg. Metoda progresji: ${progLabel}.
++  return `Elitarny AI Coach (NSCA CSCS). Wygeneruj bazę planu ${weeks} tyg. Metoda progresji: ${progLabel}.
+ TYLKO czysty JSON bez markdown.
++ZAKAZ: nigdy nie używaj cudzysłowu (") wewnątrz wartości tekstowych (notes, philosophy, progressionNotes) — użyj apostrofu (').
++Podaj wartości TYLKO dla tygodnia 1 (pole w1). Resztę tygodni obliczy aplikacja.
+ 
+ FORMAT:
+ {"planTitle":"","split":"","sessionsPerWeek":3,"philosophy":"","progressionNotes":"","warmupProtocol":"","cooldownProtocol":"","progressionType":"${planProgression}","phases":${JSON.stringify(ph)},"sessions":[{"sessionName":"Trening A","warmupExercises":${wuEx},"exercises":[{"name":"Wyciskanie sztangi","notes":"Uwagi techniczne / wyjaśnienie metody",${wEx}}]}]}
+@@ -7842,7 +8056,7 @@ ZASADY:
+ - Pole "notes": MAX 60 znaków. Dla metod: skrót (np. "Cluster: 2+2+2 co 15s, 85% 1RM"). Dla ćwiczeń: 1 wskazówka techniczna. BEZ długich opisów.
+ - KOLEJNOŚĆ ĆWICZEŃ: nigdy dwie te same partie po sobie. Przeplataj partie (klatka → barki → klatka → triceps, NIE: klatka → klatka → klatka)
+ - Wielostawy pierwsze, izolacje na końcu, core jako ostatnie 2 ćwiczenia
+-- Każdy tydzień INNE parametry${weeks>=4?'\n- Ostatni tydzień: Deload':''}${weeks>=8?'\n- W8: Szczyt (max ciężar)':''}
++- W JSON podaj TYLKO pole w1 (tydzień 1). Aplikacja sama wyliczy pozostałe tygodnie.
+ - Uwzględnij wykluczone ruchy z profilu`;
+ }
+ 
+@@ -7890,9 +8104,7 @@ async function generatePlan() {
+   document.getElementById('plan-gen-btn').disabled = true;
+ 
+   const allWeekKeys = ['w1','w2','w3','w4','w5','w6','w7','w8'].slice(0, planWeeks);
+-  const CHUNK_SIZE = 2;
+-  const weekChunks = [];
+-  for (let i = 0; i < allWeekKeys.length; i += CHUNK_SIZE) weekChunks.push(allWeekKeys.slice(i, i + CHUNK_SIZE));
++  const phasesMap = getPlanPhases(planWeeks);
+ 
+   const statusEl = document.getElementById('plan-status');
+   let sIdx = 0;
+@@ -7925,33 +8137,21 @@ async function generatePlan() {
+ 
+   let mergedPlan = null;
+   let lastError = null;
+-  let completedChunks = 0;
+-
+-  for (let ci = 0; ci < weekChunks.length; ci++) {
+-    const chunkKeys = weekChunks[ci];
+-    const isFirst = ci === 0;
+-    if (statusEl) statusEl.textContent = `Generuję tygodnie ${chunkKeys.join(', ')} (część ${ci+1}/${weekChunks.length})...`;
++  const sysPrompt = buildPlanPrompt(planWeeks, ['w1']);
++  const userMsg = 'Wygeneruj plan. TYLKO JSON. Tylko tydzień 1 (w1).\n\n' + shortProfile + '\n' + philosophy + (kbCtx ? '\n\n' + kbCtx : '') + ragGuide;
++  if (statusEl) statusEl.textContent = 'Generuję bazę planu (tydzień 1). Resztę tygodni policzy aplikacja...';
+ 
++  for (let parseTry = 0; parseTry < 2; parseTry++) {
+     try {
+-      const sysPrompt = isFirst ? buildPlanPrompt(planWeeks, chunkKeys) : buildContinuationPrompt(chunkKeys);
+-      let userMsg;
+-      if (isFirst) {
+-        userMsg = 'Wygeneruj plan. TYLKO JSON.\n\n' + shortProfile + '\n' + philosophy + (kbCtx ? '\n\n' + kbCtx : '') + ragGuide;
+-      } else {
+-        const exerciseSummary = mergedPlan.sessions.map(s => `${s.sessionName}: ` + s.exercises.map(e => e.name).join(' | ')).join('\n');
+-        userMsg = `Kontynuuj TEN SAM plan dla tygodni: ${chunkKeys.join(', ')}.\n\nIstniejące sesje i ćwiczenia (zachowaj dokładnie, bez zmian):\n${exerciseSummary}\n\n${shortProfile}`;
+-      }
+-      const tokenBudget = isFirst ? 9000 : 6000;
+-      const chunkPlan = await callAPI(sysPrompt, userMsg, tokenBudget);
+-      if (!chunkPlan || !chunkPlan.sessions) throw new Error(`Pusta odpowiedź dla tygodni ${chunkKeys.join(', ')}`);
+-
+-      if (isFirst) mergedPlan = chunkPlan;
+-      else mergeChunkIntoPlan(mergedPlan, chunkPlan, chunkKeys);
+-      completedChunks = ci + 1;
++      const extraSys = parseTry ? '\n\nKRYTYCZNE: zwróć WYŁĄCZNIE poprawny JSON. W polach tekstowych nie używaj cudzysłowów — zamień je na apostrofy. Bez markdown.' : '';
++      const extraUser = parseTry ? '\n\nPoprzednia odpowiedź miała błędny JSON. Zwróć sam czysty JSON zgodny ze schematem, tylko z polem w1.' : '';
++      const chunkPlan = await callAPI(sysPrompt + extraSys, userMsg + extraUser, 7000);
++      if (!chunkPlan || !chunkPlan.sessions) throw new Error('Pusta lub nieparsowalna odpowiedź AI');
++      mergedPlan = chunkPlan;
++      break;
+     } catch (err) {
+-      console.error(`generatePlan błąd (tygodnie ${chunkKeys.join(', ')}):`, err);
++      console.error(`generatePlan błąd (próba ${parseTry+1}/2):`, err);
+       lastError = err;
+-      break;
+     }
+   }
+ 
+@@ -7960,31 +8160,24 @@ async function generatePlan() {
+   document.getElementById('plan-gen-btn').disabled = false;
+ 
+   if (!mergedPlan || !mergedPlan.sessions) {
++    const hint = /JSON|parse|Expected|Repair|parsow/i.test(String(lastError?.message||''))
++      ? 'AI zwróciło uszkodzony JSON. Spróbuj ponownie — generator naprawia typowe błędy, ale czasem trzeba powtórzyć żądanie.'
++      : (lastError?.message || 'Sprawdź konsolę przeglądarki (F12) i spróbuj ponownie.');
+     document.getElementById('plan-content').innerHTML = `<div style="text-align:center;padding:40px;color:var(--tx2)">
+       <div style="font-size:36px;margin-bottom:12px">❌</div>
+       <div style="color:var(--ac);font-weight:600;margin-bottom:8px">Błąd generowania planu</div>
+-      <div style="font-size:12px;margin-bottom:16px;">${lastError?.message || 'Sprawdź konsolę przeglądarki (F12) i spróbuj ponownie.'}</div>
++      <div style="font-size:12px;margin-bottom:16px;">${hint}</div>
+       <button onclick="generatePlan()" style="background:var(--ac);border:none;border-radius:8px;padding:8px 20px;color:#fff;font-size:12px;cursor:pointer;">🔄 Spróbuj ponownie</button>
+     </div>`;
+     return;
+   }
+ 
+-  let partialWarningHtml = '';
+-  if (completedChunks < weekChunks.length) {
+-    const completedWeekKeys = weekChunks.slice(0, completedChunks).flat();
+-    const trimmedPhases = {};
+-    completedWeekKeys.forEach(wk => { if (mergedPlan.phases && mergedPlan.phases[wk]) trimmedPhases[wk] = mergedPlan.phases[wk]; });
+-    mergedPlan.phases = trimmedPhases;
+-    partialWarningHtml = `<div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:12px;color:var(--yw);">
+-      ⚠️ Udało się wygenerować tygodnie 1–${completedWeekKeys.length}. Reszta nie powiodła się z powodu przeciążenia serwera (błąd 524). Kliknij "Generuj plan AI" jeszcze raz, żeby spróbować dogenerować całość.
+-    </div>`;
+-  }
++  applyLocalProgression(mergedPlan, allWeekKeys, phasesMap, planProgression);
+ 
+   currentPlanData = mergedPlan;
+   const planName = mergedPlan?.planTitle || 'Plan treningowy';
+   histAddEntry(`Wygenerowano: ${planName}`, 'cel');
+   renderPlan(mergedPlan);
+-  if (partialWarningHtml) document.getElementById('plan-content').insertAdjacentHTML('afterbegin', partialWarningHtml);
+ 
+   document.getElementById('plan-dl-btn').style.display = 'inline-flex';
+   document.getElementById('plan-pdf-btn').style.display = 'inline-flex'; if(document.getElementById('plan-report-btn')) document.getElementById('plan-report-btn').style.display = 'inline-flex';
+diff --git a/test_plan_json.js b/test_plan_json.js
+new file mode 100644
+index 0000000..f8bbac6
+--- /dev/null
++++ b/test_plan_json.js
+@@ -0,0 +1,113 @@
++// Parser planu AI — typowe błędy JSON z modelu.
++const fs = require('fs');
++const path = require('path');
++const vm = require('vm');
++
++function loadFns(htmlPath) {
++  const html = fs.readFileSync(htmlPath, 'utf8');
++  const start = html.indexOf('function extractJsonObject');
++  const end = html.indexOf('async function callAPI');
++  if (start < 0 || end < 0 || end <= start) throw new Error('Nie znaleziono parsera w ' + htmlPath);
++  const parser = html.slice(start, end);
++  const pStart = html.indexOf('function getPlanPhases');
++  const pEnd = html.indexOf('function buildPlanPrompt');
++  if (pStart < 0 || pEnd < 0 || pEnd <= pStart) throw new Error('Nie znaleziono progresji w ' + htmlPath);
++  const progression = html.slice(pStart, pEnd);
++  const ctx = { console, JSON, String, Number, Math, parseInt, parseFloat, Array, Object, isNaN };
++  vm.createContext(ctx);
++  vm.runInContext(parser + '\n' + progression, ctx);
++  return ctx;
++}
++
++const ctx = loadFns(path.join(__dirname, 'index.html'));
++const { parseAIJson, applyLocalProgression, getPlanPhases } = ctx;
++let failed = 0;
++function ok(name, cond, extra) {
++  if (!cond) {
++    console.error('FAIL ' + name + (extra ? ' — ' + extra : ''));
++    failed++;
++  } else console.log('OK   ' + name);
++}
++
++const valid = parseAIJson('{"planTitle":"FBW","sessions":[{"sessionName":"A","exercises":[{"name":"Przysiad","w1":{"s":4,"r":"8"}}]}]}');
++ok('plain json', valid.planTitle === 'FBW' && valid.sessions[0].exercises[0].name === 'Przysiad');
++
++const fenced = parseAIJson('```json\n{"planTitle":"PPL","sessions":[]}\n```');
++ok('markdown fence', fenced.planTitle === 'PPL');
++
++const trailing = parseAIJson('{"sessions":[{"sessionName":"A"},{"sessionName":"B"},]}');
++ok('trailing comma in array', trailing.sessions.length === 2 && trailing.sessions[1].sessionName === 'B');
++
++const trailingObj = parseAIJson('{"planTitle":"X","sessionsPerWeek":3,}');
++ok('trailing comma in object', trailingObj.planTitle === 'X' && trailingObj.sessionsPerWeek === 3);
++
++const missing = parseAIJson('{"sessions":[{"sessionName":"A"}{"sessionName":"B"}]}');
++ok('missing comma between objects', missing.sessions.length === 2 && missing.sessions[1].sessionName === 'B');
++
++const truncated = parseAIJson('{"planTitle":"FBW","sessions":[{"sessionName":"A","exercises":[{"name":"Przysiad"');
++ok('truncated object closed', truncated.planTitle === 'FBW' && truncated.sessions[0].exercises[0].name === 'Przysiad');
++
++const smart = parseAIJson('{“planTitle”:“Masa”,“sessions”:[]}');
++ok('smart quotes', smart.planTitle === 'Masa');
++
++const extraText = parseAIJson('Oto plan:\n{"planTitle":"HIIT","sessions":[]}\nKoniec.');
++ok('surrounding prose', extraText.planTitle === 'HIIT');
++
++const innerQuotes = parseAIJson('{"planTitle":"Test","philosophy":"Utrzymaj \\"core\\" napięty","sessions":[]}');
++ok('escaped inner quotes', innerQuotes.planTitle === 'Test' && innerQuotes.philosophy.includes('core'));
++
++const rawInnerQuotes = parseAIJson('{"planTitle":"Plan","philosophy":"Opis z cudzysłowem "w środku" tekstu","split":"PPL","sessions":[]}');
++ok('unescaped inner quotes repaired', rawInnerQuotes.planTitle === 'Plan' && rawInnerQuotes.philosophy.includes('w środku'));
++
++const dblComma = parseAIJson('{"planTitle":"Test",, "sessions":[]}');
++ok('double comma', dblComma.planTitle === 'Test');
++
++// Reprodukcja błędu ze zrzutu: "Expected ',' or '}' after property value" przez cudzysłów w notes
++const notesQuote = parseAIJson('{"planTitle":"PPL 8 tyg","sessions":[{"sessionName":"Push","exercises":[{"name":"Wyciskanie","notes":"Utrzymaj "łopatki" ściągnięte","w1":{"s":4,"r":"8","rest":"90s","rpe":"7","kg":"60"}}]}]}');
++ok('notes with inner quotes', notesQuote.sessions[0].exercises[0].notes.includes('łopatki') && notesQuote.sessions[0].exercises[0].w1.kg === '60');
++
++const pad = 'x'.repeat(16000);
++const longBroken = '{"planTitle":"' + pad + '","philosophy":"trzymaj "core" napięty","sessions":[{"sessionName":"A","exercises":[{"name":"Przysiad","w1":{"s":3,"r":"10"}}]}]}';
++const longParsed = parseAIJson(longBroken);
++ok('long json with inner quotes near 16k', longParsed.philosophy.includes('core') && longParsed.sessions[0].exercises[0].name === 'Przysiad');
++
++const salvage = parseAIJson('{"planTitle":"X","sessions":[{"sessionName":"A","exercises":[{"name":"Przysiad","w1":{"s":3,"r":"10"}},{"name":"RDL"');
++ok('salvage last complete exercise', salvage.sessions[0].exercises[0].name === 'Przysiad');
++
++const phases = getPlanPhases(8);
++ok('8-week phases', phases.w1 === 'Adaptacja' && phases.w7 === 'Deload' && phases.w8 === 'Szczyt');
++
++const plan = {
++  sessions: [{
++    sessionName: 'Push',
++    exercises: [{ name: 'Wyciskanie', w1: { s: 4, r: '8', rest: '90s', rpe: '7', kg: '60' } }]
++  }]
++};
++applyLocalProgression(plan, ['w1','w2','w3','w4','w5','w6','w7','w8'], phases, 'linear');
++ok('local w2 kg', plan.sessions[0].exercises[0].w2 && Number(plan.sessions[0].exercises[0].w2.kg) === 62.5);
++ok('local deload w7', Number(plan.sessions[0].exercises[0].w7.s) === 2);
++ok('phases overwritten', plan.phases.w8 === 'Szczyt');
++
++const cardio = {
++  sessions: [{
++    sessionName: 'Cardio LISS',
++    exercises: [{ name: 'Marsz', w1: { s: 1, r: '30 min', rest: '—', rpe: '5', kg: '60-65% HRmax' } }]
++  }]
++};
++applyLocalProgression(cardio, ['w1','w2'], {w1:'Adaptacja',w2:'Adaptacja'}, 'linear');
++ok('cardio kg not mangled', cardio.sessions[0].exercises[0].w2.kg === '60-65% HRmax');
++
++const v3 = loadFns(path.join(__dirname, 'trener_ai_v3.html'));
++ok('v3 parser present', typeof v3.parseAIJson === 'function' && typeof v3.applyLocalProgression === 'function');
++const v3parsed = v3.parseAIJson('{"planTitle":"V3","philosophy":"opis "wewnątrz"","sessions":[]}');
++ok('v3 inner quotes', v3parsed.planTitle === 'V3' && v3parsed.philosophy.includes('wewnątrz'));
++
++const indexSrc = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
++ok('index asks only w1', /Podaj wartości TYLKO dla tygodnia 1/.test(indexSrc));
++ok('index no empty-weeks throw', !/Pusta odpowiedź dla tygodni/.test(indexSrc));
++
++if (failed) {
++  console.error('\n' + failed + ' test(s) failed');
++  process.exit(1);
++}
++console.log('\nParser planu AI OK.');
+diff --git a/trener_ai_v3.html b/trener_ai_v3.html
+index b8fee02..1353a46 100644
+--- a/trener_ai_v3.html
++++ b/trener_ai_v3.html
+@@ -2894,20 +2894,9 @@ WAŻNE:
+       raw = raw.replace(/```json|```/g, '').trim();
+       const first = raw.indexOf('{'); const last = raw.lastIndexOf('}');
+       if (first === -1) throw new Error(`Brak JSON w części ${chunkIdx+1}`);
+-      let jsonStr = raw.substring(first, last+1);
+-      jsonStr = jsonStr.replace(/[\u0000-\u001F\u007F]/g, ' '); // usuń control chars
+-      jsonStr = repairJsonInternalQuotes(jsonStr); // napraw niezeskejpowane cudzysłowy wewnątrz wartości
+       let chunkPlan;
+-      try { chunkPlan = JSON.parse(jsonStr); }
+-      catch(e) {
+-        let rep = jsonStr.replace(/,\s*([}\]])/g, '$1');
+-        rep = rep.replace(/,?\s*"[^"]*$/, '').replace(/,\s*$/, '');
+-        const o = (rep.match(/\[/g)||[]).length - (rep.match(/\]/g)||[]).length;
+-        const b = (rep.match(/\{/g)||[]).length - (rep.match(/\}/g)||[]).length;
+-        for(let i=0;i<Math.max(0,o);i++) rep+=']';
+-        for(let i=0;i<Math.max(0,b);i++) rep+='}';
+-        chunkPlan = JSON.parse(rep);
+-      }
++      try { chunkPlan = parseAIJson(raw); }
++      catch(e) { throw new Error(`Niepoprawny JSON w części ${chunkIdx+1}: ${e.message}`); }
+ 
+       if (isFirstChunk) {
+         planMeta = chunkPlan;
+@@ -7225,48 +7214,188 @@ function renderKnowledgeBase(){const list=document.getElementById('kb-list');if(
+ async function addYouTube(){const url=document.getElementById('yt-url').value.trim();if(!url||url.length<20){alert('Wklej transkrypcję (minimum 20 znaków)!');return;}const status=document.getElementById('yt-status');status.style.display='block';status.textContent='⏳ Tworzę notatki...';try{const resp=await fetch('https://anthropic-proxy.teamprogress2018.workers.dev',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,messages:[{role:'user',content:`Przeanalizuj poniższą transkrypcję/napisy z YouTube i stwórz profesjonalne notatki trenera:\n\n${url}`}]})});const data=await resp.json();const text=data.content?.[0]?.text||'';if(!text)throw new Error('Brak odpowiedzi');addToKnowledgeBase('YouTube: notatki',text);status.textContent='✅ Dodano do bazy wiedzy!';document.getElementById('yt-url').value='';setTimeout(()=>{status.style.display='none';},3000);}catch(e){status.textContent='❌ Błąd. Spróbuj ponownie.';}}
+ 
+ // CHAT
+-// Naprawia niezeskejpowane cudzysłowy WEWNĄTRZ wartości stringów JSON (typowy błąd AI: "opis": "to jest "ważne" słowo")
+-// Działa bezpiecznie na poprawnym JSON-ie (nie zmienia go), bo prawidłowy zamykający cudzysłów
+-// jest ZAWSZE bezpośrednio (po opcjonalnej białej spacji) przed: , } ] : lub końcem tekstu.
+-function repairJsonInternalQuotes(str) {
+-  let result = '';
+-  let inString = false;
+-  const n = str.length;
+-  let i = 0;
+-  while (i < n) {
+-    const ch = str[i];
+-    if (inString && ch === '\\') {
+-      result += ch + (str[i+1] !== undefined ? str[i+1] : '');
+-      i += 2;
++// ── AI JSON PARSER ──
++function extractJsonObject(text){
++  const s=String(text||'');
++  const start=s.search(/[\[{]/);
++  if(start<0)return s.trim();
++  let depth=0,inStr=false,esc=false;
++  for(let i=start;i<s.length;i++){
++    const c=s[i];
++    if(inStr){
++      if(esc){esc=false;continue;}
++      if(c==='\\'){esc=true;continue;}
++      if(c==='"')inStr=false;
+       continue;
+     }
+-    if (ch === '"') {
+-      if (!inString) {
+-        inString = true;
+-        result += ch;
++    if(c==='"'){inStr=true;continue;}
++    if(c==='{'||c==='[')depth++;
++    else if(c==='}'||c===']'){
++      depth--;
++      if(depth===0)return s.slice(start,i+1);
++    }
++  }
++  return s.slice(start);
++}
++function repairJsonInternalQuotes(s){
++  let out='';
++  let i=0;
++  let inStr=false;
++  let esc=false;
++  while(i<s.length){
++    const c=s[i];
++    if(inStr){
++      if(esc){out+=c;esc=false;i++;continue;}
++      if(c==='\\'){out+=c;esc=true;i++;continue;}
++      if(c!=='"'){out+=c;i++;continue;}
++      let j=i+1;
++      while(j<s.length&&/[\s\n\r\t]/.test(s[j]))j++;
++      const n=s[j];
++      if(!n||n===','||n===':'||n==='}'||n===']'){
++        inStr=false;
++        out+=c;
+         i++;
+         continue;
+       }
+-      // jesteśmy w środku stringa i trafiliśmy na cudzysłów — sprawdź czy to prawdziwy koniec
+-      let j = i + 1;
+-      while (j < n && /\s/.test(str[j])) j++;
+-      const nextCh = str[j];
+-      const isRealCloser = (j >= n) || nextCh === ',' || nextCh === '}' || nextCh === ']' || nextCh === ':';
+-      if (isRealCloser) {
+-        inString = false;
+-        result += ch;
+-        i++;
+-      } else {
+-        // to jest wewnętrzny, "osierocony" cudzysłów — zeskejpuj go i pozostań w stringu
+-        result += '\\"';
+-        i++;
+-      }
++      out+='\\"';
++      i++;
+       continue;
+     }
+-    result += ch;
++    out+=c;
++    if(c==='"')inStr=true;
+     i++;
+   }
+-  return result;
++  if(inStr)out+='"';
++  return out;
++}
++function repairJsonText(input){
++  let s=String(input||'')
++    .replace(/```(?:json)?/gi,'')
++    .replace(/[\u201C\u201D\u00AB\u00BB]/g,'"')
++    .replace(/[\u2018\u2019]/g,"'")
++    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g,' ')
++    .trim();
++  s=extractJsonObject(s);
++  s=repairJsonInternalQuotes(s);
++  let inStr=false,esc=false;
++  for(let i=0;i<s.length;i++){
++    const c=s[i];
++    if(inStr){
++      if(esc){esc=false;continue;}
++      if(c==='\\'){esc=true;continue;}
++      if(c==='"')inStr=false;
++    }else if(c==='"')inStr=true;
++  }
++  if(inStr)s+='"';
++  const isWs=c=>c===' '||c==='\n'||c==='\r'||c==='\t';
++  let out='';
++  inStr=false;esc=false;
++  let lastSig='';
++  const maybeComma=()=>{
++    if(lastSig==='}'||lastSig===']'||lastSig==='"'||(lastSig>='0'&&lastSig<='9')||lastSig==='e'||lastSig==='l')out+=',';
++  };
++  for(let i=0;i<s.length;i++){
++    const c=s[i];
++    if(inStr){
++      out+=c;
++      if(esc){esc=false;continue;}
++      if(c==='\\'){esc=true;continue;}
++      if(c==='"'){inStr=false;lastSig='"';}
++      continue;
++    }
++    if(isWs(c)){out+=c;continue;}
++    if(c===','){
++      out=out.replace(/,(\s*)$/,'$1');
++      out+=c;
++      lastSig=',';
++      continue;
++    }
++    if(c==='"'){
++      maybeComma();
++      inStr=true;
++      out+=c;
++      lastSig='"';
++      continue;
++    }
++    if(c==='}'||c===']'){
++      out=out.replace(/,(\s*)$/,'$1');
++      out+=c;
++      lastSig=c;
++      continue;
++    }
++    if(c==='{'||c==='['){
++      maybeComma();
++      out+=c;
++      lastSig=c;
++      continue;
++    }
++    if((c==='-'||(c>='0'&&c<='9')||c==='t'||c==='f'||c==='n')){
++      maybeComma();
++    }
++    out+=c;
++    lastSig=c;
++  }
++  inStr=false;esc=false;
++  const stack=[];
++  for(let i=0;i<out.length;i++){
++    const c=out[i];
++    if(inStr){
++      if(esc){esc=false;continue;}
++      if(c==='\\'){esc=true;continue;}
++      if(c==='"')inStr=false;
++      continue;
++    }
++    if(c==='"'){inStr=true;continue;}
++    if(c==='{')stack.push('}');
++    else if(c==='[')stack.push(']');
++    else if(c==='}'||c===']')stack.pop();
++  }
++  while(stack.length)out+=stack.pop();
++  return out.replace(/,(\s*[}\]])/g,'$1').replace(/,\s*,+/g,',');
++}
++function salvagePlanJson(repaired){
++  const markers=[',{"name":',',{"sessionName":'];
++  for(const marker of markers){
++    const cut=repaired.lastIndexOf(marker);
++    if(cut<=0)continue;
++    let t=repaired.substring(0,cut).replace(/,\s*$/,'');
++    const stack=[];
++    let inStr=false,esc=false;
++    for(let i=0;i<t.length;i++){
++      const c=t[i];
++      if(inStr){
++        if(esc){esc=false;continue;}
++        if(c==='\\'){esc=true;continue;}
++        if(c==='"')inStr=false;
++        continue;
++      }
++      if(c==='"'){inStr=true;continue;}
++      if(c==='{')stack.push('}');
++      else if(c==='[')stack.push(']');
++      else if(c==='}'||c===']')stack.pop();
++    }
++    while(stack.length)t+=stack.pop();
++    try{return JSON.parse(t);}catch(e){}
++  }
++  throw new Error('Nie udało się odzyskać JSON');
++}
++function parseAIJson(raw){
++  const attempts=[
++    ()=>JSON.parse(repairJsonText(raw)),
++    ()=>JSON.parse(repairJsonInternalQuotes(extractJsonObject(String(raw||'').replace(/```(?:json)?/gi,'').trim()))),
++    ()=>{
++      const clean=String(raw||'').replace(/```(?:json)?/gi,'').trim();
++      const m=clean.match(/\{[\s\S]*\}/);
++      if(!m)throw new Error('Brak JSON w odpowiedzi AI');
++      return JSON.parse(repairJsonText(m[0]));
++    },
++    ()=>salvagePlanJson(repairJsonText(raw))
++  ];
++  let lastErr=null;
++  for(const tryParse of attempts){
++    try{return tryParse();}catch(e){lastErr=e;}
++  }
++  throw lastErr||new Error('Nie udało się sparsować planu AI');
+ }
+ 
+ async function callAPI(system, userMsg, maxTokens) {
+@@ -7277,57 +7406,10 @@ async function callAPI(system, userMsg, maxTokens) {
+   });
+   const data = await resp.json();
+   const raw = (data?.content||[]).map(b=>b.text||'').join('');
+-  console.log('API raw length:', raw.length, 'preview:', raw.substring(0,80));
+-  const first = raw.indexOf('{'); const last = raw.lastIndexOf('}');
+-  if (first === -1) { console.error('No { in response'); return null; }
+-  let jsonStr = last > first ? raw.substring(first, last+1) : raw.substring(first);
+-
+-  // Pre-processing: napraw typowe problemy z JSON od AI
+-  jsonStr = jsonStr
+-    .replace(/[\u0000-\u001F\u007F]/g, ' ') // usuń control chars
+-    .replace(/,\s*([}\]])/g, '$1');          // trailing commas
+-  jsonStr = repairJsonInternalQuotes(jsonStr); // napraw niezeskejpowane cudzysłowy wewnątrz wartości
+-
+-  try { return JSON.parse(jsonStr); }
+-  catch(e) {
+-    let rep = jsonStr;
+-    // Usuń niezakończone stringi na końcu
+-    rep = rep.replace(/,?\s*"[^"]*$/, '');
+-    rep = rep.replace(/,?\s*"[^"]*":\s*"[^"]*$/, '');
+-    rep = rep.replace(/,?\s*"[^"]*":\s*\[[^\]]*$/, '');
+-    rep = rep.replace(/,\s*$/, '');
+-    // Zamknij nawiasy
+-    const opens = (rep.match(/\[/g)||[]).length - (rep.match(/\]/g)||[]).length;
+-    const openb = (rep.match(/\{/g)||[]).length - (rep.match(/\}/g)||[]).length;
+-    for(let i=0;i<Math.max(0,opens);i++) rep+=']';
+-    for(let i=0;i<Math.max(0,openb);i++) rep+='}';
+-    try { const r=JSON.parse(rep); console.log('Repair OK'); return r; }
+-    catch(e2) {
+-      // Cofnij do ostatniego kompletnego ćwiczenia
+-      const cut = rep.lastIndexOf(',{"name":');
+-      if(cut>0) {
+-        let t=rep.substring(0,cut);
+-        t=t.replace(/,\s*$/,'');
+-        const o=(t.match(/\[/g)||[]).length-(t.match(/\]/g)||[]).length;
+-        const b=(t.match(/\{/g)||[]).length-(t.match(/\}/g)||[]).length;
+-        for(let i=0;i<Math.max(0,o);i++) t+=']';
+-        for(let i=0;i<Math.max(0,b);i++) t+='}';
+-        try { return JSON.parse(t); } catch(e3) {}
+-      }
+-      // Cofnij do ostatniej sesji
+-      const cut2 = rep.lastIndexOf(',{"sessionName":');
+-      if(cut2>0) {
+-        let t=rep.substring(0,cut2);
+-        t=t.replace(/,\s*$/,'');
+-        const o=(t.match(/\[/g)||[]).length-(t.match(/\]/g)||[]).length;
+-        const b=(t.match(/\{/g)||[]).length-(t.match(/\}/g)||[]).length;
+-        for(let i=0;i<Math.max(0,o);i++) t+=']';
+-        for(let i=0;i<Math.max(0,b);i++) t+='}';
+-        try { return JSON.parse(t); } catch(e4) {}
+-      }
+-      console.error('Repair failed:', e2.message); return null;
+-    }
+-  }
++  console.log('API raw length:', raw.length, 'stop:', data?.stop_reason, 'preview:', raw.substring(0,80));
++  if (!raw.trim()) { console.error('Empty API response'); return null; }
++  try { return parseAIJson(raw); }
++  catch(e) { console.error('Repair failed:', e.message); return null; }
+ }
+ 
+ async function sendMessage(userMsg) {
+@@ -7457,23 +7539,107 @@ function getPhaseColor(phase) {
+ }
+ 
+ 
+-function buildPlanPrompt(weeks) {
+-  const weekNames = ['w1','w2','w3','w4','w5','w6','w7','w8'].slice(0, weeks);
++function getPlanPhases(weeks) {
+   const phases = {
+     1: {'w1':'Tydzień 1'},
+     4: {'w1':'Adaptacja','w2':'Hipertrofia I','w3':'Hipertrofia II','w4':'Deload'},
+     8: {'w1':'Adaptacja','w2':'Adaptacja','w3':'Hipertrofia I','w4':'Hipertrofia I','w5':'Hipertrofia II','w6':'Siła','w7':'Deload','w8':'Szczyt'}
+   };
+-  const ph = phases[weeks] || phases[1];
++  if (phases[weeks]) return phases[weeks];
++  const keys = ['w1','w2','w3','w4','w5','w6','w7','w8'].slice(0, weeks);
++  const o = {};
++  keys.forEach((k,i)=>o[k]=i===keys.length-1?'Deload':'Tydzień '+(i+1));
++  return o;
++}
++
++function computeExerciseProgression(ex, weekKeys, phasesMap, progressionType) {
++  const base = ex.w1 || {};
++  const baseS = base.s != null ? base.s : (ex.sets || 3);
++  const baseR = base.r != null ? base.r : (ex.reps || '10');
++  const baseRest = base.rest || ex.rest || '90s';
++  const baseRpe = parseFloat(base.rpe || ex.rpe) || 7;
++  let baseKgNum = null, kgSuffix = '', skipKg = false;
++  const kgStr = String(base.kg || '');
++  if (kgStr) {
++    const m = kgStr.match(/^(\d+(?:\.\d+)?)(.*)$/);
++    if (m) {
++      baseKgNum = parseFloat(m[1]);
++      kgSuffix = m[2] || '';
++      skipKg = /HR|min|:|–|—/.test(kgSuffix) || /[-x×]/i.test(kgSuffix.replace(/%/g,''));
++    } else skipKg = true;
++  }
++  weekKeys.forEach((wk, i) => {
++    if (i === 0) {
++      ex[wk] = {
++        s: base.s != null ? base.s : baseS,
++        r: base.r != null ? base.r : baseR,
++        rest: base.rest || baseRest,
++        rpe: base.rpe != null ? String(base.rpe) : String(baseRpe),
++        kg: base.kg || ''
++      };
++      return;
++    }
++    const phase = (phasesMap[wk] || '').toLowerCase();
++    const isDeload = phase.includes('deload');
++    let s = base.s != null ? base.s : baseS;
++    let r = base.r != null ? base.r : baseR;
++    let rest = base.rest || baseRest;
++    let rpe = baseRpe;
++    let kg = base.kg || '';
++    if (isDeload) {
++      rpe = Math.max(5, baseRpe - 2);
++      s = Math.max(1, Math.round((parseInt(s) || 3) * 0.6));
++      if (baseKgNum != null && !skipKg) kg = (Math.round(baseKgNum * 0.7 * 10) / 10) + kgSuffix;
++    } else {
++      switch (progressionType) {
++        case 'dup':
++          rpe = Math.min(9, baseRpe + Math.floor(i / 3));
++          if (baseKgNum != null && !skipKg) kg = (Math.round((baseKgNum + 1.25 * i) * 10) / 10) + kgSuffix;
++          break;
++        case 'wave':
++          rpe = (i % 2 === 0) ? Math.min(8, baseRpe) : Math.min(9, baseRpe + 1);
++          if (baseKgNum != null && !skipKg) kg = (Math.round((baseKgNum + (i % 2 === 0 ? 0 : 2.5)) * 10) / 10) + kgSuffix;
++          break;
++        case 'block':
++          if (i < weekKeys.length * 0.4) rpe = Math.min(7, baseRpe);
++          else if (i < weekKeys.length * 0.8) rpe = Math.min(9, baseRpe + 2);
++          else rpe = Math.min(10, baseRpe + 3);
++          if (baseKgNum != null && !skipKg) kg = (Math.round((baseKgNum + 2 * i) * 10) / 10) + kgSuffix;
++          break;
++        case 'double':
++          rpe = Math.min(9, baseRpe + Math.floor(i / 2));
++          if (baseKgNum != null && !skipKg) kg = (Math.round((baseKgNum + 2 * Math.floor(i / 2)) * 10) / 10) + kgSuffix;
++          break;
++        default:
++          rpe = Math.min(9, baseRpe + Math.floor(i / 2));
++          if (baseKgNum != null && !skipKg) kg = (Math.round((baseKgNum + 2.5 * i) * 10) / 10) + kgSuffix;
++      }
++    }
++    ex[wk] = {s, r, rest, rpe: String(rpe), kg};
++  });
++}
++
++function applyLocalProgression(plan, weekKeys, phasesMap, progressionType) {
++  (plan.sessions || []).forEach(session => {
++    (session.exercises || []).forEach(ex => {
++      computeExerciseProgression(ex, weekKeys, phasesMap, progressionType);
++    });
++  });
++  plan.phases = phasesMap;
++  plan.progressionType = plan.progressionType || progressionType;
++}
++
++function buildPlanPrompt(weeks) {
++  const weekNames = ['w1'];
++  const ph = getPlanPhases(weeks);
+   const progInstruction = getProgressionInstruction(weeks);
+   const progLabel = PROGRESSION_LABELS[planProgression]?.name || 'Auto';
+-  const wEx = weekNames.map(wk => `"${wk}":{"s":3,"r":"10","rest":"90s","rpe":"7","kg":"65%"}`).join(',');
+-  // notes field example
+-  const notesEx = `"notes":"Uwagi techniczne i wyjaśnienie metody dla klienta"`;
++  const wEx = weekNames.map(wk => `"${wk}":{"s":3,"r":"10","rest":"90s","rpe":"7","kg":"60"}`).join(',');
+   const wuEx = `[{"name":"Krążenia bioder","emoji":"🔄","sets":"2x","reps":"10","note":"mobilizacja"}]`;
+ 
+-  return `Elitarny AI Coach (NSCA CSCS). Wygeneruj plan ${weeks} tyg. Metoda progresji: ${progLabel}.
++  return `Elitarny AI Coach (NSCA CSCS). Wygeneruj bazę planu ${weeks} tyg. Metoda progresji: ${progLabel}.
+ TYLKO czysty JSON bez markdown. ZAKAZ BEZWZGLĘDNY: nigdy nie używaj znaku cudzysłowu (") wewnątrz wartości tekstowych (pól notes, opisów itp.) — jeśli chcesz coś wyróżnić, użyj apostrofu (') lub pisz bez wyróżnienia. Cudzysłów w wartości łamie format JSON.
++Podaj wartości TYLKO dla tygodnia 1 (pole w1). Resztę tygodni obliczy aplikacja.
+ 
+ FORMAT:
+ {"planTitle":"","split":"","sessionsPerWeek":3,"philosophy":"","progressionNotes":"","warmupProtocol":"","cooldownProtocol":"","progressionType":"${planProgression}","phases":${JSON.stringify(ph)},"sessions":[{"sessionName":"Trening A","warmupExercises":${wuEx},"exercises":[{"name":"Wyciskanie sztangi","notes":"Uwagi techniczne / wyjaśnienie metody",${wEx}}]}]}
+@@ -7564,7 +7730,7 @@ ZASADY:
+ - Pole "notes": MAX 60 znaków. Dla metod: skrót (np. "Cluster: 2+2+2 co 15s, 85% 1RM"). Dla ćwiczeń: 1 wskazówka techniczna. BEZ długich opisów.
+ - KOLEJNOŚĆ ĆWICZEŃ: nigdy dwie te same partie po sobie. Przeplataj partie (klatka → barki → klatka → triceps, NIE: klatka → klatka → klatka)
+ - Wielostawy pierwsze, izolacje na końcu, core jako ostatnie 2 ćwiczenia
+-- Każdy tydzień INNE parametry${weeks>=4?'\n- Ostatni tydzień: Deload':''}${weeks>=8?'\n- W8: Szczyt (max ciężar)':''}
++- W JSON podaj TYLKO pole w1 (tydzień 1). Aplikacja sama wyliczy pozostałe tygodnie.
+ - Uwzględnij wykluczone ruchy z profilu`;
+ }
+ 
+@@ -7588,7 +7754,9 @@ async function generatePlan() {
+     if (statusEl) statusEl.textContent = PLAN_STATUSES[sIdx];
+   }, 2000);
+ 
+-  const tokenBudget = planWeeks === 1 ? 8000 : planWeeks === 4 ? 16000 : 24000;
++  const tokenBudget = 7000;
++  const allWeekKeys = ['w1','w2','w3','w4','w5','w6','w7','w8'].slice(0, planWeeks);
++  const phasesMap = getPlanPhases(planWeeks);
+ 
+   let plan = null;
+   let errMsg = '';
+@@ -7617,11 +7785,14 @@ async function generatePlan() {
+         if (parts.length) ragGuide = '\n\n===WYTYCZNE NAUKOWE (Israetel/Schoenfeld/Helms)===\n' + parts.join('\n') + '\n===KONIEC===';
+       }
+     } catch(re) {}
+-    plan = await callAPI(
+-      sysPrompt,
+-      'Wygeneruj plan. TYLKO JSON.\n\n' + shortProfile + '\n' + philosophy + (kbCtx ? '\n\n' + kbCtx : '') + ragGuide,
+-      tokenBudget
+-    );
++    const userMsg = 'Wygeneruj plan. TYLKO JSON. Tylko tydzień 1 (w1).\n\n' + shortProfile + '\n' + philosophy + (kbCtx ? '\n\n' + kbCtx : '') + ragGuide;
++    for (let parseTry = 0; parseTry < 2; parseTry++) {
++      const extraSys = parseTry ? '\n\nKRYTYCZNE: zwróć WYŁĄCZNIE poprawny JSON. W polach tekstowych nie używaj cudzysłowów — zamień je na apostrofy. Bez markdown.' : '';
++      const extraUser = parseTry ? '\n\nPoprzednia odpowiedź miała błędny JSON. Zwróć sam czysty JSON zgodny ze schematem, tylko z polem w1.' : '';
++      plan = await callAPI(sysPrompt + extraSys, userMsg + extraUser, tokenBudget);
++      if (plan && plan.sessions) break;
++      errMsg = 'Pusta lub nieparsowalna odpowiedź AI';
++    }
+   } catch(err) { console.error('generatePlan error:', err); plan = null; errMsg = err.message || 'Nieznany blad'; }
+ 
+   clearInterval(ticker);
+@@ -7632,12 +7803,14 @@ async function generatePlan() {
+     document.getElementById('plan-content').innerHTML = `<div style="text-align:center;padding:40px;color:var(--tx2)">
+       <div style="font-size:36px;margin-bottom:12px">❌</div>
+       <div style="color:var(--ac);font-weight:600;margin-bottom:8px">Błąd generowania planu</div>
+-      <div style="font-size:12px;margin-bottom:16px;">Sprawdź konsolę przeglądarki (F12) i spróbuj ponownie.</div>
++      <div style="font-size:12px;margin-bottom:16px;">${errMsg || 'Sprawdź konsolę przeglądarki (F12) i spróbuj ponownie.'}</div>
+       <button onclick="generatePlan()" style="background:var(--ac);border:none;border-radius:8px;padding:8px 20px;color:#fff;font-size:12px;cursor:pointer;">🔄 Spróbuj ponownie</button>
+     </div>`;
+     return;
+   }
+ 
++  applyLocalProgression(plan, allWeekKeys, phasesMap, planProgression);
++
+   currentPlanData = plan;
+   // Dodaj wpis do historii
+   const planName = plan?.planTitle || 'Plan treningowy';
+-- 
+2.43.0
+
