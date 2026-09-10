@@ -91,10 +91,10 @@ function ok(name, cond, extra) {
   ok('stayed on client plan', after.stillDrawer && after.onPlan, after.body.slice(0, 250));
   ok('did not call AI generate', !after.gen);
   ok('copied fitebo names only', after.names.join('|') === 'Wyciskanie hantli|Ściąganie drążka|Hack squat', JSON.stringify(after.names));
-  ok('week chips shown', /Adaptacja/.test(after.body) && /Hipertrofia/.test(after.body));
+  ok('week chips shown', /Hipertrofia/.test(after.body) && !/Adaptacja/.test(after.body));
   ok('w1 load shown', /Wyciskanie hantli/.test(after.body) && /×/.test(after.body));
 
-  await page.click('button:has-text("3. Hipertrofia I")');
+  await page.click('button:has-text("3. Hipertrofia II")');
   await page.waitForTimeout(200);
   const w3view = await page.evaluate(() => {
     const rows = [...document.querySelectorAll('#cp-body div')].map(el => (el.textContent || '').trim()).filter(t => /Wyciskanie hantli/.test(t));

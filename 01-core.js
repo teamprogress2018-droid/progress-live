@@ -665,7 +665,8 @@ function epley1RMFromSessions(clientId,family,exactName){
       const match=family?guessLiftFamily(ex.name)===family
         :String(ex.name||'').toLowerCase().replace(/\s+/g,' ').trim()===want;
       if(!match)continue;
-      for(const set of ex.sets||[]){
+      const logged=typeof exerciseLoggedSets==='function'?exerciseLoggedSets(ex):(Array.isArray(ex.sets)?ex.sets:[]);
+      for(const set of logged){
         const est=epley1RM(set.kg,set.reps);
         if(est!=null&&(best==null||est>best))best=est;
       }
@@ -2511,6 +2512,83 @@ function periodScheduleForLevel(level){
 }
 window.periodScheduleForLevel=periodScheduleForLevel;
 
+function isFiteboLikePlan(p){
+  return !!(p&&(p.source==='fitebo'||p.source==='fitebo-continue'||p.fromFitebo));
+}
+window.isFiteboLikePlan=isFiteboLikePlan;
+
+function planPhaseRpe(phase){
+  const ph=String(phase||'').toLowerCase();
+  if(/deload/.test(ph))return '6';
+  if(/adapt/.test(ph))return '7';
+  if(/hipertrof/.test(ph))return '8';
+  if(/si[lł]a|szczyt|intensyf/.test(ph))return '8';
+  return '8';
+}
+window.planPhaseRpe=planPhaseRpe;
+
+function planPhaseSchedule(plan,client){
+  const c=client||{};
+  if(plan&&Array.isArray(plan.weekKeys)&&plan.weekKeys.length){
+    return plan.weekKeys.map((wk,i)=>{
+      const cel=(plan.phases&&plan.phases[wk])||('Tydzień '+(i+1));
+      const rpe=planPhaseRpe(cel);
+      return{nr:i+1,key:wk,cel,rpe:'RPE '+rpe,rir:typeof rirFromRpe==='function'?rirFromRpe(rpe):String(Math.max(0,10-Number(rpe)||8))};
+    });
+  }
+  if(isFiteboLikePlan(plan)){
+    return[
+      {nr:1,cel:'Hipertrofia — RIR 2',rpe:'RPE 8',rir:'2'},
+      {nr:2,cel:'Hipertrofia I',rpe:'RPE 8',rir:'2'},
+      {nr:3,cel:'Hipertrofia II',rpe:'RPE 8',rir:'2'},
+      {nr:4,cel:'Deload',rpe:'RPE 6',rir:'4'}
+    ];
+  }
+  return periodScheduleForLevel((plan&&plan.level)||c.level||'sredni');
+}
+window.planPhaseSchedule=planPhaseSchedule;
+
+function planDefaultWeekIndex(plan,sch){
+  const keys=(plan&&plan.weekKeys)||[];
+  const phases=(plan&&plan.phases)||{};
+  if(plan&&plan.currentWeek&&keys.length){
+    const i=keys.indexOf(plan.currentWeek);
+    if(i>=0)return i;
+  }
+  const list=sch||planPhaseSchedule(plan,{});
+  const hyp=list.findIndex(w=>/hipertrof/i.test((w&&w.cel)||''));
+  if(hyp>=0)return hyp;
+  const keyHyp=keys.findIndex(k=>/hipertrof/i.test(phases[k]||''));
+  if(keyHyp>=0)return keyHyp;
+  return 0;
+}
+window.planDefaultWeekIndex=planDefaultWeekIndex;
+
+function exerciseForPlanWeek(ex,plan,weekIdx){
+  if(ex==null)return ex;
+  if(typeof ex==='string')return ex;
+  const keys=(plan&&plan.weekKeys)||[];
+  const wk=keys[weekIdx]||(plan&&plan.currentWeek)||keys[0];
+  const wp=wk&&ex[wk];
+  const out=Object.assign({},ex);
+  if(wp){
+    if(wp.s!=null&&wp.s!=='')out.sets=wp.s;
+    if(wp.r!=null&&wp.r!=='')out.reps=wp.r;
+    if(wp.kg!=null&&wp.kg!=='')out.kg=wp.kg;
+    if(wp.rest)out.rest=wp.rest;
+    if(wp.rpe)out.rpe=wp.rpe;
+  }
+  if(isFiteboLikePlan(plan)){
+    const sch=planPhaseSchedule(plan,{});
+    const week=sch[Math.max(0,Math.min(weekIdx||0,sch.length-1))]||sch[0]||{};
+    if(!out.rpe)out.rpe=String(week.rpe||'8').replace(/RPE\s*/i,'');
+    const rir=typeof plannedRir==='function'?plannedRir(out):(out.rir||'');
+    out.rir=rir||week.rir||'2';
+  }
+  return out;
+}
+window.exerciseForPlanWeek=exerciseForPlanWeek;
+
 function periodWeekModel(level,idx){
   const ls=String(level||'sredni');
   const beginner=[
@@ -2570,9 +2648,11 @@ window.planStartYmd=planStartYmd;
 
 function planPeriodWeekIndex(clientId,plan,nowMs){
   const c=((typeof window!=='undefined'&&window.CL)||[]).find(x=>x&&x.id===clientId)||{};
-  const level=(plan&&plan.level)||c.level||'sredni';
-  const sch=periodScheduleForLevel(level);
+  const sch=typeof planPhaseSchedule==='function'?planPhaseSchedule(plan,c):periodScheduleForLevel((plan&&plan.level)||c.level||'sredni');
   const n=sch.length||4;
+  if(isFiteboLikePlan(plan)){
+    return Math.max(0,Math.min(n-1,planDefaultWeekIndex(plan,sch)));
+  }
   const start=planStartYmd(plan,clientId);
   const startMs=start?Date.parse(start):NaN;
   if(!Number.isFinite(startMs))return 0;
@@ -3039,6 +3119,14 @@ function suggestedPlanDayIdx(clientId,plan){
 }
 window.suggestedPlanDayIdx=suggestedPlanDayIdx;
 
+function exerciseLoggedSets(ex){
+  if(!ex)return[];
+  if(Array.isArray(ex.sets))return ex.sets.filter(x=>x&&(x.kg!=null&&x.kg!==''||x.reps!=null&&x.reps!==''));
+  if(ex.kg!=null&&ex.kg!==''||ex.reps!=null&&ex.reps!=='')return[{kg:ex.kg,reps:ex.reps,rir:ex.rir||ex.rpe||'',setNo:1}];
+  return[];
+}
+window.exerciseLoggedSets=exerciseLoggedSets;
+
 function lastLoadForExercise(clientId,name){
   if(!clientId||!name)return null;
   const key=exerciseNameKey(name);
@@ -3047,7 +3135,7 @@ function lastLoadForExercise(clientId,name){
   for(const s of sessions){
     const ex=(s.exercises||[]).find(e=>exerciseNameKey(e.name)===key);
     if(!ex)continue;
-    const sets=(ex.sets||[]).filter(x=>x&&(x.kg||x.reps));
+    const sets=exerciseLoggedSets(ex);
     if(!sets.length)continue;
     const work=sets.filter(x=>typeof isWorkingSet!=='function'||isWorkingSet(x));
     const last=(work.length?work:sets)[(work.length?work:sets).length-1];
@@ -3267,7 +3355,7 @@ function loggedSetRows(clientId,name,sessions){
     (s.exercises||[]).forEach(ex=>{
       if(exerciseNameKey(ex.name)!==key)return;
       if(typeof isWeightLoadUnit==='function'&&!isWeightLoadUnit(exLoadUnit(ex)))return;
-      (ex.sets||[]).forEach(st=>{
+      (typeof exerciseLoggedSets==='function'?exerciseLoggedSets(ex):(Array.isArray(ex.sets)?ex.sets:[])).forEach(st=>{
         const est=epley1RM(st&&st.kg,st&&st.reps);
         if(est==null)return;
         rows.push({

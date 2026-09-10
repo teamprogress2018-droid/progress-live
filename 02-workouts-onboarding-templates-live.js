@@ -2964,7 +2964,7 @@ function renderLivePlanPicker(slot){
     </div>`;
     return;
   }
-  const activePlan=plans.find(p=>p.id===st.planId)||plans[0];
+  const activePlan=plans.find(p=>p.id===st.planId)||(typeof livePreferredPlan==='function'?livePreferredPlan(plans):plans[0]);
   const days=activePlan?.days||[];
 
   el.innerHTML=`
@@ -2986,8 +2986,20 @@ function renderLivePlanPicker(slot){
     <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:6px;letter-spacing:1px;">Lub quick-add</div>
     <button class="btn btn-ghost btn-sm" style="width:100%;" onclick="liveQuickAdd(${n})">⚡ Szybki trening bez planu</button>`;
 
-  if(!st.planId&&plans.length)liveSelectPlan(plans[0].id,n);
+  if(!st.planId&&plans.length){
+    const pref=typeof livePreferredPlan==='function'?livePreferredPlan(plans):plans[0];
+    if(pref)liveSelectPlan(pref.id,n);
+  }
 }
+
+function livePreferredPlan(plans){
+  const list=plans||[];
+  if(!list.length)return null;
+  return list.find(p=>p&&p.source==='fitebo-continue')
+    || list.find(p=>p&&(p.source==='fitebo'||p.fromFitebo))
+    || list[0];
+}
+window.livePreferredPlan=livePreferredPlan;
 
 function liveGetSuggestedDayIdx(clientId,plan){
   if(typeof suggestedPlanDayIdx==='function')return suggestedPlanDayIdx(clientId,plan);
@@ -3008,6 +3020,7 @@ function liveNormExName(n){
 }
 
 function liveLastLoad(clientId,name){
+  if(typeof lastLoadForExercise==='function')return lastLoadForExercise(clientId,name);
   if(!clientId||!name)return null;
   const key=liveNormExName(name);
   const sessions=SE.filter(s=>s.clientId===clientId&&Array.isArray(s.exercises))
@@ -3015,7 +3028,7 @@ function liveLastLoad(clientId,name){
   for(const s of sessions){
     const ex=(s.exercises||[]).find(e=>liveNormExName(e.name)===key);
     if(!ex)continue;
-    const sets=(ex.sets||[]).filter(x=>x&&(x.kg||x.reps));
+    const sets=typeof exerciseLoggedSets==='function'?exerciseLoggedSets(ex):(Array.isArray(ex.sets)?ex.sets.filter(x=>x&&(x.kg||x.reps)):[]);
     if(!sets.length)continue;
     const last=sets[sets.length-1];
     return{kg:last.kg,reps:last.reps,sets};
@@ -3025,9 +3038,20 @@ function liveLastLoad(clientId,name){
 
 function liveMapPlanExercises(rawEx,slot){
   const st=liveRef(slot);
+  const plan=(window.PL||[]).find(p=>p.id===st.planId);
+  let list=rawEx||[];
+  const day=(plan&&plan.days||[])[st.currentDayIdx||0];
+  if(plan&&typeof fiteboResolveDayExercises==='function'){
+    list=fiteboResolveDayExercises(st.clientId,plan,day||{exercises:list})||list;
+  }
+  const ps=typeof livePeriodState==='function'?livePeriodState(slot):null;
+  const weekIdx=ps&&ps.idx!=null?ps.idx:0;
+  if(typeof exerciseForPlanWeek==='function'&&plan){
+    list=list.map(ex=>exerciseForPlanWeek(ex,plan,weekIdx));
+  }
   const mapped=typeof mapPlanExercisesForClient==='function'
-    ?mapPlanExercisesForClient(rawEx,st.clientId,(window.PL||[]).find(p=>p.id===st.planId))
-    :(rawEx||[]).map(ex=>({name:ex.name||ex.n||'Ćwiczenie',sets:[{setNo:1,kg:'',reps:'10',done:false}]}));
+    ?mapPlanExercisesForClient(list,st.clientId,plan)
+    :(list||[]).map(ex=>({name:ex.name||ex.n||'Ćwiczenie',sets:[{setNo:1,kg:'',reps:'10',done:false}]}));
   return mapped.map(ex=>({...ex,done:false,collapsed:false}));
 }
 
@@ -3038,8 +3062,10 @@ function liveRefreshPlanLoads(slot){
   const p=(window.PL||[]).find(x=>x.id===st.planId);
   if(!p||(p.clientId&&p.clientId!==st.clientId))return;
   const day=(p.days||[])[st.currentDayIdx||0];
-  if(!day||!(day.exercises||[]).length)return;
-  st.exercises=liveMapPlanExercises(day.exercises,n);
+  const resolved=typeof fiteboResolveDayExercises==='function'?fiteboResolveDayExercises(st.clientId,p,day||{exercises:[]}):null;
+  const raw=(resolved&&resolved.length)?resolved:((day&&day.exercises)||[]);
+  if(!raw.length)return;
+  st.exercises=liveMapPlanExercises(raw,n);
 }
 window.liveRefreshPlanLoads=liveRefreshPlanLoads;
 
@@ -3054,13 +3080,16 @@ function livePeriodState(slot){
   const plan=(window.PL||[]).find(p=>p.id===st.planId);
   const c=(window.CL||[]).find(x=>x.id===st.clientId)||{};
   const level=(plan&&plan.level)||c.level||'sredni';
-  const sch=typeof periodScheduleForLevel==='function'?periodScheduleForLevel(level):[];
+  const sch=typeof planPhaseSchedule==='function'?planPhaseSchedule(plan,c):(typeof periodScheduleForLevel==='function'?periodScheduleForLevel(level):[]);
   if(!plan||!sch.length)return null;
   const auto=typeof planPeriodWeekIndex==='function'?planPeriodWeekIndex(st.clientId,plan):0;
   const idx=st.periodWeekOverride!=null?st.periodWeekOverride:auto;
   const week=sch[Math.max(0,Math.min(idx,sch.length-1))]||sch[0];
-  const mod=typeof periodWeekModel==='function'?periodWeekModel(level,idx):{};
-  return{plan,level,sch,auto,idx,week,mod};
+  const fitebo=typeof isFiteboLikePlan==='function'&&isFiteboLikePlan(plan);
+  const mod=fitebo
+    ?{loadPct:0,repDelta:0,setDelta:0,rpe:String((week&&week.rpe)||'8').replace(/RPE\s*/i,''),rir:(week&&week.rir)||'2'}
+    :(typeof periodWeekModel==='function'?periodWeekModel(level,idx):{});
+  return{plan,level,sch,auto,idx,week,mod,fitebo};
 }
 window.livePeriodState=livePeriodState;
 
@@ -3083,11 +3112,14 @@ function renderLivePeriod(slot){
     nowEl.textContent='Ten tydzień: Tydz. '+(st.auto+1)+' · '+(st.sch[st.auto]&&st.sch[st.auto].cel||'')+' · '+(st.sch[st.auto]&&st.sch[st.auto].rpe||'');
   }
   list.innerHTML=st.sch.map((w,i)=>{
-    const mod=typeof periodWeekModel==='function'?periodWeekModel(st.level,i):{};
-    const sub=typeof periodWeekDeltaLabel==='function'?periodWeekDeltaLabel(mod,i===0): (w.rpe||'');
+    const mod=st.fitebo
+      ?{loadPct:0,repDelta:0,setDelta:0,rpe:String(w.rpe||'8').replace(/RPE\s*/i,''),rir:w.rir||'2'}
+      :(typeof periodWeekModel==='function'?periodWeekModel(st.level,i):{});
+    const sub=st.fitebo?(w.rir?('RIR '+w.rir):(w.rpe||'')):(typeof periodWeekDeltaLabel==='function'?periodWeekDeltaLabel(mod,i===0): (w.rpe||''));
     const on=i===st.idx?' active':'';
     const auto=i===st.auto?' is-now':'';
-    const col=String(w.cel||'').includes('DELOAD')?'var(--orange)':w.nr===1?'var(--accent)':'var(--blue)';
+    const cel=String(w.cel||'');
+    const col=/deload/i.test(cel)?'var(--orange)':/hipertrof/i.test(cel)?'var(--teal)':w.nr===1?'var(--accent)':'var(--blue)';
     return `<button type="button" class="live-period-row${on}${auto}" onclick="liveSelectPeriodWeek(${i}${sl})">
       <div class="live-period-week" style="color:${col};">Tydz. ${w.nr}</div>
       <div class="live-period-body">
@@ -3103,6 +3135,9 @@ function liveSelectPeriodWeek(idx,slot){
   const n=liveN(slot);
   const st=liveRef(n);
   st.periodWeekOverride=idx;
+  const p=(window.PL||[]).find(x=>x.id===st.planId);
+  if(p&&Array.isArray(p.weekKeys)&&p.weekKeys[idx])p.currentWeek=p.weekKeys[idx];
+  if(typeof liveRefreshPlanLoads==='function')liveRefreshPlanLoads(n);
   renderLivePeriod(n);
   renderLiveExercises(n);
 }
@@ -3144,15 +3179,22 @@ window.liveStartRestFromPlan=liveStartRestFromPlan;
 function liveSelectPlan(pid,slot){
   const n=liveN(slot);
   const st=liveRef(n);
+  let p=PL.find(x=>x.id===pid);if(!p)return;
+  if((p.source==='fitebo'||p.fromFitebo)&&p.source!=='fitebo-continue'){
+    const cont=PL.find(x=>x&&x.clientId===(st.clientId||p.clientId)&&x.source==='fitebo-continue');
+    if(cont&&cont.id!==pid){
+      p=cont;
+      pid=cont.id;
+    }
+  }
   st.planId=pid;
   st.periodWeekOverride=null;
-  const p=PL.find(x=>x.id===pid);if(!p)return;
-
   const suggestedIdx=liveGetSuggestedDayIdx(st.clientId,p);
   st.currentDayIdx=suggestedIdx;
   const planned=typeof plannedSessionForDate==='function'?plannedSessionForDate(st.clientId,pid,typeof todayYmd==='function'?todayYmd():null):null;
   const day=(p.days||[])[suggestedIdx];
-  const rawEx=day?.exercises||[];
+  const resolved=typeof fiteboResolveDayExercises==='function'?fiteboResolveDayExercises(st.clientId,p,day||{exercises:[]}):null;
+  const rawEx=(resolved&&resolved.length)?resolved:(day?.exercises||[]);
 
   if(rawEx.length>0){
     st.exercises=liveMapPlanExercises(rawEx,n);
