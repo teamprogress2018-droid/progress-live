@@ -23,7 +23,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=91'));
+ok('cache 01', html.includes('01-core.js?v=92'));
 ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=54'));
 ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=52'));
 ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=73'));

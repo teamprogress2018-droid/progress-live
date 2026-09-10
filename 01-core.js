@@ -3722,7 +3722,7 @@ window.sessionRatingLabel=sessionRatingLabel;
 function isLoggedWorkout(s){
   if(!s)return false;
   if(s.source==='planned'||s.source==='garmin')return false;
-  if(s.source==='client'||s.source==='live'||s.source==='sala')return true;
+  if(s.source==='client'||s.source==='live'||s.source==='sala'||s.source==='homework')return true;
   return Array.isArray(s.exercises)&&s.exercises.length>0;
 }
 window.isLoggedWorkout=isLoggedWorkout;
@@ -3845,6 +3845,59 @@ function homeworkDoneOnDate(clientId,ymd){
   return(window.TASKS||[]).some(t=>t&&t.clientId===clientId&&t.status==='done'&&(typeof isHomework==='function'?isHomework(t):(t.kind==='homework'||t.odWorkoutId||t.odProgramId))&&homeworkDoneYmd(t)===y);
 }
 window.homeworkDoneOnDate=homeworkDoneOnDate;
+
+function homeworkRpeToFeedback(rpe){
+  const n=parseInt(rpe,10);
+  if(!Number.isFinite(n)||n<=0)return 0;
+  return Math.max(1,Math.min(5,Math.round(n/2)));
+}
+window.homeworkRpeToFeedback=homeworkRpeToFeedback;
+
+/** Zapis zadania domowego do historii (Postępy): RPE + czas, source homework. */
+function logHomeworkSession(task,opts){
+  opts=opts||{};
+  if(!task||!task.clientId)return null;
+  const list=opts.sessions||window.SE||[];
+  const y=String(opts.date||homeworkDoneYmd(task)||(typeof todayYmd==='function'?todayYmd():'')||'').slice(0,10);
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(y))return null;
+  const existing=list.find(s=>s&&s.source==='homework'&&s.taskId===task.id);
+  if(existing){
+    if(opts.rpe!=null&&opts.rpe!=='')existing.rpe=String(opts.rpe);
+    if(opts.duration!=null&&opts.duration!=='')existing.duration=Math.max(1,parseInt(opts.duration,10)||existing.duration||1);
+    if(existing.rpe)existing.feedback=homeworkRpeToFeedback(existing.rpe);
+    if(opts.note)existing.note=opts.note;
+    existing.updatedAt=new Date().toISOString();
+    if(opts.sessions==null)window.SE=list;
+    const save=typeof window!=='undefined'&&typeof window.persistById==='function'?window.persistById:(typeof persistById==='function'?persistById:null);
+    if(save)try{save('sessions',existing);}catch(e){}
+    return existing;
+  }
+  const rpe=opts.rpe!=null&&opts.rpe!==''?String(opts.rpe):'';
+  const duration=Math.max(1,parseInt(opts.duration,10)||parseInt(opts.time,10)||0);
+  const w=(typeof allODWorkouts==='function'?allODWorkouts():[]).find(x=>x&&x.id===task.odWorkoutId);
+  const sess=(typeof withTrainer==='function'?withTrainer:x=>x)({
+    id:typeof newId==='function'?newId('s'):('s'+Date.now()),
+    clientId:task.clientId,
+    date:y,
+    time:opts.timeOfDay||'',
+    type:task.title||(w&&w.name)||'Zadanie domowe',
+    duration:duration||(w&&w.time)||0,
+    exercises:[],
+    source:'homework',
+    taskId:task.id,
+    odWorkoutId:task.odWorkoutId||null,
+    rpe:rpe,
+    feedback:homeworkRpeToFeedback(rpe),
+    note:opts.note||'',
+    createdAt:new Date().toISOString()
+  });
+  list.push(sess);
+  if(opts.sessions==null)window.SE=list;
+  const save=typeof window!=='undefined'&&typeof window.persistById==='function'?window.persistById:(typeof persistById==='function'?persistById:null);
+  if(save)try{save('sessions',sess);}catch(e){}
+  return sess;
+}
+window.logHomeworkSession=logHomeworkSession;
 
 /** Adherencja: unikalne dni. Licznik = Live / apka / zadanie domowe. Mianownik = dni z kalendarza (plan). */
 function clientAdherenceStats(clientId,days){

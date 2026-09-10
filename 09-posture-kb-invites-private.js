@@ -969,6 +969,10 @@ const OD_DEMO_WORKOUTS=[
   {id:'ow18',name:'HIIT 25 min — dla początkujących',type:'video',level:'poczatkujacy',time:25,coll:'hiit',format:'hiit',equipment:'none',color:'#120808',emoji:'💥',desc:'Full body HIIT bez powtórzeń i bez sprzętu. Łagodniejszy start pod wysoką intensywność.',url:'https://www.youtube.com/watch?v=cbKkB3POqaY',views:0,likes:10,structure:{label:'Interwały',rounds:5,workSec:40,restSec:20,note:'25 min · no-repeat · początkujący',materials:'Mata opcjonalnie'}},
   {id:'ow19',name:'HIIT cardio 30 min (SELF)',type:'video',level:'sredni',time:30,coll:'hiit',format:'hiit',equipment:'none',color:'#1a0a14',emoji:'❤️',desc:'30-minutowy HIIT z rozgrzewką — bez sprzętu. Dobra „bomba” na dzień bez siłowni.',url:'https://www.youtube.com/watch?v=ml6cT4AZdqI',views:0,likes:13,structure:{label:'Interwały',rounds:6,workSec:45,restSec:15,note:'30 min · warm-up + HIIT · zero sprzętu',materials:'Brak'}},
   {id:'ow20',name:'HIIT low-impact — bez skoków',type:'video',level:'poczatkujacy',time:20,coll:'hiit',format:'hiit',equipment:'none',color:'#0a141a',emoji:'🦵',desc:'Full body HIIT bez skakania — bezpieczniejsze dla stawów. Świetne dla klientów wracających po przerwie.',url:'https://www.youtube.com/watch?v=JkVHrA5o23o',views:0,likes:12,structure:{label:'Interwały',rounds:5,workSec:45,restSec:15,note:'Low impact · zero skoków · zero sprzętu',materials:'Mata'}},
+  {id:'ow21',name:'HIIT 16 min — bez filmu',type:'workout',level:'sredni',time:16,coll:'hiit',format:'hiit',equipment:'none',color:'#1a0a0a',emoji:'🔥',desc:'Szablon interwałów bez YouTube — klient idzie według timera w apce (40/20).',url:'',views:0,likes:0,structure:{label:'Interwały',rounds:8,workSec:40,restSec:20,note:'8 rund · 40s praca / 20s przerwa · bez filmu',materials:'Brak — własne ciało',moves:['Burpee','Przysiad','Mountain climber','Pompki']}},
+  {id:'ow22',name:'Tabata 8 min — bez filmu',type:'workout',level:'sredni',time:8,coll:'tabata',format:'tabata',equipment:'none',color:'#2a0a0a',emoji:'⏱',desc:'Klasyczna tabata 20s/10s × 8 bez follow-along. Timer w apce.',url:'',views:0,likes:0,structure:{label:'Tabata',rounds:8,workSec:20,restSec:10,note:'8 rund tabata · 20s praca / 10s przerwa · bez filmu',materials:'Brak — własne ciało'}},
+  {id:'ow23',name:'Mobilność 12 min — obwód bez filmu',type:'workout',level:'poczatkujacy',time:12,coll:'mobilnosc',format:'mobility',equipment:'mat',color:'#0a1a1a',emoji:'🧘',desc:'3 obwody mobilności bez YouTube — biodra, klatka, kręgosłup. Mata.',url:'',views:0,likes:0,structure:{label:'Obwód',rounds:3,durationMin:12,setsDesc:'3 obwody · ~40s na pozycję · biodra / klatka / kręgosłup',materials:'Mata',moves:['90/90 biodra','Otwarcie klatki przy ścianie','Kocie grzbiety','Pigeon stretch']}},
+  {id:'ow24',name:'Core 10 min — stacje bez filmu',type:'workout',level:'sredni',time:10,coll:'dom',format:'strength',equipment:'mat',color:'#1a1008',emoji:'🧱',desc:'Krótki core bez sprzętu i bez filmu. Timer stacji w apce.',url:'',views:0,likes:0,structure:{label:'Stacje',rounds:3,workSec:40,restSec:15,note:'3 obwody · 40s praca / 15s przejścia',materials:'Mata',moves:['Plank','Dead bug','Hollow hold','Side plank']}},
 ];
 window.OD_DEMO_WORKOUTS=OD_DEMO_WORKOUTS;
 
@@ -1291,6 +1295,136 @@ function odCanPlay(w){
   if(typeof coachVideoIsFile==='function'&&coachVideoIsFile(w.url))return true;
   return /^https?:\/\//i.test(String(w.url||''));
 }
+function odHasGuide(w){
+  if(!w)return false;
+  if(w.type==='workout')return true;
+  const s=w.structure;
+  if(!s)return false;
+  return !!(s.rounds||s.workSec||s.inhaleSec||s.setsDesc||s.durationMin||s.note||s.label||(s.moves&&s.moves.length));
+}
+function odCanStart(w){
+  return odCanPlay(w)||odHasGuide(w);
+}
+window.odHasGuide=odHasGuide;
+window.odCanStart=odCanStart;
+function odGuidePhases(w){
+  const s=w&&w.structure||{};
+  const phases=[];
+  if(s.inhaleSec&&s.exhaleSec){
+    const cycles=s.cycles||8;
+    for(let i=1;i<=cycles;i++){
+      phases.push({label:'Wdech · '+i+'/'+cycles,sec:s.inhaleSec,kind:'work'});
+      if(s.holdInSec)phases.push({label:'Zatrzymanie',sec:s.holdInSec,kind:'hold'});
+      phases.push({label:'Wydech',sec:s.exhaleSec,kind:'rest'});
+      if(s.holdOutSec)phases.push({label:'Pauza',sec:s.holdOutSec,kind:'hold'});
+    }
+    return phases;
+  }
+  const rounds=s.rounds||0;
+  const work=s.workSec||0;
+  const rest=s.restSec||0;
+  if(rounds&&work){
+    for(let r=1;r<=rounds;r++){
+      phases.push({label:'Praca · runda '+r+'/'+rounds,sec:work,kind:'work'});
+      if(rest)phases.push({label:'Przerwa',sec:rest,kind:'rest'});
+    }
+    return phases;
+  }
+  if(s.durationMin){
+    phases.push({label:s.label||'Praca',sec:Math.max(1,s.durationMin)*60,kind:'work'});
+  }
+  return phases;
+}
+window.odGuidePhases=odGuidePhases;
+function odGuidePlayerHtml(w){
+  const struct=typeof odWorkoutStructureText==='function'?odWorkoutStructureText(w):'';
+  const mats=typeof odWorkoutMaterialsText==='function'?odWorkoutMaterialsText(w):'';
+  const moves=((w&&w.structure&&w.structure.moves)||[]).filter(Boolean);
+  const phases=odGuidePhases(w);
+  const hasTimer=phases.length>0;
+  return `<div class="od-guide" id="od-guide">
+    <div class="od-guide-kicker">Bez filmu YouTube · idź według planu</div>
+    ${struct?`<div class="od-guide-plan"><strong>Plan:</strong> ${escHtml(struct)}</div>`:''}
+    ${mats?`<div class="od-guide-mats"><strong>Materiały:</strong> ${escHtml(mats)}</div>`:''}
+    ${moves.length?`<ol class="od-guide-moves">${moves.map(m=>'<li>'+escHtml(m)+'</li>').join('')}</ol>`:''}
+    ${hasTimer?`<div class="od-guide-clock" id="od-guide-clock">
+      <div class="od-guide-phase" id="od-guide-phase">Gotowy</div>
+      <div class="od-guide-sec" id="od-guide-sec">${phases[0]?phases[0].sec:'—'}</div>
+      <div class="od-guide-sub" id="od-guide-sub">1 / ${phases.length}</div>
+      <div class="od-guide-actions">
+        <button type="button" class="btn btn-primary" id="od-guide-start" onclick="odGuideToggle()">▶ Start</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="odGuideReset()">Od nowa</button>
+      </div>
+    </div>`:`<div class="od-guide-clock"><div class="od-guide-phase">Wykonaj obwody według opisu i odhacz zadanie.</div></div>`}
+  </div>`;
+}
+window.odGuidePlayerHtml=odGuidePlayerHtml;
+function odGuideStop(){
+  if(window._odGuide&&window._odGuide.timer){
+    clearInterval(window._odGuide.timer);
+    window._odGuide.timer=null;
+  }
+}
+function odGuideReset(){
+  odGuideStop();
+  const w=window._odPlay&&window._odPlay.workout;
+  const phases=odGuidePhases(w);
+  window._odGuide={i:0,left:phases[0]?phases[0].sec:0,running:false,timer:null,phases:phases};
+  odGuidePaint();
+}
+function odGuidePaint(){
+  const g=window._odGuide;
+  if(!g)return;
+  const ph=g.phases[g.i];
+  const phaseEl=document.getElementById('od-guide-phase');
+  const secEl=document.getElementById('od-guide-sec');
+  const subEl=document.getElementById('od-guide-sub');
+  const startEl=document.getElementById('od-guide-start');
+  const clock=document.getElementById('od-guide-clock');
+  if(phaseEl)phaseEl.textContent=ph?ph.label:(g.i>=g.phases.length?'Koniec':'Gotowy');
+  if(secEl)secEl.textContent=g.i>=g.phases.length?'✓':String(g.left||0);
+  if(subEl)subEl.textContent=g.phases.length?(Math.min(g.i+1,g.phases.length)+' / '+g.phases.length):'';
+  if(startEl)startEl.textContent=g.running?'⏸ Pauza':(g.i>=g.phases.length?'✓ Koniec':'▶ Start');
+  if(clock){
+    clock.classList.toggle('is-work',!!(ph&&ph.kind==='work'&&g.running));
+    clock.classList.toggle('is-rest',!!(ph&&ph.kind==='rest'&&g.running));
+  }
+}
+function odGuideToggle(){
+  const w=window._odPlay&&window._odPlay.workout;
+  if(!window._odGuide||!window._odGuide.phases||!window._odGuide.phases.length){
+    window._odGuide={i:0,left:0,running:false,timer:null,phases:odGuidePhases(w)};
+    if(window._odGuide.phases[0])window._odGuide.left=window._odGuide.phases[0].sec;
+  }
+  const g=window._odGuide;
+  if(!g.phases.length)return;
+  if(g.i>=g.phases.length){odGuideReset();return;}
+  if(g.running){odGuideStop();g.running=false;odGuidePaint();return;}
+  g.running=true;
+  odGuidePaint();
+  g.timer=setInterval(()=>{
+    if(!window._odGuide)return;
+    const st=window._odGuide;
+    st.left=(st.left||0)-1;
+    if(st.left<=0){
+      if(typeof liveRestBeep==='function')try{liveRestBeep(st.phases[st.i]&&st.phases[st.i].kind==='work'?'go':'end');}catch(e){}
+      st.i++;
+      if(st.i>=st.phases.length){
+        odGuideStop();
+        st.running=false;
+        st.left=0;
+        odGuidePaint();
+        if(typeof notify==='function')notify('Koniec interwałów — zalicz zadanie');
+        return;
+      }
+      st.left=st.phases[st.i].sec;
+    }
+    odGuidePaint();
+  },1000);
+}
+window.odGuideToggle=odGuideToggle;
+window.odGuideReset=odGuideReset;
+window.odGuideStop=odGuideStop;
 const OD_FORMAT_LABELS={hiit:'🔥 HIIT',tabata:'⏱ Tabata',intervals:'⚡ Interwały',cardio:'❤️ Cardio',mobility:'🧘 Mobilność',stretch:'🤸 Stretch',strength:'💪 Siła',breath:'🌬 Oddychanie'};
 const OD_EQUIP_LABELS={none:'Bez sprzętu',dumbbells:'Hantle',mat:'Mata',bands:'Gumy'};
 function odWorkoutFormatLabel(w){return OD_FORMAT_LABELS[w&&w.format]||'🏋️ Trening';}
@@ -1567,6 +1701,7 @@ function migrateODYoutubeWorkouts(){
 window.allODWorkouts=allODWorkouts;
 window.odYoutubeId=odYoutubeId;
 window.odThumbUrl=odThumbUrl;
+window.odCanPlay=odCanPlay;
 window.ensureODWorkouts=ensureODWorkouts;
 window.syncMissingODDemoWorkouts=syncMissingODDemoWorkouts;
 window.migrateODYoutubeWorkouts=migrateODYoutubeWorkouts;
@@ -1594,10 +1729,11 @@ window.odWorkoutsForCollection=odWorkoutsForCollection;
 function openODAddFilm(collId){
   const sel=document.getElementById('odw-coll');
   if(sel&&collId)sel.value=collId;
-  ['odw-name','odw-url','odw-desc','odw-time'].forEach(id=>{
+  ['odw-name','odw-url','odw-desc','odw-time','odw-rounds','odw-work','odw-rest','odw-mats','odw-moves'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.value='';
   });
   const type=document.getElementById('odw-type');if(type)type.value='video';
+  const fmt=document.getElementById('odw-format');if(fmt)fmt.value='';
   if(typeof openM==='function')openM('m-od-workout');
 }
 window.openODAddFilm=openODAddFilm;
@@ -1744,10 +1880,10 @@ function odWorkoutCardHTML(w,i){
       <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;">
         ${coll?`<span class="pill" style="background:${collColor}22;color:${collColor};font-size:9px;">${coll.icon} ${escHtml(coll.name)}</span>`:''}
         ${typeof odWorkoutMetaChipsHTML==='function'?odWorkoutMetaChipsHTML(w):''}
-        <span class="pill pill-muted" style="font-size:9px;">${yt?'▶️ YouTube':w.type==='audio'?'🎧 Audio':'🏋️ Plan'}</span>
+        <span class="pill pill-muted" style="font-size:9px;">${yt?'▶️ YouTube':(typeof odHasGuide==='function'&&odHasGuide(w)?'📋 Bez filmu':w.type==='audio'?'🎧 Audio':'🏋️ Plan')}</span>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;" onclick="event.stopPropagation()">
-        <button class="btn btn-primary btn-sm" style="flex:1;" type="button" onclick="openODWorkout('${escHtml(w.id)}')">▶ Odtwórz</button>
+        <button class="btn btn-primary btn-sm" style="flex:1;" type="button" onclick="openODWorkout('${escHtml(w.id)}')">${yt?'▶ Odtwórz':'▶ Start'}</button>
         <button class="btn btn-ghost btn-sm" type="button" onclick="openAssignHomeworkModal('${escHtml(w.id)}')">🏠 Klientowi</button>
         <button class="btn btn-ghost btn-sm" type="button" onclick="shareODWorkout('${escHtml(w.id)}')">↗</button>
       </div>
@@ -1922,8 +2058,12 @@ function odPlayerHtml(w,extraWrapClass){
   if(safeUrl){
     return '<div style="padding:28px;text-align:center;color:var(--muted);">Nie da się osadzić tego linku. <a href="'+escHtml(safeUrl)+'" target="_blank" rel="noopener noreferrer">Otwórz wideo</a></div>';
   }
-  return '<div style="padding:28px;text-align:center;color:var(--muted);">Brak linku YouTube. Dodaj URL odcinka (watch?v=...), nie kanału.</div>';
+  if(typeof odHasGuide==='function'?odHasGuide(w):w&&w.structure){
+    return odGuidePlayerHtml(w);
+  }
+  return '<div style="padding:28px;text-align:center;color:var(--muted);">Brak planu i linku. Dodaj obwody (typ Plan ćwiczeń) albo URL odcinka YouTube.</div>';
 }
+window.odPlayerHtml=odPlayerHtml;
 
 function openODWorkoutLive(w){
   if(window._cw&&window._cw.active){
@@ -1935,20 +2075,25 @@ function openODWorkoutLive(w){
   const inner=document.getElementById('clive-player-inner');
   if(!wrap||!inner)return false;
   const safeUrl=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl(w.url):String(w.url||'');
+  const guide=typeof odHasGuide==='function'&&odHasGuide(w)&&!odCanPlay(w);
+  const hwId=window._odHwTaskId||'';
   inner.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px;">
     <button type="button" class="btn btn-ghost btn-sm" onclick="closeODPlayer()">✕ Zamknij</button>
-    <div style="font-size:11px;color:var(--muted);text-align:right;flex:1;">YouTube · darmowy trening</div>
+    <div style="font-size:11px;color:var(--muted);text-align:right;flex:1;">${guide?'Zadanie · interwały bez filmu':'YouTube · darmowy trening'}</div>
   </div>
   <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;margin-bottom:6px;">${escHtml(w.name||'Trening')}</div>
   <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">${escHtml(w.desc||'')}${w.time?' · '+w.time+' min':''}</div>
-  ${odPlayerHtml(w,'clive-od-player-wrap')}
-  ${safeUrl?`<a class="btn btn-ghost btn-sm" style="margin-top:12px;display:inline-flex;" href="${escHtml(safeUrl)}" target="_blank" rel="noopener noreferrer">Otwórz na YouTube</a>`:''}`;
+  ${odPlayerHtml(w,guide?'':'clive-od-player-wrap')}
+  ${safeUrl?`<a class="btn btn-ghost btn-sm" style="margin-top:12px;display:inline-flex;" href="${escHtml(safeUrl)}" target="_blank" rel="noopener noreferrer">Otwórz na YouTube</a>`:''}
+  ${hwId?`<button type="button" class="btn btn-primary" style="width:100%;margin-top:12px;" onclick="clientCompleteHomework('${escHtml(hwId)}')">✓ Zaliczone — RPE i czas</button>`:''}`;
   wrap.hidden=false;
   document.body.classList.add('od-playing');
+  if(guide)odGuideReset();
   return true;
 }
 
 function closeODPlayer(){
+  if(typeof odGuideStop==='function')odGuideStop();
   const frame=document.getElementById('od-player-frame');
   if(frame){
     if(frame.tagName==='IFRAME')frame.removeAttribute('src');
@@ -1960,6 +2105,7 @@ function closeODPlayer(){
     document.body.classList.remove('od-playing');
     window._odPlay=null;
   }
+  window._odHwTaskId=null;
   const m=document.getElementById('m-od-player');
   if(m)m.classList.remove('show');
 }
@@ -1997,10 +2143,18 @@ function openODWorkout(id){
     if(safeUrl){yt.href=safeUrl;yt.style.display='inline-flex';}
     else{yt.removeAttribute('href');yt.style.display='none';}
   }
-  if(meta)meta.textContent=(w.desc||'')+(w.time?' · '+w.time+' min':'')+' · darmowy YouTube';
-  if(wrap)wrap.innerHTML=odPlayerHtml(w);
+  const guide=typeof odHasGuide==='function'&&odHasGuide(w)&&!odCanPlay(w);
+  if(meta)meta.textContent=(w.desc||'')+(w.time?' · '+w.time+' min':'')+(guide?' · bez filmu YouTube':' · darmowy YouTube');
+  if(wrap){
+    wrap.className=guide?'od-guide-host':'od-player-wrap';
+    wrap.innerHTML=odPlayerHtml(w);
+  }
   if(typeof openM==='function')openM('m-od-player');
   else m.classList.add('show');
+  if(guide){
+    window._odPlay={id:w.id,workout:w};
+    odGuideReset();
+  }
 }
 
 async function saveODWorkout(){
@@ -2013,20 +2167,41 @@ async function saveODWorkout(){
   const url=typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl(rawUrl):String(rawUrl||'').trim();
   const embed=typeof coachVideoEmbed==='function'?coachVideoEmbed(url):'';
   const file=typeof coachVideoIsFile==='function'&&coachVideoIsFile(url);
-  if(type==='video'&&!embed&&!file){
-    notify('Wklej link do odcinka YouTube (np. youtube.com/watch?v=...), nie do kanału.');
+  const rounds=parseInt((document.getElementById('odw-rounds')||{}).value,10)||0;
+  const workSec=parseInt((document.getElementById('odw-work')||{}).value,10)||0;
+  const restSec=parseInt((document.getElementById('odw-rest')||{}).value,10)||0;
+  const format=(document.getElementById('odw-format')||{}).value||'';
+  const materials=String((document.getElementById('odw-mats')||{}).value||'').trim();
+  const moves=String((document.getElementById('odw-moves')||{}).value||'').split(/\n|,/).map(x=>x.trim()).filter(Boolean);
+  const hasGuide=type==='workout'||rounds||workSec||materials||moves.length;
+  if(type==='video'&&!embed&&!file&&!hasGuide){
+    notify('Wklej link YouTube albo zmień typ na Plan ćwiczeń i podaj obwody (bez filmu).');
+    return;
+  }
+  if(type==='workout'&&!embed&&!file&&!rounds&&!workSec&&!materials&&!moves.length){
+    notify('Uzupełnij rundy / czas pracy albo listę ćwiczeń — to szablon bez filmu.');
     return;
   }
   ensureODWorkouts();
+  const structure=hasGuide?{
+    label:format==='tabata'?'Tabata':format==='hiit'?'Interwały':format==='mobility'?'Obwód':'Plan',
+    rounds:rounds||undefined,
+    workSec:workSec||undefined,
+    restSec:restSec||undefined,
+    materials:materials||undefined,
+    moves:moves.length?moves:undefined
+  }:undefined;
   const w=withTrainer({
     id:newId('ow'),name,
-    type:type,
+    type:hasGuide&&!embed&&!file?'workout':type,
+    format:format||undefined,
     level:document.getElementById('odw-level').value,
     time:parseInt(document.getElementById('odw-time').value)||30,
     coll:document.getElementById('odw-coll').value,
     url:url,
     desc:document.getElementById('odw-desc').value,
-    color:'var(--s3)',emoji:'🏋️',views:0,likes:0
+    structure:structure,
+    color:'var(--s3)',emoji:hasGuide&&!url?'🔥':'🏋️',views:0,likes:0
   });
   window.OD_WORKOUTS.push(w);
   await persistById('odWorkouts',w);
@@ -2034,7 +2209,7 @@ async function saveODWorkout(){
   if(w.coll)odProgramFilter=w.coll;
   if(odTab==='browse')renderODBrowse();
   else renderODPrograms();
-  notify('✓ Film "'+name+'" dodany'+(w.coll?' do kategorii':'')+'!');
+  notify(url?'✓ Film "'+name+'" dodany'+(w.coll?' do kategorii':'')+'!':'✓ Szablon bez filmu "'+name+'" zapisany');
 }
 
 function shareODProgram(id){

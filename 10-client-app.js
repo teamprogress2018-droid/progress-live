@@ -808,26 +808,91 @@ function clientStartHomework(taskId){
     if(typeof notify==='function')notify('Brak powiązanego treningu');
     return;
   }
+  window._odHwTaskId=taskId;
   if(typeof openODWorkout==='function')openODWorkout(wid);
   else if(typeof notify==='function')notify('Nie można odtworzyć treningu');
 }
 
-function clientCompleteHomework(taskId){
+function openHomeworkDoneModal(taskId){
   const t=(window.TASKS||[]).find(x=>x.id===taskId);
   if(!t)return;
+  const w=(typeof allODWorkouts==='function'?allODWorkouts():[]).find(x=>x&&x.id===t.odWorkoutId);
+  let m=document.getElementById('m-hw-done');
+  if(!m){
+    m=document.createElement('div');
+    m.id='m-hw-done';m.className='modal-ov';
+    m.innerHTML=`<div class="modal" style="max-width:420px;">
+      <div class="modal-hdr"><div class="modal-title">ZALICZ ZADANIE</div><button class="modal-close" type="button" onclick="closeM('m-hw-done')">×</button></div>
+      <div class="modal-body">
+        <div id="hw-done-title" style="font-size:13px;font-weight:700;margin-bottom:12px;"></div>
+        <div class="form-field"><label class="form-lbl">RPE (1–10)</label>
+          <div id="hw-done-rpe-row" style="display:flex;gap:4px;flex-wrap:wrap;"></div>
+        </div>
+        <div class="form-field"><label class="form-lbl">Czas (min)</label><input type="number" class="form-input" id="hw-done-min" min="1" max="180" inputmode="numeric"></div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-ghost" type="button" onclick="closeM('m-hw-done')">Anuluj</button><button class="btn btn-primary" type="button" id="hw-done-save" onclick="saveHomeworkDone()">Zapisz do Postępów</button></div>
+    </div>`;
+    document.body.appendChild(m);
+  }
+  window._hwDoneTaskId=taskId;
+  window._hwDoneRpe='';
+  const title=document.getElementById('hw-done-title');
+  if(title)title.textContent=t.title||(w&&w.name)||'Zadanie domowe';
+  const min=document.getElementById('hw-done-min');
+  if(min)min.value=String((w&&w.time)||20);
+  const row=document.getElementById('hw-done-rpe-row');
+  if(row){
+    row.innerHTML=[6,7,8,9,10].map(n=>`<button type="button" class="btn btn-ghost btn-sm hw-rpe-btn" data-rpe="${n}" onclick="pickHomeworkRpe(${n})">${n}</button>`).join('')+
+      `<button type="button" class="btn btn-ghost btn-sm hw-rpe-btn" data-rpe="5" onclick="pickHomeworkRpe(5)">5−</button>`;
+  }
+  if(typeof openM==='function')openM('m-hw-done');
+  else m.classList.add('show');
+}
+function pickHomeworkRpe(n){
+  window._hwDoneRpe=String(n);
+  document.querySelectorAll('.hw-rpe-btn').forEach(el=>{
+    el.classList.toggle('btn-primary',el.getAttribute('data-rpe')===String(n));
+    el.classList.toggle('btn-ghost',el.getAttribute('data-rpe')!==String(n));
+  });
+}
+function saveHomeworkDone(){
+  const id=window._hwDoneTaskId;
+  const rpe=window._hwDoneRpe;
+  const duration=parseInt((document.getElementById('hw-done-min')||{}).value,10)||0;
+  if(!rpe){if(typeof notify==='function')notify('Wybierz RPE');return;}
+  if(typeof closeM==='function')closeM('m-hw-done');
+  clientCompleteHomework(id,{rpe,duration,confirmed:true});
+}
+
+function clientCompleteHomework(taskId,opts){
+  const t=(window.TASKS||[]).find(x=>x.id===taskId);
+  if(!t)return;
+  opts=opts||{};
+  if(!opts.confirmed){
+    openHomeworkDoneModal(taskId);
+    return;
+  }
   t.status='done';
   t.doneAt=new Date().toISOString();
   t.updatedAt=new Date().toISOString();
+  t.rpe=opts.rpe!=null&&opts.rpe!==''?String(opts.rpe):'';
+  t.duration=parseInt(opts.duration,10)||t.duration||0;
   if(typeof persistById==='function')persistById('tasks',t);
-  if(typeof notify==='function')notify('✓ Zadanie domowe zaliczone');
-  if(typeof pushClientMsg==='function')pushClientMsg('Zaliczyłem zadanie domowe: '+(t.title||'trening'));
+  const sess=typeof logHomeworkSession==='function'?logHomeworkSession(t,{rpe:t.rpe,duration:t.duration}):null;
+  if(typeof closeODPlayer==='function')try{closeODPlayer();}catch(e){}
+  if(typeof notify==='function')notify('✓ Zadanie domowe w Postępach'+(t.rpe?' · RPE '+t.rpe:''));
+  if(typeof pushClientMsg==='function')pushClientMsg('Zaliczyłem zadanie domowe: '+(t.title||'trening')+(t.rpe?' · RPE '+t.rpe:'')+(t.duration?' · '+t.duration+' min':''));
   if(typeof addNotification==='function'){
     const c=(window.CL||[]).find(x=>x.id===t.clientId);
-    addNotification('task','Zadanie domowe zaliczone',((c&&c.name)||'Klient')+' · '+(t.title||''),'tasks');
+    addNotification('task','Zadanie domowe zaliczone',((c&&c.name)||'Klient')+' · '+(t.title||'')+(t.rpe?' · RPE '+t.rpe:''),'tasks');
   }
   try{if(typeof renderDashHwFollowup==='function')renderDashHwFollowup();}catch(e){}
   if(typeof maybeScheduleNextHomework==='function')maybeScheduleNextHomework(t);
-  if(typeof renderClientLive==='function')renderClientLive();
+  if(typeof renderClientLive==='function'){
+    if(sess)window._cliveSessionId=sess.id;
+    window._clientLiveScreen='progress';
+    renderClientLive();
+  }
 }
 function maybeScheduleNextHomework(t){
   const left=(parseInt(t.repeatLeft,10)||0)-1;
@@ -851,6 +916,9 @@ window.maybeScheduleNextHomework=maybeScheduleNextHomework;
 
 window.clientStartHomework=clientStartHomework;
 window.clientCompleteHomework=clientCompleteHomework;
+window.openHomeworkDoneModal=openHomeworkDoneModal;
+window.pickHomeworkRpe=pickHomeworkRpe;
+window.saveHomeworkDone=saveHomeworkDone;
 
 function cwClearTimers(){
   if(window._cwRestTimer){clearInterval(window._cwRestTimer);window._cwRestTimer=null;}

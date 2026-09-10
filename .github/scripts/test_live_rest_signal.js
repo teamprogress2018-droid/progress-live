@@ -20,7 +20,7 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=54'));
-ok('cache styles', html.includes('styles.css?v=78'));
+ok('cache styles', html.includes('styles.css?v=79'));
 ok('aria live A', html.includes('id="live-rest-timer" aria-live="assertive"'));
 ok('aria live B', html.includes('id="live-b-rest-timer" aria-live="assertive"'));
 ok('phase helper', /function liveRestPhase\(/.test(live));

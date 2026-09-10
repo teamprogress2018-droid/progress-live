@@ -86,6 +86,35 @@ const html = ctx.capScreenHTML('homework', { id: 'c1', name: 'Test' });
 ok('homework assignments only', html.includes('Tylko to, co trener Ci przypisał') && !html.includes('Oddech'));
 ok('homework empty points to ondemand', html.includes('On-demand'));
 
+ctx.ensureODWorkouts();
+const guide = (ctx.allODWorkouts() || []).find((x) => x.id === 'ow21');
+ok('guide demo ow21', !!(guide && guide.type === 'workout' && !guide.url && guide.structure && guide.structure.workSec));
+ok('odHasGuide', typeof ctx.odHasGuide === 'function' && ctx.odHasGuide(guide));
+ok('odCanPlay false for guide', ctx.odCanPlay(guide) === false);
+ok('odCanStart guide', ctx.odCanStart(guide) === true);
+ok('guide phases', (ctx.odGuidePhases(guide) || []).length >= 16);
+const player = ctx.odPlayerHtml(guide);
+ok('guide player html', /od-guide/.test(player) && /Start/.test(player) && !/Brak linku YouTube/.test(player));
+ok('builder form guide fields', fs.readFileSync(path.join(root, 'index.html'), 'utf8').includes('id="odw-rounds"') && fs.readFileSync(path.join(root, 'index.html'), 'utf8').includes('Plan bez filmu'));
+
+windowObj.TASKS = [];
+windowObj.SE = [];
+ctx.assignHomeworkToClient('c1', 'ow21', { notify: false });
+const t = windowObj.TASKS[0];
+t.status = 'done';
+t.doneAt = (typeof ctx.todayYmd === 'function' ? ctx.todayYmd() : '2026-09-10') + 'T12:00:00.000Z';
+const sess = ctx.logHomeworkSession(t, { rpe: 8, duration: 16 });
+ok('hw session', !!(sess && sess.source === 'homework' && sess.rpe === '8' && sess.duration === 16));
+ok('hw is logged', ctx.isLoggedWorkout(sess) === true);
+ok('rpe to feedback', ctx.homeworkRpeToFeedback(8) === 4 && sess.feedback === 4);
+ok('completed workouts include hw', ctx.completedWorkouts('c1').some((s) => s.id === sess.id));
+const prog = ctx.capClientProgressScreenHTML({ id: 'c1', name: 'Test' }, '#ff3b30');
+ok('progress lists homework rpe', /Zadania domowe/.test(prog) && /RPE 8/.test(prog));
+const wf = fs.readFileSync(path.join(root, '.github', 'workflows', 'check.yml'), 'utf8');
+const indexHtml = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+ok('cache 01/04/09/10', indexHtml.includes('01-core.js?v=92') && indexHtml.includes('04-client-portal.js?v=41') && indexHtml.includes('09-posture-kb-invites-private.js?v=38') && indexHtml.includes('10-client-app.js?v=36'));
+ok('CI guide ui', wf.includes('test_homework_guide_ui.js'));
+
 if (failed) {
   console.error('\nZadania domowe: ' + failed + ' FAIL');
   process.exit(1);

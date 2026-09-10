@@ -13,7 +13,7 @@
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="globals.css?v=17">
-<link rel="stylesheet" href="styles.css?v=78">
+<link rel="stylesheet" href="styles.css?v=79">
 </head>
 <body>
 
@@ -3625,14 +3625,14 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 <!-- ON-DEMAND WORKOUT MODAL -->
 <div class="modal-ov" id="m-od-workout">
   <div class="modal modal-wide">
-    <div class="modal-hdr"><div class="modal-title">NOWY FILM YOUTUBE</div><button class="modal-close" onclick="closeM('m-od-workout')">×</button></div>
+    <div class="modal-hdr"><div class="modal-title">NOWY TRENING</div><button class="modal-close" onclick="closeM('m-od-workout')">×</button></div>
     <div class="modal-body">
       <div class="form-field"><label class="form-lbl">Nazwa treningu</label><input type="text" class="form-input" id="odw-name" placeholder="np. Full Body HIIT 30 min"></div>
       <div class="form-grid">
         <div class="form-field"><label class="form-lbl">Typ</label>
           <select class="form-select" id="odw-type">
-            <option value="video">▶️ Wideo</option>
-            <option value="workout">🏋️ Plan ćwiczeń</option>
+            <option value="video">▶️ Wideo YouTube</option>
+            <option value="workout">📋 Plan bez filmu</option>
             <option value="audio">🎧 Audio</option>
           </select>
         </div>
@@ -3659,10 +3659,30 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
           </select>
         </div>
       </div>
-      <div class="form-field"><label class="form-lbl">URL wideo (YouTube)</label><input type="url" class="form-input" id="odw-url" placeholder="https://www.youtube.com/watch?v=..."><div style="font-size:11px;color:var(--muted);margin-top:6px;">Wklej link do odcinka (watch?v= albo youtu.be/...), nie do kanału.</div></div>
+      <div class="form-grid">
+        <div class="form-field"><label class="form-lbl">Format</label>
+          <select class="form-select" id="odw-format">
+            <option value="">—</option>
+            <option value="hiit">HIIT</option>
+            <option value="tabata">Tabata</option>
+            <option value="mobility">Mobilność</option>
+            <option value="stretch">Stretch</option>
+            <option value="strength">Siła / core</option>
+            <option value="breath">Oddech</option>
+          </select>
+        </div>
+        <div class="form-field"><label class="form-lbl">Rundy</label><input type="number" class="form-input" id="odw-rounds" min="0" placeholder="np. 8"></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-field"><label class="form-lbl">Praca (s)</label><input type="number" class="form-input" id="odw-work" min="0" placeholder="40"></div>
+        <div class="form-field"><label class="form-lbl">Przerwa (s)</label><input type="number" class="form-input" id="odw-rest" min="0" placeholder="20"></div>
+      </div>
+      <div class="form-field"><label class="form-lbl">URL wideo (opcjonalnie)</label><input type="url" class="form-input" id="odw-url" placeholder="https://www.youtube.com/watch?v=..."><div style="font-size:11px;color:var(--muted);margin-top:6px;">Możesz zostawić puste i podać rundy — klient dostanie timer w apce, bez YouTube.</div></div>
+      <div class="form-field"><label class="form-lbl">Materiały</label><input type="text" class="form-input" id="odw-mats" placeholder="np. Mata, brak sprzętu"></div>
+      <div class="form-field"><label class="form-lbl">Ćwiczenia / stacje (opcjonalnie)</label><textarea class="form-textarea" id="odw-moves" rows="2" placeholder="np. Burpee, przysiad, pompki"></textarea></div>
       <div class="form-field"><label class="form-lbl">Opis</label><textarea class="form-textarea" id="odw-desc" rows="2" placeholder="Krótki opis treningu..."></textarea></div>
     </div>
-    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-od-workout')">Anuluj</button><button class="btn btn-primary" onclick="saveODWorkout()">Zapisz film</button></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-od-workout')">Anuluj</button><button class="btn btn-primary" onclick="saveODWorkout()">Zapisz trening</button></div>
   </div>
 </div>
 
@@ -4331,15 +4351,15 @@ async function load(){
 
 <script src="ex-gif-manifest.js?v=34"></script>
 <script src="ex-photo-manifest.js?v=6"></script>
-<script src="01-core.js?v=91"></script>
+<script src="01-core.js?v=92"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=54"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=34"></script>
-<script src="04-client-portal.js?v=40"></script>
+<script src="04-client-portal.js?v=41"></script>
 <script src="05-clients-builder-plans-calendar.js?v=52"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=73"></script>
 <script src="07-forms-metrics-calculator.js?v=33"></script>
 <script src="08-client-profile-extras.js?v=51"></script>
-<script src="09-posture-kb-invites-private.js?v=37"></script>
-<script src="10-client-app.js?v=35"></script>
+<script src="09-posture-kb-invites-private.js?v=38"></script>
+<script src="10-client-app.js?v=36"></script>
 </body>
 </html>
