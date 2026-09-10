@@ -19,21 +19,22 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=49'));
-ok('cache styles', html.includes('styles.css?v=74'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=50'));
+ok('cache styles', html.includes('styles.css?v=75'));
 ok('aria live A', html.includes('id="live-rest-timer" aria-live="assertive"'));
 ok('aria live B', html.includes('id="live-b-rest-timer" aria-live="assertive"'));
 ok('phase helper', /function liveRestPhase\(/.test(live));
 ok('cue helper', /function liveRestCue\(/.test(live));
 ok('beep helper', /function liveRestBeep\(/.test(live) && live.includes('AudioContext'));
 ok('paint helper', /function liveRestPaint\(/.test(live));
-ok('start uses cue', /liveRestCue\(left\)/.test(live) && /liveRestBeep\(cue\)/.test(live));
+ok('go label helper', /function liveRestLabel\(/.test(live) && /LET'S GO/.test(live));
+ok('start uses label', /liveRestLabel\(left\)/.test(live) && /liveRestLabel\(0\)/.test(live));
 ok('css pulse', css.includes('@keyframes live-rest-pulse') && css.includes('.live-rest-card.is-ending'));
 ok('css go', css.includes('@keyframes live-rest-go') && css.includes('.live-rest-card.is-go'));
 ok('CI unit', wf.includes('test_live_rest_signal.js'));
 ok('CI ui', wf.includes('test_live_rest_ui.js'));
 
-const slice = live.match(/function liveRestPhase\(sec\)\{[\s\S]*?\n\}\nwindow\.liveRestPhase=liveRestPhase;\n\nfunction liveRestCue\(sec\)\{[\s\S]*?\n\}\nwindow\.liveRestCue=liveRestCue;/);
+const slice = live.match(/function liveRestPhase\(sec\)\{[\s\S]*?\n\}\nwindow\.liveRestPhase=liveRestPhase;\n\nfunction liveRestCue\(sec\)\{[\s\S]*?\n\}\nwindow\.liveRestCue=liveRestCue;\n\nfunction liveRestLabel\(sec\)\{[\s\S]*?\n\}\nwindow\.liveRestLabel=liveRestLabel;/);
 ok('extract phase+cue', !!slice);
 const ctx = vm.createContext({ window: {}, Number, String, Math });
 vm.runInContext(slice[0], ctx);
@@ -42,6 +43,11 @@ ok('10s warn silent', ctx.liveRestPhase(10) === 'warn' && ctx.liveRestCue(10) ==
 ok('5s ending tick', ctx.liveRestPhase(5) === 'ending' && ctx.liveRestCue(5) === 'tick');
 ok('1s ending tick', ctx.liveRestPhase(1) === 'ending' && ctx.liveRestCue(1) === 'tick');
 ok('0s go', ctx.liveRestPhase(0) === 'go' && ctx.liveRestCue(0) === 'go');
+ok('90s still seconds', ctx.liveRestLabel(90) === '90s');
+ok('3s READY', ctx.liveRestLabel(3) === 'READY');
+ok('2s SET', ctx.liveRestLabel(2) === 'SET');
+ok('1s GO', ctx.liveRestLabel(1) === 'GO');
+ok("0s LET'S GO", ctx.liveRestLabel(0) === "LET'S GO!");
 
 if (failed) process.exit(1);
 console.log('\nAll live-rest-signal tests passed');
