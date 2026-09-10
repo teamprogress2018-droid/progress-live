@@ -256,10 +256,10 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 .ex-row-extra{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) 88px;gap:8px;margin-top:8px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);}
 .ex-row-coach{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;}
 .ex-kind-btns{grid-column:1/-1;display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px;}
-.ex-drop-step,.ex-trans-inp{width:92px;min-width:72px;}
+.ex-kind-btns .ex-drop-step,.ex-kind-btns .ex-trans-inp{width:110px;max-width:140px;flex:0 0 110px;}
 .builder-circuit-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 10px;padding:8px 10px;background:rgba(255,140,66,0.08);border:1px solid rgba(255,140,66,0.22);border-radius:10px;}
 .builder-circuit-toggle{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);cursor:pointer;}
-.builder-round-rest{width:110px;}
+.builder-circuit-bar .builder-round-rest{width:120px;max-width:140px;flex:0 0 120px;}
 .builder-station-badge{flex-shrink:0;min-width:28px;height:22px;padding:0 6px;border-radius:6px;background:rgba(255,140,66,0.18);border:1px solid rgba(255,140,66,0.4);color:var(--orange);font-size:11px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;}
 .builder-station-badge[hidden]{display:none;}
 .builder-day.is-circuit .ex-row{border-left-color:var(--orange)!important;}

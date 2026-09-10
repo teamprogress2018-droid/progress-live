@@ -56,7 +56,7 @@ ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=54'));
 ok('cache 04', html.includes('04-client-portal.js?v=40'));
 ok('cache 09', html.includes('09-posture-kb-invites-private.js?v=37'));
 ok('cache 10', html.includes('10-client-app.js?v=35'));
-ok('cache styles', html.includes('styles.css?v=77'));
+ok('cache styles', html.includes('styles.css?v=78'));
 ok('CI', wf.includes('test_ux_audit_fixes.js'));
 
 const document = {
