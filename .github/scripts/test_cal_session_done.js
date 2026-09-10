@@ -20,7 +20,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01 v71', html.includes('01-core.js?v=92'));
+ok('cache 01 v71', html.includes('01-core.js?v=93'));
 ok('cache 05 v37', html.includes('05-clients-builder-plans-calendar.js?v=52'));
 ok('cache 08 v38', html.includes('08-client-profile-extras.js?v=51'));
 ok('cache styles v56', html.includes('styles.css?v=79'));

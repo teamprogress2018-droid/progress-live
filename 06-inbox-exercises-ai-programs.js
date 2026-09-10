@@ -5,6 +5,7 @@
 // INBOX — ENHANCED
 // ════════════════════════════════════════
 var inboxTab='all';
+var chatKindFilter='all';
 const QUICK_REPLIES=['Dziękuję za informację!','Rozumiem, zajmę się tym.','Świetna robota! 💪','Pamiętaj o treningu!','Proszę wypełnić formularz postępów.','Kiedy możemy się spotkać?'];
 const CLIENT_NOTES={};// clientId -> [{text, date}]
 const CLIENT_ACTIVITY={};// clientId -> [{type, text, date, icon}]
@@ -120,7 +121,7 @@ function renderInbox(){
           <div style="font-size:13px;font-weight:${unread?700:500};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(c.name)}</div>
           <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;flex-shrink:0;margin-left:4px;">${escHtml(time)}</div>
         </div>
-        <div style="font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${last?escHtml(last.text):(unread?'Nowa wiadomość':'Brak wiadomości')}</div>
+        <div style="font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${last?(function(){const k=typeof normalizeMsgKind==='function'?normalizeMsgKind(last):'direct';const pre=k==='broadcast'?'📢 ':k==='system'?'⚙️ ':'';const txt=typeof msgDisplayText==='function'?msgDisplayText(last):(last.text||'');return escHtml(pre+txt);})():(unread?'Nowa wiadomość':'Brak wiadomości')}</div>
       </div>
       ${unread?'<div class="msg-unread-dot"></div>':''}
     </div>`;
@@ -261,7 +262,7 @@ function sendClientGroupMessage(){
   const members=(g.clientIds||[]).map(cid=>CL.find(c=>c.id===cid)).filter(Boolean);
   if(!members.length){notify('Grupa nie ma członków');return;}
   if(!confirm('Wysłać wiadomość do '+members.length+' klientów z grupy "'+g.name+'"?'))return;
-  members.forEach(c=>pushMsg(c.id,msg.replace(/\{imie\}/gi,c.name.split(' ')[0])));
+  members.forEach(c=>pushMsg(c.id,msg.replace(/\{imie\}/gi,c.name.split(' ')[0]),{kind:'broadcast',broadcast:true}));
   closeM('m-group-msg');
   notify('✓ Wysłano do '+members.length+' klientów z grupy "'+g.name+'"');
   renderInbox();
@@ -303,18 +304,39 @@ function openChat(id){
     <button class="btn btn-ghost btn-sm" onclick="openM('m-task')" title="Dodaj zadanie">✅</button>
     <button class="btn btn-ghost btn-sm" onclick="openM('m-send-form')" title="Wyślij formularz">📋</button>`;
 
+  const kindBar=document.getElementById('chat-kind-bar');
+  if(kindBar)kindBar.style.display='block';
+  document.querySelectorAll('.chat-kind-btn').forEach(el=>{
+    const on=el.getAttribute('data-kind')===chatKindFilter;
+    el.classList.toggle('btn-primary',on);
+    el.classList.toggle('btn-ghost',!on);
+  });
+
   // messages
   const wrap=document.getElementById('msg-wrap');
-  wrap.innerHTML=MSGS[id].length?MSGS[id].map(m=>`
-    <div style="margin-bottom:12px;${m.out?'text-align:right;':''}">
-      <div class="msg-bubble ${m.out?'msg-out':'msg-in'}" style="white-space:pre-wrap;">${escHtml(m.text||'')}</div>
+  const allMsgs=MSGS[id]||[];
+  const shown=allMsgs.filter(m=>{
+    if(chatKindFilter==='all')return true;
+    const k=typeof normalizeMsgKind==='function'?normalizeMsgKind(m):'direct';
+    return k===chatKindFilter;
+  });
+  wrap.innerHTML=shown.length?shown.map(m=>{
+    const kind=typeof normalizeMsgKind==='function'?normalizeMsgKind(m):'direct';
+    const display=typeof msgDisplayText==='function'?msgDisplayText(m):(m.text||'');
+    const pill=kind==='direct'?'':`<span style="display:inline-block;font-size:9px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.4px;color:var(--muted);margin-bottom:4px;">${escHtml(typeof msgKindLabel==='function'?msgKindLabel(kind):kind)}</span>`;
+    return `<div class="msg-row" data-kind="${escHtml(kind)}" style="margin-bottom:12px;${m.out?'text-align:right;':''}">
+      ${pill}
+      <div class="msg-bubble ${m.out?'msg-out':'msg-in'}" style="white-space:pre-wrap;">${escHtml(display)}</div>
       <div style="font-size:10px;color:var(--muted);margin-top:3px;">${escHtml(m.time||'')}</div>
-    </div>`).join('')
-    :`<div style="text-align:center;padding:40px 20px;color:var(--muted);">
+    </div>`;
+  }).join('')
+    :(allMsgs.length
+      ?`<div style="text-align:center;padding:40px 20px;color:var(--muted);font-size:12px;">Brak wiadomości w filtrze „${escHtml(typeof msgKindLabel==='function'?msgKindLabel(chatKindFilter):chatKindFilter)}”.</div>`
+      :`<div style="text-align:center;padding:40px 20px;color:var(--muted);">
       <div style="font-size:32px;margin-bottom:8px;">👋</div>
       <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Zacznij rozmowę z ${escHtml(c.name)}</div>
       <div style="font-size:11px;">Wyślij wiadomość lub wybierz szybką odpowiedź poniżej</div>
-    </div>`;
+    </div>`);
   wrap.scrollTop=wrap.scrollHeight;
 
   // quick replies
@@ -406,10 +428,21 @@ function sendMsg(){
   const inp=document.getElementById('msg-inp');
   const txt=inp?inp.value.trim():'';
   if(!txt||!curChat)return;
-  pushMsg(curChat,txt);
+  pushMsg(curChat,txt,{kind:'direct'});
   inp.value='';inp.style.height='auto';
   openChat(curChat);
 }
+
+function setChatKindFilter(kind){
+  chatKindFilter=['direct','system','broadcast'].includes(kind)?kind:'all';
+  document.querySelectorAll('.chat-kind-btn').forEach(el=>{
+    const on=el.getAttribute('data-kind')===chatKindFilter;
+    el.classList.toggle('btn-primary',on);
+    el.classList.toggle('btn-ghost',!on);
+  });
+  if(curChat)openChat(curChat);
+}
+window.setChatKindFilter=setChatKindFilter;
 
 function sendBroadcast(){
   const msg=document.getElementById('bc-msg').value.trim();
@@ -428,7 +461,7 @@ function sendBroadcast(){
   if(!confirm('Wysłać wiadomość do '+targets.length+' klientów?'))return;
   targets.forEach(c=>{
     const text=msg.replace(/{imie}/g,c.name.split(' ')[0]);
-    pushMsg(c.id,text);
+    pushMsg(c.id,text,{kind:'broadcast',broadcast:true});
   });
   closeM('m-broadcast');
   renderInbox();
