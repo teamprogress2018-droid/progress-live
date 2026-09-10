@@ -60,7 +60,7 @@ function ok(name, cond, extra) {
   ok('kind bar shown', all.barShown);
   ok('three messages', all.kinds.join(',') === 'direct,system,broadcast', JSON.stringify(all.kinds));
   ok('tags stripped in thread', /HIIT 20/.test(all.text) && !/\[od:ow2\]/.test(all.text), all.text.slice(0, 300));
-  ok('list preview stripped', /HIIT/.test(all.preview) && !/\[od:/.test(all.preview), all.preview.slice(0, 200));
+  ok('list preview stripped', /Siłownia jutro/.test(all.preview) && !/\[od:/.test(all.preview), all.preview.slice(0, 200));
 
   await page.click('.chat-kind-btn[data-kind="system"]');
   await page.waitForTimeout(200);
