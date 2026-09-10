@@ -19,8 +19,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=49'));
-ok('cache styles', html.includes('styles.css?v=74'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=50'));
+ok('cache styles', html.includes('styles.css?v=75'));
 ok('LIVE_ALT_MAX 3', /const LIVE_ALT_MAX=3/.test(live));
 ok('toggle helper', /function liveToggleAlts\(/.test(live) && /function liveAltsToShow\(/.test(live));
 ok('more css', css.includes('.live-alts-more'));

@@ -3828,6 +3828,16 @@ function liveRestCue(sec){
 }
 window.liveRestCue=liveRestCue;
 
+function liveRestLabel(sec){
+  const n=Number(sec);
+  if(!Number.isFinite(n)||n<=0)return "LET'S GO!";
+  if(n===1)return 'GO';
+  if(n===2)return 'SET';
+  if(n===3)return 'READY';
+  return n+'s';
+}
+window.liveRestLabel=liveRestLabel;
+
 function liveRestAudioCtx(){
   const AC=window.AudioContext||window.webkitAudioContext;
   if(!AC)return null;
@@ -3911,11 +3921,11 @@ function liveStartRest(sec,slot){
     if(cue)liveRestBeep(cue);
     if(left<=0){
       clearInterval(st.restInterval);
-      el.textContent='GO!';
+      el.textContent=typeof liveRestLabel==='function'?liveRestLabel(0):"LET'S GO!";
       st.restDoneTimer=setTimeout(finish,2200);
       return;
     }
-    el.textContent=left+'s';
+    el.textContent=typeof liveRestLabel==='function'?liveRestLabel(left):(left+'s');
     st.restSec--;
   };
   update();

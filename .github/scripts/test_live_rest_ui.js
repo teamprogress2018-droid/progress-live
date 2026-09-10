@@ -76,6 +76,11 @@ function ok(name, cond, extra) {
       warn: card.classList.contains('is-warn'),
       cues: window.__restCues.slice()
     };
+    if (typeof liveStartRest === 'function') liveStartRest(3);
+    const three = {
+      text: document.getElementById('live-rest-timer').textContent,
+      ending: card.classList.contains('is-ending')
+    };
     if (typeof liveStartRest === 'function') liveStartRest(0);
     const goCard = document.querySelector('#live-rest-timer').closest('.live-rest-card');
     const go = {
@@ -84,10 +89,11 @@ function ok(name, cond, extra) {
       cues: window.__restCues.slice()
     };
     window.liveRestBeep = prev;
-    return { five, go };
+    return { five, three, go };
   });
   ok('last 5s pulse + tick', cues.five.ending && cues.five.warn && /5s/.test(cues.five.text || '') && cues.five.cues.includes('tick'), JSON.stringify(cues.five));
-  ok('GO flash + beep', cues.go.go && /GO/.test(cues.go.text || '') && cues.go.cues.includes('go'), JSON.stringify(cues.go));
+  ok('3s READY hype', cues.three && cues.three.ending && /READY/.test(cues.three.text || ''), JSON.stringify(cues.three));
+  ok('GO flash + beep', cues.go.go && /LET'S GO/.test(cues.go.text || '') && cues.go.cues.includes('go'), JSON.stringify(cues.go));
 
   const dual = await page.evaluate(() => {
     if (typeof liveToggleDual === 'function') liveToggleDual();
