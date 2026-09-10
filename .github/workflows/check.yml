@@ -246,6 +246,8 @@ jobs:
         run: node .github/scripts/test_cp_plan_dedupe.js
       - name: 1n28c2. Testy kontynuacji planu z Fitebo
         run: node .github/scripts/test_fitebo_continue.js
+      - name: 1n28c3. Testy Live Fitebo hipertrofia RIR 2
+        run: node .github/scripts/test_fitebo_live.js
       - name: 1n28d. Testy jednego planu na dzień w grafiku Assignment
         run: node .github/scripts/test_cp_cal_plan_dedupe.js
       - name: 1n29. Testy przywrócenia konturów/czcionek kafelków
@@ -360,6 +362,8 @@ jobs:
         run: node .github/scripts/test_live_rest_ui.js
       - name: 6b3c0. Testy UI podpowiedzi Live (przerwa / tempo / periodyzacja)
         run: node .github/scripts/test_live_coach_hints_ui.js
+      - name: 6b3c0b. Testy UI Live Fitebo hipertrofia RIR 2
+        run: node .github/scripts/test_fitebo_live_ui.js
       - name: 6b3c2. Testy UI Live Postęp i zapisu do Progress
         run: node .github/scripts/test_live_progress_ui.js
       - name: 6b3c3. Testy UI Live dual (dwie osoby)

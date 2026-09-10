@@ -21,8 +21,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=88'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=48'));
+ok('cache 01', html.includes('01-core.js?v=89'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=49'));
 ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=48'));
 ok('cache 10', html.includes('10-client-app.js?v=33'));
 ok('cache styles', html.includes('styles.css?v=74'));
@@ -49,7 +49,7 @@ vm.runInContext(core, ctx);
 const {
   parseTempoSeconds, plannedWorkSeconds, exerciseCoachHints, exerciseCoachHintsHtml,
   periodScheduleForLevel, periodWeekModel, periodWeekDeltaLabel, planPeriodWeekIndex,
-  mapPlanExercisesForClient
+  mapPlanExercisesForClient, planPhaseSchedule, exerciseForPlanWeek, isFiteboLikePlan
 } = ctx;
 
 ok('tempo 3-1-1-0 = 5s', parseTempoSeconds('3-1-1-0') === 5);
@@ -73,6 +73,18 @@ windowObj.CL = [{ id: 'c1', name: 'Ewelina', level: 'sredni' }];
 windowObj.SE = [];
 const plan = { id: 'p1', clientId: 'c1', level: 'sredni', createdAt: '2026-08-25T10:00:00.000Z' };
 ok('week idx after 14d', planPeriodWeekIndex('c1', plan, Date.parse('2026-09-08T12:00:00.000Z')) === 2);
+
+const fbSch = planPhaseSchedule({ source: 'fitebo', fromFitebo: true }, { level: 'poczatkujacy' });
+ok('fitebo skips beginner adapt', /Hipertrofia/.test(fbSch[0].cel) && !/Adaptacja/.test(fbSch[0].cel), JSON.stringify(fbSch[0]));
+ok('fitebo week rir 2', fbSch[0].rir === '2' && /RPE 8/.test(fbSch[0].rpe));
+ok('fitebo like', isFiteboLikePlan({ source: 'fitebo-continue' }));
+ok('fitebo week idx not adapt', planPeriodWeekIndex('c1', { id: 'pf', source: 'fitebo', fromFitebo: true, createdAt: '2026-08-25T10:00:00.000Z' }, Date.parse('2026-09-08T12:00:00.000Z')) === 0);
+
+const weekEx = exerciseForPlanWeek({ name: 'Wyciskanie hantli', sets: '4', reps: '8-10' }, { source: 'fitebo' }, 0);
+ok('fitebo week rpe/rir', String(weekEx.rpe) === '8' && String(weekEx.rir) === '2', JSON.stringify(weekEx));
+
+const fbMapped = mapPlanExercisesForClient([weekEx], 'c1', { source: 'fitebo' });
+ok('mapped fitebo rir 2 on sets', fbMapped[0].rir === '2' && fbMapped[0].sets.some(s => String(s.rir) === '2'), JSON.stringify(fbMapped[0].sets[0]));
 
 const mapped = mapPlanExercisesForClient(
   [{ name: 'Przysiad Goblet', sets: '4', reps: '10', rest: '90s', tempo: '3-1-1-0', rpe: '8', kg: '16' }],
