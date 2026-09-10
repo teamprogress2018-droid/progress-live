@@ -229,13 +229,40 @@ window.showAppLoading=showAppLoading;
 // Używana przez WSZYSTKIE miejsca w apce, które wysyłają wiadomość do klienta
 // (czat, broadcast, przypomnienia o check-in, zaproszenia, wyniki kalkulatora itd.),
 // żeby żadna z nich nie znikała po odświeżeniu strony.
-function pushMsg(clientId,text){
+function normalizeMsgKind(m){
+  const k=String((m&&m.kind)||'').toLowerCase();
+  if(k==='direct'||k==='system'||k==='broadcast')return k;
+  if(m&&(m.broadcast===true||m.groupBroadcast))return 'broadcast';
+  const t=String((m&&m.text)||'');
+  if(/\[od(?:prog)?:/.test(t))return 'system';
+  const s=t.trim();
+  if(/^(📱|🗓|📊|📚|📋|📄|🏠)/.test(s))return 'system';
+  if(/Check-in z tego tygodnia|Umów sesję w Calendly|zapotrzebowanie kaloryczne|Formularz do wypełnienia|Jesteś w grupie na forum|Nowy trening on-demand|Program on-demand|Zadanie domowe od trenera|Polecam Ci ten materiał|Aplikacja Progress Live|Zaproszenie do Progress Live|Twój raport postępów|Nowy trening: /.test(t))return 'system';
+  return 'direct';
+}
+function msgDisplayText(m){
+  const raw=String(typeof m==='string'?m:((m&&m.text)||''));
+  if(typeof capStripOdTags==='function')return capStripOdTags(raw);
+  return raw.replace(/\[od(?:prog)?:[^\]]+\]\s*/g,'').trim();
+}
+function msgKindLabel(kind){
+  if(kind==='broadcast')return 'Broadcast';
+  if(kind==='system')return 'System';
+  return 'Czat';
+}
+function pushMsg(clientId,text,opts){
+  opts=opts&&typeof opts==='object'?opts:{};
   if(!MSGS[clientId])MSGS[clientId]=[];
-  const msg=withTrainer({id:newId('msg'),clientId,text,out:true,time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),createdAt:new Date().toISOString()});
+  const kind=normalizeMsgKind({text,kind:opts.kind,broadcast:!!opts.broadcast});
+  const msg=withTrainer({id:newId('msg'),clientId,text,out:true,kind,time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),createdAt:new Date().toISOString()});
+  if(opts.broadcast)msg.broadcast=true;
   MSGS[clientId].push(msg);
   persistById('messages',msg);
   return msg;
 }
+window.normalizeMsgKind=normalizeMsgKind;
+window.msgDisplayText=msgDisplayText;
+window.msgKindLabel=msgKindLabel;
 const COLS=['#e60000','#0055a4','#ffd700','#2ecc71','#9e9e9e'];
 
 // ── DEMO TRENINGI ──

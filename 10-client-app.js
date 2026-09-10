@@ -611,6 +611,7 @@ function pushClientMsg(text){
     clientId,
     text:text.trim(),
     out:false,
+    kind:'direct',
     time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),
     createdAt:new Date().toISOString()
   });
