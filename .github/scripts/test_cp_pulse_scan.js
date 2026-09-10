@@ -20,7 +20,7 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 08 v41', html.includes('08-client-profile-extras.js?v=51'));
-ok('cache styles v58', html.includes('styles.css?v=78'));
+ok('cache styles v58', html.includes('styles.css?v=79'));
 ok('ci unit', wf.includes('test_cp_pulse_scan.js'));
 ok('metrics stacked toolbar', /cp-metrics-head/.test(src) && /cp-metrics-groups/.test(src) && /cp-metrics-actions/.test(src));
 ok('collapse helper', /function cpCollapseDaySessions/.test(src));

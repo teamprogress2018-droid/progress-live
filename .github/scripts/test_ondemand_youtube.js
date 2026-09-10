@@ -86,9 +86,13 @@ function ok(name, cond, extra) {
 
 const demo = windowObj.OD_DEMO_WORKOUTS || [];
 ok('demo workouts exist', demo.length >= 18, 'n=' + demo.length);
-ok('every demo has youtube url', demo.every(w => /youtube\.com\/watch\?v=/i.test(w.url || '')), demo.map(w => w.url).join(','));
-ok('every demo embeds', demo.every(w => /youtube-nocookie\.com\/embed\//.test(ctx.coachVideoEmbed(w.url) || '')), demo.map(w => ctx.coachVideoEmbed(w.url)).join(','));
-ok('no channel-only urls', demo.every(w => !/youtube\.com\/@/.test(w.url || '')));
+const videoDemo = demo.filter((w) => w.url);
+const guideDemo = demo.filter((w) => !w.url);
+ok('video demos have youtube url', videoDemo.every(w => /youtube\.com\/watch\?v=/i.test(w.url || '')), videoDemo.map(w => w.url).join(','));
+ok('video demos embed', videoDemo.every(w => /youtube-nocookie\.com\/embed\//.test(ctx.coachVideoEmbed(w.url) || '')), videoDemo.map(w => ctx.coachVideoEmbed(w.url)).join(','));
+ok('no channel-only urls', videoDemo.every(w => !/youtube\.com\/@/.test(w.url || '')));
+ok('guide homework templates', guideDemo.length >= 3 && guideDemo.every((w) => w.type === 'workout' && w.structure), 'n=' + guideDemo.length);
+ok('ow21 no youtube', demo.some((w) => w.id === 'ow21' && !w.url && w.structure && w.structure.workSec === 40));
 ok('hiit is madfit', demo.some(w => w.id === 'ow2' && /HhdYlniTjvg/.test(w.url)));
 ok('hips is adriene', demo.some(w => w.id === 'ow5' && /zwoVcrdmLOE/.test(w.url)));
 ok('tabata collection', demo.filter((w) => w.coll === 'tabata').length >= 3 && demo.some((w) => w.id === 'ow8' && w.coll === 'tabata' && w.format === 'tabata'));
@@ -169,8 +173,8 @@ ok('openODAddFilm exported', typeof ctx.openODAddFilm === 'function');
 ok('openODCollection exported', typeof ctx.openODCollection === 'function');
 ok('html collection films mount', fs.readFileSync(path.join(root, 'index.html'), 'utf8').includes('id="od-collection-films"'));
 ok('html coll options tabata hiit', /id="odw-coll"[\s\S]*value="hiit"[\s\S]*value="tabata"[\s\S]*value="oddech"/.test(fs.readFileSync(path.join(root, 'index.html'), 'utf8')));
-ok('cache 09', /09-posture-kb-invites-private\.js\?v=37/.test(fs.readFileSync(path.join(root, 'index.html'), 'utf8')));
-  ok('cache 04', /04-client-portal\.js\?v=40/.test(fs.readFileSync(path.join(root, 'index.html'), 'utf8')));
+ok('cache 09', /09-posture-kb-invites-private\.js\?v=38/.test(fs.readFileSync(path.join(root, 'index.html'), 'utf8')));
+  ok('cache 04', /04-client-portal\.js\?v=41/.test(fs.readFileSync(path.join(root, 'index.html'), 'utf8')));
 ok('collections include tabata', /id:'tabata'/.test(fs.readFileSync(path.join(root, '09-posture-kb-invites-private.js'), 'utf8')));
 windowObj._cliveOdProgId = 'op2';
 const odProgHtml2 = ctx.capScreenHTML('odprogram', { id: 'c-anna', name: 'Anna' });

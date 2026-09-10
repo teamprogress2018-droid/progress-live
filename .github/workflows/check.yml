@@ -353,6 +353,8 @@ jobs:
         run: node .github/scripts/test_builder_alts_media_ui.js
       - name: 6b2b. Testy UI drop % i obwodu stacji
         run: node .github/scripts/test_drop_circ_ui.js
+      - name: 6b2c. Testy UI zadań domowych bez YouTube i RPE
+        run: node .github/scripts/test_homework_guide_ui.js
 
       - name: 6b3. Testy UI cardio w wyszukiwarce ćwiczeń
         run: node .github/scripts/test_cardio_ex_ac_ui.js

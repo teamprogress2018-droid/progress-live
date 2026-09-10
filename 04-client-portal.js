@@ -159,7 +159,7 @@ function capHomeworkWorkoutCard(w,accent,live,opts){
     ${opts.due?`<div style="font-size:10px;color:${CAP_MUTED};margin-bottom:10px;">Termin: ${escHtml(opts.due)}</div>`:''}
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <button type="button" class="cap-btn-primary" style="flex:1;padding:11px;font-size:13px;" ${playBtn}>▶ Start treningu</button>
-      ${opts.taskId&&live&&!opts.done?`<button type="button" class="cap-btn-primary" style="padding:11px;font-size:13px;background:${CAP_S3};" onclick="clientCompleteHomework('${escHtml(opts.taskId)}')">✓ Zrobione</button>`:''}
+      ${opts.taskId&&live&&!opts.done?`<button type="button" class="cap-btn-primary" style="padding:11px;font-size:13px;background:${CAP_S3};" onclick="clientCompleteHomework('${escHtml(opts.taskId)}')">✓ Zrobione — RPE i czas</button>`:''}
     </div>
   </div>`;
 }
@@ -323,7 +323,7 @@ function capWorkoutHistoryList(c,list,live,accent){
       <div style="font-size:22px;width:36px;text-align:center;flex-shrink:0;">${emoji||'🏋️'}</div>
       <div style="flex:1;min-width:0;">
         <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};">${escHtml(s.type||s.title||'Trening')}</div>
-        <div style="font-size:11px;color:${CAP_MUTED};margin-top:2px;">${escHtml(s.date||'')} · ${s.duration||'—'} min${n?' · '+n+' ćw.':''}${sets?' · '+sets+' serii':''}</div>
+        <div style="font-size:11px;color:${CAP_MUTED};margin-top:2px;">${escHtml(s.date||'')} · ${s.duration||'—'} min${n?' · '+n+' ćw.':''}${sets?' · '+sets+' serii':''}${s.source==='homework'&&s.rpe?' · RPE '+escHtml(String(s.rpe)):''}</div>
       </div>
       <span style="font-size:11px;color:${accent};">Szczegóły →</span>
     </button>`;
@@ -476,6 +476,12 @@ function capClientProgressScreenHTML(c,accent){
   const todayY=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
   const bestStreak=habits.length?Math.max(...habits.map(h=>typeof habitStreak==='function'?habitStreak(h,todayY):0),0):0;
   const habitPct=habitWeeks.length?habitWeeks[habitWeeks.length-1].pct:0;
+  const hwDone=typeof homeworkCompletions==='function'?homeworkCompletions(c.id,60).slice().sort((a,b)=>String(b.doneAt||'').localeCompare(String(a.doneAt||''))).slice(0,8):[];
+  const hwSess=(window.SE||[]).filter(s=>s&&s.clientId===c.id&&s.source==='homework').slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,8);
+  const hwRows=hwSess.length?hwSess:hwDone.map(t=>{
+    const sess=(window.SE||[]).find(s=>s&&s.taskId===t.id);
+    return sess||{date:typeof homeworkDoneYmd==='function'?homeworkDoneYmd(t):'',type:t.title,rpe:t.rpe,duration:t.duration,source:'homework'};
+  });
   return `
     <div class="cap-section cap-progress-panel" style="padding-bottom:90px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-top:8px;gap:8px;">
@@ -565,6 +571,14 @@ function capClientProgressScreenHTML(c,accent){
         '</div></button>';
       }).join('')}</div>`:`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:16px;text-align:center;color:${CAP_MUTED};font-size:12px;margin-bottom:14px;">Po zapisanych seriach tu wpadną rekordy (najlepszy kg × powt.).</div>`}
       ${photosOn&&typeof ppBlockHTML==='function'?ppBlockHTML(c,{live,accent}):''}
+      ${hwRows.length?`<div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin:16px 0 10px;">🏡 Zadania domowe</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">${hwRows.map(s=>{
+        const rpe=s.rpe||'';
+        return '<div style="background:'+CAP_S2+';border:1px solid '+CAP_S3+';border-radius:14px;padding:12px 14px;">'+
+          '<div style="font-size:13px;font-weight:700;color:'+CAP_TEXT+';">'+escHtml(s.type||s.title||'Zadanie')+'</div>'+
+          '<div style="font-size:11px;color:'+CAP_MUTED+';margin-top:2px;">'+escHtml(s.date||'')+(s.duration?' · '+escHtml(String(s.duration))+' min':'')+(rpe?' · RPE '+escHtml(String(rpe)):'')+'</div>'+
+        '</div>';
+      }).join('')}</div>`:''}
       <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin:16px 0 10px;">Historia treningów</div>
       ${capWorkoutHistoryList(c,logged.slice(0,20),live,accent)}
     </div>`;
@@ -988,7 +1002,7 @@ function capScreenHTML(scr,c){
         <div style="text-align:center;padding:40px;color:${CAP_MUTED};font-size:12px;">Nie znaleziono treningu.</div>
       </div>`;
     }
-    const src=s.source==='garmin'?'Garmin':s.source==='client'?'Ty w apce':s.source==='live'?'Z trenerem (live)':'Sesja';
+    const src=s.source==='garmin'?'Garmin':s.source==='client'?'Ty w apce':s.source==='live'?'Z trenerem (live)':s.source==='homework'?'Zadanie domowe':s.source==='sala'?'Na sali':'Sesja';
     const title=typeof sessionTitle==='function'?sessionTitle(s):(s.notes||s.type||s.title||'Trening');
     const gMetric=s.source==='garmin'?capGarminEntries(c).find(e=>e.date===s.date&&(e.notes||'')===(s.notes||'')):null;
     const gv=gMetric&&gMetric.values||{};
@@ -1154,9 +1168,17 @@ function capScreenHTML(scr,c){
     const resolveW=t=>(allW.find(x=>x.id===t.odWorkoutId)||null);
     return `<div class="cap-section" style="padding-bottom:90px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:4px;padding-top:8px;">ZADANIA DOMOWE</div>
-      <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:14px;line-height:1.6;">Tylko to, co trener Ci przypisał — termin, notatka i odhaczenie. Katalog YouTube jest w <strong>On-demand</strong> (Więcej).</div>
+      <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:14px;line-height:1.6;">Tylko to, co trener Ci przypisał — termin, notatka i odhaczenie. Szablony bez filmu mają timer w apce. Katalog YouTube jest w <strong>On-demand</strong> (Więcej).</div>
       ${openHw.length?`<div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">📌 Do zrobienia (${openHw.length})</div>
-        ${openHw.map(t=>{const w=resolveW(t);if(!w)return `<div style="font-size:12px;color:${CAP_MUTED};margin-bottom:8px;">${escHtml(t.title)} — brak filmu</div>`;
+        ${openHw.map(t=>{const w=resolveW(t);
+          if(!w){
+            return `<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:16px;padding:14px;margin-bottom:12px;">
+              <div style="font-size:14px;font-weight:700;color:${CAP_TEXT};margin-bottom:6px;">${escHtml(t.title||'Zadanie domowe')}</div>
+              <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:10px;">Szablon treningu niedostępny — możesz i tak zaliczyć.</div>
+              ${t.due?`<div style="font-size:10px;color:${CAP_MUTED};margin-bottom:10px;">Termin: ${escHtml(t.due)}</div>`:''}
+              ${live?`<button type="button" class="cap-btn-primary" style="padding:11px;font-size:13px;" onclick="clientCompleteHomework('${escHtml(t.id)}')">✓ Zrobione — RPE i czas</button>`:''}
+            </div>`;
+          }
           return capHomeworkWorkoutCard(w,accent,live,{taskId:t.id,due:t.due,trainerNote:t.desc,done:false});
         }).join('')}`:`<div style="background:${CAP_S2};border:1px dashed ${CAP_S3};border-radius:14px;padding:20px;text-align:center;margin-bottom:16px;font-size:13px;color:${CAP_MUTED};line-height:1.6;">Brak aktywnych zadań od trenera.<br>HIIT, mobilność i oddech na własną rękę → zakładka On-demand.</div>`}
       ${capClientSectionVisible('ondemand')?`<button type="button" class="cap-btn-primary" style="padding:12px;font-size:14px;width:100%;background:${CAP_S3};margin-bottom:16px;" onclick="capGoScreen('ondemand')">Biblioteka On-demand →</button>`:''}
