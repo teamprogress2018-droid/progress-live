@@ -27,8 +27,15 @@ ok('normalize circuit', /obwod\|circuit/.test(core) || /\/\^obwod\|circuit/.test
 ok('BUILDER_METHOD_DAYS Obwodowy', /Obwodowy:\['Obwód A'/.test(src05));
 ok('AI prompt circuit structure', src03.includes('STRUKTURA TRENINGU OBWODOWEGO'));
 ok('AI coach knows circuit', /trening obwodowy \(circuit\)/.test(src03));
-ok('cache bumps', html.includes('01-core.js?v=90') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=34') && html.includes('05-clients-builder-plans-calendar.js?v=51'));
-ok('CI', wf.includes('test_circuit_method.js'));
+ok('builder drop step field', src05.includes('data-f="dropStep"') && src05.includes('ex-drop-step'));
+ok('builder circuit bar', src05.includes('builder-circuit-bar') && src05.includes('Obwód (stacje)'));
+ok('builder trans field', src05.includes('data-f="trans"') && src05.includes('ex-trans-inp'));
+ok('core dropKgAt', /function dropKgAt\(/.test(core));
+ok('core applyCircuitStations', /function applyCircuitStations\(/.test(core));
+ok('savePlan dropStep', src05.includes("dropStep:g('ss')?''"));
+ok('savePlan circuit', src05.includes("circuit:!!(de.querySelector('.circ')"));
+ok('cache bumps', html.includes('01-core.js?v=91') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=34') && html.includes('05-clients-builder-plans-calendar.js?v=52'));
+ok('CI', wf.includes('test_circuit_method.js') && wf.includes('test_drop_circ_ui.js'));
 
 if (failed) {
   console.error(failed + ' failed');

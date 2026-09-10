@@ -23,15 +23,15 @@ function ok(name, cond, extra) {
 ok('builder field', html.includes('id="b-progression"') && /Podwójna/.test(html));
 ok('save stores progression', /progression,clientId/.test(builder) || /progression:/.test(builder) && /b-progression/.test(builder));
 ok('edit loads progression', /b-progression/.test(builder) && /normalizePlanProgression/.test(builder));
-ok('live maps with plan', /mapPlanExercisesForClient\(list,st\.clientId,plan\)/.test(live) || /mapPlanExercisesForClient\(rawEx,st\.clientId/.test(live));
+ok('live maps with plan', /mapPlanExercisesForClient\(list,st\.clientId,plan/.test(live) || /mapPlanExercisesForClient\(rawEx,st\.clientId/.test(live));
 ok('live shows progHint', /progHint/.test(live) && /color:var\(--teal\)/.test(live));
 ok('live lastHint needs lastDate', /lastDate&&ex\.lastKg/.test(live));
 ok('idle draft remaps', /function liveRefreshPlanLoads/.test(live) && /liveApplyDraft[\s\S]*liveRefreshPlanLoads/.test(live));
 ok('CI', wf.includes('test_plan_auto_progression.js'));
-ok('cache 01', html.includes('01-core.js?v=90'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=53'));
-ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=51'));
-ok('cache 10', html.includes('10-client-app.js?v=34'));
+ok('cache 01', html.includes('01-core.js?v=91'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=54'));
+ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=52'));
+ok('cache 10', html.includes('10-client-app.js?v=35'));
 
 const document = { querySelectorAll: () => [], getElementById: () => null, addEventListener() {} };
 const windowObj = { addEventListener() {}, CL: [], PL: [], SE: [], EX: [], WO: [], METRIC_ENTRIES: [], document };

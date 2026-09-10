@@ -3050,7 +3050,7 @@ function liveMapPlanExercises(rawEx,slot){
     list=list.map(ex=>exerciseForPlanWeek(ex,plan,weekIdx));
   }
   const mapped=typeof mapPlanExercisesForClient==='function'
-    ?mapPlanExercisesForClient(list,st.clientId,plan)
+    ?mapPlanExercisesForClient(list,st.clientId,plan,day)
     :(list||[]).map(ex=>({name:ex.name||ex.n||'Ćwiczenie',sets:[{setNo:1,kg:'',reps:'10',done:false}]}));
   return mapped.map(ex=>({...ex,done:false,collapsed:false}));
 }
@@ -3498,7 +3498,8 @@ function liveToggleSet(ei,si,slot){
       if(nxt)nxt.collapsed=false;
     }
     if(next&&typeof skipRestBeforeSet==='function'&&skipRestBeforeSet(next)){
-      if(typeof notify==='function')notify((prMsg?prMsg+' · ':'')+'Drop set — bez przerwy, zdejmij ciężar');
+      const msg=typeof dropToastText==='function'?dropToastText(next):'Drop set — bez przerwy, zdejmij ciężar';
+      if(typeof notify==='function')notify((prMsg?prMsg+' · ':'')+msg);
     }else if(typeof isEmomExercise==='function'&&isEmomExercise(ex)&&next){
       const clock=st.emomClock||{};
       if(!clock[ei])clock[ei]=Date.now();
@@ -3517,7 +3518,16 @@ function liveToggleSet(ei,si,slot){
       if(act&&act.kind==='partner'){
         st.exercises[act.exIdx].collapsed=false;
         const nxt=st.exercises[act.exIdx];
-        if(typeof notify==='function')notify(typeof superseriesToastText==='function'?superseriesToastText(nxt,{prMsg,noRest:true}):('Super-seria → '+(nxt.ssLabel?nxt.ssLabel+' ':'')+nxt.name+' (bez przerwy)'));
+        if(ex.circuit||(nxt&&nxt.circuit)){
+          const sec=Number(nxt&&nxt.transSec)||Number(ex.transSec)||20;
+          if(typeof notify==='function')notify((prMsg?prMsg+' · ':'')+'Stacja → '+(nxt.ssLabel?nxt.ssLabel+' ':'')+nxt.name+' · '+sec+' s przejścia');
+          liveStartRest(sec,n);
+        }else if(typeof notify==='function')notify(typeof superseriesToastText==='function'?superseriesToastText(nxt,{prMsg,noRest:true}):('Super-seria → '+(nxt.ssLabel?nxt.ssLabel+' ':'')+nxt.name+' (bez przerwy)'));
+      }else if(act&&act.kind==='rest'&&(ex.circuit||(st.exercises[act.exIdx]&&st.exercises[act.exIdx].circuit))){
+        st.exercises[act.exIdx].collapsed=false;
+        const sec=Number(ex.roundRestSec)||90;
+        if(typeof notify==='function')notify((prMsg?prMsg+' · ':'')+'Runda obwodu — '+sec+' s');
+        liveStartRest(sec,n);
       }else{
         if(prMsg&&typeof notify==='function')notify(prMsg);
         const sec=typeof restSecAfterSet==='function'?restSecAfterSet(ex,s,next):(ex.restSec||90);
