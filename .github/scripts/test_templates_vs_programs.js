@@ -35,6 +35,7 @@ ok('UI copy programs macro', html.includes('makrocykle') || html.includes('perio
 ok('nav labels', html.includes('Bloki 8–16 tyg.') && html.includes('Gotowy tydzień'));
 ok('create form defaults 1 week', /id="tplc-weeks"[^>]*value="1"/.test(src02) || /tplc-weeks'\)\.value=existing\?\.weeks\|\|1/.test(src02));
 ok('cache bumps', html.includes('02-workouts-onboarding-templates-live.js?v=52') && html.includes('06-inbox-exercises-ai-programs.js?v=73'));
+ok('cache bumps', html.includes('02-workouts-onboarding-templates-live.js?v=52') && html.includes('06-inbox-exercises-ai-programs.js?v=72'));
 ok('CI', wf.includes('test_templates_vs_programs.js'));
 ok('ppl sila program', /PPL Siła studio — 8 tygodni/.test(progBlock) && /Siła PPL — Push \+ czworogłowe/.test(progBlock));
 
