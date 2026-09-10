@@ -1,4 +1,4 @@
-// UI: zakładka Plan — Kontynuuj plan z Fitebo otwiera generator z logami i progresją.
+// UI: Kontynuuj plan z Fitebo kopiuje ćwiczenia i pokazuje zmianę serii/powt. po tygodniach.
 const fs = require('fs');
 const path = require('path');
 const { chromium } = require('playwright');
@@ -68,33 +68,41 @@ function ok(name, cond, extra) {
   await page.waitForSelector('#cp-drawer.open');
   await page.click('#cpt-plan');
   await page.waitForSelector('button:has-text("Kontynuuj plan z Fitebo")');
-  await page.screenshot({ path: path.join(shotDir, 'cp_plan_fitebo.png') });
-  const planTab = await page.evaluate(() => ({
-    btn: !![...document.querySelectorAll('button')].find(b => /Kontynuuj plan z Fitebo/.test(b.textContent || '')),
-    planName: (document.getElementById('cp-body') || {}).innerText || ''
-  }));
-  ok('continue button on plan tab', planTab.btn);
-  ok('fitebo plan listed', /Plan z Fitebo/.test(planTab.planName), planTab.planName.slice(0, 200));
-
   await page.click('button:has-text("Kontynuuj plan z Fitebo")');
   await page.waitForTimeout(400);
-  const gen = await page.evaluate(() => ({
-    screen: !!(document.getElementById('screen-aiplangen') && document.getElementById('screen-aiplangen').classList.contains('active')),
-    client: (document.getElementById('apl-client') || {}).value,
-    notes: (document.getElementById('apl-notes') || {}).value || '',
-    prog: (typeof aplGetVal === 'function' ? aplGetVal('apl-progression') : ''),
-    method: (typeof aplGetVal === 'function' ? aplGetVal('apl-methods') : ''),
-    generated: !!window.__aplGenCalled,
-    ctx: !!(window._aplFiteboContinue && window._aplFiteboContinue.context)
-  }));
-  await page.screenshot({ path: path.join(shotDir, 'apl_fitebo_continue.png') });
-  ok('opened AI generator', gen.screen, JSON.stringify(gen));
-  ok('client prefilled', gen.client === 'c-rad');
-  ok('notes have fitebo log', /KONTYNUACJA FITEBO/.test(gen.notes) && /Wyciskanie hantli/.test(gen.notes));
-  ok('double progression', gen.prog === 'double');
-  ok('PPL method', gen.method === 'PPL');
-  ok('generate kicked off', gen.generated);
-  ok('continue flag set', gen.ctx);
+  await page.screenshot({ path: path.join(shotDir, 'cp_fitebo_continue_w1.png') });
+
+  const after = await page.evaluate(() => {
+    const body = (document.getElementById('cp-body') || {}).innerText || '';
+    const cont = (window.PL || []).find(p => p.source === 'fitebo-continue');
+    const names = cont ? cont.days.flatMap(d => (d.exercises || []).map(e => e.name)) : [];
+    const w1 = cont && cont.days[0].exercises[0].w1;
+    const w3 = cont && cont.days[0].exercises[0].w3;
+    return {
+      body,
+      onPlan: /Kontynuacja Fitebo/.test(body),
+      weeks: (body.match(/Adaptacja|Hipertrofia/g) || []).length,
+      names,
+      w1, w3,
+      gen: !!window.__aplGenCalled,
+      stillDrawer: !!document.querySelector('#cp-drawer.open')
+    };
+  });
+  ok('stayed on client plan', after.stillDrawer && after.onPlan, after.body.slice(0, 250));
+  ok('did not call AI generate', !after.gen);
+  ok('copied fitebo names only', after.names.join('|') === 'Wyciskanie hantli|Ściąganie drążka|Hack squat', JSON.stringify(after.names));
+  ok('week chips shown', /Adaptacja/.test(after.body) && /Hipertrofia/.test(after.body));
+  ok('w1 load shown', /Wyciskanie hantli/.test(after.body) && /×/.test(after.body));
+
+  await page.click('button:has-text("3. Hipertrofia I")');
+  await page.waitForTimeout(200);
+  const w3view = await page.evaluate(() => {
+    const rows = [...document.querySelectorAll('#cp-body div')].map(el => (el.textContent || '').trim()).filter(t => /Wyciskanie hantli/.test(t));
+    return { rows, body: (document.getElementById('cp-body') || {}).innerText || '' };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'cp_fitebo_continue_w3.png') });
+  ok('week 3 still same exercise', w3view.rows.some(t => /Wyciskanie hantli/.test(t)));
+  ok('week 3 sets/reps differ from w1', after.w1 && after.w3 && (after.w1.s !== after.w3.s || after.w1.r !== after.w3.r), JSON.stringify({ w1: after.w1, w3: after.w3 }));
 
   await browser.close();
   if (failed) {
