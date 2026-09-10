@@ -114,6 +114,8 @@ function ok(name, cond, extra) {
   const dual = await page.evaluate(() => {
     if (typeof liveToggleDual === 'function') liveToggleDual();
     window.__restSpokenB = [];
+    const prevSpeak = window.liveRestSpeak;
+    const prevBeep = window.liveRestBeep;
     window.liveRestSpeak = (sec) => {
       const t = typeof liveRestSpeakText === 'function' ? liveRestSpeakText(sec) : '';
       if (t) window.__restSpokenB.push(t);
@@ -123,13 +125,38 @@ function ok(name, cond, extra) {
     if (typeof liveStartRest === 'function') liveStartRest(5, 1);
     const el = document.getElementById('live-b-rest-timer');
     const card = el && el.closest('.live-rest-card');
-    return {
+    const out = {
       text: el && el.textContent,
       ending: !!(card && card.classList.contains('is-ending')),
       spoken: window.__restSpokenB.slice()
     };
+    window.liveRestSpeak = prevSpeak;
+    window.liveRestBeep = prevBeep;
+    return out;
   });
   ok('slot B ending voice', dual.ending && /5s/.test(dual.text || '') && dual.spoken.includes('Five'), JSON.stringify(dual));
+
+  const realTts = await page.evaluate(() => {
+    const syn = window.speechSynthesis;
+    if (!syn || typeof SpeechSynthesisUtterance === 'undefined') {
+      return { ok: false, reason: 'no speechSynthesis' };
+    }
+    window.__tts = [];
+    const prevSpeak = syn.speak.bind(syn);
+    const prevCancel = syn.cancel.bind(syn);
+    syn.cancel = () => {};
+    syn.speak = (u) => { window.__tts.push(String(u && u.text || '').trim()); };
+    window._liveRestSpeechReady = false;
+    if (typeof liveStartRest === 'function') liveStartRest(3);
+    syn.speak = prevSpeak;
+    syn.cancel = prevCancel;
+    return {
+      ok: true,
+      tts: window.__tts.filter(Boolean),
+      text: (document.getElementById('live-rest-timer') || {}).textContent
+    };
+  });
+  ok('real TTS Ready', realTts.ok && realTts.tts.includes('Ready') && /READY/.test(realTts.text || ''), JSON.stringify(realTts));
 
   try {
     await page.screenshot({ path: path.join(shotDir, 'live_rest_custom_35.png') });
