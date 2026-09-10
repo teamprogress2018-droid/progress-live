@@ -111,6 +111,21 @@ eq('ss mapped wu 0', ssMapped[0].wu, 0);
 eq('ss mapped drop 0', ssMapped[0].drop, 0);
 eq('ss mapped keeps amrap', ssMapped[0].amrap, true);
 
+eq('parse cluster', parsePlanExercise({name: 'X', cluster: 2}).cluster, 2);
+eq('parse rp cap 2', parsePlanExercise({name: 'X', rp: 9}).rp, 2);
+const clExp = expandExerciseSets(
+  {name: 'Przysiad', sets: '2', reps: '8', cluster: 2, rp: 1, kg: '100'},
+  {plannedKg: '100'}
+);
+eq('cluster extra sets', clExp.filter(s => s.kind === 'cluster').length, 2);
+eq('rp sets', clExp.filter(s => s.kind === 'restpause').length, 1);
+eq('badge C', setKindBadge('cluster'), 'C');
+eq('badge RP', setKindBadge('restpause'), 'RP');
+eq('working cluster', isWorkingSet({kind: 'cluster'}), true);
+eq('rest after work before cluster', restSecAfterSet({restSec: 90}, clExp[1], clExp[2]), 20);
+eq('skip rest before rp', skipRestBeforeSet(clExp.find(s => s.kind === 'restpause')), true);
+eq('tag KL RP', formatSetKindTag({cluster: 2, rp: 1}), 'KL2 RP1');
+
 if (failed) {
   console.error('\n' + failed + ' test(s) failed');
   process.exit(1);

@@ -290,6 +290,19 @@ function renderClientLive(){
     bn.classList.toggle('active',on);
     bn.style.opacity=on?'1':'0.55';
   });
+  const moreBtn=document.getElementById('clive-bn-more');
+  const moreIds=['checkin','ondemand','resources','forum','messages','profile'];
+  if(moreBtn){
+    const moreOn=moreIds.includes(scr);
+    moreBtn.classList.toggle('active',moreOn);
+    moreBtn.style.opacity=moreOn?'1':'0.55';
+    const anyMore=moreIds.some(id=>!navIds.length||navIds.includes(id));
+    moreBtn.style.display=anyMore?'':'none';
+  }
+  if(!moreIds.includes(scr)){
+    const sheet=document.getElementById('clive-more-sheet');
+    if(sheet)sheet.hidden=true;
+  }
   updateClientLiveNavBadges(c);
   if(typeof capScreenHTML==='function'&&c)content.innerHTML=capScreenHTML(scr,c);
   else if(!c)content.innerHTML='<div style="padding:40px;text-align:center;color:var(--muted);">Nie znaleziono profilu klienta.</div>';
@@ -332,8 +345,17 @@ function setClientLiveScreen(scr){
   if(scr==='messages'&&window._clientId&&typeof clientMarkTrainerMsgsRead==='function'){
     try{clientMarkTrainerMsgsRead(window._clientId);}catch(e){}
   }
+  const moreIds=['checkin','ondemand','resources','forum','messages','profile'];
+  const sheet=document.getElementById('clive-more-sheet');
+  if(sheet&&!moreIds.includes(scr))sheet.hidden=true;
   renderClientLive();
 }
+function toggleCliveMoreNav(){
+  const sheet=document.getElementById('clive-more-sheet');
+  if(!sheet)return;
+  sheet.hidden=!sheet.hidden;
+}
+window.toggleCliveMoreNav=toggleCliveMoreNav;
 
 function capGoScreen(scr){
   if(window._clientAppMode){setClientLiveScreen(scr);return;}
@@ -804,8 +826,28 @@ function clientCompleteHomework(taskId){
     addNotification('task','Zadanie domowe zaliczone',((c&&c.name)||'Klient')+' · '+(t.title||''),'tasks');
   }
   try{if(typeof renderDashHwFollowup==='function')renderDashHwFollowup();}catch(e){}
+  if(typeof maybeScheduleNextHomework==='function')maybeScheduleNextHomework(t);
   if(typeof renderClientLive==='function')renderClientLive();
 }
+function maybeScheduleNextHomework(t){
+  const left=(parseInt(t.repeatLeft,10)||0)-1;
+  if(left<=0||!t.odWorkoutId)return;
+  const days=(t.repeatWeekdays||[]).map(Number).filter(n=>n>=0&&n<=6);
+  const from=t.due||(typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10));
+  let due='';
+  if(typeof ymdAdd==='function'){
+    for(let i=1;i<=14;i++){
+      const y=ymdAdd(from,i);
+      const d=new Date(y+'T12:00:00').getDay();
+      if(!days.length||days.includes(d)){due=y;break;}
+    }
+  }
+  if(!due)return;
+  if(typeof assignHomeworkToClient==='function'){
+    assignHomeworkToClient(t.clientId,t.odWorkoutId,{due,desc:t.desc,title:t.title,notify:false,repeatWeeks:left,repeatLeft:left,repeatWeekdays:t.repeatWeekdays});
+  }
+}
+window.maybeScheduleNextHomework=maybeScheduleNextHomework;
 
 window.clientStartHomework=clientStartHomework;
 window.clientCompleteHomework=clientCompleteHomework;

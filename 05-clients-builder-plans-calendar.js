@@ -494,6 +494,37 @@ function openBuilderForClient(clientId){
 }
 window.openBuilderForClient=openBuilderForClient;
 
+function openNewPlanPicker(){
+  let m=document.getElementById('m-new-plan');
+  if(!m){
+    m=document.createElement('div');
+    m.id='m-new-plan';m.className='modal-ov';
+    m.innerHTML=`<div class="modal" style="max-width:440px;">
+      <div class="modal-hdr"><div class="modal-title">NOWY PLAN</div><button class="modal-close" onclick="closeM('m-new-plan')">×</button></div>
+      <div class="modal-body">
+        <div class="form-field"><label class="form-lbl">Klient</label>
+          <select class="form-select" id="np-client"></select>
+        </div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.5;">Kreator otworzy się z wybranym podopiecznym. Albo wklej gotowy tydzień z biblioteki.</div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-new-plan')">Anuluj</button><button class="btn btn-ghost" onclick="closeM('m-new-plan');goTo('templates')">📋 Gotowy tydzień</button><button class="btn btn-primary" onclick="saveNewPlanPicker()">Otwórz kreator</button></div>
+    </div>`;
+    document.body.appendChild(m);
+  }
+  const sel=document.getElementById('np-client');
+  const list=(window.CL||[]).filter(c=>c&&c.status!=='archived');
+  if(sel)sel.innerHTML=list.length?list.map(c=>`<option value="${escHtml(c.id)}">${escHtml(c.name)}</option>`).join(''):'<option value="">Brak klientów</option>';
+  openM('m-new-plan');
+}
+function saveNewPlanPicker(){
+  const cid=(document.getElementById('np-client')||{}).value;
+  closeM('m-new-plan');
+  if(!cid){if(typeof notify==='function')notify('Najpierw dodaj klienta');openM('m-client');return;}
+  openBuilderForClient(cid);
+}
+window.openNewPlanPicker=openNewPlanPicker;
+window.saveNewPlanPicker=saveNewPlanPicker;
+
 function openClientOnboardChecklist(clientId){
   window._onboardClientId=clientId;
   renderClientOnboardChecklist();
@@ -901,12 +932,16 @@ function addRow(dayId){
     +'<input type="hidden" data-f="ss" value="">'
     +'<input type="hidden" data-f="wu" value="">'
     +'<input type="hidden" data-f="drop" value="">'
+    +'<input type="hidden" data-f="cluster" value="">'
+    +'<input type="hidden" data-f="rp" value="">'
     +'<input type="hidden" data-f="amrap" value="">'
     +'<input type="hidden" data-f="emom" value="">'
     +'<button type="button" class="ex-ss-btn builder-alt-toggle" onclick="builderToggleAlts(this.closest(\'.ex-row\'))" title="Pokaż zamienniki" aria-expanded="false">Zamienniki</button>'
     +'<button type="button" class="ex-ss-btn" onclick="builderToggleSs(this)" title="Połącz z następnym ćwiczeniem w super-serię">⚡ SS</button>'
     +'<button type="button" class="ex-ss-btn ex-kind-btn wu" onclick="builderCycleKind(this,\'wu\',2)" title="Serie rozgrzewkowe (1–2) — lżejsze kg, krótsza przerwa">WU</button>'
-    +'<button type="button" class="ex-ss-btn ex-kind-btn drop" onclick="builderCycleKind(this,\'drop\',2)" title="Drop sety po roboczych — bez przerwy, mniejszy ciężar">DROP</button>'
+    +'<button type="button" class="ex-ss-btn ex-kind-btn drop" onclick="builderCycleKind(this,\'drop\',2)" title="Drop sety po roboczych — bez przerwy, mniejszy ciężar (80%/60%)">DROP</button>'
+    +'<button type="button" class="ex-ss-btn ex-kind-btn cluster" onclick="builderCycleKind(this,\'cluster\',3)" title="Klaster: mini-serie z 20 s wewnątrz (1–3)">KL</button>'
+    +'<button type="button" class="ex-ss-btn ex-kind-btn rp" onclick="builderCycleKind(this,\'rp\',2)" title="Rest-pause: 1–2 dogrywki po 15 s">RP</button>'
     +'<button type="button" class="ex-ss-btn ex-kind-btn amrap" onclick="builderToggleAmrap(this)" title="Ostatnia seria robocza = AMRAP (max powtórzeń)">AMRAP</button>'
     +'<button type="button" class="ex-ss-btn ex-emom-btn" onclick="builderToggleEmom(this)" title="EMOM: każda seria na starcie minuty, reszta minuty to przerwa">EMOM</button>'
     +'</div>'
@@ -1168,7 +1203,7 @@ function builderToggleSs(btn){
   }
   set(row,letter);set(next,letter);
   [row,next].forEach(r=>{
-    ['wu','drop'].forEach(f=>{const el=r.querySelector('[data-f="'+f+'"]');if(el)el.value='';});
+    ['wu','drop','cluster','rp'].forEach(f=>{const el=r.querySelector('[data-f="'+f+'"]');if(el)el.value='';});
     const em=r.querySelector('[data-f="emom"]');if(em)em.value='';
     if(typeof builderPaintKinds==='function')builderPaintKinds(r);
     if(typeof builderPaintEmom==='function')builderPaintEmom(r);
@@ -1199,12 +1234,18 @@ function builderPaintKinds(row){
   const inSs=!!g('ss');
   const wu=inSs?0:(parseInt(g('wu'),10)||0);
   const dr=inSs?0:(parseInt(g('drop'),10)||0);
+  const cl=inSs?0:(parseInt(g('cluster'),10)||0);
+  const rp=inSs?0:(parseInt(g('rp'),10)||0);
   const am=g('amrap')==='1';
   const wuBtn=row.querySelector('.ex-kind-btn.wu');
   const drBtn=row.querySelector('.ex-kind-btn.drop');
+  const clBtn=row.querySelector('.ex-kind-btn.cluster');
+  const rpBtn=row.querySelector('.ex-kind-btn.rp');
   const amBtn=row.querySelector('.ex-kind-btn.amrap');
   if(wuBtn){wuBtn.textContent=wu?('WU '+wu):'WU';wuBtn.classList.toggle('on',!!wu);wuBtn.disabled=inSs;wuBtn.title=inSs?'WU/DROP nie w super-serii':'Serie rozgrzewkowe (1–2) — lżejsze kg, krótsza przerwa';}
-  if(drBtn){drBtn.textContent=dr?('DROP '+dr):'DROP';drBtn.classList.toggle('on',!!dr);drBtn.disabled=inSs;drBtn.title=inSs?'WU/DROP nie w super-serii':'Drop sety po roboczych — bez przerwy, mniejszy ciężar';}
+  if(drBtn){drBtn.textContent=dr?('DROP '+dr):'DROP';drBtn.classList.toggle('on',!!dr);drBtn.disabled=inSs;drBtn.title=inSs?'WU/DROP nie w super-serii':'Drop sety po roboczych — bez przerwy, mniejszy ciężar (80%/60%)';}
+  if(clBtn){clBtn.textContent=cl?('KL '+cl):'KL';clBtn.classList.toggle('on',!!cl);clBtn.disabled=inSs;clBtn.title=inSs?'Klaster nie w super-serii':'Klaster: mini-serie z 20 s wewnątrz (1–3)';}
+  if(rpBtn){rpBtn.textContent=rp?('RP '+rp):'RP';rpBtn.classList.toggle('on',!!rp);rpBtn.disabled=inSs;rpBtn.title=inSs?'Rest-pause nie w super-serii':'Rest-pause: 1–2 dogrywki po 15 s';}
   if(amBtn)amBtn.classList.toggle('on',am);
 }
 window.builderPaintKinds=builderPaintKinds;
@@ -1544,6 +1585,8 @@ function editPlan(id){
       set('video',parsed.video||(ex&&typeof ex==='object'&&ex.video)||'');
       set('wu',parsed.wu||(ex&&typeof ex==='object'&&ex.wu)||'');
       set('drop',parsed.drop||(ex&&typeof ex==='object'&&ex.drop)||'');
+      set('cluster',parsed.cluster||(ex&&typeof ex==='object'&&ex.cluster)||'');
+      set('rp',parsed.rp||(ex&&typeof ex==='object'&&ex.rp)||'');
       set('amrap',((ex&&typeof ex==='object'&&ex.amrap)||parsed.amrap)?'1':'');
       if(typeof builderPreviewKg==='function')builderPreviewKg(row);
       if(typeof builderApplyLoadUnit==='function')builderApplyLoadUnit(row);
@@ -1596,6 +1639,8 @@ async function savePlan(){
         video:typeof normalizeCoachVideoUrl==='function'?normalizeCoachVideoUrl(g('video')):g('video').trim(),
         wu:g('ss')?0:(typeof parseSetKindCount==='function'?parseSetKindCount(g('wu'),2):(parseInt(g('wu'),10)||0)),
         drop:g('ss')?0:(typeof parseSetKindCount==='function'?parseSetKindCount(g('drop'),2):(parseInt(g('drop'),10)||0)),
+        cluster:g('ss')?0:(typeof parseSetKindCount==='function'?parseSetKindCount(g('cluster'),3):(parseInt(g('cluster'),10)||0)),
+        rp:g('ss')?0:(typeof parseSetKindCount==='function'?parseSetKindCount(g('rp'),2):(parseInt(g('rp'),10)||0)),
         amrap:g('amrap')==='1'
       });
       sets+=parseInt(setN,10)||3;

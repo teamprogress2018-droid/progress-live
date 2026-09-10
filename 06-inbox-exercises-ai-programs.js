@@ -3204,6 +3204,8 @@ function renderTasks(){
   const tOver=document.getElementById('t-over');if(tOver)tOver.textContent=over.length;
   const tHabits=document.getElementById('t-habits');if(tHabits)tHabits.textContent=habitsN.length;
   const tCh=document.getElementById('t-challenges');if(tCh)tCh.textContent=chN.length;
+  const hwN=TASKS.filter(t=>typeof isHomework==='function'?isHomework(t):!!(t&&t.kind==='homework'));
+  const tHw=document.getElementById('t-hw');if(tHw)tHw.textContent=hwN.filter(t=>t.status!=='done').length;
   let filtered=TASKS.filter(t=>{
     if(search&&!t.title.toLowerCase().includes(search.toLowerCase()))return false;
     if(clientFil&&t.clientId!==clientFil)return false;
@@ -3213,6 +3215,7 @@ function renderTasks(){
     if(taskFilter==='habits')return isHabit(t);
     if(taskFilter==='challenges')return isCh(t);
     if(['high','medium','low'].includes(taskFilter))return t.priority===taskFilter;
+    if(taskFilter==='homework')return typeof isHomework==='function'?isHomework(t):!!(t.kind==='homework'||t.odWorkoutId);
     if(['trening','dieta','pomiary','lifestyle'].includes(taskFilter))return t.cat===taskFilter;
     return true;
   });
@@ -3229,7 +3232,7 @@ function renderTasks(){
   if(!el)return;
   const banner=taskFilter==='habits'?habitPackBannerHTML():'';
   if(!filtered.length){
-    el.innerHTML=banner+`<div style="text-align:center;padding:60px;color:var(--muted);"><div style="font-size:40px;margin-bottom:12px;opacity:0.3;">${taskFilter==='habits'?'🔥':'✅'}</div><div style="font-size:15px;font-weight:600;margin-bottom:6px;">${taskFilter==='habits'?'Brak nawyków':'Brak zadań'}</div><div style="font-size:12px;margin-bottom:20px;">${taskFilter==='habits'?'Przypisz pakiet Progress Nawyki albo dodaj pojedynczy nawyk.':'Dodaj zadanie lub użyj szablonu'}</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">${taskFilter==='habits'?`<button class="btn btn-primary btn-sm" onclick="openHabitPackModal()">🔥 Progress Nawyki</button>`:`<button class="btn btn-ghost btn-sm" onclick="openTaskTemplates()">📋 Szablony</button>`}<button class="btn ${taskFilter==='habits'?'btn-ghost':'btn-primary'} btn-sm" onclick="openM('m-task')">+ ${taskFilter==='habits'?'Nawyk':'Zadanie'}</button></div></div>`;
+    el.innerHTML=banner+`<div style="text-align:center;padding:60px;color:var(--muted);"><div style="font-size:40px;margin-bottom:12px;opacity:0.3;">${taskFilter==='homework'?'🏡':taskFilter==='habits'?'🔥':'✅'}</div><div style="font-size:15px;font-weight:600;margin-bottom:6px;">${taskFilter==='homework'?'Brak zadań domowych':taskFilter==='habits'?'Brak nawyków':'Brak zadań'}</div><div style="font-size:12px;margin-bottom:20px;">${taskFilter==='homework'?'Przypisz HIIT, mobilność albo oddech — z terminem i notatką.':taskFilter==='habits'?'Przypisz pakiet Progress Nawyki albo dodaj pojedynczy nawyk.':'Dodaj zadanie lub użyj szablonu'}</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">${taskFilter==='homework'?`<button class="btn btn-primary btn-sm" onclick="openAssignHomeworkModal('')">🏠 Przypisz zadanie domowe</button>`:taskFilter==='habits'?`<button class="btn btn-primary btn-sm" onclick="openHabitPackModal()">🔥 Progress Nawyki</button>`:`<button class="btn btn-ghost btn-sm" onclick="openTaskTemplates()">📋 Szablony</button>`}${taskFilter==='homework'?'':`<button class="btn ${taskFilter==='habits'?'btn-ghost':'btn-primary'} btn-sm" onclick="openM('m-task')">+ ${taskFilter==='habits'?'Nawyk':'Zadanie'}</button>`}</div></div>`;
     return;
   }
   const groups={};

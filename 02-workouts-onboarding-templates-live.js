@@ -3533,7 +3533,21 @@ function liveToggleSet(ei,si,slot){
 
 function liveSetKg(ei,si,v,slot){liveRef(slot).exercises[ei].sets[si].kg=v;liveSaveDraft(slot);}
 function liveSetReps(ei,si,v,slot){liveRef(slot).exercises[ei].sets[si].reps=v;liveSaveDraft(slot);}
-function liveSetRir(ei,si,v,slot){liveRef(slot).exercises[ei].sets[si].rir=v;liveSaveDraft(slot);}
+function liveSetRir(ei,si,v,slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  const ex=st.exercises[ei];if(!ex||!ex.sets[si])return;
+  ex.sets[si].rir=v;
+  liveSaveDraft(slot);
+  const planned=parseFloat(String(ex.rir||'').replace(',','.'));
+  const got=parseFloat(String(v||'').replace(',','.'));
+  if(Number.isFinite(planned)&&Number.isFinite(got)&&got<planned-0.5){
+    const el=document.querySelector((n===1?'#live-b-ex-':'#live-ex-')+ei+' .live-rir-input');
+    const row=el&&el.closest?el.closest('.live-set-row'):null;
+    if(row)row.classList.add('live-rir-warn');
+    if(typeof notify==='function')notify('RIR '+got+' — plan '+planned+' (głębiej niż cel)');
+  }
+}
 
 function liveAddSet(ei,slot){
   const n=liveN(slot);
@@ -3581,16 +3595,18 @@ function liveSwapEx(i,name,slot){
   cur.name=name;
   const extra=typeof altsForExercise==='function'?altsForExercise(name):[];
   cur.alts=[orig].concat(cur.alts||[]).concat(extra).filter((x,idx,a)=>x&&x!==cur.name&&a.indexOf(x)===idx);
-  const last=typeof lastLoadForExercise==='function'?lastLoadForExercise(st.clientId,name):null;
-  if(last){
-    cur.lastKg=last.kg||'';
-    cur.lastReps=last.reps||'';
-    cur.lastDate=last.date||'';
-    cur.lastSets=last.sets||[];
+  const last=typeof lastLoadForExercise==='function'?lastLoadForExercise(st.clientId,name,[orig,cur.plannedName]):(typeof lastLoadForExercise==='function'?lastLoadForExercise(st.clientId,name):null);
+  const lastFallback=!last&&orig&&typeof lastLoadForExercise==='function'?lastLoadForExercise(st.clientId,orig):null;
+  const useLast=last||lastFallback;
+  if(useLast){
+    cur.lastKg=useLast.kg||'';
+    cur.lastReps=useLast.reps||'';
+    cur.lastDate=useLast.date||'';
+    cur.lastSets=useLast.sets||[];
     const plan=(window.PL||[]).find(p=>p.id===st.planId);
     const progression=typeof normalizePlanProgression==='function'?normalizePlanProgression(plan&&(plan.progression||plan.progressionType)):'double';
     const work=(cur.sets||[]).filter(s=>typeof isWorkingSet==='function'?isWorkingSet(s):true);
-    const lastWork=(last.sets||[]).filter(s=>typeof isWorkingSet==='function'?isWorkingSet(s):true);
+    const lastWork=(useLast.sets||[]).filter(s=>typeof isWorkingSet==='function'?isWorkingSet(s):true);
     let hint='';
     work.forEach((s,si)=>{
       if(s.done)return;
@@ -3841,15 +3857,33 @@ window.liveRestLabel=liveRestLabel;
 function liveRestSpeakText(sec){
   const n=Number(sec);
   if(!Number.isFinite(n))return '';
-  if(n<=0)return "Let's go!";
-  if(n===1)return 'Go';
-  if(n===2)return 'Set';
-  if(n===3)return 'Ready';
-  if(n===4)return 'Four';
-  if(n===5)return 'Five';
+  const lang=(window.SETTINGS&&window.SETTINGS.live&&window.SETTINGS.live.restVoice)||'pl';
+  if(lang==='off')return '';
+  if(lang==='en'){
+    if(n<=0)return "Let's go!";
+    if(n===1)return 'Go';
+    if(n===2)return 'Set';
+    if(n===3)return 'Ready';
+    if(n===4)return 'Four';
+    if(n===5)return 'Five';
+    return '';
+  }
+  if(n<=0)return 'Jazda!';
+  if(n===1)return 'Start';
+  if(n===2)return 'Uwaga';
+  if(n===3)return 'Gotowi';
+  if(n===4)return 'Cztery';
+  if(n===5)return 'Pięć';
   return '';
 }
 window.liveRestSpeakText=liveRestSpeakText;
+
+function liveRestVoiceLang(){
+  const v=(window.SETTINGS&&window.SETTINGS.live&&window.SETTINGS.live.restVoice)||'pl';
+  if(v==='off'||v==='en')return v;
+  return 'pl';
+}
+window.liveRestVoiceLang=liveRestVoiceLang;
 
 function liveRestEnglishVoice(){
   try{
@@ -3894,7 +3928,14 @@ function liveRestSpeak(sec){
     u.pitch=1;
     u.volume=1;
     const voice=liveRestEnglishVoice();
-    if(voice)u.voice=voice;
+    if(liveRestVoiceLang()==='pl'){
+      u.lang='pl-PL';
+      try{
+        const list=syn.getVoices?syn.getVoices():[];
+        const pl=(list||[]).find(v=>String(v.lang||'').toLowerCase().indexOf('pl')===0);
+        if(pl)u.voice=pl;
+      }catch(e){}
+    }else if(voice)u.voice=voice;
     syn.speak(u);
     return true;
   }catch(e){return false;}

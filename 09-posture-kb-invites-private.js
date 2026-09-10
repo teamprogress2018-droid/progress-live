@@ -1349,6 +1349,9 @@ function assignHomeworkToClient(clientId,workoutId,opts){
     priority:opts.priority||'medium',
     due:opts.due||today,
     status:'open',
+    repeatWeeks:opts.repeatWeeks||0,
+    repeatLeft:opts.repeatLeft!=null?opts.repeatLeft:opts.repeatWeeks||0,
+    repeatWeekdays:Array.isArray(opts.repeatWeekdays)?opts.repeatWeekdays:[],
     createdAt:new Date().toISOString()
   });
   window.TASKS=window.TASKS||[];
@@ -1414,21 +1417,27 @@ window.remindHabit=remindHabit;
 
 function openAssignHomeworkModal(workoutId,clientId){
   window._assignHwWorkoutId=workoutId||null;
+  window._assignHwClientId=clientId||'';
   let m=document.getElementById('m-assign-homework');
   if(!m){
     m=document.createElement('div');
     m.id='m-assign-homework';m.className='modal-ov';
-    m.innerHTML=`<div class="modal" style="max-width:440px;">
+    m.innerHTML=`<div class="modal" style="max-width:480px;">
       <div class="modal-hdr"><div class="modal-title">PRZYPISZ ZADANIE DOMOWE</div><button class="modal-close" onclick="closeM('m-assign-homework')">×</button></div>
       <div class="modal-body">
         <div id="ahw-preview" style="background:var(--s3);border-radius:10px;padding:12px;margin-bottom:14px;font-size:12px;line-height:1.5;"></div>
+        <div class="form-field" id="ahw-workout-wrap" style="display:none;"><label class="form-lbl">Trening</label><select class="form-select" id="ahw-workout"></select></div>
         <div class="form-field" style="position:relative;">
-          <label class="form-lbl">Klient</label>
-          <input class="form-select" id="ahw-client-search" placeholder="Wpisz imię..." autocomplete="off" oninput="ahwClientSearchInput()" onfocus="ahwClientSearchInput()">
-          <input type="hidden" id="ahw-client">
-          <div id="ahw-client-results" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:50;background:var(--s2);border:1px solid var(--border2);border-radius:8px;margin-top:4px;max-height:200px;overflow-y:auto;"></div>
+          <label class="form-lbl">Klient (albo kilku)</label>
+          <div id="ahw-client-list" style="max-height:160px;overflow-y:auto;background:var(--s3);border:1px solid var(--border);border-radius:8px;padding:8px;"></div>
         </div>
-        <div class="form-field"><label class="form-lbl">Termin (opcjonalnie)</label><input type="date" class="form-input" id="ahw-due"></div>
+        <div class="form-field"><label class="form-lbl">Termin</label><input type="date" class="form-input" id="ahw-due"></div>
+        <div class="form-field"><label class="form-lbl">Powtarzaj (tygodnie)</label>
+          <select class="form-select" id="ahw-repeat"><option value="0">Jednorazowo</option><option value="2">2 tygodnie</option><option value="4">4 tygodnie</option><option value="8">8 tygodni</option></select>
+        </div>
+        <div class="form-field"><label class="form-lbl">Dni tygodnia (gdy cykl)</label>
+          <div id="ahw-weekdays" style="display:flex;gap:4px;flex-wrap:wrap;"></div>
+        </div>
         <div class="form-field"><label class="form-lbl">Notatka dla klienta</label><textarea class="form-select" id="ahw-note" rows="2" style="resize:none;" placeholder="np. Wykonaj po treningu siłowym"></textarea></div>
       </div>
       <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-assign-homework')">Anuluj</button><button class="btn btn-primary" onclick="saveAssignHomework()">🏠 Przypisz</button></div>
@@ -1437,73 +1446,56 @@ function openAssignHomeworkModal(workoutId,clientId){
   }
   const w=(typeof allODWorkouts==='function'?allODWorkouts():[]).find(x=>x.id===workoutId);
   const prev=document.getElementById('ahw-preview');
-  if(prev&&w){
-    prev.innerHTML=`<div style="font-weight:700;margin-bottom:6px;">${escHtml(w.emoji||'🏠')} ${escHtml(w.name)}</div>
+  const wwrap=document.getElementById('ahw-workout-wrap');
+  const wsel=document.getElementById('ahw-workout');
+  if(w){
+    if(wwrap)wwrap.style.display='none';
+    if(prev)prev.innerHTML=`<div style="font-weight:700;margin-bottom:6px;">${escHtml(w.emoji||'🏠')} ${escHtml(w.name)}</div>
       <div style="color:var(--muted);margin-bottom:8px;">${escHtml(w.desc||'')}</div>
       <div style="display:flex;gap:5px;flex-wrap:wrap;">${odWorkoutMetaChipsHTML(w)}</div>`;
+  }else{
+    if(wwrap)wwrap.style.display='';
+    const list=(typeof allODWorkouts==='function'?allODWorkouts():[]);
+    if(wsel)wsel.innerHTML=list.map(x=>`<option value="${escHtml(x.id)}">${escHtml((x.emoji||'🏠')+' '+(x.name||x.id))}</option>`).join('');
+    if(prev)prev.innerHTML='<div style="color:var(--muted);">Wybierz trening z biblioteki On-demand (HIIT, mobilność, oddech).</div>';
   }
-  const hid=document.getElementById('ahw-client');
-  const search=document.getElementById('ahw-client-search');
-  const cl=clientId?(window.CL||[]).find(x=>x.id===clientId):null;
-  if(hid)hid.value=clientId||'';
-  if(search)search.value=cl?cl.name:'';
+  const box=document.getElementById('ahw-client-list');
+  const clients=(window.CL||[]).filter(c=>c.status!=='archived');
+  if(box){
+    box.innerHTML=clients.map(c=>`<label style="display:flex;gap:8px;align-items:center;padding:6px 4px;font-size:12px;cursor:pointer;">
+      <input type="checkbox" class="ahw-cid" value="${escHtml(c.id)}" ${clientId&&c.id===clientId?'checked':''}> ${escHtml(c.name)}</label>`).join('')||'<div style="color:var(--muted);">Brak klientów</div>';
+  }
   const due=document.getElementById('ahw-due');
   if(due)due.value=typeof todayYmd==='function'?todayYmd():'';
   const note=document.getElementById('ahw-note');
   if(note)note.value='';
+  const rep=document.getElementById('ahw-repeat');
+  if(rep)rep.value='0';
+  const wd=document.getElementById('ahw-weekdays');
+  if(wd){
+    const names=['Nd','Pn','Wt','Śr','Cz','Pt','So'];
+    wd.innerHTML=names.map((n,i)=>`<label style="font-size:11px;"><input type="checkbox" class="ahw-wd" value="${i}"> ${n}</label>`).join('');
+  }
   openM('m-assign-homework');
 }
-function ahwClientSearchInput(){
-  const q=(document.getElementById('ahw-client-search')||{}).value||'';
-  const el=document.getElementById('ahw-client-results');
-  const hid=document.getElementById('ahw-client');
-  if(!el)return;
-  const ql=q.trim().toLowerCase();
-  const list=(window.CL||[]).filter(c=>c.status!=='archived'&&(!ql||String(c.name||'').toLowerCase().includes(ql))).slice(0,12);
-  if(!list.length){el.style.display='none';return;}
-  el.style.display='block';
-  el.innerHTML=list.map(c=>`<div style="padding:10px 12px;cursor:pointer;font-size:12px;border-bottom:1px solid var(--border);" onclick="ahwPickClient('${escHtml(c.id)}','${escHtml(c.name||'')}')">${escHtml(c.name)}</div>`).join('');
-  if(!ql&&hid)hid.value='';
-}
-function ahwPickClient(id,name){
-  const hid=document.getElementById('ahw-client');
-  const search=document.getElementById('ahw-client-search');
-  const el=document.getElementById('ahw-client-results');
-  if(hid)hid.value=id;
-  if(search)search.value=name;
-  if(el)el.style.display='none';
-}
+function ahwClientSearchInput(){}
+function ahwPickClient(){}
 function saveAssignHomework(){
-  const wid=window._assignHwWorkoutId;
-  const cid=(document.getElementById('ahw-client')||{}).value;
+  let wid=window._assignHwWorkoutId||(document.getElementById('ahw-workout')||{}).value;
+  const ids=[...document.querySelectorAll('.ahw-cid:checked')].map(el=>el.value).filter(Boolean);
   if(!wid){if(typeof notify==='function')notify('Brak treningu');return;}
-  if(!cid){if(typeof notify==='function')notify('Wybierz klienta');return;}
-  assignHomeworkToClient(cid,wid,{due:(document.getElementById('ahw-due')||{}).value||'',desc:(document.getElementById('ahw-note')||{}).value||''});
+  if(!ids.length){if(typeof notify==='function')notify('Wybierz klienta');return;}
+  const due=(document.getElementById('ahw-due')||{}).value||'';
+  const desc=(document.getElementById('ahw-note')||{}).value||'';
+  const weeks=parseInt((document.getElementById('ahw-repeat')||{}).value,10)||0;
+  const wds=[...document.querySelectorAll('.ahw-wd:checked')].map(el=>parseInt(el.value,10));
+  ids.forEach(cid=>assignHomeworkToClient(cid,wid,{due,desc,repeatWeeks:weeks,repeatWeekdays:wds,notify:ids.length<3}));
+  if(ids.length>2&&typeof notify==='function')notify('✓ Zadanie domowe: '+ids.length+' klientów');
   closeM('m-assign-homework');
 }
 function openHomeworkPickerForClient(clientId){
   window._assignHwClientId=clientId;
-  let m=document.getElementById('m-homework-picker');
-  if(!m){
-    m=document.createElement('div');
-    m.id='m-homework-picker';m.className='modal-ov';
-    m.innerHTML=`<div class="modal modal-wide">
-      <div class="modal-hdr"><div class="modal-title">WYBIERZ TRENING DOMOWY</div><button class="modal-close" onclick="closeM('m-homework-picker')">×</button></div>
-      <div class="modal-body" id="m-homework-picker-body" style="max-height:60vh;overflow-y:auto;"></div>
-    </div>`;
-    document.body.appendChild(m);
-  }
-  const body=document.getElementById('m-homework-picker-body');
-  const list=(typeof allODWorkouts==='function'?allODWorkouts():OD_DEMO_WORKOUTS).slice();
-  if(body){
-    body.innerHTML=list.length?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;">${list.map((w,i)=>`<div style="background:var(--s2);border:1px solid var(--border2);border-radius:12px;padding:12px;">
-      <div style="font-size:13px;font-weight:700;margin-bottom:4px;">${escHtml(w.emoji||'🏠')} ${escHtml(w.name)}</div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.4;">${escHtml(w.desc||'')}</div>
-      <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;">${odWorkoutMetaChipsHTML(w)}</div>
-      <button type="button" class="btn btn-primary btn-sm" style="width:100%;" onclick="assignHomeworkToClient('${escHtml(clientId)}','${escHtml(w.id)}');closeM('m-homework-picker');">Przypisz</button>
-    </div>`).join('')}</div>`:`<div style="text-align:center;padding:40px;color:var(--muted);">Brak treningów w bibliotece On-demand.</div>`;
-  }
-  openM('m-homework-picker');
+  openAssignHomeworkModal('',clientId);
 }
 window.odWorkoutFormatLabel=odWorkoutFormatLabel;
 window.odWorkoutEquipmentLabel=odWorkoutEquipmentLabel;

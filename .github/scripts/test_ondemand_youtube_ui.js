@@ -131,7 +131,9 @@ function ok(name, cond, extra) {
     window.capClientId = 'c-anna';
     if (typeof renderClientLive === 'function') renderClientLive();
   });
-  await page.waitForSelector('#clive-bn-ondemand');
+  await page.waitForSelector('#clive-bn-more');
+  await page.waitForSelector('#clive-bn-ondemand', { state: 'attached' });
+  await page.waitForSelector('#clive-bn-homework');
   const liveNav = await page.evaluate(() => ({
     ondemandBtn: !!(document.getElementById('clive-bn-ondemand') && document.getElementById('clive-bn-ondemand').style.display !== 'none'),
     homeOd: /ON-DEMAND/i.test((document.getElementById('clive-screen-content') || {}).innerText || '')
@@ -160,6 +162,8 @@ function ok(name, cond, extra) {
   ok('live home continue card', /KONTYNUUJ PROGRAM/i.test(liveContinue.text));
   ok('live home continue play', /openODProgramContinue/.test(liveContinue.html));
 
+  await page.click('#clive-bn-more');
+  await page.waitForSelector('#clive-more-sheet:not([hidden])');
   await page.click('#clive-bn-ondemand');
   await page.waitForTimeout(300);
   const liveOd = await page.evaluate(() => {

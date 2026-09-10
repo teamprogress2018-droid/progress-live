@@ -25,10 +25,10 @@ ok('moreScreens without plan tools',!/moreScreens=\[[^\]]*(aiplangen|builder)/.t
 ok('screens still exist',html.includes('id="screen-builder"')&&html.includes('id="screen-aiplangen"'));
 ok('plan tab keeps CTAs',planTab.includes('Stwórz własny plan')&&planTab.includes('Generuj plan AI')&&planTab.includes('Przypisz szablon')&&planTab.includes('Kontynuuj plan z Fitebo'));
 ok('openBuilderForClient + openAiPlanForClient',src05.includes('function openBuilderForClient')&&src05.includes('function openAiPlanForClient'));
-ok('plans library points to clients',html.includes('Utwórz z profilu klienta')&&src05.includes("goTo('clients')")&&src05.includes('zakładka Plan'));
+ok('plans library new plan picker',html.includes('openNewPlanPicker()')&&src05.includes('function openNewPlanPicker')&&src05.includes('function saveNewPlanPicker')&&src05.includes("openBuilderForClient"));
 ok('builder cancel uses back',html.includes("_builderBack||'clients'"));
 
-ok('cache bumps',html.includes('01-core.js?v=89')&&html.includes('05-clients-builder-plans-calendar.js?v=48'));
+ok('cache bumps',html.includes('01-core.js?v=90')&&html.includes('05-clients-builder-plans-calendar.js?v=49'));
 ok('onboard plan doneExtra',/doneExtra.*Nowy plan AI/.test(src05));
 
 if(failed){console.error(failed+' failed');process.exit(1);}
