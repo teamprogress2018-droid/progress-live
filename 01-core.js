@@ -433,6 +433,8 @@ function openM(id){
     document.getElementById('as-time').value='10:00';
     const rec=document.getElementById('as-recorded-exercises');
     if(rec)rec.style.display='none';
+    const salaBar=document.getElementById('as-sala-done');
+    if(salaBar){salaBar.style.display='none';salaBar.innerHTML='';}
   }
   if(id==='m-form'){
     window._editingFormId=null;
@@ -3764,31 +3766,44 @@ function sessionHappenedTip(s,sessions){
 window.sessionHappenedTip=sessionHappenedTip;
 
 /** Zapis sali z terminu w kalendarzu — dzień się liczy, bez wymuszania kg. */
-function logSessionFromPlanned(plannedId,sessions){
+function logSessionFromPlanned(plannedId,sessions,opts){
+  opts=opts||{};
   const list=sessions||window.SE||[];
   const p=list.find(s=>s&&s.id===plannedId);
   if(!p||!p.clientId||!p.date)return null;
   const y=String(p.date).slice(0,10);
   const existing=list.find(s=>s&&s.id!==p.id&&s.clientId===p.clientId&&String(s.date).slice(0,10)===y&&typeof isLoggedWorkout==='function'&&isLoggedWorkout(s));
-  if(existing)return existing;
+  if(existing){
+    if(opts.feedback!=null&&opts.feedback!=='')existing.feedback=Math.max(1,Math.min(5,parseInt(opts.feedback,10)||existing.feedback||0));
+    if(opts.duration!=null&&opts.duration!=='')existing.duration=Math.max(1,parseInt(opts.duration,10)||existing.duration||60);
+    if(opts.note)existing.note=opts.note;
+    existing.updatedAt=new Date().toISOString();
+    if(sessions==null)window.SE=list;
+    const save=typeof window!=='undefined'&&typeof window.persistById==='function'?window.persistById:(typeof persistById==='function'?persistById:null);
+    if(save)try{save('sessions',existing);}catch(e){}
+    return existing;
+  }
   let exercises=[];
   const plan=(window.PL||[]).find(x=>x&&x.id===p.planId);
   const day=plan&&Array.isArray(plan.days)?plan.days[p.dayIdx]:null;
   if(day&&Array.isArray(day.exercises)){
     exercises=day.exercises.map(e=>({name:(e&&e.name)||e,sets:[]})).filter(e=>e.name);
   }
+  const feedback=Math.max(0,Math.min(5,parseInt(opts.feedback,10)||0));
+  const duration=Math.max(1,parseInt(opts.duration,10)||parseInt(p.duration,10)||60);
   const sess=(typeof withTrainer==='function'?withTrainer:x=>x)({
     id:typeof newId==='function'?newId('s'):('s'+Date.now()),
     clientId:p.clientId,
     date:y,
     time:p.time||'',
     type:p.type||'Trening personalny',
-    duration:p.duration||60,
+    duration:duration,
     exercises,
     source:'sala',
     planId:p.planId||null,
     dayIdx:p.dayIdx!=null?p.dayIdx:null,
-    note:'Oznaczone z kalendarza (trening na sali)',
+    feedback:feedback,
+    note:opts.note||'Oznaczone z kalendarza (trening na sali)',
     createdAt:new Date().toISOString()
   });
   list.push(sess);
@@ -3798,6 +3813,86 @@ function logSessionFromPlanned(plannedId,sessions){
   return sess;
 }
 window.logSessionFromPlanned=logSessionFromPlanned;
+
+function openSalaDoneModal(plannedId){
+  const p=(window.SE||[]).find(s=>s&&s.id===plannedId);
+  if(!p){if(typeof notify==='function')notify('Nie znaleziono terminu');return;}
+  const y=String(p.date||'').slice(0,10);
+  const already=(window.SE||[]).find(s=>s&&s.id!==p.id&&s.clientId===p.clientId&&String(s.date).slice(0,10)===y&&typeof isLoggedWorkout==='function'&&isLoggedWorkout(s));
+  if(already){
+    if(typeof notify==='function')notify('Ten dzień ma już zapis treningu');
+    return already;
+  }
+  let m=document.getElementById('m-sala-done');
+  if(!m){
+    m=document.createElement('div');
+    m.id='m-sala-done';m.className='modal-ov';
+    m.innerHTML=`<div class="modal" style="max-width:420px;">
+      <div class="modal-hdr"><div class="modal-title">TRENING NA SALI</div><button class="modal-close" type="button" onclick="closeM('m-sala-done')">×</button></div>
+      <div class="modal-body">
+        <div id="sala-done-title" style="font-size:13px;font-weight:700;margin-bottom:6px;"></div>
+        <div id="sala-done-sub" style="font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Bez Live tonaż zostaje 0 — zapisz ocenę i czas, żeby dzień wszedł do Postępów.</div>
+        <div class="form-field"><label class="form-lbl">Ocena (1–5)</label>
+          <div id="sala-done-rate-row" style="display:flex;gap:4px;flex-wrap:wrap;"></div>
+        </div>
+        <div class="form-field"><label class="form-lbl">Czas (min)</label><input type="number" class="form-input" id="sala-done-min" min="10" max="180" inputmode="numeric"></div>
+        <div class="form-field"><label class="form-lbl">Notatka (opcjonalnie)</label><textarea class="form-textarea" id="sala-done-note" rows="2" placeholder="np. dobra energia, bez bólu kolana"></textarea></div>
+      </div>
+      <div class="modal-footer"><button class="btn btn-ghost" type="button" onclick="closeM('m-sala-done')">Anuluj</button><button class="btn btn-primary" type="button" id="sala-done-save" onclick="saveSalaDone()">Zapisz do Postępów</button></div>
+    </div>`;
+    document.body.appendChild(m);
+  }
+  window._salaDoneId=plannedId;
+  window._salaDoneFeedback=0;
+  const c=(window.CL||[]).find(x=>x.id===p.clientId);
+  const title=document.getElementById('sala-done-title');
+  if(title)title.textContent=(c&&c.name?c.name+' · ':'')+(p.type||'Trening')+' · '+y;
+  const min=document.getElementById('sala-done-min');
+  if(min)min.value=String(parseInt(p.duration,10)||60);
+  const note=document.getElementById('sala-done-note');
+  if(note)note.value='';
+  const row=document.getElementById('sala-done-rate-row');
+  const map=typeof SESSION_RATING!=='undefined'?SESSION_RATING:{1:{emoji:'1'},2:{emoji:'2'},3:{emoji:'3'},4:{emoji:'4'},5:{emoji:'5'}};
+  if(row){
+    row.innerHTML=[1,2,3,4,5].map(n=>{
+      const lab=(map[n]&&map[n].emoji)?map[n].emoji+' '+n:String(n);
+      return `<button type="button" class="btn btn-ghost btn-sm sala-rate-btn" data-rate="${n}" onclick="pickSalaDoneRate(${n})">${lab}</button>`;
+    }).join('');
+  }
+  if(typeof openM==='function')openM('m-sala-done');
+  else m.classList.add('show');
+}
+function pickSalaDoneRate(n){
+  window._salaDoneFeedback=Math.max(1,Math.min(5,parseInt(n,10)||0));
+  document.querySelectorAll('.sala-rate-btn').forEach(el=>{
+    const on=el.getAttribute('data-rate')===String(window._salaDoneFeedback);
+    el.classList.toggle('btn-primary',on);
+    el.classList.toggle('btn-ghost',!on);
+  });
+}
+function saveSalaDone(){
+  const id=window._salaDoneId;
+  const feedback=parseInt(window._salaDoneFeedback,10)||0;
+  if(!feedback){if(typeof notify==='function')notify('Wybierz ocenę 1–5');return;}
+  const duration=parseInt((document.getElementById('sala-done-min')||{}).value,10)||60;
+  const note=String((document.getElementById('sala-done-note')||{}).value||'').trim();
+  const sess=logSessionFromPlanned(id,null,{feedback,duration,note:note||undefined});
+  if(!sess){if(typeof notify==='function')notify('Nie udało się zapisać');return;}
+  if(typeof closeM==='function')closeM('m-sala-done');
+  const p=(window.SE||[]).find(s=>s&&s.id===id);
+  const c=(window.CL||[]).find(x=>x.id===(p&&p.clientId));
+  try{if(c&&typeof renderCPTraining==='function'&&window.cpClientId===c.id)renderCPTraining(c);}catch(e){}
+  try{if(typeof renderCal==='function')renderCal();}catch(e){}
+  if(window._clientAppMode&&typeof renderClientLive==='function'){
+    window._cliveSessionId=sess.id;
+    renderClientLive();
+  }
+  if(typeof notify==='function')notify('Zapisano trening na sali · ocena '+feedback+'/5 · '+duration+' min');
+  return sess;
+}
+window.openSalaDoneModal=openSalaDoneModal;
+window.pickSalaDoneRate=pickSalaDoneRate;
+window.saveSalaDone=saveSalaDone;
 
 function completedWorkouts(clientId,sessions){
   return(sessions||window.SE||[]).filter(s=>s&&s.clientId===clientId&&isLoggedWorkout(s))

@@ -371,6 +371,15 @@ function clientCalNav(delta){
   window._cliveCal=d;
   capGoScreen('calendar');
 }
+function clientMarkSalaDone(plannedId){
+  if(!window._clientAppMode){
+    if(typeof notify==='function')notify('Podgląd — klient oznacza salę w swojej apce');
+    return;
+  }
+  if(typeof openSalaDoneModal==='function')openSalaDoneModal(plannedId);
+  else if(typeof notify==='function')notify('Nie można zapisać treningu na sali');
+}
+window.clientMarkSalaDone=clientMarkSalaDone;
 
 function clientOpenSession(id){
   window._cliveSessionId=id;

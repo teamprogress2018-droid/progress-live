@@ -79,6 +79,17 @@ function ok(name, cond, extra) {
   ok('button label', before.btns.every(t => /Odbył się/.test(t)));
 
   await page.click('.cp-mark-done');
+  await page.waitForSelector('#sala-done-save');
+  const modal = await page.evaluate(() => {
+    const m = document.getElementById('m-sala-done');
+    const rates = [...document.querySelectorAll('.sala-rate-btn')].map(b => b.getAttribute('data-rate'));
+    return { shown: !!(m && m.classList.contains('show')), rates, min: (document.getElementById('sala-done-min') || {}).value };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'cp_sala_done_modal.png') });
+  ok('rating modal shown', modal.shown && modal.rates.join(',') === '1,2,3,4,5', JSON.stringify(modal));
+  await page.click('.sala-rate-btn[data-rate="4"]');
+  await page.fill('#sala-done-min', '55');
+  await page.click('#sala-done-save');
   await page.waitForTimeout(400);
   const after = await page.evaluate(() => {
     const body = (document.getElementById('cp-body') || {}).innerText || '';
@@ -90,6 +101,8 @@ function ok(name, cond, extra) {
       salaN: sala.length,
       loggedN: logged.length,
       salaDate: sala[0] && sala[0].date,
+      feedback: sala[0] && sala[0].feedback,
+      duration: sala[0] && sala[0].duration,
       ex: ((sala[0] && sala[0].exercises) || []).map(e => e.name),
       btns,
       banner: !!document.querySelector('.cp-no-logged-banner'),
@@ -98,6 +111,7 @@ function ok(name, cond, extra) {
   });
   await page.screenshot({ path: path.join(shotDir, 'cp_training_sala_logged.png') });
   ok('sala session saved', after.salaN === 1 && after.loggedN === 1, JSON.stringify(after));
+  ok('sala rating and duration', after.feedback === 4 && after.duration === 55, JSON.stringify(after));
   ok('zrobione 1 in kpi', after.loggedN === 1);
   ok('copied exercises', after.ex.includes('Przysiad goblet') && after.ex.includes('Wyciskanie'), JSON.stringify(after.ex));
   ok('one card still pending', after.btns === 1);

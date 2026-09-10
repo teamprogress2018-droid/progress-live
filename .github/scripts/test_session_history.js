@@ -167,6 +167,13 @@ eq('sala no duplicate', salaList.filter(s => s.source === 'sala').length, 1);
 eq('sala returns existing', again && again.id, salaSess.id);
 eq('tip sala', /sala/.test(sessionHappenedTip(salaSess)), true);
 eq('missing planned returns null', logSessionFromPlanned('nope', salaList), null);
+const ratedList = [
+  { id: 'p-rate', clientId: 'c9', date: '2026-09-03', source: 'planned', type: 'PON', duration: 60, planId: 'pl1', dayIdx: 0 }
+];
+const rated = logSessionFromPlanned('p-rate', ratedList, { feedback: 4, duration: 55, note: 'dobra energia' });
+eq('sala feedback', rated && rated.feedback, 4);
+eq('sala duration override', rated && rated.duration, 55);
+eq('sala custom note', rated && /dobra energia/.test(rated.note || ''), true);
 
 ctx.cpAssignmentSessions = function (clientId, opts) {
   const all = (windowObj.SE || []).filter(s => s && s.clientId === clientId);
