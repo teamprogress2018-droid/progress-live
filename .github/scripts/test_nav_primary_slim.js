@@ -76,7 +76,7 @@ test('Więcej does not close #app-root before .main', () => {
 });
 
 test('cache + CI', () => {
-  assert.match(html, /01-core.js\?v=88/);
+  assert.match(html, /01-core.js\?v=89/);
   assert.ok(wf.includes('test_nav_primary_slim.js'), 'CI runs nav slim test');
 });
 
