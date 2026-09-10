@@ -2589,7 +2589,7 @@ function renderCPTraining(c){
   const noLoggedBanner=logged.length===0&&plannedN
     ?`<div class="cp-no-logged-banner" style="background:rgba(230,0,0,0.08);border:1px solid rgba(230,0,0,0.35);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12px;line-height:1.45;">
         <div style="font-weight:700;margin-bottom:4px;">Brak zapisu treningu</div>
-        Czerwone karty to <b>plan</b>, nie odbyte sesje. Zrobione liczy Live, apkę klienta albo ✓ Odbył się (sala). Bez tego statystyki zostają na 0.
+        Czerwone karty to <b>plan</b>, nie odbyte sesje. Zrobione liczy Live, apkę klienta albo ✓ Odbył się (ocena 1–5 + czas, bez Live). Bez tego statystyki zostają na 0.
       </div>`:'';
 
   // Historia sesji — tylko zapisane (Live / apka / sala / Garmin), nie terminy z planu
@@ -2722,21 +2722,8 @@ window.cpMpView=cpMpView;
 window.cpMpTab=cpMpTab;
 
 function markCpSessionDone(plannedId){
-  const p=(window.SE||[]).find(s=>s&&s.id===plannedId);
-  if(!p){if(typeof notify==='function')notify('Nie znaleziono terminu');return;}
-  const y=String(p.date||'').slice(0,10);
-  const already=(window.SE||[]).find(s=>s&&s.id!==p.id&&s.clientId===p.clientId&&String(s.date).slice(0,10)===y&&typeof isLoggedWorkout==='function'&&isLoggedWorkout(s));
-  if(already){
-    if(typeof notify==='function')notify('Ten dzień ma już zapis treningu');
-    const c=CL.find(x=>x.id===p.clientId);if(c)renderCPTraining(c);
-    return;
-  }
-  if(!confirm('Oznaczyć trening '+y+' jako odbyte na sali?\n\nDzień wejdzie do Zrobione. Tonaż zostaje 0, dopóki nie zapiszesz serii (Live albo apka).'))return;
-  const sess=typeof logSessionFromPlanned==='function'?logSessionFromPlanned(plannedId):null;
-  if(!sess){if(typeof notify==='function')notify('Nie udało się zapisać');return;}
-  const c=CL.find(x=>x.id===p.clientId);
-  if(c)renderCPTraining(c);
-  if(typeof notify==='function')notify('Zapisano trening na sali · '+y);
+  if(typeof openSalaDoneModal==='function')return openSalaDoneModal(plannedId);
+  if(typeof notify==='function')notify('Nie można oznaczyć sesji');
 }
 window.markCpSessionDone=markCpSessionDone;
 

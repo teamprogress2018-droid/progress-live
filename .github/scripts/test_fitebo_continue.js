@@ -20,7 +20,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 08 v50', html.includes('08-client-profile-extras.js?v=51'));
+ok('cache 08 v50', html.includes('08-client-profile-extras.js?v=52'));
 ok('ci unit', wf.includes('test_fitebo_continue.js'));
 ok('ci ui', wf.includes('test_fitebo_continue_ui.js'));
 ok('plan tab CTA', planTab.includes('cpContinueFiteboPlan') && planTab.includes('Kontynuuj plan z Fitebo'));

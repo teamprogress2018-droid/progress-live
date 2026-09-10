@@ -934,6 +934,7 @@ function capScreenHTML(scr,c){
     const garminDates=new Set(garminSess.map(s=>s.date).concat(capGarminEntries(c).map(e=>e.date)));
     const doneDates=new Set(logged.map(s=>s.date));
     const upcoming=sessions.filter(s=>s.date&&s.date>=today&&s.source!=='client'&&s.source!=='live'&&s.source!=='garmin').sort((a,b)=>(a.date||'').localeCompare(b.date||'')).slice(0,5);
+    const pendingSala=sessions.filter(s=>s.source==='planned'&&s.date&&s.date<today&&!(typeof sessionHappened==='function'&&sessionHappened(s))).sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,5);
     const cells=[];
     for(let i=0;i<startDow;i++)cells.push('<div></div>');
     for(let d=1;d<=dim;d++){
@@ -964,14 +965,21 @@ function capScreenHTML(scr,c){
           ${garminDates.size?`<span style="color:#5ec8ff;">● Garmin</span>`:''}
         </div>
       </div>
+      ${pendingSala.length?`<div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">Zaległe na sali</div>
+      ${pendingSala.map(s=>`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:14px;margin-bottom:8px;">
+        <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};">${escHtml(s.type||'Sesja')} · ${escHtml(s.date||'')}</div>
+        ${live?`<button type="button" class="cap-btn-primary cap-sala-done" style="margin-top:8px;padding:8px 12px;font-size:12px;" onclick="clientMarkSalaDone('${escHtml(s.id)}')">✓ Byłem na sali</button>`:`<div style="font-size:11px;color:${CAP_MUTED};margin-top:6px;">Podgląd — klient odhacza w apce</div>`}
+      </div>`).join('')}`:''}
       ${upcoming.length?`<div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">Nadchodzące z trenerem</div>
       ${upcoming.map(s=>`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:14px;margin-bottom:8px;display:flex;gap:12px;align-items:center;">
         <div style="background:${accent}22;border-radius:10px;padding:8px 12px;text-align:center;flex-shrink:0;">
           <div style="font-size:11px;color:${accent};font-family:'DM Mono',monospace;">${escHtml((s.date||'').slice(5,7)||'—')}</div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:${accent};line-height:1;">${escHtml((s.date||'').slice(8,10)||'—')}</div>
         </div>
-        <div><div style="font-size:13px;font-weight:700;color:${CAP_TEXT};">${escHtml(s.type||'Sesja')}</div>
-        <div style="font-size:11px;color:${CAP_MUTED};">⏰ ${escHtml(s.time||'')} · z ${escHtml(trainerName)}</div></div>
+        <div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:700;color:${CAP_TEXT};">${escHtml(s.type||'Sesja')}</div>
+        <div style="font-size:11px;color:${CAP_MUTED};">⏰ ${escHtml(s.time||'')} · z ${escHtml(trainerName)}</div>
+        ${live&&s.source==='planned'&&s.date===today?`<button type="button" class="cap-btn-primary cap-sala-done" style="margin-top:8px;padding:8px 12px;font-size:12px;" onclick="clientMarkSalaDone('${escHtml(s.id)}')">✓ Byłem na sali</button>`:''}
+        </div>
       </div>`).join('')}`:''}
       ${garminSess.length?`<div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin:14px 0 10px;">Z zegarka Garmin</div>
       ${garminSess.slice(0,8).map(s=>`<button type="button" class="cap-list-item" style="width:100%;text-align:left;background:${CAP_S2};border:1px solid rgba(0,124,195,0.35);border-radius:14px;padding:14px;margin-bottom:8px;cursor:pointer;display:flex;gap:12px;align-items:center;" onclick="clientOpenSession('${escHtml(s.id)}')">
