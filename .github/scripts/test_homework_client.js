@@ -83,7 +83,8 @@ ctx.assignHomeworkToClient('c1', 'ow2', { notify: false });
 ok('homework assigned', windowObj.TASKS.length === 1 && windowObj.TASKS[0].kind === 'homework');
 
 const html = ctx.capScreenHTML('homework', { id: 'c1', name: 'Test' });
-ok('homework breath filter', ctx.capScreenHTML('homework', { id: 'c1', name: 'Test' }).includes('Oddech'));
+ok('homework assignments only', html.includes('Tylko to, co trener Ci przypisał') && !html.includes('Oddech'));
+ok('homework empty points to ondemand', html.includes('On-demand'));
 
 if (failed) {
   console.error('\nZadania domowe: ' + failed + ' FAIL');

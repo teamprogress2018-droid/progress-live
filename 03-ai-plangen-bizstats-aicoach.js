@@ -2193,6 +2193,10 @@ function aicLoadClient(){
 }
 
 function setAICMode(mode,btn){
+  if(mode==='nutrition'){
+    if(typeof notify==='function')notify('Żywienie jest w przygotowaniu — nie ma dziennika posiłków. Kalkulator makro zostaje w Narzędziach.');
+    return;
+  }
   aicMode=mode;
   document.querySelectorAll('.aic-mode-btn').forEach(b=>b.classList.remove('active'));
   const target=btn||document.getElementById('aicm-'+mode);

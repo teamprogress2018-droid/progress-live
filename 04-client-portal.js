@@ -1147,48 +1147,20 @@ function capScreenHTML(scr,c){
 
   if(scr==='homework'){
     const live=capIsLiveClient();
-    const filter=window._capHwFilter||'all';
     const hwTasks=(window.TASKS||[]).filter(t=>t.clientId===c.id&&typeof isHomework==='function'&&isHomework(t));
     const openHw=hwTasks.filter(t=>t.status!=='done').sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999'));
-    const doneHw=hwTasks.filter(t=>t.status==='done').slice(0,5);
+    const doneHw=hwTasks.filter(t=>t.status==='done').slice(0,8);
     const allW=(typeof allODWorkouts==='function'?allODWorkouts():(window.OD_WORKOUTS||[]));
-    const fmtMatch=(w,f)=>{
-      if(f==='all')return true;
-      if(f==='dom')return w.coll==='dom'||w.equipment==='none';
-      if(f==='mobilnosc')return w.coll==='mobilnosc'||w.format==='mobility'||w.format==='stretch';
-      if(f==='hiit')return w.format==='hiit'||w.coll==='hiit';
-      if(f==='tabata')return w.format==='tabata'||w.coll==='tabata';
-      if(f==='cardio')return w.format==='hiit'||w.format==='tabata'||w.format==='cardio'||w.coll==='hiit'||w.coll==='tabata';
-      if(f==='oddech')return w.coll==='oddech'||w.format==='breath';
-      return w.format===f||w.coll===f;
-    };
-    const lib=allW.filter(w=>fmtMatch(w,filter));
-    const pill=(id,label)=>`<button type="button" class="btn ${filter===id?'btn-primary':'btn-ghost'} btn-sm" onclick="window._capHwFilter='${id}';capGoScreen('homework')">${label}</button>`;
     const resolveW=t=>(allW.find(x=>x.id===t.odWorkoutId)||null);
     return `<div class="cap-section" style="padding-bottom:90px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:4px;padding-top:8px;">ZADANIA DOMOWE</div>
-      <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:14px;line-height:1.6;">Treningi w domu + metody oddychania (box, 4-7-8, przeponowy) — czas, cykle wdech/wydech i materiały.</div>
-      ${openHw.length?`<div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">📌 Od trenera (${openHw.length})</div>
-        ${openHw.map(t=>{const w=resolveW(t);if(!w)return `<div style="font-size:12px;color:${CAP_MUTED};margin-bottom:8px;">${escHtml(t.title)} — brak powiązanego filmu</div>`;
+      <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:14px;line-height:1.6;">Tylko to, co trener Ci przypisał — termin, notatka i odhaczenie. Katalog YouTube jest w <strong>On-demand</strong> (Więcej).</div>
+      ${openHw.length?`<div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin-bottom:10px;">📌 Do zrobienia (${openHw.length})</div>
+        ${openHw.map(t=>{const w=resolveW(t);if(!w)return `<div style="font-size:12px;color:${CAP_MUTED};margin-bottom:8px;">${escHtml(t.title)} — brak filmu</div>`;
           return capHomeworkWorkoutCard(w,accent,live,{taskId:t.id,due:t.due,trainerNote:t.desc,done:false});
-        }).join('')}`:`<div style="background:${CAP_S2};border:1px dashed ${CAP_S3};border-radius:14px;padding:16px;text-align:center;margin-bottom:16px;font-size:12px;color:${CAP_MUTED};">Brak aktywnych zadań domowych od trenera. Poniżej masz gotowe treningi do wyboru.</div>`}
-      <div style="font-size:13px;font-weight:700;color:${CAP_TEXT};margin:8px 0 10px;">📚 Gotowe treningi</div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">
-        ${pill('all','Wszystkie')}
-        ${pill('dom','🏠 Dom')}
-        ${pill('hiit','🔥 HIIT')}
-        ${pill('tabata','⏱ Tabata')}
-        ${pill('mobilnosc','🧘 Mobilność')}
-        ${pill('oddech','🌬 Oddech')}
-        ${pill('strength','💪 Siła')}
-      </div>
-      ${lib.length?lib.map(w=>capHomeworkWorkoutCard(w,accent,live,{})).join(''):`<div style="text-align:center;padding:32px;color:${CAP_MUTED};font-size:12px;">Brak treningów w tej kategorii.</div>`}
-      ${capClientSectionVisible('ondemand')?`<div style="background:${CAP_S2};border:1px solid ${CAP_S3};border-radius:14px;padding:14px;margin-top:8px;">
-        <div style="font-size:12px;font-weight:700;color:${CAP_TEXT};margin-bottom:4px;">📅 Pełne programy wielotygodniowe?</div>
-        <div style="font-size:11px;color:${CAP_MUTED};margin-bottom:10px;line-height:1.5;">Zakładka <strong>On-demand</strong> to plany 4+ tygodni z harmonogramem dni — klient sam wybiera tempo. Tu masz pojedyncze treningi „na dziś”.</div>
-        <button type="button" class="cap-btn-primary" style="padding:10px;font-size:13px;background:${CAP_S3};" onclick="capGoScreen('ondemand')">Przejdź do On-demand →</button>
-      </div>`:''}
-      ${doneHw.length?`<div style="font-size:12px;font-weight:700;color:${CAP_MUTED};margin:16px 0 8px;">Ostatnio zrobione</div>${doneHw.map(t=>{const w=resolveW(t);if(!w)return '';return capHomeworkWorkoutCard(w,accent,live,{taskId:t.id,done:true});}).join('')}`:''}
+        }).join('')}`:`<div style="background:${CAP_S2};border:1px dashed ${CAP_S3};border-radius:14px;padding:20px;text-align:center;margin-bottom:16px;font-size:13px;color:${CAP_MUTED};line-height:1.6;">Brak aktywnych zadań od trenera.<br>HIIT, mobilność i oddech na własną rękę → zakładka On-demand.</div>`}
+      ${capClientSectionVisible('ondemand')?`<button type="button" class="cap-btn-primary" style="padding:12px;font-size:14px;width:100%;background:${CAP_S3};margin-bottom:16px;" onclick="capGoScreen('ondemand')">Biblioteka On-demand →</button>`:''}
+      ${doneHw.length?`<div style="font-size:12px;font-weight:700;color:${CAP_MUTED};margin:8px 0 8px;">Ostatnio zrobione</div>${doneHw.map(t=>{const w=resolveW(t);if(!w)return '';return capHomeworkWorkoutCard(w,accent,live,{taskId:t.id,done:true});}).join('')}`:''}
     </div>`;
   }
 
@@ -1701,7 +1673,7 @@ function sendAppInvite(){
   }
   inviteClientToApp(cid);
 }
-var intTab='all';var intCat='all';var intDetailId=null;
+var intTab='daily';var intCat='all';var intDetailId=null;
 
 const INTEGRATIONS=[
   // PAYMENTS
@@ -3809,6 +3781,9 @@ window.SETTINGS={
     logo:null,
     font:'DM Sans',
   },
+  live:{
+    restVoice:'pl'
+  },
   screensaver:{
     enabled:true,
     idleMinutes:3,
@@ -3969,6 +3944,14 @@ function renderSettingsContent(t,targetId){
         ${row('Czas bezczynności','Po ilu minutach bez ruchu',`<select class="form-select" id="set-ss-idle" onchange="setScreensaverIdleMinutes(this.value)" style="width:auto;font-size:13px;">${[1,2,3,5,10].map(n=>`<option value="${n}"${n===(ss.idleMinutes||3)?' selected':''}>${n} min</option>`).join('')}</select>`)}
         <div style="margin-top:12px;"><button class="btn btn-primary btn-sm" type="button" onclick="previewScreensaver()">▶ Podgląd wygaszacza</button></div>
         <div style="font-size:11px;color:var(--muted);margin-top:8px;">Kiosk: otwórz aplikację z <code>?ss=1</code> — wygaszacz od razu. Kliknięcie wraca do panelu.</div>
+      `)}
+
+      ${card('Głos przerwy w Live','Ostatnie 5 sekund przerwy. Napisy READY/SET/GO zostają; tu sterujesz mową.',`
+        ${row('Mowa odliczania','Polski na sali, angielski albo tylko beep',`<select class="form-select" id="set-rest-voice" style="width:auto;font-size:13px;">
+          <option value="pl"${((S.live&&S.live.restVoice)||'pl')==='pl'?' selected':''}>Polski (pięć… jazda)</option>
+          <option value="en"${(S.live&&S.live.restVoice)==='en'?' selected':''}>English (Five… Let's go)</option>
+          <option value="off"${(S.live&&S.live.restVoice)==='off'?' selected':''}>Wyłącz mowę — tylko beep</option>
+        </select>`)}
       `)}
 
       ${card('Podgląd marki','',`
@@ -4431,6 +4414,10 @@ function saveSettings(){
   if(g('weekly-checkin-day'))S.notifications.weeklyCheckinDay=parseInt(g('weekly-checkin-day').value,10);
   if(typeof ensureScreensaverSettings==='function')ensureScreensaverSettings();
   if(g('ss-idle'))S.screensaver.idleMinutes=Math.max(1,Math.min(60,parseInt(g('ss-idle').value,10)||3));
+  if(g('rest-voice')){
+    S.live=S.live||{};
+    S.live.restVoice=['pl','en','off'].includes(g('rest-voice').value)?g('rest-voice').value:'pl';
+  }
   if(typeof resetScreensaverIdle==='function')try{resetScreensaverIdle();}catch(e){}
   if(typeof ensureReminderAutoflowsFromSettings==='function')try{ensureReminderAutoflowsFromSettings();}catch(e){}
   syncSidebarProfile();
@@ -5854,6 +5841,26 @@ function collectOpsEvents(force){
           meta:missed.length+' zaplanowanych bez logu (14 dni)',
           cta:`openClientProfile('${escHtml(c.id)}');setTimeout(()=>{if(typeof setCPTab==='function')setCPTab('training');},150)`,ctaLbl:'Treningi'});
       }
+    }
+    if(typeof clientOpenHomework==='function'){
+      const hw=clientOpenHomework(c.id);
+      const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
+      const late=hw.filter(t=>t.due&&t.due<today);
+      if(late.length){
+        items.push({channel:'attention',pri:0,clientId:c.id,name:c.name,tag:'Domowe zaległe',col:'var(--red)',
+          meta:late.length+' zaległych zadań domowych',
+          cta:`openClientProfile('${escHtml(c.id)}');setTimeout(()=>{if(typeof setCPTab==='function')setCPTab('tasks');},150)`,ctaLbl:'Domowe'});
+      }else if(hw.length){
+        items.push({channel:'attention',pri:2,clientId:c.id,name:c.name,tag:'Domowe otwarte',col:'var(--teal)',
+          meta:hw.length+' do zrobienia',
+          cta:`openClientProfile('${escHtml(c.id)}');setTimeout(()=>{if(typeof setCPTab==='function')setCPTab('tasks');},150)`,ctaLbl:'Domowe'});
+      }
+    }
+    const hasPlan=(window.PL||[]).some(p=>p&&p.clientId===c.id);
+    if(!hasPlan){
+      items.push({channel:'attention',pri:1,clientId:c.id,name:c.name,tag:'Brak planu',col:'var(--orange)',
+        meta:'Nie ma aktywnego planu treningowego',
+        cta:`openClientProfile('${escHtml(c.id)}');setTimeout(()=>{if(typeof setCPTab==='function')setCPTab('plan');},150)`,ctaLbl:'Plan'});
     }
     if(typeof buildMonitorVerdict==='function'){
       try{

@@ -154,6 +154,8 @@ jobs:
 
       - name: 1l2. Testy zadań domowych klienta
         run: node .github/scripts/test_homework_client.js
+      - name: 1l3. Testy poprawek audytu UX (domowe, nav, plan)
+        run: node .github/scripts/test_ux_audit_fixes.js
 
       - name: 1m. Testy sportów w planowaniu i statystyk klienta
         run: node .github/scripts/test_client_sports_stats.js

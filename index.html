@@ -13,7 +13,7 @@
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="globals.css?v=17">
-<link rel="stylesheet" href="styles.css?v=75">
+<link rel="stylesheet" href="styles.css?v=76">
 </head>
 <body>
 
@@ -92,9 +92,10 @@
         </div>
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="library" onclick="goTo('library')">Ćwiczenia</button>
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="plans" onclick="goTo('plans')">Treningi</button>
-        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="programs" onclick="goTo('programs')">Programy (makrocykle)</button>
-        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="templates" onclick="goTo('templates')">Szablony (mikrocykle)</button>
-        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="tasks" onclick="goTo('tasks')">Zadania</button>
+        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="programs" onclick="goTo('programs')">Bloki 8–16 tyg.</button>
+        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="templates" onclick="goTo('templates')">Gotowy tydzień</button>
+        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="tasks" data-task-filter="homework" onclick="goToHomeworkQueue()">Zadania domowe</button>
+        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="tasks" onclick="goTo('tasks')">Zadania i nawyki</button>
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="forms" onclick="goTo('forms')">Formularze i ankiety</button>
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="metrics" onclick="goTo('metrics')">Grupy pomiarów</button>
       </div>
@@ -168,7 +169,9 @@
         <div class="dash-qa-menu" id="dash-qa-menu" hidden>
           <button type="button" onclick="toggleDashQuickActions(false);openM('m-client')">👤 Nowy klient</button>
           <button type="button" onclick="toggleDashQuickActions(false);openM('m-invite')">🔗 Link zaproszenia</button>
-          <button type="button" onclick="toggleDashQuickActions(false);goTo('clients')">📋 Przypisz plan (profil klienta)</button>
+          <button type="button" onclick="toggleDashQuickActions(false);openNewPlanPicker()">📋 Nowy plan</button>
+          <button type="button" onclick="toggleDashQuickActions(false);goToHomeworkQueue()">🏡 Zadanie domowe</button>
+          <button type="button" onclick="toggleDashQuickActions(false);goTo('clients')">👤 Profil klienta</button>
           <button type="button" onclick="toggleDashQuickActions(false);openM('m-broadcast')">📢 Wiadomość grupowa</button>
           <button type="button" onclick="toggleDashQuickActions(false);goTo('live')">▶ Trening Live</button>
         </div>
@@ -224,7 +227,7 @@
           <div class="dash-ops-hdr">
             <div>
               <div class="studio-hdr">Wymagają uwagi</div>
-              <div class="studio-sub">Spóźnione raporty, regres, opuszczone treningi, &lt;70% planu</div>
+              <div class="studio-sub">Zaległe domowe, check-in, brak planu, opuszczone treningi</div>
             </div>
           </div>
           <div id="d-ops-attention"></div>
@@ -343,7 +346,7 @@
 
 <!-- PLANS -->
 <div class="screen" id="screen-plans">
-  <div class="topbar"><div class="topbar-title">Plany treningowe</div><div class="topbar-actions"><button class="btn btn-primary btn-sm" onclick="goTo('clients')">+ Utwórz z profilu klienta</button><button class="btn btn-ghost btn-sm" onclick="goTo('templates')">📋 Biblioteka szablonów</button></div></div>
+    <div class="topbar"><div class="topbar-title">Plany treningowe</div><div class="topbar-actions"><button class="btn btn-primary btn-sm" onclick="openNewPlanPicker()">+ Nowy plan</button><button class="btn btn-ghost btn-sm" onclick="goTo('templates')">📋 Gotowy tydzień</button></div></div>
   <div class="plans-toolbar">
     <input type="text" class="form-input plans-search" id="plans-search" placeholder="🔍 Szukaj nazwy lub nazwiska..." oninput="renderPlans()">
     <div class="plans-chips" id="plans-status-chips" role="tablist" aria-label="Status planu">
@@ -398,6 +401,7 @@
             <select class="form-select" id="b-progression" title="Live i apka klienta dokładają kg lub powtórzenia z poprzedniej sesji według serii/powt. z tego planu">
               <option value="double">Podwójna — najpierw powt., potem ciężar</option>
               <option value="linear">Liniowa — +kg gdy jest cel powt.</option>
+              <option value="wave">Falowa (DUP) — sesja objętość / sesja ciężar</option>
               <option value="off">Bez zmian — kopiuj ostatni ciężar</option>
             </select>
           </div>
@@ -683,8 +687,8 @@
 <div class="screen" id="screen-programs">
   <div class="topbar">
     <div>
-      <div class="topbar-title">Programy — makrocykle</div>
-      <div style="font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4;max-width:640px;">Gotowe <b>bloki 4–16 tygodni</b> z periodyzacją (akumulacja → intensyfikacja → deload). Schematy 1-tygodniowe są w <button type="button" class="linkish" onclick="goTo('templates')" style="background:none;border:none;color:var(--accent);cursor:pointer;padding:0;font:inherit;text-decoration:underline;">Szablonach</button>.</div>
+      <div class="topbar-title">Bloki 8–16 tygodni</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4;max-width:640px;">Gotowe <b>bloki 4–16 tygodni</b> z periodyzacją (akumulacja → intensyfikacja → deload). Schematy 1-tygodniowe są w <button type="button" class="linkish" onclick="goTo('templates')" style="background:none;border:none;color:var(--accent);cursor:pointer;padding:0;font:inherit;text-decoration:underline;">Gotowy tydzień</button>.</div>
     </div>
     <div class="topbar-actions">
       <button class="btn btn-ghost btn-sm" onclick="openM('m-program')">+ Własny program</button>
@@ -762,6 +766,7 @@
   <div class="topbar">
     <div class="topbar-title">Zadania</div>
     <div class="topbar-actions">
+      <button class="btn btn-ghost btn-sm" onclick="openAssignHomeworkModal('')">🏡 Zadanie domowe</button>
       <button class="btn btn-ghost btn-sm" onclick="openTaskTemplates()">📋 Szablony</button>
       <button class="btn btn-ghost btn-sm" onclick="openHabitPackModal()">🔥 Progress Nawyki</button>
       <button class="btn btn-primary btn-sm" onclick="openM('m-task')">+ Zadanie</button>
@@ -806,6 +811,7 @@
         <div class="task-nav-item" id="tn-habits" onclick="setTaskFilter('habits')">🔥 Nawyki</div>
         <div class="task-nav-item" id="tn-challenges" onclick="setTaskFilter('challenges')">🏆 Wyzwania</div>
         <div class="task-nav-item" id="tn-overdue" onclick="setTaskFilter('overdue')">⚠ Przeterminowane</div>
+        <div class="task-nav-item" id="tn-homework" onclick="setTaskFilter('homework')">🏡 Domowe <span id="t-hw" style="font-family:'DM Mono',monospace;font-size:10px;color:var(--accent);margin-left:4px;">0</span></div>
         <div style="padding:6px 14px 2px;font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:4px;">Priorytet</div>
         <div class="task-nav-item" id="tn-high" onclick="setTaskFilter('high')">🔴 Wysoki</div>
         <div class="task-nav-item" id="tn-medium" onclick="setTaskFilter('medium')">🟡 Średni</div>
@@ -1847,8 +1853,8 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
     <div class="topbar-title">Integracje</div>
     <div class="topbar-actions">
       <div style="display:flex;gap:2px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:2px;">
-        <button class="auto-tab-btn active" id="int-tab-all" onclick="setIntTab('all')">Wszystkie</button>
-        <button class="auto-tab-btn" id="int-tab-daily" onclick="setIntTab('daily')">Działa dziś</button>
+        <button class="auto-tab-btn" id="int-tab-all" onclick="setIntTab('all')">Katalog</button>
+        <button class="auto-tab-btn active" id="int-tab-daily" onclick="setIntTab('daily')">Działa dziś</button>
         <button class="auto-tab-btn" id="int-tab-connected" onclick="setIntTab('connected')">Włączone</button>
         <button class="auto-tab-btn" id="int-tab-server" onclick="setIntTab('server')">Wymaga serwera</button>
       </div>
@@ -1923,6 +1929,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <div class="cap-nav-item active" id="capn-home" onclick="setCapScreen('home',this)">🏠 Strona główna</div>
       <div class="cap-nav-item" id="capn-plan" onclick="setCapScreen('plan',this)">📋 Mój plan</div>
       <div class="cap-nav-item" id="capn-calendar" onclick="setCapScreen('calendar',this)">📅 Kalendarz sesji</div>
+      <div class="cap-nav-item" id="capn-homework" onclick="setCapScreen('homework',this)">🏡 Zadania domowe</div>
       <div class="cap-nav-item" id="capn-progress" onclick="setCapScreen('progress',this)">📈 Moje postępy</div>
       <div class="cap-nav-item" id="capn-checkin" onclick="setCapScreen('checkin',this)">✅ Check-in</div>
       <div class="cap-nav-item" id="capn-messages" onclick="setCapScreen('messages',this)">💬 Wiadomości</div>
@@ -2016,13 +2023,16 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <button type="button" class="clive-nav-btn" id="clive-bn-plan" onclick="setClientLiveScreen('plan')"><span>📋</span><span>Plan</span></button>
       <button type="button" class="clive-nav-btn" id="clive-bn-homework" onclick="setClientLiveScreen('homework')"><span>🏡</span><span>Domowe</span></button>
       <button type="button" class="clive-nav-btn" id="clive-bn-progress" onclick="setClientLiveScreen('progress')"><span>📈</span><span>Postępy</span></button>
+      <button type="button" class="clive-nav-btn" id="clive-bn-more" onclick="toggleCliveMoreNav()"><span>⋯</span><span>Więcej</span></button>
+    </nav>
+    <div id="clive-more-sheet" class="clive-more-sheet" hidden>
       <button type="button" class="clive-nav-btn" id="clive-bn-checkin" onclick="setClientLiveScreen('checkin')"><span>✅</span><span>Check-in</span></button>
       <button type="button" class="clive-nav-btn" id="clive-bn-ondemand" onclick="setClientLiveScreen('ondemand')"><span>▶️</span><span>On-demand</span></button>
       <button type="button" class="clive-nav-btn" id="clive-bn-resources" onclick="setClientLiveScreen('resources')"><span>📚</span><span>Zasoby</span></button>
       <button type="button" class="clive-nav-btn" id="clive-bn-forum" onclick="setClientLiveScreen('forum')"><span>👥</span><span>Forum</span></button>
       <button type="button" class="clive-nav-btn" id="clive-bn-messages" onclick="setClientLiveScreen('messages')"><span>💬</span><span>Czat</span></button>
       <button type="button" class="clive-nav-btn" id="clive-bn-profile" onclick="setClientLiveScreen('profile')"><span>👤</span><span>Profil</span></button>
-    </nav>
+    </div>
     <div id="clive-player" class="clive-player" hidden>
       <div id="clive-player-inner" class="clive-player-inner"></div>
     </div>
@@ -2060,7 +2070,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <div style="display:flex;flex-direction:column;gap:4px;" id="aic-modes">
           <button class="aic-mode-btn active" id="aicm-coach" onclick="setAICMode('coach',this)">🧠 Analiza klienta</button>
           <button class="aic-mode-btn" id="aicm-plan" onclick="setAICMode('plan',this)">📋 Generator planu</button>
-          <button class="aic-mode-btn" id="aicm-nutrition" onclick="setAICMode('nutrition',this)">🥗 Doradca żywienia</button>
+          <button class="aic-mode-btn" id="aicm-nutrition" onclick="setAICMode('nutrition',this)" title="Żywienie w przygotowaniu — brak dziennika posiłków">🥗 Żywienie (wkrótce)</button>
           <button class="aic-mode-btn" id="aicm-exercise" onclick="setAICMode('exercise',this)">💪 Ekspert ćwiczeń</button>
           <button class="aic-mode-btn" id="aicm-business" onclick="setAICMode('business',this)">💼 Biznes trenerski</button>
         </div>
@@ -2827,8 +2837,8 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 <div class="screen" id="screen-templates">
   <div class="topbar">
     <div>
-      <div class="topbar-title">Szablony planów — mikrocykle</div>
-      <div style="font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4;max-width:640px;">Gotowe <b>schematy tygodnia</b> (PPL, FBW, Upper/Lower…). Bez faz i deloadów — te są w <button type="button" class="linkish" onclick="goTo('programs')" style="background:none;border:none;color:var(--accent);cursor:pointer;padding:0;font:inherit;text-decoration:underline;">Programach</button>.</div>
+      <div class="topbar-title">Gotowy tydzień</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4;max-width:640px;">Gotowe <b>schematy tygodnia</b> (mikrocykle: PPL, FBW, Upper/Lower…). Bez faz i deloadów — te są w <button type="button" class="linkish" onclick="goTo('programs')" style="background:none;border:none;color:var(--accent);cursor:pointer;padding:0;font:inherit;text-decoration:underline;">Blokach 8–16 tyg.</button>.</div>
     </div>
     <div class="topbar-actions">
       <input type="text" id="tpl-search" placeholder="Szukaj schematu tygodnia..." class="form-input" style="width:220px;font-size:12px;padding:6px 10px;" oninput="renderTemplates()">
@@ -4321,15 +4331,15 @@ async function load(){
 
 <script src="ex-gif-manifest.js?v=34"></script>
 <script src="ex-photo-manifest.js?v=6"></script>
-<script src="01-core.js?v=89"></script>
-<script src="02-workouts-onboarding-templates-live.js?v=51"></script>
-<script src="03-ai-plangen-bizstats-aicoach.js?v=31"></script>
-<script src="04-client-portal.js?v=39"></script>
-<script src="05-clients-builder-plans-calendar.js?v=48"></script>
-<script src="06-inbox-exercises-ai-programs.js?v=72"></script>
+<script src="01-core.js?v=90"></script>
+<script src="02-workouts-onboarding-templates-live.js?v=52"></script>
+<script src="03-ai-plangen-bizstats-aicoach.js?v=32"></script>
+<script src="04-client-portal.js?v=40"></script>
+<script src="05-clients-builder-plans-calendar.js?v=49"></script>
+<script src="06-inbox-exercises-ai-programs.js?v=73"></script>
 <script src="07-forms-metrics-calculator.js?v=33"></script>
 <script src="08-client-profile-extras.js?v=50"></script>
-<script src="09-posture-kb-invites-private.js?v=36"></script>
-<script src="10-client-app.js?v=33"></script>
+<script src="09-posture-kb-invites-private.js?v=37"></script>
+<script src="10-client-app.js?v=34"></script>
 </body>
 </html>
