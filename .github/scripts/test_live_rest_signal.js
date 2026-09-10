@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 'use strict';
-/** Sygnał końca przerwy Live: faza, głos, beep zapasowy, puls karty. */
+/** Sygnał końca przerwy Live: faza, głos + beep, puls karty. */
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -19,7 +19,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=51'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=52'));
 ok('cache styles', html.includes('styles.css?v=75'));
 ok('aria live A', html.includes('id="live-rest-timer" aria-live="assertive"'));
 ok('aria live B', html.includes('id="live-b-rest-timer" aria-live="assertive"'));
@@ -31,7 +31,7 @@ ok('go label helper', /function liveRestLabel\(/.test(live) && /LET'S GO/.test(l
 ok('speak text helper', /function liveRestSpeakText\(/.test(live) && live.includes("Let's go!"));
 ok('speak helper', /function liveRestSpeak\(/.test(live) && live.includes('speechSynthesis'));
 ok('start uses label', /liveRestLabel\(left\)/.test(live) && /liveRestLabel\(0\)/.test(live));
-ok('start prefers speak', /liveRestSpeak\(left\)/.test(live) && /if\(!spoken\)liveRestBeep\(cue\)/.test(live));
+ok('start speak and beep', /liveRestSpeak\(left\)/.test(live) && /liveRestBeep\(cue\)/.test(live) && !/if\(!spoken\)liveRestBeep/.test(live));
 ok('css pulse', css.includes('@keyframes live-rest-pulse') && css.includes('.live-rest-card.is-ending'));
 ok('css go', css.includes('@keyframes live-rest-go') && css.includes('.live-rest-card.is-go'));
 ok('CI unit', wf.includes('test_live_rest_signal.js'));
