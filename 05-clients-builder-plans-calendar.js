@@ -1924,6 +1924,7 @@ function planActionButtons(p,client){
   const arch=planIsArchived(p);
   const id=p.id;
   return `<button class="btn btn-ghost btn-sm" type="button" onclick="event.stopPropagation();togglePlanExpand('${id}')" id="plan-toggle-${id}">👁️ Podgląd</button>
+    <button class="btn btn-ghost btn-sm" type="button" onclick="event.stopPropagation();exportSavedPlanPDF('${id}')" title="PDF" id="plan-pdf-${id}">📄</button>
     <button class="btn btn-ghost btn-sm" type="button" onclick="event.stopPropagation();editPlan('${id}')" title="Edytuj">✏️</button>
     ${hasClient?`<button class="btn btn-ghost btn-sm" type="button" onclick="event.stopPropagation();openClientProfile('${client.id}')" title="Profil">👤</button>`:''}
     ${arch

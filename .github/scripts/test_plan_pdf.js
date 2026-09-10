@@ -21,8 +21,10 @@ ok('no purple pdf accent', !/accent='#7c3aed'/.test(src03) && /class="plan-pdf"/
 ok('css red navy pink', css.includes('--pdf-red:#e11f2e') && css.includes('--pdf-navy:#16181f') && css.includes('--pdf-pink:#fde8ea'));
 ok('css priorytet + week cell', css.includes('.plan-pdf-pri') && css.includes('.plan-pdf-wk') && css.includes('.plan-pdf-day-h'));
 ok('export helper', /window\.buildPlanPDFHTML=buildPlanPDFHTML/.test(src03));
+ok('saved plan mapper', /function planToPdfModel\(/.test(src03) && /window\.planToPdfModel=planToPdfModel/.test(src03));
+ok('saved plan export', /function exportSavedPlanPDF\(/.test(src03) && /window\.exportSavedPlanPDF=exportSavedPlanPDF/.test(src03));
 ok('saves progression', /plan\.progression=progression/.test(src03));
-ok('cache', html.includes('03-ai-plangen-bizstats-aicoach.js?v=32') && html.includes('styles.css?v=76'));
+ok('cache', html.includes('03-ai-plangen-bizstats-aicoach.js?v=34') && html.includes('styles.css?v=76'));
 ok('CI', wf.includes('test_plan_pdf.js') && wf.includes('test_plan_pdf_ui.js'));
 
 const slice = src03.match(/function planPdfEsc[\s\S]*?^function aplReset/m);
@@ -76,6 +78,44 @@ ok('arrows', /plan-pdf-arrow-up/.test(out) && /plan-pdf-arrow-dn/.test(out));
 ok('priorytet', /plan-pdf-pri/.test(out) && /PRIORYTET/.test(out));
 ok('no old purple', !/#7c3aed/.test(out));
 ok('logo', /progress-logo\.jpg/.test(out));
+
+const saved = ctx.planToPdfModel({
+  name: 'FBW Oli',
+  method: 'FBW',
+  duration: 8,
+  progression: 'linear',
+  clientId: 'c1',
+  days: [
+    { day: 'PON', muscles: 'Całe ciało', exercises: [
+      { name: 'Hack squat', sets: '4', reps: '8', kg: '80', rir: '2', rest: '120s', note: 'Głęboko' }
+    ]},
+    { day: 'WT', rest: true, exercises: [] },
+    { day: 'ŚR', muscles: 'Całe ciało', exercises: ['Wyciskanie 3x10 @40kg'] }
+  ]
+});
+ok('saved name', saved.planName === 'FBW Oli');
+ok('saved weeks duration', saved.weeks === 8);
+ok('saved skips rest', saved.days.length === 2 && /PON/.test(saved.days[0].dayName) && /ŚR/.test(saved.days[1].dayName));
+ok('saved week cell', saved.weekKeys[0] === 'w1' && saved.days[0].exercises[0].w1.s === '4' && saved.days[0].exercises[0].w1.r === '8');
+ok('saved string ex', saved.days[1].exercises[0].name === 'Wyciskanie' && saved.days[1].exercises[0].w1.s === '3');
+const savedHtml = ctx.buildPlanPDFHTML(saved, { name: 'Ola' });
+ok('saved html', /FBW Oli/.test(savedHtml) && /Hack squat/.test(savedHtml) && /4×8/.test(savedHtml) && /Ola/.test(savedHtml) && /RPE 8/.test(savedHtml));
+
+const multi = ctx.planToPdfModel({
+  name: 'Kontynuacja Fitebo',
+  duration: 4,
+  weekKeys: ['w1', 'w2', 'w3', 'w4'],
+  phases: { w1: 'Adaptacja', w2: 'Hipertrofia I', w3: 'Hipertrofia I', w4: 'Deload' },
+  days: [{ day: 'Push', muscles: 'Klatka', exercises: [{
+    name: 'Wyciskanie', sets: '3', reps: '10', kg: '40',
+    w1: { s: '3', r: '10', kg: '40', rpe: '7' },
+    w2: { s: '3', r: '10', kg: '42.5', rpe: '8' },
+    w3: { s: '4', r: '8', kg: '45', rpe: '8' },
+    w4: { s: '2', r: '8', kg: '30', rpe: '5' }
+  }]}]
+});
+const multiHtml = ctx.buildPlanPDFHTML(multi, { name: 'Radek' });
+ok('multi weeks', multi.weekKeys.length === 4 && /Tydzień 4/.test(multiHtml) && /plan-pdf-arrow-up/.test(multiHtml) && /plan-pdf-arrow-dn/.test(multiHtml));
 
 if (failed) {
   console.error(failed + ' failed');

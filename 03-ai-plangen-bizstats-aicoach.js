@@ -1562,14 +1562,29 @@ function aplExportPlan(){
 // ════════════════════════════════════════
 // EKSPORT PLANU DO PDF (przez istniejący #report-overlay)
 // ════════════════════════════════════════
+function showPlanPDFOverlay(html,title){
+  const box=document.getElementById('report-container');
+  const ov=document.getElementById('report-overlay');
+  const t=document.getElementById('report-overlay-title');
+  if(!box||!ov){if(typeof notify==='function')notify('Brak podglądu PDF');return;}
+  box.innerHTML=html;
+  if(t)t.textContent=title||'PLAN TRENINGOWY';
+  ov.style.display='flex';
+}
 function aplExportPlanPDF(){
   if(!aplLastPlan){notify('Brak planu!');return;}
   const cid=document.getElementById('apl-client')?.value;
   const client=cid?CL.find(x=>x.id===cid):null;
   const html=buildPlanPDFHTML(aplLastPlan,client);
-  document.getElementById('report-container').innerHTML=html;
-  document.getElementById('report-overlay-title').textContent='PLAN TRENINGOWY — '+(aplLastPlan.planName||'AI').toUpperCase();
-  document.getElementById('report-overlay').style.display='flex';
+  showPlanPDFOverlay(html,'PLAN TRENINGOWY — '+(aplLastPlan.planName||'AI').toUpperCase());
+}
+function exportSavedPlanPDF(planId){
+  const plan=(window.PL||[]).find(p=>p&&p.id===planId);
+  if(!plan){if(typeof notify==='function')notify('Nie znaleziono planu');return;}
+  const client=(window.CL||[]).find(c=>c&&c.id===plan.clientId)||(plan.clientName?{name:plan.clientName}:null);
+  const model=planToPdfModel(plan);
+  const html=buildPlanPDFHTML(model,client);
+  showPlanPDFOverlay(html,'PLAN TRENINGOWY — '+String(model.planName||plan.name||'').toUpperCase());
 }
 
 function planPdfEsc(s){
@@ -1620,6 +1635,86 @@ function planPdfWeekCell(ex,wk,prevWk){
   const r=w.r||ex.reps||'10';
   const rpe=w.rpe||ex.rpe||ex.rir||'';
   return `<div class="plan-pdf-wk"><div class="plan-pdf-wk-sr">${planPdfEsc(s)}×${planPdfEsc(r)}${planPdfWeekArrow(ex,wk,prevWk)}</div>${rpe?`<div class="plan-pdf-wk-rpe">RPE ${planPdfEsc(rpe)}</div>`:''}</div>`;
+}
+
+/** Zapisany plan z biblioteki / profilu → model PDF (jak generator AI). */
+function planPdfBareEx(ex){
+  if(typeof ex!=='string')return null;
+  const raw=String(ex).trim();
+  const m=raw.match(/^(.*?)(?:\s+(\d+)\s*[x×]\s*(\d+(?:\s*-\s*\d+)?))?(?:\s*@\s*(\d+(?:[.,]\d+)?)\s*(%|kg)?)?\s*$/i);
+  const amt=m&&m[4]?String(m[4]).replace(',','.'):'';
+  const unit=((m&&m[5])||'').toLowerCase();
+  return{
+    name:(m&&m[1]?m[1]:raw).trim()||'Ćwiczenie',
+    sets:(m&&m[2])||'3',
+    reps:((m&&m[3])||'10').replace(/\s/g,''),
+    kg:unit==='kg'?amt:'',
+    rest:'90s'
+  };
+}
+function planPdfIntensity(src,w){
+  const rpe=(w&&w.rpe)||src.rpe||'';
+  if(rpe!==''&&rpe!=null)return String(rpe);
+  const rir=parseFloat((w&&w.rir)!=null&&(w&&w.rir)!==''?w.rir:src.rir);
+  if(!isNaN(rir))return String(Math.max(0,10-rir));
+  return '';
+}
+function planToPdfModel(plan){
+  plan=plan||{};
+  const weekKeys=(Array.isArray(plan.weekKeys)&&plan.weekKeys.length)?plan.weekKeys.slice():['w1'];
+  const days=(plan.days||[]).filter(d=>d&&!d.rest).map((d,di)=>{
+    const exercises=(d.exercises||[]).map(ex=>{
+      const src=planPdfBareEx(ex)||(ex&&typeof ex==='object'?ex:{name:'Ćwiczenie'});
+      const sets=String(src.sets||src.s||'3');
+      const reps=String(src.reps||src.r||'10');
+      const rest=String(src.rest||src.rs||'90s');
+      const kg=src.kg!=null&&src.kg!==''?String(src.kg):'';
+      const rpe=planPdfIntensity(src,null);
+      const notes=[src.notes,src.note,src.tempo].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).join(' · ');
+      const out={
+        name:src.name||src.n||'Ćwiczenie',
+        sets,reps,rest,kg,
+        rir:src.rir||'',
+        rpe,
+        notes,note:src.note||src.notes||'',
+        tempo:src.tempo||'',
+        priority:src.priority===true||src.priorytet===true,
+        muscleGroup:src.muscleGroup||d.muscles||d.focus||''
+      };
+      weekKeys.forEach(wk=>{
+        const w=src[wk];
+        const cell=w&&typeof w==='object'?w:null;
+        out[wk]={
+          s:(cell&&(cell.s||cell.sets))||sets,
+          r:(cell&&(cell.r||cell.reps))||reps,
+          kg:cell&&cell.kg!=null&&cell.kg!==''?String(cell.kg):kg,
+          rpe:planPdfIntensity(src,cell),
+          rest:(cell&&cell.rest)||rest
+        };
+      });
+      return out;
+    });
+    const dayLabel=d.dayName||d.day||('Dzień '+(di+1));
+    const focus=d.focus||d.muscles||d.name||'';
+    const dayName=(d.dayName||(focus&&d.day&&!String(d.day).includes(focus)?d.day+' — '+focus:dayLabel));
+    return{dayName,focus,exercises};
+  });
+  return{
+    planName:plan.planName||plan.name||'Plan treningowy',
+    method:plan.method||'',
+    daysPerWeek:plan.daysPerWeek||days.length||'—',
+    weeks:plan.weeks||plan.duration||weekKeys.length||'—',
+    progression:plan.progression||plan.progressionType||'',
+    periodization:plan.periodization||'',
+    deload:plan.deload||'',
+    warmup:plan.warmup||'',
+    nutritionTip:plan.nutritionTip||'',
+    weeklyVolume:plan.weeklyVolume,
+    progressionRules:plan.progressionRules,
+    weekKeys,
+    phases:plan.phases||{},
+    days
+  };
 }
 
 function buildPlanPDFHTML(plan,client){
@@ -1714,7 +1809,7 @@ window.initAplangen=initAplangen;window.aplToggleOpt=aplToggleOpt;
 window.aplToggleMulti=aplToggleMulti;window.aplSetEquipment=aplSetEquipment;window.aplPersistClientForm=aplPersistClientForm;
 window.aplFillFromClient=aplFillFromClient;window.aplGenerate=aplGenerate;
 window.aplSavePlan=aplSavePlan;window.aplExportPlan=aplExportPlan;window.aplExportPlanPDF=aplExportPlanPDF;window.aplReset=aplReset;
-window.buildPlanPDFHTML=buildPlanPDFHTML;
+window.buildPlanPDFHTML=buildPlanPDFHTML;window.planToPdfModel=planToPdfModel;window.exportSavedPlanPDF=exportSavedPlanPDF;window.showPlanPDFOverlay=showPlanPDFOverlay;
 window.aplEditExercise=aplEditExercise;window.aplSaveExerciseEdit=aplSaveExerciseEdit;window.aplRerenderCurrent=aplRerenderCurrent;
 
 // ════════════════════════════════════════

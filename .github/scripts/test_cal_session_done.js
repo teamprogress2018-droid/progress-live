@@ -21,8 +21,8 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 01 v71', html.includes('01-core.js?v=90'));
-ok('cache 05 v37', html.includes('05-clients-builder-plans-calendar.js?v=49'));
-ok('cache 08 v38', html.includes('08-client-profile-extras.js?v=50'));
+ok('cache 05 v37', html.includes('05-clients-builder-plans-calendar.js?v=51'));
+ok('cache 08 v38', html.includes('08-client-profile-extras.js?v=51'));
 ok('cache styles v56', html.includes('styles.css?v=76'));
 ok('ci unit', wf.includes('test_cal_session_done.js'));
 ok('ci ui log done', wf.includes('test_cal_log_done_ui.js'));
