@@ -3020,6 +3020,7 @@ function liveNormExName(n){
 }
 
 function liveLastLoad(clientId,name){
+  if(typeof lastLoadForExercise==='function')return lastLoadForExercise(clientId,name);
   if(!clientId||!name)return null;
   const key=liveNormExName(name);
   const sessions=SE.filter(s=>s.clientId===clientId&&Array.isArray(s.exercises))
@@ -3027,7 +3028,7 @@ function liveLastLoad(clientId,name){
   for(const s of sessions){
     const ex=(s.exercises||[]).find(e=>liveNormExName(e.name)===key);
     if(!ex)continue;
-    const sets=(ex.sets||[]).filter(x=>x&&(x.kg||x.reps));
+    const sets=typeof exerciseLoggedSets==='function'?exerciseLoggedSets(ex):(Array.isArray(ex.sets)?ex.sets.filter(x=>x&&(x.kg||x.reps)):[]);
     if(!sets.length)continue;
     const last=sets[sets.length-1];
     return{kg:last.kg,reps:last.reps,sets};

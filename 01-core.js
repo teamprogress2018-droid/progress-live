@@ -665,7 +665,8 @@ function epley1RMFromSessions(clientId,family,exactName){
       const match=family?guessLiftFamily(ex.name)===family
         :String(ex.name||'').toLowerCase().replace(/\s+/g,' ').trim()===want;
       if(!match)continue;
-      for(const set of ex.sets||[]){
+      const logged=typeof exerciseLoggedSets==='function'?exerciseLoggedSets(ex):(Array.isArray(ex.sets)?ex.sets:[]);
+      for(const set of logged){
         const est=epley1RM(set.kg,set.reps);
         if(est!=null&&(best==null||est>best))best=est;
       }
@@ -3118,6 +3119,14 @@ function suggestedPlanDayIdx(clientId,plan){
 }
 window.suggestedPlanDayIdx=suggestedPlanDayIdx;
 
+function exerciseLoggedSets(ex){
+  if(!ex)return[];
+  if(Array.isArray(ex.sets))return ex.sets.filter(x=>x&&(x.kg!=null&&x.kg!==''||x.reps!=null&&x.reps!==''));
+  if(ex.kg!=null&&ex.kg!==''||ex.reps!=null&&ex.reps!=='')return[{kg:ex.kg,reps:ex.reps,rir:ex.rir||ex.rpe||'',setNo:1}];
+  return[];
+}
+window.exerciseLoggedSets=exerciseLoggedSets;
+
 function lastLoadForExercise(clientId,name){
   if(!clientId||!name)return null;
   const key=exerciseNameKey(name);
@@ -3126,7 +3135,7 @@ function lastLoadForExercise(clientId,name){
   for(const s of sessions){
     const ex=(s.exercises||[]).find(e=>exerciseNameKey(e.name)===key);
     if(!ex)continue;
-    const sets=(ex.sets||[]).filter(x=>x&&(x.kg||x.reps));
+    const sets=exerciseLoggedSets(ex);
     if(!sets.length)continue;
     const work=sets.filter(x=>typeof isWorkingSet!=='function'||isWorkingSet(x));
     const last=(work.length?work:sets)[(work.length?work:sets).length-1];
@@ -3346,7 +3355,7 @@ function loggedSetRows(clientId,name,sessions){
     (s.exercises||[]).forEach(ex=>{
       if(exerciseNameKey(ex.name)!==key)return;
       if(typeof isWeightLoadUnit==='function'&&!isWeightLoadUnit(exLoadUnit(ex)))return;
-      (ex.sets||[]).forEach(st=>{
+      (typeof exerciseLoggedSets==='function'?exerciseLoggedSets(ex):(Array.isArray(ex.sets)?ex.sets:[])).forEach(st=>{
         const est=epley1RM(st&&st.kg,st&&st.reps);
         if(est==null)return;
         rows.push({

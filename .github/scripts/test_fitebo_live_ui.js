@@ -83,18 +83,15 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'live_fitebo_hyp.png') });
 
   const info = await page.evaluate(() => {
-    const names = [...document.querySelectorAll('.live-ex-card')].map(el => {
-      const t = (el.querySelector('div[style*="font-weight:700"]') || {}).textContent || el.innerText || '';
-      return t.split('\n')[0].trim();
-    });
+    const panel = (document.getElementById('live-exercises-panel') || {}).innerText || '';
+    const names = [...document.querySelectorAll('.live-ex-card')].map(el => (el.innerText || '').split('\n').slice(0, 4).join(' | '));
     const week = (document.querySelector('.live-week-hint') || {}).textContent || '';
     const rows = [...document.querySelectorAll('#live-period-sched .live-period-row')].map(el => (el.textContent || '').replace(/\s+/g, ' ').trim());
     const rir = [...document.querySelectorAll('.live-rir-input')].map(el => el.value || el.getAttribute('placeholder') || '');
-    const panel = (document.getElementById('live-exercises-panel') || {}).innerText || '';
-    return { names, week, rows, rir, panel: panel.slice(0, 400) };
+    return { names, week, rows, rir, panel: panel.slice(0, 800) };
   });
 
-  ok('fitebo press not burpees', info.names.some(n => /Wyciskanie hantli/.test(n)) && !info.names.some(n => /Burpees/i.test(n)), JSON.stringify(info.names));
+  ok('fitebo press not burpees', /Wyciskanie hantli/.test(info.panel) && !/Burpees/i.test(info.panel), JSON.stringify(info.names) + ' | ' + info.panel.slice(0, 300));
   ok('period is hypertrophy', /Hipertrofia/.test(info.week + info.rows.join(' ')) && !/Adaptacja — nauka wzorców/.test(info.week + info.rows.join(' ')), info.week + ' | ' + info.rows[0]);
   ok('rir 2 on sets', info.rir.some(v => String(v).trim() === '2'), JSON.stringify(info.rir.slice(0, 6)));
 
