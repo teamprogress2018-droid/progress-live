@@ -3838,6 +3838,69 @@ function liveRestLabel(sec){
 }
 window.liveRestLabel=liveRestLabel;
 
+function liveRestSpeakText(sec){
+  const n=Number(sec);
+  if(!Number.isFinite(n))return '';
+  if(n<=0)return "Let's go!";
+  if(n===1)return 'Go';
+  if(n===2)return 'Set';
+  if(n===3)return 'Ready';
+  if(n===4)return 'Four';
+  if(n===5)return 'Five';
+  return '';
+}
+window.liveRestSpeakText=liveRestSpeakText;
+
+function liveRestEnglishVoice(){
+  try{
+    const syn=window.speechSynthesis;
+    const list=syn&&typeof syn.getVoices==='function'?syn.getVoices():[];
+    let en=null,us=null;
+    for(let i=0;i<(list||[]).length;i++){
+      const v=list[i];
+      const lang=String(v&&v.lang||'').toLowerCase();
+      if(lang==='en-us'||lang.indexOf('en-us')===0)us=us||v;
+      else if(lang.indexOf('en')===0)en=en||v;
+    }
+    return us||en||null;
+  }catch(e){return null;}
+}
+
+function liveRestUnlockSpeech(){
+  try{
+    const syn=window.speechSynthesis;
+    if(!syn||typeof SpeechSynthesisUtterance==='undefined')return;
+    if(window._liveRestSpeechReady)return;
+    const u=new SpeechSynthesisUtterance(' ');
+    u.volume=0.01;
+    u.rate=1;
+    syn.speak(u);
+    syn.cancel();
+    window._liveRestSpeechReady=true;
+  }catch(e){}
+}
+window.liveRestUnlockSpeech=liveRestUnlockSpeech;
+
+function liveRestSpeak(sec){
+  const text=liveRestSpeakText(sec);
+  if(!text)return false;
+  try{
+    const syn=window.speechSynthesis;
+    if(!syn||typeof syn.speak!=='function'||typeof SpeechSynthesisUtterance==='undefined')return false;
+    syn.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang='en-US';
+    u.rate=1.05;
+    u.pitch=1;
+    u.volume=1;
+    const voice=liveRestEnglishVoice();
+    if(voice)u.voice=voice;
+    syn.speak(u);
+    return true;
+  }catch(e){return false;}
+}
+window.liveRestSpeak=liveRestSpeak;
+
 function liveRestAudioCtx(){
   const AC=window.AudioContext||window.webkitAudioContext;
   if(!AC)return null;
@@ -3906,6 +3969,7 @@ function liveStartRest(sec,slot){
   st.restSec=Number(sec)||0;
   const el=liveEl('live-rest-timer',n);
   liveRestAudioCtx();
+  if(typeof liveRestUnlockSpeech==='function')liveRestUnlockSpeech();
   const finish=()=>{
     if(st.restGen!==gen)return;
     liveRestPaint(n,'idle');
@@ -3918,7 +3982,10 @@ function liveStartRest(sec,slot){
     const phase=liveRestPhase(left);
     const cue=liveRestCue(left);
     liveRestPaint(n,phase);
-    if(cue)liveRestBeep(cue);
+    if(cue){
+      const spoken=typeof liveRestSpeak==='function'&&liveRestSpeak(left);
+      if(!spoken)liveRestBeep(cue);
+    }
     if(left<=0){
       clearInterval(st.restInterval);
       el.textContent=typeof liveRestLabel==='function'?liveRestLabel(0):"LET'S GO!";
