@@ -1652,6 +1652,13 @@ function planPdfBareEx(ex){
     rest:'90s'
   };
 }
+function planPdfIntensity(src,w){
+  const rpe=(w&&w.rpe)||src.rpe||'';
+  if(rpe!==''&&rpe!=null)return String(rpe);
+  const rir=parseFloat((w&&w.rir)!=null&&(w&&w.rir)!==''?w.rir:src.rir);
+  if(!isNaN(rir))return String(Math.max(0,10-rir));
+  return '';
+}
 function planToPdfModel(plan){
   plan=plan||{};
   const weekKeys=(Array.isArray(plan.weekKeys)&&plan.weekKeys.length)?plan.weekKeys.slice():['w1'];
@@ -1662,13 +1669,13 @@ function planToPdfModel(plan){
       const reps=String(src.reps||src.r||'10');
       const rest=String(src.rest||src.rs||'90s');
       const kg=src.kg!=null&&src.kg!==''?String(src.kg):'';
-      const rpe=src.rpe||src.rir||'';
+      const rpe=planPdfIntensity(src,null);
       const notes=[src.notes,src.note,src.tempo].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).join(' · ');
       const out={
         name:src.name||src.n||'Ćwiczenie',
         sets,reps,rest,kg,
-        rir:src.rir||src.rpe||'',
-        rpe:src.rpe||src.rir||'',
+        rir:src.rir||'',
+        rpe,
         notes,note:src.note||src.notes||'',
         tempo:src.tempo||'',
         priority:src.priority===true||src.priorytet===true,
@@ -1676,17 +1683,14 @@ function planToPdfModel(plan){
       };
       weekKeys.forEach(wk=>{
         const w=src[wk];
-        if(w&&typeof w==='object'){
-          out[wk]={
-            s:w.s||w.sets||sets,
-            r:w.r||w.reps||reps,
-            kg:w.kg!=null&&w.kg!==''?String(w.kg):kg,
-            rpe:w.rpe||src.rpe||src.rir||'',
-            rest:w.rest||rest
-          };
-        }else{
-          out[wk]={s:sets,r:reps,kg,rpe,rest};
-        }
+        const cell=w&&typeof w==='object'?w:null;
+        out[wk]={
+          s:(cell&&(cell.s||cell.sets))||sets,
+          r:(cell&&(cell.r||cell.reps))||reps,
+          kg:cell&&cell.kg!=null&&cell.kg!==''?String(cell.kg):kg,
+          rpe:planPdfIntensity(src,cell),
+          rest:(cell&&cell.rest)||rest
+        };
       });
       return out;
     });

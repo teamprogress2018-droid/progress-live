@@ -137,7 +137,7 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'saved_plan_pdf.png'), fullPage: true });
   ok('saved overlay', savedVis.overlay && savedVis.hasPdf);
   ok('saved plan name', /FBW Oli/.test(savedVis.sub || '') && /Hack squat/.test(savedVis.text), savedVis.sub);
-  ok('saved sets', /4×8/.test(savedVis.text), savedVis.text.slice(0, 200));
+  ok('saved sets', /4×8/.test(savedVis.text) && /RPE 8/.test(savedVis.text), savedVis.text.slice(0, 200));
 
   await page.evaluate(() => { if (typeof reportClose === 'function') reportClose(); });
   await page.evaluate(() => {

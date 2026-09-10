@@ -24,7 +24,7 @@ ok('export helper', /window\.buildPlanPDFHTML=buildPlanPDFHTML/.test(src03));
 ok('saved plan mapper', /function planToPdfModel\(/.test(src03) && /window\.planToPdfModel=planToPdfModel/.test(src03));
 ok('saved plan export', /function exportSavedPlanPDF\(/.test(src03) && /window\.exportSavedPlanPDF=exportSavedPlanPDF/.test(src03));
 ok('saves progression', /plan\.progression=progression/.test(src03));
-ok('cache', html.includes('03-ai-plangen-bizstats-aicoach.js?v=33') && html.includes('styles.css?v=76'));
+ok('cache', html.includes('03-ai-plangen-bizstats-aicoach.js?v=34') && html.includes('styles.css?v=76'));
 ok('CI', wf.includes('test_plan_pdf.js') && wf.includes('test_plan_pdf_ui.js'));
 
 const slice = src03.match(/function planPdfEsc[\s\S]*?^function aplReset/m);
@@ -99,7 +99,7 @@ ok('saved skips rest', saved.days.length === 2 && /PON/.test(saved.days[0].dayNa
 ok('saved week cell', saved.weekKeys[0] === 'w1' && saved.days[0].exercises[0].w1.s === '4' && saved.days[0].exercises[0].w1.r === '8');
 ok('saved string ex', saved.days[1].exercises[0].name === 'Wyciskanie' && saved.days[1].exercises[0].w1.s === '3');
 const savedHtml = ctx.buildPlanPDFHTML(saved, { name: 'Ola' });
-ok('saved html', /FBW Oli/.test(savedHtml) && /Hack squat/.test(savedHtml) && /4×8/.test(savedHtml) && /Ola/.test(savedHtml));
+ok('saved html', /FBW Oli/.test(savedHtml) && /Hack squat/.test(savedHtml) && /4×8/.test(savedHtml) && /Ola/.test(savedHtml) && /RPE 8/.test(savedHtml));
 
 const multi = ctx.planToPdfModel({
   name: 'Kontynuacja Fitebo',
