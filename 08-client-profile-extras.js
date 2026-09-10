@@ -1760,6 +1760,7 @@ function renderCPPlan(c){
           <div style="margin-top:10px;display:flex;gap:6px;">
             <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="liveSelectPlanForClient('${p.id}','${c.id}')">▶ Trenuj teraz</button>
             <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="editPlan('${p.id}');closeClientProfile()">✏ Edytuj</button>
+            <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="exportSavedPlanPDF('${p.id}')">📄 PDF</button>
           </div>
         </div>`).join('')}`;
 }

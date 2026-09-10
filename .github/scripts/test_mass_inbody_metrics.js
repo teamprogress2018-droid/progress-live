@@ -33,7 +33,7 @@ ok('ai context extra fields', /wiek metaboliczny/.test(src07) && /nawodnienie/.t
 ok('progress tiles', /Wiek met\./.test(src08) && /Nawodn\./.test(src08) && /Fizyczność/.test(src08));
 ok('index migrate groups', html.includes('migrateEnsureMetricGroups'));
 ok('cache 07', html.includes('07-forms-metrics-calculator.js?v=33'));
-ok('cache 08', html.includes('08-client-profile-extras.js?v=50'));
+ok('cache 08', html.includes('08-client-profile-extras.js?v=51'));
 ok('cache 04', html.includes('04-client-portal.js?v=40'));
 ok('CI unit', wf.includes('test_mass_inbody_metrics.js'));
 ok('CI ui', wf.includes('test_mass_inbody_ui.js'));

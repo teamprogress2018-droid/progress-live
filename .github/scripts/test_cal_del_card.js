@@ -19,8 +19,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 05 v42', html.includes('05-clients-builder-plans-calendar.js?v=49'));
-ok('cache 08 v46', html.includes('08-client-profile-extras.js?v=50'));
+ok('cache 05 v42', html.includes('05-clients-builder-plans-calendar.js?v=50'));
+ok('cache 08 v46', html.includes('08-client-profile-extras.js?v=51'));
 ok('card delete btn', /class="cp-del-sess"/.test(cp) && /delCpSession\(/.test(cp));
 ok('bulk clear', /function clearClientPlannedSessions/.test(cp) && /Usuń terminy planu/.test(cp));
 ok('bulk in render', /clearClientPlannedSessions\(/.test(cp) && /Usuń terminy planu/.test(cp));
