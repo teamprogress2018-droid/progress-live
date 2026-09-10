@@ -20,9 +20,9 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01 v71', html.includes('01-core.js?v=92'));
-ok('cache 05 v37', html.includes('05-clients-builder-plans-calendar.js?v=52'));
-ok('cache 08 v38', html.includes('08-client-profile-extras.js?v=51'));
+ok('cache 01 v71', html.includes('01-core.js?v=93'));
+ok('cache 05 v37', html.includes('05-clients-builder-plans-calendar.js?v=53'));
+ok('cache 08 v38', html.includes('08-client-profile-extras.js?v=52'));
 ok('cache styles v56', html.includes('styles.css?v=79'));
 ok('ci unit', wf.includes('test_cal_session_done.js'));
 ok('ci ui log done', wf.includes('test_cal_log_done_ui.js'));
@@ -43,7 +43,14 @@ ok('profile hover title', /title="\$\{escHtml\(tip\)\}"/.test(cp));
 ok('profile checkmark', /happened\?'✓ ':''/.test(cp) || /happened\?'✓ '/.test(cp));
 ok('profile done class', /cp-sess-done/.test(cp) && /\.cp-sess-done/.test(css));
 ok('log from planned in core', /function logSessionFromPlanned/.test(core) && /source:'sala'/.test(core));
-ok('mark done in profile', /function markCpSessionDone/.test(cp) && /cp-mark-done/.test(cp) && /Odbył się/.test(cp));
+ok('sala done modal', /function openSalaDoneModal/.test(core) && /function saveSalaDone/.test(core) && /Wybierz ocenę 1–5/.test(core));
+ok('mark done opens modal', /openSalaDoneModal/.test(cp) && /cp-mark-done/.test(cp) && /Odbył się/.test(cp));
+ok('no one-click confirm', !/Oznaczyć trening/.test(cp));
+ok('session modal sala bar', html.includes('id="as-sala-done"') && /openSalaDoneModal/.test(cal));
+ok('cal list sala btn', /cal-sala-done/.test(cal));
+const src04 = fs.readFileSync(path.join(root, '04-client-portal.js'), 'utf8');
+const src10 = fs.readFileSync(path.join(root, '10-client-app.js'), 'utf8');
+ok('client calendar sala', /clientMarkSalaDone/.test(src04) && /function clientMarkSalaDone/.test(src10) && /Byłem na sali/.test(src04));
 ok('calendar local ymd', /cellYmd/.test(cp) && /todayYmd/.test(cp));
 ok('no-logged banner', /cp-no-logged-banner/.test(cp) && /Brak zapisu treningu/.test(cp));
 ok('history skips planned', /sessionIsRecorded/.test(cp) && /historyList/.test(cp));

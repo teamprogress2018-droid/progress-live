@@ -21,10 +21,10 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=92'));
+ok('cache 01', html.includes('01-core.js?v=93'));
 ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=54'));
-ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=52'));
-ok('cache 10', html.includes('10-client-app.js?v=36'));
+ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=53'));
+ok('cache 10', html.includes('10-client-app.js?v=37'));
 ok('cache styles', html.includes('styles.css?v=79'));
 ok('live period card', html.includes('id="live-period-card"') && html.includes('id="live-b-period-card"'));
 ok('live plan rest btn', html.includes('liveStartRestFromPlan()') && html.includes('id="live-rest-plan-hint"'));

@@ -2484,6 +2484,7 @@ function renderCalList(){
             ${s.notes?`<div style="font-size:11px;color:var(--muted2);margin-top:3px;font-style:italic;">${s.notes}</div>`:''}
           </div>
           <div style="display:flex;flex-direction:column;gap:4px;align-self:center;">
+            ${s.source==='planned'&&!bits.happened?`<button type="button" class="btn btn-primary btn-sm cal-sala-done" onclick="event.stopPropagation();openSalaDoneModal('${s.id}')">✓</button>`:''}
             <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();editSession('${s.id}')">✏</button>
             <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();delSession('${s.id}')">×</button>
           </div>
@@ -2613,6 +2614,13 @@ function editSession(id){
   if(del)del.style.display='';
   const titleEl=document.querySelector('#m-session .modal-title');
   if(titleEl)titleEl.textContent=s.source==='planned'?'TERMIN PLANU':'SESJA';
+  const salaBar=document.getElementById('as-sala-done');
+  if(salaBar){
+    const pending=s.source==='planned'&&!(typeof sessionHappened==='function'&&sessionHappened(s));
+    salaBar.style.display=pending?'':'none';
+    salaBar.innerHTML=pending?`<button type="button" class="btn btn-primary" style="width:100%;" onclick="closeM('m-session');openSalaDoneModal('${escHtml(s.id)}')">✓ Odbył się — ocena i czas</button>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.4;">Bez Live tonaż 0. Ocena 1–5 i minuty wchodzą do Postępów.</div>`:'';
+  }
   renderRecordedExercises(s);
 }
 
