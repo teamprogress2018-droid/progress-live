@@ -65,8 +65,15 @@ function ok(name, cond, extra) {
   ok('35s not yet ending pulse', !mid.ending, JSON.stringify(mid));
 
   const cues = await page.evaluate(() => {
+    window.__restSpoken = [];
     window.__restCues = [];
-    const prev = window.liveRestBeep;
+    const prevBeep = window.liveRestBeep;
+    const prevSpeak = window.liveRestSpeak;
+    window.liveRestSpeak = (sec) => {
+      const t = typeof liveRestSpeakText === 'function' ? liveRestSpeakText(sec) : '';
+      if (t) window.__restSpoken.push(t);
+      return true;
+    };
     window.liveRestBeep = (k) => { window.__restCues.push(k); };
     if (typeof liveStartRest === 'function') liveStartRest(5);
     const card = document.querySelector('#live-rest-timer').closest('.live-rest-card');
@@ -74,41 +81,55 @@ function ok(name, cond, extra) {
       text: document.getElementById('live-rest-timer').textContent,
       ending: card.classList.contains('is-ending'),
       warn: card.classList.contains('is-warn'),
+      spoken: window.__restSpoken.slice(),
       cues: window.__restCues.slice()
     };
     if (typeof liveStartRest === 'function') liveStartRest(3);
     const three = {
       text: document.getElementById('live-rest-timer').textContent,
-      ending: card.classList.contains('is-ending')
+      ending: card.classList.contains('is-ending'),
+      spoken: window.__restSpoken.slice()
     };
     if (typeof liveStartRest === 'function') liveStartRest(0);
     const goCard = document.querySelector('#live-rest-timer').closest('.live-rest-card');
     const go = {
       text: document.getElementById('live-rest-timer').textContent,
       go: goCard.classList.contains('is-go'),
+      spoken: window.__restSpoken.slice(),
       cues: window.__restCues.slice()
     };
-    window.liveRestBeep = prev;
-    return { five, three, go };
+    window.__restCues = [];
+    window.liveRestSpeak = () => false;
+    if (typeof liveStartRest === 'function') liveStartRest(0);
+    const fallback = { cues: window.__restCues.slice() };
+    window.liveRestBeep = prevBeep;
+    window.liveRestSpeak = prevSpeak;
+    return { five, three, go, fallback };
   });
-  ok('last 5s pulse + tick', cues.five.ending && cues.five.warn && /5s/.test(cues.five.text || '') && cues.five.cues.includes('tick'), JSON.stringify(cues.five));
-  ok('3s READY hype', cues.three && cues.three.ending && /READY/.test(cues.three.text || ''), JSON.stringify(cues.three));
-  ok('GO flash + beep', cues.go.go && /LET'S GO/.test(cues.go.text || '') && cues.go.cues.includes('go'), JSON.stringify(cues.go));
+  ok('last 5s pulse + Five', cues.five.ending && cues.five.warn && /5s/.test(cues.five.text || '') && cues.five.spoken.includes('Five') && !cues.five.cues.includes('tick'), JSON.stringify(cues.five));
+  ok('3s READY spoken', cues.three && cues.three.ending && /READY/.test(cues.three.text || '') && cues.three.spoken.includes('Ready'), JSON.stringify(cues.three));
+  ok("GO flash + Let's go", cues.go.go && /LET'S GO/.test(cues.go.text || '') && cues.go.spoken.includes("Let's go!") && !cues.go.cues.includes('go'), JSON.stringify(cues.go));
+  ok('beep fallback without TTS', cues.fallback && cues.fallback.cues.includes('go'), JSON.stringify(cues.fallback));
 
   const dual = await page.evaluate(() => {
     if (typeof liveToggleDual === 'function') liveToggleDual();
-    window.__restCuesB = [];
-    window.liveRestBeep = (k) => { window.__restCuesB.push(k); };
+    window.__restSpokenB = [];
+    window.liveRestSpeak = (sec) => {
+      const t = typeof liveRestSpeakText === 'function' ? liveRestSpeakText(sec) : '';
+      if (t) window.__restSpokenB.push(t);
+      return true;
+    };
+    window.liveRestBeep = () => {};
     if (typeof liveStartRest === 'function') liveStartRest(5, 1);
     const el = document.getElementById('live-b-rest-timer');
     const card = el && el.closest('.live-rest-card');
     return {
       text: el && el.textContent,
       ending: !!(card && card.classList.contains('is-ending')),
-      cues: window.__restCuesB.slice()
+      spoken: window.__restSpokenB.slice()
     };
   });
-  ok('slot B ending pulse', dual.ending && /5s/.test(dual.text || '') && dual.cues.includes('tick'), JSON.stringify(dual));
+  ok('slot B ending voice', dual.ending && /5s/.test(dual.text || '') && dual.spoken.includes('Five'), JSON.stringify(dual));
 
   try {
     await page.screenshot({ path: path.join(shotDir, 'live_rest_custom_35.png') });

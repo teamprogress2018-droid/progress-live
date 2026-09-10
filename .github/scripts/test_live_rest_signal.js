@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 'use strict';
-/** Sygnał końca przerwy Live: faza, beep, puls karty. */
+/** Sygnał końca przerwy Live: faza, głos, beep zapasowy, puls karty. */
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -19,7 +19,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=50'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=51'));
 ok('cache styles', html.includes('styles.css?v=75'));
 ok('aria live A', html.includes('id="live-rest-timer" aria-live="assertive"'));
 ok('aria live B', html.includes('id="live-b-rest-timer" aria-live="assertive"'));
@@ -28,14 +28,17 @@ ok('cue helper', /function liveRestCue\(/.test(live));
 ok('beep helper', /function liveRestBeep\(/.test(live) && live.includes('AudioContext'));
 ok('paint helper', /function liveRestPaint\(/.test(live));
 ok('go label helper', /function liveRestLabel\(/.test(live) && /LET'S GO/.test(live));
+ok('speak text helper', /function liveRestSpeakText\(/.test(live) && live.includes("Let's go!"));
+ok('speak helper', /function liveRestSpeak\(/.test(live) && live.includes('speechSynthesis'));
 ok('start uses label', /liveRestLabel\(left\)/.test(live) && /liveRestLabel\(0\)/.test(live));
+ok('start prefers speak', /liveRestSpeak\(left\)/.test(live) && /if\(!spoken\)liveRestBeep\(cue\)/.test(live));
 ok('css pulse', css.includes('@keyframes live-rest-pulse') && css.includes('.live-rest-card.is-ending'));
 ok('css go', css.includes('@keyframes live-rest-go') && css.includes('.live-rest-card.is-go'));
 ok('CI unit', wf.includes('test_live_rest_signal.js'));
 ok('CI ui', wf.includes('test_live_rest_ui.js'));
 
-const slice = live.match(/function liveRestPhase\(sec\)\{[\s\S]*?\n\}\nwindow\.liveRestPhase=liveRestPhase;\n\nfunction liveRestCue\(sec\)\{[\s\S]*?\n\}\nwindow\.liveRestCue=liveRestCue;\n\nfunction liveRestLabel\(sec\)\{[\s\S]*?\n\}\nwindow\.liveRestLabel=liveRestLabel;/);
-ok('extract phase+cue', !!slice);
+const slice = live.match(/function liveRestPhase\(sec\)\{[\s\S]*?\n\}\nwindow\.liveRestPhase=liveRestPhase;\n\nfunction liveRestCue\(sec\)\{[\s\S]*?\n\}\nwindow\.liveRestCue=liveRestCue;\n\nfunction liveRestLabel\(sec\)\{[\s\S]*?\n\}\nwindow\.liveRestLabel=liveRestLabel;\n\nfunction liveRestSpeakText\(sec\)\{[\s\S]*?\n\}\nwindow\.liveRestSpeakText=liveRestSpeakText;/);
+ok('extract phase+cue+speak', !!slice);
 const ctx = vm.createContext({ window: {}, Number, String, Math });
 vm.runInContext(slice[0], ctx);
 ok('90s run', ctx.liveRestPhase(90) === 'run' && ctx.liveRestCue(90) === '');
@@ -48,6 +51,13 @@ ok('3s READY', ctx.liveRestLabel(3) === 'READY');
 ok('2s SET', ctx.liveRestLabel(2) === 'SET');
 ok('1s GO', ctx.liveRestLabel(1) === 'GO');
 ok("0s LET'S GO", ctx.liveRestLabel(0) === "LET'S GO!");
+ok('90s no speak', ctx.liveRestSpeakText(90) === '');
+ok('5s Five', ctx.liveRestSpeakText(5) === 'Five');
+ok('4s Four', ctx.liveRestSpeakText(4) === 'Four');
+ok('3s Ready', ctx.liveRestSpeakText(3) === 'Ready');
+ok('2s Set', ctx.liveRestSpeakText(2) === 'Set');
+ok('1s Go', ctx.liveRestSpeakText(1) === 'Go');
+ok("0s Let's go", ctx.liveRestSpeakText(0) === "Let's go!");
 
 if (failed) process.exit(1);
 console.log('\nAll live-rest-signal tests passed');
