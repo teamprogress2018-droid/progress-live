@@ -22,7 +22,7 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 01', html.includes('01-core.js?v=100'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=59'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=60'));
 ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=57'));
 ok('cache 08', html.includes('08-client-profile-extras.js?v=54'));
 ok('helpers', /function clientHasPaidAccess/.test(core) && /function setClientAccessMode/.test(core) && /function assertClientPaidAccess/.test(core));

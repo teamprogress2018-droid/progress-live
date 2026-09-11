@@ -4070,7 +4070,7 @@ window.liveRestLabel=liveRestLabel;
 function liveRestSpeakText(sec){
   const n=Number(sec);
   if(!Number.isFinite(n))return '';
-  const lang=(window.SETTINGS&&window.SETTINGS.live&&window.SETTINGS.live.restVoice)||'pl';
+  const lang=(window.SETTINGS&&window.SETTINGS.live&&window.SETTINGS.live.restVoice)||'en';
   if(lang==='off')return '';
   if(lang==='en'){
     if(n<=0)return "Let's go!";
@@ -4092,9 +4092,9 @@ function liveRestSpeakText(sec){
 window.liveRestSpeakText=liveRestSpeakText;
 
 function liveRestVoiceLang(){
-  const v=(window.SETTINGS&&window.SETTINGS.live&&window.SETTINGS.live.restVoice)||'pl';
-  if(v==='off'||v==='en')return v;
-  return 'pl';
+  const v=(window.SETTINGS&&window.SETTINGS.live&&window.SETTINGS.live.restVoice)||'en';
+  if(v==='off'||v==='pl')return v;
+  return 'en';
 }
 window.liveRestVoiceLang=liveRestVoiceLang;
 

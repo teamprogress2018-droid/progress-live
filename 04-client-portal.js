@@ -3830,7 +3830,7 @@ window.SETTINGS={
     font:'DM Sans',
   },
   live:{
-    restVoice:'pl'
+    restVoice:'en'
   },
   screensaver:{
     enabled:true,
@@ -3995,11 +3995,14 @@ function renderSettingsContent(t,targetId){
       `)}
 
       ${card('Głos przerwy w Live','Ostatnie 5 sekund przerwy. Napisy READY/SET/GO zostają; tu sterujesz mową.',`
-        ${row('Mowa odliczania','Polski na sali, angielski albo tylko beep',`<select class="form-select" id="set-rest-voice" style="width:auto;font-size:13px;">
-          <option value="pl"${((S.live&&S.live.restVoice)||'pl')==='pl'?' selected':''}>Polski (pięć… jazda)</option>
-          <option value="en"${(S.live&&S.live.restVoice)==='en'?' selected':''}>English (Five… Let's go)</option>
-          <option value="off"${(S.live&&S.live.restVoice)==='off'?' selected':''}>Wyłącz mowę — tylko beep</option>
-        </select>`)}
+        ${row('Mowa odliczania','Angielski na sali, polski albo tylko beep',(()=>{
+          const rv=((S.live&&S.live.restVoice)||'en');
+          return `<select class="form-select" id="set-rest-voice" style="width:auto;font-size:13px;">
+          <option value="en"${rv==='en'?' selected':''}>English (Five… Let's go)</option>
+          <option value="pl"${rv==='pl'?' selected':''}>Polski (pięć… jazda)</option>
+          <option value="off"${rv==='off'?' selected':''}>Wyłącz mowę — tylko beep</option>
+        </select>`;
+        })())}
       `)}
 
       ${card('Podgląd marki','',`
@@ -4464,7 +4467,7 @@ function saveSettings(){
   if(g('ss-idle'))S.screensaver.idleMinutes=Math.max(1,Math.min(60,parseInt(g('ss-idle').value,10)||3));
   if(g('rest-voice')){
     S.live=S.live||{};
-    S.live.restVoice=['pl','en','off'].includes(g('rest-voice').value)?g('rest-voice').value:'pl';
+    S.live.restVoice=['pl','en','off'].includes(g('rest-voice').value)?g('rest-voice').value:'en';
   }
   if(typeof resetScreensaverIdle==='function')try{resetScreensaverIdle();}catch(e){}
   if(typeof ensureReminderAutoflowsFromSettings==='function')try{ensureReminderAutoflowsFromSettings();}catch(e){}

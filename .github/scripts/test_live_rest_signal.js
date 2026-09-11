@@ -19,7 +19,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=59'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=60'));
 ok('cache styles', html.includes('styles.css?v=80'));
 ok('aria live A', html.includes('id="live-rest-timer" aria-live="assertive"'));
 ok('aria live B', html.includes('id="live-b-rest-timer" aria-live="assertive"'));
@@ -60,9 +60,13 @@ ok('1s Start', ctx.liveRestSpeakText(1) === 'Start');
 ok('0s Jazda', ctx.liveRestSpeakText(0) === 'Jazda!');
 ctx.window.SETTINGS.live.restVoice = 'en';
 ok('5s Five EN', ctx.liveRestSpeakText(5) === 'Five');
+ok('4s Four EN', ctx.liveRestSpeakText(4) === 'Four');
+ok('3s Ready EN', ctx.liveRestSpeakText(3) === 'Ready');
 ok("0s Let's go EN", ctx.liveRestSpeakText(0) === "Let's go!");
 ctx.window.SETTINGS.live.restVoice = 'off';
 ok('off no speak', ctx.liveRestSpeakText(0) === '');
+ctx.window.SETTINGS.live.restVoice = '';
+ok('empty falls back to Five EN', ctx.liveRestSpeakText(5) === 'Five');
 
 if (failed) process.exit(1);
 console.log('\nAll live-rest-signal tests passed');
