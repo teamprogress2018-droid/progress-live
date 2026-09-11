@@ -3927,6 +3927,7 @@ function saveSalaDone(){
     const leftTxt=pkg?(' · pakiet '+pkg.sessionsUsed+'/'+pkg.sessions):'';
     notify('Zapisano trening na sali · ocena '+feedback+'/5 · '+duration+' min'+leftTxt);
   }
+  try{if(typeof maybeSendCheckinAfterSession==='function')maybeSendCheckinAfterSession(p&&p.clientId);}catch(e){}
   return sess;
 }
 window.openSalaDoneModal=openSalaDoneModal;

@@ -69,7 +69,7 @@ window.ensureCheckins=ensureCheckins;
 vm.runInContext('var ensureCheckins=window.ensureCheckins; var withTrainer=window.withTrainer; var newId=window.newId; var dateStr=window.dateStr; var persistCheckin=window.persistCheckin; var pushMsg=window.pushMsg; var addNotification=window.addNotification; var notify=window.notify;', ctx);
 
 const src04 = fs.readFileSync(path.join(__dirname, '..', '..', '04-client-portal.js'), 'utf8');
-const chunk = src04.match(/function getCIStatus[\s\S]*?window\.ensurePendingCheckin=ensurePendingCheckin;/);
+const chunk = src04.match(/function getCIStatus[\s\S]*?window\.maybeSendCheckinAfterSession=maybeSendCheckinAfterSession;/);
 if (!chunk) {
   console.error('FAIL could not extract check-in helpers from 04-client-portal.js');
   process.exit(1);

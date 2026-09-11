@@ -4017,6 +4017,7 @@ function liveEndSession(slot){
   renderLiveExercises(n);
   renderLiveHistory();
   if(typeof maybeResumeOnboard==='function')maybeResumeOnboard(st.savedClientId);
+  try{if(typeof maybeSendCheckinAfterSession==='function')maybeSendCheckinAfterSession(st.savedClientId);}catch(e){}
 }
 
 function liveRepeatSameClient(slot){
