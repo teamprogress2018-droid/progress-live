@@ -21,15 +21,15 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=97'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=57'));
+ok('cache 01', html.includes('01-core.js?v=98'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=58'));
 ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=56'));
 ok('cache 08', html.includes('08-client-profile-extras.js?v=53'));
 ok('helpers', /function clientHasPaidAccess/.test(core) && /function setClientAccessMode/.test(core) && /function assertClientPaidAccess/.test(core));
 ok('schedule gate', /assertClientPaidAccess\(plan\.clientId\)/.test(src05));
 ok('maybe schedule gate', src05.slice(src05.indexOf('function maybeSchedulePlanToCalendar')).includes('assertClientPaidAccess(plan.clientId)'));
 ok('live start gate', /assertClientPaidAccess\(st\.clientId\)/.test(live));
-ok('live decrement paid only', /payStatus==='paid'/.test(live.slice(live.indexOf('function liveEndSession'))));
+ok('live decrement paid only', /consumeClientPackageSession\(st\.clientId/.test(live) && /payStatus==='paid'/.test(core));
 ok('live banner', /live-pay-gate/.test(live) && /setClientAccessMode/.test(live));
 ok('cp payments modes', /cp-access-mode/.test(src08) && /Trial/.test(src08) && /Gość/.test(src08));
 ok('overview banner', /cp-pay-gate/.test(src08));
