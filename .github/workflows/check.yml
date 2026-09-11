@@ -196,6 +196,8 @@ jobs:
         run: node .github/scripts/test_dash_ops_panel.js
       - name: 1n11. Testy widoczności płatności (klient + dashboard)
         run: node .github/scripts/test_client_payments_visible.js
+      - name: 1n11b. Testy bramy pakietu (kalendarz / Live)
+        run: node .github/scripts/test_pkg_gate.js
 
       - name: 1n13. Testy follow-upu zadań domowych (dashboard)
         run: node .github/scripts/test_dash_homework_followup.js
@@ -374,6 +376,8 @@ jobs:
         run: node .github/scripts/test_fitebo_live_ui.js
       - name: 6b3c2. Testy UI Live Postęp i zapisu do Progress
         run: node .github/scripts/test_live_progress_ui.js
+      - name: 6b3c2b. Testy UI bramy pakietu (Trial / Gość)
+        run: node .github/scripts/test_pkg_gate_ui.js
       - name: 6b3c3. Testy UI Live dual (dwie osoby)
         run: node .github/scripts/test_live_dual_ui.js
       - name: 6b3c4. Testy UI dodawania zamiennika w Live

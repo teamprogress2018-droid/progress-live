@@ -4669,6 +4669,80 @@ function clientHasPackage(c){
   const pkgs=window.PACKAGES||[];
   return pkgs.some(p=>p&&p.clientId===c.id);
 }
+function clientPackageExpired(p,todayY){
+  if(!p)return true;
+  if(p.status==='expired'||p.payStatus==='expired')return true;
+  const exp=String(p.expiresDate||'').slice(0,10);
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(exp))return false;
+  const today=todayY||(typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10));
+  return !!today&&exp<today;
+}
+function clientAccessMode(c){
+  if(!c)return 'open';
+  const m=String(c.accessMode||'').toLowerCase();
+  if(m==='trial'||c.trialAccess)return 'trial';
+  if(m==='guest'||c.guestAccess)return 'guest';
+  if(m==='standard')return 'standard';
+  if(c.packageSkipped)return 'guest';
+  return 'standard';
+}
+/**
+ * Dostęp do kalendarza / Live.
+ * Brak pakietu = otwarte (trener bez płatności). Trial / Gość omija bramę.
+ * Nieopłacony lub wygasły pakiet bez flagi = blokada.
+ */
+function clientHasPaidAccess(clientId){
+  const id=typeof clientId==='string'?clientId:(clientId&&clientId.id);
+  const c=(window.CL||[]).find(x=>x&&x.id===id)||(clientId&&typeof clientId==='object'?clientId:null);
+  const cid=(c&&c.id)||id;
+  if(!cid)return{ok:true,reason:'noid'};
+  const mode=clientAccessMode(c||{id:cid});
+  if(mode==='trial')return{ok:true,reason:'trial',mode};
+  if(mode==='guest')return{ok:true,reason:'guest',mode};
+  const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
+  const pkgs=(window.PACKAGES||[]).filter(p=>p&&p.clientId===cid);
+  const paid=pkgs.filter(p=>p.payStatus==='paid'&&!clientPackageExpired(p,today));
+  if(paid.length)return{ok:true,reason:'paid',mode:'standard',pkg:paid[0]};
+  const unpaid=pkgs.filter(p=>p.payStatus==='pending'&&p.status!=='expired');
+  if(unpaid.length)return{ok:false,reason:'unpaid',mode:'standard',unpaid};
+  if(pkgs.length)return{ok:false,reason:'expired',mode:'standard'};
+  return{ok:true,reason:'no-package',mode:'open'};
+}
+function clientPaidAccessLabel(r){
+  const x=r||{};
+  if(x.reason==='trial')return 'Trial — bez zejścia sesji pakietu';
+  if(x.reason==='guest')return 'Gość — pakiet niewymagany';
+  if(x.reason==='paid')return 'Pakiet opłacony';
+  if(x.reason==='unpaid')return 'Pakiet nieopłacony';
+  if(x.reason==='expired')return 'Pakiet wygasł';
+  return '';
+}
+function assertClientPaidAccess(clientId){
+  const r=clientHasPaidAccess(clientId);
+  if(r.ok)return true;
+  const who=(((window.CL||[]).find(x=>x&&x.id===clientId)||{}).name)||'Klient';
+  const msg=r.reason==='unpaid'
+    ?who+' ma nieopłacony pakiet — oznacz Opłacony albo ustaw Trial / Gość.'
+    :who+' — pakiet wygasł. Przedłuż pakiet albo ustaw Trial / Gość.';
+  if(typeof notify==='function')notify(msg);
+  return false;
+}
+function setClientAccessMode(clientId,mode){
+  const c=(window.CL||[]).find(x=>x&&x.id===clientId);
+  if(!c)return null;
+  const m=String(mode||'standard').toLowerCase();
+  if(m==='trial'){c.accessMode='trial';c.trialAccess=true;c.guestAccess=false;}
+  else if(m==='guest'){c.accessMode='guest';c.guestAccess=true;c.trialAccess=false;c.packageSkipped=true;}
+  else {c.accessMode='standard';c.trialAccess=false;c.guestAccess=false;}
+  const save=typeof persistById==='function'?persistById:(typeof window!=='undefined'&&window.persistById);
+  if(save)try{save('clients',c);}catch(e){}
+  try{if(typeof renderCPPayments==='function'&&window.cpClientId===c.id)renderCPPayments(c);}catch(e){}
+  try{if(typeof renderCPOverview==='function'&&window.cpClientId===c.id)renderCPOverview(c);}catch(e){}
+  try{if(typeof renderLiveClientCard==='function'){renderLiveClientCard(0);renderLiveClientCard(1);}}catch(e){}
+  try{if(typeof liveBindSessionButtons==='function'){liveBindSessionButtons(0);liveBindSessionButtons(1);}}catch(e){}
+  if(typeof notify==='function')notify(m==='trial'?'Trial włączony':m==='guest'?'Gość — pakiet niewymagany':'Dostęp z pakietu');
+  return c;
+}
 function normalizeClientEmail(s){
   return String(s||'').trim().toLowerCase();
 }
@@ -4943,6 +5017,12 @@ window.clientHasAssignedPlan=clientHasAssignedPlan;
 window.clientHasCalendarOrSession=clientHasCalendarOrSession;
 window.clientOnboardHasBaseline=clientOnboardHasBaseline;
 window.clientHasPackage=clientHasPackage;
+window.clientPackageExpired=clientPackageExpired;
+window.clientAccessMode=clientAccessMode;
+window.clientHasPaidAccess=clientHasPaidAccess;
+window.clientPaidAccessLabel=clientPaidAccessLabel;
+window.assertClientPaidAccess=assertClientPaidAccess;
+window.setClientAccessMode=setClientAccessMode;
 window.normalizeClientEmail=normalizeClientEmail;
 window.clientEmailValid=clientEmailValid;
 window.clientHasEmail=clientHasEmail;

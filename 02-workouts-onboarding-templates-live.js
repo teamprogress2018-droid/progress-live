@@ -2673,7 +2673,12 @@ function liveBindSessionButtons(slot){
   const start=liveEl('live-start-btn',n);
   const end=liveEl('live-end-btn',n);
   const status=liveEl('live-timer-status',n);
-  if(start)start.style.display=st.sessionActive?'none':'';
+  if(start){
+    start.style.display=st.sessionActive?'none':'';
+    const acc=st.clientId&&typeof clientHasPaidAccess==='function'?clientHasPaidAccess(st.clientId):{ok:true};
+    start.disabled=!(!acc||acc.ok);
+    start.title=acc&&acc.ok===false?(acc.reason==='unpaid'?'Pakiet nieopłacony — Trial / Gość albo Opłacony':(acc.reason==='expired'?'Pakiet wygasł':'Brak dostępu')):'';
+  }
   if(end)end.style.display=st.sessionActive?'':'none';
   if(status)status.textContent=st.sessionActive?'W toku':'Nieaktywny';
   livePaintTimer(n);
@@ -2917,7 +2922,17 @@ function renderLiveClientCard(slot){
   const c=CL.find(x=>x.id===st.clientId);
   if(!c){el.innerHTML='';return;}
   const sessCount=SE.filter(s=>s.clientId===c.id).length;
+  const acc=typeof clientHasPaidAccess==='function'?clientHasPaidAccess(c.id):{ok:true};
+  const accBanner=acc&&acc.ok===false?`<div class="live-pay-gate" style="background:rgba(230,0,0,0.1);border:1px solid rgba(230,0,0,0.35);border-radius:8px;padding:8px 10px;margin-bottom:10px;font-size:11px;line-height:1.45;">
+      <div style="font-weight:700;margin-bottom:4px;">${escHtml(typeof clientPaidAccessLabel==='function'?clientPaidAccessLabel(acc):'Brak dostępu')}</div>
+      <div style="color:var(--muted);margin-bottom:8px;">Kalendarz i Start Live są zablokowane, dopóki pakiet nie jest opłacony.</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button type="button" class="btn btn-primary btn-sm" onclick="setClientAccessMode('${escHtml(c.id)}','trial')">Trial</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="setClientAccessMode('${escHtml(c.id)}','guest')">Gość</button>
+      </div>
+    </div>`:(acc&&(acc.reason==='trial'||acc.reason==='guest')?`<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${escHtml(typeof clientPaidAccessLabel==='function'?clientPaidAccessLabel(acc):'')}</div>`:'');
   el.innerHTML=`<div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;">
+    ${accBanner}
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
       <div style="width:42px;height:42px;border-radius:12px;background:var(--adim);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--accent);flex-shrink:0;">${getInit(c.name)}</div>
       <div>
@@ -2940,6 +2955,7 @@ function renderLiveClientCard(slot){
       </div>
     </div>
   </div>`;
+  if(typeof liveBindSessionButtons==='function')liveBindSessionButtons(n);
 }
 
 function renderLivePlanPicker(slot){
@@ -3738,6 +3754,7 @@ function liveStartSession(slot){
   const st=liveRef(n);
   if(!st.clientId){notify('Wybierz klienta!');return;}
   if(!st.exercises.length){notify('Wybierz plan lub dodaj ćwiczenia!');return;}
+  if(typeof assertClientPaidAccess==='function'&&!assertClientPaidAccess(st.clientId))return;
   st.savedClientId=null;
   st.savedClientName='';
   st.sessionActive=true;
@@ -3788,8 +3805,8 @@ function liveEndSession(slot){
   SE.push(newSession);
   persistById('sessions',newSession);
   LIVE_HISTORY.unshift({...newSession,clientName:c?.name||'Klient'});
-  const pkg=(window.PACKAGES||[]).filter(p=>p.clientId===st.clientId&&(p.sessionsUsed||0)<(p.sessions||0)&&p.payStatus!=='expired')
-    .sort((a,b)=>(a.payStatus==='paid'?0:1)-(b.payStatus==='paid'?0:1))[0];
+  const pkg=(window.PACKAGES||[]).filter(p=>p.clientId===st.clientId&&p.payStatus==='paid'&&(p.sessionsUsed||0)<(p.sessions||0)&&p.payStatus!=='expired'&&!(typeof clientPackageExpired==='function'&&clientPackageExpired(p)))
+    .sort((a,b)=>String(b.expiresDate||b.createdAt||'').localeCompare(String(a.expiresDate||a.createdAt||'')))[0];
   if(pkg){
     pkg.sessionsUsed=(pkg.sessionsUsed||0)+1;
     persistById('packages',pkg);
