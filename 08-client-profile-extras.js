@@ -2523,7 +2523,7 @@ function renderCPTasks(c){
 }
 
 function renderCPPayments(c){
-  const pkgs=allPackages().filter(p=>p.clientId===c.id||p.clientName===c.name);
+  const pkgs=typeof packagesForClient==='function'?packagesForClient(c.id):allPackages().filter(p=>p&&p.clientId===c.id);
   const total=pkgs.filter(p=>p.payStatus==='paid').reduce((s,p)=>s+p.price,0);
   const today=new Date().toISOString().split('T')[0];
   const acc=typeof clientHasPaidAccess==='function'?clientHasPaidAccess(c.id):{ok:true};

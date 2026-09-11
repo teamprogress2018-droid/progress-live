@@ -4735,7 +4735,7 @@ function previewReportOptions(){
   const tasks=TASKS.filter(t=>t.clientId===cid);
   const plans=PL.filter(p=>p.clientId===cid);
   const entries=METRIC_ENTRIES.filter(e=>e.clientId===cid);
-  const pkgs=allPackages().filter(p=>p.clientId===cid||p.clientName===c.name);
+  const pkgs=typeof packagesForClient==='function'?packagesForClient(cid):allPackages().filter(p=>p&&p.clientId===cid);
   const el=document.getElementById('rep-preview-info');
   if(el)el.innerHTML=`<strong style="color:var(--accent);">Podgląd dla: ${c.name}</strong> · Okres: ${from} — ${to}<br>
     📅 ${loggedN} odbytych · ${plannedN} zaplanowanych · 📏 ${entries.length} pomiarów · ✅ ${tasks.length} zadań · 🏋️ ${plans.length} planów · 💰 ${pkgs.length} pakietów`;
@@ -4798,7 +4798,7 @@ function buildReportHTML(c,from,to,sec,template){
   const tasksDone=oneShot.filter(t=>t.status==='done');
   const plans=PL.filter(p=>p.clientId===c.id);
   const entries=METRIC_ENTRIES.filter(e=>e.clientId===c.id);
-  const pkgs=allPackages().filter(p=>p.clientId===c.id||p.clientName===c.name);
+  const pkgs=typeof packagesForClient==='function'?packagesForClient(c.id):allPackages().filter(p=>p&&p.clientId===c.id);
   const notes=CLIENT_NOTES[c.id]||[];
 
   const totalRevenue=pkgs.filter(p=>p.payStatus==='paid').reduce((s,p)=>s+p.price,0);

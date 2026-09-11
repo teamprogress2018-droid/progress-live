@@ -4677,11 +4677,15 @@ function clientOnboardHasBaseline(c){
   if(c.baselineDone||c.weight)return true;
   return(window.METRIC_ENTRIES||[]).some(e=>e&&e.clientId===c.id&&(e.groupId==='mg1'||e.groupId==='mg2'));
 }
+function packagesForClient(clientId){
+  if(!clientId)return[];
+  const pkgs=typeof allPackages==='function'?allPackages():(window.PACKAGES||[]);
+  return pkgs.filter(p=>p&&p.clientId===clientId);
+}
 function clientHasPackage(c){
   if(!c)return false;
   if(c.packageSkipped)return true;
-  const pkgs=window.PACKAGES||[];
-  return pkgs.some(p=>p&&p.clientId===c.id);
+  return packagesForClient(c.id).length>0;
 }
 function clientPackageExpired(p,todayY){
   if(!p)return true;
@@ -5097,6 +5101,7 @@ window.clientHasSchedulePrefs=clientHasSchedulePrefs;
 window.clientHasAssignedPlan=clientHasAssignedPlan;
 window.clientHasCalendarOrSession=clientHasCalendarOrSession;
 window.clientOnboardHasBaseline=clientOnboardHasBaseline;
+window.packagesForClient=packagesForClient;
 window.clientHasPackage=clientHasPackage;
 window.clientPackageExpired=clientPackageExpired;
 window.clientPaidPackageForSession=clientPaidPackageForSession;
