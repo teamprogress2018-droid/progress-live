@@ -24,6 +24,7 @@ const builder = fs.readFileSync(path.join(root, '05-clients-builder-plans-calend
 if (!expectOverlap) {
   ok('day name is not 34px wide', !/\.plan-day-name\{[^}]*width:\s*34px/.test(css));
   ok('plan-day-row is block', /\.plan-day-row\{display:\s*block/.test(css));
+  ok('plan-day-row own border tile', /\.plan-day-row\{[^}]*border:\s*1px solid/.test(css) && /\.plan-day-row\{[^}]*border-radius/.test(css));
   ok('plan-ex-line exists', css.includes('.plan-ex-line'));
   ok('expanded card spans grid', css.includes('.plan-card.is-open'));
   ok('preview helper exists', builder.includes('function planDayPreviewHtml'));
@@ -197,7 +198,9 @@ const SAMPLE_PLAN = {
       button: (document.getElementById('plan-toggle-plan-fbw-rado') || {}).textContent,
       visibleText: (detail || {}).innerText || '',
       boxes,
-      overlaps
+      overlaps,
+      rowGap: rows.length >= 2 ? (rows[1].getBoundingClientRect().top - rows[0].getBoundingClientRect().bottom) : 0,
+      rowBorder: rows[0] ? getComputedStyle(rows[0]).borderTopWidth : '0'
     };
   });
 
@@ -216,6 +219,8 @@ const SAMPLE_PLAN = {
     ok('bench line visible', metrics.visibleText.includes('Wyciskanie sztangi leżąc'));
     ok('day B title visible', metrics.visibleText.includes('Dzień B – Full Body'));
     ok('two day rows', metrics.boxes.length >= 2);
+    ok('preview tiles have gap', metrics.rowGap >= 6, 'gap=' + metrics.rowGap);
+    ok('preview tile has border', parseFloat(metrics.rowBorder) >= 1, metrics.rowBorder);
     ok('day A has stacked exercises', (metrics.boxes[0].lines || []).length >= 4);
     ok('no overlapping preview text', overlaps.length === 0, overlaps.join('; '));
   }

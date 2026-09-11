@@ -1751,21 +1751,21 @@ function renderCPPlan(c){
             return `<button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();cpSetPlanWeek('${p.id}',${wi},'${c.id}')" style="border-color:${on?'var(--accent)':'var(--border)'};color:${on?'var(--accent)':'var(--muted)'};">${wi+1}. ${typeof escHtml==='function'?escHtml(ph):ph}</button>`;
           }).join('')}</div>`:''}
           <!-- dni treningowe -->
-          <div style="display:flex;flex-direction:column;gap:5px;">
+          <div class="cp-plan-days">
             ${(p.days||[]).map(d=>{
               const wk=p.currentWeek||(p.weekKeys&&p.weekKeys[0]);
               const exs=d.exercises||[];
               return `
-              <div style="background:var(--s3);border-radius:8px;padding:8px 10px;">
+              <div class="cp-plan-day-tile${d.rest?' is-rest':''}">
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:${d.rest||!exs.length?0:5}px;">
                   <span style="font-size:12px;font-family:'DM Mono',monospace;color:${d.rest?'var(--muted)':'var(--accent)'};font-weight:700;min-width:32px;">${d.day||d.dayName||'—'}</span>
                   <span style="font-size:14px;font-weight:600;color:${d.rest?'var(--muted)':'var(--text)'};">${d.rest?'Odpoczynek':(d.muscles||d.name||d.focus||'Trening')}</span>
                 </div>
-                ${!d.rest&&exs.length?`<div style="padding-left:12px;display:flex;flex-direction:column;gap:4px;">
+                ${!d.rest&&exs.length?`<div class="cp-plan-day-ex">
                   ${exs.map(e=>{
                     const v=typeof cpExWeekView==='function'?cpExWeekView(e,wk):{name:(e&&e.name)||e,sets:e&&e.sets,reps:e.reps,kg:e&&e.kg};
                     const meta=[v.sets&&v.reps?(v.sets+'×'+v.reps):'',v.kg?v.kg+' kg':''].filter(Boolean).join(' · ');
-                    return `<div style="font-size:12px;color:var(--text);background:var(--s2);border-radius:4px;padding:4px 8px;display:flex;justify-content:space-between;gap:8px;"><span>${typeof escHtml==='function'?escHtml(v.name||''):v.name}</span><span style="color:var(--muted);font-family:'DM Mono',monospace;white-space:nowrap;">${typeof escHtml==='function'?escHtml(meta):meta}</span></div>`;
+                    return `<div class="cp-plan-day-ex-row"><span>${typeof escHtml==='function'?escHtml(v.name||''):v.name}</span><span style="color:var(--muted);font-family:'DM Mono',monospace;white-space:nowrap;">${typeof escHtml==='function'?escHtml(meta):meta}</span></div>`;
                   }).join('')}
                 </div>`:''}
               </div>`;
