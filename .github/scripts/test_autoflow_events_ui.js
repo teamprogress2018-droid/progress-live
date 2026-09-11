@@ -35,16 +35,40 @@ function ok(name, cond, extra) {
     if (loading) loading.style.display = 'none';
     if (typeof goTo === 'function') goTo('automation');
     if (typeof setAutoTab === 'function') setAutoTab('autoflow');
+    if (typeof openM === 'function') openM('m-autoflow-builder');
+    const typeSel = document.getElementById('af-type');
+    if (typeSel) {
+      typeSel.value = 'trigger';
+      typeSel.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    if (typeof updateAfBuilderUi === 'function') updateAfBuilderUi();
+    const wrap = document.getElementById('af-trigger-wrap');
     const sel = document.getElementById('af-trigger');
-    const opts = sel ? [...sel.options].map(o => o.value) : [];
+    const opts = sel ? [...sel.options].map(o => ({ value: o.value, label: (o.textContent || '').trim() })) : [];
+    if (sel) sel.value = 'package.expired';
+    const afterPkg = sel && sel.value;
+    if (sel) sel.value = 'checkin.submitted';
+    const afterCi = sel && sel.value;
     const map = typeof autoflowTriggerForEvent === 'function' ? {
       pkg: autoflowTriggerForEvent('package.expired'),
       ci: autoflowTriggerForEvent('checkin.submitted')
     } : {};
-    return { opts, map, hasSel: !!sel };
+    return {
+      opts,
+      map,
+      hasSel: !!sel,
+      wrapDisplay: wrap ? wrap.style.display : '',
+      afterPkg,
+      afterCi,
+      modalShow: !!(document.getElementById('m-autoflow-builder') || {}).classList.contains('show')
+    };
   });
   await page.screenshot({ path: path.join(shotDir, 'autoflow_triggers.png') });
-  ok('trigger options', ui.opts.indexOf('package.expired') >= 0 && ui.opts.indexOf('checkin.submitted') >= 0, JSON.stringify(ui.opts));
+  ok('trigger options', ui.opts.some((o) => o.value === 'package.expired') && ui.opts.some((o) => o.value === 'checkin.submitted'), JSON.stringify(ui.opts));
+  ok('legacy triggers', ['inactivity', 'session_today', 'new_client'].every((v) => ui.opts.some((o) => o.value === v)), JSON.stringify(ui.opts));
+  ok('builder opens', ui.modalShow && ui.wrapDisplay === 'block', JSON.stringify({ modal: ui.modalShow, wrap: ui.wrapDisplay }));
+  ok('can select package', ui.afterPkg === 'package.expired');
+  ok('can select checkin', ui.afterCi === 'checkin.submitted');
   ok('event map', ui.map.pkg === 'package.expired' && ui.map.ci === 'checkin.submitted', JSON.stringify(ui.map));
 
   await browser.close();
