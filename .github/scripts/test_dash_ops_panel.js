@@ -30,12 +30,12 @@ function ok(name,cond){
 }
 
 ok('kpi row',html.includes('id="d-kpi-row"')&&html.includes('id="d-reports"')&&html.includes('id="d-expiring"'));
-ok('ops sections',html.includes('id="dash-ops-attention"')&&html.includes('id="dash-ops-reports"')&&html.includes('id="dash-ops-activity"')&&html.includes('id="dash-ops-pay"')&&html.includes('id="dash-ops-reminders"'));
-ok('reminders subtitle packages only',/id="dash-ops-reminders"[\s\S]{0,280}Wygasające pakiety/.test(html)&&!html.includes('Raporty i pakiety'));
+ok('ops sections',html.includes('id="dash-ops-attention"')&&html.includes('id="dash-ops-reports"')&&html.includes('id="dash-ops-activity"')&&html.includes('id="dash-ops-pay"')&&!html.includes('id="dash-ops-reminders"'));
+ok('packages only in pay card',html.includes('Płatności do odnowienia')&&html.includes('id="d-ops-expiring"')&&!html.includes('Brak nadchodzących terminów')&&!html.includes('Raporty i pakiety'));
 ok('today plan',html.includes('Dzisiejszy plan')&&html.includes('id="d-today-sessions"'));
 ok('quick actions',html.includes('id="dash-qa-btn"')&&html.includes('id="dash-qa-menu"')&&html.includes("openM('m-broadcast')")&&html.includes("openM('m-invite')"));
 ok('ops css',css.includes('.dash-ops-grid')&&css.includes('.dash-qa-menu')&&css.includes('.dash-kpi-row'));
-ok('helpers',src04.includes('function dashOpsAttentionItems')&&src04.includes('function dashOpsRecentReports')&&src04.includes('function dashOpsExpiringPackages')&&src04.includes('function dashOpsRecentActivity')&&src04.includes('function renderDashOps')&&src04.includes('function collectOpsEvents'));
+ok('no duplicate reminders card',!src04.includes('d-ops-reminders')&&!src04.includes('Brak nadchodzących terminów'));
 ok('list collapse',src04.includes('function dashListSection')&&src04.includes('DASH_LIST_PREVIEW=2')&&src04.includes('function toggleDashListExpand')&&css.includes('.dash-list-more'));
 ok('legacy followups gone',!html.includes('dash-checkin-followup')&&!html.includes('dash-form-followup')&&!html.includes('dash-pay-followup')&&!html.includes('dash-hw-followup')&&!html.includes('dash-msg-followup')&&!html.includes('dash-habit-followup')&&!html.includes('id="dash-cal-refill"')&&!html.includes('dash-photo-followup')&&src04.includes('function refreshDashOps')&&!src04.includes("'dash-checkin':renderDashCheckinFollowup"));
 ok('kpi first + dense css',html.indexOf('id="d-kpi-row"')<html.indexOf('id="dash-client-pipeline"')&&css.includes('.dash-kpi-body')&&css.includes('#screen-dashboard .dash-content'));
@@ -147,7 +147,7 @@ vm.runInNewContext(
 );
 ok('dashListSection preview 2','manual');
 
-ok('cache bumps',html.includes('04-client-portal.js?v=46')&&html.includes('styles.css?v=80'));
+ok('cache bumps',html.includes('04-client-portal.js?v=47')&&html.includes('styles.css?v=80'));
 ok('CI ui',fs.readFileSync(path.join(root,'.github','workflows','check.yml'),'utf8').includes('test_dash_followup_gone_ui.js'));
 
 if(failed){console.error('\n'+failed+' failed');process.exit(1);}

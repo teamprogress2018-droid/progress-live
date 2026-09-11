@@ -34,7 +34,7 @@ ok('progress tiles', /Wiek met\./.test(src08) && /Nawodn\./.test(src08) && /Fizy
 ok('index migrate groups', html.includes('migrateEnsureMetricGroups'));
 ok('cache 07', html.includes('07-forms-metrics-calculator.js?v=33'));
 ok('cache 08', html.includes('08-client-profile-extras.js?v=54'));
-ok('cache 04', html.includes('04-client-portal.js?v=46'));
+ok('cache 04', html.includes('04-client-portal.js?v=47'));
 ok('CI unit', wf.includes('test_mass_inbody_metrics.js'));
 ok('CI ui', wf.includes('test_mass_inbody_ui.js'));
 

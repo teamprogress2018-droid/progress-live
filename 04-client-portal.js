@@ -5938,7 +5938,6 @@ function renderDashOps(){
   const repEl=document.getElementById('d-ops-reports');
   const actEl=document.getElementById('d-ops-activity');
   const expEl=document.getElementById('d-ops-expiring');
-  const remEl=document.getElementById('d-ops-reminders');
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s??''));
 
   if(attEl){
@@ -6019,17 +6018,6 @@ function renderDashOps(){
         <button class="btn btn-primary btn-sm" onclick="openClientProfile('${esc(p.clientId)}');setTimeout(()=>{if(typeof setCPTab==='function')setCPTab('payments');},150)">Odnów</button>
       </div>`;
     },`<div class="dash-ops-empty">Żaden pakiet nie wygasa w ciągu 7 dni.</div>`);
-  }
-
-  if(remEl){
-    const rem=dashOpsReminders();
-    remEl.innerHTML=dashListSection('dash-reminders',rem,r=>`<div class="dash-ops-item">
-      <span class="dash-ops-tag" style="background:${r.col}22;color:${r.col};">!</span>
-      <div class="dash-ops-item-body">
-        <div class="dash-ops-item-title">${esc(r.txt)}</div>
-        <div class="dash-ops-item-meta">${esc(r.meta)}</div>
-      </div>
-    </div>`,`<div class="dash-ops-empty">Brak nadchodzących terminów.</div>`);
   }
 }
 window.dashOpsExpiringPackages=dashOpsExpiringPackages;
