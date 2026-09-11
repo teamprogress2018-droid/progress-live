@@ -2603,7 +2603,7 @@ function liveNewSlotState(){
     clientId:null,planId:null,currentDayIdx:0,sessionActive:false,
     timerSec:0,timerInterval:null,restSec:0,restInterval:null,
     exercises:[],feedbackVal:0,emomClock:{},savedClientId:null,savedClientName:'',
-    periodWeekOverride:null
+    periodWeekOverride:null,draftSessionId:null,draftRemoteSets:-1,draftCreatedAt:null
   };
 }
 var liveB=liveNewSlotState();
@@ -2631,7 +2631,13 @@ function liveRef(slot){
     get savedClientName(){return window._liveSavedClientName;},
     set savedClientName(v){window._liveSavedClientName=v;},
     get periodWeekOverride(){return window._livePeriodWeekOverride;},
-    set periodWeekOverride(v){window._livePeriodWeekOverride=v;}
+    set periodWeekOverride(v){window._livePeriodWeekOverride=v;},
+    get draftSessionId(){return window._liveDraftSessionId||null;},
+    set draftSessionId(v){window._liveDraftSessionId=v||null;},
+    get draftRemoteSets(){return window._liveDraftRemoteSets==null?-1:window._liveDraftRemoteSets;},
+    set draftRemoteSets(v){window._liveDraftRemoteSets=v;},
+    get draftCreatedAt(){return window._liveDraftCreatedAt||null;},
+    set draftCreatedAt(v){window._liveDraftCreatedAt=v||null;}
   };
 }
 function liveEl(id,slot){
@@ -2684,28 +2690,195 @@ function liveBindSessionButtons(slot){
   livePaintTimer(n);
 }
 
-function liveSaveDraft(slot){
+function liveSaveDraft(slot,opts){
   const n=liveN(slot);
   const st=liveRef(n);
   if(!st.clientId&&!(st.exercises||[]).length)return;
+  const payload=liveDraftPayload(n);
+  if(!payload)return;
   try{
-    localStorage.setItem(LIVE_DRAFT_KEYS[n],JSON.stringify({
-      clientId:st.clientId,
-      planId:st.planId,
-      dayIdx:st.currentDayIdx,
-      exercises:st.exercises,
-      sessionActive:st.sessionActive,
-      timerSec:st.timerSec,
-      feedback:st.feedbackVal,
-      note:liveEl('live-note',n)?.value||'',
-      savedAt:Date.now()
-    }));
+    localStorage.setItem(LIVE_DRAFT_KEYS[n],JSON.stringify(payload));
   }catch(e){}
+  liveDraftIdbPut(LIVE_DRAFT_KEYS[n],payload);
+  if(opts&&opts.remote&&st.sessionActive&&st.clientId)livePersistDraftRemote(n,!!opts.force);
 }
 
-function liveClearDraft(slot){
-  try{localStorage.removeItem(LIVE_DRAFT_KEYS[liveN(slot)]);}catch(e){}
+function liveDraftPayload(slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  if(!st.clientId&&!(st.exercises||[]).length)return null;
+  return {
+    clientId:st.clientId,
+    planId:st.planId,
+    dayIdx:st.currentDayIdx,
+    exercises:st.exercises,
+    sessionActive:st.sessionActive,
+    timerSec:st.timerSec,
+    feedback:st.feedbackVal,
+    note:liveEl('live-note',n)?.value||'',
+    savedAt:Date.now(),
+    draftId:st.draftSessionId||null,
+    slot:n
+  };
 }
+
+const LIVE_DRAFT_REMOTE_EVERY=3;
+const LIVE_DRAFT_IDB_NAME='pl_live_drafts';
+const LIVE_DRAFT_IDB_STORE='drafts';
+
+function liveShouldPersistDraftRemote(setsDone,lastPersisted,force){
+  if(force)return true;
+  const n=Number(setsDone)||0;
+  const last=lastPersisted==null||lastPersisted===''?-1:Number(lastPersisted);
+  if(!Number.isFinite(last)||last<0)return true;
+  return n>=last+LIVE_DRAFT_REMOTE_EVERY;
+}
+
+function liveDraftIdbOpen(){
+  return new Promise((resolve,reject)=>{
+    if(typeof indexedDB==='undefined'||!indexedDB){reject(new Error('no-idb'));return;}
+    const req=indexedDB.open(LIVE_DRAFT_IDB_NAME,1);
+    req.onupgradeneeded=()=>{
+      const db=req.result;
+      if(!db.objectStoreNames.contains(LIVE_DRAFT_IDB_STORE))db.createObjectStore(LIVE_DRAFT_IDB_STORE);
+    };
+    req.onsuccess=()=>resolve(req.result);
+    req.onerror=()=>reject(req.error||new Error('idb-open'));
+  });
+}
+function liveDraftIdbPut(key,payload){
+  liveDraftIdbOpen().then(db=>{
+    const tx=db.transaction(LIVE_DRAFT_IDB_STORE,'readwrite');
+    tx.objectStore(LIVE_DRAFT_IDB_STORE).put(payload,key);
+    tx.oncomplete=()=>{try{db.close();}catch(e){}};
+  }).catch(()=>{});
+}
+function liveDraftIdbGet(key){
+  return liveDraftIdbOpen().then(db=>new Promise((resolve,reject)=>{
+    const tx=db.transaction(LIVE_DRAFT_IDB_STORE,'readonly');
+    const req=tx.objectStore(LIVE_DRAFT_IDB_STORE).get(key);
+    req.onsuccess=()=>{try{db.close();}catch(e){} resolve(req.result||null);};
+    req.onerror=()=>{try{db.close();}catch(e){} reject(req.error);};
+  })).catch(()=>null);
+}
+function liveDraftIdbDel(key){
+  liveDraftIdbOpen().then(db=>{
+    const tx=db.transaction(LIVE_DRAFT_IDB_STORE,'readwrite');
+    tx.objectStore(LIVE_DRAFT_IDB_STORE).delete(key);
+    tx.oncomplete=()=>{try{db.close();}catch(e){}};
+  }).catch(()=>{});
+}
+
+function livePersistDraftRemote(slot,force){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  if(!st.sessionActive||!st.clientId)return;
+  const setsDone=typeof liveProgressStats==='function'?liveProgressStats(st.exercises).setsDone:0;
+  if(!liveShouldPersistDraftRemote(setsDone,st.draftRemoteSets,force))return;
+  if(!st.draftSessionId)st.draftSessionId=typeof newId==='function'?newId('s'):('s_'+Date.now().toString(36));
+  if(!st.draftCreatedAt)st.draftCreatedAt=new Date().toISOString();
+  const c=(window.CL||[]).find(x=>x&&x.id===st.clientId);
+  const stats=typeof liveProgressStats==='function'?liveProgressStats(st.exercises):{volume:0,setsDone:0};
+  const sess=(typeof withTrainer==='function'?withTrainer:x=>x)({
+    id:st.draftSessionId,
+    clientId:st.clientId,
+    date:(typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10)),
+    time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),
+    type:'Trening personalny',
+    duration:Math.max(0,Math.round((st.timerSec||0)/60)),
+    exercises:st.exercises||[],
+    volume:stats.volume||0,
+    feedback:st.feedbackVal,
+    note:liveEl('live-note',n)?.value||'',
+    source:'live-draft',
+    planId:st.planId||null,
+    dayIdx:st.planId!=null?st.currentDayIdx:null,
+    draftSlot:n,
+    timerSec:st.timerSec||0,
+    sessionActive:true,
+    savedAt:Date.now(),
+    createdAt:st.draftCreatedAt,
+    updatedAt:new Date().toISOString()
+  });
+  const list=window.SE||(window.SE=[]);
+  const i=list.findIndex(s=>s&&s.id===sess.id);
+  if(i>=0)list[i]=sess;else list.push(sess);
+  st.draftRemoteSets=setsDone;
+  if(typeof persistById==='function'){
+    try{const p=persistById('sessions',sess);if(p&&typeof p.catch==='function')p.catch(()=>{});}catch(e){}
+  }
+  try{localStorage.setItem(LIVE_DRAFT_KEYS[n],JSON.stringify(Object.assign(liveDraftPayload(n)||{},{draftId:st.draftSessionId})));}catch(e){liveDraftIdbPut(LIVE_DRAFT_KEYS[n],liveDraftPayload(n));}
+}
+
+function liveDeleteDraftRemote(id){
+  if(!id)return;
+  const list=window.SE||[];
+  const i=list.findIndex(s=>s&&s.id===id&&s.source==='live-draft');
+  if(i>=0)list.splice(i,1);
+  if(window._db&&typeof window._del==='function'&&typeof window._doc==='function'){
+    try{window._del(window._doc(window._db,'sessions',id));}catch(e){}
+  }
+}
+
+function liveClearDraft(slot,opts){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  try{localStorage.removeItem(LIVE_DRAFT_KEYS[n]);}catch(e){}
+  liveDraftIdbDel(LIVE_DRAFT_KEYS[n]);
+  if(!(opts&&opts.keepRemote)&&st.draftSessionId)liveDeleteDraftRemote(st.draftSessionId);
+  st.draftSessionId=null;
+  st.draftRemoteSets=-1;
+  st.draftCreatedAt=null;
+}
+
+function liveReadLsDraft(key){
+  try{
+    const raw=localStorage.getItem(key);
+    if(!raw)return null;
+    const draft=JSON.parse(raw);
+    if(!draft.clientId||Date.now()-(draft.savedAt||0)>7*24*60*60*1000){
+      try{localStorage.removeItem(key);}catch(e){}
+      return null;
+    }
+    if(!(window.CL||[]).find(x=>x&&x.id===draft.clientId)){
+      try{localStorage.removeItem(key);}catch(e){}
+      return null;
+    }
+    return draft;
+  }catch(e){return null;}
+}
+
+function liveReadSeDraft(slot){
+  const n=liveN(slot);
+  const list=(window.SE||[]).filter(s=>s&&s.source==='live-draft'&&(s.draftSlot==null||s.draftSlot===n))
+    .sort((a,b)=>(b.savedAt||0)-(a.savedAt||0)||String(b.updatedAt||'').localeCompare(String(a.updatedAt||'')));
+  const s=list[0];
+  if(!s||!s.clientId)return null;
+  if(!(window.CL||[]).find(x=>x&&x.id===s.clientId))return null;
+  if(s.savedAt&&Date.now()-s.savedAt>7*24*60*60*1000)return null;
+  return {
+    clientId:s.clientId,planId:s.planId,dayIdx:s.dayIdx,exercises:s.exercises||[],
+    sessionActive:s.sessionActive!==false,timerSec:s.timerSec||0,feedback:s.feedback||0,
+    note:s.note||'',savedAt:s.savedAt||Date.now(),draftId:s.id,slot:n
+  };
+}
+
+function liveBindDraftFlush(){
+  if(window._liveDraftFlushBound)return;
+  window._liveDraftFlushBound=true;
+  const flush=()=>{
+    [0,1].forEach(n=>{
+      try{if(liveRef(n).sessionActive)liveSaveDraft(n,{remote:true,force:true});}catch(e){}
+    });
+  };
+  try{window.addEventListener('pagehide',flush);}catch(e){}
+  try{document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flush();});}catch(e){}
+}
+
+window.liveShouldPersistDraftRemote=liveShouldPersistDraftRemote;
+window.liveSaveDraft=liveSaveDraft;
+window.livePersistDraftRemote=livePersistDraftRemote;
+window.liveDraftPayload=liveDraftPayload;
 
 function liveApplyDraft(slot,draft){
   const n=liveN(slot);
@@ -2719,6 +2892,9 @@ function liveApplyDraft(slot,draft){
   st.sessionActive=!!draft.sessionActive;
   st.timerSec=draft.timerSec||0;
   st.feedbackVal=draft.feedback||0;
+  st.draftSessionId=draft.draftId||st.draftSessionId||null;
+  st.draftCreatedAt=draft.createdAt||st.draftCreatedAt||null;
+  if(st.sessionActive)st.draftRemoteSets=typeof liveProgressStats==='function'?liveProgressStats(st.exercises).setsDone:-1;
   const noteEl=liveEl('live-note',n);
   if(noteEl)noteEl.value=draft.note||'';
   liveClientSetField(draft.clientId,c.name,true,n);
@@ -2730,28 +2906,10 @@ function liveApplyDraft(slot,draft){
   return true;
 }
 
-function liveTryRecoverDraft(){
-  const read=key=>{
-    try{
-      const raw=localStorage.getItem(key);
-      if(!raw)return null;
-      const draft=JSON.parse(raw);
-      if(!draft.clientId||Date.now()-(draft.savedAt||0)>7*24*60*60*1000){
-        try{localStorage.removeItem(key);}catch(e){}
-        return null;
-      }
-      if(!CL.find(x=>x.id===draft.clientId)){
-        try{localStorage.removeItem(key);}catch(e){}
-        return null;
-      }
-      return draft;
-    }catch(e){return null;}
-  };
-  const d0=read(LIVE_DRAFT_KEYS[0]);
-  const d1=read(LIVE_DRAFT_KEYS[1]);
+function livePromptRecoverDrafts(d0,d1){
   if(!d0&&!d1)return false;
   const nameOf=d=>{
-    const c=CL.find(x=>x.id===d.clientId);
+    const c=(window.CL||[]).find(x=>x&&x.id===d.clientId);
     return c?c.name:'klient';
   };
   if(d0&&d1){
@@ -2766,7 +2924,7 @@ function liveTryRecoverDraft(){
   }
   const n=d0?0:1;
   const d=d0||d1;
-  const c=CL.find(x=>x.id===d.clientId);
+  const c=(window.CL||[]).find(x=>x&&x.id===d.clientId);
   if(!confirm('Masz niedokończoną sesję treningową ('+(c?c.name:'klient')+'). Wznowić?')){
     liveClearDraft(n);return false;
   }
@@ -2774,6 +2932,33 @@ function liveTryRecoverDraft(){
   liveApplyDraft(n,d);
   notify('Sesja wznowiona z kopii zapasowej');
   return true;
+}
+
+function liveTryRecoverDraft(){
+  const d0=liveReadLsDraft(LIVE_DRAFT_KEYS[0]);
+  const d1=liveReadLsDraft(LIVE_DRAFT_KEYS[1]);
+  if(d0||d1)return livePromptRecoverDrafts(d0,d1);
+  return false;
+}
+
+function liveTryRecoverDraftAsync(){
+  Promise.all([
+    liveDraftIdbGet(LIVE_DRAFT_KEYS[0]),
+    liveDraftIdbGet(LIVE_DRAFT_KEYS[1])
+  ]).then(([idb0,idb1])=>{
+    if(liveAnySessionActive())return;
+    const fresh=d=>{
+      if(!d||!d.clientId)return null;
+      if(Date.now()-(d.savedAt||0)>7*24*60*60*1000)return null;
+      if(!(window.CL||[]).find(x=>x&&x.id===d.clientId))return null;
+      return d;
+    };
+    const d0=fresh(idb0)||liveReadSeDraft(0);
+    const d1=fresh(idb1)||liveReadSeDraft(1);
+    if(!d0&&!d1)return;
+    livePromptRecoverDrafts(d0,d1);
+    liveSyncFloorUi();
+  }).catch(()=>{});
 }
 
 function liveSyncFloorUi(){
@@ -2819,8 +3004,10 @@ function liveToggleDual(){
 window.liveToggleDual=liveToggleDual;
 
 function initLive(){
+  liveBindDraftFlush();
   try{if(sessionStorage.getItem('pl_live_dual')==='1')liveDual=true;}catch(e){}
   const recovered=liveTryRecoverDraft();
+  if(!recovered)liveTryRecoverDraftAsync();
   liveSyncFloorUi();
   [0,1].forEach(slot=>{
     const st=liveRef(slot);
@@ -3554,7 +3741,7 @@ function liveToggleSet(ei,si,slot){
   }else{
     ex.done=false;
   }
-  liveSaveDraft(n);
+  liveSaveDraft(n,{remote:true});
   renderLiveExercises(n);
 }
 
@@ -3765,7 +3952,9 @@ function liveStartSession(slot){
   liveBindSessionButtons(n);
   liveSyncFloorUi();
   notify(n===1?'▶ Sesja osoby 2 rozpoczęta!':'▶ Sesja rozpoczęta!');
-  liveSaveDraft(n);
+  st.draftRemoteSets=-1;
+  st.draftCreatedAt=st.draftCreatedAt||new Date().toISOString();
+  liveSaveDraft(n,{remote:true,force:true});
   renderLiveExercises(n);
 }
 
@@ -3780,12 +3969,14 @@ function liveEndSession(slot){
   if(!confirm(msg))return;
   clearInterval(st.timerInterval);
   st.sessionActive=false;
-  liveClearDraft(n);
+  const draftId=st.draftSessionId;
+  const draftCreated=st.draftCreatedAt;
+  liveClearDraft(n,{keepRemote:true});
   const c=CL.find(x=>x.id===st.clientId);
   const volume=stats.volume;
   const durationMin=Math.round(st.timerSec/60);
   const newSession=withTrainer({
-    id:newId('s'),
+    id:draftId||newId('s'),
     clientId:st.clientId,
     date:(typeof todayYmd==='function'?todayYmd():(typeof dateStr==='function'?dateStr(new Date()):dateStrLocal(new Date()))),
     time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),
@@ -3801,9 +3992,11 @@ function liveEndSession(slot){
     source:'live',
     planId:st.planId||null,
     dayIdx:st.planId!=null?st.currentDayIdx:null,
-    createdAt:new Date().toISOString()
+    createdAt:draftCreated||new Date().toISOString(),
+    updatedAt:new Date().toISOString()
   });
-  SE.push(newSession);
+  const ix=SE.findIndex(s=>s&&s.id===newSession.id);
+  if(ix>=0)SE[ix]=newSession;else SE.push(newSession);
   persistById('sessions',newSession);
   LIVE_HISTORY.unshift({...newSession,clientName:c?.name||'Klient'});
   const pkg=(window.PACKAGES||[]).filter(p=>p.clientId===st.clientId&&p.payStatus==='paid'&&(p.sessionsUsed||0)<(p.sessions||0)&&p.payStatus!=='expired'&&!(typeof clientPackageExpired==='function'&&clientPackageExpired(p)))

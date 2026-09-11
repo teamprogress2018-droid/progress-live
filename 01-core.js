@@ -3308,7 +3308,7 @@ function lastLoadForExercise(clientId,name,aliases){
     if(e.plannedName&&keys.has(exerciseNameKey(e.plannedName)))return true;
     return String(e.alt||'').split(/[,;/]/).some(a=>keys.has(exerciseNameKey(a)));
   };
-  const sessions=(window.SE||[]).filter(s=>s&&s.clientId===clientId&&Array.isArray(s.exercises)&&s.source!=='planned')
+  const sessions=(window.SE||[]).filter(s=>s&&s.clientId===clientId&&Array.isArray(s.exercises)&&s.source!=='planned'&&s.source!=='live-draft')
     .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''));
   let nSessions=0;
   let found=null;
@@ -3748,9 +3748,14 @@ function sessionRatingLabel(n){
 }
 window.sessionRatingLabel=sessionRatingLabel;
 
+function isLiveDraftSession(s){
+  return !!(s&&s.source==='live-draft');
+}
+window.isLiveDraftSession=isLiveDraftSession;
+
 function isLoggedWorkout(s){
   if(!s)return false;
-  if(s.source==='planned'||s.source==='garmin')return false;
+  if(s.source==='planned'||s.source==='garmin'||s.source==='live-draft')return false;
   if(s.source==='client'||s.source==='live'||s.source==='sala'||s.source==='homework')return true;
   return Array.isArray(s.exercises)&&s.exercises.length>0;
 }
@@ -4079,6 +4084,7 @@ function sessionSourceLabel(s){
   if(s.source==='live')return 'Live';
   if(s.source==='sala')return 'Sala';
   if(s.source==='planned')return 'Plan';
+  if(s.source==='live-draft')return 'Szkic Live';
   return 'Sala';
 }
 window.sessionSourceLabel=sessionSourceLabel;
