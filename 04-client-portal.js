@@ -3741,7 +3741,7 @@ function saveCheckinFill(id){
   renderCIDetail(id);
   renderCheckinSummary(id);
   renderCheckinClientList();
-  try{if(typeof renderDashCheckinFollowup==='function')renderDashCheckinFollowup();}catch(e){}
+  try{if(typeof refreshDashOps==='function')refreshDashOps();}catch(e){}
   notify('✓ Check-in zapisany za klienta');
   const c=CL.find(x=>x.id===id);
   addNotification('task','Check-in (wpisany przez Ciebie)',(c?c.name:'Klient'),'checkin');
@@ -3752,7 +3752,7 @@ function sendCheckinTo(id){
   if(filledThisWeek(id)&&!pendingCheckin(id)){
     pushMsg(id,checkinChatText(c&&c.name,'Hej {imie}! Check-in z tego tygodnia już jest — dziękuję 💪'));
     notify('Ten klient już wypełnił check-in w tym tygodniu — przypomnienie poszło w czacie');
-    try{if(typeof renderDashCheckinFollowup==='function')renderDashCheckinFollowup();}catch(e){}
+    try{if(typeof refreshDashOps==='function')refreshDashOps();}catch(e){}
     return;
   }
   ensurePendingCheckin(id);
@@ -3760,7 +3760,7 @@ function sendCheckinTo(id){
   notify('✓ Check-in wysłany do '+(c?c.name:'klienta')+' (czat + oczekujący formularz)');
   renderCheckinClientList();
   if(ciActiveClient===id)renderCIDetail(id);
-  try{if(typeof renderDashCheckinFollowup==='function')renderDashCheckinFollowup();}catch(e){}
+  try{if(typeof refreshDashOps==='function')refreshDashOps();}catch(e){}
 }
 
 function sendCheckin(){
@@ -3786,7 +3786,7 @@ function sendCheckin(){
   notify('✓ Check-in wysłany do '+targets.length+' klientów (czat + oczekujący formularz)');
   renderCheckinClientList();
   if(ciActiveClient)renderCIDetail(ciActiveClient);
-  try{if(typeof renderDashCheckinFollowup==='function')renderDashCheckinFollowup();}catch(e){}
+  try{if(typeof refreshDashOps==='function')refreshDashOps();}catch(e){}
 }
 
 function replyToCheckin(id){
@@ -5718,15 +5718,6 @@ function renderDash(){
   renderDashGettingStarted();
   renderDashClientPipeline();
   renderProfileSetupBanner();
-  // legacy followupy — elementy ukryte, ale odświeżamy na wypadek innych ekranów
-  try{renderDashCheckinFollowup();}catch(e){}
-  try{renderDashFormFollowup();}catch(e){}
-  try{renderDashPayFollowup();}catch(e){}
-  try{renderDashHwFollowup();}catch(e){}
-  try{renderDashMsgFollowup();}catch(e){}
-  try{renderDashHabitFollowup();}catch(e){}
-  try{renderDashCalRefillFollowup();}catch(e){}
-  try{renderDashPhotoFollowup();}catch(e){}
 }
 
 function toggleDashQuickActions(evOrClose){
@@ -5765,15 +5756,7 @@ function toggleDashListExpand(listId){
   window._dashListExpanded[listId]=!window._dashListExpanded[listId];
   const rerender={
     'dash-pipeline':renderDashClientPipeline,
-    'dash-today':renderDashToday,
-    'dash-checkin':renderDashCheckinFollowup,
-    'dash-form':renderDashFormFollowup,
-    'dash-pay':renderDashPayFollowup,
-    'dash-hw':renderDashHwFollowup,
-    'dash-msg':renderDashMsgFollowup,
-    'dash-habit':renderDashHabitFollowup,
-    'dash-cal-refill':renderDashCalRefillFollowup,
-    'dash-photo':renderDashPhotoFollowup
+    'dash-today':renderDashToday
   };
   if(rerender[listId])rerender[listId]();
   else renderDashOps();
@@ -6043,6 +6026,21 @@ window.invalidateOpsEventsCache=invalidateOpsEventsCache;
 window.dashOpsRecentActivity=dashOpsRecentActivity;
 window.renderDashOps=renderDashOps;
 
+function refreshDashOps(){
+  try{if(typeof invalidateOpsEventsCache==='function')invalidateOpsEventsCache();}catch(e){}
+  try{if(typeof renderDashOps==='function')renderDashOps();}catch(e){}
+  try{if(typeof updateInboxNavBadge==='function')updateInboxNavBadge();}catch(e){}
+}
+window.refreshDashOps=refreshDashOps;
+window.renderDashCheckinFollowup=refreshDashOps;
+window.renderDashFormFollowup=refreshDashOps;
+window.renderDashPayFollowup=refreshDashOps;
+window.renderDashHwFollowup=refreshDashOps;
+window.renderDashMsgFollowup=refreshDashOps;
+window.renderDashHabitFollowup=refreshDashOps;
+window.renderDashCalRefillFollowup=refreshDashOps;
+window.renderDashPhotoFollowup=refreshDashOps;
+
 function dismissProfileSetupBanner(){
   try{localStorage.setItem('pl_profile_prompt','1');}catch(e){}
   renderProfileSetupBanner();
@@ -6149,54 +6147,6 @@ function renderDashClientPipeline(){
   </div>`;
 }
 window.renderDashClientPipeline=renderDashClientPipeline;
-
-function renderDashCheckinFollowup(){
-  const el=document.getElementById('dash-checkin-followup');if(!el)return;
-  el.style.display='none';el.innerHTML='';
-}
-window.renderDashCheckinFollowup=renderDashCheckinFollowup;
-
-function renderDashFormFollowup(){
-  const el=document.getElementById('dash-form-followup');if(!el)return;
-  el.style.display='none';el.innerHTML='';
-}
-window.renderDashFormFollowup=renderDashFormFollowup;
-function renderDashPayFollowup(){
-  const el=document.getElementById('dash-pay-followup');if(!el)return;
-  el.style.display='none';el.innerHTML='';
-}
-window.renderDashPayFollowup=renderDashPayFollowup;
-
-function renderDashHwFollowup(){
-  const el=document.getElementById('dash-hw-followup');if(!el)return;
-  el.style.display='none';el.innerHTML='';
-}
-window.renderDashHwFollowup=renderDashHwFollowup;
-
-function renderDashMsgFollowup(){
-  const el=document.getElementById('dash-msg-followup');if(!el)return;
-  el.style.display='none';el.innerHTML='';
-  try{if(typeof updateInboxNavBadge==='function')updateInboxNavBadge();}catch(e){}
-}
-window.renderDashMsgFollowup=renderDashMsgFollowup;
-
-function renderDashHabitFollowup(){
-  const el=document.getElementById('dash-habit-followup');if(!el)return;
-  el.style.display='none';el.innerHTML='';
-}
-window.renderDashHabitFollowup=renderDashHabitFollowup;
-
-function renderDashCalRefillFollowup(){
-  const el=document.getElementById('dash-cal-refill');if(!el)return;
-  el.style.display='none';el.innerHTML='';
-}
-window.renderDashCalRefillFollowup=renderDashCalRefillFollowup;
-
-function renderDashPhotoFollowup(){
-  const el=document.getElementById('dash-photo-followup');if(!el)return;
-  el.style.display='none';el.innerHTML='';
-}
-window.renderDashPhotoFollowup=renderDashPhotoFollowup;
 
 function renderDashMiniCal(){
   const el=document.getElementById('d-mini-cal');if(!el)return;
@@ -6419,7 +6369,7 @@ function renderDashTasks(){
   const today=dateStr(new Date());
   const tomorrow=dateStr(new Date(new Date().getFullYear(),new Date().getMonth(),new Date().getDate()+1));
 
-  // Nawyki/wyzwania są na karcie dash-habit-followup (Przypomnij) — tu tylko one-shot / homework
+  // Nawyki/wyzwania są w apce klienta i zadaniach — tu tylko one-shot / homework
   const live=new Set((window.CL||[]).filter(c=>c&&c.status!=='archived').map(c=>c.id));
   const oneShot=TASKS.filter(t=>{
     if(!t||t.status==='done')return false;

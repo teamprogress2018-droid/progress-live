@@ -23,9 +23,8 @@ const src04=fs.readFileSync(path.join(root,'04-client-portal.js'),'utf8');
 const src10=fs.readFileSync(path.join(root,'10-client-app.js'),'utf8');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 
-if(!html.includes('id="dash-habit-followup"')){console.error('FAIL missing dash-habit-followup');process.exit(1);}
-if(!src04.includes('function renderDashHabitFollowup')){console.error('FAIL missing renderDashHabitFollowup');process.exit(1);}
-if(!src04.includes('renderDashHabitFollowup()')){console.error('FAIL renderDash missing habit call');process.exit(1);}
+if(html.includes('id="dash-habit-followup"')){console.error('FAIL dead dash-habit-followup should be gone');process.exit(1);}
+if(!src04.includes('function refreshDashOps')){console.error('FAIL missing refreshDashOps');process.exit(1);}
 if(!src10.includes("setBadge('clive-bn-home'")){console.error('FAIL home habit badge missing');process.exit(1);}
 if(!src09.includes('function remindHabit')){console.error('FAIL missing remindHabit');process.exit(1);}
 

@@ -36,7 +36,7 @@ ok('quick actions',html.includes('id="dash-qa-btn"')&&html.includes('id="dash-qa
 ok('ops css',css.includes('.dash-ops-grid')&&css.includes('.dash-qa-menu')&&css.includes('.dash-kpi-row'));
 ok('helpers',src04.includes('function dashOpsAttentionItems')&&src04.includes('function dashOpsRecentReports')&&src04.includes('function dashOpsExpiringPackages')&&src04.includes('function dashOpsRecentActivity')&&src04.includes('function renderDashOps')&&src04.includes('function collectOpsEvents'));
 ok('list collapse',src04.includes('function dashListSection')&&src04.includes('DASH_LIST_PREVIEW=2')&&src04.includes('function toggleDashListExpand')&&css.includes('.dash-list-more'));
-ok('legacy followups stubbed',/function renderDashCheckinFollowup\(\)\{[\s\S]*?el\.style\.display='none'/.test(src04)&&src04.includes("'dash-checkin':renderDashCheckinFollowup"));
+ok('legacy followups gone',!html.includes('dash-checkin-followup')&&!html.includes('dash-form-followup')&&!html.includes('dash-pay-followup')&&!html.includes('dash-hw-followup')&&!html.includes('dash-msg-followup')&&!html.includes('dash-habit-followup')&&!html.includes('id="dash-cal-refill"')&&!html.includes('dash-photo-followup')&&src04.includes('function refreshDashOps')&&!src04.includes("'dash-checkin':renderDashCheckinFollowup"));
 ok('kpi first + dense css',html.indexOf('id="d-kpi-row"')<html.indexOf('id="dash-client-pipeline"')&&css.includes('.dash-kpi-body')&&css.includes('#screen-dashboard .dash-content'));
 ok('renderDash wires ops',src04.includes('renderDashOps()')&&src04.includes('dashOpsRecentReports()')&&src04.includes('dashOpsExpiringPackages(7)'));
 
@@ -146,7 +146,8 @@ vm.runInNewContext(
 );
 ok('dashListSection preview 2','manual');
 
-ok('cache bumps',html.includes('04-client-portal.js?v=44')&&html.includes('styles.css?v=79'));
+ok('cache bumps',html.includes('04-client-portal.js?v=45')&&html.includes('styles.css?v=79'));
+ok('CI ui',fs.readFileSync(path.join(root,'.github','workflows','check.yml'),'utf8').includes('test_dash_followup_gone_ui.js'));
 
 if(failed){console.error('\n'+failed+' failed');process.exit(1);}
 console.log('\nAll dash ops panel checks passed');

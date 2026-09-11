@@ -22,12 +22,11 @@ const src04=fs.readFileSync(path.join(root,'04-client-portal.js'),'utf8');
 const src10=fs.readFileSync(path.join(root,'10-client-app.js'),'utf8');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 
-if(!html.includes('id="dash-msg-followup"')){console.error('FAIL missing dash-msg-followup');process.exit(1);}
 if(!html.includes('id="nb-inbox"')){console.error('FAIL missing nb-inbox badge');process.exit(1);}
-if(!src04.includes('function renderDashMsgFollowup')){console.error('FAIL missing renderDashMsgFollowup');process.exit(1);}
-if(!src04.includes('renderDashMsgFollowup()')){console.error('FAIL renderDash does not call msg followup');process.exit(1);}
+if(html.includes('id="dash-msg-followup"')){console.error('FAIL dead dash-msg-followup should be gone');process.exit(1);}
+if(!src04.includes('function refreshDashOps')){console.error('FAIL missing refreshDashOps');process.exit(1);}
 if(!src06.includes('function clientsWithUnreadMsgs')){console.error('FAIL missing clientsWithUnreadMsgs');process.exit(1);}
-if(!src10.includes('renderDashMsgFollowup')){console.error('FAIL client send missing dash refresh');process.exit(1);}
+if(!src10.includes('refreshDashOps')&&!src10.includes('renderDashMsgFollowup')){console.error('FAIL client send missing dash refresh');process.exit(1);}
 
 const store={};
 const sandbox={
