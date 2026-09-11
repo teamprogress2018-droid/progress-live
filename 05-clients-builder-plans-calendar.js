@@ -1851,6 +1851,7 @@ window.dropPlannedSessionsFrom=dropPlannedSessionsFrom;
 function maybeSchedulePlanToCalendar(planId,opts){
   const plan=(window.PL||[]).find(p=>p.id===planId);
   if(!plan||!plan.clientId||typeof schedulePlanToCalendar!=='function')return 0;
+  if(!(opts&&opts.forceAccess)&&typeof assertClientPaidAccess==='function'&&!assertClientPaidAccess(plan.clientId))return 0;
   const client=(window.CL||[]).find(x=>x.id===plan.clientId);
   const pref=typeof normalizePreferredWeekdays==='function'
     ?normalizePreferredWeekdays(client&&client.preferredWeekdays)
@@ -1858,7 +1859,7 @@ function maybeSchedulePlanToCalendar(planId,opts){
   const weeks=(opts&&opts.weeks)||4;
   const forceConfirm=opts&&opts.forceConfirm;
   if(pref.length&&!forceConfirm){
-    const n=schedulePlanToCalendar(planId,{weeks,weekdays:pref});
+    const n=schedulePlanToCalendar(planId,{weeks,weekdays:pref,forceAccess:true});
     if(n>0){
       const labels=typeof preferredWeekdaysLabels==='function'?preferredWeekdaysLabels(pref).join('/'):pref.join(',');
       const time=typeof scheduleTimeFromClient==='function'?scheduleTimeFromClient(client,'18:00'):'18:00';
@@ -1867,7 +1868,7 @@ function maybeSchedulePlanToCalendar(planId,opts){
     return n;
   }
   const msg=(opts&&opts.confirmMsg)||'Dodać dni planu do kalendarza na najbliższe 4 tygodnie?';
-  if(confirm(msg))return schedulePlanToCalendar(planId,{weeks});
+  if(confirm(msg))return schedulePlanToCalendar(planId,{weeks,forceAccess:true});
   return 0;
 }
 window.maybeSchedulePlanToCalendar=maybeSchedulePlanToCalendar;

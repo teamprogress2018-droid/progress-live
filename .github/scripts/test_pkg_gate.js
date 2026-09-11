@@ -22,11 +22,12 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 01', html.includes('01-core.js?v=95'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=55'));
-ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=54'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=56'));
+ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=55'));
 ok('cache 08', html.includes('08-client-profile-extras.js?v=53'));
 ok('helpers', /function clientHasPaidAccess/.test(core) && /function setClientAccessMode/.test(core) && /function assertClientPaidAccess/.test(core));
 ok('schedule gate', /assertClientPaidAccess\(plan\.clientId\)/.test(src05));
+ok('maybe schedule gate', src05.slice(src05.indexOf('function maybeSchedulePlanToCalendar')).includes('assertClientPaidAccess(plan.clientId)'));
 ok('live start gate', /assertClientPaidAccess\(st\.clientId\)/.test(live));
 ok('live decrement paid only', /payStatus==='paid'/.test(live.slice(live.indexOf('function liveEndSession'))));
 ok('live banner', /live-pay-gate/.test(live) && /setClientAccessMode/.test(live));
