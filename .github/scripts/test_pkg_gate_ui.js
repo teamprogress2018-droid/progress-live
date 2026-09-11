@@ -81,12 +81,13 @@ function ok(name, cond, extra) {
   await page.evaluate(() => {
     setClientAccessMode('c-anna', 'standard');
     if (typeof goTo === 'function') goTo('live');
+    if (typeof liveClientSetField === 'function') liveClientSetField('c-anna', 'Anna Nowak', false, 0);
     const st = typeof liveRef === 'function' ? liveRef(0) : (window.LIVE && window.LIVE[0]);
     if (st) {
-      st.clientId = 'c-anna';
       st.exercises = [{ name: 'Przysiad', sets: [{ setNo: 1, kg: 40, reps: 8, done: false }] }];
     }
     if (typeof renderLiveClientCard === 'function') renderLiveClientCard(0);
+    if (typeof liveBindSessionButtons === 'function') liveBindSessionButtons(0);
     if (typeof liveStartSession === 'function') liveStartSession(0);
   });
   await page.waitForTimeout(300);

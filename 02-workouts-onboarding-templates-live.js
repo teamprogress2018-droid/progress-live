@@ -2913,6 +2913,7 @@ function liveLoadClient(slot){
   renderLiveClientCard(n);
   renderLivePlanPicker(n);
   renderLiveExercises(n);
+  if(typeof liveBindSessionButtons==='function')liveBindSessionButtons(n);
 }
 
 function renderLiveClientCard(slot){
