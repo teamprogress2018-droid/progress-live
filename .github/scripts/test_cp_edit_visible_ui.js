@@ -47,7 +47,10 @@ function ok(name, cond, extra) {
       preferredTrainTime: 'Rano (6-10)'
     }];
     window.SE = [];
-    window.PL = [];
+    window.PL = [{ id: 'pl-aga', clientId: 'c-aga', clientName: 'Agnieszka', name: 'FBW' }];
+    window.PACKAGES = [{ id: 'pk-aga', clientId: 'c-aga', clientName: 'Agnieszka', title: '10 sesji' }];
+    window.INVOICES = [{ id: 'inv-aga', pkgId: 'pk-aga', clientName: 'Agnieszka', amount: 1200 }];
+    window.ONBOARDING_FLOW = { history: [{ clientId: 'c-aga', clientName: 'Agnieszka', parts: 'ankieta' }] };
     window.TASKS = [];
     window.METRIC_ENTRIES = [];
     if (typeof openClientProfile === 'function') openClientProfile('c-aga');
@@ -93,13 +96,21 @@ function ok(name, cond, extra) {
     header: (document.getElementById('cp-name') || {}).textContent || '',
     client: (window.CL.find((x) => x.id === 'c-aga') || {}).name || '',
     formGone: !document.getElementById('cpe-name'),
-    rail: (document.querySelector('.cp-ov-rail') || {}).innerText || ''
+    rail: (document.querySelector('.cp-ov-rail') || {}).innerText || '',
+    planName: ((window.PL[0] || {}).clientName) || '',
+    pkgName: ((window.PACKAGES[0] || {}).clientName) || '',
+    invName: ((window.INVOICES[0] || {}).clientName) || '',
+    onbName: ((((window.ONBOARDING_FLOW || {}).history || [])[0] || {}).clientName) || ''
   }));
   await page.screenshot({ path: path.join(shotDir, 'cp_edit_saved.png') });
   ok('header updated with surname', after.header === 'Agnieszka Kowalska', after.header);
   ok('CL name updated', after.client === 'Agnieszka Kowalska', after.client);
   ok('form closed after save', after.formGone);
   ok('rail shows full name', /Agnieszka Kowalska/.test(after.rail), after.rail.slice(0, 200));
+  ok('plan cache renamed', after.planName === 'Agnieszka Kowalska', after.planName);
+  ok('package cache renamed', after.pkgName === 'Agnieszka Kowalska', after.pkgName);
+  ok('invoice cache renamed', after.invName === 'Agnieszka Kowalska', after.invName);
+  ok('onboard history renamed', after.onbName === 'Agnieszka Kowalska', after.onbName);
 
   await browser.close();
   if (failed) {

@@ -4896,6 +4896,36 @@ function assignTemplatePlanToClient(templateId,client,opts){
   if(typeof persistById==='function')persistById('plans',plan);
   return plan;
 }
+/** Cache `clientName` na planach / pakietach / fakturach / historii onboardingu — po zmianie imienia. */
+function syncClientNameCache(clientId,name){
+  const nm=String(name||'').trim();
+  if(!clientId||!nm)return{updated:0};
+  const persist=typeof persistById==='function'?persistById:function(){};
+  let updated=0;
+  function bump(col,rec){
+    if(!rec||rec.clientName===nm)return;
+    rec.clientName=nm;
+    updated++;
+    try{persist(col,rec);}catch(e){}
+  }
+  (window.PACKAGES||[]).forEach(p=>{if(p&&p.clientId===clientId)bump('packages',p);});
+  (window.PL||[]).forEach(p=>{if(p&&p.clientId===clientId)bump('plans',p);});
+  const pkgIds=new Set((window.PACKAGES||[]).filter(p=>p&&p.clientId===clientId).map(p=>p.id));
+  (window.INVOICES||[]).forEach(inv=>{
+    if(!inv)return;
+    if(inv.clientId===clientId||(inv.pkgId&&pkgIds.has(inv.pkgId)))bump('invoices',inv);
+  });
+  const flow=window.ONBOARDING_FLOW;
+  if(flow&&Array.isArray(flow.history)){
+    let hist=false;
+    flow.history.forEach(h=>{
+      if(h&&h.clientId===clientId&&h.clientName!==nm){h.clientName=nm;hist=true;updated++;}
+    });
+    if(hist)try{persist('onboardingFlows',flow);}catch(e){}
+  }
+  return{updated};
+}
+window.syncClientNameCache=syncClientNameCache;
 /**
  * Jednolity pipeline po dodaniu klienta (karta → ankieta → plan → kalendarz).
  * Relacje wyłącznie po clientId. Nie duplikuje karty w plans/sessions.
