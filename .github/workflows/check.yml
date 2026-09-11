@@ -96,6 +96,8 @@ jobs:
         run: node .github/scripts/test_live_dual.js
       - name: 1g2. Testy oznaczenia odbytego treningu w kalendarzu
         run: node .github/scripts/test_cal_session_done.js
+      - name: 1g2a. Testy odliczenia sesji pakietu (sala / Live)
+        run: node .github/scripts/test_sala_pkg_tick.js
       - name: 1g2b. Testy usuwania kart z kalendarza klienta
         run: node .github/scripts/test_cal_del_card.js
       - name: 1g2c. Testy kolumn nachodzących sesji w tygodniu

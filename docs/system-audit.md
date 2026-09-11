@@ -24,9 +24,9 @@ Stack: **vanilla JS + Firestore + GitHub Pages** (nie React/Next/Tailwind). Stan
 
 | Element | Powód |
 |---|---|
-| Check-in w „Przypomnieniach” *i* w „Wymagają uwagi” | Ten sam `getCIStatus` liczony dwa razy, dwa widgety. Check-in zostaje w Uwadze; przypomnienia = pakiety. |
+| Check-in w „Przypomnieniach” *i* w „Wymagają uwagi” | **Zrobione:** check-in tylko w Uwadze; Przypomnienia = pakiety (`collectOpsEvents`). |
 | Stare follow-upy dashboardu (`dash-checkin-followup` itd.) | **Zrobione:** HTML usunięty. Helpery (check-in, HW, nawyki, zdjęcia) zostają; odświeżanie idzie przez `refreshDashOps` → siatka operacyjna. |
-| `clientHasPackage` po `clientName` | Fałszywe trafienia przy tym samym imieniu. Tylko `clientId`. |
+| `clientHasPackage` po `clientName` | **Zrobione:** tylko `clientId`. |
 | Osobna kopia „Dzisiejszy plan” jako drugi kalendarz | Zostaje skrót z CTA „Kalendarz →”. Nie usuwać — to *dziś*, nie miesiąc. Kalendarz: „Ten tydzień” + „Nadchodzące” = ten sam `SE`. |
 | Kafelki flow onboardingu jako drugi kreator wiadomości | Nie usuwać od razu — owinąć w `emitAppEvent('client.created')` (zrobione) i stopniowo spiąć z Autoflow. |
 
@@ -92,7 +92,7 @@ Wejścia: `saveClient` (modal) i `onbCreateClient` (wizard).
 
 **Live.** Najlepszy moduł produktu. Ryzyko: LS. Dual slot OK.
 
-**Kalendarz.** `SE.source` planned/live/client/garmin. Brak automatu: wizyta → check-in / zejście sesji pakietu / odblokowanie. To osobny PR.
+| Kalendarz. `SE.source` planned/live/client/garmin. **Zrobione:** wizyta na sali i Live End zdejmują sesję z opłaconego pakietu (`consumeClientPackageSession`, raz na dzień). |
 
 **Automatyzacja.** Dwa byty: checklista onboardingu + Autoflow. Scalanie = Autoflow nasłuchuje `emitAppEvent`.
 
@@ -127,3 +127,4 @@ Wejścia: `saveClient` (modal) i `onbCreateClient` (wizard).
 3. **Inbox kinds** — `direct | system | broadcast` + filtry — **zrobione**
 4. **Autoflow na `emitAppEvent`** — `package.expired` / `checkin.submitted` — **zrobione**
 5. Martwe follow-upy dashboardu — **zrobione** (`refreshDashOps` + siatka operacyjna)
+6. **Kalendarz/sala → sesja pakietu** — **zrobione** (`consumeClientPackageSession`, raz na dzień, jak Live End)

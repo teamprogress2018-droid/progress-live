@@ -20,7 +20,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01 v71', html.includes('01-core.js?v=97'));
+ok('cache 01 v71', html.includes('01-core.js?v=98'));
 ok('cache 05 v37', html.includes('05-clients-builder-plans-calendar.js?v=56'));
 ok('cache 08 v38', html.includes('08-client-profile-extras.js?v=53'));
 ok('cache styles v56', html.includes('styles.css?v=79'));
@@ -42,7 +42,7 @@ ok('css mini done', /\.cal-mini-day\.has-done/.test(css));
 ok('profile hover title', /title="\$\{escHtml\(tip\)\}"/.test(cp));
 ok('profile checkmark', /happened\?'✓ ':''/.test(cp) || /happened\?'✓ '/.test(cp));
 ok('profile done class', /cp-sess-done/.test(cp) && /\.cp-sess-done/.test(css));
-ok('log from planned in core', /function logSessionFromPlanned/.test(core) && /source:'sala'/.test(core));
+ok('log from planned in core', /function logSessionFromPlanned/.test(core) && /source:'sala'/.test(core) && /consumeClientPackageSession/.test(core));
 ok('sala done modal', /function openSalaDoneModal/.test(core) && /function saveSalaDone/.test(core) && /Wybierz ocenę 1–5/.test(core));
 ok('mark done opens modal', /openSalaDoneModal/.test(cp) && /cp-mark-done/.test(cp) && /Odbył się/.test(cp));
 ok('no one-click confirm', !/Oznaczyć trening/.test(cp));

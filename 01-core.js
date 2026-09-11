@@ -3840,6 +3840,9 @@ function logSessionFromPlanned(plannedId,sessions,opts){
   });
   list.push(sess);
   if(sessions==null)window.SE=list;
+  if(!opts.skipPackage){
+    try{if(typeof consumeClientPackageSession==='function')consumeClientPackageSession(p.clientId,{date:y,session:sess,sessions:list});}catch(e){}
+  }
   const save=typeof window!=='undefined'&&typeof window.persistById==='function'?window.persistById:(typeof persistById==='function'?persistById:null);
   if(save)try{save('sessions',sess);}catch(e){}
   return sess;
@@ -3919,7 +3922,11 @@ function saveSalaDone(){
     window._cliveSessionId=sess.id;
     renderClientLive();
   }
-  if(typeof notify==='function')notify('Zapisano trening na sali · ocena '+feedback+'/5 · '+duration+' min');
+  if(typeof notify==='function'){
+    const pkg=(window.PACKAGES||[]).find(x=>x&&sess&&sess.pkgTick&&x.clientId===(p&&p.clientId));
+    const leftTxt=pkg?(' · pakiet '+pkg.sessionsUsed+'/'+pkg.sessions):'';
+    notify('Zapisano trening na sali · ocena '+feedback+'/5 · '+duration+' min'+leftTxt);
+  }
   return sess;
 }
 window.openSalaDoneModal=openSalaDoneModal;
@@ -4683,6 +4690,39 @@ function clientPackageExpired(p,todayY){
   const today=todayY||(typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10));
   return !!today&&exp<today;
 }
+/** Opłacony pakiet sesji, z którego można zdjąć wizytę (Live albo sala). */
+function clientPaidPackageForSession(clientId){
+  if(!clientId)return null;
+  return(window.PACKAGES||[]).filter(p=>p&&p.clientId===clientId&&p.payStatus==='paid'&&(p.sessions||0)>(p.sessionsUsed||0)&&p.status!=='expired'&&!(typeof clientPackageExpired==='function'&&clientPackageExpired(p)))
+    .sort((a,b)=>String(b.expiresDate||b.createdAt||'').localeCompare(String(a.expiresDate||a.createdAt||'')))[0]||null;
+}
+function sessionConsumedPackageOnDay(clientId,dateY,sessions){
+  const y=String(dateY||'').slice(0,10);
+  if(!clientId||!y)return false;
+  return(sessions||window.SE||[]).some(s=>s&&s.clientId===clientId&&String(s.date).slice(0,10)===y&&s.pkgTick);
+}
+/** Jedna wizyta = jedna sesja pakietu na dany dzień (Live i sala współdzielą). */
+function consumeClientPackageSession(clientId,opts){
+  opts=opts||{};
+  if(!clientId)return null;
+  const dateY=String(opts.date||(opts.session&&opts.session.date)||(typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10))).slice(0,10);
+  const list=opts.sessions||window.SE||[];
+  if(opts.session&&opts.session.pkgTick)return null;
+  if(sessionConsumedPackageOnDay(clientId,dateY,list))return null;
+  const pkg=clientPaidPackageForSession(clientId);
+  if(!pkg)return null;
+  pkg.sessionsUsed=(pkg.sessionsUsed||0)+1;
+  if(opts.session)opts.session.pkgTick=true;
+  if(opts.persist!==false&&typeof persistById==='function'){
+    try{persistById('packages',pkg);}catch(e){}
+  }
+  const left=Math.max(0,(pkg.sessions||0)-pkg.sessionsUsed);
+  if(opts.notify!==false&&typeof addNotification==='function'&&left<=1){
+    const c=(window.CL||[]).find(x=>x&&x.id===clientId);
+    addNotification('alert',left===0?'Pakiet wyczerpany':'Ostatnia sesja w pakiecie',((c&&c.name)||'')+' — '+(pkg.title||'Pakiet'),'payments');
+  }
+  return pkg;
+}
 function clientAccessMode(c){
   if(!c)return 'open';
   const m=String(c.accessMode||'').toLowerCase();
@@ -5028,6 +5068,9 @@ window.clientHasCalendarOrSession=clientHasCalendarOrSession;
 window.clientOnboardHasBaseline=clientOnboardHasBaseline;
 window.clientHasPackage=clientHasPackage;
 window.clientPackageExpired=clientPackageExpired;
+window.clientPaidPackageForSession=clientPaidPackageForSession;
+window.sessionConsumedPackageOnDay=sessionConsumedPackageOnDay;
+window.consumeClientPackageSession=consumeClientPackageSession;
 window.clientAccessMode=clientAccessMode;
 window.clientHasPaidAccess=clientHasPaidAccess;
 window.clientPaidAccessLabel=clientPaidAccessLabel;

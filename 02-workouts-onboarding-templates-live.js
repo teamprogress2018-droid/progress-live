@@ -3997,18 +3997,9 @@ function liveEndSession(slot){
   });
   const ix=SE.findIndex(s=>s&&s.id===newSession.id);
   if(ix>=0)SE[ix]=newSession;else SE.push(newSession);
-  persistById('sessions',newSession);
   LIVE_HISTORY.unshift({...newSession,clientName:c?.name||'Klient'});
-  const pkg=(window.PACKAGES||[]).filter(p=>p.clientId===st.clientId&&p.payStatus==='paid'&&(p.sessionsUsed||0)<(p.sessions||0)&&p.payStatus!=='expired'&&!(typeof clientPackageExpired==='function'&&clientPackageExpired(p)))
-    .sort((a,b)=>String(b.expiresDate||b.createdAt||'').localeCompare(String(a.expiresDate||a.createdAt||'')))[0];
-  if(pkg){
-    pkg.sessionsUsed=(pkg.sessionsUsed||0)+1;
-    persistById('packages',pkg);
-    const left=Math.max(0,(pkg.sessions||0)-pkg.sessionsUsed);
-    if(left<=1){
-      addNotification('alert',left===0?'Pakiet wyczerpany':'Ostatnia sesja w pakiecie',(c?.name||'')+' — '+pkg.title,'payments');
-    }
-  }
+  const pkg=typeof consumeClientPackageSession==='function'?consumeClientPackageSession(st.clientId,{date:newSession.date,session:newSession}):null;
+  persistById('sessions',newSession);
   addNotification('system','Sesja zapisana!','Trening '+c?.name+' · '+durationMin+' min · '+totalSets+' serii','clients');
   if(typeof trainerWatchdogAfterSession==='function')try{trainerWatchdogAfterSession(st.clientId);}catch(e){}
   const leftTxt=pkg?(' · pakiet '+(pkg.sessionsUsed)+'/'+pkg.sessions):'';

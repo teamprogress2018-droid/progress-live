@@ -58,7 +58,10 @@ function ok(name, cond, extra) {
       { id: 'p-mon', clientId: 'c-justyna', date: mon, source: 'planned', type: 'PON — OBWÓD A PLAN', planId: 'pl-justyna', dayIdx: 0 },
       { id: 'p-wed', clientId: 'c-justyna', date: wed, source: 'planned', type: 'ŚR — OBWÓD B PLAN', planId: 'pl-justyna', dayIdx: 0 }
     ];
-    window.TASKS = [];
+    window.PACKAGES = [{
+      id: 'pk-justyna', clientId: 'c-justyna', title: '10 sesji', payStatus: 'paid',
+      sessions: 10, sessionsUsed: 3, expiresDate: '2027-01-01'
+    }];
     window.METRIC_ENTRIES = [];
     if (typeof openClientProfile === 'function') openClientProfile('c-justyna');
   });
@@ -90,7 +93,8 @@ function ok(name, cond, extra) {
   await page.click('.sala-rate-btn[data-rate="4"]');
   await page.fill('#sala-done-min', '55');
   await page.click('#sala-done-save');
-  await page.waitForTimeout(400);
+  await page.click('#cpt-training');
+  await page.waitForSelector('.cp-sess-done');
   const after = await page.evaluate(() => {
     const body = (document.getElementById('cp-body') || {}).innerText || '';
     const sala = (window.SE || []).filter(s => s && s.source === 'sala');
@@ -106,11 +110,14 @@ function ok(name, cond, extra) {
       ex: ((sala[0] && sala[0].exercises) || []).map(e => e.name),
       btns,
       banner: !!document.querySelector('.cp-no-logged-banner'),
-      doneClass: !!document.querySelector('.cp-sess-done')
+      doneClass: !!document.querySelector('.cp-sess-done'),
+      pkgUsed: ((window.PACKAGES || [])[0] || {}).sessionsUsed,
+      pkgTick: !!(sala[0] && sala[0].pkgTick)
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'cp_training_sala_logged.png') });
   ok('sala session saved', after.salaN === 1 && after.loggedN === 1, JSON.stringify(after));
+  ok('sala ticks paid package', after.pkgTick === true && after.pkgUsed === 4, JSON.stringify({ tick: after.pkgTick, used: after.pkgUsed }));
   ok('sala rating and duration', after.feedback === 4 && after.duration === 55, JSON.stringify(after));
   ok('zrobione 1 in kpi', after.loggedN === 1);
   ok('copied exercises', after.ex.includes('Przysiad goblet') && after.ex.includes('Wyciskanie'), JSON.stringify(after.ex));
