@@ -3691,6 +3691,9 @@ function applyCheckinAnswers(ci,answers,filledBy){
       });
     }catch(e){console.warn('fireIntEvent checkin',e);}
   }
+  if(typeof emitAppEvent==='function'){
+    try{emitAppEvent('checkin.submitted',{clientId:ci.clientId,checkinId:ci.id,score:ci.score,filledBy:ci.filledBy||filledBy||'client'});}catch(e){}
+  }
 }
 
 /** Po check-inie: waga → karta klienta + pomiar mg1; odśwież pipeline trenera. */

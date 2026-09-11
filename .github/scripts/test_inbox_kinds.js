@@ -20,7 +20,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=96'));
+ok('cache 01', html.includes('01-core.js?v=97'));
 ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=74'));
 ok('cache 10', html.includes('10-client-app.js?v=38'));
 ok('kind bar html', html.includes('id="chat-kind-bar"') && html.includes("setChatKindFilter('system')"));

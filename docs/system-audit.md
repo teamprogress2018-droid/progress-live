@@ -14,7 +14,7 @@ Stack: **vanilla JS + Firestore + GitHub Pages** (nie React/Next/Tailwind). Stan
 | TDEE → karta klienta bez czatu | „Wyślij do klienta” zapisywało makro *i* pisało na czat. Brak „Zapisz w profilu”. | `calcSaveToClient` / `applyMacrosToClient` |
 | Szyna zdarzeń | `fireIntEvent` szło tylko na Zapier/Make. Brak lokalnego busa (`client.created`, `macros.saved`). | `emitAppEvent` |
 | Brama płatności ↔ kalendarz / Live | **Zrobione:** `clientHasPaidAccess` + Trial / Gość. Nieopłacony/wygasły pakiet blokuje `schedulePlanToCalendar` i Live Start. Live End zdejmuje sesje tylko z `payStatus:'paid'`. | `01-core.js`, Live, profil → Płatności |
-| Event-driven automatyzacja | Onboarding to sztywne kafelki + osobne Autoflows (`new_client` / `inactivity` / `session_today`). Brak `onPackageExpired`, `onCheckInSubmitted` jako jednego katalogu triggerów. | `09-…js` `ONBOARDING_FLOW` + `AUTOFLOWS` |
+| Event-driven automatyzacja | **Zrobione:** Autoflow nasłuchuje `emitAppEvent` — `package.expired`, `checkin.submitted`, `client.created` (`new_client`). Poll zostaje dla `inactivity` / `session_today`. | `09-…js` `autoflowOnAppEvent` |
 | Live: IndexedDB + kolejka sync | **Zrobione:** `source:'live-draft'` przy starcie i co 3 serie + IndexedDB + LS. Koniec sesji zamienia ten sam dokument na `source:'live'`. | `liveSaveDraft` / `livePersistDraftRemote` w `02-…js` |
 | Tagi KB ↔ builder | MEV/MAV/RIR są w promptach AI i przewodniku objętości, nie jako tagi rekordów bazy wiedzy powiązane z ćwiczeniem/dniem planu. | `01-core.js` evidence + `03-…js` prompt |
 
@@ -111,7 +111,7 @@ Wejścia: `saveClient` (modal) i `onbCreateClient` (wizard).
 | `02-…-live.js` | Wizard → pipeline; Live draft LS + IDB + Firestore `live-draft` — **zrobione** |
 | `04-client-portal.js` | `collectOpsEvents` — **zrobione** |
 | `07-forms-metrics-calculator.js` | TDEE save — **zrobione** |
-| `09-posture-kb-invites-private.js` | `runOnboardingForClient(opts)`; Autoflow trigger na `client.created` — później |
+| `09-posture-kb-invites-private.js` | `runOnboardingForClient(opts)`; Autoflow na `emitAppEvent` (`package.expired`, `checkin.submitted`) — **zrobione** |
 | `index.html` | Nav grupy, e-mail required, przycisk TDEE |
 | `06-inbox-…js` | Filtry inbox `kind` — **zrobione** |
 | `10-client-app.js` | Banner nieopłaconego pakietu; brama Live/kalendarz przez `clientHasPaidAccess` |
@@ -125,5 +125,5 @@ Wejścia: `saveClient` (modal) i `onbCreateClient` (wizard).
 1. **Brama pakietu** — `clientHasPaidAccess` + Trial / Gość — **zrobione**
 2. **Live draft → Firestore** `source:'live-draft'` co 3 serie + IndexedDB — **zrobione**
 3. **Inbox kinds** — `direct | system | broadcast` + filtry — **zrobione**
-4. **Autoflow na `emitAppEvent`** — `onPackageExpired`, `onCheckInSubmitted` zamiast kafelków.
+4. **Autoflow na `emitAppEvent`** — `package.expired` / `checkin.submitted` — **zrobione**
 5. Usunąć martwe follow-upy dashboardu, gdy testy `test_dash_*_followup.js` zostaną zwężone.
