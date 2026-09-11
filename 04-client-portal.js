@@ -3349,6 +3349,20 @@ function runWeeklyCheckinSweep(opts){
   if(sent&&typeof renderCheckinClientList==='function')try{renderCheckinClientList();}catch(e){}
   return{sent,sentIds};
 }
+/** Po zapisanym treningu (Live / sala / apka klienta): odblokuj tygodniowy check-in raz na tydzień. */
+function maybeSendCheckinAfterSession(clientId){
+  if(!clientId)return null;
+  const N=(window.SETTINGS&&window.SETTINGS.notifications)||{};
+  if(N.weeklyCheckin===false)return null;
+  const c=(window.CL||[]).find(x=>x&&x.id===clientId);
+  if(!c||(typeof clientEligibleForWeeklyCheckin==='function'&&!clientEligibleForWeeklyCheckin(c)))return null;
+  if(typeof needsWeeklyCheckin==='function'&&!needsWeeklyCheckin(clientId))return null;
+  const ci=typeof ensurePendingCheckin==='function'?ensurePendingCheckin(clientId,{source:'session'}):null;
+  if(typeof pushMsg==='function')pushMsg(clientId,typeof checkinChatText==='function'?checkinChatText(c.name):('Czas na tygodniowy check-in'));
+  if(typeof addNotification==='function')addNotification('task','Check-in po treningu',(c.name||'Klient')+' — formularz odblokowany','checkin');
+  try{if(typeof refreshDashOps==='function')refreshDashOps();}catch(e){}
+  return ci;
+}
 window.clientEligibleForWeeklyCheckin=clientEligibleForWeeklyCheckin;
 window.needsWeeklyCheckin=needsWeeklyCheckin;
 window.isWeeklyCheckinDay=isWeeklyCheckinDay;
@@ -3356,6 +3370,7 @@ window.runWeeklyCheckinSweep=runWeeklyCheckinSweep;
 window.filledThisWeek=filledThisWeek;
 window.pendingCheckin=pendingCheckin;
 window.ensurePendingCheckin=ensurePendingCheckin;
+window.maybeSendCheckinAfterSession=maybeSendCheckinAfterSession;
 
 function setCIFilter(f,btn){
   ciFilter=f;

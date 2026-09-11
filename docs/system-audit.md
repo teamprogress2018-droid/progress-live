@@ -129,3 +129,4 @@ Wejścia: `saveClient` (modal) i `onbCreateClient` (wizard).
 5. Martwe follow-upy dashboardu — **zrobione** (`refreshDashOps` + siatka operacyjna)
 6. **Kalendarz/sala → sesja pakietu** — **zrobione** (`consumeClientPackageSession`, raz na dzień, jak Live End)
 7. Copy przypomnień na pulpicie — **zrobione** (podtytuł „Wygasające pakiety”, nie „Raporty i pakiety”)
+8. **Check-in po wizycie / odblokowanie** — **zrobione:** `maybeSendCheckinAfterSession` po Live End / sala `✓ Odbył się` / apka `cwFinish`. Raz na tydzień (`ensurePendingCheckin`, `source:'session'`). Skip gdy check-in wyłączony, brak planu, już wypełniony albo pending.
