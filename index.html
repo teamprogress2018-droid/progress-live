@@ -1641,7 +1641,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   </div>
   <div class="content">
     <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6;max-width:700px;">
-      Zasady treningowe, badania (link PubMed/DOI) i notatki. Wpisy z włączonym „Używaj przy planowaniu” trafiają do Generatora AI i kreatora planów.
+      Do Generatora AI i kreatora idą <strong>notatki i badania</strong> (PubMed/DOI). Zasady trenera też, jeśli je dodasz. Odhacz „Używaj przy planowaniu”, żeby wpis został tylko w bazie.
     </div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;" id="kb-filters">
       <button type="button" class="wl-filter-chip active" data-kb-f="all" onclick="setKbFilter('all',this)">Wszystkie</button>
@@ -3104,9 +3104,9 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
     <div class="modal-body">
       <div class="form-field"><label class="form-lbl">Typ</label>
         <select class="form-select" id="kb-kind" onchange="kbKindHint()">
-          <option value="principle">Zasada trenera (doświadczenie)</option>
+          <option value="note">Notatka</option>
           <option value="evidence">Badanie / źródło (PubMed, DOI…)</option>
-          <option value="note">Notatka ogólna</option>
+          <option value="principle">Zasada trenera (doświadczenie)</option>
         </select>
       </div>
       <div class="form-field"><label class="form-lbl">Tytuł</label><input type="text" class="form-input" id="kb-title" placeholder="np. Priorytet: 2× częstotliwość na słabe partie"></div>
@@ -4343,7 +4343,7 @@ async function load(){
 
 <script src="ex-gif-manifest.js?v=34"></script>
 <script src="ex-photo-manifest.js?v=6"></script>
-<script src="01-core.js?v=101"></script>
+<script src="01-core.js?v=102"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=60"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=34"></script>
 <script src="04-client-portal.js?v=49"></script>
@@ -4351,7 +4351,7 @@ async function load(){
 <script src="06-inbox-exercises-ai-programs.js?v=74"></script>
 <script src="07-forms-metrics-calculator.js?v=33"></script>
 <script src="08-client-profile-extras.js?v=55"></script>
-<script src="09-posture-kb-invites-private.js?v=40"></script>
+<script src="09-posture-kb-invites-private.js?v=41"></script>
 <script src="10-client-app.js?v=39"></script>
 </body>
 </html>

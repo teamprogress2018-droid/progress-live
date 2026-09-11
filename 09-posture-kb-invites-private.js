@@ -3391,7 +3391,7 @@ window.setKbFilter=setKbFilter;
 function openKbModal(prefill){
   const p=prefill||{};
   document.getElementById('kb-modal-title').textContent=p.title?'EDYTUJ WPIS':'NOWY WPIS DO BAZY WIEDZY';
-  document.getElementById('kb-kind').value=p.kind||'principle';
+  document.getElementById('kb-kind').value=p.kind||'note';
   document.getElementById('kb-title').value=p.title||'';
   document.getElementById('kb-text').value=p.text||'';
   document.getElementById('kb-citation').value=p.citation||'';
@@ -3406,9 +3406,9 @@ function kbKindHint(){
   const kind=document.getElementById('kb-kind')?.value||'note';
   const el=document.getElementById('kb-kind-hint');
   if(!el)return;
-  if(kind==='evidence')el.textContent='Dodaj link PubMed/DOI jeśli masz — aplikacja nie ściąga badań automatycznie, ale Generator AI i Asystent AI pokażą Twoje źródło.';
+  if(kind==='evidence')el.textContent='Dodaj link PubMed/DOI jeśli masz — aplikacja nie ściąga badań automatycznie. Badanie idzie do Generatora AI razem z notatkami.';
   else if(kind==='principle')el.textContent='Twoje doświadczenie coachingowe ma priorytet w generatorze AI, gdy koliduje z ogólnikami.';
-  else el.textContent='Notatka ogólna — też może trafić do planu, jeśli zaznaczysz „Używaj przy planowaniu”.';
+  else el.textContent='Notatka idzie do Generatora AI razem z badaniami. Odhacz „Używaj przy planowaniu”, jeśli ma zostać tylko w bazie.';
 }
 window.kbKindHint=kbKindHint;
 
@@ -3431,7 +3431,7 @@ function renderKB(){
   });
   renderKbBuiltinPreview();
   if(!list.length){
-    el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);"><div style="font-size:36px;margin-bottom:10px;opacity:0.3;">📚</div><div>Brak wpisów'+(filter!=='all'?' w tej kategorii':'')+'. Dodaj zasadę, badanie albo wczytaj pakiet startowy.</div></div>';
+    el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);"><div style="font-size:36px;margin-bottom:10px;opacity:0.3;">📚</div><div>Brak wpisów'+(filter!=='all'?' w tej kategorii':'')+'. Dodaj notatkę, badanie albo wczytaj pakiet startowy.</div></div>';
     return;
   }
   el.innerHTML = list.map(k=>{
@@ -3518,12 +3518,12 @@ async function saveKBEntry(){
   KB.push(entry);
   closeM('m-kb');
   ['kb-title','kb-text','kb-citation','kb-url'].forEach(id=>{const i=document.getElementById(id);if(i)i.value='';});
-  const kindEl=document.getElementById('kb-kind');if(kindEl)kindEl.value='principle';
+  const kindEl=document.getElementById('kb-kind');if(kindEl)kindEl.value='note';
   const useEl=document.getElementById('kb-use-planning');if(useEl)useEl.checked=true;
   renderKB();
   if(typeof builderRefreshRationale==='function')try{builderRefreshRationale();}catch(e){}
   if(typeof aplRefreshRationale==='function')try{aplRefreshRationale();}catch(e){}
-  notify('✓ Wpis dodany — '+(useInPlanning?'aktywny przy planowaniu':'tylko baza / AI Coach'));
+  notify('✓ Wpis dodany — '+(useInPlanning?'aktywny przy planowaniu':'tylko w bazie'));
   await persistById('kb', entry);
 }
 
@@ -3536,21 +3536,10 @@ async function delKBEntry(id){
 }
 
 function kbContextForAI(){
-  const planning=typeof planningEvidenceContext==='function'?planningEvidenceContext(3500):'';
-  const notes=(KB||[]).filter(k=>{
-    const kind=typeof normalizeKbKind==='function'?normalizeKbKind(k):(k.kind||'note');
-    return kind==='note'||k.useInPlanning===false;
-  });
-  let extra='';
-  if(notes.length){
-    extra='\n\n=== POZOSTAŁE NOTATKI TRENERA ===\n'+notes.map(k=>`### ${k.title}\n${(k.text||'').substring(0,500)}`).join('\n\n');
-  }
-  if(!planning&&!KB.length) return '';
-  if(!planning){
-    return '\n\n=== BAZA WIEDZY TRENERA (kontekst, wykorzystaj jeśli pomocne) ===\n'
-      + KB.map(k=>`### ${k.title}\n${(k.text||'').substring(0,600)}`).join('\n\n');
-  }
-  return planning+extra;
+  if(typeof planningEvidenceContext==='function')return planningEvidenceContext(3500);
+  const on=(KB||[]).filter(k=>typeof kbEntryUsesInPlanning==='function'?kbEntryUsesInPlanning(k):k.useInPlanning!==false);
+  if(!on.length)return '';
+  return '\n\n=== BADANIA I NOTATKI TRENERA ===\n'+on.map(k=>`### ${k.title}\n${(k.text||'').substring(0,500)}`).join('\n\n');
 }
 
 window.renderKB=renderKB; window.saveKBEntry=saveKBEntry; window.delKBEntry=delKBEntry; window.kbContextForAI=kbContextForAI;
