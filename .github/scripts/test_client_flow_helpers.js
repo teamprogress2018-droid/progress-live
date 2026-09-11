@@ -61,7 +61,7 @@ const {
   ymdWeekday, clientPreferredWeekdays, isClientTrainingDay, nextClientTrainingDayYmd,
   hasPlannedSessionOnDate, formatTrainingDayShortPl,
   clientOnboardStatus, clientsWithIncompleteOnboard, clientHasSchedulePrefs,
-  clientEmailValid, normalizeClientEmail, clientHasPackage, clientLifecycleStatus,
+  clientEmailValid, normalizeClientEmail, clientHasPackage, packagesForClient, clientLifecycleStatus,
   assignClientPipeline
 } = ctx;
 
@@ -193,8 +193,10 @@ eq('normalize email', normalizeClientEmail('  Jan@Studio.PL '), 'jan@studio.pl')
 
 windowObj.PACKAGES = [{id:'pk-name', clientId:'c-other', clientName:'Nowy'}];
 eq('package not by name', clientHasPackage({id:'c-new', name:'Nowy'}), false);
+eq('packagesForClient ignores name', packagesForClient('c-new').map(p=>p.id), []);
 windowObj.PACKAGES = [{id:'pk-id', clientId:'c-new', clientName:'Inna'}];
 eq('package by clientId', clientHasPackage({id:'c-new', name:'Nowy'}), true);
+eq('packagesForClient by id', packagesForClient('c-new').map(p=>p.id), ['pk-id']);
 
 windowObj.CL = [{id:'c-life', name:'Ewa', email:'ewa@x.pl', status:'active'}];
 windowObj.PL = [];
@@ -221,6 +223,12 @@ eq('pipeline has plan part', pipe.parts.indexOf('plan')>=0, true);
 eq('pipeline plan clientId', !!(pipe.plan && pipe.plan.clientId==='c-pipe'), true);
 eq('pipeline plan not nested client object', pipe.plan && !pipe.plan.client, true);
 eq('event emitted', (windowObj._appEvents||[]).some(e=>e.type==='client.created'), true);
+
+const src04 = fs.readFileSync(path.join(__dirname, '..', '..', '04-client-portal.js'), 'utf8');
+const src08 = fs.readFileSync(path.join(__dirname, '..', '..', '08-client-profile-extras.js'), 'utf8');
+eq('report skips name match', /clientName===c\.name/.test(src04), false);
+eq('cp payments skips name match', /clientName===c\.name/.test(src08), false);
+eq('uses packagesForClient', src04.includes('packagesForClient') && src08.includes('packagesForClient'), true);
 
 if (failed) {
   console.error('\n' + failed + ' failed');

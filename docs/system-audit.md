@@ -132,3 +132,4 @@ Wejścia: `saveClient` (modal) i `onbCreateClient` (wizard).
 8. **Check-in po wizycie / odblokowanie** — **zrobione:** `maybeSendCheckinAfterSession` po Live End / sala `✓ Odbył się` / apka `cwFinish`. Raz na tydzień (`ensurePendingCheckin`, `source:'session'`). Skip gdy check-in wyłączony, brak planu, już wypełniony albo pending.
 9. **Pulpit: jedna lista pakietów** — **zrobione:** karta Przypomnień zdjęta (dublowała „Płatności do odnowienia”). KPI scrolluje do `#dash-ops-pay`.
 10. **`clientName` po zmianie imienia** — **zrobione:** `syncClientNameCache` przy `saveCPEdit` / edycji `saveClient` przepisuje cache na planach, pakietach, fakturach i historii onboardingu.
+11. **Pakiety tylko po `clientId`** — **zrobione:** `packagesForClient` (profil Płatności, raport). Koniec `|| clientName` — to samo imię nie podpina cudzego pakietu.

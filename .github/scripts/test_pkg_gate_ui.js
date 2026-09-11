@@ -68,6 +68,19 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'pkg_gate_payments.png') });
   ok('payments modes', pay.modes.join(',') === 'standard,trial,guest', JSON.stringify(pay.modes));
 
+  const nameOnly = await page.evaluate(() => {
+    (window.PACKAGES || []).push({
+      id: 'pk-name-collision', clientId: 'c-other', clientName: 'Anna Nowak',
+      title: 'Cudzy pakiet', price: 1, payStatus: 'paid', sessions: 1, sessionsUsed: 0
+    });
+    if (typeof renderCPPayments === 'function') renderCPPayments(window.CL[0]);
+    const text = (document.getElementById('cp-body') || {}).innerText || '';
+    const ids = typeof packagesForClient === 'function' ? packagesForClient('c-anna').map(p => p.id) : [];
+    return { text, ids };
+  });
+  ok('payments lists own package', /10 sesji/.test(nameOnly.text), nameOnly.text.slice(0, 250));
+  ok('payments skips same-name other client', !/Cudzy pakiet/.test(nameOnly.text) && nameOnly.ids.join(',') === 'pk-unpaid', JSON.stringify(nameOnly.ids));
+
   await page.click('.cp-access-mode[data-mode="trial"]');
   await page.waitForTimeout(200);
   const afterTrial = await page.evaluate(() => {
