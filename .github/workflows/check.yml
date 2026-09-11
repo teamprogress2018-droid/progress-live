@@ -392,6 +392,8 @@ jobs:
         run: node .github/scripts/test_live_progress_ui.js
       - name: 6b3c2b. Testy UI bramy pakietu (Trial / Gość)
         run: node .github/scripts/test_pkg_gate_ui.js
+      - name: 6b3c2b2. Testy UI filtrów Płatności po clientId
+        run: node .github/scripts/test_pay_hist_id_ui.js
       - name: 6b3c2c. Testy UI szkicu Live (live-draft)
         run: node .github/scripts/test_live_draft_ui.js
       - name: 6b3c2d. Testy UI Autoflow (pakiet / check-in)

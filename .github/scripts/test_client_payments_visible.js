@@ -116,5 +116,29 @@ sandbox.markPaid('p1');
 eq('mark paid clears unpaid',sandbox.clientUnpaidPackages('c1').length,0);
 eq('awaiting after paid',sandbox.packagesAwaitingPayment().map(p=>p.id),['p3']);
 
+eq('history not by name', /p\.clientName===hcf/.test(src09), false);
+eq('chips not unique names', src09.includes("new Set(all.map(p=>p.clientName))"), false);
+eq('helper present', src09.includes('function payClientsFromPackages'), true);
+eq('card data-client-id', src09.includes('data-client-id=') && src09.includes('filterPkgByClient(this.dataset.clientId'), true);
+eq('cache 09', html.includes('09-posture-kb-invites-private.js?v=41'), true);
+const wf=fs.readFileSync(path.join(__dirname,'../../.github/workflows/check.yml'),'utf8');
+eq('CI ui', wf.includes('test_pay_hist_id_ui.js'), true);
+
+vm.runInNewContext(
+  extract(src09,'payClientsFromPackages')+'\nwindow.payClientsFromPackages=payClientsFromPackages;',
+  sandbox
+);
+sandbox.CL=[{id:'c-a1',name:'Anna Kowalska'},{id:'c-a2',name:'Anna Nowak'}];
+sandbox.window.CL=sandbox.CL;
+const coll=[
+  {id:'x1',clientId:'c-a1',clientName:'Anna Nowak'},
+  {id:'x2',clientId:'c-a2',clientName:'Anna Nowak'},
+  {id:'x3',clientId:'c-a1',clientName:'Anna Nowak'},
+  {id:'x4',clientName:'Ghost'}
+];
+eq('two ids same name', sandbox.payClientsFromPackages(coll).map(c=>c.id).sort(), ['c-a1','c-a2']);
+eq('live name wins', sandbox.payClientsFromPackages(coll).find(c=>c.id==='c-a1').name, 'Anna Kowalska');
+eq('skips no id', sandbox.payClientsFromPackages(coll).some(c=>c.name==='Ghost'), false);
+
 if(failed){console.error(failed+' failed');process.exit(1);}
 console.log('\nAll client payments visibility tests passed');

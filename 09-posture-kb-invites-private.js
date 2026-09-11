@@ -588,15 +588,28 @@ function renderPayChart(){
     </div>`).join('')}</div>`;
 }
 
+/** Unikalni klienci pakietów po `clientId` (etykieta z CL albo cache clientName). */
+function payClientsFromPackages(pkgs){
+  const seen=new Map();
+  (pkgs||[]).forEach(p=>{
+    if(!p||!p.clientId)return;
+    if(seen.has(p.clientId))return;
+    const live=(typeof CL!=='undefined'?CL:(window.CL||[])).find(c=>c&&c.id===p.clientId);
+    seen.set(p.clientId,{id:p.clientId,name:String((live&&live.name)||p.clientName||'Klient')});
+  });
+  return[...seen.values()].sort((a,b)=>String(a.name).localeCompare(String(b.name),'pl'));
+}
+
 function renderPayPackages(){
   const all=allPackages();
   const today=new Date().toISOString().split('T')[0];
 
-  // client filter chips
+  // client filter chips — po clientId, nie po imieniu
   const bar=document.getElementById('pkg-client-filter-bar');
   if(bar){
-    const clients=['all',...new Set(all.map(p=>p.clientName))];
-    bar.innerHTML=clients.map(c=>`<button class="wl-filter-chip${c==='all'?'active':''}" onclick="filterPkgByClient('${c}',this)">${c==='all'?'Wszyscy':c}</button>`).join('');
+    const clients=payClientsFromPackages(all);
+    bar.innerHTML=`<button type="button" class="wl-filter-chip active" data-client-id="" onclick="filterPkgByClient('',this)">Wszyscy</button>`+
+      clients.map(c=>`<button type="button" class="wl-filter-chip" data-client-id="${escHtml(c.id)}" onclick="filterPkgByClient(this.dataset.clientId,this)">${escHtml(c.name)}</button>`).join('');
   }
 
   const grid=document.getElementById('pay-pkg-grid');
@@ -606,7 +619,7 @@ function renderPayPackages(){
     const pct=Math.round(p.sessionsUsed/p.sessions*100);
     const isExpired=p.expiresDate&&p.expiresDate<today;
     const daysLeft=p.expiresDate?Math.ceil((new Date(p.expiresDate)-new Date())/(1000*60*60*24)):null;
-    return `<div class="pkg-card" style="animation-delay:${i*0.04}s">
+    return `<div class="pkg-card" data-client-id="${escHtml(p.clientId||'')}" data-pkg-id="${escHtml(p.id||'')}" style="animation-delay:${i*0.04}s">
       <div class="pkg-card-top" style="background:${col};"></div>
       <div class="pkg-card-body">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
@@ -645,14 +658,13 @@ function renderPayPackages(){
   </div>`;
 }
 
-function filterPkgByClient(name,btn){
+function filterPkgByClient(clientId,btn){
   document.querySelectorAll('#pkg-client-filter-bar .wl-filter-chip').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  // filter grid
+  if(btn)btn.classList.add('active');
+  const id=String(clientId||'');
   document.querySelectorAll('#pay-pkg-grid .pkg-card').forEach(card=>{
-    if(name==='all'){card.style.display='block';return;}
-    const clientEl=card.querySelector('.pkg-card-body div div:last-child');
-    card.style.display=(clientEl&&clientEl.textContent.includes(name))?'block':'none';
+    if(!id||id==='all'){card.style.display='';return;}
+    card.style.display=card.getAttribute('data-client-id')===id?'':'none';
   });
 }
 
@@ -867,9 +879,13 @@ function renderPayHistory(){
   const hcf=(document.getElementById('hist-client-fil')||{}).value||'';
   const hsf=(document.getElementById('hist-status-fil')||{}).value||'';
   const hcEl=document.getElementById('hist-client-fil');
-  if(hcEl){const cur=hcEl.value;hcEl.innerHTML='<option value="">Wszyscy klienci</option>'+[...new Set(all.map(p=>p.clientName))].map(n=>'<option value="'+n+'"'+(n===cur?' selected':'')+'>'+n+'</option>').join('');}
+  if(hcEl){
+    const cur=hcEl.value;
+    const opts=payClientsFromPackages(all);
+    hcEl.innerHTML='<option value="">Wszyscy klienci</option>'+opts.map(c=>'<option value="'+escHtml(c.id)+'"'+(c.id===cur?' selected':'')+'>'+escHtml(c.name)+'</option>').join('');
+  }
   let res=all;
-  if(hcf)res=res.filter(p=>p.clientName===hcf);
+  if(hcf)res=res.filter(p=>p&&p.clientId===hcf);
   if(hsf)res=res.filter(p=>p.payStatus===hsf);
   const el=document.getElementById('pay-history-list');
   if(!el)return;
@@ -877,9 +893,9 @@ function renderPayHistory(){
   el.innerHTML=res.map((p,i)=>{
     const isExpired=p.expiresDate&&p.expiresDate<today;
     const status=isExpired?'expired':p.payStatus;
-    return `<div class="pay-hist-row" style="animation-delay:${i*0.03}s">
-      <div><div style="font-size:13px;font-weight:600;">${p.title}</div><div style="font-size:11px;color:var(--muted);">${PKG_TYPE_LABEL[p.type]||p.type}</div></div>
-      <div style="align-self:center;">${p.clientName}</div>
+    return `<div class="pay-hist-row" data-client-id="${escHtml(p.clientId||'')}" data-pkg-id="${escHtml(p.id||'')}" style="animation-delay:${i*0.03}s">
+      <div><div style="font-size:13px;font-weight:600;">${escHtml(p.title||'')}</div><div style="font-size:11px;color:var(--muted);">${escHtml(PKG_TYPE_LABEL[p.type]||p.type||'')}</div></div>
+      <div style="align-self:center;">${escHtml(p.clientName||'')}</div>
       <div style="align-self:center;color:var(--muted);">${p.date||'—'}</div>
       <div style="align-self:center;color:var(--muted);">${p.expiresDate||'—'}</div>
       <div style="align-self:center;font-weight:700;color:var(--accent);">${p.price.toLocaleString('pl')} zł</div>
@@ -4019,7 +4035,7 @@ window.shareODWorkout=shareODWorkout;window.shareODProgram=shareODProgram;
 window.saveODWorkout=saveODWorkout;window.openODWorkout=openODWorkout;window.closeODPlayer=closeODPlayer;
 window.setPayTab=setPayTab;window.renderPayOverview=renderPayOverview;
 window.renderPayPackages=renderPayPackages;window.renderPayInvoices=renderPayInvoices;
-window.renderPayHistory=renderPayHistory;window.savePackage=savePackage;
+window.renderPayHistory=renderPayHistory;window.payClientsFromPackages=payClientsFromPackages;window.savePackage=savePackage;
 window.usePackageSession=usePackageSession;window.markPaid=markPaid;
 window.requestPayment=requestPayment;window.deletePackage=deletePackage;window.copyPayTransfer=copyPayTransfer;
 window.copyPackageTransfer=copyPackageTransfer;window.clientNotifyPaid=clientNotifyPaid;
