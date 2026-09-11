@@ -127,4 +127,4 @@ Wejścia: `saveClient` (modal) i `onbCreateClient` (wizard).
 3. **Inbox kinds** — `direct | system | broadcast` + filtry — **zrobione**
 4. **Autoflow na `emitAppEvent`** — `package.expired` / `checkin.submitted` — **zrobione**
 5. Martwe follow-upy dashboardu — **zrobione** (`refreshDashOps` + siatka operacyjna)
-6. **Kalendarz/sala → sesja pakietu** — `consumeClientPackageSession` (raz na dzień, jak Live End)
+6. **Kalendarz/sala → sesja pakietu** — **zrobione** (`consumeClientPackageSession`, raz na dzień, jak Live End)
