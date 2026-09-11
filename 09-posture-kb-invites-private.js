@@ -360,6 +360,7 @@ function saveCPEdit(id){
   c.notes=document.getElementById('cpe-notes').value;
   window._cpEditingClientId=null;
   persistById('clients',c);
+  try{if(typeof syncClientNameCache==='function')syncClientNameCache(c.id,c.name);}catch(e){}
   // Odśwież sidebar bez zamykania drawera
   try{renderClients();}catch(e){}
   try{document.getElementById('nb-clients').textContent=CL.length;}catch(e){}

@@ -230,6 +230,8 @@ jobs:
         run: node .github/scripts/test_cp_nav_simplify.js
       - name: 1n26b. Testy widocznej edycji danych klienta
         run: node .github/scripts/test_cp_edit_visible.js
+      - name: 1n26c. Testy sync imienia na pakietach / planach / fakturach
+        run: node .github/scripts/test_client_name_cache.js
       - name: Hover Edycja na liście klientów
         run: node .github/scripts/test_client_hover_edit.js
       - name: 1n27. Testy układu aplikacji (sidebar Everfit)

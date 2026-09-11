@@ -333,6 +333,7 @@ async function saveClient(){
     window._editingClientId=null;
     closeM('m-client');
     await persistById('clients',c);
+    try{if(typeof syncClientNameCache==='function')syncClientNameCache(c.id,c.name);}catch(e){}
     try{renderAll();}catch(e){try{renderClients();}catch(e2){}}
     if(cpClientId===c.id){
       try{document.getElementById('cp-name').textContent=c.name;}catch(e){}
