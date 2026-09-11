@@ -13,7 +13,7 @@ Stack: **vanilla JS + Firestore + GitHub Pages** (nie React/Next/Tailwind). Stan
 | Cykl życia na liście | Była aktywność (dni od sesji), brak statusu pakietu / onboardingu / braku maila. | `clientLifecycleStatus` |
 | TDEE → karta klienta bez czatu | „Wyślij do klienta” zapisywało makro *i* pisało na czat. Brak „Zapisz w profilu”. | `calcSaveToClient` / `applyMacrosToClient` |
 | Szyna zdarzeń | `fireIntEvent` szło tylko na Zapier/Make. Brak lokalnego busa (`client.created`, `macros.saved`). | `emitAppEvent` |
-| Brama płatności ↔ kalendarz / Live | Nieopłacony pakiet nie blokuje planu ani sesji. Live może zdejmować sesje z pakietu niezależnie od `payStatus`. | następny krok: `clientHasPaidAccess(clientId)` przed `schedulePlanToCalendar` / start Live |
+| Brama płatności ↔ kalendarz / Live | **Zrobione:** `clientHasPaidAccess` + Trial / Gość. Nieopłacony/wygasły pakiet blokuje `schedulePlanToCalendar` i Live Start. Live End zdejmuje sesje tylko z `payStatus:'paid'`. | `01-core.js`, Live, profil → Płatności |
 | Event-driven automatyzacja | Onboarding to sztywne kafelki + osobne Autoflows (`new_client` / `inactivity` / `session_today`). Brak `onPackageExpired`, `onCheckInSubmitted` jako jednego katalogu triggerów. | `09-…js` `ONBOARDING_FLOW` + `AUTOFLOWS` |
 | Live: IndexedDB + kolejka sync | Draft sesji jest w `localStorage` (`pl_live_draft`), 7 dni, bez serwera. Na siłowni przy zapełnionym LS utrata danych. | `liveSaveDraft` w `02-…js` |
 | Tagi KB ↔ builder | MEV/MAV/RIR są w promptach AI i przewodniku objętości, nie jako tagi rekordów bazy wiedzy powiązane z ćwiczeniem/dniem planu. | `01-core.js` evidence + `03-…js` prompt |
