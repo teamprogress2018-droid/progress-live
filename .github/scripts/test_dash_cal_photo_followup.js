@@ -23,14 +23,14 @@ const src05=fs.readFileSync(path.join(root,'05-clients-builder-plans-calendar.js
 const src10=fs.readFileSync(path.join(root,'10-client-app.js'),'utf8');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 
-if(!html.includes('id="dash-cal-refill"')||!html.includes('id="dash-photo-followup"')){
-  console.error('FAIL missing dash slots');process.exit(1);
+if(html.includes('id="dash-cal-refill"')||html.includes('id="dash-photo-followup"')){
+  console.error('FAIL dead dash cal/photo followup should be gone');process.exit(1);
 }
-if(!src04.includes('function renderDashCalRefillFollowup')||!src04.includes('function renderDashPhotoFollowup')){
-  console.error('FAIL missing render helpers');process.exit(1);
+if(!src04.includes('function refreshDashOps')){
+  console.error('FAIL missing refreshDashOps');process.exit(1);
 }
 if(!src05.includes('function refillClientCalendar')){console.error('FAIL missing refillClientCalendar');process.exit(1);}
-if(!src10.includes('renderDashPhotoFollowup')){console.error('FAIL ppSave missing photo dash refresh');process.exit(1);}
+if(!src10.includes('refreshDashOps')&&!src10.includes('renderDashPhotoFollowup')){console.error('FAIL ppSave missing photo dash refresh');process.exit(1);}
 
 const sandbox={
   window:{

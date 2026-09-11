@@ -23,8 +23,8 @@ const src04=fs.readFileSync(path.join(root,'04-client-portal.js'),'utf8');
 const src10=fs.readFileSync(path.join(root,'10-client-app.js'),'utf8');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 
-if(!html.includes('id="dash-hw-followup"')){console.error('FAIL missing dash-hw-followup');process.exit(1);}
-if(!src04.includes('function renderDashHwFollowup')){console.error('FAIL missing renderDashHwFollowup');process.exit(1);}
+if(html.includes('id="dash-hw-followup"')){console.error('FAIL dead dash-hw-followup should be gone');process.exit(1);}
+if(!src04.includes('function refreshDashOps')){console.error('FAIL missing refreshDashOps');process.exit(1);}
 if(!src10.includes("setBadge('clive-bn-homework'")&&!src10.includes('clive-bn-homework')){console.error('FAIL homework badge missing');process.exit(1);}
 
 const msgs=[];

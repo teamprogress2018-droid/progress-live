@@ -21,12 +21,12 @@ const src04=fs.readFileSync(path.join(__dirname,'../../04-client-portal.js'),'ut
 const src10=fs.readFileSync(path.join(__dirname,'../../10-client-app.js'),'utf8');
 const html=fs.readFileSync(path.join(__dirname,'../../index.html'),'utf8');
 
-if(!html.includes('id="dash-pay-followup"')){
-  console.error('FAIL missing dash-pay-followup in index.html');
+if(html.includes('id="dash-pay-followup"')){
+  console.error('FAIL dead dash-pay-followup should be gone');
   process.exit(1);
 }
-if(!src04.includes('function renderDashPayFollowup')){
-  console.error('FAIL missing renderDashPayFollowup');
+if(!src04.includes('function refreshDashOps')){
+  console.error('FAIL missing refreshDashOps');
   process.exit(1);
 }
 if(!src04.includes('clientNotifyPaid')||!src04.includes('copyPackageTransfer')){

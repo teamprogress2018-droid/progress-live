@@ -23,8 +23,8 @@ const src04=fs.readFileSync(path.join(root,'04-client-portal.js'),'utf8');
 const src05=fs.readFileSync(path.join(root,'05-clients-builder-plans-calendar.js'),'utf8');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 
-if(!html.includes('id="dash-form-followup"')){console.error('FAIL missing dash-form-followup');process.exit(1);}
-if(!src04.includes('function renderDashFormFollowup')){console.error('FAIL missing renderDashFormFollowup');process.exit(1);}
+if(html.includes('id="dash-form-followup"')){console.error('FAIL dead dash-form-followup should be gone');process.exit(1);}
+if(!src04.includes('function refreshDashOps')){console.error('FAIL missing refreshDashOps');process.exit(1);}
 if(!src05.includes('sendClientIntakeForm')||!src05.includes('Ankieta wstępna')){console.error('FAIL onboard intake CTA missing');process.exit(1);}
 
 const msgs=[];

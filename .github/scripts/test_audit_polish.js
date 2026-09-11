@@ -16,16 +16,16 @@ function ok(name,cond){
   else console.log('OK  ',name);
 }
 
-ok('sendCheckinTo refreshes dash',/function sendCheckinTo[\s\S]*?renderDashCheckinFollowup/.test(src04));
-ok('saveCheckinFill refreshes dash',/function saveCheckinFill[\s\S]*?renderDashCheckinFollowup/.test(src04));
-ok('clientSubmitCheckin refreshes dash',/function clientSubmitCheckin[\s\S]*?renderDashCheckinFollowup/.test(src10));
+ok('sendCheckinTo refreshes dash',/function sendCheckinTo[\s\S]*?refreshDashOps/.test(src04));
+ok('saveCheckinFill refreshes dash',/function saveCheckinFill[\s\S]*?refreshDashOps/.test(src04));
+ok('clientSubmitCheckin refreshes dash',/function clientSubmitCheckin[\s\S]*?renderDashCheckinFollowup/.test(src10)||/function clientSubmitCheckin[\s\S]*?refreshDashOps/.test(src10));
 ok('packages filter archived',src09.includes('status!==\'archived\'')&&/function packagesAwaitingPayment[\s\S]*?archived/.test(src09));
 ok('messages badge not forms',src10.includes("setBadge('clive-bn-messages',pendChat)")&&!src10.includes("setBadge('clive-bn-messages',pendForms)"));
 ok('home badge forms or habits',src10.includes("setBadge('clive-bn-home',pendHab||pendForms)"));
 ok('client unread helper',src06.includes('function clientHasUnreadFromTrainer'));
 ok('open chat marks read on inbound',src10.includes('msgSetLastRead')&&src10.includes('curChat===clientId'));
 ok('inbox skips archived',src06.includes("status!=='archived'")&&/function renderInbox[\s\S]*?archived/.test(src06));
-ok('dash tasks skip habits comment',src04.includes('dash-habit-followup')&&src04.includes('isHabit(t))return false'));
+ok('dash tasks skip habits',src04.includes('isHabit(t))return false'));
 
 if(failed){console.error(failed+' failed');process.exit(1);}
 console.log('\nAll audit polish tests passed');

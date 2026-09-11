@@ -25,7 +25,7 @@ Stack: **vanilla JS + Firestore + GitHub Pages** (nie React/Next/Tailwind). Stan
 | Element | Powód |
 |---|---|
 | Check-in w „Przypomnieniach” *i* w „Wymagają uwagi” | Ten sam `getCIStatus` liczony dwa razy, dwa widgety. Check-in zostaje w Uwadze; przypomnienia = pakiety. |
-| Stare follow-upy dashboardu (`dash-checkin-followup` itd.) | Już `display:none` — treść w siatce operacyjnej. Nie kasować HTML od razu (testy), ale nie rozwijać. |
+| Stare follow-upy dashboardu (`dash-checkin-followup` itd.) | **Zrobione:** HTML usunięty. Helpery (check-in, HW, nawyki, zdjęcia) zostają; odświeżanie idzie przez `refreshDashOps` → siatka operacyjna. |
 | `clientHasPackage` po `clientName` | Fałszywe trafienia przy tym samym imieniu. Tylko `clientId`. |
 | Osobna kopia „Dzisiejszy plan” jako drugi kalendarz | Zostaje skrót z CTA „Kalendarz →”. Nie usuwać — to *dziś*, nie miesiąc. Kalendarz: „Ten tydzień” + „Nadchodzące” = ten sam `SE`. |
 | Kafelki flow onboardingu jako drugi kreator wiadomości | Nie usuwać od razu — owinąć w `emitAppEvent('client.created')` (zrobione) i stopniowo spiąć z Autoflow. |
@@ -109,7 +109,7 @@ Wejścia: `saveClient` (modal) i `onbCreateClient` (wizard).
 | `01-core.js` | Pipeline, e-mail, lifecycle, `emitAppEvent` — **zrobione** |
 | `05-clients-builder-plans-calendar.js` | `saveClient` + lista lifecycle — **zrobione** |
 | `02-…-live.js` | Wizard → pipeline; Live draft LS + IDB + Firestore `live-draft` — **zrobione** |
-| `04-client-portal.js` | `collectOpsEvents` — **zrobione** |
+| `04-client-portal.js` | `collectOpsEvents` + `refreshDashOps` (bez martwych follow-upów) — **zrobione** |
 | `07-forms-metrics-calculator.js` | TDEE save — **zrobione** |
 | `09-posture-kb-invites-private.js` | `runOnboardingForClient(opts)`; Autoflow na `emitAppEvent` (`package.expired`, `checkin.submitted`) — **zrobione** |
 | `index.html` | Nav grupy, e-mail required, przycisk TDEE |
@@ -126,4 +126,4 @@ Wejścia: `saveClient` (modal) i `onbCreateClient` (wizard).
 2. **Live draft → Firestore** `source:'live-draft'` co 3 serie + IndexedDB — **zrobione**
 3. **Inbox kinds** — `direct | system | broadcast` + filtry — **zrobione**
 4. **Autoflow na `emitAppEvent`** — `package.expired` / `checkin.submitted` — **zrobione**
-5. Usunąć martwe follow-upy dashboardu, gdy testy `test_dash_*_followup.js` zostaną zwężone.
+5. Martwe follow-upy dashboardu — **zrobione** (`refreshDashOps` + siatka operacyjna)

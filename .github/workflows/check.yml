@@ -386,6 +386,8 @@ jobs:
         run: node .github/scripts/test_live_draft_ui.js
       - name: 6b3c2d. Testy UI Autoflow (pakiet / check-in)
         run: node .github/scripts/test_autoflow_events_ui.js
+      - name: 6b3c2e. Testy UI dashboardu bez martwych follow-upów
+        run: node .github/scripts/test_dash_followup_gone_ui.js
       - name: 6b3c3. Testy UI Live dual (dwie osoby)
         run: node .github/scripts/test_live_dual_ui.js
       - name: 6b3c4. Testy UI dodawania zamiennika w Live
