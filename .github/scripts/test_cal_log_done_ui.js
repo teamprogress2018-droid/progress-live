@@ -93,7 +93,8 @@ function ok(name, cond, extra) {
   await page.click('.sala-rate-btn[data-rate="4"]');
   await page.fill('#sala-done-min', '55');
   await page.click('#sala-done-save');
-  await page.waitForTimeout(400);
+  await page.click('#cpt-training');
+  await page.waitForSelector('.cp-sess-done');
   const after = await page.evaluate(() => {
     const body = (document.getElementById('cp-body') || {}).innerText || '';
     const sala = (window.SE || []).filter(s => s && s.source === 'sala');
@@ -109,6 +110,7 @@ function ok(name, cond, extra) {
       ex: ((sala[0] && sala[0].exercises) || []).map(e => e.name),
       btns,
       banner: !!document.querySelector('.cp-no-logged-banner'),
+      doneClass: !!document.querySelector('.cp-sess-done'),
       pkgUsed: ((window.PACKAGES || [])[0] || {}).sessionsUsed,
       pkgTick: !!(sala[0] && sala[0].pkgTick)
     };
