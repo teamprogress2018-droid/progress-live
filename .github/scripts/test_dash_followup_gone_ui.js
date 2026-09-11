@@ -54,6 +54,7 @@ function ok(name, cond, extra) {
       hasOps: !!att && !!ops,
       dashActive: !!(dash && dash.classList.contains('active')),
       attVisible: vis(att),
+      remSub: ((document.querySelector('#dash-ops-reminders .studio-sub') || {}).textContent || '').trim(),
       refresh: typeof refreshDashOps === 'function',
       aliases: typeof renderDashCheckinFollowup === 'function' && renderDashCheckinFollowup === refreshDashOps
     };
@@ -61,6 +62,7 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'dash_ops_no_followup.png') });
   ok('dead followups gone', ui.dead.length === 0, JSON.stringify(ui.dead));
   ok('ops grid', ui.hasOps && ui.dashActive && ui.attVisible, JSON.stringify(ui));
+  ok('reminders subtitle packages', ui.remSub === 'Wygasające pakiety', ui.remSub);
   ok('refreshDashOps', ui.refresh && ui.aliases, JSON.stringify({ refresh: ui.refresh, aliases: ui.aliases }));
 
   await browser.close();

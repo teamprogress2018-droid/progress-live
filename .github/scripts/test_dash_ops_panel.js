@@ -31,6 +31,7 @@ function ok(name,cond){
 
 ok('kpi row',html.includes('id="d-kpi-row"')&&html.includes('id="d-reports"')&&html.includes('id="d-expiring"'));
 ok('ops sections',html.includes('id="dash-ops-attention"')&&html.includes('id="dash-ops-reports"')&&html.includes('id="dash-ops-activity"')&&html.includes('id="dash-ops-pay"')&&html.includes('id="dash-ops-reminders"'));
+ok('reminders subtitle packages only',/id="dash-ops-reminders"[\s\S]{0,280}Wygasające pakiety/.test(html)&&!html.includes('Raporty i pakiety'));
 ok('today plan',html.includes('Dzisiejszy plan')&&html.includes('id="d-today-sessions"'));
 ok('quick actions',html.includes('id="dash-qa-btn"')&&html.includes('id="dash-qa-menu"')&&html.includes("openM('m-broadcast')")&&html.includes("openM('m-invite')"));
 ok('ops css',css.includes('.dash-ops-grid')&&css.includes('.dash-qa-menu')&&css.includes('.dash-kpi-row'));
