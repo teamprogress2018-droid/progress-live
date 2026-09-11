@@ -32,7 +32,7 @@ ok('exercise rows use tile class', /cp-plan-day-ex-row/.test(planTab));
 ok('tile css border', /\.cp-plan-day-tile\{[^}]*border:\s*1px solid/.test(css));
 ok('tile css radius', /\.cp-plan-day-tile\{[^}]*border-radius/.test(css));
 ok('days list gap', /\.cp-plan-days\{[^}]*gap:\s*10px/.test(css));
-ok('library preview tiles', /\.plan-day-row\{[^}]*border:\s*1px solid/.test(css) && /\.plan-day-row\{[^}]*border-radius/.test(css));
+ok('library preview tiles', /\.plan-day-row\{[^}]*border:\s*1px solid/.test(css) && /\.plan-day-row\{[^}]*border-radius/.test(css) && /\.plan-day-row\{[^}]*margin-bottom:\s*10px/.test(css));
 ok('preview detail not black wash', !/\.plan-card-detail\{[^}]*rgba\(0,\s*0,\s*0,\s*0\.15\)/.test(css));
 
 if (failed) {

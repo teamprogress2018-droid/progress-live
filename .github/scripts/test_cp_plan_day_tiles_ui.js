@@ -80,7 +80,7 @@ function ok(name, cond, extra) {
     const gaps = [];
     for (let i = 1; i < boxes.length; i++) gaps.push(boxes[i].top - boxes[i - 1].bottom);
     const body = (document.getElementById('cp-body') || {}).innerText || '';
-    return { n: tiles.length, boxes, gaps, body: body.slice(0, 400) };
+    return { n: tiles.length, boxes, gaps, body };
   });
 
   ok('three training tiles', metrics.n === 3, 'n=' + metrics.n);
