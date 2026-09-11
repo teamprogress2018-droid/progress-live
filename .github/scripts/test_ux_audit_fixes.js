@@ -39,8 +39,9 @@ ok('clive 5 primary', html.includes('id="clive-bn-homework"') && html.includes('
 ok('clive overflow in sheet', /id="clive-more-sheet"[\s\S]*id="clive-bn-ondemand"[\s\S]*id="clive-bn-resources"/.test(html));
 ok('cap preview homework nav', html.includes('id="capn-homework"'));
 ok('rest voice settings', html.includes('id="set-rest-voice"') || portal.includes('id="set-rest-voice"'));
-ok('rest default pl', portal.includes("restVoice:'pl'") && live.includes("||'pl'"));
-ok('speak pl words', live.includes('Pięć') && live.includes('Jazda!'));
+ok('rest default en', portal.includes("restVoice:'en'") && live.includes("||'en'"));
+ok('speak en words', live.includes('Five') && live.includes("Let's go!"));
+ok('speak pl still available', live.includes('Pięć') && live.includes('Jazda!'));
 ok('rir warn', live.includes('live-rir-warn') && css.includes('.live-rir-warn'));
 ok('wave dup', html.includes('value="wave"') && core.includes("mode==='wave'"));
 ok('cluster rp expand', core.includes("kind:'cluster'") && core.includes("kind:'restpause'"));
@@ -52,8 +53,8 @@ ok('strip od tags', portal.includes('function capStripOdTags') && portal.include
 ok('homework filter render', src06.includes("taskFilter==='homework'"));
 ok('dash no-plan', portal.includes("tag:'Brak planu'") && portal.includes("tag:'Domowe zaległe'"));
 ok('cache 01', html.includes('01-core.js?v=100'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=59'));
-ok('cache 04', html.includes('04-client-portal.js?v=47'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=60'));
+ok('cache 04', html.includes('04-client-portal.js?v=48'));
 ok('cache 09', html.includes('09-posture-kb-invites-private.js?v=40'));
 ok('cache 10', html.includes('10-client-app.js?v=39'));
 ok('cache styles', html.includes('styles.css?v=80'));
@@ -71,7 +72,7 @@ const windowObj = {
   addEventListener() {},
   CL: [{ id: 'c1', name: 'Anna', status: 'active' }, { id: 'c2', name: 'Bartek', status: 'active' }],
   PL: [], SE: [], EX: [], WO: [], TASKS: [],
-  OD_WORKOUTS: [], SETTINGS: { live: { restVoice: 'pl' }, clientApp: { visibleSections: {} }, brand: { accentColor: '#e60000' } },
+  OD_WORKOUTS: [], SETTINGS: { live: { restVoice: 'en' }, clientApp: { visibleSections: {} }, brand: { accentColor: '#e60000' } },
   persistById: () => Promise.resolve(),
   notify() {},
   pushMsg() {},
