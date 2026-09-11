@@ -21,7 +21,7 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 01 v89', html.includes('01-core.js?v=95'));
-ok('cache 02 v49', html.includes('02-workouts-onboarding-templates-live.js?v=55'));
+ok('cache 02 v49', html.includes('02-workouts-onboarding-templates-live.js?v=56'));
 ok('cache 08 v50', html.includes('08-client-profile-extras.js?v=53'));
 ok('ci unit', wf.includes('test_fitebo_live.js'));
 ok('ci ui', wf.includes('test_fitebo_live_ui.js'));

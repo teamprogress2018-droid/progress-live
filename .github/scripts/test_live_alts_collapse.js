@@ -19,7 +19,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=55'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=56'));
 ok('cache styles', html.includes('styles.css?v=79'));
 ok('LIVE_ALT_MAX 3', /const LIVE_ALT_MAX=3/.test(live));
 ok('toggle helper', /function liveToggleAlts\(/.test(live) && /function liveAltsToShow\(/.test(live));
