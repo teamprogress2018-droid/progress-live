@@ -198,6 +198,8 @@ jobs:
         run: node .github/scripts/test_client_payments_visible.js
       - name: 1n11b. Testy bramy pakietu (kalendarz / Live)
         run: node .github/scripts/test_pkg_gate.js
+      - name: 1n11c. Testy szkicu Live (Firestore / IndexedDB)
+        run: node .github/scripts/test_live_draft.js
 
       - name: 1n13. Testy follow-upu zadań domowych (dashboard)
         run: node .github/scripts/test_dash_homework_followup.js
@@ -378,6 +380,8 @@ jobs:
         run: node .github/scripts/test_live_progress_ui.js
       - name: 6b3c2b. Testy UI bramy pakietu (Trial / Gość)
         run: node .github/scripts/test_pkg_gate_ui.js
+      - name: 6b3c2c. Testy UI szkicu Live (live-draft)
+        run: node .github/scripts/test_live_draft_ui.js
       - name: 6b3c3. Testy UI Live dual (dwie osoby)
         run: node .github/scripts/test_live_dual_ui.js
       - name: 6b3c4. Testy UI dodawania zamiennika w Live

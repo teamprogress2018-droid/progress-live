@@ -2258,6 +2258,10 @@ function calSessionDoneBits(s){
   const tip=typeof escHtml==='function'?escHtml(tipRaw):String(tipRaw||'').replace(/"/g,'&quot;');
   return{happened,cls:happened?' cal-session-done':'',mark:happened?'✓ ':'',tip};
 }
+function calVisibleSessions(list){
+  return(list||window.SE||[]).filter(s=>s&&s.source!=='live-draft');
+}
+window.calVisibleSessions=calVisibleSessions;
 window.calSessionDoneBits=calSessionDoneBits;
 
 function calSessionStartMin(s){
@@ -2327,7 +2331,7 @@ function renderCalWeek(){
   for(let i=0;i<7;i++){
     const d=new Date(ws);d.setDate(d.getDate()+i);
     const isToday=dateStr(d)===dateStr(today);
-    const dayCount=SE.filter(s=>s.date===dateStr(d)).length;
+    const dayCount=calVisibleSessions().filter(s=>s.date===dateStr(d)).length;
     hdrHTML+=`<div class="cal-week-day-hdr${isToday?' today':''}" style="border-bottom:1px solid var(--border);">
       <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${CAL_DAYS_PL[i]}</div>
       <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:${isToday?'var(--accent)':'var(--text)'};">${d.getDate()}</div>
@@ -2359,7 +2363,7 @@ function renderCalWeek(){
   for(let i=0;i<7;i++){
     const d=new Date(ws);d.setDate(d.getDate()+i);
     const ds=dateStr(d);
-    const laid=calWeekOverlapLayout(SE.filter(s=>s&&s.date===ds));
+    const laid=calWeekOverlapLayout(calVisibleSessions().filter(s=>s&&s.date===ds));
     const blocks=laid.map(it=>{
       const visStart=Math.max(it.start,minStart);
       const visEnd=Math.min(it.end,maxEnd);
@@ -2416,7 +2420,7 @@ function renderCalMonth(){
   }
   for(let d=1;d<=dim;d++){
     const ds=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
-    const daySess=SE.filter(s=>s.date===ds);
+    const daySess=calVisibleSessions().filter(s=>s.date===ds);
     const isToday=ds===dateStr(today);
     html+=`<div class="cal-month-cell${isToday?' today':''}" onclick="calClickDay('${ds}')">
       <div style="font-size:12px;font-weight:${isToday?700:500};color:${isToday?'var(--accent)':'var(--text)'};">${d}</div>
@@ -2443,7 +2447,7 @@ function renderCalList(){
   const start=new Date(calCurrentDate);start.setHours(0,0,0,0);
   const end=new Date(start);end.setDate(end.getDate()+30);
   const startStr=dateStr(start);const endStr=dateStr(end);
-  const upcoming=SE.filter(s=>s.date>=startStr&&s.date<=endStr).sort((a,b)=>a.date.localeCompare(b.date)||((a.time||'').localeCompare(b.time||'')));
+  const upcoming=calVisibleSessions().filter(s=>s.date>=startStr&&s.date<=endStr).sort((a,b)=>a.date.localeCompare(b.date)||((a.time||'').localeCompare(b.time||'')));
 
   if(!upcoming.length){
     el.innerHTML=`<div style="text-align:center;padding:60px;color:var(--muted);">
@@ -2528,7 +2532,7 @@ function renderCalSidebar(){
   const ws=getWeekStart(calCurrentDate);
   const we=new Date(ws);we.setDate(we.getDate()+6);
   const wsStr=dateStr(ws);const weStr=dateStr(we);
-  const weekSess=SE.filter(s=>s.date>=wsStr&&s.date<=weStr);
+  const weekSess=calVisibleSessions().filter(s=>s.date>=wsStr&&s.date<=weStr);
 
   const statsEl=document.getElementById('cal-week-stats');
   if(statsEl)statsEl.innerHTML=`
@@ -2545,13 +2549,13 @@ function renderCalSidebar(){
       <div class="ui-kpi-mini-lbl">Odbyte</div>
     </div>
     <div class="ui-kpi-mini">
-      <div class="ui-kpi-mini-val" style="color:var(--orange);">${SE.filter(s=>s.date===dateStr(today)).length}</div>
+      <div class="ui-kpi-mini-val" style="color:var(--orange);">${calVisibleSessions().filter(s=>s.date===dateStr(today)).length}</div>
       <div class="ui-kpi-mini-lbl">Dziś</div>
     </div>`;
 
   // upcoming
   const nowStr=dateStr(today);
-  const up=SE.filter(s=>s.date>=nowStr).sort((a,b)=>a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||'')).slice(0,6);
+  const up=calVisibleSessions().filter(s=>s.date>=nowStr).sort((a,b)=>a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||'')).slice(0,6);
   const upEl=document.getElementById('cal-upcoming');
   if(!upEl)return;
   upEl.innerHTML=!up.length?'<div class="ui-section-sub" style="text-align:center;padding:24px 0;">Brak nadchodzących sesji</div>'

@@ -4620,7 +4620,7 @@ function generateAutoNotifs(){
   const todayStr=dateStr(today);
   const hasNotif=key=>allNotifs().some(n=>n.id===key||n.autoKey===key);
 
-  SE.filter(s=>s.date===todayStr).forEach(s=>{
+  SE.filter(s=>s.date===todayStr&&s.source!=='live-draft').forEach(s=>{
     const c=CL.find(x=>x.id===s.clientId);
     const key='auto_sess_'+s.id;
     if(!hasNotif(key)&&c){
@@ -6357,8 +6357,8 @@ function renderDashToday(){
   const tomorrow=dateStr(new Date(now.getFullYear(),now.getMonth(),now.getDate()+1));
 
   // Sesje dziś + jutro
-  const todaySess=SE.filter(s=>s.date===today).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
-  const tomorrowSess=SE.filter(s=>s.date===tomorrow).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  const todaySess=SE.filter(s=>s.date===today&&s.source!=='live-draft').sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  const tomorrowSess=SE.filter(s=>s.date===tomorrow&&s.source!=='live-draft').sort((a,b)=>(a.time||'').localeCompare(b.time||''));
 
   function timeLabel(s){
     if(!s.time)return null;
