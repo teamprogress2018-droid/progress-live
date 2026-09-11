@@ -88,7 +88,7 @@ Wejścia: `saveClient` (modal) i `onbCreateClient` (wizard).
 
 **Klienci.** Lista Everfit: aktywność, % 7/30 dni, e-mail. Pill cyklu życia. E-mail wymagany przy zapisie.
 
-**Wiadomości.** Nadal jeden inbox (`MSGS`). Broadcast = modal. Systemowe tagi `[od:]` mieszają się z czatem. Docelowo filtry: indywidualne / system / broadcast — bez nowej kolekcji, flaga `kind` na wiadomości.
+**Wiadomości.** Jeden inbox (`MSGS`). Filtry w wątku: Czat / System / Broadcast (`kind` na wiadomości, stare OD rozpoznawane z tagu).
 
 **Live.** Najlepszy moduł produktu. Ryzyko: LS. Dual slot OK.
 
@@ -113,8 +113,8 @@ Wejścia: `saveClient` (modal) i `onbCreateClient` (wizard).
 | `07-forms-metrics-calculator.js` | TDEE save — **zrobione** |
 | `09-posture-kb-invites-private.js` | `runOnboardingForClient(opts)`; Autoflow trigger na `client.created` — później |
 | `index.html` | Nav grupy, e-mail required, przycisk TDEE |
-| `06-inbox-…js` | Filtry inbox `kind` — później |
-| `10-client-app.js` | Gate `clientUnpaidPackages` już pokazuje banner; nie blokuje treningu — później |
+| `06-inbox-…js` | Filtry inbox `kind` — **zrobione** |
+| `10-client-app.js` | Banner nieopłaconego pakietu; brama Live/kalendarz przez `clientHasPaidAccess` |
 
 **Nie przenosić na React/Next.** Koszt przepisania > zysk. Ten PR trzyma stack.
 
@@ -122,8 +122,8 @@ Wejścia: `saveClient` (modal) i `onbCreateClient` (wizard).
 
 ## 7. Kolejne PR (kolejność)
 
-1. **Brama pakietu** — `clientHasPaidAccess` + blokada `schedulePlanToCalendar` / Live gdy `payStatus!=='paid'` i pakiet wymagany (z flagą „gość / trial”).
+1. **Brama pakietu** — `clientHasPaidAccess` + Trial / Gość — **zrobione**
 2. **Live draft → Firestore** `source:'live-draft'` co N serii + IndexedDB fallback.
-3. **Inbox kinds** — `direct | system | broadcast` + filtry.
+3. **Inbox kinds** — `direct | system | broadcast` + filtry — **zrobione**
 4. **Autoflow na `emitAppEvent`** — `onPackageExpired`, `onCheckInSubmitted` zamiast kafelków.
 5. Usunąć martwe follow-upy dashboardu, gdy testy `test_dash_*_followup.js` zostaną zwężone.

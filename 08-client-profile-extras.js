@@ -1492,6 +1492,20 @@ function renderCPOverview(c){
     </div>`}
     ${editing?cpClientDataEditHTML(c):''}
 
+    ${(()=>{
+      const acc=typeof clientHasPaidAccess==='function'?clientHasPaidAccess(c.id):{ok:true};
+      if(acc.ok)return'';
+      return `<div class="cp-pay-gate" style="background:rgba(230,0,0,0.1);border:1px solid rgba(230,0,0,0.35);border-radius:10px;padding:12px 14px;margin-bottom:16px;">
+        <div style="font-size:12px;font-weight:700;margin-bottom:4px;">${escHtml(typeof clientPaidAccessLabel==='function'?clientPaidAccessLabel(acc):'Brak dostępu')}</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Kalendarz i Live są zablokowane. Oznacz pakiet jako opłacony albo włącz Trial / Gość.</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button type="button" class="btn btn-primary btn-sm" onclick="setClientAccessMode('${escHtml(c.id)}','trial')">Trial</button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="setClientAccessMode('${escHtml(c.id)}','guest')">Gość</button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('payments')">Pakiety →</button>
+        </div>
+      </div>`;
+    })()}
+
     ${(()=>{const ob=typeof getClientOnboard==='function'?getClientOnboard(c):null;
       if(!ob||ob.complete)return'';
       return `<div style="background:rgba(201,123,63,0.1);border:1px solid rgba(201,123,63,0.35);border-radius:10px;padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
@@ -2512,10 +2526,22 @@ function renderCPPayments(c){
   const pkgs=allPackages().filter(p=>p.clientId===c.id||p.clientName===c.name);
   const total=pkgs.filter(p=>p.payStatus==='paid').reduce((s,p)=>s+p.price,0);
   const today=new Date().toISOString().split('T')[0];
+  const acc=typeof clientHasPaidAccess==='function'?clientHasPaidAccess(c.id):{ok:true};
+  const mode=typeof clientAccessMode==='function'?clientAccessMode(c):'standard';
   document.getElementById('cp-body').innerHTML=`
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
       <div class="cp-section-title" style="margin:0;">PAKIETY I PŁATNOŚCI</div>
       <button class="btn btn-primary btn-sm" onclick="document.getElementById('pkg-client').value='${c.id}';openM('m-package')">+ Pakiet</button>
+    </div>
+    <div class="card-sm" style="margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:700;margin-bottom:4px;">Dostęp do kalendarza i Live</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.45;">Nieopłacony pakiet blokuje planowanie i Start. Trial / Gość omija bramę (sesje pakietu nie schodzą).</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button type="button" class="btn btn-sm ${mode==='standard'?'btn-primary':'btn-ghost'} cp-access-mode" data-mode="standard" onclick="setClientAccessMode('${escHtml(c.id)}','standard')">Z pakietu</button>
+        <button type="button" class="btn btn-sm ${mode==='trial'?'btn-primary':'btn-ghost'} cp-access-mode" data-mode="trial" onclick="setClientAccessMode('${escHtml(c.id)}','trial')">Trial</button>
+        <button type="button" class="btn btn-sm ${mode==='guest'?'btn-primary':'btn-ghost'} cp-access-mode" data-mode="guest" onclick="setClientAccessMode('${escHtml(c.id)}','guest')">Gość</button>
+      </div>
+      <div style="font-size:11px;margin-top:8px;color:${acc.ok?'var(--teal)':'var(--red)'};">${escHtml((typeof clientPaidAccessLabel==='function'?clientPaidAccessLabel(acc):'')||(acc.ok?'Brak pakietu — otwarte':'Brak dostępu'))}</div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
       <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--accent);font-size:22px;">${total.toLocaleString('pl')} zł</div><div class="cp-stat-lbl">Łącznie zapłacono</div></div>

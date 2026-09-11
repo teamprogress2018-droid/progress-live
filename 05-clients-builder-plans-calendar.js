@@ -1791,6 +1791,7 @@ function dropPlannedSessionsFrom(clientId,fromYmd){
 function schedulePlanToCalendar(planId,opts){
   const plan=PL.find(p=>p.id===planId);if(!plan){notify('Brak planu');return 0;}
   if(!plan.clientId){notify('Przypisz plan do klienta, żeby dodać do kalendarza');return 0;}
+  if(!(opts&&opts.forceAccess)&&typeof assertClientPaidAccess==='function'&&!assertClientPaidAccess(plan.clientId))return 0;
   const client=CL.find(x=>x.id===plan.clientId);
   const weeks=Math.max(1,Math.min(12,(opts&&opts.weeks)||4));
   const time=(opts&&opts.time)||scheduleTimeFromClient(client,'18:00');
