@@ -4804,7 +4804,7 @@ function clientLifecycleStatus(c){
 }
 /**
  * Szyna zdarzeń CRM (in-memory + webhook Integracji).
- * Typy: client.created | plan.assigned | calendar.scheduled | macros.saved
+ * Typy: client.created | plan.assigned | calendar.scheduled | macros.saved | checkin.submitted | package.expired
  */
 function emitAppEvent(type,payload){
   const ev={type:String(type||''),at:new Date().toISOString(),payload:payload||{}};
@@ -4816,6 +4816,10 @@ function emitAppEvent(type,payload){
   if(typeof fireIntEvent==='function'){
     try{fireIntEvent(type,payload);}catch(e){}
   }
+  try{
+    const afn=(typeof window!=='undefined'&&window.autoflowOnAppEvent)||(typeof autoflowOnAppEvent==='function'?autoflowOnAppEvent:null);
+    if(typeof afn==='function')afn(type,payload);
+  }catch(e){}
   try{
     if(typeof document!=='undefined'&&document.dispatchEvent){
       document.dispatchEvent(new CustomEvent('pl:'+ev.type,{detail:payload||{}}));

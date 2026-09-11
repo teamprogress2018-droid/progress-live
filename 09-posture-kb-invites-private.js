@@ -2613,6 +2613,14 @@ const DEMO_AUTOFLOWS=[
      {type:'message',day:14,text:'{imie}, minęły 2 tygodnie bez treningu. Wszystko ok? Chętnie pomogę wrócić na właściwe tory! 💪'},
      {type:'task',day:14,text:'Skontaktuj się z trenerem'},
    ]},
+  {name:'Pakiet wygasł',type:'trigger',trigger:'package.expired',scope:'all',status:'inactive',
+   steps:[
+     {type:'message',day:1,text:'{imie}, Twój pakiet wygasł. Napisz, to przedłużymy współpracę 💪'},
+   ]},
+  {name:'Podziękowanie za check-in',type:'trigger',trigger:'checkin.submitted',scope:'all',status:'inactive',
+   steps:[
+     {type:'message',day:1,text:'Dzięki za check-in, {imie}! Zerknę na odpowiedzi i dam znać.'},
+   ]},
 ];
 
 function ensureReminderAutoflowsFromSettings(){
@@ -2637,6 +2645,24 @@ function ensureReminderAutoflowsFromSettings(){
       steps:[
         {type:'message',day:parseInt(N.inactiveDays,10)||14,text:'{imie}, minęło już trochę czasu od ostatniego treningu. Wszystko ok? Chętnie pomogę wrócić do rytmu 💪'},
         {type:'task',day:parseInt(N.inactiveDays,10)||14,text:'Skontaktuj się z klientem'}
+      ]
+    },
+    {
+      key:'pl-package-expired',
+      enabled:N.packageExpired===true,
+      trigger:'package.expired',
+      name:'Pakiet wygasł',
+      steps:[
+        {type:'message',day:1,text:'{imie}, Twój pakiet wygasł. Napisz, to przedłużymy współpracę 💪'}
+      ]
+    },
+    {
+      key:'pl-checkin-submitted',
+      enabled:N.checkinThanks===true,
+      trigger:'checkin.submitted',
+      name:'Podziękowanie za check-in',
+      steps:[
+        {type:'message',day:1,text:'Dzięki za check-in, {imie}! Zerknę na odpowiedzi i dam znać.'}
       ]
     }
   ];
@@ -2981,7 +3007,7 @@ function renderAutoflows(){
     return;
   }
   const typeLabels={sequence:'Sekwencja dni',trigger:'Wyzwalacz'};
-  const trigLabels={inactivity:'brak aktywności',session_today:'sesja dziś',new_client:'nowy klient'};
+  const trigLabels={inactivity:'brak aktywności',session_today:'sesja dziś',new_client:'nowy klient','package.expired':'pakiet wygasł','checkin.submitted':'check-in wysłany'};
   el.innerHTML=all.map((af,i)=>{
     const enrolledCount=Object.keys(window.AF_STATE?.enrollments?.[af.id]||{}).length;
     const trig=af.type==='trigger'?(trigLabels[af.trigger||'inactivity']||af.trigger):'';
@@ -3167,7 +3193,79 @@ function logAF(af,c,text){
   state.logs=state.logs.slice(0,40);
 }
 
+function autoflowTriggerForEvent(type){
+  const t=String(type||'');
+  if(t==='client.created')return 'new_client';
+  if(t==='package.expired'||t==='onPackageExpired')return 'package.expired';
+  if(t==='checkin.submitted'||t==='checkin.completed'||t==='onCheckInSubmitted')return 'checkin.submitted';
+  return '';
+}
+
+function fireAutoflowTrigger(af,c,eventKey){
+  if(!af||af.status!=='active'||!c||!c.id)return 0;
+  if(af.scope==='select'&&(af.clientIds||[]).indexOf(c.id)<0)return 0;
+  enrollClientInAutoflow(af,c,false);
+  const state=ensureAfState();
+  if(!state.executed[af.id])state.executed[af.id]={};
+  if(!state.executed[af.id][c.id])state.executed[af.id][c.id]={};
+  if(!state.lastFired[af.id])state.lastFired[af.id]={};
+  if(!state.lastFired[af.id][c.id])state.lastFired[af.id][c.id]={};
+  const todayISO=new Date().toISOString().split('T')[0];
+  let ran=0;
+  const oneShot=af.trigger==='new_client';
+  (af.steps||[]).forEach((step,si)=>{
+    if(step.type==='wait')return;
+    const mark=String(eventKey||'ev')+':'+si;
+    if(state.executed[af.id][c.id][mark])return;
+    if(oneShot&&state.executed[af.id][c.id][si])return;
+    execAFStep(step,c,af);
+    state.executed[af.id][c.id][mark]=true;
+    if(oneShot)state.executed[af.id][c.id][si]=true;
+    state.lastFired[af.id][c.id][si]=todayISO;
+    ran++;
+  });
+  if(ran)saveAutomationState();
+  return ran;
+}
+
+function autoflowOnAppEvent(type,payload){
+  const kind=autoflowTriggerForEvent(type);
+  if(!kind)return 0;
+  const p=payload||{};
+  const cid=p.clientId||(p.client&&p.client.id);
+  const c=(window.CL||[]).find(x=>x&&x.id===cid);
+  if(!c)return 0;
+  const eventKey=kind+':'+(p.checkinId||p.packageId||cid);
+  let ran=0;
+  (window.AUTOFLOWS||[]).filter(af=>af&&af.status==='active'&&af.type==='trigger'&&af.trigger===kind).forEach(af=>{
+    ran+=fireAutoflowTrigger(af,c,eventKey);
+  });
+  try{if(typeof renderAutoflows==='function')renderAutoflows();}catch(e){}
+  try{if(typeof renderAutoflowLog==='function')renderAutoflowLog();}catch(e){}
+  return ran;
+}
+
+function scanAndEmitPackageExpired(todayY){
+  const today=todayY||(typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10));
+  const state=ensureAfState();
+  state.eventOnce=state.eventOnce||{};
+  let n=0;
+  (window.PACKAGES||[]).forEach(p=>{
+    if(!p||!p.clientId)return;
+    const expired=typeof clientPackageExpired==='function'?clientPackageExpired(p,today):(p.status==='expired'||p.payStatus==='expired'||(p.expiresDate&&String(p.expiresDate).slice(0,10)<today));
+    if(!expired)return;
+    const key='package.expired:'+p.id+':'+today;
+    if(state.eventOnce[key])return;
+    state.eventOnce[key]=true;
+    n++;
+    if(typeof emitAppEvent==='function')emitAppEvent('package.expired',{clientId:p.clientId,packageId:p.id,title:p.title||'',expiresDate:p.expiresDate||''});
+  });
+  if(n)saveAutomationState();
+  return n;
+}
+
 function runAutoflowsCheck(showToast){
+  try{scanAndEmitPackageExpired();}catch(e){}
   const state=ensureAfState();
   const today=new Date();
   const todayISO=today.toISOString().split('T')[0];
@@ -3212,6 +3310,8 @@ function runAutoflowsCheck(showToast){
             fire=hasWindow&&daysSinceLastFired>=1;
           }else if(kind==='new_client'){
             fire=!state.executed[af.id][c.id][si];
+          }else if(kind==='package.expired'||kind==='checkin.submitted'){
+            fire=false;
           }
           if(fire){
             execAFStep(step,c,af);
@@ -3905,6 +4005,8 @@ window.addOSCForm=addOSCForm;window.saveOnboardingFlow=saveOnboardingFlow;
 window.renderAutoflows=renderAutoflows;window.toggleAF=toggleAF;
 window.addAFStep=addAFStep;window.saveAutoflow=saveAutoflow;
 window.runAutoflowsCheck=runAutoflowsCheck;window.deleteAutoflow=deleteAutoflow;
+window.autoflowOnAppEvent=autoflowOnAppEvent;window.autoflowTriggerForEvent=autoflowTriggerForEvent;
+window.fireAutoflowTrigger=fireAutoflowTrigger;window.scanAndEmitPackageExpired=scanAndEmitPackageExpired;
 if(typeof ensureReminderAutoflowsFromSettings==='function')ensureReminderAutoflowsFromSettings();
 window.updateAfBuilderUi=updateAfBuilderUi;window.fillAutomationSelects=fillAutomationSelects;
 window.setResTab=setResTab;window.setResNav=setResNav;window.renderResources=renderResources;

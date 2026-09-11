@@ -208,6 +208,8 @@ jobs:
         run: node .github/scripts/test_dash_msg_followup.js
       - name: 1n14b. Testy rodzajów wiadomości (czat / system / broadcast)
         run: node .github/scripts/test_inbox_kinds.js
+      - name: 1n14c. Testy Autoflow na zdarzeniach (pakiet / check-in)
+        run: node .github/scripts/test_autoflow_events.js
 
       - name: 1n15. Testy follow-upu nawyków / wyzwań (dashboard)
         run: node .github/scripts/test_dash_habits_followup.js
@@ -382,6 +384,8 @@ jobs:
         run: node .github/scripts/test_pkg_gate_ui.js
       - name: 6b3c2c. Testy UI szkicu Live (live-draft)
         run: node .github/scripts/test_live_draft_ui.js
+      - name: 6b3c2d. Testy UI Autoflow (pakiet / check-in)
+        run: node .github/scripts/test_autoflow_events_ui.js
       - name: 6b3c3. Testy UI Live dual (dwie osoby)
         run: node .github/scripts/test_live_dual_ui.js
       - name: 6b3c4. Testy UI dodawania zamiennika w Live
