@@ -96,7 +96,7 @@ Wejścia: `saveClient` (modal) i `onbCreateClient` (wizard).
 
 **Automatyzacja.** Dwa byty: checklista onboardingu + Autoflow. Scalanie = Autoflow nasłuchuje `emitAppEvent`.
 
-**Płatności.** Statystyki przy zerze transakcji — UI puste stany już są; nie dokładać KPI. Brak gate’a dostępu.
+**Płatności.** Statystyki przy zerze transakcji — UI puste stany już są; nie dokładać KPI. Brama dostępu: `clientHasPaidAccess`. Pulpit: wygasające pakiety tylko w „Płatności do odnowienia”.
 
 **TDEE / KB.** TDEE zapisuje `c.macros`. KB nie steruje builderem (świadomie: żargon MEV zostaje w przewodniku trenera, nie w mowie do klienta).
 
@@ -130,3 +130,4 @@ Wejścia: `saveClient` (modal) i `onbCreateClient` (wizard).
 6. **Kalendarz/sala → sesja pakietu** — **zrobione** (`consumeClientPackageSession`, raz na dzień, jak Live End)
 7. Copy przypomnień na pulpicie — **zrobione** (podtytuł „Wygasające pakiety”, nie „Raporty i pakiety”)
 8. **Check-in po wizycie / odblokowanie** — **zrobione:** `maybeSendCheckinAfterSession` po Live End / sala `✓ Odbył się` / apka `cwFinish`. Raz na tydzień (`ensurePendingCheckin`, `source:'session'`). Skip gdy check-in wyłączony, brak planu, już wypełniony albo pending.
+9. **Pulpit: jedna lista pakietów** — **zrobione:** karta Przypomnień zdjęta (dublowała „Płatności do odnowienia”). KPI scrolluje do `#dash-ops-pay`.

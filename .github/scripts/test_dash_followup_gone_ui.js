@@ -54,7 +54,9 @@ function ok(name, cond, extra) {
       hasOps: !!att && !!ops,
       dashActive: !!(dash && dash.classList.contains('active')),
       attVisible: vis(att),
-      remSub: ((document.querySelector('#dash-ops-reminders .studio-sub') || {}).textContent || '').trim(),
+      remGone: !document.getElementById('dash-ops-reminders'),
+      payCard: !!document.getElementById('dash-ops-pay'),
+      payTitle: ((document.querySelector('#dash-ops-pay .studio-hdr') || {}).textContent || '').trim(),
       refresh: typeof refreshDashOps === 'function',
       aliases: typeof renderDashCheckinFollowup === 'function' && renderDashCheckinFollowup === refreshDashOps
     };
@@ -62,8 +64,30 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'dash_ops_no_followup.png') });
   ok('dead followups gone', ui.dead.length === 0, JSON.stringify(ui.dead));
   ok('ops grid', ui.hasOps && ui.dashActive && ui.attVisible, JSON.stringify(ui));
-  ok('reminders subtitle packages', ui.remSub === 'Wygasające pakiety', ui.remSub);
+  ok('pay card only for packages', ui.payCard && ui.remGone && ui.payTitle === 'Płatności do odnowienia', JSON.stringify({ pay: ui.payCard, remGone: ui.remGone, title: ui.payTitle }));
   ok('refreshDashOps', ui.refresh && ui.aliases, JSON.stringify({ refresh: ui.refresh, aliases: ui.aliases }));
+
+  const listed = await page.evaluate(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 3);
+    const p = n => String(n).padStart(2, '0');
+    const ymd = d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+    window.CL = [{ id: 'c1', name: 'Anna Test', status: 'active' }];
+    window.PACKAGES = [{
+      id: 'pk1', clientId: 'c1', clientName: 'Anna Test', title: 'Pakiet 8',
+      price: 800, expiresDate: ymd, status: 'active', payStatus: 'paid'
+    }];
+    if (typeof invalidateOpsEventsCache === 'function') invalidateOpsEventsCache();
+    if (typeof renderDashOps === 'function') renderDashOps();
+    const pay = (document.getElementById('d-ops-expiring') || {}).innerText || '';
+    return {
+      pay,
+      rem: !!document.getElementById('dash-ops-reminders'),
+      payHits: (pay.match(/Anna Test/g) || []).length
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'dash_ops_pay_only.png') });
+  ok('package listed once', listed.payHits === 1 && /Pakiet 8/.test(listed.pay) && !listed.rem, JSON.stringify(listed));
 
   await browser.close();
   if (failed) {
