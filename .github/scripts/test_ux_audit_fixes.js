@@ -53,9 +53,9 @@ ok('strip od tags', portal.includes('function capStripOdTags') && portal.include
 ok('homework filter render', src06.includes("taskFilter==='homework'"));
 ok('dash no-plan', portal.includes("tag:'Brak planu'") && portal.includes("tag:'Domowe zaległe'"));
 ok('cache 01', html.includes('01-core.js?v=103'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=62'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=63'));
 ok('cache 04', html.includes('04-client-portal.js?v=50'));
-ok('cache 09', html.includes('09-posture-kb-invites-private.js?v=43'));
+ok('cache 09', html.includes('09-posture-kb-invites-private.js?v=44'));
 ok('cache 10', html.includes('10-client-app.js?v=39'));
 ok('cache styles', html.includes('styles.css?v=80'));
 ok('CI', wf.includes('test_ux_audit_fixes.js'));

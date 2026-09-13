@@ -211,6 +211,37 @@ function ok(name, cond, extra) {
   await page.waitForTimeout(700);
   ok('back from AI plan', await page.locator('#m-client-onboard.show').isVisible());
 
+  await page.evaluate(() => {
+    if (typeof closeM === 'function') closeM('m-client-onboard');
+    if (typeof goTo === 'function') goTo('onboarding');
+  });
+  await page.waitForTimeout(500);
+  const overview = await page.evaluate(() => {
+    const tab = document.getElementById('onb-overview-tab');
+    const html = (tab && tab.innerHTML) || '';
+    const screen = document.getElementById('screen-onboarding');
+    return {
+      active: !!(screen && screen.classList.contains('active')),
+      hasConfirm: /Potwierdź krok/.test(html),
+      hasFakeEmpty: /Bez onboardingu/.test(html),
+      hasEwelina: /Ewelina/.test(html),
+      hasChecklistCta: /Dokończ|Checklista/.test(html),
+      hasRealCopy: /ta sama checklista/i.test(html)
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'onboard_overview.png') });
+  ok('overview is real checklist board', overview.active && overview.hasEwelina && overview.hasChecklistCta && overview.hasRealCopy && !overview.hasConfirm && !overview.hasFakeEmpty, JSON.stringify(overview));
+
+  await page.click('#onb-overview-tab button:has-text("Dokończ")');
+  await page.waitForSelector('#m-client-onboard.show');
+  const fromOverview = await page.evaluate(() => {
+    const steps = document.getElementById('client-onboard-steps');
+    const t = (steps && steps.innerText) || '';
+    return { waiting: /Ankieta czeka/.test(t), send: /Wyślij ankietę/.test(t) };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'onboard_from_overview.png') });
+  ok('overview CTA opens checklist without auto-form', fromOverview.send && !fromOverview.waiting, JSON.stringify(fromOverview));
+
   await browser.close();
   if (failed) {
     console.error(failed + ' failed');

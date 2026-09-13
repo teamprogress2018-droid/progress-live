@@ -38,7 +38,12 @@ ok('live empty day uses liveOpenBuilder', src02.includes('function liveOpenBuild
 ok('openAiPlanForClient fromOnboard', src05.includes('function openAiPlanForClient(clientId,fromOnboard)') && src05.includes("openAiPlanForClient('${id}',true)"));
 ok('apl/builder resume banners', html.includes('id="apl-onboard-banner"') && html.includes('id="builder-onboard-banner"') && src05.includes('function resumeOnboardFromApl') && src05.includes('function builderGoBack'));
 ok('baseline ignores card weight', src01.includes('function clientOnboardHasBaseline') && !/baselineDone\|\|c\.weight/.test(src01));
-ok('cache 01/02/03/05/07/09', html.includes('01-core.js?v=103') && html.includes('02-workouts-onboarding-templates-live.js?v=62') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=35') && html.includes('05-clients-builder-plans-calendar.js?v=62') && html.includes('07-forms-metrics-calculator.js?v=36') && html.includes('09-posture-kb-invites-private.js?v=43'));
+ok('overview uses real checklist', src02.includes('function onbOpenChecklist') && src02.includes('function onbStatusFor') && src02.includes("onbOpenChecklist('") && !src02.includes('Potwierdź krok'));
+ok('no fake ONB_ACTIVE progress', !src02.includes("persistById('onboardingActive'") && !src02.includes('Wypełnij ankietę wstępną'));
+ok('flow tiles open wizard not second tracker', src02.includes('function onbUseFlow') && src02.includes('Użyj przy nowym kliencie'));
+ok('nav start współpracy', html.includes('data-screen="onboarding"') && html.includes('Przegląd startu →') && html.includes('Start współpracy'));
+ok('no auto intake when flow off', src09.includes('function runOnboardingForClient') && !src09.includes('formularz (auto)') && !/if\(!formSent&&typeof createFormSend/.test(src09));
+ok('cache 01/02/03/05/07/09', html.includes('01-core.js?v=103') && html.includes('02-workouts-onboarding-templates-live.js?v=63') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=35') && html.includes('05-clients-builder-plans-calendar.js?v=62') && html.includes('07-forms-metrics-calculator.js?v=36') && html.includes('09-posture-kb-invites-private.js?v=44'));
 ok('CI unit+ui', wf.includes('test_onboard_flow.js') && wf.includes('test_onboard_flow_ui.js'));
 
 if (failed) {
