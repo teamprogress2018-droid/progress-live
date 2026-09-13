@@ -24,6 +24,7 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 01', html.includes('01-core.js?v=103'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=63'));
 ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=64'));
 ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=64'));
 ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=74'));
