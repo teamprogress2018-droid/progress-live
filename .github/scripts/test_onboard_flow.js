@@ -28,11 +28,12 @@ ok('forms library helper', src05.includes('function openFormsLibraryFromOnboard'
 ok('forms banner', html.includes('id="forms-onboard-banner"') && html.includes('z-index:30') && src07.includes('function resumeOnboardFromForms'));
 ok('send form prefills onboard client', src07.includes('_onboardResumeAfterForms') && src07.includes('sendFormSetClientField(resumeC.id'));
 ok('schedule modal', html.includes('id="m-onboard-schedule"') && src05.includes('function saveClientScheduleFromOnboard'));
-ok('builder from onboard not profile tab', src05.includes("openBuilderForClient('${id}')") && !/openClientProfile\('\$\{id\}'\);setTimeout\(\(\)=>setCPTab\('plan'\)/.test(src05));
+ok('builder from onboard not profile tab', src05.includes("openBuilderForClient('${id}',true)") && !/openClientProfile\('\$\{id\}'\);setTimeout\(\(\)=>setCPTab\('plan'\)/.test(src05));
 ok('live from onboard', src05.includes('function openLiveFromOnboard') && src05.includes("openLiveFromOnboard('${id}'") && html.includes('id="live-onboard-banner"'));
 ok('live end clears onboard flag', src02.includes('_onboardResumeAfterLive===st.savedClientId'));
+ok('apl/builder resume banners', html.includes('id="apl-onboard-banner"') && html.includes('id="builder-onboard-banner"') && src05.includes('function resumeOnboardFromApl') && src05.includes('function builderGoBack'));
 ok('baseline ignores card weight', src01.includes('function clientOnboardHasBaseline') && !/baselineDone\|\|c\.weight/.test(src01));
-ok('cache 01/02/05/07/09', html.includes('01-core.js?v=103') && html.includes('02-workouts-onboarding-templates-live.js?v=61') && html.includes('05-clients-builder-plans-calendar.js?v=59') && html.includes('07-forms-metrics-calculator.js?v=35') && html.includes('09-posture-kb-invites-private.js?v=42'));
+ok('cache 01/02/03/05/07/09', html.includes('01-core.js?v=103') && html.includes('02-workouts-onboarding-templates-live.js?v=61') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=35') && html.includes('05-clients-builder-plans-calendar.js?v=60') && html.includes('07-forms-metrics-calculator.js?v=35') && html.includes('09-posture-kb-invites-private.js?v=42'));
 ok('CI unit+ui', wf.includes('test_onboard_flow.js') && wf.includes('test_onboard_flow_ui.js'));
 
 if (failed) {

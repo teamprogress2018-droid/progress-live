@@ -235,7 +235,7 @@ eq('uses packagesForClient', src04.includes('packagesForClient') && src08.includ
 eq('src getClientOnboard uses status', src05.includes('clientOnboardStatus'), true);
 eq('src invite from onboard', src05.includes('function openInviteFromOnboard') && src05.includes("action:`openInviteFromOnboard('${id}')`"), true);
 eq('src forms library from onboard', src05.includes('function openFormsLibraryFromOnboard') && src05.includes("openFormsLibraryFromOnboard('${id}')"), true);
-eq('src builder from onboard', src05.includes("openBuilderForClient('${id}')") && !src05.includes("setCPTab('plan'),300)"), true);
+eq('src builder from onboard', src05.includes("openBuilderForClient('${id}',true)") && !src05.includes("setCPTab('plan'),300)"), true);
 eq('src schedule picker', src05.includes('function saveClientScheduleFromOnboard') && src05.includes("openM('m-onboard-schedule')"), true);
 
 if (failed) {

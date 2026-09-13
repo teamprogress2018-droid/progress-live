@@ -483,6 +483,53 @@ window.openLiveFromOnboard=openLiveFromOnboard;
 window.renderOnboardLiveBanner=renderOnboardLiveBanner;
 window.resumeOnboardFromLive=resumeOnboardFromLive;
 
+function renderOnboardAplBanner(){
+  const bar=document.getElementById('apl-onboard-banner');
+  if(!bar)return;
+  const cid=window._onboardResumeAfterApl;
+  const c=cid&&(window.CL||[]).find(x=>x.id===cid);
+  if(!c){bar.style.display='none';bar.innerHTML='';return;}
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
+  bar.style.display='flex';
+  bar.innerHTML='<span>Start współpracy: <b>'+esc(c.name)+'</b> — wygeneruj plan albo wróć do checklisty.</span>'
+    +'<button type="button" class="btn btn-primary btn-sm" onclick="resumeOnboardFromApl()">Wróć do checklisty</button>';
+}
+function resumeOnboardFromApl(){
+  const cid=window._onboardResumeAfterApl;
+  window._onboardResumeAfterApl=null;
+  if(typeof renderOnboardAplBanner==='function')renderOnboardAplBanner();
+  if(cid&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);
+}
+function renderOnboardBuilderBanner(){
+  const bar=document.getElementById('builder-onboard-banner');
+  if(!bar)return;
+  const cid=window._onboardResumeAfterBuilder;
+  const c=cid&&(window.CL||[]).find(x=>x.id===cid);
+  if(!c){bar.style.display='none';bar.innerHTML='';return;}
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
+  bar.style.display='flex';
+  bar.innerHTML='<span>Start współpracy: <b>'+esc(c.name)+'</b> — zapisz plan albo wróć do checklisty.</span>'
+    +'<button type="button" class="btn btn-primary btn-sm" onclick="resumeOnboardFromBuilder()">Wróć do checklisty</button>';
+}
+function resumeOnboardFromBuilder(){
+  const cid=window._onboardResumeAfterBuilder;
+  window._onboardResumeAfterBuilder=null;
+  if(typeof renderOnboardBuilderBanner==='function')renderOnboardBuilderBanner();
+  if(cid&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);
+}
+function builderGoBack(){
+  if(window._onboardResumeAfterBuilder){
+    resumeOnboardFromBuilder();
+    return;
+  }
+  goTo(window._builderBack||'clients');
+}
+window.renderOnboardAplBanner=renderOnboardAplBanner;
+window.resumeOnboardFromApl=resumeOnboardFromApl;
+window.renderOnboardBuilderBanner=renderOnboardBuilderBanner;
+window.resumeOnboardFromBuilder=resumeOnboardFromBuilder;
+window.builderGoBack=builderGoBack;
+
 function skipClientPackage(clientId){
   const c=CL.find(x=>x.id===clientId);if(!c)return;
   c.packageSkipped=true;
@@ -518,6 +565,7 @@ function clientPendingPackage(clientId){
 window.clientPendingPackage=clientPendingPackage;
 
 function openAiPlanForClient(clientId){
+  window._onboardResumeAfterApl=clientId;
   closeM('m-client-onboard');
   if(typeof closeClientProfile==='function')closeClientProfile();
   window._aplPrefillClientId=clientId;
@@ -528,14 +576,14 @@ function openAiPlanForClient(clientId){
       sel.value=clientId;
       if(typeof aplFillFromClient==='function')aplFillFromClient();
     }
+    if(typeof renderOnboardAplBanner==='function')renderOnboardAplBanner();
   },200);
 }
 window.openAiPlanForClient=openAiPlanForClient;
 
-function openBuilderForClient(clientId){
-  closeM('m-client-onboard');
-  if(typeof closeClientProfile==='function')closeClientProfile();
+function openBuilderForClient(clientId,fromOnboard){
   window._builderBack='clients';
+  window._onboardResumeAfterBuilder=fromOnboard?clientId:null;
   goTo('builder');
   setTimeout(()=>{
     const sel=document.getElementById('b-client');
@@ -543,6 +591,7 @@ function openBuilderForClient(clientId){
       sel.value=clientId;
       if(typeof updatePeriod==='function')updatePeriod();
     }
+    if(typeof renderOnboardBuilderBanner==='function')renderOnboardBuilderBanner();
   },200);
 }
 window.openBuilderForClient=openBuilderForClient;
@@ -614,8 +663,8 @@ function renderClientOnboardChecklist(){
         ?`Plan już przypisany${(()=>{const lp=typeof latestClientPlan==='function'?latestClientPlan(id):null;return lp&&lp.name?' (“'+lp.name+'”)':'';})()}. Możesz dodać kolejny — najnowszy trafia do kalendarza.`
         :'Najszybciej: generator AI z danymi klienta',
       action:`openAiPlanForClient('${id}')`,cta:'⚡ Plan AI',
-      extra:`<button class="btn btn-ghost btn-sm" onclick="openBuilderForClient('${id}')">Szablon / kreator</button>`,
-      doneExtra:`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"><button class="btn btn-primary btn-sm" onclick="openAiPlanForClient('${id}')">⚡ Nowy plan AI</button><button class="btn btn-ghost btn-sm" onclick="openBuilderForClient('${id}')">📋 Szablon / kreator</button></div>`},
+      extra:`<button class="btn btn-ghost btn-sm" onclick="openBuilderForClient('${id}',true)">Szablon / kreator</button>`,
+      doneExtra:`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"><button class="btn btn-primary btn-sm" onclick="openAiPlanForClient('${id}')">⚡ Nowy plan AI</button><button class="btn btn-ghost btn-sm" onclick="openBuilderForClient('${id}',true)">📋 Szablon / kreator</button></div>`},
     {done:st.calendar,icon:'🗓',title:'Wrzuć plan do kalendarza',desc:'4 tygodnie na preferowane dni — klient widzi trening w Dziś',
       action:`scheduleClientPlanToCalendar('${id}')`,cta:'Do kalendarza',
       extra:st.calendar?'':`<button class="btn btn-ghost btn-sm" onclick="openLiveFromOnboard('${id}','${safeName}')">Trening Live</button>`,
@@ -1797,6 +1846,10 @@ async function savePlan(){
   PL.push(plan);goTo('plans');notify('Plan zapisany!');
   await persistById('plans',plan);
   if(cid&&typeof maybeSchedulePlanToCalendar==='function')maybeSchedulePlanToCalendar(plan.id,{weeks:4});
+  if(window._onboardResumeAfterBuilder===cid){
+    window._onboardResumeAfterBuilder=null;
+    if(typeof renderOnboardBuilderBanner==='function')renderOnboardBuilderBanner();
+  }
   maybeResumeOnboard(cid);
 }
 

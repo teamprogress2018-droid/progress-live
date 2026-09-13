@@ -1491,7 +1491,13 @@ function aplSavePlan(){
   }else if(cid&&client&&confirm('Dodać dni planu do kalendarza na najbliższe 4 tygodnie?')){
     if(typeof schedulePlanToCalendar==='function')schedulePlanToCalendar(newPlan.id,{weeks:4});
   }
-  if(cid&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);
+  if(cid&&typeof maybeResumeOnboard==='function'){
+    if(window._onboardResumeAfterApl===cid){
+      window._onboardResumeAfterApl=null;
+      if(typeof renderOnboardAplBanner==='function')renderOnboardAplBanner();
+    }
+    maybeResumeOnboard(cid);
+  }
 }
 
 function aplStripAutoStructureNotes(raw){

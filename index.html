@@ -353,7 +353,8 @@
 
 <!-- BUILDER -->
 <div class="screen" id="screen-builder">
-  <div class="topbar"><div class="topbar-title">Nowy plan treningowy</div><div class="topbar-actions"><button class="btn btn-ghost btn-sm" onclick="goTo(window._builderBack||'clients')">Anuluj</button><button class="btn btn-primary btn-sm" onclick="savePlan()">Zapisz plan</button></div></div>
+  <div class="topbar"><div class="topbar-title">Nowy plan treningowy</div><div class="topbar-actions"><button class="btn btn-ghost btn-sm" onclick="builderGoBack()">Anuluj</button><button class="btn btn-primary btn-sm" onclick="savePlan()">Zapisz plan</button></div></div>
+  <div id="builder-onboard-banner" style="display:none;position:relative;z-index:30;align-items:center;justify-content:flex-start;gap:10px;flex-wrap:wrap;padding:10px 16px;background:var(--adim);border-bottom:1px solid rgba(230,0,0,0.25);font-size:12px;"></div>
   <div class="content builder-layout">
     <div class="builder-main">
       <div class="card builder-meta-card">
@@ -2145,6 +2146,8 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <button class="btn btn-primary btn-sm" id="apl-gen-btn" onclick="aplGenerate()">✨ Generuj plan</button>
     </div>
   </div>
+
+  <div id="apl-onboard-banner" style="display:none;position:relative;z-index:30;align-items:center;justify-content:flex-start;gap:10px;flex-wrap:wrap;padding:10px 16px;background:var(--adim);border-bottom:1px solid rgba(230,0,0,0.25);font-size:12px;"></div>
 
   <div class="apl-layout">
     <!-- lewy panel — formularz -->
@@ -4363,9 +4366,9 @@ async function load(){
 <script src="ex-photo-manifest.js?v=6"></script>
 <script src="01-core.js?v=103"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=61"></script>
-<script src="03-ai-plangen-bizstats-aicoach.js?v=34"></script>
+<script src="03-ai-plangen-bizstats-aicoach.js?v=35"></script>
 <script src="04-client-portal.js?v=49"></script>
-<script src="05-clients-builder-plans-calendar.js?v=59"></script>
+<script src="05-clients-builder-plans-calendar.js?v=60"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=74"></script>
 <script src="07-forms-metrics-calculator.js?v=35"></script>
 <script src="08-client-profile-extras.js?v=55"></script>
