@@ -310,12 +310,11 @@ function ok(name, cond, extra) {
     const modal = document.getElementById('m-client');
     const wizardTab = document.getElementById('onb-new-tab');
     const title = ((modal && modal.querySelector('.modal-title')) || {}).textContent || '';
-    const stepper = !!(wizardTab && wizardTab.offsetParent && /Dane podstawowe/.test(wizardTab.innerText || ''));
     return {
       modal: !!(modal && modal.classList.contains('show')),
       title,
-      wizardVisible: stepper,
-      tabHidden: !document.getElementById('onb-tab-new')
+      wizardVisible: !!(wizardTab && wizardTab.offsetParent),
+      tabHidden: !document.getElementById('onb-tab-new') && !wizardTab
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'onboard_new_client_modal.png') });

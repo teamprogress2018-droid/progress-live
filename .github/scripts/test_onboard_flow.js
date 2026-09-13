@@ -40,15 +40,16 @@ ok('apl/builder resume banners', html.includes('id="apl-onboard-banner"') && htm
 ok('baseline ignores card weight', src01.includes('function clientOnboardHasBaseline') && !/baselineDone\|\|c\.weight/.test(src01));
 ok('overview uses real checklist', src02.includes('function onbOpenChecklist') && src02.includes('function onbStatusFor') && src02.includes("onbOpenChecklist('") && !src02.includes('Potwierdź krok'));
 ok('no fake ONB_ACTIVE progress', !src02.includes("persistById('onboardingActive'") && !src02.includes('Wypełnij ankietę wstępną'));
-ok('flow tiles open same client card', src02.includes('function onbUseFlow') && src02.includes('function onbOpenNewClient') && src02.includes("if(t==='new')") && src02.includes('onbOpenNewClient()') && !html.includes('id="onb-tab-new"'));
+ok('flow tiles open same client card', src02.includes('function onbUseFlow') && src02.includes('function onbOpenNewClient') && src02.includes("if(t==='new')") && src02.includes('onbOpenNewClient()') && !html.includes('id="onb-tab-new"') && !html.includes('id="onb-new-tab"'));
 ok('nav start współpracy', html.includes('data-screen="onboarding"') && html.includes('Przegląd startu →') && html.includes('Start współpracy'));
 ok('no auto intake when flow off', src09.includes('function runOnboardingForClient') && !src09.includes('formularz (auto)') && !/if\(!formSent&&typeof createFormSend/.test(src09));
 ok('new client stamps default flow', src05.includes("onboardingFlow:((window.SETTINGS||{}).onboarding||{}).defaultFlow"));
+ok('dead wizard removed', !src02.includes('function renderOnbNew') && !src02.includes('ONB_WIZARD_STEPS') && !src02.includes('function onbCreateClient') && !html.includes('id="onb-new-tab"'));
 ok('package cancel resumes', src05.includes('function closePackageModal') && html.includes('closePackageModal()') && html.includes('id="pkg-onboard-banner"'));
 ok('package save skips confirm from onboard', src09.includes('fromOnboard&&resumeId') && src09.includes('!fromOnboard&&pkg.payStatus'));
 ok('invite overlay resumes', html.includes('id="m-invite"') && html.includes('closeInviteModal(false)'));
 ok('profile from onboard resumes', src05.includes('function openClientProfileFromOnboard') && src07.includes('function resumeOnboardFromProfile') && html.includes('id="cp-onboard-banner"') && html.includes('closeClientProfileOrResumeOnboard()'));
-ok('cache 01/02/03/05/07/09', html.includes('01-core.js?v=103') && html.includes('02-workouts-onboarding-templates-live.js?v=64') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=35') && html.includes('05-clients-builder-plans-calendar.js?v=64') && html.includes('07-forms-metrics-calculator.js?v=37') && html.includes('09-posture-kb-invites-private.js?v=45'));
+ok('cache 01/02/03/05/07/09', html.includes('01-core.js?v=103') && html.includes('02-workouts-onboarding-templates-live.js?v=65') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=35') && html.includes('05-clients-builder-plans-calendar.js?v=64') && html.includes('07-forms-metrics-calculator.js?v=37') && html.includes('09-posture-kb-invites-private.js?v=45'));
 ok('baseline from onboard resumes', src05.includes("openClientBaselineModal('${id}',true)") && src05.includes('function closeBaselineModal') && html.includes('id="bl-onboard-banner"') && html.includes('closeBaselineModal()'));
 ok('schedule from onboard resumes', src05.includes('function closeScheduleOnboardModal') && src05.includes('_onboardResumeAfterSchedule') && html.includes('id="sched-onboard-banner"') && html.includes('closeScheduleOnboardModal()'));
 ok('CI unit+ui', wf.includes('test_onboard_flow.js') && wf.includes('test_onboard_flow_ui.js'));

@@ -314,8 +314,6 @@ async function saveWorkout(){
 // ONBOARDING
 // ════════════════════════════════════════
 var onbTab='overview';
-var onbStep=0;
-var onbNewClient={};
 var ONB_ACTIVE=[];   // legacy Firestore; postęp = CLIENT_ONBOARD_STEPS, nie o.step
 window.ONB_ACTIVE=ONB_ACTIVE;
 
@@ -391,7 +389,7 @@ function setOnbTab(t){
     return;
   }
   onbTab=t;
-  ['overview','new','flows','settings'].forEach(x=>{
+  ['overview','flows','settings'].forEach(x=>{
     const el=document.getElementById('onb-'+x+'-tab');
     if(el)el.style.display=x===t?'block':'none';
     document.getElementById('onb-tab-'+x)?.classList.toggle('active',x===t);
@@ -481,7 +479,7 @@ function renderOnbOverview(){
 
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;">W TRAKCIE STARTU</div>
-      <button class="btn btn-primary btn-sm" onclick="setOnbTab('new')">+ Nowy klient</button>
+      <button class="btn btn-primary btn-sm" onclick="onbOpenNewClient()">+ Nowy klient</button>
     </div>
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px;">
       ${inProgress.length?inProgress.map(card).join(''):`<div style="background:var(--s2);border:1px dashed var(--border);border-radius:12px;padding:18px;font-size:12px;color:var(--muted);">Wszyscy klienci mają dokończony start — albo lista jest pusta.</div>`}
@@ -514,312 +512,6 @@ function onbUseFlow(flowId){
   if(typeof persistSettingsDoc==='function')persistSettingsDoc();
   notify('Wariant „'+(ONB_FLOWS.find(f=>f.id===flowId)?.name||flowId)+'” — otwieram kartę klienta. Checklista jest jedna.');
   onbOpenNewClient();
-}
-
-/* ── NEW CLIENT WIZARD ── */
-const ONB_WIZARD_STEPS=[
-  {label:'Dane podstawowe', icon:'👤'},
-  {label:'Cel i poziom',    icon:'🎯'},
-  {label:'Zdrowie',         icon:'🩺'},
-  {label:'Plan i flow',     icon:'📋'},
-  {label:'Potwierdzenie',   icon:'✅'},
-];
-
-function renderOnbNew(){
-  const el=document.getElementById('onb-new-tab');if(!el)return;
-  const step=onbStep;
-  const total=ONB_WIZARD_STEPS.length;
-
-  el.innerHTML=`
-    <div style="max-width:680px;margin:0 auto;">
-      <!-- stepper -->
-      <div style="display:flex;align-items:center;margin-bottom:28px;">
-        ${ONB_WIZARD_STEPS.map((s,i)=>`
-          <div style="display:flex;align-items:center;flex:${i<total-1?1:'none'};">
-            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
-              <div style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:${i<step?'14px':'16px'};
-                background:${i<step?'var(--teal)':i===step?'var(--accent)':'var(--s3)'};
-                color:${i<=step?'#000':'var(--muted)'};font-weight:700;border:2px solid ${i===step?'var(--accent)':i<step?'var(--teal)':'var(--border2)'};">${i<step?'✓':s.icon}</div>
-              <div style="font-size:9px;font-family:'DM Mono',monospace;color:${i===step?'var(--accent)':i<step?'var(--teal)':'var(--muted)'};white-space:nowrap;">${s.label}</div>
-            </div>
-            ${i<total-1?`<div style="flex:1;height:2px;background:${i<step?'var(--teal)':'var(--border)'};margin:0 6px;margin-bottom:18px;"></div>`:''}
-          </div>`).join('')}
-      </div>
-
-      <!-- step content -->
-      <div style="background:var(--s2);border:1px solid var(--border);border-radius:14px;padding:28px;margin-bottom:16px;" id="onb-wizard-body">
-        ${onbWizardStepHTML(step)}
-      </div>
-
-      <!-- nav buttons -->
-      <div style="display:flex;gap:10px;justify-content:space-between;">
-        <button class="btn btn-ghost" onclick="onbWizardBack()" ${step===0?'disabled style="opacity:0.4;"':''}>← Wstecz</button>
-        <button class="btn btn-primary" onclick="onbWizardNext()" id="onb-next-btn">${step===total-1?'✓ Utwórz klienta':'Dalej →'}</button>
-      </div>
-    </div>`;
-}
-
-function onbWizardStepHTML(step){
-  if(step===0) return `
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">👤 DANE PODSTAWOWE</div>
-    <div class="form-grid">
-      <div class="form-field"><label class="form-lbl">Imię i nazwisko *</label>
-        <input type="text" class="form-input" id="onb-name" placeholder="Jan Kowalski" value="${onbNewClient.name||''}"></div>
-      <div class="form-field"><label class="form-lbl">Email *</label>
-        <input type="email" class="form-input" id="onb-email" placeholder="jan@example.com" value="${onbNewClient.email||''}"></div>
-      <div class="form-field"><label class="form-lbl">Telefon</label>
-        <input type="tel" class="form-input" id="onb-phone" placeholder="+48 123 456 789" value="${onbNewClient.phone||''}"></div>
-      <div class="form-field"><label class="form-lbl">Data urodzenia</label>
-        <input type="date" class="form-input" id="onb-dob" value="${onbNewClient.dob||''}"></div>
-      <div class="form-field"><label class="form-lbl">Płeć</label>
-        <select class="form-select" id="onb-gender">
-          <option value="mężczyzna" ${onbNewClient.gender==='mężczyzna'?'selected':''}>Mężczyzna</option>
-          <option value="kobieta" ${onbNewClient.gender==='kobieta'?'selected':''}>Kobieta</option>
-          <option value="inne">Inne</option>
-        </select></div>
-      <div class="form-field"><label class="form-lbl">Skąd trafił/a do Ciebie?</label>
-        <select class="form-select" id="onb-source">
-          <option value="polecenie">Polecenie znajomego</option>
-          <option value="instagram">Instagram</option>
-          <option value="google">Google</option>
-          <option value="tiktok">TikTok</option>
-          <option value="inne">Inne</option>
-        </select></div>
-    </div>`;
-
-  if(step===1) return `
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">🎯 CEL I POZIOM</div>
-    <div class="form-field"><label class="form-lbl">Główny cel treningowy *</label>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;" id="onb-goal-opts">
-        ${[['masa','💪','Budowa masy'],['sila','🏋️','Siła'],['redukcja','🔥','Redukcja'],['kondycja','🏃','Kondycja'],['atletyzm','⚡','Atletyzm'],['rehab','🩺','Rehab']].map(([v,ico,l])=>`
-          <button class="apl-opt${onbNewClient.goal===v?' active':''}" data-val="${v}" onclick="onbSetVal('goal','${v}');this.closest('[id]')?.querySelectorAll('.apl-opt').forEach(b=>b.classList.remove('active'));this.classList.add('active');" style="text-align:center;">${ico}<br><span style="font-size:10px;">${l}</span></button>`).join('')}
-      </div></div>
-    <div class="form-grid" style="margin-top:14px;">
-      <div class="form-field"><label class="form-lbl">Poziom zaawansowania</label>
-        <select class="form-select" id="onb-level" onchange="onbSetVal('level',this.value)">
-          <option value="poczatkujacy" ${onbNewClient.level==='poczatkujacy'?'selected':''}>🌱 Początkujący (0-1 rok)</option>
-          <option value="sredni" ${onbNewClient.level==='sredni'?'selected':''}>⚡ Średni (1-3 lata)</option>
-          <option value="zaawansowany" ${onbNewClient.level==='zaawansowany'?'selected':''}>🔥 Zaawansowany (3+ lat)</option>
-        </select></div>
-      <div class="form-field"><label class="form-lbl">Ile razy w tygodniu chce trenować?</label>
-        <select class="form-select" id="onb-freq" onchange="onbSetVal('freq',this.value)">
-          ${[2,3,4,5,6].map(n=>`<option value="${n}" ${onbNewClient.freq==n?'selected':''}>${n}× w tygodniu</option>`).join('')}
-        </select></div>
-      <div class="form-field"><label class="form-lbl">Waga (kg)</label>
-        <input type="number" class="form-input" id="onb-weight" placeholder="80" value="${onbNewClient.weight||''}"></div>
-      <div class="form-field"><label class="form-lbl">Wzrost (cm)</label>
-        <input type="number" class="form-input" id="onb-height" placeholder="178" value="${onbNewClient.height||''}"></div>
-    </div>
-    <div class="form-field" style="margin-top:10px;"><label class="form-lbl">Opis celu własnymi słowami</label>
-      <textarea class="form-input" id="onb-goal-desc" rows="2" placeholder="np. chcę schudnąć 10 kg na wakacje..." style="resize:none;font-size:13px;">${onbNewClient.goalDesc||''}</textarea></div>`;
-
-  if(step===2) return `
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">🩺 ZDROWIE I OGRANICZENIA</div>
-    <div class="form-field"><label class="form-lbl">Kontuzje lub problemy zdrowotne</label>
-      <textarea class="form-input" id="onb-injuries" rows="3" placeholder="np. ból kolan, przepuklina, nadciśnienie..." style="resize:none;font-size:13px;">${onbNewClient.injuries||''}</textarea></div>
-    <div class="form-field"><label class="form-lbl">Priorytet sylwetkowy</label>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Partie do akcentu na początku sesji.</div>
-      ${typeof physiquePriorityChipsHTML==='function'?physiquePriorityChipsHTML(onbNewClient.physiquePriority||[],'onb'):'<div id="onb-physique-priority-mount"></div>'}
-    </div>
-    <div class="form-field"><label class="form-lbl">Leki stałe</label>
-      <input type="text" class="form-input" id="onb-meds" placeholder="np. inhibitory ACE, metformina..." value="${onbNewClient.meds||''}"></div>
-    <div class="form-field"><label class="form-lbl">Aktywność fizyczna dotychczas</label>
-      <select class="form-select" id="onb-activity">
-        <option value="sedentary" ${onbNewClient.activityLevel==='sedentary'?'selected':''}>Siedzący tryb życia</option>
-        <option value="light" ${onbNewClient.activityLevel==='light'?'selected':''}>Lekka aktywność (spacery)</option>
-        <option value="moderate" ${(!onbNewClient.activityLevel||onbNewClient.activityLevel==='moderate')?'selected':''}>Umiarkowana (rekreacyjnie)</option>
-        <option value="active" ${onbNewClient.activityLevel==='active'?'selected':''}>Aktywny (regularny trening)</option>
-      </select></div>
-    <div class="form-field"><label class="form-lbl">Wcześniejsze sporty (wpływ na plan)</label>
-      ${typeof priorSportsChipsHTML==='function'?priorSportsChipsHTML(onbNewClient.priorSports,'onb'):''}
-    </div>
-    <div class="form-field"><label class="form-lbl">Dostępny sprzęt</label>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
-        ${[['gym','🏋️','Pełna siłownia'],['dumbbells','💪','Hantle'],['home','🏠','Ćwiczenia domowe'],['pool','🏊','Basen'],['outdoor','🌳','Na zewnątrz'],['none','❌','Bez sprzętu']].map(([v,ico,l])=>`
-          <label style="display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--s3);border-radius:7px;cursor:pointer;font-size:11px;">
-            <input type="checkbox" value="${v}" class="onb-equip-check" ${(onbNewClient.equipment||[]).includes(v)?'checked':''} style="accent-color:var(--accent);">${ico} ${l}
-          </label>`).join('')}
-      </div></div>
-    <div class="form-field"><label class="form-lbl">Czy wyraża zgodę na przetwarzanie danych (RODO)?</label>
-      <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
-        <input type="checkbox" id="onb-rodo" ${onbNewClient.rodo?'checked':''} style="accent-color:var(--accent);width:16px;height:16px;">
-        <span>Tak, wyrażam zgodę na przetwarzanie danych osobowych przez Piotra Urbaniaka w celu świadczenia usług treningowych.</span>
-      </label></div>`;
-
-  if(step===3) return `
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">📋 PLAN I WARIANT STARTU</div>
-    <div class="form-field"><label class="form-lbl">Wariant (etykieta — checklista jest jedna)</label>
-      <div style="display:flex;flex-direction:column;gap:6px;">
-        ${ONB_FLOWS.map(f=>`<label style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--s3);border-radius:10px;cursor:pointer;border:1px solid ${onbNewClient.flow===f.id?'var(--accent)':'var(--border2)'};" onclick="onbSetVal('flow','${f.id}');document.querySelectorAll('#onb-new-tab label[style*=border]').forEach(l=>l.style.borderColor='var(--border2)');this.style.borderColor='var(--accent)';">
-          <input type="radio" name="onb-flow" value="${f.id}" ${onbNewClient.flow===f.id?'checked':''} style="accent-color:var(--accent);">
-          <span style="font-size:18px;">${f.icon}</span>
-          <div><div style="font-size:13px;font-weight:700;">${f.name} <span style="font-size:10px;color:var(--muted);">(${f.duration})</span></div>
-          <div style="font-size:11px;color:var(--muted);">${f.desc}</div></div>
-        </label>`).join('')}
-      </div></div>
-    <div class="form-field"><label class="form-lbl">Przypisz szablon planu treningowego (opcjonalnie)</label>
-      <select class="form-select" id="onb-template" onchange="onbSetVal('template',this.value)">
-        <option value="">Bez planu na razie</option>
-        ${PLAN_TEMPLATES.slice(0,10).map(t=>`<option value="${t.id}" ${onbNewClient.template===t.id?'selected':''}>${t.name}</option>`).join('')}
-      </select></div>
-    <div class="form-field"><label class="form-lbl">Pakiet startowy</label>
-      <select class="form-select" id="onb-package" onchange="onbSetVal('package',this.value)">
-        <option value="">Bez pakietu</option>
-        <option value="4sess">4 sesje (600 PLN)</option>
-        <option value="8sess">8 sesji (1100 PLN)</option>
-        <option value="12sess">12 sesji (1500 PLN)</option>
-        <option value="online">Online miesięcznie (350 PLN/mies.)</option>
-      </select></div>
-    <div class="form-field"><label class="form-lbl">Notatka prywatna (widoczna tylko dla Ciebie)</label>
-      <textarea class="form-input" id="onb-private-note" rows="2" placeholder="np. klient polecony przez Annę, wrażliwy na kolan..." style="resize:none;font-size:13px;">${onbNewClient.privateNote||''}</textarea></div>`;
-
-  if(step===4) return `
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">✅ POTWIERDZENIE</div>
-    <div style="background:var(--adim);border:1px solid rgba(230,0,0,0.2);border-radius:12px;padding:20px;margin-bottom:16px;">
-      <div style="font-size:14px;font-weight:700;margin-bottom:12px;">Podsumowanie nowego klienta</div>
-      ${[
-        ['Imię i nazwisko',onbNewClient.name||'—'],
-        ['Email',onbNewClient.email||'—'],
-        ['Telefon',onbNewClient.phone||'—'],
-        ['Cel',onbNewClient.goal||'—'],
-        ['Poziom',onbNewClient.level||'—'],
-        ['Częstotliwość',(onbNewClient.freq||'—')+'×/tyg.'],
-        ['Priorytet sylwetkowy',(onbNewClient.physiquePriority||[]).map(id=>typeof physiquePriorityLabel==='function'?physiquePriorityLabel(id):id).join(', ')||'—'],
-        ['Wariant',ONB_FLOWS.find(f=>f.id===onbNewClient.flow)?.name||'Standard'],
-        ['Pakiet',onbNewClient.package||'Brak'],
-        ['Szablon planu',onbNewClient.template?PLAN_TEMPLATES.find(t=>t.id===onbNewClient.template)?.name:'Brak'],
-      ].map(([l,v])=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;">
-        <span style="color:var(--muted);">${l}</span>
-        <span style="font-weight:600;">${v}</span>
-      </div>`).join('')}
-    </div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.7;">Po kliknięciu "Utwórz klienta":<br>
-    ✓ Klient trafi na listę<br>
-    ✓ Otworzy się checklista startu współpracy (zaproszenie → pomiary → dni → plan → kalendarz → pakiet)<br>
-    ${onbNewClient.template?'✓ Zostanie przypisany szablon planu treningowego<br>':''}
-    ✓ Automatyczna wiadomość / ankieta tylko gdy w Automatyzacji przełącznik jest <b>Aktywny</b></div>`;
-
-  return '<div>Nieznany krok</div>';
-}
-
-function onbSetVal(key,val){onbNewClient[key]=val;}
-
-function onbWizardBack(){
-  if(onbStep>0){onbStep--;renderOnbNew();}
-}
-
-function onbWizardNext(){
-  // collect current step values
-  if(onbStep===0){
-    onbNewClient.name=document.getElementById('onb-name')?.value||'';
-    onbNewClient.email=document.getElementById('onb-email')?.value||'';
-    onbNewClient.phone=document.getElementById('onb-phone')?.value||'';
-    onbNewClient.dob=document.getElementById('onb-dob')?.value||'';
-    onbNewClient.gender=document.getElementById('onb-gender')?.value||'mężczyzna';
-    onbNewClient.source=document.getElementById('onb-source')?.value||'';
-    if(!onbNewClient.name||!onbNewClient.email){notify('⚠ Wypełnij imię i email!');return;}
-  }
-  if(onbStep===1){
-    onbNewClient.level=document.getElementById('onb-level')?.value||'sredni';
-    onbNewClient.freq=+document.getElementById('onb-freq')?.value||3;
-    onbNewClient.weight=document.getElementById('onb-weight')?.value||'';
-    onbNewClient.height=document.getElementById('onb-height')?.value||'';
-    onbNewClient.goalDesc=document.getElementById('onb-goal-desc')?.value||'';
-    if(!onbNewClient.goal){notify('⚠ Wybierz cel!');return;}
-  }
-  if(onbStep===2){
-    onbNewClient.injuries=document.getElementById('onb-injuries')?.value||'';
-    onbNewClient.meds=document.getElementById('onb-meds')?.value||'';
-    onbNewClient.activityLevel=document.getElementById('onb-activity')?.value||'moderate';
-    onbNewClient.priorSports=typeof readPriorSportsFrom==='function'?readPriorSportsFrom('onb'):[];
-    onbNewClient.physiquePriority=typeof readPhysiquePriorityFrom==='function'?readPhysiquePriorityFrom('onb'):(onbNewClient.physiquePriority||[]);
-    onbNewClient.equipment=[...document.querySelectorAll('.onb-equip-check:checked')].map(i=>i.value);
-    onbNewClient.rodo=document.getElementById('onb-rodo')?.checked||false;
-    if(!onbNewClient.rodo){notify('⚠ Wymagana zgoda RODO!');return;}
-  }
-  if(onbStep===3){
-    onbNewClient.template=document.getElementById('onb-template')?.value||'';
-    onbNewClient.package=document.getElementById('onb-package')?.value||'';
-    onbNewClient.privateNote=document.getElementById('onb-private-note')?.value||'';
-    if(!onbNewClient.flow)onbNewClient.flow='standard';
-  }
-  if(onbStep===ONB_WIZARD_STEPS.length-1){
-    onbCreateClient();return;
-  }
-  onbStep++;
-  renderOnbNew();
-}
-
-function onbCreateClient(){
-  const freq=+onbNewClient.freq||3;
-  const defaultWd=typeof defaultWeekdaysForFreq==='function'?defaultWeekdaysForFreq(freq):(freq===2?[1,4]:freq===3?[1,3,5]:freq===4?[1,2,4,5]:freq===5?[1,2,3,4,5]:[1,2,3,4,5,6]);
-  const newC=withTrainer({
-    id:newId('c'),
-    name:onbNewClient.name,
-    email:typeof normalizeClientEmail==='function'?normalizeClientEmail(onbNewClient.email):onbNewClient.email,
-    phone:onbNewClient.phone||'',
-    goal:onbNewClient.goal||'masa',
-    goalDesc:onbNewClient.goalDesc||'',
-    level:onbNewClient.level||'sredni',
-    trainingFreq:freq,
-    preferredWeekdays:onbNewClient.preferredWeekdays||defaultWd,
-    weight:onbNewClient.weight||'',
-    height:onbNewClient.height||'',
-    gender:(typeof normalizeClientGender==='function'?normalizeClientGender(onbNewClient.gender):onbNewClient.gender)||'M',
-    availableEquipment:typeof mapStoredEquipmentToApl==='function'?mapStoredEquipmentToApl(onbNewClient.equipment||[]):(onbNewClient.equipment||[]),
-    injuries:onbNewClient.injuries||'',
-    meds:onbNewClient.meds||'',
-    physiquePriority:onbNewClient.physiquePriority||[],
-    priorSports:onbNewClient.priorSports||[],
-    activityLevel:onbNewClient.activityLevel||'moderate',
-    notes:onbNewClient.privateNote||'',
-    onboardingFlow:onbNewClient.flow||'standard',
-    status:'active',
-    joinDate:new Date().toISOString().split('T')[0],
-    source:onbNewClient.source||'',
-  });
-  CL.push(newC);
-
-  const pipeOpts={
-    persist:true,
-    runFlow:true,
-    schedule:true,
-    weeks:4,
-    templateId:onbNewClient.template||'',
-    notify:true,
-    fireEvent:true,
-    baseline:onbNewClient.weight?{weight:onbNewClient.weight,notes:'Baseline z onboardingu'}:null
-  };
-  if(typeof assignClientPipeline==='function'){
-    assignClientPipeline(newC,pipeOpts);
-  }else{
-    persistById('clients',newC);
-    if(typeof saveClientBaselineFromFields==='function'&&onbNewClient.weight){
-      saveClientBaselineFromFields(newC.id,{weight:onbNewClient.weight,notes:'Baseline z onboardingu'});
-    }
-    let assignedPlan=null;
-    if(onbNewClient.template){
-      const t=PLAN_TEMPLATES.find(x=>x.id===onbNewClient.template);
-      if(t){
-        assignedPlan=withTrainer({id:newId('p'),name:t.name,clientId:newC.id,method:t.method,duration:t.weeks||1,
-          _sourceKind:'template-microcycle',
-          days:(t.days_detail||[]).map(d=>({day:d.name,exercises:(d.exercises||[]).map(e=>({name:e.n,sets:e.s,reps:e.r,rest:e.rest}))})),
-          source:'template',createdAt:new Date().toISOString()});
-        PL.push(assignedPlan);
-        persistById('plans',assignedPlan);
-      }
-    }
-    addNotification('system','Nowy klient!',newC.name+' — onboarding uruchomiony','clients');
-    if(typeof runOnboardingForClient==='function')runOnboardingForClient(newC);
-    if(assignedPlan&&typeof maybeSchedulePlanToCalendar==='function'){
-      maybeSchedulePlanToCalendar(assignedPlan.id,{weeks:4});
-    }
-  }
-
-  notify('🎉 Klient '+newC.name+' dodany — otwieram checklistę startu.');
-  onbNewClient={};onbStep=0;
-  setOnbTab('overview');
-  if(typeof openClientOnboardChecklist==='function')setTimeout(()=>openClientOnboardChecklist(newC.id),400);
 }
 
 /* ── FLOWS ── */
@@ -905,10 +597,8 @@ function saveOnbContract(){
 window.saveOnbContract=saveOnbContract;
 
 window.initOnboarding=initOnboarding;window.setOnbTab=setOnbTab;
-window.renderOnbNew=renderOnbNew;window.onbWizardBack=onbWizardBack;
-window.onbWizardNext=onbWizardNext;window.onbSetVal=onbSetVal;
 window.onbCompleteStep=onbCompleteStep;window.onbViewClient=onbViewClient;
-window.onbStartFor=onbStartFor;window.onbCreateClient=onbCreateClient;
+window.onbStartFor=onbStartFor;window.onbOpenNewClient=onbOpenNewClient;
 window.onbOpenChecklist=onbOpenChecklist;window.onbUseFlow=onbUseFlow;
 
 // ════════════════════════════════════════
