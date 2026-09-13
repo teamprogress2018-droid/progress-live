@@ -453,6 +453,13 @@ function openFormsLibraryFromOnboard(clientId){
 }
 window.openFormsLibraryFromOnboard=openFormsLibraryFromOnboard;
 
+function openClientProfileFromOnboard(clientId,tab){
+  window._onboardResumeAfterProfile=clientId;
+  if(typeof closeM==='function')closeM('m-client-onboard');
+  if(typeof openClientProfile==='function')openClientProfile(clientId,{tab:tab||'forms',fromOnboard:true});
+}
+window.openClientProfileFromOnboard=openClientProfileFromOnboard;
+
 function openLiveFromOnboard(clientId,clientName){
   window._onboardResumeAfterLive=clientId;
   if(typeof closeM==='function')closeM('m-client-onboard');
@@ -742,7 +749,7 @@ function renderClientOnboardChecklist(){
           <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${escHtml(intake.pending.formName||'Formularz')} — klient widzi ją w apce.</div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;">
             <button class="btn btn-primary btn-sm" onclick="remindFormSend('${escHtml(intake.pending.id)}');renderClientOnboardChecklist()">Przypomnij</button>
-            <button class="btn btn-ghost btn-sm" onclick="closeM('m-client-onboard');openClientProfile('${id}');setTimeout(()=>setCPTab('forms'),300)">Profil</button>
+            <button class="btn btn-ghost btn-sm" onclick="openClientProfileFromOnboard('${id}','forms')">Profil</button>
           </div>
         </div>
       </div>`;
@@ -765,7 +772,10 @@ function renderClientOnboardChecklist(){
         <div style="flex:1;">
           <div style="font-size:13px;font-weight:700;margin-bottom:2px;">Formularz oczekuje</div>
           <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${escHtml(p.formName||'Formularz')}${intake.anyPending.length>1?' · +'+(intake.anyPending.length-1):''}</div>
-          <button class="btn btn-primary btn-sm" onclick="remindFormSend('${escHtml(p.id)}');renderClientOnboardChecklist()">Przypomnij</button>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="btn btn-primary btn-sm" onclick="remindFormSend('${escHtml(p.id)}');renderClientOnboardChecklist()">Przypomnij</button>
+            <button class="btn btn-ghost btn-sm" onclick="openClientProfileFromOnboard('${id}','forms')">Profil</button>
+          </div>
         </div>
       </div>`;
     }

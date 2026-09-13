@@ -2992,12 +2992,12 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 
 </div><!-- /main -->
 
-<div class="cp-overlay" id="cp-overlay" onclick="closeClientProfile()"></div>
+<div class="cp-overlay" id="cp-overlay" onclick="closeClientProfileOrResumeOnboard()"></div>
 <div class="cp-drawer" id="cp-drawer">
   <!-- nagłówek profilu -->
   <div style="padding:14px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
     <div style="display:flex;align-items:center;gap:14px;">
-      <button onclick="closeClientProfile()" style="background:var(--s2);border:1px solid var(--border2);border-radius:8px;color:var(--muted);font-size:13px;cursor:pointer;padding:7px 12px;display:flex;align-items:center;gap:6px;">← Wróć</button>
+      <button onclick="closeClientProfileOrResumeOnboard()" style="background:var(--s2);border:1px solid var(--border2);border-radius:8px;color:var(--muted);font-size:13px;cursor:pointer;padding:7px 12px;display:flex;align-items:center;gap:6px;">← Wróć</button>
       <div id="cp-avatar" style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:18px;flex-shrink:0;"></div>
       <div>
         <div class="cp-hdr-name-row">
@@ -3027,6 +3027,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       </div>
     </div>
   </div>
+  <div id="cp-onboard-banner" class="onboard-resume-banner" style="display:none;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 28px;background:var(--adim);border-bottom:1px solid rgba(230,0,0,0.25);font-size:12px;flex-shrink:0;"></div>
 
   <!-- glowny uklad: poziome zakladki jak Everfit + tresc -->
   <div class="cp-main">
@@ -4371,9 +4372,9 @@ async function load(){
 <script src="02-workouts-onboarding-templates-live.js?v=63"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=35"></script>
 <script src="04-client-portal.js?v=50"></script>
-<script src="05-clients-builder-plans-calendar.js?v=63"></script>
+<script src="05-clients-builder-plans-calendar.js?v=64"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=74"></script>
-<script src="07-forms-metrics-calculator.js?v=36"></script>
+<script src="07-forms-metrics-calculator.js?v=37"></script>
 <script src="08-client-profile-extras.js?v=55"></script>
 <script src="09-posture-kb-invites-private.js?v=44"></script>
 <script src="10-client-app.js?v=39"></script>
