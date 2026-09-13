@@ -43,6 +43,7 @@ ok('profil rail name + hint', overview.includes('Imię i nazwisko') && overview.
 ok('css for header + CTA', css.includes('.cp-edit-data-btn') && css.includes('.cp-ov-edit-cta') && css.includes('.cp-hdr-name-row'));
 ok('cache 08 v37', html.includes('08-client-profile-extras.js?v=55'));
 ok('cache 01 name sync', html.includes('01-core.js?v=102') && html.includes('09-posture-kb-invites-private.js?v=41'));
+ok('cache 01 name sync', html.includes('01-core.js?v=101') && html.includes('09-posture-kb-invites-private.js?v=41'));
 ok('cache styles v54', html.includes('styles.css?v=80'));
 ok('CI unit', wf.includes('test_cp_edit_visible.js'));
 ok('CI ui', wf.includes('test_cp_edit_visible_ui.js'));

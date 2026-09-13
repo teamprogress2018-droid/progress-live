@@ -113,6 +113,7 @@ ok('progress lists homework rpe', /Zadania domowe/.test(prog) && /RPE 8/.test(pr
 const wf = fs.readFileSync(path.join(root, '.github', 'workflows', 'check.yml'), 'utf8');
 const indexHtml = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 ok('cache 01/04/09/10', indexHtml.includes('01-core.js?v=102') && indexHtml.includes('04-client-portal.js?v=49') && indexHtml.includes('09-posture-kb-invites-private.js?v=41') && indexHtml.includes('10-client-app.js?v=39'));
+ok('cache 01/04/09/10', indexHtml.includes('01-core.js?v=101') && indexHtml.includes('04-client-portal.js?v=49') && indexHtml.includes('09-posture-kb-invites-private.js?v=41') && indexHtml.includes('10-client-app.js?v=39'));
 ok('CI guide ui', wf.includes('test_homework_guide_ui.js'));
 
 if (failed) {
