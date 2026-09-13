@@ -28,7 +28,7 @@ ok('openBuilderForClient + openAiPlanForClient',src05.includes('function openBui
 ok('plans library new plan picker',html.includes('openNewPlanPicker()')&&src05.includes('function openNewPlanPicker')&&src05.includes('function saveNewPlanPicker')&&src05.includes("openBuilderForClient"));
 ok('builder cancel uses back',src05.includes('function builderGoBack')&&src05.includes("_builderBack||'clients'")&&html.includes('builderGoBack()'));
 
-ok('cache bumps',html.includes('01-core.js?v=103')&&html.includes('05-clients-builder-plans-calendar.js?v=61'));
+ok('cache bumps',html.includes('01-core.js?v=103')&&html.includes('05-clients-builder-plans-calendar.js?v=62'));
 ok('onboard plan doneExtra',/doneExtra.*Nowy plan AI/.test(src05));
 
 if(failed){console.error(failed+' failed');process.exit(1);}

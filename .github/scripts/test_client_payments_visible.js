@@ -120,7 +120,7 @@ eq('history not by name', /p\.clientName===hcf/.test(src09), false);
 eq('chips not unique names', src09.includes("new Set(all.map(p=>p.clientName))"), false);
 eq('helper present', src09.includes('function payClientsFromPackages'), true);
 eq('card data-client-id', src09.includes('data-client-id=') && src09.includes('filterPkgByClient(this.dataset.clientId'), true);
-eq('cache 09', html.includes('09-posture-kb-invites-private.js?v=42'), true);
+eq('cache 09', html.includes('09-posture-kb-invites-private.js?v=43'), true);
 const wf=fs.readFileSync(path.join(__dirname,'../../.github/workflows/check.yml'),'utf8');
 eq('CI ui', wf.includes('test_pay_hist_id_ui.js'), true);
 

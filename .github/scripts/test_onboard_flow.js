@@ -24,6 +24,8 @@ function ok(name, cond, extra) {
 ok('invite skip handler', src09.includes('function closeInviteModal') && html.includes('closeInviteModal(true)'));
 ok('invite X resumes without skip', html.includes('closeInviteModal(false)'));
 ok('openInviteFromOnboard', src05.includes('function openInviteFromOnboard') && src05.includes('_onboardResumeAfterInvite'));
+ok('invite gmail compose', src09.includes('function inviteGmailComposeUrl') && src09.includes('function defaultInviteMethod') && src09.includes('paintInviteMethodButtons(inviteMethod)'));
+ok('onboard resend email', src05.includes('Wyślij ponownie e-mailem'));
 ok('forms library helper', src05.includes('function openFormsLibraryFromOnboard') && src05.includes("setFormNav('wstepna')"));
 ok('forms banner', html.includes('id="forms-onboard-banner"') && html.includes('z-index:30') && src07.includes('function resumeOnboardFromForms'));
 ok('send form prefills onboard client', src07.includes('_onboardResumeAfterForms') && src07.includes('sendFormSetClientField(resumeC.id'));
@@ -36,7 +38,7 @@ ok('live empty day uses liveOpenBuilder', src02.includes('function liveOpenBuild
 ok('openAiPlanForClient fromOnboard', src05.includes('function openAiPlanForClient(clientId,fromOnboard)') && src05.includes("openAiPlanForClient('${id}',true)"));
 ok('apl/builder resume banners', html.includes('id="apl-onboard-banner"') && html.includes('id="builder-onboard-banner"') && src05.includes('function resumeOnboardFromApl') && src05.includes('function builderGoBack'));
 ok('baseline ignores card weight', src01.includes('function clientOnboardHasBaseline') && !/baselineDone\|\|c\.weight/.test(src01));
-ok('cache 01/02/03/05/07/09', html.includes('01-core.js?v=103') && html.includes('02-workouts-onboarding-templates-live.js?v=62') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=35') && html.includes('05-clients-builder-plans-calendar.js?v=61') && html.includes('07-forms-metrics-calculator.js?v=35') && html.includes('09-posture-kb-invites-private.js?v=42'));
+ok('cache 01/02/03/05/07/09', html.includes('01-core.js?v=103') && html.includes('02-workouts-onboarding-templates-live.js?v=62') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=35') && html.includes('05-clients-builder-plans-calendar.js?v=62') && html.includes('07-forms-metrics-calculator.js?v=36') && html.includes('09-posture-kb-invites-private.js?v=43'));
 ok('CI unit+ui', wf.includes('test_onboard_flow.js') && wf.includes('test_onboard_flow_ui.js'));
 
 if (failed) {

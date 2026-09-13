@@ -651,9 +651,13 @@ function renderClientOnboardChecklist(){
   }
   const safeName=c.name.replace(/'/g,"\\'");
   const steps=[
-    {done:st.invite,icon:'📱',title:'Wyślij zaproszenie',desc:'Link do aplikacji w wiadomości (możesz pominąć)',
-      action:`openInviteFromOnboard('${id}')`,cta:'Wyślij',
-      extra:st.invite?'':`<button class="btn btn-ghost btn-sm" onclick="skipClientInvite('${id}')">Pomiń</button>`},
+    {done:st.invite,icon:'📱',title:'Wyślij zaproszenie',
+      desc:st.invite&&!c.appJoined
+        ?'Checklistę oznaczono, ale klient dostanie link dopiero gdy wyślesz e-mail (Gmail) albo WhatsApp — Inbox w apce zobaczy po zalogowaniu.'
+        :'Link na e-mail klienta (Gmail). Inbox w apce zobaczy dopiero po pierwszym logowaniu.',
+      action:`openInviteFromOnboard('${id}')`,cta:'✉️ E-mail',
+      extra:st.invite?'':`<button class="btn btn-ghost btn-sm" onclick="skipClientInvite('${id}')">Pomiń</button>`,
+      doneExtra:(st.invite&&!c.appJoined)?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"><button class="btn btn-primary btn-sm" onclick="openInviteFromOnboard('${id}')">✉️ Wyślij ponownie e-mailem</button></div>`:''},
     {done:st.baseline,icon:'⚖️',title:'Pomiary startowe (baseline)',desc:'Waga, %BF i obwody z datą — historia progresu',
       action:`openClientBaselineModal('${id}')`,cta:'Zapisz pomiary'},
     {done:st.schedule,icon:'📅',title:'Dni treningowe',desc:'Preferowane dni tygodnia — apka i auto-kalendarz z nich korzystają',
