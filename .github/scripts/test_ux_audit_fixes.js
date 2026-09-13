@@ -53,7 +53,7 @@ ok('strip od tags', portal.includes('function capStripOdTags') && portal.include
 ok('homework filter render', src06.includes("taskFilter==='homework'"));
 ok('dash no-plan', portal.includes("tag:'Brak planu'") && portal.includes("tag:'Domowe zaległe'"));
 ok('cache 01', html.includes('01-core.js?v=103'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=60'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=61'));
 ok('cache 04', html.includes('04-client-portal.js?v=49'));
 ok('cache 09', html.includes('09-posture-kb-invites-private.js?v=42'));
 ok('cache 10', html.includes('10-client-app.js?v=39'));

@@ -113,6 +113,26 @@ function ok(name, cond, extra) {
   });
   ok('schedule saved', afterDays.schedule && afterDays.days.length >= 1, JSON.stringify(afterDays));
 
+  await page.click('#client-onboard-steps button:has-text("Trening Live")');
+  await page.waitForTimeout(500);
+  const live = await page.evaluate(() => {
+    const screen = document.getElementById('screen-live');
+    const banner = document.getElementById('live-onboard-banner');
+    const vis = document.getElementById('live-client-sel-search');
+    return {
+      active: !!(screen && screen.classList.contains('active')),
+      banner: !!(banner && banner.style.display !== 'none' && /Ewelina/.test(banner.innerText || '')),
+      client: vis ? vis.value : '',
+      flag: window._onboardResumeAfterLive === 'c-ewelina'
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'onboard_live.png') });
+  ok('live from onboard + banner', live.active && live.banner && live.flag && /Ewelina/.test(live.client), JSON.stringify(live));
+
+  await page.locator('#live-onboard-banner button', { hasText: 'Wróć do checklisty' }).click({ force: true });
+  await page.waitForTimeout(700);
+  ok('back from live', await page.locator('#m-client-onboard.show').isVisible());
+
   await page.click('#client-onboard-steps button:has-text("Szablon / kreator")');
   await page.waitForTimeout(350);
   const builder = await page.evaluate(() => {
@@ -120,11 +140,36 @@ function ok(name, cond, extra) {
     const sel = document.getElementById('b-client');
     return {
       active: !!(screen && screen.classList.contains('active')),
-      client: sel ? sel.value : ''
+      client: sel ? sel.value : '',
+      banner: !!((document.getElementById('builder-onboard-banner') || {}).innerText || '').match(/Ewelina/)
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'onboard_builder.png') });
-  ok('builder opens with client', builder.active && builder.client === 'c-ewelina', JSON.stringify(builder));
+  ok('builder opens with client + banner', builder.active && builder.client === 'c-ewelina' && builder.banner, JSON.stringify(builder));
+
+  await page.locator('#builder-onboard-banner button', { hasText: 'Wróć do checklisty' }).click({ force: true });
+  await page.waitForTimeout(700);
+  ok('back from builder', await page.locator('#m-client-onboard.show').isVisible());
+
+  await page.click('#client-onboard-steps button:has-text("Plan AI")');
+  await page.waitForTimeout(400);
+  const apl = await page.evaluate(() => {
+    const screen = document.getElementById('screen-aiplangen');
+    const banner = document.getElementById('apl-onboard-banner');
+    const sel = document.getElementById('apl-client');
+    return {
+      active: !!(screen && screen.classList.contains('active')),
+      banner: !!(banner && banner.style.display !== 'none' && /Ewelina/.test(banner.innerText || '')),
+      client: sel ? sel.value : '',
+      flag: window._onboardResumeAfterApl === 'c-ewelina'
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'onboard_apl.png') });
+  ok('AI plan from onboard + banner', apl.active && apl.banner && apl.flag && apl.client === 'c-ewelina', JSON.stringify(apl));
+
+  await page.locator('#apl-onboard-banner button', { hasText: 'Wróć do checklisty' }).click({ force: true });
+  await page.waitForTimeout(700);
+  ok('back from AI plan', await page.locator('#m-client-onboard.show').isVisible());
 
   await browser.close();
   if (failed) {
