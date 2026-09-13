@@ -3744,14 +3744,34 @@ function sendInvitation() {
     notify('✅ Zapisano w Inbox · otwarto ' + channelLabel + ' — dokończ wysyłkę');
   }
   if (typeof maybeResumeOnboard === 'function') maybeResumeOnboard(c.id);
+  window._onboardResumeAfterInvite = null;
   if (typeof renderClients === 'function') try { renderClients(); } catch (e) {}
   if (typeof renderDash === 'function') try { renderDash(); } catch (e) {}
+}
+
+function closeInviteModal(skip) {
+  const cid = inviteClientId;
+  const fromOnboard = !!(window._onboardResumeAfterInvite && window._onboardResumeAfterInvite === cid);
+  closeM('m-invite');
+  if (!fromOnboard) {
+    window._onboardResumeAfterInvite = null;
+    return;
+  }
+  window._onboardResumeAfterInvite = null;
+  if (skip && cid) {
+    const c = CL.find(x => x.id === cid);
+    if (c && !(c.inviteSent || c.appInvited || c.inviteSentAt) && typeof skipClientInvite === 'function') {
+      skipClientInvite(cid);
+    }
+  }
+  if (cid && typeof maybeResumeOnboard === 'function') maybeResumeOnboard(cid);
 }
 
 window.openInviteModal = openInviteModal;
 window.selectInvMethod = selectInvMethod;
 window.copyInviteLink = copyInviteLink;
 window.sendInvitation = sendInvitation;
+window.closeInviteModal = closeInviteModal;
 window.generateInviteLink = generateInviteLink;
 // ════ KONIEC SYSTEM ZAPROSZEŃ ════
 

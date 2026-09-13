@@ -19,7 +19,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=102'));
+ok('cache 01', html.includes('01-core.js?v=103'));
 ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=60'));
 ok('helpers', /function consumeClientPackageSession/.test(core) && /function clientPaidPackageForSession/.test(core));
 ok('sala consumes', /consumeClientPackageSession\(p\.clientId/.test(core));

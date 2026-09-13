@@ -62,10 +62,10 @@ ok('ctx has evidence',ctx.includes('Pełny ROM'));
 ok('ctx skips off note',!ctx.includes('Tajemnica gabinetu'));
 ok('user note before builtin',ctx.indexOf('ZZZ sen 7h')<ctx.indexOf('Częstotliwość'));
 
-ok('cache bumps',html.includes('01-core.js?v=102')&&html.includes('09-posture-kb-invites-private.js?v=41'));
+ok('cache bumps',html.includes('01-core.js?v=103')&&html.includes('09-posture-kb-invites-private.js?v=42'));
 const wf=fs.readFileSync(path.join(root,'.github/workflows/check.yml'),'utf8');
 ok('CI ui',wf.includes('test_kb_notes_evidence_ui.js'));
-ok('cache bumps',html.includes('01-core.js?v=101')&&html.includes('09-posture-kb-invites-private.js?v=41'));
+ok('cache bumps',html.includes('01-core.js?v=103')&&html.includes('09-posture-kb-invites-private.js?v=42'));
 
 if(failed){console.error(failed+' failed');process.exit(1);}
 console.log('\nAll evidence-base tests passed');

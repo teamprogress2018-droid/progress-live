@@ -162,6 +162,26 @@ function sendClientIntakeForm(clientId){
 }
 window.sendClientIntakeForm=sendClientIntakeForm;
 
+function renderOnboardFormsBanner(){
+  const bar=document.getElementById('forms-onboard-banner');
+  if(!bar)return;
+  const cid=window._onboardResumeAfterForms;
+  const c=cid&&(window.CL||[]).find(x=>x.id===cid);
+  if(!c){bar.style.display='none';bar.innerHTML='';return;}
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
+  bar.style.display='flex';
+  bar.innerHTML='<span>Start współpracy: <b>'+esc(c.name)+'</b> — wstępne. Wyślij ankietę albo wróć do checklisty.</span>'
+    +'<button type="button" class="btn btn-primary btn-sm" onclick="resumeOnboardFromForms()">Wróć do checklisty</button>';
+}
+function resumeOnboardFromForms(){
+  const cid=window._onboardResumeAfterForms;
+  window._onboardResumeAfterForms=null;
+  if(typeof renderOnboardFormsBanner==='function')renderOnboardFormsBanner();
+  if(cid&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);
+}
+window.renderOnboardFormsBanner=renderOnboardFormsBanner;
+window.resumeOnboardFromForms=resumeOnboardFromForms;
+
 function setFormNav(n){
   formNav=n;
   document.querySelectorAll('.form-nav-item').forEach(el=>el.classList.remove('active'));
@@ -186,6 +206,7 @@ function updateFormCounts(){
 }
 
 function renderForms(){
+  if(typeof renderOnboardFormsBanner==='function')renderOnboardFormsBanner();
   updateFormCounts();
   const all=allForms();
   const search=(document.getElementById('form-search')||{}).value||'';
@@ -428,7 +449,10 @@ function openSendForm(id){
   const f=allForms().find(x=>x.id===id);if(!f)return;
   if(!CL.length){notify('Najpierw dodaj klienta!');return;}
   document.getElementById('m-send-form-title').textContent='WYŚLIJ: '+f.name.toUpperCase();
-  sendFormSetClientField('','');
+  const resumeId=window._onboardResumeAfterForms;
+  const resumeC=resumeId&&CL.find(x=>x.id===resumeId);
+  if(resumeC)sendFormSetClientField(resumeC.id,resumeC.name||'');
+  else sendFormSetClientField('','');
   document.getElementById('send-form-msg').value='';
   openM('m-send-form');
 }
@@ -478,6 +502,10 @@ function confirmSendForm(){
   renderForms();
   if(formSelId===sendFormId)openFormDetail(sendFormId);
   notify('✓ Formularz "'+f.name+'" wysłany do '+(c?c.name:'klienta')+' — wypełni go w apce');
+  if(window._onboardResumeAfterForms===cid&&typeof maybeResumeOnboard==='function'){
+    window._onboardResumeAfterForms=null;
+    maybeResumeOnboard(cid);
+  }
 }
 
 // Form builder
