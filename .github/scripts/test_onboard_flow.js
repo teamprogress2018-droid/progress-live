@@ -49,6 +49,9 @@ ok('package save skips confirm from onboard', src09.includes('fromOnboard&&resum
 ok('invite overlay resumes', html.includes('id="m-invite"') && html.includes('closeInviteModal(false)'));
 ok('profile from onboard resumes', src05.includes('function openClientProfileFromOnboard') && src07.includes('function resumeOnboardFromProfile') && html.includes('id="cp-onboard-banner"') && html.includes('closeClientProfileOrResumeOnboard()'));
 ok('cache 01/02/03/05/07/09', html.includes('01-core.js?v=103') && html.includes('02-workouts-onboarding-templates-live.js?v=64') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=35') && html.includes('05-clients-builder-plans-calendar.js?v=64') && html.includes('07-forms-metrics-calculator.js?v=37') && html.includes('09-posture-kb-invites-private.js?v=45'));
+ok('baseline from onboard resumes', src05.includes("openClientBaselineModal('${id}',true)") && src05.includes('function closeBaselineModal') && html.includes('id="bl-onboard-banner"') && html.includes('closeBaselineModal()'));
+ok('schedule from onboard resumes', src05.includes('function closeScheduleOnboardModal') && src05.includes('_onboardResumeAfterSchedule') && html.includes('id="sched-onboard-banner"') && html.includes('closeScheduleOnboardModal()'));
+ok('cache 01/02/03/05/07/09', html.includes('01-core.js?v=103') && html.includes('02-workouts-onboarding-templates-live.js?v=64') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=35') && html.includes('05-clients-builder-plans-calendar.js?v=64') && html.includes('07-forms-metrics-calculator.js?v=36') && html.includes('09-posture-kb-invites-private.js?v=44'));
 ok('CI unit+ui', wf.includes('test_onboard_flow.js') && wf.includes('test_onboard_flow_ui.js'));
 
 if (failed) {
