@@ -3580,11 +3580,62 @@ function generateInviteLink(client) {
   return APP_URL + '?invite=';
 }
 
+function defaultInviteMethod(c){
+  if(c&&c.email)return'email';
+  const phone=typeof waPhone==='function'?waPhone(c&&c.phone):String((c&&c.phone)||'').replace(/\D/g,'');
+  if(phone)return'whatsapp';
+  return'wiadomosc';
+}
+function inviteGmailComposeUrl(email,subject,body){
+  return 'https://mail.google.com/mail/?view=cm&fs=1&tf=1&to='+encodeURIComponent(email||'')
+    +'&su='+encodeURIComponent(subject||'')
+    +'&body='+encodeURIComponent(body||'');
+}
+function inviteMailtoUrl(email,subject,body){
+  return 'mailto:'+encodeURIComponent(email||'')
+    +'?subject='+encodeURIComponent(subject||'')
+    +'&body='+encodeURIComponent(body||'');
+}
+function openInviteEmailComposer(email,subject,body){
+  const gmail=inviteGmailComposeUrl(email,subject,body);
+  const mailto=inviteMailtoUrl(email,subject,body);
+  let opened=false;
+  try{
+    const w=window.open(gmail,'_blank','noopener');
+    opened=!!(w&&!w.closed);
+  }catch(e){opened=false;}
+  if(!opened){
+    try{
+      const a=document.createElement('a');
+      a.href=mailto;a.target='_self';
+      document.body.appendChild(a);a.click();a.remove();
+      opened=true;
+    }catch(e2){
+      try{window.location.href=mailto;opened=true;}catch(e3){}
+    }
+  }
+  return{opened,gmail,mailto};
+}
+window.defaultInviteMethod=defaultInviteMethod;
+window.inviteGmailComposeUrl=inviteGmailComposeUrl;
+window.inviteMailtoUrl=inviteMailtoUrl;
+window.openInviteEmailComposer=openInviteEmailComposer;
+
+function paintInviteMethodButtons(method){
+  document.querySelectorAll('.inv-method-btn').forEach(b => {
+    const isActive = b.dataset.method === method;
+    b.classList.toggle('active', isActive);
+    b.style.background = isActive ? 'var(--adim)' : 'var(--s3)';
+    b.style.borderColor = isActive ? 'var(--accent)' : 'var(--border2)';
+    b.style.color = isActive ? 'var(--accent)' : 'var(--muted)';
+  });
+}
+
 async function openInviteModal(clientId) {
   const c = CL.find(x => x.id === clientId);
   if (!c) return;
   inviteClientId = clientId;
-  inviteMethod = 'wiadomosc';
+  inviteMethod = defaultInviteMethod(c);
 
   // Wypełnij avatar i dane
   const el = id => document.getElementById(id);
@@ -3594,28 +3645,17 @@ async function openInviteModal(clientId) {
 
   if (el('inv-link')) el('inv-link').textContent = 'Generowanie linku...';
   openM('m-invite');
+  paintInviteMethodButtons(inviteMethod);
+  updateInvitePreview(c, '', inviteMethod);
   const link = typeof ensureClientInvite==='function' ? await ensureClientInvite(c) : generateInviteLink(c);
   if (el('inv-link')) el('inv-link').textContent = link;
-
-  // Reset przycisków metody
-  document.querySelectorAll('.inv-method-btn').forEach(b => {
-    const isActive = b.dataset.method === 'wiadomosc';
-    b.style.background = isActive ? 'var(--adim)' : 'var(--s3)';
-    b.style.borderColor = isActive ? 'var(--accent)' : 'var(--border2)';
-    b.style.color = isActive ? 'var(--accent)' : 'var(--muted)';
-  });
-
-  updateInvitePreview(c, link, 'wiadomosc');
+  paintInviteMethodButtons(inviteMethod);
+  updateInvitePreview(c, link, inviteMethod);
 }
 
 function selectInvMethod(btn) {
   inviteMethod = btn.dataset.method;
-  document.querySelectorAll('.inv-method-btn').forEach(b => {
-    const isActive = b === btn;
-    b.style.background = isActive ? 'var(--adim)' : 'var(--s3)';
-    b.style.borderColor = isActive ? 'var(--accent)' : 'var(--border2)';
-    b.style.color = isActive ? 'var(--accent)' : 'var(--muted)';
-  });
+  paintInviteMethodButtons(inviteMethod);
   const c = CL.find(x => x.id === inviteClientId);
   const link = document.getElementById('inv-link')?.textContent || '';
   if (c) updateInvitePreview(c, link, inviteMethod);
@@ -3627,21 +3667,21 @@ function updateInvitePreview(c, link, method) {
   if (el) el.textContent = built.preview;
   const sendBtn = document.getElementById('inv-send-btn');
   if (sendBtn) {
-    const labels = { wiadomosc: '📤 Wyślij do Inbox', email: '✉️ Otwórz e-mail', whatsapp: '💚 Otwórz WhatsApp' };
-    sendBtn.textContent = labels[method] || labels.wiadomosc;
+    const labels = { wiadomosc: '📤 Zapisz w Inbox', email: '✉️ Otwórz Gmail i wyślij', whatsapp: '💚 Otwórz WhatsApp' };
+    sendBtn.textContent = labels[method] || labels.email;
   }
   const hint = document.getElementById('inv-channel-hint');
   if (hint) {
     const hints = {
-      wiadomosc: 'Wiadomość trafi do czatu w Progress Live (Inbox klienta).',
+      wiadomosc: 'Tylko czat w Progress Live — klient zobaczy to dopiero PO zalogowaniu. Na start użyj e-maila albo WhatsApp.',
       email: c.email
-        ? 'Otworzy Twoją aplikację pocztową (mailto) z gotową treścią — wyślij stamtąd.'
-        : 'Brak e-maila w karcie klienta — uzupełnij albo użyj Inbox / WhatsApp.',
+        ? 'Strona nie wysyła maili z serwera. Otworzy Gmail z gotową treścią — tam kliknij Wyślij. Link idzie też do schowka.'
+        : 'Brak e-maila w karcie klienta — uzupełnij albo użyj WhatsApp.',
       whatsapp: (typeof waPhone === 'function' ? waPhone(c.phone) : c.phone)
         ? 'Otworzy WhatsApp (wa.me) z gotową wiadomością — wyślij stamtąd.'
-        : 'Brak telefonu w karcie klienta — uzupełnij albo użyj Inbox / e-mail.'
+        : 'Brak telefonu w karcie klienta — uzupełnij albo użyj e-maila.'
     };
-    hint.textContent = hints[method] || hints.wiadomosc;
+    hint.textContent = hints[method] || hints.email;
   }
 }
 
@@ -3706,11 +3746,15 @@ function sendInvitation() {
       notify('⚠ Brak e-maila w karcie — zapisano w Inbox');
       channelLabel = 'Inbox (brak e-maila)';
     } else {
-      const href = 'mailto:' + encodeURIComponent(c.email)
-        + '?subject=' + encodeURIComponent(built.subject)
-        + '&body=' + encodeURIComponent(built.body);
-      try { window.open(href, '_blank'); openedExternal = true; } catch (e) { window.location.href = href; openedExternal = true; }
-      channelLabel = 'e-mail';
+      try { if (navigator.clipboard && link) navigator.clipboard.writeText(link); } catch (e) {}
+      const mail = typeof openInviteEmailComposer === 'function'
+        ? openInviteEmailComposer(c.email, built.subject, built.body)
+        : null;
+      openedExternal = !!(mail && mail.opened);
+      if (!openedExternal && mail && mail.gmail) {
+        try { window.open(mail.gmail, '_blank', 'noopener'); openedExternal = true; } catch (e) {}
+      }
+      channelLabel = 'Gmail';
     }
   } else if (method === 'whatsapp') {
     const phone = typeof waPhone === 'function' ? waPhone(c.phone) : String(c.phone || '').replace(/\D/g, '');

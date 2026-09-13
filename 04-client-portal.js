@@ -1692,15 +1692,10 @@ function inviteClientToApp(cid){
 
 function sendAppInvite(){
   const cid=document.getElementById('cap-inv-client').value;
-  const method=document.getElementById('cap-inv-method').value;
   if(!cid){notify('Wybierz klienta!');return;}
   const c=CL.find(x=>x.id===cid);
   if(!c){notify('Nie znaleziono klienta');return;}
-  if(method==='email'||method==='sms'||method==='whatsapp'){
-    inviteClientToApp(cid);
-    notify('E-mail / SMS / WhatsApp nie są jeszcze podłączone — wysłano wiadomość w Inbox i skopiowano link.');
-    return;
-  }
+  if(typeof openInviteModal==='function'){openInviteModal(cid);return;}
   inviteClientToApp(cid);
 }
 var intTab='daily';var intCat='all';var intDetailId=null;

@@ -132,11 +132,19 @@ function remindFormSend(sendId){
   if(typeof pushMsg==='function')pushMsg(send.clientId,msg);
   send.remindedAt=new Date().toISOString();
   if(typeof persistById==='function')persistById('formSends',send);
+  const c=(window.CL||[]).find(x=>x.id===send.clientId);
   if(typeof addNotification==='function'){
-    const c=(window.CL||[]).find(x=>x.id===send.clientId);
     addNotification('form','Przypomnienie o formularzu',((c&&c.name)||'Klient')+' · '+name,'forms');
   }
-  if(typeof notify==='function')notify('✓ Przypomnienie poszło do czatu klienta');
+  if(c&&c.email&&typeof openInviteEmailComposer==='function'){
+    const link=c.inviteLink||(typeof clientAppUrl==='function'?clientAppUrl():'https://teamprogress2018-droid.github.io/progress-live/');
+    const first=String(c.name||'').split(' ')[0]||'hej';
+    const body='Cześć '+first+',\n\nPrzypomnienie: wypełnij formularz "'+name+'" w aplikacji Progress Live.\n\n➡️ Wejdź tutaj:\n'+link+'\n\nPozdrawiam';
+    openInviteEmailComposer(c.email,'Przypomnienie: '+name,body);
+    if(typeof notify==='function')notify('✓ Otworzono Gmail z przypomnieniem — kliknij tam Wyślij');
+  }else if(typeof notify==='function'){
+    notify('✓ Przypomnienie poszło do czatu klienta');
+  }
   try{if(typeof renderDashFormFollowup==='function')renderDashFormFollowup();}catch(e){}
   return true;
 }

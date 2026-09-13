@@ -3279,15 +3279,15 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
           <div id="inv-link" style="flex:1;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;font-size:12px;font-family:'DM Mono',monospace;color:var(--text);word-break:break-all;line-height:1.4;"></div>
           <button onclick="copyInviteLink()" style="padding:9px 12px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:16px;cursor:pointer;flex-shrink:0;" title="Kopiuj link">📋</button>
         </div>
-        <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;">Wyślij ten link klientowi — zaloguje się tym samym emailem który podałeś przy dodawaniu.</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;">Strona nie wysyła maili sama — otwórz Gmail i kliknij Wyślij. Klient loguje się tym e-mailem, który podałeś przy dodawaniu.</div>
       </div>
 
       <!-- metoda wysyłki -->
       <div style="margin-bottom:14px;">
         <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Wyślij zaproszenie przez</div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
-          <button class="inv-method-btn active" data-method="wiadomosc" onclick="selectInvMethod(this)" style="padding:10px 8px;background:var(--adim);border:1px solid var(--accent);border-radius:10px;color:var(--accent);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;">💬 Wiadomość</button>
-          <button class="inv-method-btn" data-method="email" onclick="selectInvMethod(this)" style="padding:10px 8px;background:var(--s3);border:1px solid var(--border2);border-radius:10px;color:var(--muted);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;">✉️ Email</button>
+          <button class="inv-method-btn" data-method="wiadomosc" onclick="selectInvMethod(this)" style="padding:10px 8px;background:var(--s3);border:1px solid var(--border2);border-radius:10px;color:var(--muted);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;">💬 Wiadomość</button>
+          <button class="inv-method-btn active" data-method="email" onclick="selectInvMethod(this)" style="padding:10px 8px;background:var(--adim);border:1px solid var(--accent);border-radius:10px;color:var(--accent);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;">✉️ Email</button>
           <button class="inv-method-btn" data-method="whatsapp" onclick="selectInvMethod(this)" style="padding:10px 8px;background:var(--s3);border:1px solid var(--border2);border-radius:10px;color:var(--muted);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;">💚 WhatsApp</button>
         </div>
       </div>
@@ -3296,12 +3296,12 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <div style="background:var(--s3);border-radius:10px;padding:12px;margin-bottom:4px;">
         <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);margin-bottom:6px;">PODGLĄD WIADOMOŚCI</div>
         <div id="inv-msg-preview" style="font-size:12px;line-height:1.7;color:var(--text);white-space:pre-line;"></div>
-        <div id="inv-channel-hint" style="font-size:11px;color:var(--muted);margin-top:10px;line-height:1.45;">Wiadomość trafi do czatu w Progress Live (Inbox klienta).</div>
+        <div id="inv-channel-hint" style="font-size:11px;color:var(--muted);margin-top:10px;line-height:1.45;">Otworzy Gmail z gotową treścią — tam kliknij Wyślij. Inbox w apce klient zobaczy dopiero po zalogowaniu.</div>
       </div>
     </div>
     <div class="modal-footer" style="gap:10px;">
       <button class="btn btn-ghost" onclick="closeInviteModal(true)">Pomiń</button>
-      <button class="btn btn-primary" id="inv-send-btn" style="flex:1;" onclick="sendInvitation()">📤 Wyślij do Inbox</button>
+      <button class="btn btn-primary" id="inv-send-btn" style="flex:1;" onclick="sendInvitation()">✉️ Otwórz Gmail i wyślij</button>
     </div>
   </div>
 </div>
@@ -4367,12 +4367,12 @@ async function load(){
 <script src="01-core.js?v=103"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=62"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=35"></script>
-<script src="04-client-portal.js?v=49"></script>
-<script src="05-clients-builder-plans-calendar.js?v=61"></script>
+<script src="04-client-portal.js?v=50"></script>
+<script src="05-clients-builder-plans-calendar.js?v=62"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=74"></script>
-<script src="07-forms-metrics-calculator.js?v=35"></script>
+<script src="07-forms-metrics-calculator.js?v=36"></script>
 <script src="08-client-profile-extras.js?v=55"></script>
-<script src="09-posture-kb-invites-private.js?v=42"></script>
+<script src="09-posture-kb-invites-private.js?v=43"></script>
 <script src="10-client-app.js?v=39"></script>
 </body>
 </html>

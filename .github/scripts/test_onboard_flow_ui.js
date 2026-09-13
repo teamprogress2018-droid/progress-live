@@ -49,10 +49,30 @@ function ok(name, cond, extra) {
   await page.waitForSelector('#m-client-onboard.show');
   await page.screenshot({ path: path.join(shotDir, 'onboard_start.png') });
 
-  const inviteCta = page.locator('#client-onboard-steps button', { hasText: /^Wyślij$/ });
+  const inviteCta = page.locator('#client-onboard-steps button', { hasText: /E-mail/ });
   await inviteCta.click();
   await page.waitForSelector('#m-invite.show');
-  ok('invite opened from onboard', true);
+  await page.waitForFunction(() => {
+    const link = document.getElementById('inv-link');
+    const t = (link && link.textContent) || '';
+    return t && !/Generowanie/.test(t);
+  });
+  const inviteUi = await page.evaluate(() => {
+    const btn = document.getElementById('inv-send-btn');
+    const hint = document.getElementById('inv-channel-hint');
+    const emailBtn = [...document.querySelectorAll('.inv-method-btn')].find(b => b.dataset.method === 'email');
+    const msgBtn = [...document.querySelectorAll('.inv-method-btn')].find(b => b.dataset.method === 'wiadomosc');
+    return {
+      send: (btn && btn.textContent) || '',
+      hint: (hint && hint.textContent) || '',
+      emailColor: emailBtn ? emailBtn.style.color : '',
+      msgColor: msgBtn ? msgBtn.style.color : '',
+      emailActive: !!(emailBtn && emailBtn.classList.contains('active'))
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'onboard_invite_gmail.png') });
+  ok('invite opened from onboard', /Gmail/i.test(inviteUi.send) && inviteUi.emailActive, JSON.stringify(inviteUi));
+  ok('invite email is default', /Gmail|e-mail/i.test(inviteUi.hint), inviteUi.hint);
 
   await page.click('#m-invite .modal-footer button:has-text("Pomiń")');
   await page.waitForTimeout(700);
