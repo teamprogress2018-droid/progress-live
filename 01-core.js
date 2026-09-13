@@ -4674,7 +4674,8 @@ function clientHasCalendarOrSession(clientId){
 }
 function clientOnboardHasBaseline(c){
   if(!c)return false;
-  if(c.baselineDone||c.weight)return true;
+  if(typeof clientHasBaseline==='function')return clientHasBaseline(c.id);
+  if(c.baselineDone)return true;
   return(window.METRIC_ENTRIES||[]).some(e=>e&&e.clientId===c.id&&(e.groupId==='mg1'||e.groupId==='mg2'));
 }
 function packagesForClient(clientId){

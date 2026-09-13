@@ -28,7 +28,7 @@ ok('filter helper', /function filterSortPlans\(/.test(src));
 ok('archive helper', /function archivePlan\(/.test(src));
 ok('default newest', /sort==='oldest'\?da-db:db-da/.test(src));
 ok('css table', css.includes('.plans-tbl-hdr') && css.includes('.plans-toolbar'));
-ok('cache 05 v41', html.includes('05-clients-builder-plans-calendar.js?v=57'));
+ok('cache 05 v41', html.includes('05-clients-builder-plans-calendar.js?v=58'));
 ok('pdf action', /exportSavedPlanPDF/.test(src) && /id="plan-pdf-/.test(src));
 ok('cache styles v61', html.includes('styles.css?v=80'));
 ok('CI unit', wf.includes('test_plans_library.js'));

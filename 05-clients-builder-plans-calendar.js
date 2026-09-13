@@ -398,7 +398,7 @@ function getClientOnboard(c){
   const invite=!!(c.inviteSent||c.appInvited||c.inviteSentAt||c.inviteSkipped);
   const plan=PL.some(p=>p.clientId===c.id);
   const session=SE.some(s=>s.clientId===c.id);
-  const baseline=typeof clientHasBaseline==='function'?clientHasBaseline(c.id):!!(c.baselineDone||c.weight);
+  const baseline=typeof clientHasBaseline==='function'?clientHasBaseline(c.id):!!(c.baselineDone);
   const schedule=typeof clientHasSchedulePrefs==='function'?clientHasSchedulePrefs(c):!!((c.preferredWeekdays||[]).length);
   const calendar=session;
   const packageDone=typeof clientHasPackage==='function'?clientHasPackage(c):!!(c.packageSkipped||(window.PACKAGES||[]).some(p=>p&&p.clientId===c.id));
@@ -430,6 +430,28 @@ function skipClientInvite(clientId){
   notify('Zaproszenie pominięte — możesz wrócić do niego później');
 }
 window.skipClientInvite=skipClientInvite;
+
+function openInviteFromOnboard(clientId){
+  window._onboardResumeAfterInvite=clientId;
+  if(typeof closeM==='function')closeM('m-client-onboard');
+  if(typeof openInviteModal==='function')openInviteModal(clientId);
+}
+window.openInviteFromOnboard=openInviteFromOnboard;
+
+function openFormsLibraryFromOnboard(clientId){
+  window._onboardResumeAfterForms=clientId;
+  if(typeof closeM==='function')closeM('m-client-onboard');
+  goTo('forms');
+  setTimeout(()=>{
+    const cf=document.getElementById('form-client-filter');
+    if(cf)cf.value=clientId;
+    if(typeof setFormNav==='function')setFormNav('wstepna');
+    else if(typeof renderForms==='function')renderForms();
+    if(typeof renderOnboardFormsBanner==='function')renderOnboardFormsBanner();
+    if(typeof openFormDetail==='function')openFormDetail('df1');
+  },80);
+}
+window.openFormsLibraryFromOnboard=openFormsLibraryFromOnboard;
 
 function skipClientPackage(clientId){
   const c=CL.find(x=>x.id===clientId);if(!c)return;
@@ -551,7 +573,7 @@ function renderClientOnboardChecklist(){
   const safeName=c.name.replace(/'/g,"\\'");
   const steps=[
     {done:st.invite,icon:'📱',title:'Wyślij zaproszenie',desc:'Link do aplikacji w wiadomości (możesz pominąć)',
-      action:`closeM('m-client-onboard');openInviteModal('${id}')`,cta:'Wyślij',
+      action:`openInviteFromOnboard('${id}')`,cta:'Wyślij',
       extra:st.invite?'':`<button class="btn btn-ghost btn-sm" onclick="skipClientInvite('${id}')">Pomiń</button>`},
     {done:st.baseline,icon:'⚖️',title:'Pomiary startowe (baseline)',desc:'Waga, %BF i obwody z datą — historia progresu',
       action:`openClientBaselineModal('${id}')`,cta:'Zapisz pomiary'},
@@ -562,8 +584,8 @@ function renderClientOnboardChecklist(){
         ?`Plan już przypisany${(()=>{const lp=typeof latestClientPlan==='function'?latestClientPlan(id):null;return lp&&lp.name?' (“'+lp.name+'”)':'';})()}. Możesz dodać kolejny — najnowszy trafia do kalendarza.`
         :'Najszybciej: generator AI z danymi klienta',
       action:`openAiPlanForClient('${id}')`,cta:'⚡ Plan AI',
-      extra:`<button class="btn btn-ghost btn-sm" onclick="closeM('m-client-onboard');openClientProfile('${id}');setTimeout(()=>setCPTab('plan'),300)">Szablon</button>`,
-      doneExtra:`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"><button class="btn btn-primary btn-sm" onclick="openAiPlanForClient('${id}')">⚡ Nowy plan AI</button><button class="btn btn-ghost btn-sm" onclick="closeM('m-client-onboard');openClientProfile('${id}');setTimeout(()=>setCPTab('plan'),300)">📋 Szablon / kreator</button></div>`},
+      extra:`<button class="btn btn-ghost btn-sm" onclick="openBuilderForClient('${id}')">Szablon / kreator</button>`,
+      doneExtra:`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"><button class="btn btn-primary btn-sm" onclick="openAiPlanForClient('${id}')">⚡ Nowy plan AI</button><button class="btn btn-ghost btn-sm" onclick="openBuilderForClient('${id}')">📋 Szablon / kreator</button></div>`},
     {done:st.calendar,icon:'🗓',title:'Wrzuć plan do kalendarza',desc:'4 tygodnie na preferowane dni — klient widzi trening w Dziś',
       action:`scheduleClientPlanToCalendar('${id}')`,cta:'Do kalendarza',
       extra:st.calendar?'':`<button class="btn btn-ghost btn-sm" onclick="closeM('m-client-onboard');goTo('live');setTimeout(()=>liveClientSetField('${id}','${safeName}'),300)">Trening Live</button>`,
@@ -628,7 +650,7 @@ function renderClientOnboardChecklist(){
           <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Cel, kontuzje, częstotliwość — sync do profilu po wypełnieniu.</div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;">
             <button class="btn btn-primary btn-sm" onclick="sendClientIntakeForm('${id}');renderClientOnboardChecklist()">Wyślij ankietę</button>
-            <button class="btn btn-ghost btn-sm" onclick="closeM('m-client-onboard');goTo('forms')">Biblioteka</button>
+            <button class="btn btn-ghost btn-sm" onclick="openFormsLibraryFromOnboard('${id}')">Biblioteka</button>
           </div>
         </div>
       </div>`;
@@ -680,11 +702,30 @@ function enrollClientInOnboardForum(clientId){
 window.enrollClientInOnboardForum=enrollClientInOnboardForum;
 
 function openClientScheduleFromOnboard(clientId){
-  window._onboardResumeAfterEdit=clientId;
-  if(typeof closeM==='function')closeM('m-client-onboard');
-  if(typeof openClientModal==='function')openClientModal(clientId);
+  const c=CL.find(x=>x.id===clientId);if(!c)return;
+  window._onboardScheduleClientId=clientId;
+  const nameEl=document.getElementById('ob-sched-name');
+  if(nameEl)nameEl.textContent=c.name||'';
+  if(typeof initPreferredWeekdaysForm==='function'){
+    initPreferredWeekdaysForm('ob-sched', (c.preferredWeekdays&&c.preferredWeekdays.length)?c.preferredWeekdays:[1,3,5]);
+  }
+  openM('m-onboard-schedule');
+}
+function saveClientScheduleFromOnboard(){
+  const id=window._onboardScheduleClientId;
+  const c=CL.find(x=>x.id===id);if(!c)return;
+  const days=typeof readPreferredWeekdaysFrom==='function'?readPreferredWeekdaysFrom('ob-sched'):[];
+  if(!days.length){if(typeof notify==='function')notify('Wybierz przynajmniej jeden dzień');return;}
+  c.preferredWeekdays=days;
+  persistById('clients',c);
+  closeM('m-onboard-schedule');
+  if(typeof renderClientOnboardChecklist==='function')renderClientOnboardChecklist();
+  if(typeof renderDash==='function')try{renderDash();}catch(e){}
+  if(typeof renderClients==='function')try{renderClients();}catch(e){}
+  if(typeof notify==='function')notify('Dni treningowe zapisane');
 }
 window.openClientScheduleFromOnboard=openClientScheduleFromOnboard;
+window.saveClientScheduleFromOnboard=saveClientScheduleFromOnboard;
 
 function latestClientPlan(clientId){
   return(window.PL||[]).filter(p=>p&&p.clientId===clientId).slice().sort((a,b)=>{

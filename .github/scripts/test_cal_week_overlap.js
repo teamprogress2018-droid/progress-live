@@ -19,7 +19,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 05 v48', html.includes('05-clients-builder-plans-calendar.js?v=57'));
+ok('cache 05 v48', html.includes('05-clients-builder-plans-calendar.js?v=58'));
 ok('cache styles v74', html.includes('styles.css?v=80'));
 ok('ci unit', wf.includes('test_cal_week_overlap.js'));
 ok('ci ui', wf.includes('test_cal_week_overlap_ui.js'));
