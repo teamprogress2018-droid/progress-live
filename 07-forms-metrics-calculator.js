@@ -176,6 +176,7 @@ function renderOnboardFormsBanner(){
 function resumeOnboardFromForms(){
   const cid=window._onboardResumeAfterForms;
   window._onboardResumeAfterForms=null;
+  if(typeof closeFormDetail==='function')try{closeFormDetail();}catch(e){}
   if(typeof renderOnboardFormsBanner==='function')renderOnboardFormsBanner();
   if(cid&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);
 }

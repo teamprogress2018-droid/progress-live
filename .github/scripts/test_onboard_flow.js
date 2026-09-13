@@ -24,12 +24,12 @@ ok('invite skip handler', src09.includes('function closeInviteModal') && html.in
 ok('invite X resumes without skip', html.includes('closeInviteModal(false)'));
 ok('openInviteFromOnboard', src05.includes('function openInviteFromOnboard') && src05.includes('_onboardResumeAfterInvite'));
 ok('forms library helper', src05.includes('function openFormsLibraryFromOnboard') && src05.includes("setFormNav('wstepna')"));
-ok('forms banner', html.includes('id="forms-onboard-banner"') && src07.includes('function resumeOnboardFromForms'));
+ok('forms banner', html.includes('id="forms-onboard-banner"') && html.includes('z-index:30') && src07.includes('function resumeOnboardFromForms'));
 ok('send form prefills onboard client', src07.includes('_onboardResumeAfterForms') && src07.includes('sendFormSetClientField(resumeC.id'));
 ok('schedule modal', html.includes('id="m-onboard-schedule"') && src05.includes('function saveClientScheduleFromOnboard'));
 ok('builder from onboard not profile tab', src05.includes("openBuilderForClient('${id}')") && !/openClientProfile\('\$\{id\}'\);setTimeout\(\(\)=>setCPTab\('plan'\)/.test(src05));
 ok('baseline ignores card weight', src01.includes('function clientOnboardHasBaseline') && !/baselineDone\|\|c\.weight/.test(src01));
-ok('cache 01/05/07/09', html.includes('01-core.js?v=103') && html.includes('05-clients-builder-plans-calendar.js?v=58') && html.includes('07-forms-metrics-calculator.js?v=34') && html.includes('09-posture-kb-invites-private.js?v=42'));
+ok('cache 01/05/07/09', html.includes('01-core.js?v=103') && html.includes('05-clients-builder-plans-calendar.js?v=58') && html.includes('07-forms-metrics-calculator.js?v=35') && html.includes('09-posture-kb-invites-private.js?v=42'));
 ok('CI unit+ui', wf.includes('test_onboard_flow.js') && wf.includes('test_onboard_flow_ui.js'));
 
 if (failed) {

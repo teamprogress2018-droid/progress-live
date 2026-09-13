@@ -87,7 +87,7 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'onboard_forms_lib.png') });
   ok('forms library wstępne + banner', forms.active && forms.wst && forms.banner && forms.flag, JSON.stringify(forms));
 
-  await page.click('#forms-onboard-banner button:has-text("Wróć do checklisty")');
+  await page.locator('#forms-onboard-banner button', { hasText: 'Wróć do checklisty' }).click({ force: true });
   await page.waitForTimeout(700);
   ok('back from forms', await page.locator('#m-client-onboard.show').isVisible());
 

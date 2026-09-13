@@ -53,7 +53,7 @@ ok('client.macros.tdee', c.macros && c.macros.tdee === m.tdee);
 ok('persist clients', sandbox.persisted === 'clients:c1');
 ok('event macros.saved', sandbox.window._appEvents.some(e => e.type === 'macros.saved' && e.payload.clientId === 'c1'));
 
-ok('cache 07', html.includes('07-forms-metrics-calculator.js?v=34'));
+ok('cache 07', html.includes('07-forms-metrics-calculator.js?v=35'));
 
 if (failed) { console.error('\n' + failed + ' failed'); process.exit(1); }
 console.log('\nAll calc-macros checks passed');
