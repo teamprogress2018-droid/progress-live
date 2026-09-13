@@ -2897,7 +2897,6 @@ function runOnboardingForClient(client,opts){
   const flow=window.ONBOARDING_FLOW;
   const first=(client.name||'').split(' ')[0];
   const parts=[];
-  let formSent=false;
   if(flow&&flow.active){
     if(flow.msgEnabled!==false && flow.welcomeMsg && typeof pushMsg==='function'){
       pushMsg(client.id,(flow.welcomeMsg||'').replace(/\{imie\}/g,first));
@@ -2916,7 +2915,7 @@ function runOnboardingForClient(client,opts){
           if(typeof pushMsg==='function')pushMsg(client.id,'Formularz do wypełnienia: '+(form.name||'Ankieta'));
         }
       });
-      if(picked.length){parts.push('formularz');formSent=true;}
+      if(picked.length)parts.push('formularz');
     }
     if(!opts.skipAssign && flow.assignEnabled!==false && flow.programId){
       const assigned=assignProgramPlanToClient(flow.programId,client);
@@ -2980,14 +2979,8 @@ function runOnboardingForClient(client,opts){
       if(typeof addNotification==='function')addNotification('system','Onboarding uruchomiony',client.name+' — '+parts.join(', '),'automation');
     }
   }
-  if(!formSent&&typeof createFormSend==='function'){
-    const forms=typeof allForms==='function'?allForms():[];
-    const intake=forms.find(f=>f.id==='df1')||forms.find(f=>(f.cat||'').includes('wstepna'))||forms[0];
-    if(intake){
-      createFormSend(intake,client.id);
-      parts.push('formularz (auto)');
-    }
-  }
+  // Ankieta tylko gdy Automatyzacja → Onboarding jest Aktywny (formsEnabled).
+  // Inaczej checklista ma CTA „Wyślij ankietę” — nie udawaj, że już poszła.
   if(typeof enrollNewClientInAutoflows==='function')enrollNewClientInAutoflows(client);
   return parts;
 }

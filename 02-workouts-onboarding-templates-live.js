@@ -316,7 +316,7 @@ async function saveWorkout(){
 var onbTab='overview';
 var onbStep=0;
 var onbNewClient={};
-var ONB_ACTIVE=[];   // [{clientId, step, startDate, flow}]
+var ONB_ACTIVE=[];   // legacy Firestore; postęp = CLIENT_ONBOARD_STEPS, nie o.step
 window.ONB_ACTIVE=ONB_ACTIVE;
 
 const ONB_STEPS=[
@@ -334,22 +334,45 @@ const ONB_STEPS=[
 
 const ONB_FLOWS=[
   {id:'standard',  name:'Standard',      icon:'⚡', color:'var(--accent)',
-   desc:'Kompletny onboarding — ankieta, kontrakt, plan, płatność, aplikacja, sesja.',
-   steps:['welcome','ankieta','kontrakt','pomiary','plan','zadania','platnosc','aplikacja','sesja1','checkin'],
-   duration:'7 dni'},
+   desc:'Pełny start współpracy: zaproszenie, pomiary, dni, plan, kalendarz, pakiet. Wiadomość i ankieta — Automatyzacja, gdy flow jest Aktywny.',
+   steps:['welcome','ankieta','pomiary','plan','platnosc','aplikacja','sesja1'],
+   duration:'checklista 6/6'},
   {id:'quick',     name:'Szybki start',  icon:'🚀', color:'var(--blue)',
-   desc:'Minimum formalności — od razu do treningu. Ankieta online + plan + sesja.',
+   desc:'Ta sama checklista 6 kroków, mniej formalności w copy. Plan i pierwsza sesja jak najszybciej.',
    steps:['welcome','ankieta','plan','platnosc','sesja1'],
-   duration:'2 dni'},
+   duration:'checklista 6/6'},
   {id:'online',    name:'Online',        icon:'💻', color:'var(--purple)',
-   desc:'Klient zdalny — wszystko przez aplikację. Bez sesji stacjonarnej na starcie.',
-   steps:['welcome','ankieta','kontrakt','plan','zadania','platnosc','aplikacja','checkin'],
-   duration:'5 dni'},
+   desc:'Klient zdalny — zaproszenie do apki i kalendarz. Bez sesji na sali na starcie; Live nadal z checklisty.',
+   steps:['welcome','ankieta','plan','platnosc','aplikacja'],
+   duration:'checklista 6/6'},
   {id:'vip',       name:'VIP',           icon:'👑', color:'var(--orange)',
-   desc:'Rozszerzony onboarding dla klientów premium. Pełna diagnostyka i badania.',
-   steps:['welcome','ankieta','kontrakt','pomiary','plan','zadania','platnosc','aplikacja','sesja1','checkin'],
-   duration:'14 dni'},
+   desc:'Pełna checklista + dokładniejsze pomiary. Automatyczne wiadomości nadal z Automatyzacji, nie z osobnego paska kroków.',
+   steps:['welcome','ankieta','pomiary','plan','platnosc','aplikacja','sesja1'],
+   duration:'checklista 6/6'},
 ];
+
+function onbChecklistSteps(){
+  return (window.CLIENT_ONBOARD_STEPS||[]).slice();
+}
+function onbStatusFor(c){
+  if(typeof clientOnboardStatus==='function')return clientOnboardStatus(c);
+  if(typeof getClientOnboard==='function')return getClientOnboard(c);
+  return{invite:false,baseline:false,schedule:false,plan:false,calendar:false,package:false,done:0,total:6,complete:true,next:null,missing:[],missingLabels:[]};
+}
+function onbLiveClients(){
+  return(window.CL||[]).filter(c=>c&&c.status!=='archived');
+}
+function onbFlowForClient(c){
+  const id=(c&&c.onboardingFlow)||'standard';
+  return ONB_FLOWS.find(f=>f.id===id)||ONB_FLOWS[0];
+}
+function onbStampFlow(cid,flowId){
+  const c=(window.CL||[]).find(x=>x&&x.id===cid);if(!c)return;
+  const id=flowId||'standard';
+  if(c.onboardingFlow===id)return;
+  c.onboardingFlow=id;
+  if(typeof persistById==='function')persistById('clients',c);
+}
 
 function initOnboarding(){
   // Nie seedujemy fałszywych onboardingu — tylko realne wpisy z ONB_ACTIVE
@@ -364,35 +387,86 @@ function setOnbTab(t){
     document.getElementById('onb-tab-'+x)?.classList.toggle('active',x===t);
   });
   if(t==='overview')renderOnbOverview();
-  if(t==='new'){onbStep=0;onbNewClient={};renderOnbNew();}
+  if(t==='new'){
+    onbStep=0;
+    const defFlow=((window.SETTINGS||{}).onboarding||{}).defaultFlow||onbNewClient.flow||'standard';
+    onbNewClient={flow:defFlow};
+    renderOnbNew();
+  }
   if(t==='flows')renderOnbFlows();
   if(t==='settings')renderOnbSettings();
 }
 
-/* ── OVERVIEW ── */
+/* ── OVERVIEW — ta sama checklista co modal ROZPOCZNIJ WSPÓŁPRACĘ ── */
 function renderOnbOverview(){
   const el=document.getElementById('onb-overview-tab');if(!el)return;
-  const completed=ONB_ACTIVE.filter(o=>o.step>=ONB_STEPS.length).length;
-  const inProgress=ONB_ACTIVE.filter(o=>o.step<ONB_STEPS.length).length;
-  const waiting=Math.max(0,(window.CL||[]).filter(c=>c&&c.status!=='archived').length-ONB_ACTIVE.length);
+  const steps=onbChecklistSteps();
+  const clients=onbLiveClients();
+  const rows=clients.map(c=>{
+    const st=onbStatusFor(c);
+    return{c,st,flow:onbFlowForClient(c)};
+  });
+  const inProgress=rows.filter(r=>!r.st.complete);
+  const completed=rows.filter(r=>r.st.complete);
+  const notStarted=inProgress.filter(r=>!r.st.done);
   const avgDays=(()=>{
-    const done=ONB_ACTIVE.filter(o=>o.step>=ONB_STEPS.length&&o.startDate);
+    const done=completed.filter(r=>r.c.joinDate||r.c.createdAt);
     if(!done.length)return'—';
     const today=new Date();
-    const sum=done.reduce((s,o)=>{
-      const a=new Date(o.startDate);if(isNaN(a))return s;
+    const sum=done.reduce((s,r)=>{
+      const a=new Date(String(r.c.joinDate||r.c.createdAt||'').slice(0,10));
+      if(isNaN(a))return s;
       return s+Math.max(0,Math.round((today-a)/86400000));
     },0);
     return Math.round((sum/done.length)*10)/10;
   })();
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
+  const nextLabel=st=>{
+    if(!st||st.complete)return'Gotowe';
+    const hit=(steps.find(s=>s.id===st.next)||{});
+    return hit.label||(st.missingLabels&&st.missingLabels[0])||'Dokończ';
+  };
+  const card=r=>{
+    const {c,st,flow}=r;
+    const pct=st.total?Math.round(st.done/st.total*100):0;
+    const flags={invite:!!st.invite,baseline:!!st.baseline,schedule:!!st.schedule,plan:!!st.plan,calendar:!!st.calendar,package:!!st.package};
+    return `<div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:16px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <div style="width:42px;height:42px;border-radius:12px;background:var(--adim);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--accent);flex-shrink:0;">${getInit(c.name)}</div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:700;">${esc(c.name)}</div>
+          <div style="font-size:11px;color:var(--muted);">${flow.icon} ${esc(flow.name)}${c.joinDate?' · od '+esc(String(c.joinDate).slice(0,10)):''}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:18px;font-weight:700;color:${st.complete?'var(--teal)':'var(--accent)'};">${pct}%</div>
+          <div style="font-size:10px;color:var(--muted);">${st.done}/${st.total} kroków</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:3px;margin-bottom:10px;">
+        ${steps.map(s=>`<div title="${esc(s.label)}" style="flex:1;height:6px;border-radius:3px;background:${flags[s.id]?'var(--accent)':'var(--s3)'};"></div>`).join('')}
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+        <div style="font-size:11px;color:var(--muted);">
+          ${st.complete?'<span style="color:var(--teal);">✓ Start współpracy ukończony</span>':`Następny krok: <span style="color:var(--accent);">${esc(nextLabel(st))}</span>`}
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-ghost btn-sm" onclick="onbViewClient('${esc(c.id)}')">Profil</button>
+          <button class="btn btn-primary btn-sm" onclick="onbOpenChecklist('${esc(c.id)}')">${st.complete?'Checklista':'Dokończ'}</button>
+        </div>
+      </div>
+    </div>`;
+  };
 
   el.innerHTML=`
-    <!-- KPI -->
+    <div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:20px;font-size:12px;color:var(--muted);line-height:1.55;">
+      Postęp = ta sama checklista co <b style="color:var(--text);">Rozpocznij współpracę</b> (6 kroków). Kafelki flow to wariant etykiety, nie drugi kreator.
+      Automatyczna wiadomość i ankieta: <button class="btn btn-ghost btn-sm" style="font-size:11px;padding:2px 8px;" onclick="goTo('automation')">Automatyzacja</button>
+    </div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;">
       ${[
-        {icon:'🔄',label:'W trakcie',val:inProgress,col:'var(--accent)'},
-        {icon:'✅',label:'Ukończone',val:completed,col:'var(--teal)'},
-        {icon:'⏳',label:'Bez onboardingu',val:waiting,col:'var(--orange)'},
+        {icon:'🔄',label:'W trakcie',val:inProgress.length,col:'var(--accent)'},
+        {icon:'✅',label:'Ukończone',val:completed.length,col:'var(--teal)'},
+        {icon:'⏳',label:'0/6 — do startu',val:notStarted.length,col:'var(--orange)'},
         {icon:'📊',label:'Śr. czas (dni)',val:avgDays,col:'var(--blue)'},
       ].map(s=>`<div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:16px;">
         <div style="font-size:20px;margin-bottom:6px;">${s.icon}</div>
@@ -401,86 +475,41 @@ function renderOnbOverview(){
       </div>`).join('')}
     </div>
 
-    <!-- aktywne onboardingi -->
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;">AKTYWNE ONBOARDINGI</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;">W TRAKCIE STARTU</div>
       <button class="btn btn-primary btn-sm" onclick="setOnbTab('new')">+ Nowy klient</button>
     </div>
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px;">
-      ${ONB_ACTIVE.map(o=>{
-        const c=CL.find(x=>x.id===o.clientId);if(!c)return'';
-        const flow=ONB_FLOWS.find(f=>f.id===o.flow)||ONB_FLOWS[0];
-        const steps=flow.steps.map(sid=>ONB_STEPS.find(s=>s.id===sid)).filter(Boolean);
-        const pct=Math.round(o.step/steps.length*100);
-        const curStep=steps[o.step]||steps[steps.length-1];
-        return `<div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:16px;">
-          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-            <div style="width:42px;height:42px;border-radius:12px;background:var(--adim);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--accent);flex-shrink:0;">${getInit(c.name)}</div>
-            <div style="flex:1;">
-              <div style="font-size:13px;font-weight:700;">${c.name}</div>
-              <div style="font-size:11px;color:var(--muted);">Flow: ${flow.icon} ${flow.name} · Start: ${o.startDate}</div>
-            </div>
-            <div style="text-align:right;">
-              <div style="font-size:18px;font-weight:700;color:var(--accent);">${pct}%</div>
-              <div style="font-size:10px;color:var(--muted);">${o.step}/${steps.length} kroków</div>
-            </div>
-          </div>
-          <!-- pasek postępu z krokami -->
-          <div style="display:flex;gap:3px;margin-bottom:10px;">
-            ${steps.map((s,i)=>`<div title="${s.label}" style="flex:1;height:6px;border-radius:3px;background:${i<o.step?'var(--accent)':i===o.step?'rgba(230,0,0,0.4)':'var(--s3)'};transition:background 0.3s;"></div>`).join('')}
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <div style="font-size:11px;color:var(--muted);">
-              ${o.step<steps.length?`Następny krok: <span style="color:var(--accent);">${curStep?.icon} ${curStep?.label}</span>`:'<span style="color:var(--teal);">✓ Onboarding ukończony!</span>'}
-            </div>
-            <div style="display:flex;gap:6px;">
-              <button class="btn btn-ghost btn-sm" onclick="onbCompleteStep('${o.clientId}')">Potwierdź krok ✓</button>
-              <button class="btn btn-primary btn-sm" onclick="onbViewClient('${o.clientId}')">Otwórz →</button>
-            </div>
-          </div>
-        </div>`;
-      }).join('')}
+      ${inProgress.length?inProgress.map(card).join(''):`<div style="background:var(--s2);border:1px dashed var(--border);border-radius:12px;padding:18px;font-size:12px;color:var(--muted);">Wszyscy klienci mają dokończony start — albo lista jest pusta.</div>`}
     </div>
 
-    <!-- klienci bez onboardingu -->
-    ${CL.filter(c=>!ONB_ACTIVE.find(o=>o.clientId===c.id)).length?`
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;margin-bottom:12px;color:var(--muted);">KLIENCI BEZ ONBOARDINGU</div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;">
-      ${CL.filter(c=>!ONB_ACTIVE.find(o=>o.clientId===c.id)).map(c=>`
-        <div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;align-items:center;gap:10px;">
-          <div style="width:34px;height:34px;border-radius:8px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;color:var(--muted);">${getInit(c.name)}</div>
-          <div style="flex:1;min-width:0;">
-            <div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.name}</div>
-            <div style="font-size:10px;color:var(--muted);">Brak onboardingu</div>
-          </div>
-          <button class="btn btn-ghost btn-sm" style="font-size:10px;" onclick="onbStartFor('${c.id}')">Start</button>
-        </div>`).join('')}
-    </div>`:''}`;
+    ${completed.length?`
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;margin-bottom:12px;color:var(--muted);">UKOŃCZONE</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">${completed.map(card).join('')}</div>`:''}`;
 }
 
+function onbOpenChecklist(cid){
+  if(typeof openClientOnboardChecklist==='function')openClientOnboardChecklist(cid);
+}
 function onbCompleteStep(cid){
-  const o=ONB_ACTIVE.find(x=>x.clientId===cid);if(!o)return;
-  const flow=ONB_FLOWS.find(f=>f.id===o.flow)||ONB_FLOWS[0];
-  if(o.step<flow.steps.length){o.step++;notify('✓ Krok ukończony!');}
-  else notify('Onboarding już ukończony!');
-  if(!o.id)o.id=newId('onba');
-  withTrainer(o);
-  persistById('onboardingActive',o);
-  renderOnbOverview();
+  onbOpenChecklist(cid);
 }
-
 function onbViewClient(cid){
   goTo('clients');
   setTimeout(()=>openClientProfile&&openClientProfile(cid),300);
 }
-
 function onbStartFor(cid){
-  const c=CL.find(x=>x.id===cid);if(!c)return;
-  const o=withTrainer({id:newId('onba'),clientId:cid,step:0,startDate:new Date().toISOString().split('T')[0],flow:'standard'});
-  ONB_ACTIVE.push(o);
-  persistById('onboardingActive',o);
-  notify('✓ Onboarding uruchomiony dla '+c.name);
-  renderOnbOverview();
+  const c=(window.CL||[]).find(x=>x.id===cid);if(!c)return;
+  onbStampFlow(cid,c.onboardingFlow||((window.SETTINGS||{}).onboarding||{}).defaultFlow||'standard');
+  onbOpenChecklist(cid);
+}
+function onbUseFlow(flowId){
+  const S=window.SETTINGS||(window.SETTINGS={});
+  if(!S.onboarding)S.onboarding={};
+  S.onboarding.defaultFlow=flowId||'standard';
+  if(typeof persistSettingsDoc==='function')persistSettingsDoc();
+  notify('Wariant „'+(ONB_FLOWS.find(f=>f.id===flowId)?.name||flowId)+'” — otwieram kartę klienta. Checklista jest jedna.');
+  setOnbTab('new');
 }
 
 /* ── NEW CLIENT WIZARD ── */
@@ -614,8 +643,8 @@ function onbWizardStepHTML(step){
       </label></div>`;
 
   if(step===3) return `
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">📋 PLAN I ONBOARDING FLOW</div>
-    <div class="form-field"><label class="form-lbl">Flow onboardingu</label>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:20px;">📋 PLAN I WARIANT STARTU</div>
+    <div class="form-field"><label class="form-lbl">Wariant (etykieta — checklista jest jedna)</label>
       <div style="display:flex;flex-direction:column;gap:6px;">
         ${ONB_FLOWS.map(f=>`<label style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--s3);border-radius:10px;cursor:pointer;border:1px solid ${onbNewClient.flow===f.id?'var(--accent)':'var(--border2)'};" onclick="onbSetVal('flow','${f.id}');document.querySelectorAll('#onb-new-tab label[style*=border]').forEach(l=>l.style.borderColor='var(--border2)');this.style.borderColor='var(--accent)';">
           <input type="radio" name="onb-flow" value="${f.id}" ${onbNewClient.flow===f.id?'checked':''} style="accent-color:var(--accent);">
@@ -652,7 +681,7 @@ function onbWizardStepHTML(step){
         ['Poziom',onbNewClient.level||'—'],
         ['Częstotliwość',(onbNewClient.freq||'—')+'×/tyg.'],
         ['Priorytet sylwetkowy',(onbNewClient.physiquePriority||[]).map(id=>typeof physiquePriorityLabel==='function'?physiquePriorityLabel(id):id).join(', ')||'—'],
-        ['Flow',ONB_FLOWS.find(f=>f.id===onbNewClient.flow)?.name||'Standard'],
+        ['Wariant',ONB_FLOWS.find(f=>f.id===onbNewClient.flow)?.name||'Standard'],
         ['Pakiet',onbNewClient.package||'Brak'],
         ['Szablon planu',onbNewClient.template?PLAN_TEMPLATES.find(t=>t.id===onbNewClient.template)?.name:'Brak'],
       ].map(([l,v])=>`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;">
@@ -661,10 +690,10 @@ function onbWizardStepHTML(step){
       </div>`).join('')}
     </div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.7;">Po kliknięciu "Utwórz klienta":<br>
-    ✓ Klient zostanie dodany do listy klientów<br>
-    ✓ Uruchomi się flow onboardingu<br>
+    ✓ Klient trafi na listę<br>
+    ✓ Otworzy się checklista startu współpracy (zaproszenie → pomiary → dni → plan → kalendarz → pakiet)<br>
     ${onbNewClient.template?'✓ Zostanie przypisany szablon planu treningowego<br>':''}
-    ✓ Zostanie wysłane powiadomienie powitalne</div>`;
+    ✓ Automatyczna wiadomość / ankieta tylko gdy w Automatyzacji przełącznik jest <b>Aktywny</b></div>`;
 
   return '<div>Nieznany krok</div>';
 }
@@ -740,22 +769,12 @@ function onbCreateClient(){
     priorSports:onbNewClient.priorSports||[],
     activityLevel:onbNewClient.activityLevel||'moderate',
     notes:onbNewClient.privateNote||'',
+    onboardingFlow:onbNewClient.flow||'standard',
     status:'active',
     joinDate:new Date().toISOString().split('T')[0],
     source:onbNewClient.source||'',
   });
   CL.push(newC);
-
-  const onbRec=withTrainer({id:newId('onba'),clientId:newC.id,step:1,startDate:new Date().toISOString().split('T')[0],flow:onbNewClient.flow||'standard'});
-  ONB_ACTIVE.push(onbRec);
-  persistById('onboardingActive',onbRec);
-
-  const tasks=[
-    withTrainer({id:newId('t'),clientId:newC.id,title:'Wypełnij ankietę wstępną',status:'open',priority:'high',cat:'lifestyle',due:new Date(Date.now()+86400000).toISOString().split('T')[0],createdAt:new Date().toISOString()}),
-    withTrainer({id:newId('t'),clientId:newC.id,title:'Zaakceptuj kontrakt współpracy',status:'open',priority:'high',cat:'lifestyle',due:new Date(Date.now()+2*86400000).toISOString().split('T')[0],createdAt:new Date().toISOString()}),
-    withTrainer({id:newId('t'),clientId:newC.id,title:'Zainstaluj aplikację Progress Live',status:'open',priority:'medium',cat:'lifestyle',due:new Date(Date.now()+3*86400000).toISOString().split('T')[0],createdAt:new Date().toISOString()}),
-  ];
-  tasks.forEach(t=>{TASKS.push(t);persistById('tasks',t);});
 
   const pipeOpts={
     persist:true,
@@ -793,7 +812,7 @@ function onbCreateClient(){
     }
   }
 
-  notify('🎉 Klient '+newC.name+' dodany! Onboarding uruchomiony.');
+  notify('🎉 Klient '+newC.name+' dodany — otwieram checklistę startu.');
   onbNewClient={};onbStep=0;
   setOnbTab('overview');
   if(typeof openClientOnboardChecklist==='function')setTimeout(()=>openClientOnboardChecklist(newC.id),400);
@@ -802,19 +821,21 @@ function onbCreateClient(){
 /* ── FLOWS ── */
 function renderOnbFlows(){
   const el=document.getElementById('onb-flows-tab');if(!el)return;
+  const realSteps=onbChecklistSteps();
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
   el.innerHTML=`
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:6px;">SZABLONY FLOW ONBOARDINGU</div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:20px;">Każdy flow definiuje kolejność kroków onboardingu dla nowego klienta.</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:6px;">WARIANTY STARTU WSPÓŁPRACY</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:20px;line-height:1.55;">Każdy kafelek to etykieta przy nowym kliencie — nie osobna checklista. Postęp zawsze liczy 6 kroków (zaproszenie → pomiary → dni → plan → kalendarz → pakiet). Automatyczne wiadomości: Automatyzacja, gdy flow jest Aktywny.</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;">
       ${ONB_FLOWS.map(f=>`<div style="background:var(--s2);border:1px solid var(--border);border-top:3px solid ${f.color};border-radius:12px;padding:18px;">
         <div style="font-size:24px;margin-bottom:8px;">${f.icon}</div>
-        <div style="font-size:15px;font-weight:700;margin-bottom:4px;">${f.name}</div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.6;">${f.desc}</div>
-        <div style="font-size:10px;color:${f.color};font-family:'DM Mono',monospace;margin-bottom:10px;">⏱ ${f.duration} · ${f.steps.length} kroków</div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:4px;">${esc(f.name)}</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.6;">${esc(f.desc)}</div>
+        <div style="font-size:10px;color:${f.color};font-family:'DM Mono',monospace;margin-bottom:10px;">${esc(f.duration)}</div>
         <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px;">
-          ${f.steps.map(sid=>{const s=ONB_STEPS.find(x=>x.id===sid);return s?`<span style="background:var(--s3);border-radius:5px;padding:2px 7px;font-size:10px;color:var(--muted);">${s.icon} ${s.label}</span>`:''}).join('')}
+          ${realSteps.map(s=>`<span style="background:var(--s3);border-radius:5px;padding:2px 7px;font-size:10px;color:var(--muted);">${esc(s.label)}</span>`).join('')}
         </div>
-        <button class="btn btn-ghost btn-sm" style="width:100%;" onclick="setOnbTab('new');onbSetVal('flow','${f.id}')">Użyj tego flow →</button>
+        <button class="btn btn-ghost btn-sm" style="width:100%;" onclick="onbUseFlow('${f.id}')">Użyj przy nowym kliencie →</button>
       </div>`).join('')}
     </div>`;
 }
@@ -884,6 +905,7 @@ window.renderOnbNew=renderOnbNew;window.onbWizardBack=onbWizardBack;
 window.onbWizardNext=onbWizardNext;window.onbSetVal=onbSetVal;
 window.onbCompleteStep=onbCompleteStep;window.onbViewClient=onbViewClient;
 window.onbStartFor=onbStartFor;window.onbCreateClient=onbCreateClient;
+window.onbOpenChecklist=onbOpenChecklist;window.onbUseFlow=onbUseFlow;
 
 // ════════════════════════════════════════
 // SZABLONY PLANÓW
