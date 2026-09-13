@@ -4016,6 +4016,10 @@ function liveEndSession(slot){
   st.planId=null;
   renderLiveExercises(n);
   renderLiveHistory();
+  if(window._onboardResumeAfterLive===st.savedClientId){
+    window._onboardResumeAfterLive=null;
+    if(typeof renderOnboardLiveBanner==='function')renderOnboardLiveBanner();
+  }
   if(typeof maybeResumeOnboard==='function')maybeResumeOnboard(st.savedClientId);
   try{if(typeof maybeSendCheckinAfterSession==='function')maybeSendCheckinAfterSession(st.savedClientId);}catch(e){}
 }

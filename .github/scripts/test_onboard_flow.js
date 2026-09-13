@@ -9,6 +9,7 @@ const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const src05 = fs.readFileSync(path.join(root, '05-clients-builder-plans-calendar.js'), 'utf8');
 const src07 = fs.readFileSync(path.join(root, '07-forms-metrics-calculator.js'), 'utf8');
 const src09 = fs.readFileSync(path.join(root, '09-posture-kb-invites-private.js'), 'utf8');
+const src02 = fs.readFileSync(path.join(root, '02-workouts-onboarding-templates-live.js'), 'utf8');
 const src01 = fs.readFileSync(path.join(root, '01-core.js'), 'utf8');
 const wf = fs.readFileSync(path.join(root, '.github/workflows/check.yml'), 'utf8');
 
@@ -28,8 +29,10 @@ ok('forms banner', html.includes('id="forms-onboard-banner"') && html.includes('
 ok('send form prefills onboard client', src07.includes('_onboardResumeAfterForms') && src07.includes('sendFormSetClientField(resumeC.id'));
 ok('schedule modal', html.includes('id="m-onboard-schedule"') && src05.includes('function saveClientScheduleFromOnboard'));
 ok('builder from onboard not profile tab', src05.includes("openBuilderForClient('${id}')") && !/openClientProfile\('\$\{id\}'\);setTimeout\(\(\)=>setCPTab\('plan'\)/.test(src05));
+ok('live from onboard', src05.includes('function openLiveFromOnboard') && src05.includes("openLiveFromOnboard('${id}'") && html.includes('id="live-onboard-banner"'));
+ok('live end clears onboard flag', src02.includes('_onboardResumeAfterLive===st.savedClientId'));
 ok('baseline ignores card weight', src01.includes('function clientOnboardHasBaseline') && !/baselineDone\|\|c\.weight/.test(src01));
-ok('cache 01/05/07/09', html.includes('01-core.js?v=103') && html.includes('05-clients-builder-plans-calendar.js?v=58') && html.includes('07-forms-metrics-calculator.js?v=35') && html.includes('09-posture-kb-invites-private.js?v=42'));
+ok('cache 01/02/05/07/09', html.includes('01-core.js?v=103') && html.includes('02-workouts-onboarding-templates-live.js?v=61') && html.includes('05-clients-builder-plans-calendar.js?v=59') && html.includes('07-forms-metrics-calculator.js?v=35') && html.includes('09-posture-kb-invites-private.js?v=42'));
 ok('CI unit+ui', wf.includes('test_onboard_flow.js') && wf.includes('test_onboard_flow_ui.js'));
 
 if (failed) {
