@@ -32,7 +32,7 @@ function ok(name, cond, extra) {
 ok('helper in core', src01.includes('function syncClientNameCache'));
 ok('saveCPEdit hooks sync', /persistById\('clients',c\);\s*try\{if\(typeof syncClientNameCache/.test(src09));
 ok('saveClient edit hooks sync', src05.includes("syncClientNameCache(c.id,c.name)"));
-ok('cache 01', html.includes('01-core.js?v=101'));
+ok('cache 01', html.includes('01-core.js?v=102'));
 ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=57'));
 ok('cache 09', html.includes('09-posture-kb-invites-private.js?v=41'));
 ok('CI', wf.includes('test_client_name_cache.js'));

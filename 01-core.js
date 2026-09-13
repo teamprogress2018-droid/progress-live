@@ -5320,27 +5320,28 @@ function kbEntryUsesInPlanning(k){
   if(!k)return false;
   if(k.useInPlanning===false)return false;
   const kind=normalizeKbKind(k);
-  if(kind==='principle'||kind==='evidence')return true;
-  // stare notatki (bez kind) — domyślnie tak, jeśli nie wyłączono
+  // Notatki + badania (+ zasady) idą do Generatora AI i kreatora.
+  if(kind==='note'||kind==='evidence'||kind==='principle')return true;
   return k.useInPlanning!==false;
 }
-/** Wpisy trenera + pakiet wbudowany do kontekstu planowania. */
+/** Wpisy trenera + pakiet wbudowany do kontekstu planowania. Notatki trenera przed pakietem. */
 function getPlanningEvidenceEntries(){
   const user=(window.KB||[]).filter(kbEntryUsesInPlanning);
   const userTitles=new Set(user.map(k=>String(k.title||'').toLowerCase()));
   const userBuiltin=new Set(user.map(k=>k.builtinId).filter(Boolean));
   const builtins=BUILTIN_PLANNING_EVIDENCE.filter(b=>!userBuiltin.has(b.id)&&!userTitles.has(String(b.title).toLowerCase()));
-  return builtins.map(b=>({...b,builtin:true})).concat(user.map(k=>({
+  const mapUser=k=>({
     id:k.id,kind:normalizeKbKind(k),title:k.title,text:k.text,
     citation:k.citation||'',sourceUrl:k.sourceUrl||'',useInPlanning:true,builtin:false
-  })));
+  });
+  return user.map(mapUser).concat(builtins.map(b=>({...b,builtin:true})));
 }
 function planningEvidenceContext(maxChars){
   const list=getPlanningEvidenceEntries();
   if(!list.length)return'';
   const budget=maxChars||4500;
-  let out='\n\n=== DOWODY I ZASADY TRENERA (obowiązkowy kontekst planowania) ===\n';
-  out+='Uwzględnij te zasady przy doborze metody, serii, RPE i objętości. Preferuj zasady oznaczone jako „zasada trenera” nad ogólnikami, gdy kolidują.\n';
+  let out='\n\n=== BADANIA I NOTATKI TRENERA (kontekst planowania) ===\n';
+  out+='Uwzględnij badania i notatki trenera przy metodzie, seriach i objętości. Zasady trenera mają pierwszeństwo, gdy kolidują z ogólnikami.\n';
   for(const e of list){
     const kind=e.kind==='evidence'?'BADANIE/ŹRÓDŁO':(e.kind==='principle'?'ZASADA TRENERA':'NOTATKA');
     const cite=e.citation?` [${e.citation}]`:'';

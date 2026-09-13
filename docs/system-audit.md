@@ -133,4 +133,5 @@ Wejścia: `saveClient` (modal) i `onbCreateClient` (wizard).
 9. **Pulpit: jedna lista pakietów** — **zrobione:** karta Przypomnień zdjęta (dublowała „Płatności do odnowienia”). KPI scrolluje do `#dash-ops-pay`.
 10. **`clientName` po zmianie imienia** — **zrobione:** `syncClientNameCache` przy `saveCPEdit` / edycji `saveClient` przepisuje cache na planach, pakietach, fakturach i historii onboardingu.
 11. **Pakiety tylko po `clientId`** — **zrobione:** `packagesForClient` (profil Płatności, raport). Koniec `|| clientName` — to samo imię nie podpina cudzego pakietu.
+13. **KB → AI: notatki + badania** — **zrobione:** Generator bierze notatki i źródła (oraz zasady). Wpis z wyłączonym planowaniem zostaje tylko w bazie — bez wycieku „pozostałych notatek”.
 12. **Płatności: filtry po `clientId`** — **zrobione:** chipy Pakietów i select Historii (`payClientsFromPackages`). To samo imię = dwa chipy / dwie opcje, nie jedna wspólna lista.

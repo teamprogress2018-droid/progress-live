@@ -21,7 +21,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=101'));
+ok('cache 01', html.includes('01-core.js?v=102'));
 ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=60'));
 ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=57'));
 ok('cache 10', html.includes('10-client-app.js?v=39'));
