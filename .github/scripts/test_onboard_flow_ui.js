@@ -232,6 +232,31 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'onboard_overview.png') });
   ok('overview is real checklist board', overview.active && overview.hasEwelina && overview.hasChecklistCta && overview.hasRealCopy && !overview.hasConfirm && !overview.hasFakeEmpty, JSON.stringify(overview));
 
+  await page.click('#onb-overview-tab button:has-text("+ Nowy klient")');
+  await page.waitForSelector('#m-client.show');
+  const newClientUi = await page.evaluate(() => {
+    const modal = document.getElementById('m-client');
+    const wizardTab = document.getElementById('onb-new-tab');
+    const title = ((modal && modal.querySelector('.modal-title')) || {}).textContent || '';
+    const stepper = !!(wizardTab && wizardTab.offsetParent && /Dane podstawowe/.test(wizardTab.innerText || ''));
+    return {
+      modal: !!(modal && modal.classList.contains('show')),
+      title,
+      wizardVisible: stepper,
+      tabHidden: !document.getElementById('onb-tab-new')
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'onboard_new_client_modal.png') });
+  ok('overview new client opens same card', newClientUi.modal && /NOWY KLIENT/i.test(newClientUi.title) && !newClientUi.wizardVisible && newClientUi.tabHidden, JSON.stringify(newClientUi));
+
+  await page.click('#m-client .modal-footer button:has-text("Anuluj")');
+  await page.waitForTimeout(200);
+  ok('cancel new client stays on overview', await page.evaluate(() => {
+    const screen = document.getElementById('screen-onboarding');
+    const modal = document.getElementById('m-client');
+    return !!(screen && screen.classList.contains('active') && modal && !modal.classList.contains('show'));
+  }));
+
   await page.click('#onb-overview-tab button:has-text("Dokończ")');
   await page.waitForSelector('#m-client-onboard.show');
   const fromOverview = await page.evaluate(() => {
