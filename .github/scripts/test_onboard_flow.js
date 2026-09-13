@@ -44,7 +44,9 @@ ok('flow tiles open same client card', src02.includes('function onbUseFlow') && 
 ok('nav start współpracy', html.includes('data-screen="onboarding"') && html.includes('Przegląd startu →') && html.includes('Start współpracy'));
 ok('no auto intake when flow off', src09.includes('function runOnboardingForClient') && !src09.includes('formularz (auto)') && !/if\(!formSent&&typeof createFormSend/.test(src09));
 ok('new client stamps default flow', src05.includes("onboardingFlow:((window.SETTINGS||{}).onboarding||{}).defaultFlow"));
-ok('cache 01/02/03/05/07/09', html.includes('01-core.js?v=103') && html.includes('02-workouts-onboarding-templates-live.js?v=64') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=35') && html.includes('05-clients-builder-plans-calendar.js?v=63') && html.includes('07-forms-metrics-calculator.js?v=36') && html.includes('09-posture-kb-invites-private.js?v=44'));
+ok('baseline from onboard resumes', src05.includes("openClientBaselineModal('${id}',true)") && src05.includes('function closeBaselineModal') && html.includes('id="bl-onboard-banner"') && html.includes('closeBaselineModal()'));
+ok('schedule from onboard resumes', src05.includes('function closeScheduleOnboardModal') && src05.includes('_onboardResumeAfterSchedule') && html.includes('id="sched-onboard-banner"') && html.includes('closeScheduleOnboardModal()'));
+ok('cache 01/02/03/05/07/09', html.includes('01-core.js?v=103') && html.includes('02-workouts-onboarding-templates-live.js?v=64') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=35') && html.includes('05-clients-builder-plans-calendar.js?v=64') && html.includes('07-forms-metrics-calculator.js?v=36') && html.includes('09-posture-kb-invites-private.js?v=44'));
 ok('CI unit+ui', wf.includes('test_onboard_flow.js') && wf.includes('test_onboard_flow_ui.js'));
 
 if (failed) {
