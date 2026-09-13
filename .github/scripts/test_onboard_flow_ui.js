@@ -113,6 +113,26 @@ function ok(name, cond, extra) {
   });
   ok('schedule saved', afterDays.schedule && afterDays.days.length >= 1, JSON.stringify(afterDays));
 
+  await page.click('#client-onboard-steps button:has-text("Trening Live")');
+  await page.waitForTimeout(500);
+  const live = await page.evaluate(() => {
+    const screen = document.getElementById('screen-live');
+    const banner = document.getElementById('live-onboard-banner');
+    const vis = document.getElementById('live-client-sel-search');
+    return {
+      active: !!(screen && screen.classList.contains('active')),
+      banner: !!(banner && banner.style.display !== 'none' && /Ewelina/.test(banner.innerText || '')),
+      client: vis ? vis.value : '',
+      flag: window._onboardResumeAfterLive === 'c-ewelina'
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'onboard_live.png') });
+  ok('live from onboard + banner', live.active && live.banner && live.flag && /Ewelina/.test(live.client), JSON.stringify(live));
+
+  await page.locator('#live-onboard-banner button', { hasText: 'Wróć do checklisty' }).click({ force: true });
+  await page.waitForTimeout(700);
+  ok('back from live', await page.locator('#m-client-onboard.show').isVisible());
+
   await page.click('#client-onboard-steps button:has-text("Szablon / kreator")');
   await page.waitForTimeout(350);
   const builder = await page.evaluate(() => {

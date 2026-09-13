@@ -453,6 +453,36 @@ function openFormsLibraryFromOnboard(clientId){
 }
 window.openFormsLibraryFromOnboard=openFormsLibraryFromOnboard;
 
+function openLiveFromOnboard(clientId,clientName){
+  window._onboardResumeAfterLive=clientId;
+  if(typeof closeM==='function')closeM('m-client-onboard');
+  goTo('live');
+  setTimeout(()=>{
+    if(typeof liveClientSetField==='function')liveClientSetField(clientId,clientName||'');
+    if(typeof renderOnboardLiveBanner==='function')renderOnboardLiveBanner();
+  },300);
+}
+function renderOnboardLiveBanner(){
+  const bar=document.getElementById('live-onboard-banner');
+  if(!bar)return;
+  const cid=window._onboardResumeAfterLive;
+  const c=cid&&(window.CL||[]).find(x=>x.id===cid);
+  if(!c){bar.style.display='none';bar.innerHTML='';return;}
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
+  bar.style.display='flex';
+  bar.innerHTML='<span>Start współpracy: <b>'+esc(c.name)+'</b> — sesja Live zalicza kalendarz. Albo wróć i wrzuć plan.</span>'
+    +'<button type="button" class="btn btn-primary btn-sm" onclick="resumeOnboardFromLive()">Wróć do checklisty</button>';
+}
+function resumeOnboardFromLive(){
+  const cid=window._onboardResumeAfterLive;
+  window._onboardResumeAfterLive=null;
+  if(typeof renderOnboardLiveBanner==='function')renderOnboardLiveBanner();
+  if(cid&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);
+}
+window.openLiveFromOnboard=openLiveFromOnboard;
+window.renderOnboardLiveBanner=renderOnboardLiveBanner;
+window.resumeOnboardFromLive=resumeOnboardFromLive;
+
 function skipClientPackage(clientId){
   const c=CL.find(x=>x.id===clientId);if(!c)return;
   c.packageSkipped=true;
@@ -588,7 +618,7 @@ function renderClientOnboardChecklist(){
       doneExtra:`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"><button class="btn btn-primary btn-sm" onclick="openAiPlanForClient('${id}')">⚡ Nowy plan AI</button><button class="btn btn-ghost btn-sm" onclick="openBuilderForClient('${id}')">📋 Szablon / kreator</button></div>`},
     {done:st.calendar,icon:'🗓',title:'Wrzuć plan do kalendarza',desc:'4 tygodnie na preferowane dni — klient widzi trening w Dziś',
       action:`scheduleClientPlanToCalendar('${id}')`,cta:'Do kalendarza',
-      extra:st.calendar?'':`<button class="btn btn-ghost btn-sm" onclick="closeM('m-client-onboard');goTo('live');setTimeout(()=>liveClientSetField('${id}','${safeName}'),300)">Trening Live</button>`,
+      extra:st.calendar?'':`<button class="btn btn-ghost btn-sm" onclick="openLiveFromOnboard('${id}','${safeName}')">Trening Live</button>`,
       doneExtra:st.calendar?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"><button class="btn btn-ghost btn-sm" onclick="scheduleClientPlanToCalendar('${id}')">🗓 Dodaj najnowszy plan do kalendarza</button></div>`:''},
     {done:st.package,icon:'💳',title:'Pakiet / płatność',desc:'Przypisz pakiet sesji albo pomiń, jeśli rozliczacie się inaczej',
       action:`openPackageForClient('${id}')`,cta:'+ Pakiet',
