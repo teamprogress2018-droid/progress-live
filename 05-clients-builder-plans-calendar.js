@@ -370,7 +370,8 @@ async function saveClient(){
     notes:document.getElementById('ac-notes').value,
     status:'active',
     joinDate:new Date().toISOString().split('T')[0],
-    createdAt:new Date().toISOString()
+    createdAt:new Date().toISOString(),
+    onboardingFlow:((window.SETTINGS||{}).onboarding||{}).defaultFlow||'standard'
   });
   // najpierw dodaj lokalnie — natychmiast
   CL.push(c);
