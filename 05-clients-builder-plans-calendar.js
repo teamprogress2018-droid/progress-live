@@ -546,18 +546,39 @@ function openPackageForClient(clientId){
   if(typeof closeM==='function')closeM('m-client-onboard');
   const pkgEl=document.getElementById('pkg-client');
   if(pkgEl){
-    if(!(pkgEl.options&&pkgEl.options.length)){
-      pkgEl.innerHTML=(window.CL||[]).filter(c=>c&&c.status!=='archived').map(c=>'<option value="'+escHtml(c.id)+'">'+escHtml(c.name)+'</option>').join('');
-    }
+    const list=(window.CL||[]).filter(c=>c&&c.status!=='archived');
+    pkgEl.innerHTML=list.map(c=>'<option value="'+escHtml(c.id)+'">'+escHtml(c.name)+'</option>').join('');
     pkgEl.value=clientId;
   }
   const pkgDate=document.getElementById('pkg-date');
   if(pkgDate&&!pkgDate.value)pkgDate.value=new Date().toISOString().split('T')[0];
   const paySt=document.getElementById('pkg-pay-status');
   if(paySt)paySt.value='pending';
+  const bar=document.getElementById('pkg-onboard-banner');
+  if(bar){
+    const c=(window.CL||[]).find(x=>x&&x.id===clientId);
+    const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
+    bar.style.display='flex';
+    bar.innerHTML='<span>Start współpracy: <b>'+esc(c&&c.name||'')+'</b> — zapisz pakiet albo wróć do checklisty.</span>'
+      +'<button type="button" class="btn btn-primary btn-sm" onclick="closePackageModal()">Wróć do checklisty</button>';
+  }
   openM('m-package');
 }
+function closePackageModal(){
+  if(typeof closeM==='function')closeM('m-package');
+  const bar=document.getElementById('pkg-onboard-banner');
+  if(bar){bar.style.display='none';bar.innerHTML='';}
+  const cid=window._onboardResumeAfterPackage;
+  window._onboardResumeAfterPackage=null;
+  if(cid&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);
+}
+function clearPackageOnboardBanner(){
+  const bar=document.getElementById('pkg-onboard-banner');
+  if(bar){bar.style.display='none';bar.innerHTML='';}
+}
 window.openPackageForClient=openPackageForClient;
+window.closePackageModal=closePackageModal;
+window.clearPackageOnboardBanner=clearPackageOnboardBanner;
 
 function clientPendingPackage(clientId){
   return(window.PACKAGES||[]).find(p=>p&&p.clientId===clientId&&p.payStatus==='pending'&&!p.paymentRequestedAt)||null;

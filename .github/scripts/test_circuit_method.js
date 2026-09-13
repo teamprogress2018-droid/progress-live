@@ -34,7 +34,7 @@ ok('core dropKgAt', /function dropKgAt\(/.test(core));
 ok('core applyCircuitStations', /function applyCircuitStations\(/.test(core));
 ok('savePlan dropStep', src05.includes("dropStep:g('ss')?''"));
 ok('savePlan circuit', src05.includes("circuit:!!(de.querySelector('.circ')"));
-ok('cache bumps', html.includes('01-core.js?v=103') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=35') && html.includes('05-clients-builder-plans-calendar.js?v=62'));
+ok('cache bumps', html.includes('01-core.js?v=103') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=35') && html.includes('05-clients-builder-plans-calendar.js?v=63'));
 ok('CI', wf.includes('test_circuit_method.js') && wf.includes('test_drop_circ_ui.js'));
 
 if (failed) {
