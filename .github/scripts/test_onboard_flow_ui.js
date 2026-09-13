@@ -111,21 +111,44 @@ function ok(name, cond, extra) {
   await page.waitForTimeout(700);
   ok('back from forms', await page.locator('#m-client-onboard.show').isVisible());
 
+  await page.click('#client-onboard-steps button:has-text("Zapisz pomiary")');
+  await page.waitForSelector('#m-baseline.show');
+  const baselineUi = await page.evaluate(() => {
+    const bar = document.getElementById('bl-onboard-banner');
+    const onboard = document.getElementById('m-client-onboard');
+    return {
+      banner: !!(bar && bar.style.display !== 'none' && /Ewelina/.test(bar.innerText || '')),
+      checklistClosed: !(onboard && onboard.classList.contains('show')),
+      flag: window._onboardResumeAfterBaseline === 'c-ewelina'
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'onboard_baseline.png') });
+  ok('baseline from onboard + banner', baselineUi.banner && baselineUi.checklistClosed && baselineUi.flag, JSON.stringify(baselineUi));
+
+  await page.locator('#m-baseline .modal-footer button', { hasText: 'Anuluj' }).click();
+  await page.waitForTimeout(700);
+  ok('baseline cancel resumes checklist', await page.locator('#m-client-onboard.show').isVisible());
+
   await page.click('#client-onboard-steps button:has-text("Ustaw dni")');
   await page.waitForSelector('#m-onboard-schedule.show');
   const sched = await page.evaluate(() => {
     const clientModal = document.getElementById('m-client');
     const chips = document.querySelectorAll('#ob-sched-preferred-weekdays .preferred-weekday-chip');
+    const bar = document.getElementById('sched-onboard-banner');
+    const onboard = document.getElementById('m-client-onboard');
     return {
       clientEdit: !!(clientModal && clientModal.classList.contains('show')),
-      chips: chips.length
+      chips: chips.length,
+      banner: !!(bar && bar.style.display !== 'none' && /Ewelina/.test(bar.innerText || '')),
+      checklistClosed: !(onboard && onboard.classList.contains('show')),
+      flag: window._onboardResumeAfterSchedule === 'c-ewelina'
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'onboard_schedule.png') });
-  ok('schedule picker not full edit', !sched.clientEdit && sched.chips >= 7, JSON.stringify(sched));
+  ok('schedule picker not full edit', !sched.clientEdit && sched.chips >= 7 && sched.banner && sched.checklistClosed && sched.flag, JSON.stringify(sched));
 
   await page.click('#m-onboard-schedule .modal-footer button:has-text("Zapisz dni")');
-  await page.waitForTimeout(200);
+  await page.waitForTimeout(700);
   const afterDays = await page.evaluate(() => {
     const c = (window.CL || [])[0] || {};
     const st = typeof getClientOnboard === 'function' ? getClientOnboard(c) : {};
@@ -280,6 +303,31 @@ function ok(name, cond, extra) {
   });
   await page.screenshot({ path: path.join(shotDir, 'onboard_overview.png') });
   ok('overview is real checklist board', overview.active && overview.hasEwelina && overview.hasChecklistCta && overview.hasRealCopy && !overview.hasConfirm && !overview.hasFakeEmpty, JSON.stringify(overview));
+
+  await page.click('#onb-overview-tab button:has-text("+ Nowy klient")');
+  await page.waitForSelector('#m-client.show');
+  const newClientUi = await page.evaluate(() => {
+    const modal = document.getElementById('m-client');
+    const wizardTab = document.getElementById('onb-new-tab');
+    const title = ((modal && modal.querySelector('.modal-title')) || {}).textContent || '';
+    const stepper = !!(wizardTab && wizardTab.offsetParent && /Dane podstawowe/.test(wizardTab.innerText || ''));
+    return {
+      modal: !!(modal && modal.classList.contains('show')),
+      title,
+      wizardVisible: stepper,
+      tabHidden: !document.getElementById('onb-tab-new')
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'onboard_new_client_modal.png') });
+  ok('overview new client opens same card', newClientUi.modal && /NOWY KLIENT/i.test(newClientUi.title) && !newClientUi.wizardVisible && newClientUi.tabHidden, JSON.stringify(newClientUi));
+
+  await page.click('#m-client .modal-footer button:has-text("Anuluj")');
+  await page.waitForTimeout(200);
+  ok('cancel new client stays on overview', await page.evaluate(() => {
+    const screen = document.getElementById('screen-onboarding');
+    const modal = document.getElementById('m-client');
+    return !!(screen && screen.classList.contains('active') && modal && !modal.classList.contains('show'));
+  }));
 
   await page.click('#onb-overview-tab button:has-text("Dokończ")');
   await page.waitForSelector('#m-client-onboard.show');

@@ -2888,7 +2888,6 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
     <div class="topbar-actions">
       <div style="display:flex;gap:2px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:2px;">
         <button class="auto-tab-btn active" id="onb-tab-overview" onclick="setOnbTab('overview')">Przegląd</button>
-        <button class="auto-tab-btn" id="onb-tab-new" onclick="setOnbTab('new')">+ Nowy klient</button>
         <button class="auto-tab-btn" id="onb-tab-flows" onclick="setOnbTab('flows')">Warianty</button>
         <button class="auto-tab-btn" id="onb-tab-settings" onclick="setOnbTab('settings')">Ustawienia</button>
       </div>
@@ -3226,10 +3225,11 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 </div>
 
 <!-- MODAL: BASELINE POMIARÓW -->
-<div class="modal-ov" id="m-baseline">
+<div class="modal-ov" id="m-baseline" onclick="if(event.target===this)(typeof closeBaselineModal==='function'?closeBaselineModal():closeM('m-baseline'))">
   <div class="modal" style="max-width:520px;">
-    <div class="modal-hdr"><div class="modal-title" id="m-baseline-title">POMIARY STARTOWE</div><button class="modal-close" onclick="closeM('m-baseline')">×</button></div>
+    <div class="modal-hdr"><div class="modal-title" id="m-baseline-title">POMIARY STARTOWE</div><button class="modal-close" onclick="typeof closeBaselineModal==='function'?closeBaselineModal():closeM('m-baseline')">×</button></div>
     <div class="modal-body">
+      <div id="bl-onboard-banner" class="onboard-resume-banner" style="display:none;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;padding:10px 12px;background:var(--adim);border:1px solid rgba(230,0,0,0.25);border-radius:10px;font-size:12px;"></div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Zapisz baseline — historia w Pomiary (możesz zmienić datę).</div>
       <div class="form-field"><label class="form-lbl">Data pomiaru</label><input type="date" class="form-input" id="bl-date"></div>
       <div class="form-grid">
@@ -3239,22 +3239,23 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin:10px 0 8px;">Obwody centymetrem (cm)</div>
       <div class="form-grid" id="bl-circ-fields"></div>
     </div>
-    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-baseline')">Anuluj</button><button class="btn btn-primary" onclick="saveClientBaselineModal()">Zapisz baseline</button></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="typeof closeBaselineModal==='function'?closeBaselineModal():closeM('m-baseline')">Anuluj</button><button class="btn btn-primary" onclick="saveClientBaselineModal()">Zapisz baseline</button></div>
   </div>
 </div>
 
 <!-- MODAL: DNI TRENINGOWE (onboard) -->
-<div class="modal-ov" id="m-onboard-schedule">
+<div class="modal-ov" id="m-onboard-schedule" onclick="if(event.target===this)(typeof closeScheduleOnboardModal==='function'?closeScheduleOnboardModal():closeM('m-onboard-schedule'))">
   <div class="modal" style="max-width:440px;">
-    <div class="modal-hdr"><div class="modal-title">DNI TRENINGOWE</div><button class="modal-close" onclick="closeM('m-onboard-schedule')">×</button></div>
+    <div class="modal-hdr"><div class="modal-title">DNI TRENINGOWE</div><button class="modal-close" onclick="typeof closeScheduleOnboardModal==='function'?closeScheduleOnboardModal():closeM('m-onboard-schedule')">×</button></div>
     <div class="modal-body">
+      <div id="sched-onboard-banner" class="onboard-resume-banner" style="display:none;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;padding:10px 12px;background:var(--adim);border:1px solid rgba(230,0,0,0.25);border-radius:10px;font-size:12px;"></div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;">Klient: <b id="ob-sched-name">—</b>. Zaznacz dni — kalendarz i apka klienta z nich korzystają.</div>
       <div class="form-field">
         <label class="form-lbl">Preferowane dni tygodnia</label>
         <div id="ob-sched-preferred-weekdays-mount"></div>
       </div>
     </div>
-    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-onboard-schedule')">Anuluj</button><button class="btn btn-primary" onclick="saveClientScheduleFromOnboard()">Zapisz dni</button></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="typeof closeScheduleOnboardModal==='function'?closeScheduleOnboardModal():closeM('m-onboard-schedule')">Anuluj</button><button class="btn btn-primary" onclick="saveClientScheduleFromOnboard()">Zapisz dni</button></div>
   </div>
 </div>
 
@@ -4369,14 +4370,14 @@ async function load(){
 <script src="ex-gif-manifest.js?v=34"></script>
 <script src="ex-photo-manifest.js?v=6"></script>
 <script src="01-core.js?v=103"></script>
-<script src="02-workouts-onboarding-templates-live.js?v=63"></script>
+<script src="02-workouts-onboarding-templates-live.js?v=64"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=35"></script>
 <script src="04-client-portal.js?v=50"></script>
 <script src="05-clients-builder-plans-calendar.js?v=64"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=74"></script>
 <script src="07-forms-metrics-calculator.js?v=37"></script>
 <script src="08-client-profile-extras.js?v=55"></script>
-<script src="09-posture-kb-invites-private.js?v=44"></script>
+<script src="09-posture-kb-invites-private.js?v=45"></script>
 <script src="10-client-app.js?v=39"></script>
 </body>
 </html>

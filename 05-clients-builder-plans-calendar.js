@@ -370,7 +370,8 @@ async function saveClient(){
     notes:document.getElementById('ac-notes').value,
     status:'active',
     joinDate:new Date().toISOString().split('T')[0],
-    createdAt:new Date().toISOString()
+    createdAt:new Date().toISOString(),
+    onboardingFlow:((window.SETTINGS||{}).onboarding||{}).defaultFlow||'standard'
   });
   // najpierw dodaj lokalnie — natychmiast
   CL.push(c);
@@ -687,7 +688,7 @@ function renderClientOnboardChecklist(){
       extra:st.invite?'':`<button class="btn btn-ghost btn-sm" onclick="skipClientInvite('${id}')">Pomiń</button>`,
       doneExtra:(st.invite&&!c.appJoined)?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"><button class="btn btn-primary btn-sm" onclick="openInviteFromOnboard('${id}')">✉️ Wyślij ponownie e-mailem</button></div>`:''},
     {done:st.baseline,icon:'⚖️',title:'Pomiary startowe (baseline)',desc:'Waga, %BF i obwody z datą — historia progresu',
-      action:`openClientBaselineModal('${id}')`,cta:'Zapisz pomiary'},
+      action:`openClientBaselineModal('${id}',true)`,cta:'Zapisz pomiary'},
     {done:st.schedule,icon:'📅',title:'Dni treningowe',desc:'Preferowane dni tygodnia — apka i auto-kalendarz z nich korzystają',
       action:`openClientScheduleFromOnboard('${id}')`,cta:'Ustaw dni'},
     {done:st.plan,icon:'📋',title:'Przypisz plan treningowy',
@@ -818,12 +819,29 @@ window.enrollClientInOnboardForum=enrollClientInOnboardForum;
 function openClientScheduleFromOnboard(clientId){
   const c=CL.find(x=>x.id===clientId);if(!c)return;
   window._onboardScheduleClientId=clientId;
+  window._onboardResumeAfterSchedule=clientId;
+  if(typeof closeM==='function')closeM('m-client-onboard');
   const nameEl=document.getElementById('ob-sched-name');
   if(nameEl)nameEl.textContent=c.name||'';
   if(typeof initPreferredWeekdaysForm==='function'){
     initPreferredWeekdaysForm('ob-sched', (c.preferredWeekdays&&c.preferredWeekdays.length)?c.preferredWeekdays:[1,3,5]);
   }
+  const bar=document.getElementById('sched-onboard-banner');
+  if(bar){
+    const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
+    bar.style.display='flex';
+    bar.innerHTML='<span>Start współpracy: <b>'+esc(c.name)+'</b> — zaznacz dni albo wróć do checklisty.</span>'
+      +'<button type="button" class="btn btn-primary btn-sm" onclick="closeScheduleOnboardModal()">Wróć do checklisty</button>';
+  }
   openM('m-onboard-schedule');
+}
+function closeScheduleOnboardModal(){
+  if(typeof closeM==='function')closeM('m-onboard-schedule');
+  const bar=document.getElementById('sched-onboard-banner');
+  if(bar){bar.style.display='none';bar.innerHTML='';}
+  const cid=window._onboardResumeAfterSchedule;
+  window._onboardResumeAfterSchedule=null;
+  if(cid&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);
 }
 function saveClientScheduleFromOnboard(){
   const id=window._onboardScheduleClientId;
@@ -832,13 +850,19 @@ function saveClientScheduleFromOnboard(){
   if(!days.length){if(typeof notify==='function')notify('Wybierz przynajmniej jeden dzień');return;}
   c.preferredWeekdays=days;
   persistById('clients',c);
-  closeM('m-onboard-schedule');
-  if(typeof renderClientOnboardChecklist==='function')renderClientOnboardChecklist();
+  const resumeId=window._onboardResumeAfterSchedule;
+  window._onboardResumeAfterSchedule=null;
+  if(typeof closeM==='function')closeM('m-onboard-schedule');
+  const bar=document.getElementById('sched-onboard-banner');
+  if(bar){bar.style.display='none';bar.innerHTML='';}
   if(typeof renderDash==='function')try{renderDash();}catch(e){}
   if(typeof renderClients==='function')try{renderClients();}catch(e){}
   if(typeof notify==='function')notify('Dni treningowe zapisane');
+  if(resumeId&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(resumeId);
+  else if(typeof renderClientOnboardChecklist==='function')renderClientOnboardChecklist();
 }
 window.openClientScheduleFromOnboard=openClientScheduleFromOnboard;
+window.closeScheduleOnboardModal=closeScheduleOnboardModal;
 window.saveClientScheduleFromOnboard=saveClientScheduleFromOnboard;
 
 function latestClientPlan(clientId){
@@ -865,9 +889,11 @@ function scheduleClientPlanToCalendar(clientId){
 window.latestClientPlan=latestClientPlan;
 window.scheduleClientPlanToCalendar=scheduleClientPlanToCalendar;
 
-function openClientBaselineModal(clientId){
+function openClientBaselineModal(clientId,fromOnboard){
   const c=CL.find(x=>x.id===clientId);if(!c)return;
   window._baselineClientId=clientId;
+  window._onboardResumeAfterBaseline=fromOnboard?clientId:null;
+  if(fromOnboard&&typeof closeM==='function')closeM('m-client-onboard');
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v!=null&&v!==''?v:'';};
   set('bl-weight',c.weight||'');
   set('bl-bf','');
@@ -876,7 +902,26 @@ function openClientBaselineModal(clientId){
   set('bl-date',today);
   const title=document.getElementById('m-baseline-title');
   if(title)title.textContent='POMIARY STARTOWE — '+(c.name||'').toUpperCase();
+  const bar=document.getElementById('bl-onboard-banner');
+  if(bar){
+    if(fromOnboard){
+      const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
+      bar.style.display='flex';
+      bar.innerHTML='<span>Start współpracy: <b>'+esc(c.name)+'</b> — zapisz pomiary albo wróć do checklisty.</span>'
+        +'<button type="button" class="btn btn-primary btn-sm" onclick="closeBaselineModal()">Wróć do checklisty</button>';
+    }else{
+      bar.style.display='none';bar.innerHTML='';
+    }
+  }
   openM('m-baseline');
+}
+function closeBaselineModal(){
+  if(typeof closeM==='function')closeM('m-baseline');
+  const bar=document.getElementById('bl-onboard-banner');
+  if(bar){bar.style.display='none';bar.innerHTML='';}
+  const cid=window._onboardResumeAfterBaseline;
+  window._onboardResumeAfterBaseline=null;
+  if(cid&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);
 }
 async function saveClientBaselineModal(){
   const id=window._baselineClientId;if(!id)return;
@@ -890,13 +935,18 @@ async function saveClientBaselineModal(){
     notes:'Pomiar startowy (baseline)'
   }):[];
   if(!created.length){notify('Wpisz przynajmniej wagę lub obwód');return;}
-  closeM('m-baseline');
+  const resumeId=window._onboardResumeAfterBaseline;
+  window._onboardResumeAfterBaseline=null;
+  if(typeof closeM==='function')closeM('m-baseline');
+  const bar=document.getElementById('bl-onboard-banner');
+  if(bar){bar.style.display='none';bar.innerHTML='';}
   notify('✓ Baseline zapisany ('+created.length+' wpisów)');
-  renderClientOnboardChecklist();
   if(typeof renderDash==='function')try{renderDash();}catch(e){}
-  if(typeof maybeResumeOnboard==='function')maybeResumeOnboard(id);
+  if(resumeId&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(resumeId);
+  else if(typeof renderClientOnboardChecklist==='function'&&document.getElementById('m-client-onboard')?.classList.contains('show'))renderClientOnboardChecklist();
 }
 window.openClientBaselineModal=openClientBaselineModal;
+window.closeBaselineModal=closeBaselineModal;
 window.saveClientBaselineModal=saveClientBaselineModal;
 
 // ════════════════════════════════════════

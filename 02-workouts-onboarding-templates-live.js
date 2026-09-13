@@ -379,7 +379,17 @@ function initOnboarding(){
   setOnbTab('overview');
 }
 
+function onbOpenNewClient(){
+  if(typeof openClientModal==='function')openClientModal();
+  else if(typeof openM==='function')openM('m-client');
+}
+window.onbOpenNewClient=onbOpenNewClient;
+
 function setOnbTab(t){
+  if(t==='new'){
+    onbOpenNewClient();
+    return;
+  }
   onbTab=t;
   ['overview','new','flows','settings'].forEach(x=>{
     const el=document.getElementById('onb-'+x+'-tab');
@@ -387,12 +397,6 @@ function setOnbTab(t){
     document.getElementById('onb-tab-'+x)?.classList.toggle('active',x===t);
   });
   if(t==='overview')renderOnbOverview();
-  if(t==='new'){
-    onbStep=0;
-    const defFlow=((window.SETTINGS||{}).onboarding||{}).defaultFlow||onbNewClient.flow||'standard';
-    onbNewClient={flow:defFlow};
-    renderOnbNew();
-  }
   if(t==='flows')renderOnbFlows();
   if(t==='settings')renderOnbSettings();
 }
@@ -459,7 +463,7 @@ function renderOnbOverview(){
 
   el.innerHTML=`
     <div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:20px;font-size:12px;color:var(--muted);line-height:1.55;">
-      Postęp = ta sama checklista co <b style="color:var(--text);">Rozpocznij współpracę</b> (6 kroków). Kafelki flow to wariant etykiety, nie drugi kreator.
+      Postęp = ta sama checklista co <b style="color:var(--text);">Rozpocznij współpracę</b> (6 kroków). <b style="color:var(--text);">+ Nowy klient</b> otwiera tę samą kartę co Klienci — potem checklista, nie drugi kreator.
       Automatyczna wiadomość i ankieta: <button class="btn btn-ghost btn-sm" style="font-size:11px;padding:2px 8px;" onclick="goTo('automation')">Automatyzacja</button>
     </div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;">
@@ -509,7 +513,7 @@ function onbUseFlow(flowId){
   S.onboarding.defaultFlow=flowId||'standard';
   if(typeof persistSettingsDoc==='function')persistSettingsDoc();
   notify('Wariant „'+(ONB_FLOWS.find(f=>f.id===flowId)?.name||flowId)+'” — otwieram kartę klienta. Checklista jest jedna.');
-  setOnbTab('new');
+  onbOpenNewClient();
 }
 
 /* ── NEW CLIENT WIZARD ── */
