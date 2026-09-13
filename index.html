@@ -2991,12 +2991,12 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 
 </div><!-- /main -->
 
-<div class="cp-overlay" id="cp-overlay" onclick="closeClientProfile()"></div>
+<div class="cp-overlay" id="cp-overlay" onclick="closeClientProfileOrResumeOnboard()"></div>
 <div class="cp-drawer" id="cp-drawer">
   <!-- nagłówek profilu -->
   <div style="padding:14px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
     <div style="display:flex;align-items:center;gap:14px;">
-      <button onclick="closeClientProfile()" style="background:var(--s2);border:1px solid var(--border2);border-radius:8px;color:var(--muted);font-size:13px;cursor:pointer;padding:7px 12px;display:flex;align-items:center;gap:6px;">← Wróć</button>
+      <button onclick="closeClientProfileOrResumeOnboard()" style="background:var(--s2);border:1px solid var(--border2);border-radius:8px;color:var(--muted);font-size:13px;cursor:pointer;padding:7px 12px;display:flex;align-items:center;gap:6px;">← Wróć</button>
       <div id="cp-avatar" style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:18px;flex-shrink:0;"></div>
       <div>
         <div class="cp-hdr-name-row">
@@ -3026,6 +3026,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       </div>
     </div>
   </div>
+  <div id="cp-onboard-banner" class="onboard-resume-banner" style="display:none;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 28px;background:var(--adim);border-bottom:1px solid rgba(230,0,0,0.25);font-size:12px;flex-shrink:0;"></div>
 
   <!-- glowny uklad: poziome zakladki jak Everfit + tresc -->
   <div class="cp-main">
@@ -3259,7 +3260,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 </div>
 
 <!-- MODAL: ZAPROSZENIE DO APLIKACJI -->
-<div class="modal-ov" id="m-invite">
+<div class="modal-ov" id="m-invite" onclick="if(event.target===this)closeInviteModal(false)">
   <div class="modal" style="max-width:480px;">
     <div class="modal-hdr" style="border-bottom:2px solid var(--accent);">
       <div class="modal-title" style="display:flex;align-items:center;gap:10px;">
@@ -3963,10 +3964,11 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 </div>
 
 <!-- PAKIET MODAL — ENHANCED -->
-<div class="modal-ov" id="m-package">
+<div class="modal-ov" id="m-package" onclick="if(event.target===this)(typeof closePackageModal==='function'?closePackageModal():closeM('m-package'))">
   <div class="modal modal-wide">
-    <div class="modal-hdr"><div class="modal-title">NOWY PAKIET</div><button class="modal-close" onclick="closeM('m-package')">×</button></div>
+    <div class="modal-hdr"><div class="modal-title">NOWY PAKIET</div><button class="modal-close" onclick="typeof closePackageModal==='function'?closePackageModal():closeM('m-package')">×</button></div>
     <div class="modal-body">
+      <div id="pkg-onboard-banner" class="onboard-resume-banner" style="display:none;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;padding:10px 12px;background:var(--adim);border:1px solid rgba(230,0,0,0.25);border-radius:10px;font-size:12px;"></div>
       <div class="form-grid">
         <div class="form-field"><label class="form-lbl">Nazwa pakietu</label><input type="text" class="form-input" id="pkg-title" placeholder="np. 10 sesji personalnych"></div>
         <div class="form-field"><label class="form-lbl">Typ pakietu</label>
@@ -3998,7 +4000,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       </div>
       <div class="form-field"><label class="form-lbl">Notatki</label><textarea class="form-textarea" id="pkg-notes" rows="2" placeholder="Dodatkowe informacje..."></textarea></div>
     </div>
-    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-package')">Anuluj</button><button class="btn btn-primary" onclick="savePackage()">Zapisz pakiet</button></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="typeof closePackageModal==='function'?closePackageModal():closeM('m-package')">Anuluj</button><button class="btn btn-primary" onclick="savePackage()">Zapisz pakiet</button></div>
   </div>
 </div>
 
@@ -4373,9 +4375,9 @@ async function load(){
 <script src="04-client-portal.js?v=50"></script>
 <script src="05-clients-builder-plans-calendar.js?v=64"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=74"></script>
-<script src="07-forms-metrics-calculator.js?v=36"></script>
+<script src="07-forms-metrics-calculator.js?v=37"></script>
 <script src="08-client-profile-extras.js?v=55"></script>
-<script src="09-posture-kb-invites-private.js?v=44"></script>
+<script src="09-posture-kb-invites-private.js?v=45"></script>
 <script src="10-client-app.js?v=39"></script>
 </body>
 </html>
