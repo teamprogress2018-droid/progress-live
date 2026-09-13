@@ -211,7 +211,56 @@ function ok(name, cond, extra) {
   await page.waitForTimeout(700);
   ok('back from AI plan', await page.locator('#m-client-onboard.show').isVisible());
 
+  await page.click('#client-onboard-steps button:has-text("+ Pakiet")');
+  await page.waitForSelector('#m-package.show');
+  const pkgUi = await page.evaluate(() => {
+    const bar = document.getElementById('pkg-onboard-banner');
+    const sel = document.getElementById('pkg-client');
+    return {
+      banner: !!(bar && bar.style.display !== 'none' && /Ewelina/.test(bar.innerText || '')),
+      client: sel ? sel.value : '',
+      flag: window._onboardResumeAfterPackage === 'c-ewelina'
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'onboard_package.png') });
+  ok('package from onboard + banner', pkgUi.banner && pkgUi.flag && pkgUi.client === 'c-ewelina', JSON.stringify(pkgUi));
+
+  await page.locator('#m-package .modal-footer button', { hasText: 'Anuluj' }).click();
+  await page.waitForTimeout(700);
+  ok('package cancel resumes checklist', await page.locator('#m-client-onboard.show').isVisible());
+
+  await page.click('#client-onboard-steps button:has-text("Wyślij ankietę")');
+  await page.waitForTimeout(200);
+  const pendingForm = await page.evaluate(() => {
+    const steps = (document.getElementById('client-onboard-steps') || {}).innerText || '';
+    return { waiting: /Ankieta czeka/.test(steps), profile: /Profil/.test(steps) };
+  });
+  ok('intake send shows profile cta', pendingForm.waiting && pendingForm.profile, JSON.stringify(pendingForm));
+
+  await page.click('#client-onboard-steps button:has-text("Profil")');
+  await page.waitForTimeout(400);
+  const profileUi = await page.evaluate(() => {
+    const drawer = document.getElementById('cp-drawer');
+    const bar = document.getElementById('cp-onboard-banner');
+    const forms = document.getElementById('cpt-forms');
+    const more = document.getElementById('cp-more-toggle');
+    return {
+      open: !!(drawer && drawer.classList.contains('open')),
+      banner: !!(bar && bar.style.display !== 'none' && /Ewelina/.test(bar.innerText || '')),
+      forms: !!(forms && forms.classList.contains('active')),
+      more: !!(more && more.classList.contains('active')),
+      flag: window._onboardResumeAfterProfile === 'c-ewelina'
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'onboard_profile.png') });
+  ok('profile from onboard + banner', profileUi.open && profileUi.banner && profileUi.flag && (profileUi.forms || profileUi.more), JSON.stringify(profileUi));
+
+  await page.locator('#cp-drawer button', { hasText: '← Wróć' }).click();
+  await page.waitForTimeout(700);
+  ok('profile back resumes checklist', await page.locator('#m-client-onboard.show').isVisible());
+
   await page.evaluate(() => {
+    if (Array.isArray(window.FORM_SENDS)) window.FORM_SENDS.splice(0, window.FORM_SENDS.length);
     if (typeof closeM === 'function') closeM('m-client-onboard');
     if (typeof goTo === 'function') goTo('onboarding');
   });

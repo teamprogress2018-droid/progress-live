@@ -1872,10 +1872,38 @@ function calcSendToClient(){
 }
 var cpClientId=null;var cpTab='overview';
 
+function renderOnboardProfileBanner(){
+  const bar=document.getElementById('cp-onboard-banner');
+  if(!bar)return;
+  const cid=window._onboardResumeAfterProfile;
+  const c=cid&&(window.CL||[]).find(x=>x.id===cid);
+  if(!c){bar.style.display='none';bar.innerHTML='';return;}
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
+  bar.style.display='flex';
+  bar.innerHTML='<span>Start współpracy: <b>'+esc(c.name)+'</b> — ankieta w Formularzach. Albo wróć do checklisty.</span>'
+    +'<button type="button" class="btn btn-primary btn-sm" onclick="resumeOnboardFromProfile()">Wróć do checklisty</button>';
+}
+function resumeOnboardFromProfile(){
+  const cid=window._onboardResumeAfterProfile;
+  window._onboardResumeAfterProfile=null;
+  if(typeof renderOnboardProfileBanner==='function')renderOnboardProfileBanner();
+  closeClientProfile();
+  if(cid&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);
+}
+function closeClientProfileOrResumeOnboard(){
+  if(window._onboardResumeAfterProfile) resumeOnboardFromProfile();
+  else closeClientProfile();
+}
+window.renderOnboardProfileBanner=renderOnboardProfileBanner;
+window.resumeOnboardFromProfile=resumeOnboardFromProfile;
+window.closeClientProfileOrResumeOnboard=closeClientProfileOrResumeOnboard;
+
 function openClientProfile(id,opts){
   const o=opts||{};
   const drawer=document.getElementById('cp-drawer');
   const alreadyOpen=!!(drawer&&drawer.classList.contains('open'));
+  if(o.fromOnboard) window._onboardResumeAfterProfile=id;
+  else if(!(alreadyOpen&&cpClientId===id)) window._onboardResumeAfterProfile=null;
   // Everfit: przy zmianie klienta z sidebara zostaw bieżącą zakładkę (Plan/Progress…)
   const keepTab=o.tab||(alreadyOpen&&cpTab?cpTab:'overview');
   cpClientId=id;
@@ -1899,6 +1927,7 @@ function openClientProfile(id,opts){
     else document.getElementById('cpt-overview')?.classList.add('active');
     if(keepTab==='overview'||!tabBtn)renderCPOverview(c);
   }
+  if(typeof renderOnboardProfileBanner==='function')renderOnboardProfileBanner();
   if(typeof renderSidebarClients==='function')try{renderSidebarClients();}catch(e){}
 }
 
@@ -1907,6 +1936,8 @@ function closeClientProfile(){
   document.getElementById('cp-drawer').classList.remove('open');
   document.getElementById('cp-overlay').classList.remove('show');
   cpClientId=null;
+  const bar=document.getElementById('cp-onboard-banner');
+  if(bar){bar.style.display='none';bar.innerHTML='';}
   if(typeof renderSidebarClients==='function')try{renderSidebarClients();}catch(e){}
 }
 
