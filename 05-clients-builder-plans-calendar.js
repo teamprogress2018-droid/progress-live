@@ -564,9 +564,9 @@ function clientPendingPackage(clientId){
 }
 window.clientPendingPackage=clientPendingPackage;
 
-function openAiPlanForClient(clientId){
-  window._onboardResumeAfterApl=clientId;
-  closeM('m-client-onboard');
+function openAiPlanForClient(clientId,fromOnboard){
+  window._onboardResumeAfterApl=fromOnboard?clientId:null;
+  if(fromOnboard&&typeof closeM==='function')closeM('m-client-onboard');
   if(typeof closeClientProfile==='function')closeClientProfile();
   window._aplPrefillClientId=clientId;
   goTo('aiplangen');
@@ -662,9 +662,9 @@ function renderClientOnboardChecklist(){
       desc:st.plan
         ?`Plan już przypisany${(()=>{const lp=typeof latestClientPlan==='function'?latestClientPlan(id):null;return lp&&lp.name?' (“'+lp.name+'”)':'';})()}. Możesz dodać kolejny — najnowszy trafia do kalendarza.`
         :'Najszybciej: generator AI z danymi klienta',
-      action:`openAiPlanForClient('${id}')`,cta:'⚡ Plan AI',
+      action:`openAiPlanForClient('${id}',true)`,cta:'⚡ Plan AI',
       extra:`<button class="btn btn-ghost btn-sm" onclick="openBuilderForClient('${id}',true)">Szablon / kreator</button>`,
-      doneExtra:`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"><button class="btn btn-primary btn-sm" onclick="openAiPlanForClient('${id}')">⚡ Nowy plan AI</button><button class="btn btn-ghost btn-sm" onclick="openBuilderForClient('${id}',true)">📋 Szablon / kreator</button></div>`},
+      doneExtra:`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"><button class="btn btn-primary btn-sm" onclick="openAiPlanForClient('${id}',true)">⚡ Nowy plan AI</button><button class="btn btn-ghost btn-sm" onclick="openBuilderForClient('${id}',true)">📋 Szablon / kreator</button></div>`},
     {done:st.calendar,icon:'🗓',title:'Wrzuć plan do kalendarza',desc:'4 tygodnie na preferowane dni — klient widzi trening w Dziś',
       action:`scheduleClientPlanToCalendar('${id}')`,cta:'Do kalendarza',
       extra:st.calendar?'':`<button class="btn btn-ghost btn-sm" onclick="openLiveFromOnboard('${id}','${safeName}')">Trening Live</button>`,

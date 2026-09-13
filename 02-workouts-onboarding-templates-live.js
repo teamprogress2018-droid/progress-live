@@ -3146,6 +3146,29 @@ function renderLiveClientCard(slot){
   if(typeof liveBindSessionButtons==='function')liveBindSessionButtons(n);
 }
 
+function liveTakeOnboardResume(clientId){
+  const id=String(clientId||'');
+  const fromOnboard=!!(id&&window._onboardResumeAfterLive===id);
+  if(fromOnboard){
+    window._onboardResumeAfterLive=null;
+    if(typeof renderOnboardLiveBanner==='function')renderOnboardLiveBanner();
+  }
+  return fromOnboard;
+}
+function liveOpenAiPlan(clientId){
+  const id=String(clientId||'');
+  const fromOnboard=liveTakeOnboardResume(id);
+  if(typeof openAiPlanForClient==='function')openAiPlanForClient(id,fromOnboard);
+}
+function liveOpenBuilder(clientId){
+  const id=String(clientId||'');
+  const fromOnboard=liveTakeOnboardResume(id);
+  if(typeof openBuilderForClient==='function')openBuilderForClient(id,fromOnboard);
+  else goTo('builder');
+}
+window.liveOpenAiPlan=liveOpenAiPlan;
+window.liveOpenBuilder=liveOpenBuilder;
+
 function renderLivePlanPicker(slot){
   const n=liveN(slot);
   const el=liveEl('live-plan-picker',n);if(!el)return;
@@ -3161,7 +3184,7 @@ function renderLivePlanPicker(slot){
   if(!plans.length){
     el.innerHTML=`<div style="font-size:11px;color:var(--muted);text-align:center;padding:12px;background:var(--s2);border-radius:10px;border:1px solid var(--border);">
       Brak planów dla klienta.<br>
-      <button class="btn btn-ghost btn-sm" style="margin-top:6px;" onclick="goTo('aiplangen');document.getElementById('apl-client').value='${st.clientId}';if(typeof aplFillFromClient==='function')aplFillFromClient();">⚡ Generuj plan AI</button>
+      <button class="btn btn-ghost btn-sm" style="margin-top:6px;" onclick="liveOpenAiPlan('${st.clientId}')">⚡ Generuj plan AI</button>
     </div>
     <div style="margin-top:10px;">
       <button class="btn btn-ghost btn-sm" style="width:100%;" onclick="liveQuickAdd(${n})">⚡ Szybki trening bez planu</button>
@@ -3420,13 +3443,14 @@ function liveShowDayPicker(p,slot){
   const n=liveN(slot);
   const el=liveEl('live-exercises-panel',n);if(!el)return;
   const sl=liveSlotArg(n);
+  const st=liveRef(n);
   const days=p.days||[];
   if(!days.length){
     el.innerHTML=`<div style="text-align:center;padding:40px 20px;color:var(--muted);">
       <div style="font-size:32px;margin-bottom:10px;opacity:0.3;">📋</div>
       <div style="font-size:13px;font-weight:600;margin-bottom:4px;">Plan nie zawiera ćwiczeń</div>
       <div style="font-size:11px;margin-bottom:14px;">Dodaj ćwiczenia do planu w kreatorze</div>
-      <button class="btn btn-ghost btn-sm" onclick="goTo('builder')">Otwórz kreator</button>
+      <button class="btn btn-ghost btn-sm" onclick="liveOpenBuilder('${st.clientId||''}')">Otwórz kreator</button>
     </div>`;
     return;
   }

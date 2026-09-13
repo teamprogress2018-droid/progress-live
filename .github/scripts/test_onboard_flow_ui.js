@@ -129,9 +129,29 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'onboard_live.png') });
   ok('live from onboard + banner', live.active && live.banner && live.flag && /Ewelina/.test(live.client), JSON.stringify(live));
 
-  await page.locator('#live-onboard-banner button', { hasText: 'Wróć do checklisty' }).click({ force: true });
+  await page.waitForFunction(() => [...document.querySelectorAll('#screen-live button')].some(b => /Generuj plan AI/.test(b.textContent || '')));
+  await page.locator('#screen-live button', { hasText: 'Generuj plan AI' }).click();
+  await page.waitForTimeout(450);
+  const liveApl = await page.evaluate(() => {
+    const screen = document.getElementById('screen-aiplangen');
+    const banner = document.getElementById('apl-onboard-banner');
+    const liveBan = document.getElementById('live-onboard-banner');
+    const sel = document.getElementById('apl-client');
+    return {
+      active: !!(screen && screen.classList.contains('active')),
+      banner: !!(banner && banner.style.display !== 'none' && /Ewelina/.test(banner.innerText || '')),
+      liveBannerOff: !(liveBan && liveBan.style.display !== 'none' && (liveBan.innerText || '').trim()),
+      client: sel ? sel.value : '',
+      aplFlag: window._onboardResumeAfterApl === 'c-ewelina',
+      liveFlag: window._onboardResumeAfterLive
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'onboard_live_apl.png') });
+  ok('live empty plan opens AI with onboard banner', liveApl.active && liveApl.banner && liveApl.aplFlag && liveApl.client === 'c-ewelina' && !liveApl.liveFlag, JSON.stringify(liveApl));
+
+  await page.locator('#apl-onboard-banner button', { hasText: 'Wróć do checklisty' }).click({ force: true });
   await page.waitForTimeout(700);
-  ok('back from live', await page.locator('#m-client-onboard.show').isVisible());
+  ok('back from live→AI', await page.locator('#m-client-onboard.show').isVisible());
 
   await page.click('#client-onboard-steps button:has-text("Szablon / kreator")');
   await page.waitForTimeout(350);
