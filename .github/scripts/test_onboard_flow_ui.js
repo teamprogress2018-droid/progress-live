@@ -211,6 +211,24 @@ function ok(name, cond, extra) {
   await page.waitForTimeout(700);
   ok('back from AI plan', await page.locator('#m-client-onboard.show').isVisible());
 
+  await page.click('#client-onboard-steps button:has-text("+ Pakiet")');
+  await page.waitForSelector('#m-package.show');
+  const pkgUi = await page.evaluate(() => {
+    const bar = document.getElementById('pkg-onboard-banner');
+    const sel = document.getElementById('pkg-client');
+    return {
+      banner: !!(bar && bar.style.display !== 'none' && /Ewelina/.test(bar.innerText || '')),
+      client: sel ? sel.value : '',
+      flag: window._onboardResumeAfterPackage === 'c-ewelina'
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'onboard_package.png') });
+  ok('package from onboard + banner', pkgUi.banner && pkgUi.flag && pkgUi.client === 'c-ewelina', JSON.stringify(pkgUi));
+
+  await page.locator('#m-package .modal-footer button', { hasText: 'Anuluj' }).click();
+  await page.waitForTimeout(700);
+  ok('package cancel resumes checklist', await page.locator('#m-client-onboard.show').isVisible());
+
   await browser.close();
   if (failed) {
     console.error(failed + ' failed');

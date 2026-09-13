@@ -3256,7 +3256,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 </div>
 
 <!-- MODAL: ZAPROSZENIE DO APLIKACJI -->
-<div class="modal-ov" id="m-invite">
+<div class="modal-ov" id="m-invite" onclick="if(event.target===this)closeInviteModal(false)">
   <div class="modal" style="max-width:480px;">
     <div class="modal-hdr" style="border-bottom:2px solid var(--accent);">
       <div class="modal-title" style="display:flex;align-items:center;gap:10px;">
@@ -3960,10 +3960,11 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 </div>
 
 <!-- PAKIET MODAL — ENHANCED -->
-<div class="modal-ov" id="m-package">
+<div class="modal-ov" id="m-package" onclick="if(event.target===this)(typeof closePackageModal==='function'?closePackageModal():closeM('m-package'))">
   <div class="modal modal-wide">
-    <div class="modal-hdr"><div class="modal-title">NOWY PAKIET</div><button class="modal-close" onclick="closeM('m-package')">×</button></div>
+    <div class="modal-hdr"><div class="modal-title">NOWY PAKIET</div><button class="modal-close" onclick="typeof closePackageModal==='function'?closePackageModal():closeM('m-package')">×</button></div>
     <div class="modal-body">
+      <div id="pkg-onboard-banner" class="onboard-resume-banner" style="display:none;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;padding:10px 12px;background:var(--adim);border:1px solid rgba(230,0,0,0.25);border-radius:10px;font-size:12px;"></div>
       <div class="form-grid">
         <div class="form-field"><label class="form-lbl">Nazwa pakietu</label><input type="text" class="form-input" id="pkg-title" placeholder="np. 10 sesji personalnych"></div>
         <div class="form-field"><label class="form-lbl">Typ pakietu</label>
@@ -3995,7 +3996,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       </div>
       <div class="form-field"><label class="form-lbl">Notatki</label><textarea class="form-textarea" id="pkg-notes" rows="2" placeholder="Dodatkowe informacje..."></textarea></div>
     </div>
-    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeM('m-package')">Anuluj</button><button class="btn btn-primary" onclick="savePackage()">Zapisz pakiet</button></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="typeof closePackageModal==='function'?closePackageModal():closeM('m-package')">Anuluj</button><button class="btn btn-primary" onclick="savePackage()">Zapisz pakiet</button></div>
   </div>
 </div>
 
@@ -4368,11 +4369,11 @@ async function load(){
 <script src="02-workouts-onboarding-templates-live.js?v=62"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=35"></script>
 <script src="04-client-portal.js?v=50"></script>
-<script src="05-clients-builder-plans-calendar.js?v=62"></script>
+<script src="05-clients-builder-plans-calendar.js?v=63"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=74"></script>
 <script src="07-forms-metrics-calculator.js?v=36"></script>
 <script src="08-client-profile-extras.js?v=55"></script>
-<script src="09-posture-kb-invites-private.js?v=43"></script>
+<script src="09-posture-kb-invites-private.js?v=44"></script>
 <script src="10-client-app.js?v=39"></script>
 </body>
 </html>

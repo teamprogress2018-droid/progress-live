@@ -936,15 +936,16 @@ async function savePackage(){
   if(payTab==='overview')renderPayOverview();
   else if(payTab==='packages')renderPayPackages();
   else if(payTab==='invoices')renderPayInvoices();
-  const resumeId=window._onboardResumeAfterPackage||pkg.clientId;
   const fromOnboard=!!window._onboardResumeAfterPackage;
+  const resumeId=fromOnboard?window._onboardResumeAfterPackage:null;
   window._onboardResumeAfterPackage=null;
-  if(pkg.payStatus==='pending'&&pkg.clientId&&(fromOnboard||price>0)){
+  if(typeof clearPackageOnboardBanner==='function')clearPackageOnboardBanner();
+  if(!fromOnboard&&pkg.payStatus==='pending'&&pkg.clientId&&price>0){
     if(confirm('Pakiet oczekuje na wpłatę. Wysłać prośbę o płatność do czatu klienta teraz?')){
       if(typeof requestPayment==='function')requestPayment(pkg.id);
     }
   }
-  if(resumeId&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(resumeId);
+  if(fromOnboard&&resumeId&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(resumeId);
   if(typeof renderDash==='function')try{renderDash();}catch(e){}
   if(typeof renderClients==='function')try{renderClients();}catch(e){}
   if(typeof cpClientId!=='undefined'&&cpClientId===pkg.clientId&&typeof renderCPPayments==='function'){
