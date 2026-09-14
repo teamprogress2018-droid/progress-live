@@ -23,7 +23,7 @@ function ok(name, cond, extra) {
 }
 
 ok('profile edit no duplicate intake buttons', src08.includes('Ankieta wstępna — tylko w Formularzach') && src08.includes("setCPTab('forms')") && !src08.includes("printFormPdf('df1')") && !src08.includes("sendClientIntakeForm('${escHtml(c.id)}');cancelCPEdit()"));
-ok('plan tab CTAs gated on empty', src08.includes('${!plans.length?`<div style="display:flex;gap:6px') && src08.includes('Generuj plan AI'));
+ok('plan tab CTAs gated on empty', src08.includes('const showCreate=!plans.length') && src08.includes('showContinueFitebo') && src08.includes('Generuj plan AI'));
 ok('onboard does not push extra plan CTAs when done', !/doneExtra:`<div[\s\S]*Nowy plan AI/.test(src05) && src05.includes("cta:'⚡ Plan AI'"));
 ok('apl back auto-saves generated plan', src05.includes('function resumeOnboardFromApl') && src05.includes('aplSavePlan()'));
 ok('package save requires client and persists after close', src09.includes("notify('Wybierz klienta')") && src09.includes("closeM('m-package')") && src09.includes("await persistById('packages',pkg)") && src09.indexOf("closeM('m-package')") < src09.indexOf("await persistById('packages',pkg)"));
@@ -31,7 +31,7 @@ ok('whatsapp copies instead of forcing app', src09.includes('Kopiuj wiadomość'
 ok('live clears other client plan', src02.includes('p.clientId!==st.clientId') && src02.includes('st.exercises=[]') && src02.includes('st.planId=null'));
 ok('homework lists all client names', src06.includes('Klienci: ${hwNames.map(esc).join') && src09.includes('function ahwRenderClientList') && src09.includes('ahw-client-search') && !src06.includes('.slice(0,8)'));
 ok('print overlay not clipped', css.includes('#report-overlay{') && css.includes('position:static!important') && css.includes('overflow:visible!important'));
-ok('cache pins', html.includes('02-workouts-onboarding-templates-live.js?v=67') && html.includes('05-clients-builder-plans-calendar.js?v=65') && html.includes('06-inbox-exercises-ai-programs.js?v=75') && html.includes('08-client-profile-extras.js?v=56') && html.includes('09-posture-kb-invites-private.js?v=46') && html.includes('styles.css?v=81'));
+ok('cache pins', html.includes('02-workouts-onboarding-templates-live.js?v=67') && html.includes('05-clients-builder-plans-calendar.js?v=65') && html.includes('06-inbox-exercises-ai-programs.js?v=75') && html.includes('08-client-profile-extras.js?v=57') && html.includes('09-posture-kb-invites-private.js?v=46') && html.includes('styles.css?v=81'));
 ok('CI', wf.includes('test_onboard_ux_fixes.js') && wf.includes('test_onboard_ux_fixes_ui.js'));
 
 if (failed) {

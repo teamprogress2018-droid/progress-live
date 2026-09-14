@@ -1706,14 +1706,19 @@ function renderCPPlan(c){
   const plans=PL.filter(p=>p.clientId===c.id);
   const activePlan=typeof latestClientPlan==='function'?latestClientPlan(c.id):plans.slice(-1)[0]||null;
   const activeId=activePlan?activePlan.id:null;
+  const showCreate=!plans.length;
+  const hasFiteboCont=plans.some(p=>p&&p.source==='fitebo-continue');
+  const hasFiteboSrc=plans.some(p=>p&&p.source!=='fitebo-continue'&&(p.source==='fitebo'||p.fromFitebo))
+    ||(typeof clientHasFiteboWorkouts==='function'&&clientHasFiteboWorkouts(c.id));
+  const showContinueFitebo=!hasFiteboCont&&(showCreate||hasFiteboSrc);
   document.getElementById('cp-body').innerHTML=`
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
       <div class="cp-section-title" style="margin:0;">PLANY TRENINGOWE (${plans.length})</div>
-      ${!plans.length?`<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
-        <button class="btn btn-ghost btn-sm" onclick="cpAssignTemplate('${c.id}')">📋 Przypisz szablon</button>
-        <button class="btn btn-ghost btn-sm" onclick="openBuilderForClient('${c.id}')">✏ Stwórz własny plan</button>
-        <button class="btn btn-ghost btn-sm" onclick="cpContinueFiteboPlan('${c.id}')">🔁 Kontynuuj plan z Fitebo</button>
-        <button class="btn btn-primary btn-sm" onclick="goTo('aiplangen');document.getElementById('apl-client').value='${c.id}';aplFillFromClient();closeClientProfile()">⚡ Generuj plan AI</button>
+      ${showCreate||showContinueFitebo?`<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
+        ${showCreate?`<button class="btn btn-ghost btn-sm" onclick="cpAssignTemplate('${c.id}')">📋 Przypisz szablon</button>
+        <button class="btn btn-ghost btn-sm" onclick="openBuilderForClient('${c.id}')">✏ Stwórz własny plan</button>`:''}
+        ${showContinueFitebo?`<button class="btn btn-ghost btn-sm" onclick="cpContinueFiteboPlan('${c.id}')">🔁 Kontynuuj plan z Fitebo</button>`:''}
+        ${showCreate?`<button class="btn btn-primary btn-sm" onclick="goTo('aiplangen');document.getElementById('apl-client').value='${c.id}';aplFillFromClient();closeClientProfile()">⚡ Generuj plan AI</button>`:''}
       </div>`:''}
     </div>
     ${!plans.length?`<div style="font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:12px;padding:10px 12px;background:var(--s3);border:1px solid var(--border);border-radius:8px;">Wybierz szablon, kreator, Fitebo albo generator AI — potem plan pojawi się tutaj.</div>`:''}
