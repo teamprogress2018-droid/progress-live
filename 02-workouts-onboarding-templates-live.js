@@ -2792,11 +2792,10 @@ function liveClientSearchInput(slot){
   const q=(liveEl('live-client-sel-search',n)?.value||'').trim().toLowerCase();
   const res=liveEl('live-client-sel-results',n);
   if(!res)return;
-  let list=CL;
-  if(q)list=list.filter(c=>c.name.toLowerCase().includes(q));
+  let list=(window.CL||[]).filter(c=>c&&c.status!=='archived');
+  if(q)list=list.filter(c=>String(c.name||c.email||'').toLowerCase().includes(q));
   list=list.map(c=>({c,act:typeof formatClientActivity==='function'?formatClientActivity(c.id):{label:'',color:'var(--muted)',days:0}}))
-    .sort((a,b)=>b.act.days-a.act.days)
-    .slice(0,8);
+    .sort((a,b)=>String(a.c.name||'').localeCompare(String(b.c.name||''),'pl'));
   if(!list.length){
     res.innerHTML='<div style="padding:12px;font-size:12px;color:var(--muted);text-align:center;">Brak wyników</div>';
     res.style.display='block';
@@ -2816,6 +2815,20 @@ function liveLoadClient(slot){
   const st=liveRef(n);
   const sel=liveEl('live-client-sel',n);
   st.clientId=sel?.value||st.clientId||null;
+  if(st.planId){
+    const p=(window.PL||[]).find(x=>x&&x.id===st.planId);
+    if(!p||(p.clientId&&p.clientId!==st.clientId)){
+      st.planId=null;
+      st.exercises=[];
+      st.currentDayIdx=0;
+      st.periodWeekOverride=null;
+    }
+  }
+  if(!st.clientId){
+    st.planId=null;
+    st.exercises=[];
+    st.currentDayIdx=0;
+  }
   liveRefreshPlanLoads(n);
   renderLiveClientCard(n);
   renderLivePlanPicker(n);
@@ -3007,7 +3020,12 @@ function liveRefreshPlanLoads(slot){
   const st=liveRef(n);
   if(st.sessionActive||!st.planId||!st.clientId)return;
   const p=(window.PL||[]).find(x=>x.id===st.planId);
-  if(!p||(p.clientId&&p.clientId!==st.clientId))return;
+  if(!p||(p.clientId&&p.clientId!==st.clientId)){
+    st.planId=null;
+    st.exercises=[];
+    st.currentDayIdx=0;
+    return;
+  }
   const day=(p.days||[])[st.currentDayIdx||0];
   const resolved=typeof fiteboResolveDayExercises==='function'?fiteboResolveDayExercises(st.clientId,p,day||{exercises:[]}):null;
   const raw=(resolved&&resolved.length)?resolved:((day&&day.exercises)||[]);

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Zaproszenia: Gmail compose / WhatsApp wa.me + Inbox. */
+/** Zaproszenia: Gmail compose / WhatsApp kopia do schowka + opcjonalne wa.me. */
 'use strict';
 const fs=require('fs');
 const path=require('path');
@@ -18,6 +18,7 @@ function extract(name){
 }
 
 const opened=[];
+const copied=[];
 const msgs=[];
 const events=[];
 const sandbox={
@@ -43,10 +44,11 @@ const sandbox={
   maybeResumeOnboard:()=>{},
   renderClients:()=>{},
   renderDash:()=>{},
-  navigator:{clipboard:{writeText:async()=>{}}},
+  navigator:{clipboard:{writeText:async(t)=>{copied.push(String(t));}}},
   document:{
-    body:{appendChild(){},},
-    createElement:()=>({href:'',target:'',click(){opened.push(this.href);},remove(){}}),
+    body:{appendChild(){},removeChild(){}},
+    execCommand:()=>true,
+    createElement:()=>({href:'',target:'',value:'',select(){},click(){opened.push(this.href);},remove(){}}),
     getElementById:(id)=>{
       if(id==='inv-link')return{textContent:'https://app.example/?invite=tok1'};
       if(id==='inv-msg-preview')return{textContent:''};
@@ -60,14 +62,19 @@ const sandbox={
 };
 sandbox.window.CL=sandbox.CL;
 sandbox.window.open=sandbox.window.open;
+sandbox.window.navigator=sandbox.navigator;
 vm.runInNewContext(
   extract('defaultInviteMethod')+'\n'+
   extract('inviteGmailComposeUrl')+'\n'+
   extract('inviteMailtoUrl')+'\n'+
   extract('openInviteEmailComposer')+'\n'+
   extract('buildInviteMessage')+'\n'+
+  extract('copyInviteTextFallback')+'\n'+
+  extract('copyInviteText')+'\n'+
+  extract('copyInviteMessage')+'\n'+
+  extract('openInviteWhatsApp')+'\n'+
   extract('sendInvitation')+'\n'+
-  'window.buildInviteMessage=buildInviteMessage;window.sendInvitation=sendInvitation;window.defaultInviteMethod=defaultInviteMethod;window.openInviteEmailComposer=openInviteEmailComposer;',
+  'window.buildInviteMessage=buildInviteMessage;window.sendInvitation=sendInvitation;window.defaultInviteMethod=defaultInviteMethod;window.openInviteEmailComposer=openInviteEmailComposer;window.copyInviteMessage=copyInviteMessage;window.openInviteWhatsApp=openInviteWhatsApp;',
   sandbox
 );
 
@@ -99,10 +106,15 @@ eq('inbox copy',msgs.length>=1,true);
 eq('invite marked',sandbox.CL[0].inviteSent,true);
 eq('event fired',events.some(x=>x.e==='invite.sent'),true);
 
-opened.length=0;
+opened.length=0;copied.length=0;
 sandbox.inviteMethod='whatsapp';
 sandbox.sendInvitation();
-eq('wa opened',opened.some(u=>u.indexOf('wa.me/48500600700')>=0),true);
+eq('wa copies instead of opening app',opened.some(u=>u.indexOf('wa.me/')>=0),false);
+eq('wa message copied',copied.some(t=>t.indexOf('https://app.example/?invite=tok1')>=0),true);
+
+opened.length=0;copied.length=0;
+sandbox.openInviteWhatsApp();
+eq('optional wa.me still available',opened.some(u=>u.indexOf('wa.me/48500600700')>=0),true);
 
 opened.length=0;msgs.length=0;
 sandbox.inviteClientId='c2';

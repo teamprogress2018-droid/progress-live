@@ -168,6 +168,9 @@ jobs:
       - name: 1n0a. Testy checklisty startu współpracy (invite / ankieta / dni)
         run: node .github/scripts/test_onboard_flow.js
 
+      - name: 1n0a2. Testy UX startu (ankieta / pakiet / Live / PDF / HW)
+        run: node .github/scripts/test_onboard_ux_fixes.js
+
       - name: 1n0. Testy zapisu makro TDEE do karty klienta
         run: node .github/scripts/test_calc_macros.js
 
@@ -401,6 +404,8 @@ jobs:
         run: node .github/scripts/test_pay_hist_id_ui.js
       - name: 6b3c2b3. Testy UI checklisty startu współpracy
         run: node .github/scripts/test_onboard_flow_ui.js
+      - name: 6b3c2b2. Testy UI UX startu (ankieta / Live / HW / WhatsApp)
+        run: node .github/scripts/test_onboard_ux_fixes_ui.js
       - name: 6b3c2c. Testy UI szkicu Live (live-draft)
         run: node .github/scripts/test_live_draft_ui.js
       - name: 6b3c2d. Testy UI Autoflow (pakiet / check-in)

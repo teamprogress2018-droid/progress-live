@@ -1089,19 +1089,10 @@ function cpClientDataEditHTML(c){
       </div>
       <button type="button" class="btn btn-ghost btn-sm" onclick="cancelCPEdit()">Anuluj</button>
     </div>
-    <div style="background:rgba(225,31,46,0.08);border:1px solid rgba(225,31,46,0.25);border-radius:10px;padding:12px;margin-bottom:14px;">
-      <div style="font-size:12px;font-weight:700;margin-bottom:4px;">📋 Ankieta wstępna — tylko w Formularzach</div>
-      <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:8px;">Cel, poziom, dni/tydzień, pora treningu i kontuzje pochodzą z ankiety (apką lub PDF). Nie edytuj ich tu drugi raz.</div>
-      <div style="font-size:11px;margin-bottom:8px;">Status: <span style="color:${intakeCol};font-weight:700;">${intakeLbl}</span>
-        ${c.goal||c.level||c.trainingFreq?` · teraz: ${escHtml(goalLabels[c.goal]||c.goal||'—')} / ${escHtml(levelLabels[c.level]||c.level||'—')}${c.trainingFreq?' / '+c.trainingFreq+'×':''}`:''}
-      </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;">
-        <button type="button" class="btn btn-primary btn-sm" onclick="goTo('forms');setTimeout(()=>{if(typeof openFormDetail==='function')openFormDetail('df1');},200)">Otwórz ankietę</button>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="printFormPdf('df1')">📄 PDF blank</button>
-        ${intake&&intake.pending?`<button type="button" class="btn btn-ghost btn-sm" onclick="remindFormSend('${escHtml(intake.pending.id)}')">Przypomnij</button>`:''}
-        ${!(intake&&(intake.filled||intake.pending))?`<button type="button" class="btn btn-ghost btn-sm" onclick="sendClientIntakeForm('${escHtml(c.id)}');cancelCPEdit();">Wyślij w apce</button>`:''}
-        <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('forms')">Historia w profilu</button>
-      </div>
+    <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:14px;padding:8px 10px;background:var(--s3);border:1px solid var(--border);border-radius:8px;">
+      📋 Ankieta wstępna — tylko w Formularzach.
+      Status: <b style="color:${intakeCol};">${intakeLbl}</b>${c.goal||c.level||c.trainingFreq?` · ${escHtml(goalLabels[c.goal]||c.goal||'—')} / ${escHtml(levelLabels[c.level]||c.level||'—')}${c.trainingFreq?' / '+c.trainingFreq+'×':''}`:''}
+      · <button type="button" class="btn btn-ghost btn-sm" style="padding:2px 8px;font-size:11px;" onclick="setCPTab('forms')">Formularze →</button>
     </div>
     ${field('cpe-name','Imię i nazwisko',`<input class="cp-edit-field form-input" id="cpe-name" autocomplete="name" placeholder="np. Jan Kowalski" value="${escHtml(c.name||'')}">`)}
     <div class="form-grid">
@@ -1718,14 +1709,14 @@ function renderCPPlan(c){
   document.getElementById('cp-body').innerHTML=`
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
       <div class="cp-section-title" style="margin:0;">PLANY TRENINGOWE (${plans.length})</div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
+      ${!plans.length?`<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
         <button class="btn btn-ghost btn-sm" onclick="cpAssignTemplate('${c.id}')">📋 Przypisz szablon</button>
         <button class="btn btn-ghost btn-sm" onclick="openBuilderForClient('${c.id}')">✏ Stwórz własny plan</button>
         <button class="btn btn-ghost btn-sm" onclick="cpContinueFiteboPlan('${c.id}')">🔁 Kontynuuj plan z Fitebo</button>
         <button class="btn btn-primary btn-sm" onclick="goTo('aiplangen');document.getElementById('apl-client').value='${c.id}';aplFillFromClient();closeClientProfile()">⚡ Generuj plan AI</button>
-      </div>
+      </div>`:''}
     </div>
-    ${plans.length?`<div style="font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:12px;padding:10px 12px;background:var(--s3);border:1px solid var(--border);border-radius:8px;">Nowy plan dodajesz przyciskami powyżej — trafia na listę, a <strong>najnowszy</strong> idzie do kalendarza. Stary usuń ×, jeśli nieaktualny.</div>`:''}
+    ${!plans.length?`<div style="font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:12px;padding:10px 12px;background:var(--s3);border:1px solid var(--border);border-radius:8px;">Wybierz szablon, kreator, Fitebo albo generator AI — potem plan pojawi się tutaj.</div>`:''}
     ${!plans.length
       ?`<div style="text-align:center;padding:40px;color:var(--muted);">
           <div style="font-size:32px;margin-bottom:10px;opacity:0.3;">📋</div>

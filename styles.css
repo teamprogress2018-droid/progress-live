@@ -1133,8 +1133,24 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 }
 
 @media print{
-  .sidebar,.topbar,.topbar-actions,#report-overlay>div:first-child{display:none!important;}
-  #report-container{background:white!important;overflow:visible!important;}
+  html,body{height:auto!important;overflow:visible!important;background:#fff!important;}
+  .sidebar,.topbar,.topbar-actions,#report-overlay>div:first-child,.nav,.modal-ov{display:none!important;}
+  #report-overlay{
+    display:block!important;
+    position:static!important;
+    inset:auto!important;
+    height:auto!important;
+    overflow:visible!important;
+    background:#fff!important;
+    z-index:auto!important;
+  }
+  #report-container{
+    background:white!important;
+    overflow:visible!important;
+    height:auto!important;
+    max-height:none!important;
+    flex:none!important;
+  }
   .report-page{box-shadow:none!important;margin:0!important;}
   .plan-pdf{max-width:none!important;padding:12mm 10mm 14mm!important;}
   .plan-pdf-day{break-inside:avoid;page-break-inside:avoid;}
@@ -2569,8 +2585,17 @@ body,
 .cj-ol li::marker{color:var(--accent);}
 .cj-foot{margin-top:16px;padding-top:10px;border-top:1px solid var(--border-subtle);font-size:11px;color:var(--text-label);}
 @media print{
+  html,body{height:auto!important;overflow:visible!important;}
+  #report-overlay{
+    display:block!important;
+    position:static!important;
+    inset:auto!important;
+    height:auto!important;
+    overflow:visible!important;
+    background:#fff!important;
+  }
   #report-overlay>div:first-child{display:none!important;}
-  #report-container{background:#fff!important;}
+  #report-container{background:#fff!important;overflow:visible!important;height:auto!important;max-height:none!important;}
   .client-journey{background:#fff!important;color:#111!important;border-color:#e5e7eb!important;box-shadow:none!important;}
   .cj-card,.cj-verdict,.cj-day,.cj-sig{background:#f9fafb!important;border-color:#e5e7eb!important;color:#111!important;}
   .cj-name,.cj-h,.cj-v,.cj-verdict-val,.cj-sig b,.cj-day b{color:#111!important;}
