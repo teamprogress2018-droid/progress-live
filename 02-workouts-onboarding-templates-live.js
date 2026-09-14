@@ -2723,14 +2723,52 @@ function liveToggleDual(){
 }
 window.liveToggleDual=liveToggleDual;
 
+function liveSetPendingClient(clientId, extra){
+  extra=extra||{};
+  const id=String(clientId||'').trim();
+  if(!id){window._livePending=null;return;}
+  window._livePending={
+    clientId:id,
+    clientName:String(extra.clientName||extra.name||''),
+    planId:String(extra.planId||extra.pid||''),
+    slot:extra.slot===1||extra.slot==='1'?1:0
+  };
+}
+function liveApplyPendingClient(){
+  const p=window._livePending;
+  window._livePending=null;
+  if(!p||!p.clientId)return false;
+  const slot=p.slot||0;
+  const st=liveRef(slot);
+  const list=(typeof CL!=='undefined'&&CL)||window.CL||[];
+  const c=list.find(x=>x&&x.id===p.clientId);
+  const name=p.clientName||(c&&c.name)||'';
+  const sameClient=!!(st.clientId&&st.clientId===p.clientId);
+  liveClientSetField(p.clientId,name,sameClient&&!p.planId,slot);
+  if(p.planId&&typeof liveSelectPlan==='function')liveSelectPlan(p.planId,slot);
+  if(typeof renderOnboardLiveBanner==='function')renderOnboardLiveBanner();
+  return true;
+}
+window.liveSetPendingClient=liveSetPendingClient;
+window.liveApplyPendingClient=liveApplyPendingClient;
+
 function initLive(){
   liveBindDraftFlush();
   try{if(sessionStorage.getItem('pl_live_dual')==='1')liveDual=true;}catch(e){}
-  const recovered=liveTryRecoverDraft();
-  if(!recovered)liveTryRecoverDraftAsync();
+  const pending=window._livePending;
+  const pendingSlot=pending&&pending.clientId?(pending.slot||0):null;
+  let recovered=false;
+  if(pendingSlot==null){
+    recovered=liveTryRecoverDraft();
+    if(!recovered)liveTryRecoverDraftAsync();
+  }
   liveSyncFloorUi();
   [0,1].forEach(slot=>{
     const st=liveRef(slot);
+    if(pendingSlot===slot){
+      liveBindSessionButtons(slot);
+      return;
+    }
     if(recovered&&st.clientId){
       liveBindSessionButtons(slot);
       return;
@@ -2747,6 +2785,7 @@ function initLive(){
       liveBindSessionButtons(slot);
     }
   });
+  if(pendingSlot!=null)liveApplyPendingClient();
   renderLiveHistory();
 }
 

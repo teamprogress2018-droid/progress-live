@@ -21,8 +21,8 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 01 v89', html.includes('01-core.js?v=106'));
-ok('cache 02 v49', html.includes('02-workouts-onboarding-templates-live.js?v=69'));
-ok('cache 08 v50', html.includes('08-client-profile-extras.js?v=60'));
+ok('cache 02 v49', html.includes('02-workouts-onboarding-templates-live.js?v=70'));
+ok('cache 08 v50', html.includes('08-client-profile-extras.js?v=61'));
 ok('ci unit', wf.includes('test_fitebo_live.js'));
 ok('ci ui', wf.includes('test_fitebo_live_ui.js'));
 ok('live uses planPhaseSchedule', /planPhaseSchedule/.test(live) && /fiteboResolveDayExercises/.test(live));
