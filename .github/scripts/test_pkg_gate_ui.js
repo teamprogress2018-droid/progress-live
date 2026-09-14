@@ -1,4 +1,4 @@
-// UI: nieopłacony pakiet blokuje Live; Trial odblokowuje.
+// UI: nieopłacony pakiet trzyma banner; Live Start i tak rusza (Trial).
 const fs = require('fs');
 const path = require('path');
 const { chromium } = require('playwright');
@@ -111,7 +111,7 @@ function ok(name, cond, extra) {
     return { active: !!(st && st.sessionActive), gate, disabled: !!(btn && btn.disabled) };
   });
   await page.screenshot({ path: path.join(shotDir, 'pkg_gate_live.png') });
-  ok('live blocked unpaid', !liveBlocked.active && liveBlocked.gate && liveBlocked.disabled, JSON.stringify(liveBlocked));
+  ok('live unpaid still starts', liveBlocked.active && liveBlocked.gate && !liveBlocked.disabled, JSON.stringify(liveBlocked));
 
   await browser.close();
   if (failed) {
