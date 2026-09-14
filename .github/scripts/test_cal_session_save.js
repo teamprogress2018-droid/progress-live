@@ -18,7 +18,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01/05', html.includes('01-core.js?v=104') && html.includes('05-clients-builder-plans-calendar.js?v=68'));
+ok('cache 01/05', html.includes('01-core.js?v=105') && html.includes('05-clients-builder-plans-calendar.js?v=68'));
 ok('ci unit', wf.includes('test_cal_session_save.js'));
 ok('ci ui', wf.includes('test_cal_session_save_ui.js'));
 

@@ -2701,7 +2701,8 @@ function planPhaseRpe(phase){
   const ph=String(phase||'').toLowerCase();
   if(/deload/.test(ph))return '6';
   if(/adapt/.test(ph))return '7';
-  if(/hipertrof/.test(ph))return '8';
+  if(/hipertrof/.test(ph)&&(/ii|2|8 powt/.test(ph)))return '8';
+  if(/hipertrof/.test(ph))return '7';
   if(/si[lł]a|szczyt|intensyf/.test(ph))return '8';
   return '8';
 }
