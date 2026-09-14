@@ -2401,9 +2401,9 @@ function liveBindSessionButtons(slot){
   const status=liveEl('live-timer-status',n);
   if(start){
     start.style.display=st.sessionActive?'none':'';
+    start.disabled=false;
     const acc=st.clientId&&typeof clientHasPaidAccess==='function'?clientHasPaidAccess(st.clientId):{ok:true};
-    start.disabled=!(!acc||acc.ok);
-    start.title=acc&&acc.ok===false?(acc.reason==='unpaid'?'Pakiet nieopłacony — Trial / Gość albo Opłacony':(acc.reason==='expired'?'Pakiet wygasł':'Brak dostępu')):'';
+    start.title=acc&&acc.ok===false?'Pakiet nieopłacony — Start i tak działa (Trial, bez zejścia z pakietu)':'';
   }
   if(end)end.style.display=st.sessionActive?'':'none';
   if(status)status.textContent=st.sessionActive?'W toku':'Nieaktywny';
@@ -2846,7 +2846,7 @@ function renderLiveClientCard(slot){
   const acc=typeof clientHasPaidAccess==='function'?clientHasPaidAccess(c.id):{ok:true};
   const accBanner=acc&&acc.ok===false?`<div class="live-pay-gate" style="background:rgba(230,0,0,0.1);border:1px solid rgba(230,0,0,0.35);border-radius:8px;padding:8px 10px;margin-bottom:10px;font-size:11px;line-height:1.45;">
       <div style="font-weight:700;margin-bottom:4px;">${escHtml(typeof clientPaidAccessLabel==='function'?clientPaidAccessLabel(acc):'Brak dostępu')}</div>
-      <div style="color:var(--muted);margin-bottom:8px;">Kalendarz i Start Live są zablokowane, dopóki pakiet nie jest opłacony.</div>
+      <div style="color:var(--muted);margin-bottom:8px;">Kalendarz jest zablokowany do opłaty. Start Live działa — sesja jako Trial, bez zejścia z pakietu.</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;">
         <button type="button" class="btn btn-primary btn-sm" onclick="setClientAccessMode('${escHtml(c.id)}','trial')">Trial</button>
         <button type="button" class="btn btn-ghost btn-sm" onclick="setClientAccessMode('${escHtml(c.id)}','guest')">Gość</button>
@@ -3704,7 +3704,14 @@ function liveStartSession(slot){
   const st=liveRef(n);
   if(!st.clientId){notify('Wybierz klienta!');return;}
   if(!st.exercises.length){notify('Wybierz plan lub dodaj ćwiczenia!');return;}
-  if(typeof assertClientPaidAccess==='function'&&!assertClientPaidAccess(st.clientId))return;
+  if(typeof clientHasPaidAccess==='function'){
+    const acc=clientHasPaidAccess(st.clientId);
+    if(acc&&acc.ok===false){
+      notify(acc.reason==='expired'
+        ?'Pakiet wygasł — startuję bez zejścia sesji. Przedłuż pakiet albo Trial / Gość.'
+        :'Pakiet nieopłacony — startuję jako Trial (sesja nie zejdzie z pakietu).');
+    }
+  }
   st.savedClientId=null;
   st.savedClientName='';
   st.sessionActive=true;

@@ -1488,7 +1488,7 @@ function renderCPOverview(c){
       if(acc.ok)return'';
       return `<div class="cp-pay-gate" style="background:rgba(230,0,0,0.1);border:1px solid rgba(230,0,0,0.35);border-radius:10px;padding:12px 14px;margin-bottom:16px;">
         <div style="font-size:12px;font-weight:700;margin-bottom:4px;">${escHtml(typeof clientPaidAccessLabel==='function'?clientPaidAccessLabel(acc):'Brak dostępu')}</div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Kalendarz i Live są zablokowane. Oznacz pakiet jako opłacony albo włącz Trial / Gość.</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Kalendarz jest zablokowany. Live Start działa (Trial — bez zejścia sesji). Oznacz pakiet jako opłacony albo włącz Trial / Gość.</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
           <button type="button" class="btn btn-primary btn-sm" onclick="setClientAccessMode('${escHtml(c.id)}','trial')">Trial</button>
           <button type="button" class="btn btn-ghost btn-sm" onclick="setClientAccessMode('${escHtml(c.id)}','guest')">Gość</button>
