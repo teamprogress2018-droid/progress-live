@@ -43,7 +43,7 @@ vm.runInContext(fs.readFileSync(path.join(__dirname, '..', '..', '01-core.js'), 
 const {
   exerciseNameKey, formatSetLoad, loggedSetRows, exercisePR, setBeatsPR,
   prToastText, clientExercisePRs, exerciseHistoryByDay, epley1RM, superseriesToastText,
-  lastLoadForExercise, formatLastSetsSummary, lastSetsBlockHtml
+  lastLoadForExercise, formatLastSetsSummary, lastSetsBlockHtml, exerciseLoadHistory
 } = ctx;
 
 let failed = 0;
@@ -115,6 +115,25 @@ windowObj.SE = sessions.concat([
 const lastAscii = lastLoadForExercise('c1', 'rumunski ciag z kettlem');
 eq('last matches folded name', lastAscii && lastAscii.kg, '16');
 eq('last folded date', lastAscii && lastAscii.date, '2026-09-06');
+
+windowObj.SE = [
+  {id: 'f1', clientId: 'c1', date: '2026-09-01', source: 'fitebo', exercises: [{name: 'Wyciskanie hantli na skosie', kg: 22.5, reps: 12}]},
+  {id: 'f2', clientId: 'c1', date: '2026-09-08', source: 'fitebo', exercises: [{name: 'Wyciskanie hantli na skosie', kg: 24.5, reps: 8}]},
+  {id: 'f3', clientId: 'c1', date: '2026-09-15', source: 'planned', exercises: [{name: 'Wyciskanie hantli na skosie', kg: 99, reps: 8}]}
+];
+const hist = exerciseLoadHistory('c1', 'Wyciskanie hantli na skosie');
+eq('load hist skips planned', hist.map(h => h.date), ['2026-09-08', '2026-09-01']);
+eq('load hist latest kg', hist[0].sets[0].kg, 24.5);
+eq('load hist older reps', hist[1].sets[0].reps, 12);
+eq('last nSessions two logs', lastLoadForExercise('c1', 'Wyciskanie hantli na skosie').nSessions, 2);
+const histBlock = lastSetsBlockHtml({
+  name: 'Wyciskanie hantli na skosie',
+  lastHistory: hist
+});
+eq('hist html two sessions', /24\.5 × 8/.test(histBlock) && /22\.5 kg × 12/.test(histBlock) && /2 sesji/.test(histBlock), true);
+eq('hist html earlier heading', /Wcześniej/.test(histBlock), true);
+eq('builder variant class', /builder-ex-hist/.test(lastSetsBlockHtml({lastSets: [{kg: 20, reps: 10}]}, {variant: 'builder'})), true);
+eq('lookup by clientId', /Ostatnio:/.test(lastSetsBlockHtml({name: 'Wyciskanie hantli na skosie', clientId: 'c1'})), true);
 
 if (failed) {
   console.error('\n' + failed + ' test(s) failed');

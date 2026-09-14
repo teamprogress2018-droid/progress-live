@@ -18,7 +18,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 02 v31', html.includes('02-workouts-onboarding-templates-live.js?v=68'));
+ok('cache 02 v31', html.includes('02-workouts-onboarding-templates-live.js?v=69'));
 ok('cache 01 v73', html.includes('01-core.js?v=105'));
 ok('dock Postęp ids', html.includes('id="live-ex-done"') && html.includes('id="live-sets-done"') && html.includes('id="live-volume"'));
 ok('dock hint', html.includes('id="live-progress-hint"'));
@@ -28,6 +28,7 @@ ok('live rir field', /function liveSetRir\(/.test(live) && live.includes('live-r
 ok('live save rir', /rir:s\.rir!=null/.test(live));
 ok('live remove set', /function liveRemoveSet\(/.test(live) && live.includes('live-set-del') && live.includes('Zostaw przynajmniej jedną serię'));
 ok('live last sets', live.includes('lastSetsBlockHtml') && live.includes('lastBlock'));
+ok('live hist kg/reps', live.includes('liveHistoryExLines') && live.includes('liveHistorySessionsForView') && live.includes('live-hist-ex-sets'));
 ok('CI unit', wf.includes('test_live_session_progress.js'));
 ok('CI ui', wf.includes('test_live_progress_ui.js'));
 

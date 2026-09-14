@@ -1152,6 +1152,7 @@ function cwSwapEx(name){
     cur.lastReps=last.reps||'';
     cur.lastDate=last.date||'';
     cur.lastSets=last.sets||[];
+    cur.lastHistory=last.history||[];
     const plan=(window.PL||[]).find(p=>p.id===cw.planId);
     const progression=typeof normalizePlanProgression==='function'?normalizePlanProgression(plan&&(plan.progression||plan.progressionType)):'double';
     const work=(cur.sets||[]).filter(s=>typeof isWorkingSet==='function'?isWorkingSet(s):true);
@@ -1264,7 +1265,7 @@ function cwRender(){
     ${ex.progHint?`<div style="font-size:11px;color:var(--teal);margin-bottom:8px;">${escHtml(ex.progHint)}</div>`:''}
     ${typeof exerciseCoachHintsHtml==='function'?exerciseCoachHintsHtml(ex):''}
     ${(()=>{
-      const lastHtml=typeof lastSetsBlockHtml==='function'?lastSetsBlockHtml(ex):'';
+      const lastHtml=typeof lastSetsBlockHtml==='function'?lastSetsBlockHtml(ex,{clientId:window._clientId}):'';
       const pr=typeof exercisePR==='function'&&(typeof isWeightLoadUnit!=='function'||isWeightLoadUnit(typeof exLoadUnit==='function'?exLoadUnit(ex):'kg'))?exercisePR(window._clientId,ex.name):null;
       const rec=pr?('Rekord: '+escHtml(String(pr.kg))+' kg × '+escHtml(String(pr.reps))):'';
       if(lastHtml)return lastHtml+(rec?`<div style="font-size:11px;color:var(--muted);margin:0 0 12px;">${rec}</div>`:'');

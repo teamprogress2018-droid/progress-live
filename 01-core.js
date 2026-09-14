@@ -3308,36 +3308,81 @@ function exerciseLoggedSets(ex){
 }
 window.exerciseLoggedSets=exerciseLoggedSets;
 
-function lastLoadForExercise(clientId,name,aliases){
-  if(!clientId||!name)return null;
-  const keys=new Set([exerciseNameKey(name)]);
-  (Array.isArray(aliases)?aliases:[aliases]).forEach(a=>{
-    const k=exerciseNameKey(a);
+function exerciseNameKeySet(name,aliases){
+  const keys=new Set();
+  const add=v=>{
+    const k=exerciseNameKey(v);
     if(k)keys.add(k);
-  });
-  const matchEx=e=>{
-    if(!e)return false;
-    if(keys.has(exerciseNameKey(e.name)))return true;
-    if(e.plannedName&&keys.has(exerciseNameKey(e.plannedName)))return true;
-    return String(e.alt||'').split(/[,;/]/).some(a=>keys.has(exerciseNameKey(a)));
   };
-  const sessions=(window.SE||[]).filter(s=>s&&s.clientId===clientId&&Array.isArray(s.exercises)&&s.source!=='planned'&&s.source!=='live-draft')
+  add(name);
+  (Array.isArray(aliases)?aliases:[aliases]).forEach(add);
+  return keys;
+}
+window.exerciseNameKeySet=exerciseNameKeySet;
+
+function exerciseMatchesKeys(ex,keys){
+  if(!ex||!keys||!keys.size)return false;
+  if(keys.has(exerciseNameKey(ex.name)))return true;
+  if(ex.plannedName&&keys.has(exerciseNameKey(ex.plannedName)))return true;
+  return String(ex.alt||'').split(/[,;/]/).some(a=>keys.has(exerciseNameKey(a)));
+}
+window.exerciseMatchesKeys=exerciseMatchesKeys;
+
+function isLoggedTrainingSession(s){
+  return !!(s&&s.source!=='planned'&&s.source!=='live-draft');
+}
+window.isLoggedTrainingSession=isLoggedTrainingSession;
+
+/** Ostatnie sesje z kg/powt. dla ćwiczenia (najnowsze pierwsze). limit 0 = wszystkie. */
+function exerciseLoadHistory(clientId,name,aliases,opts){
+  opts=opts||{};
+  if(!clientId||!name)return [];
+  const rawLimit=opts.limit;
+  const limit=rawLimit==null?8:(parseInt(rawLimit,10)||0);
+  const keys=exerciseNameKeySet(name,aliases);
+  if(!keys.size)return [];
+  const pool=opts.sessions||window.SE||[];
+  const sessions=pool.filter(s=>s&&s.clientId===clientId&&Array.isArray(s.exercises)&&isLoggedTrainingSession(s))
     .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''));
-  let nSessions=0;
-  let found=null;
+  const out=[];
   for(const s of sessions){
-    const ex=(s.exercises||[]).find(matchEx);
+    const ex=(s.exercises||[]).find(e=>exerciseMatchesKeys(e,keys));
     if(!ex)continue;
-    const sets=exerciseLoggedSets(ex);
+    const sets=typeof exerciseLoggedSets==='function'?exerciseLoggedSets(ex):[];
     if(!sets.length)continue;
-    nSessions++;
-    if(found)continue;
-    const work=sets.filter(x=>typeof isWorkingSet!=='function'||isWorkingSet(x));
-    const last=(work.length?work:sets)[(work.length?work:sets).length-1];
-    found={kg:last.kg,reps:last.reps,rir:last.rir,sets,date:s.date||'',source:s.source||'',nSessions:0};
+    out.push({
+      date:s.date||'',
+      createdAt:s.createdAt||'',
+      sessionId:s.id||'',
+      source:s.source||'',
+      type:s.type||'',
+      name:ex.name||name,
+      sets
+    });
+    if(limit>0&&out.length>=limit)break;
   }
-  if(found)found.nSessions=nSessions;
-  return found;
+  return out;
+}
+window.exerciseLoadHistory=exerciseLoadHistory;
+
+function lastLoadForExercise(clientId,name,aliases){
+  const hist=exerciseLoadHistory(clientId,name,aliases,{limit:0});
+  if(!hist.length)return null;
+  const latest=hist[0];
+  const sets=latest.sets||[];
+  const work=sets.filter(x=>typeof isWorkingSet!=='function'||isWorkingSet(x));
+  const last=(work.length?work:sets)[(work.length?work:sets).length-1];
+  if(!last)return null;
+  return{
+    kg:last.kg,
+    reps:last.reps,
+    rir:last.rir,
+    sets,
+    date:latest.date||'',
+    source:latest.source||'',
+    nSessions:hist.length,
+    history:hist.slice(0,8)
+  };
 }
 window.lastLoadForExercise=lastLoadForExercise;
 
@@ -3356,28 +3401,54 @@ function formatLastSetsSummary(sets){
 }
 window.formatLastSetsSummary=formatLastSetsSummary;
 
-function lastSetsBlockHtml(ex){
-  const sets=ex&&Array.isArray(ex.lastSets)?ex.lastSets:[];
-  if(!sets.length)return '';
-  let date='';
-  if(ex.lastDate){
-    date=typeof formatTrainingDayShortPl==='function'?formatTrainingDayShortPl(ex.lastDate):String(ex.lastDate);
-  }
-  const summary=formatLastSetsSummary(sets);
-  const rows=sets.map((s,i)=>{
+function formatHistorySessionDate(ymd){
+  if(!ymd)return '';
+  return typeof formatTrainingDayShortPl==='function'?formatTrainingDayShortPl(ymd):String(ymd);
+}
+window.formatHistorySessionDate=formatHistorySessionDate;
+
+function lastSetsSessionRowsHtml(sets,nameOrEx){
+  return (Array.isArray(sets)?sets:[]).map((s,i)=>{
     const no=s.setNo||(i+1);
     const kind=s.kind&&s.kind!=='work'&&typeof setKindBadge==='function'
       ?`<span class="cw-set-kind ${escHtml(String(s.kind))}">${escHtml(setKindBadge(s.kind))}</span>`:'';
     const rir=s.rir!=null&&s.rir!==''?`<span class="live-last-rir">RIR ${escHtml(String(s.rir))}</span>`:'';
-    const load=typeof formatSetLoad==='function'?formatSetLoad(s.kg,s.reps,ex):(String(s.kg||'')+' × '+String(s.reps||''));
+    const load=typeof formatSetLoad==='function'?formatSetLoad(s.kg,s.reps,nameOrEx):(String(s.kg||'')+' × '+String(s.reps||''));
     return `<div class="live-last-row"><span class="live-last-no">${escHtml(String(no))}</span><span class="live-last-load">${escHtml(load)}</span>${rir}${kind}</div>`;
   }).join('');
-  return `<details class="live-last-sets" onclick="event.stopPropagation()">
-    <summary class="live-last-sum" title="Układ serii z poprzedniego treningu"><span class="live-last-ico" aria-hidden="true">🕒</span> Ostatnio: ${escHtml(summary)}${date?' · '+escHtml(date):''}</summary>
-    <div class="live-last-pop">
-      <div class="live-last-hd">Poprzedni trening${date?' · '+escHtml(date):''}</div>
-      ${rows}
-    </div>
+}
+window.lastSetsSessionRowsHtml=lastSetsSessionRowsHtml;
+
+function lastSetsBlockHtml(ex,opts){
+  opts=opts||{};
+  let history=Array.isArray(ex&&ex.lastHistory)?ex.lastHistory.filter(h=>h&&Array.isArray(h.sets)&&h.sets.length):[];
+  if(!history.length&&ex&&Array.isArray(ex.lastSets)&&ex.lastSets.length){
+    history=[{date:ex.lastDate||'',sets:ex.lastSets}];
+  }
+  if(!history.length){
+    const cid=(ex&&ex.clientId)||opts.clientId;
+    const nm=(ex&&(ex.name||ex.plannedName))||opts.name;
+    const alts=(ex&&ex.alts)||opts.aliases;
+    if(cid&&nm)history=exerciseLoadHistory(cid,nm,alts,{limit:opts.limit==null?8:opts.limit});
+  }
+  if(!history.length)return '';
+  const latest=history[0];
+  const summary=formatLastSetsSummary(latest.sets);
+  const date=formatHistorySessionDate(latest.date);
+  const extra=history.length>1?(' · '+history.length+' sesji'):'';
+  const variant=opts.variant==='builder'||(ex&&ex._histVariant==='builder');
+  const cls=variant?'live-last-sets builder-ex-hist':'live-last-sets';
+  const sessions=history.map((h,hi)=>{
+    const d=formatHistorySessionDate(h.date);
+    const hd=hi===0?'Poprzedni trening':('Wcześniej · sesja '+(hi+1));
+    return `<div class="live-last-session">
+      <div class="live-last-hd">${escHtml(hd)}${d?' · '+escHtml(d):''}</div>
+      ${lastSetsSessionRowsHtml(h.sets,ex)}
+    </div>`;
+  }).join('');
+  return `<details class="${cls}" onclick="event.stopPropagation()">
+    <summary class="live-last-sum" title="Ciężar i powtórzenia z poprzednich treningów"><span class="live-last-ico" aria-hidden="true">🕒</span> Ostatnio: ${escHtml(summary)}${date?' · '+escHtml(date):''}${escHtml(extra)}</summary>
+    <div class="live-last-pop">${sessions}</div>
   </details>`;
 }
 window.lastSetsBlockHtml=lastSetsBlockHtml;
@@ -3665,6 +3736,7 @@ function mapPlanExercisesForClient(rawEx,clientId,plan,day){
       lastReps:last&&last.reps!=null&&last.reps!==''?last.reps:'',
       lastDate:last&&last.date||'',
       lastSets:(last&&last.sets)||[],
+      lastHistory:(last&&last.history)||[],
       ss:ex.ss||'',
       wu:ex.ss?0:(ex.wu||0),
       drop:ex.ss?0:(ex.drop||0),
