@@ -43,7 +43,8 @@ vm.runInContext(fs.readFileSync(path.join(__dirname, '..', '..', '01-core.js'), 
 const {
   exerciseNameKey, formatSetLoad, loggedSetRows, exercisePR, setBeatsPR,
   prToastText, clientExercisePRs, exerciseHistoryByDay, epley1RM, superseriesToastText,
-  lastLoadForExercise, formatLastSetsSummary, lastSetsBlockHtml, exerciseLoadHistory
+  lastLoadForExercise, formatLastSetsSummary, lastSetsBlockHtml, exerciseLoadHistory,
+  exerciseHistoryModalBodyHtml, exerciseLoggedSets, exerciseHistoryTotals
 } = ctx;
 
 let failed = 0;
@@ -104,9 +105,20 @@ const block = lastSetsBlockHtml({
     {setNo: 2, kg: 85, reps: 5, rir: '2'}
   ]
 });
-eq('last html widget', /live-last-sets/.test(block) && /Ostatnio:/.test(block), true);
-eq('last html rows', /RIR 3/.test(block) && /RIR 2/.test(block) && /80 kg × 8/.test(block), true);
+eq('last html widget', /live-last-sets/.test(block) && /Ostatnio:/.test(block) && /openExerciseHistory/.test(block), true);
+eq('last html summary', /80 × 8/.test(block) && /85 × 5/.test(block), true);
 eq('empty last html', lastSetsBlockHtml({lastSets: []}), '');
+const modalOne = exerciseHistoryModalBodyHtml([{
+  date: '2026-08-10', time: '21:00',
+  sets: [
+    {setNo: 1, kg: 80, reps: 8},
+    {setNo: 2, kg: 85, reps: 5}
+  ]
+}]);
+eq('modal table headers', /Powt/.test(modalOne) && />KG</.test(modalOne) && /Obj/.test(modalOne), true);
+eq('modal stamp', /2026-08-10 21:00/.test(modalOne), true);
+eq('modal volume', /640 kg/.test(modalOne) && /425 kg/.test(modalOne), true);
+eq('modal totals', /Σ/.test(modalOne) && />13</.test(modalOne) && />165</.test(modalOne), true);
 
 windowObj.SE = sessions.concat([
   {id: 's5', clientId: 'c1', date: '2026-08-20', source: 'planned', exercises: [{name: 'Przysiad', sets: [{kg: 999, reps: 1, setNo: 1}]}]},
@@ -130,8 +142,23 @@ const histBlock = lastSetsBlockHtml({
   name: 'Wyciskanie hantli na skosie',
   lastHistory: hist
 });
-eq('hist html two sessions', /24\.5 × 8/.test(histBlock) && /22\.5 kg × 12/.test(histBlock) && /2 sesji/.test(histBlock), true);
-eq('hist html earlier heading', /Wcześniej/.test(histBlock), true);
+eq('hist html two sessions', /24\.5 × 8/.test(histBlock) && /2 sesji/.test(histBlock) && /openExerciseHistory/.test(histBlock), true);
+const histModal = exerciseHistoryModalBodyHtml(hist);
+eq('hist modal two dates', /2026-09-08/.test(histModal) && /2026-09-01/.test(histModal), true);
+eq('hist modal extra heading', /Dodatkowe/.test(exerciseHistoryModalBodyHtml([{
+  date: '2026-09-07', time: '21:00',
+  sets: [
+    {setNo: 1, kg: 20, reps: 12},
+    {setNo: 2, kg: 22.5, reps: 12},
+    {setNo: 3, kg: 22.5, reps: 12},
+    {setNo: 4, kg: 22.5, reps: 12, extra: true}
+  ]
+}])), true);
+eq('incline totals', JSON.stringify(exerciseHistoryTotals([
+  {kg: 20, reps: 12}, {kg: 22.5, reps: 12}, {kg: 22.5, reps: 12}, {kg: 22.5, reps: 12}
+])), JSON.stringify({reps: 48, kg: 87.5, obj: 1050}));
+eq('expand 3x12', exerciseLoggedSets({name: 'Hack', sets: '3', kg: 60, reps: 12}).length, 3);
+eq('no expand range', exerciseLoggedSets({sets: '3', kg: 22.5, reps: '8-10'}).length, 1);
 eq('builder variant class', /builder-ex-hist/.test(lastSetsBlockHtml({lastSets: [{kg: 20, reps: 10}]}, {variant: 'builder'})), true);
 eq('lookup by clientId', /Ostatnio:/.test(lastSetsBlockHtml({name: 'Wyciskanie hantli na skosie', clientId: 'c1'})), true);
 
