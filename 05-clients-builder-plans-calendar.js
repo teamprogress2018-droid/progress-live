@@ -530,18 +530,32 @@ function resumeOnboardFromBuilder(){
   if(typeof renderOnboardBuilderBanner==='function')renderOnboardBuilderBanner();
   if(cid&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);
 }
-function builderGoBack(){
-  if(window._onboardResumeAfterBuilder){
+function builderLeaveToCaller(opts){
+  opts=opts||{};
+  if(window._onboardResumeAfterBuilder&&!opts.saved){
     resumeOnboardFromBuilder();
     return;
   }
+  const cid=window._builderReturnClientId;
+  const tab=window._builderReturnTab||'plan';
+  window._builderReturnClientId=null;
+  window._builderReturnTab=null;
+  if(cid&&typeof openClientProfile==='function'){
+    goTo('clients');
+    openClientProfile(cid,{tab:tab});
+    return;
+  }
   goTo(window._builderBack||'clients');
+}
+function builderGoBack(){
+  builderLeaveToCaller();
 }
 window.renderOnboardAplBanner=renderOnboardAplBanner;
 window.resumeOnboardFromApl=resumeOnboardFromApl;
 window.renderOnboardBuilderBanner=renderOnboardBuilderBanner;
 window.resumeOnboardFromBuilder=resumeOnboardFromBuilder;
 window.builderGoBack=builderGoBack;
+window.builderLeaveToCaller=builderLeaveToCaller;
 
 function skipClientPackage(clientId){
   const c=CL.find(x=>x.id===clientId);if(!c)return;
@@ -1391,25 +1405,27 @@ function builderOnExNameChange(row){
 window.builderOnExNameChange=builderOnExNameChange;
 function builderRefreshExHist(row){
   if(!row)return;
-  let box=row.querySelector('.builder-ex-hist-slot');
-  if(!box){
-    box=document.createElement('div');
-    box.className='builder-ex-hist-slot';
-    const extra=row.querySelector('.ex-row-extra');
-    if(extra)extra.appendChild(box);
-    else row.appendChild(box);
-  }
-  const cid=(document.getElementById('b-client')||{}).value||'';
-  const name=(row.querySelector('[data-f="name"]')||{}).value||'';
-  const alt=(row.querySelector('[data-f="alt"]')||{}).value||'';
-  const fromField=String(alt).split(/[,;/]/).map(s=>s.trim()).filter(Boolean);
-  const fromLib=typeof altsForExercise==='function'?altsForExercise(name):[];
-  const alts=fromField.concat(fromLib);
-  const html=cid&&name&&typeof lastSetsBlockHtml==='function'
-    ?lastSetsBlockHtml({name,clientId:cid,alts},{variant:'builder',limit:8})
-    :'';
-  box.innerHTML=html||'';
-  box.hidden=!html;
+  try{
+    let box=row.querySelector('.builder-ex-hist-slot');
+    if(!box){
+      box=document.createElement('div');
+      box.className='builder-ex-hist-slot';
+      const extra=row.querySelector('.ex-row-extra');
+      if(extra)extra.appendChild(box);
+      else row.appendChild(box);
+    }
+    const cid=(document.getElementById('b-client')||{}).value||'';
+    const name=(row.querySelector('[data-f="name"]')||{}).value||'';
+    const alt=(row.querySelector('[data-f="alt"]')||{}).value||'';
+    const fromField=String(alt).split(/[,;/]/).map(s=>s.trim()).filter(Boolean);
+    const fromLib=typeof altsForExercise==='function'?altsForExercise(name):[];
+    const alts=fromField.concat(fromLib);
+    const html=cid&&name&&typeof lastSetsBlockHtml==='function'
+      ?lastSetsBlockHtml({name,clientId:cid,alts},{variant:'builder',limit:8})
+      :'';
+    box.innerHTML=html||'';
+    box.hidden=!html;
+  }catch(e){console.warn('builderRefreshExHist',e);}
 }
 window.builderRefreshExHist=builderRefreshExHist;
 function builderRefreshRowExtras(row){
@@ -1835,6 +1851,7 @@ function updateExDl(){
 function updatePeriod(){
   const cid=document.getElementById('b-client').value;const c=CL.find(x=>x.id===cid);
   const el=document.getElementById('period-sched');
+  if(!el)return;
   if(!c){el.innerHTML='<div style="font-size:11px;color:var(--muted);">Wybierz klienta</div>';return;}
   const sch=builderPeriodSchedule(c);
   const rms=typeof officialLift1RMs==='function'?officialLift1RMs(c.id):{};
@@ -1893,20 +1910,42 @@ window.builderApplyPeriodWeek=builderApplyPeriodWeek;
 function getPeriod(level){
   return typeof periodScheduleForLevel==='function'?periodScheduleForLevel(level):[{nr:1,cel:'DUP Akumulacja — wysoka objętość',rpe:'RPE 7'},{nr:2,cel:'DUP Intensyfikacja',rpe:'RPE 8'},{nr:3,cel:'DUP Szczyt',rpe:'RPE 9'},{nr:4,cel:'DELOAD',rpe:'RPE 6'}];
 }
+function builderEnsureSelectValue(sel,value,label){
+  if(!sel)return;
+  let v=value==null||value===''?'':String(value);
+  if(!v)return;
+  if(v==='Custom')v='Własna';
+  if(![...sel.options].some(o=>o.value===v)){
+    const o=document.createElement('option');
+    o.value=v;
+    o.textContent=label||v;
+    sel.appendChild(o);
+  }
+  sel.value=v;
+}
+window.builderEnsureSelectValue=builderEnsureSelectValue;
+function builderSetDayHeader(dayEl,d){
+  if(!dayEl)return;
+  const sel=dayEl.querySelector('.builder-day-select');
+  const focus=dayEl.querySelector('.builder-day-focus');
+  const label=String((d&&(d.day||d.dayName))||'').trim();
+  const muscles=String((d&&(d.muscles||d.focus))||'').trim();
+  if(sel&&label)builderEnsureSelectValue(sel,label,label);
+  if(focus)focus.value=muscles;
+}
+window.builderSetDayHeader=builderSetDayHeader;
 // Ładuje istniejący plan do kreatora, żeby faktycznie go edytować (a nie tworzyć pusty nowy).
 function editPlan(id){
   const plan=PL.find(p=>p.id===id);
   if(!plan){notify('Nie znaleziono planu');return;}
-  window._builderBack='plans';
+  if(!window._builderReturnClientId)window._builderBack='plans';
   goTo('builder'); // initBuilder() czyści formularz i resetuje _editingPlanId
   window._editingPlanId=id;
   document.getElementById('b-name').value=plan.name||'';
   const clientSel=document.getElementById('b-client');
   if(clientSel)clientSel.value=plan.clientId||'';
-  const methodSel=document.getElementById('b-method');
-  if(methodSel)methodSel.value=plan.method||methodSel.value;
-  const durInp=document.getElementById('b-duration');
-  if(durInp)durInp.value=plan.duration||(plan.weekKeys&&plan.weekKeys.length)||'';
+  builderEnsureSelectValue(document.getElementById('b-method'),plan.method||'');
+  builderEnsureSelectValue(document.getElementById('b-duration'),plan.duration||(plan.weekKeys&&plan.weekKeys.length)||'');
   const progSel=document.getElementById('b-progression');
   if(progSel)progSel.value=typeof normalizePlanProgression==='function'?normalizePlanProgression(plan.progression||plan.progressionType):'double';
   const keys=plan.weekKeys||[];
@@ -1917,9 +1956,7 @@ function editPlan(id){
     addDay();
     const dayEl=document.getElementById('bd-'+dayCount);
     if(!dayEl)return;
-    const hdrInps=dayEl.querySelectorAll('.builder-day-hdr select, .builder-day-hdr input[type=text]');
-    if(hdrInps[0])hdrInps[0].value=d.day||d.dayName||hdrInps[0].value;
-    if(hdrInps[1])hdrInps[1].value=d.muscles||d.focus||'';
+    builderSetDayHeader(dayEl,d);
     if(d.rest){
       const rc=dayEl.querySelector('.rc');
       if(rc){rc.checked=true;toggleR(dayEl.id);}
@@ -1932,44 +1969,47 @@ function editPlan(id){
     if(rr&&d.roundRest)rr.value=d.roundRest;
     if(circOn)builderPaintCircuitDay(dayEl);
     (d.exercises||[]).forEach(ex=>{
-      addRow(dayEl.id);
-      const rows=dayEl.querySelectorAll('.ex-row');
-      const row=rows[rows.length-1];
-      const parsed=typeof parsePlanExercise==='function'?parsePlanExercise(ex):(typeof ex==='string'?{name:ex}:ex);
-      const wkIdx=window._builderPeriodWeek||0;
-      const shown=(ex&&typeof ex==='object'&&typeof exerciseForPlanWeek==='function')?exerciseForPlanWeek(ex,plan,wkIdx):parsed;
-      const set=(f,v)=>{const el=row.querySelector('[data-f="'+f+'"]');if(el)el.value=v==null?'':v;};
-      set('name',shown.name||parsed.name||'');
-      set('sets',shown.sets||parsed.sets||'');
-      set('reps',shown.reps||parsed.reps||'');
-      set('kg',shown.kg||parsed.kg||'');
-      set('rpe',shown.rpe||parsed.rpe||'');
-      set('rir',shown.rir||parsed.rir||'');
-      set('rest',shown.rest||parsed.rest||'');
-      set('tempo',parsed.tempo||'');
-      set('alt',(ex&&typeof ex==='object'&&ex.alt)||parsed.alt||(typeof altsForExercise==='function'?altsForExercise(parsed.name).join(', '):''));
-      set('pct1rm',parsed.pct1rm||(ex&&typeof ex==='object'&&ex.pct1rm)||'');
-      set('ss',parsed.ss||(ex&&typeof ex==='object'&&ex.ss)||'');
-      set('emom',((ex&&typeof ex==='object'&&ex.emom)||parsed.emom)?'1':'');
-      set('note',parsed.note||(ex&&typeof ex==='object'&&(ex.note||ex.notes))||'');
-      set('video',parsed.video||(ex&&typeof ex==='object'&&ex.video)||'');
-      set('wu',parsed.wu||(ex&&typeof ex==='object'&&ex.wu)||'');
-      set('drop',parsed.drop||(ex&&typeof ex==='object'&&ex.drop)||'');
-      set('dropStep',(ex&&typeof ex==='object'&&ex.dropStep)||parsed.dropStep||'');
-      set('trans',(ex&&typeof ex==='object'&&(ex.trans||ex.transSec))||parsed.trans||'');
-      set('cluster',parsed.cluster||(ex&&typeof ex==='object'&&ex.cluster)||'');
-      set('rp',parsed.rp||(ex&&typeof ex==='object'&&ex.rp)||'');
-      set('amrap',((ex&&typeof ex==='object'&&ex.amrap)||parsed.amrap)?'1':'');
-      if(ex&&typeof ex==='object'){
-        const loads={};
-        (plan.weekKeys||[]).forEach(wk=>{if(ex[wk])loads[wk]=ex[wk];});
-        if(Object.keys(loads).length)row.dataset.weekLoads=JSON.stringify(loads);
-      }
-      if(typeof builderPreviewKg==='function')builderPreviewKg(row);
-      if(typeof builderApplyLoadUnit==='function')builderApplyLoadUnit(row);
-      if(typeof builderPaintEmom==='function')builderPaintEmom(row);
-      if(typeof builderPaintKinds==='function')builderPaintKinds(row);
-      if(typeof builderRefreshRowExtras==='function')builderRefreshRowExtras(row);
+      try{
+        addRow(dayEl.id);
+        const rows=dayEl.querySelectorAll('.ex-row');
+        const row=rows[rows.length-1];
+        if(!row)return;
+        const parsed=typeof parsePlanExercise==='function'?parsePlanExercise(ex):(typeof ex==='string'?{name:ex}:ex);
+        const wkIdx=window._builderPeriodWeek||0;
+        const shown=(ex&&typeof ex==='object'&&typeof exerciseForPlanWeek==='function')?exerciseForPlanWeek(ex,plan,wkIdx):parsed;
+        const set=(f,v)=>{const el=row.querySelector('[data-f="'+f+'"]');if(el)el.value=v==null?'':v;};
+        set('name',shown.name||parsed.name||'');
+        set('sets',shown.sets||parsed.sets||'');
+        set('reps',shown.reps||parsed.reps||'');
+        set('kg',shown.kg||parsed.kg||'');
+        set('rpe',shown.rpe||parsed.rpe||'');
+        set('rir',shown.rir||parsed.rir||'');
+        set('rest',shown.rest||parsed.rest||'');
+        set('tempo',parsed.tempo||'');
+        set('alt',(ex&&typeof ex==='object'&&ex.alt)||parsed.alt||(typeof altsForExercise==='function'?altsForExercise(parsed.name).join(', '):''));
+        set('pct1rm',parsed.pct1rm||(ex&&typeof ex==='object'&&ex.pct1rm)||'');
+        set('ss',parsed.ss||(ex&&typeof ex==='object'&&ex.ss)||'');
+        set('emom',((ex&&typeof ex==='object'&&ex.emom)||parsed.emom)?'1':'');
+        set('note',parsed.note||(ex&&typeof ex==='object'&&(ex.note||ex.notes))||'');
+        set('video',parsed.video||(ex&&typeof ex==='object'&&ex.video)||'');
+        set('wu',parsed.wu||(ex&&typeof ex==='object'&&ex.wu)||'');
+        set('drop',parsed.drop||(ex&&typeof ex==='object'&&ex.drop)||'');
+        set('dropStep',(ex&&typeof ex==='object'&&ex.dropStep)||parsed.dropStep||'');
+        set('trans',(ex&&typeof ex==='object'&&(ex.trans||ex.transSec))||parsed.trans||'');
+        set('cluster',parsed.cluster||(ex&&typeof ex==='object'&&ex.cluster)||'');
+        set('rp',parsed.rp||(ex&&typeof ex==='object'&&ex.rp)||'');
+        set('amrap',((ex&&typeof ex==='object'&&ex.amrap)||parsed.amrap)?'1':'');
+        if(ex&&typeof ex==='object'){
+          const loads={};
+          (plan.weekKeys||[]).forEach(wk=>{if(ex[wk])loads[wk]=ex[wk];});
+          if(Object.keys(loads).length)row.dataset.weekLoads=JSON.stringify(loads);
+        }
+        if(typeof builderPreviewKg==='function')builderPreviewKg(row);
+        if(typeof builderApplyLoadUnit==='function')builderApplyLoadUnit(row);
+        if(typeof builderPaintEmom==='function')builderPaintEmom(row);
+        if(typeof builderPaintKinds==='function')builderPaintKinds(row);
+        if(typeof builderRefreshRowExtras==='function')builderRefreshRowExtras(row);
+      }catch(e){console.warn('editPlan row',e);}
     });
     if(typeof builderPaintSs==='function')builderPaintSs(dayEl.querySelector('.ex-rows'));
     if(typeof builderPaintCircuitDay==='function')builderPaintCircuitDay(dayEl);
@@ -1979,6 +2019,20 @@ function editPlan(id){
   window._editingPlanId=id;
   updatePeriod();
 }
+function editPlanFromProfile(planId,clientId){
+  const plan=(window.PL||[]).find(p=>p&&p.id===planId);
+  if(!plan){if(typeof notify==='function')notify('Nie znaleziono planu');return;}
+  window._builderReturnClientId=clientId||plan.clientId||'';
+  window._builderReturnTab='plan';
+  window._builderBack='clients';
+  try{editPlan(planId);}
+  catch(e){
+    console.warn('editPlanFromProfile',e);
+    if(typeof notify==='function')notify('Nie udało się otworzyć kreatora');
+  }
+}
+window.editPlan=editPlan;
+window.editPlanFromProfile=editPlanFromProfile;
 
 async function savePlan(){
   if(window._saveGuard_savePlan)return;window._saveGuard_savePlan=true;setTimeout(()=>window._saveGuard_savePlan=false,1500);
@@ -2050,9 +2104,11 @@ async function savePlan(){
     if(idx>=0){
       PL[idx]={...PL[idx],name,method:document.getElementById('b-method').value,duration:document.getElementById('b-duration').value,progression,clientId:cid,clientName:c?c.name:'',level:c?c.level:PL[idx].level,goal:c?c.goal:PL[idx].goal,days,updatedAt:new Date().toISOString(),...weekMeta};
       window._editingPlanId=null;
-      goTo('plans');notify('Plan zaktualizowany!');
+      notify('Plan zaktualizowany!');
       await persistById('plans',PL[idx]);
       if(cid&&typeof maybeSchedulePlanToCalendar==='function')maybeSchedulePlanToCalendar(PL[idx].id,{weeks:calWeeks,confirmMsg:'Zaktualizować kalendarz — dodać sesje z planu na '+calWeeks+' tyg.?'});
+      if(typeof builderLeaveToCaller==='function')builderLeaveToCaller({saved:true});
+      else goTo('plans');
       return;
     }
   }

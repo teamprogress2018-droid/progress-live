@@ -20,10 +20,11 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 08 v50', html.includes('08-client-profile-extras.js?v=59'));
+ok('cache 08 v50', html.includes('08-client-profile-extras.js?v=60'));
 ok('ci unit', wf.includes('test_fitebo_continue.js'));
 ok('ci ui', wf.includes('test_fitebo_continue_ui.js'));
 ok('plan tab CTA', planTab.includes('cpContinueFiteboPlan') && planTab.includes('Kontynuuj plan z Fitebo') && planTab.includes('showContinueFitebo'));
+ok('plan tab edit from profile', planTab.includes('editPlanFromProfile') && planTab.includes('type="button"') && !/editPlan\('\$\{p\.id\}'\);closeClientProfile/.test(planTab));
 ok('week switcher in plan tab', /cpSetPlanWeek/.test(planTab) && /cpExWeekView/.test(planTab));
 ok('no AI generate on continue', !/aplGenerate\(\)/.test(src08.slice(src08.indexOf('async function cpContinueFiteboPlan'), src08.indexOf('window.fbNormName'))));
 ok('copy builder', /function buildFiteboContinuationPlan/.test(src08));
