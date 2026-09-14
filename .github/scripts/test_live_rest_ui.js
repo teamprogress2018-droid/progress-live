@@ -42,6 +42,7 @@ function ok(name, cond, extra) {
   ok('has 30s preset', presets.includes('30s'), JSON.stringify(presets));
   ok('has 40s HIIT preset', presets.includes('40s'), JSON.stringify(presets));
   ok('keeps 60s', presets.includes('60s'));
+  ok('rest go is Przerwa', presets.includes('Przerwa') && !presets.includes('Start'), JSON.stringify(presets));
   ok('custom field present', await page.locator('#live-rest-custom').count() === 1);
 
   await page.click('.live-rest-preset:text("30s")');

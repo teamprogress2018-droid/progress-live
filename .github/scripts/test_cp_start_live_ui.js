@@ -138,6 +138,7 @@ function ok(name, cond, extra) {
   await page.click('#cp-drawer button:has-text("Wiadomość")');
   await page.waitForSelector('#screen-inbox.active');
   await page.waitForFunction(() => /Radosław/.test((document.getElementById('msg-to') || {}).textContent || ''));
+  await page.waitForTimeout(400);
   const inbox = await page.evaluate(() => ({
     to: (document.getElementById('msg-to') || {}).textContent || '',
     drawerOpen: !!document.getElementById('cp-drawer')?.classList.contains('open')
