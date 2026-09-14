@@ -8,8 +8,8 @@ Stack: **vanilla JS + Firestore + GitHub Pages** (nie React/Next/Tailwind). Stan
 
 | Brak | Dlaczego | Gdzie |
 |---|---|---|
-| E-mail jako identyfikator auth | Modal „Nowy klient” nie wymagał maila; wizard onboardingu tak. Klient bez maila nie zaloguje się do apki. | `saveClient` w `05-…js`, `#ac-email` |
-| Jednolity pipeline onboardingu | Dwa wejścia (modal vs wizard) rozjeżdżały się: ankieta / plan / kalendarz / webhook. | `assignClientPipeline` w `01-core.js` |
+| E-mail jako identyfikator auth | **Zrobione:** `#ac-email` wymagany w modalu NOWY KLIENT. Wizard usunięty. | `saveClient` w `05-…js` |
+| Jednolity pipeline onboardingu | **Zrobione:** jedno wejście `saveClient` + checklista `CLIENT_ONBOARD_STEPS`. Wizard `onbCreateClient` usunięty. | `assignClientPipeline` w `01-core.js` |
 | Cykl życia na liście | Była aktywność (dni od sesji), brak statusu pakietu / onboardingu / braku maila. | `clientLifecycleStatus` |
 | TDEE → karta klienta bez czatu | „Wyślij do klienta” zapisywało makro *i* pisało na czat. Brak „Zapisz w profilu”. | `calcSaveToClient` / `applyMacrosToClient` |
 | Szyna zdarzeń | `fireIntEvent` szło tylko na Zapier/Make. Brak lokalnego busa (`client.created`, `macros.saved`). | `emitAppEvent` |
@@ -28,7 +28,7 @@ Stack: **vanilla JS + Firestore + GitHub Pages** (nie React/Next/Tailwind). Stan
 | Stare follow-upy dashboardu (`dash-checkin-followup` itd.) | **Zrobione:** HTML usunięty. Helpery (check-in, HW, nawyki, zdjęcia) zostają; odświeżanie idzie przez `refreshDashOps` → siatka operacyjna. |
 | `clientHasPackage` po `clientName` | **Zrobione:** tylko `clientId`. |
 | Osobna kopia „Dzisiejszy plan” jako drugi kalendarz | Zostaje skrót z CTA „Kalendarz →”. Nie usuwać — to *dziś*, nie miesiąc. Kalendarz: „Ten tydzień” + „Nadchodzące” = ten sam `SE`. |
-| Kafelki flow onboardingu jako drugi kreator wiadomości | Nie usuwać od razu — owinąć w `emitAppEvent('client.created')` (zrobione) i stopniowo spiąć z Autoflow. |
+| Kafelki flow onboardingu jako drugi kreator wiadomości | **Zrobione:** kafelki to etykiety (`onbUseFlow`); auto-wiadomość z Automatyzacji (`ONBOARDING_FLOW`). Ustawienia startu = legenda 6 kroków, nie checkboxy `msgSteps`. |
 
 Nawigacja: Kalkulator / KB / Integracje **już** były pod **Więcej** (nie w primary). Teraz pogrupowane: Oferta / Biznes / Narzędzia / Konto.
 
@@ -43,7 +43,7 @@ SE (sesje)             →  Dashboard „Dzisiejszy plan”, Kalendarz, Live, pr
 CHECKINS + getCIStatus →  Uwaga, Przypomnienia (było), dzwonek generateAutoNotifs, ekran Check-in
 PACKAGES.expiresDate   →  KPI dashboard, Płatności, dzwonek, onboard „pakiet”
 MSGS nieprzeczytane    →  badge Wiadomości + czasem Uwaga (brak odpowiedzi)
-ONBOARDING_FLOW        →  Autoflow trigger new_client + checklista CLIENT_ONBOARD_STEPS + ONB_FLOWS (wizard)
+ONBOARDING_FLOW        →  Autoflow trigger new_client + checklista CLIENT_ONBOARD_STEPS + ONB_FLOWS (warianty / etykiety)
 clientName             →  plans, packages, invoices, historia onboardingu (cache; rename nie przepisuje)
 ```
 
@@ -78,7 +78,7 @@ Nie ma crona. „Wymagają uwagi” było **synchronicznym skanem wszystkich kli
 5. kalendarz `maybeSchedulePlanToCalendar` gdy brak `SE`
 6. `emitAppEvent('client.created')` (+ webhook Integracji)
 
-Wejścia: `saveClient` (modal) i `onbCreateClient` (wizard).
+Wejścia: `saveClient` (modal NOWY KLIENT). Checklista: `openClientOnboardChecklist`. Wizard `onbCreateClient` usunięty.
 
 ---
 
@@ -108,7 +108,7 @@ Wejścia: `saveClient` (modal) i `onbCreateClient` (wizard).
 |---|---|
 | `01-core.js` | Pipeline, e-mail, lifecycle, `emitAppEvent` — **zrobione** |
 | `05-clients-builder-plans-calendar.js` | `saveClient` + lista lifecycle — **zrobione** |
-| `02-…-live.js` | Wizard → pipeline; Live draft LS + IDB + Firestore `live-draft` — **zrobione** |
+| `02-…-live.js` | Wizard usunięty; Ustawienia = legenda 6 kroków + CTA Automatyzacja; Live draft LS + IDB + Firestore `live-draft` — **zrobione** |
 | `04-client-portal.js` | `collectOpsEvents` + `refreshDashOps` (bez martwych follow-upów) — **zrobione** |
 | `07-forms-metrics-calculator.js` | TDEE save — **zrobione** |
 | `09-posture-kb-invites-private.js` | `runOnboardingForClient(opts)`; Autoflow na `emitAppEvent` (`package.expired`, `checkin.submitted`) — **zrobione** |
@@ -135,3 +135,4 @@ Wejścia: `saveClient` (modal) i `onbCreateClient` (wizard).
 11. **Pakiety tylko po `clientId`** — **zrobione:** `packagesForClient` (profil Płatności, raport). Koniec `|| clientName` — to samo imię nie podpina cudzego pakietu.
 13. **KB → AI: notatki + badania** — **zrobione:** Generator bierze notatki i źródła (oraz zasady). Wpis z wyłączonym planowaniem zostaje tylko w bazie — bez wycieku „pozostałych notatek”.
 12. **Płatności: filtry po `clientId`** — **zrobione:** chipy Pakietów i select Historii (`payClientsFromPackages`). To samo imię = dwa chipy / dwie opcje, nie jedna wspólna lista.
+14. **Ustawienia startu współpracy** — **zrobione:** legenda `CLIENT_ONBOARD_STEPS` (6/6), bez checkboxów `msgSteps`. Auto-wiadomość = Automatyzacja. Przypomnienia i kontrakt zostają jako notatki — aplikacja ich nie wysyła.
