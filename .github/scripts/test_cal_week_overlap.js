@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 'use strict';
-/** Widok tygodnia: zachodzące sesje w kolumnach obok siebie. */
+/** Widok tygodnia: karty w komórkach godzin, jedna pod drugą jak w miesiącu. */
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -19,43 +19,32 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 05 v48', html.includes('05-clients-builder-plans-calendar.js?v=66'));
-ok('cache styles v74', html.includes('styles.css?v=82'));
+ok('cache 05 v67', html.includes('05-clients-builder-plans-calendar.js?v=67'));
+ok('cache styles v83', html.includes('styles.css?v=83'));
 ok('ci unit', wf.includes('test_cal_week_overlap.js'));
 ok('ci ui', wf.includes('test_cal_week_overlap_ui.js'));
-ok('layout helper', /function calWeekOverlapLayout/.test(cal) && /function calSessionStartMin/.test(cal));
-ok('week uses day lanes', /cal-week-day-lane/.test(cal) && /data-cal-sess/.test(cal));
-ok('week not hour-cell stacking', !/cellSessions=SE\.filter/.test(cal));
-ok('css day lane', /\.cal-week-day-lane/.test(css) && /pointer-events:\s*none/.test(css));
+ok('layout helper', /function calWeekHourBucket/.test(cal) && /function calSessionStartMin/.test(cal));
+ok('week chips in hour cells', /data-cal-hour/.test(cal) && /calWeekSessChip/.test(cal) && /data-cal-sess/.test(cal));
+ok('no overlap lanes', !/cal-week-day-lane/.test(cal) && !/calWeekOverlapLayout/.test(cal));
+ok('css hour cells grow', /grid-auto-rows:minmax\(60px,auto\)/.test(css) && /flex-direction:\s*column/.test(css));
+ok('css chips in flow', /\.cal-session-block\{[^}]*position:relative/.test(css));
 
 const start = cal.indexOf('function calSessionStartMin');
 const end = cal.indexOf('function renderCalWeek');
 ok('extract layout', start >= 0 && end > start);
-const ctx = vm.createContext({ window: {}, String, Math, isFinite, parseInt });
+const ctx = vm.createContext({
+  window: {},
+  String, Math, isFinite, parseInt,
+  CAL_WEEK_H0: 6,
+  CAL_WEEK_H1: 23
+});
 vm.runInContext(cal.slice(start, end), ctx);
 
-const a = { id: 'a', time: '08:00', duration: 60 };
-const b = { id: 'b', time: '08:59', duration: 60 };
-const c = { id: 'c', time: '09:00', duration: 60 };
-const chain = ctx.calWeekOverlapLayout([a, b, c]);
-const byId = Object.fromEntries(chain.map(x => [x.s.id, x]));
-ok('chain cols=2', chain.every(x => x.cols === 2), JSON.stringify(chain.map(x => ({ id: x.s.id, col: x.col, cols: x.cols }))));
-ok('a and c share a column', byId.a.col === byId.c.col && byId.a.col !== byId.b.col);
-ok('b in other column', byId.b.col !== byId.a.col);
-
-const same = ctx.calWeekOverlapLayout([
-  { id: 'm', time: '08:00', duration: 60 },
-  { id: 'o', time: '08:00', duration: 60 },
-  { id: 'ad', time: '08:00', duration: 60 }
-]);
-ok('same-slot 3 columns', same.length === 3 && same.every(x => x.cols === 3));
-ok('same-slot unique cols', new Set(same.map(x => x.col)).size === 3);
-
-const apart = ctx.calWeekOverlapLayout([
-  { id: 'x', time: '08:00', duration: 60 },
-  { id: 'y', time: '10:00', duration: 60 }
-]);
-ok('non-overlap single col', apart.every(x => x.cols === 1 && x.col === 0));
+ok('08:00 bucket', ctx.calWeekHourBucket({ time: '08:00' }, 6, 23) === 8);
+ok('08:59 stays in 8', ctx.calWeekHourBucket({ time: '08:59' }, 6, 23) === 8);
+ok('12:00 bucket', ctx.calWeekHourBucket({ time: '12:00' }, 6, 23) === 12);
+ok('before grid clamps to h0', ctx.calWeekHourBucket({ time: '05:00' }, 6, 23) === 6);
+ok('after grid clamps to last hour', ctx.calWeekHourBucket({ time: '23:30' }, 6, 23) === 22);
 ok('start min 8:59', ctx.calSessionStartMin({ time: '08:59' }) === 8 * 60 + 59);
 ok('end default 60', ctx.calSessionEndMin({ time: '08:00' }) === 9 * 60);
 
@@ -63,4 +52,4 @@ if (failed) {
   console.error('\n' + failed + ' failed');
   process.exit(1);
 }
-console.log('\nAll cal-week-overlap tests passed');
+console.log('\nAll cal-week-hours tests passed');
