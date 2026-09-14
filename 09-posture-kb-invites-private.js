@@ -182,9 +182,10 @@ function cpOpenSession(){
 
 function cpQuickMessage(){
   if(!cpClientId)return;
+  const cid=cpClientId;
   closeClientProfile();
   goTo('inbox');
-  setTimeout(()=>{if(typeof openChat==='function')openChat(cpClientId);},200);
+  if(typeof openChat==='function')openChat(cid);
 }
 
 function cpQuickCheckin(){
