@@ -21,9 +21,9 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=103'));
+ok('cache 01', html.includes('01-core.js?v=104'));
 ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=68'));
-ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=65'));
+ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=66'));
 ok('cache 10', html.includes('10-client-app.js?v=39'));
 ok('cache styles', html.includes('styles.css?v=82'));
 ok('live period card', html.includes('id="live-period-card"') && html.includes('id="live-b-period-card"'));

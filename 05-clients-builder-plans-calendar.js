@@ -2813,10 +2813,12 @@ function calJumpTo(ds){
 }
 
 function quickAddSession(date,time){
-  asSetClientField('','');
-  document.getElementById('as-date').value=date;
-  document.getElementById('as-time').value=time;
   openM('m-session');
+  asSetClientField('','');
+  const d=document.getElementById('as-date');
+  const t=document.getElementById('as-time');
+  if(d)d.value=date;
+  if(t)t.value=time;
 }
 
 function openSessDetail(id){
@@ -2833,8 +2835,19 @@ function editSession(id){
   asSetClientField(s.clientId||'',c?c.name:'');
   document.getElementById('as-date').value=s.date;
   document.getElementById('as-time').value=s.time||'';
-  document.getElementById('as-type').value=s.type||'';
+  const typeEl=document.getElementById('as-type');
+  if(typeEl){
+    const ty=s.type||'';
+    if(ty&&![...typeEl.options].some(o=>o.value===ty)){
+      const opt=document.createElement('option');
+      opt.value=ty;opt.textContent=ty;
+      typeEl.appendChild(opt);
+    }
+    typeEl.value=ty;
+  }
   document.getElementById('as-notes').value=s.notes||'';
+  const durEl=document.getElementById('as-duration');
+  if(durEl)durEl.value=s.duration||60;
   const del=document.getElementById('as-del-btn');
   if(del)del.style.display='';
   const titleEl=document.querySelector('#m-session .modal-title');
@@ -2984,14 +2997,34 @@ async function saveSess(){
   const type=document.getElementById('as-type').value;
   const notes=document.getElementById('as-notes').value;
   const duration=parseInt(document.getElementById('as-duration').value)||60;
+  if(!cid){notify('Wybierz klienta!');return;}
   if(!date||!time){notify('Uzupełnij datę i godzinę!');return;}
+  const editId=window._editingSessionId;
+  const existing=editId&&(window.SE||[]).find(x=>x&&x.id===editId);
+  const refresh=()=>{
+    try{renderCal();}catch(e){}
+    try{renderDash();}catch(e){}
+    if(typeof cpClientId!=='undefined'&&cpClientId===cid){try{setCPTab(cpTab);}catch(e){}}
+  };
+  if(existing){
+    existing.clientId=cid;
+    existing.date=date;
+    existing.time=time;
+    existing.type=type;
+    existing.notes=notes;
+    existing.duration=duration;
+    existing.updatedAt=new Date().toISOString();
+    closeM('m-session');
+    window._editingSessionId=null;
+    refresh();
+    notify('Sesja zapisana!');
+    await persistById('sessions',existing);
+    return;
+  }
   const sess=withTrainer({id:newId('s'),clientId:cid,date,time,type,notes,duration,createdAt:new Date().toISOString()});
   SE.push(sess);
   closeM('m-session');
-  try{renderCal();}catch(e){}
-  try{renderDash();}catch(e){}
-  // odśwież profil klienta jeśli otwarty
-  if(cpClientId&&cpClientId===cid){try{setCPTab(cpTab);}catch(e){}}
+  refresh();
   notify('Sesja dodana!');
   await persistById('sessions',sess);
   if(typeof fireIntEvent==='function'){
