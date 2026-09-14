@@ -404,6 +404,8 @@ jobs:
         run: node .github/scripts/test_pay_hist_id_ui.js
       - name: 6b3c2b3. Testy UI checklisty startu współpracy
         run: node .github/scripts/test_onboard_flow_ui.js
+      - name: 6b3c2b2. Testy UI UX startu (ankieta / Live / HW / WhatsApp)
+        run: node .github/scripts/test_onboard_ux_fixes_ui.js
       - name: 6b3c2c. Testy UI szkicu Live (live-draft)
         run: node .github/scripts/test_live_draft_ui.js
       - name: 6b3c2d. Testy UI Autoflow (pakiet / check-in)
