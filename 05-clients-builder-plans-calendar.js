@@ -1693,14 +1693,79 @@ function builderBaseKg(row){
   const w=weightFromPct1RM(cid,name,pct);
   return parseFloat(w.kg)||0;
 }
+function builderEditingPlan(){
+  const id=window._editingPlanId;
+  return id&&(window.PL||[]).find(p=>p&&p.id===id)||null;
+}
+function builderPeriodSchedule(client){
+  const plan=builderEditingPlan();
+  const c=client||{};
+  const dur=parseInt((document.getElementById('b-duration')||{}).value,10)||0;
+  if(plan&&Array.isArray(plan.weekKeys)&&plan.weekKeys.length){
+    if(typeof planPhaseSchedule==='function')return planPhaseSchedule(plan,c);
+  }
+  if(plan&&typeof isFiteboLikePlan==='function'&&isFiteboLikePlan(plan)&&typeof fiteboContinuePhases==='function'){
+    const n=Math.max(4,Math.min(12,dur||parseInt(plan.duration,10)||8));
+    const keys=['w1','w2','w3','w4','w5','w6','w7','w8','w9','w10','w11','w12'].slice(0,n);
+    const phases=fiteboContinuePhases(n,keys);
+    return keys.map((wk,i)=>{
+      const cel=phases[wk]||('Tydzień '+(i+1));
+      const rpe=typeof planPhaseRpe==='function'?planPhaseRpe(cel):'8';
+      return{nr:i+1,key:wk,cel,rpe:'RPE '+rpe};
+    });
+  }
+  return getPeriod(c.level||'sredni');
+}
+window.builderPeriodSchedule=builderPeriodSchedule;
+function builderWeekMetaForSave(prev,dur){
+  const n=Math.max(4,Math.min(12,parseInt(dur,10)||8));
+  const fromPrev=prev&&Array.isArray(prev.weekKeys)&&prev.weekKeys.length;
+  const fitebo=prev&&(prev.source==='fitebo-continue'||prev.fromFitebo||prev.source==='fitebo');
+  if(!fromPrev&&!fitebo)return {};
+  const weekKeys=['w1','w2','w3','w4','w5','w6','w7','w8','w9','w10','w11','w12'].slice(0,n);
+  const phases=fitebo&&typeof fiteboContinuePhases==='function'
+    ? fiteboContinuePhases(n,weekKeys)
+    : Object.assign({},prev&&prev.phases||{});
+  const idx=window._builderPeriodWeek||0;
+  const out={weekKeys,phases,currentWeek:weekKeys[idx]||(prev&&prev.currentWeek)||weekKeys[0]};
+  if(prev&&prev.source)out.source=prev.source;
+  if(prev&&prev.fromFitebo)out.fromFitebo=true;
+  if(prev&&prev.continueFromWeek)out.continueFromWeek=prev.continueFromWeek;
+  return out;
+}
+window.builderWeekMetaForSave=builderWeekMetaForSave;
+function builderRowWeekLoads(row){
+  if(!row||!row.dataset.weekLoads)return null;
+  try{return JSON.parse(row.dataset.weekLoads);}catch(e){return null;}
+}
+function builderApplyWeekLoad(row,load){
+  if(!row||!load)return;
+  const set=(f,v)=>{const el=row.querySelector('[data-f="'+f+'"]');if(el&&v!=null&&v!=='')el.value=String(v);};
+  if(load.s!=null)set('sets',load.s);
+  if(load.r!=null)set('reps',load.r);
+  if(load.kg!=null&&load.kg!=='')set('kg',load.kg);
+  if(load.rpe!=null)set('rpe',load.rpe);
+  if(load.rest)set('rest',load.rest);
+  if(load.rir!=null)set('rir',load.rir);
+}
 function builderRefreshPeriodPreview(){
   const idx=window._builderPeriodWeek||0;
   const cid=(document.getElementById('b-client')||{}).value||'';
   const c=CL.find(x=>x.id===cid)||{};
+  const sch=builderPeriodSchedule(c);
+  const key=sch[idx]&&sch[idx].key;
   const mod=builderWeekModel(c.level||'sredni',idx);
   document.querySelectorAll('#builder-days .ex-row').forEach(row=>{
     const box=row.querySelector('.builder-period-preview');
-    if(idx>0){
+    const loads=builderRowWeekLoads(row);
+    if(loads&&key&&loads[key]){
+      builderApplyWeekLoad(row,loads[key]);
+      if(box){
+        box.style.display='block';
+        const w=sch[idx]||{};
+        box.innerHTML=`<div style="margin-top:8px;padding:8px 10px;border-radius:8px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.18);font-size:10px;color:var(--muted);line-height:1.5;font-family:var(--font-ui);">📈 Tydzień ${idx+1} — ${w.cel||''} · ${loads[key].s||''}×${loads[key].r||''}${loads[key].kg?' @'+loads[key].kg+' kg':''} · RPE ${loads[key].rpe||''}</div>`;
+      }
+    }else if(idx>0){
       builderCapturePeriodBase(row);
       const pv=builderWeekPreviewData(row,mod,idx);
       const set=(f,v)=>{const el=row.querySelector('[data-f="'+f+'"]');if(el)el.value=v==null||v===''?'':String(v);};
@@ -1731,7 +1796,7 @@ function builderRefreshPeriodPreview(){
     }
     ['sets','reps','kg','rpe','rir'].forEach(f=>{
       const input=row.querySelector('[data-f="'+f+'"]');
-      if(input)input.classList.toggle('period-preview-on',idx>0);
+      if(input)input.classList.toggle('period-preview-on',idx>0&&!(loads&&key&&loads[key]));
     });
   });
 }
@@ -1745,7 +1810,7 @@ function updatePeriod(){
   const cid=document.getElementById('b-client').value;const c=CL.find(x=>x.id===cid);
   const el=document.getElementById('period-sched');
   if(!c){el.innerHTML='<div style="font-size:11px;color:var(--muted);">Wybierz klienta</div>';return;}
-  const sch=getPeriod(c.level||'sredni');
+  const sch=builderPeriodSchedule(c);
   const rms=typeof officialLift1RMs==='function'?officialLift1RMs(c.id):{};
   const fmt=(v)=>v!=null?v+' kg':'—';
   const rmBar=`<div style="font-size:11px;color:var(--text);margin-bottom:10px;line-height:1.55;padding:8px 10px;background:var(--s3);border:1px solid var(--border);border-radius:8px;">
@@ -1759,7 +1824,11 @@ function updatePeriod(){
     ${sportLbl}
   </div>`:'';
   const activeIdx=window._builderPeriodWeek||0;
-  el.innerHTML=sportBar+rmBar+`<div class="ui-section-sub" style="margin-bottom:12px;">Kliknij tydzień, aby podejrzeć serie, powtórzenia, kg, <b>RPE</b> i <b>RIR</b> w wierszach ćwiczeń.</div>`+sch.map((w,i)=>`<button type="button" class="period-row${activeIdx===i?' active':''}" onclick="builderSelectPeriodWeek(${i})"><div class="period-row-week" style="color:${w.cel.includes('DELOAD')?'var(--orange)':w.nr===1?'var(--accent)':'var(--blue)'};">Tydz. ${w.nr}</div><div style="min-width:0;flex:1;"><div class="period-row-title">${w.cel}</div><div class="period-row-sub">${w.rpe}</div></div></button>`).join('')+(activeIdx>0?`<button type="button" class="btn btn-primary btn-sm" style="width:100%;margin-top:12px;" onclick="builderApplyPeriodWeek()">Użyj wartości z tygodnia ${activeIdx+1} w formularzu</button>`:'');
+  const n=sch.length;
+  if(activeIdx>=n)window._builderPeriodWeek=Math.max(0,n-1);
+  const idx=window._builderPeriodWeek||0;
+  const hasKeys=sch.some(w=>w&&w.key);
+  el.innerHTML=sportBar+rmBar+`<div class="ui-section-sub" style="margin-bottom:12px;">Kliknij tydzień, aby podejrzeć serie, powtórzenia, kg, <b>RPE</b> i <b>RIR</b> w wierszach ćwiczeń.${n>4?` Ten plan ma <b>${n} tygodni</b>.`:''}</div>`+sch.map((w,i)=>`<button type="button" class="period-row${idx===i?' active':''}" onclick="builderSelectPeriodWeek(${i})"><div class="period-row-week" style="color:${/deload/i.test(w.cel)?'var(--orange)':w.nr===1?'var(--accent)':'var(--blue)'};">Tydz. ${w.nr}</div><div style="min-width:0;flex:1;"><div class="period-row-title">${w.cel}</div><div class="period-row-sub">${w.rpe}${w.rir?' · RIR '+w.rir:''}</div></div></button>`).join('')+(idx>0&&!hasKeys?`<button type="button" class="btn btn-primary btn-sm" style="width:100%;margin-top:12px;" onclick="builderApplyPeriodWeek()">Użyj wartości z tygodnia ${idx+1} w formularzu</button>`:'');
   document.querySelectorAll('#builder-days .ex-row').forEach(r=>{if(typeof builderPreviewKg==='function')builderPreviewKg(r);});
   builderRefreshPeriodPreview();
   builderRefreshRationale();
@@ -1801,15 +1870,19 @@ function editPlan(id){
   if(!plan){notify('Nie znaleziono planu');return;}
   window._builderBack='plans';
   goTo('builder'); // initBuilder() czyści formularz i resetuje _editingPlanId
+  window._editingPlanId=id;
   document.getElementById('b-name').value=plan.name||'';
   const clientSel=document.getElementById('b-client');
   if(clientSel)clientSel.value=plan.clientId||'';
   const methodSel=document.getElementById('b-method');
   if(methodSel)methodSel.value=plan.method||methodSel.value;
   const durInp=document.getElementById('b-duration');
-  if(durInp)durInp.value=plan.duration||'';
+  if(durInp)durInp.value=plan.duration||(plan.weekKeys&&plan.weekKeys.length)||'';
   const progSel=document.getElementById('b-progression');
   if(progSel)progSel.value=typeof normalizePlanProgression==='function'?normalizePlanProgression(plan.progression||plan.progressionType):'double';
+  const keys=plan.weekKeys||[];
+  const cur=plan.currentWeek&&keys.length?keys.indexOf(plan.currentWeek):0;
+  window._builderPeriodWeek=cur>=0?cur:0;
   updatePeriod();
   (plan.days||[]).forEach(d=>{
     addDay();
@@ -1834,14 +1907,16 @@ function editPlan(id){
       const rows=dayEl.querySelectorAll('.ex-row');
       const row=rows[rows.length-1];
       const parsed=typeof parsePlanExercise==='function'?parsePlanExercise(ex):(typeof ex==='string'?{name:ex}:ex);
+      const wkIdx=window._builderPeriodWeek||0;
+      const shown=(ex&&typeof ex==='object'&&typeof exerciseForPlanWeek==='function')?exerciseForPlanWeek(ex,plan,wkIdx):parsed;
       const set=(f,v)=>{const el=row.querySelector('[data-f="'+f+'"]');if(el)el.value=v==null?'':v;};
-      set('name',parsed.name||'');
-      set('sets',parsed.sets||'');
-      set('reps',parsed.reps||'');
-      set('kg',parsed.kg||'');
-      set('rpe',parsed.rpe||'');
-      set('rir',parsed.rir||'');
-      set('rest',parsed.rest||'');
+      set('name',shown.name||parsed.name||'');
+      set('sets',shown.sets||parsed.sets||'');
+      set('reps',shown.reps||parsed.reps||'');
+      set('kg',shown.kg||parsed.kg||'');
+      set('rpe',shown.rpe||parsed.rpe||'');
+      set('rir',shown.rir||parsed.rir||'');
+      set('rest',shown.rest||parsed.rest||'');
       set('tempo',parsed.tempo||'');
       set('alt',(ex&&typeof ex==='object'&&ex.alt)||parsed.alt||(typeof altsForExercise==='function'?altsForExercise(parsed.name).join(', '):''));
       set('pct1rm',parsed.pct1rm||(ex&&typeof ex==='object'&&ex.pct1rm)||'');
@@ -1856,6 +1931,11 @@ function editPlan(id){
       set('cluster',parsed.cluster||(ex&&typeof ex==='object'&&ex.cluster)||'');
       set('rp',parsed.rp||(ex&&typeof ex==='object'&&ex.rp)||'');
       set('amrap',((ex&&typeof ex==='object'&&ex.amrap)||parsed.amrap)?'1':'');
+      if(ex&&typeof ex==='object'){
+        const loads={};
+        (plan.weekKeys||[]).forEach(wk=>{if(ex[wk])loads[wk]=ex[wk];});
+        if(Object.keys(loads).length)row.dataset.weekLoads=JSON.stringify(loads);
+      }
       if(typeof builderPreviewKg==='function')builderPreviewKg(row);
       if(typeof builderApplyLoadUnit==='function')builderApplyLoadUnit(row);
       if(typeof builderPaintEmom==='function')builderPaintEmom(row);
@@ -1868,6 +1948,7 @@ function editPlan(id){
   const titleEl=document.querySelector('#screen-builder .topbar-title');
   if(titleEl)titleEl.textContent='Edytuj plan: '+(plan.name||'');
   window._editingPlanId=id;
+  updatePeriod();
 }
 
 async function savePlan(){
@@ -1877,6 +1958,10 @@ async function savePlan(){
   if(!name){notify('Wpisz nazwę planu!');return;}
   const cid=document.getElementById('b-client').value;
   const c=CL.find(x=>x.id===cid);
+  const editingId=window._editingPlanId;
+  const prev=editingId?(window.PL||[]).find(p=>p.id===editingId):null;
+  const dur=parseInt((document.getElementById('b-duration')||{}).value,10)||4;
+  const weekMeta=builderWeekMetaForSave(prev,dur);
   const days=[];
   document.querySelectorAll('.builder-day').forEach(de=>{
     const inps=de.querySelectorAll('.builder-day-hdr select, .builder-day-hdr input[type=text]');
@@ -1890,7 +1975,7 @@ async function savePlan(){
       const setN=g('sets')||'3';
       const alt=g('alt').trim()||(typeof altsForExercise==='function'?altsForExercise(n).join(', '):'');
       const pct=typeof parsePct1RM==='function'?parsePct1RM(g('pct1rm')):'';
-      exercises.push({
+      const ex={
         name:n,
         sets:setN,
         reps:g('reps')||'10',
@@ -1913,7 +1998,13 @@ async function savePlan(){
         cluster:g('ss')?0:(typeof parseSetKindCount==='function'?parseSetKindCount(g('cluster'),3):(parseInt(g('cluster'),10)||0)),
         rp:g('ss')?0:(typeof parseSetKindCount==='function'?parseSetKindCount(g('rp'),2):(parseInt(g('rp'),10)||0)),
         amrap:g('amrap')==='1'
-      });
+      };
+      const loads=builderRowWeekLoads(r);
+      (weekMeta.weekKeys||[]).forEach(wk=>{if(loads&&loads[wk])ex[wk]=loads[wk];});
+      if(weekMeta.currentWeek){
+        ex[weekMeta.currentWeek]={s:setN,r:g('reps')||'10',kg:g('kg'),rest:g('rest')||'90s',rpe:g('rpe'),rir:g('rir')};
+      }
+      exercises.push(ex);
       sets+=parseInt(setN,10)||3;
     });
     if(typeof applySsLabels==='function'){
@@ -1924,15 +2015,15 @@ async function savePlan(){
   });
   if(!days.length){notify('Dodaj przynajmniej jeden dzień!');return;}
   const progression=typeof normalizePlanProgression==='function'?normalizePlanProgression((document.getElementById('b-progression')||{}).value):'double';
-  const editingId=window._editingPlanId;
+  const calWeeks=dur>=8?dur:4;
   if(editingId){
     const idx=PL.findIndex(p=>p.id===editingId);
     if(idx>=0){
-      PL[idx]={...PL[idx],name,method:document.getElementById('b-method').value,duration:document.getElementById('b-duration').value,progression,clientId:cid,clientName:c?c.name:'',level:c?c.level:PL[idx].level,goal:c?c.goal:PL[idx].goal,days,updatedAt:new Date().toISOString()};
+      PL[idx]={...PL[idx],name,method:document.getElementById('b-method').value,duration:document.getElementById('b-duration').value,progression,clientId:cid,clientName:c?c.name:'',level:c?c.level:PL[idx].level,goal:c?c.goal:PL[idx].goal,days,updatedAt:new Date().toISOString(),...weekMeta};
       window._editingPlanId=null;
       goTo('plans');notify('Plan zaktualizowany!');
       await persistById('plans',PL[idx]);
-      if(cid&&typeof maybeSchedulePlanToCalendar==='function')maybeSchedulePlanToCalendar(PL[idx].id,{weeks:4,confirmMsg:'Zaktualizować kalendarz — dodać sesje z planu na 4 tyg.?'});
+      if(cid&&typeof maybeSchedulePlanToCalendar==='function')maybeSchedulePlanToCalendar(PL[idx].id,{weeks:calWeeks,confirmMsg:'Zaktualizować kalendarz — dodać sesje z planu na '+calWeeks+' tyg.?'});
       return;
     }
   }

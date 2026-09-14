@@ -51,15 +51,15 @@ function ok(name, cond, extra) {
       fromFitebo: true,
       duration: 4,
       days: [
-        { day: 'Push', muscles: 'Klatka', exercises: [{ name: 'Wyciskanie hantli', sets: '4', reps: '4-6', kg: '22.5' }] },
-        { day: 'Pull', muscles: 'Plecy', exercises: [{ name: 'Ściąganie drążka', sets: '4', reps: '6-8', kg: '50' }] },
-        { day: 'Legs', muscles: 'Nogi', exercises: [{ name: 'Hack squat', sets: '4', reps: '6-8', kg: '60' }] }
+        { day: 'Push', muscles: 'Klatka', exercises: [{ name: 'Wyciskanie hantli', sets: '3', reps: '12', kg: '24.5' }] },
+        { day: 'Pull', muscles: 'Plecy', exercises: [{ name: 'Ściąganie drążka', sets: '3', reps: '12', kg: '50' }] },
+        { day: 'Legs', muscles: 'Nogi', exercises: [{ name: 'Hack squat', sets: '3', reps: '12', kg: '60' }] }
       ]
     }];
     window.SE = [{
       id: 's-fb', clientId: 'c-rad', date: '2026-09-08', type: 'Push', source: 'fitebo',
       notes: 'Zaimportowano z Fitebo',
-      exercises: [{ name: 'Wyciskanie hantli', kg: 22.5 }]
+      exercises: [{ name: 'Wyciskanie hantli', kg: 24.5 }]
     }];
     window.TASKS = [];
     if (typeof openClientProfile === 'function') openClientProfile('c-rad');
@@ -76,14 +76,17 @@ function ok(name, cond, extra) {
     const body = (document.getElementById('cp-body') || {}).innerText || '';
     const cont = (window.PL || []).find(p => p.source === 'fitebo-continue');
     const names = cont ? cont.days.flatMap(d => (d.exercises || []).map(e => e.name)) : [];
-    const w1 = cont && cont.days[0].exercises[0].w1;
-    const w3 = cont && cont.days[0].exercises[0].w3;
+    const first = cont && cont.days[0].exercises[0];
+    const w1 = first && first.w1;
+    const w3 = first && first.w3;
     return {
       body,
       onPlan: /Kontynuacja Fitebo/.test(body),
       weeks: (body.match(/Adaptacja|Hipertrofia/g) || []).length,
       names,
       w1, w3,
+      currentWeek: cont && cont.currentWeek,
+      reps: first && first.reps,
       gen: !!window.__aplGenCalled,
       stillDrawer: !!document.querySelector('#cp-drawer.open')
     };
@@ -92,7 +95,8 @@ function ok(name, cond, extra) {
   ok('did not call AI generate', !after.gen);
   ok('copied fitebo names only', after.names.join('|') === 'Wyciskanie hantli|Ściąganie drążka|Hack squat', JSON.stringify(after.names));
   ok('week chips shown', /Hipertrofia/.test(after.body) && !/Adaptacja/.test(after.body));
-  ok('w1 load shown', /Wyciskanie hantli/.test(after.body) && /×/.test(after.body));
+  ok('starts on week 3', after.currentWeek === 'w3' && String(after.reps) === '8', JSON.stringify({ w: after.currentWeek, r: after.reps, w3: after.w3 }));
+  ok('eight week chips', /Hipertrofia I \(12/.test(after.body) && /Hipertrofia II \(8/.test(after.body));
 
   await page.click('button:has-text("3. Hipertrofia II")');
   await page.waitForTimeout(200);
@@ -103,6 +107,25 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'cp_fitebo_continue_w3.png') });
   ok('week 3 still same exercise', w3view.rows.some(t => /Wyciskanie hantli/.test(t)));
   ok('week 3 sets/reps differ from w1', after.w1 && after.w3 && (after.w1.s !== after.w3.s || after.w1.r !== after.w3.r), JSON.stringify({ w1: after.w1, w3: after.w3 }));
+
+  await page.evaluate(() => {
+    const cont = (window.PL || []).find(p => p.source === 'fitebo-continue');
+    if (cont && typeof editPlan === 'function') editPlan(cont.id);
+  });
+  await page.waitForSelector('#screen-builder.active, #screen-builder.screen.active');
+  await page.evaluate(() => { if (typeof toggleBuilderSidebar === 'function') toggleBuilderSidebar(true); });
+  await page.waitForSelector('#period-sched .period-row', { state: 'attached' });
+  await page.waitForTimeout(200);
+  const builder = await page.evaluate(() => {
+    const sched = (document.getElementById('period-sched') || {}).innerText || '';
+    const rows = [...document.querySelectorAll('#period-sched .period-row')].map(el => (el.textContent || '').replace(/\s+/g, ' ').trim());
+    const reps = ((document.querySelector('#builder-days [data-f="reps"]') || {}).value) || '';
+    return { sched, rows, n: rows.length, reps, dur: (document.getElementById('b-duration') || {}).value };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'cp_fitebo_builder_8w.png') });
+  ok('builder has 8 weeks', builder.n === 8, JSON.stringify(builder.rows));
+  ok('builder not DUP 4', !/DUP Akumulacja/.test(builder.sched) && /Hipertrofia II/.test(builder.sched), builder.sched.slice(0, 200));
+  ok('builder form on 8 reps', builder.reps === '8' && builder.dur === '8', JSON.stringify(builder));
 
   await browser.close();
   if (failed) {
