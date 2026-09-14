@@ -108,8 +108,13 @@ function ok(name, cond, extra) {
   ok('week 3 still same exercise', w3view.rows.some(t => /Wyciskanie hantli/.test(t)));
   ok('week 3 sets/reps differ from w1', after.w1 && after.w3 && (after.w1.s !== after.w3.s || after.w1.r !== after.w3.r), JSON.stringify({ w1: after.w1, w3: after.w3 }));
 
-  await page.click('button:has-text("Edytuj")');
-  await page.waitForSelector('#period-sched');
+  await page.evaluate(() => {
+    const cont = (window.PL || []).find(p => p.source === 'fitebo-continue');
+    if (cont && typeof editPlan === 'function') editPlan(cont.id);
+  });
+  await page.waitForSelector('#screen-builder.active, #screen-builder.screen.active');
+  await page.evaluate(() => { if (typeof toggleBuilderSidebar === 'function') toggleBuilderSidebar(true); });
+  await page.waitForSelector('#period-sched .period-row', { state: 'attached' });
   await page.waitForTimeout(200);
   const builder = await page.evaluate(() => {
     const sched = (document.getElementById('period-sched') || {}).innerText || '';
