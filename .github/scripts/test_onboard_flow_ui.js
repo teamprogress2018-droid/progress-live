@@ -304,6 +304,29 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'onboard_overview.png') });
   ok('overview is real checklist board', overview.active && overview.hasEwelina && overview.hasChecklistCta && overview.hasRealCopy && !overview.hasConfirm && !overview.hasFakeEmpty, JSON.stringify(overview));
 
+  await page.click('#onb-tab-settings');
+  await page.waitForTimeout(200);
+  const settingsUi = await page.evaluate(() => {
+    const tab = document.getElementById('onb-settings-tab');
+    const html = (tab && tab.innerHTML) || '';
+    const vis = !!(tab && tab.style.display !== 'none');
+    return {
+      vis,
+      hasWelcomeCb: /onb-msg-step/.test(html) || /Powitanie/.test(html),
+      hasAnkietaCb: /Ankieta wstępna/.test(html),
+      hasKontraktCb: />Kontrakt</.test(html),
+      hasInvite: /Zaproszenie/.test(html),
+      hasBaseline: /Pomiary/.test(html),
+      hasAutomation: /Otwórz Automatyzację/.test(html),
+      honestRemind: /nie wysyła ich sama/.test(html),
+      honestContract: /nie jest automatycznie wysyłany/.test(html)
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'onboard_settings.png') });
+  ok('settings shows 6-step legend not fake msg checkboxes', settingsUi.vis && settingsUi.hasInvite && settingsUi.hasBaseline && settingsUi.hasAutomation && settingsUi.honestRemind && settingsUi.honestContract && !settingsUi.hasWelcomeCb && !settingsUi.hasAnkietaCb && !settingsUi.hasKontraktCb, JSON.stringify(settingsUi));
+  await page.click('#onb-tab-overview');
+  await page.waitForTimeout(200);
+
   await page.click('#onb-overview-tab button:has-text("+ Nowy klient")');
   await page.waitForSelector('#m-client.show');
   const newClientUi = await page.evaluate(() => {

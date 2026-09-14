@@ -317,35 +317,25 @@ var onbTab='overview';
 var ONB_ACTIVE=[];   // legacy Firestore; postęp = CLIENT_ONBOARD_STEPS, nie o.step
 window.ONB_ACTIVE=ONB_ACTIVE;
 
-const ONB_STEPS=[
-  {id:'welcome',    icon:'👋', label:'Powitanie',        desc:'Wiadomość powitalna i dostęp do aplikacji'},
-  {id:'ankieta',    icon:'📋', label:'Ankieta wstępna',  desc:'Dane, cel, poziom, zdrowie, preferencje'},
-  {id:'kontrakt',   icon:'📄', label:'Kontrakt',         desc:'Regulamin współpracy i zgody RODO'},
-  {id:'pomiary',    icon:'📏', label:'Pomiary startowe', desc:'Waga, wzrost, obwody, zdjęcia startowe'},
-  {id:'plan',       icon:'📋', label:'Pierwszy plan',    desc:'Przypisanie planu treningowego'},
-  {id:'zadania',    icon:'✅', label:'Pierwsze zadania',  desc:'Lista zadań na pierwszy tydzień'},
-  {id:'platnosc',   icon:'💳', label:'Płatność',         desc:'Wybór pakietu i opłacenie'},
-  {id:'aplikacja',  icon:'📱', label:'Aplikacja',        desc:'Wysłanie linku do aplikacji klienta'},
-  {id:'sesja1',     icon:'🏋️', label:'Pierwsza sesja',   desc:'Zaplanowanie i przeprowadzenie sesji'},
-  {id:'checkin',    icon:'✅', label:'Pierwszy check-in',desc:'Wypełnienie pierwszego check-inu'},
-];
+const ONB_CHECKLIST_IDS=['invite','baseline','schedule','plan','calendar','package'];
+const ONB_STEP_ICONS={invite:'✉️',baseline:'📏',schedule:'📅',plan:'📋',calendar:'🗓️',package:'💳'};
 
 const ONB_FLOWS=[
   {id:'standard',  name:'Standard',      icon:'⚡', color:'var(--accent)',
    desc:'Pełny start współpracy: zaproszenie, pomiary, dni, plan, kalendarz, pakiet. Wiadomość i ankieta — Automatyzacja, gdy flow jest Aktywny.',
-   steps:['welcome','ankieta','pomiary','plan','platnosc','aplikacja','sesja1'],
+   steps:ONB_CHECKLIST_IDS.slice(),
    duration:'checklista 6/6'},
   {id:'quick',     name:'Szybki start',  icon:'🚀', color:'var(--blue)',
    desc:'Ta sama checklista 6 kroków, mniej formalności w copy. Plan i pierwsza sesja jak najszybciej.',
-   steps:['welcome','ankieta','plan','platnosc','sesja1'],
+   steps:ONB_CHECKLIST_IDS.slice(),
    duration:'checklista 6/6'},
   {id:'online',    name:'Online',        icon:'💻', color:'var(--purple)',
    desc:'Klient zdalny — zaproszenie do apki i kalendarz. Bez sesji na sali na starcie; Live nadal z checklisty.',
-   steps:['welcome','ankieta','plan','platnosc','aplikacja'],
+   steps:ONB_CHECKLIST_IDS.slice(),
    duration:'checklista 6/6'},
   {id:'vip',       name:'VIP',           icon:'👑', color:'var(--orange)',
    desc:'Pełna checklista + dokładniejsze pomiary. Automatyczne wiadomości nadal z Automatyzacji, nie z osobnego paska kroków.',
-   steps:['welcome','ankieta','pomiary','plan','platnosc','aplikacja','sesja1'],
+   steps:ONB_CHECKLIST_IDS.slice(),
    duration:'checklista 6/6'},
 ];
 
@@ -541,25 +531,41 @@ function renderOnbSettings(){
   const el=document.getElementById('onb-settings-tab');if(!el)return;
   const S=window.SETTINGS||{};
   const onb=S.onboarding||{};
+  const steps=onbChecklistSteps();
+  const flow=window.ONBOARDING_FLOW||{};
+  const flowOn=!!flow.active;
+  const msgOn=flow.msgEnabled!==false;
+  const hasWelcome=!!String(flow.welcomeMsg||'').trim();
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
   const contract=onb.contract||'Regulamin współpracy z trenerem personalnym\n\n1. Klient zobowiązuje się do regularnego uczestnictwa w sesjach.\n2. Odwołanie sesji możliwe do 24h przed jej terminem.\n3. Trener zastrzega sobie prawo do modyfikacji planu.';
   el.innerHTML=`
     <div style="max-width:600px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:20px;">USTAWIENIA ONBOARDINGU</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:20px;">USTAWIENIA STARTU WSPÓŁPRACY</div>
       <div class="settings-card" style="margin-bottom:14px;">
-        <div class="settings-card-title">📩 Automatyczne wiadomości</div>
-        <div class="settings-card-desc">Wiadomości wysyłane automatycznie na każdym etapie onboardingu.</div>
-        ${ONB_STEPS.slice(0,5).map(s=>`<label style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;">
-          <span>${s.icon} ${s.label}</span>
-          <input type="checkbox" class="onb-msg-step" data-step="${s.id}" ${(onb.msgSteps&&onb.msgSteps[s.id]===false)?'':'checked'} style="accent-color:var(--accent);">
-        </label>`).join('')}
+        <div class="settings-card-title">✅ Checklista 6 kroków</div>
+        <div class="settings-card-desc">Ta sama co <b>Rozpocznij współpracę</b>. Kroków nie da się wyłączyć — warianty to tylko etykiety przy nowym kliencie.</div>
+        ${steps.map(s=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;">
+          <span style="width:22px;text-align:center;">${ONB_STEP_ICONS[s.id]||'•'}</span>
+          <span style="font-weight:600;">${esc(s.label)}</span>
+          <span style="margin-left:auto;font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${esc(s.id)}</span>
+        </div>`).join('')}
       </div>
       <div class="settings-card" style="margin-bottom:14px;">
-        <div class="settings-card-title">⏰ Przypomnienia</div>
-        <div class="settings-card-desc">Automatyczne przypomnienia gdy klient nie ukończy kroku.</div>
+        <div class="settings-card-title">📩 Automatyczna wiadomość</div>
+        <div class="settings-card-desc">Prawdziwa auto-wiadomość i ankieta idą z Automatyzacji — tylko gdy flow jest <b>Aktywny</b> i zapiszesz treść powitania. Tu nie ma osobnych checkboxów na krok.</div>
+        <div style="font-size:12px;margin:10px 0 12px;line-height:1.55;color:var(--muted);">
+          Flow: <b style="color:${flowOn?'var(--teal)':'var(--orange)'};">${flowOn?'Aktywny':'Draft / wyłączony'}</b>
+          · wiadomość: <b style="color:var(--text);">${msgOn&&hasWelcome?'włączona':'wyłączona albo pusta'}</b>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="goTo('automation')">Otwórz Automatyzację →</button>
+      </div>
+      <div class="settings-card" style="margin-bottom:14px;">
+        <div class="settings-card-title">⏰ Przypomnienia (szkic)</div>
+        <div class="settings-card-desc">Zapisują się w ustawieniach. Aplikacja <b>nie wysyła ich sama</b> — nie ma crona. Niedokończony krok dokańczasz z Przeglądu.</div>
         <div class="form-grid">
           <div class="form-field"><label class="form-lbl">Przypomnij po (dni)</label>
             <input type="number" class="form-input" id="onb-remind-days" value="${onb.remindDays||2}" style="font-size:12px;"></div>
-          <div class="form-field"><label class="form-lbl">Kanał przypomnienia</label>
+          <div class="form-field"><label class="form-lbl">Kanał (notatka)</label>
             <select class="form-select" id="onb-remind-channel" style="font-size:12px;">
               <option value="email" ${(onb.remindChannel||'email')==='email'?'selected':''}>Email</option>
               <option value="whatsapp" ${onb.remindChannel==='whatsapp'?'selected':''}>WhatsApp</option>
@@ -568,10 +574,10 @@ function renderOnbSettings(){
         </div>
       </div>
       <div class="settings-card">
-        <div class="settings-card-title">📝 Domyślny kontrakt</div>
-        <div class="settings-card-desc">Treść kontraktu współpracy wysyłanego klientom.</div>
-        <textarea class="form-input" id="onb-contract-text" rows="5" style="font-size:12px;resize:none;">${escHtml(contract)}</textarea>
-        <button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="saveOnbContract()">Zapisz ustawienia onboardingu</button>
+        <div class="settings-card-title">📝 Domyślny kontrakt (notatka)</div>
+        <div class="settings-card-desc">Tekst dla Ciebie — <b>nie jest automatycznie wysyłany</b> klientowi.</div>
+        <textarea class="form-input" id="onb-contract-text" rows="5" style="font-size:12px;resize:none;">${esc(contract)}</textarea>
+        <button class="btn btn-primary btn-sm" style="margin-top:8px;" onclick="saveOnbContract()">Zapisz notatki onboardingu</button>
       </div>
     </div>`;
 }
@@ -582,8 +588,6 @@ function saveOnbContract(){
   S.onboarding.contract=document.getElementById('onb-contract-text')?.value||'';
   S.onboarding.remindDays=parseInt(document.getElementById('onb-remind-days')?.value)||2;
   S.onboarding.remindChannel=document.getElementById('onb-remind-channel')?.value||'email';
-  S.onboarding.msgSteps={};
-  document.querySelectorAll('.onb-msg-step').forEach(cb=>{S.onboarding.msgSteps[cb.dataset.step]=cb.checked;});
   if(typeof persistSettingsDoc==='function')persistSettingsDoc();
   else{
     withTrainer(S);
@@ -592,7 +596,7 @@ function saveOnbContract(){
       window._setDoc(window._doc(window._db,'settings',sid),S,{merge:true}).catch(()=>{});
     }
   }
-  notify('✓ Ustawienia onboardingu zapisane');
+  notify('✓ Notatki onboardingu zapisane');
 }
 window.saveOnbContract=saveOnbContract;
 
