@@ -28,10 +28,10 @@ ok('live shows progHint', /progHint/.test(live) && /color:var\(--teal\)/.test(li
 ok('live lastHint needs lastDate', /lastDate&&ex\.lastKg/.test(live));
 ok('idle draft remaps', /function liveRefreshPlanLoads/.test(live) && /liveApplyDraft[\s\S]*liveRefreshPlanLoads/.test(live));
 ok('CI', wf.includes('test_plan_auto_progression.js'));
-ok('cache 01', html.includes('01-core.js?v=105'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=68'));
+ok('cache 01', html.includes('01-core.js?v=106'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=69'));
 ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=68'));
-ok('cache 10', html.includes('10-client-app.js?v=39'));
+ok('cache 10', html.includes('10-client-app.js?v=40'));
 
 const document = { querySelectorAll: () => [], getElementById: () => null, addEventListener() {} };
 const windowObj = { addEventListener() {}, CL: [], PL: [], SE: [], EX: [], WO: [], METRIC_ENTRIES: [], document };

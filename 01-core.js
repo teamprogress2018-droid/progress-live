@@ -3302,42 +3302,101 @@ window.suggestedPlanDayIdx=suggestedPlanDayIdx;
 
 function exerciseLoggedSets(ex){
   if(!ex)return[];
-  if(Array.isArray(ex.sets))return ex.sets.filter(x=>x&&(x.kg!=null&&x.kg!==''||x.reps!=null&&x.reps!==''));
-  if(ex.kg!=null&&ex.kg!==''||ex.reps!=null&&ex.reps!=='')return[{kg:ex.kg,reps:ex.reps,rir:ex.rir||ex.rpe||'',setNo:1}];
+  if(Array.isArray(ex.sets)){
+    if(ex.sets.length&&typeof ex.sets[0]==='object'){
+      return ex.sets.filter(x=>x&&(x.kg!=null&&x.kg!==''||x.reps!=null&&x.reps!==''));
+    }
+    return[];
+  }
+  const kg=ex.kg;
+  const reps=ex.reps;
+  const count=parseInt(ex.sets,10);
+  const r=parseFloat(String(reps==null?'':reps).replace(',','.'));
+  const range=/[-–—]/.test(String(reps||''));
+  if(Number.isFinite(count)&&count>1&&!range&&kg!=null&&kg!==''&&Number.isFinite(r)){
+    return Array.from({length:count},(_,i)=>({kg:kg,reps:r,rir:ex.rir||ex.rpe||'',setNo:i+1}));
+  }
+  if(kg!=null&&kg!==''||reps!=null&&reps!=='')return[{kg:kg,reps:reps,rir:ex.rir||ex.rpe||'',setNo:1}];
   return[];
 }
 window.exerciseLoggedSets=exerciseLoggedSets;
 
-function lastLoadForExercise(clientId,name,aliases){
-  if(!clientId||!name)return null;
-  const keys=new Set([exerciseNameKey(name)]);
-  (Array.isArray(aliases)?aliases:[aliases]).forEach(a=>{
-    const k=exerciseNameKey(a);
+function exerciseNameKeySet(name,aliases){
+  const keys=new Set();
+  const add=v=>{
+    const k=exerciseNameKey(v);
     if(k)keys.add(k);
-  });
-  const matchEx=e=>{
-    if(!e)return false;
-    if(keys.has(exerciseNameKey(e.name)))return true;
-    if(e.plannedName&&keys.has(exerciseNameKey(e.plannedName)))return true;
-    return String(e.alt||'').split(/[,;/]/).some(a=>keys.has(exerciseNameKey(a)));
   };
-  const sessions=(window.SE||[]).filter(s=>s&&s.clientId===clientId&&Array.isArray(s.exercises)&&s.source!=='planned'&&s.source!=='live-draft')
+  add(name);
+  (Array.isArray(aliases)?aliases:[aliases]).forEach(add);
+  return keys;
+}
+window.exerciseNameKeySet=exerciseNameKeySet;
+
+function exerciseMatchesKeys(ex,keys){
+  if(!ex||!keys||!keys.size)return false;
+  if(keys.has(exerciseNameKey(ex.name)))return true;
+  if(ex.plannedName&&keys.has(exerciseNameKey(ex.plannedName)))return true;
+  return String(ex.alt||'').split(/[,;/]/).some(a=>keys.has(exerciseNameKey(a)));
+}
+window.exerciseMatchesKeys=exerciseMatchesKeys;
+
+function isLoggedTrainingSession(s){
+  return !!(s&&s.source!=='planned'&&s.source!=='live-draft');
+}
+window.isLoggedTrainingSession=isLoggedTrainingSession;
+
+/** Ostatnie sesje z kg/powt. dla ćwiczenia (najnowsze pierwsze). limit 0 = wszystkie. */
+function exerciseLoadHistory(clientId,name,aliases,opts){
+  opts=opts||{};
+  if(!clientId||!name)return [];
+  const rawLimit=opts.limit;
+  const limit=rawLimit==null?8:(parseInt(rawLimit,10)||0);
+  const keys=exerciseNameKeySet(name,aliases);
+  if(!keys.size)return [];
+  const pool=opts.sessions||window.SE||[];
+  const sessions=pool.filter(s=>s&&s.clientId===clientId&&Array.isArray(s.exercises)&&isLoggedTrainingSession(s))
     .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''));
-  let nSessions=0;
-  let found=null;
+  const out=[];
   for(const s of sessions){
-    const ex=(s.exercises||[]).find(matchEx);
+    const ex=(s.exercises||[]).find(e=>exerciseMatchesKeys(e,keys));
     if(!ex)continue;
-    const sets=exerciseLoggedSets(ex);
+    const sets=typeof exerciseLoggedSets==='function'?exerciseLoggedSets(ex):[];
     if(!sets.length)continue;
-    nSessions++;
-    if(found)continue;
-    const work=sets.filter(x=>typeof isWorkingSet!=='function'||isWorkingSet(x));
-    const last=(work.length?work:sets)[(work.length?work:sets).length-1];
-    found={kg:last.kg,reps:last.reps,rir:last.rir,sets,date:s.date||'',source:s.source||'',nSessions:0};
+    out.push({
+      date:s.date||'',
+      time:s.time||'',
+      createdAt:s.createdAt||'',
+      sessionId:s.id||'',
+      source:s.source||'',
+      type:s.type||'',
+      name:ex.name||name,
+      sets
+    });
+    if(limit>0&&out.length>=limit)break;
   }
-  if(found)found.nSessions=nSessions;
-  return found;
+  return out;
+}
+window.exerciseLoadHistory=exerciseLoadHistory;
+
+function lastLoadForExercise(clientId,name,aliases){
+  const hist=exerciseLoadHistory(clientId,name,aliases,{limit:0});
+  if(!hist.length)return null;
+  const latest=hist[0];
+  const sets=latest.sets||[];
+  const work=sets.filter(x=>typeof isWorkingSet!=='function'||isWorkingSet(x));
+  const last=(work.length?work:sets)[(work.length?work:sets).length-1];
+  if(!last)return null;
+  return{
+    kg:last.kg,
+    reps:last.reps,
+    rir:last.rir,
+    sets,
+    date:latest.date||'',
+    source:latest.source||'',
+    nSessions:hist.length,
+    history:hist.slice(0,8)
+  };
 }
 window.lastLoadForExercise=lastLoadForExercise;
 
@@ -3356,29 +3415,168 @@ function formatLastSetsSummary(sets){
 }
 window.formatLastSetsSummary=formatLastSetsSummary;
 
-function lastSetsBlockHtml(ex){
-  const sets=ex&&Array.isArray(ex.lastSets)?ex.lastSets:[];
-  if(!sets.length)return '';
-  let date='';
-  if(ex.lastDate){
-    date=typeof formatTrainingDayShortPl==='function'?formatTrainingDayShortPl(ex.lastDate):String(ex.lastDate);
+function formatHistorySessionDate(ymd){
+  if(!ymd)return '';
+  return typeof formatTrainingDayShortPl==='function'?formatTrainingDayShortPl(ymd):String(ymd);
+}
+window.formatHistorySessionDate=formatHistorySessionDate;
+
+function formatHistorySessionStamp(h){
+  if(!h)return '';
+  const d=h.date||'';
+  const t=String(h.time||'').slice(0,5);
+  if(d&&t)return d+' '+t;
+  if(d)return d;
+  return t;
+}
+window.formatHistorySessionStamp=formatHistorySessionStamp;
+
+function fmtHistNum(n){
+  const x=parseFloat(n);
+  if(!Number.isFinite(x))return '—';
+  const r=Math.round(x*100)/100;
+  return Number.isInteger(r)?String(r):String(r);
+}
+window.fmtHistNum=fmtHistNum;
+
+function setObjKg(s){
+  const kg=parseFloat(s&&s.kg);
+  const reps=parseFloat(s&&s.reps);
+  if(!Number.isFinite(kg)||!Number.isFinite(reps))return 0;
+  return kg*reps;
+}
+window.setObjKg=setObjKg;
+
+function splitHistSets(sets){
+  const main=[],extra=[],wu=[];
+  (Array.isArray(sets)?sets:[]).forEach(s=>{
+    const k=String(s&&s.kind||'').toLowerCase();
+    if(k==='wu'||k==='warmup')wu.push(s);
+    else if(k==='drop'||k==='extra'||k==='rp'||(s&&s.extra))extra.push(s);
+    else main.push(s);
+  });
+  return {main,extra,wu};
+}
+window.splitHistSets=splitHistSets;
+
+function exerciseHistoryTotals(sets){
+  let reps=0,kg=0,obj=0;
+  (sets||[]).forEach(s=>{
+    const r=parseFloat(s&&s.reps);if(Number.isFinite(r))reps+=r;
+    const k=parseFloat(s&&s.kg);if(Number.isFinite(k))kg+=k;
+    obj+=setObjKg(s);
+  });
+  return {reps,kg,obj};
+}
+window.exerciseHistoryTotals=exerciseHistoryTotals;
+
+function exerciseHistoryTableRowsHtml(sets){
+  return (Array.isArray(sets)?sets:[]).map((s,i)=>{
+    const obj=setObjKg(s);
+    return `<tr>
+      <td class="ex-hist-no">${escHtml(String(s.setNo||(i+1)))}</td>
+      <td>${escHtml(s.reps!=null&&s.reps!==''?String(s.reps):'—')}</td>
+      <td>${escHtml(s.kg!=null&&s.kg!==''?String(s.kg):'—')}</td>
+      <td class="ex-hist-obj">${escHtml(fmtHistNum(obj))} kg</td>
+    </tr>`;
+  }).join('');
+}
+
+function exerciseHistoryModalBodyHtml(history){
+  if(!history||!history.length)return '<div class="ex-hist-empty">Brak zapisanych serii tego ćwiczenia.</div>';
+  return history.map(h=>{
+    const stamp=formatHistorySessionStamp(h);
+    const parts=splitHistSets(h.sets);
+    const all=parts.wu.concat(parts.main,parts.extra);
+    const sets=all.length?all:(h.sets||[]);
+    const tot=exerciseHistoryTotals(sets);
+    let body='';
+    if(parts.wu.length)body+=exerciseHistoryTableRowsHtml(parts.wu);
+    body+=exerciseHistoryTableRowsHtml(parts.main.length?parts.main:(parts.extra.length||parts.wu.length?[]:sets));
+    if(parts.extra.length){
+      body+=`<tr class="ex-hist-sec-row"><td colspan="4">Dodatkowe</td></tr>`;
+      body+=exerciseHistoryTableRowsHtml(parts.extra);
+    }
+    return `<section class="ex-hist-sess">
+      <div class="ex-hist-sess-hd">${escHtml(stamp||'Sesja')}</div>
+      <table class="ex-hist-table">
+        <thead><tr><th>#</th><th>Powt</th><th>KG</th><th>Obj</th></tr></thead>
+        <tbody>${body}</tbody>
+        <tfoot><tr class="ex-hist-total"><th>Σ</th><td>${escHtml(fmtHistNum(tot.reps))}</td><td>${escHtml(fmtHistNum(tot.kg))}</td><td>${escHtml(fmtHistNum(tot.obj))} kg</td></tr></tfoot>
+      </table>
+    </section>`;
+  }).join('');
+}
+window.exerciseHistoryModalBodyHtml=exerciseHistoryModalBodyHtml;
+
+var _exHistCache={};
+var _exHistSeq=0;
+function openExerciseHistory(idOrOpts){
+  let name='',history=null,clientId='',aliases;
+  if(typeof idOrOpts==='string'&&_exHistCache[idOrOpts]){
+    name=_exHistCache[idOrOpts].name||'';
+    history=_exHistCache[idOrOpts].history;
+    clientId=_exHistCache[idOrOpts].clientId||'';
+    aliases=_exHistCache[idOrOpts].aliases;
+  }else if(idOrOpts&&typeof idOrOpts==='object'){
+    name=idOrOpts.name||'';
+    history=idOrOpts.history;
+    clientId=idOrOpts.clientId||'';
+    aliases=idOrOpts.aliases;
   }
-  const summary=formatLastSetsSummary(sets);
-  const rows=sets.map((s,i)=>{
+  if((!history||!history.length)&&clientId&&name){
+    history=exerciseLoadHistory(clientId,name,aliases,{limit:12});
+  }
+  const title=document.getElementById('ex-hist-title');
+  if(title)title.textContent=name||'Historia ćwiczenia';
+  const body=document.getElementById('ex-hist-body');
+  if(body)body.innerHTML=exerciseHistoryModalBodyHtml(history||[]);
+  if(typeof openM==='function')openM('m-ex-hist');
+}
+window.openExerciseHistory=openExerciseHistory;
+
+function lastSetsSessionRowsHtml(sets,nameOrEx){
+  return (Array.isArray(sets)?sets:[]).map((s,i)=>{
     const no=s.setNo||(i+1);
     const kind=s.kind&&s.kind!=='work'&&typeof setKindBadge==='function'
       ?`<span class="cw-set-kind ${escHtml(String(s.kind))}">${escHtml(setKindBadge(s.kind))}</span>`:'';
     const rir=s.rir!=null&&s.rir!==''?`<span class="live-last-rir">RIR ${escHtml(String(s.rir))}</span>`:'';
-    const load=typeof formatSetLoad==='function'?formatSetLoad(s.kg,s.reps,ex):(String(s.kg||'')+' × '+String(s.reps||''));
+    const load=typeof formatSetLoad==='function'?formatSetLoad(s.kg,s.reps,nameOrEx):(String(s.kg||'')+' × '+String(s.reps||''));
     return `<div class="live-last-row"><span class="live-last-no">${escHtml(String(no))}</span><span class="live-last-load">${escHtml(load)}</span>${rir}${kind}</div>`;
   }).join('');
-  return `<details class="live-last-sets" onclick="event.stopPropagation()">
-    <summary class="live-last-sum" title="Układ serii z poprzedniego treningu"><span class="live-last-ico" aria-hidden="true">🕒</span> Ostatnio: ${escHtml(summary)}${date?' · '+escHtml(date):''}</summary>
-    <div class="live-last-pop">
-      <div class="live-last-hd">Poprzedni trening${date?' · '+escHtml(date):''}</div>
-      ${rows}
-    </div>
-  </details>`;
+}
+window.lastSetsSessionRowsHtml=lastSetsSessionRowsHtml;
+
+function lastSetsBlockHtml(ex,opts){
+  opts=opts||{};
+  let history=Array.isArray(ex&&ex.lastHistory)?ex.lastHistory.filter(h=>h&&Array.isArray(h.sets)&&h.sets.length):[];
+  if(!history.length&&ex&&Array.isArray(ex.lastSets)&&ex.lastSets.length){
+    history=[{date:ex.lastDate||'',time:ex.lastTime||'',sets:ex.lastSets}];
+  }
+  if(!history.length){
+    const cid=(ex&&ex.clientId)||opts.clientId;
+    const nm=(ex&&(ex.name||ex.plannedName))||opts.name;
+    const alts=(ex&&ex.alts)||opts.aliases;
+    if(cid&&nm)history=exerciseLoadHistory(cid,nm,alts,{limit:opts.limit==null?8:opts.limit});
+  }
+  if(!history.length)return '';
+  const latest=history[0];
+  const summary=formatLastSetsSummary(latest.sets);
+  const date=formatHistorySessionStamp(latest)||formatHistorySessionDate(latest.date);
+  const extra=history.length>1?(' · '+history.length+' sesji'):'';
+  const variant=opts.variant==='builder'||(ex&&ex._histVariant==='builder');
+  const cls=variant?'live-last-sets builder-ex-hist':'live-last-sets';
+  const id='exh'+(++_exHistSeq);
+  _exHistCache[id]={
+    name:(ex&&(ex.name||ex.plannedName))||opts.name||'',
+    history,
+    clientId:(ex&&ex.clientId)||opts.clientId||'',
+    aliases:(ex&&ex.alts)||opts.aliases
+  };
+  return `<button type="button" class="${cls}" data-ex-hist="${id}" onclick="event.stopPropagation();openExerciseHistory('${id}')" title="Historia ciężaru i powtórzeń — jak w Fitebo">
+    <span class="live-last-ico" aria-hidden="true">🕒</span>
+    <span class="live-last-sum">Ostatnio: ${escHtml(summary)}${date?' · '+escHtml(date):''}${escHtml(extra)}</span>
+  </button>`;
 }
 window.lastSetsBlockHtml=lastSetsBlockHtml;
 
@@ -3665,6 +3863,7 @@ function mapPlanExercisesForClient(rawEx,clientId,plan,day){
       lastReps:last&&last.reps!=null&&last.reps!==''?last.reps:'',
       lastDate:last&&last.date||'',
       lastSets:(last&&last.sets)||[],
+      lastHistory:(last&&last.history)||[],
       ss:ex.ss||'',
       wu:ex.ss?0:(ex.wu||0),
       drop:ex.ss?0:(ex.drop||0),

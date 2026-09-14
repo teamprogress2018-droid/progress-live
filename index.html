@@ -13,7 +13,7 @@
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="globals.css?v=17">
-<link rel="stylesheet" href="styles.css?v=83">
+<link rel="stylesheet" href="styles.css?v=85">
 </head>
 <body>
 
@@ -3356,6 +3356,15 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   </div>
 </div>
 
+<!-- Historia ciężaru / powtórzeń (jak w Fitebo) -->
+<div class="modal-ov" id="m-ex-hist">
+  <div class="modal ex-hist-modal">
+    <div class="modal-hdr"><div class="modal-title" id="ex-hist-title">Historia ćwiczenia</div><button class="modal-close" onclick="closeM('m-ex-hist')">×</button></div>
+    <div class="modal-body" id="ex-hist-body"></div>
+    <div class="modal-footer"><button class="btn btn-primary" onclick="closeM('m-ex-hist')">Zamknij</button></div>
+  </div>
+</div>
+
 <!-- Import biblioteki GIF / MP4 -->
 <div class="modal-ov" id="m-ex-gif-import">
   <div class="modal" style="max-width:760px;">
@@ -4369,8 +4378,8 @@ async function load(){
 
 <script src="ex-gif-manifest.js?v=34"></script>
 <script src="ex-photo-manifest.js?v=6"></script>
-<script src="01-core.js?v=105"></script>
-<script src="02-workouts-onboarding-templates-live.js?v=68"></script>
+<script src="01-core.js?v=106"></script>
+<script src="02-workouts-onboarding-templates-live.js?v=69"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=35"></script>
 <script src="04-client-portal.js?v=50"></script>
 <script src="05-clients-builder-plans-calendar.js?v=68"></script>
@@ -4378,6 +4387,6 @@ async function load(){
 <script src="07-forms-metrics-calculator.js?v=37"></script>
 <script src="08-client-profile-extras.js?v=59"></script>
 <script src="09-posture-kb-invites-private.js?v=46"></script>
-<script src="10-client-app.js?v=39"></script>
+<script src="10-client-app.js?v=40"></script>
 </body>
 </html>

@@ -20,7 +20,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 08 v59', html.includes('08-client-profile-extras.js?v=59'));
+ok('cache 08 v50', html.includes('08-client-profile-extras.js?v=59'));
 ok('ci unit', wf.includes('test_fitebo_continue.js'));
 ok('ci ui', wf.includes('test_fitebo_continue_ui.js'));
 ok('plan tab CTA', planTab.includes('cpContinueFiteboPlan') && planTab.includes('Kontynuuj plan z Fitebo') && planTab.includes('showContinueFitebo'));
@@ -37,7 +37,7 @@ const ctx = vm.createContext({
     PL: [],
     SE: []
   },
-  String, Math, Map, parseInt, isFinite, parseFloat,
+  String, Math, Map, parseInt, isFinite, parseFloat, Array, Number, Boolean, Object,
   aplPhasesForPlan: function (_m, n, keys) {
     const t = {
       8: { w1: 'Adaptacja', w2: 'Adaptacja', w3: 'Hipertrofia I', w4: 'Hipertrofia I', w5: 'Hipertrofia II', w6: 'Siła', w7: 'Deload', w8: 'Szczyt' }
@@ -83,6 +83,25 @@ const polluted = { day: 'Trening B (Push)', exercises: [
 const resolved = ctx.fiteboResolveDayExercises('c-rad', { source: 'fitebo', fromFitebo: true }, polluted);
 ok('live replaces template with fitebo session', resolved && resolved[0] && resolved[0].name === 'Wyciskanie hantli', JSON.stringify(resolved));
 ok('template detector', ctx.fiteboExercisesLookLikeTemplate(polluted.exercises) && !ctx.fiteboExercisesLookLikeTemplate(srcDays[0].exercises));
+
+const logged = ctx.fbMapExercises([{
+  name: 'Wyciskanie na ławce skośnej w górę',
+  sets: '3',
+  reps: '12',
+  kg: '22.5',
+  log: [
+    {setNo: 1, reps: 12, kg: 20},
+    {setNo: 2, reps: 12, kg: 22.5},
+    {setNo: 3, reps: 12, kg: 22.5},
+    {setNo: 4, reps: 12, kg: 22.5, extra: true}
+  ]
+}], 'log');
+ok('session log keeps 4 sets', logged[0] && logged[0].sets.length === 4, JSON.stringify(logged[0] && logged[0].sets));
+ok('session log extra', logged[0] && logged[0].sets[3] && logged[0].sets[3].kind === 'extra');
+ok('plan mode still count string', ctx.fbMapExercises([{name: 'X', sets: 4, reps: '8-10', kg: 20}])[0].sets === '4');
+ok('import prompt has log[]', /"log"/.test(src08) && /Dodatkowe/.test(src08));
+ok('import uses log mode', /fbMapExercises\(s\.exercises,'log'\)/.test(src08));
+ok('hist modal markup', html.includes('id="m-ex-hist"') && html.includes('id="ex-hist-body"'));
 
 if (failed) {
   console.error('\n' + failed + ' failed');

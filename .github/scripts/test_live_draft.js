@@ -21,8 +21,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=105'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=68'));
+ok('cache 01', html.includes('01-core.js?v=106'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=69'));
 ok('cache 04', html.includes('04-client-portal.js?v=50'));
 ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=68'));
 ok('helpers', /function liveShouldPersistDraftRemote/.test(live) && /function livePersistDraftRemote/.test(live) && /function liveDraftIdbPut/.test(live));

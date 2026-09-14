@@ -519,19 +519,51 @@ function fbFindClientByName(name){
     || list.find(x=>{const xn=fbNormName(x.name);return xn&&(xn.includes(n)||n.includes(xn));})
     || null;
 }
-function fbMapExercises(list){
+function fbLoggedSetsFromEx(e){
+  const raw=e&&(e.log||e.loggedSets||e.setLog||(Array.isArray(e.sets)&&e.sets[0]&&typeof e.sets[0]==='object'?e.sets:null));
+  if(!Array.isArray(raw)||!raw.length)return null;
+  const out=raw.map((st,i)=>{
+    if(!st||typeof st!=='object')return null;
+    const kg=st.kg!=null&&st.kg!==''?st.kg:(st.load!=null&&st.load!==''?st.load:'');
+    const reps=st.reps!=null&&st.reps!==''?st.reps:(st.powt!=null&&st.powt!==''?st.powt:'');
+    if((kg===''||kg==null)&&(reps===''||reps==null))return null;
+    return{setNo:st.setNo||(i+1),kg,reps,extra:!!st.extra,kind:st.kind||(st.extra?'extra':'')};
+  }).filter(Boolean);
+  return out.length?out:null;
+}
+function fbMapExercises(list,mode){
   return (list||[]).filter(e=>e&&(e.name||e.n)).map(e=>{
     const name=e.name||e.n||'';
     const kg=e.kg!=null&&e.kg!==''?String(e.kg):(e.load!=null&&e.load!==''?String(e.load):'');
-    return{
+    const count=String(e.setCount||(!Array.isArray(e.sets)?(e.sets||e.serie||'3'):'3'));
+    const reps=String(e.reps||e.powt||'8-10');
+    const base={
       name,
-      sets:String(e.sets||e.serie||'3'),
-      reps:String(e.reps||e.powt||'8-10'),
       rest:String(e.rest||e.przerwa||'90s'),
       kg,
       rpe:e.rpe||e.rir||'',
       note:e.note||e.notes||''
     };
+    if(mode==='log'){
+      let sets=fbLoggedSetsFromEx(e);
+      if(!sets){
+        const n=parseInt(count,10);
+        const r=parseFloat(String(reps).replace(',','.'));
+        const range=/[-–—]/.test(reps);
+        if(Number.isFinite(n)&&n>0&&!range&&kg!==''&&Number.isFinite(r)){
+          sets=Array.from({length:n},(_,i)=>({setNo:i+1,kg,reps:r}));
+        }else if(kg!==''||(reps&&reps!=='8-10')){
+          sets=[{setNo:1,kg,reps}];
+        }
+      }
+      const last=sets&&sets.length?sets[sets.length-1]:null;
+      return Object.assign(base,{
+        sets:sets||[],
+        reps:last&&last.reps!=null?String(last.reps):reps,
+        kg:last&&last.kg!=null&&last.kg!==''?String(last.kg):kg
+      });
+    }
+    return Object.assign(base,{sets:count,reps});
   });
 }
 function inferFiteboMethod(days){
@@ -915,11 +947,11 @@ async function fbAnalyze(){
   "level":"poczatkujacy"|"sredni"|"zaawansowany"|null,
   "injuries":"tekst_lub_null",
   "measurements":[{"date":"YYYY-MM-DD","weight":liczba_lub_null,"waist":liczba_lub_null,"chest":liczba_lub_null,"hips":liczba_lub_null}],
-  "sessions":[{"date":"YYYY-MM-DD","type":"Push|Pull|Legs|FBW|opis dnia","exercises":[{"name":"nazwa ćwiczenia","sets":"4","reps":"8-10","kg":"60","rest":"90s"}]}],
+  "sessions":[{"date":"YYYY-MM-DD","time":"HH:MM"|null,"type":"Push|Pull|Legs|FBW|opis dnia","exercises":[{"name":"nazwa ćwiczenia","sets":"3","reps":"12","kg":"22.5","rest":"90s","log":[{"setNo":1,"reps":12,"kg":20},{"setNo":2,"reps":12,"kg":22.5},{"setNo":3,"reps":12,"kg":22.5,"extra":false}]}]}],
   "planDays":[{"dayName":"Push","focus":"klatka barki triceps","exercises":[{"name":"...","sets":"4","reps":"8-10","kg":"60","rest":"180s"}]}],
   "notes":"dodatkowe uwagi tekstowe lub null"
 }]}
-Zasady: jeśli danych brak, użyj null / pustej tablicy — NIE zmyślaj. Daty w formacie YYYY-MM-DD; jeśli nie da się ustalić dokładnej daty, pomiń wpis daty, ale ZACHOWAJ ćwiczenia w planDays. Zrzuty logu treningowego (serie, kg, powtórzenia, nazwy dni Push/Pull/Legs) MUSZĄ trafić do sessions.exercises i planDays — to baza do kontynuacji planu. Jeśli w danych jest wielu klientów, zwróć każdego osobno w tablicy.`;
+Zasady: jeśli danych brak, użyj null / pustej tablicy — NIE zmyślaj. Daty w formacie YYYY-MM-DD; godzina sesji jako HH:MM gdy widać na zrzucie. Jeśli nie da się ustalić dokładnej daty, pomiń wpis daty, ale ZACHOWAJ ćwiczenia w planDays. Zrzuty logu treningowego i HISTORII ĆWICZENIA (tabela # / Powt / KG / Obj, kilka dat nad tabelami) MUSZĄ trafić do sessions — każda data = osobna sesja, każda seria = wpis w log[] (nie uśredniaj kg). Serie oznaczone „Dodatkowe” mają extra:true. planDays to szablon planu (liczba serii jako tekst), sessions to faktycznie zrobione treningi. Jeśli w danych jest wielu klientów, zwróć każdego osobno w tablicy.`;
 
   const content = fbImages.length
     ? [...fbImages.map(img => ({ type:'image', source:{ type:'base64', media_type: img.mediaType, data: img.base64 } })), { type:'text', text: raw || 'Przeanalizuj załączone zrzuty ekranu z Fitebo.' }]
@@ -1008,10 +1040,10 @@ async function fbImportSelected(){
     }
 
     for(const s of (c.sessions||[])){
-      const ex=fbMapExercises(s.exercises);
+      const ex=fbMapExercises(s.exercises,'log');
       if(!s.date&&!ex.length)continue;
       const sess = withTrainer({
-        id:newId('s'), clientId:target.id, date:s.date||'', time:'',
+        id:newId('s'), clientId:target.id, date:s.date||'', time:s.time||'',
         type: s.type || 'Trening (import Fitebo)', duration:60,
         notes:'Zaimportowano z Fitebo', source:'fitebo',
         exercises:ex,

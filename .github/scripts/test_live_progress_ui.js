@@ -80,11 +80,22 @@ function ok(name, cond, extra) {
   ok('rir column in live', /RIR/.test(rirUi.head) && rirUi.n === 4 && rirUi.val === '2', JSON.stringify(rirUi));
   const lastUi = await page.evaluate(() => {
     const box = document.querySelector('#live-ex-0 .live-last-sets');
-    const sum = box && box.querySelector('summary');
-    const rows = box ? box.querySelectorAll('.live-last-row').length : 0;
-    return { has: !!box, text: sum ? sum.innerText : '', rows };
+    return { has: !!box, text: box ? box.innerText : '', tag: box ? box.tagName : '' };
   });
-  ok('last sets preview', lastUi.has && /20 × 12/.test(lastUi.text) && /22\.5 × 10/.test(lastUi.text) && lastUi.rows === 2, JSON.stringify(lastUi));
+  ok('last sets preview', lastUi.has && lastUi.tag === 'BUTTON' && /20 × 12/.test(lastUi.text) && /22\.5 × 10/.test(lastUi.text), JSON.stringify(lastUi));
+  await page.click('#live-ex-0 .live-last-sets');
+  const modalUi = await page.evaluate(() => {
+    const ov = document.getElementById('m-ex-hist');
+    const body = document.getElementById('ex-hist-body');
+    return {
+      show: !!(ov && ov.classList.contains('show')),
+      title: (document.getElementById('ex-hist-title') || {}).textContent || '',
+      text: body ? body.innerText : ''
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'live_ex_history_modal.png') });
+  ok('hist modal table', modalUi.show && /Przysiad Goblet/.test(modalUi.title) && /Powt/.test(modalUi.text) && /20/.test(modalUi.text) && /Σ/.test(modalUi.text), JSON.stringify(modalUi));
+  await page.evaluate(() => { if (typeof closeM === 'function') closeM('m-ex-hist'); });
   const delUi = await page.evaluate(() => {
     const btns = [...document.querySelectorAll('#live-ex-0 .live-set-del')];
     return { n: btns.length, disabled: btns.filter(b => b.disabled).length };

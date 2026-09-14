@@ -1199,6 +1199,7 @@ function addRow(dayId){
     +'<input type="text" class="ex-inp ex-trans-inp" data-f="trans" placeholder="20s przejście" title="Czas przejścia do następnej stacji obwodu" hidden>'
     +'</div>'
     +'<div class="builder-period-preview" style="grid-column:1/-1;display:none;"></div>'
+    +'<div class="builder-ex-hist-slot" hidden></div>'
     +'</div>';
   rows.appendChild(div);
   const nameInp=div.querySelector('[data-f="name"]');
@@ -1385,11 +1386,36 @@ function builderOnExNameChange(row){
   }
   builderRefreshAltChips(row);
   builderRefreshTechMedia(row);
+  if(typeof builderRefreshExHist==='function')builderRefreshExHist(row);
 }
 window.builderOnExNameChange=builderOnExNameChange;
+function builderRefreshExHist(row){
+  if(!row)return;
+  let box=row.querySelector('.builder-ex-hist-slot');
+  if(!box){
+    box=document.createElement('div');
+    box.className='builder-ex-hist-slot';
+    const extra=row.querySelector('.ex-row-extra');
+    if(extra)extra.appendChild(box);
+    else row.appendChild(box);
+  }
+  const cid=(document.getElementById('b-client')||{}).value||'';
+  const name=(row.querySelector('[data-f="name"]')||{}).value||'';
+  const alt=(row.querySelector('[data-f="alt"]')||{}).value||'';
+  const fromField=String(alt).split(/[,;/]/).map(s=>s.trim()).filter(Boolean);
+  const fromLib=typeof altsForExercise==='function'?altsForExercise(name):[];
+  const alts=fromField.concat(fromLib);
+  const html=cid&&name&&typeof lastSetsBlockHtml==='function'
+    ?lastSetsBlockHtml({name,clientId:cid,alts},{variant:'builder',limit:8})
+    :'';
+  box.innerHTML=html||'';
+  box.hidden=!html;
+}
+window.builderRefreshExHist=builderRefreshExHist;
 function builderRefreshRowExtras(row){
   builderRefreshAltChips(row);
   builderRefreshTechMedia(row);
+  if(typeof builderRefreshExHist==='function')builderRefreshExHist(row);
 }
 window.builderRefreshRowExtras=builderRefreshRowExtras;
 function builderRemoveRow(btn){
@@ -1829,7 +1855,10 @@ function updatePeriod(){
   const idx=window._builderPeriodWeek||0;
   const hasKeys=sch.some(w=>w&&w.key);
   el.innerHTML=sportBar+rmBar+`<div class="ui-section-sub" style="margin-bottom:12px;">Kliknij tydzień, aby podejrzeć serie, powtórzenia, kg, <b>RPE</b> i <b>RIR</b> w wierszach ćwiczeń.${n>4?` Ten plan ma <b>${n} tygodni</b>.`:''}</div>`+sch.map((w,i)=>`<button type="button" class="period-row${idx===i?' active':''}" onclick="builderSelectPeriodWeek(${i})"><div class="period-row-week" style="color:${/deload/i.test(w.cel)?'var(--orange)':w.nr===1?'var(--accent)':'var(--blue)'};">Tydz. ${w.nr}</div><div style="min-width:0;flex:1;"><div class="period-row-title">${w.cel}</div><div class="period-row-sub">${w.rpe}${w.rir?' · RIR '+w.rir:''}</div></div></button>`).join('')+(idx>0&&!hasKeys?`<button type="button" class="btn btn-primary btn-sm" style="width:100%;margin-top:12px;" onclick="builderApplyPeriodWeek()">Użyj wartości z tygodnia ${idx+1} w formularzu</button>`:'');
-  document.querySelectorAll('#builder-days .ex-row').forEach(r=>{if(typeof builderPreviewKg==='function')builderPreviewKg(r);});
+  document.querySelectorAll('#builder-days .ex-row').forEach(r=>{
+    if(typeof builderPreviewKg==='function')builderPreviewKg(r);
+    if(typeof builderRefreshExHist==='function')builderRefreshExHist(r);
+  });
   builderRefreshPeriodPreview();
   builderRefreshRationale();
   if(typeof refreshBuilderAiCoachCard==='function')refreshBuilderAiCoachCard();

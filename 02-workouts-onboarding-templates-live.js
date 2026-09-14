@@ -3355,7 +3355,7 @@ function liveExCard(ex,i,slot){
   const loadPh=typeof loadUnitPlaceholder==='function'?loadUnitPlaceholder(unit):'kg';
   const loadLbl=typeof loadUnitColumnLabel==='function'?loadUnitColumnLabel(unit):(unit==='sec'||unit==='min'?'Czas':unit==='m'?'Dystans':'Ciężar');
   const setsDone=ex.sets.filter(s=>s.done).length;
-  const lastBlock=typeof lastSetsBlockHtml==='function'?lastSetsBlockHtml(ex):'';
+  const lastBlock=typeof lastSetsBlockHtml==='function'?lastSetsBlockHtml(ex,{clientId:st.clientId}):'';
   const lastHint=lastBlock?'':(ex.lastDate&&ex.lastKg!==''&&ex.lastKg!=null?`Ostatnio: ${ex.lastKg} ${suf}${ex.lastReps?' × '+ex.lastReps:''}`:'');
   const pr=typeof exercisePR==='function'&&(typeof isWeightLoadUnit!=='function'||isWeightLoadUnit(unit))?exercisePR(st.clientId,ex.name):null;
   const prHint=pr?`Rekord: ${pr.kg} kg × ${pr.reps}`:'';
@@ -3579,6 +3579,7 @@ function liveSwapEx(i,name,slot){
     cur.lastReps=useLast.reps||'';
     cur.lastDate=useLast.date||'';
     cur.lastSets=useLast.sets||[];
+    cur.lastHistory=useLast.history||[];
     const plan=(window.PL||[]).find(p=>p.id===st.planId);
     const progression=typeof normalizePlanProgression==='function'?normalizePlanProgression(plan&&(plan.progression||plan.progressionType)):'double';
     const work=(cur.sets||[]).filter(s=>typeof isWorkingSet==='function'?isWorkingSet(s):true);
@@ -3647,6 +3648,14 @@ function liveSetExName(i,name,slot){
     return;
   }
   cur.name=name;
+  const last=typeof lastLoadForExercise==='function'?lastLoadForExercise(st.clientId,name):null;
+  if(last){
+    cur.lastKg=last.kg||'';
+    cur.lastReps=last.reps||'';
+    cur.lastDate=last.date||'';
+    cur.lastSets=last.sets||[];
+    cur.lastHistory=last.history||[];
+  }
   if(typeof resolveCoachMedia==='function'){
     const m=resolveCoachMedia({name});
     cur.video=m.video||'';
@@ -4102,40 +4111,83 @@ function renderLiveClientMock(){
   }
 }
 
+function liveHistoryExLines(s){
+  return (s&&s.exercises||[]).map(ex=>{
+    const sets=typeof exerciseLoggedSets==='function'?exerciseLoggedSets(ex):[];
+    if(!sets.length)return '';
+    const sum=typeof formatLastSetsSummary==='function'?formatLastSetsSummary(sets):'';
+    if(!sum)return '';
+    return `<div class="live-hist-ex"><span class="live-hist-ex-name">${escHtml(ex.name||'')}</span><span class="live-hist-ex-sets">${escHtml(sum)}</span></div>`;
+  }).filter(Boolean).join('');
+}
+window.liveHistoryExLines=liveHistoryExLines;
+
+function liveHistorySessionsForView(){
+  const cid=(typeof liveRef==='function'&&liveRef(0)&&liveRef(0).clientId)||'';
+  const cid2=(typeof liveRef==='function'&&liveRef(1)&&liveRef(1).clientId)||'';
+  const focus=cid||cid2||'';
+  const nameOf=id=>{
+    const c=(window.CL||[]).find(x=>x&&x.id===id);
+    return(c&&c.name)||'Klient';
+  };
+  const seen=new Set();
+  const all=[];
+  const push=s=>{
+    if(!s)return;
+    if(focus&&s.clientId&&s.clientId!==focus)return;
+    if(typeof isLoggedTrainingSession==='function'? !isLoggedTrainingSession(s) : (s.source==='planned'||s.source==='live-draft'))return;
+    if(!Array.isArray(s.exercises)||!s.exercises.length)return;
+    const id=s.id||((s.date||'')+'|'+(s.clientId||'')+'|'+(s.createdAt||'')+'|'+(s.time||''));
+    if(seen.has(id))return;
+    seen.add(id);
+    all.push(Object.assign({},s,{clientName:s.clientName||nameOf(s.clientId)}));
+  };
+  (typeof LIVE_HISTORY!=='undefined'?LIVE_HISTORY:(window.LIVE_HISTORY||[])).forEach(push);
+  (window.SE||[]).filter(s=>s&&Array.isArray(s.exercises))
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||'')||(b.time||'').localeCompare(a.time||''))
+    .forEach(push);
+  return all.slice(0,24);
+}
+window.liveHistorySessionsForView=liveHistorySessionsForView;
+
 function renderLiveHistory(){
   const container=document.getElementById('live-history-tab');if(!container)return;
-  const all=[...LIVE_HISTORY,...SE.slice(0,8).map(s=>({...s,clientName:CL.find(c=>c.id===s.clientId)?.name||'Klient'}))];
+  const all=liveHistorySessionsForView();
+  const cid=(typeof liveRef==='function'&&liveRef(0)&&liveRef(0).clientId)||'';
+  const clientName=cid?(((window.CL||[]).find(c=>c&&c.id===cid)||{}).name||''):'';
+  const title=clientName?('HISTORIA — '+clientName):'HISTORIA SESJI';
   container.innerHTML=`
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:16px;">HISTORIA SESJI LIVE</div>
-    ${all.length?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;">
-      ${all.slice(0,12).map(s=>`<div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:16px;">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-          <div style="width:36px;height:36px;border-radius:10px;background:var(--adim);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:14px;color:var(--accent);">${getInit(s.clientName||'?')}</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:8px;">${escHtml(title)}</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:16px;">Rozwiń trening, żeby zobaczyć ciężar i powtórzenia z każdej serii.</div>
+    ${all.length?`<div class="live-hist-grid">
+      ${all.map(s=>{
+        const lines=liveHistoryExLines(s);
+        const dateLbl=typeof formatHistorySessionDate==='function'&&s.date?formatHistorySessionDate(s.date):(s.date||'');
+        const src=typeof sessionSourceLabel==='function'&&s.source?(' · '+sessionSourceLabel(s)):'';
+        return `<details class="live-hist-card">
+        <summary class="live-hist-sum">
+          <div class="live-hist-av">${getInit(s.clientName||'?')}</div>
           <div style="flex:1;min-width:0;">
-            <div style="font-size:13px;font-weight:700;">${s.clientName||'Klient'}${s.feedback&&typeof sessionRatingEmoji==='function'?' '+sessionRatingEmoji(s.feedback):''}</div>
-            <div style="font-size:10px;color:var(--muted);">${s.date||''} ${s.time||''}${typeof sessionSourceLabel==='function'&&s.source?' · '+sessionSourceLabel(s):''}</div>
+            <div style="font-size:13px;font-weight:700;">${escHtml(s.clientName||'Klient')}${s.feedback&&typeof sessionRatingEmoji==='function'?' '+sessionRatingEmoji(s.feedback):''}</div>
+            <div style="font-size:10px;color:var(--muted);">${escHtml(dateLbl||s.date||'')}${s.time?' '+escHtml(s.time):''}${escHtml(src)}</div>
           </div>
+          <div style="font-size:11px;color:var(--muted);white-space:nowrap;">${s.exercises&&s.exercises.length?s.exercises.length+' ćw.':''}</div>
+        </summary>
+        <div class="live-hist-body">
+          <div class="live-hist-kpis">
+            <div><strong>${escHtml(String(s.duration||60))}</strong><span>min</span></div>
+            <div><strong>${escHtml(String(s.exercises&&s.exercises.length||'—'))}</strong><span>ćw.</span></div>
+            <div><strong>${escHtml(String(s.volume||'—'))}</strong><span>kg obj.</span></div>
+          </div>
+          ${lines||'<div class="live-hist-empty">Brak zapisanych serii (kg × powt.).</div>'}
+          ${s.feedback&&typeof sessionRatingLabel==='function'?`<div style="font-size:12px;margin-top:8px;">Ocena: ${escHtml(sessionRatingLabel(s.feedback))}</div>`:''}
+          ${s.note?`<div class="live-hist-note">${escHtml(s.note)}</div>`:''}
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:11px;">
-          <div style="background:var(--s3);border-radius:6px;padding:7px;text-align:center;">
-            <div style="font-weight:700;color:var(--accent);">${s.duration||60}</div>
-            <div style="color:var(--muted);">min</div>
-          </div>
-          <div style="background:var(--s3);border-radius:6px;padding:7px;text-align:center;">
-            <div style="font-weight:700;color:var(--blue);">${s.exercises?.length||'—'}</div>
-            <div style="color:var(--muted);">ćw.</div>
-          </div>
-          <div style="background:var(--s3);border-radius:6px;padding:7px;text-align:center;">
-            <div style="font-weight:700;color:var(--orange);">${s.volume||'—'}</div>
-            <div style="color:var(--muted);">kg obj.</div>
-          </div>
-        </div>
-        ${s.feedback&&typeof sessionRatingLabel==='function'?`<div style="font-size:12px;margin-top:8px;">Ocena: ${sessionRatingLabel(s.feedback)}</div>`:''}
-        ${s.note?`<div style="font-size:11px;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--border);line-height:1.5;">${s.note}</div>`:''}
-      </div>`).join('')}
+      </details>`;
+      }).join('')}
     </div>`:`<div style="text-align:center;padding:60px;color:var(--muted);">
       <div style="font-size:36px;opacity:0.3;margin-bottom:12px;">📊</div>
-      <div>Brak historii sesji live. Zacznij trening!</div>
+      <div>${clientName?'Brak zapisanych treningów tego klienta.':'Brak historii sesji. Zacznij trening albo zaimportuj logi.'}</div>
     </div>`}`;
 }
 

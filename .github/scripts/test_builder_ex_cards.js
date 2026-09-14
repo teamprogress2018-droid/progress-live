@@ -9,13 +9,13 @@ const src05=fs.readFileSync(path.join(root,'05-clients-builder-plans-calendar.js
 const css=fs.readFileSync(path.join(root,'styles.css'),'utf8');
 const core=fs.readFileSync(path.join(root,'01-core.js'),'utf8');
 
-if(!src05.includes('builderApplyAlt')||!src05.includes('builderRefreshTechMedia')||!src05.includes('builderToggleAlts')){
+if(!src05.includes('builderApplyAlt')||!src05.includes('builderRefreshTechMedia')||!src05.includes('builderToggleAlts')||!src05.includes('builderRefreshExHist')){
   console.error('FAIL missing builder alt/media helpers');process.exit(1);
 }
 if(!css.includes('.builder-alt-chip')||!css.includes('.ex-rows{display:flex')){
   console.error('FAIL missing builder card CSS');process.exit(1);
 }
-if(!src05.includes('builder-ex-thumb')||!src05.includes('builder-alt-toggle')||!src05.includes('Zamienniki gdy nie ma maszyny')){
+if(!src05.includes('builder-ex-thumb')||!src05.includes('builder-alt-toggle')||!src05.includes('Zamienniki gdy nie ma maszyny')||!src05.includes('builder-ex-hist-slot')){
   console.error('FAIL addRow markup missing');process.exit(1);
 }
 
@@ -38,6 +38,7 @@ ok('alts hidden by default', /builder-alt-box" hidden/.test(src05)||/builder-alt
 ok('no empty film box', !src05.includes('Brak filmu techniki'));
 ok('lookup keys helper', core.includes('function exerciseLookupKeys'));
 ok('media popover', src05.includes('builderOpenExMedia')&&css.includes('builder-ex-media-pop'));
+ok('hist css', css.includes('builder-ex-hist-slot')&&css.includes('live-hist-ex-sets'));
 
 const altsForExercise=(name)=>{
   if(/sztangi leż/i.test(name))return['Wyciskanie hantli','Pompki'];
