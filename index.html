@@ -13,7 +13,7 @@
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="globals.css?v=17">
-<link rel="stylesheet" href="styles.css?v=81">
+<link rel="stylesheet" href="styles.css?v=82">
 </head>
 <body>
 
@@ -426,16 +426,16 @@
   <div class="topbar">
     <div style="display:flex;align-items:center;gap:10px;">
       <div class="topbar-title" id="cal-title">Kalendarz</div>
-      <div style="display:flex;gap:2px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:2px;">
-        <button class="auto-tab-btn active" id="calv-week" onclick="setCalView('week')">Tydzień</button>
-        <button class="auto-tab-btn" id="calv-month" onclick="setCalView('month')">Miesiąc</button>
-        <button class="auto-tab-btn" id="calv-list" onclick="setCalView('list')">Lista</button>
+      <div class="cal-view-toggle" role="group" aria-label="Widok kalendarza">
+        <button type="button" class="auto-tab-btn active" id="calv-week" onclick="setCalView('week')">Tydzień</button>
+        <button type="button" class="auto-tab-btn" id="calv-month" onclick="setCalView('month')">Miesiąc</button>
+        <button type="button" class="auto-tab-btn" id="calv-list" onclick="setCalView('list')">Lista</button>
       </div>
     </div>
     <div class="topbar-actions">
-      <button class="btn btn-ghost btn-sm" onclick="calNav(-1)">← Wstecz</button>
-      <button class="btn btn-ghost btn-sm" onclick="calNavToday()">Dziś</button>
-      <button class="btn btn-ghost btn-sm" onclick="calNav(1)">Dalej →</button>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="calNav(-1)">← Wstecz</button>
+      <button type="button" class="btn btn-ghost btn-sm cal-nav-today" onclick="calNavToday()">Dziś</button>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="calNav(1)">Dalej →</button>
       <button class="btn btn-primary btn-sm" onclick="openM('m-session')">+ Sesja</button>
     </div>
   </div>

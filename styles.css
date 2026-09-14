@@ -209,6 +209,42 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 .topbar-actions{display:flex;gap:10px;}
 .btn{padding:11px 20px;border-radius:var(--r);font-size:var(--font-size-sm);font-weight:600;border:none;transition:all 0.15s;white-space:nowrap;}
 .btn-sm{padding:8px 14px;font-size:var(--font-size-label);}
+.btn.btn-ghost,.btn.btn-secondary{
+  background:var(--bg-input);
+  color:var(--text-primary);
+  border:1px solid var(--border-default);
+}
+.btn.btn-ghost:hover,.btn.btn-secondary:hover{
+  background:var(--bg-hover);
+  border-color:var(--border-focus);
+  color:var(--text-primary);
+}
+.topbar-actions .cal-nav-today{
+  background:var(--bg-hover);
+  border-color:var(--border-focus);
+  color:#fff;
+  font-weight:700;
+}
+.cal-view-toggle{
+  display:flex;
+  gap:2px;
+  background:var(--bg-input);
+  border:1px solid var(--border-default);
+  border-radius:8px;
+  padding:3px;
+}
+.cal-view-toggle .auto-tab-btn{
+  padding:7px 14px;
+  font-size:13px;
+  font-weight:600;
+  color:var(--text-secondary);
+  min-height:32px;
+}
+.cal-view-toggle .auto-tab-btn.active{
+  background:var(--accent-red);
+  color:#fff;
+  box-shadow:0 1px 8px rgba(var(--accent-rgb),0.35);
+}
 .card,.panel,.card-sm,.settings-card,.stat-card,.plan-card,.tbl-row,.modal,.builder-day,.ai-panel{
   background-color:var(--bg-card);
   border:1px solid var(--border-color);

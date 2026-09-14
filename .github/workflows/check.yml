@@ -102,6 +102,8 @@ jobs:
         run: node .github/scripts/test_cal_del_card.js
       - name: 1g2c. Testy kolumn nachodzących sesji w tygodniu
         run: node .github/scripts/test_cal_week_overlap.js
+      - name: 1g2d. Testy wyrazistości przycisków kalendarza
+        run: node .github/scripts/test_cal_btn_clarity.js
 
       - name: 1h. Testy regresji historii treningów
         run: node .github/scripts/test_workout_rate_history_fixes.js
@@ -444,6 +446,8 @@ jobs:
         run: node .github/scripts/test_cal_del_card_ui.js
       - name: 6f3c. Testy UI nachodzących sesji w tygodniu
         run: node .github/scripts/test_cal_week_overlap_ui.js
+      - name: 6f3c2. Testy UI wyrazistości przycisków kalendarza
+        run: node .github/scripts/test_cal_btn_clarity_ui.js
       - name: 6f3d. Testy UI kontynuacji planu z Fitebo
         run: node .github/scripts/test_fitebo_continue_ui.js
       - name: 6g. Testy UI obwodów centymetrem w profilu klienta
