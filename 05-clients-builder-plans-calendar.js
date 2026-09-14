@@ -92,11 +92,9 @@ function quickEditClient(e,clientId){
 }
 function quickStartWorkout(e,clientId){
   e.stopPropagation();
+  const c=CL.find(x=>x.id===clientId);
+  if(typeof liveSetPendingClient==='function')liveSetPendingClient(clientId,{clientName:c?c.name:''});
   goTo('live');
-  setTimeout(()=>{
-    const c=CL.find(x=>x.id===clientId);
-    if(typeof liveClientSetField==='function')liveClientSetField(clientId,c?c.name:'');
-  },200);
 }
 function quickCheckin(e,clientId){
   e.stopPropagation();
@@ -464,11 +462,9 @@ window.openClientProfileFromOnboard=openClientProfileFromOnboard;
 function openLiveFromOnboard(clientId,clientName){
   window._onboardResumeAfterLive=clientId;
   if(typeof closeM==='function')closeM('m-client-onboard');
+  if(typeof liveSetPendingClient==='function')liveSetPendingClient(clientId,{clientName:clientName||''});
   goTo('live');
-  setTimeout(()=>{
-    if(typeof liveClientSetField==='function')liveClientSetField(clientId,clientName||'');
-    if(typeof renderOnboardLiveBanner==='function')renderOnboardLiveBanner();
-  },300);
+  if(typeof renderOnboardLiveBanner==='function')renderOnboardLiveBanner();
 }
 function renderOnboardLiveBanner(){
   const bar=document.getElementById('live-onboard-banner');

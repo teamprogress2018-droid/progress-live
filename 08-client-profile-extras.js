@@ -1886,19 +1886,20 @@ function cpAssignTemplate(clientId){
 }
 
 function liveSelectPlanForClient(planId,clientId){
+  const cid=clientId||(typeof cpClientId!=='undefined'?cpClientId:'');
+  if(!planId)return;
+  const c=(typeof CL!=='undefined'?CL:[]).find(x=>x&&x.id===cid);
+  let pid=planId;
+  const picked=(window.PL||[]).find(p=>p&&p.id===planId);
+  if(cid&&picked&&picked.source!=='fitebo-continue'&&(picked.source==='fitebo'||picked.fromFitebo)){
+    const cont=(window.PL||[]).find(p=>p&&p.clientId===cid&&p.source==='fitebo-continue');
+    if(cont)pid=cont.id;
+  }
+  if(cid&&typeof liveSetPendingClient==='function'){
+    liveSetPendingClient(cid,{clientName:c?c.name:'',planId:pid});
+  }
   closeClientProfile();
   goTo('live');
-  setTimeout(()=>{
-    const c=CL.find(x=>x.id===clientId);
-    if(typeof liveClientSetField==='function')liveClientSetField(clientId,c?c.name:'');
-    let pid=planId;
-    const picked=(window.PL||[]).find(p=>p&&p.id===planId);
-    if(picked&&picked.source!=='fitebo-continue'&&(picked.source==='fitebo'||picked.fromFitebo)){
-      const cont=(window.PL||[]).find(p=>p&&p.clientId===clientId&&p.source==='fitebo-continue');
-      if(cont)pid=cont.id;
-    }
-    setTimeout(()=>liveSelectPlan(pid),200);
-  },300);
 }
 
 function renderCPMetrics(c){

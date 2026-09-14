@@ -194,10 +194,11 @@ function cpQuickCheckin(){
 
 function cpStartLive(){
   if(!cpClientId)return;
-  const c=CL.find(x=>x.id===cpClientId);
+  const cid=cpClientId;
+  const c=CL.find(x=>x.id===cid);
+  if(typeof liveSetPendingClient==='function')liveSetPendingClient(cid,{clientName:c?c.name:''});
   closeClientProfile();
   goTo('live');
-  setTimeout(()=>{if(typeof liveClientSetField==='function')liveClientSetField(cpClientId,c?c.name:'');},200);
 }
 
 function toggleCpHdrMore(evOrForce){
