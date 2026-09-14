@@ -22,10 +22,10 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 01', html.includes('01-core.js?v=103'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=66'));
-ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=64'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=67'));
+ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=65'));
 ok('cache 10', html.includes('10-client-app.js?v=39'));
-ok('cache styles', html.includes('styles.css?v=80'));
+ok('cache styles', html.includes('styles.css?v=81'));
 ok('live period card', html.includes('id="live-period-card"') && html.includes('id="live-b-period-card"'));
 ok('live plan rest btn', html.includes('liveStartRestFromPlan()') && html.includes('id="live-rest-plan-hint"'));
 ok('live maps tempo', /tempo:ex\.tempo/.test(core));

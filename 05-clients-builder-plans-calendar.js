@@ -504,6 +504,11 @@ function renderOnboardAplBanner(){
 }
 function resumeOnboardFromApl(){
   const cid=window._onboardResumeAfterApl;
+  if(cid&&typeof aplLastPlan!=='undefined'&&aplLastPlan&&typeof clientHasAssignedPlan==='function'&&!clientHasAssignedPlan(cid)&&typeof aplSavePlan==='function'){
+    const sel=document.getElementById('apl-client');
+    if(sel)sel.value=cid;
+    try{aplSavePlan();return;}catch(e){console.warn('onboard apl auto-save',e);}
+  }
   window._onboardResumeAfterApl=null;
   if(typeof renderOnboardAplBanner==='function')renderOnboardAplBanner();
   if(cid&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);
@@ -555,13 +560,18 @@ function openPackageForClient(clientId){
   const pkgEl=document.getElementById('pkg-client');
   if(pkgEl){
     const list=(window.CL||[]).filter(c=>c&&c.status!=='archived');
-    pkgEl.innerHTML=list.map(c=>'<option value="'+escHtml(c.id)+'">'+escHtml(c.name)+'</option>').join('');
+    if(clientId&&!list.some(c=>c.id===clientId)){
+      const extra=(window.CL||[]).find(c=>c&&c.id===clientId);
+      if(extra)list.push(extra);
+    }
+    pkgEl.innerHTML=list.map(c=>'<option value="'+escHtml(c.id)+'">'+escHtml(c.name||c.email||c.id)+'</option>').join('')
+      ||(clientId?'<option value="'+escHtml(clientId)+'">'+escHtml(clientId)+'</option>':'');
     pkgEl.value=clientId;
   }
   const pkgDate=document.getElementById('pkg-date');
   if(pkgDate&&!pkgDate.value)pkgDate.value=new Date().toISOString().split('T')[0];
   const paySt=document.getElementById('pkg-pay-status');
-  if(paySt)paySt.value='pending';
+  if(paySt&&!paySt.value)paySt.value='pending';
   const bar=document.getElementById('pkg-onboard-banner');
   if(bar){
     const c=(window.CL||[]).find(x=>x&&x.id===clientId);
@@ -696,8 +706,7 @@ function renderClientOnboardChecklist(){
         ?`Plan już przypisany${(()=>{const lp=typeof latestClientPlan==='function'?latestClientPlan(id):null;return lp&&lp.name?' (“'+lp.name+'”)':'';})()}. Możesz dodać kolejny — najnowszy trafia do kalendarza.`
         :'Najszybciej: generator AI z danymi klienta',
       action:`openAiPlanForClient('${id}',true)`,cta:'⚡ Plan AI',
-      extra:`<button class="btn btn-ghost btn-sm" onclick="openBuilderForClient('${id}',true)">Szablon / kreator</button>`,
-      doneExtra:`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"><button class="btn btn-primary btn-sm" onclick="openAiPlanForClient('${id}',true)">⚡ Nowy plan AI</button><button class="btn btn-ghost btn-sm" onclick="openBuilderForClient('${id}',true)">📋 Szablon / kreator</button></div>`},
+      extra:st.plan?'':`<button class="btn btn-ghost btn-sm" onclick="openBuilderForClient('${id}',true)">Szablon / kreator</button>`},
     {done:st.calendar,icon:'🗓',title:'Wrzuć plan do kalendarza',desc:'4 tygodnie na preferowane dni — klient widzi trening w Dziś',
       action:`scheduleClientPlanToCalendar('${id}')`,cta:'Do kalendarza',
       extra:st.calendar?'':`<button class="btn btn-ghost btn-sm" onclick="openLiveFromOnboard('${id}','${safeName}')">Trening Live</button>`,

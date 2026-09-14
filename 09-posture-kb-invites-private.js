@@ -905,53 +905,63 @@ function renderPayHistory(){
 }
 
 async function savePackage(){
-  if(window._saveGuard_savePackage)return;window._saveGuard_savePackage=true;setTimeout(()=>window._saveGuard_savePackage=false,1500);
-
-  const title=document.getElementById('pkg-title').value.trim();
-  if(!title){notify('Wpisz nazwę pakietu!');return;}
-  const cid=document.getElementById('pkg-client').value;
-  const c=CL.find(x=>x.id===cid);
-  const price=parseInt(document.getElementById('pkg-price').value)||0;
-  const sessions=parseInt(document.getElementById('pkg-sessions').value)||1;
-  const validity=parseInt(document.getElementById('pkg-validity').value)||90;
-  const date=document.getElementById('pkg-date').value||new Date().toISOString().split('T')[0];
-  const expD=new Date(date);expD.setDate(expD.getDate()+validity);
-  const invId=nextInvoiceNr();
-  const pkg=withTrainer({
-    id:newId('pkg'),title,
-    type:document.getElementById('pkg-type').value,
-    sessions,sessionsUsed:0,price,validity,
-    clientId:cid,clientName:c?c.name:'Brak klienta',
-    payStatus:document.getElementById('pkg-pay-status').value,
-    date,expiresDate:expD.toISOString().split('T')[0],
-    notes:document.getElementById('pkg-notes').value,
-    invoiceId:invId
-  });
-  const inv=withTrainer({id:invId,nr:invId,pkgId:pkg.id,clientName:pkg.clientName,pkgTitle:title,date,amount:price,status:pkg.payStatus});
-  window.PACKAGES.push(pkg);
-  window.INVOICES.push(inv);
-  await persistById('packages',pkg);
-  await persistById('invoices',inv);
-  closeM('m-package');
-  if(payTab==='overview')renderPayOverview();
-  else if(payTab==='packages')renderPayPackages();
-  else if(payTab==='invoices')renderPayInvoices();
-  const fromOnboard=!!window._onboardResumeAfterPackage;
-  const resumeId=fromOnboard?window._onboardResumeAfterPackage:null;
-  window._onboardResumeAfterPackage=null;
-  if(typeof clearPackageOnboardBanner==='function')clearPackageOnboardBanner();
-  if(!fromOnboard&&pkg.payStatus==='pending'&&pkg.clientId&&price>0){
-    if(confirm('Pakiet oczekuje na wpłatę. Wysłać prośbę o płatność do czatu klienta teraz?')){
-      if(typeof requestPayment==='function')requestPayment(pkg.id);
+  if(window._saveGuard_savePackage)return;
+  window._saveGuard_savePackage=true;
+  try{
+    const titleEl=document.getElementById('pkg-title');
+    const title=(titleEl&&titleEl.value||'').trim();
+    if(!title){if(typeof notify==='function')notify('Wpisz nazwę pakietu!');return;}
+    const cid=(document.getElementById('pkg-client')||{}).value||window._onboardResumeAfterPackage||'';
+    if(!cid){if(typeof notify==='function')notify('Wybierz klienta');return;}
+    const c=CL.find(x=>x.id===cid);
+    const price=parseInt(document.getElementById('pkg-price').value)||0;
+    const sessions=parseInt(document.getElementById('pkg-sessions').value)||1;
+    const validity=parseInt(document.getElementById('pkg-validity').value)||90;
+    const date=document.getElementById('pkg-date').value||new Date().toISOString().split('T')[0];
+    const expD=new Date(date);expD.setDate(expD.getDate()+validity);
+    const invId=nextInvoiceNr();
+    const pkg=withTrainer({
+      id:newId('pkg'),title,
+      type:document.getElementById('pkg-type').value,
+      sessions,sessionsUsed:0,price,validity,
+      clientId:cid,clientName:c?c.name:'Brak klienta',
+      payStatus:document.getElementById('pkg-pay-status').value||'pending',
+      date,expiresDate:expD.toISOString().split('T')[0],
+      notes:document.getElementById('pkg-notes').value,
+      invoiceId:invId
+    });
+    const inv=withTrainer({id:invId,nr:invId,pkgId:pkg.id,clientName:pkg.clientName,pkgTitle:title,date,amount:price,status:pkg.payStatus});
+    if(!Array.isArray(window.PACKAGES))window.PACKAGES=[];
+    if(!Array.isArray(window.INVOICES))window.INVOICES=[];
+    window.PACKAGES.push(pkg);
+    window.INVOICES.push(inv);
+    const fromOnboard=!!window._onboardResumeAfterPackage;
+    const resumeId=fromOnboard?window._onboardResumeAfterPackage:null;
+    window._onboardResumeAfterPackage=null;
+    closeM('m-package');
+    if(typeof clearPackageOnboardBanner==='function')clearPackageOnboardBanner();
+    if(payTab==='overview')renderPayOverview();
+    else if(payTab==='packages')renderPayPackages();
+    else if(payTab==='invoices')renderPayInvoices();
+    if(!fromOnboard&&pkg.payStatus==='pending'&&pkg.clientId&&price>0){
+      if(confirm('Pakiet oczekuje na wpłatę. Wysłać prośbę o płatność do czatu klienta teraz?')){
+        if(typeof requestPayment==='function')requestPayment(pkg.id);
+      }
     }
+    if(fromOnboard&&resumeId&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(resumeId);
+    if(typeof renderDash==='function')try{renderDash();}catch(e){}
+    if(typeof renderClients==='function')try{renderClients();}catch(e){}
+    if(typeof cpClientId!=='undefined'&&cpClientId===pkg.clientId&&typeof renderCPPayments==='function'){
+      const cl=CL.find(x=>x.id===pkg.clientId);if(cl)try{renderCPPayments(cl);}catch(e){}
+    }
+    notify('✓ Pakiet "'+title+'" dodany! Faktura '+invId+' wygenerowana.');
+    try{
+      await persistById('packages',pkg);
+      await persistById('invoices',inv);
+    }catch(e){console.warn('savePackage persist',e);}
+  }finally{
+    window._saveGuard_savePackage=false;
   }
-  if(fromOnboard&&resumeId&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(resumeId);
-  if(typeof renderDash==='function')try{renderDash();}catch(e){}
-  if(typeof renderClients==='function')try{renderClients();}catch(e){}
-  if(typeof cpClientId!=='undefined'&&cpClientId===pkg.clientId&&typeof renderCPPayments==='function'){
-    const cl=CL.find(x=>x.id===pkg.clientId);if(cl)try{renderCPPayments(cl);}catch(e){}
-  }
-  notify('✓ Pakiet "'+title+'" dodany! Faktura '+invId+' wygenerowana.');
 }
 var odTab='browse';var odWorkoutFilter='all';var odProgramFilter='all';
 window.OD_WORKOUTS=[];
@@ -1581,7 +1591,8 @@ function openAssignHomeworkModal(workoutId,clientId){
         <div class="form-field" id="ahw-workout-wrap" style="display:none;"><label class="form-lbl">Trening</label><select class="form-select" id="ahw-workout"></select></div>
         <div class="form-field" style="position:relative;">
           <label class="form-lbl">Klient (albo kilku)</label>
-          <div id="ahw-client-list" style="max-height:160px;overflow-y:auto;background:var(--s3);border:1px solid var(--border);border-radius:8px;padding:8px;"></div>
+          <input type="search" class="form-input" id="ahw-client-search" placeholder="Szukaj imienia…" style="margin-bottom:8px;font-size:12px;" oninput="ahwClientSearchInput()">
+          <div id="ahw-client-list" style="max-height:280px;overflow-y:auto;background:var(--s3);border:1px solid var(--border);border-radius:8px;padding:8px;"></div>
         </div>
         <div class="form-field"><label class="form-lbl">Termin</label><input type="date" class="form-input" id="ahw-due"></div>
         <div class="form-field"><label class="form-lbl">Powtarzaj (tygodnie)</label>
@@ -1611,12 +1622,9 @@ function openAssignHomeworkModal(workoutId,clientId){
     if(wsel)wsel.innerHTML=list.map(x=>`<option value="${escHtml(x.id)}">${escHtml((x.emoji||'🏠')+' '+(x.name||x.id))}</option>`).join('');
     if(prev)prev.innerHTML='<div style="color:var(--muted);">Wybierz trening z biblioteki On-demand (HIIT, mobilność, oddech).</div>';
   }
-  const box=document.getElementById('ahw-client-list');
-  const clients=(window.CL||[]).filter(c=>c.status!=='archived');
-  if(box){
-    box.innerHTML=clients.map(c=>`<label style="display:flex;gap:8px;align-items:center;padding:6px 4px;font-size:12px;cursor:pointer;">
-      <input type="checkbox" class="ahw-cid" value="${escHtml(c.id)}" ${clientId&&c.id===clientId?'checked':''}> ${escHtml(c.name)}</label>`).join('')||'<div style="color:var(--muted);">Brak klientów</div>';
-  }
+  const search=document.getElementById('ahw-client-search');
+  if(search)search.value='';
+  ahwRenderClientList('');
   const due=document.getElementById('ahw-due');
   if(due)due.value=typeof todayYmd==='function'?todayYmd():'';
   const note=document.getElementById('ahw-note');
@@ -1630,7 +1638,29 @@ function openAssignHomeworkModal(workoutId,clientId){
   }
   openM('m-assign-homework');
 }
-function ahwClientSearchInput(){}
+function ahwRenderClientList(q){
+  const box=document.getElementById('ahw-client-list');
+  if(!box)return;
+  const query=String(q||'').trim().toLowerCase();
+  const pick=window._assignHwClientId||'';
+  const checked=new Set([...document.querySelectorAll('.ahw-cid:checked')].map(el=>el.value));
+  if(pick)checked.add(pick);
+  const clients=(window.CL||[]).filter(c=>c&&c.status!=='archived')
+    .filter(c=>{
+      const label=String(c.name||c.email||c.id||'');
+      return !query||label.toLowerCase().includes(query);
+    })
+    .sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'pl'));
+  box.innerHTML=clients.map(c=>{
+    const label=c.name||c.email||c.id||'Klient';
+    return `<label style="display:flex;gap:8px;align-items:center;padding:6px 4px;font-size:12px;cursor:pointer;">
+      <input type="checkbox" class="ahw-cid" value="${escHtml(c.id)}" ${checked.has(c.id)?'checked':''}> ${escHtml(label)}</label>`;
+  }).join('')||'<div style="color:var(--muted);">Brak klientów</div>';
+}
+function ahwClientSearchInput(){
+  const q=(document.getElementById('ahw-client-search')||{}).value||'';
+  ahwRenderClientList(q);
+}
 function ahwPickClient(){}
 function saveAssignHomework(){
   let wid=window._assignHwWorkoutId||(document.getElementById('ahw-workout')||{}).value;
@@ -3661,9 +3691,11 @@ function updateInvitePreview(c, link, method) {
   if (el) el.textContent = built.preview;
   const sendBtn = document.getElementById('inv-send-btn');
   if (sendBtn) {
-    const labels = { wiadomosc: '📤 Zapisz w Inbox', email: '✉️ Otwórz Gmail i wyślij', whatsapp: '💚 Otwórz WhatsApp' };
+    const labels = { wiadomosc: '📤 Zapisz w Inbox', email: '✉️ Otwórz Gmail i wyślij', whatsapp: '📋 Kopiuj wiadomość' };
     sendBtn.textContent = labels[method] || labels.email;
   }
+  const waBtn = document.getElementById('inv-open-wa-btn');
+  if (waBtn) waBtn.style.display = method === 'whatsapp' ? '' : 'none';
   const hint = document.getElementById('inv-channel-hint');
   if (hint) {
     const hints = {
@@ -3672,7 +3704,7 @@ function updateInvitePreview(c, link, method) {
         ? 'Strona nie wysyła maili z serwera. Otworzy Gmail z gotową treścią — tam kliknij Wyślij. Link idzie też do schowka.'
         : 'Brak e-maila w karcie klienta — uzupełnij albo użyj WhatsApp.',
       whatsapp: (typeof waPhone === 'function' ? waPhone(c.phone) : c.phone)
-        ? 'Otworzy WhatsApp (wa.me) z gotową wiadomością — wyślij stamtąd.'
+        ? 'Kopiuje treść do schowka — wklej w WhatsApp. Aplikacji nie musisz otwierać za każdym razem. Opcjonalnie: Otwórz WhatsApp.'
         : 'Brak telefonu w karcie klienta — uzupełnij albo użyj e-maila.'
     };
     hint.textContent = hints[method] || hints.email;
@@ -3703,16 +3735,50 @@ window.buildInviteMessage = buildInviteMessage;
 
 function copyInviteLink() {
   const link = document.getElementById('inv-link')?.textContent || '';
-  navigator.clipboard.writeText(link)
-    .then(() => notify('✓ Link skopiowany do schowka!'))
-    .catch(() => {
-      const ta = document.createElement('textarea');
-      ta.value = link; document.body.appendChild(ta);
-      ta.select(); document.execCommand('copy');
-      document.body.removeChild(ta);
-      notify('✓ Link skopiowany!');
-    });
+  copyInviteText(link, '✓ Link skopiowany do schowka!', '✓ Link skopiowany!');
 }
+
+function copyInviteText(text, okMsg, fallbackMsg) {
+  const t = String(text || '');
+  const done = (ok) => {
+    if (typeof notify === 'function') notify(ok ? (okMsg || '✓ Skopiowano') : (fallbackMsg || 'Nie udało się skopiować'));
+    return ok;
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    return navigator.clipboard.writeText(t).then(() => done(true)).catch(() => done(copyInviteTextFallback(t)));
+  }
+  return Promise.resolve(done(copyInviteTextFallback(t)));
+}
+function copyInviteTextFallback(t) {
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = t; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+    return true;
+  } catch (e) { return false; }
+}
+function copyInviteMessage() {
+  const c = CL.find(x => x.id === inviteClientId);
+  const link = document.getElementById('inv-link')?.textContent || '';
+  const built = typeof buildInviteMessage === 'function' ? buildInviteMessage(c, link, inviteMethod || 'wiadomosc') : { body: '' };
+  return copyInviteText(built.body || built.preview || '', '✓ Wiadomość skopiowana — wklej w WhatsApp');
+}
+function openInviteWhatsApp() {
+  const c = CL.find(x => x.id === inviteClientId);
+  if (!c) return;
+  const link = document.getElementById('inv-link')?.textContent || '';
+  const built = buildInviteMessage(c, link, 'whatsapp');
+  const phone = typeof waPhone === 'function' ? waPhone(c.phone) : String(c.phone || '').replace(/\D/g, '');
+  if (!phone) {
+    if (typeof notify === 'function') notify('⚠ Brak telefonu w karcie');
+    return;
+  }
+  try { copyInviteText(built.body || '', '✓ Wiadomość skopiowana'); } catch (e) {}
+  window.open('https://wa.me/' + phone + '?text=' + encodeURIComponent(built.body || ''), '_blank', 'noopener');
+}
+window.copyInviteMessage = copyInviteMessage;
+window.openInviteWhatsApp = openInviteWhatsApp;
 
 function sendInvitation() {
   const c = CL.find(x => x.id === inviteClientId);
@@ -3752,14 +3818,13 @@ function sendInvitation() {
     }
   } else if (method === 'whatsapp') {
     const phone = typeof waPhone === 'function' ? waPhone(c.phone) : String(c.phone || '').replace(/\D/g, '');
+    copyInviteMessage();
     if (!phone) {
-      notify('⚠ Brak telefonu w karcie — zapisano w Inbox');
+      notify('⚠ Brak telefonu w karcie — zapisano w Inbox, wiadomość w schowku');
       channelLabel = 'Inbox (brak telefonu)';
     } else {
-      const href = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(built.body);
-      window.open(href, '_blank', 'noopener');
-      openedExternal = true;
-      channelLabel = 'WhatsApp';
+      openedExternal = false;
+      channelLabel = 'WhatsApp (schowek)';
     }
   }
 

@@ -3033,11 +3033,10 @@ function assignProgClientSearchInput(){
   const q=(document.getElementById('assign-prog-client-search')?.value||'').trim().toLowerCase();
   const res=document.getElementById('assign-prog-client-results');
   if(!res)return;
-  let list=CL;
-  if(q)list=list.filter(c=>c.name.toLowerCase().includes(q));
+  let list=(window.CL||[]).filter(c=>c&&c.status!=='archived');
+  if(q)list=list.filter(c=>String(c.name||c.email||'').toLowerCase().includes(q));
   list=list.map(c=>({c,act:typeof formatClientActivity==='function'?formatClientActivity(c.id):{label:'',color:'var(--muted)',days:0}}))
-    .sort((a,b)=>b.act.days-a.act.days)
-    .slice(0,8);
+    .sort((a,b)=>String(a.c.name||'').localeCompare(String(b.c.name||''),'pl'));
   if(!list.length){
     res.innerHTML='<div style="padding:12px;font-size:12px;color:var(--muted);text-align:center;">Brak wyników</div>';
     res.style.display='block';
@@ -3193,11 +3192,10 @@ function taskClientSearchInput(){
   const q=(document.getElementById('task-client-search')?.value||'').trim().toLowerCase();
   const res=document.getElementById('task-client-results');
   if(!res)return;
-  let list=CL;
-  if(q)list=list.filter(c=>c.name.toLowerCase().includes(q));
+  let list=(window.CL||[]).filter(c=>c&&c.status!=='archived');
+  if(q)list=list.filter(c=>String(c.name||c.email||'').toLowerCase().includes(q));
   list=list.map(c=>({c,act:typeof formatClientActivity==='function'?formatClientActivity(c.id):{label:'',color:'var(--muted)',days:0}}))
-    .sort((a,b)=>b.act.days-a.act.days)
-    .slice(0,8);
+    .sort((a,b)=>String(a.c.name||'').localeCompare(String(b.c.name||''),'pl'));
   if(!list.length){
     res.innerHTML='<div style="padding:12px;font-size:12px;color:var(--muted);text-align:center;">Brak wyników</div>';
     res.style.display='block';
@@ -3220,7 +3218,16 @@ function setTaskFilter(f){
 
 function renderTasks(){
   const clf=document.getElementById('task-client-filter');
-  if(clf){const cur=clf.value;clf.innerHTML='<option value="">Wszyscy klienci</option>'+CL.map(c=>'<option value="'+c.id+'"'+(c.id===cur?' selected':'')+'>'+c.name+'</option>').join('');}
+  if(clf){
+    const cur=clf.value;
+    const live=(window.CL||[]).filter(c=>c&&c.status!=='archived')
+      .slice().sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'pl'));
+    const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
+    clf.innerHTML='<option value="">Wszyscy klienci</option>'+live.map(c=>{
+      const label=c.name||c.email||c.id||'Klient';
+      return '<option value="'+esc(c.id)+'"'+(c.id===cur?' selected':'')+'>'+esc(label)+'</option>';
+    }).join('');
+  }
   const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().split('T')[0];
   const search=(document.getElementById('task-search')||{}).value||'';
   const clientFil=(document.getElementById('task-client-filter')||{}).value||'';
@@ -3265,7 +3272,11 @@ function renderTasks(){
   if(!el)return;
   const banner=taskFilter==='habits'?habitPackBannerHTML():'';
   if(!filtered.length){
-    el.innerHTML=banner+`<div style="text-align:center;padding:60px;color:var(--muted);"><div style="font-size:40px;margin-bottom:12px;opacity:0.3;">${taskFilter==='homework'?'🏡':taskFilter==='habits'?'🔥':'✅'}</div><div style="font-size:15px;font-weight:600;margin-bottom:6px;">${taskFilter==='homework'?'Brak zadań domowych':taskFilter==='habits'?'Brak nawyków':'Brak zadań'}</div><div style="font-size:12px;margin-bottom:20px;">${taskFilter==='homework'?'Przypisz HIIT, mobilność albo oddech — z terminem i notatką.':taskFilter==='habits'?'Przypisz pakiet Progress Nawyki albo dodaj pojedynczy nawyk.':'Dodaj zadanie lub użyj szablonu'}</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">${taskFilter==='homework'?`<button class="btn btn-primary btn-sm" onclick="openAssignHomeworkModal('')">🏠 Przypisz zadanie domowe</button>`:taskFilter==='habits'?`<button class="btn btn-primary btn-sm" onclick="openHabitPackModal()">🔥 Progress Nawyki</button>`:`<button class="btn btn-ghost btn-sm" onclick="openTaskTemplates()">📋 Szablony</button>`}${taskFilter==='homework'?'':`<button class="btn ${taskFilter==='habits'?'btn-ghost':'btn-primary'} btn-sm" onclick="openM('m-task')">+ ${taskFilter==='habits'?'Nawyk':'Zadanie'}</button>`}</div></div>`;
+    const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
+    const hwNames=taskFilter==='homework'
+      ?(window.CL||[]).filter(c=>c&&c.status!=='archived').map(c=>c.name||c.email||c.id).filter(Boolean)
+      :[];
+    el.innerHTML=banner+`<div style="text-align:center;padding:60px;color:var(--muted);"><div style="font-size:40px;margin-bottom:12px;opacity:0.3;">${taskFilter==='homework'?'🏡':taskFilter==='habits'?'🔥':'✅'}</div><div style="font-size:15px;font-weight:600;margin-bottom:6px;">${taskFilter==='homework'?'Brak zadań domowych':taskFilter==='habits'?'Brak nawyków':'Brak zadań'}</div><div style="font-size:12px;margin-bottom:${hwNames.length?'10':'20'}px;">${taskFilter==='homework'?'Przypisz HIIT, mobilność albo oddech — z terminem i notatką.':taskFilter==='habits'?'Przypisz pakiet Progress Nawyki albo dodaj pojedynczy nawyk.':'Dodaj zadanie lub użyj szablonu'}</div>${hwNames.length?`<div style="font-size:11px;max-width:560px;margin:0 auto 18px;line-height:1.5;">Klienci: ${hwNames.map(esc).join(', ')}</div>`:''}<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">${taskFilter==='homework'?`<button class="btn btn-primary btn-sm" onclick="openAssignHomeworkModal('')">🏠 Przypisz zadanie domowe</button>`:taskFilter==='habits'?`<button class="btn btn-primary btn-sm" onclick="openHabitPackModal()">🔥 Progress Nawyki</button>`:`<button class="btn btn-ghost btn-sm" onclick="openTaskTemplates()">📋 Szablony</button>`}${taskFilter==='homework'?'':`<button class="btn ${taskFilter==='habits'?'btn-ghost':'btn-primary'} btn-sm" onclick="openM('m-task')">+ ${taskFilter==='habits'?'Nawyk':'Zadanie'}</button>`}</div></div>`;
     return;
   }
   const groups={};

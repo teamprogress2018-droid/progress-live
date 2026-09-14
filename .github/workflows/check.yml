@@ -168,6 +168,9 @@ jobs:
       - name: 1n0a. Testy checklisty startu współpracy (invite / ankieta / dni)
         run: node .github/scripts/test_onboard_flow.js
 
+      - name: 1n0a2. Testy UX startu (ankieta / pakiet / Live / PDF / HW)
+        run: node .github/scripts/test_onboard_ux_fixes.js
+
       - name: 1n0. Testy zapisu makro TDEE do karty klienta
         run: node .github/scripts/test_calc_macros.js
 
