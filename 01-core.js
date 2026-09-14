@@ -456,12 +456,24 @@ window.initPriorSportsForm=initPriorSportsForm;
 function openM(id){
   document.querySelectorAll('.ex-ac-dropdown').forEach(dd=>{dd.style.display='none';});
   if(id==='m-session'){
+    window._editingSessionId=null;
     document.getElementById('as-date').value=new Date().toISOString().split('T')[0];
     document.getElementById('as-time').value='10:00';
+    const hid=document.getElementById('as-client');if(hid)hid.value='';
+    const vis=document.getElementById('as-client-search');if(vis)vis.value='';
+    const notes=document.getElementById('as-notes');if(notes)notes.value='';
+    const dur=document.getElementById('as-duration');if(dur)dur.value='60';
+    const typ=document.getElementById('as-type');if(typ)typ.selectedIndex=0;
     const rec=document.getElementById('as-recorded-exercises');
     if(rec)rec.style.display='none';
     const salaBar=document.getElementById('as-sala-done');
     if(salaBar){salaBar.style.display='none';salaBar.innerHTML='';}
+    const planDays=document.getElementById('as-plan-days');
+    if(planDays)planDays.style.display='none';
+    const del=document.getElementById('as-del-btn');
+    if(del)del.style.display='none';
+    const titleEl=document.querySelector('#m-session .modal-title');
+    if(titleEl)titleEl.textContent='NOWA SESJA';
   }
   if(id==='m-form'){
     window._editingFormId=null;
