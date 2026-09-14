@@ -252,6 +252,8 @@ jobs:
         run: node .github/scripts/test_template_ready_sessions.js
       - name: 1n27b. Testy wejścia do planu tylko z klienta
         run: node .github/scripts/test_nav_plan_entry.js
+      - name: 1n27b1. Testy Edytuj plan z profilu klienta
+        run: node .github/scripts/test_plan_edit_from_profile.js
       - name: 1n27b2. Testy biblioteki planów (filtry / tabela)
         run: node .github/scripts/test_plans_library.js
       - name: 1n27c. Testy skróconego primary nav
@@ -454,6 +456,8 @@ jobs:
         run: node .github/scripts/test_cal_btn_clarity_ui.js
       - name: 6f3d. Testy UI kontynuacji planu z Fitebo
         run: node .github/scripts/test_fitebo_continue_ui.js
+      - name: 6f3d2. Testy UI Edytuj plan z zakładki Plan
+        run: node .github/scripts/test_plan_edit_from_profile_ui.js
       - name: 6g. Testy UI obwodów centymetrem w profilu klienta
         run: node .github/scripts/test_circ_metrics_ui.js
       - name: 6g2. Testy UI składu ciała (wiek metaboliczny / nawodnienie)

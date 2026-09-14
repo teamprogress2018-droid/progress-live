@@ -571,7 +571,7 @@ function inferFiteboMethod(days){
   if(/push/.test(labels)&&/pull/.test(labels))return 'PPL';
   if(/upper/.test(labels)&&/lower/.test(labels))return 'Upper/Lower';
   if((days||[]).length<=2)return 'FBW';
-  return 'Custom';
+  return 'Własna';
 }
 function fbPlanDaysFromClientPayload(c){
   if(Array.isArray(c&&c.planDays)&&c.planDays.length){
@@ -1845,9 +1845,9 @@ function renderCPPlan(c){
             }).join('')}
           </div>
           <div style="margin-top:10px;display:flex;gap:6px;">
-            <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="liveSelectPlanForClient('${p.id}','${c.id}')">▶ Trenuj teraz</button>
-            <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="editPlan('${p.id}');closeClientProfile()">✏ Edytuj</button>
-            <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="exportSavedPlanPDF('${p.id}')">📄 PDF</button>
+            <button type="button" class="btn btn-ghost btn-sm" style="flex:1;" onclick="liveSelectPlanForClient('${p.id}','${c.id}')">▶ Trenuj teraz</button>
+            <button type="button" class="btn btn-ghost btn-sm" style="flex:1;" onclick="editPlanFromProfile('${p.id}','${c.id}')">✏ Edytuj</button>
+            <button type="button" class="btn btn-ghost btn-sm" style="flex:1;" onclick="exportSavedPlanPDF('${p.id}')">📄 PDF</button>
           </div>
         </div>`).join('')}`;
 }
