@@ -2401,9 +2401,16 @@ function liveBindSessionButtons(slot){
   const status=liveEl('live-timer-status',n);
   if(start){
     start.style.display=st.sessionActive?'none':'';
-    start.disabled=false;
-    const acc=st.clientId&&typeof clientHasPaidAccess==='function'?clientHasPaidAccess(st.clientId):{ok:true};
-    start.title=acc&&acc.ok===false?'Pakiet nieopłacony — Start i tak działa (Trial, bez zejścia z pakietu)':'';
+    const ready=!!(st.clientId&&(st.exercises||[]).length);
+    start.disabled=!ready;
+    start.classList.toggle('btn-primary',ready);
+    start.classList.toggle('btn-ghost',!ready);
+    start.style.opacity='';
+    start.style.cursor=ready?'':'not-allowed';
+    const acc=ready&&typeof clientHasPaidAccess==='function'?clientHasPaidAccess(st.clientId):{ok:true};
+    start.title=!st.clientId?'Wybierz klienta'
+      :!(st.exercises||[]).length?'Wybierz plan lub dodaj ćwiczenia'
+      :(acc&&acc.ok===false?'Pakiet nieopłacony — Start i tak działa (Trial, bez zejścia z pakietu)':'');
   }
   if(end)end.style.display=st.sessionActive?'':'none';
   if(status)status.textContent=st.sessionActive?'W toku':'Nieaktywny';
@@ -3286,6 +3293,7 @@ window.liveProgressStats=liveProgressStats;
 function renderLiveExercises(slot){
   const n=liveN(slot);
   const st=liveRef(n);
+  if(typeof liveBindSessionButtons==='function')liveBindSessionButtons(n);
   const el=liveEl('live-exercises-panel',n);if(!el)return;
   const sl=liveSlotArg(n);
   if(!st.exercises.length){
@@ -3308,8 +3316,12 @@ function renderLiveExercises(slot){
     el.innerHTML=`<div style="text-align:center;padding:60px 20px;color:var(--muted);">
       <div style="font-size:36px;margin-bottom:12px;opacity:0.3;">🏋️</div>
       <div style="font-size:14px;font-weight:600;margin-bottom:6px;">Wybierz klienta i plan</div>
-      <div style="font-size:12px;">Potem Start sesji — kg z poprzedniego treningu wstawią się same.</div>
+      <div style="font-size:12px;">Najpierw wybierz klienta u góry — plan i kg z poprzedniego treningu wczytają się same.</div>
     </div>`;
+    const zero=(id,v)=>{const e=liveEl(id,n);if(e)e.textContent=v;};
+    zero('live-ex-done','0');zero('live-ex-total','0');zero('live-sets-done','0');zero('live-volume','0');
+    const pb=liveEl('live-progress-bar',n);if(pb)pb.style.width='0%';
+    const hint=liveEl('live-progress-hint',n);if(hint)hint.textContent='';
     renderLivePeriod(n);
     liveSyncRestRecommend(n);
     return;

@@ -17,13 +17,13 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 02 v27', html.includes('02-workouts-onboarding-templates-live.js?v=70'));
+ok('cache 02 v27', html.includes('02-workouts-onboarding-templates-live.js?v=71'));
 ok('cache styles v55', html.includes('styles.css?v=85'));
 ok('30s preset', html.includes('liveStartRest(30)') && /live-rest-preset[^>]*>30s</.test(html));
 ok('40s HIIT preset', html.includes('liveStartRest(40)') && /live-rest-preset[^>]*>40s</.test(html));
 ok('60s preset stays', html.includes('liveStartRest(60)'));
 ok('custom input', html.includes('id="live-rest-custom"') && html.includes('placeholder="35"'));
-ok('custom start', html.includes('liveStartRestCustom()'));
+ok('custom start', html.includes('liveStartRestCustom()') && /live-rest-custom-go"[^>]*>Przerwa</.test(html) && !/live-rest-custom-go"[^>]*>Start</.test(html));
 ok('parse helper', /function parseLiveRestCustomSec\(/.test(live));
 ok('custom starter', /function liveStartRestCustom\(/.test(live));
 

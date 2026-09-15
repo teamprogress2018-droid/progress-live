@@ -23,6 +23,7 @@ function ok(name, cond, extra) {
   const browser = await chromium.launch({ headless: process.env.LAYOUT_HEADED !== '1' });
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   page.setDefaultTimeout(20000);
+  page.on('dialog', d => d.dismiss());
   await page.goto('http://' + host + ':' + port + '/index.html', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(500);
 
@@ -97,7 +98,11 @@ function ok(name, cond, extra) {
       clientName: vis ? vis.value : '',
       panel: (panel && panel.textContent) || '',
       picker: (picker && picker.textContent) || '',
-      pending: window._livePending || null
+      pending: window._livePending || null,
+      startEnabled: (() => {
+        const btn = document.getElementById('live-start-btn');
+        return !!(btn && !btn.disabled && btn.style.display !== 'none');
+      })()
     };
   });
 
@@ -106,6 +111,7 @@ function ok(name, cond, extra) {
   ok('pending consumed', !state.pending);
   ok('not empty picker', /Kontynuacja Fitebo/.test(state.picker), state.picker.slice(0, 180));
   ok('not empty exercises', /Ściąganie drążka|PLAN TRENINGU|Wiosłowanie/.test(state.panel) && !/Wybierz klienta i plan/.test(state.panel), state.panel.slice(0, 180));
+  ok('start enabled with plan', state.startEnabled, JSON.stringify({ startEnabled: state.startEnabled }));
 
   await page.evaluate(() => {
     if (typeof openClientProfile === 'function') openClientProfile('c-rad', { tab: 'plan' });
@@ -124,6 +130,56 @@ function ok(name, cond, extra) {
   });
   await page.screenshot({ path: path.join(shotDir, 'live_after_plan_train.png') });
   ok('plan tab Trenuj teraz keeps client', fromPlan.clientId === 'c-rad' && !/Wybierz klienta i plan/.test(fromPlan.panel));
+
+  await page.evaluate(() => {
+    if (typeof openClientProfile === 'function') openClientProfile('c-rad');
+  });
+  await page.waitForSelector('#cp-drawer.open');
+  await page.click('#cp-drawer button:has-text("Wiadomość")');
+  await page.waitForSelector('#screen-inbox.active');
+  await page.waitForFunction(() => /Radosław/.test((document.getElementById('msg-to') || {}).textContent || ''));
+  await page.waitForTimeout(400);
+  const inbox = await page.evaluate(() => ({
+    to: (document.getElementById('msg-to') || {}).textContent || '',
+    drawerOpen: !!document.getElementById('cp-drawer')?.classList.contains('open')
+  }));
+  await page.screenshot({ path: path.join(shotDir, 'inbox_after_profile_message.png') });
+  ok('wiadomość opens that client chat', /Radosław/.test(inbox.to) && !inbox.drawerOpen, JSON.stringify(inbox));
+
+  await page.evaluate(() => {
+    window.confirm = () => false;
+    try {
+      localStorage.removeItem('pl_live_draft');
+      localStorage.removeItem('pl_live_draft_b');
+    } catch (e) {}
+    window._livePending = null;
+    const st = typeof liveRef === 'function' ? liveRef(0) : null;
+    if (st) {
+      st.clientId = null;
+      st.planId = null;
+      st.exercises = [];
+      st.sessionActive = false;
+      st.savedClientId = null;
+    }
+    if (typeof liveClientSetField === 'function') liveClientSetField('', '', true, 0);
+    if (typeof renderLivePlanPicker === 'function') renderLivePlanPicker(0);
+    if (typeof renderLiveExercises === 'function') renderLiveExercises(0);
+    if (typeof goTo === 'function') goTo('live');
+  });
+  await page.waitForSelector('#screen-live.active');
+  const empty = await page.evaluate(() => {
+    const btn = document.getElementById('live-start-btn');
+    const hid = document.getElementById('live-client-sel');
+    const panel = document.getElementById('live-exercises-panel');
+    return {
+      disabled: !!(btn && btn.disabled),
+      title: (btn && btn.title) || '',
+      clientId: hid ? hid.value : '',
+      panel: (panel && panel.textContent) || ''
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'live_empty_start_disabled.png') });
+  ok('empty live disables start', empty.disabled && !empty.clientId && /Wybierz klienta/.test(empty.panel + empty.title), JSON.stringify(empty));
 
   await browser.close();
   if (failed) process.exit(1);
