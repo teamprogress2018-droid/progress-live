@@ -13,7 +13,7 @@
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="globals.css?v=17">
-<link rel="stylesheet" href="styles.css?v=87">
+<link rel="stylesheet" href="styles.css?v=88">
 </head>
 <body>
 
@@ -609,6 +609,7 @@
       <div style="padding:10px;">
         <input type="text" id="ex-search" placeholder="Szukaj ćwiczenia..." oninput="renderLib()" style="width:100%;background:var(--s3);border:1px solid var(--border);border-radius:6px;padding:6px 9px;color:var(--text);font-size:12px;">
         <button type="button" class="btn btn-primary btn-sm" style="width:100%;margin-top:8px;" onclick="openExGifImport()">🎞 Import GIF / MP4</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="lib-sweep-dups" style="width:100%;margin-top:6px;" onclick="removeImportedCatalogDuplicates()">Usuń duplikaty</button>
         <button type="button" class="btn btn-ghost btn-sm" id="lib-restore-hidden" style="width:100%;margin-top:6px;display:none;color:var(--red);" onclick="restoreHiddenExercises()">Przywróć ukryte</button>
       </div>
       <div style="overflow-y:auto;flex:1;padding:4px 0;" id="ex-cat-nav"></div>
@@ -640,8 +641,8 @@
 
       <!-- widok listy -->
       <div id="ex-list-view" style="flex:1;overflow-y:auto;display:none;">
-        <div style="display:grid;grid-template-columns:2fr 120px 140px 1fr 100px;gap:8px;padding:8px 16px;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);">
-          <span>Ćwiczenie</span><span>Kategoria</span><span>Sprzęt</span><span>Wskazówka</span><span></span>
+        <div id="ex-list-head" style="display:grid;grid-template-columns:2fr 120px 140px 1fr 100px;gap:8px;padding:8px 16px;font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);">
+          <span>Ćwiczenie</span><span>Kategoria</span><span>Sprzęt</span><span class="ex-list-tip-hd">Wskazówka</span><span></span>
         </div>
         <div id="ex-list-body"></div>
       </div>
@@ -4369,6 +4370,7 @@ async function load(){
       'settings','integrationConfigs','automationState','clientNotes','clientDocs','onboardingFlows','planTemplates','odPrograms','onboardingActive','clientGroups','invites','clientAccounts','progressPhotos','coachVideos'
     ]);
   }catch(e){console.warn('Migracja trainerId:',e);}
+  try{if(typeof window.sweepImportedCatalogDuplicates==='function')await window.sweepImportedCatalogDuplicates({silent:true});}catch(e){console.warn('Duplikaty ćwiczeń:',e);}
   try{if(typeof window.runAutoflowsCheck==='function')window.runAutoflowsCheck();}catch(e){console.warn('runAutoflowsCheck:',e);}
   try{if(typeof window.fillAutomationSelects==='function')window.fillAutomationSelects();}catch(e){}
   try{if(typeof window.syncSidebarProfile==='function')window.syncSidebarProfile();}catch(e){}
@@ -4385,7 +4387,7 @@ async function load(){
 <script src="03-ai-plangen-bizstats-aicoach.js?v=35"></script>
 <script src="04-client-portal.js?v=50"></script>
 <script src="05-clients-builder-plans-calendar.js?v=73"></script>
-<script src="06-inbox-exercises-ai-programs.js?v=75"></script>
+<script src="06-inbox-exercises-ai-programs.js?v=76"></script>
 <script src="07-forms-metrics-calculator.js?v=37"></script>
 <script src="08-client-profile-extras.js?v=61"></script>
 <script src="09-posture-kb-invites-private.js?v=48"></script>

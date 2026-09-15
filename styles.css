@@ -2059,6 +2059,13 @@ input[type=checkbox]{display:none;}
 @media (max-width: 1200px){
   #calc-results{grid-template-columns:1fr;max-width:none;}
   .calc-scenarios{grid-template-columns:repeat(3,1fr);}
+  #ex-list-head,
+  .ex-list-row{
+    grid-template-columns:minmax(0,2fr) 90px 100px auto !important;
+  }
+  #ex-list-head .ex-list-tip-hd,
+  .ex-list-row .ex-list-tip{display:none !important;}
+  .ex-list-actions{flex-wrap:nowrap;}
 }
 
 @media (max-width: 860px){
@@ -2090,9 +2097,8 @@ input[type=checkbox]{display:none;}
   .modal, .modal-wide{width:94%;max-width:none;max-height:88vh;}
 
   /* tabele/listy z wieloma kolumnami - poziomy scroll zamiast lamania layoutu */
-  .ex-list-row{grid-template-columns:2fr 90px 1fr;font-size:11px;}
-  .ex-list-row > *:nth-child(4),
-  .ex-list-row > *:nth-child(5){display:none;}
+  #ex-list-head,
+  .ex-list-row{grid-template-columns:minmax(0,2fr) 70px 70px auto !important;font-size:11px;}
 
   /* profil klienta — poziome zakładki */
   .cp-drawer > div:first-child{flex-wrap:wrap;gap:10px;padding:12px 16px!important;}

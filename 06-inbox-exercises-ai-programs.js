@@ -1788,26 +1788,81 @@ function refreshLibAfterDel(){
   else if(typeof renderLib==='function')renderLib();
 }
 
+function catalogDedupeKey(s){
+  return String(s||'')
+    .toLowerCase()
+    .replace(/[–—]/g,'-')
+    .replace(/\s+/g,' ')
+    .replace(/\s*\(\d+\)\s*$/,'')
+    .trim();
+}
+window.catalogDedupeKey=catalogDedupeKey;
+
+function catalogDedupeIndex(defs){
+  const map=new Map();
+  (defs||window.DEF_EX||[]).forEach(e=>{
+    if(!e||!e.name)return;
+    const add=(raw)=>{
+      const k=catalogDedupeKey(raw);
+      if(k&&!map.has(k))map.set(k,e);
+    };
+    add(e.name);
+    String(e.aka||'').split(/[,;/|]/).forEach(a=>add(a));
+  });
+  return map;
+}
+window.catalogDedupeIndex=catalogDedupeIndex;
+
+function catalogCardForImport(name,defs){
+  const k=catalogDedupeKey(name);
+  if(!k)return null;
+  return catalogDedupeIndex(defs).get(k)||null;
+}
+window.catalogCardForImport=catalogCardForImport;
+
+function importedExFilmUrl(ex){
+  if(!ex||typeof ex!=='object')return '';
+  const cands=[ex.video,ex.gif,ex.img,ex.thumb,ex.image];
+  for(let i=0;i<cands.length;i++){
+    let u=String(cands[i]||'').trim();
+    if(!u)continue;
+    if(typeof normalizeImportedMediaUrl==='function')u=normalizeImportedMediaUrl(u);
+    if(!u)continue;
+    if(typeof isLocalDiskMediaPath==='function'&&isLocalDiskMediaPath(u))continue;
+    if(typeof isSafeMediaUrl==='function'&&!isSafeMediaUrl(u))continue;
+    if(typeof isVideoMediaUrl==='function'&&isVideoMediaUrl(u))return u;
+    if(/\.(gif|webp)(\?|#|$)/i.test(u))return u;
+  }
+  return '';
+}
+window.importedExFilmUrl=importedExFilmUrl;
+
 async function delEx(name){
   if(!name||window._delExBusy)return;
-  if(!confirm('Usunąć ćwiczenie "'+name+'" z biblioteki?'))return;
+  const ex=findCustomEx(name);
+  const inDef=(window.DEF_EX||DEF_EX||[]).some(e=>e&&e.name===name);
+  const msg=ex
+    ?('Usunąć własne ćwiczenie "'+name+'" na zawsze z biblioteki i z konta?')
+    :(inDef
+      ?('Ukryć ćwiczenie "'+name+'" z biblioteki?\n\nMożesz je później przywrócić przyciskiem „Przywróć ukryte”.')
+      :('Usunąć ćwiczenie "'+name+'" z biblioteki?'));
+  if(!confirm(msg))return;
   window._delExBusy=true;
   try{
-    const ex=findCustomEx(name);
     if(ex){
       window.EX=(window.EX||EX||[]).filter(e=>e.name!==name);
       refreshLibAfterDel();
       if(window._db&&ex.id){try{await window._del(window._doc(window._db,'exercises',ex.id));}catch(e){console.warn('Firebase delEx:',e);}}
+      notify('Ćwiczenie usunięte z biblioteki');
     }else{
-      const inDef=(window.DEF_EX||DEF_EX||[]).some(e=>e&&e.name===name);
       if(inDef){
         const list=hiddenExNames();
         if(!list.includes(name))list.push(name);
         persistHiddenExercises(list);
       }
       refreshLibAfterDel();
+      notify(inDef?'Ćwiczenie ukryte. Przywrócisz je przyciskiem „Przywróć ukryte”.':'Ćwiczenie usunięte z biblioteki');
     }
-    notify('Ćwiczenie usunięte z biblioteki');
   }finally{
     window._delExBusy=false;
   }
@@ -1823,6 +1878,70 @@ function restoreHiddenExercises(){
   notify('Przywrócono '+n+' ćwiczeń');
 }
 window.restoreHiddenExercises=restoreHiddenExercises;
+
+async function sweepImportedCatalogDuplicates(opts){
+  const silent=!!(opts&&opts.silent);
+  if(window._sweepExDupBusy)return {removed:0,copied:0};
+  window._sweepExDupBusy=true;
+  try{
+    const customs=(window.EX||[]).slice();
+    const idx=catalogDedupeIndex(window.DEF_EX||[]);
+    const groups=new Map();
+    customs.forEach(ex=>{
+      if(!ex||!ex.name)return;
+      const card=idx.get(catalogDedupeKey(ex.name));
+      if(!card)return;
+      const key=card.name;
+      if(!groups.has(key))groups.set(key,{card,copies:[]});
+      groups.get(key).copies.push(ex);
+    });
+    const removed=[];
+    let copied=0;
+    for(const {card,copies} of groups.values()){
+      if(!copies.length)continue;
+      const film=copies.map(importedExFilmUrl).find(Boolean)||'';
+      const mediaKey=typeof exerciseMediaKey==='function'?exerciseMediaKey(card.name):catalogDedupeKey(card.name);
+      const already=window.EX_GIF_REMOTE&&window.EX_GIF_REMOTE[mediaKey];
+      if(film&&!already&&typeof persistExerciseGifUrl==='function'){
+        try{
+          const ok=await persistExerciseGifUrl(card.name,film);
+          if(ok)copied++;
+        }catch(e){console.warn('sweepImportedCatalogDuplicates film:',e);}
+      }
+      copies.forEach(ex=>removed.push(ex));
+    }
+    if(!removed.length){
+      if(!silent&&typeof notify==='function')notify('Brak duplikatów importu');
+      return {removed:0,copied:0};
+    }
+    const dropIds=new Set(removed.map(e=>e.id).filter(Boolean));
+    const dropNames=new Set(removed.map(e=>e.name));
+    const next=(window.EX||[]).filter(e=>e&&!dropIds.has(e.id)&&!dropNames.has(e.name));
+    window.EX=next;
+    if(window._db&&typeof window._del==='function'&&typeof window._doc==='function'){
+      for(const ex of removed){
+        if(!ex.id)continue;
+        try{await window._del(window._doc(window._db,'exercises',ex.id));}catch(e){console.warn('Firebase sweepExDup:',e);}
+      }
+    }
+    if(typeof renderLib==='function')renderLib();
+    if(typeof notify==='function'){
+      const n=removed.length;
+      const word=n===1?'duplikat':(n>=2&&n<=4?'duplikaty':'duplikatów');
+      notify('Usunięto '+n+' '+word+' importu'+(copied?(' · film na '+copied+' '+(copied===1?'karcie':'kartach')):''));
+    }
+    return {removed:removed.length,copied};
+  }finally{
+    window._sweepExDupBusy=false;
+  }
+}
+window.sweepImportedCatalogDuplicates=sweepImportedCatalogDuplicates;
+
+async function removeImportedCatalogDuplicates(){
+  if(!confirm('Usunąć z biblioteki importy, które duplikują karty z katalogu? Film z kopii trafi na polską kartę, a kopia zniknie z konta.'))return;
+  return sweepImportedCatalogDuplicates({silent:false});
+}
+window.removeImportedCatalogDuplicates=removeImportedCatalogDuplicates;
 
 async function saveEx(){
   if(window._saveGuard_saveEx)return;window._saveGuard_saveEx=true;setTimeout(()=>window._saveGuard_saveEx=false,1500);
@@ -1946,8 +2065,8 @@ function renderLibGroupedSections(filtered,mode){
         </div>
         <span class="pill pill-muted" style="font-size:10px;align-self:center;">${e.cat}</span>
         <span class="pill pill-muted" style="font-size:10px;align-self:center;">${e.eq}</span>
-        <div style="font-size:11px;color:var(--muted);align-self:center;">${(e.tip||'').substring(0,60)}${(e.tip||'').length>60?'…':''}</div>
-        <div style="align-self:center;display:flex;gap:4px;flex-wrap:wrap;">
+        <div class="ex-list-tip" style="font-size:11px;color:var(--muted);align-self:center;">${(e.tip||'').substring(0,60)}${(e.tip||'').length>60?'…':''}</div>
+        <div class="ex-list-actions" style="align-self:center;display:flex;gap:4px;flex-wrap:wrap;">
           <button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openExDetail('${e.name.replace(/'/g,"\\'")}')">Szczegóły</button>
           <button type="button" class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="event.stopPropagation();delEx('${e.name.replace(/'/g,"\\'")}')">Usuń</button>
         </div>
@@ -2039,8 +2158,8 @@ function renderLib(){
         </div>
         <span class="pill pill-muted" style="font-size:10px;align-self:center;">${e.cat}</span>
         <span class="pill pill-muted" style="font-size:10px;align-self:center;">${e.eq}</span>
-        <div style="font-size:11px;color:var(--muted);align-self:center;">${(e.tip||'').substring(0,60)}${(e.tip||'').length>60?'…':''}</div>
-        <div style="align-self:center;display:flex;gap:4px;flex-wrap:wrap;">
+        <div class="ex-list-tip" style="font-size:11px;color:var(--muted);align-self:center;">${(e.tip||'').substring(0,60)}${(e.tip||'').length>60?'…':''}</div>
+        <div class="ex-list-actions" style="align-self:center;display:flex;gap:4px;flex-wrap:wrap;">
           <button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openExDetail('${e.name.replace(/'/g,"\\'")}')">Szczegóły</button>
           <button type="button" class="btn btn-ghost btn-sm" style="color:var(--red);" onclick="event.stopPropagation();delEx('${e.name.replace(/'/g,"\\'")}')">Usuń</button>
         </div>
