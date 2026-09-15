@@ -19,8 +19,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 05 v71', html.includes('05-clients-builder-plans-calendar.js?v=71'));
-ok('cache styles v86', html.includes('styles.css?v=86'));
+ok('cache 05 v71', html.includes('05-clients-builder-plans-calendar.js?v=72'));
+ok('cache styles v86', html.includes('styles.css?v=87'));
 ok('ci unit', wf.includes('test_cal_week_overlap.js'));
 ok('ci ui', wf.includes('test_cal_week_overlap_ui.js'));
 ok('layout helper', /function calWeekHourBucket/.test(cal) && /function calSessionStartMin/.test(cal));
@@ -29,9 +29,12 @@ ok('no overlap lanes', !/cal-week-day-lane/.test(cal) && !/calWeekOverlapLayout/
 ok('css hour cells grow', /grid-auto-rows:minmax\(60px,auto\)/.test(css) && /flex-direction:\s*column/.test(css));
 ok('css chips in flow', /\.cal-session-block\{[^}]*position:relative/.test(css));
 ok('seven equal day columns', /grid-template-columns:60px repeat\(7,minmax\(0,1fr\)\)/.test(css));
+ok('js forces equal week cols', /gridTemplateColumns='60px repeat\(7,minmax\(0,1fr\)\)'/.test(cal));
 ok('week cells clip chips', /\.cal-cell\{[^}]*overflow:hidden/.test(css) && /#cal-week-scroll\{[^}]*overflow-x:hidden/.test(css));
 ok('week hides long type meta', /#cal-week-grid \.cal-session-meta\{display:none/.test(css));
 ok('chip tooltip keeps type', /typeBit/.test(cal) && /title="\$\{tip\}"/.test(cal));
+const chipSrc=cal.slice(cal.indexOf('function calWeekSessChip'), cal.indexOf('window.calSessionStartMin'));
+ok('week chip has no type line', chipSrc.length>80 && !/cal-session-meta/.test(chipSrc));
 
 const start = cal.indexOf('function calSessionStartMin');
 const end = cal.indexOf('function renderCalWeek');
