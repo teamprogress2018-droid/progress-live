@@ -13,7 +13,7 @@
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="globals.css?v=17">
-<link rel="stylesheet" href="styles.css?v=85">
+<link rel="stylesheet" href="styles.css?v=86">
 </head>
 <body>
 
@@ -443,12 +443,12 @@
   <div style="display:flex;flex:1;overflow:hidden;">
 
     <!-- WIDOK TYGODNIOWY -->
-    <div id="cal-week-view" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
-      <!-- nagłówek dni -->
-      <div style="display:grid;grid-template-columns:60px repeat(7,1fr);border-bottom:1px solid var(--border);flex-shrink:0;" id="cal-week-header"></div>
+    <div id="cal-week-view" style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;">
+      <!-- nagłówek dni — 7 równych kolumn (minmax(0,1fr), żeby długie chipy nie zjadały tygodnia) -->
+      <div id="cal-week-header"></div>
       <!-- siatka godzin -->
-      <div style="flex:1;overflow-y:auto;position:relative;" id="cal-week-scroll">
-        <div style="display:grid;grid-template-columns:60px repeat(7,1fr);position:relative;" id="cal-week-grid"></div>
+      <div id="cal-week-scroll">
+        <div id="cal-week-grid"></div>
       </div>
     </div>
 
@@ -4384,7 +4384,7 @@ async function load(){
 <script src="02-workouts-onboarding-templates-live.js?v=73"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=35"></script>
 <script src="04-client-portal.js?v=50"></script>
-<script src="05-clients-builder-plans-calendar.js?v=70"></script>
+<script src="05-clients-builder-plans-calendar.js?v=71"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=75"></script>
 <script src="07-forms-metrics-calculator.js?v=37"></script>
 <script src="08-client-profile-extras.js?v=61"></script>

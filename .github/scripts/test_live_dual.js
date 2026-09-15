@@ -19,6 +19,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
+ok('cache 02 v33', html.includes('02-workouts-onboarding-templates-live.js?v=71'));
+ok('cache styles v63', html.includes('styles.css?v=86'));
 ok('cache 02 v33', html.includes('02-workouts-onboarding-templates-live.js?v=73'));
 ok('cache styles v63', html.includes('styles.css?v=85'));
 ok('dual button', html.includes('id="live-dual-btn"') && html.includes('liveToggleDual()'));
