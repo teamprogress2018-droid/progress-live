@@ -32,7 +32,7 @@ ok('start waits for client+plan', /start\.disabled=!ready/.test(src02) && /class
 ok('empty live copy points to picker', html.includes('Najpierw wybierz klienta u góry') && src02.includes('Najpierw wybierz klienta u góry'));
 ok('rest timer not labeled Start', /live-rest-custom-go"[^>]*>Przerwa</.test(html) && !/live-rest-custom-go"[^>]*>Start</.test(html));
 ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=71'));
-ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=70'));
+ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=71'));
 ok('cache 08', html.includes('08-client-profile-extras.js?v=61'));
 ok('cache 09', html.includes('09-posture-kb-invites-private.js?v=48'));
 ok('CI unit', wf.includes('test_cp_start_live.js'));

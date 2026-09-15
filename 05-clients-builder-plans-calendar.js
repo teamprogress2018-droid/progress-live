@@ -2681,10 +2681,12 @@ function calWeekSessChip(s){
   const who=c?c.name:'Klient';
   const first=c?c.name.split(' ')[0]:'Klient';
   const sid=s&&s.id?String(s.id).replace(/"/g,''):'';
-  const tip=typeof escHtml==='function'?escHtml(who+' — '+bits.tip):String(who+' — '+(bits.tip||'')).replace(/"/g,'&quot;');
+  const typeBit=s&&s.type?String(s.type):'';
+  const tipRaw=who+(typeBit?' — '+typeBit:'')+(bits.happened?' · odbył się':'')+' — '+(bits.tip||'');
+  const tip=typeof escHtml==='function'?escHtml(tipRaw):String(tipRaw).replace(/"/g,'&quot;');
   return `<div class="cal-session-block${bits.cls} cal-week-sess" data-cal-sess="${sid}" style="background:var(--input-bg);border:1px solid rgba(255,255,255,0.1);border-left:3px solid ${col};color:var(--text);" onclick="event.stopPropagation();editSession('${s.id}')" title="${tip}">
       <div class="cal-session-name">${bits.mark}${s.source==='garmin'?'⌚ ':''}<span class="cal-week-sess-time">${s.time||''}</span> ${first}</div>
-      <div class="cal-session-meta">${s.type||''}${bits.happened?' · odbył się':''}</div>
+      <div class="cal-session-meta">${typeBit}${bits.happened?' · odbył się':''}</div>
     </div>`;
 }
 window.calSessionStartMin=calSessionStartMin;
