@@ -100,11 +100,23 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'staff_sztab_all.png') });
 
   await page.evaluate(() => { if (typeof goTo === 'function') goTo('library'); });
+  await page.waitForTimeout(300);
+  await page.evaluate(() => {
+    const name = (window.DEF_EX && window.DEF_EX[0] && (window.DEF_EX[0].name || window.DEF_EX[0].n)) || 'Przysiad';
+    if (typeof openExDetail === 'function') openExDetail(name);
+  });
+  await page.waitForTimeout(400);
   const biomechBtn = await page.evaluate(() => {
     const el = document.getElementById('exd-ask-biomech');
-    return el ? el.textContent.trim() : '';
+    const panel = document.getElementById('ex-detail');
+    return {
+      text: el ? el.textContent.trim() : '',
+      btnDisplay: el ? getComputedStyle(el).display : '',
+      panelTransform: panel ? panel.style.transform : ''
+    };
   });
-  ok('library biomech button', /Zapytaj Biomechanika/.test(biomechBtn), biomechBtn);
+  await page.screenshot({ path: path.join(shotDir, 'staff_library_biomech.png') });
+  ok('library biomech button', /Zapytaj Biomechanika/.test(biomechBtn.text) && biomechBtn.btnDisplay !== 'none', JSON.stringify(biomechBtn));
 
   await browser.close();
   if (failed) {

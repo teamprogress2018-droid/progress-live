@@ -2569,7 +2569,7 @@ function aicStaffAvatarHTML(agentId){
       <div class="ai-dot" style="width:8px;height:8px;"></div>
     </div>`;
   }
-  return `<div class="aic-agent-badge" title="${escH(meta.label)}" style="width:auto;min-width:28px;height:28px;padding:0 7px;border-radius:8px;background:var(--adim);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;gap:4px;flex-shrink:0;margin-top:2px;font-size:10px;font-weight:700;letter-spacing:0.4px;color:var(--text);">
+  return `<div class="aic-agent-badge" title="${escH(meta.label)}" style="display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:8px;background:rgba(255,59,48,0.12);border:1px solid var(--accent);font-size:11px;font-weight:700;letter-spacing:0.3px;color:var(--accent);line-height:1.2;">
     <span>${meta.icon}</span><span style="font-family:'DM Mono',monospace;">${escH(meta.label)}</span>
   </div>`;
 }
@@ -2581,7 +2581,7 @@ function aicShowTyping(agentId){
   const meta=agentId&&STAFF_AGENT_META[agentId];
   const label=meta?`${meta.icon} ${meta.label} analizuje...`:'';
   msgs.insertAdjacentHTML('beforeend', `<div id="${typingId}" class="aic-msg">
-      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px;max-width:92%;">
         ${aicStaffAvatarHTML(agentId)}
         <div class="aic-bubble-ai" style="padding:10px 14px;">
           <span style="display:inline-flex;gap:4px;align-items:center;">
@@ -2700,6 +2700,11 @@ function aicAddMsgDOM(role,html,scroll,agentId){
   div.style.gap='8px';
   if(isUser){
     div.innerHTML=`<div class="aic-bubble-user">${html}</div>`;
+  } else if(agentId&&STAFF_AGENT_META[agentId]){
+    div.innerHTML=`<div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px;max-width:92%;">
+      ${aicStaffAvatarHTML(agentId)}
+      <div class="aic-bubble-ai">${html}</div>
+    </div>`;
   } else {
     div.innerHTML=`<div style="display:flex;gap:8px;align-items:flex-start;max-width:100%;">
       ${aicStaffAvatarHTML(agentId)}
