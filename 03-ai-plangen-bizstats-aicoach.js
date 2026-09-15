@@ -2185,9 +2185,117 @@ window.initBizStats=initBizStats;window.setBizPeriod=setBizPeriod;window.exportB
 // ════════════════════════════════════════
 var aicMode='coach';
 var aicClientId=null;
-var aicMsgs=[];   // [{role,html}]
+var aicMsgs=[];   // [{role,html,rawText,agentId}]
 var aicLoading=false;
 var aicHistorySessions=[]; // [{title,msgs,mode,date}]
+
+/** Sztab ekspercki: biomechanika / dev / biznes — routing + sekwencyjne wywołania (ten sam worker co AI Coach). */
+const STAFF_AGENT_IDS=['biomechanika','dev','biznes'];
+const STAFF_AGENT_META={
+  biomechanika:{label:'BIOMECHANIKA',icon:'🦴'},
+  dev:{label:'DEV',icon:'💻'},
+  biznes:{label:'BIZNES & MARKETING',icon:'📈'}
+};
+const STAFF_ROUTING_KEYWORDS={
+  biomechanika:['wektor','opór','staw','mięsień','profil','kąt','biomechanik','ból','kontuzj','zakres ruchu','dźwigni','moment obrotowy','sfr'],
+  dev:['kod','aplikacj','algorytm','baza danych','funkcj','moduł','ui','ux','react','python','api','bug','błąd','zaprogram'],
+  biznes:['cena','cennik','oferta','pakiet','klient','marketing','lead','sprzedaż','retencj','content','rolka','post','wycena','upsell']
+};
+const STAFF_SYSTEM_PROMPTS={
+  biomechanika:`Jesteś agentem [BIOMECHANIKA] w Sztabie Eksperckim Progress AI.
+Zajmujesz się analizą wektorów sił, profilu oporu, długości ramion siły oraz doborem ćwiczeń pod hipertrofię i bezpieczeństwo stawów.
+Odpowiadaj konkretnie i technicznie, ale zrozumiale dla trenera personalnego. Odwołuj się do realnych pojęć biomechaniki (moment obrotowy, ramię siły, płaszczyzny ruchu, profil oporu: narastający/malejący/dzwonowy/stały).
+Jeśli dostajesz kontekst konkretnego ćwiczenia z aplikacji (nazwa, wzorzec ruchu, obciążane stawy) — odnoś się do niego wprost, nie ogólnikowo.
+Odpowiadaj po polsku, zwięźle (maks. 150 słów), bez zbędnego wstępu.`,
+  dev:`Jesteś agentem [DEV] w Sztabie Eksperckim Progress AI.
+Piszesz czysty kod w JS (vanilla) i projektujesz moduły aplikacji treningowej Progress Live (GitHub Pages, bez React).
+Gdy pytanie dotyczy funkcji aplikacji — proponuj konkretne, wdrażalne rozwiązanie (fragment kodu, strukturę danych lub logikę), nie ogólne rady.
+Jeśli dostajesz kontekst z aplikacji — odnieś się do niego bezpośrednio.
+Odpowiadaj po polsku, zwięźle (maks. 150 słów lub krótki fragment kodu), bez zbędnego wstępu.`,
+  biznes:`Jesteś agentem [BIZNES & MARKETING] w Sztabie Eksperckim Progress AI.
+Zajmujesz się strategiami pakietowania usług, wyceną, retencją klientów i automatyzacją leadów dla trenera personalnego.
+Odpowiadaj konkretnie: proponuj gotowe frazy sprzedażowe, strukturę oferty lub pomysł na content, dopasowane do kontekstu, który dostajesz z aplikacji.
+Unikaj ogólników w stylu "buduj markę" — dawaj rzeczy do wdrożenia dziś.
+Odpowiadaj po polsku, zwięźle (maks. 150 słów), bez zbędnego wstępu.`
+};
+
+function routeStaffQuery(question){
+  const q=String(question||'').toLowerCase();
+  const matched=STAFF_AGENT_IDS.filter(id=>(STAFF_ROUTING_KEYWORDS[id]||[]).some(kw=>q.includes(kw)));
+  if(!matched.length) return STAFF_AGENT_IDS.slice();
+  return matched;
+}
+function routeStaffFromContext(agentId){
+  return STAFF_AGENT_IDS.includes(agentId)?[agentId]:STAFF_AGENT_IDS.slice();
+}
+/** Builder: tylko gdy pytanie trafia w słowa kluczowe — inaczej zostaje dotychczasowy prompt NSCA. */
+function staffAgentsForBuilderQuery(question){
+  const q=String(question||'').toLowerCase();
+  const matched=STAFF_AGENT_IDS.filter(id=>(STAFF_ROUTING_KEYWORDS[id]||[]).some(kw=>q.includes(kw)));
+  return matched.length?matched:null;
+}
+function staffAgentsForAicMode(mode, question){
+  if(mode==='sztab') return routeStaffQuery(question);
+  if(mode==='exercise') return ['biomechanika'];
+  if(mode==='business') return ['biznes'];
+  if(mode==='dev') return ['dev'];
+  return null;
+}
+function staffSystemForAgent(agentId, extraSystem){
+  return (STAFF_SYSTEM_PROMPTS[agentId]||'')+(extraSystem||'');
+}
+function staffWorkerUrl(){
+  return (typeof W==='string'&&W)?W:'https://anthropic-proxy.teamprogress2018.workers.dev/';
+}
+function staffReplyText(data){
+  if(Array.isArray(data?.content)){
+    const joined=data.content.map(b=>(b&&b.text)||'').filter(Boolean).join('\n').trim();
+    if(joined) return joined;
+  }
+  return 'Przepraszam, wystąpił błąd. Spróbuj ponownie.';
+}
+async function callStaffAgent(agentId, question, extraSystem, apiMsgs, maxTokens){
+  const messages=(apiMsgs&&apiMsgs.length)?apiMsgs:[{role:'user',content:question}];
+  const resp=await fetch(staffWorkerUrl(),{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',
+      max_tokens:maxTokens||800,
+      system:staffSystemForAgent(agentId, extraSystem),
+      messages
+    })
+  });
+  const data=await resp.json();
+  return staffReplyText(data);
+}
+async function callStaffAgentsSequentially(agentIds, question, extraSystem, apiMsgs, onEach, maxTokens){
+  const results=[];
+  const ids=(agentIds&&agentIds.length)?agentIds:STAFF_AGENT_IDS.slice();
+  for(const agentId of ids){
+    try{
+      const text=await callStaffAgent(agentId, question, extraSystem, apiMsgs, maxTokens);
+      const entry={agentId,text,error:null};
+      results.push(entry);
+      if(onEach) onEach(entry);
+    }catch(err){
+      const entry={agentId,text:null,error:(err&&err.message)||String(err)};
+      results.push(entry);
+      if(onEach) onEach(entry);
+    }
+  }
+  return results;
+}
+window.STAFF_AGENT_IDS=STAFF_AGENT_IDS;
+window.STAFF_AGENT_META=STAFF_AGENT_META;
+window.STAFF_ROUTING_KEYWORDS=STAFF_ROUTING_KEYWORDS;
+window.STAFF_SYSTEM_PROMPTS=STAFF_SYSTEM_PROMPTS;
+window.routeStaffQuery=routeStaffQuery;
+window.routeStaffFromContext=routeStaffFromContext;
+window.staffAgentsForAicMode=staffAgentsForAicMode;
+window.staffAgentsForBuilderQuery=staffAgentsForBuilderQuery;
+window.callStaffAgent=callStaffAgent;
+window.callStaffAgentsSequentially=callStaffAgentsSequentially;
 
 const AIC_MODES={
   coach:{
@@ -2224,24 +2332,36 @@ Pamiętaj:
   },
   exercise:{
     label:'💪 Ekspert ćwiczeń',
-    system:`Jesteś ekspertem biomechaniki i techniki ćwiczeń siłowych. Znasz szczegółowo technikę wszystkich ćwiczeń siłowych, ich odmiany, mięśnie docelowe, najczęstsze błędy i modyfikacje dla różnych poziomów zaawansowania i kontuzji. Komunikujesz się po polsku.
+    system:`Jesteś agentem [BIOMECHANIKA] w Sztabie Eksperckim Progress AI oraz ekspertem techniki ćwiczeń siłowych. Znasz wektory sił, profil oporu, ramiona siły, płaszczyzny ruchu i dobór ćwiczeń pod hipertrofię i stawy. Komunikujesz się po polsku.
 Odpowiadając na pytania o technikę:
 - Opisz ustawienie ciała krok po kroku
 - Wskaż najczęstsze błędy
 - Podaj regresje i progresje
-- Zasugeruj ćwiczenia zastępcze jeśli potrzeba`,
+- Zasugeruj ćwiczenia zastępcze jeśli potrzeba
+- Odwołuj się do momentu obrotowego i profilu oporu (narastający/malejący/dzwonowy/stały), gdy to pasuje`,
     suggestions:['Technika przysiadu z kontuzją kolana','Zastępniki martwego ciągu dla początkujących','Jak poprawić wyciskanie na klatce?','Ćwiczenia na tylną część uda','Trening mobilności bioder']
   },
   business:{
     label:'💼 Biznes trenerski',
-    system:`Jesteś ekspertem od prowadzenia działalności trenera personalnego. Doradzasz w zakresie marketingu, ustalania cen, pozyskiwania klientów, retencji, zarządzania czasem i rozwijania firmy trenerskiej. Komunikujesz się po polsku.
-Dajesz konkretne, praktyczne rady:
+    system:`Jesteś agentem [BIZNES & MARKETING] w Sztabie Eksperckim Progress AI. Doradzasz w zakresie marketingu, wyceny, pakietów, retencji i leadów dla trenera personalnego. Komunikujesz się po polsku.
+Dajesz konkretne, praktyczne rady do wdrożenia dziś:
 - Strategie pozyskiwania klientów online i offline
-- Konstruowanie oferty i pakietów
+- Konstruowanie oferty i pakietów + gotowe frazy sprzedażowe
 - Social media dla trenerów
 - Jak podnosić ceny bez utraty klientów
-- Automatyzacja i skalowanie biznesu`,
+- Automatyzacja i skalowanie biznesu
+Unikaj ogólników w stylu "buduj markę".`,
     suggestions:['Jak pozyskać pierwszych 10 klientów?','Jak ustalić ceny pakietów?','Social media strategia dla trenera','Jak zwiększyć retencję klientów?','Skalowanie biznesu online']
+  },
+  sztab:{
+    label:'🦴 Sztab ekspercki',
+    system:`Jesteś koordynatorem Sztabu Eksperckiego Progress AI. Pytania trafiają do agentów BIOMECHANIKA, DEV i BIZNES według słów kluczowych; gdy nic nie pasuje — odpowiadają wszyscy po kolei.`,
+    suggestions:['Profil oporu w wyciskaniu na ławce','Ból barku przy unoszeniu bokiem','Jak dodać zamienniki w bibliotece?','Pakiet 8 treningów — jak wycenić?','Retencja po pierwszym miesiącu']
+  },
+  dev:{
+    label:'💻 Dev aplikacji',
+    system:`Jesteś agentem [DEV] w Sztabie Eksperckim Progress AI. Progress Live to vanilla JS na GitHub Pages (bez React). Proponuj wdrażalne rozwiązania: fragment kodu, strukturę danych lub logikę UI.`,
+    suggestions:['Jak ułożyć routing sztabu w czacie?','Pomysł na UI zamienników ćwiczeń','Struktura danych sesji treningowej','Gdzie trzymać GIF-y techniki?']
   }
 };
 
@@ -2264,7 +2384,7 @@ function aicShowWelcome(){
       <div class="ai-dot" style="width:14px;height:14px;"></div>
     </div>
     <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;margin-bottom:8px;">AI COACH</div>
-    <div style="font-size:13px;color:var(--muted);max-width:420px;line-height:1.7;margin-bottom:24px;">Twój asystent AI z wiedzą NSCA/NASM/ACSM. Wybierz tryb pracy, opcjonalnie wskaż klienta i zadaj pytanie.</div>
+    <div style="font-size:13px;color:var(--muted);max-width:420px;line-height:1.7;margin-bottom:24px;">Twój asystent AI z wiedzą NSCA/NASM/ACSM. Tryb <b>Sztab ekspercki</b> pyta biomechanikę, dev i biznes po kolei — gdy pytanie nie pasuje do żadnego, odzywają się wszyscy.</div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
       ${Object.entries(AIC_MODES).map(([k,m])=>`<button class="aic-suggestion" onclick="setAICMode('${k}',document.getElementById('aicm-${k}'));document.getElementById('aic-input').focus();">${m.label}</button>`).join('')}
     </div>
@@ -2302,6 +2422,14 @@ function setAICMode(mode,btn){
   document.querySelectorAll('.aic-mode-btn').forEach(b=>b.classList.remove('active'));
   const target=btn||document.getElementById('aicm-'+mode);
   if(target)target.classList.add('active');
+  const inp=document.getElementById('aic-input');
+  if(inp){
+    inp.placeholder=mode==='sztab'?'Pytanie do sztabu (biomechanika / dev / biznes)...'
+      :mode==='dev'?'Zapytaj o kod, UI albo logikę Progress Live...'
+      :mode==='exercise'?'Zapytaj o technikę, wektory sił, zamienniki...'
+      :mode==='business'?'Zapytaj o cennik, pakiety, retencję...'
+      :'Zapytaj AI Coach...';
+  }
   renderAICQuickQs();
   renderAICTools();
 }
@@ -2352,6 +2480,18 @@ function renderAICTools(){
       {icon:'📱',title:'Social media',desc:'Content strategy dla trenera',q:'Stwórz strategię content marketingową na Instagram/TikTok dla trenera personalnego.'},
       {icon:'🔄',title:'Retencja klientów',desc:'Jak zmniejszyć odpływ klientów',q:'Jak zwiększyć retencję klientów i zmniejszyć churn?'},
     ],
+    sztab:[
+      {icon:'🦴',title:'Wektory i profil oporu',desc:'Biomechanika wybranego wzorca',q:'Przeanalizuj profil oporu i wektory sił w wyciskaniu na ławce.'},
+      {icon:'💻',title:'Funkcja w aplikacji',desc:'Konkretna zmiana w Progress Live',q:'Jak dodać zamienniki ćwiczeń w bibliotece Progress Live?'},
+      {icon:'📈',title:'Wycena pakietu',desc:'Oferta do wdrożenia dziś',q:'Pakiet 8 treningów — jak wycenić i jaką frazę sprzedażową dać na rolkę?'},
+      {icon:'🦴💻📈',title:'Pytanie do całej trójki',desc:'Gdy temat styka dziedziny',q:'Jak opisać klientowi zamiennik ćwiczenia w aplikacji i sprzedać to jako wartość pakietu?'},
+    ],
+    dev:[
+      {icon:'🧭',title:'Routing sztabu',desc:'Kto odpowiada na pytanie',q:'Jak ułożyć routing sztabu w czacie AI Coach?'},
+      {icon:'🔁',title:'Zamienniki',desc:'UI i dane ćwiczeń',q:'Pomysł na UI zamienników ćwiczeń w bibliotece.'},
+      {icon:'🗂️',title:'Sesja treningowa',desc:'Struktura danych',q:'Jaką strukturę danych sesji treningowej trzymać w Firestore?'},
+      {icon:'🖼️',title:'GIF-y techniki',desc:'Manifest vs Storage',q:'Gdzie trzymać GIF-y techniki ćwiczeń w Progress Live?'},
+    ],
   };
   const tools=toolSets[aicMode]||toolSets.coach;
   el.innerHTML=tools.map(t=>`<div class="aic-tool-card" onclick="aicSendQuick('${t.q.replace(/'/g,"\\'")}')">
@@ -2384,35 +2524,14 @@ function aicLoadSession(idx){
 function aicRenderAllMsgs(){
   const el=document.getElementById('aic-msgs');if(!el)return;
   el.innerHTML='';
-  aicMsgs.forEach(m=>aicAddMsgDOM(m.role,m.html,false));
+  aicMsgs.forEach(m=>aicAddMsgDOM(m.role,m.html,false,m.agentId));
   el.scrollTop=el.scrollHeight;
 }
 
-async function sendAICMsg(){
-  if(aicLoading)return;
-  const inp=document.getElementById('aic-input');
-  const text=inp?.value?.trim();
-  if(!text)return;
-  inp.value='';inp.style.height='auto';
-
-  // save to session if first message
-  if(!aicMsgs.length){
-    // clear welcome screen
-    const msgs=document.getElementById('aic-msgs');
-    if(msgs)msgs.innerHTML='';
-  }
-
-  // add user message
-  aicMsgs.push({role:'user',html:escH(text)});
-  aicAddMsgDOM('user',escH(text),true);
-  document.getElementById('aic-suggestions').innerHTML='';
-
-  // build system prompt with client context
-  let systemPrompt=AIC_MODES[aicMode]?.system||AIC_MODES.coach.system;
-  systemPrompt+=`\n\nDziś: ${new Date().toLocaleDateString('pl',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}`;
-  systemPrompt+=`\nTrener: ${getTrainerName()}`;
-  systemPrompt+=kbContextForAI();
-
+function aicSharedContextSystem(){
+  let extra=`\n\nDziś: ${new Date().toLocaleDateString('pl',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}`;
+  extra+=`\nTrener: ${typeof getTrainerName==='function'?getTrainerName():''}`;
+  extra+=typeof kbContextForAI==='function'?kbContextForAI():'';
   if(aicClientId){
     const c=CL.find(x=>x.id===aicClientId);
     if(c){
@@ -2422,7 +2541,7 @@ async function sendAICMsg(){
       const checkins=window.CHECKINS?.[c.id]||[];
       const metrics=(window.METRIC_ENTRIES||[]).filter(e=>e.clientId===c.id);
       const metricsTxt=typeof clientMetricsContextForAI==='function'?clientMetricsContextForAI(c.id):'';
-      systemPrompt+=`\n\n=== DANE KLIENTA ===
+      extra+=`\n\n=== DANE KLIENTA ===
 Imię: ${c.name}
 Cel: ${c.goal||'—'}
 Poziom: ${c.level||'—'}
@@ -2436,12 +2555,68 @@ ${checkins.length?`Ostatni check-in: ${JSON.stringify(checkins[checkins.length-1
 ${metricsTxt||(metrics.length?`Ostatnie pomiary (raw): ${JSON.stringify(metrics.slice(-3))}`:'Brak pomiarów')}
 ${plans.length?`Aktualny plan: ${plans[plans.length-1].name}, metoda: ${plans[plans.length-1].method}`:'Brak planu'}
 Notatki: ${c.notes||'—'}`;
-      if(typeof clientSafetyContextForAI==='function')systemPrompt+='\n'+(clientSafetyContextForAI(c.id,{weight:c.weight,height:c.height,injuries:c.injuries,gender:c.gender})||'');
-      if(typeof clientMonitorContextForAI==='function')systemPrompt+='\n'+(clientMonitorContextForAI(c.id)||'');
+      if(typeof clientSafetyContextForAI==='function')extra+='\n'+(clientSafetyContextForAI(c.id,{weight:c.weight,height:c.height,injuries:c.injuries,gender:c.gender})||'');
+      if(typeof clientMonitorContextForAI==='function')extra+='\n'+(clientMonitorContextForAI(c.id)||'');
     }
   }
+  return extra;
+}
 
-  // build messages for API (last 8 messages for context)
+function aicStaffAvatarHTML(agentId){
+  const meta=STAFF_AGENT_META[agentId];
+  if(!meta){
+    return `<div style="width:28px;height:28px;border-radius:8px;background:var(--adim);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;">
+      <div class="ai-dot" style="width:8px;height:8px;"></div>
+    </div>`;
+  }
+  return `<div class="aic-agent-badge" title="${escH(meta.label)}" style="width:auto;min-width:28px;height:28px;padding:0 7px;border-radius:8px;background:var(--adim);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;gap:4px;flex-shrink:0;margin-top:2px;font-size:10px;font-weight:700;letter-spacing:0.4px;color:var(--text);">
+    <span>${meta.icon}</span><span style="font-family:'DM Mono',monospace;">${escH(meta.label)}</span>
+  </div>`;
+}
+
+function aicShowTyping(agentId){
+  const msgs=document.getElementById('aic-msgs');
+  const typingId='aic-typing-'+Date.now()+(agentId?('-'+agentId):'');
+  if(!msgs) return typingId;
+  const meta=agentId&&STAFF_AGENT_META[agentId];
+  const label=meta?`${meta.icon} ${meta.label} analizuje...`:'';
+  msgs.insertAdjacentHTML('beforeend', `<div id="${typingId}" class="aic-msg">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        ${aicStaffAvatarHTML(agentId)}
+        <div class="aic-bubble-ai" style="padding:10px 14px;">
+          <span style="display:inline-flex;gap:4px;align-items:center;">
+            <span class="typing-dot" style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1s infinite;"></span>
+            <span class="typing-dot" style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1s 0.2s infinite;"></span>
+            <span class="typing-dot" style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1s 0.4s infinite;"></span>
+            ${label?`<span style="font-size:11px;color:var(--muted);margin-left:6px;">${escH(label)}</span>`:''}
+          </span>
+        </div>
+      </div>
+    </div>`);
+  msgs.scrollTop=msgs.scrollHeight;
+  return typingId;
+}
+
+async function sendAICMsg(){
+  if(aicLoading)return;
+  const inp=document.getElementById('aic-input');
+  const text=inp?.value?.trim();
+  if(!text)return;
+  inp.value='';inp.style.height='auto';
+
+  if(!aicMsgs.length){
+    const msgs=document.getElementById('aic-msgs');
+    if(msgs)msgs.innerHTML='';
+  }
+
+  aicMsgs.push({role:'user',html:escH(text)});
+  aicAddMsgDOM('user',escH(text),true);
+  const sug=document.getElementById('aic-suggestions');
+  if(sug)sug.innerHTML='';
+
+  const extra=aicSharedContextSystem();
+  const agentIds=staffAgentsForAicMode(aicMode, text);
+
   const apiMsgs=aicMsgs.slice(-9,-1).map(m=>({
     role:m.role==='user'?'user':'assistant',
     content:m.role==='user'?m.html:m.rawText||m.html.replace(/<[^>]+>/g,'')
@@ -2449,47 +2624,46 @@ Notatki: ${c.notes||'—'}`;
   apiMsgs.push({role:'user',content:text});
 
   aicLoading=true;
-  // show typing indicator
-  const typingId='aic-typing-'+Date.now();
-  const msgs=document.getElementById('aic-msgs');
-  if(msgs){
-    msgs.innerHTML+=`<div id="${typingId}" class="aic-msg">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <div style="width:28px;height:28px;border-radius:8px;background:var(--adim);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-          <div class="ai-dot" style="width:8px;height:8px;"></div>
-        </div>
-        <div class="aic-bubble-ai" style="padding:10px 14px;">
-          <span style="display:inline-flex;gap:4px;align-items:center;">
-            <span class="typing-dot" style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1s infinite;"></span>
-            <span class="typing-dot" style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1s 0.2s infinite;"></span>
-            <span class="typing-dot" style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1s 0.4s infinite;"></span>
-          </span>
-        </div>
-      </div>
-    </div>`;
-    msgs.scrollTop=msgs.scrollHeight;
-  }
+  let typingId=aicShowTyping(agentIds&&agentIds.length===1?agentIds[0]:null);
 
   try{
-    const resp=await fetch('https://anthropic-proxy.teamprogress2018.workers.dev/',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:1500,
-        system:systemPrompt,
-        messages:apiMsgs
-      })
-    });
-    const data=await resp.json();
-    const raw=data?.content?.[0]?.text||'Przepraszam, wystąpił błąd. Spróbuj ponownie.';
-    // remove typing
-    document.getElementById(typingId)?.remove();
-    const html=aicMarkdownToHTML(raw);
-    aicMsgs.push({role:'assistant',html,rawText:raw});
-    aicAddMsgDOM('assistant',html,true);
+    if(agentIds&&agentIds.length){
+      document.getElementById(typingId)?.remove();
+      const maxTokens=agentIds.length>1?800:1500;
+      const longer=agentIds.length===1?'\nW trybie specjalistycznym możesz rozwinąć odpowiedź, jeśli pytanie tego wymaga.':'';
+      for(const agentId of agentIds){
+        typingId=aicShowTyping(agentId);
+        let raw;
+        try{
+          raw=await callStaffAgent(agentId, text, extra+longer, apiMsgs, maxTokens);
+        }catch(err){
+          raw='❌ Błąd połączenia z AI. Sprawdź połączenie internetowe.';
+        }
+        document.getElementById(typingId)?.remove();
+        const html=/^❌/.test(raw)?`<span style="color:var(--red);">${escH(raw)}</span>`:aicMarkdownToHTML(raw);
+        aicMsgs.push({role:'assistant',html,rawText:raw,agentId});
+        aicAddMsgDOM('assistant',html,true,agentId);
+      }
+    } else {
+      const systemPrompt=(AIC_MODES[aicMode]?.system||AIC_MODES.coach.system)+extra;
+      const resp=await fetch(staffWorkerUrl(),{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          model:'claude-sonnet-4-20250514',
+          max_tokens:1500,
+          system:systemPrompt,
+          messages:apiMsgs
+        })
+      });
+      const data=await resp.json();
+      const raw=staffReplyText(data);
+      document.getElementById(typingId)?.remove();
+      const html=aicMarkdownToHTML(raw);
+      aicMsgs.push({role:'assistant',html,rawText:raw});
+      aicAddMsgDOM('assistant',html,true);
+    }
     renderAICSuggestions(aicMode);
-    // save to history
     aicSaveToHistory(text);
   }catch(e){
     document.getElementById(typingId)?.remove();
@@ -2514,11 +2688,12 @@ function aicMarkdownToHTML(md){
     .replace(/\n/g,'<br>');
 }
 
-function aicAddMsgDOM(role,html,scroll){
+function aicAddMsgDOM(role,html,scroll,agentId){
   const el=document.getElementById('aic-msgs');if(!el)return;
   const isUser=role==='user';
   const div=document.createElement('div');
   div.className='aic-msg';
+  if(agentId)div.setAttribute('data-agent',agentId);
   div.style.display='flex';
   div.style.justifyContent=isUser?'flex-end':'flex-start';
   div.style.alignItems='flex-start';
@@ -2527,9 +2702,7 @@ function aicAddMsgDOM(role,html,scroll){
     div.innerHTML=`<div class="aic-bubble-user">${html}</div>`;
   } else {
     div.innerHTML=`<div style="display:flex;gap:8px;align-items:flex-start;max-width:100%;">
-      <div style="width:28px;height:28px;border-radius:8px;background:var(--adim);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;">
-        <div class="ai-dot" style="width:8px;height:8px;"></div>
-      </div>
+      ${aicStaffAvatarHTML(agentId)}
       <div class="aic-bubble-ai">${html}</div>
     </div>`;
   }
@@ -2545,17 +2718,23 @@ function renderAICSuggestions(mode){
 }
 
 function aicSaveToHistory(firstMsg){
-  if(aicHistorySessions.length===0||aicMsgs.length===2){
-    aicHistorySessions.push({
-      title:firstMsg.slice(0,40)+(firstMsg.length>40?'…':''),
-      msgs:aicMsgs.slice(),
-      mode:aicMode,
-      date:new Date().toLocaleDateString('pl',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})
-    });
-  } else {
-    // update last session
-    const last=aicHistorySessions[aicHistorySessions.length-1];
-    if(last)last.msgs=aicMsgs.slice();
+  const userTurns=aicMsgs.filter(m=>m.role==='user').length;
+  const title=firstMsg.slice(0,40)+(firstMsg.length>40?'…':'');
+  const last=aicHistorySessions[aicHistorySessions.length-1];
+  if(!aicHistorySessions.length || userTurns===1){
+    const lastIsThisTurn=last && (last.msgs||[]).filter(m=>m.role==='user').length<=1 && last.title===title;
+    if(lastIsThisTurn){
+      last.msgs=aicMsgs.slice();
+    } else {
+      aicHistorySessions.push({
+        title,
+        msgs:aicMsgs.slice(),
+        mode:aicMode,
+        date:new Date().toLocaleDateString('pl',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})
+      });
+    }
+  } else if(last){
+    last.msgs=aicMsgs.slice();
   }
   renderAICHistory();
 }

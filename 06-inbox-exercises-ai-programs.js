@@ -2447,10 +2447,11 @@ async function askExAI(){
   document.getElementById('exd-ai-q').value='';
   const msgs=document.getElementById('exd-ai-msgs');
   msgs.innerHTML+='<div style="text-align:right;margin-bottom:5px;"><div style="display:inline-block;background:var(--accent);color:#fff;padding:5px 9px;border-radius:8px;font-size:11px;">'+q+'</div></div>';
-  msgs.innerHTML+='<div id="exd-ai-t" style="margin-bottom:5px;"><div style="display:inline-block;background:var(--s3);border:1px solid var(--border2);padding:5px 9px;border-radius:8px;font-size:11px;opacity:0.5;">Analizuję...</div></div>';
+  msgs.innerHTML+='<div id="exd-ai-t" style="margin-bottom:5px;"><div style="display:inline-block;background:var(--s3);border:1px solid var(--border2);padding:5px 9px;border-radius:8px;font-size:11px;opacity:0.5;">🦴 Biomechanika analizuje...</div></div>';
   msgs.scrollTop=msgs.scrollHeight;
   const ctx=exSelId?'Ćwiczenie: '+exSelId+'. ':'';
-  const sys='Asystent trenera personalnego. Odpowiadaj BARDZO KRÓTKO po polsku, max 60 słów. Ekspert techniki ćwiczeń, biomechaniki, NSCA. Dawaj konkretne wskazówki.';
+  const staffSys=(typeof STAFF_SYSTEM_PROMPTS==='object'&&STAFF_SYSTEM_PROMPTS.biomechanika)?STAFF_SYSTEM_PROMPTS.biomechanika:'';
+  const sys=(staffSys||'Asystent trenera personalnego. Ekspert techniki ćwiczeń, biomechaniki, NSCA.')+'\nOdpowiadaj BARDZO KRÓTKO po polsku, max 60 słów — panel jest mały. Dawaj konkretne wskazówki.';
   try{
     const r=await fetch(W,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:150,system:sys,messages:[{role:'user',content:ctx+q}]})});
     const d=await r.json();const ans=d.content.map(i=>i.text||'').join('');
@@ -2458,6 +2459,12 @@ async function askExAI(){
   }catch(e){document.getElementById('exd-ai-t').outerHTML='<div style="margin-bottom:5px;"><div style="display:inline-block;background:var(--s3);padding:5px 9px;border-radius:8px;font-size:11px;color:var(--red);">Błąd</div></div>';}
   msgs.scrollTop=msgs.scrollHeight;
 }
+function askExStaffBiomechanika(){
+  const inp=document.getElementById('exd-ai-q');
+  if(inp&&!inp.value.trim()) inp.value='Przeanalizuj wektory sił, profil oporu i bezpieczeństwo stawów.';
+  askExAI();
+}
+window.askExStaffBiomechanika=askExStaffBiomechanika;
 
 // ════════════════════════════════════════
 // AI
@@ -2473,14 +2480,25 @@ async function askAI(){
   let ctx=c?'Klient: '+c.name+', '+c.age+'lat, '+c.weight+'kg'+(c.height?', '+c.height+' cm':'')+', cel: '+c.goal+', poziom: '+c.level+'. ':'';
   if(c&&typeof clientSafetyContextForAI==='function')ctx+=clientSafetyContextForAI(c.id,{weight:c.weight,height:c.height,injuries:c.injuries,gender:c.gender})+'\n';
   if(c&&typeof clientMonitorContextForAI==='function')ctx+=clientMonitorContextForAI(c.id);
+  const staffIds=typeof staffAgentsForBuilderQuery==='function'?staffAgentsForBuilderQuery(q):null;
   const sys='Asystent trenera personalnego. Odpowiadaj KRÓTKO po polsku, max 140 słów. Zawsze podaj DLACZEGO (1 zdanie) przy liczbach. NSCA: hipertrofia 3-6 serii/8-12 powt/67-85% 1RM; siła 2-6 serii/1-6 powt/85%+ 1RM. RPE 8=RIR 2. Objętość tygodniowa: trzymaj MEV–MAV. Facepull i HipThrust zawsze. Dawaj konkretne liczby. Jeśli klient ma nadwagę lub otyłość — stosuj zasady z bloku BEZPIECZEŃSTWO/NADWAGA (maszyny, strefa 2, bez plyo). Jeśli jest STRAŻNIK POSTĘPÓW, powiedz wprost czy idziemy w dobrą czy złą stronę i podaj 2–4 korekty.'
     +(typeof planningEvidenceContext==='function'?planningEvidenceContext(1800):'');
   try{
-    const r=await fetch(W,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:280,system:sys,messages:[{role:'user',content:ctx+q}]})});
-    const d=await r.json();
-    const ans=d.content.map(i=>i.text||'').join('');
-    document.getElementById('ai-t').outerHTML='<div class="ai-msg bot"><div class="ai-bubble">'+ans.replace(/\n/g,'<br>')+'</div></div>';
-  }catch(e){document.getElementById('ai-t').outerHTML='<div class="ai-msg bot"><div class="ai-bubble" style="color:var(--red);">Błąd połączenia</div></div>';}
+    if(staffIds&&staffIds.length&&typeof callStaffAgentsSequentially==='function'){
+      document.getElementById('ai-t')?.remove();
+      await callStaffAgentsSequentially(staffIds, ctx+q, '', null, function(entry){
+        const meta=(typeof STAFF_AGENT_META==='object'&&STAFF_AGENT_META[entry.agentId])||{icon:'💬',label:entry.agentId};
+        const body=entry.error?('Błąd: '+entry.error):(entry.text||'').replace(/\n/g,'<br>');
+        msgs.innerHTML+='<div class="ai-msg bot" data-agent="'+entry.agentId+'"><div class="ai-bubble"><div style="font-size:10px;font-weight:700;margin-bottom:4px;">'+meta.icon+' '+meta.label+'</div>'+body+'</div></div>';
+        msgs.scrollTop=msgs.scrollHeight;
+      }, 400);
+    } else {
+      const r=await fetch(W,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:280,system:sys,messages:[{role:'user',content:ctx+q}]})});
+      const d=await r.json();
+      const ans=d.content.map(i=>i.text||'').join('');
+      document.getElementById('ai-t').outerHTML='<div class="ai-msg bot"><div class="ai-bubble">'+ans.replace(/\n/g,'<br>')+'</div></div>';
+    }
+  }catch(e){const t=document.getElementById('ai-t');if(t)t.outerHTML='<div class="ai-msg bot"><div class="ai-bubble" style="color:var(--red);">Błąd połączenia</div></div>';else msgs.innerHTML+='<div class="ai-msg bot"><div class="ai-bubble" style="color:var(--red);">Błąd połączenia</div></div>';}
   msgs.scrollTop=msgs.scrollHeight;
 }
 

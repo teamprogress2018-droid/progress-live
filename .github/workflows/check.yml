@@ -344,6 +344,8 @@ jobs:
         run: node .github/scripts/test_plan_pdf.js
       - name: 1p3. Testy nadwagi i strażnika postępów AI
         run: node .github/scripts/test_ai_bmi_watchdog.js
+      - name: 1p4. Testy routingu sztabu eksperckiego
+        run: node .github/scripts/test_staff_agents.js
 
       - name: Testy sync uwag AI vs metoda
         run: node .github/scripts/test_apl_notes_method_sync.js
@@ -450,6 +452,8 @@ jobs:
         run: node .github/scripts/test_screensaver_ui.js
       - name: 6f. Testy UI nadwagi i strażnika w asystencie
         run: node .github/scripts/test_ai_bmi_watchdog_ui.js
+      - name: 6f0. Testy UI sztabu eksperckiego w AI Coach
+        run: node .github/scripts/test_staff_agents_ui.js
       - name: 6f2. Testy UI edycji imienia i nazwiska w profilu
         run: node .github/scripts/test_cp_edit_visible_ui.js
       - name: 6f3. Testy UI ✓ Odbył się (zapis sali z planu)
