@@ -1870,6 +1870,74 @@ function calcSendToClient(){
   pushMsg(cid,`📊 Twoje zapotrzebowanie kaloryczne:\n\nTDEE: ${macros.tdee} kcal\nCel: ${macros.targetKcal} kcal\n\nMakroskładniki:\n🟢 Białko: ${macros.proteinG}g\n🟡 Tłuszcze: ${macros.fatG}g\n🔵 Węglowodany: ${macros.carbG}g\n\nWoda: min. ${Math.round(weight*0.035*10)/10}l/dzień`);
   notify('✓ Wyniki wysłane do '+(c?c.name:'klienta')+' w wiadomościach!');
 }
+
+function suggestLoad(opts){
+  const o=opts||{};
+  const weight=Number(o.weight);
+  const rir=Number(o.rir);
+  const targetRir=Number(o.targetRir);
+  if(!Number.isFinite(weight)||weight<=0||!Number.isFinite(rir)||!Number.isFinite(targetRir)){
+    return {newWeight:0,adjustment:0};
+  }
+  const stepPct=o.isIncline?0.025:0.05;
+  const adjustment=(rir-targetRir)*stepPct;
+  const newWeight=Math.round(weight*(1+adjustment)*10)/10;
+  return {newWeight,adjustment:adjustment*100};
+}
+var calcTool='tdee';
+var rirIncline=true;
+function setCalcTool(tool){
+  calcTool=tool==='rir'?'rir':'tdee';
+  const tdeeLay=document.getElementById('calc-tdee-layout');
+  const rirLay=document.getElementById('calc-rir-layout');
+  const title=document.getElementById('calc-top-title');
+  const tabT=document.getElementById('calc-tab-tdee');
+  const tabR=document.getElementById('calc-tab-rir');
+  const showTdee=calcTool==='tdee';
+  if(tdeeLay) tdeeLay.style.display=showTdee?'':'none';
+  if(rirLay) rirLay.style.display=showTdee?'none':'block';
+  if(title) title.textContent=showTdee?'Kalkulator TDEE i Makro':'Kalkulator obciążenia RIR';
+  if(tabT) tabT.className='btn btn-sm '+(showTdee?'btn-primary':'btn-ghost');
+  if(tabR) tabR.className='btn btn-sm '+(showTdee?'btn-ghost':'btn-primary');
+  ['calc-tdee-actions','calc-tdee-save','calc-tdee-send'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.style.display=showTdee?'':'none';
+  });
+  if(!showTdee) renderRirLoad();
+}
+function toggleRirIncline(){
+  rirIncline=!rirIncline;
+  const btn=document.getElementById('rir-incline');
+  if(btn){
+    btn.className='btn btn-sm '+(rirIncline?'btn-primary':'btn-ghost');
+  }
+  renderRirLoad();
+}
+function renderRirLoad(){
+  const weight=parseFloat(document.getElementById('rir-weight')?.value);
+  const rir=parseFloat(document.getElementById('rir-reported')?.value);
+  const target=parseFloat(document.getElementById('rir-target')?.value);
+  const tv=document.getElementById('rir-target-val');
+  if(tv&&Number.isFinite(target)) tv.textContent=String(target);
+  const res=suggestLoad({weight,rir,targetRir:target,isIncline:rirIncline});
+  const kg=document.getElementById('rir-out-kg');
+  const pct=document.getElementById('rir-out-pct');
+  const hint=document.getElementById('rir-out-hint');
+  if(kg) kg.textContent=res.newWeight?String(res.newWeight):'—';
+  if(pct){
+    const sign=res.adjustment>=0?'+':'';
+    pct.textContent=res.newWeight?(sign+res.adjustment.toFixed(1)+'% względem poprzedniej sesji'):'';
+    pct.style.color=res.adjustment>=0?'#7FBF6B':'var(--red)';
+  }
+  if(hint) hint.textContent='Krok progresji: '+(rirIncline?'2,5%':'5%')+' za każdy punkt różnicy między RIR zgłoszonym a docelowym.';
+  const btn=document.getElementById('rir-incline');
+  if(btn) btn.className='btn btn-sm '+(rirIncline?'btn-primary':'btn-ghost');
+}
+window.suggestLoad=suggestLoad;
+window.setCalcTool=setCalcTool;
+window.toggleRirIncline=toggleRirIncline;
+window.renderRirLoad=renderRirLoad;
+
 var cpClientId=null;var cpTab='overview';
 
 function renderOnboardProfileBanner(){
