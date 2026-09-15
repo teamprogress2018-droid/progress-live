@@ -2834,6 +2834,8 @@ function liveSyncClientChrome(slot){
   pane.classList.toggle('live-pane-empty',empty);
   const left=pane.querySelector('.live-side-left');
   if(left)left.style.display=empty?'none':'';
+  const stats=liveEl('live-stats-panel',n);
+  if(stats)stats.style.display=empty?'none':'';
 }
 
 function liveClientSetField(clientId,clientName,skipLoad,slot){
