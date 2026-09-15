@@ -1455,6 +1455,205 @@ function allExercises(){
   return out;
 }
 
+const EX_PROFILE_LABELS={
+  ascending:'narastający',
+  descending:'malejący',
+  'bell-shaped':'dzwonowy',
+  constant:'stały'
+};
+const EX_JOINT_LABELS={shoulder:'bark',knee:'kolano',hip:'biodro',elbow:'łokieć'};
+const STAFF_SUB_MAX=97;
+
+function exdEsc(s){
+  return typeof escHtml==='function'?escHtml(s):String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function exBiomechNorm(s){
+  return String(s||'').toLowerCase().replace(/ł/g,'l').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();
+}
+function exPrimeKey(s){
+  return exBiomechNorm(s).replace(/[()]/g,'').split(/[,;/]/)[0].split(' ')[0];
+}
+function exerciseBiomech(ex){
+  const name=exBiomechNorm(ex&&ex.name);
+  const cat=String(ex&&ex.cat||'');
+  const eq=String(ex&&ex.eq||'');
+  const muscle=String(ex&&ex.muscle||'');
+  const blob=name+' '+exBiomechNorm(cat)+' '+exBiomechNorm(eq)+' '+exBiomechNorm(muscle);
+  let pattern='other';
+  if(/cardio/i.test(cat)) pattern='cardio';
+  else if(/core|rozgrzewka|rozciagan|mobilnosc/i.test(exBiomechNorm(cat))) pattern='core';
+  else if(/biceps/i.test(cat)||/uginan/.test(name)) pattern='elbow_flexion';
+  else if(/triceps/i.test(cat)||/prostowan|francusk|kickback|dipy|dip\b/.test(name)) pattern='elbow_extension';
+  else if(/martwy|rdl|hip thrust|glute|mostek|rumun/.test(name)||/poslad/i.test(cat)&&/hip|biodr|thrust/.test(name)) pattern='hip_dominant';
+  else if(/nogi|poslad/i.test(cat)||/przysiad|squat|hack|leg press|wyciskan.*nog|wypych/.test(name)) pattern='knee_dominant';
+  else if(/bokiem|lateral|odwodzen|wznos.*bok|unoszen.*bok/.test(name)||(/barki/i.test(cat)&&/wznos|unoszen/.test(name))) pattern='shoulder_abduction';
+  else if(/podciagan|sciagan|lat pulldown|chin.?up|pull.?up/.test(name)) pattern='vertical_pull';
+  else if(/zolnierskie|\bohp\b|overhead|wyciskan.*nad glow|wyciskan.*siedz/.test(name)) pattern='vertical_push';
+  else if(/wioslow|przenoszen|face pull|sciaganie do twarzy/.test(name)||/plecy/i.test(cat)) pattern='horizontal_pull';
+  else if(/klatka/i.test(cat)||/wyciskan|pompki|rozpietk|fly|butterfly/.test(name)) pattern='horizontal_push';
+  else if(/barki/i.test(cat)) pattern='vertical_push';
+
+  let plane='sagittal';
+  if(/bokiem|lateral|odwodzen|wznos.*bok|unoszen.*bok|crossover|krzyzowan/.test(name)) plane='frontal';
+  else if(/rotacj|woodchop|russian|twist/.test(name)) plane='transverse';
+
+  const joints=[];
+  const addJoint=j=>{if(!joints.includes(j))joints.push(j);};
+  const lowerBody=/nogi|poslad/i.test(cat)||/przysiad|squat|leg press|hack|wypych|wyciskan.*nog|martwy|rdl|hip thrust/.test(name);
+  if(!lowerBody&&(/barki|klatka|plecy/i.test(cat)||/bark|shoulder|pompki|wioslow|podciagan|sciagan|unoszen|wznos|rozpietk|wyciskan/.test(name))) addJoint('shoulder');
+  if(!lowerBody&&(/wyciskan|pompki|ohp|zolnierskie/.test(name)||/biceps|triceps/i.test(cat)||/uginan|prostowan|dipy|dip\b/.test(name))) addJoint('elbow');
+  if(/nogi/i.test(cat)||/przysiad|squat|leg press|hack|wypych|wyciskan.*nog/.test(name)) addJoint('knee');
+  if(/poslad/i.test(cat)||/martwy|rdl|hip|biodr|thrust|mostek/.test(name)) addJoint('hip');
+  if(!joints.length&&/klatka|barki|plecy/i.test(cat)) addJoint('shoulder');
+  if(!joints.length&&/nogi|poslad/i.test(cat)) addJoint('knee');
+
+  let profile='ascending';
+  if(/rozpietk|fly/.test(name)) profile='descending';
+  else if(/unoszen.*bok.*law|wznos.*bok.*law|lawce skos.*bok/.test(name)) profile='bell-shaped';
+  else if(/wyciag|bramie|cable/.test(exBiomechNorm(eq)+' '+name)&&!/smith/.test(name)) profile='constant';
+  else if(/maszyna|suwnica|hack|leg press|peck|butterfly/.test(blob)) profile='bell-shaped';
+  else if(/lawce skos|skos\+|incline/.test(name)&&/hantl/.test(blob)) profile='bell-shaped';
+
+  let sfr='średnie';
+  if(profile==='constant'||profile==='bell-shaped') sfr='wysokie';
+  if(profile==='descending') sfr='niskie';
+  if(/za glowe|upright row|wioslowanie.*brod/.test(name)) sfr='niskie';
+
+  const parts=muscle.split(/[,;/]/).map(s=>s.trim()).filter(Boolean);
+  const prime=parts[0]||cat||'—';
+  const secondary=parts.slice(1);
+  let benchAngle=null;
+  const ang=name.match(/(\d+)\s*°/);
+  if(ang) benchAngle=parseInt(ang[1],10);
+  else if(/skos|incline/.test(name)) benchAngle=30;
+
+  return {name:ex&&ex.name,cat:ex&&ex.cat,eq:ex&&ex.eq,pattern,plane,profile,sfr,joints,prime,secondary,benchAngle};
+}
+function findStaffSubstitutes(originalEx, opts){
+  opts=opts||{};
+  if(!originalEx||!originalEx.name) return [];
+  const original=exerciseBiomech(originalEx);
+  const blacklisted=opts.blacklistedJoints||[];
+  const unavailable=(opts.unavailableEquipment||[]).map(s=>String(s).toLowerCase());
+  const lib=typeof allExercises==='function'?allExercises():[].concat(window.EX||[],window.DEF_EX||[]);
+  const cur=String(originalEx.name).toLowerCase();
+  const scored=[];
+  for(const ex of lib){
+    if(!ex||!ex.name||String(ex.name).toLowerCase()===cur) continue;
+    const b=exerciseBiomech(ex);
+    if(b.joints.some(j=>blacklisted.includes(j))) continue;
+    if(unavailable.includes(String(ex.eq||'').toLowerCase())) continue;
+    if(b.pattern!==original.pattern) continue;
+    let score=0;
+    score+=40;
+    if(b.plane===original.plane) score+=20;
+    if(exPrimeKey(b.prime)&&exPrimeKey(b.prime)===exPrimeKey(original.prime)) score+=25;
+    const overlap=b.secondary.filter(m=>{
+      const mk=exPrimeKey(m);
+      return mk&&original.secondary.some(o=>exPrimeKey(o)===mk);
+    }).length;
+    score+=overlap*3;
+    if(b.profile===original.profile) score+=12;
+    if(score>0) scored.push({ex,biomech:b,score:Math.min(STAFF_SUB_MAX,score)});
+  }
+  scored.sort((a,b)=>b.score-a.score);
+  return scored.slice(0,opts.limit||3);
+}
+window.EX_PROFILE_LABELS=EX_PROFILE_LABELS;
+window.exerciseBiomech=exerciseBiomech;
+window.findStaffSubstitutes=findStaffSubstitutes;
+
+var exdSubFilter={shoulder:false,knee:false,eq:[]};
+
+function toggleExdSubJoint(joint){
+  if(joint==='shoulder') exdSubFilter.shoulder=!exdSubFilter.shoulder;
+  if(joint==='knee') exdSubFilter.knee=!exdSubFilter.knee;
+  renderExdSubstitutes();
+}
+function toggleExdSubEq(eq){
+  const k=String(eq||'');
+  const i=exdSubFilter.eq.indexOf(k);
+  if(i>=0) exdSubFilter.eq.splice(i,1);
+  else exdSubFilter.eq.push(k);
+  renderExdSubstitutes();
+}
+function exdSubstituteBlockHtml(e){
+  const b=exerciseBiomech(e);
+  const chips=[
+    `<span class="pill pill-muted">${exdEsc(b.pattern.replace(/_/g,' '))}</span>`,
+    `<span class="pill pill-muted">płaszczyzna: ${exdEsc(b.plane)}</span>`,
+    `<span class="pill" style="background:var(--adim);color:var(--accent);border:1px solid var(--accent);">profil: ${exdEsc(EX_PROFILE_LABELS[b.profile]||b.profile)}</span>`,
+    ...b.joints.map(j=>`<span class="pill" style="background:rgba(225,91,68,0.12);color:#E15B44;">staw: ${exdEsc(EX_JOINT_LABELS[j]||j)}</span>`),
+    `<span class="pill" style="background:rgba(127,191,107,0.12);color:#7FBF6B;">SFR: ${exdEsc(b.sfr)}</span>`
+  ].join('');
+  const eqSeen={};
+  const eqOpts=[];
+  (typeof allExercises==='function'?allExercises():[]).forEach(x=>{
+    const eq=x&&x.eq;
+    if(!x||x.cat!==e.cat||!eq||eqSeen[eq]) return;
+    eqSeen[eq]=1;
+    if(eqOpts.length<8) eqOpts.push(eq);
+  });
+  return `<div id="exd-subs-box" style="margin-bottom:14px;">
+    <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Biomechanika</div>
+    <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;">${chips}</div>
+    <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Zamienniki — filtr bezpieczeństwa</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+      <button type="button" class="btn btn-ghost btn-sm" id="exd-sub-shoulder" onclick="toggleExdSubJoint('shoulder')">Ból barku</button>
+      <button type="button" class="btn btn-ghost btn-sm" id="exd-sub-knee" onclick="toggleExdSubJoint('knee')">Ból kolana</button>
+    </div>
+    <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;" id="exd-sub-eqs">${eqOpts.map(eq=>{
+      const safe=String(eq).replace(/'/g,"\\'");
+      return `<button type="button" class="pill pill-muted" data-eq="${exdEsc(eq)}" onclick="toggleExdSubEq('${safe}')">${exdEsc(eq)}</button>`;
+    }).join('')}</div>
+    <div id="exd-subs-list"></div>
+  </div>`;
+}
+function renderExdSubstitutes(){
+  const list=document.getElementById('exd-subs-list');
+  if(!list) return;
+  const name=currentExDetail;
+  const e=(typeof allExercises==='function'?allExercises():[]).find(x=>x&&x.name===name)||(typeof libExerciseByName==='function'?libExerciseByName(name):null);
+  if(!e){list.innerHTML='';return;}
+  const sh=document.getElementById('exd-sub-shoulder');
+  const kn=document.getElementById('exd-sub-knee');
+  if(sh){sh.style.borderColor=exdSubFilter.shoulder?'var(--red)':'';sh.style.color=exdSubFilter.shoulder?'var(--red)':'';}
+  if(kn){kn.style.borderColor=exdSubFilter.knee?'var(--red)':'';kn.style.color=exdSubFilter.knee?'var(--red)':'';}
+  document.querySelectorAll('#exd-sub-eqs [data-eq]').forEach(btn=>{
+    const on=exdSubFilter.eq.includes(btn.getAttribute('data-eq'));
+    btn.style.borderColor=on?'var(--red)':'';
+    btn.style.color=on?'var(--red)':'';
+  });
+  const blacklistedJoints=[...(exdSubFilter.shoulder?['shoulder']:[]),...(exdSubFilter.knee?['knee']:[])];
+  const results=findStaffSubstitutes(e,{blacklistedJoints,unavailableEquipment:exdSubFilter.eq,limit:3});
+  if(!results.length){
+    list.innerHTML='<div style="font-size:12px;color:var(--muted);padding:8px 0;">Brak dopasowania przy obecnych ograniczeniach — rozważ ręczny przegląd biblioteki.</div>';
+    return;
+  }
+  list.innerHTML=results.map(({ex,score})=>{
+    const pct=Math.max(4,Math.round((score/STAFF_SUB_MAX)*100));
+    const safe=String(ex.name).replace(/'/g,"\\'");
+    return `<div style="background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;margin-bottom:6px;">
+      <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;">
+        <button type="button" onclick="openExDetail('${safe}')" style="background:none;border:none;color:var(--text);text-align:left;padding:0;cursor:pointer;font-size:12px;font-weight:700;">${exdEsc(ex.name)}</button>
+        <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);flex-shrink:0;">${score}/${STAFF_SUB_MAX}</span>
+      </div>
+      <div style="height:3px;background:var(--s2);border-radius:2px;margin:6px 0 8px;"><div style="height:3px;width:${pct}%;background:var(--accent);border-radius:2px;"></div></div>
+      <button type="button" class="btn btn-ghost btn-sm" style="width:100%;" onclick="askExStaffJustify('${safe}')">🦴 Uzasadnij ten zamiennik</button>
+    </div>`;
+  }).join('');
+}
+function askExStaffJustify(altName){
+  const orig=currentExDetail||'';
+  const inp=document.getElementById('exd-ai-q');
+  if(inp) inp.value=`Dlaczego "${altName}" jest sensownym zamiennikiem dla "${orig}"? Na co zwrócić uwagę przy przejściu.`;
+  if(typeof askExAI==='function') askExAI();
+}
+window.toggleExdSubJoint=toggleExdSubJoint;
+window.toggleExdSubEq=toggleExdSubEq;
+window.renderExdSubstitutes=renderExdSubstitutes;
+window.askExStaffJustify=askExStaffJustify;
+
 // Ciemna lista podpowiedzi ćwiczeń (zamiast natywnego białego datalist)
 let _exAcState=null;
 let _exAcPicking=false;
@@ -2253,6 +2452,7 @@ function openExDetail(name){
       ${findCustomEx(e.name)?`<button class="btn btn-ghost btn-sm" style="flex:1;" onclick="editEx('${e.name.replace(/'/g,"\\'")}')">✏ Edytuj</button>`:''}
       <button type="button" class="btn btn-ghost btn-sm" id="exd-del" style="flex:1;color:var(--red);" onclick="delEx('${e.name.replace(/'/g,"\\'")}')">🗑 Usuń ćwiczenie</button>
     </div>
+    ${typeof exdSubstituteBlockHtml==='function'?exdSubstituteBlockHtml(e):''}
     ${typeof exDetailAssignHtml==='function'?exDetailAssignHtml(e):''}
     ${(()=>{const media=typeof resolveCoachMedia==='function'?resolveCoachMedia(e):null;if(!media)return'';let h='';const assigned=typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):'';const skipGif=!!(assigned&&media.gif&&typeof sameMediaUrl==='function'&&sameMediaUrl(assigned,media.gif));if(media.gif&&!skipGif&&typeof exTechniqueMediaHtml==='function')h+=exTechniqueMediaHtml({gif:media.gif,name:e.name},{});else if(!media.gif&&media.img){h+=`<div class="ex-detail-thumb"><img src="${typeof escHtml==='function'?escHtml(media.img):media.img}" alt="Technika: ${typeof escHtml==='function'?escHtml(e.name):e.name}" loading="lazy" referrerpolicy="no-referrer"></div>`;}const showVid=!!media.video&&!(media.gif&&typeof sameMediaUrl==='function'&&sameMediaUrl(media.gif,media.video));if(typeof coachMediaHtml==='function')h+=coachMediaHtml({...media,name:e.name,video:showVid?media.video:'',videoEmbed:showVid?media.videoEmbed:''},{showVideo:showVid,showGif:false});if(typeof exTechniqueGuideHtml==='function')h+=exTechniqueGuideHtml(e);return h;})()}
     ${e.muscle?`<div style="margin-bottom:12px;">
@@ -2268,7 +2468,7 @@ function openExDetail(name){
       <div style="background:var(--adim);border:1px solid rgba(230,0,0,0.15);border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.6;">${e.nsca}</div>
     </div>`:''}
     ${e.alt?`<div style="margin-bottom:12px;">
-      <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Zamienniki</div>
+      <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Zamienniki z karty</div>
       <div style="display:flex;gap:4px;flex-wrap:wrap;">${e.alt.split(',').map(a=>`<span class="pill pill-muted" style="font-size:10px;cursor:pointer;" onclick="openExDetail('${a.trim().replace(/'/g,"\\'")}')">→ ${a.trim()}</span>`).join('')}</div>
     </div>`:''}
     ${typeof ownVideoForExercise==='function'&&ownVideoForExercise(e.name)?'':`<button onclick="event.stopPropagation();(function(){window.open('https://www.youtube.com/results?search_query='+encodeURIComponent(currentExDetail+' cwiczenie technika wykonania'),'_blank');})()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;padding:10px;background:rgba(255,0,0,0.1);border:1px solid rgba(255,0,0,0.3);border-radius:8px;color:#ff4444;font-size:12px;font-weight:700;cursor:pointer;" onmouseover="this.style.background='rgba(255,0,0,0.2)'" onmouseout="this.style.background='rgba(255,0,0,0.1)'">&#9654; Szukaj na YouTube &#8212; technika</button>`}
@@ -2281,6 +2481,8 @@ function openExDetail(name){
   detail.style.transform='translateX(0)';
   const body=document.getElementById('exd-body');
   if(body)body.scrollTop=0;
+  exdSubFilter={shoulder:false,knee:false,eq:[]};
+  if(typeof renderExdSubstitutes==='function') renderExdSubstitutes();
   const play=document.getElementById('exd-mp4-player');
   if(play&&typeof play.play==='function'){
     play.muted=true;

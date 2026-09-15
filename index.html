@@ -2908,14 +2908,17 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 <!-- CALCULATOR — TDEE / MAKRO -->
 <div class="screen" id="screen-calculator">
   <div class="topbar">
-    <div class="topbar-title">Kalkulator TDEE i Makro</div>
+    <div class="topbar-title" id="calc-top-title">Kalkulator TDEE i Makro</div>
     <div class="topbar-actions">
-      <button class="btn btn-ghost btn-sm" onclick="calcLoadFromClient()">📋 Wczytaj dane klienta</button>
-      <button class="btn btn-ghost btn-sm" onclick="calcSaveToClient()">💾 Zapisz w profilu</button>
-      <button class="btn btn-primary btn-sm" onclick="calcSendToClient()">📤 Wyślij do klienta</button>
+      <button class="btn btn-primary btn-sm" id="calc-tab-tdee" onclick="setCalcTool('tdee')">TDEE / Makro</button>
+      <button class="btn btn-ghost btn-sm" id="calc-tab-rir" onclick="setCalcTool('rir')">Obciążenie RIR</button>
+      <button class="btn btn-ghost btn-sm" id="calc-tab-myo" onclick="setCalcTool('myo')">Myo-Reps</button>
+      <button class="btn btn-ghost btn-sm" id="calc-tdee-actions" onclick="calcLoadFromClient()">📋 Wczytaj dane klienta</button>
+      <button class="btn btn-ghost btn-sm" id="calc-tdee-save" onclick="calcSaveToClient()">💾 Zapisz w profilu</button>
+      <button class="btn btn-primary btn-sm" id="calc-tdee-send" onclick="calcSendToClient()">📤 Wyślij do klienta</button>
     </div>
   </div>
-  <div class="calc-layout">
+  <div class="calc-layout" id="calc-tdee-layout">
     <div class="calc-inputs">
       <div class="calc-guide">1. Wpisz dane &nbsp;→&nbsp; 2. Sprawdź wynik &nbsp;→&nbsp; 3. Zapisz w profilu lub wyślij do klienta</div>
 
@@ -2990,6 +2993,56 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 
     <div class="calc-results-area" id="calc-results-area">
       <div id="calc-results"></div>
+    </div>
+  </div>
+
+  <div id="calc-rir-layout" style="display:none;flex:1;overflow:auto;padding:20px 24px;">
+    <div style="max-width:820px;">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6;">Autoregulacja: jeśli ostatnia seria była łatwiejsza niż docelowe RIR — dodaj kilogramy; jeśli twardsza — zdejmij. Krok 5% (ławkę skośną: 2,5%).</div>
+      <div class="calc-rir-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;">
+        <div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:16px;">
+          <div class="form-field"><label class="form-lbl">Ostatni ciężar (kg)</label>
+            <input type="number" class="form-input" id="rir-weight" value="8" min="0" step="0.5" oninput="renderRirLoad()">
+          </div>
+          <div class="form-grid">
+            <div class="form-field"><label class="form-lbl">Powtórzenia</label>
+              <input type="number" class="form-input" id="rir-reps" value="11" min="1" oninput="renderRirLoad()">
+            </div>
+            <div class="form-field"><label class="form-lbl">RIR zgłoszone</label>
+              <input type="number" class="form-input" id="rir-reported" value="1" min="0" max="10" step="0.5" oninput="renderRirLoad()">
+            </div>
+          </div>
+          <div class="form-field"><label class="form-lbl">Docelowe RIR: <span id="rir-target-val">2</span></label>
+            <input type="range" id="rir-target" min="0" max="4" step="1" value="2" oninput="renderRirLoad()" style="width:100%;accent-color:var(--accent);">
+          </div>
+          <button type="button" class="btn btn-ghost btn-sm" id="rir-incline" onclick="toggleRirIncline()">Ławka skośna (delikatniejsza progresja)</button>
+        </div>
+        <div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">
+          <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;">Sugerowany ciężar na następną sesję</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:56px;letter-spacing:2px;color:var(--accent);line-height:1;margin:8px 0;" id="rir-out-kg">7.8</div>
+          <div style="font-size:13px;" id="rir-out-pct"></div>
+          <div style="font-size:12px;color:var(--muted);margin-top:14px;line-height:1.5;" id="rir-out-hint"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="calc-myo-layout" style="display:none;flex:1;overflow:auto;padding:20px 24px;">
+    <div style="max-width:920px;">
+      <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px;">
+        <div>
+          <div id="myo-session-name" style="font-size:22px;font-weight:700;">Desk Worker Express — Full Body A</div>
+          <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.5;">Protokół rest-pause: seria aktywacyjna + mini-serie. W builderze Live dogrywki to nadal przycisk <b>RP</b> — tu prowadzisz sesję z timerem.</div>
+        </div>
+        <div style="display:flex;gap:16px;">
+          <div><div style="font-size:11px;color:var(--muted);">Czas docelowy</div><div id="myo-time-chip" style="font-family:'DM Mono',monospace;color:var(--accent);">45 min</div></div>
+          <div><div style="font-size:11px;color:var(--muted);">Postęp</div><div id="myo-done-chip" style="font-family:'DM Mono',monospace;color:var(--accent);">0/15 mini-serii</div></div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;">
+        <div id="myo-blocks" style="display:flex;flex-direction:column;gap:8px;"></div>
+        <div id="myo-detail" style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:18px;"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -4390,8 +4443,8 @@ async function load(){
 <script src="03-ai-plangen-bizstats-aicoach.js?v=37"></script>
 <script src="04-client-portal.js?v=50"></script>
 <script src="05-clients-builder-plans-calendar.js?v=73"></script>
-<script src="06-inbox-exercises-ai-programs.js?v=77"></script>
-<script src="07-forms-metrics-calculator.js?v=37"></script>
+<script src="06-inbox-exercises-ai-programs.js?v=78"></script>
+<script src="07-forms-metrics-calculator.js?v=39"></script>
 <script src="08-client-profile-extras.js?v=61"></script>
 <script src="09-posture-kb-invites-private.js?v=48"></script>
 <script src="10-client-app.js?v=40"></script>
