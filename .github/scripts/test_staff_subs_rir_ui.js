@@ -100,6 +100,51 @@ function ok(name, cond, extra) {
   const kg2 = await page.evaluate(() => (document.getElementById('rir-out-kg') || {}).textContent);
   ok('rir 100/RIR3 → 105', kg2 === '105', kg2);
 
+  await page.evaluate(() => {
+    if (typeof setCalcTool === 'function') setCalcTool('myo');
+  });
+  await page.waitForTimeout(300);
+  const myo = await page.evaluate(() => {
+    const tab = document.getElementById('calc-tab-myo');
+    const lay = document.getElementById('calc-myo-layout');
+    const rir = document.getElementById('calc-rir-layout');
+    const blocks = [...document.querySelectorAll('#myo-blocks [data-myo-id]')].map((b) => b.getAttribute('data-myo-id'));
+    const names = (document.getElementById('myo-blocks') || {}).innerText || '';
+    const pain = document.getElementById('myo-staff-pain');
+    const log = document.getElementById('myo-log-btn');
+    const clock = document.getElementById('myo-clock');
+    return {
+      tabOn: !!(tab && tab.classList.contains('btn-primary')),
+      myoShown: lay ? getComputedStyle(lay).display !== 'none' : false,
+      rirHidden: rir ? getComputedStyle(rir).display === 'none' : false,
+      blocks: blocks.join(','),
+      names,
+      pain: !!(pain && /ból/i.test(pain.textContent || '')),
+      log: !!(log && /mini-serię/i.test(log.textContent || '')),
+      clock: clock ? clock.textContent : ''
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'myo_reps_session.png') });
+  ok('myo tab active', myo.tabOn && myo.myoShown && myo.rirHidden, JSON.stringify(myo));
+  ok('myo 5 blocks', myo.blocks === 'b1,b2,b3,b4,b5', myo.blocks);
+  ok('myo library names', /Przysiad Goblet/.test(myo.names) && /Wyciskanie hantli na ławce skośnej/.test(myo.names) && /Unoszenie bokiem/.test(myo.names));
+  ok('myo no shoulder pain on squat', myo.pain === false, JSON.stringify(myo));
+  ok('myo clock 00:20', myo.clock === '00:20', myo.clock);
+
+  await page.click('#myo-log-btn');
+  await page.waitForTimeout(200);
+  const afterLog = await page.evaluate(() => (document.getElementById('myo-done-chip') || {}).textContent);
+  ok('myo logged mini', /1\/15/.test(afterLog || ''), afterLog);
+
+  await page.click('[data-myo-id="b2"]');
+  await page.waitForTimeout(200);
+  const caution = await page.evaluate(() => {
+    const pain = document.getElementById('myo-staff-pain');
+    const warn = /bark/i.test((document.getElementById('myo-detail') || {}).innerText || '');
+    return { pain: !!(pain && /ból/i.test(pain.textContent || '')), warn };
+  });
+  ok('myo caution staff', caution.pain && caution.warn, JSON.stringify(caution));
+
   await browser.close();
   if (failed) {
     console.error('\n' + failed + ' failed');

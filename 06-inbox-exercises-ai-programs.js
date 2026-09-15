@@ -1586,7 +1586,14 @@ function exdSubstituteBlockHtml(e){
     ...b.joints.map(j=>`<span class="pill" style="background:rgba(225,91,68,0.12);color:#E15B44;">staw: ${exdEsc(EX_JOINT_LABELS[j]||j)}</span>`),
     `<span class="pill" style="background:rgba(127,191,107,0.12);color:#7FBF6B;">SFR: ${exdEsc(b.sfr)}</span>`
   ].join('');
-  const eqOpts=[...new Set((typeof allExercises==='function'?allExercises():[]).filter(x=>x&&x.cat===e.cat&&x.eq).map(x=>x.eq))].slice(0,8);
+  const eqSeen={};
+  const eqOpts=[];
+  (typeof allExercises==='function'?allExercises():[]).forEach(x=>{
+    const eq=x&&x.eq;
+    if(!x||x.cat!==e.cat||!eq||eqSeen[eq]) return;
+    eqSeen[eq]=1;
+    if(eqOpts.length<8) eqOpts.push(eq);
+  });
   return `<div id="exd-subs-box" style="margin-bottom:14px;">
     <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Biomechanika</div>
     <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;">${chips}</div>

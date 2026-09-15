@@ -2912,6 +2912,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
     <div class="topbar-actions">
       <button class="btn btn-primary btn-sm" id="calc-tab-tdee" onclick="setCalcTool('tdee')">TDEE / Makro</button>
       <button class="btn btn-ghost btn-sm" id="calc-tab-rir" onclick="setCalcTool('rir')">Obciążenie RIR</button>
+      <button class="btn btn-ghost btn-sm" id="calc-tab-myo" onclick="setCalcTool('myo')">Myo-Reps</button>
       <button class="btn btn-ghost btn-sm" id="calc-tdee-actions" onclick="calcLoadFromClient()">📋 Wczytaj dane klienta</button>
       <button class="btn btn-ghost btn-sm" id="calc-tdee-save" onclick="calcSaveToClient()">💾 Zapisz w profilu</button>
       <button class="btn btn-primary btn-sm" id="calc-tdee-send" onclick="calcSendToClient()">📤 Wyślij do klienta</button>
@@ -3022,6 +3023,25 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
           <div style="font-size:13px;" id="rir-out-pct"></div>
           <div style="font-size:12px;color:var(--muted);margin-top:14px;line-height:1.5;" id="rir-out-hint"></div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="calc-myo-layout" style="display:none;flex:1;overflow:auto;padding:20px 24px;">
+    <div style="max-width:920px;">
+      <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px;">
+        <div>
+          <div id="myo-session-name" style="font-size:22px;font-weight:700;">Desk Worker Express — Full Body A</div>
+          <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.5;">Protokół rest-pause: seria aktywacyjna + mini-serie. W builderze Live dogrywki to nadal przycisk <b>RP</b> — tu prowadzisz sesję z timerem.</div>
+        </div>
+        <div style="display:flex;gap:16px;">
+          <div><div style="font-size:11px;color:var(--muted);">Czas docelowy</div><div id="myo-time-chip" style="font-family:'DM Mono',monospace;color:var(--accent);">45 min</div></div>
+          <div><div style="font-size:11px;color:var(--muted);">Postęp</div><div id="myo-done-chip" style="font-family:'DM Mono',monospace;color:var(--accent);">0/15 mini-serii</div></div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;">
+        <div id="myo-blocks" style="display:flex;flex-direction:column;gap:8px;"></div>
+        <div id="myo-detail" style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:18px;"></div>
       </div>
     </div>
   </div>
@@ -4424,7 +4444,7 @@ async function load(){
 <script src="04-client-portal.js?v=50"></script>
 <script src="05-clients-builder-plans-calendar.js?v=73"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=78"></script>
-<script src="07-forms-metrics-calculator.js?v=38"></script>
+<script src="07-forms-metrics-calculator.js?v=39"></script>
 <script src="08-client-profile-extras.js?v=61"></script>
 <script src="09-posture-kb-invites-private.js?v=48"></script>
 <script src="10-client-app.js?v=40"></script>

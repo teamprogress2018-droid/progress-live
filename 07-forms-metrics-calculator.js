@@ -1887,23 +1887,31 @@ function suggestLoad(opts){
 var calcTool='tdee';
 var rirIncline=true;
 function setCalcTool(tool){
-  calcTool=tool==='rir'?'rir':'tdee';
+  calcTool=(tool==='rir'||tool==='myo')?tool:'tdee';
   const tdeeLay=document.getElementById('calc-tdee-layout');
   const rirLay=document.getElementById('calc-rir-layout');
+  const myoLay=document.getElementById('calc-myo-layout');
   const title=document.getElementById('calc-top-title');
   const tabT=document.getElementById('calc-tab-tdee');
   const tabR=document.getElementById('calc-tab-rir');
+  const tabM=document.getElementById('calc-tab-myo');
   const showTdee=calcTool==='tdee';
+  const showRir=calcTool==='rir';
+  const showMyo=calcTool==='myo';
   if(tdeeLay) tdeeLay.style.display=showTdee?'':'none';
-  if(rirLay) rirLay.style.display=showTdee?'none':'block';
-  if(title) title.textContent=showTdee?'Kalkulator TDEE i Makro':'Kalkulator obciążenia RIR';
+  if(rirLay) rirLay.style.display=showRir?'block':'none';
+  if(myoLay) myoLay.style.display=showMyo?'block':'none';
+  if(title) title.textContent=showTdee?'Kalkulator TDEE i Makro':(showRir?'Kalkulator obciążenia RIR':'Sesja Myo-Reps');
   if(tabT) tabT.className='btn btn-sm '+(showTdee?'btn-primary':'btn-ghost');
-  if(tabR) tabR.className='btn btn-sm '+(showTdee?'btn-ghost':'btn-primary');
+  if(tabR) tabR.className='btn btn-sm '+(showRir?'btn-primary':'btn-ghost');
+  if(tabM) tabM.className='btn btn-sm '+(showMyo?'btn-primary':'btn-ghost');
   ['calc-tdee-actions','calc-tdee-save','calc-tdee-send'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.style.display=showTdee?'':'none';
   });
-  if(!showTdee) renderRirLoad();
+  if(showRir) renderRirLoad();
+  if(showMyo) renderMyoSession();
+  else myoPauseTimer();
 }
 function toggleRirIncline(){
   rirIncline=!rirIncline;
@@ -1937,6 +1945,204 @@ window.suggestLoad=suggestLoad;
 window.setCalcTool=setCalcTool;
 window.toggleRirIncline=toggleRirIncline;
 window.renderRirLoad=renderRirLoad;
+
+/** Protokół Myo-Reps (aktywacja + mini-serie). Ćwiczenia z biblioteki Live, nie z 12-kartowego demo. RP w builderze zostaje. */
+const MYO_SESSION_DEFAULT={
+  name:'Desk Worker Express — Full Body A',
+  targetMinutes:45,
+  blocks:[
+    {id:'b1',exercise:'Przysiad Goblet',activationReps:15,miniTarget:4,restSec:20,maxMiniSets:3,caution:false},
+    {id:'b2',exercise:'Wyciskanie hantli na ławce skośnej',activationReps:12,miniTarget:4,restSec:20,maxMiniSets:3,caution:true},
+    {id:'b3',exercise:'Wiosłowanie hantlem',activationReps:12,miniTarget:4,restSec:20,maxMiniSets:3,caution:false},
+    {id:'b4',exercise:'Unoszenie bokiem',activationReps:15,miniTarget:5,restSec:15,maxMiniSets:3,caution:true},
+    {id:'b5',exercise:'Ściąganie drążka wyciąg',activationReps:12,miniTarget:4,restSec:20,maxMiniSets:3,caution:false}
+  ]
+};
+function myoSessionTemplate(){ return MYO_SESSION_DEFAULT; }
+function myoFormatClock(sec){
+  const s=Math.max(0,Math.floor(Number(sec)||0));
+  return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+}
+function myoInitProgress(blocks){
+  const p={};
+  (blocks||[]).forEach(b=>{ p[b.id]=0; });
+  return p;
+}
+function myoLogMini(progress, blockId, maxMini){
+  const next=Object.assign({}, progress||{});
+  const cap=Math.max(0, Number(maxMini)||0);
+  next[blockId]=Math.min((Number(next[blockId])||0)+1, cap);
+  return next;
+}
+function myoDoneCount(progress){
+  return Object.values(progress||{}).reduce((s,v)=>s+(Number(v)||0),0);
+}
+function myoTotalMini(blocks){
+  return (blocks||[]).reduce((s,b)=>s+(Number(b.maxMiniSets)||0),0);
+}
+function myoBlockById(id){
+  return (MYO_SESSION_DEFAULT.blocks||[]).find(b=>b.id===id)||MYO_SESSION_DEFAULT.blocks[0];
+}
+function myoEsc(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+}
+
+var myoProgress=myoInitProgress(MYO_SESSION_DEFAULT.blocks);
+var myoActiveId=MYO_SESSION_DEFAULT.blocks[0].id;
+var myoSecondsLeft=MYO_SESSION_DEFAULT.blocks[0].restSec;
+var myoRunning=false;
+var myoTimer=null;
+var myoStaffHtml='';
+var myoStaffLoading=false;
+
+function myoPauseTimer(){
+  myoRunning=false;
+  if(myoTimer){ clearInterval(myoTimer); myoTimer=null; }
+  const runBtn=document.getElementById('myo-run-btn');
+  if(runBtn) runBtn.textContent='Start';
+}
+function myoTick(){
+  myoSecondsLeft=Math.max(0, myoSecondsLeft-1);
+  if(myoSecondsLeft<=0) myoPauseTimer();
+  const clock=document.getElementById('myo-clock');
+  if(clock){
+    clock.textContent=myoFormatClock(myoSecondsLeft);
+    clock.style.color=(myoSecondsLeft<=3&&myoRunning)?'var(--red)':'var(--accent)';
+  }
+}
+function toggleMyoTimer(){
+  if(myoRunning){ myoPauseTimer(); return; }
+  if(myoSecondsLeft<=0){
+    const b=myoBlockById(myoActiveId);
+    myoSecondsLeft=b.restSec;
+  }
+  myoRunning=true;
+  if(myoTimer) clearInterval(myoTimer);
+  myoTimer=setInterval(myoTick,1000);
+  const runBtn=document.getElementById('myo-run-btn');
+  if(runBtn) runBtn.textContent='Pauza';
+  const clock=document.getElementById('myo-clock');
+  if(clock) clock.textContent=myoFormatClock(myoSecondsLeft);
+}
+function resetMyoTimer(){
+  const b=myoBlockById(myoActiveId);
+  myoPauseTimer();
+  myoSecondsLeft=b.restSec;
+  const clock=document.getElementById('myo-clock');
+  if(clock){ clock.textContent=myoFormatClock(myoSecondsLeft); clock.style.color='var(--accent)'; }
+}
+function selectMyoBlock(id){
+  const b=myoBlockById(id);
+  myoActiveId=b.id;
+  myoStaffHtml='';
+  myoPauseTimer();
+  myoSecondsLeft=b.restSec;
+  renderMyoSession();
+}
+function logMyoMiniSet(){
+  const b=myoBlockById(myoActiveId);
+  myoProgress=myoLogMini(myoProgress, b.id, b.maxMiniSets);
+  myoPauseTimer();
+  myoSecondsLeft=b.restSec;
+  renderMyoSession();
+}
+function renderMyoSession(){
+  const tpl=MYO_SESSION_DEFAULT;
+  const blocksEl=document.getElementById('myo-blocks');
+  const detail=document.getElementById('myo-detail');
+  const doneEl=document.getElementById('myo-done-chip');
+  const timeEl=document.getElementById('myo-time-chip');
+  if(timeEl) timeEl.textContent=tpl.targetMinutes+' min';
+  if(doneEl) doneEl.textContent=myoDoneCount(myoProgress)+'/'+myoTotalMini(tpl.blocks)+' mini-serii';
+  const active=myoBlockById(myoActiveId);
+  if(blocksEl){
+    blocksEl.innerHTML=tpl.blocks.map((b,i)=>{
+      const on=b.id===myoActiveId;
+      return `<button type="button" class="myo-block-btn" data-myo-id="${myoEsc(b.id)}" onclick="selectMyoBlock('${b.id}')" style="text-align:left;padding:12px;border-radius:10px;background:${on?'var(--s3)':'var(--s2)'};border:1px solid ${on?'var(--accent)':'var(--border)'};color:var(--text);cursor:pointer;">
+        <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;">
+          <span style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);">Blok ${i+1}</span>
+          ${b.caution?'<span style="color:#E15B44;font-size:12px;">⚠ bark</span>':''}
+        </div>
+        <div style="font-size:13px;font-weight:700;margin-top:4px;">${myoEsc(b.exercise)}</div>
+        <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--accent);margin-top:6px;">${myoProgress[b.id]||0}/${b.maxMiniSets} mini-serii</div>
+      </button>`;
+    }).join('');
+  }
+  if(!detail) return;
+  const done=myoProgress[active.id]||0;
+  const capped=done>=active.maxMiniSets;
+  const safeName=String(active.exercise).replace(/'/g,"\\'");
+  detail.innerHTML=`<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:flex-start;">
+      <h3 style="margin:0;font-size:18px;">${myoEsc(active.exercise)}</h3>
+      ${active.caution?'<div style="font-size:12px;color:#E15B44;">⚠ Rozgrzewka aktywacyjna barku przed blokiem</div>':''}
+    </div>
+    <div style="display:flex;gap:18px;flex-wrap:wrap;margin:14px 0 18px;">
+      <div><div style="font-size:11px;color:var(--muted);">Seria aktywacyjna</div><div style="font-family:'DM Mono',monospace;color:var(--accent);">${active.activationReps} powt.</div></div>
+      <div><div style="font-size:11px;color:var(--muted);">Cel mini-serii</div><div style="font-family:'DM Mono',monospace;color:var(--accent);">${active.miniTarget} powt.</div></div>
+      <div><div style="font-size:11px;color:var(--muted);">Odpoczynek</div><div style="font-family:'DM Mono',monospace;color:var(--accent);">${active.restSec}s</div></div>
+    </div>
+    <div style="border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:22px 0;text-align:center;">
+      <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;">Timer odpoczynku</div>
+      <div id="myo-clock" style="font-family:'Bebas Neue',sans-serif;font-size:56px;letter-spacing:2px;color:var(--accent);line-height:1;margin:6px 0 14px;">${myoFormatClock(myoSecondsLeft)}</div>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+        <button type="button" class="btn btn-primary btn-sm" id="myo-run-btn" onclick="toggleMyoTimer()">${myoRunning?'Pauza':'Start'}</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="myo-reset-btn" onclick="resetMyoTimer()">Reset</button>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center;margin-top:16px;">
+      <span style="font-size:13px;color:var(--muted);">Ukończone mini-serie: ${done} / ${active.maxMiniSets}</span>
+      <button type="button" class="btn btn-sm ${capped?'btn-ghost':'btn-primary'}" id="myo-log-btn" ${capped?'disabled':''} onclick="logMyoMiniSet()">+ Zaliczono mini-serię</button>
+    </div>
+    ${typeof openExDetail==='function'?`<button type="button" class="btn btn-ghost btn-sm" style="margin-top:10px;" onclick="openExDetail('${safeName}')">Biblioteka: ${myoEsc(active.exercise)}</button>`:''}
+    ${active.caution?`<div style="margin-top:14px;">
+      <button type="button" class="btn btn-ghost btn-sm" id="myo-staff-pain" ${myoStaffLoading?'disabled':''} onclick="askMyoStaffPain()">⚠ Klient zgłasza ból — zaproponuj modyfikację na żywo</button>
+      <div id="myo-staff-out" style="margin-top:8px;">${myoStaffHtml||''}</div>
+    </div>`:''}`;
+}
+async function askMyoStaffPain(){
+  const b=myoBlockById(myoActiveId);
+  const q=`Klient w trakcie tego bloku zgłasza dyskomfort w barku. Zaproponuj: (1) konkretną modyfikację techniczną ćwiczenia (zakres ruchu, kąt, tempo) możliwą do wdrożenia natychmiast, (2) jak taka zmiana powinna zostać zapisana w logice aplikacji (np. flaga w rekordzie sesji).`;
+  const ctx=`Kontekst z aplikacji:\nBlok: ${b.exercise}\nSeria aktywacyjna: ${b.activationReps} powt.\nCel mini-serii: ${b.miniTarget} powt.\nUkończone mini-serie: ${myoProgress[b.id]||0}/${b.maxMiniSets}\nSzablon sesji: ${MYO_SESSION_DEFAULT.name}\n\nPytanie trenera:\n${q}`;
+  myoStaffLoading=true;
+  myoStaffHtml='<div style="font-size:12px;color:var(--muted);padding:8px 0;">Sztab analizuje...</div>';
+  renderMyoSession();
+  const box=()=>document.getElementById('myo-staff-out');
+  const append=entry=>{
+    const meta=(typeof STAFF_AGENT_META==='object'&&STAFF_AGENT_META[entry.agentId])||{icon:'💬',label:entry.agentId};
+    const body=entry.error?('Agent nie odpowiedział: '+entry.error):(entry.text||'');
+    myoStaffHtml+=`<div style="background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:10px;margin-top:8px;">
+      <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--accent);margin-bottom:6px;">${myoEsc(meta.icon+' '+meta.label)}</div>
+      <div style="font-size:13px;line-height:1.55;white-space:pre-wrap;">${myoEsc(body)}</div>
+    </div>`;
+    const el=box();
+    if(el) el.innerHTML=myoStaffHtml;
+  };
+  try{
+    if(typeof callStaffAgentsSequentially==='function'){
+      await callStaffAgentsSequentially(['dev','biomechanika'], ctx, '', null, append);
+    }else{
+      append({agentId:'dev',text:null,error:'Brak sztabu'});
+    }
+  }catch(err){
+    append({agentId:'dev',text:null,error:(err&&err.message)||String(err)});
+  }
+  myoStaffLoading=false;
+  const btn=document.getElementById('myo-staff-pain');
+  if(btn) btn.disabled=false;
+}
+
+window.MYO_SESSION_DEFAULT=MYO_SESSION_DEFAULT;
+window.myoSessionTemplate=myoSessionTemplate;
+window.myoFormatClock=myoFormatClock;
+window.myoInitProgress=myoInitProgress;
+window.myoLogMini=myoLogMini;
+window.myoDoneCount=myoDoneCount;
+window.selectMyoBlock=selectMyoBlock;
+window.toggleMyoTimer=toggleMyoTimer;
+window.resetMyoTimer=resetMyoTimer;
+window.logMyoMiniSet=logMyoMiniSet;
+window.renderMyoSession=renderMyoSession;
+window.askMyoStaffPain=askMyoStaffPain;
 
 var cpClientId=null;var cpTab='overview';
 

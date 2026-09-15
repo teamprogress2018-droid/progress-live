@@ -20,10 +20,11 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 06 v78', html.includes('06-inbox-exercises-ai-programs.js?v=78'));
-ok('cache 07 v38', html.includes('07-forms-metrics-calculator.js?v=38'));
+ok('cache 07 v39', html.includes('07-forms-metrics-calculator.js?v=39'));
 ok('CI unit', wf.includes('test_staff_subs_rir.js'));
 ok('CI ui', wf.includes('test_staff_subs_rir_ui.js'));
 ok('rir tab markup', html.includes('id="calc-tab-rir"') && html.includes('Obciążenie RIR') && html.includes('id="rir-weight"'));
+ok('myo tab markup', html.includes('id="calc-tab-myo"') && html.includes('id="calc-myo-layout"') && html.includes('id="myo-blocks"') && html.includes('id="myo-detail"'));
 ok('lib substitutes markup', /exd-subs-box/.test(six) && /Uzasadnij ten zamiennik/.test(six));
 ok('keep catalog alts', /Zamienniki z karty/.test(six));
 ok('no 12-ex replace', !/db-incline-lateral/.test(six));
@@ -97,6 +98,37 @@ const { suggestLoad } = windowObj;
 ok('rir easier = more load', suggestLoad({ weight: 100, rir: 3, targetRir: 2, isIncline: false }).newWeight === 105);
 ok('rir harder = less load', suggestLoad({ weight: 8, rir: 1, targetRir: 2, isIncline: true }).newWeight === 7.8);
 ok('incline smaller step', suggestLoad({ weight: 100, rir: 3, targetRir: 2, isIncline: true }).newWeight === 102.5);
+
+const myoStart = src07.indexOf('const MYO_SESSION_DEFAULT=');
+const myoEnd = src07.indexOf('window.askMyoStaffPain=askMyoStaffPain;');
+ok('myo slice', myoStart > 0 && myoEnd > myoStart);
+vm.runInContext(src07.slice(myoStart, myoEnd + 'window.askMyoStaffPain=askMyoStaffPain;'.length), ctx);
+const {
+  MYO_SESSION_DEFAULT,
+  myoFormatClock,
+  myoInitProgress,
+  myoLogMini,
+  myoDoneCount
+} = windowObj;
+ok('myo clock', myoFormatClock(20) === '00:20' && myoFormatClock(75) === '01:15');
+ok('myo 5 blocks', MYO_SESSION_DEFAULT.blocks.length === 5);
+ok('myo live library names', MYO_SESSION_DEFAULT.blocks.every((b) => [
+  'Przysiad Goblet',
+  'Wyciskanie hantli na ławce skośnej',
+  'Wiosłowanie hantlem',
+  'Unoszenie bokiem',
+  'Ściąganie drążka wyciąg'
+].includes(b.exercise)));
+ok('myo no demo ids', !src07.includes('db-incline-lateral') && !six.includes('db-incline-lateral'));
+ok('myo keeps RP', /ex-kind-btn rp/.test(fs.readFileSync(path.join(root, '05-clients-builder-plans-calendar.js'), 'utf8')) && /Rest-pause: 1–2 dogrywki/.test(fs.readFileSync(path.join(root, '05-clients-builder-plans-calendar.js'), 'utf8')));
+const prog = myoInitProgress(MYO_SESSION_DEFAULT.blocks);
+ok('myo progress zero', myoDoneCount(prog) === 0);
+const one = myoLogMini(prog, 'b2', 3);
+ok('myo log +1', one.b2 === 1 && prog.b2 === 0);
+const cap = myoLogMini(myoLogMini(myoLogMini(one, 'b2', 3), 'b2', 3), 'b2', 3);
+ok('myo cap 3', cap.b2 === 3);
+ok('myo caution on press+laterals', MYO_SESSION_DEFAULT.blocks.filter((b) => b.caution).map((b) => b.exercise).join('|') === 'Wyciskanie hantli na ławce skośnej|Unoszenie bokiem');
+ok('myo staff button', /askMyoStaffPain/.test(src07) && /dev','biomechanika/.test(src07));
 
 if (failed) {
   console.error('\n' + failed + ' failed');
