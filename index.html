@@ -2649,10 +2649,11 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 
     <!-- środek — ćwiczenia live -->
     <div class="live-ex-col" id="live-exercises-panel">
-      <div class="live-empty-state">
+      <div class="live-empty-state" onclick="liveFocusClientPicker(0)" style="cursor:pointer;">
         <div class="live-empty-state-icon">🏋️</div>
-        <div class="live-empty-state-title">Wybierz klienta i plan</div>
-        <div class="live-empty-state-sub">Najpierw wybierz klienta u góry — plan i kg z poprzedniego treningu wczytają się same.</div>
+        <div class="live-empty-state-title">Wybierz klienta</div>
+        <div class="live-empty-state-sub">Plan i kg z poprzedniego treningu wczytają się po wyborze klienta.</div>
+        <button type="button" class="btn btn-primary" style="margin-top:16px;" onclick="event.stopPropagation();liveFocusClientPicker(0)">Wybierz klienta</button>
       </div>
     </div>
 
@@ -2744,10 +2745,11 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <div id="live-b-plan-picker"></div>
     </div>
     <div class="live-ex-col" id="live-b-exercises-panel">
-      <div class="live-empty-state">
+      <div class="live-empty-state" onclick="liveFocusClientPicker(1)" style="cursor:pointer;">
         <div class="live-empty-state-icon">🏋️</div>
         <div class="live-empty-state-title">Druga osoba</div>
-        <div class="live-empty-state-sub">Wybierz klienta u góry, plan z lewej i Start — niezależnie od osoby 1.</div>
+        <div class="live-empty-state-sub">Wybierz klienta u góry — plan i Start niezależnie od osoby 1.</div>
+        <button type="button" class="btn btn-primary" style="margin-top:16px;" onclick="event.stopPropagation();liveFocusClientPicker(1)">Wybierz klienta</button>
       </div>
     </div>
     <div class="live-stats-panel" id="live-b-stats-panel">
@@ -4379,7 +4381,7 @@ async function load(){
 <script src="ex-gif-manifest.js?v=34"></script>
 <script src="ex-photo-manifest.js?v=6"></script>
 <script src="01-core.js?v=106"></script>
-<script src="02-workouts-onboarding-templates-live.js?v=71"></script>
+<script src="02-workouts-onboarding-templates-live.js?v=73"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=35"></script>
 <script src="04-client-portal.js?v=50"></script>
 <script src="05-clients-builder-plans-calendar.js?v=70"></script>

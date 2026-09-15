@@ -37,6 +37,7 @@ function ok(name, cond, extra) {
     window.SE = [];
     window.TASKS = [];
     if (typeof goTo === 'function') goTo('live');
+    if (typeof liveClientSetField === 'function') liveClientSetField('c1', 'Justyna Chylińska', true, 0);
   });
   await page.waitForSelector('#live-ex-done');
 

@@ -102,6 +102,10 @@ function ok(name, cond, extra) {
       startEnabled: (() => {
         const btn = document.getElementById('live-start-btn');
         return !!(btn && !btn.disabled && btn.style.display !== 'none');
+      })(),
+      statsShown: (() => {
+        const s = document.getElementById('live-stats-panel');
+        return !!(s && s.style.display !== 'none');
       })()
     };
   });
@@ -112,6 +116,7 @@ function ok(name, cond, extra) {
   ok('not empty picker', /Kontynuacja Fitebo/.test(state.picker), state.picker.slice(0, 180));
   ok('not empty exercises', /Ściąganie drążka|PLAN TRENINGU|Wiosłowanie/.test(state.panel) && !/Wybierz klienta i plan/.test(state.panel), state.panel.slice(0, 180));
   ok('start enabled with plan', state.startEnabled, JSON.stringify({ startEnabled: state.startEnabled }));
+  ok('stats dock after client', state.statsShown);
 
   await page.evaluate(() => {
     if (typeof openClientProfile === 'function') openClientProfile('c-rad', { tab: 'plan' });
@@ -175,11 +180,33 @@ function ok(name, cond, extra) {
       disabled: !!(btn && btn.disabled),
       title: (btn && btn.title) || '',
       clientId: hid ? hid.value : '',
-      panel: (panel && panel.textContent) || ''
+      panel: (panel && panel.textContent) || '',
+      statsHidden: (() => {
+        const s = document.getElementById('live-stats-panel');
+        return !!(s && s.style.display === 'none');
+      })()
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'live_empty_start_disabled.png') });
-  ok('empty live disables start', empty.disabled && !empty.clientId && /Wybierz klienta/.test(empty.panel + empty.title), JSON.stringify(empty));
+  ok('empty live disables start', empty.disabled && !empty.clientId && /Wybierz klienta/.test(empty.panel + empty.title) && empty.statsHidden, JSON.stringify(empty));
+
+  await page.click('#live-exercises-panel button:has-text("Wybierz klienta")');
+  await page.waitForFunction(() => {
+    const res = document.getElementById('live-client-sel-results');
+    return res && res.style.display === 'block' && /Radosław/.test(res.textContent || '');
+  });
+  const pick = await page.evaluate(() => {
+    const pane = document.getElementById('live-pane-0');
+    const left = pane && pane.querySelector('.live-side-left');
+    const res = document.getElementById('live-client-sel-results');
+    return {
+      emptyClass: !!(pane && pane.classList.contains('live-pane-empty')),
+      leftHidden: !!(left && left.style.display === 'none'),
+      results: (res && res.textContent) || ''
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'live_empty_pick_client.png') });
+  ok('empty CTA opens client list', pick.emptyClass && pick.leftHidden && /Radosław/.test(pick.results), JSON.stringify(pick));
 
   await browser.close();
   if (failed) process.exit(1);
