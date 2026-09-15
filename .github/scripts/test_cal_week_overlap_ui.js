@@ -151,6 +151,25 @@ function ok(name, cond, extra) {
   ok('monday morning stacked down', morning.length === 3 && morning[0].top < morning[1].top && morning[1].top < morning[2].top, JSON.stringify(morning.map(b => ({ id: b.id, top: b.top, day: b.day }))));
   ok('monday morning same column', morning.every(b => Math.abs(b.left - morning[0].left) < 8), JSON.stringify(morning.map(b => b.left)));
 
+  const afterInline = await page.evaluate(() => {
+    const hdr = document.getElementById('cal-week-header');
+    const grid = document.getElementById('cal-week-grid');
+    if (hdr) hdr.style.gridTemplateColumns = '60px repeat(7,1fr)';
+    if (grid) grid.style.gridTemplateColumns = '60px repeat(7,1fr)';
+    if (typeof renderCal === 'function') renderCal();
+    const headers = [...document.querySelectorAll('.cal-week-day-hdr')].map(el => el.getBoundingClientRect().width);
+    const view = document.getElementById('cal-week-view').getBoundingClientRect();
+    const last = document.querySelectorAll('.cal-week-day-hdr');
+    const lastR = last.length ? last[last.length - 1].getBoundingClientRect().right : 0;
+    return {
+      n: headers.length,
+      spread: headers.length ? Math.max(...headers) - Math.min(...headers) : 99,
+      sundayIn: lastR <= view.right + 2,
+      cols: headers
+    };
+  });
+  ok('render resets stale 1fr inline', afterInline.n === 7 && afterInline.spread < 8 && afterInline.sundayIn, JSON.stringify(afterInline));
+
   await browser.close();
   if (failed) {
     console.error(failed + ' failed');

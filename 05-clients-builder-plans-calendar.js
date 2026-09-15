@@ -2684,9 +2684,8 @@ function calWeekSessChip(s){
   const typeBit=s&&s.type?String(s.type):'';
   const tipRaw=who+(typeBit?' — '+typeBit:'')+(bits.happened?' · odbył się':'')+' — '+(bits.tip||'');
   const tip=typeof escHtml==='function'?escHtml(tipRaw):String(tipRaw).replace(/"/g,'&quot;');
-  return `<div class="cal-session-block${bits.cls} cal-week-sess" data-cal-sess="${sid}" style="background:var(--input-bg);border:1px solid rgba(255,255,255,0.1);border-left:3px solid ${col};color:var(--text);" onclick="event.stopPropagation();editSession('${s.id}')" title="${tip}">
+  return `<div class="cal-session-block${bits.cls} cal-week-sess" data-cal-sess="${sid}" style="background:var(--input-bg);border:1px solid rgba(255,255,255,0.1);border-left:3px solid ${col};color:var(--text);min-width:0;max-width:100%;" onclick="event.stopPropagation();editSession('${s.id}')" title="${tip}">
       <div class="cal-session-name">${bits.mark}${s.source==='garmin'?'⌚ ':''}<span class="cal-week-sess-time">${s.time||''}</span> ${first}</div>
-      <div class="cal-session-meta">${typeBit}${bits.happened?' · odbył się':''}</div>
     </div>`;
 }
 window.calSessionStartMin=calSessionStartMin;
@@ -2698,6 +2697,10 @@ function renderCalWeek(){
   const today=new Date();today.setHours(0,0,0,0);
   const hdr=document.getElementById('cal-week-header');
   if(!hdr)return;
+  hdr.style.display='grid';
+  hdr.style.gridTemplateColumns='60px repeat(7,minmax(0,1fr))';
+  hdr.style.minWidth='0';
+  hdr.style.width='100%';
   const h0=CAL_WEEK_H0;
   const h1=CAL_WEEK_H1;
 
@@ -2717,6 +2720,10 @@ function renderCalWeek(){
 
   // siatka godzin × dni: karty w komórce godziny, jedna pod drugą (jak w miesiącu)
   const grid=document.getElementById('cal-week-grid');
+  grid.style.display='grid';
+  grid.style.gridTemplateColumns='60px repeat(7,minmax(0,1fr))';
+  grid.style.minWidth='0';
+  grid.style.width='100%';
   let gridHTML='';
   const now=new Date();
   const nowHour=now.getHours();

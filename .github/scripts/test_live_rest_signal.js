@@ -19,10 +19,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=71'));
-ok('cache styles', html.includes('styles.css?v=86'));
 ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=73'));
-ok('cache styles', html.includes('styles.css?v=85'));
+ok('cache styles', html.includes('styles.css?v=87'));
 ok('aria live A', html.includes('id="live-rest-timer" aria-live="assertive"'));
 ok('aria live B', html.includes('id="live-b-rest-timer" aria-live="assertive"'));
 ok('phase helper', /function liveRestPhase\(/.test(live));
