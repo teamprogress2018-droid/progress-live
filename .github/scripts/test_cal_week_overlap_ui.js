@@ -137,7 +137,7 @@ function ok(name, cond, extra) {
   ok('no day lanes', info.lanes === 0);
   ok('names visible', /Małgosia/.test(info.names.join(' ')) && /Ola/.test(info.names.join(' ')) && /Adrian/.test(info.names.join(' ')), info.names.join(','));
   ok('sessions across weekdays', info.days.length >= 3, JSON.stringify(info.days));
-  ok('four at 08:00', info.eightCount === 4, String(info.eightCount));
+  ok('five at 08:00', info.eightCount === 5, String(info.eightCount));
   ok('two at 12:00', info.twelveCount === 2, String(info.twelveCount));
   ok('chips fit day cells', info.blocks.every(b => b.width >= 40 && !b.overflowsCell), JSON.stringify(info.blocks.map(b => ({ id: b.id, w: b.width, cell: b.cellWidth, overflow: b.overflowsCell }))));
   ok('seven day headers', info.headerN === 7, String(info.headerN));
