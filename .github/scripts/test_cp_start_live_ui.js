@@ -181,6 +181,24 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'live_empty_start_disabled.png') });
   ok('empty live disables start', empty.disabled && !empty.clientId && /Wybierz klienta/.test(empty.panel + empty.title), JSON.stringify(empty));
 
+  await page.click('#live-exercises-panel button:has-text("Wybierz klienta")');
+  await page.waitForFunction(() => {
+    const res = document.getElementById('live-client-sel-results');
+    return res && res.style.display === 'block' && /Radosław/.test(res.textContent || '');
+  });
+  const pick = await page.evaluate(() => {
+    const pane = document.getElementById('live-pane-0');
+    const left = pane && pane.querySelector('.live-side-left');
+    const res = document.getElementById('live-client-sel-results');
+    return {
+      emptyClass: !!(pane && pane.classList.contains('live-pane-empty')),
+      leftHidden: !!(left && left.style.display === 'none'),
+      results: (res && res.textContent) || ''
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'live_empty_pick_client.png') });
+  ok('empty CTA opens client list', pick.emptyClass && pick.leftHidden && /Radosław/.test(pick.results), JSON.stringify(pick));
+
   await browser.close();
   if (failed) process.exit(1);
   console.log('\nAll cp-start-live UI tests passed');
