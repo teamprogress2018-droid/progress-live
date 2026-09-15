@@ -2649,11 +2649,56 @@ function calSessionDoneBits(s){
   const tip=typeof escHtml==='function'?escHtml(tipRaw):String(tipRaw||'').replace(/"/g,'&quot;');
   return{happened,cls:happened?' cal-session-done':'',mark:happened?'✓ ':'',tip};
 }
-function calVisibleSessions(list){
-  return(list||window.SE||[]).filter(s=>s&&s.source!=='live-draft');
-}
-window.calVisibleSessions=calVisibleSessions;
 window.calSessionDoneBits=calSessionDoneBits;
+function calSessionTimeKey(s){
+  const parts=String(s&&s.time||'').split(':');
+  const h=parseInt(parts[0],10);
+  const m=parseInt(parts[1],10);
+  if(!isFinite(h))return '';
+  return String(h).padStart(2,'0')+':'+String(isFinite(m)?m:0).padStart(2,'0');
+}
+function calSessionIsLogged(s){
+  if(!s)return false;
+  if(typeof isLoggedWorkout==='function')return isLoggedWorkout(s);
+  return s.source==='live'||s.source==='sala'||s.source==='client'||s.source==='homework';
+}
+/** Jedna karta na klienta+dzień+godzinę; plan znika, gdy jest zapis z tego dnia. */
+function calDedupeVisibleSessions(list){
+  const src=(list||[]).filter(s=>s&&s.source!=='live-draft');
+  const loggedDays=new Set();
+  src.forEach(s=>{
+    if(calSessionIsLogged(s)&&s.clientId&&s.date)loggedDays.add(String(s.clientId)+'|'+String(s.date).slice(0,10));
+  });
+  const filtered=src.filter(s=>{
+    if(s.source!=='planned'||!s.clientId||!s.date)return true;
+    return !loggedDays.has(String(s.clientId)+'|'+String(s.date).slice(0,10));
+  });
+  const byKey=Object.create(null);
+  const order=[];
+  filtered.forEach(s=>{
+    const d=String(s.date||'').slice(0,10);
+    const t=calSessionTimeKey(s);
+    const cid=String(s.clientId||'');
+    const type=String(s.type||s.title||'').toLowerCase().replace(/\s+/g,' ').trim();
+    const key=cid?cid+'|'+d+'|'+t:'anon|'+d+'|'+t+'|'+type;
+    if(!byKey[key]){
+      byKey[key]=s;
+      order.push(key);
+      return;
+    }
+    const cur=byKey[key];
+    const rs=calSessionIsLogged(s)?2:(s.source==='garmin'?1:0);
+    const rc=calSessionIsLogged(cur)?2:(cur.source==='garmin'?1:0);
+    if(rs>rc)byKey[key]=s;
+  });
+  return order.map(k=>byKey[k]);
+}
+function calVisibleSessions(list){
+  return calDedupeVisibleSessions(list||window.SE||[]);
+}
+window.calSessionTimeKey=calSessionTimeKey;
+window.calDedupeVisibleSessions=calDedupeVisibleSessions;
+window.calVisibleSessions=calVisibleSessions;
 
 function calSessionStartMin(s){
   const parts=String(s&&s.time||'0:0').split(':');
