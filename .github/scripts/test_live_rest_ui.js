@@ -33,6 +33,8 @@ function ok(name, cond, extra) {
     if (loading) loading.style.display = 'none';
     window.CL = [{ id: 'c1', name: 'Piotr' }];
     if (typeof goTo === 'function') goTo('live');
+    if (typeof liveSetPendingClient === 'function') liveSetPendingClient('c1', { clientName: 'Piotr' });
+    if (typeof liveClientSetField === 'function') liveClientSetField('c1', 'Piotr', true, 0);
   });
   await page.waitForSelector('#live-rest-timer');
 

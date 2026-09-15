@@ -2816,6 +2816,28 @@ function setLiveTab(t){
   if(t==='history')renderLiveHistory();
 }
 
+function liveFocusClientPicker(slot){
+  const n=liveN(slot);
+  const vis=liveEl('live-client-sel-search',n);
+  if(!vis)return;
+  vis.focus();
+  try{vis.scrollIntoView({block:'nearest',inline:'nearest'});}catch(e){}
+  if(typeof liveClientSearchInput==='function')liveClientSearchInput(n);
+}
+window.liveFocusClientPicker=liveFocusClientPicker;
+
+function liveSyncClientChrome(slot){
+  const n=liveN(slot);
+  const pane=document.getElementById(n===1?'live-pane-1':'live-pane-0');
+  if(!pane)return;
+  const empty=!(liveRef(n).clientId||'').trim();
+  pane.classList.toggle('live-pane-empty',empty);
+  const left=pane.querySelector('.live-side-left');
+  if(left)left.style.display=empty?'none':'';
+  const stats=liveEl('live-stats-panel',n);
+  if(stats)stats.style.display=empty?'none':'';
+}
+
 function liveClientSetField(clientId,clientName,skipLoad,slot){
   const n=liveN(slot);
   if(clientId&&liveRef(n===1?0:1).clientId===clientId){
@@ -2829,6 +2851,7 @@ function liveClientSetField(clientId,clientName,skipLoad,slot){
   const res=liveEl('live-client-sel-results',n);
   if(res)res.style.display='none';
   liveRef(n).clientId=clientId;
+  if(typeof liveSyncClientChrome==='function')liveSyncClientChrome(n);
   if(!skipLoad)liveLoadClient(n);
   else renderLiveClientCard(n);
 }
@@ -2954,9 +2977,8 @@ function renderLivePlanPicker(slot){
   const st=liveRef(n);
   const sl=liveSlotArg(n);
   if(!st.clientId){
-    el.innerHTML=`<div style="font-size:12px;color:var(--muted);text-align:center;padding:16px;background:var(--s2);border-radius:10px;border:1px dashed var(--border2);line-height:1.5;">
-      Wybierz klienta u góry, żeby załadować jego plan i zacząć sesję.
-    </div>`;
+    el.innerHTML='';
+    if(typeof liveSyncClientChrome==='function')liveSyncClientChrome(n);
     return;
   }
   const plans=PL.filter(p=>p.clientId===st.clientId);
@@ -3294,6 +3316,7 @@ function renderLiveExercises(slot){
   const n=liveN(slot);
   const st=liveRef(n);
   if(typeof liveBindSessionButtons==='function')liveBindSessionButtons(n);
+  if(typeof liveSyncClientChrome==='function')liveSyncClientChrome(n);
   const el=liveEl('live-exercises-panel',n);if(!el)return;
   const sl=liveSlotArg(n);
   if(!st.exercises.length){
@@ -3313,10 +3336,12 @@ function renderLiveExercises(slot){
       liveSyncRestRecommend(n);
       return;
     }
-    el.innerHTML=`<div style="text-align:center;padding:60px 20px;color:var(--muted);">
-      <div style="font-size:36px;margin-bottom:12px;opacity:0.3;">🏋️</div>
-      <div style="font-size:14px;font-weight:600;margin-bottom:6px;">Wybierz klienta i plan</div>
-      <div style="font-size:12px;">Najpierw wybierz klienta u góry — plan i kg z poprzedniego treningu wczytają się same.</div>
+    const title=n===1?'Druga osoba':'Wybierz klienta';
+    el.innerHTML=`<div class="live-empty-state" style="cursor:pointer;" onclick="liveFocusClientPicker(${n})">
+      <div class="live-empty-state-icon">🏋️</div>
+      <div class="live-empty-state-title">${title}</div>
+      <div class="live-empty-state-sub">Plan i kg z poprzedniego treningu wczytają się po wyborze klienta.</div>
+      <button type="button" class="btn btn-primary" style="margin-top:16px;" onclick="event.stopPropagation();liveFocusClientPicker(${n})">Wybierz klienta</button>
     </div>`;
     const zero=(id,v)=>{const e=liveEl(id,n);if(e)e.textContent=v;};
     zero('live-ex-done','0');zero('live-ex-total','0');zero('live-sets-done','0');zero('live-volume','0');
