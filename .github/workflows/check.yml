@@ -302,6 +302,8 @@ jobs:
         run: node .github/scripts/test_ex_lib_dedupe.js
       - name: 1n31b4. Testy usuwania ćwiczenia z biblioteki
         run: node .github/scripts/test_lib_del_ex.js
+      - name: 1n31b5. Testy czyszczenia duplikatów importu ćwiczeń
+        run: node .github/scripts/test_ex_import_dedupe.js
       - name: 1n31c. Testy podsumowania start + monitoring klienta
         run: node .github/scripts/test_client_journey_summary.js
       - name: 1n32. Testy periodyzacji RPE/RIR w kreatorze
@@ -398,6 +400,8 @@ jobs:
         run: node .github/scripts/test_ex_gif_import_ui.js
       - name: 6b3b3. Testy UI przypisania MP4 do ćwiczenia
         run: node .github/scripts/test_ex_assign_mp4_ui.js
+      - name: 6b3b4. Testy UI czyszczenia duplikatów w bibliotece
+        run: node .github/scripts/test_ex_import_dedupe_ui.js
       - name: 6b3c. Testy UI timera przerwy live (30s / własny)
         run: node .github/scripts/test_live_rest_ui.js
       - name: 6b3c0. Testy UI podpowiedzi Live (przerwa / tempo / periodyzacja)

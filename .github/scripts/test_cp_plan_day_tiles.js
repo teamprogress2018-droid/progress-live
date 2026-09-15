@@ -21,7 +21,7 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 08', html.includes('08-client-profile-extras.js?v=61'));
-ok('cache styles', html.includes('styles.css?v=87'));
+ok('cache styles', html.includes('styles.css?v=88'));
 ok('ci unit', wf.includes('test_cp_plan_day_tiles.js'));
 ok('ci ui', wf.includes('test_cp_plan_day_tiles_ui.js'));
 
