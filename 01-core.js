@@ -965,6 +965,27 @@ function exerciseMediaKey(name){
 }
 window.exerciseMediaKey=exerciseMediaKey;
 
+/** Nazwa partii / kategorii — nie wolno jej auto-dopasowywać do konkretnego MP4 (np. „Klatka piersiowa” ≠ bench). */
+const EX_GENERIC_MEDIA_NAMES={
+  'klatka piersiowa':1,klatka:1,chest:1,plecy:1,back:1,barki:1,shoulders:1,nogi:1,legs:1,
+  biceps:1,triceps:1,core:1,'pośladki':1,posladki:1,glutes:1,cardio:1,rozgrzewka:1,
+  'rozciąganie':1,rozciaganie:1,'mobilność':1,mobilnosc:1,olimpijskie:1,ramiona:1,arms:1,
+  brzuch:1,'łydki':1,lydki:1,przedramiona:1,'całe ciało':1,'cale cialo':1,'full body':1
+};
+function isGenericExerciseMediaName(name){
+  const k=exerciseMediaKey(name);
+  if(!k||k.length<3||/^\d+$/.test(k))return true;
+  if(EX_GENERIC_MEDIA_NAMES[k])return true;
+  const slug=typeof exerciseSlug==='function'?exerciseSlug(name):'';
+  if(slug&&EX_GENERIC_MEDIA_NAMES[slug])return true;
+  const cats=window.CAT_COLORS_EX||{};
+  for(const c of Object.keys(cats)){
+    if(exerciseMediaKey(c)===k)return true;
+  }
+  return false;
+}
+window.isGenericExerciseMediaName=isGenericExerciseMediaName;
+
 function exerciseSlug(name){
   return exerciseMediaKey(name)
     .replace(/\+/g,' plus ')
@@ -1126,6 +1147,7 @@ window.aliasSpecMatchesFile=aliasSpecMatchesFile;
 
 function scoreFilenameAgainstExercise(parsed,ex){
   if(!parsed||parsed.junk||!ex||!ex.name)return -1;
+  if(isGenericExerciseMediaName(ex.name))return -1;
   if(isKnownLyingMediaFilename(parsed.filename||parsed.base))return -1;
   const spec=(window.EX_MEDIA_FILE_ALIASES||{})[ex.name];
   if(spec){
@@ -1649,16 +1671,20 @@ function exerciseLookupKeys(name){
   const out=[];
   const add=s=>{
     const k=exerciseMediaKey(s);
-    if(k&&!out.includes(k))out.push(k);
+    if(!k||/^\d+$/.test(k)||out.includes(k))return;
+    out.push(k);
     const slug=exerciseSlug(s);
-    if(slug&&!out.includes(slug))out.push(slug);
+    if(slug&&!out.includes(slug)&&!/^\d+$/.test(slug))out.push(slug);
   };
   add(raw);
-  raw.split(/\s+[—–|]\s+/).forEach(p=>add(p));
+  raw.split(/\s+[—–|]\s+/).forEach(p=>{
+    if(p&&p!==raw&&!isGenericExerciseMediaName(p))add(p);
+  });
   add(raw.replace(/\s*\([^)]*\)/g,' ').replace(/\s+/g,' ').trim());
   const re=/\(([^)]+)\)/g;
   let m;
   while((m=re.exec(raw))){
+    if(isGenericExerciseMediaName(m[1]))continue;
     add(m[1]);
     add(String(m[1]).replace(/-/g,' '));
   }
@@ -1678,29 +1704,53 @@ function mediaMapGet(map,name){
   const keys=typeof exerciseLookupKeys==='function'?exerciseLookupKeys(name):[exerciseMediaKey(name),exerciseSlug(name)];
   for(let i=0;i<keys.length;i++){
     const k=keys[i];
-    if(k&&map[k])return map[k];
+    if(!k||/^\d+$/.test(k))continue;
+    if(map[k])return map[k];
   }
-  if(map[name])return map[name];
+  if(name&&!/^\d+$/.test(String(name))&&map[name])return map[name];
   return '';
+}
+
+function mediaUrlLooksAssignedToOtherExercise(url,name){
+  if(!url||!name||typeof matchFilenameToExercise!=='function')return false;
+  const mapped=matchFilenameToExercise(url,(typeof allExercises==='function'?allExercises():null)||window.DEF_EX||[]);
+  if(!mapped)return false;
+  return exerciseMediaKey(mapped)!==exerciseMediaKey(name);
+}
+window.mediaUrlLooksAssignedToOtherExercise=mediaUrlLooksAssignedToOtherExercise;
+
+function normalizeRemoteExerciseMediaUrl(url){
+  const u=String(url||'').trim();
+  if(!u)return '';
+  const fixed=typeof normalizeVideoAssetsCdnUrl==='function'?(normalizeVideoAssetsCdnUrl(u)||u):u;
+  return fixed||u;
 }
 
 /** GIF / zdjęcie techniki z manifestu repo, Firestore (EX_GIF_REMOTE) lub pola gif/img ćwiczenia. */
 function exGifMapLookup(name){
+  const local=mediaMapGet(window.EX_GIF_MANIFEST,name);
   const remote=mediaMapGet(window.EX_GIF_REMOTE,name);
   if(remote){
-    const fixed=typeof normalizeVideoAssetsCdnUrl==='function'?normalizeVideoAssetsCdnUrl(remote):remote;
+    const fixed=normalizeRemoteExerciseMediaUrl(remote);
+    if(fixed&&typeof isVideoMediaUrl==='function'&&isVideoMediaUrl(fixed)&&mediaUrlLooksAssignedToOtherExercise(fixed,name))
+      return local||'';
     return fixed||remote;
   }
-  return mediaMapGet(window.EX_GIF_MANIFEST,name);
+  return local||'';
 }
 window.exGifMapLookup=exGifMapLookup;
 
 function assignedExVideoUrl(exOrName){
   const name=typeof exOrName==='string'?exOrName:((exOrName&&exOrName.name)||'');
   if(!name)return '';
-  const remote=mediaMapGet(window.EX_GIF_REMOTE,name);
-  const u=typeof normalizeVideoAssetsCdnUrl==='function'?(normalizeVideoAssetsCdnUrl(remote)||remote):remote;
-  return (u&&typeof isVideoMediaUrl==='function'&&isVideoMediaUrl(u))?u:'';
+  const asVid=(u,normalize)=>{
+    if(!u)return '';
+    const n=normalize?normalizeRemoteExerciseMediaUrl(u):String(u||'').trim();
+    return (n&&typeof isVideoMediaUrl==='function'&&isVideoMediaUrl(n))?n:'';
+  };
+  const remoteVid=asVid(mediaMapGet(window.EX_GIF_REMOTE,name),true);
+  if(remoteVid&&!mediaUrlLooksAssignedToOtherExercise(remoteVid,name))return remoteVid;
+  return asVid(mediaMapGet(window.EX_GIF_MANIFEST,name),false);
 }
 window.assignedExVideoUrl=assignedExVideoUrl;
 
@@ -1786,6 +1836,7 @@ function exThumbUrl(exOrName){
   const name=(ex&&ex.name)||(typeof exOrName==='string'?exOrName:'');
   const photo=exPhotoMapLookup(name);
   if(photo)return photo;
+  if(isGenericExerciseMediaName(name))return '';
   if(!ex||typeof ex!=='object')return '';
   const img=String(ex.img||ex.thumb||ex.image||'').trim();
   if(img&&isSafeMediaUrl(img)&&!isDecorativeExAsset(img))return img;
@@ -1809,6 +1860,7 @@ function libExerciseMatchScore(ex,raw){
   if(n===key)return 1000;
   const stripped=key.replace(/\s*\([^)]*\)/g,' ').replace(/\s+/g,' ').trim();
   if(n===stripped)return 900;
+  if(isGenericExerciseMediaName(ex.name)||isGenericExerciseMediaName(raw))return 0;
   const aka=String(ex.aka||'').toLowerCase().replace(/\s+/g,' ');
   const akaList=aka.split(/[,;/|]/).map(s=>s.trim()).filter(Boolean);
   if(akaList.includes(key)||akaList.includes(stripped))return 850;

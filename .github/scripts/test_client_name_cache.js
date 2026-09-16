@@ -32,6 +32,9 @@ function ok(name, cond, extra) {
 ok('helper in core', src01.includes('function syncClientNameCache'));
 ok('saveCPEdit hooks sync', /persistById\('clients',c\);\s*try\{if\(typeof syncClientNameCache/.test(src09));
 ok('saveClient edit hooks sync', src05.includes("syncClientNameCache(c.id,c.name)"));
+ok('cache 01', html.includes('01-core.js?v=106'));
+ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=74'));
+ok('cache 01', html.includes('01-core.js?v=109'));
 ok('cache 01', html.includes('01-core.js?v=108'));
 ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=76'));
 ok('cache 01', html.includes('01-core.js?v=108'));

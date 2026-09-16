@@ -69,4 +69,29 @@ ok('youtube stays 16x9 wrap', ctx.coachMediaHtml({ name: 'X', video: 'https://yo
 const dup = ctx.coachMediaHtml({ name: 'X', gif: mp4, video: mp4, isFile: true }, { showVideo: true, showGif: true });
 ok('same gif+video not doubled', (dup.match(/<video/g) || []).length === 1 && !dup.includes('cw-file-player'));
 
+const dipsMp4 = 'https://cdn.jsdelivr.net/gh/x/y@1/Dipy%20na%20por%C4%99czach%20(Parallel%20Bar%20Dips).mp4';
+const benchMp4 = 'https://cdn.jsdelivr.net/gh/x/y@1/Wyciskanie%20sztangi%20na%20%C5%82awce%20p%C5%82askiej%20(Barbell%20Bench%20Press).mp4';
+windowObj.DEF_EX = [
+  { name: 'Dipy na poręczach' },
+  { name: 'Dipy z obciążeniem' },
+  { name: 'Wyciskanie sztangi leżąc' },
+  { name: 'Klatka piersiowa' },
+];
+windowObj.EX_GIF_MANIFEST = { 'dipy na poręczach': dipsMp4 };
+windowObj.EX_GIF_REMOTE = {};
+ok('assignedExVideoUrl uses curated dips mp4', ctx.assignedExVideoUrl('Dipy na poręczach') === dipsMp4);
+windowObj.EX_GIF_REMOTE = { 'dipy z obciążeniem': dipsMp4, 'klatka piersiowa': benchMp4 };
+ok('stolen parallel-bar clip not on weighted dips', !ctx.assignedExVideoUrl('Dipy z obciążeniem'));
+ok('stolen bench clip not on generic chest', !ctx.assignedExVideoUrl('Klatka piersiowa'));
+ok('dips card still gets parallel-bar mp4', ctx.assignedExVideoUrl({ name: 'Dipy na poręczach' }) === dipsMp4);
+ok(
+  'generic chest thumb drops borrowed bench still',
+  !ctx.exThumbUrl({
+    name: 'Klatka piersiowa',
+    img: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Bench_Press/0.jpg',
+  })
+);
+windowObj.EX_GIF_REMOTE = { 'dipy na poręczach': 'https://cdn.example.com/filmy/custom-dips.mp4' };
+ok('honest remote dips override wins', ctx.assignedExVideoUrl('Dipy na poręczach') === 'https://cdn.example.com/filmy/custom-dips.mp4');
+
 process.exit(failed ? 1 : 0);

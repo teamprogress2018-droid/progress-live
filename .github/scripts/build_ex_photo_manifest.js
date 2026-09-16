@@ -645,6 +645,8 @@ async function main() {
       .forEach((s) => labels.push(s));
     for (const label of labels) {
       const k = mediaKey(label);
+      if (!k || /^\d+$/.test(k) || k.length < 3) continue;
+      if (/^(klatka piersiowa|plecy|barki|nogi|biceps|triceps|core|cardio)$/i.test(k)) continue;
       if (k && !manifest[k]) manifest[k] = url;
     }
   }
@@ -668,6 +670,7 @@ async function main() {
     addKeys(row.name, IMG_BASE + ex.images[0]);
   }
   for (const [k, url] of Object.entries(prev)) {
+    if (!k || /^\d+$/.test(k)) continue;
     if (!manifest[k]) manifest[k] = url;
   }
   const body =
