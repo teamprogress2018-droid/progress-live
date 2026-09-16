@@ -10,13 +10,14 @@ Stack: **vanilla JS + Firestore + GitHub Pages** (nie React/Next/Tailwind). Stan
 |---|---|---|
 | E-mail jako identyfikator auth | **Zrobione:** `#ac-email` wymagany w modalu NOWY KLIENT. Wizard usunięty. | `saveClient` w `05-…js` |
 | Jednolity pipeline onboardingu | **Zrobione:** jedno wejście `saveClient` + checklista `CLIENT_ONBOARD_STEPS`. Wizard `onbCreateClient` usunięty. | `assignClientPipeline` w `01-core.js` |
-| Cykl życia na liście | Była aktywność (dni od sesji), brak statusu pakietu / onboardingu / braku maila. | `clientLifecycleStatus` |
-| TDEE → karta klienta bez czatu | „Wyślij do klienta” zapisywało makro *i* pisało na czat. Brak „Zapisz w profilu”. | `calcSaveToClient` / `applyMacrosToClient` |
-| Szyna zdarzeń | `fireIntEvent` szło tylko na Zapier/Make. Brak lokalnego busa (`client.created`, `macros.saved`). | `emitAppEvent` |
+| Cykl życia na liście | **Zrobione:** pill na liście klientów — brak e-maila, onboarding X/Y, pakiet wygasł / X d., ryzyko odejścia, aktywny. | `clientLifecycleStatus` |
+| TDEE → karta klienta bez czatu | **Zrobione:** „Zapisz w profilu” (`calcSaveToClient`) zapisuje `c.macros` bez wiadomości. „Wyślij do klienta” nadal idzie na czat. | `calcSaveToClient` / `applyMacrosToClient` |
+| Szyna zdarzeń | **Zrobione:** `emitAppEvent` (in-memory + Integracje + Autoflow). Typy: `client.created`, `macros.saved`, `checkin.submitted`, `package.expired`, … | `emitAppEvent` |
 | Brama płatności ↔ kalendarz / Live | **Zrobione:** `clientHasPaidAccess` + Trial / Gość. Nieopłacony/wygasły pakiet blokuje `schedulePlanToCalendar` i Live Start. Live End zdejmuje sesje tylko z `payStatus:'paid'`. | `01-core.js`, Live, profil → Płatności |
 | Event-driven automatyzacja | **Zrobione:** Autoflow nasłuchuje `emitAppEvent` — `package.expired`, `checkin.submitted`, `client.created`, `client.inactive`, `session.soon`. Skan (ten sam zegar co pulpit) emituje zastój i sesję w oknie przypomnienia. Poll zostaje tylko dla sekwencji dni. | `09-…js` `autoflowOnAppEvent` |
 | Live: IndexedDB + kolejka sync | **Zrobione:** `source:'live-draft'` przy starcie i co 3 serie + IndexedDB + LS. Koniec sesji zamienia ten sam dokument na `source:'live'`. | `liveSaveDraft` / `livePersistDraftRemote` w `02-…js` |
-| Tagi KB ↔ builder | MEV/MAV/RIR są w promptach AI i przewodniku objętości, nie jako tagi rekordów bazy wiedzy powiązane z ćwiczeniem/dniem planu. | `01-core.js` evidence + `03-…js` prompt |
+| Tagi KB ↔ builder | **Świadomie poza kolejką:** MEV/MAV/RIR zostają w przewodniku trenera i promptach AI, nie jako tagi rekordów KB na ćwiczeniu/dniu planu. | `01-core.js` evidence + `03-…js` prompt |
+| Tagi KB ↔ builder | **Zrobione:** tagi landmark (MEV/MAV/MRV/RIR/RPE/częstotliwość/deload) i partii na wpisie KB. Kreator pokazuje dopasowane notatki przy dniu i w panelu „Baza na ten plan”. Mowa do klienta bez żargonu. | `kbEntriesForBuilder` + `#builder-kb-hits` |
 
 ---
 
@@ -98,7 +99,7 @@ Wejścia: `saveClient` (modal NOWY KLIENT). Checklista: `openClientOnboardCheckl
 
 **Płatności.** Statystyki przy zerze transakcji — UI puste stany już są; nie dokładać KPI. Brama dostępu: `clientHasPaidAccess`. Pulpit: wygasające pakiety tylko w „Płatności do odnowienia”.
 
-**TDEE / KB.** TDEE zapisuje `c.macros`. KB nie steruje builderem (świadomie: żargon MEV zostaje w przewodniku trenera, nie w mowie do klienta).
+**TDEE / KB.** TDEE zapisuje `c.macros`. Tagi KB (MEV/RIR/partia) sterują panelem kreatora i kolejnością kontekstu AI — żargon nadal nie idzie do mowy klienta.
 
 ---
 
@@ -136,5 +137,20 @@ Wejścia: `saveClient` (modal NOWY KLIENT). Checklista: `openClientOnboardCheckl
 13. **KB → AI: notatki + badania** — **zrobione:** Generator bierze notatki i źródła (oraz zasady). Wpis z wyłączonym planowaniem zostaje tylko w bazie — bez wycieku „pozostałych notatek”.
 12. **Płatności: filtry po `clientId`** — **zrobione:** chipy Pakietów i select Historii (`payClientsFromPackages`). To samo imię = dwa chipy / dwie opcje, nie jedna wspólna lista.
 14. **Ustawienia startu współpracy** — **zrobione:** legenda `CLIENT_ONBOARD_STEPS` (6/6), bez checkboxów `msgSteps`. Auto-wiadomość = Automatyzacja. Przypomnienia i kontrakt zostają jako notatki — aplikacja ich nie wysyła.
+
+---
+
+## 8. Status — kolejka zamknięta (2026-09-16)
+
+Pozycje **1–14** z §7 są wdrożone. Tabela §1 (cykl życia, TDEE bez czatu, szyna) też — kod był, znaczniki w dokumencie nie.
+
+**Nie jest zadaniem z tej listy** (zostaje jako architektura / świadomy skip):
+
+- **Tagi KB ↔ builder** — żargon MEV/MAV/RIR nie idzie do mowy klienta ani do tagów rekordów KB.
+- **Trzy systemy powiadomień** — dzwonek (`NOTIFICATIONS`), pulpit (`collectOpsEvents`), Autoflow (`AF_STATE`). Pulpit ma już jedno źródło na Uwagę; scalanie z dzwonkiem wymagałoby osobnego PR.
+- **Brak crona** — skan operacyjny zostaje klient-side (`collectOpsEvents`, TTL 15 s). Bez backendu nie ma nocnego joba.
+
+Kalendarz (poza §7): tydzień 7 równych kolumn (#305/#306), brak dublowania sesji o tej samej godzinie (#307).
+15. **Tagi KB ↔ builder** — **zrobione:** `tags[]` na wpisie (MEV/MAV/RIR/partia). Kreator: `#builder-kb-hits` + pasek dnia. AI (`askAI`) sortuje kontekst po tagach planu.
 16. **Jeden skan operacyjny** — **zrobione:** `generateAutoNotifs` bierze `attention` z `collectOpsEvents`. `startOpsScanClock` co 60 s + powrót na kartę. Autoflow zostaje na zdarzeniach.
 17. **Autoflow zastój / sesja dziś** — **zrobione:** `client.inactive` i `session.soon` z zegara skanu (`scanAndEmitInactivity` / `scanAndEmitSessionToday`). Poll w `runAutoflowsCheck` tylko sekwencje dni.

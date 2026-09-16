@@ -5508,19 +5508,59 @@ const RATIONALE_SOURCES=[
 const BUILTIN_PLANNING_EVIDENCE=[
   {id:'bev_freq',kind:'evidence',title:'Częstotliwość ≥2×/partię (hipertrofia)',
     text:'Przy hipertrofii stymulacja głównych partii co najmniej 2× w tygodniu zwykle daje lepszy efekt niż 1× przy tej samej objętości tygodniowej — stąd PPL/UL/FBW zamiast klasycznego bro-splitu.',
-    citation:'Schoenfeld et al., frequency meta-analyses',sourceUrl:'https://pubmed.ncbi.nlm.nih.gov/30558493/',useInPlanning:true},
+    citation:'Schoenfeld et al., frequency meta-analyses',sourceUrl:'https://pubmed.ncbi.nlm.nih.gov/30558493/',useInPlanning:true,tags:['freq']},
   {id:'bev_vol',kind:'evidence',title:'Objętość tygodniowa (MEV→MAV)',
     text:'Hipertrofia skaluje się z tygodniową liczbą serii roboczych blisko upadku. Celuj między MEV a MAV; MRV to sufit, nie domyślny cel. Początkujący: dolna połowa zakresu.',
-    citation:'Schoenfeld / Israetel volume landmarks (ramy praktyczne)',sourceUrl:'https://pubmed.ncbi.nlm.nih.gov/27433992/',useInPlanning:true},
+    citation:'Schoenfeld / Israetel volume landmarks (ramy praktyczne)',sourceUrl:'https://pubmed.ncbi.nlm.nih.gov/27433992/',useInPlanning:true,tags:['mev','mav','mrv']},
   {id:'bev_prox',kind:'evidence',title:'Bliskość upadku (RIR/RPE)',
     text:'Serie hipertroficzne powinny kończyć się blisko upadku (ok. 0–3 RIR). Zbyt duży zapas ogranicza bodziec; ciągłe RPE 10 utrudnia progresję i regenerację.',
-    citation:'Refalo / proximity to failure reviews',sourceUrl:'https://pubmed.ncbi.nlm.nih.gov/33497853/',useInPlanning:true},
+    citation:'Refalo / proximity to failure reviews',sourceUrl:'https://pubmed.ncbi.nlm.nih.gov/33497853/',useInPlanning:true,tags:['rir','rpe']},
   {id:'bev_str',kind:'evidence',title:'Siła: intensywność i przerwy',
     text:'Rozwój siły maksymalnej opiera się na wysokim %1RM, niższych powtórzeniach i dłuższych przerwach (2–5 min) na wielostawach — objętość niższa niż w czystej hipertrofii.',
-    citation:'NSCA Essentials; ACSM resistance guidelines',sourceUrl:'https://pubmed.ncbi.nlm.nih.gov/19204579/',useInPlanning:true},
+    citation:'NSCA Essentials; ACSM resistance guidelines',sourceUrl:'https://pubmed.ncbi.nlm.nih.gov/19204579/',useInPlanning:true,tags:[]},
   {id:'bev_deload',kind:'principle',title:'Deload co 4–6 tygodni',
     text:'Planuj obniżenie objętości/intensywności co kilka tygodni (sen, staw, RPE drift). Deload to narzędzie progresji, nie „przegrana”.',
-    citation:'Praktyka periodyzacji (NSCA / coaching)',sourceUrl:'',useInPlanning:true}
+    citation:'Praktyka periodyzacji (NSCA / coaching)',sourceUrl:'',useInPlanning:true,tags:['deload']}
+];
+const KB_TAG_DEFS=[
+  {id:'mev',label:'MEV',group:'landmark'},
+  {id:'mav',label:'MAV',group:'landmark'},
+  {id:'mrv',label:'MRV',group:'landmark'},
+  {id:'rir',label:'RIR',group:'landmark'},
+  {id:'rpe',label:'RPE',group:'landmark'},
+  {id:'freq',label:'Częstotliwość',group:'landmark'},
+  {id:'deload',label:'Deload',group:'landmark'},
+  {id:'klatka',label:'Klatka',group:'muscle'},
+  {id:'plecy',label:'Plecy',group:'muscle'},
+  {id:'barki',label:'Barki',group:'muscle'},
+  {id:'biceps',label:'Biceps',group:'muscle'},
+  {id:'triceps',label:'Triceps',group:'muscle'},
+  {id:'quady',label:'Quady',group:'muscle'},
+  {id:'tyl-uda',label:'Tył uda',group:'muscle'},
+  {id:'posladki',label:'Pośladki',group:'muscle'},
+  {id:'brzuch',label:'Brzuch',group:'muscle'},
+  {id:'lydki',label:'Łydki',group:'muscle'}
+];
+const KB_TAG_BY_ID=Object.create(null);
+KB_TAG_DEFS.forEach(d=>{KB_TAG_BY_ID[d.id]=d;});
+const KB_TAG_TEXT_RULES=[
+  ['mev',/\bmev\b/i],
+  ['mav',/\bmav\b/i],
+  ['mrv',/\bmrv\b/i],
+  ['rir',/\brir\b/i],
+  ['rpe',/\brpe\b/i],
+  ['freq',/częstotliw|czestotliw|frequency|≥\s*2|>=\s*2/i],
+  ['deload',/deload/i],
+  ['klatka',/klatk|chest|\bpec/i],
+  ['plecy',/plecy|\bback\b|najszersz|\blat\b|wiosłow/i],
+  ['barki',/bark|shoulder|delt/i],
+  ['biceps',/biceps/i],
+  ['triceps',/triceps/i],
+  ['quady',/quad|czworogł|przód uda|przod uda|przysiad|leg press|hack squat/i],
+  ['tyl-uda',/tył uda|tyl uda|hamstring|dwugłow|rumuńsk|\brdl\b/i],
+  ['posladki',/poślad|poslad|glute|hip thrust/i],
+  ['brzuch',/brzuch|\bcore\b|\babs\b/i],
+  ['lydki',/łydk|lydk|\bcalf/i]
 ];
 
 function normalizeKbKind(k){
@@ -5537,6 +5577,86 @@ function kbEntryUsesInPlanning(k){
   if(kind==='note'||kind==='evidence'||kind==='principle')return true;
   return k.useInPlanning!==false;
 }
+function kbTagDef(id){
+  return KB_TAG_BY_ID[String(id||'').toLowerCase()]||null;
+}
+function normalizeKbTagId(raw){
+  let s=String(raw||'').toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  s=s.replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+  if(s==='czestotliwosc'||s==='frequency')s='freq';
+  if(s==='tyluda'||s==='hamstring')s='tyl-uda';
+  if(s==='glute'||s==='glutes')s='posladki';
+  if(s==='calves'||s==='calf')s='lydki';
+  if(s==='chest')s='klatka';
+  if(s==='back')s='plecy';
+  if(s==='shoulders'||s==='shoulder')s='barki';
+  return kbTagDef(s)?s:'';
+}
+function normalizeKbTags(list){
+  const src=Array.isArray(list)?list:String(list||'').split(/[,;/|]/);
+  const out=[];
+  const seen=Object.create(null);
+  src.forEach(x=>{
+    const id=normalizeKbTagId(x);
+    if(!id||seen[id])return;
+    seen[id]=1;
+    out.push(id);
+  });
+  return out;
+}
+function kbTagsFromText(text){
+  const blob=String(text||'');
+  if(!blob.trim())return[];
+  const hits=[];
+  KB_TAG_TEXT_RULES.forEach(rule=>{
+    if(rule[1].test(blob))hits.push(rule[0]);
+  });
+  return normalizeKbTags(hits);
+}
+function kbTagsForEntry(k){
+  const explicit=normalizeKbTags(k&&k.tags);
+  if(explicit.length)return explicit;
+  return kbTagsFromText(((k&&k.title)||'')+' '+((k&&k.text)||'')+' '+((k&&k.citation)||''));
+}
+function kbTagLabels(tags){
+  return normalizeKbTags(tags).map(id=>{
+    const d=kbTagDef(id);
+    return d?d.label:id;
+  });
+}
+function kbMuscleTags(tags){
+  return normalizeKbTags(tags).filter(id=>{
+    const d=kbTagDef(id);
+    return d&&d.group==='muscle';
+  });
+}
+function kbTagOverlapCount(entry,queryTags){
+  const tags=kbTagsForEntry(entry);
+  const q=normalizeKbTags(queryTags);
+  let n=0;
+  tags.forEach(t=>{if(q.indexOf(t)>=0)n++;});
+  return n;
+}
+/** Wpis z tagiem partii tylko przy dniu/ćwiczeniu tej partii. Landmarky (MEV/RIR) — na cały plan. */
+function kbEntriesForBuilder(queryTags,opts){
+  opts=opts||{};
+  const q=normalizeKbTags(queryTags);
+  const muscleQ=kbMuscleTags(q);
+  const list=typeof getPlanningEvidenceEntries==='function'?getPlanningEvidenceEntries():[];
+  const scored=[];
+  list.forEach(e=>{
+    const tags=kbTagsForEntry(e);
+    const muscleE=kbMuscleTags(tags);
+    if(muscleE.length&&muscleQ.length&&!muscleE.some(t=>muscleQ.indexOf(t)>=0))return;
+    const overlap=tags.filter(t=>q.indexOf(t)>=0).length;
+    if(muscleE.length&&!overlap)return;
+    const muscleHit=muscleE.filter(t=>muscleQ.indexOf(t)>=0).length;
+    scored.push({entry:e,tags:tags,score:overlap+muscleHit*4,general:!tags.length||(!muscleE.length&&!overlap)});
+  });
+  scored.sort((a,b)=>b.score-a.score||String(a.entry.title||'').localeCompare(String(b.entry.title||'')));
+  const limit=opts.limit||8;
+  return scored.slice(0,limit);
+}
 /** Wpisy trenera + pakiet wbudowany do kontekstu planowania. Notatki trenera przed pakietem. */
 function getPlanningEvidenceEntries(){
   const user=(window.KB||[]).filter(kbEntryUsesInPlanning);
@@ -5545,21 +5665,29 @@ function getPlanningEvidenceEntries(){
   const builtins=BUILTIN_PLANNING_EVIDENCE.filter(b=>!userBuiltin.has(b.id)&&!userTitles.has(String(b.title).toLowerCase()));
   const mapUser=k=>({
     id:k.id,kind:normalizeKbKind(k),title:k.title,text:k.text,
-    citation:k.citation||'',sourceUrl:k.sourceUrl||'',useInPlanning:true,builtin:false
+    citation:k.citation||'',sourceUrl:k.sourceUrl||'',useInPlanning:true,builtin:false,
+    tags:kbTagsForEntry(k)
   });
-  return user.map(mapUser).concat(builtins.map(b=>({...b,builtin:true})));
+  return user.map(mapUser).concat(builtins.map(b=>({...b,builtin:true,tags:kbTagsForEntry(b)})));
 }
-function planningEvidenceContext(maxChars){
-  const list=getPlanningEvidenceEntries();
+function planningEvidenceContext(maxChars,opts){
+  opts=opts||{};
+  let list=getPlanningEvidenceEntries();
   if(!list.length)return'';
+  const prefer=normalizeKbTags(opts.preferTags||[]);
+  if(prefer.length){
+    list=list.slice().sort((a,b)=>kbTagOverlapCount(b,prefer)-kbTagOverlapCount(a,prefer));
+  }
   const budget=maxChars||4500;
   let out='\n\n=== BADANIA I NOTATKI TRENERA (kontekst planowania) ===\n';
-  out+='Uwzględnij badania i notatki trenera przy metodzie, seriach i objętości. Zasady trenera mają pierwszeństwo, gdy kolidują z ogólnikami.\n';
+  out+='Uwzględnij badania i notatki trenera przy metodzie, seriach i objętości. Zasady trenera mają pierwszeństwo, gdy kolidują z ogólnikami. Tagi wiążą wpis z partią / MEV / RIR w kreatorze — nie w mowie do klienta.\n';
   for(const e of list){
     const kind=e.kind==='evidence'?'BADANIE/ŹRÓDŁO':(e.kind==='principle'?'ZASADA TRENERA':'NOTATKA');
     const cite=e.citation?` [${e.citation}]`:'';
     const url=e.sourceUrl?` URL: ${e.sourceUrl}`:'';
-    const block=`### [${kind}] ${e.title}${cite}${url}\n${String(e.text||'').substring(0,500)}\n\n`;
+    const tagLine=kbTagLabels(kbTagsForEntry(e));
+    const tags=tagLine.length?' Tagi: '+tagLine.join(', '):'';
+    const block=`### [${kind}] ${e.title}${cite}${url}${tags}\n${String(e.text||'').substring(0,500)}\n\n`;
     if(out.length+block.length>budget)break;
     out+=block;
   }
@@ -5573,11 +5701,21 @@ function planningEvidenceSourceLines(){
   });
 }
 window.BUILTIN_PLANNING_EVIDENCE=BUILTIN_PLANNING_EVIDENCE;
+window.KB_TAG_DEFS=KB_TAG_DEFS;
 window.getPlanningEvidenceEntries=getPlanningEvidenceEntries;
 window.planningEvidenceContext=planningEvidenceContext;
 window.planningEvidenceSourceLines=planningEvidenceSourceLines;
 window.kbEntryUsesInPlanning=kbEntryUsesInPlanning;
 window.normalizeKbKind=normalizeKbKind;
+window.kbTagDef=kbTagDef;
+window.normalizeKbTagId=normalizeKbTagId;
+window.normalizeKbTags=normalizeKbTags;
+window.kbTagsFromText=kbTagsFromText;
+window.kbTagsForEntry=kbTagsForEntry;
+window.kbTagLabels=kbTagLabels;
+window.kbMuscleTags=kbMuscleTags;
+window.kbTagOverlapCount=kbTagOverlapCount;
+window.kbEntriesForBuilder=kbEntriesForBuilder;
 
 function normalizeRationaleMethod(method){
   const m=String(method||'').trim();

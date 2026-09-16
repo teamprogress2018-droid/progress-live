@@ -2684,7 +2684,7 @@ async function askAI(){
   if(c&&typeof clientMonitorContextForAI==='function')ctx+=clientMonitorContextForAI(c.id);
   const staffIds=typeof staffAgentsForBuilderQuery==='function'?staffAgentsForBuilderQuery(q):null;
   const sys='Asystent trenera personalnego. Odpowiadaj KRÓTKO po polsku, max 140 słów. Zawsze podaj DLACZEGO (1 zdanie) przy liczbach. NSCA: hipertrofia 3-6 serii/8-12 powt/67-85% 1RM; siła 2-6 serii/1-6 powt/85%+ 1RM. RPE 8=RIR 2. Objętość tygodniowa: trzymaj MEV–MAV. Facepull i HipThrust zawsze. Dawaj konkretne liczby. Jeśli klient ma nadwagę lub otyłość — stosuj zasady z bloku BEZPIECZEŃSTWO/NADWAGA (maszyny, strefa 2, bez plyo). Jeśli jest STRAŻNIK POSTĘPÓW, powiedz wprost czy idziemy w dobrą czy złą stronę i podaj 2–4 korekty.'
-    +(typeof planningEvidenceContext==='function'?planningEvidenceContext(1800):'');
+    +(typeof planningEvidenceContext==='function'?planningEvidenceContext(1800,{preferTags:typeof builderCollectKbTags==='function'?builderCollectKbTags():[]}):'');
   try{
     if(staffIds&&staffIds.length&&typeof callStaffAgentsSequentially==='function'){
       document.getElementById('ai-t')?.remove();
