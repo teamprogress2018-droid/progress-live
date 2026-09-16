@@ -77,10 +77,10 @@ ok('chest note on chest day',chestHits.some(h=>h.entry.title==='Priorytet klatki
 ok('quad note not on chest day',!chestHits.some(h=>h.entry.title==='Hack squat'));
 ok('ctx tags line',sandbox.planningEvidenceContext(8000,{preferTags:['klatka']}).includes('Tagi:'));
 
-ok('cache bumps',html.includes('01-core.js?v=107')&&html.includes('09-posture-kb-invites-private.js?v=49'));
+ok('cache bumps',html.includes('01-core.js?v=108')&&html.includes('09-posture-kb-invites-private.js?v=49'));
 const wf=fs.readFileSync(path.join(root,'.github/workflows/check.yml'),'utf8');
 ok('CI ui',wf.includes('test_kb_notes_evidence_ui.js'));
-ok('cache bumps',html.includes('01-core.js?v=107')&&html.includes('09-posture-kb-invites-private.js?v=49'));
+ok('cache bumps',html.includes('01-core.js?v=108')&&html.includes('09-posture-kb-invites-private.js?v=49'));
 
 if(failed){console.error(failed+' failed');process.exit(1);}
 console.log('\nAll evidence-base tests passed');

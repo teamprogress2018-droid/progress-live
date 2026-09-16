@@ -29,7 +29,7 @@ ok('keeps custom day labels', /function builderSetDayHeader/.test(src05) && /fun
 ok('Custom maps to Własna', /v==='Custom'\)v='Własna'/.test(src05));
 ok('fitebo method not Custom', /return 'Własna'/.test(src08) && !/return 'Custom'/.test(src08));
 ok('return to client after save', /function builderLeaveToCaller/.test(src05) && /builderLeaveToCaller\(\{saved:true\}\)/.test(src05));
-ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=75'));
+ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=76'));
 ok('cache 08', html.includes('08-client-profile-extras.js?v=61'));
 ok('CI unit', wf.includes('test_plan_edit_from_profile.js'));
 ok('CI ui', wf.includes('test_plan_edit_from_profile_ui.js'));

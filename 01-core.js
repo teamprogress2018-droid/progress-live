@@ -5650,7 +5650,8 @@ function kbEntriesForBuilder(queryTags,opts){
     if(muscleE.length&&muscleQ.length&&!muscleE.some(t=>muscleQ.indexOf(t)>=0))return;
     const overlap=tags.filter(t=>q.indexOf(t)>=0).length;
     if(muscleE.length&&!overlap)return;
-    scored.push({entry:e,tags:tags,score:overlap,general:!tags.length||(!muscleE.length&&!overlap)});
+    const muscleHit=muscleE.filter(t=>muscleQ.indexOf(t)>=0).length;
+    scored.push({entry:e,tags:tags,score:overlap+muscleHit*4,general:!tags.length||(!muscleE.length&&!overlap)});
   });
   scored.sort((a,b)=>b.score-a.score||String(a.entry.title||'').localeCompare(String(b.entry.title||'')));
   const limit=opts.limit||8;

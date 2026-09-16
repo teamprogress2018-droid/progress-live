@@ -26,7 +26,7 @@ ok('day strip',src05.includes('builder-day-kb')&&html.includes('id="builder-kb-h
 ok('save tags',src09.includes('kbReadTagPicker')&&/useInPlanning,\s*tags/.test(src09));
 ok('askAI tags',src06.includes('preferTags')&&src06.includes('builderCollectKbTags'));
 ok('css tags',css.includes('.kb-tag-btn.is-on')&&css.includes('.builder-kb-hit'));
-ok('cache pins',html.includes('01-core.js?v=107')&&html.includes('05-clients-builder-plans-calendar.js?v=75')&&html.includes('09-posture-kb-invites-private.js?v=49')&&html.includes('styles.css?v=90'));
+ok('cache pins',html.includes('01-core.js?v=108')&&html.includes('05-clients-builder-plans-calendar.js?v=76')&&html.includes('09-posture-kb-invites-private.js?v=49')&&html.includes('styles.css?v=90'));
 ok('CI unit',wf.includes('test_kb_builder_tags.js'));
 ok('CI ui',wf.includes('test_kb_builder_tags_ui.js'));
 
@@ -47,6 +47,7 @@ sandbox.window.KB=[
 const push=sandbox.kbEntriesForBuilder(['klatka','mev','rir'],{limit:12});
 ok('muscle match',push.some(h=>h.entry.id==='k1'));
 ok('other muscle hidden',!push.some(h=>h.entry.id==='k2'));
+ok('muscle outranks landmark',push[0]&&push[0].entry.id==='k1');
 ok('untagged general allowed',push.some(h=>h.entry.id==='k3')||push.some(h=>h.entry.id==='bev_vol'));
 ok('prefer chest first',(()=>{const c=sandbox.planningEvidenceContext(2500,{preferTags:['klatka']});return c.indexOf('Klatka stretch')>=0&&(c.indexOf('Tylko quady')<0||c.indexOf('Klatka stretch')<c.indexOf('Tylko quady'));})());
 

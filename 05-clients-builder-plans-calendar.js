@@ -1114,11 +1114,11 @@ function builderRefreshKbHits(){
     if(dayEl.querySelector('.rc')&&dayEl.querySelector('.rc').checked){
       strip.hidden=true;strip.innerHTML='';return;
     }
-    const dayHits=hitsFn?hitsFn(builderCollectKbTags(dayEl),{limit:3}):[];
-    const muscleHits=dayHits.filter(h=>!h.general||(h.tags||[]).some(t=>{
-      const d=typeof kbTagDef==='function'?kbTagDef(t):null;
-      return d&&d.group==='muscle';
-    }));
+    const dayHits=hitsFn?hitsFn(builderCollectKbTags(dayEl),{limit:10}):[];
+    const muscleHits=dayHits.filter(h=>{
+      const mt=typeof kbMuscleTags==='function'?kbMuscleTags(h.tags||[]):[];
+      return mt.length>0;
+    });
     const show=muscleHits.length?muscleHits:dayHits.filter(h=>h.score>0).slice(0,2);
     if(!show.length){strip.hidden=true;strip.innerHTML='';return;}
     strip.hidden=false;

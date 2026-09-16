@@ -35,6 +35,8 @@ function ok(name, cond, extra) {
     if (loading) loading.style.display = 'none';
     if (typeof goTo === 'function') goTo('kb');
     if (typeof openKbModal === 'function') openKbModal();
+    const picker = document.getElementById('kb-tag-picker');
+    if (picker) picker.scrollIntoView({ block: 'center' });
     const chips = [...document.querySelectorAll('#kb-tag-picker .kb-tag-btn')].map((b) => b.getAttribute('data-kb-tag'));
     const mev = document.querySelector('#kb-tag-picker [data-kb-tag="mev"]');
     if (mev && typeof kbToggleTag === 'function') kbToggleTag(mev);
