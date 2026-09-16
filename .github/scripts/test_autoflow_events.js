@@ -21,10 +21,6 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 01', html.includes('01-core.js?v=109'));
-ok('cache 04', html.includes('04-client-portal.js?v=50'));
-ok('cache 09', html.includes('09-posture-kb-invites-private.js?v=49'));
-ok('cache 01', html.includes('01-core.js?v=106'));
-ok('cache 01', html.includes('01-core.js?v=108'));
 ok('cache 04', html.includes('04-client-portal.js?v=52'));
 ok('cache 09', html.includes('09-posture-kb-invites-private.js?v=50'));
 ok('html triggers', html.includes('value="package.expired"') && html.includes('value="checkin.submitted"'));
