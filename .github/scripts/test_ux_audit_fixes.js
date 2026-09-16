@@ -56,6 +56,8 @@ ok('cache 01', html.includes('01-core.js?v=108'));
 ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=73'));
 ok('cache 04', html.includes('04-client-portal.js?v=50'));
 ok('cache 09', html.includes('09-posture-kb-invites-private.js?v=49'));
+ok('cache 04', html.includes('04-client-portal.js?v=51'));
+ok('cache 09', html.includes('09-posture-kb-invites-private.js?v=48'));
 ok('cache 10', html.includes('10-client-app.js?v=40'));
 ok('cache styles', html.includes('styles.css?v=90'));
 ok('CI', wf.includes('test_ux_audit_fixes.js'));

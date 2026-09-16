@@ -4440,6 +4440,7 @@ async function load(){
   try{if(typeof window.syncSidebarProfile==='function')window.syncSidebarProfile();}catch(e){}
   try{if(typeof window.maybePromptTrainerProfile==='function')window.maybePromptTrainerProfile();}catch(e){}
   window.renderAll();
+  try{if(typeof window.startOpsScanClock==='function')window.startOpsScanClock();}catch(e){}
   try{if(typeof window.consumeClientPreviewHash==='function')window.consumeClientPreviewHash();}catch(e){}
 }
 </script>
@@ -4452,6 +4453,9 @@ async function load(){
 <script src="04-client-portal.js?v=50"></script>
 <script src="05-clients-builder-plans-calendar.js?v=76"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=79"></script>
+<script src="04-client-portal.js?v=51"></script>
+<script src="05-clients-builder-plans-calendar.js?v=74"></script>
+<script src="06-inbox-exercises-ai-programs.js?v=78"></script>
 <script src="07-forms-metrics-calculator.js?v=39"></script>
 <script src="08-client-profile-extras.js?v=61"></script>
 <script src="09-posture-kb-invites-private.js?v=49"></script>
