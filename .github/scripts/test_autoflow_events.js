@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 'use strict';
-/** Autoflow: package.expired i checkin.submitted idą przez emitAppEvent. */
+/** Autoflow: package.expired, check-in, zastój i sesja dziś idą przez emitAppEvent. */
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -24,14 +24,17 @@ ok('cache 01', html.includes('01-core.js?v=108'));
 ok('cache 04', html.includes('04-client-portal.js?v=50'));
 ok('cache 09', html.includes('09-posture-kb-invites-private.js?v=49'));
 ok('cache 01', html.includes('01-core.js?v=106'));
-ok('cache 04', html.includes('04-client-portal.js?v=51'));
-ok('cache 09', html.includes('09-posture-kb-invites-private.js?v=48'));
+ok('cache 04', html.includes('04-client-portal.js?v=52'));
+ok('cache 09', html.includes('09-posture-kb-invites-private.js?v=49'));
 ok('html triggers', html.includes('value="package.expired"') && html.includes('value="checkin.submitted"'));
 ok('bus wires autoflow', /autoflowOnAppEvent/.test(core) && /emitAppEvent/.test(core));
 ok('checkin emits', /emitAppEvent\('checkin.submitted'/.test(src04));
 ok('scan expired', /function scanAndEmitPackageExpired/.test(src09));
+ok('scan idle', /function scanAndEmitInactivity/.test(src09) && /client\.inactive/.test(src09));
+ok('scan session', /function scanAndEmitSessionToday/.test(src09) && /session\.soon/.test(src09));
 ok('event map', /function autoflowTriggerForEvent/.test(src09) && /package\.expired/.test(src09) && /checkin\.submitted/.test(src09));
-ok('poll skips events', /kind==='package.expired'\|\|kind==='checkin.submitted'/.test(src09));
+ok('poll skips events', /kind==='package.expired'\|\|kind==='checkin.submitted'\|\|kind==='inactivity'\|\|kind==='session_today'/.test(src09));
+ok('clock calls autoflow', /runAutoflowsCheck\(false\)/.test(src04));
 ok('CI unit', wf.includes('test_autoflow_events.js'));
 ok('CI ui', wf.includes('test_autoflow_events_ui.js'));
 
@@ -82,11 +85,20 @@ function sliceFn(src, startName, nextName) {
 }
 const bundle = sliceFn(src09, 'ensureAfState', 'enrollScopeClients')
   + sliceFn(src09, 'logAF', 'runAutoflowsCheck')
+  + sliceFn(src09, 'runAutoflowsCheck', 'execAFStep')
   + sliceFn(src09, 'execAFStep', 'notify');
 vm.runInContext(bundle, ctx);
-['autoflowOnAppEvent','autoflowTriggerForEvent','scanAndEmitPackageExpired','fireAutoflowTrigger','logAF','execAFStep','enrollClientInAutoflow','ensureAfState'].forEach((n) => {
+['autoflowOnAppEvent','autoflowTriggerForEvent','autoflowEventKey','scanAndEmitPackageExpired','scanAndEmitInactivity','scanAndEmitSessionToday','fireAutoflowTrigger','logAF','execAFStep','enrollClientInAutoflow','ensureAfState','runAutoflowsCheck','afClientsFor'].forEach((n) => {
   if (typeof ctx[n] === 'function') ctx.window[n] = ctx[n];
 });
+ctx.renderAutoflows = function(){};
+ctx.renderAutoflowLog = function(){};
+ctx.window.renderAutoflows = ctx.renderAutoflows;
+ctx.window.renderAutoflowLog = ctx.renderAutoflowLog;
+ctx.formatClientActivity = function(id){
+  const days = (ctx.window._idleDays && ctx.window._idleDays[id]) || 0;
+  return { days: days, label: '', color: '' };
+};
 function clientMsgs(cid) {
   const bag = (ctx.window.MSGS && ctx.window.MSGS[cid]) || [];
   return bag;
@@ -101,6 +113,8 @@ ok('map package', ctx.autoflowTriggerForEvent('package.expired') === 'package.ex
 ok('map checkin', ctx.autoflowTriggerForEvent('checkin.submitted') === 'checkin.submitted');
 ok('map alias', ctx.autoflowTriggerForEvent('onCheckInSubmitted') === 'checkin.submitted');
 ok('map client', ctx.autoflowTriggerForEvent('client.created') === 'new_client');
+ok('map idle', ctx.autoflowTriggerForEvent('client.inactive') === 'inactivity');
+ok('map session soon', ctx.autoflowTriggerForEvent('session.soon') === 'session_today');
 ok('map other empty', ctx.autoflowTriggerForEvent('macros.saved') === '');
 
 ctx.window.AUTOFLOWS = [{
@@ -135,6 +149,65 @@ const ran2 = ctx.autoflowOnAppEvent('checkin.submitted', { clientId: 'c1', check
 ok('checkin no double same id', ran2 === 0 && clientMsgs('c1').length === 1);
 const ran3 = ctx.autoflowOnAppEvent('checkin.submitted', { clientId: 'c1', checkinId: 'ci2' });
 ok('checkin again new id', ran3 === 1 && clientMsgs('c1').length === 2);
+
+function resetAf(){
+  ctx.window.AF_STATE = { enrollments: {}, executed: {}, lastFired: {}, logs: [], eventOnce: {} };
+  ctx.window.TASKS = [];
+  ctx.window.SE = [];
+  clearMsgs();
+}
+
+ctx.window._idleDays = { c1: 10 };
+ctx.window.AUTOFLOWS = [{
+  id: 'af-idle', status: 'active', type: 'trigger', trigger: 'inactivity', scope: 'all',
+  name: 'Zastój',
+  steps: [{ type: 'message', day: 14, text: '{imie}, minęły 2 tygodnie' }]
+}];
+resetAf();
+const idle0 = ctx.scanAndEmitInactivity(new Date('2026-09-16T12:00:00.000Z'));
+ok('idle under threshold', idle0 === 0 && clientMsgs('c1').length === 0, 'n=' + idle0);
+
+ctx.window._idleDays = { c1: 20 };
+resetAf();
+const idle1 = ctx.scanAndEmitInactivity(new Date('2026-09-16T12:00:00.000Z'));
+ok('idle emits', idle1 === 1 && clientMsgs('c1').length === 1 && /2 tygodnie/.test(clientMsgs('c1')[0].text), 'n=' + idle1 + ' msgs=' + JSON.stringify(clientMsgs('c1')));
+const idle2 = ctx.scanAndEmitInactivity(new Date('2026-09-16T12:00:00.000Z'));
+ok('idle no double same day', idle2 === 0 && clientMsgs('c1').length === 1, 'n2=' + idle2);
+ctx.runAutoflowsCheck(false);
+ok('poll does not re-fire idle', clientMsgs('c1').length === 1, 'msgs=' + clientMsgs('c1').length);
+
+ctx.window.AUTOFLOWS = [
+  { id: 'af-idle-14', status: 'active', type: 'trigger', trigger: 'inactivity', scope: 'all', name: '14', steps: [{ type: 'message', day: 14, text: '14 dni {imie}' }] },
+  { id: 'af-idle-21', status: 'active', type: 'trigger', trigger: 'inactivity', scope: 'all', name: '21', steps: [{ type: 'message', day: 21, text: '21 dni {imie}' }] }
+];
+ctx.window._idleDays = { c1: 16 };
+resetAf();
+ctx.scanAndEmitInactivity(new Date('2026-09-16T12:00:00.000Z'));
+ok('idle 14 fires 21 waits', clientMsgs('c1').length === 1 && /14 dni/.test(clientMsgs('c1')[0].text), JSON.stringify(clientMsgs('c1')));
+
+const nowSess = new Date('2026-09-16T10:00:00.000Z');
+const sessDay = nowSess.toISOString().split('T')[0];
+ctx.window.SETTINGS = { notifications: { sessionReminderTime: 60 } };
+ctx.window.AUTOFLOWS = [{
+  id: 'af-sess', status: 'active', type: 'trigger', trigger: 'session_today', scope: 'all',
+  name: 'Przypomnienie',
+  steps: [{ type: 'message', day: 1, text: 'Hej {imie}! Trening' }]
+}];
+ctx.window.SE = [{ id: 's1', clientId: 'c1', date: sessDay, time: '18:00', type: 'Siła' }];
+resetAf();
+ctx.window.SE = [{ id: 's1', clientId: 'c1', date: sessDay, time: '18:00', type: 'Siła' }];
+const sess0 = ctx.scanAndEmitSessionToday(nowSess);
+ok('session outside window', sess0 === 0 && clientMsgs('c1').length === 0, 'n=' + sess0);
+
+ctx.window.SE = [{ id: 's1', clientId: 'c1', date: sessDay, time: '10:30', type: 'Siła' }];
+resetAf();
+ctx.window.SE = [{ id: 's1', clientId: 'c1', date: sessDay, time: '10:30', type: 'Siła' }];
+const sess1 = ctx.scanAndEmitSessionToday(nowSess);
+ok('session in window', sess1 === 1 && clientMsgs('c1').length === 1 && /Trening/.test(clientMsgs('c1')[0].text), 'n=' + sess1 + ' ' + JSON.stringify(clientMsgs('c1')));
+const sess2 = ctx.scanAndEmitSessionToday(nowSess);
+ok('session no double', sess2 === 0 && clientMsgs('c1').length === 1, 'n2=' + sess2);
+ctx.runAutoflowsCheck(false);
+ok('poll does not re-fire session', clientMsgs('c1').length === 1);
 
 if (failed) process.exit(1);
 console.log('\nAll autoflow-events tests passed');

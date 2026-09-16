@@ -103,6 +103,7 @@ ok('habit weeks',hw.length===4&&hw.some(w=>w.due>0));
 const svg=sandbox.cpPctBarChart([{l:'T1',pct:50},{l:'T2',pct:80}]);
 ok('pct svg',/cp-chart-svg/.test(svg)&&/50%/.test(svg));
 
+ok('cache bumps',html.includes('08-client-profile-extras.js?v=61')&&html.includes('04-client-portal.js?v=52')&&html.includes('styles.css?v=89'));
 ok('cache bumps',html.includes('08-client-profile-extras.js?v=61')&&html.includes('04-client-portal.js?v=50')&&html.includes('styles.css?v=90'));
 ok('cache bumps',html.includes('08-client-profile-extras.js?v=61')&&html.includes('04-client-portal.js?v=51')&&html.includes('styles.css?v=89'));
 

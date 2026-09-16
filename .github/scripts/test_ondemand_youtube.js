@@ -175,6 +175,7 @@ ok('html collection films mount', fs.readFileSync(path.join(root, 'index.html'),
 ok('html coll options tabata hiit', /id="odw-coll"[\s\S]*value="hiit"[\s\S]*value="tabata"[\s\S]*value="oddech"/.test(fs.readFileSync(path.join(root, 'index.html'), 'utf8')));
 ok('cache 09', /09-posture-kb-invites-private.js\?v=49/.test(fs.readFileSync(path.join(root, 'index.html'), 'utf8')));
 ok('cache 09', /09-posture-kb-invites-private\.js\?v=49/.test(fs.readFileSync(path.join(root, 'index.html'), 'utf8')));
+  ok('cache 04', /04-client-portal\.js\?v=52/.test(fs.readFileSync(path.join(root, 'index.html'), 'utf8')));
   ok('cache 04', /04-client-portal\.js\?v=50/.test(fs.readFileSync(path.join(root, 'index.html'), 'utf8')));
 ok('cache 09', /09-posture-kb-invites-private.js\?v=48/.test(fs.readFileSync(path.join(root, 'index.html'), 'utf8')));
 ok('cache 09', /09-posture-kb-invites-private\.js\?v=48/.test(fs.readFileSync(path.join(root, 'index.html'), 'utf8')));
