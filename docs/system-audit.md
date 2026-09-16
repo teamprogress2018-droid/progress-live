@@ -14,7 +14,7 @@ Stack: **vanilla JS + Firestore + GitHub Pages** (nie React/Next/Tailwind). Stan
 | TDEE → karta klienta bez czatu | „Wyślij do klienta” zapisywało makro *i* pisało na czat. Brak „Zapisz w profilu”. | `calcSaveToClient` / `applyMacrosToClient` |
 | Szyna zdarzeń | `fireIntEvent` szło tylko na Zapier/Make. Brak lokalnego busa (`client.created`, `macros.saved`). | `emitAppEvent` |
 | Brama płatności ↔ kalendarz / Live | **Zrobione:** `clientHasPaidAccess` + Trial / Gość. Nieopłacony/wygasły pakiet blokuje `schedulePlanToCalendar` i Live Start. Live End zdejmuje sesje tylko z `payStatus:'paid'`. | `01-core.js`, Live, profil → Płatności |
-| Event-driven automatyzacja | **Zrobione:** Autoflow nasłuchuje `emitAppEvent` — `package.expired`, `checkin.submitted`, `client.created` (`new_client`). Poll zostaje dla `inactivity` / `session_today`. | `09-…js` `autoflowOnAppEvent` |
+| Event-driven automatyzacja | **Zrobione:** Autoflow nasłuchuje `emitAppEvent` — `package.expired`, `checkin.submitted`, `client.created`, `client.inactive`, `session.soon`. Skan (ten sam zegar co pulpit) emituje zastój i sesję w oknie przypomnienia. Poll zostaje tylko dla sekwencji dni. | `09-…js` `autoflowOnAppEvent` |
 | Live: IndexedDB + kolejka sync | **Zrobione:** `source:'live-draft'` przy starcie i co 3 serie + IndexedDB + LS. Koniec sesji zamienia ten sam dokument na `source:'live'`. | `liveSaveDraft` / `livePersistDraftRemote` w `02-…js` |
 | Tagi KB ↔ builder | MEV/MAV/RIR są w promptach AI i przewodniku objętości, nie jako tagi rekordów bazy wiedzy powiązane z ćwiczeniem/dniem planu. | `01-core.js` evidence + `03-…js` prompt |
 
@@ -51,9 +51,9 @@ Powiadomienia: **jeden skan, dwa widoki**
 
 1. `collectOpsEvents` — skan klientów (TTL 15 s) → pulpit Uwaga + Przypomnienia
 2. `generateAutoNotifs` — dzwonek: sesje dziś / pakiety **oraz** pozycje `attention` z tego samego skanu (`opsEventNotifKey`)
-3. Autoflow `AF_STATE` — enrollmenty na `emitAppEvent` (osobna maszyna stanów, nie lista alertów)
+3. Autoflow `AF_STATE` — enrollmenty na `emitAppEvent` (osobna maszyna stanów, nie lista alertów). Zastój / sesja dziś: `scanAndEmitInactivity` + `scanAndEmitSessionToday` z tego samego zegara.
 
-Zegar: `startOpsScanClock` co 60 s gdy karta widoczna + `visibilitychange`. Nie ma crona po stronie serwera (GitHub Pages).
+Zegar: `startOpsScanClock` co 60 s gdy karta widoczna + `visibilitychange` — pulpit, dzwonek i Autoflow. Nie ma crona po stronie serwera (GitHub Pages).
 
 ---
 
@@ -111,7 +111,7 @@ Wejścia: `saveClient` (modal NOWY KLIENT). Checklista: `openClientOnboardCheckl
 | `02-…-live.js` | Wizard usunięty; Ustawienia = legenda 6 kroków + CTA Automatyzacja; Live draft LS + IDB + Firestore `live-draft` — **zrobione** |
 | `04-client-portal.js` | `collectOpsEvents` + `refreshDashOps` (bez martwych follow-upów) — **zrobione** |
 | `07-forms-metrics-calculator.js` | TDEE save — **zrobione** |
-| `09-posture-kb-invites-private.js` | `runOnboardingForClient(opts)`; Autoflow na `emitAppEvent` (`package.expired`, `checkin.submitted`) — **zrobione** |
+| `09-posture-kb-invites-private.js` | `runOnboardingForClient(opts)`; Autoflow na `emitAppEvent` (`package.expired`, `checkin.submitted`, `client.inactive`, `session.soon`) — **zrobione** |
 | `index.html` | Nav grupy, e-mail required, przycisk TDEE |
 | `06-inbox-…js` | Filtry inbox `kind` — **zrobione** |
 | `10-client-app.js` | Banner nieopłaconego pakietu; brama Live/kalendarz przez `clientHasPaidAccess` |
@@ -137,3 +137,4 @@ Wejścia: `saveClient` (modal NOWY KLIENT). Checklista: `openClientOnboardCheckl
 12. **Płatności: filtry po `clientId`** — **zrobione:** chipy Pakietów i select Historii (`payClientsFromPackages`). To samo imię = dwa chipy / dwie opcje, nie jedna wspólna lista.
 14. **Ustawienia startu współpracy** — **zrobione:** legenda `CLIENT_ONBOARD_STEPS` (6/6), bez checkboxów `msgSteps`. Auto-wiadomość = Automatyzacja. Przypomnienia i kontrakt zostają jako notatki — aplikacja ich nie wysyła.
 16. **Jeden skan operacyjny** — **zrobione:** `generateAutoNotifs` bierze `attention` z `collectOpsEvents`. `startOpsScanClock` co 60 s + powrót na kartę. Autoflow zostaje na zdarzeniach.
+17. **Autoflow zastój / sesja dziś** — **zrobione:** `client.inactive` i `session.soon` z zegara skanu (`scanAndEmitInactivity` / `scanAndEmitSessionToday`). Poll w `runAutoflowsCheck` tylko sekwencje dni.

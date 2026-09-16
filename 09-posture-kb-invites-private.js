@@ -3241,7 +3241,17 @@ function autoflowTriggerForEvent(type){
   if(t==='client.created')return 'new_client';
   if(t==='package.expired'||t==='onPackageExpired')return 'package.expired';
   if(t==='checkin.submitted'||t==='checkin.completed'||t==='onCheckInSubmitted')return 'checkin.submitted';
+  if(t==='client.inactive'||t==='inactivity')return 'inactivity';
+  if(t==='session.soon'||t==='session_today')return 'session_today';
   return '';
+}
+
+function autoflowEventKey(kind,payload){
+  const p=payload||{};
+  const cid=p.clientId||(p.client&&p.client.id)||'';
+  const todayISO=(p.date||new Date().toISOString().split('T')[0]);
+  if(kind==='inactivity'||kind==='session_today')return kind+':'+cid+':'+todayISO;
+  return kind+':'+(p.checkinId||p.packageId||cid);
 }
 
 function fireAutoflowTrigger(af,c,eventKey){
@@ -3253,14 +3263,27 @@ function fireAutoflowTrigger(af,c,eventKey){
   if(!state.executed[af.id][c.id])state.executed[af.id][c.id]={};
   if(!state.lastFired[af.id])state.lastFired[af.id]={};
   if(!state.lastFired[af.id][c.id])state.lastFired[af.id][c.id]={};
-  const todayISO=new Date().toISOString().split('T')[0];
+  const today=new Date();
+  const todayISO=today.toISOString().split('T')[0];
+  const kind=af.trigger||'inactivity';
+  const cooldownDays=kind==='inactivity'?7:kind==='session_today'?1:0;
   let ran=0;
   const oneShot=af.trigger==='new_client';
   (af.steps||[]).forEach((step,si)=>{
     if(step.type==='wait')return;
+    if(kind==='inactivity'){
+      const inactiveDays=(typeof formatClientActivity==='function'?formatClientActivity(c.id).days:0);
+      const threshold=step.day||14;
+      if(!(inactiveDays>=threshold))return;
+    }
     const mark=String(eventKey||'ev')+':'+si;
     if(state.executed[af.id][c.id][mark])return;
     if(oneShot&&state.executed[af.id][c.id][si])return;
+    if(cooldownDays){
+      const lastFired=state.lastFired[af.id][c.id][si];
+      const daysSinceLastFired=lastFired?Math.floor((today-new Date(lastFired))/86400000):999;
+      if(daysSinceLastFired<cooldownDays)return;
+    }
     execAFStep(step,c,af);
     state.executed[af.id][c.id][mark]=true;
     if(oneShot)state.executed[af.id][c.id][si]=true;
@@ -3278,7 +3301,7 @@ function autoflowOnAppEvent(type,payload){
   const cid=p.clientId||(p.client&&p.client.id);
   const c=(window.CL||[]).find(x=>x&&x.id===cid);
   if(!c)return 0;
-  const eventKey=kind+':'+(p.checkinId||p.packageId||cid);
+  const eventKey=autoflowEventKey(kind,p);
   let ran=0;
   (window.AUTOFLOWS||[]).filter(af=>af&&af.status==='active'&&af.type==='trigger'&&af.trigger===kind).forEach(af=>{
     ran+=fireAutoflowTrigger(af,c,eventKey);
@@ -3307,11 +3330,77 @@ function scanAndEmitPackageExpired(todayY){
   return n;
 }
 
+function scanAndEmitInactivity(now){
+  const afs=(window.AUTOFLOWS||[]).filter(af=>af&&af.status==='active'&&af.type==='trigger'&&(af.trigger||'inactivity')==='inactivity');
+  if(!afs.length)return 0;
+  let minDays=999;
+  afs.forEach(af=>(af.steps||[]).forEach(st=>{
+    if(st.type==='wait')return;
+    minDays=Math.min(minDays,st.day||14);
+  }));
+  if(!isFinite(minDays)||minDays===999)minDays=14;
+  const t=now||new Date();
+  const todayISO=t.toISOString().split('T')[0];
+  const state=ensureAfState();
+  state.eventOnce=state.eventOnce||{};
+  let n=0;
+  const seen=new Set();
+  afs.forEach(af=>{
+    afClientsFor(af).forEach(c=>{
+      if(!c||!c.id||seen.has(c.id))return;
+      seen.add(c.id);
+      const days=(typeof formatClientActivity==='function'?formatClientActivity(c.id).days:0);
+      if(!(days>=minDays))return;
+      const key='client.inactive:'+c.id+':'+todayISO;
+      if(state.eventOnce[key])return;
+      state.eventOnce[key]=true;
+      n++;
+      if(typeof emitAppEvent==='function')emitAppEvent('client.inactive',{clientId:c.id,days:days,date:todayISO});
+    });
+  });
+  if(n)saveAutomationState();
+  return n;
+}
+
+function scanAndEmitSessionToday(now){
+  const afs=(window.AUTOFLOWS||[]).filter(af=>af&&af.status==='active'&&af.type==='trigger'&&af.trigger==='session_today');
+  if(!afs.length)return 0;
+  const t=now||new Date();
+  const todayISO=t.toISOString().split('T')[0];
+  const leadMin=parseInt(window.SETTINGS&&window.SETTINGS.notifications&&window.SETTINGS.notifications.sessionReminderTime,10)||60;
+  const state=ensureAfState();
+  state.eventOnce=state.eventOnce||{};
+  let n=0;
+  const seen=new Set();
+  afs.forEach(af=>{
+    afClientsFor(af).forEach(c=>{
+      if(!c||!c.id||seen.has(c.id))return;
+      const sessions=(window.SE||[]).filter(s=>s&&s.clientId===c.id&&s.date===todayISO&&s.source!=='live-draft');
+      const hit=sessions.find(s=>{
+        if(!s.time)return true;
+        const at=new Date(s.date+'T'+s.time+':00');
+        const diffMin=Math.round((at.getTime()-t.getTime())/60000);
+        return diffMin>=0&&diffMin<=leadMin;
+      });
+      if(!hit)return;
+      seen.add(c.id);
+      const key='session.soon:'+c.id+':'+todayISO;
+      if(state.eventOnce[key])return;
+      state.eventOnce[key]=true;
+      n++;
+      if(typeof emitAppEvent==='function')emitAppEvent('session.soon',{clientId:c.id,sessionId:hit.id,time:hit.time||'',date:todayISO});
+    });
+  });
+  if(n)saveAutomationState();
+  return n;
+}
+
 function runAutoflowsCheck(showToast){
   try{scanAndEmitPackageExpired();}catch(e){}
+  try{scanAndEmitInactivity();}catch(e){}
+  try{scanAndEmitSessionToday();}catch(e){}
   const state=ensureAfState();
   const today=new Date();
-  const todayISO=today.toISOString().split('T')[0];
   let changed=false;
   let ran=0;
   (window.AUTOFLOWS||[]).filter(af=>af.status==='active').forEach(af=>{
@@ -3333,32 +3422,15 @@ function runAutoflowsCheck(showToast){
           }
         }else{
           const kind=af.trigger||'inactivity';
+          if(kind==='package.expired'||kind==='checkin.submitted'||kind==='inactivity'||kind==='session_today')return;
           if(!state.lastFired[af.id][c.id])state.lastFired[af.id][c.id]={};
-          const lastFired=state.lastFired[af.id][c.id][si];
-          const daysSinceLastFired=lastFired?Math.floor((today-new Date(lastFired))/86400000):999;
           let fire=false;
-          if(kind==='inactivity'){
-            const inactiveDays=(typeof formatClientActivity==='function'?formatClientActivity(c.id).days:0);
-            const threshold=step.day||14;
-            fire=inactiveDays>=threshold&&daysSinceLastFired>=7;
-          }else if(kind==='session_today'){
-            const leadMin=parseInt(window.SETTINGS?.notifications?.sessionReminderTime,10)||60;
-            const sessions=(window.SE||[]).filter(s=>s.clientId===c.id&&s.date===todayISO);
-            const hasWindow=sessions.some(s=>{
-              if(!s.time)return true;
-              const at=new Date(s.date+'T'+s.time+':00');
-              const diffMin=Math.round((at.getTime()-today.getTime())/60000);
-              return diffMin>=0&&diffMin<=leadMin;
-            });
-            fire=hasWindow&&daysSinceLastFired>=1;
-          }else if(kind==='new_client'){
+          if(kind==='new_client'){
             fire=!state.executed[af.id][c.id][si];
-          }else if(kind==='package.expired'||kind==='checkin.submitted'){
-            fire=false;
           }
           if(fire){
             execAFStep(step,c,af);
-            state.lastFired[af.id][c.id][si]=todayISO;
+            state.lastFired[af.id][c.id][si]=today.toISOString().split('T')[0];
             state.executed[af.id][c.id][si]=true;
             changed=true;ran++;
           }
@@ -4138,6 +4210,8 @@ window.addAFStep=addAFStep;window.saveAutoflow=saveAutoflow;
 window.runAutoflowsCheck=runAutoflowsCheck;window.deleteAutoflow=deleteAutoflow;
 window.autoflowOnAppEvent=autoflowOnAppEvent;window.autoflowTriggerForEvent=autoflowTriggerForEvent;
 window.fireAutoflowTrigger=fireAutoflowTrigger;window.scanAndEmitPackageExpired=scanAndEmitPackageExpired;
+window.scanAndEmitInactivity=scanAndEmitInactivity;window.scanAndEmitSessionToday=scanAndEmitSessionToday;
+window.autoflowEventKey=autoflowEventKey;
 if(typeof ensureReminderAutoflowsFromSettings==='function')ensureReminderAutoflowsFromSettings();
 window.updateAfBuilderUi=updateAfBuilderUi;window.fillAutomationSelects=fillAutomationSelects;
 window.setResTab=setResTab;window.setResNav=setResNav;window.renderResources=renderResources;

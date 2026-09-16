@@ -5062,7 +5062,7 @@ function clientLifecycleStatus(c){
 }
 /**
  * Szyna zdarzeń CRM (in-memory + webhook Integracji).
- * Typy: client.created | plan.assigned | calendar.scheduled | macros.saved | checkin.submitted | package.expired
+ * Typy: client.created | plan.assigned | calendar.scheduled | macros.saved | checkin.submitted | package.expired | client.inactive | session.soon
  */
 function emitAppEvent(type,payload){
   const ev={type:String(type||''),at:new Date().toISOString(),payload:payload||{}};

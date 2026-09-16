@@ -51,7 +51,9 @@ function ok(name, cond, extra) {
     const afterCi = sel && sel.value;
     const map = typeof autoflowTriggerForEvent === 'function' ? {
       pkg: autoflowTriggerForEvent('package.expired'),
-      ci: autoflowTriggerForEvent('checkin.submitted')
+      ci: autoflowTriggerForEvent('checkin.submitted'),
+      idle: autoflowTriggerForEvent('client.inactive'),
+      soon: autoflowTriggerForEvent('session.soon')
     } : {};
     return {
       opts,
@@ -69,7 +71,7 @@ function ok(name, cond, extra) {
   ok('builder opens', ui.modalShow && ui.wrapDisplay === 'block', JSON.stringify({ modal: ui.modalShow, wrap: ui.wrapDisplay }));
   ok('can select package', ui.afterPkg === 'package.expired');
   ok('can select checkin', ui.afterCi === 'checkin.submitted');
-  ok('event map', ui.map.pkg === 'package.expired' && ui.map.ci === 'checkin.submitted', JSON.stringify(ui.map));
+  ok('event map', ui.map.pkg === 'package.expired' && ui.map.ci === 'checkin.submitted' && ui.map.idle === 'inactivity' && ui.map.soon === 'session_today', JSON.stringify(ui.map));
 
   await browser.close();
   if (failed) {

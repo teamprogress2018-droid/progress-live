@@ -4710,6 +4710,7 @@ function startOpsScanClock(){
       if(typeof collectOpsEvents==='function')collectOpsEvents(true);
       generateAutoNotifs();
       if(typeof refreshDashOps==='function')refreshDashOps();
+      if(typeof runAutoflowsCheck==='function')runAutoflowsCheck(false);
     }catch(e){}
   };
   window._opsScanClock=setInterval(function(){
