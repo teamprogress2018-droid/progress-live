@@ -25,18 +25,20 @@ ok('kb kinds UI',html.includes('id="kb-kind"')&&html.includes('value="evidence"'
 ok('kb filters',html.includes('setKbFilter')&&html.includes('kb-builtin-preview'));
 ok('import pack',src09.includes('kbImportBuiltinPack'));
 ok('kb default note',html.includes('value="note">Notatka</option>')&&src09.includes("p.kind||'note'"));
-ok('kbContext no leftover dump',!src09.includes('POZOSTAŁE NOTATKI TRENERA')&&src09.includes('planningEvidenceContext(3500)'));
+ok('kbContext no leftover dump',!src09.includes('POZOSTAŁE NOTATKI TRENERA')&&src09.includes('planningEvidenceContext(3500,opts||{})'));
 ok('note+evidence first-class',core.includes("kind==='note'||kind==='evidence'||kind==='principle'"));
 ok('user notes before builtins',core.includes('user.map(mapUser).concat(builtins.map'));
 ok('kbContext uses planning',/function kbContextForAI[\s\S]{0,400}planningEvidenceContext/.test(src09));
 ok('aplGenerate uses kb context',src03.includes('kbContextForAI()'));
 ok('askAI safety+watch', /clientSafetyContextForAI/.test(src06) && /clientMonitorContextForAI/.test(src06));
+ok('kb tag picker UI',html.includes('id="kb-tag-picker"')&&html.includes('builder-kb-hits'));
+ok('askAI prefers builder tags',src06.includes('preferTags')&&src06.includes('builderCollectKbTags'));
 ok('copy notes+evidence',html.includes('notatki i badania'));
 
 const sandbox={window:{KB:[]},console};
 vm.createContext(sandbox);
 const start=core.indexOf('const BUILTIN_PLANNING_EVIDENCE=');
-const end=core.indexOf('window.normalizeKbKind=normalizeKbKind;')+'window.normalizeKbKind=normalizeKbKind;'.length;
+const end=core.indexOf('window.kbEntriesForBuilder=kbEntriesForBuilder;')+'window.kbEntriesForBuilder=kbEntriesForBuilder;'.length;
 ok('evidence slice',start>=0&&end>start);
 vm.runInContext(core.slice(start,end),sandbox);
 
@@ -66,6 +68,23 @@ ok('cache bumps',html.includes('01-core.js?v=106')&&html.includes('09-posture-kb
 const wf=fs.readFileSync(path.join(root,'.github/workflows/check.yml'),'utf8');
 ok('CI ui',wf.includes('test_kb_notes_evidence_ui.js'));
 ok('cache bumps',html.includes('01-core.js?v=106')&&html.includes('09-posture-kb-invites-private.js?v=49'));
+const vol=list.find(e=>e.id==='bev_vol')||sandbox.getPlanningEvidenceEntries().find(e=>e.id==='bev_vol');
+ok('builtin vol tagged mev',vol&&sandbox.kbTagsForEntry(vol).includes('mev')&&sandbox.kbTagsForEntry(vol).includes('mav'));
+ok('text infers klatka',sandbox.kbTagsFromText('Wyciskanie klatki na ławce').includes('klatka'));
+ok('normalize muscle alias',sandbox.normalizeKbTags(['chest','MEV']).join(',')==='klatka,mev');
+sandbox.window.KB=[
+  {id:'chest',kind:'note',title:'Priorytet klatki',text:'Więcej rozpiętek.',tags:['klatka'],useInPlanning:true},
+  {id:'quad',kind:'note',title:'Hack squat',text:'Quady na suwnicy.',tags:['quady'],useInPlanning:true}
+];
+const chestHits=sandbox.kbEntriesForBuilder(['klatka','mev'],{limit:12});
+ok('chest note on chest day',chestHits.some(h=>h.entry.title==='Priorytet klatki'));
+ok('quad note not on chest day',!chestHits.some(h=>h.entry.title==='Hack squat'));
+ok('ctx tags line',sandbox.planningEvidenceContext(8000,{preferTags:['klatka']}).includes('Tagi:'));
+
+ok('cache bumps',html.includes('01-core.js?v=108')&&html.includes('09-posture-kb-invites-private.js?v=49'));
+const wf=fs.readFileSync(path.join(root,'.github/workflows/check.yml'),'utf8');
+ok('CI ui',wf.includes('test_kb_notes_evidence_ui.js'));
+ok('cache bumps',html.includes('01-core.js?v=108')&&html.includes('09-posture-kb-invites-private.js?v=49'));
 
 if(failed){console.error(failed+' failed');process.exit(1);}
 console.log('\nAll evidence-base tests passed');

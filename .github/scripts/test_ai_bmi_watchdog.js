@@ -37,6 +37,8 @@ ok('dash + auto notifs', /Regres/.test(src04) && /maybeNotifyTrainerMonitor/.tes
 ok('monitor context', /function clientMonitorContextForAI/.test(src08) && /function maybeNotifyTrainerMonitor/.test(src08));
 ok('profile banner', /cp-bmi-banner/.test(src08) && css.includes('.ai-watch-card') && css.includes('.cp-bmi-banner'));
 ok('cache', html.includes('07-forms-metrics-calculator.js?v=39') && html.includes('08-client-profile-extras.js?v=61') && html.includes('06-inbox-exercises-ai-programs.js?v=78') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=37') && html.includes('04-client-portal.js?v=52') && html.includes('styles.css?v=89'));
+ok('cache', html.includes('07-forms-metrics-calculator.js?v=39') && html.includes('08-client-profile-extras.js?v=61') && html.includes('06-inbox-exercises-ai-programs.js?v=79') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=37') && html.includes('04-client-portal.js?v=50') && html.includes('styles.css?v=90'));
+ok('cache', html.includes('07-forms-metrics-calculator.js?v=39') && html.includes('08-client-profile-extras.js?v=61') && html.includes('06-inbox-exercises-ai-programs.js?v=78') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=37') && html.includes('04-client-portal.js?v=51') && html.includes('styles.css?v=89'));
 ok('CI', wf.includes('test_ai_bmi_watchdog.js') && wf.includes('test_ai_bmi_watchdog_ui.js'));
 
 const document = { getElementById: () => null, querySelectorAll: () => [], addEventListener() {} };
