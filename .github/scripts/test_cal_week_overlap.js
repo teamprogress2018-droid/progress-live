@@ -19,8 +19,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 05 v71', html.includes('05-clients-builder-plans-calendar.js?v=74'));
-ok('cache styles v86', html.includes('styles.css?v=89'));
+ok('cache 05 v71', html.includes('05-clients-builder-plans-calendar.js?v=76'));
+ok('cache styles v86', html.includes('styles.css?v=90'));
 ok('ci unit', wf.includes('test_cal_week_overlap.js'));
 ok('ci ui', wf.includes('test_cal_week_overlap_ui.js'));
 ok('layout helper', /function calWeekHourBucket/.test(cal) && /function calSessionStartMin/.test(cal));

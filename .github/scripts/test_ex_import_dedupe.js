@@ -19,8 +19,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 06 v76', html.includes('06-inbox-exercises-ai-programs.js?v=78'));
-ok('cache styles v88', html.includes('styles.css?v=89'));
+ok('cache 06 v76', html.includes('06-inbox-exercises-ai-programs.js?v=79'));
+ok('cache styles v88', html.includes('styles.css?v=90'));
 ok('ci unit', wf.includes('test_ex_import_dedupe.js'));
 ok('ci ui', wf.includes('test_ex_import_dedupe_ui.js'));
 ok('button markup', html.includes('id="lib-sweep-dups"') && html.includes('Usuń duplikaty'));

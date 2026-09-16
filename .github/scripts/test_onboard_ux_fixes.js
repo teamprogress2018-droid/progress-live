@@ -31,7 +31,7 @@ ok('whatsapp copies instead of forcing app', src09.includes('Kopiuj wiadomość'
 ok('live clears other client plan', src02.includes('p.clientId!==st.clientId') && src02.includes('st.exercises=[]') && src02.includes('st.planId=null'));
 ok('homework lists all client names', src06.includes('Klienci: ${hwNames.map(esc).join') && src09.includes('function ahwRenderClientList') && src09.includes('ahw-client-search') && !src06.includes('.slice(0,8)'));
 ok('print overlay not clipped', css.includes('#report-overlay{') && css.includes('position:static!important') && css.includes('overflow:visible!important'));
-ok('cache pins', html.includes('02-workouts-onboarding-templates-live.js?v=73') && html.includes('05-clients-builder-plans-calendar.js?v=74') && html.includes('06-inbox-exercises-ai-programs.js?v=78') && html.includes('08-client-profile-extras.js?v=61') && html.includes('09-posture-kb-invites-private.js?v=48') && html.includes('styles.css?v=89'));
+ok('cache pins', html.includes('02-workouts-onboarding-templates-live.js?v=73') && html.includes('05-clients-builder-plans-calendar.js?v=76') && html.includes('06-inbox-exercises-ai-programs.js?v=79') && html.includes('08-client-profile-extras.js?v=61') && html.includes('09-posture-kb-invites-private.js?v=49') && html.includes('styles.css?v=90'));
 ok('CI', wf.includes('test_onboard_ux_fixes.js') && wf.includes('test_onboard_ux_fixes_ui.js'));
 
 if (failed) {
