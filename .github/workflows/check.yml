@@ -210,6 +210,8 @@ jobs:
         run: node .github/scripts/test_dash_forms_followup.js
       - name: 1n12b. Testy panelu operacyjnego (dashboard)
         run: node .github/scripts/test_dash_ops_panel.js
+      - name: 1n12c. Testy skanu operacyjnego (dzwonek + zegar)
+        run: node .github/scripts/test_ops_scan.js
       - name: 1n11. Testy widoczności płatności (klient + dashboard)
         run: node .github/scripts/test_client_payments_visible.js
       - name: 1n11b. Testy bramy pakietu (kalendarz / Live)
