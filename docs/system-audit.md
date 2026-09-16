@@ -17,6 +17,7 @@ Stack: **vanilla JS + Firestore + GitHub Pages** (nie React/Next/Tailwind). Stan
 | Event-driven automatyzacja | **Zrobione:** Autoflow nasłuchuje `emitAppEvent` — `package.expired`, `checkin.submitted`, `client.created` (`new_client`). Poll zostaje dla `inactivity` / `session_today`. | `09-…js` `autoflowOnAppEvent` |
 | Live: IndexedDB + kolejka sync | **Zrobione:** `source:'live-draft'` przy starcie i co 3 serie + IndexedDB + LS. Koniec sesji zamienia ten sam dokument na `source:'live'`. | `liveSaveDraft` / `livePersistDraftRemote` w `02-…js` |
 | Tagi KB ↔ builder | **Świadomie poza kolejką:** MEV/MAV/RIR zostają w przewodniku trenera i promptach AI, nie jako tagi rekordów KB na ćwiczeniu/dniu planu. | `01-core.js` evidence + `03-…js` prompt |
+| Tagi KB ↔ builder | **Zrobione:** tagi landmark (MEV/MAV/MRV/RIR/RPE/częstotliwość/deload) i partii na wpisie KB. Kreator pokazuje dopasowane notatki przy dniu i w panelu „Baza na ten plan”. Mowa do klienta bez żargonu. | `kbEntriesForBuilder` + `#builder-kb-hits` |
 
 ---
 
@@ -47,13 +48,13 @@ ONBOARDING_FLOW        →  Autoflow trigger new_client + checklista CLIENT_ONBO
 clientName             →  plans, packages, invoices, historia onboardingu (cache; rename nie przepisuje)
 ```
 
-Powiadomienia: **trzy niezależne systemy**
+Powiadomienia: **jeden skan, dwa widoki**
 
-1. `NOTIFICATIONS` / `addNotification` / `generateAutoNotifs` (dzwonek, Firestore)
-2. `collectOpsEvents` → dashboard Uwaga + Przypomnienia (teraz jedno źródło, cache 15 s)
-3. Autoflow `AF_STATE` (osobne enrollmenty)
+1. `collectOpsEvents` — skan klientów (TTL 15 s) → pulpit Uwaga + Przypomnienia
+2. `generateAutoNotifs` — dzwonek: sesje dziś / pakiety **oraz** pozycje `attention` z tego samego skanu (`opsEventNotifKey`)
+3. Autoflow `AF_STATE` — enrollmenty na `emitAppEvent` (osobna maszyna stanów, nie lista alertów)
 
-Nie ma crona. „Wymagają uwagi” było **synchronicznym skanem wszystkich klientów przy każdym `renderDashOps`** (check-in + 14 dni `SE` + BMI watchdog). Teraz ten sam skan jest w `collectOpsEvents` z TTL 15 s — nadal klient-side, bez backendu.
+Zegar: `startOpsScanClock` co 60 s gdy karta widoczna + `visibilitychange`. Nie ma crona po stronie serwera (GitHub Pages).
 
 ---
 
@@ -98,7 +99,7 @@ Wejścia: `saveClient` (modal NOWY KLIENT). Checklista: `openClientOnboardCheckl
 
 **Płatności.** Statystyki przy zerze transakcji — UI puste stany już są; nie dokładać KPI. Brama dostępu: `clientHasPaidAccess`. Pulpit: wygasające pakiety tylko w „Płatności do odnowienia”.
 
-**TDEE / KB.** TDEE zapisuje `c.macros`. KB nie steruje builderem (świadomie: żargon MEV zostaje w przewodniku trenera, nie w mowie do klienta).
+**TDEE / KB.** TDEE zapisuje `c.macros`. Tagi KB (MEV/RIR/partia) sterują panelem kreatora i kolejnością kontekstu AI — żargon nadal nie idzie do mowy klienta.
 
 ---
 
@@ -150,3 +151,5 @@ Pozycje **1–14** z §7 są wdrożone. Tabela §1 (cykl życia, TDEE bez czatu,
 - **Brak crona** — skan operacyjny zostaje klient-side (`collectOpsEvents`, TTL 15 s). Bez backendu nie ma nocnego joba.
 
 Kalendarz (poza §7): tydzień 7 równych kolumn (#305/#306), brak dublowania sesji o tej samej godzinie (#307).
+15. **Tagi KB ↔ builder** — **zrobione:** `tags[]` na wpisie (MEV/MAV/RIR/partia). Kreator: `#builder-kb-hits` + pasek dnia. AI (`askAI`) sortuje kontekst po tagach planu.
+16. **Jeden skan operacyjny** — **zrobione:** `generateAutoNotifs` bierze `attention` z `collectOpsEvents`. `startOpsScanClock` co 60 s + powrót na kartę. Autoflow zostaje na zdarzeniach.

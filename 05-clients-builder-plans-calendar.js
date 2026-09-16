@@ -1058,9 +1058,75 @@ function builderRefreshMethodHint(){
 }
 function builderRefreshRationale(){
   builderRefreshMethodHint();
+  if(typeof builderRefreshKbHits==='function')builderRefreshKbHits();
 }
 window.builderRefreshRationale=builderRefreshRationale;
 window.builderEduCtx=builderEduCtx;
+
+function builderKbTextForDay(dayEl){
+  if(!dayEl)return '';
+  const bits=[];
+  bits.push((dayEl.querySelector('.builder-day-focus')||{}).value||'');
+  dayEl.querySelectorAll('[data-f="name"]').forEach(inp=>{
+    const name=(inp.value||'').trim();
+    if(!name)return;
+    bits.push(name);
+    const ex=typeof libExerciseByName==='function'?libExerciseByName(name):null;
+    if(ex)bits.push(ex.muscle||'',ex.cat||'');
+  });
+  return bits.join(' ');
+}
+function builderCollectKbTags(dayEl){
+  const bits=[];
+  const method=(document.getElementById('b-method')||{}).value||'';
+  bits.push(method);
+  if(dayEl)bits.push(builderKbTextForDay(dayEl));
+  else document.querySelectorAll('#builder-days .builder-day').forEach(d=>bits.push(builderKbTextForDay(d)));
+  const tags=typeof kbTagsFromText==='function'?kbTagsFromText(bits.join(' ')):[];
+  ['mev','mav','rir','rpe','deload'].forEach(id=>{if(tags.indexOf(id)<0)tags.push(id);});
+  if(/ppl|upper|fbw|full body/i.test(method)&&tags.indexOf('freq')<0)tags.push('freq');
+  return typeof normalizeKbTags==='function'?normalizeKbTags(tags):tags;
+}
+function builderKbHitHtml(hit){
+  const e=hit&&hit.entry;if(!e)return '';
+  const esc=typeof escHtml==='function'?escHtml:(s=>String(s??''));
+  const labels=typeof kbTagLabels==='function'?kbTagLabels(hit.tags||[]):[];
+  const text=String(e.text||'');
+  const short=text.length>140?text.slice(0,137)+'…':text;
+  return `<div class="builder-kb-hit">
+    ${labels.length?`<div class="builder-kb-hit-tags">${labels.map(l=>`<span class="kb-tag">${esc(l)}</span>`).join('')}</div>`:''}
+    <div class="builder-kb-hit-title">${esc(e.title||'')}</div>
+    <div class="builder-kb-hit-text">${esc(short)}</div>
+  </div>`;
+}
+function builderRefreshKbHits(){
+  const hitsFn=typeof kbEntriesForBuilder==='function'?kbEntriesForBuilder:null;
+  const planTags=builderCollectKbTags();
+  const planHits=hitsFn?hitsFn(planTags,{limit:6}):[];
+  const box=document.getElementById('builder-kb-hits');
+  if(box){
+    if(!planHits.length)box.innerHTML='<div class="ui-section-sub">Brak dopasowanych wpisów. Dodaj tag MEV / partię w Bazie wiedzy.</div>';
+    else box.innerHTML=planHits.map(builderKbHitHtml).join('');
+  }
+  document.querySelectorAll('#builder-days .builder-day').forEach(dayEl=>{
+    const strip=dayEl.querySelector('.builder-day-kb');
+    if(!strip)return;
+    if(dayEl.querySelector('.rc')&&dayEl.querySelector('.rc').checked){
+      strip.hidden=true;strip.innerHTML='';return;
+    }
+    const dayHits=hitsFn?hitsFn(builderCollectKbTags(dayEl),{limit:10}):[];
+    const muscleHits=dayHits.filter(h=>{
+      const mt=typeof kbMuscleTags==='function'?kbMuscleTags(h.tags||[]):[];
+      return mt.length>0;
+    });
+    const show=muscleHits.length?muscleHits:dayHits.filter(h=>h.score>0).slice(0,2);
+    if(!show.length){strip.hidden=true;strip.innerHTML='';return;}
+    strip.hidden=false;
+    strip.innerHTML=show.map(builderKbHitHtml).join('');
+  });
+}
+window.builderCollectKbTags=builderCollectKbTags;
+window.builderRefreshKbHits=builderRefreshKbHits;
 
 function toggleBuilderSidebar(forceOpen){
   const layout=document.querySelector('#screen-builder .builder-layout');
@@ -1111,10 +1177,11 @@ function addDay(){
   const tip=k=>typeof eduTipMark==='function'?eduTipMark(k,builderEduCtx()):'';
   div.innerHTML=`<div class="builder-day-hdr">
     <select class="builder-day-select">${sel}</select>
-    <input type="text" class="builder-day-focus" placeholder="Push, Pull, FBW…" title="${typeof eduTipText==='function'?eduTipText('focus').replace(/"/g,'&quot;'):''}">
+    <input type="text" class="builder-day-focus" placeholder="Push, Pull, FBW…" oninput="builderRefreshKbHits()" title="${typeof eduTipText==='function'?eduTipText('focus').replace(/"/g,'&quot;'):''}">
     <label class="builder-rest-toggle"><input type="checkbox" class="rc" style="accent-color:var(--accent);" onchange="toggleR('${id}')"> Dzień odpoczynku</label>
     <button type="button" class="builder-remove-day" onclick="document.getElementById('${id}').remove();builderRefreshAllDayFocus();builderRefreshRationale()">×</button>
   </div>
+  <div class="builder-day-kb" hidden></div>
   <div class="rest-s builder-rest-state" style="display:none;">— Dzień odpoczynku / regeneracja aktywna</div>
   <div class="work-s">
     <div class="builder-circuit-bar">
@@ -1220,6 +1287,7 @@ function addRow(dayId){
   builderPaintKinds(div);
   const dayEl=document.getElementById(dayId);
   if(dayEl)builderPaintCircuitDay(dayEl);
+  if(typeof builderRefreshKbHits==='function')builderRefreshKbHits();
 }
 function builderAltListForRow(row){
   if(!row)return[];
@@ -1397,6 +1465,7 @@ function builderOnExNameChange(row){
   builderRefreshAltChips(row);
   builderRefreshTechMedia(row);
   if(typeof builderRefreshExHist==='function')builderRefreshExHist(row);
+  if(typeof builderRefreshKbHits==='function')builderRefreshKbHits();
 }
 window.builderOnExNameChange=builderOnExNameChange;
 function builderRefreshExHist(row){
@@ -1437,6 +1506,7 @@ function builderRemoveRow(btn){
   if(row)row.remove();
   if(box)builderPaintSs(box);
   if(dayEl)builderPaintCircuitDay(dayEl);
+  if(typeof builderRefreshKbHits==='function')builderRefreshKbHits();
 }
 window.builderRemoveRow=builderRemoveRow;
 function builderMoveRow(btn,dir){
