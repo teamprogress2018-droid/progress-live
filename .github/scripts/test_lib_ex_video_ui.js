@@ -32,6 +32,19 @@ function ok(name, cond, extra) {
     const loading = document.getElementById('app-loading');
     if (loading) loading.style.display = 'none';
     window.CL = [{ id: 'c1', name: 'Piotr' }];
+    window.EX = [{
+      id: 'ex-chest-cat',
+      name: 'Klatka piersiowa',
+      cat: 'Klatka piersiowa',
+      eq: 'Własna masa',
+      muscle: 'Klatka (góra)',
+      tip: 'Łokcie na wysokości barków.',
+      img: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Bench_Press/0.jpg'
+    }];
+    window.EX_GIF_REMOTE = {
+      'klatka piersiowa': 'https://cdn.jsdelivr.net/gh/x/y@1/Wyciskanie%20sztangi%20na%20%C5%82awce%20p%C5%82askiej%20(Barbell%20Bench%20Press).mp4',
+      'dipy z obciążeniem': 'https://cdn.jsdelivr.net/gh/x/y@1/Dipy%20na%20por%C4%99czach%20(Parallel%20Bar%20Dips).mp4'
+    };
   });
 
   await page.evaluate(() => {
@@ -50,13 +63,15 @@ function ok(name, cond, extra) {
     return {
       found: !!hit,
       img: img ? img.getAttribute('src') : '',
-      hasVideo: !!vid
+      video: vid ? vid.getAttribute('src') : '',
+      hasVideo: !!vid,
+      film: !!(hit && /FILM/.test(hit.innerText || ''))
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'lib_bench_card.png') });
   ok('bench card rendered', card.found, JSON.stringify(card));
-  ok('bench card uses still photo', /free-exercise-db|githubusercontent/i.test(card.img) && !/\.mp4/i.test(card.img), card.img);
-  ok('bench card has no video tag', !card.hasVideo);
+  ok('bench card shows curated mp4', /Barbell%20Bench%20Press|\.mp4/i.test(card.video) && card.hasVideo, JSON.stringify(card).slice(0, 240));
+  ok('bench card has FILM badge', card.film, JSON.stringify(card));
 
   await page.evaluate(() => {
     if (typeof setExView === 'function') setExView('grid');
@@ -140,6 +155,68 @@ function ok(name, cond, extra) {
   ok('detail title is bench', detail.title === 'Wyciskanie sztangi leżąc', detail.title);
   ok('detail plays mp4', /progress-live-video-assets/.test(detail.src) && /\.mp4/i.test(detail.src), detail.src.slice(0, 160));
   ok('detail video loops muted autoplay', detail.autoplay && detail.loop);
+
+  await page.evaluate(() => {
+    if (typeof goTo === 'function') goTo('library');
+    const inp = document.getElementById('ex-search');
+    if (inp) inp.value = 'Dipy na poręczach';
+    if (typeof renderLib === 'function') renderLib();
+  });
+  await page.waitForSelector('.ex-card');
+  const dipsCard = await page.evaluate(() => {
+    const cards = [...document.querySelectorAll('.ex-card')];
+    const hit = cards.find((el) => (el.querySelector('.ex-card-name') || {}).textContent === 'Dipy na poręczach');
+    const vid = hit && hit.querySelector('.ex-card-thumb video');
+    return {
+      found: !!hit,
+      video: vid ? vid.getAttribute('src') : '',
+      film: !!(hit && /FILM/.test(hit.innerText || ''))
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'lib_dips_film_card.png') });
+  ok('dips card rendered', dipsCard.found, JSON.stringify(dipsCard));
+  ok('dips card has FILM badge', dipsCard.film, JSON.stringify(dipsCard));
+  ok('dips card plays parallel-bar clip', /Parallel%20Bar%20Dips/i.test(dipsCard.video), (dipsCard.video || '').slice(0, 180));
+
+  await page.evaluate(() => {
+    if (typeof openExDetail === 'function') openExDetail('Dipy na poręczach');
+  });
+  await page.waitForSelector('#exd-body video, #exd-mp4-player');
+  const dipsDetail = await page.evaluate(() => {
+    const video = document.querySelector('#exd-mp4-player') || document.querySelector('#exd-body video');
+    return {
+      title: (document.getElementById('exd-title') || {}).textContent || '',
+      src: video ? video.getAttribute('src') : ''
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'lib_dips_film_detail.png') });
+  ok('dips detail title', dipsDetail.title === 'Dipy na poręczach', dipsDetail.title);
+  ok('dips detail plays parallel-bar mp4', /Parallel%20Bar%20Dips/i.test(dipsDetail.src), (dipsDetail.src || '').slice(0, 180));
+
+  await page.evaluate(() => {
+    if (typeof goTo === 'function') goTo('library');
+    const inp = document.getElementById('ex-search');
+    if (inp) inp.value = 'Klatka piersiowa';
+    if (typeof renderLib === 'function') renderLib();
+  });
+  await page.waitForSelector('.ex-card');
+  const genericCard = await page.evaluate(() => {
+    const cards = [...document.querySelectorAll('.ex-card')];
+    const hit = cards.find((el) => (el.querySelector('.ex-card-name') || {}).textContent === 'Klatka piersiowa');
+    const img = hit && hit.querySelector('.ex-card-thumb img');
+    const vid = hit && hit.querySelector('.ex-card-thumb video');
+    return {
+      found: !!hit,
+      img: img ? img.getAttribute('src') : '',
+      hasVideo: !!vid,
+      film: !!(hit && /FILM/.test(hit.innerText || '')),
+      benchStill: /Barbell_Bench_Press/i.test((img && img.getAttribute('src')) || '')
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'lib_generic_chest_card.png') });
+  ok('generic chest card rendered', genericCard.found, JSON.stringify(genericCard));
+  ok('generic chest has no stolen FILM', !genericCard.film && !genericCard.hasVideo, JSON.stringify(genericCard));
+  ok('generic chest drops borrowed bench still', !genericCard.benchStill, JSON.stringify(genericCard));
 
   async function detailMedia(name) {
     await page.evaluate((n) => {
@@ -292,17 +369,23 @@ function ok(name, cond, extra) {
     await page.waitForFunction((n) => {
       const cards = [...document.querySelectorAll('.ex-card')];
       const hit = cards.find((el) => (el.querySelector('.ex-card-name') || {}).textContent === n);
-      const img = hit && hit.querySelector('.ex-card-thumb img');
+      if (!hit) return false;
+      if (hit.querySelector('.ex-card-thumb video')) return true;
+      const img = hit.querySelector('.ex-card-thumb img');
       return !!(img && img.complete && img.naturalWidth > 0);
     }, name);
     return page.evaluate((n) => {
       const cards = [...document.querySelectorAll('.ex-card')];
       const hit = cards.find((el) => (el.querySelector('.ex-card-name') || {}).textContent === n);
       const img = hit && hit.querySelector('.ex-card-thumb img');
+      const vid = hit && hit.querySelector('.ex-card-thumb video');
       const ph = hit && hit.querySelector('.ex-card-thumb-ph');
       return {
         found: !!hit,
         img: img ? img.getAttribute('src') : '',
+        video: vid ? vid.getAttribute('src') : '',
+        hasVideo: !!vid,
+        film: !!(hit && /FILM/.test(hit.innerText || '')),
         placeholder: !!ph,
         w: img ? img.naturalWidth : 0
       };
@@ -495,9 +578,9 @@ function ok(name, cond, extra) {
   const gluteCard = await libCard('Kickback pośladki');
   await page.screenshot({ path: path.join(shotDir, 'lib_glute_kickback_card.png') });
   ok(
-    'glute kickback card uses still photo',
-    gluteCard.found && /free-exercise-db|githubusercontent/.test(gluteCard.img) && !/\.mp4/i.test(gluteCard.img) && gluteCard.w > 0,
-    JSON.stringify(gluteCard)
+    'glute kickback card has FILM',
+    gluteCard.found && gluteCard.film && /Cable%20Glute%20Kickback|\.mp4/i.test(gluteCard.video),
+    JSON.stringify(gluteCard).slice(0, 240)
   );
 
   const barPush = await detailMedia('Prostowanie tricepsa wyciąg');
@@ -650,25 +733,25 @@ function ok(name, cond, extra) {
   const hammerCard = await libCard('Uginanie młotkowe');
   await page.screenshot({ path: path.join(shotDir, 'lib_bi_hammer_card.png') });
   ok(
-    'hammer card uses still photo',
-    hammerCard.found && /free-exercise-db|githubusercontent/.test(hammerCard.img) && !/\.mp4/i.test(hammerCard.img) && hammerCard.w > 0,
-    JSON.stringify(hammerCard)
+    'hammer card has FILM',
+    hammerCard.found && hammerCard.film && /\.mp4/i.test(hammerCard.video),
+    JSON.stringify(hammerCard).slice(0, 240)
   );
 
   const triCard = await libCard('Prostowanie tricepsa wyciąg');
   await page.screenshot({ path: path.join(shotDir, 'lib_tri_pushdown_card.png') });
   ok(
-    'bar pushdown card uses still photo',
-    triCard.found && /free-exercise-db|githubusercontent/.test(triCard.img) && !/\.mp4/i.test(triCard.img) && triCard.w > 0,
-    JSON.stringify(triCard)
+    'bar pushdown card has FILM',
+    triCard.found && triCard.film && /\.mp4/i.test(triCard.video),
+    JSON.stringify(triCard).slice(0, 240)
   );
 
   const shoulderCard = await libCard('Unoszenie bokiem');
   await page.screenshot({ path: path.join(shotDir, 'lib_shoulder_lateral_card.png') });
   ok(
-    'db lateral card uses still photo',
-    shoulderCard.found && /free-exercise-db|githubusercontent/.test(shoulderCard.img) && !/\.mp4/i.test(shoulderCard.img) && shoulderCard.w > 0,
-    JSON.stringify(shoulderCard)
+    'db lateral card has FILM',
+    shoulderCard.found && shoulderCard.film && /\.mp4/i.test(shoulderCard.video),
+    JSON.stringify(shoulderCard).slice(0, 240)
   );
 
   await page.evaluate(() => {
