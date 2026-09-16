@@ -2650,6 +2650,14 @@ function calSessionDoneBits(s){
   return{happened,cls:happened?' cal-session-done':'',mark:happened?'✓ ':'',tip};
 }
 window.calSessionDoneBits=calSessionDoneBits;
+function calSalaDoneBtn(s){
+  if(!s||s.source!=='planned')return '';
+  const happened=typeof sessionHappened==='function'&&sessionHappened(s);
+  if(happened)return '';
+  const sid=String(s.id||'').replace(/\\/g,'').replace(/'/g,"\\'");
+  return `<button type="button" class="btn btn-primary btn-sm cal-sala-done" onclick="event.stopPropagation();openSalaDoneModal('${sid}')">✓ Odbył się</button>`;
+}
+window.calSalaDoneBtn=calSalaDoneBtn;
 function calSessionTimeKey(s){
   const parts=String(s&&s.time||'').split(':');
   const h=parseInt(parts[0],10);
@@ -2731,6 +2739,7 @@ function calWeekSessChip(s){
   const tip=typeof escHtml==='function'?escHtml(tipRaw):String(tipRaw).replace(/"/g,'&quot;');
   return `<div class="cal-session-block${bits.cls} cal-week-sess" data-cal-sess="${sid}" style="background:var(--input-bg);border:1px solid rgba(255,255,255,0.1);border-left:3px solid ${col};color:var(--text);min-width:0;max-width:100%;" onclick="event.stopPropagation();editSession('${s.id}')" title="${tip}">
       <div class="cal-session-name">${bits.mark}${s.source==='garmin'?'⌚ ':''}<span class="cal-week-sess-time">${s.time||''}</span> ${first}</div>
+      ${typeof calSalaDoneBtn==='function'?calSalaDoneBtn(s):''}
     </div>`;
 }
 window.calSessionStartMin=calSessionStartMin;
@@ -2840,7 +2849,7 @@ function renderCalMonth(){
         const ci=c?CL.indexOf(c):-1;
         const col=SESS_COLORS[(ci>=0?ci:0)%6];
         const bits=typeof calSessionDoneBits==='function'?calSessionDoneBits(s):{cls:'',mark:'',tip:''};
-        return `<div class="cal-month-sess${bits.cls}" style="background:var(--input-bg);border-left:3px solid ${col};color:var(--text);" onclick="event.stopPropagation();editSession('${s.id}')" title="${bits.tip}">${bits.mark}<span style="color:var(--muted);">${s.time||''}</span> ${c?c.name.split(' ')[0]:'Klient'}</div>`;
+        return `<div class="cal-month-sess${bits.cls}" style="background:var(--input-bg);border-left:3px solid ${col};color:var(--text);" onclick="event.stopPropagation();editSession('${s.id}')" title="${bits.tip}"><div class="cal-month-sess-line">${bits.mark}<span style="color:var(--muted);">${s.time||''}</span> ${c?c.name.split(' ')[0]:'Klient'}</div>${typeof calSalaDoneBtn==='function'?calSalaDoneBtn(s):''}</div>`;
       }).join('')}
       ${daySess.length>3?`<div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">+${daySess.length-3} więcej</div>`:''}
     </div>`;
@@ -2901,7 +2910,7 @@ function renderCalList(){
             ${s.notes?`<div style="font-size:11px;color:var(--muted2);margin-top:3px;font-style:italic;">${s.notes}</div>`:''}
           </div>
           <div style="display:flex;flex-direction:column;gap:4px;align-self:center;">
-            ${s.source==='planned'&&!bits.happened?`<button type="button" class="btn btn-primary btn-sm cal-sala-done" onclick="event.stopPropagation();openSalaDoneModal('${s.id}')">✓</button>`:''}
+            ${typeof calSalaDoneBtn==='function'?calSalaDoneBtn(s):''}
             <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();editSession('${s.id}')">✏</button>
             <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();delSession('${s.id}')">×</button>
           </div>
