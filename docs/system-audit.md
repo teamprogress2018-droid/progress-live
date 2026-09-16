@@ -16,7 +16,7 @@ Stack: **vanilla JS + Firestore + GitHub Pages** (nie React/Next/Tailwind). Stan
 | Brama płatności ↔ kalendarz / Live | **Zrobione:** `clientHasPaidAccess` + Trial / Gość. Nieopłacony/wygasły pakiet blokuje `schedulePlanToCalendar` i Live Start. Live End zdejmuje sesje tylko z `payStatus:'paid'`. | `01-core.js`, Live, profil → Płatności |
 | Event-driven automatyzacja | **Zrobione:** Autoflow nasłuchuje `emitAppEvent` — `package.expired`, `checkin.submitted`, `client.created` (`new_client`). Poll zostaje dla `inactivity` / `session_today`. | `09-…js` `autoflowOnAppEvent` |
 | Live: IndexedDB + kolejka sync | **Zrobione:** `source:'live-draft'` przy starcie i co 3 serie + IndexedDB + LS. Koniec sesji zamienia ten sam dokument na `source:'live'`. | `liveSaveDraft` / `livePersistDraftRemote` w `02-…js` |
-| Tagi KB ↔ builder | MEV/MAV/RIR są w promptach AI i przewodniku objętości, nie jako tagi rekordów bazy wiedzy powiązane z ćwiczeniem/dniem planu. | `01-core.js` evidence + `03-…js` prompt |
+| Tagi KB ↔ builder | **Zrobione:** tagi landmark (MEV/MAV/MRV/RIR/RPE/częstotliwość/deload) i partii na wpisie KB. Kreator pokazuje dopasowane notatki przy dniu i w panelu „Baza na ten plan”. Mowa do klienta bez żargonu. | `kbEntriesForBuilder` + `#builder-kb-hits` |
 
 ---
 
@@ -98,7 +98,7 @@ Wejścia: `saveClient` (modal NOWY KLIENT). Checklista: `openClientOnboardCheckl
 
 **Płatności.** Statystyki przy zerze transakcji — UI puste stany już są; nie dokładać KPI. Brama dostępu: `clientHasPaidAccess`. Pulpit: wygasające pakiety tylko w „Płatności do odnowienia”.
 
-**TDEE / KB.** TDEE zapisuje `c.macros`. KB nie steruje builderem (świadomie: żargon MEV zostaje w przewodniku trenera, nie w mowie do klienta).
+**TDEE / KB.** TDEE zapisuje `c.macros`. Tagi KB (MEV/RIR/partia) sterują panelem kreatora i kolejnością kontekstu AI — żargon nadal nie idzie do mowy klienta.
 
 ---
 
@@ -136,3 +136,4 @@ Wejścia: `saveClient` (modal NOWY KLIENT). Checklista: `openClientOnboardCheckl
 13. **KB → AI: notatki + badania** — **zrobione:** Generator bierze notatki i źródła (oraz zasady). Wpis z wyłączonym planowaniem zostaje tylko w bazie — bez wycieku „pozostałych notatek”.
 12. **Płatności: filtry po `clientId`** — **zrobione:** chipy Pakietów i select Historii (`payClientsFromPackages`). To samo imię = dwa chipy / dwie opcje, nie jedna wspólna lista.
 14. **Ustawienia startu współpracy** — **zrobione:** legenda `CLIENT_ONBOARD_STEPS` (6/6), bez checkboxów `msgSteps`. Auto-wiadomość = Automatyzacja. Przypomnienia i kontrakt zostają jako notatki — aplikacja ich nie wysyła.
+15. **Tagi KB ↔ builder** — **zrobione:** `tags[]` na wpisie (MEV/MAV/RIR/partia). Kreator: `#builder-kb-hits` + pasek dnia. AI (`askAI`) sortuje kontekst po tagach planu.

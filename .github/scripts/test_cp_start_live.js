@@ -32,9 +32,9 @@ ok('start waits for client+plan', /start\.disabled=!ready/.test(src02) && /class
 ok('empty live has pick-client CTA', /function liveFocusClientPicker/.test(src02) && /function liveSyncClientChrome/.test(src02) && /live-stats-panel/.test(src02.slice(src02.indexOf('function liveSyncClientChrome'), src02.indexOf('function liveClientSetField'))) && html.includes('liveFocusClientPicker(0)') && src02.includes('liveFocusClientPicker(${n})') && !src02.includes('Wybierz klienta u góry, żeby załadować'));
 ok('rest timer not labeled Start', /live-rest-custom-go"[^>]*>Przerwa</.test(html) && !/live-rest-custom-go"[^>]*>Start</.test(html));
 ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=73'));
-ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=74'));
+ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=75'));
 ok('cache 08', html.includes('08-client-profile-extras.js?v=61'));
-ok('cache 09', html.includes('09-posture-kb-invites-private.js?v=48'));
+ok('cache 09', html.includes('09-posture-kb-invites-private.js?v=49'));
 ok('CI unit', wf.includes('test_cp_start_live.js'));
 ok('CI ui', wf.includes('test_cp_start_live_ui.js'));
 

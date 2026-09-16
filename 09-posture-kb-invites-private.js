@@ -3440,6 +3440,7 @@ function openKbModal(prefill){
   document.getElementById('kb-url').value=p.sourceUrl||'';
   document.getElementById('kb-use-planning').checked=p.useInPlanning!==false;
   kbKindHint();
+  kbPaintTagPicker(p.tags||[]);
   openM('m-kb');
 }
 window.openKbModal=openKbModal;
@@ -3453,6 +3454,39 @@ function kbKindHint(){
   else el.textContent='Notatka idzie do Generatora AI razem z badaniami. Odhacz „Używaj przy planowaniu”, jeśli ma zostać tylko w bazie.';
 }
 window.kbKindHint=kbKindHint;
+
+function kbPaintTagPicker(selected){
+  const el=document.getElementById('kb-tag-picker');
+  if(!el)return;
+  const defs=window.KB_TAG_DEFS||[];
+  const on=typeof normalizeKbTags==='function'?normalizeKbTags(selected):[];
+  const groups={landmark:'Landmarki',muscle:'Partie'};
+  el.innerHTML=['landmark','muscle'].map(g=>{
+    const items=defs.filter(d=>d.group===g);
+    if(!items.length)return '';
+    return `<div class="kb-tag-group"><div class="kb-tag-group-lbl">${groups[g]||g}</div><div class="kb-tag-row">${items.map(d=>{
+      const active=on.indexOf(d.id)>=0;
+      return `<button type="button" class="kb-tag kb-tag-btn${active?' is-on':''}" data-kb-tag="${d.id}" aria-pressed="${active?'true':'false'}" onclick="kbToggleTag(this)">${escHtml(d.label)}</button>`;
+    }).join('')}</div></div>`;
+  }).join('');
+}
+function kbToggleTag(btn){
+  if(!btn)return;
+  const on=!btn.classList.contains('is-on');
+  btn.classList.toggle('is-on',on);
+  btn.setAttribute('aria-pressed',on?'true':'false');
+}
+function kbReadTagPicker(){
+  return [...document.querySelectorAll('#kb-tag-picker .kb-tag-btn.is-on')].map(b=>b.getAttribute('data-kb-tag')).filter(Boolean);
+}
+function kbTagPillsHtml(tags){
+  const labels=typeof kbTagLabels==='function'?kbTagLabels(tags):[];
+  if(!labels.length)return '';
+  return `<div class="kb-tag-row">${labels.map(l=>`<span class="kb-tag">${escHtml(l)}</span>`).join('')}</div>`;
+}
+window.kbPaintTagPicker=kbPaintTagPicker;
+window.kbToggleTag=kbToggleTag;
+window.kbReadTagPicker=kbReadTagPicker;
 
 function kbKindLabel(kind){
   const k=typeof normalizeKbKind==='function'?normalizeKbKind({kind}):kind;
@@ -3489,6 +3523,7 @@ function renderKB(){
             ${planOn?'<span class="pill" style="font-size:10px;background:rgba(74,222,128,0.12);color:#4ade80;">Planowanie</span>':''}
           </div>
           <div style="font-size:13px;font-weight:700;">${escHtml(k.title)}</div>
+          ${typeof kbTagPillsHtml==='function'?kbTagPillsHtml(typeof kbTagsForEntry==='function'?kbTagsForEntry(k):k.tags):''}
         </div>
         <button onclick="delKBEntry('${k.id}')" style="background:none;border:none;color:var(--muted2);font-size:16px;cursor:pointer;">×</button>
       </div>
@@ -3530,7 +3565,7 @@ async function kbImportBuiltinPack(){
     const entry=withTrainer({
       id:newId('kb'),kind:b.kind,title:b.title,text:b.text,
       citation:b.citation||'',sourceUrl:b.sourceUrl||'',
-      useInPlanning:true,builtinId:b.id,createdAt:new Date().toISOString()
+      useInPlanning:true,builtinId:b.id,tags:typeof kbTagsForEntry==='function'?kbTagsForEntry(b):(b.tags||[]),createdAt:new Date().toISOString()
     });
     KB.push(entry);
     n++;
@@ -3553,8 +3588,9 @@ async function saveKBEntry(){
   const citation=(document.getElementById('kb-citation')?.value||'').trim();
   const sourceUrl=(document.getElementById('kb-url')?.value||'').trim();
   const useInPlanning=!!document.getElementById('kb-use-planning')?.checked;
+  const tags=typeof kbReadTagPicker==='function'?kbReadTagPicker():[];
   const entry = withTrainer({
-    id:newId('kb'), kind, title, text, citation, sourceUrl, useInPlanning,
+    id:newId('kb'), kind, title, text, citation, sourceUrl, useInPlanning, tags,
     createdAt:new Date().toISOString()
   });
   KB.push(entry);
@@ -3562,6 +3598,7 @@ async function saveKBEntry(){
   ['kb-title','kb-text','kb-citation','kb-url'].forEach(id=>{const i=document.getElementById(id);if(i)i.value='';});
   const kindEl=document.getElementById('kb-kind');if(kindEl)kindEl.value='note';
   const useEl=document.getElementById('kb-use-planning');if(useEl)useEl.checked=true;
+  if(typeof kbPaintTagPicker==='function')kbPaintTagPicker([]);
   renderKB();
   if(typeof builderRefreshRationale==='function')try{builderRefreshRationale();}catch(e){}
   if(typeof aplRefreshRationale==='function')try{aplRefreshRationale();}catch(e){}
@@ -3577,8 +3614,8 @@ async function delKBEntry(id){
   if(window._db){try{await window._del(window._doc(window._db,'kb',id));}catch(e){}}
 }
 
-function kbContextForAI(){
-  if(typeof planningEvidenceContext==='function')return planningEvidenceContext(3500);
+function kbContextForAI(opts){
+  if(typeof planningEvidenceContext==='function')return planningEvidenceContext(3500,opts||{});
   const on=(KB||[]).filter(k=>typeof kbEntryUsesInPlanning==='function'?kbEntryUsesInPlanning(k):k.useInPlanning!==false);
   if(!on.length)return '';
   return '\n\n=== BADANIA I NOTATKI TRENERA ===\n'+on.map(k=>`### ${k.title}\n${(k.text||'').substring(0,500)}`).join('\n\n');

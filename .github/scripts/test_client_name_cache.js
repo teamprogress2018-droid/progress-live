@@ -32,9 +32,9 @@ function ok(name, cond, extra) {
 ok('helper in core', src01.includes('function syncClientNameCache'));
 ok('saveCPEdit hooks sync', /persistById\('clients',c\);\s*try\{if\(typeof syncClientNameCache/.test(src09));
 ok('saveClient edit hooks sync', src05.includes("syncClientNameCache(c.id,c.name)"));
-ok('cache 01', html.includes('01-core.js?v=106'));
-ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=74'));
-ok('cache 09', html.includes('09-posture-kb-invites-private.js?v=48'));
+ok('cache 01', html.includes('01-core.js?v=107'));
+ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=75'));
+ok('cache 09', html.includes('09-posture-kb-invites-private.js?v=49'));
 ok('CI', wf.includes('test_client_name_cache.js'));
 
 const persist = [];

@@ -13,7 +13,7 @@
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="globals.css?v=17">
-<link rel="stylesheet" href="styles.css?v=89">
+<link rel="stylesheet" href="styles.css?v=90">
 </head>
 <body>
 
@@ -409,6 +409,10 @@
           <div class="ai-msgs" id="ai-msgs"><div class="ai-msg bot"><div class="ai-bubble">Witaj! Zapytaj mnie o dobór ćwiczeń, serie, RPE, przerwy lub korekty dla klienta.</div></div></div>
           <div class="ai-input-row"><input type="text" class="ai-inp" id="ai-q" placeholder="Zapytaj o plan..." onkeydown="if(event.key==='Enter')askAI()"><button class="ai-send" onclick="askAI()">→</button></div>
         </div>
+      </div>
+      <div class="card" id="builder-kb-card">
+        <div class="ui-section-hdr">Baza na ten plan</div>
+        <div id="builder-kb-hits" class="builder-kb-hits"><div class="ui-section-sub">Tagi MEV / partia z notatek pojawią się przy dniu i ćwiczeniu.</div></div>
       </div>
       <div class="card" id="builder-period-card">
         <div class="ui-section-hdr">Harmonogram periodyzacji</div>
@@ -1647,7 +1651,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   </div>
   <div class="content">
     <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6;max-width:700px;">
-      Do Generatora AI i kreatora idą <strong>notatki i badania</strong> (PubMed/DOI). Zasady trenera też, jeśli je dodasz. Odhacz „Używaj przy planowaniu”, żeby wpis został tylko w bazie.
+      Do Generatora AI i kreatora idą <strong>notatki i badania</strong> (PubMed/DOI). Tagi (MEV, RIR, partia) wiążą wpis z dniem i ćwiczeniem w kreatorze — klient ich nie widzi.
     </div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;" id="kb-filters">
       <button type="button" class="wl-filter-chip active" data-kb-f="all" onclick="setKbFilter('all',this)">Wszystkie</button>
@@ -3179,6 +3183,10 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       <div class="form-field"><label class="form-lbl">Treść</label><textarea class="form-textarea" id="kb-text" rows="5" placeholder="Opisz zasadę lub wniosek z badania — AI i kreator użyją tego przy planowaniu."></textarea></div>
       <div class="form-field"><label class="form-lbl">Cytowanie (opcjonalnie)</label><input type="text" class="form-input" id="kb-citation" placeholder="np. Schoenfeld 2016 · NSCA"></div>
       <div class="form-field"><label class="form-lbl">Link źródła (PubMed / DOI / artykuł)</label><input type="url" class="form-input" id="kb-url" placeholder="https://pubmed.ncbi.nlm.nih.gov/…"></div>
+      <div class="form-field"><label class="form-lbl">Tagi (kreator / AI)</label>
+        <div id="kb-tag-picker" class="kb-tag-picker" role="group" aria-label="Tagi wpisu"></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.45;">MEV / RIR = cały plan. Partia = dzień i ćwiczenie tej grupy. Bez tagu wpis zostaje ogólny.</div>
+      </div>
       <label class="builder-rest-toggle" style="margin-top:4px;">
         <input type="checkbox" id="kb-use-planning" checked style="accent-color:var(--accent);"> Używaj przy planowaniu (AI + kreator)
       </label>
@@ -4438,15 +4446,15 @@ async function load(){
 
 <script src="ex-gif-manifest.js?v=34"></script>
 <script src="ex-photo-manifest.js?v=6"></script>
-<script src="01-core.js?v=106"></script>
+<script src="01-core.js?v=107"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=73"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=37"></script>
 <script src="04-client-portal.js?v=50"></script>
-<script src="05-clients-builder-plans-calendar.js?v=74"></script>
-<script src="06-inbox-exercises-ai-programs.js?v=78"></script>
+<script src="05-clients-builder-plans-calendar.js?v=75"></script>
+<script src="06-inbox-exercises-ai-programs.js?v=79"></script>
 <script src="07-forms-metrics-calculator.js?v=39"></script>
 <script src="08-client-profile-extras.js?v=61"></script>
-<script src="09-posture-kb-invites-private.js?v=48"></script>
+<script src="09-posture-kb-invites-private.js?v=49"></script>
 <script src="10-client-app.js?v=40"></script>
 </body>
 </html>

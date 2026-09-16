@@ -18,7 +18,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=74'));
+ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=75'));
 ok('ci unit', wf.includes('test_cal_sess_dedupe.js'));
 ok('ci ui', wf.includes('test_cal_sess_dedupe_ui.js'));
 ok('helpers', /function calDedupeVisibleSessions/.test(cal) && /function calSessionTimeKey/.test(cal));

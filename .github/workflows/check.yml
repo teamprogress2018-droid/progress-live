@@ -139,6 +139,9 @@ jobs:
       - name: 1i5. Testy bazy dowodów / zasad trenera
         run: node .github/scripts/test_evidence_base.js
 
+      - name: 1i5b. Testy tagów KB ↔ kreator
+        run: node .github/scripts/test_kb_builder_tags.js
+
       - name: 1i6. Testy tooltipów edukacyjnych (serie/RPE/metoda)
         run: node .github/scripts/test_edu_tooltips.js
 
@@ -418,6 +421,8 @@ jobs:
         run: node .github/scripts/test_pkg_gate_ui.js
       - name: 6b3c2b1. Testy UI bazy wiedzy (notatki + badania)
         run: node .github/scripts/test_kb_notes_evidence_ui.js
+      - name: 6b3c2b1b. Testy UI tagów KB w kreatorze
+        run: node .github/scripts/test_kb_builder_tags_ui.js
       - name: 6b3c2b2. Testy UI filtrów Płatności po clientId
         run: node .github/scripts/test_pay_hist_id_ui.js
       - name: 6b3c2b3. Testy UI checklisty startu współpracy
