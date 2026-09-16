@@ -462,6 +462,8 @@ jobs:
         run: node .github/scripts/test_cp_edit_visible_ui.js
       - name: 6f3. Testy UI ✓ Odbył się (zapis sali z planu)
         run: node .github/scripts/test_cal_log_done_ui.js
+      - name: 6f3a. Testy UI ✓ Odbył się w kalendarzu tygodnia
+        run: node .github/scripts/test_cal_week_sala_done_ui.js
       - name: 6f3e. Testy UI zapisu / edycji sesji w kalendarzu
         run: node .github/scripts/test_cal_session_save_ui.js
       - name: 6f3b. Testy UI usuwania kart z kalendarza

@@ -21,17 +21,20 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 01 v71', html.includes('01-core.js?v=106'));
-ok('cache 05 v37', html.includes('05-clients-builder-plans-calendar.js?v=73'));
+ok('cache 05 v74', html.includes('05-clients-builder-plans-calendar.js?v=74'));
 ok('cache 08 v38', html.includes('08-client-profile-extras.js?v=61'));
-ok('cache styles v56', html.includes('styles.css?v=88'));
+ok('cache styles v89', html.includes('styles.css?v=89'));
 ok('ci unit', wf.includes('test_cal_session_done.js'));
 ok('ci ui log done', wf.includes('test_cal_log_done_ui.js'));
+ok('ci ui week sala', wf.includes('test_cal_week_sala_done_ui.js'));
 ok('helpers in core', /function sessionHappened/.test(core) && /function sessionHappenedTip/.test(core) && /function sessionIsRecorded/.test(core));
-ok('cal helper', /function calSessionDoneBits/.test(cal));
+ok('cal helper', /function calSessionDoneBits/.test(cal) && /function calSalaDoneBtn/.test(cal));
 ok('week uses done class', /cal-session-block\$\{bits\.cls\}/.test(cal));
 ok('month uses done class', /cal-month-sess\$\{bits\.cls\}/.test(cal));
 ok('list uses done class', /cal-list-sess\$\{bits\.cls\}/.test(cal));
 ok('week tooltip', /bits\.tip/.test(cal) && /odbył się/.test(cal));
+ok('week sala btn', /calWeekSessChip[\s\S]{0,2000}calSalaDoneBtn/.test(cal) && /✓ Odbył się/.test(cal));
+ok('month sala btn', /cal-month-sess[\s\S]{0,400}calSalaDoneBtn/.test(cal));
 ok('mini has-done', /has-done/.test(cal));
 ok('sidebar odbyte kpi', /Odbyte/.test(cal) && /sessionIsRecorded/.test(cal));
 ok('sidebar odbyte no pair double-count', !/weekSess\.filter\(s=>typeof sessionHappened/.test(cal));
@@ -39,6 +42,7 @@ ok('css done block', /\.cal-session-block\.cal-session-done/.test(css));
 ok('css month done', /\.cal-month-sess\.cal-session-done/.test(css));
 ok('css list done', /\.cal-list-sess\.cal-session-done/.test(css));
 ok('css mini done', /\.cal-mini-day\.has-done/.test(css));
+ok('css sala done btn', /\.cal-sala-done/.test(css) && /#cal-week-grid \.cal-sala-done/.test(css));
 ok('profile hover title', /title="\$\{escHtml\(tip\)\}"/.test(cp));
 ok('profile checkmark', /happened\?'✓ ':''/.test(cp) || /happened\?'✓ '/.test(cp));
 ok('profile done class', /cp-sess-done/.test(cp) && /\.cp-sess-done/.test(css));
