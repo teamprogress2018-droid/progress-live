@@ -4631,17 +4631,32 @@ function addNotification(type,title,body,action=null,fixedId=null){
   return n;
 }
 
+function opsEventNotifKey(it){
+  const tag=String((it&&it.tag)||(it&&it.txt)||'x').toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'').slice(0,48);
+  return 'auto_ops_'+String((it&&it.channel)||'x')+'_'+String((it&&it.clientId)||'')+'_'+tag;
+}
 function generateAutoNotifs(){
   const today=new Date();
-  const todayStr=dateStr(today);
+  const todayStr=typeof dateStr==='function'?dateStr(today):today.toISOString().slice(0,10);
   const hasNotif=key=>allNotifs().some(n=>n.id===key||n.autoKey===key);
+  const ops=typeof collectOpsEvents==='function'?collectOpsEvents(false):[];
 
-  SE.filter(s=>s.date===todayStr&&s.source!=='live-draft').forEach(s=>{
-    const c=CL.find(x=>x.id===s.clientId);
+  (window.SE||[]).filter(s=>s&&s.date===todayStr&&s.source!=='live-draft').forEach(s=>{
+    const c=(window.CL||[]).find(x=>x.id===s.clientId);
     const key='auto_sess_'+s.id;
     if(!hasNotif(key)&&c){
       addNotification('session','Sesja dziś!',`${c.name} · ${s.type||'Sesja'} · ${s.time||''}`,'calendar',key);
     }
+  });
+
+  ops.filter(it=>it&&it.channel==='attention').forEach(it=>{
+    const key=opsEventNotifKey(it);
+    if(hasNotif(key))return;
+    const type=it.pri===0?'alert':'system';
+    const title=it.tag||'Wymaga uwagi';
+    const body=((it.name||'')+(it.meta?' · '+it.meta:'')).replace(/^\s·\s/,'');
+    const action=/checkin|raport/i.test(String(it.tag)+String(it.cta||''))?'checkin':(/domow|zadan/i.test(String(it.tag))?'tasks':'clients');
+    addNotification(type,title,body,action,key);
   });
 
   (typeof dashOpsExpiringPackages==='function'?dashOpsExpiringPackages(7):allPackages().filter(p=>{
@@ -4672,8 +4687,8 @@ function generateAutoNotifs(){
     }
   });
 
-  TASKS.filter(t=>(typeof isOneShot==='function'?isOneShot(t):!isHabit(t))&&t.status!=='done'&&t.due&&t.due<todayStr).slice(0,3).forEach(t=>{
-    const c=CL.find(x=>x.id===t.clientId);
+  (window.TASKS||[]).filter(t=>(typeof isOneShot==='function'?isOneShot(t):!isHabit(t))&&t.status!=='done'&&t.due&&t.due<todayStr).slice(0,3).forEach(t=>{
+    const c=(window.CL||[]).find(x=>x.id===t.clientId);
     const key='auto_task_'+t.id;
     if(!hasNotif(key)&&c){
       addNotification('task','Zadanie przeterminowane',`${c.name} — ${t.title}`,'tasks',key);
@@ -4688,6 +4703,29 @@ function generateAutoNotifs(){
 
   updateNotifBadge();
 }
+function startOpsScanClock(){
+  if(window._opsScanClock)return window._opsScanClock;
+  const run=function(){
+    try{
+      if(typeof collectOpsEvents==='function')collectOpsEvents(true);
+      generateAutoNotifs();
+      if(typeof refreshDashOps==='function')refreshDashOps();
+    }catch(e){}
+  };
+  window._opsScanClock=setInterval(function(){
+    if(typeof document!=='undefined'&&document.hidden)return;
+    run();
+  },60000);
+  if(typeof document!=='undefined'&&document.addEventListener){
+    document.addEventListener('visibilitychange',function(){
+      if(!document.hidden)run();
+    });
+  }
+  return window._opsScanClock;
+}
+window.opsEventNotifKey=opsEventNotifKey;
+window.generateAutoNotifs=generateAutoNotifs;
+window.startOpsScanClock=startOpsScanClock;
 
 function openReportModal(){
   const sel=document.getElementById('rep-client');

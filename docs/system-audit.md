@@ -47,13 +47,13 @@ ONBOARDING_FLOW        →  Autoflow trigger new_client + checklista CLIENT_ONBO
 clientName             →  plans, packages, invoices, historia onboardingu (cache; rename nie przepisuje)
 ```
 
-Powiadomienia: **trzy niezależne systemy**
+Powiadomienia: **jeden skan, dwa widoki**
 
-1. `NOTIFICATIONS` / `addNotification` / `generateAutoNotifs` (dzwonek, Firestore)
-2. `collectOpsEvents` → dashboard Uwaga + Przypomnienia (teraz jedno źródło, cache 15 s)
-3. Autoflow `AF_STATE` (osobne enrollmenty)
+1. `collectOpsEvents` — skan klientów (TTL 15 s) → pulpit Uwaga + Przypomnienia
+2. `generateAutoNotifs` — dzwonek: sesje dziś / pakiety **oraz** pozycje `attention` z tego samego skanu (`opsEventNotifKey`)
+3. Autoflow `AF_STATE` — enrollmenty na `emitAppEvent` (osobna maszyna stanów, nie lista alertów)
 
-Nie ma crona. „Wymagają uwagi” było **synchronicznym skanem wszystkich klientów przy każdym `renderDashOps`** (check-in + 14 dni `SE` + BMI watchdog). Teraz ten sam skan jest w `collectOpsEvents` z TTL 15 s — nadal klient-side, bez backendu.
+Zegar: `startOpsScanClock` co 60 s gdy karta widoczna + `visibilitychange`. Nie ma crona po stronie serwera (GitHub Pages).
 
 ---
 
@@ -136,3 +136,4 @@ Wejścia: `saveClient` (modal NOWY KLIENT). Checklista: `openClientOnboardCheckl
 13. **KB → AI: notatki + badania** — **zrobione:** Generator bierze notatki i źródła (oraz zasady). Wpis z wyłączonym planowaniem zostaje tylko w bazie — bez wycieku „pozostałych notatek”.
 12. **Płatności: filtry po `clientId`** — **zrobione:** chipy Pakietów i select Historii (`payClientsFromPackages`). To samo imię = dwa chipy / dwie opcje, nie jedna wspólna lista.
 14. **Ustawienia startu współpracy** — **zrobione:** legenda `CLIENT_ONBOARD_STEPS` (6/6), bez checkboxów `msgSteps`. Auto-wiadomość = Automatyzacja. Przypomnienia i kontrakt zostają jako notatki — aplikacja ich nie wysyła.
+16. **Jeden skan operacyjny** — **zrobione:** `generateAutoNotifs` bierze `attention` z `collectOpsEvents`. `startOpsScanClock` co 60 s + powrót na kartę. Autoflow zostaje na zdarzeniach.
