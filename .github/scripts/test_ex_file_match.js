@@ -18,7 +18,7 @@ function ok(name, cond, extra) {
 }
 
 ok('cache manifest v33', html.includes('ex-gif-manifest.js?v=34'));
-ok('cache 01 v60', html.includes('01-core.js?v=108'));
+ok('cache 01 v60', html.includes('01-core.js?v=109'));
 ok('cache 06 v42', html.includes('06-inbox-exercises-ai-programs.js?v=79'));
 
 const m = six.match(/const DEF_EX=\[([\s\S]*?)\];\s*window\.DEF_EX/);
@@ -108,6 +108,24 @@ ok(
   hit('Wyciskanie sztangi wąskim chwytem (Close-Grip Barbell Bench Press).mp4') !== 'Wyciskanie sztangi leżąc'
 );
 ok('dips', hit('Dipy na poręczach (Parallel Bar Dips).mp4') === 'Dipy na poręczach');
+ok('generic chest name', ctx.isGenericExerciseMediaName('Klatka piersiowa') === true);
+ok('dips name not generic', ctx.isGenericExerciseMediaName('Dipy na poręczach') === false);
+ok(
+  'generic chest card does not steal bench clip',
+  ctx.matchFilenameToExercise('Wyciskanie sztangi na ławce płaskiej (Barbell Bench Press).mp4', exercises.concat([{ name: 'Klatka piersiowa', aka: '' }])) === 'Wyciskanie sztangi leżąc'
+);
+ok(
+  'generic chest card does not steal dips clip',
+  ctx.matchFilenameToExercise('Dipy na poręczach (Parallel Bar Dips).mp4', exercises.concat([{ name: 'Klatka piersiowa', aka: '' }])) === 'Dipy na poręczach'
+);
+ok(
+  'generic chest filename not assigned to category card',
+  ctx.matchFilenameToExercise('Klatka piersiowa (Barbell Bench Press).mp4', exercises.concat([{ name: 'Klatka piersiowa', aka: '' }])) !== 'Klatka piersiowa'
+);
+ok(
+  'chest-folder bench filename maps to bench not category',
+  ctx.matchFilenameToExercise('Klatka piersiowa (Barbell Bench Press).mp4', exercises.concat([{ name: 'Klatka piersiowa', aka: '' }])) === 'Wyciskanie sztangi leżąc'
+);
 ok(
   'lying bench-dip-as-pushup filename not assigned',
   hit('Dipy na ławce (Bench Dip).mp4') === ''

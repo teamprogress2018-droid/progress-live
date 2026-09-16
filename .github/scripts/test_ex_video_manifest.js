@@ -497,6 +497,8 @@ ok('technique html is video', /<video/.test(html) && /autoplay/.test(html) && !/
 
 const coach = ctx.resolveCoachMedia({ name: 'Wyciskanie sztangi leżąc' });
 ok('resolveCoachMedia gif is mp4', /\.mp4/i.test(coach.gif || ''), coach.gif);
+ok('assigned dips film is parallel-bar', /Parallel%20Bar%20Dips/i.test(ctx.assignedExVideoUrl({ name: 'Dipy na poręczach' }) || ''));
+ok('generic chest has no assigned film', !ctx.assignedExVideoUrl({ name: 'Klatka piersiowa' }));
 
 if (failed) process.exit(1);
 console.log('\nAll ex-video-manifest tests passed');
