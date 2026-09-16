@@ -16,7 +16,6 @@ Stack: **vanilla JS + Firestore + GitHub Pages** (nie React/Next/Tailwind). Stan
 | Brama płatności ↔ kalendarz / Live | **Zrobione:** `clientHasPaidAccess` + Trial / Gość. Nieopłacony/wygasły pakiet blokuje `schedulePlanToCalendar` i Live Start. Live End zdejmuje sesje tylko z `payStatus:'paid'`. | `01-core.js`, Live, profil → Płatności |
 | Event-driven automatyzacja | **Zrobione:** Autoflow nasłuchuje `emitAppEvent` — `package.expired`, `checkin.submitted`, `client.created`, `client.inactive`, `session.soon`. Skan (ten sam zegar co pulpit) emituje zastój i sesję w oknie przypomnienia. Poll zostaje tylko dla sekwencji dni. | `09-…js` `autoflowOnAppEvent` |
 | Live: IndexedDB + kolejka sync | **Zrobione:** `source:'live-draft'` przy starcie i co 3 serie + IndexedDB + LS. Koniec sesji zamienia ten sam dokument na `source:'live'`. | `liveSaveDraft` / `livePersistDraftRemote` w `02-…js` |
-| Tagi KB ↔ builder | **Świadomie poza kolejką:** MEV/MAV/RIR zostają w przewodniku trenera i promptach AI, nie jako tagi rekordów KB na ćwiczeniu/dniu planu. | `01-core.js` evidence + `03-…js` prompt |
 | Tagi KB ↔ builder | **Zrobione:** tagi landmark (MEV/MAV/MRV/RIR/RPE/częstotliwość/deload) i partii na wpisie KB. Kreator pokazuje dopasowane notatki przy dniu i w panelu „Baza na ten plan”. Mowa do klienta bez żargonu. | `kbEntriesForBuilder` + `#builder-kb-hits` |
 
 ---
@@ -140,15 +139,11 @@ Wejścia: `saveClient` (modal NOWY KLIENT). Checklista: `openClientOnboardCheckl
 
 ---
 
-## 8. Status — kolejka zamknięta (2026-09-16)
+## 8. Status — kolejka 1–17 (2026-09-16)
 
-Pozycje **1–14** z §7 są wdrożone. Tabela §1 (cykl życia, TDEE bez czatu, szyna) też — kod był, znaczniki w dokumencie nie.
+Pozycje **1–14** z §7 są wdrożone. Tagi KB (#313), jeden skan ops (#314) i Autoflow zastój/sesja dziś (#315) też.
 
-**Nie jest zadaniem z tej listy** (zostaje jako architektura / świadomy skip):
-
-- **Tagi KB ↔ builder** — żargon MEV/MAV/RIR nie idzie do mowy klienta ani do tagów rekordów KB.
-- **Trzy systemy powiadomień** — dzwonek (`NOTIFICATIONS`), pulpit (`collectOpsEvents`), Autoflow (`AF_STATE`). Pulpit ma już jedno źródło na Uwagę; scalanie z dzwonkiem wymagałoby osobnego PR.
-- **Brak crona** — skan operacyjny zostaje klient-side (`collectOpsEvents`, TTL 15 s). Bez backendu nie ma nocnego joba.
+**Świadomy skip:** „Dzisiejszy plan” zostaje skrótem (nie drugim kalendarzem). Unread MSGS zostaje badge’em Wiadomości — nie duplikujemy w Uwadze.
 
 Kalendarz (poza §7): tydzień 7 równych kolumn (#305/#306), brak dublowania sesji o tej samej godzinie (#307).
 15. **Tagi KB ↔ builder** — **zrobione:** `tags[]` na wpisie (MEV/MAV/RIR/partia). Kreator: `#builder-kb-hits` + pasek dnia. AI (`askAI`) sortuje kontekst po tagach planu.
