@@ -28,6 +28,7 @@ ok('settings default', src04.includes('screensaver:{') && src04.includes('idleMi
 ok('cache bumps', html.includes('01-core.js?v=106') && html.includes('04-client-portal.js?v=52') && html.includes('styles.css?v=89'));
 ok('cache bumps', html.includes('01-core.js?v=109') && html.includes('04-client-portal.js?v=50') && html.includes('styles.css?v=90'));
 ok('cache bumps', html.includes('01-core.js?v=106') && html.includes('04-client-portal.js?v=51') && html.includes('styles.css?v=89'));
+ok('cache bumps', html.includes('01-core.js?v=108') && html.includes('04-client-portal.js?v=52') && html.includes('styles.css?v=90'));
 ok('CI', wf.includes('test_screensaver.js') && wf.includes('test_screensaver_ui.js'));
 
 const attrs = {};
