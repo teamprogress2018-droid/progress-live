@@ -147,9 +147,7 @@ vm.runInNewContext(
 );
 ok('dashListSection preview 2','manual');
 
-ok('cache bumps',html.includes('04-client-portal.js?v=52')&&html.includes('styles.css?v=89'));
-ok('cache bumps',html.includes('04-client-portal.js?v=50')&&html.includes('styles.css?v=90'));
-ok('cache bumps',html.includes('04-client-portal.js?v=51')&&html.includes('styles.css?v=89'));
+ok('cache bumps',html.includes('04-client-portal.js?v=52')&&html.includes('styles.css?v=90'));
 ok('CI ui',fs.readFileSync(path.join(root,'.github','workflows','check.yml'),'utf8').includes('test_dash_followup_gone_ui.js'));
 
 if(failed){console.error('\n'+failed+' failed');process.exit(1);}
