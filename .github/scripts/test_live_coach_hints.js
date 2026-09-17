@@ -21,8 +21,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=109'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=73'));
+ok('cache 01', html.includes('01-core.js?v=110'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=74'));
 ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=76'));
 ok('cache 10', html.includes('10-client-app.js?v=40'));
 ok('cache styles', html.includes('styles.css?v=92'));

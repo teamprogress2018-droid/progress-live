@@ -134,7 +134,7 @@ function ok(name, cond, extra) {
   });
   ok('assign player after save', /Machine Chest Fly \(Pec Deck\)/.test(decodeURIComponent(afterSave.playerSrc || '')), afterSave.playerSrc);
   ok('assign player autoplay muted', afterSave.autoplay, JSON.stringify(afterSave));
-  ok('library card shows film badge', afterSave.filmBadge && afterSave.cardVideo, JSON.stringify(afterSave));
+  ok('library card shows film badge', afterSave.filmBadge && !afterSave.cardVideo, JSON.stringify(afterSave));
 
   const winCopy = 'Rozpiętki na maszynie (motyl) (Machine Chest Fly (Pec Deck)) (2).mp4';
   await page.evaluate(() => { if (typeof setExdTab === 'function') setExdTab('manage'); });

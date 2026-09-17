@@ -26,6 +26,7 @@ ok('day strip',src05.includes('builder-day-kb')&&html.includes('id="builder-kb-h
 ok('save tags',src09.includes('kbReadTagPicker')&&/useInPlanning,\s*tags/.test(src09));
 ok('askAI tags',src06.includes('preferTags')&&src06.includes('builderCollectKbTags'));
 ok('css tags',css.includes('.kb-tag-btn.is-on')&&css.includes('.builder-kb-hit'));
+ok('cache pins',html.includes('01-core.js?v=110')&&html.includes('05-clients-builder-plans-calendar.js?v=76')&&html.includes('09-posture-kb-invites-private.js?v=50')&&html.includes('styles.css?v=92'));
 ok('cache pins',html.includes('01-core.js?v=109')&&html.includes('05-clients-builder-plans-calendar.js?v=76')&&html.includes('09-posture-kb-invites-private.js?v=50')&&html.includes('styles.css?v=92'));
 ok('CI unit',wf.includes('test_kb_builder_tags.js'));
 ok('CI ui',wf.includes('test_kb_builder_tags_ui.js'));

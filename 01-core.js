@@ -3467,6 +3467,49 @@ function formatLastSetsSummary(sets){
 }
 window.formatLastSetsSummary=formatLastSetsSummary;
 
+function formatLastSetShort(s){
+  if(!s)return '';
+  const k=(s.kg!=null&&s.kg!=='')?String(s.kg):'';
+  const r=(s.reps!=null&&s.reps!=='')?String(s.reps):'';
+  if(k&&r)return k+' × '+r;
+  if(k)return k;
+  if(r)return r+' powt.';
+  return '';
+}
+window.formatLastSetShort=formatLastSetShort;
+
+function resolveLastLoggedSets(ex,opts){
+  opts=opts||{};
+  if(ex&&Array.isArray(ex.lastSets)&&ex.lastSets.length)return ex.lastSets;
+  if(ex&&Array.isArray(ex.lastHistory)){
+    const hit=ex.lastHistory.find(h=>h&&Array.isArray(h.sets)&&h.sets.length);
+    if(hit)return hit.sets;
+  }
+  const cid=(ex&&ex.clientId)||opts.clientId;
+  const nm=(ex&&(ex.name||ex.plannedName))||opts.name;
+  const alts=(ex&&ex.alts)||opts.aliases;
+  if(cid&&nm&&typeof exerciseLoadHistory==='function'){
+    const hist=exerciseLoadHistory(cid,nm,alts,{limit:1});
+    if(hist[0]&&hist[0].sets&&hist[0].sets.length)return hist[0].sets;
+  }
+  return [];
+}
+window.resolveLastLoggedSets=resolveLastLoggedSets;
+
+function lastWorkingSets(ex,opts){
+  const sets=resolveLastLoggedSets(ex,opts);
+  const work=sets.filter(s=>typeof isWorkingSet!=='function'||isWorkingSet(s));
+  return work.length?work:sets;
+}
+window.lastWorkingSets=lastWorkingSets;
+
+function lastLoggedSetAt(ex,si,opts){
+  const src=lastWorkingSets(ex,opts);
+  if(!src.length||si==null||si<0)return null;
+  return src[si]||null;
+}
+window.lastLoggedSetAt=lastLoggedSetAt;
+
 function formatHistorySessionDate(ymd){
   if(!ymd)return '';
   return typeof formatTrainingDayShortPl==='function'?formatTrainingDayShortPl(ymd):String(ymd);
@@ -3625,10 +3668,13 @@ function lastSetsBlockHtml(ex,opts){
     clientId:(ex&&ex.clientId)||opts.clientId||'',
     aliases:(ex&&ex.alts)||opts.aliases
   };
-  return `<button type="button" class="${cls}" data-ex-hist="${id}" onclick="event.stopPropagation();openExerciseHistory('${id}')" title="Historia ciężaru i powtórzeń — jak w Fitebo">
+  const btn=`<button type="button" class="${cls}" data-ex-hist="${id}" onclick="event.stopPropagation();openExerciseHistory('${id}')" title="Historia ciężaru i powtórzeń z poprzednich treningów">
     <span class="live-last-ico" aria-hidden="true">🕒</span>
     <span class="live-last-sum">Ostatnio: ${escHtml(summary)}${date?' · '+escHtml(date):''}${escHtml(extra)}</span>
   </button>`;
+  if(!opts.panel)return btn;
+  const rows=lastSetsSessionRowsHtml(latest.sets,ex);
+  return `<div class="live-last-panel">${btn}${rows?`<div class="live-last-rows">${rows}</div>`:''}</div>`;
 }
 window.lastSetsBlockHtml=lastSetsBlockHtml;
 
