@@ -32,11 +32,19 @@ ok('5/3/1 lives in programs', /5\/3\/1|Wendler/.test(progBlock));
 ok('moved systems in programs', /GZCLP/.test(progBlock) && /Texas Method/.test(progBlock) && /Starting Strength/.test(progBlock) && /nSuns/.test(progBlock));
 ok('UI copy templates micro', html.includes('mikrocykle') || html.includes('mikrocykle') || html.includes('schematy tygodnia'));
 ok('UI copy programs macro', html.includes('makrocykle') || html.includes('periodyzac'));
-ok('nav labels', html.includes('Bloki 8–16 tyg.') && html.includes('Gotowy tydzień'));
+ok('nav labels', html.includes('Bloki 4–16 tyg.') && html.includes('Gotowy tydzień'));
 ok('create form defaults 1 week', /id="tplc-weeks"[^>]*value="1"/.test(src02) || /tplc-weeks'\)\.value=existing\?\.weeks\|\|1/.test(src02));
-ok('cache bumps', html.includes('02-workouts-onboarding-templates-live.js?v=74') && html.includes('06-inbox-exercises-ai-programs.js?v=81'));
+ok('cache bumps', html.includes('02-workouts-onboarding-templates-live.js?v=74') && html.includes('06-inbox-exercises-ai-programs.js?v=82'));
 ok('CI', wf.includes('test_templates_vs_programs.js'));
 ok('ppl sila program', /PPL Siła studio — 8 tygodni/.test(progBlock) && /Siła PPL — Push \+ czworogłowe/.test(progBlock));
+ok('programs title 4-16', html.includes('Bloki 4–16 tygodni') && /bloki 4–16 tygodni/.test(html));
+ok('no 1-week demo program', !/duration:1[,}]/.test(progBlock) && !/Cardio Start/.test(progBlock));
+ok('dur chips 4/6/8/10+', html.includes('data-dur="4"') && html.includes('data-dur="6"') && html.includes('data-dur="8"') && html.includes('data-dur="10+"'));
+ok('dur chips not 1 week', !/#prog-dur-chips[\s\S]*setProgDurFilter\('1'\)/.test(html));
+ok('dur filter uses data-dur', /el\.getAttribute\('data-dur'\)/.test(src06) && /function progDurationMatches\(/.test(src06));
+ok('card shows fazy not blokow', src06.includes('prog-stat-lbl">Fazy') && src06.includes('MAX_WEEK_BARS=6'));
+ok('equip kettlebell+mix', html.includes('value="Kettlebell"') && html.includes('value="Mieszany"'));
+ok('CI prog catalog', wf.includes('test_prog_catalog.js'));
 
 if (failed) {
   console.error(failed + ' failed');

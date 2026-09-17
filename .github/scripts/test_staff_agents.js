@@ -20,7 +20,7 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 03 v37', html.includes('03-ai-plangen-bizstats-aicoach.js?v=37'));
-ok('cache 06 v77', html.includes('06-inbox-exercises-ai-programs.js?v=81'));
+ok('cache 06 v77', html.includes('06-inbox-exercises-ai-programs.js?v=82'));
 ok('CI unit', wf.includes('test_staff_agents.js'));
 ok('CI ui', wf.includes('test_staff_agents_ui.js'));
 ok('sztab button', html.includes('id="aicm-sztab"') && html.includes('Sztab ekspercki'));

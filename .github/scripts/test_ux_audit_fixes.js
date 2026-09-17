@@ -27,7 +27,7 @@ function ok(name, cond, extra) {
 }
 
 ok('flyout homework', html.includes("goToHomeworkQueue()") && html.includes('Zadania domowe'));
-ok('flyout week/block names', html.includes('Bloki 8–16 tyg.') && html.includes('Gotowy tydzień'));
+ok('flyout week/block names', html.includes('Bloki 4–16 tyg.') && html.includes('Gotowy tydzień'));
 ok('dash QA homework+plan', html.includes("goToHomeworkQueue()") && html.includes('openNewPlanPicker()'));
 ok('plans CTA picker', /id="screen-plans"[\s\S]{0,500}openNewPlanPicker\(\)/.test(html));
 ok('tasks homework filter', html.includes('id="tn-homework"') && html.includes('id="t-hw"'));
@@ -57,7 +57,7 @@ ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=74'));
 ok('cache 04', html.includes('04-client-portal.js?v=52'));
 ok('cache 09', html.includes('09-posture-kb-invites-private.js?v=50'));
 ok('cache 10', html.includes('10-client-app.js?v=40'));
-ok('cache styles', html.includes('styles.css?v=92'));
+ok('cache styles', html.includes('styles.css?v=93'));
 ok('CI', wf.includes('test_ux_audit_fixes.js'));
 
 const document = {

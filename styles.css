@@ -2163,7 +2163,8 @@ input[type=checkbox]{display:none;}
 .prog-week-bar{display:flex;align-items:center;gap:8px;padding:4px 0;}
 .prog-week-num{font-family:var(--font-ui);font-size:10px;color:var(--muted);width:36px;flex-shrink:0;}
 .prog-week-fill{height:4px;border-radius:99px;flex:1;}
-.prog-week-label{font-size:10px;color:var(--muted);white-space:nowrap;}
+.prog-week-label{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46%;}
+.prog-week-more{font-size:10px;color:var(--muted);padding:4px 0 0;font-weight:600;}
 .prog-stats-row{display:flex;gap:0;border-top:1px solid var(--border);margin-top:10px;}
 .prog-stat{flex:1;text-align:center;padding:8px 4px;border-right:1px solid var(--border);}
 .prog-stat:last-child{border-right:none;}

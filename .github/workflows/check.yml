@@ -255,6 +255,8 @@ jobs:
         run: node .github/scripts/test_app_shell_everfit.js
       - name: Szablony vs Programy (mikro/makro)
         run: node .github/scripts/test_templates_vs_programs.js
+      - name: Katalog programów — filtry 4–16 tyg.
+        run: node .github/scripts/test_prog_catalog.js
       - name: Szablony i programy — kompletne sesje ćwiczeń
         run: node .github/scripts/test_template_ready_sessions.js
       - name: 1n27b. Testy wejścia do planu tylko z klienta
@@ -390,6 +392,8 @@ jobs:
         run: node .github/scripts/test_cp_plan_day_tiles_ui.js
       - name: 6b0. Testy UI biblioteki planów (tabela / filtry)
         run: node .github/scripts/test_plans_library_ui.js
+      - name: 6b0p. Testy UI katalogu programów (filtry 4–16 tyg.)
+        run: node .github/scripts/test_prog_catalog_ui.js
       - name: 6b. Testy layoutu generatora / biblioteki / kalkulatora
         run: node .github/scripts/test_ai_gen_layout.js
       - name: 6b1. Testy UI PDF planu AI

@@ -13,7 +13,7 @@
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="globals.css?v=17">
-<link rel="stylesheet" href="styles.css?v=92">
+<link rel="stylesheet" href="styles.css?v=93">
 </head>
 <body>
 
@@ -92,7 +92,7 @@
         </div>
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="library" onclick="goTo('library')">Ćwiczenia</button>
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="plans" onclick="goTo('plans')">Treningi</button>
-        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="programs" onclick="goTo('programs')">Bloki 8–16 tyg.</button>
+        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="programs" onclick="goTo('programs')">Bloki 4–16 tyg.</button>
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="templates" onclick="goTo('templates')">Gotowy tydzień</button>
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="tasks" data-task-filter="homework" onclick="goToHomeworkQueue()">Zadania domowe</button>
         <button type="button" class="nav-flyout-item" role="menuitem" data-screen="tasks" onclick="goTo('tasks')">Zadania i nawyki</button>
@@ -697,7 +697,7 @@
 <div class="screen" id="screen-programs">
   <div class="topbar">
     <div>
-      <div class="topbar-title">Bloki 8–16 tygodni</div>
+      <div class="topbar-title">Bloki 4–16 tygodni</div>
       <div style="font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4;max-width:640px;">Gotowe <b>bloki 4–16 tygodni</b> z periodyzacją (akumulacja → intensyfikacja → deload). Schematy 1-tygodniowe są w <button type="button" class="linkish" onclick="goTo('templates')" style="background:none;border:none;color:var(--accent);cursor:pointer;padding:0;font:inherit;text-decoration:underline;">Gotowy tydzień</button>.</div>
     </div>
     <div class="topbar-actions">
@@ -732,19 +732,21 @@
     <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
       <div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;">
         <span style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;" id="prog-count-lbl">0 programów</span>
-        <div style="display:flex;gap:6px;" id="prog-dur-chips">
-          <div class="wl-filter-chip active" onclick="setProgDurFilter('')">Wszystkie</div>
-          <div class="wl-filter-chip" onclick="setProgDurFilter('1')">1 tyg.</div>
-          <div class="wl-filter-chip" onclick="setProgDurFilter('4')">4 tyg.</div>
-          <div class="wl-filter-chip" onclick="setProgDurFilter('8')">8 tyg.</div>
-          <div class="wl-filter-chip" onclick="setProgDurFilter('12')">12 tyg.</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;" id="prog-dur-chips">
+          <button type="button" class="wl-filter-chip active" data-dur="" onclick="setProgDurFilter('')">Wszystkie</button>
+          <button type="button" class="wl-filter-chip" data-dur="4" onclick="setProgDurFilter('4')">4 tyg.</button>
+          <button type="button" class="wl-filter-chip" data-dur="6" onclick="setProgDurFilter('6')">6 tyg.</button>
+          <button type="button" class="wl-filter-chip" data-dur="8" onclick="setProgDurFilter('8')">8 tyg.</button>
+          <button type="button" class="wl-filter-chip" data-dur="10+" onclick="setProgDurFilter('10+')">10–16 tyg.</button>
         </div>
         <div style="margin-left:auto;display:flex;gap:6px;">
           <select class="form-select" style="padding:4px 8px;font-size:11px;width:auto;" id="prog-equip-fil" onchange="renderPrograms()">
             <option value="">Każdy sprzęt</option>
             <option value="Siłownia">Siłownia</option>
             <option value="Hantle">Hantle</option>
+            <option value="Kettlebell">Kettlebell</option>
             <option value="Bez sprzętu">Bez sprzętu</option>
+            <option value="Mieszany">Mieszany</option>
           </select>
         </div>
       </div>
@@ -3621,7 +3623,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         </div>
         <div class="form-field"><label class="form-lbl">Czas trwania</label>
           <select class="form-select" id="pm-dur">
-            <option value="4">4 tygodnie</option><option value="8" selected>8 tygodni</option><option value="12">12 tygodni</option>
+            <option value="4">4 tygodnie</option><option value="6">6 tygodni</option><option value="8" selected>8 tygodni</option><option value="12">12 tygodni</option><option value="16">16 tygodni</option>
           </select>
         </div>
       </div>
@@ -3635,7 +3637,10 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <div class="form-field"><label class="form-lbl">Sprzęt</label>
           <select class="form-select" id="pm-equip">
             <option value="Siłownia">Siłownia (pełne wyposażenie)</option>
-            <option value="Hantle">Hantle</option><option value="Bez sprzętu">Bez sprzętu</option>
+            <option value="Hantle">Hantle</option>
+            <option value="Kettlebell">Kettlebell</option>
+            <option value="Bez sprzętu">Bez sprzętu</option>
+            <option value="Mieszany">Mieszany</option>
           </select>
         </div>
       </div>
@@ -4465,7 +4470,7 @@ async function load(){
 <script src="03-ai-plangen-bizstats-aicoach.js?v=37"></script>
 <script src="04-client-portal.js?v=52"></script>
 <script src="05-clients-builder-plans-calendar.js?v=76"></script>
-<script src="06-inbox-exercises-ai-programs.js?v=81"></script>
+<script src="06-inbox-exercises-ai-programs.js?v=82"></script>
 <script src="07-forms-metrics-calculator.js?v=39"></script>
 <script src="08-client-profile-extras.js?v=61"></script>
 <script src="09-posture-kb-invites-private.js?v=50"></script>
