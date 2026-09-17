@@ -51,17 +51,31 @@ function ok(name, cond, extra) {
 
   const search = await page.evaluate(() => {
     const inp = document.getElementById('live-alt-search-0-0');
-    const btn = document.querySelector('.live-alts-add .btn');
+    const add = inp && inp.closest('.live-alts-add');
+    const swap = document.querySelector('#live-ex-0 .live-swap-btn');
+    const btn = add && add.querySelector('.btn');
     return {
       hasSearch: !!(inp),
+      searchHidden: !!(add && add.hidden),
       placeholder: inp ? inp.placeholder : '',
       altFor: inp && inp.dataset ? inp.dataset.altFor : '',
-      hasBtn: !!(btn)
+      hasBtn: !!(btn),
+      swap: swap ? (swap.textContent || '').trim() : ''
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'live_alt_search.png') });
-  ok('alt search present', search.hasSearch && search.hasBtn, JSON.stringify(search));
+  ok('swap button present', /Zamień ćwiczenie/.test(search.swap), JSON.stringify(search));
+  ok('alt search hidden until swap', search.hasSearch && search.searchHidden && search.hasBtn, JSON.stringify(search));
   ok('alt search placeholder kit', /sztanga|hantle|brama|ławka/i.test(search.placeholder), search.placeholder);
+
+  await page.click('#live-ex-0 .live-swap-btn');
+  await page.waitForTimeout(200);
+  const opened = await page.evaluate(() => {
+    const inp = document.getElementById('live-alt-search-0-0');
+    const add = inp && inp.closest('.live-alts-add');
+    return { hidden: !!(add && add.hidden), focused: document.activeElement === inp };
+  });
+  ok('swap opens search', !opened.hidden, JSON.stringify(opened));
 
   await page.click('#live-alt-search-0-0');
   await page.waitForTimeout(200);

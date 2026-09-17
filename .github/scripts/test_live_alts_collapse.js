@@ -19,12 +19,12 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=74'));
-ok('cache styles', html.includes('styles.css?v=93'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=76'));
+ok('cache styles', html.includes('styles.css?v=95'));
 ok('LIVE_ALT_MAX 3', /const LIVE_ALT_MAX=3/.test(live));
 ok('toggle helper', /function liveToggleAlts\(/.test(live) && /function liveAltsToShow\(/.test(live));
-ok('more css', css.includes('.live-alts-more'));
-ok('swap resets expand', /cur\.altsExpanded=false/.test(live));
+ok('more css', css.includes('.live-alts-more') && css.includes('.live-swap-btn'));
+ok('swap resets expand', /cur\.altsExpanded=false/.test(live) && /cur\.altSearchOpen=false/.test(live));
 ok('CI unit', wf.includes('test_live_alts_collapse.js'));
 ok('CI ui', wf.includes('test_live_alts_collapse_ui.js'));
 
@@ -49,6 +49,7 @@ ok('show all when few', ctx.liveAltsToShow(['A', 'B'], false).length === 2);
 const collapsed = ctx.liveAltsHtml({ name: 'Maszyna', alts: eight }, 0, 0);
 const chipRe = /class="live-alt-chip"/g;
 ok('collapsed 3 chips', (collapsed.match(chipRe) || []).length === 3);
+ok('swap btn collapsed', /Zamień ćwiczenie/.test(collapsed) && /liveToggleAltSearch\(0\)/.test(collapsed));
 ok('collapsed more btn', /Więcej opcji · 5/.test(collapsed) && /aria-expanded="false"/.test(collapsed));
 ok('collapsed hides rest', !/↻ D/.test(collapsed) && /↻ C/.test(collapsed));
 

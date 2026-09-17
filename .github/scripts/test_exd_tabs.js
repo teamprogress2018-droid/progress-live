@@ -19,7 +19,7 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=82'));
-ok('cache styles', html.includes('styles.css?v=93'));
+ok('cache styles', html.includes('styles.css?v=95'));
 ok('CI unit', wf.includes('test_exd_tabs.js'));
 ok('CI ui', wf.includes('test_exd_tabs_ui.js'));
 

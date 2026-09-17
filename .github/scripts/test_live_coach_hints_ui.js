@@ -67,17 +67,26 @@ function ok(name, cond, extra) {
     const chips = [...document.querySelectorAll('.live-coach-chip')].map((el) => (el.textContent || '').trim());
     const week = (document.querySelector('.live-week-hint') || {}).textContent || '';
     const period = document.getElementById('live-period-card');
+    const body = document.getElementById('live-period-body');
+    const toggle = document.getElementById('live-period-toggle');
     const rows = [...document.querySelectorAll('#live-period-sched .live-period-row')].map((el) => (el.textContent || '').replace(/\s+/g, ' ').trim());
     const hint = (document.getElementById('live-rest-plan-hint') || {}).textContent || '';
     const planBtn = (document.getElementById('live-rest-plan-btn') || {}).textContent || '';
+    const add = document.querySelector('.live-ex-card .live-alts-add');
+    const swap = document.querySelector('.live-swap-btn');
     return {
       chips,
       week,
       periodHidden: !!(period && period.hidden),
+      periodCollapsed: !!(body && body.hidden),
+      periodExpanded: toggle ? toggle.getAttribute('aria-expanded') : null,
       rows,
       hint,
       planBtn,
-      cardText: (card && card.innerText) || ''
+      cardText: (card && card.innerText) || '',
+      hasInfo: !!document.querySelector('.live-week-info'),
+      hasSwap: !!(swap && /Zamień ćwiczenie/.test(swap.textContent || '')),
+      searchHidden: !!(add && add.hidden)
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'live_coach_hints.png') });
@@ -86,10 +95,23 @@ function ok(name, cond, extra) {
   ok('praca chip', info.chips.some((c) => /Praca 50/.test(c)), JSON.stringify(info.chips));
   ok('tempo chip', info.chips.some((c) => /Tempo 3-1-1-0/.test(c)), JSON.stringify(info.chips));
   ok('week hint', /Tydz\.|DUP|Intensyfikacja|Akumulacja|Szczyt/.test(info.week), info.week);
+  ok('week info btn', info.hasInfo);
+  ok('long method not in card', !/wysoka objętość|regeneracja CNS/.test(info.cardText), info.cardText.slice(0, 400));
+  ok('swap not search', info.hasSwap && info.searchHidden, JSON.stringify({ hasSwap: info.hasSwap, searchHidden: info.searchHidden }));
   ok('period visible', !info.periodHidden);
+  ok('period collapsed', info.periodCollapsed && info.periodExpanded === 'false');
   ok('4 weeks listed', info.rows.length === 4, JSON.stringify(info.rows));
   ok('akumulacja row', info.rows.some((r) => /Akumulacja/.test(r)), JSON.stringify(info.rows));
   ok('rest hint from plan', /90/.test(info.hint) || /90/.test(info.planBtn), info.hint + ' | ' + info.planBtn);
+
+  await page.click('#live-period-toggle');
+  const opened = await page.evaluate(() => {
+    const body = document.getElementById('live-period-body');
+    const toggle = document.getElementById('live-period-toggle');
+    return { hidden: !!(body && body.hidden), expanded: toggle ? toggle.getAttribute('aria-expanded') : null };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'live_period_open.png') });
+  ok('period expands', !opened.hidden && opened.expanded === 'true', JSON.stringify(opened));
 
   await browser.close();
   if (failed) process.exit(1);
