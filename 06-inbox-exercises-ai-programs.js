@@ -3093,14 +3093,6 @@ const DEMO_PROGRAMS=[
     ]
   },
   {
-    id:'dp21',type:'demo',name:'Cardio Start — 1 tydzień',goal:'kondycja',level:'poczatkujacy',duration:1,daysPerWeek:5,equip:'Bez sprzętu',method:'Cardio',
-    desc:'Krótki, 7-dniowy program wprowadzający do treningu wytrzymałościowego. Codzienna, rosnąca dawka cardio — idealny jako tydzień próbny przed dłuższym programem albo samodzielny reset kondycyjny.',
-    highlights:['Codzienna progresja intensywności','Mix: marsz, trucht, rower, skakanka','Zero sprzętu — start od zaraz','Naturalne wprowadzenie do dłuższych programów'],
-    weeks:[
-      {nr:1,label:'Tydzień startowy',rpe:'RPE 5-7 (rośnie każdego dnia)',focus:'Codzienna, rosnąca dawka cardio',days:[{d:'PON',name:'Marsz szybki 20 min, tętno strefa 2'},{d:'WT',name:'Trucht/marsz naprzemienny 20 min (2 min trucht / 1 min marsz)'},{d:'ŚR',name:'Skakanka: 5×2 min (przerwa 1 min)'},{d:'CZ',name:'Rower/orbitrek 25 min, stałe tempo'},{d:'PT',name:'Krótki test: 12 min tak dużo dystansu ile dasz radę (Cooper test)'}]},
-    ]
-  },
-  {
     id:'dp22',type:'demo',name:'Cardio Baza Wytrzymałościowa — 4 tygodnie',goal:'kondycja',level:'poczatkujacy',duration:4,daysPerWeek:4,equip:'Bez sprzętu',method:'Cardio',
     desc:'Budowanie aerobowej bazy wytrzymałościowej metodą stałego wysiłku (steady-state) z automatyczną progresją czasu i tempa co tydzień. Fundament pod każdy dalszy trening kondycyjny.',
     highlights:['Progresja czasu: 20→35 min','Trening w strefie tętna 2 (łatwa rozmowa)','1× tydzień test tempa','Zero sprzętu, dowolna dyscyplina cardio'],
@@ -3317,11 +3309,18 @@ function setProgNav(n){
   renderPrograms();
 }
 
+function progDurationMatches(duration,filter){
+  if(!filter)return true;
+  const n=Number(duration)||0;
+  if(filter==='10+')return n>=10;
+  return String(n)===String(filter);
+}
+window.progDurationMatches=progDurationMatches;
+
 function setProgDurFilter(d){
-  progDurFilter=d;
-  document.querySelectorAll('#prog-dur-chips .wl-filter-chip').forEach((el,i)=>{
-    el.classList.remove('active');
-    if((['','4','8','12'][i])===d)el.classList.add('active');
+  progDurFilter=d==null?'':String(d);
+  document.querySelectorAll('#prog-dur-chips .wl-filter-chip').forEach(el=>{
+    el.classList.toggle('active',(el.getAttribute('data-dur')||'')===progDurFilter);
   });
   renderPrograms();
 }
@@ -3345,7 +3344,7 @@ function renderPrograms(){
   let res=all.filter(p=>{
     if(search&&!p.name.toLowerCase().includes(search.toLowerCase())&&!(p.desc||'').toLowerCase().includes(search.toLowerCase()))return false;
     if(equipFil&&p.equip!==equipFil)return false;
-    if(progDurFilter&&String(p.duration)!==progDurFilter)return false;
+    if(progDurFilter&&!progDurationMatches(p.duration,progDurFilter))return false;
     if(progNav==='all')return true;
     if(progNav==='demo')return p.type==='demo';
     if(progNav==='moje')return p.type==='moje';
@@ -3369,8 +3368,9 @@ function renderPrograms(){
     const lc=LEVEL_COLORS_P[p.level]||'var(--muted)';
     const ll={'poczatkujacy':'Początkujący','sredni':'Średni','zaawansowany':'Zaawansowany'}[p.level]||p.level;
     const gl=GOAL_LABELS[p.goal]||p.goal;
-    // intensity bars for weeks
-    const weekBars=(p.weeks||[]).map(w=>{
+    const weeks=p.weeks||[];
+    const MAX_WEEK_BARS=6;
+    const weekBars=weeks.slice(0,MAX_WEEK_BARS).map(w=>{
       const isDeload=w.label&&w.label.includes('DELOAD');
       const fillPct=isDeload?20:Math.min(95,50+w.nr*6);
       const col=isDeload?'var(--orange)':gc;
@@ -3379,7 +3379,7 @@ function renderPrograms(){
         <div class="prog-week-fill" style="background:${col};opacity:${isDeload?0.6:0.8};width:${fillPct}%;max-width:100%;"></div>
         <span class="prog-week-label">${w.label||''}</span>
       </div>`;
-    }).join('');
+    }).join('')+(weeks.length>MAX_WEEK_BARS?`<div class="prog-week-more">+${weeks.length-MAX_WEEK_BARS} tyg. w szczegółach</div>`:'');
 
     return `<div class="prog-card" style="animation-delay:${i*0.05}s" onclick="openProgDetail('${p.id}')">
       <div class="prog-card-top" style="background:${gc};"></div>
@@ -3400,7 +3400,7 @@ function renderPrograms(){
       <div class="prog-stats-row">
         <div class="prog-stat"><div class="prog-stat-val">${p.duration}</div><div class="prog-stat-lbl">Tygodni</div></div>
         <div class="prog-stat"><div class="prog-stat-val">${p.daysPerWeek}</div><div class="prog-stat-lbl">Dni/tyg</div></div>
-        <div class="prog-stat"><div class="prog-stat-val">${(p.weeks||[]).length}</div><div class="prog-stat-lbl">Bloków</div></div>
+        <div class="prog-stat"><div class="prog-stat-val">${weeks.length}</div><div class="prog-stat-lbl">Fazy</div></div>
       </div>
       <div class="prog-card-actions" onclick="event.stopPropagation()">
         <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="openProgDetail('${p.id}')">Szczegóły</button>
