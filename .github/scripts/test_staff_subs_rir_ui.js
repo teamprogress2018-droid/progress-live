@@ -38,6 +38,7 @@ function ok(name, cond, extra) {
     if (typeof goTo === 'function') goTo('library');
     const name = (window.DEF_EX && window.DEF_EX[0] && window.DEF_EX[0].name) || 'Wyciskanie sztangi leżąc';
     if (typeof openExDetail === 'function') openExDetail(name);
+    if (typeof setExdTab === 'function') setExdTab('biomech');
   });
   await page.waitForTimeout(400);
   const libUi = await page.evaluate(() => {

@@ -20,6 +20,7 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=74'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=73'));
 ok('cache styles', html.includes('styles.css?v=92'));
 ok('LIVE_ALT_MAX 3', /const LIVE_ALT_MAX=3/.test(live));
 ok('toggle helper', /function liveToggleAlts\(/.test(live) && /function liveAltsToShow\(/.test(live));

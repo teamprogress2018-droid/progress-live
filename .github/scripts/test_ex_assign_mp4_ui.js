@@ -56,6 +56,7 @@ function ok(name, cond, extra) {
 
   await page.evaluate(() => {
     if (typeof openExDetail === 'function') openExDetail('Butterfly (peck deck)');
+    if (typeof setExdTab === 'function') setExdTab('manage');
   });
   await page.waitForSelector('#exd-assign');
   await page.waitForSelector('#exd-mp4-url');
@@ -136,6 +137,7 @@ function ok(name, cond, extra) {
   ok('library card shows film badge', afterSave.filmBadge && !afterSave.cardVideo, JSON.stringify(afterSave));
 
   const winCopy = 'Rozpiętki na maszynie (motyl) (Machine Chest Fly (Pec Deck)) (2).mp4';
+  await page.evaluate(() => { if (typeof setExdTab === 'function') setExdTab('manage'); });
   await page.fill('#exd-mp4-url', winCopy);
   await page.click('#exd-assign .btn-primary');
   await page.waitForTimeout(400);
@@ -153,6 +155,7 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'ex_assign_windows_copy.png') });
   ok('windows copy basename saved as canonical CDN', copyPec.cdn && copyPec.canonical && copyPec.droppedCopy, JSON.stringify(copyPec));
 
+  await page.evaluate(() => { if (typeof setExdTab === 'function') setExdTab('manage'); });
   await page.selectOption('#exd-mp4-own', 'cv-pec');
   await page.fill('#exd-mp4-url', '');
   await page.click('#exd-assign .btn-primary');
@@ -173,6 +176,7 @@ function ok(name, cond, extra) {
   ok('detail video from own library', own.videoSrc === 'https://cdn.example.com/filmy/motyl.mp4', own.videoSrc);
   ok('only one player after own assign', own.videoCount === 1, String(own.videoCount));
 
+  await page.evaluate(() => { if (typeof setExdTab === 'function') setExdTab('manage'); });
   await page.fill('#exd-mp4-url', '');
   await page.click('#exd-assign .btn-primary');
   await page.waitForTimeout(400);

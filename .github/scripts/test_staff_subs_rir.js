@@ -32,6 +32,9 @@ ok('biomech labeled rows', /exd-biomech-row/.test(six) && /Wzorzec/.test(six) &&
 ok('drawer css 480', css.includes('width:min(480px,100vw)') && css.includes('.exd-ai-h') && css.includes('.exd-biomech-row'));
 ok('no tiny biomech header', !/font-size:9px;font-family:'DM Mono',monospace;color:var\(--accent\);margin-bottom:8px/.test(html));
 ok('keep catalog alts', /Zamienniki z karty/.test(six));
+ok('exd tabs markup', html.includes('id="exd-tab-preview"') && html.includes('Podgląd') && html.includes('Biomechanika') && html.includes('Zarządzanie'));
+ok('exd accordions', html.includes('id="exd-acc-ai"') && /Uzasadnienia zamienników/.test(six));
+ok('exd tab css', css.includes('.exd-tab') && css.includes('.exd-acc'));
 ok('no 12-ex replace', !/db-incline-lateral/.test(six));
 
 const start = six.indexOf('const EX_PROFILE_LABELS=');

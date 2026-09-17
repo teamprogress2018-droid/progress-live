@@ -104,6 +104,9 @@ function ok(name, cond, extra) {
   await page.evaluate(() => {
     const name = (window.DEF_EX && window.DEF_EX[0] && (window.DEF_EX[0].name || window.DEF_EX[0].n)) || 'Przysiad';
     if (typeof openExDetail === 'function') openExDetail(name);
+    if (typeof setExdTab === 'function') setExdTab('biomech');
+    const acc = document.getElementById('exd-acc-ai');
+    if (acc) acc.open = true;
   });
   await page.waitForTimeout(400);
   const biomechBtn = await page.evaluate(() => {

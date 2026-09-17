@@ -661,15 +661,29 @@
           <button type="button" class="exd-close" onclick="closeExDetail()" aria-label="Zamknij">×</button>
         </div>
       </div>
-      <div id="exd-body"></div>
-      <div class="exd-ai">
-        <div class="exd-ai-h"><span class="exd-ai-dot" aria-hidden="true"></span>BIOMECHANIKA — ANALIZA ĆWICZENIA</div>
-        <div id="exd-ai-msgs" class="exd-ai-msgs"></div>
-        <button type="button" class="btn btn-ghost" id="exd-ask-biomech" onclick="askExStaffBiomechanika()">🦴 Zapytaj Biomechanika</button>
-        <div class="exd-ai-row">
-          <input type="text" id="exd-ai-q" class="exd-ai-q" placeholder="Pytaj o technikę, zamienniki..." onkeydown="if(event.key==='Enter')askExAI()">
-          <button type="button" class="exd-ai-send" onclick="askExAI()">→</button>
+      <div class="exd-tabs" role="tablist" aria-label="Szczegóły ćwiczenia" onkeydown="onExdTabsKeydown(event)">
+        <button type="button" class="exd-tab is-active" role="tab" id="exd-tab-preview" aria-controls="exd-panel-preview" aria-selected="true" tabindex="0" onclick="setExdTab('preview')">Podgląd</button>
+        <button type="button" class="exd-tab" role="tab" id="exd-tab-biomech" aria-controls="exd-panel-biomech" aria-selected="false" tabindex="-1" onclick="setExdTab('biomech')">Biomechanika</button>
+        <button type="button" class="exd-tab" role="tab" id="exd-tab-manage" aria-controls="exd-panel-manage" aria-selected="false" tabindex="-1" onclick="setExdTab('manage')">Zarządzanie</button>
+      </div>
+      <div id="exd-body">
+        <div id="exd-panel-preview" class="exd-panel" role="tabpanel" aria-labelledby="exd-tab-preview"></div>
+        <div id="exd-panel-biomech" class="exd-panel" role="tabpanel" aria-labelledby="exd-tab-biomech" hidden>
+          <div id="exd-biomech-main"></div>
+          <details class="exd-acc" id="exd-acc-ai">
+            <summary class="exd-acc-sum">🦴 Zapytaj Biomechanika</summary>
+            <div class="exd-ai">
+              <div class="exd-ai-h"><span class="exd-ai-dot" aria-hidden="true"></span>BIOMECHANIKA — ANALIZA ĆWICZENIA</div>
+              <div id="exd-ai-msgs" class="exd-ai-msgs"></div>
+              <button type="button" class="btn btn-ghost" id="exd-ask-biomech" onclick="askExStaffBiomechanika()">🦴 Zapytaj Biomechanika</button>
+              <div class="exd-ai-row">
+                <input type="text" id="exd-ai-q" class="exd-ai-q" placeholder="Pytaj o technikę, zamienniki..." onkeydown="if(event.key==='Enter')askExAI()" aria-label="Pytanie do biomechaniki">
+                <button type="button" class="exd-ai-send" onclick="askExAI()" aria-label="Wyślij pytanie">→</button>
+              </div>
+            </div>
+          </details>
         </div>
+        <div id="exd-panel-manage" class="exd-panel" role="tabpanel" aria-labelledby="exd-tab-manage" hidden></div>
       </div>
     </div>
   </div>
