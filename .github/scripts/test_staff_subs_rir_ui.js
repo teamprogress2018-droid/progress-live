@@ -44,10 +44,17 @@ function ok(name, cond, extra) {
     const box = document.getElementById('exd-subs-box');
     const list = document.getElementById('exd-subs-list');
     const sh = document.getElementById('exd-sub-shoulder');
+    const panel = document.getElementById('ex-detail');
+    const h = document.querySelector('#ex-detail .exd-ai-h');
+    const q = document.getElementById('exd-ai-q');
     const justify = list && [...list.querySelectorAll('button')].some((b) => /Uzasadnij/.test(b.textContent || ''));
     return {
       box: !!(box && getComputedStyle(box).display !== 'none'),
-      chips: box ? /profil:|staw:|SFR:/i.test(box.innerText) : false,
+      chips: box ? /Wzorzec|Płaszczyzna|Profil oporu|Stawy|SFR/i.test(box.innerText) : false,
+      rows: box ? box.querySelectorAll('.exd-biomech-row').length : 0,
+      panelW: panel ? Math.round(panel.getBoundingClientRect().width) : 0,
+      headFs: h ? parseFloat(getComputedStyle(h).fontSize) : 0,
+      inputFs: q ? parseFloat(getComputedStyle(q).fontSize) : 0,
       listHas: !!(list && list.innerText.trim()),
       shoulder: !!(sh && /Ból barku/.test(sh.textContent || '')),
       justify
@@ -60,7 +67,9 @@ function ok(name, cond, extra) {
   await page.waitForTimeout(200);
   await page.screenshot({ path: path.join(shotDir, 'subs_library_biomech.png') });
   ok('subs box', libUi.box);
-  ok('biomech chips', libUi.chips, JSON.stringify(libUi));
+  ok('biomech chips', libUi.chips && libUi.rows >= 5, JSON.stringify(libUi));
+  ok('drawer wider', libUi.panelW >= 450, JSON.stringify(libUi));
+  ok('biomech footer readable', libUi.headFs >= 12 && libUi.inputFs >= 13, JSON.stringify(libUi));
   ok('scored list', libUi.listHas);
   ok('shoulder filter', libUi.shoulder);
   ok('justify btn', libUi.justify);
