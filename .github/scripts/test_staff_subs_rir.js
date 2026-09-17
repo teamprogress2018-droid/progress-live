@@ -9,6 +9,7 @@ const root = path.join(__dirname, '../..');
 const six = fs.readFileSync(path.join(root, '06-inbox-exercises-ai-programs.js'), 'utf8');
 const src07 = fs.readFileSync(path.join(root, '07-forms-metrics-calculator.js'), 'utf8');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+const css = fs.readFileSync(path.join(root, 'styles.css'), 'utf8');
 const wf = fs.readFileSync(path.join(root, '.github', 'workflows', 'check.yml'), 'utf8');
 
 let failed = 0;
@@ -19,13 +20,17 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 06 v78', html.includes('06-inbox-exercises-ai-programs.js?v=79'));
+ok('cache 06 v80', html.includes('06-inbox-exercises-ai-programs.js?v=80'));
+ok('cache styles v91', html.includes('styles.css?v=91'));
 ok('cache 07 v39', html.includes('07-forms-metrics-calculator.js?v=39'));
 ok('CI unit', wf.includes('test_staff_subs_rir.js'));
 ok('CI ui', wf.includes('test_staff_subs_rir_ui.js'));
 ok('rir tab markup', html.includes('id="calc-tab-rir"') && html.includes('Obciążenie RIR') && html.includes('id="rir-weight"'));
 ok('myo tab markup', html.includes('id="calc-tab-myo"') && html.includes('id="calc-myo-layout"') && html.includes('id="myo-blocks"') && html.includes('id="myo-detail"'));
 ok('lib substitutes markup', /exd-subs-box/.test(six) && /Uzasadnij ten zamiennik/.test(six));
+ok('biomech labeled rows', /exd-biomech-row/.test(six) && /Wzorzec/.test(six) && /Profil oporu/.test(six) && /Przyciąganie pionowe/.test(six));
+ok('drawer css 480', css.includes('width:min(480px,100vw)') && css.includes('.exd-ai-h') && css.includes('.exd-biomech-row'));
+ok('no tiny biomech header', !/font-size:9px;font-family:'DM Mono',monospace;color:var\(--accent\);margin-bottom:8px/.test(html));
 ok('keep catalog alts', /Zamienniki z karty/.test(six));
 ok('no 12-ex replace', !/db-incline-lateral/.test(six));
 

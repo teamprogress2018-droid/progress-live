@@ -1462,6 +1462,21 @@ const EX_PROFILE_LABELS={
   constant:'stały'
 };
 const EX_JOINT_LABELS={shoulder:'bark',knee:'kolano',hip:'biodro',elbow:'łokieć'};
+const EX_PATTERN_LABELS={
+  horizontal_pull:'Przyciąganie poziome',
+  vertical_pull:'Przyciąganie pionowe',
+  horizontal_push:'Pchanie poziome',
+  vertical_push:'Pchanie pionowe',
+  knee_dominant:'Dominacja kolana',
+  hip_dominant:'Dominacja biodra',
+  shoulder_abduction:'Odwodzenie ramienia',
+  elbow_flexion:'Zgięcie łokcia',
+  elbow_extension:'Wyprost łokcia',
+  core:'Core / tułów',
+  cardio:'Cardio',
+  other:'Inne'
+};
+const EX_PLANE_LABELS={sagittal:'strzałkowa',frontal:'czołowa',transverse:'poprzeczna'};
 const STAFF_SUB_MAX=97;
 
 function exdEsc(s){
@@ -1560,6 +1575,8 @@ function findStaffSubstitutes(originalEx, opts){
   return scored.slice(0,opts.limit||3);
 }
 window.EX_PROFILE_LABELS=EX_PROFILE_LABELS;
+window.EX_PATTERN_LABELS=EX_PATTERN_LABELS;
+window.EX_PLANE_LABELS=EX_PLANE_LABELS;
 window.exerciseBiomech=exerciseBiomech;
 window.findStaffSubstitutes=findStaffSubstitutes;
 
@@ -1577,15 +1594,15 @@ function toggleExdSubEq(eq){
   else exdSubFilter.eq.push(k);
   renderExdSubstitutes();
 }
+function exdBiomechRow(label, value, extraClass){
+  return `<div class="exd-biomech-row"><div class="exd-biomech-k">${exdEsc(label)}</div><div class="exd-biomech-v${extraClass?' '+extraClass:''}">${value}</div></div>`;
+}
 function exdSubstituteBlockHtml(e){
   const b=exerciseBiomech(e);
-  const chips=[
-    `<span class="pill pill-muted">${exdEsc(b.pattern.replace(/_/g,' '))}</span>`,
-    `<span class="pill pill-muted">płaszczyzna: ${exdEsc(b.plane)}</span>`,
-    `<span class="pill" style="background:var(--adim);color:var(--accent);border:1px solid var(--accent);">profil: ${exdEsc(EX_PROFILE_LABELS[b.profile]||b.profile)}</span>`,
-    ...b.joints.map(j=>`<span class="pill" style="background:rgba(225,91,68,0.12);color:#E15B44;">staw: ${exdEsc(EX_JOINT_LABELS[j]||j)}</span>`),
-    `<span class="pill" style="background:rgba(127,191,107,0.12);color:#7FBF6B;">SFR: ${exdEsc(b.sfr)}</span>`
-  ].join('');
+  const pattern=EX_PATTERN_LABELS[b.pattern]||String(b.pattern||'').replace(/_/g,' ');
+  const plane=EX_PLANE_LABELS[b.plane]||b.plane;
+  const profile=EX_PROFILE_LABELS[b.profile]||b.profile;
+  const joints=(b.joints||[]).map(j=>EX_JOINT_LABELS[j]||j).join(', ')||'—';
   const eqSeen={};
   const eqOpts=[];
   (typeof allExercises==='function'?allExercises():[]).forEach(x=>{
@@ -1594,15 +1611,23 @@ function exdSubstituteBlockHtml(e){
     eqSeen[eq]=1;
     if(eqOpts.length<8) eqOpts.push(eq);
   });
-  return `<div id="exd-subs-box" style="margin-bottom:14px;">
-    <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Biomechanika</div>
-    <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;">${chips}</div>
-    <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Zamienniki — filtr bezpieczeństwa</div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+  return `<div id="exd-subs-box" class="exd-subs-box">
+    <div class="exd-biomech">
+      <div class="exd-sec-h">Biomechanika</div>
+      <div class="exd-biomech-list">
+        ${exdBiomechRow('Wzorzec', exdEsc(pattern))}
+        ${exdBiomechRow('Płaszczyzna', exdEsc(plane))}
+        ${exdBiomechRow('Profil oporu', exdEsc(profile), 'exd-biomech-accent')}
+        ${exdBiomechRow('Stawy', exdEsc(joints), 'exd-biomech-joint')}
+        ${exdBiomechRow('SFR', exdEsc(b.sfr), 'exd-biomech-sfr')}
+      </div>
+    </div>
+    <div class="exd-sec-h">Zamienniki — filtr bezpieczeństwa</div>
+    <div class="exd-sub-filters">
       <button type="button" class="btn btn-ghost btn-sm" id="exd-sub-shoulder" onclick="toggleExdSubJoint('shoulder')">Ból barku</button>
       <button type="button" class="btn btn-ghost btn-sm" id="exd-sub-knee" onclick="toggleExdSubJoint('knee')">Ból kolana</button>
     </div>
-    <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;" id="exd-sub-eqs">${eqOpts.map(eq=>{
+    <div class="exd-sub-eqs" id="exd-sub-eqs">${eqOpts.map(eq=>{
       const safe=String(eq).replace(/'/g,"\\'");
       return `<button type="button" class="pill pill-muted" data-eq="${exdEsc(eq)}" onclick="toggleExdSubEq('${safe}')">${exdEsc(eq)}</button>`;
     }).join('')}</div>
@@ -2648,17 +2673,17 @@ async function askExAI(){
   const q=document.getElementById('exd-ai-q').value.trim();if(!q)return;
   document.getElementById('exd-ai-q').value='';
   const msgs=document.getElementById('exd-ai-msgs');
-  msgs.innerHTML+='<div style="text-align:right;margin-bottom:5px;"><div style="display:inline-block;background:var(--accent);color:#fff;padding:5px 9px;border-radius:8px;font-size:11px;">'+q+'</div></div>';
-  msgs.innerHTML+='<div id="exd-ai-t" style="margin-bottom:5px;"><div style="display:inline-block;background:var(--s3);border:1px solid var(--border2);padding:5px 9px;border-radius:8px;font-size:11px;opacity:0.5;">🦴 Biomechanika analizuje...</div></div>';
+  msgs.innerHTML+='<div class="exd-ai-turn is-user"><div class="exd-ai-bubble is-user">'+q+'</div></div>';
+  msgs.innerHTML+='<div id="exd-ai-t" class="exd-ai-turn"><div class="exd-ai-bubble is-pending">🦴 Biomechanika analizuje...</div></div>';
   msgs.scrollTop=msgs.scrollHeight;
   const ctx=exSelId?'Ćwiczenie: '+exSelId+'. ':'';
   const staffSys=(typeof STAFF_SYSTEM_PROMPTS==='object'&&STAFF_SYSTEM_PROMPTS.biomechanika)?STAFF_SYSTEM_PROMPTS.biomechanika:'';
-  const sys=(staffSys||'Asystent trenera personalnego. Ekspert techniki ćwiczeń, biomechaniki, NSCA.')+'\nOdpowiadaj BARDZO KRÓTKO po polsku, max 60 słów — panel jest mały. Dawaj konkretne wskazówki.';
+  const sys=(staffSys||'Asystent trenera personalnego. Ekspert techniki ćwiczeń, biomechaniki, NSCA.')+'\nOdpowiadaj konkretnie po polsku, max 90 słów. Dawaj wskazówki techniczne, bez wstępu.';
   try{
-    const r=await fetch(W,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:150,system:sys,messages:[{role:'user',content:ctx+q}]})});
+    const r=await fetch(W,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:220,system:sys,messages:[{role:'user',content:ctx+q}]})});
     const d=await r.json();const ans=d.content.map(i=>i.text||'').join('');
-    document.getElementById('exd-ai-t').outerHTML='<div style="margin-bottom:5px;"><div style="display:inline-block;background:var(--s3);border:1px solid var(--border2);padding:5px 9px;border-radius:8px;font-size:11px;line-height:1.5;">'+ans.replace(/\n/g,'<br>')+'</div></div>';
-  }catch(e){document.getElementById('exd-ai-t').outerHTML='<div style="margin-bottom:5px;"><div style="display:inline-block;background:var(--s3);padding:5px 9px;border-radius:8px;font-size:11px;color:var(--red);">Błąd</div></div>';}
+    document.getElementById('exd-ai-t').outerHTML='<div class="exd-ai-turn"><div class="exd-ai-bubble">'+ans.replace(/\n/g,'<br>')+'</div></div>';
+  }catch(e){document.getElementById('exd-ai-t').outerHTML='<div class="exd-ai-turn"><div class="exd-ai-bubble is-err">Błąd</div></div>';}
   msgs.scrollTop=msgs.scrollHeight;
 }
 function askExStaffBiomechanika(){
