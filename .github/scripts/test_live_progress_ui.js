@@ -84,6 +84,14 @@ function ok(name, cond, extra) {
     return { has: !!box, text: box ? box.innerText : '', tag: box ? box.tagName : '' };
   });
   ok('last sets preview', lastUi.has && lastUi.tag === 'BUTTON' && /20 × 12/.test(lastUi.text) && /22\.5 × 10/.test(lastUi.text), JSON.stringify(lastUi));
+  const prevUi = await page.evaluate(() => {
+    const head = document.querySelector('#live-ex-0 .live-set-head');
+    const prev = [...document.querySelectorAll('#live-ex-0 .live-set-prev')].map((b) => (b.textContent || '').trim());
+    const panel = document.querySelector('#live-ex-0 .live-last-panel');
+    return { head: head ? head.innerText : '', prev, panel: panel ? panel.innerText : '', hasPrev: !!(head && head.classList.contains('has-prev')) };
+  });
+  ok('prev column last weights', prevUi.hasPrev && /Ostatnio/.test(prevUi.head) && prevUi.prev[0] === '20 × 12' && prevUi.prev[1] === '22.5 × 10', JSON.stringify(prevUi));
+  ok('last panel visible', /Ostatnio/.test(prevUi.panel) && /20 kg × 12/.test(prevUi.panel), prevUi.panel.slice(0, 200));
   await page.click('#live-ex-0 .live-last-sets');
   const modalUi = await page.evaluate(() => {
     const ov = document.getElementById('m-ex-hist');
@@ -97,6 +105,19 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'live_ex_history_modal.png') });
   ok('hist modal table', modalUi.show && /Przysiad Goblet/.test(modalUi.title) && /Powt/.test(modalUi.text) && /20/.test(modalUi.text) && /Σ/.test(modalUi.text), JSON.stringify(modalUi));
   await page.evaluate(() => { if (typeof closeM === 'function') closeM('m-ex-hist'); });
+  await page.click('#live-ex-0 .live-set-prev');
+  const filled = await page.evaluate(() => {
+    const row = document.querySelector('#live-ex-0 .live-set-row');
+    const kg = row ? row.querySelector('.live-kg-input') : null;
+    const reps = row ? row.querySelectorAll('.live-kg-input')[1] : null;
+    return { kg: kg ? kg.value : '', reps: reps ? reps.value : '' };
+  });
+  ok('click last fills kg/reps', filled.kg === '20' && filled.reps === '12', JSON.stringify(filled));
+  await page.evaluate(() => {
+    window.liveExercises[0].sets[0].kg = '6';
+    window.liveExercises[0].sets[0].reps = '12';
+    if (typeof renderLiveExercises === 'function') renderLiveExercises();
+  });
   const delUi = await page.evaluate(() => {
     const btns = [...document.querySelectorAll('#live-ex-0 .live-set-del')];
     return { n: btns.length, disabled: btns.filter(b => b.disabled).length };

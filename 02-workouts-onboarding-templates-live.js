@@ -3431,8 +3431,9 @@ function liveExCard(ex,i,slot){
   const loadPh=typeof loadUnitPlaceholder==='function'?loadUnitPlaceholder(unit):'kg';
   const loadLbl=typeof loadUnitColumnLabel==='function'?loadUnitColumnLabel(unit):(unit==='sec'||unit==='min'?'Czas':unit==='m'?'Dystans':'Ciężar');
   const setsDone=ex.sets.filter(s=>s.done).length;
-  const lastBlock=typeof lastSetsBlockHtml==='function'?lastSetsBlockHtml(ex,{clientId:st.clientId}):'';
-  const lastHint=lastBlock?'':(ex.lastDate&&ex.lastKg!==''&&ex.lastKg!=null?`Ostatnio: ${ex.lastKg} ${suf}${ex.lastReps?' × '+ex.lastReps:''}`:'');
+  const lastChip=typeof lastSetsBlockHtml==='function'?lastSetsBlockHtml(ex,{clientId:st.clientId,aliases:ex.alts}):'';
+  const lastPanel=typeof lastSetsBlockHtml==='function'?lastSetsBlockHtml(ex,{clientId:st.clientId,aliases:ex.alts,panel:true}):'';
+  const lastHint=lastChip?'':(ex.lastDate&&ex.lastKg!==''&&ex.lastKg!=null?`Ostatnio: ${ex.lastKg} ${suf}${ex.lastReps?' × '+ex.lastReps:''}`:'');
   const pr=typeof exercisePR==='function'&&(typeof isWeightLoadUnit!=='function'||isWeightLoadUnit(unit))?exercisePR(st.clientId,ex.name):null;
   const prHint=pr?`Rekord: ${pr.kg} kg × ${pr.reps}`:'';
   const pctHint=ex.kgHint||'';
@@ -3441,6 +3442,8 @@ function liveExCard(ex,i,slot){
   const cardId=n===1?('live-b-ex-'+i):('live-ex-'+i);
   const needsName=!String(ex.name||'').trim()||ex.name==='Nowe ćwiczenie';
   const showBody=!ex.collapsed||needsName;
+  const prevSets=typeof lastWorkingSets==='function'?lastWorkingSets(ex,{clientId:st.clientId,aliases:ex.alts}):(Array.isArray(ex.lastSets)?ex.lastSets:[]);
+  const hasPrev=prevSets.length>0;
   return `<div class="live-ex-card${ex.ss?' ss':''}${ex.done?' done':st.sessionActive&&!ex.done&&i===st.exercises.findIndex(e=>!e.done)?' active':''}" id="${cardId}">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:${showBody?10:0}px;cursor:pointer;" onclick="liveToggleCollapse(${i}${sl})">
       <div style="width:30px;height:30px;border-radius:8px;background:${ex.done?'var(--teal)':'var(--adim)'};display:flex;align-items:center;justify-content:center;font-size:${ex.done?'14px':'12px'};font-weight:700;color:${ex.done?'#000':'var(--accent)'};flex-shrink:0;">${ex.done?'✓':i+1}</div>
@@ -3455,7 +3458,7 @@ function liveExCard(ex,i,slot){
           const extra=ps.idx>0&&typeof periodWeekDeltaLabel==='function'?(' · '+periodWeekDeltaLabel(ps.mod,false)):'';
           return `<div class="live-week-hint">Tydz. ${ps.week.nr} · ${escHtml(ps.week.cel)}${ps.week.rpe?' · '+escHtml(ps.week.rpe):''}${escHtml(extra)}</div>`;
         })()}
-        ${lastBlock}
+        ${showBody?'':lastChip}
       </div>
       <div style="display:flex;gap:6px;align-items:center;">
         ${!ex.done?`<button type="button" class="live-skip-btn" onclick="event.stopPropagation();liveSkipEx(${i}${sl})">Pomiń</button>`:''}
@@ -3475,20 +3478,27 @@ function liveExCard(ex,i,slot){
         </div>
       </div>`:''}
       ${needsName?'':liveAltsHtml(ex,i,n)}
-      <div class="live-set-grid live-set-head">
-        <span></span><span>Seria</span><span style="text-align:center;">${loadLbl}</span><span style="text-align:center;">Powt.</span><span style="text-align:center;" title="Powtórzenia w zapasie">RIR</span><span></span>
+      ${needsName?'':lastPanel}
+      <div class="live-set-grid live-set-head${hasPrev?' has-prev':''}">
+        <span></span><span>Seria</span><span style="text-align:center;">${loadLbl}</span><span style="text-align:center;">Powt.</span><span style="text-align:center;" title="Powtórzenia w zapasie">RIR</span>${hasPrev?'<span class="live-set-prev-h">Ostatnio</span>':''}<span></span>
       </div>
-      ${ex.sets.map((s,si)=>`<div class="live-set-row">
+      ${ex.sets.map((s,si)=>{
+        const prev=hasPrev?(typeof lastLoggedSetAt==='function'?lastLoggedSetAt(ex,si,{clientId:st.clientId,aliases:ex.alts}):prevSets[si]):null;
+        const prevTxt=typeof formatLastSetShort==='function'?formatLastSetShort(prev):(prev?((prev.kg||'')+(prev.reps?' × '+prev.reps:'')):'');
+        const prevCell=hasPrev?`<button type="button" class="live-set-prev${prevTxt?'':' is-empty'}" ${prevTxt?`onclick="event.stopPropagation();liveFillFromLast(${i},${si}${sl})" title="Wstaw poprzedni ciężar: ${escHtml(prevTxt)}"`:'disabled tabindex="-1"'}>${prevTxt?escHtml(prevTxt):'—'}</button>`:'';
+        return `<div class="live-set-row${hasPrev?' has-prev':''}">
         <div class="live-set-check${s.done?' done':''}" onclick="liveToggleSet(${i},${si}${sl})" title="Oznacz serię">${s.done?'✓':''}</div>
         <div class="live-set-label"><span class="live-set-label-full">Seria </span>${s.setNo}${s.kind&&s.kind!=='work'?` <span class="cw-set-kind ${s.kind}">${escHtml(typeof setKindBadge==='function'?setKindBadge(s.kind):s.kind)}</span>`:''}</div>
-        <input type="number" inputmode="decimal" class="live-kg-input" placeholder="${ex.lastKg!==''&&ex.lastKg!=null?ex.lastKg:loadPh}" value="${s.kg}" oninput="liveSetKg(${i},${si},this.value${sl})" onkeydown="liveSetKey(event,${i},${si}${sl})" onclick="event.stopPropagation()">
+        <input type="number" inputmode="decimal" class="live-kg-input" placeholder="${prevTxt||(ex.lastKg!==''&&ex.lastKg!=null?ex.lastKg:loadPh)}" value="${s.kg}" oninput="liveSetKg(${i},${si},this.value${sl})" onkeydown="liveSetKey(event,${i},${si}${sl})" onclick="event.stopPropagation()">
         <input type="number" inputmode="numeric" class="live-kg-input" placeholder="${s.kind==='amrap'?'max':'powt.'}" value="${s.reps}" oninput="liveSetReps(${i},${si},this.value${sl})" onkeydown="liveSetKey(event,${i},${si}${sl})" onclick="event.stopPropagation()">
         <input type="text" inputmode="decimal" class="live-kg-input live-rir-input" placeholder="${escHtml((ex.rir!=null&&ex.rir!=='')?ex.rir:'RIR')}" value="${escHtml(s.rir!=null&&s.rir!==''?s.rir:'')}" oninput="liveSetRir(${i},${si},this.value${sl})" onkeydown="liveSetKey(event,${i},${si}${sl})" onclick="event.stopPropagation()" title="RIR — powtórzenia w zapasie">
+        ${prevCell}
         <div class="live-set-row-btns">
           <button type="button" class="live-set-rest" onclick="liveStartRest(${typeof restSecAfterSet==='function'?restSecAfterSet(ex,s,ex.sets[si+1]):90}${sl})" title="Przerwa">⏱</button>
           <button type="button" class="live-set-del" onclick="event.stopPropagation();liveRemoveSet(${i},${si}${sl})" ${ex.sets.length<=1?'disabled':''} title="${ex.sets.length<=1?'Zostaw przynajmniej jedną serię':'Usuń serię'}" aria-label="Usuń serię">×</button>
         </div>
-      </div>`).join('')}
+      </div>`;
+      }).join('')}
       <button type="button" class="live-add-set" onclick="liveAddSet(${i}${sl})">+ Dodaj serię</button>
       </div>
     </div>`:''}
@@ -3610,6 +3620,22 @@ function liveAddSet(ei,slot){
   renderLiveExercises(n);
   liveSaveDraft(n);
 }
+
+function liveFillFromLast(ei,si,slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  const ex=st.exercises[ei];
+  if(!ex||!ex.sets||!ex.sets[si])return;
+  const prev=typeof lastLoggedSetAt==='function'?lastLoggedSetAt(ex,si,{clientId:st.clientId,aliases:ex.alts}):null;
+  if(!prev)return;
+  const s=ex.sets[si];
+  if(prev.kg!=null&&prev.kg!=='')s.kg=String(prev.kg);
+  if(prev.reps!=null&&prev.reps!=='')s.reps=String(prev.reps);
+  if(prev.rir!=null&&prev.rir!==''&&(s.rir==null||s.rir===''))s.rir=String(prev.rir);
+  renderLiveExercises(n);
+  liveSaveDraft(n);
+}
+window.liveFillFromLast=liveFillFromLast;
 
 function liveRemoveSet(ei,si,slot){
   const n=liveN(slot);

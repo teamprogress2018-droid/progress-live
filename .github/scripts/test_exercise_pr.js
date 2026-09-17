@@ -44,6 +44,7 @@ const {
   exerciseNameKey, formatSetLoad, loggedSetRows, exercisePR, setBeatsPR,
   prToastText, clientExercisePRs, exerciseHistoryByDay, epley1RM, superseriesToastText,
   lastLoadForExercise, formatLastSetsSummary, lastSetsBlockHtml, exerciseLoadHistory,
+  lastLoggedSetAt, lastWorkingSets, formatLastSetShort,
   exerciseHistoryModalBodyHtml, exerciseLoggedSets, exerciseHistoryTotals
 } = ctx;
 
@@ -161,6 +162,16 @@ eq('expand 3x12', exerciseLoggedSets({name: 'Hack', sets: '3', kg: 60, reps: 12}
 eq('no expand range', exerciseLoggedSets({sets: '3', kg: 22.5, reps: '8-10'}).length, 1);
 eq('builder variant class', /builder-ex-hist/.test(lastSetsBlockHtml({lastSets: [{kg: 20, reps: 10}]}, {variant: 'builder'})), true);
 eq('lookup by clientId', /Ostatnio:/.test(lastSetsBlockHtml({name: 'Wyciskanie hantli na skosie', clientId: 'c1'})), true);
+eq('last set at 0', lastLoggedSetAt({lastSets: [{kg: 20, reps: 12}, {kg: 22.5, reps: 10}]}, 0).kg, 20);
+eq('last set at 1', lastLoggedSetAt({lastSets: [{kg: 20, reps: 12}, {kg: 22.5, reps: 10}]}, 1).kg, 22.5);
+eq('last set missing', lastLoggedSetAt({lastSets: [{kg: 20, reps: 12}]}, 3), null);
+eq('short format', formatLastSetShort({kg: 80, reps: 8}), '80 × 8');
+eq('working sets skip empty hist', lastWorkingSets({lastSets: []}).length, 0);
+const panel = lastSetsBlockHtml({
+  lastDate: '2026-08-10',
+  lastSets: [{setNo: 1, kg: 80, reps: 8}, {setNo: 2, kg: 85, reps: 5}]
+}, {panel: true});
+eq('panel wraps rows', /live-last-panel/.test(panel) && /live-last-row/.test(panel) && /80 kg × 8/.test(panel), true);
 
 if (failed) {
   console.error('\n' + failed + ' test(s) failed');
