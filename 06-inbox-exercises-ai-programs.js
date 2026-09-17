@@ -2220,10 +2220,10 @@ function exCardHtml(e,i){
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s||''));
   const filmBadge=isVid?'<span class="pill" style="font-size:9px;background:rgba(255,59,48,.18);color:var(--red);">▶ FILM</span>':'';
   let media;
-  if(isVid&&gif){
-    media=`<div class="ex-card-thumb"><video src="${esc(gif)}" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;"></video></div>`;
-  }else if(thumb){
+  if(thumb){
     media=`<div class="ex-card-thumb"><img src="${esc(thumb)}" alt="${esc(e.name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.closest('.ex-card-thumb').outerHTML='<div class=\\'ex-card-thumb ex-card-thumb-ph\\' style=\\'background:${col}22;color:${col};\\'><span class=\\'ex-card-part\\'>${esc(part)}</span></div>';"></div>`;
+  }else if(isVid&&gif){
+    media=`<div class="ex-card-thumb"><video src="${esc(gif)}" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover;"></video></div>`;
   }else{
     media=`<div class="ex-card-thumb ex-card-thumb-ph" style="background:${col}22;color:${col};"><span class="ex-card-part">${esc(part)}</span></div>`;
   }
