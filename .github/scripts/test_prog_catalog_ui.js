@@ -46,7 +46,8 @@ function ok(name, cond, extra) {
       active: el.classList.contains('active')
     }));
     const names = [...document.querySelectorAll('.prog-card-title')].map((el) => el.textContent.trim());
-    return { title, chips, names, fazy: /Fazy/.test(document.body.innerText || '') };
+    const fazy = [...document.querySelectorAll('.prog-stat-lbl')].some((el) => /Fazy/.test(el.textContent || ''));
+    return { title, chips, names, fazy };
   });
   await page.screenshot({ path: path.join(shotDir, 'prog_catalog_all.png') });
   ok('title 4-16', /Bloki 4–16 tygodni/.test(intro.title), intro.title);
