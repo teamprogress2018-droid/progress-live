@@ -19,12 +19,12 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 01 v69', html.includes('01-core.js?v=109'));
-ok('cache 06 v57', html.includes('06-inbox-exercises-ai-programs.js?v=80'));
+ok('cache 06 v57', html.includes('06-inbox-exercises-ai-programs.js?v=81'));
 ok('ci unit', wf.includes('test_ex_assign_mp4.js'));
 ok('ci ui', wf.includes('test_ex_assign_mp4_ui.js'));
 ok('openExDetail includes assign panel', /exDetailAssignHtml\(e\)/.test(six));
-const openEx = six.slice(six.indexOf('function openExDetail'), six.indexOf('window.EX=window.EX||[]'));
-ok('assign panel before technique guide', openEx.indexOf('exDetailAssignHtml(e)') >= 0 && openEx.indexOf('exDetailAssignHtml(e)') < openEx.indexOf('exTechniqueGuideHtml(e)'));
+ok('assign in manage tab', /exdManageHtml/.test(six) && /exDetailAssignHtml\(e\)/.test(six) && /exd-panel-manage/.test(six));
+ok('technique guide in preview', /exdPreviewMediaHtml/.test(six) && /exTechniqueGuideHtml\(e\)/.test(six));
 ok('assign panel ids', /id="exd-assign"/.test(six) && /id="exd-mp4-url"/.test(six) && /id="exd-mp4-file"/.test(six) && /id="exd-mp4-player"/.test(six));
 ok('uses currentExDetail', /assignExTechniqueFromPaste\(currentExDetail\)/.test(six));
 ok('own videos dropdown', /id="exd-mp4-own"/.test(six));

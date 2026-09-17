@@ -18,8 +18,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 06 v39', html.includes('06-inbox-exercises-ai-programs.js?v=80'));
-ok('cache styles v52', html.includes('styles.css?v=91'));
+ok('cache 06 v39', html.includes('06-inbox-exercises-ai-programs.js?v=81'));
+ok('cache styles v52', html.includes('styles.css?v=92'));
 ['anatomy.jpg', 'stretch-lens.jpg', 'phase-start.jpg', 'phase-bottom.jpg'].forEach((f) => {
   ok('asset ' + f, fs.existsSync(path.join(root, 'assets/ex/hack', f)));
 });
