@@ -1052,10 +1052,17 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 .live-hist-ex-sets{color:var(--muted);font-variant-numeric:tabular-nums;text-align:right;flex-shrink:0;}
 .live-hist-empty{font-size:12px;color:var(--muted);padding:8px 0;}
 .live-hist-note{font-size:11px;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--border);line-height:1.5;}
-.live-alts{margin:0 0 12px;padding:8px 10px;background:rgba(0,0,0,0.18);border:1px solid rgba(255,255,255,0.06);border-radius:10px;position:relative;overflow:visible;}
+.live-alts{margin:0 0 14px;padding:0;background:transparent;border:none;position:relative;overflow:visible;}
 .live-alts-lbl{font-size:10px;font-family:var(--font-ui);color:var(--text-label);font-weight:700;letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px;}
-.live-alts-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.live-alts-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
 .live-alts-add{display:flex;gap:6px;align-items:center;margin-top:8px;}
+.live-alts-add[hidden]{display:none !important;}
+.live-swap-btn{
+  appearance:none;border:1px dashed rgba(255,255,255,0.16);background:transparent;color:var(--muted);
+  border-radius:8px;padding:6px 11px;font-size:12px;font-weight:600;cursor:pointer;line-height:1.2;
+}
+.live-swap-btn:hover{border-color:rgba(255,255,255,.35);color:var(--text);}
+.live-swap-btn[aria-expanded="true"]{border-style:solid;border-color:rgba(255,255,255,.22);color:var(--text);}
 .live-ex-name-box{margin:0 0 12px;padding:10px;background:rgba(230,0,0,0.08);border:1px solid rgba(230,0,0,0.28);border-radius:10px;position:relative;overflow:visible;}
 .live-alt-search,.live-ex-name-search{flex:1;min-width:0;font-size:13px;}
 .live-ex-card .ex-ac-dropdown,.live-alts .ex-ac-dropdown{z-index:220;}
@@ -1064,8 +1071,12 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 .live-alts-more{appearance:none;border:1px dashed rgba(255,255,255,0.18);background:transparent;color:var(--muted);border-radius:8px;padding:6px 10px;font-size:12px;font-weight:600;cursor:pointer;line-height:1.2;}
 .live-alts-more:hover{border-color:rgba(255,255,255,0.35);color:var(--text);}
 .live-alts-more[aria-expanded="true"]{border-style:solid;border-color:rgba(255,255,255,0.22);}
-.live-ex-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;cursor:pointer;}
+.live-ex-head{display:flex;align-items:center;gap:12px;margin-bottom:16px;cursor:pointer;}
+.live-ex-card:not(:has(.live-ex-body)) .live-ex-head,
 .live-ex-card.collapsed-head .live-ex-head{margin-bottom:0;}
+.live-ex-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 16px;}
+.live-ex-meta .live-coach-hints{margin:0;}
+.live-prog-chip{background:rgba(62,207,178,0.12);border-color:rgba(62,207,178,0.32);color:var(--teal);}
 .btn-danger{background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.35);color:#fca5a5;}
 .btn-danger:hover{background:rgba(239,68,68,0.22);color:#fff;}
 
@@ -1130,7 +1141,19 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 .live-progress-kpi-val{font-family:var(--font-display);font-size:28px;line-height:1;}
 .live-kpi-sets{color:var(--blue);}
 .live-kpi-vol{color:var(--orange);}
-.live-period-card{padding:14px 16px;}
+.live-period-card{padding:12px 14px;}
+.live-period-card.is-open{padding:14px 16px;}
+.live-period-toggle{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:8px;width:100%;
+  background:transparent;border:0;padding:0;cursor:pointer;color:inherit;text-align:left;
+}
+.live-period-toggle-txt{min-width:0;flex:1;}
+.live-period-toggle .live-dock-lbl{margin-bottom:2px;}
+.live-period-sum{margin-top:2px;line-height:1.35;}
+.live-period-chevron{color:var(--text-label);font-size:12px;line-height:1;margin-top:3px;flex-shrink:0;transition:transform .15s;}
+.live-period-card.is-open .live-period-chevron{transform:rotate(90deg);}
+.live-period-fold{margin-top:10px;}
+.live-period-fold[hidden]{display:none !important;}
 .live-period-row{display:flex;gap:8px;width:100%;background:var(--bg-input);border-radius:var(--r);border:1px solid var(--border-subtle);margin-bottom:6px;padding:8px 10px;text-align:left;cursor:pointer;color:var(--text-primary);align-items:flex-start;}
 .live-period-row:hover{border-color:var(--border-default);background:var(--bg-hover);}
 .live-period-row.active{border-color:var(--accent);background:rgba(var(--accent-rgb),0.08);}
@@ -1138,9 +1161,22 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 .live-period-week{font-family:var(--font-ui);font-size:11px;font-weight:700;width:48px;flex-shrink:0;padding-top:1px;}
 .live-period-title{font-size:12px;font-weight:600;line-height:1.3;}
 .live-period-sub{font-size:10px;color:var(--text-label);margin-top:2px;line-height:1.35;}
-.live-coach-hints{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 4px;}
+.live-coach-hints{display:flex;flex-wrap:wrap;gap:6px;margin:0;}
 .live-coach-chip{display:inline-flex;align-items:center;padding:4px 8px;border-radius:8px;background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.28);color:#93c5fd;font-size:11px;font-weight:600;line-height:1.2;}
-.live-week-hint{font-size:11px;color:var(--blue);font-weight:600;margin-top:4px;line-height:1.35;}
+.live-week-hint{position:relative;display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--blue);font-weight:600;line-height:1.35;}
+.live-week-info{
+  appearance:none;width:18px;height:18px;border-radius:50%;padding:0;
+  border:1px solid rgba(59,130,246,0.45);background:rgba(59,130,246,0.12);
+  color:#93c5fd;font-size:11px;font-weight:700;font-family:inherit;line-height:1;cursor:pointer;flex-shrink:0;
+}
+.live-week-info:hover,.live-week-hint.is-open .live-week-info{background:rgba(59,130,246,0.22);border-color:#93c5fd;}
+.live-week-tip{
+  display:none;position:absolute;left:0;top:calc(100% + 6px);z-index:40;width:min(280px,70vw);
+  padding:8px 10px;background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:8px;
+  font-size:11px;font-weight:500;color:var(--text-primary);line-height:1.4;white-space:normal;box-shadow:var(--panel-glow);
+}
+.live-week-info:hover + .live-week-tip,
+.live-week-hint.is-open .live-week-tip{display:block;}
 .live-rest-plan-btn{width:100%;margin:0 0 8px;font-weight:700;}
 .live-rest-preset.plan-hit{border-color:var(--blue);color:var(--blue);background:rgba(59,130,246,0.12);}
 .live-rest-val{font-family:var(--font-display);font-size:36px;color:var(--text-primary);text-align:center;line-height:1;margin-bottom:10px;}

@@ -13,7 +13,7 @@
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="globals.css?v=17">
-<link rel="stylesheet" href="styles.css?v=93">
+<link rel="stylesheet" href="styles.css?v=94">
 </head>
 <body>
 
@@ -2713,9 +2713,17 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       </div>
 
       <div class="live-dock-card live-period-card" id="live-period-card" hidden>
-        <div class="live-dock-lbl">Harmonogram periodyzacji</div>
-        <div class="live-dock-sub" id="live-period-now"></div>
-        <div id="live-period-sched"></div>
+        <button type="button" class="live-period-toggle" id="live-period-toggle" aria-expanded="false" onclick="liveTogglePeriodPanel()">
+          <span class="live-period-toggle-txt">
+            <span class="live-dock-lbl">Harmonogram periodyzacji</span>
+            <span class="live-dock-sub live-period-sum" id="live-period-sum"></span>
+          </span>
+          <span class="live-period-chevron" aria-hidden="true">▸</span>
+        </button>
+        <div class="live-period-fold" id="live-period-body" hidden>
+          <div class="live-dock-sub" id="live-period-now"></div>
+          <div id="live-period-sched"></div>
+        </div>
       </div>
 
       <!-- przerwa timer -->
@@ -2803,9 +2811,17 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <div class="live-dock-sub" id="live-b-progress-hint" style="margin-top:8px;"></div>
       </div>
       <div class="live-dock-card live-period-card" id="live-b-period-card" hidden>
-        <div class="live-dock-lbl">Harmonogram periodyzacji</div>
-        <div class="live-dock-sub" id="live-b-period-now"></div>
-        <div id="live-b-period-sched"></div>
+        <button type="button" class="live-period-toggle" id="live-b-period-toggle" aria-expanded="false" onclick="liveTogglePeriodPanel(1)">
+          <span class="live-period-toggle-txt">
+            <span class="live-dock-lbl">Harmonogram periodyzacji</span>
+            <span class="live-dock-sub live-period-sum" id="live-b-period-sum"></span>
+          </span>
+          <span class="live-period-chevron" aria-hidden="true">▸</span>
+        </button>
+        <div class="live-period-fold" id="live-b-period-body" hidden>
+          <div class="live-dock-sub" id="live-b-period-now"></div>
+          <div id="live-b-period-sched"></div>
+        </div>
       </div>
       <div class="live-dock-card live-rest-card">
         <div class="live-dock-lbl">Timer przerwy</div>
@@ -4466,7 +4482,7 @@ async function load(){
 <script src="ex-gif-manifest.js?v=34"></script>
 <script src="ex-photo-manifest.js?v=6"></script>
 <script src="01-core.js?v=110"></script>
-<script src="02-workouts-onboarding-templates-live.js?v=74"></script>
+<script src="02-workouts-onboarding-templates-live.js?v=75"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=37"></script>
 <script src="04-client-portal.js?v=52"></script>
 <script src="05-clients-builder-plans-calendar.js?v=76"></script>

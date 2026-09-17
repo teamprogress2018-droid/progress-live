@@ -2323,7 +2323,7 @@ function liveNewSlotState(){
     clientId:null,planId:null,currentDayIdx:0,sessionActive:false,
     timerSec:0,timerInterval:null,restSec:0,restInterval:null,
     exercises:[],feedbackVal:0,emomClock:{},savedClientId:null,savedClientName:'',
-    periodWeekOverride:null,draftSessionId:null,draftRemoteSets:-1,draftCreatedAt:null
+    periodWeekOverride:null,periodOpen:false,draftSessionId:null,draftRemoteSets:-1,draftCreatedAt:null
   };
 }
 var liveB=liveNewSlotState();
@@ -2352,6 +2352,8 @@ function liveRef(slot){
     set savedClientName(v){window._liveSavedClientName=v;},
     get periodWeekOverride(){return window._livePeriodWeekOverride;},
     set periodWeekOverride(v){window._livePeriodWeekOverride=v;},
+    get periodOpen(){return !!window._livePeriodOpen;},
+    set periodOpen(v){window._livePeriodOpen=!!v;},
     get draftSessionId(){return window._liveDraftSessionId||null;},
     set draftSessionId(v){window._liveDraftSessionId=v||null;},
     get draftRemoteSets(){return window._liveDraftRemoteSets==null?-1:window._liveDraftRemoteSets;},
@@ -3126,21 +3128,48 @@ function livePeriodState(slot){
 }
 window.livePeriodState=livePeriodState;
 
+function liveTogglePeriodPanel(slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  st.periodOpen=!st.periodOpen;
+  renderLivePeriod(n);
+}
+window.liveTogglePeriodPanel=liveTogglePeriodPanel;
+
+function livePeriodShortCel(cel){
+  return String(cel||'').split(/\s+[—–-]\s+/)[0].trim();
+}
+
 function renderLivePeriod(slot){
   const n=liveN(slot);
   const card=liveEl('live-period-card',n);
   const nowEl=liveEl('live-period-now',n);
   const list=liveEl('live-period-sched',n);
+  const body=liveEl('live-period-body',n);
+  const toggle=liveEl('live-period-toggle',n);
+  const sumEl=liveEl('live-period-sum',n);
   if(!card||!list)return;
   const st=livePeriodState(n);
+  const open=!!(liveRef(n).periodOpen);
   if(!st){
     card.hidden=true;
+    card.classList.remove('is-open');
     list.innerHTML='';
     if(nowEl)nowEl.textContent='';
+    if(sumEl)sumEl.textContent='';
+    if(body)body.hidden=true;
+    if(toggle)toggle.setAttribute('aria-expanded','false');
     return;
   }
   card.hidden=false;
+  card.classList.toggle('is-open',open);
+  if(body)body.hidden=!open;
+  if(toggle)toggle.setAttribute('aria-expanded',open?'true':'false');
   const sl=liveSlotArg(n);
+  const nowWeek=st.week||st.sch[st.idx]||st.sch[st.auto]||{};
+  if(sumEl){
+    sumEl.textContent='Tydz. '+(nowWeek.nr||((st.idx||0)+1))+' · '+livePeriodShortCel(nowWeek.cel);
+  }
   if(nowEl){
     nowEl.textContent='Ten tydzień: Tydz. '+(st.auto+1)+' · '+(st.sch[st.auto]&&st.sch[st.auto].cel||'')+' · '+(st.sch[st.auto]&&st.sch[st.auto].rpe||'');
   }
@@ -3401,10 +3430,11 @@ function liveAltsHtml(ex,i,n){
   const more=hidden
     ? `<button type="button" class="live-alts-more" onclick="liveToggleAlts(${i}${sl})" aria-expanded="${expanded?'true':'false'}">${expanded?'Zwiń':'Więcej opcji · '+hidden}</button>`
     : '';
-  return `<div class="live-alts" onclick="event.stopPropagation()">
-      <div class="live-alts-lbl">Zamienniki (gdy nie ma maszyny)</div>
+  const searchOpen=!!(ex&&ex.altSearchOpen);
+  return `<div class="live-alts${searchOpen?' is-search':''}" onclick="event.stopPropagation()">
       ${chips||more?`<div class="live-alts-chips">${chips}${more}</div>`:''}
-      <div class="live-alts-add">
+      <button type="button" class="live-swap-btn" onclick="liveToggleAltSearch(${i}${sl})" aria-expanded="${searchOpen?'true':'false'}">${searchOpen?'Anuluj':'Zamień ćwiczenie'}</button>
+      <div class="live-alts-add"${searchOpen?'':' hidden'}>
         <input type="text" class="form-input live-alt-search ex-ac-input" id="live-alt-search-${n}-${i}" data-live-swap-ei="${i}" data-live-slot="${n}" data-alt-for="${escHtml(ex.name)}" placeholder="Dodaj zamiennik: sztanga / hantle / brama / ławka…" autocomplete="off" spellcheck="false" onclick="event.stopPropagation()">
         <button type="button" class="btn btn-ghost btn-sm" onclick="liveConfirmAltSearch(${i}${sl})">Dodaj</button>
       </div>
@@ -3421,6 +3451,44 @@ function liveToggleAlts(i,slot){
   renderLiveExercises(n);
 }
 window.liveToggleAlts=liveToggleAlts;
+
+function liveToggleAltSearch(i,slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  const ex=st.exercises[i];if(!ex)return;
+  ex.altSearchOpen=!ex.altSearchOpen;
+  renderLiveExercises(n);
+  if(ex.altSearchOpen){
+    const inp=document.getElementById('live-alt-search-'+n+'-'+i);
+    if(inp){
+      inp.focus();
+      if(typeof exAcInitInput==='function')exAcInitInput(inp);
+      if(typeof exAcRender==='function')exAcRender(inp);
+    }
+  }
+}
+window.liveToggleAltSearch=liveToggleAltSearch;
+
+function liveToggleWeekTip(btn){
+  if(!btn)return;
+  const wrap=btn.closest('.live-week-hint');
+  if(!wrap)return;
+  const open=wrap.classList.toggle('is-open');
+  btn.setAttribute('aria-expanded',open?'true':'false');
+}
+window.liveToggleWeekTip=liveToggleWeekTip;
+
+function liveWeekHintHtml(slot){
+  const n=liveN(slot);
+  const ps=typeof livePeriodState==='function'?livePeriodState(n):null;
+  if(!ps||!ps.week)return '';
+  const extra=ps.idx>0&&typeof periodWeekDeltaLabel==='function'?periodWeekDeltaLabel(ps.mod,false):'';
+  const cel=String(ps.week.cel||'');
+  const short=typeof livePeriodShortCel==='function'?livePeriodShortCel(cel):cel;
+  const full=['Tydz. '+ps.week.nr, cel, ps.week.rpe||'', extra].filter(Boolean).join(' · ');
+  return `<div class="live-week-hint">Tydz. ${ps.week.nr} · ${escHtml(short)}<button type="button" class="live-week-info" aria-label="Metodyka tygodnia" aria-expanded="false" title="${escHtml(full)}" onclick="event.stopPropagation();liveToggleWeekTip(this)">i</button><span class="live-week-tip">${escHtml(full)}</span></div>`;
+}
+window.liveWeekHintHtml=liveWeekHintHtml;
 
 function liveExCard(ex,i,slot){
   const n=liveN(slot);
@@ -3444,20 +3512,19 @@ function liveExCard(ex,i,slot){
   const showBody=!ex.collapsed||needsName;
   const prevSets=typeof lastWorkingSets==='function'?lastWorkingSets(ex,{clientId:st.clientId,aliases:ex.alts}):(Array.isArray(ex.lastSets)?ex.lastSets:[]);
   const hasPrev=prevSets.length>0;
+  const coachChips=typeof exerciseCoachHintsHtml==='function'?exerciseCoachHintsHtml(ex):'';
+  const weekHint=typeof liveWeekHintHtml==='function'?liveWeekHintHtml(n):'';
+  const metaBits=[
+    progHint?`<span class="live-coach-chip live-prog-chip">${escHtml(progHint)}</span>`:'',
+    coachChips,
+    weekHint
+  ].filter(Boolean).join('');
   return `<div class="live-ex-card${ex.ss?' ss':''}${ex.done?' done':st.sessionActive&&!ex.done&&i===st.exercises.findIndex(e=>!e.done)?' active':''}" id="${cardId}">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:${showBody?10:0}px;cursor:pointer;" onclick="liveToggleCollapse(${i}${sl})">
+    <div class="live-ex-head" onclick="liveToggleCollapse(${i}${sl})">
       <div style="width:30px;height:30px;border-radius:8px;background:${ex.done?'var(--teal)':'var(--adim)'};display:flex;align-items:center;justify-content:center;font-size:${ex.done?'14px':'12px'};font-weight:700;color:${ex.done?'#000':'var(--accent)'};flex-shrink:0;">${ex.done?'✓':i+1}</div>
       <div style="flex:1;">
         ${needsName?`<div style="font-size:13px;font-weight:700;color:var(--muted);">Wybierz ćwiczenie</div>`:`<div style="font-size:13px;font-weight:700;">${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}</div>`}
         <div style="font-size:10px;color:var(--muted);">${ex.sets.length} serie · ${setsDone}/${ex.sets.length} ukończono${ex.ssLabel?' · super-seria':''}${ex.emom?' · EMOM':''}${sub?' · '+escHtml(sub):''}</div>
-        ${progHint?`<div style="font-size:11px;color:var(--teal);font-weight:600;margin-top:4px;">${escHtml(progHint)}</div>`:''}
-        ${typeof exerciseCoachHintsHtml==='function'?exerciseCoachHintsHtml(ex):''}
-        ${(()=>{
-          const ps=livePeriodState(n);
-          if(!ps||!ps.week)return '';
-          const extra=ps.idx>0&&typeof periodWeekDeltaLabel==='function'?(' · '+periodWeekDeltaLabel(ps.mod,false)):'';
-          return `<div class="live-week-hint">Tydz. ${ps.week.nr} · ${escHtml(ps.week.cel)}${ps.week.rpe?' · '+escHtml(ps.week.rpe):''}${escHtml(extra)}</div>`;
-        })()}
         ${showBody?'':lastChip}
       </div>
       <div style="display:flex;gap:6px;align-items:center;">
@@ -3477,6 +3544,7 @@ function liveExCard(ex,i,slot){
           <button type="button" class="btn btn-primary btn-sm" onclick="liveConfirmExName(${i}${sl})">Wybierz</button>
         </div>
       </div>`:''}
+      ${needsName||!metaBits?'':`<div class="live-ex-meta">${metaBits}</div>`}
       ${needsName?'':liveAltsHtml(ex,i,n)}
       ${needsName?'':lastPanel}
       <div class="live-set-grid live-set-head${hasPrev?' has-prev':''}">
@@ -3716,6 +3784,7 @@ function liveSwapEx(i,name,slot){
   cur.showVideo=false;
   cur.collapsed=false;
   cur.altsExpanded=false;
+  cur.altSearchOpen=false;
   if(typeof notify==='function')notify('Zamieniono na: '+name);
   renderLiveExercises(n);
   if(typeof liveSaveDraft==='function')liveSaveDraft(n);

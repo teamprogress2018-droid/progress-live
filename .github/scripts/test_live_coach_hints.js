@@ -22,14 +22,16 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 01', html.includes('01-core.js?v=110'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=74'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=75'));
 ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=76'));
 ok('cache 10', html.includes('10-client-app.js?v=40'));
-ok('cache styles', html.includes('styles.css?v=93'));
+ok('cache styles', html.includes('styles.css?v=94'));
 ok('live period card', html.includes('id="live-period-card"') && html.includes('id="live-b-period-card"'));
+ok('live period accordion', html.includes('id="live-period-body"') && html.includes('id="live-b-period-body"') && html.includes('liveTogglePeriodPanel()'));
 ok('live plan rest btn', html.includes('liveStartRestFromPlan()') && html.includes('id="live-rest-plan-hint"'));
 ok('live maps tempo', /tempo:ex\.tempo/.test(core));
-ok('live card chips', /exerciseCoachHintsHtml/.test(live) && /live-week-hint/.test(live));
+ok('live card chips', /exerciseCoachHintsHtml/.test(live) && /live-week-hint/.test(live) && /live-week-info/.test(live));
+ok('live swap btn', live.includes('Zamień ćwiczenie') && /function liveToggleAltSearch\(/.test(live));
 ok('client chips', /exerciseCoachHintsHtml/.test(client));
 ok('builder uses shared schedule', /periodScheduleForLevel/.test(builder) && /periodWeekModel/.test(builder));
 ok('CI unit', wf.includes('test_live_coach_hints.js'));
