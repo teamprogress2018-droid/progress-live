@@ -1071,10 +1071,10 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 .live-alts-more{appearance:none;border:1px dashed rgba(255,255,255,0.18);background:transparent;color:var(--muted);border-radius:8px;padding:6px 10px;font-size:12px;font-weight:600;cursor:pointer;line-height:1.2;}
 .live-alts-more:hover{border-color:rgba(255,255,255,0.35);color:var(--text);}
 .live-alts-more[aria-expanded="true"]{border-style:solid;border-color:rgba(255,255,255,0.22);}
-.live-ex-head{display:flex;align-items:center;gap:12px;margin-bottom:16px;cursor:pointer;}
+.live-ex-head{display:flex;align-items:center;gap:12px;margin-bottom:12px;cursor:pointer;}
 .live-ex-card:not(:has(.live-ex-body)) .live-ex-head,
 .live-ex-card.collapsed-head .live-ex-head{margin-bottom:0;}
-.live-ex-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 16px;}
+.live-ex-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 14px;padding:0 2px;}
 .live-ex-meta .live-coach-hints{margin:0;}
 .live-prog-chip{background:rgba(62,207,178,0.12);border-color:rgba(62,207,178,0.32);color:var(--teal);}
 .btn-danger{background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.35);color:#fca5a5;}

@@ -3534,6 +3534,7 @@ function liveExCard(ex,i,slot){
       </div>
     </div>
     ${showBody?`
+    ${needsName||!metaBits?'':`<div class="live-ex-meta">${metaBits}</div>`}
     <div class="live-ex-body">
       <div class="live-ex-media">${typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:!!ex.showVideo,caption:false}):''}</div>
       <div class="live-ex-log" onclick="event.stopPropagation()">
@@ -3544,7 +3545,6 @@ function liveExCard(ex,i,slot){
           <button type="button" class="btn btn-primary btn-sm" onclick="liveConfirmExName(${i}${sl})">Wybierz</button>
         </div>
       </div>`:''}
-      ${needsName||!metaBits?'':`<div class="live-ex-meta">${metaBits}</div>`}
       ${needsName?'':liveAltsHtml(ex,i,n)}
       ${needsName?'':lastPanel}
       <div class="live-set-grid live-set-head${hasPrev?' has-prev':''}">
