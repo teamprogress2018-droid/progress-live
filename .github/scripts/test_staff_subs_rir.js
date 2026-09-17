@@ -20,8 +20,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 06 v80', html.includes('06-inbox-exercises-ai-programs.js?v=80'));
-ok('cache styles v91', html.includes('styles.css?v=91'));
+ok('cache 06 v80', html.includes('06-inbox-exercises-ai-programs.js?v=81'));
+ok('cache styles v91', html.includes('styles.css?v=92'));
 ok('cache 07 v39', html.includes('07-forms-metrics-calculator.js?v=39'));
 ok('CI unit', wf.includes('test_staff_subs_rir.js'));
 ok('CI ui', wf.includes('test_staff_subs_rir_ui.js'));
@@ -32,6 +32,9 @@ ok('biomech labeled rows', /exd-biomech-row/.test(six) && /Wzorzec/.test(six) &&
 ok('drawer css 480', css.includes('width:min(480px,100vw)') && css.includes('.exd-ai-h') && css.includes('.exd-biomech-row'));
 ok('no tiny biomech header', !/font-size:9px;font-family:'DM Mono',monospace;color:var\(--accent\);margin-bottom:8px/.test(html));
 ok('keep catalog alts', /Zamienniki z karty/.test(six));
+ok('exd tabs markup', html.includes('id="exd-tab-preview"') && html.includes('Podgląd') && html.includes('Biomechanika') && html.includes('Zarządzanie'));
+ok('exd accordions', html.includes('id="exd-acc-ai"') && /Uzasadnienia zamienników/.test(six));
+ok('exd tab css', css.includes('.exd-tab') && css.includes('.exd-acc'));
 ok('no 12-ex replace', !/db-incline-lateral/.test(six));
 
 const start = six.indexOf('const EX_PROFILE_LABELS=');

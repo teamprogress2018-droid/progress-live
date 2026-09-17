@@ -1613,25 +1613,30 @@ function exdSubstituteBlockHtml(e){
   });
   return `<div id="exd-subs-box" class="exd-subs-box">
     <div class="exd-biomech">
-      <div class="exd-sec-h">Biomechanika</div>
+      <div class="exd-sec-h">Profil biomechaniczny</div>
       <div class="exd-biomech-list">
+        ${exdBiomechRow('Partia', exdEsc(e.cat||'—'))}
+        ${exdBiomechRow('Sprzęt', exdEsc(e.eq||'—'))}
         ${exdBiomechRow('Wzorzec', exdEsc(pattern))}
         ${exdBiomechRow('Płaszczyzna', exdEsc(plane))}
         ${exdBiomechRow('Profil oporu', exdEsc(profile), 'exd-biomech-accent')}
         ${exdBiomechRow('Stawy', exdEsc(joints), 'exd-biomech-joint')}
         ${exdBiomechRow('SFR', exdEsc(b.sfr), 'exd-biomech-sfr')}
+        ${e.muscle?exdBiomechRow('Mięśnie', exdEsc(e.muscle)):''}
       </div>
     </div>
-    <div class="exd-sec-h">Zamienniki — filtr bezpieczeństwa</div>
-    <div class="exd-sub-filters">
-      <button type="button" class="btn btn-ghost btn-sm" id="exd-sub-shoulder" onclick="toggleExdSubJoint('shoulder')">Ból barku</button>
-      <button type="button" class="btn btn-ghost btn-sm" id="exd-sub-knee" onclick="toggleExdSubJoint('knee')">Ból kolana</button>
+    <div class="exd-card">
+      <div class="exd-sec-h">Zamienniki — filtr bezpieczeństwa</div>
+      <div class="exd-sub-filters">
+        <button type="button" class="exd-filter-btn" id="exd-sub-shoulder" aria-pressed="false" onclick="toggleExdSubJoint('shoulder')">Ból barku</button>
+        <button type="button" class="exd-filter-btn" id="exd-sub-knee" aria-pressed="false" onclick="toggleExdSubJoint('knee')">Ból kolana</button>
+      </div>
+      <div class="exd-sub-eqs" id="exd-sub-eqs">${eqOpts.map(eq=>{
+        const safe=String(eq).replace(/'/g,"\\'");
+        return `<button type="button" class="exd-filter-btn" data-eq="${exdEsc(eq)}" aria-pressed="false" onclick="toggleExdSubEq('${safe}')">${exdEsc(eq)}</button>`;
+      }).join('')}</div>
+      <div id="exd-subs-list"></div>
     </div>
-    <div class="exd-sub-eqs" id="exd-sub-eqs">${eqOpts.map(eq=>{
-      const safe=String(eq).replace(/'/g,"\\'");
-      return `<button type="button" class="pill pill-muted" data-eq="${exdEsc(eq)}" onclick="toggleExdSubEq('${safe}')">${exdEsc(eq)}</button>`;
-    }).join('')}</div>
-    <div id="exd-subs-list"></div>
   </div>`;
 }
 function renderExdSubstitutes(){
@@ -1642,34 +1647,44 @@ function renderExdSubstitutes(){
   if(!e){list.innerHTML='';return;}
   const sh=document.getElementById('exd-sub-shoulder');
   const kn=document.getElementById('exd-sub-knee');
-  if(sh){sh.style.borderColor=exdSubFilter.shoulder?'var(--red)':'';sh.style.color=exdSubFilter.shoulder?'var(--red)':'';}
-  if(kn){kn.style.borderColor=exdSubFilter.knee?'var(--red)':'';kn.style.color=exdSubFilter.knee?'var(--red)':'';}
+  if(sh){sh.classList.toggle('is-on',!!exdSubFilter.shoulder);sh.setAttribute('aria-pressed',exdSubFilter.shoulder?'true':'false');}
+  if(kn){kn.classList.toggle('is-on',!!exdSubFilter.knee);kn.setAttribute('aria-pressed',exdSubFilter.knee?'true':'false');}
   document.querySelectorAll('#exd-sub-eqs [data-eq]').forEach(btn=>{
     const on=exdSubFilter.eq.includes(btn.getAttribute('data-eq'));
-    btn.style.borderColor=on?'var(--red)':'';
-    btn.style.color=on?'var(--red)':'';
+    btn.classList.toggle('is-on',on);
+    btn.setAttribute('aria-pressed',on?'true':'false');
   });
   const blacklistedJoints=[...(exdSubFilter.shoulder?['shoulder']:[]),...(exdSubFilter.knee?['knee']:[])];
   const results=findStaffSubstitutes(e,{blacklistedJoints,unavailableEquipment:exdSubFilter.eq,limit:3});
   if(!results.length){
-    list.innerHTML='<div style="font-size:12px;color:var(--muted);padding:8px 0;">Brak dopasowania przy obecnych ograniczeniach — rozważ ręczny przegląd biblioteki.</div>';
+    list.innerHTML='<div class="exd-empty">Brak dopasowania przy obecnych ograniczeniach — rozważ ręczny przegląd biblioteki.</div>';
     return;
   }
-  list.innerHTML=results.map(({ex,score})=>{
+  const cards=results.map(({ex,score})=>{
     const pct=Math.max(4,Math.round((score/STAFF_SUB_MAX)*100));
     const safe=String(ex.name).replace(/'/g,"\\'");
-    return `<div style="background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;margin-bottom:6px;">
-      <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;">
-        <button type="button" onclick="openExDetail('${safe}')" style="background:none;border:none;color:var(--text);text-align:left;padding:0;cursor:pointer;font-size:12px;font-weight:700;">${exdEsc(ex.name)}</button>
-        <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);flex-shrink:0;">${score}/${STAFF_SUB_MAX}</span>
+    return `<div class="exd-sub-card">
+      <div class="exd-sub-card-h">
+        <button type="button" class="exd-sub-name" onclick="openExDetail('${safe}')">${exdEsc(ex.name)}</button>
+        <span class="exd-sub-score">${score}/${STAFF_SUB_MAX}</span>
       </div>
-      <div style="height:3px;background:var(--s2);border-radius:2px;margin:6px 0 8px;"><div style="height:3px;width:${pct}%;background:var(--accent);border-radius:2px;"></div></div>
-      <button type="button" class="btn btn-ghost btn-sm" style="width:100%;" onclick="askExStaffJustify('${safe}')">🦴 Uzasadnij ten zamiennik</button>
+      <div class="exd-sub-bar" aria-hidden="true"><div class="exd-sub-bar-fill" style="width:${pct}%"></div></div>
     </div>`;
   }).join('');
+  const justifies=results.map(({ex})=>{
+    const safe=String(ex.name).replace(/'/g,"\\'");
+    return `<button type="button" class="btn btn-ghost btn-sm exd-justify-btn" onclick="askExStaffJustify('${safe}')">🦴 Uzasadnij ten zamiennik — ${exdEsc(ex.name)}</button>`;
+  }).join('');
+  list.innerHTML=cards+`<details class="exd-acc" id="exd-acc-justify">
+    <summary class="exd-acc-sum">Uzasadnienia zamienników</summary>
+    <div class="exd-acc-body">${justifies}</div>
+  </details>`;
 }
 function askExStaffJustify(altName){
   const orig=currentExDetail||'';
+  if(typeof openExdAiAcc==='function')openExdAiAcc();
+  const just=document.getElementById('exd-acc-justify');
+  if(just)just.open=true;
   const inp=document.getElementById('exd-ai-q');
   if(inp) inp.value=`Dlaczego "${altName}" jest sensownym zamiennikiem dla "${orig}"? Na co zwrócić uwagę przy przejściu.`;
   if(typeof askExAI==='function') askExAI();
@@ -2458,54 +2473,132 @@ function exTechniqueGuideHtml(ex){
 }
 window.exTechniqueGuideHtml=exTechniqueGuideHtml;
 
+var exdTab='preview';
+var EXD_TABS=['preview','biomech','manage'];
+
+function setExdTab(tab,opts){
+  const next=EXD_TABS.indexOf(tab)>=0?tab:'preview';
+  exdTab=next;
+  EXD_TABS.forEach(id=>{
+    const on=id===next;
+    const btn=document.getElementById('exd-tab-'+id);
+    const panel=document.getElementById('exd-panel-'+id);
+    if(btn){
+      btn.classList.toggle('is-active',on);
+      btn.setAttribute('aria-selected',on?'true':'false');
+      btn.tabIndex=on?0:-1;
+    }
+    if(panel){
+      if(on)panel.removeAttribute('hidden');
+      else panel.setAttribute('hidden','');
+    }
+  });
+  const body=document.getElementById('exd-body');
+  if(body&&!(opts&&opts.keepScroll))body.scrollTop=0;
+  if(opts&&opts.focus){
+    const btn=document.getElementById('exd-tab-'+next);
+    if(btn&&typeof btn.focus==='function')btn.focus();
+  }
+}
+window.setExdTab=setExdTab;
+
+function onExdTabsKeydown(ev){
+  const i=EXD_TABS.indexOf(exdTab);
+  if(i<0)return;
+  let next=i;
+  if(ev.key==='ArrowRight'||ev.key==='ArrowDown')next=(i+1)%EXD_TABS.length;
+  else if(ev.key==='ArrowLeft'||ev.key==='ArrowUp')next=(i-1+EXD_TABS.length)%EXD_TABS.length;
+  else if(ev.key==='Home')next=0;
+  else if(ev.key==='End')next=EXD_TABS.length-1;
+  else return;
+  ev.preventDefault();
+  setExdTab(EXD_TABS[next],{focus:true,keepScroll:true});
+}
+window.onExdTabsKeydown=onExdTabsKeydown;
+
+function openExdAiAcc(){
+  if(exdTab!=='biomech')setExdTab('biomech',{keepScroll:true});
+  const acc=document.getElementById('exd-acc-ai');
+  if(acc)acc.open=true;
+}
+window.openExdAiAcc=openExdAiAcc;
+
+function exdPreviewMediaHtml(e){
+  const media=typeof resolveCoachMedia==='function'?resolveCoachMedia(e):null;
+  const assigned=typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):'';
+  const assignedIsVideo=/\.(mp4|webm)(\?|#|$)/i.test(assigned);
+  const esc=typeof escHtml==='function'?escHtml:(s=>String(s||''));
+  let h='';
+  if(assignedIsVideo){
+    h+=`<div class="exd-preview-media"><video id="exd-mp4-player" class="cw-technique-gif-img" src="${esc(assigned)}" autoplay loop muted playsinline controls preload="auto"></video></div>`;
+  }else if(media){
+    const skipGif=!!(assigned&&media.gif&&typeof sameMediaUrl==='function'&&sameMediaUrl(assigned,media.gif));
+    if(media.gif&&!skipGif&&typeof exTechniqueMediaHtml==='function')h+=exTechniqueMediaHtml({gif:media.gif,name:e.name},{});
+    else if(!media.gif&&media.img){h+=`<div class="ex-detail-thumb"><img src="${esc(media.img)}" alt="Technika: ${esc(e.name)}" loading="lazy" referrerpolicy="no-referrer"></div>`;}
+    const showVid=!!media.video&&!(media.gif&&typeof sameMediaUrl==='function'&&sameMediaUrl(media.gif,media.video));
+    if(typeof coachMediaHtml==='function')h+=coachMediaHtml({...media,name:e.name,video:showVid?media.video:'',videoEmbed:showVid?media.videoEmbed:''},{showVideo:showVid,showGif:false});
+  }
+  if(typeof exTechniqueGuideHtml==='function')h+=exTechniqueGuideHtml(e);
+  return h;
+}
+window.exdPreviewMediaHtml=exdPreviewMediaHtml;
+
+function exdPreviewHtml(e){
+  const safe=String(e.name||'').replace(/'/g,"\\'");
+  const desc=e.tip||'';
+  const yt=typeof ownVideoForExercise==='function'&&ownVideoForExercise(e.name)?'':`<button type="button" class="exd-yt-btn" onclick="event.stopPropagation();window.open('https://www.youtube.com/results?search_query='+encodeURIComponent(currentExDetail+' cwiczenie technika wykonania'),'_blank')">&#9654; Szukaj na YouTube — technika</button>`;
+  return `<p class="exd-preview-meta">${exdEsc(e.cat||'')}${e.eq?' <span aria-hidden="true">·</span> '+exdEsc(e.eq):''}</p>
+    ${exdPreviewMediaHtml(e)}
+    ${desc?`<div class="exd-preview-desc">${exdEsc(desc)}</div>`:''}
+    <button type="button" class="btn btn-primary exd-preview-cta" onclick="prefillExInBuilder('${safe}')">Użyj w builderze</button>
+    ${yt}`;
+}
+
+function exdManageHtml(e){
+  const safe=String(e.name||'').replace(/'/g,"\\'");
+  return `${typeof exDetailAssignHtml==='function'?exDetailAssignHtml(e):''}
+    <div class="exd-manage-actions">
+      ${findCustomEx(e.name)?`<button type="button" class="btn btn-ghost" onclick="editEx('${safe}')">✏ Edytuj dane ćwiczenia</button>`:''}
+      <button type="button" class="btn btn-ghost exd-del-btn" id="exd-del" onclick="delEx('${safe}')">🗑 Usuń ćwiczenie</button>
+    </div>`;
+}
+
 var currentExDetail='';
 function openExDetail(name){
   const all=allExercises();
   const e=all.find(x=>x.name===name)||(typeof libExerciseByName==='function'?libExerciseByName(name):null);
   if(!e)return;
+  const same=currentExDetail===name;
   currentExDetail=name;
   exSelId=name;
-  const col=CAT_COLORS_EX[e.cat]||'var(--muted2)';
-  document.getElementById('exd-title').textContent=e.name;
-  document.getElementById('exd-body').innerHTML=`
-    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
-      <span class="pill" style="background:${col}22;color:${col};">${e.cat}</span>
-      <span class="pill pill-muted">${e.eq}</span>
-    </div>
-    <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
-      <button class="btn btn-primary btn-sm" style="flex:1;" onclick="prefillExInBuilder('${e.name.replace(/'/g,"\\'")}')">Użyj w builderze</button>
-      ${findCustomEx(e.name)?`<button class="btn btn-ghost btn-sm" style="flex:1;" onclick="editEx('${e.name.replace(/'/g,"\\'")}')">✏ Edytuj</button>`:''}
-      <button type="button" class="btn btn-ghost btn-sm" id="exd-del" style="flex:1;color:var(--red);" onclick="delEx('${e.name.replace(/'/g,"\\'")}')">🗑 Usuń ćwiczenie</button>
-    </div>
-    ${typeof exdSubstituteBlockHtml==='function'?exdSubstituteBlockHtml(e):''}
-    ${typeof exDetailAssignHtml==='function'?exDetailAssignHtml(e):''}
-    ${(()=>{const media=typeof resolveCoachMedia==='function'?resolveCoachMedia(e):null;if(!media)return'';let h='';const assigned=typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):'';const skipGif=!!(assigned&&media.gif&&typeof sameMediaUrl==='function'&&sameMediaUrl(assigned,media.gif));if(media.gif&&!skipGif&&typeof exTechniqueMediaHtml==='function')h+=exTechniqueMediaHtml({gif:media.gif,name:e.name},{});else if(!media.gif&&media.img){h+=`<div class="ex-detail-thumb"><img src="${typeof escHtml==='function'?escHtml(media.img):media.img}" alt="Technika: ${typeof escHtml==='function'?escHtml(e.name):e.name}" loading="lazy" referrerpolicy="no-referrer"></div>`;}const showVid=!!media.video&&!(media.gif&&typeof sameMediaUrl==='function'&&sameMediaUrl(media.gif,media.video));if(typeof coachMediaHtml==='function')h+=coachMediaHtml({...media,name:e.name,video:showVid?media.video:'',videoEmbed:showVid?media.videoEmbed:''},{showVideo:showVid,showGif:false});if(typeof exTechniqueGuideHtml==='function')h+=exTechniqueGuideHtml(e);return h;})()}
-    ${e.muscle?`<div style="margin-bottom:12px;">
-      <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Mięśnie</div>
-      <div style="font-size:12px;line-height:1.6;">${e.muscle}</div>
-    </div>`:''}
-    ${e.tip?`<div style="margin-bottom:12px;">
-      <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Wskazówka techniczna</div>
-      <div style="background:var(--s3);border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.6;border-left:3px solid ${col};">${e.tip}</div>
-    </div>`:''}
-    ${e.nsca?`<div style="margin-bottom:12px;">
-      <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;">Parametry NSCA/ACSM</div>
-      <div style="background:var(--adim);border:1px solid rgba(230,0,0,0.15);border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.6;">${e.nsca}</div>
-    </div>`:''}
-    ${e.alt?`<div style="margin-bottom:12px;">
-      <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Zamienniki z karty</div>
-      <div style="display:flex;gap:4px;flex-wrap:wrap;">${e.alt.split(',').map(a=>`<span class="pill pill-muted" style="font-size:10px;cursor:pointer;" onclick="openExDetail('${a.trim().replace(/'/g,"\\'")}')">→ ${a.trim()}</span>`).join('')}</div>
-    </div>`:''}
-    ${typeof ownVideoForExercise==='function'&&ownVideoForExercise(e.name)?'':`<button onclick="event.stopPropagation();(function(){window.open('https://www.youtube.com/results?search_query='+encodeURIComponent(currentExDetail+' cwiczenie technika wykonania'),'_blank');})()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;padding:10px;background:rgba(255,0,0,0.1);border:1px solid rgba(255,0,0,0.3);border-radius:8px;color:#ff4444;font-size:12px;font-weight:700;cursor:pointer;" onmouseover="this.style.background='rgba(255,0,0,0.2)'" onmouseout="this.style.background='rgba(255,0,0,0.1)'">&#9654; Szukaj na YouTube &#8212; technika</button>`}
-    `;
-  // clear AI msgs
-  document.getElementById('exd-ai-msgs').innerHTML='';
+  const title=document.getElementById('exd-title');
+  if(title)title.textContent=e.name;
+  const preview=document.getElementById('exd-panel-preview');
+  const biomech=document.getElementById('exd-biomech-main');
+  const manage=document.getElementById('exd-panel-manage');
+  if(preview)preview.innerHTML=exdPreviewHtml(e);
+  if(biomech){
+    const nsca=e.nsca?`<div class="exd-card exd-card-nsca">
+      <div class="exd-sec-h">Parametry NSCA/ACSM</div>
+      <div class="exd-card-text">${exdEsc(e.nsca)}</div>
+    </div>`:'';
+    const alts=e.alt?`<div class="exd-card">
+      <div class="exd-sec-h">Zamienniki z karty</div>
+      <div class="exd-alt-list">${e.alt.split(',').map(a=>`<button type="button" class="exd-alt-link" onclick="openExDetail('${a.trim().replace(/'/g,"\\'")}')">${exdEsc(a.trim())}</button>`).join('')}</div>
+    </div>`:'';
+    biomech.innerHTML=`${typeof exdSubstituteBlockHtml==='function'?exdSubstituteBlockHtml(e):''}${nsca}${alts}`;
+  }
+  if(manage)manage.innerHTML=exdManageHtml(e);
+  const msgs=document.getElementById('exd-ai-msgs');
+  if(msgs)msgs.innerHTML='';
+  const aiAcc=document.getElementById('exd-acc-ai');
+  if(aiAcc)aiAcc.open=false;
   const hdrDel=document.getElementById('exd-del-hdr');
   if(hdrDel)hdrDel.style.display='';
   const detail=document.getElementById('ex-detail');
-  detail.style.transform='translateX(0)';
-  const body=document.getElementById('exd-body');
-  if(body)body.scrollTop=0;
+  if(detail)detail.style.transform='translateX(0)';
+  if(!same)exdTab='preview';
+  setExdTab(exdTab);
   exdSubFilter={shoulder:false,knee:false,eq:[]};
   if(typeof renderExdSubstitutes==='function') renderExdSubstitutes();
   const play=document.getElementById('exd-mp4-player');
@@ -2670,9 +2763,12 @@ function prefillExInWorkout(name){
 }
 
 async function askExAI(){
-  const q=document.getElementById('exd-ai-q').value.trim();if(!q)return;
-  document.getElementById('exd-ai-q').value='';
+  if(typeof openExdAiAcc==='function')openExdAiAcc();
+  const qEl=document.getElementById('exd-ai-q');
+  const q=qEl?qEl.value.trim():'';if(!q)return;
+  qEl.value='';
   const msgs=document.getElementById('exd-ai-msgs');
+  if(!msgs)return;
   msgs.innerHTML+='<div class="exd-ai-turn is-user"><div class="exd-ai-bubble is-user">'+q+'</div></div>';
   msgs.innerHTML+='<div id="exd-ai-t" class="exd-ai-turn"><div class="exd-ai-bubble is-pending">🦴 Biomechanika analizuje...</div></div>';
   msgs.scrollTop=msgs.scrollHeight;
@@ -2687,6 +2783,7 @@ async function askExAI(){
   msgs.scrollTop=msgs.scrollHeight;
 }
 function askExStaffBiomechanika(){
+  if(typeof openExdAiAcc==='function')openExdAiAcc();
   const inp=document.getElementById('exd-ai-q');
   if(inp&&!inp.value.trim()) inp.value='Przeanalizuj wektory sił, profil oporu i bezpieczeństwo stawów.';
   askExAI();
@@ -4194,12 +4291,9 @@ function exDetailAssignHtml(e){
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s||''));
   const current=typeof assignedExVideoUrl==='function'?assignedExVideoUrl(e):(typeof exGifUrl==='function'?exGifUrl(e):'');
   const currentIsVideo=/\.(mp4|webm)(\?|#|$)/i.test(current);
-  const player=currentIsVideo
-    ?`<video id="exd-mp4-player" class="cw-technique-gif-img" src="${esc(current)}" autoplay loop muted playsinline controls preload="auto" style="width:100%;max-height:220px;background:#000;border-radius:8px;margin-bottom:8px;"></video>`
-    :'';
   const currentHint=currentIsVideo
-    ?`<div id="exd-mp4-current" style="font-size:11px;color:#8fd19a;margin-bottom:6px;word-break:break-all;">Dopasowany film: <code>${esc(current)}</code></div>`
-    :'<div id="exd-mp4-current" style="font-size:11px;color:var(--muted);margin-bottom:6px;">Brak filmu MP4 przy tym ćwiczeniu — wklej ścieżkę albo wybierz plik YouCan.</div>';
+    ?`<div id="exd-mp4-current" class="exd-assign-hint is-ok">Dopasowany film: <code>${esc(current)}</code></div>`
+    :'<div id="exd-mp4-current" class="exd-assign-hint">Brak filmu MP4 przy tym ćwiczeniu — wklej ścieżkę albo wybierz plik YouCan.</div>';
   const own=(window.COACH_VIDEOS||[]).filter(v=>{
     const u=typeof normalizeImportedMediaUrl==='function'?normalizeImportedMediaUrl(v.url):String(v.url||'');
     return typeof coachVideoIsFile==='function'?coachVideoIsFile(u):/\.(mp4|webm)(\?|#|$)/i.test(u);
@@ -4214,11 +4308,10 @@ function exDetailAssignHtml(e){
   window._exAssignFlash=null;
   if(flash&&flash.text)notify(flash.text);
   const msgHtml=`<div id="exd-assign-msg" style="display:${flash&&flash.text?'block':'none'};margin-top:8px;font-size:12px;line-height:1.45;color:${flash&&flash.ok?'#8fd19a':'#ff8a80'};">${flash&&flash.text?esc(flash.text):''}</div>`;
-  return `<div id="exd-assign" style="margin:0 0 14px;padding:12px;background:var(--s3);border:1px solid var(--border);border-radius:10px;">
-    <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Dopasuj film do ćwiczenia</div>
-    ${player}
+  return `<div id="exd-assign" class="exd-card exd-assign">
+    <div class="exd-sec-h">Dopasuj film / GIF</div>
     ${currentHint}
-    <div style="font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:8px;">Do <b>${esc(name)}</b> — wybierz film z listy albo plik YouCan, potem <b>Dopasuj i zapisz</b>. Szary tekst w polu nic nie zapisuje.${isPecDeckAssignExercise(name)?' Puste pole nie cofnie już przypisanego filmu.':''}</div>
+    <div style="font-size:13px;color:#D1D5DB;line-height:1.5;margin-bottom:12px;">Do <b>${esc(name)}</b> — wybierz film z listy albo plik YouCan, potem <b>Dopasuj i zapisz</b>. Szary tekst w polu nic nie zapisuje.${isPecDeckAssignExercise(name)?' Puste pole nie cofnie już przypisanego filmu.':''}</div>
     <textarea class="form-input" id="exd-mp4-url" rows="3" placeholder="Opcjonalnie wklej ścieżkę (Shift+PPM → Kopiuj jako ścieżkę)" style="margin-bottom:6px;font-size:12px;min-height:64px;resize:vertical;"></textarea>
     ${isPecDeckAssignExercise(name)?'<button type="button" class="btn btn-ghost btn-sm" id="exd-mp4-suggest" style="width:100%;margin-bottom:6px;" onclick="fillSuggestedExAssignPath()">Wstaw ścieżkę motyl / pec deck</button>':''}
     <button type="button" class="btn btn-primary btn-sm" style="width:100%;margin-bottom:8px;" onclick="assignExTechniqueFromPaste(currentExDetail)">Dopasuj i zapisz przy tym ćwiczeniu</button>
@@ -4291,6 +4384,7 @@ async function saveAssignedExTechnique(name,rawUrl){
   if(typeof renderLib==='function')renderLib();
   if(typeof openExDetail==='function'){
     openExDetail(n);
+    if(typeof setExdTab==='function')setExdTab('preview');
     if(typeof document!=='undefined'&&typeof document.querySelector==='function'){
       setTimeout(()=>{
         const v=document.getElementById('exd-mp4-player')||document.querySelector('#exd-body video.cw-technique-gif-img,#exd-body .cw-technique-media video');
