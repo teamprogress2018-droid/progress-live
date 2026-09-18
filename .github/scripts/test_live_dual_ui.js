@@ -117,7 +117,7 @@ function ok(name, cond, extra) {
       capCount: card ? card.querySelectorAll('.cw-technique-cap').length : -1,
       capDisplay: cap ? getComputedStyle(cap).display : 'none',
       noteVisible: !!(card && /PRIORYTET czworogłowe/.test(card.textContent)),
-      altsLbl: !!(card && /Zamienniki \(gdy nie ma maszyny\)/.test(card.textContent)),
+      altsLbl: !!(card && /Zamień ćwiczenie/.test(card.textContent)),
       chips
     };
     if (typeof liveSwapEx === 'function' && chips.length) {
