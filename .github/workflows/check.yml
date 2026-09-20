@@ -357,6 +357,8 @@ jobs:
         run: node .github/scripts/test_staff_subs_rir.js
       - name: 1p5b. Testy zakładek panelu ćwiczenia
         run: node .github/scripts/test_exd_tabs.js
+      - name: 1p5c. Testy stopki sidebara (nazwa vs ikony)
+        run: node .github/scripts/test_sidebar_footer.js
 
       - name: Testy sync uwag AI vs metoda
         run: node .github/scripts/test_apl_notes_method_sync.js
@@ -473,6 +475,8 @@ jobs:
         run: node .github/scripts/test_staff_subs_rir_ui.js
       - name: 6f0c. Testy UI zakładek panelu ćwiczenia
         run: node .github/scripts/test_exd_tabs_ui.js
+      - name: 6f0d. Testy UI stopki sidebara (ikony vs nazwa)
+        run: node .github/scripts/test_sidebar_footer_ui.js
       - name: 6f2. Testy UI edycji imienia i nazwiska w profilu
         run: node .github/scripts/test_cp_edit_visible_ui.js
       - name: 6f3. Testy UI ✓ Odbył się (zapis sali z planu)
