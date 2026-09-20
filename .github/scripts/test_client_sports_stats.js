@@ -174,10 +174,11 @@ const src03 = fs.readFileSync(path.join(root, '03-ai-plangen-bizstats-aicoach.js
 const src05 = fs.readFileSync(path.join(root, '05-clients-builder-plans-calendar.js'), 'utf8');
 const src08 = fs.readFileSync(path.join(root, '08-client-profile-extras.js'), 'utf8');
 const src09 = fs.readFileSync(path.join(root, '09-posture-kb-invites-private.js'), 'utf8');
-ok('cache 01/03', html.includes('01-core.js?v=111') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=38'));
+ok('cache 01/03', html.includes('01-core.js?v=111') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=39'));
 ok('ai prompt sport background', /TŁO SPORTOWE/i.test(src03));
 ok('ai form sport fields', /apl-sport-notes/.test(src03) && /apl-activity/.test(src03));
 ok('ai JSON adaptation_notes', /"adaptation_notes"/.test(src03) && /apl-adaptation-notes/.test(src03));
+ok('ai JSON mezocycle', /mezocycle_overview/.test(src03) && /weekly_progression_schema/.test(src03));
 ok('ai additional activities rule', /AKTYWNOŚCI DODATKOWE/.test(src03));
 ok('save client additional_activities', /additional_activities/.test(src05) && /readSportBackgroundFrom\('ac'\)/.test(src05));
 ok('profile editor rows', /sportBackgroundFormHTML/.test(src08) && /additional_activities/.test(src09));

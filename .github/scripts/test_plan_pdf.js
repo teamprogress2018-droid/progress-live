@@ -24,7 +24,8 @@ ok('export helper', /window\.buildPlanPDFHTML=buildPlanPDFHTML/.test(src03));
 ok('saved plan mapper', /function planToPdfModel\(/.test(src03) && /window\.planToPdfModel=planToPdfModel/.test(src03));
 ok('saved plan export', /function exportSavedPlanPDF\(/.test(src03) && /window\.exportSavedPlanPDF=exportSavedPlanPDF/.test(src03));
 ok('saves progression', /plan\.progression=progression/.test(src03));
-ok('cache', html.includes('03-ai-plangen-bizstats-aicoach.js?v=38') && html.includes('styles.css?v=98'));
+ok('cache', html.includes('03-ai-plangen-bizstats-aicoach.js?v=39') && html.includes('styles.css?v=98'));
+ok('mezocycle pdf helpers', /mezocycle_overview/.test(src03) && /weekly_progression_schema/.test(src03));
 ok('CI', wf.includes('test_plan_pdf.js') && wf.includes('test_plan_pdf_ui.js'));
 
 const slice = src03.match(/function planPdfEsc[\s\S]*?^function aplReset/m);
@@ -116,6 +117,14 @@ const multi = ctx.planToPdfModel({
 });
 const multiHtml = ctx.buildPlanPDFHTML(multi, { name: 'Radek' });
 ok('multi weeks', multi.weekKeys.length === 4 && /Tydzień 4/.test(multiHtml) && /plan-pdf-arrow-up/.test(multiHtml) && /plan-pdf-arrow-dn/.test(multiHtml));
+const hypPdf = ctx.buildPlanPDFHTML({
+  planName: 'Masa 8',
+  mezocycle_overview: 'Blok hipertrofii bez faz siły 1-3.',
+  weekly_progression_schema: [{ week: 1, phase: 'Akumulacja I', rir: '2–3', reps: '8–12', volume: '100%' }],
+  adaptation_notes: 'Nordic walking — mniej nóg.',
+  days: []
+}, { name: 'Piotr' });
+ok('hyp pdf overview', /Blok hipertrofii/.test(hypPdf) && /Akumulacja I/.test(hypPdf) && /Nordic walking/.test(hypPdf));
 
 if (failed) {
   console.error(failed + ' failed');
