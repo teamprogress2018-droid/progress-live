@@ -100,12 +100,18 @@ function vis(el) {
     const body = document.getElementById('apl-client-dup-body');
     const card = document.getElementById('apl-client-from-card');
     const hint = document.getElementById('apl-client-pick-hint');
+    const runningOn = !![...document.querySelectorAll('#apl-prior-sports-mount .prior-sport-chip.active, #apl-prior-sports button.active')].length;
     return {
       client: sel ? sel.value : '',
       sportsDisplay: sports ? sports.style.display : '',
       bodyDisplay: body ? body.style.display : '',
       cardDisplay: card ? card.style.display : '',
-      hintDisplay: hint ? hint.style.display : ''
+      hintDisplay: hint ? hint.style.display : '',
+      notes: (document.getElementById('apl-sport-notes') || {}).value || '',
+      age: (document.getElementById('apl-age') || {}).value || '',
+      activity: (document.getElementById('apl-activity') || {}).value || '',
+      lastId: window._aplLastClientId || '',
+      runningOn
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'apl_client_autofill_manual.png'), fullPage: false });
@@ -113,6 +119,7 @@ function vis(el) {
   ok('nowy shows body form', manual.bodyDisplay === 'grid' || manual.bodyDisplay === '');
   ok('nowy hides card', manual.cardDisplay === 'none');
   ok('nowy shows pick hint', manual.hintDisplay !== 'none');
+  ok('nowy clears leftover card fields', manual.age === '' && manual.notes === '' && manual.activity === 'moderate' && !manual.lastId, JSON.stringify(manual));
 
   const back = await page.evaluate(() => {
     const sel = document.getElementById('apl-client');

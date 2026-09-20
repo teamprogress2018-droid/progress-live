@@ -25,7 +25,7 @@ ok('fill hides dup UI', /function aplFillFromClient[\s\S]*aplSyncClientDupUi/.te
 ok('close profile remembers client', /if\(cpClientId\)window\._aplLastClientId=cpClientId/.test(src07));
 ok('save client remembers', /window\._aplLastClientId=c\.id/.test(src05) && /aplRefreshFromSavedClient\(c\.id\)/.test(src05));
 ok('edit from card opens modal', /function aplEditClientFromCard[\s\S]*openClientModal/.test(src03));
-ok('cache 03/05/07', html.includes('03-ai-plangen-bizstats-aicoach.js?v=41') && html.includes('05-clients-builder-plans-calendar.js?v=78') && html.includes('07-forms-metrics-calculator.js?v=40'));
+ok('cache 03/05/07', html.includes('03-ai-plangen-bizstats-aicoach.js?v=42') && html.includes('05-clients-builder-plans-calendar.js?v=78') && html.includes('07-forms-metrics-calculator.js?v=40'));
 ok('CI', wf.includes('test_apl_client_autofill.js') && wf.includes('test_apl_client_autofill_ui.js'));
 
 const slice = src03.match(/function aplClientCardSummaryHtml[\s\S]*?(?=\nfunction aplSyncClientDupUi)/);
@@ -66,6 +66,7 @@ if (slice) {
   ok('summary has age/weight/gender', /32 lat/.test(htmlCard) && /62 kg/.test(htmlCard) && /Kobieta/.test(htmlCard));
   ok('summary has activity', /Umiarkowana/.test(htmlCard));
   ok('summary from card label', /Z karty klienta/.test(htmlCard));
+  ok('summary does not repeat sport profile sentence', !/predyspozycja/.test(htmlCard));
   ok('summary edit button', /aplEditClientFromCard/.test(htmlCard));
   const empty = ctx.aplClientCardSummaryHtml({ id: 'c2', name: 'Nowy' });
   ok('missing fields hint', /Brakuje: wiek/.test(empty) && /płeć/.test(empty) && /waga/.test(empty));

@@ -325,7 +325,12 @@ function aplClientCardSummaryHtml(c){
   const h=c.height||'';
   const actMap=typeof ACTIVITY_LEVEL_LABELS!=='undefined'?ACTIVITY_LEVEL_LABELS:(window.ACTIVITY_LEVEL_LABELS||{});
   const act=c.activityLevel&&actMap[c.activityLevel]?actMap[c.activityLevel]:'';
-  const sport=typeof clientSportProfileLabel==='function'?clientSportProfileLabel(c):'';
+  let sport='';
+  if(typeof clientSportProfile==='function'){
+    const p=clientSportProfile(c);
+    if(p&&p.activities&&p.activities.length&&typeof formatActivityShort==='function')sport=p.activities.map(formatActivityShort).join(', ');
+    else if(p&&p.labels&&p.labels.length)sport=p.labels.join(', ');
+  }
   const missing=[];
   if(!age)missing.push('wiek');
   if(!gender)missing.push('płeć');
@@ -336,7 +341,7 @@ function aplClientCardSummaryHtml(c){
       <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--teal,#3ecfb2);letter-spacing:1px;text-transform:uppercase;">Z karty klienta</div>
       <div style="font-size:13px;font-weight:600;margin-top:3px;">${esc(c.name||'')}</div>
       <div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.45;">${chips.length?chips.map(esc).join(' · '):'Brak wieku, wagi i płci na karcie'}</div>
-      ${sport?`<div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4;">${esc(sport)}</div>`:''}
+      ${sport?`<div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4;">Sporty: ${esc(sport)}</div>`:''}
       ${c.sportNotes?`<div style="font-size:11px;color:var(--muted);margin-top:2px;">${esc(c.sportNotes)}</div>`:''}
       ${missing.length?`<div style="font-size:11px;color:var(--accent);margin-top:6px;">Brakuje: ${esc(missing.join(', '))} — uzupełnij na karcie.</div>`:''}
     </div>
@@ -395,6 +400,15 @@ function aplFillFromClient(){
   if(pharmaDetailsEl)pharmaDetailsEl.value='';
   if(typeof toggleAplPharmaPanel==='function')toggleAplPharmaPanel(false);
   if(!cid){
+    window._aplLastClientId='';
+    const ageEl=document.getElementById('apl-age');if(ageEl)ageEl.value='';
+    const wEl=document.getElementById('apl-weight');if(wEl)wEl.value='';
+    const hEl=document.getElementById('apl-height');if(hEl)hEl.value='';
+    const gEl=document.getElementById('apl-gender');if(gEl)gEl.selectedIndex=0;
+    const actEl=document.getElementById('apl-activity');if(actEl)actEl.value='moderate';
+    const snEl=document.getElementById('apl-sport-notes');if(snEl)snEl.value='';
+    const injEl=document.getElementById('apl-injuries');if(injEl)injEl.value='';
+    if(typeof initPriorSportsForm==='function')initPriorSportsForm('apl',[]);
     if(typeof aplSyncClientDupUi==='function')aplSyncClientDupUi();
     return;
   }

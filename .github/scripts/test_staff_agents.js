@@ -19,7 +19,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 03 v37', html.includes('03-ai-plangen-bizstats-aicoach.js?v=41'));
+ok('cache 03 v37', html.includes('03-ai-plangen-bizstats-aicoach.js?v=42'));
 ok('cache 06 v77', html.includes('06-inbox-exercises-ai-programs.js?v=83'));
 ok('CI unit', wf.includes('test_staff_agents.js'));
 ok('CI ui', wf.includes('test_staff_agents_ui.js'));
