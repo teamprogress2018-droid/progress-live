@@ -1794,37 +1794,38 @@ function exAcKeepMachine(ex,ql,hasMachines){
   return false;
 }
 function exAcSourceName(input){
-  const from=input&&input.dataset?String(input.dataset.altFor||'').trim():'';
-  if(from)return from;
-  const v=String(input&&input.value||'').trim();
-  if(!v||v==='Nowe ćwiczenie'||v==='Ćwiczenie 1')return '';
-  return v;
+  return input&&input.dataset?String(input.dataset.altFor||'').trim():'';
 }
 function exAcSourceEx(input){
   const name=exAcSourceName(input);
-  if(!name)return null;
-  if(typeof libExerciseByName==='function'){
+  const catRaw=input&&input.dataset?String(input.dataset.exCat||'').trim():'';
+  if(!name&&!catRaw)return null;
+  if(name&&typeof libExerciseByName==='function'){
     const hit=libExerciseByName(name);
     if(hit)return hit;
   }
-  const cat=exAcFoldCat(input&&input.dataset?input.dataset.exCat:'');
-  if(cat)return{name:name,cat:cat};
-  return{name:name};
+  const cat=exAcFoldCat(catRaw);
+  if(name||cat)return{name:name||'',cat:cat};
+  return null;
 }
 function exAcRememberSource(input){
   if(!input||!input.dataset)return;
+  const v=String(input.value||'').trim();
+  if(v&&v!=='Nowe ćwiczenie'&&v!=='Ćwiczenie 1'){
+    const hit=typeof libExerciseByName==='function'?libExerciseByName(v):null;
+    const score=hit&&typeof libExerciseMatchScore==='function'?libExerciseMatchScore(hit,v):hit?800:0;
+    if(hit&&score>=400&&exAcShouldShowAlts(v)){
+      input.dataset.altFor=hit.name;
+      if(hit.cat)input.dataset.exCat=hit.cat;
+      return;
+    }
+  }
   if(input.dataset.altFor){
     if(!input.dataset.exCat){
       const hit=typeof libExerciseByName==='function'?libExerciseByName(input.dataset.altFor):null;
       if(hit&&hit.cat)input.dataset.exCat=hit.cat;
     }
-    return;
   }
-  const v=String(input.value||'').trim();
-  if(!v||v==='Nowe ćwiczenie'||v==='Ćwiczenie 1')return;
-  const hit=typeof libExerciseByName==='function'?libExerciseByName(v):null;
-  input.dataset.altFor=hit&&hit.name?hit.name:v;
-  if(hit&&hit.cat)input.dataset.exCat=hit.cat;
 }
 function exercisesGroupedByCat(q,opts){
   const raw=(q||'').trim();
@@ -1859,12 +1860,8 @@ function exercisesGroupedByCat(q,opts){
         });
       }
     }
-    if(srcCat){
-      const same=filtered.filter(e=>(e.cat||'')===srcCat);
-      if(same.length)filtered=same;
-    }
   }
-  if(srcCat||src){
+  if(!ql && srcCat){
     filtered=filtered.filter(e=>{
       if(src&&String(e.name||'').toLowerCase()===String(src.name||'').toLowerCase())return false;
       return exAcKeepMachine(e,ql,hasMachines);
@@ -1961,7 +1958,10 @@ function exAcPick(input,name){
   const swapEi=input.dataset?input.dataset.liveSwapEi:'';
   const nameEi=input.dataset?input.dataset.liveNameEi:'';
   const slotRaw=input.dataset?input.dataset.liveSlot:'';
-  if(input.dataset)delete input.dataset.altFor;
+  if(input.dataset){
+    delete input.dataset.altFor;
+    delete input.dataset.exCat;
+  }
   if(swapEi!==''&&swapEi!=null&&typeof liveSwapEx==='function'){
     _exAcPicking=true;
     exAcHide(input);
@@ -2005,7 +2005,11 @@ window.exAcShouldShowAlts=exAcShouldShowAlts;
 function exAcAltItems(query,input){
   const q=String(query||'').trim();
   const from=input&&input.dataset?String(input.dataset.altFor||'').trim():'';
-  const src=from||q;
+  let src=from||q;
+  if(q&&exAcShouldShowAlts(q)){
+    const hit=typeof libExerciseByName==='function'?libExerciseByName(q):null;
+    src=hit&&hit.name?hit.name:q;
+  }
   if(!src)return [];
   if(!from&&!exAcShouldShowAlts(q))return [];
   const alts=typeof altsForExercise==='function'?altsForExercise(src):[];

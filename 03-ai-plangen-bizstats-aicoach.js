@@ -1558,12 +1558,9 @@ function aplSwapExercise(di,ei){
     if(!inp)return;
     aplBindExAcSource(inp,ex);
     inp.dataset.altFor=ex.name||inp.dataset.altFor||'';
-    const alts=typeof altsForExercise==='function'?altsForExercise(ex.name):[];
     inp.value='';
     const part=inp.dataset.exCat||'tej samej partii';
-    inp.placeholder=alts.length
-      ?('Zamienniki '+part+' (sztanga / hantle / brama / ławka): '+alts.slice(0,3).join(', ')+'…')
-      :('Ćwiczenia: '+part+' — ławka / hantle');
+    inp.placeholder='Szukaj w '+part+' — sztanga / hantle / brama / ławka';
     if(typeof exAcRender==='function')exAcRender(inp);
     inp.focus();
   },60);

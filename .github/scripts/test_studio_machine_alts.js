@@ -96,6 +96,7 @@ ok('empty query no alts', (ctx.exAcAltItems('') || []).length === 0);
 ok('swap-from empty shows alts', (ctx.exAcAltItems('', { dataset: { altFor: 'Wiosłowanie na maszynie siedząc (Cable Row / maszyna)' } }) || []).some((a) => /wyciągiem|hantlem/i.test(a)));
 ok('short liny no ac alts', (ctx.exAcAltItems('liny') || []).length === 0);
 ok('AI row still ac alts', (ctx.exAcAltItems('Wiosłowanie na maszynie siedząc (Cable Row / maszyna)') || []).some((a) => /wyciągiem|hantlem/i.test(a)));
+ok('typed other name beats stale altFor', (ctx.exAcAltItems('Wiosłowanie na maszynie siedząc (Cable Row / maszyna)', { dataset: { altFor: 'Butterfly (peck deck)' } }) || []).some((a) => /wyciągiem|hantlem/i.test(a)));
 
 ok('fold triceps', ctx.exAcFoldCat('triceps') === 'Triceps');
 ok('fold klatka', ctx.exAcFoldCat('Klatka') === 'Klatka piersiowa');

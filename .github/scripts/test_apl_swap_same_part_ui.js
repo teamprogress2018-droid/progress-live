@@ -54,6 +54,11 @@ function ok(name, cond, extra) {
     const dd = document.querySelector('#apl-ex-row-0-0 .ex-ac-dropdown');
     return !!(dd && dd.style.display !== 'none' && dd.querySelectorAll('.ex-ac-item').length);
   }, null, { timeout: 8000 });
+  await page.evaluate(() => {
+    const row = document.getElementById('apl-ex-row-0-0');
+    if (row) row.scrollIntoView({ block: 'center' });
+  });
+  await page.waitForTimeout(200);
 
   const swap = await page.evaluate(() => {
     const dd = document.querySelector('#apl-ex-row-0-0 .ex-ac-dropdown');
@@ -82,6 +87,11 @@ function ok(name, cond, extra) {
     const dd = document.querySelector('#apl-ex-row-0-0 .ex-ac-dropdown');
     return !!(dd && dd.style.display !== 'none' && /ławka|hantle|Rozpiętk|Klatka|Ta sama partia/i.test(dd.textContent || ''));
   }, null, { timeout: 8000 });
+  await page.evaluate(() => {
+    const row = document.getElementById('apl-ex-row-0-0');
+    if (row) row.scrollIntoView({ block: 'center' });
+  });
+  await page.waitForTimeout(200);
   const pec = await page.evaluate(() => {
     const dd = document.querySelector('#apl-ex-row-0-0 .ex-ac-dropdown');
     const names = [...(dd ? dd.querySelectorAll('.ex-ac-item .ex-ac-name') : [])].map((el) => (el.textContent || '').trim());
