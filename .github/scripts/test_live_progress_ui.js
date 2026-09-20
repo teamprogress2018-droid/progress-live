@@ -95,7 +95,7 @@ function ok(name, cond, extra) {
     return { has: !!title, tag: title ? title.tagName : '', name: title ? title.textContent : '', pop: pop ? pop.innerText : '' };
   });
   ok('hist hover title', lastUi.has && lastUi.tag === 'BUTTON' && /Przysiad Goblet/.test(lastUi.name), JSON.stringify(lastUi));
-  ok('hist popover tables', /Poprzednie treningi/.test(lastUi.pop) && /2026-09-13/.test(lastUi.pop) && /2026-09-06/.test(lastUi.pop) && /Σ/.test(lastUi.pop), lastUi.pop.slice(0, 280));
+  ok('hist popover tables', /poprzednie treningi/i.test(lastUi.pop) && /2026-09-13/.test(lastUi.pop) && /2026-09-06/.test(lastUi.pop) && /Σ/.test(lastUi.pop), lastUi.pop.slice(0, 280));
   const prevUi = await page.evaluate(() => {
     const head = document.querySelector('#live-ex-0 .live-set-head');
     const prev = [...document.querySelectorAll('#live-ex-0 .live-set-prev')].map((b) => (b.textContent || '').trim());
@@ -111,7 +111,8 @@ function ok(name, cond, extra) {
     return { display: cs ? cs.display : '', text: pop ? pop.innerText : '' };
   });
   await page.screenshot({ path: path.join(shotDir, 'live_ex_hist_hover.png') });
-  ok('hover shows popover', hoverUi.display === 'block' && /20/.test(hoverUi.text) && /Poprzednie treningi/.test(hoverUi.text), JSON.stringify(hoverUi).slice(0, 240));
+  ok('hover shows popover', hoverUi.display === 'block' && /20/.test(hoverUi.text) && /poprzednie treningi/i.test(hoverUi.text), JSON.stringify(hoverUi).slice(0, 240));
+  await page.mouse.move(8, 8);
   await page.click('#live-ex-0 .live-ex-title.has-hist');
   const modalUi = await page.evaluate(() => {
     const ov = document.getElementById('m-ex-hist');
@@ -125,6 +126,7 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'live_ex_history_modal.png') });
   ok('hist modal table', modalUi.show && /Przysiad Goblet/.test(modalUi.title) && /Powt/.test(modalUi.text) && /20/.test(modalUi.text) && /Σ/.test(modalUi.text), JSON.stringify(modalUi));
   await page.evaluate(() => { if (typeof closeM === 'function') closeM('m-ex-hist'); });
+  await page.mouse.move(8, 8);
   await page.click('#live-ex-0 .live-set-prev');
   const filled = await page.evaluate(() => {
     const row = document.querySelector('#live-ex-0 .live-set-row');
