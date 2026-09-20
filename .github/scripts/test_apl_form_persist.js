@@ -22,12 +22,14 @@ ok('helpers in core', /function normalizeClientGender/.test(core) && /function g
 ok('fill maps gender', /genderForAplSelect\(c\.gender\)/.test(src03));
 ok('fill sets equipment', /clientAvailableEquipment/.test(src03) && /aplSetEquipment/.test(src03));
 ok('init keeps client', /const prev=sel\?sel\.value/.test(src03) && /if\(sel\.value\)aplFillFromClient/.test(src03));
+ok('init uses last/open client', /_aplLastClientId/.test(src03) && /cpClientId/.test(src03));
+ok('hides dup card fields', /function aplSyncClientDupUi/.test(src03) && html.includes('id="apl-client-dup-sports"') && html.includes('id="apl-client-dup-body"') && html.includes('id="apl-client-from-card"'));
 ok('toggle persists', /function aplToggleMulti/.test(src03) && /aplPersistClientForm/.test(src03));
 ok('html toggle helper', /data-val="Hantle"[^>]*aplToggleMulti/.test(html) && /data-val="Drążek i poręcze"[^>]*aplToggleMulti/.test(html));
 ok('html hantle class active', /class="apl-opt-multi active" data-val="Hantle"/.test(html) && /class="apl-opt-multi active" data-val="Drążek i poręcze"/.test(html));
 ok('onboard saves equipment', src02.includes('function onbOpenNewClient') && !src02.includes('onbNewClient.equipment=') && /availableEquipment/.test(core));
-ok('cache', html.includes('01-core.js?v=111') && html.includes('02-workouts-onboarding-templates-live.js?v=77') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=40') && html.includes('05-clients-builder-plans-calendar.js?v=77'));
-ok('CI', wf.includes('test_apl_form_persist.js') && wf.includes('test_apl_form_persist_ui.js'));
+ok('cache', html.includes('01-core.js?v=111') && html.includes('02-workouts-onboarding-templates-live.js?v=77') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=41') && html.includes('05-clients-builder-plans-calendar.js?v=78') && html.includes('07-forms-metrics-calculator.js?v=40'));
+ok('CI', wf.includes('test_apl_form_persist.js') && wf.includes('test_apl_form_persist_ui.js') && wf.includes('test_apl_client_autofill.js'));
 
 const slice = core.match(/function foldPlKey[\s\S]*?function clientAvailableEquipment[\s\S]*?\n\}/);
 if (!slice) {

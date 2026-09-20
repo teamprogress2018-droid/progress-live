@@ -133,13 +133,15 @@ function initAplangen(){
   const prev=sel?sel.value:'';
   if(sel){
     sel.innerHTML='<option value="">Nowy / ręcznie wpisz</option>'+CL.map(c=>`<option value="${escHtml(c.id)}">${escHtml(c.name)}</option>`).join('');
-    const pref=window._aplPrefillClientId||prev;
+    const openId=(typeof cpClientId!=='undefined'&&cpClientId)||window.cpClientId||'';
+    const pref=window._aplPrefillClientId||prev||openId||window._aplLastClientId||'';
     window._aplPrefillClientId=null;
-    if(pref)sel.value=pref;
+    if(pref&&[...sel.options].some(o=>o.value===pref))sel.value=pref;
     if(sel.value)aplFillFromClient();
     else{
       if(typeof initPriorSportsForm==='function')initPriorSportsForm('apl',[]);
       if(typeof initPhysiquePriorityForm==='function')initPhysiquePriorityForm('apl',[]);
+      if(typeof aplSyncClientDupUi==='function')aplSyncClientDupUi();
     }
   }
   if(!document.getElementById('apl-result').innerHTML){
@@ -312,6 +314,76 @@ function toggleAplPharmaPanel(force){
 }
 window.toggleAplPharmaPanel=toggleAplPharmaPanel;
 
+function aplClientCardSummaryHtml(c){
+  if(!c)return'';
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
+  const gRaw=typeof genderForAplSelect==='function'?genderForAplSelect(c.gender):String(c.gender||'');
+  const gender=gRaw?gRaw.charAt(0).toUpperCase()+gRaw.slice(1):'';
+  const age=c.age||'';
+  let w=typeof clientLatestMetricWeight==='function'?clientLatestMetricWeight(c.id):null;
+  if(w==null||w==='')w=c.weight||'';
+  const h=c.height||'';
+  const actMap=typeof ACTIVITY_LEVEL_LABELS!=='undefined'?ACTIVITY_LEVEL_LABELS:(window.ACTIVITY_LEVEL_LABELS||{});
+  const act=c.activityLevel&&actMap[c.activityLevel]?actMap[c.activityLevel]:'';
+  const sport=typeof clientSportProfileLabel==='function'?clientSportProfileLabel(c):'';
+  const missing=[];
+  if(!age)missing.push('wiek');
+  if(!gender)missing.push('płeć');
+  if(!w)missing.push('waga');
+  const chips=[age?age+' lat':'',gender,w?w+' kg':'',h?h+' cm':'',act].filter(Boolean);
+  return `<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;">
+    <div style="min-width:0;">
+      <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--teal,#3ecfb2);letter-spacing:1px;text-transform:uppercase;">Z karty klienta</div>
+      <div style="font-size:13px;font-weight:600;margin-top:3px;">${esc(c.name||'')}</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.45;">${chips.length?chips.map(esc).join(' · '):'Brak wieku, wagi i płci na karcie'}</div>
+      ${sport?`<div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4;">${esc(sport)}</div>`:''}
+      ${c.sportNotes?`<div style="font-size:11px;color:var(--muted);margin-top:2px;">${esc(c.sportNotes)}</div>`:''}
+      ${missing.length?`<div style="font-size:11px;color:var(--accent);margin-top:6px;">Brakuje: ${esc(missing.join(', '))} — uzupełnij na karcie.</div>`:''}
+    </div>
+    <button type="button" class="btn btn-ghost btn-sm" onclick="aplEditClientFromCard()" style="flex-shrink:0;">✏️ Karta</button>
+  </div>`;
+}
+function aplSyncClientDupUi(){
+  const cid=document.getElementById('apl-client')?.value||'';
+  const c=cid?(window.CL||[]).find(x=>x&&x.id===cid):null;
+  const box=document.getElementById('apl-client-from-card');
+  const sports=document.getElementById('apl-client-dup-sports');
+  const body=document.getElementById('apl-client-dup-body');
+  const hint=document.getElementById('apl-client-pick-hint');
+  if(c){
+    if(box){box.style.display='block';box.innerHTML=aplClientCardSummaryHtml(c);}
+    if(sports)sports.style.display='none';
+    if(body)body.style.display='none';
+    if(hint)hint.style.display='none';
+  }else{
+    if(box){box.style.display='none';box.innerHTML='';}
+    if(sports)sports.style.display='';
+    if(body)body.style.display='grid';
+    if(hint)hint.style.display='';
+  }
+}
+function aplEditClientFromCard(){
+  const cid=document.getElementById('apl-client')?.value;
+  if(!cid)return;
+  if(typeof openClientModal==='function')openClientModal(cid);
+}
+function aplRefreshFromSavedClient(cid){
+  if(cid)window._aplLastClientId=cid;
+  const sel=document.getElementById('apl-client');
+  if(!sel||!cid)return;
+  const screen=document.getElementById('screen-aiplangen');
+  const onApl=screen&&screen.classList.contains('active');
+  if(!onApl)return;
+  const c=(window.CL||[]).find(x=>x&&x.id===cid);
+  if(c&&![...sel.options].some(o=>o.value===cid)){
+    const opt=document.createElement('option');
+    opt.value=cid;
+    opt.textContent=c.name||cid;
+    sel.appendChild(opt);
+  }
+  if(!sel.value)sel.value=cid;
+  if(sel.value===cid&&typeof aplFillFromClient==='function')aplFillFromClient();
+}
 function aplFillFromClient(){
   const sel=document.getElementById('apl-client');
   const cid=sel.value;
@@ -322,9 +394,16 @@ function aplFillFromClient(){
   if(pharmaStatusEl)pharmaStatusEl.value='';
   if(pharmaDetailsEl)pharmaDetailsEl.value='';
   if(typeof toggleAplPharmaPanel==='function')toggleAplPharmaPanel(false);
-  if(!cid)return;
+  if(!cid){
+    if(typeof aplSyncClientDupUi==='function')aplSyncClientDupUi();
+    return;
+  }
   const c=CL.find(x=>x.id===cid);
-  if(!c)return;
+  if(!c){
+    if(typeof aplSyncClientDupUi==='function')aplSyncClientDupUi();
+    return;
+  }
+  window._aplLastClientId=cid;
   if(c.age)document.getElementById('apl-age').value=c.age;
   const metricW=typeof clientLatestMetricWeight==='function'?clientLatestMetricWeight(cid):null;
   if(metricW!=null)document.getElementById('apl-weight').value=metricW;
@@ -386,6 +465,7 @@ function aplFillFromClient(){
     injuries:document.getElementById('apl-injuries')?.value
   });
   if(typeof aplRefreshRationale==='function')aplRefreshRationale();
+  if(typeof aplSyncClientDupUi==='function')aplSyncClientDupUi();
   notify(hasS||hasM?`✓ Dane ${c.name} + bezpieczeństwo/pomiary wczytane`:`✓ Dane ${c.name} wczytane do formularza`);
 }
 
@@ -1999,6 +2079,8 @@ function aplReset(){
 window.initAplangen=initAplangen;window.aplToggleOpt=aplToggleOpt;
 window.aplToggleMulti=aplToggleMulti;window.aplSetEquipment=aplSetEquipment;window.aplPersistClientForm=aplPersistClientForm;
 window.aplFillFromClient=aplFillFromClient;window.aplGenerate=aplGenerate;
+window.aplClientCardSummaryHtml=aplClientCardSummaryHtml;window.aplSyncClientDupUi=aplSyncClientDupUi;
+window.aplEditClientFromCard=aplEditClientFromCard;window.aplRefreshFromSavedClient=aplRefreshFromSavedClient;
 window.aplSavePlan=aplSavePlan;window.aplExportPlan=aplExportPlan;window.aplExportPlanPDF=aplExportPlanPDF;window.aplReset=aplReset;
 window.buildPlanPDFHTML=buildPlanPDFHTML;window.planToPdfModel=planToPdfModel;window.exportSavedPlanPDF=exportSavedPlanPDF;window.showPlanPDFOverlay=showPlanPDFOverlay;
 window.aplEditExercise=aplEditExercise;window.aplSaveExerciseEdit=aplSaveExerciseEdit;window.aplRerenderCurrent=aplRerenderCurrent;

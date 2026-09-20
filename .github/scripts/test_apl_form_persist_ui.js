@@ -37,6 +37,7 @@ function ok(name, cond, extra) {
       gender: 'M',
       weight: 100,
       height: 185,
+      activityLevel: 'active',
       goal: 'masa',
       level: 'sredni',
       availableEquipment: ['Sztanga i wolne ciężary', 'Maszyny siłowe', 'Wyciągi i linki', 'Hantle', 'Drążek i poręcze']
@@ -54,9 +55,16 @@ function ok(name, cond, extra) {
       val: b.dataset.val,
       on: b.classList.contains('active')
     }));
+    const sports = document.getElementById('apl-client-dup-sports');
+    const body = document.getElementById('apl-client-dup-body');
+    const card = document.getElementById('apl-client-from-card');
     return {
       gender: (document.getElementById('apl-gender') || {}).value || '',
       age: (document.getElementById('apl-age') || {}).value || '',
+      activity: (document.getElementById('apl-activity') || {}).value || '',
+      sportsHidden: sports && sports.style.display === 'none',
+      bodyHidden: body && body.style.display === 'none',
+      cardText: (card && card.textContent) || '',
       hantle: chips.find((c) => c.val === 'Hantle'),
       drazek: chips.find((c) => c.val === 'Drążek i poręcze'),
       sztanga: chips.find((c) => c.val === 'Sztanga i wolne ciężary')
@@ -65,6 +73,10 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'apl_form_persist.png') });
   ok('gender mężczyzna from M', filled.gender === 'mężczyzna', JSON.stringify(filled));
   ok('age filled', filled.age === '43');
+  ok('activity from card', filled.activity === 'active');
+  ok('hides sports/activity form', !!filled.sportsHidden);
+  ok('hides age/weight/gender form', !!filled.bodyHidden);
+  ok('card summary visible', /Z karty klienta/.test(filled.cardText) && /43 lat/.test(filled.cardText) && /100 kg/.test(filled.cardText));
   ok('hantle active', !!(filled.hantle && filled.hantle.on));
   ok('drążek active', !!(filled.drazek && filled.drazek.on));
   ok('sztanga still on', !!(filled.sztanga && filled.sztanga.on));

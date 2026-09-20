@@ -2190,13 +2190,15 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
 
       <!-- klient -->
       <div class="form-field">
-        <label class="form-lbl">Klient (opcjonalnie)</label>
+        <label class="form-lbl">Klient</label>
+        <div id="apl-client-pick-hint" style="font-size:11px;color:var(--muted);margin-bottom:6px;line-height:1.45;">Wybierz klienta — wiek, waga, płeć i aktywność wejdą z karty, bez wpisywania drugi raz.</div>
         <select class="form-select" id="apl-client" onchange="aplFillFromClient()" style="font-size:13px;">
           <option value="">Nowy / ręcznie wpisz</option>
         </select>
       </div>
+      <div id="apl-client-from-card" style="display:none;font-size:12px;line-height:1.5;padding:10px 12px;border-radius:10px;margin:-6px 0 14px;border:1px solid rgba(62,207,178,0.28);background:rgba(62,207,178,0.08);color:var(--text);"></div>
 
-      <div class="form-field">
+      <div class="form-field" id="apl-client-dup-sports">
         <label class="form-lbl">Sporty dodatkowe / tło sportowe</label>
         <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Zaznacz sporty i częstotliwość (np. Nordic walking 3×, mecz w niedzielę). AI obniży objętość na obciążone partie.</div>
         <div id="apl-prior-sports-mount"></div>
@@ -2300,8 +2302,8 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         </div>
       </div>
 
-      <!-- dane fizyczne -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <!-- dane fizyczne (z karty gdy klient wybrany) -->
+      <div id="apl-client-dup-body" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
         <div class="form-field">
           <label class="form-lbl">Wiek</label>
           <input type="number" class="form-input" id="apl-age" placeholder="28" style="font-size:13px;">
@@ -4493,11 +4495,11 @@ async function load(){
 <script src="ex-photo-manifest.js?v=6"></script>
 <script src="01-core.js?v=111"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=77"></script>
-<script src="03-ai-plangen-bizstats-aicoach.js?v=40"></script>
+<script src="03-ai-plangen-bizstats-aicoach.js?v=41"></script>
 <script src="04-client-portal.js?v=52"></script>
-<script src="05-clients-builder-plans-calendar.js?v=77"></script>
+<script src="05-clients-builder-plans-calendar.js?v=78"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=83"></script>
-<script src="07-forms-metrics-calculator.js?v=39"></script>
+<script src="07-forms-metrics-calculator.js?v=40"></script>
 <script src="08-client-profile-extras.js?v=62"></script>
 <script src="09-posture-kb-invites-private.js?v=51"></script>
 <script src="10-client-app.js?v=40"></script>
