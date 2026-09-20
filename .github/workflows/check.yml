@@ -407,6 +407,8 @@ jobs:
         run: node .github/scripts/test_apl_form_persist_ui.js
       - name: 6b2. Testy UI zamienników i miniatury techniki w kreatorze
         run: node .github/scripts/test_builder_alts_media_ui.js
+      - name: 6b2a. Testy UI zmiany ćwiczenia w tej samej partii
+        run: node .github/scripts/test_apl_swap_same_part_ui.js
       - name: 6b2b. Testy UI drop % i obwodu stacji
         run: node .github/scripts/test_drop_circ_ui.js
       - name: 6b2c. Testy UI zadań domowych bez YouTube i RPE

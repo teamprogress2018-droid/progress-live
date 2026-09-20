@@ -1437,14 +1437,33 @@ function aplSetWeek(idx){
 // ════════════════════════════════════════
 let aplLastClient=null;
 
+function aplBindExAcSource(inp,ex){
+  if(!inp||!ex)return;
+  const name=String(ex.name||'').trim();
+  if(name&&name!=='Nowe ćwiczenie'&&name!=='Ćwiczenie 1'){
+    inp.dataset.altFor=name;
+  }
+  const hit=typeof libExerciseByName==='function'?libExerciseByName(name):null;
+  const cat=(hit&&hit.cat)||ex.muscleGroup||'';
+  if(cat)inp.dataset.exCat=cat;
+  if(typeof exAcFoldCat==='function'&&cat){
+    const folded=exAcFoldCat(cat);
+    if(folded)inp.dataset.exCat=folded;
+  }
+}
+
 function aplInitExerciseNameInput(di,ei,focusSelect){
   const inp=document.getElementById(`apl-edit-name-${di}-${ei}`);
   if(!inp)return;
+  const ex=aplLastPlan&&aplLastPlan.days&&aplLastPlan.days[di]&&aplLastPlan.days[di].exercises
+    ?aplLastPlan.days[di].exercises[ei]:null;
+  aplBindExAcSource(inp,ex);
   if(typeof exAcInitInput==='function')exAcInitInput(inp);
   if(focusSelect){
     inp.focus();
     if(inp.value==='Nowe ćwiczenie'||inp.value==='Ćwiczenie 1'){inp.value='';}
     inp.select();
+    if(typeof exAcRememberSource==='function')exAcRememberSource(inp);
     if(typeof exAcRender==='function')exAcRender(inp);
   }
 }
@@ -1460,8 +1479,8 @@ function aplEditExercise(di,ei){
     <div class="apl-ex-edit" style="display:flex;align-items:flex-start;gap:12px;">
       <div class="apl-ex-num" style="flex-shrink:0;margin-top:2px;">${ei+1}</div>
       <div style="flex:1;min-width:0;">
-        <div style="font-size:10px;color:var(--muted);margin-bottom:5px;font-weight:500;">Wpisz nazwę lub wybierz z listy biblioteki</div>
-        <input type="text" id="apl-edit-name-${di}-${ei}" class="form-input ex-ac-input ex-inp-name" autocomplete="off" value="${typeof escHtml==='function'?escHtml(nameVal):nameVal.replace(/"/g,'&quot;')}" placeholder="Szukaj ćwiczenia… (np. wyciskanie, przysiad)" style="width:100%;font-size:14px;font-weight:600;margin-bottom:6px;">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:5px;font-weight:500;">Ta sama partia — ławka / hantle, gdy w studiu nie ma maszyny</div>
+        <input type="text" id="apl-edit-name-${di}-${ei}" class="form-input ex-ac-input ex-inp-name" autocomplete="off" value="${typeof escHtml==='function'?escHtml(nameVal):nameVal.replace(/"/g,'&quot;')}" placeholder="Szukaj w tej samej partii…" style="width:100%;font-size:14px;font-weight:600;margin-bottom:6px;">
         <input type="text" id="apl-edit-notes-${di}-${ei}" class="form-input" value="${typeof escHtml==='function'?escHtml(ex.notes||''):(ex.notes||'').replace(/"/g,'&quot;')}" placeholder="Notatka dla klienta (opcjonalnie)" style="width:100%;font-size:12px;">
       </div>
       <div style="display:flex;gap:4px;flex-shrink:0;padding-top:18px;">
@@ -1484,6 +1503,8 @@ function aplSaveExerciseEdit(di,ei){
   const curWeek=aplLastPlan.currentWeek||(aplLastPlan.weekKeys||['w1'])[0];
   const nameEl=document.getElementById(`apl-edit-name-${di}-${ei}`);
   ex.name=(nameEl&&nameEl.value.trim())||ex.name||'Ćwiczenie';
+  const picked=typeof libExerciseByName==='function'?libExerciseByName(ex.name):null;
+  if(picked&&picked.cat)ex.muscleGroup=picked.cat;
   ex.notes=document.getElementById(`apl-edit-notes-${di}-${ei}`).value.trim();
   if(!ex[curWeek])ex[curWeek]={};
   ex[curWeek].s=document.getElementById(`apl-edit-sets-${di}-${ei}`).value.trim();
@@ -1535,16 +1556,18 @@ function aplSwapExercise(di,ei){
   setTimeout(()=>{
     const inp=document.getElementById(`apl-edit-name-${di}-${ei}`);
     if(!inp)return;
-    inp.dataset.altFor=ex.name||'';
+    aplBindExAcSource(inp,ex);
+    inp.dataset.altFor=ex.name||inp.dataset.altFor||'';
     const alts=typeof altsForExercise==='function'?altsForExercise(ex.name):[];
     inp.value='';
+    const part=inp.dataset.exCat||'tej samej partii';
     inp.placeholder=alts.length
-      ?('Zamienniki (sztanga / hantle / brama / ławka): '+alts.slice(0,3).join(', ')+'…')
-      :'Szukaj ćwiczenia…';
+      ?('Zamienniki '+part+' (sztanga / hantle / brama / ławka): '+alts.slice(0,3).join(', ')+'…')
+      :('Ćwiczenia: '+part+' — ławka / hantle');
     if(typeof exAcRender==='function')exAcRender(inp);
     inp.focus();
   },60);
-  notify('Wybierz zamiennik: sztanga, hantle, brama lub ławka');
+  notify('Wybierz z tej samej partii: maszyna albo ławka / hantle');
 }
 function aplAddDay(){
   if(!aplLastPlan)return;
@@ -1593,6 +1616,7 @@ function aplCreateBlankPlan(){
     if(aplLastPlan?.days?.[0]?.exercises?.[0])aplEditExercise(0,0);
   },120);
 }
+window.aplBindExAcSource=aplBindExAcSource;
 window.aplInitExerciseNameInput=aplInitExerciseNameInput;
 window.aplAddExercise=aplAddExercise;
 window.aplRemoveExercise=aplRemoveExercise;

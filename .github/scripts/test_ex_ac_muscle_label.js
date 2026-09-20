@@ -28,5 +28,8 @@ ok('dropdown wider than name cell', /\.ex-ac-dropdown\{[^}]*width:max\(100%,280p
 ok('pick lock skips re-render', /_exAcPicking/.test(six) && /if\(!_exAcPicking\)exAcRender/.test(six));
 ok('pick hides after filling', /function exAcPick[\s\S]{0,400}exAcHide\(input\)/.test(six));
 ok('spellcheck off', /spellcheck','false'/.test(six));
+ok('same part header', /Ta sama partia/.test(render));
+ok('studio without machines hint', /ławka \/ hantle \(studio bez maszyn\)/.test(render));
+ok('remember source on focus', /exAcRememberSource/.test(six) && /function exAcFoldCat\(/.test(six));
 
 console.log('\nAll ex-ac-muscle-label tests passed');
