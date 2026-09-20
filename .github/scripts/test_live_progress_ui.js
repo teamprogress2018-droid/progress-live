@@ -45,10 +45,20 @@ function ok(name, cond, extra) {
     window.liveClientId = 'c1';
     window.liveExercises = [
       { name: 'Przysiad Goblet', done: false, collapsed: false,
-        lastDate: '2026-08-10',
+        lastDate: '2026-09-13',
         lastSets: [
           { setNo: 1, kg: '20', reps: '12', rir: '2' },
           { setNo: 2, kg: '22.5', reps: '10', rir: '1' }
+        ],
+        lastHistory: [
+          { date: '2026-09-13', time: '20:00', sets: [
+            { setNo: 1, kg: '20', reps: '12' },
+            { setNo: 2, kg: '22.5', reps: '10' }
+          ]},
+          { date: '2026-09-06', time: '19:30', sets: [
+            { setNo: 1, kg: '20', reps: '12' },
+            { setNo: 2, kg: '20', reps: '12' }
+          ]}
         ],
         sets: [
         { setNo: 1, kg: '6', reps: '12', rir: '2', done: false },
@@ -80,19 +90,29 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'live_rir_column.png') });
   ok('rir column in live', /RIR/.test(rirUi.head) && rirUi.n === 4 && rirUi.val === '2', JSON.stringify(rirUi));
   const lastUi = await page.evaluate(() => {
-    const box = document.querySelector('#live-ex-0 .live-last-sets');
-    return { has: !!box, text: box ? box.innerText : '', tag: box ? box.tagName : '' };
+    const title = document.querySelector('#live-ex-0 .live-ex-title.has-hist');
+    const pop = document.querySelector('#live-ex-0 .live-ex-hist-pop');
+    return { has: !!title, tag: title ? title.tagName : '', name: title ? title.textContent : '', pop: pop ? pop.innerText : '' };
   });
-  ok('last sets preview', lastUi.has && lastUi.tag === 'BUTTON' && /20 × 12/.test(lastUi.text) && /22\.5 × 10/.test(lastUi.text), JSON.stringify(lastUi));
+  ok('hist hover title', lastUi.has && lastUi.tag === 'BUTTON' && /Przysiad Goblet/.test(lastUi.name), JSON.stringify(lastUi));
+  ok('hist popover tables', /Poprzednie treningi/.test(lastUi.pop) && /2026-09-13/.test(lastUi.pop) && /2026-09-06/.test(lastUi.pop) && /Σ/.test(lastUi.pop), lastUi.pop.slice(0, 280));
   const prevUi = await page.evaluate(() => {
     const head = document.querySelector('#live-ex-0 .live-set-head');
     const prev = [...document.querySelectorAll('#live-ex-0 .live-set-prev')].map((b) => (b.textContent || '').trim());
     const panel = document.querySelector('#live-ex-0 .live-last-panel');
-    return { head: head ? head.innerText : '', prev, panel: panel ? panel.innerText : '', hasPrev: !!(head && head.classList.contains('has-prev')) };
+    return { head: head ? head.innerText : '', prev, panel: !!panel, hasPrev: !!(head && head.classList.contains('has-prev')) };
   });
   ok('prev column last weights', prevUi.hasPrev && /Ostatnio/.test(prevUi.head) && prevUi.prev[0] === '20 × 12' && prevUi.prev[1] === '22.5 × 10', JSON.stringify(prevUi));
-  ok('last panel visible', /Ostatnio/.test(prevUi.panel) && /20 kg × 12/.test(prevUi.panel), prevUi.panel.slice(0, 200));
-  await page.click('#live-ex-0 .live-last-sets');
+  ok('no last panel in card', prevUi.panel === false, JSON.stringify(prevUi));
+  await page.hover('#live-ex-0 .live-ex-title.has-hist');
+  const hoverUi = await page.evaluate(() => {
+    const pop = document.querySelector('#live-ex-0 .live-ex-hist-pop');
+    const cs = pop ? getComputedStyle(pop) : null;
+    return { display: cs ? cs.display : '', text: pop ? pop.innerText : '' };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'live_ex_hist_hover.png') });
+  ok('hover shows popover', hoverUi.display === 'block' && /20/.test(hoverUi.text) && /Poprzednie treningi/.test(hoverUi.text), JSON.stringify(hoverUi).slice(0, 240));
+  await page.click('#live-ex-0 .live-ex-title.has-hist');
   const modalUi = await page.evaluate(() => {
     const ov = document.getElementById('m-ex-hist');
     const body = document.getElementById('ex-hist-body');
