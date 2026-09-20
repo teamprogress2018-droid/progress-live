@@ -64,10 +64,10 @@ ok('schema 8 rows', schema.length === 8 && schema[0].rir === '2–3' && schema[6
 
 const ex = { name: 'Hack squat', sets: '4', reps: '10', rest: '120s', rpe: '7', kg: '80' };
 ctx.aplComputeProgression(ex, keys, hyp, 'block');
-ok('w1 rir acc I', parseFloat(ex.w1.rir) >= 2 && parseFloat(ex.w1.rir) <= 3);
-ok('w6 rir acc II', parseFloat(ex.w6.rir) >= 1 && parseFloat(ex.w6.rir) <= 2);
-ok('w7 rir peak', parseFloat(ex.w7.rir) <= 1);
-ok('w8 rir deload', parseFloat(ex.w8.rir) >= 3);
+ok('w1 rir acc I', ex.w1.rir === '2–3');
+ok('w6 rir acc II', ex.w6.rir === '1–2');
+ok('w7 rir peak', ex.w7.rir === '0–1');
+ok('w8 rir deload', ex.w8.rir === '3–4');
 ok('w8 volume ~50%', parseInt(ex.w8.s, 10) === 2);
 ok('w7 volume up', parseInt(ex.w7.s, 10) >= 4);
 

@@ -76,8 +76,8 @@ function aplComputeProgression(ex,weekKeys,phasesMap,progressionType){
   weekKeys.forEach((wk,i)=>{
     const hyp=aplHypertrophyPhaseMods(phasesMap[wk]);
     if(i===0){
-      const rir0=hyp?hyp.rir: (parseFloat(ex.rir)<=4?parseFloat(ex.rir):'');
-      ex[wk]={s:baseS,r:baseR,rest:baseRest,rpe:String(hyp?hyp.rpe:baseRpe),rir:rir0===''?'':String(rir0),kg:ex.kg||''};
+      const rir0=hyp?hyp.rirLabel:(parseFloat(ex.rir)<=4?String(ex.rir):'');
+      ex[wk]={s:baseS,r:baseR,rest:baseRest,rpe:String(hyp?hyp.rpe:baseRpe),rir:rir0||'',kg:ex.kg||''};
       return;
     }
     const phase=(phasesMap[wk]||'').toLowerCase();
@@ -85,10 +85,10 @@ function aplComputeProgression(ex,weekKeys,phasesMap,progressionType){
     let s=baseS,r=baseR,rest=baseRest,rpe=baseRpe,kg=ex.kg||'',rir='';
     if(hyp){
       rpe=hyp.rpe;
-      rir=hyp.rir;
+      rir=hyp.rirLabel;
       s=String(Math.max(1,Math.round((parseInt(baseS)||3)*hyp.vol)));
       if(baseKgNum!=null)kg=(Math.round(baseKgNum*hyp.kgMul*(1+0.015*i)*10)/10)+kgSuffix;
-      ex[wk]={s,r,rest,rpe:String(rpe),rir:String(rir),kg};
+      ex[wk]={s,r,rest,rpe:String(rpe),rir:rir||'',kg};
       return;
     }
     if(isDeload){
