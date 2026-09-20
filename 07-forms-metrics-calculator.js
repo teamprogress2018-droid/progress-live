@@ -2209,6 +2209,7 @@ function closeClientProfile(){
   window._cpEditingClientId=null;
   document.getElementById('cp-drawer').classList.remove('open');
   document.getElementById('cp-overlay').classList.remove('show');
+  if(cpClientId)window._aplLastClientId=cpClientId;
   cpClientId=null;
   const bar=document.getElementById('cp-onboard-banner');
   if(bar){bar.style.display='none';bar.innerHTML='';}

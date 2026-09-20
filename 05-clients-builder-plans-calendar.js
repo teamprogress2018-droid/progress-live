@@ -332,7 +332,11 @@ async function saveClient(){
     c.notes=document.getElementById('ac-notes').value;
     window._editingClientId=null;
     closeM('m-client');
+    window._aplLastClientId=c.id;
     await persistById('clients',c);
+    if(typeof aplRefreshFromSavedClient==='function'){
+      try{aplRefreshFromSavedClient(c.id);}catch(e){}
+    }
     try{if(typeof syncClientNameCache==='function')syncClientNameCache(c.id,c.name);}catch(e){}
     try{renderAll();}catch(e){try{renderClients();}catch(e2){}}
     if(cpClientId===c.id){
@@ -378,6 +382,10 @@ async function saveClient(){
   CL.push(c);
   window._editingClientId=null;
   closeM('m-client');
+  window._aplLastClientId=c.id;
+  if(typeof aplRefreshFromSavedClient==='function'){
+    try{aplRefreshFromSavedClient(c.id);}catch(e){}
+  }
   ['ac-name','ac-email','ac-phone','ac-age','ac-weight','ac-height','ac-injuries','ac-notes'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.value='';
   });
