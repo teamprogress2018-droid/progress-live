@@ -21,7 +21,7 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 01', html.includes('01-core.js?v=111'));
-ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=82'));
+ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=83'));
 ok('cache 10', html.includes('10-client-app.js?v=40'));
 ok('kind bar html', html.includes('id="chat-kind-bar"') && html.includes("setChatKindFilter('system')"));
 ok('kind helpers', /function normalizeMsgKind/.test(core) && /function msgDisplayText/.test(core));

@@ -26,8 +26,8 @@ function ok(name, cond, extra) {
 ok('cache 01', html.includes('01-core.js?v=111'));
 ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=77'));
 ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=77'));
-ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=82'));
-ok('cache 03', html.includes('03-ai-plangen-bizstats-aicoach.js?v=39'));
+ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=83'));
+ok('cache 03', html.includes('03-ai-plangen-bizstats-aicoach.js?v=40'));
 ok('apl swap altFor', src03.includes('dataset.altFor') && src03.includes('sztanga / hantle / brama / ławka'));
 ok('live swap helper', /function liveSwapEx\(/.test(live) && live.includes('Zamień ćwiczenie') && /function liveToggleAltSearch\(/.test(live));
 ok('live chips css', css.includes('.live-alt-chip') && css.includes('.live-alts'));
@@ -96,6 +96,27 @@ ok('empty query no alts', (ctx.exAcAltItems('') || []).length === 0);
 ok('swap-from empty shows alts', (ctx.exAcAltItems('', { dataset: { altFor: 'Wiosłowanie na maszynie siedząc (Cable Row / maszyna)' } }) || []).some((a) => /wyciągiem|hantlem/i.test(a)));
 ok('short liny no ac alts', (ctx.exAcAltItems('liny') || []).length === 0);
 ok('AI row still ac alts', (ctx.exAcAltItems('Wiosłowanie na maszynie siedząc (Cable Row / maszyna)') || []).some((a) => /wyciągiem|hantlem/i.test(a)));
+ok('typed other name beats stale altFor', (ctx.exAcAltItems('Wiosłowanie na maszynie siedząc (Cable Row / maszyna)', { dataset: { altFor: 'Butterfly (peck deck)' } }) || []).some((a) => /wyciągiem|hantlem/i.test(a)));
+
+ok('fold triceps', ctx.exAcFoldCat('triceps') === 'Triceps');
+ok('fold klatka', ctx.exAcFoldCat('Klatka') === 'Klatka piersiowa');
+const tri = ctx.exercisesGroupedByCat('', { cat: 'Triceps', hasMachines: false });
+ok('empty triceps one part', tri.length === 1 && tri[0].cat === 'Triceps', JSON.stringify(tri.map((g) => g.cat)));
+ok('empty triceps no chest', !tri.some((g) => /Klatka|Plecy|Barki|Nogi/.test(g.cat)));
+ok('empty triceps has french/db', (tri[0].items || []).some((e) => /francuskie|hantlem|wyciąg/i.test(e.name)), (tri[0].items || []).slice(0, 6).map((e) => e.name).join(', '));
+ok('empty triceps hides machines', !(tri[0].items || []).some((e) => ctx.isMachineExercise(e)), (tri[0].items || []).filter((e) => ctx.isMachineExercise(e)).map((e) => e.name).join(', '));
+const pec = ctx.libExerciseByName('Butterfly (peck deck)');
+ok('pec src', !!(pec && pec.cat === 'Klatka piersiowa'), pec && pec.name);
+const chest = ctx.exercisesGroupedByCat('', { src: pec, cat: pec.cat, hasMachines: false });
+ok('pec swap one part', chest.length === 1 && chest[0].cat === 'Klatka piersiowa', JSON.stringify(chest.map((g) => g.cat)));
+ok('pec swap no machine', !(chest[0].items || []).some((e) => ctx.isMachineExercise(e)), (chest[0].items || []).filter((e) => ctx.isMachineExercise(e)).map((e) => e.name).join(', '));
+ok('pec swap has bench/db', (chest[0].items || []).some((e) => /hantl|ławce|sztangi leżąc|rozpiętk/i.test(e.name)), (chest[0].items || []).slice(0, 6).map((e) => e.name).join(', '));
+const firstChest = (chest[0].items || [])[0];
+ok('pec swap ranks free first', firstChest && (ctx.isStudioFreeEx(firstChest) || /hantl|ław|sztang|wyciąg|rozpiętk/i.test(firstChest.name)), firstChest && firstChest.name);
+const withM = ctx.exercisesGroupedByCat('', { src: pec, cat: pec.cat, hasMachines: true });
+ok('with machines keeps pec', (withM[0].items || []).some((e) => ctx.isMachineExercise(e)));
+ok('typed other part escapes', ctx.exercisesGroupedByCat('przysiad', { cat: 'Triceps', hasMachines: false }).some((g) => g.items.some((e) => /przysiad/i.test(e.name))));
+ok('empty no src still all cats', ctx.exercisesGroupedByCat('').length > 3);
 
 if (failed) process.exit(1);
 console.log('\nAll studio-machine-alts tests passed');

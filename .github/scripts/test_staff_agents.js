@@ -19,8 +19,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 03 v37', html.includes('03-ai-plangen-bizstats-aicoach.js?v=39'));
-ok('cache 06 v77', html.includes('06-inbox-exercises-ai-programs.js?v=82'));
+ok('cache 03 v37', html.includes('03-ai-plangen-bizstats-aicoach.js?v=40'));
+ok('cache 06 v77', html.includes('06-inbox-exercises-ai-programs.js?v=83'));
 ok('CI unit', wf.includes('test_staff_agents.js'));
 ok('CI ui', wf.includes('test_staff_agents_ui.js'));
 ok('sztab button', html.includes('id="aicm-sztab"') && html.includes('Sztab ekspercki'));
