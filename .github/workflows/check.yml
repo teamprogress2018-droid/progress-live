@@ -171,6 +171,9 @@ jobs:
       - name: 1m. Testy sportów w planowaniu i statystyk klienta
         run: node .github/scripts/test_client_sports_stats.js
 
+      - name: 1m2. Testy mezocyklu hipertrofii (8 tyg. RIR)
+        run: node .github/scripts/test_hypertrophy_mesocycle.js
+
       - name: 1n. Testy przepływu klienta (priorytet / baseline / kalendarz)
         run: node .github/scripts/test_client_flow_helpers.js
 

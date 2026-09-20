@@ -5,19 +5,92 @@ var aplGenerating=false;
 var aplLastPlan=null;
 
 // ── Lokalne obliczanie progresji na kolejne tygodnie (bez dodatkowych zapytań do AI) ──
+function aplIsHypertrophyGoal(goal){
+  return /masa|hipertrof|mi[eę][sś]|sylwet|kształt|budow/.test(String(goal||'').toLowerCase());
+}
+window.aplIsHypertrophyGoal=aplIsHypertrophyGoal;
+
+function aplHypertrophyPhaseMods(phase){
+  const p=String(phase||'').toLowerCase();
+  if(/deload/.test(p))return{rir:3.5,rirLabel:'3–4',rpe:6.5,vol:0.55,kgMul:0.9};
+  if(/pik|piku/.test(p))return{rir:0.5,rirLabel:'0–1',rpe:9.5,vol:1.15,kgMul:1.04};
+  if(/akumulacja ii|hipertrofia ii/.test(p))return{rir:1.5,rirLabel:'1–2',rpe:8.5,vol:1.1,kgMul:1.03};
+  if(/akumulacja i|hipertrofia i|adaptacja/.test(p))return{rir:2.5,rirLabel:'2–3',rpe:7.5,vol:1,kgMul:1};
+  return null;
+}
+window.aplHypertrophyPhaseMods=aplHypertrophyPhaseMods;
+
+function aplHypertrophyPhases(weeksNum,weekKeys){
+  const keys=(weekKeys&&weekKeys.length)?weekKeys.slice():['w1','w2','w3','w4','w5','w6','w7','w8'].slice(0,weeksNum||8);
+  const n=keys.length;
+  const label=i=>{
+    const t=i+1;
+    if(t===n)return 'Deload';
+    if(n<=4)return t<=2?'Akumulacja I':'Akumulacja II';
+    if(n<=6){
+      if(t<=2)return 'Akumulacja I';
+      if(t<=4)return 'Akumulacja II';
+      return 'Pik objętości';
+    }
+    if(t<=3)return 'Akumulacja I';
+    if(n>=12){
+      if(t<=8)return 'Akumulacja II';
+      if(t<=10)return 'Pik objętości';
+      return 'Deload';
+    }
+    if(t<=6)return 'Akumulacja II';
+    return 'Pik objętości';
+  };
+  const o={};
+  keys.forEach((k,i)=>{o[k]=label(i);});
+  return o;
+}
+window.aplHypertrophyPhases=aplHypertrophyPhases;
+
+function aplDefaultHypertrophySchema(weeksNum,weekKeys){
+  const keys=(weekKeys&&weekKeys.length)?weekKeys.slice():['w1','w2','w3','w4','w5','w6','w7','w8'].slice(0,weeksNum||8);
+  const phases=aplHypertrophyPhases(keys.length,keys);
+  return keys.map((k,i)=>{
+    const ph=phases[k];
+    const m=aplHypertrophyPhaseMods(ph)||{};
+    return{
+      week:i+1,
+      phase:ph,
+      rir:m.rirLabel||'',
+      reps:/deload/i.test(ph)?'8–12':/pik/i.test(ph)?'6–10':'8–12 (izolacje 10–15)',
+      volume:m.vol==null?'100%':(Math.round(m.vol*100)+'%'),
+      notes:/deload/i.test(ph)?'Objętość −40–50%, RIR 3–4 — superkompensacja':/pik/i.test(ph)?'Kluczowe serie RIR 0–1':/akumulacja ii/i.test(ph)?'Drop-set / rest-pause na izolacjach': 'Baza objętości, zapas RIR 2–3'
+    };
+  });
+}
+window.aplDefaultHypertrophySchema=aplDefaultHypertrophySchema;
+
 function aplComputeProgression(ex,weekKeys,phasesMap,progressionType){
   const baseS=ex.sets,baseR=ex.reps,baseRest=ex.rest;
-  const baseRpe=parseFloat(ex.rir)||7;
+  const baseRpe=parseFloat(ex.rpe)||parseFloat(ex.rir)||7;
   let baseKgNum=null,kgSuffix='';
   if(ex.kg){
     const m=String(ex.kg).match(/^([\d.]+)/);
     if(m){baseKgNum=parseFloat(m[1]);kgSuffix=String(ex.kg).slice(m[1].length);}
   }
   weekKeys.forEach((wk,i)=>{
-    if(i===0){ex[wk]={s:baseS,r:baseR,rest:baseRest,rpe:String(baseRpe),kg:ex.kg||''};return;}
+    const hyp=aplHypertrophyPhaseMods(phasesMap[wk]);
+    if(i===0){
+      const rir0=hyp?hyp.rir: (parseFloat(ex.rir)<=4?parseFloat(ex.rir):'');
+      ex[wk]={s:baseS,r:baseR,rest:baseRest,rpe:String(hyp?hyp.rpe:baseRpe),rir:rir0===''?'':String(rir0),kg:ex.kg||''};
+      return;
+    }
     const phase=(phasesMap[wk]||'').toLowerCase();
     const isDeload=phase.includes('deload');
-    let s=baseS,r=baseR,rest=baseRest,rpe=baseRpe,kg=ex.kg||'';
+    let s=baseS,r=baseR,rest=baseRest,rpe=baseRpe,kg=ex.kg||'',rir='';
+    if(hyp){
+      rpe=hyp.rpe;
+      rir=hyp.rir;
+      s=String(Math.max(1,Math.round((parseInt(baseS)||3)*hyp.vol)));
+      if(baseKgNum!=null)kg=(Math.round(baseKgNum*hyp.kgMul*(1+0.015*i)*10)/10)+kgSuffix;
+      ex[wk]={s,r,rest,rpe:String(rpe),rir:String(rir),kg};
+      return;
+    }
     if(isDeload){
       rpe=Math.max(5,baseRpe-2);
       s=String(Math.max(1,Math.round((parseInt(baseS)||3)*0.6)));
@@ -51,7 +124,7 @@ function aplComputeProgression(ex,weekKeys,phasesMap,progressionType){
           if(baseKgNum!=null)kg=(Math.round((baseKgNum+2.5*i)*10)/10)+kgSuffix;
       }
     }
-    ex[wk]={s,r,rest,rpe:String(rpe),kg};
+    ex[wk]={s,r,rest,rpe:String(rpe),rir:rir===''?'':String(rir),kg};
   });
 }
 
@@ -193,13 +266,16 @@ function aplMethodStructureHint(method){
 }
 window.aplMethodStructureHint=aplMethodStructureHint;
 
-function aplPhasesForPlan(method,weeksNum,weekKeys){
+function aplPhasesForPlan(method,weeksNum,weekKeys,goal){
   const SMOLOV_PHASES={
     4:{w1:'Smolov T1 70%',w2:'Smolov T2 75%',w3:'Smolov T3 80%',w4:'Smolov T4 85%'},
     6:{w1:'Smolov T1',w2:'Smolov T2',w3:'Smolov T3',w4:'Smolov T4',w5:'Deload',w6:'Test/Realizacja'},
     8:{w1:'Smolov T1',w2:'Smolov T2',w3:'Smolov T3',w4:'Smolov T4',w5:'Deload',w6:'Utrzymanie',w7:'Realizacja',w8:'Test PR'}
   };
   if(method==='Smolov'&&SMOLOV_PHASES[weeksNum])return SMOLOV_PHASES[weeksNum];
+  if(typeof aplIsHypertrophyGoal==='function'?aplIsHypertrophyGoal(goal):false){
+    return aplHypertrophyPhases(weeksNum,weekKeys);
+  }
   const PHASE_TABLES={
     1:{w1:'Tydzień 1'},
     4:{w1:'Adaptacja',w2:'Hipertrofia I',w3:'Hipertrofia II',w4:'Deload'},
@@ -679,10 +755,21 @@ function aplParsePlanJson(raw){
   ];
   let lastErr=null;
   for(const tryParse of attempts){
-    try{return tryParse();}catch(e){lastErr=e;}
+    try{return aplNormalizeGeneratedPlan(tryParse());}catch(e){lastErr=e;}
   }
   throw lastErr||new Error('Nie udało się sparsować planu AI');
 }
+function aplNormalizeGeneratedPlan(plan){
+  if(!plan||typeof plan!=='object')return plan;
+  if((!Array.isArray(plan.days)||!plan.days.length)&&Array.isArray(plan.workout_plan))plan.days=plan.workout_plan;
+  if(!plan.mezocycle_overview&&plan.summary)plan.mezocycle_overview=plan.summary;
+  if(!plan.summary&&plan.mezocycle_overview)plan.summary=plan.mezocycle_overview;
+  const notes=plan.adaptation_notes||plan.adaptationNotes||'';
+  if(notes)plan.adaptation_notes=notes;
+  if(!Array.isArray(plan.weekly_progression_schema)&&plan.weeklyProgressionSchema)plan.weekly_progression_schema=plan.weeklyProgressionSchema;
+  return plan;
+}
+window.aplNormalizeGeneratedPlan=aplNormalizeGeneratedPlan;
 window.aplExtractJsonObject=aplExtractJsonObject;
 window.aplEscapeInnerQuotes=aplEscapeInnerQuotes;
 window.aplNormalizeSingleQuotes=aplNormalizeSingleQuotes;
@@ -808,7 +895,8 @@ async function aplGenerate(){
 
   const weeksNum = parseInt(weeks)||8;
   const weekKeys = ['w1','w2','w3','w4','w5','w6','w7','w8','w9','w10','w11','w12'].slice(0,weeksNum);
-  const phasesMap=typeof aplPhasesForPlan==='function'?aplPhasesForPlan(method,weeksNum,weekKeys):{};
+  const phasesMap=typeof aplPhasesForPlan==='function'?aplPhasesForPlan(method,weeksNum,weekKeys,goal):{};
+  const hypertrophyGoal=typeof aplIsHypertrophyGoal==='function'&&aplIsHypertrophyGoal(goal);
 
   if(!goal||!level||!method||!days){
     notify('⚠ Uzupełnij wymagane pola!');return;
@@ -832,9 +920,13 @@ async function aplGenerate(){
 
   const progressionInstructions={
     linear:'PROGRESJA LINIOWA: każdy tydzień +2.5-5kg przy tych samych seriach i powtórzeniach.',
-    dup:'DUP (Daily Undulating Periodization): każda sesja inne zakresy — A: 4-6 powt. (siła), B: 8-12 (hipertrofia), C: 15-20 (wytrzymałość).',
+    dup:hypertrophyGoal
+      ?'DUP w STREFIE HIPERTROFII: A 6–8 (złożone), B 8–12, C 12–15 (izolacje). ZAKAZ 1–5 powtórzeń i faz siły maksymalnej.'
+      :'DUP (Daily Undulating Periodization): każda sesja inne zakresy — A: 4-6 powt. (siła), B: 8-12 (hipertrofia), C: 15-20 (wytrzymałość).',
     wave:'FALUJĄCA TYGODNIOWA: tygodnie nieparzyste = wyższa objętość RPE 7-8, parzyste = wyższa intensywność RPE 8-9.',
-    block:'BLOKOWA: pierwsze tygodnie Akumulacja (10-15 powt. RPE 6-7), środkowe Intensyfikacja (6-8 powt. RPE 8-9), ostatni tydzień Deload, potem Realizacja.',
+    block:hypertrophyGoal
+      ?'BLOK HIPERTROFII: tyg. 1–3 Akumulacja I (RIR 2–3, 8–12 powt.), tyg. 4–6 Akumulacja II (RIR 1–2, drop-set/rest-pause na izolacjach), tyg. 7 Pik objętości (RIR 0–1), tyg. 8 Deload (objętość −40–50%, RIR 3–4). Bez faz 1–3 powt.'
+      :'BLOKOWA: pierwsze tygodnie Akumulacja (10-15 powt. RPE 6-7), środkowe Intensyfikacja (6-8 powt. RPE 8-9), ostatni tydzień Deload, potem Realizacja.',
     double:'PODWÓJNA PROGRESJA: dodawaj 1 powt./tydzień do górnego zakresu, potem +2.5-5kg i reset do dolnego zakresu powtórzeń.',
     smolov:'SMOLOV (przysiad): mikrocykl %1RM — T1 70%×9×6, T2 75%×7×6, T3 80%×5×6, T4 85%×3×6 (dostosuj do długości planu). Reszta ciała: utrzymanie, bez dokładania objętości nóg poza przysiadami Smolova. Deload po cyklu.',
   };
@@ -858,6 +950,10 @@ WAŻNE — odpowiedz TYLKO w formacie JSON (bez żadnego dodatkowego tekstu, bez
   "daysPerWeek": liczba,
   "sessionDuration": liczba_minut,
   "periodization": "Opis periodyzacji (np. progresja liniowa 2.5kg/tyg)",
+  "mezocycle_overview": "Krótkie podsumowanie założeń 8-tygodniowego bloku hipertrofii (akumulacja → pik → deload, bez faz siły 1–3 powt.)",
+  "weekly_progression_schema": [
+    {"week":1,"phase":"Akumulacja I","rir":"2–3","reps":"8–12","volume":"100%","notes":"Baza objętości"}
+  ],
   "deload": "Opis tygodnia deload (co ile tygodni i jak)",
   "warmup": "Ogólny protokół rozgrzewki 5-8 min (opis tekstowy, ponad sesjami)",
   "cooldown": "Protokół cool-down / schłodzenia",
@@ -876,6 +972,7 @@ WAŻNE — odpowiedz TYLKO w formacie JSON (bez żadnego dodatkowego tekstu, bez
           "reps": "8-10",
           "rest": "90s",
           "rpe": "7",
+          "rir": "3",
           "kg": "60",
           "tempo": "3-1-1-0"
         }
@@ -885,14 +982,15 @@ WAŻNE — odpowiedz TYLKO w formacie JSON (bez żadnego dodatkowego tekstu, bez
   "progressionRules": ["Regułą 1", "Reguła 2"],
   "keyExercises": ["Ćwiczenie kluczowe 1", "Ćwiczenie kluczowe 2"],
   "weeklyVolume": {"chest":"12 serii","back":"14 serii","legs":"16 serii","shoulders":"10 serii","arms":"8 serii"},
-  "adaptation_notes": "Zmniejszono objętość nóg o ~25% przez 3× Nordic walking 8–10 km; dodano deskę kopenhaską i uginanie nordyckie pod mecz w niedzielę. Ciężkie nogi we wt/śr, nie w sobotę."
+  "adaptation_notes": "Zmniejszono objętość nóg o ~25% przez 3× Nordic walking 8–10 km; dodano deskę kopenhaską i uginanie nordyckie pod mecz w niedzielę. Ciężkie nogi we wt/śr, nie w sobotę.",
+  "workout_plan": "(alias opcjonalny — to samo co days)"
 }
 
 Podaj wartości TYLKO dla tygodnia 1 (bazowe). Pole "kg" podaj jako sam SUGEROWANY CIĘŻAR STARTOWY W KG (liczba, np. "60"), albo pusty string jeśli niemożliwe do oszacowania — resztę tygodni (progresję) obliczy aplikacja automatycznie na podstawie wybranej metody progresji.
 
 WARMUP KAŻDEJ SESJI: "warmupExercises" to lista DOKŁADNIE 3 ćwiczeń mobilizacyjno-aktywacyjnych SPECYFICZNYCH dla tej sesji (nie ogólnikowych), z polami name/emoji/sets/reps/note.
 
-FAZY TYGODNI (kontekst dla treści "periodization"/"deload", NIE umieszczaj w JSON): ${JSON.stringify(phasesMap)}
+FAZY TYGODNI (skopiuj do "weekly_progression_schema"; aplikacja liczy serie/RIR na tyg. 2+): ${JSON.stringify(phasesMap)}
 
 
 METODA PROGRESJI (obowiązkowa): ${progressionInstruction}
@@ -935,8 +1033,17 @@ ZASADY HIPERTROFII (STRICT — obowiązują zawsze, zwłaszcza przy celu masa/ks
 2. PRIORYTET SYLWETKOWY: jeśli podano weak points — 1–2 PIERWSZE ćwiczenia danej sesji (po rozgrzewce) MUSZĄ celować w te partie, gdy sesja je stymuluje. Nie chowaj priorytetu na koniec.
 2b. GRUPOWANIE PARTII (KRYTYCZNE): po ustaleniu kolejności ćwiczeń NIGDY nie wracaj do partii mięśniowej, która już się skończyła w tej sesji. Wszystkie ćwiczenia tej samej głównej partii (np. plecy) muszą stać RAZEM, jedno po drugim — dopiero potem przechodzisz do kolejnej partii i zostajesz przy niej do końca jej ćwiczeń. Błędny przykład (ZABRONIONE): Plecy, Plecy, Pośladki, Plecy, Nogi — bo "Plecy" wraca po przerwie na "Pośladki". Poprawny przykład: Plecy, Plecy, Plecy, Pośladki, Nogi, Nogi.
 3. DOBÓR ĆWICZEŃ: przy priorytetach i izolacjach preferuj wysoką stabilizację (maszyny, suwnica Smitha, wyciągi) oraz warianty w pozycji wydłużonej (lengthened / stretch-mediated hypertrophy) z pauzą 1s w rozciągnięciu.
-4. PARAMETRY: 3–4 serie robocze na ćwiczenie; złożone 6–10 powt., izolacje 8–12 lub 10–15; intensywność blisko upadku (RPE 8–10 ≈ RIR 0–2). W JSON dodaj pole "tempo" w formacie "3-1-1-0" (ekscentryka–pauza w stretchu–koncentryka–pauza) dla ćwiczeń priorytetowych i izolacji.
-5. W schema ćwiczenia: name, notes, muscleGroup, sets, reps, rest, rpe, kg, tempo (opcjonalne ale wymagane dla priorytetów).
+4. PARAMETRY: 3–4 serie robocze na ćwiczenie; złożone 6–15 powt. (typowe 8–12), izolacje/maszyny 10–15 lub 15–20; intensywność blisko upadku wg fazy (RIR, nie 1–3 powt.). W JSON dodaj "tempo" "3-1-1-0" i "rir" (liczba) oraz "rest" (wielostawy 90–180 s, izolacje 60–90 s).
+5. W schema ćwiczenia: name, notes, muscleGroup, sets, reps, rest, rpe, rir, kg, tempo (opcjonalne ale wymagane dla priorytetów).
+${hypertrophyGoal?`
+MEZOCYKL HIPERTROFII (OBOWIĄZKOWY — cel masa/kształtowanie):
+Plan jest WYŁĄCZNIE hipertroficzny. ZAKAZ faz siły maksymalnej, 1–3 powtórzeń, akomodacji układu nerwowego i zakresów <6 na seriach roboczych.
+Tyg. 1–3 Akumulacja I: RIR 2–3, baza objętości.
+Tyg. 4–6 Akumulacja II: RIR 1–2; na izolacjach drop-set lub rest-pause (wpisz w notes).
+Tyg. 7 Pik objętości: RIR 0–1 w kluczowych seriach.
+Tyg. 8 Deload: objętość −40–50%, RIR 3–4.
+Wypełnij "mezocycle_overview" (2–4 zdania) oraz "weekly_progression_schema" (tablica tygodni 1–${weeksNum} z phase/rir/reps/volume/notes). "days" = workout_plan.
+`:''}
 
 Każdy dzień: 4–6 ćwiczeń głównych + opcjonalnie core. Pole "notes" max 60 znaków — bez cudzysłowów w tekście (używaj apostrofów). warmupExercises: dokładnie 3 pozycje. Cała odpowiedź musi być poprawnym JSON bez komentarzy i bez markdown.`
   +(typeof kbContextForAI==='function'?kbContextForAI():(typeof planningEvidenceContext==='function'?planningEvidenceContext(3200):''));
@@ -1013,7 +1120,7 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
 2. PRIORYTET SYLWETKOWY: 1–2 pierwsze ćwiczenia sesji (po rozgrzewce) na weak points, gdy sesja je stymuluje.
 2b. GRUPOWANIE PARTII: nigdy nie wracaj do partii, która już się skończyła w tej sesji — wszystkie ćwiczenia tej samej partii stoją razem, jedno po drugim (np. Plecy,Plecy,Plecy,Nogi,Nogi — NIE: Plecy,Nogi,Plecy).
 3. Preferuj maszyny / Smith / wyciągi i warianty lengthened / stretch-mediated z pauzą 1s w rozciągnięciu.
-4. 3–4 serie; złożone 6–10; izolacje 8–12 lub 10–15; RPE 8–10 ≈ RIR 0–2; tempo "3-1-1-0" dla priorytetów i izolacji.
+4. 3–4 serie; złożone 6–15 (typ. 8–12); izolacje 10–15 lub 15–20; RIR wg fazy mezocyklu (nie 1–3 powt.); tempo "3-1-1-0"; rest wielostawy 90–180 s, izolacje 60–90 s.
 5. BEZPIECZEŃSTWO: respektuj wagę/BMI, wady postawy i kontuzje z wiadomości użytkownika — nie dawaj ćwiczeń szkodliwych.`;
           chunkUser=`Plan: ${plan?.planName||method}. Istniejące dni: ${(plan?.days||[]).map(d=>d.dayName).join('; ')}.\nDodaj dni ${from}–${to}.\n${userMsg}`;
         }
@@ -1050,6 +1157,12 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
     plan.weekKeys=weekKeys;
     plan.progression=progression||plan.progression||'linear';
     plan.currentWeek=plan.currentWeek||weekKeys[0];
+    if(hypertrophyGoal){
+      if(!Array.isArray(plan.weekly_progression_schema)||!plan.weekly_progression_schema.length){
+        plan.weekly_progression_schema=aplDefaultHypertrophySchema(weeksNum,weekKeys);
+      }
+      if(!plan.mezocycle_overview)plan.mezocycle_overview=plan.summary||'';
+    }
     (plan.days||[]).forEach(d=>{
       (d.exercises||[]).forEach(ex=>{
         ex.sets=ex.sets||'3';ex.reps=ex.reps||'10';ex.rest=ex.rest||'90s';ex.rir=ex.rir||ex.rpe||'7';
@@ -1088,7 +1201,7 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
   const phases=plan.phases||{w1:'Tydzień 1'};
   const curWeek=plan.currentWeek||weekKeys[0];
   const curWeekIdx=weekKeys.indexOf(curWeek);
-  const phaseColors={'Adaptacja':'var(--blue)','Hipertrofia I':'var(--teal)','Hipertrofia II':'var(--teal)','Siła':'var(--gold)','Deload':'var(--muted)','Intensyfikacja':'var(--orange)','Szczyt':'var(--accent)','Test/Realizacja':'var(--accent)'};
+  const phaseColors={'Adaptacja':'var(--blue)','Akumulacja I':'var(--teal)','Akumulacja II':'var(--teal)','Hipertrofia I':'var(--teal)','Hipertrofia II':'var(--teal)','Pik objętości':'var(--accent)','Siła':'var(--gold)','Deload':'var(--muted)','Intensyfikacja':'var(--orange)','Szczyt':'var(--accent)','Test/Realizacja':'var(--accent)'};
   const phaseColor=(ph)=>{for(const k in phaseColors){if((ph||'').includes(k))return phaseColors[k];}return 'var(--accent)';};
 
   let html=`
@@ -1098,7 +1211,7 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
       <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
         <div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;margin-bottom:4px;">${plan.planName||'Plan treningowy AI'}</div>
-          <div style="font-size:12px;color:var(--muted);line-height:1.6;">${plan.summary||''}</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.6;">${plan.mezocycle_overview||plan.summary||''}</div>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button class="btn btn-primary btn-sm" onclick="aplSavePlan()">💾 Zapisz plan</button>
@@ -1118,6 +1231,27 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
       ${plan.adaptation_notes?`<div id="apl-adaptation-notes" style="margin-top:14px;padding:12px 14px;border-radius:10px;border:1px solid rgba(61,207,178,0.28);background:rgba(61,207,178,0.08);">
         <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--teal);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Adaptation notes — sporty dodatkowe</div>
         <div style="font-size:12px;color:var(--text);line-height:1.65;">${plan.adaptation_notes}</div>
+      </div>`:''}
+      ${Array.isArray(plan.weekly_progression_schema)&&plan.weekly_progression_schema.length?`<div id="apl-week-schema" style="margin-top:14px;overflow:auto;">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Progresja tygodniowa (RIR / objętość)</div>
+        <table style="width:100%;border-collapse:collapse;font-size:11px;">
+          <thead><tr style="color:var(--muted);text-align:left;">
+            <th style="padding:6px 8px;border-bottom:1px solid var(--border);">Tydz.</th>
+            <th style="padding:6px 8px;border-bottom:1px solid var(--border);">Faza</th>
+            <th style="padding:6px 8px;border-bottom:1px solid var(--border);">RIR</th>
+            <th style="padding:6px 8px;border-bottom:1px solid var(--border);">Powt.</th>
+            <th style="padding:6px 8px;border-bottom:1px solid var(--border);">Obj.</th>
+            <th style="padding:6px 8px;border-bottom:1px solid var(--border);">Uwagi</th>
+          </tr></thead>
+          <tbody>${plan.weekly_progression_schema.map(row=>`<tr>
+            <td style="padding:6px 8px;border-bottom:1px solid var(--border-subtle);font-weight:700;">${row.week||''}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid var(--border-subtle);">${row.phase||''}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid var(--border-subtle);font-family:'DM Mono',monospace;">${row.rir||''}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid var(--border-subtle);">${row.reps||''}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid var(--border-subtle);">${row.volume||''}</td>
+            <td style="padding:6px 8px;border-bottom:1px solid var(--border-subtle);color:var(--muted);">${row.notes||''}</td>
+          </tr>`).join('')}</tbody>
+        </table>
       </div>`:''}
     </div>
 
@@ -1219,10 +1353,14 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
       const sets=wp.s||ex.sets||'3';
       const reps=wp.r||ex.reps||'10';
       const rest=wp.rest||ex.rest||'90s';
-      const rpe=wp.rpe||ex.rir||'';
+      const rir=wp.rir||ex.rir||'';
+      const rpe=wp.rpe||'';
       const kg=wp.kg||'';
       const tempo=ex.tempo||wp.tempo||'';
       const isLast=ei===(d.exercises.length-1);
+      const intPill=rir!==''&&parseFloat(rir)<=4
+        ?`<span style="font-size:10px;color:var(--accent);background:var(--adim);border:1px solid rgba(230,0,0,0.3);border-radius:6px;padding:3px 9px;font-family:'DM Mono',monospace;font-weight:700;">RIR ${rir}</span>`
+        :(rpe?`<span style="font-size:10px;color:var(--accent);background:var(--adim);border:1px solid rgba(230,0,0,0.3);border-radius:6px;padding:3px 9px;font-family:'DM Mono',monospace;font-weight:700;">RPE ${rpe}</span>`:'');
       html+=`<div id="apl-ex-row-${di}-${ei}" style="padding:15px 20px;${!isLast?'border-bottom:1px solid rgba(255,255,255,0.05);':''}">
         <div style="display:flex;align-items:flex-start;gap:12px;">
           <div class="apl-ex-num" style="flex-shrink:0;margin-top:2px;">${ei+1}</div>
@@ -1232,7 +1370,7 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
             ${ex.muscleGroup?`<span style="font-size:9px;background:var(--s3);color:var(--muted);border-radius:4px;padding:1px 6px;margin-top:5px;display:inline-block;">${ex.muscleGroup}</span>`:''}
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
-            ${rpe?`<span style="font-size:10px;color:var(--accent);background:var(--adim);border:1px solid rgba(230,0,0,0.3);border-radius:6px;padding:3px 9px;font-family:'DM Mono',monospace;font-weight:700;">RPE ${rpe}</span>`:''}
+            ${intPill}
             <div style="display:flex;gap:4px;">
               <button onclick="aplEditExercise(${di},${ei})" title="Edytuj" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;opacity:.75;">✏️</button>
               <button onclick="aplSwapExercise(${di},${ei})" title="Zamiennik" style="background:none;border:none;color:var(--teal);cursor:pointer;font-size:12px;opacity:.75;">🔄</button>
@@ -1735,6 +1873,8 @@ function planToPdfModel(plan){
     nutritionTip:plan.nutritionTip||'',
     weeklyVolume:plan.weeklyVolume,
     adaptation_notes:plan.adaptation_notes||plan.adaptationNotes||'',
+    mezocycle_overview:plan.mezocycle_overview||'',
+    weekly_progression_schema:plan.weekly_progression_schema||[],
     progressionRules:plan.progressionRules,
     weekKeys,
     phases:plan.phases||{},
@@ -1778,6 +1918,8 @@ function buildPlanPDFHTML(plan,client){
       <div class="plan-pdf-kpi"><div class="plan-pdf-kpi-lbl">Tygodnie</div><div class="plan-pdf-kpi-val">${planPdfEsc(weeks)}</div></div>
       <div class="plan-pdf-kpi"><div class="plan-pdf-kpi-lbl">Progresja</div><div class="plan-pdf-kpi-val">${planPdfEsc(prog)}</div></div>
     </div>
+    ${plan.mezocycle_overview?`<div class="plan-pdf-box" style="margin-bottom:16px;"><div class="plan-pdf-box-h">Mezocykl</div><p>${planPdfEsc(plan.mezocycle_overview)}</p></div>`:''}
+    ${Array.isArray(plan.weekly_progression_schema)&&plan.weekly_progression_schema.length?`<div class="plan-pdf-box" style="margin-bottom:16px;"><div class="plan-pdf-box-h">Progresja tygodniowa</div><table class="plan-pdf-tbl"><thead><tr><th>Tydz.</th><th>Faza</th><th>RIR</th><th>Powt.</th><th>Obj.</th></tr></thead><tbody>${plan.weekly_progression_schema.map(row=>`<tr><td>${planPdfEsc(row.week||'')}</td><td>${planPdfEsc(row.phase||'')}</td><td>${planPdfEsc(row.rir||'')}</td><td>${planPdfEsc(row.reps||'')}</td><td>${planPdfEsc(row.volume||'')}</td></tr>`).join('')}</tbody></table></div>`:''}
     <div class="plan-pdf-cols">
       <div class="plan-pdf-box">
         <div class="plan-pdf-box-h">📓 Zasady progresji</div>

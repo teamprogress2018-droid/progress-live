@@ -99,6 +99,11 @@ ok('bare key after newline', spacedBare.planName === 'Masa');
 const setsIntact = aplParsePlanJson('{"days":[{"exercises":[{"name":"X",sets:"3",reps:"10"}]}]}');
 ok('sets key not split by comma bug', setsIntact.days[0].exercises[0].sets === '3');
 
+const fromWorkoutPlan = aplParsePlanJson('{"planName":"H8","workout_plan":[{"dayName":"A","exercises":[{"name":"Hack"}]}],"mezocycle_overview":"Blok hipertrofii","adaptation_notes":"Nordic walking — mniej nóg"}');
+ok('workout_plan maps to days', fromWorkoutPlan.days && fromWorkoutPlan.days[0].dayName === 'A' && fromWorkoutPlan.days[0].exercises[0].name === 'Hack');
+ok('mezocycle fills summary', fromWorkoutPlan.summary === 'Blok hipertrofii' && fromWorkoutPlan.mezocycle_overview === 'Blok hipertrofii');
+ok('adaptation_notes kept', fromWorkoutPlan.adaptation_notes === 'Nordic walking — mniej nóg');
+
 const src = fs.readFileSync(path.join(root, '03-ai-plangen-bizstats-aicoach.js'), 'utf8');
 ok('parser exported', src.includes('window.aplParsePlanJson=aplParsePlanJson'));
 ok('repair exported', src.includes('function aplRepairJsonText'));
