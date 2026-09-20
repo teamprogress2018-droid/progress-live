@@ -1193,10 +1193,10 @@ function cpClientDataEditHTML(c){
       </select>`)}
     <div class="form-field cp-field-below">
       <div class="cp-field-control">
-        <div class="cp-field-hint">Wpływa na planowanie — biegacz ma wyższą wytrzymałość, siłownia wyższą bazę siłową.</div>
-        ${typeof priorSportsChipsHTML==='function'?priorSportsChipsHTML(c.priorSports,'cpe'):''}
+        <div class="cp-field-hint">Zaznacz sporty i podaj ile razy w tygodniu — AI zmniejszy objętość na obciążone partie.</div>
+        ${typeof sportBackgroundFormHTML==='function'?sportBackgroundFormHTML(c.priorSports,'cpe',c.additional_activities):(typeof priorSportsChipsHTML==='function'?priorSportsChipsHTML(c.priorSports,'cpe'):'')}
       </div>
-      <label class="form-lbl">Wcześniejsze sporty / aktywności</label>
+      <label class="form-lbl">Sporty dodatkowe / tło sportowe</label>
     </div>
     <div class="form-grid">
       ${field('cpe-activity','Dotychczasowa aktywność',`<select class="form-select" id="cpe-activity">

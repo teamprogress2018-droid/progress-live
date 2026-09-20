@@ -353,7 +353,9 @@ function saveCPEdit(id){
   if(timeEl)c.preferredTrainTime=(timeEl.value||'').trim();
   if(typeof readPreferredWeekdaysFrom==='function')c.preferredWeekdays=readPreferredWeekdaysFrom('cpe');
   c.status=document.getElementById('cpe-status').value;
-  c.priorSports=typeof readPriorSportsFrom==='function'?readPriorSportsFrom('cpe'):(c.priorSports||[]);
+  const sportBg=typeof readSportBackgroundFrom==='function'?readSportBackgroundFrom('cpe'):{priorSports:typeof readPriorSportsFrom==='function'?readPriorSportsFrom('cpe'):(c.priorSports||[]),additional_activities:[]};
+  c.priorSports=(sportBg.priorSports||c.priorSports||[]);
+  c.additional_activities=(sportBg.additional_activities||[]);
   c.physiquePriority=typeof readPhysiquePriorityFrom==='function'?readPhysiquePriorityFrom('cpe'):(c.physiquePriority||[]);
   c.activityLevel=document.getElementById('cpe-activity')?.value||c.activityLevel||'moderate';
   c.sportNotes=document.getElementById('cpe-sport-notes')?.value||'';

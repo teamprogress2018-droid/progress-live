@@ -505,6 +505,8 @@ jobs:
         run: node .github/scripts/test_mass_inbody_ui.js
       - name: 6g3. Testy UI szablonów sportowych (NW / piłka / bieg)
         run: node .github/scripts/test_sport_templates_ui.js
+      - name: 6g4. Testy UI aktywności dodatkowych (NW + piłka)
+        run: node .github/scripts/test_additional_activities_ui.js
 
       - name: 7. Sprawdź stronę w prawdziwej przeglądarce
         run: node .github/scripts/check_browser.js
