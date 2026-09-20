@@ -2197,8 +2197,8 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       </div>
 
       <div class="form-field">
-        <label class="form-lbl">Wcześniejsze sporty / aktywności</label>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Biegacz → wyższa wytrzymałość; siłownia → wyższa baza siłowa. Wczytuje się z profilu klienta.</div>
+        <label class="form-lbl">Sporty dodatkowe / tło sportowe</label>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Zaznacz sporty i częstotliwość (np. Nordic walking 3×, mecz w niedzielę). AI obniży objętość na obciążone partie.</div>
         <div id="apl-prior-sports-mount"></div>
         <div class="form-grid" style="margin-top:10px;">
           <div class="form-field"><label class="form-lbl">Dotychczasowa aktywność</label>
@@ -3298,8 +3298,9 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Używane przy zapisie planu do kalendarza (kolejność = Dzień 1, 2…).</div>
         <div id="ac-preferred-weekdays-mount"></div>
       </div>
-      <div class="form-field"><label class="form-lbl">Wcześniejsze sporty / aktywności</label>
-        <div id="ac-prior-sports-mount" style="font-size:11px;color:var(--muted);margin-bottom:6px;">Zaznacz uprawiane wcześniej — wpływa na plan (wytrzymałość vs siła).</div>
+      <div class="form-field"><label class="form-lbl">Sporty dodatkowe (częstotliwość i intensywność)</label>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Zaznacz sporty i podaj ile razy w tygodniu — AI zmniejszy objętość na obciążone partie.</div>
+        <div id="ac-prior-sports-mount"></div>
       </div>
       <div class="form-grid">
         <div class="form-field"><label class="form-lbl">Dotychczasowa aktywność</label>
@@ -4490,15 +4491,15 @@ async function load(){
 
 <script src="ex-gif-manifest.js?v=34"></script>
 <script src="ex-photo-manifest.js?v=6"></script>
-<script src="01-core.js?v=110"></script>
+<script src="01-core.js?v=111"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=76"></script>
-<script src="03-ai-plangen-bizstats-aicoach.js?v=37"></script>
+<script src="03-ai-plangen-bizstats-aicoach.js?v=38"></script>
 <script src="04-client-portal.js?v=52"></script>
-<script src="05-clients-builder-plans-calendar.js?v=76"></script>
+<script src="05-clients-builder-plans-calendar.js?v=77"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=82"></script>
 <script src="07-forms-metrics-calculator.js?v=39"></script>
-<script src="08-client-profile-extras.js?v=61"></script>
-<script src="09-posture-kb-invites-private.js?v=50"></script>
+<script src="08-client-profile-extras.js?v=62"></script>
+<script src="09-posture-kb-invites-private.js?v=51"></script>
 <script src="10-client-app.js?v=40"></script>
 </body>
 </html>

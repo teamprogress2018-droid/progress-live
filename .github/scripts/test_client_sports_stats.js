@@ -135,9 +135,53 @@ ok('progress pr bars', /Rekordy siłowe/i.test(progressHtml));
 ok('progress measurements', /Obwody/i.test(progressHtml));
 ok('progress svg charts', (progressHtml.match(/cap-chart-svg/g) || []).length >= 2);
 
+ok('nordic walking in catalog', (windowObj.PRIOR_SPORTS_CATALOG || []).some((s) => s.id === 'nordic_walking'));
+
+const payload = {
+  client_profile: { goal: 'hipertrofia / siła', days_per_week_gym: 3 },
+  additional_activities: [
+    { sport: 'nordic_walking', frequency_per_week: 3, intensity: 'medium', notes: 'długie dystanse po 8-10 km' },
+    { sport: 'football', frequency_per_week: 1, intensity: 'high', notes: 'mecz w każdą niedzielę' }
+  ]
+};
+const hybrid = {
+  goal: 'sila',
+  trainingFreq: 3,
+  additional_activities: payload.additional_activities,
+  activityLevel: 'active'
+};
+const acts = ctx.normalizeAdditionalActivities(payload.additional_activities);
+ok('normalize nw+football', acts.length === 2 && acts[0].sport === 'nordic_walking' && acts[1].sport === 'football');
+ok('normalize freq/intensity', acts[0].frequency_per_week === 3 && acts[1].intensity === 'high');
+ok('alias piłka nożna', ctx.normalizeAdditionalActivities([{ sport: 'Piłka nożna', frequency_per_week: 1, intensity: 'wysoka' }])[0].sport === 'football');
+
+const prHyb = ctx.clientSportProfile(hybrid);
+ok('hybrid endurance bias', prHyb.bias === 'endurance', 'bias=' + prHyb.bias);
+ok('label has 3× NW', /Nordic walking 3×/i.test(ctx.clientSportProfileLabel(hybrid)));
+ok('label has Sunday football', /Piłka nożna 1×/i.test(ctx.clientSportProfileLabel(hybrid)));
+
+const aiTxt = ctx.clientSportProfileForAI(hybrid);
+ok('analyzer instruction', /Przeanalizuj aktywności dodatkowe/i.test(aiTxt));
+ok('analyzer asks adaptation_notes', /adaptation_notes/.test(aiTxt));
+ok('analyzer 8-10 km', /8-10 km/.test(aiTxt));
+ok('analyzer Sunday match', /niedziel/i.test(aiTxt));
+ok('analyzer reduce gym volume', /zmniejsz na nie objętość/i.test(aiTxt));
+ok('analyzer NW load kije', /kije|czworoboczny|face pull/i.test(aiTxt));
+ok('analyzer football copenhagen', /kopenhask|nordyck|przywodziciel/i.test(aiTxt));
+
+const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const src03 = fs.readFileSync(path.join(root, '03-ai-plangen-bizstats-aicoach.js'), 'utf8');
+const src05 = fs.readFileSync(path.join(root, '05-clients-builder-plans-calendar.js'), 'utf8');
+const src08 = fs.readFileSync(path.join(root, '08-client-profile-extras.js'), 'utf8');
+const src09 = fs.readFileSync(path.join(root, '09-posture-kb-invites-private.js'), 'utf8');
+ok('cache 01/03', html.includes('01-core.js?v=111') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=38'));
 ok('ai prompt sport background', /TŁO SPORTOWE/i.test(src03));
 ok('ai form sport fields', /apl-sport-notes/.test(src03) && /apl-activity/.test(src03));
+ok('ai JSON adaptation_notes', /"adaptation_notes"/.test(src03) && /apl-adaptation-notes/.test(src03));
+ok('ai additional activities rule', /AKTYWNOŚCI DODATKOWE/.test(src03));
+ok('save client additional_activities', /additional_activities/.test(src05) && /readSportBackgroundFrom\('ac'\)/.test(src05));
+ok('profile editor rows', /sportBackgroundFormHTML/.test(src08) && /additional_activities/.test(src09));
+ok('form rows html helper', /addl-act-row/.test(fs.readFileSync(path.join(root, '01-core.js'), 'utf8')));
 
 if (failed) {
   console.error('\n' + failed + ' test(s) failed');

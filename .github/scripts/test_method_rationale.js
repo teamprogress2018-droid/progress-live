@@ -72,7 +72,7 @@ const adv=sandbox.buildMethodRationale({method:'PPL',goal:'redukcja',level:'zaaw
 ok('advanced chest volume',adv.levelVolumeParts.Klatka==='12–20');
 ok('advanced html current col',/Zaaw\./.test(sandbox.renderMethodRationaleHTML(adv))&&/is-current/.test(sandbox.renderMethodRationaleHTML(adv)));
 
-ok('cache bumps',html.includes('01-core.js?v=110')&&html.includes('02-workouts-onboarding-templates-live.js?v=76')&&html.includes('03-ai-plangen-bizstats-aicoach.js?v=37')&&html.includes('05-clients-builder-plans-calendar.js?v=76')&&html.includes('09-posture-kb-invites-private.js?v=50')&&html.includes('styles.css?v=97'));
+ok('cache bumps',html.includes('01-core.js?v=111')&&html.includes('02-workouts-onboarding-templates-live.js?v=76')&&html.includes('03-ai-plangen-bizstats-aicoach.js?v=38')&&html.includes('05-clients-builder-plans-calendar.js?v=77')&&html.includes('09-posture-kb-invites-private.js?v=51')&&html.includes('styles.css?v=97'));
 
 if(failed){console.error(failed+' failed');process.exit(1);}
 console.log('\nAll method-rationale tests passed');

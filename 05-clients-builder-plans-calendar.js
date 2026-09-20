@@ -272,7 +272,7 @@ function openClientModal(clientId){
     const injEl=document.getElementById('ac-injuries');
     if(injEl)injEl.value=(typeof clientInjuriesText==='function'?clientInjuriesText(c):(c.injuries||c.notes||''));
     document.getElementById('ac-notes').value=c.notes||'';
-    if(typeof initPriorSportsForm==='function')initPriorSportsForm('ac',c.priorSports||[]);
+    if(typeof initPriorSportsForm==='function')initPriorSportsForm('ac',c.priorSports||[],c.additional_activities||[]);
     if(typeof initPhysiquePriorityForm==='function')initPhysiquePriorityForm('ac',c.physiquePriority||[]);
     if(typeof initPreferredWeekdaysForm==='function')initPreferredWeekdaysForm('ac',c.preferredWeekdays||[]);
   }else{
@@ -322,7 +322,9 @@ async function saveClient(){
     const freq=readFreq();if(freq)c.trainingFreq=freq;else delete c.trainingFreq;
     c.preferredWeekdays=readWeekdays();
     c.preferredTrainTime=readTrainTime();
-    c.priorSports=typeof readPriorSportsFrom==='function'?readPriorSportsFrom('ac'):[];
+    const sportBg=typeof readSportBackgroundFrom==='function'?readSportBackgroundFrom('ac'):{priorSports:typeof readPriorSportsFrom==='function'?readPriorSportsFrom('ac'):[],additional_activities:[]};
+    c.priorSports=sportBg.priorSports||[];
+    c.additional_activities=sportBg.additional_activities||[];
     c.physiquePriority=typeof readPhysiquePriorityFrom==='function'?readPhysiquePriorityFrom('ac'):(c.physiquePriority||[]);
     c.activityLevel=document.getElementById('ac-activity')?.value||'moderate';
     c.sportNotes=document.getElementById('ac-sport-notes')?.value||'';
@@ -360,7 +362,8 @@ async function saveClient(){
     trainingFreq:freqNew||3,
     preferredWeekdays:readWeekdays(),
     preferredTrainTime:readTrainTime(),
-    priorSports:typeof readPriorSportsFrom==='function'?readPriorSportsFrom('ac'):[],
+    priorSports:(typeof readSportBackgroundFrom==='function'?readSportBackgroundFrom('ac').priorSports:(typeof readPriorSportsFrom==='function'?readPriorSportsFrom('ac'):[])),
+    additional_activities:(typeof readSportBackgroundFrom==='function'?readSportBackgroundFrom('ac').additional_activities:[]),
     physiquePriority:typeof readPhysiquePriorityFrom==='function'?readPhysiquePriorityFrom('ac'):[],
     activityLevel:document.getElementById('ac-activity')?.value||'moderate',
     sportNotes:document.getElementById('ac-sport-notes')?.value||'',

@@ -285,7 +285,8 @@ function aplFillFromClient(){
       b.classList.toggle('active',b.dataset.val===String(freq));
     });
   }
-  if(typeof setPriorSportsChips==='function')setPriorSportsChips('apl',c.priorSports||[]);
+  if(typeof initPriorSportsForm==='function')initPriorSportsForm('apl',c.priorSports||[],c.additional_activities||[]);
+  else if(typeof setPriorSportsChips==='function')setPriorSportsChips('apl',c.priorSports||[]);
   if(typeof initPhysiquePriorityForm==='function')initPhysiquePriorityForm('apl',c.physiquePriority||[]);
   else if(typeof setPhysiquePriorityChips==='function')setPhysiquePriorityChips('apl',c.physiquePriority||[]);
   const actEl=document.getElementById('apl-activity');
@@ -406,6 +407,15 @@ function aplPersistClientForm(){
   if(g)c.gender=g;
   const eq=aplGetMulti('apl-equipment');
   c.availableEquipment=eq;
+  if(typeof readSportBackgroundFrom==='function'){
+    const bg=readSportBackgroundFrom('apl');
+    c.priorSports=bg.priorSports||[];
+    c.additional_activities=bg.additional_activities||[];
+  }
+  const actEl=document.getElementById('apl-activity');
+  if(actEl&&actEl.value)c.activityLevel=actEl.value;
+  const snEl=document.getElementById('apl-sport-notes');
+  if(snEl)c.sportNotes=snEl.value;
   if(typeof persistById==='function')persistById('clients',c);
 }
 
@@ -774,6 +784,7 @@ async function aplGenerate(){
   const notes=String(notesRaw).replace(/<!--\/?APL-AUTO-STRUCT-->/g,'').replace(/\n{3,}/g,'\n\n').trim();
   const cid=document.getElementById('apl-client').value;
   const client=cid?CL.find(x=>x.id===cid):null;
+  const sportBg=typeof readSportBackgroundFrom==='function'?readSportBackgroundFrom('apl'):null;
   if(typeof aplPersistClientForm==='function')aplPersistClientForm();
 
   // anatomia i biomechanika
@@ -873,7 +884,8 @@ WAŻNE — odpowiedz TYLKO w formacie JSON (bez żadnego dodatkowego tekstu, bez
   ],
   "progressionRules": ["Regułą 1", "Reguła 2"],
   "keyExercises": ["Ćwiczenie kluczowe 1", "Ćwiczenie kluczowe 2"],
-  "weeklyVolume": {"chest":"12 serii","back":"14 serii","legs":"16 serii","shoulders":"10 serii","arms":"8 serii"}
+  "weeklyVolume": {"chest":"12 serii","back":"14 serii","legs":"16 serii","shoulders":"10 serii","arms":"8 serii"},
+  "adaptation_notes": "Zmniejszono objętość nóg o ~25% przez 3× Nordic walking 8–10 km; dodano deskę kopenhaską i uginanie nordyckie pod mecz w niedzielę. Ciężkie nogi we wt/śr, nie w sobotę."
 }
 
 Podaj wartości TYLKO dla tygodnia 1 (bazowe). Pole "kg" podaj jako sam SUGEROWANY CIĘŻAR STARTOWY W KG (liczba, np. "60"), albo pusty string jeśli niemożliwe do oszacowania — resztę tygodni (progresję) obliczy aplikacja automatycznie na podstawie wybranej metody progresji.
@@ -914,7 +926,9 @@ BEZPIECZEŃSTWO KLIENTA (OBOWIĄZKOWE — ponad objętością MEV):
 3. Przy wadach postawy / bólu kręgosłupa / kolan / barków: stosuj zasady korekcyjne z kontekstu; unikaj ćwiczeń z ostrzeżeń analizy postawy.
 4. W notes ćwiczeń dodaj krótką uwagę bezpieczeństwa, gdy wariant jest zmodyfikowany pod ograniczenie.
 
-UWZGLĘDNIJ TŁO SPORTOWE: jeśli klient ma predyspozycję wytrzymałościową (bieganie, kolarstwo, pływanie) — więcej pracy tlenowej, wyższe zakresy powtórzeń na start, mniejszy nacisk na maksymalne obciążenia siłowe. Jeśli dominacja siłowa (siłownia, kulturystyka) — szybsza progresja kg, niższe powtórzenia, mniej cardio.
+UWZGLĘDNIJ TŁO SPORTOWE: jeśli klient ma predyspozycję wytrzymałościową (bieganie, kolarstwo, pływanie, Nordic walking) — więcej pracy tlenowej, wyższe zakresy powtórzeń na start, mniejszy nacisk na maksymalne obciążenia siłowe. Jeśli dominacja siłowa (siłownia, kulturystyka) — szybsza progresja kg, niższe powtórzenia, mniej cardio.
+
+AKTYWNOŚCI DODATKOWE (gdy podane w kontekście użytkownika): przeanalizuj każdą. Jeśli obciąża dane partie, zmniejsz na nie objętość na siłowni (serie / RIR) albo dodaj ćwiczenia kompensacyjne i prewencyjne. W polu "adaptation_notes" uzasadnij konkretnie (partie, %, ćwiczenia). Przy meczu w niedzielę nie planuj ciężkich nóg w sobotę ani w poniedziałek.
 
 ZASADY HIPERTROFII (STRICT — obowiązują zawsze, zwłaszcza przy celu masa/kształtowanie):
 1. CZĘSTOTLIWOŚĆ: każda główna partia (klatka, plecy, barki, czworogłowe, dwugłowe/pośladki, ramiona) musi być zastymulowana CO NAJMNIEJ 2× w tygodniu (suma serii z wielu dni). Przy 3 dniach użyj struktury: Dzień 1 = Push + czworogłowe; Dzień 2 = Pull + dwugłowe; Dzień 3 = Upper (klatka+plecy+barki+ramiona) — chyba że trener wybrał inną metodę i liczbę dni.
@@ -960,7 +974,7 @@ Tydzień 1 = ostatnie ciężary i zakresy z logów. Dalej progresja (podwójna: 
 LOG / STRUKTURA:
 ${window._aplFiteboContinue.context}
 `:''}
-${client&&typeof clientSportProfileForAI==='function'?clientSportProfileForAI(Object.assign({},client,{priorSports:typeof readPriorSportsFrom==='function'?readPriorSportsFrom('apl'):(client.priorSports||[]),activityLevel:document.getElementById('apl-activity')?.value||client.activityLevel,sportNotes:document.getElementById('apl-sport-notes')?.value||client.sportNotes||''})):''}
+${client&&typeof clientSportProfileForAI==='function'?clientSportProfileForAI(Object.assign({},client,{priorSports:sportBg?sportBg.priorSports:(typeof readPriorSportsFrom==='function'?readPriorSportsFrom('apl'):(client.priorSports||[])),additional_activities:sportBg?sportBg.additional_activities:(client.additional_activities||[]),activityLevel:document.getElementById('apl-activity')?.value||client.activityLevel,sportNotes:document.getElementById('apl-sport-notes')?.value||client.sportNotes||''})):''}
 ${cid&&typeof clientMetricsContextForAI==='function'?clientMetricsContextForAI(cid):''}
 ${(typeof clientSafetyContextForAI==='function'?clientSafetyContextForAI(cid||null,{weight,height,injuries,gender}):'')}
 ${client?`- Klient: ${client.name}, cel: ${client.goal}, poziom: ${client.level}`:''}${cid&&typeof sfrGetContextForAI==='function'?sfrGetContextForAI(cid):''}`
@@ -1101,6 +1115,10 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
         <span class="pill" style="background:var(--s3);color:var(--muted);">📆 ${plan.weeks||weeks} tygodni</span>
         <span class="pill" style="background:var(--s3);color:var(--muted);">🔁 ${plan.method||method}</span>
       </div>
+      ${plan.adaptation_notes?`<div id="apl-adaptation-notes" style="margin-top:14px;padding:12px 14px;border-radius:10px;border:1px solid rgba(61,207,178,0.28);background:rgba(61,207,178,0.08);">
+        <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--teal);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Adaptation notes — sporty dodatkowe</div>
+        <div style="font-size:12px;color:var(--text);line-height:1.65;">${plan.adaptation_notes}</div>
+      </div>`:''}
     </div>
 
     <!-- 3-panel: zasady progresji / rozgrzewka / schłodzenie (kolory dopasowane 1:1 do Progress Studio AI) -->
@@ -1716,6 +1734,7 @@ function planToPdfModel(plan){
     warmup:plan.warmup||'',
     nutritionTip:plan.nutritionTip||'',
     weeklyVolume:plan.weeklyVolume,
+    adaptation_notes:plan.adaptation_notes||plan.adaptationNotes||'',
     progressionRules:plan.progressionRules,
     weekKeys,
     phases:plan.phases||{},
@@ -1798,6 +1817,9 @@ function buildPlanPDFHTML(plan,client){
 
   if(plan.weeklyVolume&&typeof plan.weeklyVolume==='object'){
     html+=`<div class="plan-pdf-box" style="margin-bottom:16px;"><div class="plan-pdf-box-h">📊 Objętość tygodniowa</div><div class="plan-pdf-vol">${Object.entries(plan.weeklyVolume).map(([k,v])=>`<span>${planPdfEsc(k)}: <b>${planPdfEsc(v)}</b></span>`).join('')}</div></div>`;
+  }
+  if(plan.adaptation_notes){
+    html+=`<div class="plan-pdf-box" style="margin-bottom:16px;"><div class="plan-pdf-box-h">🏃 Sporty dodatkowe</div><p>${planPdfEsc(plan.adaptation_notes)}</p></div>`;
   }
   if(plan.nutritionTip){
     html+=`<div class="plan-pdf-box"><p><b style="color:#e11f2e;">Wskazówka żywieniowa:</b> ${planPdfEsc(plan.nutritionTip)}</p></div>`;

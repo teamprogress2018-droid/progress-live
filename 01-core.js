@@ -431,24 +431,28 @@ function _goToRender(n){
   if(n==='kb'){renderKB();}
 }
 
-function initPriorSportsForm(prefix,selected){
-  const mountId=prefix+'-prior-sports-mount';
-  const mount=document.getElementById(mountId);
-  if(mount&&typeof priorSportsChipsHTML==='function'){
-    mount.outerHTML=priorSportsChipsHTML(selected||[],prefix);
+function initPriorSportsForm(prefix,selected,activities){
+  const ids=normalizePriorSports(selected);
+  const acts=typeof mergeActivitiesWithSports==='function'?mergeActivitiesWithSports(activities,ids):ids.map(sport=>({sport,frequency_per_week:1,intensity:'medium',notes:''}));
+  const html=typeof sportBackgroundFormHTML==='function'?sportBackgroundFormHTML(ids,prefix,acts):(typeof priorSportsChipsHTML==='function'?priorSportsChipsHTML(ids,prefix):'');
+  const mount=document.getElementById(prefix+'-prior-sports-mount');
+  if(mount){
+    mount.innerHTML=html;
     return;
   }
   const direct=document.getElementById(prefix+'-prior-sports');
-  if(!direct&&typeof priorSportsChipsHTML==='function'){
-    const parent=document.getElementById(mountId)||document.querySelector('#m-'+prefix+' .modal-body');
-    if(parent){
-      const wrap=document.createElement('div');
-      wrap.id=prefix+'-prior-sports-wrap';
-      wrap.innerHTML=priorSportsChipsHTML(selected||[],prefix);
-      parent.insertBefore(wrap.firstElementChild,parent.firstChild);
-    }
-  }else if(direct&&typeof setPriorSportsChips==='function'){
-    setPriorSportsChips(prefix,selected||[]);
+  if(direct&&direct.parentNode&&html){
+    const wrap=document.createElement('div');
+    wrap.innerHTML=html;
+    const parent=direct.parentNode;
+    const next=direct.nextSibling;
+    parent.removeChild(direct);
+    while(wrap.firstChild)parent.insertBefore(wrap.firstChild,next);
+    return;
+  }
+  if(direct&&typeof setPriorSportsChips==='function'){
+    setPriorSportsChips(prefix,ids);
+    if(typeof renderAdditionalActivityRows==='function')renderAdditionalActivityRows(prefix,acts);
   }
 }
 window.initPriorSportsForm=initPriorSportsForm;
@@ -4524,27 +4528,135 @@ const PRIOR_SPORTS_CATALOG=[
   {id:'martial',label:'Sztuki walki',icon:'🥋',endurance:6,strength:6},
   {id:'yoga',label:'Joga / pilates',icon:'🧘',endurance:5,strength:3},
   {id:'hiking',label:'Turystyka / góry',icon:'⛰️',endurance:7,strength:5},
+  {id:'nordic_walking',label:'Nordic walking',icon:'🚶',endurance:8,strength:3},
   {id:'team',label:'Sporty zespołowe',icon:'🤾',endurance:6,strength:5},
 ];
+const SPORT_ID_ALIASES={
+  nordic_walking:['nordic_walking','nordic-walking','nordicwalking','nordic walking','nw','kije'],
+  football:['football','soccer','pilka','piłka','piłka nożna','pilka nozna','piłka_nożna'],
+  running:['running','bieg','bieganie'],
+  cycling:['cycling','kolarstwo','rower'],
+  swimming:['swimming','pływanie','plywanie'],
+  basketball:['basketball','koszykówka','koszykowka'],
+  gym:['gym','siłownia','silownia'],
+  crossfit:['crossfit'],
+  martial:['martial','sztuki walki'],
+  yoga:['yoga','pilates'],
+  hiking:['hiking','góry','gory','turystyka'],
+  team:['team','sporty zespołowe','sporty druzynowe']
+};
+const SPORT_TRAINING_LOAD={
+  running:{muscles:'łydki, dwugłowe, czworogłowe, ścięgno Achillesa',gym:'Mniej skoków i ciężkiego cardio. Objętość nóg w dolnej MAV; dodaj uginanie nordyckie i łydki.'},
+  cycling:{muscles:'czworogłowe, biodra, prostowniki',gym:'Mniej wypychania nóg dzień po długiej kolarce; więcej łańcucha tylnego i core.'},
+  swimming:{muscles:'barki, najszersze, core',gym:'Ostrożnie z ciężkim wyciskaniem/OHP; więcej face pull / rotator cuff.'},
+  football:{muscles:'przywodziciele, dwugłowe, czworogłowe, łydki, zmiana kierunku',gym:'Prewencja: deska kopenhaska, uginanie nordyckie, jednonóż. Przy meczu w niedzielę — bez ciężkich nóg w sobotę i poniedziałek.'},
+  basketball:{muscles:'łydki, czworogłowe, ścięgna, barki',gym:'Mniej plyometrii w okolicy meczów; więcej dwugłowych i core.'},
+  gym:{muscles:'objętość siłowa ogólna',gym:'Traktuj jako bazę siłową — nie dokładaj zbędnego cardio kosztem regeneracji.'},
+  crossfit:{muscles:'pełne ciało, barki, odcinek lędźwiowy',gym:'Pilnuj sumy serii (łatwo przekroczyć MRV). Mniej metconu w dniach siłowni.'},
+  martial:{muscles:'biodra, core, barki',gym:'Rotacje/core i mobilność bioder; unikaj max effort nóg dzień przed sparingiem.'},
+  yoga:{muscles:'mobilność, core',gym:'Można trzymać wyższą objętość siłową; wykorzystaj mobilność do głębszego ROM.'},
+  hiking:{muscles:'czworogłowe, łydki, prostowniki, barki (plecak)',gym:'Unikaj długiego cardio dzień po górskiej wycieczce; dodaj jednonóż i core.'},
+  nordic_walking:{muscles:'łydki, core, barki/czworoboczny (kije), prostowniki, objętość marszu nóg',gym:'Nie dokładaj ciężkiego cardio. Dodaj pracę unilateralną nóg, core oraz face pull / wiosło pod kije. Objętość nóg na siłowni w dolnej MAV.'},
+  team:{muscles:'nogi, zmiana kierunku, barki',gym:'Prewencja przywodzicieli i dwugłowych; nie max nogi w dniu meczu.'}
+};
+const ACTIVITY_INTENSITY_LABELS={low:'niska',medium:'średnia',high:'wysoka'};
 const ACTIVITY_LEVEL_LABELS={
   sedentary:'Siedzący tryb życia',
   light:'Lekka aktywność (spacery)',
   moderate:'Umiarkowana aktywność',
   active:'Aktywny (regularny trening)'
 };
+function resolveSportId(raw){
+  const s=String(raw||'').toLowerCase().trim().replace(/[\s-]+/g,'_');
+  if(!s)return'';
+  if(PRIOR_SPORTS_CATALOG.some(x=>x.id===s))return s;
+  for(const id in SPORT_ID_ALIASES){
+    if(SPORT_ID_ALIASES[id].some(a=>a.replace(/[\s-]+/g,'_')===s||a===String(raw||'').toLowerCase().trim()))return id;
+  }
+  return s;
+}
+function normalizeIntensity(raw){
+  const s=String(raw||'').toLowerCase().trim();
+  if(/^(low|niska|light|lekka)$/.test(s))return'low';
+  if(/^(high|wysoka|hard|wysoki)$/.test(s))return'high';
+  return'medium';
+}
 function normalizePriorSports(list){
   if(!list)return[];
-  if(Array.isArray(list))return list.filter(Boolean);
-  if(typeof list==='string')return list.split(',').map(s=>s.trim()).filter(Boolean);
-  return[];
+  const arr=Array.isArray(list)?list:(typeof list==='string'?list.split(','):[]);
+  const out=[];
+  arr.forEach(item=>{
+    const id=resolveSportId(typeof item==='object'&&item?item.sport||item.id:item);
+    if(id&&out.indexOf(id)<0)out.push(id);
+  });
+  return out;
+}
+function normalizeAdditionalActivities(list){
+  if(!list)return[];
+  const arr=Array.isArray(list)?list:(typeof list==='string'?[]:[list]);
+  const seen={};
+  const out=[];
+  arr.forEach(item=>{
+    if(!item)return;
+    if(typeof item==='string'){
+      const id=resolveSportId(item);
+      if(!id||seen[id])return;
+      seen[id]=1;
+      out.push({sport:id,frequency_per_week:1,intensity:'medium',notes:''});
+      return;
+    }
+    const id=resolveSportId(item.sport||item.id);
+    if(!id||seen[id])return;
+    seen[id]=1;
+    const freq=parseInt(item.frequency_per_week||item.freq||item.times||1,10);
+    out.push({
+      sport:id,
+      frequency_per_week:Math.max(1,Math.min(7,freq||1)),
+      intensity:normalizeIntensity(item.intensity),
+      notes:String(item.notes||item.note||'').trim()
+    });
+  });
+  return out;
+}
+function mergeActivitiesWithSports(activities,sportIds){
+  const acts=normalizeAdditionalActivities(activities);
+  const ids=normalizePriorSports(sportIds);
+  const byId={};
+  acts.forEach(a=>{byId[a.sport]=a;});
+  ids.forEach(id=>{if(!byId[id])byId[id]={sport:id,frequency_per_week:1,intensity:'medium',notes:''};});
+  const order=acts.length?acts.map(a=>a.sport).concat(ids.filter(id=>!acts.some(a=>a.sport===id))):ids;
+  return order.filter((id,i)=>order.indexOf(id)===i).map(id=>byId[id]).filter(Boolean);
+}
+function clientAdditionalActivities(c){
+  const acts=normalizeAdditionalActivities(c&&c.additional_activities);
+  if(acts.length)return acts;
+  return normalizePriorSports(c&&c.priorSports).map(sport=>({sport,frequency_per_week:1,intensity:'medium',notes:''}));
+}
+function sportCatalogItem(id){
+  return PRIOR_SPORTS_CATALOG.find(x=>x.id===id)||null;
+}
+function intensityWeight(int){
+  return int==='high'?1.3:int==='low'?0.7:1;
 }
 function clientSportProfile(c){
-  const ids=normalizePriorSports(c&&c.priorSports);
-  const sports=ids.map(id=>PRIOR_SPORTS_CATALOG.find(x=>x.id===id)).filter(Boolean);
+  const acts=clientAdditionalActivities(c);
+  const ids=acts.map(a=>a.sport);
+  const sports=ids.map(sportCatalogItem).filter(Boolean);
   let endurance=3,strength=3;
   if(sports.length){
-    endurance=Math.round(sports.reduce((s,x)=>s+x.endurance,0)/sports.length);
-    strength=Math.round(sports.reduce((s,x)=>s+x.strength,0)/sports.length);
+    let eSum=0,sSum=0,wSum=0;
+    acts.forEach(a=>{
+      const sp=sportCatalogItem(a.sport);
+      if(!sp)return;
+      const w=(a.frequency_per_week||1)*intensityWeight(a.intensity);
+      eSum+=sp.endurance*w;
+      sSum+=sp.strength*w;
+      wSum+=w;
+    });
+    if(wSum){
+      endurance=Math.round(eSum/wSum);
+      strength=Math.round(sSum/wSum);
+    }
   }
   const act=c&&c.activityLevel;
   if(act==='active')endurance=Math.min(10,endurance+1);
@@ -4552,35 +4664,86 @@ function clientSportProfile(c){
   let bias='balanced';
   if(endurance-strength>=2)bias='endurance';
   else if(strength-endurance>=2)bias='strength';
-  return {endurance,strength,bias,labels:sports.map(s=>s.label),sports,ids};
+  return {endurance,strength,bias,labels:sports.map(s=>s.label),sports,ids,activities:acts};
+}
+function formatActivityShort(a){
+  const sp=sportCatalogItem(a.sport);
+  const lab=sp?sp.label:a.sport;
+  const freq=a.frequency_per_week?a.frequency_per_week+'×':'';
+  const int=ACTIVITY_INTENSITY_LABELS[a.intensity]||'';
+  return lab+(freq?' '+freq:'')+(int?' ('+int+')':'');
 }
 function clientSportProfileLabel(c){
   const p=clientSportProfile(c);
-  if(!p.labels.length&&!(c&&c.activityLevel))return'';
+  if(!p.labels.length&&!(c&&c.activityLevel)&&!(c&&c.sportNotes))return'';
   const biasLabel={endurance:'predyspozycja wytrzymałościowa',strength:'predyspozycja siłowa',balanced:'profil zrównoważony'}[p.bias];
   const parts=[];
-  if(p.labels.length)parts.push('Sporty: '+p.labels.join(', '));
-  if(c.activityLevel&&ACTIVITY_LEVEL_LABELS[c.activityLevel])parts.push(ACTIVITY_LEVEL_LABELS[c.activityLevel]);
+  if(p.activities&&p.activities.length)parts.push('Sporty: '+p.activities.map(formatActivityShort).join(', '));
+  else if(p.labels.length)parts.push('Sporty: '+p.labels.join(', '));
+  if(c&&c.activityLevel&&ACTIVITY_LEVEL_LABELS[c.activityLevel])parts.push(ACTIVITY_LEVEL_LABELS[c.activityLevel]);
   parts.push(biasLabel);
   return parts.join(' · ');
+}
+function additionalActivitiesAnalyzer(c){
+  const acts=clientAdditionalActivities(c);
+  if(!acts.length)return'';
+  let txt='AKTYWNOŚCI DODATKOWE (poza siłownią) — OBOWIĄZKOWE:\n';
+  txt+='Przeanalizuj aktywności dodatkowe podopiecznego. Jeśli aktywność obciąża dane partie, zmniejsz na nie objętość na siłowni (RIR/serie) lub dodaj ćwiczenia kompensacyjne/profilaktyczne.\n';
+  acts.forEach(a=>{
+    const sp=sportCatalogItem(a.sport);
+    const load=SPORT_TRAINING_LOAD[a.sport]||{};
+    txt+='- '+(sp?sp.label:a.sport)+': '+a.frequency_per_week+'×/tydzień, intensywność '+(ACTIVITY_INTENSITY_LABELS[a.intensity]||a.intensity);
+    if(a.notes)txt+=' — '+a.notes;
+    txt+='.\n';
+    if(load.muscles)txt+='  Obciąża: '+load.muscles+'.\n';
+    if(load.gym)txt+='  Korekta siłowni: '+load.gym+'\n';
+  });
+  txt+='W JSON MUSISZ wypełnić pole "adaptation_notes" (1–3 zdania): konkretnie co zmniejszono (partie, serie/%, RIR) i jakie ćwiczenia prewencyjne dodano. Jeśli nic nie zmieniasz — napisz dlaczego.\n';
+  return txt;
 }
 function clientSportProfileForAI(c){
   if(!c)return'';
   const p=clientSportProfile(c);
-  if(!p.labels.length&&!c.activityLevel&&!c.sportNotes)return'';
+  const extra=additionalActivitiesAnalyzer(c);
+  if(!p.labels.length&&!c.activityLevel&&!c.sportNotes&&!extra)return'';
   let txt='TŁO SPORTOWE I AKTYWNOŚĆ (obowiązkowo uwzględnij przy doborze objętości, zakresów powtórzeń i pracy kondycyjnej):\n';
-  if(p.labels.length)txt+='- Wcześniejsze sporty/aktywności: '+p.labels.join(', ')+'\n';
+  if(p.activities&&p.activities.length)txt+='- Wcześniejsze sporty/aktywności: '+p.activities.map(formatActivityShort).join(', ')+'\n';
+  else if(p.labels.length)txt+='- Wcześniejsze sporty/aktywności: '+p.labels.join(', ')+'\n';
   if(c.activityLevel)txt+='- Dotychczasowa aktywność: '+(ACTIVITY_LEVEL_LABELS[c.activityLevel]||c.activityLevel)+'\n';
   if(c.sportNotes)txt+='- Uwagi sportowe: '+c.sportNotes+'\n';
   txt+='- Indeks wytrzymałości: '+p.endurance+'/10 · indeks siły bazowej: '+p.strength+'/10\n';
   if(p.bias==='endurance'){
-    txt+='- WNIOSEK: dominacja wytrzymałościowa (np. biegacz) — więcej pracy aerobowej i wyższych zakresów powtórzeń, mniejszy startowy nacisk na maksymalne obciążenia siłowe; szybsza adaptacja cardio, wolniejsza siła absolutna.\n';
+    txt+='- WNIOSEK: dominacja wytrzymałościowa (np. biegacz / Nordic walking) — więcej pracy aerobowej i wyższych zakresów powtórzeń, mniejszy startowy nacisk na maksymalne obciążenia siłowe; szybsza adaptacja cardio, wolniejsza siła absolutna.\n';
   }else if(p.bias==='strength'){
     txt+='- WNIOSEK: dominacja siłowa — szybsza progresja obciążeń, niższe zakresy powtórzeń, mniej objętości cardio; wykorzystaj istniejącą bazę siłową.\n';
   }else{
     txt+='- WNIOSEK: profil zrównoważony — standardowa periodyzacja objętość/intensywność.\n';
   }
+  if(extra)txt+='\n'+extra;
   return txt;
+}
+function additionalActivitiesRowsHTML(activities,prefix){
+  const acts=normalizeAdditionalActivities(activities);
+  const rows=acts.map(a=>{
+    const sp=sportCatalogItem(a.sport);
+    const name=(sp?(sp.icon+' '+sp.label):a.sport);
+    const freqOpts=[1,2,3,4,5,6,7].map(n=>'<option value="'+n+'"'+(n===a.frequency_per_week?' selected':'')+'>'+n+'×/tydz</option>').join('');
+    const intOpts=[{id:'low',l:'Niska'},{id:'medium',l:'Średnia'},{id:'high',l:'Wysoka'}].map(x=>'<option value="'+x.id+'"'+(x.id===a.intensity?' selected':'')+'>'+x.l+'</option>').join('');
+    return '<div class="addl-act-row" data-sport="'+a.sport+'" style="display:grid;grid-template-columns:minmax(110px,1.2fr) 92px 110px;gap:6px;align-items:center;margin-top:8px;">'+
+      '<div style="font-size:12px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+name+'</div>'+
+      '<select class="form-select addl-act-freq" style="font-size:12px;padding:6px 8px;">'+freqOpts+'</select>'+
+      '<select class="form-select addl-act-int" style="font-size:12px;padding:6px 8px;">'+intOpts+'</select>'+
+      '<input class="form-input addl-act-notes" style="grid-column:1/-1;font-size:12px;" placeholder="np. mecz w niedzielę, 8–10 km" value="'+(typeof escHtml==='function'?escHtml(a.notes||''):(a.notes||'').replace(/"/g,'&quot;'))+'">'+
+    '</div>';
+  }).join('');
+  return '<div id="'+prefix+'-addl-acts" class="addl-acts" style="margin-top:8px;">'+
+    (acts.length?'<div style="font-size:10px;color:var(--muted);font-family:\'DM Mono\',monospace;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px;">Częstotliwość i intensywność</div>':'')+
+    rows+'</div>';
+}
+function sportBackgroundFormHTML(selected,prefix,activities){
+  const ids=normalizePriorSports(selected);
+  const acts=mergeActivitiesWithSports(activities,ids);
+  return priorSportsChipsHTML(ids,prefix)+additionalActivitiesRowsHTML(acts,prefix);
 }
 function priorSportsChipsHTML(selected,prefix,onclickFn){
   const sel=new Set(normalizePriorSports(selected));
@@ -4597,6 +4760,39 @@ function readPriorSportsFrom(prefix){
   const root=document.getElementById(prefix+'-prior-sports');
   if(!root)return[];
   return[...root.querySelectorAll('.prior-sport-chip.active')].map(b=>b.dataset.sport).filter(Boolean);
+}
+function readAdditionalActivitiesFrom(prefix){
+  const root=document.getElementById(prefix+'-addl-acts');
+  const rows=root?[...root.querySelectorAll('.addl-act-row')]:[];
+  const fromRows=rows.map(row=>({
+    sport:row.getAttribute('data-sport'),
+    frequency_per_week:Math.max(1,Math.min(7,parseInt(row.querySelector('.addl-act-freq')?.value,10)||1)),
+    intensity:normalizeIntensity(row.querySelector('.addl-act-int')?.value),
+    notes:(row.querySelector('.addl-act-notes')?.value||'').trim()
+  })).filter(a=>a.sport);
+  if(fromRows.length)return fromRows;
+  return readPriorSportsFrom(prefix).map(sport=>({sport,frequency_per_week:1,intensity:'medium',notes:''}));
+}
+function readSportBackgroundFrom(prefix){
+  const additional_activities=readAdditionalActivitiesFrom(prefix);
+  return {priorSports:additional_activities.map(a=>a.sport),additional_activities};
+}
+function renderAdditionalActivityRows(prefix,activities){
+  const ids=readPriorSportsFrom(prefix);
+  const prev=normalizeAdditionalActivities(activities).filter(a=>ids.indexOf(a.sport)>=0);
+  const merged=ids.map(id=>prev.find(a=>a.sport===id)||{sport:id,frequency_per_week:1,intensity:'medium',notes:''});
+  const html=additionalActivitiesRowsHTML(merged,prefix);
+  const root=document.getElementById(prefix+'-addl-acts');
+  if(root){
+    root.outerHTML=html;
+    return;
+  }
+  const chips=document.getElementById(prefix+'-prior-sports');
+  if(chips&&chips.parentNode){
+    const wrap=document.createElement('div');
+    wrap.innerHTML=html;
+    if(wrap.firstChild)chips.parentNode.insertBefore(wrap.firstChild,chips.nextSibling);
+  }
 }
 function setPriorSportsChips(prefix,ids){
   const root=document.getElementById(prefix+'-prior-sports');
@@ -4615,17 +4811,30 @@ function togglePriorSportChip(btn,prefix){
   const on=btn.classList.contains('active');
   btn.style.borderColor=on?'var(--accent)':'var(--border2)';
   btn.style.background=on?'var(--adim)':'var(--s3)';
+  const prev=readAdditionalActivitiesFrom(prefix);
+  renderAdditionalActivityRows(prefix,prev);
 }
 window.PRIOR_SPORTS_CATALOG=PRIOR_SPORTS_CATALOG;
+window.SPORT_TRAINING_LOAD=SPORT_TRAINING_LOAD;
 window.ACTIVITY_LEVEL_LABELS=ACTIVITY_LEVEL_LABELS;
+window.ACTIVITY_INTENSITY_LABELS=ACTIVITY_INTENSITY_LABELS;
 window.normalizePriorSports=normalizePriorSports;
+window.normalizeAdditionalActivities=normalizeAdditionalActivities;
+window.mergeActivitiesWithSports=mergeActivitiesWithSports;
+window.clientAdditionalActivities=clientAdditionalActivities;
+window.additionalActivitiesAnalyzer=additionalActivitiesAnalyzer;
 window.clientSportProfile=clientSportProfile;
 window.clientSportProfileLabel=clientSportProfileLabel;
 window.clientSportProfileForAI=clientSportProfileForAI;
 window.priorSportsChipsHTML=priorSportsChipsHTML;
+window.additionalActivitiesRowsHTML=additionalActivitiesRowsHTML;
+window.sportBackgroundFormHTML=sportBackgroundFormHTML;
 window.readPriorSportsFrom=readPriorSportsFrom;
+window.readAdditionalActivitiesFrom=readAdditionalActivitiesFrom;
+window.readSportBackgroundFrom=readSportBackgroundFrom;
 window.setPriorSportsChips=setPriorSportsChips;
 window.togglePriorSportChip=togglePriorSportChip;
+window.renderAdditionalActivityRows=renderAdditionalActivityRows;
 
 // ── Priorytet sylwetkowy (weak points / focus muscles) ──
 const PHYSIQUE_PRIORITY_CATALOG=[
