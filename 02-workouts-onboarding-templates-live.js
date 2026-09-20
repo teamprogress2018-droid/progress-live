@@ -3515,7 +3515,7 @@ function liveExTitleHtml(ex,lastChip,history){
     return `<div class="live-ex-title">${nameInner}</div>`;
   }
   return `<div class="live-ex-title-wrap">
-    <button type="button" class="live-ex-title has-hist" data-ex-hist="${histId}" onclick="event.stopPropagation();openExerciseHistory('${histId}')" title="Historia z poprzednich treningów" aria-haspopup="true">${nameInner}</button>
+    <button type="button" class="live-ex-title has-hist" data-ex-hist="${histId}" onclick="event.stopPropagation();openExerciseHistory('${histId}')" aria-haspopup="true">${nameInner}</button>
     <div class="live-ex-hist-pop" role="tooltip">
       <div class="live-ex-hist-pop-hd">Poprzednie treningi</div>
       ${exerciseHistoryModalBodyHtml(history.slice(0,4))}
