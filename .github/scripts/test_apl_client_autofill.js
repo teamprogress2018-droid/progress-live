@@ -25,7 +25,8 @@ ok('fill hides dup UI', /function aplFillFromClient[\s\S]*aplSyncClientDupUi/.te
 ok('close profile remembers client', /if\(cpClientId\)window\._aplLastClientId=cpClientId/.test(src07));
 ok('save client remembers', /window\._aplLastClientId=c\.id/.test(src05) && /aplRefreshFromSavedClient\(c\.id\)/.test(src05));
 ok('edit from card opens modal', /function aplEditClientFromCard[\s\S]*openClientModal/.test(src03));
-ok('cache 03/05/07', html.includes('03-ai-plangen-bizstats-aicoach.js?v=42') && html.includes('05-clients-builder-plans-calendar.js?v=78') && html.includes('07-forms-metrics-calculator.js?v=40'));
+ok('edit modal fills after openM', /function openClientModal[\s\S]{0,200}openM\('m-client'\)[\s\S]{0,120}_editingClientId=clientId/.test(src05));
+ok('cache 03/05/07', html.includes('03-ai-plangen-bizstats-aicoach.js?v=42') && html.includes('05-clients-builder-plans-calendar.js?v=79') && html.includes('07-forms-metrics-calculator.js?v=40'));
 ok('CI', wf.includes('test_apl_client_autofill.js') && wf.includes('test_apl_client_autofill_ui.js'));
 
 const slice = src03.match(/function aplClientCardSummaryHtml[\s\S]*?(?=\nfunction aplSyncClientDupUi)/);

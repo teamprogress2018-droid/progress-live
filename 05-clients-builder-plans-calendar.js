@@ -248,6 +248,7 @@ function renderClients(){
 }
 
 function openClientModal(clientId){
+  if(typeof openM==='function')openM('m-client');
   window._editingClientId=clientId||null;
   const titleEl=document.querySelector('#m-client .modal-title');
   if(clientId){
@@ -284,7 +285,6 @@ function openClientModal(clientId){
     if(typeof initPhysiquePriorityForm==='function')initPhysiquePriorityForm('ac',[]);
     if(typeof initPreferredWeekdaysForm==='function')initPreferredWeekdaysForm('ac',[1,3,5]);
   }
-  openM('m-client');
 }
 window.openClientModal=openClientModal;
 window.quickEditClient=quickEditClient;

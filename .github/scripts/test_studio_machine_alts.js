@@ -25,7 +25,7 @@ function ok(name, cond, extra) {
 
 ok('cache 01', html.includes('01-core.js?v=111'));
 ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=77'));
-ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=78'));
+ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=79'));
 ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=83'));
 ok('cache 03', html.includes('03-ai-plangen-bizstats-aicoach.js?v=42'));
 ok('apl swap altFor', src03.includes('dataset.altFor') && src03.includes('sztanga / hantle / brama / ławka'));

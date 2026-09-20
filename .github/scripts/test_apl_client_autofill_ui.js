@@ -132,6 +132,25 @@ function vis(el) {
   });
   ok('reselect still fills hidden inputs', back.age === '32' && back.hidden);
 
+  const modal = await page.evaluate(() => {
+    if (typeof aplEditClientFromCard === 'function') aplEditClientFromCard();
+    const m = document.getElementById('m-client');
+    const title = (document.querySelector('#m-client .modal-title') || {}).textContent || '';
+    return {
+      open: !!(m && m.classList.contains('show')),
+      title,
+      age: (document.getElementById('ac-age') || {}).value || '',
+      gender: (document.getElementById('ac-gender') || {}).value || '',
+      weight: (document.getElementById('ac-weight') || {}).value || '',
+      activity: (document.getElementById('ac-activity') || {}).value || '',
+      editing: window._editingClientId || ''
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'apl_client_autofill_karta.png'), fullPage: false });
+  ok('karta modal open', modal.open, JSON.stringify(modal));
+  ok('karta title edit', /EDYTUJ KLIENTA/i.test(modal.title), JSON.stringify(modal));
+  ok('karta fields from card', modal.age === '32' && modal.gender === 'K' && modal.weight === '62' && modal.activity === 'moderate' && modal.editing === 'c-anna', JSON.stringify(modal));
+
   await browser.close();
   if (failed) {
     console.error(failed + ' failed');
