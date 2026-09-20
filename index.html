@@ -13,7 +13,7 @@
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="globals.css?v=17">
-<link rel="stylesheet" href="styles.css?v=95">
+<link rel="stylesheet" href="styles.css?v=96">
 </head>
 <body>
 
@@ -137,24 +137,26 @@
     <span style="font-size:10px;color:var(--muted);">Finanse ukryte</span>
     <button onclick="togglePrivateMode()" style="margin-left:auto;background:var(--orange);border:none;border-radius:4px;padding:2px 10px;font-size:10px;font-weight:700;color:#000;cursor:pointer;">Wyłącz</button>
   </div>
-  <div class="sidebar-footer">
-    <div class="av" id="sf-avatar">?</div>
-    <div style="flex:1;"><div style="font-size:13px;font-weight:600;" id="sf-name">Trener</div><div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;" id="sf-title">Trener personalny</div></div>
-    <button id="private-mode-btn" onclick="togglePrivateMode()" style="background:none;border:none;cursor:pointer;padding:6px;transition:background 0.15s;" title="Tryb prywatny — ukryj dane finansowe">
-      <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="var(--muted)" stroke-width="1.8"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-    </button>
-    <button onclick="toggleNotifs()" style="position:relative;background:none;border:none;cursor:pointer;padding:6px;" title="Powiadomienia">
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--muted)" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-      <span id="notif-badge" style="display:none;position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:var(--red);border:1px solid var(--s1);"></span>
-    </button>
-    <button onclick="doSignOut()" style="background:none;border:none;cursor:pointer;padding:6px;" title="Wyloguj się">
-      <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="var(--muted)" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+  <div class="sidebar-end">
+    <div class="sidebar-footer">
+      <div class="av" id="sf-avatar">?</div>
+      <div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;" id="sf-name">Trener</div><div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;" id="sf-title">Trener personalny</div></div>
+      <button id="private-mode-btn" onclick="togglePrivateMode()" style="background:none;border:none;cursor:pointer;padding:6px;transition:background 0.15s;" title="Tryb prywatny — ukryj dane finansowe">
+        <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="var(--muted)" stroke-width="1.8"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+      </button>
+      <button onclick="toggleNotifs()" style="position:relative;background:none;border:none;cursor:pointer;padding:6px;" title="Powiadomienia">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--muted)" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span id="notif-badge" style="display:none;position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:var(--red);border:1px solid var(--s1);"></span>
+      </button>
+      <button onclick="doSignOut()" style="background:none;border:none;cursor:pointer;padding:6px;" title="Wyloguj się">
+        <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="var(--muted)" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+    <button class="sidebar-logout" onclick="doSignOut()" title="Wyloguj się">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Wyloguj się
     </button>
   </div>
-  <button onclick="doSignOut()" style="width:calc(100% - 24px);margin:0 12px 12px;padding:8px 0;background:rgba(255,59,48,0.10);border:1px solid rgba(255,59,48,0.25);border-radius:8px;color:var(--red);font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;" title="Wyloguj się">
-    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-    Wyloguj się
-  </button>
 </aside>
 
 <div class="main">
@@ -607,19 +609,21 @@
       <button class="btn btn-primary btn-sm" id="lib-add-vid" onclick="openM('m-own-video')" style="display:none;">+ Film</button>
     </div>
   </div>
-  <div id="lib-ex-body" style="display:flex;flex:1;overflow:hidden;">
-    <!-- lewy panel -->
-    <div style="width:200px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;">
-      <div style="padding:10px;">
+  <div id="lib-ex-body" class="lib-ex-body">
+    <!-- lewy panel: kategorie + sprzęt w jednym scrollu, żeby dół nie był ucięty -->
+    <div class="lib-side">
+      <div class="lib-side-top">
         <input type="text" id="ex-search" placeholder="Szukaj ćwiczenia..." oninput="renderLib()" style="width:100%;background:var(--s3);border:1px solid var(--border);border-radius:6px;padding:6px 9px;color:var(--text);font-size:12px;">
         <button type="button" class="btn btn-primary btn-sm" style="width:100%;margin-top:8px;" onclick="openExGifImport()">🎞 Import GIF / MP4</button>
         <button type="button" class="btn btn-ghost btn-sm" id="lib-sweep-dups" style="width:100%;margin-top:6px;" onclick="removeImportedCatalogDuplicates()">Usuń duplikaty</button>
         <button type="button" class="btn btn-ghost btn-sm" id="lib-restore-hidden" style="width:100%;margin-top:6px;display:none;color:var(--red);" onclick="restoreHiddenExercises()">Przywróć ukryte</button>
       </div>
-      <div style="overflow-y:auto;flex:1;padding:4px 0;" id="ex-cat-nav"></div>
-      <div style="padding:10px;border-top:1px solid var(--border);">
-        <div style="font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Sprzęt</div>
-        <div id="ex-equip-filters" style="display:flex;flex-direction:column;gap:4px;"></div>
+      <div class="lib-side-scroll" id="lib-side-scroll">
+        <div id="ex-cat-nav"></div>
+        <div class="lib-equip">
+          <div class="lib-equip-lbl">Sprzęt</div>
+          <div id="ex-equip-filters"></div>
+        </div>
       </div>
     </div>
 
