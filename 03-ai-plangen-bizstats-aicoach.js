@@ -885,7 +885,7 @@ WAŻNE — odpowiedz TYLKO w formacie JSON (bez żadnego dodatkowego tekstu, bez
   "progressionRules": ["Regułą 1", "Reguła 2"],
   "keyExercises": ["Ćwiczenie kluczowe 1", "Ćwiczenie kluczowe 2"],
   "weeklyVolume": {"chest":"12 serii","back":"14 serii","legs":"16 serii","shoulders":"10 serii","arms":"8 serii"},
-  "adaptation_notes": "Zmniejszono objętość nóg o ~25% przez 3× Nordic walking 8–10 km; dodano deskę kopenhaską i uginanie nordyckie pod mecz w niedzielę. Ciężkie nogi we wt/śr, nie w sobotę."
+  "adaptation_notes": "Zmniejszono objętość na mięśnie pleców o 30% ze względu na 2 sesje wspinaczkowe w tygodniu. Dodano ćwiczenia unilateralne na nogi i wzmocnienie core pod kątem Nordic Walkingu."
 }
 
 Podaj wartości TYLKO dla tygodnia 1 (bazowe). Pole "kg" podaj jako sam SUGEROWANY CIĘŻAR STARTOWY W KG (liczba, np. "60"), albo pusty string jeśli niemożliwe do oszacowania — resztę tygodni (progresję) obliczy aplikacja automatycznie na podstawie wybranej metody progresji.
@@ -928,7 +928,7 @@ BEZPIECZEŃSTWO KLIENTA (OBOWIĄZKOWE — ponad objętością MEV):
 
 UWZGLĘDNIJ TŁO SPORTOWE: jeśli klient ma predyspozycję wytrzymałościową (bieganie, kolarstwo, pływanie, Nordic walking) — więcej pracy tlenowej, wyższe zakresy powtórzeń na start, mniejszy nacisk na maksymalne obciążenia siłowe. Jeśli dominacja siłowa (siłownia, kulturystyka) — szybsza progresja kg, niższe powtórzenia, mniej cardio.
 
-AKTYWNOŚCI DODATKOWE (gdy podane w kontekście użytkownika): przeanalizuj każdą. Jeśli obciąża dane partie, zmniejsz na nie objętość na siłowni (serie / RIR) albo dodaj ćwiczenia kompensacyjne i prewencyjne. W polu "adaptation_notes" uzasadnij konkretnie (partie, %, ćwiczenia). Przy meczu w niedzielę nie planuj ciężkich nóg w sobotę ani w poniedziałek.
+AKTYWNOŚCI DODATKOWE (gdy podane w kontekście użytkownika): przeanalizuj każdą. Jeśli obciąża dane partie, zmniejsz na nie objętość na siłowni (serie / RIR) albo dodaj ćwiczenia kompensacyjne i prewencyjne. W polu "adaptation_notes" (dopuszczalny alias "ai_reasoning") uzasadnij konkretnie (partie, %, ćwiczenia). Przy meczu w niedzielę nie planuj ciężkich nóg w sobotę ani w poniedziałek.
 
 ZASADY HIPERTROFII (STRICT — obowiązują zawsze, zwłaszcza przy celu masa/kształtowanie):
 1. CZĘSTOTLIWOŚĆ: każda główna partia (klatka, plecy, barki, czworogłowe, dwugłowe/pośladki, ramiona) musi być zastymulowana CO NAJMNIEJ 2× w tygodniu (suma serii z wielu dni). Przy 3 dniach użyj struktury: Dzień 1 = Push + czworogłowe; Dzień 2 = Pull + dwugłowe; Dzień 3 = Upper (klatka+plecy+barki+ramiona) — chyba że trener wybrał inną metodę i liczbę dni.
@@ -1057,6 +1057,7 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
       });
     });
     aplRegroupExercisesByMuscle(plan,client);
+    plan.adaptation_notes=aplAdaptationNotes(plan);
     aplRenderPlan(plan,client,goal,method,days,weeks);
   }catch(e){
     console.error('aplGenerate błąd:',e);
@@ -1081,9 +1082,16 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
   });
 }
 
+function aplAdaptationNotes(plan){
+  if(!plan||typeof plan!=='object')return'';
+  return String(plan.adaptation_notes||plan.adaptationNotes||plan.ai_reasoning||plan.aiReasoning||'').trim();
+}
+window.aplAdaptationNotes=aplAdaptationNotes;
+
 function aplRenderPlan(plan,client,goal,method,days,weeks){
   const goalLabels={masa:'💪 Budowa masy',sila:'🏋️ Wzrost siły',redukcja:'🔥 Redukcja',kondycja:'🏃 Kondycja',atletyzm:'⚡ Atletyzm',rehab:'🩺 Rehabilitacja'};
   const res=document.getElementById('apl-result');
+  const adaptNotes=aplAdaptationNotes(plan);
   const weekKeys=plan.weekKeys||['w1'];
   const phases=plan.phases||{w1:'Tydzień 1'};
   const curWeek=plan.currentWeek||weekKeys[0];
@@ -1115,9 +1123,9 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
         <span class="pill" style="background:var(--s3);color:var(--muted);">📆 ${plan.weeks||weeks} tygodni</span>
         <span class="pill" style="background:var(--s3);color:var(--muted);">🔁 ${plan.method||method}</span>
       </div>
-      ${plan.adaptation_notes?`<div id="apl-adaptation-notes" style="margin-top:14px;padding:12px 14px;border-radius:10px;border:1px solid rgba(61,207,178,0.28);background:rgba(61,207,178,0.08);">
+      ${adaptNotes?`<div id="apl-adaptation-notes" style="margin-top:14px;padding:12px 14px;border-radius:10px;border:1px solid rgba(61,207,178,0.28);background:rgba(61,207,178,0.08);">
         <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--teal);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Adaptation notes — sporty dodatkowe</div>
-        <div style="font-size:12px;color:var(--text);line-height:1.65;">${plan.adaptation_notes}</div>
+        <div style="font-size:12px;color:var(--text);line-height:1.65;">${adaptNotes}</div>
       </div>`:''}
     </div>
 
@@ -1615,6 +1623,11 @@ function planPdfEsc(s){
   if(typeof escHtml==='function')return escHtml(s);
   return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
+function planPdfAdaptationNotes(plan){
+  if(typeof aplAdaptationNotes==='function')return aplAdaptationNotes(plan);
+  if(!plan||typeof plan!=='object')return'';
+  return String(plan.adaptation_notes||plan.adaptationNotes||plan.ai_reasoning||plan.aiReasoning||'').trim();
+}
 function planPdfSplitLabel(plan){
   const days=plan.days||[];
   const parts=days.map(d=>{
@@ -1734,7 +1747,7 @@ function planToPdfModel(plan){
     warmup:plan.warmup||'',
     nutritionTip:plan.nutritionTip||'',
     weeklyVolume:plan.weeklyVolume,
-    adaptation_notes:plan.adaptation_notes||plan.adaptationNotes||'',
+    adaptation_notes:planPdfAdaptationNotes(plan),
     progressionRules:plan.progressionRules,
     weekKeys,
     phases:plan.phases||{},
@@ -1818,8 +1831,9 @@ function buildPlanPDFHTML(plan,client){
   if(plan.weeklyVolume&&typeof plan.weeklyVolume==='object'){
     html+=`<div class="plan-pdf-box" style="margin-bottom:16px;"><div class="plan-pdf-box-h">📊 Objętość tygodniowa</div><div class="plan-pdf-vol">${Object.entries(plan.weeklyVolume).map(([k,v])=>`<span>${planPdfEsc(k)}: <b>${planPdfEsc(v)}</b></span>`).join('')}</div></div>`;
   }
-  if(plan.adaptation_notes){
-    html+=`<div class="plan-pdf-box" style="margin-bottom:16px;"><div class="plan-pdf-box-h">🏃 Sporty dodatkowe</div><p>${planPdfEsc(plan.adaptation_notes)}</p></div>`;
+  const adaptNotes=planPdfAdaptationNotes(plan);
+  if(adaptNotes){
+    html+=`<div class="plan-pdf-box" style="margin-bottom:16px;"><div class="plan-pdf-box-h">🏃 Sporty dodatkowe</div><p>${planPdfEsc(adaptNotes)}</p></div>`;
   }
   if(plan.nutritionTip){
     html+=`<div class="plan-pdf-box"><p><b style="color:#e11f2e;">Wskazówka żywieniowa:</b> ${planPdfEsc(plan.nutritionTip)}</p></div>`;

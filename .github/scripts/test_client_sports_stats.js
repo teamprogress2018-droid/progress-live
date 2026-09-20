@@ -168,16 +168,24 @@ ok('analyzer Sunday match', /niedziel/i.test(aiTxt));
 ok('analyzer reduce gym volume', /zmniejsz na nie objętość/i.test(aiTxt));
 ok('analyzer NW load kije', /kije|czworoboczny|face pull/i.test(aiTxt));
 ok('analyzer football copenhagen', /kopenhask|nordyck|przywodziciel/i.test(aiTxt));
+ok('exact analyzer instruction', /Przeanalizuj aktywności dodatkowe podopiecznego\. Jeśli aktywność obciąża dane partie, zmniejsz na nie objętość na siłowni \(RIR\/serie\) lub dodaj ćwiczenia kompensacyjne\/profilaktyczne/.test(aiTxt));
+
+const climb = ctx.normalizeAdditionalActivities([{ sport: 'wspinaczka', frequency_per_week: 2, intensity: 'high' }]);
+ok('alias wspinaczka', climb[0] && climb[0].sport === 'climbing');
+const climbTxt = ctx.additionalActivitiesAnalyzer({ additional_activities: climb.concat([{ sport: 'nordic_walking', frequency_per_week: 3, intensity: 'medium' }]) });
+ok('climbing load on back', /plecy/i.test(climbTxt));
+ok('analyzer accepts ai_reasoning alias', /ai_reasoning/.test(climbTxt) && /adaptation_notes/.test(climbTxt));
 
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const src03 = fs.readFileSync(path.join(root, '03-ai-plangen-bizstats-aicoach.js'), 'utf8');
 const src05 = fs.readFileSync(path.join(root, '05-clients-builder-plans-calendar.js'), 'utf8');
 const src08 = fs.readFileSync(path.join(root, '08-client-profile-extras.js'), 'utf8');
 const src09 = fs.readFileSync(path.join(root, '09-posture-kb-invites-private.js'), 'utf8');
-ok('cache 01/03', html.includes('01-core.js?v=111') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=38'));
+ok('cache 01/03', html.includes('01-core.js?v=112') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=39'));
 ok('ai prompt sport background', /TŁO SPORTOWE/i.test(src03));
 ok('ai form sport fields', /apl-sport-notes/.test(src03) && /apl-activity/.test(src03));
 ok('ai JSON adaptation_notes', /"adaptation_notes"/.test(src03) && /apl-adaptation-notes/.test(src03));
+ok('ai_reasoning alias helper', /function aplAdaptationNotes\(/.test(src03) && /ai_reasoning/.test(src03) && /wspinaczkowe/.test(src03));
 ok('ai additional activities rule', /AKTYWNOŚCI DODATKOWE/.test(src03));
 ok('save client additional_activities', /additional_activities/.test(src05) && /readSportBackgroundFrom\('ac'\)/.test(src05));
 ok('profile editor rows', /sportBackgroundFormHTML/.test(src08) && /additional_activities/.test(src09));

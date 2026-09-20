@@ -24,7 +24,7 @@ ok('export helper', /window\.buildPlanPDFHTML=buildPlanPDFHTML/.test(src03));
 ok('saved plan mapper', /function planToPdfModel\(/.test(src03) && /window\.planToPdfModel=planToPdfModel/.test(src03));
 ok('saved plan export', /function exportSavedPlanPDF\(/.test(src03) && /window\.exportSavedPlanPDF=exportSavedPlanPDF/.test(src03));
 ok('saves progression', /plan\.progression=progression/.test(src03));
-ok('cache', html.includes('03-ai-plangen-bizstats-aicoach.js?v=38') && html.includes('styles.css?v=97'));
+ok('cache', html.includes('03-ai-plangen-bizstats-aicoach.js?v=39') && html.includes('styles.css?v=97'));
 ok('CI', wf.includes('test_plan_pdf.js') && wf.includes('test_plan_pdf_ui.js'));
 
 const slice = src03.match(/function planPdfEsc[\s\S]*?^function aplReset/m);
@@ -78,6 +78,8 @@ ok('arrows', /plan-pdf-arrow-up/.test(out) && /plan-pdf-arrow-dn/.test(out));
 ok('priorytet', /plan-pdf-pri/.test(out) && /PRIORYTET/.test(out));
 ok('no old purple', !/#7c3aed/.test(out));
 ok('logo', /progress-logo\.jpg/.test(out));
+const withNotes = ctx.buildPlanPDFHTML(Object.assign({}, plan, { ai_reasoning: 'Zmniejszono objętość na mięśnie pleców o 30% ze względu na 2 sesje wspinaczkowe.' }), { name: 'Piotr Test' });
+ok('pdf reads ai_reasoning', /Sporty dodatkowe/.test(withNotes) && /30%/.test(withNotes) && /wspinaczkowe/.test(withNotes));
 
 const saved = ctx.planToPdfModel({
   name: 'FBW Oli',

@@ -4529,10 +4529,12 @@ const PRIOR_SPORTS_CATALOG=[
   {id:'yoga',label:'Joga / pilates',icon:'🧘',endurance:5,strength:3},
   {id:'hiking',label:'Turystyka / góry',icon:'⛰️',endurance:7,strength:5},
   {id:'nordic_walking',label:'Nordic walking',icon:'🚶',endurance:8,strength:3},
+  {id:'climbing',label:'Wspinaczka',icon:'🧗',endurance:6,strength:7},
   {id:'team',label:'Sporty zespołowe',icon:'🤾',endurance:6,strength:5},
 ];
 const SPORT_ID_ALIASES={
   nordic_walking:['nordic_walking','nordic-walking','nordicwalking','nordic walking','nw','kije'],
+  climbing:['climbing','wspinaczka','boulder','bouldering','wspinanie'],
   football:['football','soccer','pilka','piłka','piłka nożna','pilka nozna','piłka_nożna'],
   running:['running','bieg','bieganie'],
   cycling:['cycling','kolarstwo','rower'],
@@ -4557,6 +4559,7 @@ const SPORT_TRAINING_LOAD={
   yoga:{muscles:'mobilność, core',gym:'Można trzymać wyższą objętość siłową; wykorzystaj mobilność do głębszego ROM.'},
   hiking:{muscles:'czworogłowe, łydki, prostowniki, barki (plecak)',gym:'Unikaj długiego cardio dzień po górskiej wycieczce; dodaj jednonóż i core.'},
   nordic_walking:{muscles:'łydki, core, barki/czworoboczny (kije), prostowniki, objętość marszu nóg',gym:'Nie dokładaj ciężkiego cardio. Dodaj pracę unilateralną nóg, core oraz face pull / wiosło pod kije. Objętość nóg na siłowni w dolnej MAV.'},
+  climbing:{muscles:'plecy, przedramiona, barki, chwyt, core',gym:'Zmniejsz objętość pleców i ramion na siłowni (serie/RIR). Dodaj antagonistów (wyciskanie, rotator cuff), nogi unilateralnie i core.'},
   team:{muscles:'nogi, zmiana kierunku, barki',gym:'Prewencja przywodzicieli i dwugłowych; nie max nogi w dniu meczu.'}
 };
 const ACTIVITY_INTENSITY_LABELS={low:'niska',medium:'średnia',high:'wysoka'};
@@ -4698,7 +4701,7 @@ function additionalActivitiesAnalyzer(c){
     if(load.muscles)txt+='  Obciąża: '+load.muscles+'.\n';
     if(load.gym)txt+='  Korekta siłowni: '+load.gym+'\n';
   });
-  txt+='W JSON MUSISZ wypełnić pole "adaptation_notes" (1–3 zdania): konkretnie co zmniejszono (partie, serie/%, RIR) i jakie ćwiczenia prewencyjne dodano. Jeśli nic nie zmieniasz — napisz dlaczego.\n';
+  txt+='W JSON MUSISZ wypełnić pole "adaptation_notes" albo "ai_reasoning" (1–3 zdania): konkretnie co zmniejszono (partie, serie/%, RIR) i jakie ćwiczenia prewencyjne dodano. Jeśli nic nie zmieniasz — napisz dlaczego.\n';
   return txt;
 }
 function clientSportProfileForAI(c){
