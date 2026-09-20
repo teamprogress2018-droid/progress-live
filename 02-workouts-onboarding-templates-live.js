@@ -3490,6 +3490,41 @@ function liveWeekHintHtml(slot){
 }
 window.liveWeekHintHtml=liveWeekHintHtml;
 
+function liveExHistoryList(ex,clientId){
+  let history=Array.isArray(ex&&ex.lastHistory)?ex.lastHistory.filter(h=>h&&Array.isArray(h.sets)&&h.sets.length):[];
+  if(!history.length&&ex&&Array.isArray(ex.lastSets)&&ex.lastSets.length){
+    history=[{date:ex.lastDate||'',time:ex.lastTime||'',sets:ex.lastSets}];
+  }
+  if(!history.length){
+    const nm=ex&&(ex.name||ex.plannedName);
+    const alts=ex&&ex.alts;
+    if(clientId&&nm&&typeof exerciseLoadHistory==='function'){
+      history=exerciseLoadHistory(clientId,nm,alts,{limit:8});
+    }
+  }
+  return history;
+}
+window.liveExHistoryList=liveExHistoryList;
+
+function liveExTitleHtml(ex,lastChip,history){
+  const needsName=!String(ex&&ex.name||'').trim()||ex.name==='Nowe ćwiczenie';
+  if(needsName)return '<div class="live-ex-title is-empty">Wybierz ćwiczenie</div>';
+  const nameInner=`${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}`;
+  const histId=(String(lastChip||'').match(/data-ex-hist="([^"]+)"/)||[])[1]||'';
+  if(!histId||!history||!history.length||typeof exerciseHistoryModalBodyHtml!=='function'){
+    return `<div class="live-ex-title">${nameInner}</div>`;
+  }
+  return `<div class="live-ex-title-wrap">
+    <button type="button" class="live-ex-title has-hist" data-ex-hist="${histId}" onclick="event.stopPropagation();openExerciseHistory('${histId}')" title="Historia z poprzednich treningów" aria-haspopup="true">${nameInner}</button>
+    <div class="live-ex-hist-pop" role="tooltip">
+      <div class="live-ex-hist-pop-hd">Poprzednie treningi</div>
+      ${exerciseHistoryModalBodyHtml(history.slice(0,4))}
+      <div class="live-ex-hist-pop-ft">Kliknij nazwę — pełna historia</div>
+    </div>
+  </div>`;
+}
+window.liveExTitleHtml=liveExTitleHtml;
+
 function liveExCard(ex,i,slot){
   const n=liveN(slot);
   const st=liveRef(n);
@@ -3500,7 +3535,7 @@ function liveExCard(ex,i,slot){
   const loadLbl=typeof loadUnitColumnLabel==='function'?loadUnitColumnLabel(unit):(unit==='sec'||unit==='min'?'Czas':unit==='m'?'Dystans':'Ciężar');
   const setsDone=ex.sets.filter(s=>s.done).length;
   const lastChip=typeof lastSetsBlockHtml==='function'?lastSetsBlockHtml(ex,{clientId:st.clientId,aliases:ex.alts}):'';
-  const lastPanel=typeof lastSetsBlockHtml==='function'?lastSetsBlockHtml(ex,{clientId:st.clientId,aliases:ex.alts,panel:true}):'';
+  const histList=liveExHistoryList(ex,st.clientId);
   const lastHint=lastChip?'':(ex.lastDate&&ex.lastKg!==''&&ex.lastKg!=null?`Ostatnio: ${ex.lastKg} ${suf}${ex.lastReps?' × '+ex.lastReps:''}`:'');
   const pr=typeof exercisePR==='function'&&(typeof isWeightLoadUnit!=='function'||isWeightLoadUnit(unit))?exercisePR(st.clientId,ex.name):null;
   const prHint=pr?`Rekord: ${pr.kg} kg × ${pr.reps}`:'';
@@ -3522,8 +3557,8 @@ function liveExCard(ex,i,slot){
   return `<div class="live-ex-card${ex.ss?' ss':''}${ex.done?' done':st.sessionActive&&!ex.done&&i===st.exercises.findIndex(e=>!e.done)?' active':''}" id="${cardId}">
     <div class="live-ex-head" onclick="liveToggleCollapse(${i}${sl})">
       <div style="width:30px;height:30px;border-radius:8px;background:${ex.done?'var(--teal)':'var(--adim)'};display:flex;align-items:center;justify-content:center;font-size:${ex.done?'14px':'12px'};font-weight:700;color:${ex.done?'#000':'var(--accent)'};flex-shrink:0;">${ex.done?'✓':i+1}</div>
-      <div style="flex:1;">
-        ${needsName?`<div style="font-size:13px;font-weight:700;color:var(--muted);">Wybierz ćwiczenie</div>`:`<div style="font-size:13px;font-weight:700;">${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}</div>`}
+      <div style="flex:1;min-width:0;">
+        ${liveExTitleHtml(ex,lastChip,histList)}
         <div style="font-size:10px;color:var(--muted);">${ex.sets.length} serie · ${setsDone}/${ex.sets.length} ukończono${ex.ssLabel?' · super-seria':''}${ex.emom?' · EMOM':''}${sub?' · '+escHtml(sub):''}</div>
         ${showBody?'':lastChip}
       </div>
@@ -3546,7 +3581,6 @@ function liveExCard(ex,i,slot){
         </div>
       </div>`:''}
       ${needsName?'':liveAltsHtml(ex,i,n)}
-      ${needsName?'':lastPanel}
       <div class="live-set-grid live-set-head${hasPrev?' has-prev':''}">
         <span></span><span>Seria</span><span style="text-align:center;">${loadLbl}</span><span style="text-align:center;">Powt.</span><span style="text-align:center;" title="Powtórzenia w zapasie">RIR</span>${hasPrev?'<span class="live-set-prev-h">Ostatnio</span>':''}<span></span>
       </div>

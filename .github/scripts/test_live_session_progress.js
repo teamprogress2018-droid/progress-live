@@ -18,7 +18,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 02 v74', html.includes('02-workouts-onboarding-templates-live.js?v=76'));
+ok('cache 02 v77', html.includes('02-workouts-onboarding-templates-live.js?v=77'));
 ok('cache 01 v110', html.includes('01-core.js?v=111'));
 ok('dock Postęp ids', html.includes('id="live-ex-done"') && html.includes('id="live-sets-done"') && html.includes('id="live-volume"'));
 ok('dock hint', html.includes('id="live-progress-hint"'));
@@ -27,7 +27,7 @@ ok('end uses todayYmd', /date:\(typeof todayYmd===/.test(live));
 ok('live rir field', /function liveSetRir\(/.test(live) && live.includes('live-rir-input') && live.includes('title="Powtórzenia w zapasie"'));
 ok('live save rir', /rir:s\.rir!=null/.test(live));
 ok('live remove set', /function liveRemoveSet\(/.test(live) && live.includes('live-set-del') && live.includes('Zostaw przynajmniej jedną serię'));
-ok('live last sets', live.includes('lastSetsBlockHtml') && live.includes('lastPanel') && live.includes('liveFillFromLast') && live.includes('has-prev'));
+ok('live last sets', live.includes('lastSetsBlockHtml') && live.includes('live-ex-hist-pop') && live.includes('liveExTitleHtml') && live.includes('liveFillFromLast') && live.includes('has-prev'));
 ok('live hist kg/reps', live.includes('liveHistoryExLines') && live.includes('liveHistorySessionsForView') && live.includes('live-hist-ex-sets'));
 ok('CI unit', wf.includes('test_live_session_progress.js'));
 ok('CI ui', wf.includes('test_live_progress_ui.js'));
