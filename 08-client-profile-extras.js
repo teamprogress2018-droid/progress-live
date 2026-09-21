@@ -1927,6 +1927,206 @@ window.cpNextSessionFocusItems=cpNextSessionFocusItems;
 window.focusCpOverviewSection=focusCpOverviewSection;
 window.cpOverviewSituationHTML=cpOverviewSituationHTML;
 
+function cpBriefTodayYmd(){
+  if(typeof dashTodayYmd==='function')return dashTodayYmd();
+  if(typeof todayYmd==='function')return todayYmd();
+  const p=n=>String(n).padStart(2,'0');
+  const t=new Date();
+  return t.getFullYear()+'-'+p(t.getMonth()+1)+'-'+p(t.getDate());
+}
+function cpBriefDaysBetween(fromYmd,toYmd){
+  if(typeof dashDaysBetween==='function')return dashDaysBetween(fromYmd,toYmd);
+  const a=new Date(String(fromYmd||'').slice(0,10)+'T12:00:00').getTime();
+  const b=new Date(String(toYmd||'').slice(0,10)+'T12:00:00').getTime();
+  if(!a||!b||isNaN(a)||isNaN(b))return null;
+  return Math.round((b-a)/86400000);
+}
+function cpBriefAgoLabel(ymd,today){
+  const d=cpBriefDaysBetween(ymd,today||cpBriefTodayYmd());
+  if(d==null)return '';
+  if(d===0)return 'dziś';
+  if(d===1)return 'wczoraj';
+  if(d>1)return d+' d. temu';
+  return '';
+}
+function cpBriefIsLogged(s){
+  if(!s)return false;
+  if(s.source==='planned'||s.source==='garmin'||s.source==='live-draft')return false;
+  if(typeof isLoggedWorkout==='function')return isLoggedWorkout(s);
+  return s.source==='live'||s.source==='client'||s.source==='sala'||s.source==='homework';
+}
+function cpBriefTopLoads(s){
+  const rows=[];
+  (s&&s.exercises||[]).forEach(ex=>{
+    if(typeof isWeightLoadUnit==='function'&&!isWeightLoadUnit(typeof exLoadUnit==='function'?exLoadUnit(ex):'kg'))return;
+    const sets=typeof exerciseLoggedSets==='function'?exerciseLoggedSets(ex):(Array.isArray(ex.sets)?ex.sets:[]);
+    let best=null,bestVol=-1;
+    sets.forEach(st=>{
+      if(typeof isWorkingSet==='function'&&!isWorkingSet(st))return;
+      const kg=parseFloat(st&&st.kg),reps=parseFloat(st&&st.reps);
+      if(!Number.isFinite(kg)||kg<=0||!Number.isFinite(reps)||reps<=0)return;
+      const vol=kg*reps;
+      if(vol>bestVol){bestVol=vol;best=st;}
+    });
+    if(!best)return;
+    const load=typeof formatSetLoad==='function'?formatSetLoad(best.kg,best.reps,ex):(best.kg+' kg × '+best.reps);
+    rows.push({name:ex.name||'',load,vol:bestVol,kg:best.kg,reps:best.reps});
+  });
+  rows.sort((a,b)=>b.vol-a.vol);
+  return rows.slice(0,2);
+}
+function collectCpBriefItems(c){
+  const items=[];
+  if(!c||!c.id)return items;
+  const id=c.id;
+  const today=cpBriefTodayYmd();
+  const clip=typeof cpTlClip==='function'?cpTlClip:(s,n)=>{
+    const t=String(s||'').replace(/\s+/g,' ').trim();
+    if(t.length<=n)return t;
+    return t.slice(0,Math.max(0,n-1)).trim()+'…';
+  };
+  const plan=typeof latestClientPlan==='function'?latestClientPlan(id):((window.PL||[]).filter(p=>p&&p.clientId===id).slice(-1)[0]||null);
+  let planned=[];
+  if(typeof cpAssignmentSessions==='function'){
+    try{planned=cpAssignmentSessions(id,{keepPlanned:true}).filter(s=>s&&s.source==='planned'&&s.date);}catch(e){planned=[];}
+  }
+  if(!planned.length){
+    planned=(window.SE||[]).filter(s=>s&&s.clientId===id&&s.source==='planned'&&s.date);
+  }
+  planned=planned.slice().sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.time||'').localeCompare(String(b.time||'')));
+  const todaySess=planned.find(s=>String(s.date).slice(0,10)===today);
+  const nextSess=planned.find(s=>String(s.date).slice(0,10)>today);
+  const sess=todaySess||nextSess;
+  if(sess){
+    const title=typeof sessionTitle==='function'?sessionTitle(sess):(sess.type||sess.title||'Sesja');
+    const time=sess.time?String(sess.time):'';
+    const day=todaySess?'Dziś':((typeof cpTlDayLabel==='function'?cpTlDayLabel(sess.date):String(sess.date).slice(5))||'Następna');
+    const bits=[time,title].filter(Boolean);
+    items.push({
+      kind:'session',
+      label:todaySess?'Dziś':'Następna',
+      fact:(todaySess?'':(day+(bits.length?' · ':'')))+bits.join(' · '),
+      extra:plan&&plan.name?plan.name:''
+    });
+  }else if(plan&&plan.name){
+    items.push({kind:'session',label:'Plan',fact:plan.name,extra:'brak dnia w kalendarzu'});
+  }
+  const inj=String(c.injuries||'').trim();
+  if(inj){
+    items.push({kind:'injury',label:'Ograniczenia',fact:clip(inj,90),extra:'',tone:'watch'});
+  }
+  const filled=((window.CHECKINS&&window.CHECKINS[id])||[]).filter(x=>x&&x.status==='filled')
+    .slice().sort((a,b)=>String(b.date||b.filledAt||b.createdAt||'').localeCompare(String(a.date||a.filledAt||a.createdAt||'')));
+  const ci=filled[0];
+  if(ci){
+    const a=ci.answers||{};
+    const bits=[];
+    [['sleep','Sen'],['energy','Energia'],['stress','Stres'],['nutrition','Odżywianie'],['overall','Samopoczucie']].forEach(([k,lab])=>{
+      if(a[k]==null||a[k]==='')return;
+      bits.push(lab+' '+a[k]+'/5');
+    });
+    const when=cpBriefAgoLabel(ci.date||ci.filledAt,today);
+    const note=a.notes?clip(a.notes,60):'';
+    if(bits.length||note||when){
+      const head=[when,bits.join(' · ')].filter(Boolean).join(' · ');
+      items.push({
+        kind:'checkin',
+        label:'Check-in',
+        fact:head||note,
+        extra:head?note:''
+      });
+    }
+  }
+  const logged=typeof completedWorkouts==='function'?completedWorkouts(id):(window.SE||[]).filter(s=>s&&s.clientId===id&&cpBriefIsLogged(s))
+    .slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+  const last=(logged||[]).find(s=>cpBriefIsLogged(s))||null;
+  if(last){
+    const title=typeof sessionTitle==='function'?sessionTitle(last):(last.type||last.title||'Trening');
+    const when=cpBriefAgoLabel(last.date,today);
+    const loads=cpBriefTopLoads(last);
+    let loadTxt=loads.map(r=>(r.name?r.name+' ':'')+r.load).filter(Boolean).join(' · ');
+    if(!loadTxt&&typeof cpTlSessionHighlight==='function'){
+      const hi=cpTlSessionHighlight(last,id);
+      if(hi&&hi.fact&&hi.fact!==title)loadTxt=hi.fact;
+    }
+    const recs=typeof cpTlRecordEvents==='function'?cpTlRecordEvents(id):[];
+    const rec=(recs||[]).find(e=>e&&(e.date===last.date||String(e.id||'').indexOf(last.id)>=0));
+    const extras=[];
+    if(last.source==='homework')extras.push('zadanie domowe');
+    if(typeof cpTlSessionHighlight==='function'){
+      const hi=cpTlSessionHighlight(last,id);
+      if(hi&&hi.extra)extras.push(hi.extra);
+    }
+    if(rec&&rec.fact)extras.push('rekord');
+    items.push({
+      kind:'workout',
+      label:'Ostatni',
+      fact:[when,title,loadTxt].filter(Boolean).join(' · '),
+      extra:extras.join(' · ')
+    });
+  }
+  const notes=(window.CLIENT_NOTES&&window.CLIENT_NOTES[id])||[];
+  const note=notes.find(n=>n&&String(n.text||'').trim());
+  if(note){
+    items.push({kind:'note',label:'Notatka',fact:clip(note.text,90),extra:''});
+  }
+  const openHw=typeof clientOpenHomework==='function'?clientOpenHomework(id):((window.TASKS||[]).filter(t=>t&&t.clientId===id&&t.status!=='done'&&(t.kind==='homework'||t.odWorkoutId)));
+  const late=(openHw||[]).filter(t=>t&&t.due&&String(t.due).slice(0,10)<today);
+  const pick=late[0]||(openHw&&openHw[0])||null;
+  let hwShown=false;
+  if(pick&&pick.title){
+    items.push({
+      kind:'homework',
+      label:'Domowe',
+      fact:pick.title,
+      extra:late[0]?'po terminie':(pick.due?('do '+String(pick.due).slice(0,10)):'otwarte')
+    });
+    hwShown=true;
+  }
+  if(!hwShown){
+    const done=typeof homeworkCompletions==='function'?homeworkCompletions(id,7):[];
+    const lastHw=(done||[]).slice().sort((a,b)=>String(b.doneAt||b.updatedAt||'').localeCompare(String(a.doneAt||a.updatedAt||'')))[0];
+    const sameAsLast=last&&last.source==='homework'&&lastHw&&(last.taskId===lastHw.id||last.type===lastHw.title);
+    if(lastHw&&lastHw.title&&!sameAsLast){
+      const y=typeof homeworkDoneYmd==='function'?homeworkDoneYmd(lastHw):String(lastHw.doneAt||'').slice(0,10);
+      items.push({
+        kind:'homework',
+        label:'Domowe',
+        fact:lastHw.title,
+        extra:(cpBriefAgoLabel(y,today)||'zrobione')
+      });
+    }
+  }
+  return items;
+}
+function cpOverviewBriefHTML(c){
+  if(!c)return'';
+  const esc=typeof escHtml==='function'?escHtml:(s=>String(s??''));
+  const items=collectCpBriefItems(c);
+  if(!items.length){
+    return `<div class="cp-ov-brief" data-cp-brief="empty">
+      <div class="cp-ov-brief-kicker">Przed treningiem</div>
+      <div class="cp-ov-brief-empty">Brak danych do briefu.</div>
+    </div>`;
+  }
+  return `<div class="cp-ov-brief">
+    <div class="cp-ov-brief-kicker">Przed treningiem</div>
+    <div class="cp-ov-brief-list">
+      ${items.map(it=>`<div class="cp-ov-brief-row${it.tone==='watch'?' is-watch':''}" data-cp-brief="${esc(it.kind)}">
+        <span class="cp-ov-brief-lbl">${esc(it.label)}</span>
+        <span class="cp-ov-brief-dot">•</span>
+        <span class="cp-ov-brief-fact">${esc(it.fact||'')}</span>
+        ${it.extra?`<span class="cp-ov-brief-dot">•</span><span class="cp-ov-brief-extra">${esc(it.extra)}</span>`:''}
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+window.cpBriefTodayYmd=cpBriefTodayYmd;
+window.collectCpBriefItems=collectCpBriefItems;
+window.cpOverviewBriefHTML=cpOverviewBriefHTML;
+window.cpBriefTopLoads=cpBriefTopLoads;
+window.cpBriefIsLogged=cpBriefIsLogged;
+
 function renderCPOverview(c){
   const today=new Date();
   const todayStr=typeof todayYmd==='function'?todayYmd():(typeof dateStrLocal==='function'?dateStrLocal(today):today.toISOString().split('T')[0]);
@@ -2018,6 +2218,7 @@ function renderCPOverview(c){
   };
 
   document.getElementById('cp-body').innerHTML=`
+    ${cpOverviewBriefHTML(c)}
     ${cpOverviewSituationHTML(c)}
 
     ${editing?'':`<div class="cp-ov-edit-cta" role="button" tabindex="0" onclick="startCPEdit('${c.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startCPEdit('${c.id}')}">
