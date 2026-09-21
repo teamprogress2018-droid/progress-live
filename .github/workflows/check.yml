@@ -222,6 +222,8 @@ jobs:
         run: node .github/scripts/test_cp_overview_situation.js
       - name: 1n12b2b. Testy Briefu przed treningiem
         run: node .github/scripts/test_cp_overview_brief.js
+      - name: 1n12b2c. Testy Analizy współpracy (Etap 5)
+        run: node .github/scripts/test_cp_overview_coop.js
       - name: 1n12b3. Testy osi czasu klienta (filtry)
         run: node .github/scripts/test_cp_timeline_filters.js
       - name: 1n12c. Testy skanu operacyjnego (dzwonek + zegar)
@@ -502,6 +504,8 @@ jobs:
         run: node .github/scripts/test_cp_overview_situation_ui.js
       - name: 6f2b2. Testy UI Briefu przed treningiem
         run: node .github/scripts/test_cp_overview_brief_ui.js
+      - name: 6f2b3. Testy UI Analizy współpracy
+        run: node .github/scripts/test_cp_overview_coop_ui.js
       - name: 6f2c. Testy UI osi czasu (filtry)
         run: node .github/scripts/test_cp_timeline_filters_ui.js
       - name: 6f3. Testy UI ✓ Odbył się (zapis sali z planu)

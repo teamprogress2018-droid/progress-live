@@ -2127,6 +2127,351 @@ window.cpOverviewBriefHTML=cpOverviewBriefHTML;
 window.cpBriefTopLoads=cpBriefTopLoads;
 window.cpBriefIsLogged=cpBriefIsLogged;
 
+function cpCoopLoggedWorkouts(clientId){
+  const sessions=(window.SE||[]).filter(s=>s&&s.clientId===clientId);
+  let logged=[];
+  if(typeof completedWorkouts==='function'){
+    try{logged=completedWorkouts(clientId,sessions)||[];}catch(e){logged=[];}
+  }
+  if(!logged.length){
+    logged=sessions.filter(s=>typeof isLoggedWorkout==='function'?isLoggedWorkout(s):(s&&(s.source==='client'||s.source==='live'||s.source==='sala'||s.source==='homework')));
+  }else if(typeof isLoggedWorkout==='function'){
+    logged=logged.filter(s=>isLoggedWorkout(s));
+  }
+  return logged.slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+}
+function cpCoopFilledCheckins(clientId){
+  return ((window.CHECKINS&&window.CHECKINS[clientId])||[]).filter(x=>x&&x.status==='filled')
+    .slice().sort((a,b)=>String(b.date||b.filledAt||'').localeCompare(String(a.date||a.filledAt||'')));
+}
+function cpCoopPickSignals(v){
+  const rank={bad:0,warn:1,good:2,neutral:3};
+  return ((v&&v.signals)||[]).slice().sort((a,b)=>(rank[a.tone]!=null?rank[a.tone]:9)-(rank[b.tone]!=null?rank[b.tone]:9)).slice(0,3);
+}
+function cpCoopCollectSignals(c){
+  const found=[];
+  const missing=[];
+  if(!c||!c.id)return{ok:false,found,missing,goal:''};
+  const id=c.id;
+  const goal=String(c.goal||'').toLowerCase();
+  const massGoal=goal==='masa'||goal==='redukcja';
+  const strGoal=goal==='sila';
+  const condGoal=goal==='kondycja';
+  const logged=cpCoopLoggedWorkouts(id);
+  if(logged.length){
+    const last=logged[0];
+    found.push({id:'training',label:'Trening',hint:(last&&last.date)?String(last.date).slice(0,10):String(logged.length)});
+  }else missing.push('zalogowany trening');
+  const adh30=typeof clientAdherenceStats==='function'?clientAdherenceStats(id,30):{assigned:0,logged:0,pct:0};
+  const adh7=typeof clientAdherenceStats==='function'?clientAdherenceStats(id,7):{assigned:0,logged:0,pct:0};
+  if((adh30.assigned||0)>0||(adh7.assigned||0)>0){
+    const pct=adh30.assigned?adh30.pct:adh7.pct;
+    found.push({id:'adherence',label:'Adherencja',hint:String(pct)+'%'});
+  }else missing.push('plan w kalendarzu (adherencja)');
+  const filled=cpCoopFilledCheckins(id);
+  if(filled.length){
+    found.push({id:'checkin',label:'Check-in',hint:String(filled[0].date||filled[0].filledAt||'').slice(0,10)});
+  }else missing.push('wypełniony check-in');
+  const massDelta=typeof cpMetricDeltaPct==='function'?cpMetricDeltaPct(id,'mg1','m1'):null;
+  if(massDelta!=null)found.push({id:'mass',label:'Masa',hint:String(massDelta)+'%'});
+  else if(massGoal)missing.push('dwa pomiary masy');
+  const squatDelta=typeof cpMetricDeltaPct==='function'?cpMetricDeltaPct(id,'mg3','m1'):null;
+  if(squatDelta!=null)found.push({id:'strength',label:'Siła',hint:String(squatDelta)+'%'});
+  else if(strGoal)missing.push('dwa pomiary siły (przysiad)');
+  const sleep=typeof cpSleepTrendFact==='function'?cpSleepTrendFact(id):null;
+  if(sleep&&sleep.last!=null&&sleep.prev!=null)found.push({id:'sleep',label:'Sen',hint:sleep.dir||''});
+  else if(condGoal)missing.push('serię pomiarów snu');
+  const stepsDelta=typeof cpMetricDeltaPct==='function'?cpMetricDeltaPct(id,'mg6','m1'):null;
+  if(stepsDelta!=null)found.push({id:'cardio',label:'Kroki / cardio',hint:String(stepsDelta)+'%'});
+  else if(condGoal)missing.push('pomiary kroków lub cardio');
+  const today=typeof todayYmd==='function'?todayYmd():(typeof dashTodayYmd==='function'?dashTodayYmd():new Date().toISOString().slice(0,10));
+  const openHw=typeof clientOpenHomework==='function'?clientOpenHomework(id):((window.TASKS||[]).filter(t=>t&&t.clientId===id&&t.status!=='done'&&(t.kind==='homework'||t.odWorkoutId)));
+  const doneHw=typeof homeworkCompletions==='function'?homeworkCompletions(id,14):[];
+  if((openHw&&openHw.length)||(doneHw&&doneHw.length)){
+    const late=(openHw||[]).filter(t=>t&&t.due&&String(t.due).slice(0,10)<today);
+    found.push({id:'homework',label:'Zadania',hint:late.length?'po terminie':(openHw&&openHw.length?'otwarte':'zrobione')});
+  }else missing.push('zadanie domowe (zapis albo odhaczenie)');
+  return{ok:found.length>=2,found,missing,goal};
+}
+function cpCoopFingerprint(c,v,snap,gate){
+  const facts=snap&&snap.facts||{};
+  return [
+    (v&&v.verdict)||'',
+    (v&&v.score)!=null?String(v.score):'',
+    facts.lastWorkout&&facts.lastWorkout.date||'',
+    facts.lastCheckin&&facts.lastCheckin.date||'',
+    facts.adh30&&facts.adh30.pct!=null?String(facts.adh30.pct):'',
+    facts.mass&&facts.mass.deltaPct!=null?String(facts.mass.deltaPct):'',
+    ((gate&&gate.found)||[]).map(s=>s.id).join(',')
+  ].join('|');
+}
+function cpCoopCacheGet(id){
+  return (window._cpCoopCache||{})[id]||null;
+}
+function cpCoopCacheSet(id,row){
+  if(!window._cpCoopCache)window._cpCoopCache={};
+  window._cpCoopCache[id]=row;
+}
+function cpCoopCacheClear(id){
+  if(window._cpCoopCache)delete window._cpCoopCache[id];
+}
+function cpCoopContextForAI(c){
+  if(!c)return'';
+  const esc=s=>String(s??'').replace(/\s+/g,' ').trim();
+  const lines=['=== KONTEKST WSPÓŁPRACY (tylko fakty) ==='];
+  lines.push('Imię: '+(c.name||'—'));
+  lines.push('Cel: '+(c.goal||'—'));
+  lines.push('Poziom: '+(c.level||'—'));
+  if(c.age)lines.push('Wiek: '+c.age);
+  if(c.weight)lines.push('Waga (karta): '+c.weight+' kg');
+  if(c.height)lines.push('Wzrost: '+c.height+' cm');
+  const inj=String(c.injuries||'').trim();
+  lines.push('Ograniczenia (pole injuries): '+(inj||'brak'));
+  const v=typeof buildMonitorVerdict==='function'?buildMonitorVerdict(c):null;
+  if(v){
+    lines.push('Werdykt monitora: '+(v.verdict||'—')+' (score '+(v.score??'—')+')');
+    (v.signals||[]).slice(0,8).forEach(s=>lines.push('- ['+(s.tone||'')+'] '+(s.label||'')+': '+(s.text||'')));
+  }else lines.push('Werdykt monitora: brak');
+  const snap=typeof clientSituationSnapshot==='function'?clientSituationSnapshot(c.id):null;
+  const facts=snap&&snap.facts||{};
+  if(facts.adh7)lines.push('Adherencja 7d: '+(facts.adh7.logged||0)+'/'+(facts.adh7.assigned||0)+' ('+(facts.adh7.pct||0)+'%)');
+  if(facts.adh30)lines.push('Adherencja 30d: '+(facts.adh30.logged||0)+'/'+(facts.adh30.assigned||0)+' ('+(facts.adh30.pct||0)+'%)');
+  if(facts.lastWorkout)lines.push('Ostatni zalogowany trening: '+(facts.lastWorkout.date||'')+' · '+(facts.lastWorkout.title||'')+' · source='+(facts.lastWorkout.source||'')+' · dni='+(facts.lastWorkout.daysSince??'—'));
+  else lines.push('Ostatni zalogowany trening: brak');
+  const logged=cpCoopLoggedWorkouts(c.id);
+  const last=logged[0];
+  if(last){
+    if(last.feedback!=null&&last.feedback!=='')lines.push('Ocena ostatniego treningu: '+last.feedback+'/5');
+    if(typeof cpBriefTopLoads==='function'){
+      const loads=cpBriefTopLoads(last)||[];
+      if(loads.length)lines.push('Top obciążenia ostatniej sesji: '+loads.map(r=>(r.name?r.name+' ':'')+r.load).filter(Boolean).join(' · '));
+    }
+  }
+  lines.push('Status check-inu: '+(facts.checkinStatus||'brak'));
+  const filled=cpCoopFilledCheckins(c.id)[0];
+  if(filled){
+    const a=filled.answers||{};
+    const bits=[];
+    [['sleep','Sen'],['energy','Energia'],['stress','Stres'],['nutrition','Odżywianie'],['overall','Samopoczucie']].forEach(([k,lab])=>{
+      if(a[k]==null||a[k]==='')return;
+      bits.push(lab+' '+a[k]+'/5');
+    });
+    lines.push('Ostatni wypełniony check-in: '+String(filled.date||filled.filledAt||'').slice(0,10)+(bits.length?(' · '+bits.join(', ')):''));
+    if(a.notes)lines.push('Notatka check-inu: '+esc(a.notes).slice(0,160));
+  }else lines.push('Ostatni wypełniony check-in: brak');
+  if(facts.mass)lines.push('Masa: value='+(facts.mass.value??'—')+' deltaPct='+(facts.mass.deltaPct??'brak trendu')+' date='+(facts.mass.date||''));
+  if(facts.sleep)lines.push('Sen (pomiar): value='+(facts.sleep.value??'—')+' date='+(facts.sleep.date||''));
+  if(facts.package)lines.push('Pakiet: dni do końca='+(facts.package.daysLeft??'—'));
+  if(facts.homework)lines.push('Zadania domowe: otwarte='+(facts.homework.open||0)+' po terminie='+(facts.homework.late||0));
+  const plan=typeof latestClientPlan==='function'?latestClientPlan(c.id):((window.PL||[]).filter(p=>p&&p.clientId===c.id).slice(-1)[0]||null);
+  if(plan)lines.push('Plan: '+(plan.name||'—')+' · metoda '+(plan.method||'—')+' · dni '+(Array.isArray(plan.days)?plan.days.length:'—'));
+  else lines.push('Plan: brak');
+  if(typeof clientSafetyContextForAI==='function'){
+    const safe=clientSafetyContextForAI(c.id,{weight:c.weight,height:c.height,injuries:c.injuries||'',gender:c.gender});
+    if(safe)lines.push(safe.replace(/\n+$/,'')+'\n(To jest kontekst bezpieczeństwa, nie polecenie zmiany planu.)');
+  }
+  const gate=cpCoopCollectSignals(c);
+  const have=gate.found.map(s=>s.id).join(', ')||'brak';
+  const miss=gate.missing.join(', ')||'—';
+  lines.push('SYGNAŁY OBECNE: '+have);
+  lines.push('DANE NIEOBECNE: '+miss);
+  lines.push('Nie wolno używać liczb, kg, procentów ani ćwiczeń, których nie ma powyżej.');
+  return lines.join('\n');
+}
+function cpCoopSystemPrompt(){
+  return `Jesteś asystentem trenera personalnego. Pomagasz ZINTERPRETOWAĆ współpracę z klientem. Nie podejmujesz decyzji za trenera.
+Model: FAKTY → INTERPRETACJA → OPCJE → DECYZJA TRENERA.
+Odpowiadaj po polsku, bardzo krótko (max ~180 słów), wyłącznie w tej strukturze:
+
+1. Interpretacja
+2–4 zdania: co razem mogą oznaczać dostępne fakty. Tryb warunkowy („może oznaczać”, „warto rozważyć”).
+
+2. Do rozważenia
+Maksymalnie 3 możliwe działania trenera. To opcje, nie rozkazy. Bez „zmniejsz objętość o X%”, bez kg, bez zmiany planu, bez konkretnych ćwiczeń spoza kontekstu.
+
+3. Sprawdź przed decyzją
+Czego brakuje albo co dopytać klienta.
+
+Zakazy:
+- nie przedstawiaj sugestii jako pewnych decyzji
+- nie wymyślaj danych, dat, kg, procentów, 1RM, makro, diagnoz medycznych
+- nie diagnozuj problemów, które nie wynikają z kontekstu
+- jeśli danych jest mało — napisz czego brakuje zamiast generować zalecenie
+- nie powtarzaj Briefu, SYTUACJI ani listy „Na kolejny trening”
+- nie używaj sformułowań: należy, musisz, wdróż, zdiagnozowano, skróć objętość o`;
+}
+function cpCoopParseReply(raw){
+  const src=String(raw||'').replace(/\r/g,'').trim();
+  const cut=src.length>1600?src.slice(0,1600):src;
+  const headers=[
+    {key:'interp',names:['1. Interpretacja','Interpretacja']},
+    {key:'consider',names:['2. Do rozważenia','Do rozważenia']},
+    {key:'check',names:['3. Sprawdź przed decyzją','Sprawdź przed decyzją']}
+  ];
+  const hits=[];
+  headers.forEach(h=>{
+    let at=-1,len=0;
+    h.names.forEach(n=>{
+      const i=cut.toLowerCase().indexOf(n.toLowerCase());
+      if(i>=0&&(at<0||i<at)){at=i;len=n.length;}
+    });
+    if(at>=0)hits.push({key:h.key,at,len});
+  });
+  hits.sort((a,b)=>a.at-b.at);
+  const blocks={interp:'',consider:'',check:''};
+  hits.forEach((h,i)=>{
+    const from=h.at+h.len;
+    const to=i+1<hits.length?hits[i+1].at:cut.length;
+    blocks[h.key]=cut.slice(from,to).replace(/^[\s:]+/,'').trim();
+  });
+  const toItems=(t,max)=>{
+    const lines=String(t||'').split('\n').map(l=>l.replace(/^\s*(?:[-•*]|\d+[.)])\s*/,'').trim()).filter(Boolean);
+    if(!lines.length){
+      const one=String(t||'').replace(/\s+/g,' ').trim();
+      return one?[one]:[];
+    }
+    return lines.slice(0,max);
+  };
+  const parsed={
+    ok:!!(hits.length>=2&&blocks.interp),
+    interp:blocks.interp,
+    consider:toItems(blocks.consider,3),
+    check:toItems(blocks.check,4),
+    raw:cut
+  };
+  return parsed;
+}
+function cpCoopFormatText(s){
+  const esc=typeof escHtml==='function'?escHtml:(t=>String(t??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'));
+  return esc(s).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+}
+function cpCoopResultHTML(parsed,stale){
+  const staleHtml=stale?'<div class="cp-ov-coop-stale">Dane klienta się zmieniły. Ponów analizę, jeśli chcesz aktualny odczyt.</div>':'';
+  if(!parsed)return staleHtml;
+  if(!parsed.ok){
+    return staleHtml+`<div class="cp-ov-coop-raw"><div class="cp-ov-coop-note">Odpowiedź poza schematem — potraktuj ostrożnie.</div><div>${cpCoopFormatText(parsed.raw||'')}</div></div>`;
+  }
+  const consider=(parsed.consider||[]).map(t=>`<li>${cpCoopFormatText(t)}</li>`).join('')||'<li>Na razie nie ma podstaw do zmiany kursu.</li>';
+  const check=(parsed.check||[]).map(t=>`<li>${cpCoopFormatText(t)}</li>`).join('');
+  return `${staleHtml}<div class="cp-ov-coop-sec" data-cp-coop-sec="interp">
+      <div class="cp-ov-coop-sh">1. Interpretacja</div>
+      <p>${cpCoopFormatText(parsed.interp)}</p>
+    </div>
+    <div class="cp-ov-coop-sec" data-cp-coop-sec="consider">
+      <div class="cp-ov-coop-sh">2. Do rozważenia</div>
+      <ul>${consider}</ul>
+    </div>
+    <div class="cp-ov-coop-sec" data-cp-coop-sec="check">
+      <div class="cp-ov-coop-sh">3. Sprawdź przed decyzją</div>
+      ${check?`<ul>${check}</ul>`:'<p>Brak dodatkowych luk w kontekście.</p>'}
+    </div>
+    <div class="cp-ov-coop-legal">To nie jest decyzja. Wybór zostaje przy trenerze.</div>`;
+}
+function cpOverviewCoopHTML(c){
+  if(!c)return'';
+  const esc=typeof escHtml==='function'?escHtml:(s=>String(s??''));
+  let v=null;
+  try{v=typeof buildMonitorVerdict==='function'?buildMonitorVerdict(c):null;}catch(e){v=null;}
+  const snap=typeof clientSituationSnapshot==='function'?clientSituationSnapshot(c.id):null;
+  const gate=cpCoopCollectSignals(c);
+  const fp=cpCoopFingerprint(c,v,snap,gate);
+  const cache=cpCoopCacheGet(c.id);
+  const stale=!!(cache&&cache.fp&&cache.fp!==fp);
+  const labels={progres:'Progres',regres:'Regres','ryzyko stagnacji':'Ryzyko stagnacji',stabilnie:'Stabilnie'};
+  const verdict=v&&v.verdict?(labels[v.verdict]||v.verdict):'';
+  const tone=v?(v.verdictTone||'neutral'):'neutral';
+  const sigs=cpCoopPickSignals(v);
+  const busy=!!(window._cpCoopBusy&&window._cpCoopBusy[c.id]);
+  let body='';
+  if(busy){
+    body=`<div class="cp-ov-coop-busy" data-cp-coop-state="busy">Analizuję…</div>`;
+  }else if(cache&&(cache.parsed||cache.error)){
+    if(cache.error){
+      body=`<div class="cp-ov-coop-err" data-cp-coop-state="error">${esc(cache.error)}</div>`;
+    }else{
+      body=`<div class="cp-ov-coop-out" data-cp-coop-state="done">${cpCoopResultHTML(cache.parsed,stale)}</div>`;
+    }
+  }else if(!gate.ok){
+    const need=(gate.missing||[]).slice(0,4);
+    body=`<div class="cp-ov-coop-empty" data-cp-coop-state="gated">
+      <div class="cp-ov-coop-empty-title">Za mało danych do interpretacji.</div>
+      ${need.length?`<div class="cp-ov-coop-empty-need">Warto jeszcze zebrać: ${esc(need.join(', '))}.</div>`:''}
+    </div>`;
+  }
+  const showRun=gate.ok&&!busy;
+  const runLbl=cache&&(cache.parsed||cache.error)?'Ponów analizę':'Przeanalizuj współpracę';
+  return `<div class="cp-ov-coop" data-cp-coop="card">
+    <div class="cp-ov-coop-kicker">Analiza współpracy</div>
+    <div class="cp-ov-coop-verdict cp-ov-coop-${esc(tone)}" data-cp-coop-verdict="${esc(v&&v.verdict||'none')}">
+      ${verdict?`Werdykt: ${esc(verdict)}${v&&v.score!=null?' · score '+esc(String(v.score)):''}`:'Za mało danych do werdyktu.'}
+    </div>
+    ${sigs.length?`<ul class="cp-ov-coop-sigs">${sigs.map(s=>`<li class="cp-ov-coop-sig cp-ov-coop-sig-${esc(s.tone||'neutral')}" data-cp-coop-sig="${esc(s.label||'')}">${esc(s.label||'')}${s.text?(' — '+esc(s.text)):''}</li>`).join('')}</ul>`:''}
+    <div class="cp-ov-coop-body" id="cp-ov-coop-body">${body}</div>
+    <div class="cp-ov-coop-actions">
+      ${showRun?`<button type="button" class="btn btn-primary btn-sm" id="cp-ov-coop-run" data-cp-coop-cta="run" onclick="runCpCoopAnalysis('${esc(c.id)}')">${esc(runLbl)}</button>`:''}
+      ${cache&&!busy?`<button type="button" class="btn btn-ghost btn-sm" data-cp-coop-cta="clear" onclick="clearCpCoopAnalysis('${esc(c.id)}')">Wyczyść</button>`:''}
+    </div>
+    <div class="cp-ov-coop-foot">AI interpretuje dane. Decyzję podejmujesz Ty.</div>
+  </div>`;
+}
+async function runCpCoopAnalysis(clientId){
+  const id=clientId||window.cpClientId;
+  const c=(window.CL||[]).find(x=>x&&x.id===id);
+  if(!c){if(typeof notify==='function')notify('Wybierz klienta');return;}
+  if(!window._cpCoopBusy)window._cpCoopBusy={};
+  if(window._cpCoopBusy[id])return;
+  const gate=cpCoopCollectSignals(c);
+  if(!gate.ok){
+    if(typeof renderCPOverview==='function')renderCPOverview(c);
+    return;
+  }
+  window._cpCoopBusy[id]=true;
+  if(typeof renderCPOverview==='function')renderCPOverview(c);
+  const v=typeof buildMonitorVerdict==='function'?buildMonitorVerdict(c):null;
+  const snap=typeof clientSituationSnapshot==='function'?clientSituationSnapshot(c.id):null;
+  const fp=cpCoopFingerprint(c,v,snap,gate);
+  const url=typeof staffWorkerUrl==='function'?staffWorkerUrl():((typeof W==='string'&&W)?W:'https://anthropic-proxy.teamprogress2018.workers.dev/');
+  const system=cpCoopSystemPrompt()+'\n\n'+cpCoopContextForAI(c);
+  try{
+    const resp=await fetch(url,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:500,
+        system,
+        messages:[{role:'user',content:'Przeanalizuj współpracę z tym klientem na podstawie podanego kontekstu. Odpowiedz wyłącznie w trzech sekcjach.'}]
+      })
+    });
+    const data=await resp.json();
+    const raw=typeof staffReplyText==='function'?staffReplyText(data):(Array.isArray(data&&data.content)?data.content.map(b=>(b&&b.text)||'').join('\n').trim():'');
+    const parsed=cpCoopParseReply(raw||'');
+    cpCoopCacheSet(id,{fp,parsed,error:null,at:Date.now()});
+  }catch(e){
+    cpCoopCacheSet(id,{fp,parsed:null,error:'Nie udało się połączyć z AI.',at:Date.now()});
+  }
+  window._cpCoopBusy[id]=false;
+  const cur=(window.CL||[]).find(x=>x&&x.id===id);
+  if(cur&&typeof renderCPOverview==='function'&&window.cpClientId===id)renderCPOverview(cur);
+}
+function clearCpCoopAnalysis(clientId){
+  const id=clientId||window.cpClientId;
+  cpCoopCacheClear(id);
+  const c=(window.CL||[]).find(x=>x&&x.id===id);
+  if(c&&typeof renderCPOverview==='function')renderCPOverview(c);
+}
+window.cpCoopLoggedWorkouts=cpCoopLoggedWorkouts;
+window.cpCoopFilledCheckins=cpCoopFilledCheckins;
+window.cpCoopPickSignals=cpCoopPickSignals;
+window.cpCoopCollectSignals=cpCoopCollectSignals;
+window.cpCoopFingerprint=cpCoopFingerprint;
+window.cpCoopContextForAI=cpCoopContextForAI;
+window.cpCoopSystemPrompt=cpCoopSystemPrompt;
+window.cpCoopParseReply=cpCoopParseReply;
+window.cpOverviewCoopHTML=cpOverviewCoopHTML;
+window.runCpCoopAnalysis=runCpCoopAnalysis;
+window.clearCpCoopAnalysis=clearCpCoopAnalysis;
+
 function renderCPOverview(c){
   const today=new Date();
   const todayStr=typeof todayYmd==='function'?todayYmd():(typeof dateStrLocal==='function'?dateStrLocal(today):today.toISOString().split('T')[0]);
@@ -2220,6 +2565,7 @@ function renderCPOverview(c){
   document.getElementById('cp-body').innerHTML=`
     ${cpOverviewBriefHTML(c)}
     ${cpOverviewSituationHTML(c)}
+    ${cpOverviewCoopHTML(c)}
 
     ${editing?'':`<div class="cp-ov-edit-cta" role="button" tabindex="0" onclick="startCPEdit('${c.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startCPEdit('${c.id}')}">
       <div>
