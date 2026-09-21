@@ -1600,17 +1600,29 @@ function cpOverviewSituationHTML(c){
   const adhHint=adh30.assigned?(adh30.logged+'/'+adh30.assigned):'brak przypisań';
   const massHint=mass.delta==null?'brak serii 30d':((mass.delta>0?'+':'')+mass.delta+' kg / 30d');
   const sleepHint=sleep?(sleep.dir==='down'?'spada':sleep.dir==='up'?'rośnie':'stabilny'):'brak trendu';
-  const ciHint=lastCi&&lastCi.daysSince!=null?(lastCi.daysSince===0?'dziś':(lastCi.daysSince===1?'wczoraj':lastCi.daysSince+' d. temu')):(facts.checkinStatus==='pending'?'oczekuje':'brak');
+  let ciN='—';
+  let ciHint='brak';
+  if(lastCi&&lastCi.daysSince!=null){
+    ciN=String(lastCi.daysSince);
+    ciHint=lastCi.daysSince===0?'dziś':(lastCi.daysSince===1?'wczoraj':lastCi.daysSince+' d. temu');
+  }else if(facts.checkinStatus==='overdue'){
+    ciN='!';
+    ciHint='przeterminowany';
+  }else if(facts.checkinStatus==='pending'){
+    ciN='…';
+    ciHint='oczekuje';
+  }
   const tiles=[
     {id:'train',n:fmtN(adh7.logged)+(adh7.assigned?'/'+adh7.assigned:''),lbl:'Treningi 7d',hint:trainHint,tone:cpOverviewSitTone('train',snap,mass,sleep),target:'cp-ov-card-train'},
     {id:'adh',n:adh30.assigned?Math.round(adh30.pct||0)+'%':'—',lbl:'Adherencja 30d',hint:adhHint,tone:cpOverviewSitTone('adh',snap,mass,sleep),target:'cp-ov-card-train'},
     {id:'mass',n:fmtN(massVal),lbl:'Masa',hint:massHint,tone:cpOverviewSitTone('mass',snap,mass,sleep),target:'cp-ov-card-metrics'},
     {id:'sleep',n:fmtN(sleepVal),lbl:'Sen',hint:sleepHint,tone:cpOverviewSitTone('sleep',snap,mass,sleep),target:'cp-ov-card-metrics'},
-    {id:'checkin',n:lastCi&&lastCi.daysSince!=null?String(lastCi.daysSince):'—',lbl:'Check-in',hint:ciHint,tone:cpOverviewSitTone('checkin',snap,mass,sleep),target:'cp-ov-card-feel'}
+    {id:'checkin',n:ciN,lbl:'Check-in',hint:ciHint,tone:cpOverviewSitTone('checkin',snap,mass,sleep),target:'cp-ov-card-feel'}
   ];
   const next=cpNextSessionFocusItems(c.id);
   const mon=snap&&snap.signals&&snap.signals.monitor;
-  const monTxt=mon&&mon.verdict?(' · '+mon.verdict):'';
+  const verMap={progres:'Progres',regres:'Regres',stagnacja:'Stagnacja'};
+  const monTxt=mon&&mon.verdict?(' · '+(verMap[mon.verdict]||mon.verdict)):'';
   return `<div class="cp-ov-situation">
     <div class="cp-ov-situation-top">
       <div>

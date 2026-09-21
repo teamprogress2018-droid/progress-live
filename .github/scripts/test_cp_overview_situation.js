@@ -148,6 +148,9 @@ ok('sleep down listed',busy.some(x=>x.kind==='sleep'&&/Sen spada/.test(x.text)))
 ok('checkin overdue listed',busy.some(x=>x.kind==='checkin'&&x.tone==='act'));
 ok('max 5 bullets',busy.length===5,JSON.stringify(busy.map(x=>x.kind)));
 ok('homework in first 5',busy.some(x=>x.kind==='homework'));
+const htmlBusy=sandbox.cpOverviewSituationHTML(sandbox.CL[0]);
+ok('overdue checkin tile',/przeterminowany/.test(htmlBusy)&&/data-cp-sit="checkin"/.test(htmlBusy));
+ok('monitor verdict cap',/Progres/.test(htmlBusy));
 
 sandbox._loads=[{
   name:'Wyciskanie sztangi',

@@ -123,8 +123,9 @@ function ok(name, cond, extra) {
       pulse: !!document.querySelector('.cp-ov-situation .cp-ov-pulse'),
       nextHd: (document.querySelector('.cp-ov-next-hd') || {}).textContent || '',
       next,
-      tiles,
-      hasTrain: !!(train && /Ostatnie 7 dni/.test(train.textContent || '')),
+    tiles,
+    checkinHint: ((document.querySelector('[data-cp-sit="checkin"] .cp-ov-sit-hint') || {}).textContent || ''),
+    hasTrain: !!(train && /Ostatnie 7 dni/.test(train.textContent || '')),
       hasMetrics: !!(metrics && /Pomiary ciała/.test((metrics.querySelector('.cp-ov-card-title') || {}).textContent || '')),
       tabs,
       editCta: !!document.querySelector('.cp-ov-edit-cta')
@@ -142,6 +143,7 @@ function ok(name, cond, extra) {
   ok('max 5 next', busy.next.length <= 5, String(busy.next.length));
   ok('no empty copy when signals', !busy.next.some(x => x.kind === 'ok'));
   ok('kpi tiles 5', busy.tiles.length === 5 && busy.tiles[0].id === 'train' && busy.tiles[2].id === 'mass', JSON.stringify(busy.tiles));
+  ok('overdue checkin hint', /przeterminowany/.test(busy.checkinHint), busy.checkinHint);
   ok('existing train card', busy.hasTrain);
   ok('existing metrics card', busy.hasMetrics);
   ok('edit CTA remains', busy.editCta);
