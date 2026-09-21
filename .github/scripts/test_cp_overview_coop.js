@@ -45,7 +45,7 @@ ok('no persist',!/persistById/.test(coopSrc));
 ok('no scoreCheckin',!/scoreCheckinAnswers/.test(coopSrc));
 ok('injuries field',/c\.injuries/.test(extract(src08,'cpCoopContextForAI')));
 ok('css',css.includes('.cp-ov-coop')&&css.includes('.cp-ov-coop-sh'));
-ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=67')&&html.includes('styles.css?v=103'));
+ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=68')&&html.includes('styles.css?v=103'));
 ok('ci unit',wf.includes('test_cp_overview_coop.js'));
 ok('ci ui',wf.includes('test_cp_overview_coop_ui.js'));
 ok('gate two signals',src08.includes('found.length>=2'));
@@ -132,7 +132,7 @@ const gateThin=sandbox.cpCoopCollectSignals(thin);
 ok('thin blocked',!gateThin.ok&&gateThin.found.length<2,JSON.stringify(gateThin));
 const htmlThin=sandbox.cpOverviewCoopHTML(thin);
 ok('thin no fetch cta',/Za mało danych do analizy — potrzebne minimum 2 niezależne źródła/.test(htmlThin)&&!/data-cp-coop-cta="run"/.test(htmlThin)&&/data-cp-coop-cta="blocked"/.test(htmlThin));
-ok('thin blocked button',/disabled/.test(htmlThin));
+ok('thin blocked button',/disabled/.test(htmlThin)&&/opacity:\.45/.test(htmlThin));
 
 const masaOnly={id:'c-masa1',name:'Ewa',goal:'masa',injuries:''};
 sandbox.METRIC_ENTRIES.push({clientId:'c-masa1',groupId:'mg1',date:'2026-09-01',values:{m1:70}});
