@@ -224,6 +224,8 @@ jobs:
         run: node .github/scripts/test_cp_overview_brief.js
       - name: 1n12b2c. Testy Analizy współpracy (Etap 5)
         run: node .github/scripts/test_cp_overview_coop.js
+      - name: 1n12b2c2. Testy regresji Analizy współpracy (bramka + mock AI)
+        run: node .github/scripts/test_cp_overview_coop_reg.js
       - name: 1n12b3. Testy osi czasu klienta (filtry)
         run: node .github/scripts/test_cp_timeline_filters.js
       - name: 1n12c. Testy skanu operacyjnego (dzwonek + zegar)

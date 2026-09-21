@@ -173,6 +173,177 @@ function ok(name, cond, extra) {
   ok('new client no extra fetch', empty.fetch === 1, String(empty.fetch));
   ok('situation remains empty client', empty.sit);
 
+  await page.evaluate(() => {
+    const ymd = typeof todayYmd === 'function' ? todayYmd() : new Date().toISOString().slice(0, 10);
+    const addDays = n => {
+      const d = new Date(ymd + 'T12:00:00');
+      d.setDate(d.getDate() + n);
+      const p = x => String(x).padStart(2, '0');
+      return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+    };
+    window.CL.push(
+      { id: 'c-one', name: 'Ola Jeden', goal: 'sila', status: 'active', injuries: '', notes: '' },
+      { id: 'c-pair', name: 'Adam Para', goal: 'sila', status: 'active', injuries: '', notes: 'tajne' },
+      { id: 'c-mass', name: 'Ewa Masa', goal: 'masa', status: 'active', injuries: '', notes: '' }
+    );
+    window.SE.push(
+      { id: 's-one', clientId: 'c-one', date: addDays(-2), source: 'live', type: 'FBW' },
+      { id: 's-pair', clientId: 'c-pair', date: addDays(-2), source: 'live', type: 'FBW A',
+        exercises: [{ name: 'Przysiad', sets: [{ kg: 100, reps: 5, kind: 'work' }] }] }
+    );
+    window.CHECKINS['c-one'] = [];
+    window.CHECKINS['c-pair'] = [{ id: 'ci-p', status: 'filled', date: addDays(-1), answers: { sleep: 3, energy: 2 } }];
+    window.CHECKINS['c-mass'] = [];
+    window.METRIC_ENTRIES = window.METRIC_ENTRIES || [];
+    window.METRIC_ENTRIES.push(
+      { clientId: 'c-mass', groupId: 'mg1', date: addDays(-20), values: { m1: 70 } },
+      { clientId: 'c-mass', groupId: 'mg1', date: addDays(-2), values: { m1: 71.2 } }
+    );
+    window.__persistCalls = 0;
+    const prevPersist = window.persistById;
+    window.persistById = async function () {
+      window.__persistCalls += 1;
+      return prevPersist.apply(this, arguments);
+    };
+  });
+
+  await page.evaluate(() => openClientProfile('c-one'));
+  await page.waitForTimeout(300);
+  const oneSig = await page.evaluate(() => ({
+    gated: !!(document.querySelector('[data-cp-coop-state="gated"]')),
+    cta: !!document.querySelector('[data-cp-coop-cta="run"]'),
+    fetch: window.__coopFetch || 0,
+    brief: !!document.querySelector('.cp-ov-brief'),
+    sit: !!document.querySelector('.cp-ov-situation'),
+    next: !!document.querySelector('.cp-ov-next')
+  }));
+  ok('1 signal gated no CTA', oneSig.gated && !oneSig.cta, JSON.stringify(oneSig));
+  ok('1 signal no extra fetch', oneSig.fetch === 1, String(oneSig.fetch));
+  ok('brief/sit/next stay on 1-signal', oneSig.brief && oneSig.sit && oneSig.next);
+
+  await page.evaluate(() => openClientProfile('c-mass'));
+  await page.waitForTimeout(300);
+  const massOnly = await page.evaluate(() => ({
+    gated: !!(document.querySelector('[data-cp-coop-state="gated"]')),
+    cta: !!document.querySelector('[data-cp-coop-cta="run"]'),
+    copy: (document.querySelector('.cp-ov-coop-empty') || {}).textContent || '',
+    fetch: window.__coopFetch || 0
+  }));
+  ok('mass-only gated', massOnly.gated && !massOnly.cta && /Za mało danych do interpretacji/.test(massOnly.copy));
+  ok('mass-only no fetch', massOnly.fetch === 1, String(massOnly.fetch));
+
+  await page.evaluate(() => {
+    window.__coopHold = true;
+    window.__coopRelease = null;
+    window.__coopGate = new Promise(r => { window.__coopRelease = r; });
+    const prev = window.fetch;
+    window.fetch = async (url, opts) => {
+      const body = String((opts && opts.body) || '');
+      if (/współpracę z tym klientem/.test(body) || /trzech sekcjach/.test(body)) {
+        window.__coopFetch += 1;
+        window.__coopLastBody = body;
+        if (window.__coopMode === 'error') throw new Error('network');
+        if (window.__coopMode === 'bad') {
+          return { json: async () => ({ content: [{ text: 'lorem ipsum bez sekcji' }] }) };
+        }
+        if (window.__coopHold) await window.__coopGate;
+        return {
+          json: async () => ({
+            content: [{
+              text: '1. Interpretacja\nPara sygnałów może oznaczać zmęczenie, nie regres.\n\n2. Do rozważenia\n- Dopytać o sen\n- Rozważyć krótsze sesje\n- Poczekać na siłę\n- Ignoruj czwartą\n\n3. Sprawdź przed decyzją\n- Brak pomiaru siły'
+            }]
+          })
+        };
+      }
+      return prev(url, opts);
+    };
+    openClientProfile('c-pair');
+  });
+  await page.waitForSelector('[data-cp-coop-cta="run"]');
+  const pairIdle = await page.evaluate(() => ({
+    cta: (document.querySelector('[data-cp-coop-cta="run"]') || {}).textContent || '',
+    fetch: window.__coopFetch || 0,
+    brief: (document.querySelector('.cp-ov-brief') || {}).textContent || '',
+    next: (document.querySelector('.cp-ov-next') || {}).textContent || ''
+  }));
+  ok('pair training+checkin CTA without mass', /Przeanalizuj współpracę/.test(pairIdle.cta), pairIdle.cta);
+  ok('pair no fetch on open', pairIdle.fetch === 1, String(pairIdle.fetch));
+  ok('next still on pair', /Na kolejny trening/.test(pairIdle.next));
+
+  await page.evaluate(() => {
+    runCpCoopAnalysis('c-pair');
+    runCpCoopAnalysis('c-pair');
+    runCpCoopAnalysis('c-pair');
+  });
+  await page.waitForTimeout(150);
+  const inflight = await page.evaluate(() => ({ fetch: window.__coopFetch, busy: !!(window._cpCoopBusy && window._cpCoopBusy['c-pair']) }));
+  ok('triple call one fetch', inflight.fetch === 2 && inflight.busy, JSON.stringify(inflight));
+  await page.evaluate(() => { window.__coopHold = false; if (window.__coopRelease) window.__coopRelease(); });
+  await page.waitForSelector('[data-cp-coop-sec="interp"]');
+  const pairDone = await page.evaluate(() => {
+    const consider = document.querySelector('[data-cp-coop-sec="consider"]');
+    const lis = consider ? consider.querySelectorAll('li').length : -1;
+    const body = window.__coopLastBody || '';
+    return {
+      secs: [...document.querySelectorAll('[data-cp-coop-sec]')].map(el => el.getAttribute('data-cp-coop-sec')),
+      lis,
+      fetch: window.__coopFetch,
+      persist: window.__persistCalls || 0,
+      nextLeak: /Skróć objętość|20–30%/.test(body),
+      notesLeak: /tajne/.test((document.querySelector('.cp-ov-coop') || {}).textContent || ''),
+      legal: /nie jest decyzja/i.test((document.querySelector('.cp-ov-coop') || {}).textContent || ''),
+      rerun: (document.querySelector('[data-cp-coop-cta="run"]') || {}).textContent || '',
+      sit: !!document.querySelector('.cp-ov-situation'),
+      next: !!document.querySelector('.cp-ov-next'),
+      brief: !!document.querySelector('.cp-ov-brief')
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'cp_coop_pair_result.png') });
+  ok('pair 3 sections', pairDone.secs.join(',') === 'interp,consider,check', pairDone.secs.join(','));
+  ok('pair max 3 consider', pairDone.lis === 3, String(pairDone.lis));
+  ok('pair still 2 fetches', pairDone.fetch === 2, String(pairDone.fetch));
+  ok('pair no persist', pairDone.persist === 0);
+  ok('pair prompt no volume order', !pairDone.nextLeak);
+  ok('pair notes not in card', !pairDone.notesLeak);
+  ok('pair legal + ponow', pairDone.legal && /Ponów/.test(pairDone.rerun));
+  ok('pair brief/sit/next intact', pairDone.brief && pairDone.sit && pairDone.next);
+
+  await page.click('[data-cp-coop-cta="clear"]');
+  await page.waitForTimeout(200);
+  const cleared = await page.evaluate(() => ({
+    secs: document.querySelectorAll('[data-cp-coop-sec]').length,
+    cta: (document.querySelector('[data-cp-coop-cta="run"]') || {}).textContent || '',
+    cache: !!(window._cpCoopCache && window._cpCoopCache['c-pair']),
+    sit: !!document.querySelector('.cp-ov-situation')
+  }));
+  ok('clear drops result', cleared.secs === 0 && /Przeanalizuj współpracę/.test(cleared.cta) && !cleared.cache);
+  ok('clear keeps situation', cleared.sit);
+
+  await page.evaluate(() => { window.__coopMode = 'error'; window.__coopHold = false; });
+  await page.click('[data-cp-coop-cta="run"]');
+  await page.waitForSelector('[data-cp-coop-state="error"]');
+  const err = await page.evaluate(() => ({
+    copy: (document.querySelector('[data-cp-coop-state="error"]') || {}).textContent || '',
+    rerun: (document.querySelector('[data-cp-coop-cta="run"]') || {}).textContent || '',
+    sit: !!document.querySelector('.cp-ov-situation')
+  }));
+  await page.screenshot({ path: path.join(shotDir, 'cp_coop_error.png') });
+  ok('error copy', /Nie udało się połączyć z AI/.test(err.copy));
+  ok('error allows retry', /Ponów/.test(err.rerun));
+  ok('error keeps overview', err.sit);
+
+  await page.evaluate(() => { window.__coopMode = 'bad'; });
+  await page.click('[data-cp-coop-cta="run"]');
+  await page.waitForTimeout(400);
+  const malformed = await page.evaluate(() => ({
+    note: /Odpowiedź poza schematem/.test((document.querySelector('.cp-ov-coop') || {}).textContent || ''),
+    secs: document.querySelectorAll('[data-cp-coop-sec]').length,
+    sit: !!document.querySelector('.cp-ov-situation'),
+    next: !!document.querySelector('.cp-ov-next')
+  }));
+  ok('malformed note no sections', malformed.note && malformed.secs === 0);
+  ok('malformed does not break overview', malformed.sit && malformed.next);
+
   await browser.close();
   if (failed) {
     console.error(failed + ' failed');
