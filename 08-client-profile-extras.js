@@ -223,7 +223,7 @@ function collectCpTimelineEvents(clientId){
       id:'tl_pkg_'+p.id,
       kind:'platnosc',
       date:p.date||p.createdAt||'',
-      fact:('Pakiet: '+(p.title||'Pakiet'))+(price?' · '+price:''),
+      fact:(p.title||'Pakiet')+(price?' · '+price:''),
       extra:''
     });
     if(p.paymentRequestedAt){

@@ -130,7 +130,7 @@ ok('checkin /5',all.some(e=>e.kind==='checkin'&&/Sen 5\/5/.test(e.fact)&&/Energi
 ok('mass delta vs prev',all.some(e=>e.kind==='pomiar'&&/99\.4/.test(String(e.fact))&&e.extra==='-0.6 kg'),JSON.stringify(all.filter(e=>e.kind==='pomiar')));
 ok('plan',all.some(e=>e.kind==='plan'&&/FBW/.test(e.fact)));
 ok('note',all.some(e=>e.kind==='notatka'&&/Kolano/.test(e.fact)));
-ok('pay no paidAt',all.some(e=>e.kind==='platnosc'&&/Pakiet/.test(e.fact))&&!all.some(e=>/opłacon/i.test(e.fact+e.extra)));
+ok('pay no paidAt',all.some(e=>e.kind==='platnosc'&&/Pakiet 8/.test(e.fact))&&!all.some(e=>/opłacon/i.test(e.fact+e.extra)));
 ok('sort newest first',all.length>=2&&String(sandbox.cpTlSortKey(all[0].date))>=String(sandbox.cpTlSortKey(all[1].date)));
 ok('record beaten',all.some(e=>e.kind==='rekord'&&/Wyciskanie/.test(e.fact)),JSON.stringify(all.filter(e=>e.kind==='rekord')));
 
