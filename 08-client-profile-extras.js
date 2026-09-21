@@ -1,76 +1,340 @@
 // ════════════════════════════════════════
-// OŚ CZASU KLIENTA — notatki + auto: sesje/plany/pomiary
+// OŚ CZASU KLIENTA — agregacja istniejących zdarzeń
 // ════════════════════════════════════════
 window.CLIENT_TIMELINE = window.CLIENT_TIMELINE || {}; // clientId -> [{id,text,type,date}]
 
-const CTL_ICONS  = {trening:'🏋️',pomiar:'📏',plan:'📋',notatka:'📝',cel:'🎯',sukces:'🏆'};
-const CTL_COLORS = {trening:'#E8302A',pomiar:'var(--blue)',plan:'var(--blue)',notatka:'var(--orange)',cel:'var(--accent)',sukces:'#FFD700'};
+const CP_TL_FILTERS=[
+  {id:'all',label:'Wszystko'},
+  {id:'trening',label:'Trening'},
+  {id:'pomiar',label:'Pomiary'},
+  {id:'checkin',label:'Check-in'},
+  {id:'plan',label:'Plan'},
+  {id:'notatka',label:'Notatki'},
+  {id:'platnosc',label:'Płatności'},
+  {id:'rekord',label:'Rekordy'}
+];
+const CP_TL_KIND_LABEL={trening:'Trening',pomiar:'Pomiar',checkin:'Check-in',plan:'Plan',notatka:'Notatka',platnosc:'Płatność',rekord:'Rekord'};
 
 function safeEscSnippet(text,max){
   return escHtml(String(text||'').slice(0,Math.max(0,max||0)));
 }
 window.safeEscSnippet=safeEscSnippet;
 
+function cpTlYmd(raw){
+  const s=String(raw||'');
+  const m=s.match(/(\d{4}-\d{2}-\d{2})/);
+  if(m)return m[1];
+  const t=new Date(s);
+  if(!isNaN(t.getTime())){
+    const p=n=>String(n).padStart(2,'0');
+    return t.getFullYear()+'-'+p(t.getMonth()+1)+'-'+p(t.getDate());
+  }
+  return '';
+}
+function cpTlDayLabel(raw){
+  const y=cpTlYmd(raw);
+  if(!y)return '';
+  const p=y.split('-');
+  return p[2]+'.'+p[1];
+}
+function cpTlSortKey(raw){
+  const s=String(raw||'');
+  if(/^\d{4}-\d{2}-\d{2}T/.test(s))return s;
+  const y=cpTlYmd(s);
+  if(y)return y+'T12:00:00';
+  return s;
+}
+function cpTlClip(s,n){
+  const t=String(s||'').replace(/\s+/g,' ').trim();
+  if(t.length<=n)return t;
+  return t.slice(0,Math.max(0,n-1)).trim()+'…';
+}
+function cpTlDeltaStr(cur,prev,unit){
+  const a=parseFloat(cur),b=parseFloat(prev);
+  if(!Number.isFinite(a)||!Number.isFinite(b))return '';
+  const d=Math.round((a-b)*10)/10;
+  if(!d)return '';
+  return (d>0?'+':'')+d+(unit?' '+unit:'');
+}
+function cpTlSessionHighlight(s,clientId){
+  const title=typeof sessionTitle==='function'?sessionTitle(s):(s.type||s.title||'Trening');
+  let best=null,bestEx=null,bestVol=-1;
+  (s.exercises||[]).forEach(ex=>{
+    if(typeof isWeightLoadUnit==='function'&&!isWeightLoadUnit(typeof exLoadUnit==='function'?exLoadUnit(ex):'kg'))return;
+    const sets=typeof exerciseLoggedSets==='function'?exerciseLoggedSets(ex):(Array.isArray(ex.sets)?ex.sets:[]);
+    sets.forEach(st=>{
+      if(typeof isWorkingSet==='function'&&!isWorkingSet(st))return;
+      const kg=parseFloat(st&&st.kg),reps=parseFloat(st&&st.reps);
+      if(!Number.isFinite(kg)||kg<=0||!Number.isFinite(reps)||reps<=0)return;
+      const vol=kg*reps;
+      if(vol>bestVol){bestVol=vol;best=st;bestEx=ex;}
+    });
+  });
+  if(!best||!bestEx)return{fact:title,extra:''};
+  const load=typeof formatSetLoad==='function'?formatSetLoad(best.kg,best.reps,bestEx):(best.kg+' kg × '+best.reps);
+  const fact=(bestEx.name||title)+' · '+load;
+  let extra='';
+  const hist=typeof exerciseLoadHistory==='function'?exerciseLoadHistory(clientId,bestEx.name,null,{limit:0}):[];
+  const sessDate=String(s.date||'');
+  let prev=null;
+  const idx=hist.findIndex(h=>h.sessionId&&h.sessionId===s.id);
+  if(idx>=0)prev=hist[idx+1]||null;
+  else prev=hist.find(h=>String(h.date||'')<sessDate)||null;
+  if(prev&&prev.sets&&prev.sets.length){
+    const work=(prev.sets||[]).filter(st=>typeof isWorkingSet!=='function'||isWorkingSet(st));
+    const last=(work.length?work:prev.sets)[(work.length?work:prev.sets).length-1];
+    if(last){
+      const pkg=parseFloat(last.kg),pr=parseFloat(last.reps);
+      const kg=parseFloat(best.kg),reps=parseFloat(best.reps);
+      if(Number.isFinite(pkg)&&Number.isFinite(pr)&&Number.isFinite(kg)&&Number.isFinite(reps)){
+        if(kg===pkg&&reps!==pr){const d=reps-pr;extra=(d>0?'+':'')+d+' powt.';}
+        else if(reps===pr&&kg!==pkg){const d=Math.round((kg-pkg)*10)/10;extra=(d>0?'+':'')+d+' kg';}
+      }
+    }
+  }
+  return{fact,extra};
+}
+function cpTlRecordEvents(clientId){
+  const logged=(window.SE||[]).filter(s=>s&&s.clientId===clientId&&(typeof isLoggedWorkout==='function'?isLoggedWorkout(s):(s.source==='live'||s.source==='client'||s.source==='sala'||s.source==='homework')));
+  const names=[];
+  const seen=new Set();
+  logged.forEach(s=>(s.exercises||[]).forEach(ex=>{
+    const n=String(ex&&ex.name||'').trim();
+    const k=n.toLowerCase();
+    if(!n||seen.has(k))return;
+    if(typeof isWeightLoadUnit==='function'&&!isWeightLoadUnit(typeof exLoadUnit==='function'?exLoadUnit(ex):'kg'))return;
+    seen.add(k);names.push(n);
+  }));
+  const out=[];
+  names.forEach(name=>{
+    const rows=typeof loggedSetRows==='function'?loggedSetRows(clientId,name,logged).slice():[];
+    rows.sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))||String(a.createdAt||'').localeCompare(String(b.createdAt||''))||((a.setNo||0)-(b.setNo||0)));
+    let best=null;
+    rows.forEach(row=>{
+      if(!best){best=row;return;}
+      const beats=typeof setBeatsPR==='function'?setBeatsPR(best,row.kg,row.reps):(row.epley!=null&&best.epley!=null&&row.epley>best.epley+0.05);
+      if(beats){
+        const load=typeof formatSetLoad==='function'?formatSetLoad(row.kg,row.reps,name):(row.kg+' kg × '+row.reps);
+        out.push({
+          id:'tl_pr_'+clientId+'_'+(row.sessionId||'')+'_'+name+'_'+row.date,
+          kind:'rekord',
+          date:row.date||'',
+          fact:name+' · '+load,
+          extra:''
+        });
+        best=row;
+      }
+    });
+  });
+  return out;
+}
+function collectCpTimelineEvents(clientId){
+  const id=String(clientId||'');
+  const events=[];
+  if(!id)return events;
+  const sessions=(window.SE||[]).filter(s=>s&&s.clientId===id);
+  sessions.forEach(s=>{
+    const logged=typeof isLoggedWorkout==='function'?isLoggedWorkout(s):(s.source==='live'||s.source==='client'||s.source==='sala'||s.source==='homework');
+    if(!logged)return;
+    const hi=cpTlSessionHighlight(s,id);
+    events.push({id:'tl_wo_'+s.id,kind:'trening',date:s.date+(s.time?('T'+s.time+':00'):''),fact:hi.fact,extra:hi.extra});
+  });
+  const metrics=(window.METRIC_ENTRIES||[]).filter(e=>e&&e.clientId===id&&e.values);
+  const groups=typeof allMetricGroups==='function'?allMetricGroups():[];
+  metrics.forEach(m=>{
+    const vals=m.values||{};
+    const mid=vals.m1!=null?'m1':Object.keys(vals).find(k=>vals[k]!=null&&vals[k]!=='');
+    if(!mid)return;
+    const g=groups.find(gr=>gr.id===m.groupId);
+    const def=g&&(g.metrics||[]).find(x=>x.id===mid);
+    const name=(def&&def.name)||(m.groupId==='mg1'&&mid==='m1'?'Masa':mid);
+    const unit=(def&&def.unit)||(m.groupId==='mg1'&&mid==='m1'?'kg':'');
+    const cur=vals[mid];
+    const series=metrics.filter(e=>e.groupId===m.groupId&&e.values&&e.values[mid]!=null)
+      .slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))||String(a.id||'').localeCompare(String(b.id||'')));
+    const idx=series.findIndex(e=>e.id===m.id);
+    const prev=idx>0?series[idx-1]:null;
+    const extra=prev?cpTlDeltaStr(cur,prev.values[mid],unit):'';
+    events.push({
+      id:'tl_me_'+(m.id||m.date+'_'+m.groupId),
+      kind:'pomiar',
+      date:m.date||'',
+      fact:name+' '+cur+(unit?' '+unit:''),
+      extra
+    });
+  });
+  const checkins=((window.CHECKINS&&window.CHECKINS[id])||[]).filter(ci=>ci&&ci.status==='filled');
+  checkins.forEach(ci=>{
+    const a=ci.answers||{};
+    const bits=[];
+    if(a.sleep!=null&&a.sleep!=='')bits.push('Sen '+a.sleep+'/5');
+    if(a.energy!=null&&a.energy!=='')bits.push('Energia '+a.energy+'/5');
+    if(!bits.length&&ci.score!=null)bits.push('Score '+ci.score);
+    if(!bits.length)bits.push('Wypełniony');
+    events.push({
+      id:'tl_ci_'+(ci.id||ci.date),
+      kind:'checkin',
+      date:ci.date||ci.filledAt||ci.createdAt||'',
+      fact:bits.join(' · '),
+      extra:''
+    });
+  });
+  (window.PL||[]).filter(p=>p&&p.clientId===id).forEach(p=>{
+    if(!p.name)return;
+    events.push({
+      id:'tl_pl_'+p.id,
+      kind:'plan',
+      date:p.createdAt||p.updatedAt||'',
+      fact:'Przypisano plan: '+p.name,
+      extra:p.method||''
+    });
+  });
+  const notes=(window.CLIENT_NOTES&&window.CLIENT_NOTES[id])||[];
+  notes.forEach((n,i)=>{
+    const text=String(n.text||'').trim();
+    if(!text)return;
+    events.push({
+      id:'tl_note_'+(n.id||i),
+      kind:'notatka',
+      date:n.createdAt||n.date||'',
+      fact:cpTlClip(text,90),
+      extra:''
+    });
+  });
+  ((window.CLIENT_TIMELINE&&window.CLIENT_TIMELINE[id])||[]).forEach(e=>{
+    const text=String(e.text||'').trim();
+    if(!text)return;
+    const extra=e.type==='cel'?'Cel':(e.type==='sukces'?'Sukces':'');
+    events.push({
+      id:e.id,
+      kind:'notatka',
+      date:e.date||'',
+      fact:cpTlClip(text,90),
+      extra,
+      deletable:true
+    });
+  });
+  const pkgs=(typeof packagesForClient==='function'?packagesForClient(id):(window.PACKAGES||[]).filter(p=>p&&p.clientId===id));
+  const pkgIds=new Set(pkgs.map(p=>p&&p.id).filter(Boolean));
+  pkgs.forEach(p=>{
+    if(!p)return;
+    const price=p.price!=null?String(p.price)+' zł':'';
+    events.push({
+      id:'tl_pkg_'+p.id,
+      kind:'platnosc',
+      date:p.date||p.createdAt||'',
+      fact:(p.title||'Pakiet')+(price?' · '+price:''),
+      extra:''
+    });
+    if(p.paymentRequestedAt){
+      events.push({
+        id:'tl_pkgreq_'+p.id,
+        kind:'platnosc',
+        date:p.paymentRequestedAt,
+        fact:'Prośba o wpłatę · '+(p.title||'Pakiet'),
+        extra:''
+      });
+    }
+  });
+  (window.INVOICES||[]).forEach(inv=>{
+    if(!inv)return;
+    if(!(inv.clientId===id||pkgIds.has(inv.pkgId)))return;
+    const amt=inv.amount!=null?String(inv.amount)+' zł':'';
+    events.push({
+      id:'tl_inv_'+(inv.id||inv.nr),
+      kind:'platnosc',
+      date:inv.date||inv.createdAt||'',
+      fact:('Faktura '+(inv.nr||inv.id||''))+(amt?' · '+amt:''),
+      extra:''
+    });
+  });
+  cpTlRecordEvents(id).forEach(e=>events.push(e));
+  events.sort((a,b)=>String(cpTlSortKey(b.date)).localeCompare(String(cpTlSortKey(a.date)))||String(b.id).localeCompare(String(a.id)));
+  return events;
+}
+window.collectCpTimelineEvents=collectCpTimelineEvents;
+window.cpTlRecordEvents=cpTlRecordEvents;
+
+function setCpTlFilter(kind){
+  window._cpTlFilter=kind||'all';
+  window._cpTlLimit=60;
+  const id=typeof cpClientId!=='undefined'?cpClientId:null;
+  const c=(window.CL||[]).find(x=>x&&x.id===id);
+  if(c)renderCPTimelineList(c);
+}
+function cpTlLoadMore(){
+  window._cpTlLimit=120;
+  const id=typeof cpClientId!=='undefined'?cpClientId:null;
+  const c=(window.CL||[]).find(x=>x&&x.id===id);
+  if(c)renderCPTimelineList(c);
+}
+window.setCpTlFilter=setCpTlFilter;
+window.cpTlLoadMore=cpTlLoadMore;
+
 function renderCPTimeline(c){
-  if(!c) return;
-  if(!CLIENT_TIMELINE[c.id]) CLIENT_TIMELINE[c.id] = c.timeline || [];
-
-  document.getElementById('cp-body').innerHTML = `
-    <div class="cp-section-title">DODAJ WPIS</div>
-    <div style="display:flex;gap:6px;margin-bottom:16px;">
-      <select id="ctl-new-type" style="background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:7px 8px;color:var(--text);font-size:12px;">
-        <option value="notatka">📝 Notatka</option>
-        <option value="cel">🎯 Cel</option>
-        <option value="sukces">🏆 Sukces</option>
-      </select>
-      <input type="text" id="ctl-new-text" placeholder="Dodaj wpis do osi czasu..." style="flex:1;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:7px 9px;color:var(--text);font-size:12px;" onkeydown="if(event.key==='Enter')ctlAddEntry('${c.id}')">
-      <button class="btn btn-primary btn-sm" onclick="ctlAddEntry('${c.id}')">Dodaj</button>
-    </div>
-    <div class="cp-section-title">OŚ CZASU</div>
-    <div id="cp-timeline-list"></div>`;
-
+  if(!c)return;
+  if(!CLIENT_TIMELINE[c.id])CLIENT_TIMELINE[c.id]=c.timeline||[];
+  if(window._cpTlClientId!==c.id){
+    window._cpTlClientId=c.id;
+    window._cpTlFilter='all';
+    window._cpTlLimit=60;
+  }
+  const filter=window._cpTlFilter||'all';
+  const esc=typeof escHtml==='function'?escHtml:(s=>String(s??''));
+  document.getElementById('cp-body').innerHTML=`
+    <div class="cp-tl-wrap">
+      <div class="cp-section-title">Oś czasu</div>
+      <div class="cp-tl-filters" role="tablist" aria-label="Filtry osi czasu">
+        ${CP_TL_FILTERS.map(f=>`<button type="button" class="cp-tl-filter${filter===f.id?' is-on':''}" data-tl-filter="${esc(f.id)}" onclick="setCpTlFilter('${esc(f.id)}')">${esc(f.label)}</button>`).join('')}
+      </div>
+      <div id="cp-timeline-list" class="cp-tl-list"></div>
+      <div class="cp-tl-add">
+        <div class="cp-section-title">Dodaj wpis</div>
+        <div class="cp-tl-add-row">
+          <select id="ctl-new-type">
+            <option value="notatka">Notatka</option>
+            <option value="cel">Cel</option>
+            <option value="sukces">Sukces</option>
+          </select>
+          <input type="text" id="ctl-new-text" placeholder="Krótka notatka do osi czasu" onkeydown="if(event.key==='Enter')ctlAddEntry('${esc(c.id)}')">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="ctlAddEntry('${esc(c.id)}')">Dodaj</button>
+        </div>
+      </div>
+    </div>`;
   renderCPTimelineList(c);
 }
 
 function renderCPTimelineList(c){
-  const manual = CLIENT_TIMELINE[c.id] || [];
-
-  const autoSess = SE.filter(s=>s.clientId===c.id).map(s=>({
-    id:'auto_sess_'+s.id, type:'trening',
-    text:(s.type||'Trening')+(s.exercises?' — '+s.exercises.length+' ćwiczeń':'')+(s.volume?' · '+s.volume+' kg obj.':''),
-    date:s.date+'T'+(s.time||'12:00')+':00'
-  }));
-
-  const autoPlans = PL.filter(p=>p.clientId===c.id).map(p=>({
-    id:'auto_plan_'+p.id, type:'plan', text:'Przypisano plan: '+p.name,
-    date:(p.createdAt||new Date().toISOString())
-  }));
-
-  const autoMeas = (window.METRIC_ENTRIES||[]).filter(e=>e.clientId===c.id).map(m=>{
-    const g = allMetricGroups().find(gr=>gr.id===m.groupId);
-    const parts = g ? g.metrics.filter(mm=>m.values[mm.id]!=null).map(mm=>mm.name+': '+m.values[mm.id]+(mm.unit?' '+mm.unit:'')).slice(0,3).join(' · ') : '';
-    return {id:'auto_meas_'+m.id, type:'pomiar', text:(g?g.icon+' '+g.name+' — ':'')+parts, date:m.date+'T10:00:00'};
+  const el=document.getElementById('cp-timeline-list');
+  if(!el)return;
+  const esc=typeof escHtml==='function'?escHtml:(s=>String(s??''));
+  const filter=window._cpTlFilter||'all';
+  const limit=Math.min(Math.max(window._cpTlLimit||60,60),120);
+  const all=collectCpTimelineEvents(c.id);
+  const shown=filter==='all'?all:all.filter(e=>e.kind===filter);
+  document.querySelectorAll('.cp-tl-filter').forEach(btn=>{
+    btn.classList.toggle('is-on',btn.getAttribute('data-tl-filter')===filter);
   });
-
-  const all = [...manual, ...autoSess, ...autoPlans, ...autoMeas].sort((a,b)=>new Date(b.date)-new Date(a.date));
-
-  const el = document.getElementById('cp-timeline-list');
-  if(!el) return;
-  if(!all.length){el.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted);font-size:12px;">Brak wpisów. Dodaj notatkę lub wykonaj sesję/pomiar.</div>'; return;}
-
-  el.innerHTML = all.slice(0,60).map(e=>{
-    const isAuto = e.id.toString().startsWith('auto_');
-    const col = CTL_COLORS[e.type] || 'var(--muted)';
-    const dayStr = new Date(e.date).toLocaleDateString('pl',{day:'numeric',month:'short',year:'numeric'});
-    return `<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);align-items:flex-start;">
-      <div style="width:22px;height:22px;border-radius:50%;background:${col}22;border:1px solid ${col}44;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;margin-top:1px;">${CTL_ICONS[e.type]||'📝'}</div>
-      <div style="flex:1;">
-        <div style="font-size:12px;color:var(--text);line-height:1.4;">${e.text}</div>
-        <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:2px;">${dayStr}</div>
-      </div>
-      ${!isAuto?`<button onclick="ctlDeleteEntry('${c.id}','${e.id}')" style="background:none;border:none;color:var(--muted2);font-size:14px;cursor:pointer;padding:0 2px;">×</button>`:''}
+  if(!shown.length){
+    const lab=(CP_TL_FILTERS.find(f=>f.id===filter)||{}).label||'';
+    el.innerHTML=`<div class="cp-tl-empty">${filter==='all'?'Brak zdarzeń w historii klienta.':'Brak zdarzeń w filtrze '+esc(lab)+'.'}</div>`;
+    return;
+  }
+  const rows=shown.slice(0,limit);
+  el.innerHTML=rows.map(e=>{
+    const day=cpTlDayLabel(e.date);
+    const type=CP_TL_KIND_LABEL[e.kind]||e.kind;
+    const extra=e.extra?`<span class="cp-tl-dot">•</span><span class="cp-tl-extra">${esc(e.extra)}</span>`:'';
+    const del=e.deletable?`<button type="button" class="cp-tl-del" onclick="ctlDeleteEntry('${esc(c.id)}','${esc(e.id)}')" aria-label="Usuń">×</button>`:'';
+    const dateHtml=day?`<span class="cp-tl-date">${esc(day)}</span><span class="cp-tl-dot">•</span>`:'';
+    return `<div class="cp-tl-row" data-tl-kind="${esc(e.kind)}" data-tl-id="${esc(e.id)}">
+      ${dateHtml}
+      <span class="cp-tl-type">${esc(type)}</span>
+      <span class="cp-tl-dot">•</span>
+      <span class="cp-tl-fact">${esc(e.fact||'')}</span>
+      ${extra}${del}
     </div>`;
-  }).join('');
+  }).join('')+(shown.length>limit&&limit<120?`<button type="button" class="cp-tl-more" onclick="cpTlLoadMore()">Załaduj więcej</button>`:'');
 }
 
 function ctlAddEntry(clientId){
@@ -91,7 +355,10 @@ function ctlDeleteEntry(clientId, id){
   renderCPTimeline(c);
 }
 
-window.renderCPTimeline=renderCPTimeline; window.ctlAddEntry=ctlAddEntry; window.ctlDeleteEntry=ctlDeleteEntry;
+window.renderCPTimeline=renderCPTimeline;
+window.renderCPTimelineList=renderCPTimelineList;
+window.ctlAddEntry=ctlAddEntry;
+window.ctlDeleteEntry=ctlDeleteEntry;
 
 // ════════════════════════════════════════
 // PSYCHO — profil psychodietetyczny klienta

@@ -45,7 +45,7 @@ ok('existing cards remain',overview.includes('Ostatnie 7 dni')&&overview.include
 ok('card targets',overview.includes('id="cp-ov-card-train"')&&overview.includes('id="cp-ov-card-metrics"')&&overview.includes('id="cp-ov-card-feel"'));
 ok('tabs unchanged',html.includes('id="cpt-overview"')&&html.includes("setCPTab('overview')")&&html.includes('id="cpt-training"')&&html.includes('id="cpt-plan"'));
 ok('css situation',css.includes('.cp-ov-situation')&&css.includes('.cp-ov-sit-tile-ok')&&css.includes('.cp-ov-next-watch')&&css.includes('.cp-ov-sit-tile-act'));
-ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=63')&&html.includes('styles.css?v=100'));
+ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=64')&&html.includes('styles.css?v=101'));
 ok('ci unit',wf.includes('test_cp_overview_situation.js'));
 ok('ci ui',wf.includes('test_cp_overview_situation_ui.js'));
 
