@@ -218,6 +218,8 @@ jobs:
         run: node .github/scripts/test_dash_ops_panel.js
       - name: 1n12b1. Testy snapshotu sytuacji klienta
         run: node .github/scripts/test_client_situation_snapshot.js
+      - name: 1n12b2. Testy sytuacji w Przeglądzie (nagłówek + kolejny trening)
+        run: node .github/scripts/test_cp_overview_situation.js
       - name: 1n12c. Testy skanu operacyjnego (dzwonek + zegar)
         run: node .github/scripts/test_ops_scan.js
       - name: 1n11. Testy widoczności płatności (klient + dashboard)
@@ -492,6 +494,8 @@ jobs:
         run: node .github/scripts/test_sidebar_footer_ui.js
       - name: 6f2. Testy UI edycji imienia i nazwiska w profilu
         run: node .github/scripts/test_cp_edit_visible_ui.js
+      - name: 6f2b. Testy UI sytuacji w Przeglądzie
+        run: node .github/scripts/test_cp_overview_situation_ui.js
       - name: 6f3. Testy UI ✓ Odbył się (zapis sali z planu)
         run: node .github/scripts/test_cal_log_done_ui.js
       - name: 6f3a. Testy UI ✓ Odbył się w kalendarzu tygodnia
