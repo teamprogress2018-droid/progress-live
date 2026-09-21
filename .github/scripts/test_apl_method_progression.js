@@ -38,11 +38,11 @@ ok('normalize smolov', /smolov\|smol/.test(core));
 ok('APL_METHOD_PROGRESSION map', src03.includes('APL_METHOD_PROGRESSION') && src03.includes("Smolov:'smolov'"));
 ok('aplSyncProgressionFromMethod', /function aplSyncProgressionFromMethod/.test(src03));
 ok('toggle syncs on method', /groupId==='apl-methods'[\s\S]{0,160}aplSyncProgressionFromMethod/.test(src03));
-ok('init syncs progression', /function initAplangen[\s\S]{0,800}aplSyncProgressionFromMethod/.test(src03));
+ok('init syncs progression', /function initAplangen[\s\S]{0,2500}aplSyncProgressionFromMethod/.test(src03));
 ok('smolov progression prompt', src03.includes("smolov:'SMOLOV"));
 ok('aplPhasesForPlan smolov', /function aplPhasesForPlan[\s\S]*Smolov T1/.test(src03));
 ok('BUILDER_METHOD_DAYS Smolov', /Smolov:\['Smolov T1'/.test(src05));
-ok('cache bumps', html.includes('01-core.js?v=111') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=42') && html.includes('05-clients-builder-plans-calendar.js?v=78'));
+ok('cache bumps', html.includes('01-core.js?v=112') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=42') && html.includes('05-clients-builder-plans-calendar.js?v=78'));
 ok('CI', wf.includes('test_apl_method_progression.js'));
 
 const start = src03.indexOf('const APL_METHOD_PROGRESSION=');

@@ -18,7 +18,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=83'));
+ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=84'));
 ok('cache styles', html.includes('styles.css?v=98'));
 ok('CI unit', wf.includes('test_exd_tabs.js'));
 ok('CI ui', wf.includes('test_exd_tabs_ui.js'));

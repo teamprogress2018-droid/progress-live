@@ -3786,6 +3786,9 @@ function inferLoadUnitFromName(name){
   if(/^(deska|plank)$/i.test(String(name||'').trim()))return 'sec';
   if(/^deska boczna|^deska kopenhaska|^side plank/i.test(n))return 'sec';
   if(/\bplank na (przedramion|łokci|lokci)|\bdeska na (przedramion|łokci|lokci)|forearm plank|elbow plank/.test(n))return 'sec';
+  /* „Plank przedni na łokciach (statyczny)” — hold, nie ciężar */
+  if(/\bplank\b/.test(n) && !/unoszen|\btap\b|walk\s*up|to downward|do psa|pomp/.test(n))return 'sec';
+  if(/\bdeska\b/.test(n) && /(statyczn|izometr|\bhold\b|lokci|łokci|przedramion|przedni|przod|prone)/.test(n) && !/unoszen|\btap\b/.test(n))return 'sec';
   if(/uginanie|leg\s*curl|hamstring\s*(leg\s*)?curl/.test(n))return 'kg';
   if(/air\s*bike|assault\s*bike|echo\s*bike|fan\s*bike/.test(n))return 'min';
   if(/\bwio[śs]larz\b|\browing\b|concept\s*2|ergometr wio/.test(n))return 'min';

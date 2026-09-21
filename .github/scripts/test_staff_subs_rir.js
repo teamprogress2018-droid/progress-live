@@ -20,7 +20,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 06 v80', html.includes('06-inbox-exercises-ai-programs.js?v=83'));
+ok('cache 06 v80', html.includes('06-inbox-exercises-ai-programs.js?v=84'));
 ok('cache styles v91', html.includes('styles.css?v=98'));
 ok('cache 07 v39', html.includes('07-forms-metrics-calculator.js?v=40'));
 ok('CI unit', wf.includes('test_staff_subs_rir.js'));
