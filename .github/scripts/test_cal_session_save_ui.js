@@ -24,7 +24,7 @@ function ok(name, cond, extra) {
   await page.goto('http://' + host + ':' + port + '/index.html', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(500);
 
-  await page.evaluate(() => {
+  const days = await page.evaluate(() => {
     window.persistById = async (_c, o) => o;
     window.notify = () => {};
     const auth = document.getElementById('auth-screen');
@@ -33,30 +33,42 @@ function ok(name, cond, extra) {
     if (app) app.style.display = '';
     const loading = document.getElementById('app-loading');
     if (loading) loading.style.display = 'none';
+    const ymd = dt => dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
+    const today = typeof todayYmd === 'function' ? todayYmd() : ymd(new Date());
+    window.calView = 'week';
+    window.calCurrentDate = new Date(today + 'T12:00:00');
+    const ws = typeof getWeekStart === 'function' ? getWeekStart(window.calCurrentDate) : window.calCurrentDate;
+    const mon = ymd(ws);
+    const tueDt = new Date(ws); tueDt.setDate(ws.getDate() + 1);
+    const wedDt = new Date(ws); wedDt.setDate(ws.getDate() + 2);
+    const tue = ymd(tueDt);
+    const wed = ymd(wedDt);
     window.CL = [{ id: 'c-ola', name: 'Ola Kowalska', status: 'active' }];
     window.SE = [{
-      id: 's-ola', clientId: 'c-ola', date: '2026-09-14', time: '08:00', duration: 45,
+      id: 's-ola', clientId: 'c-ola', date: mon, time: '08:00', duration: 45,
       type: 'Dzień 1 — FBW A', notes: 'Priorytet: przysiad', source: 'planned'
     }];
     window.PL = [];
     window.TASKS = [];
     if (typeof goTo === 'function') goTo('calendar');
+    if (typeof renderCal === 'function') renderCal();
+    return { mon, tue, wed };
   });
 
   await page.waitForSelector('.cal-session-block');
-  const quick = await page.evaluate(() => {
-    if (typeof quickAddSession === 'function') quickAddSession('2026-09-16', '07:00');
+  const quick = await page.evaluate((wed) => {
+    if (typeof quickAddSession === 'function') quickAddSession(wed, '07:00');
     return {
       date: (document.getElementById('as-date') || {}).value,
       time: (document.getElementById('as-time') || {}).value,
       client: (document.getElementById('as-client') || {}).value,
       open: !!(document.getElementById('m-session') && document.getElementById('m-session').classList.contains('show'))
     };
-  });
+  }, days.wed);
   await page.screenshot({ path: path.join(shotDir, 'cal_quick_add_time.png') });
-  ok('quick add keeps clicked slot', quick.open && quick.date === '2026-09-16' && quick.time === '07:00' && quick.client === '', JSON.stringify(quick));
+  ok('quick add keeps clicked slot', quick.open && quick.date === days.wed && quick.time === '07:00' && quick.client === '', JSON.stringify(quick));
 
-  const edited = await page.evaluate(async () => {
+  const edited = await page.evaluate(async (tue) => {
     if (typeof closeM === 'function') closeM('m-session');
     if (typeof editSession === 'function') editSession('s-ola');
     const before = (window.SE || []).length;
@@ -64,7 +76,7 @@ function ok(name, cond, extra) {
     const type = (document.getElementById('as-type') || {}).value;
     const notes = (document.getElementById('as-notes') || {}).value;
     const d = document.getElementById('as-date');
-    if (d) d.value = '2026-09-15';
+    if (d) d.value = tue;
     if (typeof saveSess === 'function') await saveSess();
     const s = (window.SE || []).find(x => x.id === 's-ola');
     return {
@@ -72,10 +84,10 @@ function ok(name, cond, extra) {
       dur, type, notes,
       date: s && s.date, time: s && s.time, duration: s && s.duration
     };
-  });
+  }, days.tue);
   await page.screenshot({ path: path.join(shotDir, 'cal_edit_save_no_dup.png') });
   ok('edit loads duration and plan type', edited.dur === '45' && /FBW A/.test(edited.type) && /przysiad/.test(edited.notes), JSON.stringify(edited));
-  ok('save updates instead of duplicating', edited.before === 1 && edited.after === 1 && edited.date === '2026-09-15', JSON.stringify(edited));
+  ok('save updates instead of duplicating', edited.before === 1 && edited.after === 1 && edited.date === days.tue, JSON.stringify(edited));
 
   await browser.close();
   if (failed) {
