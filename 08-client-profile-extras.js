@@ -326,9 +326,9 @@ function renderCPTimelineList(c){
     const type=CP_TL_KIND_LABEL[e.kind]||e.kind;
     const extra=e.extra?`<span class="cp-tl-dot">•</span><span class="cp-tl-extra">${esc(e.extra)}</span>`:'';
     const del=e.deletable?`<button type="button" class="cp-tl-del" onclick="ctlDeleteEntry('${esc(c.id)}','${esc(e.id)}')" aria-label="Usuń">×</button>`:'';
+    const dateHtml=day?`<span class="cp-tl-date">${esc(day)}</span><span class="cp-tl-dot">•</span>`:'';
     return `<div class="cp-tl-row" data-tl-kind="${esc(e.kind)}" data-tl-id="${esc(e.id)}">
-      <span class="cp-tl-date">${esc(day)}</span>
-      <span class="cp-tl-dot">•</span>
+      ${dateHtml}
       <span class="cp-tl-type">${esc(type)}</span>
       <span class="cp-tl-dot">•</span>
       <span class="cp-tl-fact">${esc(e.fact||'')}</span>
