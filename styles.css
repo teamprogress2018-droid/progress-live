@@ -1708,7 +1708,16 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 #screen-dashboard .dash-today-tile-n{font-size:24px;}
 #screen-dashboard .dash-kpi-row{gap:10px;margin-bottom:10px;}
 #screen-dashboard .dash-kpi-secondary{margin-bottom:10px;}
-#screen-dashboard .dash-kpi-secondary .dash-kpi-card{padding:8px 10px;gap:8px;}
+#screen-dashboard .dash-kpi-secondary .dash-kpi-card{
+  padding:8px 10px;gap:8px;
+  border-color:var(--border-subtle)!important;
+  box-shadow:none;
+}
+#screen-dashboard .dash-kpi-secondary .dash-kpi-card:hover{
+  border-color:var(--border-default)!important;
+  box-shadow:none;
+  transform:none;
+}
 #screen-dashboard .dash-kpi-secondary .dash-kpi-icon{width:26px;height:26px;font-size:12px;}
 #screen-dashboard .dash-kpi-secondary .dash-kpi-val{font-size:18px;color:var(--text);}
 #screen-dashboard .dash-kpi-card{padding:10px 12px;gap:10px;}
