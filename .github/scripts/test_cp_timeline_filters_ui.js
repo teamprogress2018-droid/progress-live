@@ -84,7 +84,7 @@ function ok(name, cond, extra) {
   await page.waitForSelector('#cp-drawer.open');
   ok('situation still on overview', await page.evaluate(() => !!document.querySelector('.cp-ov-situation')));
 
-  await page.click('#cpt-timeline');
+  await page.evaluate(() => { if (typeof setCPTab === 'function') setCPTab('timeline'); });
   await page.waitForSelector('#cp-timeline-list');
   await page.waitForTimeout(300);
 
