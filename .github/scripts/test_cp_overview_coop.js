@@ -42,18 +42,20 @@ ok('brief untouched',brief.includes('Przed treningiem')&&!brief.includes('Przean
 ok('cta copy',src08.includes('Przeanalizuj współpracę')&&!/Co by zmieniło AI\?/.test(coopSrc));
 ok('no monitor.next in html helper',!/v\.next|monitor\.next/.test(extract(src08,'cpOverviewCoopHTML')));
 ok('no persist',!/persistById/.test(coopSrc));
-ok('on demand fetch',/await fetch\(/.test(extract(src08,'runCpCoopAnalysis'))&&!/fetch\(/.test(extract(src08,'cpOverviewCoopHTML')));
 ok('no scoreCheckin',!/scoreCheckinAnswers/.test(coopSrc));
 ok('injuries field',/c\.injuries/.test(extract(src08,'cpCoopContextForAI')));
 ok('css',css.includes('.cp-ov-coop')&&css.includes('.cp-ov-coop-sh'));
-ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=66')&&html.includes('styles.css?v=103'));
+ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=68')&&html.includes('styles.css?v=103'));
 ok('ci unit',wf.includes('test_cp_overview_coop.js'));
 ok('ci ui',wf.includes('test_cp_overview_coop_ui.js'));
 ok('gate two signals',src08.includes('found.length>=2'));
-ok('mass not universal missing',/massGoal/.test(extract(src08,'cpCoopCollectSignals'))&&/else if\(massGoal\)missing\.push\('dwa pomiary masy'\)/.test(extract(src08,'cpCoopCollectSignals')));
+ok('gate copy exact',src08.includes('Za mało danych do analizy — potrzebne minimum 2 niezależne źródła.'));
+ok('calendar not a source',!/clientAdherenceStats/.test(extract(src08,'cpCoopCollectSignals'))&&!/id:'adherence'/.test(extract(src08,'cpCoopCollectSignals')));
+ok('request wrapper gates fetch',/length<2/.test(extract(src08,'cpCoopRequestAnalysis'))&&/await fetch\(/.test(extract(src08,'cpCoopRequestAnalysis')));
+ok('on demand fetch',!/fetch\(/.test(extract(src08,'cpOverviewCoopHTML'))&&/cpCoopRequestAnalysis/.test(extract(src08,'runCpCoopAnalysis')));
 
 const sandbox={
-  window:{CL:[],SE:[],PL:[],CHECKINS:{},CLIENT_NOTES:{},TASKS:[],METRIC_ENTRIES:[],_cpCoopCache:{},_cpCoopBusy:{}},
+  window:{CL:[],SE:[],PL:[],CHECKINS:{},CLIENT_NOTES:{},TASKS:[],METRIC_ENTRIES:[],PROGRESS_PHOTOS:[],_cpCoopCache:{},_cpCoopBusy:{}},
   Date,Math,JSON,parseInt,parseFloat,Number,String,Array,Object,isFinite,isNaN,console,
   todayYmd:()=>'2026-09-21',
   dashTodayYmd:()=>'2026-09-21',
@@ -73,7 +75,8 @@ const sandbox={
   },
   cpSleepTrendFact:(id)=>sandbox._sleep||null,
   clientOpenHomework:(id)=>(sandbox.window.TASKS||[]).filter(t=>t&&t.clientId===id&&t.status!=='done'&&t.kind==='homework'),
-  homeworkCompletions:(id)=>[],
+  homeworkCompletions:(id)=>(sandbox._hwDone&&sandbox._hwDone[id])||[],
+  ppListFor:(id)=>(sandbox.window.PROGRESS_PHOTOS||[]).filter(p=>p&&p.clientId===id),
   buildMonitorVerdict:(c)=>sandbox._mon||{verdict:'ryzyko stagnacji',verdictTone:'warn',score:-1,signals:[
     {tone:'bad',label:'Adherencja 30 dni',text:'48% (6/13) — ryzyko regresu przez brak bodźca.'},
     {tone:'warn',label:'Ostatni tydzień',text:'0 z 3 zaplanowanych — krótki kontakt.'},
@@ -95,6 +98,8 @@ sandbox.window.SE=sandbox.SE;
 sandbox.window.PL=sandbox.PL;
 sandbox.window.CHECKINS=sandbox.CHECKINS;
 sandbox.window.TASKS=sandbox.TASKS;
+sandbox.window.METRIC_ENTRIES=sandbox.METRIC_ENTRIES;
+sandbox.window.PROGRESS_PHOTOS=sandbox.window.PROGRESS_PHOTOS||[];
 
 vm.runInNewContext(coopSrc,sandbox);
 
@@ -108,8 +113,8 @@ sandbox.CHECKINS['c-sila']=[{id:'ci1',status:'filled',date:'2026-09-19',answers:
 sandbox._deltas={};
 
 const gateSila=sandbox.cpCoopCollectSignals(sila);
-ok('sila workout+checkin+adh without mass',gateSila.ok&&gateSila.found.some(s=>s.id==='training')&&gateSila.found.some(s=>s.id==='checkin')&&!gateSila.found.some(s=>s.id==='mass'),JSON.stringify(gateSila.found));
-ok('sila mass not in missing',!gateSila.missing.includes('dwa pomiary masy'),gateSila.missing.join(','));
+ok('sila workout+checkin without mass',gateSila.ok&&gateSila.found.some(s=>s.id==='training')&&gateSila.found.some(s=>s.id==='checkin')&&!gateSila.found.some(s=>s.id==='body')&&!gateSila.found.some(s=>s.id==='adherence'),JSON.stringify(gateSila.found));
+ok('sila mass not required',!gateSila.missing.includes('dwa pomiary masy'),gateSila.missing.join(','));
 
 const htmlSila=sandbox.cpOverviewCoopHTML(sila);
 ok('cta present when 2+ signals',/Przeanalizuj współpracę/.test(htmlSila)&&/data-cp-coop-cta="run"/.test(htmlSila));
@@ -126,27 +131,25 @@ sandbox.CHECKINS['c-thin']=[];
 const gateThin=sandbox.cpCoopCollectSignals(thin);
 ok('thin blocked',!gateThin.ok&&gateThin.found.length<2,JSON.stringify(gateThin));
 const htmlThin=sandbox.cpOverviewCoopHTML(thin);
-ok('thin no fetch cta',/Za mało danych do interpretacji/.test(htmlThin)&&!/data-cp-coop-cta="run"/.test(htmlThin));
-ok('thin suggests checkin or training',/zalogowany trening|wypełniony check-in/.test(htmlThin));
+ok('thin no fetch cta',/Za mało danych do analizy — potrzebne minimum 2 niezależne źródła/.test(htmlThin)&&!/data-cp-coop-cta="run"/.test(htmlThin)&&/data-cp-coop-cta="blocked"/.test(htmlThin));
+ok('thin blocked button',/disabled/.test(htmlThin)&&/opacity:\.45/.test(htmlThin));
 
 const masaOnly={id:'c-masa1',name:'Ewa',goal:'masa',injuries:''};
-sandbox._deltas={'mg1/m1':1.2};
+sandbox.METRIC_ENTRIES.push({clientId:'c-masa1',groupId:'mg1',date:'2026-09-01',values:{m1:70}});
 const gateMasa1=sandbox.cpCoopCollectSignals(masaOnly);
-ok('single mass trend not enough',!gateMasa1.ok&&gateMasa1.found.filter(s=>s.id==='mass').length===1&&gateMasa1.found.length===1,JSON.stringify(gateMasa1.found));
-ok('masa missing lists second sources',gateMasa1.missing.includes('zalogowany trening')||gateMasa1.missing.includes('wypełniony check-in'));
+ok('single body metric not enough',!gateMasa1.ok&&gateMasa1.found.filter(s=>s.id==='body').length===1&&gateMasa1.found.length===1,JSON.stringify(gateMasa1.found));
 
-sandbox._deltas={'mg1/m1':1.2};
 sandbox.CHECKINS['c-masa1']=[{id:'ci-m',status:'filled',date:'2026-09-10',answers:{sleep:4}}];
 const gateMasa2=sandbox.cpCoopCollectSignals(masaOnly);
-ok('mass+checkin enough without workout',gateMasa2.ok&&gateMasa2.found.some(s=>s.id==='mass')&&gateMasa2.found.some(s=>s.id==='checkin'));
+ok('body+checkin enough without workout',gateMasa2.ok&&gateMasa2.found.some(s=>s.id==='body')&&gateMasa2.found.some(s=>s.id==='checkin'));
 
 const silaMass={id:'c-sm',name:'Bartek',goal:'sila',injuries:''};
-sandbox._deltas={'mg1/m1':-0.8};
+sandbox.METRIC_ENTRIES.push({clientId:'c-sm',groupId:'mg1',date:'2026-09-01',values:{m1:80}});
 sandbox.CHECKINS['c-sm']=[];
 sandbox.SE=sandbox.SE.filter(s=>s.clientId!=='c-sm');
+sandbox.window.SE=sandbox.SE;
 const gateSilaMass=sandbox.cpCoopCollectSignals(silaMass);
-ok('sila mass-only still blocked',!gateSilaMass.ok,JSON.stringify(gateSilaMass.found));
-ok('sila asks strength not mass as required',gateSilaMass.missing.includes('dwa pomiary siły (przysiad)')&&!gateSilaMass.missing.includes('dwa pomiary masy'));
+ok('sila body-only still blocked',!gateSilaMass.ok,JSON.stringify(gateSilaMass.found));
 
 const parsed=sandbox.cpCoopParseReply(`1. Interpretacja
 Adherencja i słabszy check-in mogą oznaczać, że plan jest za ciężki albo życie poza salą przeszkadza.
@@ -165,7 +168,50 @@ const ctx=sandbox.cpCoopContextForAI(sila);
 ok('ctx has facts not orders',/Werdykt monitora/.test(ctx)&&!/Skróć objętość o ~20/.test(ctx)&&!/Jak zrobić, żeby było dobrze/.test(ctx));
 ok('ctx no notes as injury',!/tajne notes/.test(ctx));
 ok('ctx checkin /5',/Sen 3\/5/.test(ctx)&&!/\/10/.test(ctx));
+ok('ctx rating 4 not missing',/Ocena ostatniego treningu: 4\/5/.test(ctx));
 ok('prompt forbids orders',/nie podejmujesz decyzji/i.test(sandbox.cpCoopSystemPrompt())&&/skróć objętość/.test(sandbox.cpCoopSystemPrompt()));
+
+const jan={id:'c-jan',name:'Jan Kowalski',goal:'sila',injuries:'',weight:0,age:0};
+sandbox.CL.push(jan);
+sandbox.SE.push({id:'s-jan',clientId:'c-jan',date:'2026-09-18',source:'live',type:'FBW',feedback:0});
+sandbox.CHECKINS['c-jan']=[{id:'ci-jan',status:'filled',date:'2026-09-19',answers:{sleep:0,energy:3}}];
+const ctxJan=sandbox.cpCoopContextForAI(jan);
+ok('missing rating is brak not 0/5',/Ocena ostatniego treningu: brak \(nie 0\/5\)/.test(ctxJan)&&!/Ocena ostatniego treningu: 0\/5/.test(ctxJan));
+ok('zero weight not sent',!/Waga \(karta\): 0/.test(ctxJan)&&!/Wiek: 0/.test(ctxJan));
+ok('checkin 0 skipped, 3 kept',!/Sen 0\/5/.test(ctxJan)&&/Energia 3\/5/.test(ctxJan));
+
+const planOnly={id:'c-plan',name:'Małgosia',goal:'kondycja',injuries:''};
+sandbox.CL.push(planOnly);
+sandbox.SE.push(
+  {id:'s-mal-live',clientId:'c-plan',date:'2026-09-18',source:'live',type:'Bieg'},
+  {id:'s-mal-plan',clientId:'c-plan',date:'2026-09-22',source:'planned',type:'Interwał'}
+);
+sandbox.CHECKINS['c-plan']=[];
+const gatePlan=sandbox.cpCoopCollectSignals(planOnly);
+ok('training+calendar is one source',!gatePlan.ok&&gatePlan.found.length===1&&gatePlan.found[0].id==='training',JSON.stringify(gatePlan.found));
+const htmlPlan=sandbox.cpOverviewCoopHTML(planOnly);
+ok('training+calendar blocked copy',/Za mało danych do analizy — potrzebne minimum 2 niezależne źródła/.test(htmlPlan)&&/data-cp-coop-cta="blocked"/.test(htmlPlan)&&!/data-cp-coop-cta="run"/.test(htmlPlan));
+
+sandbox.TASKS.push({id:'t-open',clientId:'c-plan',kind:'homework',status:'open',title:'HIIT'});
+ok('open homework does not unlock',!sandbox.cpCoopCollectSignals(planOnly).ok);
+sandbox.TASKS.push({id:'t-done',clientId:'c-plan',kind:'homework',status:'done',title:'HIIT',doneAt:'2026-09-18'});
+sandbox._hwDone={'c-plan':[{id:'t-done',status:'done'}]};
+ok('done homework is second source',sandbox.cpCoopCollectSignals(planOnly).ok&&sandbox.cpCoopCollectSignals(planOnly).found.some(s=>s.id==='homework'));
+
+const md=sandbox.cpCoopParseReply(`1. Interpretacja
+**Słabszy tydzień** może oznaczać zmęczenie.
+
+2. Do rozważenia
+- *Dopytać o sen*
+- ---
+- Rozważyć krótsze sesje
+
+3. Sprawdź przed decyzją
+- Brak drugiego źródła`);
+const mdHtml=sandbox.cpCoopResultHTML(md,false);
+ok('markdown markers stripped',md.ok&&!/\*\*/.test(md.interp+md.consider.join('')+mdHtml)&&!/(^|[^*])\*[^*]/.test(md.interp)&&!/---/.test(mdHtml));
+ok('markdown text kept',/Słabszy tydzień/.test(md.interp)&&/Dopytać o sen/.test(mdHtml));
+ok('empty hr not a consider item',md.consider.length<=3&&!md.consider.some(x=>x==='---'||x==='*'));
 
 const htmlGatedRun=extract(src08,'runCpCoopAnalysis');
 ok('run respects gate',/if\(!gate\.ok\)/.test(htmlGatedRun));
