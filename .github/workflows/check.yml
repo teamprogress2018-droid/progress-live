@@ -216,6 +216,8 @@ jobs:
         run: node .github/scripts/test_dash_forms_followup.js
       - name: 1n12b. Testy panelu operacyjnego (dashboard)
         run: node .github/scripts/test_dash_ops_panel.js
+      - name: 1n12b1. Testy snapshotu sytuacji klienta
+        run: node .github/scripts/test_client_situation_snapshot.js
       - name: 1n12c. Testy skanu operacyjnego (dzwonek + zegar)
         run: node .github/scripts/test_ops_scan.js
       - name: 1n11. Testy widoczności płatności (klient + dashboard)
@@ -454,6 +456,8 @@ jobs:
         run: node .github/scripts/test_autoflow_events_ui.js
       - name: 6b3c2e. Testy UI dashboardu bez martwych follow-upów
         run: node .github/scripts/test_dash_followup_gone_ui.js
+      - name: 6b3c2e1. Testy UI paska DZISIAJ na dashboardzie
+        run: node .github/scripts/test_dash_today_focus_ui.js
       - name: 6b3c3. Testy UI Live dual (dwie osoby)
         run: node .github/scripts/test_live_dual_ui.js
       - name: 6b3c4. Testy UI dodawania zamiennika w Live

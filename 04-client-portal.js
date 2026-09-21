@@ -5765,6 +5765,7 @@ function renderDash(){
   set('d-revenue','0 zł');
   set('d-active-count',activeClients+' aktywnych');
 
+  renderDashTodayFocus();
   renderDashToday();
   renderDashOps();
   renderDashGettingStarted();
@@ -5970,6 +5971,193 @@ function dashOpsRecentActivity(limit){
     .slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''));
   return all.slice(0,limit);
 }
+function dashTodayYmd(){
+  if(typeof todayYmd==='function')return todayYmd();
+  if(typeof dateStr==='function')return dateStr(new Date());
+  const x=new Date();
+  const p=n=>String(n).padStart(2,'0');
+  return x.getFullYear()+'-'+p(x.getMonth()+1)+'-'+p(x.getDate());
+}
+function dashDaysBetween(fromYmd,toYmd){
+  const a=new Date(String(fromYmd||'').slice(0,10)+'T12:00:00').getTime();
+  const b=new Date(String(toYmd||'').slice(0,10)+'T12:00:00').getTime();
+  if(!a||!b||isNaN(a)||isNaN(b))return null;
+  return Math.round((b-a)/86400000);
+}
+
+/** Read-model klienta: fakty + sygnały regułowe. Bez interpretacji AI i bez nowych kolekcji. */
+function clientSituationSnapshot(clientId){
+  const id=String(clientId||'');
+  if(!id)return null;
+  const c=(window.CL||[]).find(x=>x&&x.id===id);
+  if(!c)return null;
+  const today=dashTodayYmd();
+  const adh7=typeof clientAdherenceStats==='function'?clientAdherenceStats(id,7):{assigned:0,logged:0,pct:0};
+  const adh30=typeof clientAdherenceStats==='function'?clientAdherenceStats(id,30):{assigned:0,logged:0,pct:0};
+  const logged=typeof completedWorkouts==='function'?completedWorkouts(id):(window.SE||[]).filter(s=>s&&s.clientId===id&&typeof isLoggedWorkout==='function'&&isLoggedWorkout(s));
+  const lastWorkout=logged.slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')))[0]||null;
+  const filled=((window.CHECKINS&&window.CHECKINS[id])||[]).filter(x=>x&&x.status==='filled')
+    .slice().sort((a,b)=>String(b.date||b.filledAt||b.createdAt||'').localeCompare(String(a.date||a.filledAt||a.createdAt||'')));
+  const lastCheckin=filled[0]||null;
+  const ciStatus=typeof getCIStatus==='function'?getCIStatus(id):'none';
+  const massEntry=typeof cpMetricLatest==='function'?cpMetricLatest(id,'mg1','m1'):null;
+  const massVal=massEntry&&massEntry.values&&massEntry.values.m1!=null?massEntry.values.m1:(c.weight!=null?c.weight:null);
+  const massDelta=typeof cpMetricDeltaPct==='function'?cpMetricDeltaPct(id,'mg1','m1'):null;
+  const sleepEntry=typeof cpMetricLatest==='function'?cpMetricLatest(id,'mg5','m2'):null;
+  const sleepVal=sleepEntry&&sleepEntry.values&&sleepEntry.values.m2!=null?sleepEntry.values.m2:null;
+  const hw=typeof clientOpenHomework==='function'?clientOpenHomework(id):[];
+  const late=hw.filter(t=>t&&t.due&&t.due<today);
+  const pkgList=(typeof allPackages==='function'?allPackages():(window.PACKAGES||[])).filter(p=>p&&p.clientId===id&&p.status!=='expired'&&p.payStatus!=='expired');
+  const withExp=pkgList.filter(p=>p.expiresDate).slice().sort((a,b)=>String(a.expiresDate).localeCompare(String(b.expiresDate)));
+  let pkg=null;
+  if(withExp[0]){
+    pkg={
+      id:withExp[0].id,
+      title:withExp[0].title||'',
+      expiresDate:withExp[0].expiresDate,
+      daysLeft:dashDaysBetween(today,withExp[0].expiresDate),
+      payStatus:withExp[0].payStatus||''
+    };
+  }
+  let monitor=null;
+  if(typeof buildMonitorVerdict==='function'){
+    try{monitor=buildMonitorVerdict(c);}catch(e){monitor=null;}
+  }
+  const pulse=typeof cpClientPulseStatus==='function'?cpClientPulseStatus(id):null;
+  const attention=(typeof dashOpsAttentionItems==='function'?dashOpsAttentionItems():[])
+    .filter(it=>it&&it.clientId===id)
+    .map(it=>({tag:it.tag,pri:it.pri,meta:it.meta}));
+  return{
+    clientId:id,
+    name:c.name||'',
+    goal:c.goal||'',
+    facts:{
+      adh7,adh30,
+      lastWorkout:lastWorkout?{
+        date:lastWorkout.date||'',
+        daysSince:dashDaysBetween(lastWorkout.date,today),
+        title:typeof sessionTitle==='function'?sessionTitle(lastWorkout):(lastWorkout.type||'Trening'),
+        source:lastWorkout.source||''
+      }:null,
+      checkinStatus:ciStatus,
+      lastCheckin:lastCheckin?{
+        date:String(lastCheckin.date||lastCheckin.filledAt||'').slice(0,10),
+        daysSince:dashDaysBetween(lastCheckin.date||lastCheckin.filledAt,today),
+        score:lastCheckin.score!=null?lastCheckin.score:(typeof scoreCheckinAnswers==='function'?scoreCheckinAnswers(lastCheckin.answers||{}):null)
+      }:null,
+      mass:{value:massVal,deltaPct:massDelta,date:(massEntry&&massEntry.date)||''},
+      sleep:{value:sleepVal,date:(sleepEntry&&sleepEntry.date)||''},
+      package:pkg,
+      homework:{open:hw.length,late:late.length}
+    },
+    pulse:pulse,
+    signals:{
+      monitor:monitor?{
+        verdict:monitor.verdict,
+        verdictTone:monitor.verdictTone,
+        score:monitor.score,
+        next:(monitor.next||[]).slice(0,3)
+      }:null,
+      attention
+    }
+  };
+}
+window.clientSituationSnapshot=clientSituationSnapshot;
+window.dashTodayYmd=dashTodayYmd;
+
+function dashTodaySessions(){
+  const today=dashTodayYmd();
+  return(window.SE||[]).filter(s=>s&&s.date===today&&s.source!=='live-draft');
+}
+function dashTodayFocusStats(){
+  const sessions=dashTodaySessions();
+  const att=typeof dashOpsAttentionItems==='function'?dashOpsAttentionItems():[];
+  const ids=new Set();
+  let pri=9;
+  att.forEach(it=>{
+    if(it&&it.clientId)ids.add(it.clientId);
+    if(typeof it.pri==='number'&&it.pri<pri)pri=it.pri;
+  });
+  const reports=typeof dashOpsRecentReports==='function'?dashOpsRecentReports():[];
+  const checkins=reports.filter(r=>r&&r.kind==='checkin');
+  const pkgs=typeof dashOpsExpiringPackages==='function'?dashOpsExpiringPackages(7):[];
+  const today=dashTodayYmd();
+  const packageUrgent=pkgs.some(p=>p&&p.expiresDate&&(dashDaysBetween(today,p.expiresDate)<=0));
+  return{
+    sessions:sessions.length,
+    attentionClients:ids.size,
+    attentionPri:ids.size?pri:null,
+    checkins:checkins.length,
+    reports:reports.length,
+    packages:pkgs.length,
+    packageUrgent:!!packageUrgent
+  };
+}
+function dashTodayFocusTone(kind,stats){
+  const s=stats||{};
+  if(kind==='sessions')return 'info';
+  if(kind==='attention'){
+    if(!s.attentionClients)return 'ok';
+    if(s.attentionPri===0)return 'act';
+    return 'watch';
+  }
+  if(kind==='checkins')return s.checkins?'watch':'ok';
+  if(kind==='packages'){
+    if(!s.packages)return 'ok';
+    if(s.packageUrgent)return 'act';
+    return 'watch';
+  }
+  return 'info';
+}
+function focusDashSection(target){
+  const map={
+    sessions:{el:'dash-ops-today',list:'dash-today'},
+    attention:{el:'dash-ops-attention',list:'dash-attention'},
+    checkins:{el:'dash-ops-reports',list:'dash-reports'},
+    packages:{el:'dash-ops-pay',list:'dash-expiring'}
+  };
+  const spec=map[target];
+  if(!spec)return;
+  window._dashListExpanded=window._dashListExpanded||{};
+  if(spec.list)window._dashListExpanded[spec.list]=true;
+  if(spec.list==='dash-today'&&typeof renderDashToday==='function')renderDashToday();
+  else if(typeof renderDashOps==='function')renderDashOps();
+  const el=document.getElementById(spec.el);
+  if(!el)return;
+  document.querySelectorAll('.dash-section-focus').forEach(n=>n.classList.remove('dash-section-focus'));
+  el.classList.add('dash-section-focus');
+  el.scrollIntoView({behavior:'smooth',block:'nearest'});
+  setTimeout(()=>{if(el)el.classList.remove('dash-section-focus');},1800);
+}
+function renderDashTodayFocus(){
+  const el=document.getElementById('dash-today-focus');
+  if(!el)return;
+  const st=dashTodayFocusStats();
+  const esc=typeof escHtml==='function'?escHtml:(s=>String(s??''));
+  const tiles=[
+    {id:'sessions',n:st.sessions,lbl:'Treningi',hint:st.sessions===1?'dzisiaj':'dzisiaj',tone:dashTodayFocusTone('sessions',st)},
+    {id:'attention',n:st.attentionClients,lbl:'Wymagają uwagi',hint:st.attentionClients===1?'klient':'klientów',tone:dashTodayFocusTone('attention',st)},
+    {id:'checkins',n:st.checkins,lbl:'Check-iny',hint:st.checkins?'do sprawdzenia':'brak nowych',tone:dashTodayFocusTone('checkins',st)},
+    {id:'packages',n:st.packages,lbl:'Pakiety',hint:st.packages?'kończą się w 7 dni':'nic nie wygasa',tone:dashTodayFocusTone('packages',st)}
+  ];
+  el.innerHTML=`<div class="dash-today-focus-hd">
+      <div class="dash-today-focus-kicker">Dzisiaj</div>
+      <div class="dash-today-focus-sub">Co jako trener powinienem zobaczyć i zrobić</div>
+    </div>
+    <div class="dash-today-tiles">
+      ${tiles.map(t=>`<button type="button" class="dash-today-tile dash-today-tile-${esc(t.tone)}" data-dash-focus="${esc(t.id)}" onclick="focusDashSection('${esc(t.id)}')">
+        <div class="dash-today-tile-n">${t.n}</div>
+        <div class="dash-today-tile-lbl">${esc(t.lbl)}</div>
+        <div class="dash-today-tile-hint">${esc(t.hint)}</div>
+      </button>`).join('')}
+    </div>`;
+}
+window.dashTodaySessions=dashTodaySessions;
+window.dashTodayFocusStats=dashTodayFocusStats;
+window.dashTodayFocusTone=dashTodayFocusTone;
+window.focusDashSection=focusDashSection;
+window.renderDashTodayFocus=renderDashTodayFocus;
+
 function renderDashOps(){
   const attEl=document.getElementById('d-ops-attention');
   const repEl=document.getElementById('d-ops-reports');
@@ -6068,6 +6256,7 @@ window.renderDashOps=renderDashOps;
 
 function refreshDashOps(){
   try{if(typeof invalidateOpsEventsCache==='function')invalidateOpsEventsCache();}catch(e){}
+  try{if(typeof renderDashTodayFocus==='function')renderDashTodayFocus();}catch(e){}
   try{if(typeof renderDashOps==='function')renderDashOps();}catch(e){}
   try{if(typeof updateInboxNavBadge==='function')updateInboxNavBadge();}catch(e){}
 }
