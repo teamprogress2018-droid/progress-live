@@ -20,7 +20,7 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 05 v71', html.includes('05-clients-builder-plans-calendar.js?v=78'));
-ok('cache styles v86', html.includes('styles.css?v=101'));
+ok('cache styles v86', html.includes('styles.css?v=102'));
 ok('ci unit', wf.includes('test_cal_week_overlap.js'));
 ok('ci ui', wf.includes('test_cal_week_overlap_ui.js'));
 ok('layout helper', /function calWeekHourBucket/.test(cal) && /function calSessionStartMin/.test(cal));
