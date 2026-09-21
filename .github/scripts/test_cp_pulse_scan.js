@@ -19,8 +19,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 08 v41', html.includes('08-client-profile-extras.js?v=62'));
-ok('cache styles v58', html.includes('styles.css?v=99'));
+ok('cache 08 v41', html.includes('08-client-profile-extras.js?v=63'));
+ok('cache styles v58', html.includes('styles.css?v=100'));
 ok('ci unit', wf.includes('test_cp_pulse_scan.js'));
 ok('metrics stacked toolbar', /cp-metrics-head/.test(src) && /cp-metrics-groups/.test(src) && /cp-metrics-actions/.test(src));
 ok('collapse helper', /function cpCollapseDaySessions/.test(src));

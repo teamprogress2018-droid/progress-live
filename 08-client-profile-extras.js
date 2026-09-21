@@ -1444,6 +1444,210 @@ function cpAssignmentSessions(clientId,opts){
 }
 window.cpAssignmentSessions=cpAssignmentSessions;
 
+function cpSetsVolume(sets){
+  let vol=0,n=0;
+  (sets||[]).forEach(s=>{
+    if(typeof isWorkingSet==='function'&&!isWorkingSet(s))return;
+    const kg=parseFloat(s&&s.kg);
+    const reps=parseFloat(s&&s.reps);
+    if(Number.isFinite(kg)&&kg>0&&Number.isFinite(reps)&&reps>0){vol+=kg*reps;n++;}
+  });
+  return n?vol:null;
+}
+function cpLoadDropFacts(clientId){
+  const logged=(window.SE||[]).filter(s=>{
+    if(!s||s.clientId!==clientId)return false;
+    return typeof isLoggedTrainingSession==='function'?isLoggedTrainingSession(s):(s.source!=='planned'&&s.source!=='live-draft');
+  });
+  const seen=new Set();
+  const names=[];
+  logged.forEach(s=>(s.exercises||[]).forEach(e=>{
+    const n=String(e&&e.name||'').trim();
+    const k=n.toLowerCase();
+    if(!n||seen.has(k))return;
+    seen.add(k);
+    names.push(n);
+  }));
+  const drops=[];
+  names.forEach(name=>{
+    const load=typeof lastLoadForExercise==='function'?lastLoadForExercise(clientId,name):null;
+    const hist=load&&load.history;
+    if(!hist||hist.length<2)return;
+    const last=cpSetsVolume(hist[0].sets);
+    const prev=cpSetsVolume(hist[1].sets);
+    if(last==null||prev==null||prev<=0||last>prev*0.85)return;
+    drops.push({name,pct:Math.round((1-last/prev)*100),last,prev});
+  });
+  drops.sort((a,b)=>b.pct-a.pct);
+  return drops.slice(0,2);
+}
+function cpSleepTrendFact(clientId){
+  const series=typeof cpMetricSeries==='function'?cpMetricSeries(clientId,'mg5','m2',6):[];
+  if(series.length<2)return null;
+  const last=series[series.length-1].v;
+  const prev=series[series.length-2].v;
+  if(!Number.isFinite(last)||!Number.isFinite(prev))return null;
+  const dir=last<prev-0.7?'down':last>prev+0.7?'up':'flat';
+  return{last,prev,dir};
+}
+function cpMassDelta30Fact(clientId){
+  const series=typeof cpMetricSeries==='function'?cpMetricSeries(clientId,'mg1','m1',40):[];
+  if(!series.length)return{value:null,delta:null};
+  const last=series[series.length-1];
+  const d=new Date(String(last.d||'')+'T12:00:00');
+  if(isNaN(d.getTime()))return{value:last.v,delta:null};
+  d.setDate(d.getDate()-30);
+  const p=n=>String(n).padStart(2,'0');
+  const cutoff=d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+  const window=series.filter(x=>String(x.d||'')>=cutoff);
+  const first=(window.length?window:series)[0];
+  const delta=window.length>=2?Math.round((last.v-first.v)*10)/10:null;
+  return{value:last.v,delta};
+}
+function cpSitClip(s,n){
+  const t=String(s||'').replace(/\s+/g,' ').trim();
+  if(t.length<=n)return t;
+  return t.slice(0,Math.max(0,n-1)).trim()+'…';
+}
+function cpNextSessionFocusItems(clientId){
+  const items=[];
+  const c=(window.CL||[]).find(x=>x&&x.id===clientId)||null;
+  const snap=typeof clientSituationSnapshot==='function'?clientSituationSnapshot(clientId):null;
+  const inj=typeof clientInjuriesText==='function'?clientInjuriesText(c):(c&&c.injuries)||'';
+  if(inj)items.push({kind:'injury',tone:'watch',text:'Kontuzja / ograniczenie: '+cpSitClip(inj,90)});
+  cpLoadDropFacts(clientId).forEach(d=>{
+    items.push({kind:'load',tone:'watch',text:cpSitClip(d.name,42)+': volume −'+d.pct+'% vs poprzedni trening'});
+  });
+  const sleep=cpSleepTrendFact(clientId);
+  if(sleep&&sleep.dir==='down'){
+    items.push({kind:'sleep',tone:'watch',text:'Sen spada ('+sleep.prev+' → '+sleep.last+') — lżejszy start'});
+  }
+  const ci=snap&&snap.facts&&snap.facts.checkinStatus;
+  if(ci==='overdue')items.push({kind:'checkin',tone:'act',text:'Check-in przeterminowany — zbierz samopoczucie na treningu'});
+  else if(ci==='pending')items.push({kind:'checkin',tone:'watch',text:'Check-in czeka — dopytaj o samopoczucie'});
+  const hw=snap&&snap.facts&&snap.facts.homework;
+  if(hw&&hw.late>0){
+    items.push({kind:'homework',tone:'watch',text:hw.late===1?'1 zadanie domowe po terminie':(hw.late+' zad. dom. po terminie')});
+  }
+  const pkg=snap&&snap.facts&&snap.facts.package;
+  if(pkg&&typeof pkg.daysLeft==='number'&&pkg.daysLeft<=7){
+    const left=pkg.daysLeft;
+    const txt=left<=0?'Pakiet wygasa dzisiaj':(left===1?'Pakiet kończy się jutro':('Pakiet kończy się za '+left+' dni'));
+    items.push({kind:'package',tone:left<=0?'act':'watch',text:txt});
+  }
+  const adh=snap&&snap.facts&&snap.facts.adh7;
+  if(adh&&adh.assigned>0&&(adh.logged===0||adh.pct<50)){
+    items.push({kind:'adherence',tone:adh.logged===0?'act':'watch',text:'Treningi 7 dni: '+adh.logged+'/'+adh.assigned+' — dopytaj, czy plan jest realny'});
+  }
+  if(!items.length)items.push({kind:'ok',tone:'ok',text:'Brak szczególnych sygnałów — jedź planem.'});
+  return items.slice(0,5);
+}
+function cpOverviewSitTone(kind,snap,mass,sleep){
+  const facts=snap&&snap.facts||{};
+  if(kind==='train'){
+    const a=facts.adh7||{};
+    if(!a.assigned)return'info';
+    if(!a.logged)return'act';
+    if(a.pct<70)return'watch';
+    return'ok';
+  }
+  if(kind==='adh'){
+    const a=facts.adh30||{};
+    if(!a.assigned)return'info';
+    if(a.pct<70)return'watch';
+    return'ok';
+  }
+  if(kind==='mass')return'info';
+  if(kind==='sleep'){
+    if(!sleep)return'info';
+    if(sleep.dir==='down')return'watch';
+    return'ok';
+  }
+  if(kind==='checkin'){
+    const st=facts.checkinStatus;
+    if(st==='overdue')return'act';
+    if(st==='pending')return'watch';
+    if(st==='done')return'ok';
+    return'info';
+  }
+  return'info';
+}
+function focusCpOverviewSection(id){
+  const el=document.getElementById(id);
+  if(!el)return;
+  document.querySelectorAll('.dash-section-focus').forEach(n=>n.classList.remove('dash-section-focus'));
+  el.classList.add('dash-section-focus');
+  el.scrollIntoView({behavior:'smooth',block:'nearest'});
+  setTimeout(()=>{if(el)el.classList.remove('dash-section-focus');},1800);
+}
+function cpOverviewSituationHTML(c){
+  if(!c)return'';
+  const esc=typeof escHtml==='function'?escHtml:(s=>String(s??''));
+  const snap=typeof clientSituationSnapshot==='function'?clientSituationSnapshot(c.id):null;
+  const pulse=(snap&&snap.pulse)||(typeof cpClientPulseStatus==='function'?cpClientPulseStatus(c.id):{tone:'good',label:'',hint:''});
+  const goalLabels={masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja'};
+  const goalText=goalLabels[c.goal]||c.goal||'—';
+  const facts=snap&&snap.facts||{};
+  const adh7=facts.adh7||{logged:0,assigned:0,pct:0};
+  const adh30=facts.adh30||{logged:0,assigned:0,pct:0};
+  const mass=cpMassDelta30Fact(c.id);
+  const massVal=mass.value!=null?mass.value:(facts.mass&&facts.mass.value);
+  const sleep=cpSleepTrendFact(c.id);
+  const sleepVal=facts.sleep&&facts.sleep.value!=null?facts.sleep.value:(sleep&&sleep.last);
+  const lastCi=facts.lastCheckin;
+  const fmtN=v=>v==null||v===''?'—':(typeof v==='number'&&!Number.isInteger(v)?String(Math.round(v*10)/10):String(v));
+  const trainHint=adh7.assigned?(Math.round(adh7.pct||0)+'% planu'):(adh7.logged?'zarejestrowane':'brak planu');
+  const adhHint=adh30.assigned?(adh30.logged+'/'+adh30.assigned):'brak przypisań';
+  const massHint=mass.delta==null?'brak serii 30d':((mass.delta>0?'+':'')+mass.delta+' kg / 30d');
+  const sleepHint=sleep?(sleep.dir==='down'?'spada':sleep.dir==='up'?'rośnie':'stabilny'):'brak trendu';
+  const ciHint=lastCi&&lastCi.daysSince!=null?(lastCi.daysSince===0?'dziś':(lastCi.daysSince===1?'wczoraj':lastCi.daysSince+' d. temu')):(facts.checkinStatus==='pending'?'oczekuje':'brak');
+  const tiles=[
+    {id:'train',n:fmtN(adh7.logged)+(adh7.assigned?'/'+adh7.assigned:''),lbl:'Treningi 7d',hint:trainHint,tone:cpOverviewSitTone('train',snap,mass,sleep),target:'cp-ov-card-train'},
+    {id:'adh',n:adh30.assigned?Math.round(adh30.pct||0)+'%':'—',lbl:'Adherencja 30d',hint:adhHint,tone:cpOverviewSitTone('adh',snap,mass,sleep),target:'cp-ov-card-train'},
+    {id:'mass',n:fmtN(massVal),lbl:'Masa',hint:massHint,tone:cpOverviewSitTone('mass',snap,mass,sleep),target:'cp-ov-card-metrics'},
+    {id:'sleep',n:fmtN(sleepVal),lbl:'Sen',hint:sleepHint,tone:cpOverviewSitTone('sleep',snap,mass,sleep),target:'cp-ov-card-metrics'},
+    {id:'checkin',n:lastCi&&lastCi.daysSince!=null?String(lastCi.daysSince):'—',lbl:'Check-in',hint:ciHint,tone:cpOverviewSitTone('checkin',snap,mass,sleep),target:'cp-ov-card-feel'}
+  ];
+  const next=cpNextSessionFocusItems(c.id);
+  const mon=snap&&snap.signals&&snap.signals.monitor;
+  const monTxt=mon&&mon.verdict?(' · '+mon.verdict):'';
+  return `<div class="cp-ov-situation">
+    <div class="cp-ov-situation-top">
+      <div>
+        <div class="cp-ov-situation-kicker">Sytuacja</div>
+        <div class="cp-ov-situation-title">${esc(c.name||'')} · ${esc(goalText)}</div>
+      </div>
+      <div class="cp-ov-pulse cp-ov-pulse-${esc(pulse.tone||'good')}">
+        <span class="cp-ov-pulse-dot" aria-hidden="true"></span>
+        <div>
+          <div class="cp-ov-pulse-label">${esc(pulse.label||'Status')}${esc(monTxt)}</div>
+          <div class="cp-ov-pulse-hint">${esc(pulse.hint||'')}</div>
+        </div>
+      </div>
+    </div>
+    <div class="cp-ov-situation-kpis">
+      ${tiles.map(t=>`<button type="button" class="cp-ov-sit-tile cp-ov-sit-tile-${esc(t.tone)}" data-cp-sit="${esc(t.id)}" onclick="focusCpOverviewSection('${esc(t.target)}')">
+        <div class="cp-ov-sit-n">${esc(t.n)}</div>
+        <div class="cp-ov-sit-lbl">${esc(t.lbl)}</div>
+        <div class="cp-ov-sit-hint">${esc(t.hint)}</div>
+      </button>`).join('')}
+    </div>
+    <div class="cp-ov-next">
+      <div class="cp-ov-next-hd">Na kolejny trening</div>
+      <ul class="cp-ov-next-list">
+        ${next.map(it=>`<li class="cp-ov-next-item cp-ov-next-${esc(it.tone)}" data-cp-next="${esc(it.kind)}">${esc(it.text)}</li>`).join('')}
+      </ul>
+    </div>
+  </div>`;
+}
+window.cpSetsVolume=cpSetsVolume;
+window.cpLoadDropFacts=cpLoadDropFacts;
+window.cpSleepTrendFact=cpSleepTrendFact;
+window.cpMassDelta30Fact=cpMassDelta30Fact;
+window.cpNextSessionFocusItems=cpNextSessionFocusItems;
+window.focusCpOverviewSection=focusCpOverviewSection;
+window.cpOverviewSituationHTML=cpOverviewSituationHTML;
+
 function renderCPOverview(c){
   const today=new Date();
   const todayStr=typeof todayYmd==='function'?todayYmd():(typeof dateStrLocal==='function'?dateStrLocal(today):today.toISOString().split('T')[0]);
@@ -1535,13 +1739,7 @@ function renderCPOverview(c){
   };
 
   document.getElementById('cp-body').innerHTML=`
-    <div class="cp-ov-pulse cp-ov-pulse-${escHtml(pulse.tone||'good')}">
-      <span class="cp-ov-pulse-dot" aria-hidden="true"></span>
-      <div>
-        <div class="cp-ov-pulse-label">${escHtml(pulse.label||'Status')}</div>
-        <div class="cp-ov-pulse-hint">${escHtml(pulse.hint||'')}</div>
-      </div>
-    </div>
+    ${cpOverviewSituationHTML(c)}
 
     ${editing?'':`<div class="cp-ov-edit-cta" role="button" tabindex="0" onclick="startCPEdit('${c.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startCPEdit('${c.id}')}">
       <div>
@@ -1622,7 +1820,7 @@ function renderCPOverview(c){
     <div class="cp-ov-layout">
       <div class="cp-ov-main">
         <!-- Training -->
-        <div class="cp-ov-card">
+        <div class="cp-ov-card" id="cp-ov-card-train">
           <div class="cp-ov-card-hd">
             <div class="cp-ov-card-title">Treningi</div>
             <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('training')">Otwórz →</button>
@@ -1653,7 +1851,7 @@ function renderCPOverview(c){
         </div>
 
         <!-- Body metrics → full story in Progress / Pomiary -->
-        <div class="cp-ov-card" style="cursor:pointer;" onclick="setCPTab('progress')">
+        <div class="cp-ov-card" id="cp-ov-card-metrics" style="cursor:pointer;" onclick="setCPTab('progress')">
           <div class="cp-ov-card-hd">
             <div class="cp-ov-card-title">Pomiary ciała</div>
             <span style="font-size:11px;color:var(--muted);">Progress →</span>
@@ -1685,7 +1883,7 @@ function renderCPOverview(c){
           :'<div style="font-size:12px;color:var(--muted);padding:8px 0;">Zdjęcia wyłączone w Funkcjach.</div>'}
         </div>
 
-        <div class="cp-ov-card">
+        <div class="cp-ov-card" id="cp-ov-card-feel">
           <div class="cp-ov-card-hd">
             <div class="cp-ov-card-title">Samopoczucie (check-in)</div>
             <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('progress')">Progress →</button>
