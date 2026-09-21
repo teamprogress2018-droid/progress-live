@@ -2254,6 +2254,14 @@ function cpCoopCacheSet(id,row){
 function cpCoopCacheClear(id){
   if(window._cpCoopCache)delete window._cpCoopCache[id];
 }
+function cpCoopGateOk(gate){
+  return !!(gate&&gate.ok&&Array.isArray(gate.found)&&gate.found.length>=2);
+}
+function cpCoopForceGated(id){
+  if(!id)return;
+  if(window._cpCoopBusy)window._cpCoopBusy[id]=false;
+  cpCoopCacheClear(id);
+}
 function cpCoopContextForAI(c){
   if(!c)return'';
   const esc=s=>String(s??'').replace(/\s+/g,' ').trim();
@@ -2449,16 +2457,22 @@ function cpOverviewCoopHTML(c){
   try{v=typeof buildMonitorVerdict==='function'?buildMonitorVerdict(c):null;}catch(e){v=null;}
   const snap=typeof clientSituationSnapshot==='function'?clientSituationSnapshot(c.id):null;
   const gate=cpCoopCollectSignals(c);
+  const allowed=cpCoopGateOk(gate);
+  if(!allowed)cpCoopForceGated(c.id);
   const fp=cpCoopFingerprint(c,v,snap,gate);
-  const cache=cpCoopCacheGet(c.id);
+  const cache=allowed?cpCoopCacheGet(c.id):null;
   const stale=!!(cache&&cache.fp&&cache.fp!==fp);
   const labels={progres:'Progres',regres:'Regres','ryzyko stagnacji':'Ryzyko stagnacji',stabilnie:'Stabilnie'};
   const verdict=v&&v.verdict?(labels[v.verdict]||v.verdict):'';
   const tone=v?(v.verdictTone||'neutral'):'neutral';
   const sigs=cpCoopPickSignals(v);
-  const busy=!!(window._cpCoopBusy&&window._cpCoopBusy[c.id]);
+  const busy=!!(allowed&&window._cpCoopBusy&&window._cpCoopBusy[c.id]);
   let body='';
-  if(busy){
+  if(!allowed){
+    body=`<div class="cp-ov-coop-empty" data-cp-coop-state="gated">
+      <div class="cp-ov-coop-empty-title">${esc(CP_COOP_GATE_MSG)}</div>
+    </div>`;
+  }else if(busy){
     body=`<div class="cp-ov-coop-busy" data-cp-coop-state="busy">Analizuję…</div>`;
   }else if(cache&&(cache.parsed||cache.error)){
     if(cache.error){
@@ -2466,13 +2480,9 @@ function cpOverviewCoopHTML(c){
     }else{
       body=`<div class="cp-ov-coop-out" data-cp-coop-state="done">${cpCoopResultHTML(cache.parsed,stale)}</div>`;
     }
-  }else if(!gate.ok){
-    body=`<div class="cp-ov-coop-empty" data-cp-coop-state="gated">
-      <div class="cp-ov-coop-empty-title">${esc(CP_COOP_GATE_MSG)}</div>
-    </div>`;
   }
-  const showRun=gate.ok&&!busy;
-  const showBlocked=!gate.ok&&!busy;
+  const showRun=allowed&&!busy;
+  const showBlocked=!allowed;
   const runLbl=cache&&(cache.parsed||cache.error)?'Ponów analizę':'Przeanalizuj współpracę';
   return `<div class="cp-ov-coop" data-cp-coop="card">
     <div class="cp-ov-coop-kicker">Analiza współpracy</div>
@@ -2514,13 +2524,14 @@ async function runCpCoopAnalysis(clientId){
   const id=clientId||window.cpClientId;
   const c=(window.CL||[]).find(x=>x&&x.id===id);
   if(!c){if(typeof notify==='function')notify('Wybierz klienta');return;}
-  if(!window._cpCoopBusy)window._cpCoopBusy={};
-  if(window._cpCoopBusy[id])return;
   const gate=cpCoopCollectSignals(c);
-  if(!gate.ok){
+  if(!cpCoopGateOk(gate)){
+    cpCoopForceGated(id);
     if(typeof renderCPOverview==='function')renderCPOverview(c);
     return;
   }
+  if(!window._cpCoopBusy)window._cpCoopBusy={};
+  if(window._cpCoopBusy[id])return;
   window._cpCoopBusy[id]=true;
   if(typeof renderCPOverview==='function')renderCPOverview(c);
   const v=typeof buildMonitorVerdict==='function'?buildMonitorVerdict(c):null;
@@ -2528,16 +2539,19 @@ async function runCpCoopAnalysis(clientId){
   const fp=cpCoopFingerprint(c,v,snap,gate);
   try{
     const req=await cpCoopRequestAnalysis(c);
-    if(!req||req.blocked||!req.fetched){
-      cpCoopCacheSet(id,{fp,parsed:null,error:(req&&req.error)||CP_COOP_GATE_MSG,at:Date.now()});
+    const gate2=cpCoopCollectSignals(c);
+    if(!cpCoopGateOk(gate2)||!req||req.blocked||!req.fetched){
+      cpCoopForceGated(id);
     }else{
       const parsed=cpCoopParseReply(req.raw||'');
       cpCoopCacheSet(id,{fp,parsed,error:null,at:Date.now()});
     }
   }catch(e){
-    cpCoopCacheSet(id,{fp,parsed:null,error:'Nie udało się połączyć z AI.',at:Date.now()});
+    if(!cpCoopGateOk(cpCoopCollectSignals(c)))cpCoopForceGated(id);
+    else cpCoopCacheSet(id,{fp,parsed:null,error:'Nie udało się połączyć z AI.',at:Date.now()});
+  }finally{
+    if(window._cpCoopBusy)window._cpCoopBusy[id]=false;
   }
-  window._cpCoopBusy[id]=false;
   const cur=(window.CL||[]).find(x=>x&&x.id===id);
   if(cur&&typeof renderCPOverview==='function'&&window.cpClientId===id)renderCPOverview(cur);
 }
@@ -2551,6 +2565,8 @@ window.cpCoopLoggedWorkouts=cpCoopLoggedWorkouts;
 window.cpCoopFilledCheckins=cpCoopFilledCheckins;
 window.cpCoopPickSignals=cpCoopPickSignals;
 window.cpCoopCollectSignals=cpCoopCollectSignals;
+window.cpCoopGateOk=cpCoopGateOk;
+window.cpCoopForceGated=cpCoopForceGated;
 window.cpCoopFingerprint=cpCoopFingerprint;
 window.cpCoopContextForAI=cpCoopContextForAI;
 window.cpCoopSystemPrompt=cpCoopSystemPrompt;

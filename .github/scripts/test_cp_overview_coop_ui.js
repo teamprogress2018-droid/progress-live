@@ -188,18 +188,22 @@ function ok(name, cond, extra) {
       { id: 's-pair', clientId: 'c-pair', date: addDays(-2), source: 'live', type: 'FBW A',
         exercises: [{ name: 'Przysiad', sets: [{ kg: 100, reps: 5, kind: 'work' }] }], feedback: 0 },
       { id: 's-mal-l', clientId: 'c-mal', date: addDays(-2), source: 'live', type: 'Bieg', feedback: 0 },
-      { id: 's-mal-p', clientId: 'c-mal', date: addDays(1), source: 'planned', type: 'Interwał' }
+      { id: 's-mal-p', clientId: 'c-mal', date: addDays(1), source: 'planned', type: 'Interwał' },
+      { id: 's-jan-l', clientId: 'c-jan', date: addDays(-2), source: 'live', type: 'FBW', feedback: 0 },
+      { id: 's-jan-p', clientId: 'c-jan', date: addDays(1), source: 'planned', type: 'FBW B' }
     );
     window.CL.push(
       { id: 'c-one', name: 'Ola Jeden', goal: 'sila', status: 'active', injuries: '', notes: '' },
       { id: 'c-pair', name: 'Adam Para', goal: 'sila', status: 'active', injuries: '', notes: 'tajne' },
       { id: 'c-mass', name: 'Ewa Masa', goal: 'masa', status: 'active', injuries: '', notes: '' },
-      { id: 'c-mal', name: 'Małgosia', goal: 'kondycja', status: 'active', injuries: '', notes: '' }
+      { id: 'c-mal', name: 'Małgosia', goal: 'kondycja', status: 'active', injuries: '', notes: '' },
+      { id: 'c-jan', name: 'Jan Kowalski', goal: 'sila', status: 'active', injuries: '', notes: '' }
     );
     window.CHECKINS['c-one'] = [];
     window.CHECKINS['c-pair'] = [{ id: 'ci-p', status: 'filled', date: addDays(-1), answers: { sleep: 3, energy: 2 } }];
     window.CHECKINS['c-mass'] = [];
     window.CHECKINS['c-mal'] = [];
+    window.CHECKINS['c-jan'] = [];
     window.METRIC_ENTRIES = window.METRIC_ENTRIES || [];
     window.METRIC_ENTRIES.push(
       { clientId: 'c-mass', groupId: 'mg1', date: addDays(-20), values: { m1: 70 } },
@@ -247,6 +251,39 @@ function ok(name, cond, extra) {
   ok('training+calendar gated', mal.gated && /Za mało danych do analizy — potrzebne minimum 2 niezależne źródła/.test(mal.copy));
   ok('training+calendar blocked no run', !mal.run && mal.blocked && mal.disabled);
   ok('training+calendar click no fetch', mal.fetch === mal.fetchBefore, JSON.stringify(mal));
+
+  await page.evaluate(() => {
+    window._cpCoopBusy = window._cpCoopBusy || {};
+    window._cpCoopBusy['c-jan'] = true;
+    window._cpCoopCache = window._cpCoopCache || {};
+    window._cpCoopCache['c-jan'] = { parsed: { ok: true, interp: 'stara analiza', consider: ['x'], check: ['y'], raw: 'old' }, error: null, fp: 'old' };
+    openClientProfile('c-jan');
+  });
+  await page.waitForTimeout(300);
+  const janUi = await page.evaluate(() => {
+    const fetchBefore = window.__coopFetch || 0;
+    const btn = document.querySelector('[data-cp-coop-cta="blocked"]');
+    if (btn) btn.click();
+    if (typeof runCpCoopAnalysis === 'function') runCpCoopAnalysis('c-jan');
+    const coop = document.querySelector('.cp-ov-coop');
+    return {
+      gated: !!(document.querySelector('[data-cp-coop-state="gated"]')),
+      busy: !!(document.querySelector('[data-cp-coop-state="busy"]')),
+      copy: (document.querySelector('.cp-ov-coop-empty') || {}).textContent || '',
+      text: (coop && coop.textContent || ''),
+      run: !!document.querySelector('[data-cp-coop-cta="run"]'),
+      blocked: !!(btn && btn.disabled),
+      fetchBefore,
+      fetch: window.__coopFetch || 0,
+      busyFlag: !!(window._cpCoopBusy && window._cpCoopBusy['c-jan']),
+      cache: !!(window._cpCoopCache && window._cpCoopCache['c-jan'])
+    };
+  });
+  ok('jan 1 workout gated copy', janUi.gated && /Za mało danych do analizy — potrzebne minimum 2 niezależne źródła/.test(janUi.copy));
+  ok('jan no analyzing', !janUi.busy && !/Analizuję/.test(janUi.text));
+  ok('jan no run CTA', !janUi.run && janUi.blocked);
+  ok('jan click no AI request', janUi.fetch === janUi.fetchBefore, JSON.stringify(janUi));
+  ok('jan old cache/busy cannot bypass', !janUi.busyFlag && !janUi.cache);
 
   await page.evaluate(() => openClientProfile('c-mass'));
   await page.waitForTimeout(300);

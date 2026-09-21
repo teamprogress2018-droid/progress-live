@@ -47,7 +47,7 @@ ok('garmin excluded',/source==='garmin'/.test(extract(src08,'cpBriefIsLogged')))
 ok('planned excluded',/source==='planned'/.test(extract(src08,'cpBriefIsLogged')));
 ok('css compact',css.includes('.cp-ov-brief-row')&&css.includes('.cp-ov-brief-kicker')&&!/cp-ov-brief-row\{[^}]*background:var\(--bg-card\)/.test(css.replace(/\n/g,' ')));
 ok('injury watch',css.includes('.cp-ov-brief-row.is-watch')&&!css.includes('.cp-ov-brief-row.is-watch{background:'));
-ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=68')&&html.includes('styles.css?v=103'));
+ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=69')&&html.includes('styles.css?v=103'));
 ok('ci unit',wf.includes('test_cp_overview_brief.js'));
 ok('ci ui',wf.includes('test_cp_overview_brief_ui.js'));
 ok('empty copy',src08.includes('Brak danych do briefu.'));

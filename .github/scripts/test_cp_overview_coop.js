@@ -45,7 +45,7 @@ ok('no persist',!/persistById/.test(coopSrc));
 ok('no scoreCheckin',!/scoreCheckinAnswers/.test(coopSrc));
 ok('injuries field',/c\.injuries/.test(extract(src08,'cpCoopContextForAI')));
 ok('css',css.includes('.cp-ov-coop')&&css.includes('.cp-ov-coop-sh'));
-ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=68')&&html.includes('styles.css?v=103'));
+ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=69')&&html.includes('styles.css?v=103'));
 ok('ci unit',wf.includes('test_cp_overview_coop.js'));
 ok('ci ui',wf.includes('test_cp_overview_coop_ui.js'));
 ok('gate two signals',src08.includes('found.length>=2'));
@@ -192,6 +192,23 @@ ok('training+calendar is one source',!gatePlan.ok&&gatePlan.found.length===1&&ga
 const htmlPlan=sandbox.cpOverviewCoopHTML(planOnly);
 ok('training+calendar blocked copy',/Za mało danych do analizy — potrzebne minimum 2 niezależne źródła/.test(htmlPlan)&&/data-cp-coop-cta="blocked"/.test(htmlPlan)&&!/data-cp-coop-cta="run"/.test(htmlPlan));
 
+const janOne={id:'c-jan-one',name:'Jan Kowalski',goal:'sila',injuries:''};
+sandbox.CL.push(janOne);
+sandbox.SE.push(
+  {id:'s-jan-one',clientId:'c-jan-one',date:'2026-09-18',source:'live',type:'FBW',feedback:0},
+  {id:'s-jan-plan',clientId:'c-jan-one',date:'2026-09-22',source:'planned',type:'FBW B'}
+);
+sandbox.CHECKINS['c-jan-one']=[];
+sandbox.window._cpCoopBusy['c-jan-one']=true;
+sandbox.window._cpCoopCache['c-jan-one']={parsed:{ok:true,interp:'stara analiza',consider:['x'],check:['y'],raw:'stara'},error:null,fp:'old'};
+const gateJan=sandbox.cpCoopCollectSignals(janOne);
+ok('jan 1 workout only',!gateJan.ok&&gateJan.found.length===1&&gateJan.found[0].id==='training'&&!gateJan.found.some(s=>s.id==='checkin'||s.id==='body'),JSON.stringify(gateJan.found));
+const htmlJan=sandbox.cpOverviewCoopHTML(janOne);
+ok('jan no analyzing state',/Za mało danych do analizy — potrzebne minimum 2 niezależne źródła/.test(htmlJan)&&!/Analizuję/.test(htmlJan)&&!/stara analiza/.test(htmlJan));
+ok('jan stuck busy cleared',sandbox.window._cpCoopBusy['c-jan-one']===false);
+ok('jan old cache dropped',!sandbox.window._cpCoopCache['c-jan-one']);
+ok('jan blocked cta',/data-cp-coop-cta="blocked"/.test(htmlJan)&&!/data-cp-coop-cta="run"/.test(htmlJan));
+
 sandbox.TASKS.push({id:'t-open',clientId:'c-plan',kind:'homework',status:'open',title:'HIIT'});
 ok('open homework does not unlock',!sandbox.cpCoopCollectSignals(planOnly).ok);
 sandbox.TASKS.push({id:'t-done',clientId:'c-plan',kind:'homework',status:'done',title:'HIIT',doneAt:'2026-09-18'});
@@ -214,7 +231,7 @@ ok('markdown text kept',/Słabszy tydzień/.test(md.interp)&&/Dopytać o sen/.te
 ok('empty hr not a consider item',md.consider.length<=3&&!md.consider.some(x=>x==='---'||x==='*'));
 
 const htmlGatedRun=extract(src08,'runCpCoopAnalysis');
-ok('run respects gate',/if\(!gate\.ok\)/.test(htmlGatedRun));
+ok('run respects gate',/if\(!cpCoopGateOk\(gate\)\)/.test(htmlGatedRun)||/if\(!gate\.ok\)/.test(htmlGatedRun));
 ok('no auto on html',!/runCpCoopAnalysis\(/.test(extract(src08,'cpOverviewCoopHTML').replace(/onclick="runCpCoopAnalysis[^"]+"/,'')));
 
 if(failed){console.error('\n'+failed+' failed');process.exit(1);}

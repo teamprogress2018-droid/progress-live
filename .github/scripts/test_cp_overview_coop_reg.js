@@ -141,7 +141,7 @@ ok('busy guard',/if\(window\._cpCoopBusy\[id\]\)return/.test(extract(src08,'runC
 ok('gate before fetch',extract(src08,'cpCoopRequestAnalysis').indexOf('length<2')<extract(src08,'cpCoopRequestAnalysis').indexOf('await fetch'));
 ok('run calls request helper',/cpCoopRequestAnalysis\(c\)/.test(extract(src08,'runCpCoopAnalysis')));
 ok('ci files',wf.includes('test_cp_overview_coop.js')&&wf.includes('test_cp_overview_coop_reg.js')&&wf.includes('test_cp_overview_coop_ui.js'));
-ok('cache pins',html.includes('08-client-profile-extras.js?v=68')&&html.includes('styles.css?v=103'));
+ok('cache pins',html.includes('08-client-profile-extras.js?v=69')&&html.includes('styles.css?v=103'));
 ok('css card',css.includes('.cp-ov-coop')&&css.includes('.cp-ov-coop-err'));
 
 const sb=makeSandbox();
@@ -338,6 +338,29 @@ async function withFetch(sandbox,impl){
   ok('calendar-only run does not fetch',s._fetchN===0);
   const reqCal=await s.cpCoopRequestAnalysis(calOnly);
   ok('api wrapper blocks calendar',reqCal.blocked&&!reqCal.fetched&&s._fetchN===0);
+
+  const jan={id:'c-jan-kowalski',name:'Jan Kowalski',goal:'sila',injuries:''};
+  s.CL.push(jan);
+  s.window.cpClientId='c-jan-kowalski';
+  s.SE.push(
+    {id:'s-jan-wo',clientId:'c-jan-kowalski',date:'2026-09-18',source:'live',type:'FBW',feedback:0},
+    {id:'s-jan-pl',clientId:'c-jan-kowalski',date:'2026-09-22',source:'planned',type:'FBW B'}
+  );
+  s.CHECKINS['c-jan-kowalski']=[];
+  s.window.METRIC_ENTRIES=(s.window.METRIC_ENTRIES||[]).filter(e=>e&&e.clientId!=='c-jan-kowalski');
+  s.METRIC_ENTRIES=s.window.METRIC_ENTRIES;
+  s.window._cpCoopBusy['c-jan-kowalski']=true;
+  s.window._cpCoopCache['c-jan-kowalski']={parsed:{ok:true,interp:'stara analiza Jana',consider:['a'],check:['b'],raw:'old'},error:null,fp:'x'};
+  s._fetchN=0;
+  s.fetch=async()=>{s._fetchN++;throw new Error('jan must not fetch');};
+  const htmlJanBusy=s.cpOverviewCoopHTML(jan);
+  ok('jan 1wo no analyzing',/Za mało danych do analizy — potrzebne minimum 2 niezależne źródła/.test(htmlJanBusy)&&!/Analizuję/.test(htmlJanBusy)&&!/stara analiza/.test(htmlJanBusy));
+  ok('jan render clears busy+cache',s.window._cpCoopBusy['c-jan-kowalski']===false&&!s.window._cpCoopCache['c-jan-kowalski']);
+  await s.runCpCoopAnalysis('c-jan-kowalski');
+  ok('jan 1wo+no checkin+no metrics no AI request',s._fetchN===0);
+  const htmlJanAfter=s.cpOverviewCoopHTML(jan);
+  ok('jan after run still gated not busy',/data-cp-coop-state="gated"/.test(htmlJanAfter)&&!/Analizuję/.test(htmlJanAfter)&&/data-cp-coop-cta="blocked"/.test(htmlJanAfter)&&!/data-cp-coop-cta="run"/.test(htmlJanAfter));
+  s.window.cpClientId='c-run';
 
   let release;
   const hold=new Promise(r=>{release=r;});
