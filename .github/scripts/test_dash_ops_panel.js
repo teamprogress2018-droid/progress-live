@@ -30,16 +30,21 @@ function ok(name,cond){
 }
 
 ok('kpi row',html.includes('id="d-kpi-row"')&&html.includes('id="d-reports"')&&html.includes('id="d-expiring"'));
-ok('ops sections',html.includes('id="dash-ops-attention"')&&html.includes('id="dash-ops-reports"')&&html.includes('id="dash-ops-activity"')&&html.includes('id="dash-ops-pay"')&&!html.includes('id="dash-ops-reminders"'));
+ok('today focus strip',html.includes('id="dash-today-focus"')&&html.includes('focusDashSection'));
+ok('ops sections',html.includes('id="dash-ops-attention"')&&html.includes('id="dash-ops-reports"')&&html.includes('id="dash-ops-activity"')&&html.includes('id="dash-ops-pay"')&&html.includes('id="dash-ops-today"')&&!html.includes('id="dash-ops-reminders"'));
 ok('packages only in pay card',html.includes('Płatności do odnowienia')&&html.includes('id="d-ops-expiring"')&&!html.includes('Brak nadchodzących terminów')&&!html.includes('Raporty i pakiety'));
 ok('today plan',html.includes('Dzisiejszy plan')&&html.includes('id="d-today-sessions"'));
 ok('quick actions',html.includes('id="dash-qa-btn"')&&html.includes('id="dash-qa-menu"')&&html.includes("openM('m-broadcast')")&&html.includes("openM('m-invite')"));
-ok('ops css',css.includes('.dash-ops-grid')&&css.includes('.dash-qa-menu')&&css.includes('.dash-kpi-row'));
+ok('ops css',css.includes('.dash-ops-grid')&&css.includes('.dash-qa-menu')&&css.includes('.dash-kpi-row')&&css.includes('.dash-today-focus')&&css.includes('.dash-today-tile-ok'));
 ok('no duplicate reminders card',!src04.includes('d-ops-reminders')&&!src04.includes('Brak nadchodzących terminów'));
 ok('list collapse',src04.includes('function dashListSection')&&src04.includes('DASH_LIST_PREVIEW=2')&&src04.includes('function toggleDashListExpand')&&css.includes('.dash-list-more'));
 ok('legacy followups gone',!html.includes('dash-checkin-followup')&&!html.includes('dash-form-followup')&&!html.includes('dash-pay-followup')&&!html.includes('dash-hw-followup')&&!html.includes('dash-msg-followup')&&!html.includes('dash-habit-followup')&&!html.includes('id="dash-cal-refill"')&&!html.includes('dash-photo-followup')&&src04.includes('function refreshDashOps')&&!src04.includes("'dash-checkin':renderDashCheckinFollowup"));
-ok('kpi first + dense css',html.indexOf('id="d-kpi-row"')<html.indexOf('id="dash-client-pipeline"')&&css.includes('.dash-kpi-body')&&css.includes('#screen-dashboard .dash-content'));
-ok('renderDash wires ops',src04.includes('renderDashOps()')&&src04.includes('dashOpsRecentReports()')&&src04.includes('dashOpsExpiringPackages(7)'));
+ok('today before kpi',html.indexOf('id="dash-today-focus"')<html.indexOf('id="d-kpi-row"')&&html.indexOf('id="d-kpi-row"')<html.indexOf('id="dash-ops-attention"'));
+ok('hierarchy attention then today then reports',html.indexOf('id="dash-ops-attention"')<html.indexOf('id="dash-ops-today"')&&html.indexOf('id="dash-ops-today"')<html.indexOf('id="dash-ops-reports"'));
+ok('start after reports before activity',html.indexOf('id="dash-ops-reports"')<html.indexOf('id="dash-getting-started"')&&html.indexOf('id="dash-getting-started"')<html.indexOf('id="dash-ops-activity"'));
+ok('kpi first + dense css',html.indexOf('id="d-kpi-row"')<html.indexOf('id="dash-client-pipeline"')&&css.includes('.dash-kpi-body')&&css.includes('#screen-dashboard .dash-content')&&css.includes('.dash-kpi-secondary'));
+ok('renderDash wires ops',src04.includes('renderDashTodayFocus()')&&src04.includes('renderDashOps()')&&src04.includes('dashOpsRecentReports()')&&src04.includes('dashOpsExpiringPackages(7)'));
+ok('no decorative red on today info tile',css.includes('.dash-today-tile-info .dash-today-tile-n')&&css.includes('.dash-today-tile-act .dash-today-tile-n{color:var(--red)'));
 
 const today=new Date();
 today.setHours(12,0,0,0);
@@ -82,7 +87,8 @@ const sandbox={
   CL:null,SE:null,
   ensureCheckins:()=>{},
   escHtml:(s)=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),
-  console, Date, Math, Set, JSON, parseInt, Number, String, Array, Object
+  console, Date, Math, Set, JSON, parseInt, Number, String, Array, Object,
+  todayYmd:()=>d0
 };
 sandbox.CL=sandbox.window.CL;
 sandbox.SE=sandbox.window.SE;
@@ -110,7 +116,13 @@ vm.runInNewContext(
   'window.dashOpsLiveClients=dashOpsLiveClients;window.dashOpsExpiringPackages=dashOpsExpiringPackages;'+
   'window.dashOpsRecentReports=dashOpsRecentReports;window.dashOpsAttentionItems=dashOpsAttentionItems;'+
   'window.collectOpsEvents=collectOpsEvents;window.dashOpsRecentActivity=dashOpsRecentActivity;window.dashOpsReminders=dashOpsReminders;'+
-  'window._opsEventsCache={at:0,items:null};',
+  'window._opsEventsCache={at:0,items:null};'+
+  extract(src04,'dashTodayYmd')+'\n'+
+  extract(src04,'dashDaysBetween')+'\n'+
+  extract(src04,'dashTodaySessions')+'\n'+
+  extract(src04,'dashTodayFocusStats')+'\n'+
+  extract(src04,'dashTodayFocusTone')+'\n'+
+  'window.dashTodaySessions=dashTodaySessions;window.dashTodayFocusStats=dashTodayFocusStats;window.dashTodayFocusTone=dashTodayFocusTone;',
   sandbox
 );
 
@@ -133,6 +145,19 @@ const rem=sandbox.dashOpsReminders();
 ok('reminders has package',rem.some(r=>/Pakiet/.test(r.txt)&&/Anna/.test(r.txt)));
 ok('reminders skip checkin (already in attention)',!rem.some(r=>/raport/i.test(r.txt)));
 
+const focus=sandbox.dashTodayFocusStats();
+ok('today sessions count',focus.sessions===1,JSON.stringify(focus));
+ok('today attention unique clients',focus.attentionClients>=1,JSON.stringify(focus));
+ok('today checkins count',focus.checkins===1,JSON.stringify(focus));
+ok('today packages count',focus.packages===1,JSON.stringify(focus));
+ok('tone sessions info',sandbox.dashTodayFocusTone('sessions',focus)==='info');
+ok('tone attention not info',sandbox.dashTodayFocusTone('attention',focus)!=='info');
+ok('tone checkins watch',sandbox.dashTodayFocusTone('checkins',focus)==='watch');
+ok('tone packages watch',sandbox.dashTodayFocusTone('packages',{packages:1,packageUrgent:false})==='watch');
+ok('tone packages ok when 0',sandbox.dashTodayFocusTone('packages',{packages:0})==='ok');
+ok('tone attention ok when 0',sandbox.dashTodayFocusTone('attention',{attentionClients:0})==='ok');
+ok('tone attention act on pri 0',sandbox.dashTodayFocusTone('attention',{attentionClients:1,attentionPri:0})==='act');
+
 vm.runInNewContext(
   extract(src04,'dashListExpanded')+'\n'+
   extract(src04,'dashListSection')+'\n'+
@@ -147,7 +172,7 @@ vm.runInNewContext(
 );
 ok('dashListSection preview 2','manual');
 
-ok('cache bumps',html.includes('04-client-portal.js?v=52')&&html.includes('styles.css?v=98'));
+ok('cache bumps',html.includes('04-client-portal.js?v=53')&&html.includes('styles.css?v=99'));
 ok('CI ui',fs.readFileSync(path.join(root,'.github','workflows','check.yml'),'utf8').includes('test_dash_followup_gone_ui.js'));
 
 if(failed){console.error('\n'+failed+' failed');process.exit(1);}

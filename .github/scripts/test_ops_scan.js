@@ -22,7 +22,7 @@ ok('ops notif key',src04.includes('function opsEventNotifKey')&&src04.includes('
 ok('scan clock',src04.includes('function startOpsScanClock')&&src04.includes('60000')&&src04.includes('visibilitychange'));
 ok('clock runs autoflow',src04.includes('runAutoflowsCheck(false)'));
 ok('load starts clock',html.includes('startOpsScanClock()'));
-ok('cache 04',html.includes('04-client-portal.js?v=52'));
+ok('cache 04',html.includes('04-client-portal.js?v=53'));
 ok('CI',wf.includes('test_ops_scan.js'));
 ok('audit notes scan',/startOpsScanClock|jeden skan/.test(audit));
 

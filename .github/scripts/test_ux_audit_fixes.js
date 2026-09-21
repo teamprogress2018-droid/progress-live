@@ -54,10 +54,10 @@ ok('homework filter render', src06.includes("taskFilter==='homework'"));
 ok('dash no-plan', portal.includes("tag:'Brak planu'") && portal.includes("tag:'Domowe zaległe'"));
 ok('cache 01', html.includes('01-core.js?v=112'));
 ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=77'));
-ok('cache 04', html.includes('04-client-portal.js?v=52'));
+ok('cache 04', html.includes('04-client-portal.js?v=53'));
 ok('cache 09', html.includes('09-posture-kb-invites-private.js?v=51'));
 ok('cache 10', html.includes('10-client-app.js?v=40'));
-ok('cache styles', html.includes('styles.css?v=98'));
+ok('cache styles', html.includes('styles.css?v=99'));
 ok('CI', wf.includes('test_ux_audit_fixes.js'));
 
 const document = {
