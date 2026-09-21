@@ -54,7 +54,7 @@ Adherencja i słabszy check-in mogą oznaczać, że plan jest za ciężki.
 
 function makeSandbox(){
   const sandbox={
-    window:{CL:[],SE:[],PL:[],CHECKINS:{},CLIENT_NOTES:{},TASKS:[],METRIC_ENTRIES:[],_cpCoopCache:{},_cpCoopBusy:{},cpClientId:null},
+    window:{CL:[],SE:[],PL:[],CHECKINS:{},CLIENT_NOTES:{},TASKS:[],METRIC_ENTRIES:[],PROGRESS_PHOTOS:[],_cpCoopCache:{},_cpCoopBusy:{},cpClientId:null},
     Date,Math,JSON,parseInt,parseFloat,Number,String,Array,Object,isFinite,isNaN,console,
     Promise,Error,undefined,setTimeout,clearTimeout,
     todayYmd:()=>'2026-09-21',
@@ -76,6 +76,7 @@ function makeSandbox(){
     cpSleepTrendFact:(id)=>(sandbox._sleep&&sandbox._sleep[id])||null,
     clientOpenHomework:(id)=>(sandbox.window.TASKS||[]).filter(t=>t&&t.clientId===id&&t.status!=='done'&&t.kind==='homework'),
     homeworkCompletions:(id)=>(sandbox._hwDone&&sandbox._hwDone[id])||[],
+    ppListFor:(id)=>(sandbox.window.PROGRESS_PHOTOS||[]).filter(p=>p&&p.clientId===id),
     buildMonitorVerdict:(c)=>sandbox._mon||{verdict:'ryzyko stagnacji',verdictTone:'warn',score:-1,signals:[
       {tone:'bad',label:'Adherencja 30 dni',text:'48% (6/13).'},
       {tone:'warn',label:'Ostatni tydzień',text:'0 z 3.'},
@@ -121,6 +122,7 @@ function makeSandbox(){
   sandbox.window.CHECKINS=sandbox.CHECKINS;
   sandbox.window.TASKS=sandbox.TASKS;
   sandbox.window.METRIC_ENTRIES=sandbox.METRIC_ENTRIES;
+  sandbox.window.PROGRESS_PHOTOS=sandbox.window.PROGRESS_PHOTOS||[];
   sandbox.window.persistById=sandbox.persistById;
   vm.runInNewContext(coopSrc,sandbox);
   sandbox.window.cpCoopCacheGet=sandbox.cpCoopCacheGet;
@@ -134,11 +136,12 @@ ok('brief helper frozen',brief.includes('Przed treningiem')&&!brief.includes('Pr
 ok('html helper no monitor.next',!/v\.next|monitor\.next/.test(extract(src08,'cpOverviewCoopHTML')));
 ok('coop no persistById',!/persistById/.test(coopSrc));
 ok('html helper no fetch',!/fetch\(/.test(extract(src08,'cpOverviewCoopHTML')));
-ok('run has fetch',/await fetch\(/.test(extract(src08,'runCpCoopAnalysis')));
+ok('run has fetch',/await fetch\(/.test(extract(src08,'cpCoopRequestAnalysis')));
 ok('busy guard',/if\(window\._cpCoopBusy\[id\]\)return/.test(extract(src08,'runCpCoopAnalysis')));
-ok('gate before fetch',extract(src08,'runCpCoopAnalysis').indexOf('if(!gate.ok)')<extract(src08,'runCpCoopAnalysis').indexOf('await fetch'));
+ok('gate before fetch',extract(src08,'cpCoopRequestAnalysis').indexOf('length<2')<extract(src08,'cpCoopRequestAnalysis').indexOf('await fetch'));
+ok('run calls request helper',/cpCoopRequestAnalysis\(c\)/.test(extract(src08,'runCpCoopAnalysis')));
 ok('ci files',wf.includes('test_cp_overview_coop.js')&&wf.includes('test_cp_overview_coop_reg.js')&&wf.includes('test_cp_overview_coop_ui.js'));
-ok('cache pins',html.includes('08-client-profile-extras.js?v=66')&&html.includes('styles.css?v=103'));
+ok('cache pins',html.includes('08-client-profile-extras.js?v=67')&&html.includes('styles.css?v=103'));
 ok('css card',css.includes('.cp-ov-coop')&&css.includes('.cp-ov-coop-err'));
 
 const sb=makeSandbox();
@@ -149,9 +152,8 @@ sb.CHECKINS['c-zero']=[];
 const g0=sb.cpCoopCollectSignals(zero);
 ok('0 signals blocked',!g0.ok&&g0.found.length===0,JSON.stringify(g0));
 const h0=sb.cpOverviewCoopHTML(zero);
-ok('0 signals copy',/Za mało danych do interpretacji/.test(h0)&&!/data-cp-coop-cta="run"/.test(h0));
-ok('0 signals lists gaps',/zalogowany trening/.test(h0)&&/wypełniony check-in/.test(h0));
-ok('0 signals no mass required for sila',!/dwa pomiary masy/.test(h0)&&/dwa pomiary siły/.test(h0));
+ok('0 signals copy',/Za mało danych do analizy — potrzebne minimum 2 niezależne źródła/.test(h0)&&!/data-cp-coop-cta="run"/.test(h0)&&/data-cp-coop-cta="blocked"/.test(h0));
+ok('0 signals blocked btn',/disabled/.test(h0));
 
 const one={id:'c-one',name:'Ola',goal:'kondycja',injuries:''};
 sb.CL.push(one);
@@ -160,7 +162,7 @@ sb.CHECKINS['c-one']=[];
 const g1=sb.cpCoopCollectSignals(one);
 ok('1 signal is only training',g1.found.length===1&&g1.found[0].id==='training'&&!g1.ok,JSON.stringify(g1.found));
 const h1=sb.cpOverviewCoopHTML(one);
-ok('1 signal no CTA',/Za mało danych do interpretacji/.test(h1)&&!/data-cp-coop-cta="run"/.test(h1));
+ok('1 signal no CTA',/Za mało danych do analizy — potrzebne minimum 2 niezależne źródła/.test(h1)&&!/data-cp-coop-cta="run"/.test(h1)&&/data-cp-coop-cta="blocked"/.test(h1));
 
 const pair={id:'c-pair',name:'Adam',goal:'sila',level:'sredni',injuries:'kolano',notes:'tajne notes',weight:82,height:180};
 sb.CL.push(pair);
@@ -172,7 +174,7 @@ sb.PL.push({id:'pl-fat',clientId:'c-pair',name:'Siła FBW',method:'FBW',days:[
   {label:'B',exercises:[{name:'Inne sekretne',sets:[{kg:777,reps:3}]}]}
 ]});
 const g2=sb.cpCoopCollectSignals(pair);
-ok('training+checkin no mass allowed',g2.ok&&g2.found.some(s=>s.id==='training')&&g2.found.some(s=>s.id==='checkin')&&!g2.found.some(s=>s.id==='mass')&&g2.found.length===2,JSON.stringify(g2.found));
+ok('training+checkin no mass allowed',g2.ok&&g2.found.some(s=>s.id==='training')&&g2.found.some(s=>s.id==='checkin')&&!g2.found.some(s=>s.id==='body')&&!g2.found.some(s=>s.id==='adherence')&&g2.found.length===2,JSON.stringify(g2.found));
 ok('sila missing mass not listed',!g2.missing.includes('dwa pomiary masy'));
 const h2=sb.cpOverviewCoopHTML(pair);
 ok('2 signals CTA',/Przeanalizuj współpracę/.test(h2)&&/data-cp-coop-cta="run"/.test(h2));
@@ -182,19 +184,27 @@ ok('coop not duplicating brief/next',!/Przed treningiem/.test(h2)&&!/Na kolejny 
 
 const massOnly={id:'c-mass',name:'Ewa',goal:'masa',injuries:''};
 sb.CL.push(massOnly);
-sb._deltas['c-mass']={'mg1/m1':1.2,'mg1/m2':-0.4};
+sb.METRIC_ENTRIES.push(
+  {clientId:'c-mass',groupId:'mg1',date:'2026-09-01',values:{m1:70}},
+  {clientId:'c-mass',groupId:'mg1',date:'2026-09-18',values:{m1:71.2}}
+);
 sb.CHECKINS['c-mass']=[];
 const gm=sb.cpCoopCollectSignals(massOnly);
-ok('mass trend is one signal',gm.found.length===1&&gm.found[0].id==='mass'&&!gm.ok,JSON.stringify(gm.found));
-ok('bf delta not extra independent',!gm.found.some(s=>s.id==='strength'||s.id==='cardio'));
+ok('body metrics is one source',gm.found.length===1&&gm.found[0].id==='body'&&!gm.ok,JSON.stringify(gm.found));
+ok('zero body value ignored',(()=>{
+  const z={id:'c-zero-kg',name:'Zero',goal:'masa'};
+  sb.CL.push(z);
+  sb.METRIC_ENTRIES.push({clientId:'c-zero-kg',groupId:'mg1',date:'2026-09-01',values:{m1:0}});
+  const gz=sb.cpCoopCollectSignals(z);
+  return gz.found.length===0;
+})());
 
 const silaMass={id:'c-sm',name:'Bartek',goal:'sila',injuries:''};
 sb.CL.push(silaMass);
-sb._deltas['c-sm']={'mg1/m1':-0.8};
+sb.METRIC_ENTRIES.push({clientId:'c-sm',groupId:'mg1',date:'2026-09-01',values:{m1:80}});
 sb.CHECKINS['c-sm']=[];
 const gsm=sb.cpCoopCollectSignals(silaMass);
-ok('sila mass-only blocked',!gsm.ok&&gsm.found.filter(s=>s.id==='mass').length===1);
-ok('sila asks strength not mass',gsm.missing.includes('dwa pomiary siły (przysiad)')&&!gsm.missing.includes('dwa pomiary masy'));
+ok('sila body-only blocked',!gsm.ok&&gsm.found.filter(s=>s.id==='body').length===1);
 
 const ctx=sb.cpCoopContextForAI(pair);
 ok('ctx has DANE NIEOBECNE',/DANE NIEOBECNE:/.test(ctx)&&/SYGNAŁY OBECNE:/.test(ctx));
@@ -207,6 +217,58 @@ ok('ctx checkin /5 not /10',/Sen 3\/5/.test(ctx)&&!/\/10/.test(ctx));
 ok('ctx last load from session not invented',/Przysiad/.test(ctx)&&/100 kg/.test(ctx));
 ok('ctx plan name only',/Plan: Siła FBW/.test(ctx)&&/metoda FBW/.test(ctx));
 ok('ctx forbids extra numbers',/Nie wolno używać liczb, kg, procentów ani ćwiczeń, których nie ma powyżej/.test(ctx));
+ok('ctx rating recorded',/Ocena ostatniego treningu: 4\/5/.test(ctx));
+
+const jan={id:'c-jan',name:'Jan Kowalski',goal:'sila',weight:0,height:0,age:0,injuries:''};
+sb.CL.push(jan);
+sb.SE.push({id:'s-jan',clientId:'c-jan',date:'2026-09-18',source:'live',type:'FBW',feedback:0});
+sb.CHECKINS['c-jan']=[{id:'ci-jan',status:'filled',date:'2026-09-19',answers:{sleep:0,energy:'',stress:4}}];
+sb.clientSituationSnapshot=(id)=>{
+  if(id==='c-jan')return{clientId:id,facts:{adh7:{logged:1,assigned:3,pct:33},adh30:{logged:1,assigned:4,pct:25},lastWorkout:{date:'2026-09-18',title:'FBW',source:'live',daysSince:3},checkinStatus:'done',lastCheckin:{date:'2026-09-19',daysSince:2},mass:{value:0,deltaPct:null,date:'2026-09-01'},sleep:{value:0,date:'2026-09-20'},homework:{open:0,late:0}}};
+  return{clientId:id,facts:{adh7:{logged:0,assigned:0,pct:0},adh30:{logged:0,assigned:0,pct:0},lastWorkout:null,checkinStatus:'none',lastCheckin:null,mass:{value:null,deltaPct:null,date:''},sleep:{value:null,date:''},homework:{open:0,late:0}}};
+};
+const ctxJan=sb.cpCoopContextForAI(jan);
+ok('jan rating brak not 0/5',/Ocena ostatniego treningu: brak \(nie 0\/5\)/.test(ctxJan)&&!/Ocena ostatniego treningu: 0\/5/.test(ctxJan));
+ok('jan no 0 kg / 0 age',!/Waga \(karta\): 0/.test(ctxJan)&&!/Wzrost: 0/.test(ctxJan)&&!/Wiek: 0/.test(ctxJan));
+ok('jan checkin 0 skipped',!/Sen 0\/5/.test(ctxJan)&&/Stres 4\/5/.test(ctxJan));
+ok('jan mass 0 is brak',/Masa: value=brak/.test(ctxJan)&&/Sen \(pomiar\): value=brak/.test(ctxJan));
+
+const mal={id:'c-mal',name:'Małgosia',goal:'kondycja',injuries:''};
+sb.CL.push(mal);
+sb.SE.push(
+  {id:'s-mal-l',clientId:'c-mal',date:'2026-09-18',source:'live',type:'Bieg'},
+  {id:'s-mal-p',clientId:'c-mal',date:'2026-09-22',source:'planned',type:'Interwał'}
+);
+sb.CHECKINS['c-mal']=[];
+const gMal=sb.cpCoopCollectSignals(mal);
+ok('malgosia training+plan blocked',!gMal.ok&&gMal.found.length===1&&gMal.found[0].id==='training'&&!gMal.found.some(s=>s.id==='adherence'),JSON.stringify(gMal.found));
+sb.TASKS.push({id:'hw-open',clientId:'c-mal',kind:'homework',status:'open',title:'HIIT'});
+ok('open homework not a source',!sb.cpCoopCollectSignals(mal).ok);
+sb._hwDone['c-mal']=[{id:'hw-done',status:'done',kind:'homework',doneAt:'2026-09-18'}];
+ok('completed homework unlocks',sb.cpCoopCollectSignals(mal).ok&&sb.cpCoopCollectSignals(mal).found.some(s=>s.id==='homework'));
+
+sb.SE.push({id:'s-gar-only',clientId:'c-gar1',date:'2026-09-18',source:'garmin',type:'Bieg 8 km'});
+sb.METRIC_ENTRIES.push({clientId:'c-gar1',groupId:'mg6',date:'2026-09-18',source:'garmin',values:{m1:8000}});
+sb.CL.push({id:'c-gar1',name:'Garmin One',goal:'kondycja'});
+ok('garmin alone blocked',!sb.cpCoopCollectSignals({id:'c-gar1',name:'G',goal:'kondycja'}).ok);
+sb.window.PROGRESS_PHOTOS.push({clientId:'c-gar1',date:'2026-09-10',photos:{front:'data:image/jpeg;base64,xx'}});
+ok('garmin+photo unlocks',sb.cpCoopCollectSignals({id:'c-gar1'}).ok&&sb.cpCoopCollectSignals({id:'c-gar1'}).found.some(s=>s.id==='garmin')&&sb.cpCoopCollectSignals({id:'c-gar1'}).found.some(s=>s.id==='photos'));
+
+const md=sb.cpCoopParseReply(`1. Interpretacja
+**Słabszy tydzień** *może* oznaczać zmęczenie.
+---
+2. Do rozważenia
+- **Dopytać o sen**
+- ---
+- Rozważyć krótsze sesje
+- *Czwarta która zniknie*
+
+3. Sprawdź przed decyzją
+- Brak trendu siły`);
+const mdHtml=sb.cpCoopResultHTML(md,false);
+ok('md parse keeps 3 sections',md.ok&&md.consider.length===3);
+ok('md markers gone',!/\*\*/.test(md.interp)&&!/\*\*/.test(mdHtml)&&!/\*/.test(md.interp)&&!/---/.test(mdHtml)&&!/\*\*/.test(md.consider.join(' ')));
+ok('md wording kept',/Słabszy tydzień/.test(md.interp)&&/Dopytać o sen/.test(mdHtml)&&/może oznaczać/.test(md.interp));
 
 const sys=sb.cpCoopSystemPrompt();
 ok('prompt FACTS model',/FAKTY → INTERPRETACJA → OPCJE → DECYZJA TRENERA/.test(sys));
@@ -264,6 +326,18 @@ async function withFetch(sandbox,impl){
   await s.runCpCoopAnalysis('c-run-one');
   ok('1 signal run does not fetch',s._fetchN===0);
   ok('1 signal persist unused',s._persist.length===0);
+
+  const reqBlocked=await s.cpCoopRequestAnalysis(oneC);
+  ok('api wrapper blocks 1 source',reqBlocked.blocked===true&&reqBlocked.fetched===false&&s._fetchN===0&&/minimum 2 niezależne źródła/.test(reqBlocked.error));
+
+  const calOnly={id:'c-cal',name:'Kalendarz',goal:'sila',injuries:''};
+  s.CL.push(calOnly);
+  s.SE.push({id:'s-cal',clientId:'c-cal',date:'2026-09-22',source:'planned',type:'FBW'});
+  s._fetchN=0;
+  await s.runCpCoopAnalysis('c-cal');
+  ok('calendar-only run does not fetch',s._fetchN===0);
+  const reqCal=await s.cpCoopRequestAnalysis(calOnly);
+  ok('api wrapper blocks calendar',reqCal.blocked&&!reqCal.fetched&&s._fetchN===0);
 
   let release;
   const hold=new Promise(r=>{release=r;});

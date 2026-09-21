@@ -37,7 +37,7 @@ function ok(name, cond, extra) {
         return {
           json: async () => ({
             content: [{
-              text: '1. Interpretacja\nTreningi są, ale check-in słabszy — to może oznaczać zmęczenie albo zbyt ciasny plan, niekoniecznie regres.\n\n2. Do rozważenia\n- Dopytać o sen i stres poza siłownią\n- Rozważyć krótsze sesje przez kilka dni\n- Poczekać na kolejny pomiar siły\n\n3. Sprawdź przed decyzją\n- Czy klient realnie ogarnia 4 dni?\n- Brak trendu siły'
+              text: '1. Interpretacja\nTreningi są, ale check-in słabszy — to **może oznaczać** zmęczenie albo zbyt ciasny plan, niekoniecznie regres.\n---\n\n2. Do rozważenia\n- *Dopytać o sen i stres poza siłownią*\n- Rozważyć krótsze sesje przez kilka dni\n- Poczekać na kolejny pomiar siły\n\n3. Sprawdź przed decyzją\n- Czy klient realnie ogarnia 4 dni?\n- Brak trendu siły'
             }]
           })
         };
@@ -141,7 +141,8 @@ function ok(name, cond, extra) {
       legal: !!(coop && /nie jest decyzja/i.test(coop.textContent || '')),
       notesLeak: !!(coop && /nie do analizy/.test(coop.textContent || '')),
       rerun: (document.querySelector('[data-cp-coop-cta="run"]') || {}).textContent || '',
-      bodyHasVolume: /zmniejsz objętość o 20/i.test((coop && coop.textContent) || '')
+      bodyHasVolume: /zmniejsz objętość o 20/i.test((coop && coop.textContent) || ''),
+      mdJunk: /\*\*|---|^\s*\*/m.test((coop && coop.textContent) || '')
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'cp_coop_after_ai.png') });
@@ -152,6 +153,7 @@ function ok(name, cond, extra) {
   ok('legal line', after.legal);
   ok('notes not leaked', !after.notesLeak);
   ok('cta becomes rerun', /Ponów/.test(after.rerun));
+  ok('markdown artifacts hidden', !after.mdJunk, after.text);
 
   await page.evaluate(() => {
     if (typeof openClientProfile === 'function') openClientProfile('c-new');
@@ -168,7 +170,7 @@ function ok(name, cond, extra) {
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'cp_coop_gated.png') });
-  ok('new client gated', empty.gated && /Za mało danych do interpretacji/.test(empty.copy));
+  ok('new client gated', empty.gated && /Za mało danych do analizy — potrzebne minimum 2 niezależne źródła/.test(empty.copy));
   ok('new client no cta', !empty.cta);
   ok('new client no extra fetch', empty.fetch === 1, String(empty.fetch));
   ok('situation remains empty client', empty.sit);
@@ -181,19 +183,23 @@ function ok(name, cond, extra) {
       const p = x => String(x).padStart(2, '0');
       return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
     };
-    window.CL.push(
-      { id: 'c-one', name: 'Ola Jeden', goal: 'sila', status: 'active', injuries: '', notes: '' },
-      { id: 'c-pair', name: 'Adam Para', goal: 'sila', status: 'active', injuries: '', notes: 'tajne' },
-      { id: 'c-mass', name: 'Ewa Masa', goal: 'masa', status: 'active', injuries: '', notes: '' }
-    );
     window.SE.push(
       { id: 's-one', clientId: 'c-one', date: addDays(-2), source: 'live', type: 'FBW' },
       { id: 's-pair', clientId: 'c-pair', date: addDays(-2), source: 'live', type: 'FBW A',
-        exercises: [{ name: 'Przysiad', sets: [{ kg: 100, reps: 5, kind: 'work' }] }] }
+        exercises: [{ name: 'Przysiad', sets: [{ kg: 100, reps: 5, kind: 'work' }] }], feedback: 0 },
+      { id: 's-mal-l', clientId: 'c-mal', date: addDays(-2), source: 'live', type: 'Bieg', feedback: 0 },
+      { id: 's-mal-p', clientId: 'c-mal', date: addDays(1), source: 'planned', type: 'Interwał' }
+    );
+    window.CL.push(
+      { id: 'c-one', name: 'Ola Jeden', goal: 'sila', status: 'active', injuries: '', notes: '' },
+      { id: 'c-pair', name: 'Adam Para', goal: 'sila', status: 'active', injuries: '', notes: 'tajne' },
+      { id: 'c-mass', name: 'Ewa Masa', goal: 'masa', status: 'active', injuries: '', notes: '' },
+      { id: 'c-mal', name: 'Małgosia', goal: 'kondycja', status: 'active', injuries: '', notes: '' }
     );
     window.CHECKINS['c-one'] = [];
     window.CHECKINS['c-pair'] = [{ id: 'ci-p', status: 'filled', date: addDays(-1), answers: { sleep: 3, energy: 2 } }];
     window.CHECKINS['c-mass'] = [];
+    window.CHECKINS['c-mal'] = [];
     window.METRIC_ENTRIES = window.METRIC_ENTRIES || [];
     window.METRIC_ENTRIES.push(
       { clientId: 'c-mass', groupId: 'mg1', date: addDays(-20), values: { m1: 70 } },
@@ -221,6 +227,27 @@ function ok(name, cond, extra) {
   ok('1 signal no extra fetch', oneSig.fetch === 1, String(oneSig.fetch));
   ok('brief/sit/next stay on 1-signal', oneSig.brief && oneSig.sit && oneSig.next);
 
+  await page.evaluate(() => openClientProfile('c-mal'));
+  await page.waitForTimeout(300);
+  const mal = await page.evaluate(() => {
+    const btn = document.querySelector('[data-cp-coop-cta="blocked"]');
+    const fetchBefore = window.__coopFetch || 0;
+    if (btn) btn.click();
+    if (typeof runCpCoopAnalysis === 'function') runCpCoopAnalysis('c-mal');
+    return {
+      gated: !!(document.querySelector('[data-cp-coop-state="gated"]')),
+      copy: (document.querySelector('.cp-ov-coop-empty') || {}).textContent || '',
+      run: !!document.querySelector('[data-cp-coop-cta="run"]'),
+      blocked: !!document.querySelector('[data-cp-coop-cta="blocked"]'),
+      disabled: !!(btn && btn.disabled),
+      fetchBefore,
+      fetch: window.__coopFetch || 0
+    };
+  });
+  ok('training+calendar gated', mal.gated && /Za mało danych do analizy — potrzebne minimum 2 niezależne źródła/.test(mal.copy));
+  ok('training+calendar blocked no run', !mal.run && mal.blocked && mal.disabled);
+  ok('training+calendar click no fetch', mal.fetch === mal.fetchBefore, JSON.stringify(mal));
+
   await page.evaluate(() => openClientProfile('c-mass'));
   await page.waitForTimeout(300);
   const massOnly = await page.evaluate(() => ({
@@ -229,7 +256,7 @@ function ok(name, cond, extra) {
     copy: (document.querySelector('.cp-ov-coop-empty') || {}).textContent || '',
     fetch: window.__coopFetch || 0
   }));
-  ok('mass-only gated', massOnly.gated && !massOnly.cta && /Za mało danych do interpretacji/.test(massOnly.copy));
+  ok('mass-only gated', massOnly.gated && !massOnly.cta && /Za mało danych do analizy — potrzebne minimum 2 niezależne źródła/.test(massOnly.copy));
   ok('mass-only no fetch', massOnly.fetch === 1, String(massOnly.fetch));
 
   await page.evaluate(() => {
@@ -290,6 +317,8 @@ function ok(name, cond, extra) {
       fetch: window.__coopFetch,
       persist: window.__persistCalls || 0,
       nextLeak: /Skróć objętość|20–30%/.test(body),
+      ratingZero: /Ocena ostatniego treningu: 0\/5/.test(body),
+      ratingBrak: /Ocena ostatniego treningu: brak \(nie 0\/5\)/.test(body),
       notesLeak: /tajne/.test((document.querySelector('.cp-ov-coop') || {}).textContent || ''),
       legal: /nie jest decyzja/i.test((document.querySelector('.cp-ov-coop') || {}).textContent || ''),
       rerun: (document.querySelector('[data-cp-coop-cta="run"]') || {}).textContent || '',
@@ -304,6 +333,7 @@ function ok(name, cond, extra) {
   ok('pair still 2 fetches', pairDone.fetch === 2, String(pairDone.fetch));
   ok('pair no persist', pairDone.persist === 0);
   ok('pair prompt no volume order', !pairDone.nextLeak);
+  ok('pair missing rating not 0/5', !pairDone.ratingZero && pairDone.ratingBrak);
   ok('pair notes not in card', !pairDone.notesLeak);
   ok('pair legal + ponow', pairDone.legal && /Ponów/.test(pairDone.rerun));
   ok('pair brief/sit/next intact', pairDone.brief && pairDone.sit && pairDone.next);
