@@ -129,13 +129,14 @@ function ok(name, cond, extra) {
     const rows = [...document.querySelectorAll('.cp-ov-brief [data-cp-brief]')].map(n => n.getAttribute('data-cp-brief'));
     return {
       empty: (document.querySelector('.cp-ov-brief-empty') || {}).textContent || '',
+      wrap: el ? el.getAttribute('data-cp-brief') : '',
       rows,
       sit: !!document.querySelector('.cp-ov-situation'),
       notesLeak: !!(el && /ukryte notes/.test(el.textContent || ''))
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'cp_brief_nowy_klient.png') });
-  ok('new client one empty', /Brak danych do briefu/.test(empty.empty) && empty.rows.join(',') === 'empty', JSON.stringify(empty));
+  ok('new client one empty', /Brak danych do briefu/.test(empty.empty) && empty.wrap === 'empty' && empty.rows.length === 0, JSON.stringify(empty));
   ok('new client no notes leak', !empty.notesLeak);
   ok('situation remains for new', empty.sit);
 
