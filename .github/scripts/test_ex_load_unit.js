@@ -26,15 +26,16 @@ function eq(name, got, want) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=111'));
+ok('cache 01', html.includes('01-core.js?v=112'));
 ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=78'));
-ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=83'));
+ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=84'));
 ok('builder apply helper', src05.includes('function builderApplyLoadUnit'));
 ok('builder header KG/S', src05.includes('KG/S'));
 ok('save loadUnit', src05.includes("loadUnit:typeof exLoadUnit==='function'?exLoadUnit(n):'kg'"));
 ok('liny tagged sec', /name:'Liny treningowe'[\s\S]{0,280}load:'sec'/.test(six));
-ok('deska tagged sec', /name:'Deska',aka:'Plank[^']*'[\s\S]{0,240}load:'sec'/.test(six));
+ok('deska tagged sec', /name:'Deska',aka:'Plank[\s\S]{0,400}load:'sec'/.test(six));
 ok('plank forearm infer', /plank na \(przedramion\|łokci\|lokci\)/.test(fs.readFileSync(path.join(root, '01-core.js'), 'utf8')));
+ok('plank przedni infer', /\\bplank\\b/.test(fs.readFileSync(path.join(root, '01-core.js'), 'utf8')));
 ok('taps not tagged', !/name:'Deska z unoszeniem ramienia'[^}]*load:'sec'/.test(six));
 ok('wioslarz tagged min', /name:'Wioślarz'[^}]*load:'min'/.test(six));
 ok('airbike tagged min', /name:'Airbike'[^}]*load:'min'/.test(six));
@@ -91,6 +92,8 @@ eq('deska sec', exLoadUnit('Deska'), 'sec');
 eq('deska taps stay kg', exLoadUnit('Deska z unoszeniem ramienia'), 'kg');
 eq('plank forearm sec', exLoadUnit('Plank na przedramionach z oddychaniem przeponowym'), 'sec');
 eq('plank elbows sec', exLoadUnit('Plank na łokciach (deska)'), 'sec');
+eq('plank przedni lokcie sec', exLoadUnit('Plank przedni na łokciach (statyczny)'), 'sec');
+eq('stale kg on przedni plank', exLoadUnit({name: 'Plank przedni na łokciach (statyczny)', loadUnit: 'kg'}), 'sec');
 eq('forearm plank en', exLoadUnit('Forearm plank'), 'sec');
 eq('curl forearm stays kg', exLoadUnit('Uginanie przedramion z hantlą'), 'kg');
 eq('stale kg on plank becomes sec', exLoadUnit({name: 'Plank na przedramionach z oddychaniem przeponowym', loadUnit: 'kg'}), 'sec');

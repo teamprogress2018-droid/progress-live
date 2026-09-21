@@ -183,6 +183,34 @@ function ok(name, cond, extra) {
   ok('live plank not ciezar', !/ciężar/i.test(plank.head), plank.head);
   ok('live plank helper sec', plank.helper === 'sec', plank.helper);
 
+  await page.evaluate(() => {
+    window.liveExercises = [{
+      name: 'Plank przedni na łokciach (statyczny)',
+      loadUnit: 'kg',
+      sets: [{ setNo: 1, kg: '', reps: '30', done: false, kind: 'work' }],
+      done: false,
+      collapsed: false
+    }];
+    if (typeof renderLiveExercises === 'function') renderLiveExercises();
+  });
+  const plankFront = await page.evaluate(() => {
+    const head = document.querySelector('#live-ex-0 .live-set-head');
+    const input = document.querySelector('#live-ex-0 .live-kg-input');
+    const helper = typeof exLoadUnit === 'function'
+      ? exLoadUnit({ name: 'Plank przedni na łokciach (statyczny)', loadUnit: 'kg' })
+      : '';
+    return {
+      head: head ? head.innerText : '',
+      ph: input ? input.getAttribute('placeholder') : '',
+      helper
+    };
+  });
+  await page.screenshot({ path: path.join(shotDir, 'live_plank_przedni_czas.png') });
+  ok('live przedni plank header czas', /czas/i.test(plankFront.head), plankFront.head);
+  ok('live przedni plank not ciezar', !/ciężar/i.test(plankFront.head), plankFront.head);
+  ok('live przedni plank placeholder sec', plankFront.ph === 'sec', JSON.stringify(plankFront));
+  ok('live przedni plank helper sec', plankFront.helper === 'sec', plankFront.helper);
+
   await browser.close();
   if (failed) process.exit(1);
 })().catch((err) => {
