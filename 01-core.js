@@ -3930,6 +3930,62 @@ function classifyExerciseProgress(series){
 }
 window.classifyExerciseProgress=classifyExerciseProgress;
 
+/** Ćwiczenia klienta z tych samych sesji co 6C — bez drugiej historii. */
+function listClientProgressExercises(clientId,opts){
+  opts=opts||{};
+  if(!clientId)return [];
+  const pool=opts.sessions||window.SE||[];
+  const seen=new Map();
+  const order=[];
+  pool.filter(s=>s&&s.clientId===clientId&&Array.isArray(s.exercises)&&(typeof isLoggedTrainingSession!=='function'||isLoggedTrainingSession(s)))
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''))
+    .forEach(s=>{
+      (s.exercises||[]).forEach(ex=>{
+        const eid=String(ex&&ex.exerciseId||'').trim();
+        const name=String((ex&&(ex.name||ex.plannedName))||'').trim();
+        if(!eid&&!name)return;
+        const key=eid?('id:'+eid):('name:'+(typeof exerciseNameKey==='function'?exerciseNameKey(name):name.toLowerCase()));
+        if(seen.has(key))return;
+        seen.set(key,{name:name,exerciseId:eid,aliases:(ex&&Array.isArray(ex.alts)&&ex.alts.length)?ex.alts:null});
+        order.push(key);
+      });
+    });
+  return order.map(k=>seen.get(k));
+}
+window.listClientProgressExercises=listClientProgressExercises;
+
+function exerciseProgressClass(clientId,name,aliases,opts){
+  const series=typeof exerciseProgressSeries==='function'
+    ?exerciseProgressSeries(clientId,name,aliases,opts)
+    :{name:name||'',exerciseId:'',snapshots:[],steps:[],signals:{}};
+  const classification=typeof classifyExerciseProgress==='function'
+    ?classifyExerciseProgress(series)
+    :{label:'ZA MAŁO DANYCH',plateau:false,flags:[],confidence:'low',reasons:[]};
+  return{
+    name:series.name||name||'',
+    exerciseId:String((opts&&opts.exerciseId)||series.exerciseId||''),
+    series:series,
+    classification:classification
+  };
+}
+window.exerciseProgressClass=exerciseProgressClass;
+
+function clientExerciseProgressClasses(clientId,opts){
+  opts=opts||{};
+  return listClientProgressExercises(clientId,opts).map(it=>
+    exerciseProgressClass(clientId,it.name,it.aliases,Object.assign({},opts,{exerciseId:it.exerciseId}))
+  );
+}
+window.clientExerciseProgressClasses=clientExerciseProgressClasses;
+
+function rememberClientExerciseProgress(clientId,opts){
+  const items=clientExerciseProgressClasses(clientId,opts);
+  const payload={clientId:String(clientId||''),items:items};
+  window._cpExerciseProgress=payload;
+  return payload;
+}
+window.rememberClientExerciseProgress=rememberClientExerciseProgress;
+
 function lastLoadForExercise(clientId,name,aliases,opts){
   const hist=exerciseLoadHistory(clientId,name,aliases,Object.assign({limit:0},opts||{}));
   if(!hist.length)return null;

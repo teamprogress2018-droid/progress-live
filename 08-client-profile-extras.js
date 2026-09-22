@@ -3374,6 +3374,7 @@ function setCPProgressPanel(panel){
 window.setCPProgressPanel=setCPProgressPanel;
 
 function renderCPProgress(c){
+  if(c&&c.id&&typeof rememberClientExerciseProgress==='function')rememberClientExerciseProgress(c.id);
   const logged=typeof completedWorkouts==='function'?completedWorkouts(c.id):(window.SE||[]).filter(s=>s.clientId===c.id&&(s.source==='live'||s.source==='client'||(s.exercises||[]).length));
   const prs=typeof clientExercisePRs==='function'?clientExercisePRs(c.id).slice(0,12):[];
   const volWeeks=clientWeeklyVolumeStats(c.id,8);

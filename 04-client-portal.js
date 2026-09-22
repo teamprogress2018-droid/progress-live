@@ -445,6 +445,7 @@ function capWeeklyVolume(clientId,weeks){
   return buckets;
 }
 function capClientProgressScreenHTML(c,accent){
+  if(c&&c.id&&typeof rememberClientExerciseProgress==='function')rememberClientExerciseProgress(c.id);
   const live=capIsLiveClient();
   const w=typeof ppLatestWeight==='function'?ppLatestWeight(c):(c.weight||'—');
   const logged=typeof completedWorkouts==='function'?completedWorkouts(c.id):(window.SE||[]).filter(s=>s.clientId===c.id);
