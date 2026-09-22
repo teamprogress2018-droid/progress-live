@@ -3986,6 +3986,153 @@ function rememberClientExerciseProgress(clientId,opts){
 }
 window.rememberClientExerciseProgress=rememberClientExerciseProgress;
 
+/** Etap 7A: agregat progresu klienta z wyników 6D. Wejście = pack (items[].classification), bez UI. */
+function aggregateClientProgress(pack){
+  const LABELS={'PROGRES':1,'STABILNIE':1,'REGRES':1,'ZA MAŁO DANYCH':1};
+  const CONF={'high':1,'medium':1,'low':1};
+  const WHY_ORDER=['regres','grind','mixed','nearLimit','plateau'];
+  const clientId=pack&&pack.clientId!=null?String(pack.clientId):'';
+  const raw=pack&&Array.isArray(pack.items)?pack.items:[];
+  const items=[];
+  raw.forEach((it,idx)=>{
+    if(!it||typeof it!=='object')return;
+    const c=it.classification&&typeof it.classification==='object'?it.classification:{};
+    const label=LABELS[c.label]?c.label:'ZA MAŁO DANYCH';
+    const confidence=CONF[c.confidence]?c.confidence:'low';
+    const flags=Array.isArray(c.flags)?c.flags.filter(f=>typeof f==='string'&&f):[];
+    const plateau=c.plateau===true;
+    items.push({
+      name:String(it.name||''),
+      exerciseId:String(it.exerciseId||''),
+      label:label,
+      plateau:plateau,
+      flags:flags,
+      confidence:confidence,
+      idx:idx
+    });
+  });
+  const counts={total:items.length,progres:0,stabilnie:0,regres:0,zaMalo:0,credible:0,solid:0,plateau:0,lowConfidence:0};
+  let nProgresSolid=0,nStableSolid=0,nRegresSolid=0;
+  items.forEach(it=>{
+    if(it.label==='PROGRES')counts.progres++;
+    else if(it.label==='STABILNIE')counts.stabilnie++;
+    else if(it.label==='REGRES')counts.regres++;
+    else counts.zaMalo++;
+    if(it.plateau)counts.plateau++;
+    const thin=it.label==='ZA MAŁO DANYCH';
+    if(!thin){
+      counts.credible++;
+      const solid=it.confidence==='medium'||it.confidence==='high';
+      if(solid){
+        counts.solid++;
+        if(it.label==='PROGRES')nProgresSolid++;
+        else if(it.label==='STABILNIE')nStableSolid++;
+        else if(it.label==='REGRES')nRegresSolid++;
+      }else counts.lowConfidence++;
+    }
+  });
+  let regresSpread='brak';
+  if(counts.credible>0&&counts.regres>0){
+    if(counts.regres>=3||(counts.regres>=2&&counts.regres/counts.credible>=0.5))regresSpread='wielu';
+    else if(counts.regres===2)regresSpread='kilka';
+    else if(counts.regres===1)regresSpread='pojedynczy';
+  }
+  const attention=[];
+  const thin=[];
+  items.forEach(it=>{
+    if(it.label==='ZA MAŁO DANYCH'){
+      thin.push({name:it.name,exerciseId:it.exerciseId});
+      return;
+    }
+    const why=[];
+    if(it.label==='REGRES')why.push('regres');
+    if(it.flags.indexOf('grind')>=0)why.push('grind');
+    if(it.flags.indexOf('mixed')>=0)why.push('mixed');
+    if(it.flags.indexOf('nearLimit')>=0)why.push('nearLimit');
+    if(it.plateau)why.push('plateau');
+    if(!why.length)return;
+    const whyRank=WHY_ORDER.indexOf(why[0]);
+    const solid=it.confidence==='medium'||it.confidence==='high';
+    attention.push({
+      name:it.name,
+      exerciseId:it.exerciseId,
+      label:it.label,
+      plateau:it.plateau,
+      flags:it.flags.slice(),
+      confidence:it.confidence,
+      why:why,
+      _rank:whyRank<0?99:whyRank,
+      _solid:solid?0:1,
+      _idx:it.idx
+    });
+  });
+  attention.sort((a,b)=>{
+    if(a._rank!==b._rank)return a._rank-b._rank;
+    if(a._rank===0&&a._solid!==b._solid)return a._solid-b._solid;
+    return a._idx-b._idx;
+  });
+  const attentionOut=attention.map(it=>{
+    const row={name:it.name,exerciseId:it.exerciseId,label:it.label,plateau:it.plateau,flags:it.flags,confidence:it.confidence,why:it.why};
+    return row;
+  });
+  let trend='NIERÓWNY';
+  const reasons=[];
+  if(counts.total===0||counts.credible<2||counts.solid<1){
+    trend='ZA MAŁO DANYCH';
+    if(counts.total===0)reasons.push('brak ćwiczeń do agregacji');
+    else if(counts.credible<2)reasons.push('mniej niż dwa ćwiczenia z wiarygodną klasą');
+    else reasons.push('brak ćwiczenia z pewnością medium lub high');
+  }else if(nRegresSolid>=2&&nRegresSolid>nProgresSolid){
+    trend='COFANIE';
+    reasons.push('co najmniej dwa wiarygodne REGRES przeważają nad PROGRES');
+  }else if(
+    nProgresSolid>=2
+    && nProgresSolid>nRegresSolid
+    && nRegresSolid<=1
+    && (nRegresSolid!==1||nProgresSolid>=3)
+    && nProgresSolid>=nStableSolid
+  ){
+    trend='WZROST';
+    reasons.push('co najmniej dwa wiarygodne PROGRES bez szerokiego cofania');
+    if(nRegresSolid===1)reasons.push('pojedynczy wiarygodny REGRES nie przekreśla wzrostu');
+  }else if(
+    nStableSolid>=1
+    && !(counts.regres>=1&&nProgresSolid>=1)
+    && (
+      (nRegresSolid===0&&nProgresSolid<=nStableSolid)
+      || (nRegresSolid===1&&nProgresSolid===0)
+    )
+  ){
+    trend='STABILNIE';
+    reasons.push('dominuje STABILNIE między ćwiczeniami');
+    if(counts.plateau)reasons.push('plateau nie zmienia trendu STABILNIE');
+  }else{
+    trend='NIERÓWNY';
+    reasons.push('mieszane sygnały między ćwiczeniami');
+    if(counts.regres>=1&&nProgresSolid>=1)reasons.push('regres i progres jednocześnie — nie COFANIE bez solidnych REGRES');
+  }
+  if(!reasons.length)reasons.push('agregat 7A');
+  let confidence='low';
+  if(trend==='ZA MAŁO DANYCH')confidence='low';
+  else if(counts.solid>=4&&counts.zaMalo/Math.max(counts.total,1)<=1/3)confidence='high';
+  else if(counts.solid>=2)confidence='medium';
+  else confidence='low';
+  return{
+    clientId:clientId,
+    trend:trend,
+    confidence:confidence,
+    counts:counts,
+    nProgresSolid:nProgresSolid,
+    nStableSolid:nStableSolid,
+    nRegresSolid:nRegresSolid,
+    regresSpread:regresSpread,
+    attention:attentionOut,
+    thin:thin,
+    reasons:reasons.slice()
+  };
+}
+window.aggregateClientProgress=aggregateClientProgress;
+
 function readStoredExerciseProgress(clientId,name,exerciseId){
   const pack=window._cpExerciseProgress;
   if(!pack||!Array.isArray(pack.items))return null;
