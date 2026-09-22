@@ -29,7 +29,7 @@ function eq(name, got, want) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=113'));
+ok('cache 01', html.includes('01-core.js?v=115'));
 ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=78'));
 ok('cache 08', html.includes('08-client-profile-extras.js?v=69'));
 ok('cache 10', html.includes('10-client-app.js?v=41'));
@@ -39,7 +39,7 @@ ok('client serialize', /serializeLoggedExercise\(e,\s*\{onlyDone:\s*true\}\)/.te
 ok('live swap identity', /applyExerciseIdentity\(cur\)/.test(live));
 ok('fitebo log identity', /applyExerciseIdentity==='function'\?applyExerciseIdentity\(mapped\)/.test(fitebo));
 ok('core helpers', /function exerciseProgressVolume\(/.test(coreSrc) && /function exerciseMatchesProgress\(/.test(coreSrc));
-ok('no classify helper', !/function classifyExerciseProgress/.test(coreSrc) && !/function scoreExerciseProgress/.test(coreSrc));
+ok('no score helper', !/function scoreExerciseProgress/.test(coreSrc));
 
 const document = {
   querySelectorAll: () => [],

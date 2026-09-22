@@ -72,6 +72,12 @@ jobs:
       - name: 1e0x. Testy historii progresji ćwiczenia
         run: node .github/scripts/test_ex_progress_history.js
 
+      - name: 1e0y. Testy faktów progresji ćwiczenia
+        run: node .github/scripts/test_ex_progress_facts.js
+
+      - name: 1e0z. Testy klasyfikatora progresji ćwiczenia
+        run: node .github/scripts/test_ex_progress_class.js
+
       - name: 1e0. Testy auto-progresji z planu trenera
         run: node .github/scripts/test_plan_auto_progression.js
 
