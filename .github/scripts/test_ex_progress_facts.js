@@ -26,9 +26,10 @@ function eq(name, got, want) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=114'));
+ok('cache 01', html.includes('01-core.js?v=115'));
 ok('CI', wf.includes('test_ex_progress_facts.js'));
-ok('no classify helper', !/function classifyExerciseProgress/.test(coreSrc) && !/function scoreExerciseProgress/.test(coreSrc));
+ok('no score helper', !/function scoreExerciseProgress/.test(coreSrc));
+ok('series still facts-only', /function classifyExerciseProgress/.test(coreSrc));
 ok('amrap is progress work', /k==='work'\|\|k==='amrap'/.test(coreSrc));
 ok('no rirFromRpe in parser', /function parseProgressRir[\s\S]*?window\.parseProgressRir/.test(coreSrc)
   && !/function parseProgressRir[\s\S]{0,500}rirFromRpe/.test(coreSrc));

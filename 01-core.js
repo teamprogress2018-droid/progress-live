@@ -3792,6 +3792,144 @@ function exerciseProgressSeries(clientId,name,aliases,opts){
 }
 window.exerciseProgressSeries=exerciseProgressSeries;
 
+/** Etap 6D: klasa progresji ćwiczenia. Wejście = seria 6C, bez UI. */
+function progressClassStepKind(step){
+  const kg=step&&step.dir?step.dir.kg:null;
+  const reps=step&&step.dir?step.dir.reps:null;
+  if((kg==='up'&&reps!=='down')||(kg==='flat'&&reps==='up'))return 'up';
+  if((kg==='down'&&reps!=='up')||(kg==='flat'&&reps==='down'))return 'down';
+  if((kg==='up'&&reps==='down')||(kg==='down'&&reps==='up'))return 'mixed';
+  return 'flat';
+}
+
+function classifyExerciseProgress(series){
+  const snaps=series&&Array.isArray(series.snapshots)?series.snapshots:[];
+  const steps=series&&Array.isArray(series.steps)?series.steps:[];
+  const pack=(label,plateau,flags,confidence,reasons)=>({
+    label:label,
+    plateau:!!plateau,
+    flags:Array.isArray(flags)?flags.slice():[],
+    confidence:confidence||'low',
+    reasons:Array.isArray(reasons)?reasons.slice():[]
+  });
+  if(snaps.length<2){
+    const why=snaps.length===1?'brak drugiej porównywalnej sesji':'brak porównywalnych sesji';
+    return pack('ZA MAŁO DANYCH',false,[], 'low',[why]);
+  }
+  const last=snaps[snaps.length-1];
+  const background=snaps.slice(0,-1);
+  const lastStep=steps[steps.length-1]||{delta:{},dir:{}};
+  const delta=lastStep.delta||{};
+  const kind=progressClassStepKind(lastStep);
+  const rirAvail=!!delta.rirAvailable;
+  const dRir=delta.deltaRir;
+  const effortEasier=rirAvail&&dRir!=null&&dRir>=1;
+  const effortHarder=rirAvail&&dRir!=null&&dRir<=-1;
+  const dSets=delta.deltaWorkSetCount;
+  const doseUp=dSets!=null&&dSets>=1;
+  const doseDown=dSets!=null&&dSets<=-1;
+  const lastRir=last&&last.rir?last.rir.top:null;
+  const grind=lastRir===0&&(kind==='up'||(kind==='mixed'&&lastStep.dir&&lastStep.dir.kg==='up'));
+  const flags=[];
+  if(effortEasier)flags.push('effortEasier');
+  if(effortHarder)flags.push('effortHarder');
+  if(doseUp)flags.push('doseIncreased');
+  if(doseDown)flags.push('doseDecreased');
+  if(grind)flags.push('grind');
+  let consecutiveDown=0;
+  for(let i=steps.length-1;i>=0;i--){
+    if(progressClassStepKind(steps[i])==='down')consecutiveDown++;
+    else break;
+  }
+  const anyUp=steps.some(s=>progressClassStepKind(s)==='up');
+  const earlierUp=steps.slice(0,-1).some(s=>progressClassStepKind(s)==='up');
+  const n=snaps.length;
+  const lastKg=last&&last.topSet?last.topSet.kg:null;
+  const lastReps=last&&last.topSet?last.topSet.reps:null;
+  const newKgHigh=Number.isFinite(lastKg)&&background.every(s=>{
+    const kg=s&&s.topSet?s.topSet.kg:null;
+    return Number.isFinite(kg)&&lastKg>kg;
+  });
+  const bgConfirm=Number.isFinite(lastKg)&&Number.isFinite(lastReps)&&background.some(s=>{
+    const kg=s&&s.topSet?s.topSet.kg:null;
+    const reps=s&&s.topSet?s.topSet.reps:null;
+    return Number.isFinite(kg)&&Number.isFinite(reps)&&kg<lastKg&&lastReps>=reps;
+  });
+  const clearRepsDrop=delta.deltaReps!=null&&delta.deltaReps<=-2;
+  const mixedVeto=kind==='mixed'&&lastStep.dir&&lastStep.dir.kg==='up'&&clearRepsDrop&&effortHarder;
+  const reasons=[];
+  let label='STABILNIE';
+  if(kind==='up'){
+    label='PROGRES';
+    if(lastStep.dir&&lastStep.dir.kg==='up')reasons.push('P-kg: wyższe kg, reps utrzymane lub lepsze');
+    else reasons.push('P-reps: to samo kg, więcej powtórzeń');
+    if(effortHarder)reasons.push('RIR twardszy to ostrzeżenie, nie veto');
+    if(!rirAvail)reasons.push('brak RIR obniża pewność');
+    if(delta.deltaE1RM!=null&&delta.deltaE1RM>0)reasons.push('e1RM tylko wspiera');
+  }else if(kind==='mixed'){
+    if(mixedVeto){
+      flags.push('mixed');
+      reasons.push('kg w górę kosztem wyraźnego spadku reps i większego wysiłku');
+      reasons.push('e1RM nie tworzy PROGRES');
+    }else if(newKgHigh&&bgConfirm){
+      label='PROGRES';
+      reasons.push('podwójna progresja w oknie');
+      reasons.push('nowy kg i reps >= wcześniejszy lżejszy top');
+    }else{
+      flags.push('mixed');
+      reasons.push('kg/reps mixed — brak P-kg/P-reps');
+      reasons.push('e1RM nie nadaje klasy');
+    }
+  }else if(kind==='down'){
+    if(effortEasier&&consecutiveDown<2){
+      reasons.push('jeden spadek obciążenia to nie trend');
+      reasons.push('łatwiej — odpuszczenie, nie REGRES');
+    }else if(consecutiveDown>=2){
+      label='REGRES';
+      reasons.push('dwa kolejne spadki — potwierdzony trend spadkowy');
+    }else{
+      flags.push('dip');
+      reasons.push('jedna słabsza sesja, nie trend spadkowy');
+    }
+  }else{
+    reasons.push('ten sam wynik zewnętrzny');
+    if(effortHarder)reasons.push('większy wysiłek (effortHarder)');
+    if(effortEasier)reasons.push('łatwiej (effortEasier) — nie klasa PROGRES');
+    if(doseUp)reasons.push('więcej serii to dawka, nie progres wykonania');
+    if(doseDown)reasons.push('mniej serii to dawka, nie regres wykonania');
+    if(!doseUp&&!doseDown&&n<4)reasons.push('za wcześnie na plateau');
+  }
+  let plateau=false;
+  if(label==='STABILNIE'&&n>=4&&!anyUp&&kind!=='down'){
+    plateau=true;
+    const tops=snaps.map(s=>s&&s.rir&&s.rir.top!=null?s.rir.top:null).filter(v=>v!=null);
+    let character='effortUnknown';
+    if(tops.length){
+      const sorted=tops.slice().sort((a,b)=>a-b);
+      const med=sorted[Math.floor((sorted.length-1)/2)];
+      character=med>=2?'reserveAvailable':'nearLimit';
+    }
+    flags.push(character);
+    reasons.push('≥4 sesje bez realnej poprawy');
+    if(character==='reserveAvailable')reasons.push('typowy RIR ≥ 2: zapas niewykorzystany');
+    else if(character==='nearLimit')reasons.push('typowy RIR 0–1: plateau przy limicie');
+    else reasons.push('brak wiarygodnych danych RIR');
+  }
+  let confidence='medium';
+  if(label==='PROGRES'){
+    if(n>=3)confidence='high';
+    else if(n===2&&rirAvail)confidence='medium';
+    else confidence='low';
+  }else if(label==='REGRES')confidence='high';
+  else if(flags.indexOf('mixed')>=0)confidence='low';
+  else if(plateau)confidence='high';
+  else if(flags.indexOf('dip')>=0&&n>=4&&earlierUp)confidence='high';
+  else if(rirAvail)confidence='medium';
+  else confidence='low';
+  return pack(label,plateau,flags,confidence,reasons);
+}
+window.classifyExerciseProgress=classifyExerciseProgress;
+
 function lastLoadForExercise(clientId,name,aliases,opts){
   const hist=exerciseLoadHistory(clientId,name,aliases,Object.assign({limit:0},opts||{}));
   if(!hist.length)return null;
