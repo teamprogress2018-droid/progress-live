@@ -30,9 +30,9 @@ function eq(name, got, want) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=116'));
+ok('cache 01', html.includes('01-core.js?v=117'));
 ok('cache 04', html.includes('04-client-portal.js?v=54'));
-ok('cache 08', html.includes('08-client-profile-extras.js?v=70'));
+ok('cache 08', html.includes('08-client-profile-extras.js?v=71'));
 ok('CI', wf.includes('test_ex_progress_wire.js'));
 ok('mapping helpers', /function listClientProgressExercises/.test(coreSrc)
   && /function exerciseProgressClass/.test(coreSrc)
@@ -42,8 +42,9 @@ ok('uses 6C series', /exerciseProgressSeries\(clientId,name,aliases,opts\)/.test
   && /classifyExerciseProgress\(series\)/.test(coreSrc));
 ok('progress hooks remember', /rememberClientExerciseProgress\(c\.id\)/.test(progressFn)
   && /rememberClientExerciseProgress\(c\.id\)/.test(capFn));
-ok('no class in Progress markup', !/effortHarder|doseIncreased|reserveAvailable|nearLimit/.test(progressFn)
-  && !/effortHarder|doseIncreased|reserveAvailable/.test(capFn));
+ok('progress panel from store', /cpExerciseProgressPanelHtml\(c\.id\)/.test(progressFn));
+ok('no class in client Progress markup', !/effortHarder|doseIncreased|reserveAvailable|nearLimit/.test(capFn)
+  && !/cpExerciseProgressPanelHtml/.test(capFn));
 ok('html template unchanged labels', /ANALITYKA KLIENTA/.test(progressFn) && /MOJE POSTĘPY/.test(capFn));
 
 const document = {

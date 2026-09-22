@@ -3568,6 +3568,8 @@ function renderCPProgress(c){
       </div>
     </div>
 
+    ${typeof cpExerciseProgressPanelHtml==='function'?cpExerciseProgressPanelHtml(c.id):''}
+
     <div data-cp-panel="checkin" style="display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:14px;">
       <div class="stat-card">
         <div class="stat-card-hdr">

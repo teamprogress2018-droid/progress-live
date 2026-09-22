@@ -24,7 +24,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=116'));
+ok('cache 01', html.includes('01-core.js?v=117'));
 ok('CI', wf.includes('test_ex_progress_class.js'));
 ok('classify helper', /function classifyExerciseProgress/.test(coreSrc));
 ok('no score helper', !/function scoreExerciseProgress/.test(coreSrc));
@@ -35,8 +35,9 @@ ok('classifier stays in core', !/function classifyExerciseProgress/.test(extras)
   && !/classifyExerciseProgress/.test(html));
 ok('progress remembers classes', /rememberClientExerciseProgress\(c\.id\)/.test(extras)
   && /rememberClientExerciseProgress\(c\.id\)/.test(portal));
-ok('labels not painted in Progress HTML', !/effortHarder|effortEasier|doseIncreased|reserveAvailable|nearLimit|effortUnknown/.test(progressFn)
-  && !/effortHarder|doseIncreased|reserveAvailable/.test(capFn));
+ok('progress paints stored analysis', /cpExerciseProgressPanelHtml\(c\.id\)/.test(progressFn));
+ok('client portal still no class paint', !/effortHarder|doseIncreased|reserveAvailable/.test(capFn)
+  && !/cpExerciseProgressPanelHtml/.test(capFn));
 
 const document = {
   querySelectorAll: () => [],
