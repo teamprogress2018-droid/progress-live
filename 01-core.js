@@ -2038,6 +2038,7 @@ function parsePlanExercise(ex){
   const name=ex.name||ex.n||'Ćwiczenie';
   return{
     name,
+    exerciseId:String(ex.exerciseId||'').trim(),
     sets:String(ex.sets||ex.s||'3'),
     reps:String(ex.reps||ex.r||'10'),
     rest:String(ex.rest||ex.rs||'90s'),
@@ -2085,6 +2086,110 @@ function isWorkingSet(s){
   return k==='work'||k==='amrap'||k==='cluster'||k==='restpause';
 }
 window.isWorkingSet=isWorkingSet;
+
+/** Serie do analizy progresji ćwiczenia: tylko kind work (brak kind = work, kompatybilność starych sesji). */
+function isProgressWorkSet(s){
+  return setKindOf(s)==='work';
+}
+window.isProgressWorkSet=isProgressWorkSet;
+
+function exerciseProgressWorkSets(sets){
+  return(Array.isArray(sets)?sets:[]).filter(isProgressWorkSet);
+}
+window.exerciseProgressWorkSets=exerciseProgressWorkSets;
+
+function exerciseProgressVolume(sets){
+  return exerciseProgressWorkSets(sets).reduce((n,s)=>n+(typeof setObjKg==='function'?setObjKg(s):((parseFloat(s.kg)||0)*(parseFloat(s.reps)||0))),0);
+}
+window.exerciseProgressVolume=exerciseProgressVolume;
+
+function exerciseProgressBestEpley(sets){
+  let best=null;
+  exerciseProgressWorkSets(sets).forEach(s=>{
+    const est=typeof epley1RM==='function'?epley1RM(s.kg,s.reps):null;
+    if(est!=null&&(best==null||est>best))best=est;
+  });
+  return best;
+}
+window.exerciseProgressBestEpley=exerciseProgressBestEpley;
+
+/** Exact name-key match against custom EX / DEF_EX that already have an id. No fuzzy merge, no invented catalog ids. */
+function libraryExerciseIdByName(name){
+  const key=typeof exerciseNameKey==='function'?exerciseNameKey(name):String(name||'').toLowerCase().replace(/\s+/g,' ').trim();
+  if(!key)return '';
+  const pools=[].concat(window.EX||[],window.DEF_EX||[]);
+  for(let i=0;i<pools.length;i++){
+    const e=pools[i];
+    if(!e||!e.id)continue;
+    const ek=typeof exerciseNameKey==='function'?exerciseNameKey(e.name):String(e.name||'').toLowerCase().replace(/\s+/g,' ').trim();
+    if(ek===key)return String(e.id).trim();
+  }
+  return '';
+}
+window.libraryExerciseIdByName=libraryExerciseIdByName;
+
+/** ID z biblioteki (własne Firestore `id`) albo już zapisane `exerciseId`. DEF_EX bez id → pusty string, fallback nazwy. */
+function resolveExerciseId(ex,opts){
+  opts=opts||{};
+  if(!ex)return '';
+  if(!opts.fromName){
+    const existing=String(ex.exerciseId||'').trim();
+    if(existing)return existing;
+  }
+  return libraryExerciseIdByName(ex.name||'');
+}
+window.resolveExerciseId=resolveExerciseId;
+
+function applyExerciseIdentity(ex){
+  if(!ex||typeof ex!=='object')return ex;
+  const id=resolveExerciseId(ex,{fromName:true});
+  if(id)ex.exerciseId=id;
+  else if(ex.exerciseId)delete ex.exerciseId;
+  return ex;
+}
+window.applyExerciseIdentity=applyExerciseIdentity;
+
+function serializeLoggedSet(s,i){
+  const kg=parseFloat(s&&s.kg);
+  const reps=parseFloat(s&&s.reps);
+  return{
+    kg:Number.isFinite(kg)?kg:0,
+    reps:Number.isFinite(reps)?reps:0,
+    setNo:(s&&s.setNo)!=null?s.setNo:(i+1),
+    kind:(s&&s.kind)||'work',
+    rir:(s&&s.rir!=null&&s.rir!=='')?String(s.rir):''
+  };
+}
+window.serializeLoggedSet=serializeLoggedSet;
+
+function serializeLoggedExercise(e,opts){
+  opts=opts||{};
+  const raw=Array.isArray(e&&e.sets)?e.sets:[];
+  const picked=opts.onlyDone?raw.filter(s=>s&&s.done):raw.filter(s=>s&&typeof s==='object'&&!Array.isArray(s));
+  const out={
+    name:String((e&&e.name)||''),
+    loadUnit:typeof exLoadUnit==='function'?exLoadUnit(e):((e&&e.loadUnit)||'kg'),
+    sets:picked.map(serializeLoggedSet)
+  };
+  const id=resolveExerciseId(e);
+  if(id)out.exerciseId=id;
+  const planned=String((e&&e.plannedName)||'').trim();
+  if(planned)out.plannedName=planned;
+  let alts=[];
+  if(Array.isArray(e&&e.alts))alts=e.alts.slice();
+  else if(e&&e.alt)alts=String(e.alt).split(/[,;/]/);
+  const seen=new Set();
+  alts=alts.map(a=>String(a||'').trim()).filter(a=>{
+    if(!a||a===out.name)return false;
+    const k=a.toLowerCase();
+    if(seen.has(k))return false;
+    seen.add(k);
+    return true;
+  });
+  if(alts.length)out.alts=alts;
+  return out;
+}
+window.serializeLoggedExercise=serializeLoggedExercise;
 
 function setKindBadge(kind){
   if(kind==='warmup')return 'W';
@@ -3393,9 +3498,21 @@ function exerciseMatchesKeys(ex,keys){
   if(!ex||!keys||!keys.size)return false;
   if(keys.has(exerciseNameKey(ex.name)))return true;
   if(ex.plannedName&&keys.has(exerciseNameKey(ex.plannedName)))return true;
-  return String(ex.alt||'').split(/[,;/]/).some(a=>keys.has(exerciseNameKey(a)));
+  if(String(ex.alt||'').split(/[,;/]/).some(a=>keys.has(exerciseNameKey(a))))return true;
+  if(Array.isArray(ex.alts)&&ex.alts.some(a=>keys.has(exerciseNameKey(a))))return true;
+  return false;
 }
 window.exerciseMatchesKeys=exerciseMatchesKeys;
+
+function exerciseMatchesProgress(ex,query){
+  if(!ex)return false;
+  const qid=String(query&&query.exerciseId||'').trim();
+  const eid=String(ex.exerciseId||'').trim();
+  if(qid&&eid)return qid===eid;
+  const keys=(query&&query.keys&&query.keys.size)?query.keys:exerciseNameKeySet(query&&query.name,query&&query.aliases);
+  return exerciseMatchesKeys(ex,keys);
+}
+window.exerciseMatchesProgress=exerciseMatchesProgress;
 
 function isLoggedTrainingSession(s){
   return !!(s&&s.source!=='planned'&&s.source!=='live-draft');
@@ -3405,20 +3522,23 @@ window.isLoggedTrainingSession=isLoggedTrainingSession;
 /** Ostatnie sesje z kg/powt. dla ćwiczenia (najnowsze pierwsze). limit 0 = wszystkie. */
 function exerciseLoadHistory(clientId,name,aliases,opts){
   opts=opts||{};
-  if(!clientId||!name)return [];
+  const wantId=String(opts.exerciseId||'').trim();
+  if(!clientId)return [];
+  if(!name&&!wantId)return [];
   const rawLimit=opts.limit;
   const limit=rawLimit==null?8:(parseInt(rawLimit,10)||0);
-  const keys=exerciseNameKeySet(name,aliases);
-  if(!keys.size)return [];
+  const keys=name?exerciseNameKeySet(name,aliases):new Set();
+  if(!wantId&&!keys.size)return [];
   const pool=opts.sessions||window.SE||[];
   const sessions=pool.filter(s=>s&&s.clientId===clientId&&Array.isArray(s.exercises)&&isLoggedTrainingSession(s))
     .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''));
   const out=[];
   for(const s of sessions){
-    const ex=(s.exercises||[]).find(e=>exerciseMatchesKeys(e,keys));
+    const ex=(s.exercises||[]).find(e=>exerciseMatchesProgress(e,{exerciseId:wantId,keys,name,aliases}));
     if(!ex)continue;
     const sets=typeof exerciseLoggedSets==='function'?exerciseLoggedSets(ex):[];
     if(!sets.length)continue;
+    const work=exerciseProgressWorkSets(sets);
     out.push({
       date:s.date||'',
       time:s.time||'',
@@ -3426,8 +3546,14 @@ function exerciseLoadHistory(clientId,name,aliases,opts){
       sessionId:s.id||'',
       source:s.source||'',
       type:s.type||'',
+      exerciseId:String(ex.exerciseId||''),
       name:ex.name||name,
-      sets
+      plannedName:ex.plannedName||'',
+      sets,
+      workSets:work,
+      workSetCount:work.length,
+      workVolume:exerciseProgressVolume(sets),
+      bestEpley:exerciseProgressBestEpley(sets)
     });
     if(limit>0&&out.length>=limit)break;
   }
@@ -3435,8 +3561,8 @@ function exerciseLoadHistory(clientId,name,aliases,opts){
 }
 window.exerciseLoadHistory=exerciseLoadHistory;
 
-function lastLoadForExercise(clientId,name,aliases){
-  const hist=exerciseLoadHistory(clientId,name,aliases,{limit:0});
+function lastLoadForExercise(clientId,name,aliases,opts){
+  const hist=exerciseLoadHistory(clientId,name,aliases,Object.assign({limit:0},opts||{}));
   if(!hist.length)return null;
   const latest=hist[0];
   const sets=latest.sets||[];
@@ -3493,7 +3619,7 @@ function resolveLastLoggedSets(ex,opts){
   const nm=(ex&&(ex.name||ex.plannedName))||opts.name;
   const alts=(ex&&ex.alts)||opts.aliases;
   if(cid&&nm&&typeof exerciseLoadHistory==='function'){
-    const hist=exerciseLoadHistory(cid,nm,alts,{limit:1});
+    const hist=exerciseLoadHistory(cid,nm,alts,{limit:1,exerciseId:(ex&&ex.exerciseId)||opts.exerciseId});
     if(hist[0]&&hist[0].sets&&hist[0].sets.length)return hist[0].sets;
   }
   return [];
@@ -3611,20 +3737,22 @@ window.exerciseHistoryModalBodyHtml=exerciseHistoryModalBodyHtml;
 var _exHistCache={};
 var _exHistSeq=0;
 function openExerciseHistory(idOrOpts){
-  let name='',history=null,clientId='',aliases;
+  let name='',history=null,clientId='',aliases,exerciseId='';
   if(typeof idOrOpts==='string'&&_exHistCache[idOrOpts]){
     name=_exHistCache[idOrOpts].name||'';
     history=_exHistCache[idOrOpts].history;
     clientId=_exHistCache[idOrOpts].clientId||'';
     aliases=_exHistCache[idOrOpts].aliases;
+    exerciseId=_exHistCache[idOrOpts].exerciseId||'';
   }else if(idOrOpts&&typeof idOrOpts==='object'){
     name=idOrOpts.name||'';
     history=idOrOpts.history;
     clientId=idOrOpts.clientId||'';
     aliases=idOrOpts.aliases;
+    exerciseId=idOrOpts.exerciseId||'';
   }
-  if((!history||!history.length)&&clientId&&name){
-    history=exerciseLoadHistory(clientId,name,aliases,{limit:12});
+  if((!history||!history.length)&&clientId&&(name||exerciseId)){
+    history=exerciseLoadHistory(clientId,name,aliases,{limit:12,exerciseId});
   }
   const title=document.getElementById('ex-hist-title');
   if(title)title.textContent=name||'Historia ćwiczenia';
@@ -3656,7 +3784,7 @@ function lastSetsBlockHtml(ex,opts){
     const cid=(ex&&ex.clientId)||opts.clientId;
     const nm=(ex&&(ex.name||ex.plannedName))||opts.name;
     const alts=(ex&&ex.alts)||opts.aliases;
-    if(cid&&nm)history=exerciseLoadHistory(cid,nm,alts,{limit:opts.limit==null?8:opts.limit});
+    if(cid&&nm)history=exerciseLoadHistory(cid,nm,alts,{limit:opts.limit==null?8:opts.limit,exerciseId:(ex&&ex.exerciseId)||opts.exerciseId});
   }
   if(!history.length)return '';
   const latest=history[0];
@@ -3670,7 +3798,8 @@ function lastSetsBlockHtml(ex,opts){
     name:(ex&&(ex.name||ex.plannedName))||opts.name||'',
     history,
     clientId:(ex&&ex.clientId)||opts.clientId||'',
-    aliases:(ex&&ex.alts)||opts.aliases
+    aliases:(ex&&ex.alts)||opts.aliases,
+    exerciseId:(ex&&ex.exerciseId)||opts.exerciseId||''
   };
   const btn=`<button type="button" class="${cls}" data-ex-hist="${id}" onclick="event.stopPropagation();openExerciseHistory('${id}')" title="Historia ciężaru i powtórzeń z poprzednich treningów">
     <span class="live-last-ico" aria-hidden="true">🕒</span>
@@ -3941,7 +4070,9 @@ window.exerciseHistoryByDay=exerciseHistoryByDay;
 function mapPlanExercisesForClient(rawEx,clientId,plan,day){
   const mapped=(rawEx||[]).map(raw=>{
     const ex=parsePlanExercise(raw);
-    const last=lastLoadForExercise(clientId,ex.name,altsForExercise(ex.name,ex.alt));
+    const alts=altsForExercise(ex.name,ex.alt);
+    const exerciseId=resolveExerciseId(ex);
+    const last=lastLoadForExercise(clientId,ex.name,alts,exerciseId?{exerciseId}:{});
     const rest=parseRestSeconds(ex.rest);
     const loadUnit=typeof exLoadUnit==='function'?exLoadUnit(ex):'kg';
     const pct=isWeightLoadUnit(loadUnit)?(ex.pct1rm||''):'';
@@ -3952,10 +4083,10 @@ function mapPlanExercisesForClient(rawEx,clientId,plan,day){
     const coach=typeof resolveCoachMedia==='function'?resolveCoachMedia(ex):{video:'',videoEmbed:'',isFile:false};
     const progression=normalizePlanProgression(plan&&(plan.progression||plan.progressionType));
     const sets=expandExerciseSets(ex,{last,plannedKg,lockPct,progression,waveN:last&&last.nSessions});
-    return{
+    const row={
       name:ex.name,
       plannedName:ex.name,
-      alts:altsForExercise(ex.name,ex.alt),
+      alts,
       restSec:rest,
       tempo:ex.tempo||'',
       rpe:ex.rpe||'',
@@ -3989,6 +4120,8 @@ function mapPlanExercisesForClient(rawEx,clientId,plan,day){
       img:coach.img||'',
       sets
     };
+    if(exerciseId)row.exerciseId=exerciseId;
+    return row;
   });
   applySsLabels(mapped);
   applyCircuitStations(mapped,plan,day);
