@@ -3930,6 +3930,177 @@ function classifyExerciseProgress(series){
 }
 window.classifyExerciseProgress=classifyExerciseProgress;
 
+/** Ćwiczenia klienta z tych samych sesji co 6C — bez drugiej historii. */
+function listClientProgressExercises(clientId,opts){
+  opts=opts||{};
+  if(!clientId)return [];
+  const pool=opts.sessions||window.SE||[];
+  const seen=new Map();
+  const order=[];
+  pool.filter(s=>s&&s.clientId===clientId&&Array.isArray(s.exercises)&&(typeof isLoggedTrainingSession!=='function'||isLoggedTrainingSession(s)))
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''))
+    .forEach(s=>{
+      (s.exercises||[]).forEach(ex=>{
+        const eid=String(ex&&ex.exerciseId||'').trim();
+        const name=String((ex&&(ex.name||ex.plannedName))||'').trim();
+        if(!eid&&!name)return;
+        const key=eid?('id:'+eid):('name:'+(typeof exerciseNameKey==='function'?exerciseNameKey(name):name.toLowerCase()));
+        if(seen.has(key))return;
+        seen.set(key,{name:name,exerciseId:eid,aliases:(ex&&Array.isArray(ex.alts)&&ex.alts.length)?ex.alts:null});
+        order.push(key);
+      });
+    });
+  return order.map(k=>seen.get(k));
+}
+window.listClientProgressExercises=listClientProgressExercises;
+
+function exerciseProgressClass(clientId,name,aliases,opts){
+  const series=typeof exerciseProgressSeries==='function'
+    ?exerciseProgressSeries(clientId,name,aliases,opts)
+    :{name:name||'',exerciseId:'',snapshots:[],steps:[],signals:{}};
+  const classification=typeof classifyExerciseProgress==='function'
+    ?classifyExerciseProgress(series)
+    :{label:'ZA MAŁO DANYCH',plateau:false,flags:[],confidence:'low',reasons:[]};
+  return{
+    name:series.name||name||'',
+    exerciseId:String((opts&&opts.exerciseId)||series.exerciseId||''),
+    series:series,
+    classification:classification
+  };
+}
+window.exerciseProgressClass=exerciseProgressClass;
+
+function clientExerciseProgressClasses(clientId,opts){
+  opts=opts||{};
+  return listClientProgressExercises(clientId,opts).map(it=>
+    exerciseProgressClass(clientId,it.name,it.aliases,Object.assign({},opts,{exerciseId:it.exerciseId}))
+  );
+}
+window.clientExerciseProgressClasses=clientExerciseProgressClasses;
+
+function rememberClientExerciseProgress(clientId,opts){
+  const items=clientExerciseProgressClasses(clientId,opts);
+  const payload={clientId:String(clientId||''),items:items};
+  window._cpExerciseProgress=payload;
+  return payload;
+}
+window.rememberClientExerciseProgress=rememberClientExerciseProgress;
+
+function readStoredExerciseProgress(clientId,name,exerciseId){
+  const pack=window._cpExerciseProgress;
+  if(!pack||!Array.isArray(pack.items))return null;
+  if(clientId&&pack.clientId&&String(pack.clientId)!==String(clientId))return null;
+  const eid=String(exerciseId||'').trim();
+  if(eid){
+    const byId=pack.items.find(it=>String(it&&it.exerciseId||'')===eid);
+    if(byId)return byId;
+  }
+  const key=typeof exerciseNameKey==='function'?exerciseNameKey(name):String(name||'').toLowerCase().trim();
+  if(!key)return null;
+  return pack.items.find(it=>{
+    const n=it&&it.name;
+    const k=typeof exerciseNameKey==='function'?exerciseNameKey(n):String(n||'').toLowerCase().trim();
+    return k===key;
+  })||null;
+}
+window.readStoredExerciseProgress=readStoredExerciseProgress;
+
+function progressClassFlagLabel(flag){
+  const map={
+    effortEasier:'łatwiej',
+    effortImproved:'łatwiej',
+    effortHarder:'ciężej',
+    doseIncreased:'większa dawka',
+    doseDecreased:'mniejsza dawka',
+    dip:'spad',
+    mixed:'trade-off',
+    grind:'do limitu',
+    reserveAvailable:'zapas RIR',
+    nearLimit:'przy limicie',
+    effortUnknown:'brak RIR'
+  };
+  return map[flag]||String(flag||'');
+}
+window.progressClassFlagLabel=progressClassFlagLabel;
+
+function progressClassConfidenceLabel(conf){
+  if(conf==='high')return 'wysoka';
+  if(conf==='medium')return 'średnia';
+  if(conf==='low')return 'niska';
+  return String(conf||'');
+}
+window.progressClassConfidenceLabel=progressClassConfidenceLabel;
+
+function exerciseProgressClassViewHtml(item,opts){
+  opts=opts||{};
+  const c=item&&item.classification;
+  if(!c||!c.label)return '';
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s==null?'':s);
+  const label=String(c.label);
+  const tone=label==='PROGRES'?'good':(label==='REGRES'?'bad':(label==='ZA MAŁO DANYCH'?'muted':'flat'));
+  const flags=Array.isArray(c.flags)?c.flags.filter(Boolean):[];
+  const reasons=Array.isArray(c.reasons)?c.reasons.filter(Boolean):[];
+  const plateauTxt=c.plateau?(function(){
+    if(flags.indexOf('reserveAvailable')>=0)return 'tak · zapas RIR';
+    if(flags.indexOf('nearLimit')>=0)return 'tak · przy limicie';
+    if(flags.indexOf('effortUnknown')>=0)return 'tak · brak RIR';
+    return 'tak';
+  }()):'';
+  const flagTxt=flags.map(progressClassFlagLabel).filter(Boolean).join(' · ');
+  const confTxt=progressClassConfidenceLabel(c.confidence);
+  if(opts.compact){
+    return `<span class="ex-prog-label is-${tone}" style="font-size:16px;">${esc(label)}</span>`;
+  }
+  const reasonHtml=reasons.length
+    ?`<ul class="ex-prog-reasons">${reasons.map(r=>`<li>${esc(r)}</li>`).join('')}</ul>`
+    :'';
+  return `<div class="ex-prog-box" data-ex-prog-class="${esc(label)}">
+    <div class="ex-prog-kicker">Analiza</div>
+    <div class="ex-prog-label is-${tone}">${esc(label)}</div>
+    <div class="ex-prog-meta">
+      ${plateauTxt?`<div>Plateau: ${esc(plateauTxt)}</div>`:''}
+      ${confTxt?`<div>Pewność: ${esc(confTxt)}</div>`:''}
+      ${flagTxt?`<div>Flagi: ${esc(flagTxt)}</div>`:''}
+    </div>
+    ${reasonHtml}
+  </div>`;
+}
+window.exerciseProgressClassViewHtml=exerciseProgressClassViewHtml;
+
+function cpExerciseProgressPanelHtml(clientId){
+  const pack=window._cpExerciseProgress;
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s==null?'':s);
+  const match=pack&&String(pack.clientId||'')===String(clientId||'');
+  const items=match&&Array.isArray(pack.items)?pack.items:[];
+  const rows=items.length?items.map(it=>{
+    const name=it&&it.name||'Ćwiczenie';
+    const eid=it&&it.exerciseId||'';
+    const badge=exerciseProgressClassViewHtml(it,{compact:true})||'<span class="ex-prog-label is-muted" style="font-size:16px;">—</span>';
+    return `<button type="button" class="cp-ex-prog-row" data-ex-name="${esc(name)}" data-ex-id="${esc(eid)}" onclick="openCpExerciseProgress(this)">
+      <span class="cp-ex-prog-name">${esc(name)}</span>
+      ${badge}
+    </button>`;
+  }).join(''):'<div class="ex-prog-empty">Brak analizy — za mało porównywalnych sesji.</div>';
+  return `<div data-cp-panel="train" class="stat-card cp-ex-prog-panel" style="margin-bottom:14px;">
+    <div class="stat-card-hdr">
+      <div>
+        <div class="stat-card-title">Analiza ćwiczeń</div>
+        <div class="stat-card-sub">Klasyfikacja z ostatnich porównywalnych sesji</div>
+      </div>
+    </div>
+    ${rows}
+  </div>`;
+}
+window.cpExerciseProgressPanelHtml=cpExerciseProgressPanelHtml;
+
+function openCpExerciseProgress(el){
+  const name=(el&&el.getAttribute&&el.getAttribute('data-ex-name'))||'';
+  const exerciseId=(el&&el.getAttribute&&el.getAttribute('data-ex-id'))||'';
+  const clientId=window._cpExerciseProgress&&window._cpExerciseProgress.clientId||'';
+  if(typeof openExerciseHistory==='function')openExerciseHistory({clientId:clientId,name:name,exerciseId:exerciseId});
+}
+window.openCpExerciseProgress=openCpExerciseProgress;
+
 function lastLoadForExercise(clientId,name,aliases,opts){
   const hist=exerciseLoadHistory(clientId,name,aliases,Object.assign({limit:0},opts||{}));
   if(!hist.length)return null;
@@ -4126,7 +4297,11 @@ function openExerciseHistory(idOrOpts){
   const title=document.getElementById('ex-hist-title');
   if(title)title.textContent=name||'Historia ćwiczenia';
   const body=document.getElementById('ex-hist-body');
-  if(body)body.innerHTML=exerciseHistoryModalBodyHtml(history||[]);
+  if(body){
+    const stored=typeof readStoredExerciseProgress==='function'?readStoredExerciseProgress(clientId,name,exerciseId):null;
+    const analysis=stored&&typeof exerciseProgressClassViewHtml==='function'?exerciseProgressClassViewHtml(stored):'';
+    body.innerHTML=analysis+exerciseHistoryModalBodyHtml(history||[]);
+  }
   if(typeof openM==='function')openM('m-ex-hist');
 }
 window.openExerciseHistory=openExerciseHistory;

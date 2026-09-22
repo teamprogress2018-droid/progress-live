@@ -9,9 +9,12 @@ const root = path.join(__dirname, '../..');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const coreSrc = fs.readFileSync(path.join(root, '01-core.js'), 'utf8');
 const extras = fs.readFileSync(path.join(root, '08-client-profile-extras.js'), 'utf8');
+const portal = fs.readFileSync(path.join(root, '04-client-portal.js'), 'utf8');
 const client = fs.readFileSync(path.join(root, '10-client-app.js'), 'utf8');
 const live = fs.readFileSync(path.join(root, '02-workouts-onboarding-templates-live.js'), 'utf8');
 const wf = fs.readFileSync(path.join(root, '.github', 'workflows', 'check.yml'), 'utf8');
+const progressFn = extras.slice(extras.indexOf('function renderCPProgress'), extras.indexOf('window.renderCPProgress'));
+const capFn = portal.slice(portal.indexOf('function capClientProgressScreenHTML'), portal.indexOf('window.capClientProgressScreenHTML'));
 
 let failed = 0;
 function ok(name, cond, extra) {
@@ -21,14 +24,20 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=115'));
+ok('cache 01', html.includes('01-core.js?v=117'));
 ok('CI', wf.includes('test_ex_progress_class.js'));
 ok('classify helper', /function classifyExerciseProgress/.test(coreSrc));
 ok('no score helper', !/function scoreExerciseProgress/.test(coreSrc));
-ok('not wired to UI', !/classifyExerciseProgress/.test(extras)
+ok('classifier stays in core', !/function classifyExerciseProgress/.test(extras)
+  && !/function classifyExerciseProgress/.test(portal)
   && !/classifyExerciseProgress/.test(client)
   && !/classifyExerciseProgress/.test(live)
   && !/classifyExerciseProgress/.test(html));
+ok('progress remembers classes', /rememberClientExerciseProgress\(c\.id\)/.test(extras)
+  && /rememberClientExerciseProgress\(c\.id\)/.test(portal));
+ok('progress paints stored analysis', /cpExerciseProgressPanelHtml\(c\.id\)/.test(progressFn));
+ok('client portal still no class paint', !/effortHarder|doseIncreased|reserveAvailable/.test(capFn)
+  && !/cpExerciseProgressPanelHtml/.test(capFn));
 
 const document = {
   querySelectorAll: () => [],

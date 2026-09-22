@@ -3374,6 +3374,7 @@ function setCPProgressPanel(panel){
 window.setCPProgressPanel=setCPProgressPanel;
 
 function renderCPProgress(c){
+  if(c&&c.id&&typeof rememberClientExerciseProgress==='function')rememberClientExerciseProgress(c.id);
   const logged=typeof completedWorkouts==='function'?completedWorkouts(c.id):(window.SE||[]).filter(s=>s.clientId===c.id&&(s.source==='live'||s.source==='client'||(s.exercises||[]).length));
   const prs=typeof clientExercisePRs==='function'?clientExercisePRs(c.id).slice(0,12):[];
   const volWeeks=clientWeeklyVolumeStats(c.id,8);
@@ -3566,6 +3567,8 @@ function renderCPProgress(c){
         </div>`:''}
       </div>
     </div>
+
+    ${typeof cpExerciseProgressPanelHtml==='function'?cpExerciseProgressPanelHtml(c.id):''}
 
     <div data-cp-panel="checkin" style="display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:14px;">
       <div class="stat-card">
