@@ -141,7 +141,7 @@ ok('busy guard',/if\(window\._cpCoopBusy\[id\]\)return/.test(extract(src08,'runC
 ok('gate before fetch',extract(src08,'cpCoopRequestAnalysis').indexOf('length<2')<extract(src08,'cpCoopRequestAnalysis').indexOf('await fetch'));
 ok('run calls request helper',/cpCoopRequestAnalysis\(c\)/.test(extract(src08,'runCpCoopAnalysis')));
 ok('ci files',wf.includes('test_cp_overview_coop.js')&&wf.includes('test_cp_overview_coop_reg.js')&&wf.includes('test_cp_overview_coop_ui.js'));
-ok('cache pins',html.includes('08-client-profile-extras.js?v=69')&&html.includes('styles.css?v=103'));
+ok('cache pins',html.includes('08-client-profile-extras.js?v=70')&&html.includes('styles.css?v=103'));
 ok('css card',css.includes('.cp-ov-coop')&&css.includes('.cp-ov-coop-err'));
 
 const sb=makeSandbox();
@@ -213,7 +213,7 @@ ok('ctx no notes/phone/email/secret',!/tajne notes/.test(ctx)&&!/500600700/.test
 ok('ctx no full plan exercises',!/Wymyslone cwiczenie/.test(ctx)&&!/sekretne/.test(ctx)&&!/999/.test(ctx)&&!/777/.test(ctx));
 ok('ctx no JSON dump of client',!/"phone"/.test(ctx)&&!/"id":"c-pair"/.test(ctx)&&!/"secret"/.test(ctx));
 ok('ctx injuries field only',/Ograniczenia \(pole injuries\): kolano/.test(ctx));
-ok('ctx checkin /5 not /10',/Sen 3\/5/.test(ctx)&&!/\/10/.test(ctx));
+ok('ctx checkin /5 not /10',/Sen 3\/5/.test(ctx)&&!/Sen 3\/10/.test(ctx));
 ok('ctx last load from session not invented',/Przysiad/.test(ctx)&&/100 kg/.test(ctx));
 ok('ctx plan name only',/Plan: Siła FBW/.test(ctx)&&/metoda FBW/.test(ctx));
 ok('ctx forbids extra numbers',/Nie wolno używać liczb, kg, procentów ani ćwiczeń, których nie ma powyżej/.test(ctx));
@@ -231,7 +231,7 @@ const ctxJan=sb.cpCoopContextForAI(jan);
 ok('jan rating brak not 0/5',/Ocena ostatniego treningu: brak \(nie 0\/5\)/.test(ctxJan)&&!/Ocena ostatniego treningu: 0\/5/.test(ctxJan));
 ok('jan no 0 kg / 0 age',!/Waga \(karta\): 0/.test(ctxJan)&&!/Wzrost: 0/.test(ctxJan)&&!/Wiek: 0/.test(ctxJan));
 ok('jan checkin 0 skipped',!/Sen 0\/5/.test(ctxJan)&&/Stres 4\/5/.test(ctxJan));
-ok('jan mass 0 is brak',/Masa: value=brak/.test(ctxJan)&&/Sen \(pomiar\): value=brak/.test(ctxJan));
+ok('jan mass 0 is brak',/Masa: value=brak/.test(ctxJan)&&!/Jakość snu — pomiar Samopoczucie/.test(ctxJan)&&!/Sen \(pomiar\)/.test(ctxJan));
 
 const mal={id:'c-mal',name:'Małgosia',goal:'kondycja',injuries:''};
 sb.CL.push(mal);
@@ -246,6 +246,26 @@ sb.TASKS.push({id:'hw-open',clientId:'c-mal',kind:'homework',status:'open',title
 ok('open homework not a source',!sb.cpCoopCollectSignals(mal).ok);
 sb._hwDone['c-mal']=[{id:'hw-done',status:'done',kind:'homework',doneAt:'2026-09-18'}];
 ok('completed homework unlocks',sb.cpCoopCollectSignals(mal).ok&&sb.cpCoopCollectSignals(mal).found.some(s=>s.id==='homework'));
+
+const sleepNoCi={id:'c-sleep-m',name:'Jan Sen',goal:'sila',injuries:''};
+sb.CL.push(sleepNoCi);
+sb.SE.push({id:'s-sleep-m',clientId:'c-sleep-m',date:'2026-09-18',source:'live',type:'FBW',feedback:4});
+sb.CHECKINS['c-sleep-m']=[];
+sb.METRIC_ENTRIES.push(
+  {clientId:'c-sleep-m',groupId:'mg1',date:'2026-09-10',values:{m1:82}},
+  {clientId:'c-sleep-m',groupId:'mg5',date:'2026-09-20',values:{m2:5}}
+);
+const prevSnap=sb.clientSituationSnapshot;
+sb.clientSituationSnapshot=(id)=>{
+  if(id==='c-sleep-m')return{clientId:id,facts:{adh7:{logged:1,assigned:1,pct:100},adh30:{logged:1,assigned:1,pct:100},lastWorkout:{date:'2026-09-18',title:'FBW',source:'live',daysSince:3},checkinStatus:'none',lastCheckin:null,mass:{value:82,deltaPct:null,date:'2026-09-10'},sleep:{value:5,date:'2026-09-20'},homework:{open:0,late:0}}};
+  return prevSnap(id);
+};
+const gSleep=sb.cpCoopCollectSignals(sleepNoCi);
+ok('workout+mass+sleep still 2 sources',gSleep.ok&&gSleep.found.length===2&&gSleep.found.some(s=>s.id==='training')&&gSleep.found.some(s=>s.id==='body')&&!gSleep.found.some(s=>s.id==='checkin'),JSON.stringify(gSleep.found));
+const ctxSleep=sb.cpCoopContextForAI(sleepNoCi);
+ok('sleep 5/10 labeled as Samopoczucie',/Jakość snu — pomiar Samopoczucie: 5\/10/.test(ctxSleep));
+ok('no checkin not written as sen 5/5',/Ostatni wypełniony check-in: brak/.test(ctxSleep)&&!/Sen 5\/5/.test(ctxSleep)&&!/Sen \(pomiar\)/.test(ctxSleep));
+ok('sleep ctx reminds scales',/Check-in \(sen\/energia\/stres\) = skala 1–5/.test(ctxSleep)&&/nie pisz „sen 5\/5”/.test(ctxSleep));
 
 sb.SE.push({id:'s-gar-only',clientId:'c-gar1',date:'2026-09-18',source:'garmin',type:'Bieg 8 km'});
 sb.METRIC_ENTRIES.push({clientId:'c-gar1',groupId:'mg6',date:'2026-09-18',source:'garmin',values:{m1:8000}});
@@ -277,6 +297,7 @@ ok('prompt no certain decisions',/nie przedstawiaj sugestii jako pewnych decyzji
 ok('prompt no volume order phrasing',/skróć objętość o/.test(sys)&&/należy, musisz, wdróż, zdiagnozowano/.test(sys));
 ok('prompt three headers',/1\. Interpretacja/.test(sys)&&/2\. Do rozważenia/.test(sys)&&/3\. Sprawdź przed decyzją/.test(sys));
 ok('prompt no duplicate sections',/nie powtarzaj Briefu, SYTUACJI/.test(sys));
+ok('prompt sleep metric != checkin',/check-in \(sen\/energia\/stres\)/.test(sys)&&/osobne źródło w skali 1–10/.test(sys)&&/nie pisz „sen 5\/5”/.test(sys));
 
 const parsed=sb.cpCoopParseReply(GOOD);
 ok('parse 3 sections',parsed.ok&&parsed.consider.length===3&&parsed.check.length>=1&&/Adherencja/.test(parsed.interp));

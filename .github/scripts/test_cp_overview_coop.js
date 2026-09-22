@@ -45,7 +45,7 @@ ok('no persist',!/persistById/.test(coopSrc));
 ok('no scoreCheckin',!/scoreCheckinAnswers/.test(coopSrc));
 ok('injuries field',/c\.injuries/.test(extract(src08,'cpCoopContextForAI')));
 ok('css',css.includes('.cp-ov-coop')&&css.includes('.cp-ov-coop-sh'));
-ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=69')&&html.includes('styles.css?v=103'));
+ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=70')&&html.includes('styles.css?v=103'));
 ok('ci unit',wf.includes('test_cp_overview_coop.js'));
 ok('ci ui',wf.includes('test_cp_overview_coop_ui.js'));
 ok('gate two signals',src08.includes('found.length>=2'));
@@ -167,9 +167,11 @@ ok('parse three sections',parsed.ok&&/Adherencja/.test(parsed.interp)&&parsed.co
 const ctx=sandbox.cpCoopContextForAI(sila);
 ok('ctx has facts not orders',/Werdykt monitora/.test(ctx)&&!/Skróć objętość o ~20/.test(ctx)&&!/Jak zrobić, żeby było dobrze/.test(ctx));
 ok('ctx no notes as injury',!/tajne notes/.test(ctx));
-ok('ctx checkin /5',/Sen 3\/5/.test(ctx)&&!/\/10/.test(ctx));
+ok('ctx checkin /5',/Sen 3\/5/.test(ctx)&&!/Sen 3\/10/.test(ctx)&&!/Sen 5\/5/.test(ctx));
+ok('ctx sleep metric labeled /10',/Jakość snu — pomiar Samopoczucie: 7\/10/.test(ctx));
 ok('ctx rating 4 not missing',/Ocena ostatniego treningu: 4\/5/.test(ctx));
 ok('prompt forbids orders',/nie podejmujesz decyzji/i.test(sandbox.cpCoopSystemPrompt())&&/skróć objętość/.test(sandbox.cpCoopSystemPrompt()));
+ok('prompt sleep metric != checkin',/pomiar „Samopoczucie → Jakość snu”/.test(sandbox.cpCoopSystemPrompt())&&/nie pisz „sen 5\/5”/.test(sandbox.cpCoopSystemPrompt()));
 
 const jan={id:'c-jan',name:'Jan Kowalski',goal:'sila',injuries:'',weight:0,age:0};
 sandbox.CL.push(jan);
@@ -208,6 +210,24 @@ ok('jan no analyzing state',/Za mało danych do analizy — potrzebne minimum 2 
 ok('jan stuck busy cleared',sandbox.window._cpCoopBusy['c-jan-one']===false);
 ok('jan old cache dropped',!sandbox.window._cpCoopCache['c-jan-one']);
 ok('jan blocked cta',/data-cp-coop-cta="blocked"/.test(htmlJan)&&!/data-cp-coop-cta="run"/.test(htmlJan));
+
+const sleepNoCi={id:'c-sleep-m',name:'Jan Sen',goal:'sila',injuries:''};
+sandbox.CL.push(sleepNoCi);
+sandbox.SE.push({id:'s-sleep-m',clientId:'c-sleep-m',date:'2026-09-18',source:'live',type:'FBW',feedback:4});
+sandbox.CHECKINS['c-sleep-m']=[];
+sandbox.METRIC_ENTRIES.push(
+  {clientId:'c-sleep-m',groupId:'mg1',date:'2026-09-10',values:{m1:82}},
+  {clientId:'c-sleep-m',groupId:'mg5',date:'2026-09-20',values:{m2:5}}
+);
+const prevSnap=sandbox.clientSituationSnapshot;
+sandbox.clientSituationSnapshot=(id)=>{
+  if(id==='c-sleep-m')return{clientId:id,facts:{adh7:{logged:1,assigned:1,pct:100},adh30:{logged:1,assigned:1,pct:100},lastWorkout:{date:'2026-09-18',title:'FBW',source:'live',daysSince:3},checkinStatus:'none',lastCheckin:null,mass:{value:82,deltaPct:null,date:'2026-09-10'},sleep:{value:5,date:'2026-09-20'},homework:{open:0,late:0}}};
+  return prevSnap(id);
+};
+const gSleep=sandbox.cpCoopCollectSignals(sleepNoCi);
+ok('workout+mass+sleep 5/10 still 2 sources',gSleep.ok&&gSleep.found.length===2&&gSleep.found.some(s=>s.id==='training')&&gSleep.found.some(s=>s.id==='body')&&!gSleep.found.some(s=>s.id==='checkin'),JSON.stringify(gSleep.found));
+const ctxSleep=sandbox.cpCoopContextForAI(sleepNoCi);
+ok('no checkin sleep metric is 5/10 not 5/5',/Jakość snu — pomiar Samopoczucie: 5\/10/.test(ctxSleep)&&/Ostatni wypełniony check-in: brak/.test(ctxSleep)&&!/Sen 5\/5/.test(ctxSleep)&&!/Sen \(pomiar\)/.test(ctxSleep));
 
 sandbox.TASKS.push({id:'t-open',clientId:'c-plan',kind:'homework',status:'open',title:'HIIT'});
 ok('open homework does not unlock',!sandbox.cpCoopCollectSignals(planOnly).ok);

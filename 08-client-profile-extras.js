@@ -2317,9 +2317,9 @@ function cpCoopContextForAI(c){
     const dp=cpCoopNum(facts.mass.deltaPct);
     lines.push('Masa: value='+(mv!=null?mv:'brak')+' deltaPct='+(dp!=null?dp:'brak trendu')+' date='+(facts.mass.date||''));
   }
-  if(facts.sleep){
-    const sv=cpCoopPositiveNum(facts.sleep.value);
-    lines.push('Sen (pomiar): value='+(sv!=null?sv:'brak')+' date='+(facts.sleep.date||''));
+  const sv=facts.sleep?cpCoopPositiveNum(facts.sleep.value):null;
+  if(sv!=null){
+    lines.push('Jakość snu — pomiar Samopoczucie: '+sv+'/10'+(facts.sleep.date?(' date='+facts.sleep.date):''));
   }
   if(facts.package)lines.push('Pakiet: dni do końca='+(facts.package.daysLeft??'—'));
   if(facts.homework)lines.push('Zadania domowe: otwarte='+(facts.homework.open||0)+' po terminie='+(facts.homework.late||0));
@@ -2336,6 +2336,8 @@ function cpCoopContextForAI(c){
   lines.push('SYGNAŁY OBECNE: '+have);
   lines.push('DANE NIEOBECNE: '+miss);
   lines.push('Skala 1–5: brak zapisu to brak, nigdy 0. Nie pisz „ocena 0/5”, gdy oceny nie ma.');
+  lines.push('Check-in (sen/energia/stres) = skala 1–5. Pomiar Samopoczucie → Jakość snu = skala 1–10, osobne źródło, nie check-in.');
+  lines.push('Jeśli nie ma wypełnionego check-inu, nie traktuj pomiaru jakości snu jako check-inu i nie pisz „sen 5/5”.');
   lines.push('Nie wolno używać liczb, kg, procentów ani ćwiczeń, których nie ma powyżej.');
   return lines.join('\n');
 }
@@ -2363,6 +2365,8 @@ Zakazy:
 - brak oceny treningu to brak danych, nigdy 0/5
 - 0 na skali 1–5 oznacza brak zapisu, nie wynik
 - nie pisz „ocena wynosi 0/5”, gdy oceny nie ma
+- check-in (sen/energia/stres) jest w skali 1–5; pomiar „Samopoczucie → Jakość snu” to osobne źródło w skali 1–10
+- jeśli nie ma wypełnionego check-inu, nie traktuj pomiaru jakości snu jako check-inu i nie pisz „sen 5/5”
 - nie używaj znaczników Markdown (** * ---)`;
 }
 function cpCoopParseReply(raw){
