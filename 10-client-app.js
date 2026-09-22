@@ -1308,7 +1308,7 @@ async function cwFinish(){
     time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),
     type:cw.dayName||'Trening',
     duration:durationMin,
-    exercises:cw.exercises.map(e=>({
+    exercises:cw.exercises.map(e=>typeof serializeLoggedExercise==='function'?serializeLoggedExercise(e,{onlyDone:true}):({
       name:e.name,
       loadUnit:typeof exLoadUnit==='function'?exLoadUnit(e):'kg',
       sets:e.sets.filter(s=>s.done).map(s=>({kg:parseFloat(s.kg)||0,reps:parseFloat(s.reps)||0,setNo:s.setNo,kind:s.kind||'work',rir:s.rir!=null&&s.rir!==''?String(s.rir):''}))

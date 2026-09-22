@@ -74,7 +74,7 @@ function cpTlSessionHighlight(s,clientId){
   const load=typeof formatSetLoad==='function'?formatSetLoad(best.kg,best.reps,bestEx):(best.kg+' kg × '+best.reps);
   const fact=(bestEx.name||title)+' · '+load;
   let extra='';
-  const hist=typeof exerciseLoadHistory==='function'?exerciseLoadHistory(clientId,bestEx.name,null,{limit:0}):[];
+  const hist=typeof exerciseLoadHistory==='function'?exerciseLoadHistory(clientId,bestEx.name,null,{limit:0,exerciseId:bestEx.exerciseId}):[];
   const sessDate=String(s.date||'');
   let prev=null;
   const idx=hist.findIndex(h=>h.sessionId&&h.sessionId===s.id);
@@ -824,11 +824,12 @@ function fbMapExercises(list,mode){
         }
       }
       const last=sets&&sets.length?sets[sets.length-1]:null;
-      return Object.assign(base,{
+      const mapped=Object.assign(base,{
         sets:sets||[],
         reps:last&&last.reps!=null?String(last.reps):reps,
         kg:last&&last.kg!=null&&last.kg!==''?String(last.kg):kg
       });
+      return typeof applyExerciseIdentity==='function'?applyExerciseIdentity(mapped):mapped;
     }
     return Object.assign(base,{sets:count,reps});
   });

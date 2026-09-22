@@ -3499,7 +3499,7 @@ function liveExHistoryList(ex,clientId){
     const nm=ex&&(ex.name||ex.plannedName);
     const alts=ex&&ex.alts;
     if(clientId&&nm&&typeof exerciseLoadHistory==='function'){
-      history=exerciseLoadHistory(clientId,nm,alts,{limit:8});
+      history=exerciseLoadHistory(clientId,nm,alts,{limit:8,exerciseId:ex&&ex.exerciseId});
     }
   }
   return history;
@@ -3775,7 +3775,9 @@ function liveSwapEx(i,name,slot){
   cur.name=name;
   const extra=typeof altsForExercise==='function'?altsForExercise(name):[];
   cur.alts=[orig].concat(cur.alts||[]).concat(extra).filter((x,idx,a)=>x&&x!==cur.name&&a.indexOf(x)===idx);
-  const last=typeof lastLoadForExercise==='function'?lastLoadForExercise(st.clientId,name,[orig,cur.plannedName]):(typeof lastLoadForExercise==='function'?lastLoadForExercise(st.clientId,name):null);
+  if(typeof applyExerciseIdentity==='function')applyExerciseIdentity(cur);
+  const idOpts=cur.exerciseId?{exerciseId:cur.exerciseId}:undefined;
+  const last=typeof lastLoadForExercise==='function'?lastLoadForExercise(st.clientId,name,[orig,cur.plannedName],idOpts):(typeof lastLoadForExercise==='function'?lastLoadForExercise(st.clientId,name):null);
   const lastFallback=!last&&orig&&typeof lastLoadForExercise==='function'?lastLoadForExercise(st.clientId,orig):null;
   const useLast=last||lastFallback;
   if(useLast){
@@ -3853,7 +3855,8 @@ function liveSetExName(i,name,slot){
     return;
   }
   cur.name=name;
-  const last=typeof lastLoadForExercise==='function'?lastLoadForExercise(st.clientId,name):null;
+  if(typeof applyExerciseIdentity==='function')applyExerciseIdentity(cur);
+  const last=typeof lastLoadForExercise==='function'?lastLoadForExercise(st.clientId,name,cur.alts,cur.exerciseId?{exerciseId:cur.exerciseId}:undefined):null;
   if(last){
     cur.lastKg=last.kg||'';
     cur.lastReps=last.reps||'';
@@ -3965,7 +3968,7 @@ function liveEndSession(slot){
     time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),
     type:'Trening personalny',
     duration:durationMin||60,
-    exercises:st.exercises.map(e=>({
+    exercises:st.exercises.map(e=>typeof serializeLoggedExercise==='function'?serializeLoggedExercise(e,{onlyDone:true}):({
       name:e.name,
       loadUnit:typeof exLoadUnit==='function'?exLoadUnit(e):'kg',
       sets:e.sets.filter(s=>s.done).map(s=>({kg:parseFloat(s.kg)||0,reps:parseFloat(s.reps)||0,setNo:s.setNo,kind:s.kind||'work',rir:s.rir!=null&&s.rir!==''?String(s.rir):''}))
