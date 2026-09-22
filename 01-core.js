@@ -2087,9 +2087,10 @@ function isWorkingSet(s){
 }
 window.isWorkingSet=isWorkingSet;
 
-/** Serie do analizy progresji ćwiczenia: tylko kind work (brak kind = work, kompatybilność starych sesji). */
+/** Serie do analizy progresji ćwiczenia: work + AMRAP (brak kind = work). WU/drop/cluster/RP poza analizą. */
 function isProgressWorkSet(s){
-  return setKindOf(s)==='work';
+  const k=setKindOf(s);
+  return k==='work'||k==='amrap';
 }
 window.isProgressWorkSet=isProgressWorkSet;
 
@@ -3519,6 +3520,48 @@ function isLoggedTrainingSession(s){
 }
 window.isLoggedTrainingSession=isLoggedTrainingSession;
 
+function groupProgressExercises(matches,wantId){
+  if(!matches||!matches.length)return [];
+  if(wantId)return [matches];
+  const byId=new Map();
+  const noId=[];
+  matches.forEach(ex=>{
+    const id=String(ex&&ex.exerciseId||'').trim();
+    if(id){
+      if(!byId.has(id))byId.set(id,[]);
+      byId.get(id).push(ex);
+    }else noId.push(ex);
+  });
+  if(!byId.size)return noId.length?[noId]:[];
+  if(byId.size===1){
+    const g=[...byId.values()][0];
+    return [noId.length?g.concat(noId):g];
+  }
+  const groups=[...byId.values()];
+  if(noId.length)groups.push(noId);
+  return groups;
+}
+
+function mergeProgressExerciseGroup(list,fallbackName){
+  const sets=[];
+  let name='',plannedName='',exerciseId='',loadUnit='';
+  (list||[]).forEach(ex=>{
+    const logged=typeof exerciseLoggedSets==='function'?exerciseLoggedSets(ex):[];
+    logged.forEach(st=>sets.push(st));
+    if(!name&&ex&&ex.name)name=ex.name;
+    if(!plannedName&&ex&&ex.plannedName)plannedName=ex.plannedName;
+    if(!exerciseId&&ex&&ex.exerciseId)exerciseId=String(ex.exerciseId).trim();
+    if(!loadUnit){
+      if(typeof exLoadUnit==='function')loadUnit=exLoadUnit(ex)||'';
+      else if(ex&&ex.loadUnit)loadUnit=ex.loadUnit;
+    }
+  });
+  if(!name)name=fallbackName||'';
+  if(!loadUnit&&typeof exLoadUnit==='function')loadUnit=exLoadUnit({name:name})||'kg';
+  if(!loadUnit)loadUnit='kg';
+  return {name,plannedName,exerciseId,loadUnit,sets};
+}
+
 /** Ostatnie sesje z kg/powt. dla ćwiczenia (najnowsze pierwsze). limit 0 = wszystkie. */
 function exerciseLoadHistory(clientId,name,aliases,opts){
   opts=opts||{};
@@ -3530,36 +3573,224 @@ function exerciseLoadHistory(clientId,name,aliases,opts){
   const keys=name?exerciseNameKeySet(name,aliases):new Set();
   if(!wantId&&!keys.size)return [];
   const pool=opts.sessions||window.SE||[];
+  const query={exerciseId:wantId,keys,name,aliases};
   const sessions=pool.filter(s=>s&&s.clientId===clientId&&Array.isArray(s.exercises)&&isLoggedTrainingSession(s))
     .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''));
   const out=[];
   for(const s of sessions){
-    const ex=(s.exercises||[]).find(e=>exerciseMatchesProgress(e,{exerciseId:wantId,keys,name,aliases}));
-    if(!ex)continue;
-    const sets=typeof exerciseLoggedSets==='function'?exerciseLoggedSets(ex):[];
-    if(!sets.length)continue;
-    const work=exerciseProgressWorkSets(sets);
-    out.push({
-      date:s.date||'',
-      time:s.time||'',
-      createdAt:s.createdAt||'',
-      sessionId:s.id||'',
-      source:s.source||'',
-      type:s.type||'',
-      exerciseId:String(ex.exerciseId||''),
-      name:ex.name||name,
-      plannedName:ex.plannedName||'',
-      sets,
-      workSets:work,
-      workSetCount:work.length,
-      workVolume:exerciseProgressVolume(sets),
-      bestEpley:exerciseProgressBestEpley(sets)
-    });
-    if(limit>0&&out.length>=limit)break;
+    const matches=(s.exercises||[]).filter(e=>exerciseMatchesProgress(e,query));
+    const groups=groupProgressExercises(matches,wantId);
+    for(let gi=0;gi<groups.length;gi++){
+      const merged=mergeProgressExerciseGroup(groups[gi],name);
+      if(!merged.sets.length)continue;
+      const work=exerciseProgressWorkSets(merged.sets);
+      const unit=merged.loadUnit||'kg';
+      const weight=typeof isWeightLoadUnit!=='function'||isWeightLoadUnit(unit);
+      out.push({
+        date:s.date||'',
+        time:s.time||'',
+        createdAt:s.createdAt||'',
+        sessionId:s.id||'',
+        source:s.source||'',
+        type:s.type||'',
+        exerciseId:merged.exerciseId||'',
+        name:merged.name||name,
+        plannedName:merged.plannedName||'',
+        loadUnit:unit,
+        sets:merged.sets,
+        workSets:work,
+        workSetCount:work.length,
+        workVolume:weight?exerciseProgressVolume(merged.sets):null,
+        bestEpley:weight?exerciseProgressBestEpley(merged.sets):null
+      });
+      if(limit>0&&out.length>=limit)return out;
+    }
   }
   return out;
 }
 window.exerciseLoadHistory=exerciseLoadHistory;
+
+/** Jednoznaczny RIR 0–5. Nie konwertuje RPE. Zakresy ("2-3") → null. */
+function parseProgressRir(value){
+  if(value==null||value==='')return null;
+  let raw=String(value).trim();
+  if(!raw)return null;
+  if(/rpe/i.test(raw))return null;
+  raw=raw.replace(/^rir\s*/i,'').trim();
+  if(!raw)return null;
+  if(/[-–—/]/.test(raw))return null;
+  if(!/^\d+(?:[.,]\d+)?$/.test(raw))return null;
+  const n=parseFloat(raw.replace(',','.'));
+  if(!Number.isFinite(n)||n<0||n>5)return null;
+  return n;
+}
+window.parseProgressRir=parseProgressRir;
+
+function progressSignalDir(delta,eps){
+  if(delta==null||!Number.isFinite(delta))return null;
+  const e=eps==null?0.05:eps;
+  if(delta>e)return 'up';
+  if(delta<-e)return 'down';
+  return 'flat';
+}
+window.progressSignalDir=progressSignalDir;
+
+function pickProgressTopSet(work,comparable){
+  const rows=Array.isArray(work)?work:[];
+  let best=null;
+  rows.forEach((s,i)=>{
+    const kg=parseFloat(s&&s.kg);
+    const reps=parseFloat(s&&s.reps);
+    const setNo=(s&&s.setNo)!=null?s.setNo:(i+1);
+    const epley=comparable&&typeof epley1RM==='function'?epley1RM(kg,reps):null;
+    const cand={s,i,kg,reps,setNo,epley};
+    if(!best){best=cand;return;}
+    if(comparable){
+      if(cand.epley!=null&&(best.epley==null||cand.epley>best.epley)){best=cand;return;}
+      if(cand.epley!=null&&best.epley!=null&&cand.epley===best.epley){
+        if((Number.isFinite(kg)&&kg>(best.kg||0))||(kg===best.kg&&(setNo>best.setNo||(setNo===best.setNo&&i>best.i))))best=cand;
+      }else if(cand.epley==null&&best.epley==null){
+        if((Number.isFinite(kg)&&kg>(best.kg||0))||(kg===best.kg&&(Number.isFinite(reps)&&reps>(best.reps||0))))best=cand;
+      }
+    }else if((Number.isFinite(kg)&&kg>(best.kg||0))||(kg===best.kg&&(Number.isFinite(reps)&&reps>(best.reps||0)))){
+      best=cand;
+    }
+  });
+  if(!best)return null;
+  return{
+    kg:Number.isFinite(best.kg)?best.kg:null,
+    reps:Number.isFinite(best.reps)?best.reps:null,
+    setNo:best.setNo,
+    kind:typeof setKindOf==='function'?setKindOf(best.s):((best.s&&best.s.kind)||'work'),
+    rir:parseProgressRir(best.s&&best.s.rir),
+    epley:comparable&&best.epley!=null?progressRound(best.epley,2):null
+  };
+}
+window.pickProgressTopSet=pickProgressTopSet;
+
+function progressRound(n,d){
+  if(n==null||!Number.isFinite(n))return null;
+  const p=Math.pow(10,d==null?2:d);
+  return Math.round(n*p)/p;
+}
+
+function exerciseProgressSnapshot(histRow){
+  if(!histRow)return null;
+  const loadUnit=histRow.loadUnit||(typeof exLoadUnit==='function'?exLoadUnit(histRow):'kg')||'kg';
+  const weight=typeof isWeightLoadUnit!=='function'||isWeightLoadUnit(loadUnit);
+  const work=Array.isArray(histRow.workSets)?histRow.workSets.slice():exerciseProgressWorkSets(histRow.sets||[]);
+  const workSetCount=work.length;
+  let totalWorkReps=0;
+  work.forEach(s=>{
+    const r=parseFloat(s&&s.reps);
+    if(Number.isFinite(r))totalWorkReps+=r;
+  });
+  const rawVol=typeof exerciseProgressVolume==='function'?exerciseProgressVolume(work):0;
+  const workVolume=weight?rawVol:null;
+  const avgKg=weight&&totalWorkReps>0?rawVol/totalWorkReps:null;
+  let bestEpley=null;
+  if(weight){
+    bestEpley=histRow.bestEpley!=null?histRow.bestEpley:exerciseProgressBestEpley(work);
+  }
+  const topSet=pickProgressTopSet(work,weight);
+  const rirs=work.map(s=>parseProgressRir(s&&s.rir)).filter(v=>v!=null).sort((a,b)=>a-b);
+  const median=rirs.length?rirs[Math.floor((rirs.length-1)/2)]:null;
+  return{
+    date:histRow.date||'',
+    sessionId:histRow.sessionId||'',
+    exerciseId:String(histRow.exerciseId||''),
+    name:histRow.name||'',
+    loadUnit,
+    workSetCount,
+    workVolume:progressRound(workVolume,2),
+    totalWorkReps,
+    avgKg:progressRound(avgKg,2),
+    topSet,
+    bestEpley:progressRound(bestEpley,2),
+    rir:{available:rirs.length>0,top:topSet?topSet.rir:null,median:median},
+    comparable:!!weight
+  };
+}
+window.exerciseProgressSnapshot=exerciseProgressSnapshot;
+
+function progressDeltaVal(prev,next){
+  if(prev==null||next==null||!Number.isFinite(prev)||!Number.isFinite(next))return null;
+  return progressRound(next-prev,3);
+}
+
+function exerciseProgressDelta(prevSnap,nextSnap){
+  const comparable=!!(prevSnap&&nextSnap&&prevSnap.comparable&&nextSnap.comparable);
+  const prevTop=prevSnap&&prevSnap.topSet;
+  const nextTop=nextSnap&&nextSnap.topSet;
+  const prevRir=prevSnap&&prevSnap.rir&&prevSnap.rir.available?prevSnap.rir.top:null;
+  const nextRir=nextSnap&&nextSnap.rir&&nextSnap.rir.available?nextSnap.rir.top:null;
+  const rirAvailable=prevRir!=null&&nextRir!=null;
+  return{
+    deltaKg:comparable?progressDeltaVal(prevTop&&prevTop.kg,nextTop&&nextTop.kg):null,
+    deltaReps:comparable?progressDeltaVal(prevTop&&prevTop.reps,nextTop&&nextTop.reps):null,
+    deltaVolume:comparable?progressDeltaVal(prevSnap&&prevSnap.workVolume,nextSnap&&nextSnap.workVolume):null,
+    deltaWorkSetCount:progressDeltaVal(prevSnap&&prevSnap.workSetCount,nextSnap&&nextSnap.workSetCount),
+    deltaE1RM:comparable?progressDeltaVal(prevSnap&&prevSnap.bestEpley,nextSnap&&nextSnap.bestEpley):null,
+    deltaRir:rirAvailable?progressDeltaVal(prevRir,nextRir):null,
+    rirAvailable,
+    comparable
+  };
+}
+window.exerciseProgressDelta=exerciseProgressDelta;
+
+function exerciseProgressSeries(clientId,name,aliases,opts){
+  opts=opts||{};
+  const windowN=opts.window==null?5:(parseInt(opts.window,10)||5);
+  const hist=exerciseLoadHistory(clientId,name,aliases,Object.assign({},opts,{limit:0}));
+  const snaps=[];
+  hist.forEach(row=>{
+    const snap=exerciseProgressSnapshot(row);
+    if(snap&&snap.workSetCount>0)snaps.push(snap);
+  });
+  snaps.reverse();
+  const pool=snaps.filter(s=>s.comparable);
+  const view=pool.slice(Math.max(0,pool.length-windowN));
+  const signals={
+    kg:{up:0,flat:0,down:0},
+    reps:{up:0,flat:0,down:0},
+    volume:{up:0,flat:0,down:0},
+    e1RM:{up:0,flat:0,down:0},
+    rir:{up:0,flat:0,down:0}
+  };
+  const bump=(key,dir)=>{if(dir&&signals[key])signals[key][dir]++;};
+  const steps=[];
+  for(let i=1;i<view.length;i++){
+    const delta=exerciseProgressDelta(view[i-1],view[i]);
+    const dir={
+      kg:progressSignalDir(delta.deltaKg,0.05),
+      reps:progressSignalDir(delta.deltaReps,0.5),
+      volume:progressSignalDir(delta.deltaVolume,0.5),
+      e1RM:progressSignalDir(delta.deltaE1RM,0.05),
+      rir:delta.rirAvailable?progressSignalDir(delta.deltaRir,0.25):null
+    };
+    bump('kg',dir.kg);
+    bump('reps',dir.reps);
+    bump('volume',dir.volume);
+    bump('e1RM',dir.e1RM);
+    if(dir.rir)bump('rir',dir.rir);
+    steps.push({
+      from:view[i-1].sessionId,
+      to:view[i].sessionId,
+      dateFrom:view[i-1].date,
+      dateTo:view[i].date,
+      delta,
+      dir
+    });
+  }
+  return{
+    name:name||(view[0]&&view[0].name)||'',
+    exerciseId:String(opts.exerciseId||(view[0]&&view[0].exerciseId)||''),
+    snapshots:view,
+    steps,
+    signals
+  };
+}
+window.exerciseProgressSeries=exerciseProgressSeries;
 
 function lastLoadForExercise(clientId,name,aliases,opts){
   const hist=exerciseLoadHistory(clientId,name,aliases,Object.assign({limit:0},opts||{}));

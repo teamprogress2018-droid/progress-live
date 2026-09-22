@@ -28,7 +28,7 @@ ok('toggle persists', /function aplToggleMulti/.test(src03) && /aplPersistClient
 ok('html toggle helper', /data-val="Hantle"[^>]*aplToggleMulti/.test(html) && /data-val="Drążek i poręcze"[^>]*aplToggleMulti/.test(html));
 ok('html hantle class active', /class="apl-opt-multi active" data-val="Hantle"/.test(html) && /class="apl-opt-multi active" data-val="Drążek i poręcze"/.test(html));
 ok('onboard saves equipment', src02.includes('function onbOpenNewClient') && !src02.includes('onbNewClient.equipment=') && /availableEquipment/.test(core));
-ok('cache', html.includes('01-core.js?v=113') && html.includes('02-workouts-onboarding-templates-live.js?v=78') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=42') && html.includes('05-clients-builder-plans-calendar.js?v=78') && html.includes('07-forms-metrics-calculator.js?v=40'));
+ok('cache', html.includes('01-core.js?v=114') && html.includes('02-workouts-onboarding-templates-live.js?v=78') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=42') && html.includes('05-clients-builder-plans-calendar.js?v=78') && html.includes('07-forms-metrics-calculator.js?v=40'));
 ok('CI', wf.includes('test_apl_form_persist.js') && wf.includes('test_apl_form_persist_ui.js') && wf.includes('test_apl_client_autofill.js'));
 
 const slice = core.match(/function foldPlKey[\s\S]*?function clientAvailableEquipment[\s\S]*?\n\}/);
