@@ -4133,6 +4133,160 @@ function aggregateClientProgress(pack){
 }
 window.aggregateClientProgress=aggregateClientProgress;
 
+/** Etap 7B: rekomendacja na następną sesję. Wejście = item 6D + opcjonalny opts.target.repMax. D0–D18. */
+function recommendExerciseProgress(item,opts){
+  const LABELS={'PROGRES':1,'STABILNIE':1,'REGRES':1,'ZA MAŁO DANYCH':1};
+  const CONF={'high':1,'medium':1,'low':1};
+  const pack=function(action,gate,facts,clsConf,n,rirKnown){
+    const levers={
+      'ZA MAŁO DANYCH':{load:'none',reps:'none',dose:'hold'},
+      'OBSERWUJ':{load:'hold',reps:'hold',dose:'hold'},
+      DELOAD:{load:'deload',reps:'hold',dose:'hold'},
+      'ZMNIEJSZ OBCIĄŻENIE':{load:'down',reps:'hold',dose:'hold'},
+      UTRZYMAJ:{load:'hold',reps:'hold',dose:'hold'},
+      'DODAJ POWTÓRZENIA':{load:'hold',reps:'up',dose:'hold'},
+      'DODAJ CIĘŻAR':{load:'up',reps:'hold',dose:'hold'}
+    }[action]||{load:'hold',reps:'hold',dose:'hold'};
+    levers.dose='hold';
+    const reasons={
+      D0:'brak poprawnego wyniku 6D do rekomendacji',
+      D1:'brak drugiej porównywalnej sesji kg',
+      D2:'niska pewność 6D albo brak RIR / mixed — nie ruszam obciążenia',
+      D3:'co najmniej 4 sesje plateau przy RIR 0–1 — zebrany limit, nie jeden ciężki dzień',
+      D4:'REGRES już zszedł z kg — zostaję na obecnym ciężarze, nie tnę dalej',
+      D5:'dwa spadki powtórzeń przy tym samym kg i RIR 0–1 — zejdź z ciężarem; to nie pełny deload',
+      D6:'REGRES sam nie każe tnąć kg — zostaję na obecnym obciążeniu',
+      D7:'jeden słabszy trening (dip) — nie deload i nie zmiana kg',
+      D8:'RIR 0 przy wzroście kg (grind) — nie dokładam; potwierdź obecny ciężar',
+      D9:'liczba serii już się zmieniła — 7B nie rusza dawki ani nie dokładam kg/powt.',
+      D10:'nearLimit bez pełnego wzorca deloadu — nie dokładam kg',
+      D11:'ostatnio poszedł ciężar — najpierw potwierdź nowy kg',
+      D12:'ostatnio spadł ciężar — najpierw potwierdź niższy kg',
+      D13:'serie nierówne przy zapasie RIR — wyrównaj powtórzenia, nie dokładaj kg',
+      D14:'brak zadanego stropu powtórzeń — sam wzrost powt. nie uprawnia +kg; potwierdź wynik',
+      D15:'zapas RIR przy tym kg — najpierw powtórzenia, nie ciężar',
+      D16:'zadany strop powtórzeń osiągnięty przy RIR ≥ 2 i równych seriach',
+      D17:'brak przesłanki do zmiany — utrzymuję obciążenie i powtórzenia',
+      D18:'brak jednoznacznej przesłanki — obserwuj, nie ruszaj obciążenia'
+    };
+    let confidence='low';
+    if(action==='ZA MAŁO DANYCH'||action==='OBSERWUJ')confidence='low';
+    else if(action==='DELOAD'||action==='ZMNIEJSZ OBCIĄŻENIE'||action==='DODAJ CIĘŻAR'){
+      confidence=(clsConf==='high'&&n>=3&&rirKnown)?'high':'medium';
+    }else confidence=CONF[clsConf]?clsConf:'low';
+    return{
+      name:facts.name,
+      exerciseId:facts.exerciseId,
+      action:action,
+      confidence:confidence,
+      reasons:[reasons[gate]],
+      levers:levers,
+      facts:facts
+    };
+  };
+  const emptyFacts={
+    name:'',exerciseId:'',n:0,dirKg:null,dirReps:null,kgUp:false,kgDown:false,repsUp:false,
+    lastKg:null,lastReps:null,lastRir:null,rirKnown:false,reserveNow:false,hardNow:false,
+    avgReps:null,evenSets:false,label:'',plateau:false,classConf:'low',target:null,
+    atRepMax:false,belowRepMax:false,cofanie:false,kgAlreadyDropped:false,repsCollapsedSameKg:false,
+    flags:[]
+  };
+  if(!item||typeof item!=='object')return pack('ZA MAŁO DANYCH','D0',emptyFacts,'low',0,false);
+  const c=item.classification&&typeof item.classification==='object'?item.classification:{};
+  const label=LABELS[c.label]?c.label:'';
+  if(!label)return pack('ZA MAŁO DANYCH','D0',Object.assign({},emptyFacts,{
+    name:String(item.name||''),exerciseId:String(item.exerciseId||'')
+  }),'low',0,false);
+  const series=item.series&&typeof item.series==='object'?item.series:{};
+  const snaps=Array.isArray(series.snapshots)?series.snapshots:[];
+  const steps=Array.isArray(series.steps)?series.steps:[];
+  const n=snaps.length;
+  const last=n?snaps[n-1]:null;
+  const step=steps.length?steps[steps.length-1]:null;
+  const dir=step&&step.dir&&typeof step.dir==='object'?step.dir:{};
+  const dirKg=dir.kg==='up'||dir.kg==='down'||dir.kg==='flat'?dir.kg:null;
+  const dirReps=dir.reps==='up'||dir.reps==='down'||dir.reps==='flat'?dir.reps:null;
+  const kgUp=dirKg==='up';
+  const kgDown=dirKg==='down';
+  const repsUp=dirReps==='up'&&dirKg!=='down';
+  const lastKg=last&&last.topSet&&Number.isFinite(last.topSet.kg)?last.topSet.kg:null;
+  const lastReps=last&&last.topSet&&Number.isFinite(last.topSet.reps)?last.topSet.reps:null;
+  const lastRir=last&&last.rir&&last.rir.top!=null&&Number.isFinite(last.rir.top)?last.rir.top:null;
+  const rirKnown=!!(last&&last.rir&&last.rir.available===true&&lastRir!=null);
+  const reserveNow=rirKnown&&lastRir>=2;
+  const hardNow=rirKnown&&lastRir<=1;
+  const workSetCount=last&&Number.isFinite(last.workSetCount)?last.workSetCount:0;
+  const totalWorkReps=last&&Number.isFinite(last.totalWorkReps)?last.totalWorkReps:null;
+  const avgReps=workSetCount>0&&totalWorkReps!=null?totalWorkReps/workSetCount:null;
+  const evenSets=workSetCount<=1||(avgReps!=null&&lastReps!=null&&avgReps>=lastReps-1);
+  const flags=Array.isArray(c.flags)?c.flags.filter(f=>typeof f==='string'&&f):[];
+  const has=f=>flags.indexOf(f)>=0;
+  const plateau=c.plateau===true;
+  const classConf=CONF[c.confidence]?c.confidence:'low';
+  const raw=opts&&opts.target?opts.target.repMax:undefined;
+  const target=(typeof raw==='number'&&Number.isFinite(raw)&&raw>0)?raw:null;
+  const atRepMax=target!=null&&lastReps!=null&&Number.isFinite(lastReps)&&lastReps>=target;
+  const belowRepMax=target!=null&&lastReps!=null&&Number.isFinite(lastReps)&&lastReps<target;
+  const cofanie=!!(opts&&opts.aggregate&&opts.aggregate.trend==='COFANIE');
+  const kgAlreadyDropped=label==='REGRES'&&kgDown;
+  const repsCollapsedSameKg=label==='REGRES'&&!kgDown&&dirReps==='down';
+  const facts={
+    name:String(item.name||''),
+    exerciseId:String(item.exerciseId||''),
+    n:n,dirKg:dirKg,dirReps:dirReps,kgUp:kgUp,kgDown:kgDown,repsUp:repsUp,
+    lastKg:lastKg,lastReps:lastReps,lastRir:lastRir,rirKnown:rirKnown,
+    reserveNow:reserveNow,hardNow:hardNow,avgReps:avgReps,evenSets:evenSets,
+    label:label,plateau:plateau,classConf:classConf,target:target,
+    atRepMax:atRepMax,belowRepMax:belowRepMax,cofanie:cofanie,
+    kgAlreadyDropped:kgAlreadyDropped,repsCollapsedSameKg:repsCollapsedSameKg,
+    flags:flags.slice()
+  };
+  const done=(action,gate)=>pack(action,gate,facts,classConf,n,rirKnown);
+  if(label==='ZA MAŁO DANYCH'||n<2||!last||last.comparable!==true)return done('ZA MAŁO DANYCH','D1');
+  if(classConf==='low'&&(has('mixed')||!rirKnown||label==='REGRES'))return done('OBSERWUJ','D2');
+  if(plateau&&has('nearLimit')&&n>=4&&rirKnown&&lastRir<=1&&label!=='PROGRES'&&!has('dip')&&classConf!=='low')
+    return done('DELOAD','D3');
+  if(kgAlreadyDropped)return done('UTRZYMAJ','D4');
+  if(repsCollapsedSameKg&&hardNow&&classConf!=='low')return done('ZMNIEJSZ OBCIĄŻENIE','D5');
+  if(label==='REGRES')return done('UTRZYMAJ','D6');
+  if(has('dip'))return done('UTRZYMAJ','D7');
+  if(has('grind'))return done('UTRZYMAJ','D8');
+  if(has('doseIncreased')||has('doseDecreased'))return done('UTRZYMAJ','D9');
+  if(has('nearLimit'))return done('UTRZYMAJ','D10');
+  if(kgUp)return done('UTRZYMAJ','D11');
+  if(kgDown)return done('UTRZYMAJ','D12');
+  if(!evenSets&&reserveNow&&label!=='REGRES'&&!has('mixed')&&!has('grind')&&!kgUp&&!kgDown)
+    return done('DODAJ POWTÓRZENIA','D13');
+  if(repsUp&&!kgUp&&target==null)return done('UTRZYMAJ','D14');
+  if(
+    (reserveNow||has('effortEasier')||(plateau&&has('reserveAvailable')))
+    && evenSets
+    && !has('grind')&&!has('nearLimit')&&!has('mixed')&&!has('dip')
+    && label!=='REGRES'
+    && !atRepMax
+    && !(repsUp&&target==null)
+    && !kgUp&&!kgDown
+    && !has('doseIncreased')&&!has('doseDecreased')
+  )return done('DODAJ POWTÓRZENIA','D15');
+  if(
+    target!=null
+    && atRepMax
+    && evenSets
+    && reserveNow
+    && rirKnown
+    && (classConf==='medium'||classConf==='high')
+    && (n>=3||classConf==='high')
+    && !has('grind')&&!has('nearLimit')&&!has('mixed')&&!has('dip')
+    && label!=='REGRES'
+    && !kgUp&&!kgDown
+    && !has('doseIncreased')&&!has('doseDecreased')
+    && !cofanie
+  )return done('DODAJ CIĘŻAR','D16');
+  if(rirKnown)return done('UTRZYMAJ','D17');
+  return done('OBSERWUJ','D18');
+}
+window.recommendExerciseProgress=recommendExerciseProgress;
+
 function readStoredExerciseProgress(clientId,name,exerciseId){
   const pack=window._cpExerciseProgress;
   if(!pack||!Array.isArray(pack.items))return null;
