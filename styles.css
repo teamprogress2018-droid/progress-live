@@ -1145,6 +1145,25 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 .live-ex-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 14px;padding:0 2px;}
 .live-ex-meta .live-coach-hints{margin:0;}
 .live-prog-chip{background:rgba(62,207,178,0.12);border-color:rgba(62,207,178,0.32);color:var(--teal);}
+.live-ns-posture{
+  font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 12px;padding:8px 12px;
+  border:1px solid var(--border-subtle);border-radius:10px;background:rgba(255,255,255,.03);
+}
+.live-ex-cue{
+  display:grid;gap:5px;margin:0 0 12px;padding:8px 12px;
+  border:1px solid var(--border-subtle);border-radius:10px;background:rgba(255,255,255,.03);
+}
+.live-ex-cue-row{display:flex;align-items:baseline;gap:10px;min-width:0;}
+.live-ex-cue-k{
+  flex:0 0 82px;font-size:10px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--muted);
+}
+.live-ex-cue-v{flex:1;min-width:0;font-size:12px;font-weight:600;color:var(--text);line-height:1.35;}
+.live-ex-cue-row[data-suggest="up"] .live-ex-cue-v{color:var(--teal);}
+.live-ex-cue-row[data-suggest="down"] .live-ex-cue-v{color:var(--accent);}
+.live-ex-cue-row[data-suggest="none"] .live-ex-cue-v{color:var(--muted);font-weight:600;}
+.live-ex-card:not(:has(.live-ex-body)) .live-ex-cue{margin:10px 0 0;}
 .btn-danger{background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.35);color:#fca5a5;}
 .btn-danger:hover{background:rgba(239,68,68,0.22);color:#fff;}
 

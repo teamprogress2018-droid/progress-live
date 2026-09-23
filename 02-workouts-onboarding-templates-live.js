@@ -3393,6 +3393,8 @@ function renderLiveExercises(slot){
   const hint=liveEl('live-progress-hint',n);
   if(hint)hint.textContent=setsDone?'Po „Zakończ i zapisz” ten trening wejdzie do Progress.':(total?'Odhacz serie ✓ — sam plan w kalendarzu się nie liczy.':'');
 
+  const cue=typeof liveExCuePack==='function'?liveExCuePack(n):{recs:[],brief:null,planId:st.planId||''};
+
   el.innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
       <div>
@@ -3401,7 +3403,8 @@ function renderLiveExercises(slot){
       </div>
       <button class="btn btn-ghost btn-sm" onclick="liveAddExercise(${n})">+ Dodaj ćwiczenie</button>
     </div>
-    ${st.exercises.map((ex,i)=>liveExCard(ex,i,n)).join('')}
+    ${typeof liveExCueSessionHtml==='function'?liveExCueSessionHtml(cue):''}
+    ${st.exercises.map((ex,i)=>liveExCard(ex,i,n,cue)).join('')}
     ${st.sessionActive&&doneCnt===total&&total>0?`
     <div style="background:linear-gradient(135deg,var(--adim),transparent);border:1px solid rgba(230,0,0,0.3);border-radius:14px;padding:20px;text-align:center;margin-top:10px;">
       <div style="font-size:28px;margin-bottom:8px;">🎉</div>
@@ -3490,6 +3493,196 @@ function liveWeekHintHtml(slot){
 }
 window.liveWeekHintHtml=liveWeekHintHtml;
 
+/** Etap 9A.1: jeden fetch 7A→7B→7C na slot. Paint only. */
+function liveExCueKey(ex){
+  const eid=String(ex&&ex.exerciseId||'').trim();
+  if(eid)return 'id:'+eid;
+  const raw=ex&&(ex.name||ex.plannedName)||'';
+  const key=typeof liveNormExName==='function'?liveNormExName(raw):String(raw||'').toLowerCase();
+  return key?('nm:'+key):'';
+}
+window.liveExCueKey=liveExCueKey;
+
+function liveExCuePack(slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  const empty={clientId:String(st.clientId||''),planId:st.planId||'',recs:[],brief:null,pack:null,lastByKey:{}};
+  if(!st.clientId||typeof composeClientNextSessionBrief!=='function'){
+    (st.exercises||[]).forEach(ex=>{
+      const k=liveExCueKey(ex);
+      if(k&&!empty.lastByKey[k])empty.lastByKey[k]=liveExLastWorkSets(ex,st.clientId,st.planId);
+    });
+    return empty;
+  }
+  const opts={};
+  if(st.planId)opts.planId=st.planId;
+  const built=composeClientNextSessionBrief(st.clientId,opts)||{};
+  const lastByKey={};
+  (st.exercises||[]).forEach(ex=>{
+    const k=liveExCueKey(ex);
+    if(!k||lastByKey[k])return;
+    lastByKey[k]=liveExLastWorkSets(ex,st.clientId,st.planId);
+  });
+  return{
+    clientId:built.clientId||st.clientId,
+    planId:st.planId||'',
+    recs:Array.isArray(built.recs)?built.recs:[],
+    brief:built.brief||null,
+    pack:built.pack||null,
+    lastByKey:lastByKey
+  };
+}
+window.liveExCuePack=liveExCuePack;
+
+function liveExMatchCueRec(ex,recs){
+  const list=Array.isArray(recs)?recs:[];
+  const eid=String(ex&&ex.exerciseId||'').trim();
+  if(eid){
+    const byId=list.find(r=>r&&String(r.exerciseId||'')===eid);
+    if(byId)return byId;
+  }
+  const key=typeof liveNormExName==='function'?liveNormExName(ex&&(ex.name||ex.plannedName)):String(ex&&ex.name||'').toLowerCase();
+  if(!key)return null;
+  return list.find(r=>r&&(typeof liveNormExName==='function'?liveNormExName(r.name):String(r.name||'').toLowerCase())===key)||null;
+}
+window.liveExMatchCueRec=liveExMatchCueRec;
+
+function liveExLastWorkSets(ex,clientId,planId){
+  if(!clientId||!(ex&&(ex.name||ex.plannedName||ex.exerciseId)))return [];
+  if(typeof exerciseLoadHistory!=='function')return [];
+  const opts={limit:1,exerciseId:ex.exerciseId||''};
+  if(planId)opts.planId=planId;
+  const hist=exerciseLoadHistory(clientId,ex.name||ex.plannedName,ex.alts,opts);
+  const row=hist&&hist[0];
+  if(!row)return [];
+  if(Array.isArray(row.workSets)&&row.workSets.length)return row.workSets;
+  const sets=Array.isArray(row.sets)?row.sets:[];
+  if(typeof exerciseProgressWorkSets==='function')return exerciseProgressWorkSets(sets);
+  return sets.filter(s=>!s||!s.kind||s.kind==='work'||s.kind==='amrap');
+}
+window.liveExLastWorkSets=liveExLastWorkSets;
+
+function liveExLastLine(sets){
+  const rows=Array.isArray(sets)?sets:[];
+  const bits=[];
+  rows.forEach(s=>{
+    if(!s)return;
+    const kg=s.kg!=null&&s.kg!==''?String(s.kg):'';
+    const reps=s.reps!=null&&s.reps!==''?String(s.reps):'';
+    if(!kg&&!reps)return;
+    let bit=(kg&&reps)?(kg+' × '+reps):(kg||(reps+' powt.'));
+    if(s.rir!=null&&s.rir!=='')bit+=' @'+String(s.rir);
+    bits.push(bit);
+  });
+  return bits.length?bits.join(' · '):'—';
+}
+window.liveExLastLine=liveExLastLine;
+
+function liveExTodayKg(ex){
+  const sets=Array.isArray(ex&&ex.sets)?ex.sets:[];
+  const work=sets.filter(s=>s&&(!s.kind||s.kind==='work'||s.kind==='amrap'));
+  const src=work.length?work:sets;
+  for(let i=0;i<src.length;i++){
+    const s=src[i];
+    if(s&&s.kg!=null&&s.kg!=='')return s.kg;
+  }
+  return '';
+}
+window.liveExTodayKg=liveExTodayKg;
+
+function liveExPlanDayExercises(slot){
+  const st=liveRef(slot);
+  const p=(window.PL||[]).find(x=>x&&x.id===st.planId);
+  if(!p)return [];
+  const day=(p.days||[])[st.currentDayIdx||0];
+  const resolved=typeof fiteboResolveDayExercises==='function'?fiteboResolveDayExercises(st.clientId,p,day||{exercises:[]}):null;
+  return (resolved&&resolved.length)?resolved:((day&&day.exercises)||[]);
+}
+window.liveExPlanDayExercises=liveExPlanDayExercises;
+
+function liveExPlannedReps(ex,slot){
+  const list=typeof liveExPlanDayExercises==='function'?liveExPlanDayExercises(slot):[];
+  const eid=String(ex&&ex.exerciseId||'').trim();
+  const key=typeof liveNormExName==='function'?liveNormExName(ex&&(ex.plannedName||ex.name)):String(ex&&ex.name||'').toLowerCase();
+  for(let i=0;i<list.length;i++){
+    const parsed=typeof parsePlanExercise==='function'?parsePlanExercise(list[i]):list[i];
+    if(!parsed)continue;
+    if(eid&&String(parsed.exerciseId||'').trim()===eid)return String(parsed.reps||'');
+    const pk=typeof liveNormExName==='function'?liveNormExName(parsed.name):String(parsed.name||'').toLowerCase();
+    if(key&&pk===key)return String(parsed.reps||'');
+  }
+  return '';
+}
+window.liveExPlannedReps=liveExPlannedReps;
+
+function liveExFormatKgDelta(n){
+  if(!Number.isFinite(n)||n===0)return '';
+  const a=Math.abs(n);
+  const s=Number.isInteger(a)?String(a):String(Math.round(a*10)/10).replace('.',',');
+  return s;
+}
+window.liveExFormatKgDelta=liveExFormatKgDelta;
+
+function liveExSuggestView(rec,todayKg){
+  const levers=rec&&rec.levers&&typeof rec.levers==='object'?rec.levers:{};
+  const load=levers.load;
+  const lastKg=rec&&rec.facts&&Number.isFinite(rec.facts.lastKg)?rec.facts.lastKg:null;
+  const suggestKg=rec&&Number.isFinite(rec.suggestKg)?rec.suggestKg
+    :(rec&&rec.facts&&Number.isFinite(rec.facts.suggestKg)?rec.facts.suggestKg:null);
+  const delta=(lastKg!=null&&suggestKg!=null)?suggestKg-lastKg:null;
+  void todayKg;
+  const kgBit=d=>{
+    const s=liveExFormatKgDelta(d);
+    return s?(' '+s+' KG'):'';
+  };
+  if(!rec||load==='none'||rec.action==='ZA MAŁO DANYCH'){
+    return{kind:'none',label:'ZA MAŁO DANYCH'};
+  }
+  if(load==='up'){
+    return{kind:'up',label:'↑ DODAJ'+(delta>0?kgBit(delta):' CIĘŻAR')};
+  }
+  if(load==='down'||load==='deload'){
+    return{kind:'down',label:'↓ ZMNIEJSZ'+(delta<0?kgBit(delta):'')};
+  }
+  return{kind:'hold',label:'= UTRZYMAJ'};
+}
+window.liveExSuggestView=liveExSuggestView;
+
+function liveExCueSessionHtml(cue){
+  const brief=cue&&cue.brief;
+  const posture=brief&&brief.posture?String(brief.posture):'ZA MAŁO DANYCH';
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s==null?'':s);
+  return `<div class="live-ns-posture" data-ns-posture="${esc(posture)}">Następna sesja · ${esc(posture)}</div>`;
+}
+window.liveExCueSessionHtml=liveExCueSessionHtml;
+
+function liveExCueStripHtml(ex,slot,cue){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  const rec=liveExMatchCueRec(ex,cue&&cue.recs);
+  const k=liveExCueKey(ex);
+  const lastSets=(cue&&cue.lastByKey&&k&&Array.isArray(cue.lastByKey[k]))
+    ?cue.lastByKey[k]
+    :liveExLastWorkSets(ex,st.clientId,st.planId);
+  const lastLine=liveExLastLine(lastSets);
+  const todayKg=liveExTodayKg(ex);
+  const plannedReps=liveExPlannedReps(ex,n);
+  const unit=typeof exLoadUnit==='function'?exLoadUnit(ex):'kg';
+  const suf=typeof loadUnitSuffix==='function'?loadUnitSuffix(unit):'kg';
+  const todayBits=[];
+  if(todayKg!==''&&todayKg!=null)todayBits.push(String(todayKg)+(suf?(' '+suf):''));
+  if(plannedReps)todayBits.push(plannedReps);
+  const todayLine=todayBits.length?todayBits.join(' · '):'—';
+  const suggest=liveExSuggestView(rec,todayKg);
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s==null?'':s);
+  return `<div class="live-ex-cue" data-live-cue="1" onclick="event.stopPropagation()">
+    <div class="live-ex-cue-row" data-cue="last"><span class="live-ex-cue-k">OSTATNIO</span><span class="live-ex-cue-v">${esc(lastLine)}</span></div>
+    <div class="live-ex-cue-row" data-cue="today"><span class="live-ex-cue-k">DZISIAJ</span><span class="live-ex-cue-v">${esc(todayLine)}</span></div>
+    <div class="live-ex-cue-row" data-cue="suggest" data-suggest="${esc(suggest.kind)}"><span class="live-ex-cue-k">SUGESTIA</span><span class="live-ex-cue-v">${esc(suggest.label)}</span></div>
+  </div>`;
+}
+window.liveExCueStripHtml=liveExCueStripHtml;
+
 function liveExHistoryList(ex,clientId){
   let history=Array.isArray(ex&&ex.lastHistory)?ex.lastHistory.filter(h=>h&&Array.isArray(h.sets)&&h.sets.length):[];
   if(!history.length&&ex&&Array.isArray(ex.lastSets)&&ex.lastSets.length){
@@ -3525,7 +3718,7 @@ function liveExTitleHtml(ex,lastChip,history){
 }
 window.liveExTitleHtml=liveExTitleHtml;
 
-function liveExCard(ex,i,slot){
+function liveExCard(ex,i,slot,cue){
   const n=liveN(slot);
   const st=liveRef(n);
   const sl=liveSlotArg(n);
@@ -3568,6 +3761,7 @@ function liveExCard(ex,i,slot){
         <span style="color:var(--muted);font-size:14px;">${ex.collapsed&&!needsName?'▶':'▼'}</span>
       </div>
     </div>
+    ${needsName?'':(typeof liveExCueStripHtml==='function'?liveExCueStripHtml(ex,n,cue):'')}
     ${showBody?`
     ${needsName||!metaBits?'':`<div class="live-ex-meta">${metaBits}</div>`}
     <div class="live-ex-body">
@@ -3606,6 +3800,7 @@ function liveExCard(ex,i,slot){
     </div>`:''}
   </div>`;
 }
+window.liveExCard=liveExCard;
 
 function liveSetKey(e,ei,si,slot){
   if(e.key==='Enter'){
