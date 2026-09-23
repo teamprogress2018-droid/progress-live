@@ -93,6 +93,9 @@ jobs:
       - name: 1e0z6. Testy briefu następnej sesji
         run: node .github/scripts/test_ex_progress_brief.js
 
+      - name: 1e0z7. Testy E2E ścieżki progresji
+        run: node .github/scripts/test_ex_progress_e2e.js
+
       - name: 1e0. Testy auto-progresji z planu trenera
         run: node .github/scripts/test_plan_auto_progression.js
 

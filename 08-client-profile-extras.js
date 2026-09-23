@@ -3373,6 +3373,89 @@ function setCPProgressPanel(panel){
 }
 window.setCPProgressPanel=setCPProgressPanel;
 
+/** Etap 8: cienki caller 6D pack → 7A → 7B → 7C. Bez nowej prawdy; źródło = SE. */
+function composeClientNextSessionBrief(clientId,opts){
+  opts=opts||{};
+  const cid=String(clientId||'');
+  const pack=typeof rememberClientExerciseProgress==='function'
+    ?rememberClientExerciseProgress(cid,opts)
+    :{clientId:cid,items:[]};
+  const aggregate=typeof aggregateClientProgress==='function'
+    ?aggregateClientProgress(pack)
+    :{trend:'ZA MAŁO DANYCH',confidence:'low'};
+  const items=pack&&Array.isArray(pack.items)?pack.items:[];
+  const recs=[];
+  if(typeof recommendExerciseProgress==='function'){
+    items.forEach(it=>{recs.push(recommendExerciseProgress(it));});
+  }
+  const brief=typeof composeNextSessionProgress==='function'
+    ?composeNextSessionProgress({clientId:cid,recs:recs,aggregate:aggregate})
+    :null;
+  return{clientId:cid,pack:pack,aggregate:aggregate,recs:recs,brief:brief};
+}
+window.composeClientNextSessionBrief=composeClientNextSessionBrief;
+
+function cpNextSessionLastLines(pack){
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s==null?'':s);
+  const items=pack&&Array.isArray(pack.items)?pack.items:[];
+  const lines=[];
+  items.forEach(it=>{
+    const snaps=it&&it.series&&Array.isArray(it.series.snapshots)?it.series.snapshots:[];
+    const last=snaps.length?snaps[snaps.length-1]:null;
+    const top=last&&last.topSet;
+    if(!top||(top.kg==null&&top.reps==null))return;
+    const kg=top.kg!=null?String(top.kg):'—';
+    const reps=top.reps!=null?String(top.reps):'—';
+    const rir=top.rir!=null?(' @'+top.rir):'';
+    const date=last.date?(' · '+last.date):'';
+    lines.push(`<div class="cp-ex-prog-row" data-ns-kind="last"><span class="cp-ex-prog-name">${esc(it.name||'Ćwiczenie')}</span><span>${esc(kg+' × '+reps+rir+date)}</span></div>`);
+  });
+  return lines;
+}
+
+function cpNextSessionBriefHtml(clientId){
+  const built=typeof composeClientNextSessionBrief==='function'?composeClientNextSessionBrief(clientId):null;
+  const brief=built&&built.brief;
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s==null?'':s);
+  const posture=brief&&brief.posture?String(brief.posture):'ZA MAŁO DANYCH';
+  const tone=posture==='ROZWIJAJ'?'good':(posture==='HAMUJ'?'bad':(posture==='ZA MAŁO DANYCH'?'muted':'flat'));
+  const confFn=typeof progressClassConfidenceLabel==='function'?progressClassConfidenceLabel:c=>String(c||'');
+  const conf=brief?confFn(brief.confidence):'';
+  const reasons=brief&&Array.isArray(brief.reasons)?brief.reasons.filter(Boolean):[];
+  const rowHtml=(row,kind)=>{
+    if(!row)return '';
+    return `<div class="cp-ex-prog-row" data-ns-action="${esc(row.action||'')}" data-ns-kind="${esc(kind)}">
+      <span class="cp-ex-prog-name">${esc(row.name||'Ćwiczenie')}</span>
+      <span class="ex-prog-label is-flat" style="font-size:16px;">${esc(row.action||'')}</span>
+    </div>`;
+  };
+  const nowRows=[].concat(
+    (brief&&brief.change||[]).map(r=>rowHtml(r,'change')),
+    (brief&&brief.hold||[]).map(r=>rowHtml(r,'hold')),
+    (brief&&brief.watch||[]).map(r=>rowHtml(r,'watch'))
+  ).join('');
+  const lastLines=cpNextSessionLastLines(built&&built.pack);
+  const trend=brief&&brief.aggregate&&brief.aggregate.trend?String(brief.aggregate.trend):'';
+  return `<div data-cp-panel="train" class="stat-card cp-ns-brief-panel" data-ns-posture="${esc(posture)}" style="margin-bottom:14px;">
+    <div class="stat-card-hdr">
+      <div>
+        <div class="stat-card-title">Następna sesja</div>
+        <div class="stat-card-sub">Co ostatnio · co teraz</div>
+      </div>
+    </div>
+    <div class="ex-prog-box" style="margin-bottom:10px;">
+      <div class="ex-prog-kicker">Co teraz</div>
+      <div class="ex-prog-label is-${tone}">${esc(posture)}</div>
+      <div class="ex-prog-meta">${conf?`<div>Pewność: ${esc(conf)}</div>`:''}${trend?`<div>Trend: ${esc(trend)}</div>`:''}</div>
+      ${reasons.length?`<ul class="ex-prog-reasons">${reasons.map(r=>`<li>${esc(r)}</li>`).join('')}</ul>`:''}
+    </div>
+    ${nowRows||'<div class="ex-prog-empty">Brak rekomendacji ćwiczeń.</div>'}
+    <div class="ex-prog-kicker" style="margin-top:12px;">Co ostatnio</div>
+    ${lastLines.length?lastLines.join(''):'<div class="ex-prog-empty">Brak zapisanych serii kg × powt.</div>'}
+  </div>`;
+}
+window.cpNextSessionBriefHtml=cpNextSessionBriefHtml;
+
 function renderCPProgress(c){
   if(c&&c.id&&typeof rememberClientExerciseProgress==='function')rememberClientExerciseProgress(c.id);
   const logged=typeof completedWorkouts==='function'?completedWorkouts(c.id):(window.SE||[]).filter(s=>s.clientId===c.id&&(s.source==='live'||s.source==='client'||(s.exercises||[]).length));
@@ -3568,6 +3651,7 @@ function renderCPProgress(c){
       </div>
     </div>
 
+    ${typeof cpNextSessionBriefHtml==='function'?cpNextSessionBriefHtml(c.id):''}
     ${typeof cpExerciseProgressPanelHtml==='function'?cpExerciseProgressPanelHtml(c.id):''}
 
     <div data-cp-panel="checkin" style="display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:14px;">
