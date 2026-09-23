@@ -4287,6 +4287,112 @@ function recommendExerciseProgress(item,opts){
 }
 window.recommendExerciseProgress=recommendExerciseProgress;
 
+/** Etap 7C: brief następnej sesji. Wejście = recs 7B + aggregate 7A. C0–C5. */
+function composeNextSessionProgress(input){
+  const TREND={'WZROST':1,'STABILNIE':1,'NIERÓWNY':1,'COFANIE':1,'ZA MAŁO DANYCH':1};
+  const CONF={'high':1,'medium':1,'low':1};
+  const WHY={
+    C0:'brak poprawnych rekomendacji 7B do briefu sesji',
+    C1:'za mało wiarygodnych akcji 7B, żeby złożyć sesję',
+    C2:'sesja nie jest do dokładania — jest cięcie, deload albo COFANIE',
+    C3:'co najmniej dwie akcje 7B dokładają powt. albo kg, bez deloadu i bez COFANIE',
+    C4:'brak sesyjnego dokładania kg; trzymam kurs albo pojedyncze powtórzenia',
+    C5:'akcje 7B idą w różne strony — nie ma jednej dyrektywy sesji'
+  };
+  const CHANGE_RANK={'DELOAD':0,'ZMNIEJSZ OBCIĄŻENIE':1,'DODAJ CIĘŻAR':2,'DODAJ POWTÓRZENIA':3};
+  const emptyCounts={total:0,deload:0,zmniejsz:0,dodajCiezar:0,dodajPowt:0,utrzymaj:0,obserwuj:0,zaMalo:0};
+  const pack=function(posture,gate,counts,lists,aggEcho,clientId,cofanieWhy){
+    const reasons=[WHY[gate]];
+    if(cofanieWhy)reasons.push(cofanieWhy);
+    let confidence='low';
+    if(posture==='ZA MAŁO DANYCH')confidence='low';
+    else{
+      const recSolid=lists._solid;
+      const aggConf=CONF[aggEcho.confidence]?aggEcho.confidence:'low';
+      if(aggConf==='high'&&recSolid>=2)confidence='high';
+      else if(recSolid>=1||aggConf==='medium'||aggConf==='high')confidence='medium';
+      else confidence='low';
+    }
+    return{
+      clientId:clientId,
+      posture:posture,
+      confidence:confidence,
+      reasons:reasons,
+      counts:counts,
+      change:lists.change,
+      hold:lists.hold,
+      watch:lists.watch,
+      aggregate:{trend:aggEcho.trend,confidence:CONF[aggEcho.confidence]?aggEcho.confidence:'low'}
+    };
+  };
+  const emptyAgg={trend:'ZA MAŁO DANYCH',confidence:'low'};
+  if(!input||typeof input!=='object'||!Array.isArray(input.recs)){
+    const clientId=input&&typeof input==='object'&&input.clientId!=null?String(input.clientId):'';
+    return pack('ZA MAŁO DANYCH','C0',Object.assign({},emptyCounts),{change:[],hold:[],watch:[],_solid:0},emptyAgg,clientId,false);
+  }
+  const clientId=input.clientId!=null?String(input.clientId):'';
+  const rawAgg=input.aggregate&&typeof input.aggregate==='object'?input.aggregate:{};
+  const trend=TREND[rawAgg.trend]?rawAgg.trend:'ZA MAŁO DANYCH';
+  const aggEcho={trend:trend,confidence:CONF[rawAgg.confidence]?rawAgg.confidence:'low'};
+  const recs=input.recs;
+  const counts={total:0,deload:0,zmniejsz:0,dodajCiezar:0,dodajPowt:0,utrzymaj:0,obserwuj:0,zaMalo:0};
+  const change=[],hold=[],watch=[];
+  let recSolid=0,nCounted=0,idx=0;
+  recs.forEach(rec=>{
+    if(!rec||typeof rec!=='object')return;
+    nCounted++;
+    const action=typeof rec.action==='string'?rec.action:'';
+    const bucket=action==='DELOAD'?'deload'
+      :action==='ZMNIEJSZ OBCIĄŻENIE'?'zmniejsz'
+      :action==='DODAJ CIĘŻAR'?'dodajCiezar'
+      :action==='DODAJ POWTÓRZENIA'?'dodajPowt'
+      :action==='UTRZYMAJ'?'utrzymaj'
+      :action==='ZA MAŁO DANYCH'?'zaMalo'
+      :'obserwuj';
+    counts[bucket]++;
+    counts.total++;
+    const conf=CONF[rec.confidence]?rec.confidence:'low';
+    if((conf==='medium'||conf==='high')&&action!=='ZA MAŁO DANYCH'&&action!=='OBSERWUJ')recSolid++;
+    const row={
+      name:String(rec.name||''),
+      exerciseId:String(rec.exerciseId||''),
+      action:action,
+      confidence:conf,
+      reasons:Array.isArray(rec.reasons)?rec.reasons.slice():[],
+      levers:rec.levers&&typeof rec.levers==='object'?rec.levers:undefined
+    };
+    const item={row:row,_idx:idx,_rank:CHANGE_RANK[action]!=null?CHANGE_RANK[action]:99};
+    idx++;
+    if(CHANGE_RANK[action]!=null)change.push(item);
+    else if(action==='UTRZYMAJ')hold.push(row);
+    else watch.push(row);
+  });
+  change.sort((a,b)=>a._rank!==b._rank?a._rank-b._rank:a._idx-b._idx);
+  const lists={
+    change:change.map(x=>x.row),
+    hold:hold,
+    watch:watch,
+    _solid:recSolid
+  };
+  const nDeload=counts.deload,nZmniejsz=counts.zmniejsz;
+  const nDodajCiezar=counts.dodajCiezar,nDodajPowt=counts.dodajPowt;
+  const nAdd=nDodajCiezar+nDodajPowt;
+  const nChange=nAdd+nDeload+nZmniejsz;
+  const nUtrzymaj=counts.utrzymaj,nObserwuj=counts.obserwuj,nZaMalo=counts.zaMalo;
+  const C2b=trend==='COFANIE';
+  if(recs.length===0||(trend==='ZA MAŁO DANYCH'&&nChange===0)||(nCounted>=1&&nZaMalo===nCounted))
+    return pack('ZA MAŁO DANYCH','C1',counts,lists,aggEcho,clientId,false);
+  if(nDeload>=1||C2b||nZmniejsz>=2||(nZmniejsz>=1&&nAdd===0))
+    return pack('HAMUJ','C2',counts,lists,aggEcho,clientId,C2b
+      ?'agregat 7A: COFANIE — 7C nie zamienia sesji w dokładanie kg':false);
+  if(nDeload===0&&trend!=='COFANIE'&&nAdd>=2&&nAdd>nZmniejsz)
+    return pack('ROZWIJAJ','C3',counts,lists,aggEcho,clientId,false);
+  if(nDeload===0&&nZmniejsz===0&&nDodajCiezar===0&&nDodajPowt<=1&&(nUtrzymaj+nObserwuj>=1))
+    return pack('UTRZYMAJ KURS','C4',counts,lists,aggEcho,clientId,false);
+  return pack('MIESZANE','C5',counts,lists,aggEcho,clientId,false);
+}
+window.composeNextSessionProgress=composeNextSessionProgress;
+
 function readStoredExerciseProgress(clientId,name,exerciseId){
   const pack=window._cpExerciseProgress;
   if(!pack||!Array.isArray(pack.items))return null;
