@@ -29,9 +29,9 @@ function eq(name, got, want) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=120'));
+ok('cache 01', html.includes('01-core.js?v=121'));
 ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=78'));
-ok('cache 08', html.includes('08-client-profile-extras.js?v=72'));
+ok('cache 08', html.includes('08-client-profile-extras.js?v=73'));
 ok('cache 10', html.includes('10-client-app.js?v=41'));
 ok('CI', wf.includes('test_ex_progress_history.js'));
 ok('live serialize', /serializeLoggedExercise\(e,\s*\{onlyDone:\s*true\}\)/.test(live));
@@ -82,7 +82,8 @@ const {
   exerciseLoadHistory, serializeLoggedExercise, serializeLoggedSet,
   exerciseProgressVolume, exerciseProgressWorkSets, exerciseProgressBestEpley,
   exerciseMatchesProgress, resolveExerciseId, applyExerciseIdentity,
-  mapPlanExercisesForClient, exerciseSetVolumeKg, epley1RM, setKindOf
+  mapPlanExercisesForClient, exerciseSetVolumeKg, epley1RM, setKindOf,
+  listClientProgressExercises
 } = ctx;
 
 ok('setKind missing is work', setKindOf({}) === 'work' && setKindOf({ kind: 'warmup' }) === 'warmup');
@@ -224,6 +225,28 @@ eq('E still 80 kg', afterPlan[0].workSets[0].kg, 80);
 const remapped = mapPlanExercisesForClient(windowObj.PL[0].days[0].exercises, 'c1', windowObj.PL[0]);
 eq('E new plan name', remapped[0].name, 'Martwy ciąg');
 eq('E squat history still there', exerciseLoadHistory('c1', 'Przysiad').length, 1);
+
+windowObj.SE = [
+  {
+    id: 'pa', clientId: 'c1', date: '2026-09-01', source: 'live', planId: 'pl-a',
+    exercises: [{ name: 'Wyciskanie sztangi', sets: [{ kg: 80, reps: 10, kind: 'work' }] }]
+  },
+  {
+    id: 'pb', clientId: 'c1', date: '2026-09-08', source: 'live', planId: 'pl-b',
+    exercises: [{ name: 'Wyciskanie sztangi', sets: [{ kg: 100, reps: 5, kind: 'work' }] }]
+  },
+  {
+    id: 'sq', clientId: 'c1', date: '2026-09-09', source: 'live', planId: 'pl-b',
+    exercises: [{ name: 'Przysiad', sets: [{ kg: 120, reps: 5, kind: 'work' }] }]
+  }
+];
+eq('default mixes plans', exerciseLoadHistory('c1', 'Wyciskanie sztangi').map(h => h.sessionId).sort(), ['pa', 'pb']);
+eq('opt planId a isolated', exerciseLoadHistory('c1', 'Wyciskanie sztangi', null, { planId: 'pl-a' }).map(h => h.sessionId), ['pa']);
+eq('opt planId b isolated', exerciseLoadHistory('c1', 'Wyciskanie sztangi', null, { planId: 'pl-b' }).map(h => h.sessionId), ['pb']);
+eq('empty planId keeps mix', exerciseLoadHistory('c1', 'Wyciskanie sztangi', null, { planId: '' }).map(h => h.sessionId).sort(), ['pa', 'pb']);
+eq('list default all lifts', listClientProgressExercises('c1').map(x => x.name).sort(), ['Przysiad', 'Wyciskanie sztangi']);
+eq('list plan a only bench', listClientProgressExercises('c1', { planId: 'pl-a' }).map(x => x.name), ['Wyciskanie sztangi']);
+eq('list plan b bench+squat', listClientProgressExercises('c1', { planId: 'pl-b' }).map(x => x.name).sort(), ['Przysiad', 'Wyciskanie sztangi']);
 
 ok('match prefers id both sides', exerciseMatchesProgress(
   { exerciseId: 'ex_a', name: 'Hack squat' },

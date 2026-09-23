@@ -3373,13 +3373,22 @@ function setCPProgressPanel(panel){
 }
 window.setCPProgressPanel=setCPProgressPanel;
 
-/** Etap 8: cienki caller 6D pack → 7A → 7B → 7C. Bez nowej prawdy; źródło = SE. */
+/** Etap 8: cienki caller 6D pack → 7A → 7B → 7C. Bez nowej prawdy; źródło = SE.
+ *  Follow-up planId: brief używa aktywnego planu (opts.planId albo latestClientPlan).
+ *  Domyślna 6C bez planId zostaje karierą — panel 6D nie jest nadpisywany. */
 function composeClientNextSessionBrief(clientId,opts){
   opts=opts||{};
   const cid=String(clientId||'');
+  const recOpts=Object.assign({},opts);
+  if(!('planId' in recOpts)&&typeof latestClientPlan==='function'){
+    const p=latestClientPlan(cid);
+    if(p&&p.id)recOpts.planId=p.id;
+  }
+  const prevStore=window._cpExerciseProgress;
   const pack=typeof rememberClientExerciseProgress==='function'
-    ?rememberClientExerciseProgress(cid,opts)
+    ?rememberClientExerciseProgress(cid,recOpts)
     :{clientId:cid,items:[]};
+  if(recOpts.planId)window._cpExerciseProgress=prevStore;
   const aggregate=typeof aggregateClientProgress==='function'
     ?aggregateClientProgress(pack)
     :{trend:'ZA MAŁO DANYCH',confidence:'low'};
