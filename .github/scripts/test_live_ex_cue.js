@@ -18,12 +18,32 @@ const live = fs.readFileSync(path.join(root, '02-workouts-onboarding-templates-l
 const styles = fs.readFileSync(path.join(root, 'styles.css'), 'utf8');
 const wf = fs.readFileSync(path.join(root, '.github', 'workflows', 'check.yml'), 'utf8');
 
-let mainCore = '';
-try {
-  mainCore = execSync('git show origin/main:01-core.js', { cwd: root, encoding: 'utf8' });
-} catch (e) {
-  mainCore = '';
+function gitOut(cmd) {
+  try {
+    return execSync(cmd, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+  } catch (e) {
+    return '';
+  }
 }
+function loadBaseCore() {
+  const refs = ['origin/main', 'main'];
+  if (process.env.GITHUB_BASE_REF) refs.unshift('origin/' + process.env.GITHUB_BASE_REF, process.env.GITHUB_BASE_REF);
+  for (let i = 0; i < refs.length; i++) {
+    const src = gitOut('git show ' + refs[i] + ':01-core.js');
+    if (src && src.indexOf('function exerciseLoadHistory') >= 0) return src;
+  }
+  return '';
+}
+function branchChangedFiles() {
+  const base = gitOut('git merge-base HEAD origin/main')
+    || gitOut('git merge-base HEAD main')
+    || gitOut('git rev-parse HEAD~1');
+  const sha = String(base || '').trim().split('\n')[0];
+  if (!sha) return '';
+  return gitOut('git diff --name-only ' + sha + '..HEAD');
+}
+const mainCore = loadBaseCore();
+const changed = branchChangedFiles();
 
 function sliceFn(src, start, endMark) {
   const a = src.indexOf(start);
@@ -115,6 +135,8 @@ ok('live save/timer/sets untouched in 9A.1 helpers', !/liveEndSession/.test(cueB
   && !/liveSwapEx/.test(cueBlock)
   && !/liveStartRest/.test(cueBlock));
 
+ok('01-core.js not in branch diff', changed.indexOf('01-core.js') === -1, changed);
+ok('08 extras not in branch diff', changed.indexOf('08-client-profile-extras.js') === -1, changed);
 if (mainCore) {
   eq('frozen 6C body', histSrc, sliceFn(mainCore, 'function exerciseLoadHistory', 'window.exerciseLoadHistory'));
   eq('frozen 6D body', classSrc, sliceFn(mainCore, 'function classifyExerciseProgress', 'window.classifyExerciseProgress'));
@@ -123,7 +145,7 @@ if (mainCore) {
   eq('frozen 7C body', briefSrc, sliceFn(mainCore, 'function composeNextSessionProgress', 'window.composeNextSessionProgress'));
   eq('frozen progressWorkingSet', pwsSrc, sliceFn(mainCore, 'function progressWorkingSet', 'window.progressWorkingSet'));
 } else {
-  ok('origin/main 01-core available', false, 'could not git show origin/main:01-core.js');
+  ok('6C–7C freeze via branch diff (no base blob)', changed.indexOf('01-core.js') === -1);
 }
 
 ok('7B still D16', /zadany strop powtórzeń osiągnięty przy RIR ≥ 2 i równych seriach/.test(recSrc));
