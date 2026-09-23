@@ -24,7 +24,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=120'));
+ok('cache 01', html.includes('01-core.js?v=121'));
 ok('CI', wf.includes('test_ex_progress_class.js'));
 ok('classify helper', /function classifyExerciseProgress/.test(coreSrc));
 ok('no score helper', !/function scoreExerciseProgress/.test(coreSrc));

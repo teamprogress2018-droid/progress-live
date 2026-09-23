@@ -3,7 +3,7 @@
 /**
  * Etap 8: integracja PLAN → zapis → historia → 6C → 6D → 7A → 7B → 7C.
  * Izolowane fixture. Nie rusza produkcyjnego Firestore.
- * E2E-10 dokumentuje KNOWN LIMITATION: 6C nie filtruje planId.
+ * E2E-10: 6C bez planId nadal miesza plany; opts.planId i caller aktywnego planu izolują.
  */
 const fs = require('fs');
 const vm = require('vm');
@@ -69,8 +69,8 @@ function eq(name, got, want) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01 frozen', html.includes('01-core.js?v=120'));
-ok('cache 08', html.includes('08-client-profile-extras.js?v=72'));
+ok('cache 01 frozen', html.includes('01-core.js?v=121'));
+ok('cache 08', html.includes('08-client-profile-extras.js?v=73'));
 ok('CI', wf.includes('test_ex_progress_e2e.js') && wf.includes('1e0z7'));
 ok('caller in 08', /function composeClientNextSessionBrief/.test(extras)
   && /function cpNextSessionBriefHtml/.test(extras));
@@ -88,6 +88,8 @@ ok('progress paints brief', /cpNextSessionBriefHtml\(c\.id\)/.test(progressFn)
 ok('caller does not guess repMax', !/repMax/.test(callerSrc) && !/target\s*:/.test(callerSrc));
 ok('caller does not call Live engine', !/progressWorkingSet/.test(callerSrc)
   && !/parseRepRange/.test(callerSrc));
+ok('caller can scope planId', /recOpts\.planId/.test(callerSrc) && /latestClientPlan/.test(callerSrc));
+ok('caller restores 6D store after plan filter', /if\(recOpts\.planId\)window\._cpExerciseProgress=prevStore/.test(callerSrc));
 ok('progressWorkingSet body untouched here', /function progressWorkingSet/.test(coreSrc)
   && /normalizePlanProgression\(opts\.progression\)/.test(pwsSrc));
 ok('7C body still C2(d)', /nZmniejsz>=1&&nAdd===0/.test(briefSrc));
@@ -355,7 +357,7 @@ ok('E2E-9 draft not logged', isLoggedTrainingSession(windowObj.SE[0]) === false)
 ok('E2E-9 planned not logged', isLoggedTrainingSession(windowObj.SE[1]) === false);
 eq('E2E-9 only real live in 6C', exerciseLoadHistory(CID, 'Wyciskanie sztangi').map(h => h.sessionId), ['real']);
 
-/* E2E-10: KNOWN LIMITATION — dwa plany, 6C miesza historię ćwiczenia */
+/* E2E-10: 6C bez planId miesza; opts.planId i caller izolują */
 windowObj.SE = [
   saveLive('p1s', CID, '2026-09-01', [
     liveEx('Wyciskanie sztangi', [
@@ -369,7 +371,7 @@ windowObj.SE = [
   ], { planId: 'pl-b' })
 ];
 const mixed = exerciseLoadHistory(CID, 'Wyciskanie sztangi');
-ok('E2E-10 KNOWN LIMITATION planId: 6C mixes both plans', mixed.length === 2
+ok('E2E-10 default 6C mixes both plans', mixed.length === 2
   && mixed.some(h => h.sessionId === 'p1s')
   && mixed.some(h => h.sessionId === 'p2s'), JSON.stringify(mixed.map(h => h.sessionId)));
 ok('E2E-10 not a false isolation pass', mixed.length !== 1);
@@ -377,6 +379,31 @@ const mixedSeries = exerciseProgressSeries(CID, 'Wyciskanie sztangi');
 ok('E2E-10 series sees both loads', mixedSeries.snapshots.length === 2
   && mixedSeries.snapshots.some(s => s.topSet && s.topSet.kg === 80)
   && mixedSeries.snapshots.some(s => s.topSet && s.topSet.kg === 100));
+eq('E2E-10 opt planId a', exerciseLoadHistory(CID, 'Wyciskanie sztangi', null, { planId: 'pl-a' }).map(h => h.sessionId), ['p1s']);
+eq('E2E-10 opt planId b', exerciseLoadHistory(CID, 'Wyciskanie sztangi', null, { planId: 'pl-b' }).map(h => h.sessionId), ['p2s']);
+
+windowObj._cpExerciseProgress = { clientId: CID, items: [{ name: 'career-store' }] };
+const viaA = composeClientNextSessionBrief(CID, { planId: 'pl-a' });
+const viaB = composeClientNextSessionBrief(CID, { planId: 'pl-b' });
+function lastKg(built) {
+  const it = built && built.pack && (built.pack.items || []).find(x => x && x.name === 'Wyciskanie sztangi');
+  const snaps = it && it.series && it.series.snapshots || [];
+  const last = snaps.length ? snaps[snaps.length - 1] : null;
+  return last && last.topSet ? last.topSet.kg : null;
+}
+eq('E2E-10 caller plan a last kg', lastKg(viaA), 80);
+eq('E2E-10 caller plan b last kg', lastKg(viaB), 100);
+ok('E2E-10 6D store not clobbered', windowObj._cpExerciseProgress
+  && windowObj._cpExerciseProgress.items
+  && windowObj._cpExerciseProgress.items[0]
+  && windowObj._cpExerciseProgress.items[0].name === 'career-store');
+
+ctx.latestClientPlan = function (id) {
+  return id === CID ? { id: 'pl-b', clientId: CID } : null;
+};
+const viaAuto = composeClientNextSessionBrief(CID);
+eq('E2E-10 auto latest plan last kg', lastKg(viaAuto), 100);
+delete ctx.latestClientPlan;
 
 if (failed) {
   console.error('\n' + failed + ' E2E checks failed');

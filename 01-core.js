@@ -3573,8 +3573,9 @@ function exerciseLoadHistory(clientId,name,aliases,opts){
   const keys=name?exerciseNameKeySet(name,aliases):new Set();
   if(!wantId&&!keys.size)return [];
   const pool=opts.sessions||window.SE||[];
+  const wantPlan=opts.planId!=null&&String(opts.planId)!==''?String(opts.planId):'';
   const query={exerciseId:wantId,keys,name,aliases};
-  const sessions=pool.filter(s=>s&&s.clientId===clientId&&Array.isArray(s.exercises)&&isLoggedTrainingSession(s))
+  const sessions=pool.filter(s=>s&&s.clientId===clientId&&Array.isArray(s.exercises)&&isLoggedTrainingSession(s)&&(!wantPlan||String(s.planId||'')===wantPlan))
     .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''));
   const out=[];
   for(const s of sessions){
@@ -3935,9 +3936,10 @@ function listClientProgressExercises(clientId,opts){
   opts=opts||{};
   if(!clientId)return [];
   const pool=opts.sessions||window.SE||[];
+  const wantPlan=opts.planId!=null&&String(opts.planId)!==''?String(opts.planId):'';
   const seen=new Map();
   const order=[];
-  pool.filter(s=>s&&s.clientId===clientId&&Array.isArray(s.exercises)&&(typeof isLoggedTrainingSession!=='function'||isLoggedTrainingSession(s)))
+  pool.filter(s=>s&&s.clientId===clientId&&Array.isArray(s.exercises)&&(typeof isLoggedTrainingSession!=='function'||isLoggedTrainingSession(s))&&(!wantPlan||String(s.planId||'')===wantPlan))
     .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''))
     .forEach(s=>{
       (s.exercises||[]).forEach(ex=>{
