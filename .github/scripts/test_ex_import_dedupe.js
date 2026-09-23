@@ -20,7 +20,7 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 06 v76', html.includes('06-inbox-exercises-ai-programs.js?v=84'));
-ok('cache styles v88', html.includes('styles.css?v=104'));
+ok('cache styles v88', html.includes('styles.css?v=105'));
 ok('ci unit', wf.includes('test_ex_import_dedupe.js'));
 ok('ci ui', wf.includes('test_ex_import_dedupe_ui.js'));
 ok('button markup', html.includes('id="lib-sweep-dups"') && html.includes('Usuń duplikaty'));
