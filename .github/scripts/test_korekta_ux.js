@@ -29,7 +29,7 @@ ok('period card reachable', html.includes('id="builder-period-card"') && html.in
 ok('client talk + details sources', core.includes('Jak wytłumaczyć klientowi') && /<details class="mr-sources[^"]*">/.test(core) && core.includes('clientTalk'));
 ok('weight tips in rationale', /weight>=95|Waga ~/.test(core) || core.includes("Waga ~"));
 ok('volume by tenure', core.includes('VOLUME_BY_LEVEL') && core.includes('Serie na partię wg stażu') && css.includes('.mr-vol-table'));
-ok('cache bumps', html.includes('styles.css?v=115') && html.includes('01-core.js?v=123') && html.includes('05-clients-builder-plans-calendar.js?v=79') && html.includes('09-posture-kb-invites-private.js?v=53'));
+ok('cache bumps', html.includes('styles.css?v=116') && html.includes('01-core.js?v=124') && html.includes('05-clients-builder-plans-calendar.js?v=80') && html.includes('09-posture-kb-invites-private.js?v=53'));
 ok('CI', wf.includes('test_korekta_ux.js'));
 
 const sandbox = { window: {}, console };

@@ -21,11 +21,11 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=123'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=85'));
-ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=79'));
-ok('cache 10', html.includes('10-client-app.js?v=41'));
-ok('cache styles', html.includes('styles.css?v=115'));
+ok('cache 01', html.includes('01-core.js?v=124'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=86'));
+ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=80'));
+ok('cache 10', html.includes('10-client-app.js?v=42'));
+ok('cache styles', html.includes('styles.css?v=116'));
 ok('live period card', html.includes('id="live-period-card"') && html.includes('id="live-b-period-card"'));
 ok('live period accordion', html.includes('id="live-period-body"') && html.includes('id="live-b-period-body"') && html.includes('liveTogglePeriodPanel()'));
 ok('live plan rest btn', html.includes('liveStartRestFromPlan()') && html.includes('id="live-rest-plan-hint"'));

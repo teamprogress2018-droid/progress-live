@@ -1264,7 +1264,7 @@ function addRow(dayId){
     +'</div>'
     +'<input type="number" placeholder="%1RM" class="ex-inp" data-f="pct1rm" min="1" max="150" step="0.5" title="Procent 1RM — kg z Pomiary → Siła bazowa" oninput="builderPreviewKg(this.closest(\'.ex-row\'));builderOnPeriodFieldEdit(this)">'
     +'<div class="ex-row-coach">'
-    +'<input type="text" placeholder="Wskazówka dla klienta (np. łopatki ściągnięte)" class="ex-inp ex-inp-name builder-sub-input" data-f="note">'
+    +'<label class="builder-todo-lbl">Do zrobienia<textarea placeholder="Co zrobić w tym ćwiczeniu (np. łopatki ściągnięte, pauza 2 s)" class="ex-inp ex-inp-name builder-sub-input builder-todo-input" data-f="note" rows="2"></textarea></label>'
     +'<input type="url" placeholder="Własny film (opcjonalnie): YouTube / Vimeo / .mp4" class="ex-inp ex-inp-name builder-sub-input" data-f="video" title="Nadpisz film techniki z biblioteki" oninput="builderRefreshTechMedia(this.closest(\'.ex-row\'))">'
     +'</div>'
     +'<div class="ex-kind-btns">'
@@ -1461,6 +1461,24 @@ function builderOpenExMedia(row){
   pop.hidden=false;
 }
 window.builderOpenExMedia=builderOpenExMedia;
+function builderFillExTodo(row){
+  if(!row)return;
+  const noteInp=row.querySelector('[data-f="note"]');
+  if(!noteInp)return;
+  const name=(row.querySelector('[data-f="name"]')||{}).value||'';
+  const tip=typeof exerciseTodoNote==='function'?exerciseTodoNote({name}):String(((typeof libExerciseByName==='function'?libExerciseByName(name):null)||{}).tip||'').trim();
+  const cur=String(noteInp.value||'').trim();
+  const prev=row.dataset.autoTodo||'';
+  if(!tip){
+    if(cur&&cur===prev){noteInp.value='';row.dataset.autoTodo='';}
+    return;
+  }
+  if(!cur||cur===prev||cur===tip){
+    noteInp.value=tip;
+    row.dataset.autoTodo=tip;
+  }
+}
+window.builderFillExTodo=builderFillExTodo;
 function builderOnExNameChange(row){
   if(!row)return;
   if(typeof builderApplyLoadUnit==='function')builderApplyLoadUnit(row);
@@ -1473,6 +1491,7 @@ function builderOnExNameChange(row){
     const alts=altsForExercise(name);
     if(alts.length)altInp.value=alts.join(', ');
   }
+  builderFillExTodo(row);
   builderRefreshAltChips(row);
   builderRefreshTechMedia(row);
   if(typeof builderRefreshExHist==='function')builderRefreshExHist(row);
@@ -2068,6 +2087,7 @@ function editPlan(id){
         set('ss',parsed.ss||(ex&&typeof ex==='object'&&ex.ss)||'');
         set('emom',((ex&&typeof ex==='object'&&ex.emom)||parsed.emom)?'1':'');
         set('note',parsed.note||(ex&&typeof ex==='object'&&(ex.note||ex.notes))||'');
+        if(typeof builderFillExTodo==='function')builderFillExTodo(row);
         set('video',parsed.video||(ex&&typeof ex==='object'&&ex.video)||'');
         set('wu',parsed.wu||(ex&&typeof ex==='object'&&ex.wu)||'');
         set('drop',parsed.drop||(ex&&typeof ex==='object'&&ex.drop)||'');

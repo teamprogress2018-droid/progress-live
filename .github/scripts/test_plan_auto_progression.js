@@ -28,10 +28,10 @@ ok('live shows progHint', /progHint/.test(live) && /color:var\(--teal\)/.test(li
 ok('live history is independent of prefill date', /function liveExLastWorkSets/.test(live) && /lastSets.length\?esc\(lastLine\)/.test(live) && /Brak historii w tym planie/.test(live));
 ok('idle draft remaps', /function liveRefreshPlanLoads/.test(live) && /liveApplyDraft[\s\S]*liveRefreshPlanLoads/.test(live));
 ok('CI', wf.includes('test_plan_auto_progression.js'));
-ok('cache 01', html.includes('01-core.js?v=123'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=85'));
-ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=79'));
-ok('cache 10', html.includes('10-client-app.js?v=41'));
+ok('cache 01', html.includes('01-core.js?v=124'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=86'));
+ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=80'));
+ok('cache 10', html.includes('10-client-app.js?v=42'));
 
 const document = { querySelectorAll: () => [], getElementById: () => null, addEventListener() {} };
 const windowObj = { addEventListener() {}, CL: [], PL: [], SE: [], EX: [], WO: [], METRIC_ENTRIES: [], document };

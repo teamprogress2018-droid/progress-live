@@ -17,7 +17,7 @@ const live = fs.readFileSync(path.join(__dirname, '..', '..', '02-workouts-onboa
 const client = fs.readFileSync(path.join(__dirname, '..', '..', '10-client-app.js'), 'utf8');
 const core = fs.readFileSync(path.join(__dirname, '..', '..', '01-core.js'), 'utf8');
 
-ok('builder has note field', builder.includes('data-f="note"'));
+ok('builder has note field', builder.includes('data-f="note"') && builder.includes('Do zrobienia') && builder.includes('builderFillExTodo'));
 ok('builder has video field', builder.includes('data-f="video"'));
 ok('builder has wu field', builder.includes('data-f="wu"'));
 ok('builder has drop field', builder.includes('data-f="drop"'));
@@ -40,7 +40,9 @@ ok('live circuit rest', live.includes('Stacja →') && live.includes('przejścia
 ok('live uses restSecAfterSet', live.includes('restSecAfterSet'));
 ok('live has custom rest parser', live.includes('parseLiveRestCustomSec'));
 ok('live has custom rest starter', live.includes('function liveStartRestCustom'));
-ok('live shows coach note without film toggle', /live-ex-note/.test(live) && /livePolishCoachNote/.test(live) && /coachMediaHtml\(ex,\{showVideo:true,caption:false/.test(live));
+ok('live shows coach note without film toggle', /live-ex-todo/.test(live) && /live-ex-note/.test(live) && /livePolishCoachNote/.test(live) && /liveSetExTodo/.test(live) && /coachMediaHtml\(ex,\{showVideo:true,caption:false/.test(live));
+ok('client shows per-ex todo', /cw-ex-todo/.test(client) && /Do zrobienia/.test(client));
+ok('core exerciseTodoNote', /function exerciseTodoNote\(/.test(core));
 ok('client uses setKindBadge', client.includes('setKindBadge'));
 ok('client skip drop rest', client.includes('skipRestBeforeSet'));
 ok('client AMRAP placeholder', client.includes("placeholder=\"${s.kind==='amrap'?'max':''}\"") || client.includes("placeholder=\"${s.kind==='amrap'?'max':''}"));

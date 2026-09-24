@@ -30,7 +30,7 @@ function eq(name, got, want) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=123'));
+ok('cache 01', html.includes('01-core.js?v=124'));
 ok('cache 04', html.includes('04-client-portal.js?v=54'));
 ok('cache 08', html.includes('08-client-profile-extras.js?v=83'));
 ok('CI', wf.includes('test_ex_progress_wire.js'));
