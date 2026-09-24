@@ -2985,7 +2985,7 @@ function renderLiveClientCard(slot){
         <button type="button" class="btn btn-ghost btn-sm" onclick="setClientAccessMode('${escHtml(c.id)}','guest')">Gość</button>
       </div>
     </div>`:(acc&&(acc.reason==='trial'||acc.reason==='guest')?`<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${escHtml(typeof clientPaidAccessLabel==='function'?clientPaidAccessLabel(acc):'')}</div>`:'');
-  el.innerHTML=`<div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;">
+  el.innerHTML=`<details class="live-client-details"><summary>Dane klienta · ${escHtml(c.name)}</summary><div class="live-client-details-body">
     ${accBanner}
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
       <div style="width:42px;height:42px;border-radius:12px;background:var(--adim);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--accent);flex-shrink:0;">${getInit(c.name)}</div>
@@ -3008,7 +3008,7 @@ function renderLiveClientCard(slot){
         <div style="color:var(--muted);">lat</div>
       </div>
     </div>
-  </div>`;
+  </div></details>`;
   if(typeof liveBindSessionButtons==='function')liveBindSessionButtons(n);
 }
 
@@ -3061,7 +3061,9 @@ function renderLivePlanPicker(slot){
   const suggestedIdx=typeof liveGetSuggestedDayIdx==='function'?liveGetSuggestedDayIdx(st.clientId,activePlan):0;
 
   el.innerHTML=`
-    <div class="live-prep-board">
+    <details class="live-prep-board"${st.exercises.length?'':' open'}>
+    <summary class="live-prep-summary"><span><strong>${escHtml(activePlan?.name||'Wybierz plan')}</strong><span class="live-prep-summary-day">${escHtml(days[st.currentDayIdx]?.day||'Wybierz dzień')} · ${st.exercises.length} ćwiczeń</span></span><span class="live-prep-change">Zmień</span></summary>
+    <div class="live-prep-options">
     <div class="live-prep-k">Wybierz plan</div>
     <div class="live-prep-plans">
       ${plans.map(p=>`<div class="live-prep-plan${st.planId===p.id?' is-on':''}" onclick="liveSelectPlan('${p.id}'${sl})">
@@ -3083,7 +3085,7 @@ function renderLivePlanPicker(slot){
     </div>`:''}
     <div class="live-prep-k">Lub bez planu</div>
     <button class="btn btn-ghost btn-sm" style="width:100%;" onclick="liveQuickAdd(${n})">Szybki trening bez planu</button>
-    </div>`;
+    </div></details>`;
 
   if(!st.planId&&plans.length){
     const pref=typeof livePreferredPlan==='function'?livePreferredPlan(plans):plans[0];
@@ -3474,7 +3476,7 @@ function renderLiveExercises(slot){
     if(!ex)return;
     const needsName=!String(ex.name||'').trim()||ex.name==='Nowe ćwiczenie';
     if(needsName){ex.collapsed=false;return;}
-    if(st.sessionActive)ex.collapsed=i!==curIdx&&!(curIdx<0&&i===st.exercises.length-1);
+    if(st.sessionActive)ex.collapsed=typeof ex.uiExpanded==='boolean'?!ex.uiExpanded:i!==curIdx&&!(curIdx<0&&i===st.exercises.length-1);
     else if(ex.collapsed==null)ex.collapsed=i!==0;
   });
 
@@ -3542,6 +3544,7 @@ function liveToggleSwap(i,slot){
   const st=liveRef(n);
   const ex=st.exercises[i];if(!ex)return;
   ex.swapOpen=!ex.swapOpen;
+  if(ex.swapOpen){ex.collapsed=false;ex.uiExpanded=true;}
   if(!ex.swapOpen){ex.altSearchOpen=false;ex.altsExpanded=false;}
   renderLiveExercises(n);
 }
@@ -3807,27 +3810,21 @@ function liveExCueStripHtml(ex,slot,cue){
   const lastSets=(cue&&cue.lastByKey&&k&&Array.isArray(cue.lastByKey[k]))
     ?cue.lastByKey[k]
     :liveExLastWorkSets(ex,st.clientId,st.planId);
-  const lastLine=liveExLastLine(lastSets);
-  const lastSum=typeof liveExLastSummary==='function'?liveExLastSummary(lastSets):'';
+  const unit=typeof exLoadUnit==='function'?exLoadUnit(ex):'kg';
+  const suffix=typeof loadUnitSuffix==='function'?loadUnitSuffix(unit):'kg';
+  const lastLine=lastSets.map(s=>{
+    const load=s.kg!=null&&s.kg!==''?String(s.kg)+(suffix?' '+suffix:''):'';
+    const reps=s.reps!=null&&s.reps!==''?String(s.reps):'';
+    return [load,reps].filter(Boolean).join(' × ')+(s.rir!=null&&s.rir!==''?' · RIR '+s.rir:'');
+  }).join(' / ');
   const todayKg=liveExTodayKg(ex);
   const todayLine=liveExTodayLine(ex,n);
   const suggest=liveExSuggestView(rec,todayKg);
   const esc=typeof escHtml==='function'?escHtml:s=>String(s==null?'':s);
-  const unit=typeof exLoadUnit==='function'?exLoadUnit(ex):'kg';
-  const suf=typeof loadUnitSuffix==='function'?loadUnitSuffix(unit):'kg';
-  const todayKgTxt=(todayKg!==''&&todayKg!=null)?(String(todayKg)+(suf?(' '+suf):'')):'';
-  if(!lastSum){
-    return `<div class="live-ex-cue" data-live-cue="1" onclick="event.stopPropagation()">
-      <span class="live-ex-cue-first">Pierwszy raz w planie — ciężar startowy z planu</span>
-      <span class="live-ex-cue-row" data-cue="last" hidden><span class="live-ex-cue-k">Ostatnio</span><span class="live-ex-cue-v">${esc(lastLine)}</span></span>
-      <span class="live-ex-cue-row" data-cue="today" hidden><span class="live-ex-cue-k">Dzisiaj</span><span class="live-ex-cue-v">${esc(todayLine)}</span></span>
-      <span class="live-ex-cue-row" data-cue="suggest" hidden data-suggest="${esc(suggest.kind)}"><span class="live-ex-cue-k">Sugestia</span><span class="live-ex-cue-v"></span></span>
-    </div>`;
-  }
-  const todayBit=todayKgTxt?(' → dziś '+todayKgTxt):'';
   return `<div class="live-ex-cue" data-live-cue="1" onclick="event.stopPropagation()">
-    <span class="live-ex-cue-row" data-cue="last"><span class="live-ex-cue-k">Ostatnio:</span> <span class="live-ex-cue-v">${esc(lastSum)}</span></span>${todayKgTxt?` → dziś <span class="live-ex-cue-row" data-cue="today"><span class="live-ex-cue-v">${esc(todayKgTxt)}</span></span>`:`<span class="live-ex-cue-row" data-cue="today" hidden><span class="live-ex-cue-v">${esc(todayLine)}</span></span>`}
-    <span class="live-ex-cue-row" data-cue="suggest" hidden data-suggest="${esc(suggest.kind)}"><span class="live-ex-cue-v"></span></span>
+    <span class="live-ex-cue-row" data-cue="last"><span class="live-ex-cue-k">Ostatnio:</span> <span class="live-ex-cue-v">${lastSets.length?esc(lastLine):'Brak historii w tym planie'}</span></span>
+    <span class="live-ex-cue-row" data-cue="today" hidden><span class="live-ex-cue-v">${esc(todayLine)}</span></span>
+    <span class="live-ex-cue-row live-suggestion" data-cue="suggest" data-suggest="${esc(suggest.kind)}"><span class="live-ex-cue-k">Sugestia:</span><span class="live-ex-cue-v">${esc(suggest.label)}</span></span>
   </div>`;
 }
 window.liveExCueStripHtml=liveExCueStripHtml;
@@ -3926,6 +3923,7 @@ function liveExCard(ex,i,slot,cue){
   const noteRaw=ex.note||ex.libTip||'';
   const note=noteRaw?livePolishCoachNote(noteRaw):'';
   const target=typeof liveExTargetLine==='function'?liveExTargetLine(ex,n):'';
+  const plannedReps=liveExPlannedReps(ex,n)||ex.reps||'';
   const swapOpen=!!(ex.swapOpen||ex.altsExpanded||ex.altSearchOpen);
   const mediaOpen=!!ex.showVideo;
   return `<div class="live-ex-card${ex.ss?' ss':''}${ex.done?' done':st.sessionActive&&!ex.done&&i===st.exercises.findIndex(e=>!e.done)?' active':''}${showBody?'':' is-collapsed'}" id="${cardId}">
@@ -3934,17 +3932,17 @@ function liveExCard(ex,i,slot,cue){
       <div class="live-ex-head-main">
         <div class="live-ex-num">${ex.done?'✓':i+1}</div>
         ${liveExTitleHtml(ex,lastChip,histList)}
-        ${showBody?'':`<div class="live-ex-collapsed-meta">${ex.sets.length} serii${lastSum?' · '+escHtml(lastSum):''}</div>`}
+        <div class="live-ex-collapsed-meta"><strong>${ex.sets.length} ${ex.sets.length===1?'seria':ex.sets.length<5?'serie':'serii'}${plannedReps?' × '+escHtml(plannedReps)+' powt.':''}</strong><span>Wykonano ${setsDone}/${ex.sets.length}</span></div>
       </div>
       <div class="live-ex-head-actions" onclick="event.stopPropagation()">
+        <button type="button" class="live-expand-btn" onclick="liveToggleCollapse(${i}${sl})" aria-expanded="${showBody}" aria-label="${showBody?'Zwiń':'Rozwiń'} serie: ${escHtml(ex.name)}">${showBody?'Zwiń':'Serie'}</button>
         ${needsName?'':`<button type="button" class="btn btn-ghost btn-sm live-swap-open" onclick="liveToggleSwap(${i}${sl})">Zamień</button>`}
         ${!ex.done?`<button type="button" class="live-skip-btn" onclick="liveSkipEx(${i}${sl})">Pomiń</button>`:''}
       </div>
     </div>
     ${showBody&&!needsName?(typeof liveExCueStripHtml==='function'?liveExCueStripHtml(ex,n,cue):''):''}
     ${showBody?`
-    ${needsName||!target?'':`<div class="live-ex-target">${escHtml(target)}</div>`}
-    ${note&&!needsName?`<div class="live-ex-note">${escHtml(note)}</div>`:''}
+    ${needsName||(!target&&!note)?'':`<details class="live-ex-details"><summary>Wskazówki i parametry</summary><div class="live-ex-target">${escHtml(target)}</div>${note?`<div class="live-ex-note">${escHtml(note)}</div>`:''}</details>`}
     <div class="live-ex-body">
       ${mediaOpen?`<div class="live-ex-media live-ex-zoom" onclick="event.stopPropagation()">${typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:true,caption:false,showGif:true}):''}</div>`:''}
       <div class="live-ex-log" onclick="event.stopPropagation()">
@@ -3996,6 +3994,7 @@ function liveToggleExVideo(i,slot){
   if(!st.exercises[i])return;
   st.exercises[i].showVideo=!st.exercises[i].showVideo;
   st.exercises[i].collapsed=false;
+  st.exercises[i].uiExpanded=true;
   renderLiveExercises(n);
 }
 window.liveToggleExVideo=liveToggleExVideo;
@@ -4004,6 +4003,7 @@ function liveToggleCollapse(i,slot){
   const n=liveN(slot);
   const st=liveRef(n);
   st.exercises[i].collapsed=!st.exercises[i].collapsed;
+  st.exercises[i].uiExpanded=!st.exercises[i].collapsed;
   renderLiveExercises(n);
 }
 function liveToggleSetMenu(ei,si,slot){
@@ -4045,8 +4045,9 @@ function liveToggleSet(ei,si,slot){
     if(ex.sets.every(x=>x.done)){
       ex.done=true;
       ex.collapsed=true;
+      delete ex.uiExpanded;
       const nxt=st.exercises.find(e=>!e.done);
-      if(nxt)nxt.collapsed=false;
+      if(nxt){nxt.collapsed=false;delete nxt.uiExpanded;}
     }
     if(next&&typeof skipRestBeforeSet==='function'&&skipRestBeforeSet(next)){
       const msg=typeof dropToastText==='function'?dropToastText(next):'Drop set — bez przerwy, zdejmij ciężar';
@@ -4166,6 +4167,7 @@ function liveSkipEx(i,slot){
   const st=liveRef(n);
   st.exercises[i].done=true;
   st.exercises[i].collapsed=true;
+  delete st.exercises[i].uiExpanded;
   renderLiveExercises(n);
 }
 
@@ -4224,6 +4226,7 @@ function liveSwapEx(i,name,slot){
   }
   cur.showVideo=false;
   cur.collapsed=false;
+  cur.uiExpanded=true;
   cur.altsExpanded=false;
   cur.altSearchOpen=false;
   cur.swapOpen=false;
@@ -4281,6 +4284,7 @@ function liveSetExName(i,name,slot){
   }
   cur.showVideo=false;
   cur.collapsed=false;
+  cur.uiExpanded=true;
   if(typeof notify==='function')notify('Ćwiczenie: '+name);
   renderLiveExercises(n);
   if(typeof liveSaveDraft==='function')liveSaveDraft(n);

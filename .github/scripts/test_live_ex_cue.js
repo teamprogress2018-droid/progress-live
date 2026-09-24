@@ -106,9 +106,9 @@ function eq(name, got, want) {
 }
 
 ok('cache 01 frozen', html.includes('01-core.js?v=121'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=81'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=82'));
 ok('cache 08 caller', html.includes('08-client-profile-extras.js?v=80'));
-ok('cache styles', html.includes('styles.css?v=110'));
+ok('cache styles', html.includes('styles.css?v=111'));
 ok('CI 1e0z8', wf.includes('test_live_ex_cue.js') && wf.includes('1e0z8'));
 ok('CI cue UI', wf.includes('test_live_ex_cue_ui.js'));
 ok('CSS cue', styles.includes('.live-ex-cue') && styles.includes('.live-ex-cue-k') && styles.includes('.live-ns-posture'));
@@ -122,7 +122,7 @@ ok('session 7C banner not on floor', !/liveExCueSessionHtml\(cue\)/.test(renderS
   && /function liveExCueSessionHtml/.test(live));
 ok('strip is one line', /data-cue="last"/.test(stripSrc)
   && /data-cue="today"/.test(stripSrc)
-  && /Pierwszy raz w planie/.test(stripSrc)
+  && /Brak historii w tym planie/.test(stripSrc)
   && !/OSTATNIO/.test(stripSrc) && !/SUGESTIA/.test(stripSrc)
   && !/ZA MAŁO DANYCH/.test(stripSrc));
 ok('pack calls 8 caller once', /composeClientNextSessionBrief\(st\.clientId,opts\)/.test(packSrc)
@@ -439,7 +439,7 @@ ok('SUGESTIA not from Plan A lastKg 100', !(recB && recB.facts && recB.facts.las
 
 const htmlB = liveExCueStripHtml(ctx._liveSlot.exercises[0], 0, packB);
 ok('strip OSTATNIO 60 kg', /Ostatnio:[\s\S]*60 kg/.test(htmlB) && !/100 ×/.test(htmlB), htmlB);
-ok('strip no RIR mix', !/@2/.test(htmlB) && !/@1/.test(htmlB));
+ok('strip RIR from scoped history', /60 kg × 10 · RIR 2/.test(htmlB) && /60 kg × 8 · RIR 1/.test(htmlB));
 ok('strip OSTATNIO hides Plan A', !/100 ×/.test(htmlB));
 ok('DZISIAJ uses session kg', /data-cue="today"[\s\S]*62\.5 kg/.test(htmlB), htmlB);
 ok('one-line cue no ZA MAŁO', !/ZA MAŁO DANYCH/.test(htmlB) && !/SUGESTIA/.test(htmlB), htmlB);
@@ -471,8 +471,8 @@ ctx._liveSlot.exercises = [{
 }];
 const packEmpty = liveExCuePack(0);
 const htmlEmpty = liveExCueStripHtml(ctx._liveSlot.exercises[0], 0, packEmpty);
-ok('empty first-time copy', /Pierwszy raz w planie — ciężar startowy z planu/.test(htmlEmpty), htmlEmpty);
-ok('empty no ZA MAŁO', !/ZA MAŁO DANYCH/.test(htmlEmpty), htmlEmpty);
+ok('empty first-time copy', /Brak historii w tym planie/.test(htmlEmpty), htmlEmpty);
+ok('empty neutral suggestion', /data-suggest="none"/.test(htmlEmpty) && /ZA MAŁO DANYCH/.test(htmlEmpty), htmlEmpty);
 ok('empty today still in data', /20 kg/.test(htmlEmpty), htmlEmpty);
 
 /* Reload / draft do not change recommendation */

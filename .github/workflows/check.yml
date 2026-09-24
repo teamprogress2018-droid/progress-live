@@ -106,7 +106,9 @@ jobs:
         run: node .github/scripts/test_live_coach_hints.js
 
       - name: 1e0b2. Testy Live tryb Przygotowanie / Trening
-        run: node .github/scripts/test_live_prep_train.js
+        run: |
+          node .github/scripts/test_live_prep_train.js
+          node .github/scripts/test_live_readable.js
 
       - name: 1e2. Testy jednostki kg/sec w ćwiczeniach czasowych
         run: node .github/scripts/test_ex_load_unit.js
@@ -486,7 +488,9 @@ jobs:
       - name: 6b3c2. Testy UI Live Postęp i zapisu do Progress
         run: node .github/scripts/test_live_progress_ui.js
       - name: 6b3c2a. Testy UI Live OSTATNIO / DZISIAJ / SUGESTIA
-        run: node .github/scripts/test_live_ex_cue_ui.js
+        run: |
+          node .github/scripts/test_live_ex_cue_ui.js
+          node .github/scripts/test_live_readable_ui.js
       - name: 6b3c2b. Testy UI bramy pakietu (Trial / Gość)
         run: node .github/scripts/test_pkg_gate_ui.js
       - name: 6b3c2b1. Testy UI bazy wiedzy (notatki + badania)
