@@ -15,9 +15,9 @@ const fs=require('fs'),path=require('path'),os=require('os');
    await page.waitForFunction(()=>typeof renderLiveExercises==='function');
    await page.evaluate(()=>{
     window.persistById=async(_c,o)=>o;window.notify=()=>{};
-    document.getElementById('auth-screen').style.display='none';
-    document.getElementById('app-root').style.display='';
-    document.getElementById('app-loading').style.display='none';
+    const auth=document.getElementById('auth-screen');if(auth)auth.style.display='none';
+    const app=document.getElementById('app-root');if(app)app.style.display='';
+    const loading=document.getElementById('app-loading');if(loading)loading.style.display='none';
     window.CL=[{id:'readable',name:'Klient testowy'}];window.SE=[];
     window.PL=[{id:'readable-plan',clientId:'readable',name:'Plan testowy',days:Array.from({length:4},(_,i)=>({day:'Dzień '+(i+1),exercises:[]}))}];
     goTo('live');liveClientSetField('readable','Klient testowy',true,0);
