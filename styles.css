@@ -3312,8 +3312,8 @@ body,
   font-size:0;gap:0;padding-left:16px;padding-right:8px;width:calc(100% - 6px);
 }
 #app-root:has(#screen-live.active.live-session-on) .nav-item svg{width:18px;height:18px;}
-.live-session-who{font-size:16px;font-weight:700;color:var(--text-primary);line-height:1.2;}
-.live-session-progress{display:flex;align-items:center;gap:14px;min-width:0;flex:1;}
+.live-session-who{font-size:16px;font-weight:700;color:var(--text-primary);line-height:1.2;margin-right:8px;}
+.live-session-progress{display:flex;align-items:center;gap:16px;min-width:0;flex:1;padding-left:8px;}
 .live-top-progress{min-width:140px;flex:1;max-width:280px;}
 .live-top-progress-lbl{font-size:12px;color:var(--text-secondary);margin-bottom:4px;}
 .live-more-wrap{position:relative;}
@@ -3357,6 +3357,7 @@ body,
   border-radius:10px;padding:10px 12px;margin:0 0 12px;
 }
 .live-ex-cue{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px;font-size:13px;color:var(--text-secondary);margin:6px 0 10px;padding:0;border:0;background:transparent;}
+.live-ex-cue [hidden],.live-ex-cue-row[hidden]{display:none !important;}
 .live-ex-cue-first{color:var(--text-secondary);}
 .live-ex-cue-k{flex:none;font-size:13px;font-weight:700;letter-spacing:0;text-transform:none;color:var(--text-secondary);margin-right:4px;}
 .live-ex-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
