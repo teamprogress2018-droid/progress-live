@@ -87,13 +87,14 @@ function ok(name, cond, extra) {
     const names = [...document.querySelectorAll('.live-ex-card')].map(el => (el.innerText || '').split('\n').slice(0, 4).join(' | '));
     const week = (document.querySelector('.live-week-hint') || {}).textContent || '';
     const rows = [...document.querySelectorAll('#live-period-sched .live-period-row')].map(el => (el.textContent || '').replace(/\s+/g, ' ').trim());
-    const rir = [...document.querySelectorAll('.live-rir-input')].map(el => el.value || el.getAttribute('placeholder') || '');
-    return { names, week, rows, rir, panel: panel.slice(0, 800) };
+    const rir = [...document.querySelectorAll('.live-rir-input')].map(el => el.value);
+    const targets = [...document.querySelectorAll('.live-rir-target')].map(el => el.textContent || '');
+    return { names, week, rows, rir, targets, panel: panel.slice(0, 800) };
   });
 
   ok('fitebo press not burpees', /Wyciskanie hantli/.test(info.panel) && !/Burpees/i.test(info.panel), JSON.stringify(info.names) + ' | ' + info.panel.slice(0, 300));
   ok('period is hypertrophy', /Hipertrofia/.test(info.week + info.rows.join(' ')) && !/Adaptacja — nauka wzorców/.test(info.week + info.rows.join(' ')), info.week + ' | ' + info.rows[0]);
-  ok('rir 2 on sets', info.rir.some(v => String(v).trim() === '2'), JSON.stringify(info.rir.slice(0, 6)));
+  ok('rir 2 is target not prefilled result', info.targets.some(t => /Cel RIR 2/.test(t)) && info.rir.every(v => String(v).trim() === ''), JSON.stringify({ targets: info.targets.slice(0, 3), rir: info.rir.slice(0, 6) }));
 
   await browser.close();
   if (failed) {
