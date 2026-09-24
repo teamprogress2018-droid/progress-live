@@ -34,16 +34,16 @@ function ok(name, cond, extra) {
 ok('header button next to name', html.includes('id="cp-edit-data-btn"') && html.includes('cp-hdr-name-row'));
 ok('header button calls startCPEdit', /id="cp-edit-data-btn"[^>]*startCPEdit\(cpClientId\)/.test(html));
 ok('overflow still has edit', html.includes('id="cp-edit-btn"') && html.includes('cp-hdr-more-menu'));
-ok('overview CTA card', overview.includes('cp-ov-edit-cta') && overview.includes("startCPEdit('${c.id}')"));
+ok('overview CTA removed', !overview.includes('cp-ov-edit-cta') && overview.includes("startCPEdit('${c.id}')"));
 ok('form title dane osobowe', form.includes('Dane osobowe') && form.includes('id="cp-edit-card"'));
 ok('name field placeholder', form.includes('id="cpe-name"') && /placeholder="np\. Jan Kowalski"/.test(form));
 ok('startCPEdit restores flag after open', start.includes('openClientProfile(id)') && start.includes('window._cpEditingClientId=id'));
 ok('startCPEdit scrolls and focuses name', start.includes('scrollIntoView') && start.includes('cpe-name'));
 ok('profil rail name + hint', overview.includes('Imię i nazwisko') && overview.includes('Kliknij: imię i nazwisko'));
 ok('css for header + CTA', css.includes('.cp-edit-data-btn') && css.includes('.cp-ov-edit-cta') && css.includes('.cp-hdr-name-row'));
-ok('cache 08 v37', html.includes('08-client-profile-extras.js?v=74'));
-ok('cache 01 name sync', html.includes('01-core.js?v=121') && html.includes('09-posture-kb-invites-private.js?v=51'));
-ok('cache styles v54', html.includes('styles.css?v=105'));
+ok('cache 08 v37', html.includes('08-client-profile-extras.js?v=77'));
+ok('cache 01 name sync', html.includes('01-core.js?v=121') && html.includes('09-posture-kb-invites-private.js?v=52'));
+ok('cache styles v54', html.includes('styles.css?v=108'));
 ok('CI unit', wf.includes('test_cp_edit_visible.js'));
 ok('CI ui', wf.includes('test_cp_edit_visible_ui.js'));
 

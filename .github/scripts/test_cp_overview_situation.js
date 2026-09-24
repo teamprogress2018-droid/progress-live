@@ -39,13 +39,17 @@ ok('no persist in next',!/function cpNextSessionFocusItems[\s\S]{0,2500}persistB
 ok('no AI in next',!/function cpNextSessionFocusItems[\s\S]{0,2500}(sendAICMsg|aplGenerate|openai)/.test(src08));
 ok('load drop 85%',src08.includes('prev*0.85')||src08.includes('prev * 0.85'));
 ok('empty copy',src08.includes('Brak szczególnych sygnałów — jedź planem.'));
-ok('next header',src08.includes('Na kolejny trening')&&src08.includes('cp-ov-next'));
-ok('kpis 7d 30d mass sleep checkin',sit.includes('Treningi 7d')&&sit.includes('Adherencja 30d')&&sit.includes('Masa')&&sit.includes('Sen')&&sit.includes('Check-in'));
+ok('next header',src08.includes('Wnioski')&&src08.includes('cp-ov-next'));
+ok('kpis 7d mass sleep checkin',sit.includes('Treningi 7d')&&sit.includes('Waga')&&sit.includes('Sen')&&sit.includes('Samopoczucie'));
+ok('start steps copy',src08.includes('Poproś o samopoczucie przed dzisiejszym treningiem')&&src08.includes('Umów stały czas pomiaru wagi'));
+ok('plan before last trainings',overview.indexOf('Aktywny plan tygodnia')<overview.indexOf('Ostatnie treningi'));
 ok('existing cards remain',overview.includes('Ostatnie 7 dni')&&overview.includes('Pomiary ciała')&&overview.includes('Samopoczucie (check-in)'));
 ok('card targets',overview.includes('id="cp-ov-card-train"')&&overview.includes('id="cp-ov-card-metrics"')&&overview.includes('id="cp-ov-card-feel"'));
+ok('alert + status stack',overview.includes('cpOverviewAlertHTML(c)')&&overview.includes('cp-ov-status-stack'));
+ok('no duplicate edit CTA',!overview.includes('cp-ov-edit-cta'));
 ok('tabs unchanged',html.includes('id="cpt-overview"')&&html.includes("setCPTab('overview')")&&html.includes('id="cpt-training"')&&html.includes('id="cpt-plan"'));
 ok('css situation',css.includes('.cp-ov-situation')&&css.includes('.cp-ov-sit-tile-ok')&&css.includes('.cp-ov-next-watch')&&css.includes('.cp-ov-sit-tile-act'));
-ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=74')&&html.includes('styles.css?v=105'));
+ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=77')&&html.includes('styles.css?v=108'));
 ok('ci unit',wf.includes('test_cp_overview_situation.js'));
 ok('ci ui',wf.includes('test_cp_overview_situation_ui.js'));
 
@@ -59,6 +63,9 @@ const sandbox={
     return row||null;
   },
   clientInjuriesText:(c)=>c&&c.injuries||'',
+  getClientOnboard:()=>null,
+  latestClientPlan:()=>null,
+  cpClientPulseStatus:(id)=>sandbox._pulse||{tone:'good',label:'Na czas',hint:'Ostatni wpis 2 d. temu'},
   clientSituationSnapshot:(id)=>{
     if(id!=='c1')return null;
     return sandbox._snap;
@@ -76,6 +83,10 @@ sandbox.window.CL=sandbox.CL;
 sandbox.window.SE=sandbox.SE;
 
 vm.runInNewContext(
+  'const CP_OV_ADH_MIN=4;const CP_OV_SLEEP_MIN=4;const CP_OV_MASS_TREND_MIN=2;\n'+
+  extract(src08,'cpAdhSampleOk')+'\n'+
+  extract(src08,'cpClientHasPlanDays')+'\n'+
+  extract(src08,'cpClientStatusTruth')+'\n'+
   extract(src08,'cpSetsVolume')+'\n'+
   extract(src08,'cpLoadDropFacts')+'\n'+
   extract(src08,'cpSleepTrendFact')+'\n'+
@@ -83,6 +94,13 @@ vm.runInNewContext(
   extract(src08,'cpSitClip')+'\n'+
   extract(src08,'cpNextSessionFocusItems')+'\n'+
   extract(src08,'cpOverviewSitTone')+'\n'+
+  extract(src08,'cpOverviewStatusHeadline')+'\n'+
+  extract(src08,'cpOverviewStepCta')+'\n'+
+  extract(src08,'cpOverviewTrainWord')+'\n'+
+  extract(src08,'cpOverviewWeekFreq')+'\n'+
+  extract(src08,'cpOverviewStartSteps')+'\n'+
+  extract(src08,'cpOverviewStatusIsEarly')+'\n'+
+  extract(src08,'cpOverviewStatusSteps')+'\n'+
   extract(src08,'cpOverviewSituationHTML')+'\n'+
   'window.cpNextSessionFocusItems=cpNextSessionFocusItems;'+
   'window.cpSetsVolume=cpSetsVolume;'+
@@ -138,7 +156,9 @@ sandbox._snap.facts.homework={open:1,late:1};
 sandbox._snap.facts.package={daysLeft:3,title:'Pakiet 8'};
 sandbox._snap.facts.adh7={assigned:3,logged:0,pct:0};
 sandbox.window.METRIC_ENTRIES=[
+  {clientId:'c1',groupId:'mg5',date:'2026-09-10',values:{m2:7.8}},
   {clientId:'c1',groupId:'mg5',date:'2026-09-14',values:{m2:7.5}},
+  {clientId:'c1',groupId:'mg5',date:'2026-09-18',values:{m2:6.4}},
   {clientId:'c1',groupId:'mg5',date:'2026-09-21',values:{m2:5.2}}
 ];
 const busy=sandbox.cpNextSessionFocusItems('c1');
@@ -150,7 +170,7 @@ ok('max 5 bullets',busy.length===5,JSON.stringify(busy.map(x=>x.kind)));
 ok('homework in first 5',busy.some(x=>x.kind==='homework'));
 const htmlBusy=sandbox.cpOverviewSituationHTML(sandbox.CL[0]);
 ok('overdue checkin tile',/przeterminowany/.test(htmlBusy)&&/data-cp-sit="checkin"/.test(htmlBusy));
-ok('monitor verdict cap',/Progres/.test(htmlBusy));
+ok('status kicker not raw pulse+score',/Status/.test(htmlBusy)&&!/score 0/.test(htmlBusy)&&!/Stabilnie/.test(htmlBusy));
 
 sandbox._loads=[{
   name:'Wyciskanie sztangi',
@@ -198,10 +218,31 @@ const mass=sandbox.cpMassDelta30Fact('c1');
 ok('mass +1.2 / 30d',mass&&mass.value===81.2&&mass.delta===1.2,JSON.stringify(mass));
 
 const htmlSit=sandbox.cpOverviewSituationHTML(sandbox.CL[0]);
-ok('situation html kicker',/Sytuacja/.test(htmlSit)&&/Jarosław/.test(htmlSit)&&/Budowa masy/.test(htmlSit));
+ok('situation html kicker',/Status/.test(htmlSit)&&/Jarosław/.test(htmlSit)&&/Budowa masy/.test(htmlSit));
 ok('situation html pulse',/cp-ov-pulse/.test(htmlSit));
-ok('situation html next',/Na kolejny trening/.test(htmlSit));
-ok('situation html tiles',/data-cp-sit="train"/.test(htmlSit)&&/data-cp-sit="adh"/.test(htmlSit)&&/data-cp-sit="mass"/.test(htmlSit));
+ok('situation html next',/Wnioski/.test(htmlSit));
+ok('situation html tiles',/data-cp-sit="train"/.test(htmlSit)&&/data-cp-sit="mass"/.test(htmlSit)&&/data-cp-sit="sleep"/.test(htmlSit)&&/data-cp-sit="checkin"/.test(htmlSit));
+
+sandbox._snap.facts.adh30={assigned:2,logged:1,pct:50};
+sandbox.window.METRIC_ENTRIES=[
+  {clientId:'c1',groupId:'mg5',date:'2026-09-20',values:{m2:6}},
+  {clientId:'c1',groupId:'mg5',date:'2026-09-21',values:{m2:5}}
+];
+const htmlThin=sandbox.cpOverviewSituationHTML(sandbox.CL[0]);
+ok('thin adh not percent',/1\/2/.test(htmlThin)&&!/>50%</.test(htmlThin)&&/za mało na trend/i.test(htmlThin));
+ok('thin sleep no trend',/2 oceny · za mało na trend/.test(htmlThin)&&!/spada/.test(htmlThin));
+ok('thin sleep not in next',sandbox.cpNextSessionFocusItems('c1').every(x=>x.kind!=='sleep'));
+
+const savedOb=sandbox.getClientOnboard;
+sandbox.getClientOnboard=()=>({invite:false,complete:false,done:0,total:6});
+const start=sandbox.cpOverviewStatusSteps({id:'c1',name:'Jan Kowalski',trainingFreq:3});
+ok('invite start steps',start.length===3&&start[0].kind==='checkin'&&start[1].kind==='mass'&&start[2].kind==='adherence'&&/samopoczucie/.test(start[0].text)&&/wagi/.test(start[1].text)&&/3 treningi/.test(start[2].text)&&start[0].cta&&start[0].cta.label==='Poproś',JSON.stringify(start));
+const snapAdh=sandbox._snap.facts.adh7;
+sandbox._snap.facts.adh7={assigned:2,logged:0,pct:0};
+const startAdh=sandbox.cpOverviewStatusSteps({id:'c1',name:'Jan Kowalski',trainingFreq:3});
+ok('early overrides lone adherence',startAdh.length===3&&startAdh[0].kind==='checkin'&&!startAdh.some(x=>/Treningi 7 dni/.test(x.text)),JSON.stringify(startAdh));
+sandbox._snap.facts.adh7=snapAdh;
+sandbox.getClientOnboard=savedOb;
 
 if(failed){console.error('\n'+failed+' failed');process.exit(1);}
 console.log('\nAll cp-overview-situation checks passed');

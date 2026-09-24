@@ -38,10 +38,10 @@ ok('checkin /5',src08.includes("'/5'")||src08.includes('+"/5"')||src08.includes(
 ok('no /10 scale',!/function collectCpTimelineEvents[\s\S]{0,4000}\/10/.test(src08));
 ok('no persist in collect',!/function collectCpTimelineEvents[\s\S]{0,5000}persistById/.test(src08));
 ok('no paidAt guess',!/paidAt/.test(extract(src08,'collectCpTimelineEvents')));
-ok('situation untouched',overview.includes('cpOverviewSituationHTML')&&overview.includes('Na kolejny trening')===false&&src08.includes('Na kolejny trening'));
+ok('situation untouched',overview.includes('cpOverviewSituationHTML')&&overview.includes('Na kolejny trening')===false&&src08.includes('Wnioski'));
 ok('no second timeline in overview',!overview.includes('collectCpTimelineEvents')&&!overview.includes('cp-tl-filters'));
 ok('css quieter',css.includes('.cp-tl-row')&&css.includes('.cp-tl-filter')&&!/cp-tl-row\{[^}]*background:var\(--bg-card\)/.test(css.replace(/\n/g,' ')));
-ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=74')&&html.includes('styles.css?v=105'));
+ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=77')&&html.includes('styles.css?v=108'));
 ok('ci unit',wf.includes('test_cp_timeline_filters.js'));
 ok('ci ui',wf.includes('test_cp_timeline_filters_ui.js'));
 

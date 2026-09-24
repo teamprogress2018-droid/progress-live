@@ -68,12 +68,13 @@ function ok(name, cond, extra) {
       return s.display !== 'none' && s.visibility !== 'hidden' && b.width > 0 && b.height > 0;
     })(),
     cta: !!document.querySelector('.cp-ov-edit-cta'),
+    profil: !!(document.querySelector('.cp-ov-profile-rows')),
     form: !!document.getElementById('cpe-name'),
     name: (document.getElementById('cp-name') || {}).textContent || ''
   }));
   await page.screenshot({ path: path.join(shotDir, 'cp_edit_overview.png') });
   ok('header Edytuj dane visible', before.headerBtn && before.headerBtnVisible, JSON.stringify(before));
-  ok('overview CTA visible', before.cta, JSON.stringify(before));
+  ok('overview CTA gone, profil remains', !before.cta && before.profil, JSON.stringify(before));
   ok('form hidden until click', !before.form);
   ok('header shows Agnieszka', /Agnieszka/.test(before.name));
 

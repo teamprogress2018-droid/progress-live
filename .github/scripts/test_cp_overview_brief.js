@@ -34,7 +34,7 @@ function ok(name,cond,extra){
 ok('collect fn',/function collectCpBriefItems\(c\)/.test(src08));
 ok('html helper',/function cpOverviewBriefHTML\(c\)/.test(src08));
 ok('brief before situation',overview.indexOf('cpOverviewBriefHTML(c)')<overview.indexOf('cpOverviewSituationHTML(c)')&&overview.indexOf('cpOverviewBriefHTML(c)')>=0);
-ok('situation helper intact',sit.includes('Na kolejny trening')&&sit.includes('cp-ov-situation')&&!sit.includes('collectCpBriefItems')&&!sit.includes('Przed treningiem'));
+ok('situation helper intact',sit.includes('Wnioski')&&sit.includes('cp-ov-situation')&&!sit.includes('collectCpBriefItems')&&!sit.includes('Przed treningiem'));
 ok('no next-focus in brief',!/cpNextSessionFocusItems/.test(briefSrc));
 ok('no AI',!/sendAICMsg|aplGenerate|openai/.test(briefSrc+extract(src08,'cpOverviewBriefHTML')));
 ok('no persist',!/persistById/.test(briefSrc));
@@ -47,11 +47,11 @@ ok('garmin excluded',/source==='garmin'/.test(extract(src08,'cpBriefIsLogged')))
 ok('planned excluded',/source==='planned'/.test(extract(src08,'cpBriefIsLogged')));
 ok('css compact',css.includes('.cp-ov-brief-row')&&css.includes('.cp-ov-brief-kicker')&&!/cp-ov-brief-row\{[^}]*background:var\(--bg-card\)/.test(css.replace(/\n/g,' ')));
 ok('injury watch',css.includes('.cp-ov-brief-row.is-watch')&&!css.includes('.cp-ov-brief-row.is-watch{background:'));
-ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=74')&&html.includes('styles.css?v=105'));
+ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=77')&&html.includes('styles.css?v=108'));
 ok('ci unit',wf.includes('test_cp_overview_brief.js'));
 ok('ci ui',wf.includes('test_cp_overview_brief_ui.js'));
 ok('empty copy',src08.includes('Brak danych do briefu.'));
-ok('kicker',src08.includes('Przed treningiem'));
+ok('kicker',src08.includes('>Dziś</div>')||src08.includes('Dziś</div>'));
 
 const sandbox={
   window:{CL:[],SE:[],PL:[],CHECKINS:{},CLIENT_NOTES:{},TASKS:[]},
@@ -158,7 +158,7 @@ ok('no recs as own line',!full.some(e=>e.kind==='rekord'));
 ok('no adh line',!full.some(e=>/Adherencja|7d|30d/.test(e.label+e.fact)));
 
 const htmlFull=sandbox.cpOverviewBriefHTML(sandbox.window.CL[0]);
-ok('html kicker',/Przed treningiem/.test(htmlFull));
+ok('html kicker',/Dziś/.test(htmlFull));
 ok('html no placeholder rows',!/brak danych/.test(htmlFull.toLowerCase().replace('brak danych do briefu.','')));
 ok('html injury watch class',/data-cp-brief="injury"[^>]*is-watch|is-watch[^>]*data-cp-brief="injury"/.test(htmlFull));
 

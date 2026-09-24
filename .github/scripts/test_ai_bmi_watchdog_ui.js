@@ -70,10 +70,11 @@ function ok(name, cond, extra) {
   await page.waitForTimeout(500);
   const banner = await page.evaluate(() => {
     const el = document.querySelector('.cp-bmi-banner');
-    return { text: el ? el.innerText : '', has: !!el };
+    const sit = document.querySelector('.cp-ov-situation');
+    return { hasBanner: !!el, hasStatus: !!sit, status: sit ? (sit.innerText || '') : '' };
   });
   await page.screenshot({ path: path.join(shotDir, 'ai_watch_profile.png') });
-  ok('profile banner', banner.has && /Nadwaga|BMI|Asystent/i.test(banner.text), JSON.stringify(banner).slice(0, 400));
+  ok('profile has status not duplicate banner', !banner.hasBanner && banner.hasStatus, JSON.stringify(banner).slice(0, 400));
   const rail = await page.evaluate(() => {
     const el = document.querySelector('.cp-ov-rail');
     return el ? (el.innerText || '') : '';

@@ -111,14 +111,12 @@ function ok(name, cond, extra) {
   ok('situation still there', view.sitKpis && view.next);
   ok('no kpi tiles in brief', view.briefTiles === 0);
   ok('order session then injury', view.kinds[0] === 'session' && view.kinds[1] === 'injury', view.kinds.join(','));
-  ok('checkin before workout', view.kinds.indexOf('checkin') < view.kinds.indexOf('workout') && view.kinds.indexOf('checkin') >= 0);
+  ok('brief only session+injury', view.kinds.every(k => k === 'session' || k === 'injury'), view.kinds.join(','));
   ok('today session', view.rows.some(r => r.kind === 'session' && /Dzień B/.test(r.text) && /18:00/.test(r.text)));
   ok('injury visible', view.rows.some(r => r.kind === 'injury' && /kolano/.test(r.text)));
   ok('notes not injury', !view.rows.some(r => /prywatna uwaga/.test(r.text)));
-  ok('checkin /5 filled', view.rows.some(r => r.kind === 'checkin' && /Sen 3\/5/.test(r.text) && /Energia 2\/5/.test(r.text) && !/\/10/.test(r.text) && !/Energia 1\/5/.test(r.text)));
-  ok('last live not garmin/planned', view.rows.some(r => r.kind === 'workout' && /Wyciskanie/.test(r.text) && /80/.test(r.text)) && !view.rows.some(r => /Bieg 8 km|Szkic Live/.test(r.text)));
-  ok('note', view.rows.some(r => r.kind === 'note' && /90°/.test(r.text)));
-  ok('homework late', view.rows.some(r => r.kind === 'homework' && /Spacer/.test(r.text)));
+  ok('checkin not duplicated in brief', !view.kinds.includes('checkin'));
+  ok('workout not duplicated in brief', !view.kinds.includes('workout'));
 
   await page.evaluate(() => {
     if (typeof openClientProfile === 'function') openClientProfile('c-new');

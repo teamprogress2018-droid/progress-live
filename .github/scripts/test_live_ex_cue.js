@@ -107,8 +107,8 @@ function eq(name, got, want) {
 
 ok('cache 01 frozen', html.includes('01-core.js?v=121'));
 ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=80'));
-ok('cache 08 caller', html.includes('08-client-profile-extras.js?v=74'));
-ok('cache styles', html.includes('styles.css?v=105'));
+ok('cache 08 caller', html.includes('08-client-profile-extras.js?v=77'));
+ok('cache styles', html.includes('styles.css?v=108'));
 ok('CI 1e0z8', wf.includes('test_live_ex_cue.js') && wf.includes('1e0z8'));
 ok('CI cue UI', wf.includes('test_live_ex_cue_ui.js'));
 ok('CSS cue', styles.includes('.live-ex-cue') && styles.includes('.live-ex-cue-k') && styles.includes('.live-ns-posture'));

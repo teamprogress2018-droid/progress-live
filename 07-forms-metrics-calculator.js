@@ -2188,7 +2188,7 @@ function openClientProfile(id,opts){
   document.getElementById('cp-avatar').style.color=col;
   document.getElementById('cp-avatar').textContent=getInit(c.name);
   document.getElementById('cp-name').textContent=c.name;
-  document.getElementById('cp-sub').textContent=(({masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja'})[c.goal]||c.goal||'Brak celu')+' · '+(c.level||'')+(c.age?' · '+c.age+' lat':'');
+  document.getElementById('cp-sub').textContent=(typeof cpProfileSubtext==='function'?cpProfileSubtext(c):((({masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja'})[c.goal]||c.goal||'Brak celu')+' · '+(({poczatkujacy:'Początkujący',sredni:'Średni',zaawansowany:'Zaawansowany'})[c.level]||c.level||'')+(c.age?' · '+c.age+' lat':'')));
   if(typeof refreshClientProfileRemoveActions==='function')refreshClientProfileRemoveActions(c);
   if(drawer)drawer.classList.add('open');
   document.getElementById('cp-overlay').classList.add('show');
