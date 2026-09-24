@@ -108,7 +108,7 @@ function ok(name, cond, extra) {
   ok('no red planned', [...nolog, ...fut].every(t => !/rgb\(255,\s*59,\s*48\)/.test(t.color) && !/rgb\(230,\s*0,\s*0\)/.test(t.color)), JSON.stringify(ui.tiles.map(t => t.color)));
   if (nolog.length) ok('banner past unlogged', /bez zapisu — uzupełnij/.test(ui.banner), ui.banner);
   else ok('no legend without nolog', !ui.legend);
-  ok('stats two numbers', /Ten tydzień/.test(ui.stats) && /Ostatnie 30 dni/.test(ui.stats), ui.stats);
+  ok('stats two numbers', /Realizacja planu w wybranym tygodniu do dziś/.test(ui.stats) && /Realizacja planu · ostatnie 30 dni/.test(ui.stats), ui.stats);
   ok('more menu', ui.more);
 
   if (nolog.length) {
