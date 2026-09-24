@@ -32,7 +32,7 @@ ok('no shorten label',!/Skróć plan/.test(src08)&&src08.includes('Otwórz plan'
 ok('ok line',src08.includes('Wszystko w porządku — brak pilnych działań.'));
 ok('early copy',src08.includes('Wiarygodną analizę pokażemy po 4 tygodniach lub 4 pomiarach.'));
 ok('ci workflow',wf.includes('test_cp_overview_recs.js'));
-ok('cache',html.includes('08-client-profile-extras.js?v=79'));
+ok('cache',html.includes('08-client-profile-extras.js?v=80'));
 ok('invite not a rec',!/kind:'invite'/.test(extract(src08,'cpOverviewRecs')));
 
 const sandbox={
@@ -148,6 +148,8 @@ const old=sandbox.cpOverviewParsePlanDay({day:'Dzień 1 — Dzień A · całe ci
 ok('old name split',old.name==='Dzień A · całe ciało'&&old.priority==='góra pleców, triceps, pośladki'&&!/Dzień 1/.test(old.name),JSON.stringify(old));
 const pon=sandbox.cpOverviewParsePlanDay({day:'Pon',muscles:'Całe ciało'},0);
 ok('weekday chip',pon.weekday===1&&pon.weekdayLabel==='pn'&&pon.name==='Całe ciało',JSON.stringify(pon));
+const dayA=sandbox.cpOverviewParsePlanDay({day:'A'},0);
+ok('letter day not weekday',dayA.name==='A'&&!dayA.weekdayLabel&&dayA.weekday==null,JSON.stringify(dayA));
 const titled=sandbox.cpOverviewPlanTitle({name:'Jan Kowalski — FBW Siła',duration:8,clientName:'Jan Kowalski'},client());
 ok('plan title drops client',titled==='FBW Siła · 8 tygodni',titled);
 
