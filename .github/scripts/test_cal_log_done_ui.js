@@ -133,8 +133,8 @@ function ok(name, cond, extra) {
   await page.waitForTimeout(200);
   const hist = await page.evaluate(() => (document.getElementById('cp-mp-content') || {}).innerText || '');
   await page.screenshot({ path: path.join(shotDir, 'cp_training_history.png') });
-  ok('history shows sala session', /Sala/i.test(hist) && /OBWÓD A PLAN/.test(hist), hist.slice(0, 400));
-  ok('history hides unlogged plan day', !/OBWÓD B PLAN/.test(hist), hist.slice(0, 400));
+  ok('history shows sala session', /Sala/i.test(hist) && /OBWÓD A/.test(hist), hist.slice(0, 400));
+  ok('history hides unlogged plan day', !/OBWÓD B/.test(hist), hist.slice(0, 400));
 
   await browser.close();
   if (failed) {
