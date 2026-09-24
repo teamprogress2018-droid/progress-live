@@ -40,7 +40,7 @@ ok('live circuit rest', live.includes('Stacja →') && live.includes('przejścia
 ok('live uses restSecAfterSet', live.includes('restSecAfterSet'));
 ok('live has custom rest parser', live.includes('parseLiveRestCustomSec'));
 ok('live has custom rest starter', live.includes('function liveStartRestCustom'));
-ok('live shows coach note without film toggle', /coachMediaHtml\(ex,\s*\{\s*showVideo:!!ex\.showVideo,\s*caption:false\s*\}/.test(live));
+ok('live shows coach note without film toggle', /live-ex-note/.test(live) && /livePolishCoachNote/.test(live) && /coachMediaHtml\(ex,\{showVideo:true,caption:false/.test(live));
 ok('client uses setKindBadge', client.includes('setKindBadge'));
 ok('client skip drop rest', client.includes('skipRestBeforeSet'));
 ok('client AMRAP placeholder', client.includes("placeholder=\"${s.kind==='amrap'?'max':''}\"") || client.includes("placeholder=\"${s.kind==='amrap'?'max':''}"));
