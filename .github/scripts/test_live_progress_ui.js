@@ -43,21 +43,41 @@ function ok(name, cond, extra) {
 
   await page.evaluate(() => {
     window.liveClientId = 'c1';
+    window.livePlanId = 'pl-goblet';
+    window.PL = [{
+      id: 'pl-goblet', clientId: 'c1', name: 'Goblet',
+      days: [{ exercises: [{ name: 'Przysiad Goblet', sets: '4', reps: '12' }] }]
+    }];
+    window.SE = [
+      {
+        id: 'g-old', clientId: 'c1', date: '2026-09-06', source: 'live', planId: 'pl-goblet',
+        createdAt: '2026-09-06T19:30:00',
+        exercises: [{ name: 'Przysiad Goblet', sets: [
+          { setNo: 1, kg: '20', reps: '12', kind: 'work', done: true },
+          { setNo: 2, kg: '20', reps: '12', kind: 'work', done: true }
+        ] }]
+      },
+      {
+        id: 'g-new', clientId: 'c1', date: '2026-09-13', source: 'live', planId: 'pl-goblet',
+        createdAt: '2026-09-13T20:00:00',
+        exercises: [{ name: 'Przysiad Goblet', sets: [
+          { setNo: 1, kg: '20', reps: '12', kind: 'work', done: true },
+          { setNo: 2, kg: '22.5', reps: '10', kind: 'work', done: true }
+        ] }]
+      }
+    ];
     window.liveExercises = [
       { name: 'Przysiad Goblet', done: false, collapsed: false,
-        lastDate: '2026-09-13',
+        lastDate: '2099-01-01',
+        lastKg: '999',
         lastSets: [
-          { setNo: 1, kg: '20', reps: '12', rir: '2' },
-          { setNo: 2, kg: '22.5', reps: '10', rir: '1' }
+          { setNo: 1, kg: '999', reps: '1', rir: '0' },
+          { setNo: 2, kg: '999', reps: '1', rir: '0' }
         ],
         lastHistory: [
-          { date: '2026-09-13', time: '20:00', sets: [
-            { setNo: 1, kg: '20', reps: '12' },
-            { setNo: 2, kg: '22.5', reps: '10' }
-          ]},
-          { date: '2026-09-06', time: '19:30', sets: [
-            { setNo: 1, kg: '20', reps: '12' },
-            { setNo: 2, kg: '20', reps: '12' }
+          { date: '2099-01-01', time: '20:00', sets: [
+            { setNo: 1, kg: '999', reps: '1' },
+            { setNo: 2, kg: '999', reps: '1' }
           ]}
         ],
         sets: [
@@ -205,21 +225,25 @@ function ok(name, cond, extra) {
 
   const saved = await page.evaluate(() => {
     const se = (window.SE || []).filter(s => s && s.clientId === 'c1');
-    const liveSess = se.find(s => s.source === 'live') || se[0] || null;
+    const liveSess = se.find(s => {
+      if (s.source !== 'live') return false;
+      const n = (s.exercises || []).reduce((acc, e) => acc + ((e.sets || []).length), 0);
+      return n === 4;
+    }) || se.find(s => s.source === 'live') || se[0] || null;
     const adh = typeof clientAdherenceStats === 'function' ? clientAdherenceStats('c1', 30) : null;
     return {
       n: se.length,
       source: liveSess && liveSess.source,
-      sets: liveSess && (liveSess.exercises || []).reduce((n, e) => n + ((e.sets || []).length), 0),
+      sets: liveSess && (liveSess.exercises || []).reduce((acc, e) => acc + ((e.sets || []).length), 0),
       volume: liveSess && liveSess.volume,
       logged: adh && adh.logged,
       rir: liveSess && liveSess.exercises && liveSess.exercises[0] && liveSess.exercises[0].sets && liveSess.exercises[0].sets[0] && liveSess.exercises[0].sets[0].rir
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'live_progress_saved.png') });
-  ok('session saved as live', saved.source === 'live' && saved.n >= 1, JSON.stringify(saved));
+  ok('session saved as live', saved.source === 'live' && saved.n >= 3, JSON.stringify(saved));
   ok('saved 4 sets / 288 kg', saved.sets === 4 && saved.volume === 288, JSON.stringify(saved));
-  ok('Progress logged day = 1', saved.logged === 1, JSON.stringify(saved));
+  ok('Progress logged includes today', saved.logged >= 1, JSON.stringify(saved));
   ok('saved rir', saved.rir === '2', JSON.stringify(saved));
 
   await browser.close();

@@ -3506,33 +3506,39 @@ window.liveExCueKey=liveExCueKey;
 function liveExCuePack(slot){
   const n=liveN(slot);
   const st=liveRef(n);
-  const empty={clientId:String(st.clientId||''),planId:st.planId||'',recs:[],brief:null,pack:null,lastByKey:{}};
-  if(!st.clientId||typeof composeClientNextSessionBrief!=='function'){
+  const empty={clientId:String(st.clientId||''),planId:st.planId||'',recs:[],brief:null,pack:null,lastByKey:{},histByKey:{}};
+  if(!st.clientId||!st.planId)return empty;
+  const fillLast=function(target){
     (st.exercises||[]).forEach(ex=>{
       const k=liveExCueKey(ex);
-      if(k&&!empty.lastByKey[k])empty.lastByKey[k]=liveExLastWorkSets(ex,st.clientId,st.planId);
+      if(!k||target.histByKey[k])return;
+      target.histByKey[k]=liveExHistoryList(ex,st.clientId,st.planId);
+      target.lastByKey[k]=liveExWorkSetsFromHist(target.histByKey[k]);
     });
-    return empty;
-  }
-  const opts={};
-  if(st.planId)opts.planId=st.planId;
+    return target;
+  };
+  if(typeof composeClientNextSessionBrief!=='function')return fillLast(empty);
+  const opts={planId:st.planId};
+  if(st.currentDayIdx!=null&&st.currentDayIdx!=='')opts.dayIdx=st.currentDayIdx;
   const built=composeClientNextSessionBrief(st.clientId,opts)||{};
-  const lastByKey={};
-  (st.exercises||[]).forEach(ex=>{
-    const k=liveExCueKey(ex);
-    if(!k||lastByKey[k])return;
-    lastByKey[k]=liveExLastWorkSets(ex,st.clientId,st.planId);
-  });
-  return{
+  return fillLast({
     clientId:built.clientId||st.clientId,
     planId:st.planId||'',
     recs:Array.isArray(built.recs)?built.recs:[],
     brief:built.brief||null,
     pack:built.pack||null,
-    lastByKey:lastByKey
-  };
+    lastByKey:{},
+    histByKey:{}
+  });
 }
 window.liveExCuePack=liveExCuePack;
+
+function liveExIdsConflict(a,b){
+  const left=String(a||'').trim();
+  const right=String(b||'').trim();
+  return !!(left&&right&&left!==right);
+}
+window.liveExIdsConflict=liveExIdsConflict;
 
 function liveExMatchCueRec(ex,recs){
   const list=Array.isArray(recs)?recs:[];
@@ -3543,22 +3549,27 @@ function liveExMatchCueRec(ex,recs){
   }
   const key=typeof liveNormExName==='function'?liveNormExName(ex&&(ex.name||ex.plannedName)):String(ex&&ex.name||'').toLowerCase();
   if(!key)return null;
-  return list.find(r=>r&&(typeof liveNormExName==='function'?liveNormExName(r.name):String(r.name||'').toLowerCase())===key)||null;
+  return list.find(r=>{
+    if(!r)return false;
+    if(liveExIdsConflict(eid,r.exerciseId))return false;
+    const rk=typeof liveNormExName==='function'?liveNormExName(r.name):String(r.name||'').toLowerCase();
+    return rk===key;
+  })||null;
 }
 window.liveExMatchCueRec=liveExMatchCueRec;
 
-function liveExLastWorkSets(ex,clientId,planId){
-  if(!clientId||!(ex&&(ex.name||ex.plannedName||ex.exerciseId)))return [];
-  if(typeof exerciseLoadHistory!=='function')return [];
-  const opts={limit:1,exerciseId:ex.exerciseId||''};
-  if(planId)opts.planId=planId;
-  const hist=exerciseLoadHistory(clientId,ex.name||ex.plannedName,ex.alts,opts);
+function liveExWorkSetsFromHist(hist){
   const row=hist&&hist[0];
   if(!row)return [];
   if(Array.isArray(row.workSets)&&row.workSets.length)return row.workSets;
   const sets=Array.isArray(row.sets)?row.sets:[];
   if(typeof exerciseProgressWorkSets==='function')return exerciseProgressWorkSets(sets);
   return sets.filter(s=>!s||!s.kind||s.kind==='work'||s.kind==='amrap');
+}
+window.liveExWorkSetsFromHist=liveExWorkSetsFromHist;
+
+function liveExLastWorkSets(ex,clientId,planId){
+  return liveExWorkSetsFromHist(liveExHistoryList(ex,clientId,planId));
 }
 window.liveExLastWorkSets=liveExLastWorkSets;
 
@@ -3590,6 +3601,31 @@ function liveExTodayKg(ex){
 }
 window.liveExTodayKg=liveExTodayKg;
 
+function liveExTodayLine(ex,slot){
+  const todayKg=liveExTodayKg(ex);
+  const plannedReps=liveExPlannedReps(ex,slot);
+  const unit=typeof exLoadUnit==='function'?exLoadUnit(ex):'kg';
+  const suf=typeof loadUnitSuffix==='function'?loadUnitSuffix(unit):'kg';
+  const todayBits=[];
+  if(todayKg!==''&&todayKg!=null)todayBits.push(String(todayKg)+(suf?(' '+suf):''));
+  if(plannedReps)todayBits.push(plannedReps);
+  return todayBits.length?todayBits.join(' · '):'—';
+}
+window.liveExTodayLine=liveExTodayLine;
+
+function livePaintTodayCue(ei,slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  const ex=st.exercises&&st.exercises[ei];
+  if(!ex)return;
+  const cardId=n===1?('live-b-ex-'+ei):('live-ex-'+ei);
+  const card=typeof document!=='undefined'&&document.getElementById?document.getElementById(cardId):null;
+  const v=card&&card.querySelector?card.querySelector('[data-cue="today"] .live-ex-cue-v'):null;
+  if(!v)return;
+  v.textContent=liveExTodayLine(ex,n);
+}
+window.livePaintTodayCue=livePaintTodayCue;
+
 function liveExPlanDayExercises(slot){
   const st=liveRef(slot);
   const p=(window.PL||[]).find(x=>x&&x.id===st.planId);
@@ -3607,7 +3643,9 @@ function liveExPlannedReps(ex,slot){
   for(let i=0;i<list.length;i++){
     const parsed=typeof parsePlanExercise==='function'?parsePlanExercise(list[i]):list[i];
     if(!parsed)continue;
-    if(eid&&String(parsed.exerciseId||'').trim()===eid)return String(parsed.reps||'');
+    const pid=String(parsed.exerciseId||'').trim();
+    if(eid&&pid&&eid===pid)return String(parsed.reps||'');
+    if(liveExIdsConflict(eid,pid))continue;
     const pk=typeof liveNormExName==='function'?liveNormExName(parsed.name):String(parsed.name||'').toLowerCase();
     if(key&&pk===key)return String(parsed.reps||'');
   }
@@ -3666,13 +3704,7 @@ function liveExCueStripHtml(ex,slot,cue){
     :liveExLastWorkSets(ex,st.clientId,st.planId);
   const lastLine=liveExLastLine(lastSets);
   const todayKg=liveExTodayKg(ex);
-  const plannedReps=liveExPlannedReps(ex,n);
-  const unit=typeof exLoadUnit==='function'?exLoadUnit(ex):'kg';
-  const suf=typeof loadUnitSuffix==='function'?loadUnitSuffix(unit):'kg';
-  const todayBits=[];
-  if(todayKg!==''&&todayKg!=null)todayBits.push(String(todayKg)+(suf?(' '+suf):''));
-  if(plannedReps)todayBits.push(plannedReps);
-  const todayLine=todayBits.length?todayBits.join(' · '):'—';
+  const todayLine=liveExTodayLine(ex,n);
   const suggest=liveExSuggestView(rec,todayKg);
   const esc=typeof escHtml==='function'?escHtml:s=>String(s==null?'':s);
   return `<div class="live-ex-cue" data-live-cue="1" onclick="event.stopPropagation()">
@@ -3683,19 +3715,15 @@ function liveExCueStripHtml(ex,slot,cue){
 }
 window.liveExCueStripHtml=liveExCueStripHtml;
 
-function liveExHistoryList(ex,clientId){
-  let history=Array.isArray(ex&&ex.lastHistory)?ex.lastHistory.filter(h=>h&&Array.isArray(h.sets)&&h.sets.length):[];
-  if(!history.length&&ex&&Array.isArray(ex.lastSets)&&ex.lastSets.length){
-    history=[{date:ex.lastDate||'',time:ex.lastTime||'',sets:ex.lastSets}];
-  }
-  if(!history.length){
-    const nm=ex&&(ex.name||ex.plannedName);
-    const alts=ex&&ex.alts;
-    if(clientId&&nm&&typeof exerciseLoadHistory==='function'){
-      history=exerciseLoadHistory(clientId,nm,alts,{limit:8,exerciseId:ex&&ex.exerciseId});
-    }
-  }
-  return history;
+function liveExHistoryList(ex,clientId,planId){
+  if(!clientId||!planId)return [];
+  if(!(ex&&(ex.name||ex.plannedName||ex.exerciseId)))return [];
+  if(typeof exerciseLoadHistory!=='function')return [];
+  return exerciseLoadHistory(clientId,ex.name||ex.plannedName,ex.alts,{
+    limit:8,
+    exerciseId:ex.exerciseId||'',
+    planId:planId
+  })||[];
 }
 window.liveExHistoryList=liveExHistoryList;
 
@@ -3727,8 +3755,12 @@ function liveExCard(ex,i,slot,cue){
   const loadPh=typeof loadUnitPlaceholder==='function'?loadUnitPlaceholder(unit):'kg';
   const loadLbl=typeof loadUnitColumnLabel==='function'?loadUnitColumnLabel(unit):(unit==='sec'||unit==='min'?'Czas':unit==='m'?'Dystans':'Ciężar');
   const setsDone=ex.sets.filter(s=>s.done).length;
-  const lastChip=typeof lastSetsBlockHtml==='function'?lastSetsBlockHtml(ex,{clientId:st.clientId,aliases:ex.alts}):'';
-  const histList=liveExHistoryList(ex,st.clientId);
+  const cueKey=typeof liveExCueKey==='function'?liveExCueKey(ex):'';
+  const histList=(cue&&cue.histByKey&&cueKey&&Array.isArray(cue.histByKey[cueKey]))
+    ?cue.histByKey[cueKey]
+    :(typeof liveExHistoryList==='function'?liveExHistoryList(ex,st.clientId,st.planId):[]);
+  const histEx=Object.assign({},ex,{lastHistory:histList,lastSets:[]});
+  const lastChip=histList.length&&typeof lastSetsBlockHtml==='function'?lastSetsBlockHtml(histEx,{clientId:st.clientId,aliases:ex.alts}):'';
   const lastHint=lastChip?'':(ex.lastDate&&ex.lastKg!==''&&ex.lastKg!=null?`Ostatnio: ${ex.lastKg} ${suf}${ex.lastReps?' × '+ex.lastReps:''}`:'');
   const pr=typeof exercisePR==='function'&&(typeof isWeightLoadUnit!=='function'||isWeightLoadUnit(unit))?exercisePR(st.clientId,ex.name):null;
   const prHint=pr?`Rekord: ${pr.kg} kg × ${pr.reps}`:'';
@@ -3738,7 +3770,9 @@ function liveExCard(ex,i,slot,cue){
   const cardId=n===1?('live-b-ex-'+i):('live-ex-'+i);
   const needsName=!String(ex.name||'').trim()||ex.name==='Nowe ćwiczenie';
   const showBody=!ex.collapsed||needsName;
-  const prevSets=typeof lastWorkingSets==='function'?lastWorkingSets(ex,{clientId:st.clientId,aliases:ex.alts}):(Array.isArray(ex.lastSets)?ex.lastSets:[]);
+  const prevSets=(cue&&cue.lastByKey&&cueKey&&Array.isArray(cue.lastByKey[cueKey]))
+    ?cue.lastByKey[cueKey]
+    :(typeof liveExLastWorkSets==='function'?liveExLastWorkSets(ex,st.clientId,st.planId):[]);
   const hasPrev=prevSets.length>0;
   const coachChips=typeof exerciseCoachHintsHtml==='function'?exerciseCoachHintsHtml(ex):'';
   const weekHint=typeof liveWeekHintHtml==='function'?liveWeekHintHtml(n):'';
@@ -3779,7 +3813,7 @@ function liveExCard(ex,i,slot,cue){
         <span></span><span>Seria</span><span style="text-align:center;">${loadLbl}</span><span style="text-align:center;">Powt.</span><span style="text-align:center;" title="Powtórzenia w zapasie">RIR</span>${hasPrev?'<span class="live-set-prev-h">Ostatnio</span>':''}<span></span>
       </div>
       ${ex.sets.map((s,si)=>{
-        const prev=hasPrev?(typeof lastLoggedSetAt==='function'?lastLoggedSetAt(ex,si,{clientId:st.clientId,aliases:ex.alts}):prevSets[si]):null;
+        const prev=hasPrev?(prevSets[si]||null):null;
         const prevTxt=typeof formatLastSetShort==='function'?formatLastSetShort(prev):(prev?((prev.kg||'')+(prev.reps?' × '+prev.reps:'')):'');
         const prevCell=hasPrev?`<button type="button" class="live-set-prev${prevTxt?'':' is-empty'}" ${prevTxt?`onclick="event.stopPropagation();liveFillFromLast(${i},${si}${sl})" title="Wstaw poprzedni ciężar: ${escHtml(prevTxt)}"`:'disabled tabindex="-1"'}>${prevTxt?escHtml(prevTxt):'—'}</button>`:'';
         return `<div class="live-set-row${hasPrev?' has-prev':''}">
@@ -3890,7 +3924,14 @@ function liveToggleSet(ei,si,slot){
   renderLiveExercises(n);
 }
 
-function liveSetKg(ei,si,v,slot){liveRef(slot).exercises[ei].sets[si].kg=v;liveSaveDraft(slot);}
+function liveSetKg(ei,si,v,slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  if(!st.exercises[ei]||!st.exercises[ei].sets[si])return;
+  st.exercises[ei].sets[si].kg=v;
+  liveSaveDraft(slot);
+  if(typeof livePaintTodayCue==='function')livePaintTodayCue(ei,n);
+}
 function liveSetReps(ei,si,v,slot){liveRef(slot).exercises[ei].sets[si].reps=v;liveSaveDraft(slot);}
 function liveSetRir(ei,si,v,slot){
   const n=liveN(slot);
@@ -3923,7 +3964,8 @@ function liveFillFromLast(ei,si,slot){
   const st=liveRef(n);
   const ex=st.exercises[ei];
   if(!ex||!ex.sets||!ex.sets[si])return;
-  const prev=typeof lastLoggedSetAt==='function'?lastLoggedSetAt(ex,si,{clientId:st.clientId,aliases:ex.alts}):null;
+  const prevSets=typeof liveExLastWorkSets==='function'?liveExLastWorkSets(ex,st.clientId,st.planId):[];
+  const prev=prevSets[si]||null;
   if(!prev)return;
   const s=ex.sets[si];
   if(prev.kg!=null&&prev.kg!=='')s.kg=String(prev.kg);

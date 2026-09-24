@@ -70,7 +70,7 @@ function eq(name, got, want) {
 }
 
 ok('cache 01 frozen', html.includes('01-core.js?v=121'));
-ok('cache 08', html.includes('08-client-profile-extras.js?v=73'));
+ok('cache 08', html.includes('08-client-profile-extras.js?v=74'));
 ok('CI', wf.includes('test_ex_progress_e2e.js') && wf.includes('1e0z7'));
 ok('caller in 08', /function composeClientNextSessionBrief/.test(extras)
   && /function cpNextSessionBriefHtml/.test(extras));
@@ -85,9 +85,12 @@ ok('progressFn does not inline 7A/7B/7C', !/composeNextSessionProgress/.test(pro
 ok('progress paints brief', /cpNextSessionBriefHtml\(c\.id\)/.test(progressFn)
   && /rememberClientExerciseProgress\(c\.id\)/.test(progressFn)
   && /cpExerciseProgressPanelHtml\(c\.id\)/.test(progressFn));
-ok('caller does not guess repMax', !/repMax/.test(callerSrc) && !/target\s*:/.test(callerSrc));
-ok('caller does not call Live engine', !/progressWorkingSet/.test(callerSrc)
-  && !/parseRepRange/.test(callerSrc));
+ok('caller passes explicit plan hi', /target:\s*\{\s*repMax/.test(callerSrc)
+  && /parseRepRange/.test(callerSrc)
+  && /progressRecOptsForItem/.test(callerSrc));
+ok('caller does not invent default repMax', !/repMax:\s*1[02]\b/.test(callerSrc)
+  && !/progressWorkingSet/.test(callerSrc)
+  && /amrap/.test(callerSrc));
 ok('caller can scope planId', /recOpts\.planId/.test(callerSrc) && /latestClientPlan/.test(callerSrc));
 ok('caller restores 6D store after plan filter', /if\(recOpts\.planId\)window\._cpExerciseProgress=prevStore/.test(callerSrc));
 ok('progressWorkingSet body untouched here', /function progressWorkingSet/.test(coreSrc)
@@ -227,7 +230,9 @@ ctx.recommendExerciseProgress = function (item, opts) {
 };
 windowObj.recommendExerciseProgress = ctx.recommendExerciseProgress;
 composeClientNextSessionBrief(CID);
-ok('E2E-1 D16: caller does not pass target', recOpts == null || recOpts.target == null);
+ok('E2E-1 without planId no target', recOpts == null || recOpts.target == null);
+composeClientNextSessionBrief(CID, { planId: PID });
+ok('E2E-1 with planId passes hi 10', recOpts && recOpts.target && recOpts.target.repMax === 10);
 ctx.recommendExerciseProgress = origRec;
 windowObj.recommendExerciseProgress = origRec;
 
@@ -404,6 +409,66 @@ ctx.latestClientPlan = function (id) {
 const viaAuto = composeClientNextSessionBrief(CID);
 eq('E2E-10 auto latest plan last kg', lastKg(viaAuto), 100);
 delete ctx.latestClientPlan;
+
+const CID16 = 'c-e2e-d16';
+windowObj.PL = windowObj.PL.concat([{
+  id: 'pl-e2e-d16', clientId: CID16, name: 'D16',
+  days: [{ exercises: [{ name: 'Wyciskanie sztangi', sets: '3', reps: '8-10' }] }]
+}, {
+  id: 'pl-e2e-amrap', clientId: CID16, name: 'AMRAP',
+  days: [{ exercises: [{ name: 'Wyciskanie sztangi', sets: '3', reps: 'AMRAP' }] }]
+}]);
+windowObj.SE = windowObj.SE.concat([
+  saveLive('d16a', CID16, '2026-09-01', [
+    liveEx('Wyciskanie sztangi', [
+      Object.assign(work(80, 10, '2'), { setNo: 1, done: true }),
+      Object.assign(work(80, 10, '2'), { setNo: 2, done: true }),
+      Object.assign(work(80, 10, '2'), { setNo: 3, done: true })
+    ])
+  ], { planId: 'pl-e2e-d16' }),
+  saveLive('d16b', CID16, '2026-09-08', [
+    liveEx('Wyciskanie sztangi', [
+      Object.assign(work(80, 10, '2'), { setNo: 1, done: true }),
+      Object.assign(work(80, 10, '2'), { setNo: 2, done: true }),
+      Object.assign(work(80, 10, '2'), { setNo: 3, done: true })
+    ])
+  ], { planId: 'pl-e2e-d16' }),
+  saveLive('d16c', CID16, '2026-09-15', [
+    liveEx('Wyciskanie sztangi', [
+      Object.assign(work(80, 10, '2'), { setNo: 1, done: true }),
+      Object.assign(work(80, 10, '2'), { setNo: 2, done: true }),
+      Object.assign(work(80, 10, '2'), { setNo: 3, done: true })
+    ])
+  ], { planId: 'pl-e2e-d16' }),
+  saveLive('amrapa', CID16, '2026-09-01', [
+    liveEx('Wyciskanie sztangi', [
+      Object.assign(work(80, 10, '2'), { setNo: 1, done: true }),
+      Object.assign(work(80, 10, '2'), { setNo: 2, done: true }),
+      Object.assign(work(80, 10, '2'), { setNo: 3, done: true })
+    ])
+  ], { planId: 'pl-e2e-amrap' }),
+  saveLive('amrapb', CID16, '2026-09-08', [
+    liveEx('Wyciskanie sztangi', [
+      Object.assign(work(80, 10, '2'), { setNo: 1, done: true }),
+      Object.assign(work(80, 10, '2'), { setNo: 2, done: true }),
+      Object.assign(work(80, 10, '2'), { setNo: 3, done: true })
+    ])
+  ], { planId: 'pl-e2e-amrap' }),
+  saveLive('amrapc', CID16, '2026-09-15', [
+    liveEx('Wyciskanie sztangi', [
+      Object.assign(work(80, 10, '2'), { setNo: 1, done: true }),
+      Object.assign(work(80, 10, '2'), { setNo: 2, done: true }),
+      Object.assign(work(80, 10, '2'), { setNo: 3, done: true })
+    ])
+  ], { planId: 'pl-e2e-amrap' })
+]);
+const viaD16 = composeClientNextSessionBrief(CID16, { planId: 'pl-e2e-d16' });
+const recD16 = (viaD16.recs || []).find(r => r && r.name === 'Wyciskanie sztangi');
+ok('E2E D16 DODAJ CIĘŻAR via caller', recD16 && recD16.action === 'DODAJ CIĘŻAR', recD16 ? recD16.action + ' ' + JSON.stringify(recD16.reasons) : 'no rec');
+eq('E2E D16 target from plan hi', recD16 && recD16.facts && recD16.facts.target, 10);
+const viaAmrap = composeClientNextSessionBrief(CID16, { planId: 'pl-e2e-amrap' });
+const recAmrap = (viaAmrap.recs || []).find(r => r && r.name === 'Wyciskanie sztangi');
+ok('E2E AMRAP no invented target', recAmrap && recAmrap.facts && recAmrap.facts.target == null);
 
 if (failed) {
   console.error('\n' + failed + ' E2E checks failed');

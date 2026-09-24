@@ -8,6 +8,7 @@
 const fs = require('fs');
 const vm = require('vm');
 const path = require('path');
+const crypto = require('crypto');
 const { execSync } = require('child_process');
 
 const root = path.join(__dirname, '../..');
@@ -51,6 +52,18 @@ function sliceFn(src, start, endMark) {
   return a >= 0 && b > a ? src.slice(a, b) : '';
 }
 
+function sha256(s) {
+  return crypto.createHash('sha256').update(s, 'utf8').digest('hex');
+}
+const FROZEN_SHA256 = {
+  '6C exerciseLoadHistory': 'd3d56a5454e817fadb4c63392a777e39b5affa4c707eba854d29c637b308ca73',
+  '6D classifyExerciseProgress': 'e6a9fd6a2d0afa1c4d554cd1ceb7debcc1c75c7811388cfba11ee0aedb777ac7',
+  '7A aggregateClientProgress': '09f8e88c8d6bffbb8f746119c32f6b5076e407edeef43934166ed8938fe68737',
+  '7B recommendExerciseProgress': '05a50482482c5610ba8c25b889988e7bbff3002caa91f26d64b05199ebf66388',
+  '7C composeNextSessionProgress': '4b0a0e6dce5e37294d8883ac2df01a1d8e31799fd4837dbc5c5562212b2758a8',
+  'progressWorkingSet': 'b1193e14abcd20e619abe7c9916688741418e2dda98bbc10a2ff17e6bf2a9720'
+};
+
 const recSrc = sliceFn(coreSrc, 'function recommendExerciseProgress', 'window.recommendExerciseProgress');
 const briefSrc = sliceFn(coreSrc, 'function composeNextSessionProgress', 'window.composeNextSessionProgress');
 const aggSrc = sliceFn(coreSrc, 'function aggregateClientProgress', 'window.aggregateClientProgress');
@@ -63,9 +76,11 @@ const packSrc = sliceFn(live, 'function liveExCuePack', 'window.liveExCuePack');
 const stripSrc = sliceFn(live, 'function liveExCueStripHtml', 'window.liveExCueStripHtml');
 const suggestSrc = sliceFn(live, 'function liveExSuggestView', 'window.liveExSuggestView');
 const endSrc = sliceFn(live, 'function liveEndSession', 'window.liveEndSession');
+const kgSrc = sliceFn(live, 'function liveSetKg', 'function liveSetReps');
+const fillSrc = sliceFn(live, 'function liveFillFromLast', 'window.liveFillFromLast');
 const cueBlock = live.slice(
   live.indexOf('function liveExCueKey'),
-  live.indexOf('function liveExHistoryList')
+  live.indexOf('function liveExTitleHtml')
 );
 const callerStart = extras.indexOf('function composeClientNextSessionBrief');
 const callerBind = 'window.cpNextSessionBriefHtml=cpNextSessionBriefHtml';
@@ -91,10 +106,11 @@ function eq(name, got, want) {
 }
 
 ok('cache 01 frozen', html.includes('01-core.js?v=121'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=79'));
-ok('cache 08 frozen', html.includes('08-client-profile-extras.js?v=73'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=80'));
+ok('cache 08 caller', html.includes('08-client-profile-extras.js?v=74'));
 ok('cache styles', html.includes('styles.css?v=105'));
 ok('CI 1e0z8', wf.includes('test_live_ex_cue.js') && wf.includes('1e0z8'));
+ok('CI cue UI', wf.includes('test_live_ex_cue_ui.js'));
 ok('CSS cue', styles.includes('.live-ex-cue') && styles.includes('.live-ex-cue-k') && styles.includes('.live-ns-posture'));
 
 ok('one pack per render', /const cue=typeof liveExCuePack/.test(renderSrc)
@@ -111,9 +127,21 @@ ok('strip has three rows', /data-cue="last"/.test(stripSrc)
   && /OSTATNIO/.test(stripSrc) && /DZISIAJ/.test(stripSrc) && /SUGESTIA/.test(stripSrc));
 ok('pack calls 8 caller once', /composeClientNextSessionBrief\(st\.clientId,opts\)/.test(packSrc)
   && (packSrc.match(/composeClientNextSessionBrief/g) || []).length === 2);
-ok('pack passes planId', /if\(st\.planId\)opts\.planId=st\.planId/.test(packSrc));
-ok('last sets use planId', /if\(planId\)opts\.planId=planId/.test(live)
-  && /exerciseLoadHistory\(clientId,ex\.name/.test(live));
+ok('pack requires planId', /if\(!st\.clientId\|\|!st\.planId\)return empty/.test(packSrc)
+  && /opts=\{planId:st\.planId\}/.test(packSrc));
+ok('last sets require planId', /function liveExHistoryList\(ex,clientId,planId\)/.test(live)
+  && /if\(!clientId\|\|!planId\)return \[\]/.test(live)
+  && /planId:planId/.test(live));
+ok('history ignores prefill lastSets', /function liveExHistoryList/.test(live)
+  && !/ex\.lastHistory/.test(sliceFn(live, 'function liveExHistoryList', 'window.liveExHistoryList'))
+  && !/ex\.lastSets/.test(sliceFn(live, 'function liveExHistoryList', 'window.liveExHistoryList')));
+ok('liveSetKg paints today without rebuild', /livePaintTodayCue/.test(kgSrc)
+  && !/renderLiveExercises/.test(kgSrc)
+  && !/liveExCuePack/.test(kgSrc));
+ok('fill from last uses scoped sets', /liveExLastWorkSets/.test(fillSrc)
+  && !/lastLoggedSetAt/.test(fillSrc));
+ok('conflicting ids skip name', /liveExIdsConflict/.test(live)
+  && /function liveExMatchCueRec/.test(live));
 
 ok('7A/7B/7C not inlined in Live', !/function recommendExerciseProgress/.test(live)
   && !/recommendExerciseProgress/.test(live)
@@ -135,17 +163,30 @@ ok('live save/timer/sets untouched in 9A.1 helpers', !/liveEndSession/.test(cueB
   && !/liveSwapEx/.test(cueBlock)
   && !/liveStartRest/.test(cueBlock));
 
-ok('01-core.js not in branch diff', changed.indexOf('01-core.js') === -1, changed);
-ok('08 extras not in branch diff', changed.indexOf('08-client-profile-extras.js') === -1, changed);
+const frozenSlices = {
+  '6C exerciseLoadHistory': histSrc,
+  '6D classifyExerciseProgress': classSrc,
+  '7A aggregateClientProgress': aggSrc,
+  '7B recommendExerciseProgress': recSrc,
+  '7C composeNextSessionProgress': briefSrc,
+  'progressWorkingSet': pwsSrc
+};
+ok('frozen hash table present', Object.keys(FROZEN_SHA256).length === 6);
+Object.keys(FROZEN_SHA256).forEach((name) => {
+  const body = frozenSlices[name] || '';
+  ok('frozen body present ' + name, body.length > 0, String(body.length));
+  eq('frozen hash ' + name, sha256(body), FROZEN_SHA256[name]);
+});
+if (String(changed || '').trim()) {
+  ok('01-core.js not in branch diff', changed.indexOf('01-core.js') === -1, changed);
+}
 if (mainCore) {
-  eq('frozen 6C body', histSrc, sliceFn(mainCore, 'function exerciseLoadHistory', 'window.exerciseLoadHistory'));
-  eq('frozen 6D body', classSrc, sliceFn(mainCore, 'function classifyExerciseProgress', 'window.classifyExerciseProgress'));
-  eq('frozen 7A body', aggSrc, sliceFn(mainCore, 'function aggregateClientProgress', 'window.aggregateClientProgress'));
-  eq('frozen 7B body', recSrc, sliceFn(mainCore, 'function recommendExerciseProgress', 'window.recommendExerciseProgress'));
-  eq('frozen 7C body', briefSrc, sliceFn(mainCore, 'function composeNextSessionProgress', 'window.composeNextSessionProgress'));
-  eq('frozen progressWorkingSet', pwsSrc, sliceFn(mainCore, 'function progressWorkingSet', 'window.progressWorkingSet'));
-} else {
-  ok('6C–7C freeze via branch diff (no base blob)', changed.indexOf('01-core.js') === -1);
+  eq('frozen 6C body vs git', histSrc, sliceFn(mainCore, 'function exerciseLoadHistory', 'window.exerciseLoadHistory'));
+  eq('frozen 6D body vs git', classSrc, sliceFn(mainCore, 'function classifyExerciseProgress', 'window.classifyExerciseProgress'));
+  eq('frozen 7A body vs git', aggSrc, sliceFn(mainCore, 'function aggregateClientProgress', 'window.aggregateClientProgress'));
+  eq('frozen 7B body vs git', recSrc, sliceFn(mainCore, 'function recommendExerciseProgress', 'window.recommendExerciseProgress'));
+  eq('frozen 7C body vs git', briefSrc, sliceFn(mainCore, 'function composeNextSessionProgress', 'window.composeNextSessionProgress'));
+  eq('frozen progressWorkingSet vs git', pwsSrc, sliceFn(mainCore, 'function progressWorkingSet', 'window.progressWorkingSet'));
 }
 
 ok('7B still D16', /zadany strop powtórzeń osiągnięty przy RIR ≥ 2 i równych seriach/.test(recSrc));
@@ -173,8 +214,9 @@ vm.runInContext(coreSrc, ctx);
 vm.runInContext(callerSrc, ctx);
 vm.runInContext(`
   var _liveSlot = { clientId:'', planId:'', currentDayIdx:0, exercises:[] };
+  var _liveSlotB = { clientId:'', planId:'', currentDayIdx:0, exercises:[] };
   function liveN(slot){ return slot===1||slot==='1'?1:0; }
-  function liveRef(){ return _liveSlot; }
+  function liveRef(slot){ return liveN(slot)===1?_liveSlotB:_liveSlot; }
   function liveNormExName(n){
     return typeof exerciseNameKey==='function'?exerciseNameKey(n):String(n||'').toLowerCase().replace(/\\s+/g,' ').trim();
   }
@@ -200,13 +242,19 @@ const {
   liveExCuePack,
   liveExCueStripHtml,
   liveExMatchCueRec,
-  liveExFormatKgDelta
+  liveExFormatKgDelta,
+  liveExHistoryList,
+  liveExIdsConflict,
+  livePaintTodayCue,
+  liveExTodayLine
 } = ctx;
 
 ok('helpers loaded', typeof liveExCuePack === 'function'
   && typeof liveExCueStripHtml === 'function'
   && typeof composeClientNextSessionBrief === 'function'
-  && typeof recommendExerciseProgress === 'function');
+  && typeof recommendExerciseProgress === 'function'
+  && typeof livePaintTodayCue === 'function'
+  && typeof liveExHistoryList === 'function');
 
 eq('last line empty', liveExLastLine([]), '—');
 eq('last line kg×reps + RIR', liveExLastLine([
@@ -454,6 +502,174 @@ ok('progressWorkingSet still prefills separately', pws && pws.kg && String(pws.k
 ok('SUGESTIA label ≠ progHint', liveExSuggestView(rec1, pws && pws.kg).label.indexOf(String(pws && pws.hint || 'Progresja')) === -1);
 
 ok('7B helper still works', recommendExerciseProgress(null).action === 'ZA MAŁO DANYCH');
+
+/* Prefill lastSets/lastHistory must not leak into OSTATNIO */
+ctx._liveSlot.clientId = CID;
+ctx._liveSlot.planId = 'pl-b';
+ctx._liveSlot.exercises = [{
+  name: NAME,
+  lastSets: [{ kg: 999, reps: 1, rir: '0' }],
+  lastHistory: [{ date: '2099-01-01', sets: [{ kg: 999, reps: 1 }] }],
+  sets: [{ kg: '62.5', reps: '8', kind: 'work' }]
+}];
+const lastPrefill = liveExLastWorkSets(ctx._liveSlot.exercises[0], CID, 'pl-b');
+ok('prefill 999 ignored in last sets', lastPrefill.every(s => Number(s.kg) !== 999) && lastPrefill.some(s => Number(s.kg) === 60), JSON.stringify(lastPrefill.map(s => s.kg)));
+const histPrefill = liveExHistoryList(ctx._liveSlot.exercises[0], CID, 'pl-b');
+ok('prefill 999 ignored in history list', histPrefill.every(h => !(h.sets || []).some(s => Number(s.kg) === 999)));
+eq('no planId means no history mix', liveExHistoryList(ctx._liveSlot.exercises[0], CID, ''), []);
+eq('no planId last sets empty', liveExLastWorkSets(ctx._liveSlot.exercises[0], CID, ''), []);
+
+briefCalls = 0;
+ctx._liveSlot.planId = '';
+const packNoPlan = liveExCuePack(0);
+eq('no planId does not call caller', briefCalls, 0);
+ok('no planId empty lastByKey', !(packNoPlan.lastByKey && Object.keys(packNoPlan.lastByKey).length), JSON.stringify(packNoPlan.lastByKey));
+ctx._liveSlot.planId = 'pl-b';
+
+ok('conflicting ids exclude name', liveExIdsConflict('ex_a', 'ex_b') === true);
+ok('legacy missing id still matches name', liveExMatchCueRec(
+  { name: NAME, exerciseId: '' },
+  [{ name: NAME, exerciseId: '', action: 'UTRZYMAJ' }]
+).action === 'UTRZYMAJ');
+ok('conflicting nonempty ids no name match', liveExMatchCueRec(
+  { name: NAME, exerciseId: 'ex_live' },
+  [{ name: NAME, exerciseId: 'ex_other', action: 'DODAJ CIĘŻAR', facts: { lastKg: 40 } }]
+) == null);
+eq('same id still matches', liveExMatchCueRec(
+  { name: NAME, exerciseId: 'ex_live' },
+  [{ name: NAME, exerciseId: 'ex_live', action: 'UTRZYMAJ' }]
+).action, 'UTRZYMAJ');
+
+/* Dual independent slots */
+ctx._liveSlot.clientId = CID;
+ctx._liveSlot.planId = 'pl-a';
+ctx._liveSlot.exercises = [{ name: NAME, sets: [{ kg: '100', reps: '5', kind: 'work' }] }];
+ctx._liveSlotB.clientId = CID;
+ctx._liveSlotB.planId = 'pl-b';
+ctx._liveSlotB.exercises = [{ name: NAME, sets: [{ kg: '62.5', reps: '8', kind: 'work' }] }];
+briefCalls = 0;
+const packSlot0 = liveExCuePack(0);
+const packSlot1 = liveExCuePack(1);
+eq('two slots two caller runs', briefCalls, 2);
+ok('slot 0 last is Plan A 100', (packSlot0.lastByKey[Object.keys(packSlot0.lastByKey)[0]] || []).some(s => Number(s.kg) === 100));
+ok('slot 1 last is Plan B 60', (packSlot1.lastByKey[Object.keys(packSlot1.lastByKey)[0]] || []).some(s => Number(s.kg) === 60));
+ok('slot 0 rec lastKg 100', liveExMatchCueRec(ctx._liveSlot.exercises[0], packSlot0.recs).facts.lastKg === 100);
+ok('slot 1 rec lastKg 60', liveExMatchCueRec(ctx._liveSlotB.exercises[0], packSlot1.recs).facts.lastKg === 60);
+ctx._liveSlot.planId = 'pl-b';
+
+/* DZISIAJ paint without rebuild */
+let painted = '';
+let packDuringPaint = 0;
+const origPack = ctx.liveExCuePack;
+ctx.liveExCuePack = function () { packDuringPaint++; return origPack.apply(this, arguments); };
+windowObj.liveExCuePack = ctx.liveExCuePack;
+documentStub.getElementById = function (id) {
+  if (id !== 'live-ex-0') return null;
+  return {
+    querySelector: function (sel) {
+      if (sel !== '[data-cue="today"] .live-ex-cue-v') return null;
+      return {
+        get textContent() { return painted; },
+        set textContent(v) { painted = v; }
+      };
+    }
+  };
+};
+ctx._liveSlot.exercises = [{
+  name: NAME,
+  sets: [{ setNo: 1, kind: 'work', kg: '62.5', reps: '8', done: false }]
+}];
+livePaintTodayCue(0, 0);
+ok('paint starts at session kg', /62\.5 kg/.test(painted), painted);
+ctx._liveSlot.exercises[0].sets[0].kg = '75';
+livePaintTodayCue(0, 0);
+ok('paint 75 kg immediately', /75 kg/.test(painted) && /8-10/.test(painted), painted);
+eq('paint did not run pipeline', packDuringPaint, 0);
+ctx.liveExCuePack = origPack;
+windowObj.liveExCuePack = origPack;
+documentStub.getElementById = () => null;
+
+/* D16 through full 7A→7B→7C caller */
+const CID16 = 'c-cue-d16';
+windowObj.CL = windowObj.CL.concat([{ id: CID16, name: 'D16' }]);
+windowObj.PL = windowObj.PL.concat([{
+  id: 'pl-d16', clientId: CID16, name: 'Plan D16',
+  days: [{ exercises: [{ name: NAME, sets: '3', reps: '8-10' }] }]
+}, {
+  id: 'pl-amrap', clientId: CID16, name: 'Plan AMRAP',
+  days: [{ exercises: [{ name: NAME, sets: '3', reps: 'AMRAP' }] }]
+}]);
+windowObj.SE = windowObj.SE.concat([
+  saveLive('d16-1', CID16, '2026-09-01', [
+    liveEx(NAME, [
+      Object.assign(work(80, 10, '2'), { setNo: 1, done: true }),
+      Object.assign(work(80, 10, '2'), { setNo: 2, done: true }),
+      Object.assign(work(80, 10, '2'), { setNo: 3, done: true })
+    ])
+  ], { planId: 'pl-d16' }),
+  saveLive('d16-2', CID16, '2026-09-08', [
+    liveEx(NAME, [
+      Object.assign(work(80, 10, '2'), { setNo: 1, done: true }),
+      Object.assign(work(80, 10, '2'), { setNo: 2, done: true }),
+      Object.assign(work(80, 10, '2'), { setNo: 3, done: true })
+    ])
+  ], { planId: 'pl-d16' }),
+  saveLive('d16-3', CID16, '2026-09-15', [
+    liveEx(NAME, [
+      Object.assign(work(80, 10, '2'), { setNo: 1, done: true }),
+      Object.assign(work(80, 10, '2'), { setNo: 2, done: true }),
+      Object.assign(work(80, 10, '2'), { setNo: 3, done: true })
+    ])
+  ], { planId: 'pl-d16' }),
+  saveLive('amrap-1', CID16, '2026-09-01', [
+    liveEx(NAME, [
+      Object.assign(work(80, 10, '2'), { setNo: 1, done: true }),
+      Object.assign(work(80, 10, '2'), { setNo: 2, done: true }),
+      Object.assign(work(80, 10, '2'), { setNo: 3, done: true })
+    ])
+  ], { planId: 'pl-amrap' }),
+  saveLive('amrap-2', CID16, '2026-09-08', [
+    liveEx(NAME, [
+      Object.assign(work(80, 10, '2'), { setNo: 1, done: true }),
+      Object.assign(work(80, 10, '2'), { setNo: 2, done: true }),
+      Object.assign(work(80, 10, '2'), { setNo: 3, done: true })
+    ])
+  ], { planId: 'pl-amrap' }),
+  saveLive('amrap-3', CID16, '2026-09-15', [
+    liveEx(NAME, [
+      Object.assign(work(80, 10, '2'), { setNo: 1, done: true }),
+      Object.assign(work(80, 10, '2'), { setNo: 2, done: true }),
+      Object.assign(work(80, 10, '2'), { setNo: 3, done: true })
+    ])
+  ], { planId: 'pl-amrap' })
+]);
+const viaD16 = origBrief(CID16, { planId: 'pl-d16' });
+const recD16 = (viaD16.recs || []).find(r => r && r.name === NAME);
+ok('D16 reachable via caller', recD16 && recD16.action === 'DODAJ CIĘŻAR', recD16 ? recD16.action + ' ' + JSON.stringify(recD16.reasons) : 'no rec');
+ok('D16 gate', recD16 && recD16.reasons && /strop powtórzeń/.test(recD16.reasons[0]), recD16 && recD16.reasons && recD16.reasons[0]);
+eq('D16 target 10 from plan hi', recD16 && recD16.facts && recD16.facts.target, 10);
+ctx._liveSlot.clientId = CID16;
+ctx._liveSlot.planId = 'pl-d16';
+ctx._liveSlot.exercises = [{ name: NAME, sets: [{ kg: '80', reps: '10', kind: 'work' }] }];
+const packD16 = liveExCuePack(0);
+const recPackD16 = liveExMatchCueRec(ctx._liveSlot.exercises[0], packD16.recs);
+const htmlD16 = liveExCueStripHtml(ctx._liveSlot.exercises[0], 0, packD16);
+ok('Live strip D16 DODAJ CIĘŻAR', recPackD16 && recPackD16.action === 'DODAJ CIĘŻAR' && /DODAJ/.test(htmlD16), htmlD16);
+const viaAmrap = origBrief(CID16, { planId: 'pl-amrap' });
+const recAmrap = (viaAmrap.recs || []).find(r => r && r.name === NAME);
+ok('AMRAP does not invent repMax', recAmrap && recAmrap.facts && recAmrap.facts.target == null, recAmrap && recAmrap.facts ? JSON.stringify(recAmrap.facts.target) : 'no rec');
+ok('AMRAP is not D16', !(recAmrap && recAmrap.action === 'DODAJ CIĘŻAR' && recAmrap.facts && recAmrap.facts.target), recAmrap && recAmrap.action);
+
+ctx._liveSlot.clientId = CID;
+ctx._liveSlot.planId = 'pl-b';
+ctx._liveSlot.exercises = [{ name: NAME, sets: [{ kg: '62.5', reps: '8', kind: 'work' }] }];
+windowObj._cpExerciseProgress = null;
+const recDraftA = liveExMatchCueRec(ctx._liveSlot.exercises[0], liveExCuePack(0).recs);
+windowObj._cpExerciseProgress = null;
+ctx._liveSlot.exercises[0].sets[0].kg = '75';
+const recDraftB = liveExMatchCueRec(ctx._liveSlot.exercises[0], liveExCuePack(0).recs);
+eq('same history same recommendation after kg edit', recDraftA && recDraftA.action, recDraftB && recDraftB.action);
+eq('same history same lastKg after kg edit', recDraftA && recDraftA.facts && recDraftA.facts.lastKg, recDraftB && recDraftB.facts && recDraftB.facts.lastKg);
 
 if (failed) {
   console.error('\n' + failed + ' live-ex-cue checks failed');
