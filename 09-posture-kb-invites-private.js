@@ -371,7 +371,7 @@ function saveCPEdit(id){
   // Zaktualizuj nagłówek drawera
   try{
     document.getElementById('cp-name').textContent=c.name;
-    document.getElementById('cp-sub').textContent=(c.goal||'Brak celu')+' · '+(c.level||'')+(c.age?' · '+c.age+' lat':'');
+    document.getElementById('cp-sub').textContent=(typeof cpProfileSubtext==='function'?cpProfileSubtext(c):((({masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja'})[c.goal]||c.goal||'Brak celu')+' · '+(({poczatkujacy:'Początkujący',sredni:'Średni',zaawansowany:'Zaawansowany'})[c.level]||c.level||'')+(c.age?' · '+c.age+' lat':'')));
   }catch(e){}
   // Wróć do zakładki Przegląd po zapisaniu
   try{setCPTab('overview');}catch(e){}

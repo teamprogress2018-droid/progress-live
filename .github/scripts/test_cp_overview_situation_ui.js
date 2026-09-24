@@ -92,7 +92,9 @@ function ok(name, cond, extra) {
     window.METRIC_ENTRIES = [
       { id: 'm1', clientId: 'c-sit', groupId: 'mg1', date: addDays(-28), values: { m1: 81.0 } },
       { id: 'm2', clientId: 'c-sit', groupId: 'mg1', date: ymd, values: { m1: 82.4 } },
-      { id: 'm3', clientId: 'c-sit', groupId: 'mg5', date: addDays(-8), values: { m2: 7.4 } },
+      { id: 'm3', clientId: 'c-sit', groupId: 'mg5', date: addDays(-12), values: { m2: 7.6 } },
+      { id: 'm3b', clientId: 'c-sit', groupId: 'mg5', date: addDays(-8), values: { m2: 7.4 } },
+      { id: 'm3c', clientId: 'c-sit', groupId: 'mg5', date: addDays(-4), values: { m2: 6.2 } },
       { id: 'm4', clientId: 'c-sit', groupId: 'mg5', date: addDays(-1), values: { m2: 5.1 } }
     ];
     window.CLIENT_NOTES = window.CLIENT_NOTES || {};
@@ -128,15 +130,17 @@ function ok(name, cond, extra) {
     hasTrain: !!(train && /Ostatnie 7 dni/.test(train.textContent || '')),
       hasMetrics: !!(metrics && /Pomiary ciała/.test((metrics.querySelector('.cp-ov-card-title') || {}).textContent || '')),
       tabs,
-      editCta: !!document.querySelector('.cp-ov-edit-cta')
+      editCta: !!document.querySelector('.cp-ov-edit-cta'),
+      alert: (document.querySelector('[data-cp-alert]') || {}).getAttribute && (document.querySelector('[data-cp-alert]') || {}).getAttribute('data-cp-alert') || '',
+      missing: !!document.querySelector('[data-cp-missing]')
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'cp_overview_situation_signals.png'), fullPage: false });
   ok('situation visible', busy.hasSit);
-  ok('kicker Sytuacja', busy.kicker === 'Sytuacja', busy.kicker);
+  ok('kicker Status', busy.kicker === 'Status', busy.kicker);
   ok('title name + goal', /Jarosław Test/.test(busy.title) && /masy/i.test(busy.title), busy.title);
   ok('pulse inside situation', busy.pulse);
-  ok('next header', /Na kolejny trening/.test(busy.nextHd), busy.nextHd);
+  ok('next header', /Wnioski/.test(busy.nextHd), busy.nextHd);
   ok('injury bullet', busy.next.some(x => x.kind === 'injury' && /kolano/.test(x.text)), JSON.stringify(busy.next));
   ok('load drop bullet', busy.next.some(x => x.kind === 'load' && /volume/.test(x.text)), JSON.stringify(busy.next));
   ok('sleep bullet', busy.next.some(x => x.kind === 'sleep'), JSON.stringify(busy.next));
@@ -146,7 +150,9 @@ function ok(name, cond, extra) {
   ok('overdue checkin hint', /przeterminowany/.test(busy.checkinHint), busy.checkinHint);
   ok('existing train card', busy.hasTrain);
   ok('existing metrics card', busy.hasMetrics);
-  ok('edit CTA remains', busy.editCta);
+  ok('edit CTA gone', !busy.editCta);
+  ok('invite alert on top', busy.alert === 'invite', busy.alert);
+  ok('missing checklist', busy.missing);
   ok('tabs still have Przegląd', busy.tabs.some(t => /Przegląd/i.test(t)), busy.tabs.join(','));
 
   await page.evaluate(() => {

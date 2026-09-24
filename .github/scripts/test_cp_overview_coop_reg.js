@@ -131,8 +131,8 @@ function makeSandbox(){
 
 ok('helpers exist',/function cpCoopCollectSignals\(c\)/.test(src08)&&/function runCpCoopAnalysis\(/.test(src08));
 ok('overview order brief-sit-coop',overview.indexOf('cpOverviewBriefHTML(c)')<overview.indexOf('cpOverviewSituationHTML(c)')&&overview.indexOf('cpOverviewSituationHTML(c)')<overview.indexOf('cpOverviewCoopHTML(c)'));
-ok('situation helper frozen',sit.includes('Na kolejny trening')&&sit.includes('cp-ov-situation')&&!sit.includes('runCpCoopAnalysis')&&!sit.includes('Przeanalizuj współpracę'));
-ok('brief helper frozen',brief.includes('Przed treningiem')&&!brief.includes('Przeanalizuj współpracę')&&!brief.includes('runCpCoopAnalysis'));
+ok('situation helper frozen',sit.includes('Wnioski')&&sit.includes('cp-ov-situation')&&!sit.includes('runCpCoopAnalysis')&&!sit.includes('Przeanalizuj współpracę'));
+ok('brief helper frozen',brief.includes('Dziś')&&!brief.includes('Przeanalizuj współpracę')&&!brief.includes('runCpCoopAnalysis'));
 ok('html helper no monitor.next',!/v\.next|monitor\.next/.test(extract(src08,'cpOverviewCoopHTML')));
 ok('coop no persistById',!/persistById/.test(coopSrc));
 ok('html helper no fetch',!/fetch\(/.test(extract(src08,'cpOverviewCoopHTML')));
@@ -141,7 +141,7 @@ ok('busy guard',/if\(window\._cpCoopBusy\[id\]\)return/.test(extract(src08,'runC
 ok('gate before fetch',extract(src08,'cpCoopRequestAnalysis').indexOf('length<2')<extract(src08,'cpCoopRequestAnalysis').indexOf('await fetch'));
 ok('run calls request helper',/cpCoopRequestAnalysis\(c\)/.test(extract(src08,'runCpCoopAnalysis')));
 ok('ci files',wf.includes('test_cp_overview_coop.js')&&wf.includes('test_cp_overview_coop_reg.js')&&wf.includes('test_cp_overview_coop_ui.js'));
-ok('cache pins',html.includes('08-client-profile-extras.js?v=73')&&html.includes('styles.css?v=105'));
+ok('cache pins',html.includes('08-client-profile-extras.js?v=74')&&html.includes('styles.css?v=106'));
 ok('css card',css.includes('.cp-ov-coop')&&css.includes('.cp-ov-coop-err'));
 
 const sb=makeSandbox();

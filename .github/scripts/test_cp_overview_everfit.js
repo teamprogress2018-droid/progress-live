@@ -22,7 +22,7 @@ function ok(name, cond) {
   } else console.log('OK  ', name);
 }
 
-ok('bmi/watch banner', overview.includes('cp-bmi-banner') && overview.includes('Asystent trenera'));
+ok('bmi/watch stays off overview', !overview.includes('cp-bmi-banner') && !overview.includes('Asystent trenera'));
 ok('main column', overview.includes('cp-ov-main'));
 ok('right rail', overview.includes('cp-ov-rail'));
 ok('training 7 days', overview.includes('last7') && overview.includes('Ostatnie 7 dni'));
@@ -39,14 +39,14 @@ ok('notes rail', overview.includes("railCard('Notatki'"));
 ok('injuries rail', overview.includes('Ograniczenia'));
 ok('photos rail clickable', overview.includes('Zdjęcia postępu') && overview.includes("setCPTab('photos')"));
 ok('pulse status', src.includes('cp-ov-pulse') && /function\s+cpClientPulseStatus/.test(src));
-ok('situation header', overview.includes('cpOverviewSituationHTML') && src.includes('cp-ov-situation') && src.includes('Na kolejny trening'));
+ok('situation header', overview.includes('cpOverviewSituationHTML') && src.includes('cp-ov-situation') && src.includes('Wnioski'));
 ok('physique card', overview.includes('Aktualna sylwetka') && overview.includes('cp-ov-physique'));
 ok('feel + garmin 7d', overview.includes('Samopoczucie (check-in)') && overview.includes('Garmin · 7 dni'));
 ok('train icons', overview.includes('cpTrainIconRow') && /function\s+cpTrainIconRow/.test(src));
 ok('remind in overview', overview.includes("cpRemindClient('") && overview.includes('Przypomnij'));
 ok('no updates rail', !overview.includes('Aktualizacje') && !/function\s+cpOverviewUpdates/.test(src));
-ok('cache 08', html.includes('08-client-profile-extras.js?v=73'));
-ok('overview edit CTA', overview.includes('cp-ov-edit-cta') && overview.includes('Dane osobowe'));
+ok('cache 08', html.includes('08-client-profile-extras.js?v=74'));
+ok('overview edit via header/profil', overview.includes("startCPEdit('${c.id}')") && !overview.includes('cp-ov-edit-cta'));
 ok('profil rail shows name', overview.includes('Imię i nazwisko'));
 ok('rail cards clickable not button spam', overview.includes('cp-ov-rail-card clickable') && !overview.includes('>Edytuj</button>'));
 ok('no duplicate message in profile rail', !/WhatsApp|mailto:/.test(overview));

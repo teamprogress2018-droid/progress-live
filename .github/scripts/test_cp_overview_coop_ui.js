@@ -295,7 +295,7 @@ function ok(name, cond, extra) {
   }));
   ok('pair training+checkin CTA without mass', /Przeanalizuj współpracę/.test(pairIdle.cta), pairIdle.cta);
   ok('pair no fetch on open', pairIdle.fetch === 1, String(pairIdle.fetch));
-  ok('next still on pair', /Na kolejny trening/.test(pairIdle.next));
+  ok('next still on pair', /Wnioski/.test(pairIdle.next));
 
   await page.evaluate(() => {
     runCpCoopAnalysis('c-pair');

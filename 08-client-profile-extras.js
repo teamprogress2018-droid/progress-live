@@ -1546,15 +1546,18 @@ function cpMetricSeries(clientId,groupId,metricId,limit){
 function cpOvSparkSVG(points,color,bars){
   const pts=(points||[]).filter(p=>p&&isFinite(p.v));
   if(pts.length<2)return'';
-  const W=160,H=36,pad=2;
+  const labeled=!!bars&&pts.length<=4;
+  const W=160,H=labeled?52:36,pad=2,labelH=labeled?12:0;
   const col=color||'var(--accent)';
   if(bars){
     const max=Math.max(...pts.map(p=>p.v),1);
     const bw=Math.max(3,Math.floor((W-pad*2)/pts.length)-2);
     return `<svg class="cp-ov-spark" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">${pts.map((p,i)=>{
-      const bh=Math.max(2,Math.round((p.v/max)*(H-pad*2)));
-      const x=pad+i*(bw+2);const y=H-pad-bh;
-      return `<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="1.5" fill="${col}" opacity="0.85"/>`;
+      const chartH=H-pad*2-labelH;
+      const bh=Math.max(2,Math.round((p.v/max)*chartH));
+      const x=pad+i*(bw+2);const y=H-pad-labelH-bh;
+      const lab=labeled?`<text x="${(x+bw/2).toFixed(1)}" y="${H-2}" text-anchor="middle" font-size="8" fill="currentColor">${escHtml(String(Math.round(p.v*10)/10))}</text>`:'';
+      return `<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="1.5" fill="${col}" opacity="0.85"/>${lab}`;
     }).join('')}</svg>`;
   }
   const minV=Math.min(...pts.map(p=>p.v));
@@ -1596,6 +1599,137 @@ function cpClientPulseStatus(clientId){
   return{tone:'bad',label:'Cichy tydzień',days,hint:'Brak wpisów od '+days+' dni'};
 }
 window.cpClientPulseStatus=cpClientPulseStatus;
+
+const CP_OV_ADH_MIN=4;
+const CP_OV_SLEEP_MIN=4;
+const CP_OV_MASS_TREND_MIN=2;
+function cpProfileSubtext(c){
+  if(!c)return'—';
+  const goalLabels={masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja'};
+  const levelLabels={poczatkujacy:'Początkujący',sredni:'Średni',zaawansowany:'Zaawansowany'};
+  const goal=goalLabels[c.goal]||c.goal||'Brak celu';
+  const level=levelLabels[c.level]||'';
+  return goal+(level?' · '+level:'')+(c.age?' · '+c.age+' lat':'');
+}
+function cpApplyProfileSubtext(c){
+  const el=typeof document!=='undefined'?document.getElementById('cp-sub'):null;
+  if(el)el.textContent=cpProfileSubtext(c);
+}
+function cpClientHasPlanDays(c){
+  if(!c||!c.id)return false;
+  const plan=typeof latestClientPlan==='function'?latestClientPlan(c.id):((window.PL||[]).filter(p=>p&&p.clientId===c.id).slice(-1)[0]||null);
+  return !!(plan&&(plan.days||[]).some(d=>d&&!d.rest));
+}
+function cpAdhSampleOk(a){
+  return !!(a&&Number(a.assigned||0)>=CP_OV_ADH_MIN);
+}
+function cpClientStatusTruth(c){
+  if(!c)return{tone:'info',label:'Brak klienta',hint:'',reason:'none',pulse:null,ob:null,scheduleOk:false};
+  const pulse=typeof cpClientPulseStatus==='function'?cpClientPulseStatus(c.id):{tone:'info',label:'',hint:''};
+  const ob=typeof getClientOnboard==='function'?getClientOnboard(c):null;
+  const scheduleOk=!!(ob&&ob.schedule)||cpClientHasPlanDays(c);
+  const snap=typeof clientSituationSnapshot==='function'?clientSituationSnapshot(c.id):null;
+  const adh30=(snap&&snap.facts&&snap.facts.adh30)||{};
+  if(ob&&!ob.invite){
+    return{tone:'warn',label:'Brak dostępu',hint:'Klient nie ma jeszcze zaproszenia do aplikacji',reason:'invite',pulse,ob,scheduleOk};
+  }
+  if(ob&&!ob.complete){
+    const miss=[];
+    if(!ob.baseline)miss.push('pomiary');
+    if(!scheduleOk)miss.push('dni treningowe');
+    if(!ob.plan)miss.push('plan');
+    if(!ob.calendar&&!ob.session)miss.push('wpis w kalendarzu');
+    if(ob.package===false)miss.push('pakiet');
+    return{tone:'warn',label:'Start niedokończony',hint:miss.length?('Brakuje: '+miss.join(', ')):'Dokończ start współpracy',reason:'onboard',pulse,ob,scheduleOk};
+  }
+  if(pulse.tone==='bad')return{tone:'bad',label:pulse.label,hint:pulse.hint,reason:'pulse',pulse,ob,scheduleOk};
+  if(cpAdhSampleOk(adh30)&&adh30.pct<50){
+    return{tone:'warn',label:'Słaba regularność',hint:'Zrobione '+adh30.logged+' z '+adh30.assigned+' treningów w 30 dniach',reason:'adh',pulse,ob,scheduleOk};
+  }
+  if(pulse.tone==='warn')return{tone:'warn',label:pulse.label,hint:pulse.hint,reason:'pulse',pulse,ob,scheduleOk};
+  return{tone:pulse.tone||'good',label:pulse.label||'Na czas',hint:pulse.hint||'',reason:'ok',pulse,ob,scheduleOk};
+}
+function cpOverviewAlertHTML(c){
+  if(!c)return'';
+  const esc=typeof escHtml==='function'?escHtml:(s=>String(s??''));
+  const truth=cpClientStatusTruth(c);
+  const ob=truth.ob;
+  if(!ob||ob.complete)return'';
+  if(!ob.invite){
+    return `<div class="cp-ov-alert" data-cp-alert="invite">
+      <div>
+        <div class="cp-ov-alert-title">Klient nie ma jeszcze dostępu — wyślij zaproszenie</div>
+        <div class="cp-ov-alert-sub">Bez apki nie będzie check-inów, zdjęć, Garmina ani pomiarów od klienta.</div>
+      </div>
+      <button type="button" class="btn btn-primary btn-sm" data-cp-alert-cta="invite" onclick="typeof openInviteModal==='function'&&openInviteModal('${esc(c.id)}')">Wyślij zaproszenie</button>
+    </div>`;
+  }
+  const miss=[];
+  if(!ob.baseline)miss.push('pomiary');
+  if(!truth.scheduleOk)miss.push('dni treningowe');
+  if(!ob.plan)miss.push('plan');
+  if(!ob.calendar&&!ob.session)miss.push('kalendarz');
+  if(!miss.length&&ob.package===false)miss.push('pakiet');
+  if(!miss.length)return'';
+  return `<div class="cp-ov-alert cp-ov-alert-soft" data-cp-alert="onboard">
+    <div>
+      <div class="cp-ov-alert-title">Start współpracy ${esc(String(ob.done))}/${esc(String(ob.total))}</div>
+      <div class="cp-ov-alert-sub">Brakuje: ${esc(miss.join(', '))}.</div>
+    </div>
+    <button type="button" class="btn btn-ghost btn-sm" data-cp-alert-cta="onboard" onclick="openClientOnboardChecklist('${esc(c.id)}')">Dokończ</button>
+  </div>`;
+}
+function cpOverviewMissingItems(c){
+  const items=[];
+  if(!c)return items;
+  const id=c.id;
+  const truth=cpClientStatusTruth(c);
+  const metricsOn=typeof bmFeatureOn==='function'?bmFeatureOn(c):true;
+  const photosOn=typeof ppFeatureOn==='function'?ppFeatureOn(c):true;
+  const filled=((window.CHECKINS&&window.CHECKINS[id])||[]).filter(x=>x&&x.status==='filled');
+  const photos=photosOn&&typeof ppListFor==='function'?ppListFor(id):[];
+  const physique=photosOn&&typeof cpLatestPhysique==='function'?cpLatestPhysique(id):null;
+  const garmin=metricsOn&&typeof cpGarminWeekAvg==='function'?cpGarminWeekAvg(id):{n:0};
+  const hr=metricsOn?(typeof cpMetricLatest==='function'?(cpMetricLatest(id,'mg4','m1')||cpMetricLatest(id,'mg6','m3')):null):null;
+  const steps=metricsOn&&typeof cpMetricLatest==='function'?cpMetricLatest(id,'mg6','m1'):null;
+  const sleep=typeof cpMetricLatest==='function'?cpMetricLatest(id,'mg5','m2'):null;
+  const notes=(window.CLIENT_NOTES&&window.CLIENT_NOTES[id])||[];
+  const injuries=typeof clientInjuriesText==='function'?clientInjuriesText(c):(c.injuries||'');
+  if(truth.ob&&!truth.ob.invite)items.push({id:'invite',label:'Dostęp do aplikacji',cta:'Wyślij zaproszenie',onclick:`typeof openInviteModal==='function'&&openInviteModal('${id}')`});
+  if(!filled.length)items.push({id:'checkin',label:'Check-in',cta:'Poproś o check-in',onclick:`cpRemindClient('${id}','checkin')`});
+  if(photosOn&&!(photos&&photos.length)&&!(physique&&(physique.front||physique.side||physique.back))){
+    items.push({id:'photos',label:'Zdjęcia postępu',cta:'Poproś o zdjęcia',onclick:`cpRemindClient('${id}','photos')`});
+  }
+  if(metricsOn&&!(garmin&&garmin.n))items.push({id:'garmin',label:'Garmin',cta:'Import Garmin',onclick:`setCPTab('metrics')`});
+  if(metricsOn&&!hr)items.push({id:'hr',label:'Tętno spoczynkowe',cta:'Dodaj pomiar',onclick:`setCPTab('metrics')`});
+  if(metricsOn&&!steps)items.push({id:'steps',label:'Kroki',cta:'Dodaj pomiar',onclick:`setCPTab('metrics')`});
+  if(!sleep)items.push({id:'sleep',label:'Sen',cta:'Dodaj pomiar',onclick:`setCPTab('metrics')`});
+  if(!String(injuries||'').trim())items.push({id:'injuries',label:'Ograniczenia / kontuzje',cta:'Uzupełnij',onclick:`startCPEdit('${id}')`});
+  if(!notes.length)items.push({id:'notes',label:'Notatka trenera',cta:'Dodaj notatkę',onclick:`setCPTab('notes')`});
+  return items;
+}
+function cpOverviewMissingHTML(c){
+  const items=cpOverviewMissingItems(c);
+  if(!items.length)return'';
+  const esc=typeof escHtml==='function'?escHtml:(s=>String(s??''));
+  return `<div class="cp-ov-missing" data-cp-missing="list">
+    <div class="cp-ov-rail-hd"><span>Brakujące dane</span></div>
+    <ul class="cp-ov-missing-list">
+      ${items.map(it=>`<li class="cp-ov-missing-item" data-cp-missing-item="${esc(it.id)}">
+        <span>${esc(it.label)}</span>
+        ${it.cta?`<button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();${it.onclick}">${esc(it.cta)}</button>`:''}
+      </li>`).join('')}
+    </ul>
+  </div>`;
+}
+window.cpProfileSubtext=cpProfileSubtext;
+window.cpApplyProfileSubtext=cpApplyProfileSubtext;
+window.cpClientHasPlanDays=cpClientHasPlanDays;
+window.cpAdhSampleOk=cpAdhSampleOk;
+window.cpClientStatusTruth=cpClientStatusTruth;
+window.cpOverviewAlertHTML=cpOverviewAlertHTML;
+window.cpOverviewMissingItems=cpOverviewMissingItems;
+window.cpOverviewMissingHTML=cpOverviewMissingHTML;
 
 function cpLatestPhysique(clientId){
   const list=typeof ppListFor==='function'?ppListFor(clientId):[];
@@ -1663,7 +1797,9 @@ function cpRemindClient(clientId,kind){
     ?'👋 Przypomnienie: dokończ start współpracy w aplikacji (pomiary / plan / kalendarz).'
     :(kind==='workout'
       ?'💪 Przypomnienie o treningu — odhacz sesję w aplikacji, gdy zrobisz.'
-      :'💬 Krótki check-in od trenera — daj znać, jak idzie.');
+      :(kind==='photos'
+        ?'📸 Wrzuć zdjęcia postępu w aplikacji (przód / bok / tył).'
+        :'💬 Krótki check-in od trenera — daj znać, jak idzie.'));
   if(typeof pushMsg==='function')pushMsg(clientId,text);
   if(typeof notify==='function')notify('✓ Wiadomość poszła do czatu klienta');
   return true;
@@ -1750,13 +1886,16 @@ function cpLoadDropFacts(clientId){
   return drops.slice(0,2);
 }
 function cpSleepTrendFact(clientId){
-  const series=typeof cpMetricSeries==='function'?cpMetricSeries(clientId,'mg5','m2',6):[];
-  if(series.length<2)return null;
+  const series=typeof cpMetricSeries==='function'?cpMetricSeries(clientId,'mg5','m2',8):[];
+  if(!series.length)return null;
   const last=series[series.length-1].v;
-  const prev=series[series.length-2].v;
-  if(!Number.isFinite(last)||!Number.isFinite(prev))return null;
+  const prev=series.length>1?series[series.length-2].v:null;
+  if(!Number.isFinite(last))return null;
+  if(series.length<CP_OV_SLEEP_MIN||!Number.isFinite(prev)){
+    return{last,prev,dir:'thin',n:series.length,min:CP_OV_SLEEP_MIN};
+  }
   const dir=last<prev-0.7?'down':last>prev+0.7?'up':'flat';
-  return{last,prev,dir};
+  return{last,prev,dir,n:series.length,min:CP_OV_SLEEP_MIN};
 }
 function cpMassDelta30Fact(clientId){
   const series=typeof cpMetricSeries==='function'?cpMetricSeries(clientId,'mg1','m1',40):[];
@@ -1787,7 +1926,7 @@ function cpNextSessionFocusItems(clientId){
     items.push({kind:'load',tone:'watch',text:cpSitClip(d.name,42)+': volume −'+d.pct+'% vs poprzedni trening'});
   });
   const sleep=cpSleepTrendFact(clientId);
-  if(sleep&&sleep.dir==='down'){
+  if(sleep&&sleep.dir==='down'&&(sleep.n==null||sleep.n>=CP_OV_SLEEP_MIN)){
     items.push({kind:'sleep',tone:'watch',text:'Sen spada ('+sleep.prev+' → '+sleep.last+') — lżejszy start'});
   }
   const ci=snap&&snap.facts&&snap.facts.checkinStatus;
@@ -1821,13 +1960,13 @@ function cpOverviewSitTone(kind,snap,mass,sleep){
   }
   if(kind==='adh'){
     const a=facts.adh30||{};
-    if(!a.assigned)return'info';
+    if(!a.assigned||!cpAdhSampleOk(a))return'info';
     if(a.pct<70)return'watch';
     return'ok';
   }
   if(kind==='mass')return'info';
   if(kind==='sleep'){
-    if(!sleep)return'info';
+    if(!sleep||sleep.dir==='thin')return'info';
     if(sleep.dir==='down')return'watch';
     return'ok';
   }
@@ -1852,7 +1991,7 @@ function cpOverviewSituationHTML(c){
   if(!c)return'';
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s??''));
   const snap=typeof clientSituationSnapshot==='function'?clientSituationSnapshot(c.id):null;
-  const pulse=(snap&&snap.pulse)||(typeof cpClientPulseStatus==='function'?cpClientPulseStatus(c.id):{tone:'good',label:'',hint:''});
+  const truth=typeof cpClientStatusTruth==='function'?cpClientStatusTruth(c):{tone:'good',label:'Status',hint:''};
   const goalLabels={masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja'};
   const goalText=goalLabels[c.goal]||c.goal||'—';
   const facts=snap&&snap.facts||{};
@@ -1864,10 +2003,13 @@ function cpOverviewSituationHTML(c){
   const sleepVal=facts.sleep&&facts.sleep.value!=null?facts.sleep.value:(sleep&&sleep.last);
   const lastCi=facts.lastCheckin;
   const fmtN=v=>v==null||v===''?'—':(typeof v==='number'&&!Number.isInteger(v)?String(Math.round(v*10)/10):String(v));
-  const trainHint=adh7.assigned?(Math.round(adh7.pct||0)+'% planu'):(adh7.logged?'zarejestrowane':'brak planu');
-  const adhHint=adh30.assigned?(adh30.logged+'/'+adh30.assigned):'brak przypisań';
-  const massHint=mass.delta==null?'brak serii 30d':((mass.delta>0?'+':'')+mass.delta+' kg / 30d');
-  const sleepHint=sleep?(sleep.dir==='down'?'spada':sleep.dir==='up'?'rośnie':'stabilny'):'brak trendu';
+  const trainThin=adh7.assigned>0&&adh7.assigned<3;
+  const trainHint=adh7.assigned?(trainThin?adh7.logged+'/'+adh7.assigned+' (za mało danych)':(Math.round(adh7.pct||0)+'% planu')):(adh7.logged?'zarejestrowane':'brak planu');
+  const adhOk=cpAdhSampleOk(adh30);
+  const adhN=adhOk?Math.round(adh30.pct||0)+'%':(adh30.assigned?adh30.logged+'/'+adh30.assigned:'—');
+  const adhHint=adh30.assigned?(adhOk?(adh30.logged+'/'+adh30.assigned):('Za mało danych ('+adh30.assigned+' z min. '+CP_OV_ADH_MIN+')')):'brak przypisań';
+  const massHint=mass.delta==null?'brak pomiarów wagi w ostatnich 30 dniach':((mass.delta>0?'+':'')+mass.delta+' kg / 30d');
+  const sleepHint=sleep?(sleep.dir==='thin'?('Za mało danych ('+sleep.n+' z min. '+sleep.min+' pomiarów)'):(sleep.dir==='down'?'spada':sleep.dir==='up'?'rośnie':'stabilny')):'brak pomiarów snu';
   let ciN='—';
   let ciHint='brak';
   if(lastCi&&lastCi.daysSince!=null){
@@ -1882,26 +2024,29 @@ function cpOverviewSituationHTML(c){
   }
   const tiles=[
     {id:'train',n:fmtN(adh7.logged)+(adh7.assigned?'/'+adh7.assigned:''),lbl:'Treningi 7d',hint:trainHint,tone:cpOverviewSitTone('train',snap,mass,sleep),target:'cp-ov-card-train'},
-    {id:'adh',n:adh30.assigned?Math.round(adh30.pct||0)+'%':'—',lbl:'Adherencja 30d',hint:adhHint,tone:cpOverviewSitTone('adh',snap,mass,sleep),target:'cp-ov-card-train'},
+    {id:'adh',n:adhN,lbl:'Adherencja 30d',hint:adhHint,tone:cpOverviewSitTone('adh',snap,mass,sleep),target:'cp-ov-card-train'},
     {id:'mass',n:fmtN(massVal),lbl:'Masa',hint:massHint,tone:cpOverviewSitTone('mass',snap,mass,sleep),target:'cp-ov-card-metrics'},
     {id:'sleep',n:fmtN(sleepVal),lbl:'Sen',hint:sleepHint,tone:cpOverviewSitTone('sleep',snap,mass,sleep),target:'cp-ov-card-metrics'},
     {id:'checkin',n:ciN,lbl:'Check-in',hint:ciHint,tone:cpOverviewSitTone('checkin',snap,mass,sleep),target:'cp-ov-card-feel'}
   ];
   const next=cpNextSessionFocusItems(c.id);
-  const mon=snap&&snap.signals&&snap.signals.monitor;
-  const verMap={progres:'Progres',regres:'Regres',stagnacja:'Stagnacja'};
-  const monTxt=mon&&mon.verdict?(' · '+(verMap[mon.verdict]||mon.verdict)):'';
+  const actions=[];
+  if(next.some(x=>x.kind==='checkin'))actions.push({id:'checkin',label:'Poproś o check-in',onclick:`cpRemindClient('${esc(c.id)}','checkin')`});
+  if(next.some(x=>x.kind==='adherence'))actions.push({id:'plan',label:'Uprość plan',onclick:`setCPTab('plan')`});
+  if(truth.reason==='onboard')actions.push({id:'onboard',label:'Dokończ start',onclick:`openClientOnboardChecklist('${esc(c.id)}')`});
+  if(next.some(x=>x.kind==='homework'))actions.push({id:'hw',label:'Zadania',onclick:`setCPTab('tasks')`});
+  const shownActions=actions.slice(0,3);
   return `<div class="cp-ov-situation">
     <div class="cp-ov-situation-top">
       <div>
-        <div class="cp-ov-situation-kicker">Sytuacja</div>
+        <div class="cp-ov-situation-kicker">Status</div>
         <div class="cp-ov-situation-title">${esc(c.name||'')} · ${esc(goalText)}</div>
       </div>
-      <div class="cp-ov-pulse cp-ov-pulse-${esc(pulse.tone||'good')}">
+      <div class="cp-ov-pulse cp-ov-pulse-${esc(truth.tone||'good')}">
         <span class="cp-ov-pulse-dot" aria-hidden="true"></span>
         <div>
-          <div class="cp-ov-pulse-label">${esc(pulse.label||'Status')}${esc(monTxt)}</div>
-          <div class="cp-ov-pulse-hint">${esc(pulse.hint||'')}</div>
+          <div class="cp-ov-pulse-label">${esc(truth.label||'Status')}</div>
+          <div class="cp-ov-pulse-hint">${esc(truth.hint||'')}</div>
         </div>
       </div>
     </div>
@@ -1913,11 +2058,12 @@ function cpOverviewSituationHTML(c){
       </button>`).join('')}
     </div>
     <div class="cp-ov-next">
-      <div class="cp-ov-next-hd">Na kolejny trening</div>
+      <div class="cp-ov-next-hd">Wnioski</div>
       <ul class="cp-ov-next-list">
         ${next.map(it=>`<li class="cp-ov-next-item cp-ov-next-${esc(it.tone)}" data-cp-next="${esc(it.kind)}">${esc(it.text)}</li>`).join('')}
       </ul>
     </div>
+    ${shownActions.length?`<div class="cp-ov-status-actions">${shownActions.map(a=>`<button type="button" class="btn btn-ghost btn-sm" data-cp-status-act="${esc(a.id)}" onclick="${a.onclick}">${esc(a.label)}</button>`).join('')}</div>`:''}
   </div>`;
 }
 window.cpSetsVolume=cpSetsVolume;
@@ -2104,16 +2250,21 @@ function cpOverviewBriefHTML(c){
   if(!c)return'';
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s??''));
   const items=collectCpBriefItems(c);
+  const shown=items.filter(it=>it.kind==='session'||it.kind==='injury');
+  const hasSession=shown.some(it=>it.kind==='session');
   if(!items.length){
     return `<div class="cp-ov-brief" data-cp-brief="empty">
-      <div class="cp-ov-brief-kicker">Przed treningiem</div>
+      <div class="cp-ov-brief-kicker">Dziś</div>
       <div class="cp-ov-brief-empty">Brak danych do briefu.</div>
     </div>`;
   }
   return `<div class="cp-ov-brief">
-    <div class="cp-ov-brief-kicker">Przed treningiem</div>
+    <div class="cp-ov-brief-top">
+      <div class="cp-ov-brief-kicker">Dziś</div>
+      ${hasSession?`<button type="button" class="btn btn-ghost btn-sm" data-cp-brief-live="1" onclick="typeof cpStartLive==='function'&&cpStartLive()">Otwórz Live</button>`:''}
+    </div>
     <div class="cp-ov-brief-list">
-      ${items.map(it=>`<div class="cp-ov-brief-row${it.tone==='watch'?' is-watch':''}" data-cp-brief="${esc(it.kind)}">
+      ${shown.map(it=>`<div class="cp-ov-brief-row${it.tone==='watch'?' is-watch':''}" data-cp-brief="${esc(it.kind)}">
         <span class="cp-ov-brief-lbl">${esc(it.label)}</span>
         <span class="cp-ov-brief-dot">•</span>
         <span class="cp-ov-brief-fact">${esc(it.fact||'')}</span>
@@ -2351,7 +2502,7 @@ Zakazy:
 - nie wymyślaj danych, dat, kg, procentów, 1RM, makro, diagnoz medycznych
 - nie diagnozuj problemów, które nie wynikają z kontekstu
 - jeśli danych jest mało — napisz czego brakuje zamiast generować zalecenie
-- nie powtarzaj Briefu, SYTUACJI ani listy „Na kolejny trening”
+- nie powtarzaj Briefu, SYTUACJI ani listy wniosków
 - nie używaj sformułowań: należy, musisz, wdróż, zdiagnozowano, skróć objętość o
 - brak oceny treningu to brak danych, nigdy 0/5
 - 0 na skali 1–5 oznacza brak zapisu, nie wynik
@@ -2456,7 +2607,8 @@ function cpOverviewCoopHTML(c){
   const labels={progres:'Progres',regres:'Regres','ryzyko stagnacji':'Ryzyko stagnacji',stabilnie:'Stabilnie'};
   const verdict=v&&v.verdict?(labels[v.verdict]||v.verdict):'';
   const tone=v?(v.verdictTone||'neutral'):'neutral';
-  const sigs=cpCoopPickSignals(v);
+  const thinVerdict=!v||!v.verdict||(v.verdict==='stabilnie'&&(v.score==null||Number(v.score)===0));
+  const sigs=thinVerdict?[]:cpCoopPickSignals(v);
   const busy=!!(window._cpCoopBusy&&window._cpCoopBusy[c.id]);
   let body='';
   if(busy){
@@ -2477,14 +2629,14 @@ function cpOverviewCoopHTML(c){
   const runLbl=cache&&(cache.parsed||cache.error)?'Ponów analizę':'Przeanalizuj współpracę';
   return `<div class="cp-ov-coop" data-cp-coop="card">
     <div class="cp-ov-coop-kicker">Analiza współpracy</div>
-    <div class="cp-ov-coop-verdict cp-ov-coop-${esc(tone)}" data-cp-coop-verdict="${esc(v&&v.verdict||'none')}">
-      ${verdict?`Werdykt: ${esc(verdict)}${v&&v.score!=null?' · score '+esc(String(v.score)):''}`:'Za mało danych do werdyktu.'}
+    <div class="cp-ov-coop-verdict cp-ov-coop-${esc(thinVerdict?'neutral':tone)}" data-cp-coop-verdict="${esc(thinVerdict?'none':(v&&v.verdict||'none'))}">
+      ${thinVerdict?'Za mało danych do werdyktu.':`Werdykt: ${esc(verdict)}`}
     </div>
     ${sigs.length?`<ul class="cp-ov-coop-sigs">${sigs.map(s=>`<li class="cp-ov-coop-sig cp-ov-coop-sig-${esc(s.tone||'neutral')}" data-cp-coop-sig="${esc(s.label||'')}">${esc(s.label||'')}${s.text?(' — '+esc(s.text)):''}</li>`).join('')}</ul>`:''}
     <div class="cp-ov-coop-body" id="cp-ov-coop-body">${body}</div>
     <div class="cp-ov-coop-actions">
-      ${showRun?`<button type="button" class="btn btn-primary btn-sm" id="cp-ov-coop-run" data-cp-coop-cta="run" onclick="runCpCoopAnalysis('${esc(c.id)}')">${esc(runLbl)}</button>`:''}
-      ${showBlocked?`<button type="button" class="btn btn-primary btn-sm" id="cp-ov-coop-run" data-cp-coop-cta="blocked" disabled aria-disabled="true" title="${esc(CP_COOP_GATE_MSG)}" style="opacity:.45;cursor:not-allowed">Przeanalizuj współpracę</button>`:''}
+      ${showRun?`<button type="button" class="btn btn-ghost btn-sm" id="cp-ov-coop-run" data-cp-coop-cta="run" onclick="runCpCoopAnalysis('${esc(c.id)}')">${esc(runLbl)}</button>`:''}
+      ${showBlocked?`<button type="button" class="btn btn-ghost btn-sm" id="cp-ov-coop-run" data-cp-coop-cta="blocked" disabled aria-disabled="true" title="${esc(CP_COOP_GATE_MSG)}" style="opacity:.45;cursor:not-allowed">Przeanalizuj współpracę</button>`:''}
       ${cache&&!busy?`<button type="button" class="btn btn-ghost btn-sm" data-cp-coop-cta="clear" onclick="clearCpCoopAnalysis('${esc(c.id)}')">Wyczyść</button>`:''}
     </div>
     <div class="cp-ov-coop-foot">AI interpretuje dane. Decyzję podejmujesz Ty.</div>
@@ -2575,6 +2727,7 @@ function renderCPOverview(c){
   const daysSince=lastSess?Math.floor((today-new Date(lastSess.date))/(1000*60*60*24)):null;
   const notes=CLIENT_NOTES[c.id]||[];
   initClientData(c);
+  if(typeof cpApplyProfileSubtext==='function')cpApplyProfileSubtext(c);
 
   const editing=window._cpEditingClientId===c.id;
   const goalLabels={masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja'};
@@ -2610,17 +2763,19 @@ function renderCPOverview(c){
   const weightEntry=metricsOn?cpMetricLatest(c.id,'mg1','m1'):null;
   const weightVal=weightEntry?weightEntry.values.m1:(c.weight||null);
   const weightDelta=metricsOn?cpMetricDeltaPct(c.id,'mg1','m1'):null;
-  const weightSpark=metricsOn?cpOvSparkSVG(cpMetricSeries(c.id,'mg1','m1'),'var(--accent)'):'';
+  const weightSeries=metricsOn?cpMetricSeries(c.id,'mg1','m1'):[];
+  const sleepSeries=cpMetricSeries(c.id,'mg5','m2');
   const stepsEntry=metricsOn?cpMetricLatest(c.id,'mg6','m1'):null;
   const stepsDelta=metricsOn?cpMetricDeltaPct(c.id,'mg6','m1'):null;
-  const stepsSpark=metricsOn?cpOvSparkSVG(cpMetricSeries(c.id,'mg6','m1'),'var(--blue)',true):'';
   const hrEntry=metricsOn?(cpMetricLatest(c.id,'mg4','m1')||cpMetricLatest(c.id,'mg6','m3')):null;
   const hrGroup=hrEntry?hrEntry.groupId:'mg4';
   const hrKey=hrEntry&&hrEntry.values&&hrEntry.values.m1!=null?'m1':'m3';
   const hrDelta=metricsOn&&hrEntry?cpMetricDeltaPct(c.id,hrGroup,hrKey):null;
-  const hrSpark=metricsOn&&hrEntry?cpOvSparkSVG(cpMetricSeries(c.id,hrGroup,hrKey),'var(--teal)'):'';
   const sleepEntry=cpMetricLatest(c.id,'mg5','m2');
-  const sleepSpark=cpOvSparkSVG(cpMetricSeries(c.id,'mg5','m2'),'var(--blue)',true);
+  const weightSpark=weightSeries.length>=2?cpOvSparkSVG(weightSeries,'var(--accent)'):'';
+  const stepsSpark=metricsOn&&stepsEntry?cpOvSparkSVG(cpMetricSeries(c.id,'mg6','m1'),'var(--blue)',true):'';
+  const hrSpark=metricsOn&&hrEntry?cpOvSparkSVG(cpMetricSeries(c.id,hrGroup,hrKey),'var(--teal)'):'';
+  const sleepSpark=sleepSeries.length>=CP_OV_SLEEP_MIN?cpOvSparkSVG(sleepSeries,'var(--blue)',true):'';
 
   const photos=photosOn&&typeof ppListFor==='function'?ppListFor(c.id).slice().reverse().slice(0,2):[];
   const pulse=typeof cpClientPulseStatus==='function'?cpClientPulseStatus(c.id):{tone:'good',label:'',hint:''};
@@ -2636,14 +2791,24 @@ function renderCPOverview(c){
 
   const metricCard=(title,value,unit,delta,empty,spark)=>{
     const has=value!=null&&value!==''&&value!=='—';
+    if(!has)return'';
     const dHtml=delta==null?'':`<div class="cp-ov-metric-delta" style="color:${delta<=0?'var(--teal)':'var(--orange)'};">${delta>0?'↑':'↓'} ${Math.abs(delta)}%</div>`;
     return `<div class="cp-ov-metric">
       <div class="cp-ov-metric-lbl">${title}</div>
-      <div class="cp-ov-metric-val">${has?escHtml(String(value)):'—'}${has&&unit?`<span class="cp-ov-metric-unit">${unit}</span>`:''}</div>
-      ${has?dHtml:`<div style="font-size:10px;color:var(--muted);margin-top:4px;">${empty||'Brak danych'}</div>`}
+      <div class="cp-ov-metric-val">${escHtml(String(value))}${unit?`<span class="cp-ov-metric-unit">${unit}</span>`:''}</div>
+      ${dHtml}
       ${spark?`<div class="cp-ov-metric-spark">${spark}</div>`:''}
     </div>`;
   };
+  const weightHtml=weightSeries.length>=2?metricCard('Waga',weightVal,'kg',weightDelta,'',weightSpark):'';
+  const sleepHtml=sleepSeries.length>=CP_OV_SLEEP_MIN?metricCard('Sen',sleepEntry?sleepEntry.values.m2:null,'/10',null,'',sleepSpark):'';
+  const hrHtml=metricCard('Tętno spocz.',hrEntry?(hrEntry.values.m1||hrEntry.values.m3):null,'bpm',hrDelta,'',hrSpark);
+  const stepsHtml=metricCard('Kroki',stepsEntry?stepsEntry.values.m1:null,'',stepsDelta,'',stepsSpark);
+  const metricsHtml=[weightHtml,sleepHtml,hrHtml,stepsHtml].filter(Boolean).join('');
+  const hasPhysique=!!(photosOn&&physique&&(physique.front||physique.side||physique.back));
+  const hasFeel=!!lastCheck;
+  const hasGarmin=!!(garmin7&&garmin7.n);
+  const hasPhotos=!!(photos&&photos.length);
 
   const railCard=(title,body,onclick)=>{
     const click=onclick?` class="cp-ov-rail-card clickable" role="button" tabindex="0" onclick="${onclick}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${onclick}}"`:` class="cp-ov-rail-card"`;
@@ -2654,17 +2819,12 @@ function renderCPOverview(c){
   };
 
   document.getElementById('cp-body').innerHTML=`
+    ${cpOverviewAlertHTML(c)}
     ${cpOverviewBriefHTML(c)}
-    ${cpOverviewSituationHTML(c)}
-    ${cpOverviewCoopHTML(c)}
-
-    ${editing?'':`<div class="cp-ov-edit-cta" role="button" tabindex="0" onclick="startCPEdit('${c.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startCPEdit('${c.id}')}">
-      <div>
-        <div class="cp-ov-edit-cta-title">Dane osobowe</div>
-        <div class="cp-ov-edit-cta-sub">Imię i nazwisko, telefon, e-mail, waga, wzrost, sport — kliknij, aby dopisać lub poprawić</div>
-      </div>
-      <span class="cp-ov-edit-cta-go">✏️ Edytuj dane</span>
-    </div>`}
+    <div class="cp-ov-status-stack">
+      ${cpOverviewSituationHTML(c)}
+      ${cpOverviewCoopHTML(c)}
+    </div>
     ${editing?cpClientDataEditHTML(c):''}
 
     ${(()=>{
@@ -2672,71 +2832,17 @@ function renderCPOverview(c){
       if(acc.ok)return'';
       return `<div class="cp-pay-gate" style="background:rgba(230,0,0,0.1);border:1px solid rgba(230,0,0,0.35);border-radius:10px;padding:12px 14px;margin-bottom:16px;">
         <div style="font-size:12px;font-weight:700;margin-bottom:4px;">${escHtml(typeof clientPaidAccessLabel==='function'?clientPaidAccessLabel(acc):'Brak dostępu')}</div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Kalendarz jest zablokowany. Live Start działa (Trial — bez zejścia sesji). Oznacz pakiet jako opłacony albo włącz Trial / Gość.</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px;">Kalendarz jest zablokowany. Live Start działa (Trial — bez zejścia sesji). Oznacz pakiet jako opłacony albo włącz Trial / Gość.</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
-          <button type="button" class="btn btn-primary btn-sm" onclick="setClientAccessMode('${escHtml(c.id)}','trial')">Trial</button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="setClientAccessMode('${escHtml(c.id)}','trial')">Trial</button>
           <button type="button" class="btn btn-ghost btn-sm" onclick="setClientAccessMode('${escHtml(c.id)}','guest')">Gość</button>
           <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('payments')">Pakiety →</button>
         </div>
       </div>`;
     })()}
 
-    ${(()=>{const ob=typeof getClientOnboard==='function'?getClientOnboard(c):null;
-      if(!ob||ob.complete)return'';
-      return `<div style="background:rgba(201,123,63,0.1);border:1px solid rgba(201,123,63,0.35);border-radius:10px;padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-        <div>
-          <div style="font-size:12px;font-weight:700;margin-bottom:2px;">Start współpracy ${ob.done}/${ob.total}</div>
-          <div style="font-size:11px;color:var(--muted);">${!ob.invite?'Brak zaproszenia. ':''}${!ob.baseline?'Brak pomiarów. ':''}${!ob.schedule?'Brak dni treningowych. ':''}${!ob.plan?'Brak planu. ':''}${!ob.calendar&&!ob.session?'Brak w kalendarzu. ':''}</div>
-        </div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;">
-          <button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();cpRemindClient('${c.id}','onboard')">Przypomnij</button>
-          <button class="btn btn-primary btn-sm" onclick="openClientOnboardChecklist('${c.id}')">Dokończ</button>
-        </div>
-      </div>`;
-    })()}
-
-    ${(()=>{
-      const w=c.weight||(typeof clientLatestMetricWeight==='function'?clientLatestMetricWeight(c.id):null);
-      const bmi=typeof clientBmiStatus==='function'?clientBmiStatus(w,c.height):null;
-      const mon=typeof buildMonitorVerdict==='function'?buildMonitorVerdict(c):null;
-      if(!bmi&&!mon)return'';
-      const tone=mon?(mon.verdictTone||'neutral'):(bmi&&bmi.overweight?'warn':'ok');
-      const dir=mon?(mon.verdict==='progres'?'Dobra strona':(mon.verdict==='regres'?'Zła strona':mon.verdict)):'';
-      const tips=(bmi&&bmi.overweight?(bmi.tips||[]).slice(0,3):[]).concat((mon&&mon.next||[]).slice(0,2));
-      if(!tips.length&&!(bmi&&bmi.overweight)&&!(mon&&(mon.verdict==='regres'||mon.verdict==='ryzyko stagnacji')))return'';
-      return `<div class="cp-bmi-banner cp-bmi-${tone}">
-        <div>
-          <div class="cp-bmi-k">Asystent trenera · ${bmi&&bmi.overweight?escHtml(bmi.label)+(bmi.bmi?' · BMI '+bmi.bmi:''):'Strażnik postępów'}${dir?' · '+escHtml(dir):''}</div>
-          <ul class="cp-bmi-tips">${tips.slice(0,4).map(t=>`<li>${escHtml(t)}</li>`).join('')}</ul>
-        </div>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="openClientMonitorSummary('${c.id}')">Monitoring</button>
-      </div>`;
-    })()}
-
-    ${(()=>{const ins=buildClientInsight(c,sessions,plans,daysSince);
-      if(!ins.length)return'';
-      return `<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
-        ${ins.slice(0,2).map(i=>`<div style="background:${i.color}14;border:1px solid ${i.color}44;border-radius:10px;padding:10px 14px;display:flex;gap:10px;align-items:flex-start;">
-          <span style="font-size:16px;flex-shrink:0;">${i.icon}</span>
-          <div style="font-size:12px;color:var(--text);line-height:1.6;">${i.text}</div>
-        </div>`).join('')}
-      </div>`;
-    })()}
-
-    <div class="cp-ov-card" style="margin-bottom:16px;">
-      <div class="cp-ov-card-hd">
-        <div class="cp-ov-card-title">Podsumowania klienta</div>
-      </div>
-      <div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:10px;">Start: plan + ankieta + makro. Monitoring: werdykt progres / regres z wskazówkami „co dalej”.</div>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;">
-        <button type="button" class="btn btn-primary btn-sm" onclick="openClientOnboardSummary('${c.id}')">Podsumowanie start</button>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="openClientMonitorSummary('${c.id}')">Monitoring progresu</button>
-      </div>
-    </div>
-
     <div class="cp-ov-layout">
       <div class="cp-ov-main">
-        <!-- Training -->
         <div class="cp-ov-card" id="cp-ov-card-train">
           <div class="cp-ov-card-hd">
             <div class="cp-ov-card-title">Treningi</div>
@@ -2760,70 +2866,61 @@ function renderCPOverview(c){
             </div>
           </div>
           ${lastWorkout||lastHw?`<div class="cp-ov-last-wo" onclick="setCPTab('training')">
-            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px;">Ostatni trening</div>
+            <div style="font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px;">Ostatni trening</div>
             <div style="font-size:14px;font-weight:700;">${escHtml(lastWorkoutTitle)}</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:2px;">${escHtml(lastWorkoutDate||'')}${lastWorkoutDays!=null?' · '+lastWorkoutDays+' dni temu':''}${lastWorkoutFb?' · '+lastWorkoutFb+'/5':''}${!lastWorkout&&lastHw?' · zadanie domowe':''}</div>
+            <div class="cp-ov-stat-sub">${escHtml(lastWorkoutDate||'')}${lastWorkoutDays!=null?' · '+lastWorkoutDays+' dni temu':''}${lastWorkoutFb?' · '+lastWorkoutFb+'/5':''}${!lastWorkout&&lastHw?' · zadanie domowe':''}</div>
           </div>`:`<div class="cp-ov-last-wo muted">Brak zapisanych treningów — Live, apka (serie) albo zadanie domowe. Same terminy w kalendarzu się nie liczą.</div>`}
           ${(assigned7&&last7===0)||(pulse.tone!=='good')?`<div style="margin-top:10px;position:relative;z-index:1;"><button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();cpRemindClient('${c.id}','workout')">Przypomnij o treningu</button></div>`:''}
         </div>
 
-        <!-- Body metrics → full story in Progress / Pomiary -->
-        <div class="cp-ov-card" id="cp-ov-card-metrics" style="cursor:pointer;" onclick="setCPTab('progress')">
+        ${metricsOn&&metricsHtml?`<div class="cp-ov-card" id="cp-ov-card-metrics" style="cursor:pointer;" onclick="setCPTab('progress')">
           <div class="cp-ov-card-hd">
             <div class="cp-ov-card-title">Pomiary ciała</div>
-            <span style="font-size:11px;color:var(--muted);">Progress →</span>
+            <span style="font-size:12px;color:var(--text-secondary);">Progress →</span>
           </div>
-          ${metricsOn?`<div class="cp-ov-metrics-grid" onclick="event.stopPropagation()">
-            ${metricCard('Waga',weightVal,'kg',weightDelta,'Dodaj pomiar masy',weightSpark)}
-            ${metricCard('Sen',sleepEntry?sleepEntry.values.m2:null,'/10',null,'Brak danych snu',sleepSpark)}
-            ${metricCard('Tętno spocz.',hrEntry?(hrEntry.values.m1||hrEntry.values.m3):null,'bpm',hrDelta,'Brak danych',hrSpark)}
-            ${metricCard('Kroki',stepsEntry?stepsEntry.values.m1:null,'',stepsDelta,'Import Garmin / pomiar',stepsSpark)}
-          </div>
+          <div class="cp-ov-metrics-grid" onclick="event.stopPropagation()">${metricsHtml}</div>
           <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;" onclick="event.stopPropagation()">
             <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('metrics')">Aktualizuj pomiary</button>
-          </div>`:`<div style="font-size:12px;color:var(--muted);padding:8px 0;">Pomiary ciała wyłączone w Funkcjach klienta.</div>`}
-        </div>
+          </div>
+        </div>`:`<div id="cp-ov-card-metrics" hidden></div>`}
 
-        <div class="cp-ov-card" style="cursor:pointer;" onclick="setCPTab('photos')">
+        ${hasPhysique?`<div class="cp-ov-card" style="cursor:pointer;" onclick="setCPTab('photos')">
           <div class="cp-ov-card-hd">
             <div class="cp-ov-card-title">Aktualna sylwetka</div>
-            <span style="font-size:11px;color:var(--muted);">${physique&&(physique.weight||weightVal)?escHtml(String(physique.weight||weightVal))+' kg':'Zdjęcia →'}</span>
+            <span style="font-size:12px;color:var(--text-secondary);">${escHtml(String(physique.weight||weightVal||''))}${physique.weight||weightVal?' kg':''}</span>
           </div>
-          ${photosOn?(physique&&(physique.front||physique.side||physique.back)?`<div class="cp-ov-physique">
+          <div class="cp-ov-physique">
             ${[['front','Przód'],['side','Bok'],['back','Tył']].map(([k,lab])=>{
               const src=physique[k];
               return `<figure class="cp-ov-physique-cell">${src?`<img src="${escHtml(src)}" alt="${lab}">`:`<span>📷</span>`}<figcaption>${lab}</figcaption></figure>`;
             }).join('')}
           </div>
-          <div class="cp-ov-rail-hint">${escHtml(physique.date||'')} · waga ${escHtml(String(physique.weight||weightVal||'—'))}${weightVal?' kg':''}</div>`
-            :'<div style="font-size:12px;color:var(--muted);padding:8px 0;">Brak zdjęć sylwetki — klient doda je w Progress.</div>')
-          :'<div style="font-size:12px;color:var(--muted);padding:8px 0;">Zdjęcia wyłączone w Funkcjach.</div>'}
-        </div>
+          <div class="cp-ov-rail-hint">${escHtml(physique.date||'')} · waga ${escHtml(String(physique.weight||weightVal||'—'))}${weightVal?' kg':''}</div>
+        </div>`:''}
 
-        <div class="cp-ov-card" id="cp-ov-card-feel">
+        ${hasFeel||hasGarmin?`<div class="cp-ov-card" id="cp-ov-card-feel">
           <div class="cp-ov-card-hd">
-            <div class="cp-ov-card-title">Samopoczucie (check-in)</div>
+            <div class="cp-ov-card-title">${hasFeel?'Samopoczucie (check-in)':'Garmin'}</div>
             <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('progress')">Progress →</button>
           </div>
           <div class="cp-ov-feel-grid">
-            <div>
+            ${hasFeel?`<div>
               <div class="cp-ov-metric-lbl">Ostatni raport</div>
               <div class="cp-ov-metric-val">${checkScore!=null?escHtml(String(checkScore)):'—'}${checkScore!=null?'<span class="cp-ov-metric-unit">/100</span>':''}</div>
-              <div class="cp-ov-stat-sub">${lastCheck?escHtml(String(lastCheck.date||'').slice(0,10)):'Brak check-inu'}</div>
-            </div>
-            <div>
+              <div class="cp-ov-stat-sub">${escHtml(String(lastCheck.date||'').slice(0,10))}</div>
+            </div>`:''}
+            ${hasGarmin?`<div>
               <div class="cp-ov-metric-lbl">Garmin · 7 dni</div>
               <div class="cp-ov-garmin-avgs">
                 <span>Kroki <b>${garmin7.steps!=null?escHtml(String(garmin7.steps)):'—'}</b></span>
                 <span>HR <b>${garmin7.hr!=null?escHtml(String(garmin7.hr))+' bpm':'—'}</b></span>
                 <span>kcal <b>${garmin7.kcal!=null?escHtml(String(garmin7.kcal)):'—'}</b></span>
               </div>
-              <div class="cp-ov-stat-sub">${garmin7.n?garmin7.n+' dni z importu CSV':'Brak importu Garmin'}</div>
-            </div>
+              <div class="cp-ov-stat-sub">${garmin7.n} dni z importu CSV</div>
+            </div>`:''}
           </div>
-        </div>
+        </div>`:`<div id="cp-ov-card-feel" hidden></div>`}
 
-        <!-- Active plan -->
         ${plans.length?`
         <div class="cp-ov-card" style="cursor:pointer;" onclick="setCPTab('plan')">
           <div class="cp-ov-card-hd">
@@ -2831,47 +2928,19 @@ function renderCPOverview(c){
             <span class="pill pill-green" style="font-size:11px;">${escHtml(plans[plans.length-1].method||'—')}</span>
           </div>
           <div style="font-size:15px;font-weight:700;margin-bottom:4px;">${escHtml(plans[plans.length-1].name)}</div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">${escHtml(plans[plans.length-1].method||'—')} · ${plans[plans.length-1].duration||'?'} tyg. · ${(plans[plans.length-1].days||[]).length} dni/tydzień</div>
+          <div class="cp-ov-stat-sub" style="margin-bottom:10px;">${escHtml(plans[plans.length-1].method||'—')} · ${plans[plans.length-1].duration||'?'} tyg. · ${(plans[plans.length-1].days||[]).length} dni/tydzień</div>
           <div style="display:flex;gap:4px;flex-wrap:wrap;">
-            ${(plans[plans.length-1].days||[]).slice(0,5).map(d=>`<span style="background:${d.rest?'var(--s3)':'rgba(230,0,0,0.12)'};color:${d.rest?'var(--muted)':'var(--accent)'};border-radius:5px;padding:3px 8px;font-size:11px;font-family:'DM Mono',monospace;">${escHtml(d.day||d.dayName||'?')}${d.rest?' REST':''}</span>`).join('')}
+            ${(plans[plans.length-1].days||[]).slice(0,5).map(d=>`<span class="cp-ov-day-chip${d.rest?' is-rest':''}">${escHtml(d.day||d.dayName||'?')}${d.rest?' REST':''}</span>`).join('')}
           </div>
         </div>`:`
         <div class="cp-ov-card" style="text-align:center;cursor:pointer;" onclick="setCPTab('plan')">
           <div class="cp-ov-card-title" style="margin-bottom:10px;">Aktywny plan</div>
-          <div style="font-size:13px;color:var(--muted);">Brak planu</div>
+          <div class="cp-ov-stat-sub">Brak planu</div>
           <div class="cp-ov-rail-hint" style="margin-top:8px;">Przejdź do zakładki Plan</div>
         </div>`}
       </div>
 
       <aside class="cp-ov-rail">
-        ${railCard('Cel',
-          `<div style="font-size:14px;font-weight:700;line-height:1.4;margin-bottom:6px;">${escHtml(goalText)}</div>
-           <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">${escHtml(levelText)}${c.trainingFreq?' · '+c.trainingFreq+'× / tydz.':''}${c.preferredTrainTime?' · '+escHtml(c.preferredTrainTime):''}</div>
-           <div class="cp-ov-shared-tag">Udostępnione klientowi</div>
-           <div class="cp-ov-rail-hint">Cel i poziom są w ankiecie — kliknij, aby otworzyć dane klienta</div>`,
-          `startCPEdit('${c.id}')`)}
-
-        ${railCard('Notatki',
-          (notes.length?notes.slice(0,2).map(n=>`<div class="cip-note" style="margin-bottom:8px;"><div>${escHtml(n.text)}</div><div class="cip-note-date">${escHtml(n.date||'')}</div></div>`).join('')
-            :'<div style="font-size:12px;color:var(--muted);">Brak notatek</div>')+
-          '<div class="cp-ov-rail-hint">Otwórz zakładkę Notatki</div>',
-          `setCPTab('notes')`)}
-
-        ${railCard('Ograniczenia / kontuzje',
-          (injuries?`<div style="font-size:12px;line-height:1.5;color:var(--text);">${escHtml(injuries)}</div>`
-            :'<div style="font-size:12px;color:var(--muted);">Brak wpisanych ograniczeń</div>')+
-          '<div class="cp-ov-rail-hint">Kontuzje z ankiety — kliknij, aby otworzyć dane i ankietę</div>',
-          `startCPEdit('${c.id}')`)}
-
-        ${photosOn?railCard('Zdjęcia postępu',
-          (photos.length?`<div class="cp-ov-photos">${photos.map(p=>{
-            const src=poseSrc(p,'front')||poseSrc(p,'side')||poseSrc(p,'back')||'';
-            return `<div class="cp-ov-photo">${src?`<img src="${escHtml(src)}" alt="">`:`<span>📷</span>`}<div class="cp-ov-photo-d">${escHtml(p.date||'')}</div></div>`;
-          }).join('')}</div>`
-            :'<div style="font-size:12px;color:var(--muted);">Brak zdjęć</div>')+
-          '<div class="cp-ov-rail-hint">Wszystkie zdjęcia w zakładce Zdjęcia</div>',
-          `setCPTab('photos')`):''}
-
         ${railCard('Profil',
           `<div class="cp-ov-profile-rows">
             <div><span>Imię i nazwisko</span><b title="${escHtml(c.name||'')}">${escHtml(c.name||'—')}</b></div>
@@ -2882,6 +2951,32 @@ function renderCPOverview(c){
           </div>
           <div class="cp-ov-rail-hint">Kliknij: imię i nazwisko, telefon, waga, sport…</div>`,
           `startCPEdit('${c.id}')`)}
+
+        ${railCard('Cel',
+          `<div style="font-size:14px;font-weight:700;line-height:1.4;margin-bottom:6px;">${escHtml(goalText)}</div>
+           <div class="cp-ov-stat-sub" style="margin-bottom:6px;">${escHtml(levelText)}${c.trainingFreq?' · '+c.trainingFreq+'× / tydz.':''}${c.preferredTrainTime?' · '+escHtml(c.preferredTrainTime):''}</div>
+           <div class="cp-ov-shared-tag">Udostępnione klientowi</div>`,
+          `startCPEdit('${c.id}')`)}
+
+        ${injuries?railCard('Ograniczenia / kontuzje',
+          `<div style="font-size:13px;line-height:1.5;color:var(--text);">${escHtml(injuries)}</div>
+           <div class="cp-ov-rail-hint">Kontuzje z ankiety — kliknij, aby otworzyć dane</div>`,
+          `startCPEdit('${c.id}')`):''}
+
+        ${notes.length?railCard('Notatki',
+          notes.slice(0,2).map(n=>`<div class="cip-note" style="margin-bottom:8px;"><div>${escHtml(n.text)}</div><div class="cip-note-date">${escHtml(n.date||'')}</div></div>`).join('')+
+          '<div class="cp-ov-rail-hint">Otwórz zakładkę Notatki</div>',
+          `setCPTab('notes')`):''}
+
+        ${hasPhotos?railCard('Zdjęcia postępu',
+          `<div class="cp-ov-photos">${photos.map(p=>{
+            const src=poseSrc(p,'front')||poseSrc(p,'side')||poseSrc(p,'back')||'';
+            return `<div class="cp-ov-photo">${src?`<img src="${escHtml(src)}" alt="">`:`<span>📷</span>`}<div class="cp-ov-photo-d">${escHtml(p.date||'')}</div></div>`;
+          }).join('')}</div>
+          <div class="cp-ov-rail-hint">Wszystkie zdjęcia w zakładce Zdjęcia</div>`,
+          `setCPTab('photos')`):''}
+
+        ${cpOverviewMissingHTML(c)}
       </aside>
     </div>`;
 }

@@ -1,0 +1,106 @@
+#!/usr/bin/env node
+/** Przegląd: jedno źródło statusu, uczciwe próbki, pasek zaproszenia, brakujące dane. */
+'use strict';
+const fs=require('fs');
+const path=require('path');
+const vm=require('vm');
+
+function extract(src,name){
+  const start=src.indexOf('function '+name);
+  if(start<0)throw new Error('missing '+name);
+  let i=start,depth=0,begun=false;
+  for(;i<src.length;i++){
+    if(src[i]==='{'){depth++;begun=true;}
+    else if(src[i]==='}'){depth--;if(begun&&depth===0){i++;break;}}
+  }
+  return src.slice(start,i);
+}
+
+const root=path.join(__dirname,'../..');
+const src08=fs.readFileSync(path.join(root,'08-client-profile-extras.js'),'utf8');
+const css=fs.readFileSync(path.join(root,'styles.css'),'utf8');
+const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+const wf=fs.readFileSync(path.join(root,'.github','workflows','check.yml'),'utf8');
+const overview=src08.slice(src08.indexOf('function renderCPOverview'),src08.indexOf('function renderCPPlan'));
+
+let failed=0;
+function ok(name,cond,extra){
+  if(!cond){console.error('FAIL',name,extra||'');failed++;}
+  else console.log('OK  ',name);
+}
+
+ok('status truth helper',/function cpClientStatusTruth\(c\)/.test(src08));
+ok('alert helper',/function cpOverviewAlertHTML\(c\)/.test(src08));
+ok('missing helper',/function cpOverviewMissingHTML\(c\)/.test(src08));
+ok('overview order',overview.indexOf('cpOverviewAlertHTML(c)')<overview.indexOf('cpOverviewBriefHTML(c)')&&overview.indexOf('cpOverviewBriefHTML(c)')<overview.indexOf('cpOverviewSituationHTML(c)'));
+ok('one status stack',overview.includes('cp-ov-status-stack')&&overview.includes('cpOverviewCoopHTML(c)'));
+ok('no dane osobowe card',!overview.includes('cp-ov-edit-cta'));
+ok('no straznik banner',!overview.includes('cp-bmi-banner')&&!overview.includes('Podsumowania klienta'));
+ok('plan chips not red',overview.includes('cp-ov-day-chip')&&!/rgba\(230,0,0,0\.12\)/.test(overview));
+ok('invite copy',src08.includes('Klient nie ma jeszcze dostępu — wyślij zaproszenie'));
+ok('thin copy',src08.includes('Za mało danych')&&src08.includes('brak pomiarów wagi w ostatnich 30 dniach'));
+ok('no score 0 label',!/Werdykt: \$\{esc\(verdict\)\}\$\{v&&v\.score!=null/.test(src08));
+ok('level labels helper',/Początkujący/.test(extract(src08,'cpProfileSubtext')));
+ok('css alert+missing',css.includes('.cp-ov-alert')&&css.includes('.cp-ov-missing')&&css.includes('.cp-ov-day-chip'));
+ok('css no card red bar',css.includes('.cp-ov-card::after,.cp-ov-rail-card::after{display:none;}'));
+ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=74')&&html.includes('styles.css?v=106'));
+ok('header labels 07',fs.readFileSync(path.join(root,'07-forms-metrics-calculator.js'),'utf8').includes('cpProfileSubtext'));
+ok('ci unit',wf.includes('test_cp_overview_quiet.js'));
+
+const sandbox={
+  window:{CL:[],SE:[],PL:[],CHECKINS:{},CLIENT_NOTES:{},METRIC_ENTRIES:[],PROGRESS_PHOTOS:[]},
+  Date,Math,JSON,parseInt,parseFloat,Number,String,Array,Object,isFinite,isNaN,console,
+  latestClientPlan:(id)=>(sandbox.window.PL||[]).filter(p=>p&&p.clientId===id).slice(-1)[0]||null,
+  getClientOnboard:(c)=>sandbox._ob,
+  clientSituationSnapshot:(id)=>sandbox._snap||{facts:{adh30:{assigned:0,logged:0,pct:0}}},
+  cpClientPulseStatus:()=>sandbox._pulse||{tone:'good',label:'Na czas',hint:'Ostatni wpis 1 d. temu'},
+  cpMetricLatest:(id,g,m)=>{
+    const list=(sandbox.window.METRIC_ENTRIES||[]).filter(e=>e.clientId===id&&e.groupId===g&&e.values&&e.values[m]!=null);
+    return list[0]||null;
+  },
+  cpGarminWeekAvg:()=>({n:0}),
+  ppListFor:()=>[],
+  cpLatestPhysique:()=>null,
+  clientInjuriesText:(c)=>c&&c.injuries||'',
+  bmFeatureOn:()=>true,
+  ppFeatureOn:()=>true,
+  escHtml:(s)=>String(s??'')
+};
+sandbox.CL=sandbox.window.CL;
+sandbox.SE=sandbox.window.SE;
+sandbox.PL=sandbox.window.PL;
+vm.runInNewContext(
+  'const CP_OV_ADH_MIN=4;const CP_OV_SLEEP_MIN=4;const CP_OV_MASS_TREND_MIN=2;\n'+
+  extract(src08,'cpProfileSubtext')+'\n'+
+  extract(src08,'cpClientHasPlanDays')+'\n'+
+  extract(src08,'cpAdhSampleOk')+'\n'+
+  extract(src08,'cpClientStatusTruth')+'\n'+
+  extract(src08,'cpOverviewAlertHTML')+'\n'+
+  extract(src08,'cpOverviewMissingItems')+'\n'+
+  extract(src08,'cpOverviewMissingHTML')+'\n',
+  sandbox
+);
+
+const jan={id:'c-jan',name:'Jan Kowalski',goal:'masa',level:'poczatkujacy',email:'teamprogress2018@gmail.com',status:'active'};
+sandbox.CL.push(jan);
+sandbox.PL.push({id:'pl1',clientId:'c-jan',days:[{day:'Pon'},{day:'Śr'},{day:'Pt'}]});
+sandbox._ob={invite:false,baseline:false,schedule:false,plan:true,calendar:true,session:true,package:false,done:3,total:6,complete:false};
+sandbox._pulse={tone:'good',label:'Na czas',hint:'Ostatni wpis 2 d. temu'};
+sandbox._snap={facts:{adh30:{assigned:2,logged:1,pct:50}}};
+
+const truth=sandbox.cpClientStatusTruth(jan);
+ok('invite beats green pulse',truth.reason==='invite'&&truth.tone==='warn'&&/Brak dostępu/.test(truth.label),JSON.stringify(truth));
+ok('plan days count as schedule',truth.scheduleOk===true);
+const alert=sandbox.cpOverviewAlertHTML(jan);
+ok('invite alert html',/data-cp-alert="invite"/.test(alert)&&/Wyślij zaproszenie/.test(alert)&&!/Brak dni treningowych/.test(alert));
+
+sandbox._ob.invite=true;sandbox._ob.done=4;
+const truth2=sandbox.cpClientStatusTruth(jan);
+ok('onboard after invite',truth2.reason==='onboard'&&!/dni treningowe/.test(truth2.hint),JSON.stringify(truth2));
+
+ok('level diacritics',sandbox.cpProfileSubtext(jan)==='Budowa masy · Początkujący');
+const missing=sandbox.cpOverviewMissingItems(jan);
+ok('missing has checkin+garmin',missing.some(x=>x.id==='checkin')&&missing.some(x=>x.id==='garmin'),JSON.stringify(missing.map(x=>x.id)));
+
+if(failed){console.error('\n'+failed+' failed');process.exit(1);}
+console.log('\nAll cp-overview-quiet checks passed');
