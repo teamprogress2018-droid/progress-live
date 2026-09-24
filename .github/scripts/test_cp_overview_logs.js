@@ -32,7 +32,7 @@ function ok(name,cond,extra){
 
 ok('ci unit',wf.includes('test_cp_overview_logs.js'));
 ok('ci ui',wf.includes('test_cp_overview_logs_ui.js'));
-ok('cache 08/styles/02',html.includes('08-client-profile-extras.js?v=82')&&html.includes('styles.css?v=114')&&html.includes('02-workouts-onboarding-templates-live.js?v=85'));
+ok('cache 08/styles/02',html.includes('08-client-profile-extras.js?v=83')&&html.includes('styles.css?v=115')&&html.includes('02-workouts-onboarding-templates-live.js?v=85'));
 ok('empty wo copy',overview.includes('Brak zapisanych treningów')&&overview.includes('Dodaj trening')&&!/Same terminy w kalendarzu/.test(overview));
 ok('no remind on empty',!/assigned7&&last7===0/.test(overview));
 ok('notes copy',overview.includes('Widoczna tylko dla Ciebie')&&!overview.includes('Krótka notatka zostaje przy Tobie.'));
@@ -127,7 +127,7 @@ ok('status past',sandbox.cpOverviewPlanDayStatus('c1',{day:'Pon'},0,{weekday:1,n
 ok('status today',sandbox.cpOverviewPlanDayStatus('c1',{day:'Czw'},0,{weekday:4,name:'A',rest:false})==='Dziś');
 ok('status future',sandbox.cpOverviewPlanDayStatus('c1',{day:'Pt'},0,{weekday:5,name:'A',rest:false})==='Zaplanowany');
 ok('status done only with log',sandbox.cpOverviewPlanDayStatus('c1',{day:'Czw'},0,{weekday:4,name:'A',rest:false},'2026-09-18')!=='Wykonany');
-sandbox.window.SE.push({id:'l2',clientId:'c1',date:'2026-09-22',source:'live',dayIdx:0});
+sandbox.window.SE.push({id:'l2',clientId:'c1',planId:'p4',date:'2026-09-22',source:'live',dayIdx:0});
 ok('status wykonany with log',sandbox.cpOverviewPlanDayStatus('c1',{day:'Pn'},0,{weekday:1,name:'A',rest:false},'2026-09-24')==='Wykonany');
 
 sandbox.window.PACKAGES=[{id:'pk',clientId:'c1',sessions:16,sessionsUsed:0,payStatus:'paid'}];

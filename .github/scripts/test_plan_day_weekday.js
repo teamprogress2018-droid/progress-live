@@ -29,7 +29,7 @@ function ok(name, cond, extra) {
 }
 
 ok('ci', wf.includes('test_plan_day_weekday.js'));
-ok('cache 01/05', html.includes('01-core.js?v=122') && html.includes('05-clients-builder-plans-calendar.js?v=79'));
+ok('cache 01/05', html.includes('01-core.js?v=123') && html.includes('05-clients-builder-plans-calendar.js?v=79'));
 ok('helpers', /function planDayWeekday/.test(src01) && /function hydratePlanDaysWeekdays/.test(src01) && /function parsePlanWeekdayFromText/.test(src01));
 ok('schedule uses day object', /resolvePlanDayWeekday\(d,trainI,preferred\)/.test(src05.replace(/\s+/g, '')));
 ok('canonical weekday first', /typeof planDayWeekday==='function'/.test(src05.slice(src05.indexOf('function resolvePlanDayWeekday'), src05.indexOf('function scheduleTimeFromClient'))));

@@ -19,7 +19,7 @@ function ok(name, cond, extra) {
 
 ok('ci unit', wf.includes('test_cp_week_tiles.js'));
 ok('ci ui', wf.includes('test_cp_week_tiles_ui.js'));
-ok('cache 08/styles', html.includes('08-client-profile-extras.js?v=82') && html.includes('styles.css?v=114'));
+ok('cache 08/styles', html.includes('08-client-profile-extras.js?v=83') && html.includes('styles.css?v=115'));
 ok('plan historia', />Plan</.test(train) && />Historia</.test(train) && !/>Assignment</.test(train));
 ok('week arrows', /cpMpShiftWeek/.test(train) && /Poprzedni tydzień/.test(train));
 ok('no client in range helper', /cpOverviewPlanTitle/.test(train));
@@ -27,7 +27,7 @@ ok('more menu clear', /cp-mp-more-menu/.test(train) && /Usuń terminy planu/.tes
 ok('plus session stays', train.includes('+ Sesja'));
 ok('no red legend', !/Czerwone karty to/.test(train) && !/Brak zapisu treningu/.test(src08.slice(src08.indexOf('function renderCPTraining'))));
 ok('nolog banner', /bez zapisu — uzupełnij/.test(train) && /scrollToFirstUnloggedTile/.test(src08));
-ok('two stats', /Ten tydzień: zrobione z zaplanowanych do dziś/.test(train) && /Ostatnie 30 dni: zrobione z zaplanowanych/.test(train));
+ok('two stats', /Realizacja planu w wybranym tygodniu do dziś/.test(train) && /Realizacja planu · ostatnie 30 dni/.test(train));
 ok('states', /is-\$\{state\}/.test(train) && /state==='nolog'/.test(train) && /state==='today'/.test(train) && /state==='future'/.test(train) && /state==='done'/.test(train) && /state==='skip'/.test(train));
 ok('labels', train.includes('Niezapisany') && train.includes('Zaplanowany') && train.includes('Opuszczony') && train.includes('Nie odbył się') && train.includes('Rozpocznij Live'));
 ok('no PLAN badge', !/PLAN/.test(train) && !/toUpperCase\(\)/.test(train));

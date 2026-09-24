@@ -5379,15 +5379,28 @@ function markSessionSkipped(plannedId){
 }
 window.markSessionSkipped=markSessionSkipped;
 
+/** A recorded workout fulfils only its client's matching plan/day/date. */
+function sessionMatchesPlanned(planned,recorded){
+  if(!planned||!recorded||planned.id===recorded.id)return false;
+  if(!planned.clientId||planned.clientId!==recorded.clientId)return false;
+  if(!planned.date||String(planned.date).slice(0,10)!==String(recorded.date||'').slice(0,10))return false;
+  if(!isLoggedWorkout(recorded))return false;
+  if(String(planned.planId||'')!==String(recorded.planId||''))return false;
+  if(recorded.plannedSessionId)return recorded.plannedSessionId===planned.id;
+  if(planned.dayIdx!=null&&recorded.dayIdx!=null&&Number(planned.dayIdx)!==Number(recorded.dayIdx))return false;
+  return true;
+}
+window.sessionMatchesPlanned=sessionMatchesPlanned;
+
 function sessionHappened(s,sessions){
   if(!s)return false;
   if(sessionIsSkipped(s))return false;
   if(sessionIsRecorded(s))return true;
   if(!s.clientId||!s.date)return false;
   const y=String(s.date).slice(0,10);
-  if(typeof homeworkDoneOnDate==='function'&&homeworkDoneOnDate(s.clientId,y))return true;
+  if(s.source!=='planned'&&typeof homeworkDoneOnDate==='function'&&homeworkDoneOnDate(s.clientId,y))return true;
   const list=sessions||window.SE||[];
-  return list.some(o=>o&&o.id!==s.id&&o.clientId===s.clientId&&o.date===s.date&&typeof isLoggedWorkout==='function'&&isLoggedWorkout(o));
+  return list.some(o=>sessionMatchesPlanned(s,o));
 }
 window.sessionHappened=sessionHappened;
 
@@ -5416,7 +5429,7 @@ function logSessionFromPlanned(plannedId,sessions,opts){
   const p=list.find(s=>s&&s.id===plannedId);
   if(!p||!p.clientId||!p.date)return null;
   const y=String(p.date).slice(0,10);
-  const existing=list.find(s=>s&&s.id!==p.id&&s.clientId===p.clientId&&String(s.date).slice(0,10)===y&&typeof isLoggedWorkout==='function'&&isLoggedWorkout(s));
+  const existing=list.find(s=>sessionMatchesPlanned(p,s));
   if(existing){
     if(opts.feedback!=null&&opts.feedback!=='')existing.feedback=Math.max(1,Math.min(5,parseInt(opts.feedback,10)||existing.feedback||0));
     if(opts.duration!=null&&opts.duration!=='')existing.duration=Math.max(1,parseInt(opts.duration,10)||existing.duration||60);
@@ -5444,6 +5457,7 @@ function logSessionFromPlanned(plannedId,sessions,opts){
     duration:duration,
     exercises,
     source:'sala',
+    plannedSessionId:p.id,
     planId:p.planId||null,
     dayIdx:p.dayIdx!=null?p.dayIdx:null,
     feedback:feedback,
@@ -5465,7 +5479,7 @@ function openSalaDoneModal(plannedId){
   const p=(window.SE||[]).find(s=>s&&s.id===plannedId);
   if(!p){if(typeof notify==='function')notify('Nie znaleziono terminu');return;}
   const y=String(p.date||'').slice(0,10);
-  const already=(window.SE||[]).find(s=>s&&s.id!==p.id&&s.clientId===p.clientId&&String(s.date).slice(0,10)===y&&typeof isLoggedWorkout==='function'&&isLoggedWorkout(s));
+  const already=(window.SE||[]).find(s=>sessionMatchesPlanned(p,s));
   if(already){
     if(typeof notify==='function')notify('Ten dzień ma już zapis treningu');
     return already;

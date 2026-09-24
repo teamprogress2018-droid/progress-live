@@ -350,7 +350,9 @@ jobs:
       - name: 1n28d2. Testy jednego pola weekday dnia planu
         run: node .github/scripts/test_plan_day_weekday.js
       - name: 1n28d3. Testy stanów kafelków tygodnia
-        run: node .github/scripts/test_cp_week_tiles.js
+        run: |
+          node .github/scripts/test_cp_week_tiles.js
+          node .github/scripts/test_profile_plan_isolation.js
       - name: 1n29. Testy przywrócenia konturów/czcionek kafelków
         run: node .github/scripts/test_tile_polish_restore.js
       - name: 1n30. Testy etykiet partii w autocomplete ćwiczeń

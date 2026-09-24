@@ -3533,3 +3533,9 @@ body,
 }
 
 .live-set-row.is-current .live-set-label{flex-wrap:wrap;}
+
+/* Calm profile analytics and compact weekly summaries. */
+#cp-body [data-cp-panel] .stat-card,#cp-body .stat-card[data-cp-panel],#cp-body .cp-ns-brief-panel{border-color:var(--border-subtle);box-shadow:none;}
+.cp-ov-week-accent{font-size:12px;font-weight:400;color:var(--text-secondary);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-top:6px;}
+.cp-progress-empty{margin-bottom:14px;}
+.cp-progress-empty p{font-size:13px;color:var(--text-secondary);}

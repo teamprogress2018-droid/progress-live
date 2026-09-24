@@ -19,7 +19,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=122'));
+ok('cache 01', html.includes('01-core.js?v=123'));
 ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=85'));
 ok('helpers', /function consumeClientPackageSession/.test(core) && /function clientPaidPackageForSession/.test(core));
 ok('sala consumes', /consumeClientPackageSession\(p\.clientId/.test(core));
@@ -69,7 +69,7 @@ vm.runInContext(
   extract(core, 'clientPaidPackageForSession') + '\n' +
   extract(core, 'sessionConsumedPackageOnDay') + '\n' +
   extract(core, 'consumeClientPackageSession') + '\n' +
-  extract(core, 'logSessionFromPlanned') + '\n' +
+  extract(core, 'sessionMatchesPlanned') + '\n' + extract(core, 'logSessionFromPlanned') + '\n' +
   'window.clientPackageExpired=clientPackageExpired;' +
   'window.consumeClientPackageSession=consumeClientPackageSession;' +
   'window.logSessionFromPlanned=logSessionFromPlanned;' +
