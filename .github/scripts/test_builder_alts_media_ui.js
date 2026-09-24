@@ -52,6 +52,8 @@ function ok(name, cond, extra) {
     const media = typeof resolveCoachMedia === 'function'
       ? resolveCoachMedia({ name: 'Rozpiętki na maszynie (Pec-Deck) — środek klatki' })
       : {};
+    const todoInp = row && row.querySelector('[data-f="note"]');
+    const todoLbl = row && row.querySelector('.builder-todo-lbl');
     return {
       hasThumbBtn: !!(thumb),
       thumbHidden: !!(thumb && thumb.hidden),
@@ -60,7 +62,9 @@ function ok(name, cond, extra) {
       altHidden: !!(altBox && altBox.hasAttribute('hidden')),
       hasToggle: !!(toggle),
       emptyFilm,
-      mediaImg: media.img || media.gif || ''
+      mediaImg: media.img || media.gif || '',
+      todoLabel: !!(todoLbl && /Do zrobienia/.test(todoLbl.textContent || '')),
+      todoVal: String((todoInp && todoInp.value) || '').trim()
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'builder_ex_thumb.png') });
@@ -70,6 +74,8 @@ function ok(name, cond, extra) {
   ok('alts panel hidden by default', state.altHidden);
   ok('zamienniki toggle present', state.hasToggle);
   ok('no duplicate empty film box', !state.emptyFilm);
+  ok('todo label Do zrobienia', state.todoLabel);
+  ok('todo filled from library tip', !!state.todoVal, state.todoVal);
 
   await page.click('.builder-alt-toggle');
   const opened = await page.evaluate(() => {
