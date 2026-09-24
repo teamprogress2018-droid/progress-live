@@ -137,7 +137,7 @@ function ok(name, cond, extra) {
   });
   await page.screenshot({ path: path.join(shotDir, 'cp_overview_situation_signals.png'), fullPage: false });
   ok('situation visible', busy.hasSit);
-  ok('kicker Status', busy.kicker === 'Status', busy.kicker);
+  ok('kicker Status', /Status/.test(busy.kicker), busy.kicker);
   ok('title name + goal', /Jarosław Test/.test(busy.title) && /masy/i.test(busy.title), busy.title);
   ok('pulse inside situation', busy.pulse);
   ok('next header', /Wnioski/.test(busy.nextHd), busy.nextHd);
@@ -146,7 +146,7 @@ function ok(name, cond, extra) {
   ok('sleep bullet', busy.next.some(x => x.kind === 'sleep'), JSON.stringify(busy.next));
   ok('max 5 next', busy.next.length <= 5, String(busy.next.length));
   ok('no empty copy when signals', !busy.next.some(x => x.kind === 'ok'));
-  ok('kpi tiles 5', busy.tiles.length === 5 && busy.tiles[0].id === 'train' && busy.tiles[2].id === 'mass', JSON.stringify(busy.tiles));
+  ok('kpi tiles 4', busy.tiles.length === 4 && busy.tiles[0].id === 'train' && busy.tiles[1].id === 'mass', JSON.stringify(busy.tiles));
   ok('overdue checkin hint', /przeterminowany/.test(busy.checkinHint), busy.checkinHint);
   ok('existing train card', busy.hasTrain);
   ok('existing metrics card', busy.hasMetrics);
@@ -173,7 +173,7 @@ function ok(name, cond, extra) {
   });
   await page.screenshot({ path: path.join(shotDir, 'cp_overview_situation_ok.png') });
   ok('calm client situation', calm.hasSit && /Anna Spokojna/.test(calm.title));
-  ok('calm jedź planem', calm.next.length === 1 && calm.next[0].kind === 'ok' && /jedź planem/.test(calm.next[0].text), JSON.stringify(calm.next));
+  ok('calm start steps', calm.next.length === 3 && calm.next[0].kind === 'checkin' && /samopoczucie/.test(calm.next[0].text) && calm.next[2].kind === 'adherence', JSON.stringify(calm.next));
   ok('calm still has train card', calm.hasTrain);
 
   await page.click('[data-cp-sit="train"]');

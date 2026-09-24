@@ -29,8 +29,8 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 01', html.includes('01-core.js?v=121'));
-ok('cache 08', html.includes('08-client-profile-extras.js?v=75'));
-ok('cache styles', html.includes('styles.css?v=107'));
+ok('cache 08', html.includes('08-client-profile-extras.js?v=76'));
+ok('cache styles', html.includes('styles.css?v=108'));
 ok('CI', wf.includes('test_ex_progress_ui.js'));
 ok('view helper', /function exerciseProgressClassViewHtml/.test(coreSrc)
   && /function readStoredExerciseProgress/.test(coreSrc)
