@@ -28,7 +28,7 @@ ok('right rail', overview.includes('cp-ov-rail'));
 ok('training history card', overview.includes('last7') && overview.includes('Ostatnie treningi') && !overview.includes('Ostatnie 7 dni ·'));
 ok('last trainings list', overview.includes('Ostatnie treningi') && overview.includes('cp-ov-hist'));
 ok('week plan tiles', overview.includes('Aktywny plan tygodnia') && overview.includes('cp-ov-week'));
-ok('overview calendar not enough', /Same terminy w kalendarzu się nie liczą/.test(overview));
+ok('overview calendar not enough', /Brak zapisanych treningów/.test(overview) && overview.includes('Dodaj trening') && !/Same terminy w kalendarzu się nie liczą/.test(overview));
 ok('body metrics cards', overview.includes('Pomiary ciała') && overview.includes('cp-ov-metrics-grid'));
 ok('weight metric', overview.includes("metricCard('Waga'"));
 ok('metric sparklines', overview.includes('cpOvSparkSVG') || /function\s+cpOvSparkSVG/.test(src));
@@ -43,7 +43,7 @@ ok('feel + garmin 7d', overview.includes('Samopoczucie (check-in)') && overview.
 ok('today strip', src.includes('cp-ov-today-row') && src.includes('Podgląd treningu'));
 ok('remind in overview', overview.includes("cpRemindClient('") && overview.includes('Przypomnij'));
 ok('no updates rail', !overview.includes('Aktualizacje') && !/function\s+cpOverviewUpdates/.test(src));
-ok('cache 08', html.includes('08-client-profile-extras.js?v=80'));
+ok('cache 08', html.includes('08-client-profile-extras.js?v=81'));
 ok('overview edit via header/profil', overview.includes("startCPEdit('${c.id}')") && !overview.includes('cp-ov-edit-cta'));
 ok('profil rail shows name', overview.includes('Imię i nazwisko'));
 ok('rail cards clickable not button spam', overview.includes('cp-ov-rail-card clickable') && !overview.includes('>Edytuj</button>'));

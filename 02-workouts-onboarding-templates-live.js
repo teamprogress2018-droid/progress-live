@@ -2975,7 +2975,13 @@ function renderLiveClientCard(slot){
   const st=liveRef(n);
   const c=CL.find(x=>x.id===st.clientId);
   if(!c){el.innerHTML='';return;}
-  const sessCount=SE.filter(s=>s.clientId===c.id).length;
+  const goalLbl={masa:'💪 Masa',sila:'🏋️ Siła',redukcja:'🔥 Redukcja',kondycja:'🏃 Kondycja'}[c.goal]||'—';
+  const pkgList=(window.PACKAGES||[]).filter(p=>p&&p.clientId===c.id&&p.sessions);
+  const paid=typeof clientPaidPackageForSession==='function'?clientPaidPackageForSession(c.id):null;
+  const pkg=paid||pkgList[0];
+  const pkgTxt=pkg&&pkg.sessions?('Pakiet: '+pkg.sessions+' sesji'):'';
+  const loggedN=typeof completedWorkouts==='function'?completedWorkouts(c.id).length:SE.filter(s=>s.clientId===c.id&&s.source!=='planned'&&s.source!=='garmin'&&s.source!=='live-draft').length;
+  const sessLine=pkgTxt||(loggedN?(loggedN+' '+(loggedN===1?'trening':'treningów')):'');
   const acc=typeof clientHasPaidAccess==='function'?clientHasPaidAccess(c.id):{ok:true};
   const accBanner=acc&&acc.ok===false?`<div class="live-pay-gate" style="background:rgba(230,0,0,0.1);border:1px solid rgba(230,0,0,0.35);border-radius:8px;padding:8px 10px;margin-bottom:10px;font-size:11px;line-height:1.45;">
       <div style="font-weight:700;margin-bottom:4px;">${escHtml(typeof clientPaidAccessLabel==='function'?clientPaidAccessLabel(acc):'Brak dostępu')}</div>
@@ -2991,7 +2997,7 @@ function renderLiveClientCard(slot){
       <div style="width:42px;height:42px;border-radius:12px;background:var(--adim);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--accent);flex-shrink:0;">${getInit(c.name)}</div>
       <div>
         <div style="font-size:14px;font-weight:700;">${c.name}</div>
-        <div style="font-size:11px;color:var(--muted);">${{masa:'💪 Masa',sila:'🏋️ Siła',redukcja:'🔥 Redukcja',kondycja:'🏃 Kondycja'}[c.goal]||'—'} · ${sessCount} sesji</div>
+        <div style="font-size:11px;color:var(--muted);">${escHtml(goalLbl)}${sessLine?' · '+escHtml(sessLine):''}</div>
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:11px;">

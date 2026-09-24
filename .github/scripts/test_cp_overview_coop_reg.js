@@ -141,7 +141,7 @@ ok('busy guard',/if\(window\._cpCoopBusy\[id\]\)return/.test(extract(src08,'runC
 ok('gate before fetch',extract(src08,'cpCoopRequestAnalysis').indexOf('length<2')<extract(src08,'cpCoopRequestAnalysis').indexOf('await fetch'));
 ok('run calls request helper',/cpCoopRequestAnalysis\(c\)/.test(extract(src08,'runCpCoopAnalysis')));
 ok('ci files',wf.includes('test_cp_overview_coop.js')&&wf.includes('test_cp_overview_coop_reg.js')&&wf.includes('test_cp_overview_coop_ui.js'));
-ok('cache pins',html.includes('08-client-profile-extras.js?v=80')&&html.includes('styles.css?v=112'));
+ok('cache pins',html.includes('08-client-profile-extras.js?v=81')&&html.includes('styles.css?v=113'));
 ok('css card',css.includes('.cp-ov-coop')&&css.includes('.cp-ov-coop-err'));
 
 const sb=makeSandbox();

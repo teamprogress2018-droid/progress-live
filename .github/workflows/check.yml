@@ -257,6 +257,8 @@ jobs:
         run: node .github/scripts/test_cp_overview_situation.js
       - name: 1n12b2r. Testy rekomendacji Przeglądu (5 reguł)
         run: node .github/scripts/test_cp_overview_recs.js
+      - name: 1n12b2l. Testy Przeglądu (zapisy vs plan)
+        run: node .github/scripts/test_cp_overview_logs.js
       - name: 1n12b2q. Testy cichego Przeglądu (status, próbki, zaproszenie)
         run: node .github/scripts/test_cp_overview_quiet.js
       - name: 1n12b2b. Testy Briefu przed treningiem
@@ -547,6 +549,8 @@ jobs:
         run: node .github/scripts/test_cp_edit_visible_ui.js
       - name: 6f2b. Testy UI sytuacji w Przeglądzie
         run: node .github/scripts/test_cp_overview_situation_ui.js
+      - name: 6f2b1. Testy UI zapisów vs planu w Przeglądzie
+        run: node .github/scripts/test_cp_overview_logs_ui.js
       - name: 6f2b2. Testy UI Briefu przed treningiem
         run: node .github/scripts/test_cp_overview_brief_ui.js
       - name: 6f2b3. Testy UI Analizy współpracy
