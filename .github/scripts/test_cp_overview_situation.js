@@ -40,21 +40,21 @@ ok('no AI in next',!/function cpNextSessionFocusItems[\s\S]{0,2500}(sendAICMsg|a
 ok('load drop 85%',src08.includes('prev*0.85')||src08.includes('prev * 0.85'));
 ok('empty copy',src08.includes('Brak szczególnych sygnałów — jedź planem.'));
 ok('next header',src08.includes('Wnioski')&&src08.includes('cp-ov-next'));
-ok('kpis 7d mass sleep checkin',sit.includes('Treningi 7d')&&sit.includes('Waga')&&sit.includes('Sen')&&sit.includes('Samopoczucie'));
-ok('start steps copy',src08.includes('Poproś o samopoczucie przed dzisiejszym treningiem')&&src08.includes('Umów stały czas pomiaru wagi'));
+ok('kpis week mass sleep checkin',sit.includes('Treningi w tym tygodniu')&&sit.includes('Waga')&&sit.includes('Sen')&&sit.includes('Samopoczucie'));
+ok('rec copy',src08.includes('Poproś o check-in przed dzisiejszym treningiem')&&src08.includes('Ustal stały dzień pomiaru wagi')&&src08.includes('Otwórz plan'));
 ok('plan before last trainings',overview.indexOf('Aktywny plan tygodnia')<overview.indexOf('Ostatnie treningi'));
-ok('existing cards remain',overview.includes('Ostatnie 7 dni')&&overview.includes('Pomiary ciała')&&overview.includes('Samopoczucie (check-in)'));
+ok('existing cards remain',overview.includes('Ostatnie treningi')&&overview.includes('Pomiary ciała')&&overview.includes('Samopoczucie (check-in)')&&!overview.includes('Ostatnie 7 dni ·'));
 ok('card targets',overview.includes('id="cp-ov-card-train"')&&overview.includes('id="cp-ov-card-metrics"')&&overview.includes('id="cp-ov-card-feel"'));
 ok('alert + status stack',overview.includes('cpOverviewAlertHTML(c)')&&overview.includes('cp-ov-status-stack'));
 ok('no duplicate edit CTA',!overview.includes('cp-ov-edit-cta'));
 ok('tabs unchanged',html.includes('id="cpt-overview"')&&html.includes("setCPTab('overview')")&&html.includes('id="cpt-training"')&&html.includes('id="cpt-plan"'));
 ok('css situation',css.includes('.cp-ov-situation')&&css.includes('.cp-ov-sit-tile-ok')&&css.includes('.cp-ov-next-watch')&&css.includes('.cp-ov-sit-tile-act'));
-ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=77')&&html.includes('styles.css?v=108'));
+ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=78')&&html.includes('styles.css?v=109'));
 ok('ci unit',wf.includes('test_cp_overview_situation.js'));
 ok('ci ui',wf.includes('test_cp_overview_situation_ui.js'));
 
 const sandbox={
-  window:{CL:[],SE:[],METRIC_ENTRIES:[]},
+  window:{CL:[],SE:[],METRIC_ENTRIES:[],CHECKINS:{}},
   CL:null,SE:null,Date,Math,Set,JSON,parseInt,parseFloat,Number,String,Array,Object,isFinite,console,
   isWorkingSet:(s)=>!s||s.kind!=='warmup',
   isLoggedTrainingSession:(s)=>s&&s.source!=='planned'&&s.source!=='live-draft',
@@ -65,6 +65,17 @@ const sandbox={
   clientInjuriesText:(c)=>c&&c.injuries||'',
   getClientOnboard:()=>null,
   latestClientPlan:()=>null,
+  todayYmd:()=>'2026-09-21',
+  dashTodayYmd:()=>'2026-09-21',
+  clientAdherenceStats:(id,days)=>sandbox._adh||{assigned:0,logged:0,pct:0},
+  completedWorkouts:()=>[],
+  homeworkCompletions:()=>[],
+  cpAssignmentSessions:(id)=>sandbox.SE.filter(s=>s&&s.clientId===id),
+  cpMetricLatest:(id,g,m)=>{
+    const list=(sandbox.window.METRIC_ENTRIES||[]).filter(e=>e.clientId===id&&e.groupId===g&&e.values&&e.values[m]!=null)
+      .sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+    return list[0]||null;
+  },
   cpClientPulseStatus:(id)=>sandbox._pulse||{tone:'good',label:'Na czas',hint:'Ostatni wpis 2 d. temu'},
   clientSituationSnapshot:(id)=>{
     if(id!=='c1')return null;
@@ -99,6 +110,20 @@ vm.runInNewContext(
   extract(src08,'cpOverviewTrainWord')+'\n'+
   extract(src08,'cpOverviewWeekFreq')+'\n'+
   extract(src08,'cpOverviewStartSteps')+'\n'+
+  extract(src08,'cpOverviewTodayYmd')+'\n'+
+  extract(src08,'cpOverviewDaysBetween')+'\n'+
+  extract(src08,'cpOverviewDateLabel')+'\n'+
+  extract(src08,'cpOverviewPl')+'\n'+
+  extract(src08,'cpOverviewWeekBounds')+'\n'+
+  extract(src08,'cpOverviewMeasureCount')+'\n'+
+  extract(src08,'cpOverviewCoopWeeks')+'\n'+
+  extract(src08,'cpOverviewWeightCount30')+'\n'+
+  extract(src08,'cpOverviewLastCheckin')+'\n'+
+  extract(src08,'cpOverviewHasSessionToday')+'\n'+
+  extract(src08,'cpOverviewSleepRecFact')+'\n'+
+  extract(src08,'cpOverviewThisWeekAdh')+'\n'+
+  extract(src08,'cpOverviewHasApp')+'\n'+
+  extract(src08,'cpOverviewRecs')+'\n'+
   extract(src08,'cpOverviewStatusIsEarly')+'\n'+
   extract(src08,'cpOverviewStatusSteps')+'\n'+
   extract(src08,'cpOverviewSituationHTML')+'\n'+
@@ -152,6 +177,7 @@ sandbox._loads=[{
   ]
 }];
 sandbox._snap.facts.checkinStatus='overdue';
+sandbox._snap.facts.lastCheckin=null;
 sandbox._snap.facts.homework={open:1,late:1};
 sandbox._snap.facts.package={daysLeft:3,title:'Pakiet 8'};
 sandbox._snap.facts.adh7={assigned:3,logged:0,pct:0};
@@ -171,6 +197,7 @@ ok('homework in first 5',busy.some(x=>x.kind==='homework'));
 const htmlBusy=sandbox.cpOverviewSituationHTML(sandbox.CL[0]);
 ok('overdue checkin tile',/przeterminowany/.test(htmlBusy)&&/data-cp-sit="checkin"/.test(htmlBusy));
 ok('status kicker not raw pulse+score',/Status/.test(htmlBusy)&&!/score 0/.test(htmlBusy)&&!/Stabilnie/.test(htmlBusy));
+ok('no name-goal repeat',!/Jarosław ·/.test(htmlBusy)&&!/Budowa masy/.test(htmlBusy));
 
 sandbox._loads=[{
   name:'Wyciskanie sztangi',
@@ -218,10 +245,10 @@ const mass=sandbox.cpMassDelta30Fact('c1');
 ok('mass +1.2 / 30d',mass&&mass.value===81.2&&mass.delta===1.2,JSON.stringify(mass));
 
 const htmlSit=sandbox.cpOverviewSituationHTML(sandbox.CL[0]);
-ok('situation html kicker',/Status/.test(htmlSit)&&/Jarosław/.test(htmlSit)&&/Budowa masy/.test(htmlSit));
-ok('situation html pulse',/cp-ov-pulse/.test(htmlSit));
+ok('situation html kicker',/Status/.test(htmlSit)&&!/Jarosław/.test(htmlSit));
 ok('situation html next',/Wnioski/.test(htmlSit));
 ok('situation html tiles',/data-cp-sit="train"/.test(htmlSit)&&/data-cp-sit="mass"/.test(htmlSit)&&/data-cp-sit="sleep"/.test(htmlSit)&&/data-cp-sit="checkin"/.test(htmlSit));
+ok('week label',/Treningi w tym tygodniu/.test(htmlSit));
 
 sandbox._snap.facts.adh30={assigned:2,logged:1,pct:50};
 sandbox.window.METRIC_ENTRIES=[
@@ -229,20 +256,22 @@ sandbox.window.METRIC_ENTRIES=[
   {clientId:'c1',groupId:'mg5',date:'2026-09-21',values:{m2:5}}
 ];
 const htmlThin=sandbox.cpOverviewSituationHTML(sandbox.CL[0]);
-ok('thin adh not percent',/1\/2/.test(htmlThin)&&!/>50%</.test(htmlThin)&&/za mało na trend/i.test(htmlThin));
-ok('thin sleep no trend',/2 oceny · za mało na trend/.test(htmlThin)&&!/spada/.test(htmlThin));
+ok('thin adh not percent',/1\/2|1 z 2|za mało/.test(htmlThin)&&!/>50%</.test(htmlThin));
+ok('thin sleep no trend',/za mało ocen snu/.test(htmlThin)&&!/spada/.test(htmlThin));
 ok('thin sleep not in next',sandbox.cpNextSessionFocusItems('c1').every(x=>x.kind!=='sleep'));
 
-const savedOb=sandbox.getClientOnboard;
+sandbox.window.CHECKINS={c1:[]};
+sandbox.SE.push({id:'s-today',clientId:'c1',date:'2026-09-21',source:'planned',type:'FBW'});
 sandbox.getClientOnboard=()=>({invite:false,complete:false,done:0,total:6});
 const start=sandbox.cpOverviewStatusSteps({id:'c1',name:'Jan Kowalski',trainingFreq:3});
-ok('invite start steps',start.length===3&&start[0].kind==='checkin'&&start[1].kind==='mass'&&start[2].kind==='adherence'&&/samopoczucie/.test(start[0].text)&&/wagi/.test(start[1].text)&&/3 treningi/.test(start[2].text)&&start[0].cta&&start[0].cta.label==='Poproś',JSON.stringify(start));
-const snapAdh=sandbox._snap.facts.adh7;
-sandbox._snap.facts.adh7={assigned:2,logged:0,pct:0};
-const startAdh=sandbox.cpOverviewStatusSteps({id:'c1',name:'Jan Kowalski',trainingFreq:3});
-ok('early overrides lone adherence',startAdh.length===3&&startAdh[0].kind==='checkin'&&!startAdh.some(x=>/Treningi 7 dni/.test(x.text)),JSON.stringify(startAdh));
-sandbox._snap.facts.adh7=snapAdh;
-sandbox.getClientOnboard=savedOb;
+ok('no-app recs skip poproś checkin',start.some(x=>x.kind==='invite')&&start.filter(x=>x.kind==='checkin').every(x=>x.cta&&x.cta.label==='Dodaj notatkę')&&!start.some(x=>x.cta&&x.cta.label==='Poproś o check-in'),JSON.stringify(start.map(x=>({k:x.kind,l:x.cta&&x.cta.label}))));
+sandbox._adh={assigned:2,logged:2,pct:100};
+const full=sandbox.cpOverviewRecs({id:'c1',name:'Jan Kowalski',trainingFreq:3,inviteSent:true});
+ok('2/2 never shortens plan',!full.some(x=>x.kind==='adherence')&&!JSON.stringify(full).includes('Skróć'),JSON.stringify(full.map(x=>x.kind+' '+x.title)));
+sandbox._adh={assigned:4,logged:1,pct:25};
+const low=sandbox.cpOverviewRecs({id:'c1',name:'Jan Kowalski',trainingFreq:3,inviteSent:true,createdAt:'2026-01-01'});
+ok('low adh14 opens plan',low.some(x=>x.kind==='adherence'&&x.cta&&x.cta.label==='Otwórz plan'&&/1 z 4/.test(x.reason)),JSON.stringify(low));
+sandbox._adh={assigned:2,logged:0,pct:0};
 
 if(failed){console.error('\n'+failed+' failed');process.exit(1);}
 console.log('\nAll cp-overview-situation checks passed');

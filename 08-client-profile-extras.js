@@ -1688,11 +1688,22 @@ function cpOverviewAlertHTML(c){
     <button type="button" class="btn btn-ghost btn-sm" data-cp-alert-cta="onboard" onclick="openClientOnboardChecklist('${esc(c.id)}')">Dokończ</button>
   </div>`;
 }
+function cpOverviewHasApp(c){
+  if(!c)return false;
+  return !!(c.inviteSent||c.appInvited||c.inviteSentAt||c.inviteAcceptedAt||c.appJoined||c.appJoinedAt);
+}
+function cpOverviewHasLastName(c){
+  if(!c)return false;
+  if(String(c.lastName||c.surname||'').trim())return true;
+  const parts=String(c.name||'').trim().split(/\s+/).filter(Boolean);
+  return parts.length>=2;
+}
 function cpOverviewMissingItems(c){
-  const items=[];
-  if(!c)return items;
+  const client=[];
+  const trainer=[];
+  if(!c)return{client,trainer,hasApp:false,items:[]};
   const id=c.id;
-  const truth=cpClientStatusTruth(c);
+  const hasApp=cpOverviewHasApp(c);
   const metricsOn=typeof bmFeatureOn==='function'?bmFeatureOn(c):true;
   const photosOn=typeof ppFeatureOn==='function'?ppFeatureOn(c):true;
   const filled=((window.CHECKINS&&window.CHECKINS[id])||[]).filter(x=>x&&x.status==='filled');
@@ -1702,33 +1713,59 @@ function cpOverviewMissingItems(c){
   const hr=metricsOn?(typeof cpMetricLatest==='function'?(cpMetricLatest(id,'mg4','m1')||cpMetricLatest(id,'mg6','m3')):null):null;
   const steps=metricsOn&&typeof cpMetricLatest==='function'?cpMetricLatest(id,'mg6','m1'):null;
   const sleep=typeof cpMetricLatest==='function'?cpMetricLatest(id,'mg5','m2'):null;
-  const notes=(window.CLIENT_NOTES&&window.CLIENT_NOTES[id])||[];
   const injuries=typeof clientInjuriesText==='function'?clientInjuriesText(c):(c.injuries||'');
-  if(truth.ob&&!truth.ob.invite)items.push({id:'invite',label:'Dostęp do aplikacji',cta:'Wyślij zaproszenie',onclick:`typeof openInviteModal==='function'&&openInviteModal('${id}')`});
-  if(!filled.length)items.push({id:'checkin',label:'Check-in',cta:'Poproś o check-in',onclick:`cpRemindClient('${id}','checkin')`});
+  const ask=kind=>`cpRemindClient('${id}','${kind}')`;
+  if(!filled.length)client.push({id:'checkin',label:'Check-in',cta:'Poproś',onclick:ask('checkin')});
   if(photosOn&&!(photos&&photos.length)&&!(physique&&(physique.front||physique.side||physique.back))){
-    items.push({id:'photos',label:'Zdjęcia postępu',cta:'Poproś o zdjęcia',onclick:`cpRemindClient('${id}','photos')`});
+    client.push({id:'photos',label:'Zdjęcia',cta:'Poproś',onclick:ask('photos')});
   }
-  if(metricsOn&&!(garmin&&garmin.n))items.push({id:'garmin',label:'Garmin',cta:'Import Garmin',onclick:`setCPTab('metrics')`});
-  if(metricsOn&&!hr)items.push({id:'hr',label:'Tętno spoczynkowe',cta:'Dodaj pomiar',onclick:`setCPTab('metrics')`});
-  if(metricsOn&&!steps)items.push({id:'steps',label:'Kroki',cta:'Dodaj pomiar',onclick:`setCPTab('metrics')`});
-  if(!sleep)items.push({id:'sleep',label:'Sen',cta:'Dodaj pomiar',onclick:`setCPTab('metrics')`});
-  if(!String(injuries||'').trim())items.push({id:'injuries',label:'Ograniczenia / kontuzje',cta:'Uzupełnij',onclick:`startCPEdit('${id}')`});
-  if(!notes.length)items.push({id:'notes',label:'Notatka trenera',cta:'Dodaj notatkę',onclick:`setCPTab('notes')`});
-  return items;
+  if(metricsOn&&!(garmin&&garmin.n))client.push({id:'garmin',label:'Garmin',cta:'Poproś',onclick:ask('garmin')});
+  if(metricsOn&&!steps)client.push({id:'steps',label:'Kroki',cta:'Poproś',onclick:ask('steps')});
+  if(!sleep)client.push({id:'sleep',label:'Sen',cta:'Poproś',onclick:ask('sleep')});
+  if(!cpOverviewHasLastName(c))trainer.push({id:'lastname',label:'Nazwisko',cta:'Uzupełnij',onclick:`startCPEdit('${id}')`});
+  if(!String(c.phone||'').trim())trainer.push({id:'phone',label:'Telefon',cta:'Uzupełnij',onclick:`startCPEdit('${id}')`});
+  if(c.age==null||c.age==='')trainer.push({id:'age',label:'Wiek',cta:'Uzupełnij',onclick:`startCPEdit('${id}')`});
+  if(c.height==null||c.height==='')trainer.push({id:'height',label:'Wzrost',cta:'Uzupełnij',onclick:`startCPEdit('${id}')`});
+  if(metricsOn&&!hr)trainer.push({id:'hr',label:'Tętno spoczynkowe',cta:'Dodaj pomiar',onclick:`setCPTab('metrics')`});
+  if(!String(injuries||'').trim())trainer.push({id:'injuries',label:'Ograniczenia / kontuzje',cta:'Uzupełnij',onclick:`startCPEdit('${id}')`});
+  const items=hasApp?client.concat(trainer):trainer.slice();
+  return{client,trainer,hasApp,items};
 }
 function cpOverviewMissingHTML(c){
-  const items=cpOverviewMissingItems(c);
-  if(!items.length)return'';
+  const pack=cpOverviewMissingItems(c);
+  const client=pack.client||[];
+  const trainer=pack.trainer||[];
+  const hasApp=!!pack.hasApp;
+  if(!client.length&&!trainer.length)return'';
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s??''));
+  const row=(it,withCta)=>`<li class="cp-ov-missing-item" data-cp-missing-item="${esc(it.id)}">
+        <span>${esc(it.label)}</span>
+        ${withCta&&it.cta?`<button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();${it.onclick}">${esc(it.cta)}</button>`:''}
+      </li>`;
+  let body='';
+  if(client.length){
+    if(!hasApp){
+      body+=`<div class="cp-ov-missing-group" data-cp-missing-group="client">
+        <div class="cp-ov-missing-gh">Uzupełni klient po zaproszeniu</div>
+        <p class="cp-ov-missing-line">${esc(client.map(x=>x.label).join(', '))}.</p>
+      </div>`;
+    }else{
+      body+=`<div class="cp-ov-missing-group" data-cp-missing-group="client">
+        <div class="cp-ov-missing-gh">Uzupełni klient po zaproszeniu</div>
+        <ul class="cp-ov-missing-list">${client.map(it=>row(it,true)).join('')}</ul>
+      </div>`;
+    }
+  }
+  if(trainer.length){
+    body+=`<div class="cp-ov-missing-group" data-cp-missing-group="trainer">
+      <div class="cp-ov-missing-gh">Do uzupełnienia przez Ciebie</div>
+      <ul class="cp-ov-missing-list">${trainer.map(it=>row(it,true)).join('')}</ul>
+    </div>`;
+  }
+  if(!body)return'';
   return `<div class="cp-ov-missing" id="cp-ov-missing" data-cp-missing="list">
     <div class="cp-ov-rail-hd"><span>Brakujące dane</span></div>
-    <ul class="cp-ov-missing-list">
-      ${items.map(it=>`<li class="cp-ov-missing-item" data-cp-missing-item="${esc(it.id)}">
-        <span>${esc(it.label)}</span>
-        ${it.cta?`<button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();${it.onclick}">${esc(it.cta)}</button>`:''}
-      </li>`).join('')}
-    </ul>
+    ${body}
   </div>`;
 }
 window.cpProfileSubtext=cpProfileSubtext;
@@ -1737,6 +1774,8 @@ window.cpClientHasPlanDays=cpClientHasPlanDays;
 window.cpAdhSampleOk=cpAdhSampleOk;
 window.cpClientStatusTruth=cpClientStatusTruth;
 window.cpOverviewFirstName=cpOverviewFirstName;
+window.cpOverviewHasApp=cpOverviewHasApp;
+window.cpOverviewHasLastName=cpOverviewHasLastName;
 window.cpOverviewAlertHTML=cpOverviewAlertHTML;
 window.cpOverviewMissingItems=cpOverviewMissingItems;
 window.cpOverviewMissingHTML=cpOverviewMissingHTML;
@@ -1819,7 +1858,13 @@ function cpRemindClient(clientId,kind){
       ?'💪 Przypomnienie o treningu — odhacz sesję w aplikacji, gdy zrobisz.'
       :(kind==='photos'
         ?'📸 Wrzuć zdjęcia postępu w aplikacji (przód / bok / tył).'
-        :'💬 Krótki check-in od trenera — daj znać, jak idzie.'));
+        :(kind==='garmin'
+          ?'⌚ Wrzuć dane z Garmina albo zaimportuj CSV w aplikacji.'
+          :(kind==='steps'
+            ?'🚶 Dodaj pomiar kroków w aplikacji albo z Garmina.'
+            :(kind==='sleep'
+              ?'😴 Oceń sen w aplikacji (1–10).'
+              :'💬 Krótki check-in od trenera — daj znać, jak idzie.')))));
   if(typeof pushMsg==='function')pushMsg(clientId,text);
   if(typeof notify==='function')notify('✓ Wiadomość poszła do czatu klienta');
   return true;
@@ -2007,24 +2052,232 @@ function focusCpOverviewSection(id){
   el.scrollIntoView({behavior:'smooth',block:'nearest'});
   setTimeout(()=>{if(el)el.classList.remove('dash-section-focus');},1800);
 }
+function cpOverviewTodayYmd(){
+  if(typeof dashTodayYmd==='function')return dashTodayYmd();
+  if(typeof todayYmd==='function')return todayYmd();
+  const p=n=>String(n).padStart(2,'0');
+  const t=new Date();
+  return t.getFullYear()+'-'+p(t.getMonth()+1)+'-'+p(t.getDate());
+}
+function cpOverviewDaysBetween(fromYmd,toYmd){
+  if(typeof dashDaysBetween==='function')return dashDaysBetween(fromYmd,toYmd);
+  if(typeof cpBriefDaysBetween==='function')return cpBriefDaysBetween(fromYmd,toYmd);
+  const a=new Date(String(fromYmd||'').slice(0,10)+'T12:00:00').getTime();
+  const b=new Date(String(toYmd||'').slice(0,10)+'T12:00:00').getTime();
+  if(!a||!b||isNaN(a)||isNaN(b))return null;
+  return Math.round((b-a)/86400000);
+}
+function cpOverviewDateLabel(ymd,today){
+  const y=String(ymd||'').slice(0,10);
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(y))return'';
+  const t=today||cpOverviewTodayYmd();
+  const d=cpOverviewDaysBetween(y,t);
+  if(d===0)return'dziś';
+  if(d===1)return'wczoraj';
+  const dt=new Date(y+'T12:00:00');
+  if(isNaN(dt.getTime()))return'';
+  const wd=['nd','pn','wt','śr','cz','pt','sb'][dt.getDay()];
+  const p=n=>String(n).padStart(2,'0');
+  return wd+' '+p(dt.getDate())+'.'+p(dt.getMonth()+1);
+}
+function cpOverviewPl(n,one,few,many){
+  const x=Math.abs(Number(n)||0);
+  if(x===1)return one;
+  const mod10=x%10,mod100=x%100;
+  if(mod10>=2&&mod10<=4&&(mod100<12||mod100>14))return few;
+  return many;
+}
+function cpOverviewWeekBounds(today){
+  const t=new Date(String(today||cpOverviewTodayYmd())+'T12:00:00');
+  const dow=t.getDay();
+  const mondayDelta=dow===0?-6:1-dow;
+  const mon=new Date(t);mon.setDate(t.getDate()+mondayDelta);
+  const sun=new Date(mon);sun.setDate(mon.getDate()+6);
+  const p=n=>String(n).padStart(2,'0');
+  const ymd=d=>d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+  return{from:ymd(mon),to:ymd(sun)};
+}
+function cpOverviewMeasureCount(c){
+  const id=c&&c.id;
+  return (window.METRIC_ENTRIES||[]).filter(e=>{
+    if(!e||e.clientId!==id)return false;
+    if(e.source==='garmin'||e.groupId==='mg6')return false;
+    const v=e.values||{};
+    return Object.keys(v).some(k=>{const n=Number(v[k]);return Number.isFinite(n)&&n>0;});
+  }).length;
+}
+function cpOverviewCoopWeeks(c){
+  if(!c)return 0;
+  const today=cpOverviewTodayYmd();
+  let start=String(c.createdAt||c.joinDate||c.created||'').slice(0,10);
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(start)){
+    const sess=(window.SE||[]).filter(s=>s&&s.clientId===c.id&&s.date).slice().sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+    start=sess[0]?String(sess[0].date).slice(0,10):'';
+  }
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(start))return 0;
+  const days=cpOverviewDaysBetween(start,today);
+  if(days==null||days<0)return 0;
+  return days/7;
+}
+function cpOverviewWeightCount30(clientId){
+  const today=cpOverviewTodayYmd();
+  const fromDate=new Date(today+'T12:00:00');
+  fromDate.setDate(fromDate.getDate()-29);
+  const p=n=>String(n).padStart(2,'0');
+  const from=fromDate.getFullYear()+'-'+p(fromDate.getMonth()+1)+'-'+p(fromDate.getDate());
+  return (window.METRIC_ENTRIES||[]).filter(e=>e&&e.clientId===clientId&&e.groupId==='mg1'&&e.date>=from&&e.date<=today&&e.values&&e.values.m1!=null&&e.values.m1!=='').length;
+}
+function cpOverviewLastCheckin(clientId){
+  const today=cpOverviewTodayYmd();
+  const filled=((window.CHECKINS&&window.CHECKINS[clientId])||[]).filter(x=>x&&x.status==='filled')
+    .slice().sort((a,b)=>String(b.date||b.filledAt||'').localeCompare(String(a.date||a.filledAt||'')));
+  if(!filled.length)return{days:null,ymd:null};
+  const ymd=String(filled[0].date||filled[0].filledAt||'').slice(0,10);
+  return{days:cpOverviewDaysBetween(ymd,today),ymd};
+}
+function cpOverviewHasSessionToday(c){
+  const id=c&&c.id;
+  const today=cpOverviewTodayYmd();
+  let planned=[];
+  if(typeof cpAssignmentSessions==='function'){
+    try{planned=cpAssignmentSessions(id,{keepPlanned:true})||[];}catch(e){planned=[];}
+  }
+  if(!planned.length)planned=(window.SE||[]).filter(s=>s&&s.clientId===id);
+  return planned.some(s=>s&&String(s.date||'').slice(0,10)===today&&s.source!=='garmin'&&s.source!=='live-draft');
+}
+function cpOverviewSleepRecFact(clientId){
+  const series=typeof cpMetricSeries==='function'?cpMetricSeries(clientId,'mg5','m2',20):[];
+  const vals=(series||[]).map(x=>Number(x.v)).filter(n=>Number.isFinite(n));
+  if(vals.length<3)return{ok:false,n:vals.length,avg:null};
+  const last3=vals.slice(-3);
+  const avg=last3.reduce((a,b)=>a+b,0)/last3.length;
+  const earlier=vals.slice(0,-3);
+  const prevAvg=earlier.length?earlier.reduce((a,b)=>a+b,0)/earlier.length:null;
+  const low=avg<6;
+  const drop=prevAvg!=null&&(prevAvg-avg)>=2;
+  return{ok:low||drop,n:vals.length,avg:Math.round(avg*10)/10,prevAvg,low,drop};
+}
+function cpOverviewThisWeekAdh(clientId){
+  const today=cpOverviewTodayYmd();
+  const b=cpOverviewWeekBounds(today);
+  let planned=[];
+  if(typeof cpAssignmentSessions==='function'){
+    try{planned=cpAssignmentSessions(clientId,{keepPlanned:true}).filter(s=>s&&s.source==='planned'&&s.date>=b.from&&s.date<=b.to);}catch(e){planned=[];}
+  }
+  if(!planned.length){
+    planned=(window.SE||[]).filter(s=>s&&s.clientId===clientId&&s.source==='planned'&&s.date>=b.from&&s.date<=b.to);
+  }
+  const assignedDates=new Set();
+  planned.forEach(s=>{if(s.date)assignedDates.add(String(s.date).slice(0,10));});
+  const loggedDates=new Set();
+  const sessions=(window.SE||[]).filter(s=>s&&s.clientId===clientId);
+  const logged=typeof completedWorkouts==='function'?completedWorkouts(clientId,sessions):sessions.filter(s=>s.source==='client'||s.source==='live'||s.source==='sala'||s.source==='homework');
+  (logged||[]).forEach(s=>{
+    const y=String(s.date||'').slice(0,10);
+    if(y>=b.from&&y<=b.to)loggedDates.add(y);
+  });
+  if(typeof homeworkCompletions==='function'){
+    try{
+      (homeworkCompletions(clientId,14)||[]).forEach(t=>{
+        const y=typeof homeworkDoneYmd==='function'?homeworkDoneYmd(t):String(t.doneAt||'').slice(0,10);
+        if(y&&y>=b.from&&y<=b.to)loggedDates.add(y);
+      });
+    }catch(e){}
+  }
+  const assigned=assignedDates.size;
+  const done=loggedDates.size;
+  const denom=assigned||done;
+  return{assigned,logged:done,pct:denom?Math.round((done/denom)*100):0};
+}
+function cpOverviewFocusNote(id){
+  if(typeof focusCpOverviewSection==='function')focusCpOverviewSection('note-input-'+id);
+  const t=typeof document!=='undefined'?document.getElementById('note-text-'+id):null;
+  if(t)t.focus();
+}
+function revealCpOverviewCoop(){
+  window._cpShowCoop=true;
+  const el=typeof document!=='undefined'?document.querySelector('[data-cp-coop="card"]'):null;
+  if(!el)return;
+  el.hidden=false;
+  if(typeof focusCpOverviewSection==='function')focusCpOverviewSection('cp-ov-coop');
+  else el.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function cpOverviewRecs(c){
+  if(!c)return[];
+  const id=c.id;
+  const hasApp=cpOverviewHasApp(c);
+  const recs=[];
+  if(!hasApp){
+    recs.push({
+      priority:1,order:1,kind:'invite',tone:'act',
+      title:'Wyślij zaproszenie do aplikacji',
+      reason:'Bez aplikacji klient nie wyśle check-inu, zdjęć ani danych z Garmina.',
+      cta:{label:'Wyślij zaproszenie',onclick:`typeof openInviteModal==='function'&&openInviteModal('${id}')`}
+    });
+  }
+  const ci=cpOverviewLastCheckin(id);
+  const ciRecent=ci.days!=null&&ci.days<=3;
+  if(cpOverviewHasSessionToday(c)&&!ciRecent){
+    recs.push({
+      priority:2,order:2,kind:'checkin',tone:'act',
+      title:hasApp?'Poproś o check-in przed dzisiejszym treningiem':'Zapytaj o samopoczucie na początku treningu',
+      reason:ci.days==null?'Brak informacji o samopoczuciu od początku współpracy.':('Brak informacji o samopoczuciu od '+ci.days+' '+cpOverviewPl(ci.days,'dnia','dni','dni')+'.'),
+      cta:hasApp
+        ?{label:'Poproś o check-in',onclick:`cpRemindClient('${id}','checkin')`}
+        :{label:'Dodaj notatkę',onclick:`cpOverviewFocusNote('${id}')`}
+    });
+  }
+  const adh14=typeof clientAdherenceStats==='function'?clientAdherenceStats(id,14):{assigned:0,logged:0,pct:0};
+  if(Number(adh14.assigned||0)>=4&&Number(adh14.pct)<60){
+    const freq=typeof cpOverviewWeekFreq==='function'?cpOverviewWeekFreq(c):3;
+    recs.push({
+      priority:2,order:3,kind:'adherence',tone:'watch',
+      title:'Sprawdź, czy '+(typeof cpOverviewTrainWord==='function'?cpOverviewTrainWord(freq):(freq+' treningi'))+' w tygodniu są realne',
+      reason:'W ostatnich 2 tygodniach '+adh14.logged+' z '+adh14.assigned+' treningów.',
+      cta:{label:'Otwórz plan',onclick:`setCPTab('plan')`}
+    });
+  }
+  const wN=cpOverviewWeightCount30(id);
+  if(wN<2){
+    recs.push({
+      priority:3,order:4,kind:'mass',tone:'watch',
+      title:'Ustal stały dzień pomiaru wagi',
+      reason:wN+' '+cpOverviewPl(wN,'pomiar','pomiary','pomiarów')+' w ostatnich 30 dniach. Trend pokażemy od 2 pomiarów.',
+      cta:{label:'Ustaw przypomnienie',onclick:`setCPTab('metrics')`}
+    });
+  }
+  const sleep=cpOverviewSleepRecFact(id);
+  if(sleep.ok){
+    recs.push({
+      priority:3,order:5,kind:'sleep',tone:'watch',
+      title:'Rozważ lżejszy trening',
+      reason:'Średnia snu z ostatnich 3 dni: '+sleep.avg+'/10.',
+      cta:{label:'Otwórz trening',onclick:`typeof cpStartLive==='function'&&cpStartLive()`}
+    });
+  }
+  recs.sort((a,b)=>(a.priority-b.priority)||(a.order-b.order));
+  return recs.slice(0,3);
+}
 function cpOverviewStatusHeadline(c){
   const truth=typeof cpClientStatusTruth==='function'?cpClientStatusTruth(c):{reason:'ok',label:'Status',tone:'info',hint:''};
-  if(truth.reason==='invite'||truth.reason==='onboard'){
-    const n=truth.ob&&truth.ob.total!=null?Math.max(0,(truth.ob.total||0)-(truth.ob.done||0)):3;
-    return{title:'Za wcześnie na ocenę',badge:n?('Brakuje '+n+' kroków'):'Start niedokończony',tone:'warn',sub:truth.hint||'Za mało niezależnych źródeł, żeby ocenić współpracę.'};
+  const early=typeof cpOverviewStatusIsEarly==='function'?cpOverviewStatusIsEarly(c):false;
+  if(early){
+    return{title:'Za wcześnie na ocenę',badge:'',tone:'info',sub:'Wiarygodną analizę pokażemy po 4 tygodniach lub 4 pomiarach.',early:true};
   }
   let v=null;
   try{v=typeof buildMonitorVerdict==='function'?buildMonitorVerdict(c):null;}catch(e){v=null;}
-  if(typeof cpOverviewVerdictIsThin==='function'&&cpOverviewVerdictIsThin(c,v)){
-    return{title:'Za wcześnie na ocenę',badge:'Za mało danych',tone:'warn',sub:'Potrzeba więcej treningów, pomiarów albo check-inów.'};
+  if(v&&v.verdict&&!(typeof cpOverviewVerdictIsThin==='function'&&cpOverviewVerdictIsThin(c,v))){
+    const labels={progres:'Progres',regres:'Regres','ryzyko stagnacji':'Ryzyko stagnacji',stabilnie:'Stabilnie'};
+    return{title:labels[v.verdict]||truth.label||'Status',badge:truth.hint||'',tone:truth.tone||'info',sub:truth.hint||'',early:false};
   }
-  return{title:truth.label||'Status',badge:truth.hint||'',tone:truth.tone||'info',sub:truth.hint||''};
+  return{title:truth.label||'Status',badge:truth.hint||'',tone:truth.tone||'info',sub:truth.hint||'',early:false};
 }
 function cpOverviewStepCta(kind,clientId){
   const id=String(clientId||'');
-  if(kind==='checkin')return{label:'Poproś',onclick:`cpRemindClient('${id}','checkin')`};
-  if(kind==='adherence')return{label:'Skróć plan',onclick:`setCPTab('plan')`};
-  if(kind==='sleep'||kind==='mass')return{label:'Umów przypomnienie',onclick:`setCPTab('metrics')`};
+  if(kind==='checkin')return{label:'Poproś o check-in',onclick:`cpRemindClient('${id}','checkin')`};
+  if(kind==='adherence')return{label:'Otwórz plan',onclick:`setCPTab('plan')`};
+  if(kind==='sleep')return{label:'Otwórz trening',onclick:`typeof cpStartLive==='function'&&cpStartLive()`};
+  if(kind==='mass')return{label:'Ustaw przypomnienie',onclick:`setCPTab('metrics')`};
   if(kind==='homework')return{label:'Zadania',onclick:`setCPTab('tasks')`};
   if(kind==='injury')return{label:'Profil',onclick:`startCPEdit('${id}')`};
   if(kind==='load'||kind==='workout')return{label:'Treningi',onclick:`setCPTab('training')`};
@@ -2058,24 +2311,19 @@ function cpOverviewStartSteps(c){
   ];
 }
 function cpOverviewStatusIsEarly(c){
-  const truth=typeof cpClientStatusTruth==='function'?cpClientStatusTruth(c):null;
-  if(truth&&(truth.reason==='invite'||truth.reason==='onboard'))return true;
-  let v=null;
-  try{v=typeof buildMonitorVerdict==='function'?buildMonitorVerdict(c):null;}catch(e){v=null;}
-  return typeof cpOverviewVerdictIsThin==='function'?cpOverviewVerdictIsThin(c,v):(!v||!v.verdict);
+  if(!c)return true;
+  const weeks=typeof cpOverviewCoopWeeks==='function'?cpOverviewCoopWeeks(c):0;
+  const measures=typeof cpOverviewMeasureCount==='function'?cpOverviewMeasureCount(c):0;
+  return weeks<4||measures<4;
 }
 function cpOverviewStatusSteps(c){
   if(!c)return[];
-  const next=(typeof cpNextSessionFocusItems==='function'?cpNextSessionFocusItems(c.id):[])||[];
-  const actionable=next.filter(x=>x&&x.kind&&x.kind!=='ok');
-  const strong=actionable.filter(x=>x&&(x.kind==='injury'||x.kind==='load'||x.kind==='sleep'||x.kind==='package'||(x.kind==='checkin'&&x.tone==='act')||(x.kind==='homework'&&x.tone==='watch')));
-  if(cpOverviewStatusIsEarly(c)&&!strong.length)return cpOverviewStartSteps(c);
-  if(!actionable.length){
-    const ok=next.find(x=>x&&x.kind==='ok')||{kind:'ok',tone:'ok',text:'Brak szczególnych sygnałów — jedź planem.'};
-    return[{n:1,kind:'ok',tone:'ok',text:ok.text,cta:null}];
+  const recs=typeof cpOverviewRecs==='function'?cpOverviewRecs(c):[];
+  if(!recs.length){
+    return[{n:1,kind:'ok',tone:'ok',title:'',text:'Wszystko w porządku — brak pilnych działań.',reason:'',cta:null}];
   }
-  return actionable.slice(0,5).map((it,i)=>({
-    n:i+1,kind:it.kind,tone:it.tone||'watch',text:it.text,cta:cpOverviewStepCta(it.kind,c.id)
+  return recs.map((it,i)=>({
+    n:i+1,kind:it.kind,tone:it.tone||'watch',title:it.title,text:it.title,reason:it.reason,cta:it.cta||null
   }));
 }
 function cpOverviewSituationHTML(c){
@@ -2083,78 +2331,100 @@ function cpOverviewSituationHTML(c){
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s??''));
   const snap=typeof clientSituationSnapshot==='function'?clientSituationSnapshot(c.id):null;
   const truth=typeof cpClientStatusTruth==='function'?cpClientStatusTruth(c):{tone:'good',label:'Status',hint:''};
-  const goalLabels={masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja'};
-  const goalText=goalLabels[c.goal]||c.goal||'—';
   const head=typeof cpOverviewStatusHeadline==='function'?cpOverviewStatusHeadline(c):{title:truth.label,badge:truth.hint,tone:truth.tone,sub:truth.hint};
   const facts=snap&&snap.facts||{};
-  const adh7=facts.adh7||{logged:0,assigned:0,pct:0};
-  const adh30=facts.adh30||{logged:0,assigned:0,pct:0};
+  const week=typeof cpOverviewThisWeekAdh==='function'?cpOverviewThisWeekAdh(c.id):(facts.adh7||{logged:0,assigned:0,pct:0});
   const mass=cpMassDelta30Fact(c.id);
-  const massVal=mass.value!=null?mass.value:(facts.mass&&facts.mass.value);
+  const weightEntry=typeof cpMetricLatest==='function'?cpMetricLatest(c.id,'mg1','m1'):null;
+  const massVal=weightEntry&&weightEntry.values&&weightEntry.values.m1!=null?weightEntry.values.m1:(mass.value!=null?mass.value:null);
+  const fromSurvey=!(weightEntry&&weightEntry.values&&weightEntry.values.m1!=null)&&c.weight!=null&&c.weight!=='';
+  const surveyWeight=fromSurvey?c.weight:null;
   const sleep=cpSleepTrendFact(c.id);
   const sleepVal=facts.sleep&&facts.sleep.value!=null?facts.sleep.value:(sleep&&sleep.last);
   const lastCi=facts.lastCheckin;
   const fmtN=v=>v==null||v===''?'—':(typeof v==='number'&&!Number.isInteger(v)?String(Math.round(v*10)/10):String(v));
-  const adhOk=cpAdhSampleOk(adh30);
-  const trainHint=adh30.assigned&&!adhOk
-    ?(adh30.logged+'/'+adh30.assigned+' · za mało na trend')
-    :(adh7.assigned?(adh7.logged+' z '+adh7.assigned+(adh7.assigned<3?' · za mało na trend':'')):(adh7.logged?'zarejestrowane':'brak planu'));
-  const massHint=mass.delta==null?'brak pomiarów wagi w ostatnich 30 dniach':((mass.delta>0?'+':'')+mass.delta+' kg / 30d');
-  const sleepHint=sleep?(sleep.dir==='thin'?(sleep.n+' '+(sleep.n===1?'ocena':'oceny')+' · za mało na trend'):(sleep.dir==='down'?'spada':sleep.dir==='up'?'rośnie':'stabilny')):'brak pomiarów snu';
+  let trainHint='brak zaplanowanych treningów';
+  if(week.assigned)trainHint=week.logged+' z '+week.assigned;
+  else if(week.logged)trainHint=week.logged+' zarejestrowane';
+  let massHint='brak pomiaru wagi';
+  let massN=massVal;
+  if(fromSurvey){
+    massN=surveyWeight;
+    const sd=cpOverviewDateLabel(c.weightDate||c.updatedAt||c.createdAt||'');
+    massHint='z ankiety'+(sd?', '+sd:'');
+  }else if(massVal==null){
+    massHint='brak pomiaru wagi';
+  }else if(mass.delta==null){
+    massHint='za mało pomiarów na trend';
+  }else{
+    massHint=(mass.delta>0?'+':'')+mass.delta+' kg / 30d';
+  }
+  const sleepHint=sleep?(sleep.dir==='thin'?'za mało ocen snu na trend':(sleep.dir==='down'?'spada':sleep.dir==='up'?'rośnie':'stabilny')):'brak ocen snu';
   let ciN='—';
   let ciHint='brak check-inu';
   if(lastCi&&lastCi.daysSince!=null){
     ciN=String(lastCi.daysSince);
     ciHint=lastCi.daysSince===0?'dziś':(lastCi.daysSince===1?'wczoraj':lastCi.daysSince+' d. temu');
   }else if(facts.checkinStatus==='overdue'){
-    ciN='!';
+    ciN='—';
     ciHint='przeterminowany';
   }else if(facts.checkinStatus==='pending'){
-    ciN='…';
-    ciHint='oczekuje';
+    ciN='—';
+    ciHint='oczekuje na odpowiedź';
   }
+  const trainTone=cpOverviewSitTone('train',{facts:{adh7:week}},mass,sleep);
+  const massTone=fromSurvey||massVal==null?'info':cpOverviewSitTone('mass',snap,mass,sleep);
+  const sleepTone=cpOverviewSitTone('sleep',snap,mass,sleep);
+  const ciTone=cpOverviewSitTone('checkin',snap,mass,sleep);
   const tiles=[
-    {id:'train',n:fmtN(adh7.logged),unit:adh7.assigned?('/'+adh7.assigned):'',lbl:'Treningi 7d',hint:trainHint,tone:cpOverviewSitTone('train',snap,mass,sleep),target:'cp-ov-card-train'},
-    {id:'mass',n:fmtN(massVal),unit:massVal!=null&&massVal!==''?'kg':'',lbl:'Waga',hint:massHint,tone:cpOverviewSitTone('mass',snap,mass,sleep),target:'cp-ov-card-metrics'},
-    {id:'sleep',n:fmtN(sleepVal),unit:'',lbl:'Sen',hint:sleepHint,tone:cpOverviewSitTone('sleep',snap,mass,sleep),target:'cp-ov-card-metrics'},
-    {id:'checkin',n:ciN,unit:'',lbl:'Samopoczucie',hint:ciHint,tone:cpOverviewSitTone('checkin',snap,mass,sleep),target:'cp-ov-card-feel'}
+    {id:'train',n:week.assigned||week.logged?fmtN(week.logged):'—',unit:week.assigned?('/'+week.assigned):'',lbl:'Treningi w tym tygodniu',hint:trainHint,tone:trainTone,target:'cp-ov-card-train'},
+    {id:'mass',n:fmtN(massN),unit:massN!=null&&massN!==''?'kg':'',lbl:'Waga',hint:massHint,tone:massTone,target:'cp-ov-card-metrics'},
+    {id:'sleep',n:sleepVal==null?'—':fmtN(sleepVal),unit:sleepVal!=null?'/10':'',lbl:'Sen',hint:sleepVal==null?'brak ocen snu':sleepHint,tone:sleepTone,target:'cp-ov-card-metrics'},
+    {id:'checkin',n:ciN,unit:'',lbl:'Samopoczucie',hint:ciHint,tone:ciTone,target:'cp-ov-card-feel'}
   ];
   const steps=typeof cpOverviewStatusSteps==='function'?cpOverviewStatusSteps(c):[];
+  const recOk=steps.length===1&&steps[0].kind==='ok';
+  const showAnalysis=!head.early;
   return `<div class="cp-ov-situation">
     <div class="cp-ov-situation-top">
       <div>
         <div class="cp-ov-situation-kicker">Status współpracy</div>
         <div class="cp-ov-situation-headline">${esc(head.title||'Status')}</div>
-        <div class="cp-ov-situation-title">${esc(c.name||'')} · ${esc(goalText)}</div>
         ${head.sub?`<div class="cp-ov-situation-sub">${esc(head.sub)}</div>`:''}
       </div>
-      <div class="cp-ov-pulse cp-ov-pulse-${esc(head.tone||truth.tone||'good')}">
+      ${head.badge?`<div class="cp-ov-pulse cp-ov-pulse-${esc(head.tone||truth.tone||'good')}">
         <span class="cp-ov-pulse-dot" aria-hidden="true"></span>
         <div>
-          <div class="cp-ov-pulse-label">${esc(head.badge||truth.label||'Status')}</div>
-          <div class="cp-ov-pulse-hint">${esc(truth.reason==='invite'?'Klient nie ma jeszcze zaproszenia do aplikacji':(truth.hint||''))}</div>
+          <div class="cp-ov-pulse-label">${esc(head.badge)}</div>
         </div>
-      </div>
+      </div>`:''}
     </div>
     <div class="cp-ov-next">
       <div class="cp-ov-next-hd">Wnioski</div>
-      <ol class="cp-ov-next-list cp-ov-steps">
+      ${recOk?`<div class="cp-ov-rec-ok" data-cp-next="ok">${esc(steps[0].text)}</div>`:`<ol class="cp-ov-next-list cp-ov-steps">
         ${steps.map(it=>`<li class="cp-ov-next-item cp-ov-step cp-ov-next-${esc(it.tone)}" data-cp-next="${esc(it.kind)}">
           <span class="cp-ov-step-n" aria-hidden="true">${esc(String(it.n))}</span>
           <div class="cp-ov-step-body">
-            <div class="cp-ov-step-text">${esc(it.text)}</div>
+            <div class="cp-ov-step-text">
+              <div class="cp-ov-rec-title">${esc(it.title||it.text)}</div>
+              ${it.reason?`<div class="cp-ov-rec-why">${esc(it.reason)}</div>`:''}
+            </div>
             ${it.cta?`<button type="button" class="btn btn-ghost btn-sm" data-cp-status-act="${esc(it.kind)}" onclick="${it.cta.onclick}">${esc(it.cta.label)}</button>`:''}
           </div>
         </li>`).join('')}
-      </ol>
+      </ol>`}
     </div>
     <div class="cp-ov-situation-kpis">
-      ${tiles.map(t=>`<button type="button" class="cp-ov-sit-tile cp-ov-sit-tile-${esc(t.tone)}" data-cp-sit="${esc(t.id)}" onclick="focusCpOverviewSection('${esc(t.target)}')">
+      ${tiles.map(t=>{
+        const colored=t.tone==='watch'||t.tone==='act';
+        return `<button type="button" class="cp-ov-sit-tile${colored?' cp-ov-sit-tile-'+esc(t.tone):''}" data-cp-sit="${esc(t.id)}" onclick="focusCpOverviewSection('${esc(t.target)}')">
         <div class="cp-ov-sit-n">${esc(t.n)}${t.unit?`<span class="cp-ov-sit-unit">${esc(t.unit)}</span>`:''}</div>
         <div class="cp-ov-sit-lbl">${esc(t.lbl)}</div>
         <div class="cp-ov-sit-hint">${esc(t.hint)}</div>
-      </button>`).join('')}
+      </button>`;
+      }).join('')}
     </div>
+    ${showAnalysis?`<div class="cp-ov-sit-foot"><button type="button" class="btn btn-ghost btn-sm" data-cp-analysis-link="1" onclick="revealCpOverviewCoop()">Pełna analiza →</button></div>`:''}
   </div>`;
 }
 window.cpSetsVolume=cpSetsVolume;
@@ -2163,6 +2433,11 @@ window.cpSleepTrendFact=cpSleepTrendFact;
 window.cpMassDelta30Fact=cpMassDelta30Fact;
 window.cpNextSessionFocusItems=cpNextSessionFocusItems;
 window.focusCpOverviewSection=focusCpOverviewSection;
+window.revealCpOverviewCoop=revealCpOverviewCoop;
+window.cpOverviewFocusNote=cpOverviewFocusNote;
+window.cpOverviewTodayYmd=cpOverviewTodayYmd;
+window.cpOverviewDateLabel=cpOverviewDateLabel;
+window.cpOverviewRecs=cpOverviewRecs;
 window.cpOverviewStatusHeadline=cpOverviewStatusHeadline;
 window.cpOverviewStepCta=cpOverviewStepCta;
 window.cpOverviewTrainWord=cpOverviewTrainWord;
@@ -2171,6 +2446,9 @@ window.cpOverviewStartSteps=cpOverviewStartSteps;
 window.cpOverviewStatusIsEarly=cpOverviewStatusIsEarly;
 window.cpOverviewStatusSteps=cpOverviewStatusSteps;
 window.cpOverviewSituationHTML=cpOverviewSituationHTML;
+window.cpOverviewThisWeekAdh=cpOverviewThisWeekAdh;
+window.cpOverviewCoopWeeks=cpOverviewCoopWeeks;
+window.cpOverviewMeasureCount=cpOverviewMeasureCount;
 
 function cpBriefTodayYmd(){
   if(typeof dashTodayYmd==='function')return dashTodayYmd();
@@ -2206,10 +2484,66 @@ function cpBriefAgoLong(ymd,today){
   if(d>1)return d+' d. temu';
   return '';
 }
+function cpOverviewStripDupDayPrefix(name){
+  return String(name||'').replace(/\s+/g,' ').trim().replace(/^dzień\s+\d+\s*[—–\-:]+\s*(dzień\s)/i,'$1').trim();
+}
+function cpOverviewParseWeekdayToken(raw){
+  const t=String(raw||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\./g,'');
+  if(!t)return null;
+  const map={
+    nd:0,niedz:0,nie:0,niedziela:0,sun:0,sunday:0,
+    pn:1,pon:1,poniedzialek:1,mon:1,monday:1,
+    wt:2,wto:2,wtorek:2,tue:2,tuesday:2,
+    sr:3,sro:3,sroda:3,wed:3,wednesday:3,
+    cz:4,czw:4,czwartek:4,thu:4,thursday:4,
+    pt:5,pia:5,piatek:5,fri:5,friday:5,
+    sb:6,sob:6,sobota:6,sat:6,saturday:6
+  };
+  if(map[t]!=null)return map[t];
+  if(t.length>=2&&map[t.slice(0,2)]!=null)return map[t.slice(0,2)];
+  if(t.length>=3&&map[t.slice(0,3)]!=null)return map[t.slice(0,3)];
+  return null;
+}
+function cpOverviewParsePlanDay(day,idx){
+  const rest=!!(day&&day.rest);
+  let raw=String((day&&(day.name||day.dayName||day.day))||'').trim();
+  let priority=String((day&&(day.priority||day.priorytet))||'').trim();
+  let mus=String((day&&(day.muscles||day.focus))||'').trim();
+  const takePri=s=>{
+    const m=String(s||'').match(/\(\s*priorytet:\s*([^)]+)\)/i);
+    if(!m)return s;
+    if(!priority)priority=m[1].trim();
+    return String(s).replace(m[0],'').replace(/\s+/g,' ').trim();
+  };
+  raw=takePri(raw);
+  mus=takePri(mus);
+  raw=cpOverviewStripDupDayPrefix(raw);
+  let wd=null;
+  if(day&&day.weekday!=null&&day.weekday!==''){
+    wd=typeof day.weekday==='number'?day.weekday:cpOverviewParseWeekdayToken(day.weekday);
+  }
+  if(wd==null)wd=cpOverviewParseWeekdayToken(raw);
+  let name=raw;
+  const wdOnly=wd!=null&&cpOverviewParseWeekdayToken(raw)===wd&&raw.length<=12;
+  if(wdOnly&&mus)name=mus;
+  if(!priority&&mus&&mus.toLowerCase()!==String(name||'').toLowerCase())priority=mus;
+  if(priority&&name&&name.toLowerCase()===priority.toLowerCase()&&!wdOnly){
+    // name already is the muscle list — keep name, drop duplicate priority
+    priority='';
+  }
+  if(!name)name=mus||('Dzień '+(Number(idx||0)+1));
+  name=String(name).replace(/\s+/g,' ').replace(/[·,;]\s*$/,'').trim();
+  const wdLabel=wd==null?'':['nd','pn','wt','śr','cz','pt','sb'][wd];
+  return{rest,name,priority,weekday:wd,weekdayLabel:wdLabel};
+}
 function cpOverviewPlanDayHeadline(plan,sess){
+  const parts=cpOverviewResolvePlanDay(plan,sess);
+  return(parts&&parts.name)||(sess?(typeof sessionTitle==='function'?sessionTitle(sess):(sess.type||sess.title||'')):'Trening')||'Trening';
+}
+function cpOverviewResolvePlanDay(plan,sess){
   const days=(plan&&Array.isArray(plan.days))?plan.days:[];
   const title=sess?(typeof sessionTitle==='function'?sessionTitle(sess):(sess.type||sess.title||'')):'';
-  if(!days.length)return title||'Trening';
+  if(!days.length)return{name:title||'Trening',priority:'',weekday:null,weekdayLabel:'',rest:false};
   let idx=null;
   if(sess&&sess.dayIdx!=null&&Number.isFinite(Number(sess.dayIdx))){
     const n=Number(sess.dayIdx);
@@ -2219,21 +2553,50 @@ function cpOverviewPlanDayHeadline(plan,sess){
     const t=String(title).toLowerCase();
     const hit=days.findIndex(d=>{
       if(!d)return false;
-      const bits=[d.day,d.dayName,d.name,d.muscles,d.focus].filter(Boolean).map(x=>String(x).toLowerCase());
+      const parsed=cpOverviewParsePlanDay(d,0);
+      const bits=[d.day,d.dayName,d.name,d.muscles,d.focus,parsed.name,parsed.priority].filter(Boolean).map(x=>String(x).toLowerCase());
       return bits.some(b=>b&&(t.indexOf(b)>=0||b.indexOf(t)>=0));
     });
     if(hit>=0)idx=hit;
   }
   const day=idx!=null?days[idx]:null;
-  if(!day)return title||'Trening';
-  const training=days.filter(d=>d&&!d.rest);
-  const n=training.indexOf(day);
-  const num=n>=0?n+1:idx+1;
-  const name=day.day||day.dayName||day.name||title||('Dzień '+num);
-  const focus=day.muscles||day.focus||'';
-  let head='Dzień '+num+' — '+name;
-  if(focus&&String(focus).toLowerCase()!==String(name).toLowerCase())head+=' · '+focus;
-  return head;
+  if(!day)return{name:title||'Trening',priority:'',weekday:null,weekdayLabel:'',rest:false};
+  return cpOverviewParsePlanDay(day,idx);
+}
+function cpOverviewPlanTitle(plan,c){
+  let name=String(plan&&plan.name||'').trim();
+  const clientName=String((c&&c.name)||(plan&&plan.clientName)||'').trim();
+  if(clientName&&name){
+    const esc=clientName.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    name=name.replace(new RegExp('^'+esc+'\\s*[—–\\-·:]+\\s*','i'),'');
+    name=name.replace(new RegExp('\\s*[—–\\-·:]+\\s*'+esc+'$','i'),'');
+    if(name.toLowerCase()===clientName.toLowerCase())name='';
+  }
+  name=name.replace(/\s+/g,' ').trim();
+  const dur=plan&&plan.duration;
+  if(dur&&!/\d+\s*tyg/i.test(name))name=(name?name+' · ':'')+dur+' tygodni';
+  return name||'Plan';
+}
+function cpOverviewPlanDayStatus(clientId,day,idx,parsed,today){
+  if(parsed&&parsed.rest)return'Odpoczynek';
+  const t=today||cpOverviewTodayYmd();
+  const b=cpOverviewWeekBounds(t);
+  const sessions=(window.SE||[]).filter(s=>s&&s.clientId===clientId&&s.date&&String(s.date).slice(0,10)>=b.from&&String(s.date).slice(0,10)<=b.to);
+  const match=s=>{
+    if(s.dayIdx!=null&&Number(s.dayIdx)===idx)return true;
+    if(parsed&&parsed.weekday!=null){
+      const d=new Date(String(s.date).slice(0,10)+'T12:00:00').getDay();
+      if(d===parsed.weekday)return true;
+    }
+    const title=String(s.type||s.title||'').toLowerCase();
+    if(parsed&&parsed.name&&title&&(title.indexOf(String(parsed.name).toLowerCase())>=0||String(parsed.name).toLowerCase().indexOf(title)>=0))return true;
+    return false;
+  };
+  const isLogged=s=>typeof cpBriefIsLogged==='function'?cpBriefIsLogged(s):(s&&s.source!=='planned'&&s.source!=='garmin'&&s.source!=='live-draft');
+  if(sessions.some(s=>isLogged(s)&&match(s)))return'Wykonany';
+  const todayDow=new Date(t+'T12:00:00').getDay();
+  if((parsed&&parsed.weekday!=null&&parsed.weekday===todayDow)||sessions.some(s=>String(s.date).slice(0,10)===t&&match(s)))return'Dziś';
+  return'Zaplanowany';
 }
 function cpBriefIsLogged(s){
   if(!s)return false;
@@ -2288,6 +2651,7 @@ function collectCpBriefItems(c){
     const time=sess.time?String(sess.time):'';
     const day=todaySess?'Dziś':((typeof cpTlDayLabel==='function'?cpTlDayLabel(sess.date):String(sess.date).slice(5))||'Następna');
     const bits=[time,title].filter(Boolean);
+    const parts=typeof cpOverviewResolvePlanDay==='function'?cpOverviewResolvePlanDay(plan,sess):{name:title,priority:''};
     items.push({
       kind:'session',
       label:todaySess?'Dziś':'Następna',
@@ -2295,7 +2659,9 @@ function collectCpBriefItems(c){
       extra:plan&&plan.name?plan.name:'',
       time:time,
       title:title,
-      headline:typeof cpOverviewPlanDayHeadline==='function'?cpOverviewPlanDayHeadline(plan,sess):(title||'')
+      headline:parts.name||title||'',
+      dayName:parts.name||title||'',
+      priority:parts.priority||''
     });
   }else if(plan&&plan.name){
     items.push({kind:'session',label:'Plan',fact:plan.name,extra:'brak dnia w kalendarzu'});
@@ -2348,7 +2714,9 @@ function collectCpBriefItems(c){
       if(hi&&hi.extra)extras.push(hi.extra);
     }
     if(rec&&rec.fact)extras.push('rekord');
-    const loadsLine=loads.map(r=>((r.name?r.name+' ':'')+r.load+(whenLong?' · '+whenLong:'')).trim()).filter(Boolean).join('  ·  ');
+    const whenFmt=typeof cpOverviewDateLabel==='function'?cpOverviewDateLabel(last.date,today):(whenLong||when);
+    const loadBits=loads.map(r=>((r.name?r.name+' ':'')+r.load).trim()).filter(Boolean);
+    const loadsLine=loadBits.length?('Ostatnio ('+whenFmt+'): '+loadBits.join(', ')):'';
     items.push({
       kind:'workout',
       label:'Ostatni',
@@ -2405,9 +2773,9 @@ function cpOverviewBriefHTML(c){
     </div>`;
   }
   const time=(session&&session.time)||'';
-  const title=(session&&(session.headline||session.title||session.fact))||'';
+  const title=(session&&(session.dayName||session.headline||session.title||session.fact))||'';
+  const pri=(session&&session.priority)||'';
   const loadsLine=(workout&&workout.loadsLine)||'';
-  const extra=loadsLine||[session&&session.extra,workout&&workout.fact].filter(Boolean).join(' · ');
   const hasSession=!!session;
   return `<div class="cp-ov-brief">
     <div class="cp-ov-brief-kicker">Dziś</div>
@@ -2415,7 +2783,8 @@ function cpOverviewBriefHTML(c){
       ${time?`<div class="cp-ov-today-time">${esc(time)}</div>`:''}
       <div class="cp-ov-today-main">
         <div class="cp-ov-brief-fact">${esc(title)}</div>
-        ${extra?`<div class="cp-ov-today-extra">${esc(extra)}</div>`:''}
+        ${pri?`<div class="cp-ov-today-pri">Priorytet: ${esc(pri)}</div>`:''}
+        ${loadsLine?`<div class="cp-ov-today-extra">${esc(loadsLine)}</div>`:''}
       </div>
       ${hasSession?`<button type="button" class="btn btn-ghost btn-sm cp-ov-today-cta" data-cp-brief-live="1" onclick="typeof cpStartLive==='function'&&cpStartLive()">Podgląd treningu</button>`:''}
     </div>`:''}
@@ -2433,6 +2802,10 @@ window.cpBriefTopLoads=cpBriefTopLoads;
 window.cpBriefIsLogged=cpBriefIsLogged;
 window.cpBriefAgoLong=cpBriefAgoLong;
 window.cpOverviewPlanDayHeadline=cpOverviewPlanDayHeadline;
+window.cpOverviewParsePlanDay=cpOverviewParsePlanDay;
+window.cpOverviewResolvePlanDay=cpOverviewResolvePlanDay;
+window.cpOverviewPlanTitle=cpOverviewPlanTitle;
+window.cpOverviewPlanDayStatus=cpOverviewPlanDayStatus;
 
 function cpCoopLoggedWorkouts(clientId){
   const sessions=(window.SE||[]).filter(s=>s&&s.clientId===clientId);
@@ -2782,7 +3155,7 @@ function cpOverviewCoopHTML(c){
   const showRun=gate.ok&&!busy;
   const showBlocked=!gate.ok&&!busy;
   const runLbl=cache&&(cache.parsed||cache.error)?'Ponów analizę':'Przeanalizuj współpracę';
-  return `<div class="cp-ov-coop" data-cp-coop="card">
+  return `<div class="cp-ov-coop" id="cp-ov-coop" data-cp-coop="card"${window._cpShowCoop?'':' hidden'}>
     <div class="cp-ov-coop-kicker">Analiza współpracy</div>
     <div class="cp-ov-coop-verdict cp-ov-coop-${esc(thinVerdict?'neutral':tone)}" data-cp-coop-verdict="${esc(thinVerdict?'none':(v&&v.verdict||'none'))}">
       ${thinVerdict?'Za mało danych do werdyktu.':`Werdykt: ${esc(verdict)}`}
@@ -2978,7 +3351,7 @@ function renderCPOverview(c){
     ${cpOverviewBriefHTML(c)}
     <div class="cp-ov-status-stack">
       ${cpOverviewSituationHTML(c)}
-      ${cpOverviewCoopHTML(c)}
+      ${typeof cpOverviewStatusIsEarly==='function'&&cpOverviewStatusIsEarly(c)?'':cpOverviewCoopHTML(c)}
     </div>
     ${editing?cpClientDataEditHTML(c):''}
 
@@ -2998,21 +3371,30 @@ function renderCPOverview(c){
 
     <div class="cp-ov-layout">
       <div class="cp-ov-main">
-        ${plans.length?`
-        <div class="cp-ov-card" id="cp-ov-card-plan" style="cursor:pointer;" onclick="setCPTab('plan')">
+        ${plans.length?(()=>{
+          const plan=typeof latestClientPlan==='function'?latestClientPlan(c.id):plans[plans.length-1];
+          const planTitle=typeof cpOverviewPlanTitle==='function'?cpOverviewPlanTitle(plan,c):((plan&&plan.name)||'Plan');
+          const days=(plan&&plan.days)||[];
+          return `<div class="cp-ov-card" id="cp-ov-card-plan" style="cursor:pointer;" onclick="setCPTab('plan')">
           <div class="cp-ov-card-hd">
             <div class="cp-ov-card-title">Aktywny plan tygodnia</div>
-            <span class="pill pill-green" style="font-size:11px;">${escHtml(plans[plans.length-1].method||'—')}</span>
           </div>
-          <div style="font-size:15px;font-weight:700;margin-bottom:4px;">${escHtml(plans[plans.length-1].name)}</div>
-          <div class="cp-ov-stat-sub" style="margin-bottom:10px;">${escHtml(plans[plans.length-1].method||'—')} · ${plans[plans.length-1].duration||'?'} tyg. · ${(plans[plans.length-1].days||[]).length} dni/tydzień</div>
+          <div style="font-size:15px;font-weight:700;margin-bottom:4px;">${escHtml(planTitle)}</div>
+          <div class="cp-ov-stat-sub" style="margin-bottom:10px;">${escHtml(plan.method||'—')} · ${plan.duration||'?'} tyg. · ${days.length} dni/tydzień</div>
           <div class="cp-ov-week">
-            ${(plans[plans.length-1].days||[]).slice(0,5).map(d=>`<div class="cp-ov-week-day${d.rest?' is-rest':''}">
-              <span class="cp-ov-day-chip${d.rest?' is-rest':''}">${escHtml(d.day||d.dayName||'?')}</span>
-              <b>${escHtml(d.rest?'Odpoczynek':(d.muscles||d.name||d.focus||'Trening'))}</b>
-            </div>`).join('')}
+            ${days.slice(0,7).map((d,i)=>{
+              const parsed=typeof cpOverviewParsePlanDay==='function'?cpOverviewParsePlanDay(d,i):{name:d.muscles||d.name||d.day||'Trening',priority:'',weekdayLabel:d.day||'',rest:!!d.rest};
+              const st=typeof cpOverviewPlanDayStatus==='function'?cpOverviewPlanDayStatus(c.id,d,i,parsed):'Zaplanowany';
+              return `<div class="cp-ov-week-day${parsed.rest?' is-rest':''}${st==='Dziś'?' is-today':''}${st==='Wykonany'?' is-done':''}">
+              <span class="cp-ov-week-wd">${escHtml(parsed.weekdayLabel||d.day||d.dayName||'')}</span>
+              <div class="cp-ov-week-name">${escHtml(parsed.rest?'Odpoczynek':parsed.name)}</div>
+              ${parsed.priority&&!parsed.rest?`<div class="cp-ov-week-pri">${escHtml(parsed.priority)}</div>`:''}
+              <div class="cp-ov-week-st">${escHtml(st)}</div>
+            </div>`;
+            }).join('')}
           </div>
-        </div>`:`
+        </div>`;
+        })():`
         <div class="cp-ov-card" id="cp-ov-card-plan" style="text-align:center;cursor:pointer;" onclick="setCPTab('plan')">
           <div class="cp-ov-card-title" style="margin-bottom:10px;">Aktywny plan</div>
           <div class="cp-ov-stat-sub">Brak planu</div>
@@ -3024,23 +3406,23 @@ function renderCPOverview(c){
             <div class="cp-ov-card-title">Ostatnie treningi</div>
             <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('training')">Wszystkie →</button>
           </div>
-          <div class="cp-ov-stat-sub" style="margin-bottom:10px;">Ostatnie 7 dni · ${assigned7?last7+' z '+assigned7:(last7?last7+' zarejestrowane':'brak wpisów')}</div>
           ${(()=>{
             const hist=(logged||[]).slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))).slice(0,4);
             if(!hist.length&&!lastHw){
               return `<div class="cp-ov-last-wo muted">Brak zapisanych treningów — Live, apka (serie) albo zadanie domowe. Same terminy w kalendarzu się nie liczą.</div>`;
             }
+            const fmt=typeof cpOverviewDateLabel==='function'?cpOverviewDateLabel:(d=>d);
             return `<ul class="cp-ov-hist">${hist.map(s=>{
               const title=typeof sessionTitle==='function'?sessionTitle(s):(s.type||'Trening');
               const loads=typeof cpBriefTopLoads==='function'?cpBriefTopLoads(s):[];
-              const loadTxt=loads.slice(0,2).map(r=>(r.name?r.name+' ':'')+r.load).filter(Boolean).join(' · ');
+              const loadTxt=loads.slice(0,2).map(r=>(r.name?r.name+' ':'')+r.load).filter(Boolean).join(', ');
               return `<li class="cp-ov-hist-row" onclick="setCPTab('training')">
                 <div class="cp-ov-hist-title">${escHtml(title)}</div>
-                <div class="cp-ov-hist-meta">${escHtml(s.date||'')}${loadTxt?' · '+escHtml(loadTxt):''}</div>
+                <div class="cp-ov-hist-meta">${escHtml(fmt(s.date||''))}${loadTxt?' · '+escHtml(loadTxt):''}</div>
               </li>`;
-            }).join('')}${!hist.length&&lastHw?`<li class="cp-ov-hist-row" onclick="setCPTab('training')"><div class="cp-ov-hist-title">${escHtml(lastWorkoutTitle||'Zadanie domowe')}</div><div class="cp-ov-hist-meta">${escHtml(lastWorkoutDate||'')}</div></li>`:''}</ul>`;
+            }).join('')}${!hist.length&&lastHw?`<li class="cp-ov-hist-row" onclick="setCPTab('training')"><div class="cp-ov-hist-title">${escHtml(lastWorkoutTitle||'Zadanie domowe')}</div><div class="cp-ov-hist-meta">${escHtml(fmt(lastWorkoutDate||''))}</div></li>`:''}</ul>`;
           })()}
-          ${(assigned7&&last7===0)||(pulse.tone!=='good')?`<div style="margin-top:10px;position:relative;z-index:1;"><button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();cpRemindClient('${c.id}','workout')">Przypomnij o treningu</button></div>`:''}
+          ${typeof cpOverviewHasApp==='function'&&cpOverviewHasApp(c)&&((assigned7&&last7===0)||(pulse.tone!=='good'))?`<div style="margin-top:10px;position:relative;z-index:1;"><button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();cpRemindClient('${c.id}','workout')">Przypomnij o treningu</button></div>`:''}
         </div>
 
         ${metricsOn&&metricsHtml?`<div class="cp-ov-card" id="cp-ov-card-metrics" style="cursor:pointer;" onclick="setCPTab('progress')">
@@ -3065,7 +3447,7 @@ function renderCPOverview(c){
               return `<figure class="cp-ov-physique-cell">${src?`<img src="${escHtml(src)}" alt="${lab}">`:`<span>📷</span>`}<figcaption>${lab}</figcaption></figure>`;
             }).join('')}
           </div>
-          <div class="cp-ov-rail-hint">${escHtml(physique.date||'')} · waga ${escHtml(String(physique.weight||weightVal||'—'))}${weightVal?' kg':''}</div>
+          <div class="cp-ov-rail-hint">${escHtml(typeof cpOverviewDateLabel==='function'?cpOverviewDateLabel(physique.date):physique.date||'')} · waga ${escHtml(String(physique.weight||weightVal||'—'))}${weightVal?' kg':''}</div>
         </div>`:''}
 
         ${hasFeel||hasGarmin?`<div class="cp-ov-card" id="cp-ov-card-feel">
@@ -3077,7 +3459,7 @@ function renderCPOverview(c){
             ${hasFeel?`<div>
               <div class="cp-ov-metric-lbl">Ostatni raport</div>
               <div class="cp-ov-metric-val">${checkScore!=null?escHtml(String(checkScore)):'—'}${checkScore!=null?'<span class="cp-ov-metric-unit">/100</span>':''}</div>
-              <div class="cp-ov-stat-sub">${escHtml(String(lastCheck.date||'').slice(0,10))}</div>
+              <div class="cp-ov-stat-sub">${escHtml(typeof cpOverviewDateLabel==='function'?cpOverviewDateLabel(lastCheck.date):String(lastCheck.date||'').slice(0,10))}</div>
             </div>`:''}
             ${hasGarmin?`<div>
               <div class="cp-ov-metric-lbl">Garmin · 7 dni</div>
@@ -3096,11 +3478,10 @@ function renderCPOverview(c){
         ${railCard('Profil',
           `<div class="cp-ov-profile-rows">
             <div><span>Imię i nazwisko</span><b title="${escHtml(c.name||'')}">${escHtml(c.name||'—')}</b></div>
-            <div><span>Email</span><b title="${escHtml(c.email||'')}">${escHtml(c.email||'—')}</b></div>
+            <div><span>Email</span><b class="cp-ov-email" title="${escHtml(c.email||'')}">${escHtml(c.email||'—')}</b></div>
             ${c.phone?`<div><span>Telefon</span><b>${escHtml(c.phone)}</b></div>`:''}
             <div><span>Status</span><b style="color:${c.status==='active'?'var(--teal)':c.status==='inactive'?'var(--orange)':'var(--muted)'};">${c.status==='active'?'Aktywny':c.status==='inactive'?'Nieaktywny':'Zarchiwizowany'}</b></div>
-          </div>
-          <div class="cp-ov-rail-hint">Kliknij: imię i nazwisko, telefon, waga, sport…</div>`,
+          </div>`,
           `startCPEdit('${c.id}')`)}
 
         ${injuries?railCard('Ograniczenia / kontuzje',
@@ -3109,7 +3490,7 @@ function renderCPOverview(c){
           `startCPEdit('${c.id}')`):''}
 
         ${railCard('Notatka',
-          (notes.length?notes.slice(0,1).map(n=>`<div class="cip-note" style="margin-bottom:8px;"><div>${escHtml(n.text)}</div><div class="cip-note-date">${escHtml(n.date||'')}</div></div>`).join(''):'<div class="cp-ov-stat-sub" style="margin-bottom:8px;">Krótka notatka zostaje przy Tobie.</div>')+
+          (notes.length?notes.slice(0,1).map(n=>`<div class="cip-note" style="margin-bottom:8px;"><div>${escHtml(n.text)}</div><div class="cip-note-date">${escHtml(typeof cpOverviewDateLabel==='function'?cpOverviewDateLabel(n.date||n.createdAt):n.date||'')}</div></div>`).join(''):'<div class="cp-ov-stat-sub" style="margin-bottom:8px;">Krótka notatka zostaje przy Tobie.</div>')+
           `<div id="note-input-${c.id}" class="cp-ov-note-box">
             <textarea id="note-text-${c.id}" class="cp-ov-note-input" rows="2" placeholder="Dodaj notatkę…"></textarea>
             <button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();saveClientNote('${c.id}')">Zapisz</button>
@@ -3118,7 +3499,7 @@ function renderCPOverview(c){
         ${hasPhotos?railCard('Zdjęcia postępu',
           `<div class="cp-ov-photos">${photos.map(p=>{
             const src=poseSrc(p,'front')||poseSrc(p,'side')||poseSrc(p,'back')||'';
-            return `<div class="cp-ov-photo">${src?`<img src="${escHtml(src)}" alt="">`:`<span>📷</span>`}<div class="cp-ov-photo-d">${escHtml(p.date||'')}</div></div>`;
+            return `<div class="cp-ov-photo">${src?`<img src="${escHtml(src)}" alt="">`:`<span>📷</span>`}<div class="cp-ov-photo-d">${escHtml(typeof cpOverviewDateLabel==='function'?cpOverviewDateLabel(p.date):p.date||'')}</div></div>`;
           }).join('')}</div>
           <div class="cp-ov-rail-hint">Wszystkie zdjęcia w zakładce Zdjęcia</div>`,
           `setCPTab('photos')`):''}

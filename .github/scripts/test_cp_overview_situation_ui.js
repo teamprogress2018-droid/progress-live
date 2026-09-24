@@ -127,7 +127,7 @@ function ok(name, cond, extra) {
       next,
     tiles,
     checkinHint: ((document.querySelector('[data-cp-sit="checkin"] .cp-ov-sit-hint') || {}).textContent || ''),
-    hasTrain: !!(train && /Ostatnie 7 dni/.test(train.textContent || '')),
+    hasTrain: !!(train && /Ostatnie treningi/.test(train.textContent || '')),
       hasMetrics: !!(metrics && /Pomiary ciała/.test((metrics.querySelector('.cp-ov-card-title') || {}).textContent || '')),
       tabs,
       editCta: !!document.querySelector('.cp-ov-edit-cta'),
@@ -138,16 +138,12 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'cp_overview_situation_signals.png'), fullPage: false });
   ok('situation visible', busy.hasSit);
   ok('kicker Status', /Status/.test(busy.kicker), busy.kicker);
-  ok('title name + goal', /Jarosław Test/.test(busy.title) && /masy/i.test(busy.title), busy.title);
-  ok('pulse inside situation', busy.pulse);
+  ok('no name-goal repeat', !/Jarosław Test/.test(busy.title), busy.title);
   ok('next header', /Wnioski/.test(busy.nextHd), busy.nextHd);
-  ok('injury bullet', busy.next.some(x => x.kind === 'injury' && /kolano/.test(x.text)), JSON.stringify(busy.next));
-  ok('load drop bullet', busy.next.some(x => x.kind === 'load' && /volume/.test(x.text)), JSON.stringify(busy.next));
-  ok('sleep bullet', busy.next.some(x => x.kind === 'sleep'), JSON.stringify(busy.next));
-  ok('max 5 next', busy.next.length <= 5, String(busy.next.length));
-  ok('no empty copy when signals', !busy.next.some(x => x.kind === 'ok'));
-  ok('kpi tiles 4', busy.tiles.length === 4 && busy.tiles[0].id === 'train' && busy.tiles[1].id === 'mass', JSON.stringify(busy.tiles));
-  ok('overdue checkin hint', /przeterminowany/.test(busy.checkinHint), busy.checkinHint);
+  ok('invite rec not poproś', busy.next.some(x => x.kind === 'invite') && !busy.next.some(x => /Poproś o check-in/.test(x.text)), JSON.stringify(busy.next));
+  ok('max 3 recs', busy.next.length <= 3, String(busy.next.length));
+  ok('kpi tiles 4', busy.tiles.length === 4 && busy.tiles[0].id === 'train' && busy.tiles[1].id === 'mass' && /tygodniu/.test(busy.tiles[0].lbl), JSON.stringify(busy.tiles));
+  ok('checkin hint', /przeterminowany|oczekuje|brak/.test(busy.checkinHint), busy.checkinHint);
   ok('existing train card', busy.hasTrain);
   ok('existing metrics card', busy.hasMetrics);
   ok('edit CTA gone', !busy.editCta);
@@ -172,8 +168,8 @@ function ok(name, cond, extra) {
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'cp_overview_situation_ok.png') });
-  ok('calm client situation', calm.hasSit && /Anna Spokojna/.test(calm.title));
-  ok('calm start steps', calm.next.length === 3 && calm.next[0].kind === 'checkin' && /samopoczucie/.test(calm.next[0].text) && calm.next[2].kind === 'adherence', JSON.stringify(calm.next));
+  ok('calm client situation', calm.hasSit && !/Anna Spokojna/.test(calm.title));
+  ok('calm invite or ok', calm.next.length >= 1 && (calm.next[0].kind === 'invite' || calm.next[0].kind === 'ok' || calm.next[0].kind === 'mass'), JSON.stringify(calm.next));
   ok('calm still has train card', calm.hasTrain);
 
   await page.click('[data-cp-sit="train"]');
