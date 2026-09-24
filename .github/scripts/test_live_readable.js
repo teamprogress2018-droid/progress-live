@@ -12,10 +12,10 @@ const ctx={window:{},console,PL:slots.map((s,n)=>({id:s.planId,clientId:s.client
   liveExPlannedReps:()=> '8–12',liveExHistoryList:()=>[],liveExLastWorkSets:()=>[],liveExLastSummary:()=>'',
   liveExTitleHtml:ex=>'<div class="live-ex-title">'+ex.name+'</div>',livePolishCoachNote:s=>s,
   liveExTargetLine:()=> '4 × 8–12 · przerwa 90 s',liveExCuePack:()=>{calls++;return {};},liveExCueStripHtml:()=>'',
-  liveAltsHtml:()=>'<div>Zamienniki</div>',renderLivePeriod:()=>{},liveSyncRestRecommend:()=>{},liveSaveDraft:()=>{}
+  liveAltsHtml:()=>'<div>Zamienniki</div>',renderLivePeriod:()=>{},liveSyncRestRecommend:()=>{},liveSaveDraft:()=>{},liveStartRest:()=>{}
 };
 vm.createContext(ctx);
-for(const name of ['renderLivePlanPicker','renderLiveExercises','liveExCard','liveToggleCollapse','liveToggleSwap','liveSkipEx']){
+for(const name of ['liveExDisplayName','liveExTitleHtml','liveMapPlanExercises','liveAddSet','liveToggleSet','renderLivePlanPicker','renderLiveExercises','liveExCard','liveToggleCollapse','liveToggleSwap','liveSkipEx']){
  const m=src.match(new RegExp('function '+name+'\\([^]*?\\n}'));
  assert(m,name);vm.runInContext(m[0],ctx);
 }
@@ -45,4 +45,26 @@ assert.equal(slots[0].exercises[0].collapsed,false,'slot B actions do not change
 assert.equal(slots[0].exercises[0].sets[0].kg,'40','render preserves load');
 slots[0].exercises=[];ctx.renderLivePlanPicker(0);
 assert(/<details class="live-prep-board" open/.test(ctx.liveEl('live-plan-picker',0).innerHTML),'empty day keeps picker open');
+// Short display titles do not mutate identity, and hyphenated names stay intact.
+const named={name:'Rozpiętki (Pec-Deck) — środek klatki PRIORYTET'};
+const title=ctx.liveExDisplayName(named);
+assert.equal(title.title,'Rozpiętki (Pec-Deck)');assert.equal(title.description,'środek klatki');assert(title.priority);
+assert.equal(named.name,'Rozpiętki (Pec-Deck) — środek klatki PRIORYTET');
+assert.equal(ctx.liveExDisplayName({name:'Push-up'}).title,'Push-up');
+const fresh=ex(4);fresh.restSec=90;fresh.rir='2';slots[0].exercises=[fresh];slots[0].sessionActive=true;
+ctx.renderLiveExercises(0);
+markup=ctx.liveEl('live-exercises-panel',0).innerHTML;
+assert(markup.includes('przerwa 90 s')&&markup.includes('Cel RIR 2'));
+assert(markup.includes('<details class="live-ex-actions-menu"><summary'));
+assert.equal((markup.match(/aria-current="step"/g)||[]).length,1);
+ctx.liveToggleSet(0,0,0);
+markup=ctx.liveEl('live-exercises-panel',0).innerHTML;
+assert(/is-current[^]*?Seria <\/span>2/.test(markup),'highlight moves to first uncompleted set');
+assert.equal(fresh.sets[0].rir,'2','render retains measured RIR');
+ctx.mapPlanExercisesForClient=()=>[fresh];ctx.window.PL=ctx.PL;
+const mapped=ctx.liveMapPlanExercises([],0);
+assert(mapped[0].sets.every(s=>s.rir===''),'new session does not copy planned/history RIR');
+assert.equal(mapped[0].rir,'2','exercise retains RIR target');assert.equal(fresh.sets[0].rir,'2','source result untouched');
+ctx.liveAddSet(0,0);assert.equal(fresh.sets.at(-1).rir,'','added set requires its own actual RIR');
+assert.equal(fresh.sets.at(-1).kg,'40','load prefill retained');
 console.log('Live readable render/state regression checks passed');

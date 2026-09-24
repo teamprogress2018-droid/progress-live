@@ -89,11 +89,18 @@ function ok(name, cond, extra) {
 
   await page.screenshot({ path: path.join(shotDir, 'live_video_gif_tall.png') });
   ok('one technique video', gifStats.videos === 1 && gifStats.wraps === 0, JSON.stringify(gifStats));
-  ok('gif video tall', gifStats.height >= 400, JSON.stringify(gifStats));
+  ok('gif video compact', gifStats.height > 0 && gifStats.height <= 220, JSON.stringify(gifStats));
   ok('gif video not full-width stamp', gifStats.width > 0 && gifStats.width < 900, JSON.stringify(gifStats));
   ok('live stays in app shell', gifStats.mainParent === 'app-root' && gifStats.screenTop >= 0 && gifStats.screenTop < 80, JSON.stringify(gifStats));
   ok('media beside sets', gifStats.hasBody && gifStats.sideBySide, JSON.stringify(gifStats));
   ok('sets stay on screen', gifStats.setInView, JSON.stringify(gifStats));
+  await page.locator('#live-ex-0 .live-media-size').click();
+  const enlarged = await page.locator('#live-ex-0 video').first().boundingBox();
+  ok('media enlarges on demand', enlarged && enlarged.height > gifStats.height);
+  await page.locator('#live-ex-0 .live-media-size').click();
+  const compactAgain = await page.locator('#live-ex-0 video').first().boundingBox();
+  ok('media restores compact size', compactAgain && compactAgain.height <= 220);
+
 
   const fileStats = await page.evaluate((src) => {
     window.liveExercises = [{
@@ -125,7 +132,7 @@ function ok(name, cond, extra) {
 
   await page.screenshot({ path: path.join(shotDir, 'live_video_file_tall.png') });
   ok('file player not 16x9 wrap', !fileStats.hasWrap && fileStats.hasPlayer && fileStats.pad === '0px', JSON.stringify(fileStats));
-  ok('file video tall', fileStats.height >= 400, JSON.stringify(fileStats));
+  ok('file video compact', fileStats.height > 0 && fileStats.height <= 220, JSON.stringify(fileStats));
 
   const dupStats = await page.evaluate((src) => {
     window.liveExercises = [{

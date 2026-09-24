@@ -3153,7 +3153,8 @@ function liveMapPlanExercises(rawEx,slot){
   const mapped=typeof mapPlanExercisesForClient==='function'
     ?mapPlanExercisesForClient(list,st.clientId,plan,day)
     :(list||[]).map(ex=>({name:ex.name||ex.n||'Ćwiczenie',sets:[{setNo:1,kg:'',reps:'10',done:false}]}));
-  return mapped.map(ex=>({...ex,done:false,collapsed:false}));
+  // Planned/history RIR is a target, never a measured result for a new Live set.
+  return mapped.map(ex=>({...ex,sets:(ex.sets||[]).map(set=>({...set,rir:''})),done:false,collapsed:false}));
 }
 
 function liveRefreshPlanLoads(slot){
@@ -3841,10 +3842,21 @@ function liveExHistoryList(ex,clientId,planId){
 }
 window.liveExHistoryList=liveExHistoryList;
 
+function liveExDisplayName(ex){
+  const full=String(ex&&ex.name||'');
+  const priority=/(?:^|\s)PRIORYTET(?=\s|$)/i.test(full);
+  const clean=full.replace(/(?:^|\s)PRIORYTET(?=\s|$)/ig,'').trim();
+  // Only a separated em dash denotes descriptive text; keep hyphenated names intact.
+  const parts=clean.split(/\s+—\s+/);
+  return{title:parts[0]||full,description:parts.slice(1).join(' — '),priority};
+}
+window.liveExDisplayName=liveExDisplayName;
+
 function liveExTitleHtml(ex,lastChip,history){
   const needsName=!String(ex&&ex.name||'').trim()||ex.name==='Nowe ćwiczenie';
   if(needsName)return '<div class="live-ex-title is-empty">Wybierz ćwiczenie</div>';
-  const nameInner=`${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}`;
+  const display=liveExDisplayName(ex);
+  const nameInner=`${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(display.title)}${display.priority?'<span class="live-priority-badge">Priorytet</span>':''}`;
   const histId=(String(lastChip||'').match(/data-ex-hist="([^"]+)"/)||[])[1]||'';
   if(!histId||!history||!history.length||typeof exerciseHistoryModalBodyHtml!=='function'){
     return `<div class="live-ex-title">${nameInner}</div>`;
@@ -3902,7 +3914,7 @@ function liveExCard(ex,i,slot,cue){
   const unit=typeof exLoadUnit==='function'?exLoadUnit(ex):'kg';
   const suf=typeof loadUnitSuffix==='function'?loadUnitSuffix(unit):'kg';
   const loadPh=typeof loadUnitPlaceholder==='function'?loadUnitPlaceholder(unit):'kg';
-  const loadLbl=typeof loadUnitColumnLabel==='function'?loadUnitColumnLabel(unit):(unit==='sec'||unit==='min'?'Czas':unit==='m'?'Dystans':'Ciężar');
+  const loadLbl=({kg:'kg',sec:'sekundy',min:'minuty',m:'metry'})[unit]||suf||'Obciążenie';
   const setsDone=ex.sets.filter(s=>s.done).length;
   const cueKey=typeof liveExCueKey==='function'?liveExCueKey(ex):'';
   const histList=(cue&&cue.histByKey&&cueKey&&Array.isArray(cue.histByKey[cueKey]))
@@ -3924,6 +3936,12 @@ function liveExCard(ex,i,slot,cue){
   const note=noteRaw?livePolishCoachNote(noteRaw):'';
   const target=typeof liveExTargetLine==='function'?liveExTargetLine(ex,n):'';
   const plannedReps=liveExPlannedReps(ex,n)||ex.reps||'';
+  const display=liveExDisplayName(ex);
+  const coachHints=typeof exerciseCoachHints==='function'?exerciseCoachHints(ex):{};
+  const restLabel=coachHints.restLabel||(ex.restSec?ex.restSec+' s':'');
+  const targetRir=typeof plannedRir==='function'?plannedRir(ex):(ex.rir??'');
+  const isCurrent=st.sessionActive&&!ex.done&&i===st.exercises.findIndex(e=>!e.done);
+  const currentSet=isCurrent?ex.sets.findIndex(s=>!s.done):-1;
   const swapOpen=!!(ex.swapOpen||ex.altsExpanded||ex.altSearchOpen);
   const mediaOpen=!!ex.showVideo;
   return `<div class="live-ex-card${ex.ss?' ss':''}${ex.done?' done':st.sessionActive&&!ex.done&&i===st.exercises.findIndex(e=>!e.done)?' active':''}${showBody?'':' is-collapsed'}" id="${cardId}">
@@ -3932,19 +3950,21 @@ function liveExCard(ex,i,slot,cue){
       <div class="live-ex-head-main">
         <div class="live-ex-num">${ex.done?'✓':i+1}</div>
         ${liveExTitleHtml(ex,lastChip,histList)}
-        <div class="live-ex-collapsed-meta"><strong>${ex.sets.length} ${ex.sets.length===1?'seria':ex.sets.length<5?'serie':'serii'}${plannedReps?' × '+escHtml(plannedReps)+' powt.':''}</strong><span>Wykonano ${setsDone}/${ex.sets.length}</span></div>
+        <div class="live-ex-collapsed-meta"><strong>${ex.sets.length} ${ex.sets.length===1?'seria':ex.sets.length<5?'serie':'serii'}${plannedReps?' × '+escHtml(plannedReps)+' powt.':''}${restLabel?' · przerwa '+escHtml(restLabel):''}</strong><span>Wykonano ${setsDone}/${ex.sets.length}</span></div>
       </div>
       <div class="live-ex-head-actions" onclick="event.stopPropagation()">
-        <button type="button" class="live-expand-btn" onclick="liveToggleCollapse(${i}${sl})" aria-expanded="${showBody}" aria-label="${showBody?'Zwiń':'Rozwiń'} serie: ${escHtml(ex.name)}">${showBody?'Zwiń':'Serie'}</button>
+        <button type="button" class="live-expand-btn" onclick="liveToggleCollapse(${i}${sl})" aria-expanded="${showBody}" aria-label="${showBody?'Zwiń':'Rozwiń'} serie: ${escHtml(ex.name)}"><span aria-hidden="true">${showBody?'▴':'▾'}</span></button>
+        <details class="live-ex-actions-menu"><summary aria-label="Opcje ćwiczenia">⋯</summary><div class="live-ex-actions-popover">
         ${needsName?'':`<button type="button" class="btn btn-ghost btn-sm live-swap-open" onclick="liveToggleSwap(${i}${sl})">Zamień</button>`}
         ${!ex.done?`<button type="button" class="live-skip-btn" onclick="liveSkipEx(${i}${sl})">Pomiń</button>`:''}
+        </div></details>
       </div>
     </div>
     ${showBody&&!needsName?(typeof liveExCueStripHtml==='function'?liveExCueStripHtml(ex,n,cue):''):''}
     ${showBody?`
-    ${needsName||(!target&&!note)?'':`<details class="live-ex-details"><summary>Wskazówki i parametry</summary><div class="live-ex-target">${escHtml(target)}</div>${note?`<div class="live-ex-note">${escHtml(note)}</div>`:''}</details>`}
+    ${needsName||(!target&&!note&&!display.description)?'':`<details class="live-ex-details"><summary>Wskazówki i parametry</summary>${display.description?`<div class="live-ex-description">${escHtml(display.description)}</div>`:''}<div class="live-ex-target">${escHtml(target)}</div>${note?`<div class="live-ex-note">${escHtml(note)}</div>`:''}</details>`}
     <div class="live-ex-body">
-      ${mediaOpen?`<div class="live-ex-media live-ex-zoom" onclick="event.stopPropagation()">${typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:true,caption:false,showGif:true}):''}</div>`:''}
+      ${mediaOpen?`<div class="live-ex-media live-ex-zoom" onclick="event.stopPropagation()"><button type="button" class="live-media-size" aria-pressed="false" onclick="liveToggleMediaSize(this)">Powiększ</button>${typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:true,caption:false,showGif:true}):''}</div>`:''}
       <div class="live-ex-log" onclick="event.stopPropagation()">
       ${needsName?`<div class="live-ex-name-box" onclick="event.stopPropagation()">
         <div class="live-alts-lbl">Nazwa ćwiczenia</div>
@@ -3955,13 +3975,13 @@ function liveExCard(ex,i,slot,cue){
       </div>`:''}
       ${needsName||!swapOpen?'':liveAltsHtml(ex,i,n)}
       <div class="live-set-grid live-set-head">
-        <span>Seria</span><span style="text-align:center;">${loadLbl}</span><span style="text-align:center;">Powtórzenia</span><span style="text-align:center;" title="Powtórzenia w zapasie">RIR</span><span></span>
+        <span>Seria</span><span style="text-align:center;">${loadLbl}</span><span style="text-align:center;">Powtórzenia</span><span style="text-align:center;" title="Wpisz rzeczywiste powtórzenia w zapasie po serii">RIR${targetRir!==''?`<small class="live-rir-target">Cel RIR ${escHtml(targetRir)}</small>`:''}</span><span></span>
       </div>
       ${ex.sets.map((s,si)=>{
         const menuOpen=!!s.menuOpen;
-        return `<div class="live-set-row${s.done?' is-done':''}">
+        return `<div class="live-set-row${s.done?' is-done':''}${si===currentSet?' is-current':''}"${si===currentSet?' aria-current="step"':''}>
         <div class="live-set-label" onpointerdown="liveSetHoldStart(event,${i},${si}${sl})" onpointerup="liveSetHoldEnd(event)" onpointerleave="liveSetHoldEnd(event)">
-          <span class="live-set-label-full">Seria </span>${s.setNo}${s.kind&&s.kind!=='work'?` <span class="cw-set-kind ${s.kind}">${escHtml(typeof setKindBadge==='function'?setKindBadge(s.kind):s.kind)}</span>`:''}
+          <span class="live-set-label-full">Seria </span>${s.setNo}${si===currentSet?'<span class="live-set-now">Teraz</span>':''}${s.kind&&s.kind!=='work'?` <span class="cw-set-kind ${s.kind}">${escHtml(typeof setKindBadge==='function'?setKindBadge(s.kind):s.kind)}</span>`:''}
           <button type="button" class="live-set-more" onclick="event.stopPropagation();liveToggleSetMenu(${i},${si}${sl})" aria-label="Menu serii">…</button>
           <div class="live-set-menu"${menuOpen?'':' hidden'}>
             <button type="button" class="live-set-del" onclick="event.stopPropagation();liveRemoveSet(${i},${si}${sl})" ${ex.sets.length<=1?'disabled':''}>Usuń serię</button>
@@ -3969,7 +3989,7 @@ function liveExCard(ex,i,slot,cue){
         </div>
         <input type="number" inputmode="decimal" class="live-kg-input" placeholder="${ex.lastKg!==''&&ex.lastKg!=null?ex.lastKg:loadPh}" value="${s.kg}" oninput="liveSetKg(${i},${si},this.value${sl})" onkeydown="liveSetKey(event,${i},${si}${sl})" onclick="event.stopPropagation()">
         <input type="number" inputmode="numeric" class="live-kg-input" placeholder="${s.kind==='amrap'?'max':'powt.'}" value="${s.reps}" oninput="liveSetReps(${i},${si},this.value${sl})" onkeydown="liveSetKey(event,${i},${si}${sl})" onclick="event.stopPropagation()">
-        <input type="text" inputmode="decimal" class="live-kg-input live-rir-input" placeholder="${escHtml((typeof plannedRir==='function'?plannedRir(ex):ex.rir)||'RIR')}" value="${escHtml(s.rir!=null&&s.rir!==''?s.rir:'')}" oninput="liveSetRir(${i},${si},this.value${sl})" onkeydown="liveSetKey(event,${i},${si}${sl})" onclick="event.stopPropagation()" title="RIR — powtórzenia w zapasie">
+        <input type="text" inputmode="decimal" class="live-kg-input live-rir-input" placeholder="—" aria-label="RIR wykonanej serii ${s.setNo}" value="${escHtml(s.rir!=null&&s.rir!==''?s.rir:'')}" oninput="liveSetRir(${i},${si},this.value${sl})" onkeydown="liveSetKey(event,${i},${si}${sl})" onclick="event.stopPropagation()" title="RIR — powtórzenia w zapasie">
         <button type="button" class="live-set-check${s.done?' done':''}" onclick="liveToggleSet(${i},${si}${sl})" title="Oznacz serię">✓</button>
       </div>`;
       }).join('')}
@@ -3979,6 +3999,15 @@ function liveExCard(ex,i,slot,cue){
   </div>`;
 }
 window.liveExCard=liveExCard;
+
+function liveToggleMediaSize(button){
+  const media=button&&button.closest('.live-ex-media');
+  if(!media)return;
+  const expanded=media.classList.toggle('is-enlarged');
+  button.setAttribute('aria-pressed',String(expanded));
+  button.textContent=expanded?'Pomniejsz':'Powiększ';
+}
+window.liveToggleMediaSize=liveToggleMediaSize;
 
 function liveSetKey(e,ei,si,slot){
   if(e.key==='Enter'){
@@ -4123,7 +4152,7 @@ function liveAddSet(ei,slot){
   const st=liveRef(n);
   const ex=st.exercises[ei];
   const prev=ex.sets[ex.sets.length-1];
-  ex.sets.push({setNo:ex.sets.length+1,kg:prev&&prev.kg!=null?prev.kg:'',reps:prev&&prev.reps?prev.reps:'8-12',rir:prev&&prev.rir!=null&&prev.rir!==''?prev.rir:(ex.rir||''),done:false});
+  ex.sets.push({setNo:ex.sets.length+1,kg:prev&&prev.kg!=null?prev.kg:'',reps:prev&&prev.reps?prev.reps:'8-12',rir:'',done:false});
   renderLiveExercises(n);
   liveSaveDraft(n);
 }
