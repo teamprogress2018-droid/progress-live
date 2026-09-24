@@ -347,6 +347,10 @@ jobs:
         run: node .github/scripts/test_fitebo_live.js
       - name: 1n28d. Testy jednego planu na dzień w grafiku Assignment
         run: node .github/scripts/test_cp_cal_plan_dedupe.js
+      - name: 1n28d2. Testy jednego pola weekday dnia planu
+        run: node .github/scripts/test_plan_day_weekday.js
+      - name: 1n28d3. Testy stanów kafelków tygodnia
+        run: node .github/scripts/test_cp_week_tiles.js
       - name: 1n29. Testy przywrócenia konturów/czcionek kafelków
         run: node .github/scripts/test_tile_polish_restore.js
       - name: 1n30. Testy etykiet partii w autocomplete ćwiczeń
@@ -551,6 +555,8 @@ jobs:
         run: node .github/scripts/test_cp_overview_situation_ui.js
       - name: 6f2b1. Testy UI zapisów vs planu w Przeglądzie
         run: node .github/scripts/test_cp_overview_logs_ui.js
+      - name: 6f2b1b. Testy UI kafelków tygodnia w Treningach
+        run: node .github/scripts/test_cp_week_tiles_ui.js
       - name: 6f2b2. Testy UI Briefu przed treningiem
         run: node .github/scripts/test_cp_overview_brief_ui.js
       - name: 6f2b3. Testy UI Analizy współpracy

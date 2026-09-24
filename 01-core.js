@@ -3427,6 +3427,188 @@ function planTrainingDayIdxs(plan){
 }
 window.planTrainingDayIdxs=planTrainingDayIdxs;
 
+function foldPlanWeekdayText(s){
+  return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ł/g,'l').replace(/\./g,'');
+}
+function parsePlanWeekdayToken(raw){
+  const t=foldPlanWeekdayText(raw).replace(/[^a-z0-9]/g,'');
+  if(!t)return null;
+  const map={
+    nd:0,niedz:0,nie:0,niedziela:0,sun:0,sunday:0,
+    pn:1,pon:1,poniedzialek:1,mon:1,monday:1,
+    wt:2,wto:2,wtorek:2,tue:2,tuesday:2,
+    sr:3,sro:3,sroda:3,wed:3,wednesday:3,
+    cz:4,czw:4,czwartek:4,thu:4,thursday:4,
+    pt:5,pia:5,piatek:5,fri:5,friday:5,
+    sb:6,sob:6,sobota:6,sat:6,saturday:6
+  };
+  if(map[t]!=null)return map[t];
+  if(t.length<=5){
+    if(t.length>=2&&map[t.slice(0,2)]!=null)return map[t.slice(0,2)];
+    if(t.length>=3&&map[t.slice(0,3)]!=null)return map[t.slice(0,3)];
+  }
+  return null;
+}
+function parsePlanWeekdayFromText(text){
+  const raw=String(text||'');
+  if(!raw.trim())return null;
+  const parens=[...raw.matchAll(/\(([^)]+)\)/g)];
+  for(const m of parens){
+    const wd=parsePlanWeekdayToken(m[1]);
+    if(wd!=null)return wd;
+  }
+  const compact=foldPlanWeekdayText(raw).replace(/[^a-z]/g,'');
+  if(compact.length&&compact.length<=12){
+    const whole=parsePlanWeekdayToken(raw);
+    if(whole!=null)return whole;
+  }
+  const skip={dzien:1,day:1,fbw:1,ppl:1,push:1,pull:1,legs:1,plan:1,full:1,body:1};
+  const tokens=raw.split(/[^A-Za-zĄąĆćĘęŁłŃńÓóŚśŹźŻż0-9]+/).filter(Boolean);
+  for(const tok of tokens){
+    if(tok.length<2)continue;
+    const folded=foldPlanWeekdayText(tok);
+    if(skip[folded])continue;
+    const wd=parsePlanWeekdayToken(tok);
+    if(wd!=null)return wd;
+  }
+  return null;
+}
+function normalizePlanWeekday(v){
+  if(v==null||v==='')return null;
+  if(typeof v==='number'&&Number.isFinite(v)){
+    const n=((Number(v)%7)+7)%7;
+    return n;
+  }
+  return parsePlanWeekdayToken(v);
+}
+function stripPlanDayWeekdayName(name){
+  let s=String(name||'');
+  s=s.replace(/\(\s*(poniedziałek|wtorek|środa|czwartek|piątek|sobota|niedziela|niedz\.?|pon\.?|wto\.?|śr\.?|czw\.?|pia\.?|sob\.?|nd|pn|wt|śr|cz|pt|sb|so)\s*\)/gi,'');
+  s=s.replace(/\s*[—–\-:/·,]+\s*(poniedziałek|wtorek|środa|czwartek|piątek|sobota|niedziela)\s*$/i,'');
+  return s.replace(/\s+/g,' ').replace(/[—–\-:/·,]\s*$/,'').trim();
+}
+function planDayRawLabel(day,idx){
+  if(!day)return 'Dzień '+(Number(idx||0)+1);
+  return String(day.day||day.dayName||day.name||('Dzień '+(Number(idx||0)+1))).trim();
+}
+function planDayDisplayName(day,idx){
+  return stripPlanDayWeekdayName(planDayRawLabel(day,idx))||('Dzień '+(Number(idx||0)+1));
+}
+function planDayShortName(day,idx){
+  let s=planDayDisplayName(day,idx);
+  s=s.replace(/^dzień\s+\d+\s*[—–\-:]+\s*/i,'');
+  s=s.replace(/^dzień\s+[a-d]\s*[—–\-:]+\s*/i,'');
+  s=s.replace(/\s+/g,' ').trim();
+  return s||planDayDisplayName(day,idx);
+}
+function planDayWeekdayLabel(wd){
+  return ['nd','pn','wt','śr','cz','pt','sb'][((Number(wd)%7)+7)%7]||'';
+}
+function planDayWeekday(day,idx,preferredWeekdays){
+  if(day&&!day.rest){
+    let wd=normalizePlanWeekday(day.weekday);
+    if(wd!=null)return wd;
+    wd=parsePlanWeekdayFromText(planDayRawLabel(day,idx));
+    if(wd!=null)return wd;
+  }
+  const pref=typeof normalizePreferredWeekdays==='function'?normalizePreferredWeekdays(preferredWeekdays):((preferredWeekdays)||[]);
+  const n=Math.max(1,(Number(idx)||0)+1);
+  if(typeof uniqueWeekdaysForTrainDays==='function'){
+    const map=uniqueWeekdaysForTrainDays(n,pref);
+    if(map[idx]!=null)return map[idx];
+  }
+  const out=[];const used=new Set();
+  (pref||[]).forEach(d=>{if(out.length<n&&!used.has(d)){used.add(d);out.push(d);}});
+  [1,2,3,4,5,6,0].forEach(d=>{if(out.length<n&&!used.has(d)){used.add(d);out.push(d);}});
+  if(out[idx]!=null)return out[idx];
+  const fallback=[1,3,5,2,4,6,0];
+  return fallback[(Number(idx)||0)%fallback.length];
+}
+function hydratePlanDaysWeekdays(plan,preferredWeekdays){
+  if(!plan||!Array.isArray(plan.days))return false;
+  const train=plan.days.map((d,i)=>({d,i})).filter(x=>x.d&&!x.d.rest);
+  let changed=false;
+  train.forEach(({d,i},trainI)=>{
+    const wd=planDayWeekday(d,trainI,preferredWeekdays);
+    if(wd==null)return;
+    if(d.weekday!==wd){d.weekday=wd;changed=true;}
+  });
+  return changed;
+}
+function mondayOfYmd(ymd){
+  const p=String(ymd||'').slice(0,10);
+  const d=new Date(p+'T12:00:00');
+  if(isNaN(d.getTime()))return '';
+  const day=d.getDay();
+  d.setDate(d.getDate()+(day===0?-6:1-day));
+  return typeof dateStrLocal==='function'?dateStrLocal(d):p;
+}
+function ymdForWeekdayInWeek(mondayYmd,weekday){
+  const wd=normalizePlanWeekday(weekday);
+  if(wd==null)return '';
+  const off=wd===0?6:wd-1;
+  return typeof ymdAdd==='function'?ymdAdd(mondayYmd,off):'';
+}
+function persistPlanIfPossible(plan){
+  if(!plan)return;
+  try{if(typeof persistById==='function')persistById('plans',plan);}catch(e){}
+}
+function persistSessionIfPossible(sess){
+  if(!sess)return;
+  try{if(typeof persistById==='function')persistById('sessions',sess);}catch(e){}
+}
+function syncFuturePlannedToPlanWeekdays(plan){
+  if(!plan||!plan.id||!plan.clientId||!Array.isArray(plan.days))return 0;
+  const today=typeof todayYmd==='function'?todayYmd():'';
+  const thisMon=today?mondayOfYmd(today):'';
+  const list=(window.SE||[]).filter(s=>s&&s.clientId===plan.clientId&&s.planId===plan.id&&s.source==='planned'&&s.date);
+  let moved=0;
+  list.forEach(s=>{
+    if(typeof sessionIsSkipped==='function'&&sessionIsSkipped(s))return;
+    if(typeof sessionHappened==='function'&&sessionHappened(s))return;
+    const idx=s.dayIdx;
+    if(idx==null||!plan.days[idx])return;
+    const wd=planDayWeekday(plan.days[idx],idx);
+    if(wd==null)return;
+    const y=String(s.date).slice(0,10);
+    if(thisMon&&y<thisMon)return;
+    const mon=mondayOfYmd(y);
+    const want=ymdForWeekdayInWeek(mon,wd);
+    if(!want||want===y)return;
+    const clash=(window.SE||[]).some(o=>o&&o!==s&&o.clientId===s.clientId&&o.source==='planned'&&String(o.date).slice(0,10)===want);
+    if(clash)return;
+    s.date=want;
+    persistSessionIfPossible(s);
+    moved++;
+  });
+  return moved;
+}
+function ensureClientPlanWeekdays(clientId){
+  const plan=typeof latestClientPlan==='function'?latestClientPlan(clientId):(typeof clientPlanForCalendar==='function'?clientPlanForCalendar(clientId):null);
+  if(!plan)return null;
+  const client=(window.CL||[]).find(x=>x&&x.id===clientId);
+  const pref=client&&client.preferredWeekdays;
+  const changed=hydratePlanDaysWeekdays(plan,pref);
+  if(changed)persistPlanIfPossible(plan);
+  syncFuturePlannedToPlanWeekdays(plan);
+  return plan;
+}
+window.foldPlanWeekdayText=foldPlanWeekdayText;
+window.parsePlanWeekdayToken=parsePlanWeekdayToken;
+window.parsePlanWeekdayFromText=parsePlanWeekdayFromText;
+window.normalizePlanWeekday=normalizePlanWeekday;
+window.stripPlanDayWeekdayName=stripPlanDayWeekdayName;
+window.planDayRawLabel=planDayRawLabel;
+window.planDayDisplayName=planDayDisplayName;
+window.planDayShortName=planDayShortName;
+window.planDayWeekdayLabel=planDayWeekdayLabel;
+window.planDayWeekday=planDayWeekday;
+window.hydratePlanDaysWeekdays=hydratePlanDaysWeekdays;
+window.mondayOfYmd=mondayOfYmd;
+window.ymdForWeekdayInWeek=ymdForWeekdayInWeek;
+window.syncFuturePlannedToPlanWeekdays=syncFuturePlannedToPlanWeekdays;
+window.ensureClientPlanWeekdays=ensureClientPlanWeekdays;
+
 /** Sesja z kalendarza (source=planned) na dany dzień — dayIdx z planu. */
 function plannedSessionForDate(clientId,planId,dateYmd){
   if(!clientId||!planId)return null;
@@ -3449,7 +3631,13 @@ function suggestedPlanDayIdx(clientId,plan){
     const idx=Number(planned.dayIdx);
     if(train.indexOf(idx)>=0)return idx;
   }
-  if(plan.days.length===7)return(new Date().getDay()+6)%7;
+  const todayDow=new Date().getDay();
+  const byWd=train.find(i=>{
+    const d=plan.days[i];
+    return d&&typeof planDayWeekday==='function'&&planDayWeekday(d,i)===todayDow;
+  });
+  if(byWd!=null)return byWd;
+  if(plan.days.length===7)return(todayDow+6)%7;
   const past=(window.SE||[]).filter(s=>s.clientId===clientId&&s.planId===plan.id&&s.dayIdx!=null&&(s.source==='live'||s.source==='client'))
     .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''));
   if(!past.length)return train[0];
@@ -5171,8 +5359,29 @@ function sessionIsRecorded(s){
 }
 window.sessionIsRecorded=sessionIsRecorded;
 
+function sessionIsSkipped(s){
+  if(!s)return false;
+  if(s.skipped===true)return true;
+  const st=String(s.status||s.skipStatus||'').toLowerCase();
+  return st==='opuszczony'||st==='skipped'||st==='missed';
+}
+window.sessionIsSkipped=sessionIsSkipped;
+
+function markSessionSkipped(plannedId){
+  const list=window.SE||[];
+  const p=list.find(s=>s&&s.id===plannedId);
+  if(!p)return null;
+  p.status='opuszczony';
+  p.skipped=true;
+  p.updatedAt=new Date().toISOString();
+  try{if(typeof persistById==='function')persistById('sessions',p);}catch(e){}
+  return p;
+}
+window.markSessionSkipped=markSessionSkipped;
+
 function sessionHappened(s,sessions){
   if(!s)return false;
+  if(sessionIsSkipped(s))return false;
   if(sessionIsRecorded(s))return true;
   if(!s.clientId||!s.date)return false;
   const y=String(s.date).slice(0,10);

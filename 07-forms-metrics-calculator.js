@@ -2183,6 +2183,7 @@ function openClientProfile(id,opts){
   cpClientId=id;
   window._cpEditingClientId=null;
   const c=CL.find(x=>x.id===id);if(!c)return;
+  try{if(typeof ensureClientPlanWeekdays==='function')ensureClientPlanWeekdays(id);}catch(e){}
   const ci=CL.indexOf(c);const col=COLS[ci%5];
   document.getElementById('cp-avatar').style.background=col+'22';
   document.getElementById('cp-avatar').style.color=col;
