@@ -32,7 +32,7 @@ function eq(name, got, want) {
 
 ok('cache 01', html.includes('01-core.js?v=121'));
 ok('cache 04', html.includes('04-client-portal.js?v=54'));
-ok('cache 08', html.includes('08-client-profile-extras.js?v=78'));
+ok('cache 08', html.includes('08-client-profile-extras.js?v=79'));
 ok('CI', wf.includes('test_ex_progress_wire.js'));
 ok('mapping helpers', /function listClientProgressExercises/.test(coreSrc)
   && /function exerciseProgressClass/.test(coreSrc)

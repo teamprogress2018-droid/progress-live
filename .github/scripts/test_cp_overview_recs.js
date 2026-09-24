@@ -32,7 +32,8 @@ ok('no shorten label',!/Skróć plan/.test(src08)&&src08.includes('Otwórz plan'
 ok('ok line',src08.includes('Wszystko w porządku — brak pilnych działań.'));
 ok('early copy',src08.includes('Wiarygodną analizę pokażemy po 4 tygodniach lub 4 pomiarach.'));
 ok('ci workflow',wf.includes('test_cp_overview_recs.js'));
-ok('cache',html.includes('08-client-profile-extras.js?v=78'));
+ok('cache',html.includes('08-client-profile-extras.js?v=79'));
+ok('invite not a rec',!/kind:'invite'/.test(extract(src08,'cpOverviewRecs')));
 
 const sandbox={
   window:{CL:[],SE:[],METRIC_ENTRIES:[],CHECKINS:{}},
@@ -73,7 +74,7 @@ sandbox.window.METRIC_ENTRIES.length=0;
 sandbox.window.CHECKINS={};
 let recs=sandbox.cpOverviewRecs(client());
 ok('2/2 no adherence rec',!recs.some(x=>x.kind==='adherence'),JSON.stringify(recs.map(x=>x.kind)));
-ok('2/2 invite still if no app',recs.some(x=>x.kind==='invite'));
+ok('2/2 no invite rec',!recs.some(x=>x.kind==='invite'));
 
 recs=sandbox.cpOverviewRecs(client({inviteSent:true}));
 ok('2/2 invited no shorten',!recs.some(x=>x.kind==='adherence')&&recs.every(x=>x.cta&&x.cta.label!=='Skróć plan'));
@@ -89,7 +90,7 @@ sandbox.window.SE.push({id:'t',clientId:'c1',date:'2026-09-24',source:'planned',
 sandbox.window.CHECKINS={};
 recs=sandbox.cpOverviewRecs(client());
 ok('no app checkin is note not poproś',recs.some(x=>x.kind==='checkin'&&x.cta.label==='Dodaj notatkę')&&!recs.some(x=>x.cta&&/Poproś/.test(x.cta.label)),JSON.stringify(recs.map(x=>x.kind+':'+(x.cta&&x.cta.label))));
-ok('invite rec present without app',recs.some(x=>x.kind==='invite'));
+ok('no invite rec without app',!recs.some(x=>x.kind==='invite'));
 ok('max 3',recs.length<=3,String(recs.length));
 ok('every rec has reason',recs.every(x=>x.reason&&x.reason.length>8),JSON.stringify(recs.map(x=>x.reason)));
 

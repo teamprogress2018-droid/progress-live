@@ -47,7 +47,7 @@ ok('garmin excluded',/source==='garmin'/.test(extract(src08,'cpBriefIsLogged')))
 ok('planned excluded',/source==='planned'/.test(extract(src08,'cpBriefIsLogged')));
 ok('css compact',css.includes('.cp-ov-brief-row')&&css.includes('.cp-ov-brief-kicker')&&!/cp-ov-brief-row\{[^}]*background:var\(--bg-card\)/.test(css.replace(/\n/g,' ')));
 ok('injury watch',css.includes('.cp-ov-brief-row.is-watch')&&!css.includes('.cp-ov-brief-row.is-watch{background:'));
-ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=78')&&html.includes('styles.css?v=109'));
+ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=79')&&html.includes('styles.css?v=109'));
 ok('ci unit',wf.includes('test_cp_overview_brief.js'));
 ok('ci ui',wf.includes('test_cp_overview_brief_ui.js'));
 ok('empty copy',src08.includes('Brak danych do briefu.'));
@@ -112,9 +112,10 @@ vm.runInNewContext(
   extract(src08,'cpBriefAgoLabel')+'\n'+
   extract(src08,'cpBriefIsLogged')+'\n'+
   extract(src08,'cpBriefTopLoads')+'\n'+
+  extract(src08,'cpOverviewPlanTitle')+'\n'+
   extract(src08,'collectCpBriefItems')+'\n'+
   extract(src08,'cpOverviewBriefHTML')+'\n'+
-  'window.collectCpBriefItems=collectCpBriefItems;window.cpOverviewBriefHTML=cpOverviewBriefHTML;',
+  'window.collectCpBriefItems=collectCpBriefItems;window.cpOverviewBriefHTML=cpOverviewBriefHTML;window.cpOverviewPlanTitle=cpOverviewPlanTitle;',
   sandbox
 );
 
@@ -191,6 +192,14 @@ const ciOnly=sandbox.collectCpBriefItems({id:'c3',injuries:''});
 sandbox.window.CHECKINS.c3=[{id:'ci3',status:'filled',date:'2026-09-21',answers:{sleep:5}}];
 const justCi=sandbox.collectCpBriefItems({id:'c3',injuries:''});
 ok('checkin only sleep',justCi.filter(e=>e.kind==='checkin').length===1&&/Sen 5\/5/.test(justCi[0].fact)&&!/Energia/.test(justCi[0].fact)&&!/Odżywianie/.test(justCi[0].fact));
+
+sandbox.window.PL.push({id:'p-old',clientId:'c-planonly',name:'Jan Kowalski — FBW Siła',duration:8,clientName:'Jan Kowalski'});
+sandbox.window.CHECKINS['c-planonly']=[];
+sandbox.window.CLIENT_NOTES['c-planonly']=[];
+const planOnly=sandbox.collectCpBriefItems({id:'c-planonly',name:'Jan Kowalski',injuries:''});
+ok('plan fallback drops client name',planOnly.some(e=>e.kind==='session'&&e.fact==='FBW Siła · 8 tygodni'&&!/Jan/.test(e.fact)),JSON.stringify(planOnly));
+const planOnlyHtml=sandbox.cpOverviewBriefHTML({id:'c-planonly',name:'Jan Kowalski',injuries:''});
+ok('today card uses stripped title',/FBW Siła · 8 tygodni/.test(planOnlyHtml)&&!/Jan Kowalski —/.test(planOnlyHtml));
 
 if(failed){console.error('\n'+failed+' failed');process.exit(1);}
 console.log('\nAll cp-overview-brief checks passed');
