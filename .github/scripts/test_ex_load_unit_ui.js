@@ -151,7 +151,7 @@ function ok(name, cond, extra) {
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'live_wioslarz_czas.png') });
-  ok('live header czas min', /czas/i.test(liveCard.head) && /min/i.test(liveCard.head), liveCard.head);
+  ok('live header minuty', /minuty/i.test(liveCard.head), liveCard.head);
   ok('live placeholder min', liveCard.ph === 'min', JSON.stringify(liveCard));
   ok('live not ciezar kg', !/ciężar/i.test(liveCard.head), liveCard.head);
 
@@ -178,7 +178,7 @@ function ok(name, cond, extra) {
     };
   });
   try { await page.screenshot({ path: path.join(shotDir, 'live_plank_sec.png') }); } catch (e) { console.warn('shot skip', e.message); }
-  ok('live plank header czas s', /czas/i.test(plank.head) && /\(s\)/.test(plank.head), plank.head);
+  ok('live plank header sekundy', /sekundy/i.test(plank.head), plank.head);
   ok('live plank placeholder sec', plank.ph === 'sec', JSON.stringify(plank));
   ok('live plank not ciezar', !/ciężar/i.test(plank.head), plank.head);
   ok('live plank helper sec', plank.helper === 'sec', plank.helper);
@@ -206,7 +206,7 @@ function ok(name, cond, extra) {
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'live_plank_przedni_czas.png') });
-  ok('live przedni plank header czas', /czas/i.test(plankFront.head), plankFront.head);
+  ok('live przedni plank header sekundy', /sekundy/i.test(plankFront.head), plankFront.head);
   ok('live przedni plank not ciezar', !/ciężar/i.test(plankFront.head), plankFront.head);
   ok('live przedni plank placeholder sec', plankFront.ph === 'sec', JSON.stringify(plankFront));
   ok('live przedni plank helper sec', plankFront.helper === 'sec', plankFront.helper);
