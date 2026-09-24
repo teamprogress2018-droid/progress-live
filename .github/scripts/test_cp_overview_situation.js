@@ -47,7 +47,7 @@ ok('alert + status stack',overview.includes('cpOverviewAlertHTML(c)')&&overview.
 ok('no duplicate edit CTA',!overview.includes('cp-ov-edit-cta'));
 ok('tabs unchanged',html.includes('id="cpt-overview"')&&html.includes("setCPTab('overview')")&&html.includes('id="cpt-training"')&&html.includes('id="cpt-plan"'));
 ok('css situation',css.includes('.cp-ov-situation')&&css.includes('.cp-ov-sit-tile-ok')&&css.includes('.cp-ov-next-watch')&&css.includes('.cp-ov-sit-tile-act'));
-ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=74')&&html.includes('styles.css?v=106'));
+ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=75')&&html.includes('styles.css?v=107'));
 ok('ci unit',wf.includes('test_cp_overview_situation.js'));
 ok('ci ui',wf.includes('test_cp_overview_situation_ui.js'));
 

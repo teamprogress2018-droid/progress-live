@@ -1661,7 +1661,7 @@ function cpOverviewAlertHTML(c){
         <div class="cp-ov-alert-title">Klient nie ma jeszcze dostępu — wyślij zaproszenie</div>
         <div class="cp-ov-alert-sub">Bez apki nie będzie check-inów, zdjęć, Garmina ani pomiarów od klienta.</div>
       </div>
-      <button type="button" class="btn btn-primary btn-sm" data-cp-alert-cta="invite" onclick="typeof openInviteModal==='function'&&openInviteModal('${esc(c.id)}')">Wyślij zaproszenie</button>
+      <button type="button" class="btn btn-sm cp-ov-alert-cta" data-cp-alert-cta="invite" onclick="typeof openInviteModal==='function'&&openInviteModal('${esc(c.id)}')">Wyślij zaproszenie</button>
     </div>`;
   }
   const miss=[];
@@ -1730,6 +1730,16 @@ window.cpClientStatusTruth=cpClientStatusTruth;
 window.cpOverviewAlertHTML=cpOverviewAlertHTML;
 window.cpOverviewMissingItems=cpOverviewMissingItems;
 window.cpOverviewMissingHTML=cpOverviewMissingHTML;
+function cpOverviewVerdictIsThin(c,v){
+  const truth=typeof cpClientStatusTruth==='function'?cpClientStatusTruth(c):null;
+  if(truth&&(truth.reason==='invite'||truth.reason==='onboard'))return true;
+  if(!v||!v.verdict)return true;
+  const adh=(v.stats&&v.stats.adh30)||{};
+  const sampleOk=typeof cpAdhSampleOk==='function'?cpAdhSampleOk(adh):Number(adh.assigned||0)>=CP_OV_ADH_MIN;
+  if(v.verdict==='stabilnie'&&(!sampleOk||v.score==null||Number(v.score)===0))return true;
+  return false;
+}
+window.cpOverviewVerdictIsThin=cpOverviewVerdictIsThin;
 
 function cpLatestPhysique(clientId){
   const list=typeof ppListFor==='function'?ppListFor(clientId):[];
@@ -2607,7 +2617,7 @@ function cpOverviewCoopHTML(c){
   const labels={progres:'Progres',regres:'Regres','ryzyko stagnacji':'Ryzyko stagnacji',stabilnie:'Stabilnie'};
   const verdict=v&&v.verdict?(labels[v.verdict]||v.verdict):'';
   const tone=v?(v.verdictTone||'neutral'):'neutral';
-  const thinVerdict=!v||!v.verdict||(v.verdict==='stabilnie'&&(v.score==null||Number(v.score)===0));
+  const thinVerdict=typeof cpOverviewVerdictIsThin==='function'?cpOverviewVerdictIsThin(c,v):(!v||!v.verdict||(v.verdict==='stabilnie'&&(v.score==null||Number(v.score)===0)));
   const sigs=thinVerdict?[]:cpCoopPickSignals(v);
   const busy=!!(window._cpCoopBusy&&window._cpCoopBusy[c.id]);
   let body='';
@@ -4507,7 +4517,11 @@ function buildMonitorVerdict(c){
   }
 
   if(adh30.assigned||adh30.logged){
-    if(adh30.pct>=75){score+=2;signals.push({tone:'good',label:'Adherencja 30 dni',text:`${adh30.pct}% (${adh30.logged}/${adh30.assigned}) — solidna regularność.`});}
+    const adhMin=typeof CP_OV_ADH_MIN==='number'?CP_OV_ADH_MIN:4;
+    const adhOk=typeof cpAdhSampleOk==='function'?cpAdhSampleOk(adh30):Number(adh30.assigned||0)>=adhMin;
+    if(!adhOk){
+      signals.push({tone:'neutral',label:'Adherencja 30 dni',text:`Za mało danych (${adh30.logged}/${adh30.assigned||0} z min. ${adhMin} treningów).`});
+    }else if(adh30.pct>=75){score+=2;signals.push({tone:'good',label:'Adherencja 30 dni',text:`${adh30.pct}% (${adh30.logged}/${adh30.assigned}) — solidna regularność.`});}
     else if(adh30.pct>=50){score+=0;signals.push({tone:'warn',label:'Adherencja 30 dni',text:`${adh30.pct}% — średnio; uprość plan albo usuń bariery.`});}
     else{score-=2;signals.push({tone:'bad',label:'Adherencja 30 dni',text:`${adh30.pct}% — ryzyko regresu przez brak bodźca.`});}
   }

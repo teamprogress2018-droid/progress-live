@@ -38,12 +38,15 @@ ok('no dane osobowe card',!overview.includes('cp-ov-edit-cta'));
 ok('no straznik banner',!overview.includes('cp-bmi-banner')&&!overview.includes('Podsumowania klienta'));
 ok('plan chips not red',overview.includes('cp-ov-day-chip')&&!/rgba\(230,0,0,0\.12\)/.test(overview));
 ok('invite copy',src08.includes('Klient nie ma jeszcze dostępu — wyślij zaproszenie'));
+ok('invite cta not primary red',extract(src08,'cpOverviewAlertHTML').includes('cp-ov-alert-cta')&&!extract(src08,'cpOverviewAlertHTML').includes('btn-primary'));
 ok('thin copy',src08.includes('Za mało danych')&&src08.includes('brak pomiarów wagi w ostatnich 30 dniach'));
 ok('no score 0 label',!/Werdykt: \$\{esc\(verdict\)\}\$\{v&&v\.score!=null/.test(src08));
+ok('thin verdict helper',/function cpOverviewVerdictIsThin\(c,v\)/.test(src08)&&src08.includes('Za mało danych do werdyktu'));
+ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=75')&&html.includes('styles.css?v=107'));
 ok('level labels helper',/Początkujący/.test(extract(src08,'cpProfileSubtext')));
-ok('css alert+missing',css.includes('.cp-ov-alert')&&css.includes('.cp-ov-missing')&&css.includes('.cp-ov-day-chip'));
+ok('css alert+missing',css.includes('.cp-ov-alert')&&css.includes('.cp-ov-missing')&&css.includes('.cp-ov-day-chip')&&css.includes('.cp-ov-alert-cta'));
 ok('css no card red bar',css.includes('.cp-ov-card::after,.cp-ov-rail-card::after{display:none;}'));
-ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=74')&&html.includes('styles.css?v=106'));
+ok('css tabs not accent',/\.cp-tab\.active\{[^}]*color:var\(--text-primary\)/.test(css));
 ok('header labels 07',fs.readFileSync(path.join(root,'07-forms-metrics-calculator.js'),'utf8').includes('cpProfileSubtext'));
 ok('ci unit',wf.includes('test_cp_overview_quiet.js'));
 
@@ -77,7 +80,8 @@ vm.runInNewContext(
   extract(src08,'cpClientStatusTruth')+'\n'+
   extract(src08,'cpOverviewAlertHTML')+'\n'+
   extract(src08,'cpOverviewMissingItems')+'\n'+
-  extract(src08,'cpOverviewMissingHTML')+'\n',
+  extract(src08,'cpOverviewMissingHTML')+'\n'+
+  extract(src08,'cpOverviewVerdictIsThin')+'\n',
   sandbox
 );
 
@@ -93,6 +97,7 @@ ok('invite beats green pulse',truth.reason==='invite'&&truth.tone==='warn'&&/Bra
 ok('plan days count as schedule',truth.scheduleOk===true);
 const alert=sandbox.cpOverviewAlertHTML(jan);
 ok('invite alert html',/data-cp-alert="invite"/.test(alert)&&/Wyślij zaproszenie/.test(alert)&&!/Brak dni treningowych/.test(alert));
+ok('invite hides stabilnie',sandbox.cpOverviewVerdictIsThin(jan,{verdict:'stabilnie',score:2,stats:{adh30:{assigned:0,logged:1,pct:100}}})===true);
 
 sandbox._ob.invite=true;sandbox._ob.done=4;
 const truth2=sandbox.cpClientStatusTruth(jan);
@@ -101,6 +106,9 @@ ok('onboard after invite',truth2.reason==='onboard'&&!/dni treningowe/.test(trut
 ok('level diacritics',sandbox.cpProfileSubtext(jan)==='Budowa masy · Początkujący');
 const missing=sandbox.cpOverviewMissingItems(jan);
 ok('missing has checkin+garmin',missing.some(x=>x.id==='checkin')&&missing.some(x=>x.id==='garmin'),JSON.stringify(missing.map(x=>x.id)));
+sandbox._ob.complete=true;sandbox._ob.done=6;
+ok('thin sample hides stabilnie',sandbox.cpOverviewVerdictIsThin(jan,{verdict:'stabilnie',score:2,stats:{adh30:{assigned:2,logged:1,pct:50}}})===true);
+ok('enough data keeps progres',sandbox.cpOverviewVerdictIsThin(jan,{verdict:'progres',score:4,stats:{adh30:{assigned:8,logged:7,pct:88}}})===false);
 
 if(failed){console.error('\n'+failed+' failed');process.exit(1);}
 console.log('\nAll cp-overview-quiet checks passed');

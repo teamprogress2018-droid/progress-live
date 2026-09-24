@@ -1902,8 +1902,8 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
   transition:color .12s,border-color .12s,opacity .12s;white-space:nowrap;font-family:var(--font-ui);
   opacity:0.72;
 }
-.cp-tab:hover{opacity:1;color:var(--accent);}
-.cp-tab.active{opacity:1;color:var(--accent);border-bottom-color:var(--accent);}
+.cp-tab:hover{opacity:1;color:var(--text-primary);}
+.cp-tab.active{opacity:1;color:var(--text-primary);border-bottom-color:var(--text-primary);}
 .cp-tabs-more-wrap{position:relative;flex-shrink:0;z-index:45;}
 .cp-tabs-more-btn{border-bottom-color:transparent;}
 .cp-tabs-more-menu{
@@ -2174,6 +2174,11 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 .cp-ov-alert-soft{background:var(--s3);border-color:var(--border);}
 .cp-ov-alert-title{font-size:14px;font-weight:800;line-height:1.35;color:var(--text-primary);font-family:var(--font-ui);}
 .cp-ov-alert-sub{font-size:12px;color:var(--text-secondary);margin-top:4px;line-height:1.45;}
+.cp-ov-alert-cta{
+  background:rgba(245,158,11,0.18);border:1px solid rgba(245,158,11,0.55);color:#f5c56b;
+  font-weight:700;
+}
+.cp-ov-alert-cta:hover{background:rgba(245,158,11,0.28);color:#ffd78a;}
 .cp-ov-status-stack{
   background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--r2);
   margin-bottom:14px;overflow:hidden;
