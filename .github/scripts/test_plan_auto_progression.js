@@ -25,7 +25,7 @@ ok('save stores progression', /progression,clientId/.test(builder) || /progressi
 ok('edit loads progression', /b-progression/.test(builder) && /normalizePlanProgression/.test(builder));
 ok('live maps with plan', /mapPlanExercisesForClient\(list,st\.clientId,plan/.test(live) || /mapPlanExercisesForClient\(rawEx,st\.clientId/.test(live));
 ok('live shows progHint', /progHint/.test(live) && /color:var\(--teal\)/.test(live));
-ok('live lastHint needs lastDate', /lastDate&&ex\.lastKg/.test(live));
+ok('live lastHint needs lastDate', /function liveExLastWorkSets/.test(live) && /liveExLastSummary/.test(live) && /if\(!lastSum\)/.test(live) && /Pierwszy raz w planie/.test(live));
 ok('idle draft remaps', /function liveRefreshPlanLoads/.test(live) && /liveApplyDraft[\s\S]*liveRefreshPlanLoads/.test(live));
 ok('CI', wf.includes('test_plan_auto_progression.js'));
 ok('cache 01', html.includes('01-core.js?v=121'));
