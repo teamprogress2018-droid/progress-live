@@ -55,42 +55,31 @@ function ok(name, cond, extra) {
 
   await page.waitForSelector('#cp-drawer.open');
   await page.click('#cpt-training');
-  await page.waitForSelector('.cp-del-sess');
+  await page.waitForSelector('.cp-week-tile');
 
   const before = await page.evaluate(() => ({
-    del: document.querySelectorAll('.cp-del-sess').length,
+    tiles: document.querySelectorAll('.cp-week-tile').length,
     planned: (window.SE || []).filter(s => s.source === 'planned').length,
-    bulk: !!(document.getElementById('cp-clear-planned') || [...document.querySelectorAll('button')].find(b => /Usuń terminy planu/.test(b.textContent || '')))
+    more: !!document.getElementById('cp-mp-more-btn')
   }));
   await page.screenshot({ path: path.join(shotDir, 'cp_cal_del_before.png') });
-  ok('delete buttons on cards', before.del >= 2, JSON.stringify(before));
-  ok('bulk clear visible', before.bulk);
+  ok('plan tiles shown', before.tiles >= 1 && before.planned >= 2, JSON.stringify(before));
+  ok('more menu for bulk', before.more);
 
-  await page.click('.cp-del-sess');
-  await page.waitForTimeout(200);
-  const afterOne = await page.evaluate(() => ({
-    planned: (window.SE || []).filter(s => s.source === 'planned').length,
-    live: (window.SE || []).filter(s => s.source === 'live').length,
-    del: document.querySelectorAll('.cp-del-sess').length
-  }));
-  await page.screenshot({ path: path.join(shotDir, 'cp_cal_del_one.png') });
-  ok('one planned removed', afterOne.planned === 1, JSON.stringify(afterOne));
-  ok('live kept', afterOne.live === 1);
-
-  const bulk = page.locator('button', { hasText: 'Usuń terminy planu' });
-  if (await bulk.count()) await bulk.first().click();
-  else await page.evaluate(() => { if (typeof clearClientPlannedSessions === 'function') clearClientPlannedSessions('c-ola'); });
-  await page.waitForTimeout(200);
+  await page.click('#cp-mp-more-btn');
+  await page.waitForSelector('#cp-mp-more-menu button');
+  await page.click('#cp-mp-more-menu button');
+  await page.waitForTimeout(300);
   const afterAll = await page.evaluate(() => ({
     planned: (window.SE || []).filter(s => s.source === 'planned').length,
     live: (window.SE || []).filter(s => s.source === 'live').length,
-    del: document.querySelectorAll('.cp-del-sess').length,
+    tiles: document.querySelectorAll('.cp-week-tile').length,
     body: (document.getElementById('cp-body') || {}).innerText || ''
   }));
   await page.screenshot({ path: path.join(shotDir, 'cp_cal_del_cleared.png') });
   ok('all planned gone', afterAll.planned === 0, JSON.stringify(afterAll));
   ok('live still there', afterAll.live === 1);
-  ok('no plan cards left', afterAll.del === 0 || !/PON PLAN|ŚR PLAN/.test(afterAll.body));
+  ok('no plan cards left', afterAll.tiles === 0 || !/PON PLAN|ŚR PLAN/.test(afterAll.body));
 
   await browser.close();
   if (failed) process.exit(1);

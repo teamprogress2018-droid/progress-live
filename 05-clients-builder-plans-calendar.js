@@ -2171,7 +2171,10 @@ async function savePlan(){
       applySsLabels(exercises);
       exercises.forEach(e=>{e.ss=e.ssLetter||'';delete e.ssLabel;delete e.ssLetter;});
     }
-    days.push({day:dn,muscles,exercises,sets,rest:false,circuit:!!(de.querySelector('.circ')||{}).checked,roundRest:(de.querySelector('[data-f="roundRest"]')||{}).value||''});
+    const row={day:dn,muscles,exercises,sets,rest:false,circuit:!!(de.querySelector('.circ')||{}).checked,roundRest:(de.querySelector('[data-f="roundRest"]')||{}).value||''};
+    const wd=typeof planDayWeekday==='function'?planDayWeekday(row,days.filter(x=>x&&!x.rest).length):null;
+    if(wd!=null)row.weekday=wd;
+    days.push(row);
   });
   if(!days.length){notify('Dodaj przynajmniej jeden dzień!');return;}
   const progression=typeof normalizePlanProgression==='function'?normalizePlanProgression((document.getElementById('b-progression')||{}).value):'double';
@@ -2202,6 +2205,10 @@ async function savePlan(){
 
 /** Mapuje etykietę dnia planu → JS getDay() (0=Nd … 6=Sob). */
 function planDayLabelToWeekday(label,fallbackIdx){
+  if(typeof parsePlanWeekdayFromText==='function'){
+    const parsed=parsePlanWeekdayFromText(label);
+    if(parsed!=null)return parsed;
+  }
   const s=String(label||'').toUpperCase();
   const map={PON:1,WT:2,'ŚR':3,SR:3,CZ:4,PT:5,SO:6,ND:0,
     PONIEDZIALEK:1,WTOREK:2,SRODA:3,'ŚRODA':3,CZWARTEK:4,PIATEK:5,'PIĄTEK':5,SOBOTA:6,NIEDZIELA:0};
@@ -2218,14 +2225,21 @@ function uniqueWeekdaysForTrainDays(trainCount,preferredWeekdays){
   [1,2,3,4,5,6,0].forEach(d=>{if(out.length<n&&!used.has(d)){used.add(d);out.push(d);}});
   return out;
 }
-function resolvePlanDayWeekday(dayLabel,dayIdx,preferredWeekdays){
+function resolvePlanDayWeekday(dayOrLabel,dayIdx,preferredWeekdays){
   const idx=Math.max(0,Number(dayIdx)||0);
+  const day=dayOrLabel&&typeof dayOrLabel==='object'?dayOrLabel:{day:dayOrLabel};
+  if(typeof planDayWeekday==='function')return planDayWeekday(day,idx,preferredWeekdays);
+  const fromName=planDayLabelToWeekday(day.day||day.dayName||day.name||dayOrLabel,idx);
+  if(fromName!=null&&(day.day||day.dayName||day.name||dayOrLabel)){
+    const parsed=typeof parsePlanWeekdayFromText==='function'?parsePlanWeekdayFromText(day.day||day.dayName||day.name||dayOrLabel):null;
+    if(parsed!=null)return parsed;
+  }
   const pref=typeof normalizePreferredWeekdays==='function'?normalizePreferredWeekdays(preferredWeekdays):((preferredWeekdays)||[]);
   if(pref.length){
     const map=uniqueWeekdaysForTrainDays(idx+1,pref);
     if(map[idx]!=null)return map[idx];
   }
-  return planDayLabelToWeekday(dayLabel,idx);
+  return fromName;
 }
 /** Godzina startu z preferowanej pory klienta (np. „Wieczór (18-22)”). */
 function scheduleTimeFromClient(client,fallback){
@@ -2271,13 +2285,16 @@ function schedulePlanToCalendar(planId,opts){
   const preferred=(opts&&opts.weekdays)!=null?(opts.weekdays):(client&&client.preferredWeekdays)||[];
   const trainDays=(plan.days||[]).map((d,i)=>({d,i})).filter(x=>x.d&&!x.d.rest&&(x.d.exercises||[]).length);
   if(!trainDays.length){notify('Plan nie ma dni treningowych');return 0;}
+  if(typeof hydratePlanDaysWeekdays==='function'&&hydratePlanDaysWeekdays(plan,preferred)){
+    try{if(typeof persistById==='function')persistById('plans',plan);}catch(e){}
+  }
   const today=new Date();today.setHours(0,0,0,0);
   const todayStr=typeof dateStr==='function'?dateStr(today):(typeof todayYmd==='function'?todayYmd():today.toISOString().slice(0,10));
   if(typeof dropPlannedSessionsFrom==='function')dropPlannedSessionsFrom(plan.clientId,todayStr);
   let created=0;
   for(let w=0;w<weeks;w++){
     trainDays.forEach(({d,i},trainI)=>{
-      const wd=resolvePlanDayWeekday(d.day||d.dayName,trainI,preferred);
+      const wd=resolvePlanDayWeekday(d,trainI,preferred);
       const dt=new Date(today);
       const cur=dt.getDay();
       let add=(wd-cur+7)%7;

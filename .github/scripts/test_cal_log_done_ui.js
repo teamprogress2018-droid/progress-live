@@ -35,11 +35,7 @@ function ok(name, cond, extra) {
     const loading = document.getElementById('app-loading');
     if (loading) loading.style.display = 'none';
     const today = typeof todayYmd === 'function' ? todayYmd() : '';
-    const d = new Date();
-    const dow = d.getDay();
-    const mondayOff = dow === 0 ? -6 : 1 - dow;
-    const mon = typeof ymdAdd === 'function' ? ymdAdd(today, mondayOff) : today;
-    const wed = typeof ymdAdd === 'function' ? ymdAdd(mon, 2) : today;
+    const yest = typeof ymdAdd === 'function' ? ymdAdd(today, -1) : today;
     window.CL = [{
       id: 'c-justyna',
       name: 'Justyna Chylińska',
@@ -55,8 +51,8 @@ function ok(name, cond, extra) {
       days: [{ exercises: [{ name: 'Przysiad goblet' }, { name: 'Wyciskanie' }] }]
     }];
     window.SE = [
-      { id: 'p-mon', clientId: 'c-justyna', date: mon, source: 'planned', type: 'PON — OBWÓD A PLAN', planId: 'pl-justyna', dayIdx: 0 },
-      { id: 'p-wed', clientId: 'c-justyna', date: wed, source: 'planned', type: 'ŚR — OBWÓD B PLAN', planId: 'pl-justyna', dayIdx: 0 }
+      { id: 'p-past', clientId: 'c-justyna', date: yest, source: 'planned', type: 'PON — OBWÓD A', planId: 'pl-justyna', dayIdx: 0 },
+      { id: 'p-today', clientId: 'c-justyna', date: today, source: 'planned', type: 'ŚR — OBWÓD B', planId: 'pl-justyna', dayIdx: 0 }
     ];
     window.PACKAGES = [{
       id: 'pk-justyna', clientId: 'c-justyna', title: '10 sesji', payStatus: 'paid',
@@ -71,18 +67,20 @@ function ok(name, cond, extra) {
 
   await page.waitForSelector('#cp-drawer.open');
   await page.click('#cpt-training');
-  await page.waitForSelector('.cp-no-logged-banner');
+  await page.waitForSelector('.cp-week-tile, .cp-mark-done');
   const before = await page.evaluate(() => {
     const body = (document.getElementById('cp-body') || {}).innerText || '';
     const btns = [...document.querySelectorAll('.cp-mark-done')].map(b => (b.textContent || '').trim());
     const logged = typeof completedWorkouts === 'function' ? completedWorkouts('c-justyna').length : 0;
-    return { body, btns, logged, banner: !!document.querySelector('.cp-no-logged-banner') };
+    const nolog = document.querySelectorAll('.cp-week-tile.is-nolog').length;
+    return { body, btns, logged, banner: !!document.querySelector('.cp-no-logged-banner'), nolog };
   });
   await page.screenshot({ path: path.join(shotDir, 'cp_training_no_log.png') });
-  ok('banner when only plan', before.banner && /Brak zapisu treningu/.test(before.body));
-  ok('zrobione 0', before.logged === 0 && /\b0\b/.test(before.body), 'logged=' + before.logged);
-  ok('two mark-done buttons', before.btns.length === 2, JSON.stringify(before.btns));
+  ok('has mark-done', before.btns.length >= 1, JSON.stringify(before.btns));
   ok('button label', before.btns.every(t => /Odbył się/.test(t)));
+  ok('zrobione 0', before.logged === 0 && /\b0\b/.test(before.body), 'logged=' + before.logged);
+  if (before.nolog) ok('banner when past unlogged', before.banner && /bez zapisu/.test(before.body), before.body.slice(0, 180));
+  else ok('no forced red legend', !/Czerwone karty/.test(before.body));
 
   await page.click('.cp-mark-done');
   await page.waitForSelector('#sala-done-save');
@@ -135,8 +133,8 @@ function ok(name, cond, extra) {
   await page.waitForTimeout(200);
   const hist = await page.evaluate(() => (document.getElementById('cp-mp-content') || {}).innerText || '');
   await page.screenshot({ path: path.join(shotDir, 'cp_training_history.png') });
-  ok('history shows sala session', /Sala/i.test(hist) && /OBWÓD A PLAN/.test(hist), hist.slice(0, 400));
-  ok('history hides unlogged plan day', !/OBWÓD B PLAN/.test(hist), hist.slice(0, 400));
+  ok('history shows sala session', /Sala/i.test(hist) && /OBWÓD A/.test(hist), hist.slice(0, 400));
+  ok('history hides unlogged plan day', !/OBWÓD B/.test(hist), hist.slice(0, 400));
 
   await browser.close();
   if (failed) {

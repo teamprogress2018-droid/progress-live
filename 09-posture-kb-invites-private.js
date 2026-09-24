@@ -195,12 +195,19 @@ function cpQuickCheckin(){
 
 function cpStartLive(){
   if(!cpClientId)return;
-  const cid=cpClientId;
+  cpStartLiveFromDay(cpClientId);
+}
+function cpStartLiveFromDay(clientId, dayIdx, planId){
+  const cid=clientId||cpClientId;
+  if(!cid)return;
   const c=CL.find(x=>x.id===cid);
-  if(typeof liveSetPendingClient==='function')liveSetPendingClient(cid,{clientName:c?c.name:''});
+  const extra={clientName:c?c.name:'',planId:planId||''};
+  if(dayIdx!=null&&dayIdx!==''&&Number.isFinite(Number(dayIdx)))extra.dayIdx=Number(dayIdx);
+  if(typeof liveSetPendingClient==='function')liveSetPendingClient(cid,extra);
   closeClientProfile();
   goTo('live');
 }
+window.cpStartLiveFromDay=cpStartLiveFromDay;
 
 function toggleCpHdrMore(evOrForce){
   const menu=document.getElementById('cp-hdr-more-menu');

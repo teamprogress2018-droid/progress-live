@@ -2802,7 +2802,8 @@ function liveSetPendingClient(clientId, extra){
     clientId:id,
     clientName:String(extra.clientName||extra.name||''),
     planId:String(extra.planId||extra.pid||''),
-    slot:extra.slot===1||extra.slot==='1'?1:0
+    slot:extra.slot===1||extra.slot==='1'?1:0,
+    dayIdx:extra.dayIdx==null||extra.dayIdx===''?null:Number(extra.dayIdx)
   };
 }
 function liveApplyPendingClient(){
@@ -2817,6 +2818,7 @@ function liveApplyPendingClient(){
   const sameClient=!!(st.clientId&&st.clientId===p.clientId);
   liveClientSetField(p.clientId,name,sameClient&&!p.planId,slot);
   if(p.planId&&typeof liveSelectPlan==='function')liveSelectPlan(p.planId,slot);
+  if(p.dayIdx!=null&&Number.isFinite(Number(p.dayIdx))&&typeof liveSelectDay==='function')liveSelectDay(Number(p.dayIdx),slot);
   if(typeof renderOnboardLiveBanner==='function')renderOnboardLiveBanner();
   return true;
 }
@@ -3084,7 +3086,7 @@ function renderLivePlanPicker(slot){
         const sug=i===suggestedIdx;
         const on=st.exercises.length&&i===st.currentDayIdx;
         return `<button type="button" class="live-prep-day${on?' is-on':''}${sug?' is-today':''}" onclick="liveSelectDay(${i}${sl})">
-          <div class="live-prep-day-name">${escHtml(d.day||('Dzień '+(i+1)))}</div>
+          <div class="live-prep-day-name">${escHtml(typeof planDayDisplayName==='function'?planDayDisplayName(d,i):(d.day||('Dzień '+(i+1))))}</div>
           <div class="live-prep-day-sub">${(d.exercises||[]).length} ćw.${sug?' · sugerowany na dziś':''}</div>
         </button>`;
       }).join('')}

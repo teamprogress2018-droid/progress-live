@@ -43,7 +43,7 @@ ok('feel + garmin 7d', overview.includes('Samopoczucie (check-in)') && overview.
 ok('today strip', src.includes('cp-ov-today-row') && src.includes('Podgląd treningu'));
 ok('remind in overview', overview.includes("cpRemindClient('") && overview.includes('Przypomnij'));
 ok('no updates rail', !overview.includes('Aktualizacje') && !/function\s+cpOverviewUpdates/.test(src));
-ok('cache 08', html.includes('08-client-profile-extras.js?v=81'));
+ok('cache 08', html.includes('08-client-profile-extras.js?v=82'));
 ok('overview edit via header/profil', overview.includes("startCPEdit('${c.id}')") && !overview.includes('cp-ov-edit-cta'));
 ok('profil rail shows name', overview.includes('Imię i nazwisko'));
 ok('rail cards clickable not button spam', overview.includes('cp-ov-rail-card clickable') && !overview.includes('>Edytuj</button>'));

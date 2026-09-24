@@ -20,10 +20,10 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01 v71', html.includes('01-core.js?v=121'));
-ok('cache 05 v74', html.includes('05-clients-builder-plans-calendar.js?v=78'));
-ok('cache 08 v38', html.includes('08-client-profile-extras.js?v=81'));
-ok('cache styles v89', html.includes('styles.css?v=113'));
+ok('cache 01 v71', html.includes('01-core.js?v=122'));
+ok('cache 05 v74', html.includes('05-clients-builder-plans-calendar.js?v=79'));
+ok('cache 08 v38', html.includes('08-client-profile-extras.js?v=82'));
+ok('cache styles v89', html.includes('styles.css?v=114'));
 ok('ci unit', wf.includes('test_cal_session_done.js'));
 ok('ci ui log done', wf.includes('test_cal_log_done_ui.js'));
 ok('ci ui week sala', wf.includes('test_cal_week_sala_done_ui.js'));
@@ -44,7 +44,7 @@ ok('css list done', /\.cal-list-sess\.cal-session-done/.test(css));
 ok('css mini done', /\.cal-mini-day\.has-done/.test(css));
 ok('css sala done btn', /\.cal-sala-done/.test(css) && /#cal-week-grid \.cal-sala-done/.test(css));
 ok('profile hover title', /title="\$\{escHtml\(tip\)\}"/.test(cp));
-ok('profile checkmark', /happened\?'✓ ':''/.test(cp) || /happened\?'✓ '/.test(cp));
+ok('profile checkmark', /cp-week-check/.test(cp) && /✓/.test(cp));
 ok('profile done class', /cp-sess-done/.test(cp) && /\.cp-sess-done/.test(css));
 ok('log from planned in core', /function logSessionFromPlanned/.test(core) && /source:'sala'/.test(core) && /consumeClientPackageSession/.test(core));
 ok('sala done modal', /function openSalaDoneModal/.test(core) && /function saveSalaDone/.test(core) && /Wybierz ocenę 1–5/.test(core));
@@ -56,7 +56,7 @@ const src04 = fs.readFileSync(path.join(root, '04-client-portal.js'), 'utf8');
 const src10 = fs.readFileSync(path.join(root, '10-client-app.js'), 'utf8');
 ok('client calendar sala', /clientMarkSalaDone/.test(src04) && /function clientMarkSalaDone/.test(src10) && /Byłem na sali/.test(src04));
 ok('calendar local ymd', /cellYmd/.test(cp) && /todayYmd/.test(cp));
-ok('no-logged banner', /cp-no-logged-banner/.test(cp) && /Brak zapisu treningu/.test(cp));
+ok('no-logged banner', /cp-no-logged-banner/.test(cp) && /bez zapisu — uzupełnij/.test(cp));
 ok('history skips planned', /sessionIsRecorded/.test(cp) && /historyList/.test(cp));
 ok('assignment hides planned when logged', /loggedDates/.test(cp));
 ok('adherence keeps fulfilled plan', /keepPlanned:true/.test(core) && /opts&&opts\.keepPlanned/.test(cp));

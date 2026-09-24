@@ -32,7 +32,7 @@ ok('no shorten label',!/Skróć plan/.test(src08)&&src08.includes('Otwórz plan'
 ok('ok line',src08.includes('Wszystko w porządku — brak pilnych działań.'));
 ok('early copy',src08.includes('Wiarygodną analizę pokażemy po 4 tygodniach lub 4 pomiarach.'));
 ok('ci workflow',wf.includes('test_cp_overview_recs.js'));
-ok('cache',html.includes('08-client-profile-extras.js?v=81'));
+ok('cache',html.includes('08-client-profile-extras.js?v=82'));
 ok('invite not a rec',!/kind:'invite'/.test(extract(src08,'cpOverviewRecs')));
 
 const sandbox={
@@ -178,14 +178,14 @@ sandbox.window.SE=[
 sandbox._adh={assigned:4,logged:0,pct:0};
 recs=sandbox.cpOverviewRecs(client({inviteSent:true,createdAt:'2026-09-13'}));
 ok('empty log no adherence rec',!recs.some(x=>x.kind==='adherence'),JSON.stringify(recs));
-ok('empty log add workout rec',recs.some(x=>x.kind==='nolog'&&x.cta&&x.cta.label==='Dodaj trening'&&/Brak zapisanych treningów/.test(x.title)),JSON.stringify(recs));
+ok('empty log add workout rec',recs.some(x=>x.kind==='nolog'&&x.cta&&x.cta.label==='Przejdź do Treningów'&&/Nie ma zapisanych treningów/.test(x.title)),JSON.stringify(recs));
 const adhInc=sandbox.cpOverviewAdhWindow('c1',14);
 ok('incomplete from plan start',adhInc.incomplete&&adhInc.planStart==='2026-09-13'&&adhInc.assigned===4&&adhInc.logged===0,JSON.stringify(adhInc));
 ok('incomplete copy',sandbox.cpOverviewAdhReason(adhInc)==='0 z 4 zaplanowanych od 13.09',sandbox.cpOverviewAdhReason(adhInc));
 ok('freq from 4-day plan',sandbox.cpOverviewWeekFreq(client({trainingFreq:3}))===4);
 const acc=sandbox.cpOverviewPlanDayAccent({name:'FBW Siła',priority:'Klatka, Triceps, Czworogłowe',rest:false});
 ok('accent label',acc==='Akcent: klatka, triceps, czworogłowe',acc);
-ok('past day brak zapisu',sandbox.cpOverviewPlanDayStatus('c1',{day:'Pon'},0,{weekday:1,name:'A',rest:false},'2026-09-24')==='Brak zapisu');
+ok('past day niezapisany',sandbox.cpOverviewPlanDayStatus('c1',{day:'Pon'},0,{weekday:1,name:'A',rest:false},'2026-09-24')==='Niezapisany');
 ok('today day Dziś',sandbox.cpOverviewPlanDayStatus('c1',{day:'Czw'},0,{weekday:4,name:'A',rest:false},'2026-09-24')==='Dziś');
 ok('future day Zaplanowany',sandbox.cpOverviewPlanDayStatus('c1',{day:'Pt'},0,{weekday:5,name:'A',rest:false},'2026-09-24')==='Zaplanowany');
 

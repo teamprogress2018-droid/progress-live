@@ -56,7 +56,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=121'));
+ok('cache 01', html.includes('01-core.js?v=122'));
 ok('CI', wf.includes('test_ex_progress_brief.js') && wf.includes('1e0z6'));
 ok('brief helper', /function composeNextSessionProgress/.test(coreSrc));
 ok('brief stays in core', !/function composeNextSessionProgress/.test(extras)
