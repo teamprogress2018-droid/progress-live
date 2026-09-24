@@ -105,6 +105,9 @@ jobs:
       - name: 1e0b. Testy podpowiedzi przerwy/tempa i periodyzacji Live
         run: node .github/scripts/test_live_coach_hints.js
 
+      - name: 1e0b2. Testy Live tryb Przygotowanie / Trening
+        run: node .github/scripts/test_live_prep_train.js
+
       - name: 1e2. Testy jednostki kg/sec w ćwiczeniach czasowych
         run: node .github/scripts/test_ex_load_unit.js
 

@@ -106,9 +106,9 @@ function eq(name, got, want) {
 }
 
 ok('cache 01 frozen', html.includes('01-core.js?v=121'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=80'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=81'));
 ok('cache 08 caller', html.includes('08-client-profile-extras.js?v=80'));
-ok('cache styles', html.includes('styles.css?v=109'));
+ok('cache styles', html.includes('styles.css?v=110'));
 ok('CI 1e0z8', wf.includes('test_live_ex_cue.js') && wf.includes('1e0z8'));
 ok('CI cue UI', wf.includes('test_live_ex_cue_ui.js'));
 ok('CSS cue', styles.includes('.live-ex-cue') && styles.includes('.live-ex-cue-k') && styles.includes('.live-ns-posture'));
@@ -118,13 +118,13 @@ ok('one pack per render', /const cue=typeof liveExCuePack/.test(renderSrc)
   && (renderSrc.match(/liveExCuePack/g) || []).length === 2
   && !/liveExCuePack/.test(renderSrc.slice(renderSrc.indexOf('.map('))));
 ok('cards get shared cue', /liveExCard\(ex,i,n,cue\)/.test(renderSrc));
-ok('session 7C banner', /liveExCueSessionHtml\(cue\)/.test(renderSrc));
-ok('card paints strip even collapsed', /liveExCueStripHtml\(ex,n,cue\)/.test(cardSrc)
-  && /needsName\?''/.test(cardSrc.replace(/\s+/g, '')));
-ok('strip has three rows', /data-cue="last"/.test(stripSrc)
+ok('session 7C banner not on floor', !/liveExCueSessionHtml\(cue\)/.test(renderSrc)
+  && /function liveExCueSessionHtml/.test(live));
+ok('strip is one line', /data-cue="last"/.test(stripSrc)
   && /data-cue="today"/.test(stripSrc)
-  && /data-cue="suggest"/.test(stripSrc)
-  && /OSTATNIO/.test(stripSrc) && /DZISIAJ/.test(stripSrc) && /SUGESTIA/.test(stripSrc));
+  && /Pierwszy raz w planie/.test(stripSrc)
+  && !/OSTATNIO/.test(stripSrc) && !/SUGESTIA/.test(stripSrc)
+  && !/ZA MAŁO DANYCH/.test(stripSrc));
 ok('pack calls 8 caller once', /composeClientNextSessionBrief\(st\.clientId,opts\)/.test(packSrc)
   && (packSrc.match(/composeClientNextSessionBrief/g) || []).length === 2);
 ok('pack requires planId', /if\(!st\.clientId\|\|!st\.planId\)return empty/.test(packSrc)
@@ -438,12 +438,11 @@ ok('SUGESTIA lastKg is Plan B 60 not Plan A 100', recB && recB.facts && recB.fac
 ok('SUGESTIA not from Plan A lastKg 100', !(recB && recB.facts && recB.facts.lastKg === 100));
 
 const htmlB = liveExCueStripHtml(ctx._liveSlot.exercises[0], 0, packB);
-ok('strip OSTATNIO 60 × 10', /OSTATNIO[\s\S]*60 × 10 @2/.test(htmlB), htmlB);
-ok('strip OSTATNIO has RIR', /@2/.test(htmlB) && /@1/.test(htmlB));
+ok('strip OSTATNIO 60 kg', /Ostatnio:[\s\S]*60 kg/.test(htmlB) && !/100 ×/.test(htmlB), htmlB);
+ok('strip no RIR mix', !/@2/.test(htmlB) && !/@1/.test(htmlB));
 ok('strip OSTATNIO hides Plan A', !/100 ×/.test(htmlB));
-ok('DZISIAJ uses session kg', /DZISIAJ[\s\S]*62\.5 kg/.test(htmlB), htmlB);
-ok('DZISIAJ uses plan reps', /8-10/.test(htmlB), htmlB);
-ok('SUGESTIA from 7B not empty', /SUGESTIA[\s\S]*(UTRZYMAJ|DODAJ|ZMNIEJSZ|ZA MAŁO DANYCH)/.test(htmlB), htmlB);
+ok('DZISIAJ uses session kg', /data-cue="today"[\s\S]*62\.5 kg/.test(htmlB), htmlB);
+ok('one-line cue no ZA MAŁO', !/ZA MAŁO DANYCH/.test(htmlB) && !/SUGESTIA/.test(htmlB), htmlB);
 ok('strip does not write inputs', !/liveSetKg/.test(htmlB) && !/<input/.test(htmlB));
 
 eq('planned reps from Plan B', liveExPlannedReps(ctx._liveSlot.exercises[0], 0), '8-10');
@@ -460,7 +459,7 @@ const lastOther = liveExLastWorkSets(ctx._liveSlot.exercises[0], CIDB, 'pl-b');
 eq('other client last kg 40', lastOther.map(s => s.kg), [40]);
 ok('other client does not see Anna 60', lastOther.every(s => Number(s.kg) !== 60));
 const htmlOther = liveExCueStripHtml(ctx._liveSlot.exercises[0], 0, packOther);
-ok('other client OSTATNIO 40', /40 × 10/.test(htmlOther));
+ok('other client OSTATNIO 40', /40 kg/.test(htmlOther) && /Ostatnio:/.test(htmlOther));
 ok('other client hides Anna', !/60 × 10/.test(htmlOther) && !/100 ×/.test(htmlOther));
 
 /* Empty history fallback */
@@ -472,9 +471,9 @@ ctx._liveSlot.exercises = [{
 }];
 const packEmpty = liveExCuePack(0);
 const htmlEmpty = liveExCueStripHtml(ctx._liveSlot.exercises[0], 0, packEmpty);
-ok('empty OSTATNIO em dash', /data-cue="last"[\s\S]*—/.test(htmlEmpty), htmlEmpty);
-ok('empty SUGESTIA fallback', /SUGESTIA[\s\S]*ZA MAŁO DANYCH/.test(htmlEmpty), htmlEmpty);
-ok('empty DZISIAJ still session kg', /DZISIAJ[\s\S]*20 kg/.test(htmlEmpty), htmlEmpty);
+ok('empty first-time copy', /Pierwszy raz w planie — ciężar startowy z planu/.test(htmlEmpty), htmlEmpty);
+ok('empty no ZA MAŁO', !/ZA MAŁO DANYCH/.test(htmlEmpty), htmlEmpty);
+ok('empty today still in data', /20 kg/.test(htmlEmpty), htmlEmpty);
 
 /* Reload / draft do not change recommendation */
 ctx._liveSlot.exercises = [{
@@ -654,7 +653,7 @@ ctx._liveSlot.exercises = [{ name: NAME, sets: [{ kg: '80', reps: '10', kind: 'w
 const packD16 = liveExCuePack(0);
 const recPackD16 = liveExMatchCueRec(ctx._liveSlot.exercises[0], packD16.recs);
 const htmlD16 = liveExCueStripHtml(ctx._liveSlot.exercises[0], 0, packD16);
-ok('Live strip D16 DODAJ CIĘŻAR', recPackD16 && recPackD16.action === 'DODAJ CIĘŻAR' && /DODAJ/.test(htmlD16), htmlD16);
+ok('Live strip D16 has last kg', recPackD16 && recPackD16.action === 'DODAJ CIĘŻAR' && /80 kg/.test(htmlD16) && !/ZA MAŁO DANYCH/.test(htmlD16), htmlD16);
 const viaAmrap = origBrief(CID16, { planId: 'pl-amrap' });
 const recAmrap = (viaAmrap.recs || []).find(r => r && r.name === NAME);
 ok('AMRAP does not invent repMax', recAmrap && recAmrap.facts && recAmrap.facts.target == null, recAmrap && recAmrap.facts ? JSON.stringify(recAmrap.facts.target) : 'no rec');

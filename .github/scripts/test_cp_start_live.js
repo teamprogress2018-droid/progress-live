@@ -31,7 +31,7 @@ ok('wiadomość captures id', /function cpQuickMessage/.test(src09) && /const ci
 ok('start waits for client+plan', /start\.disabled=!ready/.test(src02) && /classList\.toggle\('btn-ghost',!ready\)/.test(src02) && /liveBindSessionButtons\(n\)/.test(src02));
 ok('empty live has pick-client CTA', /function liveFocusClientPicker/.test(src02) && /function liveSyncClientChrome/.test(src02) && /live-stats-panel/.test(src02.slice(src02.indexOf('function liveSyncClientChrome'), src02.indexOf('function liveClientSetField'))) && html.includes('liveFocusClientPicker(0)') && src02.includes('liveFocusClientPicker(${n})') && !src02.includes('Wybierz klienta u góry, żeby załadować'));
 ok('rest timer not labeled Start', /live-rest-custom-go"[^>]*>Przerwa</.test(html) && !/live-rest-custom-go"[^>]*>Start</.test(html));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=80'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=81'));
 ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=78'));
 ok('cache 08', html.includes('08-client-profile-extras.js?v=80'));
 ok('cache 09', html.includes('09-posture-kb-invites-private.js?v=52'));

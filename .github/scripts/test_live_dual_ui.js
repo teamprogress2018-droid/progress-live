@@ -109,6 +109,7 @@ function ok(name, cond, extra) {
     };
     window.liveExercises = [named];
     if (typeof renderLiveExercises === 'function') renderLiveExercises(0);
+    if (typeof liveToggleSwap === 'function') liveToggleSwap(0);
     const card = document.getElementById('live-ex-0');
     const cap = card && card.querySelector('.cw-technique-cap');
     const chips = [...(card ? card.querySelectorAll('.live-alt-chip') : [])].map((el) => (el.textContent || '').trim());
@@ -117,7 +118,7 @@ function ok(name, cond, extra) {
       capCount: card ? card.querySelectorAll('.cw-technique-cap').length : -1,
       capDisplay: cap ? getComputedStyle(cap).display : 'none',
       noteVisible: !!(card && /PRIORYTET czworogłowe/.test(card.textContent)),
-      altsLbl: !!(card && /Zamień ćwiczenie/.test(card.textContent)),
+      altsLbl: !!(card && (/Zamień/.test(card.textContent))),
       chips
     };
     if (typeof liveSwapEx === 'function' && chips.length) {

@@ -107,21 +107,23 @@ function sess(id, clientId, date, planId, kg, reps, rir, n) {
     const last = document.querySelector('#live-ex-0 [data-cue="last"]');
     const today = document.querySelector('#live-ex-0 [data-cue="today"]');
     const suggest = document.querySelector('#live-ex-0 [data-cue="suggest"]');
+    const cue = document.querySelector('#live-ex-0 .live-ex-cue');
     const prev = [...document.querySelectorAll('#live-ex-0 .live-set-prev')].map((b) => (b.textContent || '').trim());
     const pop = document.querySelector('#live-ex-0 .live-ex-hist-pop');
     return {
       last: last ? last.innerText : '',
       today: today ? today.innerText : '',
       suggest: suggest ? suggest.innerText : '',
+      cue: cue ? cue.innerText : '',
       prev,
       pop: pop ? pop.innerText : ''
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'live_ex_cue_plan_b.png') });
-  ok('OSTATNIO Plan B 60', /60 × 10/.test(planB.last) && !/100 ×/.test(planB.last) && !/999/.test(planB.last), planB.last);
-  ok('DZISIAJ 62.5 kg · 8-10', /62\.5 kg/.test(planB.today) && /8-10/.test(planB.today), planB.today);
-  ok('SUGESTIA painted', /SUGESTIA/.test(planB.suggest), planB.suggest);
-  ok('prev buttons from Plan B not prefill', planB.prev[0] === '60 × 10' && planB.prev.every((t) => !/999/.test(t)), JSON.stringify(planB.prev));
+  ok('OSTATNIO Plan B 60', /60 kg/.test(planB.last) && !/100/.test(planB.last) && !/999/.test(planB.last), planB.last);
+  ok('DZISIAJ 62.5 kg', /62\.5 kg/.test(planB.today), planB.today);
+  ok('no ZA MAŁO on card', !/ZA MAŁO DANYCH/.test(planB.cue + planB.suggest), planB.cue);
+  ok('no prev column prefill', planB.prev.length === 0, JSON.stringify(planB.prev));
   ok('tooltip ignores prefill 999', planB.pop && !/999/.test(planB.pop) && /60/.test(planB.pop), planB.pop.slice(0, 280));
 
   const typed = await page.evaluate(() => {
@@ -155,8 +157,8 @@ function sess(id, clientId, date, planId, kg, reps, rir, n) {
     return { last: last ? last.innerText : '', today: today ? today.innerText : '' };
   });
   await page.screenshot({ path: path.join(shotDir, 'live_ex_cue_plan_a.png') });
-  ok('OSTATNIO Plan A 100', /100 ×/.test(planA.last) && !/60 × 10/.test(planA.last), planA.last);
-  ok('DZISIAJ Plan A reps 5', /100 kg/.test(planA.today) && /\b5\b/.test(planA.today), planA.today);
+  ok('OSTATNIO Plan A 100', /100 kg/.test(planA.last) && !/60 kg/.test(planA.last), planA.last);
+  ok('DZISIAJ Plan A kg', /100 kg/.test(planA.today), planA.today);
 
   const other = await page.evaluate(() => {
     if (typeof liveClientSetField === 'function') liveClientSetField('c-bartek', 'Bartek', true, 0);
@@ -170,7 +172,7 @@ function sess(id, clientId, date, planId, kg, reps, rir, n) {
     const last = document.querySelector('#live-ex-0 [data-cue="last"]');
     return last ? last.innerText : '';
   });
-  ok('other client OSTATNIO 40', /40 × 10/.test(other) && !/60 ×/.test(other) && !/100 ×/.test(other), other);
+  ok('other client OSTATNIO 40', /40 kg/.test(other) && !/60 kg/.test(other) && !/100 kg/.test(other), other);
 
   const ids = await page.evaluate(() => {
     const prevSE = window.SE;
@@ -191,12 +193,13 @@ function sess(id, clientId, date, planId, kg, reps, rir, n) {
     if (typeof renderLiveExercises === 'function') renderLiveExercises(0);
     const last = document.querySelector('#live-ex-0 [data-cue="last"]');
     const suggest = document.querySelector('#live-ex-0 [data-cue="suggest"]');
-    const out = { last: last ? last.innerText : '', suggest: suggest ? suggest.innerText : '' };
+    const cue = document.querySelector('#live-ex-0 .live-ex-cue');
+    const out = { last: last ? last.innerText : '', suggest: suggest ? suggest.innerText : '', cue: cue ? cue.innerText : '' };
     window.SE = prevSE;
     return out;
   });
-  ok('conflicting id no foreign last', !/60 × 10/.test(ids.last) && !/100 ×/.test(ids.last), ids.last);
-  ok('conflicting id SUGESTIA fallback', /ZA MAŁO DANYCH/.test(ids.suggest), ids.suggest);
+  ok('conflicting id no foreign last', !/60 kg/.test(ids.last) && !/100 kg/.test(ids.last), ids.last);
+  ok('conflicting id first-time copy', /Pierwszy raz/.test(ids.cue) && !/ZA MAŁO DANYCH/.test(ids.cue), ids.cue);
 
   const d16 = await page.evaluate(() => {
     window.liveClientId = 'c-anna';
@@ -215,8 +218,8 @@ function sess(id, clientId, date, planId, kg, reps, rir, n) {
     return { suggest: suggest ? suggest.innerText : '', last: last ? last.innerText : '' };
   });
   await page.screenshot({ path: path.join(shotDir, 'live_ex_cue_d16.png') });
-  ok('D16 SUGESTIA DODAJ CIĘŻAR', /DODAJ/.test(d16.suggest), d16.suggest);
-  ok('D16 OSTATNIO 80', /80 × 10/.test(d16.last), d16.last);
+  ok('D16 last 80 kg', /80 kg/.test(d16.last), d16.last);
+  ok('D16 no ZA MAŁO', !/ZA MAŁO DANYCH/.test(d16.suggest + d16.last), d16.suggest);
 
   const draft = await page.evaluate(() => {
     window.livePlanId = 'pl-b';
@@ -226,15 +229,15 @@ function sess(id, clientId, date, planId, kg, reps, rir, n) {
     }];
     window._cpExerciseProgress = null;
     if (typeof renderLiveExercises === 'function') renderLiveExercises(0);
-    const first = document.querySelector('#live-ex-0 [data-cue="suggest"]');
+    const first = document.querySelector('#live-ex-0 .live-ex-cue');
     const a = first ? first.innerText : '';
     window._cpExerciseProgress = null;
     if (typeof renderLiveExercises === 'function') renderLiveExercises(0);
-    const second = document.querySelector('#live-ex-0 [data-cue="suggest"]');
+    const second = document.querySelector('#live-ex-0 .live-ex-cue');
     const b = second ? second.innerText : '';
     return { a: a, b: b };
   });
-  ok('reload same SUGESTIA', draft.a === draft.b && /SUGESTIA/.test(draft.a), JSON.stringify(draft));
+  ok('reload same cue', draft.a === draft.b, JSON.stringify(draft));
 
   const noPlan = await page.evaluate(() => {
     window.livePlanId = '';
@@ -242,7 +245,7 @@ function sess(id, clientId, date, planId, kg, reps, rir, n) {
     const last = document.querySelector('#live-ex-0 [data-cue="last"]');
     return last ? last.innerText : '';
   });
-  ok('no planId does not mix history', /—/.test(noPlan) && !/60 ×/.test(noPlan) && !/100 ×/.test(noPlan), noPlan);
+  ok('no planId does not mix history', !/60 kg/.test(noPlan) && !/100 kg/.test(noPlan), noPlan);
 
   await browser.close();
   if (failed) process.exit(1);

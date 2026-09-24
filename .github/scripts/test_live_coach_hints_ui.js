@@ -64,7 +64,7 @@ function ok(name, cond, extra) {
   await page.waitForSelector('.live-ex-card');
   const info = await page.evaluate(() => {
     const card = document.querySelector('.live-ex-card');
-    const chips = [...document.querySelectorAll('.live-coach-chip')].map((el) => (el.textContent || '').trim());
+    const target = (document.querySelector('.live-ex-target') || {}).textContent || '';
     const week = (document.querySelector('.live-week-hint') || {}).textContent || '';
     const period = document.getElementById('live-period-card');
     const body = document.getElementById('live-period-body');
@@ -73,9 +73,9 @@ function ok(name, cond, extra) {
     const hint = (document.getElementById('live-rest-plan-hint') || {}).textContent || '';
     const planBtn = (document.getElementById('live-rest-plan-btn') || {}).textContent || '';
     const add = document.querySelector('.live-ex-card .live-alts-add');
-    const swap = document.querySelector('.live-swap-btn');
+    const swap = document.querySelector('.live-swap-open');
     return {
-      chips,
+      target,
       week,
       periodHidden: !!(period && period.hidden),
       periodCollapsed: !!(body && body.hidden),
@@ -85,15 +85,18 @@ function ok(name, cond, extra) {
       planBtn,
       cardText: (card && card.innerText) || '',
       hasInfo: !!document.querySelector('.live-week-info'),
-      hasSwap: !!(swap && /Zamień ćwiczenie/.test(swap.textContent || '')),
-      searchHidden: !!(add && add.hidden)
+      hasSwap: !!(swap && /Zamień/.test(swap.textContent || '')),
+      searchHidden: !add || !!add.hidden,
+      noPraca: !/Praca\s+\d/.test(target),
+      noRpe: !/\bRPE\b/.test(target)
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'live_coach_hints.png') });
 
-  ok('przerwa chip', info.chips.some((c) => /Przerwa 90/.test(c)), JSON.stringify(info.chips));
-  ok('praca chip', info.chips.some((c) => /Praca 50/.test(c)), JSON.stringify(info.chips));
-  ok('tempo chip', info.chips.some((c) => /Tempo 3-1-1-0/.test(c)), JSON.stringify(info.chips));
+  ok('przerwa on target', /przerwa 90/.test(info.target), info.target);
+  ok('no praca on card', info.noPraca, info.target);
+  ok('tempo on target', /3-1-1-0/.test(info.target), info.target);
+  ok('rir not rpe', /RIR/.test(info.target) && info.noRpe, info.target);
   ok('week hint', /Tydz\.|DUP|Intensyfikacja|Akumulacja|Szczyt/.test(info.week), info.week);
   ok('week info btn', info.hasInfo);
   ok('long method not in card', !/wysoka objętość|regeneracja CNS/.test(info.cardText), info.cardText.slice(0, 400));
@@ -104,7 +107,7 @@ function ok(name, cond, extra) {
   ok('akumulacja row', info.rows.some((r) => /Akumulacja/.test(r)), JSON.stringify(info.rows));
   ok('rest hint from plan', /90/.test(info.hint) || /90/.test(info.planBtn), info.hint + ' | ' + info.planBtn);
 
-  await page.click('#live-period-toggle');
+  await page.evaluate(() => { if (typeof liveTogglePeriodPanel === 'function') liveTogglePeriodPanel(); });
   const opened = await page.evaluate(() => {
     const body = document.getElementById('live-period-body');
     const toggle = document.getElementById('live-period-toggle');

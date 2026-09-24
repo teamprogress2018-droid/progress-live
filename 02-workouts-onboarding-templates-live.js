@@ -2414,9 +2414,13 @@ function liveBindSessionButtons(slot){
       :!(st.exercises||[]).length?'Wybierz plan lub dodaj ćwiczenia'
       :(acc&&acc.ok===false?'Pakiet nieopłacony — Start i tak działa (Trial, bez zejścia z pakietu)':'');
   }
-  if(end)end.style.display=st.sessionActive?'':'none';
+  if(end){
+    end.style.display=st.sessionActive?'':'none';
+    end.textContent='Zakończ trening';
+  }
   if(status)status.textContent=st.sessionActive?'W toku':'Nieaktywny';
   livePaintTimer(n);
+  if(typeof livePaintSessionChrome==='function')livePaintSessionChrome(n);
 }
 
 function liveSaveDraft(slot,opts){
@@ -2693,9 +2697,10 @@ function liveTryRecoverDraftAsync(){
 function liveSyncFloorUi(){
   const sc=document.getElementById('screen-live');
   if(!sc)return;
-  sc.classList.toggle('live-session-on',liveAnySessionActive());
+  const on=liveAnySessionActive();
+  sc.classList.toggle('live-session-on',on);
   sc.classList.toggle('live-dual',!!liveDual);
-  if(!liveAnySessionActive())sc.classList.remove('live-plan-open');
+  if(!on)sc.classList.remove('live-plan-open');
   const tog=document.getElementById('live-plan-toggle');
   if(tog)tog.textContent=sc.classList.contains('live-plan-open')?'Ukryj plan':'Plan';
   const dualBtn=document.getElementById('live-dual-btn');
@@ -2706,7 +2711,64 @@ function liveSyncFloorUi(){
   }
   const floor=document.getElementById('live-floor');
   if(floor&&liveTab==='trainer')floor.style.display='flex';
+  if(typeof livePaintSessionChrome==='function')livePaintSessionChrome(0);
+  if(liveDual&&typeof livePaintSessionChrome==='function')livePaintSessionChrome(1);
+  if(typeof liveMaybeFirstHint==='function')liveMaybeFirstHint();
 }
+function liveToggleMoreMenu(force){
+  const menu=document.getElementById('live-more-menu');
+  const btn=document.getElementById('live-more-btn');
+  if(!menu)return;
+  const open=force===false?false:force===true?true:menu.hidden;
+  menu.hidden=!open;
+  if(btn)btn.setAttribute('aria-expanded',open?'true':'false');
+}
+window.liveToggleMoreMenu=liveToggleMoreMenu;
+
+function liveDayLabel(slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  const p=(window.PL||[]).find(x=>x&&x.id===st.planId);
+  const day=p&&(p.days||[])[st.currentDayIdx];
+  return (day&&(day.day||day.dayName))||(st.exercises&&st.exercises.length?('Dzień '+(Number(st.currentDayIdx||0)+1)):'');
+}
+function liveClientName(slot){
+  const st=liveRef(slot);
+  const c=(window.CL||[]).find(x=>x&&x.id===st.clientId);
+  return (c&&c.name)||st.savedClientName||'';
+}
+function livePaintSessionChrome(slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  const who=document.getElementById(n===1?'live-b-session-who':'live-session-who');
+  if(who){
+    const name=liveClientName(n);
+    const day=liveDayLabel(n);
+    who.textContent=[name,day].filter(Boolean).join(' · ');
+  }
+  const stats=typeof liveProgressStats==='function'?liveProgressStats(st.exercises):{doneCnt:0,total:(st.exercises||[]).length};
+  const curIdx=(st.exercises||[]).findIndex(e=>e&&!e.done);
+  const x=curIdx>=0?(curIdx+1):(stats.total||0);
+  const lbl=liveEl('live-top-progress-lbl',n)||document.getElementById(n===1?'live-b-top-progress-lbl':'live-top-progress-lbl');
+  if(lbl)lbl.textContent=stats.total?('Ćwiczenie '+x+' z '+stats.total):'';
+}
+window.livePaintSessionChrome=livePaintSessionChrome;
+
+function liveMaybeFirstHint(){
+  const el=document.getElementById('live-first-hint');
+  if(!el)return;
+  let seen=false;
+  try{seen=localStorage.getItem('pl_live_first_hint')==='1';}catch(e){}
+  const show=liveAnySessionActive()&&!seen;
+  el.hidden=!show;
+}
+function liveDismissFirstHint(){
+  try{localStorage.setItem('pl_live_first_hint','1');}catch(e){}
+  const el=document.getElementById('live-first-hint');
+  if(el)el.hidden=true;
+}
+window.liveDismissFirstHint=liveDismissFirstHint;
+
 function liveTogglePlanPanel(){
   const sc=document.getElementById('screen-live');
   if(!sc)return;
@@ -2996,25 +3058,32 @@ function renderLivePlanPicker(slot){
   }
   const activePlan=plans.find(p=>p.id===st.planId)||(typeof livePreferredPlan==='function'?livePreferredPlan(plans):plans[0]);
   const days=activePlan?.days||[];
+  const suggestedIdx=typeof liveGetSuggestedDayIdx==='function'?liveGetSuggestedDayIdx(st.clientId,activePlan):0;
 
   el.innerHTML=`
-    <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:8px;letter-spacing:1px;">Wybierz plan</div>
-    <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:10px;">
-      ${plans.map(p=>`<div style="background:var(--s2);border:1px solid ${st.planId===p.id?'var(--accent)':'var(--border)'};border-radius:10px;padding:10px 12px;cursor:pointer;transition:border-color 0.12s;" onclick="liveSelectPlan('${p.id}'${sl})" onmouseover="this.style.borderColor='var(--border2)'" onmouseout="this.style.borderColor='${st.planId===p.id?'var(--accent)':'var(--border)'}'">
-        <div style="font-size:12px;font-weight:700;color:${st.planId===p.id?'var(--accent)':'var(--text)'};">${p.name}</div>
-        <div style="font-size:10px;color:var(--muted);margin-top:2px;">${p.method||''} · ${p.duration||'?'} tyg. · ${(p.days||[]).length} dni</div>
+    <div class="live-prep-board">
+    <div class="live-prep-k">Wybierz plan</div>
+    <div class="live-prep-plans">
+      ${plans.map(p=>`<div class="live-prep-plan${st.planId===p.id?' is-on':''}" onclick="liveSelectPlan('${p.id}'${sl})">
+        <div class="live-prep-plan-name">${escHtml(p.name)}</div>
+        <div class="live-prep-plan-sub">${escHtml(p.method||'')} · ${p.duration||'?'} tyg. · ${(p.days||[]).length} dni</div>
       </div>`).join('')}
     </div>
     ${days.length>1?`
-    <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:6px;letter-spacing:1px;">Dzień treningu ${st.exercises.length?`<span style="color:var(--accent);normal-case;text-transform:none;letter-spacing:0;">— sugerowany na dziś</span>`:''}</div>
-    <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:10px;">
-      ${days.map((d,i)=>`<button onclick="liveSelectDay(${i}${sl})" style="background:${st.exercises.length&&i===st.currentDayIdx?'rgba(230,0,0,0.08)':'var(--s3)'};border:1px solid ${st.exercises.length&&i===st.currentDayIdx?'var(--accent)':'var(--border2)'};border-radius:8px;padding:7px 12px;cursor:pointer;text-align:left;display:flex;align-items:center;justify-content:space-between;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)'">
-        <div style="font-size:11px;font-weight:600;">${d.day||'Dzień '+(i+1)}</div>
-        <div style="font-size:10px;color:var(--muted);">${(d.exercises||[]).length} ćw.</div>
-      </button>`).join('')}
+    <div class="live-prep-k">Dzień treningu</div>
+    <div class="live-prep-days">
+      ${days.map((d,i)=>{
+        const sug=i===suggestedIdx;
+        const on=st.exercises.length&&i===st.currentDayIdx;
+        return `<button type="button" class="live-prep-day${on?' is-on':''}${sug?' is-today':''}" onclick="liveSelectDay(${i}${sl})">
+          <div class="live-prep-day-name">${escHtml(d.day||('Dzień '+(i+1)))}</div>
+          <div class="live-prep-day-sub">${(d.exercises||[]).length} ćw.${sug?' · sugerowany na dziś':''}</div>
+        </button>`;
+      }).join('')}
     </div>`:''}
-    <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);text-transform:uppercase;margin-bottom:6px;letter-spacing:1px;">Lub quick-add</div>
-    <button class="btn btn-ghost btn-sm" style="width:100%;" onclick="liveQuickAdd(${n})">⚡ Szybki trening bez planu</button>`;
+    <div class="live-prep-k">Lub bez planu</div>
+    <button class="btn btn-ghost btn-sm" style="width:100%;" onclick="liveQuickAdd(${n})">Szybki trening bez planu</button>
+    </div>`;
 
   if(!st.planId&&plans.length){
     const pref=typeof livePreferredPlan==='function'?livePreferredPlan(plans):plans[0];
@@ -3132,6 +3201,8 @@ function liveTogglePeriodPanel(slot){
   const n=liveN(slot);
   const st=liveRef(n);
   st.periodOpen=!st.periodOpen;
+  const sc=document.getElementById('screen-live');
+  if(sc)sc.classList.toggle('live-period-dock',!!st.periodOpen);
   renderLivePeriod(n);
 }
 window.liveTogglePeriodPanel=liveTogglePeriodPanel;
@@ -3163,6 +3234,8 @@ function renderLivePeriod(slot){
   }
   card.hidden=false;
   card.classList.toggle('is-open',open);
+  const slotEl=document.getElementById('live-week-hint-slot');
+  if(slotEl&&n===0)slotEl.innerHTML=typeof liveWeekHintHtml==='function'?liveWeekHintHtml(n):'';
   if(body)body.hidden=!open;
   if(toggle)toggle.setAttribute('aria-expanded',open?'true':'false');
   const sl=liveSlotArg(n);
@@ -3391,26 +3464,33 @@ function renderLiveExercises(slot){
   const pb=liveEl('live-progress-bar',n);
   if(pb)pb.style.width=(total?Math.round(doneCnt/total*100):0)+'%';
   const hint=liveEl('live-progress-hint',n);
-  if(hint)hint.textContent=setsDone?'Po „Zakończ i zapisz” ten trening wejdzie do Progress.':(total?'Odhacz serie ✓ — sam plan w kalendarzu się nie liczy.':'');
+  if(hint&&!document.getElementById('live-first-hint'))hint.textContent=setsDone?'Po „Zakończ trening” ten trening wejdzie do Progress.':'';
+  if(typeof livePaintSessionChrome==='function')livePaintSessionChrome(n);
 
   const cue=typeof liveExCuePack==='function'?liveExCuePack(n):{recs:[],brief:null,planId:st.planId||''};
+  const curIdx=st.exercises.findIndex(e=>e&&!e.done);
+  st.exercises.forEach((ex,i)=>{
+    if(!ex)return;
+    const needsName=!String(ex.name||'').trim()||ex.name==='Nowe ćwiczenie';
+    if(needsName){ex.collapsed=false;return;}
+    if(st.sessionActive)ex.collapsed=i!==curIdx&&!(curIdx<0&&i===st.exercises.length-1);
+    else if(ex.collapsed==null)ex.collapsed=i!==0;
+  });
 
   el.innerHTML=`
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+    ${st.sessionActive?'':`<div class="live-ex-toolbar">
       <div>
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;">${st.sessionActive?'TRENING W TOKU':'PLAN TRENINGU'}</div>
-        <div style="font-size:11px;color:var(--muted);">${doneCnt}/${total} ćwiczeń ukończonych</div>
+        <div class="live-ex-toolbar-title">Plan treningu</div>
+        <div class="live-ex-toolbar-sub">${total} ćwiczeń</div>
       </div>
       <button class="btn btn-ghost btn-sm" onclick="liveAddExercise(${n})">+ Dodaj ćwiczenie</button>
-    </div>
-    ${typeof liveExCueSessionHtml==='function'?liveExCueSessionHtml(cue):''}
+    </div>`}
     ${st.exercises.map((ex,i)=>liveExCard(ex,i,n,cue)).join('')}
     ${st.sessionActive&&doneCnt===total&&total>0?`
-    <div style="background:linear-gradient(135deg,var(--adim),transparent);border:1px solid rgba(230,0,0,0.3);border-radius:14px;padding:20px;text-align:center;margin-top:10px;">
-      <div style="font-size:28px;margin-bottom:8px;">🎉</div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:4px;">TRENING UKOŃCZONY!</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">${setsDone} serii · ${Math.round(volume)} kg objętości</div>
-      <button class="btn btn-primary" onclick="liveEndSession(${n})">Zakończ i zapisz sesję</button>
+    <div class="live-ex-done-banner">
+      <div class="live-ex-done-title">Trening ukończony</div>
+      <div class="live-ex-toolbar-sub">${setsDone} serii · ${Math.round(volume)} kg objętości</div>
+      <button class="btn btn-primary" onclick="liveAskEndSession(${n})">Zakończ i zapisz sesję</button>
     </div>`:''}`;
   if(typeof exAcInitAll==='function')exAcInitAll(el);
   renderLivePeriod(n);
@@ -3434,7 +3514,8 @@ function liveAltsHtml(ex,i,n){
     ? `<button type="button" class="live-alts-more" onclick="liveToggleAlts(${i}${sl})" aria-expanded="${expanded?'true':'false'}">${expanded?'Zwiń':'Więcej opcji · '+hidden}</button>`
     : '';
   const searchOpen=!!(ex&&ex.altSearchOpen);
-  return `<div class="live-alts${searchOpen?' is-search':''}" onclick="event.stopPropagation()">
+  const swapOpen=!!(ex&&(ex.swapOpen||ex.altsExpanded||searchOpen));
+  return `<div class="live-alts${searchOpen?' is-search':''}${swapOpen?' is-open':''}" onclick="event.stopPropagation()">
       ${chips||more?`<div class="live-alts-chips">${chips}${more}</div>`:''}
       <button type="button" class="live-swap-btn" onclick="liveToggleAltSearch(${i}${sl})" aria-expanded="${searchOpen?'true':'false'}">${searchOpen?'Anuluj':'Zamień ćwiczenie'}</button>
       <div class="live-alts-add"${searchOpen?'':' hidden'}>
@@ -3454,6 +3535,16 @@ function liveToggleAlts(i,slot){
   renderLiveExercises(n);
 }
 window.liveToggleAlts=liveToggleAlts;
+
+function liveToggleSwap(i,slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  const ex=st.exercises[i];if(!ex)return;
+  ex.swapOpen=!ex.swapOpen;
+  if(!ex.swapOpen){ex.altSearchOpen=false;ex.altsExpanded=false;}
+  renderLiveExercises(n);
+}
+window.liveToggleSwap=liveToggleSwap;
 
 function liveToggleAltSearch(i,slot){
   const n=liveN(slot);
@@ -3686,11 +3777,24 @@ function liveExSuggestView(rec,todayKg){
 }
 window.liveExSuggestView=liveExSuggestView;
 
+function liveExLastSummary(sets){
+  const rows=Array.isArray(sets)?sets.filter(s=>s&&((s.kg!=null&&s.kg!=='')||(s.reps!=null&&s.reps!==''))):[];
+  if(!rows.length)return '';
+  const n=rows.length;
+  const last=rows[rows.length-1]||rows[0];
+  const kg=last.kg!=null&&last.kg!==''?String(last.kg):'';
+  const reps=last.reps!=null&&last.reps!==''?String(last.reps):'';
+  const bits=[];
+  if(n&&reps)bits.push(n+' × '+reps);
+  else if(n)bits.push(n+' serii');
+  if(kg)bits.push(kg+' kg');
+  return bits.join(' · ');
+}
+window.liveExLastSummary=liveExLastSummary;
+
 function liveExCueSessionHtml(cue){
-  const brief=cue&&cue.brief;
-  const posture=brief&&brief.posture?String(brief.posture):'ZA MAŁO DANYCH';
-  const esc=typeof escHtml==='function'?escHtml:s=>String(s==null?'':s);
-  return `<div class="live-ns-posture" data-ns-posture="${esc(posture)}">Następna sesja · ${esc(posture)}</div>`;
+  void cue;
+  return '';
 }
 window.liveExCueSessionHtml=liveExCueSessionHtml;
 
@@ -3703,14 +3807,26 @@ function liveExCueStripHtml(ex,slot,cue){
     ?cue.lastByKey[k]
     :liveExLastWorkSets(ex,st.clientId,st.planId);
   const lastLine=liveExLastLine(lastSets);
+  const lastSum=typeof liveExLastSummary==='function'?liveExLastSummary(lastSets):'';
   const todayKg=liveExTodayKg(ex);
   const todayLine=liveExTodayLine(ex,n);
   const suggest=liveExSuggestView(rec,todayKg);
   const esc=typeof escHtml==='function'?escHtml:s=>String(s==null?'':s);
+  const unit=typeof exLoadUnit==='function'?exLoadUnit(ex):'kg';
+  const suf=typeof loadUnitSuffix==='function'?loadUnitSuffix(unit):'kg';
+  const todayKgTxt=(todayKg!==''&&todayKg!=null)?(String(todayKg)+(suf?(' '+suf):'')):'';
+  if(!lastSum){
+    return `<div class="live-ex-cue" data-live-cue="1" onclick="event.stopPropagation()">
+      <span class="live-ex-cue-first">Pierwszy raz w planie — ciężar startowy z planu</span>
+      <span class="live-ex-cue-row" data-cue="last" hidden><span class="live-ex-cue-k">Ostatnio</span><span class="live-ex-cue-v">${esc(lastLine)}</span></span>
+      <span class="live-ex-cue-row" data-cue="today" hidden><span class="live-ex-cue-k">Dzisiaj</span><span class="live-ex-cue-v">${esc(todayLine)}</span></span>
+      <span class="live-ex-cue-row" data-cue="suggest" hidden data-suggest="${esc(suggest.kind)}"><span class="live-ex-cue-k">Sugestia</span><span class="live-ex-cue-v"></span></span>
+    </div>`;
+  }
+  const todayBit=todayKgTxt?(' → dziś '+todayKgTxt):'';
   return `<div class="live-ex-cue" data-live-cue="1" onclick="event.stopPropagation()">
-    <div class="live-ex-cue-row" data-cue="last"><span class="live-ex-cue-k">OSTATNIO</span><span class="live-ex-cue-v">${esc(lastLine)}</span></div>
-    <div class="live-ex-cue-row" data-cue="today"><span class="live-ex-cue-k">DZISIAJ</span><span class="live-ex-cue-v">${esc(todayLine)}</span></div>
-    <div class="live-ex-cue-row" data-cue="suggest" data-suggest="${esc(suggest.kind)}"><span class="live-ex-cue-k">SUGESTIA</span><span class="live-ex-cue-v">${esc(suggest.label)}</span></div>
+    <span class="live-ex-cue-row" data-cue="last"><span class="live-ex-cue-k">Ostatnio:</span> <span class="live-ex-cue-v">${esc(lastSum)}</span></span>${todayKgTxt?` → dziś <span class="live-ex-cue-row" data-cue="today"><span class="live-ex-cue-v">${esc(todayKgTxt)}</span></span>`:`<span class="live-ex-cue-row" data-cue="today" hidden><span class="live-ex-cue-v">${esc(todayLine)}</span></span>`}
+    <span class="live-ex-cue-row" data-cue="suggest" hidden data-suggest="${esc(suggest.kind)}"><span class="live-ex-cue-v"></span></span>
   </div>`;
 }
 window.liveExCueStripHtml=liveExCueStripHtml;
@@ -3746,6 +3862,41 @@ function liveExTitleHtml(ex,lastChip,history){
 }
 window.liveExTitleHtml=liveExTitleHtml;
 
+function livePolishCoachNote(s){
+  let t=String(s||'');
+  t=t.replace(/stretch-mediated(?:\s+hypertrophy)?/gi,'akcent na rozciągnięcie mięśnia');
+  t=t.replace(/\blengthened\b/gi,'w rozciągnięciu');
+  t=t.replace(/\beccentric\b/gi,'ekscentryka');
+  t=t.replace(/\bconcentric\b/gi,'koncentryka');
+  t=t.replace(/\bpeak contraction\b/gi,'szczytowe spięcie');
+  t=t.replace(/\bmind-muscle(?:\s+connection)?\b/gi,'czucie mięśnia');
+  t=t.replace(/\bRPE\s*(\d+(?:[.,]\d+)?)/gi,(_,n)=>{
+    const v=10-parseFloat(String(n).replace(',','.'));
+    return Number.isFinite(v)?'RIR '+(Math.round(v*2)/2):_;
+  });
+  return t;
+}
+window.livePolishCoachNote=livePolishCoachNote;
+
+function liveExTargetLine(ex,slot){
+  const sets=(ex&&ex.sets||[]).length;
+  const reps=(typeof liveExPlannedReps==='function'?liveExPlannedReps(ex,slot):'')||(ex&&ex.sets&&ex.sets[0]&&ex.sets[0].reps)||(ex&&ex.reps)||'';
+  const kg=typeof liveExTodayKg==='function'?liveExTodayKg(ex):'';
+  const rir=typeof plannedRir==='function'?plannedRir(ex):(ex&&ex.rir)||'';
+  const tempo=String(ex&&ex.tempo||'').trim();
+  const h=typeof exerciseCoachHints==='function'?exerciseCoachHints(ex):{};
+  const rest=h&&h.restLabel?h.restLabel:'';
+  const bits=[];
+  bits.push(sets+' × '+(reps||'?'));
+  if(kg!==''&&kg!=null)bits.push(String(kg)+' kg');
+  else if(ex&&ex.kg)bits.push(String(ex.kg)+' kg');
+  if(rir)bits.push('RIR '+rir);
+  if(tempo)bits.push(tempo);
+  if(rest)bits.push('przerwa '+rest);
+  return bits.join(' · ');
+}
+window.liveExTargetLine=liveExTargetLine;
+
 function liveExCard(ex,i,slot,cue){
   const n=liveN(slot);
   const st=liveRef(n);
@@ -3761,45 +3912,40 @@ function liveExCard(ex,i,slot,cue){
     :(typeof liveExHistoryList==='function'?liveExHistoryList(ex,st.clientId,st.planId):[]);
   const histEx=Object.assign({},ex,{lastHistory:histList,lastSets:[]});
   const lastChip=histList.length&&typeof lastSetsBlockHtml==='function'?lastSetsBlockHtml(histEx,{clientId:st.clientId,aliases:ex.alts}):'';
-  const lastHint=lastChip?'':(ex.lastDate&&ex.lastKg!==''&&ex.lastKg!=null?`Ostatnio: ${ex.lastKg} ${suf}${ex.lastReps?' × '+ex.lastReps:''}`:'');
   const pr=typeof exercisePR==='function'&&(typeof isWeightLoadUnit!=='function'||isWeightLoadUnit(unit))?exercisePR(st.clientId,ex.name):null;
-  const prHint=pr?`Rekord: ${pr.kg} kg × ${pr.reps}`:'';
-  const pctHint=ex.kgHint||'';
-  const progHint=ex.progHint||'';
-  const sub=[pctHint,lastHint,prHint].filter(Boolean).join(' · ');
+  void pr;
   const cardId=n===1?('live-b-ex-'+i):('live-ex-'+i);
   const needsName=!String(ex.name||'').trim()||ex.name==='Nowe ćwiczenie';
   const showBody=!ex.collapsed||needsName;
   const prevSets=(cue&&cue.lastByKey&&cueKey&&Array.isArray(cue.lastByKey[cueKey]))
     ?cue.lastByKey[cueKey]
     :(typeof liveExLastWorkSets==='function'?liveExLastWorkSets(ex,st.clientId,st.planId):[]);
-  const hasPrev=prevSets.length>0;
-  const coachChips=typeof exerciseCoachHintsHtml==='function'?exerciseCoachHintsHtml(ex):'';
-  const weekHint=typeof liveWeekHintHtml==='function'?liveWeekHintHtml(n):'';
-  const metaBits=[
-    progHint?`<span class="live-coach-chip live-prog-chip">${escHtml(progHint)}</span>`:'',
-    coachChips,
-    weekHint
-  ].filter(Boolean).join('');
-  return `<div class="live-ex-card${ex.ss?' ss':''}${ex.done?' done':st.sessionActive&&!ex.done&&i===st.exercises.findIndex(e=>!e.done)?' active':''}" id="${cardId}">
+  const lastSum=typeof liveExLastSummary==='function'?liveExLastSummary(prevSets):'';
+  const thumb=typeof exThumbUrl==='function'?exThumbUrl(ex):'';
+  const noteRaw=ex.note||ex.libTip||'';
+  const note=noteRaw?livePolishCoachNote(noteRaw):'';
+  const target=typeof liveExTargetLine==='function'?liveExTargetLine(ex,n):'';
+  const swapOpen=!!(ex.swapOpen||ex.altsExpanded||ex.altSearchOpen);
+  const mediaOpen=!!ex.showVideo;
+  return `<div class="live-ex-card${ex.ss?' ss':''}${ex.done?' done':st.sessionActive&&!ex.done&&i===st.exercises.findIndex(e=>!e.done)?' active':''}${showBody?'':' is-collapsed'}" id="${cardId}">
     <div class="live-ex-head" onclick="liveToggleCollapse(${i}${sl})">
-      <div style="width:30px;height:30px;border-radius:8px;background:${ex.done?'var(--teal)':'var(--adim)'};display:flex;align-items:center;justify-content:center;font-size:${ex.done?'14px':'12px'};font-weight:700;color:${ex.done?'#000':'var(--accent)'};flex-shrink:0;">${ex.done?'✓':i+1}</div>
-      <div style="flex:1;min-width:0;">
+      ${thumb?`<button type="button" class="live-ex-thumb" onclick="event.stopPropagation();liveToggleExVideo(${i}${sl})" title="Powiększ wizualizację"><img src="${escHtml(thumb)}" alt=""></button>`:`<div class="live-ex-thumb live-ex-thumb-empty">${ex.done?'✓':i+1}</div>`}
+      <div class="live-ex-head-main">
+        <div class="live-ex-num">${ex.done?'✓':i+1}</div>
         ${liveExTitleHtml(ex,lastChip,histList)}
-        <div style="font-size:10px;color:var(--muted);">${ex.sets.length} serie · ${setsDone}/${ex.sets.length} ukończono${ex.ssLabel?' · super-seria':''}${ex.emom?' · EMOM':''}${sub?' · '+escHtml(sub):''}</div>
-        ${showBody?'':lastChip}
+        ${showBody?'':`<div class="live-ex-collapsed-meta">${ex.sets.length} serii${lastSum?' · '+escHtml(lastSum):''}</div>`}
       </div>
-      <div style="display:flex;gap:6px;align-items:center;">
-        ${!ex.done?`<button type="button" class="live-skip-btn" onclick="event.stopPropagation();liveSkipEx(${i}${sl})">Pomiń</button>`:''}
-        ${ex.video?`<button type="button" class="live-skip-btn" onclick="event.stopPropagation();liveToggleExVideo(${i}${sl})">${ex.showVideo?'▾ Film':'▶ Film'}</button>`:''}
-        <span style="color:var(--muted);font-size:14px;">${ex.collapsed&&!needsName?'▶':'▼'}</span>
+      <div class="live-ex-head-actions" onclick="event.stopPropagation()">
+        ${needsName?'':`<button type="button" class="btn btn-ghost btn-sm live-swap-open" onclick="liveToggleSwap(${i}${sl})">Zamień</button>`}
+        ${!ex.done?`<button type="button" class="live-skip-btn" onclick="liveSkipEx(${i}${sl})">Pomiń</button>`:''}
       </div>
     </div>
-    ${needsName?'':(typeof liveExCueStripHtml==='function'?liveExCueStripHtml(ex,n,cue):'')}
+    ${showBody&&!needsName?(typeof liveExCueStripHtml==='function'?liveExCueStripHtml(ex,n,cue):''):''}
     ${showBody?`
-    ${needsName||!metaBits?'':`<div class="live-ex-meta">${metaBits}</div>`}
+    ${needsName||!target?'':`<div class="live-ex-target">${escHtml(target)}</div>`}
+    ${note&&!needsName?`<div class="live-ex-note">${escHtml(note)}</div>`:''}
+    ${mediaOpen?`<div class="live-ex-zoom" onclick="event.stopPropagation()">${typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:true,caption:false,showGif:true}):''}</div>`:''}
     <div class="live-ex-body">
-      <div class="live-ex-media">${typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:!!ex.showVideo,caption:false}):''}</div>
       <div class="live-ex-log" onclick="event.stopPropagation()">
       ${needsName?`<div class="live-ex-name-box" onclick="event.stopPropagation()">
         <div class="live-alts-lbl">Nazwa ćwiczenia</div>
@@ -3808,25 +3954,24 @@ function liveExCard(ex,i,slot,cue){
           <button type="button" class="btn btn-primary btn-sm" onclick="liveConfirmExName(${i}${sl})">Wybierz</button>
         </div>
       </div>`:''}
-      ${needsName?'':liveAltsHtml(ex,i,n)}
-      <div class="live-set-grid live-set-head${hasPrev?' has-prev':''}">
-        <span></span><span>Seria</span><span style="text-align:center;">${loadLbl}</span><span style="text-align:center;">Powt.</span><span style="text-align:center;" title="Powtórzenia w zapasie">RIR</span>${hasPrev?'<span class="live-set-prev-h">Ostatnio</span>':''}<span></span>
+      ${needsName||!swapOpen?'':liveAltsHtml(ex,i,n)}
+      <div class="live-set-grid live-set-head">
+        <span>Seria</span><span style="text-align:center;">${loadLbl}</span><span style="text-align:center;">Powtórzenia</span><span style="text-align:center;" title="Powtórzenia w zapasie">RIR</span><span></span>
       </div>
       ${ex.sets.map((s,si)=>{
-        const prev=hasPrev?(prevSets[si]||null):null;
-        const prevTxt=typeof formatLastSetShort==='function'?formatLastSetShort(prev):(prev?((prev.kg||'')+(prev.reps?' × '+prev.reps:'')):'');
-        const prevCell=hasPrev?`<button type="button" class="live-set-prev${prevTxt?'':' is-empty'}" ${prevTxt?`onclick="event.stopPropagation();liveFillFromLast(${i},${si}${sl})" title="Wstaw poprzedni ciężar: ${escHtml(prevTxt)}"`:'disabled tabindex="-1"'}>${prevTxt?escHtml(prevTxt):'—'}</button>`:'';
-        return `<div class="live-set-row${hasPrev?' has-prev':''}">
-        <div class="live-set-check${s.done?' done':''}" onclick="liveToggleSet(${i},${si}${sl})" title="Oznacz serię">${s.done?'✓':''}</div>
-        <div class="live-set-label"><span class="live-set-label-full">Seria </span>${s.setNo}${s.kind&&s.kind!=='work'?` <span class="cw-set-kind ${s.kind}">${escHtml(typeof setKindBadge==='function'?setKindBadge(s.kind):s.kind)}</span>`:''}</div>
-        <input type="number" inputmode="decimal" class="live-kg-input" placeholder="${prevTxt||(ex.lastKg!==''&&ex.lastKg!=null?ex.lastKg:loadPh)}" value="${s.kg}" oninput="liveSetKg(${i},${si},this.value${sl})" onkeydown="liveSetKey(event,${i},${si}${sl})" onclick="event.stopPropagation()">
-        <input type="number" inputmode="numeric" class="live-kg-input" placeholder="${s.kind==='amrap'?'max':'powt.'}" value="${s.reps}" oninput="liveSetReps(${i},${si},this.value${sl})" onkeydown="liveSetKey(event,${i},${si}${sl})" onclick="event.stopPropagation()">
-        <input type="text" inputmode="decimal" class="live-kg-input live-rir-input" placeholder="${escHtml((ex.rir!=null&&ex.rir!=='')?ex.rir:'RIR')}" value="${escHtml(s.rir!=null&&s.rir!==''?s.rir:'')}" oninput="liveSetRir(${i},${si},this.value${sl})" onkeydown="liveSetKey(event,${i},${si}${sl})" onclick="event.stopPropagation()" title="RIR — powtórzenia w zapasie">
-        ${prevCell}
-        <div class="live-set-row-btns">
-          <button type="button" class="live-set-rest" onclick="liveStartRest(${typeof restSecAfterSet==='function'?restSecAfterSet(ex,s,ex.sets[si+1]):90}${sl})" title="Przerwa">⏱</button>
-          <button type="button" class="live-set-del" onclick="event.stopPropagation();liveRemoveSet(${i},${si}${sl})" ${ex.sets.length<=1?'disabled':''} title="${ex.sets.length<=1?'Zostaw przynajmniej jedną serię':'Usuń serię'}" aria-label="Usuń serię">×</button>
+        const menuOpen=!!s.menuOpen;
+        return `<div class="live-set-row${s.done?' is-done':''}">
+        <div class="live-set-label" onpointerdown="liveSetHoldStart(event,${i},${si}${sl})" onpointerup="liveSetHoldEnd(event)" onpointerleave="liveSetHoldEnd(event)">
+          <span class="live-set-label-full">Seria </span>${s.setNo}${s.kind&&s.kind!=='work'?` <span class="cw-set-kind ${s.kind}">${escHtml(typeof setKindBadge==='function'?setKindBadge(s.kind):s.kind)}</span>`:''}
+          <button type="button" class="live-set-more" onclick="event.stopPropagation();liveToggleSetMenu(${i},${si}${sl})" aria-label="Menu serii">…</button>
+          <div class="live-set-menu"${menuOpen?'':' hidden'}>
+            <button type="button" class="live-set-del" onclick="event.stopPropagation();liveRemoveSet(${i},${si}${sl})" ${ex.sets.length<=1?'disabled':''}>Usuń serię</button>
+          </div>
         </div>
+        <input type="number" inputmode="decimal" class="live-kg-input" placeholder="${ex.lastKg!==''&&ex.lastKg!=null?ex.lastKg:loadPh}" value="${s.kg}" oninput="liveSetKg(${i},${si},this.value${sl})" onkeydown="liveSetKey(event,${i},${si}${sl})" onclick="event.stopPropagation()">
+        <input type="number" inputmode="numeric" class="live-kg-input" placeholder="${s.kind==='amrap'?'max':'powt.'}" value="${s.reps}" oninput="liveSetReps(${i},${si},this.value${sl})" onkeydown="liveSetKey(event,${i},${si}${sl})" onclick="event.stopPropagation()">
+        <input type="text" inputmode="decimal" class="live-kg-input live-rir-input" placeholder="${escHtml((typeof plannedRir==='function'?plannedRir(ex):ex.rir)||'RIR')}" value="${escHtml(s.rir!=null&&s.rir!==''?s.rir:'')}" oninput="liveSetRir(${i},${si},this.value${sl})" onkeydown="liveSetKey(event,${i},${si}${sl})" onclick="event.stopPropagation()" title="RIR — powtórzenia w zapasie">
+        <button type="button" class="live-set-check${s.done?' done':''}" onclick="liveToggleSet(${i},${si}${sl})" title="Oznacz serię">✓</button>
       </div>`;
       }).join('')}
       <button type="button" class="live-add-set" onclick="liveAddSet(${i}${sl})">+ Dodaj serię</button>
@@ -3860,6 +4005,28 @@ function liveToggleCollapse(i,slot){
   st.exercises[i].collapsed=!st.exercises[i].collapsed;
   renderLiveExercises(n);
 }
+function liveToggleSetMenu(ei,si,slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  const s=st.exercises[ei]&&st.exercises[ei].sets[si];
+  if(!s)return;
+  (st.exercises[ei].sets||[]).forEach((x,idx)=>{if(x)x.menuOpen=idx===si?!s.menuOpen:false;});
+  renderLiveExercises(n);
+}
+window.liveToggleSetMenu=liveToggleSetMenu;
+window._liveSetHold=null;
+function liveSetHoldStart(ev,ei,si,slot){
+  if(ev&&ev.button&&ev.button!==0)return;
+  window._liveSetHold=setTimeout(()=>{
+    window._liveSetHold=null;
+    liveToggleSetMenu(ei,si,slot);
+  },520);
+}
+function liveSetHoldEnd(){
+  if(window._liveSetHold){clearTimeout(window._liveSetHold);window._liveSetHold=null;}
+}
+window.liveSetHoldStart=liveSetHoldStart;
+window.liveSetHoldEnd=liveSetHoldEnd;
 
 function liveToggleSet(ei,si,slot){
   const n=liveN(slot);
@@ -4058,6 +4225,7 @@ function liveSwapEx(i,name,slot){
   cur.collapsed=false;
   cur.altsExpanded=false;
   cur.altSearchOpen=false;
+  cur.swapOpen=false;
   if(typeof notify==='function')notify('Zamieniono na: '+name);
   renderLiveExercises(n);
   if(typeof liveSaveDraft==='function')liveSaveDraft(n);
@@ -4181,15 +4349,55 @@ function liveStartSession(slot){
   renderLiveExercises(n);
 }
 
+function liveAskEndSession(slot){
+  const n=liveN(slot);
+  window._liveEndSlot=n;
+  const ov=document.getElementById('live-end-overlay');
+  if(!ov){liveEndSession(n);return;}
+  const st=liveRef(n);
+  const stats=typeof liveProgressStats==='function'?liveProgressStats(st.exercises):{setsDone:0,volume:0};
+  const min=Math.round((st.timerSec||0)/60);
+  const sum=document.getElementById('live-end-summary');
+  if(sum)sum.textContent=(stats.setsDone||0)+' serii · '+(stats.volume||0)+' kg objętości · '+(min||0)+' min';
+  const warn=document.getElementById('live-end-warn');
+  if(warn)warn.hidden=!!stats.setsDone;
+  const note0=document.getElementById('live-note');
+  const note1=document.getElementById('live-b-note');
+  if(note0)note0.hidden=n===1;
+  if(note1)note1.hidden=n!==1;
+  const fb0=document.getElementById('live-end-fb-0');
+  const fb1=document.getElementById('live-end-fb-1');
+  if(fb0)fb0.hidden=n===1;
+  if(fb1)fb1.hidden=n!==1;
+  ov.hidden=false;
+}
+window.liveAskEndSession=liveAskEndSession;
+function liveCancelEnd(){
+  const ov=document.getElementById('live-end-overlay');
+  if(ov)ov.hidden=true;
+}
+window.liveCancelEnd=liveCancelEnd;
+function liveConfirmEnd(){
+  window._liveEndFromOverlay=true;
+  liveEndSession(window._liveEndSlot||0);
+}
+window.liveConfirmEnd=liveConfirmEnd;
+
 function liveEndSession(slot){
   const n=liveN(slot);
   const st=liveRef(n);
   const stats=typeof liveProgressStats==='function'?liveProgressStats(st.exercises):{setsDone:0,volume:0};
   const totalSets=stats.setsDone;
-  const msg=totalSets
-    ?'Zakończyć i zapisać sesję?'
-    :'Nie odhaczono żadnej serii — w Progress będzie dzień, ale 0 kg i bez rekordów. Zapisać mimo to?';
-  if(!confirm(msg))return;
+  const fromOv=!!window._liveEndFromOverlay;
+  window._liveEndFromOverlay=false;
+  if(!fromOv){
+    const msg=totalSets
+      ?'Zakończyć i zapisać sesję?'
+      :'Nie odhaczono żadnej serii — w Progress będzie dzień, ale 0 kg i bez rekordów. Zapisać mimo to?';
+    if(!confirm(msg))return;
+  }
+  const ov=document.getElementById('live-end-overlay');
+  if(ov)ov.hidden=true;
   clearInterval(st.timerInterval);
   st.sessionActive=false;
   const draftId=st.draftSessionId;
@@ -4422,7 +4630,8 @@ window.liveRestBeep=liveRestBeep;
 function liveRestPaint(slot,phase){
   const n=liveN(slot);
   const el=liveEl('live-rest-timer',n);
-  const card=el&&el.closest?el.closest('.live-rest-card'):null;
+  const strip=document.getElementById(n===1?'live-b-rest-strip':'live-rest-strip')||(el&&el.closest?el.closest('.live-rest-strip'):null);
+  const card=strip||(el&&el.closest?el.closest('.live-rest-card'):null);
   const ending=phase==='ending';
   const warn=phase==='warn'||ending;
   const go=phase==='go';
@@ -4437,8 +4646,41 @@ function liveRestPaint(slot,phase){
     card.classList.toggle('is-ending',ending);
     card.classList.toggle('is-go',go);
   }
+  const st=liveRef(n);
+  const bar=document.getElementById(n===1?'live-b-rest-strip-bar':'live-rest-strip-bar');
+  if(bar){
+    const tot=st.restTotal||0;
+    const left=st.restSec||0;
+    const pct=tot>0?Math.max(0,Math.min(100,((tot-left)/tot)*100)):0;
+    bar.style.width=pct+'%';
+  }
 }
 window.liveRestPaint=liveRestPaint;
+
+function liveRestNextText(slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  const list=st.exercises||[];
+  for(let ei=0;ei<list.length;ei++){
+    const ex=list[ei];if(!ex||ex.done)continue;
+    const sets=ex.sets||[];
+    const next=sets.find(s=>s&&!s.done);
+    if(!next)continue;
+    const kg=next.kg!=null&&next.kg!==''?String(next.kg):'';
+    const reps=next.reps!=null&&next.reps!==''?String(next.reps):'';
+    const load=(kg&&reps)?(kg+' × '+reps):(kg||reps||'');
+    return 'Następnie: Seria '+next.setNo+(load?(' · '+load):'');
+  }
+  return 'Następnie: kolejne ćwiczenie';
+}
+
+function liveShowRestStrip(slot,show){
+  const n=liveN(slot);
+  const strip=document.getElementById(n===1?'live-b-rest-strip':'live-rest-strip');
+  if(strip)strip.hidden=!show;
+  const nxt=liveEl('live-rest-next',n)||document.getElementById(n===1?'live-b-rest-next':'live-rest-next');
+  if(nxt)nxt.textContent=show?liveRestNextText(n):'';
+}
 
 function liveStartRest(sec,slot){
   const n=liveN(slot);
@@ -4448,13 +4690,16 @@ function liveStartRest(sec,slot){
   st.restGen=(st.restGen||0)+1;
   const gen=st.restGen;
   st.restSec=Number(sec)||0;
+  st.restTotal=st.restSec;
   const el=liveEl('live-rest-timer',n);
   liveRestAudioCtx();
   if(typeof liveRestUnlockSpeech==='function')liveRestUnlockSpeech();
+  liveShowRestStrip(n,st.restSec>0);
   const finish=()=>{
     if(st.restGen!==gen)return;
     liveRestPaint(n,'idle');
     if(el){el.textContent='—';el.style.color='';}
+    liveShowRestStrip(n,false);
   };
   const update=()=>{
     if(st.restGen!==gen)return;
@@ -4470,7 +4715,7 @@ function liveStartRest(sec,slot){
     if(left<=0){
       clearInterval(st.restInterval);
       el.textContent=typeof liveRestLabel==='function'?liveRestLabel(0):"LET'S GO!";
-      st.restDoneTimer=setTimeout(finish,2200);
+      st.restDoneTimer=setTimeout(finish,400);
       return;
     }
     el.textContent=typeof liveRestLabel==='function'?liveRestLabel(left):(left+'s');
@@ -4479,6 +4724,19 @@ function liveStartRest(sec,slot){
   update();
   st.restInterval=setInterval(update,1000);
 }
+
+function liveAdjustRest(delta,slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  const next=Math.max(0,(st.restSec||0)+Number(delta||0));
+  if(!st.restInterval&&next<=0)return;
+  liveStartRest(next,n);
+}
+window.liveAdjustRest=liveAdjustRest;
+function liveSkipRest(slot){
+  liveStartRest(0,slot);
+}
+window.liveSkipRest=liveSkipRest;
 
 function liveStartRestCustom(slot){
   const n=liveN(slot);

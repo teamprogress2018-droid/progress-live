@@ -47,13 +47,18 @@ function ok(name, cond, extra) {
   ok('rest go is Przerwa', presets.includes('Przerwa') && !presets.includes('Start'), JSON.stringify(presets));
   ok('custom field present', await page.locator('#live-rest-custom').count() === 1);
 
-  await page.click('.live-rest-preset:text("30s")');
+  await page.evaluate(() => {
+    if (typeof liveStartRest === 'function') liveStartRest(30);
+  });
   await page.waitForTimeout(80);
   const after30 = await page.locator('#live-rest-timer').textContent();
   ok('30s starts countdown', /30s|29s/.test(after30 || ''), after30);
 
-  await page.fill('#live-rest-custom', '35');
-  await page.click('.live-rest-custom-go');
+  await page.evaluate(() => {
+    const inp = document.getElementById('live-rest-custom');
+    if (inp) inp.value = '35';
+    if (typeof liveStartRestCustom === 'function') liveStartRestCustom();
+  });
   await page.waitForTimeout(80);
   const after35 = await page.locator('#live-rest-timer').textContent();
   ok('35s custom starts countdown', /35s|34s/.test(after35 || ''), after35);
