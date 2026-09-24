@@ -49,7 +49,7 @@ ok('alert + status stack',overview.includes('cpOverviewAlertHTML(c)')&&overview.
 ok('no duplicate edit CTA',!overview.includes('cp-ov-edit-cta'));
 ok('tabs unchanged',html.includes('id="cpt-overview"')&&html.includes("setCPTab('overview')")&&html.includes('id="cpt-training"')&&html.includes('id="cpt-plan"'));
 ok('css situation',css.includes('.cp-ov-situation')&&css.includes('.cp-ov-sit-tile-ok')&&css.includes('.cp-ov-next-watch')&&css.includes('.cp-ov-sit-tile-act'));
-ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=76')&&html.includes('styles.css?v=108'));
+ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=77')&&html.includes('styles.css?v=108'));
 ok('ci unit',wf.includes('test_cp_overview_situation.js'));
 ok('ci ui',wf.includes('test_cp_overview_situation_ui.js'));
 
@@ -237,6 +237,11 @@ const savedOb=sandbox.getClientOnboard;
 sandbox.getClientOnboard=()=>({invite:false,complete:false,done:0,total:6});
 const start=sandbox.cpOverviewStatusSteps({id:'c1',name:'Jan Kowalski',trainingFreq:3});
 ok('invite start steps',start.length===3&&start[0].kind==='checkin'&&start[1].kind==='mass'&&start[2].kind==='adherence'&&/samopoczucie/.test(start[0].text)&&/wagi/.test(start[1].text)&&/3 treningi/.test(start[2].text)&&start[0].cta&&start[0].cta.label==='Poproś',JSON.stringify(start));
+const snapAdh=sandbox._snap.facts.adh7;
+sandbox._snap.facts.adh7={assigned:2,logged:0,pct:0};
+const startAdh=sandbox.cpOverviewStatusSteps({id:'c1',name:'Jan Kowalski',trainingFreq:3});
+ok('early overrides lone adherence',startAdh.length===3&&startAdh[0].kind==='checkin'&&!startAdh.some(x=>/Treningi 7 dni/.test(x.text)),JSON.stringify(startAdh));
+sandbox._snap.facts.adh7=snapAdh;
 sandbox.getClientOnboard=savedOb;
 
 if(failed){console.error('\n'+failed+' failed');process.exit(1);}

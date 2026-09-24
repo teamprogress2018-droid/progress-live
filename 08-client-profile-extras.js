@@ -2068,8 +2068,9 @@ function cpOverviewStatusSteps(c){
   if(!c)return[];
   const next=(typeof cpNextSessionFocusItems==='function'?cpNextSessionFocusItems(c.id):[])||[];
   const actionable=next.filter(x=>x&&x.kind&&x.kind!=='ok');
+  const strong=actionable.filter(x=>x&&(x.kind==='injury'||x.kind==='load'||x.kind==='sleep'||x.kind==='package'||(x.kind==='checkin'&&x.tone==='act')||(x.kind==='homework'&&x.tone==='watch')));
+  if(cpOverviewStatusIsEarly(c)&&!strong.length)return cpOverviewStartSteps(c);
   if(!actionable.length){
-    if(cpOverviewStatusIsEarly(c))return cpOverviewStartSteps(c);
     const ok=next.find(x=>x&&x.kind==='ok')||{kind:'ok',tone:'ok',text:'Brak szczególnych sygnałów — jedź planem.'};
     return[{n:1,kind:'ok',tone:'ok',text:ok.text,cta:null}];
   }
