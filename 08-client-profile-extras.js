@@ -3377,10 +3377,11 @@ function renderCPOverview(c){
           <div class="cp-ov-stat-sub" style="margin-bottom:10px;">${escHtml(plan.method||'—')} · ${plan.duration||'?'} tyg. · ${days.length} dni/tydzień</div>
           <div class="cp-ov-week">
             ${days.slice(0,7).map((d,i)=>{
-              const parsed=typeof cpOverviewParsePlanDay==='function'?cpOverviewParsePlanDay(d,i):{name:d.muscles||d.name||d.day||'Trening',priority:'',weekdayLabel:d.day||'',rest:!!d.rest};
+              const parsed=typeof cpOverviewParsePlanDay==='function'?cpOverviewParsePlanDay(d,i):{name:d.muscles||d.name||d.day||'Trening',priority:'',weekdayLabel:'',rest:!!d.rest};
               const st=typeof cpOverviewPlanDayStatus==='function'?cpOverviewPlanDayStatus(c.id,d,i,parsed):'Zaplanowany';
+              const wd=parsed.weekdayLabel||'';
               return `<div class="cp-ov-week-day${parsed.rest?' is-rest':''}${st==='Dziś'?' is-today':''}${st==='Wykonany'?' is-done':''}">
-              <span class="cp-ov-week-wd">${escHtml(parsed.weekdayLabel||d.day||d.dayName||'')}</span>
+              ${wd?`<span class="cp-ov-week-wd">${escHtml(wd)}</span>`:''}
               <div class="cp-ov-week-name">${escHtml(parsed.rest?'Odpoczynek':parsed.name)}</div>
               ${parsed.priority&&!parsed.rest?`<div class="cp-ov-week-pri">${escHtml(parsed.priority)}</div>`:''}
               <div class="cp-ov-week-st">${escHtml(st)}</div>
