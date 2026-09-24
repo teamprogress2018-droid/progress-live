@@ -112,7 +112,7 @@ function sess(id, clientId, date, planId, kg, reps, rir, n) {
     const pop = document.querySelector('#live-ex-0 .live-ex-hist-pop');
     return {
       last: last ? last.innerText : '',
-      today: today ? today.innerText : '',
+      today: today ? today.textContent : '',
       suggest: suggest ? suggest.innerText : '',
       cue: cue ? cue.innerText : '',
       prev,
@@ -154,7 +154,7 @@ function sess(id, clientId, date, planId, kg, reps, rir, n) {
     if (typeof renderLiveExercises === 'function') renderLiveExercises(0);
     const last = document.querySelector('#live-ex-0 [data-cue="last"]');
     const today = document.querySelector('#live-ex-0 [data-cue="today"]');
-    return { last: last ? last.innerText : '', today: today ? today.innerText : '' };
+    return { last: last ? last.innerText : '', today: today ? today.textContent : '' };
   });
   await page.screenshot({ path: path.join(shotDir, 'live_ex_cue_plan_a.png') });
   ok('OSTATNIO Plan A 100', /100 kg/.test(planA.last) && !/60 kg/.test(planA.last), planA.last);
@@ -199,7 +199,7 @@ function sess(id, clientId, date, planId, kg, reps, rir, n) {
     return out;
   });
   ok('conflicting id no foreign last', !/60 kg/.test(ids.last) && !/100 kg/.test(ids.last), ids.last);
-  ok('conflicting id first-time copy', /Pierwszy raz/.test(ids.cue) && !/ZA MAŁO DANYCH/.test(ids.cue), ids.cue);
+  ok('conflicting id first-time copy', /Brak historii w tym planie/.test(ids.cue) && /ZA MAŁO DANYCH/.test(ids.suggest), ids.cue);
 
   const d16 = await page.evaluate(() => {
     window.liveClientId = 'c-anna';

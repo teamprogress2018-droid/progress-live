@@ -19,8 +19,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=81'));
-ok('cache styles', html.includes('styles.css?v=110'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=82'));
+ok('cache styles', html.includes('styles.css?v=111'));
 ok('prep/train classes', html.includes('live-prep-only') && html.includes('live-train-only') && /live-session-on/.test(live) && /live-session-on/.test(css));
 ok('start stays prep', html.includes('live-prep-only" id="live-start-btn"') || /id="live-start-btn"[^>]*live-prep-only/.test(html));
 ok('end label', html.includes('Zakończ trening') && /function liveAskEndSession\(/.test(live));
@@ -35,8 +35,8 @@ ok('timer color neutral', /\.live-timer-val\{[^}]*color:var\(--text-primary\)/.t
 ok('swap under one button', /live-swap-open/.test(live) && /function liveToggleSwap\(/.test(live) && live.includes('>Zamień</button>'));
 ok('target line helper', /function liveExTargetLine\(/.test(live) && /RIR /.test(live));
 ok('no praca on live card', !/Praca \$\{/.test(live) && /liveExTargetLine/.test(live));
-ok('first-time cue', live.includes('Pierwszy raz w planie — ciężar startowy z planu'));
-ok('last cue one line', /Ostatnio:/.test(live) && /→ dziś /.test(live));
+ok('first-time cue', live.includes('Brak historii w tym planie'));
+ok('last cue one line', /Ostatnio:/.test(live) && /live-suggestion/.test(live));
 ok('no ZA MAŁO on strip', /function liveExCueStripHtml\(/.test(live)
   && !/ZA MAŁO DANYCH/.test(live.slice(live.indexOf('function liveExCueStripHtml'), live.indexOf('window.liveExCueStripHtml'))));
 ok('coach note polish', /function livePolishCoachNote\(/.test(live) && live.includes('akcent na rozciągnięcie mięśnia'));
