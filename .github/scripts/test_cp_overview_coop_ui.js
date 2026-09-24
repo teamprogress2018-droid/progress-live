@@ -213,20 +213,10 @@ function ok(name, cond, extra) {
     window.METRIC_ENTRIES.push(
       { clientId: 'c-mass', groupId: 'mg1', date: addDays(-20), values: { m1: 70 } },
       { clientId: 'c-mass', groupId: 'mg1', date: addDays(-2), values: { m1: 71.2 } },
-      { clientId: 'c-one', groupId: 'mg1', date: addDays(-40), values: { m1: 60 } },
-      { clientId: 'c-one', groupId: 'mg1', date: addDays(-30), values: { m1: 60 } },
-      { clientId: 'c-one', groupId: 'mg1', date: addDays(-20), values: { m1: 60 } },
-      { clientId: 'c-one', groupId: 'mg1', date: addDays(-10), values: { m1: 60 } },
       { clientId: 'c-pair', groupId: 'mg1', date: addDays(-40), values: { m1: 80 } },
       { clientId: 'c-pair', groupId: 'mg1', date: addDays(-30), values: { m1: 80 } },
       { clientId: 'c-pair', groupId: 'mg1', date: addDays(-20), values: { m1: 80 } },
-      { clientId: 'c-pair', groupId: 'mg1', date: addDays(-10), values: { m1: 80 } },
-      { clientId: 'c-mal', groupId: 'mg1', date: addDays(-40), values: { m1: 55 } },
-      { clientId: 'c-mal', groupId: 'mg1', date: addDays(-30), values: { m1: 55 } },
-      { clientId: 'c-mal', groupId: 'mg1', date: addDays(-20), values: { m1: 55 } },
-      { clientId: 'c-mal', groupId: 'mg1', date: addDays(-10), values: { m1: 55 } },
-      { clientId: 'c-mass', groupId: 'mg1', date: addDays(-40), values: { m1: 70 } },
-      { clientId: 'c-mass', groupId: 'mg1', date: addDays(-30), values: { m1: 70.5 } }
+      { clientId: 'c-pair', groupId: 'mg1', date: addDays(-10), values: { m1: 80 } }
     );
     window.__persistCalls = 0;
     const prevPersist = window.persistById;
@@ -237,55 +227,45 @@ function ok(name, cond, extra) {
   });
 
   await page.evaluate(() => openClientProfile('c-one'));
-  await page.waitForSelector('[data-cp-analysis-link]');
-  await page.click('[data-cp-analysis-link]');
-  await page.waitForSelector('.cp-ov-coop:not([hidden])');
+  await page.waitForTimeout(300);
   const oneSig = await page.evaluate(() => ({
-    gated: !!(document.querySelector('[data-cp-coop-state="gated"]')),
+    coop: !!document.querySelector('.cp-ov-coop'),
+    link: !!document.querySelector('[data-cp-analysis-link]'),
     cta: !!document.querySelector('[data-cp-coop-cta="run"]'),
     fetch: window.__coopFetch || 0,
     brief: !!document.querySelector('.cp-ov-brief'),
     sit: !!document.querySelector('.cp-ov-situation'),
     next: !!document.querySelector('.cp-ov-next')
   }));
-  ok('1 signal gated no CTA', oneSig.gated && !oneSig.cta, JSON.stringify(oneSig));
+  ok('1 signal early hides analysis', !oneSig.coop && !oneSig.link && !oneSig.cta, JSON.stringify(oneSig));
   ok('1 signal no extra fetch', oneSig.fetch === 1, String(oneSig.fetch));
   ok('brief/sit/next stay on 1-signal', oneSig.brief && oneSig.sit && oneSig.next);
 
   await page.evaluate(() => openClientProfile('c-mal'));
-  await page.waitForSelector('[data-cp-analysis-link]');
-  await page.click('[data-cp-analysis-link]');
-  await page.waitForSelector('.cp-ov-coop:not([hidden])');
+  await page.waitForTimeout(300);
   const mal = await page.evaluate(() => {
-    const btn = document.querySelector('[data-cp-coop-cta="blocked"]');
     const fetchBefore = window.__coopFetch || 0;
-    if (btn) btn.click();
     if (typeof runCpCoopAnalysis === 'function') runCpCoopAnalysis('c-mal');
     return {
-      gated: !!(document.querySelector('[data-cp-coop-state="gated"]')),
-      copy: (document.querySelector('.cp-ov-coop-empty') || {}).textContent || '',
+      coop: !!document.querySelector('.cp-ov-coop'),
+      link: !!document.querySelector('[data-cp-analysis-link]'),
       run: !!document.querySelector('[data-cp-coop-cta="run"]'),
-      blocked: !!document.querySelector('[data-cp-coop-cta="blocked"]'),
-      disabled: !!(btn && btn.disabled),
       fetchBefore,
       fetch: window.__coopFetch || 0
     };
   });
-  ok('training+calendar gated', mal.gated && /Za mało danych do analizy — potrzebne minimum 2 niezależne źródła/.test(mal.copy));
-  ok('training+calendar blocked no run', !mal.run && mal.blocked && mal.disabled);
+  ok('training+calendar early hides analysis', !mal.coop && !mal.link && !mal.run);
   ok('training+calendar click no fetch', mal.fetch === mal.fetchBefore, JSON.stringify(mal));
 
   await page.evaluate(() => openClientProfile('c-mass'));
-  await page.waitForSelector('[data-cp-analysis-link]');
-  await page.click('[data-cp-analysis-link]');
-  await page.waitForSelector('.cp-ov-coop:not([hidden])');
+  await page.waitForTimeout(300);
   const massOnly = await page.evaluate(() => ({
-    gated: !!(document.querySelector('[data-cp-coop-state="gated"]')),
+    coop: !!document.querySelector('.cp-ov-coop'),
+    link: !!document.querySelector('[data-cp-analysis-link]'),
     cta: !!document.querySelector('[data-cp-coop-cta="run"]'),
-    copy: (document.querySelector('.cp-ov-coop-empty') || {}).textContent || '',
     fetch: window.__coopFetch || 0
   }));
-  ok('mass-only gated', massOnly.gated && !massOnly.cta && /Za mało danych do analizy — potrzebne minimum 2 niezależne źródła/.test(massOnly.copy));
+  ok('mass-only early hides analysis', !massOnly.coop && !massOnly.link && !massOnly.cta);
   ok('mass-only no fetch', massOnly.fetch === 1, String(massOnly.fetch));
 
   await page.evaluate(() => {
