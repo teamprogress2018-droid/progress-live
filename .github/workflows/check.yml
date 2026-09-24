@@ -250,6 +250,8 @@ jobs:
         run: node .github/scripts/test_client_situation_snapshot.js
       - name: 1n12b2. Testy sytuacji w Przeglądzie (nagłówek + kolejny trening)
         run: node .github/scripts/test_cp_overview_situation.js
+      - name: 1n12b2r. Testy rekomendacji Przeglądu (5 reguł)
+        run: node .github/scripts/test_cp_overview_recs.js
       - name: 1n12b2q. Testy cichego Przeglądu (status, próbki, zaproszenie)
         run: node .github/scripts/test_cp_overview_quiet.js
       - name: 1n12b2b. Testy Briefu przed treningiem
