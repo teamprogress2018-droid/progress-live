@@ -29,7 +29,7 @@ ok('live history is independent of prefill date', /function liveExLastWorkSets/.
 ok('idle draft remaps', /function liveRefreshPlanLoads/.test(live) && /liveApplyDraft[\s\S]*liveRefreshPlanLoads/.test(live));
 ok('CI', wf.includes('test_plan_auto_progression.js'));
 ok('cache 01', html.includes('01-core.js?v=121'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=83'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=84'));
 ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=78'));
 ok('cache 10', html.includes('10-client-app.js?v=41'));
 

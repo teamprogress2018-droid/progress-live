@@ -2164,7 +2164,12 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 .cp-ov-week-name{display:block;margin-top:6px;font-size:13px;font-weight:700;line-height:1.35;font-family:var(--font-ui);}
 .cp-ov-week-pri{font-size:11px;color:var(--text-secondary);margin-top:4px;line-height:1.35;font-family:var(--font-ui);}
 .cp-ov-week-st{font-size:11px;font-weight:700;margin-top:8px;color:var(--text-secondary);font-family:var(--font-ui);}
+.cp-ov-week-day.is-today{border-color:rgba(255,59,48,0.55);box-shadow:0 0 0 1px rgba(255,59,48,0.28);}
 .cp-ov-week-day.is-today .cp-ov-week-st{color:var(--accent);}
+.cp-ov-week-day.is-nolog .cp-ov-week-st{color:var(--text-secondary);}
+.cp-ov-missing-ask{margin:0 0 10px;}
+.cp-ov-empty-wo{font-size:13px;color:var(--text-secondary);line-height:1.45;}
+.cp-ov-empty-wo .btn{margin-top:10px;}
 .cp-ov-week-day.is-done .cp-ov-week-st{color:var(--teal);}
 .cp-ov-rec-title{font-weight:700;line-height:1.35;}
 .cp-ov-rec-why{font-size:12px;color:var(--text-secondary);margin-top:3px;line-height:1.4;font-weight:500;}

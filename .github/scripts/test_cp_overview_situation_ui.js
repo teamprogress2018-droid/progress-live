@@ -143,7 +143,7 @@ function ok(name, cond, extra) {
   ok('invite rec not poproś', !busy.next.some(x => x.kind === 'invite') && !busy.next.some(x => /Poproś o check-in/.test(x.text)), JSON.stringify(busy.next));
   ok('max 3 recs', busy.next.length <= 3, String(busy.next.length));
   ok('kpi tiles 4', busy.tiles.length === 4 && busy.tiles[0].id === 'train' && busy.tiles[1].id === 'mass' && /tygodniu/.test(busy.tiles[0].lbl), JSON.stringify(busy.tiles));
-  ok('checkin hint', /przeterminowany|oczekuje|brak/.test(busy.checkinHint), busy.checkinHint);
+  ok('checkin hint', /brak od|oczekuje|brak/.test(busy.checkinHint), busy.checkinHint);
   ok('existing train card', busy.hasTrain);
   ok('existing metrics card', busy.hasMetrics);
   ok('edit CTA gone', !busy.editCta);

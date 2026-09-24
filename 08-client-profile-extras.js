@@ -1643,7 +1643,7 @@ function cpClientStatusTruth(c){
     return{tone:'warn',label:'Start niedokończony',hint:miss.length?('Brakuje: '+miss.join(', ')):'Dokończ start współpracy',reason:'onboard',pulse,ob,scheduleOk};
   }
   if(pulse.tone==='bad')return{tone:'bad',label:pulse.label,hint:pulse.hint,reason:'pulse',pulse,ob,scheduleOk};
-  if(cpAdhSampleOk(adh30)&&adh30.pct<50){
+  if(cpAdhSampleOk(adh30)&&Number(adh30.logged||0)>0&&adh30.pct<50){
     return{tone:'warn',label:'Słaba regularność',hint:'Zrobione '+adh30.logged+' z '+adh30.assigned+' treningów w 30 dniach',reason:'adh',pulse,ob,scheduleOk};
   }
   if(pulse.tone==='warn')return{tone:'warn',label:pulse.label,hint:pulse.hint,reason:'pulse',pulse,ob,scheduleOk};
@@ -1680,10 +1680,20 @@ function cpOverviewAlertHTML(c){
   if(!ob.calendar&&!ob.session)miss.push('kalendarz');
   if(!miss.length&&ob.package===false)miss.push('pakiet');
   if(!miss.length)return'';
+  const onlyMeas=miss.length===1&&miss[0]==='pomiary';
+  if(onlyMeas){
+    const wN=typeof cpOverviewWeightCount30==='function'?cpOverviewWeightCount30(c.id):0;
+    if(wN<2)return'';
+    return `<div class="cp-ov-alert cp-ov-alert-soft" data-cp-alert="onboard">
+    <div>
+      <div class="cp-ov-alert-title">Brakuje pomiarów</div>
+    </div>
+    <button type="button" class="btn btn-ghost btn-sm" data-cp-alert-cta="baseline" onclick="typeof openClientBaselineModal==='function'&&openClientBaselineModal('${esc(c.id)}')">Dodaj pomiary</button>
+  </div>`;
+  }
   return `<div class="cp-ov-alert cp-ov-alert-soft" data-cp-alert="onboard">
     <div>
-      <div class="cp-ov-alert-title">Start współpracy ${esc(String(ob.done))}/${esc(String(ob.total))}</div>
-      <div class="cp-ov-alert-sub">Brakuje: ${esc(miss.join(', '))}.</div>
+      <div class="cp-ov-alert-title">Brakuje: ${esc(miss.join(', '))}</div>
     </div>
     <button type="button" class="btn btn-ghost btn-sm" data-cp-alert-cta="onboard" onclick="openClientOnboardChecklist('${esc(c.id)}')">Dokończ</button>
   </div>`;
@@ -1715,13 +1725,13 @@ function cpOverviewMissingItems(c){
   const sleep=typeof cpMetricLatest==='function'?cpMetricLatest(id,'mg5','m2'):null;
   const injuries=typeof clientInjuriesText==='function'?clientInjuriesText(c):(c.injuries||'');
   const ask=kind=>`cpRemindClient('${id}','${kind}')`;
-  if(!filled.length)client.push({id:'checkin',label:'Check-in',cta:'Poproś',onclick:ask('checkin')});
+  if(!filled.length)client.push({id:'checkin',label:'Check-in',cta:'',onclick:ask('checkin')});
   if(photosOn&&!(photos&&photos.length)&&!(physique&&(physique.front||physique.side||physique.back))){
-    client.push({id:'photos',label:'Zdjęcia',cta:'Poproś',onclick:ask('photos')});
+    client.push({id:'photos',label:'Zdjęcia',cta:'',onclick:ask('photos')});
   }
-  if(metricsOn&&!(garmin&&garmin.n))client.push({id:'garmin',label:'Garmin',cta:'Poproś',onclick:ask('garmin')});
-  if(metricsOn&&!steps)client.push({id:'steps',label:'Kroki',cta:'Poproś',onclick:ask('steps')});
-  if(!sleep)client.push({id:'sleep',label:'Sen',cta:'Poproś',onclick:ask('sleep')});
+  if(metricsOn&&!(garmin&&garmin.n))client.push({id:'garmin',label:'Garmin',cta:'',onclick:ask('garmin')});
+  if(metricsOn&&!steps)client.push({id:'steps',label:'Kroki',cta:'',onclick:ask('steps')});
+  if(!sleep)client.push({id:'sleep',label:'Sen',cta:'',onclick:ask('sleep')});
   if(!cpOverviewHasLastName(c))trainer.push({id:'lastname',label:'Nazwisko',cta:'Uzupełnij',onclick:`startCPEdit('${id}')`});
   if(!String(c.phone||'').trim())trainer.push({id:'phone',label:'Telefon',cta:'Uzupełnij',onclick:`startCPEdit('${id}')`});
   if(c.age==null||c.age==='')trainer.push({id:'age',label:'Wiek',cta:'Uzupełnij',onclick:`startCPEdit('${id}')`});
@@ -1751,8 +1761,9 @@ function cpOverviewMissingHTML(c){
       </div>`;
     }else{
       body+=`<div class="cp-ov-missing-group" data-cp-missing-group="client">
-        <div class="cp-ov-missing-gh">Uzupełni klient po zaproszeniu</div>
-        <ul class="cp-ov-missing-list">${client.map(it=>row(it,true)).join('')}</ul>
+        <div class="cp-ov-missing-gh">Uzupełni klient</div>
+        <div class="cp-ov-missing-ask"><button type="button" class="btn btn-ghost btn-sm" data-cp-missing-ask="all" onclick="event.stopPropagation();cpRemindAllMissing('${esc(c.id)}')">Poproś o wszystko</button></div>
+        <ul class="cp-ov-missing-list">${client.map(it=>row(it,false)).join('')}</ul>
       </div>`;
     }
   }
@@ -1870,6 +1881,18 @@ function cpRemindClient(clientId,kind){
   return true;
 }
 window.cpRemindClient=cpRemindClient;
+function cpRemindAllMissing(clientId){
+  const c=(window.CL||[]).find(x=>x&&x.id===clientId);
+  if(!c){if(typeof notify==='function')notify('Nie znaleziono klienta');return false;}
+  const pack=typeof cpOverviewMissingItems==='function'?cpOverviewMissingItems(c):{client:[]};
+  const labels=(pack.client||[]).map(x=>x&&x.label).filter(Boolean);
+  if(!labels.length){if(typeof notify==='function')notify('Brak danych do uzupełnienia przez klienta');return false;}
+  const text='👋 Uzupełnij w aplikacji: '+labels.join(', ')+'.';
+  if(typeof pushMsg==='function')pushMsg(clientId,text);
+  if(typeof notify==='function')notify('✓ Wiadomość poszła do czatu klienta');
+  return true;
+}
+window.cpRemindAllMissing=cpRemindAllMissing;
 
 function cpCollapseDaySessions(sessDay){
   const groups=[];
@@ -2008,19 +2031,22 @@ function cpNextSessionFocusItems(clientId){
     items.push({kind:'package',tone:left<=0?'act':'watch',text:txt});
   }
   const adh=snap&&snap.facts&&snap.facts.adh7;
-  if(adh&&adh.assigned>0&&(adh.logged===0||adh.pct<50)){
-    items.push({kind:'adherence',tone:adh.logged===0?'act':'watch',text:'Treningi 7 dni: '+adh.logged+'/'+adh.assigned+' — dopytaj, czy plan jest realny'});
+  if(adh&&adh.assigned>0&&adh.logged>0&&adh.pct<50){
+    items.push({kind:'adherence',tone:'watch',text:'Treningi 7 dni: '+adh.logged+'/'+adh.assigned+' — dopytaj, czy plan jest realny'});
   }
   if(!items.length)items.push({kind:'ok',tone:'ok',text:'Brak szczególnych sygnałów — jedź planem.'});
   return items.slice(0,5);
 }
-function cpOverviewSitTone(kind,snap,mass,sleep){
+function cpOverviewSitTone(kind,snap,mass,sleep,opts){
   const facts=snap&&snap.facts||{};
   if(kind==='train'){
     const a=facts.adh7||{};
+    if(opts&&opts.emptyLog)return'info';
     if(!a.assigned)return'info';
-    if(!a.logged)return'act';
-    if(a.pct<70)return'watch';
+    if(a.assigned&&a.logged>=a.assigned)return'ok';
+    const weekOpen=!(opts&&opts.weekOpen===false);
+    if(weekOpen)return'watch';
+    if(!a.logged||a.pct<70)return'act';
     return'ok';
   }
   if(kind==='adh'){
@@ -2157,37 +2183,140 @@ function cpOverviewSleepRecFact(clientId){
   const drop=prevAvg!=null&&(prevAvg-avg)>=2;
   return{ok:low||drop,n:vals.length,avg:Math.round(avg*10)/10,prevAvg,low,drop};
 }
-function cpOverviewThisWeekAdh(clientId){
-  const today=cpOverviewTodayYmd();
-  const b=cpOverviewWeekBounds(today);
-  let planned=[];
-  if(typeof cpAssignmentSessions==='function'){
-    try{planned=cpAssignmentSessions(clientId,{keepPlanned:true}).filter(s=>s&&s.source==='planned'&&s.date>=b.from&&s.date<=b.to);}catch(e){planned=[];}
+function cpOverviewYmdAdd(ymd,delta){
+  const d=new Date(String(ymd||'').slice(0,10)+'T12:00:00');
+  if(isNaN(d.getTime()))return '';
+  d.setDate(d.getDate()+(Number(delta)||0));
+  const p=n=>String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+}
+function cpOverviewWeekdayYmd(wd,bounds){
+  const from=bounds&&bounds.from;
+  if(!from||wd==null||wd==='')return '';
+  const n=typeof wd==='number'?wd:cpOverviewParseWeekdayToken(wd);
+  if(n==null)return '';
+  const delta=n===0?6:n-1;
+  return cpOverviewYmdAdd(from,delta);
+}
+function cpOverviewPlanStartYmd(clientId){
+  const plan=typeof latestClientPlan==='function'?latestClientPlan(clientId):((window.PL||[]).filter(p=>p&&p.clientId===clientId).slice(-1)[0]||null);
+  if(typeof planStartYmd==='function'){
+    const y=planStartYmd(plan,clientId);
+    if(/^\d{4}-\d{2}-\d{2}$/.test(y))return y;
   }
-  if(!planned.length){
-    planned=(window.SE||[]).filter(s=>s&&s.clientId===clientId&&s.source==='planned'&&s.date>=b.from&&s.date<=b.to);
+  if(plan){
+    const y=String(plan.startDate||plan.createdAt||'').slice(0,10);
+    if(/^\d{4}-\d{2}-\d{2}$/.test(y))return y;
   }
-  const assignedDates=new Set();
-  planned.forEach(s=>{if(s.date)assignedDates.add(String(s.date).slice(0,10));});
-  const loggedDates=new Set();
+  return '';
+}
+function cpOverviewLoggedDates(clientId,from,to){
+  const dates=new Set();
   const sessions=(window.SE||[]).filter(s=>s&&s.clientId===clientId);
   const logged=typeof completedWorkouts==='function'?completedWorkouts(clientId,sessions):sessions.filter(s=>s.source==='client'||s.source==='live'||s.source==='sala'||s.source==='homework');
   (logged||[]).forEach(s=>{
     const y=String(s.date||'').slice(0,10);
-    if(y>=b.from&&y<=b.to)loggedDates.add(y);
+    if(!y)return;
+    if(from&&y<from)return;
+    if(to&&y>to)return;
+    dates.add(y);
   });
   if(typeof homeworkCompletions==='function'){
     try{
-      (homeworkCompletions(clientId,14)||[]).forEach(t=>{
+      (homeworkCompletions(clientId,365)||[]).forEach(t=>{
         const y=typeof homeworkDoneYmd==='function'?homeworkDoneYmd(t):String(t.doneAt||'').slice(0,10);
-        if(y&&y>=b.from&&y<=b.to)loggedDates.add(y);
+        if(!y)return;
+        if(from&&y<from)return;
+        if(to&&y>to)return;
+        dates.add(y);
       });
     }catch(e){}
   }
+  return dates;
+}
+function cpOverviewHasLoggedSincePlan(clientId){
+  const start=cpOverviewPlanStartYmd(clientId)||'0000-00-00';
+  return cpOverviewLoggedDates(clientId,start,'').size>0;
+}
+function cpOverviewPlannedDates(clientId,from,to){
+  const dates=new Set();
+  let planned=[];
+  if(typeof cpAssignmentSessions==='function'){
+    try{planned=cpAssignmentSessions(clientId,{keepPlanned:true}).filter(s=>s&&s.source==='planned');}catch(e){planned=[];}
+  }
+  if(!planned.length){
+    planned=(window.SE||[]).filter(s=>s&&s.clientId===clientId&&s.source==='planned');
+  }
+  planned.forEach(s=>{
+    const y=String(s.date||'').slice(0,10);
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(y))return;
+    if(from&&y<from)return;
+    if(to&&y>to)return;
+    dates.add(y);
+  });
+  return dates;
+}
+function cpOverviewAdhWindow(clientId,days){
+  const n=days==null?14:Number(days);
+  const today=cpOverviewTodayYmd();
+  const rawFrom=cpOverviewYmdAdd(today,-(Number.isFinite(n)?n:14));
+  const planStart=cpOverviewPlanStartYmd(clientId);
+  let from=rawFrom;
+  let incomplete=false;
+  if(planStart&&planStart>rawFrom){
+    from=planStart;
+    incomplete=true;
+  }
+  const assignedDates=cpOverviewPlannedDates(clientId,from,today);
+  const loggedDates=cpOverviewLoggedDates(clientId,from,today);
+  let assigned=assignedDates.size;
+  let logged=loggedDates.size;
+  if(!assigned&&!logged&&typeof clientAdherenceStats==='function'){
+    try{
+      const fb=clientAdherenceStats(clientId,n);
+      assigned=Number(fb&&fb.assigned||0);
+      logged=Number(fb&&fb.logged||0);
+    }catch(e){}
+  }
+  const denom=assigned||logged;
+  return{
+    assigned,logged,
+    pct:denom?Math.round((logged/denom)*100):0,
+    from,to:today,planStart,incomplete
+  };
+}
+function cpOverviewAdhReason(adh){
+  const a=adh||{assigned:0,logged:0};
+  if(a.incomplete&&a.planStart){
+    const y=String(a.planStart).slice(0,10);
+    const dd=y.slice(8,10)+'.'+y.slice(5,7);
+    return a.logged+' z '+a.assigned+' zaplanowanych od '+dd;
+  }
+  return 'W ostatnich 2 tygodniach '+a.logged+' z '+a.assigned+' treningów.';
+}
+function cpOverviewPackageCaption(c){
+  if(!c||!c.id)return '';
+  const list=(window.PACKAGES||[]).filter(p=>p&&p.clientId===c.id&&p.sessions);
+  const paid=typeof clientPaidPackageForSession==='function'?clientPaidPackageForSession(c.id):null;
+  const pkg=paid||list[0];
+  if(pkg&&pkg.sessions)return 'Pakiet: '+pkg.sessions+' sesji';
+  return '';
+}
+function cpOverviewThisWeekAdh(clientId){
+  const today=cpOverviewTodayYmd();
+  const b=cpOverviewWeekBounds(today);
+  const planStart=cpOverviewPlanStartYmd(clientId);
+  const from=planStart&&planStart>b.from?planStart:b.from;
+  const assignedDates=cpOverviewPlannedDates(clientId,from,b.to);
+  const loggedDates=cpOverviewLoggedDates(clientId,from,b.to);
   const assigned=assignedDates.size;
   const done=loggedDates.size;
   const denom=assigned||done;
-  return{assigned,logged:done,pct:denom?Math.round((done/denom)*100):0};
+  return{
+    assigned,logged:done,pct:denom?Math.round((done/denom)*100):0,
+    weekOpen:today<b.to,
+    from,to:b.to,planStart
+  };
 }
 function cpOverviewFocusNote(id){
   if(typeof focusCpOverviewSection==='function')focusCpOverviewSection('note-input-'+id);
@@ -2220,13 +2349,23 @@ function cpOverviewRecs(c){
         :{label:'Dodaj notatkę',onclick:`cpOverviewFocusNote('${id}')`}
     });
   }
-  const adh14=typeof clientAdherenceStats==='function'?clientAdherenceStats(id,14):{assigned:0,logged:0,pct:0};
-  if(Number(adh14.assigned||0)>=4&&Number(adh14.pct)<60){
+  const emptyLog=typeof cpOverviewHasLoggedSincePlan==='function'? !cpOverviewHasLoggedSincePlan(id):false;
+  const plan=typeof latestClientPlan==='function'?latestClientPlan(id):null;
+  if(emptyLog&&plan){
+    recs.push({
+      priority:1,order:1,kind:'nolog',tone:'info',
+      title:'Brak zapisanych treningów. Jeśli treningi się odbyły, dodaj je',
+      reason:'',
+      cta:{label:'Dodaj trening',onclick:`typeof openAddSessionFromCP==='function'&&openAddSessionFromCP('${id}')`}
+    });
+  }
+  const adh14=typeof cpOverviewAdhWindow==='function'?cpOverviewAdhWindow(id,14):(typeof clientAdherenceStats==='function'?clientAdherenceStats(id,14):{assigned:0,logged:0,pct:0});
+  if(!emptyLog&&Number(adh14.assigned||0)>=4&&Number(adh14.logged||0)>0&&Number(adh14.pct)<60){
     const freq=typeof cpOverviewWeekFreq==='function'?cpOverviewWeekFreq(c):3;
     recs.push({
       priority:2,order:3,kind:'adherence',tone:'watch',
       title:'Sprawdź, czy '+(typeof cpOverviewTrainWord==='function'?cpOverviewTrainWord(freq):(freq+' treningi'))+' w tygodniu są realne',
-      reason:'W ostatnich 2 tygodniach '+adh14.logged+' z '+adh14.assigned+' treningów.',
+      reason:typeof cpOverviewAdhReason==='function'?cpOverviewAdhReason(adh14):('W ostatnich 2 tygodniach '+adh14.logged+' z '+adh14.assigned+' treningów.'),
       cta:{label:'Otwórz plan',onclick:`setCPTab('plan')`}
     });
   }
@@ -2285,13 +2424,14 @@ function cpOverviewTrainWord(n){
   return x+' treningów';
 }
 function cpOverviewWeekFreq(c){
-  const n=Number(c&&c.trainingFreq);
-  if(n>0)return n;
-  const pref=c&&c.preferredWeekdays;
-  if(pref&&pref.length)return pref.length;
   const plan=typeof latestClientPlan==='function'?latestClientPlan(c&&c.id):null;
   const train=((plan&&plan.days)||[]).filter(d=>d&&!d.rest).length;
-  return train||3;
+  if(train>0)return train;
+  const pref=c&&c.preferredWeekdays;
+  if(pref&&pref.length)return pref.length;
+  const n=Number(c&&c.trainingFreq);
+  if(n>0)return n;
+  return 3;
 }
 function cpOverviewStartSteps(c){
   const id=c&&c.id;
@@ -2336,8 +2476,10 @@ function cpOverviewSituationHTML(c){
   const sleepVal=facts.sleep&&facts.sleep.value!=null?facts.sleep.value:(sleep&&sleep.last);
   const lastCi=facts.lastCheckin;
   const fmtN=v=>v==null||v===''?'—':(typeof v==='number'&&!Number.isInteger(v)?String(Math.round(v*10)/10):String(v));
+  const emptyLog=typeof cpOverviewHasLoggedSincePlan==='function'? !cpOverviewHasLoggedSincePlan(c.id):false;
   let trainHint='brak zaplanowanych treningów';
-  if(week.assigned)trainHint=week.logged+' z '+week.assigned;
+  if(emptyLog)trainHint='brak zapisanych treningów';
+  else if(week.assigned)trainHint=week.logged+' z '+week.assigned;
   else if(week.logged)trainHint=week.logged+' zarejestrowane';
   let massHint='brak pomiaru wagi';
   let massN=massVal;
@@ -2355,25 +2497,32 @@ function cpOverviewSituationHTML(c){
   const sleepHint=sleep?(sleep.dir==='thin'?'za mało ocen snu na trend':(sleep.dir==='down'?'spada':sleep.dir==='up'?'rośnie':'stabilny')):'brak ocen snu';
   let ciN='—';
   let ciHint='brak check-inu';
-  if(lastCi&&lastCi.daysSince!=null){
-    ciN=String(lastCi.daysSince);
-    ciHint=lastCi.daysSince===0?'dziś':(lastCi.daysSince===1?'wczoraj':lastCi.daysSince+' d. temu');
-  }else if(facts.checkinStatus==='overdue'){
-    ciN='—';
-    ciHint='przeterminowany';
-  }else if(facts.checkinStatus==='pending'){
-    ciN='—';
-    ciHint='oczekuje na odpowiedź';
+  const ciGap=typeof cpOverviewLastCheckin==='function'?cpOverviewLastCheckin(c.id):{days:lastCi&&lastCi.daysSince,ymd:null};
+  const ciDays=ciGap&&ciGap.days!=null?ciGap.days:(lastCi&&lastCi.daysSince);
+  if(ciDays!=null){
+    ciN=String(ciDays);
+    if(ciDays===0)ciHint='dziś';
+    else if(ciDays===1)ciHint='wczoraj';
+    else ciHint='brak od '+ciDays+' dni';
+  }else if(facts.checkinStatus==='overdue'||facts.checkinStatus==='pending'){
+    const pending=((window.CHECKINS&&window.CHECKINS[c.id])||[]).filter(x=>x&&x.status==='pending')
+      .slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
+    const py=pending[0]?String(pending[0].date||'').slice(0,10):'';
+    const pd=py?cpOverviewDaysBetween(py,cpOverviewTodayYmd()):null;
+    ciN=pd!=null?String(pd):'—';
+    ciHint=pd!=null?('brak od '+pd+' dni'):(facts.checkinStatus==='pending'?'oczekuje na odpowiedź':'brak check-inu');
   }
-  const trainTone=cpOverviewSitTone('train',{facts:{adh7:week}},mass,sleep);
+  const trainTone=cpOverviewSitTone('train',{facts:{adh7:week}},mass,sleep,{emptyLog:emptyLog,weekOpen:week.weekOpen!==false});
   const massTone=fromSurvey||massVal==null?'info':cpOverviewSitTone('mass',snap,mass,sleep);
   const sleepTone=cpOverviewSitTone('sleep',snap,mass,sleep);
   const ciTone=cpOverviewSitTone('checkin',snap,mass,sleep);
+  const trainN=emptyLog?'—':(week.assigned||week.logged?fmtN(week.logged):'—');
+  const trainUnit=emptyLog||!week.assigned?'':('/'+week.assigned);
   const tiles=[
-    {id:'train',n:week.assigned||week.logged?fmtN(week.logged):'—',unit:week.assigned?('/'+week.assigned):'',lbl:'Treningi w tym tygodniu',hint:trainHint,tone:trainTone,target:'cp-ov-card-train'},
+    {id:'train',n:trainN,unit:trainUnit,lbl:'Treningi w tym tygodniu',hint:trainHint,tone:trainTone,target:'cp-ov-card-train'},
     {id:'mass',n:fmtN(massN),unit:massN!=null&&massN!==''?'kg':'',lbl:'Waga',hint:massHint,tone:massTone,target:'cp-ov-card-metrics'},
     {id:'sleep',n:sleepVal==null?'—':fmtN(sleepVal),unit:sleepVal!=null?'/10':'',lbl:'Sen',hint:sleepVal==null?'brak ocen snu':sleepHint,tone:sleepTone,target:'cp-ov-card-metrics'},
-    {id:'checkin',n:ciN,unit:'',lbl:'Samopoczucie',hint:ciHint,tone:ciTone,target:'cp-ov-card-feel'}
+    {id:'checkin',n:ciN,unit:'',lbl:'Check-in',hint:ciHint,tone:ciTone,target:'cp-ov-card-feel'}
   ];
   const steps=typeof cpOverviewStatusSteps==='function'?cpOverviewStatusSteps(c):[];
   const recOk=steps.length===1&&steps[0].kind==='ok';
@@ -2442,6 +2591,13 @@ window.cpOverviewSituationHTML=cpOverviewSituationHTML;
 window.cpOverviewThisWeekAdh=cpOverviewThisWeekAdh;
 window.cpOverviewCoopWeeks=cpOverviewCoopWeeks;
 window.cpOverviewMeasureCount=cpOverviewMeasureCount;
+window.cpOverviewAdhWindow=cpOverviewAdhWindow;
+window.cpOverviewAdhReason=cpOverviewAdhReason;
+window.cpOverviewHasLoggedSincePlan=cpOverviewHasLoggedSincePlan;
+window.cpOverviewPlanStartYmd=cpOverviewPlanStartYmd;
+window.cpOverviewPlanDayAccent=cpOverviewPlanDayAccent;
+window.cpOverviewPackageCaption=cpOverviewPackageCaption;
+window.cpOverviewWeekdayYmd=cpOverviewWeekdayYmd;
 
 function cpBriefTodayYmd(){
   if(typeof dashTodayYmd==='function')return dashTodayYmd();
@@ -2570,6 +2726,19 @@ function cpOverviewPlanTitle(plan,c){
   if(dur&&!/\d+\s*tyg/i.test(name))name=(name?name+' · ':'')+dur+' tygodni';
   return name||'Plan';
 }
+function cpOverviewPlanDayAccent(parsed){
+  if(!parsed||parsed.rest)return '';
+  let s=String(parsed.priority||parsed.muscles||parsed.name||'').replace(/\s+/g,' ').trim();
+  s=s.replace(/\(\s*priorytet:\s*([^)]+)\)/i,'$1');
+  s=s.replace(/^dzień\s+\d+\s*[—–\-:]+\s*/i,'');
+  s=s.replace(/^(poniedziałek|wtorek|środa|czwartek|piątek|sobota|niedziela|niedz\.?|pon\.?|wto\.?|śr\.?|czw\.?|pia\.?|sob\.?|nd|pn|wt|śr|cz|pt|sb)\b\s*[—–\-:]+\s*/i,'');
+  const stripped=s.replace(/^(fbw|ppl|push|pull|legs|upper|lower|hipertrofia|si[lł]a)(\s*[—–\-:/·]+\s*|\s*$)/i,'').replace(/^[—–\-:/·]+\s*/,'').trim();
+  if(stripped)s=stripped;
+  s=s.replace(/\s+/g,' ').replace(/[·,;]\s*$/,'').trim().toLowerCase();
+  s=s.replace(/^akcent:\s*/i,'');
+  if(!s)return '';
+  return 'Akcent: '+s;
+}
 function cpOverviewPlanDayStatus(clientId,day,idx,parsed,today){
   if(parsed&&parsed.rest)return'Odpoczynek';
   const t=today||cpOverviewTodayYmd();
@@ -2581,14 +2750,27 @@ function cpOverviewPlanDayStatus(clientId,day,idx,parsed,today){
       const d=new Date(String(s.date).slice(0,10)+'T12:00:00').getDay();
       if(d===parsed.weekday)return true;
     }
-    const title=String(s.type||s.title||'').toLowerCase();
-    if(parsed&&parsed.name&&title&&(title.indexOf(String(parsed.name).toLowerCase())>=0||String(parsed.name).toLowerCase().indexOf(title)>=0))return true;
+    const title=String(s.type||s.title||'').toLowerCase().trim();
+    const n=parsed&&parsed.name?String(parsed.name).toLowerCase().trim():'';
+    if(n&&title&&n.length>=3&&title.length>=3&&(title.indexOf(n)>=0||n.indexOf(title)>=0))return true;
     return false;
   };
   const isLogged=s=>typeof cpBriefIsLogged==='function'?cpBriefIsLogged(s):(s&&s.source!=='planned'&&s.source!=='garmin'&&s.source!=='live-draft');
   if(sessions.some(s=>isLogged(s)&&match(s)))return'Wykonany';
+  let dayYmd=typeof cpOverviewWeekdayYmd==='function'?cpOverviewWeekdayYmd(parsed&&parsed.weekday,b):'';
+  if(!dayYmd){
+    const hit=sessions.find(s=>match(s)&&s.date);
+    if(hit)dayYmd=String(hit.date).slice(0,10);
+  }
+  if(dayYmd===t||sessions.some(s=>String(s.date).slice(0,10)===t&&match(s)))return'Dziś';
+  if(dayYmd&&dayYmd>t)return'Zaplanowany';
+  if(dayYmd&&dayYmd<t)return'Brak zapisu';
   const todayDow=new Date(t+'T12:00:00').getDay();
-  if((parsed&&parsed.weekday!=null&&parsed.weekday===todayDow)||sessions.some(s=>String(s.date).slice(0,10)===t&&match(s)))return'Dziś';
+  if(parsed&&parsed.weekday!=null){
+    if(parsed.weekday===todayDow)return'Dziś';
+    const order=d=>d===0?7:d;
+    if(order(parsed.weekday)<order(todayDow))return'Brak zapisu';
+  }
   return'Zaplanowany';
 }
 function cpBriefIsLogged(s){
@@ -2800,6 +2982,7 @@ window.cpOverviewParsePlanDay=cpOverviewParsePlanDay;
 window.cpOverviewResolvePlanDay=cpOverviewResolvePlanDay;
 window.cpOverviewPlanTitle=cpOverviewPlanTitle;
 window.cpOverviewPlanDayStatus=cpOverviewPlanDayStatus;
+window.cpOverviewPlanDayAccent=cpOverviewPlanDayAccent;
 
 function cpCoopLoggedWorkouts(clientId){
   const sessions=(window.SE||[]).filter(s=>s&&s.clientId===clientId);
@@ -3374,16 +3557,17 @@ function renderCPOverview(c){
             <div class="cp-ov-card-title">Aktywny plan tygodnia</div>
           </div>
           <div style="font-size:15px;font-weight:700;margin-bottom:4px;">${escHtml(planTitle)}</div>
-          <div class="cp-ov-stat-sub" style="margin-bottom:10px;">${escHtml(plan.method||'—')} · ${plan.duration||'?'} tyg. · ${days.length} dni/tydzień</div>
+          <div class="cp-ov-stat-sub" style="margin-bottom:10px;">${escHtml(plan.method||'—')} · ${plan.duration||'?'} tyg. · ${days.filter(d=>d&&!d.rest).length} dni/tydzień</div>
           <div class="cp-ov-week">
             ${days.slice(0,7).map((d,i)=>{
-              const parsed=typeof cpOverviewParsePlanDay==='function'?cpOverviewParsePlanDay(d,i):{name:d.muscles||d.name||d.day||'Trening',priority:'',weekdayLabel:'',rest:!!d.rest};
+              const parsed=typeof cpOverviewParsePlanDay==='function'?cpOverviewParsePlanDay(d,i):{name:d.muscles||d.name||d.day||'Trening',priority:'',weekdayLabel:'',rest:!!d.rest,muscles:d.muscles||''};
               const st=typeof cpOverviewPlanDayStatus==='function'?cpOverviewPlanDayStatus(c.id,d,i,parsed):'Zaplanowany';
               const wd=parsed.weekdayLabel||'';
-              return `<div class="cp-ov-week-day${parsed.rest?' is-rest':''}${st==='Dziś'?' is-today':''}${st==='Wykonany'?' is-done':''}">
+              const accent=parsed.rest?'':(typeof cpOverviewPlanDayAccent==='function'?cpOverviewPlanDayAccent(parsed):'');
+              const stClass=st==='Dziś'?' is-today':st==='Wykonany'?' is-done':st==='Brak zapisu'?' is-nolog':'';
+              return `<div class="cp-ov-week-day${parsed.rest?' is-rest':''}${stClass}">
               ${wd?`<span class="cp-ov-week-wd">${escHtml(wd)}</span>`:''}
-              <div class="cp-ov-week-name">${escHtml(parsed.rest?'Odpoczynek':parsed.name)}</div>
-              ${parsed.priority&&!parsed.rest?`<div class="cp-ov-week-pri">${escHtml(parsed.priority)}</div>`:''}
+              <div class="cp-ov-week-name">${escHtml(parsed.rest?'Odpoczynek':(accent||'Trening'))}</div>
               <div class="cp-ov-week-st">${escHtml(st)}</div>
             </div>`;
             }).join('')}
@@ -3404,7 +3588,10 @@ function renderCPOverview(c){
           ${(()=>{
             const hist=(logged||[]).slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))).slice(0,4);
             if(!hist.length&&!lastHw){
-              return `<div class="cp-ov-last-wo muted">Brak zapisanych treningów — Live, apka (serie) albo zadanie domowe. Same terminy w kalendarzu się nie liczą.</div>`;
+              return `<div class="cp-ov-empty-wo" data-cp-empty-wo="1">
+                <div>Brak zapisanych treningów</div>
+                <button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();typeof openAddSessionFromCP==='function'&&openAddSessionFromCP('${c.id}')">Dodaj trening</button>
+              </div>`;
             }
             const fmt=typeof cpOverviewDateLabel==='function'?cpOverviewDateLabel:(d=>d);
             return `<ul class="cp-ov-hist">${hist.map(s=>{
@@ -3417,7 +3604,7 @@ function renderCPOverview(c){
               </li>`;
             }).join('')}${!hist.length&&lastHw?`<li class="cp-ov-hist-row" onclick="setCPTab('training')"><div class="cp-ov-hist-title">${escHtml(lastWorkoutTitle||'Zadanie domowe')}</div><div class="cp-ov-hist-meta">${escHtml(fmt(lastWorkoutDate||''))}</div></li>`:''}</ul>`;
           })()}
-          ${typeof cpOverviewHasApp==='function'&&cpOverviewHasApp(c)&&((assigned7&&last7===0)||(pulse.tone!=='good'))?`<div style="margin-top:10px;position:relative;z-index:1;"><button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();cpRemindClient('${c.id}','workout')">Przypomnij o treningu</button></div>`:''}
+          ${typeof cpOverviewHasApp==='function'&&cpOverviewHasApp(c)&&(logged&&logged.length)&&pulse.tone!=='good'?`<div style="margin-top:10px;position:relative;z-index:1;"><button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();cpRemindClient('${c.id}','workout')">Przypomnij o treningu</button></div>`:''}
         </div>
 
         ${metricsOn&&metricsHtml?`<div class="cp-ov-card" id="cp-ov-card-metrics" style="cursor:pointer;" onclick="setCPTab('progress')">
@@ -3476,6 +3663,7 @@ function renderCPOverview(c){
             <div><span>Email</span><b class="cp-ov-email" title="${escHtml(c.email||'')}">${escHtml(c.email||'—')}</b></div>
             ${c.phone?`<div><span>Telefon</span><b>${escHtml(c.phone)}</b></div>`:''}
             <div><span>Status</span><b style="color:${c.status==='active'?'var(--teal)':c.status==='inactive'?'var(--orange)':'var(--muted)'};">${c.status==='active'?'Aktywny':c.status==='inactive'?'Nieaktywny':'Zarchiwizowany'}</b></div>
+            ${(()=>{const cap=typeof cpOverviewPackageCaption==='function'?cpOverviewPackageCaption(c):'';if(!cap)return'';const n=cap.replace(/^Pakiet:\s*/,'');return `<div data-cp-pkg="1"><span>Pakiet</span><b>${escHtml(n)}</b></div>`;})()}
           </div>`,
           `startCPEdit('${c.id}')`)}
 
@@ -3485,7 +3673,7 @@ function renderCPOverview(c){
           `startCPEdit('${c.id}')`):''}
 
         ${railCard('Notatka',
-          (notes.length?notes.slice(0,1).map(n=>`<div class="cip-note" style="margin-bottom:8px;"><div>${escHtml(n.text)}</div><div class="cip-note-date">${escHtml(typeof cpOverviewDateLabel==='function'?cpOverviewDateLabel(n.date||n.createdAt):n.date||'')}</div></div>`).join(''):'<div class="cp-ov-stat-sub" style="margin-bottom:8px;">Krótka notatka zostaje przy Tobie.</div>')+
+          (notes.length?notes.slice(0,1).map(n=>`<div class="cip-note" style="margin-bottom:8px;"><div>${escHtml(n.text)}</div><div class="cip-note-date">${escHtml(typeof cpOverviewDateLabel==='function'?cpOverviewDateLabel(n.date||n.createdAt):n.date||'')}</div></div>`).join(''):'<div class="cp-ov-stat-sub" style="margin-bottom:8px;">Widoczna tylko dla Ciebie</div>')+
           `<div id="note-input-${c.id}" class="cp-ov-note-box">
             <textarea id="note-text-${c.id}" class="cp-ov-note-input" rows="2" placeholder="Dodaj notatkę…"></textarea>
             <button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();saveClientNote('${c.id}')">Zapisz</button>

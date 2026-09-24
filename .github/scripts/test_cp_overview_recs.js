@@ -32,7 +32,7 @@ ok('no shorten label',!/Skróć plan/.test(src08)&&src08.includes('Otwórz plan'
 ok('ok line',src08.includes('Wszystko w porządku — brak pilnych działań.'));
 ok('early copy',src08.includes('Wiarygodną analizę pokażemy po 4 tygodniach lub 4 pomiarach.'));
 ok('ci workflow',wf.includes('test_cp_overview_recs.js'));
-ok('cache',html.includes('08-client-profile-extras.js?v=80'));
+ok('cache',html.includes('08-client-profile-extras.js?v=81'));
 ok('invite not a rec',!/kind:'invite'/.test(extract(src08,'cpOverviewRecs')));
 
 const sandbox={
@@ -41,13 +41,13 @@ const sandbox={
   todayYmd:()=>'2026-09-24',
   dashTodayYmd:()=>'2026-09-24',
   clientAdherenceStats:(id,days)=>sandbox._adh||{assigned:0,logged:0,pct:0},
-  completedWorkouts:()=>[],
+  completedWorkouts:(id,sessions)=>(sessions||sandbox.window.SE||[]).filter(s=>s&&s.clientId===id&&(s.source==='live'||s.source==='client'||s.source==='sala'||s.source==='homework')),
   homeworkCompletions:()=>[],
   cpAssignmentSessions:(id)=>sandbox.window.SE.filter(s=>s&&s.clientId===id),
   cpMetricSeries:(id,g,m)=>(sandbox.window.METRIC_ENTRIES||[]).filter(e=>e.clientId===id&&e.groupId===g&&e.values&&e.values[m]!=null)
     .sort((a,b)=>String(a.date).localeCompare(String(b.date)))
     .map(e=>({d:e.date,v:parseFloat(e.values[m])})),
-  latestClientPlan:()=>null,
+  latestClientPlan:(id)=>(sandbox.window.PL||[]).filter(p=>p&&p.clientId===id).slice(-1)[0]||null,
   escHtml:(s)=>String(s??'')
 };
 sandbox.CL=sandbox.window.CL;
@@ -60,7 +60,10 @@ const names=[
   'cpOverviewHasApp','cpOverviewTrainWord','cpOverviewWeekFreq','cpOverviewRecs',
   'cpOverviewStatusIsEarly','cpOverviewStatusHeadline','cpOverviewStatusSteps',
   'cpOverviewParsePlanDay','cpOverviewStripDupDayPrefix','cpOverviewParseWeekdayToken',
-  'cpOverviewPlanTitle'
+  'cpOverviewPlanTitle','cpOverviewYmdAdd','cpOverviewWeekdayYmd','cpOverviewPlanStartYmd',
+  'cpOverviewLoggedDates','cpOverviewHasLoggedSincePlan','cpOverviewPlannedDates',
+  'cpOverviewAdhWindow','cpOverviewAdhReason','cpOverviewPlanDayAccent','cpOverviewPlanDayStatus',
+  'cpOverviewPackageCaption'
 ];
 vm.runInNewContext(names.map(n=>extract(src08,n)).join('\n')+'\nwindow.cpOverviewRecs=cpOverviewRecs;window.cpOverviewParsePlanDay=cpOverviewParsePlanDay;window.cpOverviewPlanTitle=cpOverviewPlanTitle;window.cpOverviewStatusHeadline=cpOverviewStatusHeadline;window.cpOverviewStatusSteps=cpOverviewStatusSteps;',sandbox);
 
@@ -80,8 +83,18 @@ recs=sandbox.cpOverviewRecs(client({inviteSent:true}));
 ok('2/2 invited no shorten',!recs.some(x=>x.kind==='adherence')&&recs.every(x=>x.cta&&x.cta.label!=='Skróć plan'));
 
 sandbox._adh={assigned:4,logged:1,pct:25};
+sandbox.window.PL=[{id:'p4',clientId:'c1',days:[{},{},{},{}]}];
+sandbox.window.SE=[
+  {id:'l1',clientId:'c1',date:'2026-09-18',source:'live',type:'A'},
+  {id:'p1',clientId:'c1',date:'2026-09-15',source:'planned',type:'A'},
+  {id:'p2',clientId:'c1',date:'2026-09-17',source:'planned',type:'B'},
+  {id:'p3',clientId:'c1',date:'2026-09-20',source:'planned',type:'C'},
+  {id:'p4s',clientId:'c1',date:'2026-09-22',source:'planned',type:'D'}
+];
 recs=sandbox.cpOverviewRecs(client({inviteSent:true}));
-ok('4 planned 1 done shows plan rec',recs.some(x=>x.kind==='adherence'&&x.cta.label==='Otwórz plan'&&/1 z 4/.test(x.reason)&&/3 treningi/.test(x.title)),JSON.stringify(recs));
+ok('4 planned 1 done shows plan rec',recs.some(x=>x.kind==='adherence'&&x.cta.label==='Otwórz plan'&&/1 z 4/.test(x.reason)&&/4 treningi/.test(x.title)),JSON.stringify(recs));
+sandbox.window.PL=[];
+sandbox.window.SE.length=0;
 sandbox._adh={assigned:5,logged:4,pct:80};
 recs=sandbox.cpOverviewRecs(client({inviteSent:true}));
 ok('80% never plan rec',!recs.some(x=>x.kind==='adherence'));
@@ -152,6 +165,29 @@ const dayA=sandbox.cpOverviewParsePlanDay({day:'A'},0);
 ok('letter day not weekday',dayA.name==='A'&&!dayA.weekdayLabel&&dayA.weekday==null,JSON.stringify(dayA));
 const titled=sandbox.cpOverviewPlanTitle({name:'Jan Kowalski — FBW Siła',duration:8,clientName:'Jan Kowalski'},client());
 ok('plan title drops client',titled==='FBW Siła · 8 tygodni',titled);
+
+sandbox.window.METRIC_ENTRIES=[];
+sandbox.window.CHECKINS={c1:[{status:'filled',date:'2026-09-24'}]};
+sandbox.window.PL=[{id:'p4',clientId:'c1',createdAt:'2026-09-13',days:[{},{},{},{}]}];
+sandbox.window.SE=[
+  {id:'p1',clientId:'c1',date:'2026-09-15',source:'planned',type:'A'},
+  {id:'p2',clientId:'c1',date:'2026-09-17',source:'planned',type:'B'},
+  {id:'p3',clientId:'c1',date:'2026-09-20',source:'planned',type:'C'},
+  {id:'p4s',clientId:'c1',date:'2026-09-22',source:'planned',type:'D'}
+];
+sandbox._adh={assigned:4,logged:0,pct:0};
+recs=sandbox.cpOverviewRecs(client({inviteSent:true,createdAt:'2026-09-13'}));
+ok('empty log no adherence rec',!recs.some(x=>x.kind==='adherence'),JSON.stringify(recs));
+ok('empty log add workout rec',recs.some(x=>x.kind==='nolog'&&x.cta&&x.cta.label==='Dodaj trening'&&/Brak zapisanych treningów/.test(x.title)),JSON.stringify(recs));
+const adhInc=sandbox.cpOverviewAdhWindow('c1',14);
+ok('incomplete from plan start',adhInc.incomplete&&adhInc.planStart==='2026-09-13'&&adhInc.assigned===4&&adhInc.logged===0,JSON.stringify(adhInc));
+ok('incomplete copy',sandbox.cpOverviewAdhReason(adhInc)==='0 z 4 zaplanowanych od 13.09',sandbox.cpOverviewAdhReason(adhInc));
+ok('freq from 4-day plan',sandbox.cpOverviewWeekFreq(client({trainingFreq:3}))===4);
+const acc=sandbox.cpOverviewPlanDayAccent({name:'FBW Siła',priority:'Klatka, Triceps, Czworogłowe',rest:false});
+ok('accent label',acc==='Akcent: klatka, triceps, czworogłowe',acc);
+ok('past day brak zapisu',sandbox.cpOverviewPlanDayStatus('c1',{day:'Pon'},0,{weekday:1,name:'A',rest:false},'2026-09-24')==='Brak zapisu');
+ok('today day Dziś',sandbox.cpOverviewPlanDayStatus('c1',{day:'Czw'},0,{weekday:4,name:'A',rest:false},'2026-09-24')==='Dziś');
+ok('future day Zaplanowany',sandbox.cpOverviewPlanDayStatus('c1',{day:'Pt'},0,{weekday:5,name:'A',rest:false},'2026-09-24')==='Zaplanowany');
 
 if(failed){console.error('\n'+failed+' failed');process.exit(1);}
 console.log('\nAll cp-overview-recs checks passed');
