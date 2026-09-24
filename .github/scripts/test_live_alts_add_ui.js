@@ -50,11 +50,14 @@ function ok(name, cond, extra) {
   });
 
   const search = await page.evaluate(() => {
+    const open = document.querySelector('#live-ex-0 .live-swap-open');
+    if (typeof liveToggleSwap === 'function') liveToggleSwap(0);
     const inp = document.getElementById('live-alt-search-0-0');
     const add = inp && inp.closest('.live-alts-add');
     const swap = document.querySelector('#live-ex-0 .live-swap-btn');
     const btn = add && add.querySelector('.btn');
     return {
+      hasOpen: !!(open && /Zamień/.test(open.textContent || '')),
       hasSearch: !!(inp),
       searchHidden: !!(add && add.hidden),
       placeholder: inp ? inp.placeholder : '',
@@ -64,7 +67,7 @@ function ok(name, cond, extra) {
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'live_alt_search.png') });
-  ok('swap button present', /Zamień ćwiczenie/.test(search.swap), JSON.stringify(search));
+  ok('swap button present', search.hasOpen && /Zamień ćwiczenie/.test(search.swap), JSON.stringify(search));
   ok('alt search hidden until swap', search.hasSearch && search.searchHidden && search.hasBtn, JSON.stringify(search));
   ok('alt search placeholder kit', /sztanga|hantle|brama|ławka/i.test(search.placeholder), search.placeholder);
 
@@ -102,7 +105,7 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'live_alt_swapped.png') });
   ok('pick swaps live exercise', swapped.name === 'Wyciskanie sztangi leżąc', JSON.stringify(swapped));
 
-  await page.click('button:has-text("+ Dodaj ćwiczenie")');
+  await page.click('.live-ex-toolbar button:has-text("+ Dodaj ćwiczenie")');
   await page.waitForSelector('#live-ex-name-0-1');
   const named = await page.evaluate(() => {
     const inp = document.getElementById('live-ex-name-0-1');

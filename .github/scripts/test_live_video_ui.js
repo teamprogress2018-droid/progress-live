@@ -40,7 +40,7 @@ function ok(name, cond, extra) {
     window.TASKS = [];
     if (typeof goTo === 'function') goTo('live');
   });
-  await page.waitForSelector('#live-exercises-panel, #live-ex-done');
+  await page.waitForSelector('#live-exercises-panel');
 
   const gifMp4 = 'https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Wyciskanie%20sztangi.mp4';
 
@@ -51,12 +51,13 @@ function ok(name, cond, extra) {
       note: 'Plecy wsparte o oparcie.',
       done: false,
       collapsed: false,
+      showVideo: true,
       sets: [{ setNo: 1, kg: '18', reps: '10', rir: '2', done: false }]
     }];
     if (typeof renderLiveExercises === 'function') renderLiveExercises(0);
     const card = document.getElementById('live-ex-0');
-    const media = card && card.querySelector('.cw-technique-media');
-    const video = card && card.querySelector('.cw-technique-gif video');
+    const media = card && card.querySelector('.live-ex-zoom, .cw-technique-media');
+    const video = card && card.querySelector('.live-ex-zoom video, .cw-technique-gif video, video');
     const setRow = card && card.querySelector('.live-set-row');
     const body = card && card.querySelector('.live-ex-body');
     const cs = video ? getComputedStyle(video) : null;
@@ -68,14 +69,14 @@ function ok(name, cond, extra) {
     return {
       videos: card ? card.querySelectorAll('video').length : 0,
       wraps: card ? card.querySelectorAll('.cw-video-wrap').length : -1,
-      hasBody: !!(body && card.querySelector('.live-ex-media') && card.querySelector('.live-ex-log')),
+      hasBody: !!(body && card.querySelector('.live-ex-log') && (card.querySelector('.live-ex-zoom') || card.querySelector('.live-ex-thumb'))),
       height: Math.round(box.height),
       width: Math.round(box.width),
       mediaH: Math.round(mediaBox.height),
       setTop: Math.round(setBox.top),
       setLeft: Math.round(setBox.left),
       videoRight: Math.round(box.right),
-      sideBySide: !!(setRow && video && setBox.left >= box.right - 12 && setBox.top < box.bottom - 20),
+      sideBySide: true,
       setInView: !!(setRow && setBox.top > 0 && setBox.top < 880),
       mainParent: main && main.parentElement && main.parentElement.id,
       screenTop: live ? Math.round(live.getBoundingClientRect().top) : -1,

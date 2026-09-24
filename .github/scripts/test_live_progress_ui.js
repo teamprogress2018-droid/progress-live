@@ -39,7 +39,7 @@ function ok(name, cond, extra) {
     if (typeof goTo === 'function') goTo('live');
     if (typeof liveClientSetField === 'function') liveClientSetField('c1', 'Justyna Chylińska', true, 0);
   });
-  await page.waitForSelector('#live-ex-done');
+  await page.waitForSelector('#live-exercises-panel');
 
   await page.evaluate(() => {
     window.liveClientId = 'c1';
@@ -101,7 +101,7 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'live_progress_unchecked.png') });
   ok('unchecked 0/1 ćw', before.ex === '0' && before.total === '1', JSON.stringify(before));
   ok('unchecked 0 serii / 0 kg', before.sets === '0' && before.vol === '0');
-  ok('hint says check sets', /Odhacz serie/.test(before.hint), before.hint);
+  ok('hint says check sets', /Odhacz serię/.test(before.hint), before.hint);
   const rirUi = await page.evaluate(() => {
     const head = document.querySelector('#live-ex-0 .live-set-head');
     const inp = document.querySelector('#live-ex-0 .live-rir-input');
@@ -117,12 +117,12 @@ function ok(name, cond, extra) {
   ok('hist hover title', lastUi.has && lastUi.tag === 'BUTTON' && /Przysiad Goblet/.test(lastUi.name), JSON.stringify(lastUi));
   ok('hist popover tables', /poprzednie treningi/i.test(lastUi.pop) && /2026-09-13/.test(lastUi.pop) && /2026-09-06/.test(lastUi.pop) && /Σ/.test(lastUi.pop), lastUi.pop.slice(0, 280));
   const prevUi = await page.evaluate(() => {
-    const head = document.querySelector('#live-ex-0 .live-set-head');
-    const prev = [...document.querySelectorAll('#live-ex-0 .live-set-prev')].map((b) => (b.textContent || '').trim());
+    const cue = document.querySelector('#live-ex-0 .live-ex-cue');
     const panel = document.querySelector('#live-ex-0 .live-last-panel');
-    return { head: head ? head.innerText : '', prev, panel: !!panel, hasPrev: !!(head && head.classList.contains('has-prev')) };
+    const rows = document.querySelectorAll('#live-ex-0 .live-set-row').length;
+    return { cue: cue ? cue.innerText : '', panel: !!panel, rows };
   });
-  ok('prev column last weights', prevUi.hasPrev && /Ostatnio/.test(prevUi.head) && prevUi.prev[0] === '20 × 12' && prevUi.prev[1] === '22.5 × 10', JSON.stringify(prevUi));
+  ok('cue last weights', /Ostatnio:/i.test(prevUi.cue) && /22\.5 kg|20 kg/.test(prevUi.cue) && !/999/.test(prevUi.cue), prevUi.cue);
   ok('no last panel in card', prevUi.panel === false, JSON.stringify(prevUi));
   await page.hover('#live-ex-0 .live-ex-title.has-hist');
   const hoverUi = await page.evaluate(() => {
@@ -147,7 +147,7 @@ function ok(name, cond, extra) {
   ok('hist modal table', modalUi.show && /Przysiad Goblet/.test(modalUi.title) && /Powt/.test(modalUi.text) && /20/.test(modalUi.text) && /Σ/.test(modalUi.text), JSON.stringify(modalUi));
   await page.evaluate(() => { if (typeof closeM === 'function') closeM('m-ex-hist'); });
   await page.mouse.move(8, 8);
-  await page.click('#live-ex-0 .live-set-prev');
+  await page.evaluate(() => { if (typeof liveFillFromLast === 'function') liveFillFromLast(0, 0); });
   const filled = await page.evaluate(() => {
     const row = document.querySelector('#live-ex-0 .live-set-row');
     const kg = row ? row.querySelector('.live-kg-input') : null;

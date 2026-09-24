@@ -57,6 +57,7 @@ function ok(name, cond, extra) {
       sets: [{ setNo: 1, kg: '40', reps: '8', done: false }]
     }];
     if (typeof renderLiveExercises === 'function') renderLiveExercises();
+    if (typeof liveToggleSwap === 'function') liveToggleSwap(0);
   });
 
   const folded = await page.evaluate(() => {
