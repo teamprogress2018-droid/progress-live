@@ -3375,7 +3375,8 @@ window.setCPProgressPanel=setCPProgressPanel;
 
 /** Etap 8: cienki caller 6D pack → 7A → 7B → 7C. Bez nowej prawdy; źródło = SE.
  *  Follow-up planId: brief używa aktywnego planu (opts.planId albo latestClientPlan).
- *  Domyślna 6C bez planId zostaje karierą — panel 6D nie jest nadpisywany. */
+ *  Domyślna 6C bez planId zostaje karierą — panel 6D nie jest nadpisywany.
+ *  9A.1: caller przekazuje jawny target.repMax z planu; nie zgaduje AMRAP. */
 function composeClientNextSessionBrief(clientId,opts){
   opts=opts||{};
   const cid=String(clientId||'');
@@ -3395,7 +3396,7 @@ function composeClientNextSessionBrief(clientId,opts){
   const items=pack&&Array.isArray(pack.items)?pack.items:[];
   const recs=[];
   if(typeof recommendExerciseProgress==='function'){
-    items.forEach(it=>{recs.push(recommendExerciseProgress(it));});
+    items.forEach(it=>{recs.push(recommendExerciseProgress(it,progressRecOptsForItem(it,recOpts)));});
   }
   const brief=typeof composeNextSessionProgress==='function'
     ?composeNextSessionProgress({clientId:cid,recs:recs,aggregate:aggregate})
@@ -3403,6 +3404,57 @@ function composeClientNextSessionBrief(clientId,opts){
   return{clientId:cid,pack:pack,aggregate:aggregate,recs:recs,brief:brief};
 }
 window.composeClientNextSessionBrief=composeClientNextSessionBrief;
+
+function progressRepMaxFromPlanReps(repsRaw,parsed){
+  if(parsed&&(parsed.amrap||(typeof isAmrapFlag==='function'&&isAmrapFlag(parsed.amrap))))return null;
+  const s=String(repsRaw==null?'':repsRaw).trim();
+  if(!s)return null;
+  const lower=s.toLowerCase();
+  if(/amrap|\bmax\b|\+|lub|upadek|failure|do\s*odmowy|∞/.test(lower))return null;
+  if(typeof parseRepRange!=='function')return null;
+  const range=parseRepRange(s);
+  if(!range||!(range.hi>0)||!(range.lo>0))return null;
+  return range.hi;
+}
+function progressPlanExMatchesItem(parsed,item){
+  const eid=String(item&&item.exerciseId||'').trim();
+  const pid=String(parsed&&parsed.exerciseId||'').trim();
+  if(eid&&pid)return eid===pid;
+  const ik=typeof exerciseNameKey==='function'?exerciseNameKey(item&&item.name):String(item&&item.name||'').toLowerCase();
+  const pk=typeof exerciseNameKey==='function'?exerciseNameKey(parsed&&parsed.name):String(parsed&&parsed.name||'').toLowerCase();
+  return !!(ik&&pk&&ik===pk);
+}
+function progressPlanForBrief(recOpts){
+  const id=recOpts&&recOpts.planId;
+  if(!id)return null;
+  const list=(typeof window!=='undefined'&&window.PL)||[];
+  return list.find(p=>p&&p.id===id)||null;
+}
+function progressTargetRepMaxForItem(item,recOpts){
+  const plan=progressPlanForBrief(recOpts);
+  if(!plan||!item)return null;
+  const days=Array.isArray(plan.days)?plan.days:[];
+  let use=days;
+  if(recOpts&&recOpts.dayIdx!=null&&recOpts.dayIdx!==''){
+    const d=days[recOpts.dayIdx];
+    use=d?[d]:[];
+  }
+  const his=[];
+  use.forEach(day=>{
+    ((day&&day.exercises)||[]).forEach(raw=>{
+      const parsed=typeof parsePlanExercise==='function'?parsePlanExercise(raw):raw;
+      if(!parsed||!progressPlanExMatchesItem(parsed,item))return;
+      const hi=progressRepMaxFromPlanReps(parsed.reps,parsed);
+      if(hi!=null&&his.indexOf(hi)<0)his.push(hi);
+    });
+  });
+  return his.length===1?his[0]:null;
+}
+function progressRecOptsForItem(item,recOpts){
+  const hi=progressTargetRepMaxForItem(item,recOpts);
+  if(hi==null)return undefined;
+  return{target:{repMax:hi}};
+}
 
 function cpNextSessionLastLines(pack){
   const esc=typeof escHtml==='function'?escHtml:s=>String(s==null?'':s);

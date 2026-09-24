@@ -43,21 +43,41 @@ function ok(name, cond, extra) {
 
   await page.evaluate(() => {
     window.liveClientId = 'c1';
+    window.livePlanId = 'pl-goblet';
+    window.PL = [{
+      id: 'pl-goblet', clientId: 'c1', name: 'Goblet',
+      days: [{ exercises: [{ name: 'Przysiad Goblet', sets: '4', reps: '12' }] }]
+    }];
+    window.SE = [
+      {
+        id: 'g-old', clientId: 'c1', date: '2026-09-06', source: 'live', planId: 'pl-goblet',
+        createdAt: '2026-09-06T19:30:00',
+        exercises: [{ name: 'Przysiad Goblet', sets: [
+          { setNo: 1, kg: '20', reps: '12', kind: 'work', done: true },
+          { setNo: 2, kg: '20', reps: '12', kind: 'work', done: true }
+        ] }]
+      },
+      {
+        id: 'g-new', clientId: 'c1', date: '2026-09-13', source: 'live', planId: 'pl-goblet',
+        createdAt: '2026-09-13T20:00:00',
+        exercises: [{ name: 'Przysiad Goblet', sets: [
+          { setNo: 1, kg: '20', reps: '12', kind: 'work', done: true },
+          { setNo: 2, kg: '22.5', reps: '10', kind: 'work', done: true }
+        ] }]
+      }
+    ];
     window.liveExercises = [
       { name: 'Przysiad Goblet', done: false, collapsed: false,
-        lastDate: '2026-09-13',
+        lastDate: '2099-01-01',
+        lastKg: '999',
         lastSets: [
-          { setNo: 1, kg: '20', reps: '12', rir: '2' },
-          { setNo: 2, kg: '22.5', reps: '10', rir: '1' }
+          { setNo: 1, kg: '999', reps: '1', rir: '0' },
+          { setNo: 2, kg: '999', reps: '1', rir: '0' }
         ],
         lastHistory: [
-          { date: '2026-09-13', time: '20:00', sets: [
-            { setNo: 1, kg: '20', reps: '12' },
-            { setNo: 2, kg: '22.5', reps: '10' }
-          ]},
-          { date: '2026-09-06', time: '19:30', sets: [
-            { setNo: 1, kg: '20', reps: '12' },
-            { setNo: 2, kg: '20', reps: '12' }
+          { date: '2099-01-01', time: '20:00', sets: [
+            { setNo: 1, kg: '999', reps: '1' },
+            { setNo: 2, kg: '999', reps: '1' }
           ]}
         ],
         sets: [
