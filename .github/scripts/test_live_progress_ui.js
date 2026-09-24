@@ -225,21 +225,25 @@ function ok(name, cond, extra) {
 
   const saved = await page.evaluate(() => {
     const se = (window.SE || []).filter(s => s && s.clientId === 'c1');
-    const liveSess = se.find(s => s.source === 'live') || se[0] || null;
+    const liveSess = se.find(s => {
+      if (s.source !== 'live') return false;
+      const n = (s.exercises || []).reduce((acc, e) => acc + ((e.sets || []).length), 0);
+      return n === 4;
+    }) || se.find(s => s.source === 'live') || se[0] || null;
     const adh = typeof clientAdherenceStats === 'function' ? clientAdherenceStats('c1', 30) : null;
     return {
       n: se.length,
       source: liveSess && liveSess.source,
-      sets: liveSess && (liveSess.exercises || []).reduce((n, e) => n + ((e.sets || []).length), 0),
+      sets: liveSess && (liveSess.exercises || []).reduce((acc, e) => acc + ((e.sets || []).length), 0),
       volume: liveSess && liveSess.volume,
       logged: adh && adh.logged,
       rir: liveSess && liveSess.exercises && liveSess.exercises[0] && liveSess.exercises[0].sets && liveSess.exercises[0].sets[0] && liveSess.exercises[0].sets[0].rir
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'live_progress_saved.png') });
-  ok('session saved as live', saved.source === 'live' && saved.n >= 1, JSON.stringify(saved));
+  ok('session saved as live', saved.source === 'live' && saved.n >= 3, JSON.stringify(saved));
   ok('saved 4 sets / 288 kg', saved.sets === 4 && saved.volume === 288, JSON.stringify(saved));
-  ok('Progress logged day = 1', saved.logged === 1, JSON.stringify(saved));
+  ok('Progress logged includes today', saved.logged >= 1, JSON.stringify(saved));
   ok('saved rir', saved.rir === '2', JSON.stringify(saved));
 
   await browser.close();

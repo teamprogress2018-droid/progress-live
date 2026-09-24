@@ -48,7 +48,12 @@ function sess(id, clientId, date, planId, kg, reps, rir, n) {
     if (app) app.style.display = '';
     const loading = document.getElementById('app-loading');
     if (loading) loading.style.display = 'none';
+    window.CL = [
+      { id: 'c-anna', name: 'Anna' },
+      { id: 'c-bartek', name: 'Bartek' }
+    ];
     if (typeof goTo === 'function') goTo('live');
+    if (typeof liveClientSetField === 'function') liveClientSetField('c-anna', 'Anna', true, 0);
   });
   await page.waitForSelector('#live-ex-done');
 
