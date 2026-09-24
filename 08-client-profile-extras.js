@@ -2207,14 +2207,7 @@ function cpOverviewRecs(c){
   const id=c.id;
   const hasApp=cpOverviewHasApp(c);
   const recs=[];
-  if(!hasApp){
-    recs.push({
-      priority:1,order:1,kind:'invite',tone:'act',
-      title:'Wyślij zaproszenie do aplikacji',
-      reason:'Bez aplikacji klient nie wyśle check-inu, zdjęć ani danych z Garmina.',
-      cta:{label:'Wyślij zaproszenie',onclick:`typeof openInviteModal==='function'&&openInviteModal('${id}')`}
-    });
-  }
+  // Zaproszenie: tylko pasek alertu na górze strony — nie powtarzamy tu.
   const ci=cpOverviewLastCheckin(id);
   const ciRecent=ci.days!=null&&ci.days<=3;
   if(cpOverviewHasSessionToday(c)&&!ciRecent){
@@ -2656,15 +2649,16 @@ function collectCpBriefItems(c){
       kind:'session',
       label:todaySess?'Dziś':'Następna',
       fact:(todaySess?'':(day+(bits.length?' · ':'')))+bits.join(' · '),
-      extra:plan&&plan.name?plan.name:'',
+      extra:plan?(typeof cpOverviewPlanTitle==='function'?cpOverviewPlanTitle(plan,c):(plan.name||'')):'',
       time:time,
       title:title,
       headline:parts.name||title||'',
       dayName:parts.name||title||'',
       priority:parts.priority||''
     });
-  }else if(plan&&plan.name){
-    items.push({kind:'session',label:'Plan',fact:plan.name,extra:'brak dnia w kalendarzu'});
+  }else if(plan){
+    const planTitle=typeof cpOverviewPlanTitle==='function'?cpOverviewPlanTitle(plan,c):(plan.name||'Plan');
+    items.push({kind:'session',label:'Plan',fact:planTitle,extra:'brak dnia w kalendarzu',dayName:planTitle,headline:planTitle});
   }
   const inj=String(c.injuries||'').trim();
   if(inj){
@@ -3383,10 +3377,11 @@ function renderCPOverview(c){
           <div class="cp-ov-stat-sub" style="margin-bottom:10px;">${escHtml(plan.method||'—')} · ${plan.duration||'?'} tyg. · ${days.length} dni/tydzień</div>
           <div class="cp-ov-week">
             ${days.slice(0,7).map((d,i)=>{
-              const parsed=typeof cpOverviewParsePlanDay==='function'?cpOverviewParsePlanDay(d,i):{name:d.muscles||d.name||d.day||'Trening',priority:'',weekdayLabel:d.day||'',rest:!!d.rest};
+              const parsed=typeof cpOverviewParsePlanDay==='function'?cpOverviewParsePlanDay(d,i):{name:d.muscles||d.name||d.day||'Trening',priority:'',weekdayLabel:'',rest:!!d.rest};
               const st=typeof cpOverviewPlanDayStatus==='function'?cpOverviewPlanDayStatus(c.id,d,i,parsed):'Zaplanowany';
+              const wd=parsed.weekdayLabel||'';
               return `<div class="cp-ov-week-day${parsed.rest?' is-rest':''}${st==='Dziś'?' is-today':''}${st==='Wykonany'?' is-done':''}">
-              <span class="cp-ov-week-wd">${escHtml(parsed.weekdayLabel||d.day||d.dayName||'')}</span>
+              ${wd?`<span class="cp-ov-week-wd">${escHtml(wd)}</span>`:''}
               <div class="cp-ov-week-name">${escHtml(parsed.rest?'Odpoczynek':parsed.name)}</div>
               ${parsed.priority&&!parsed.rest?`<div class="cp-ov-week-pri">${escHtml(parsed.priority)}</div>`:''}
               <div class="cp-ov-week-st">${escHtml(st)}</div>

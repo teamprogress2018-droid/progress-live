@@ -49,7 +49,7 @@ ok('alert + status stack',overview.includes('cpOverviewAlertHTML(c)')&&overview.
 ok('no duplicate edit CTA',!overview.includes('cp-ov-edit-cta'));
 ok('tabs unchanged',html.includes('id="cpt-overview"')&&html.includes("setCPTab('overview')")&&html.includes('id="cpt-training"')&&html.includes('id="cpt-plan"'));
 ok('css situation',css.includes('.cp-ov-situation')&&css.includes('.cp-ov-sit-tile-ok')&&css.includes('.cp-ov-next-watch')&&css.includes('.cp-ov-sit-tile-act'));
-ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=78')&&html.includes('styles.css?v=109'));
+ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=80')&&html.includes('styles.css?v=109'));
 ok('ci unit',wf.includes('test_cp_overview_situation.js'));
 ok('ci ui',wf.includes('test_cp_overview_situation_ui.js'));
 
@@ -264,7 +264,7 @@ sandbox.window.CHECKINS={c1:[]};
 sandbox.SE.push({id:'s-today',clientId:'c1',date:'2026-09-21',source:'planned',type:'FBW'});
 sandbox.getClientOnboard=()=>({invite:false,complete:false,done:0,total:6});
 const start=sandbox.cpOverviewStatusSteps({id:'c1',name:'Jan Kowalski',trainingFreq:3});
-ok('no-app recs skip poproś checkin',start.some(x=>x.kind==='invite')&&start.filter(x=>x.kind==='checkin').every(x=>x.cta&&x.cta.label==='Dodaj notatkę')&&!start.some(x=>x.cta&&x.cta.label==='Poproś o check-in'),JSON.stringify(start.map(x=>({k:x.kind,l:x.cta&&x.cta.label}))));
+ok('no-app recs skip poproś checkin',!start.some(x=>x.kind==='invite')&&start.filter(x=>x.kind==='checkin').every(x=>x.cta&&x.cta.label==='Dodaj notatkę')&&!start.some(x=>x.cta&&x.cta.label==='Poproś o check-in'),JSON.stringify(start.map(x=>({k:x.kind,l:x.cta&&x.cta.label}))));
 sandbox._adh={assigned:2,logged:2,pct:100};
 const full=sandbox.cpOverviewRecs({id:'c1',name:'Jan Kowalski',trainingFreq:3,inviteSent:true});
 ok('2/2 never shortens plan',!full.some(x=>x.kind==='adherence')&&!JSON.stringify(full).includes('Skróć'),JSON.stringify(full.map(x=>x.kind+' '+x.title)));

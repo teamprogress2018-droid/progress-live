@@ -32,7 +32,8 @@ ok('no shorten label',!/Skróć plan/.test(src08)&&src08.includes('Otwórz plan'
 ok('ok line',src08.includes('Wszystko w porządku — brak pilnych działań.'));
 ok('early copy',src08.includes('Wiarygodną analizę pokażemy po 4 tygodniach lub 4 pomiarach.'));
 ok('ci workflow',wf.includes('test_cp_overview_recs.js'));
-ok('cache',html.includes('08-client-profile-extras.js?v=78'));
+ok('cache',html.includes('08-client-profile-extras.js?v=80'));
+ok('invite not a rec',!/kind:'invite'/.test(extract(src08,'cpOverviewRecs')));
 
 const sandbox={
   window:{CL:[],SE:[],METRIC_ENTRIES:[],CHECKINS:{}},
@@ -73,7 +74,7 @@ sandbox.window.METRIC_ENTRIES.length=0;
 sandbox.window.CHECKINS={};
 let recs=sandbox.cpOverviewRecs(client());
 ok('2/2 no adherence rec',!recs.some(x=>x.kind==='adherence'),JSON.stringify(recs.map(x=>x.kind)));
-ok('2/2 invite still if no app',recs.some(x=>x.kind==='invite'));
+ok('2/2 no invite rec',!recs.some(x=>x.kind==='invite'));
 
 recs=sandbox.cpOverviewRecs(client({inviteSent:true}));
 ok('2/2 invited no shorten',!recs.some(x=>x.kind==='adherence')&&recs.every(x=>x.cta&&x.cta.label!=='Skróć plan'));
@@ -89,7 +90,7 @@ sandbox.window.SE.push({id:'t',clientId:'c1',date:'2026-09-24',source:'planned',
 sandbox.window.CHECKINS={};
 recs=sandbox.cpOverviewRecs(client());
 ok('no app checkin is note not poproś',recs.some(x=>x.kind==='checkin'&&x.cta.label==='Dodaj notatkę')&&!recs.some(x=>x.cta&&/Poproś/.test(x.cta.label)),JSON.stringify(recs.map(x=>x.kind+':'+(x.cta&&x.cta.label))));
-ok('invite rec present without app',recs.some(x=>x.kind==='invite'));
+ok('no invite rec without app',!recs.some(x=>x.kind==='invite'));
 ok('max 3',recs.length<=3,String(recs.length));
 ok('every rec has reason',recs.every(x=>x.reason&&x.reason.length>8),JSON.stringify(recs.map(x=>x.reason)));
 
@@ -147,6 +148,8 @@ const old=sandbox.cpOverviewParsePlanDay({day:'Dzień 1 — Dzień A · całe ci
 ok('old name split',old.name==='Dzień A · całe ciało'&&old.priority==='góra pleców, triceps, pośladki'&&!/Dzień 1/.test(old.name),JSON.stringify(old));
 const pon=sandbox.cpOverviewParsePlanDay({day:'Pon',muscles:'Całe ciało'},0);
 ok('weekday chip',pon.weekday===1&&pon.weekdayLabel==='pn'&&pon.name==='Całe ciało',JSON.stringify(pon));
+const dayA=sandbox.cpOverviewParsePlanDay({day:'A'},0);
+ok('letter day not weekday',dayA.name==='A'&&!dayA.weekdayLabel&&dayA.weekday==null,JSON.stringify(dayA));
 const titled=sandbox.cpOverviewPlanTitle({name:'Jan Kowalski — FBW Siła',duration:8,clientName:'Jan Kowalski'},client());
 ok('plan title drops client',titled==='FBW Siła · 8 tygodni',titled);
 
