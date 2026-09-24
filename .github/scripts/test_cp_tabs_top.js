@@ -27,7 +27,7 @@ ok('more dropdown', drawer.includes('cp-tabs-more-menu') && drawer.includes('cpt
 ok('settings in more as Ustawienia', /cpt-features[\s\S]*Ustawienia/.test(drawer));
 ok('css horizontal bar', css.includes('.cp-tabs-bar') && css.includes('.cp-main'));
 ok('tabs centered', css.includes('justify-content:center') && /cp-tabs-bar\{[\s\S]*?justify-content:center/.test(css.replace(/\s+/g,' ')));
-ok('tabs red accent color', /\.cp-tab\{[^}]*color:var\(--accent\)/.test(css.replace(/\s+/g,' ')));
+ok('tabs gray inactive + red active underline', /\.cp-tab\{[^}]*color:var\(--text-secondary\)/.test(css.replace(/\s+/g,' ')) && /\.cp-tab\.active\{[^}]*border-bottom-color:var\(--accent\)/.test(css.replace(/\s+/g,' ')));
 ok('more menu not clipped', css.includes('overflow:visible') && css.includes('.cp-tabs-more-menu'));
 ok('setCPTab more list updated', src07.includes("moreTabs=['tasks'") || /moreTabs=\['tasks'/.test(src07));
 ok('toggleCpMoreNav ignore race', /_cpMoreIgnoreUntil/.test(src09) && /function\s+toggleCpMoreNav/.test(src09));
