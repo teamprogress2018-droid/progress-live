@@ -102,6 +102,7 @@ function ok(name, cond, extra) {
     const days = [...document.querySelectorAll('.cp-ov-week-day')].map(el => ({
       wd: (el.querySelector('.cp-ov-week-wd') || {}).textContent || '',
       name: (el.querySelector('.cp-ov-week-name') || {}).textContent || '',
+      accent: (el.querySelector('.cp-ov-week-accent') || {}).textContent || '',
       st: (el.querySelector('.cp-ov-week-st') || {}).textContent || '',
       today: el.classList.contains('is-today'),
       nolog: el.classList.contains('is-nolog')
@@ -137,8 +138,8 @@ function ok(name, cond, extra) {
   ok('train hint empty log', /brak zapisanych/.test(empty.trainHint), empty.trainHint);
   ok('add workout in list', empty.addWo);
   ok('no remind jargon', !empty.remind && !/Live, apka/.test(empty.woText));
-  ok('check-in copy', /Check-in/.test(empty.checkinLbl) && /brak od/.test(empty.checkinHint), empty.checkinLbl + ' ' + empty.checkinHint);
-  ok('accent titles', empty.days.some(d => /akcent: klatka/.test((d.name || '').toLowerCase())), JSON.stringify(empty.days));
+  ok('check-in copy', /Oczekiwanie na raport|Od ostatniego raportu/.test(empty.checkinLbl) && /brak od/.test(empty.checkinHint), empty.checkinLbl + ' ' + empty.checkinHint);
+  ok('accent titles', empty.days.some(d => /akcent:/.test((d.accent || '').toLowerCase()) && /klatka/.test((d.accent || d.name || '').toLowerCase())), JSON.stringify(empty.days));
   ok('weekday line', empty.days.every(d => d.wd), JSON.stringify(empty.days));
   ok('today framed', empty.days.filter(d => d.today).every(d => d.st === 'Dziś') && empty.days.some(d => d.today), JSON.stringify(empty.days));
   ok('past not done without log', empty.days.filter(d => d.nolog).every(d => d.st === 'Niezapisany'), JSON.stringify(empty.days));

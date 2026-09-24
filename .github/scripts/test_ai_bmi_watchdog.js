@@ -37,7 +37,7 @@ ok('dash + auto notifs', /Regres/.test(src04) && /maybeNotifyTrainerMonitor/.tes
 ok('monitor context', /function clientMonitorContextForAI/.test(src08) && /function maybeNotifyTrainerMonitor/.test(src08));
 ok('watchdog css stays', css.includes('.ai-watch-card') && css.includes('.cp-bmi-banner'));
 ok('overview drops duplicate banner', !/cp-bmi-banner/.test(src08.slice(src08.indexOf('function renderCPOverview'), src08.indexOf('function renderCPPlan'))));
-ok('cache', html.includes('07-forms-metrics-calculator.js?v=42') && html.includes('08-client-profile-extras.js?v=82') && html.includes('06-inbox-exercises-ai-programs.js?v=84') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=42') && html.includes('04-client-portal.js?v=54') && html.includes('styles.css?v=114'));
+ok('cache', html.includes('07-forms-metrics-calculator.js?v=42') && html.includes('08-client-profile-extras.js?v=83') && html.includes('06-inbox-exercises-ai-programs.js?v=84') && html.includes('03-ai-plangen-bizstats-aicoach.js?v=42') && html.includes('04-client-portal.js?v=54') && html.includes('styles.css?v=115'));
 ok('CI', wf.includes('test_ai_bmi_watchdog.js') && wf.includes('test_ai_bmi_watchdog_ui.js'));
 
 const document = { getElementById: () => null, querySelectorAll: () => [], addEventListener() {} };

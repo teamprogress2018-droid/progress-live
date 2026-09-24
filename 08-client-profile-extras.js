@@ -1899,7 +1899,7 @@ function cpCollapseDaySessions(sessDay){
   const byKey={};
   (sessDay||[]).forEach(s=>{
     const title=typeof sessionTitle==='function'?sessionTitle(s):(s.type||s.title||'Sesja');
-    const key=String(title).toLowerCase().trim();
+    const key=[s.planId||'',s.dayIdx??'',s.source==='planned'?'planned':'recorded',String(title).toLowerCase().trim()].join('|');
     if(!byKey[key]){
       byKey[key]={title,items:[],happened:false,s};
       groups.push(byKey[key]);
@@ -1931,7 +1931,7 @@ function cpAssignmentSessions(clientId,opts){
     if(b!=null&&(a==null||Number(b)<Number(a)))byDate[d]=s;
   });
   const plannedRows=Object.keys(byDate).map(k=>byDate[k]);
-  const plannedShown=keepPlanned?plannedRows:plannedRows.filter(s=>!loggedDates.has(String(s.date||'').slice(0,10)));
+  const plannedShown=keepPlanned?plannedRows:plannedRows.filter(s=>!other.some(o=>typeof sessionMatchesPlanned==='function'&&sessionMatchesPlanned(s,o)));
   return other.concat(plannedShown);
 }
 window.cpAssignmentSessions=cpAssignmentSessions;
@@ -2522,7 +2522,7 @@ function cpOverviewSituationHTML(c){
     {id:'train',n:trainN,unit:trainUnit,lbl:'Treningi w tym tygodniu',hint:trainHint,tone:trainTone,target:'cp-ov-card-train'},
     {id:'mass',n:fmtN(massN),unit:massN!=null&&massN!==''?'kg':'',lbl:'Waga',hint:massHint,tone:massTone,target:'cp-ov-card-metrics'},
     {id:'sleep',n:sleepVal==null?'—':fmtN(sleepVal),unit:sleepVal!=null?'/10':'',lbl:'Sen',hint:sleepVal==null?'brak ocen snu':sleepHint,tone:sleepTone,target:'cp-ov-card-metrics'},
-    {id:'checkin',n:ciN,unit:'',lbl:'Check-in',hint:ciHint,tone:ciTone,target:'cp-ov-card-feel'}
+    {id:'checkin',n:ciN,unit:ciN==='—'?'':ciN==='1'?'dzień':'dni',lbl:ciGap&&ciGap.ymd?'Od ostatniego raportu':'Oczekiwanie na raport',hint:ciHint,tone:ciTone,target:'cp-ov-card-feel'}
   ];
   const steps=typeof cpOverviewStatusSteps==='function'?cpOverviewStatusSteps(c):[];
   const recOk=steps.length===1&&steps[0].kind==='ok';
@@ -2738,15 +2738,16 @@ function cpOverviewPlanDayAccent(parsed){
   s=s.replace(/\s+/g,' ').replace(/[·,;]\s*$/,'').trim().toLowerCase();
   s=s.replace(/^akcent:\s*/i,'');
   if(!s)return '';
-  return 'Akcent: '+s;
+  return 'Akcent: '+s.replace(/^(?:całe ciało|fbw)\s*[—–: -]+\s*/i,'').replace(/^akcent:\s*/i,'');
 }
-function cpOverviewPlanDayStatus(clientId,day,idx,parsed,today){
+function cpOverviewPlanDayStatus(clientId,day,idx,parsed,today,planId){
   if(parsed&&parsed.rest)return'Odpoczynek';
   const t=today||cpOverviewTodayYmd();
   const b=cpOverviewWeekBounds(t);
-  const sessions=(window.SE||[]).filter(s=>s&&s.clientId===clientId&&s.date&&String(s.date).slice(0,10)>=b.from&&String(s.date).slice(0,10)<=b.to);
+  const pid=planId||(typeof latestClientPlan==='function'?latestClientPlan(clientId)?.id:'');
+  const sessions=(window.SE||[]).filter(s=>s&&s.clientId===clientId&&(!pid||s.planId===pid)&&s.date&&String(s.date).slice(0,10)>=b.from&&String(s.date).slice(0,10)<=b.to);
   const match=s=>{
-    if(s.dayIdx!=null&&Number(s.dayIdx)===idx)return true;
+    if(s.dayIdx!=null)return Number(s.dayIdx)===idx;
     if(parsed&&parsed.weekday!=null){
       const d=new Date(String(s.date).slice(0,10)+'T12:00:00').getDay();
       if(d===parsed.weekday)return true;
@@ -3565,13 +3566,13 @@ function renderCPOverview(c){
           <div class="cp-ov-week">
             ${days.slice(0,7).map((d,i)=>{
               const parsed=typeof cpOverviewParsePlanDay==='function'?cpOverviewParsePlanDay(d,i):{name:d.muscles||d.name||d.day||'Trening',priority:'',weekdayLabel:'',rest:!!d.rest,muscles:d.muscles||''};
-              const st=typeof cpOverviewPlanDayStatus==='function'?cpOverviewPlanDayStatus(c.id,d,i,parsed):'Zaplanowany';
+              const st=typeof cpOverviewPlanDayStatus==='function'?cpOverviewPlanDayStatus(c.id,d,i,parsed,null,plan.id):'Zaplanowany';
               const wd=parsed.weekdayLabel||'';
               const accent=parsed.rest?'':(typeof cpOverviewPlanDayAccent==='function'?cpOverviewPlanDayAccent(parsed):'');
               const stClass=st==='Dziś'?' is-today':st==='Wykonany'?' is-done':(st==='Niezapisany'||st==='Brak zapisu')?' is-nolog':st==='Opuszczony'?' is-skip':'';
               return `<div class="cp-ov-week-day${parsed.rest?' is-rest':''}${stClass}">
               ${wd?`<span class="cp-ov-week-wd">${escHtml(wd)}</span>`:''}
-              <div class="cp-ov-week-name">${escHtml(parsed.rest?'Odpoczynek':(accent||'Trening'))}</div>
+              <div class="cp-ov-week-name">${escHtml(parsed.rest?'Odpoczynek':parsed.name||'Trening')}</div>${accent?`<div class="cp-ov-week-accent" title="${escHtml(accent)}">${escHtml(accent)}</div>`:''}
               <div class="cp-ov-week-st">${escHtml(st)}</div>
             </div>`;
             }).join('')}
@@ -3850,8 +3851,8 @@ function renderCPMetrics(c){
         }).join('')}
       </div>
       <div class="cp-metrics-actions">
-        <button type="button" class="btn btn-primary btn-sm" onclick="openMetricEntryForClient('${c.id}','${activeGid}')">+ Nowy pomiar</button>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="typeof openClientBaselineModal==='function'&&openClientBaselineModal('${c.id}')">Baseline</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="openMetricEntryForClient('${c.id}','${activeGid}')">+ Dodaj pomiar</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="typeof openClientBaselineModal==='function'&&openClientBaselineModal('${c.id}')">Pomiary początkowe</button>
         <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('progress')">📈 Progress</button>
       </div>
     </div>
@@ -3865,7 +3866,7 @@ function renderCPMetrics(c){
         </div>
         <div style="margin-left:auto;display:flex;gap:6px;">
           ${last?`<button type="button" class="btn btn-ghost btn-sm" onclick="editMetricEntry('${last.id}')">✎ Edytuj</button>`:''}
-          <button type="button" class="btn btn-primary btn-sm" onclick="openMetricEntryForClient('${c.id}','${activeGroup.id}')">+</button>
+
         </div>
       </div>
       ${last?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:6px;">
@@ -3889,7 +3890,7 @@ function renderCPMetrics(c){
         <span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${geAll.length} wpisów</span>
       </div>
       ${!geAll.length
-        ?`<div style="text-align:center;padding:24px;color:var(--muted);font-size:12px;">Brak historii. <button type="button" class="btn btn-primary btn-sm" style="margin-top:10px;" onclick="openMetricEntryForClient('${c.id}','${activeGid}')">+ Dodaj pomiar</button></div>`
+        ?`<div style="text-align:center;padding:24px;color:var(--muted);font-size:12px;">Brak historii. Dodaj pierwszy pomiar przyciskiem u góry.</div>`
         :`<div style="display:flex;flex-direction:column;gap:6px;">
           ${geAll.map(e=>{
             const vals=(activeGroup.metrics||[]).map(m=>e.values[m.id]!=null?`<span style="font-size:11px;"><span style="color:var(--muted);">${escHtml(m.name)}:</span> <strong>${e.values[m.id]}</strong>${m.unit?' '+escHtml(m.unit):''}</span>`:'').filter(Boolean).join(' · ');
@@ -4292,7 +4293,7 @@ function cpNextSessionBriefHtml(clientId){
   const tone=posture==='ROZWIJAJ'?'good':(posture==='HAMUJ'?'bad':(posture==='ZA MAŁO DANYCH'?'muted':'flat'));
   const confFn=typeof progressClassConfidenceLabel==='function'?progressClassConfidenceLabel:c=>String(c||'');
   const conf=brief?confFn(brief.confidence):'';
-  const reasons=brief&&Array.isArray(brief.reasons)?brief.reasons.filter(Boolean):[];
+  const reasons=brief&&Array.isArray(brief.reasons)?brief.reasons.filter(Boolean).map(r=>String(r).includes('7B')?'Zapisz serie z kolejnych treningów tego planu, aby otrzymać wskazówki progresji.':r):[];
   const rowHtml=(row,kind)=>{
     if(!row)return '';
     return `<div class="cp-ex-prog-row" data-ns-action="${esc(row.action||'')}" data-ns-kind="${esc(kind)}">
@@ -4410,14 +4411,14 @@ function renderCPProgress(c){
     </div>
 
     <div data-cp-panel="kpi" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;">
-      <div class="cp-stat-box"><div class="cp-stat-val" style="color:${adh30.pct>=70?'var(--teal)':adh30.pct>=40?'var(--orange)':'var(--accent)'};">${adh30.pct}%</div><div class="cp-stat-lbl">Adherencja 30 dni</div><div style="font-size:9px;color:var(--muted);margin-top:2px;">${adh30.logged}/${adh30.assigned||'—'} · 7d ${adh7.pct}%</div></div>
+      <div class="cp-stat-box"><div class="cp-stat-val" style="color:${adh30.pct>=70?'var(--teal)':adh30.pct>=40?'var(--orange)':'var(--accent)'};">${adh30.pct}%</div><div class="cp-stat-lbl">Regularność 30 dni</div><div style="font-size:9px;color:var(--muted);margin-top:2px;">${adh30.logged}/${adh30.assigned||'—'} · 7d ${adh7.pct}%</div></div>
       <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--accent);">${sess30}</div><div class="cp-stat-lbl">Sesje 30 dni</div><div style="font-size:9px;color:var(--muted);margin-top:2px;">${Math.round(totalVol).toLocaleString('pl')} kg</div></div>
       <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--blue);">${ciAvg||'—'}</div><div class="cp-stat-lbl">Check-in śr.</div><div style="font-size:9px;color:var(--muted);margin-top:2px;">${ciPts.length?ciPts.length+' raportów':'brak'}</div></div>
-      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--teal);">${bestStreak||habitPct7||'—'}</div><div class="cp-stat-lbl">${bestStreak?'Streak nawyków':'Nawyki 7d'}</div><div style="font-size:9px;color:var(--muted);margin-top:2px;">${habits.length?habits.length+' aktywnych':(bestStreak?'dni':'brak nawyków')}${habitPct7?' · '+habitPct7+'%':''}</div></div>
+      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--teal);">${bestStreak||habitPct7||'—'}</div><div class="cp-stat-lbl">${bestStreak?'Dni z nawykiem':'Nawyki 7d'}</div><div style="font-size:9px;color:var(--muted);margin-top:2px;">${habits.length?habits.length+' aktywnych':(bestStreak?'dni':'brak nawyków')}${habitPct7?' · '+habitPct7+'%':''}</div></div>
     </div>
     ${adh30.assigned&&!adh30.logged?`<div style="font-size:11px;color:var(--muted);line-height:1.45;margin:-8px 0 14px;">Kalendarz ma ${adh30.assigned} zaplanowanych dni, ale brak zapisu z Live / apki (serie) / zadania domowego — same terminy nie wchodzą do Progress.</div>`:''}
 
-    <div data-cp-panel="train" style="display:grid;grid-template-columns:1.55fr 1fr;gap:14px;margin-bottom:14px;">
+    ${logged.length?`    <div data-cp-panel="train" style="display:grid;grid-template-columns:1.55fr 1fr;gap:14px;margin-bottom:14px;">
       <div class="stat-card">
         <div class="stat-card-hdr">
           <div>
@@ -4443,6 +4444,7 @@ function renderCPProgress(c){
       </div>
     </div>
 
+`:`<div data-cp-panel="train" class="stat-card cp-progress-empty"><strong>Brak zapisanych treningów</strong><p>Zakończ pierwszy trening, aby zobaczyć wyniki i wskazówki progresji.</p><button type="button" class="btn btn-primary btn-sm" onclick="cpStartLive()">Rozpocznij trening</button></div>`}
     <div data-cp-panel="body" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
       <div class="stat-card">
         <div class="stat-card-hdr">
@@ -4501,7 +4503,7 @@ function renderCPProgress(c){
         ${strengthBars.length?cpHorizontalBars(strengthBars):''}
       </div>`:''}
 
-      <div class="stat-card"${lastS||strengthAsc.length>=2?'':' style="grid-column:1/-1;"'}>
+      ${logged.length?`<div class="stat-card"${lastS||strengthAsc.length>=2?'':' style="grid-column:1/-1;"'}>
         <div class="stat-card-hdr">
           <div>
             <div class="stat-card-title">🏆 Rekordy z treningów</div>
@@ -4519,11 +4521,11 @@ function renderCPProgress(c){
             </div>`;
           }).join('')}
         </div>`:''}
-      </div>
+      </div>`:''}
     </div>
 
-    ${typeof cpNextSessionBriefHtml==='function'?cpNextSessionBriefHtml(c.id):''}
-    ${typeof cpExerciseProgressPanelHtml==='function'?cpExerciseProgressPanelHtml(c.id):''}
+    ${logged.length&&typeof cpNextSessionBriefHtml==='function'?cpNextSessionBriefHtml(c.id):''}
+    ${logged.length&&typeof cpExerciseProgressPanelHtml==='function'?cpExerciseProgressPanelHtml(c.id):''}
 
     <div data-cp-panel="checkin" style="display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:14px;">
       <div class="stat-card">
@@ -4543,10 +4545,10 @@ function renderCPProgress(c){
       <div class="stat-card">
         <div class="stat-card-hdr">
           <div>
-            <div class="stat-card-title">✅ Adherencja nawyków</div>
+            <div class="stat-card-title">✅ Regularność nawyków</div>
             <div class="stat-card-sub">% odhaczeń tygodniowo · ${habits.length} aktywnych</div>
           </div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--teal);">${habitPct7}%</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--teal);">${habits.length?habitPct7+'%':'—'}</div>
         </div>
         ${habits.length?cpPctBarChart(habitWeeks,{color:'var(--teal)',h:120})
           :`<div style="font-size:12px;color:var(--muted);padding:16px 0;">Brak nawyków — dodaj w zakładce Zadania.</div>`}
@@ -4554,7 +4556,7 @@ function renderCPProgress(c){
       <div class="stat-card">
         <div class="stat-card-hdr">
           <div>
-            <div class="stat-card-title">🔥 Streaki</div>
+            <div class="stat-card-title">🔥 Dni z rzędu</div>
             <div class="stat-card-sub">Najdłuższe serie</div>
           </div>
         </div>
@@ -4566,7 +4568,7 @@ function renderCPProgress(c){
               <span style="font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:var(--teal);flex-shrink:0;">${st}d</span>
             </div>`;
           }).join('')}
-        </div>`:`<div style="font-size:12px;color:var(--muted);">Brak streaków.</div>`}
+        </div>`:`<div style="font-size:12px;color:var(--muted);">Brak serii dni z wykonanym nawykiem.</div>`}
       </div>
     </div>
 
@@ -4835,10 +4837,12 @@ function renderCPTraining(c){
     return true;
   });
   const plannedToToday=plannedWeek.filter(s=>String(s.date||'').slice(0,10)<=todayStr);
-  const doneWeek=datesIn(logged.filter(s=>s.date>=weekFrom&&s.date<=weekTo&&s.date<=todayStr));
+  const doneWeek=new Set(plannedToToday.filter(p=>logged.some(s=>sessionMatchesPlanned(p,s))).map(p=>p.id));
+  const extraWeek=logged.filter(s=>s.date>=weekFrom&&s.date<=weekTo&&s.date<=todayStr&&!plannedToToday.some(p=>sessionMatchesPlanned(p,s))).length;
   const from30=typeof ymdAdd==='function'?ymdAdd(todayStr,-29):weekFrom;
   const planned30=(plannedKeep||[]).filter(s=>s&&s.source==='planned'&&s.date>=from30&&s.date<=todayStr);
-  const done30=datesIn(logged.filter(s=>s.date>=from30&&s.date<=todayStr));
+  const done30=new Set(planned30.filter(p=>logged.some(s=>sessionMatchesPlanned(p,s))).map(p=>p.id));
+  const extra30=logged.filter(s=>s.date>=from30&&s.date<=todayStr&&!planned30.some(p=>sessionMatchesPlanned(p,s))).length;
   const nologN=nologWeek.length;
   const noLoggedBanner=nologN
     ?`<button type="button" class="cp-nolog-banner cp-no-logged-banner" onclick="scrollToFirstUnloggedTile()">${escHtml(cpTrainWord(nologN))} z tego tygodnia bez zapisu — uzupełnij</button>`:'';
@@ -4923,11 +4927,11 @@ function renderCPTraining(c){
     <div class="cp-train-stats">
       <div class="cp-train-stat">
         <div class="cp-train-stat-n">${doneWeek.size} z ${plannedToToday.length}</div>
-        <div class="cp-train-stat-l">Ten tydzień: zrobione z zaplanowanych do dziś</div>
+        <div class="cp-train-stat-l">Realizacja planu w wybranym tygodniu do dziś${extraWeek?` · poza planem: ${extraWeek}`:''}</div>
       </div>
       <div class="cp-train-stat">
         <div class="cp-train-stat-n">${done30.size} z ${planned30.length}</div>
-        <div class="cp-train-stat-l">Ostatnie 30 dni: zrobione z zaplanowanych</div>
+        <div class="cp-train-stat-l">Realizacja planu · ostatnie 30 dni${extra30?` · poza planem: ${extra30}`:''}</div>
       </div>
     </div>
 
@@ -5370,10 +5374,10 @@ function buildMonitorVerdict(c){
     const adhMin=typeof CP_OV_ADH_MIN==='number'?CP_OV_ADH_MIN:4;
     const adhOk=typeof cpAdhSampleOk==='function'?cpAdhSampleOk(adh30):Number(adh30.assigned||0)>=adhMin;
     if(!adhOk){
-      signals.push({tone:'neutral',label:'Adherencja 30 dni',text:`Za mało danych (${adh30.logged}/${adh30.assigned||0} z min. ${adhMin} treningów).`});
-    }else if(adh30.pct>=75){score+=2;signals.push({tone:'good',label:'Adherencja 30 dni',text:`${adh30.pct}% (${adh30.logged}/${adh30.assigned}) — solidna regularność.`});}
-    else if(adh30.pct>=50){score+=0;signals.push({tone:'warn',label:'Adherencja 30 dni',text:`${adh30.pct}% — średnio; uprość plan albo usuń bariery.`});}
-    else{score-=2;signals.push({tone:'bad',label:'Adherencja 30 dni',text:`${adh30.pct}% — ryzyko regresu przez brak bodźca.`});}
+      signals.push({tone:'neutral',label:'Regularność 30 dni',text:`Za mało danych (${adh30.logged}/${adh30.assigned||0} z min. ${adhMin} treningów).`});
+    }else if(adh30.pct>=75){score+=2;signals.push({tone:'good',label:'Regularność 30 dni',text:`${adh30.pct}% (${adh30.logged}/${adh30.assigned}) — solidna regularność.`});}
+    else if(adh30.pct>=50){score+=0;signals.push({tone:'warn',label:'Regularność 30 dni',text:`${adh30.pct}% — średnio; uprość plan albo usuń bariery.`});}
+    else{score-=2;signals.push({tone:'bad',label:'Regularność 30 dni',text:`${adh30.pct}% — ryzyko regresu przez brak bodźca.`});}
   }
   if(adh7.logged===0&&adh7.assigned>0){
     score-=1;signals.push({tone:'warn',label:'Ostatni tydzień',text:`0 z ${adh7.assigned} zaplanowanych — krótki kontakt check-inowy.`});

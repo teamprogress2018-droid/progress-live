@@ -144,7 +144,7 @@ const adh = clientAdherenceStats('c1', 30);
 eq('adherence unique assigned days', adh.assigned, 2);
 eq('adherence logged client+homework days', adh.logged, 2);
 eq('homework listed', homeworkCompletions('c1', 30).length, 1);
-eq('planned happened via homework date', sessionHappened({id: 'px', clientId: 'c1', date: d1, source: 'planned'}), true);
+eq('unlinked homework does not complete planned session', sessionHappened({id: 'px', clientId: 'c1', date: d1, source: 'planned'}), false);
 
 windowObj.persistById = function persistById() {};
 windowObj.PL = [{

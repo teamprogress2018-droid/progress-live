@@ -20,7 +20,7 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 05 v38', html.includes('05-clients-builder-plans-calendar.js?v=79'));
-ok('cache 08 v42', html.includes('08-client-profile-extras.js?v=82'));
+ok('cache 08 v42', html.includes('08-client-profile-extras.js?v=83'));
 ok('ci unit', wf.includes('test_cp_cal_plan_dedupe.js'));
 ok('assignment helper', /function cpAssignmentSessions/.test(src08));
 ok('drop helper', /function dropPlannedSessionsFrom/.test(src05));
@@ -67,7 +67,7 @@ ok('active FBW not PPL', plannedOnly[0] && plannedOnly[0].planId === 'fbw' && pl
 windowObj.SE.push({ id: 'live', clientId: 'c1', date: '2026-09-07', source: 'live', type: 'Live' });
 const assign = ctx.cpAssignmentSessions('c1');
 const planned = assign.filter((s) => s.source === 'planned');
-ok('hides planned when live same day', planned.length === 0, 'n=' + planned.length);
+ok('unscoped live does not hide active plan', planned.length === 1, 'n=' + planned.length);
 ok('keeps live session', assign.some((s) => s.source === 'live'));
 const keep = ctx.cpAssignmentSessions('c1', { keepPlanned: true });
 ok('keepPlanned still has plan day', keep.filter((s) => s.source === 'planned').length === 1, 'n=' + keep.filter((s) => s.source === 'planned').length);

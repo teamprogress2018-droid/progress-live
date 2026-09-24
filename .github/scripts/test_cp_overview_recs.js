@@ -32,7 +32,7 @@ ok('no shorten label',!/Skróć plan/.test(src08)&&src08.includes('Otwórz plan'
 ok('ok line',src08.includes('Wszystko w porządku — brak pilnych działań.'));
 ok('early copy',src08.includes('Wiarygodną analizę pokażemy po 4 tygodniach lub 4 pomiarach.'));
 ok('ci workflow',wf.includes('test_cp_overview_recs.js'));
-ok('cache',html.includes('08-client-profile-extras.js?v=82'));
+ok('cache',html.includes('08-client-profile-extras.js?v=83'));
 ok('invite not a rec',!/kind:'invite'/.test(extract(src08,'cpOverviewRecs')));
 
 const sandbox={
