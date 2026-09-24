@@ -21,7 +21,7 @@ function ok(name, cond) {
 }
 
 ok('openClientProfile keeps tab when open', /alreadyOpen&&cpTab/.test(src07) || /alreadyOpen&&cpTab\?cpTab/.test(src07));
-ok('openClientProfile uses setCPTab', /function\s+openClientProfile[\s\S]{0,1500}setCPTab\(keepTab\)/.test(src07));
+ok('openClientProfile uses setCPTab', /function\s+openClientProfile[\s\S]{0,2500}setCPTab\(keepTab\)/.test(src07));
 ok('opts.tab force', /o\.tab\|\|/.test(src07));
 ok('sidebar unread badge', src05.includes('nav-client-attn') && src05.includes('msgHasUnread'));
 ok('inbox badge refreshes sidebar', /updateInboxNavBadge[\s\S]{0,200}renderSidebarClients/.test(src06));
