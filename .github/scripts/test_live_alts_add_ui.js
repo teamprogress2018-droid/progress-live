@@ -105,7 +105,7 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'live_alt_swapped.png') });
   ok('pick swaps live exercise', swapped.name === 'Wyciskanie sztangi leżąc', JSON.stringify(swapped));
 
-  await page.click('button:has-text("+ Dodaj ćwiczenie")');
+  await page.click('.live-ex-toolbar button:has-text("+ Dodaj ćwiczenie")');
   await page.waitForSelector('#live-ex-name-0-1');
   const named = await page.evaluate(() => {
     const inp = document.getElementById('live-ex-name-0-1');

@@ -3448,7 +3448,8 @@ function renderLiveExercises(slot){
     const zero=(id,v)=>{const e=liveEl(id,n);if(e)e.textContent=v;};
     zero('live-ex-done','0');zero('live-ex-total','0');zero('live-sets-done','0');zero('live-volume','0');
     const pb=liveEl('live-progress-bar',n);if(pb)pb.style.width='0%';
-    const hint=liveEl('live-progress-hint',n);if(hint)hint.textContent='';
+    const hint=liveEl('live-progress-hint',n);
+    if(hint)hint.textContent='Odhacz serię ✓ — sam plan w kalendarzu się nie liczy.';
     renderLivePeriod(n);
     liveSyncRestRecommend(n);
     return;
@@ -3464,7 +3465,7 @@ function renderLiveExercises(slot){
   const pb=liveEl('live-progress-bar',n);
   if(pb)pb.style.width=(total?Math.round(doneCnt/total*100):0)+'%';
   const hint=liveEl('live-progress-hint',n);
-  if(hint&&!document.getElementById('live-first-hint'))hint.textContent=setsDone?'Po „Zakończ trening” ten trening wejdzie do Progress.':'';
+  if(hint)hint.textContent=setsDone?'Po „Zakończ trening” ten trening wejdzie do Progress.':'Odhacz serię ✓ — sam plan w kalendarzu się nie liczy.';
   if(typeof livePaintSessionChrome==='function')livePaintSessionChrome(n);
 
   const cue=typeof liveExCuePack==='function'?liveExCuePack(n):{recs:[],brief:null,planId:st.planId||''};
@@ -3944,8 +3945,8 @@ function liveExCard(ex,i,slot,cue){
     ${showBody?`
     ${needsName||!target?'':`<div class="live-ex-target">${escHtml(target)}</div>`}
     ${note&&!needsName?`<div class="live-ex-note">${escHtml(note)}</div>`:''}
-    ${mediaOpen?`<div class="live-ex-zoom" onclick="event.stopPropagation()">${typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:true,caption:false,showGif:true}):''}</div>`:''}
     <div class="live-ex-body">
+      ${mediaOpen?`<div class="live-ex-media live-ex-zoom" onclick="event.stopPropagation()">${typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:true,caption:false,showGif:true}):''}</div>`:''}
       <div class="live-ex-log" onclick="event.stopPropagation()">
       ${needsName?`<div class="live-ex-name-box" onclick="event.stopPropagation()">
         <div class="live-alts-lbl">Nazwa ćwiczenia</div>

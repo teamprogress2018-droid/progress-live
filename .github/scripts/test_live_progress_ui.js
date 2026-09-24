@@ -39,7 +39,7 @@ function ok(name, cond, extra) {
     if (typeof goTo === 'function') goTo('live');
     if (typeof liveClientSetField === 'function') liveClientSetField('c1', 'Justyna Chylińska', true, 0);
   });
-  await page.waitForSelector('#live-ex-done');
+  await page.waitForSelector('#live-exercises-panel');
 
   await page.evaluate(() => {
     window.liveClientId = 'c1';
@@ -122,7 +122,7 @@ function ok(name, cond, extra) {
     const rows = document.querySelectorAll('#live-ex-0 .live-set-row').length;
     return { cue: cue ? cue.innerText : '', panel: !!panel, rows };
   });
-  ok('cue last weights', /Ostatnio:/.test(prevUi.cue) && /22\.5 kg|20 kg/.test(prevUi.cue) && !/999/.test(prevUi.cue), prevUi.cue);
+  ok('cue last weights', /Ostatnio:/i.test(prevUi.cue) && /22\.5 kg|20 kg/.test(prevUi.cue) && !/999/.test(prevUi.cue), prevUi.cue);
   ok('no last panel in card', prevUi.panel === false, JSON.stringify(prevUi));
   await page.hover('#live-ex-0 .live-ex-title.has-hist');
   const hoverUi = await page.evaluate(() => {

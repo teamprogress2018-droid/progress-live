@@ -36,7 +36,7 @@ function ok(name, cond, extra) {
     if (typeof liveSetPendingClient === 'function') liveSetPendingClient('c1', { clientName: 'Piotr' });
     if (typeof liveClientSetField === 'function') liveClientSetField('c1', 'Piotr', true, 0);
   });
-  await page.waitForSelector('#live-rest-timer');
+  await page.waitForSelector('#live-rest-timer', { state: 'attached' });
 
   const presets = await page.evaluate(() =>
     [...document.querySelectorAll('.live-rest-preset')].map((b) => b.textContent.trim())

@@ -55,7 +55,7 @@ function sess(id, clientId, date, planId, kg, reps, rir, n) {
     if (typeof goTo === 'function') goTo('live');
     if (typeof liveClientSetField === 'function') liveClientSetField('c-anna', 'Anna', true, 0);
   });
-  await page.waitForSelector('#live-ex-done');
+  await page.waitForSelector('#live-exercises-panel');
 
   const NAME = 'Wyciskanie sztangi';
   await page.evaluate(({ NAME, sessA, sessB, sessOther, sessD16 }) => {

@@ -40,7 +40,7 @@ function ok(name, cond, extra) {
     window.TASKS = [];
     if (typeof goTo === 'function') goTo('live');
   });
-  await page.waitForSelector('#live-exercises-panel, #live-ex-done');
+  await page.waitForSelector('#live-exercises-panel');
 
   const gifMp4 = 'https://cdn.jsdelivr.net/gh/teamprogress2018-droid/progress-live-video-assets@d7dcf95c296ad18b00ec9dc076ba80a6b343ad1e/Wyciskanie%20sztangi.mp4';
 

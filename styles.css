@@ -3356,9 +3356,9 @@ body,
   background:rgba(255,255,255,.04);border:1px solid var(--border-subtle);
   border-radius:10px;padding:10px 12px;margin:0 0 12px;
 }
-.live-ex-cue{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px;font-size:13px;color:var(--text-secondary);margin:6px 0 10px;}
+.live-ex-cue{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px;font-size:13px;color:var(--text-secondary);margin:6px 0 10px;padding:0;border:0;background:transparent;}
 .live-ex-cue-first{color:var(--text-secondary);}
-.live-ex-cue-k{font-weight:700;color:var(--text-secondary);margin-right:4px;}
+.live-ex-cue-k{flex:none;font-size:13px;font-weight:700;letter-spacing:0;text-transform:none;color:var(--text-secondary);margin-right:4px;}
 .live-ex-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
 .live-ex-toolbar-title{font-size:16px;font-weight:700;}
 .live-ex-toolbar-sub{font-size:12px;color:var(--text-secondary);}
