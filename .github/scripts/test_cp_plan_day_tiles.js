@@ -26,12 +26,14 @@ ok('ci unit', wf.includes('test_cp_plan_day_tiles.js'));
 ok('ci ui', wf.includes('test_cp_plan_day_tiles_ui.js'));
 
 ok('plan tab uses tile class', /class="cp-plan-days"/.test(planTab) && /cp-plan-day-tile/.test(planTab));
+ok('plan days are collapsible', /<details class="cp-plan-day-tile/.test(planTab) && /cp-plan-day-summary/.test(planTab) && /di===0\?' open'/.test(planTab));
 ok('no continuous day stack without class', !/flex-direction:column;gap:5px/.test(planTab));
 ok('exercise rows use tile class', /cp-plan-day-ex-row/.test(planTab));
 
 ok('tile css border', /\.cp-plan-day-tile\{[^}]*border:\s*1px solid/.test(css));
 ok('tile css radius', /\.cp-plan-day-tile\{[^}]*border-radius/.test(css));
 ok('days list gap', /\.cp-plan-days\{[^}]*gap:\s*10px/.test(css));
+ok('collapsed day styling', /\.cp-plan-day-summary\{[^}]*cursor:pointer/.test(css) && /\.cp-plan-day-tile\[open\]/.test(css));
 ok('library preview tiles', /\.plan-day-row\{[^}]*border:\s*1px solid/.test(css) && /\.plan-day-row\{[^}]*border-radius/.test(css) && /\.plan-day-row\{[^}]*margin-bottom:\s*10px/.test(css));
 ok('preview detail not black wash', !/\.plan-card-detail\{[^}]*rgba\(0,\s*0,\s*0,\s*0\.15\)/.test(css));
 

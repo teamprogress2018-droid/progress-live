@@ -61,6 +61,11 @@ function ok(name, cond, extra) {
   await page.click('#cpt-plan');
   await page.waitForSelector('.cp-plan-day-tile');
   await page.waitForTimeout(200);
+  const initialState = await page.evaluate(() => ({
+    open: document.querySelectorAll('.cp-plan-day-tile[open]').length,
+    closed: document.querySelectorAll('.cp-plan-day-tile:not([open])').length
+  }));
+  await page.locator('.cp-plan-day-summary').nth(1).click();
   await page.screenshot({ path: path.join(shotDir, 'cp_plan_day_tiles.png') });
 
   const metrics = await page.evaluate(() => {
@@ -84,6 +89,7 @@ function ok(name, cond, extra) {
   });
 
   ok('three training tiles', metrics.n === 3, 'n=' + metrics.n);
+  ok('plan starts compact', initialState.open === 1 && initialState.closed === 2, JSON.stringify(initialState));
   ok('list still shows exercises', /Przysiad Goblet/.test(metrics.body) && /Trening A/.test(metrics.body) && /Trening C/.test(metrics.body));
   ok('each tile has border', metrics.boxes.every((b) => parseFloat(b.border) >= 1), JSON.stringify(metrics.boxes.map((b) => b.border)));
   ok('tiles are separated', metrics.gaps.every((g) => g >= 6), JSON.stringify(metrics.gaps));
