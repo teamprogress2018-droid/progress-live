@@ -6441,6 +6441,7 @@ function initPreferredWeekdaysForm(prefix,selected){
 }
 const CLIENT_ONBOARD_STEPS=[
   {id:'invite',label:'Zaproszenie',missing:'brak zaproszenia'},
+  {id:'intake',label:'Ankieta',missing:'brak wypełnionej ankiety'},
   {id:'baseline',label:'Pomiary',missing:'brak pomiarów'},
   {id:'schedule',label:'Harmonogram',missing:'brak dni treningowych'},
   {id:'plan',label:'Plan',missing:'brak planu'},
@@ -6842,21 +6843,23 @@ function assignClientPipeline(client,opts){
   out.ok=true;
   return out;
 }
-/** Status startu współpracy: zaproszenie → baseline → harmonogram → plan → kalendarz → pakiet. */
+/** Status startu współpracy: zaproszenie → ankieta → baseline → harmonogram → plan → kalendarz → pakiet. */
 function clientOnboardStatus(c){
-  if(!c)return{invite:false,baseline:false,schedule:false,plan:false,calendar:false,package:false,session:false,done:0,total:CLIENT_ONBOARD_STEPS.length,complete:true,next:null,missing:[],missingLabels:[]};
+  if(!c)return{invite:false,intake:false,baseline:false,schedule:false,plan:false,calendar:false,package:false,session:false,done:0,total:CLIENT_ONBOARD_STEPS.length,complete:true,next:null,missing:[],missingLabels:[]};
   const invite=!!(c.inviteSent||c.appInvited||c.inviteSentAt||c.inviteSkipped);
+  const intakeState=typeof clientIntakeFormState==='function'?clientIntakeFormState(c.id):null;
+  const intake=!!(c.intakeDone||(intakeState&&intakeState.filled));
   const baseline=clientOnboardHasBaseline(c);
   const schedule=clientHasSchedulePrefs(c);
   const plan=clientHasAssignedPlan(c.id);
   const calendar=clientHasCalendarOrSession(c.id);
   const packageDone=clientHasPackage(c);
-  const flags={invite,baseline,schedule,plan,calendar,package:packageDone};
+  const flags={invite,intake,baseline,schedule,plan,calendar,package:packageDone};
   const missing=CLIENT_ONBOARD_STEPS.filter(s=>!flags[s.id]).map(s=>s.id);
   const missingLabels=CLIENT_ONBOARD_STEPS.filter(s=>!flags[s.id]).map(s=>s.missing);
   const done=CLIENT_ONBOARD_STEPS.length-missing.length;
   return{
-    invite,baseline,schedule,plan,calendar,package:packageDone,
+    invite,intake,baseline,schedule,plan,calendar,package:packageDone,
     session:calendar,
     done,total:CLIENT_ONBOARD_STEPS.length,
     complete:missing.length===0,

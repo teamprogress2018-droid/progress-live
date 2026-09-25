@@ -149,7 +149,7 @@ windowObj.SE = [];
 windowObj.METRIC_ENTRIES = [];
 windowObj.PACKAGES = [];
 const emptySt = clientOnboardStatus(windowObj.CL[0]);
-eq('onboard empty total', emptySt.total, 6);
+eq('onboard empty total', emptySt.total, 7);
 eq('onboard empty complete', emptySt.complete, false);
 eq('onboard empty next', emptySt.next, 'invite');
 eq('onboard empty missing has schedule', emptySt.missing.indexOf('schedule')>=0, true);
@@ -158,7 +158,7 @@ eq('onboard empty missing has baseline', emptySt.missing.indexOf('baseline')>=0,
 eq('card weight is not baseline', clientOnboardHasBaseline({id:'c-w', weight:80}), false);
 eq('baselineDone counts', clientOnboardHasBaseline({id:'c-b', baselineDone:true}), true);
 
-windowObj.CL = [{id:'c-full', name:'Gotowy', status:'active', inviteSent:true, baselineDone:true, preferredWeekdays:[1,3,5], packageSkipped:true}];
+windowObj.CL = [{id:'c-full', name:'Gotowy', status:'active', inviteSent:true, intakeDone:true, baselineDone:true, preferredWeekdays:[1,3,5], packageSkipped:true}];
 windowObj.PL = [{id:'p1', clientId:'c-full'}];
 windowObj.SE = [{clientId:'c-full', source:'planned', date:'2026-08-24', dayIdx:0}];
 windowObj.PACKAGES = [];
@@ -168,7 +168,7 @@ eq('onboard full next', fullSt.next, null);
 eq('onboard session alias', fullSt.session, true);
 eq('onboard package skipped counts', fullSt.package, true);
 
-windowObj.CL = [{id:'c-pay', name:'Paid', status:'active', inviteSent:true, baselineDone:true, preferredWeekdays:[1,3,5]}];
+windowObj.CL = [{id:'c-pay', name:'Paid', status:'active', inviteSent:true, intakeDone:true, baselineDone:true, preferredWeekdays:[1,3,5]}];
 windowObj.PL = [{id:'p-pay', clientId:'c-pay'}];
 windowObj.SE = [{clientId:'c-pay', source:'planned', date:'2026-08-24', dayIdx:0}];
 windowObj.PACKAGES = [];
@@ -177,9 +177,9 @@ windowObj.PACKAGES = [{id:'pkg1', clientId:'c-pay', title:'10 sesji'}];
 eq('onboard with package complete', clientOnboardStatus(windowObj.CL[0]).complete, true);
 
 windowObj.CL = [
-  {id:'c-a', name:'Ala', status:'active', inviteSkipped:true, preferredWeekdays:[1,3,5]},
+  {id:'c-a', name:'Ala', status:'active', inviteSkipped:true, intakeDone:true, preferredWeekdays:[1,3,5]},
   {id:'c-b', name:'Bartek', status:'archived', inviteSent:true},
-  {id:'c-c', name:'Celina', status:'active', inviteSent:true, baselineDone:true, preferredWeekdays:[1,3,5]}
+  {id:'c-c', name:'Celina', status:'active', inviteSent:true, intakeDone:true, baselineDone:true, preferredWeekdays:[1,3,5]}
 ];
 windowObj.PL = [{id:'p-c', clientId:'c-c'}];
 windowObj.SE = [];

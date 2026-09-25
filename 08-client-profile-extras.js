@@ -1635,6 +1635,7 @@ function cpClientStatusTruth(c){
   }
   if(ob&&!ob.complete){
     const miss=[];
+    if(!ob.intake)miss.push('ankieta wstępna');
     if(!ob.baseline)miss.push('pomiary');
     if(!scheduleOk)miss.push('dni treningowe');
     if(!ob.plan)miss.push('plan');
@@ -1674,6 +1675,7 @@ function cpOverviewAlertHTML(c){
     </div>`;
   }
   const miss=[];
+  if(!ob.intake)miss.push('ankieta');
   if(!ob.baseline)miss.push('pomiary');
   if(!truth.scheduleOk)miss.push('dni treningowe');
   if(!ob.plan)miss.push('plan');

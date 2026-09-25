@@ -710,6 +710,7 @@ function renderClientOnboardChecklist(){
       <div style="height:6px;background:var(--s4);border-radius:99px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:var(--accent);border-radius:99px;"></div></div>`;
   }
   const safeName=c.name.replace(/'/g,"\\'");
+  const intake=typeof clientIntakeFormState==='function'?clientIntakeFormState(id):null;
   const steps=[
     {done:st.invite,icon:'📱',title:'Wyślij zaproszenie',
       desc:st.invite&&!c.appJoined
@@ -718,6 +719,17 @@ function renderClientOnboardChecklist(){
       action:`openInviteFromOnboard('${id}')`,cta:'✉️ E-mail',
       extra:st.invite?'':`<button class="btn btn-ghost btn-sm" onclick="skipClientInvite('${id}')">Pomiń</button>`,
       doneExtra:(st.invite&&!c.appJoined)?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"><button class="btn btn-primary btn-sm" onclick="openInviteFromOnboard('${id}')">✉️ Wyślij ponownie e-mailem</button></div>`:''},
+    {done:!!(intake&&intake.filled),icon:'📋',title:'Ankieta wstępna',
+      desc:intake&&intake.filled
+        ?'Wypełniona — cel, ograniczenia i preferencje są dostępne w profilu oraz generatorze planu.'
+        :intake&&intake.pending
+          ?'Czeka na odpowiedź klienta. Plan przygotuj po sprawdzeniu celu i przeciwwskazań.'
+          :'Zbierz cel, doświadczenie, możliwości i przeciwwskazania przed przygotowaniem planu.',
+      action:intake&&intake.pending?`remindFormSend('${intake.pending.id}');renderClientOnboardChecklist()`:`sendClientIntakeForm('${id}');renderClientOnboardChecklist()`,
+      cta:intake&&intake.pending?'Przypomnij klientowi':'Wyślij ankietę',
+      extra:intake&&intake.pending
+        ?`<button class="btn btn-ghost btn-sm" onclick="openClientProfileFromOnboard('${id}','forms')">Formularze</button>`
+        :`<button class="btn btn-ghost btn-sm" onclick="openFormsLibraryFromOnboard('${id}')">Biblioteka formularzy</button>`},
     {done:st.baseline,icon:'⚖️',title:'Pomiary startowe (baseline)',desc:'Waga, %BF i obwody z datą — historia progresu',
       action:`openClientBaselineModal('${id}',true)`,cta:'Zapisz pomiary'},
     {done:st.schedule,icon:'📅',title:'Dni treningowe',desc:'Preferowane dni tygodnia — apka i auto-kalendarz z nich korzystają',
@@ -760,43 +772,8 @@ function renderClientOnboardChecklist(){
     inviteStep.desc='Klient założył konto w aplikacji ('+(c.appJoinedAt?String(c.appJoinedAt).slice(0,10):'ok')+').';
   }
   // Soft intake / pending forms block (not counted in pipeline total)
-  const intake=typeof clientIntakeFormState==='function'?clientIntakeFormState(id):null;
   let formBlock='';
-  if(intake){
-    if(intake.filled){
-      formBlock=`<div style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:var(--s3);border:1px solid var(--teal);border-radius:10px;margin-bottom:8px;">
-        <div style="width:32px;height:32px;border-radius:8px;background:rgba(62,207,178,0.18);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">✓</div>
-        <div style="flex:1;">
-          <div style="font-size:13px;font-weight:700;margin-bottom:2px;">Ankieta wstępna</div>
-          <div style="font-size:11px;color:var(--muted);">Wypełniona — dane poszły do profilu / AI.</div>
-          <div style="font-size:10px;color:var(--teal);font-family:'DM Mono',monospace;margin-top:4px;">GOTOWE</div>
-        </div>
-      </div>`;
-    }else if(intake.pending){
-      formBlock=`<div style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:var(--s3);border:1px solid rgba(157,124,244,0.45);border-radius:10px;margin-bottom:8px;">
-        <div style="width:32px;height:32px;border-radius:8px;background:rgba(157,124,244,0.18);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">📋</div>
-        <div style="flex:1;">
-          <div style="font-size:13px;font-weight:700;margin-bottom:2px;">Ankieta czeka na klienta</div>
-          <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${escHtml(intake.pending.formName||'Formularz')} — klient widzi ją w apce.</div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap;">
-            <button class="btn btn-primary btn-sm" onclick="remindFormSend('${escHtml(intake.pending.id)}');renderClientOnboardChecklist()">Przypomnij</button>
-            <button class="btn btn-ghost btn-sm" onclick="openClientProfileFromOnboard('${id}','forms')">Profil</button>
-          </div>
-        </div>
-      </div>`;
-    }else if(!intake.sent){
-      formBlock=`<div style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:var(--s3);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;">
-        <div style="width:32px;height:32px;border-radius:8px;background:var(--s2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">📋</div>
-        <div style="flex:1;">
-          <div style="font-size:13px;font-weight:700;margin-bottom:2px;">Ankieta wstępna</div>
-          <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Cel, kontuzje, częstotliwość — sync do profilu po wypełnieniu.</div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap;">
-            <button class="btn btn-primary btn-sm" onclick="sendClientIntakeForm('${id}');renderClientOnboardChecklist()">Wyślij ankietę</button>
-            <button class="btn btn-ghost btn-sm" onclick="openFormsLibraryFromOnboard('${id}')">Biblioteka</button>
-          </div>
-        </div>
-      </div>`;
-    }else if(intake.anyPending&&intake.anyPending.length){
+  if(intake&&!intake.filled&&!intake.pending&&intake.anyPending&&intake.anyPending.length){
       const p=intake.anyPending[0];
       formBlock=`<div style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:var(--s3);border:1px solid rgba(157,124,244,0.45);border-radius:10px;margin-bottom:8px;">
         <div style="width:32px;height:32px;border-radius:8px;background:rgba(157,124,244,0.18);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">📋</div>
@@ -809,7 +786,6 @@ function renderClientOnboardChecklist(){
           </div>
         </div>
       </div>`;
-    }
   }
   el.innerHTML=formBlock+steps.map(s=>`
     <div style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:var(--s3);border:1px solid ${s.done?'var(--teal)':'var(--border)'};border-radius:10px;margin-bottom:8px;">
