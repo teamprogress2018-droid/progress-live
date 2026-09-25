@@ -1187,8 +1187,9 @@ function cwSwapEx(name){
     cur.video=m.video||'';
     cur.videoEmbed=m.videoEmbed||'';
     cur.isFile=!!m.isFile;
-    cur.note='';
+    cur.note=m.note||m.libTip||'';
     cur.libTip=m.libTip||'';
+    cur.todoEdited=false;
   }
   cw.showVideo=false;
   cwRender();
@@ -1257,7 +1258,8 @@ function cwRender(){
     </div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Ćwiczenie ${cw.exIdx+1} / ${cw.exercises.length}${ex.ssLabel?' · super-seria':''}${emomOn?' · EMOM runda '+(doneSets+1)+'/'+ex.sets.length:''}</div>
     <div style="font-size:20px;font-weight:700;margin-bottom:6px;">${ex.ssLabel?`<span class="cw-ss-badge">${escHtml(ex.ssLabel)}</span>`:''}${escHtml(ex.name)}</div>
-    ${typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:!!cw.showVideo,toggleFn:'cwToggleVideo()',caption:false}):''}
+    ${typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:!!cw.showVideo,toggleFn:'cwToggleVideo()',caption:false,showNote:false}):''}
+    ${(()=>{const todo=typeof exerciseTodoNote==='function'?exerciseTodoNote(ex):String((ex&&(ex.note||ex.libTip))||'').trim();return todo?`<div class="cw-ex-todo"><div class="cw-ex-todo-lbl">Do zrobienia</div><div class="cw-ex-todo-txt">${escHtml(todo)}</div></div>`:'';})()}
     ${(()=>{const g=typeof ssGroupIdxs==='function'?ssGroupIdxs(cw.exercises,cw.exIdx):[];const others=g.filter(i=>i!==cw.exIdx).map(i=>cw.exercises[i]).filter(Boolean);return others.length?`<div style="font-size:11px;color:var(--orange);margin-bottom:8px;">Bez przerwy z: ${others.map(o=>escHtml((o.ssLabel?o.ssLabel+' ':'')+o.name)).join(', ')}</div>`:'';})()}
     ${(ex.plannedName&&ex.plannedName!==ex.name)?`<div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Z planu: ${escHtml(ex.plannedName)}</div>`:''}
     ${(ex.alts||[]).length?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px;">${ex.alts.map(a=>`<button type="button" class="btn btn-ghost btn-sm" onclick='cwSwapEx(${JSON.stringify(a)})'>↻ ${escHtml(a)}</button>`).join('')}</div>`:''}

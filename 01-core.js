@@ -1910,6 +1910,17 @@ function ownVideoForExercise(name){
 }
 window.ownVideoForExercise=ownVideoForExercise;
 
+function exerciseTodoNote(ex){
+  if(!ex)return '';
+  const own=String(ex.note||ex.notes||ex.cue||ex.planNote||'').trim();
+  if(own)return own;
+  const tip=String(ex.libTip||'').trim();
+  if(tip)return tip;
+  const lib=typeof libExerciseByName==='function'?libExerciseByName(ex.name||ex.n||''):null;
+  return String((lib&&(lib.tip||lib.desc))||'').trim();
+}
+window.exerciseTodoNote=exerciseTodoNote;
+
 function resolveCoachMedia(parsed){
   const ex=parsed&&typeof parsed==='object'?parsed:{name:parsed};
   const name=ex.name||'';
@@ -1986,8 +1997,10 @@ function coachMediaHtml(ex,opts){
   const sameGifVideo=!!(gif&&video&&typeof sameMediaUrl==='function'&&sameMediaUrl(gif,video));
   let html='';
   if(showGif&&gif)html+=exTechniqueMediaHtml({gif,name:ex&&ex.name},opts);
-  if(note)html+=`<div class="cw-coach-note">${escHtml(note)}</div>`;
-  else if(libTip)html+=`<div style="font-size:11px;color:var(--muted);margin:0 0 10px;line-height:1.45;">${escHtml(libTip)}</div>`;
+  if(opts.showNote!==false){
+    if(note)html+=`<div class="cw-coach-note">${escHtml(note)}</div>`;
+    else if(libTip)html+=`<div style="font-size:11px;color:var(--muted);margin:0 0 10px;line-height:1.45;">${escHtml(libTip)}</div>`;
+  }
   if(video&&!sameGifVideo){
     html+=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px;">`;
     if(toggle)html+=`<button type="button" class="btn btn-ghost btn-sm" onclick="${toggle}">${show?'▾ Ukryj film':'▶ Film techniki'}</button>`;
@@ -2176,6 +2189,8 @@ function serializeLoggedExercise(e,opts){
   if(id)out.exerciseId=id;
   const planned=String((e&&e.plannedName)||'').trim();
   if(planned)out.plannedName=planned;
+  const todo=String((e&&(e.note||e.todo))||'').trim();
+  if(todo)out.note=todo;
   let alts=[];
   if(Array.isArray(e&&e.alts))alts=e.alts.slice();
   else if(e&&e.alt)alts=String(e.alt).split(/[,;/]/);

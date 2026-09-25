@@ -154,6 +154,9 @@ jobs:
       - name: 1i. Testy wiring kreatora WU/DROP/AMRAP + film
         run: node .github/scripts/test_builder_kinds_media.js
 
+      - name: 1i01. Testy notatki Do zrobienia przy ćwiczeniu
+        run: node .github/scripts/test_ex_todo_note.js
+
       - name: 1i0. Testy własnego czasu w timerze przerwy live
         run: node .github/scripts/test_live_rest_custom.js
       - name: 1i0b. Testy sygnału końca przerwy live

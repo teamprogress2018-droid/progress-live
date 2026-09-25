@@ -3940,7 +3940,7 @@ function liveExCard(ex,i,slot,cue){
     :(typeof liveExLastWorkSets==='function'?liveExLastWorkSets(ex,st.clientId,st.planId):[]);
   const lastSum=typeof liveExLastSummary==='function'?liveExLastSummary(prevSets):'';
   const thumb=typeof exThumbUrl==='function'?exThumbUrl(ex):'';
-  const noteRaw=ex.note||ex.libTip||'';
+  const noteRaw=typeof exerciseTodoNote==='function'?exerciseTodoNote(ex):(ex.note||ex.libTip||'');
   const note=noteRaw?livePolishCoachNote(noteRaw):'';
   const target=typeof liveExTargetLine==='function'?liveExTargetLine(ex,n):'';
   const plannedReps=liveExPlannedReps(ex,n)||ex.reps||'';
@@ -3958,7 +3958,7 @@ function liveExCard(ex,i,slot,cue){
       <div class="live-ex-head-main">
         <div class="live-ex-num">${ex.done?'✓':i+1}</div>
         ${liveExTitleHtml(ex,lastChip,histList)}
-        <div class="live-ex-collapsed-meta"><strong>${ex.sets.length} ${ex.sets.length===1?'seria':ex.sets.length<5?'serie':'serii'}${plannedReps?' × '+escHtml(plannedReps)+' powt.':''}${restLabel?' · przerwa '+escHtml(restLabel):''}</strong><span>Wykonano ${setsDone}/${ex.sets.length}</span></div>
+        <div class="live-ex-collapsed-meta"><strong>${ex.sets.length} ${ex.sets.length===1?'seria':ex.sets.length<5?'serie':'serii'}${plannedReps?' × '+escHtml(plannedReps)+' powt.':''}${restLabel?' · przerwa '+escHtml(restLabel):''}</strong><span>Wykonano ${setsDone}/${ex.sets.length}</span>${!showBody&&note?`<span class="live-ex-todo-snip">Do zrobienia: ${escHtml(note)}</span>`:''}</div>
       </div>
       <div class="live-ex-head-actions" onclick="event.stopPropagation()">
         <button type="button" class="live-expand-btn" onclick="liveToggleCollapse(${i}${sl})" aria-expanded="${showBody}" aria-label="${showBody?'Zwiń':'Rozwiń'} serie: ${escHtml(ex.name)}"><span aria-hidden="true">${showBody?'▴':'▾'}</span></button>
@@ -3970,9 +3970,13 @@ function liveExCard(ex,i,slot,cue){
     </div>
     ${showBody&&!needsName?(typeof liveExCueStripHtml==='function'?liveExCueStripHtml(ex,n,cue):''):''}
     ${showBody?`
-    ${needsName||(!target&&!note&&!display.description)?'':`<details class="live-ex-details"><summary>Wskazówki i parametry</summary>${display.description?`<div class="live-ex-description">${escHtml(display.description)}</div>`:''}<div class="live-ex-target">${escHtml(target)}</div>${note?`<div class="live-ex-note">${escHtml(note)}</div>`:''}</details>`}
+    ${needsName?'':`<div class="live-ex-todo" onclick="event.stopPropagation()">
+      <label class="live-ex-todo-lbl" for="live-ex-todo-${n}-${i}">Do zrobienia</label>
+      <textarea id="live-ex-todo-${n}-${i}" class="live-ex-todo-input live-ex-note" rows="${note?2:1}" placeholder="Co zrobić w tym ćwiczeniu (np. łopatki ściągnięte)" oninput="liveSetExTodo(${i},this.value${sl})">${escHtml(note)}</textarea>
+    </div>`}
+    ${needsName||(!target&&!display.description)?'':`<details class="live-ex-details"><summary>Wskazówki i parametry</summary>${display.description?`<div class="live-ex-description">${escHtml(display.description)}</div>`:''}<div class="live-ex-target">${escHtml(target)}</div></details>`}
     <div class="live-ex-body">
-      ${mediaOpen?`<div class="live-ex-media live-ex-zoom" onclick="event.stopPropagation()"><button type="button" class="live-media-size" aria-pressed="false" onclick="liveToggleMediaSize(this)">Powiększ</button>${typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:true,caption:false,showGif:true}):''}</div>`:''}
+      ${mediaOpen?`<div class="live-ex-media live-ex-zoom" onclick="event.stopPropagation()"><button type="button" class="live-media-size" aria-pressed="false" onclick="liveToggleMediaSize(this)">Powiększ</button>${typeof coachMediaHtml==='function'?coachMediaHtml(ex,{showVideo:true,caption:false,showGif:true,showNote:false}):''}</div>`:''}
       <div class="live-ex-log" onclick="event.stopPropagation()">
       ${needsName?`<div class="live-ex-name-box" onclick="event.stopPropagation()">
         <div class="live-alts-lbl">Nazwa ćwiczenia</div>
@@ -4007,6 +4011,17 @@ function liveExCard(ex,i,slot,cue){
   </div>`;
 }
 window.liveExCard=liveExCard;
+
+function liveSetExTodo(i,val,slot){
+  const n=liveN(slot);
+  const st=liveRef(n);
+  const ex=st.exercises[i];
+  if(!ex)return;
+  ex.note=String(val||'');
+  ex.todoEdited=true;
+  if(typeof liveSaveDraft==='function')liveSaveDraft(n);
+}
+window.liveSetExTodo=liveSetExTodo;
 
 function liveToggleMediaSize(button){
   const media=button&&button.closest('.live-ex-media');
@@ -4258,8 +4273,9 @@ function liveSwapEx(i,name,slot){
     cur.isFile=!!m.isFile;
     cur.gif=m.gif||'';
     cur.img=m.img||'';
-    cur.note='';
+    cur.note=m.note||m.libTip||'';
     cur.libTip=m.libTip||'';
+    cur.todoEdited=false;
   }
   cur.showVideo=false;
   cur.collapsed=false;
@@ -4318,6 +4334,7 @@ function liveSetExName(i,name,slot){
     cur.gif=m.gif||'';
     cur.img=m.img||'';
     cur.libTip=m.libTip||'';
+    if(!cur.todoEdited&&!String(cur.note||'').trim())cur.note=m.note||m.libTip||'';
   }
   cur.showVideo=false;
   cur.collapsed=false;

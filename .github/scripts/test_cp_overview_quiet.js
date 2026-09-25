@@ -44,7 +44,7 @@ ok('no score 0 label',!/Werdykt: \$\{esc\(verdict\)\}\$\{v&&v\.score!=null/.test
 ok('thin verdict helper',/function cpOverviewVerdictIsThin\(c,v\)/.test(src08)&&src08.includes('Za mało danych do werdyktu'));
 ok('early headline',src08.includes('Za wcześnie na ocenę')&&src08.includes('cp-ov-situation-headline')&&src08.includes('Wiarygodną analizę pokażemy po 4 tygodniach lub 4 pomiarach.'));
 ok('rec engine',src08.includes('function cpOverviewRecs')&&src08.includes('Wszystko w porządku — brak pilnych działań.')&&src08.includes('Otwórz plan')&&!src08.includes('Skróć plan'));
-ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=83')&&html.includes('styles.css?v=115'));
+ok('cache 08/styles',html.includes('08-client-profile-extras.js?v=83')&&html.includes('styles.css?v=116'));
 ok('level labels helper',/Początkujący/.test(extract(src08,'cpProfileSubtext')));
 ok('css alert+missing',css.includes('.cp-ov-alert')&&css.includes('.cp-ov-missing')&&css.includes('.cp-ov-day-chip')&&css.includes('.cp-ov-alert-cta'));
 ok('css no card red bar',css.includes('.cp-ov-card::after,.cp-ov-rail-card::after{display:none;}'));
