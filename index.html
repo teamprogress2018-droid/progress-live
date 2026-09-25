@@ -13,7 +13,7 @@
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="globals.css?v=17">
-<link rel="stylesheet" href="styles.css?v=116">
+<link rel="stylesheet" href="styles.css?v=116&ui=2">
 </head>
 <body>
 
@@ -3127,7 +3127,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
           <button type="button" onclick="toggleCpHdrMore(false);openClientOnboardSummary(cpClientId)">Podsumowanie start</button>
           <button type="button" onclick="toggleCpHdrMore(false);openClientMonitorSummary(cpClientId)">Monitoring progresu</button>
           <button type="button" onclick="toggleCpHdrMore(false);openReportForClient(cpClientId)">Raport szczegółowy</button>
-          <button type="button" onclick="toggleCpHdrMore(false);setCPTab('progress')">Progress</button>
+          <button type="button" onclick="toggleCpHdrMore(false);setCPTab('progress')">Wyniki treningowe</button>
           <div class="cp-hdr-more-sep"></div>
           <button type="button" id="cp-archive-btn" onclick="toggleCpHdrMore(false);archiveClient(cpClientId)">🗃 Zarchiwizuj</button>
           <button type="button" id="cp-restore-btn" onclick="toggleCpHdrMore(false);restoreClient(cpClientId)" style="display:none;">↩ Przywróć</button>
@@ -3145,7 +3145,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <button class="cp-tab active" id="cpt-overview" onclick="setCPTab('overview')">Przegląd</button>
         <button class="cp-tab" id="cpt-training" onclick="setCPTab('training')">Treningi</button>
         <button class="cp-tab" id="cpt-plan" onclick="setCPTab('plan')">Plan</button>
-        <button class="cp-tab" id="cpt-progress" onclick="setCPTab('progress')">Progress</button>
+        <button class="cp-tab" id="cpt-progress" onclick="setCPTab('progress')">Wyniki</button>
         <button class="cp-tab" id="cpt-metrics" onclick="setCPTab('metrics')">Pomiary</button>
         <div class="cp-tabs-more-wrap">
           <button type="button" class="cp-tab cp-tabs-more-btn" id="cp-more-toggle" onclick="toggleCpMoreNav(event)" aria-expanded="false" aria-haspopup="true">Więcej ▾</button>
@@ -4506,7 +4506,7 @@ async function load(){
 <script src="05-clients-builder-plans-calendar.js?v=80"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=84"></script>
 <script src="07-forms-metrics-calculator.js?v=42"></script>
-<script src="08-client-profile-extras.js?v=83"></script>
+<script src="08-client-profile-extras.js?v=83&ui=2"></script>
 <script src="09-posture-kb-invites-private.js?v=53"></script>
 <script src="10-client-app.js?v=42"></script>
 </body>
