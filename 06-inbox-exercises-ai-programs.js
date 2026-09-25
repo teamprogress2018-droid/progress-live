@@ -3883,7 +3883,18 @@ function renderTasks(){
   else if(sortBy==='priority'){const o={high:0,medium:1,low:2};filtered.sort((a,b)=>(o[a.priority]||1)-(o[b.priority]||1));}
   else if(sortBy==='client')filtered.sort((a,b)=>{const ca=CL.find(c=>c.id===a.clientId);const cb=CL.find(c=>c.id===b.clientId);return(ca?ca.name:'').localeCompare(cb?cb.name:'');});
   else filtered.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
-  const lbl=document.getElementById('task-count-lbl');if(lbl)lbl.textContent=filtered.length+' '+(filtered.length===1?'zadanie':filtered.length<5?'zadania':'zadań');
+  const activeTotal=open.length+habitsN.length+chN.length;
+  const taskFilterLabels={
+    all:'Wszystkie zadania',open:'Do wykonania',done:'Ukończone',habits:'Nawyki',
+    challenges:'Wyzwania',overdue:'Przeterminowane',homework:'Zadania domowe',
+    high:'Priorytet wysoki',medium:'Priorytet średni',low:'Priorytet niski',
+    trening:'Trening',dieta:'Dieta',pomiary:'Pomiary',lifestyle:'Lifestyle'
+  };
+  const lbl=document.getElementById('task-count-lbl');
+  if(lbl){
+    const filterName=taskFilterLabels[taskFilter]||'Zadania';
+    lbl.textContent=filterName+': '+filtered.length+(taskFilter==='all'?' · Aktywne: '+activeTotal:' · Wszystkie aktywne: '+activeTotal);
+  }
   const el=document.getElementById('tasks-list');
   if(!el)return;
   const banner=taskFilter==='habits'?habitPackBannerHTML():'';

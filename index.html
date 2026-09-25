@@ -90,14 +90,14 @@
           <span>Biblioteka</span>
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
         </div>
-        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="library" onclick="goTo('library')">Ćwiczenia</button>
-        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="plans" onclick="goTo('plans')">Treningi</button>
-        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="programs" onclick="goTo('programs')">Bloki 4–16 tyg.</button>
-        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="templates" onclick="goTo('templates')">Gotowy tydzień</button>
-        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="tasks" data-task-filter="homework" onclick="goToHomeworkQueue()">Zadania domowe</button>
-        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="tasks" onclick="goTo('tasks')">Zadania i nawyki</button>
-        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="forms" onclick="goTo('forms')">Formularze i ankiety</button>
-        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="metrics" onclick="goTo('metrics')">Grupy pomiarów</button>
+        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="library" onclick="closeLibraryFlyout();goTo('library')">Ćwiczenia</button>
+        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="plans" onclick="closeLibraryFlyout();goTo('plans')">Treningi</button>
+        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="programs" onclick="closeLibraryFlyout();goTo('programs')">Bloki 4–16 tyg.</button>
+        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="templates" onclick="closeLibraryFlyout();goTo('templates')">Gotowy tydzień</button>
+        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="tasks" data-task-filter="homework" onclick="closeLibraryFlyout();goToHomeworkQueue()">Zadania domowe</button>
+        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="tasks" onclick="closeLibraryFlyout();goTo('tasks');setTaskFilter('all')">Wszystkie zadania</button>
+        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="forms" onclick="closeLibraryFlyout();goTo('forms')">Formularze i ankiety</button>
+        <button type="button" class="nav-flyout-item" role="menuitem" data-screen="metrics" onclick="closeLibraryFlyout();goTo('metrics')">Grupy pomiarów</button>
       </div>
     </div>
 
@@ -790,7 +790,7 @@
       <button class="btn btn-ghost btn-sm" onclick="openAssignHomeworkModal('')">🏡 Zadanie domowe</button>
       <button class="btn btn-ghost btn-sm" onclick="openTaskTemplates()">📋 Szablony</button>
       <button class="btn btn-ghost btn-sm" onclick="openHabitPackModal()">🔥 Progress Nawyki</button>
-      <button class="btn btn-primary btn-sm" onclick="openM('m-task')">+ Zadanie</button>
+      <button class="btn btn-primary btn-sm" onclick="openM('m-task')">+ Pojedyncze zadanie</button>
     </div>
   </div>
   <div style="display:flex;flex:1;overflow:hidden;">
@@ -869,7 +869,7 @@
     <!-- główna lista zadań -->
     <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
       <div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;">
-        <span style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;" id="task-count-lbl">0 zadań</span>
+        <span style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;" id="task-count-lbl">Wszystkie zadania: 0</span>
         <div style="margin-left:auto;display:flex;gap:6px;">
           <select class="form-select" style="padding:4px 8px;font-size:11px;width:auto;" id="task-sort" onchange="renderTasks()">
             <option value="due">Termin</option>
@@ -4511,7 +4511,7 @@ async function load(){
 <script src="03-ai-plangen-bizstats-aicoach.js?v=42"></script>
 <script src="04-client-portal.js?v=55"></script>
 <script src="05-clients-builder-plans-calendar.js?v=80"></script>
-<script src="06-inbox-exercises-ai-programs.js?v=84"></script>
+<script src="06-inbox-exercises-ai-programs.js?v=85"></script>
 <script src="07-forms-metrics-calculator.js?v=42"></script>
 <script src="08-client-profile-extras.js?v=83&ui=2"></script>
 <script src="09-posture-kb-invites-private.js?v=54"></script>
