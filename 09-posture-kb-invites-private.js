@@ -3503,6 +3503,7 @@ function notify(msg){
 // ════════════════════════════════════════
 window.KB = window.KB || [];
 window._kbFilter = window._kbFilter || 'all';
+window._editingKbId = window._editingKbId || null;
 
 function setKbFilter(f,btn){
   window._kbFilter=f||'all';
@@ -3513,7 +3514,8 @@ window.setKbFilter=setKbFilter;
 
 function openKbModal(prefill){
   const p=prefill||{};
-  document.getElementById('kb-modal-title').textContent=p.title?'EDYTUJ WPIS':'NOWY WPIS DO BAZY WIEDZY';
+  window._editingKbId=p.id||null;
+  document.getElementById('kb-modal-title').textContent=window._editingKbId?'EDYTUJ WPIS':'NOWY WPIS DO BAZY WIEDZY';
   document.getElementById('kb-kind').value=p.kind||'note';
   document.getElementById('kb-title').value=p.title||'';
   document.getElementById('kb-text').value=p.text||'';
@@ -3525,6 +3527,19 @@ function openKbModal(prefill){
   openM('m-kb');
 }
 window.openKbModal=openKbModal;
+
+function editKBEntry(id){
+  const k=(window.KB||[]).find(x=>x.id===id);
+  if(!k){notify('Nie znaleziono wpisu');return;}
+  openKbModal(k);
+}
+function duplicateKBEntry(id){
+  const k=(window.KB||[]).find(x=>x.id===id);
+  if(!k){notify('Nie znaleziono wpisu');return;}
+  openKbModal({...k,id:null,title:(k.title||'Wpis')+' — kopia'});
+}
+window.editKBEntry=editKBEntry;
+window.duplicateKBEntry=duplicateKBEntry;
 
 function kbKindHint(){
   const kind=document.getElementById('kb-kind')?.value||'note';
@@ -3581,12 +3596,18 @@ function kbKindColor(kind){
 function renderKB(){
   const el = document.getElementById('kb-list'); if(!el) return;
   const filter=window._kbFilter||'all';
+  const query=((document.getElementById('kb-search')||{}).value||'').trim().toLowerCase();
   const list=(KB||[]).slice().reverse().filter(k=>{
-    if(filter==='all')return true;
     const kind=typeof normalizeKbKind==='function'?normalizeKbKind(k):(k.kind||'note');
-    return kind===filter;
+    if(filter!=='all'&&kind!==filter)return false;
+    if(!query)return true;
+    const tags=typeof kbTagLabels==='function'?kbTagLabels(typeof kbTagsForEntry==='function'?kbTagsForEntry(k):k.tags):[];
+    return [k.title,k.text,k.citation,k.sourceUrl,...tags].join(' ').toLowerCase().includes(query);
   });
   renderKbBuiltinPreview();
+  renderKbAiContextPreview();
+  const countEl=document.getElementById('kb-result-count');
+  if(countEl)countEl.textContent=list.length+' z '+(KB||[]).length;
   if(!list.length){
     el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);"><div style="font-size:36px;margin-bottom:10px;opacity:0.3;">📚</div><div>Brak wpisów'+(filter!=='all'?' w tej kategorii':'')+'. Dodaj notatkę, badanie albo wczytaj pakiet startowy.</div></div>';
     return;
@@ -3606,7 +3627,11 @@ function renderKB(){
           <div style="font-size:13px;font-weight:700;">${escHtml(k.title)}</div>
           ${typeof kbTagPillsHtml==='function'?kbTagPillsHtml(typeof kbTagsForEntry==='function'?kbTagsForEntry(k):k.tags):''}
         </div>
-        <button onclick="delKBEntry('${k.id}')" style="background:none;border:none;color:var(--muted2);font-size:16px;cursor:pointer;">×</button>
+        <div class="kb-card-actions">
+          <button type="button" onclick="editKBEntry('${k.id}')" title="Edytuj wpis">Edytuj</button>
+          <button type="button" onclick="duplicateKBEntry('${k.id}')" title="Utwórz kopię wpisu">Kopiuj</button>
+          <button type="button" class="danger" onclick="delKBEntry('${k.id}')" title="Usuń wpis" aria-label="Usuń wpis">×</button>
+        </div>
       </div>
       <div style="font-size:12px;color:var(--muted);line-height:1.6;white-space:pre-wrap;">${escHtml((k.text||'').substring(0,280))}${(k.text||'').length>280?'…':''}</div>
       ${cite}
@@ -3614,6 +3639,18 @@ function renderKB(){
     </div>`;
   }).join('');
 }
+
+function renderKbAiContextPreview(){
+  const el=document.getElementById('kb-ai-context-preview');
+  if(!el)return;
+  const used=Array.isArray(window._kbLastPlanningContext)?window._kbLastPlanningContext:[];
+  if(!used.length){
+    el.innerHTML='<strong>Kontekst AI</strong><span>Po uruchomieniu Generatora AI zobaczysz tutaj wpisy przekazane do planowania.</span>';
+    return;
+  }
+  el.innerHTML=`<strong>Ostatnio przekazano do AI (${used.length})</strong><span>${used.map(x=>escHtml(x.title||'Bez tytułu')).join(' · ')}</span>`;
+}
+window.renderKbAiContextPreview=renderKbAiContextPreview;
 
 function renderKbBuiltinPreview(){
   const wrap=document.getElementById('kb-builtin-preview');
@@ -3670,11 +3707,22 @@ async function saveKBEntry(){
   const sourceUrl=(document.getElementById('kb-url')?.value||'').trim();
   const useInPlanning=!!document.getElementById('kb-use-planning')?.checked;
   const tags=typeof kbReadTagPicker==='function'?kbReadTagPicker():[];
+  const editingId=window._editingKbId||null;
+  const previous=editingId?(window.KB||[]).find(k=>k.id===editingId):null;
+  const norm=s=>String(s||'').trim().toLowerCase().replace(/\s+/g,' ');
+  const duplicate=(window.KB||[]).find(k=>k.id!==editingId&&(norm(k.title)===norm(title)||norm(k.text)===norm(text)));
+  if(duplicate){notify('Podobny wpis już istnieje: '+duplicate.title);return;}
   const entry = withTrainer({
-    id:newId('kb'), kind, title, text, citation, sourceUrl, useInPlanning, tags,
-    createdAt:new Date().toISOString()
+    id:editingId||newId('kb'), kind, title, text, citation, sourceUrl, useInPlanning, tags,
+    createdAt:editingId?((previous||{}).createdAt||new Date().toISOString()):new Date().toISOString(),
+    ...(previous&&previous.builtinId?{builtinId:previous.builtinId}:{}),
+    updatedAt:new Date().toISOString()
   });
-  KB.push(entry);
+  if(editingId){
+    const idx=KB.findIndex(k=>k.id===editingId);
+    if(idx>=0)KB[idx]=entry;else KB.push(entry);
+  }else KB.push(entry);
+  window._editingKbId=null;
   closeM('m-kb');
   ['kb-title','kb-text','kb-citation','kb-url'].forEach(id=>{const i=document.getElementById(id);if(i)i.value='';});
   const kindEl=document.getElementById('kb-kind');if(kindEl)kindEl.value='note';
@@ -3683,7 +3731,7 @@ async function saveKBEntry(){
   renderKB();
   if(typeof builderRefreshRationale==='function')try{builderRefreshRationale();}catch(e){}
   if(typeof aplRefreshRationale==='function')try{aplRefreshRationale();}catch(e){}
-  notify('✓ Wpis dodany — '+(useInPlanning?'aktywny przy planowaniu':'tylko w bazie'));
+  notify('✓ Wpis '+(editingId?'zaktualizowany':'dodany')+' — '+(useInPlanning?'aktywny przy planowaniu':'tylko w bazie'));
   await persistById('kb', entry);
 }
 
