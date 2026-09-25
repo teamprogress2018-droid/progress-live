@@ -317,8 +317,8 @@ var onbTab='overview';
 var ONB_ACTIVE=[];   // legacy Firestore; postęp = CLIENT_ONBOARD_STEPS, nie o.step
 window.ONB_ACTIVE=ONB_ACTIVE;
 
-const ONB_CHECKLIST_IDS=['invite','baseline','schedule','plan','calendar','package'];
-const ONB_STEP_ICONS={invite:'✉️',baseline:'📏',schedule:'📅',plan:'📋',calendar:'🗓️',package:'💳'};
+const ONB_CHECKLIST_IDS=['invite','intake','baseline','schedule','plan','calendar','package'];
+const ONB_STEP_ICONS={invite:'✉️',intake:'📋',baseline:'📏',schedule:'📅',plan:'📋',calendar:'🗓️',package:'💳'};
 
 const ONB_FLOWS=[
   {id:'standard',  name:'Standard',      icon:'⚡', color:'var(--accent)',
@@ -345,7 +345,7 @@ function onbChecklistSteps(){
 function onbStatusFor(c){
   if(typeof clientOnboardStatus==='function')return clientOnboardStatus(c);
   if(typeof getClientOnboard==='function')return getClientOnboard(c);
-  return{invite:false,baseline:false,schedule:false,plan:false,calendar:false,package:false,done:0,total:6,complete:true,next:null,missing:[],missingLabels:[]};
+  return{invite:false,intake:false,baseline:false,schedule:false,plan:false,calendar:false,package:false,done:0,total:7,complete:true,next:null,missing:[],missingLabels:[]};
 }
 function onbLiveClients(){
   return(window.CL||[]).filter(c=>c&&c.status!=='archived');
@@ -421,7 +421,7 @@ function renderOnbOverview(){
   const card=r=>{
     const {c,st,flow}=r;
     const pct=st.total?Math.round(st.done/st.total*100):0;
-    const flags={invite:!!st.invite,baseline:!!st.baseline,schedule:!!st.schedule,plan:!!st.plan,calendar:!!st.calendar,package:!!st.package};
+    const flags={invite:!!st.invite,intake:!!st.intake,baseline:!!st.baseline,schedule:!!st.schedule,plan:!!st.plan,calendar:!!st.calendar,package:!!st.package};
     return `<div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:16px;">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
         <div style="width:42px;height:42px;border-radius:12px;background:var(--adim);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--accent);flex-shrink:0;">${getInit(c.name)}</div>
