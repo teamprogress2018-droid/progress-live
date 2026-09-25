@@ -1,0 +1,83 @@
+{
+  "_info": "Zapytania PubMed dla feedu 'Nowe badania'. Edytuj 'query' (składnia PubMed, [tiab] = tytuł/abstrakt), 'max' = ile pozycji na tydzień. Filtr typu badań, ludzi i języka dokleja skrypt.",
+  "defaultMax": 12,
+  "defaultPublicationTypes": ["Meta-Analysis", "Systematic Review", "Randomized Controlled Trial"],
+  "humansFilter": "NOT (animals[mh] NOT humans[mh])",
+  "languageFilter": "(english[la] OR polish[la])",
+  "topJournals": [
+    "Sports Med", "Sports Med Open", "Br J Sports Med", "J Strength Cond Res", "Med Sci Sports Exerc",
+    "J Int Soc Sports Nutr", "Int J Sport Nutr Exerc Metab", "Eur J Appl Physiol", "J Appl Physiol (1985)",
+    "Scand J Med Sci Sports", "Int J Sports Physiol Perform", "J Sports Sci", "Eur J Sport Sci",
+    "Am J Clin Nutr", "J Cachexia Sarcopenia Muscle", "J Orthop Sports Phys Ther"
+  ],
+  "categories": [
+    {
+      "id": "hipertrofia",
+      "label": "Hipertrofia i siła",
+      "query": "(\"resistance training\"[tiab] OR \"strength training\"[tiab] OR \"resistance exercise\"[tiab] OR \"weight training\"[tiab]) AND (hypertrophy[tiab] OR \"muscle mass\"[tiab] OR \"muscle thickness\"[tiab] OR \"muscle strength\"[tiab] OR \"one repetition maximum\"[tiab] OR 1RM[tiab])",
+      "max": 15
+    },
+    {
+      "id": "programowanie",
+      "label": "Programowanie (objętość, RIR, przerwy)",
+      "query": "(\"resistance training\"[tiab] OR \"strength training\"[tiab] OR \"resistance exercise\"[tiab]) AND (\"training volume\"[tiab] OR \"training frequency\"[tiab] OR \"proximity to failure\"[tiab] OR \"muscle failure\"[tiab] OR \"repetitions in reserve\"[tiab] OR RPE[tiab] OR \"rest interval\"[tiab] OR \"inter-set rest\"[tiab] OR periodization[tiab] OR periodisation[tiab] OR \"range of motion\"[tiab] OR \"exercise selection\"[tiab] OR autoregulation[tiab])"
+    },
+    {
+      "id": "regeneracja",
+      "label": "Regeneracja i sen",
+      "query": "(sleep[tiab] OR recovery[tiab] OR \"delayed onset muscle soreness\"[tiab] OR \"exercise-induced muscle damage\"[tiab] OR overtraining[tiab] OR overreaching[tiab] OR \"heart rate variability\"[tiab] OR deload*[tiab] OR tapering[tiab] OR \"cold water immersion\"[tiab] OR massage[tiab]) AND (\"resistance training\"[tiab] OR \"strength training\"[tiab] OR \"resistance exercise\"[tiab] OR athletes[tiab] OR \"exercise performance\"[tiab])"
+    },
+    {
+      "id": "zywienie",
+      "label": "Żywienie",
+      "query": "(\"protein intake\"[tiab] OR \"dietary protein\"[tiab] OR \"protein supplementation\"[tiab] OR \"energy intake\"[tiab] OR \"energy deficit\"[tiab] OR \"caloric restriction\"[tiab] OR \"meal timing\"[tiab] OR \"meal frequency\"[tiab] OR \"intermittent fasting\"[tiab] OR \"time-restricted eating\"[tiab] OR carbohydrate*[tiab] OR \"plant-based\"[tiab]) AND (\"resistance training\"[tiab] OR \"resistance exercise\"[tiab] OR \"body composition\"[tiab] OR \"lean mass\"[tiab] OR \"fat-free mass\"[tiab] OR \"muscle protein synthesis\"[tiab])",
+      "max": 15
+    },
+    {
+      "id": "suplementy",
+      "label": "Suplementacja",
+      "query": "(creatine[tiab] OR caffeine[tiab] OR \"beta-alanine\"[tiab] OR \"sodium bicarbonate\"[tiab] OR \"dietary nitrate\"[tiab] OR \"beetroot juice\"[tiab] OR \"vitamin D\"[tiab] OR \"omega-3\"[tiab] OR \"fish oil\"[tiab] OR HMB[tiab] OR collagen[tiab] OR ashwagandha[tiab]) AND (exercise[tiab] OR training[tiab] OR \"muscle strength\"[tiab] OR \"muscle mass\"[tiab] OR performance[tiab])"
+    },
+    {
+      "id": "redukcja",
+      "label": "Redukcja i skład ciała",
+      "query": "(\"weight loss\"[tiab] OR \"fat loss\"[tiab] OR \"body fat\"[tiab] OR \"visceral fat\"[tiab] OR obesity[tiab] OR overweight[tiab]) AND (\"resistance training\"[tiab] OR \"strength training\"[tiab] OR \"exercise training\"[tiab] OR \"concurrent training\"[tiab] OR \"lean mass preservation\"[tiab] OR GLP-1[tiab] OR semaglutide[tiab] OR tirzepatide[tiab])"
+    },
+    {
+      "id": "prehab",
+      "label": "Kontuzje, ból i prehab",
+      "query": "(\"low back pain\"[tiab] OR \"neck pain\"[tiab] OR \"shoulder pain\"[tiab] OR \"knee pain\"[tiab] OR \"patellofemoral\"[tiab] OR tendinopathy[tiab] OR \"injury prevention\"[tiab] OR \"injury risk\"[tiab] OR \"return to sport\"[tiab] OR \"hamstring injury\"[tiab]) AND (\"resistance training\"[tiab] OR \"strength training\"[tiab] OR \"exercise therapy\"[tiab] OR \"heavy slow resistance\"[tiab] OR \"eccentric training\"[tiab] OR loading[tiab])"
+    },
+    {
+      "id": "populacje",
+      "label": "Kobiety, seniorzy, ciąża, choroby",
+      "query": "(\"older adults\"[tiab] OR elderly[tiab] OR sarcopenia[tiab] OR osteoporosis[tiab] OR pregnan*[tiab] OR postpartum[tiab] OR \"menstrual cycle\"[tiab] OR menopaus*[tiab] OR adolescent*[tiab] OR \"type 2 diabetes\"[tiab] OR hypertension[tiab] OR \"polycystic ovary\"[tiab]) AND (\"resistance training\"[tiab] OR \"strength training\"[tiab] OR \"resistance exercise\"[tiab])",
+      "max": 15
+    },
+    {
+      "id": "kondycja",
+      "label": "Kondycja i cardio",
+      "query": "(\"concurrent training\"[tiab] OR \"interference effect\"[tiab] OR \"high-intensity interval training\"[tiab] OR HIIT[tiab] OR \"sprint interval\"[tiab] OR VO2max[tiab] OR \"VO2 max\"[tiab] OR \"cardiorespiratory fitness\"[tiab] OR \"zone 2\"[tiab] OR \"steps per day\"[tiab]) AND (adults[tiab] OR trained[tiab] OR untrained[tiab] OR \"body composition\"[tiab] OR performance[tiab])"
+    },
+    {
+      "id": "adherencja",
+      "label": "Adherencja i coaching",
+      "query": "(adherence[tiab] OR dropout[tiab] OR \"behavior change\"[tiab] OR \"behaviour change\"[tiab] OR \"habit formation\"[tiab] OR \"self-determination\"[tiab] OR motivation[tiab] OR \"personal trainer\"[tiab] OR \"supervised training\"[tiab] OR coaching[tiab]) AND (\"resistance training\"[tiab] OR \"exercise program\"[tiab] OR \"exercise programme\"[tiab] OR gym[tiab] OR \"physical activity\"[tiab])",
+      "max": 10
+    },
+    {
+      "id": "pomiary",
+      "label": "Ocena i pomiary",
+      "query": "(\"velocity-based training\"[tiab] OR \"bar velocity\"[tiab] OR \"load-velocity\"[tiab] OR \"1RM prediction\"[tiab] OR \"estimated 1RM\"[tiab] OR \"bioelectrical impedance\"[tiab] OR DXA[tiab] OR \"skinfold\"[tiab] OR \"grip strength\"[tiab]) AND (\"resistance training\"[tiab] OR strength[tiab] OR \"body composition\"[tiab])",
+      "publicationTypes": ["Meta-Analysis", "Systematic Review", "Randomized Controlled Trial", "Validation Study", "Comparative Study"],
+      "max": 8
+    },
+    {
+      "id": "stanowiska",
+      "label": "Stanowiska i wytyczne",
+      "query": "(\"position stand\"[ti] OR \"position statement\"[ti] OR consensus[ti] OR guideline*[ti] OR recommendations[ti]) AND (exercise[tiab] OR \"resistance training\"[tiab] OR \"sports nutrition\"[tiab] OR \"physical activity\"[tiab] OR athletes[tiab])",
+      "publicationTypes": ["Practice Guideline", "Guideline", "Consensus Development Conference", "Review"],
+      "max": 8
+    }
+  ]
+}
