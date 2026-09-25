@@ -1,6 +1,6 @@
-// ââââââââââââââââââââââââââââââââââââââââ
-// OĹ CZASU KLIENTA â agregacja istniejÄcych zdarzeĹ
-// ââââââââââââââââââââââââââââââââââââââââ
+// ════════════════════════════════════════
+// OŚ CZASU KLIENTA — agregacja istniejących zdarzeń
+// ════════════════════════════════════════
 window.CLIENT_TIMELINE = window.CLIENT_TIMELINE || {}; // clientId -> [{id,text,type,date}]
 
 const CP_TL_FILTERS=[
@@ -10,10 +10,10 @@ const CP_TL_FILTERS=[
   {id:'checkin',label:'Check-in'},
   {id:'plan',label:'Plan'},
   {id:'notatka',label:'Notatki'},
-  {id:'platnosc',label:'PĹatnoĹci'},
+  {id:'platnosc',label:'Płatności'},
   {id:'rekord',label:'Rekordy'}
 ];
-const CP_TL_KIND_LABEL={trening:'Trening',pomiar:'Pomiar',checkin:'Check-in',plan:'Plan',notatka:'Notatka',platnosc:'PĹatnoĹÄ',rekord:'Rekord'};
+const CP_TL_KIND_LABEL={trening:'Trening',pomiar:'Pomiar',checkin:'Check-in',plan:'Plan',notatka:'Notatka',platnosc:'Płatność',rekord:'Rekord'};
 
 function safeEscSnippet(text,max){
   return escHtml(String(text||'').slice(0,Math.max(0,max||0)));
@@ -47,7 +47,7 @@ function cpTlSortKey(raw){
 function cpTlClip(s,n){
   const t=String(s||'').replace(/\s+/g,' ').trim();
   if(t.length<=n)return t;
-  return t.slice(0,Math.max(0,n-1)).trim()+'âŚ';
+  return t.slice(0,Math.max(0,n-1)).trim()+'…';
 }
 function cpTlDeltaStr(cur,prev,unit){
   const a=parseFloat(cur),b=parseFloat(prev);
@@ -71,8 +71,8 @@ function cpTlSessionHighlight(s,clientId){
     });
   });
   if(!best||!bestEx)return{fact:title,extra:''};
-  const load=typeof formatSetLoad==='function'?formatSetLoad(best.kg,best.reps,bestEx):(best.kg+' kg Ă '+best.reps);
-  const fact=(bestEx.name||title)+' Âˇ '+load;
+  const load=typeof formatSetLoad==='function'?formatSetLoad(best.kg,best.reps,bestEx):(best.kg+' kg × '+best.reps);
+  const fact=(bestEx.name||title)+' · '+load;
   let extra='';
   const hist=typeof exerciseLoadHistory==='function'?exerciseLoadHistory(clientId,bestEx.name,null,{limit:0,exerciseId:bestEx.exerciseId}):[];
   const sessDate=String(s.date||'');
@@ -114,12 +114,12 @@ function cpTlRecordEvents(clientId){
       if(!best){best=row;return;}
       const beats=typeof setBeatsPR==='function'?setBeatsPR(best,row.kg,row.reps):(row.epley!=null&&best.epley!=null&&row.epley>best.epley+0.05);
       if(beats){
-        const load=typeof formatSetLoad==='function'?formatSetLoad(row.kg,row.reps,name):(row.kg+' kg Ă '+row.reps);
+        const load=typeof formatSetLoad==='function'?formatSetLoad(row.kg,row.reps,name):(row.kg+' kg × '+row.reps);
         out.push({
           id:'tl_pr_'+clientId+'_'+(row.sessionId||'')+'_'+name+'_'+row.date,
           kind:'rekord',
           date:row.date||'',
-          fact:name+' Âˇ '+load,
+          fact:name+' · '+load,
           extra:''
         });
         best=row;
@@ -170,12 +170,12 @@ function collectCpTimelineEvents(clientId){
     if(a.sleep!=null&&a.sleep!=='')bits.push('Sen '+a.sleep+'/5');
     if(a.energy!=null&&a.energy!=='')bits.push('Energia '+a.energy+'/5');
     if(!bits.length&&ci.score!=null)bits.push('Score '+ci.score);
-    if(!bits.length)bits.push('WypeĹniony');
+    if(!bits.length)bits.push('Wypełniony');
     events.push({
       id:'tl_ci_'+(ci.id||ci.date),
       kind:'checkin',
       date:ci.date||ci.filledAt||ci.createdAt||'',
-      fact:bits.join(' Âˇ '),
+      fact:bits.join(' · '),
       extra:''
     });
   });
@@ -218,12 +218,12 @@ function collectCpTimelineEvents(clientId){
   const pkgIds=new Set(pkgs.map(p=>p&&p.id).filter(Boolean));
   pkgs.forEach(p=>{
     if(!p)return;
-    const price=p.price!=null?String(p.price)+' zĹ':'';
+    const price=p.price!=null?String(p.price)+' zł':'';
     events.push({
       id:'tl_pkg_'+p.id,
       kind:'platnosc',
       date:p.date||p.createdAt||'',
-      fact:(p.title||'Pakiet')+(price?' Âˇ '+price:''),
+      fact:(p.title||'Pakiet')+(price?' · '+price:''),
       extra:''
     });
     if(p.paymentRequestedAt){
@@ -231,7 +231,7 @@ function collectCpTimelineEvents(clientId){
         id:'tl_pkgreq_'+p.id,
         kind:'platnosc',
         date:p.paymentRequestedAt,
-        fact:'ProĹba o wpĹatÄ Âˇ '+(p.title||'Pakiet'),
+        fact:'Prośba o wpłatę · '+(p.title||'Pakiet'),
         extra:''
       });
     }
@@ -239,12 +239,12 @@ function collectCpTimelineEvents(clientId){
   (window.INVOICES||[]).forEach(inv=>{
     if(!inv)return;
     if(!(inv.clientId===id||pkgIds.has(inv.pkgId)))return;
-    const amt=inv.amount!=null?String(inv.amount)+' zĹ':'';
+    const amt=inv.amount!=null?String(inv.amount)+' zł':'';
     events.push({
       id:'tl_inv_'+(inv.id||inv.nr),
       kind:'platnosc',
       date:inv.date||inv.createdAt||'',
-      fact:('Faktura '+(inv.nr||inv.id||''))+(amt?' Âˇ '+amt:''),
+      fact:('Faktura '+(inv.nr||inv.id||''))+(amt?' · '+amt:''),
       extra:''
     });
   });
@@ -283,7 +283,7 @@ function renderCPTimeline(c){
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s??''));
   document.getElementById('cp-body').innerHTML=`
     <div class="cp-tl-wrap">
-      <div class="cp-section-title">OĹ czasu</div>
+      <div class="cp-section-title">Oś czasu</div>
       <div class="cp-tl-filters" role="tablist" aria-label="Filtry osi czasu">
         ${CP_TL_FILTERS.map(f=>`<button type="button" class="cp-tl-filter${filter===f.id?' is-on':''}" data-tl-filter="${esc(f.id)}" onclick="setCpTlFilter('${esc(f.id)}')">${esc(f.label)}</button>`).join('')}
       </div>
@@ -296,7 +296,7 @@ function renderCPTimeline(c){
             <option value="cel">Cel</option>
             <option value="sukces">Sukces</option>
           </select>
-          <input type="text" id="ctl-new-text" placeholder="KrĂłtka notatka do osi czasu" onkeydown="if(event.key==='Enter')ctlAddEntry('${esc(c.id)}')">
+          <input type="text" id="ctl-new-text" placeholder="Krótka notatka do osi czasu" onkeydown="if(event.key==='Enter')ctlAddEntry('${esc(c.id)}')">
           <button type="button" class="btn btn-ghost btn-sm" onclick="ctlAddEntry('${esc(c.id)}')">Dodaj</button>
         </div>
       </div>
@@ -317,24 +317,24 @@ function renderCPTimelineList(c){
   });
   if(!shown.length){
     const lab=(CP_TL_FILTERS.find(f=>f.id===filter)||{}).label||'';
-    el.innerHTML=`<div class="cp-tl-empty">${filter==='all'?'Brak zdarzeĹ w historii klienta.':'Brak zdarzeĹ w filtrze '+esc(lab)+'.'}</div>`;
+    el.innerHTML=`<div class="cp-tl-empty">${filter==='all'?'Brak zdarzeń w historii klienta.':'Brak zdarzeń w filtrze '+esc(lab)+'.'}</div>`;
     return;
   }
   const rows=shown.slice(0,limit);
   el.innerHTML=rows.map(e=>{
     const day=cpTlDayLabel(e.date);
     const type=CP_TL_KIND_LABEL[e.kind]||e.kind;
-    const extra=e.extra?`<span class="cp-tl-dot">â˘</span><span class="cp-tl-extra">${esc(e.extra)}</span>`:'';
-    const del=e.deletable?`<button type="button" class="cp-tl-del" onclick="ctlDeleteEntry('${esc(c.id)}','${esc(e.id)}')" aria-label="UsuĹ">Ă</button>`:'';
-    const dateHtml=day?`<span class="cp-tl-date">${esc(day)}</span><span class="cp-tl-dot">â˘</span>`:'';
+    const extra=e.extra?`<span class="cp-tl-dot">•</span><span class="cp-tl-extra">${esc(e.extra)}</span>`:'';
+    const del=e.deletable?`<button type="button" class="cp-tl-del" onclick="ctlDeleteEntry('${esc(c.id)}','${esc(e.id)}')" aria-label="Usuń">×</button>`:'';
+    const dateHtml=day?`<span class="cp-tl-date">${esc(day)}</span><span class="cp-tl-dot">•</span>`:'';
     return `<div class="cp-tl-row" data-tl-kind="${esc(e.kind)}" data-tl-id="${esc(e.id)}">
       ${dateHtml}
       <span class="cp-tl-type">${esc(type)}</span>
-      <span class="cp-tl-dot">â˘</span>
+      <span class="cp-tl-dot">•</span>
       <span class="cp-tl-fact">${esc(e.fact||'')}</span>
       ${extra}${del}
     </div>`;
-  }).join('')+(shown.length>limit&&limit<120?`<button type="button" class="cp-tl-more" onclick="cpTlLoadMore()">ZaĹaduj wiÄcej</button>`:'');
+  }).join('')+(shown.length>limit&&limit<120?`<button type="button" class="cp-tl-more" onclick="cpTlLoadMore()">Załaduj więcej</button>`:'');
 }
 
 function ctlAddEntry(clientId){
@@ -360,14 +360,14 @@ window.renderCPTimelineList=renderCPTimelineList;
 window.ctlAddEntry=ctlAddEntry;
 window.ctlDeleteEntry=ctlDeleteEntry;
 
-// ââââââââââââââââââââââââââââââââââââââââ
-// PSYCHO â profil psychodietetyczny klienta
-// ââââââââââââââââââââââââââââââââââââââââ
+// ════════════════════════════════════════
+// PSYCHO — profil psychodietetyczny klienta
+// ════════════════════════════════════════
 window.CLIENT_PSYCHO = window.CLIENT_PSYCHO || {}; // clientId -> {habits,diagnosis,psychology,daily:[]}
 
-const PSY_HABIT_LABELS = {binge:'Napady objadania siÄ',snacking:'Niekontrolowane podjadanie',yoyo:'BĹÄdne koĹo yo-yo',emotional:'Jedzenie emocjonalne',restriction:'Nadmierne restrykcje',social:'TrudnoĹci w sytuacjach spoĹecznych'};
-const PSY_DIAG_LABELS  = {io:'InsulinoopornoĹÄ',diabetes:'Cukrzyca (t.1 lub t.2)',ibs:'Jelito draĹźliwe (IBS)',hashimoto:'Hashimoto / niedoczynnoĹÄ',pcos:'PCOS',gluten:'Nietolerancja glutenu/celiakia',lactose:'Nietolerancja laktozy'};
-const PSY_BARRIERS = ['Brak czasu','Brak motywacji','Perfekcjonizm (wszystko albo nic)','Strach przed poraĹźkÄ','PorĂłwnywanie siÄ z innymi','Trauma zwiÄzana z odchudzaniem','Problemy emocjonalne z jedzeniem','Presja spoĹeczna'];
+const PSY_HABIT_LABELS = {binge:'Napady objadania się',snacking:'Niekontrolowane podjadanie',yoyo:'Błędne koło yo-yo',emotional:'Jedzenie emocjonalne',restriction:'Nadmierne restrykcje',social:'Trudności w sytuacjach społecznych'};
+const PSY_DIAG_LABELS  = {io:'Insulinooporność',diabetes:'Cukrzyca (t.1 lub t.2)',ibs:'Jelito drażliwe (IBS)',hashimoto:'Hashimoto / niedoczynność',pcos:'PCOS',gluten:'Nietolerancja glutenu/celiakia',lactose:'Nietolerancja laktozy'};
+const PSY_BARRIERS = ['Brak czasu','Brak motywacji','Perfekcjonizm (wszystko albo nic)','Strach przed porażką','Porównywanie się z innymi','Trauma związana z odchudzaniem','Problemy emocjonalne z jedzeniem','Presja społeczna'];
 
 function psyGet(clientId){
   if(!CLIENT_PSYCHO[clientId]){
@@ -389,9 +389,9 @@ function renderCPPsycho(c){
 
   const _psyHtml = `
     <div style="background:linear-gradient(135deg,rgba(157,124,244,0.1),rgba(232,48,42,0.06));border:1px solid rgba(157,124,244,0.2);border-radius:10px;padding:14px;margin-bottom:14px;">
-      <div style="font-size:10px;color:var(--purple);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">đ Dzienny tracker nastroju</div>
+      <div style="font-size:10px;color:var(--purple);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">😊 Dzienny tracker nastroju</div>
       <div style="display:flex;gap:6px;justify-content:space-between;margin-bottom:10px;" id="psy-mood-btns">
-        ${[[1,'đ','Bardzo zĹy'],[2,'đ','ZĹy'],[3,'đ','Neutralny'],[4,'đ','Dobry'],[5,'đ¤Š','Ĺwietny']].map(([v,e,t])=>
+        ${[[1,'😞','Bardzo zły'],[2,'😕','Zły'],[3,'😐','Neutralny'],[4,'😊','Dobry'],[5,'🤩','Świetny']].map(([v,e,t])=>
           `<button onclick="psySetMood('${c.id}',${v},this)" class="psy-mood-btn" data-v="${v}" title="${t}" style="flex:1;font-size:20px;background:${(todayMood?.mood===v)?'rgba(157,124,244,0.25)':'var(--s3)'};border:1px solid ${(todayMood?.mood===v)?'rgba(157,124,244,0.5)':'var(--border2)'};border-radius:8px;padding:8px 2px;cursor:pointer;">${e}</button>`
         ).join('')}
       </div>
@@ -408,21 +408,21 @@ function renderCPPsycho(c){
         </div>
       </div>
       <div style="margin-top:10px;">
-        <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">JakoĹÄ snu (godz.)</div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">Jakość snu (godz.)</div>
         <div style="display:flex;gap:6px;">
           <input id="psy-sleep" type="number" min="0" max="12" step="0.5" value="${todayMood?.sleep||''}" placeholder="7.5" style="flex:1;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:6px 9px;color:var(--text);font-size:12px;">
-          <button onclick="psySaveDaily('${c.id}')" id="psy-daily-btn" style="background:rgba(157,124,244,0.2);border:1px solid rgba(157,124,244,0.4);border-radius:6px;padding:6px 12px;color:var(--purple);font-size:11px;font-weight:600;cursor:pointer;">đž Zapisz</button>
+          <button onclick="psySaveDaily('${c.id}')" id="psy-daily-btn" style="background:rgba(157,124,244,0.2);border:1px solid rgba(157,124,244,0.4);border-radius:6px;padding:6px 12px;color:var(--purple);font-size:11px;font-weight:600;cursor:pointer;">💾 Zapisz</button>
         </div>
       </div>
     </div>
 
     <div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;">
-      <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">đ NastrĂłj â ostatnie 7 dni</div>
+      <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">📈 Nastrój — ostatnie 7 dni</div>
       <div id="psy-mood-history" style="display:flex;gap:4px;align-items:flex-end;height:56px;"></div>
     </div>
 
     <div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;">
-      <div style="font-size:10px;color:var(--accent);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">đ˝ď¸ Nawyki Ĺźywieniowe klienta</div>
+      <div style="font-size:10px;color:var(--accent);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">🍽️ Nawyki żywieniowe klienta</div>
       <div style="display:flex;flex-direction:column;gap:8px;">
         ${Object.entries(PSY_HABIT_LABELS).map(([k,label])=>
           `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text);">
@@ -433,7 +433,7 @@ function renderCPPsycho(c){
     </div>
 
     <div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;">
-      <div style="font-size:10px;color:var(--accent);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">đĽ Diagnoza / kondycja zdrowotna</div>
+      <div style="font-size:10px;color:var(--accent);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">🏥 Diagnoza / kondycja zdrowotna</div>
       <div style="display:flex;flex-direction:column;gap:6px;">
         ${Object.entries(PSY_DIAG_LABELS).map(([k,label])=>
           `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text);">
@@ -445,32 +445,32 @@ function renderCPPsycho(c){
     </div>
 
     <div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;">
-      <div style="font-size:10px;color:var(--accent);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">đ­ Relacja z ciaĹem i Äwiczeniami</div>
+      <div style="font-size:10px;color:var(--accent);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">💭 Relacja z ciałem i ćwiczeniami</div>
       <div style="margin-bottom:10px;">
-        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Motywacja do ÄwiczeĹ (1-10)</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Motywacja do ćwiczeń (1-10)</div>
         <div style="display:flex;align-items:center;gap:8px;">
           <input type="range" id="psy-motivation" min="1" max="10" value="${p.psychology?.motivation||7}" style="flex:1;accent-color:var(--accent);" oninput="document.getElementById('psy-mot-val').textContent=this.value">
           <span style="font-size:13px;font-weight:700;color:var(--accent);min-width:18px;" id="psy-mot-val">${p.psychology?.motivation||7}</span>
         </div>
       </div>
       <div style="margin-bottom:10px;">
-        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Zadowolenie z wĹasnego ciaĹa (1-10)</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Zadowolenie z własnego ciała (1-10)</div>
         <div style="display:flex;align-items:center;gap:8px;">
           <input type="range" id="psy-body-sat" min="1" max="10" value="${p.psychology?.bodySatisfaction||6}" style="flex:1;accent-color:var(--accent);" oninput="document.getElementById('psy-body-val').textContent=this.value">
           <span style="font-size:13px;font-weight:700;color:var(--accent);min-width:18px;" id="psy-body-val">${p.psychology?.bodySatisfaction||6}</span>
         </div>
       </div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">GĹĂłwna bariera psychologiczna</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Główna bariera psychologiczna</div>
       <select id="psy-barrier" style="width:100%;background:var(--s3);border:1px solid var(--border2);border-radius:6px;padding:7px 9px;color:var(--text);font-size:12px;">
-        <option value="">â wybierz â</option>
+        <option value="">– wybierz –</option>
         ${PSY_BARRIERS.map(b=>`<option ${p.psychology?.barrier===b?'selected':''}>${b}</option>`).join('')}
       </select>
     </div>
 
     <div style="display:flex;flex-direction:column;gap:8px;">
-      <button onclick="psySaveProfile('${c.id}')" id="psy-save-btn" style="width:100%;background:rgba(157,124,244,0.15);border:1px solid rgba(157,124,244,0.35);border-radius:8px;padding:10px;color:var(--purple);font-size:12px;font-weight:600;cursor:pointer;">đž Zapisz profil psychodietetyczny</button>
-      <button onclick="psyAskAI('${c.id}')" id="psy-ai-btn" style="width:100%;background:rgba(230,0,0,0.1);border:1px solid rgba(230,0,0,0.25);border-radius:8px;padding:10px;color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;">đ¤ Zapytaj AI o strategie</button>
-      <button onclick="psyCheckYoyo('${c.id}')" style="width:100%;background:rgba(201,123,63,0.1);border:1px solid rgba(201,123,63,0.25);border-radius:8px;padding:10px;color:var(--orange);font-size:12px;font-weight:600;cursor:pointer;">đ SprawdĹş bĹÄdne koĹo yo-yo</button>
+      <button onclick="psySaveProfile('${c.id}')" id="psy-save-btn" style="width:100%;background:rgba(157,124,244,0.15);border:1px solid rgba(157,124,244,0.35);border-radius:8px;padding:10px;color:var(--purple);font-size:12px;font-weight:600;cursor:pointer;">💾 Zapisz profil psychodietetyczny</button>
+      <button onclick="psyAskAI('${c.id}')" id="psy-ai-btn" style="width:100%;background:rgba(230,0,0,0.1);border:1px solid rgba(230,0,0,0.25);border-radius:8px;padding:10px;color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;">🤖 Zapytaj AI o strategie</button>
+      <button onclick="psyCheckYoyo('${c.id}')" style="width:100%;background:rgba(201,123,63,0.1);border:1px solid rgba(201,123,63,0.25);border-radius:8px;padding:10px;color:var(--orange);font-size:12px;font-weight:600;cursor:pointer;">🔄 Sprawdź błędne koło yo-yo</button>
       <div id="psy-yoyo-result"></div>
       <div id="psy-ai-result"></div>
     </div>`;
@@ -498,7 +498,7 @@ function psySaveDaily(clientId){
   psyPersist(clientId);
   psyRenderMoodHistory(clientId);
   const btn=document.getElementById('psy-daily-btn');
-  if(btn){btn.textContent='â Zapisano!';setTimeout(()=>btn.textContent='đž Zapisz',2000);}
+  if(btn){btn.textContent='✓ Zapisano!';setTimeout(()=>btn.textContent='💾 Zapisz',2000);}
 }
 
 function psySaveProfile(clientId){
@@ -514,22 +514,22 @@ function psySaveProfile(clientId){
   };
   psyPersist(clientId);
   const btn=document.getElementById('psy-save-btn');
-  if(btn){const old=btn.textContent;btn.textContent='â Profil zapisany!';btn.style.background='rgba(74,222,128,0.15)';setTimeout(()=>{btn.textContent=old;btn.style.background='rgba(157,124,244,0.15)';},2500);}
-  notify('â Profil psychodietetyczny zapisany');
+  if(btn){const old=btn.textContent;btn.textContent='✓ Profil zapisany!';btn.style.background='rgba(74,222,128,0.15)';setTimeout(()=>{btn.textContent=old;btn.style.background='rgba(157,124,244,0.15)';},2500);}
+  notify('✓ Profil psychodietetyczny zapisany');
 }
 
 function psyRenderMoodHistory(clientId){
   const el = document.getElementById('psy-mood-history'); if(!el) return;
   const p = psyGet(clientId);
   const daily = (p.daily||[]).slice(-7);
-  if(!daily.length){ el.innerHTML='<div style="font-size:11px;color:var(--muted);text-align:center;width:100%;">Brak danych â zacznij ĹledziÄ nastrĂłj!</div>'; return; }
-  const moodEmoji={1:'đ',2:'đ',3:'đ',4:'đ',5:'đ¤Š'};
+  if(!daily.length){ el.innerHTML='<div style="font-size:11px;color:var(--muted);text-align:center;width:100%;">Brak danych – zacznij śledzić nastrój!</div>'; return; }
+  const moodEmoji={1:'😞',2:'😕',3:'😐',4:'😊',5:'🤩'};
   const moodColor={1:'#ff4d4d',2:'#c97b3f',3:'#9a9086',4:'#4ade80',5:'#e60000'};
   el.innerHTML = daily.map(d=>{
     const height=Math.round((d.mood/5)*100);
     const dayName=new Date(d.date).toLocaleDateString('pl',{weekday:'short'}).substring(0,2);
     return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;">
-      <div style="font-size:13px;">${moodEmoji[d.mood]||'đ'}</div>
+      <div style="font-size:13px;">${moodEmoji[d.mood]||'😐'}</div>
       <div style="width:100%;height:${height}%;background:${moodColor[d.mood]||'var(--muted)'};border-radius:3px;min-height:4px;opacity:.8;"></div>
       <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">${dayName}</div>
     </div>`;
@@ -545,26 +545,26 @@ async function psyAskAI(clientId){
   const motivation = p.psychology?.motivation||7;
 
   let prompt = `Jako psychodietetyk, zaproponuj strategie dla klienta${c?' '+c.name:''}:\n`;
-  if(habits.length) prompt += `â˘ Problemy: ${habits.join(', ')}\n`;
-  if(diagnoses.length) prompt += `â˘ Diagnozy: ${diagnoses.join(', ')}\n`;
-  if(barrier) prompt += `â˘ Bariera: ${barrier}\n`;
-  prompt += `â˘ Motywacja: ${motivation}/10\n`;
-  prompt += '\nPodaj konkretne techniki behawioralne, strategie mindful eating i wskazĂłwki dla trenera personalnego. Odpowiedz krĂłtko po polsku (max 150 sĹĂłw).';
+  if(habits.length) prompt += `• Problemy: ${habits.join(', ')}\n`;
+  if(diagnoses.length) prompt += `• Diagnozy: ${diagnoses.join(', ')}\n`;
+  if(barrier) prompt += `• Bariera: ${barrier}\n`;
+  prompt += `• Motywacja: ${motivation}/10\n`;
+  prompt += '\nPodaj konkretne techniki behawioralne, strategie mindful eating i wskazówki dla trenera personalnego. Odpowiedz krótko po polsku (max 150 słów).';
 
   const resEl = document.getElementById('psy-ai-result');
   const btn = document.getElementById('psy-ai-btn');
-  if(btn){btn.disabled=true;btn.textContent='âł AnalizujÄ...';}
+  if(btn){btn.disabled=true;btn.textContent='⏳ Analizuję...';}
   if(resEl) resEl.innerHTML = '<div style="font-size:11px;color:var(--muted);padding:10px;">AI przygotowuje strategie...</div>';
 
   try{
-    const r = await fetch(W,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,system:'JesteĹ doĹwiadczonym psychodietetykiem i trenerem personalnym. Odpowiadaj konkretnie, po polsku.',messages:[{role:'user',content:prompt}]})});
+    const r = await fetch(W,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,system:'Jesteś doświadczonym psychodietetykiem i trenerem personalnym. Odpowiadaj konkretnie, po polsku.',messages:[{role:'user',content:prompt}]})});
     const d = await r.json();
     const ans = (d.content||[]).map(i=>i.text||'').join('');
-    if(resEl) resEl.innerHTML = `<div style="background:rgba(230,0,0,0.06);border:1px solid rgba(230,0,0,0.2);border-radius:8px;padding:12px;margin-top:4px;font-size:12px;color:var(--text);line-height:1.6;white-space:pre-wrap;">đ¤ ${ans}</div>`;
+    if(resEl) resEl.innerHTML = `<div style="background:rgba(230,0,0,0.06);border:1px solid rgba(230,0,0,0.2);border-radius:8px;padding:12px;margin-top:4px;font-size:12px;color:var(--text);line-height:1.6;white-space:pre-wrap;">🤖 ${ans}</div>`;
   }catch(e){
-    if(resEl) resEl.innerHTML = '<div style="color:var(--red);font-size:12px;padding:8px;">BĹÄd: '+e.message+'</div>';
+    if(resEl) resEl.innerHTML = '<div style="color:var(--red);font-size:12px;padding:8px;">Błąd: '+e.message+'</div>';
   }
-  if(btn){btn.disabled=false;btn.textContent='đ¤ Zapytaj AI o strategie';}
+  if(btn){btn.disabled=false;btn.textContent='🤖 Zapytaj AI o strategie';}
 }
 
 function psyCheckYoyo(clientId){
@@ -573,7 +573,7 @@ function psyCheckYoyo(clientId){
     .map(e=>({date:e.date,w:parseFloat(e.values.m1)})).sort((a,b)=>a.date.localeCompare(b.date));
 
   if(weights.length<3){
-    resultEl.innerHTML = `<div style="background:var(--s3);border-radius:8px;padding:10px;font-size:11px;color:var(--muted);margin-top:6px;">Potrzeba min. 3 pomiarĂłw wagi, aby wykryÄ wzorzec yo-yo.</div>`;
+    resultEl.innerHTML = `<div style="background:var(--s3);border-radius:8px;padding:10px;font-size:11px;color:var(--muted);margin-top:6px;">Potrzeba min. 3 pomiarów wagi, aby wykryć wzorzec yo-yo.</div>`;
     return;
   }
 
@@ -589,29 +589,29 @@ function psyCheckYoyo(clientId){
 
   resultEl.innerHTML = isYoyo
     ? `<div style="background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.25);border-radius:8px;padding:12px;margin-top:6px;">
-        <div style="font-size:12px;font-weight:700;color:var(--red);margin-bottom:6px;">â ď¸ Wykryto wzorzec yo-yo</div>
-        <div style="font-size:11px;color:var(--text);line-height:1.6;">Amplituda: <strong>${amplitude}kg</strong> Âˇ ${reversals} zmiany kierunku<br>
-        Zalecenie: zmieĹ podejĹcie z restrykcji na zrĂłwnowaĹźony deficyt (max -300kcal). ZwiÄksz biaĹko do 2.4g/kg. Praca nad psychologiÄ jedzenia.</div>
+        <div style="font-size:12px;font-weight:700;color:var(--red);margin-bottom:6px;">⚠️ Wykryto wzorzec yo-yo</div>
+        <div style="font-size:11px;color:var(--text);line-height:1.6;">Amplituda: <strong>${amplitude}kg</strong> · ${reversals} zmiany kierunku<br>
+        Zalecenie: zmień podejście z restrykcji na zrównoważony deficyt (max -300kcal). Zwiększ białko do 2.4g/kg. Praca nad psychologią jedzenia.</div>
       </div>`
     : `<div style="background:rgba(74,222,128,0.08);border:1px solid rgba(74,222,128,0.25);border-radius:8px;padding:12px;margin-top:6px;">
-        <div style="font-size:12px;font-weight:700;color:var(--teal);">â Brak wzorca yo-yo</div>
-        <div style="font-size:11px;color:var(--text);margin-top:4px;">Waga zmienia siÄ ${last>first?'rosnÄco':'malejÄco'} o ${Math.abs(last-first).toFixed(1)}kg. Amplituda: ${amplitude}kg.</div>
+        <div style="font-size:12px;font-weight:700;color:var(--teal);">✅ Brak wzorca yo-yo</div>
+        <div style="font-size:11px;color:var(--text);margin-top:4px;">Waga zmienia się ${last>first?'rosnąco':'malejąco'} o ${Math.abs(last-first).toFixed(1)}kg. Amplituda: ${amplitude}kg.</div>
       </div>`;
 }
 
 window.renderCPPsycho=renderCPPsycho; window.psySetMood=psySetMood; window.psySaveDaily=psySaveDaily;
 window.psySaveProfile=psySaveProfile; window.psyAskAI=psyAskAI; window.psyCheckYoyo=psyCheckYoyo;
 
-// ââââââââââââââââââââââââââââââââââââââââ
-// SFR TRACKER â objÄtoĹÄ tygodniowa i zmÄczenie stawowe per partia
-// ââââââââââââââââââââââââââââââââââââââââ
+// ════════════════════════════════════════
+// SFR TRACKER — objętość tygodniowa i zmęczenie stawowe per partia
+// ════════════════════════════════════════
 window.CLIENT_SFR = window.CLIENT_SFR || {}; // clientId -> {weekKey: {muscle:{sets,fatigue}}}
 
-const SFR_MUSCLES = ['Klatka','Plecy','Barki','Biceps','Triceps','Nogi','PoĹladki','Core'];
+const SFR_MUSCLES = ['Klatka','Plecy','Barki','Biceps','Triceps','Nogi','Pośladki','Core'];
 const SFR_LIMITS = {
   'Klatka':{mev:10,mrv:20},'Plecy':{mev:10,mrv:22},'Barki':{mev:12,mrv:22},
   'Biceps':{mev:8,mrv:16},'Triceps':{mev:8,mrv:16},'Nogi':{mev:12,mrv:24},
-  'PoĹladki':{mev:6,mrv:16},'Core':{mev:8,mrv:16}
+  'Pośladki':{mev:6,mrv:16},'Core':{mev:8,mrv:16}
 };
 
 function sfrWeekKey(){
@@ -638,23 +638,23 @@ function sfrPersist(clientId){
   if(c){c.sfr=CLIENT_SFR[clientId];persistById('clients',c);}
 }
 
-// MnoĹźnik MRV na podstawie ostatniego dziennego wpisu z moduĹu Psycho (stres/sen)
+// Mnożnik MRV na podstawie ostatniego dziennego wpisu z modułu Psycho (stres/sen)
 function sfrGetMultiplier(clientId){
   const psy=(typeof psyGet==='function')?psyGet(clientId):null;
   const last=(psy&&psy.daily&&psy.daily.length)?psy.daily[psy.daily.length-1]:null;
-  if(!last) return {mult:1.0, source:'brak danych z Psycho â uĹźywam peĹnego MRV'};
+  if(!last) return {mult:1.0, source:'brak danych z Psycho — używam pełnego MRV'};
   const stress=last.stress||5, sleep=(last.sleep!=null)?last.sleep:7;
-  if(stress>=7||sleep<6) return {mult:0.75, source:`wysoki stres (${stress}/10) lub maĹo snu (${sleep}h) â MRV obniĹźone o 25%`};
-  if(stress>=5||sleep<7) return {mult:0.9, source:`umiarkowany stres/sen â MRV obniĹźone o 10%`};
-  return {mult:1.0, source:`dobry stres/sen (${stress}/10, ${sleep}h) â peĹne MRV`};
+  if(stress>=7||sleep<6) return {mult:0.75, source:`wysoki stres (${stress}/10) lub mało snu (${sleep}h) — MRV obniżone o 25%`};
+  if(stress>=5||sleep<7) return {mult:0.9, source:`umiarkowany stres/sen — MRV obniżone o 10%`};
+  return {mult:1.0, source:`dobry stres/sen (${stress}/10, ${sleep}h) — pełne MRV`};
 }
 
 function renderCPSfr(c){
   if(!c) return;
   const _sfrHtml=`
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-      <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">TYDZIEĹ ${sfrWeekKey()}</div>
-      <button onclick="sfrReset('${c.id}')" style="background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.2);border-radius:6px;padding:5px 10px;color:var(--red);font-size:10px;cursor:pointer;">âş Reset tygodnia</button>
+      <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">TYDZIEŃ ${sfrWeekKey()}</div>
+      <button onclick="sfrReset('${c.id}')" style="background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.2);border-radius:6px;padding:5px 10px;color:var(--red);font-size:10px;cursor:pointer;">↺ Reset tygodnia</button>
     </div>
     <div id="sfr-mult-info" style="font-size:10px;color:var(--muted);background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;margin-bottom:12px;"></div>
     <div id="sfr-warning" style="display:none;background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.25);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:11px;color:var(--red);line-height:1.6;"></div>
@@ -670,7 +670,7 @@ function sfrRender(clientId){
   const {mult,source}=sfrGetMultiplier(clientId);
 
   const infoEl=document.getElementById('sfr-mult-info');
-  if(infoEl) infoEl.innerHTML=`đ§  <b>MnoĹźnik MRV z Psycho:</b> Ă${mult} â ${source}`;
+  if(infoEl) infoEl.innerHTML=`🧠 <b>Mnożnik MRV z Psycho:</b> ×${mult} — ${source}`;
 
   grid.innerHTML=SFR_MUSCLES.map(m=>{
     const d=data[m]||{sets:0,fatigue:5};
@@ -678,21 +678,21 @@ function sfrRender(clientId){
     const adjMrv=Math.round(lim.mrv*mult);
     const pct=Math.min(100,Math.round(d.sets/adjMrv*100));
     const color=pct>=100?'var(--red)':pct>=75?'var(--orange)':'var(--teal)';
-    const fatigueEmoji=d.fatigue<=3?'đ':d.fatigue<=6?'đ':'đŤ';
+    const fatigueEmoji=d.fatigue<=3?'😊':d.fatigue<=6?'😐':'😫';
     return `<div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
         <div style="font-size:12px;font-weight:600;color:var(--text);">${m}</div>
         <div style="display:flex;align-items:center;gap:6px;">
           <span style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;">${d.sets}/${adjMrv} serii</span>
           <button onclick="sfrAddSet('${clientId}','${m}')" style="background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.25);border-radius:4px;padding:1px 7px;color:var(--teal);font-size:12px;cursor:pointer;">+</button>
-          <button onclick="sfrRemoveSet('${clientId}','${m}')" style="background:rgba(255,255,255,0.04);border:1px solid var(--border2);border-radius:4px;padding:1px 7px;color:var(--muted);font-size:12px;cursor:pointer;">â</button>
+          <button onclick="sfrRemoveSet('${clientId}','${m}')" style="background:rgba(255,255,255,0.04);border:1px solid var(--border2);border-radius:4px;padding:1px 7px;color:var(--muted);font-size:12px;cursor:pointer;">−</button>
         </div>
       </div>
       <div style="height:5px;background:rgba(255,255,255,0.06);border-radius:20px;overflow:hidden;margin-bottom:6px;">
         <div style="height:100%;width:${pct}%;background:${color};border-radius:20px;transition:width .3s;"></div>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
-        <span style="font-size:9px;color:var(--muted);white-space:nowrap;">ZmÄczenie: ${fatigueEmoji}</span>
+        <span style="font-size:9px;color:var(--muted);white-space:nowrap;">Zmęczenie: ${fatigueEmoji}</span>
         <input type="range" min="1" max="10" value="${d.fatigue}" oninput="sfrSetFatigue('${clientId}','${m}',this.value)" style="flex:1;accent-color:${color};">
         <span style="font-size:9px;color:${color};font-family:'DM Mono',monospace;">${d.fatigue}/10</span>
       </div>
@@ -724,7 +724,7 @@ function sfrSetFatigue(clientId,muscle,val){
 }
 
 function sfrReset(clientId){
-  if(!confirm('ZresetowaÄ objÄtoĹÄ na ten tydzieĹ?')) return;
+  if(!confirm('Zresetować objętość na ten tydzień?')) return;
   const wk=sfrWeekKey();
   CLIENT_SFR[clientId][wk]={};
   SFR_MUSCLES.forEach(m=>{ CLIENT_SFR[clientId][wk][m]={sets:0,fatigue:5}; });
@@ -740,8 +740,8 @@ function sfrCheckWarnings(clientId,mult){
   SFR_MUSCLES.forEach(m=>{
     const d=data[m];
     const adjMrv=Math.round(SFR_LIMITS[m].mrv*mult);
-    if(d?.sets>=adjMrv) warnings.push(`â ď¸ ${m}: MRV osiÄgniÄte (${d.sets}/${adjMrv} serii)`);
-    if(d?.fatigue>=8) warnings.push(`đŚ´ ${m}: Wysokie zmÄczenie stawowe (${d.fatigue}/10) â rozwaĹź deload`);
+    if(d?.sets>=adjMrv) warnings.push(`⚠️ ${m}: MRV osiągnięte (${d.sets}/${adjMrv} serii)`);
+    if(d?.fatigue>=8) warnings.push(`🦴 ${m}: Wysokie zmęczenie stawowe (${d.fatigue}/10) — rozważ deload`);
   });
   if(warnings.length){
     warningEl.style.display='block';
@@ -751,7 +751,7 @@ function sfrCheckWarnings(clientId,mult){
   }
 }
 
-// Wykorzystywane przez generator planu AI (jeĹli wybrano klienta)
+// Wykorzystywane przez generator planu AI (jeśli wybrano klienta)
 function sfrGetContextForAI(clientId){
   if(!clientId || !CLIENT_SFR[clientId]) return '';
   const data=sfrGetWeekData(clientId);
@@ -760,18 +760,18 @@ function sfrGetContextForAI(clientId){
     const d=data[m];
     if(!d||d.sets===0) return null;
     const adjMrv=Math.round(SFR_LIMITS[m].mrv*mult);
-    return `${m}: ${d.sets}/${adjMrv} serii w tym tygodniu, zmÄczenie stawowe: ${d.fatigue}/10`;
+    return `${m}: ${d.sets}/${adjMrv} serii w tym tygodniu, zmęczenie stawowe: ${d.fatigue}/10`;
   }).filter(Boolean);
   if(!lines.length) return '';
-  return `\n\nSFR TRACKER (bieĹźÄcy tydzieĹ klienta, uwzglÄdnij przy planowaniu objÄtoĹci):\n${lines.join('\n')}\nLimit MRV dostosowany do stresu/snu (mnoĹźnik: ${mult}x)`;
+  return `\n\nSFR TRACKER (bieżący tydzień klienta, uwzględnij przy planowaniu objętości):\n${lines.join('\n')}\nLimit MRV dostosowany do stresu/snu (mnożnik: ${mult}x)`;
 }
 
 window.renderCPSfr=renderCPSfr; window.sfrAddSet=sfrAddSet; window.sfrRemoveSet=sfrRemoveSet;
 window.sfrSetFatigue=sfrSetFatigue; window.sfrReset=sfrReset; window.sfrGetContextForAI=sfrGetContextForAI;
 
-// ââââââââââââââââââââââââââââââââââââââââ
+// ════════════════════════════════════════
 // IMPORT Z FITEBO
-// ââââââââââââââââââââââââââââââââââââââââ
+// ════════════════════════════════════════
 let fbImages = [];
 let fbParsed = [];
 
@@ -816,7 +816,7 @@ function fbMapExercises(list,mode){
       if(!sets){
         const n=parseInt(count,10);
         const r=parseFloat(String(reps).replace(',','.'));
-        const range=/[-ââ]/.test(reps);
+        const range=/[-–—]/.test(reps);
         if(Number.isFinite(n)&&n>0&&!range&&kg!==''&&Number.isFinite(r)){
           sets=Array.from({length:n},(_,i)=>({setNo:i+1,kg,reps:r}));
         }else if(kg!==''||(reps&&reps!=='8-10')){
@@ -839,12 +839,12 @@ function inferFiteboMethod(days){
   if(/push/.test(labels)&&/pull/.test(labels))return 'PPL';
   if(/upper/.test(labels)&&/lower/.test(labels))return 'Upper/Lower';
   if((days||[]).length<=2)return 'FBW';
-  return 'WĹasna';
+  return 'Własna';
 }
 function fbPlanDaysFromClientPayload(c){
   if(Array.isArray(c&&c.planDays)&&c.planDays.length){
     return c.planDays.filter(d=>d&&!d.rest).map((d,i)=>({
-      day:d.day||d.dayName||('DzieĹ '+(i+1)),
+      day:d.day||d.dayName||('Dzień '+(i+1)),
       muscles:d.muscles||d.focus||d.dayName||'',
       rest:false,
       exercises:fbMapExercises(d.exercises)
@@ -878,7 +878,7 @@ function fiteboWorkoutsForAI(clientId){
   if(plan&&(plan.days||[]).length){
     lines.push('Struktura planu z Fitebo ('+(plan.method||'')+'):');
     (plan.days||[]).forEach(d=>{
-      lines.push((d.day||'DzieĹ')+':');
+      lines.push((d.day||'Dzień')+':');
       (d.exercises||[]).forEach(e=>{
         lines.push('  - '+(e.name||'')+' '+(e.sets||'')+'x'+(e.reps||'')+(e.kg?' @'+e.kg+'kg':''));
       });
@@ -904,7 +904,7 @@ function fiteboWorkoutsForAI(clientId){
 }
 function fiteboParseReps(r){
   const s=String(r||'').replace(/powt\.?/i,'').trim();
-  const m=s.match(/(\d+)\s*[-â\/]\s*(\d+)/);
+  const m=s.match(/(\d+)\s*[-–\/]\s*(\d+)/);
   if(m)return{lo:+m[1],hi:+m[2]};
   const n=parseInt(s,10);
   return{lo:isFinite(n)?n:8,hi:isFinite(n)?n:10};
@@ -914,7 +914,7 @@ function fiteboFmtReps(lo,hi){
   hi=Math.max(lo,Math.round(hi));
   return lo===hi?String(lo):(lo+'-'+hi);
 }
-/** Import z Fitebo = obecny tydzieĹ (zwykle 3.): 12 powt. juĹź zrobione, teraz 8. */
+/** Import z Fitebo = obecny tydzień (zwykle 3.): 12 powt. już zrobione, teraz 8. */
 function fiteboIsHypertrophyReps(lo,hi){
   return Math.max(lo||0,hi||0)>=8;
 }
@@ -965,7 +965,7 @@ function fiteboWeekStep(i,n,baseSets,baseReps,kg,phase){
     sets=sets0;rpe=8;
     if(i%2===1){rlo=hi;rhi=hi;}
     else{rlo=lo;rhi=hi;}
-  }else if(/si[lĹ]a|szczyt|intensyf/.test(ph)){
+  }else if(/si[lł]a|szczyt|intensyf/.test(ph)){
     sets=sets0;rlo=Math.max(3,lo-2);rhi=Math.max(rlo,lo);rpe=8;
     if(hasKg)k=kgNum+5;
   }
@@ -976,7 +976,7 @@ function fiteboContinuePhases(n,weekKeys){
     4:{w1:'Hipertrofia I',w2:'Hipertrofia I',w3:'Hipertrofia II',w4:'Deload'},
     6:{w1:'Hipertrofia I',w2:'Hipertrofia I',w3:'Hipertrofia II',w4:'Hipertrofia II',w5:'Hipertrofia II',w6:'Deload'},
     8:{w1:'Hipertrofia I (12 powt.)',w2:'Hipertrofia I (12 powt.)',w3:'Hipertrofia II (8 powt.)',w4:'Hipertrofia II (8 powt.)',w5:'Hipertrofia II (8 powt.)',w6:'Hipertrofia II (8 powt.)',w7:'Deload',w8:'Szczyt (8 powt.)'},
-    12:{w1:'Hipertrofia I',w2:'Hipertrofia I',w3:'Hipertrofia II',w4:'Hipertrofia II',w5:'Hipertrofia II',w6:'Hipertrofia II',w7:'Hipertrofia II',w8:'SiĹa',w9:'Deload',w10:'Intensyfikacja',w11:'Szczyt',w12:'Test/Realizacja'}
+    12:{w1:'Hipertrofia I',w2:'Hipertrofia I',w3:'Hipertrofia II',w4:'Hipertrofia II',w5:'Hipertrofia II',w6:'Hipertrofia II',w7:'Hipertrofia II',w8:'Siła',w9:'Deload',w10:'Intensyfikacja',w11:'Szczyt',w12:'Test/Realizacja'}
   };
   if(t[n])return t[n];
   return (weekKeys||[]).reduce((o,k,i)=>{o[k]=i===(weekKeys.length-1)?'Deload':'Hipertrofia I';return o;},{});
@@ -1036,7 +1036,7 @@ function fiteboSourceDays(clientId){
   const plan=list.find(p=>p.source==='fitebo')||list.find(p=>p.source!=='fitebo-continue')||list[0];
   if(plan){
     return(plan.days||[]).filter(d=>d&&!d.rest).map(d=>({
-      day:d.day||d.dayName||'DzieĹ',
+      day:d.day||d.dayName||'Dzień',
       muscles:d.muscles||d.focus||'',
       rest:false,
       exercises:fbMapExercises(d.exercises)
@@ -1078,7 +1078,7 @@ function buildFiteboContinuationPlan(clientId,weeksNum,opts){
     })
   }));
   return{
-    name:'Kontynuacja Fitebo â '+n+' tyg.',
+    name:'Kontynuacja Fitebo — '+n+' tyg.',
     clientId,
     clientName:c?c.name:'',
     method:inferFiteboMethod(srcDays),
@@ -1123,12 +1123,12 @@ async function cpContinueFiteboPlan(clientId){
     window._fbAttachClientId=clientId;
     if(typeof closeClientProfile==='function')closeClientProfile();
     if(typeof openM==='function')openM('m-fitebo');
-    if(typeof notify==='function')notify('Wklej treningi z Fitebo tego klienta â skopiujÄ te same Äwiczenia i rozpiszÄ tygodnie.');
+    if(typeof notify==='function')notify('Wklej treningi z Fitebo tego klienta — skopiuję te same ćwiczenia i rozpiszę tygodnie.');
     return;
   }
   const names=(draft.days||[]).flatMap(d=>(d.exercises||[]).map(e=>e.name));
   if(!names.length){
-    if(typeof notify==='function')notify('W logu Fitebo nie ma ÄwiczeĹ â wgraj zrzut z nazwami i seriami.');
+    if(typeof notify==='function')notify('W logu Fitebo nie ma ćwiczeń — wgraj zrzut z nazwami i seriami.');
     return;
   }
   let plan=(window.PL||[]).find(p=>p&&p.clientId===clientId&&p.source==='fitebo-continue');
@@ -1143,7 +1143,7 @@ async function cpContinueFiteboPlan(clientId){
     try{await persistById('plans',plan);}catch(e){console.warn('fitebo continue persist',e);}
   }
   if(typeof renderCPPlan==='function')renderCPPlan(c);
-  if(typeof notify==='function')notify('â Kontynuacja Fitebo â 8 tyg. hipertrofii, start od tygodnia '+startWeek+' (12 powt. â 8).');
+  if(typeof notify==='function')notify('✓ Kontynuacja Fitebo — 8 tyg. hipertrofii, start od tygodnia '+startWeek+' (12 powt. → 8).');
 }
 window.fbNormName=fbNormName;
 window.fbFindClientByName=fbFindClientByName;
@@ -1175,9 +1175,9 @@ function fbFileLoad(input){
 
 function fbImagesLoad(input){
   const files = Array.from(input.files || []);
-  if(fbImages.length + files.length > 8){ notify('â  Maksymalnie 8 zrzutĂłw na jednÄ analizÄ.'); }
+  if(fbImages.length + files.length > 8){ notify('⚠ Maksymalnie 8 zrzutów na jedną analizę.'); }
   files.slice(0, Math.max(0, 8 - fbImages.length)).forEach(file => {
-    if(file.size > 5000000){ notify('â  '+file.name+': plik za duĹźy (max 5MB), pomijam.'); return; }
+    if(file.size > 5000000){ notify('⚠ '+file.name+': plik za duży (max 5MB), pomijam.'); return; }
     const reader = new FileReader();
     reader.onload = e => {
       const dataUrl = e.target.result;
@@ -1195,7 +1195,7 @@ function renderFbImagePreviews(){
   const wrap = document.getElementById('fb-img-previews'); if(!wrap) return;
   wrap.innerHTML = fbImages.map((img,i)=>`<div style="position:relative;width:60px;height:60px;border-radius:8px;overflow:hidden;border:1px solid var(--border2);">
     <img src="${img.dataUrl}" style="width:100%;height:100%;object-fit:cover;">
-    <button onclick="fbRemoveImage(${i})" style="position:absolute;top:1px;right:1px;background:rgba(0,0,0,0.7);color:#fff;border:none;border-radius:50%;width:16px;height:16px;font-size:10px;cursor:pointer;line-height:1;">Ă</button>
+    <button onclick="fbRemoveImage(${i})" style="position:absolute;top:1px;right:1px;background:rgba(0,0,0,0.7);color:#fff;border:none;border-radius:50%;width:16px;height:16px;font-size:10px;cursor:pointer;line-height:1;">×</button>
   </div>`).join('');
 }
 
@@ -1204,25 +1204,25 @@ async function fbAnalyze(){
   const resultEl = document.getElementById('fb-result');
   const btn = document.getElementById('fb-analyze-btn');
   if(!raw && !fbImages.length){ resultEl.innerHTML = '<div style="color:var(--red);font-size:12px;">Wklej dane albo wgraj zrzut ekranu.</div>'; return; }
-  btn.disabled = true; btn.textContent = 'âł AnalizujÄ...';
-  resultEl.innerHTML = '<div style="color:var(--muted);font-size:12px;">AI analizuje dane, przy wiÄkszych porcjach moĹźe to potrwaÄ kilkanaĹcie sekund...</div>';
+  btn.disabled = true; btn.textContent = '⏳ Analizuję...';
+  resultEl.innerHTML = '<div style="color:var(--muted);font-size:12px;">AI analizuje dane, przy większych porcjach może to potrwać kilkanaście sekund...</div>';
 
-  const system = `JesteĹ asystentem migracji danych dla platformy trenera personalnego. WyciÄgnij dane klientĂłw z tekstu i/lub zrzutĂłw ekranu z aplikacji Fitebo. ZwrĂłÄ WYĹÄCZNIE poprawny JSON, bez markdown:
+  const system = `Jesteś asystentem migracji danych dla platformy trenera personalnego. Wyciągnij dane klientów z tekstu i/lub zrzutów ekranu z aplikacji Fitebo. Zwróć WYŁĄCZNIE poprawny JSON, bez markdown:
 {"clients":[{
-  "name":"ImiÄ Nazwisko","age":liczba_lub_null,"gender":"M"|"K"|null,
+  "name":"Imię Nazwisko","age":liczba_lub_null,"gender":"M"|"K"|null,
   "weight":liczba_lub_null,"height":liczba_lub_null,
   "goal":"masa"|"sila"|"redukcja"|"kondycja"|null,
   "level":"poczatkujacy"|"sredni"|"zaawansowany"|null,
   "injuries":"tekst_lub_null",
   "measurements":[{"date":"YYYY-MM-DD","weight":liczba_lub_null,"waist":liczba_lub_null,"chest":liczba_lub_null,"hips":liczba_lub_null}],
-  "sessions":[{"date":"YYYY-MM-DD","time":"HH:MM"|null,"type":"Push|Pull|Legs|FBW|opis dnia","exercises":[{"name":"nazwa Äwiczenia","sets":"3","reps":"12","kg":"22.5","rest":"90s","log":[{"setNo":1,"reps":12,"kg":20},{"setNo":2,"reps":12,"kg":22.5},{"setNo":3,"reps":12,"kg":22.5,"extra":false}]}]}],
+  "sessions":[{"date":"YYYY-MM-DD","time":"HH:MM"|null,"type":"Push|Pull|Legs|FBW|opis dnia","exercises":[{"name":"nazwa ćwiczenia","sets":"3","reps":"12","kg":"22.5","rest":"90s","log":[{"setNo":1,"reps":12,"kg":20},{"setNo":2,"reps":12,"kg":22.5},{"setNo":3,"reps":12,"kg":22.5,"extra":false}]}]}],
   "planDays":[{"dayName":"Push","focus":"klatka barki triceps","exercises":[{"name":"...","sets":"4","reps":"8-10","kg":"60","rest":"180s"}]}],
   "notes":"dodatkowe uwagi tekstowe lub null"
 }]}
-Zasady: jeĹli danych brak, uĹźyj null / pustej tablicy â NIE zmyĹlaj. Daty w formacie YYYY-MM-DD; godzina sesji jako HH:MM gdy widaÄ na zrzucie. JeĹli nie da siÄ ustaliÄ dokĹadnej daty, pomiĹ wpis daty, ale ZACHOWAJ Äwiczenia w planDays. Zrzuty logu treningowego i HISTORII ÄWICZENIA (tabela # / Powt / KG / Obj, kilka dat nad tabelami) MUSZÄ trafiÄ do sessions â kaĹźda data = osobna sesja, kaĹźda seria = wpis w log[] (nie uĹredniaj kg). Serie oznaczone âDodatkoweâ majÄ extra:true. planDays to szablon planu (liczba serii jako tekst), sessions to faktycznie zrobione treningi. JeĹli w danych jest wielu klientĂłw, zwrĂłÄ kaĹźdego osobno w tablicy.`;
+Zasady: jeśli danych brak, użyj null / pustej tablicy — NIE zmyślaj. Daty w formacie YYYY-MM-DD; godzina sesji jako HH:MM gdy widać na zrzucie. Jeśli nie da się ustalić dokładnej daty, pomiń wpis daty, ale ZACHOWAJ ćwiczenia w planDays. Zrzuty logu treningowego i HISTORII ĆWICZENIA (tabela # / Powt / KG / Obj, kilka dat nad tabelami) MUSZĄ trafić do sessions — każda data = osobna sesja, każda seria = wpis w log[] (nie uśredniaj kg). Serie oznaczone „Dodatkowe” mają extra:true. planDays to szablon planu (liczba serii jako tekst), sessions to faktycznie zrobione treningi. Jeśli w danych jest wielu klientów, zwróć każdego osobno w tablicy.`;
 
   const content = fbImages.length
-    ? [...fbImages.map(img => ({ type:'image', source:{ type:'base64', media_type: img.mediaType, data: img.base64 } })), { type:'text', text: raw || 'Przeanalizuj zaĹÄczone zrzuty ekranu z Fitebo.' }]
+    ? [...fbImages.map(img => ({ type:'image', source:{ type:'base64', media_type: img.mediaType, data: img.base64 } })), { type:'text', text: raw || 'Przeanalizuj załączone zrzuty ekranu z Fitebo.' }]
     : raw.substring(0, 15000);
 
   try{
@@ -1234,28 +1234,28 @@ Zasady: jeĹli danych brak, uĹźyj null / pustej tablicy â NIE zmyĹla
     catch(e){ const m = rawText.match(/\{[\s\S]+\}/); if(m) parsed = JSON.parse(m[0]); }
 
     if(!parsed || !Array.isArray(parsed.clients) || !parsed.clients.length){
-      resultEl.innerHTML = '<div style="color:var(--red);font-size:12px;">Nie udaĹo siÄ rozpoznaÄ Ĺźadnego klienta. SprĂłbuj wkleiÄ inny fragment albo wyraĹşniejszy zrzut ekranu.</div>';
+      resultEl.innerHTML = '<div style="color:var(--red);font-size:12px;">Nie udało się rozpoznać żadnego klienta. Spróbuj wkleić inny fragment albo wyraźniejszy zrzut ekranu.</div>';
     } else {
       fbParsed = parsed.clients;
       renderFbPreview();
     }
   }catch(e){
-    resultEl.innerHTML = '<div style="color:var(--red);font-size:12px;">BĹÄd: ' + e.message + '</div>';
+    resultEl.innerHTML = '<div style="color:var(--red);font-size:12px;">Błąd: ' + e.message + '</div>';
   }
-  btn.disabled = false; btn.textContent = 'đ Analizuj (AI)';
+  btn.disabled = false; btn.textContent = '🔍 Analizuj (AI)';
 }
 
 function renderFbPreview(){
   const el = document.getElementById('fb-result');
-  let h = '<div style="font-size:11px;color:var(--teal);margin-bottom:8px;">â Znaleziono ' + fbParsed.length + ' klient(Ăłw). Odznacz tych, ktĂłrych NIE chcesz importowaÄ:</div>';
+  let h = '<div style="font-size:11px;color:var(--teal);margin-bottom:8px;">✅ Znaleziono ' + fbParsed.length + ' klient(ów). Odznacz tych, których NIE chcesz importować:</div>';
   fbParsed.forEach((c,i) => {
     h += `<label style="display:flex;align-items:flex-start;gap:8px;background:var(--s3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin-bottom:6px;cursor:pointer;">
       <input type="checkbox" id="fb-chk-${i}" checked style="margin-top:2px;">
       <div><div style="font-weight:600;font-size:12px;">${c.name || '(bez imienia)'}</div>
-      <div style="font-size:10px;color:var(--muted);margin-top:2px;">${(c.measurements||[]).length} pomiarĂłw Âˇ ${(c.sessions||[]).length} sesji Âˇ ${(typeof fbPlanDaysFromClientPayload==='function'?fbPlanDaysFromClientPayload(c):[]).length} dni planu</div></div>
+      <div style="font-size:10px;color:var(--muted);margin-top:2px;">${(c.measurements||[]).length} pomiarów · ${(c.sessions||[]).length} sesji · ${(typeof fbPlanDaysFromClientPayload==='function'?fbPlanDaysFromClientPayload(c):[]).length} dni planu</div></div>
     </label>`;
   });
-  h += '<button class="btn btn-primary" style="width:100%;margin-top:8px;" onclick="fbImportSelected()">đĽ Importuj zaznaczone</button>';
+  h += '<button class="btn btn-primary" style="width:100%;margin-top:8px;" onclick="fbImportSelected()">📥 Importuj zaznaczone</button>';
   el.innerHTML = h;
 }
 
@@ -1361,10 +1361,10 @@ async function fbImportSelected(){
   try{ document.getElementById('nb-clients').textContent = CL.length; }catch(e){}
   fbImages = []; renderFbImagePreviews();
   const planNote=lastClient&&(window.PL||[]).some(p=>p&&p.clientId===lastClient.id&&isFiteboPlan(p))
-    ?' Plan z Fitebo jest w zakĹadce Plan â moĹźesz go kontynuowaÄ AI z progresjÄ.'
+    ?' Plan z Fitebo jest w zakładce Plan — możesz go kontynuować AI z progresją.'
     :'';
-  document.getElementById('fb-result').innerHTML = '<div style="color:var(--teal);font-size:13px;font-weight:600;">â Zaimportowano ' + imported + ' klient(Ăłw)!'+planNote+'</div>';
-  notify('â Import z Fitebo zakoĹczony â ' + imported + ' klient(Ăłw)'+(planNote?' Plan zapisany.':''));
+  document.getElementById('fb-result').innerHTML = '<div style="color:var(--teal);font-size:13px;font-weight:600;">✅ Zaimportowano ' + imported + ' klient(ów)!'+planNote+'</div>';
+  notify('✓ Import z Fitebo zakończony — ' + imported + ' klient(ów)'+(planNote?' Plan zapisany.':''));
   if(imported===1&&lastClient&&typeof openClientProfile==='function'){
     try{ closeM('m-fitebo'); }catch(e){}
     openClientProfile(lastClient.id);
@@ -1375,20 +1375,20 @@ async function fbImportSelected(){
 window.fbFileLoad=fbFileLoad; window.fbImagesLoad=fbImagesLoad; window.fbRemoveImage=fbRemoveImage;
 window.fbAnalyze=fbAnalyze; window.fbImportSelected=fbImportSelected;
 
-// Buduje krĂłtkie, automatyczne wnioski dla trenera na bazie danych, ktĂłre apka juĹź zbiera
-// (nastrĂłj/stres z moduĹu Psycho, frekwencja sesji vs. przypisany plan). Zwraca max 2 najwaĹźniejsze.
+// Buduje krótkie, automatyczne wnioski dla trenera na bazie danych, które apka już zbiera
+// (nastrój/stres z modułu Psycho, frekwencja sesji vs. przypisany plan). Zwraca max 2 najważniejsze.
 function buildClientInsight(c,sessions,plans,daysSince){
   const insights=[];
 
-  // 1) NastrĂłj / stres â trend z ostatnich wpisĂłw w module Psycho
+  // 1) Nastrój / stres — trend z ostatnich wpisów w module Psycho
   const psyDaily=(window.CLIENT_PSYCHO?.[c.id]?.daily||[]).slice(-5);
   if(psyDaily.length>=2){
     const avgStress=psyDaily.reduce((s,d)=>s+(d.stress||0),0)/psyDaily.length;
     const moodTrend=psyDaily[psyDaily.length-1].mood-psyDaily[0].mood;
     if(avgStress>=7){
-      insights.push({icon:'â ď¸',color:'var(--red)',text:`Wysoki poziom stresu w ostatnich wpisach (Ĺr. ${avgStress.toFixed(1)}/10) â rozwaĹź obniĹźenie intensywnoĹci o 15-20% w tym tygodniu.`});
+      insights.push({icon:'⚠️',color:'var(--red)',text:`Wysoki poziom stresu w ostatnich wpisach (śr. ${avgStress.toFixed(1)}/10) — rozważ obniżenie intensywności o 15-20% w tym tygodniu.`});
     } else if(moodTrend<=-2){
-      insights.push({icon:'đ',color:'var(--orange)',text:'NastrĂłj klienta spada w ostatnich wpisach â warto zapytaÄ, jak siÄ czuje, zanim naciĹniesz na kolejny ciÄĹźki trening.'});
+      insights.push({icon:'📉',color:'var(--orange)',text:'Nastrój klienta spada w ostatnich wpisach — warto zapytać, jak się czuje, zanim naciśniesz na kolejny ciężki trening.'});
     }
   }
 
@@ -1399,13 +1399,13 @@ function buildClientInsight(c,sessions,plans,daysSince){
     const recentCount=sessions.filter(s=>new Date(s.date)>=twoWeeksAgo).length;
     const expectedTwoWeeks=expectedPerWeek*2;
     if(expectedTwoWeeks>0 && recentCount<expectedTwoWeeks*0.6){
-      insights.push({icon:'đ',color:'var(--gold)',text:`${recentCount} sesji w ostatnich 2 tyg. przy planie ${expectedPerWeek}Ă/tydz. (oczekiwano ~${expectedTwoWeeks}) â rozwaĹź dopytaÄ o przeszkody albo zmniejszyÄ liczbÄ dni w planie.`});
+      insights.push({icon:'📊',color:'var(--gold)',text:`${recentCount} sesji w ostatnich 2 tyg. przy planie ${expectedPerWeek}×/tydz. (oczekiwano ~${expectedTwoWeeks}) — rozważ dopytać o przeszkody albo zmniejszyć liczbę dni w planie.`});
     }
   }
 
-  // 3) DĹuga nieobecnoĹÄ (tylko jeĹli nic wczeĹniej nie wskazano)
+  // 3) Długa nieobecność (tylko jeśli nic wcześniej nie wskazano)
   if(!insights.length && daysSince!==null && daysSince>10){
-    insights.push({icon:'âąď¸',color:'var(--red)',text:`Brak sesji od ${daysSince} dni â dobry moment na krĂłtkÄ wiadomoĹÄ sprawdzajÄcÄ, zanim klient caĹkiem straci rytm.`});
+    insights.push({icon:'⏱️',color:'var(--red)',text:`Brak sesji od ${daysSince} dni — dobry moment na krótką wiadomość sprawdzającą, zanim klient całkiem straci rytm.`});
   }
 
   return insights.slice(0,2);
@@ -1414,32 +1414,32 @@ function buildClientInsight(c,sessions,plans,daysSince){
 function cpClientDataEditHTML(c){
   const field=(id,label,control)=>`<div class="form-field cp-field-below"><div class="cp-field-control">${control}</div><label class="form-lbl" for="${id}">${label}</label></div>`;
   const intake=typeof clientIntakeFormState==='function'?clientIntakeFormState(c.id):null;
-  const intakeLbl=intake&&intake.filled?'WypeĹniona':intake&&intake.pending?'Oczekuje na klienta':intake&&intake.sent?'WysĹana':'Nie wysĹana';
+  const intakeLbl=intake&&intake.filled?'Wypełniona':intake&&intake.pending?'Oczekuje na klienta':intake&&intake.sent?'Wysłana':'Nie wysłana';
   const intakeCol=intake&&intake.filled?'var(--teal)':intake&&intake.pending?'var(--orange)':'var(--muted)';
-  const goalLabels={masa:'Budowa masy',sila:'Wzrost siĹy',redukcja:'Redukcja',kondycja:'Kondycja'};
-  const levelLabels={poczatkujacy:'PoczÄtkujÄcy',sredni:'Ĺredni',zaawansowany:'Zaawansowany'};
+  const goalLabels={masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja'};
+  const levelLabels={poczatkujacy:'Początkujący',sredni:'Średni',zaawansowany:'Zaawansowany'};
   return `<div class="cp-edit-card" id="cp-edit-card">
     <div class="cp-edit-card-hdr">
       <div>
         <div class="cp-edit-card-title">Dane osobowe</div>
-        <div class="cp-edit-card-sub">ImiÄ i nazwisko, telefon, e-mail, waga, wzrost, sport â dopisz lub popraw</div>
+        <div class="cp-edit-card-sub">Imię i nazwisko, telefon, e-mail, waga, wzrost, sport — dopisz lub popraw</div>
       </div>
       <button type="button" class="btn btn-ghost btn-sm" onclick="cancelCPEdit()">Anuluj</button>
     </div>
     <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:14px;padding:8px 10px;background:var(--s3);border:1px solid var(--border);border-radius:8px;">
-      đ Ankieta wstÄpna â tylko w Formularzach.
-      Status: <b style="color:${intakeCol};">${intakeLbl}</b>${c.goal||c.level||c.trainingFreq?` Âˇ ${escHtml(goalLabels[c.goal]||c.goal||'â')} / ${escHtml(levelLabels[c.level]||c.level||'â')}${c.trainingFreq?' / '+c.trainingFreq+'Ă':''}`:''}
-      Âˇ <button type="button" class="btn btn-ghost btn-sm" style="padding:2px 8px;font-size:11px;" onclick="setCPTab('forms')">Formularze â</button>
+      📋 Ankieta wstępna — tylko w Formularzach.
+      Status: <b style="color:${intakeCol};">${intakeLbl}</b>${c.goal||c.level||c.trainingFreq?` · ${escHtml(goalLabels[c.goal]||c.goal||'—')} / ${escHtml(levelLabels[c.level]||c.level||'—')}${c.trainingFreq?' / '+c.trainingFreq+'×':''}`:''}
+      · <button type="button" class="btn btn-ghost btn-sm" style="padding:2px 8px;font-size:11px;" onclick="setCPTab('forms')">Formularze →</button>
     </div>
-    ${field('cpe-name','ImiÄ i nazwisko',`<input class="cp-edit-field form-input" id="cpe-name" autocomplete="name" placeholder="np. Jan Kowalski" value="${escHtml(c.name||'')}">`)}
+    ${field('cpe-name','Imię i nazwisko',`<input class="cp-edit-field form-input" id="cpe-name" autocomplete="name" placeholder="np. Jan Kowalski" value="${escHtml(c.name||'')}">`)}
     <div class="form-grid">
       ${field('cpe-email','Email',`<input class="cp-edit-field form-input" id="cpe-email" type="email" value="${escHtml(c.email||'')}">`)}
       ${field('cpe-phone','Telefon',`<input class="cp-edit-field form-input" id="cpe-phone" type="tel" placeholder="+48 123 456 789" value="${escHtml(c.phone||'')}">`)}
     </div>
     <div class="form-grid">
       ${field('cpe-age','Wiek',`<input type="number" class="cp-edit-field form-input" id="cpe-age" value="${c.age||''}">`)}
-      ${field('cpe-gender','PĹeÄ',`<select class="form-select" id="cpe-gender">
-          <option value="M" ${((typeof normalizeClientGender==='function'?normalizeClientGender(c.gender):c.gender)||'M')==='M'?'selected':''}>MÄĹźczyzna</option>
+      ${field('cpe-gender','Płeć',`<select class="form-select" id="cpe-gender">
+          <option value="M" ${((typeof normalizeClientGender==='function'?normalizeClientGender(c.gender):c.gender)||'M')==='M'?'selected':''}>Mężczyzna</option>
           <option value="K" ${((typeof normalizeClientGender==='function'?normalizeClientGender(c.gender):c.gender)||'M')==='K'?'selected':''}>Kobieta</option>
         </select>`)}
     </div>
@@ -1449,7 +1449,7 @@ function cpClientDataEditHTML(c){
     </div>
     <div class="form-field cp-field-below">
       <div class="cp-field-control">
-        <div class="cp-field-hint">KolejnoĹÄ = DzieĹ 1, 2âŚ przy zapisie do kalendarza (nie jest w ankiecie).</div>
+        <div class="cp-field-hint">Kolejność = Dzień 1, 2… przy zapisie do kalendarza (nie jest w ankiecie).</div>
         ${typeof preferredWeekdaysChipsHTML==='function'?preferredWeekdaysChipsHTML(c.preferredWeekdays||[],'cpe'):'<div id="cpe-preferred-weekdays-mount"></div>'}
       </div>
       <label class="form-lbl">Preferowane dni tygodnia</label>
@@ -1461,30 +1461,30 @@ function cpClientDataEditHTML(c){
       </select>`)}
     <div class="form-field cp-field-below">
       <div class="cp-field-control">
-        <div class="cp-field-hint">Zaznacz sporty i podaj ile razy w tygodniu â AI zmniejszy objÄtoĹÄ na obciÄĹźone partie.</div>
+        <div class="cp-field-hint">Zaznacz sporty i podaj ile razy w tygodniu — AI zmniejszy objętość na obciążone partie.</div>
         ${typeof sportBackgroundFormHTML==='function'?sportBackgroundFormHTML(c.priorSports,'cpe',c.additional_activities):(typeof priorSportsChipsHTML==='function'?priorSportsChipsHTML(c.priorSports,'cpe'):'')}
       </div>
-      <label class="form-lbl">Sporty dodatkowe / tĹo sportowe</label>
+      <label class="form-lbl">Sporty dodatkowe / tło sportowe</label>
     </div>
     <div class="form-grid">
-      ${field('cpe-activity','Dotychczasowa aktywnoĹÄ',`<select class="form-select" id="cpe-activity">
-          <option value="sedentary" ${c.activityLevel==='sedentary'?'selected':''}>SiedzÄcy tryb</option>
+      ${field('cpe-activity','Dotychczasowa aktywność',`<select class="form-select" id="cpe-activity">
+          <option value="sedentary" ${c.activityLevel==='sedentary'?'selected':''}>Siedzący tryb</option>
           <option value="light" ${c.activityLevel==='light'?'selected':''}>Lekka</option>
           <option value="moderate" ${(!c.activityLevel||c.activityLevel==='moderate')?'selected':''}>Umiarkowana</option>
           <option value="active" ${c.activityLevel==='active'?'selected':''}>Aktywny</option>
         </select>`)}
-      ${field('cpe-profile-auto','Profil (auto)',`<div class="cp-profile-auto">${typeof clientSportProfileLabel==='function'?escHtml(clientSportProfileLabel(c)||'â'):'â'}</div>`)}
+      ${field('cpe-profile-auto','Profil (auto)',`<div class="cp-profile-auto">${typeof clientSportProfileLabel==='function'?escHtml(clientSportProfileLabel(c)||'—'):'—'}</div>`)}
     </div>
-    ${field('cpe-sport-notes','Uwagi sportowe',`<input class="form-input" id="cpe-sport-notes" value="${escHtml(c.sportNotes||'')}" placeholder="np. biegaĹ 5 lat, teraz siĹownia od zera">`)}
+    ${field('cpe-sport-notes','Uwagi sportowe',`<input class="form-input" id="cpe-sport-notes" value="${escHtml(c.sportNotes||'')}" placeholder="np. biegał 5 lat, teraz siłownia od zera">`)}
     <div class="form-field cp-field-below">
       <div class="cp-field-control">
-        <div class="cp-field-hint">Partie na poczÄtku sesji (AI / Live).</div>
+        <div class="cp-field-hint">Partie na początku sesji (AI / Live).</div>
         ${typeof physiquePriorityChipsHTML==='function'?physiquePriorityChipsHTML(c.physiquePriority,'cpe'):''}
       </div>
       <label class="form-lbl">Priorytet sylwetkowy</label>
     </div>
     ${field('cpe-notes','Uwagi prywatne',`<textarea class="form-select" id="cpe-notes" rows="2" style="resize:none;">${escHtml(c.notes||'')}</textarea>`)}
-    <button type="button" class="btn btn-primary" style="width:100%;" onclick="saveCPEdit('${c.id}')">đž Zapisz zmiany</button>
+    <button type="button" class="btn btn-primary" style="width:100%;" onclick="saveCPEdit('${c.id}')">💾 Zapisz zmiany</button>
   </div>`;
 }
 function startCPEdit(clientId){
@@ -1546,15 +1546,18 @@ function cpMetricSeries(clientId,groupId,metricId,limit){
 function cpOvSparkSVG(points,color,bars){
   const pts=(points||[]).filter(p=>p&&isFinite(p.v));
   if(pts.length<2)return'';
-  const W=160,H=36,pad=2;
+  const labeled=!!bars&&pts.length<=4;
+  const W=160,H=labeled?52:36,pad=2,labelH=labeled?12:0;
   const col=color||'var(--accent)';
   if(bars){
     const max=Math.max(...pts.map(p=>p.v),1);
     const bw=Math.max(3,Math.floor((W-pad*2)/pts.length)-2);
     return `<svg class="cp-ov-spark" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">${pts.map((p,i)=>{
-      const bh=Math.max(2,Math.round((p.v/max)*(H-pad*2)));
-      const x=pad+i*(bw+2);const y=H-pad-bh;
-      return `<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="1.5" fill="${col}" opacity="0.85"/>`;
+      const chartH=H-pad*2-labelH;
+      const bh=Math.max(2,Math.round((p.v/max)*chartH));
+      const x=pad+i*(bw+2);const y=H-pad-labelH-bh;
+      const lab=labeled?`<text x="${(x+bw/2).toFixed(1)}" y="${H-2}" text-anchor="middle" font-size="8" fill="currentColor">${escHtml(String(Math.round(p.v*10)/10))}</text>`:'';
+      return `<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="1.5" fill="${col}" opacity="0.85"/>${lab}`;
     }).join('')}</svg>`;
   }
   const minV=Math.min(...pts.map(p=>p.v));
@@ -1580,7 +1583,7 @@ function cpDaysSinceYmd(raw){
   return Math.max(0,Math.round((b-a)/86400000));
 }
 
-/** Zielony = wpis â¤2 dni; ĹźĂłĹty = 3â6 dni; czerwony = âĽ7 dni lub brak. */
+/** Zielony = wpis ≤2 dni; żółty = 3–6 dni; czerwony = ≥7 dni lub brak. */
 function cpClientPulseStatus(clientId){
   const filled=((window.CHECKINS&&window.CHECKINS[clientId])||[]).filter(x=>x&&x.status==='filled');
   const lastFilled=filled.slice().sort((a,b)=>String(b.date||b.createdAt||'').localeCompare(String(a.date||a.createdAt||'')))[0];
@@ -1589,13 +1592,214 @@ function cpClientPulseStatus(clientId){
   const dates=[];
   if(lastFilled)dates.push(lastFilled.date||lastFilled.createdAt);
   if(lastLog)dates.push(lastLog.date);
-  if(!dates.length)return{tone:'bad',label:'Brak wpisĂłw',days:null,hint:'Brak raportu i odhaczonego treningu'};
+  if(!dates.length)return{tone:'bad',label:'Brak wpisów',days:null,hint:'Brak raportu i odhaczonego treningu'};
   const days=Math.min(...dates.map(cpDaysSinceYmd));
   if(days<=2)return{tone:'good',label:'Na czas',days,hint:'Ostatni wpis '+days+' d. temu'};
   if(days<=6)return{tone:'warn',label:'Brak raportu',days,hint:'Brak wpisu od '+days+' dni'};
-  return{tone:'bad',label:'Cichy tydzieĹ',days,hint:'Brak wpisĂłw od '+days+' dni'};
+  return{tone:'bad',label:'Cichy tydzień',days,hint:'Brak wpisów od '+days+' dni'};
 }
 window.cpClientPulseStatus=cpClientPulseStatus;
+
+const CP_OV_ADH_MIN=4;
+const CP_OV_SLEEP_MIN=4;
+const CP_OV_MASS_TREND_MIN=2;
+function cpProfileSubtext(c){
+  if(!c)return'—';
+  const goalLabels={masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja'};
+  const levelLabels={poczatkujacy:'Początkujący',sredni:'Średni',zaawansowany:'Zaawansowany'};
+  const goal=goalLabels[c.goal]||c.goal||'Brak celu';
+  const level=levelLabels[c.level]||'';
+  return goal+(level?' · '+level:'')+(c.age?' · '+c.age+' lat':'');
+}
+function cpApplyProfileSubtext(c){
+  const el=typeof document!=='undefined'?document.getElementById('cp-sub'):null;
+  if(el)el.textContent=cpProfileSubtext(c);
+}
+function cpClientHasPlanDays(c){
+  if(!c||!c.id)return false;
+  const plan=typeof latestClientPlan==='function'?latestClientPlan(c.id):((window.PL||[]).filter(p=>p&&p.clientId===c.id).slice(-1)[0]||null);
+  return !!(plan&&(plan.days||[]).some(d=>d&&!d.rest));
+}
+function cpAdhSampleOk(a){
+  return !!(a&&Number(a.assigned||0)>=CP_OV_ADH_MIN);
+}
+function cpClientStatusTruth(c){
+  if(!c)return{tone:'info',label:'Brak klienta',hint:'',reason:'none',pulse:null,ob:null,scheduleOk:false};
+  const pulse=typeof cpClientPulseStatus==='function'?cpClientPulseStatus(c.id):{tone:'info',label:'',hint:''};
+  const ob=typeof getClientOnboard==='function'?getClientOnboard(c):null;
+  const scheduleOk=!!(ob&&ob.schedule)||cpClientHasPlanDays(c);
+  const snap=typeof clientSituationSnapshot==='function'?clientSituationSnapshot(c.id):null;
+  const adh30=(snap&&snap.facts&&snap.facts.adh30)||{};
+  if(ob&&!ob.invite){
+    return{tone:'warn',label:'Brak dostępu',hint:'Klient nie ma jeszcze zaproszenia do aplikacji',reason:'invite',pulse,ob,scheduleOk};
+  }
+  if(ob&&!ob.complete){
+    const miss=[];
+    if(!ob.baseline)miss.push('pomiary');
+    if(!scheduleOk)miss.push('dni treningowe');
+    if(!ob.plan)miss.push('plan');
+    if(!ob.calendar&&!ob.session)miss.push('wpis w kalendarzu');
+    if(ob.package===false)miss.push('pakiet');
+    return{tone:'warn',label:'Start niedokończony',hint:miss.length?('Brakuje: '+miss.join(', ')):'Dokończ start współpracy',reason:'onboard',pulse,ob,scheduleOk};
+  }
+  if(pulse.tone==='bad')return{tone:'bad',label:pulse.label,hint:pulse.hint,reason:'pulse',pulse,ob,scheduleOk};
+  if(cpAdhSampleOk(adh30)&&Number(adh30.logged||0)>0&&adh30.pct<50){
+    return{tone:'warn',label:'Słaba regularność',hint:'Zrobione '+adh30.logged+' z '+adh30.assigned+' treningów w 30 dniach',reason:'adh',pulse,ob,scheduleOk};
+  }
+  if(pulse.tone==='warn')return{tone:'warn',label:pulse.label,hint:pulse.hint,reason:'pulse',pulse,ob,scheduleOk};
+  return{tone:pulse.tone||'good',label:pulse.label||'Na czas',hint:pulse.hint||'',reason:'ok',pulse,ob,scheduleOk};
+}
+function cpOverviewFirstName(c){
+  const n=String(c&&c.name||'').trim();
+  if(!n)return'Klient';
+  return n.split(/\s+/)[0];
+}
+function cpOverviewAlertHTML(c){
+  if(!c)return'';
+  const esc=typeof escHtml==='function'?escHtml:(s=>String(s??''));
+  const truth=cpClientStatusTruth(c);
+  const ob=truth.ob;
+  if(!ob||ob.complete)return'';
+  if(!ob.invite){
+    const first=esc(cpOverviewFirstName(c));
+    return `<div class="cp-ov-alert" data-cp-alert="invite">
+      <div>
+        <div class="cp-ov-alert-title">${first} nie ma jeszcze dostępu do aplikacji</div>
+        <div class="cp-ov-alert-sub">Bez apki nie będzie check-inów, zdjęć, Garmina ani pomiarów od klienta.</div>
+      </div>
+      <div class="cp-ov-alert-actions">
+        <button type="button" class="btn btn-ghost btn-sm" data-cp-alert-cta="steps" onclick="focusCpOverviewSection('cp-ov-missing')">Zobacz kroki</button>
+        <button type="button" class="btn btn-sm cp-ov-alert-cta" data-cp-alert-cta="invite" onclick="typeof openInviteModal==='function'&&openInviteModal('${esc(c.id)}')">Wyślij zaproszenie</button>
+      </div>
+    </div>`;
+  }
+  const miss=[];
+  if(!ob.baseline)miss.push('pomiary');
+  if(!truth.scheduleOk)miss.push('dni treningowe');
+  if(!ob.plan)miss.push('plan');
+  if(!ob.calendar&&!ob.session)miss.push('kalendarz');
+  if(!miss.length&&ob.package===false)miss.push('pakiet');
+  if(!miss.length)return'';
+  const onlyMeas=miss.length===1&&miss[0]==='pomiary';
+  if(onlyMeas){
+    const wN=typeof cpOverviewWeightCount30==='function'?cpOverviewWeightCount30(c.id):0;
+    if(wN<2)return'';
+    return `<div class="cp-ov-alert cp-ov-alert-soft" data-cp-alert="onboard">
+    <div>
+      <div class="cp-ov-alert-title">Brakuje pomiarów</div>
+    </div>
+    <button type="button" class="btn btn-ghost btn-sm" data-cp-alert-cta="baseline" onclick="typeof openClientBaselineModal==='function'&&openClientBaselineModal('${esc(c.id)}')">Dodaj pomiary</button>
+  </div>`;
+  }
+  return `<div class="cp-ov-alert cp-ov-alert-soft" data-cp-alert="onboard">
+    <div>
+      <div class="cp-ov-alert-title">Brakuje: ${esc(miss.join(', '))}</div>
+    </div>
+    <button type="button" class="btn btn-ghost btn-sm" data-cp-alert-cta="onboard" onclick="openClientOnboardChecklist('${esc(c.id)}')">Dokończ</button>
+  </div>`;
+}
+function cpOverviewHasApp(c){
+  if(!c)return false;
+  return !!(c.inviteSent||c.appInvited||c.inviteSentAt||c.inviteAcceptedAt||c.appJoined||c.appJoinedAt);
+}
+function cpOverviewHasLastName(c){
+  if(!c)return false;
+  if(String(c.lastName||c.surname||'').trim())return true;
+  const parts=String(c.name||'').trim().split(/\s+/).filter(Boolean);
+  return parts.length>=2;
+}
+function cpOverviewMissingItems(c){
+  const client=[];
+  const trainer=[];
+  if(!c)return{client,trainer,hasApp:false,items:[]};
+  const id=c.id;
+  const hasApp=cpOverviewHasApp(c);
+  const metricsOn=typeof bmFeatureOn==='function'?bmFeatureOn(c):true;
+  const photosOn=typeof ppFeatureOn==='function'?ppFeatureOn(c):true;
+  const filled=((window.CHECKINS&&window.CHECKINS[id])||[]).filter(x=>x&&x.status==='filled');
+  const photos=photosOn&&typeof ppListFor==='function'?ppListFor(id):[];
+  const physique=photosOn&&typeof cpLatestPhysique==='function'?cpLatestPhysique(id):null;
+  const garmin=metricsOn&&typeof cpGarminWeekAvg==='function'?cpGarminWeekAvg(id):{n:0};
+  const hr=metricsOn?(typeof cpMetricLatest==='function'?(cpMetricLatest(id,'mg4','m1')||cpMetricLatest(id,'mg6','m3')):null):null;
+  const steps=metricsOn&&typeof cpMetricLatest==='function'?cpMetricLatest(id,'mg6','m1'):null;
+  const sleep=typeof cpMetricLatest==='function'?cpMetricLatest(id,'mg5','m2'):null;
+  const injuries=typeof clientInjuriesText==='function'?clientInjuriesText(c):(c.injuries||'');
+  const ask=kind=>`cpRemindClient('${id}','${kind}')`;
+  if(!filled.length)client.push({id:'checkin',label:'Check-in',cta:'',onclick:ask('checkin')});
+  if(photosOn&&!(photos&&photos.length)&&!(physique&&(physique.front||physique.side||physique.back))){
+    client.push({id:'photos',label:'Zdjęcia',cta:'',onclick:ask('photos')});
+  }
+  if(metricsOn&&!(garmin&&garmin.n))client.push({id:'garmin',label:'Garmin',cta:'',onclick:ask('garmin')});
+  if(metricsOn&&!steps)client.push({id:'steps',label:'Kroki',cta:'',onclick:ask('steps')});
+  if(!sleep)client.push({id:'sleep',label:'Sen',cta:'',onclick:ask('sleep')});
+  if(!cpOverviewHasLastName(c))trainer.push({id:'lastname',label:'Nazwisko',cta:'Uzupełnij',onclick:`startCPEdit('${id}')`});
+  if(!String(c.phone||'').trim())trainer.push({id:'phone',label:'Telefon',cta:'Uzupełnij',onclick:`startCPEdit('${id}')`});
+  if(c.age==null||c.age==='')trainer.push({id:'age',label:'Wiek',cta:'Uzupełnij',onclick:`startCPEdit('${id}')`});
+  if(c.height==null||c.height==='')trainer.push({id:'height',label:'Wzrost',cta:'Uzupełnij',onclick:`startCPEdit('${id}')`});
+  if(metricsOn&&!hr)trainer.push({id:'hr',label:'Tętno spoczynkowe',cta:'Dodaj pomiar',onclick:`setCPTab('metrics')`});
+  if(!String(injuries||'').trim())trainer.push({id:'injuries',label:'Ograniczenia / kontuzje',cta:'Uzupełnij',onclick:`startCPEdit('${id}')`});
+  const items=hasApp?client.concat(trainer):trainer.slice();
+  return{client,trainer,hasApp,items};
+}
+function cpOverviewMissingHTML(c){
+  const pack=cpOverviewMissingItems(c);
+  const client=pack.client||[];
+  const trainer=pack.trainer||[];
+  const hasApp=!!pack.hasApp;
+  if(!client.length&&!trainer.length)return'';
+  const esc=typeof escHtml==='function'?escHtml:(s=>String(s??''));
+  const row=(it,withCta)=>`<li class="cp-ov-missing-item" data-cp-missing-item="${esc(it.id)}">
+        <span>${esc(it.label)}</span>
+        ${withCta&&it.cta?`<button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();${it.onclick}">${esc(it.cta)}</button>`:''}
+      </li>`;
+  let body='';
+  if(client.length){
+    if(!hasApp){
+      body+=`<div class="cp-ov-missing-group" data-cp-missing-group="client">
+        <div class="cp-ov-missing-gh">Uzupełni klient po zaproszeniu</div>
+        <p class="cp-ov-missing-line">${esc(client.map(x=>x.label).join(', '))}.</p>
+      </div>`;
+    }else{
+      body+=`<div class="cp-ov-missing-group" data-cp-missing-group="client">
+        <div class="cp-ov-missing-gh">Uzupełni klient</div>
+        <div class="cp-ov-missing-ask"><button type="button" class="btn btn-ghost btn-sm" data-cp-missing-ask="all" onclick="event.stopPropagation();cpRemindAllMissing('${esc(c.id)}')">Poproś o wszystko</button></div>
+        <ul class="cp-ov-missing-list">${client.map(it=>row(it,false)).join('')}</ul>
+      </div>`;
+    }
+  }
+  if(trainer.length){
+    body+=`<div class="cp-ov-missing-group" data-cp-missing-group="trainer">
+      <div class="cp-ov-missing-gh">Do uzupełnienia przez Ciebie</div>
+      <ul class="cp-ov-missing-list">${trainer.map(it=>row(it,true)).join('')}</ul>
+    </div>`;
+  }
+  if(!body)return'';
+  return `<div class="cp-ov-missing" id="cp-ov-missing" data-cp-missing="list">
+    <div class="cp-ov-rail-hd"><span>Brakujące dane</span></div>
+    ${body}
+  </div>`;
+}
+window.cpProfileSubtext=cpProfileSubtext;
+window.cpApplyProfileSubtext=cpApplyProfileSubtext;
+window.cpClientHasPlanDays=cpClientHasPlanDays;
+window.cpAdhSampleOk=cpAdhSampleOk;
+window.cpClientStatusTruth=cpClientStatusTruth;
+window.cpOverviewFirstName=cpOverviewFirstName;
+window.cpOverviewHasApp=cpOverviewHasApp;
+window.cpOverviewHasLastName=cpOverviewHasLastName;
+window.cpOverviewAlertHTML=cpOverviewAlertHTML;
+window.cpOverviewMissingItems=cpOverviewMissingItems;
+window.cpOverviewMissingHTML=cpOverviewMissingHTML;
+function cpOverviewVerdictIsThin(c,v){
+  const truth=typeof cpClientStatusTruth==='function'?cpClientStatusTruth(c):null;
+  if(truth&&(truth.reason==='invite'||truth.reason==='onboard'))return true;
+  if(!v||!v.verdict)return true;
+  const adh=(v.stats&&v.stats.adh30)||{};
+  const sampleOk=typeof cpAdhSampleOk==='function'?cpAdhSampleOk(adh):Number(adh.assigned||0)>=CP_OV_ADH_MIN;
+  if(v.verdict==='stabilnie'&&(!sampleOk||v.score==null||Number(v.score)===0))return true;
+  return false;
+}
+window.cpOverviewVerdictIsThin=cpOverviewVerdictIsThin;
 
 function cpLatestPhysique(clientId){
   const list=typeof ppListFor==='function'?ppListFor(clientId):[];
@@ -1645,11 +1849,11 @@ window.cpGarminWeekAvg=cpGarminWeekAvg;
 function cpTrainIconRow(done,assigned){
   const a=Math.max(0,Number(assigned)||0);
   const d=Math.max(0,Math.min(Number(done)||0,a||Number(done)||0));
-  if(!a&&!d)return'<div class="cp-ov-ico-row"><span class="cp-ov-ico empty">â</span></div>';
+  if(!a&&!d)return'<div class="cp-ov-ico-row"><span class="cp-ov-ico empty">—</span></div>';
   const n=Math.min(Math.max(a,d),14);
   let html='';
   for(let i=0;i<n;i++){
-    html+=i<d?'<span class="cp-ov-ico done" title="Odhaczone">â</span>':'<span class="cp-ov-ico plan" title="Zaplanowany">âą</span>';
+    html+=i<d?'<span class="cp-ov-ico done" title="Odhaczone">✓</span>':'<span class="cp-ov-ico plan" title="Zaplanowany">⏱</span>';
   }
   if(a>14)html+='<span class="cp-ov-ico-more">+'+escHtml(String(a-14))+'</span>';
   return'<div class="cp-ov-ico-row">'+html+'</div>';
@@ -1660,22 +1864,42 @@ function cpRemindClient(clientId,kind){
   const c=(window.CL||[]).find(x=>x.id===clientId);
   if(!c){if(typeof notify==='function')notify('Nie znaleziono klienta');return false;}
   const text=kind==='onboard'
-    ?'đ Przypomnienie: dokoĹcz start wspĂłĹpracy w aplikacji (pomiary / plan / kalendarz).'
+    ?'👋 Przypomnienie: dokończ start współpracy w aplikacji (pomiary / plan / kalendarz).'
     :(kind==='workout'
-      ?'đŞ Przypomnienie o treningu â odhacz sesjÄ w aplikacji, gdy zrobisz.'
-      :'đŹ KrĂłtki check-in od trenera â daj znaÄ, jak idzie.');
+      ?'💪 Przypomnienie o treningu — odhacz sesję w aplikacji, gdy zrobisz.'
+      :(kind==='photos'
+        ?'📸 Wrzuć zdjęcia postępu w aplikacji (przód / bok / tył).'
+        :(kind==='garmin'
+          ?'⌚ Wrzuć dane z Garmina albo zaimportuj CSV w aplikacji.'
+          :(kind==='steps'
+            ?'🚶 Dodaj pomiar kroków w aplikacji albo z Garmina.'
+            :(kind==='sleep'
+              ?'😴 Oceń sen w aplikacji (1–10).'
+              :'💬 Krótki check-in od trenera — daj znać, jak idzie.')))));
   if(typeof pushMsg==='function')pushMsg(clientId,text);
-  if(typeof notify==='function')notify('â WiadomoĹÄ poszĹa do czatu klienta');
+  if(typeof notify==='function')notify('✓ Wiadomość poszła do czatu klienta');
   return true;
 }
 window.cpRemindClient=cpRemindClient;
+function cpRemindAllMissing(clientId){
+  const c=(window.CL||[]).find(x=>x&&x.id===clientId);
+  if(!c){if(typeof notify==='function')notify('Nie znaleziono klienta');return false;}
+  const pack=typeof cpOverviewMissingItems==='function'?cpOverviewMissingItems(c):{client:[]};
+  const labels=(pack.client||[]).map(x=>x&&x.label).filter(Boolean);
+  if(!labels.length){if(typeof notify==='function')notify('Brak danych do uzupełnienia przez klienta');return false;}
+  const text='👋 Uzupełnij w aplikacji: '+labels.join(', ')+'.';
+  if(typeof pushMsg==='function')pushMsg(clientId,text);
+  if(typeof notify==='function')notify('✓ Wiadomość poszła do czatu klienta');
+  return true;
+}
+window.cpRemindAllMissing=cpRemindAllMissing;
 
 function cpCollapseDaySessions(sessDay){
   const groups=[];
   const byKey={};
   (sessDay||[]).forEach(s=>{
     const title=typeof sessionTitle==='function'?sessionTitle(s):(s.type||s.title||'Sesja');
-    const key=String(title).toLowerCase().trim();
+    const key=[s.planId||'',s.dayIdx??'',s.source==='planned'?'planned':'recorded',String(title).toLowerCase().trim()].join('|');
     if(!byKey[key]){
       byKey[key]={title,items:[],happened:false,s};
       groups.push(byKey[key]);
@@ -1687,7 +1911,7 @@ function cpCollapseDaySessions(sessDay){
 }
 window.cpCollapseDaySessions=cpCollapseDaySessions;
 
-/** Assignment: tylko plan aktywny, jedna zaplanowana sesja na dzieĹ (bez starych kopii PPL+FBW). */
+/** Assignment: tylko plan aktywny, jedna zaplanowana sesja na dzień (bez starych kopii PPL+FBW). */
 function cpAssignmentSessions(clientId,opts){
   const all=(window.SE||[]).filter(s=>s&&s.clientId===clientId);
   const active=typeof latestClientPlan==='function'?latestClientPlan(clientId):(typeof clientPlanForCalendar==='function'?clientPlanForCalendar(clientId):null);
@@ -1707,7 +1931,7 @@ function cpAssignmentSessions(clientId,opts){
     if(b!=null&&(a==null||Number(b)<Number(a)))byDate[d]=s;
   });
   const plannedRows=Object.keys(byDate).map(k=>byDate[k]);
-  const plannedShown=keepPlanned?plannedRows:plannedRows.filter(s=>!loggedDates.has(String(s.date||'').slice(0,10)));
+  const plannedShown=keepPlanned?plannedRows:plannedRows.filter(s=>!other.some(o=>typeof sessionMatchesPlanned==='function'&&sessionMatchesPlanned(s,o)));
   return other.concat(plannedShown);
 }
 window.cpAssignmentSessions=cpAssignmentSessions;
@@ -1750,13 +1974,16 @@ function cpLoadDropFacts(clientId){
   return drops.slice(0,2);
 }
 function cpSleepTrendFact(clientId){
-  const series=typeof cpMetricSeries==='function'?cpMetricSeries(clientId,'mg5','m2',6):[];
-  if(series.length<2)return null;
+  const series=typeof cpMetricSeries==='function'?cpMetricSeries(clientId,'mg5','m2',8):[];
+  if(!series.length)return null;
   const last=series[series.length-1].v;
-  const prev=series[series.length-2].v;
-  if(!Number.isFinite(last)||!Number.isFinite(prev))return null;
+  const prev=series.length>1?series[series.length-2].v:null;
+  if(!Number.isFinite(last))return null;
+  if(series.length<CP_OV_SLEEP_MIN||!Number.isFinite(prev)){
+    return{last,prev,dir:'thin',n:series.length,min:CP_OV_SLEEP_MIN};
+  }
   const dir=last<prev-0.7?'down':last>prev+0.7?'up':'flat';
-  return{last,prev,dir};
+  return{last,prev,dir,n:series.length,min:CP_OV_SLEEP_MIN};
 }
 function cpMassDelta30Fact(clientId){
   const series=typeof cpMetricSeries==='function'?cpMetricSeries(clientId,'mg1','m1',40):[];
@@ -1775,7 +2002,7 @@ function cpMassDelta30Fact(clientId){
 function cpSitClip(s,n){
   const t=String(s||'').replace(/\s+/g,' ').trim();
   if(t.length<=n)return t;
-  return t.slice(0,Math.max(0,n-1)).trim()+'âŚ';
+  return t.slice(0,Math.max(0,n-1)).trim()+'…';
 }
 function cpNextSessionFocusItems(clientId){
   const items=[];
@@ -1784,15 +2011,15 @@ function cpNextSessionFocusItems(clientId){
   const inj=typeof clientInjuriesText==='function'?clientInjuriesText(c):(c&&c.injuries)||'';
   if(inj)items.push({kind:'injury',tone:'watch',text:'Kontuzja / ograniczenie: '+cpSitClip(inj,90)});
   cpLoadDropFacts(clientId).forEach(d=>{
-    items.push({kind:'load',tone:'watch',text:cpSitClip(d.name,42)+': volume â'+d.pct+'% vs poprzedni trening'});
+    items.push({kind:'load',tone:'watch',text:cpSitClip(d.name,42)+': volume −'+d.pct+'% vs poprzedni trening'});
   });
   const sleep=cpSleepTrendFact(clientId);
-  if(sleep&&sleep.dir==='down'){
-    items.push({kind:'sleep',tone:'watch',text:'Sen spada ('+sleep.prev+' â '+sleep.last+') â lĹźejszy start'});
+  if(sleep&&sleep.dir==='down'&&(sleep.n==null||sleep.n>=CP_OV_SLEEP_MIN)){
+    items.push({kind:'sleep',tone:'watch',text:'Sen spada ('+sleep.prev+' → '+sleep.last+') — lżejszy start'});
   }
   const ci=snap&&snap.facts&&snap.facts.checkinStatus;
-  if(ci==='overdue')items.push({kind:'checkin',tone:'act',text:'Check-in przeterminowany â zbierz samopoczucie na treningu'});
-  else if(ci==='pending')items.push({kind:'checkin',tone:'watch',text:'Check-in czeka â dopytaj o samopoczucie'});
+  if(ci==='overdue')items.push({kind:'checkin',tone:'act',text:'Check-in przeterminowany — zbierz samopoczucie na treningu'});
+  else if(ci==='pending')items.push({kind:'checkin',tone:'watch',text:'Check-in czeka — dopytaj o samopoczucie'});
   const hw=snap&&snap.facts&&snap.facts.homework;
   if(hw&&hw.late>0){
     items.push({kind:'homework',tone:'watch',text:hw.late===1?'1 zadanie domowe po terminie':(hw.late+' zad. dom. po terminie')});
@@ -1800,34 +2027,37 @@ function cpNextSessionFocusItems(clientId){
   const pkg=snap&&snap.facts&&snap.facts.package;
   if(pkg&&typeof pkg.daysLeft==='number'&&pkg.daysLeft<=7){
     const left=pkg.daysLeft;
-    const txt=left<=0?'Pakiet wygasa dzisiaj':(left===1?'Pakiet koĹczy siÄ jutro':('Pakiet koĹczy siÄ za '+left+' dni'));
+    const txt=left<=0?'Pakiet wygasa dzisiaj':(left===1?'Pakiet kończy się jutro':('Pakiet kończy się za '+left+' dni'));
     items.push({kind:'package',tone:left<=0?'act':'watch',text:txt});
   }
   const adh=snap&&snap.facts&&snap.facts.adh7;
-  if(adh&&adh.assigned>0&&(adh.logged===0||adh.pct<50)){
-    items.push({kind:'adherence',tone:adh.logged===0?'act':'watch',text:'Treningi 7 dni: '+adh.logged+'/'+adh.assigned+' â dopytaj, czy plan jest realny'});
+  if(adh&&adh.assigned>0&&adh.logged>0&&adh.pct<50){
+    items.push({kind:'adherence',tone:'watch',text:'Treningi 7 dni: '+adh.logged+'/'+adh.assigned+' — dopytaj, czy plan jest realny'});
   }
-  if(!items.length)items.push({kind:'ok',tone:'ok',text:'Brak szczegĂłlnych sygnaĹĂłw â jedĹş planem.'});
+  if(!items.length)items.push({kind:'ok',tone:'ok',text:'Brak szczególnych sygnałów — jedź planem.'});
   return items.slice(0,5);
 }
-function cpOverviewSitTone(kind,snap,mass,sleep){
+function cpOverviewSitTone(kind,snap,mass,sleep,opts){
   const facts=snap&&snap.facts||{};
   if(kind==='train'){
     const a=facts.adh7||{};
+    if(opts&&opts.emptyLog)return'info';
     if(!a.assigned)return'info';
-    if(!a.logged)return'act';
-    if(a.pct<70)return'watch';
+    if(a.assigned&&a.logged>=a.assigned)return'ok';
+    const weekOpen=!(opts&&opts.weekOpen===false);
+    if(weekOpen)return'watch';
+    if(!a.logged||a.pct<70)return'act';
     return'ok';
   }
   if(kind==='adh'){
     const a=facts.adh30||{};
-    if(!a.assigned)return'info';
+    if(!a.assigned||!cpAdhSampleOk(a))return'info';
     if(a.pct<70)return'watch';
     return'ok';
   }
   if(kind==='mass')return'info';
   if(kind==='sleep'){
-    if(!sleep)return'info';
+    if(!sleep||sleep.dir==='thin')return'info';
     if(sleep.dir==='down')return'watch';
     return'ok';
   }
@@ -1848,76 +2078,495 @@ function focusCpOverviewSection(id){
   el.scrollIntoView({behavior:'smooth',block:'nearest'});
   setTimeout(()=>{if(el)el.classList.remove('dash-section-focus');},1800);
 }
+function cpOverviewTodayYmd(){
+  if(typeof dashTodayYmd==='function')return dashTodayYmd();
+  if(typeof todayYmd==='function')return todayYmd();
+  const p=n=>String(n).padStart(2,'0');
+  const t=new Date();
+  return t.getFullYear()+'-'+p(t.getMonth()+1)+'-'+p(t.getDate());
+}
+function cpOverviewDaysBetween(fromYmd,toYmd){
+  if(typeof dashDaysBetween==='function')return dashDaysBetween(fromYmd,toYmd);
+  if(typeof cpBriefDaysBetween==='function')return cpBriefDaysBetween(fromYmd,toYmd);
+  const a=new Date(String(fromYmd||'').slice(0,10)+'T12:00:00').getTime();
+  const b=new Date(String(toYmd||'').slice(0,10)+'T12:00:00').getTime();
+  if(!a||!b||isNaN(a)||isNaN(b))return null;
+  return Math.round((b-a)/86400000);
+}
+function cpOverviewDateLabel(ymd,today){
+  const y=String(ymd||'').slice(0,10);
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(y))return'';
+  const t=today||cpOverviewTodayYmd();
+  const d=cpOverviewDaysBetween(y,t);
+  if(d===0)return'dziś';
+  if(d===1)return'wczoraj';
+  const dt=new Date(y+'T12:00:00');
+  if(isNaN(dt.getTime()))return'';
+  const wd=['nd','pn','wt','śr','cz','pt','sb'][dt.getDay()];
+  const p=n=>String(n).padStart(2,'0');
+  return wd+' '+p(dt.getDate())+'.'+p(dt.getMonth()+1);
+}
+function cpOverviewPl(n,one,few,many){
+  const x=Math.abs(Number(n)||0);
+  if(x===1)return one;
+  const mod10=x%10,mod100=x%100;
+  if(mod10>=2&&mod10<=4&&(mod100<12||mod100>14))return few;
+  return many;
+}
+function cpOverviewWeekBounds(today){
+  const t=new Date(String(today||cpOverviewTodayYmd())+'T12:00:00');
+  const dow=t.getDay();
+  const mondayDelta=dow===0?-6:1-dow;
+  const mon=new Date(t);mon.setDate(t.getDate()+mondayDelta);
+  const sun=new Date(mon);sun.setDate(mon.getDate()+6);
+  const p=n=>String(n).padStart(2,'0');
+  const ymd=d=>d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+  return{from:ymd(mon),to:ymd(sun)};
+}
+function cpOverviewMeasureCount(c){
+  const id=c&&c.id;
+  return (window.METRIC_ENTRIES||[]).filter(e=>{
+    if(!e||e.clientId!==id)return false;
+    if(e.source==='garmin'||e.groupId==='mg6')return false;
+    const v=e.values||{};
+    return Object.keys(v).some(k=>{const n=Number(v[k]);return Number.isFinite(n)&&n>0;});
+  }).length;
+}
+function cpOverviewCoopWeeks(c){
+  if(!c)return 0;
+  const today=cpOverviewTodayYmd();
+  let start=String(c.createdAt||c.joinDate||c.created||'').slice(0,10);
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(start)){
+    const sess=(window.SE||[]).filter(s=>s&&s.clientId===c.id&&s.date).slice().sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+    start=sess[0]?String(sess[0].date).slice(0,10):'';
+  }
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(start))return 0;
+  const days=cpOverviewDaysBetween(start,today);
+  if(days==null||days<0)return 0;
+  return days/7;
+}
+function cpOverviewWeightCount30(clientId){
+  const today=cpOverviewTodayYmd();
+  const fromDate=new Date(today+'T12:00:00');
+  fromDate.setDate(fromDate.getDate()-29);
+  const p=n=>String(n).padStart(2,'0');
+  const from=fromDate.getFullYear()+'-'+p(fromDate.getMonth()+1)+'-'+p(fromDate.getDate());
+  return (window.METRIC_ENTRIES||[]).filter(e=>e&&e.clientId===clientId&&e.groupId==='mg1'&&e.date>=from&&e.date<=today&&e.values&&e.values.m1!=null&&e.values.m1!=='').length;
+}
+function cpOverviewLastCheckin(clientId){
+  const today=cpOverviewTodayYmd();
+  const filled=((window.CHECKINS&&window.CHECKINS[clientId])||[]).filter(x=>x&&x.status==='filled')
+    .slice().sort((a,b)=>String(b.date||b.filledAt||'').localeCompare(String(a.date||a.filledAt||'')));
+  if(!filled.length)return{days:null,ymd:null};
+  const ymd=String(filled[0].date||filled[0].filledAt||'').slice(0,10);
+  return{days:cpOverviewDaysBetween(ymd,today),ymd};
+}
+function cpOverviewHasSessionToday(c){
+  const id=c&&c.id;
+  const today=cpOverviewTodayYmd();
+  let planned=[];
+  if(typeof cpAssignmentSessions==='function'){
+    try{planned=cpAssignmentSessions(id,{keepPlanned:true})||[];}catch(e){planned=[];}
+  }
+  if(!planned.length)planned=(window.SE||[]).filter(s=>s&&s.clientId===id);
+  return planned.some(s=>s&&String(s.date||'').slice(0,10)===today&&s.source!=='garmin'&&s.source!=='live-draft');
+}
+function cpOverviewSleepRecFact(clientId){
+  const series=typeof cpMetricSeries==='function'?cpMetricSeries(clientId,'mg5','m2',20):[];
+  const vals=(series||[]).map(x=>Number(x.v)).filter(n=>Number.isFinite(n));
+  if(vals.length<3)return{ok:false,n:vals.length,avg:null};
+  const last3=vals.slice(-3);
+  const avg=last3.reduce((a,b)=>a+b,0)/last3.length;
+  const earlier=vals.slice(0,-3);
+  const prevAvg=earlier.length?earlier.reduce((a,b)=>a+b,0)/earlier.length:null;
+  const low=avg<6;
+  const drop=prevAvg!=null&&(prevAvg-avg)>=2;
+  return{ok:low||drop,n:vals.length,avg:Math.round(avg*10)/10,prevAvg,low,drop};
+}
+function cpOverviewYmdAdd(ymd,delta){
+  const d=new Date(String(ymd||'').slice(0,10)+'T12:00:00');
+  if(isNaN(d.getTime()))return '';
+  d.setDate(d.getDate()+(Number(delta)||0));
+  const p=n=>String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+}
+function cpOverviewWeekdayYmd(wd,bounds){
+  const from=bounds&&bounds.from;
+  if(!from||wd==null||wd==='')return '';
+  const n=typeof wd==='number'?wd:cpOverviewParseWeekdayToken(wd);
+  if(n==null)return '';
+  const delta=n===0?6:n-1;
+  return cpOverviewYmdAdd(from,delta);
+}
+function cpOverviewPlanStartYmd(clientId){
+  const plan=typeof latestClientPlan==='function'?latestClientPlan(clientId):((window.PL||[]).filter(p=>p&&p.clientId===clientId).slice(-1)[0]||null);
+  if(typeof planStartYmd==='function'){
+    const y=planStartYmd(plan,clientId);
+    if(/^\d{4}-\d{2}-\d{2}$/.test(y))return y;
+  }
+  if(plan){
+    const y=String(plan.startDate||plan.createdAt||'').slice(0,10);
+    if(/^\d{4}-\d{2}-\d{2}$/.test(y))return y;
+  }
+  return '';
+}
+function cpOverviewLoggedDates(clientId,from,to){
+  const dates=new Set();
+  const sessions=(window.SE||[]).filter(s=>s&&s.clientId===clientId);
+  const logged=typeof completedWorkouts==='function'?completedWorkouts(clientId,sessions):sessions.filter(s=>s.source==='client'||s.source==='live'||s.source==='sala'||s.source==='homework');
+  (logged||[]).forEach(s=>{
+    const y=String(s.date||'').slice(0,10);
+    if(!y)return;
+    if(from&&y<from)return;
+    if(to&&y>to)return;
+    dates.add(y);
+  });
+  if(typeof homeworkCompletions==='function'){
+    try{
+      (homeworkCompletions(clientId,365)||[]).forEach(t=>{
+        const y=typeof homeworkDoneYmd==='function'?homeworkDoneYmd(t):String(t.doneAt||'').slice(0,10);
+        if(!y)return;
+        if(from&&y<from)return;
+        if(to&&y>to)return;
+        dates.add(y);
+      });
+    }catch(e){}
+  }
+  return dates;
+}
+function cpOverviewHasLoggedSincePlan(clientId){
+  const start=cpOverviewPlanStartYmd(clientId)||'0000-00-00';
+  return cpOverviewLoggedDates(clientId,start,'').size>0;
+}
+function cpOverviewPlannedDates(clientId,from,to){
+  const dates=new Set();
+  let planned=[];
+  if(typeof cpAssignmentSessions==='function'){
+    try{planned=cpAssignmentSessions(clientId,{keepPlanned:true}).filter(s=>s&&s.source==='planned');}catch(e){planned=[];}
+  }
+  if(!planned.length){
+    planned=(window.SE||[]).filter(s=>s&&s.clientId===clientId&&s.source==='planned');
+  }
+  planned.forEach(s=>{
+    const y=String(s.date||'').slice(0,10);
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(y))return;
+    if(from&&y<from)return;
+    if(to&&y>to)return;
+    dates.add(y);
+  });
+  return dates;
+}
+function cpOverviewAdhWindow(clientId,days){
+  const n=days==null?14:Number(days);
+  const today=cpOverviewTodayYmd();
+  const rawFrom=cpOverviewYmdAdd(today,-(Number.isFinite(n)?n:14));
+  const planStart=cpOverviewPlanStartYmd(clientId);
+  let from=rawFrom;
+  let incomplete=false;
+  if(planStart&&planStart>rawFrom){
+    from=planStart;
+    incomplete=true;
+  }
+  const assignedDates=cpOverviewPlannedDates(clientId,from,today);
+  const loggedDates=cpOverviewLoggedDates(clientId,from,today);
+  let assigned=assignedDates.size;
+  let logged=loggedDates.size;
+  if(!assigned&&!logged&&typeof clientAdherenceStats==='function'){
+    try{
+      const fb=clientAdherenceStats(clientId,n);
+      assigned=Number(fb&&fb.assigned||0);
+      logged=Number(fb&&fb.logged||0);
+    }catch(e){}
+  }
+  const denom=assigned||logged;
+  return{
+    assigned,logged,
+    pct:denom?Math.round((logged/denom)*100):0,
+    from,to:today,planStart,incomplete
+  };
+}
+function cpOverviewAdhReason(adh){
+  const a=adh||{assigned:0,logged:0};
+  if(a.incomplete&&a.planStart){
+    const y=String(a.planStart).slice(0,10);
+    const dd=y.slice(8,10)+'.'+y.slice(5,7);
+    return a.logged+' z '+a.assigned+' zaplanowanych od '+dd;
+  }
+  return 'W ostatnich 2 tygodniach '+a.logged+' z '+a.assigned+' treningów.';
+}
+function cpOverviewPackageCaption(c){
+  if(!c||!c.id)return '';
+  const list=(window.PACKAGES||[]).filter(p=>p&&p.clientId===c.id&&p.sessions);
+  const paid=typeof clientPaidPackageForSession==='function'?clientPaidPackageForSession(c.id):null;
+  const pkg=paid||list[0];
+  if(pkg&&pkg.sessions)return 'Pakiet: '+pkg.sessions+' sesji';
+  return '';
+}
+function cpOverviewThisWeekAdh(clientId){
+  const today=cpOverviewTodayYmd();
+  const b=cpOverviewWeekBounds(today);
+  const planStart=cpOverviewPlanStartYmd(clientId);
+  const from=planStart&&planStart>b.from?planStart:b.from;
+  const assignedDates=cpOverviewPlannedDates(clientId,from,b.to);
+  const loggedDates=cpOverviewLoggedDates(clientId,from,b.to);
+  const assigned=assignedDates.size;
+  const done=loggedDates.size;
+  const denom=assigned||done;
+  return{
+    assigned,logged:done,pct:denom?Math.round((done/denom)*100):0,
+    weekOpen:today<b.to,
+    from,to:b.to,planStart
+  };
+}
+function cpOverviewFocusNote(id){
+  if(typeof focusCpOverviewSection==='function')focusCpOverviewSection('note-input-'+id);
+  const t=typeof document!=='undefined'?document.getElementById('note-text-'+id):null;
+  if(t)t.focus();
+}
+function revealCpOverviewCoop(){
+  window._cpShowCoop=true;
+  const el=typeof document!=='undefined'?document.querySelector('[data-cp-coop="card"]'):null;
+  if(!el)return;
+  el.hidden=false;
+  if(typeof focusCpOverviewSection==='function')focusCpOverviewSection('cp-ov-coop');
+  else el.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function cpOverviewRecs(c){
+  if(!c)return[];
+  const id=c.id;
+  const hasApp=cpOverviewHasApp(c);
+  const recs=[];
+  // Zaproszenie: tylko pasek alertu na górze strony — nie powtarzamy tu.
+  const ci=cpOverviewLastCheckin(id);
+  const ciRecent=ci.days!=null&&ci.days<=3;
+  if(cpOverviewHasSessionToday(c)&&!ciRecent){
+    recs.push({
+      priority:2,order:2,kind:'checkin',tone:'act',
+      title:hasApp?'Poproś o check-in przed dzisiejszym treningiem':'Zapytaj o samopoczucie na początku treningu',
+      reason:ci.days==null?'Brak informacji o samopoczuciu od początku współpracy.':('Brak informacji o samopoczuciu od '+ci.days+' '+cpOverviewPl(ci.days,'dnia','dni','dni')+'.'),
+      cta:hasApp
+        ?{label:'Poproś o check-in',onclick:`cpRemindClient('${id}','checkin')`}
+        :{label:'Dodaj notatkę',onclick:`cpOverviewFocusNote('${id}')`}
+    });
+  }
+  const emptyLog=typeof cpOverviewHasLoggedSincePlan==='function'? !cpOverviewHasLoggedSincePlan(id):false;
+  const plan=typeof latestClientPlan==='function'?latestClientPlan(id):null;
+  if(emptyLog&&plan){
+    recs.push({
+      priority:1,order:1,kind:'nolog',tone:'info',
+      title:'Nie ma zapisanych treningów — jeśli się odbyły, zapisz je',
+      reason:'',
+      cta:{label:'Przejdź do Treningów',onclick:`setCPTab('training')`}
+    });
+  }
+  const adh14=typeof cpOverviewAdhWindow==='function'?cpOverviewAdhWindow(id,14):(typeof clientAdherenceStats==='function'?clientAdherenceStats(id,14):{assigned:0,logged:0,pct:0});
+  if(!emptyLog&&Number(adh14.assigned||0)>=4&&Number(adh14.logged||0)>0&&Number(adh14.pct)<60){
+    const freq=typeof cpOverviewWeekFreq==='function'?cpOverviewWeekFreq(c):3;
+    recs.push({
+      priority:2,order:3,kind:'adherence',tone:'watch',
+      title:'Sprawdź, czy '+(typeof cpOverviewTrainWord==='function'?cpOverviewTrainWord(freq):(freq+' treningi'))+' w tygodniu są realne',
+      reason:typeof cpOverviewAdhReason==='function'?cpOverviewAdhReason(adh14):('W ostatnich 2 tygodniach '+adh14.logged+' z '+adh14.assigned+' treningów.'),
+      cta:{label:'Otwórz plan',onclick:`setCPTab('plan')`}
+    });
+  }
+  const wN=cpOverviewWeightCount30(id);
+  if(wN<2){
+    recs.push({
+      priority:3,order:4,kind:'mass',tone:'watch',
+      title:'Ustal stały dzień pomiaru wagi',
+      reason:wN+' '+cpOverviewPl(wN,'pomiar','pomiary','pomiarów')+' w ostatnich 30 dniach. Trend pokażemy od 2 pomiarów.',
+      cta:{label:'Ustaw przypomnienie',onclick:`setCPTab('metrics')`}
+    });
+  }
+  const sleep=cpOverviewSleepRecFact(id);
+  if(sleep.ok){
+    recs.push({
+      priority:3,order:5,kind:'sleep',tone:'watch',
+      title:'Rozważ lżejszy trening',
+      reason:'Średnia snu z ostatnich 3 dni: '+sleep.avg+'/10.',
+      cta:{label:'Otwórz trening',onclick:`typeof cpStartLive==='function'&&cpStartLive()`}
+    });
+  }
+  recs.sort((a,b)=>(a.priority-b.priority)||(a.order-b.order));
+  return recs.slice(0,3);
+}
+function cpOverviewStatusHeadline(c){
+  const truth=typeof cpClientStatusTruth==='function'?cpClientStatusTruth(c):{reason:'ok',label:'Status',tone:'info',hint:''};
+  const early=typeof cpOverviewStatusIsEarly==='function'?cpOverviewStatusIsEarly(c):false;
+  if(early){
+    return{title:'Za wcześnie na ocenę',badge:'',tone:'info',sub:'Wiarygodną analizę pokażemy po 4 tygodniach lub 4 pomiarach.',early:true};
+  }
+  let v=null;
+  try{v=typeof buildMonitorVerdict==='function'?buildMonitorVerdict(c):null;}catch(e){v=null;}
+  if(v&&v.verdict&&!(typeof cpOverviewVerdictIsThin==='function'&&cpOverviewVerdictIsThin(c,v))){
+    const labels={progres:'Progres',regres:'Regres','ryzyko stagnacji':'Ryzyko stagnacji',stabilnie:'Stabilnie'};
+    return{title:labels[v.verdict]||truth.label||'Status',badge:truth.hint||'',tone:truth.tone||'info',sub:truth.hint||'',early:false};
+  }
+  return{title:truth.label||'Status',badge:truth.hint||'',tone:truth.tone||'info',sub:truth.hint||'',early:false};
+}
+function cpOverviewStepCta(kind,clientId){
+  const id=String(clientId||'');
+  if(kind==='checkin')return{label:'Poproś o check-in',onclick:`cpRemindClient('${id}','checkin')`};
+  if(kind==='adherence')return{label:'Otwórz plan',onclick:`setCPTab('plan')`};
+  if(kind==='sleep')return{label:'Otwórz trening',onclick:`typeof cpStartLive==='function'&&cpStartLive()`};
+  if(kind==='mass')return{label:'Ustaw przypomnienie',onclick:`setCPTab('metrics')`};
+  if(kind==='homework')return{label:'Zadania',onclick:`setCPTab('tasks')`};
+  if(kind==='injury')return{label:'Profil',onclick:`startCPEdit('${id}')`};
+  if(kind==='load'||kind==='workout')return{label:'Treningi',onclick:`setCPTab('training')`};
+  if(kind==='invite')return{label:'Wyślij zaproszenie',onclick:`typeof openInviteModal==='function'&&openInviteModal('${id}')`};
+  if(kind==='onboard')return{label:'Dokończ start',onclick:`openClientOnboardChecklist('${id}')`};
+  return null;
+}
+function cpOverviewTrainWord(n){
+  const x=Math.max(1,Number(n)||3);
+  if(x===1)return'1 trening';
+  if(x>=2&&x<=4)return x+' treningi';
+  return x+' treningów';
+}
+function cpOverviewWeekFreq(c){
+  const plan=typeof latestClientPlan==='function'?latestClientPlan(c&&c.id):null;
+  const train=((plan&&plan.days)||[]).filter(d=>d&&!d.rest).length;
+  if(train>0)return train;
+  const pref=c&&c.preferredWeekdays;
+  if(pref&&pref.length)return pref.length;
+  const n=Number(c&&c.trainingFreq);
+  if(n>0)return n;
+  return 3;
+}
+function cpOverviewStartSteps(c){
+  const id=c&&c.id;
+  const freq=cpOverviewWeekFreq(c);
+  const planTxt=freq===1?'Sprawdź, czy 1 trening w tygodniu jest realny':('Sprawdź, czy '+cpOverviewTrainWord(freq)+' w tygodniu są realne');
+  return[
+    {n:1,kind:'checkin',tone:'act',text:'Poproś o samopoczucie przed dzisiejszym treningiem',cta:cpOverviewStepCta('checkin',id)},
+    {n:2,kind:'mass',tone:'watch',text:'Umów stały czas pomiaru wagi',cta:cpOverviewStepCta('mass',id)},
+    {n:3,kind:'adherence',tone:'watch',text:planTxt,cta:cpOverviewStepCta('adherence',id)}
+  ];
+}
+function cpOverviewStatusIsEarly(c){
+  if(!c)return true;
+  const weeks=typeof cpOverviewCoopWeeks==='function'?cpOverviewCoopWeeks(c):0;
+  const measures=typeof cpOverviewMeasureCount==='function'?cpOverviewMeasureCount(c):0;
+  return weeks<4||measures<4;
+}
+function cpOverviewStatusSteps(c){
+  if(!c)return[];
+  const recs=typeof cpOverviewRecs==='function'?cpOverviewRecs(c):[];
+  if(!recs.length){
+    return[{n:1,kind:'ok',tone:'ok',title:'',text:'Wszystko w porządku — brak pilnych działań.',reason:'',cta:null}];
+  }
+  return recs.map((it,i)=>({
+    n:i+1,kind:it.kind,tone:it.tone||'watch',title:it.title,text:it.title,reason:it.reason,cta:it.cta||null
+  }));
+}
 function cpOverviewSituationHTML(c){
   if(!c)return'';
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s??''));
   const snap=typeof clientSituationSnapshot==='function'?clientSituationSnapshot(c.id):null;
-  const pulse=(snap&&snap.pulse)||(typeof cpClientPulseStatus==='function'?cpClientPulseStatus(c.id):{tone:'good',label:'',hint:''});
-  const goalLabels={masa:'Budowa masy',sila:'Wzrost siĹy',redukcja:'Redukcja',kondycja:'Kondycja'};
-  const goalText=goalLabels[c.goal]||c.goal||'â';
+  const truth=typeof cpClientStatusTruth==='function'?cpClientStatusTruth(c):{tone:'good',label:'Status',hint:''};
+  const head=typeof cpOverviewStatusHeadline==='function'?cpOverviewStatusHeadline(c):{title:truth.label,badge:truth.hint,tone:truth.tone,sub:truth.hint};
   const facts=snap&&snap.facts||{};
-  const adh7=facts.adh7||{logged:0,assigned:0,pct:0};
-  const adh30=facts.adh30||{logged:0,assigned:0,pct:0};
+  const week=typeof cpOverviewThisWeekAdh==='function'?cpOverviewThisWeekAdh(c.id):(facts.adh7||{logged:0,assigned:0,pct:0});
   const mass=cpMassDelta30Fact(c.id);
-  const massVal=mass.value!=null?mass.value:(facts.mass&&facts.mass.value);
+  const weightEntry=typeof cpMetricLatest==='function'?cpMetricLatest(c.id,'mg1','m1'):null;
+  const massVal=weightEntry&&weightEntry.values&&weightEntry.values.m1!=null?weightEntry.values.m1:(mass.value!=null?mass.value:null);
+  const fromSurvey=!(weightEntry&&weightEntry.values&&weightEntry.values.m1!=null)&&c.weight!=null&&c.weight!=='';
+  const surveyWeight=fromSurvey?c.weight:null;
   const sleep=cpSleepTrendFact(c.id);
   const sleepVal=facts.sleep&&facts.sleep.value!=null?facts.sleep.value:(sleep&&sleep.last);
   const lastCi=facts.lastCheckin;
-  const fmtN=v=>v==null||v===''?'â':(typeof v==='number'&&!Number.isInteger(v)?String(Math.round(v*10)/10):String(v));
-  const trainHint=adh7.assigned?(Math.round(adh7.pct||0)+'% planu'):(adh7.logged?'zarejestrowane':'brak planu');
-  const adhHint=adh30.assigned?(adh30.logged+'/'+adh30.assigned):'brak przypisaĹ';
-  const massHint=mass.delta==null?'brak serii 30d':((mass.delta>0?'+':'')+mass.delta+' kg / 30d');
-  const sleepHint=sleep?(sleep.dir==='down'?'spada':sleep.dir==='up'?'roĹnie':'stabilny'):'brak trendu';
-  let ciN='â';
-  let ciHint='brak';
-  if(lastCi&&lastCi.daysSince!=null){
-    ciN=String(lastCi.daysSince);
-    ciHint=lastCi.daysSince===0?'dziĹ':(lastCi.daysSince===1?'wczoraj':lastCi.daysSince+' d. temu');
-  }else if(facts.checkinStatus==='overdue'){
-    ciN='!';
-    ciHint='przeterminowany';
-  }else if(facts.checkinStatus==='pending'){
-    ciN='âŚ';
-    ciHint='oczekuje';
+  const fmtN=v=>v==null||v===''?'—':(typeof v==='number'&&!Number.isInteger(v)?String(Math.round(v*10)/10):String(v));
+  const emptyLog=typeof cpOverviewHasLoggedSincePlan==='function'? !cpOverviewHasLoggedSincePlan(c.id):false;
+  let trainHint='brak zaplanowanych treningów';
+  if(emptyLog)trainHint='brak zapisanych treningów';
+  else if(week.assigned)trainHint=week.logged+' z '+week.assigned;
+  else if(week.logged)trainHint=week.logged+' zarejestrowane';
+  let massHint='brak pomiaru wagi';
+  let massN=massVal;
+  if(fromSurvey){
+    massN=surveyWeight;
+    const sd=cpOverviewDateLabel(c.weightDate||c.updatedAt||c.createdAt||'');
+    massHint='z ankiety'+(sd?', '+sd:'');
+  }else if(massVal==null){
+    massHint='brak pomiaru wagi';
+  }else if(mass.delta==null){
+    massHint='za mało pomiarów na trend';
+  }else{
+    massHint=(mass.delta>0?'+':'')+mass.delta+' kg / 30d';
   }
+  const sleepHint=sleep?(sleep.dir==='thin'?'za mało ocen snu na trend':(sleep.dir==='down'?'spada':sleep.dir==='up'?'rośnie':'stabilny')):'brak ocen snu';
+  let ciN='—';
+  let ciHint='brak check-inu';
+  const ciGap=typeof cpOverviewLastCheckin==='function'?cpOverviewLastCheckin(c.id):{days:lastCi&&lastCi.daysSince,ymd:null};
+  const ciDays=ciGap&&ciGap.days!=null?ciGap.days:(lastCi&&lastCi.daysSince);
+  if(ciDays!=null){
+    ciN=String(ciDays);
+    if(ciDays===0)ciHint='dziś';
+    else if(ciDays===1)ciHint='wczoraj';
+    else ciHint='brak od '+ciDays+' dni';
+  }else if(facts.checkinStatus==='overdue'||facts.checkinStatus==='pending'){
+    const pending=((window.CHECKINS&&window.CHECKINS[c.id])||[]).filter(x=>x&&x.status==='pending')
+      .slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
+    const py=pending[0]?String(pending[0].date||'').slice(0,10):'';
+    const pd=py?cpOverviewDaysBetween(py,cpOverviewTodayYmd()):null;
+    ciN=pd!=null?String(pd):'—';
+    ciHint=pd!=null?('brak od '+pd+' dni'):(facts.checkinStatus==='pending'?'oczekuje na odpowiedź':'brak check-inu');
+  }
+  const trainTone=cpOverviewSitTone('train',{facts:{adh7:week}},mass,sleep,{emptyLog:emptyLog,weekOpen:week.weekOpen!==false});
+  const massTone=fromSurvey||massVal==null?'info':cpOverviewSitTone('mass',snap,mass,sleep);
+  const sleepTone=cpOverviewSitTone('sleep',snap,mass,sleep);
+  const ciTone=cpOverviewSitTone('checkin',snap,mass,sleep);
+  const trainN=emptyLog?'—':(week.assigned||week.logged?fmtN(week.logged):'—');
+  const trainUnit=emptyLog||!week.assigned?'':('/'+week.assigned);
   const tiles=[
-    {id:'train',n:fmtN(adh7.logged)+(adh7.assigned?'/'+adh7.assigned:''),lbl:'Treningi 7d',hint:trainHint,tone:cpOverviewSitTone('train',snap,mass,sleep),target:'cp-ov-card-train'},
-    {id:'adh',n:adh30.assigned?Math.round(adh30.pct||0)+'%':'â',lbl:'Adherencja 30d',hint:adhHint,tone:cpOverviewSitTone('adh',snap,mass,sleep),target:'cp-ov-card-train'},
-    {id:'mass',n:fmtN(massVal),lbl:'Masa',hint:massHint,tone:cpOverviewSitTone('mass',snap,mass,sleep),target:'cp-ov-card-metrics'},
-    {id:'sleep',n:fmtN(sleepVal),lbl:'Sen',hint:sleepHint,tone:cpOverviewSitTone('sleep',snap,mass,sleep),target:'cp-ov-card-metrics'},
-    {id:'checkin',n:ciN,lbl:'Check-in',hint:ciHint,tone:cpOverviewSitTone('checkin',snap,mass,sleep),target:'cp-ov-card-feel'}
+    {id:'train',n:trainN,unit:trainUnit,lbl:'Treningi w tym tygodniu',hint:trainHint,tone:trainTone,target:'cp-ov-card-train'},
+    {id:'mass',n:fmtN(massN),unit:massN!=null&&massN!==''?'kg':'',lbl:'Waga',hint:massHint,tone:massTone,target:'cp-ov-card-metrics'},
+    {id:'sleep',n:sleepVal==null?'—':fmtN(sleepVal),unit:sleepVal!=null?'/10':'',lbl:'Sen',hint:sleepVal==null?'brak ocen snu':sleepHint,tone:sleepTone,target:'cp-ov-card-metrics'},
+    {id:'checkin',n:ciN,unit:ciN==='—'?'':ciN==='1'?'dzień':'dni',lbl:ciGap&&ciGap.ymd?'Od ostatniego raportu':'Oczekiwanie na raport',hint:ciHint,tone:ciTone,target:'cp-ov-card-feel'}
   ];
-  const next=cpNextSessionFocusItems(c.id);
-  const mon=snap&&snap.signals&&snap.signals.monitor;
-  const verMap={progres:'Progres',regres:'Regres',stagnacja:'Stagnacja'};
-  const monTxt=mon&&mon.verdict?(' Âˇ '+(verMap[mon.verdict]||mon.verdict)):'';
+  const steps=typeof cpOverviewStatusSteps==='function'?cpOverviewStatusSteps(c):[];
+  const recOk=steps.length===1&&steps[0].kind==='ok';
+  const showAnalysis=!head.early;
   return `<div class="cp-ov-situation">
     <div class="cp-ov-situation-top">
       <div>
-        <div class="cp-ov-situation-kicker">Sytuacja</div>
-        <div class="cp-ov-situation-title">${esc(c.name||'')} Âˇ ${esc(goalText)}</div>
+        <div class="cp-ov-situation-kicker">Status współpracy</div>
+        <div class="cp-ov-situation-headline">${esc(head.title||'Status')}</div>
+        ${head.sub?`<div class="cp-ov-situation-sub">${esc(head.sub)}</div>`:''}
       </div>
-      <div class="cp-ov-pulse cp-ov-pulse-${esc(pulse.tone||'good')}">
+      ${head.badge?`<div class="cp-ov-pulse cp-ov-pulse-${esc(head.tone||truth.tone||'good')}">
         <span class="cp-ov-pulse-dot" aria-hidden="true"></span>
         <div>
-          <div class="cp-ov-pulse-label">${esc(pulse.label||'Status')}${esc(monTxt)}</div>
-          <div class="cp-ov-pulse-hint">${esc(pulse.hint||'')}</div>
+          <div class="cp-ov-pulse-label">${esc(head.badge)}</div>
         </div>
-      </div>
-    </div>
-    <div class="cp-ov-situation-kpis">
-      ${tiles.map(t=>`<button type="button" class="cp-ov-sit-tile cp-ov-sit-tile-${esc(t.tone)}" data-cp-sit="${esc(t.id)}" onclick="focusCpOverviewSection('${esc(t.target)}')">
-        <div class="cp-ov-sit-n">${esc(t.n)}</div>
-        <div class="cp-ov-sit-lbl">${esc(t.lbl)}</div>
-        <div class="cp-ov-sit-hint">${esc(t.hint)}</div>
-      </button>`).join('')}
+      </div>`:''}
     </div>
     <div class="cp-ov-next">
-      <div class="cp-ov-next-hd">Na kolejny trening</div>
-      <ul class="cp-ov-next-list">
-        ${next.map(it=>`<li class="cp-ov-next-item cp-ov-next-${esc(it.tone)}" data-cp-next="${esc(it.kind)}">${esc(it.text)}</li>`).join('')}
-      </ul>
+      <div class="cp-ov-next-hd">Wnioski</div>
+      ${recOk?`<div class="cp-ov-rec-ok" data-cp-next="ok">${esc(steps[0].text)}</div>`:`<ol class="cp-ov-next-list cp-ov-steps">
+        ${steps.map(it=>`<li class="cp-ov-next-item cp-ov-step cp-ov-next-${esc(it.tone)}" data-cp-next="${esc(it.kind)}">
+          <span class="cp-ov-step-n" aria-hidden="true">${esc(String(it.n))}</span>
+          <div class="cp-ov-step-body">
+            <div class="cp-ov-step-text">
+              <div class="cp-ov-rec-title">${esc(it.title||it.text)}</div>
+              ${it.reason?`<div class="cp-ov-rec-why">${esc(it.reason)}</div>`:''}
+            </div>
+            ${it.cta?`<button type="button" class="btn btn-ghost btn-sm" data-cp-status-act="${esc(it.kind)}" onclick="${it.cta.onclick}">${esc(it.cta.label)}</button>`:''}
+          </div>
+        </li>`).join('')}
+      </ol>`}
     </div>
+    <div class="cp-ov-situation-kpis">
+      ${tiles.map(t=>{
+        const colored=t.tone==='watch'||t.tone==='act';
+        return `<button type="button" class="cp-ov-sit-tile${colored?' cp-ov-sit-tile-'+esc(t.tone):''}" data-cp-sit="${esc(t.id)}" onclick="focusCpOverviewSection('${esc(t.target)}')">
+        <div class="cp-ov-sit-n">${esc(t.n)}${t.unit?`<span class="cp-ov-sit-unit">${esc(t.unit)}</span>`:''}</div>
+        <div class="cp-ov-sit-lbl">${esc(t.lbl)}</div>
+        <div class="cp-ov-sit-hint">${esc(t.hint)}</div>
+      </button>`;
+      }).join('')}
+    </div>
+    ${showAnalysis?`<div class="cp-ov-sit-foot"><button type="button" class="btn btn-ghost btn-sm" data-cp-analysis-link="1" onclick="revealCpOverviewCoop()">Pełna analiza →</button></div>`:''}
   </div>`;
 }
 window.cpSetsVolume=cpSetsVolume;
@@ -1926,7 +2575,29 @@ window.cpSleepTrendFact=cpSleepTrendFact;
 window.cpMassDelta30Fact=cpMassDelta30Fact;
 window.cpNextSessionFocusItems=cpNextSessionFocusItems;
 window.focusCpOverviewSection=focusCpOverviewSection;
+window.revealCpOverviewCoop=revealCpOverviewCoop;
+window.cpOverviewFocusNote=cpOverviewFocusNote;
+window.cpOverviewTodayYmd=cpOverviewTodayYmd;
+window.cpOverviewDateLabel=cpOverviewDateLabel;
+window.cpOverviewRecs=cpOverviewRecs;
+window.cpOverviewStatusHeadline=cpOverviewStatusHeadline;
+window.cpOverviewStepCta=cpOverviewStepCta;
+window.cpOverviewTrainWord=cpOverviewTrainWord;
+window.cpOverviewWeekFreq=cpOverviewWeekFreq;
+window.cpOverviewStartSteps=cpOverviewStartSteps;
+window.cpOverviewStatusIsEarly=cpOverviewStatusIsEarly;
+window.cpOverviewStatusSteps=cpOverviewStatusSteps;
 window.cpOverviewSituationHTML=cpOverviewSituationHTML;
+window.cpOverviewThisWeekAdh=cpOverviewThisWeekAdh;
+window.cpOverviewCoopWeeks=cpOverviewCoopWeeks;
+window.cpOverviewMeasureCount=cpOverviewMeasureCount;
+window.cpOverviewAdhWindow=cpOverviewAdhWindow;
+window.cpOverviewAdhReason=cpOverviewAdhReason;
+window.cpOverviewHasLoggedSincePlan=cpOverviewHasLoggedSincePlan;
+window.cpOverviewPlanStartYmd=cpOverviewPlanStartYmd;
+window.cpOverviewPlanDayAccent=cpOverviewPlanDayAccent;
+window.cpOverviewPackageCaption=cpOverviewPackageCaption;
+window.cpOverviewWeekdayYmd=cpOverviewWeekdayYmd;
 
 function cpBriefTodayYmd(){
   if(typeof dashTodayYmd==='function')return dashTodayYmd();
@@ -1945,10 +2616,166 @@ function cpBriefDaysBetween(fromYmd,toYmd){
 function cpBriefAgoLabel(ymd,today){
   const d=cpBriefDaysBetween(ymd,today||cpBriefTodayYmd());
   if(d==null)return '';
-  if(d===0)return 'dziĹ';
+  if(d===0)return 'dziś';
   if(d===1)return 'wczoraj';
   if(d>1)return d+' d. temu';
   return '';
+}
+function cpBriefAgoLong(ymd,today){
+  const d=cpBriefDaysBetween(ymd,today||cpBriefTodayYmd());
+  if(d==null)return '';
+  if(d===0)return 'dziś';
+  if(d===1)return 'wczoraj';
+  if(d>=7){
+    const w=Math.round(d/7);
+    return w===1?'1 tyg. temu':(w+' tyg. temu');
+  }
+  if(d>1)return d+' d. temu';
+  return '';
+}
+function cpOverviewStripDupDayPrefix(name){
+  return String(name||'').replace(/\s+/g,' ').trim().replace(/^dzień\s+\d+\s*[—–\-:]+\s*(dzień\s)/i,'$1').trim();
+}
+function cpOverviewParseWeekdayToken(raw){
+  const t=String(raw||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\./g,'');
+  if(!t)return null;
+  const map={
+    nd:0,niedz:0,nie:0,niedziela:0,sun:0,sunday:0,
+    pn:1,pon:1,poniedzialek:1,mon:1,monday:1,
+    wt:2,wto:2,wtorek:2,tue:2,tuesday:2,
+    sr:3,sro:3,sroda:3,wed:3,wednesday:3,
+    cz:4,czw:4,czwartek:4,thu:4,thursday:4,
+    pt:5,pia:5,piatek:5,fri:5,friday:5,
+    sb:6,sob:6,sobota:6,sat:6,saturday:6
+  };
+  if(map[t]!=null)return map[t];
+  if(t.length>=2&&map[t.slice(0,2)]!=null)return map[t.slice(0,2)];
+  if(t.length>=3&&map[t.slice(0,3)]!=null)return map[t.slice(0,3)];
+  return null;
+}
+function cpOverviewParsePlanDay(day,idx){
+  const rest=!!(day&&day.rest);
+  let raw=String((day&&(day.name||day.dayName||day.day))||'').trim();
+  let priority=String((day&&(day.priority||day.priorytet))||'').trim();
+  let mus=String((day&&(day.muscles||day.focus))||'').trim();
+  const takePri=s=>{
+    const m=String(s||'').match(/\(\s*priorytet:\s*([^)]+)\)/i);
+    if(!m)return s;
+    if(!priority)priority=m[1].trim();
+    return String(s).replace(m[0],'').replace(/\s+/g,' ').trim();
+  };
+  raw=takePri(raw);
+  mus=takePri(mus);
+  raw=cpOverviewStripDupDayPrefix(raw);
+  let wd=null;
+  if(day&&day.weekday!=null&&day.weekday!==''){
+    wd=typeof normalizePlanWeekday==='function'?normalizePlanWeekday(day.weekday):(typeof day.weekday==='number'?day.weekday:cpOverviewParseWeekdayToken(day.weekday));
+  }
+  if(wd==null&&typeof parsePlanWeekdayFromText==='function')wd=parsePlanWeekdayFromText(raw);
+  if(wd==null)wd=cpOverviewParseWeekdayToken(raw);
+  if(typeof stripPlanDayWeekdayName==='function')raw=stripPlanDayWeekdayName(raw);
+  let name=raw;
+  const wdOnly=wd!=null&&(cpOverviewParseWeekdayToken(raw)===wd||(typeof parsePlanWeekdayToken==='function'&&parsePlanWeekdayToken(raw)===wd))&&raw.length<=12;
+  if(wdOnly&&mus)name=mus;
+  if(!priority&&mus&&mus.toLowerCase()!==String(name||'').toLowerCase())priority=mus;
+  if(priority&&name&&name.toLowerCase()===priority.toLowerCase()&&!wdOnly){
+    priority='';
+  }
+  if(!name)name=mus||('Dzień '+(Number(idx||0)+1));
+  name=String(name).replace(/\s+/g,' ').replace(/[·,;]\s*$/,'').trim();
+  const wdLabel=wd==null?'':(typeof planDayWeekdayLabel==='function'?planDayWeekdayLabel(wd):['nd','pn','wt','śr','cz','pt','sb'][wd]);
+  return{rest,name,priority,weekday:wd,weekdayLabel:wdLabel,muscles:mus};
+}
+function cpOverviewPlanDayHeadline(plan,sess){
+  const parts=cpOverviewResolvePlanDay(plan,sess);
+  return(parts&&parts.name)||(sess?(typeof sessionTitle==='function'?sessionTitle(sess):(sess.type||sess.title||'')):'Trening')||'Trening';
+}
+function cpOverviewResolvePlanDay(plan,sess){
+  const days=(plan&&Array.isArray(plan.days))?plan.days:[];
+  const title=sess?(typeof sessionTitle==='function'?sessionTitle(sess):(sess.type||sess.title||'')):'';
+  if(!days.length)return{name:title||'Trening',priority:'',weekday:null,weekdayLabel:'',rest:false};
+  let idx=null;
+  if(sess&&sess.dayIdx!=null&&Number.isFinite(Number(sess.dayIdx))){
+    const n=Number(sess.dayIdx);
+    if(n>=0&&n<days.length)idx=n;
+  }
+  if(idx==null&&title){
+    const t=String(title).toLowerCase();
+    const hit=days.findIndex(d=>{
+      if(!d)return false;
+      const parsed=cpOverviewParsePlanDay(d,0);
+      const bits=[d.day,d.dayName,d.name,d.muscles,d.focus,parsed.name,parsed.priority].filter(Boolean).map(x=>String(x).toLowerCase());
+      return bits.some(b=>b&&(t.indexOf(b)>=0||b.indexOf(t)>=0));
+    });
+    if(hit>=0)idx=hit;
+  }
+  const day=idx!=null?days[idx]:null;
+  if(!day)return{name:title||'Trening',priority:'',weekday:null,weekdayLabel:'',rest:false};
+  return cpOverviewParsePlanDay(day,idx);
+}
+function cpOverviewPlanTitle(plan,c){
+  let name=String(plan&&plan.name||'').trim();
+  const clientName=String((c&&c.name)||(plan&&plan.clientName)||'').trim();
+  if(clientName&&name){
+    const esc=clientName.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    name=name.replace(new RegExp('^'+esc+'\\s*[—–\\-·:]+\\s*','i'),'');
+    name=name.replace(new RegExp('\\s*[—–\\-·:]+\\s*'+esc+'$','i'),'');
+    if(name.toLowerCase()===clientName.toLowerCase())name='';
+  }
+  name=name.replace(/\s+/g,' ').trim();
+  const dur=plan&&plan.duration;
+  if(dur&&!/\d+\s*tyg/i.test(name))name=(name?name+' · ':'')+dur+' tygodni';
+  return name||'Plan';
+}
+function cpOverviewPlanDayAccent(parsed){
+  if(!parsed||parsed.rest)return '';
+  let s=String(parsed.priority||parsed.muscles||parsed.name||'').replace(/\s+/g,' ').trim();
+  s=s.replace(/\(\s*priorytet:\s*([^)]+)\)/i,'$1');
+  s=s.replace(/^dzień\s+\d+\s*[—–\-:]+\s*/i,'');
+  s=s.replace(/^(poniedziałek|wtorek|środa|czwartek|piątek|sobota|niedziela|niedz\.?|pon\.?|wto\.?|śr\.?|czw\.?|pia\.?|sob\.?|nd|pn|wt|śr|cz|pt|sb)\b\s*[—–\-:]+\s*/i,'');
+  const stripped=s.replace(/^(fbw|ppl|push|pull|legs|upper|lower|hipertrofia|si[lł]a)(\s*[—–\-:/·]+\s*|\s*$)/i,'').replace(/^[—–\-:/·]+\s*/,'').trim();
+  if(stripped)s=stripped;
+  s=s.replace(/\s+/g,' ').replace(/[·,;]\s*$/,'').trim().toLowerCase();
+  s=s.replace(/^akcent:\s*/i,'');
+  if(!s)return '';
+  return 'Akcent: '+s.replace(/^(?:całe ciało|fbw)\s*[—–: -]+\s*/i,'').replace(/^akcent:\s*/i,'');
+}
+function cpOverviewPlanDayStatus(clientId,day,idx,parsed,today,planId){
+  if(parsed&&parsed.rest)return'Odpoczynek';
+  const t=today||cpOverviewTodayYmd();
+  const b=cpOverviewWeekBounds(t);
+  const pid=planId||(typeof latestClientPlan==='function'?latestClientPlan(clientId)?.id:'');
+  const sessions=(window.SE||[]).filter(s=>s&&s.clientId===clientId&&(!pid||s.planId===pid)&&s.date&&String(s.date).slice(0,10)>=b.from&&String(s.date).slice(0,10)<=b.to);
+  const match=s=>{
+    if(s.dayIdx!=null)return Number(s.dayIdx)===idx;
+    if(parsed&&parsed.weekday!=null){
+      const d=new Date(String(s.date).slice(0,10)+'T12:00:00').getDay();
+      if(d===parsed.weekday)return true;
+    }
+    const title=String(s.type||s.title||'').toLowerCase().trim();
+    const n=parsed&&parsed.name?String(parsed.name).toLowerCase().trim():'';
+    if(n&&title&&n.length>=3&&title.length>=3&&(title.indexOf(n)>=0||n.indexOf(title)>=0))return true;
+    return false;
+  };
+  const isLogged=s=>typeof cpBriefIsLogged==='function'?cpBriefIsLogged(s):(s&&s.source!=='planned'&&s.source!=='garmin'&&s.source!=='live-draft');
+  const isSkip=s=>typeof sessionIsSkipped==='function'&&sessionIsSkipped(s);
+  if(sessions.some(s=>isLogged(s)&&match(s)))return'Wykonany';
+  if(sessions.some(s=>isSkip(s)&&match(s)))return'Opuszczony';
+  let dayYmd=typeof cpOverviewWeekdayYmd==='function'?cpOverviewWeekdayYmd(parsed&&parsed.weekday,b):'';
+  if(!dayYmd){
+    const hit=sessions.find(s=>match(s)&&s.date);
+    if(hit)dayYmd=String(hit.date).slice(0,10);
+  }
+  if(dayYmd===t||sessions.some(s=>String(s.date).slice(0,10)===t&&match(s)))return'Dziś';
+  if(dayYmd&&dayYmd>t)return'Zaplanowany';
+  if(dayYmd&&dayYmd<t)return'Niezapisany';
+  const todayDow=new Date(t+'T12:00:00').getDay();
+  if(parsed&&parsed.weekday!=null){
+    if(parsed.weekday===todayDow)return'Dziś';
+    const order=d=>d===0?7:d;
+    if(order(parsed.weekday)<order(todayDow))return'Niezapisany';
+  }
+  return'Zaplanowany';
 }
 function cpBriefIsLogged(s){
   if(!s)return false;
@@ -1970,7 +2797,7 @@ function cpBriefTopLoads(s){
       if(vol>bestVol){bestVol=vol;best=st;}
     });
     if(!best)return;
-    const load=typeof formatSetLoad==='function'?formatSetLoad(best.kg,best.reps,ex):(best.kg+' kg Ă '+best.reps);
+    const load=typeof formatSetLoad==='function'?formatSetLoad(best.kg,best.reps,ex):(best.kg+' kg × '+best.reps);
     rows.push({name:ex.name||'',load,vol:bestVol,kg:best.kg,reps:best.reps});
   });
   rows.sort((a,b)=>b.vol-a.vol);
@@ -1984,7 +2811,7 @@ function collectCpBriefItems(c){
   const clip=typeof cpTlClip==='function'?cpTlClip:(s,n)=>{
     const t=String(s||'').replace(/\s+/g,' ').trim();
     if(t.length<=n)return t;
-    return t.slice(0,Math.max(0,n-1)).trim()+'âŚ';
+    return t.slice(0,Math.max(0,n-1)).trim()+'…';
   };
   const plan=typeof latestClientPlan==='function'?latestClientPlan(id):((window.PL||[]).filter(p=>p&&p.clientId===id).slice(-1)[0]||null);
   let planned=[];
@@ -2001,16 +2828,23 @@ function collectCpBriefItems(c){
   if(sess){
     const title=typeof sessionTitle==='function'?sessionTitle(sess):(sess.type||sess.title||'Sesja');
     const time=sess.time?String(sess.time):'';
-    const day=todaySess?'DziĹ':((typeof cpTlDayLabel==='function'?cpTlDayLabel(sess.date):String(sess.date).slice(5))||'NastÄpna');
+    const day=todaySess?'Dziś':((typeof cpTlDayLabel==='function'?cpTlDayLabel(sess.date):String(sess.date).slice(5))||'Następna');
     const bits=[time,title].filter(Boolean);
+    const parts=typeof cpOverviewResolvePlanDay==='function'?cpOverviewResolvePlanDay(plan,sess):{name:title,priority:''};
     items.push({
       kind:'session',
-      label:todaySess?'DziĹ':'NastÄpna',
-      fact:(todaySess?'':(day+(bits.length?' Âˇ ':'')))+bits.join(' Âˇ '),
-      extra:plan&&plan.name?plan.name:''
+      label:todaySess?'Dziś':'Następna',
+      fact:(todaySess?'':(day+(bits.length?' · ':'')))+bits.join(' · '),
+      extra:plan?(typeof cpOverviewPlanTitle==='function'?cpOverviewPlanTitle(plan,c):(plan.name||'')):'',
+      time:time,
+      title:title,
+      headline:parts.name||title||'',
+      dayName:parts.name||title||'',
+      priority:parts.priority||''
     });
-  }else if(plan&&plan.name){
-    items.push({kind:'session',label:'Plan',fact:plan.name,extra:'brak dnia w kalendarzu'});
+  }else if(plan){
+    const planTitle=typeof cpOverviewPlanTitle==='function'?cpOverviewPlanTitle(plan,c):(plan.name||'Plan');
+    items.push({kind:'session',label:'Plan',fact:planTitle,extra:'brak dnia w kalendarzu',dayName:planTitle,headline:planTitle});
   }
   const inj=String(c.injuries||'').trim();
   if(inj){
@@ -2022,14 +2856,14 @@ function collectCpBriefItems(c){
   if(ci){
     const a=ci.answers||{};
     const bits=[];
-    [['sleep','Sen'],['energy','Energia'],['stress','Stres'],['nutrition','OdĹźywianie'],['overall','Samopoczucie']].forEach(([k,lab])=>{
+    [['sleep','Sen'],['energy','Energia'],['stress','Stres'],['nutrition','Odżywianie'],['overall','Samopoczucie']].forEach(([k,lab])=>{
       if(a[k]==null||a[k]==='')return;
       bits.push(lab+' '+a[k]+'/5');
     });
     const when=cpBriefAgoLabel(ci.date||ci.filledAt,today);
     const note=a.notes?clip(a.notes,60):'';
     if(bits.length||note||when){
-      const head=[when,bits.join(' Âˇ ')].filter(Boolean).join(' Âˇ ');
+      const head=[when,bits.join(' · ')].filter(Boolean).join(' · ');
       items.push({
         kind:'checkin',
         label:'Check-in',
@@ -2044,8 +2878,9 @@ function collectCpBriefItems(c){
   if(last){
     const title=typeof sessionTitle==='function'?sessionTitle(last):(last.type||last.title||'Trening');
     const when=cpBriefAgoLabel(last.date,today);
+    const whenLong=typeof cpBriefAgoLong==='function'?cpBriefAgoLong(last.date,today):when;
     const loads=cpBriefTopLoads(last);
-    let loadTxt=loads.map(r=>(r.name?r.name+' ':'')+r.load).filter(Boolean).join(' Âˇ ');
+    let loadTxt=loads.map(r=>(r.name?r.name+' ':'')+r.load).filter(Boolean).join(' · ');
     if(!loadTxt&&typeof cpTlSessionHighlight==='function'){
       const hi=cpTlSessionHighlight(last,id);
       if(hi&&hi.fact&&hi.fact!==title)loadTxt=hi.fact;
@@ -2059,11 +2894,15 @@ function collectCpBriefItems(c){
       if(hi&&hi.extra)extras.push(hi.extra);
     }
     if(rec&&rec.fact)extras.push('rekord');
+    const whenFmt=typeof cpOverviewDateLabel==='function'?cpOverviewDateLabel(last.date,today):(whenLong||when);
+    const loadBits=loads.map(r=>((r.name?r.name+' ':'')+r.load).trim()).filter(Boolean);
+    const loadsLine=loadBits.length?('Ostatnio ('+whenFmt+'): '+loadBits.join(', ')):'';
     items.push({
       kind:'workout',
       label:'Ostatni',
-      fact:[when,title,loadTxt].filter(Boolean).join(' Âˇ '),
-      extra:extras.join(' Âˇ ')
+      fact:[when,title,loadTxt].filter(Boolean).join(' · '),
+      extra:extras.join(' · '),
+      loadsLine:loadsLine
     });
   }
   const notes=(window.CLIENT_NOTES&&window.CLIENT_NOTES[id])||[];
@@ -2104,22 +2943,36 @@ function cpOverviewBriefHTML(c){
   if(!c)return'';
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s??''));
   const items=collectCpBriefItems(c);
+  const session=items.find(it=>it.kind==='session');
+  const injury=items.find(it=>it.kind==='injury');
+  const workout=items.find(it=>it.kind==='workout');
   if(!items.length){
     return `<div class="cp-ov-brief" data-cp-brief="empty">
-      <div class="cp-ov-brief-kicker">Przed treningiem</div>
+      <div class="cp-ov-brief-kicker">Dziś</div>
       <div class="cp-ov-brief-empty">Brak danych do briefu.</div>
     </div>`;
   }
+  const time=(session&&session.time)||'';
+  const title=(session&&(session.dayName||session.headline||session.title||session.fact))||'';
+  const pri=(session&&session.priority)||'';
+  const loadsLine=(workout&&workout.loadsLine)||'';
+  const hasSession=!!session;
   return `<div class="cp-ov-brief">
-    <div class="cp-ov-brief-kicker">Przed treningiem</div>
-    <div class="cp-ov-brief-list">
-      ${items.map(it=>`<div class="cp-ov-brief-row${it.tone==='watch'?' is-watch':''}" data-cp-brief="${esc(it.kind)}">
-        <span class="cp-ov-brief-lbl">${esc(it.label)}</span>
-        <span class="cp-ov-brief-dot">â˘</span>
-        <span class="cp-ov-brief-fact">${esc(it.fact||'')}</span>
-        ${it.extra?`<span class="cp-ov-brief-dot">â˘</span><span class="cp-ov-brief-extra">${esc(it.extra)}</span>`:''}
-      </div>`).join('')}
-    </div>
+    <div class="cp-ov-brief-kicker">Dziś</div>
+    ${session?`<div class="cp-ov-today-row${session.tone==='watch'?' is-watch':''}" data-cp-brief="session">
+      ${time?`<div class="cp-ov-today-time">${esc(time)}</div>`:''}
+      <div class="cp-ov-today-main">
+        <div class="cp-ov-brief-fact">${esc(title)}</div>
+        ${pri?`<div class="cp-ov-today-pri">Priorytet: ${esc(pri)}</div>`:''}
+        ${loadsLine?`<div class="cp-ov-today-extra">${esc(loadsLine)}</div>`:''}
+      </div>
+      ${hasSession?`<button type="button" class="btn btn-ghost btn-sm cp-ov-today-cta" data-cp-brief-live="1" onclick="typeof cpStartLive==='function'&&cpStartLive()">Podgląd treningu</button>`:''}
+    </div>`:''}
+    ${injury?`<div class="cp-ov-brief-row is-watch" data-cp-brief="injury">
+      <span class="cp-ov-brief-lbl">${esc(injury.label||'Ograniczenia')}</span>
+      <span class="cp-ov-brief-dot">•</span>
+      <span class="cp-ov-brief-fact">${esc(injury.fact||'')}</span>
+    </div>`:''}
   </div>`;
 }
 window.cpBriefTodayYmd=cpBriefTodayYmd;
@@ -2127,6 +2980,13 @@ window.collectCpBriefItems=collectCpBriefItems;
 window.cpOverviewBriefHTML=cpOverviewBriefHTML;
 window.cpBriefTopLoads=cpBriefTopLoads;
 window.cpBriefIsLogged=cpBriefIsLogged;
+window.cpBriefAgoLong=cpBriefAgoLong;
+window.cpOverviewPlanDayHeadline=cpOverviewPlanDayHeadline;
+window.cpOverviewParsePlanDay=cpOverviewParsePlanDay;
+window.cpOverviewResolvePlanDay=cpOverviewResolvePlanDay;
+window.cpOverviewPlanTitle=cpOverviewPlanTitle;
+window.cpOverviewPlanDayStatus=cpOverviewPlanDayStatus;
+window.cpOverviewPlanDayAccent=cpOverviewPlanDayAccent;
 
 function cpCoopLoggedWorkouts(clientId){
   const sessions=(window.SE||[]).filter(s=>s&&s.clientId===clientId);
@@ -2149,7 +3009,7 @@ function cpCoopPickSignals(v){
   const rank={bad:0,warn:1,good:2,neutral:3};
   return ((v&&v.signals)||[]).slice().sort((a,b)=>(rank[a.tone]!=null?rank[a.tone]:9)-(rank[b.tone]!=null?rank[b.tone]:9)).slice(0,3);
 }
-const CP_COOP_GATE_MSG='Za maĹo danych do analizy â potrzebne minimum 2 niezaleĹźne ĹşrĂłdĹa.';
+const CP_COOP_GATE_MSG='Za mało danych do analizy — potrzebne minimum 2 niezależne źródła.';
 function cpCoopNum(v){
   if(v==null||v==='')return null;
   const n=Number(v);
@@ -2212,11 +3072,11 @@ function cpCoopCollectSignals(c){
   const filled=cpCoopFilledCheckins(id);
   if(filled.length){
     found.push({id:'checkin',label:'Check-in',hint:String(filled[0].date||filled[0].filledAt||'').slice(0,10)});
-  }else missing.push('wypeĹniony check-in');
+  }else missing.push('wypełniony check-in');
   const body=cpCoopBodyMetrics(id);
   if(body.length){
-    found.push({id:'body',label:'Pomiary ciaĹa',hint:String(body[0].date||'').slice(0,10)});
-  }else missing.push('pomiar ciaĹa');
+    found.push({id:'body',label:'Pomiary ciała',hint:String(body[0].date||'').slice(0,10)});
+  }else missing.push('pomiar ciała');
   const gar=cpCoopGarminSources(id);
   if(gar.ok){
     const d=(gar.metrics[0]&&gar.metrics[0].date)||(gar.sessions[0]&&gar.sessions[0].date)||'';
@@ -2225,8 +3085,8 @@ function cpCoopCollectSignals(c){
   const photos=cpCoopProgressPhotos(id);
   if(photos.length){
     const last=photos[photos.length-1];
-    found.push({id:'photos',label:'ZdjÄcia progresu',hint:String((last&&last.date)||photos.length)});
-  }else missing.push('zdjÄcia progresu');
+    found.push({id:'photos',label:'Zdjęcia progresu',hint:String((last&&last.date)||photos.length)});
+  }else missing.push('zdjęcia progresu');
   const hw=cpCoopDoneHomework(id);
   if(hw.length){
     found.push({id:'homework',label:'Zadania',hint:'zrobione'});
@@ -2258,10 +3118,10 @@ function cpCoopCacheClear(id){
 function cpCoopContextForAI(c){
   if(!c)return'';
   const esc=s=>String(s??'').replace(/\s+/g,' ').trim();
-  const lines=['=== KONTEKST WSPĂĹPRACY (tylko fakty) ==='];
-  lines.push('ImiÄ: '+(c.name||'â'));
-  lines.push('Cel: '+(c.goal||'â'));
-  lines.push('Poziom: '+(c.level||'â'));
+  const lines=['=== KONTEKST WSPÓŁPRACY (tylko fakty) ==='];
+  lines.push('Imię: '+(c.name||'—'));
+  lines.push('Cel: '+(c.goal||'—'));
+  lines.push('Poziom: '+(c.level||'—'));
   const age=cpCoopPositiveNum(c.age);
   if(age!=null)lines.push('Wiek: '+age);
   const weight=cpCoopPositiveNum(c.weight);
@@ -2272,14 +3132,14 @@ function cpCoopContextForAI(c){
   lines.push('Ograniczenia (pole injuries): '+(inj||'brak'));
   const v=typeof buildMonitorVerdict==='function'?buildMonitorVerdict(c):null;
   if(v){
-    lines.push('Werdykt monitora: '+(v.verdict||'â')+' (score '+(v.score??'â')+')');
+    lines.push('Werdykt monitora: '+(v.verdict||'—')+' (score '+(v.score??'—')+')');
     (v.signals||[]).slice(0,8).forEach(s=>lines.push('- ['+(s.tone||'')+'] '+(s.label||'')+': '+(s.text||'')));
   }else lines.push('Werdykt monitora: brak');
   const snap=typeof clientSituationSnapshot==='function'?clientSituationSnapshot(c.id):null;
   const facts=snap&&snap.facts||{};
   if(facts.adh7)lines.push('Adherencja 7d: '+(facts.adh7.logged||0)+'/'+(facts.adh7.assigned||0)+' ('+(facts.adh7.pct||0)+'%)');
   if(facts.adh30)lines.push('Adherencja 30d: '+(facts.adh30.logged||0)+'/'+(facts.adh30.assigned||0)+' ('+(facts.adh30.pct||0)+'%)');
-  if(facts.lastWorkout)lines.push('Ostatni zalogowany trening: '+(facts.lastWorkout.date||'')+' Âˇ '+(facts.lastWorkout.title||'')+' Âˇ source='+(facts.lastWorkout.source||'')+' Âˇ dni='+(facts.lastWorkout.daysSince??'â'));
+  if(facts.lastWorkout)lines.push('Ostatni zalogowany trening: '+(facts.lastWorkout.date||'')+' · '+(facts.lastWorkout.title||'')+' · source='+(facts.lastWorkout.source||'')+' · dni='+(facts.lastWorkout.daysSince??'—'));
   else lines.push('Ostatni zalogowany trening: brak');
   const logged=cpCoopLoggedWorkouts(c.id);
   const last=logged[0];
@@ -2289,7 +3149,7 @@ function cpCoopContextForAI(c){
     else lines.push('Ocena ostatniego treningu: brak (nie 0/5)');
     if(typeof cpBriefTopLoads==='function'){
       const loads=cpBriefTopLoads(last)||[];
-      if(loads.length)lines.push('Top obciÄĹźenia ostatniej sesji: '+loads.map(r=>(r.name?r.name+' ':'')+r.load).filter(Boolean).join(' Âˇ '));
+      if(loads.length)lines.push('Top obciążenia ostatniej sesji: '+loads.map(r=>(r.name?r.name+' ':'')+r.load).filter(Boolean).join(' · '));
     }
   }
   lines.push('Status check-inu: '+(facts.checkinStatus||'brak'));
@@ -2297,14 +3157,14 @@ function cpCoopContextForAI(c){
   if(filled){
     const a=filled.answers||{};
     const bits=[];
-    [['sleep','Sen'],['energy','Energia'],['stress','Stres'],['nutrition','OdĹźywianie'],['overall','Samopoczucie']].forEach(([k,lab])=>{
+    [['sleep','Sen'],['energy','Energia'],['stress','Stres'],['nutrition','Odżywianie'],['overall','Samopoczucie']].forEach(([k,lab])=>{
       const n=cpCoopScale15(a[k]);
       if(n==null)return;
       bits.push(lab+' '+n+'/5');
     });
-    lines.push('Ostatni wypeĹniony check-in: '+String(filled.date||filled.filledAt||'').slice(0,10)+(bits.length?(' Âˇ '+bits.join(', ')):' Âˇ skale: brak (nie 0/5)'));
+    lines.push('Ostatni wypełniony check-in: '+String(filled.date||filled.filledAt||'').slice(0,10)+(bits.length?(' · '+bits.join(', ')):' · skale: brak (nie 0/5)'));
     if(a.notes)lines.push('Notatka check-inu: '+esc(a.notes).slice(0,160));
-  }else lines.push('Ostatni wypeĹniony check-in: brak');
+  }else lines.push('Ostatni wypełniony check-in: brak');
   if(facts.mass){
     const mv=cpCoopPositiveNum(facts.mass.value);
     const dp=cpCoopNum(facts.mass.deltaPct);
@@ -2314,57 +3174,57 @@ function cpCoopContextForAI(c){
     const sv=cpCoopPositiveNum(facts.sleep.value);
     lines.push('Sen (pomiar): value='+(sv!=null?sv:'brak')+' date='+(facts.sleep.date||''));
   }
-  if(facts.package)lines.push('Pakiet: dni do koĹca='+(facts.package.daysLeft??'â'));
+  if(facts.package)lines.push('Pakiet: dni do końca='+(facts.package.daysLeft??'—'));
   if(facts.homework)lines.push('Zadania domowe: otwarte='+(facts.homework.open||0)+' po terminie='+(facts.homework.late||0));
   const plan=typeof latestClientPlan==='function'?latestClientPlan(c.id):((window.PL||[]).filter(p=>p&&p.clientId===c.id).slice(-1)[0]||null);
-  if(plan)lines.push('Plan: '+(plan.name||'â')+' Âˇ metoda '+(plan.method||'â')+' Âˇ dni '+(Array.isArray(plan.days)?plan.days.length:'â'));
+  if(plan)lines.push('Plan: '+(plan.name||'—')+' · metoda '+(plan.method||'—')+' · dni '+(Array.isArray(plan.days)?plan.days.length:'—'));
   else lines.push('Plan: brak');
   if(typeof clientSafetyContextForAI==='function'){
     const safe=clientSafetyContextForAI(c.id,{weight:c.weight,height:c.height,injuries:c.injuries||'',gender:c.gender});
-    if(safe)lines.push(safe.replace(/\n+$/,'')+'\n(To jest kontekst bezpieczeĹstwa, nie polecenie zmiany planu.)');
+    if(safe)lines.push(safe.replace(/\n+$/,'')+'\n(To jest kontekst bezpieczeństwa, nie polecenie zmiany planu.)');
   }
   const gate=cpCoopCollectSignals(c);
   const have=gate.found.map(s=>s.id).join(', ')||'brak';
-  const miss=gate.missing.join(', ')||'â';
-  lines.push('SYGNAĹY OBECNE: '+have);
+  const miss=gate.missing.join(', ')||'—';
+  lines.push('SYGNAŁY OBECNE: '+have);
   lines.push('DANE NIEOBECNE: '+miss);
-  lines.push('Skala 1â5: brak zapisu to brak, nigdy 0. Nie pisz âocena 0/5â, gdy oceny nie ma.');
-  lines.push('Nie wolno uĹźywaÄ liczb, kg, procentĂłw ani ÄwiczeĹ, ktĂłrych nie ma powyĹźej.');
+  lines.push('Skala 1–5: brak zapisu to brak, nigdy 0. Nie pisz „ocena 0/5”, gdy oceny nie ma.');
+  lines.push('Nie wolno używać liczb, kg, procentów ani ćwiczeń, których nie ma powyżej.');
   return lines.join('\n');
 }
 function cpCoopSystemPrompt(){
-  return `JesteĹ asystentem trenera personalnego. Pomagasz ZINTERPRETOWAÄ wspĂłĹpracÄ z klientem. Nie podejmujesz decyzji za trenera.
-Model: FAKTY â INTERPRETACJA â OPCJE â DECYZJA TRENERA.
-Odpowiadaj po polsku, bardzo krĂłtko (max ~180 sĹĂłw), wyĹÄcznie w tej strukturze:
+  return `Jesteś asystentem trenera personalnego. Pomagasz ZINTERPRETOWAĆ współpracę z klientem. Nie podejmujesz decyzji za trenera.
+Model: FAKTY → INTERPRETACJA → OPCJE → DECYZJA TRENERA.
+Odpowiadaj po polsku, bardzo krótko (max ~180 słów), wyłącznie w tej strukturze:
 
 1. Interpretacja
-2â4 zdania: co razem mogÄ oznaczaÄ dostÄpne fakty. Tryb warunkowy (âmoĹźe oznaczaÄâ, âwarto rozwaĹźyÄâ).
+2–4 zdania: co razem mogą oznaczać dostępne fakty. Tryb warunkowy („może oznaczać”, „warto rozważyć”).
 
-2. Do rozwaĹźenia
-Maksymalnie 3 moĹźliwe dziaĹania trenera. To opcje, nie rozkazy. Bez âzmniejsz objÄtoĹÄ o X%â, bez kg, bez zmiany planu, bez konkretnych ÄwiczeĹ spoza kontekstu.
+2. Do rozważenia
+Maksymalnie 3 możliwe działania trenera. To opcje, nie rozkazy. Bez „zmniejsz objętość o X%”, bez kg, bez zmiany planu, bez konkretnych ćwiczeń spoza kontekstu.
 
-3. SprawdĹş przed decyzjÄ
-Czego brakuje albo co dopytaÄ klienta.
+3. Sprawdź przed decyzją
+Czego brakuje albo co dopytać klienta.
 
 Zakazy:
 - nie przedstawiaj sugestii jako pewnych decyzji
-- nie wymyĹlaj danych, dat, kg, procentĂłw, 1RM, makro, diagnoz medycznych
-- nie diagnozuj problemĂłw, ktĂłre nie wynikajÄ z kontekstu
-- jeĹli danych jest maĹo â napisz czego brakuje zamiast generowaÄ zalecenie
-- nie powtarzaj Briefu, SYTUACJI ani listy âNa kolejny treningâ
-- nie uĹźywaj sformuĹowaĹ: naleĹźy, musisz, wdrĂłĹź, zdiagnozowano, skrĂłÄ objÄtoĹÄ o
+- nie wymyślaj danych, dat, kg, procentów, 1RM, makro, diagnoz medycznych
+- nie diagnozuj problemów, które nie wynikają z kontekstu
+- jeśli danych jest mało — napisz czego brakuje zamiast generować zalecenie
+- nie powtarzaj Briefu, SYTUACJI ani listy wniosków
+- nie używaj sformułowań: należy, musisz, wdróż, zdiagnozowano, skróć objętość o
 - brak oceny treningu to brak danych, nigdy 0/5
-- 0 na skali 1â5 oznacza brak zapisu, nie wynik
-- nie pisz âocena wynosi 0/5â, gdy oceny nie ma
-- nie uĹźywaj znacznikĂłw Markdown (** * ---)`;
+- 0 na skali 1–5 oznacza brak zapisu, nie wynik
+- nie pisz „ocena wynosi 0/5”, gdy oceny nie ma
+- nie używaj znaczników Markdown (** * ---)`;
 }
 function cpCoopParseReply(raw){
   const src=String(raw||'').replace(/\r/g,'').replace(/\*\*(.+?)\*\*/g,'$1').trim();
   const cut=src.length>1600?src.slice(0,1600):src;
   const headers=[
     {key:'interp',names:['1. Interpretacja','Interpretacja']},
-    {key:'consider',names:['2. Do rozwaĹźenia','Do rozwaĹźenia']},
-    {key:'check',names:['3. SprawdĹş przed decyzjÄ','SprawdĹş przed decyzjÄ']}
+    {key:'consider',names:['2. Do rozważenia','Do rozważenia']},
+    {key:'check',names:['3. Sprawdź przed decyzją','Sprawdź przed decyzją']}
   ];
   const hits=[];
   headers.forEach(h=>{
@@ -2384,7 +3244,7 @@ function cpCoopParseReply(raw){
   });
   const toItems=(t,max)=>{
     const lines=String(t||'').split('\n').map(l=>{
-      const stripped=cpCoopStripMd(l.replace(/^\s*(?:[-â˘*]|\d+[.)])\s*/,''));
+      const stripped=cpCoopStripMd(l.replace(/^\s*(?:[-•*]|\d+[.)])\s*/,''));
       return stripped;
     }).filter(Boolean);
     if(!lines.length){
@@ -2422,10 +3282,10 @@ function cpCoopFormatText(s){
   return esc(cpCoopStripMd(s));
 }
 function cpCoopResultHTML(parsed,stale){
-  const staleHtml=stale?'<div class="cp-ov-coop-stale">Dane klienta siÄ zmieniĹy. PonĂłw analizÄ, jeĹli chcesz aktualny odczyt.</div>':'';
+  const staleHtml=stale?'<div class="cp-ov-coop-stale">Dane klienta się zmieniły. Ponów analizę, jeśli chcesz aktualny odczyt.</div>':'';
   if(!parsed)return staleHtml;
   if(!parsed.ok){
-    return staleHtml+`<div class="cp-ov-coop-raw"><div class="cp-ov-coop-note">OdpowiedĹş poza schematem â potraktuj ostroĹźnie.</div><div>${cpCoopFormatText(parsed.raw||'')}</div></div>`;
+    return staleHtml+`<div class="cp-ov-coop-raw"><div class="cp-ov-coop-note">Odpowiedź poza schematem — potraktuj ostrożnie.</div><div>${cpCoopFormatText(parsed.raw||'')}</div></div>`;
   }
   const consider=(parsed.consider||[]).map(t=>`<li>${cpCoopFormatText(t)}</li>`).join('')||'<li>Na razie nie ma podstaw do zmiany kursu.</li>';
   const check=(parsed.check||[]).map(t=>`<li>${cpCoopFormatText(t)}</li>`).join('');
@@ -2434,14 +3294,14 @@ function cpCoopResultHTML(parsed,stale){
       <p>${cpCoopFormatText(parsed.interp)}</p>
     </div>
     <div class="cp-ov-coop-sec" data-cp-coop-sec="consider">
-      <div class="cp-ov-coop-sh">2. Do rozwaĹźenia</div>
+      <div class="cp-ov-coop-sh">2. Do rozważenia</div>
       <ul>${consider}</ul>
     </div>
     <div class="cp-ov-coop-sec" data-cp-coop-sec="check">
-      <div class="cp-ov-coop-sh">3. SprawdĹş przed decyzjÄ</div>
-      ${check?`<ul>${check}</ul>`:'<p>Brak dodatkowych luk w kontekĹcie.</p>'}
+      <div class="cp-ov-coop-sh">3. Sprawdź przed decyzją</div>
+      ${check?`<ul>${check}</ul>`:'<p>Brak dodatkowych luk w kontekście.</p>'}
     </div>
-    <div class="cp-ov-coop-legal">To nie jest decyzja. WybĂłr zostaje przy trenerze.</div>`;
+    <div class="cp-ov-coop-legal">To nie jest decyzja. Wybór zostaje przy trenerze.</div>`;
 }
 function cpOverviewCoopHTML(c){
   if(!c)return'';
@@ -2456,11 +3316,12 @@ function cpOverviewCoopHTML(c){
   const labels={progres:'Progres',regres:'Regres','ryzyko stagnacji':'Ryzyko stagnacji',stabilnie:'Stabilnie'};
   const verdict=v&&v.verdict?(labels[v.verdict]||v.verdict):'';
   const tone=v?(v.verdictTone||'neutral'):'neutral';
-  const sigs=cpCoopPickSignals(v);
+  const thinVerdict=typeof cpOverviewVerdictIsThin==='function'?cpOverviewVerdictIsThin(c,v):(!v||!v.verdict||(v.verdict==='stabilnie'&&(v.score==null||Number(v.score)===0)));
+  const sigs=thinVerdict?[]:cpCoopPickSignals(v);
   const busy=!!(window._cpCoopBusy&&window._cpCoopBusy[c.id]);
   let body='';
   if(busy){
-    body=`<div class="cp-ov-coop-busy" data-cp-coop-state="busy">AnalizujÄâŚ</div>`;
+    body=`<div class="cp-ov-coop-busy" data-cp-coop-state="busy">Analizuję…</div>`;
   }else if(cache&&(cache.parsed||cache.error)){
     if(cache.error){
       body=`<div class="cp-ov-coop-err" data-cp-coop-state="error">${esc(cache.error)}</div>`;
@@ -2474,20 +3335,20 @@ function cpOverviewCoopHTML(c){
   }
   const showRun=gate.ok&&!busy;
   const showBlocked=!gate.ok&&!busy;
-  const runLbl=cache&&(cache.parsed||cache.error)?'PonĂłw analizÄ':'Przeanalizuj wspĂłĹpracÄ';
-  return `<div class="cp-ov-coop" data-cp-coop="card">
-    <div class="cp-ov-coop-kicker">Analiza wspĂłĹpracy</div>
-    <div class="cp-ov-coop-verdict cp-ov-coop-${esc(tone)}" data-cp-coop-verdict="${esc(v&&v.verdict||'none')}">
-      ${verdict?`Werdykt: ${esc(verdict)}${v&&v.score!=null?' Âˇ score '+esc(String(v.score)):''}`:'Za maĹo danych do werdyktu.'}
+  const runLbl=cache&&(cache.parsed||cache.error)?'Ponów analizę':'Przeanalizuj współpracę';
+  return `<div class="cp-ov-coop" id="cp-ov-coop" data-cp-coop="card"${window._cpShowCoop?'':' hidden'}>
+    <div class="cp-ov-coop-kicker">Analiza współpracy</div>
+    <div class="cp-ov-coop-verdict cp-ov-coop-${esc(thinVerdict?'neutral':tone)}" data-cp-coop-verdict="${esc(thinVerdict?'none':(v&&v.verdict||'none'))}">
+      ${thinVerdict?'Za mało danych do werdyktu.':`Werdykt: ${esc(verdict)}`}
     </div>
-    ${sigs.length?`<ul class="cp-ov-coop-sigs">${sigs.map(s=>`<li class="cp-ov-coop-sig cp-ov-coop-sig-${esc(s.tone||'neutral')}" data-cp-coop-sig="${esc(s.label||'')}">${esc(s.label||'')}${s.text?(' â '+esc(s.text)):''}</li>`).join('')}</ul>`:''}
+    ${sigs.length?`<ul class="cp-ov-coop-sigs">${sigs.map(s=>`<li class="cp-ov-coop-sig cp-ov-coop-sig-${esc(s.tone||'neutral')}" data-cp-coop-sig="${esc(s.label||'')}">${esc(s.label||'')}${s.text?(' — '+esc(s.text)):''}</li>`).join('')}</ul>`:''}
     <div class="cp-ov-coop-body" id="cp-ov-coop-body">${body}</div>
     <div class="cp-ov-coop-actions">
-      ${showRun?`<button type="button" class="btn btn-primary btn-sm" id="cp-ov-coop-run" data-cp-coop-cta="run" onclick="runCpCoopAnalysis('${esc(c.id)}')">${esc(runLbl)}</button>`:''}
-      ${showBlocked?`<button type="button" class="btn btn-primary btn-sm" id="cp-ov-coop-run" data-cp-coop-cta="blocked" disabled aria-disabled="true" title="${esc(CP_COOP_GATE_MSG)}" style="opacity:.45;cursor:not-allowed">Przeanalizuj wspĂłĹpracÄ</button>`:''}
-      ${cache&&!busy?`<button type="button" class="btn btn-ghost btn-sm" data-cp-coop-cta="clear" onclick="clearCpCoopAnalysis('${esc(c.id)}')">WyczyĹÄ</button>`:''}
+      ${showRun?`<button type="button" class="btn btn-ghost btn-sm" id="cp-ov-coop-run" data-cp-coop-cta="run" onclick="runCpCoopAnalysis('${esc(c.id)}')">${esc(runLbl)}</button>`:''}
+      ${showBlocked?`<button type="button" class="btn btn-ghost btn-sm" id="cp-ov-coop-run" data-cp-coop-cta="blocked" disabled aria-disabled="true" title="${esc(CP_COOP_GATE_MSG)}" style="opacity:.45;cursor:not-allowed">Przeanalizuj współpracę</button>`:''}
+      ${cache&&!busy?`<button type="button" class="btn btn-ghost btn-sm" data-cp-coop-cta="clear" onclick="clearCpCoopAnalysis('${esc(c.id)}')">Wyczyść</button>`:''}
     </div>
-    <div class="cp-ov-coop-foot">AI interpretuje dane. DecyzjÄ podejmujesz Ty.</div>
+    <div class="cp-ov-coop-foot">AI interpretuje dane. Decyzję podejmujesz Ty.</div>
   </div>`;
 }
 async function cpCoopRequestAnalysis(c){
@@ -2504,7 +3365,7 @@ async function cpCoopRequestAnalysis(c){
       model:'claude-sonnet-4-20250514',
       max_tokens:500,
       system,
-      messages:[{role:'user',content:'Przeanalizuj wspĂłĹpracÄ z tym klientem na podstawie podanego kontekstu. Odpowiedz wyĹÄcznie w trzech sekcjach.'}]
+      messages:[{role:'user',content:'Przeanalizuj współpracę z tym klientem na podstawie podanego kontekstu. Odpowiedz wyłącznie w trzech sekcjach.'}]
     })
   });
   const data=await resp.json();
@@ -2536,7 +3397,7 @@ async function runCpCoopAnalysis(clientId){
       cpCoopCacheSet(id,{fp,parsed,error:null,at:Date.now()});
     }
   }catch(e){
-    cpCoopCacheSet(id,{fp,parsed:null,error:'Nie udaĹo siÄ poĹÄczyÄ z AI.',at:Date.now()});
+    cpCoopCacheSet(id,{fp,parsed:null,error:'Nie udało się połączyć z AI.',at:Date.now()});
   }
   window._cpCoopBusy[id]=false;
   const cur=(window.CL||[]).find(x=>x&&x.id===id);
@@ -2564,6 +3425,7 @@ window.clearCpCoopAnalysis=clearCpCoopAnalysis;
 window.CP_COOP_GATE_MSG=CP_COOP_GATE_MSG;
 
 function renderCPOverview(c){
+  try{if(typeof ensureClientPlanWeekdays==='function')ensureClientPlanWeekdays(c.id);}catch(e){}
   const today=new Date();
   const todayStr=typeof todayYmd==='function'?todayYmd():(typeof dateStrLocal==='function'?dateStrLocal(today):today.toISOString().split('T')[0]);
   const sessions=SE.filter(s=>s.clientId===c.id);
@@ -2575,11 +3437,12 @@ function renderCPOverview(c){
   const daysSince=lastSess?Math.floor((today-new Date(lastSess.date))/(1000*60*60*24)):null;
   const notes=CLIENT_NOTES[c.id]||[];
   initClientData(c);
+  if(typeof cpApplyProfileSubtext==='function')cpApplyProfileSubtext(c);
 
   const editing=window._cpEditingClientId===c.id;
-  const goalLabels={masa:'Budowa masy',sila:'Wzrost siĹy',redukcja:'Redukcja',kondycja:'Kondycja'};
-  const levelLabels={poczatkujacy:'PoczÄtkujÄcy',sredni:'Ĺredni',zaawansowany:'Zaawansowany'};
-  const goalText=goalLabels[c.goal]||c.goal||'â';
+  const goalLabels={masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja'};
+  const levelLabels={poczatkujacy:'Początkujący',sredni:'Średni',zaawansowany:'Zaawansowany'};
+  const goalText=goalLabels[c.goal]||c.goal||'—';
   const levelText=levelLabels[c.level]||c.level||'';
   const injuries=typeof clientInjuriesText==='function'?clientInjuriesText(c):(c.injuries||'');
   const metricsOn=typeof bmFeatureOn==='function'?bmFeatureOn(c):true;
@@ -2592,7 +3455,7 @@ function renderCPOverview(c){
   const last30=adh30.logged;
   const assigned7=adh7.assigned;
   const assigned30=adh30.assigned;
-  // Next calendar week (MonâSun after current week)
+  // Next calendar week (Mon–Sun after current week)
   const dow=today.getDay(); // 0 Sun
   const daysToNextMon=((8-dow)%7)||7;
   const nextMon=new Date(today);nextMon.setDate(today.getDate()+daysToNextMon);
@@ -2610,17 +3473,19 @@ function renderCPOverview(c){
   const weightEntry=metricsOn?cpMetricLatest(c.id,'mg1','m1'):null;
   const weightVal=weightEntry?weightEntry.values.m1:(c.weight||null);
   const weightDelta=metricsOn?cpMetricDeltaPct(c.id,'mg1','m1'):null;
-  const weightSpark=metricsOn?cpOvSparkSVG(cpMetricSeries(c.id,'mg1','m1'),'var(--accent)'):'';
+  const weightSeries=metricsOn?cpMetricSeries(c.id,'mg1','m1'):[];
+  const sleepSeries=cpMetricSeries(c.id,'mg5','m2');
   const stepsEntry=metricsOn?cpMetricLatest(c.id,'mg6','m1'):null;
   const stepsDelta=metricsOn?cpMetricDeltaPct(c.id,'mg6','m1'):null;
-  const stepsSpark=metricsOn?cpOvSparkSVG(cpMetricSeries(c.id,'mg6','m1'),'var(--blue)',true):'';
   const hrEntry=metricsOn?(cpMetricLatest(c.id,'mg4','m1')||cpMetricLatest(c.id,'mg6','m3')):null;
   const hrGroup=hrEntry?hrEntry.groupId:'mg4';
   const hrKey=hrEntry&&hrEntry.values&&hrEntry.values.m1!=null?'m1':'m3';
   const hrDelta=metricsOn&&hrEntry?cpMetricDeltaPct(c.id,hrGroup,hrKey):null;
-  const hrSpark=metricsOn&&hrEntry?cpOvSparkSVG(cpMetricSeries(c.id,hrGroup,hrKey),'var(--teal)'):'';
   const sleepEntry=cpMetricLatest(c.id,'mg5','m2');
-  const sleepSpark=cpOvSparkSVG(cpMetricSeries(c.id,'mg5','m2'),'var(--blue)',true);
+  const weightSpark=weightSeries.length>=2?cpOvSparkSVG(weightSeries,'var(--accent)'):'';
+  const stepsSpark=metricsOn&&stepsEntry?cpOvSparkSVG(cpMetricSeries(c.id,'mg6','m1'),'var(--blue)',true):'';
+  const hrSpark=metricsOn&&hrEntry?cpOvSparkSVG(cpMetricSeries(c.id,hrGroup,hrKey),'var(--teal)'):'';
+  const sleepSpark=sleepSeries.length>=CP_OV_SLEEP_MIN?cpOvSparkSVG(sleepSeries,'var(--blue)',true):'';
 
   const photos=photosOn&&typeof ppListFor==='function'?ppListFor(c.id).slice().reverse().slice(0,2):[];
   const pulse=typeof cpClientPulseStatus==='function'?cpClientPulseStatus(c.id):{tone:'good',label:'',hint:''};
@@ -2635,15 +3500,25 @@ function renderCPOverview(c){
   };
 
   const metricCard=(title,value,unit,delta,empty,spark)=>{
-    const has=value!=null&&value!==''&&value!=='â';
-    const dHtml=delta==null?'':`<div class="cp-ov-metric-delta" style="color:${delta<=0?'var(--teal)':'var(--orange)'};">${delta>0?'â':'â'} ${Math.abs(delta)}%</div>`;
+    const has=value!=null&&value!==''&&value!=='—';
+    if(!has)return'';
+    const dHtml=delta==null?'':`<div class="cp-ov-metric-delta" style="color:${delta<=0?'var(--teal)':'var(--orange)'};">${delta>0?'↑':'↓'} ${Math.abs(delta)}%</div>`;
     return `<div class="cp-ov-metric">
       <div class="cp-ov-metric-lbl">${title}</div>
-      <div class="cp-ov-metric-val">${has?escHtml(String(value)):'â'}${has&&unit?`<span class="cp-ov-metric-unit">${unit}</span>`:''}</div>
-      ${has?dHtml:`<div style="font-size:10px;color:var(--muted);margin-top:4px;">${empty||'Brak danych'}</div>`}
+      <div class="cp-ov-metric-val">${escHtml(String(value))}${unit?`<span class="cp-ov-metric-unit">${unit}</span>`:''}</div>
+      ${dHtml}
       ${spark?`<div class="cp-ov-metric-spark">${spark}</div>`:''}
     </div>`;
   };
+  const weightHtml=weightSeries.length>=2?metricCard('Waga',weightVal,'kg',weightDelta,'',weightSpark):'';
+  const sleepHtml=sleepSeries.length>=CP_OV_SLEEP_MIN?metricCard('Sen',sleepEntry?sleepEntry.values.m2:null,'/10',null,'',sleepSpark):'';
+  const hrHtml=metricCard('Tętno spocz.',hrEntry?(hrEntry.values.m1||hrEntry.values.m3):null,'bpm',hrDelta,'',hrSpark);
+  const stepsHtml=metricCard('Kroki',stepsEntry?stepsEntry.values.m1:null,'',stepsDelta,'',stepsSpark);
+  const metricsHtml=[weightHtml,sleepHtml,hrHtml,stepsHtml].filter(Boolean).join('');
+  const hasPhysique=!!(photosOn&&physique&&(physique.front||physique.side||physique.back));
+  const hasFeel=!!lastCheck;
+  const hasGarmin=!!(garmin7&&garmin7.n);
+  const hasPhotos=!!(photos&&photos.length);
 
   const railCard=(title,body,onclick)=>{
     const click=onclick?` class="cp-ov-rail-card clickable" role="button" tabindex="0" onclick="${onclick}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${onclick}}"`:` class="cp-ov-rail-card"`;
@@ -2654,215 +3529,170 @@ function renderCPOverview(c){
   };
 
   document.getElementById('cp-body').innerHTML=`
+    ${cpOverviewAlertHTML(c)}
     ${cpOverviewBriefHTML(c)}
-    ${cpOverviewSituationHTML(c)}
-    ${cpOverviewCoopHTML(c)}
-
-    ${editing?'':`<div class="cp-ov-edit-cta" role="button" tabindex="0" onclick="startCPEdit('${c.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();startCPEdit('${c.id}')}">
-      <div>
-        <div class="cp-ov-edit-cta-title">Dane osobowe</div>
-        <div class="cp-ov-edit-cta-sub">ImiÄ i nazwisko, telefon, e-mail, waga, wzrost, sport â kliknij, aby dopisaÄ lub poprawiÄ</div>
-      </div>
-      <span class="cp-ov-edit-cta-go">âď¸ Edytuj dane</span>
-    </div>`}
+    <div class="cp-ov-status-stack">
+      ${cpOverviewSituationHTML(c)}
+      ${typeof cpOverviewStatusIsEarly==='function'&&cpOverviewStatusIsEarly(c)?'':cpOverviewCoopHTML(c)}
+    </div>
     ${editing?cpClientDataEditHTML(c):''}
 
     ${(()=>{
       const acc=typeof clientHasPaidAccess==='function'?clientHasPaidAccess(c.id):{ok:true};
       if(acc.ok)return'';
       return `<div class="cp-pay-gate" style="background:rgba(230,0,0,0.1);border:1px solid rgba(230,0,0,0.35);border-radius:10px;padding:12px 14px;margin-bottom:16px;">
-        <div style="font-size:12px;font-weight:700;margin-bottom:4px;">${escHtml(typeof clientPaidAccessLabel==='function'?clientPaidAccessLabel(acc):'Brak dostÄpu')}</div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Kalendarz jest zablokowany. Live Start dziaĹa (Trial â bez zejĹcia sesji). Oznacz pakiet jako opĹacony albo wĹÄcz Trial / GoĹÄ.</div>
+        <div style="font-size:12px;font-weight:700;margin-bottom:4px;">${escHtml(typeof clientPaidAccessLabel==='function'?clientPaidAccessLabel(acc):'Brak dostępu')}</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px;">Kalendarz jest zablokowany. Live Start działa (Trial — bez zejścia sesji). Oznacz pakiet jako opłacony albo włącz Trial / Gość.</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
-          <button type="button" class="btn btn-primary btn-sm" onclick="setClientAccessMode('${escHtml(c.id)}','trial')">Trial</button>
-          <button type="button" class="btn btn-ghost btn-sm" onclick="setClientAccessMode('${escHtml(c.id)}','guest')">GoĹÄ</button>
-          <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('payments')">Pakiety â</button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="setClientAccessMode('${escHtml(c.id)}','trial')">Trial</button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="setClientAccessMode('${escHtml(c.id)}','guest')">Gość</button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('payments')">Pakiety →</button>
         </div>
       </div>`;
     })()}
-
-    ${(()=>{const ob=typeof getClientOnboard==='function'?getClientOnboard(c):null;
-      if(!ob||ob.complete)return'';
-      return `<div style="background:rgba(201,123,63,0.1);border:1px solid rgba(201,123,63,0.35);border-radius:10px;padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-        <div>
-          <div style="font-size:12px;font-weight:700;margin-bottom:2px;">Start wspĂłĹpracy ${ob.done}/${ob.total}</div>
-          <div style="font-size:11px;color:var(--muted);">${!ob.invite?'Brak zaproszenia. ':''}${!ob.baseline?'Brak pomiarĂłw. ':''}${!ob.schedule?'Brak dni treningowych. ':''}${!ob.plan?'Brak planu. ':''}${!ob.calendar&&!ob.session?'Brak w kalendarzu. ':''}</div>
-        </div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;">
-          <button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();cpRemindClient('${c.id}','onboard')">Przypomnij</button>
-          <button class="btn btn-primary btn-sm" onclick="openClientOnboardChecklist('${c.id}')">DokoĹcz</button>
-        </div>
-      </div>`;
-    })()}
-
-    ${(()=>{
-      const w=c.weight||(typeof clientLatestMetricWeight==='function'?clientLatestMetricWeight(c.id):null);
-      const bmi=typeof clientBmiStatus==='function'?clientBmiStatus(w,c.height):null;
-      const mon=typeof buildMonitorVerdict==='function'?buildMonitorVerdict(c):null;
-      if(!bmi&&!mon)return'';
-      const tone=mon?(mon.verdictTone||'neutral'):(bmi&&bmi.overweight?'warn':'ok');
-      const dir=mon?(mon.verdict==='progres'?'Dobra strona':(mon.verdict==='regres'?'ZĹa strona':mon.verdict)):'';
-      const tips=(bmi&&bmi.overweight?(bmi.tips||[]).slice(0,3):[]).concat((mon&&mon.next||[]).slice(0,2));
-      if(!tips.length&&!(bmi&&bmi.overweight)&&!(mon&&(mon.verdict==='regres'||mon.verdict==='ryzyko stagnacji')))return'';
-      return `<div class="cp-bmi-banner cp-bmi-${tone}">
-        <div>
-          <div class="cp-bmi-k">Asystent trenera Âˇ ${bmi&&bmi.overweight?escHtml(bmi.label)+(bmi.bmi?' Âˇ BMI '+bmi.bmi:''):'StraĹźnik postÄpĂłw'}${dir?' Âˇ '+escHtml(dir):''}</div>
-          <ul class="cp-bmi-tips">${tips.slice(0,4).map(t=>`<li>${escHtml(t)}</li>`).join('')}</ul>
-        </div>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="openClientMonitorSummary('${c.id}')">Monitoring</button>
-      </div>`;
-    })()}
-
-    ${(()=>{const ins=buildClientInsight(c,sessions,plans,daysSince);
-      if(!ins.length)return'';
-      return `<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
-        ${ins.slice(0,2).map(i=>`<div style="background:${i.color}14;border:1px solid ${i.color}44;border-radius:10px;padding:10px 14px;display:flex;gap:10px;align-items:flex-start;">
-          <span style="font-size:16px;flex-shrink:0;">${i.icon}</span>
-          <div style="font-size:12px;color:var(--text);line-height:1.6;">${i.text}</div>
-        </div>`).join('')}
-      </div>`;
-    })()}
-
-    <div class="cp-ov-card" style="margin-bottom:16px;">
-      <div class="cp-ov-card-hd">
-        <div class="cp-ov-card-title">Podsumowania klienta</div>
-      </div>
-      <div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:10px;">Start: plan + ankieta + makro. Monitoring: werdykt progres / regres z wskazĂłwkami âco dalejâ.</div>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;">
-        <button type="button" class="btn btn-primary btn-sm" onclick="openClientOnboardSummary('${c.id}')">Podsumowanie start</button>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="openClientMonitorSummary('${c.id}')">Monitoring progresu</button>
-      </div>
-    </div>
 
     <div class="cp-ov-layout">
       <div class="cp-ov-main">
-        <!-- Training -->
+        ${plans.length?(()=>{
+          const plan=typeof latestClientPlan==='function'?latestClientPlan(c.id):plans[plans.length-1];
+          const planTitle=typeof cpOverviewPlanTitle==='function'?cpOverviewPlanTitle(plan,c):((plan&&plan.name)||'Plan');
+          const days=(plan&&plan.days)||[];
+          return `<div class="cp-ov-card" id="cp-ov-card-plan" style="cursor:pointer;" onclick="setCPTab('plan')">
+          <div class="cp-ov-card-hd">
+            <div class="cp-ov-card-title">Aktywny plan tygodnia</div>
+          </div>
+          <div style="font-size:15px;font-weight:700;margin-bottom:4px;">${escHtml(planTitle)}</div>
+          <div class="cp-ov-stat-sub" style="margin-bottom:10px;">${escHtml(plan.method||'—')} · ${plan.duration||'?'} tyg. · ${days.filter(d=>d&&!d.rest).length} dni/tydzień</div>
+          <div class="cp-ov-week">
+            ${days.slice(0,7).map((d,i)=>{
+              const parsed=typeof cpOverviewParsePlanDay==='function'?cpOverviewParsePlanDay(d,i):{name:d.muscles||d.name||d.day||'Trening',priority:'',weekdayLabel:'',rest:!!d.rest,muscles:d.muscles||''};
+              const st=typeof cpOverviewPlanDayStatus==='function'?cpOverviewPlanDayStatus(c.id,d,i,parsed,null,plan.id):'Zaplanowany';
+              const wd=parsed.weekdayLabel||'';
+              const accent=parsed.rest?'':(typeof cpOverviewPlanDayAccent==='function'?cpOverviewPlanDayAccent(parsed):'');
+              const stClass=st==='Dziś'?' is-today':st==='Wykonany'?' is-done':(st==='Niezapisany'||st==='Brak zapisu')?' is-nolog':st==='Opuszczony'?' is-skip':'';
+              return `<div class="cp-ov-week-day${parsed.rest?' is-rest':''}${stClass}">
+              ${wd?`<span class="cp-ov-week-wd">${escHtml(wd)}</span>`:''}
+              <div class="cp-ov-week-name">${escHtml(parsed.rest?'Odpoczynek':parsed.name||'Trening')}</div>${accent?`<div class="cp-ov-week-accent" title="${escHtml(accent)}">${escHtml(accent)}</div>`:''}
+              <div class="cp-ov-week-st">${escHtml(st)}</div>
+            </div>`;
+            }).join('')}
+          </div>
+        </div>`;
+        })():`
+        <div class="cp-ov-card" id="cp-ov-card-plan" style="text-align:center;cursor:pointer;" onclick="setCPTab('plan')">
+          <div class="cp-ov-card-title" style="margin-bottom:10px;">Aktywny plan</div>
+          <div class="cp-ov-stat-sub">Brak planu</div>
+          <div class="cp-ov-rail-hint" style="margin-top:8px;">Przejdź do zakładki Plan</div>
+        </div>`}
+
         <div class="cp-ov-card" id="cp-ov-card-train">
           <div class="cp-ov-card-hd">
-            <div class="cp-ov-card-title">Treningi</div>
-            <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('training')">OtwĂłrz â</button>
+            <div class="cp-ov-card-title">Ostatnie treningi</div>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('training')">Wszystkie →</button>
           </div>
-          <div class="cp-ov-train-stats">
-            <div>
-              ${cpTrainIconRow(last7,assigned7)}
-              <div class="cp-ov-stat-lbl">Ostatnie 7 dni</div>
-              <div class="cp-ov-stat-sub">${assigned7?last7+' â Âˇ '+(assigned7-last7)+' âą':(last7?last7+' zarejestrowane':'Brak treningĂłw')}</div>
-            </div>
-            <div>
-              ${cpTrainIconRow(last30,assigned30)}
-              <div class="cp-ov-stat-lbl">Ostatnie 30 dni</div>
-              <div class="cp-ov-stat-sub">${assigned30?last30+' â Âˇ '+(assigned30-last30)+' âą':(logged.length+' ĹÄcznie Âˇ '+tasksDone.length+'/'+oneShot.length+' zadaĹ')}</div>
-            </div>
-            <div>
-              ${cpTrainIconRow(0,nextWeekAssigned)}
-              <div class="cp-ov-stat-lbl">NastÄpny tydzieĹ</div>
-              <div class="cp-ov-stat-sub">${nextWeekAssigned?nextWeekAssigned+' zaplanowane':'Jeszcze nie przypisano'}</div>
-            </div>
-          </div>
-          ${lastWorkout||lastHw?`<div class="cp-ov-last-wo" onclick="setCPTab('training')">
-            <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:4px;">Ostatni trening</div>
-            <div style="font-size:14px;font-weight:700;">${escHtml(lastWorkoutTitle)}</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:2px;">${escHtml(lastWorkoutDate||'')}${lastWorkoutDays!=null?' Âˇ '+lastWorkoutDays+' dni temu':''}${lastWorkoutFb?' Âˇ '+lastWorkoutFb+'/5':''}${!lastWorkout&&lastHw?' Âˇ zadanie domowe':''}</div>
-          </div>`:`<div class="cp-ov-last-wo muted">Brak zapisanych treningĂłw â Live, apka (serie) albo zadanie domowe. Same terminy w kalendarzu siÄ nie liczÄ.</div>`}
-          ${(assigned7&&last7===0)||(pulse.tone!=='good')?`<div style="margin-top:10px;position:relative;z-index:1;"><button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();cpRemindClient('${c.id}','workout')">Przypomnij o treningu</button></div>`:''}
+          ${(()=>{
+            const hist=(logged||[]).slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))).slice(0,4);
+            if(!hist.length&&!lastHw){
+              return `<div class="cp-ov-empty-wo" data-cp-empty-wo="1">
+                <div>Brak zapisanych treningów</div>
+                <button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();typeof openAddSessionFromCP==='function'&&openAddSessionFromCP('${c.id}')">Dodaj trening</button>
+              </div>`;
+            }
+            const fmt=typeof cpOverviewDateLabel==='function'?cpOverviewDateLabel:(d=>d);
+            return `<ul class="cp-ov-hist">${hist.map(s=>{
+              const title=typeof sessionTitle==='function'?sessionTitle(s):(s.type||'Trening');
+              const loads=typeof cpBriefTopLoads==='function'?cpBriefTopLoads(s):[];
+              const loadTxt=loads.slice(0,2).map(r=>(r.name?r.name+' ':'')+r.load).filter(Boolean).join(', ');
+              return `<li class="cp-ov-hist-row" onclick="setCPTab('training')">
+                <div class="cp-ov-hist-title">${escHtml(title)}</div>
+                <div class="cp-ov-hist-meta">${escHtml(fmt(s.date||''))}${loadTxt?' · '+escHtml(loadTxt):''}</div>
+              </li>`;
+            }).join('')}${!hist.length&&lastHw?`<li class="cp-ov-hist-row" onclick="setCPTab('training')"><div class="cp-ov-hist-title">${escHtml(lastWorkoutTitle||'Zadanie domowe')}</div><div class="cp-ov-hist-meta">${escHtml(fmt(lastWorkoutDate||''))}</div></li>`:''}</ul>`;
+          })()}
+          ${typeof cpOverviewHasApp==='function'&&cpOverviewHasApp(c)&&(logged&&logged.length)&&pulse.tone!=='good'?`<div style="margin-top:10px;position:relative;z-index:1;"><button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();cpRemindClient('${c.id}','workout')">Przypomnij o treningu</button></div>`:''}
         </div>
 
-        <!-- Pomiary moĹźna edytowaÄ bezpoĹrednio w zakĹadce Pomiary. -->
-        <div class="cp-ov-card" id="cp-ov-card-metrics" style="cursor:pointer;" onclick="setCPTab('metrics')">
+        ${metricsOn&&metricsHtml?`<div class="cp-ov-card" id="cp-ov-card-metrics" style="cursor:pointer;" onclick="setCPTab('progress')">
           <div class="cp-ov-card-hd">
-            <div class="cp-ov-card-title">Pomiary ciaĹa</div>
-            <span style="font-size:11px;color:var(--muted);">Pomiary â</span>
+            <div class="cp-ov-card-title">Pomiary ciała</div>
+            <span style="font-size:12px;color:var(--text-secondary);">Progress →</span>
           </div>
-          ${metricsOn?`<div class="cp-ov-metrics-grid" onclick="event.stopPropagation()">
-            ${metricCard('Waga',weightVal,'kg',weightDelta,'Dodaj pomiar masy',weightSpark)}
-            ${metricCard('Sen',sleepEntry?sleepEntry.values.m2:null,'/10',null,'Brak danych snu',sleepSpark)}
-            ${metricCard('TÄtno spocz.',hrEntry?(hrEntry.values.m1||hrEntry.values.m3):null,'bpm',hrDelta,'Brak danych',hrSpark)}
-            ${metricCard('Kroki',stepsEntry?stepsEntry.values.m1:null,'',stepsDelta,'Import Garmin / pomiar',stepsSpark)}
-          </div>
+          <div class="cp-ov-metrics-grid" onclick="event.stopPropagation()">${metricsHtml}</div>
           <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;" onclick="event.stopPropagation()">
             <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('metrics')">Aktualizuj pomiary</button>
-          </div>`:`<div style="font-size:12px;color:var(--muted);padding:8px 0;">Pomiary ciaĹa wyĹÄczone w Funkcjach klienta.</div>`}
-        </div>
+          </div>
+        </div>`:`<div id="cp-ov-card-metrics" hidden></div>`}
 
-
-
-        <div class="cp-ov-card" id="cp-ov-card-feel">
+        ${hasPhysique?`<div class="cp-ov-card" style="cursor:pointer;" onclick="setCPTab('photos')">
           <div class="cp-ov-card-hd">
-            <div class="cp-ov-card-title">Samopoczucie (check-in)</div>
-            <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('progress')">PostÄpy â</button>
+            <div class="cp-ov-card-title">Aktualna sylwetka</div>
+            <span style="font-size:12px;color:var(--text-secondary);">${escHtml(String(physique.weight||weightVal||''))}${physique.weight||weightVal?' kg':''}</span>
+          </div>
+          <div class="cp-ov-physique">
+            ${[['front','Przód'],['side','Bok'],['back','Tył']].map(([k,lab])=>{
+              const src=physique[k];
+              return `<figure class="cp-ov-physique-cell">${src?`<img src="${escHtml(src)}" alt="${lab}">`:`<span>📷</span>`}<figcaption>${lab}</figcaption></figure>`;
+            }).join('')}
+          </div>
+          <div class="cp-ov-rail-hint">${escHtml(typeof cpOverviewDateLabel==='function'?cpOverviewDateLabel(physique.date):physique.date||'')} · waga ${escHtml(String(physique.weight||weightVal||'—'))}${weightVal?' kg':''}</div>
+        </div>`:''}
+
+        ${hasFeel||hasGarmin?`<div class="cp-ov-card" id="cp-ov-card-feel">
+          <div class="cp-ov-card-hd">
+            <div class="cp-ov-card-title">${hasFeel?'Samopoczucie (check-in)':'Garmin'}</div>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('progress')">Progress →</button>
           </div>
           <div class="cp-ov-feel-grid">
-            <div>
+            ${hasFeel?`<div>
               <div class="cp-ov-metric-lbl">Ostatni raport</div>
-              <div class="cp-ov-metric-val">${checkScore!=null?escHtml(String(checkScore)):'â'}${checkScore!=null?'<span class="cp-ov-metric-unit">/100</span>':''}</div>
-              <div class="cp-ov-stat-sub">${lastCheck?escHtml(String(lastCheck.date||'').slice(0,10)):'Brak check-inu'}</div>
-            </div>
-            <div>
-              <div class="cp-ov-metric-lbl">Garmin Âˇ 7 dni</div>
+              <div class="cp-ov-metric-val">${checkScore!=null?escHtml(String(checkScore)):'—'}${checkScore!=null?'<span class="cp-ov-metric-unit">/100</span>':''}</div>
+              <div class="cp-ov-stat-sub">${escHtml(typeof cpOverviewDateLabel==='function'?cpOverviewDateLabel(lastCheck.date):String(lastCheck.date||'').slice(0,10))}</div>
+            </div>`:''}
+            ${hasGarmin?`<div>
+              <div class="cp-ov-metric-lbl">Garmin · 7 dni</div>
               <div class="cp-ov-garmin-avgs">
-                <span>Kroki <b>${garmin7.steps!=null?escHtml(String(garmin7.steps)):'â'}</b></span>
-                <span>HR <b>${garmin7.hr!=null?escHtml(String(garmin7.hr))+' bpm':'â'}</b></span>
-                <span>kcal <b>${garmin7.kcal!=null?escHtml(String(garmin7.kcal)):'â'}</b></span>
+                <span>Kroki <b>${garmin7.steps!=null?escHtml(String(garmin7.steps)):'—'}</b></span>
+                <span>HR <b>${garmin7.hr!=null?escHtml(String(garmin7.hr))+' bpm':'—'}</b></span>
+                <span>kcal <b>${garmin7.kcal!=null?escHtml(String(garmin7.kcal)):'—'}</b></span>
               </div>
-              <div class="cp-ov-stat-sub">${garmin7.n?garmin7.n+' dni z importu CSV':'Brak importu Garmin'}</div>
-            </div>
+              <div class="cp-ov-stat-sub">${garmin7.n} dni z importu CSV</div>
+            </div>`:''}
           </div>
-        </div>
-
-        <!-- Active plan -->
-        ${plans.length?`
-        <div class="cp-ov-card" style="cursor:pointer;" onclick="setCPTab('plan')">
-          <div class="cp-ov-card-hd">
-            <div class="cp-ov-card-title">Aktywny plan</div>
-            <span class="pill pill-green" style="font-size:11px;">${escHtml(plans[plans.length-1].method||'â')}</span>
-          </div>
-          <div style="font-size:15px;font-weight:700;margin-bottom:4px;">${escHtml(plans[plans.length-1].name)}</div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">${escHtml(plans[plans.length-1].method||'â')} Âˇ ${plans[plans.length-1].duration||'?'} tyg. Âˇ ${(plans[plans.length-1].days||[]).length} dni/tydzieĹ</div>
-          <div style="display:flex;gap:4px;flex-wrap:wrap;">
-            ${(plans[plans.length-1].days||[]).slice(0,5).map(d=>`<span style="background:${d.rest?'var(--s3)':'rgba(230,0,0,0.12)'};color:${d.rest?'var(--muted)':'var(--accent)'};border-radius:5px;padding:3px 8px;font-size:11px;font-family:'DM Mono',monospace;">${escHtml(d.day||d.dayName||'?')}${d.rest?' REST':''}</span>`).join('')}
-          </div>
-        </div>`:`
-        <div class="cp-ov-card" style="text-align:center;cursor:pointer;" onclick="setCPTab('plan')">
-          <div class="cp-ov-card-title" style="margin-bottom:10px;">Aktywny plan</div>
-          <div style="font-size:13px;color:var(--muted);">Brak planu</div>
-          <div class="cp-ov-rail-hint" style="margin-top:8px;">PrzejdĹş do zakĹadki Plan</div>
-        </div>`}
+        </div>`:`<div id="cp-ov-card-feel" hidden></div>`}
       </div>
 
       <aside class="cp-ov-rail">
-        ${railCard('Cel',
-          `<div style="font-size:14px;font-weight:700;line-height:1.4;margin-bottom:6px;">${escHtml(goalText)}</div>
-           <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">${escHtml(levelText)}${c.trainingFreq?' Âˇ '+c.trainingFreq+'Ă / tydz.':''}${c.preferredTrainTime?' Âˇ '+escHtml(c.preferredTrainTime):''}</div>
-           <div class="cp-ov-shared-tag">UdostÄpnione klientowi</div>
-           <div class="cp-ov-rail-hint">Cel i poziom sÄ w ankiecie â kliknij, aby otworzyÄ dane klienta</div>`,
-          `startCPEdit('${c.id}')`)}
-
-        ${railCard('Ostatnia notatka',
-          (notes.length?notes.slice(0,1).map(n=>`<div class="cip-note" style="margin-bottom:8px;"><div>${escHtml(n.text)}</div><div class="cip-note-date">${escHtml(n.date||'')}</div></div>`).join('')
-            :'<div style="font-size:12px;color:var(--muted);">Brak notatek</div>')+
-          '<div class="cp-ov-rail-hint">PeĹna historia notatek w Notatkach</div>',
-          `setCPTab('notes')`)}
-
-        ${railCard('Ograniczenia / kontuzje',
-          (injuries?`<div style="font-size:12px;line-height:1.5;color:var(--text);">${escHtml(injuries)}</div>`
-            :'<div style="font-size:12px;color:var(--muted);">Brak wpisanych ograniczeĹ</div>')+
-          '<div class="cp-ov-rail-hint">Kontuzje z ankiety â kliknij, aby otworzyÄ dane i ankietÄ</div>',
-          `startCPEdit('${c.id}')`)}
-
-        ${photosOn?railCard('ZdjÄcia postÄpu',
-          `<div style="font-size:12px;color:var(--muted);">${photos.length?photos.length+' zapisanych zdjÄÄ':'Brak zdjÄÄ'}</div><div class="cp-ov-rail-hint">Dodawanie i porĂłwnywanie w jednym widoku</div>`,
-          `setCPTab('photos')`):''}
-
         ${railCard('Profil',
           `<div class="cp-ov-profile-rows">
-            <div><span>ImiÄ i nazwisko</span><b title="${escHtml(c.name||'')}">${escHtml(c.name||'â')}</b></div>
-            <div><span>Email</span><b title="${escHtml(c.email||'')}">${escHtml(c.email||'â')}</b></div>
-            <div><span>Telefon</span><b>${escHtml(c.phone||'â')}</b></div>
-            <div><span>Wiek / wzrost</span><b>${c.age?c.age+' lat':'â'}${c.height?' Âˇ '+c.height+' cm':''}</b></div>
+            <div><span>Imię i nazwisko</span><b title="${escHtml(c.name||'')}">${escHtml(c.name||'—')}</b></div>
+            <div><span>Email</span><b class="cp-ov-email" title="${escHtml(c.email||'')}">${escHtml(c.email||'—')}</b></div>
+            ${c.phone?`<div><span>Telefon</span><b>${escHtml(c.phone)}</b></div>`:''}
             <div><span>Status</span><b style="color:${c.status==='active'?'var(--teal)':c.status==='inactive'?'var(--orange)':'var(--muted)'};">${c.status==='active'?'Aktywny':c.status==='inactive'?'Nieaktywny':'Zarchiwizowany'}</b></div>
-          </div>
-          <div class="cp-ov-rail-hint">Kliknij: imiÄ i nazwisko, telefon, waga, sportâŚ</div>`,
+            ${(()=>{const cap=typeof cpOverviewPackageCaption==='function'?cpOverviewPackageCaption(c):'';if(!cap)return'';const n=cap.replace(/^Pakiet:\s*/,'');return `<div data-cp-pkg="1"><span>Pakiet</span><b>${escHtml(n)}</b></div>`;})()}
+          </div>`,
           `startCPEdit('${c.id}')`)}
+
+        ${injuries?railCard('Ograniczenia / kontuzje',
+          `<div style="font-size:13px;line-height:1.5;color:var(--text);">${escHtml(injuries)}</div>
+           <div class="cp-ov-rail-hint">Kontuzje z ankiety — kliknij, aby otworzyć dane</div>`,
+          `startCPEdit('${c.id}')`):''}
+
+        ${railCard('Notatka',
+          (notes.length?notes.slice(0,1).map(n=>`<div class="cip-note" style="margin-bottom:8px;"><div>${escHtml(n.text)}</div><div class="cip-note-date">${escHtml(typeof cpOverviewDateLabel==='function'?cpOverviewDateLabel(n.date||n.createdAt):n.date||'')}</div></div>`).join(''):'<div class="cp-ov-stat-sub" style="margin-bottom:8px;">Widoczna tylko dla Ciebie</div>')+
+          `<div id="note-input-${c.id}" class="cp-ov-note-box">
+            <textarea id="note-text-${c.id}" class="cp-ov-note-input" rows="2" placeholder="Dodaj notatkę…"></textarea>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();saveClientNote('${c.id}')">Zapisz</button>
+          </div>`)}
+
+        ${hasPhotos?railCard('Zdjęcia postępu',
+          `<div class="cp-ov-photos">${photos.map(p=>{
+            const src=poseSrc(p,'front')||poseSrc(p,'side')||poseSrc(p,'back')||'';
+            return `<div class="cp-ov-photo">${src?`<img src="${escHtml(src)}" alt="">`:`<span>📷</span>`}<div class="cp-ov-photo-d">${escHtml(typeof cpOverviewDateLabel==='function'?cpOverviewDateLabel(p.date):p.date||'')}</div></div>`;
+          }).join('')}</div>
+          <div class="cp-ov-rail-hint">Wszystkie zdjęcia w zakładce Zdjęcia</div>`,
+          `setCPTab('photos')`):''}
+
+        ${cpOverviewMissingHTML(c)}
       </aside>
     </div>`;
 }
@@ -2881,37 +3711,37 @@ function renderCPPlan(c){
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;gap:10px;flex-wrap:wrap;">
       <div class="cp-section-title" style="margin:0;">PLANY TRENINGOWE (${plans.length})</div>
       ${showCreate||showContinueFitebo?`<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;align-items:center;">
-        ${showCreate?`<button class="btn btn-ghost btn-sm" onclick="cpAssignTemplate('${c.id}')">đ Przypisz szablon</button>
-        <button class="btn btn-ghost btn-sm" onclick="openBuilderForClient('${c.id}')">â StwĂłrz wĹasny plan</button>`:''}
+        ${showCreate?`<button class="btn btn-ghost btn-sm" onclick="cpAssignTemplate('${c.id}')">📋 Przypisz szablon</button>
+        <button class="btn btn-ghost btn-sm" onclick="openBuilderForClient('${c.id}')">✏ Stwórz własny plan</button>`:''}
         ${showContinueFitebo?`<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
-          <button class="btn btn-ghost btn-sm" onclick="cpContinueFiteboPlan('${c.id}')">${hasFiteboCont?'đ Przebuduj kontynuacjÄ Fitebo':'đ Kontynuuj plan z Fitebo'}</button>
+          <button class="btn btn-ghost btn-sm" onclick="cpContinueFiteboPlan('${c.id}')">${hasFiteboCont?'🔁 Przebuduj kontynuację Fitebo':'🔁 Kontynuuj plan z Fitebo'}</button>
           <div style="display:flex;gap:3px;flex-wrap:wrap;justify-content:flex-end;align-items:center;">
             <span style="font-size:10px;color:var(--muted);">Start od tyg.</span>
             ${[1,2,3,4,5,6,7,8].map(w=>`<button type="button" class="btn btn-ghost btn-sm" onclick="cpSetFiteboStartWeek('${c.id}',${w})" style="padding:2px 7px;border-color:${startW===w?'var(--accent)':'var(--border)'};color:${startW===w?'var(--accent)':'var(--muted)'};">${w}</button>`).join('')}
           </div>
-          <div style="font-size:10px;color:var(--muted);max-width:280px;text-align:right;line-height:1.35;">Tyg. 1â2: 12 powt. (Fitebo). Tyg. 3+: 8 powt. â teraz jesteĹcie na 3.</div>
+          <div style="font-size:10px;color:var(--muted);max-width:280px;text-align:right;line-height:1.35;">Tyg. 1–2: 12 powt. (Fitebo). Tyg. 3+: 8 powt. — teraz jesteście na 3.</div>
         </div>`:''}
-        ${showCreate?`<button class="btn btn-primary btn-sm" onclick="goTo('aiplangen');document.getElementById('apl-client').value='${c.id}';aplFillFromClient();closeClientProfile()">âĄ Generuj plan AI</button>`:''}
+        ${showCreate?`<button class="btn btn-primary btn-sm" onclick="goTo('aiplangen');document.getElementById('apl-client').value='${c.id}';aplFillFromClient();closeClientProfile()">⚡ Generuj plan AI</button>`:''}
       </div>`:''}
     </div>
-    ${!plans.length?`<div style="font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:12px;padding:10px 12px;background:var(--s3);border:1px solid var(--border);border-radius:8px;">Wybierz szablon, kreator, Fitebo albo generator AI â potem plan pojawi siÄ tutaj.</div>`:''}
+    ${!plans.length?`<div style="font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:12px;padding:10px 12px;background:var(--s3);border:1px solid var(--border);border-radius:8px;">Wybierz szablon, kreator, Fitebo albo generator AI — potem plan pojawi się tutaj.</div>`:''}
     ${!plans.length
       ?`<div style="text-align:center;padding:40px;color:var(--muted);">
-          <div style="font-size:32px;margin-bottom:10px;opacity:0.3;">đ</div>
-          <div>Brak planĂłw treningowych</div>
-          <div style="font-size:12px;max-width:380px;margin:10px auto 0;line-height:1.5;">Import z Fitebo zapisuje Twoje Äwiczenia. <strong>Kontynuuj plan z Fitebo</strong> kopiuje je 1:1 i rozpisuje 8 tyg. hipertrofii: tyg. 1â2 to 12 powt. (juĹź zrobione), od tyg. 3 schodzicie na 8.</div>
+          <div style="font-size:32px;margin-bottom:10px;opacity:0.3;">📋</div>
+          <div>Brak planów treningowych</div>
+          <div style="font-size:12px;max-width:380px;margin:10px auto 0;line-height:1.5;">Import z Fitebo zapisuje Twoje ćwiczenia. <strong>Kontynuuj plan z Fitebo</strong> kopiuje je 1:1 i rozpisuje 8 tyg. hipertrofii: tyg. 1–2 to 12 powt. (już zrobione), od tyg. 3 schodzicie na 8.</div>
         </div>`
       :plans.map((p,pi)=>`
         <div style="background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;animation:fadeUp 0.15s ease ${pi*0.05}s both;">
           <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;">
             <div>
               <div style="font-size:17px;font-weight:700;">${p.name}</div>
-              <div style="font-size:13px;color:var(--muted);margin-top:3px;">${p.method||'â'} Âˇ ${p.duration||'?'} tyg. Âˇ ${(p.days||[]).length} dni</div>
+              <div style="font-size:13px;color:var(--muted);margin-top:3px;">${p.method||'—'} · ${p.duration||'?'} tyg. · ${(p.days||[]).length} dni</div>
             </div>
             <div style="display:flex;gap:5px;align-items:center;">
               ${p.id===activeId?`<span class="pill pill-teal" style="font-size:9px;">AKTYWNY</span>`:''}
-              <span class="pill pill-green" style="font-size:11px;">${p.method||'â'}</span>
-              <button onclick="delPlanFromProfile('${p.id}','${c.id}')" style="background:none;border:none;color:var(--muted2);font-size:16px;cursor:pointer;line-height:1;" title="UsuĹ plan">Ă</button>
+              <span class="pill pill-green" style="font-size:11px;">${p.method||'—'}</span>
+              <button onclick="delPlanFromProfile('${p.id}','${c.id}')" style="background:none;border:none;color:var(--muted2);font-size:16px;cursor:pointer;line-height:1;" title="Usuń plan">×</button>
             </div>
           </div>
           ${(p.weekKeys||[]).length>1?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;">${(p.weekKeys||[]).map((wk,wi)=>{
@@ -2927,13 +3757,13 @@ function renderCPPlan(c){
               return `
               <div class="cp-plan-day-tile${d.rest?' is-rest':''}">
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:${d.rest||!exs.length?0:5}px;">
-                  <span style="font-size:12px;font-family:'DM Mono',monospace;color:${d.rest?'var(--muted)':'var(--accent)'};font-weight:700;min-width:32px;">${d.day||d.dayName||'â'}</span>
+                  <span style="font-size:12px;font-family:'DM Mono',monospace;color:${d.rest?'var(--muted)':'var(--accent)'};font-weight:700;min-width:32px;">${d.day||d.dayName||'—'}</span>
                   <span style="font-size:14px;font-weight:600;color:${d.rest?'var(--muted)':'var(--text)'};">${d.rest?'Odpoczynek':(d.muscles||d.name||d.focus||'Trening')}</span>
                 </div>
                 ${!d.rest&&exs.length?`<div class="cp-plan-day-ex">
                   ${exs.map(e=>{
                     const v=typeof cpExWeekView==='function'?cpExWeekView(e,wk):{name:(e&&e.name)||e,sets:e&&e.sets,reps:e.reps,kg:e&&e.kg};
-                    const meta=[v.sets&&v.reps?(v.sets+'Ă'+v.reps):'',v.kg?v.kg+' kg':''].filter(Boolean).join(' Âˇ ');
+                    const meta=[v.sets&&v.reps?(v.sets+'×'+v.reps):'',v.kg?v.kg+' kg':''].filter(Boolean).join(' · ');
                     return `<div class="cp-plan-day-ex-row"><span>${typeof escHtml==='function'?escHtml(v.name||''):v.name}</span><span style="color:var(--muted);font-family:'DM Mono',monospace;white-space:nowrap;">${typeof escHtml==='function'?escHtml(meta):meta}</span></div>`;
                   }).join('')}
                 </div>`:''}
@@ -2941,15 +3771,15 @@ function renderCPPlan(c){
             }).join('')}
           </div>
           <div style="margin-top:10px;display:flex;gap:6px;">
-            <button type="button" class="btn btn-ghost btn-sm" style="flex:1;" onclick="liveSelectPlanForClient('${p.id}','${c.id}')">âś Trenuj teraz</button>
-            <button type="button" class="btn btn-ghost btn-sm" style="flex:1;" onclick="editPlanFromProfile('${p.id}','${c.id}')">â Edytuj</button>
-            <button type="button" class="btn btn-ghost btn-sm" style="flex:1;" onclick="exportSavedPlanPDF('${p.id}')">đ PDF</button>
+            <button type="button" class="btn btn-ghost btn-sm" style="flex:1;" onclick="liveSelectPlanForClient('${p.id}','${c.id}')">▶ Trenuj teraz</button>
+            <button type="button" class="btn btn-ghost btn-sm" style="flex:1;" onclick="editPlanFromProfile('${p.id}','${c.id}')">✏ Edytuj</button>
+            <button type="button" class="btn btn-ghost btn-sm" style="flex:1;" onclick="exportSavedPlanPDF('${p.id}')">📄 PDF</button>
           </div>
         </div>`).join('')}`;
 }
 
 async function delPlanFromProfile(planId,clientId){
-  if(!confirm('UsunÄÄ plan?'))return;
+  if(!confirm('Usunąć plan?'))return;
   window.PL=PL.filter(p=>p.id!==planId);
   const list=window.SE||[];
   for(let i=list.length-1;i>=0;i--){
@@ -2965,16 +3795,16 @@ async function delPlanFromProfile(planId,clientId){
   if(window._db){try{await window._del(window._doc(window._db,'plans',planId));}catch(e){console.warn('Firebase:',e);}}
   const c=CL.find(x=>x.id===clientId);
   if(c)renderCPPlan(c);
-  notify('â Plan usuniÄty');
+  notify('✓ Plan usunięty');
 }
 
 function cpAssignTemplate(clientId){
   const c=CL.find(x=>x.id===clientId);if(!c)return;
-  // otwĂłrz szablony i ustaw klienta
+  // otwórz szablony i ustaw klienta
   closeClientProfile();
   goTo('templates');
   setTimeout(()=>{
-    // pre-select klienta w panelu szablonĂłw
+    // pre-select klienta w panelu szablonów
     const sel=document.getElementById('tpl-assign-client');
     if(sel)sel.value=clientId;
     notify('Wybierz szablon i kliknij "Przypisz plan klientowi" dla '+c.name);
@@ -3021,9 +3851,9 @@ function renderCPMetrics(c){
         }).join('')}
       </div>
       <div class="cp-metrics-actions">
-        <button type="button" class="btn btn-primary btn-sm" onclick="openMetricEntryForClient('${c.id}','${activeGid}')">+ Nowy pomiar</button>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="typeof openClientBaselineModal==='function'&&openClientBaselineModal('${c.id}')">Baseline</button>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('progress')">đ PostÄpy</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="openMetricEntryForClient('${c.id}','${activeGid}')">+ Dodaj pomiar</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="typeof openClientBaselineModal==='function'&&openClientBaselineModal('${c.id}')">Pomiary początkowe</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('progress')">📈 Progress</button>
       </div>
     </div>
 
@@ -3031,12 +3861,12 @@ function renderCPMetrics(c){
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
         <span style="font-size:20px;">${activeGroup.icon}</span>
         <div>
-          <div style="font-size:13px;font-weight:700;">${escHtml(activeGroup.name)} â ostatni</div>
-          <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${last?escHtml(last.date):'brak wpisĂłw'}</div>
+          <div style="font-size:13px;font-weight:700;">${escHtml(activeGroup.name)} — ostatni</div>
+          <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${last?escHtml(last.date):'brak wpisów'}</div>
         </div>
         <div style="margin-left:auto;display:flex;gap:6px;">
-          ${last?`<button type="button" class="btn btn-ghost btn-sm" onclick="editMetricEntry('${last.id}')">â Edytuj</button>`:''}
-          <button type="button" class="btn btn-primary btn-sm" onclick="openMetricEntryForClient('${c.id}','${activeGroup.id}')">+</button>
+          ${last?`<button type="button" class="btn btn-ghost btn-sm" onclick="editMetricEntry('${last.id}')">✎ Edytuj</button>`:''}
+
         </div>
       </div>
       ${last?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:6px;">
@@ -3047,40 +3877,40 @@ function renderCPMetrics(c){
           const color=diff==null?'var(--muted)':parseFloat(diff)<0?(goodDown?'var(--teal)':'var(--red)'):parseFloat(diff)>0?(goodDown?'var(--red)':'var(--teal)'):'var(--muted)';
           return `<div style="background:var(--s3);border-radius:8px;padding:8px;text-align:center;">
             <div style="font-size:10px;color:var(--muted);margin-bottom:3px;">${escHtml(m.name)}</div>
-            <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--text);">${cv!=null?cv:'â'}${m.unit?'<span style="font-size:10px;color:var(--muted);"> '+escHtml(m.unit)+'</span>':''}</div>
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--text);">${cv!=null?cv:'—'}${m.unit?'<span style="font-size:10px;color:var(--muted);"> '+escHtml(m.unit)+'</span>':''}</div>
             ${diff!=null?`<div style="font-size:10px;color:${color};">${parseFloat(diff)>0?'+':''}${diff}</div>`:''}
           </div>`;
         }).join('')}
-      </div>`:`<div style="font-size:12px;color:var(--muted);padding:8px 0;">${activeGroup.id==='mg2'?'Brak obwodĂłw centymetrem â dodaj szyjÄ, klatkÄ, taliÄ, biodra, ramiona, uda i Ĺydki.':'Brak pomiarĂłw w tej grupie â dodaj pierwszy.'}</div>`}
+      </div>`:`<div style="font-size:12px;color:var(--muted);padding:8px 0;">${activeGroup.id==='mg2'?'Brak obwodów centymetrem — dodaj szyję, klatkę, talię, biodra, ramiona, uda i łydki.':'Brak pomiarów w tej grupie — dodaj pierwszy.'}</div>`}
     </div>`:''}
 
     <div style="margin-top:8px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-        <div class="cp-section-title" style="margin:0;">HISTORIA â ${activeGroup?escHtml(activeGroup.name):''}</div>
-        <span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${geAll.length} wpisĂłw</span>
+        <div class="cp-section-title" style="margin:0;">HISTORIA — ${activeGroup?escHtml(activeGroup.name):''}</div>
+        <span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${geAll.length} wpisów</span>
       </div>
       ${!geAll.length
-        ?`<div style="text-align:center;padding:24px;color:var(--muted);font-size:12px;">Brak historii. <button type="button" class="btn btn-primary btn-sm" style="margin-top:10px;" onclick="openMetricEntryForClient('${c.id}','${activeGid}')">+ Dodaj pomiar</button></div>`
+        ?`<div style="text-align:center;padding:24px;color:var(--muted);font-size:12px;">Brak historii. Dodaj pierwszy pomiar przyciskiem u góry.</div>`
         :`<div style="display:flex;flex-direction:column;gap:6px;">
           ${geAll.map(e=>{
-            const vals=(activeGroup.metrics||[]).map(m=>e.values[m.id]!=null?`<span style="font-size:11px;"><span style="color:var(--muted);">${escHtml(m.name)}:</span> <strong>${e.values[m.id]}</strong>${m.unit?' '+escHtml(m.unit):''}</span>`:'').filter(Boolean).join(' Âˇ ');
+            const vals=(activeGroup.metrics||[]).map(m=>e.values[m.id]!=null?`<span style="font-size:11px;"><span style="color:var(--muted);">${escHtml(m.name)}:</span> <strong>${e.values[m.id]}</strong>${m.unit?' '+escHtml(m.unit):''}</span>`:'').filter(Boolean).join(' · ');
             return `<div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;display:flex;align-items:flex-start;gap:10px;">
               <div style="flex:1;min-width:0;">
-                <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);margin-bottom:4px;">${escHtml(e.date)}${e.source==='garmin'?' Âˇ â Garmin':''}</div>
-                <div style="font-size:12px;line-height:1.5;">${vals||'â'}</div>
+                <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);margin-bottom:4px;">${escHtml(e.date)}${e.source==='garmin'?' · ⌚ Garmin':''}</div>
+                <div style="font-size:12px;line-height:1.5;">${vals||'—'}</div>
                 ${e.notes?`<div style="font-size:10px;color:var(--muted);margin-top:4px;">${escHtml(e.notes)}</div>`:''}
               </div>
               <div style="display:flex;gap:4px;flex-shrink:0;">
-                <button type="button" class="btn btn-ghost btn-sm" onclick="editMetricEntry('${e.id}')" title="Edytuj">â</button>
-                <button type="button" class="btn btn-ghost btn-sm" onclick="if(confirm('UsunÄÄ ten pomiar?'))delMetricEntry('${e.id}')" title="UsuĹ" style="color:var(--red);">Ă</button>
+                <button type="button" class="btn btn-ghost btn-sm" onclick="editMetricEntry('${e.id}')" title="Edytuj">✎</button>
+                <button type="button" class="btn btn-ghost btn-sm" onclick="if(confirm('Usunąć ten pomiar?'))delMetricEntry('${e.id}')" title="Usuń" style="color:var(--red);">×</button>
               </div>
             </div>`;
           }).join('')}
         </div>`}
     </div>
     <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:16px;line-height:1.5;">
-      Rekordy siĹowe i tonaĹź â <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('progress')">PostÄpy</button>
-      Âˇ PeĹne wykresy: <button type="button" class="btn btn-ghost btn-sm" onclick="goTo('metrics');setTimeout(()=>{const s=document.getElementById('metric-client-sel');const q=document.getElementById('metric-client-sel-search');if(s)s.value='${c.id}';if(q)q.value='${safeName}';if(typeof metricClientSetField==='function')metricClientSetField('${c.id}','${safeName}');if(typeof setMetricGroup==='function')setMetricGroup('${activeGid}');},200);closeClientProfile()">Pomiary â</button>
+      Rekordy siłowe i tonaż → <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('progress')">Progress</button>
+      · Pełne wykresy: <button type="button" class="btn btn-ghost btn-sm" onclick="goTo('metrics');setTimeout(()=>{const s=document.getElementById('metric-client-sel');const q=document.getElementById('metric-client-sel-search');if(s)s.value='${c.id}';if(q)q.value='${safeName}';if(typeof metricClientSetField==='function')metricClientSetField('${c.id}','${safeName}');if(typeof setMetricGroup==='function')setMetricGroup('${activeGid}');},200);closeClientProfile()">Pomiary →</button>
     </div>`;
 }
 function setCPMetricGroup(clientId,groupId){
@@ -3091,7 +3921,7 @@ function setCPMetricGroup(clientId,groupId){
 window.setCPMetricGroup=setCPMetricGroup;
 window.renderCPMetrics=renderCPMetrics;
 
-/** Tygodniowy tonaĹź / sesje / serie â wspĂłlne dla Progress (trener) i portalu. */
+/** Tygodniowy tonaż / sesje / serie — wspólne dla Progress (trener) i portalu. */
 function clientWeeklyVolumeStats(clientId,weeks){
   if(typeof capWeeklyVolume==='function')return capWeeklyVolume(clientId,weeks||8);
   const logged=typeof completedWorkouts==='function'?completedWorkouts(clientId):(window.SE||[]).filter(s=>s.clientId===clientId&&(s.source==='live'||s.source==='client'||(s.exercises||[]).length));
@@ -3122,7 +3952,7 @@ function cpMetricPoints(entries,key){
 
 function cpLineChartSVG(points,color,opts){
   const pts=(points||[]).filter(p=>p&&p.v>0);
-  if(pts.length<2)return`<div style="font-size:11px;color:var(--muted);padding:24px 8px;text-align:center;">Potrzeba min. 2 pomiarĂłw do wykresu</div>`;
+  if(pts.length<2)return`<div style="font-size:11px;color:var(--muted);padding:24px 8px;text-align:center;">Potrzeba min. 2 pomiarów do wykresu</div>`;
   const W=(opts&&opts.w)||480;const H=(opts&&opts.h)||130;
   const pad={l:42,r:14,t:14,b:26};
   const iW=W-pad.l-pad.r;const iH=H-pad.t-pad.b;
@@ -3186,7 +4016,7 @@ function cpNormalizedTrendChart(series,opts){
 
 function cpMultiLineChartSVG(series,opts){
   const valid=(series||[]).filter(s=>(s.points||[]).filter(p=>p.v>0).length>=2);
-  if(!valid.length)return`<div style="font-size:11px;color:var(--muted);padding:24px 8px;text-align:center;">Potrzeba min. 2 pomiarĂłw do wykresu</div>`;
+  if(!valid.length)return`<div style="font-size:11px;color:var(--muted);padding:24px 8px;text-align:center;">Potrzeba min. 2 pomiarów do wykresu</div>`;
   const W=(opts&&opts.w)||480;const H=(opts&&opts.h)||130;
   const pad={l:42,r:14,t:14,b:26};
   const iW=W-pad.l-pad.r;const iH=H-pad.t-pad.b;
@@ -3234,7 +4064,7 @@ function cpWeeklyDualChart(weeks){
   });
   return`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" class="cp-chart-svg" style="width:100%;display:block;">${bars}</svg>
   <div style="display:flex;gap:14px;margin-top:6px;">
-    <span style="display:inline-flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);"><span style="width:12px;height:8px;border-radius:2px;background:var(--accent);"></span>TonaĹź kg</span>
+    <span style="display:inline-flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);"><span style="width:12px;height:8px;border-radius:2px;background:var(--accent);"></span>Tonaż kg</span>
     <span style="display:inline-flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);"><span style="width:12px;height:8px;border-radius:2px;background:var(--blue);"></span>Sesje</span>
   </div>`;
 }
@@ -3268,11 +4098,11 @@ function cpPrBarChart(prs){
     const est=typeof roundToPlate==='function'?roundToPlate(p.epley):Math.round(p.epley||0);
     return{label:p.name,v:est||0,col:'var(--accent)',unit:'kg 1RM'};
   }).filter(r=>r.v>0);
-  if(!rows.length)return`<div style="font-size:12px;color:var(--muted);padding:8px 0;">Brak rekordĂłw â pojawiÄ siÄ po zapisanych seriach.</div>`;
+  if(!rows.length)return`<div style="font-size:12px;color:var(--muted);padding:8px 0;">Brak rekordów — pojawią się po zapisanych seriach.</div>`;
   return cpHorizontalBars(rows);
 }
 
-/** Adherencja treningowa: ukoĹczone / zaplanowane w oknie dni. */
+/** Adherencja treningowa: ukończone / zaplanowane w oknie dni. */
 function cpClientAdherence(clientId,days){
   if(typeof clientAdherenceStats==='function')return clientAdherenceStats(clientId,days);
   const n=days==null?30:days;
@@ -3299,7 +4129,7 @@ function cpCheckinTrendPoints(clientId){
 }
 window.cpCheckinTrendPoints=cpCheckinTrendPoints;
 
-/** Tygodniowa adherencja nawykĂłw (% odhaczeĹ). */
+/** Tygodniowa adherencja nawyków (% odhaczeń). */
 function cpHabitAdherenceWeekly(clientId,weeks){
   const n=weeks||8;
   const habits=(window.TASKS||[]).filter(t=>t&&t.clientId===clientId&&typeof isHabit==='function'&&isHabit(t));
@@ -3354,9 +4184,10 @@ function setCPProgressPanel(panel){
 }
 window.setCPProgressPanel=setCPProgressPanel;
 
-/** Etap 8: cienki caller 6D pack â 7A â 7B â 7C. Bez nowej prawdy; ĹşrĂłdĹo = SE.
- *  Follow-up planId: brief uĹźywa aktywnego planu (opts.planId albo latestClientPlan).
- *  DomyĹlna 6C bez planId zostaje karierÄ â panel 6D nie jest nadpisywany. */
+/** Etap 8: cienki caller 6D pack → 7A → 7B → 7C. Bez nowej prawdy; źródło = SE.
+ *  Follow-up planId: brief używa aktywnego planu (opts.planId albo latestClientPlan).
+ *  Domyślna 6C bez planId zostaje karierą — panel 6D nie jest nadpisywany.
+ *  9A.1: caller przekazuje jawny target.repMax z planu; nie zgaduje AMRAP. */
 function composeClientNextSessionBrief(clientId,opts){
   opts=opts||{};
   const cid=String(clientId||'');
@@ -3372,14 +4203,11 @@ function composeClientNextSessionBrief(clientId,opts){
   if(recOpts.planId)window._cpExerciseProgress=prevStore;
   const aggregate=typeof aggregateClientProgress==='function'
     ?aggregateClientProgress(pack)
-    :{trend:'ZA MAĹO DANYCH',confidence:'low'};
+    :{trend:'ZA MAŁO DANYCH',confidence:'low'};
   const items=pack&&Array.isArray(pack.items)?pack.items:[];
   const recs=[];
   if(typeof recommendExerciseProgress==='function'){
-    items.forEach(it=>{
-      const target=typeof opts.targetForExercise==='function'?opts.targetForExercise(it):null;
-      recs.push(recommendExerciseProgress(it,target?{target:target,aggregate:aggregate}:undefined));
-    });
+    items.forEach(it=>{recs.push(recommendExerciseProgress(it,progressRecOptsForItem(it,recOpts)));});
   }
   const brief=typeof composeNextSessionProgress==='function'
     ?composeNextSessionProgress({clientId:cid,recs:recs,aggregate:aggregate})
@@ -3387,6 +4215,57 @@ function composeClientNextSessionBrief(clientId,opts){
   return{clientId:cid,pack:pack,aggregate:aggregate,recs:recs,brief:brief};
 }
 window.composeClientNextSessionBrief=composeClientNextSessionBrief;
+
+function progressRepMaxFromPlanReps(repsRaw,parsed){
+  if(parsed&&(parsed.amrap||(typeof isAmrapFlag==='function'&&isAmrapFlag(parsed.amrap))))return null;
+  const s=String(repsRaw==null?'':repsRaw).trim();
+  if(!s)return null;
+  const lower=s.toLowerCase();
+  if(/amrap|\bmax\b|\+|lub|upadek|failure|do\s*odmowy|∞/.test(lower))return null;
+  if(typeof parseRepRange!=='function')return null;
+  const range=parseRepRange(s);
+  if(!range||!(range.hi>0)||!(range.lo>0))return null;
+  return range.hi;
+}
+function progressPlanExMatchesItem(parsed,item){
+  const eid=String(item&&item.exerciseId||'').trim();
+  const pid=String(parsed&&parsed.exerciseId||'').trim();
+  if(eid&&pid)return eid===pid;
+  const ik=typeof exerciseNameKey==='function'?exerciseNameKey(item&&item.name):String(item&&item.name||'').toLowerCase();
+  const pk=typeof exerciseNameKey==='function'?exerciseNameKey(parsed&&parsed.name):String(parsed&&parsed.name||'').toLowerCase();
+  return !!(ik&&pk&&ik===pk);
+}
+function progressPlanForBrief(recOpts){
+  const id=recOpts&&recOpts.planId;
+  if(!id)return null;
+  const list=(typeof window!=='undefined'&&window.PL)||[];
+  return list.find(p=>p&&p.id===id)||null;
+}
+function progressTargetRepMaxForItem(item,recOpts){
+  const plan=progressPlanForBrief(recOpts);
+  if(!plan||!item)return null;
+  const days=Array.isArray(plan.days)?plan.days:[];
+  let use=days;
+  if(recOpts&&recOpts.dayIdx!=null&&recOpts.dayIdx!==''){
+    const d=days[recOpts.dayIdx];
+    use=d?[d]:[];
+  }
+  const his=[];
+  use.forEach(day=>{
+    ((day&&day.exercises)||[]).forEach(raw=>{
+      const parsed=typeof parsePlanExercise==='function'?parsePlanExercise(raw):raw;
+      if(!parsed||!progressPlanExMatchesItem(parsed,item))return;
+      const hi=progressRepMaxFromPlanReps(parsed.reps,parsed);
+      if(hi!=null&&his.indexOf(hi)<0)his.push(hi);
+    });
+  });
+  return his.length===1?his[0]:null;
+}
+function progressRecOptsForItem(item,recOpts){
+  const hi=progressTargetRepMaxForItem(item,recOpts);
+  if(hi==null)return undefined;
+  return{target:{repMax:hi}};
+}
 
 function cpNextSessionLastLines(pack){
   const esc=typeof escHtml==='function'?escHtml:s=>String(s==null?'':s);
@@ -3397,11 +4276,11 @@ function cpNextSessionLastLines(pack){
     const last=snaps.length?snaps[snaps.length-1]:null;
     const top=last&&last.topSet;
     if(!top||(top.kg==null&&top.reps==null))return;
-    const kg=top.kg!=null?String(top.kg):'â';
-    const reps=top.reps!=null?String(top.reps):'â';
+    const kg=top.kg!=null?String(top.kg):'—';
+    const reps=top.reps!=null?String(top.reps):'—';
     const rir=top.rir!=null?(' @'+top.rir):'';
-    const date=last.date?(' Âˇ '+last.date):'';
-    lines.push(`<div class="cp-ex-prog-row" data-ns-kind="last"><span class="cp-ex-prog-name">${esc(it.name||'Äwiczenie')}</span><span>${esc(kg+' Ă '+reps+rir+date)}</span></div>`);
+    const date=last.date?(' · '+last.date):'';
+    lines.push(`<div class="cp-ex-prog-row" data-ns-kind="last"><span class="cp-ex-prog-name">${esc(it.name||'Ćwiczenie')}</span><span>${esc(kg+' × '+reps+rir+date)}</span></div>`);
   });
   return lines;
 }
@@ -3410,15 +4289,15 @@ function cpNextSessionBriefHtml(clientId){
   const built=typeof composeClientNextSessionBrief==='function'?composeClientNextSessionBrief(clientId):null;
   const brief=built&&built.brief;
   const esc=typeof escHtml==='function'?escHtml:s=>String(s==null?'':s);
-  const posture=brief&&brief.posture?String(brief.posture):'ZA MAĹO DANYCH';
-  const tone=posture==='ROZWIJAJ'?'good':(posture==='HAMUJ'?'bad':(posture==='ZA MAĹO DANYCH'?'muted':'flat'));
+  const posture=brief&&brief.posture?String(brief.posture):'ZA MAŁO DANYCH';
+  const tone=posture==='ROZWIJAJ'?'good':(posture==='HAMUJ'?'bad':(posture==='ZA MAŁO DANYCH'?'muted':'flat'));
   const confFn=typeof progressClassConfidenceLabel==='function'?progressClassConfidenceLabel:c=>String(c||'');
   const conf=brief?confFn(brief.confidence):'';
-  const reasons=brief&&Array.isArray(brief.reasons)?brief.reasons.filter(Boolean):[];
+  const reasons=brief&&Array.isArray(brief.reasons)?brief.reasons.filter(Boolean).map(r=>String(r).includes('7B')?'Zapisz serie z kolejnych treningów tego planu, aby otrzymać wskazówki progresji.':r):[];
   const rowHtml=(row,kind)=>{
     if(!row)return '';
     return `<div class="cp-ex-prog-row" data-ns-action="${esc(row.action||'')}" data-ns-kind="${esc(kind)}">
-      <span class="cp-ex-prog-name">${esc(row.name||'Äwiczenie')}</span>
+      <span class="cp-ex-prog-name">${esc(row.name||'Ćwiczenie')}</span>
       <span class="ex-prog-label is-flat" style="font-size:16px;">${esc(row.action||'')}</span>
     </div>`;
   };
@@ -3432,19 +4311,19 @@ function cpNextSessionBriefHtml(clientId){
   return `<div data-cp-panel="train" class="stat-card cp-ns-brief-panel" data-ns-posture="${esc(posture)}" style="margin-bottom:14px;">
     <div class="stat-card-hdr">
       <div>
-        <div class="stat-card-title">NastÄpna sesja</div>
-        <div class="stat-card-sub">Co ostatnio Âˇ co teraz</div>
+        <div class="stat-card-title">Następna sesja</div>
+        <div class="stat-card-sub">Co ostatnio · co teraz</div>
       </div>
     </div>
     <div class="ex-prog-box" style="margin-bottom:10px;">
       <div class="ex-prog-kicker">Co teraz</div>
       <div class="ex-prog-label is-${tone}">${esc(posture)}</div>
-      <div class="ex-prog-meta">${conf?`<div>PewnoĹÄ: ${esc(conf)}</div>`:''}${trend?`<div>Trend: ${esc(trend)}</div>`:''}</div>
+      <div class="ex-prog-meta">${conf?`<div>Pewność: ${esc(conf)}</div>`:''}${trend?`<div>Trend: ${esc(trend)}</div>`:''}</div>
       ${reasons.length?`<ul class="ex-prog-reasons">${reasons.map(r=>`<li>${esc(r)}</li>`).join('')}</ul>`:''}
     </div>
-    ${nowRows||'<div class="ex-prog-empty">Brak rekomendacji ÄwiczeĹ.</div>'}
+    ${nowRows||'<div class="ex-prog-empty">Brak rekomendacji ćwiczeń.</div>'}
     <div class="ex-prog-kicker" style="margin-top:12px;">Co ostatnio</div>
-    ${lastLines.length?lastLines.join(''):'<div class="ex-prog-empty">Brak zapisanych serii kg Ă powt.</div>'}
+    ${lastLines.length?lastLines.join(''):'<div class="ex-prog-empty">Brak zapisanych serii kg × powt.</div>'}
   </div>`;
 }
 window.cpNextSessionBriefHtml=cpNextSessionBriefHtml;
@@ -3479,7 +4358,7 @@ function renderCPProgress(c){
   };
   const metricTile=(label,val,unit,d,goodDown)=>`<div style="background:var(--s3);border-radius:8px;padding:10px;text-align:center;">
     <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">${escHtml(label)}</div>
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;line-height:1;">${val!=null?escHtml(String(val)):'â'}${unit?`<span style="font-size:11px;color:var(--muted);"> ${escHtml(unit)}</span>`:''}</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;line-height:1;">${val!=null?escHtml(String(val)):'—'}${unit?`<span style="font-size:11px;color:var(--muted);"> ${escHtml(unit)}</span>`:''}</div>
     ${deltaHtml(d,goodDown)}
   </div>`;
 
@@ -3495,7 +4374,7 @@ function renderCPProgress(c){
     {label:'Talia',v:parseFloat(lastC.values.m2)||0,col:'var(--orange)',unit:'cm'},
     {label:'Biodra',v:parseFloat(lastC.values.m3)||0,col:'var(--purple)',unit:'cm'},
     {label:'Udo',v:parseFloat(lastC.values.m4)||0,col:'var(--blue)',unit:'cm'},
-    {label:'RamiÄ',v:parseFloat(lastC.values.m5)||0,col:'var(--teal)',unit:'cm'},
+    {label:'Ramię',v:parseFloat(lastC.values.m5)||0,col:'var(--teal)',unit:'cm'},
   ]:[]);
   const strengthBars=lastS?[
     {label:'Przysiad',v:parseFloat(lastS.values.m1)||0,col:'var(--accent)',unit:'kg'},
@@ -3518,33 +4397,33 @@ function renderCPProgress(c){
 
   document.getElementById('cp-body').innerHTML=`
     <div style="margin-bottom:12px;">
-      <div class="cp-section-title" style="margin:0;">POSTÄPY KLIENTA</div>
-      <div style="font-size:11px;color:var(--muted);margin-top:2px;">Treningi Âˇ pomiary Âˇ realizacja planu Âˇ samopoczucie</div>
+      <div class="cp-section-title" style="margin:0;">ANALITYKA KLIENTA</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px;">Jeden panel: trening · ciało · check-in · nawyki · zdjęcia</div>
     </div>
 
     <div class="cp-analytics-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">
       ${chip('all','Wszystko')}
       ${chip('train','Trening')}
-      ${chip('body','CiaĹo')}
+      ${chip('body','Ciało')}
       ${chip('checkin','Check-in')}
       ${chip('habits','Nawyki')}
-      ${chip('photos','ZdjÄcia')}
+      ${chip('photos','Zdjęcia')}
     </div>
 
     <div data-cp-panel="kpi" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;">
-      <div class="cp-stat-box"><div class="cp-stat-val" style="color:${adh30.pct>=70?'var(--teal)':adh30.pct>=40?'var(--orange)':'var(--accent)'};">${adh30.assigned?adh30.pct+'%':'â'}</div><div class="cp-stat-lbl">Realizacja planu Âˇ 30 dni</div><div style="font-size:9px;color:var(--muted);margin-top:2px;">${adh30.assigned?adh30.logged+'/'+adh30.assigned:'Brak zaplanowanych treningĂłw'} Âˇ 7 dni: ${adh7.assigned?adh7.pct+'%':'â'}</div></div>
-      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--accent);">${sess30}</div><div class="cp-stat-lbl">Sesje 30 dni</div><div style="font-size:9px;color:var(--muted);margin-top:2px;">${logged.length?Math.round(totalVol).toLocaleString('pl')+' kg':'â'}</div></div>
-      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--blue);">${ciAvg||'â'}</div><div class="cp-stat-lbl">Check-in Ĺr.</div><div style="font-size:9px;color:var(--muted);margin-top:2px;">${ciPts.length?ciPts.length+' raportĂłw':'brak'}</div></div>
-      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--teal);">${bestStreak||habitPct7||'â'}</div><div class="cp-stat-lbl">${bestStreak?'Streak nawykĂłw':'Nawyki 7d'}</div><div style="font-size:9px;color:var(--muted);margin-top:2px;">${habits.length?habits.length+' aktywnych':(bestStreak?'dni':'brak nawykĂłw')}${habitPct7?' Âˇ '+habitPct7+'%':''}</div></div>
+      <div class="cp-stat-box"><div class="cp-stat-val" style="color:${adh30.pct>=70?'var(--teal)':adh30.pct>=40?'var(--orange)':'var(--accent)'};">${adh30.pct}%</div><div class="cp-stat-lbl">Regularność 30 dni</div><div style="font-size:9px;color:var(--muted);margin-top:2px;">${adh30.logged}/${adh30.assigned||'—'} · 7d ${adh7.pct}%</div></div>
+      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--accent);">${sess30}</div><div class="cp-stat-lbl">Sesje 30 dni</div><div style="font-size:9px;color:var(--muted);margin-top:2px;">${Math.round(totalVol).toLocaleString('pl')} kg</div></div>
+      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--blue);">${ciAvg||'—'}</div><div class="cp-stat-lbl">Check-in śr.</div><div style="font-size:9px;color:var(--muted);margin-top:2px;">${ciPts.length?ciPts.length+' raportów':'brak'}</div></div>
+      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--teal);">${bestStreak||habitPct7||'—'}</div><div class="cp-stat-lbl">${bestStreak?'Dni z nawykiem':'Nawyki 7d'}</div><div style="font-size:9px;color:var(--muted);margin-top:2px;">${habits.length?habits.length+' aktywnych':(bestStreak?'dni':'brak nawyków')}${habitPct7?' · '+habitPct7+'%':''}</div></div>
     </div>
-    ${adh30.assigned&&!adh30.logged?`<div style="font-size:11px;color:var(--muted);line-height:1.45;margin:-8px 0 14px;">Kalendarz ma ${adh30.assigned} zaplanowanych dni, ale brak zapisu z Live / apki (serie) / zadania domowego â same terminy nie wchodzÄ do Progress.</div>`:''}
+    ${adh30.assigned&&!adh30.logged?`<div style="font-size:11px;color:var(--muted);line-height:1.45;margin:-8px 0 14px;">Kalendarz ma ${adh30.assigned} zaplanowanych dni, ale brak zapisu z Live / apki (serie) / zadania domowego — same terminy nie wchodzą do Progress.</div>`:''}
 
-    ${logged.length?`<div data-cp-panel="train" style="display:grid;grid-template-columns:1.55fr 1fr;gap:14px;margin-bottom:14px;">
+    ${logged.length?`    <div data-cp-panel="train" style="display:grid;grid-template-columns:1.55fr 1fr;gap:14px;margin-bottom:14px;">
       <div class="stat-card">
         <div class="stat-card-hdr">
           <div>
-            <div class="stat-card-title">đ TonaĹź tygodniowy</div>
-            <div class="stat-card-sub">Ostatnie 8 tygodni Âˇ tonaĹź vs liczba sesji</div>
+            <div class="stat-card-title">📊 Tonaż tygodniowy</div>
+            <div class="stat-card-sub">Ostatnie 8 tygodni · tonaż vs liczba sesji</div>
           </div>
           <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--accent);">${Math.round(totalVol).toLocaleString('pl')}<span style="font-size:12px;color:var(--muted);"> kg</span></div>
         </div>
@@ -3553,81 +4432,82 @@ function renderCPProgress(c){
       <div class="stat-card">
         <div class="stat-card-hdr">
           <div>
-            <div class="stat-card-title">â­ Ocena sesji</div>
-            <div class="stat-card-sub">Trend ostatnich treningĂłw Âˇ Ĺr. ${avg?avg+'/5':'â'}</div>
+            <div class="stat-card-title">⭐ Ocena sesji</div>
+            <div class="stat-card-sub">Trend ostatnich treningów · śr. ${avg?avg+'/5':'—'}</div>
           </div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--teal);">${avg?avg+'/5':'â'}</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--teal);">${avg?avg+'/5':'—'}</div>
         </div>
         ${cpRatingTrendChart(logged)}
         <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);">
-          Serie ĹÄcznie: <strong style="color:var(--text);">${totalSets}</strong>
+          Serie łącznie: <strong style="color:var(--text);">${totalSets}</strong>
         </div>
       </div>
-    </div>`:`<div data-cp-panel="train" class="stat-card" style="margin-bottom:14px;font-size:12px;color:var(--muted);">Brak zapisanych treningĂłw. Zapisz pierwszÄ sesjÄ, aby zobaczyÄ postÄpy. <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('training')">Treningi â</button></div>`}
+    </div>
 
-    ${(lastM||lastC)?`<div data-cp-panel="body" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
-      ${lastM?`<div class="stat-card">
+`:`<div data-cp-panel="train" class="stat-card cp-progress-empty"><strong>Brak zapisanych treningów</strong><p>Zakończ pierwszy trening, aby zobaczyć wyniki i wskazówki progresji.</p><button type="button" class="btn btn-primary btn-sm" onclick="cpStartLive()">Rozpocznij trening</button></div>`}
+    <div data-cp-panel="body" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+      <div class="stat-card">
         <div class="stat-card-hdr">
           <div>
-            <div class="stat-card-title">âď¸ Masa / skĹad ciaĹa</div>
-            <div class="stat-card-sub">${lastM?`Ostatni pomiar: ${escHtml(lastM.date||'')}`:'Brak pomiarĂłw'}</div>
+            <div class="stat-card-title">⚖️ Masa / skład ciała</div>
+            <div class="stat-card-sub">${lastM?`Ostatni pomiar: ${escHtml(lastM.date||'')}`:'Brak pomiarów'}</div>
           </div>
-          <button type="button" class="btn btn-ghost btn-sm" onclick="window._cpMetricGroup='mg1';setCPTab('metrics')">Historia â</button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="window._cpMetricGroup='mg1';setCPTab('metrics')">Historia →</button>
         </div>
         ${massAsc.length>=2
           ?cpLineChartSVG(massPts,'var(--accent)',{unit:'kg'})
-          :`<div style="font-size:11px;color:var(--muted);margin-bottom:10px;">Dodaj min. 2 pomiary masy, aby zobaczyÄ trend.</div>`}
+          :`<div style="font-size:11px;color:var(--muted);margin-bottom:10px;">Dodaj min. 2 pomiary masy, aby zobaczyć trend.</div>`}
         ${massAsc.length>=2?`<div style="margin-top:10px;">${cpNormalizedTrendChart([
           {label:'Masa',color:'var(--accent)',points:massPts},
           {label:'%BF',color:'var(--orange)',points:bfPts},
-          {label:'MiÄĹnie',color:'var(--teal)',points:musclePts},
+          {label:'Mięśnie',color:'var(--teal)',points:musclePts},
         ],{h:95})}</div>`:''}
         ${lastM?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:6px;margin-top:12px;">
           ${metricTile('Masa',lastM.values.m1,'kg',delta(lastM,prevM,'m1'),true)}
           ${metricTile('%BF',lastM.values.m2,'%',delta(lastM,prevM,'m2'),true)}
-          ${metricTile('MiÄĹnie',lastM.values.m3,'kg',delta(lastM,prevM,'m3'),false)}
+          ${metricTile('Mięśnie',lastM.values.m3,'kg',delta(lastM,prevM,'m3'),false)}
           ${metricTile('BMI',lastM.values.m4,'',delta(lastM,prevM,'m4'),true)}
           ${metricTile('Wiek met.',lastM.values.m5,'lat',delta(lastM,prevM,'m5'),true)}
           ${metricTile('Nawodn.',lastM.values.m6,'%',delta(lastM,prevM,'m6'),false)}
-          ${metricTile('FizycznoĹÄ',lastM.values.m7,'',delta(lastM,prevM,'m7'),false)}
+          ${metricTile('Fizyczność',lastM.values.m7,'',delta(lastM,prevM,'m7'),false)}
         </div>`
-        :`<div style="font-size:12px;color:var(--muted);">Brak pomiarĂłw.</div>`}
-      </div>`:''}
+        :`<div style="font-size:12px;color:var(--muted);">Brak pomiarów — dodaj w <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('metrics')">Pomiary</button></div>`}
+      </div>
 
-      ${lastC?`<div class="stat-card">
+      <div class="stat-card">
         <div class="stat-card-hdr">
           <div>
-            <div class="stat-card-title">đ Obwody ciaĹa</div>
-            <div class="stat-card-sub">${lastC?`Ostatni: ${escHtml(lastC.date||'')}`:'Brak obwodĂłw'}</div>
+            <div class="stat-card-title">📏 Obwody ciała</div>
+            <div class="stat-card-sub">${lastC?`Ostatni: ${escHtml(lastC.date||'')}`:'Brak obwodów'}</div>
           </div>
-          <button type="button" class="btn btn-ghost btn-sm" onclick="window._cpMetricGroup='mg2';setCPTab('metrics')">Historia â</button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="window._cpMetricGroup='mg2';setCPTab('metrics')">Historia →</button>
         </div>
         ${circAsc.length>=2?`<div style="margin-bottom:12px;">${cpMultiLineChartSVG([
           {label:'Klatka',color:'var(--accent)',points:cpMetricPoints(circ,'m1')},
           {label:'Talia',color:'var(--orange)',points:cpMetricPoints(circ,'m2')},
           {label:'Udo',color:'var(--blue)',points:cpMetricPoints(circ,'m4')},
         ],{h:110})}</div>`:''}
-        ${circBars.length?cpHorizontalBars(circBars):`<div style="font-size:12px;color:var(--muted);">Brak obwodĂłw.</div>`}
-      </div>`:''}
-    </div>`:`<div data-cp-panel="body" class="stat-card" style="margin-bottom:14px;font-size:12px;color:var(--muted);">Brak zapisanych pomiarĂłw. Dodaj je w zakĹadce Pomiary. <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('metrics')">Pomiary â</button></div>`}
+        ${circBars.length?cpHorizontalBars(circBars):`<div style="font-size:12px;color:var(--muted);">Brak obwodów.</div>`}
+      </div>
+    </div>
 
-    ${(lastS||prs.length)?`<div data-cp-panel="train" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+    <div data-cp-panel="train" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
       ${lastS||strengthAsc.length>=2?`<div class="stat-card">
         <div class="stat-card-hdr">
           <div>
-            <div class="stat-card-title">đŞ SiĹa bazowa (1RM)</div>
-            <div class="stat-card-sub">Z pomiarĂłw Âˇ ${lastS?escHtml(lastS.date||''):''}</div>
+            <div class="stat-card-title">💪 Siła bazowa (1RM)</div>
+            <div class="stat-card-sub">Z pomiarów · ${lastS?escHtml(lastS.date||''):''}</div>
           </div>
         </div>
         ${squatPts.length>=2?`<div style="margin-bottom:12px;">${cpLineChartSVG(squatPts,'var(--accent)',{h:100,unit:'kg'})}<div style="font-size:9px;color:var(--muted);margin-top:4px;">Trend przysiadu</div></div>`:''}
         ${strengthBars.length?cpHorizontalBars(strengthBars):''}
       </div>`:''}
 
-      <div class="stat-card"${lastS||strengthAsc.length>=2?'':' style="grid-column:1/-1;"'}>
+      ${logged.length?`<div class="stat-card"${lastS||strengthAsc.length>=2?'':' style="grid-column:1/-1;"'}>
         <div class="stat-card-hdr">
           <div>
-            <div class="stat-card-title">đ Rekordy z treningĂłw</div>
-            <div class="stat-card-sub">Live / apka Âˇ szac. 1RM</div>
+            <div class="stat-card-title">🏆 Rekordy z treningów</div>
+            <div class="stat-card-sub">Live / apka · szac. 1RM</div>
           </div>
         </div>
         ${cpPrBarChart(prs)}
@@ -3637,47 +4517,47 @@ function renderCPProgress(c){
             return `<div style="display:flex;justify-content:space-between;gap:8px;padding:6px 0;font-size:11px;border-bottom:1px solid rgba(255,255,255,0.04);">
               <div><span style="font-weight:600;">${escHtml(p.name)}</span>
               <span style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace;margin-left:6px;">${escHtml(p.date||'')}</span></div>
-              <div style="font-weight:700;color:var(--accent);white-space:nowrap;">${escHtml(typeof formatSetLoad==='function'?formatSetLoad(p.kg,p.reps):(p.kg+' Ă '+p.reps))}${est?' Âˇ ~'+est+' kg':''}</div>
+              <div style="font-weight:700;color:var(--accent);white-space:nowrap;">${escHtml(typeof formatSetLoad==='function'?formatSetLoad(p.kg,p.reps):(p.kg+' × '+p.reps))}${est?' · ~'+est+' kg':''}</div>
             </div>`;
           }).join('')}
         </div>`:''}
-      </div>
-    </div>`:''}
+      </div>`:''}
+    </div>
 
     ${logged.length&&typeof cpNextSessionBriefHtml==='function'?cpNextSessionBriefHtml(c.id):''}
     ${logged.length&&typeof cpExerciseProgressPanelHtml==='function'?cpExerciseProgressPanelHtml(c.id):''}
 
-    ${ciPts.length?`<div data-cp-panel="checkin" style="display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:14px;">
+    <div data-cp-panel="checkin" style="display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:14px;">
       <div class="stat-card">
         <div class="stat-card-hdr">
           <div>
-            <div class="stat-card-title">đ Samopoczucie (check-in)</div>
-            <div class="stat-card-sub">Energia Âˇ sen Âˇ stres Âˇ odĹźywianie Âˇ ostatnie ${ciPts.length||0} raportĂłw</div>
+            <div class="stat-card-title">📝 Samopoczucie (check-in)</div>
+            <div class="stat-card-sub">Energia · sen · stres · odżywianie · ostatnie ${ciPts.length||0} raportów</div>
           </div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--blue);">${ciAvg||'â'}</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--blue);">${ciAvg||'—'}</div>
         </div>
         ${ciPts.length>=2?cpLineChartSVG(ciPts,'var(--blue)',{h:120,unit:'/100'})
-          :`<div style="font-size:12px;color:var(--muted);padding:16px 0;">Za maĹo wypeĹnionych check-inĂłw do wykresu â pojawiÄ siÄ po 2+ raportach klienta.</div>`}
+          :`<div style="font-size:12px;color:var(--muted);padding:16px 0;">Za mało wypełnionych check-inów do wykresu — pojawią się po 2+ raportach klienta.</div>`}
       </div>
-    </div>`:''}
+    </div>
 
-    ${habits.length?`<div data-cp-panel="habits" style="display:grid;grid-template-columns:1.4fr 1fr;gap:14px;margin-bottom:14px;">
+    <div data-cp-panel="habits" style="display:grid;grid-template-columns:1.4fr 1fr;gap:14px;margin-bottom:14px;">
       <div class="stat-card">
         <div class="stat-card-hdr">
           <div>
-            <div class="stat-card-title">â Adherencja nawykĂłw</div>
-            <div class="stat-card-sub">% odhaczeĹ tygodniowo Âˇ ${habits.length} aktywnych</div>
+            <div class="stat-card-title">✅ Regularność nawyków</div>
+            <div class="stat-card-sub">% odhaczeń tygodniowo · ${habits.length} aktywnych</div>
           </div>
-          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--teal);">${habitPct7}%</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--teal);">${habits.length?habitPct7+'%':'—'}</div>
         </div>
         ${habits.length?cpPctBarChart(habitWeeks,{color:'var(--teal)',h:120})
-          :`<div style="font-size:12px;color:var(--muted);padding:16px 0;">Brak nawykĂłw â dodaj w zakĹadce Zadania.</div>`}
+          :`<div style="font-size:12px;color:var(--muted);padding:16px 0;">Brak nawyków — dodaj w zakładce Zadania.</div>`}
       </div>
       <div class="stat-card">
         <div class="stat-card-hdr">
           <div>
-            <div class="stat-card-title">đĽ Streaki</div>
-            <div class="stat-card-sub">NajdĹuĹźsze serie</div>
+            <div class="stat-card-title">🔥 Dni z rzędu</div>
+            <div class="stat-card-sub">Najdłuższe serie</div>
           </div>
         </div>
         ${habits.length?`<div style="display:flex;flex-direction:column;gap:8px;">
@@ -3688,12 +4568,27 @@ function renderCPProgress(c){
               <span style="font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:var(--teal);flex-shrink:0;">${st}d</span>
             </div>`;
           }).join('')}
-        </div>`:`<div style="font-size:12px;color:var(--muted);">Brak streakĂłw.</div>`}
+        </div>`:`<div style="font-size:12px;color:var(--muted);">Brak serii dni z wykonanym nawykiem.</div>`}
       </div>
-    </div>`:`<div data-cp-panel="habits" class="stat-card" style="margin-bottom:14px;font-size:12px;color:var(--muted);">Brak aktywnych nawykĂłw. <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('tasks')">OtwĂłrz zadania â</button></div>`}
+    </div>
 
     <div data-cp-panel="photos" class="stat-card" style="margin-bottom:8px;">
-      <div class="stat-card-hdr"><div><div class="stat-card-title">ZdjÄcia postÄpĂłw</div><div class="stat-card-sub">${photos.length?'ZdjÄcia dostÄpne do porĂłwnania':'Brak zdjÄÄ'}</div></div><button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('photos')">${photos.length?'PorĂłwnaj zdjÄcia':'OtwĂłrz zdjÄcia'} â</button></div>
+      <div class="stat-card-hdr">
+        <div>
+          <div class="stat-card-title">📷 Zdjęcia postępów</div>
+          <div class="stat-card-sub">${photos.length?photos.length+' ostatnich':'Brak zdjęć'}</div>
+        </div>
+      </div>
+      ${photos.length?`<div class="cp-analytics-photos" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;">
+        ${photos.map(ph=>{
+          const src=ph.url||ph.dataUrl||ph.thumb||'';
+          const when=escHtml(String(ph.date||ph.createdAt||'').slice(0,10));
+          return `<div style="background:var(--s3);border-radius:10px;overflow:hidden;border:1px solid var(--border);">
+            ${src?`<img src="${escHtml(src)}" alt="" style="width:100%;aspect-ratio:3/4;object-fit:cover;display:block;">`:`<div style="aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:20px;">📷</div>`}
+            <div style="padding:6px 8px;font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${when||'—'}</div>
+          </div>`;
+        }).join('')}
+      </div>`:`<div style="font-size:12px;color:var(--muted);padding:8px 0;">Klient jeszcze nie dodał zdjęć postępów.</div>`}
     </div>
   `;
   setCPProgressPanel(panel);
@@ -3712,7 +4607,7 @@ function renderCPTasks(c){
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
       <div class="cp-section-title" style="margin:0;">ZADANIA (${tasks.length})</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;">
-        <button class="btn btn-ghost btn-sm" onclick="typeof openHomeworkPickerForClient==='function'&&openHomeworkPickerForClient('${c.id}')">đĄ Trening domowy</button>
+        <button class="btn btn-ghost btn-sm" onclick="typeof openHomeworkPickerForClient==='function'&&openHomeworkPickerForClient('${c.id}')">🏡 Trening domowy</button>
         <button class="btn btn-primary btn-sm" onclick="openM('m-task');taskSetClientField('${c.id}','${(c.name||'').replace(/'/g,"\\'")}')">+ Zadanie</button>
       </div>
     </div>
@@ -3730,18 +4625,18 @@ function renderCPTasks(c){
         return `<div style="background:var(--s2);border:1px solid ${done?'rgba(62,207,178,0.35)':'var(--border2)'};border-radius:10px;padding:12px;margin-bottom:8px;">
           <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;">
             <div style="flex:1;">
-              <div style="font-size:12px;font-weight:700;">${escHtml(t.title)}${done?' <span style="color:var(--teal);">â</span>':''}</div>
+              <div style="font-size:12px;font-weight:700;">${escHtml(t.title)}${done?' <span style="color:var(--teal);">✓</span>':''}</div>
               ${struct?`<div style="font-size:10px;color:var(--muted);margin-top:4px;">${escHtml(struct)}</div>`:''}
               ${t.due?`<div style="font-size:10px;color:var(--muted);margin-top:2px;">Termin: ${escHtml(t.due)}</div>`:''}
             </div>
             ${!done?`<div style="display:flex;gap:6px;flex-shrink:0;">
               <button class="btn btn-ghost btn-sm" type="button" onclick="remindHomework('${escHtml(t.id)}')">Przypomnij</button>
-              ${w?`<button class="btn btn-ghost btn-sm" type="button" onclick="openAssignHomeworkModal('${escHtml(w.id)}','${escHtml(c.id)}')">âť</button>`:''}
+              ${w?`<button class="btn btn-ghost btn-sm" type="button" onclick="openAssignHomeworkModal('${escHtml(w.id)}','${escHtml(c.id)}')">↻</button>`:''}
             </div>`:''}
           </div>
         </div>`;
       }).join('')}`:''}
-    ${!tasks.length?'<div style="text-align:center;padding:30px;color:var(--muted);">Brak zadaĹ dla tego klienta</div>'
+    ${!tasks.length?'<div style="text-align:center;padding:30px;color:var(--muted);">Brak zadań dla tego klienta</div>'
     :tasks.filter(t=>!isHw(t)).sort((a,b)=>{
       const rank=t=>isHw(t)?0:isHabit(t)?1:(typeof isChallenge==='function'&&isChallenge(t)?2:3);
       return rank(a)-rank(b)||(a.due||'9999').localeCompare(b.due||'9999');
@@ -3760,20 +4655,20 @@ function renderCPTasks(c){
         <div style="flex:1;${isDone?'opacity:0.5;text-decoration:line-through;':''}cursor:pointer;" onclick="editTask('${t.id}')">
           <div style="font-size:12px;font-weight:600;">${t.title}</div>
           <div style="display:flex;gap:5px;margin-top:3px;flex-wrap:wrap;align-items:center;">
-            ${hw?`<span class="pill" style="background:rgba(0,85,164,0.18);color:var(--blue);font-size:9px;">đĄ Domowe</span>`:''}
-            ${habit?`<span class="pill" style="background:rgba(157,124,244,0.18);color:var(--purple);font-size:9px;">đĽ Nawyk</span>`:''}
-            ${ch?`<span class="pill" style="background:rgba(201,162,39,0.18);color:var(--gold);font-size:9px;">đ Wyzwanie</span>`:''}
+            ${hw?`<span class="pill" style="background:rgba(0,85,164,0.18);color:var(--blue);font-size:9px;">🏡 Domowe</span>`:''}
+            ${habit?`<span class="pill" style="background:rgba(157,124,244,0.18);color:var(--purple);font-size:9px;">🔥 Nawyk</span>`:''}
+            ${ch?`<span class="pill" style="background:rgba(201,162,39,0.18);color:var(--gold);font-size:9px;">🏆 Wyzwanie</span>`:''}
             ${t.cat?`<span class="pill" style="background:${catCol}22;color:${catCol};font-size:9px;">${TASK_CAT_LABELS[t.cat]||t.cat}</span>`:''}
-            ${habit&&streak?`<span class="habit-streak">đĽ ${streak}</span>`:''}
+            ${habit&&streak?`<span class="habit-streak">🔥 ${streak}</span>`:''}
             ${ch&&typeof challengeStatusText==='function'?`<span style="font-size:10px;color:var(--gold);">${challengeStatusText(t,today)}</span>`:''}
-            ${one&&t.due?`<span style="font-size:10px;color:${isOverdue?'var(--red)':'var(--muted)'};font-family:'DM Mono',monospace;">${isOverdue?'â  ':''} ${t.due}</span>`:''}
+            ${one&&t.due?`<span style="font-size:10px;color:${isOverdue?'var(--red)':'var(--muted)'};font-family:'DM Mono',monospace;">${isOverdue?'⚠ ':''} ${t.due}</span>`:''}
           </div>
           ${habit?habitWeekHtml(t,today):''}
           ${ch&&typeof challengeBarHtml==='function'?challengeBarHtml(t,today):''}
         </div>
       </div>`;
     }).join('')}
-    <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:10px;" onclick="openTaskTemplates()">đ UĹźyj szablonu</button>`;
+    <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:10px;" onclick="openTaskTemplates()">📋 Użyj szablonu</button>`;
 }
 
 function renderCPPayments(c){
@@ -3784,24 +4679,24 @@ function renderCPPayments(c){
   const mode=typeof clientAccessMode==='function'?clientAccessMode(c):'standard';
   document.getElementById('cp-body').innerHTML=`
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-      <div class="cp-section-title" style="margin:0;">PAKIETY I PĹATNOĹCI</div>
+      <div class="cp-section-title" style="margin:0;">PAKIETY I PŁATNOŚCI</div>
       <button class="btn btn-primary btn-sm" onclick="document.getElementById('pkg-client').value='${c.id}';openM('m-package')">+ Pakiet</button>
     </div>
     <div class="card-sm" style="margin-bottom:12px;">
-      <div style="font-size:11px;font-weight:700;margin-bottom:4px;">DostÄp do kalendarza i Live</div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.45;">NieopĹacony pakiet blokuje planowanie i Start. Trial / GoĹÄ omija bramÄ (sesje pakietu nie schodzÄ).</div>
+      <div style="font-size:11px;font-weight:700;margin-bottom:4px;">Dostęp do kalendarza i Live</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.45;">Nieopłacony pakiet blokuje planowanie i Start. Trial / Gość omija bramę (sesje pakietu nie schodzą).</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;">
         <button type="button" class="btn btn-sm ${mode==='standard'?'btn-primary':'btn-ghost'} cp-access-mode" data-mode="standard" onclick="setClientAccessMode('${escHtml(c.id)}','standard')">Z pakietu</button>
         <button type="button" class="btn btn-sm ${mode==='trial'?'btn-primary':'btn-ghost'} cp-access-mode" data-mode="trial" onclick="setClientAccessMode('${escHtml(c.id)}','trial')">Trial</button>
-        <button type="button" class="btn btn-sm ${mode==='guest'?'btn-primary':'btn-ghost'} cp-access-mode" data-mode="guest" onclick="setClientAccessMode('${escHtml(c.id)}','guest')">GoĹÄ</button>
+        <button type="button" class="btn btn-sm ${mode==='guest'?'btn-primary':'btn-ghost'} cp-access-mode" data-mode="guest" onclick="setClientAccessMode('${escHtml(c.id)}','guest')">Gość</button>
       </div>
-      <div style="font-size:11px;margin-top:8px;color:${acc.ok?'var(--teal)':'var(--red)'};">${escHtml((typeof clientPaidAccessLabel==='function'?clientPaidAccessLabel(acc):'')||(acc.ok?'Brak pakietu â otwarte':'Brak dostÄpu'))}</div>
+      <div style="font-size:11px;margin-top:8px;color:${acc.ok?'var(--teal)':'var(--red)'};">${escHtml((typeof clientPaidAccessLabel==='function'?clientPaidAccessLabel(acc):'')||(acc.ok?'Brak pakietu — otwarte':'Brak dostępu'))}</div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
-      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--accent);font-size:22px;">${total.toLocaleString('pl')} zĹ</div><div class="cp-stat-lbl">ĹÄcznie zapĹacono</div></div>
-      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--blue);font-size:22px;">${pkgs.length}</div><div class="cp-stat-lbl">PakietĂłw</div></div>
+      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--accent);font-size:22px;">${total.toLocaleString('pl')} zł</div><div class="cp-stat-lbl">Łącznie zapłacono</div></div>
+      <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--blue);font-size:22px;">${pkgs.length}</div><div class="cp-stat-lbl">Pakietów</div></div>
     </div>
-    ${!pkgs.length?'<div style="text-align:center;padding:30px;color:var(--muted);">Brak pakietĂłw</div>'
+    ${!pkgs.length?'<div style="text-align:center;padding:30px;color:var(--muted);">Brak pakietów</div>'
     :pkgs.map(p=>{
       const pct=Math.round(p.sessionsUsed/p.sessions*100);
       const col=PKG_TYPE_COLOR[p.type]||'var(--accent)';
@@ -3809,70 +4704,150 @@ function renderCPPayments(c){
       return `<div class="card-sm" style="margin-bottom:8px;border-left:3px solid ${col};">
         <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
           <div style="font-size:12px;font-weight:600;">${p.title}</div>
-          <div style="font-weight:700;color:${col};">${p.price.toLocaleString('pl')} zĹ</div>
+          <div style="font-weight:700;color:${col};">${p.price.toLocaleString('pl')} zł</div>
         </div>
         <div class="pkg-progress" style="margin:6px 0;"><div class="pkg-progress-fill" style="width:${pct}%;background:${col};"></div></div>
         <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);">
           <span>${p.sessionsUsed}/${p.sessions} sesji</span>
           <span class="pill ${PAY_STATUS_PILL[isExpired?'expired':p.payStatus]||'pill-muted'}" style="font-size:9px;">${PAY_STATUS_LABEL[isExpired?'expired':p.payStatus]||p.payStatus}</span>
         </div>
-        ${p.invoiceId?`<button class="btn btn-ghost btn-sm" style="width:100%;margin-top:6px;" onclick="viewInvoice('${p.invoiceId}')">đ§ž Faktura ${p.invoiceId}</button>`:''}
+        ${p.invoiceId?`<button class="btn btn-ghost btn-sm" style="width:100%;margin-top:6px;" onclick="viewInvoice('${p.invoiceId}')">🧾 Faktura ${p.invoiceId}</button>`:''}
         <div style="display:flex;gap:6px;margin-top:6px;">
-          ${p.payStatus==='pending'?`<button class="btn btn-primary btn-sm" style="flex:1;" onclick="markPaid('${p.id}')">OpĹacony</button>
-          <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="requestPayment('${p.id}')">${p.paymentRequestedAt?'WyĹlij ponownie':'PoproĹ o wpĹatÄ'}</button>`:''}
+          ${p.payStatus==='pending'?`<button class="btn btn-primary btn-sm" style="flex:1;" onclick="markPaid('${p.id}')">Opłacony</button>
+          <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="requestPayment('${p.id}')">${p.paymentRequestedAt?'Wyślij ponownie':'Poproś o wpłatę'}</button>`:''}
         </div>
-        ${p.payStatus==='pending'&&p.paymentRequestedAt?`<div style="font-size:10px;color:var(--orange);margin-top:6px;">ProĹba wysĹana ${escHtml(String(p.paymentRequestedAt).slice(0,10))} â klient widzi dane w apce.</div>`:''}
+        ${p.payStatus==='pending'&&p.paymentRequestedAt?`<div style="font-size:10px;color:var(--orange);margin-top:6px;">Prośba wysłana ${escHtml(String(p.paymentRequestedAt).slice(0,10))} — klient widzi dane w apce.</div>`:''}
       </div>`;
     }).join('')}`;
 }
 
 
-// ââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-// CP â TRAINING (kalendarz 2-tygodniowy)
-// ââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ══════════════════════════════════════════════════════
+// CP — TRAINING (kalendarz 2-tygodniowy)
+// ══════════════════════════════════════════════════════
+function cpWeekTileTitle(s,plan){
+  const idx=s&&s.dayIdx;
+  const day=plan&&Array.isArray(plan.days)&&idx!=null?plan.days[idx]:null;
+  if(day&&typeof planDayShortName==='function')return planDayShortName(day,idx);
+  const raw=typeof sessionTitle==='function'?sessionTitle(s):(s&&(s.type||s.title))||'Trening';
+  if(typeof planDayShortName==='function')return planDayShortName({day:raw},idx||0);
+  return raw;
+}
+function cpWeekTileFullName(s,plan){
+  const idx=s&&s.dayIdx;
+  const day=plan&&Array.isArray(plan.days)&&idx!=null?plan.days[idx]:null;
+  if(day&&typeof planDayDisplayName==='function')return planDayDisplayName(day,idx);
+  const raw=typeof sessionTitle==='function'?sessionTitle(s):(s&&(s.type||s.title))||'Trening';
+  return typeof stripPlanDayWeekdayName==='function'?stripPlanDayWeekdayName(raw):raw;
+}
+function cpTrainWord(n){
+  const x=Math.max(0,Number(n)||0);
+  if(x===1)return'1 trening';
+  if(x>=2&&x<=4)return x+' treningi';
+  return x+' treningów';
+}
+function toggleCpMpMore(evOrForce){
+  const menu=document.getElementById('cp-mp-more-menu');
+  const btn=document.getElementById('cp-mp-more-btn');
+  if(!menu)return;
+  let open;
+  if(evOrForce===false)open=false;
+  else if(evOrForce===true)open=true;
+  else open=menu.hasAttribute('hidden');
+  if(open){
+    menu.removeAttribute('hidden');
+    if(btn)btn.setAttribute('aria-expanded','true');
+  }else{
+    menu.setAttribute('hidden','');
+    if(btn)btn.setAttribute('aria-expanded','false');
+  }
+  if(evOrForce&&typeof evOrForce==='object'){try{evOrForce.stopPropagation();}catch(e){}}
+}
+function _cpMpMoreOutside(e){
+  const wrap=document.querySelector('.cp-mp-more-wrap');
+  const menu=document.getElementById('cp-mp-more-menu');
+  if(!wrap||!menu||menu.hasAttribute('hidden'))return;
+  if(wrap.contains(e.target))return;
+  toggleCpMpMore(false);
+}
+if(typeof document!=='undefined'&&!window._cpMpMoreBound){
+  document.addEventListener('click',_cpMpMoreOutside);
+  window._cpMpMoreBound=true;
+}
+function scrollToFirstUnloggedTile(){
+  const el=document.querySelector('.cp-week-tile.is-nolog');
+  if(el&&el.scrollIntoView)el.scrollIntoView({behavior:'smooth',block:'center'});
+}
+function markCpSessionSkipped(plannedId){
+  if(typeof markSessionSkipped==='function')markSessionSkipped(plannedId);
+  const c=(window.CL||[]).find(x=>x&&x.id===window.cpClientId);
+  if(c&&typeof renderCPTraining==='function')renderCPTraining(c);
+  try{if(typeof renderCal==='function')renderCal();}catch(e){}
+}
+window.cpWeekTileTitle=cpWeekTileTitle;
+window.cpWeekTileFullName=cpWeekTileFullName;
+window.toggleCpMpMore=toggleCpMpMore;
+window.scrollToFirstUnloggedTile=scrollToFirstUnloggedTile;
+window.markCpSessionSkipped=markCpSessionSkipped;
+
 function renderCPTraining(c){
   if(!c._mpView)c._mpView='1w';
   if(!c._mpTab)c._mpTab='assignment';
+  if(c._mpWeekOffset==null)c._mpWeekOffset=0;
+  try{if(typeof ensureClientPlanWeekdays==='function')ensureClientPlanWeekdays(c.id);}catch(e){}
 
   const allSessions=SE.filter(s=>s.clientId===c.id);
   const assignSessions=typeof cpAssignmentSessions==='function'?cpAssignmentSessions(c.id):allSessions;
   const activePlan=typeof latestClientPlan==='function'?latestClientPlan(c.id):(typeof clientPlanForCalendar==='function'?clientPlanForCalendar(c.id):null);
-  const activePlanName=activePlan&&activePlan.name||'';
+  const activePlanName=typeof cpOverviewPlanTitle==='function'?cpOverviewPlanTitle(activePlan,c):((activePlan&&activePlan.name)||'');
   const today=new Date();
   const cellYmd=d=>typeof dateStrLocal==='function'?dateStrLocal(d):(typeof dateStr==='function'?dateStr(d):d.toISOString().split('T')[0]);
   const todayStr=typeof todayYmd==='function'?todayYmd():cellYmd(today);
   const logged=typeof completedWorkouts==='function'?completedWorkouts(c.id,allSessions):allSessions.filter(s=>s.source==='client'||s.source==='live'||s.source==='sala');
-  const avgRate=typeof avgSessionRating==='function'?avgSessionRating(logged):0;
-  const adh7=typeof clientAdherenceStats==='function'?clientAdherenceStats(c.id,7):null;
-  const adh30t=typeof clientAdherenceStats==='function'?clientAdherenceStats(c.id,30):null;
 
-  // Statystyki â zrobione treningi (Live / apka / sala / zadanie domowe), nie same wpisy w kalendarzu
-  const last7=adh7?adh7.logged:logged.filter(s=>{const d=new Date(s.date);return(today-d)/86400000<=7;}).length;
-  const last30=adh30t?adh30t.logged:logged.filter(s=>{const d=new Date(s.date);return(today-d)/86400000<=30;}).length;
-
-  // Oblicz zakres kalendarza
   const getMonday=(d)=>{const dt=new Date(d);const day=dt.getDay();dt.setDate(dt.getDate()-(day===0?6:day-1));dt.setHours(0,0,0,0);return dt;};
   const mon=getMonday(today);
+  mon.setDate(mon.getDate()+(Number(c._mpWeekOffset)||0)*7);
   const weeks=c._mpView==='1w'?1:c._mpView==='2w'?2:4;
   const totalDays=weeks*7;
   const days=Array.from({length:totalDays},(_,i)=>{const d=new Date(mon);d.setDate(mon.getDate()+i);return d;});
 
-  const dayNamesShort=['Pon','Wt','Ĺr','Czw','Pt','Sob','Nie'];
-  const MONTHS_PL=['sty','lut','mar','kwi','maj','cze','lip','sie','wrz','paĹş','lis','gru'];
+  const dayNamesShort=['Pon','Wt','Śr','Czw','Pt','Sob','Nie'];
+  const MONTHS_PL=['sty','lut','mar','kwi','maj','cze','lip','sie','wrz','paź','lis','gru'];
 
-  // Zakres dat header
   const rangeStart=days[0];
   const rangeEnd=days[days.length-1];
-  const rangeLabel=rangeStart.getDate()+' '+MONTHS_PL[rangeStart.getMonth()]+' â '+rangeEnd.getDate()+' '+MONTHS_PL[rangeEnd.getMonth()];
+  const rangeLabel=rangeStart.getDate()+' '+MONTHS_PL[rangeStart.getMonth()]+' – '+rangeEnd.getDate()+' '+MONTHS_PL[rangeEnd.getMonth()];
 
   const plannedN=allSessions.filter(s=>s&&s.source==='planned').length;
-  const noLoggedBanner=logged.length===0&&plannedN
-    ?`<div class="cp-no-logged-banner" style="background:rgba(230,0,0,0.08);border:1px solid rgba(230,0,0,0.35);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12px;line-height:1.45;">
-        <div style="font-weight:700;margin-bottom:4px;">Brak zapisu treningu</div>
-        Czerwone karty to <b>plan</b>, nie odbyte sesje. Zrobione liczy Live, apkÄ klienta albo â OdbyĹ siÄ (ocena 1â5 + czas, bez Live). Bez tego statystyki zostajÄ na 0.
-      </div>`:'';
+  const weekFrom=cellYmd(days[0]);
+  const weekTo=cellYmd(days[Math.min(6,days.length-1)]);
+  const datesIn=list=>{
+    const set=new Set();
+    (list||[]).forEach(s=>{const y=String(s&&s.date||'').slice(0,10);if(y)set.add(y);});
+    return set;
+  };
+  const plannedKeep=typeof cpAssignmentSessions==='function'?cpAssignmentSessions(c.id,{keepPlanned:true}):allSessions;
+  const plannedWeek=(plannedKeep||[]).filter(s=>s&&s.source==='planned'&&s.date>=weekFrom&&s.date<=weekTo);
+  const nologWeek=plannedWeek.filter(s=>{
+    const y=String(s.date||'').slice(0,10);
+    if(!y||y>=todayStr)return false;
+    if(typeof sessionIsSkipped==='function'&&sessionIsSkipped(s))return false;
+    if(typeof sessionHappened==='function'&&sessionHappened(s))return false;
+    return true;
+  });
+  const plannedToToday=plannedWeek.filter(s=>String(s.date||'').slice(0,10)<=todayStr);
+  const doneWeek=new Set(plannedToToday.filter(p=>logged.some(s=>sessionMatchesPlanned(p,s))).map(p=>p.id));
+  const extraWeek=logged.filter(s=>s.date>=weekFrom&&s.date<=weekTo&&s.date<=todayStr&&!plannedToToday.some(p=>sessionMatchesPlanned(p,s))).length;
+  const from30=typeof ymdAdd==='function'?ymdAdd(todayStr,-29):weekFrom;
+  const planned30=(plannedKeep||[]).filter(s=>s&&s.source==='planned'&&s.date>=from30&&s.date<=todayStr);
+  const done30=new Set(planned30.filter(p=>logged.some(s=>sessionMatchesPlanned(p,s))).map(p=>p.id));
+  const extra30=logged.filter(s=>s.date>=from30&&s.date<=todayStr&&!planned30.some(p=>sessionMatchesPlanned(p,s))).length;
+  const nologN=nologWeek.length;
+  const noLoggedBanner=nologN
+    ?`<button type="button" class="cp-nolog-banner cp-no-logged-banner" onclick="scrollToFirstUnloggedTile()">${escHtml(cpTrainWord(nologN))} z tego tygodnia bez zapisu — uzupełnij</button>`:'';
 
-  // Historia sesji â tylko zapisane (Live / apka / sala / Garmin), nie terminy z planu
+  // Historia sesji — tylko zapisane (Live / apka / sala / Garmin), nie terminy z planu
   const historyList=allSessions.filter(s=>typeof sessionIsRecorded==='function'?sessionIsRecorded(s):(s.source==='client'||s.source==='live'||s.source==='sala'||s.source==='garmin'));
   const historyHTML=historyList.length
     ?historyList.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,15).map(s=>{
@@ -3884,15 +4859,15 @@ function renderCPTraining(c){
       const tip=typeof sessionHappenedTip==='function'?sessionHappenedTip(s):title;
       const typeCol=s.source==='client'||s.source==='sala'?'var(--teal)':s.source==='live'?'var(--orange)':happened?'var(--teal)':'var(--accent)';
       return `<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="editSession('${s.id}')" title="${escHtml(tip)}">
-        <div style="width:38px;height:38px;border-radius:10px;background:${typeCol}18;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">${happened?'â':(emoji||'đŞ')}</div>
+        <div style="width:38px;height:38px;border-radius:10px;background:${typeCol}18;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">${happened?'✓':(emoji||'💪')}</div>
         <div style="flex:1;min-width:0;">
-          <div style="font-size:13px;font-weight:600;">${happened?'â ':''}${escHtml(title)}</div>
-          <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;">${escHtml(s.date||'')}${s.duration?' Âˇ '+s.duration+' min':''}${exCount?' Âˇ '+exCount+' Äw.':''}${s.feedback?' Âˇ '+s.feedback+'/5':''}</div>
+          <div style="font-size:13px;font-weight:600;">${happened?'✓ ':''}${escHtml(title)}</div>
+          <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;">${escHtml(s.date||'')}${s.duration?' · '+s.duration+' min':''}${exCount?' · '+exCount+' ćw.':''}${s.feedback?' · '+s.feedback+'/5':''}</div>
         </div>
         <span style="background:${typeCol}18;color:${typeCol};border-radius:4px;padding:2px 8px;font-size:10px;font-family:'DM Mono',monospace;font-weight:700;text-transform:uppercase;">${escHtml(src)}</span>
       </div>`;
     }).join('')
-    :`<div style="text-align:center;padding:32px;color:var(--muted);font-size:12px;line-height:1.5;">${plannedN?'Brak zapisanych treningĂłw (Live / apka / sala). Czerwone karty w Assignment to plan â nie liczÄ siÄ do Zrobione. Kliknij â OdbyĹ siÄ na karcie albo zakoĹcz sesjÄ Live.':'Brak historii sesji'}</div>`;
+    :`<div style="text-align:center;padding:32px;color:var(--muted);font-size:12px;line-height:1.5;">${plannedN?'Brak zapisanych treningów':'Brak historii sesji'}</div>`;
 
   // Siatka kalendarza
   const calGrid=days.map((d,i)=>{
@@ -3904,34 +4879,43 @@ function renderCPTraining(c){
     const collapsed=typeof cpCollapseDaySessions==='function'?cpCollapseDaySessions(sessDay):{shown:sessDay.map(s=>({title:s.type||'Sesja',items:[s],happened:false,s})),extra:0};
     const sessCards=collapsed.shown.map(g=>{
       const s=g.s||g.items[0];
-      const exCount=(s.exercises||[]).length;
-      const title=g.title||(typeof sessionTitle==='function'?sessionTitle(s):(s.type||s.title||'Sesja'));
-      const typeLabel=typeof sessionSourceLabel==='function'?sessionSourceLabel(s):(s.type||'REGULAR');
+      const loggedItem=(g.items||[]).find(x=>typeof isLoggedWorkout==='function'&&isLoggedWorkout(x))||s;
+      const skipped=typeof sessionIsSkipped==='function'&&sessionIsSkipped(s);
       const happened=!!g.happened||(typeof sessionHappened==='function'&&sessionHappened(s));
-      const tip=typeof sessionHappenedTip==='function'?sessionHappenedTip(s):title;
-      const typeCol=s.source==='client'||s.source==='sala'?'var(--teal)':s.source==='live'?'var(--orange)':happened?'var(--teal)':'var(--accent)';
-      const emoji=typeof sessionRatingEmoji==='function'?sessionRatingEmoji(s.feedback):'';
-      const n=g.items&&g.items.length>1?g.items.length:0;
-      const markBtn=s.source==='planned'&&!happened?`<button type="button" class="cp-mark-done" onclick="event.stopPropagation();markCpSessionDone('${s.id}')" style="margin-top:4px;flex:1;border:none;border-radius:4px;padding:3px 4px;font-size:9px;font-weight:700;cursor:pointer;background:var(--accent);color:#fff;">â OdbyĹ siÄ</button>`:'';
-      const delBtn=`<button type="button" class="cp-del-sess" onclick="event.stopPropagation();delCpSession('${s.id}')" title="UsuĹ z kalendarza" style="margin-top:4px;${markBtn?'width:28px;':'width:100%;'}border:1px solid var(--border2);border-radius:4px;padding:3px 0;font-size:12px;font-weight:700;cursor:pointer;background:transparent;color:var(--muted);line-height:1;">Ă</button>`;
-      return `<div class="${happened?'cp-sess-done':''}" style="background:${typeCol}15;border:1px solid ${typeCol}40;border-radius:6px;padding:5px 6px;margin-top:4px;cursor:pointer;position:relative;" onclick="event.stopPropagation();editSession('${s.id}')" title="${escHtml(tip)}">
-        <div style="font-size:10px;font-weight:700;color:${typeCol};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${happened?'â ':''}${safeEscSnippet(String(title).toUpperCase(),18)}${n?` Ă${n}`:''}</div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:2px;">
-          <span style="background:${typeCol}25;color:${typeCol};border-radius:3px;padding:1px 4px;font-size:9px;font-family:'DM Mono',monospace;">${happened?'â ':''}${safeEscSnippet(String(typeLabel).toUpperCase(),8)}</span>
-          <span style="font-size:9px;color:var(--muted);">${emoji||''}${exCount?` âĄ ${exCount}`:''}</span>
-        </div>
-        <div style="display:flex;gap:4px;align-items:stretch;">${markBtn}${delBtn}</div>
+      const ds=String(s.date||'').slice(0,10);
+      let state='future';
+      if(skipped)state='skip';
+      else if(happened)state='done';
+      else if(ds===todayStr)state='today';
+      else if(ds<todayStr)state='nolog';
+      const title=cpWeekTileTitle(happened?loggedItem:s,activePlan);
+      const full=cpWeekTileFullName(happened?loggedItem:s,activePlan);
+      const time=s.time?String(s.time):'';
+      const bits=[];
+      if(loggedItem.duration)bits.push(loggedItem.duration+' min');
+      if(loggedItem.feedback)bits.push(loggedItem.feedback+'/5');
+      const meta=state==='done'?bits.join(' · '):(state==='today'&&time?time:'');
+      const liveBtn=state==='today'?`<button type="button" class="cp-week-btn cp-week-live" onclick="event.stopPropagation();typeof cpStartLiveFromDay==='function'?cpStartLiveFromDay('${c.id}',${s.dayIdx!=null?s.dayIdx:'null'},'${activePlan&&activePlan.id||''}'):cpStartLive()">Rozpocznij Live</button>`:'';
+      const doneBtn=(state==='nolog'||state==='today')&&s.source==='planned'?`<button type="button" class="cp-week-btn cp-mark-done" onclick="event.stopPropagation();markCpSessionDone('${s.id}')">Odbył się</button>`:'';
+      const skipBtn=state==='nolog'&&s.source==='planned'?`<button type="button" class="cp-week-btn cp-mark-skip" onclick="event.stopPropagation();markCpSessionSkipped('${s.id}')">Nie odbył się</button>`:'';
+      const check=state==='done'?'<span class="cp-week-check">✓</span>':'';
+      const stLabel=state==='nolog'?'Niezapisany':state==='future'?'Zaplanowany':state==='skip'?'Opuszczony':'';
+      return `<div class="cp-week-tile is-${state}${happened?' cp-sess-done':''}" onclick="event.stopPropagation();editSession('${happened?loggedItem.id:s.id}')" title="${escHtml(full)}">
+        <div class="cp-week-tile-name">${check}${escHtml(title)}</div>
+        ${stLabel?`<div class="cp-week-tile-st">${escHtml(stLabel)}</div>`:''}
+        ${meta?`<div class="cp-week-tile-meta">${escHtml(meta)}</div>`:''}
+        <div class="cp-week-tile-actions">${liveBtn}${doneBtn}${skipBtn}</div>
       </div>`;
-    }).join('')+(collapsed.extra?`<div style="font-size:9px;color:var(--muted);margin-top:4px;text-align:center;">+${collapsed.extra} wiÄcej</div>`:'');
+    }).join('')+(collapsed.extra?`<div class="cp-week-extra">+${collapsed.extra} więcej</div>`:'');
 
-    return `<div class="cp-cal-day" style="border:1px solid ${isToday?'var(--accent)':isPast?'var(--border)':'var(--border)'};border-radius:8px;padding:7px;min-height:90px;background:${isToday?'rgba(230,0,0,0.04)':isPast?'rgba(0,0,0,0.1)':'var(--s2)'};cursor:pointer;transition:border-color 0.12s;" onclick="openAddSessionFromCP('${c.id}','${ds}')" onmouseover="this.style.borderColor='var(--border2)'" onmouseout="this.style.borderColor='${isToday?'var(--accent)':isPast?'var(--border)':'var(--border)'}'">
-      <div style="font-size:10px;color:${isToday?'var(--accent)':'var(--muted)'};font-family:'DM Mono',monospace;font-weight:${isToday?700:400};">${dayName} ${d.getDate()}</div>
+    return `<div class="cp-cal-day${isToday?' is-today':''}${isPast?' is-past':''}" onclick="openAddSessionFromCP('${c.id}','${ds}')">
+      <div class="cp-cal-day-hd">${dayName} ${d.getDate()}</div>
       ${sessCards}
-      ${!sessDay.length?`<div style="margin-top:10px;text-align:center;font-size:16px;color:var(--border2);opacity:0.6;">+</div>`:''}
+      ${!sessDay.length?`<div class="cp-cal-day-add">+</div>`:''}
     </div>`;
   });
 
-  // TydzieĹ 2: podziel na wiersze po 7
+  // Tydzień 2: podziel na wiersze po 7
   let gridRows='';
   for(let w=0;w<weeks;w++){
     const weekDays=calGrid.slice(w*7,(w+1)*7);
@@ -3940,44 +4924,43 @@ function renderCPTraining(c){
 
   document.getElementById('cp-body').innerHTML=`
     ${noLoggedBanner}
-    <!-- Statystyki -->
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;">
-      <div style="background:var(--s3);border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:30px;color:var(--accent);">${last7}</div>
-        <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.5px;">Ostatnie 7 dni</div>
+    <div class="cp-train-stats">
+      <div class="cp-train-stat">
+        <div class="cp-train-stat-n">${doneWeek.size} z ${plannedToToday.length}</div>
+        <div class="cp-train-stat-l">Realizacja planu w wybranym tygodniu do dziś${extraWeek?` · poza planem: ${extraWeek}`:''}</div>
       </div>
-      <div style="background:var(--s3);border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:30px;color:var(--blue);">${last30}</div>
-        <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.5px;">Ostatnie 30 dni</div>
-      </div>
-      <div style="background:var(--s3);border-radius:10px;padding:14px;text-align:center;">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:30px;color:var(--teal);">${logged.length}</div>
-        <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.5px;">Zrobione${avgRate?' Âˇ Ĺr. '+avgRate+'/5':''}</div>
+      <div class="cp-train-stat">
+        <div class="cp-train-stat-n">${done30.size} z ${planned30.length}</div>
+        <div class="cp-train-stat-l">Realizacja planu · ostatnie 30 dni${extra30?` · poza planem: ${extra30}`:''}</div>
       </div>
     </div>
 
-    <!-- NagĹĂłwek Master Planner -->
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
-      <!-- Tabs: Assignment / History -->
-      <div style="display:flex;gap:2px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:2px;">
-        <button onclick="cpMpTab('${c.id}','assignment')" style="padding:5px 14px;border-radius:6px;border:none;font-size:12px;font-weight:600;cursor:pointer;background:${c._mpTab==='assignment'?'var(--accent)':'none'};color:${c._mpTab==='assignment'?'#000':'var(--muted)'};">Assignment</button>
-        <button onclick="cpMpTab('${c.id}','history')" style="padding:5px 14px;border-radius:6px;border:none;font-size:12px;font-weight:600;cursor:pointer;background:${c._mpTab==='history'?'var(--accent)':'none'};color:${c._mpTab==='history'?'#000':'var(--muted)'};">History</button>
+    <div class="cp-mp-bar">
+      <div class="cp-mp-tabs">
+        <button type="button" onclick="cpMpTab('${c.id}','assignment')" class="cp-mp-tab${c._mpTab==='assignment'?' is-on':''}">Plan</button>
+        <button type="button" onclick="cpMpTab('${c.id}','history')" class="cp-mp-tab${c._mpTab==='history'?' is-on':''}">Historia</button>
       </div>
-      <!-- Zakres dat -->
-      <div style="font-size:12px;color:var(--muted);padding:0 4px;">đ ${rangeLabel}${activePlanName?` Âˇ ${escHtml(activePlanName)}`:''}</div>
-      <!-- Przycisk + Sesja -->
+      <div class="cp-mp-range">
+        <button type="button" class="cp-week-nav" onclick="cpMpShiftWeek('${c.id}',-1)" aria-label="Poprzedni tydzień">‹</button>
+        <span>📅 ${rangeLabel}${activePlanName?` · ${escHtml(activePlanName)}`:''}</span>
+        <button type="button" class="cp-week-nav" onclick="cpMpShiftWeek('${c.id}',1)" aria-label="Następny tydzień">›</button>
+      </div>
       <button class="btn btn-primary btn-sm" style="margin-left:auto;" onclick="openAddSessionFromCP('${c.id}','${todayStr}')">+ Sesja</button>
-      ${plannedN?`<button type="button" class="btn btn-ghost btn-sm" id="cp-clear-planned" onclick="clearClientPlannedSessions('${c.id}')" title="UsuĹ czerwone karty planu z kalendarza">UsuĹ terminy planu</button>`:''}
-      <!-- Widok: 1W / 2W / 4W -->
-      <div style="display:flex;gap:2px;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:2px;">
-        <button onclick="cpMpView('${c.id}','1w')" style="padding:4px 10px;border-radius:6px;border:none;font-size:11px;font-weight:600;cursor:pointer;background:${c._mpView==='1w'?'var(--s1)':'none'};color:${c._mpView==='1w'?'var(--text)':'var(--muted)'};">1 TydzieĹ</button>
-        <button onclick="cpMpView('${c.id}','2w')" style="padding:4px 10px;border-radius:6px;border:none;font-size:11px;font-weight:600;cursor:pointer;background:${c._mpView==='2w'?'var(--s1)':'none'};color:${c._mpView==='2w'?'var(--text)':'var(--muted)'};">2 Tygodnie</button>
-        <button onclick="cpMpView('${c.id}','4w')" style="padding:4px 10px;border-radius:6px;border:none;font-size:11px;font-weight:600;cursor:pointer;background:${c._mpView==='4w'?'var(--s1)':'none'};color:${c._mpView==='4w'?'var(--text)':'var(--muted)'};">4 Tygodnie</button>
+      ${plannedN?`<div class="cp-mp-more-wrap">
+        <button type="button" class="btn btn-ghost btn-sm" id="cp-mp-more-btn" onclick="toggleCpMpMore(event)" aria-expanded="false" aria-haspopup="true" title="Więcej">⋯</button>
+        <div class="cp-mp-more-menu" id="cp-mp-more-menu" hidden>
+          <button type="button" onclick="toggleCpMpMore(false);clearClientPlannedSessions('${c.id}')">Usuń terminy planu</button>
+        </div>
+      </div>`:''}
+      <div class="cp-mp-span">
+        <button type="button" onclick="cpMpView('${c.id}','1w')" class="cp-mp-span-btn${c._mpView==='1w'?' is-on':''}">1 Tydzień</button>
+        <button type="button" onclick="cpMpView('${c.id}','2w')" class="cp-mp-span-btn${c._mpView==='2w'?' is-on':''}">2 Tygodnie</button>
+        <button type="button" onclick="cpMpView('${c.id}','4w')" class="cp-mp-span-btn${c._mpView==='4w'?' is-on':''}">4 Tygodnie</button>
       </div>
     </div>
 
-    ${c._mpTab==='assignment'?`<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px;">
-      ${dayNamesShort.map(n=>`<div style="text-align:center;font-size:10px;color:var(--muted);font-weight:600;font-family:'DM Mono',monospace;text-transform:uppercase;">${n}</div>`).join('')}
+    ${c._mpTab==='assignment'?`<div class="cp-cal-dow">
+      ${dayNamesShort.map(n=>`<div>${n}</div>`).join('')}
     </div>`:''}
 
     <!-- Siatka kalendarza / Historia -->
@@ -3998,18 +4981,25 @@ function cpMpTab(clientId, tab){
   c._mpTab=tab;
   renderCPTraining(c);
 }
+function cpMpShiftWeek(clientId, delta){
+  const c=CL.find(x=>x.id===clientId);
+  if(!c)return;
+  c._mpWeekOffset=(Number(c._mpWeekOffset)||0)+Number(delta||0);
+  renderCPTraining(c);
+}
 window.cpMpView=cpMpView;
 window.cpMpTab=cpMpTab;
+window.cpMpShiftWeek=cpMpShiftWeek;
 
 function markCpSessionDone(plannedId){
   if(typeof openSalaDoneModal==='function')return openSalaDoneModal(plannedId);
-  if(typeof notify==='function')notify('Nie moĹźna oznaczyÄ sesji');
+  if(typeof notify==='function')notify('Nie można oznaczyć sesji');
 }
 window.markCpSessionDone=markCpSessionDone;
 
 function delCpSession(id){
   if(typeof delSession==='function')return delSession(id);
-  if(typeof notify==='function')notify('Nie moĹźna usunÄÄ sesji');
+  if(typeof notify==='function')notify('Nie można usunąć sesji');
 }
 window.delCpSession=delCpSession;
 
@@ -4017,13 +5007,13 @@ function clearClientPlannedSessions(clientId){
   const cid=String(clientId||'');
   const c=CL.find(x=>x.id===cid);
   const n=(window.SE||[]).filter(s=>s&&s.clientId===cid&&s.source==='planned').length;
-  if(!n){if(typeof notify==='function')notify('Brak terminĂłw planu w kalendarzu');return 0;}
-  if(!confirm('UsunÄÄ '+n+' terminĂłw planu z kalendarza'+(c?' ('+c.name+')':'')+'?\n\nZapisane treningi (Live / sala / apka) zostanÄ. Sam plan w bibliotece teĹź zostaje.'))return 0;
+  if(!n){if(typeof notify==='function')notify('Brak terminów planu w kalendarzu');return 0;}
+  if(!confirm('Usunąć '+n+' terminów planu z kalendarza'+(c?' ('+c.name+')':'')+'?\n\nZapisane treningi (Live / sala / apka) zostaną. Sam plan w bibliotece też zostaje.'))return 0;
   const dropped=typeof dropPlannedSessionsFrom==='function'?dropPlannedSessionsFrom(cid,'1970-01-01'):0;
   try{if(typeof renderCal==='function')renderCal();}catch(e){}
   try{if(typeof renderDash==='function')renderDash();}catch(e){}
   if(c&&typeof renderCPTraining==='function')renderCPTraining(c);
-  if(typeof notify==='function')notify('UsuniÄto '+dropped+' terminĂłw planu z kalendarza');
+  if(typeof notify==='function')notify('Usunięto '+dropped+' terminów planu z kalendarza');
   return dropped;
 }
 window.clearClientPlannedSessions=clearClientPlannedSessions;
@@ -4042,11 +5032,11 @@ function renderCPNotes(c){
   document.getElementById('cp-body').innerHTML=`
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
       <div class="cp-section-title" style="margin:0;">NOTATKI (${notes.length})</div>
-      <button onclick="addClientNote('${c.id}')" class="btn btn-primary btn-sm">+ Dodaj notatkÄ</button>
+      <button onclick="addClientNote('${c.id}')" class="btn btn-primary btn-sm">+ Dodaj notatkę</button>
     </div>
     <div id="cp-notes-area">
-      ${notes.map((n,ni)=>`<div class="cip-note" style="position:relative;padding-right:24px;margin-bottom:8px;"><div>${n.text}</div><div class="cip-note-date">${n.date}</div><button onclick="deleteClientNote('${c.id}',${ni})" style="position:absolute;top:4px;right:4px;background:none;border:none;color:var(--muted2);font-size:14px;cursor:pointer;line-height:1;">Ă</button></div>`).join('')}
-      ${!notes.length?'<div style="text-align:center;padding:40px;color:var(--muted);">Brak notatek â dodaj pierwszÄ obserwacjÄ z treningu</div>':''}
+      ${notes.map((n,ni)=>`<div class="cip-note" style="position:relative;padding-right:24px;margin-bottom:8px;"><div>${n.text}</div><div class="cip-note-date">${n.date}</div><button onclick="deleteClientNote('${c.id}',${ni})" style="position:absolute;top:4px;right:4px;background:none;border:none;color:var(--muted2);font-size:14px;cursor:pointer;line-height:1;">×</button></div>`).join('')}
+      ${!notes.length?'<div style="text-align:center;padding:40px;color:var(--muted);">Brak notatek — dodaj pierwszą obserwację z treningu</div>':''}
       <div id="note-input-${c.id}" style="display:none;margin-top:12px;">
         <textarea id="note-text-${c.id}" rows="3" style="width:100%;background:var(--s4);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;resize:none;font-family:'DM Sans',sans-serif;"></textarea>
         <div style="display:flex;gap:6px;margin-top:6px;">
@@ -4058,60 +5048,60 @@ function renderCPNotes(c){
 }
 window.renderCPNotes=renderCPNotes;
 
-// ââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-// CP â FOOD JOURNAL (stub â zakĹadka ukryta; brak persistencji i apki klienta)
-// ââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ══════════════════════════════════════════════════════
+// CP — FOOD JOURNAL (stub — zakładka ukryta; brak persistencji i apki klienta)
+// ══════════════════════════════════════════════════════
 window.CLIENT_FOOD = window.CLIENT_FOOD || {};
 function renderCPFood(c){
   document.getElementById('cp-body').innerHTML=`
-    <div class="cp-section-title">ĹťYWIENIE</div>
+    <div class="cp-section-title">ŻYWIENIE</div>
     <div style="text-align:center;padding:48px 20px;background:var(--s3);border-radius:12px;border:1px dashed var(--border2);">
-      <div style="font-size:36px;margin-bottom:10px;opacity:0.5;">đĽ</div>
-      <div style="font-size:14px;font-weight:700;margin-bottom:6px;">Dziennik Ĺźywieniowy w przygotowaniu</div>
+      <div style="font-size:36px;margin-bottom:10px;opacity:0.5;">🥗</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:6px;">Dziennik żywieniowy w przygotowaniu</div>
       <div style="font-size:12px;color:var(--muted);line-height:1.55;max-width:360px;margin:0 auto 14px;">
-        Ta zakĹadka byĹa tylko stubem (wpisy w pamiÄci, bez zapisu i bez widoku w apce klienta). WrĂłci, gdy bÄdzie prawdziwy dziennik + zdjÄcia posiĹkĂłw.
+        Ta zakładka była tylko stubem (wpisy w pamięci, bez zapisu i bez widoku w apce klienta). Wróci, gdy będzie prawdziwy dziennik + zdjęcia posiłków.
       </div>
-      <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('overview')">â WrĂłÄ do przeglÄdu</button>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('overview')">← Wróć do przeglądu</button>
     </div>`;
 }
 function addFoodEntry(){
-  if(typeof notify==='function')notify('Dziennik Ĺźywieniowy jest w przygotowaniu');
+  if(typeof notify==='function')notify('Dziennik żywieniowy jest w przygotowaniu');
 }
 function viewFoodEntry(){
-  if(typeof notify==='function')notify('Dziennik Ĺźywieniowy jest w przygotowaniu');
+  if(typeof notify==='function')notify('Dziennik żywieniowy jest w przygotowaniu');
 }
 
-// ââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-// CP â DOCUMENTS
-// ââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ══════════════════════════════════════════════════════
+// CP — DOCUMENTS
+// ══════════════════════════════════════════════════════
 window.CLIENT_DOCS = window.CLIENT_DOCS || {};
 function renderCPDocuments(c){
   if(!window.CLIENT_DOCS[c.id])window.CLIENT_DOCS[c.id]=[];
   const docs=window.CLIENT_DOCS[c.id];
-  const typeIcon={pdf:'đ',image:'đźď¸',video:'đŹ',other:'đ'};
+  const typeIcon={pdf:'📄',image:'🖼️',video:'🎬',other:'📁'};
   document.getElementById('cp-body').innerHTML=`
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
       <div class="cp-section-title" style="margin:0;">DOKUMENTY (${docs.length})</div>
       <button class="btn btn-primary btn-sm" onclick="addClientDoc('${c.id}')">+ Notatka / nazwa</button>
     </div>
     <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:12px;background:var(--s3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;">
-      Lista nazw dokumentĂłw trenera (zapis w bazie). <b>Upload plikĂłw i widok w apce klienta â w przygotowaniu.</b> Ankiety wysyĹaj z Formularzy (apkÄ lub PDF).
+      Lista nazw dokumentów trenera (zapis w bazie). <b>Upload plików i widok w apce klienta — w przygotowaniu.</b> Ankiety wysyłaj z Formularzy (apką lub PDF).
     </div>
     ${!docs.length?`<div style="text-align:center;padding:40px 20px;background:var(--s3);border-radius:12px;border:1px dashed var(--border2);">
-      <div style="font-size:40px;margin-bottom:12px;">đ</div>
-      <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Brak wpisĂłw</div>
-      <div style="font-size:11px;color:var(--muted);">Dodaj nazwÄ dokumentu / notatkÄ dla siebie (bez pliku).</div>
-      <button class="btn btn-ghost btn-sm" style="margin-top:14px;" onclick="addClientDoc('${c.id}')">+ Dodaj nazwÄ</button>
+      <div style="font-size:40px;margin-bottom:12px;">📂</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Brak wpisów</div>
+      <div style="font-size:11px;color:var(--muted);">Dodaj nazwę dokumentu / notatkę dla siebie (bez pliku).</div>
+      <button class="btn btn-ghost btn-sm" style="margin-top:14px;" onclick="addClientDoc('${c.id}')">+ Dodaj nazwę</button>
     </div>`:
     docs.map(d=>`
       <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--s3);border-radius:10px;margin-bottom:8px;">
-        <div style="width:40px;height:40px;border-radius:8px;background:var(--s4);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">${typeIcon[d.type]||'đ'}</div>
+        <div style="width:40px;height:40px;border-radius:8px;background:var(--s4);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">${typeIcon[d.type]||'📁'}</div>
         <div style="flex:1;overflow:hidden;">
           <div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(d.name||'')}</div>
-          <div style="font-size:10px;color:var(--muted);">${escHtml(d.date||'')}${d.size&&d.size!=='â'?' Âˇ '+escHtml(d.size):''}</div>
+          <div style="font-size:10px;color:var(--muted);">${escHtml(d.date||'')}${d.size&&d.size!=='—'?' · '+escHtml(d.size):''}</div>
           ${d.note?`<div style="font-size:10px;color:var(--muted2);font-style:italic;">${escHtml(d.note)}</div>`:''}
         </div>
-        <button type="button" onclick="delClientDoc('${escHtml(c.id)}','${escHtml(d.id)}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;padding:4px;" title="UsuĹ">đ</button>
+        <button type="button" onclick="delClientDoc('${escHtml(c.id)}','${escHtml(d.id)}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;padding:4px;" title="Usuń">🗑</button>
       </div>`).join('')}`;
 }
 function addClientDoc(clientId){
@@ -4122,7 +5112,7 @@ function addClientDoc(clientId){
   const docItem=withTrainer({
     id:newId('doc'),clientId,name,type,note,
     date:new Date().toISOString().split('T')[0],
-    size:'â',
+    size:'—',
     createdAt:new Date().toISOString()
   });
   window.CLIENT_DOCS[clientId].push(docItem);
@@ -4130,15 +5120,15 @@ function addClientDoc(clientId){
   const c=CL.find(x=>x.id===clientId);if(c)renderCPDocuments(c);
 }
 function delClientDoc(clientId,docId){
-  if(!confirm('UsunÄÄ dokument?'))return;
+  if(!confirm('Usunąć dokument?'))return;
   window.CLIENT_DOCS[clientId]=(window.CLIENT_DOCS[clientId]||[]).filter(x=>x.id!==docId);
   if(window._db){try{window._del(window._doc(window._db,'clientDocs',docId));}catch(e){}}
   const c=CL.find(x=>x.id===clientId);if(c)renderCPDocuments(c);
 }
 
-// ââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-// CP â SETTINGS (ustawienia per klient jak w Everfit)
-// ââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ══════════════════════════════════════════════════════
+// CP — SETTINGS (ustawienia per klient jak w Everfit)
+// ══════════════════════════════════════════════════════
 function toggleClientFeature(clientId,feature,tab){
   const c=CL.find(x=>x.id===clientId);if(!c)return;
   if(!c.clientSettings)c.clientSettings={};
@@ -4148,20 +5138,20 @@ function toggleClientFeature(clientId,feature,tab){
   persistById('clients',c);
   if(tab)setCPTab(tab);
   else renderCPSettings(c);
-  notify(feature+' '+(c.clientSettings[feature]?'wĹÄczone':'wyĹÄczone'));
+  notify(feature+' '+(c.clientSettings[feature]?'włączone':'wyłączone'));
 }
 function renderCPSettings(c){
   if(!c.clientSettings)c.clientSettings={};
   const s=c.clientSettings;
   // Tylko funkcje faktycznie respektowane w apce (progressPhoto, bodyMetrics).
-  // foodJournal / macros / mealPlan usuniÄte â byĹy stubami bez implementacji.
+  // foodJournal / macros / mealPlan usunięte — były stubami bez implementacji.
   const feat=[
-    {key:'progressPhoto',label:'ZdjÄcia postÄpu',desc:'Klient moĹźe dodawaÄ zdjÄcia sylwetki w jednym widoku ZdjÄcia',icon:'đ¸',default:true},
-    {key:'bodyMetrics',label:'Pomiary ciaĹa',desc:'Masa, obwody i Garmin w podsumowaniu PostÄpĂłw',icon:'đ',default:true},
+    {key:'progressPhoto',label:'Zdjęcia postępu',desc:'Klient może dodawać zdjęcia sylwetki w Progress',icon:'📸',default:true},
+    {key:'bodyMetrics',label:'Pomiary ciała',desc:'Masa, obwody i Garmin w Progress klienta (treningi zostają)',icon:'📏',default:true},
   ];
   const coming=[
-    {icon:'đĽ',label:'Dziennik Ĺźywieniowy',desc:'W przygotowaniu â nie wĹÄczamy przeĹÄcznika, Ĺźeby nie obiecywaÄ funkcji'},
-    {icon:'đ',label:'Upload dokumentĂłw',desc:'W przygotowaniu â dziĹ tylko lista nazw u trenera'},
+    {icon:'🥗',label:'Dziennik żywieniowy',desc:'W przygotowaniu — nie włączamy przełącznika, żeby nie obiecywać funkcji'},
+    {icon:'📎',label:'Upload dokumentów',desc:'W przygotowaniu — dziś tylko lista nazw u trenera'},
   ];
   const toggle=(key,defaultVal)=>{
     const on=s[key]!==undefined?s[key]:defaultVal;
@@ -4170,17 +5160,8 @@ function renderCPSettings(c){
     </div>`;
   };
   document.getElementById('cp-body').innerHTML=`
-    <div class="cp-section-title">USTAWIENIA KLIENTA</div>
-    <details style="margin-bottom:20px;">
-      <summary style="cursor:pointer;padding:10px 0;">Dodatkowe widoki</summary>
-      <div style="display:flex;flex-wrap:wrap;gap:8px;padding:10px 0;">
-        <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('analytics')">Oceny: Psycho Âˇ SFR Âˇ Postawa</button>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('timeline')">Historia aktywnoĹci</button>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('documents')">Spis dokumentĂłw (bez plikĂłw)</button>
-      </div>
-    </details>
     <div class="cp-section-title">FUNKCJE W APLIKACJI KLIENTA</div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:14px;">PrzeĹÄczniki tylko dla funkcji, ktĂłre realnie dziaĹajÄ. Reszta nawigacji klienta: Ustawienia â Aplikacja klienta.</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:14px;">Przełączniki tylko dla funkcji, które realnie działają. Reszta nawigacji klienta: Ustawienia → Aplikacja klienta.</div>
     ${feat.map(f=>{
       const on=s[f.key]!==undefined?s[f.key]:f.default;
       return `<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);">
@@ -4199,7 +5180,7 @@ function renderCPSettings(c){
         <div style="font-size:13px;font-weight:600;color:var(--muted);">${f.label}</div>
         <div style="font-size:11px;color:var(--muted);">${f.desc}</div>
       </div>
-      <span class="pill pill-muted" style="font-size:9px;">WKRĂTCE</span>
+      <span class="pill pill-muted" style="font-size:9px;">WKRÓTCE</span>
     </div>`).join('')}
 
     <div style="margin-top:20px;" class="cp-section-title">USTAWIENIA JEDNOSTEK</div>
@@ -4226,8 +5207,8 @@ function renderCPSettings(c){
         .map(tz=>`<option value="${tz}" ${(s.timezone||'Europe/Warsaw')===tz?'selected':''}>${tz.replace('_',' ')}</option>`).join('')}
     </select>
 
-    <button class="btn btn-danger btn-sm" style="width:100%;margin-bottom:8px;" onclick="archiveClient('${c.id}')">đ Zarchiwizuj klienta</button>
-    <button class="btn btn-ghost btn-sm" style="width:100%;color:var(--red);" onclick="deleteClientPermanently('${c.id}')">đ UsuĹ klienta na zawsze</button>`;
+    <button class="btn btn-danger btn-sm" style="width:100%;margin-bottom:8px;" onclick="archiveClient('${c.id}')">🗃 Zarchiwizuj klienta</button>
+    <button class="btn btn-ghost btn-sm" style="width:100%;color:var(--red);" onclick="deleteClientPermanently('${c.id}')">🗑 Usuń klienta na zawsze</button>`;
 }
 function updateClientUnit(clientId,key,value){
   const c=CL.find(x=>x.id===clientId);if(!c)return;
@@ -4239,9 +5220,9 @@ function updateClientUnit(clientId,key,value){
 
 
 
-// ââââââââââââââââââââââââââââââââââââââââ
+// ════════════════════════════════════════
 // PODSUMOWANIE START + MONITORING PROGRESU
-// ââââââââââââââââââââââââââââââââââââââââ
+// ════════════════════════════════════════
 
 const JOURNEY_ACT_MULT={sedentary:1.2,light:1.375,moderate:1.55,active:1.725,very_active:1.9};
 const JOURNEY_GOAL_DELTA={redukcja:-300,masa:300,sila:0,kondycja:0,atletyzm:0,rehab:0};
@@ -4284,10 +5265,10 @@ function journeyIntakeHighlights(c){
   const send=state&&state.filledSend;
   const out={filled:!!(state&&state.filled),pending:!!(state&&state.pending),rows:[]};
   if(!send){
-    out.rows.push({k:'Status ankiety',v:state&&state.pending?'WysĹana â czekamy na klienta':(state&&state.sent?'WysĹana':'Nie wypeĹniona')});
-    if(c.goal)out.rows.push({k:'Cel (z profilu)',v:({masa:'Budowa masy',sila:'SiĹa',redukcja:'Redukcja',kondycja:'Kondycja'})[c.goal]||c.goal});
-    if(c.level)out.rows.push({k:'Poziom',v:({poczatkujacy:'PoczÄtkujÄcy',sredni:'Ĺredni',zaawansowany:'Zaawansowany'})[c.level]||c.level});
-    if(c.trainingFreq)out.rows.push({k:'Dni/tydzieĹ',v:String(c.trainingFreq)});
+    out.rows.push({k:'Status ankiety',v:state&&state.pending?'Wysłana — czekamy na klienta':(state&&state.sent?'Wysłana':'Nie wypełniona')});
+    if(c.goal)out.rows.push({k:'Cel (z profilu)',v:({masa:'Budowa masy',sila:'Siła',redukcja:'Redukcja',kondycja:'Kondycja'})[c.goal]||c.goal});
+    if(c.level)out.rows.push({k:'Poziom',v:({poczatkujacy:'Początkujący',sredni:'Średni',zaawansowany:'Zaawansowany'})[c.level]||c.level});
+    if(c.trainingFreq)out.rows.push({k:'Dni/tydzień',v:String(c.trainingFreq)});
     if(c.injuries)out.rows.push({k:'Kontuzje / ograniczenia',v:String(c.injuries)});
     return out;
   }
@@ -4296,7 +5277,7 @@ function journeyIntakeHighlights(c){
   (qs||[]).slice(0,8).forEach(q=>{
     if(!q)return;
     const raw=map[q.id];
-    const val=typeof formatFormAnswer==='function'?formatFormAnswer(q,raw):(raw!=null&&String(raw).trim()!==''?String(raw):'â');
+    const val=typeof formatFormAnswer==='function'?formatFormAnswer(q,raw):(raw!=null&&String(raw).trim()!==''?String(raw):'—');
     out.rows.push({k:q.label||q.id,v:val});
   });
   return out;
@@ -4306,7 +5287,7 @@ function journeyPlanHighlights(c){
   const plan=typeof latestClientPlan==='function'?latestClientPlan(c.id):((window.PL||[]).filter(p=>p.clientId===c.id)[0]||null);
   if(!plan)return{hasPlan:false,plan:null,days:[]};
   const days=(plan.days||[]).map(d=>({
-    label:d.d||d.day||d.name||'DzieĹ',
+    label:d.d||d.day||d.name||'Dzień',
     focus:d.focus||d.name||'',
     exCount:(d.exercises||d.ex||[]).length
   }));
@@ -4318,17 +5299,17 @@ function buildOnboardNextSteps(c,ctx){
   const intake=ctx.intake||{};
   const plan=ctx.plan||{};
   const macros=ctx.macros;
-  if(!intake.filled)steps.push({prio:'high',text:'DokoĹcz ankietÄ wstÄpnÄ â bez niej cel, poziom i ograniczenia sÄ niekompletne.'});
-  if(!plan.hasPlan)steps.push({prio:'high',text:'Przypisz / wygeneruj plan treningowy dopasowany do ankiety i staĹźu.'});
+  if(!intake.filled)steps.push({prio:'high',text:'Dokończ ankietę wstępną — bez niej cel, poziom i ograniczenia są niekompletne.'});
+  if(!plan.hasPlan)steps.push({prio:'high',text:'Przypisz / wygeneruj plan treningowy dopasowany do ankiety i stażu.'});
   else if(plan.days&&plan.days.length&&typeof scheduleClientPlanToCalendar==='function'){
     const sess=(window.SE||[]).filter(s=>s.clientId===c.id).length;
-    if(sess<3)steps.push({prio:'med',text:'WrzuÄ plan do kalendarza (4 tyg.), Ĺźeby klient widziaĹ kolejne treningi w apce.'});
+    if(sess<3)steps.push({prio:'med',text:'Wrzuć plan do kalendarza (4 tyg.), żeby klient widział kolejne treningi w apce.'});
   }
-  if(!macros)steps.push({prio:'med',text:'Policz makro w Kalkulatorze i wyĹlij klientowi (zapisze siÄ w profilu).'});
-  else if(macros.source==='estimate')steps.push({prio:'low',text:'Makro jest szacunkowe â potwierdĹş w Kalkulatorze i wyĹlij klientowi.'});
-  if(!(c.weight&&c.height))steps.push({prio:'med',text:'UzupeĹnij wagÄ i wzrost (pomiary bazowe) â potrzebne do makro i monitoringu.'});
-  steps.push({prio:'low',text:'UmĂłw pierwszy check-in za 7 dni â punkt startowy do oceny progresu.'});
-  steps.push({prio:'low',text:'WyjaĹnij klientowi metodÄ i cele prostym jÄzykiem (ĹciÄgawka / âJak wytĹumaczyÄ klientowiâ).'});
+  if(!macros)steps.push({prio:'med',text:'Policz makro w Kalkulatorze i wyślij klientowi (zapisze się w profilu).'});
+  else if(macros.source==='estimate')steps.push({prio:'low',text:'Makro jest szacunkowe — potwierdź w Kalkulatorze i wyślij klientowi.'});
+  if(!(c.weight&&c.height))steps.push({prio:'med',text:'Uzupełnij wagę i wzrost (pomiary bazowe) — potrzebne do makro i monitoringu.'});
+  steps.push({prio:'low',text:'Umów pierwszy check-in za 7 dni — punkt startowy do oceny progresu.'});
+  steps.push({prio:'low',text:'Wyjaśnij klientowi metodę i cele prostym językiem (ściągawka / „Jak wytłumaczyć klientowi”).'});
   return steps.slice(0,6);
 }
 
@@ -4366,53 +5347,57 @@ function buildMonitorVerdict(c){
   let score=0; // >0 progress, <0 regress
   if(massDelta!=null){
     if(goal==='redukcja'){
-      if(massDelta< -0.5){score+=2;signals.push({tone:'good',label:'Masa ciaĹa',text:`Spadek ${Math.abs(massDelta)}% vs poprzedni pomiar â zgodne z redukcjÄ.`});}
-      else if(massDelta>1){score-=2;signals.push({tone:'bad',label:'Masa ciaĹa',text:`Wzrost ${massDelta}% â sprawdĹş deficyt / adherence ĹźywieniowÄ.`});}
-      else signals.push({tone:'neutral',label:'Masa ciaĹa',text:`Zmiana ${massDelta}% â stabilnie; obserwuj trend 2â3 pomiarĂłw.`});
+      if(massDelta< -0.5){score+=2;signals.push({tone:'good',label:'Masa ciała',text:`Spadek ${Math.abs(massDelta)}% vs poprzedni pomiar — zgodne z redukcją.`});}
+      else if(massDelta>1){score-=2;signals.push({tone:'bad',label:'Masa ciała',text:`Wzrost ${massDelta}% — sprawdź deficyt / adherence żywieniową.`});}
+      else signals.push({tone:'neutral',label:'Masa ciała',text:`Zmiana ${massDelta}% — stabilnie; obserwuj trend 2–3 pomiarów.`});
     }else if(goal==='masa'||goal==='sila'){
-      if(massDelta>0.5){score+=2;signals.push({tone:'good',label:'Masa ciaĹa',text:`Wzrost ${massDelta}% â dobry sygnaĹ przy budowie masy / sile.`});}
-      else if(massDelta< -1){score-=1;signals.push({tone:'warn',label:'Masa ciaĹa',text:`Spadek ${Math.abs(massDelta)}% â upewnij siÄ, Ĺźe nadwyĹźka kaloryczna i regeneracja sÄ OK.`});}
-      else signals.push({tone:'neutral',label:'Masa ciaĹa',text:`Zmiana ${massDelta}% â powoli; to nie musi byÄ problem.`});
+      if(massDelta>0.5){score+=2;signals.push({tone:'good',label:'Masa ciała',text:`Wzrost ${massDelta}% — dobry sygnał przy budowie masy / sile.`});}
+      else if(massDelta< -1){score-=1;signals.push({tone:'warn',label:'Masa ciała',text:`Spadek ${Math.abs(massDelta)}% — upewnij się, że nadwyżka kaloryczna i regeneracja są OK.`});}
+      else signals.push({tone:'neutral',label:'Masa ciała',text:`Zmiana ${massDelta}% — powoli; to nie musi być problem.`});
     }else{
-      signals.push({tone:'neutral',label:'Masa ciaĹa',text:massDelta!=null?`Zmiana ${massDelta}%.`:'Brak drugiego pomiaru masy.'});
+      signals.push({tone:'neutral',label:'Masa ciała',text:massDelta!=null?`Zmiana ${massDelta}%.`:'Brak drugiego pomiaru masy.'});
     }
-  }else signals.push({tone:'neutral',label:'Masa ciaĹa',text:'Za maĹo pomiarĂłw masy (potrzeba âĽ2).'});
+  }else signals.push({tone:'neutral',label:'Masa ciała',text:'Za mało pomiarów masy (potrzeba ≥2).'});
 
   if(bfDelta!=null){
-    if(bfDelta< -1){score+=1;signals.push({tone:'good',label:'% tkanki tĹuszczowej',text:`Spadek ${Math.abs(bfDelta)}%.`});}
-    else if(bfDelta>2){score-=1;signals.push({tone:'warn',label:'% tkanki tĹuszczowej',text:`Wzrost ${bfDelta}% â warto skorygowaÄ makro / NEAT.`});}
+    if(bfDelta< -1){score+=1;signals.push({tone:'good',label:'% tkanki tłuszczowej',text:`Spadek ${Math.abs(bfDelta)}%.`});}
+    else if(bfDelta>2){score-=1;signals.push({tone:'warn',label:'% tkanki tłuszczowej',text:`Wzrost ${bfDelta}% — warto skorygować makro / NEAT.`});}
   }
 
   if(squatDelta!=null){
-    if(squatDelta>0){score+=2;signals.push({tone:'good',label:'SiĹa (przysiad 1RM)',text:`+${squatDelta}% â progres siĹowy.`});}
-    else if(squatDelta< -3){score-=2;signals.push({tone:'bad',label:'SiĹa (przysiad 1RM)',text:`${squatDelta}% â moĹźliwy regres; sprawdĹş objÄtoĹÄ i sen.`});}
-    else signals.push({tone:'neutral',label:'SiĹa (przysiad 1RM)',text:`${squatDelta}% â plateau / szum pomiaru.`});
+    if(squatDelta>0){score+=2;signals.push({tone:'good',label:'Siła (przysiad 1RM)',text:`+${squatDelta}% — progres siłowy.`});}
+    else if(squatDelta< -3){score-=2;signals.push({tone:'bad',label:'Siła (przysiad 1RM)',text:`${squatDelta}% — możliwy regres; sprawdź objętość i sen.`});}
+    else signals.push({tone:'neutral',label:'Siła (przysiad 1RM)',text:`${squatDelta}% — plateau / szum pomiaru.`});
   }
 
   if(adh30.assigned||adh30.logged){
-    if(adh30.pct>=75){score+=2;signals.push({tone:'good',label:'Adherencja 30 dni',text:`${adh30.pct}% (${adh30.logged}/${adh30.assigned}) â solidna regularnoĹÄ.`});}
-    else if(adh30.pct>=50){score+=0;signals.push({tone:'warn',label:'Adherencja 30 dni',text:`${adh30.pct}% â Ĺrednio; uproĹÄ plan albo usuĹ bariery.`});}
-    else{score-=2;signals.push({tone:'bad',label:'Adherencja 30 dni',text:`${adh30.pct}% â ryzyko regresu przez brak bodĹşca.`});}
+    const adhMin=typeof CP_OV_ADH_MIN==='number'?CP_OV_ADH_MIN:4;
+    const adhOk=typeof cpAdhSampleOk==='function'?cpAdhSampleOk(adh30):Number(adh30.assigned||0)>=adhMin;
+    if(!adhOk){
+      signals.push({tone:'neutral',label:'Regularność 30 dni',text:`Za mało danych (${adh30.logged}/${adh30.assigned||0} z min. ${adhMin} treningów).`});
+    }else if(adh30.pct>=75){score+=2;signals.push({tone:'good',label:'Regularność 30 dni',text:`${adh30.pct}% (${adh30.logged}/${adh30.assigned}) — solidna regularność.`});}
+    else if(adh30.pct>=50){score+=0;signals.push({tone:'warn',label:'Regularność 30 dni',text:`${adh30.pct}% — średnio; uprość plan albo usuń bariery.`});}
+    else{score-=2;signals.push({tone:'bad',label:'Regularność 30 dni',text:`${adh30.pct}% — ryzyko regresu przez brak bodźca.`});}
   }
   if(adh7.logged===0&&adh7.assigned>0){
-    score-=1;signals.push({tone:'warn',label:'Ostatni tydzieĹ',text:`0 z ${adh7.assigned} zaplanowanych â krĂłtki kontakt check-inowy.`});
+    score-=1;signals.push({tone:'warn',label:'Ostatni tydzień',text:`0 z ${adh7.assigned} zaplanowanych — krótki kontakt check-inowy.`});
   }
   if(daysSince!=null&&daysSince>10){
-    score-=2;signals.push({tone:'bad',label:'NieobecnoĹÄ',text:`Brak sesji od ${daysSince} dni.`});
+    score-=2;signals.push({tone:'bad',label:'Nieobecność',text:`Brak sesji od ${daysSince} dni.`});
   }
   if(checkTrend!=null){
-    if(checkTrend>=5){score+=1;signals.push({tone:'good',label:'Check-in',text:`Samopoczucie â (+${Math.round(checkTrend)} pkt).`});}
-    else if(checkTrend<=-8){score-=2;signals.push({tone:'bad',label:'Check-in',text:`Samopoczucie â (${Math.round(checkTrend)} pkt) â obniĹź intensywnoĹÄ / dopytaj o sen i stres.`});}
+    if(checkTrend>=5){score+=1;signals.push({tone:'good',label:'Check-in',text:`Samopoczucie ↑ (+${Math.round(checkTrend)} pkt).`});}
+    else if(checkTrend<=-8){score-=2;signals.push({tone:'bad',label:'Check-in',text:`Samopoczucie ↓ (${Math.round(checkTrend)} pkt) — obniż intensywność / dopytaj o sen i stres.`});}
   }
   if(volNow!=null&&volPrev!=null&&volPrev>0){
     const d=Math.round(((volNow-volPrev)/volPrev)*100);
-    if(d<=-20){score-=1;signals.push({tone:'warn',label:'ObjÄtoĹÄ sesji',text:`Ostatnie treningi ${d}% vs wczeĹniejsze â moĹźliwy spadek bodĹşca albo zmÄczenie.`});}
-    else if(d>=15){score+=1;signals.push({tone:'good',label:'ObjÄtoĹÄ sesji',text:`ObjÄtoĹÄ â ${d}% â idziemy do przodu, pilnuj regeneracji.`});}
+    if(d<=-20){score-=1;signals.push({tone:'warn',label:'Objętość sesji',text:`Ostatnie treningi ${d}% vs wcześniejsze — możliwy spadek bodźca albo zmęczenie.`});}
+    else if(d>=15){score+=1;signals.push({tone:'good',label:'Objętość sesji',text:`Objętość ↑ ${d}% — idziemy do przodu, pilnuj regeneracji.`});}
   }
   if(fbNow!=null&&fbPrev!=null&&fbPrev>0){
     const d=+(fbNow-fbPrev).toFixed(1);
-    if(d<=-1){score-=1;signals.push({tone:'bad',label:'Ocena treningu',text:`Ĺrednia ocena ${fbNow.toFixed(1)}/5 (â ${Math.abs(d)}) â sesje idÄ gorzej; skrĂłÄ objÄtoĹÄ albo dopytaj.`});}
-    else if(d>=0.6){score+=1;signals.push({tone:'good',label:'Ocena treningu',text:`Ocena sesji â do ${fbNow.toFixed(1)}/5.`});}
+    if(d<=-1){score-=1;signals.push({tone:'bad',label:'Ocena treningu',text:`Średnia ocena ${fbNow.toFixed(1)}/5 (↓ ${Math.abs(d)}) — sesje idą gorzej; skróć objętość albo dopytaj.`});}
+    else if(d>=0.6){score+=1;signals.push({tone:'good',label:'Ocena treningu',text:`Ocena sesji ↑ do ${fbNow.toFixed(1)}/5.`});}
   }
 
   let verdict='stabilnie';
@@ -4423,22 +5408,22 @@ function buildMonitorVerdict(c){
 
   const next=[];
   if(verdict==='progres'){
-    next.push('Idziemy w dobrÄ stronÄ â utrzymaj volume w MAV; dokĹadaj obciÄĹźenie tylko gdy RPE/RIR na to pozwala.');
-    next.push('Zaplanuj deload za 1â2 tygodnie, zanim pojawi siÄ plateau.');
+    next.push('Idziemy w dobrą stronę — utrzymaj volume w MAV; dokładaj obciążenie tylko gdy RPE/RIR na to pozwala.');
+    next.push('Zaplanuj deload za 1–2 tygodnie, zanim pojawi się plateau.');
   }else if(verdict==='regres'){
-    next.push('ZĹa strona â skrĂłÄ objÄtoĹÄ o ~20â30% na 7â10 dni i wrĂłÄ do MEV.');
-    next.push('Zweryfikuj sen, stres i makro â trening nie nadrobi deficytu regeneracji.');
-    next.push('Napisz krĂłtkÄ wiadomoĹÄ / wyĹlij check-in, Ĺźeby zĹapaÄ kontekst poza siĹowniÄ.');
+    next.push('Zła strona — skróć objętość o ~20–30% na 7–10 dni i wróć do MEV.');
+    next.push('Zweryfikuj sen, stres i makro — trening nie nadrobi deficytu regeneracji.');
+    next.push('Napisz krótką wiadomość / wyślij check-in, żeby złapać kontekst poza siłownią.');
   }else{
-    next.push('Zbierz jeszcze 1â2 pomiary i check-in â decyzje opieraj na trendzie, nie na jednym punkcie.');
-    if(adh30.pct<75)next.push('Popraw adherencjÄ (mniej dni albo krĂłtsze sesje), zanim zwiÄkszysz objÄtoĹÄ.');
-    if(!massDelta&&!squatDelta)next.push('UzupeĹnij pomiary masy i siĹy bazowej â bez nich monitoring jest Ĺlepy.');
+    next.push('Zbierz jeszcze 1–2 pomiary i check-in — decyzje opieraj na trendzie, nie na jednym punkcie.');
+    if(adh30.pct<75)next.push('Popraw adherencję (mniej dni albo krótsze sesje), zanim zwiększysz objętość.');
+    if(!massDelta&&!squatDelta)next.push('Uzupełnij pomiary masy i siły bazowej — bez nich monitoring jest ślepy.');
   }
   const bmiSt=typeof clientBmiStatus==='function'?clientBmiStatus(c.weight||(typeof clientLatestMetricWeight==='function'?clientLatestMetricWeight(c.id):null),c.height):null;
   if(bmiSt&&bmiSt.overweight&&bmiSt.tips[0]){
-    next.push((bmiSt.obese?'OtyĹoĹÄ':'Nadwaga')+' (BMI '+(bmiSt.bmi||'?')+'): '+bmiSt.tips[0]);
+    next.push((bmiSt.obese?'Otyłość':'Nadwaga')+' (BMI '+(bmiSt.bmi||'?')+'): '+bmiSt.tips[0]);
   }
-  insights.forEach(i=>{if(i&&i.text)next.push(i.text.replace(/^[^â]*â\s*/,''));});
+  insights.forEach(i=>{if(i&&i.text)next.push(i.text.replace(/^[^—]*—\s*/,''));});
 
   return{
     verdict,verdictTone,score,signals,next:next.slice(0,7),
@@ -4462,17 +5447,17 @@ function clientMonitorContextForAI(clientId){
   if(!c||typeof buildMonitorVerdict!=='function')return'';
   const v=buildMonitorVerdict(c);
   if(!v)return'';
-  const dir=v.verdict==='progres'?'DOBRA STRONA â utrzymuj kurs'
-    :(v.verdict==='regres'?'ZĹA STRONA â korekta teraz'
-    :(v.verdict==='ryzyko stagnacji'?'UWAGA â ryzyko stagnacji':'STABILNIE â zbieraj dane'));
-  const lines=['=== STRAĹťNIK POSTÄPĂW (OBOWIÄZKOWE) ==='];
+  const dir=v.verdict==='progres'?'DOBRA STRONA — utrzymuj kurs'
+    :(v.verdict==='regres'?'ZŁA STRONA — korekta teraz'
+    :(v.verdict==='ryzyko stagnacji'?'UWAGA — ryzyko stagnacji':'STABILNIE — zbieraj dane'));
+  const lines=['=== STRAŻNIK POSTĘPÓW (OBOWIĄZKOWE) ==='];
   lines.push('Werdykt: '+String(v.verdict||'').toUpperCase()+' (score '+(v.score??'?')+'). '+dir+'.');
   (v.signals||[]).forEach(s=>lines.push('- ['+(s.tone||'')+'] '+(s.label||'')+': '+(s.text||'')));
   if(v.next&&v.next.length){
-    lines.push('Jak zrobiÄ, Ĺźeby byĹo dobrze:');
+    lines.push('Jak zrobić, żeby było dobrze:');
     v.next.forEach(t=>lines.push('- '+t));
   }
-  lines.push('Powiedz trenerowi wprost: czy idziemy w dobrÄ czy zĹÄ stronÄ. Podaj 2â4 konkretne korekty planu / obciÄĹźenia / adherencji. Nie bÄdĹş ogĂłlnikowy.');
+  lines.push('Powiedz trenerowi wprost: czy idziemy w dobrą czy złą stronę. Podaj 2–4 konkretne korekty planu / obciążenia / adherencji. Nie bądź ogólnikowy.');
   return lines.join('\n')+'\n';
 }
 window.clientMonitorContextForAI=clientMonitorContextForAI;
@@ -4489,10 +5474,10 @@ function maybeNotifyTrainerMonitor(clientId,source){
   const key='monitor_'+clientId+'_'+v.verdict+'_'+monitorWeekKey();
   const list=typeof allNotifs==='function'?allNotifs():(window.NOTIFICATIONS||[]);
   if((list||[]).some(n=>n&&(n.id===key||n.autoKey===key)))return v;
-  const title=v.verdict==='progres'?'Idziemy w dobrÄ stronÄ'
-    :(v.verdict==='regres'?'Regres â korekta planu':'Ryzyko stagnacji');
+  const title=v.verdict==='progres'?'Idziemy w dobrą stronę'
+    :(v.verdict==='regres'?'Regres — korekta planu':'Ryzyko stagnacji');
   const advice=(v.next||[]).slice(0,2).join(' ');
-  addNotification(v.verdict==='regres'?'alert':'system',title,(c.name||'Klient')+' Âˇ '+advice,'clients',key);
+  addNotification(v.verdict==='regres'?'alert':'system',title,(c.name||'Klient')+' · '+advice,'clients',key);
   return v;
 }
 window.maybeNotifyTrainerMonitor=maybeNotifyTrainerMonitor;
@@ -4515,8 +5500,8 @@ function renderClientJourneyHTML(summary){
   if(!summary||!summary.client)return'<div class="client-journey" style="padding:24px;color:var(--text-label);">Brak danych klienta.</div>';
   const c=summary.client;
   const esc=(typeof escHtml==='function'?escHtml:(s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')));
-  const goalLbl=({masa:'Budowa masy',sila:'Wzrost siĹy',redukcja:'Redukcja',kondycja:'Kondycja',atletyzm:'Atletyzm',rehab:'Rehab'})[c.goal]||c.goal||'â';
-  const levelLbl=({poczatkujacy:'PoczÄtkujÄcy',sredni:'Ĺredni',zaawansowany:'Zaawansowany'})[c.level]||c.level||'â';
+  const goalLbl=({masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja',atletyzm:'Atletyzm',rehab:'Rehab'})[c.goal]||c.goal||'—';
+  const levelLbl=({poczatkujacy:'Początkujący',sredni:'Średni',zaawansowany:'Zaawansowany'})[c.level]||c.level||'—';
   const row=(k,v)=>`<div class="cj-row"><span class="cj-k">${esc(k)}</span><span class="cj-v">${esc(v)}</span></div>`;
   let hero='';
   if(summary.mode==='monitor'&&summary.monitor){
@@ -4524,25 +5509,25 @@ function renderClientJourneyHTML(summary){
     hero=`<div class="cj-verdict cj-verdict-${esc(v.verdictTone||'neutral')}">
       <div class="cj-verdict-lbl">Werdykt monitoringu</div>
       <div class="cj-verdict-val">${esc(v.verdict.toUpperCase())}</div>
-      <div class="cj-verdict-sub">Na podstawie pomiarĂłw, adherencji, check-inĂłw i planu</div>
+      <div class="cj-verdict-sub">Na podstawie pomiarów, adherencji, check-inów i planu</div>
     </div>`;
   }else{
     hero=`<div class="cj-verdict cj-verdict-neutral">
       <div class="cj-verdict-lbl">Podsumowanie startowe</div>
-      <div class="cj-verdict-val">PLAN Âˇ ANKIETA Âˇ MAKRO</div>
-      <div class="cj-verdict-sub">Co ustalone + co zrobiÄ dalej z klientem</div>
+      <div class="cj-verdict-val">PLAN · ANKIETA · MAKRO</div>
+      <div class="cj-verdict-sub">Co ustalone + co zrobić dalej z klientem</div>
     </div>`;
   }
-  const intakeHtml=`<div class="cj-card"><div class="cj-h">Ankieta wstÄpna</div>
-    ${summary.intake.rows.map(r=>row(r.k,r.v)).join('')||'<div class="cj-empty">Brak odpowiedzi â wyĹlij ankietÄ.</div>'}
+  const intakeHtml=`<div class="cj-card"><div class="cj-h">Ankieta wstępna</div>
+    ${summary.intake.rows.map(r=>row(r.k,r.v)).join('')||'<div class="cj-empty">Brak odpowiedzi — wyślij ankietę.</div>'}
   </div>`;
   const plan=summary.plan;
   const planHtml=`<div class="cj-card"><div class="cj-h">Plan treningowy</div>
     ${plan.hasPlan?`
-      ${row('Nazwa',plan.plan.name||'â')}
-      ${row('Metoda',plan.method||'â')}
-      ${row('Czas',plan.duration?plan.duration+' tyg.':'â')}
-      <div class="cj-days">${(plan.days||[]).map(d=>`<div class="cj-day"><b>${esc(d.label)}</b> ${esc(d.focus||'')} <span>${d.exCount?d.exCount+' Äw.':'â'}</span></div>`).join('')}</div>
+      ${row('Nazwa',plan.plan.name||'—')}
+      ${row('Metoda',plan.method||'—')}
+      ${row('Czas',plan.duration?plan.duration+' tyg.':'—')}
+      <div class="cj-days">${(plan.days||[]).map(d=>`<div class="cj-day"><b>${esc(d.label)}</b> ${esc(d.focus||'')} <span>${d.exCount?d.exCount+' ćw.':'—'}</span></div>`).join('')}</div>
     `:'<div class="cj-empty">Brak przypisanego planu.</div>'}
   </div>`;
   const mac=summary.macros;
@@ -4550,20 +5535,20 @@ function renderClientJourneyHTML(summary){
     ${mac?`
       ${row('TDEE',mac.tdee+' kcal')}
       ${row('Cel kcal',mac.targetKcal+' kcal')}
-      ${row('BiaĹko',mac.proteinG+' g')}
-      ${row('TĹuszcze',mac.fatG+' g')}
-      ${row('WÄglowodany',mac.carbG+' g')}
-      ${row('Woda (min.)',mac.weight?((Math.round(mac.weight*0.035*10)/10)+' l/dzieĹ'):'â')}
-      ${mac.source==='estimate'?'<div class="cj-note">Szacunek z danych klienta â potwierdĹş w Kalkulatorze i wyĹlij, Ĺźeby zapisaÄ.</div>':`<div class="cj-note">Zapisano ${mac.updatedAt?new Date(mac.updatedAt).toLocaleDateString('pl'):''}.</div>`}
-    `:'<div class="cj-empty">Brak wagi/wzrostu â nie da siÄ policzyÄ makro.</div>'}
+      ${row('Białko',mac.proteinG+' g')}
+      ${row('Tłuszcze',mac.fatG+' g')}
+      ${row('Węglowodany',mac.carbG+' g')}
+      ${row('Woda (min.)',mac.weight?((Math.round(mac.weight*0.035*10)/10)+' l/dzień'):'—')}
+      ${mac.source==='estimate'?'<div class="cj-note">Szacunek z danych klienta — potwierdź w Kalkulatorze i wyślij, żeby zapisać.</div>':`<div class="cj-note">Zapisano ${mac.updatedAt?new Date(mac.updatedAt).toLocaleDateString('pl'):''}.</div>`}
+    `:'<div class="cj-empty">Brak wagi/wzrostu — nie da się policzyć makro.</div>'}
   </div>`;
   let monitorHtml='';
   if(summary.mode==='monitor'&&summary.monitor){
-    monitorHtml=`<div class="cj-card"><div class="cj-h">SygnaĹy progres / regres</div>
+    monitorHtml=`<div class="cj-card"><div class="cj-h">Sygnały progres / regres</div>
       <div class="cj-signals">${summary.monitor.signals.map(s=>`<div class="cj-sig cj-sig-${esc(s.tone||'neutral')}"><b>${esc(s.label)}</b><span>${esc(s.text)}</span></div>`).join('')}</div>
     </div>`;
   }
-  const nextHtml=`<div class="cj-card cj-next"><div class="cj-h">Co dalej â wskazĂłwki</div>
+  const nextHtml=`<div class="cj-card cj-next"><div class="cj-h">Co dalej — wskazówki</div>
     <ol class="cj-ol">${(summary.next||[]).map(t=>`<li>${esc(typeof t==='string'?t:(t.text||''))}</li>`).join('')}</ol>
   </div>`;
   const when=new Date(summary.generatedAt||Date.now()).toLocaleString('pl');
@@ -4571,7 +5556,7 @@ function renderClientJourneyHTML(summary){
     <div class="cj-top">
       <div>
         <div class="cj-name">${esc(c.name)}</div>
-        <div class="cj-meta">${esc(goalLbl)} Âˇ ${esc(levelLbl)}${c.age?' Âˇ '+c.age+' lat':''}${c.weight?' Âˇ '+c.weight+' kg':''}</div>
+        <div class="cj-meta">${esc(goalLbl)} · ${esc(levelLbl)}${c.age?' · '+c.age+' lat':''}${c.weight?' · '+c.weight+' kg':''}</div>
       </div>
       <div class="cj-date">${esc(when)}</div>
     </div>
@@ -4579,7 +5564,7 @@ function renderClientJourneyHTML(summary){
     <div class="cj-grid">${intakeHtml}${planHtml}${macrosHtml}</div>
     ${monitorHtml}
     ${nextHtml}
-    <div class="cj-foot">Progress Live â podsumowanie dla trenera i klienta Âˇ moĹźesz wydrukowaÄ / zapisaÄ jako PDF</div>
+    <div class="cj-foot">Progress Live — podsumowanie dla trenera i klienta · możesz wydrukować / zapisać jako PDF</div>
   </div>`;
 }
 window.renderClientJourneyHTML=renderClientJourneyHTML;
@@ -4595,9 +5580,9 @@ function openClientJourneySummary(clientId,mode){
   const box=document.getElementById('report-container');
   const title=document.getElementById('report-overlay-title');
   const ov=document.getElementById('report-overlay');
-  if(!box||!ov){if(typeof notify==='function')notify('Brak podglÄdu raportu');return;}
+  if(!box||!ov){if(typeof notify==='function')notify('Brak podglądu raportu');return;}
   box.innerHTML=html;
-  if(title)title.textContent=(summary.mode==='monitor'?'MONITORING â ':'PODSUMOWANIE START â ')+String(summary.client.name||'').toUpperCase();
+  if(title)title.textContent=(summary.mode==='monitor'?'MONITORING — ':'PODSUMOWANIE START — ')+String(summary.client.name||'').toUpperCase();
   ov.style.display='flex';
 }
 window.openClientJourneySummary=openClientJourneySummary;

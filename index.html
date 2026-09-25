@@ -13,7 +13,7 @@
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="globals.css?v=17">
-<link rel="stylesheet" href="styles.css?v=105">
+<link rel="stylesheet" href="styles.css?v=116">
 </head>
 <body>
 
@@ -2633,36 +2633,86 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
   <div class="topbar live-topbar">
     <div class="live-topbar-title">
       <div class="live-dot-wrap"><div class="live-dot"></div></div>
-      <div class="topbar-title">Trening na żywo</div>
+      <div class="topbar-title live-prep-only">Trening na żywo</div>
+      <div class="live-session-who live-train-only" id="live-session-who"></div>
+    </div>
+    <div class="live-session-progress live-train-only" id="live-session-progress">
+      <div class="live-top-timer-wrap">
+        <div class="live-timer-val" id="live-timer">00:00</div>
+        <div class="live-dock-sub" id="live-timer-status" hidden>Nieaktywny</div>
+      </div>
+      <div class="live-top-progress">
+        <div class="live-top-progress-lbl" id="live-top-progress-lbl">Ćwiczenie 0 z 0</div>
+        <div class="live-progress-track"><div id="live-progress-bar" class="live-progress-bar"></div></div>
+      </div>
+      <span id="live-ex-done" hidden>0</span>
+      <span id="live-ex-total" hidden>0</span>
+      <span id="live-sets-done" hidden>0</span>
+      <span id="live-volume" hidden>0</span>
     </div>
     <div class="topbar-actions live-topbar-actions">
       <div class="live-slot-controls" data-live-slot="0">
         <span class="live-slot-tag live-dual-only">Osoba 1</span>
-        <div class="live-client-search-wrap">
+        <div class="live-client-search-wrap live-prep-only">
           <input class="form-select" id="live-client-sel-search" placeholder="Wybierz klienta..." autocomplete="off" oninput="liveClientSearchInput()" onfocus="liveClientSearchInput()">
           <input type="hidden" id="live-client-sel">
           <div id="live-client-sel-results" class="live-client-sel-results"></div>
         </div>
-        <button class="btn btn-danger btn-sm live-session-btn" id="live-end-btn" onclick="liveEndSession()" style="display:none;">⏹ Zakończ</button>
-        <button class="btn btn-primary btn-sm live-session-btn" id="live-start-btn" onclick="liveStartSession()">▶ Start</button>
+        <button class="btn btn-danger btn-sm live-session-btn live-train-only" id="live-end-btn" onclick="liveAskEndSession()" style="display:none;">Zakończ trening</button>
+        <button class="btn btn-primary btn-sm live-session-btn live-prep-only" id="live-start-btn" onclick="liveStartSession()">▶ Start</button>
       </div>
       <div class="live-slot-controls live-slot-b" data-live-slot="1">
         <span class="live-slot-tag">Osoba 2</span>
-        <div class="live-client-search-wrap">
+        <div class="live-client-search-wrap live-prep-only">
           <input class="form-select" id="live-b-client-sel-search" placeholder="Drugi klient..." autocomplete="off" oninput="liveClientSearchInput(1)" onfocus="liveClientSearchInput(1)">
           <input type="hidden" id="live-b-client-sel">
           <div id="live-b-client-sel-results" class="live-client-sel-results"></div>
         </div>
-        <button class="btn btn-danger btn-sm live-session-btn" id="live-b-end-btn" onclick="liveEndSession(1)" style="display:none;">⏹ Zakończ</button>
-        <button class="btn btn-primary btn-sm live-session-btn" id="live-b-start-btn" onclick="liveStartSession(1)">▶ Start</button>
+        <div class="live-top-timer-wrap live-train-only live-dual-only">
+          <div class="live-timer-val" id="live-b-timer">00:00</div>
+          <div class="live-dock-sub" id="live-b-timer-status" hidden>Nieaktywny</div>
+        </div>
+        <button class="btn btn-danger btn-sm live-session-btn live-train-only" id="live-b-end-btn" onclick="liveAskEndSession(1)" style="display:none;">Zakończ trening</button>
+        <button class="btn btn-primary btn-sm live-session-btn live-prep-only" id="live-b-start-btn" onclick="liveStartSession(1)">▶ Start</button>
       </div>
-      <div class="live-view-tabs">
+      <button type="button" class="btn btn-ghost btn-sm live-train-only" id="live-client-view-btn" onclick="setLiveTab('client')">Widok klienta</button>
+      <div class="live-more-wrap">
+        <button type="button" class="btn btn-ghost btn-sm live-more-btn live-train-only" id="live-more-btn" onclick="liveToggleMoreMenu()" aria-haspopup="true" aria-expanded="false" title="Więcej">…</button>
+        <div id="live-more-menu" class="live-more-menu" hidden>
+          <button type="button" class="live-more-item" onclick="setLiveTab('trainer');liveToggleMoreMenu(false)">🏋️ Trener</button>
+          <button type="button" class="live-more-item" onclick="setLiveTab('client');liveToggleMoreMenu(false)">📱 Widok klienta</button>
+          <button type="button" class="live-more-item" onclick="setLiveTab('history');liveToggleMoreMenu(false)">📊 Historia</button>
+          <button type="button" class="live-more-item" onclick="liveToggleDual();liveToggleMoreMenu(false)">Dwie osoby</button>
+          <button type="button" class="live-more-item" onclick="liveTogglePlanPanel();liveToggleMoreMenu(false)">Plan</button>
+          <button type="button" class="live-more-item" onclick="liveTogglePeriodPanel();liveToggleMoreMenu(false)">Harmonogram periodyzacji</button>
+          <div id="live-week-hint-slot" class="live-week-hint-slot"></div>
+          <button type="button" class="live-more-item" onclick="liveAddExercise(0);liveToggleMoreMenu(false)">+ Dodaj ćwiczenie</button>
+          <div class="live-more-rest" id="live-rest-tools">
+            <div class="live-dock-sub" id="live-rest-plan-hint"></div>
+            <button type="button" class="live-rest-preset live-rest-plan-btn" id="live-rest-plan-btn" onclick="liveStartRestFromPlan()">Z planu</button>
+            <div class="live-rest-presets">
+              <button type="button" class="live-rest-preset" onclick="liveStartRest(30)">30s</button>
+              <button type="button" class="live-rest-preset" onclick="liveStartRest(40)">40s</button>
+              <button type="button" class="live-rest-preset" onclick="liveStartRest(60)">60s</button>
+              <button type="button" class="live-rest-preset" onclick="liveStartRest(90)">90s</button>
+              <button type="button" class="live-rest-preset" onclick="liveStartRest(120)">120s</button>
+              <button type="button" class="live-rest-preset" onclick="liveStartRest(180)">180s</button>
+            </div>
+            <div class="live-rest-custom">
+              <input type="number" id="live-rest-custom" class="live-rest-custom-inp" min="5" max="600" step="1" placeholder="35" inputmode="numeric" aria-label="Własny czas przerwy w sekundach" onkeydown="if(event.key==='Enter'){event.preventDefault();liveStartRestCustom();}">
+              <span class="live-rest-custom-unit">s</span>
+              <button type="button" class="live-rest-preset live-rest-custom-go" onclick="liveStartRestCustom()">Przerwa</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="live-view-tabs live-prep-only">
         <button class="auto-tab-btn active" id="live-tab-trainer" onclick="setLiveTab('trainer')">🏋️ Trener</button>
         <button class="auto-tab-btn live-tab-client-view" id="live-tab-client" onclick="setLiveTab('client')">📱 Widok klienta</button>
         <button class="auto-tab-btn" id="live-tab-history" onclick="setLiveTab('history')">📊 Historia</button>
       </div>
-      <button type="button" class="btn btn-ghost btn-sm" id="live-dual-btn" onclick="liveToggleDual()" aria-pressed="false" title="Prowadź dwie osoby naraz">Dwie osoby</button>
-      <button type="button" class="btn btn-ghost btn-sm live-plan-toggle" id="live-plan-toggle" onclick="liveTogglePlanPanel()">Plan</button>
+      <button type="button" class="btn btn-ghost btn-sm live-prep-only" id="live-dual-btn" onclick="liveToggleDual()" aria-pressed="false" title="Prowadź dwie osoby naraz">Dwie osoby</button>
+      <button type="button" class="btn btn-ghost btn-sm live-plan-toggle live-prep-only" id="live-plan-toggle" onclick="liveTogglePlanPanel()">Plan</button>
     </div>
   </div>
 
@@ -2689,38 +2739,8 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       </div>
     </div>
 
-    <!-- prawy — timer i statsy -->
+    <!-- prawy — periodyzacja (w treningu z menu „…”) -->
     <div class="live-stats-panel" id="live-stats-panel">
-      <!-- timer -->
-      <div class="live-dock-card live-timer-card">
-        <div class="live-dock-lbl">Czas sesji</div>
-        <div class="live-timer-val" id="live-timer">00:00</div>
-        <div class="live-dock-sub" id="live-timer-status">Nieaktywny</div>
-      </div>
-
-      <!-- postęp -->
-      <div class="live-dock-card live-progress-card">
-        <div class="live-dock-lbl">Postęp</div>
-        <div class="live-progress-meta">
-          <span class="live-progress-done" id="live-ex-done">0</span>
-          <span class="live-progress-total">/ <span id="live-ex-total">0</span> ćw.</span>
-        </div>
-        <div class="live-progress-track">
-          <div id="live-progress-bar" class="live-progress-bar"></div>
-        </div>
-        <div class="live-progress-kpis">
-          <div class="live-progress-kpi">
-            <div class="live-progress-kpi-val live-kpi-sets" id="live-sets-done">0</div>
-            <div class="live-dock-sub">Serii</div>
-          </div>
-          <div class="live-progress-kpi">
-            <div class="live-progress-kpi-val live-kpi-vol" id="live-volume">0</div>
-            <div class="live-dock-sub">Obj. (kg)</div>
-          </div>
-        </div>
-        <div class="live-dock-sub" id="live-progress-hint" style="margin-top:8px;"></div>
-      </div>
-
       <div class="live-dock-card live-period-card" id="live-period-card" hidden>
         <button type="button" class="live-period-toggle" id="live-period-toggle" aria-expanded="false" onclick="liveTogglePeriodPanel()">
           <span class="live-period-toggle-txt">
@@ -2733,46 +2753,6 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
           <div class="live-dock-sub" id="live-period-now"></div>
           <div id="live-period-sched"></div>
         </div>
-      </div>
-
-      <!-- przerwa timer -->
-      <div class="live-dock-card live-rest-card">
-        <div class="live-dock-lbl">Timer przerwy</div>
-        <div class="live-rest-val" id="live-rest-timer" aria-live="assertive">—</div>
-        <div class="live-dock-sub" id="live-rest-plan-hint"></div>
-        <button type="button" class="live-rest-preset live-rest-plan-btn" id="live-rest-plan-btn" onclick="liveStartRestFromPlan()">Z planu</button>
-        <div class="live-rest-presets">
-          <button type="button" class="live-rest-preset" onclick="liveStartRest(30)">30s</button>
-          <button type="button" class="live-rest-preset" onclick="liveStartRest(40)">40s</button>
-          <button type="button" class="live-rest-preset" onclick="liveStartRest(60)">60s</button>
-          <button type="button" class="live-rest-preset" onclick="liveStartRest(90)">90s</button>
-          <button type="button" class="live-rest-preset" onclick="liveStartRest(120)">120s</button>
-          <button type="button" class="live-rest-preset" onclick="liveStartRest(180)">180s</button>
-        </div>
-        <div class="live-rest-custom">
-          <input type="number" id="live-rest-custom" class="live-rest-custom-inp" min="5" max="600" step="1" placeholder="35" inputmode="numeric" aria-label="Własny czas przerwy w sekundach" onkeydown="if(event.key==='Enter'){event.preventDefault();liveStartRestCustom();}">
-          <span class="live-rest-custom-unit">s</span>
-          <button type="button" class="live-rest-preset live-rest-custom-go" onclick="liveStartRestCustom()">Przerwa</button>
-        </div>
-      </div>
-
-      <!-- notatka do sesji -->
-      <div class="live-dock-card live-note-card">
-        <div class="live-dock-lbl">Notatka do sesji</div>
-        <textarea id="live-note" class="live-note-input" placeholder="np. klient miał problem z kolanem, zmniejszyłem ciężar..."></textarea>
-      </div>
-
-      <!-- szybki feedback -->
-      <div class="live-dock-card live-feedback-card">
-        <div class="live-dock-lbl">Feedback klienta</div>
-        <div class="live-fb-row">
-          <button type="button" class="live-fb-btn" onclick="liveFeedback(1)" title="Poziom 1">😓</button>
-          <button type="button" class="live-fb-btn" onclick="liveFeedback(2)" title="Poziom 2">😐</button>
-          <button type="button" class="live-fb-btn" onclick="liveFeedback(3)" title="Poziom 3">🙂</button>
-          <button type="button" class="live-fb-btn" onclick="liveFeedback(4)" title="Poziom 4">💪</button>
-          <button type="button" class="live-fb-btn" onclick="liveFeedback(5)" title="Poziom 5">🔥</button>
-        </div>
-        <div class="live-dock-sub live-fb-text" id="live-feedback-text">Brak oceny</div>
       </div>
     </div>
   </div>
@@ -2793,32 +2773,11 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
       </div>
     </div>
     <div class="live-stats-panel" id="live-b-stats-panel">
-      <div class="live-dock-card live-timer-card">
-        <div class="live-dock-lbl">Czas sesji</div>
-        <div class="live-timer-val" id="live-b-timer">00:00</div>
-        <div class="live-dock-sub" id="live-b-timer-status">Nieaktywny</div>
-      </div>
-      <div class="live-dock-card live-progress-card">
-        <div class="live-dock-lbl">Postęp</div>
-        <div class="live-progress-meta">
-          <span class="live-progress-done" id="live-b-ex-done">0</span>
-          <span class="live-progress-total">/ <span id="live-b-ex-total">0</span> ćw.</span>
-        </div>
-        <div class="live-progress-track">
-          <div id="live-b-progress-bar" class="live-progress-bar"></div>
-        </div>
-        <div class="live-progress-kpis">
-          <div class="live-progress-kpi">
-            <div class="live-progress-kpi-val live-kpi-sets" id="live-b-sets-done">0</div>
-            <div class="live-dock-sub">Serii</div>
-          </div>
-          <div class="live-progress-kpi">
-            <div class="live-progress-kpi-val live-kpi-vol" id="live-b-volume">0</div>
-            <div class="live-dock-sub">Obj. (kg)</div>
-          </div>
-        </div>
-        <div class="live-dock-sub" id="live-b-progress-hint" style="margin-top:8px;"></div>
-      </div>
+      <span id="live-b-ex-done" hidden>0</span>
+      <span id="live-b-ex-total" hidden>0</span>
+      <span id="live-b-sets-done" hidden>0</span>
+      <span id="live-b-volume" hidden>0</span>
+      <div id="live-b-progress-bar" class="live-progress-bar" hidden></div>
       <div class="live-dock-card live-period-card" id="live-b-period-card" hidden>
         <button type="button" class="live-period-toggle" id="live-b-period-toggle" aria-expanded="false" onclick="liveTogglePeriodPanel(1)">
           <span class="live-period-toggle-txt">
@@ -2832,9 +2791,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
           <div id="live-b-period-sched"></div>
         </div>
       </div>
-      <div class="live-dock-card live-rest-card">
-        <div class="live-dock-lbl">Timer przerwy</div>
-        <div class="live-rest-val" id="live-b-rest-timer" aria-live="assertive">—</div>
+      <div class="live-more-rest" id="live-b-rest-tools" hidden>
         <div class="live-dock-sub" id="live-b-rest-plan-hint"></div>
         <button type="button" class="live-rest-preset live-rest-plan-btn" id="live-b-rest-plan-btn" onclick="liveStartRestFromPlan(1)">Z planu</button>
         <div class="live-rest-presets">
@@ -2851,11 +2808,60 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
           <button type="button" class="live-rest-preset live-rest-custom-go" onclick="liveStartRestCustom(1)">Przerwa</button>
         </div>
       </div>
+    </div>
+  </div>
+  </div>
+  </div>
+
+  <div id="live-first-hint" class="live-first-hint" hidden>
+    <span id="live-progress-hint">Odhacz serię ✓ — sam plan w kalendarzu się nie liczy.</span>
+    <button type="button" class="live-first-hint-x" onclick="liveDismissFirstHint()" aria-label="Zamknij">×</button>
+  </div>
+  <div class="live-dock-sub" id="live-b-progress-hint" hidden></div>
+
+  <div class="live-rest-strip live-rest-card" id="live-rest-strip" hidden>
+    <div class="live-rest-val" id="live-rest-timer" aria-live="assertive">—</div>
+    <div class="live-rest-strip-track"><div class="live-rest-strip-bar" id="live-rest-strip-bar"></div></div>
+    <div class="live-rest-strip-next" id="live-rest-next"></div>
+    <div class="live-rest-strip-btns">
+      <button type="button" class="live-rest-adj" onclick="liveAdjustRest(-15)">−15 s</button>
+      <button type="button" class="live-rest-adj" onclick="liveAdjustRest(15)">+15 s</button>
+      <button type="button" class="live-rest-skip" onclick="liveSkipRest()">Pomiń</button>
+    </div>
+  </div>
+  <div class="live-rest-strip live-rest-card" id="live-b-rest-strip" hidden>
+    <div class="live-rest-val" id="live-b-rest-timer" aria-live="assertive">—</div>
+    <div class="live-rest-strip-track"><div class="live-rest-strip-bar" id="live-b-rest-strip-bar"></div></div>
+    <div class="live-rest-strip-next" id="live-b-rest-next"></div>
+    <div class="live-rest-strip-btns">
+      <button type="button" class="live-rest-adj" onclick="liveAdjustRest(-15,1)">−15 s</button>
+      <button type="button" class="live-rest-adj" onclick="liveAdjustRest(15,1)">+15 s</button>
+      <button type="button" class="live-rest-skip" onclick="liveSkipRest(1)">Pomiń</button>
+    </div>
+  </div>
+
+  <div id="live-end-overlay" class="live-end-overlay" hidden>
+    <div class="live-end-card">
+      <div class="live-end-title">Zakończ trening</div>
+      <div class="live-end-summary" id="live-end-summary"></div>
+      <div class="live-end-warn" id="live-end-warn" hidden>Nie odhaczono żadnej serii — w Progress będzie dzień, ale 0 kg i bez rekordów.</div>
       <div class="live-dock-card live-note-card">
         <div class="live-dock-lbl">Notatka do sesji</div>
-        <textarea id="live-b-note" class="live-note-input" placeholder="notatka osoby 2..."></textarea>
+        <textarea id="live-note" class="live-note-input" placeholder="np. klient miał problem z kolanem, zmniejszyłem ciężar..."></textarea>
+        <textarea id="live-b-note" class="live-note-input" placeholder="notatka osoby 2..." hidden></textarea>
       </div>
-      <div class="live-dock-card live-feedback-card">
+      <div class="live-dock-card live-feedback-card" id="live-end-fb-0">
+        <div class="live-dock-lbl">Feedback klienta</div>
+        <div class="live-fb-row">
+          <button type="button" class="live-fb-btn" onclick="liveFeedback(1)" title="Poziom 1">😓</button>
+          <button type="button" class="live-fb-btn" onclick="liveFeedback(2)" title="Poziom 2">😐</button>
+          <button type="button" class="live-fb-btn" onclick="liveFeedback(3)" title="Poziom 3">🙂</button>
+          <button type="button" class="live-fb-btn" onclick="liveFeedback(4)" title="Poziom 4">💪</button>
+          <button type="button" class="live-fb-btn" onclick="liveFeedback(5)" title="Poziom 5">🔥</button>
+        </div>
+        <div class="live-dock-sub live-fb-text" id="live-feedback-text">Brak oceny</div>
+      </div>
+      <div class="live-dock-card live-feedback-card" id="live-end-fb-1" hidden>
         <div class="live-dock-lbl">Feedback klienta</div>
         <div class="live-fb-row">
           <button type="button" class="live-fb-btn" onclick="liveFeedback(1,1)" title="Poziom 1">😓</button>
@@ -2866,9 +2872,11 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         </div>
         <div class="live-dock-sub live-fb-text" id="live-b-feedback-text">Brak oceny</div>
       </div>
+      <div class="live-end-actions">
+        <button type="button" class="btn btn-ghost" onclick="liveCancelEnd()">Wróć</button>
+        <button type="button" class="btn btn-danger" id="live-end-save-btn" onclick="liveConfirmEnd()">Zapisz sesję</button>
+      </div>
     </div>
-  </div>
-  </div>
   </div>
 
   <!-- CLIENT VIEW (mockup) -->
@@ -3105,7 +3113,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
           <div style="font-size:17px;font-weight:700;" id="cp-name">—</div>
           <button type="button" class="cp-edit-data-btn" id="cp-edit-data-btn" onclick="startCPEdit(cpClientId)">✏️ Edytuj dane</button>
         </div>
-        <div style="font-size:11px;color:var(--muted);" id="cp-sub">—</div>
+        <div style="font-size:12px;color:var(--text-secondary);" id="cp-sub">—</div>
       </div>
     </div>
     <div class="cp-hdr-actions">
@@ -3119,7 +3127,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
           <button type="button" onclick="toggleCpHdrMore(false);openClientOnboardSummary(cpClientId)">Podsumowanie start</button>
           <button type="button" onclick="toggleCpHdrMore(false);openClientMonitorSummary(cpClientId)">Monitoring progresu</button>
           <button type="button" onclick="toggleCpHdrMore(false);openReportForClient(cpClientId)">Raport szczegółowy</button>
-          <button type="button" onclick="toggleCpHdrMore(false);setCPTab('progress')">Postępy</button>
+          <button type="button" onclick="toggleCpHdrMore(false);setCPTab('progress')">Progress</button>
           <div class="cp-hdr-more-sep"></div>
           <button type="button" id="cp-archive-btn" onclick="toggleCpHdrMore(false);archiveClient(cpClientId)">🗃 Zarchiwizuj</button>
           <button type="button" id="cp-restore-btn" onclick="toggleCpHdrMore(false);restoreClient(cpClientId)" style="display:none;">↩ Przywróć</button>
@@ -3137,7 +3145,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <button class="cp-tab active" id="cpt-overview" onclick="setCPTab('overview')">Przegląd</button>
         <button class="cp-tab" id="cpt-training" onclick="setCPTab('training')">Treningi</button>
         <button class="cp-tab" id="cpt-plan" onclick="setCPTab('plan')">Plan</button>
-        <button class="cp-tab" id="cpt-progress" onclick="setCPTab('progress')">Postępy</button>
+        <button class="cp-tab" id="cpt-progress" onclick="setCPTab('progress')">Progress</button>
         <button class="cp-tab" id="cpt-metrics" onclick="setCPTab('metrics')">Pomiary</button>
         <div class="cp-tabs-more-wrap">
           <button type="button" class="cp-tab cp-tabs-more-btn" id="cp-more-toggle" onclick="toggleCpMoreNav(event)" aria-expanded="false" aria-haspopup="true">Więcej ▾</button>
@@ -3146,10 +3154,16 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
             <button class="cp-tab cp-tab-menu" id="cpt-notes" onclick="setCPTab('notes')">Notatki</button>
             <button class="cp-tab cp-tab-menu" id="cpt-photos" onclick="setCPTab('photos')">Zdjęcia</button>
             <button class="cp-tab cp-tab-menu" id="cpt-forms" onclick="setCPTab('forms')">Formularze</button>
+            <button class="cp-tab cp-tab-menu" id="cpt-documents" onclick="setCPTab('documents')">Dokumenty</button>
+            <button class="cp-tab cp-tab-menu" id="cpt-timeline" onclick="setCPTab('timeline')">Oś czasu</button>
             <button class="cp-tab cp-tab-menu" id="cpt-payments" onclick="setCPTab('payments')">Płatności</button>
+            <button class="cp-tab cp-tab-menu" id="cpt-analytics" onclick="setCPTab('analytics')">Analityka</button>
             <button class="cp-tab cp-tab-menu" id="cpt-features" onclick="setCPTab('features')">Ustawienia</button>
             <!-- Żywienie ukryte: stub — wróci gdy będzie prawdziwy dziennik -->
             <button class="cp-tab cp-tab-menu" id="cpt-food" onclick="setCPTab('food')" style="display:none;" aria-hidden="true">Żywienie</button>
+            <div class="cp-tabs-more-sep"></div>
+            <button type="button" class="cp-tab-menu-danger" onclick="toggleCpMoreNav(false);archiveClient(cpClientId)">Zarchiwizuj</button>
+            <button type="button" class="cp-tab-menu-danger" onclick="toggleCpMoreNav(false);deleteClientPermanently(cpClientId)">Usuń na zawsze</button>
           </div>
         </div>
       </div>
@@ -4485,15 +4499,15 @@ async function load(){
 
 <script src="ex-gif-manifest.js?v=34"></script>
 <script src="ex-photo-manifest.js?v=6"></script>
-<script src="01-core.js?v=121"></script>
-<script src="02-workouts-onboarding-templates-live.js?v=80"></script>
+<script src="01-core.js?v=124"></script>
+<script src="02-workouts-onboarding-templates-live.js?v=86"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=42"></script>
 <script src="04-client-portal.js?v=54"></script>
-<script src="05-clients-builder-plans-calendar.js?v=78"></script>
+<script src="05-clients-builder-plans-calendar.js?v=80"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=84"></script>
-<script src="07-forms-metrics-calculator.js?v=40"></script>
-<script src="08-client-profile-extras.js?v=75"></script>
-<script src="09-posture-kb-invites-private.js?v=51"></script>
-<script src="10-client-app.js?v=41"></script>
+<script src="07-forms-metrics-calculator.js?v=42"></script>
+<script src="08-client-profile-extras.js?v=83"></script>
+<script src="09-posture-kb-invites-private.js?v=53"></script>
+<script src="10-client-app.js?v=42"></script>
 </body>
 </html>
