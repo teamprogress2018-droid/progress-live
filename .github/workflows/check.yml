@@ -180,6 +180,9 @@ jobs:
       - name: 1i5b. Testy tagów KB ↔ kreator
         run: node .github/scripts/test_kb_builder_tags.js
 
+      - name: 1i5c. Testy feedu Nowe badania (PubMed)
+        run: node .github/scripts/test_research_feed.js
+
       - name: 1i6. Testy tooltipów edukacyjnych (serie/RPE/metoda)
         run: node .github/scripts/test_edu_tooltips.js
 
