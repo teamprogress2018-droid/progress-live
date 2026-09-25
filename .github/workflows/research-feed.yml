@@ -1,0 +1,55 @@
+name: Nowe badania (PubMed)
+
+on:
+  schedule:
+    - cron: '0 4 * * 1'
+  workflow_dispatch:
+    inputs:
+      lookback_days:
+        description: 'Ile dni wstecz szukać (pierwsze uruchomienie: 90)'
+        required: false
+        default: '14'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: research-feed
+  cancel-in-progress: false
+
+jobs:
+  feed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Pobierz kod
+        uses: actions/checkout@v4
+
+      - name: Ustaw Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Test parsera feedu
+        run: node .github/scripts/test_research_feed.js
+
+      - name: Pobierz nowe badania z PubMed
+        env:
+          LOOKBACK_DAYS: ${{ github.event.inputs.lookback_days || '14' }}
+          NCBI_API_KEY: ${{ secrets.NCBI_API_KEY }}
+          NCBI_EMAIL: ${{ secrets.NCBI_EMAIL }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node .github/scripts/fetch_research_feed.js
+
+      - name: Zapisz feed w repo
+        run: |
+          if git diff --quiet -- research-feed.json; then
+            echo "Brak nowych badań — nic do zapisania."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research-feed.json
+          git commit -m "Nowe badania: $(date -u +%Y-%m-%d)"
+          git pull --rebase --autostash
+          git push
