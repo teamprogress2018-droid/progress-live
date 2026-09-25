@@ -1721,6 +1721,20 @@ button{font-family:var(--font-body);font-weight:500;cursor:pointer;}
 .dash-ops-item-meta{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4;}
 .dash-ops-tag{font-size:9px;font-family:var(--font-ui);font-weight:700;padding:2px 7px;border-radius:4px;white-space:nowrap;flex-shrink:0;}
 .dash-qa-wrap{position:relative;}
+.dash-topbar-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.dash-next-action{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:15px 16px;margin-bottom:10px;border:1px solid var(--border-subtle);border-radius:var(--r);background:var(--bg-card);}
+.dash-next-copy{min-width:0;}
+.dash-next-eyebrow{font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--text-label);margin-bottom:4px;}
+.dash-next-title{font-size:16px;font-weight:800;color:var(--text-primary);line-height:1.25;}
+.dash-next-desc{font-size:11px;color:var(--text-secondary);margin-top:3px;line-height:1.4;}
+.dash-next-urgent{border-color:rgba(var(--accent-rgb),.55);}
+.dash-next-urgent .dash-next-eyebrow{color:var(--accent);}
+.dash-next-watch .dash-next-eyebrow{color:var(--orange);}
+.dash-next-ok .dash-next-eyebrow{color:var(--teal);}
+#screen-dashboard.dash-simple .dash-kpi-secondary,
+#screen-dashboard.dash-simple #dash-ops-activity{display:none;}
+#screen-dashboard.dash-simple .dash-ops-grid{grid-template-columns:1.15fr .85fr;}
+@media(max-width:900px){#screen-dashboard.dash-simple .dash-ops-grid{grid-template-columns:1fr}.dash-next-action{align-items:flex-start;flex-direction:column}.dash-next-action .btn{width:100%}}
 .dash-qa-menu{position:absolute;right:0;top:calc(100% + 6px);min-width:240px;background:var(--bg-elevated);border:1px solid var(--border2);border-radius:10px;padding:6px;box-shadow:var(--panel-glow);z-index:80;}
 .dash-qa-menu[hidden]{display:none!important;}
 .dash-qa-menu button{display:block;width:100%;text-align:left;background:transparent;border:none;color:var(--text);font-size:12px;padding:9px 10px;border-radius:7px;cursor:pointer;}

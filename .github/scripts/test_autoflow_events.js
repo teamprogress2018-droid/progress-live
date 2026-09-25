@@ -21,7 +21,7 @@ function ok(name, cond, extra) {
 }
 
 ok('cache 01', html.includes('01-core.js?v=125'));
-ok('cache 04', html.includes('04-client-portal.js?v=54'));
+ok('cache 04', html.includes('04-client-portal.js?v=55'));
 ok('cache 09', html.includes('09-posture-kb-invites-private.js?v=54'));
 ok('html triggers', html.includes('value="package.expired"') && html.includes('value="checkin.submitted"'));
 ok('bus wires autoflow', /autoflowOnAppEvent/.test(core) && /emitAppEvent/.test(core));

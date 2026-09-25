@@ -183,6 +183,9 @@ jobs:
       - name: 1i5c. Testy zarządzania bazą wiedzy
         run: node .github/scripts/test_kb_management.js
 
+      - name: 1i5d. Testy prostego centrum Dzisiaj
+        run: node .github/scripts/test_dash_simple_mode.js
+
       - name: 1i6. Testy tooltipów edukacyjnych (serie/RPE/metoda)
         run: node .github/scripts/test_edu_tooltips.js
 

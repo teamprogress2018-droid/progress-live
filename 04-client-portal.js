@@ -5708,6 +5708,26 @@ function saveForumPost(){
   notify('✓ Post opublikowany');
 }
 var dashPeriod=7;
+var dashSimpleMode=true;
+try{dashSimpleMode=localStorage.getItem('pl_dash_simple')!=='0';}catch(e){}
+
+function applyDashSimpleMode(){
+  const screen=document.getElementById('screen-dashboard');
+  const btn=document.getElementById('dash-simple-toggle');
+  if(screen)screen.classList.toggle('dash-simple',!!dashSimpleMode);
+  if(btn){
+    btn.textContent=dashSimpleMode?'Widok prosty':'Widok pełny';
+    btn.setAttribute('aria-pressed',dashSimpleMode?'true':'false');
+    btn.title=dashSimpleMode?'Pokaż wszystkie statystyki i ostatnią aktywność':'Ukryj elementy pomocnicze i skup się na zadaniach';
+  }
+}
+function toggleDashSimpleMode(){
+  dashSimpleMode=!dashSimpleMode;
+  try{localStorage.setItem('pl_dash_simple',dashSimpleMode?'1':'0');}catch(e){}
+  applyDashSimpleMode();
+}
+window.applyDashSimpleMode=applyDashSimpleMode;
+window.toggleDashSimpleMode=toggleDashSimpleMode;
 
 function setDashPeriod(p){
   dashPeriod=p;
@@ -5767,11 +5787,13 @@ function renderDash(){
   set('d-active-count',activeClients+' aktywnych');
 
   renderDashTodayFocus();
+  renderDashNextAction();
   renderDashToday();
   renderDashOps();
   renderDashGettingStarted();
   renderDashClientPipeline();
   renderProfileSetupBanner();
+  applyDashSimpleMode();
 }
 
 function toggleDashQuickActions(evOrClose){
@@ -6159,6 +6181,38 @@ window.dashTodayFocusTone=dashTodayFocusTone;
 window.focusDashSection=focusDashSection;
 window.renderDashTodayFocus=renderDashTodayFocus;
 
+function dashNextAction(){
+  const att=typeof dashOpsAttentionItems==='function'?dashOpsAttentionItems():[];
+  if(att.length){
+    const x=att[0];
+    return{tone:x.pri===0?'urgent':'watch',eyebrow:'Najważniejsze teraz',title:(x.name||'Klient')+' — '+(x.tag||'wymaga uwagi'),desc:x.meta||'Sprawdź sytuację klienta.',cta:x.cta||"goTo('clients')",ctaLbl:x.ctaLbl||'Sprawdź'};
+  }
+  const reports=typeof dashOpsRecentReports==='function'?dashOpsRecentReports():[];
+  if(reports.length){
+    const r=reports[0];
+    return{tone:'watch',eyebrow:'Następny krok',title:'Sprawdź raport: '+(r.clientName||'klient'),desc:r.kind==='checkin'?'Nowy check-in czeka na ocenę i odpowiedź.':'Wypełniony formularz czeka na weryfikację.',cta:`goTo('checkin');setTimeout(()=>openCIClient('${escHtml(r.clientId)}'),200)`,ctaLbl:'Sprawdź raport'};
+  }
+  const sessions=typeof dashTodaySessions==='function'?dashTodaySessions():[];
+  if(sessions.length){
+    const s=sessions[0];
+    const c=(window.CL||[]).find(x=>x.id===s.clientId);
+    return{tone:'info',eyebrow:'Najbliższa sesja',title:(s.time?s.time+' · ':'')+(c?c.name:'Klient'),desc:s.type||s.name||'Zaplanowany trening',cta:`editSession('${escHtml(s.id)}')`,ctaLbl:'Otwórz sesję'};
+  }
+  if(!(window.CL||[]).length){
+    return{tone:'info',eyebrow:'Pierwszy krok',title:'Dodaj pierwszego klienta',desc:'Aplikacja przeprowadzi Cię przez ankietę, plan, kalendarz i zaproszenie.',cta:"openM('m-client')",ctaLbl:'Dodaj klienta'};
+  }
+  return{tone:'ok',eyebrow:'Plan na dziś wykonany',title:'Wszystko jest na bieżąco',desc:'Możesz rozpocząć trening albo przygotować plan dla kolejnego klienta.',cta:"goTo('live')",ctaLbl:'Trening Live'};
+}
+function renderDashNextAction(){
+  const el=document.getElementById('dash-next-action');if(!el)return;
+  const a=dashNextAction();
+  const esc=typeof escHtml==='function'?escHtml:(s=>String(s??''));
+  el.className='dash-next-action dash-next-'+esc(a.tone||'info');
+  el.innerHTML=`<div class="dash-next-copy"><div class="dash-next-eyebrow">${esc(a.eyebrow)}</div><div class="dash-next-title">${esc(a.title)}</div><div class="dash-next-desc">${esc(a.desc)}</div></div><button type="button" class="btn btn-primary" onclick="${a.cta}">${esc(a.ctaLbl)}</button>`;
+}
+window.dashNextAction=dashNextAction;
+window.renderDashNextAction=renderDashNextAction;
+
 function renderDashOps(){
   const attEl=document.getElementById('d-ops-attention');
   const repEl=document.getElementById('d-ops-reports');
@@ -6257,6 +6311,7 @@ window.renderDashOps=renderDashOps;
 
 function refreshDashOps(){
   try{if(typeof invalidateOpsEventsCache==='function')invalidateOpsEventsCache();}catch(e){}
+  try{if(typeof renderDashNextAction==='function')renderDashNextAction();}catch(e){}
   try{if(typeof renderDashTodayFocus==='function')renderDashTodayFocus();}catch(e){}
   try{if(typeof renderDashOps==='function')renderDashOps();}catch(e){}
   try{if(typeof updateInboxNavBadge==='function')updateInboxNavBadge();}catch(e){}

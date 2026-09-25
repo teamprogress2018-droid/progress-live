@@ -13,7 +13,7 @@
 <title>PROGRESS LIVE</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="globals.css?v=17">
-<link rel="stylesheet" href="styles.css?v=117&ui=2">
+<link rel="stylesheet" href="styles.css?v=118&ui=2">
 </head>
 <body>
 
@@ -170,8 +170,9 @@
 <!-- DASHBOARD V2 -->
 <div class="screen active" id="screen-dashboard">
   <div class="topbar">
-    <div class="topbar-title">Panel główny</div>
+    <div><div class="topbar-title">Dzisiaj</div><div class="dash-topbar-sub">Najważniejsze działania trenera w jednym miejscu</div></div>
     <div class="topbar-actions">
+      <button type="button" class="btn btn-ghost btn-sm" id="dash-simple-toggle" onclick="toggleDashSimpleMode()" aria-pressed="true">Widok prosty</button>
       <div class="dash-qa-wrap">
         <button type="button" class="btn btn-primary btn-sm" id="dash-qa-btn" onclick="toggleDashQuickActions(event)" aria-expanded="false" aria-haspopup="true">+ Szybka akcja</button>
         <div class="dash-qa-menu" id="dash-qa-menu" hidden>
@@ -187,6 +188,7 @@
     </div>
   </div>
   <div class="content dash-content" id="dash-content">
+    <section class="dash-next-action" id="dash-next-action" aria-label="Następny krok"></section>
     <section class="dash-today-focus" id="dash-today-focus" aria-label="Dzisiaj"></section>
 
     <div class="dash-kpi-row dash-kpi-secondary" id="d-kpi-row">
@@ -4507,7 +4509,7 @@ async function load(){
 <script src="01-core.js?v=125"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=86"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=42"></script>
-<script src="04-client-portal.js?v=54"></script>
+<script src="04-client-portal.js?v=55"></script>
 <script src="05-clients-builder-plans-calendar.js?v=80"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=84"></script>
 <script src="07-forms-metrics-calculator.js?v=42"></script>
