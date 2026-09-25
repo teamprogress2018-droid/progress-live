@@ -1,4 +1,4 @@
-// Progress tab: rekordy nie w Pomiary, są w Progress.
+// Wyniki: rekordy i zachowania bez dublowania Pomiary/Zdjęcia.
 const fs = require('fs');
 const path = require('path');
 
@@ -15,12 +15,14 @@ function ok(name, cond) {
 ok('metrics has no training PRs block', !/Rekordy z treningów/.test(metricsFn));
 ok('progress has training PRs', /Rekordy z treningów/.test(progressFn));
 ok('progress has weekly tonnage', /Tonaż tygodniowy/.test(progressFn));
-ok('progress has circumferences', /Obwody ciała/.test(progressFn));
+ok('progress hides duplicated body and photos panels', /const allowed=\['all','train','checkin','habits'\]/.test(src) && !/chip\('body'/.test(progressFn) && !/chip\('photos'/.test(progressFn));
 ok('progress has no CTA strip', !/Podsumowanie<\/button>/.test(progressFn) && !/setCPTab\('photos'\)/.test(progressFn));
 ok('progress uses svg charts', /cp-chart-svg|cpLineChartSVG|cpWeeklyDualChart/.test(progressFn));
 ok('progress uses stat-card layout', /stat-card/.test(progressFn));
-ok('progress analytics hub', /ANALITYKA KLIENTA/.test(progressFn) && /Regularność 30 dni/.test(progressFn));
-ok('progress skips calendar-only hint', /same terminy nie wchodzą do Progress/.test(progressFn));
+ok('progress analytics hub', /WYNIKI TRENINGOWE/.test(progressFn) && /Regularność 30 dni/.test(progressFn));
+ok('progress explains calendar-only entries', /same terminy nie są liczone jako wykonany trening/.test(progressFn));
+ok('progress has focused filters', /Podsumowanie/.test(progressFn) && /Trening/.test(progressFn) && /Check-in/.test(progressFn) && /Nawyki/.test(progressFn));
+ok('metrics is single measurement history', /Jedyne miejsce do dodawania, edycji i przeglądania historii pomiarów/.test(metricsFn));
 ok('index has progress tab', /cpt-progress/.test(fs.readFileSync(path.join(__dirname, '..', '..', 'index.html'), 'utf8')));
 ok('setCPTab wires progress', /t==='progress'/.test(fs.readFileSync(path.join(__dirname, '..', '..', '07-forms-metrics-calculator.js'), 'utf8')));
 ok('index slim header', /cp-hdr-actions/.test(fs.readFileSync(path.join(__dirname, '..', '..', 'index.html'), 'utf8')));

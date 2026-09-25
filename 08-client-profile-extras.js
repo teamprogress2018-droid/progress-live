@@ -3615,7 +3615,7 @@ function renderCPOverview(c){
         ${metricsOn&&metricsHtml?`<div class="cp-ov-card" id="cp-ov-card-metrics" style="cursor:pointer;" onclick="setCPTab('progress')">
           <div class="cp-ov-card-hd">
             <div class="cp-ov-card-title">Pomiary ciała</div>
-            <span style="font-size:12px;color:var(--text-secondary);">Progress →</span>
+            <span style="font-size:12px;color:var(--text-secondary);">Wyniki →</span>
           </div>
           <div class="cp-ov-metrics-grid" onclick="event.stopPropagation()">${metricsHtml}</div>
           <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;" onclick="event.stopPropagation()">
@@ -3640,7 +3640,7 @@ function renderCPOverview(c){
         ${hasFeel||hasGarmin?`<div class="cp-ov-card" id="cp-ov-card-feel">
           <div class="cp-ov-card-hd">
             <div class="cp-ov-card-title">${hasFeel?'Samopoczucie (check-in)':'Garmin'}</div>
-            <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('progress')">Progress →</button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('progress')">Wyniki →</button>
           </div>
           <div class="cp-ov-feel-grid">
             ${hasFeel?`<div>
@@ -3708,8 +3708,14 @@ function renderCPPlan(c){
   const showContinueFitebo=showCreate||hasFiteboSrc||hasFiteboCont;
   const startW=Math.max(1,Math.min(8,parseInt(window.cpFiteboStartWeek,10)||3));
   document.getElementById('cp-body').innerHTML=`
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;gap:10px;flex-wrap:wrap;">
-      <div class="cp-section-title" style="margin:0;">PLANY TRENINGOWE (${plans.length})</div>
+    <div class="cp-view-intro">
+      <div>
+        <div class="cp-section-title" style="margin:0;">PLAN TRENINGOWY</div>
+        <div class="cp-view-sub">Harmonogram i zawartość planu. Rozwiń wybrany dzień, aby zobaczyć ćwiczenia.</div>
+      </div>
+      <span class="cp-view-count">${plans.length} ${plans.length===1?'plan':'plany'}</span>
+    </div>
+    <div style="display:flex;align-items:flex-start;justify-content:flex-end;margin-bottom:14px;gap:10px;flex-wrap:wrap;">
       ${showCreate||showContinueFitebo?`<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;align-items:center;">
         ${showCreate?`<button class="btn btn-ghost btn-sm" onclick="cpAssignTemplate('${c.id}')">📋 Przypisz szablon</button>
         <button class="btn btn-ghost btn-sm" onclick="openBuilderForClient('${c.id}')">✏ Stwórz własny plan</button>`:''}
@@ -3751,15 +3757,16 @@ function renderCPPlan(c){
           }).join('')}</div>`:''}
           <!-- dni treningowe -->
           <div class="cp-plan-days">
-            ${(p.days||[]).map(d=>{
+            ${(p.days||[]).map((d,di)=>{
               const wk=p.currentWeek||(p.weekKeys&&p.weekKeys[0]);
               const exs=d.exercises||[];
               return `
-              <div class="cp-plan-day-tile${d.rest?' is-rest':''}">
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:${d.rest||!exs.length?0:5}px;">
+              <details class="cp-plan-day-tile${d.rest?' is-rest':''}"${!d.rest&&di===0?' open':''}>
+                <summary class="cp-plan-day-summary">
                   <span style="font-size:12px;font-family:'DM Mono',monospace;color:${d.rest?'var(--muted)':'var(--accent)'};font-weight:700;min-width:32px;">${d.day||d.dayName||'—'}</span>
                   <span style="font-size:14px;font-weight:600;color:${d.rest?'var(--muted)':'var(--text)'};">${d.rest?'Odpoczynek':(d.muscles||d.name||d.focus||'Trening')}</span>
-                </div>
+                  ${!d.rest?`<span class="cp-plan-day-count">${exs.length} ćw.</span>`:''}
+                </summary>
                 ${!d.rest&&exs.length?`<div class="cp-plan-day-ex">
                   ${exs.map(e=>{
                     const v=typeof cpExWeekView==='function'?cpExWeekView(e,wk):{name:(e&&e.name)||e,sets:e&&e.sets,reps:e.reps,kg:e&&e.kg};
@@ -3767,7 +3774,7 @@ function renderCPPlan(c){
                     return `<div class="cp-plan-day-ex-row"><span>${typeof escHtml==='function'?escHtml(v.name||''):v.name}</span><span style="color:var(--muted);font-family:'DM Mono',monospace;white-space:nowrap;">${typeof escHtml==='function'?escHtml(meta):meta}</span></div>`;
                   }).join('')}
                 </div>`:''}
-              </div>`;
+              </details>`;
             }).join('')}
           </div>
           <div style="margin-top:10px;display:flex;gap:6px;">
@@ -3836,11 +3843,12 @@ function renderCPMetrics(c){
   const activeGroup=groups.find(g=>g.id===activeGid)||groups[0];
   const geAll=entries.filter(e=>e.groupId===activeGid).sort((a,b)=>b.date.localeCompare(a.date));
   const last=geAll[0];const prev=geAll[1];
-  const safeName=(c.name||'').replace(/'/g,"\\'");
-
   document.getElementById('cp-body').innerHTML=`
     <div class="cp-metrics-head">
-      <div class="cp-section-title" style="margin:0;">POMIARY</div>
+      <div>
+        <div class="cp-section-title" style="margin:0;">POMIARY CIAŁA I ZDROWIA</div>
+        <div class="cp-view-sub">Jedyne miejsce do dodawania, edycji i przeglądania historii pomiarów.</div>
+      </div>
       <div class="cp-metrics-groups">
         ${groups.map(g=>{
           const n=entries.filter(e=>e.groupId===g.id).length;
@@ -3853,7 +3861,7 @@ function renderCPMetrics(c){
       <div class="cp-metrics-actions">
         <button type="button" class="btn btn-primary btn-sm" onclick="openMetricEntryForClient('${c.id}','${activeGid}')">+ Dodaj pomiar</button>
         <button type="button" class="btn btn-ghost btn-sm" onclick="typeof openClientBaselineModal==='function'&&openClientBaselineModal('${c.id}')">Pomiary początkowe</button>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('progress')">📈 Progress</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('progress')">📈 Wyniki treningowe</button>
       </div>
     </div>
 
@@ -3908,9 +3916,8 @@ function renderCPMetrics(c){
           }).join('')}
         </div>`}
     </div>
-    <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:16px;line-height:1.5;">
-      Rekordy siłowe i tonaż → <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('progress')">Progress</button>
-      · Pełne wykresy: <button type="button" class="btn btn-ghost btn-sm" onclick="goTo('metrics');setTimeout(()=>{const s=document.getElementById('metric-client-sel');const q=document.getElementById('metric-client-sel-search');if(s)s.value='${c.id}';if(q)q.value='${safeName}';if(typeof metricClientSetField==='function')metricClientSetField('${c.id}','${safeName}');if(typeof setMetricGroup==='function')setMetricGroup('${activeGid}');},200);closeClientProfile()">Pomiary →</button>
+    <div class="cp-crosslink-note">
+      Rekordy, tonaż i regularność treningów są w zakładce <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('progress')">Wyniki</button>
     </div>`;
 }
 function setCPMetricGroup(clientId,groupId){
@@ -4171,11 +4178,13 @@ function cpPctBarChart(rows,opts){
 window.cpPctBarChart=cpPctBarChart;
 
 function setCPProgressPanel(panel){
-  const p=panel||'all';
+  const allowed=['all','train','checkin','habits'];
+  const p=allowed.includes(panel)?panel:'all';
   window._cpProgressPanel=p;
   document.querySelectorAll('#cp-body [data-cp-panel]').forEach(el=>{
     const id=el.getAttribute('data-cp-panel');
-    const show=p==='all'||id==='kpi'||id===p;
+    const belongs=allowed.includes(id)||id==='kpi';
+    const show=belongs&&(p==='all'||id==='kpi'||id===p);
     el.classList.toggle('cp-panel-hidden',!show);
   });
   document.querySelectorAll('#cp-body [data-cp-panel-chip]').forEach(btn=>{
@@ -4397,17 +4406,15 @@ function renderCPProgress(c){
 
   document.getElementById('cp-body').innerHTML=`
     <div style="margin-bottom:12px;">
-      <div class="cp-section-title" style="margin:0;">ANALITYKA KLIENTA</div>
-      <div style="font-size:11px;color:var(--muted);margin-top:2px;">Jeden panel: trening · ciało · check-in · nawyki · zdjęcia</div>
+      <div class="cp-section-title" style="margin:0;">WYNIKI TRENINGOWE</div>
+      <div class="cp-view-sub">Regularność, wykonana praca, check-in i nawyki. Pomiary ciała oraz zdjęcia mają własne zakładki.</div>
     </div>
 
     <div class="cp-analytics-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">
-      ${chip('all','Wszystko')}
+      ${chip('all','Podsumowanie')}
       ${chip('train','Trening')}
-      ${chip('body','Ciało')}
       ${chip('checkin','Check-in')}
       ${chip('habits','Nawyki')}
-      ${chip('photos','Zdjęcia')}
     </div>
 
     <div data-cp-panel="kpi" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;">
@@ -4416,7 +4423,7 @@ function renderCPProgress(c){
       <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--blue);">${ciAvg||'—'}</div><div class="cp-stat-lbl">Check-in śr.</div><div style="font-size:9px;color:var(--muted);margin-top:2px;">${ciPts.length?ciPts.length+' raportów':'brak'}</div></div>
       <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--teal);">${bestStreak||habitPct7||'—'}</div><div class="cp-stat-lbl">${bestStreak?'Dni z nawykiem':'Nawyki 7d'}</div><div style="font-size:9px;color:var(--muted);margin-top:2px;">${habits.length?habits.length+' aktywnych':(bestStreak?'dni':'brak nawyków')}${habitPct7?' · '+habitPct7+'%':''}</div></div>
     </div>
-    ${adh30.assigned&&!adh30.logged?`<div style="font-size:11px;color:var(--muted);line-height:1.45;margin:-8px 0 14px;">Kalendarz ma ${adh30.assigned} zaplanowanych dni, ale brak zapisu z Live / apki (serie) / zadania domowego — same terminy nie wchodzą do Progress.</div>`:''}
+    ${adh30.assigned&&!adh30.logged?`<div style="font-size:11px;color:var(--muted);line-height:1.45;margin:-8px 0 14px;">Kalendarz ma ${adh30.assigned} zaplanowanych dni, ale brak zapisu z Live / apki (serie) / zadania domowego — same terminy nie są liczone jako wykonany trening.</div>`:''}
 
     ${logged.length?`    <div data-cp-panel="train" style="display:grid;grid-template-columns:1.55fr 1fr;gap:14px;margin-bottom:14px;">
       <div class="stat-card">
