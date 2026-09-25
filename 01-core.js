@@ -7313,6 +7313,7 @@ function planningEvidenceContext(maxChars,opts){
     list=list.slice().sort((a,b)=>kbTagOverlapCount(b,prefer)-kbTagOverlapCount(a,prefer));
   }
   const budget=maxChars||4500;
+  const used=[];
   let out='\n\n=== BADANIA I NOTATKI TRENERA (kontekst planowania) ===\n';
   out+='Uwzględnij badania i notatki trenera przy metodzie, seriach i objętości. Zasady trenera mają pierwszeństwo, gdy kolidują z ogólnikami. Tagi wiążą wpis z partią / MEV / RIR w kreatorze — nie w mowie do klienta.\n';
   for(const e of list){
@@ -7324,7 +7325,10 @@ function planningEvidenceContext(maxChars,opts){
     const block=`### [${kind}] ${e.title}${cite}${url}${tags}\n${String(e.text||'').substring(0,500)}\n\n`;
     if(out.length+block.length>budget)break;
     out+=block;
+    used.push({id:e.id||'',title:e.title||'',kind:e.kind||'note',builtin:!!e.builtin});
   }
+  window._kbLastPlanningContext=used;
+  if(typeof window.renderKbAiContextPreview==='function')try{window.renderKbAiContextPreview();}catch(e){}
   return out;
 }
 function planningEvidenceSourceLines(){
