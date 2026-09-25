@@ -3515,6 +3515,7 @@ window.setKbFilter=setKbFilter;
 function openKbModal(prefill){
   const p=prefill||{};
   window._editingKbId=p.id||null;
+  window._kbPendingMeta=(p.pmid||p.doi)?{pmid:String(p.pmid||''),doi:p.doi||'',topics:Array.isArray(p.topics)?p.topics:[],evidence:p.evidence||''}:null;
   document.getElementById('kb-modal-title').textContent=window._editingKbId?'EDYTUJ WPIS':'NOWY WPIS DO BAZY WIEDZY';
   document.getElementById('kb-kind').value=p.kind||'note';
   document.getElementById('kb-title').value=p.title||'';
@@ -3536,7 +3537,7 @@ function editKBEntry(id){
 function duplicateKBEntry(id){
   const k=(window.KB||[]).find(x=>x.id===id);
   if(!k){notify('Nie znaleziono wpisu');return;}
-  openKbModal({...k,id:null,title:(k.title||'Wpis')+' — kopia'});
+  openKbModal({...k,id:null,pmid:'',doi:'',title:(k.title||'Wpis')+' — kopia'});
 }
 window.editKBEntry=editKBEntry;
 window.duplicateKBEntry=duplicateKBEntry;
@@ -3545,7 +3546,7 @@ function kbKindHint(){
   const kind=document.getElementById('kb-kind')?.value||'note';
   const el=document.getElementById('kb-kind-hint');
   if(!el)return;
-  if(kind==='evidence')el.textContent='Dodaj link PubMed/DOI jeśli masz — aplikacja nie ściąga badań automatycznie. Badanie idzie do Generatora AI razem z notatkami.';
+  if(kind==='evidence')el.textContent='Dodaj link PubMed/DOI jeśli masz. Nowe badania z PubMed przychodzą co tydzień do panelu „Nowe badania” nad listą. Badanie idzie do Generatora AI razem z notatkami.';
   else if(kind==='principle')el.textContent='Twoje doświadczenie coachingowe ma priorytet w generatorze AI, gdy koliduje z ogólnikami.';
   else el.textContent='Notatka idzie do Generatora AI razem z badaniami. Odhacz „Używaj przy planowaniu”, jeśli ma zostać tylko w bazie.';
 }
@@ -3606,6 +3607,7 @@ function renderKB(){
   });
   renderKbBuiltinPreview();
   renderKbAiContextPreview();
+  if(typeof renderKbFeed==='function')renderKbFeed();
   const countEl=document.getElementById('kb-result-count');
   if(countEl)countEl.textContent=list.length+' z '+(KB||[]).length;
   if(!list.length){
@@ -3622,7 +3624,7 @@ function renderKB(){
         <div>
           <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:4px;">
             <span class="pill" style="font-size:10px;background:rgba(255,255,255,0.06);color:${kbKindColor(kind)};">${kbKindLabel(kind)}</span>
-            ${planOn?'<span class="pill" style="font-size:10px;background:rgba(74,222,128,0.12);color:#4ade80;">Planowanie</span>':''}
+            ${planOn?'':'<span class="pill" style="font-size:10px;background:rgba(255,255,255,0.06);color:var(--muted);" title="Wpis nie trafia do Generatora AI ani kreatora">Poza AI</span>'}
           </div>
           <div style="font-size:13px;font-weight:700;">${escHtml(k.title)}</div>
           ${typeof kbTagPillsHtml==='function'?kbTagPillsHtml(typeof kbTagsForEntry==='function'?kbTagsForEntry(k):k.tags):''}
@@ -3645,9 +3647,11 @@ function renderKbAiContextPreview(){
   if(!el)return;
   const used=Array.isArray(window._kbLastPlanningContext)?window._kbLastPlanningContext:[];
   if(!used.length){
-    el.innerHTML='<strong>Kontekst AI</strong><span>Po uruchomieniu Generatora AI zobaczysz tutaj wpisy przekazane do planowania.</span>';
+    el.innerHTML='';
+    el.style.display='none';
     return;
   }
+  el.style.display='';
   el.innerHTML=`<strong>Ostatnio przekazano do AI (${used.length})</strong><span>${used.map(x=>escHtml(x.title||'Bez tytułu')).join(' · ')}</span>`;
 }
 window.renderKbAiContextPreview=renderKbAiContextPreview;
@@ -3659,6 +3663,7 @@ function renderKbBuiltinPreview(){
   if(!pack.length){wrap.innerHTML='';return;}
   const imported=new Set((KB||[]).map(k=>k.builtinId).filter(Boolean));
   const missing=pack.filter(b=>!imported.has(b.id));
+  if(!missing.length){wrap.innerHTML='';return;}
   wrap.innerHTML=`<div class="card-sm" style="border:1px dashed var(--border2);">
     <div style="font-size:12px;font-weight:700;margin-bottom:6px;">Pakiet startowy (wbudowany)</div>
     <div style="font-size:11px;color:var(--muted);line-height:1.55;margin-bottom:8px;">
@@ -3710,14 +3715,17 @@ async function saveKBEntry(){
   const editingId=window._editingKbId||null;
   const previous=editingId?(window.KB||[]).find(k=>k.id===editingId):null;
   const norm=s=>String(s||'').trim().toLowerCase().replace(/\s+/g,' ');
-  const duplicate=(window.KB||[]).find(k=>k.id!==editingId&&(norm(k.title)===norm(title)||norm(k.text)===norm(text)));
+  const meta=window._kbPendingMeta||null;
+  const duplicate=(window.KB||[]).find(k=>k.id!==editingId&&(norm(k.title)===norm(title)||norm(k.text)===norm(text)||(meta&&meta.pmid&&String(k.pmid||'')===meta.pmid)));
   if(duplicate){notify('Podobny wpis już istnieje: '+duplicate.title);return;}
   const entry = withTrainer({
     id:editingId||newId('kb'), kind, title, text, citation, sourceUrl, useInPlanning, tags,
     createdAt:editingId?((previous||{}).createdAt||new Date().toISOString()):new Date().toISOString(),
     ...(previous&&previous.builtinId?{builtinId:previous.builtinId}:{}),
+    ...(meta&&meta.pmid?{pmid:meta.pmid,doi:meta.doi||'',topics:meta.topics||[],evidenceLevel:meta.evidence||''}:{}),
     updatedAt:new Date().toISOString()
   });
+  window._kbPendingMeta=null;
   if(editingId){
     const idx=KB.findIndex(k=>k.id===editingId);
     if(idx>=0)KB[idx]=entry;else KB.push(entry);
@@ -3751,6 +3759,153 @@ function kbContextForAI(opts){
 }
 
 window.renderKB=renderKB; window.saveKBEntry=saveKBEntry; window.delKBEntry=delKBEntry; window.kbContextForAI=kbContextForAI;
+
+// ════════════════════════════════════════
+// NOWE BADANIA — feed z PubMed (research-feed.json, aktualizuje GitHub Actions co tydzień)
+// ════════════════════════════════════════
+window._kbFeed = window._kbFeed || {status:'idle',data:null,topic:'all',strong:false,open:true,limit:8};
+const KB_FEED_DISMISS_KEY='pl_kb_feed_dismissed_v1';
+
+function kbFeedDismissedSet(){
+  try{return new Set(JSON.parse(localStorage.getItem(KB_FEED_DISMISS_KEY)||'[]').map(String));}catch(e){return new Set();}
+}
+function kbFeedSaveDismissed(set){
+  try{localStorage.setItem(KB_FEED_DISMISS_KEY,JSON.stringify(Array.from(set).slice(-3000)));}catch(e){}
+}
+function kbFeedInBase(pmid){
+  const id=String(pmid);
+  return (window.KB||[]).some(k=>String(k.pmid||'')===id||String(k.sourceUrl||'').indexOf('/'+id)>=0)
+    ||(window.BUILTIN_PLANNING_EVIDENCE||[]).some(b=>String(b.sourceUrl||'').indexOf('/'+id)>=0);
+}
+async function kbFeedLoad(force){
+  const st=window._kbFeed;
+  if(st.status==='loading')return;
+  if(st.status==='ok'&&!force)return;
+  st.status='loading';
+  try{
+    const r=await fetch('research-feed.json?t='+Date.now(),{cache:'no-cache'});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const data=await r.json();
+    st.data={...data,items:Array.isArray(data.items)?data.items.filter(x=>x&&/^\d+$/.test(String(x.pmid))):[]};
+    st.status='ok';
+  }catch(e){
+    st.status='error';st.data=null;
+  }
+  renderKbFeed();
+}
+function kbFeedPending(){
+  const st=window._kbFeed;
+  if(!st.data)return[];
+  const dismissed=kbFeedDismissedSet();
+  return st.data.items.filter(x=>!dismissed.has(String(x.pmid))&&!kbFeedInBase(x.pmid));
+}
+function kbFeedTopicLabel(id){
+  const cats=(window._kbFeed.data&&window._kbFeed.data.categories)||[];
+  const c=cats.find(x=>x.id===id);
+  return c?c.label:id;
+}
+function kbFeedEvidenceColor(ev){
+  if(ev==='meta'||ev==='guideline')return'var(--teal)';
+  if(ev==='sr')return'#4ade80';
+  if(ev==='rct')return'var(--blue)';
+  return'var(--muted)';
+}
+function renderKbFeed(){
+  const el=document.getElementById('kb-feed');
+  if(!el)return;
+  const st=window._kbFeed;
+  if(st.status==='idle'){kbFeedLoad();}
+  if(st.status==='idle'||st.status==='loading'){
+    el.innerHTML='<div class="kb-feed-head"><strong>🔬 Nowe badania</strong><span class="kb-feed-meta">Wczytuję…</span></div>';
+    return;
+  }
+  if(st.status==='error'){
+    el.innerHTML='<div class="kb-feed-head"><strong>🔬 Nowe badania</strong><span class="kb-feed-meta">Nie udało się wczytać feedu.</span><button type="button" class="btn btn-ghost btn-sm" onclick="kbFeedLoad(true)">Spróbuj ponownie</button></div>';
+    return;
+  }
+  const all=st.data.items||[];
+  if(!all.length){
+    el.innerHTML='<div class="kb-feed-head"><strong>🔬 Nowe badania</strong></div><div class="kb-feed-empty">Feed jest jeszcze pusty. Na GitHubie: Actions → „Nowe badania (PubMed)” → Run workflow (za pierwszym razem wpisz 90 dni). Potem aktualizuje się sam co poniedziałek.</div>';
+    return;
+  }
+  const pending=kbFeedPending();
+  const counts={};
+  pending.forEach(x=>(x.topics||[]).forEach(t=>{counts[t]=(counts[t]||0)+1;}));
+  let list=pending;
+  if(st.topic!=='all')list=list.filter(x=>(x.topics||[]).indexOf(st.topic)>=0);
+  if(st.strong)list=list.filter(x=>['meta','sr','guideline'].indexOf(x.evidence)>=0);
+  const updated=st.data.generatedAt?new Date(st.data.generatedAt).toLocaleDateString('pl-PL'):'—';
+  const cats=(st.data.categories||[]).filter(c=>counts[c.id]);
+  const chips=`<button type="button" class="wl-filter-chip${st.topic==='all'?' active':''}" onclick="kbFeedSetTopic('all')">Wszystkie (${pending.length})</button>`
+    +cats.map(c=>`<button type="button" class="wl-filter-chip${st.topic===c.id?' active':''}" onclick="kbFeedSetTopic('${escHtml(c.id)}')">${escHtml(c.label)} (${counts[c.id]})</button>`).join('')
+    +`<button type="button" class="wl-filter-chip${st.strong?' active':''}" onclick="kbFeedToggleStrong()" title="Tylko metaanalizy, przeglądy systematyczne i stanowiska">Tylko najsilniejsze dowody</button>`;
+  const head=`<div class="kb-feed-head">
+      <strong>🔬 Nowe badania</strong>
+      <span class="kb-feed-meta">${pending.length} do przejrzenia · aktualizacja ${escHtml(updated)}</span>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="kbFeedToggleOpen()">${st.open?'Zwiń':'Rozwiń'}</button>
+    </div>`;
+  if(!st.open){el.innerHTML=head;return;}
+  const shown=list.slice(0,st.limit);
+  const cards=shown.map(x=>{
+    const ai=x.ai||null;
+    const title=ai&&ai.titlePl?ai.titlePl:x.title;
+    const orig=ai&&ai.titlePl?`<div class="kb-feed-orig">${escHtml(x.title)}</div>`:'';
+    const meta=[x.authors,x.journalAbbr||x.journal,x.year].filter(Boolean).map(escHtml).join(' · ');
+    const topics=(x.topics||[]).map(t=>`<span class="pill kb-feed-topic">${escHtml(kbFeedTopicLabel(t))}</span>`).join('');
+    const body=ai
+      ?`${ai.takeaway?`<div class="kb-feed-takeaway">💡 ${escHtml(ai.takeaway)}</div>`:''}<div class="kb-feed-summary">${escHtml(ai.summary||'')}</div>${ai.population||ai.limits?`<div class="kb-feed-small">${ai.population?'Kogo dotyczy: '+escHtml(ai.population):''}${ai.population&&ai.limits?' · ':''}${ai.limits?'Ograniczenia: '+escHtml(ai.limits):''}</div>`:''}`
+      :(x.abstract?`<div class="kb-feed-summary">${escHtml(x.abstract.substring(0,420))}${x.abstract.length>420?'…':''}</div>`:'<div class="kb-feed-small">Brak abstraktu w PubMed.</div>');
+    return `<div class="kb-feed-item">
+      <div class="kb-feed-pills">
+        <span class="pill" style="font-size:10px;background:rgba(255,255,255,0.06);color:${kbFeedEvidenceColor(x.evidence)};">${escHtml(x.evidenceLabel||'Badanie')}</span>
+        ${x.topJournal?'<span class="pill kb-feed-topic" title="Czołowe czasopismo w sporcie / żywieniu">★ Czołowe czasopismo</span>':''}
+        ${topics}
+      </div>
+      <div class="kb-feed-title">${escHtml(title)}</div>
+      ${orig}
+      <div class="kb-feed-small">${meta}</div>
+      ${body}
+      <div class="kb-feed-actions">
+        <button type="button" class="btn btn-primary btn-sm" onclick="kbFeedAccept('${x.pmid}')">+ Do bazy</button>
+        <a class="btn btn-ghost btn-sm" href="${escHtml(x.url||('https://pubmed.ncbi.nlm.nih.gov/'+x.pmid+'/'))}" target="_blank" rel="noopener noreferrer">PubMed ↗</a>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="kbFeedDismiss('${x.pmid}')">Pomiń</button>
+      </div>
+    </div>`;
+  }).join('');
+  const more=list.length>shown.length?`<button type="button" class="btn btn-ghost btn-sm kb-feed-more" onclick="kbFeedMore()">Pokaż więcej (${list.length-shown.length})</button>`:'';
+  const empty=!list.length?`<div class="kb-feed-empty">${pending.length?'Brak pozycji dla tego filtra.':'Wszystko przejrzane. Kolejne badania pojawią się po poniedziałkowej aktualizacji.'}</div>`:'';
+  el.innerHTML=head+`<div class="kb-feed-chips">${chips}</div>`+empty+cards+more;
+}
+function kbFeedSetTopic(t){window._kbFeed.topic=t||'all';window._kbFeed.limit=8;renderKbFeed();}
+function kbFeedToggleStrong(){window._kbFeed.strong=!window._kbFeed.strong;window._kbFeed.limit=8;renderKbFeed();}
+function kbFeedToggleOpen(){window._kbFeed.open=!window._kbFeed.open;renderKbFeed();}
+function kbFeedMore(){window._kbFeed.limit+=8;renderKbFeed();}
+function kbFeedDismiss(pmid){
+  const set=kbFeedDismissedSet();set.add(String(pmid));kbFeedSaveDismissed(set);
+  renderKbFeed();
+}
+function kbFeedAccept(pmid){
+  const st=window._kbFeed;
+  const x=st.data&&(st.data.items||[]).find(i=>String(i.pmid)===String(pmid));
+  if(!x){notify('Nie znaleziono badania w feedzie');return;}
+  const ai=x.ai||null;
+  const text=ai
+    ?[ai.takeaway,ai.summary,ai.population?'Kogo dotyczy: '+ai.population+'.':'',ai.limits?'Ograniczenia: '+ai.limits+'.':''].filter(Boolean).join('\n')
+    :String(x.abstract||'').substring(0,900);
+  const title=ai&&ai.titlePl?ai.titlePl:x.title;
+  const citation=[x.authors,x.year?'('+x.year+')':'',x.journalAbbr||x.journal,x.evidenceLabel?'· '+x.evidenceLabel:''].filter(Boolean).join(' ');
+  const tags=typeof kbTagsFromText==='function'?kbTagsFromText(title+' '+x.title+' '+text):[];
+  openKbModal({kind:'evidence',title,text,citation,sourceUrl:x.url||('https://pubmed.ncbi.nlm.nih.gov/'+x.pmid+'/'),tags,
+    pmid:String(x.pmid),doi:x.doi||'',topics:x.topics||[],evidence:x.evidence||''});
+}
+window.kbFeedLoad=kbFeedLoad;
+window.renderKbFeed=renderKbFeed;
+window.kbFeedSetTopic=kbFeedSetTopic;
+window.kbFeedToggleStrong=kbFeedToggleStrong;
+window.kbFeedToggleOpen=kbFeedToggleOpen;
+window.kbFeedMore=kbFeedMore;
+window.kbFeedDismiss=kbFeedDismiss;
+window.kbFeedAccept=kbFeedAccept;
 
 // expose
 
