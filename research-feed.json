@@ -1,6 +1,6 @@
 {
  "version": 1,
- "generatedAt": "2026-09-26T07:45:11.131Z",
+ "generatedAt": "2026-09-26T07:49:23.251Z",
  "lookbackDays": 14,
  "categories": [
   {
@@ -52,71 +52,5 @@
    "label": "Stanowiska i wytyczne"
   }
  ],
- "items": [
-  {
-   "pmid": "42678377",
-   "doi": "10.1093/jas/skag279",
-   "title": "Effect of high dietary lysine on growth performance and body composition in weaned pigs following a period with dietary protein restriction: a preliminary study.",
-   "abstract": "Increasing dietary Lys and remaining essential amino acids (AA) above requirements might counter impaired growth resulting from pigs being fed a low-protein (LP) diet in the early weaning period. It was hypothesized that by increasing dietary Lys and remaining essential AA levels in a 4-week (W) non-reduced period (W5-8) after a 4-W reduced dietary crude protein period (W1-4) would potentially increase growth performance. At weaning, 67 piglets with an ADG of 200-220 g/day during the suckling period were selected based on their weaning weight for the study. On the day of weaning pigs were pre-allocated to 1 of 4 dietary treatments: control (STD-STD), standard (LP-STD), STD + 10% Lys (LP-STD10+) and STD + 20% Lys (LP-STD20+). From weaning to W4 after weaning LP-STD, LP-STD10+ and LP-STD20+ pigs were fed the same LP starter diet (81/79% total/digestible of CP level in STD diet), whereas STD-STD pigs were fed a diet formulated according to recommendations. From W5 to W8 after weaning LP-STD pigs were fed a diet with standard protein level, and LP-STD10+ and LP-STD20+, respectively, fed a diet with STD protein level plus 10% and 20% Lys including remaining essential AA. One day before weaning, and at W4, and at W8 after weaning, respectively, seven pigs (baseline Dual‑energy X‑ray absorptiometry (DXA) scanning), six STD and six LP pigs, and 12 STD-STD, 12 LP-STD, 12 LP-STD10+ and 12 LP-STD20+ pigs were slaughtered to DXA scan the carcasses. The data were analyzed using the ANOVA function in R, with dietary treatment as fixed and pig nested within pen as random effect for BW, ADG and DXA parameters. For ADFI, G: F per pig, G: CP dietary treatment was used as a fixed effect. For the fecal scoring, the model included dietary treatment and day as fixed and pen as random effect. Results revealed no difference (P > 0.05) in BW, ADG, total feed intake, or average daily feed intake between pigs fed STD and LP diet in W1-4, but LP pigs displayed greater (P < 0.01) gain-to-CP-ratio. Furthermore, pigs in the LP compared with STD group tended (P < 0.10) to display greater bone mass deposition, fat mass, and fat mass deposition after W4. In W5-8 ADG was similar between STD-STD (0.96 kg/day) and LP-STD20 + (0.90 kg/day), which were both numerically greater than LP-STD (0.83 kg/day) and LP-STD10 + (0.86 kg/day). In conclusion, pigs fed the LP diet did not display the expected reduction in ADG but tended to display an altered body composition after W4. This limited the study objective of investigating effect on increasing Lys and remaining essential AA levels, although it was observed that pigs fed the LP-STD20+ diet maintained an ADG numerically comparable to the STD-STD pigs throughout the non-reduced period in W5-8.",
-   "journal": "Journal of animal science",
-   "journalAbbr": "J Anim Sci",
-   "year": "2026",
-   "authors": "Ruggeri R i in.",
-   "authorCount": 6,
-   "pubTypes": [
-    "Journal Article",
-    "Randomized Controlled Trial"
-   ],
-   "evidence": "rct",
-   "evidenceLabel": "RCT",
-   "url": "https://pubmed.ncbi.nlm.nih.gov/42678377/",
-   "topics": [
-    "zywienie",
-    "pomiary"
-   ],
-   "topJournal": false,
-   "firstSeen": "2026-09-25T19:13:07.092Z",
-   "score": 1,
-   "ai": {
-    "titlePl": "Wpływ wysokiej zawartości lizyny w diecie na wzrost i skład ciała u młodych świń po okresie ograniczenia białka",
-    "summary": "Badanie na 67 prosiętkach porównało wpływ diety niskoproteinowej (LP) przez 4 tygodnie, a następnie dietę standardową lub standardową wzbogaconą w lizynę (10% lub 20%) przez kolejne 4 tygodnie. Dieta LP nie spowodowała spodziewanego spadku przyrostu dziennego (ADG), a świnie na diecie LP wykazały lepszy stosunek przyrostu do białka (P<0.01) i tendencję do większego odkładu tłuszczu.",
-    "takeaway": "Wynik nie zmienia praktyki treningowej – badanie dotyczy świń i żywienia zwierząt, nie ma bezpośredniego zastosowania u ludzi ćwiczących na siłowni.",
-    "population": "67 prosiętek (wagi weaning 200–220 g/dobę w okresie ssania)",
-    "limits": "Badanie na zwierzętach, populacja bardzo odległa od siłowni; wstępne wyniki, dieta LP nie dała spodziewanego efektu na ADG, co utrudniło główny cel badania",
-    "relevance": 1
-   }
-  },
-  {
-   "pmid": "42599758",
-   "doi": "10.1002/vms3.71159",
-   "title": "Adjunctive Therapy With a Perna canaliculus and Euphausia superba Extract (EAB-277TM) for Clinical Signs of Tracheal Collapse in Dogs: A Prospective, Randomized and Placebo-Controlled Exploratory Trial.",
-   "abstract": "BACKGROUND: Tracheal collapse is a common canine respiratory disease characterized by dorsoventral cartilage flattening, airway lumen narrowing and subsequent mucosal inflammation.\nOBJECTIVES: To investigate the efficacy of EAB-277, a marine lipid extract combining Perna canaliculus (30 mg) and Euphausia superba (20 mg) as an adjunctive therapy in the management of tracheal collapse in dogs.\nMETHODS: Forty-one dogs with confirmed tracheal collapse were randomly assigned to receive standard conventional medications plus either EAB-277 (n = 21) or a placebo (n = 20). The EAB-277 treatment protocol included a loading dose for the initial 14 days. Clinical signs and quality of life were assessed together with fluoroscopy, radiography, haematology and serum biochemistry on Days 0, 14, 28 and 56.\nRESULTS: Dogs receiving EAB-277 showed a significant improvement in exercise tolerance by Day 14. Concurrently, fluoroscopic analysis demonstrated significant reductions in the percentage change in tracheal luminal diameter across the cervical, thoracic inlet and intrathoracic regions by Day 14. Both groups showed significant improvements in cough scores throughout the study, with no statistical difference between the groups.\nCONCLUSIONS: Although conventional medical therapy effectively manages the clinical signs of tracheal collapse, particularly cough, this study demonstrates that EAB-277 provides additional benefits by significantly improving exercise tolerance and reducing dynamic tracheal collapse at the cervical, thoracic inlet and intra-thoracic regions, which might have the potential to enhance airway health.",
-   "journal": "Veterinary medicine and science",
-   "journalAbbr": "Vet Med Sci",
-   "year": "2026",
-   "authors": "Yangwanitset W i in.",
-   "authorCount": 5,
-   "pubTypes": [
-    "Journal Article",
-    "Randomized Controlled Trial"
-   ],
-   "evidence": "rct",
-   "evidenceLabel": "RCT",
-   "url": "https://pubmed.ncbi.nlm.nih.gov/42599758/",
-   "topics": [
-    "suplementy"
-   ],
-   "topJournal": false,
-   "firstSeen": "2026-09-25T19:13:07.092Z",
-   "score": 1,
-   "ai": {
-    "titlePl": "Ekstrakt z małża zielonego i kryla jako terapia wspomagająca przy upadku tchawicy u psów",
-    "summary": "Badanie porównywało standardowe leczenie plus ekstrakt morski EAB-277 (n=21) względem standardowego leczenia plus placebo (n=20) u 41 psów z potwierdzonym upadkiem tchawicy. Grupa otrzymująca EAB-277 wykazała istotne zwiększenie tolerancji wysiłku do dnia 14. i redukcję upadku tchawicy na poziomie szyi i klatki piersiowej, przy porównywalnym zmniejszeniu kaszlu w obu grupach.",
-    "takeaway": "Wynik nie ma zastosowania dla trenera personalnego pracującego z ludźmi na siłowni.",
-    "population": "Psy (zwierzęta) z klinicznie potwierdzoną tchawicą, n=41",
-    "limits": "Badanie na zwierzętach; brak przełożenia na człowieka; mała próba",
-    "relevance": 1
-   }
-  }
- ]
+ "items": []
 }
