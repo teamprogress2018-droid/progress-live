@@ -37,7 +37,7 @@ const early=planned('early','14:00');
 const late=planned('late','18:00');
 const skipped=planned('skipped','13:00',{status:'opuszczony'});
 const draft=planned('draft','12:00',{source:'live-draft'});
-const futureDone=planned('futureDone','19:00',{source:'live'});
+const futureDone=planned('futureDone','19:00',{source:'live',plannedSessionId:'futureDone'});
 const setRows=rows=>{ctx.window.SE=rows;ctx.SE=rows;};
 setRows([late,recording,skipped,past,done,futureDone,draft,early]);
 const originalOrder=ctx.SE.map(x=>x.id).join(',');
