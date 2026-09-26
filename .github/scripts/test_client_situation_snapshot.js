@@ -90,6 +90,14 @@ sandbox.window.TASKS=sandbox.window.TASKS;
 vm.runInNewContext(
   extract(src04,'dashTodayYmd')+'\n'+
   extract(src04,'dashDaysBetween')+'\n'+
+  extract(src04,'checkinActivityTime')+'\n'+
+  extract(src04,'checkinActivityDate')+'\n'+
+  extract(src04,'sortedCheckins')+'\n'+
+  extract(src04,'latestFilledCheckin')+'\n'+
+  extract(src04,'pendingCheckin')+'\n'+
+  extract(src04,'filledThisWeek')+'\n'+
+  extract(src04,'checkinRecordAgeDays')+'\n'+
+  extract(src04,'getCIStatus')+'\n'+
   extract(src04,'clientSituationSnapshot')+'\n'+
   'window.clientSituationSnapshot=clientSituationSnapshot;',
   sandbox
@@ -114,6 +122,17 @@ ok('pulse',snap.pulse&&snap.pulse.tone==='good');
 sandbox.buildMonitorVerdict=undefined;
 const noMon=sandbox.clientSituationSnapshot('c1');
 ok('monitor optional',noMon&&noMon.signals.monitor===null);
+
+
+const responseNow=new Date().toISOString();
+sandbox.window.CHECKINS.c1=[
+  {id:'delayed',clientId:'c1',status:'filled',date:d10ago,filledAt:responseNow,score:95},
+  {id:'stale',clientId:'c1',status:'pending',date:d10ago}
+];
+const afterResponse=sandbox.clientSituationSnapshot('c1');
+ok('delayed response updates snapshot status',afterResponse.facts.checkinStatus==='done');
+ok('delayed response updates snapshot age',afterResponse.facts.lastCheckin.daysSince===0);
+ok('delayed response updates snapshot score',afterResponse.facts.lastCheckin.score===95);
 
 if(failed){console.error('\n'+failed+' failed');process.exit(1);}
 console.log('\nAll clientSituationSnapshot checks passed');

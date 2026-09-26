@@ -103,6 +103,13 @@ vm.runInNewContext(
   extract(src01,'completedWorkouts')+'\n'+
   'function allPackages(){return window.PACKAGES||[];}\n'+
   extract(src05,'clientTrainingWindowStats')+'\n'+
+  extract(src04,'checkinActivityTime')+'\n'+
+  extract(src04,'checkinActivityDate')+'\n'+
+  extract(src04,'sortedCheckins')+'\n'+
+  extract(src04,'latestFilledCheckin')+'\n'+
+  extract(src04,'pendingCheckin')+'\n'+
+  extract(src04,'filledThisWeek')+'\n'+
+  extract(src04,'checkinRecordAgeDays')+'\n'+
   extract(src04,'getCIStatus')+'\n'+
   extract(src04,'dashOpsLiveClients')+'\n'+
   extract(src04,'dashOpsExpiringPackages')+'\n'+
