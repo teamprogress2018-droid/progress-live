@@ -1570,11 +1570,7 @@ function saveCapAppSettings(){
     if(id)S.clientApp.visibleSections[id]=cb.checked;
   });
   withTrainer(S);
-  if(window._db){
-    const sid=window._settingsDocId||window._uid||'default';
-    window._setDoc(window._doc(window._db,'settings',sid),S,{merge:true}).then(()=>{window._settingsDocId=sid;}).catch(e=>console.warn('Firebase cap settings:',e));
-  }
-  notify('✓ Ustawienia aplikacji klienta zapisane');
+  persistSettingsDoc().then(saved=>{if(saved)notify('✓ Ustawienia aplikacji klienta zapisane');});
 }
 window.saveCapAppSettings=saveCapAppSettings;
 
@@ -4292,12 +4288,23 @@ function removeCert(idx){
 }
 window.addCert=addCert;window.removeCert=removeCert;
 
-function persistSettingsDoc(){
-  const S=window.SETTINGS;if(!S)return;
-  withTrainer(S);
-  if(!window._db)return;
-  const sid=window._settingsDocId||window._uid||'default';
-  window._setDoc(window._doc(window._db,'settings',sid),S,{merge:true}).then(()=>{window._settingsDocId=sid;}).catch(e=>console.warn('Firebase settings:',e));
+async function persistSettingsDoc(){
+  const S=window.SETTINGS;
+  if(!S||!window._uid||window._clientAppMode||!window._db)return false;
+  const session={uid:window._uid,generation:window.tenantSessionGeneration};
+  try{
+    withTrainer(S);
+    const sid=session.uid;
+    const payload={...S};delete payload._fbId;delete payload.id;
+    await window._setDoc(window._doc(window._db,'settings',sid),payload,{merge:true});
+    if(window.tenantSessionIsCurrent&&!window.tenantSessionIsCurrent(session))return false;
+    window._settingsDocId=sid;
+    if(typeof syncTrainerPublicProfile==='function'&&!await syncTrainerPublicProfile(session)){
+      if(typeof notify==='function')notify('Ustawienia trenera zapisano, ale nie odświeżono ich w aplikacji klienta. Ponów zapis.');
+      return false;
+    }
+    return true;
+  }catch(e){console.warn('Firebase settings:',e);if(typeof notify==='function')notify('Nie udało się zapisać ustawień. Spróbuj ponownie.');return false;}
 }
 window.persistSettingsDoc=persistSettingsDoc;
 
@@ -4468,14 +4475,7 @@ function saveSettings(){
   if(typeof resetScreensaverIdle==='function')try{resetScreensaverIdle();}catch(e){}
   if(typeof ensureReminderAutoflowsFromSettings==='function')try{ensureReminderAutoflowsFromSettings();}catch(e){}
   syncSidebarProfile();
-  notify('✓ Ustawienia zapisane!');
-  if(window._db){
-    if(window._settingsDocId){
-      window._setDoc(window._doc(window._db,'settings',window._settingsDocId),S,{merge:true}).catch(e=>console.warn('Firebase settings update:',e));
-    }else{
-      window._setDoc(window._doc(window._db,'settings',window._uid||'default'),S,{merge:true}).then(()=>{window._settingsDocId=window._uid||'default';}).catch(e=>console.warn('Firebase settings save:',e));
-    }
-  }
+  persistSettingsDoc().then(saved=>{if(saved)notify('✓ Ustawienia zapisane!');});
 }
 function syncSidebarProfile(){
   const name=getTrainerName('Trener');
@@ -5540,31 +5540,37 @@ function deleteForumComment(cid,pid){
   renderForumFeed();
 }
 
-function persistForumPostEngagement(p){
-  if(!p||!p.id)return;
-  if(!window._clientAppMode){
-    persistById('forumPosts',p);
-    return;
+async function persistForumPostEngagement(p){
+  if(!p||!p.id)return false;
+  const owner=window._clientAppMode?window._trainerId:window._uid;
+  if(!owner||(p.trainerId&&p.trainerId!==owner)){
+    if(typeof persistWarn==='function')persistWarn('Nie udało się zapisać reakcji. Zaloguj się ponownie.');
+    return false;
   }
+  const session={uid:window._uid,generation:window.tenantSessionGeneration};
+  const docId=p._fbId||p.id;
   const patch={
-    id:p.id,
-    trainerId:p.trainerId||window._trainerId||null,
-    reactions:p.reactions||{},
+    reactions:{...(p.reactions||{})},
     likes:p.likes||0,
     views:p.views||0,
     comments:p.comments||0,
-    reactedBy:p.reactedBy||{}
+    reactedBy:{...(p.reactedBy||{})}
   };
-  if(!window._db){
+  if(!window._db||!window._updateDoc){
     if(typeof persistWarn==='function')persistWarn('⚠ Brak połączenia z bazą — dane mogą nie zostać zapisane');
-    return;
+    return false;
   }
-  window._setDoc(window._doc(window._db,'forumPosts',p.id),patch,{merge:true})
-    .then(()=>{p._fbId=p.id;})
-    .catch(e=>{
-      console.warn('Firebase forum post engagement:',e);
-      if(typeof persistWarn==='function')persistWarn('⚠ Nie udało się zapisać. Sprawdź internet i spróbuj ponownie.');
-    });
+  try{
+    // Replace complete map fields: merge:true would retain removed actor/reaction keys.
+    await window._updateDoc(window._doc(window._db,'forumPosts',docId),patch);
+    if(window.tenantSessionIsCurrent&&!window.tenantSessionIsCurrent(session))return false;
+    p._fbId=docId;
+    return true;
+  }catch(e){
+    console.warn('Firebase forum post engagement:',e);
+    if(typeof persistWarn==='function')persistWarn('⚠ Nie udało się zapisać. Sprawdź internet i spróbuj ponownie.');
+    return false;
+  }
 }
 
 function reactToPost(pid,reaction){

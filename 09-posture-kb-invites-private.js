@@ -1135,7 +1135,7 @@ function syncMissingODDemoPrograms(){
     window.OD_PROGRAMS.push(copy);
     have.add(d.id);
     n++;
-    if(typeof persistById==='function')persistById('odPrograms',copy);
+    if(window._tenantDataReady&&!window._clientAppMode&&typeof persistById==='function')persistById('odPrograms',copy);
   });
   return n;
 }
@@ -1512,8 +1512,9 @@ function assignHomeworkToClient(clientId,workoutId,opts){
   if(!c){if(typeof notify==='function')notify('Wybierz klienta');return null;}
   const today=typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10);
   const t=(typeof withTrainer==='function'?withTrainer:x=>x)({
-    id:typeof newId==='function'?newId('t'):('t_'+Date.now()),
+    id:opts.parentTaskId?opts.parentTaskId+'_next':(typeof newId==='function'?newId('t'):('t_'+Date.now())),
     kind:'homework',
+    ...(opts.parentTaskId?{parentTaskId:opts.parentTaskId}:{}),
     odWorkoutId:workoutId,
     title:opts.title||w.name,
     desc:opts.desc||w.desc||'',
@@ -1531,7 +1532,7 @@ function assignHomeworkToClient(clientId,workoutId,opts){
   window.TASKS.push(t);
   if(typeof persistById==='function')persistById('tasks',t);
   if(opts.notify!==false&&typeof notify==='function')notify('✓ Zadanie domowe: '+c.name+' · '+t.title);
-  if(typeof pushMsg==='function'){
+  if(!window._clientAppMode&&typeof pushMsg==='function'){
     pushMsg(clientId,'[od:'+workoutId+']\n🏠 Zadanie domowe od trenera: "'+t.title+'"\n'+odWorkoutStructureText(w)+(odWorkoutMaterialsText(w)?'\nMateriały: '+odWorkoutMaterialsText(w):''));
   }
   try{if(typeof renderTasks==='function')renderTasks();}catch(e){}
@@ -1724,7 +1725,7 @@ function syncMissingODDemoWorkouts(){
     window.OD_WORKOUTS.push(copy);
     have.add(d.id);
     n++;
-    if(typeof persistById==='function')persistById('odWorkouts',copy);
+    if(window._tenantDataReady&&!window._clientAppMode&&typeof persistById==='function')persistById('odWorkouts',copy);
   });
   // Odśwież kategorię/format demo (np. ow8 → Tabata), bez nadpisywania custom URL.
   window.OD_WORKOUTS.forEach(w=>{
@@ -1734,7 +1735,7 @@ function syncMissingODDemoWorkouts(){
     if(d.coll&&w.coll!==d.coll){w.coll=d.coll;ch=true;}
     if(d.format&&w.format!==d.format){w.format=d.format;ch=true;}
     if(d.structure&&!w.structure){w.structure=Object.assign({},d.structure);ch=true;}
-    if(ch){n++;if(typeof persistById==='function')persistById('odWorkouts',w);}
+    if(ch){n++;if(window._tenantDataReady&&!window._clientAppMode&&typeof persistById==='function')persistById('odWorkouts',w);}
   });
   return n;
 }
@@ -1753,7 +1754,7 @@ function migrateODYoutubeWorkouts(){
     if(demo.desc)w.desc=demo.desc;
     if(demo.coll&&!w.coll)w.coll=demo.coll;
     n++;
-    if(typeof persistById==='function')persistById('odWorkouts',w);
+    if(window._tenantDataReady&&!window._clientAppMode&&typeof persistById==='function')persistById('odWorkouts',w);
   });
   return n;
 }
@@ -2079,13 +2080,16 @@ async function saveODProgram(){
 }
 
 async function deleteODProgram(){
-  const id=window._editingODProgId;if(!id)return;
+  const id=window._editingODProgId;if(!id||window._clientAppMode)return;
+  const item=(window.OD_PROGRAMS||[]).find(x=>x.id===id);if(!item)return;
   if(!confirm('Usunąć ten program?'))return;
+  if(!window._db||!window._uid){notify('Zaloguj się ponownie przed usunięciem');return;}
+  try{
+    withTrainer(item);
+    await window._del(window._doc(window._db,'odPrograms',tenantDocumentId('odPrograms',item,window._uid)));
+  }catch(e){notify('Nie udało się usunąć programu. Spróbuj ponownie.');return;}
   window.OD_PROGRAMS=(window.OD_PROGRAMS||[]).filter(x=>x.id!==id);
-  if(window._db){try{await window._del(window._doc(window._db,'odPrograms',id));}catch(e){}}
-  closeM('m-od-program');
-  renderODPrograms();
-  notify('Program usunięty');
+  closeM('m-od-program');renderODPrograms();notify('Program usunięty');
 }
 window.openODProgramModal=openODProgramModal;
 window.saveODProgram=saveODProgram;
@@ -2356,7 +2360,7 @@ function migrateSpotifyDemoResources(){
       r.desc=(r.desc?r.desc+' ':'')+'(YouTube — darmowy dostęp, bez Spotify Premium)';
     }
     changed++;
-    if(typeof persistById==='function')persistById('resources',r);
+    if(window._tenantDataReady&&!window._clientAppMode&&typeof persistById==='function')persistById('resources',r);
   });
   return changed;
 }
@@ -2377,7 +2381,7 @@ function migrateDemoYoutubeEpisodeResources(){
     if(!isYoutubeChannelOrNonEpisodeUrl(r.url))return;
     r.url=demo.url;r.name=demo.name;r.desc=demo.desc;r.type=demo.type;r.cat=demo.cat;r.coll=demo.coll;
     changed++;
-    if(typeof persistById==='function')persistById('resources',r);
+    if(window._tenantDataReady&&!window._clientAppMode&&typeof persistById==='function')persistById('resources',r);
   });
   return changed;
 }
@@ -3042,10 +3046,7 @@ function savePortalSettings(){
     S.portal.ondemandVisible=cards[2].checked;
   }
   withTrainer(S);
-  if(window._db){
-    const sid=window._settingsDocId||window._uid||'default';
-    window._setDoc(window._doc(window._db,'settings',sid),S,{merge:true}).then(()=>{window._settingsDocId=sid;}).catch(e=>console.warn(e));
-  }
+  if(typeof persistSettingsDoc==='function')persistSettingsDoc();
   notify('✓ Ustawienia portalu zapisane');
 }
 window.savePortalSettings=savePortalSettings;

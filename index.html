@@ -4186,7 +4186,7 @@ window.doPasswordReset=window.doPasswordReset||authNetworkFallbackMsg;
 
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-import{getFirestore,collection,getDocs,addDoc,deleteDoc,doc,setDoc,updateDoc,getDoc,query,where,runTransaction}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+import{getFirestore,collection,getDocs,addDoc,deleteDoc,doc,setDoc,updateDoc,getDoc,query,where,runTransaction,Timestamp,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 import{getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut,sendPasswordResetEmail,createUserWithEmailAndPassword}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 import{getStorage,ref,uploadBytes,getDownloadURL}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-storage.js";
 const cfg={apiKey:"AIzaSyDrbke0QdB55k_4smzhKufQ75eAluu-r_8",authDomain:"progress-live-fc83d.firebaseapp.com",projectId:"progress-live-fc83d",storageBucket:"progress-live-fc83d.firebasestorage.app",messagingSenderId:"637727410398",appId:"1:637727410398:web:b8e4e2581c2e3a24a11a4f"};
@@ -4195,6 +4195,8 @@ const storage=getStorage(app);
 window._storage=storage;window._storageRef=ref;window._uploadBytes=uploadBytes;window._getDownloadURL=getDownloadURL;
 window._db=db;window._col=collection;window._add=addDoc;window._del=deleteDoc;window._doc=doc;window._get=getDocs;window._setDoc=setDoc;window._updateDoc=updateDoc;window._getDoc=getDoc;window._query=query;window._where=where;window._runTransaction=runTransaction;
 window._createUser=function(email,pass){return createUserWithEmailAndPassword(auth,email,pass);};
+window._signInClient=function(email,pass){return signInWithEmailAndPassword(auth,email,pass);};
+window._Timestamp=Timestamp;window._serverTimestamp=serverTimestamp;
 
 window.doSignIn=async function(){
   const email=document.getElementById('auth-email').value.trim();
@@ -4252,50 +4254,69 @@ window.doPasswordReset=async function(){
   }
 };
 
+const TENANT_DEFAULT_SETTINGS=JSON.parse(JSON.stringify(window.SETTINGS||{}));
+const TENANT_ARRAY_KEYS=['CL','PL','SE','EX','WO','TASKS','KB','METRIC_ENTRIES','PROGRESS_PHOTOS','METRIC_GROUPS','PACKAGES','INVOICES','FORM_SENDS','REP_HISTORY','CUSTOM_FORMS','USER_PROGRAMS','TPL_CUSTOM','NOTIFICATIONS','AUTOFLOWS','FORUM_GROUPS','FORUM_POSTS','OD_WORKOUTS','OD_PROGRAMS','OD_PROGRESS','ONB_ACTIVE','CLIENT_GROUPS','USER_RESOURCES','COACH_VIDEOS','ONBOARD_HISTORY','LIVE_HISTORY','INT_EVENT_LOG','aicMsgs','aicHistorySessions','_appEvents'];
+const TENANT_MAP_KEYS=['MSGS','CHECKINS','CLIENT_NOTES','CLIENT_DOCS','CLIENT_ACTIVITY','CLIENT_TIMELINE','CLIENT_PSYCHO','CLIENT_SFR','CLIENT_FOOD','INT_CONNECTIONS','EX_GIF_REMOTE','FORUM_COMMENTS','_cliveFormAnswers','_cliveCheckin','_ciFillDraft','_cpCoopCache','_cpCoopBusy','_forumViewed','_dashListExpanded'];
+
 onAuthStateChanged(auth,(user)=>{
-  window.AUTOFLOWS=[];
-  clearAutoflowSessionState();
+  const nextUid=user?user.uid:null;
+  const shouldReload=window._tenantBootComplete===true&&window._uid!==nextUid;
+  window.tenantSessionGeneration=(window.tenantSessionGeneration||0)+1;
+  window._uid=nextUid;
+  resetTenantRuntimeData();
+  const session=captureTenantSession();
   const authScreen=document.getElementById('auth-screen');
   const appRoot=document.getElementById('app-root');
+  appRoot.style.display='none';
+  if(shouldReload){window.location.reload();return;}
   if(user){
-    window._uid=user.uid;
     window._userEmail=user.email||'';
     window._userDisplayName=user.displayName||'';
     authScreen.style.display='none';
-    appRoot.style.display='';
     document.getElementById('auth-email').value='';
     document.getElementById('auth-password').value='';
     if(typeof window.showAppLoading==='function')window.showAppLoading(true);
-    Promise.resolve(bootApp()).finally(()=>{if(typeof window.showAppLoading==='function')window.showAppLoading(false);});
+    Promise.resolve(bootApp(session)).then(ready=>{
+      if(ready&&tenantSessionIsCurrent(session)){window._tenantBootComplete=true;appRoot.style.display='';}
+    }).catch(e=>showTenantBootError(e,session)).finally(()=>{
+      if(tenantSessionIsCurrent(session)&&typeof window.showAppLoading==='function')window.showAppLoading(false);
+    });
   }else{
-    window._uid=null;
-    window._clientAppMode=false;
-    window._clientId=null;
-    window._trainerId=null;
-    document.body.classList.remove('client-app-mode','cw-playing');
-    if(typeof cwClearTimers==='function')cwClearTimers();
-    window._cw=null;
+    window._clientRegistrationPromise=null;
     authScreen.style.display='flex';
-    appRoot.style.display='none';
+    if(typeof window.showAppLoading==='function')window.showAppLoading(false);
     if(typeof window.prepareAuthForInvite==='function')window.prepareAuthForInvite();
   }
 });
 
-async function bootApp(){
-  try{
-    if(typeof window.fetchClientAccount==='function'){
-      const acc=await window.fetchClientAccount(window._uid);
-      if(acc&&typeof window.loadClientApp==='function'){
-        await window.loadClientApp(acc);
-        return;
-      }
-    }
-  }catch(e){console.warn('Konto klienta:',e);}
+function showTenantBootError(error,session){
+  if(!tenantSessionIsCurrent(session))return;
+  console.warn('Wczytywanie konta:',error);
+  window._tenantDataReady=false;
+  document.getElementById('app-root').style.display='none';
+  document.getElementById('auth-screen').style.display='flex';
+  const box=document.getElementById('auth-error');
+  box.textContent='Nie udało się bezpiecznie wczytać danych konta. Odśwież aplikację, aby ponowić.';
+  box.style.display='block';
+}
+
+async function bootApp(session=captureTenantSession()){
+  if(!tenantSessionIsCurrent(session))return false;
+  if(window._clientRegistrationPromise)await window._clientRegistrationPromise;
+  if(!tenantSessionIsCurrent(session))return false;
+  if(typeof window.fetchClientAccount!=='function')throw new Error('client-account-loader-unavailable');
+  const acc=await window.fetchClientAccount(session.uid,session);
+  if(!tenantSessionIsCurrent(session))return false;
+  if(acc){
+    if(typeof window.loadClientApp!=='function')throw new Error('client-app-loader-unavailable');
+    const ready=await window.loadClientApp(acc,session);
+    return ready!==false&&tenantSessionIsCurrent(session);
+  }
   window._clientAppMode=false;
   document.body.classList.remove('client-app-mode');
   const sidebar=document.querySelector('.sidebar');
   if(sidebar)sidebar.style.display='';
-  await load();
+  return load(session);
 }
 
 function clearAutoflowSessionState(){
@@ -4304,8 +4325,51 @@ function clearAutoflowSessionState(){
   window._afStateReady=false;
 }
 
+function captureTenantSession(){
+  return {uid:window._uid||null,generation:window.tenantSessionGeneration||0};
+}
+window.captureTenantSession=captureTenantSession;
+
+function tenantSessionIsCurrent(session){
+  return !!session&&!!session.uid&&session.uid===window._uid&&session.generation===(window.tenantSessionGeneration||0);
+}
+window.tenantSessionIsCurrent=tenantSessionIsCurrent;
+
+function resetTenantRuntimeData(){
+  window._tenantDataReady=false;
+  window._tenantBootComplete=false;
+  window._tenantLoadedUid=null;
+  window._clientTenantBinding=null;
+  window._clientLoadGeneration=(window._clientLoadGeneration||0)+1;
+  window._clientPendingDeepLinkDone=false;
+  window._opsEventsCache={at:0,items:null};
+  TENANT_ARRAY_KEYS.forEach(key=>tenantReplaceRuntimeValue(key,[]));
+  TENANT_MAP_KEYS.forEach(key=>tenantReplaceRuntimeValue(key,{}));
+  window.SETTINGS=JSON.parse(JSON.stringify(TENANT_DEFAULT_SETTINGS));
+  window.ONBOARDING_FLOW=null;
+  ['_settingsDocId','_clientId','_trainerId','_clientAccount','_cw','_odPlay','_odHwTaskId','_ppDraft','_ppCmp','_payCopy','_kbLastPlanningContext','_lastMethodRationale','_cpExerciseProgress','_onboardClientId','_onboardResumeAfterInvite','_onboardResumeAfterPackage','_onboardResumeAfterLive','_cpEditingClientId','_assignHwClientId','_assignHwWorkoutId','_assignWorkoutId','_editingClientId','_editingSessionId','_editingFormId','_editingProgId','_editingTaskId','_editingVideoId','_editingTplId','_editingODProgId','_editingKbId','_kbPendingMeta','_livePending','_liveSavedClientId','_liveSavedClientName','_liveDraftSessionId','_liveDraftCreatedAt','cpClientId','capClientId','aicClientId','repClientId','curChat','inviteClientId','plansLibClientId','tplDetailId','sendResourceId','metricActiveGroup','aplLastPlan'].forEach(key=>{window[key]=null;});
+  window._userEmail='';window._userDisplayName='';
+  window._clientAppMode=false;window._clientPreviewMode=false;
+  window.aplGenerating=false;window.aicLoading=false;window.repGenerating=false;
+  try{if(typeof aplLastClient!=='undefined')aplLastClient=null;}catch(e){}
+  try{if(typeof fbImages!=='undefined')fbImages=[];if(typeof fbParsed!=='undefined')fbParsed=[];}catch(e){}
+  try{if(typeof _exGifImportRows!=='undefined')_exGifImportRows=[];}catch(e){}
+  ['_opsScanClock','_cwClock','_cwRestTimer','_onboardResumeTimer','_liveSetHold'].forEach(key=>{if(window[key]){clearInterval(window[key]);clearTimeout(window[key]);}window[key]=null;});
+  if(window._odGuide?.timer)clearInterval(window._odGuide.timer);
+  window._odGuide=null;
+  if(typeof liveRef==='function'&&typeof liveNewSlotState==='function'){
+    [0,1].forEach(slot=>{const state=liveRef(slot);if(state.timerInterval)clearInterval(state.timerInterval);if(state.restInterval)clearInterval(state.restInterval);Object.assign(state,liveNewSlotState());});
+  }
+  clearAutoflowSessionState();
+  document.body.classList.remove('client-app-mode','cw-playing','client-preview-mode');
+  document.querySelectorAll('.modal-ov.show,.cp-drawer.open,.cp-overlay.open').forEach(el=>el.classList.remove('show','open'));
+  ['cp-body','cp-name','cp-sub','cp-avatar','clive-screen-content','cap-screen-content','apl-result','live-history-tab'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='';});
+  if(typeof applyBrandTheme==='function')applyBrandTheme(window.SETTINGS);
+}
+window.resetTenantRuntimeData=resetTenantRuntimeData;
+
 async function loadAutoflowState(){
-  const owner=window._uid;
+  const session=captureTenantSession(),owner=session.uid;
   clearAutoflowSessionState();
   if(!owner||window._clientAppMode)return;
   try{
@@ -4313,7 +4377,7 @@ async function loadAutoflowState(){
     const candidates=[];
     snapshot.forEach(d=>{const data=d.data()||{};if(data.trainerId===owner)candidates.push({id:d.id,data});});
     candidates.sort((a,b)=>a.id===b.id?0:a.id===owner?-1:b.id===owner?1:a.id<b.id?-1:1);
-    if(window._uid!==owner||window._clientAppMode)return;
+    if(!tenantSessionIsCurrent(session)||window._clientAppMode)return;
     const selected=candidates[0];
     window.AF_STATE=selected?{...selected.data}:{trainerId:owner,enrollments:{},executed:{},lastFired:{},logs:[],pending:{}};
     window._afStateDocId=selected?selected.id:owner;
@@ -4322,12 +4386,12 @@ async function loadAutoflowState(){
 }
 
 async function loadAutoflowDefinitions(){
-  const owner=window._uid;
+  const session=captureTenantSession(),owner=session.uid;
   window.AUTOFLOWS=[];
   if(!owner||window._clientAppMode)return false;
   try{
     const snapshot=await getDocs(query(collection(db,'autoflows'),where('trainerId','==',owner)));
-    if(window._uid!==owner||window._clientAppMode)return false;
+    if(!tenantSessionIsCurrent(session)||window._clientAppMode)return false;
     const flows=[];
     snapshot.forEach(d=>{
       const data=d.data()||{};
@@ -4337,7 +4401,7 @@ async function loadAutoflowDefinitions(){
     if(!flows.length&&typeof DEMO_AUTOFLOWS!=='undefined'){
       // First use: save inactive examples for the captured trainer only.
       for(const af of DEMO_AUTOFLOWS){
-        if(window._uid!==owner||window._clientAppMode||window.AUTOFLOWS!==flows)return false;
+        if(!tenantSessionIsCurrent(session)||window._clientAppMode||window.AUTOFLOWS!==flows)return false;
         const id=typeof window.newId==='function'?window.newId('af'):'af_'+Date.now()+Math.random().toString(36).slice(2);
         const copy={...af,id,trainerId:owner,createdAt:new Date().toISOString(),status:'inactive'};
         flows.push(copy);
@@ -4345,7 +4409,7 @@ async function loadAutoflowDefinitions(){
       }
     }
   }catch(e){console.warn('Wczytywanie autoflows nie powiodło się:',e);}
-  return window._uid===owner&&!window._clientAppMode;
+  return tenantSessionIsCurrent(session)&&!window._clientAppMode;
 }
 
 function _takeFb(d){
@@ -4353,210 +4417,161 @@ function _takeFb(d){
   if(typeof window.belongsToTrainer==='function'&&!window.belongsToTrainer(data))return null;
   return typeof window.mapFbDoc==='function'?window.mapFbDoc(d):{...data,id:d.id,_fbId:d.id};
 }
-async function load(){
-  const withTrainer=typeof window.withTrainer==='function'?window.withTrainer:(o)=>o;
-  const newId=typeof window.newId==='function'?window.newId:(p)=> (p||'id')+'_'+Date.now();
-  try{const s=await getDocs(collection(db,'clients'));window.CL=[];s.forEach(d=>{const x=_takeFb(d);if(x)window.CL.push(x);});}catch(e){window.CL=[];}
-  try{
-    if(window._uid&&query&&where){
-      const accSnap=await getDocs(query(collection(db,'clientAccounts'),where('trainerId','==',window._uid)));
-      const joined={};
-      accSnap.forEach(d=>{const a=d.data()||{};if(a.clientId)joined[a.clientId]=true;});
-      window.CL.forEach(c=>{if(joined[c.id])c.appJoined=true;});
-    }
-  }catch(e){console.warn('Konta klientów:',e);}
-  try{const s=await getDocs(collection(db,'plans'));window.PL=[];s.forEach(d=>{const x=_takeFb(d);if(x)window.PL.push(x);});}catch(e){window.PL=[];}
-  try{const s=await getDocs(collection(db,'sessions'));window.SE=[];s.forEach(d=>{const x=_takeFb(d);if(x)window.SE.push(x);});}catch(e){window.SE=[];}
-  try{const s=await getDocs(collection(db,'exercises'));window.EX=[];s.forEach(d=>{const x=_takeFb(d);if(x)window.EX.push(x);});}catch(e){window.EX=[];}
-  try{
-    const sG=await getDocs(collection(db,'exerciseGifs'));
-    window.EX_GIF_REMOTE={};
-    sG.forEach(d=>{
-      const x=_takeFb(d);
-      if(!x||!x.gifUrl)return;
-      const n=x.exerciseName||x.name||'';
-      const k=typeof window.exerciseMediaKey==='function'?window.exerciseMediaKey(n):String(n).toLowerCase().replace(/\s+/g,' ').trim();
-      if(k){
-        const u=typeof window.normalizeVideoAssetsCdnUrl==='function'?window.normalizeVideoAssetsCdnUrl(x.gifUrl):x.gifUrl;
-        window.EX_GIF_REMOTE[k]=u||x.gifUrl;
-      }
-    });
-  }catch(e){window.EX_GIF_REMOTE=window.EX_GIF_REMOTE||{};}
-  try{const sCV=await getDocs(collection(db,'coachVideos'));window.COACH_VIDEOS=[];sCV.forEach(d=>{const x=_takeFb(d);if(x)window.COACH_VIDEOS.push(x);});}catch(e){window.COACH_VIDEOS=window.COACH_VIDEOS||[];}
-  try{const s=await getDocs(collection(db,'workouts'));window.WO=[];s.forEach(d=>{const x=_takeFb(d);if(x)window.WO.push(x);});}catch(e){window.WO=[];}
-  try{const s2=await getDocs(collection(db,'tasks'));window.TASKS=[];s2.forEach(d=>{const x=_takeFb(d);if(x)window.TASKS.push(x);});}catch(e){window.TASKS=[];}
-  try{const s3=await getDocs(collection(db,'kb'));window.KB=[];s3.forEach(d=>{const x=_takeFb(d);if(x)window.KB.push(x);});}catch(e){window.KB=[];}
-  try{const s4=await getDocs(collection(db,'metricEntries'));window.METRIC_ENTRIES=[];s4.forEach(d=>{const x=_takeFb(d);if(x)window.METRIC_ENTRIES.push(x);});}catch(e){window.METRIC_ENTRIES=[];}
-  try{const sPP=await getDocs(collection(db,'progressPhotos'));window.PROGRESS_PHOTOS=[];sPP.forEach(d=>{const x=_takeFb(d);if(x)window.PROGRESS_PHOTOS.push(x);});}catch(e){window.PROGRESS_PHOTOS=[];}
-  try{const s5=await getDocs(collection(db,'metricGroups'));window.METRIC_GROUPS=[];s5.forEach(d=>{const x=_takeFb(d);if(x)window.METRIC_GROUPS.push(x);});if(typeof migrateEnsureMetricGroups==='function')migrateEnsureMetricGroups();else if(typeof migrateEnsureCircMetrics==='function')migrateEnsureCircMetrics();}catch(e){window.METRIC_GROUPS=[];}
-  try{const s6=await getDocs(collection(db,'messages'));const grouped={};s6.forEach(d=>{const m=_takeFb(d);if(!m)return;const cid=m.clientId;if(!cid)return;if(!grouped[cid])grouped[cid]=[];grouped[cid].push(m);});
-    Object.keys(grouped).forEach(cid=>grouped[cid].sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||'')));
-    if(window.MSGS){Object.keys(window.MSGS).forEach(k=>delete window.MSGS[k]);Object.assign(window.MSGS,grouped);}
-    else if(typeof MSGS!=='undefined'){Object.keys(MSGS).forEach(k=>delete MSGS[k]);Object.assign(MSGS,grouped);}
-  }catch(e){console.warn('Wczytywanie wiadomości nie powiodło się:',e);}
-  try{const s7=await getDocs(collection(db,'packages'));window.PACKAGES=[];s7.forEach(d=>{const x=_takeFb(d);if(x)window.PACKAGES.push(x);});}catch(e){console.warn('Wczytywanie pakietów nie powiodło się:',e);window.PACKAGES=window.PACKAGES||[];}
-  try{const s8=await getDocs(collection(db,'invoices'));window.INVOICES=[];s8.forEach(d=>{const x=_takeFb(d);if(x)window.INVOICES.push(x);});}catch(e){console.warn('Wczytywanie faktur nie powiodło się:',e);window.INVOICES=window.INVOICES||[];}
-  try{const s9=await getDocs(collection(db,'formSends'));window.FORM_SENDS=[];s9.forEach(d=>{const x=_takeFb(d);if(x)window.FORM_SENDS.push(x);});}catch(e){console.warn('Wczytywanie wysłanych formularzy nie powiodło się:',e);window.FORM_SENDS=window.FORM_SENDS||[];}
-  try{const s10=await getDocs(collection(db,'reportHistory'));window.REP_HISTORY=[];s10.forEach(d=>{const x=_takeFb(d);if(x)window.REP_HISTORY.push(x);});}catch(e){console.warn('Wczytywanie historii raportów nie powiodło się:',e);window.REP_HISTORY=window.REP_HISTORY||[];}
-  try{const sForms=await getDocs(collection(db,'forms'));window.CUSTOM_FORMS=[];sForms.forEach(d=>{const x=_takeFb(d);if(x)window.CUSTOM_FORMS.push(x);});}catch(e){console.warn('Wczytywanie formularzy nie powiodło się:',e);window.CUSTOM_FORMS=window.CUSTOM_FORMS||[];}
-  try{const sProgs=await getDocs(collection(db,'programs'));window.USER_PROGRAMS=[];sProgs.forEach(d=>{const x=_takeFb(d);if(x)window.USER_PROGRAMS.push(x);});}catch(e){console.warn('Wczytywanie programów nie powiodło się:',e);window.USER_PROGRAMS=window.USER_PROGRAMS||[];}
-  try{const sCI=await getDocs(collection(db,'checkins'));window.CHECKINS={};sCI.forEach(d=>{const ci=_takeFb(d);if(!ci||!ci.clientId)return;if(!window.CHECKINS[ci.clientId])window.CHECKINS[ci.clientId]=[];window.CHECKINS[ci.clientId].push(ci);});Object.keys(window.CHECKINS).forEach(cid=>window.CHECKINS[cid].sort((a,b)=>(a.date||'').localeCompare(b.date||'')));}catch(e){console.warn('Wczytywanie check-inów nie powiodło się:',e);window.CHECKINS=window.CHECKINS||{};}
-  try{
-    const sNotes=await getDocs(collection(db,'clientNotes'));
-    window.CLIENT_NOTES=window.CLIENT_NOTES||{};
-    Object.keys(window.CLIENT_NOTES).forEach(k=>delete window.CLIENT_NOTES[k]);
-    sNotes.forEach(d=>{const n=_takeFb(d);if(!n||!n.clientId)return;if(!window.CLIENT_NOTES[n.clientId])window.CLIENT_NOTES[n.clientId]=[];window.CLIENT_NOTES[n.clientId].push(n);});
-    Object.keys(window.CLIENT_NOTES).forEach(cid=>window.CLIENT_NOTES[cid].sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||'')));
-  }catch(e){console.warn('Wczytywanie notatek nie powiodło się:',e);}
-  try{
-    const sDocs=await getDocs(collection(db,'clientDocs'));
-    window.CLIENT_DOCS=window.CLIENT_DOCS||{};
-    Object.keys(window.CLIENT_DOCS).forEach(k=>delete window.CLIENT_DOCS[k]);
-    sDocs.forEach(d=>{const docu=_takeFb(d);if(!docu||!docu.clientId)return;if(!window.CLIENT_DOCS[docu.clientId])window.CLIENT_DOCS[docu.clientId]=[];window.CLIENT_DOCS[docu.clientId].push(docu);});
-  }catch(e){console.warn('Wczytywanie dokumentów klientów nie powiodło się:',e);window.CLIENT_DOCS=window.CLIENT_DOCS||{};}
-  try{
-    const sOnb=await getDocs(collection(db,'onboardingFlows'));
-    sOnb.forEach(d=>{const flow=_takeFb(d);if(!flow)return;window.ONBOARDING_FLOW=flow;});
-    if(window.ONBOARDING_FLOW&&typeof window.applyOnboardingFlow==='function')window.applyOnboardingFlow(window.ONBOARDING_FLOW);
-  }catch(e){console.warn('Wczytywanie onboarding flow nie powiodło się:',e);}
-  try{
-    const sTpl=await getDocs(collection(db,'planTemplates'));
-    window.TPL_CUSTOM=window.TPL_CUSTOM||[];
-    window.TPL_CUSTOM.length=0;
-    sTpl.forEach(d=>{const t=_takeFb(d);if(t)window.TPL_CUSTOM.push(t);});
-  }catch(e){console.warn('Wczytywanie szablonów planów nie powiodło się:',e);}
-  try{const s11=await getDocs(collection(db,'settings'));s11.forEach(d=>{const data=d.data()||{};if(typeof window.belongsToTrainer==='function'&&!window.belongsToTrainer(data)&&data.trainerId)return;window.SETTINGS={...window.SETTINGS,...data};if(data.profile)window.SETTINGS.profile={...window.SETTINGS.profile,...data.profile};window._settingsDocId=d.id;});}catch(e){console.warn('Wczytywanie ustawień nie powiodło się:',e);}
-  if(typeof applyBrandTheme==='function')applyBrandTheme(window.SETTINGS);
-  try{
-    if(typeof ensureScreensaverSettings==='function')ensureScreensaverSettings();
-    if(typeof initScreensaver==='function')initScreensaver();
-  }catch(e){}
-  try{
-    if(typeof window.applyAuthToTrainerProfile==='function')window.applyAuthToTrainerProfile();
-    if(window.SETTINGS&&window.SETTINGS.profile){
-      const hadDoc=!!window._settingsDocId;
-      if(!hadDoc&&window._uid&&window._db&&typeof window.withTrainer==='function'){
-        withTrainer(window.SETTINGS);
-        try{
-          await setDoc(doc(db,'settings',window._uid),window.SETTINGS,{merge:true});
-          window._settingsDocId=window._uid;
-        }catch(e){console.warn('Zapis początkowego profilu:',e);}
-      }
-    }
-  }catch(e){}
-  try{const s12=await getDocs(collection(db,'notifications'));window.NOTIFICATIONS=[];s12.forEach(d=>{const x=_takeFb(d);if(x)window.NOTIFICATIONS.push(x);});window.NOTIFICATIONS.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));}catch(e){console.warn('Wczytywanie powiadomień nie powiodło się:',e);window.NOTIFICATIONS=window.NOTIFICATIONS||[];}
-  if(!await loadAutoflowDefinitions())return;
-  await loadAutoflowState();
-  try{
-    const sInt=await getDocs(collection(db,'integrationConfigs'));
-    window.INT_CONNECTIONS={};
-    sInt.forEach(d=>{
-      const data=d.data()||{};
-      if(typeof window.belongsToTrainer==='function'&&data.trainerId&&!window.belongsToTrainer(data))return;
-      const key=data.integrationId||d.id;
-      const incoming={...data,id:d.id,integrationId:key};
-      const prev=window.INT_CONNECTIONS[key];
-      if(prev&&prev.trainerId&&window._uid&&prev.trainerId===window._uid&&!data.trainerId)return;
-      window.INT_CONNECTIONS[key]=incoming;
-    });
-  }catch(e){console.warn('Wczytywanie konfiguracji integracji nie powiodło się:',e);}
-  try{
-    const sFG=await getDocs(collection(db,'forumGroups'));
-    window.FORUM_GROUPS=[];sFG.forEach(d=>{const x=_takeFb(d);if(x)window.FORUM_GROUPS.push(x);});
-    if(!window.FORUM_GROUPS.length&&typeof DEMO_FORUM_GROUPS!=='undefined'){
-      // Pierwsze uruchomienie: zamień domyślne kategorie w prawdziwe, edytowalne grupy.
-      for(const g of DEMO_FORUM_GROUPS){
-        const copy=withTrainer({...g,id:newId('fg'),memberIds:g.memberIds||[]});
-        window.FORUM_GROUPS.push(copy);
-        try{await setDoc(doc(db,'forumGroups',copy.id),copy);copy._fbId=copy.id;}catch(e){}
-      }
-    }
-  }catch(e){console.warn('Wczytywanie grup forum nie powiodło się:',e);window.FORUM_GROUPS=window.FORUM_GROUPS||[];}
-  try{const sFP=await getDocs(collection(db,'forumPosts'));window.FORUM_POSTS=[];sFP.forEach(d=>{const x=_takeFb(d);if(x)window.FORUM_POSTS.push(x);});}catch(e){console.warn('Wczytywanie postów forum nie powiodło się:',e);window.FORUM_POSTS=window.FORUM_POSTS||[];}
-  try{const sFC=await getDocs(collection(db,'forumComments'));window.FORUM_COMMENTS={};sFC.forEach(d=>{const c=_takeFb(d);if(!c)return;if(!window.FORUM_COMMENTS[c.postId])window.FORUM_COMMENTS[c.postId]=[];window.FORUM_COMMENTS[c.postId].push(c);});}catch(e){console.warn('Wczytywanie komentarzy forum nie powiodło się:',e);window.FORUM_COMMENTS=window.FORUM_COMMENTS||{};}
-  try{
-    const sOD=await getDocs(collection(db,'odWorkouts'));
-    window.OD_WORKOUTS=[];sOD.forEach(d=>{const x=_takeFb(d);if(x)window.OD_WORKOUTS.push(x);});
-    if(!window.OD_WORKOUTS.length&&typeof OD_DEMO_WORKOUTS!=='undefined'){
-      // Pierwsze uruchomienie: zamień bibliotekę startową w prawdziwą, edytowalną zawartość.
-      for(const w of OD_DEMO_WORKOUTS){
-        const copy=withTrainer({...w,id:w.id||newId('od')});
-        window.OD_WORKOUTS.push(copy);
-        try{await setDoc(doc(db,'odWorkouts',copy.id),copy);copy._fbId=copy.id;}catch(e){}
-      }
-    }
-    if(typeof migrateODYoutubeWorkouts==='function')migrateODYoutubeWorkouts();
-  }catch(e){console.warn('Wczytywanie treningów on-demand nie powiodło się:',e);window.OD_WORKOUTS=window.OD_WORKOUTS||[];if(typeof ensureODWorkouts==='function')ensureODWorkouts();}
-  try{
-    const sODP=await getDocs(collection(db,'odPrograms'));
-    window.OD_PROGRAMS=[];sODP.forEach(d=>{const x=_takeFb(d);if(x)window.OD_PROGRAMS.push(x);});
-    if(!window.OD_PROGRAMS.length&&typeof OD_DEMO_PROGRAMS!=='undefined'){
-      for(const p of OD_DEMO_PROGRAMS){
-        const copy=withTrainer({...p,id:p.id||newId('op')});
-        window.OD_PROGRAMS.push(copy);
-        try{await setDoc(doc(db,'odPrograms',copy.id),copy);copy._fbId=copy.id;}catch(e){}
-      }
-    }
-  }catch(e){console.warn('Wczytywanie programów on-demand nie powiodło się:',e);window.OD_PROGRAMS=window.OD_PROGRAMS||[];}
-  try{
-    const sODPr=await getDocs(collection(db,'odProgress'));
-    window.OD_PROGRESS=[];sODPr.forEach(d=>{const x=_takeFb(d);if(x)window.OD_PROGRESS.push(x);});
-  }catch(e){console.warn('Wczytywanie postępu on-demand nie powiodło się:',e);window.OD_PROGRESS=window.OD_PROGRESS||[];}
-  try{
-    const sOnbA=await getDocs(collection(db,'onboardingActive'));
-    window.ONB_ACTIVE=window.ONB_ACTIVE||[];
-    window.ONB_ACTIVE.length=0;
-    sOnbA.forEach(d=>{const x=_takeFb(d);if(x)window.ONB_ACTIVE.push(x);});
-  }catch(e){console.warn('Wczytywanie aktywnych onboardingów nie powiodło się:',e);}
-  try{
-    const sGrp=await getDocs(collection(db,'clientGroups'));
-    window.CLIENT_GROUPS=[];sGrp.forEach(d=>{const x=_takeFb(d);if(x)window.CLIENT_GROUPS.push(x);});
-  }catch(e){console.warn('Wczytywanie grup klientów nie powiodło się:',e);window.CLIENT_GROUPS=window.CLIENT_GROUPS||[];}
-  try{
-    const sRes=await getDocs(collection(db,'resources'));
-    window.USER_RESOURCES=[];sRes.forEach(d=>{const x=_takeFb(d);if(x)window.USER_RESOURCES.push(x);});
-    if(!window.USER_RESOURCES.length&&typeof DEMO_RESOURCES!=='undefined'){
-      // Pierwsze uruchomienie: seed biblioteki edukacyjnej (bez kasowania przy kolejnych logowaniach).
-      for(const r of DEMO_RESOURCES){
-        const copy=withTrainer({...r,id:r.id||newId('res')});
-        window.USER_RESOURCES.push(copy);
-        try{await setDoc(doc(db,'resources',copy.id),copy);copy._fbId=copy.id;}catch(e){}
-      }
-    }
-    if(typeof migrateSpotifyDemoResources==='function')migrateSpotifyDemoResources();
-    if(typeof migrateDemoYoutubeEpisodeResources==='function')migrateDemoYoutubeEpisodeResources();
-  }catch(e){console.warn('Wczytywanie zasobów nie powiodło się:',e);window.USER_RESOURCES=window.USER_RESOURCES||[];}
-  window.AF_STATE=window.AF_STATE||{enrollments:{},executed:{},lastFired:{}};
-  try{
-    await window.migrateTrainerOwnership?.([
-      'clients','plans','sessions','exercises','workouts','tasks','kb','metricEntries','metricGroups',
-      'messages','packages','invoices','formSends','reportHistory','forms','programs','checkins',
-      'notifications','forumGroups','forumPosts','forumComments','odWorkouts','odProgress','resources',
-      'settings','integrationConfigs','clientNotes','clientDocs','onboardingFlows','planTemplates','odPrograms','onboardingActive','clientGroups','invites','clientAccounts','progressPhotos','coachVideos'
-    ]);
-  }catch(e){console.warn('Migracja trainerId:',e);}
-  try{if(typeof window.sweepImportedCatalogDuplicates==='function')await window.sweepImportedCatalogDuplicates({silent:true});}catch(e){console.warn('Duplikaty ćwiczeń:',e);}
-  try{if(typeof window.runAutoflowsCheck==='function')window.runAutoflowsCheck();}catch(e){console.warn('runAutoflowsCheck:',e);}
-  try{if(typeof window.fillAutomationSelects==='function')window.fillAutomationSelects();}catch(e){}
-  try{if(typeof window.syncSidebarProfile==='function')window.syncSidebarProfile();}catch(e){}
-  try{if(typeof window.maybePromptTrainerProfile==='function')window.maybePromptTrainerProfile();}catch(e){}
-  window.renderAll();
-  try{if(typeof window.startOpsScanClock==='function')window.startOpsScanClock();}catch(e){}
-  try{if(typeof window.consumeClientPreviewHash==='function')window.consumeClientPreviewHash();}catch(e){}
+function tenantReplaceRuntimeValue(key,value){
+  const current=window[key];
+  if(current===value)return current;
+  if(Array.isArray(current)&&Array.isArray(value)){
+    current.length=0;current.push(...value);return current;
+  }
+  if(current&&value&&typeof current==='object'&&typeof value==='object'&&!Array.isArray(current)&&!Array.isArray(value)){
+    Object.keys(current).forEach(k=>delete current[k]);Object.assign(current,value);return current;
+  }
+  window[key]=value;return value;
 }
+
+function tenantGroupBy(rows,key,sort){
+  const grouped=Object.create(null);
+  rows.forEach(row=>{if(row[key]){if(!grouped[row[key]])grouped[row[key]]=[];grouped[row[key]].push(row);}});
+  if(sort)Object.values(grouped).forEach(list=>list.sort(sort));
+  return grouped;
+}
+
+function tenantPickOwnedSingleton(rows,owner){
+  return rows.filter(row=>row.trainerId===owner).sort((a,b)=>a.id===b.id?0:a.id===owner?-1:b.id===owner?1:a.id<b.id?-1:1)[0]||null;
+}
+
+function tenantSettingsWithDefaults(saved){
+  const result=JSON.parse(JSON.stringify(TENANT_DEFAULT_SETTINGS));
+  Object.entries(saved||{}).forEach(([key,value])=>{
+    if(key==='id'||key==='_fbId')return;
+    result[key]=value&&typeof value==='object'&&!Array.isArray(value)?{...(result[key]||{}),...value}:value;
+  });
+  return result;
+}
+
+async function tenantReadOwnedCollection(name,session){
+  if(!tenantSessionIsCurrent(session)||window._clientAppMode)throw new Error('tenant-session-stale');
+  const result=await getDocs(query(collection(db,name),where('trainerId','==',session.uid)));
+  if(!tenantSessionIsCurrent(session)||window._clientAppMode)throw new Error('tenant-session-stale');
+  const rows=[];
+  result.forEach(d=>{
+    const data=d.data()||{};
+    if(data.trainerId===session.uid)rows.push(typeof window.mapFbDoc==='function'?window.mapFbDoc(d,name):{...data,id:d.id,_fbId:d.id});
+  });
+  return rows;
+}
+
+async function seedTenantDefaults(session,data){
+  if(!tenantSessionIsCurrent(session)||window._clientAppMode||!window._tenantDataReady||typeof window.persistById!=='function')return;
+  const sources=[
+    ['metricGroups','METRIC_GROUPS',typeof DEMO_METRIC_GROUPS!=='undefined'?DEMO_METRIC_GROUPS:[],true],
+    ['odWorkouts','OD_WORKOUTS',typeof OD_DEMO_WORKOUTS!=='undefined'?OD_DEMO_WORKOUTS:[]],
+    ['odPrograms','OD_PROGRAMS',typeof OD_DEMO_PROGRAMS!=='undefined'?OD_DEMO_PROGRAMS:[]],
+    ['resources','USER_RESOURCES',typeof DEMO_RESOURCES!=='undefined'?DEMO_RESOURCES:[]],
+    ['autoflows','AUTOFLOWS',typeof DEMO_AUTOFLOWS!=='undefined'?DEMO_AUTOFLOWS:[]],
+    ['forumGroups','FORUM_GROUPS',typeof DEMO_FORUM_GROUPS!=='undefined'?DEMO_FORUM_GROUPS:[]]
+  ];
+  for(const [collectionName,key,defaults,completeMissing] of sources){
+    const stored=data[collectionName]||[];
+    if(stored.length&&!completeMissing)continue;
+    for(const original of defaults){
+      if(!tenantSessionIsCurrent(session)||window._clientAppMode||!window._tenantDataReady)return;
+      if(stored.some(item=>item.id===original.id))continue;
+      const copy=JSON.parse(JSON.stringify(original));
+      const generated=collectionName==='autoflows'||collectionName==='forumGroups';
+      if(generated||!copy.id)copy.id=typeof window.newId==='function'?window.newId(collectionName==='autoflows'?'af':'seed'):'seed_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+      delete copy._fbId;
+      copy.trainerId=session.uid;
+      if(collectionName==='autoflows'){copy.status='inactive';copy.createdAt=new Date().toISOString();}
+      if(collectionName==='forumGroups')copy.memberIds=[];
+      // persistById namespaces built-in catalog IDs; failed writes stay out of runtime data.
+      const saved=await window.persistById(collectionName,copy);
+      if(!tenantSessionIsCurrent(session)||window._clientAppMode)return;
+      if(saved&&!window[key].some(item=>item.id===saved.id))window[key].push(saved);
+    }
+  }
+}
+window.seedTenantDefaults=seedTenantDefaults;
+
+async function load(session=captureTenantSession()){
+  if(!tenantSessionIsCurrent(session)||window._clientAppMode)return false;
+  window._tenantDataReady=false;
+  const collections=['clients','clientAccounts','plans','sessions','exercises','exerciseGifs','coachVideos','workouts','tasks','kb','metricEntries','progressPhotos','metricGroups','messages','packages','invoices','formSends','reportHistory','forms','programs','checkins','clientNotes','clientDocs','onboardingFlows','planTemplates','settings','notifications','autoflows','automationState','integrationConfigs','forumGroups','forumPosts','forumComments','odWorkouts','odPrograms','odProgress','onboardingActive','clientGroups','resources'];
+  // Stage every read. A denied or incomplete read must not look like an empty account.
+  const rows=await Promise.all(collections.map(name=>tenantReadOwnedCollection(name,session)));
+  if(!tenantSessionIsCurrent(session)||window._clientAppMode)return false;
+  const data=Object.fromEntries(collections.map((name,i)=>[name,rows[i]]));
+  const direct={clients:'CL',plans:'PL',sessions:'SE',exercises:'EX',coachVideos:'COACH_VIDEOS',workouts:'WO',tasks:'TASKS',kb:'KB',metricEntries:'METRIC_ENTRIES',progressPhotos:'PROGRESS_PHOTOS',metricGroups:'METRIC_GROUPS',packages:'PACKAGES',invoices:'INVOICES',formSends:'FORM_SENDS',reportHistory:'REP_HISTORY',forms:'CUSTOM_FORMS',programs:'USER_PROGRAMS',planTemplates:'TPL_CUSTOM',autoflows:'AUTOFLOWS',forumGroups:'FORUM_GROUPS',forumPosts:'FORUM_POSTS',odWorkouts:'OD_WORKOUTS',odPrograms:'OD_PROGRAMS',odProgress:'OD_PROGRESS',onboardingActive:'ONB_ACTIVE',clientGroups:'CLIENT_GROUPS',resources:'USER_RESOURCES'};
+  const snapshot={};
+  Object.entries(direct).forEach(([collectionName,key])=>{snapshot[key]=data[collectionName];});
+  const joined=new Set(data.clientAccounts.map(a=>a.clientId).filter(Boolean));
+  snapshot.CL.forEach(c=>{if(joined.has(c.id))c.appJoined=true;});
+  snapshot.MSGS=tenantGroupBy(data.messages,'clientId',(a,b)=>(a.createdAt||'').localeCompare(b.createdAt||''));
+  snapshot.CHECKINS=tenantGroupBy(data.checkins,'clientId',(a,b)=>(a.date||'').localeCompare(b.date||''));
+  snapshot.CLIENT_NOTES=tenantGroupBy(data.clientNotes,'clientId',(a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+  snapshot.CLIENT_DOCS=tenantGroupBy(data.clientDocs,'clientId');
+  snapshot.FORUM_COMMENTS=tenantGroupBy(data.forumComments,'postId');
+  snapshot.NOTIFICATIONS=data.notifications.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+  snapshot.EX_GIF_REMOTE={};
+  data.exerciseGifs.forEach(x=>{
+    if(!x.gifUrl)return;
+    const name=x.exerciseName||x.name||'';
+    const key=typeof window.exerciseMediaKey==='function'?window.exerciseMediaKey(name):String(name).toLowerCase().replace(/\s+/g,' ').trim();
+    if(key)snapshot.EX_GIF_REMOTE[key]=typeof window.normalizeVideoAssetsCdnUrl==='function'?window.normalizeVideoAssetsCdnUrl(x.gifUrl):x.gifUrl;
+  });
+  snapshot.INT_CONNECTIONS={};
+  [...data.integrationConfigs].sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0).forEach(x=>{
+    const key=x.integrationId||x.id;
+    if(!snapshot.INT_CONNECTIONS[key])snapshot.INT_CONNECTIONS[key]={...x,integrationId:key};
+  });
+  const settings=tenantPickOwnedSingleton(data.settings,session.uid);
+  snapshot.SETTINGS=tenantSettingsWithDefaults(settings);
+  snapshot.ONBOARDING_FLOW=tenantPickOwnedSingleton(data.onboardingFlows,session.uid);
+  const afState=tenantPickOwnedSingleton(data.automationState,session.uid);
+  snapshot.AF_STATE=afState?{...afState}:{trainerId:session.uid,enrollments:{},executed:{},lastFired:{},logs:[],pending:{}};
+  if(!tenantSessionIsCurrent(session)||window._clientAppMode)return false;
+  // No await between publishing collections: readers see one coherent tenant snapshot.
+  Object.entries(snapshot).forEach(([key,value])=>tenantReplaceRuntimeValue(key,value));
+  window._settingsDocId=settings?settings.id:null;
+  window._afStateDocId=afState?afState.id:session.uid;
+  window._afStateReady=true;
+  window._tenantDataReady=true;
+  window._tenantLoadedUid=session.uid;
+  // No broad ownership migration and no seed after a failed query.
+  if(typeof window.seedTenantDefaults==='function')await window.seedTenantDefaults(session,data);
+  if(!tenantSessionIsCurrent(session)||window._clientAppMode)return false;
+  if(typeof window.applyAuthToTrainerProfile==='function')window.applyAuthToTrainerProfile();
+  if(!settings&&typeof window.persistSettingsDoc==='function')await window.persistSettingsDoc();
+  else if(typeof window.syncTrainerPublicProfile==='function')await window.syncTrainerPublicProfile(session);
+  if(!tenantSessionIsCurrent(session)||window._clientAppMode)return false;
+  if(typeof applyBrandTheme==='function')applyBrandTheme(window.SETTINGS);
+  if(typeof ensureScreensaverSettings==='function')ensureScreensaverSettings();
+  if(typeof initScreensaver==='function')initScreensaver();
+  if(window.ONBOARDING_FLOW&&typeof window.applyOnboardingFlow==='function')window.applyOnboardingFlow(window.ONBOARDING_FLOW);
+  if(typeof window.fillAutomationSelects==='function')window.fillAutomationSelects();
+  if(typeof window.syncSidebarProfile==='function')window.syncSidebarProfile();
+  if(typeof window.renderAll==='function')window.renderAll();
+  if(typeof goTo==='function')goTo('dashboard');
+  if(typeof window.maybePromptTrainerProfile==='function')window.maybePromptTrainerProfile();
+  if(typeof window.runAutoflowsCheck==='function')window.runAutoflowsCheck();
+  if(typeof window.startOpsScanClock==='function')window.startOpsScanClock();
+  if(typeof window.consumeClientPreviewHash==='function')window.consumeClientPreviewHash();
+  return true;
+}
+
 </script>
 
 <script src="ex-gif-manifest.js?v=34"></script>
 <script src="ex-photo-manifest.js?v=6"></script>
-<script src="01-core.js?v=126"></script>
+<script src="01-core.js?v=126&tenant-isolation=1"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=87"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=42&client-review=1&why=1"></script>
-<script src="04-client-portal.js?v=55&journey=1"></script>
+<script src="04-client-portal.js?v=55&journey=1&tenant-isolation=1"></script>
 <script src="05-clients-builder-plans-calendar.js?v=81&journey=1"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=85"></script>
 <script src="07-forms-metrics-calculator.js?v=42"></script>
 <script src="08-client-profile-extras.js?v=84&ui=2&journey=2"></script>
-<script src="09-posture-kb-invites-private.js?v=54&reliable-af=1&af-ownership=2"></script>
-<script src="10-client-app.js?v=42"></script>
+<script src="09-posture-kb-invites-private.js?v=54&reliable-af=1&af-ownership=2&tenant-isolation=1"></script>
+<script src="10-client-app.js?v=42&tenant-isolation=1"></script>
 </body>
 </html>

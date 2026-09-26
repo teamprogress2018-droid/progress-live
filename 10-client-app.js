@@ -34,48 +34,93 @@ async function fetchInviteDoc(token){
   }
 }
 
-async function fetchClientAccount(uid){
-  if(!uid||!window._db||!window._getDoc)return null;
-  try{
-    const snap=await window._getDoc(window._doc(window._db,'clientAccounts',uid));
-    if(!snap.exists())return null;
-    const data=snap.data()||{};
-    if(data.role!=='client'||!data.clientId)return null;
-    return {id:snap.id,...data};
-  }catch(e){return null;}
+const CLIENT_PRIVATE_COLLECTIONS=Object.freeze(['plans','sessions','tasks','packages','metricEntries','progressPhotos','odProgress','messages','checkins','formSends']);
+const CLIENT_SHARED_COLLECTIONS=Object.freeze(['exercises','exerciseGifs','metricGroups','coachVideos','resources','odWorkouts','odPrograms']);
+function clientTenantError(code){const error=new Error(code);error.code=code;return error;}
+function clientTenantId(value){return typeof value==='string'&&value.length>0&&value.length<=1500&&!/[\/\x00]/.test(value)&&value!=='.'&&value!=='..';}
+function captureClientTenantSession(){
+  return typeof window.captureTenantSession==='function'?window.captureTenantSession():{uid:window._uid,generation:window.tenantSessionGeneration||0};
 }
-
-async function queryByClientId(colName,clientId){
+function requireClientTenantSession(session){
+  const current=typeof window.tenantSessionIsCurrent==='function'?window.tenantSessionIsCurrent(session):
+    !!session&&session.uid===window._uid&&session.generation===(window.tenantSessionGeneration||0);
+  if(!current||!clientTenantId(session.uid)||(session.clientLoadId!==undefined&&session.clientLoadId!==window._clientLoadGeneration))throw clientTenantError('client-session-changed');
+}
+function validateClientAccount(data,uid,session){
+  requireClientTenantSession(session);
+  if(!data||data.role!=='client'||!clientTenantId(data.clientId)||!clientTenantId(data.trainerId)||
+    (data.uid!==undefined&&data.uid!==uid)||(data.id!==undefined&&data.id!==uid))throw clientTenantError('client-account-invalid');
+  const previous=window._clientTenantBinding;
+  if(previous&&previous.uid===uid&&previous.generation===session.generation&&
+    ['clientId','trainerId','inviteToken'].some(key=>(previous[key]||'')!==(data[key]||'')))throw clientTenantError('client-account-link-changed');
+  return Object.freeze({...data,id:uid,uid});
+}
+async function fetchClientAccount(uid,session=captureClientTenantSession()){
+  requireClientTenantSession(session);
+  if(uid!==session.uid||!window._db||!window._getDoc||!window._doc)throw clientTenantError('client-account-unavailable');
+  const snap=await window._getDoc(window._doc(window._db,'clientAccounts',uid));
+  requireClientTenantSession(session);
+  if(!snap.exists()){
+    if(window._clientTenantBinding?.uid===uid)throw clientTenantError('client-account-missing');
+    return null;
+  }
+  if(snap.id!==uid)throw clientTenantError('client-account-invalid');
+  const account=validateClientAccount({...snap.data(),id:uid},uid,session);
+  window._clientTenantBinding=Object.freeze({uid,generation:session.generation,clientId:account.clientId,trainerId:account.trainerId,inviteToken:account.inviteToken||''});
+  return account;
+}
+function clientQueryContext(account,session){
+  requireClientTenantSession(session);
+  const valid=validateClientAccount(account,session.uid,session);
+  if(!window._db||!window._query||!window._where||!window._get||!window._col)throw clientTenantError('client-data-unavailable');
+  return valid;
+}
+async function queryByClientId(colName,clientId,account=window._clientAccount,session=captureClientTenantSession()){
+  const valid=clientQueryContext(account,session);
+  if(!CLIENT_PRIVATE_COLLECTIONS.includes(colName)||clientId!==valid.clientId)throw clientTenantError('client-query-forbidden');
+  const q=window._query(window._col(window._db,colName),window._where('trainerId','==',valid.trainerId),window._where('clientId','==',clientId));
+  const snap=await window._get(q);
+  requireClientTenantSession(session);
   const out=[];
-  if(!window._db||!clientId)return out;
-  try{
-    if(window._query&&window._where&&window._get){
-      const q=window._query(window._col(window._db,colName),window._where('clientId','==',clientId));
-      const snap=await window._get(q);
-      snap.forEach(d=>{
-        const x=typeof window.mapFbDoc==='function'?window.mapFbDoc(d):{...d.data(),id:d.id,_fbId:d.id};
-        out.push(x);
-      });
-      return out;
-    }
-  }catch(e){console.warn('query '+colName,e);}
+  snap.forEach(d=>{const data=d.data()||{};if(data.trainerId===valid.trainerId&&data.clientId===clientId)out.push({...data,id:d.id,_fbId:d.id});});
   return out;
 }
-
-async function queryByTrainerId(colName,trainerId){
+async function queryByTrainerId(colName,trainerId,account=window._clientAccount,session=captureClientTenantSession()){
+  const valid=clientQueryContext(account,session);
+  if(!CLIENT_SHARED_COLLECTIONS.includes(colName)||trainerId!==valid.trainerId)throw clientTenantError('client-query-forbidden');
+  const q=window._query(window._col(window._db,colName),window._where('trainerId','==',trainerId));
+  const snap=await window._get(q);
+  requireClientTenantSession(session);
   const out=[];
-  if(!window._db||!trainerId)return out;
-  try{
-    if(window._query&&window._where&&window._get){
-      const q=window._query(window._col(window._db,colName),window._where('trainerId','==',trainerId));
-      const snap=await window._get(q);
-      snap.forEach(d=>{
-        const x=typeof window.mapFbDoc==='function'?window.mapFbDoc(d):{...d.data(),id:d.id,_fbId:d.id};
-        out.push(x);
-      });
-    }
-  }catch(e){console.warn('query trainer '+colName,e);}
+  snap.forEach(d=>{const data=d.data()||{};if(data.trainerId===trainerId)out.push(typeof window.mapFbDoc==='function'?window.mapFbDoc(d,colName):{...data,id:d.id,_fbId:d.id});});
   return out;
+}
+async function queryClientForum(account,session){
+  const valid=clientQueryContext(account,session),tid=valid.trainerId,cid=valid.clientId;
+  const read=async(name,filters,accept)=>{
+    const q=window._query(window._col(window._db,name),window._where('trainerId','==',tid),...filters);
+    const snap=await window._get(q);requireClientTenantSession(session);
+    const rows=[];snap.forEach(d=>{const row={...d.data(),id:d.id,_fbId:d.id};if(row.trainerId===tid&&accept(row))rows.push(row);});
+    return rows;
+  };
+  const visible=g=>g.privacy==='public'||(Array.isArray(g.memberIds)&&g.memberIds.includes(cid));
+  const groupLists=await Promise.all([
+    read('forumGroups',[window._where('privacy','==','public')],g=>g.privacy==='public'),
+    read('forumGroups',[window._where('privacy','==','private'),window._where('memberIds','array-contains',cid)],g=>g.privacy==='private'&&Array.isArray(g.memberIds)&&g.memberIds.includes(cid))
+  ]);
+  const groups=[...new Map(groupLists.flat().filter(visible).map(g=>[g.id,g])).values()];
+  const posts=(await Promise.all(groups.map(g=>read('forumPosts',[window._where('groupId','==',g.id)],p=>p.groupId===g.id)))).flat();
+  const comments=(await Promise.all(posts.map(p=>read('forumComments',[window._where('postId','==',p.id)],c=>c.postId===p.id)))).flat();
+  return {groups,posts,comments};
+}
+function clientPublicSettings(data,trainerName){
+  const pick=(value,keys)=>Object.fromEntries(keys.filter(k=>value&&Object.prototype.hasOwnProperty.call(value,k)).map(k=>[k,value[k]]));
+  const profile=pick(data.profile,['name','title','avatar','avatarUrl']);
+  if(!profile.name)profile.name=trainerName||'Trener';
+  const payment=pick(data.paymentInstructions,['name','bank','currency','footer']);
+  return {profile,brand:pick(data.brand,['accentColor','theme','appName','logo','font']),
+    clientApp:{...pick(data.clientApp,['appName']),visibleSections:pick(data.clientApp?.visibleSections,['home','plan','calendar','homework','progress','checkin','ondemand','resources','forum','messages','profile'])},
+    payments:{bankAccount:payment.bank||'',currency:payment.currency||'PLN'},company:{name:payment.name||profile.name,invoice_footer:payment.footer||''}};
 }
 
 function indexForumComments(list){
@@ -114,6 +159,7 @@ function clientSaveForumPost(){
 function emptyClientCollections(){
   window.CL=[];window.PL=[];window.SE=[];window.EX=[];window.WO=[];
   window.TASKS=[];window.PACKAGES=[];window.METRIC_ENTRIES=[];
+  window.METRIC_GROUPS=[];window.EX_GIF_REMOTE={};
   window.CHECKINS={};window.NOTIFICATIONS=[];
   window.FORUM_GROUPS=[];window.FORUM_POSTS=[];window.FORUM_COMMENTS={};
   window.PROGRESS_PHOTOS=[];
@@ -122,80 +168,51 @@ function emptyClientCollections(){
   window.OD_WORKOUTS=[];
   window.OD_PROGRAMS=[];
   window.OD_PROGRESS=[];
+  window.FORM_SENDS=[];
+  window._cliveFormAnswers={};window._cliveCheckin={};window._clientPendingDeepLinkDone=false;
   if(window.MSGS)Object.keys(window.MSGS).forEach(k=>delete window.MSGS[k]);
 }
 
-async function loadClientApp(account){
-  window._clientAppMode=true;
-  window._clientId=account.clientId;
-  window._trainerId=account.trainerId;
+async function loadClientApp(account,session=captureClientTenantSession()){
+  account=validateClientAccount(account,session.uid,session);
+  const loadId=(window._clientLoadGeneration||0)+1;window._clientLoadGeneration=loadId;
+  session={...session,clientLoadId:loadId};
+  window._clientAppMode=true;window._clientId=account.clientId;window._trainerId=account.trainerId;
   window._clientAccount=account;
+  window._clientTenantBinding=Object.freeze({uid:session.uid,generation:session.generation,clientId:account.clientId,trainerId:account.trainerId,inviteToken:account.inviteToken||''});
   emptyClientCollections();
+  window.SETTINGS=clientPublicSettings({},account.trainerName);
   const cid=account.clientId;
-  try{
-    const snap=await window._getDoc(window._doc(window._db,'clients',cid));
-    if(snap.exists()){
-      const c=typeof window.mapFbDoc==='function'?window.mapFbDoc(snap):{id:snap.id,...snap.data()};
-      window.CL=[c];
-    }
-  }catch(e){console.warn('Klient (profil):',e);}
-  window.PL=await queryByClientId('plans',cid);
-  window.SE=await queryByClientId('sessions',cid);
-  window.TASKS=await queryByClientId('tasks',cid);
-  window.PACKAGES=await queryByClientId('packages',cid);
-  window.METRIC_ENTRIES=await queryByClientId('metricEntries',cid);
-  window.PROGRESS_PHOTOS=await queryByClientId('progressPhotos',cid);
-  window.EX=await queryByTrainerId('exercises',account.trainerId);
-  window.COACH_VIDEOS=await queryByTrainerId('coachVideos',account.trainerId);
-  try{
-    const res=await queryByTrainerId('resources',account.trainerId);
-    window.USER_RESOURCES=(res&&res.length)?res:((window.DEMO_RESOURCES||[]).map(r=>Object.assign({},r)));
-  }catch(e){
-    window.USER_RESOURCES=(window.DEMO_RESOURCES||[]).map(r=>Object.assign({},r));
-  }
-  try{if(typeof migrateSpotifyDemoResources==='function')migrateSpotifyDemoResources();}catch(e){}
-  try{if(typeof migrateDemoYoutubeEpisodeResources==='function')migrateDemoYoutubeEpisodeResources();}catch(e){}
-  try{
-    const od=await queryByTrainerId('odWorkouts',account.trainerId);
-    window.OD_WORKOUTS=(od&&od.length)?od:((window.OD_DEMO_WORKOUTS||[]).map(w=>Object.assign({},w)));
-    if(typeof migrateODYoutubeWorkouts==='function')migrateODYoutubeWorkouts();
-  }catch(e){
-    window.OD_WORKOUTS=(window.OD_DEMO_WORKOUTS||[]).map(w=>Object.assign({},w));
-  }
-  try{
-    const odp=await queryByTrainerId('odPrograms',account.trainerId);
-    window.OD_PROGRAMS=(odp&&odp.length)?odp:((typeof ensureODPrograms==='function'?ensureODPrograms():[])||[]);
-    if(typeof ensureODPrograms==='function'&&!window.OD_PROGRAMS.length)ensureODPrograms();
-  }catch(e){
-    if(typeof ensureODPrograms==='function')ensureODPrograms();
-  }
-  try{
-    const pr=await queryByClientId('odProgress',cid);
-    window.OD_PROGRESS=pr||[];
-  }catch(e){window.OD_PROGRESS=[];}
-  const msgs=await queryByClientId('messages',cid);
-  msgs.sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||''));
-  if(!window.MSGS)window.MSGS={};
-  window.MSGS[cid]=msgs;
-  const cis=await queryByClientId('checkins',cid);
-  window.CHECKINS={};window.CHECKINS[cid]=cis.sort((a,b)=>(a.date||'').localeCompare(b.date||''));
-  window.FORUM_GROUPS=await queryByTrainerId('forumGroups',account.trainerId);
-  window.FORUM_POSTS=await queryByTrainerId('forumPosts',account.trainerId);
-  indexForumComments(await queryByTrainerId('forumComments',account.trainerId));
-  try{
-    if(account.trainerId){
-      const st=await window._getDoc(window._doc(window._db,'settings',account.trainerId));
-      if(st.exists()){
-        const data=st.data()||{};
-        window.SETTINGS={...window.SETTINGS,...data};
-        if(data.profile)window.SETTINGS.profile={...window.SETTINGS.profile,...data.profile};
-      }
-    }
-  }catch(e){}
-  if((!window.SETTINGS||!window.SETTINGS.profile||!window.SETTINGS.profile.name)&&account.trainerName){
-    window.SETTINGS=window.SETTINGS||{};
-    window.SETTINGS.profile=Object.assign({},window.SETTINGS.profile||{},{name:account.trainerName});
-  }
+  const [profileSnap,publicSnap,privateRows,sharedRows,forum]=await Promise.all([
+    window._getDoc(window._doc(window._db,'clients',cid)),
+    window._getDoc(window._doc(window._db,'trainerPublicProfiles',account.trainerId)),
+    Promise.all(CLIENT_PRIVATE_COLLECTIONS.map(name=>queryByClientId(name,cid,account,session))),
+    Promise.all(CLIENT_SHARED_COLLECTIONS.map(name=>queryByTrainerId(name,account.trainerId,account,session))),
+    queryClientForum(account,session)
+  ]);
+  requireClientTenantSession(session);
+  if(!profileSnap.exists()||profileSnap.id!==cid||profileSnap.data().trainerId!==account.trainerId)throw clientTenantError('client-profile-invalid');
+  const publicData=publicSnap.exists()?publicSnap.data():{};
+  if(publicSnap.exists()&&(publicSnap.id!==account.trainerId||publicData.trainerId!==account.trainerId))throw clientTenantError('client-public-profile-invalid');
+  const privateData=Object.fromEntries(CLIENT_PRIVATE_COLLECTIONS.map((name,i)=>[name,privateRows[i]]));
+  const sharedData=Object.fromEntries(CLIENT_SHARED_COLLECTIONS.map((name,i)=>[name,sharedRows[i]]));
+  // Publish one complete, current-account snapshot; late requests cannot restore a previous account.
+  window.CL=[{...profileSnap.data(),id:profileSnap.id,_fbId:profileSnap.id}];
+  Object.assign(window,{PL:privateData.plans,SE:privateData.sessions,TASKS:privateData.tasks,PACKAGES:privateData.packages,
+    METRIC_ENTRIES:privateData.metricEntries,PROGRESS_PHOTOS:privateData.progressPhotos,OD_PROGRESS:privateData.odProgress,
+    FORM_SENDS:privateData.formSends,EX:sharedData.exercises,METRIC_GROUPS:sharedData.metricGroups,COACH_VIDEOS:sharedData.coachVideos,
+    USER_RESOURCES:sharedData.resources,OD_WORKOUTS:sharedData.odWorkouts,OD_PROGRAMS:sharedData.odPrograms,
+    FORUM_GROUPS:forum.groups,FORUM_POSTS:forum.posts,SETTINGS:clientPublicSettings(publicData,account.trainerName)});
+  window.MSGS=window.MSGS||{};window.MSGS[cid]=privateData.messages.sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||''));
+  window.CHECKINS={[cid]:privateData.checkins.sort((a,b)=>(a.date||'').localeCompare(b.date||''))};
+  indexForumComments(forum.comments);
+  sharedData.exerciseGifs.forEach(x=>{
+    if(!x.gifUrl)return;
+    const name=x.exerciseName||x.name||'';
+    const key=typeof window.exerciseMediaKey==='function'?window.exerciseMediaKey(name):String(name).toLowerCase().replace(/\s+/g,' ').trim();
+    if(key)window.EX_GIF_REMOTE[key]=typeof window.normalizeVideoAssetsCdnUrl==='function'?window.normalizeVideoAssetsCdnUrl(x.gifUrl):x.gifUrl;
+  });
+  window._tenantDataReady=true;
   try{
     if(typeof ensureScreensaverSettings==='function')ensureScreensaverSettings();
     if(typeof resetScreensaverIdle==='function')resetScreensaverIdle();
@@ -281,7 +298,7 @@ function renderClientLive(){
   if(scr==='calendar'&&typeof capClientSectionVisible==='function'&&!capClientSectionVisible('calendar'))scr='progress';
   else if(typeof capClientSectionVisible==='function'&&!capClientSectionVisible(scr)&&!subScreens.includes(scr))scr='home';
   window._clientLiveScreen=scr;
-  ['home','plan','homework','progress','checkin','ondemand','resources','forum','messages','profile'].forEach(s=>{
+  ['home','plan','calendar','homework','progress','checkin','ondemand','resources','forum','messages','profile'].forEach(s=>{
     const bn=document.getElementById('clive-bn-'+s);
     if(!bn)return;
     const visible=!navIds.length||navIds.includes(s);
@@ -464,17 +481,11 @@ function prepareAuthForInvite(){
   if(window._pendingInviteToken){
     if(hint)hint.textContent='Aplikacja klienta — ustaw hasło z zaproszenia trenera';
     authShowRegister();
-    fetchInviteDoc(window._pendingInviteToken).then(inv=>{
-      const tokEl=document.getElementById('auth-reg-token');
-      if(tokEl)tokEl.value=window._pendingInviteToken;
-      if(!inv)return;
-      const em=document.getElementById('auth-reg-email');
-      if(em&&inv.email){em.value=inv.email;em.readOnly=!!inv.email;}
-      const sub=document.getElementById('auth-reg-sub');
-      if(sub)sub.textContent=inv.clientName
-        ?('Cześć '+inv.clientName.split(' ')[0]+'! Ustaw hasło, żeby zobaczyć plan od '+(inv.trainerName||'trenera')+'.')
-        :'Ustaw hasło do aplikacji klienta.';
-    });
+    // An invite must not disclose client names or email addresses before sign-in.
+    const tokEl=document.getElementById('auth-reg-token');if(tokEl)tokEl.value=window._pendingInviteToken;
+    const em=document.getElementById('auth-reg-email');if(em)em.readOnly=false;
+    const sub=document.getElementById('auth-reg-sub');
+    if(sub)sub.textContent='Wpisz adres e-mail podany trenerowi i ustaw hasło. Jeśli masz już konto, użyj swojego hasła.';
   }else if(hint){
     hint.textContent='Zaloguj się — trener do panelu, klient do swojej aplikacji';
   }
@@ -511,6 +522,35 @@ function clientAppJoinedPatch(nowIso){
 }
 window.clientAppJoinedPatch=clientAppJoinedPatch;
 
+async function acceptClientInvite(token,email,uid,session=captureClientTenantSession()){
+  requireClientTenantSession(session);
+  if(uid!==session.uid||!clientTenantId(token)||!window._runTransaction||!window._serverTimestamp)throw clientTenantError('client-invite-unavailable');
+  const inviteRef=window._doc(window._db,'invites',token),accountRef=window._doc(window._db,'clientAccounts',uid);
+  const accepted=await window._runTransaction(window._db,async tx=>{
+    requireClientTenantSession(session);
+    const inviteSnap=await tx.get(inviteRef),accountSnap=await tx.get(accountRef);
+    requireClientTenantSession(session);
+    if(!inviteSnap.exists())throw clientTenantError('client-invite-invalid');
+    const inv=inviteSnap.data();
+    if(!clientTenantId(inv.clientId)||!clientTenantId(inv.trainerId)||inv.revoked===true||
+      typeof inv.emailLower!=='string'||inv.emailLower!==email.toLowerCase())throw clientTenantError('client-invite-invalid');
+    if(accountSnap.exists()){
+      const account=validateClientAccount({...accountSnap.data(),id:uid},uid,session);
+      if(account.clientId!==inv.clientId||account.trainerId!==inv.trainerId||account.inviteToken!==token||inv.consumedBy!==uid)throw clientTenantError('client-account-link-changed');
+      return account;
+    }
+    const expires=inv.expiresAt&&typeof inv.expiresAt.toMillis==='function'?inv.expiresAt.toMillis():inv.expiresAt instanceof Date?inv.expiresAt.getTime():NaN;
+    if(!Number.isFinite(expires)||expires<=Date.now()||inv.consumedBy)throw clientTenantError('client-invite-expired');
+    const account={role:'client',uid,clientId:inv.clientId,trainerId:inv.trainerId,inviteToken:token,
+      clientName:inv.clientName||'',trainerName:inv.trainerName||'',email,createdAt:new Date().toISOString()};
+    tx.set(accountRef,account);
+    tx.set(inviteRef,{consumedBy:uid,consumedAt:window._serverTimestamp()},{merge:true});
+    return Object.freeze({...account,id:uid});
+  });
+  requireClientTenantSession(session);
+  return accepted;
+}
+
 async function doClientRegister(){
   const token=(document.getElementById('auth-reg-token')?.value||window._pendingInviteToken||clientInviteTokenFromUrl()||'').trim();
   const email=(document.getElementById('auth-reg-email')?.value||'').trim();
@@ -524,33 +564,23 @@ async function doClientRegister(){
   if(pass!==pass2){authSetError('auth-reg-error','Hasła nie są takie same.');return;}
   if(!window._createUser){authSetError('auth-reg-error','Brak połączenia z logowaniem. Odśwież stronę.');return;}
   if(btn){btn.disabled=true;btn.textContent='Zakładanie konta...';}
+  let completeRegistration,failRegistration,registrationSession;
+  const registrationReady=new Promise((resolve,reject)=>{completeRegistration=resolve;failRegistration=reject;});
+  registrationReady.catch(()=>{});
+  window._clientRegistrationPromise=registrationReady;
   try{
-    const inv=await fetchInviteDoc(token);
-    if(!inv){
-      authSetError('auth-reg-error','Kod z linku zaproszenia jest nieważny lub wygasł. Poproś trenera o nowy link (Wyślij zaproszenie).');
-      return;
+    let cred;
+    try{cred=await window._createUser(email,pass);}
+    catch(e){
+      if(e.code!=='auth/email-already-in-use'||!window._signInClient)throw e;
+      cred=await window._signInClient(email,pass);
     }
-    if(!inv.clientId||!inv.trainerId){
-      authSetError('auth-reg-error','To zaproszenie jest niekompletne. Poproś trenera o nowy link.');
-      return;
-    }
-    if(inv.email&&email.toLowerCase()!==String(inv.email).toLowerCase()){
-      authSetError('auth-reg-error','Użyj adresu e-mail z zaproszenia: '+inv.email);
-      return;
-    }
-    const cred=await window._createUser(email,pass);
     const uid=cred.user.uid;
-    await window._setDoc(window._doc(window._db,'clientAccounts',uid),{
-      role:'client',
-      uid,
-      clientId:inv.clientId,
-      trainerId:inv.trainerId,
-      inviteToken:token,
-      clientName:inv.clientName||'',
-      trainerName:inv.trainerName||'',
-      email,
-      createdAt:new Date().toISOString()
-    });
+    registrationSession=captureClientTenantSession();requireClientTenantSession(registrationSession);
+    if(uid!==registrationSession.uid)throw clientTenantError('client-session-changed');
+    const inv=await acceptClientInvite(token,email,uid,registrationSession);
+    completeRegistration();
+    if(window._clientRegistrationPromise===registrationReady)window._clientRegistrationPromise=null;
     // Domknięcie pętli zaproszenia — trener widzi „W apce”
     try{
       const joinedAt=new Date().toISOString();
@@ -558,7 +588,8 @@ async function doClientRegister(){
         appJoined:true,appJoinedAt:joinedAt,inviteAcceptedAt:joinedAt,inviteSent:true,appInvited:true
       };
       await window._setDoc(window._doc(window._db,'clients',inv.clientId),patch,{merge:true});
-      const nid='n_join_'+inv.clientId+'_'+Date.now().toString(36);
+      requireClientTenantSession(registrationSession);
+      const nid='n_join_'+uid;
       if(window._setDoc&&window._doc){
         await window._setDoc(window._doc(window._db,'notifications',nid),{
           id:nid,
@@ -573,28 +604,35 @@ async function doClientRegister(){
           time:'teraz'
         },{merge:true});
       }
-      if(typeof withTrainer==='function'&&typeof newId==='function'&&typeof persistById==='function'){
-        const msg=withTrainer({
-          id:newId('msg'),
+      requireClientTenantSession(registrationSession);
+      if(typeof newId==='function'){
+        const msg={
+          id:'msg_join_'+uid,
           clientId:inv.clientId,
           text:'Założyłem konto w aplikacji Progress Live 👋',
           out:false,
           time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),
           createdAt:joinedAt,
           trainerId:inv.trainerId
-        });
-        await persistById('messages',msg);
+        };
+        await window._setDoc(window._doc(window._db,'messages',msg.id),msg);
       }
     }catch(e){console.warn('Oznaczenie appJoined:',e);}
+    requireClientTenantSession(registrationSession);
     window._pendingInviteToken='';
     try{history.replaceState(null,'',location.pathname+(location.search||'').replace(/[?&]invite=[^&]*/g,'').replace(/^&/,'?')||location.pathname);}catch(e){}
   }catch(e){
+    failRegistration(e);
+    if(!window._uid&&window._clientRegistrationPromise===registrationReady)window._clientRegistrationPromise=null;
     const msgs={
       'auth/email-already-in-use':'Ten e-mail ma już konto. Jeśli to Ty — wróć i zaloguj się hasłem. Jeśli to e-mail trenera — użyj innego (swój) z zaproszenia.',
       'auth/invalid-email':'Nieprawidłowy adres e-mail.',
       'auth/weak-password':'Hasło jest za słabe (min. 6 znaków).',
       'auth/operation-not-allowed':'Rejestracja e-mail/hasło jest wyłączona w Firebase.',
-      'permission-denied':'Brak uprawnień do założenia konta. Poproś trenera o nowy link i spróbuj ponownie.'
+      'permission-denied':'Zaproszenie nie pasuje do konta lub wygasło. Poproś trenera o nowy link.',
+      'client-invite-expired':'Zaproszenie wygasło albo zostało użyte. Poproś trenera o nowy link.',
+      'client-invite-invalid':'Zaproszenie nie pasuje do podanego adresu. Sprawdź adres lub poproś trenera o nowy link.',
+      'client-account-link-changed':'To konto ma już inne powiązanie z trenerem. Nie zostało zmienione.'
     };
     authSetError('auth-reg-error',msgs[e.code]||('Nie udało się założyć konta: '+(e.message||e)));
   }finally{
@@ -689,30 +727,25 @@ function clientSubmitCheckin(){
 
 async function ensureClientInvite(client){
   if(!client)return '';
-  let token=(client.inviteToken||'').trim();
-  if(!token||token===client.id){
-    token=newInviteToken();
-    client.inviteToken=token;
-  }
+  if(window._clientAppMode||!window._uid||!client.email||!window._db||!window._setDoc)throw clientTenantError('client-invite-unavailable');
+  const session=captureClientTenantSession();requireClientTenantSession(session);
+  const token=newInviteToken();
   const link=clientAppUrl()+'?invite='+encodeURIComponent(token);
-  client.inviteLink=link;
+  const now=new Date().toISOString();
   const payload=withTrainer({
     id:token,
     clientId:client.id,
     clientName:client.name||'',
-    email:client.email||'',
+    email:client.email.trim(),emailLower:client.email.trim().toLowerCase(),
     trainerName:typeof getTrainerName==='function'?getTrainerName('Trener'):'Trener',
-    createdAt:client.inviteCreatedAt||new Date().toISOString(),
-    updatedAt:new Date().toISOString()
+    createdAt:now,updatedAt:now,
+    expiresAt:new Date(Date.now()+7*86400000),consumedBy:null,consumedAt:null,revoked:false
   });
-  if(!client.inviteCreatedAt)client.inviteCreatedAt=payload.createdAt;
-  try{
-    if(window._db&&window._setDoc)await window._setDoc(window._doc(window._db,'invites',token),payload,{merge:true});
-  }catch(e){
-    console.warn('Zapis zaproszenia:',e);
-    if(typeof persistWarn==='function')persistWarn('⚠ Nie zapisano zaproszenia w bazie — wdróż reguły Firestore.');
-  }
-  persistById('clients',client);
+  await window._setDoc(window._doc(window._db,'invites',token),payload);
+  requireClientTenantSession(session);
+  client.inviteToken=token;client.inviteLink=link;client.inviteCreatedAt=payload.createdAt;
+  await persistById('clients',client);
+  requireClientTenantSession(session);
   return link;
 }
 
@@ -874,21 +907,101 @@ function saveHomeworkDone(){
   clientCompleteHomework(id,{rpe,duration,confirmed:true});
 }
 
-function clientCompleteHomework(taskId,opts){
+// Recover a committed write after a lost acknowledgement without creating a second record.
+async function clientConfirmWrite(collectionName,entry,session,allowedChanges=[]){
+  requireClientTenantSession(session);
+  if(!window._db||typeof window._doc!=='function'||typeof window._getDoc!=='function'||typeof persistById!=='function')return null;
+  const docId=entry._fbId||entry.id;
+  const ref=window._doc(window._db,collectionName,docId);
+  const keys=Object.keys(entry).filter(key=>key!=='_fbId');
+  const same=(a,b)=>{
+    if(a===b)return true;
+    if(!a||!b||typeof a!=='object'||typeof b!=='object'||Array.isArray(a)!==Array.isArray(b))return false;
+    const ak=Object.keys(a),bk=Object.keys(b);
+    return ak.length===bk.length&&ak.every(key=>Object.prototype.hasOwnProperty.call(b,key)&&same(a[key],b[key]));
+  };
+  const matches=data=>data&&data.trainerId===entry.trainerId&&data.clientId===entry.clientId&&keys.every(key=>same(data[key],entry[key]));
+  const read=async()=>{const snap=await window._getDoc(ref);requireClientTenantSession(session);return snap.exists()?snap.data():null;};
+  let existing=null;
+  try{existing=await read();}catch(e){
+    // Ownership rules cannot prove ownership of a document which does not exist.
+    // Only that denial permits a create attempt; Firestore still rejects foreign updates.
+    if(e.code!=='permission-denied'&&e.code!=='firestore/permission-denied')throw e;
+  }
+  requireClientTenantSession(session);
+  if(matches(existing)){entry._fbId=docId;return entry;}
+  if(existing){
+    if(existing.trainerId!==entry.trainerId||existing.clientId!==entry.clientId||
+      keys.some(key=>!allowedChanges.includes(key)&&!same(existing[key],entry[key])))throw clientTenantError('client-write-conflict');
+  }
+  const saved=await persistById(collectionName,entry);
+  requireClientTenantSession(session);
+  if(saved)return saved;
+  // A failed acknowledgement can still mean that Firestore committed the record.
+  const recovered=await read();
+  if(matches(recovered)){entry._fbId=docId;return entry;}
+  return null;
+}
+
+async function clientCompleteHomework(taskId,opts){
   const t=(window.TASKS||[]).find(x=>x.id===taskId);
-  if(!t)return;
+  if(!t)return false;
   opts=opts||{};
   if(!opts.confirmed){
     openHomeworkDoneModal(taskId);
-    return;
+    return false;
   }
-  t.status='done';
-  t.doneAt=new Date().toISOString();
-  t.updatedAt=new Date().toISOString();
-  t.rpe=opts.rpe!=null&&opts.rpe!==''?String(opts.rpe):'';
-  t.duration=parseInt(opts.duration,10)||t.duration||0;
-  if(typeof persistById==='function')persistById('tasks',t);
-  const sess=typeof logHomeworkSession==='function'?logHomeworkSession(t,{rpe:t.rpe,duration:t.duration}):null;
+  if(t.status==='done'&&(window.SE||[]).some(s=>s.source==='homework'&&s.taskId===t.id&&s.clientId===t.clientId))return true;
+  if(t._completionSave?.busy)return false;
+  if(!t._completionSave)Object.defineProperty(t,'_completionSave',{value:{},configurable:true});
+  const state=t._completionSave;
+  const session=captureClientTenantSession();
+  state.busy=true;
+  let sess;
+  try{
+    requireClientTenantSession(session);
+    if(window._clientAppMode&&(t.clientId!==window._clientId||t.trainerId!==window._trainerId))throw clientTenantError('client-task-owner');
+    if(state.complete)return true;
+    const now=new Date().toISOString();
+    const completed={...t,status:'done',doneAt:t.doneAt||state.doneAt||now,updatedAt:now,
+      rpe:opts.rpe!=null&&opts.rpe!==''?String(opts.rpe):'',duration:parseInt(opts.duration,10)||t.duration||0};
+    state.doneAt=completed.doneAt;
+    const prior=(window.SE||[]).find(s=>s.source==='homework'&&s.taskId===t.id&&s.clientId===t.clientId);
+    const sessionId=prior?.id||'hw_'+(t._fbId||t.id);
+    if(!state.record){
+      let stored=prior;
+      if(!stored&&window._db&&typeof window._getDoc==='function'&&typeof window._doc==='function'){
+        let snap=null;
+        try{snap=await window._getDoc(window._doc(window._db,'sessions',sessionId));}catch(e){if(e.code!=='permission-denied'&&e.code!=='firestore/permission-denied')throw e;}
+        requireClientTenantSession(session);
+        if(snap&&snap.exists()){
+          const data=snap.data();
+          if(data.clientId!==t.clientId||data.trainerId!==t.trainerId||data.source!=='homework'||data.taskId!==t.id)throw clientTenantError('client-write-conflict');
+          stored={...data,id:snap.id,_fbId:snap.id};
+        }
+      }
+      state.record=stored?{...stored}:withTrainer({id:sessionId,clientId:t.clientId,date:completed.doneAt.slice(0,10),time:'',type:t.title||'Zadanie domowe',
+        duration:Math.max(1,completed.duration||1),exercises:[],source:'homework',taskId:t.id,odWorkoutId:t.odWorkoutId||null,
+        rpe:completed.rpe,feedback:typeof homeworkRpeToFeedback==='function'?homeworkRpeToFeedback(completed.rpe):Math.max(0,Math.min(5,Math.round((parseInt(completed.rpe,10)||0)/2))),note:'',createdAt:now});
+    }
+    const record={...state.record,rpe:completed.rpe,duration:Math.max(1,completed.duration||1),
+      feedback:typeof homeworkRpeToFeedback==='function'?homeworkRpeToFeedback(completed.rpe):Math.max(0,Math.min(5,Math.round((parseInt(completed.rpe,10)||0)/2)))};
+    // Save history first: an unavailable history write must not mark the assignment done.
+    sess=await clientConfirmWrite('sessions',record,session,['rpe','feedback','duration','note','updatedAt']);
+    if(!sess)throw clientTenantError('client-write-unconfirmed');
+    state.record=sess;
+    const saved=await clientConfirmWrite('tasks',completed,session,['status','doneAt','updatedAt','rpe','duration']);
+    if(!saved)throw clientTenantError('client-write-unconfirmed');
+    requireClientTenantSession(session);
+    Object.assign(t,saved);
+    window.SE=window.SE||[];
+    const existing=window.SE.find(s=>s.id===sess.id);
+    if(existing)Object.assign(existing,sess);else window.SE.push(sess);
+    state.complete=true;
+  }catch(e){
+    try{requireClientTenantSession(session);if(typeof notify==='function')notify('Nie udało się potwierdzić zapisu zadania. Spróbuj ponownie — historia nie zostanie zdublowana.');}catch(stale){}
+    return false;
+  }finally{state.busy=false;}
   if(typeof closeODPlayer==='function')try{closeODPlayer();}catch(e){}
   if(typeof notify==='function')notify('✓ Zadanie domowe w Postępach'+(t.rpe?' · RPE '+t.rpe:''));
   if(typeof pushClientMsg==='function')pushClientMsg('Zaliczyłem zadanie domowe: '+(t.title||'trening')+(t.rpe?' · RPE '+t.rpe:'')+(t.duration?' · '+t.duration+' min':''));
@@ -903,6 +1016,7 @@ function clientCompleteHomework(taskId,opts){
     window._clientLiveScreen='progress';
     renderClientLive();
   }
+  return true;
 }
 function maybeScheduleNextHomework(t){
   const left=(parseInt(t.repeatLeft,10)||0)-1;
@@ -919,7 +1033,7 @@ function maybeScheduleNextHomework(t){
   }
   if(!due)return;
   if(typeof assignHomeworkToClient==='function'){
-    assignHomeworkToClient(t.clientId,t.odWorkoutId,{due,desc:t.desc,title:t.title,notify:false,repeatWeeks:left,repeatLeft:left,repeatWeekdays:t.repeatWeekdays});
+    assignHomeworkToClient(t.clientId,t.odWorkoutId,{due,desc:t.desc,title:t.title,notify:false,parentTaskId:t.id,repeatWeeks:left,repeatLeft:left,repeatWeekdays:t.repeatWeekdays});
   }
 }
 window.maybeScheduleNextHomework=maybeScheduleNextHomework;
@@ -1297,17 +1411,22 @@ function cwRender(){
 }
 
 async function cwFinish(){
-  const cw=window._cw;if(!cw)return;
-  if(!cw.rating){if(typeof notify==='function')notify('Wybierz ocenę 1–5 — trener to widzi');return;}
+  const cw=window._cw;if(!cw||cw.saving)return false;
+  if(!cw.rating){if(typeof notify==='function')notify('Wybierz ocenę 1–5 — trener to widzi');return false;}
+  const session=captureClientTenantSession();
   const clientId=window._clientId;
   const totalSets=cw.exercises.flatMap(e=>e.sets).filter(s=>s.done).length;
   const volume=Math.round(typeof exerciseSetVolumeKg==='function'?exerciseSetVolumeKg(cw.exercises):cw.exercises.flatMap(e=>e.sets).filter(s=>s.done&&s.kg).reduce((a,s)=>a+(parseFloat(s.kg)||0)*(parseFloat(s.reps)||0),0));
   const durationMin=Math.max(1,Math.round((cw.elapsed||0)/60));
-  const newSession=withTrainer({
-    id:newId('s'),
+  cw.saving=true;
+  let newSession;
+  try{
+  requireClientTenantSession(session);
+  cw.saveRecord=withTrainer({
+    id:cw.saveRecord?.id||newId('s'),
     clientId,
-    date:todayYmd(),
-    time:new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),
+    date:cw.saveRecord?.date||todayYmd(),
+    time:cw.saveRecord?.time||new Date().toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),
     type:cw.dayName||'Trening',
     duration:durationMin,
     exercises:cw.exercises.map(e=>typeof serializeLoggedExercise==='function'?serializeLoggedExercise(e,{onlyDone:true}):({
@@ -1321,11 +1440,18 @@ async function cwFinish(){
     source:'client',
     planId:cw.planId,
     dayIdx:cw.dayIdx,
-    createdAt:new Date().toISOString()
+    createdAt:cw.saveRecord?.createdAt||new Date().toISOString()
   });
+  newSession=await clientConfirmWrite('sessions',cw.saveRecord,session,['feedback','duration','note']);
+  if(!newSession)throw clientTenantError('client-write-unconfirmed');
+  requireClientTenantSession(session);
+  if(window._cw!==cw)return false;
   window.SE=window.SE||[];
-  window.SE.push(newSession);
-  await persistById('sessions',newSession);
+  if(!window.SE.some(s=>s.id===newSession.id))window.SE.push(newSession);
+  }catch(e){
+    try{requireClientTenantSession(session);if(window._cw===cw&&typeof notify==='function')notify(e.message==='client-write-conflict'?'Ten trening został już zapisany w innej wersji. Sprawdź historię przed ponownym zapisem.':'Nie udało się potwierdzić zapisu treningu. Wyniki są zachowane w tym oknie — spróbuj ponownie.');}catch(stale){}
+    return false;
+  }finally{cw.saving=false;}
   const me=(window.CL||[])[0];
   const name=me&&me.name?me.name.split(' ')[0]:'Klient';
   pushClientMsg('Zrobiłem trening: '+cw.dayName+(cw.rating?(' · ocena '+cw.rating+'/5'):'')+(cw.note?('\n'+cw.note):''));
@@ -1343,6 +1469,7 @@ async function cwFinish(){
   window._cliveSessionId=newSession.id;
   window._clientLiveScreen='progress';
   renderClientLive();
+  return true;
 }
 
 function ppOpenDraft(){
@@ -1378,26 +1505,40 @@ async function ppPick(view,input){
 }
 async function ppSave(clientId){
   const draft=window._ppDraft||{};
+  if(draft.saving)return false;
   const cid=clientId||window._clientId;
-  if(!cid)return;
+  if(!cid)return false;
   if(!draft.front&&!draft.side&&!draft.back){
     if(typeof notify==='function')notify('Dodaj przynajmniej jedno zdjęcie');
-    return;
+    return false;
   }
-  const entry=withTrainer({
-    id:newId('pp'),
+  const session=captureClientTenantSession();
+  draft.saving=true;
+  let entry;
+  try{
+  requireClientTenantSession(session);
+  if(window._clientAppMode&&cid!==window._clientId)throw clientTenantError('client-photo-owner');
+  draft.saveRecord=withTrainer({
+    id:draft.saveRecord?.id||newId('pp'),
     clientId:cid,
-    date:typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10),
+    date:draft.saveRecord?.date||(typeof todayYmd==='function'?todayYmd():new Date().toISOString().slice(0,10)),
     weight:draft.weight||'',
     note:draft.note||'',
     photos:{front:draft.front||'',side:draft.side||'',back:draft.back||''},
     source:window._clientAppMode?'client':'trainer',
-    createdAt:new Date().toISOString()
+    createdAt:draft.saveRecord?.createdAt||new Date().toISOString()
   });
+  entry=await clientConfirmWrite('progressPhotos',draft.saveRecord,session);
+  if(!entry)throw clientTenantError('client-write-unconfirmed');
+  requireClientTenantSession(session);
+  if(window._ppDraft!==draft)return false;
   window.PROGRESS_PHOTOS=window.PROGRESS_PHOTOS||[];
-  window.PROGRESS_PHOTOS.push(entry);
-  await persistById('progressPhotos',entry);
+  if(!window.PROGRESS_PHOTOS.some(p=>p.id===entry.id))window.PROGRESS_PHOTOS.push(entry);
   window._ppDraft=null;
+  }catch(e){
+    try{requireClientTenantSession(session);if(window._ppDraft===draft&&typeof notify==='function')notify(e.message==='client-write-conflict'?'Ten zestaw został już zapisany w innej wersji. Zachowaj zdjęcia i dodaj zmiany jako nowy zestaw.':'Nie udało się potwierdzić zapisu zdjęć. Zdjęcia pozostają w formularzu — spróbuj ponownie.');}catch(stale){}
+    return false;
+  }finally{draft.saving=false;}
   if(window._clientAppMode){
     pushClientMsg('Dodałem zdjęcia sylwetki ('+entry.date+').');
     if(typeof addNotification==='function'){
@@ -1409,6 +1550,7 @@ async function ppSave(clientId){
   if(typeof notify==='function')notify('✓ Zdjęcia zapisane');
   if(window._clientAppMode){window._clientLiveScreen='progress';renderClientLive();}
   else if(typeof setCPTab==='function')setCPTab('photos');
+  return true;
 }
 function ppDelete(id){
   if(!id||!confirm('Usunąć ten zestaw zdjęć?'))return;

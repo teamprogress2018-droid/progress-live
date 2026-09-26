@@ -25,6 +25,9 @@ window.newId=newId;
 /** Dokleja trainerId bieżącego użytkownika do obiektu przed zapisem.
  *  W aplikacji klienta zachowujemy trainerId trenera (nie uid podopiecznego). */
 function withTrainer(obj){
+  const owner=window._clientAppMode?window._trainerId:window._uid;
+  if(obj.trainerId&&owner&&obj.trainerId!==owner)throw new Error('Odmowa zapisu danych innego trenera');
+  if(window._db&&!owner)throw new Error('Zaloguj się ponownie przed zapisem');
   if(window._clientAppMode){
     if(window._trainerId)obj.trainerId=window._trainerId;
     // clientId tylko na rekordach klienta. Nie dopisuj go do postów trenera —
@@ -39,21 +42,25 @@ function withTrainer(obj){
 }
 window.withTrainer=withTrainer;
 /** Mapuje dokument Firestore z priorytetem id dokumentu (nie lokalnego pola id z data()). */
-function mapFbDoc(d){
-  return {...d.data(),id:d.id,_fbId:d.id};
+function mapFbDoc(d,colName){
+  const data=d.data()||{};
+  const col=colName||(d.ref&&d.ref.parent&&d.ref.parent.id);
+  const logical=tenantCatalogCollections.includes(col)&&data.id&&data.trainerId
+    &&d.id===data.trainerId+'__'+data.id?data.id:d.id;
+  return {...data,id:logical,_fbId:d.id};
 }
 window.mapFbDoc=mapFbDoc;
-/** Legacy bez trainerId widoczne; nowe dokumenty filtrujemy po uid. */
+const tenantCatalogCollections=['odWorkouts','odPrograms','resources','metricGroups'];
+function tenantDocumentId(colName,obj,owner){
+  if(obj._fbId)return obj._fbId;
+  return tenantCatalogCollections.includes(colName)?owner+'__'+obj.id:obj.id;
+}
+window.tenantDocumentId=tenantDocumentId;
+/** Brak właściciela nie daje dostępu do rekordów legacy. */
 function belongsToTrainer(data){
-  if(window._clientAppMode){
-    if(!data)return false;
-    if(data.trainerId&&window._trainerId&&data.trainerId!==window._trainerId)return false;
-    if(data.clientId&&window._clientId&&data.clientId!==window._clientId)return false;
-    return true;
-  }
-  if(!window._uid)return true;
-  if(!data||!data.trainerId)return true;
-  return data.trainerId===window._uid;
+  const owner=window._clientAppMode?window._trainerId:window._uid;
+  if(!owner||!data||data.trainerId!==owner)return false;
+  return !window._clientAppMode||!data.clientId||data.clientId===window._clientId;
 }
 window.belongsToTrainer=belongsToTrainer;
 function persistWarn(msg){
@@ -64,24 +71,60 @@ function persistWarn(msg){
 }
 /** Zapisuje dokument pod stałym id (setDoc), żeby lokalne id = Firestore id. */
 async function persistById(colName,obj){
-  if(!obj||!obj.id)return obj;
-  withTrainer(obj);
+  if(!obj||!obj.id)return null;
   if(!window._db){
     persistWarn('⚠ Brak połączenia z bazą — dane mogą nie zostać zapisane');
-    return obj;
+    return null;
   }
   try{
+    withTrainer(obj);
+    if(window._clientAppMode&&colName!=='forumPosts'&&obj.clientId&&obj.clientId!==window._clientId)throw new Error('Odmowa zapisu danych innego klienta');
+    const owner=window._clientAppMode?window._trainerId:window._uid;
+    const session={uid:window._uid,generation:window.tenantSessionGeneration};
+    const docId=tenantDocumentId(colName,obj,owner);
+    if(window._clientAppMode&&tenantCatalogCollections.includes(colName))throw new Error('Biblioteka jest edytowana przez trenera');
     const payload={...obj};
     delete payload._fbId;
-    await window._setDoc(window._doc(window._db,colName,obj.id),payload,{merge:true});
-    obj._fbId=obj.id;
+    await window._setDoc(window._doc(window._db,colName,docId),payload,{merge:true});
+    if(window.tenantSessionIsCurrent&&!window.tenantSessionIsCurrent(session))return null;
+    obj._fbId=docId;
   }catch(e){
     console.warn('Firebase persist '+colName+':',e);
     persistWarn('⚠ Nie udało się zapisać. Sprawdź internet i spróbuj ponownie.');
+    return null;
   }
   return obj;
 }
 window.persistById=persistById;
+
+/** Publiczny profil dla zalogowanych podopiecznych. Nigdy nie kopiuj całych SETTINGS. */
+function trainerPublicProfilePayload(settings,uid){
+  const pick=(value,keys)=>Object.fromEntries(keys.filter(k=>value&&typeof value[k]==='string').map(k=>[k,value[k]]));
+  const sections={};
+  for(const key of ['home','plan','calendar','homework','progress','checkin','ondemand','resources','forum','messages','profile']){
+    const value=settings.clientApp?.visibleSections?.[key];
+    if(typeof value==='boolean')sections[key]=value;
+  }
+  return {trainerId:uid,schemaVersion:1,updatedAt:new Date().toISOString(),
+    profile:pick(settings.profile,['name','title','avatar','avatarUrl']),
+    brand:pick(settings.brand,['accentColor','theme','appName','logo','font']),
+    clientApp:{...pick(settings.clientApp,['appName']),visibleSections:sections},
+    paymentInstructions:{name:String(settings.company?.name||settings.profile?.name||''),bank:String(settings.payments?.bankAccount||''),currency:String(settings.payments?.currency||'PLN'),footer:String(settings.company?.invoice_footer||'')}
+  };
+}
+async function syncTrainerPublicProfile(session){
+  session=session||{uid:window._uid,generation:window.tenantSessionGeneration};
+  if(!session.uid||!window._db||window._clientAppMode||!window.SETTINGS)return false;
+  if(window.tenantSessionIsCurrent&&!window.tenantSessionIsCurrent(session))return false;
+  if(window.SETTINGS.trainerId&&window.SETTINGS.trainerId!==session.uid)return false;
+  const payload=trainerPublicProfilePayload(window.SETTINGS,session.uid);
+  try{
+    await window._setDoc(window._doc(window._db,'trainerPublicProfiles',session.uid),payload);
+    return !window.tenantSessionIsCurrent||window.tenantSessionIsCurrent(session);
+  }catch(e){console.warn('Nie udało się zapisać profilu dla klientów',e);return false;}
+}
+window.trainerPublicProfilePayload=trainerPublicProfilePayload;
+window.syncTrainerPublicProfile=syncTrainerPublicProfile;
 
 /** Prosty eksport CSV (UTF-8 BOM) — pobiera plik w przeglądarce. */
 function downloadCsv(filename,rows){
@@ -100,54 +143,8 @@ function downloadCsv(filename,rows){
 }
 window.downloadCsv=downloadCsv;
 
-/**
- * Jednorazowa migracja: dokumenty bez trainerId dostają uid bieżącego trenera.
- * Bezpieczeństwo multi-tenant: jeśli w bazie są już dokumenty innego trenera,
- * NIE przejmujemy dokumentów bez trainerId (unikamy „kradzieży” legacy).
- * Flaga localStorage ustawiana dopiero po udanym przebiegu (bez błędów zapisu).
- */
-async function migrateTrainerOwnership(collections){
-  if(!window._db||!window._uid)return;
-  const key='pl_trainer_migrated_'+window._uid;
-  try{if(localStorage.getItem(key)==='1')return;}catch(e){}
-  let tagged=0;
-  let failed=0;
-  let otherOwnerSeen=false;
-  for(const colName of collections){
-    try{
-      const snap=await window._get(window._col(window._db,colName));
-      for(const d of snap.docs){
-        const data=d.data()||{};
-        if(data.trainerId&&data.trainerId!==window._uid){otherOwnerSeen=true;break;}
-      }
-      if(otherOwnerSeen)break;
-    }catch(e){console.warn('Migracja (skan) '+colName+':',e);failed++;}
-  }
-  if(otherOwnerSeen){
-    console.warn('Progress Live: wykryto dane innego trenera — pomijam przejęcie legacy bez trainerId');
-    try{localStorage.setItem(key,'1');}catch(e){}
-    return;
-  }
-  for(const colName of collections){
-    try{
-      const snap=await window._get(window._col(window._db,colName));
-      for(const d of snap.docs){
-        const data=d.data()||{};
-        if(data.trainerId)continue;
-        try{
-          await window._setDoc(window._doc(window._db,colName,d.id),{trainerId:window._uid},{merge:true});
-          tagged++;
-        }catch(e){failed++;}
-      }
-    }catch(e){console.warn('Migracja '+colName+':',e);failed++;}
-  }
-  if(!failed){
-    try{localStorage.setItem(key,'1');}catch(e){}
-  }else{
-    console.warn('Progress Live: migracja trainerId częściowo nieudana ('+failed+' błędów) — ponowię przy następnym logowaniu');
-  }
-  if(tagged)console.info('Progress Live: oznaczono trainerId na',tagged,'legacy dokumentach');
-}
+/** Przypisanie starych rekordów wymaga zweryfikowanego właściciela poza przeglądarką. */
+async function migrateTrainerOwnership(){return false;}
 window.migrateTrainerOwnership=migrateTrainerOwnership;
 
 /** Wejście w tryb podglądu klienta z linku #client-preview=<id>. */
@@ -5438,7 +5435,44 @@ function sessionHappenedTip(s,sessions){
 window.sessionHappenedTip=sessionHappenedTip;
 
 /** Zapis sali z terminu w kalendarzu — dzień się liczy, bez wymuszania kg. */
+async function logClientSessionFromPlanned(plannedId,sessions,opts){
+  opts=opts||{};
+  const auth={uid:window._uid,generation:window.tenantSessionGeneration};
+  const cid=window._clientId,tid=window._trainerId;
+  const current=()=>window._clientAppMode&&window._uid===auth.uid&&window._clientId===cid&&window._trainerId===tid&&
+    (!window.tenantSessionIsCurrent||window.tenantSessionIsCurrent(auth));
+  if(!auth.uid||!cid||!tid||!current())return null;
+  const list=sessions||window.SE||[];
+  const p=list.find(s=>s&&s.id===plannedId);
+  if(!p||p.source!=='planned'||p.clientId!==cid||p.trainerId!==tid||!/^\d{4}-\d{2}-\d{2}$/.test(p.date||''))return null;
+  const existing=list.find(s=>sessionMatchesPlanned(p,s));
+  if(existing&&(existing.clientId!==cid||existing.trainerId!==tid||existing.source!=='sala'))return null;
+  const feedback=Math.max(0,Math.min(5,parseInt(opts.feedback,10)||0));
+  if(!feedback)return null;
+  const duration=Math.max(1,parseInt(opts.duration,10)||parseInt(p.duration,10)||60);
+  const plan=(window.PL||[]).find(x=>x&&x.id===p.planId&&x.clientId===cid&&x.trainerId===tid);
+  const day=plan&&Array.isArray(plan.days)?plan.days[p.dayIdx]:null;
+  const candidate=existing?{...existing,feedback,duration,note:opts.note||existing.note||'',updatedAt:new Date().toISOString()}:{
+    id:'sala_'+p.id,trainerId:tid,clientId:cid,date:p.date,time:p.time||'',type:p.type||'Trening personalny',
+    duration,exercises:day&&Array.isArray(day.exercises)?day.exercises.map(e=>({name:(e&&e.name)||e,sets:[]})).filter(e=>e.name):[],
+    source:'sala',plannedSessionId:p.id,planId:p.planId||null,dayIdx:p.dayIdx!=null?p.dayIdx:null,
+    feedback,note:opts.note||'Oznaczone z kalendarza (trening na sali)',createdAt:new Date().toISOString()
+  };
+  const save=typeof window.persistById==='function'?window.persistById:(typeof persistById==='function'?persistById:null);
+  if(!save)return null;
+  let saved;
+  try{saved=await save('sessions',candidate);}catch(e){return null;}
+  if(!saved||!current())return null;
+  // Only a confirmed client record enters Progress. Package settlement stays with the trainer.
+  const committed=existing||list.find(s=>s&&s.id===candidate.id);
+  if(committed)Object.assign(committed,candidate);else list.push(candidate);
+  if(sessions==null)window.SE=list;
+  return committed||candidate;
+}
+window.logClientSessionFromPlanned=logClientSessionFromPlanned;
+
 function logSessionFromPlanned(plannedId,sessions,opts){
+  if(window._clientAppMode)return logClientSessionFromPlanned(plannedId,sessions,opts);
   opts=opts||{};
   const list=sessions||window.SE||[];
   const p=list.find(s=>s&&s.id===plannedId);
@@ -5546,14 +5580,22 @@ function pickSalaDoneRate(n){
     el.classList.toggle('btn-ghost',!on);
   });
 }
-function saveSalaDone(){
+async function saveSalaDone(){
   const id=window._salaDoneId;
   const feedback=parseInt(window._salaDoneFeedback,10)||0;
   if(!feedback){if(typeof notify==='function')notify('Wybierz ocenę 1–5');return;}
   const duration=parseInt((document.getElementById('sala-done-min')||{}).value,10)||60;
   const note=String((document.getElementById('sala-done-note')||{}).value||'').trim();
-  const sess=logSessionFromPlanned(id,null,{feedback,duration,note:note||undefined});
-  if(!sess){if(typeof notify==='function')notify('Nie udało się zapisać');return;}
+  const auth={uid:window._uid,generation:window.tenantSessionGeneration};
+  const button=document.getElementById('sala-done-save');
+  if(button&&button.disabled)return;
+  if(button)button.disabled=true;
+  let sess;
+  try{sess=await logSessionFromPlanned(id,null,{feedback,duration,note:note||undefined});}
+  catch(e){sess=null;}
+  finally{if(button)button.disabled=false;}
+  if(window.tenantSessionIsCurrent&&!window.tenantSessionIsCurrent(auth))return;
+  if(!sess){if(typeof notify==='function')notify('Nie udało się zapisać treningu. Spróbuj ponownie.');return;}
   if(typeof closeM==='function')closeM('m-sala-done');
   const p=(window.SE||[]).find(s=>s&&s.id===id);
   const c=(window.CL||[]).find(x=>x.id===(p&&p.clientId));
@@ -5568,7 +5610,7 @@ function saveSalaDone(){
     const leftTxt=pkg?(' · pakiet '+pkg.sessionsUsed+'/'+pkg.sessions):'';
     notify('Zapisano trening na sali · ocena '+feedback+'/5 · '+duration+' min'+leftTxt);
   }
-  try{if(typeof maybeSendCheckinAfterSession==='function')maybeSendCheckinAfterSession(p&&p.clientId);}catch(e){}
+  try{if(!window._clientAppMode&&typeof maybeSendCheckinAfterSession==='function')maybeSendCheckinAfterSession(p&&p.clientId);}catch(e){}
   return sess;
 }
 window.openSalaDoneModal=openSalaDoneModal;
