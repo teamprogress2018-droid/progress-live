@@ -3,6 +3,28 @@
 Kod jest przygotowany do wdrożenia, ale sam push do GitHub Pages nie uruchamia funkcji Firebase.
 W tej zmianie nie włączono Cloud Functions ani harmonogramu produkcyjnego.
 
+## Sprawdzona konfiguracja projektu — 26.09.2026
+
+Panel projektu `progress-live-fc83d` jest dostępny. Baza `(default)` ma lokalizację
+`eur3`; skonfigurowany region funkcji `europe-west1` odpowiada mapowaniu Firebase.
+Projekt korzysta z planu Spark. Panel Functions wymaga zmiany planu przed pierwszym
+wdrożeniem. Nie włączono płatnego rozliczania ani żadnej funkcji produkcyjnej.
+
+Odczytane reguły produkcyjne dopuszczają dostęp do wszystkich dokumentów każdemu
+zalogowanemu użytkownikowi. To nie zapewnia izolacji trenerów. Nie wolno zastąpić
+ich od razu głównym `firestore.rules`, ponieważ część pozostałych ekranów nadal
+wykonuje szerokie zapytania. Plik `firestore.autoflow-stage1.rules` jest ograniczoną
+migracją: chroni `automationState`, `autoflows` i całe `serverAutomation`, zachowując
+dotychczasowe uprawnienia pozostałych kolekcji. Nie stanowi pełnego zabezpieczenia
+aplikacji. Pełna izolacja zapytań i reguł innych kolekcji jest pilnym kolejnym etapem
+przed udostępnieniem aplikacji innym trenerom i aktywacją pracy serwerowej.
+
+Przed publikacją tych reguł musi działać wersja strony z filtrem `trainerId`
+w loaderach `loadAutoflowDefinitions` i `loadAutoflowState`. Oba zestawy reguł są
+sprawdzane osobno w emulatorze. Konfiguracja `firebase.stage1.deploy.json` wdraża
+wyłącznie reguły etapu, bez Functions i bez Hosting; przed użyciem trzeba ponownie
+porównać bieżące reguły produkcyjne i zachować ich kopię.
+
 ## Zakres
 
 Co 5 minut funkcja może dokończyć **już zapisane** intencje typu wiadomość w aplikacji
@@ -39,7 +61,7 @@ Pakiet npm jest generowany przez `prepare-deploy.cjs` do ignorowanego katalogu
    Potwierdzić region bazy, konfigurację rozliczeń i dostępność Cloud Functions/Cloud Scheduler.
    Nie tworzyć ani nie umieszczać klucza konta usługi w repozytorium lub aplikacji.
 2. Sprawdzić reguły faktycznie wdrożone w Firestore. Przed włączeniem funkcji wdrożyć
-   i zweryfikować zabezpieczenia z pliku głównego `firestore.rules`:
+   i zweryfikować zabezpieczenia kolekcji Autoflow (opis migracji powyżej):
    `automationState` i `autoflows` tylko dla właściciela; cała ścieżka
    `serverAutomation/**` niedostępna dla przeglądarki. Wykluczenie tych kolekcji
    z ogólnego matchera jest konieczne — samo dodatkowe `allow ...: if false` nie
@@ -53,8 +75,8 @@ Pakiet npm jest generowany przez `prepare-deploy.cjs` do ignorowanego katalogu
    ```
 
    Konfiguracja wdraża tylko tę funkcję, bez Hosting i bez zmiany reguł.
-   Region funkcji ustawiono na `europe-west1`; przed pierwszym wdrożeniem sprawdzić
-   zgodność z lokalizacją bazy. Nie ma automatycznego wdrożenia produkcyjnego w CI.
+   Region funkcji ustawiono na `europe-west1`, zgodny z potwierdzoną bazą `eur3`.
+   Nie ma automatycznego wdrożenia produkcyjnego w CI.
 4. Po testach na koncie testowym administrator może utworzyć prywatny dokument
    `serverAutomation/private/trainers/{UID_TRENERA}`:
 

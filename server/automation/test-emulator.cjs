@@ -103,6 +103,26 @@ async function rulesRequest(documentPath, {uid, method = 'GET', fields} = {}) {
   return {status: response.status, body};
 }
 
+async function rulesQuery(collectionId, {uid, trainerId, parentPath = ''} = {}) {
+  const structuredQuery = {
+    from: [{collectionId}],
+    ...(trainerId === undefined ? {} : {where: {fieldFilter: {
+      field: {fieldPath: 'trainerId'}, op: 'EQUAL', value: {stringValue: trainerId},
+    }}}),
+  };
+  const parent = parentPath ? '/' + parentPath.split('/').map(encodeURIComponent).join('/') : '';
+  const response = await fetch('http://' + emulatorHost + '/v1/projects/' + PROJECT +
+    '/databases/(default)/documents' + parent + ':runQuery', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json',
+      ...(uid ? {Authorization: 'Bearer ' + emulatorUserToken(uid)} : {}),
+    },
+    body: JSON.stringify({structuredQuery}),
+    signal: AbortSignal.timeout(10000),
+  });
+  return {status: response.status, body: await response.json()};
+}
+
 const tests = [];
 const test = (name, execute) => tests.push({name, execute});
 
@@ -244,6 +264,120 @@ test('automation state and flow rules allow only the owning trainer', async () =
     assert.equal((await reference.get()).data().probe, 'trainer-update');
   }
 });
+
+test('automation collection queries require an owning-trainer filter', async () => {
+  const f = await fixture();
+  const clientUid = 'login-' + f.clientId;
+  const otherTrainerUid = 'other-' + f.owner;
+  await db.doc('clientAccounts/' + clientUid).set({
+    role: 'client', trainerId: f.owner, clientId: f.clientId,
+  });
+  for (const reference of [f.stateRef, f.flowRef]) {
+    const collectionId = reference.parent.id;
+    const allowed = await rulesQuery(collectionId, {uid: f.owner, trainerId: f.owner});
+    assert.equal(allowed.status, 200, 'Owner-scoped query denied for ' + collectionId);
+    const documents = allowed.body.filter(item => item.document).map(item => item.document);
+    assert.equal(documents.length, 1, 'Scoped query must return the unique owner fixture');
+    assert.ok(documents[0].name.endsWith('/' + reference.path));
+    assert.equal(documents[0].fields.trainerId.stringValue, f.owner);
+
+    for (const [label, request] of [
+      ['unfiltered owner query', {uid: f.owner}],
+      ['owner query with foreign trainer filter', {uid: f.owner, trainerId: otherTrainerUid}],
+      ['other trainer query for this owner', {uid: otherTrainerUid, trainerId: f.owner}],
+      ['linked client query for its trainer', {uid: clientUid, trainerId: f.owner}],
+      ['unfiltered linked client query', {uid: clientUid}],
+    ]) {
+      const result = await rulesQuery(collectionId, request);
+      assert.equal(result.status, 403, collectionId + ' unexpectedly permits ' + label);
+      assert.equal(result.body.error?.status, 'PERMISSION_DENIED');
+    }
+  }
+});
+
+if (process.env.AUTOFLOW_RULES_STAGE === 'stage1') {
+  test('stage1 preserves authenticated legacy access and rejects every anonymous operation', async () => {
+    const suffix = runPrefix + '-legacy';
+    const uid = 'legacy-auth-' + suffix;
+    // Intentionally use a different trainerId. This stage preserves the deployed
+    // auth-only policy elsewhere; a full ownership migration is separate work.
+    const fields = {trainerId: {stringValue: 'different-' + uid}, probe: {stringValue: suffix}};
+    const examples = [
+      {collectionId: 'resources', parentPath: '', documentPath: 'resources/' + suffix},
+      {collectionId: 'clientGroups', parentPath: '', documentPath: 'clientGroups/' + suffix},
+      {collectionId: 'compatibilityNotes', parentPath: 'resources/' + suffix,
+        documentPath: 'resources/' + suffix + '/compatibilityNotes/' + suffix},
+    ];
+    const denied = (result, label) => {
+      assert.equal(result.status, 403, 'Anonymous legacy access permitted: ' + label);
+      assert.equal(result.body.error?.status, 'PERMISSION_DENIED');
+    };
+    for (const example of examples) {
+      const {collectionId, parentPath, documentPath} = example;
+      await db.doc(documentPath).set({trainerId: 'different-' + uid, probe: 'before'});
+      assert.equal((await rulesRequest(documentPath, {uid})).status, 200);
+      assert.equal((await rulesRequest(documentPath, {uid, method: 'PATCH', fields})).status, 200);
+      const listed = await rulesQuery(collectionId, {uid, parentPath});
+      assert.equal(listed.status, 200, 'Existing broad legacy query denied: ' + documentPath);
+      assert.ok(listed.body.some(item => item.document?.name.endsWith('/' + documentPath)));
+
+      const createdPath = documentPath + '-created';
+      assert.equal((await rulesRequest(createdPath, {uid, method: 'PATCH', fields})).status, 200);
+      assert.equal((await db.doc(createdPath).get()).exists, true);
+      assert.equal((await rulesRequest(createdPath, {uid, method: 'DELETE'})).status, 200);
+      assert.equal((await db.doc(createdPath).get()).exists, false);
+
+      const before = await db.doc(documentPath).get();
+      for (const method of ['GET', 'PATCH', 'DELETE']) {
+        denied(await rulesRequest(documentPath, {method,
+          ...(method === 'PATCH' ? {fields} : {}),
+        }), method + ' ' + documentPath);
+      }
+      denied(await rulesRequest(createdPath, {method: 'PATCH', fields}), 'create ' + createdPath);
+      denied(await rulesQuery(collectionId, {parentPath}), 'list ' + documentPath);
+      const after = await db.doc(documentPath).get();
+      assert.deepEqual(after.data(), before.data());
+      assert.ok(after.updateTime.isEqual(before.updateTime));
+      assert.equal((await db.doc(createdPath).get()).exists, false);
+    }
+  });
+
+  test('stage1 denies descendants of all three protected roots to every browser identity', async () => {
+    const f = await fixture();
+    const clientUid = 'login-' + f.clientId;
+    await db.doc('clientAccounts/' + clientUid).set({
+      role: 'client', trainerId: f.owner, clientId: f.clientId,
+    });
+    const parents = [f.stateRef.path, f.flowRef.path, 'serverAutomation/private'];
+    const fields = {trainerId: {stringValue: f.owner}, clientId: {stringValue: f.clientId},
+      probe: {stringValue: 'forged-private-child'}};
+    for (const parentPath of parents) {
+      const collectionId = 'compatibilityProtected';
+      const documentPath = parentPath + '/' + collectionId + '/' + f.clientId;
+      const reference = db.doc(documentPath);
+      await reference.set({trainerId: f.owner, clientId: f.clientId, probe: 'private'});
+      const before = await reference.get();
+      for (const [identity, uid] of [undefined, f.owner, clientUid, 'other-' + f.owner].entries()) {
+        const denied = (result, action) => {
+          assert.equal(result.status, 403, 'Protected descendant permits ' + action + ': ' + documentPath);
+          assert.equal(result.body.error?.status, 'PERMISSION_DENIED');
+        };
+        for (const method of ['GET', 'PATCH', 'DELETE']) {
+          denied(await rulesRequest(documentPath, {uid, method,
+            ...(method === 'PATCH' ? {fields} : {}),
+          }), method);
+        }
+        const createdPath = documentPath + '-forged-' + identity;
+        denied(await rulesRequest(createdPath, {uid, method: 'PATCH', fields}), 'create');
+        denied(await rulesQuery(collectionId, {uid, parentPath}), 'list');
+        assert.equal((await db.doc(createdPath).get()).exists, false);
+      }
+      const after = await reference.get();
+      assert.deepEqual(after.data(), before.data());
+      assert.ok(after.updateTime.isEqual(before.updateTime));
+    }
+  });
+}
 
 (async () => {
   try {
