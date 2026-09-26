@@ -82,8 +82,7 @@ function sliceFn(src, startName, nextName) {
 }
 const bundle = sliceFn(src09, 'ensureAfState', 'enrollScopeClients')
   + sliceFn(src09, 'logAF', 'runAutoflowsCheck')
-  + sliceFn(src09, 'runAutoflowsCheck', 'execAFStep')
-  + sliceFn(src09, 'execAFStep', 'notify');
+  + sliceFn(src09, 'runAutoflowsCheck', 'notify');
 vm.runInContext(bundle, ctx);
 ['autoflowOnAppEvent','autoflowTriggerForEvent','autoflowEventKey','scanAndEmitPackageExpired','scanAndEmitInactivity','scanAndEmitSessionToday','fireAutoflowTrigger','logAF','execAFStep','enrollClientInAutoflow','ensureAfState','runAutoflowsCheck','afClientsFor'].forEach((n) => {
   if (typeof ctx[n] === 'function') ctx.window[n] = ctx[n];
@@ -105,6 +104,18 @@ function clearMsgs() {
   Object.keys(bag).forEach((k) => { delete bag[k]; });
 }
 
+const remote = new Map();
+function merge(a,b){for(const [k,v] of Object.entries(b)){if(v&&typeof v==='object'&&!Array.isArray(v)){a[k]=merge(a[k]||{},v);}else a[k]=v;}return a;}
+ctx.window._uid='trainer-test';ctx.window._db={};
+ctx.window._doc=(_db,col,id)=>col+'/'+id;
+ctx.window._setDoc=async(ref,data)=>{remote.set(ref,merge(remote.get(ref)||{},JSON.parse(JSON.stringify(data))));};
+ctx.window._runTransaction=async(_db,fn)=>{
+  const writes=[];
+  const result=await fn({get:async ref=>({exists:()=>remote.has(ref),data:()=>remote.get(ref)}),set:(...args)=>writes.push(args)});
+  for(const [ref,data,opts] of writes)remote.set(ref,opts&&opts.merge?merge(remote.get(ref)||{},data):data);
+  return result;
+};
+(async()=>{
 ok('helpers on ctx', typeof ctx.autoflowOnAppEvent === 'function' && typeof ctx.logAF === 'function' && bundle.includes('function logAF'));
 ok('map package', ctx.autoflowTriggerForEvent('package.expired') === 'package.expired');
 ok('map checkin', ctx.autoflowTriggerForEvent('checkin.submitted') === 'checkin.submitted');
@@ -121,9 +132,11 @@ ctx.window.AUTOFLOWS = [{
 }];
 clearMsgs();
 const n = ctx.scanAndEmitPackageExpired('2026-09-11');
+await ctx.drainAFQueue();
 ok('scan emits once', n === 1, 'n=' + n);
 ok('msg to client', clientMsgs('c1').length === 1 && /pakiet wygasł/.test(clientMsgs('c1')[0].text), JSON.stringify(clientMsgs('c1')));
 const n2 = ctx.scanAndEmitPackageExpired('2026-09-11');
+await ctx.drainAFQueue();
 ok('scan no double', n2 === 0 && clientMsgs('c1').length === 1, 'n2=' + n2 + ' msgs=' + clientMsgs('c1').length);
 
 ctx.window.PACKAGES = [
@@ -132,6 +145,7 @@ ctx.window.PACKAGES = [
 ];
 clearMsgs();
 const n3 = ctx.scanAndEmitPackageExpired('2026-09-11');
+await ctx.drainAFQueue();
 ok('scan two packages', n3 === 2 && clientMsgs('c1').length === 2, 'n3=' + n3 + ' msgs=' + clientMsgs('c1').length);
 
 ctx.window.AUTOFLOWS = [{
@@ -141,13 +155,17 @@ ctx.window.AUTOFLOWS = [{
 }];
 clearMsgs();
 const ran = ctx.autoflowOnAppEvent('checkin.submitted', { clientId: 'c1', checkinId: 'ci1' });
+await ctx.drainAFQueue();
 ok('checkin fires', ran === 1 && clientMsgs('c1').length === 1 && /Dzięki/.test(clientMsgs('c1')[0].text), JSON.stringify(clientMsgs('c1')) + ' ran=' + ran);
 const ran2 = ctx.autoflowOnAppEvent('checkin.submitted', { clientId: 'c1', checkinId: 'ci1' });
+await ctx.drainAFQueue();
 ok('checkin no double same id', ran2 === 0 && clientMsgs('c1').length === 1);
 const ran3 = ctx.autoflowOnAppEvent('checkin.submitted', { clientId: 'c1', checkinId: 'ci2' });
+await ctx.drainAFQueue();
 ok('checkin again new id', ran3 === 1 && clientMsgs('c1').length === 2);
 
 function resetAf(){
+  remote.clear();
   ctx.window.AF_STATE = { enrollments: {}, executed: {}, lastFired: {}, logs: [], eventOnce: {} };
   ctx.window.TASKS = [];
   ctx.window.SE = [];
@@ -162,15 +180,19 @@ ctx.window.AUTOFLOWS = [{
 }];
 resetAf();
 const idle0 = ctx.scanAndEmitInactivity(new Date('2026-09-16T12:00:00.000Z'));
+await ctx.drainAFQueue();
 ok('idle under threshold', idle0 === 0 && clientMsgs('c1').length === 0, 'n=' + idle0);
 
 ctx.window._idleDays = { c1: 20 };
 resetAf();
 const idle1 = ctx.scanAndEmitInactivity(new Date('2026-09-16T12:00:00.000Z'));
+await ctx.drainAFQueue();
 ok('idle emits', idle1 === 1 && clientMsgs('c1').length === 1 && /2 tygodnie/.test(clientMsgs('c1')[0].text), 'n=' + idle1 + ' msgs=' + JSON.stringify(clientMsgs('c1')));
 const idle2 = ctx.scanAndEmitInactivity(new Date('2026-09-16T12:00:00.000Z'));
+await ctx.drainAFQueue();
 ok('idle no double same day', idle2 === 0 && clientMsgs('c1').length === 1, 'n2=' + idle2);
 ctx.runAutoflowsCheck(false);
+await ctx.drainAFQueue();
 ok('poll does not re-fire idle', clientMsgs('c1').length === 1, 'msgs=' + clientMsgs('c1').length);
 
 ctx.window.AUTOFLOWS = [
@@ -180,6 +202,7 @@ ctx.window.AUTOFLOWS = [
 ctx.window._idleDays = { c1: 16 };
 resetAf();
 ctx.scanAndEmitInactivity(new Date('2026-09-16T12:00:00.000Z'));
+await ctx.drainAFQueue();
 ok('idle 14 fires 21 waits', clientMsgs('c1').length === 1 && /14 dni/.test(clientMsgs('c1')[0].text), JSON.stringify(clientMsgs('c1')));
 
 const nowSess = new Date('2026-09-16T10:00:00.000Z');
@@ -194,17 +217,89 @@ ctx.window.SE = [{ id: 's1', clientId: 'c1', date: sessDay, time: '18:00', type:
 resetAf();
 ctx.window.SE = [{ id: 's1', clientId: 'c1', date: sessDay, time: '18:00', type: 'Siła' }];
 const sess0 = ctx.scanAndEmitSessionToday(nowSess);
+await ctx.drainAFQueue();
 ok('session outside window', sess0 === 0 && clientMsgs('c1').length === 0, 'n=' + sess0);
 
 ctx.window.SE = [{ id: 's1', clientId: 'c1', date: sessDay, time: '10:30', type: 'Siła' }];
 resetAf();
 ctx.window.SE = [{ id: 's1', clientId: 'c1', date: sessDay, time: '10:30', type: 'Siła' }];
 const sess1 = ctx.scanAndEmitSessionToday(nowSess);
+await ctx.drainAFQueue();
 ok('session in window', sess1 === 1 && clientMsgs('c1').length === 1 && /Trening/.test(clientMsgs('c1')[0].text), 'n=' + sess1 + ' ' + JSON.stringify(clientMsgs('c1')));
 const sess2 = ctx.scanAndEmitSessionToday(nowSess);
+await ctx.drainAFQueue();
 ok('session no double', sess2 === 0 && clientMsgs('c1').length === 1, 'n2=' + sess2);
 ctx.runAutoflowsCheck(false);
+await ctx.drainAFQueue();
 ok('poll does not re-fire session', clientMsgs('c1').length === 1);
+
+// Persistence failures must never be reported as completed steps.
+const normalSave=ctx.window._setDoc;
+const normalTransaction=ctx.window._runTransaction;
+function setupReliable(type='message'){
+  resetAf();
+  ctx.window.AUTOFLOWS=[{id:'reliable',name:'Reliable',status:'active',type:'trigger',trigger:'checkin.submitted',scope:'all',steps:[{type,text:type==='form'?'Ankieta':'Test {imie}'}]}];
+}
+setupReliable();
+ctx.window._setDoc=async()=>{throw new Error('offline');};
+ctx.autoflowOnAppEvent('checkin.submitted',{clientId:'c1',checkinId:'retry'});
+await ctx.drainAFQueue();
+let job=Object.values(ctx.window.AF_STATE.pending).find(Boolean);
+ok('offline does not send or complete',clientMsgs('c1').length===0&&!ctx.window.AF_STATE.executed.reliable.c1[job.mark]);
+ok('offline error retained',job.status==='error'&&job.attempts===1&&job.nextRetry>Date.now());
+ctx.window._setDoc=normalSave;
+await ctx.retryAutoflowFailures();
+ok('retry sends once after confirmed save',clientMsgs('c1').length===1&&ctx.window.AF_STATE.executed.reliable.c1[job.mark]===true);
+await ctx.retryAutoflowFailures();
+ok('success not retried',clientMsgs('c1').length===1);
+
+setupReliable('task');
+let lostAck=true;
+ctx.window._runTransaction=async(...args)=>{const value=await normalTransaction(...args);if(lostAck){lostAck=false;throw new Error('lost response');}return value;};
+ctx.autoflowOnAppEvent('checkin.submitted',{clientId:'c1',checkinId:'ambiguous'});
+await ctx.drainAFQueue();
+job=Object.values(ctx.window.AF_STATE.pending).find(Boolean);
+const taskEntry=[...remote.entries()].find(([k])=>k.startsWith('tasks/'));
+ok('ambiguous commit stays retryable',job.status==='error'&&!!taskEntry);
+taskEntry[1].status='done';
+// Simulate reload: local receipt was never marked; the durable queue must still deduplicate.
+ctx.window.AF_STATE=JSON.parse(JSON.stringify(remote.get('automationState/trainer-test')));
+ctx.window._runTransaction=normalTransaction;
+await ctx.retryAutoflowFailures();
+ok('retry preserves completed task',remote.get(taskEntry[0]).status==='done'&&[...remote.keys()].filter(k=>k.startsWith('tasks/')).length===1);
+
+setupReliable('form');
+ctx.allForms=()=>[{id:'f1',name:'Ankieta',questions:[]}];
+ctx.snapshotFormQuestions=()=>[{id:'q1',label:'Cel'}];
+ctx.window.FORM_SENDS=[];
+ctx.autoflowOnAppEvent('checkin.submitted',{clientId:'c1',checkinId:'form'});
+ctx.autoflowOnAppEvent('checkin.submitted',{clientId:'c1',checkinId:'form'});
+await ctx.drainAFQueue();
+ok('form and message committed once',ctx.window.FORM_SENDS.length===1&&clientMsgs('c1').length===1&&ctx.window.FORM_SENDS[0].questions.length===1);
+const receipt=JSON.stringify(remote.get('automationState/trainer-test').afReceipts);
+ctx.window.AF_STATE.afReceipts={};
+await ctx.saveAutomationState(true);
+ok('ordinary save cannot erase receipts',JSON.stringify(remote.get('automationState/trainer-test').afReceipts)===receipt);
+
+setupReliable('form');ctx.allForms=()=>[];
+ctx.autoflowOnAppEvent('checkin.submitted',{clientId:'c1',checkinId:'missing-form'});
+await ctx.drainAFQueue();
+ok('missing form fails without fake message',clientMsgs('c1').length===0&&Object.values(ctx.window.AF_STATE.pending).some(j=>j&&j.status==='error'));
+
+setupReliable();
+ctx.autoflowOnAppEvent('checkin.submitted',{clientId:'c1',checkinId:'paused'});
+ctx.window.AUTOFLOWS[0].status='inactive';
+await ctx.drainAFQueue();
+ok('paused flow does not execute queued work',clientMsgs('c1').length===0);
+ctx.window.AUTOFLOWS[0].status='active';
+ctx.window.CL[0].status='archived';
+await ctx.drainAFQueue();
+ok('archived client receives no queued work',clientMsgs('c1').length===0);
+ctx.window.CL[0].status='active';
+await ctx.drainAFQueue();
+ok('eligible queue resumes',clientMsgs('c1').length===1);
 
 if (failed) process.exit(1);
 console.log('\nAll autoflow-events tests passed');
+
+})().catch(e=>{console.error(e);process.exit(1);});
