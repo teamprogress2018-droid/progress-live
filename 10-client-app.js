@@ -683,35 +683,63 @@ function capPickCheckin(field,val){
   renderClientLive();
 }
 
-function clientSubmitCheckin(){
-  const a=window._cliveCheckin||{};
+async function clientSubmitCheckin(){
+  const a=window._cliveCheckin||(window._cliveCheckin={});
   const clientId=window._clientId;
-  if(!clientId)return;
+  if(!clientId||a.saving)return false;
   if(typeof filledThisWeek==='function'&&filledThisWeek(clientId)&&typeof pendingCheckin==='function'&&!pendingCheckin(clientId)){
     if(typeof notify==='function')notify('Check-in z tego tygodnia już jest');
-    return;
+    return false;
   }
   const answers={
-    energy:a.energy||3,sleep:a.sleep||3,stress:a.stress||3,nutrition:a.nutrition||3,
-    workouts:a.workouts!=null?a.workouts:0,weight:a.weight||'',notes:a.notes||''
+    energy:+a.energy||3,sleep:+a.sleep||3,stress:+a.stress||3,nutrition:+a.nutrition||3,
+    workouts:a.workouts!=null?+a.workouts:0,weight:a.weight||'',notes:a.notes||''
   };
-  if(typeof ensureCheckins==='function')ensureCheckins(clientId);
-  else if(!window.CHECKINS[clientId])window.CHECKINS[clientId]=[];
-  let ci=typeof pendingCheckin==='function'?pendingCheckin(clientId):null;
-  if(!ci){
-    ci=withTrainer({
-      id:newId('ci'),clientId,
-      date:typeof dateStr==='function'?dateStr(new Date()):new Date().toISOString().slice(0,10),
-      status:'pending',score:null,answers:{},createdAt:new Date().toISOString()
-    });
-    window.CHECKINS[clientId].push(ci);
-  }
-  if(typeof applyCheckinAnswers==='function')applyCheckinAnswers(ci,answers,'client');
-  else{
-    ci.answers=answers;ci.status='filled';ci.score=Math.round(((answers.energy)+(answers.sleep)+(6-answers.stress)+answers.nutrition)/4*20);
-    persistById('checkins',ci);
-    if(typeof syncClientFromCheckin==='function')try{syncClientFromCheckin(ci);}catch(e){}
-  }
+  const session=captureClientTenantSession();
+  a.saving=true;
+  let ci;
+  try{
+    requireClientTenantSession(session);
+    if(!window._db||typeof window._getDoc!=='function'||typeof window._doc!=='function')throw clientTenantError('client-checkin-unavailable');
+    const pending=typeof pendingCheckin==='function'?pendingCheckin(clientId):null;
+    const now=new Date().toISOString();
+    if(!a.saveRecord)a.saveRecord={id:pending?.id||newId('ci'),docId:pending?._fbId||pending?.id||null,
+      date:pending?.date||(typeof dateStr==='function'?dateStr(new Date()):now.slice(0,10)),createdAt:pending?.createdAt||now,filledAt:now};
+    const draft=a.saveRecord;
+    const docId=draft.docId||draft.id;
+    let stored=null;
+    try{
+      const snap=await window._getDoc(window._doc(window._db,'checkins',docId));
+      if(snap.exists())stored={...snap.data(),_fbId:snap.id};
+    }catch(e){if(e.code!=='permission-denied'&&e.code!=='firestore/permission-denied')throw e;}
+    requireClientTenantSession(session);
+    const owner=window._clientAppMode?window._trainerId:window._uid;
+    if(stored&&(stored.trainerId!==owner||stored.clientId!==clientId))throw clientTenantError('client-checkin-owner');
+    // A locally queued check-in may never have reached Firestore. New records
+    // use the client create schema; existing records retain trainer-only metadata.
+    const candidate=withTrainer(stored?{...stored,id:stored.id||docId}:{id:draft.id,clientId,date:draft.date,createdAt:draft.createdAt});
+    Object.assign(candidate,{answers,score:typeof scoreCheckinAnswers==='function'?scoreCheckinAnswers(answers):Math.round((answers.energy+answers.sleep+(6-answers.stress)+answers.nutrition)/4*20),
+      status:'filled',filledBy:'client',filledAt:draft.filledAt});
+    ci=await clientConfirmWrite('checkins',candidate,session,['answers','score','status','filledBy','filledAt']);
+    if(!ci)throw clientTenantError('client-write-unconfirmed');
+    requireClientTenantSession(session);
+    if(window._cliveCheckin!==a)return false;
+    ci={...ci,id:docId,_fbId:docId};
+    window.CHECKINS=window.CHECKINS||{};
+    const list=window.CHECKINS[clientId]||(window.CHECKINS[clientId]=[]);
+    const existing=list.find(item=>item.id===ci.id);
+    if(existing){Object.keys(existing).forEach(key=>delete existing[key]);Object.assign(existing,ci);ci=existing;}
+    else list.push(ci);
+  }catch(e){
+    try{requireClientTenantSession(session);if(window._cliveCheckin===a&&typeof notify==='function')notify('Nie udało się potwierdzić zapisu check-inu. Odpowiedzi pozostają w formularzu — spróbuj ponownie.');}catch(stale){}
+    return false;
+  }finally{a.saving=false;}
+  if(typeof syncClientFromCheckin==='function')try{syncClientFromCheckin(ci);}catch(e){}
+  if(typeof fireIntEvent==='function')try{
+    const cl=(window.CL||[]).find(x=>x.id===clientId)||{};
+    fireIntEvent('checkin.completed',{checkin:{id:ci.id,clientId,date:ci.date,score:ci.score,filledBy:'client',weight:answers.weight||''},client:{id:clientId,name:cl.name||'',email:cl.email||''}});
+  }catch(e){}
+  if(typeof emitAppEvent==='function')try{emitAppEvent('checkin.submitted',{clientId,checkinId:ci.id,score:ci.score,filledBy:'client'});}catch(e){}
   window._cliveCheckin={};
   pushClientMsg('Wypełniłem tygodniowy check-in'+(answers.weight?' (waga '+answers.weight+' kg)':'')+'.');
   if(typeof addNotification==='function'){
@@ -723,6 +751,7 @@ function clientSubmitCheckin(){
   window._clientLiveScreen='home';
   renderClientLive();
   try{if(typeof renderDashCheckinFollowup==='function')renderDashCheckinFollowup();}catch(e){}
+  return true;
 }
 
 async function ensureClientInvite(client){

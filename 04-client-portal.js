@@ -3231,10 +3231,10 @@ function ensureCheckins(clientId){
   if(!window.CHECKINS[clientId])window.CHECKINS[clientId]=[];
 }
 async function persistCheckin(ci){
-  if(!ci)return;
+  if(!ci)return null;
   if(!ci.id)ci.id=newId('ci');
   withTrainer(ci);
-  await persistById('checkins',ci);
+  return await persistById('checkins',ci);
 }
 
 function getCIStatus(clientId){
@@ -3269,6 +3269,7 @@ function checkinChatText(name,custom){
   return 'Hej '+first+'! Czas na tygodniowy check-in 💪 Otwórz aplikację → Check-in i wypełnij (ok. 2 min).';
 }
 function ensurePendingCheckin(clientId,opts){
+  if(window._clientAppMode&&clientId!==window._clientId)return null;
   ensureCheckins(clientId);
   const existing=pendingCheckin(clientId);
   if(existing)return existing;
@@ -3276,7 +3277,7 @@ function ensurePendingCheckin(clientId,opts){
     id:newId('ci'),clientId,
     date:typeof dateStr==='function'?dateStr(new Date()):new Date().toISOString().slice(0,10),
     status:'pending',score:null,answers:{},
-    source:(opts&&opts.source)||'manual',
+    ...(window._clientAppMode?{}:{source:(opts&&opts.source)||'manual'}),
     createdAt:new Date().toISOString()
   });
   window.CHECKINS[clientId].push(rec);
@@ -3350,7 +3351,7 @@ function maybeSendCheckinAfterSession(clientId){
   if(!c||(typeof clientEligibleForWeeklyCheckin==='function'&&!clientEligibleForWeeklyCheckin(c)))return null;
   if(typeof needsWeeklyCheckin==='function'&&!needsWeeklyCheckin(clientId))return null;
   const ci=typeof ensurePendingCheckin==='function'?ensurePendingCheckin(clientId,{source:'session'}):null;
-  if(typeof pushMsg==='function')pushMsg(clientId,typeof checkinChatText==='function'?checkinChatText(c.name):('Czas na tygodniowy check-in'));
+  if(!window._clientAppMode&&typeof pushMsg==='function')pushMsg(clientId,typeof checkinChatText==='function'?checkinChatText(c.name):('Czas na tygodniowy check-in'));
   if(typeof addNotification==='function')addNotification('task','Check-in po treningu',(c.name||'Klient')+' — formularz odblokowany','checkin');
   try{if(typeof refreshDashOps==='function')refreshDashOps();}catch(e){}
   return ci;
