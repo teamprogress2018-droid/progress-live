@@ -21,6 +21,15 @@ function ok(name, cond, extra) {
   const browser = await chromium.launch({ headless: process.env.LAYOUT_HEADED !== '1' });
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   page.setDefaultTimeout(20000);
+  // Friday is a scheduled training day in this fixture; keep CI independent of wall-clock weekdays.
+  await page.addInitScript(() => {
+    const NativeDate = Date;
+    const fixedNow = NativeDate.parse('2026-09-25T12:00:00Z');
+    window.Date = class extends NativeDate {
+      constructor(...args) { super(...(args.length ? args : [fixedNow])); }
+      static now() { return fixedNow; }
+    };
+  });
   await page.goto('http://' + host + ':' + port + '/index.html', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(700);
 
@@ -146,7 +155,7 @@ function ok(name, cond, extra) {
   ok('ask all once', empty.askAll && empty.fivePopros <= 1, String(empty.fivePopros));
   ok('has app no invite wording', empty.hasAppCopy);
   ok('notes private', empty.notesCopy);
-  ok('onboard hidden or measurements', !empty.onboard || /Brakuje pomiarów/.test(empty.onboard), empty.onboard || '');
+  ok('missing intake is next before measurements', /Następny krok: Przygotuj ankietę/.test(empty.onboard || ''), empty.onboard || '');
   ok('package labeled', /16 sesji/.test(empty.pkg), empty.pkg);
 
   await page.evaluate(() => {
