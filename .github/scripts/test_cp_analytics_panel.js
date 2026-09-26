@@ -28,7 +28,7 @@ function ok(name,cond){
   else console.log('OK  ',name);
 }
 
-ok('analytics title',/ANALITYKA KLIENTA/.test(progressFn));
+ok('training results title',/WYNIKI TRENINGOWE/.test(progressFn));
 ok('panel chips',/setCPProgressPanel/.test(progressFn)&&/data-cp-panel-chip/.test(progressFn));
 ok('adherence kpi',/Regularność 30 dni/.test(progressFn)&&/cpClientAdherence/.test(src08));
 ok('checkin chart',/Samopoczucie \(check-in\)/.test(progressFn)&&/cpCheckinTrendPoints/.test(src08));
