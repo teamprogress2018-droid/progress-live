@@ -44,6 +44,7 @@ jobs:
           node .github/scripts/test_client_confirmed_writes.js
           node .github/scripts/test_client_sala_write.js
           node .github/scripts/test_forum_reaction_persistence.js
+          node .github/scripts/test_client_checkin_permissions.js
 
       - name: 1c. Testy warstwy klienta dla coach media
         run: node .github/scripts/test_client_portal_coach_media.js
@@ -91,6 +92,7 @@ jobs:
         run: node .github/scripts/test_ex_progress_wire.js
 
       - name: 1e0z3. Testy UI klasyfikacji progresji w Progress
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_ex_progress_ui.js
 
       - name: 1e0z4. Testy agregatu progresu klienta
@@ -474,146 +476,211 @@ jobs:
       - name: 6b. Testy layoutu podglądu planu w przeglądarce
         run: node .github/scripts/test_plan_preview_layout.js
       - name: 6b0z. Testy UI kafelek dni w zakładce Plan
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_cp_plan_day_tiles_ui.js
       - name: 6b0. Testy UI biblioteki planów (tabela / filtry)
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_plans_library_ui.js
       - name: 6b0p. Testy UI katalogu programów (filtry 4–16 tyg.)
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_prog_catalog_ui.js
       - name: 6b. Testy layoutu generatora / biblioteki / kalkulatora
         run: node .github/scripts/test_ai_gen_layout.js
       - name: 6b1. Testy UI PDF planu AI
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_plan_pdf_ui.js
       - name: 6b1. Testy UI zapisu płci i sprzętu w generatorze
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_apl_form_persist_ui.js
       - name: 6b1a. Testy UI autofill karty klienta w generatorze
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_apl_client_autofill_ui.js
       - name: 6b2. Testy UI zamienników i miniatury techniki w kreatorze
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_builder_alts_media_ui.js
       - name: 6b2a. Testy UI zmiany ćwiczenia w tej samej partii
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_apl_swap_same_part_ui.js
       - name: 6b2b. Testy UI drop % i obwodu stacji
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_drop_circ_ui.js
       - name: 6b2c. Testy UI zadań domowych bez YouTube i RPE
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_homework_guide_ui.js
 
       - name: 6b3. Testy UI cardio w wyszukiwarce ćwiczeń
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_cardio_ex_ac_ui.js
       - name: 6b3b. Testy UI filmów MP4 w bibliotece ćwiczeń
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_lib_ex_video_ui.js
       - name: 6b3b2. Testy UI importu MP4 do biblioteki
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_ex_gif_import_ui.js
       - name: 6b3b3. Testy UI przypisania MP4 do ćwiczenia
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_ex_assign_mp4_ui.js
       - name: 6b3b4. Testy UI czyszczenia duplikatów w bibliotece
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_ex_import_dedupe_ui.js
       - name: 6b3c. Testy UI timera przerwy live (30s / własny)
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_live_rest_ui.js
       - name: 6b3c0. Testy UI podpowiedzi Live (przerwa / tempo / periodyzacja)
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_live_coach_hints_ui.js
       - name: 6b3c0b. Testy UI Live Fitebo hipertrofia RIR 2
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_fitebo_live_ui.js
       - name: 6b3c2. Testy UI Live Postęp i zapisu do Progress
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_live_progress_ui.js
       - name: 6b3c2a. Testy UI Live OSTATNIO / DZISIAJ / SUGESTIA
         run: |
           node .github/scripts/test_live_ex_cue_ui.js
           node .github/scripts/test_live_readable_ui.js
       - name: 6b3c2b. Testy UI bramy pakietu (Trial / Gość)
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_pkg_gate_ui.js
       - name: 6b3c2b1. Testy UI bazy wiedzy (notatki + badania)
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_kb_notes_evidence_ui.js
       - name: 6b3c2b1b. Testy UI tagów KB w kreatorze
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_kb_builder_tags_ui.js
       - name: 6b3c2b2. Testy UI filtrów Płatności po clientId
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_pay_hist_id_ui.js
       - name: 6b3c2b3. Testy UI checklisty startu współpracy
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_onboard_flow_ui.js
       - name: 6b3c2b2. Testy UI UX startu (ankieta / Live / HW / WhatsApp)
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_onboard_ux_fixes_ui.js
       - name: 6b3c2c. Testy UI szkicu Live (live-draft)
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_live_draft_ui.js
       - name: 6b3c2d. Testy UI Autoflow (pakiet / check-in)
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_autoflow_events_ui.js
       - name: 6b3c2e. Testy UI dashboardu bez martwych follow-upów
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_dash_followup_gone_ui.js
       - name: 6b3c2e1. Testy UI paska DZISIAJ na dashboardzie
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_dash_today_focus_ui.js
       - name: 6b3c3. Testy UI Live dual (dwie osoby)
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_live_dual_ui.js
       - name: 6b3c4. Testy UI dodawania zamiennika w Live
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_live_alts_add_ui.js
       - name: 6b3c4b. Testy UI max 3 zamienników w Live
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_live_alts_collapse_ui.js
       - name: 6b3c5. Testy UI dużego filmu techniki w Live
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_live_video_ui.js
 
       - name: 6b4. Testy UI jednostki sec przy linach
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_ex_load_unit_ui.js
 
       - name: 6c. Testy UI zasobów YouTube i Garmin CSV
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_resources_garmin_ui.js
       - name: 6c2. Testy UI filtrów wiadomości (czat / system / broadcast)
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_inbox_kinds_ui.js
 
       - name: 6d. Testy UI portalu On-demand YouTube
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_ondemand_youtube_ui.js
 
       - name: 6e. Testy UI wygaszacza z logo
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_screensaver_ui.js
       - name: 6f. Testy UI nadwagi i strażnika w asystencie
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_ai_bmi_watchdog_ui.js
       - name: 6f0. Testy UI sztabu eksperckiego w AI Coach
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_staff_agents_ui.js
       - name: 6f0b. Testy UI zamienników i kalkulatora RIR
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_staff_subs_rir_ui.js
       - name: 6f0c. Testy UI zakładek panelu ćwiczenia
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_exd_tabs_ui.js
       - name: 6f0d. Testy UI stopki sidebara (ikony vs nazwa)
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_sidebar_footer_ui.js
       - name: 6f2. Testy UI edycji imienia i nazwiska w profilu
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_cp_edit_visible_ui.js
       - name: 6f2b. Testy UI sytuacji w Przeglądzie
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_cp_overview_situation_ui.js
       - name: 6f2b1. Testy UI zapisów vs planu w Przeglądzie
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_cp_overview_logs_ui.js
       - name: 6f2b1b. Testy UI kafelków tygodnia w Treningach
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_cp_week_tiles_ui.js
       - name: 6f2b2. Testy UI Briefu przed treningiem
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_cp_overview_brief_ui.js
       - name: 6f2b3. Testy UI Analizy współpracy
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_cp_overview_coop_ui.js
       - name: 6f2c. Testy UI osi czasu (filtry)
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_cp_timeline_filters_ui.js
       - name: 6f3. Testy UI ✓ Odbył się (zapis sali z planu)
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_cal_log_done_ui.js
       - name: 6f3a. Testy UI ✓ Odbył się w kalendarzu tygodnia
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_cal_week_sala_done_ui.js
       - name: 6f3e. Testy UI zapisu / edycji sesji w kalendarzu
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_cal_session_save_ui.js
       - name: 6f3b. Testy UI usuwania kart z kalendarza
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_cal_del_card_ui.js
       - name: 6f3c. Testy UI nachodzących sesji w tygodniu
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_cal_week_overlap_ui.js
       - name: 6f3c1. Testy UI deduplikacji kart w kalendarzu
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_cal_sess_dedupe_ui.js
       - name: 6f3c2. Testy UI wyrazistości przycisków kalendarza
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_cal_btn_clarity_ui.js
       - name: 6f3d. Testy UI kontynuacji planu z Fitebo
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_fitebo_continue_ui.js
       - name: 6f3d2. Testy UI Edytuj plan z zakładki Plan
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_plan_edit_from_profile_ui.js
       - name: 6f3d3. Testy UI startu Live z profilu klienta
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_cp_start_live_ui.js
       - name: 6g. Testy UI obwodów centymetrem w profilu klienta
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_circ_metrics_ui.js
       - name: 6g2. Testy UI składu ciała (wiek metaboliczny / nawodnienie)
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_mass_inbody_ui.js
       - name: 6g3. Testy UI szablonów sportowych (NW / piłka / bieg)
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_sport_templates_ui.js
       - name: 6g4. Testy UI aktywności dodatkowych (NW + piłka)
+        if: ${{ !cancelled() }}
         run: node .github/scripts/test_additional_activities_ui.js
 
       - name: 7. Sprawdź stronę w prawdziwej przeglądarce
+        if: ${{ !cancelled() }}
         run: node .github/scripts/check_browser.js
 
       - name: Podsumowanie
