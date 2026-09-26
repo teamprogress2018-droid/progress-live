@@ -19,7 +19,7 @@ function ok(name, cond, extra) {
 
 ok('ci unit', wf.includes('test_cp_week_tiles.js'));
 ok('ci ui', wf.includes('test_cp_week_tiles_ui.js'));
-ok('cache 08/styles', html.includes('08-client-profile-extras.js?v=83') && html.includes('styles.css?v=116'));
+ok('cache 08/styles', html.includes('08-client-profile-extras.js?v=84') && html.includes('styles.css?v=118'));
 ok('plan historia', />Plan</.test(train) && />Historia</.test(train) && !/>Assignment</.test(train));
 ok('week arrows', /cpMpShiftWeek/.test(train) && /Poprzedni tydzień/.test(train));
 ok('no client in range helper', /cpOverviewPlanTitle/.test(train));

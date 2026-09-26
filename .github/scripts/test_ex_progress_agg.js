@@ -45,7 +45,7 @@ function eq(name, got, want) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=124'));
+ok('cache 01', html.includes('01-core.js?v=126'));
 ok('CI', wf.includes('test_ex_progress_agg.js'));
 ok('agg helper', /function aggregateClientProgress/.test(coreSrc));
 ok('agg stays in core', !/function aggregateClientProgress/.test(extras)

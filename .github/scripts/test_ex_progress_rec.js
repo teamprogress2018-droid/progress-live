@@ -84,7 +84,7 @@ function eq(name, got, want) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=124'));
+ok('cache 01', html.includes('01-core.js?v=126'));
 ok('CI', wf.includes('test_ex_progress_rec.js') && wf.includes('1e0z5'));
 ok('rec helper', /function recommendExerciseProgress/.test(coreSrc));
 ok('rec stays in core', !/function recommendExerciseProgress/.test(extras)

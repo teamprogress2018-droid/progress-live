@@ -32,7 +32,7 @@ function ok(name,cond,extra){
 
 ok('ci unit',wf.includes('test_cp_overview_logs.js'));
 ok('ci ui',wf.includes('test_cp_overview_logs_ui.js'));
-ok('cache 08/styles/02',html.includes('08-client-profile-extras.js?v=83')&&html.includes('styles.css?v=116')&&html.includes('02-workouts-onboarding-templates-live.js?v=86'));
+ok('cache 08/styles/02',html.includes('08-client-profile-extras.js?v=84')&&html.includes('styles.css?v=118')&&html.includes('02-workouts-onboarding-templates-live.js?v=87'));
 ok('empty wo copy',overview.includes('Brak zapisanych treningów')&&overview.includes('Dodaj trening')&&!/Same terminy w kalendarzu/.test(overview));
 ok('no remind on empty',!/assigned7&&last7===0/.test(overview));
 ok('notes copy',overview.includes('Widoczna tylko dla Ciebie')&&!overview.includes('Krótka notatka zostaje przy Tobie.'));

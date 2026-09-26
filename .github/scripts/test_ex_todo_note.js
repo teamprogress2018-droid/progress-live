@@ -21,11 +21,11 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01', html.includes('01-core.js?v=124'));
-ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=86'));
-ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=80'));
+ok('cache 01', html.includes('01-core.js?v=126'));
+ok('cache 02', html.includes('02-workouts-onboarding-templates-live.js?v=87'));
+ok('cache 05', html.includes('05-clients-builder-plans-calendar.js?v=81'));
 ok('cache 10', html.includes('10-client-app.js?v=42'));
-ok('cache styles', html.includes('styles.css?v=116'));
+ok('cache styles', html.includes('styles.css?v=118'));
 ok('CI unit', wf.includes('test_ex_todo_note.js'));
 ok('CI readable ui', wf.includes('test_live_readable_ui.js'));
 

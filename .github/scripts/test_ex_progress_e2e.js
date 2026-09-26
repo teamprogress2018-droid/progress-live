@@ -69,8 +69,8 @@ function eq(name, got, want) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 01 frozen', html.includes('01-core.js?v=124'));
-ok('cache 08', html.includes('08-client-profile-extras.js?v=83'));
+ok('cache 01 frozen', html.includes('01-core.js?v=126'));
+ok('cache 08', html.includes('08-client-profile-extras.js?v=84'));
 ok('CI', wf.includes('test_ex_progress_e2e.js') && wf.includes('1e0z7'));
 ok('caller in 08', /function composeClientNextSessionBrief/.test(extras)
   && /function cpNextSessionBriefHtml/.test(extras));
