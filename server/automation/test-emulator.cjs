@@ -1,7 +1,7 @@
 'use strict';
 
 // Integration checks only. Refuse every host except an explicitly configured
-// loopback emulator, and use a demo project plus a local emulator credential.
+// loopback emulator and a demo project. The SDK uses its emulator transport.
 const assert = require('node:assert/strict');
 const {randomUUID} = require('node:crypto');
 const {createRequire} = require('node:module');
@@ -25,7 +25,6 @@ const {getFirestore} = runtimeRequire('firebase-admin/firestore');
 const {processPendingJob} = require('./worker.cjs');
 const app = initializeApp({
   projectId: PROJECT,
-  credential: {getAccessToken: async () => ({access_token: 'owner', expires_in: 3600})},
 }, 'autoflow-emulator-' + randomUUID());
 const db = getFirestore(app);
 db.settings({host: emulatorHost, ssl: false});
