@@ -60,6 +60,13 @@ function classifyEvidence(pubTypes, title) {
   return 'other';
 }
 
+/** Dodatkowa bariera dla świeżych rekordów, zanim PubMed uzupełni tag Humans. */
+function isLikelyNonHumanStudy(item) {
+  const title = String(item && item.title || '').toLowerCase();
+  if (!title) return false;
+  return /\b(piglets?|pigs?|swine|porcine|dogs?|canine|cats?|feline|rats?|mice|mouse|murine|rabbits?|zebrafish|horses?|equine|cattle|bovine|sheep|ovine)\b/i.test(title);
+}
+
 // ─────────────────────────── PubMed XML ───────────────────────────
 function parseArticle(block) {
   const citation = firstMatch(block, /<MedlineCitation\b[^>]*>([\s\S]*?)<\/MedlineCitation>/) || block;
@@ -302,6 +309,9 @@ async function main() {
   });
 
   let items = mergeFeed(old.items || [], fresh.concat(topicUpdates), { maxItems: parseInt(env.MAX_ITEMS || '400', 10) });
+  const beforeHumanFilter = items.length;
+  items = items.filter((it) => !isLikelyNonHumanStudy(it));
+  if (items.length !== beforeHumanFilter) console.log(`Filtr populacji: odrzucono ${beforeHumanFilter - items.length} badań na zwierzętach`);
 
   // 3) Tłumaczenie, streszczenie i praktyczny wniosek po polsku.
   // Klucz Anthropic ma pierwszeństwo; bez niego używamy tego samego proxy co aplikacja.
@@ -337,7 +347,7 @@ async function main() {
   console.log(`Nowe: ${fresh.length} · razem w feedzie: ${items.length} · ${changed ? 'zapisano zmiany' : 'bez zmian'}`);
 }
 
-module.exports = { parsePubmedXml, parseArticle, classifyEvidence, mergeFeed, scoreItem, buildTerm, parseAiJson, cleanText, isTopJournal, aiConnection };
+module.exports = { parsePubmedXml, parseArticle, classifyEvidence, mergeFeed, scoreItem, buildTerm, parseAiJson, cleanText, isTopJournal, aiConnection, isLikelyNonHumanStudy };
 
 if (require.main === module) {
   main().catch((e) => { console.error(e); process.exit(1); });
