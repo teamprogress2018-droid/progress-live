@@ -314,6 +314,30 @@ function toggleAplPharmaPanel(force){
 }
 window.toggleAplPharmaPanel=toggleAplPharmaPanel;
 
+function aplClientReviewHtml(c){
+  const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
+  const intake=typeof clientIntakeFormState==='function'?clientIntakeFormState(c.id):null;
+  const goals={masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja tkanki',kondycja:'Kondycja ogólna',atletyzm:'Atletyzm / moc',rehab:'Rehabilitacja'};
+  const limits=typeof clientCombinedLimitationsText==='function'?clientCombinedLimitationsText(c):(c.injuries||'');
+  const intakeText=c.intakeDone||(intake&&intake.filled)?'Wypełniona — sprawdź odpowiedzi przed planem.':intake&&intake.pending?'Czeka na odpowiedź klienta.':'Brak wypełnionej ankiety.';
+  return `<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border2);" data-apl-client-review>
+    <strong>Przed przygotowaniem planu</strong>
+    <div>Cel z karty: ${esc(goals[c.goal]||c.goal||'Nie podano — wybierz cel poniżej.')}</div>
+    <div>Ankieta: ${esc(intakeText)}</div>
+    <div>Ograniczenia do sprawdzenia: ${esc(limits||'Brak informacji. Nie oznacza to braku przeciwwskazań.')}</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:5px;">Dlaczego? Cel i ograniczenia pomagają dobrać ćwiczenia oraz obciążenie. Wypełnienie ankiety samo w sobie nie potwierdza bezpieczeństwa planu.</div>
+  </div>`;
+}
+function aplResetClientFields(){
+  ['apl-age','apl-weight','apl-height','apl-injuries','apl-sport-notes','apl-activity'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+  const gender=document.getElementById('apl-gender');if(gender)gender.selectedIndex=-1;
+  ['apl-goals','apl-levels','apl-days'].forEach(id=>document.querySelectorAll('#'+id+' .apl-opt').forEach(b=>b.classList.remove('active')));
+  ['apl-metrics-hint','apl-safety-hint'].forEach(id=>{
+    const el=document.getElementById(id);if(el){el.style.display='none';el.textContent='';}
+  });
+}
 function aplClientCardSummaryHtml(c){
   if(!c)return'';
   const esc=typeof escHtml==='function'?escHtml:s=>String(s||'');
@@ -344,6 +368,7 @@ function aplClientCardSummaryHtml(c){
       ${sport?`<div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4;">Sporty: ${esc(sport)}</div>`:''}
       ${c.sportNotes?`<div style="font-size:11px;color:var(--muted);margin-top:2px;">${esc(c.sportNotes)}</div>`:''}
       ${missing.length?`<div style="font-size:11px;color:var(--accent);margin-top:6px;">Brakuje: ${esc(missing.join(', '))} — uzupełnij na karcie.</div>`:''}
+      ${aplClientReviewHtml(c)}
     </div>
     <button type="button" class="btn btn-ghost btn-sm" onclick="aplEditClientFromCard()" style="flex-shrink:0;">✏️ Karta</button>
   </div>`;
@@ -392,6 +417,7 @@ function aplRefreshFromSavedClient(cid){
 function aplFillFromClient(){
   const sel=document.getElementById('apl-client');
   const cid=sel.value;
+  aplResetClientFields();
   // BEZPIECZEŃSTWO: zawsze zeruj status farmakologiczny przy zmianie klienta —
   // to zbyt wrażliwe pole, żeby mogło przypadkiem "przejść" z poprzedniego klienta.
   const pharmaStatusEl=document.getElementById('apl-pharma-status');
@@ -3056,4 +3082,3 @@ window.initAICoach=initAICoach;window.aicLoadClient=aicLoadClient;
 window.setAICMode=setAICMode;window.sendAICMsg=sendAICMsg;
 window.aicSendQuick=aicSendQuick;window.aicNewSession=aicNewSession;
 window.aicClear=aicClear;window.aicLoadSession=aicLoadSession;
-
