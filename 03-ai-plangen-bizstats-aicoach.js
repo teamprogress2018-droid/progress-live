@@ -1033,6 +1033,7 @@ async function aplGenerate(){
 
   const wuEx = `[{"name":"Krążenia ramion","emoji":"🔄","sets":"2x","reps":"15","note":"mobilizacja"},{"name":"Aktywacja pośladków z gumą","emoji":"🍑","sets":"2x","reps":"12","note":"aktywacja"}]`;
 
+  if(typeof kbPrepareResearch==='function')await kbPrepareResearch();
   const systemPrompt=`Jesteś ekspertem programowania treningowego z certyfikatami NSCA CSCS i NASM CPT. Tworzysz szczegółowe plany treningowe w języku polskim.
 
 WAŻNE — odpowiedz TYLKO w formacie JSON (bez żadnego dodatkowego tekstu, bez markdown, bez \`\`\`):
@@ -1140,7 +1141,7 @@ Wypełnij "mezocycle_overview" (2–4 zdania) oraz "weekly_progression_schema" (
 `:''}
 
 Każdy dzień: 4–6 ćwiczeń głównych + opcjonalnie core. Pole "notes" max 60 znaków — bez cudzysłowów w tekście (używaj apostrofów). warmupExercises: dokładnie 3 pozycje. Cała odpowiedź musi być poprawnym JSON bez komentarzy i bez markdown.`
-  +(typeof kbContextForAI==='function'?kbContextForAI():(typeof planningEvidenceContext==='function'?planningEvidenceContext(3200):''));
+  +(typeof kbContextForAI==='function'?kbContextForAI({mode:'training',query:goal+' '+method+' '+notes}):(typeof planningEvidenceContext==='function'?planningEvidenceContext(3200):''));
 
   const userMsg=`Stwórz plan treningowy:
 - Cel: ${goal}
@@ -2809,10 +2810,10 @@ function aicRenderAllMsgs(){
   el.scrollTop=el.scrollHeight;
 }
 
-function aicSharedContextSystem(){
+function aicSharedContextSystem(query){
   let extra=`\n\nDziś: ${new Date().toLocaleDateString('pl',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}`;
   extra+=`\nTrener: ${typeof getTrainerName==='function'?getTrainerName():''}`;
-  extra+=typeof kbContextForAI==='function'?kbContextForAI():'';
+  extra+=typeof kbContextForAI==='function'?kbContextForAI({mode:aicMode,query:query||''}):'';
   if(aicClientId){
     const c=CL.find(x=>x.id===aicClientId);
     if(c){
@@ -2895,7 +2896,9 @@ async function sendAICMsg(){
   const sug=document.getElementById('aic-suggestions');
   if(sug)sug.innerHTML='';
 
-  const extra=aicSharedContextSystem();
+  aicLoading=true;
+  if(typeof kbPrepareResearch==='function')await kbPrepareResearch();
+  const extra=aicSharedContextSystem(text);
   const agentIds=staffAgentsForAicMode(aicMode, text);
 
   const apiMsgs=aicMsgs.slice(-9,-1).map(m=>({
