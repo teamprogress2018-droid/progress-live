@@ -157,11 +157,32 @@ service cloud.firestore {
       allow delete: if isOwner();
     }
 
+    // Autoflow controls/intents are trainer-only. Generic allow rules are OR-combined.
+    match /automationState/{docId} {
+      allow read, delete: if isOwner();
+      allow create: if creatingAsOwner();
+      allow update: if isOwner()
+        && request.resource.data.trainerId == resource.data.trainerId;
+    }
+    match /autoflows/{docId} {
+      allow read, delete: if isOwner();
+      allow create: if creatingAsOwner();
+      allow update: if isOwner()
+        && request.resource.data.trainerId == resource.data.trainerId;
+    }
+    match /serverAutomation/{document=**} {
+      allow read, write: if false;
+    }
+
     match /{collection}/{docId} {
-      allow read: if isOwner() || isLinkedClient();
-      allow create: if creatingAsOwner() || creatingAsLinkedClient();
-      allow update, delete: if (isOwner() || isLinkedClient())
+      allow read: if !(collection in ['automationState', 'autoflows', 'serverAutomation'])
+        && (isOwner() || isLinkedClient());
+      allow create: if !(collection in ['automationState', 'autoflows', 'serverAutomation'])
+        && (creatingAsOwner() || creatingAsLinkedClient());
+      allow update, delete: if !(collection in ['automationState', 'autoflows', 'serverAutomation'])
+        && (isOwner() || isLinkedClient())
         && request.resource.data.trainerId == resource.data.trainerId;
     }
   }
 }
+

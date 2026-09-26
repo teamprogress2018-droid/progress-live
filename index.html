@@ -4253,6 +4253,7 @@ window.doPasswordReset=async function(){
 };
 
 onAuthStateChanged(auth,(user)=>{
+  clearAutoflowSessionState();
   const authScreen=document.getElementById('auth-screen');
   const appRoot=document.getElementById('app-root');
   if(user){
@@ -4294,6 +4295,29 @@ async function bootApp(){
   const sidebar=document.querySelector('.sidebar');
   if(sidebar)sidebar.style.display='';
   await load();
+}
+
+function clearAutoflowSessionState(){
+  window.AF_STATE={enrollments:{},executed:{},lastFired:{},logs:[],pending:{}};
+  window._afStateDocId=null;
+  window._afStateReady=false;
+}
+
+async function loadAutoflowState(){
+  const owner=window._uid;
+  clearAutoflowSessionState();
+  if(!owner||window._clientAppMode)return;
+  try{
+    const snapshot=await getDocs(query(collection(db,'automationState'),where('trainerId','==',owner)));
+    const candidates=[];
+    snapshot.forEach(d=>{const data=d.data()||{};if(data.trainerId===owner)candidates.push({id:d.id,data});});
+    candidates.sort((a,b)=>a.id===b.id?0:a.id===owner?-1:b.id===owner?1:a.id<b.id?-1:1);
+    if(window._uid!==owner||window._clientAppMode)return;
+    const selected=candidates[0];
+    window.AF_STATE=selected?{...selected.data}:{trainerId:owner,enrollments:{},executed:{},lastFired:{},logs:[],pending:{}};
+    window._afStateDocId=selected?selected.id:owner;
+    window._afStateReady=true;
+  }catch(e){console.warn('Wczytywanie stanu automatyzacji nie powiodło się:',e);}
 }
 
 function _takeFb(d){
@@ -4405,7 +4429,7 @@ async function load(){
       }
     }
   }catch(e){console.warn('Wczytywanie autoflows nie powiodło się:',e);window.AUTOFLOWS=window.AUTOFLOWS||[];}
-  try{const sAF=await getDocs(collection(db,'automationState'));sAF.forEach(d=>{const data=d.data()||{};if(typeof window.belongsToTrainer==='function'&&data.trainerId&&!window.belongsToTrainer(data))return;window.AF_STATE={...data};window._afStateDocId=d.id;});}catch(e){console.warn('Wczytywanie stanu automatyzacji nie powiodło się:',e);}
+  await loadAutoflowState();
   try{
     const sInt=await getDocs(collection(db,'integrationConfigs'));
     window.INT_CONNECTIONS={};
@@ -4491,7 +4515,7 @@ async function load(){
       'clients','plans','sessions','exercises','workouts','tasks','kb','metricEntries','metricGroups',
       'messages','packages','invoices','formSends','reportHistory','forms','programs','checkins',
       'notifications','autoflows','forumGroups','forumPosts','forumComments','odWorkouts','odProgress','resources',
-      'settings','integrationConfigs','automationState','clientNotes','clientDocs','onboardingFlows','planTemplates','odPrograms','onboardingActive','clientGroups','invites','clientAccounts','progressPhotos','coachVideos'
+      'settings','integrationConfigs','clientNotes','clientDocs','onboardingFlows','planTemplates','odPrograms','onboardingActive','clientGroups','invites','clientAccounts','progressPhotos','coachVideos'
     ]);
   }catch(e){console.warn('Migracja trainerId:',e);}
   try{if(typeof window.sweepImportedCatalogDuplicates==='function')await window.sweepImportedCatalogDuplicates({silent:true});}catch(e){console.warn('Duplikaty ćwiczeń:',e);}
@@ -4515,7 +4539,7 @@ async function load(){
 <script src="06-inbox-exercises-ai-programs.js?v=85"></script>
 <script src="07-forms-metrics-calculator.js?v=42"></script>
 <script src="08-client-profile-extras.js?v=84&ui=2&journey=2"></script>
-<script src="09-posture-kb-invites-private.js?v=54&reliable-af=1"></script>
+<script src="09-posture-kb-invites-private.js?v=54&reliable-af=1&af-ownership=2"></script>
 <script src="10-client-app.js?v=42"></script>
 </body>
 </html>

@@ -3084,20 +3084,35 @@ function renderAutoflows(){
   </div>`;}).join('');
 }
 
+function afServerHistoryHTML(state){
+  const checkedAt=s=>typeof s.checkedAt==='number'?s.checkedAt:Date.parse(s.checkedAt||'');
+  const entries=Object.values(state.serverStatus||{}).filter(s=>s&&typeof s==='object').sort((a,b)=>(checkedAt(b)||0)-(checkedAt(a)||0)).slice(0,20);
+  if(!entries.length)return '';
+  const labels={done:'Zapisano',error:'Nie zapisano — oczekuje ponowienia',exhausted:'Wyczerpano próby — możesz ponowić ręcznie',blocked:'Wstrzymano — sprawdź automatyzację i klienta','step-changed':'Krok został zmieniony — sprawdź automatyzację','browser-required':'Ten krok wymaga otwartej aplikacji. Formularze nie są jeszcze obsługiwane w tle.',expired:'Termin wykonania minął — nie wykonano','before-enable':'Krok powstał przed włączeniem pracy w tle — pominięto',foreign:'Nie potwierdzono właściciela danych — nie wykonano',invalid:'Nieprawidłowe dane kroku — nie wykonano',collision:'Istnieje już zapis o tym identyfikatorze — nie nadpisano'};
+  return '<div style="margin-top:16px;border-top:1px solid var(--border);padding-top:12px;"><strong>Historia pracy w tle</strong>'+entries.map(s=>{
+    const at=checkedAt(s),next=Number(s.nextRetry)||0;
+    const count=Number.isInteger(s.attempts)&&s.attempts>=0?' · Próby: '+s.attempts:'';
+    const client=(window.CL||[]).find(c=>c.id===s.clientId),flow=(window.AUTOFLOWS||[]).find(af=>af.id===s.afId);
+    return `<div style="padding:8px 0;border-bottom:1px solid var(--border);"><div>${escHtml(client?.name||'Klient')} — ${escHtml(flow?.name||'Automatyzacja')}</div><div>${escHtml(labels[s.status]||'Oczekuje sprawdzenia')}${escHtml(count)}</div>${s.error?'<div>'+escHtml(s.error)+'</div>':''}${next>Date.now()?'<div>Kolejna próba: '+escHtml(new Date(next).toLocaleString('pl'))+'</div>':''}<div style="font-size:10px;">${Number.isFinite(at)?escHtml(new Date(at).toLocaleString('pl')):''}</div></div>`;
+  }).join('')+'</div>';
+}
+
 function renderAutoflowLog(){
   const el=document.getElementById('autoflow-log');if(!el)return;
-  const logs=(window.AF_STATE&&window.AF_STATE.logs)||[];
-  const pending=Object.values((window.AF_STATE&&window.AF_STATE.pending)||{}).filter(Boolean);
-  const failures=pending.filter(j=>j.status==='error');
+  const state=window.AF_STATE||{};
+  const logs=state.logs||[];
+  const pending=Object.values(state.pending||{}).filter(Boolean);
+  const failures=pending.filter(j=>j.status==='error'||['error','exhausted'].includes((state.serverStatus?.[j.id]||{}).status));
+  const serverHtml=afServerHistoryHTML(state);
   const queueHtml=pending.length?`<div style="padding:10px;border-bottom:1px solid var(--border);">Do zapisania: ${pending.length}. Błędy: ${failures.length}.<br><span style="color:var(--muted);">Ponawianie działa przy otwartej aplikacji, maksymalnie 5 prób. Wstrzymane automatyzacje czekają na włączenie.</span>${failures.length?'<br><button type="button" class="btn btn-ghost btn-sm" onclick="retryAutoflowFailures()">Ponów nieudane zapisy</button>':''}</div>`:'';
   if(!logs.length){
-    el.innerHTML=queueHtml+'<div style="text-align:center;padding:12px;">Brak potwierdzonych operacji. Włącz automatyzację lub kliknij „Sprawdź teraz”.</div>';
+    el.innerHTML=queueHtml+'<div style="text-align:center;padding:12px;">'+(serverHtml?'Brak wpisów wykonania w otwartej aplikacji.':'Brak potwierdzonych operacji. Włącz automatyzację lub kliknij „Sprawdź teraz”.')+'</div>'+serverHtml;
     return;
   }
   el.innerHTML=queueHtml+logs.slice(0,20).map(l=>`<div style="display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);">
     <span>${escHtml(l.client||'')} — ${escHtml(l.af||'')} · ${escHtml(l.text||'')}</span>
     <span style="font-family:'DM Mono',monospace;font-size:10px;">${escHtml((l.at||'').slice(0,16).replace('T',' '))}</span>
-  </div>`).join('');
+  </div>`).join('')+serverHtml;
 }
 
 function toggleAF(id){
@@ -3450,23 +3465,24 @@ function runAutoflowsCheck(showToast){
 }
 
 function queueAFStep(step,c,af,mark,si,oneShot){
-  if(!window._uid||window._clientAppMode)return false;
+  if(!window._uid||window._clientAppMode||window._afStateReady===false)return false;
   const state=ensureAfState();
   const id='af_'+encodeURIComponent(JSON.stringify([window._uid,af.id,c.id,oneShot?String(si):mark]));
   if(id.length>1300)return false;
   if(state.pending[id])return false;
   if((oneShot||['inactivity','session_today'].includes(af.trigger))&&Object.values(state.pending).some(j=>j&&j.afId===af.id&&j.clientId===c.id&&j.si===si))return false;
-  state.pending[id]={id,owner:window._uid,afId:af.id,clientId:c.id,mark,si,oneShot:!!oneShot,
+  state.pending[id]={id,owner:window._uid,afId:af.id,clientId:c.id,afDocId:af._fbId||af.id,clientDocId:c._fbId||c.id,mark,si,oneShot:!!oneShot,
     step:JSON.parse(JSON.stringify(step)),createdAt:new Date().toISOString(),attempts:0,nextRetry:0,status:'pending'};
   drainAFQueue();
   return true;
 }
 
 function drainAFQueue(){
+  if(window._afRetryRunning)return window._afRetryRunning;
   if(window._afQueueRunning)return window._afQueueRunning;
   // Defer until event scanners finish updating their deduplication markers.
   const owner=window._uid;
-  if(!owner||window._clientAppMode)return Promise.resolve();
+  if(!owner||window._clientAppMode||window._afStateReady===false)return Promise.resolve();
   const state=ensureAfState();
   const run=Promise.resolve().then(async()=>{
     for(const job of Object.values(state.pending)){
@@ -3497,9 +3513,21 @@ function drainAFQueue(){
         if(window._uid!==owner||window.AF_STATE!==state)break;
         job.status='error';
         job.nextRetry=Date.now()+Math.min(3600000,60000*Math.pow(2,job.attempts-1));
-        job.error='Nie potwierdzono zapisu. Sprawdź połączenie i uprawnienia.';
+        const reasons={
+          'autoflow-paused':'Automatyzacja jest wstrzymana.',
+          'autoflow-archived':'Klient został zarchiwizowany.',
+          'autoflow-scope':'Klient nie jest już objęty tą automatyzacją.',
+          'autoflow-changed':'Krok automatyzacji zmienił się. Sprawdź jego treść.',
+          'autoflow-missing':'Nie znaleziono automatyzacji lub klienta.',
+          'autoflow-owner':'Nie potwierdzono właściciela danych.',
+          'autoflow-identity':'Nie potwierdzono identyfikatora automatyzacji lub klienta.',
+          'autoflow-collision':'Istnieje już zapis o tym identyfikatorze. Nie nadpisano go.',
+          'autoflow-form-missing':'Nie znaleziono formularza wskazanego w kroku.'
+        };
+        job.errorCode=reasons[e.message]?e.message:'autoflow-save-failed';
+        job.error=reasons[e.message]||'Nie potwierdzono zapisu. Sprawdź połączenie i uprawnienia.';
         state.pending[job.id]=job;
-        logAF(af,c,'Błąd zapisu — próba '+job.attempts+'/5');
+        logAF(af,c,job.error+' Próba '+job.attempts+'/5');
         await saveAutomationState(false);
       }
     }
@@ -3512,15 +3540,43 @@ function drainAFQueue(){
 }
 
 function retryAutoflowFailures(){
-  Object.values(ensureAfState().pending).forEach(job=>{
-    if(job&&job.owner===window._uid&&job.status==='error'){job.attempts=0;job.nextRetry=0;}
+  if(window._afRetryRunning)return window._afRetryRunning;
+  const owner=window._uid,state=ensureAfState(),activeRun=window._afQueueRunning;
+  if(!owner||window._clientAppMode||window._afStateReady===false)return Promise.resolve(false);
+  const run=Promise.resolve().then(async()=>{
+    if(activeRun)await activeRun;
+    if(window._uid!==owner||window.AF_STATE!==state||window._clientAppMode)return false;
+    let changed=false;
+    Object.values(state.pending).forEach(job=>{
+      if(!job||job.owner!==owner)return;
+      const serverFailed=['error','exhausted'].includes((state.serverStatus?.[job.id]||{}).status);
+      if(job.status!=='error'&&!serverFailed)return;
+      job.attempts=0;job.nextRetry=0;changed=true;
+      if(serverFailed)job.retryRequestId=typeof newId==='function'?newId('afr'):'afr_'+Date.now().toString(36)+Math.random().toString(36).slice(2);
+    });
+    // Persist the retry generation even when this browser cannot run a paused step.
+    if(changed&&!await saveAutomationState(false))return false;
+    if(window._uid!==owner||window.AF_STATE!==state||window._clientAppMode)return false;
+    if(window._afRetryRunning===run)window._afRetryRunning=null;
+    return drainAFQueue();
+  }).finally(()=>{
+    if(window._afRetryRunning===run)window._afRetryRunning=null;
+    try{renderAutoflowLog();}catch(e){}
   });
-  return drainAFQueue();
+  window._afRetryRunning=run;
+  return run;
 }
 window.retryAutoflowFailures=retryAutoflowFailures;
 
+function afStepMatches(a,b){
+  if(a===b)return true;
+  if(!a||!b||typeof a!=='object'||typeof b!=='object'||Array.isArray(a)!==Array.isArray(b))return false;
+  const keys=Object.keys(a);
+  return keys.length===Object.keys(b).length&&keys.every(k=>Object.prototype.hasOwnProperty.call(b,k)&&afStepMatches(a[k],b[k]));
+}
+
 async function execAFStep(step,c,af,job){
-  if(!job||job.owner!==window._uid||!window._db||typeof window._runTransaction!=='function')throw new Error('autoflow-unavailable');
+  if(!job||job.owner!==window._uid||window._clientAppMode||window._afStateReady===false||!window._db||typeof window._runTransaction!=='function')throw new Error('autoflow-unavailable');
   const owner=job.owner;
   const stateRef=window._doc(window._db,'automationState',window._afStateDocId||owner);
   const text=(step.text||'').replace(/\{imie\}/g,(c.name||'').split(' ')[0]);
@@ -3543,8 +3599,31 @@ async function execAFStep(step,c,af,job){
     const snap=await tx.get(stateRef);
     const remote=snap.exists()?snap.data():{};
     if(remote.trainerId!==owner)throw new Error('autoflow-owner');
+    // Recover a lost acknowledgement even if the flow/client was changed or removed afterwards.
     if(remote.afReceipts&&remote.afReceipts[job.id])return false;
+    const afDocId=job.afDocId||af._fbId||af.id;
+    const clientDocId=job.clientDocId||c._fbId||c.id;
+    const afSnap=await tx.get(window._doc(window._db,'autoflows',afDocId));
+    const clientSnap=await tx.get(window._doc(window._db,'clients',clientDocId));
+    if(!afSnap.exists()||!clientSnap.exists())throw new Error('autoflow-missing');
+    const currentAf=afSnap.data(),currentClient=clientSnap.data();
+    if(currentAf.trainerId!==owner||currentClient.trainerId!==owner)throw new Error('autoflow-owner');
+    if((afDocId!==job.afId&&currentAf.id!==job.afId)||(clientDocId!==job.clientId&&currentClient.id!==job.clientId))throw new Error('autoflow-identity');
+    if(currentAf.status!=='active')throw new Error('autoflow-paused');
+    if(currentClient.status==='archived')throw new Error('autoflow-archived');
+    if(currentAf.scope==='select'&&!(currentAf.clientIds||[]).includes(job.clientId))throw new Error('autoflow-scope');
+    if(currentAf.scope==='new'){
+      const since=(currentAf.createdAt||'').split('T')[0];
+      const joined=currentClient.joinDate||(currentClient.createdAt||'').split('T')[0];
+      if(!since||!joined||joined<since)throw new Error('autoflow-scope');
+    }
+    if(!Number.isInteger(job.si)||job.si<0||!afStepMatches((currentAf.steps||[])[job.si],step))throw new Error('autoflow-changed');
     if(preparationError)throw new Error(preparationError);
+    // Do not overwrite an existing record if its atomic receipt is missing.
+    for(const record of records){
+      const existing=await tx.get(window._doc(window._db,record.collection,record.data.id));
+      if(existing.exists())throw new Error('autoflow-collision');
+    }
     records.forEach(r=>tx.set(window._doc(window._db,r.collection,r.data.id),r.data));
     tx.set(stateRef,{afReceipts:{[job.id]:job.createdAt},pending:{[job.id]:null}},{merge:true});
     return true;
@@ -3563,7 +3642,7 @@ async function execAFStep(step,c,af,job){
 }
 
 function saveAutomationState(strict){
-  if(!window._db||!window._uid){
+  if(!window._db||!window._uid||window._clientAppMode||window._afStateReady===false){
     return strict?Promise.reject(new Error('autoflow-offline')):Promise.resolve(false);
   }
   withTrainer(window.AF_STATE);
@@ -3571,6 +3650,8 @@ function saveAutomationState(strict){
   delete payload._fbId;
   // Only the effect transaction may write receipts; stale tabs must not erase them.
   delete payload.afReceipts;
+  // Server-written outcomes remain authoritative when an older browser saves its queue.
+  delete payload.serverStatus;
   const docId=window._afStateDocId||window._uid;
   window._afStateDocId=docId;
   return window._setDoc(window._doc(window._db,'automationState',docId),payload,{merge:true}).then(()=>true).catch(e=>{
