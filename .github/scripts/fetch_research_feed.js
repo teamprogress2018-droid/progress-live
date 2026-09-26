@@ -9,8 +9,9 @@
  *   LOOKBACK_DAYS      ile dni wstecz (data dodania do PubMed), domyślnie 14
  *   NCBI_API_KEY       opcjonalnie — 10 zapytań/s zamiast 3/s
  *   NCBI_EMAIL         opcjonalnie — NCBI prosi o kontakt przy automatach
- *   ANTHROPIC_API_KEY  opcjonalnie — streszczenie + wniosek po polsku dla nowych pozycji
+ *   ANTHROPIC_API_KEY  opcjonalnie — bezpośredni dostęp do AI
  *   ANTHROPIC_MODEL    opcjonalnie — domyślnie claude-haiku-4-5-20251001
+ *   AI_PROXY_URL       opcjonalnie — adres własnego proxy AI używanego, gdy nie ma klucza
  *   AI_MAX             ile pozycji streszczać w jednym uruchomieniu (domyślnie 40)
  *   FEED_PATH          ścieżka pliku wyjściowego (domyślnie research-feed.json)
  *   MAX_ITEMS          limit pozycji w pliku (domyślnie 400, najstarsze wypadają)
@@ -200,19 +201,33 @@ Dostajesz tytuł i abstrakt badania z PubMed. Odpowiadasz WYŁĄCZNIE obiektem J
 istotnosc = przydatność dla trenera personalnego pracującego z typowymi klientami na siłowni (5 = zmienia praktykę, 1 = bez znaczenia / populacja kliniczna daleka od siłowni).
 Nie dopowiadaj wyników, których nie ma w abstrakcie.`;
 
+function aiConnection(env) {
+  if (env.ANTHROPIC_API_KEY) {
+    return {
+      url: 'https://api.anthropic.com/v1/messages',
+      headers: { 'content-type': 'application/json', 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
+      label: 'Anthropic'
+    };
+  }
+  const url = String(env.AI_PROXY_URL || 'https://anthropic-proxy.teamprogress2018.workers.dev/').trim();
+  return url ? { url, headers: { 'content-type': 'application/json' }, label: 'proxy aplikacji' } : null;
+}
+
 async function aiSummarize(item, env) {
+  const connection = aiConnection(env);
+  if (!connection) return null;
   const body = {
     model: env.ANTHROPIC_MODEL || 'claude-haiku-4-5-20251001',
     max_tokens: 600,
     system: AI_SYSTEM,
     messages: [{ role: 'user', content: 'TYTUŁ: ' + item.title + '\nTYP: ' + item.evidenceLabel + '\nCZASOPISMO: ' + item.journal + ' ' + item.year + '\n\nABSTRAKT:\n' + String(item.abstract || '').slice(0, 6000) }]
   };
-  const r = await fetch('https://api.anthropic.com/v1/messages', {
+  const r = await fetch(connection.url, {
     method: 'POST',
-    headers: { 'content-type': 'application/json', 'x-api-key': env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },
+    headers: connection.headers,
     body: JSON.stringify(body)
   });
-  if (!r.ok) throw new Error('Anthropic HTTP ' + r.status + ': ' + (await r.text()).slice(0, 200));
+  if (!r.ok) throw new Error(connection.label + ' HTTP ' + r.status + ': ' + (await r.text()).slice(0, 200));
   const data = await r.json();
   const text = (data.content || []).map((b) => (b.type === 'text' ? b.text : '')).join('');
   return parseAiJson(text);
@@ -288,8 +303,10 @@ async function main() {
 
   let items = mergeFeed(old.items || [], fresh.concat(topicUpdates), { maxItems: parseInt(env.MAX_ITEMS || '400', 10) });
 
-  // 3) AI po polsku (opcjonalnie)
-  if (env.ANTHROPIC_API_KEY) {
+  // 3) Tłumaczenie, streszczenie i praktyczny wniosek po polsku.
+  // Klucz Anthropic ma pierwszeństwo; bez niego używamy tego samego proxy co aplikacja.
+  const ai = aiConnection(env);
+  if (ai) {
     const todo = items.filter((x) => !x.ai && x.abstract).sort((a, b) => b.score - a.score).slice(0, parseInt(env.AI_MAX || '40', 10));
     let done = 0;
     for (const it of todo) {
@@ -302,10 +319,10 @@ async function main() {
       }
       await sleep(300);
     }
-    console.log(`AI: streszczono ${done}/${todo.length}`);
+    console.log(`AI (${ai.label}): przetłumaczono i streszczono ${done}/${todo.length}`);
     items = items.map((it) => ({ ...it, score: scoreItem(it) }));
   } else {
-    console.log('AI: brak ANTHROPIC_API_KEY — pomijam streszczenia (feed działa bez nich)');
+    console.log('AI: brak połączenia — pozycje pozostają z oryginalnym tytułem i abstraktem');
   }
 
   const changed = JSON.stringify(items) !== JSON.stringify(old.items || []);
@@ -320,7 +337,7 @@ async function main() {
   console.log(`Nowe: ${fresh.length} · razem w feedzie: ${items.length} · ${changed ? 'zapisano zmiany' : 'bez zmian'}`);
 }
 
-module.exports = { parsePubmedXml, parseArticle, classifyEvidence, mergeFeed, scoreItem, buildTerm, parseAiJson, cleanText, isTopJournal };
+module.exports = { parsePubmedXml, parseArticle, classifyEvidence, mergeFeed, scoreItem, buildTerm, parseAiJson, cleanText, isTopJournal, aiConnection };
 
 if (require.main === module) {
   main().catch((e) => { console.error(e); process.exit(1); });
