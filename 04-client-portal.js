@@ -3238,23 +3238,64 @@ async function persistCheckin(ci){
 }
 
 function getCIStatus(clientId){
-  const checkins=window.CHECKINS[clientId]||[];
-  const latest=checkins[checkins.length-1];
-  if(!latest)return'none';
-  const daysDiff=Math.floor((new Date()-new Date(latest.date||Date.now()))/(1000*60*60*24));
-  if(latest.status==='filled'&&daysDiff<=7)return'done';
-  if(latest.status==='pending')return daysDiff>7?'overdue':'pending';
-  if(daysDiff>14)return'overdue';
-  return'none';
+  const pending=pendingCheckin(clientId);
+  if(pending){
+    const age=Date.now()-checkinActivityTime(pending);
+    return Number.isFinite(age)&&age>=0&&age<=7*86400000?'pending':'overdue';
+  }
+  if(filledThisWeek(clientId))return'done';
+  const latest=latestFilledCheckin(clientId);
+  return latest&&checkinRecordAgeDays(latest)>14?'overdue':'none';
 }
-
+/** Data odpowiedzi jest aktywnością; date pozostaje datą zaproszenia/raportu. */
+function checkinActivityTime(ci){
+  if(!ci)return NaN;
+  const values=ci.status==='filled'?[ci.filledAt,ci.date,ci.createdAt]:[ci.createdAt,ci.date];
+  for(const raw of values){
+    if(typeof raw!=='string'||!raw.trim())continue;
+    const value=raw.trim();
+    const day=value.match(/^(\d{4})-(\d{2})-(\d{2})(?:T|$)/);
+    if(!day)continue;
+    const calendar=new Date(Date.UTC(+day[1],+day[2]-1,+day[3]));
+    if(calendar.getUTCFullYear()!==+day[1]||calendar.getUTCMonth()!==+day[2]-1||calendar.getUTCDate()!==+day[3])continue;
+    const t=new Date(value.length===10?value+'T00:00:00':value).getTime();
+    if(Number.isFinite(t))return t;
+  }
+  return NaN;
+}
+function checkinActivityDate(ci){
+  const time=checkinActivityTime(ci);
+  if(!Number.isFinite(time))return'';
+  const d=new Date(time);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function sortedCheckins(clientId,status){
+  return ((window.CHECKINS&&window.CHECKINS[clientId])||[])
+    .filter(ci=>ci&&(!status||ci.status===status))
+    .slice().sort((a,b)=>{
+      const at=checkinActivityTime(a),bt=checkinActivityTime(b);
+      return (Number.isFinite(bt)?bt:0)-(Number.isFinite(at)?at:0)||String(b.id||'').localeCompare(String(a.id||''));
+    });
+}
+function latestFilledCheckin(clientId){
+  const now=Date.now();
+  return sortedCheckins(clientId,'filled').find(ci=>{
+    const t=checkinActivityTime(ci);
+    return Number.isFinite(t)&&t<=now;
+  })||null;
+}
 function pendingCheckin(clientId){
-  const list=window.CHECKINS[clientId]||[];
-  return list.filter(x=>x.status==='pending').slice(-1)[0]||null;
+  const filled=latestFilledCheckin(clientId);
+  const answeredAt=checkinActivityTime(filled);
+  return sortedCheckins(clientId,'pending').find(ci=>{
+    const sentAt=checkinActivityTime(ci);
+    // Niedatowany starszy rekord nadal można wypełnić, bez tworzenia duplikatu.
+    return !filled||!Number.isFinite(sentAt)||sentAt>answeredAt;
+  })||null;
 }
 function filledThisWeek(clientId){
-  const weekAgo=Date.now()-7*86400000;
-  return (window.CHECKINS[clientId]||[]).filter(x=>x.status==='filled'&&x.date&&new Date(x.date).getTime()>=weekAgo).slice(-1)[0]||null;
+  const latest=latestFilledCheckin(clientId);
+  return latest&&checkinActivityTime(latest)>=Date.now()-7*86400000?latest:null;
 }
 function scoreCheckinAnswers(a){
   const energy=+(a&&a.energy)||3;
@@ -3293,9 +3334,8 @@ function clientEligibleForWeeklyCheckin(c){
 }
 function checkinRecordAgeDays(ci){
   if(!ci)return 999;
-  const raw=ci.createdAt||ci.date||'';
-  const t=new Date(raw).getTime();
-  if(!t||isNaN(t))return 999;
+  const t=checkinActivityTime(ci);
+  if(!Number.isFinite(t)||t>Date.now())return 999;
   return Math.floor((Date.now()-t)/86400000);
 }
 function needsWeeklyCheckin(clientId){
@@ -3309,9 +3349,7 @@ function isWeeklyCheckinDay(now){
   return(now||new Date()).getDay()===day;
 }
 function lastCheckinActivity(clientId){
-  const list=(window.CHECKINS&&window.CHECKINS[clientId])||[];
-  if(!list.length)return null;
-  return list.slice().sort((a,b)=>String(b.createdAt||b.date||'').localeCompare(String(a.createdAt||a.date||'')))[0]||null;
+  return sortedCheckins(clientId).find(ci=>checkinActivityTime(ci)<=Date.now())||null;
 }
 /** Auto-wysyłka tygodniowego check-inu po onboardingu/planie.
  *  Wysyła gdy: setting włączony, klient ma plan, brak filled/pending w tym tygodniu,
@@ -3444,7 +3482,7 @@ function openCIClient(id){
 
 function renderCIDetail(id){
   const c=CL.find(x=>x.id===id);if(!c)return;
-  const checkins=(window.CHECKINS[id]||[]).slice().reverse();
+  const checkins=sortedCheckins(id);
   const el=document.getElementById('ci-detail');if(!el)return;
 
   if(!checkins.length){
@@ -3455,14 +3493,18 @@ function renderCIDetail(id){
     </div>`;return;
   }
 
-  const latest=checkins[0];
+  const latest=pendingCheckin(id)||latestFilledCheckin(id);
+  if(!latest){
+    el.innerHTML='<div style="padding:30px;color:var(--muted);">Brak raportu z prawidłową datą. Sprawdź daty zapisanych check-inów.</div>';
+    return;
+  }
   const filled=checkins.filter(x=>x.status==='filled');
 
   el.innerHTML=`
     <!-- aktualny check-in -->
     <div style="margin-bottom:20px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:var(--accent);margin-bottom:12px;">
-        AKTUALNY TYDZIEŃ · ${latest.date}
+        OSTATNI RAPORT · ${escHtml(checkinActivityDate(latest)||'Brak daty')}
         <span class="pill ${latest.status==='filled'?'pill-green':'pill-orange'}" style="font-size:10px;margin-left:8px;">${latest.status==='filled'?'✓ Wypełniony':'⏳ Oczekuje'}</span>
       </div>
 
@@ -5870,10 +5912,10 @@ function dashOpsRecentReports(){
   clients.forEach(c=>{
     if(typeof ensureCheckins==='function')ensureCheckins(c.id);
     const list=(window.CHECKINS&&window.CHECKINS[c.id])||[];
-    list.filter(ci=>ci&&ci.status==='filled').forEach(ci=>{
+    list.filter(ci=>ci&&ci.status==='filled'&&Number.isFinite(checkinActivityTime(ci))&&checkinActivityTime(ci)<=Date.now()).forEach(ci=>{
       out.push({
         kind:'checkin',clientId:c.id,clientName:c.name,ci,
-        date:ci.date||ci.filledAt||ci.createdAt||'',
+        date:checkinActivityDate(ci),activityTime:checkinActivityTime(ci),
         score:ci.score,answers:ci.answers||{}
       });
     });
@@ -5886,11 +5928,12 @@ function dashOpsRecentReports(){
     if(!/post[eę]p|check|raport|miesi[eę]|tygod/.test(name)&&s.formId!=='df3')return;
     out.push({
       kind:'form',clientId:c.id,clientName:c.name,send:s,
-      date:s.filledAt||s.sentAt||'',
+      date:s.filledAt||s.sentAt||'',activityTime:new Date(s.filledAt||s.sentAt||'').getTime(),
       formName:s.formName||'Formularz'
     });
   });
-  return out.sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,12);
+  return out.filter(r=>Number.isFinite(r.activityTime)&&r.activityTime<=Date.now())
+    .sort((a,b)=>b.activityTime-a.activityTime||String((b.ci||b.send||{}).id||'').localeCompare(String((a.ci||a.send||{}).id||''))).slice(0,12);
 }
 function dashOpsAttentionItems(){
   return collectOpsEvents().filter(it=>it.channel==='attention');
@@ -6026,9 +6069,7 @@ function clientSituationSnapshot(clientId){
   const adh30=typeof clientAdherenceStats==='function'?clientAdherenceStats(id,30):{assigned:0,logged:0,pct:0};
   const logged=typeof completedWorkouts==='function'?completedWorkouts(id):(window.SE||[]).filter(s=>s&&s.clientId===id&&typeof isLoggedWorkout==='function'&&isLoggedWorkout(s));
   const lastWorkout=logged.slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')))[0]||null;
-  const filled=((window.CHECKINS&&window.CHECKINS[id])||[]).filter(x=>x&&x.status==='filled')
-    .slice().sort((a,b)=>String(b.date||b.filledAt||b.createdAt||'').localeCompare(String(a.date||a.filledAt||a.createdAt||'')));
-  const lastCheckin=filled[0]||null;
+  const lastCheckin=latestFilledCheckin(id);
   const ciStatus=typeof getCIStatus==='function'?getCIStatus(id):'none';
   const massEntry=typeof cpMetricLatest==='function'?cpMetricLatest(id,'mg1','m1'):null;
   const massVal=massEntry&&massEntry.values&&massEntry.values.m1!=null?massEntry.values.m1:(c.weight!=null?c.weight:null);
@@ -6071,8 +6112,8 @@ function clientSituationSnapshot(clientId){
       }:null,
       checkinStatus:ciStatus,
       lastCheckin:lastCheckin?{
-        date:String(lastCheckin.date||lastCheckin.filledAt||'').slice(0,10),
-        daysSince:dashDaysBetween(lastCheckin.date||lastCheckin.filledAt,today),
+        date:checkinActivityDate(lastCheckin),
+        daysSince:dashDaysBetween(checkinActivityDate(lastCheckin),today),
         score:lastCheckin.score!=null?lastCheckin.score:(typeof scoreCheckinAnswers==='function'?scoreCheckinAnswers(lastCheckin.answers||{}):null)
       }:null,
       mass:{value:massVal,deltaPct:massDelta,date:(massEntry&&massEntry.date)||''},

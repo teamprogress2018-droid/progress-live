@@ -1586,11 +1586,11 @@ function cpDaysSinceYmd(raw){
 /** Zielony = wpis ≤2 dni; żółty = 3–6 dni; czerwony = ≥7 dni lub brak. */
 function cpClientPulseStatus(clientId){
   const filled=((window.CHECKINS&&window.CHECKINS[clientId])||[]).filter(x=>x&&x.status==='filled');
-  const lastFilled=filled.slice().sort((a,b)=>String(b.date||b.createdAt||'').localeCompare(String(a.date||a.createdAt||'')))[0];
+  const lastFilled=typeof latestFilledCheckin==='function'?latestFilledCheckin(clientId):filled.slice().sort((a,b)=>String(b.filledAt||b.date||b.createdAt||'').localeCompare(String(a.filledAt||a.date||a.createdAt||'')))[0];
   const logged=typeof completedWorkouts==='function'?completedWorkouts(clientId):(window.SE||[]).filter(s=>s&&s.clientId===clientId&&(s.source==='live'||s.source==='client'));
   const lastLog=logged.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0];
   const dates=[];
-  if(lastFilled)dates.push(lastFilled.date||lastFilled.createdAt);
+  if(lastFilled)dates.push(typeof checkinActivityDate==='function'?checkinActivityDate(lastFilled):(lastFilled.filledAt||lastFilled.date||lastFilled.createdAt));
   if(lastLog)dates.push(lastLog.date);
   if(!dates.length)return{tone:'bad',label:'Brak wpisów',days:null,hint:'Brak raportu i odhaczonego treningu'};
   const days=Math.min(...dates.map(cpDaysSinceYmd));
@@ -2166,10 +2166,11 @@ function cpOverviewWeightCount30(clientId){
 }
 function cpOverviewLastCheckin(clientId){
   const today=cpOverviewTodayYmd();
-  const filled=((window.CHECKINS&&window.CHECKINS[clientId])||[]).filter(x=>x&&x.status==='filled')
-    .slice().sort((a,b)=>String(b.date||b.filledAt||'').localeCompare(String(a.date||a.filledAt||'')));
-  if(!filled.length)return{days:null,ymd:null};
-  const ymd=String(filled[0].date||filled[0].filledAt||'').slice(0,10);
+  const latest=typeof latestFilledCheckin==='function'?latestFilledCheckin(clientId):
+    ((window.CHECKINS&&window.CHECKINS[clientId])||[]).filter(x=>x&&x.status==='filled')
+      .slice().sort((a,b)=>String(b.filledAt||b.date||'').localeCompare(String(a.filledAt||a.date||'')))[0];
+  if(!latest)return{days:null,ymd:null};
+  const ymd=typeof checkinActivityDate==='function'?checkinActivityDate(latest):String(latest.filledAt||latest.date||'').slice(0,10);
   return{days:cpOverviewDaysBetween(ymd,today),ymd};
 }
 function cpOverviewHasSessionToday(c){
