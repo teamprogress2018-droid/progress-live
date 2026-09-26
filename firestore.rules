@@ -249,7 +249,7 @@ service cloud.firestore {
     }
     function visibleGroup(data) {
       return sameTrainer(data) && (data.privacy == 'public'
-        || (data.privacy == 'private' && data.memberIds is list && account().clientId in data.memberIds));
+        || (data.privacy == 'private' && data.memberIds.hasAny([account().clientId])));
     }
     function groupVisible(groupId) {
       return validId(groupId) && visibleGroup(get(/databases/$(database)/documents/forumGroups/$(groupId)).data);
