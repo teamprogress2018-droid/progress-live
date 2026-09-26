@@ -119,6 +119,7 @@ vm.runInNewContext(
   'window._opsEventsCache={at:0,items:null};'+
   extract(src04,'dashTodayYmd')+'\n'+
   extract(src04,'dashDaysBetween')+'\n'+
+  extract(src04,'dashAgendaSessions')+'\n'+
   extract(src04,'dashTodaySessions')+'\n'+
   extract(src04,'dashTodayFocusStats')+'\n'+
   extract(src04,'dashTodayFocusTone')+'\n'+
