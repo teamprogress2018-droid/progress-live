@@ -139,5 +139,18 @@ ok('UI feed panel in KB screen', html.includes('id="kb-feed"'));
 ok('UI accept/dismiss handlers', /function kbFeedAccept\(/.test(src09) && /function kbFeedDismiss\(/.test(src09));
 ok('saved entry keeps pmid', src09.includes('_kbPendingMeta'));
 
+const vm = require('vm');
+const researchFn = src09.slice(src09.indexOf('function kbResearchContext(opts){'), src09.indexOf('window.kbPrepareResearch='));
+const sample = (pmid, topic, relevance=5) => ({pmid,topics:[topic],evidence:'meta',ai:{titlePl:'Badanie '+pmid,summary:'Wynik',population:'Adults',limits:'Small sample',relevance}});
+const researchSandbox={window:{_kbFeed:{data:{items:[sample('1','programowanie'),sample('2','zywienie'),sample('2','zywienie'),sample('3','zywienie',1),sample('4','zywienie'),sample('5','zywienie')]}}},kbFeedDismissedSet:()=>new Set(['4']),kbFeedInBase:id=>id==='5'};
+vm.createContext(researchSandbox);vm.runInContext(researchFn,researchSandbox);
+const nutritionContext=researchSandbox.kbResearchContext({mode:'nutrition'});
+ok('nutrition selects relevant dietary evidence only',nutritionContext.includes('Badanie 2')&&!/Badanie [1345]/.test(nutritionContext));
+ok('research deduplicates PMID',nutritionContext.split('Badanie 2').length===2);
+ok('research keeps population, limits and source',nutritionContext.includes('Adults')&&nutritionContext.includes('Small sample')&&nutritionContext.includes('https://pubmed.ncbi.nlm.nih.gov/2/'));
+ok('training selects training evidence',researchSandbox.kbResearchContext({mode:'training'}).includes('Badanie 1'));
+researchSandbox.window._kbFeed.data=null;
+ok('missing feed does not block assistant',researchSandbox.kbResearchContext({})==='');
+
 if (failed) { console.error(failed + ' failed'); process.exit(1); }
 console.log('\nAll research feed checks passed');
