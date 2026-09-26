@@ -4253,6 +4253,7 @@ window.doPasswordReset=async function(){
 };
 
 onAuthStateChanged(auth,(user)=>{
+  window.AUTOFLOWS=[];
   clearAutoflowSessionState();
   const authScreen=document.getElementById('auth-screen');
   const appRoot=document.getElementById('app-root');
@@ -4318,6 +4319,33 @@ async function loadAutoflowState(){
     window._afStateDocId=selected?selected.id:owner;
     window._afStateReady=true;
   }catch(e){console.warn('Wczytywanie stanu automatyzacji nie powiodło się:',e);}
+}
+
+async function loadAutoflowDefinitions(){
+  const owner=window._uid;
+  window.AUTOFLOWS=[];
+  if(!owner||window._clientAppMode)return false;
+  try{
+    const snapshot=await getDocs(query(collection(db,'autoflows'),where('trainerId','==',owner)));
+    if(window._uid!==owner||window._clientAppMode)return false;
+    const flows=[];
+    snapshot.forEach(d=>{
+      const data=d.data()||{};
+      if(data.trainerId===owner)flows.push(typeof window.mapFbDoc==='function'?window.mapFbDoc(d):{...data,id:d.id,_fbId:d.id});
+    });
+    window.AUTOFLOWS=flows;
+    if(!flows.length&&typeof DEMO_AUTOFLOWS!=='undefined'){
+      // First use: save inactive examples for the captured trainer only.
+      for(const af of DEMO_AUTOFLOWS){
+        if(window._uid!==owner||window._clientAppMode||window.AUTOFLOWS!==flows)return false;
+        const id=typeof window.newId==='function'?window.newId('af'):'af_'+Date.now()+Math.random().toString(36).slice(2);
+        const copy={...af,id,trainerId:owner,createdAt:new Date().toISOString(),status:'inactive'};
+        flows.push(copy);
+        try{await setDoc(doc(db,'autoflows',copy.id),copy);copy._fbId=copy.id;}catch(e){console.warn('Zapis przykładu automatyzacji:',e);}
+      }
+    }
+  }catch(e){console.warn('Wczytywanie autoflows nie powiodło się:',e);}
+  return window._uid===owner&&!window._clientAppMode;
 }
 
 function _takeFb(d){
@@ -4417,18 +4445,7 @@ async function load(){
     }
   }catch(e){}
   try{const s12=await getDocs(collection(db,'notifications'));window.NOTIFICATIONS=[];s12.forEach(d=>{const x=_takeFb(d);if(x)window.NOTIFICATIONS.push(x);});window.NOTIFICATIONS.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));}catch(e){console.warn('Wczytywanie powiadomień nie powiodło się:',e);window.NOTIFICATIONS=window.NOTIFICATIONS||[];}
-  try{
-    const s13=await getDocs(collection(db,'autoflows'));
-    window.AUTOFLOWS=[];s13.forEach(d=>{const x=_takeFb(d);if(x)window.AUTOFLOWS.push(x);});
-    if(!window.AUTOFLOWS.length&&typeof DEMO_AUTOFLOWS!=='undefined'){
-      // Pierwsze uruchomienie: zamień wbudowane przykłady w prawdziwe, edytowalne flow.
-      for(const af of DEMO_AUTOFLOWS){
-        const copy=withTrainer({...af,id:newId('af'),createdAt:new Date().toISOString(),status:'inactive'});
-        window.AUTOFLOWS.push(copy);
-        try{await setDoc(doc(db,'autoflows',copy.id),copy);copy._fbId=copy.id;}catch(e){}
-      }
-    }
-  }catch(e){console.warn('Wczytywanie autoflows nie powiodło się:',e);window.AUTOFLOWS=window.AUTOFLOWS||[];}
+  if(!await loadAutoflowDefinitions())return;
   await loadAutoflowState();
   try{
     const sInt=await getDocs(collection(db,'integrationConfigs'));
