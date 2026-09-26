@@ -36,6 +36,15 @@ jobs:
       - name: 1b. Testy wskazówki i filmu przy ćwiczeniu
         run: node .github/scripts/test_coach_media.js
 
+      - name: Izolacja danych trenerów i klientów
+        run: |
+          node .github/scripts/test_tenant_persistence.js
+          node .github/scripts/test_tenant_loader.js
+          node .github/scripts/test_client_tenant_access.js
+          node .github/scripts/test_client_confirmed_writes.js
+          node .github/scripts/test_client_sala_write.js
+          node .github/scripts/test_forum_reaction_persistence.js
+
       - name: 1c. Testy warstwy klienta dla coach media
         run: node .github/scripts/test_client_portal_coach_media.js
       - name: 1c2. Testy GIF-ów techniki ćwiczeń
