@@ -6095,9 +6095,33 @@ function clientSituationSnapshot(clientId){
 window.clientSituationSnapshot=clientSituationSnapshot;
 window.dashTodayYmd=dashTodayYmd;
 
+/** Calendar terms and recordings are one agenda item when their link is confirmed. */
+function dashAgendaSessions(sessions){
+  const rows=(sessions||[]).filter(s=>s&&s.source!=='live-draft');
+  const planned=rows.filter(s=>s.source==='planned'&&!(typeof sessionIsSkipped==='function'&&sessionIsSkipped(s)));
+  return rows.filter(s=>!(typeof sessionIsRecorded==='function'&&sessionIsRecorded(s)&&
+    typeof sessionMatchesPlanned==='function'&&planned.some(p=>sessionMatchesPlanned(p,s))))
+    .slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))||
+      String(a.time||'99:99').padStart(5,'0').localeCompare(String(b.time||'99:99').padStart(5,'0'))||String(a.id||'').localeCompare(String(b.id||'')));
+}
+function dashSessionState(s,now){
+  if(!s||s.source==='live-draft')return{kind:'draft'};
+  if(typeof sessionIsSkipped==='function'&&sessionIsSkipped(s))return{kind:'skipped'};
+  if(typeof sessionHappened==='function'&&sessionHappened(s,window.SE||[]))return{kind:'done'};
+  const time=String(s.time||'').match(/^(\d{1,2}):(\d{2})$/);
+  if(!time||Number(time[1])>23||Number(time[2])>59)return{kind:'unscheduled'};
+  const start=new Date(String(s.date||'').slice(0,10)+'T'+time[1].padStart(2,'0')+':'+time[2]+':00').getTime();
+  if(!Number.isFinite(start))return{kind:'unscheduled'};
+  const duration=Number(s.duration);
+  const end=start+(Number.isFinite(duration)&&duration>0?duration:60)*60000;
+  const at=now instanceof Date?now.getTime():Date.now();
+  return{kind:at<start?'upcoming':at<end?'running':'unrecorded',start,end};
+}
+window.dashAgendaSessions=dashAgendaSessions;
+window.dashSessionState=dashSessionState;
 function dashTodaySessions(){
   const today=dashTodayYmd();
-  return(window.SE||[]).filter(s=>s&&s.date===today&&s.source!=='live-draft');
+  return dashAgendaSessions(window.SE||[]).filter(s=>s.date===today);
 }
 function dashTodayFocusStats(){
   const sessions=dashTodaySessions();
@@ -6199,11 +6223,22 @@ function dashNextAction(){
     const r=reports[0];
     return{tone:'watch',eyebrow:'Następny krok',title:'Sprawdź raport: '+(r.clientName||'klient'),desc:r.kind==='checkin'?'Nowy check-in czeka na ocenę i odpowiedź.':'Wypełniony formularz czeka na weryfikację.',cta:r.kind==='checkin'?`goTo('checkin');setTimeout(()=>openCIClient('${escHtml(r.clientId)}'),200)`:`openClientProfile('${escHtml(r.clientId)}',{tab:'forms'})`,ctaLbl:'Sprawdź raport'};
   }
-  const sessions=typeof dashTodaySessions==='function'?dashTodaySessions():[];
+  const now=new Date();
+  const order={running:0,upcoming:1,unrecorded:2,unscheduled:3};
+  const sessions=(typeof dashTodaySessions==='function'?dashTodaySessions():[])
+    .map(s=>({session:s,state:dashSessionState(s,now)}))
+    .filter(x=>Object.prototype.hasOwnProperty.call(order,x.state.kind))
+    .sort((a,b)=>order[a.state.kind]-order[b.state.kind]||
+      (a.state.start||0)-(b.state.start||0)||String(a.session.id||'').localeCompare(String(b.session.id||'')));
   if(sessions.length){
-    const s=sessions[0];
+    const s=sessions[0].session,state=sessions[0].state;
     const c=(window.CL||[]).find(x=>x.id===s.clientId);
-    return{tone:'info',eyebrow:'Najbliższa sesja',title:(s.time?s.time+' · ':'')+(c?c.name:'Klient'),desc:s.type||s.name||'Zaplanowany trening',cta:`editSession('${escHtml(s.id)}')`,ctaLbl:'Otwórz sesję'};
+    const missing=state.kind==='unrecorded';
+    return{tone:missing?'watch':'info',
+      eyebrow:missing?'Uzupełnij realizację':state.kind==='running'?'Termin w kalendarzu':state.kind==='unscheduled'?'Ustal godzinę':'Najbliższa sesja',
+      title:(s.time?s.time+' · ':'')+(c?c.name:'Klient'),
+      desc:missing?'Termin minął. Sprawdź, czy trening się odbył, i uzupełnij zapis.':s.type||s.name||'Zaplanowany trening',
+      cta:"editSession('"+escHtml(s.id)+"')",ctaLbl:missing?'Sprawdź trening':'Otwórz sesję'};
   }
   if(!(window.CL||[]).length){
     return{tone:'info',eyebrow:'Pierwszy krok',title:'Dodaj pierwszego klienta',desc:'Aplikacja przeprowadzi Cię przez ankietę, plan, kalendarz i zaproszenie.',cta:"openM('m-client')",ctaLbl:'Dodaj klienta'};
@@ -6612,18 +6647,24 @@ function renderDashToday(){
   const tomorrow=dateStr(new Date(now.getFullYear(),now.getMonth(),now.getDate()+1));
 
   // Sesje dziś + jutro
-  const todaySess=SE.filter(s=>s.date===today&&s.source!=='live-draft').sort((a,b)=>(a.time||'').localeCompare(b.time||''));
-  const tomorrowSess=SE.filter(s=>s.date===tomorrow&&s.source!=='live-draft').sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  const agenda=dashAgendaSessions(SE);
+  const todaySess=agenda.filter(s=>s.date===today);
+  const tomorrowSess=agenda.filter(s=>s.date===tomorrow);
 
   function timeLabel(s){
+    const state=dashSessionState(s,now);
+    if(state.kind==='done')return{txt:'Odbył się',col:'var(--teal)'};
+    if(state.kind==='skipped')return{txt:'Nie odbył się',col:'var(--muted)'};
+    if(state.kind==='unrecorded')return{txt:'Brak zapisu',col:'var(--orange)'};
+    if(state.kind==='running')return{txt:'Trwa termin',col:'var(--blue)'};
+    if(state.kind==='unscheduled')return{txt:'Bez godziny',col:'var(--muted)'};
     if(!s.time)return null;
     const [hh,mm]=s.time.split(':').map(Number);
     const sessDate=new Date(s.date+'T'+s.time+':00');
     const diffMs=sessDate-now;
     const diffH=diffMs/3600000;
     if(s.date===today){
-      if(diffMs<0)return {txt:'Zakończona',col:'var(--muted)'};
-      if(diffH<1)return {txt:'Za '+Math.round(diffMs/60000)+' min',col:'var(--red)'};
+      if(diffH<1)return {txt:'Za '+Math.ceil(diffMs/60000)+' min',col:'var(--red)'};
       if(diffH<3)return {txt:'Za '+Math.floor(diffH)+'h',col:'var(--orange)'};
       return {txt:s.time,col:'var(--teal)'};
     }
