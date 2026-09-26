@@ -1,188 +1,294 @@
 rules_version = '2';
-// Progress Live — izolacja trenerów (trainerId) + dostęp klienta (clientAccounts).
-// Wdróż: Firebase Console → Firestore → Rules (lub firebase deploy --only firestore:rules).
+// Tenant isolation. Deploy only after scoped loaders, public profiles, single-use
+// invites and required indexes have been deployed and tested.
 service cloud.firestore {
   match /databases/{database}/documents {
-    function signedIn() {
-      return request.auth != null;
+    function signedIn() { return request.auth != null; }
+    function accountPath() { return /databases/$(database)/documents/clientAccounts/$(request.auth.uid); }
+    function hasAccount() { return signedIn() && exists(accountPath()); }
+    function account() { return get(accountPath()).data; }
+    function linked() {
+      return hasAccount() && account().role == 'client'
+        && account().trainerId is string && account().clientId is string;
     }
-    function isOwner() {
-      return signedIn()
-        && resource.data.keys().hasAny(['trainerId'])
-        && resource.data.trainerId == request.auth.uid;
+    function trainer() { return signedIn() && !hasAccount(); }
+    function owner() { return trainer() && resource.data.trainerId == request.auth.uid; }
+    function ownerCreate() { return trainer() && request.resource.data.trainerId == request.auth.uid; }
+    function ownerUpdate() { return owner() && request.resource.data.trainerId == resource.data.trainerId; }
+    function sameTrainer(data) { return linked() && data.trainerId == account().trainerId; }
+    function ownClient(data) { return sameTrainer(data) && data.clientId == account().clientId; }
+    function clientUpdate(fields) {
+      return ownClient(resource.data) && ownClient(request.resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(fields);
     }
-    function creatingAsOwner() {
-      return signedIn()
-        && request.resource.data.trainerId == request.auth.uid;
+    function validId(value) { return value is string && value.matches('^[^/]{1,1300}$'); }
+    function smallText(value, max) { return value is string && value.size() <= max; }
+    function optionalImage(value) { return value == null || smallText(value, 800000); }
+    function visibleFlags(flags) {
+      return flags.keys().hasOnly(['home', 'plan', 'homework', 'progress', 'checkin', 'ondemand', 'resources', 'forum', 'messages', 'profile', 'calendar'])
+        && flags.get('home', true) is bool && flags.get('plan', true) is bool
+        && flags.get('homework', true) is bool && flags.get('progress', true) is bool
+        && flags.get('checkin', true) is bool && flags.get('ondemand', true) is bool
+        && flags.get('resources', true) is bool && flags.get('forum', true) is bool
+        && flags.get('messages', true) is bool && flags.get('profile', true) is bool
+        && flags.get('calendar', true) is bool;
     }
-    function clientAcc() {
-      return get(/databases/$(database)/documents/clientAccounts/$(request.auth.uid)).data;
+    // Explicit top-level trainer collections. No client, nested or special-schema
+    // access is granted here: those have separate rules below.
+    function ownedCollection(name) {
+      return name in ['clients', 'plans', 'sessions', 'exercises', 'exerciseGifs',
+        'coachVideos', 'workouts', 'tasks', 'kb', 'metricEntries', 'progressPhotos',
+        'metricGroups', 'messages', 'packages', 'invoices', 'formSends', 'reportHistory',
+        'forms', 'programs', 'checkins', 'clientNotes', 'clientDocs', 'onboardingFlows',
+        'planTemplates', 'settings', 'notifications', 'integrationConfigs', 'forumGroups',
+        'forumPosts', 'forumComments', 'odWorkouts', 'odPrograms', 'odProgress',
+        'onboardingActive', 'clientGroups', 'resources', 'automationState', 'autoflows'];
     }
-    function hasClientAcc() {
-      return signedIn() && exists(/databases/$(database)/documents/clientAccounts/$(request.auth.uid));
-    }
-    function isLinkedClient() {
-      return hasClientAcc()
-        && resource.data.keys().hasAny(['trainerId'])
-        && resource.data.trainerId == clientAcc().trainerId
-        && (
-          !resource.data.keys().hasAny(['clientId'])
-          || resource.data.clientId == clientAcc().clientId
-        );
-    }
-    function creatingAsLinkedClient() {
-      return hasClientAcc()
-        && request.resource.data.trainerId == clientAcc().trainerId
-        && request.resource.data.clientId == clientAcc().clientId;
+    match /{collection}/{docId} {
+      allow read, delete: if ownedCollection(collection) && owner();
+      allow create: if ownedCollection(collection) && ownerCreate();
+      allow update: if ownedCollection(collection) && ownerUpdate();
     }
 
-    match /invites/{token} {
-      allow get: if true;
-      allow list: if signedIn() && resource.data.trainerId == request.auth.uid;
-      allow create: if creatingAsOwner();
-      allow update, delete: if isOwner()
-        && request.resource.data.trainerId == request.auth.uid;
+    function inviteUsable(invite) {
+      return signedIn() && request.auth.token.email is string
+        && invite.emailLower == request.auth.token.email.lower()
+        && invite.expiresAt is timestamp && invite.expiresAt > request.time
+        && invite.get('revoked', false) == false && invite.get('consumedBy', null) == null;
     }
-
+    function accountFromInvite(uid) {
+      let next = request.resource.data;
+      let invitePath = /databases/$(database)/documents/invites/$(next.inviteToken);
+      let invite = get(invitePath).data;
+      let consumed = getAfter(invitePath).data;
+      return signedIn() && request.auth.uid == uid && next.uid == uid && next.role == 'client'
+        && next.keys().hasOnly(['role', 'uid', 'clientId', 'trainerId', 'inviteToken',
+          'clientName', 'trainerName', 'email', 'createdAt'])
+        && validId(next.inviteToken) && inviteUsable(invite)
+        && next.clientId == invite.clientId && next.trainerId == invite.trainerId
+        && next.email.lower() == invite.emailLower
+        && consumed.consumedBy == uid && consumed.consumedAt == request.time;
+    }
     match /clientAccounts/{uid} {
-      allow get: if signedIn() && (
-        request.auth.uid == uid
-        || resource.data.trainerId == request.auth.uid
-      );
-      allow list: if signedIn() && resource.data.trainerId == request.auth.uid;
-      allow create: if signedIn()
-        && request.auth.uid == uid
-        && request.resource.data.role == 'client'
-        && request.resource.data.inviteToken is string
-        && exists(/databases/$(database)/documents/invites/$(request.resource.data.inviteToken))
-        && get(/databases/$(database)/documents/invites/$(request.resource.data.inviteToken)).data.clientId == request.resource.data.clientId
-        && get(/databases/$(database)/documents/invites/$(request.resource.data.inviteToken)).data.trainerId == request.resource.data.trainerId;
-      allow update: if signedIn() && request.auth.uid == uid;
+      // Missing self-doc returns not-found so login can distinguish a trainer.
+      allow get: if signedIn() && (request.auth.uid == uid || owner());
+      allow list: if owner();
+      allow create: if accountFromInvite(uid);
+      allow update: if signedIn() && request.auth.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['clientName', 'lastSeenAt']);
+      allow delete: if owner();
     }
-
-    match /clients/{docId} {
-      allow read: if isOwner()
-        || (hasClientAcc() && docId == clientAcc().clientId
-            && resource.data.trainerId == clientAcc().trainerId);
-      allow create: if creatingAsOwner();
-      allow update: if (isOwner()
-          && request.resource.data.trainerId == request.auth.uid)
-        || (hasClientAcc()
-          && docId == clientAcc().clientId
-          && resource.data.trainerId == clientAcc().trainerId
-          && request.resource.data.trainerId == resource.data.trainerId
-          && request.resource.data.diff(resource.data).affectedKeys()
-            .hasOnly(['appJoined', 'appJoinedAt', 'inviteAcceptedAt', 'inviteSent', 'appInvited']));
-      allow delete: if isOwner()
-        && request.resource.data.trainerId == request.auth.uid;
+    match /invites/{token} {
+      allow get: if owner() || inviteUsable(resource.data)
+        || (signedIn() && resource.data.get('consumedBy', null) == request.auth.uid);
+      allow list: if owner();
+      allow create: if ownerCreate() && validId(token)
+        && request.resource.data.keys().hasOnly(['id', 'trainerId', 'clientId', 'clientName',
+          'trainerName', 'email', 'emailLower', 'createdAt', 'updatedAt', 'expiresAt',
+          'consumedBy', 'consumedAt', 'revoked'])
+        && request.resource.data.id == token && validId(request.resource.data.clientId)
+        && request.resource.data.emailLower is string && request.resource.data.emailLower.size() > 3
+        && request.resource.data.email.lower() == request.resource.data.emailLower
+        && get(/databases/$(database)/documents/clients/$(request.resource.data.clientId)).data.trainerId == request.auth.uid
+        && request.resource.data.expiresAt is timestamp && request.resource.data.expiresAt > request.time
+        && request.resource.data.expiresAt <= request.time + duration.value(31, 'd')
+        && request.resource.data.get('consumedBy', null) == null
+        && request.resource.data.get('consumedAt', null) == null
+        && request.resource.data.get('revoked', false) == false;
+      allow update: if (ownerUpdate()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['revoked', 'updatedAt'])
+          && request.resource.data.revoked is bool)
+        || (inviteUsable(resource.data)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['consumedBy', 'consumedAt'])
+          && request.resource.data.consumedBy == request.auth.uid
+          && request.resource.data.consumedAt == request.time && !exists(accountPath())
+          && getAfter(accountPath()).data.role == 'client'
+          && getAfter(accountPath()).data.inviteToken == token
+          && getAfter(accountPath()).data.trainerId == resource.data.trainerId
+          && getAfter(accountPath()).data.clientId == resource.data.clientId);
+      allow delete: if owner();
     }
-
-    match /settings/{docId} {
-      allow read: if isOwner()
-        || (hasClientAcc() && docId == clientAcc().trainerId);
-      allow create: if creatingAsOwner();
-      allow update, delete: if isOwner()
-        && request.resource.data.trainerId == request.auth.uid;
+    function safeProfile(data) {
+      return data.keys().hasOnly(['trainerId', 'schemaVersion', 'updatedAt', 'profile', 'brand', 'clientApp', 'paymentInstructions'])
+        && data.schemaVersion == 1
+        && data.profile.keys().hasOnly(['name', 'title', 'avatar', 'avatarUrl'])
+        && smallText(data.profile.get('name', ''), 200) && smallText(data.profile.get('title', ''), 200)
+        && smallText(data.profile.get('avatar', ''), 20) && optionalImage(data.profile.get('avatarUrl', null))
+        && data.brand.keys().hasOnly(['accentColor', 'theme', 'appName', 'logo', 'font'])
+        && smallText(data.brand.get('accentColor', ''), 50) && smallText(data.brand.get('theme', ''), 50)
+        && smallText(data.brand.get('appName', ''), 200) && smallText(data.brand.get('font', ''), 100)
+        && optionalImage(data.brand.get('logo', null))
+        && data.clientApp.keys().hasOnly(['appName', 'visibleSections'])
+        && smallText(data.clientApp.get('appName', ''), 200) && visibleFlags(data.clientApp.visibleSections)
+        && data.paymentInstructions.keys().hasOnly(['name', 'bank', 'currency', 'footer'])
+        && smallText(data.paymentInstructions.get('name', ''), 200)
+        && smallText(data.paymentInstructions.get('bank', ''), 200)
+        && smallText(data.paymentInstructions.get('currency', ''), 10)
+        && smallText(data.paymentInstructions.get('footer', ''), 2000)
+        && (data.updatedAt is string || data.updatedAt is timestamp);
     }
-
-    function isSameTrainerClient() {
-      return hasClientAcc()
-        && resource.data.keys().hasAny(['trainerId'])
-        && resource.data.trainerId == clientAcc().trainerId;
+    match /trainerPublicProfiles/{trainerId} {
+      allow get: if (trainer() && request.auth.uid == trainerId)
+        || (linked() && account().trainerId == trainerId);
+      allow list: if (trainer() && request.auth.uid == trainerId && resource.data.trainerId == trainerId)
+        || (linked() && account().trainerId == trainerId && resource.data.trainerId == trainerId);
+      allow create: if ownerCreate() && trainerId == request.auth.uid && safeProfile(request.resource.data);
+      allow update: if ownerUpdate() && trainerId == request.auth.uid && safeProfile(request.resource.data);
+      allow delete: if owner() && trainerId == request.auth.uid;
     }
-    function creatingAsSameTrainerClient() {
-      return hasClientAcc()
-        && request.resource.data.trainerId == clientAcc().trainerId;
+    match /clients/{clientId} {
+      allow read: if linked() && clientId == account().clientId && sameTrainer(resource.data);
+      allow update: if linked() && clientId == account().clientId
+        && sameTrainer(resource.data) && sameTrainer(request.resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'appJoined', 'appJoinedAt', 'inviteAcceptedAt', 'inviteSent', 'appInvited',
+          'goal', 'goalDesc', 'level', 'injuries', 'trainingFreq', 'preferredWeekdays',
+          'preferredTrainTime', 'weight', 'baselineDone', 'baselineAt']);
     }
-
-    match /forumGroups/{docId} {
-      allow read: if isOwner() || isSameTrainerClient();
-      allow create: if creatingAsOwner();
-      allow update, delete: if isOwner()
-        && request.resource.data.trainerId == request.auth.uid;
+    match /{collection}/{docId} {
+      allow read: if collection in ['plans', 'sessions', 'tasks', 'packages', 'invoices',
+          'metricEntries', 'progressPhotos', 'odProgress', 'messages', 'checkins', 'formSends']
+        && ownClient(resource.data);
+      allow read: if collection in ['exercises', 'exerciseGifs', 'coachVideos', 'resources',
+          'odWorkouts', 'odPrograms', 'metricGroups'] && sameTrainer(resource.data);
     }
+    match /messages/{docId} {
+      allow create: if ownClient(request.resource.data)
+        && request.resource.data.keys().hasOnly(['id', 'trainerId', 'clientId', 'text', 'out', 'kind', 'time', 'createdAt'])
+        && request.resource.data.id == docId && request.resource.data.out == false
+        && smallText(request.resource.data.text, 20000) && request.resource.data.get('kind', 'direct') == 'direct';
+    }
+    match /notifications/{docId} {
+      allow create: if ownClient(request.resource.data)
+        && request.resource.data.keys().hasOnly(['id', 'trainerId', 'clientId', 'type', 'title', 'body', 'time', 'read', 'action', 'autoKey', 'createdAt'])
+        && request.resource.data.id == docId && request.resource.data.read == false
+        && smallText(request.resource.data.title, 500) && smallText(request.resource.data.body, 10000);
+    }
+    match /formSends/{docId} {
+      allow update: if clientUpdate(['status', 'answers', 'filledAt'])
+        && resource.data.status in ['sent', 'pending'] && request.resource.data.status == 'filled'
+        && request.resource.data.answers is map && request.resource.data.filledAt is string;
+    }
+    match /checkins/{docId} {
+      allow create: if ownClient(request.resource.data)
+        && request.resource.data.keys().hasOnly(['id', 'trainerId', 'clientId', 'date', 'status', 'score', 'answers', 'createdAt', 'filledBy', 'filledAt'])
+        && request.resource.data.id == docId && request.resource.data.status in ['pending', 'filled']
+        && request.resource.data.answers is map && request.resource.data.get('filledBy', 'client') == 'client';
+      allow update: if clientUpdate(['answers', 'score', 'status', 'filledBy', 'filledAt'])
+        && request.resource.data.status == 'filled' && request.resource.data.filledBy == 'client'
+        && request.resource.data.answers is map;
+    }
+    function taskContinuation(data) {
+      let parent = get(/databases/$(database)/documents/tasks/$(data.parentTaskId)).data;
+      return ownClient(data) && ownClient(parent) && parent.kind == 'homework' && parent.status == 'done'
+        && parent.repeatLeft > 1 && data.repeatLeft == parent.repeatLeft - 1
+        && data.kind == 'homework' && data.status == 'open' && data.odWorkoutId == parent.odWorkoutId
+        && data.title == parent.title && data.desc == parent.desc && data.repeatWeekdays == parent.repeatWeekdays
+        && data.due > parent.due && data.cat == 'trening'
+        && data.keys().hasOnly(['id', 'trainerId', 'clientId', 'parentTaskId', 'kind', 'odWorkoutId',
+          'title', 'desc', 'cat', 'priority', 'due', 'status', 'repeatWeeks', 'repeatLeft', 'repeatWeekdays', 'createdAt']);
+    }
+    match /tasks/{docId} {
+      allow create: if request.resource.data.id == docId && validId(request.resource.data.parentTaskId)
+        && docId == request.resource.data.parentTaskId + '_next'
+        && taskContinuation(request.resource.data);
+      allow update: if clientUpdate(['status', 'updatedAt', 'doneDates', 'due', 'kind', 'repeat', 'doneAt', 'rpe', 'duration'])
+        && request.resource.data.status in ['open', 'done']
+        && (request.resource.data.get('kind', '') == resource.data.get('kind', '')
+          || (resource.data.get('repeat', '') == 'daily' && request.resource.data.kind == 'habit'))
+        && (request.resource.data.get('due', '') == resource.data.get('due', '')
+          || (request.resource.data.get('kind', '') == 'habit' && request.resource.data.due == ''));
+    }
+    function clientSession(data) {
+      return ownClient(data) && data.source in ['client', 'homework', 'sala']
+        && data.keys().hasOnly(['id', 'trainerId', 'clientId', 'date', 'time', 'type', 'duration', 'exercises',
+          'volume', 'feedback', 'note', 'source', 'planId', 'dayIdx', 'createdAt', 'taskId', 'odWorkoutId', 'rpe', 'plannedSessionId'])
+        && data.exercises is list && data.duration is number && data.duration >= 0;
+    }
+    function clientSala(data) {
+      let parent = get(/databases/$(database)/documents/sessions/$(data.plannedSessionId)).data;
+      return ownClient(parent) && parent.source == 'planned'
+        && data.id == 'sala_' + data.plannedSessionId
+        && data.date is string && data.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$') && data.date == parent.date
+        && data.time == (parent.get('time', '') == null ? '' : parent.get('time', ''))
+        && data.type == (parent.get('type', '') in [null, ''] ? 'Trening personalny' : parent.type)
+        && data.planId == (parent.get('planId', null) == '' ? null : parent.get('planId', null))
+        && data.dayIdx == parent.get('dayIdx', null)
+        && data.feedback is number && data.feedback >= 1 && data.feedback <= 5 && data.duration > 0;
+    }
+    match /sessions/{docId} {
+      allow create: if request.resource.data.id == docId && clientSession(request.resource.data)
+        && ((request.resource.data.source == 'client'
+            && ownClient(get(/databases/$(database)/documents/plans/$(request.resource.data.planId)).data))
+          || (request.resource.data.source == 'homework'
+            && ownClient(get(/databases/$(database)/documents/tasks/$(request.resource.data.taskId)).data))
+          || (request.resource.data.source == 'sala' && validId(request.resource.data.plannedSessionId)
+            && clientSala(request.resource.data)));
+      allow update: if clientUpdate(['rpe', 'feedback', 'duration', 'note', 'updatedAt'])
+        && (resource.data.source in ['client', 'homework']
+          || (resource.data.source == 'sala' && request.resource.data.feedback is number
+            && request.resource.data.feedback >= 1 && request.resource.data.feedback <= 5
+            && request.resource.data.duration is number && request.resource.data.duration > 0));
+    }
+    match /metricEntries/{docId} {
+      allow create: if ownClient(request.resource.data) && request.resource.data.id == docId
+        && request.resource.data.keys().hasOnly(['id', 'trainerId', 'clientId', 'groupId', 'date', 'values', 'notes', 'source', 'createdAt'])
+        && request.resource.data.values is map && request.resource.data.get('source', 'client') == 'client';
+    }
+    match /progressPhotos/{docId} {
+      allow create: if ownClient(request.resource.data) && request.resource.data.id == docId
+        && request.resource.data.keys().hasOnly(['id', 'trainerId', 'clientId', 'date', 'weight', 'note', 'photos', 'source', 'createdAt'])
+        && request.resource.data.source == 'client' && request.resource.data.photos is map;
+      allow delete: if ownClient(resource.data) && resource.data.source == 'client';
+    }
+    match /odProgress/{docId} {
+      allow create: if ownClient(request.resource.data) && request.resource.data.id == docId
+        && request.resource.data.keys().hasOnly(['id', 'trainerId', 'clientId', 'programId', 'done', 'updatedAt'])
+        && request.resource.data.programId is string && request.resource.data.done is list;
+      allow update: if clientUpdate(['done', 'updatedAt']) && request.resource.data.done is list;
+    }
+    function visibleGroup(data) {
+      return sameTrainer(data) && (data.privacy == 'public'
+        || (data.privacy == 'private' && data.memberIds is list && account().clientId in data.memberIds));
+    }
+    function groupVisible(groupId) {
+      return validId(groupId) && visibleGroup(get(/databases/$(database)/documents/forumGroups/$(groupId)).data);
+    }
+    function postVisible(postId) {
+      let post = get(/databases/$(database)/documents/forumPosts/$(postId)).data;
+      return sameTrainer(post) && groupVisible(post.groupId);
+    }
+    match /forumGroups/{docId} { allow read: if visibleGroup(resource.data); }
     match /forumPosts/{docId} {
-      allow read: if isOwner() || isSameTrainerClient();
-      allow create: if creatingAsOwner() || (
-        creatingAsSameTrainerClient()
-        && request.resource.data.clientId == clientAcc().clientId
-        && request.resource.data.authorRole == 'klient'
-      );
-      allow update: if (isOwner()
-          && request.resource.data.trainerId == resource.data.trainerId)
-        || (isSameTrainerClient()
-          && request.resource.data.diff(resource.data).affectedKeys()
-            .hasOnly(['reactions', 'likes', 'views', 'comments', 'reactedBy']));
-      allow delete: if isOwner()
-        || (isSameTrainerClient() && resource.data.clientId == clientAcc().clientId);
+      allow read: if sameTrainer(resource.data) && groupVisible(resource.data.groupId);
+      allow create: if ownClient(request.resource.data) && groupVisible(request.resource.data.groupId)
+        && request.resource.data.id == docId && request.resource.data.authorRole == 'klient'
+        && request.resource.data.keys().hasOnly(['id', 'trainerId', 'clientId', 'title', 'body', 'type', 'groupId',
+          'authorName', 'authorRole', 'pinned', 'date', 'createdAt', 'likes', 'views', 'comments', 'reactions', 'reactedBy'])
+        && request.resource.data.pinned == false && request.resource.data.likes == 0
+        && request.resource.data.views == 0 && request.resource.data.comments == 0
+        && request.resource.data.reactions == {} && request.resource.data.reactedBy == {};
+      allow update: if sameTrainer(resource.data) && groupVisible(resource.data.groupId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions', 'reactedBy', 'likes', 'views', 'comments'])
+        && request.resource.data.reactedBy.diff(resource.data.get('reactedBy', {})).affectedKeys().hasOnly([request.auth.uid])
+        && request.resource.data.likes is number && request.resource.data.likes >= 0
+        && request.resource.data.views is number && request.resource.data.views >= 0
+        && request.resource.data.comments is number && request.resource.data.comments >= 0;
+      allow delete: if ownClient(resource.data) && resource.data.authorRole == 'klient' && groupVisible(resource.data.groupId);
     }
     match /forumComments/{docId} {
-      allow read: if isOwner() || isSameTrainerClient();
-      allow create: if creatingAsOwner() || (
-        creatingAsSameTrainerClient()
-        && request.resource.data.clientId == clientAcc().clientId
-        && request.resource.data.authorRole == 'klient'
-      );
-      allow update: if (isOwner()
-          && request.resource.data.trainerId == resource.data.trainerId)
-        || (isSameTrainerClient()
-          && resource.data.clientId == clientAcc().clientId
-          && request.resource.data.trainerId == resource.data.trainerId
-          && request.resource.data.clientId == resource.data.clientId
-          && request.resource.data.authorRole == 'klient'
-          && request.resource.data.postId == resource.data.postId);
-      allow delete: if isOwner()
-        || (isSameTrainerClient() && resource.data.clientId == clientAcc().clientId);
+      allow read: if sameTrainer(resource.data) && postVisible(resource.data.postId);
+      allow create: if ownClient(request.resource.data) && postVisible(request.resource.data.postId)
+        && request.resource.data.id == docId && request.resource.data.authorRole == 'klient'
+        && request.resource.data.keys().hasOnly(['id', 'trainerId', 'clientId', 'postId', 'authorName', 'authorRole', 'body', 'date', 'createdAt', 'likes'])
+        && request.resource.data.likes == 0;
+      allow update: if sameTrainer(resource.data) && postVisible(resource.data.postId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes'])
+        && request.resource.data.likes == resource.data.get('likes', 0) + 1;
+      allow delete: if ownClient(resource.data) && resource.data.authorRole == 'klient' && postVisible(resource.data.postId);
     }
-
-    // Postęp programów on-demand — klient zapisuje tylko swoje odhaczenia (done[]).
-    match /odProgress/{docId} {
-      allow read: if isOwner()
-        || (hasClientAcc()
-          && resource.data.trainerId == clientAcc().trainerId
-          && resource.data.clientId == clientAcc().clientId);
-      allow create: if creatingAsOwner() || (
-        creatingAsLinkedClient()
-        && request.resource.data.programId is string
-        && request.resource.data.done is list
-      );
-      allow update: if (isOwner()
-          && request.resource.data.trainerId == resource.data.trainerId)
-        || (hasClientAcc()
-          && resource.data.clientId == clientAcc().clientId
-          && request.resource.data.clientId == clientAcc().clientId
-          && request.resource.data.programId == resource.data.programId
-          && request.resource.data.trainerId == clientAcc().trainerId
-          && request.resource.data.done is list);
-      allow delete: if isOwner();
-    }
-
-    // Autoflow controls/intents are trainer-only. Generic allow rules are OR-combined.
-    match /automationState/{docId} {
-      allow read, delete: if isOwner();
-      allow create: if creatingAsOwner();
-      allow update: if isOwner()
-        && request.resource.data.trainerId == resource.data.trainerId;
-    }
-    match /autoflows/{docId} {
-      allow read, delete: if isOwner();
-      allow create: if creatingAsOwner();
-      allow update: if isOwner()
-        && request.resource.data.trainerId == resource.data.trainerId;
-    }
-    match /serverAutomation/{document=**} {
-      allow read, write: if false;
-    }
-
-    match /{collection}/{docId} {
-      allow read: if !(collection in ['automationState', 'autoflows', 'serverAutomation'])
-        && (isOwner() || isLinkedClient());
-      allow create: if !(collection in ['automationState', 'autoflows', 'serverAutomation'])
-        && (creatingAsOwner() || creatingAsLinkedClient());
-      allow update, delete: if !(collection in ['automationState', 'autoflows', 'serverAutomation'])
-        && (isOwner() || isLinkedClient())
-        && request.resource.data.trainerId == resource.data.trainerId;
-    }
+    match /serverAutomation/{document=**} { allow read, write: if false; }
+    // Unknown collections and ALL descendants are denied by default.
+    match /{document=**} { allow read, write: if false; }
   }
 }
-
