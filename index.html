@@ -4186,14 +4186,14 @@ window.doPasswordReset=window.doPasswordReset||authNetworkFallbackMsg;
 
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-import{getFirestore,collection,getDocs,addDoc,deleteDoc,doc,setDoc,updateDoc,getDoc,query,where}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+import{getFirestore,collection,getDocs,addDoc,deleteDoc,doc,setDoc,updateDoc,getDoc,query,where,runTransaction}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 import{getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut,sendPasswordResetEmail,createUserWithEmailAndPassword}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js";
 import{getStorage,ref,uploadBytes,getDownloadURL}from"https://www.gstatic.com/firebasejs/12.13.0/firebase-storage.js";
 const cfg={apiKey:"AIzaSyDrbke0QdB55k_4smzhKufQ75eAluu-r_8",authDomain:"progress-live-fc83d.firebaseapp.com",projectId:"progress-live-fc83d",storageBucket:"progress-live-fc83d.firebasestorage.app",messagingSenderId:"637727410398",appId:"1:637727410398:web:b8e4e2581c2e3a24a11a4f"};
 const app=initializeApp(cfg);const db=getFirestore(app);const auth=getAuth(app);
 const storage=getStorage(app);
 window._storage=storage;window._storageRef=ref;window._uploadBytes=uploadBytes;window._getDownloadURL=getDownloadURL;
-window._db=db;window._col=collection;window._add=addDoc;window._del=deleteDoc;window._doc=doc;window._get=getDocs;window._setDoc=setDoc;window._updateDoc=updateDoc;window._getDoc=getDoc;window._query=query;window._where=where;
+window._db=db;window._col=collection;window._add=addDoc;window._del=deleteDoc;window._doc=doc;window._get=getDocs;window._setDoc=setDoc;window._updateDoc=updateDoc;window._getDoc=getDoc;window._query=query;window._where=where;window._runTransaction=runTransaction;
 window._createUser=function(email,pass){return createUserWithEmailAndPassword(auth,email,pass);};
 
 window.doSignIn=async function(){
@@ -4515,7 +4515,7 @@ async function load(){
 <script src="06-inbox-exercises-ai-programs.js?v=85"></script>
 <script src="07-forms-metrics-calculator.js?v=42"></script>
 <script src="08-client-profile-extras.js?v=84&ui=2&journey=2"></script>
-<script src="09-posture-kb-invites-private.js?v=54"></script>
+<script src="09-posture-kb-invites-private.js?v=54&reliable-af=1"></script>
 <script src="10-client-app.js?v=42"></script>
 </body>
 </html>

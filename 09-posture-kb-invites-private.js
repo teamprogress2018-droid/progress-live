@@ -3087,11 +3087,14 @@ function renderAutoflows(){
 function renderAutoflowLog(){
   const el=document.getElementById('autoflow-log');if(!el)return;
   const logs=(window.AF_STATE&&window.AF_STATE.logs)||[];
+  const pending=Object.values((window.AF_STATE&&window.AF_STATE.pending)||{}).filter(Boolean);
+  const failures=pending.filter(j=>j.status==='error');
+  const queueHtml=pending.length?`<div style="padding:10px;border-bottom:1px solid var(--border);">Do zapisania: ${pending.length}. Błędy: ${failures.length}.<br><span style="color:var(--muted);">Ponawianie działa przy otwartej aplikacji, maksymalnie 5 prób. Wstrzymane automatyzacje czekają na włączenie.</span>${failures.length?'<br><button type="button" class="btn btn-ghost btn-sm" onclick="retryAutoflowFailures()">Ponów nieudane zapisy</button>':''}</div>`:'';
   if(!logs.length){
-    el.innerHTML='<div style="text-align:center;padding:12px;">Jeszcze nic nie poszło. Włącz flow i otwórz panel albo kliknij „Sprawdź teraz”.</div>';
+    el.innerHTML=queueHtml+'<div style="text-align:center;padding:12px;">Brak potwierdzonych operacji. Włącz automatyzację lub kliknij „Sprawdź teraz”.</div>';
     return;
   }
-  el.innerHTML=logs.slice(0,20).map(l=>`<div style="display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);">
+  el.innerHTML=queueHtml+logs.slice(0,20).map(l=>`<div style="display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);">
     <span>${escHtml(l.client||'')} — ${escHtml(l.af||'')} · ${escHtml(l.text||'')}</span>
     <span style="font-family:'DM Mono',monospace;font-size:10px;">${escHtml((l.at||'').slice(0,16).replace('T',' '))}</span>
   </div>`).join('');
@@ -3195,6 +3198,7 @@ function ensureAfState(){
   if(!s.executed)s.executed={};
   if(!s.lastFired)s.lastFired={};
   if(!s.logs)s.logs=[];
+  if(!s.pending)s.pending={};
   return s;
 }
 
@@ -3293,11 +3297,7 @@ function fireAutoflowTrigger(af,c,eventKey){
       const daysSinceLastFired=lastFired?Math.floor((today-new Date(lastFired))/86400000):999;
       if(daysSinceLastFired<cooldownDays)return;
     }
-    execAFStep(step,c,af);
-    state.executed[af.id][c.id][mark]=true;
-    if(oneShot)state.executed[af.id][c.id][si]=true;
-    state.lastFired[af.id][c.id][si]=todayISO;
-    ran++;
+    if(queueAFStep(step,c,af,mark,si,oneShot))ran++;
   });
   if(ran)saveAutomationState();
   return ran;
@@ -3405,6 +3405,7 @@ function scanAndEmitSessionToday(now){
 }
 
 function runAutoflowsCheck(showToast){
+  drainAFQueue();
   try{scanAndEmitPackageExpired();}catch(e){}
   try{scanAndEmitInactivity();}catch(e){}
   try{scanAndEmitSessionToday();}catch(e){}
@@ -3425,9 +3426,7 @@ function runAutoflowsCheck(showToast){
         if(step.type==='wait')return;
         if(af.type==='sequence'){
           if(daysSince>=(step.day||1)-1&&!state.executed[af.id][c.id][si]){
-            execAFStep(step,c,af);
-            state.executed[af.id][c.id][si]=true;
-            changed=true;ran++;
+            if(queueAFStep(step,c,af,String(si),si,true)){changed=true;ran++;}
           }
         }else{
           const kind=af.trigger||'inactivity';
@@ -3438,10 +3437,7 @@ function runAutoflowsCheck(showToast){
             fire=!state.executed[af.id][c.id][si];
           }
           if(fire){
-            execAFStep(step,c,af);
-            state.lastFired[af.id][c.id][si]=today.toISOString().split('T')[0];
-            state.executed[af.id][c.id][si]=true;
-            changed=true;ran++;
+            if(queueAFStep(step,c,af,String(si),si,true)){changed=true;ran++;}
           }
         }
       });
@@ -3450,44 +3446,138 @@ function runAutoflowsCheck(showToast){
   if(changed)saveAutomationState();
   renderAutoflows();
   renderAutoflowLog();
-  if(showToast)notify(ran?('✓ Wykonano '+ran+' krok(ów)'):'Brak zaległych kroków');
+  if(showToast)notify(ran?('Dodano do kolejki: '+ran+' krok(ów). Wynik znajdziesz w historii.'): 'Sprawdzono kolejkę. Wyniki i błędy znajdziesz w historii.');
 }
 
-function execAFStep(step,c,af){
-  const firstName=(c.name||'').split(' ')[0];
-  const text=(step.text||'').replace(/\{imie\}/g,firstName);
-  if(step.type==='message'){
-    if(typeof pushMsg==='function')pushMsg(c.id,text);
-  }else if(step.type==='task'){
-    const t=withTrainer({id:newId('t'),clientId:c.id,title:text,status:'open',priority:'medium',cat:'trening',due:new Date().toISOString().split('T')[0],createdAt:new Date().toISOString()});
-    window.TASKS.push(t);
-    persistById('tasks',t);
-  }else if(step.type==='form'){
-    const form=(typeof allForms==='function'?allForms():[]).find(f=>(f.name||'').toLowerCase().includes((text||'').toLowerCase())||(text||'').toLowerCase().includes((f.name||'').toLowerCase()));
-    if(form){
-      if(typeof createFormSend==='function')createFormSend(form,c.id);
-      else{
-        const send=withTrainer({id:newId('fs'),formId:form.id,formName:form.name,clientId:c.id,sentAt:new Date().toLocaleDateString('pl'),status:'sent',answers:{}});
-        window.FORM_SENDS.push(send);
-        persistById('formSends',send);
-        if(typeof pushMsg==='function')pushMsg(c.id,'Formularz: '+(form.name||text));
+function queueAFStep(step,c,af,mark,si,oneShot){
+  if(!window._uid||window._clientAppMode)return false;
+  const state=ensureAfState();
+  const id='af_'+encodeURIComponent(JSON.stringify([window._uid,af.id,c.id,oneShot?String(si):mark]));
+  if(id.length>1300)return false;
+  if(state.pending[id])return false;
+  if((oneShot||['inactivity','session_today'].includes(af.trigger))&&Object.values(state.pending).some(j=>j&&j.afId===af.id&&j.clientId===c.id&&j.si===si))return false;
+  state.pending[id]={id,owner:window._uid,afId:af.id,clientId:c.id,mark,si,oneShot:!!oneShot,
+    step:JSON.parse(JSON.stringify(step)),createdAt:new Date().toISOString(),attempts:0,nextRetry:0,status:'pending'};
+  drainAFQueue();
+  return true;
+}
+
+function drainAFQueue(){
+  if(window._afQueueRunning)return window._afQueueRunning;
+  // Defer until event scanners finish updating their deduplication markers.
+  const owner=window._uid;
+  if(!owner||window._clientAppMode)return Promise.resolve();
+  const state=ensureAfState();
+  const run=Promise.resolve().then(async()=>{
+    for(const job of Object.values(state.pending)){
+      if(!job||job.owner!==owner||job.attempts>=5||job.nextRetry>Date.now())continue;
+      if(window._uid!==owner||window.AF_STATE!==state)break;
+      const af=(window.AUTOFLOWS||[]).find(x=>x.id===job.afId);
+      const c=(window.CL||[]).find(x=>x.id===job.clientId);
+      if(!af||af.status!=='active'||!c||c.status==='archived'||!afClientsFor(af).some(x=>x.id===c.id))continue;
+      job.attempts++;job.status='pending';
+      try{
+        // Persist intent before applying any client-visible effect.
+        await saveAutomationState(true);
+        if(window._uid!==owner||window.AF_STATE!==state)break;
+        if(af.status!=='active'||c.status==='archived'||!afClientsFor(af).some(x=>x.id===c.id))continue;
+        const result=await execAFStep(job.step,c,af,job);
+        if(window._uid!==owner||window.AF_STATE!==state)break;
+        state.executed[af.id]=state.executed[af.id]||{};
+        state.executed[af.id][c.id]=state.executed[af.id][c.id]||{};
+        state.executed[af.id][c.id][job.mark]=true;
+        if(job.oneShot)state.executed[af.id][c.id][job.si]=true;
+        state.lastFired[af.id]=state.lastFired[af.id]||{};
+        state.lastFired[af.id][c.id]=state.lastFired[af.id][c.id]||{};
+        state.lastFired[af.id][c.id][job.si]=new Date().toISOString().slice(0,10);
+        state.pending[job.id]=null;
+        logAF(af,c,result?'Zapisano: '+(job.step.text||''):'Potwierdzono wcześniejszy zapis');
+        await saveAutomationState(true);
+      }catch(e){
+        if(window._uid!==owner||window.AF_STATE!==state)break;
+        job.status='error';
+        job.nextRetry=Date.now()+Math.min(3600000,60000*Math.pow(2,job.attempts-1));
+        job.error='Nie potwierdzono zapisu. Sprawdź połączenie i uprawnienia.';
+        state.pending[job.id]=job;
+        logAF(af,c,'Błąd zapisu — próba '+job.attempts+'/5');
+        await saveAutomationState(false);
       }
-    }else if(typeof pushMsg==='function'){
-      pushMsg(c.id,text);
     }
-  }
-  logAF(af||{name:'Autoflow'},c,text);
-  if(typeof addNotification==='function')addNotification('system','Autoflow',text.substring(0,60)+' — '+c.name,'automation');
+  }).finally(()=>{
+    if(window._afQueueRunning===run)window._afQueueRunning=null;
+    try{renderAutoflows();renderAutoflowLog();}catch(e){}
+  });
+  window._afQueueRunning=run;
+  return run;
 }
 
-function saveAutomationState(){
-  if(!window._db)return;
+function retryAutoflowFailures(){
+  Object.values(ensureAfState().pending).forEach(job=>{
+    if(job&&job.owner===window._uid&&job.status==='error'){job.attempts=0;job.nextRetry=0;}
+  });
+  return drainAFQueue();
+}
+window.retryAutoflowFailures=retryAutoflowFailures;
+
+async function execAFStep(step,c,af,job){
+  if(!job||job.owner!==window._uid||!window._db||typeof window._runTransaction!=='function')throw new Error('autoflow-unavailable');
+  const owner=job.owner;
+  const stateRef=window._doc(window._db,'automationState',window._afStateDocId||owner);
+  const text=(step.text||'').replace(/\{imie\}/g,(c.name||'').split(' ')[0]);
+  const now=new Date(job.createdAt);
+  const records=[];
+  let preparationError='';
+  const message=(value)=>({collection:'messages',data:{id:job.id+'_msg',trainerId:owner,clientId:c.id,text:value,out:true,kind:'system',time:now.toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'}),createdAt:job.createdAt}});
+  if(step.type==='message')records.push(message(text));
+  else if(step.type==='task')records.push({collection:'tasks',data:{id:job.id+'_task',trainerId:owner,clientId:c.id,title:text,status:'open',priority:'medium',cat:'trening',due:job.createdAt.slice(0,10),createdAt:job.createdAt}});
+  else if(step.type==='form'){
+    const form=(typeof allForms==='function'?allForms():[]).find(f=>f.name&&text&&((f.name||'').toLowerCase().includes(text.toLowerCase())||text.toLowerCase().includes(f.name.toLowerCase())));
+    if(!form)preparationError='autoflow-form-missing';
+    else{
+      records.push({collection:'formSends',data:{id:job.id+'_form',trainerId:owner,clientId:c.id,formId:form.id,formName:form.name,sentAt:now.toLocaleDateString('pl'),sentAtIso:job.createdAt,createdAt:job.createdAt,status:'sent',answers:{},questions:typeof snapshotFormQuestions==='function'?snapshotFormQuestions(form):[]}});
+      records.push(message('📋 Proszę wypełnić formularz: "'+form.name+'"'));
+    }
+  }else preparationError='autoflow-step-unsupported';
+  // The receipt and all effects commit together. Never rewrite a task or answered form on retry.
+  const written=await window._runTransaction(window._db,async tx=>{
+    const snap=await tx.get(stateRef);
+    const remote=snap.exists()?snap.data():{};
+    if(remote.trainerId!==owner)throw new Error('autoflow-owner');
+    if(remote.afReceipts&&remote.afReceipts[job.id])return false;
+    if(preparationError)throw new Error(preparationError);
+    records.forEach(r=>tx.set(window._doc(window._db,r.collection,r.data.id),r.data));
+    tx.set(stateRef,{afReceipts:{[job.id]:job.createdAt},pending:{[job.id]:null}},{merge:true});
+    return true;
+  });
+  if(written&&window._uid===owner){
+    records.forEach(r=>{
+      let list;
+      if(r.collection==='messages'){
+        window.MSGS=window.MSGS||{};list=window.MSGS[c.id]=window.MSGS[c.id]||[];
+      }else if(r.collection==='tasks')list=window.TASKS=window.TASKS||[];
+      else list=window.FORM_SENDS=window.FORM_SENDS||[];
+      if(!list.some(x=>x.id===r.data.id))list.push({...r.data,_fbId:r.data.id});
+    });
+  }
+  return written;
+}
+
+function saveAutomationState(strict){
+  if(!window._db||!window._uid){
+    return strict?Promise.reject(new Error('autoflow-offline')):Promise.resolve(false);
+  }
   withTrainer(window.AF_STATE);
   const payload={...window.AF_STATE};
   delete payload._fbId;
-  const docId=window._afStateDocId||window._uid||'default';
+  // Only the effect transaction may write receipts; stale tabs must not erase them.
+  delete payload.afReceipts;
+  const docId=window._afStateDocId||window._uid;
   window._afStateDocId=docId;
-  window._setDoc(window._doc(window._db,'automationState',docId),payload,{merge:true}).catch(e=>console.warn('AF state save:',e));
+  return window._setDoc(window._doc(window._db,'automationState',docId),payload,{merge:true}).then(()=>true).catch(e=>{
+    console.warn('AF state save:',e);
+    if(strict)throw e;
+    return false;
+  });
 }
 
 function notify(msg){
