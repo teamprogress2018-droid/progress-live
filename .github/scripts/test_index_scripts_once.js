@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 
 const html = fs.readFileSync(path.join(__dirname, '../..', 'index.html'), 'utf8');
-const names = [...html.matchAll(/<script src="([^"?]+\.js)(?:\?v=\d+)?"><\/script>/g)].map((m) => m[1]);
+const names = [...html.matchAll(/<script src="([^"?]+\.js)(?:\?[^\"]*)?"><\/script>/g)].map((m) => m[1]);
 
 let failed = 0;
 function ok(name, cond, extra) {
