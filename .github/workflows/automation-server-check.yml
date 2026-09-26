@@ -1,0 +1,36 @@
+name: Testy kolejki serwerowej
+on:
+  push:
+    branches: [main]
+    paths: ['server/automation/**', 'firestore.rules', '.github/workflows/automation-server-check.yml']
+  pull_request:
+    paths: ['server/automation/**', 'firestore.rules', '.github/workflows/automation-server-check.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  kolejka:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Testy logiki i przygotowanie izolowanych zależności
+        run: |
+          node server/automation/test-worker.cjs
+          node server/automation/prepare-deploy.cjs
+          npm install --prefix server/automation/.runtime --ignore-scripts --no-audit --no-fund
+          npm install --prefix server/automation/.runtime --no-save --ignore-scripts --no-audit --no-fund firebase-tools@14.12.0
+          node -e "require('./server/automation/.runtime/index.cjs')"
+      - name: Transakcje i reguły na lokalnym emulatorze
+        run: >-
+          server/automation/.runtime/node_modules/.bin/firebase emulators:exec
+          --only firestore --project demo-progress-autoflow
+          --config server/automation/firebase.test.json
+          "node server/automation/test-emulator.cjs"
