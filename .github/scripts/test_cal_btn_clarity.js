@@ -17,7 +17,7 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache styles v82', html.includes('styles.css?v=116'));
+ok('cache styles v82', html.includes('styles.css?v=118'));
 ok('ci unit', wf.includes('test_cal_btn_clarity.js'));
 ok('ci ui', wf.includes('test_cal_btn_clarity_ui.js'));
 ok('ghost border beats btn none', /\.btn\.btn-ghost/.test(css) && /border:1px solid var\(--border-default\)/.test(css));

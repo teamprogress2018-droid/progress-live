@@ -18,8 +18,8 @@ function ok(name, cond, extra) {
   } else console.log('OK   ' + name);
 }
 
-ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=84'));
-ok('cache styles', html.includes('styles.css?v=116'));
+ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=85'));
+ok('cache styles', html.includes('styles.css?v=118'));
 ok('CI unit', wf.includes('test_exd_tabs.js'));
 ok('CI ui', wf.includes('test_exd_tabs_ui.js'));
 ok('lib side scroll', html.includes('id="lib-side-scroll"') && html.includes('class="lib-side"') && /id="ex-cat-nav"[\s\S]*id="ex-equip-filters"/.test(html));

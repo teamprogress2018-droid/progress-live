@@ -20,8 +20,8 @@ function ok(name, cond, extra) {
 }
 
 const chips = html.slice(html.indexOf('id="prog-dur-chips"'), html.indexOf('id="prog-equip-fil"'));
-ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=84'));
-ok('cache styles', html.includes('styles.css?v=116'));
+ok('cache 06', html.includes('06-inbox-exercises-ai-programs.js?v=85'));
+ok('cache styles', html.includes('styles.css?v=118'));
 ok('CI', wf.includes('test_prog_catalog.js'));
 ok('CI ui', wf.includes('test_prog_catalog_ui.js'));
 ok('title 4-16', html.includes('>Bloki 4–16 tygodni<'));
