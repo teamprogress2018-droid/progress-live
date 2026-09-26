@@ -1,0 +1,33 @@
+const fs=require('fs'),path=require('path'),vm=require('vm'),assert=require('assert');
+const root=path.join(__dirname,'../..');
+const src=fs.readFileSync(path.join(root,'05-clients-builder-plans-calendar.js'),'utf8');
+const code=src.slice(src.indexOf('function clientNextStartStep('),src.indexOf('function openInviteFromOnboard('));
+let status={next:'intake',done:1,total:7,complete:false},pending=null,calls=[];
+const c={id:"client'1",name:'Klient'};
+const ctx={window:{CL:[c]},clientOnboardStatus:()=>status,clientIntakeFormState:()=>({pending})};
+for(const name of ['openInviteFromOnboard','openClientProfileFromOnboard','openFormsLibraryFromOnboard','openClientBaselineModal','openClientScheduleFromOnboard','openAiPlanForClient','openClientOnboardChecklist'])ctx[name]=(...args)=>calls.push([name,...args]);
+vm.createContext(ctx);vm.runInContext(code,ctx);
+const routes={invite:'openInviteFromOnboard',intake:'openFormsLibraryFromOnboard',baseline:'openClientBaselineModal',schedule:'openClientScheduleFromOnboard',plan:'openAiPlanForClient',calendar:'openClientOnboardChecklist',package:'openClientOnboardChecklist'};
+for(const [key,route] of Object.entries(routes)){
+  status.next=key;calls=[];const next=ctx.clientNextStartStep(c);
+  assert(next.label&&next.why&&next.key===key);
+  ctx.openClientNextStartStep(c.id);assert.equal(calls[0][0],route);assert.equal(calls[0][1],c.id);
+}
+status.next='intake';pending={id:'form1'};calls=[];
+assert.equal(ctx.clientNextStartStep(c).label,'Sprawdź ankietę');
+ctx.openClientNextStartStep(c.id);assert.equal(calls[0][0],'openClientProfileFromOnboard');assert.equal(calls[0][2],'forms');
+status.complete=true;calls=[];ctx.openClientNextStartStep(c.id);assert.equal(calls.length,0);
+status.complete=false;c.status='archived';assert.equal(ctx.clientNextStartStep(c),null);
+delete c.status;calls=[];ctx.openClientNextStartStep('missing');assert.equal(calls.length,0);
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;');
+ctx.escHtml=esc;
+const profile=fs.readFileSync(path.join(root,'08-client-profile-extras.js'),'utf8');
+vm.runInContext(profile.slice(profile.indexOf('function cpOverviewAlertHTML('),profile.indexOf('function cpOverviewHasApp(')),ctx);
+const html=ctx.cpOverviewAlertHTML(c);
+assert(html.includes('Następny krok: Sprawdź ankietę'));
+assert(html.includes('openClientNextStartStep(&quot;client&#39;1&quot;)'));
+const dash=fs.readFileSync(path.join(root,'04-client-portal.js'),'utf8');
+vm.runInContext(dash.slice(dash.indexOf('function dashNextAction(){'),dash.indexOf('function renderDashNextAction(){')),ctx);
+assert.equal(ctx.dashNextAction().ctaLbl,'Sprawdź ankietę');
+assert(ctx.dashNextAction().cta.includes('openClientNextStartStep'));
+console.log('PASS: all start routes, pending questionnaire, completed, archived and missing clients');
