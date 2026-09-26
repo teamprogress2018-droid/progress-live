@@ -132,6 +132,8 @@ function ok(name, cond, extra) {
       tabs,
       editCta: !!document.querySelector('.cp-ov-edit-cta'),
       alert: (document.querySelector('[data-cp-alert]') || {}).getAttribute && (document.querySelector('[data-cp-alert]') || {}).getAttribute('data-cp-alert') || '',
+      alertText: (document.querySelector('[data-cp-alert]') || {}).textContent || '',
+      alertAction: (document.querySelector('[data-cp-alert-cta]') || {}).getAttribute?.('onclick') || '',
       missing: !!document.querySelector('[data-cp-missing]')
     };
   });
@@ -147,7 +149,8 @@ function ok(name, cond, extra) {
   ok('existing train card', busy.hasTrain);
   ok('existing metrics card', busy.hasMetrics);
   ok('edit CTA gone', !busy.editCta);
-  ok('invite alert on top', busy.alert === 'invite', busy.alert);
+  ok('next-step invitation on top', busy.alert === 'onboard' && /Następny krok: Zaproś klienta/.test(busy.alertText), busy.alertText);
+  ok('invitation routes to selected client', /openClientNextStartStep\("c-sit"\)/.test(busy.alertAction), busy.alertAction);
   ok('missing checklist', busy.missing);
   ok('tabs still have Przegląd', busy.tabs.some(t => /Przegląd/i.test(t)), busy.tabs.join(','));
 
