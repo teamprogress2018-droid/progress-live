@@ -21,7 +21,7 @@ service cloud.firestore {
       return ownClient(resource.data) && ownClient(request.resource.data)
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(fields);
     }
-    function validId(value) { return value is string && value.matches('^[^/]{1,1300}$'); }
+    function validId(value) { return value is string && value.size() <= 1300 && value.matches('^[^/]+$'); }
     function smallText(value, max) { return value is string && value.size() <= max; }
     function optionalImage(value) { return value == null || smallText(value, 800000); }
     function visibleFlags(flags) {
