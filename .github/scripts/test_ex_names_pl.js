@@ -6,7 +6,7 @@ const path = require('path');
 const vm = require('vm');
 
 const root = path.join(__dirname, '../..');
-const six = fs.readFileSync(path.join(root, '06-inbox-exercises-ai-programs.js'), 'utf8');
+const six = fs.readFileSync(path.join(root, '06-inbox-exercises-ai-programs.js'), 'utf8').replace(/\r\n/g, '\n');
 const core = fs.readFileSync(path.join(root, '01-core.js'), 'utf8');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const photoSrc = fs.readFileSync(path.join(root, 'ex-photo-manifest.js'), 'utf8');
