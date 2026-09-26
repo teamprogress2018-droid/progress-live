@@ -170,6 +170,8 @@ service cloud.firestore {
         && request.resource.data.answers is map && request.resource.data.filledAt is string;
     }
     match /checkins/{docId} {
+      // A trainer transaction may inspect a new ID; existing records still require ownership.
+      allow get: if trainer() && !exists(/databases/$(database)/documents/checkins/$(docId));
       allow create: if ownClient(request.resource.data)
         && request.resource.data.keys().hasOnly(['id', 'trainerId', 'clientId', 'date', 'status', 'score', 'answers', 'createdAt', 'filledBy', 'filledAt'])
         && request.resource.data.id == docId && request.resource.data.status in ['pending', 'filled']
