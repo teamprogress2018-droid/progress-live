@@ -104,8 +104,17 @@ function ok(name, cond, extra) {
   ok('sessions not red', !seeded.sessHasRed, byId.sessions && byId.sessions.tone);
   ok('kpi not accent red', !seeded.kpiIsAccent, 'kpi color');
   ok('snapshot wired', seeded.snap && seeded.snap.clientId === 'c1' && seeded.snap.facts, JSON.stringify(seeded.snap && seeded.snap.facts));
-  const tops = seeded.order.filter(o => o.top != null).map(o => o.top);
-  ok('visual order today then kpi then attention', tops.length >= 3 && tops[0] <= tops[1] && tops[1] <= tops[2], JSON.stringify(seeded.order));
+  await page.locator('#dash-simple-toggle').check();
+  ok('simple view hides extra statistics', !(await page.locator('#d-kpi-row').isVisible()));
+  ok('simple view keeps today and attention', await page.locator('#dash-today-focus').isVisible() && await page.locator('#dash-ops-attention').isVisible());
+  await page.locator('#dash-simple-toggle').uncheck();
+  const fullOrder = await page.evaluate(() => ['dash-today-focus','d-kpi-row','dash-ops-attention'].map(id=>{
+    const el=document.getElementById(id);
+    return {id,visible:!!(el&&el.getClientRects().length),top:el?el.getBoundingClientRect().top:null};
+  }));
+  ok('full view order today then kpi then attention', fullOrder.every(x=>x.visible) && fullOrder[0].top<=fullOrder[1].top && fullOrder[1].top<=fullOrder[2].top, JSON.stringify(fullOrder));
+  await page.locator('#dash-simple-toggle').check();
+  ok('return to simple view hides statistics', !(await page.locator('#d-kpi-row').isVisible()));
 
   await page.click('[data-dash-focus="attention"]');
   await page.waitForTimeout(400);
