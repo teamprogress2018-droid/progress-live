@@ -49,7 +49,7 @@ function harness(){
   };
   ctx.withTrainer=obj=>Object.assign(obj,{trainerId:ctx._clientAppMode?ctx._trainerId:ctx._uid});
   ctx.persistById=async(col,obj)=>ctx._setDoc(ctx._doc(ctx._db,col,obj.id),obj,{merge:true});
-  ctx.mapFbDoc=(d,col)=>{const value=d.data();return {...value,id:['resources','odWorkouts','odPrograms'].includes(col)&&d.id===value.trainerId+'__'+value.id?value.id:d.id,_fbId:d.id};};
+  ctx.mapFbDoc=(d,col)=>{const value=d.data();return {...value,id:['resources','metricGroups','odWorkouts','odPrograms'].includes(col)&&d.id===value.trainerId+'__'+value.id?value.id:d.id,_fbId:d.id};};
   vm.createContext(ctx);vm.runInContext(source,ctx);
   ctx.enterClientLiveShell=()=>{ctx.entered=(ctx.entered||0)+1;};
   return {ctx,docs,calls,writes,element};
@@ -100,6 +100,8 @@ test('complete client load includes forms, safe profile and only permitted forum
   const {ctx,docs,calls}=harness();
   docs.set('formSends/form-a',{trainerId:TID,clientId:CID,questions:[{id:'q'}]});
   docs.set('resources/'+TID+'__res-a',{trainerId:TID,id:'res-a',name:'Biblioteka'});
+  docs.set('metricGroups/'+TID+'__mg2',{trainerId:TID,id:'mg2',name:'Moje obwody',metrics:[{id:'custom',name:'Nadgarstek'}]});
+  docs.set('exerciseGifs/gif1',{trainerId:TID,exerciseName:'Przysiad',gifUrl:'assets/squat.gif'});
   docs.set('forumGroups/public',{trainerId:TID,privacy:'public',memberIds:[]});
   docs.set('forumGroups/mine',{trainerId:TID,privacy:'private',memberIds:[CID]});
   docs.set('forumGroups/hidden',{trainerId:TID,privacy:'private',memberIds:['other-client']});
@@ -109,6 +111,8 @@ test('complete client load includes forms, safe profile and only permitted forum
   assert.equal(ctx.entered,1);assert.equal(ctx.CL[0].id,CID);
   assert.equal(ctx.FORM_SENDS[0].id,'form-a');assert.equal(ctx.USER_RESOURCES[0].id,'res-a');
   assert.equal(ctx.USER_RESOURCES[0]._fbId,TID+'__res-a');
+  assert.equal(ctx.METRIC_GROUPS[0].id,'mg2');assert.equal(ctx.METRIC_GROUPS[0].metrics[0].name,'Nadgarstek');
+  assert.equal(ctx.EX_GIF_REMOTE.przysiad,'assets/squat.gif');
   assert.equal(ctx.SETTINGS.apiKey,undefined);assert.equal(ctx.SETTINGS.profile.email,undefined);
   assert.equal(ctx.SETTINGS.payments.bankAccount,'PL123');
   assert.deepEqual(Array.from(ctx.FORUM_GROUPS,g=>g.id).sort(),['mine','public']);

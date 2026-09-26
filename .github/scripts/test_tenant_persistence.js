@@ -46,6 +46,15 @@ function setup(uid){
   const serial=JSON.stringify(publicData);
   for(const secret of ['secret-ai','secret-token','private-email','private-nip','secret-payment','hidden','admin'])assert.ok(!serial.includes(secret));
   assert.equal(publicData.paymentInstructions.bank,'PL001');assert.equal(publicData.profile.name,'Anna');
+  settings.clientApp.visibleSections.calendar=false;
+  assert.equal(ctx.trainerPublicProfilePayload(settings,'trainer-a').clientApp.visibleSections.calendar,false);
+  const profileSave=setup('trainer-a');profileSave.ctx.SETTINGS=settings;
+  const src04=fs.readFileSync(path.join(root,'04-client-portal.js'),'utf8');
+  vm.runInContext(src04.slice(src04.indexOf('async function persistSettingsDoc(){'),src04.indexOf('window.persistSettingsDoc=')),profileSave.ctx);
+  const set=profileSave.ctx._setDoc;
+  profileSave.ctx._setDoc=async(ref,data)=>{if(ref.collection==='trainerPublicProfiles')throw new Error('offline');return set(ref,data);};
+  assert.equal(await profileSave.ctx.persistSettingsDoc(),false,'partial projection write is not reported as full success');
+  assert.equal(profileSave.writes[0].ref.id,'trainer-a');
   assert.equal(ctx.belongsToTrainer({trainerId:'trainer-a'}),false);
   assert.equal(ctx.belongsToTrainer({}),false);
   console.log('OK tenant persistence: foreign owner, auth, namespaces, legacy IDs, client boundaries, stale saves, public profile');
