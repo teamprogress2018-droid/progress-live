@@ -10,9 +10,14 @@ Panel projektu `progress-live-fc83d` jest dostępny. Baza `(default)` ma lokaliz
 Projekt korzysta z planu Spark. Panel Functions wymaga zmiany planu przed pierwszym
 wdrożeniem. Nie włączono płatnego rozliczania ani żadnej funkcji produkcyjnej.
 
-Odczytane reguły produkcyjne dopuszczają dostęp do wszystkich dokumentów każdemu
-zalogowanemu użytkownikowi. To nie zapewnia izolacji trenerów. Nie wolno zastąpić
-ich od razu głównym `firestore.rules`, ponieważ część pozostałych ekranów nadal
+Przed migracją reguły produkcyjne dopuszczały dostęp do wszystkich dokumentów każdemu
+zalogowanemu użytkownikowi. 26.09.2026 o 17:54 (Europe/Warsaw) opublikowano reguły
+etapu Autoflow w konsoli Firebase po przejściu obu wariantów emulatora. Strona
+zawiera już zapytania ograniczone do właściciela; po wdrożeniu panel trenera
+nadal wczytuje siedem istniejących automatyzacji i historię wykonań.
+
+To nie zapewnia pełnej izolacji trenerów. Nie wolno zastąpić reguł etapu
+od razu głównym `firestore.rules`, ponieważ część pozostałych ekranów nadal
 wykonuje szerokie zapytania. Plik `firestore.autoflow-stage1.rules` jest ograniczoną
 migracją: chroni `automationState`, `autoflows` i całe `serverAutomation`, zachowując
 dotychczasowe uprawnienia pozostałych kolekcji. Nie stanowi pełnego zabezpieczenia
