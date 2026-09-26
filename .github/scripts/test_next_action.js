@@ -13,3 +13,78 @@ assert(ctx.dashNextAction().cta.includes('openCIClient'));
 ctx.dashOpsRecentReports=()=>[];ctx.window.CL=[];
 assert.equal(ctx.dashNextAction().ctaLbl,'Dodaj klienta');
 console.log('PASS: onboarding, archived client, form, check-in, first client');
+
+// A passed calendar time is not a completed workout. Use the real domain helpers.
+const core=fs.readFileSync(require('path').join(__dirname,'../../01-core.js'),'utf8');
+const truth=core.slice(core.indexOf('function isLoggedWorkout('),core.indexOf('function sessionHappenedTip('));
+const agenda=src.slice(src.indexOf('function dashAgendaSessions('),src.indexOf('function dashTodayFocusStats('));
+assert(agenda.includes('function dashSessionState'), 'agenda helpers must be present');
+const y='2026-09-26';
+const fixed=new Date(2026,8,26,12,0,0).getTime();
+class FixedDate extends Date{constructor(...args){super(...(args.length?args:[fixed]));}static now(){return fixed;}}
+const day=d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
+const output={innerHTML:''};
+Object.assign(ctx,{Date:FixedDate,dashTodayYmd:()=>y,dateStr:day,document:{getElementById:()=>output},
+  SESS_COLORS:['red','blue'],dashListSection:(_id,rows,render)=>rows.map(render).join(''),
+  clientOnboardStatus:()=>({complete:true}),dashOpsAttentionItems:()=>[],dashOpsRecentReports:()=>[]});
+ctx.window.CL=[{id:'c1',name:'Klient A'},{id:'c2',name:'Klient B'}];ctx.CL=ctx.window.CL;
+vm.runInContext(truth+'\n'+agenda,ctx);
+const planned=(id,time,extra={})=>({id,clientId:'c1',date:y,time,duration:60,source:'planned',planId:'plan',dayIdx:0,...extra});
+const past=planned('past','08:00');
+const done=planned('done','09:00');
+const recording={...done,id:'log',source:'sala',plannedSessionId:'done'};
+const early=planned('early','14:00');
+const late=planned('late','18:00');
+const skipped=planned('skipped','13:00',{status:'opuszczony'});
+const draft=planned('draft','12:00',{source:'live-draft'});
+const futureDone=planned('futureDone','19:00',{source:'live',plannedSessionId:'futureDone'});
+const setRows=rows=>{ctx.window.SE=rows;ctx.SE=rows;};
+setRows([late,recording,skipped,past,done,futureDone,draft,early]);
+const originalOrder=ctx.SE.map(x=>x.id).join(',');
+const visible=ctx.dashTodaySessions();
+assert.equal(visible.length,6,'planned plus its recording counts once, draft is hidden');
+assert(visible.some(x=>x.id==='done')&&!visible.some(x=>x.id==='log'));
+assert.equal(ctx.SE.map(x=>x.id).join(','),originalOrder,'reading must not reorder stored sessions');
+assert.equal(ctx.dashSessionState(past).kind,'unrecorded');
+assert.equal(ctx.dashSessionState(done).kind,'done');
+assert.equal(ctx.dashSessionState(skipped).kind,'skipped');
+assert.equal(ctx.dashSessionState(futureDone).kind,'done','a saved workout wins over its future clock time');
+assert(ctx.dashNextAction().cta.includes("'early'"),'nearest pending session wins, not first stored row');
+setRows(ctx.SE.slice().reverse());
+assert(ctx.dashNextAction().cta.includes("'early'"),'same result for reversed Firebase order');
+const ongoing=planned('ongoing','11:30');setRows([early,ongoing,past]);
+assert.equal(ctx.dashSessionState(ongoing).kind,'running');
+assert(ctx.dashNextAction().cta.includes("'ongoing'"));
+assert.equal(ctx.dashSessionState(planned('start','12:00')).kind,'running','inclusive start');
+assert.equal(ctx.dashSessionState(planned('end','11:00')).kind,'unrecorded','exclusive end');
+for(const duration of [0,null,-20,'invalid']){
+  assert.equal(ctx.dashSessionState(planned('fallback','11:30',{duration})).kind,'running','invalid duration uses 60 minutes');
+}
+for(const time of ['',null,'25:00','10:75','not-a-time'])assert.equal(ctx.dashSessionState(planned('no-time',time)).kind,'unscheduled');
+assert.equal(ctx.dashSessionState(planned('bad-date','10:00',{date:'bad'})).kind,'unscheduled');
+setRows([past]);
+assert.equal(ctx.dashNextAction().eyebrow,'Uzupełnij realizację');
+assert.equal(ctx.dashNextAction().ctaLbl,'Sprawdź trening');
+assert(ctx.dashNextAction().cta.startsWith('editSession(')&&!ctx.dashNextAction().cta.includes('Live'));
+setRows([done,recording,skipped,futureDone,draft]);
+assert.equal(ctx.dashNextAction().tone,'ok','completed, skipped and drafts are not another next session');
+const second=planned('second','15:00');
+setRows([done,recording,second]);
+assert.equal(ctx.dashTodaySessions().length,2);
+assert.equal(ctx.dashSessionState(second).kind,'upcoming','explicit link must not fulfil a second session');
+setRows([done,{...recording,clientId:'c2'}]);
+assert.equal(ctx.dashSessionState(done).kind,'unrecorded','another client cannot fulfil this session');
+assert.equal(ctx.dashTodaySessions().length,2);
+setRows([done,{...recording,planId:'other-plan'}]);
+assert.equal(ctx.dashSessionState(done).kind,'unrecorded','another plan cannot fulfil this session');
+setRows([done,{...recording,plannedSessionId:null,dayIdx:1}]);
+assert.equal(ctx.dashSessionState(done).kind,'unrecorded','another plan day cannot fulfil this session');
+vm.runInContext(src.slice(src.indexOf('function renderDashToday(){'),src.indexOf('function renderDashTasks(){')),ctx);
+setRows([past,done,recording,ongoing,skipped,early,planned('tomorrow','10:00',{date:'2026-09-27'}),draft]);
+ctx.renderDashToday();
+assert(output.innerHTML.includes('Brak zapisu')&&output.innerHTML.includes('Trwa termin'));
+assert(output.innerHTML.includes('Odbył się')&&output.innerHTML.includes('Nie odbył się'));
+assert(output.innerHTML.includes('Jutro'));
+assert(!output.innerHTML.includes('Zakończona'),'clock time must never claim completion');
+assert.equal((output.innerHTML.match(/class="dash-today-row"/g)||[]).length,6,'one rendered row per calendar event');
+console.log('PASS: real completion, agenda deduplication, pending-session order, local time boundaries and rendered labels');
