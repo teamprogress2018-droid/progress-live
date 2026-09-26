@@ -447,6 +447,46 @@ releaseStateRead({forEach:fn=>fn({id:'trainer-test',data:()=>({trainerId:'traine
 await pendingLoad;
 ok('late state response cannot leak across accounts',ctx.window._afStateReady===false&&!ctx.window.AF_STATE.marker&&ctx.window._afStateDocId===null);
 
+ctx.window._uid='trainer-test';
+ctx.getDocs=async q=>{
+  lastQuery=q;stateReads++;
+  return {forEach:fn=>[
+    ['stored-flow',{id:'legacy-id',trainerId:'trainer-test',status:'active'}],
+    ['unowned',{status:'active'}],['foreign',{trainerId:'other',status:'active'}]
+  ].forEach(([id,data])=>fn({id,data:()=>data}))};
+};
+await ctx.loadAutoflowDefinitions();
+ok('flow query explicitly scopes owner',JSON.stringify(lastQuery)===JSON.stringify(['autoflows',['trainerId','==','trainer-test']]));
+ok('flow loader rejects foreign and ownerless records',ctx.window.AUTOFLOWS.length===1&&ctx.window.AUTOFLOWS[0].trainerId==='trainer-test');
+ok('flow loader preserves canonical document id',ctx.window.AUTOFLOWS[0].id==='stored-flow'&&ctx.window.AUTOFLOWS[0]._fbId==='stored-flow');
+
+const beforeClientFlowRead=stateReads;
+ctx.window._clientAppMode=true;
+await ctx.loadAutoflowDefinitions();
+ok('client mode clears flows without reading',stateReads===beforeClientFlowRead&&ctx.window.AUTOFLOWS.length===0);
+ctx.window._clientAppMode=false;
+
+let releaseFlowRead;
+ctx.getDocs=()=>new Promise(resolve=>{releaseFlowRead=resolve;});
+const pendingFlowLoad=ctx.loadAutoflowDefinitions();
+ctx.window._uid='another-trainer';
+ctx.window.AUTOFLOWS=[{id:'new-owner-flow',trainerId:'another-trainer'}];
+releaseFlowRead({forEach:fn=>fn({id:'old-flow',data:()=>({trainerId:'trainer-test'})})});
+const oldFlowLoaded=await pendingFlowLoad;
+ok('late flow query cannot replace new account data',oldFlowLoaded===false&&ctx.window.AUTOFLOWS.length===1&&ctx.window.AUTOFLOWS[0].id==='new-owner-flow');
+
+ctx.window._uid='trainer-test';
+ctx.DEMO_AUTOFLOWS=[{id:'example',status:'active',name:'Example',steps:[]}];
+ctx.doc=(_db,collection,id)=>collection+'/'+id;
+const createdExamples=[];
+ctx.setDoc=async(ref,value)=>createdExamples.push({ref,value:{...value}});
+ctx.getDocs=async()=>({forEach(){}});
+await ctx.loadAutoflowDefinitions();
+ok('first-use example remains inactive and owner-scoped',createdExamples.length===1&&createdExamples[0].value.trainerId==='trainer-test'&&createdExamples[0].value.status==='inactive');
+ctx.getDocs=async()=>{throw new Error('flow query unavailable');};
+await ctx.loadAutoflowDefinitions();
+ok('failed flow read does not create replacement examples',ctx.window.AUTOFLOWS.length===0&&createdExamples.length===1);
+
 if (failed) process.exit(1);
 console.log('\nAll autoflow-events tests passed');
 
