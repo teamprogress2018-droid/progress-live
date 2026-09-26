@@ -1,4 +1,4 @@
 {
-  "firestore": {"rules": "../../firestore.rules", "indexes": "firestore.tenant.indexes.json"},
+  "firestore": {"rules": ".runtime/firestore.rules", "indexes": "firestore.tenant.indexes.json"},
   "emulators": {"firestore": {"host": "127.0.0.1", "port": 8085}, "ui": {"enabled": false}, "singleProjectMode": true}
 }

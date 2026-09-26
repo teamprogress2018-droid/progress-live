@@ -265,6 +265,7 @@ test('client submission actions preserve assignment, authority and other clients
   ok(await write('metricEntries/' + metricId, clientData({id: metricId, groupId: 'mg1',
     date: '2026-09-26', values: {m1: 75}, notes: 'Check-in', createdAt: new Date().toISOString()}), userA), 'client metric');
   const photoId = run + '-photo';
+  denied(await read('progressPhotos/' + photoId, userA), 'missing private photo preflight is denied');
   ok(await write('progressPhotos/' + photoId, clientData({id: photoId, source: 'client', photos: {front: 'data:test'},
     date: '2026-09-26', weight: '', note: '', createdAt: new Date().toISOString()}), userA), 'client photo');
   ok(await remove('progressPhotos/' + photoId, userA), 'delete own client photo');
@@ -287,10 +288,17 @@ test('client sessions are tied to assigned plans or homework', async () => {
   await seed('plans/' + planId, clientData({id: planId}));
   const data = clientData({id: sessionId, date: '2026-09-26', source: 'client', planId,
     duration: 30, exercises: [], volume: 0, feedback: 4, note: '', createdAt: new Date().toISOString()});
+  denied(await read('sessions/' + sessionId, userA), 'missing private session preflight is denied');
   ok(await write('sessions/' + sessionId, data, userA), 'logged own plan session');
   denied(await write('sessions/' + sessionId + '-foreign', {...data, id: sessionId + '-foreign', clientId: clientSibling}, userA), 'sibling session');
   denied(await write('sessions/' + sessionId + '-planned', {...data, id: sessionId + '-planned', source: 'planned'}, userA), 'client calendar scheduling');
   denied(await patch('sessions/' + sessionId, {source: 'live'}, userA), 'impersonated live source');
+  const collisionId = sessionId + '-collision';
+  const foreign = {...data, id: collisionId, trainerId: trainerB, clientId: clientB};
+  await seed('sessions/' + collisionId, foreign);
+  denied(await read('sessions/' + collisionId, userA), 'foreign collision preflight is denied');
+  denied(await write('sessions/' + collisionId, {...data, id: collisionId}, userA), 'denied preflight never permits claiming an existing foreign ID');
+  assert.deepEqual((await db.doc('sessions/' + collisionId).get()).data(), foreign); count++;
 });
 test('homework continuation is bounded and cannot replay under another ID', async () => {
   const parentId = run + '-parent', nextId = parentId + '_next';
