@@ -31,7 +31,7 @@ ok('migrate mass helper', /function migrateEnsureMassMetrics/.test(src07) && /fu
 ok('trend helper', /function metricDeltaIsGoodDown/.test(src07) && /better==='up'/.test(src07));
 ok('ai context extra fields', /wiek metaboliczny/.test(src07) && /nawodnienie/.test(src07) && /ocena fizyczności/.test(src07));
 ok('progress tiles', /Wiek met\./.test(src08) && /Nawodn\./.test(src08) && /Fizyczność/.test(src08));
-ok('index migrate groups', html.includes('migrateEnsureMetricGroups'));
+ok('loader does not silently rewrite stored metric groups', !html.includes('migrateEnsureMetricGroups') && html.includes("['metricGroups','METRIC_GROUPS',typeof DEMO_METRIC_GROUPS"));
 ok('cache 07', html.includes('07-forms-metrics-calculator.js?v=42'));
 ok('cache 08', html.includes('08-client-profile-extras.js?v=84'));
 ok('cache 04', html.includes('04-client-portal.js?v=55'));
@@ -87,6 +87,7 @@ windowObj.METRIC_GROUPS = [{
   ]
 }];
 ok('allMetricGroups still has m5 from demo', ctx.allMetricGroups().find((x) => x.id === 'mg1').metrics.some((m) => m.id === 'm5'));
+ok('read-only merge does not write stored group', persisted.length === 0 && windowObj.METRIC_GROUPS[0].metrics.length === 2);
 ok('migrate mass patches stored', ctx.migrateEnsureMassMetrics() === true);
 const stored = windowObj.METRIC_GROUPS.find((x) => x.id === 'mg1');
 ok('stored has m5 m6 m7', stored.metrics.some((m) => m.id === 'm5') && stored.metrics.some((m) => m.id === 'm6') && stored.metrics.some((m) => m.id === 'm7'));

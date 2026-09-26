@@ -34,9 +34,7 @@ ok('poll skips events', /kind==='package.expired'\|\|kind==='checkin.submitted'\
 ok('clock calls autoflow', /runAutoflowsCheck\(false\)/.test(src04));
 ok('CI unit', wf.includes('test_autoflow_events.js'));
 ok('CI ui', wf.includes('test_autoflow_events_ui.js'));
-const ownershipMigration=html.match(/window\.migrateTrainerOwnership\?\.\(\[([\s\S]*?)\]\)/);
-const migratedCollections=ownershipMigration?[...ownershipMigration[1].matchAll(/'([^']+)'/g)].map(m=>m[1]):[];
-ok('protected automation collections never use inferred ownership migration',!!ownershipMigration&&['autoflows','automationState','serverAutomation'].every(name=>!migratedCollections.includes(name)));
+ok('ownership is never inferred from a browser scan',!html.includes('window.migrateTrainerOwnership?.(')&&!core.includes("pl_trainer_migrated_"));
 
 const document = {
   querySelectorAll: () => [],

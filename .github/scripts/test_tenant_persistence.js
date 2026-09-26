@@ -1,0 +1,52 @@
+'use strict';
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const vm=require('node:vm');
+const path=require('node:path');
+const root=path.join(__dirname,'../..');
+const source=fs.readFileSync(path.join(root,'01-core.js'),'utf8');
+const helpers=source.slice(source.indexOf('function withTrainer('),source.indexOf('/** Prosty eksport CSV'));
+function setup(uid){
+  const writes=[];
+  const ctx={console:{warn(){}},Date,window:null,_uid:uid,_db:{},tenantSessionGeneration:1,
+    _doc:(_,collection,id)=>({collection,id}),_setDoc:async(ref,data)=>writes.push({ref,data})};
+  ctx.window=ctx;ctx.tenantSessionIsCurrent=s=>s.uid===ctx._uid&&s.generation===ctx.tenantSessionGeneration;
+  vm.createContext(ctx);vm.runInContext(helpers,ctx);return {ctx,writes};
+}
+(async()=>{
+  const {ctx,writes}=setup('trainer-a');
+  const foreign={id:'foreign',trainerId:'trainer-b'};
+  assert.equal(await ctx.persistById('tasks',foreign),null);
+  assert.equal(foreign.trainerId,'trainer-b');assert.equal(writes.length,0);
+  ctx._uid=null;assert.equal(await ctx.persistById('tasks',{id:'new'}),null);assert.equal(writes.length,0);
+  ctx._uid='trainer-a';
+  const a={id:'ow1',name:'Trening'};await ctx.persistById('odWorkouts',a);
+  assert.equal(writes[0].ref.id,'trainer-a__ow1');assert.equal(writes[0].data.id,'ow1');
+  const b=setup('trainer-b');await b.ctx.persistById('odWorkouts',{id:'ow1'});
+  assert.equal(b.writes[0].ref.id,'trainer-b__ow1');
+  const loaded=ctx.mapFbDoc({id:'trainer-a__ow1',data:()=>writes[0].data},'odWorkouts');
+  assert.equal(loaded.id,'ow1');assert.equal(loaded._fbId,'trainer-a__ow1');
+  await ctx.persistById('odWorkouts',loaded);assert.equal(writes[1].ref.id,'trainer-a__ow1');
+  const legacy=ctx.mapFbDoc({id:'ow2',data:()=>({id:'ow2',trainerId:'trainer-a'})},'odWorkouts');
+  await ctx.persistById('odWorkouts',legacy);assert.equal(writes[2].ref.id,'ow2');
+  ctx._clientAppMode=true;ctx._trainerId='trainer-a';ctx._clientId='client-a';ctx._uid='client-login';
+  const before=writes.length;
+  assert.equal(await ctx.persistById('tasks',{id:'t',clientId:'client-b'}),null);
+  assert.equal(await ctx.persistById('odWorkouts',{id:'ow1'}),null);
+  assert.equal(writes.length,before);
+  await ctx.persistById('checkins',{id:'ci',clientId:'client-a'});
+  assert.equal(writes.at(-1).data.trainerId,'trainer-a');
+  ctx._clientAppMode=false;ctx._uid='trainer-a';
+  let release;ctx._setDoc=()=>new Promise(resolve=>release=resolve);
+  const pending={id:'pending'};const saved=ctx.persistById('tasks',pending);
+  ctx._uid='trainer-b';ctx.tenantSessionGeneration++;release();
+  assert.equal(await saved,null);assert.equal(pending._fbId,undefined);
+  const settings={trainerId:'trainer-a',ai:{apiKey:'secret-ai'},integrations:{token:'secret-token'},profile:{name:'Anna',email:'private-email',title:'Trener'},company:{name:'Studio',nip:'private-nip',invoice_footer:'Dziękuję'},payments:{bankAccount:'PL001',currency:'PLN',apiKey:'secret-payment'},brand:{logo:'logo.png',secret:'hidden'},clientApp:{appName:'Studio',visibleSections:{home:true,admin:true}}};
+  const publicData=ctx.trainerPublicProfilePayload(settings,'trainer-a');
+  const serial=JSON.stringify(publicData);
+  for(const secret of ['secret-ai','secret-token','private-email','private-nip','secret-payment','hidden','admin'])assert.ok(!serial.includes(secret));
+  assert.equal(publicData.paymentInstructions.bank,'PL001');assert.equal(publicData.profile.name,'Anna');
+  assert.equal(ctx.belongsToTrainer({trainerId:'trainer-a'}),false);
+  assert.equal(ctx.belongsToTrainer({}),false);
+  console.log('OK tenant persistence: foreign owner, auth, namespaces, legacy IDs, client boundaries, stale saves, public profile');
+})().catch(e=>{console.error(e);process.exitCode=1;});

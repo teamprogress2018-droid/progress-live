@@ -53,11 +53,10 @@ ok('05 collects circ', /collectBaselineCircFields/.test(src05) && /renderBaselin
 ok('08 empty circ copy', src08.includes('Brak obwodów centymetrem'));
 ok('08 uses circBarItems', src08.includes('circBarItems'));
 ok('04 last circ dynamic', src04.includes('circMetricDefs'));
-ok('index migrate after load', html.includes('migrateEnsureCircMetrics'));
+ok('loader does not silently rewrite stored metric groups', !html.includes('migrateEnsureCircMetrics') && html.includes("['metricGroups','METRIC_GROUPS',typeof DEMO_METRIC_GROUPS"));
 ok('cache 07', html.includes('07-forms-metrics-calculator.js?v=42'));
 ok('cache 04/05/08', html.includes('04-client-portal.js?v=55') && html.includes('05-clients-builder-plans-calendar.js?v=81') && html.includes('08-client-profile-extras.js?v=84'));
 ok('CI unit', wf.includes('test_circ_metrics.js'));
-ok('openMetricEntry fills after openM', /openM\('m-metric-entry'\);[\s\S]{0,500}if\(groupId\)gsel\.value=groupId/.test(src07));
 
 function sliceFn(src, name) {
   const start = src.indexOf('function ' + name);
@@ -126,6 +125,18 @@ const merged = ctx.allMetricGroups().find((g) => g.id === 'mg2');
 ok('merge keeps custom wrist', merged.metrics.some((m) => m.id === 'm99'));
 ok('merge still has szyja', merged.metrics.some((m) => m.id === 'm6'));
 ok('no duplicate mg2 nav', ctx.allMetricGroups().filter((g) => g.id === 'mg2').length === 1);
+ok('read-only merge does not write stored groups', persisted.length === 0 && windowObj.METRIC_GROUPS[0].metrics.length === 3);
+
+const formFields = Object.fromEntries(['me-client','me-client-search','me-group','me-date','me-notes'].map(id=>[id,{value:'',innerHTML:''}]));
+documentStub.getElementById=id=>formFields[id]||null;
+documentStub.querySelector=()=>({textContent:''});
+let metricModalOpened=false, metricFormUpdated=false;
+ctx.openM=id=>{metricModalOpened=id==='m-metric-entry';Object.values(formFields).forEach(field=>{field.value='';});};
+ctx.updateMetricEntryForm=()=>{metricFormUpdated=metricModalOpened&&formFields['me-group'].value==='mg2';};
+ctx.notify=()=>{};
+vm.runInContext(sliceFn(src07,'openMetricEntryForClient'),ctx);
+ctx.openMetricEntryForClient('c1','mg2');
+ok('openMetricEntry fills client and selected group after opening modal', metricFormUpdated && formFields['me-client'].value==='c1' && formFields['me-client-search'].value==='Justyna');
 
 persisted.length = 0;
 ok('migrate patches stored', ctx.migrateEnsureCircMetrics() === true);

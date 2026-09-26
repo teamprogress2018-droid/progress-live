@@ -33,7 +33,7 @@ ok('pdf action', /exportSavedPlanPDF/.test(src) && /id="plan-pdf-/.test(src));
 ok('cache styles v61', html.includes('styles.css?v=118'));
 ok('CI unit', wf.includes('test_plans_library.js'));
 ok('CI ui', wf.includes('test_plans_library_ui.js'));
-ok('scripts once 01', (html.match(/<script src="01-core\.js\?v=\d+">/g) || []).length === 1);
+ok('scripts once 01', (html.match(/<script src="01-core\.js\?v=\d+(?:&[^"<>]+)?">/g) || []).length === 1);
 ok('scripts once 02', (html.match(/<script src="02-workouts-onboarding-templates-live\.js\?v=\d+">/g) || []).length === 1);
 
 const start = src.indexOf('function planIsUnassigned');
@@ -78,3 +78,4 @@ ok('date label', planDateLabel(plans[1]) === '2026-09-05');
 
 if (failed) process.exit(1);
 console.log('\nAll plans-library tests passed');
+

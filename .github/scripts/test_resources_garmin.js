@@ -228,7 +228,10 @@ ok('no garmin oauth secret fields', !/garmin[\s\S]{0,400}client_secret/i.test(sr
 ok('garmin daily id', /INT_DAILY_IDS=\[[^\]]*garmin/.test(src04));
 ok('jump to client app', /openGarminImportedClientApp/.test(src04));
 const src10 = fs.readFileSync(path.join(root, '10-client-app.js'), 'utf8');
-ok('live client loads resources', /queryByTrainerId\('resources'/.test(src10));
+ok('live client loads resources through the explicit trainer-scoped library allowlist',
+  /CLIENT_SHARED_COLLECTIONS=Object\.freeze\(\[[^\]]*'resources'/.test(src10)&&
+  /CLIENT_SHARED_COLLECTIONS\.map\(name=>queryByTrainerId\(name,account\.trainerId,account,session\)\)/.test(src10)&&
+  /USER_RESOURCES:sharedData\.resources/.test(src10));
 
 if (failed) {
   console.error('\n' + failed + ' test(s) failed');
