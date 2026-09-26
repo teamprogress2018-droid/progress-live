@@ -1,0 +1,15 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert');
+const src=fs.readFileSync(require('path').join(__dirname,'../../04-client-portal.js'),'utf8');
+const fn=src.slice(src.indexOf('function dashNextAction(){'),src.indexOf('function renderDashNextAction(){'));
+const ctx={window:{CL:[{id:'c1',name:'Klient'}],CLIENT_ONBOARD_STEPS:[{id:'intake',label:'Ankieta'}]},escHtml:s=>s,dashOpsAttentionItems:()=>[],dashOpsRecentReports:()=>[],dashTodaySessions:()=>[],clientOnboardStatus:()=>({complete:false,next:'intake',done:1,total:7})};
+vm.createContext(ctx);vm.runInContext(fn,ctx);
+assert(ctx.dashNextAction().desc.includes('Ankieta'));
+assert(ctx.dashNextAction().cta.includes('openClientOnboardChecklist'));
+ctx.window.CL[0].status='archived';assert.equal(ctx.dashNextAction().tone,'ok');
+ctx.dashOpsRecentReports=()=>[{kind:'form',clientId:'c1',clientName:'Klient'}];
+assert(ctx.dashNextAction().cta.includes("tab:'forms'"));
+ctx.dashOpsRecentReports=()=>[{kind:'checkin',clientId:'c1',clientName:'Klient'}];
+assert(ctx.dashNextAction().cta.includes('openCIClient'));
+ctx.dashOpsRecentReports=()=>[];ctx.window.CL=[];
+assert.equal(ctx.dashNextAction().ctaLbl,'Dodaj klienta');
+console.log('PASS: onboarding, archived client, form, check-in, first client');
