@@ -29,7 +29,11 @@ ok('kbContext no leftover dump',!src09.includes('POZOSTAŁE NOTATKI TRENERA')&&s
 ok('note+evidence first-class',core.includes("kind==='note'||kind==='evidence'||kind==='principle'"));
 ok('user notes before builtins',core.includes('user.map(mapUser).concat(builtins.map'));
 ok('kbContext uses planning',/function kbContextForAI[\s\S]{0,400}planningEvidenceContext/.test(src09));
-ok('aplGenerate uses kb context',src03.includes('kbContextForAI()'));
+const generatorSource=src03.slice(src03.indexOf('async function aplGenerate(){'),src03.indexOf('const userMsg=',src03.indexOf('async function aplGenerate(){')));
+const contextCall=generatorSource.match(/kbContextForAI\(\{mode:'training',query:[^}]+\}\)/);
+let capturedContext=null;
+if(contextCall)vm.runInNewContext(contextCall[0],{goal:'masa',method:'FBW',notes:'2 dni',kbContextForAI:opts=>{capturedContext=opts;return '';}});
+ok('aplGenerate uses kb context with training topic',capturedContext&&capturedContext.mode==='training'&&capturedContext.query==='masa FBW 2 dni');
 ok('askAI safety+watch', /clientSafetyContextForAI/.test(src06) && /clientMonitorContextForAI/.test(src06));
 ok('kb tag picker UI',html.includes('id="kb-tag-picker"')&&html.includes('builder-kb-hits'));
 ok('askAI prefers builder tags',src06.includes('preferTags')&&src06.includes('builderCollectKbTags'));

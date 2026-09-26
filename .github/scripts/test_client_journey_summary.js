@@ -33,7 +33,7 @@ ok('cache 07/08', html.includes('07-forms-metrics-calculator.js?v=42') && html.i
 ok('css journey', css.includes('.client-journey') && css.includes('.cj-verdict') && css.includes('var(--bg-card)') && css.includes('.cj-sig-bad'));
 ok('dark report container', /id="report-container"[^>]*background:\s*var\(--bg\)/.test(html) || html.includes('id="report-container"') && html.includes('background:var(--bg)'));
 
-const start = eight.indexOf('// ════════════════════════════════════════\n// PODSUMOWANIE START + MONITORING PROGRESU');
+const start = eight.indexOf('// PODSUMOWANIE START + MONITORING PROGRESU');
 ok('module slice', start > 0);
 const slice = eight.slice(start);
 const sandbox = {
