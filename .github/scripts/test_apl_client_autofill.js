@@ -28,7 +28,7 @@ ok('edit from card opens modal', /function aplEditClientFromCard[\s\S]*openClien
 ok('cache 03/05/07', html.includes('03-ai-plangen-bizstats-aicoach.js?v=42') && html.includes('05-clients-builder-plans-calendar.js?v=81') && html.includes('07-forms-metrics-calculator.js?v=42'));
 ok('CI', wf.includes('test_apl_client_autofill.js') && wf.includes('test_apl_client_autofill_ui.js'));
 
-const slice = src03.match(/function aplClientCardSummaryHtml[\s\S]*?(?=\nfunction aplSyncClientDupUi)/);
+const slice = src03.match(/function aplClientReviewHtml[\s\S]*?(?=\nfunction aplSyncClientDupUi)/);
 ok('extracted summary fn', !!slice);
 if (slice) {
   const ctx = {
@@ -70,6 +70,25 @@ if (slice) {
   ok('summary edit button', /aplEditClientFromCard/.test(htmlCard));
   const empty = ctx.aplClientCardSummaryHtml({ id: 'c2', name: 'Nowy' });
   ok('missing fields hint', /Brakuje: wiek/.test(empty) && /płeć/.test(empty) && /waga/.test(empty));
+  ok('unknown limitations are not clearance', empty.includes('Nie oznacza to braku przeciwwskazań'));
+  ctx.clientIntakeFormState=()=>({pending:{id:'f1'}});
+  ok('pending intake is visible',ctx.aplClientReviewHtml({id:'c2'}).includes('Czeka na odpowiedź'));
+  ctx.clientIntakeFormState=()=>({filled:true});
+  const reviewed=ctx.aplClientReviewHtml({id:'c2',goal:'sila',injuries:'<ból kolana>'});
+  ok('goal and escaped limitations visible',reviewed.includes('Wzrost siły')&&reviewed.includes('&lt;ból kolana&gt;')&&reviewed.includes('Wypełniona'));
+  const fields={};
+  ['apl-client','apl-age','apl-weight','apl-height','apl-injuries','apl-sport-notes','apl-activity','apl-gender','apl-pharma-status','apl-pharma-details','apl-metrics-hint','apl-safety-hint'].forEach(id=>fields[id]={value:'previous',selectedIndex:1,style:{},textContent:'previous'});
+  fields['apl-client'].value='c2';
+  const buttons=[{classList:{remove:()=>buttons[0].active=false},active:true}];
+  ctx.document={getElementById:id=>fields[id]||null,querySelectorAll:()=>buttons};
+  ctx.CL=[{id:'c2',name:'Nowy'}];
+  ctx.aplSyncClientDupUi=()=>{};ctx.aplSetEquipment=()=>{};
+  ctx.aplRenderMetricsHint=()=>{};ctx.aplRenderSafetyHint=()=>{};ctx.notify=()=>{};
+  vm.runInContext(src03.slice(src03.indexOf('function aplFillFromClient(){'),src03.indexOf('function aplRenderMetricsHint(')),ctx);
+  ctx.aplFillFromClient();
+  ok('switch clears missing body and injury data',['apl-age','apl-weight','apl-height','apl-injuries','apl-sport-notes','apl-activity'].every(id=>fields[id].value===''));
+  ok('switch clears unknown gender and goal',fields['apl-gender'].selectedIndex===-1&&!buttons[0].active);
+  ok('switch clears old safety hints',fields['apl-safety-hint'].textContent===''&&fields['apl-metrics-hint'].style.display==='none');
 }
 
 if (failed) {
