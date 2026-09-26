@@ -118,6 +118,8 @@ ok('max items cap', F.mergeFeed(feed, [], { maxItems: 1 }).length === 1);
 const ai = F.parseAiJson('```json\n{"tytul_pl":"Trening do upadku","streszczenie":"S.","wniosek":"W.","populacja":"P","ograniczenia":"O","istotnosc":"7"}\n```');
 ok('ai json parsed + relevance clamped', ai && ai.takeaway === 'W.' && ai.relevance === 5, ai);
 ok('ai garbage -> null', F.parseAiJson('nie wiem') === null);
+ok('animal studies are rejected', F.isLikelyNonHumanStudy({ title: 'Effects of dietary lysine in young pigs' }) && F.isLikelyNonHumanStudy({ title: 'Krill extract in dogs with tracheal collapse' }));
+ok('human training study is kept', !F.isLikelyNonHumanStudy({ title: 'Resistance training and muscle strength in older adults' }));
 const directAi = F.aiConnection({ ANTHROPIC_API_KEY: 'test-key' });
 ok('AI prefers direct key', directAi && directAi.label === 'Anthropic' && directAi.headers['x-api-key'] === 'test-key');
 const proxyAi = F.aiConnection({});
