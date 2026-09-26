@@ -1066,6 +1066,13 @@ WAŻNE — odpowiedz TYLKO w formacie JSON (bez żadnego dodatkowego tekstu, bez
 {
   "planName": "Nazwa planu",
   "summary": "3–5 zdań dla trenera początkującego: dlaczego ta metoda, dlaczego taka objętość serii (nawiąż do MEV/MAV), dlaczego ten RPE/zakres powtórzeń dla poziomu klienta",
+  "rationale": {
+    "clientData": ["Wyłącznie fakty podane w danych klienta, istotne dla wyboru planu"],
+    "reasoning": ["Krótko: jaka decyzja, na podstawie którego faktu i dlaczego"],
+    "uncertainties": ["Brakujące dane i założenia, które trener powinien sprawdzić"],
+    "reviewTriggers": ["Kiedy ponownie ocenić plan na podstawie realizacji i informacji od klienta"],
+    "sources": ["Tylko źródła faktycznie dostarczone w kontekście: tytuł i PMID, DOI lub adres. Jeśli brak pasującego źródła, pusta lista."]
+  },
   "method": "Nazwa metody",
   "weeks": ${weeksNum},
   "daysPerWeek": liczba,
@@ -1315,6 +1322,22 @@ ZASADY HIPERTROFII (STRICT — jak w pierwszej części):
   });
 }
 
+function aplPlanWhyHTML(plan){
+  const r=plan&&plan.rationale;
+  if(!r||typeof r!=='object'||Array.isArray(r))return '';
+  const esc=s=>String(s).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const section=(key,label,empty)=>{
+    const values=Array.isArray(r[key])?r[key].filter(x=>typeof x==='string'&&x.trim()).slice(0,6):[];
+    return '<div style="margin-top:10px;"><strong>'+label+'</strong>'+(values.length?'<ul style="margin:5px 0;padding-left:20px;">'+values.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>':'<p style="margin:5px 0;color:var(--muted);">'+empty+'</p>')+'</div>';
+  };
+  return '<details data-apl-why style="margin-top:14px;padding:12px;border:1px solid var(--border2);border-radius:10px;background:var(--s3);"><summary style="cursor:pointer;font-weight:600;">Dlaczego taki plan?</summary>'
+    +'<p style="font-size:12px;color:var(--muted);">Uzasadnienie wygenerowane przez AI — sprawdź zgodność z danymi klienta i treścią źródeł. Nie jest to ocena medyczna ani potwierdzenie skuteczności planu.</p>'
+    +section('clientData','Dane użyte do decyzji','AI nie wskazało danych. Zweryfikuj dopasowanie planu.')
+    +section('reasoning','Uzasadnienie wyborów','Brak uzasadnienia — sprawdź dobór ćwiczeń i obciążeń.')
+    +section('uncertainties','Założenia i niepewność','Nie podano ograniczeń. Nie oznacza to pełnej pewności.')
+    +section('reviewTriggers','Kiedy ponownie ocenić plan','Ustal z klientem termin oceny realizacji planu.')
+    +section('sources','Źródła wskazane przez AI','Brak wskazanego źródła. Traktuj podpowiedź jako propozycję do weryfikacji.')+'</details>';
+}
 function aplRenderPlan(plan,client,goal,method,days,weeks){
   const goalLabels={masa:'💪 Budowa masy',sila:'🏋️ Wzrost siły',redukcja:'🔥 Redukcja',kondycja:'🏃 Kondycja',atletyzm:'⚡ Atletyzm',rehab:'🩺 Rehabilitacja'};
   const res=document.getElementById('apl-result');
@@ -1349,6 +1372,7 @@ function aplRenderPlan(plan,client,goal,method,days,weeks){
         <span class="pill" style="background:var(--s3);color:var(--muted);">📆 ${plan.weeks||weeks} tygodni</span>
         <span class="pill" style="background:var(--s3);color:var(--muted);">🔁 ${plan.method||method}</span>
       </div>
+      ${aplPlanWhyHTML(plan)}
       ${plan.adaptation_notes?`<div id="apl-adaptation-notes" style="margin-top:14px;padding:12px 14px;border-radius:10px;border:1px solid rgba(61,207,178,0.28);background:rgba(61,207,178,0.08);">
         <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--teal);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Adaptation notes — sporty dodatkowe</div>
         <div style="font-size:12px;color:var(--text);line-height:1.65;">${plan.adaptation_notes}</div>
@@ -1753,6 +1777,7 @@ function aplSavePlan(){
   const newPlan=withTrainer({
     id:newId('p'),
     name:aplLastPlan.planName||'Plan AI',
+    rationale:aplLastPlan.rationale||null,
     clientId:cid||null,
     clientName:client?client.name:'',
     method:aplLastPlan.method||'Custom',
