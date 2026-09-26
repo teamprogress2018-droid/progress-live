@@ -6,7 +6,7 @@ const path=require('path');
 const vm=require('vm');
 
 const root=path.join(__dirname,'../..');
-const core=fs.readFileSync(path.join(root,'01-core.js'),'utf8');
+const core=fs.readFileSync(path.join(root,'01-core.js'),'utf8').replace(/\r\n/g,'\n');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const src05=fs.readFileSync(path.join(root,'05-clients-builder-plans-calendar.js'),'utf8');
 const src03=fs.readFileSync(path.join(root,'03-ai-plangen-bizstats-aicoach.js'),'utf8');
