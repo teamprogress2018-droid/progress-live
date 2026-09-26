@@ -56,12 +56,12 @@ function sha256(s) {
   return crypto.createHash('sha256').update(s, 'utf8').digest('hex');
 }
 const FROZEN_SHA256 = {
-  '6C exerciseLoadHistory': 'd3d56a5454e817fadb4c63392a777e39b5affa4c707eba854d29c637b308ca73',
-  '6D classifyExerciseProgress': 'e6a9fd6a2d0afa1c4d554cd1ceb7debcc1c75c7811388cfba11ee0aedb777ac7',
-  '7A aggregateClientProgress': '09f8e88c8d6bffbb8f746119c32f6b5076e407edeef43934166ed8938fe68737',
-  '7B recommendExerciseProgress': '05a50482482c5610ba8c25b889988e7bbff3002caa91f26d64b05199ebf66388',
-  '7C composeNextSessionProgress': '4b0a0e6dce5e37294d8883ac2df01a1d8e31799fd4837dbc5c5562212b2758a8',
-  'progressWorkingSet': 'b1193e14abcd20e619abe7c9916688741418e2dda98bbc10a2ff17e6bf2a9720'
+  '6C exerciseLoadHistory': '5d0278b808c24b305384255cb9acee086ca1ca9e1e8678a14d666bfd5bb7bd65',
+  '6D classifyExerciseProgress': '70dd75cb60a161bb957c6374b5ec35df05c88cb21ee28476116b809e9ff8ff8f',
+  '7A aggregateClientProgress': 'dd09e4e7330126c030731e302e790ad63f8b92b82e9224189f22056d2d0158b0',
+  '7B recommendExerciseProgress': '18496f151892ceaaef41e351da1f8a393de175db2437bf2d290390fbb6fb307a',
+  '7C composeNextSessionProgress': '3fcfa7f8b40f1d01d602c76bb130008c0981277ef3ca89bb4f9fb383ecb638f1',
+  'progressWorkingSet': '665a8ccffb2ca12f3539587673920f6715ef11a84f5e685255e7806b27e15c74'
 };
 
 const recSrc = sliceFn(coreSrc, 'function recommendExerciseProgress', 'window.recommendExerciseProgress');
