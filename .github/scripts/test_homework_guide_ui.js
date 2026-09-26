@@ -20,11 +20,39 @@ function ok(name, cond, extra) {
   const browser = await chromium.launch({ headless: process.env.LAYOUT_HEADED !== '1' });
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   page.setDefaultTimeout(20000);
+  // This feature test supplies authenticated storage below. A real auth observer
+  // must not replace the fixture session or send test records to production.
+  await page.route('https://www.gstatic.com/firebasejs/**', route => route.abort());
   await page.goto('http://localhost:' + port + '/index.html?nocache=hwguide', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(600);
 
   await page.evaluate(() => {
-    window.persistById = async (_c, o) => o;
+    window._uid = 'hw-ui-trainer';
+    window.tenantSessionGeneration = 1;
+    window._tenantDataReady = true;
+    window._clientAppMode = false;
+    window._db = { fixture: 'homework-guide' };
+    window.__hwGuideDocs = new Map();
+    window._doc = (_db, collection, id) => ({ collection, id });
+    window._getDoc = async ref => {
+      const data = window.__hwGuideDocs.get(ref.collection + '/' + ref.id);
+      const owner = window._clientAppMode ? window._trainerId : window._uid;
+      if (!data || data.trainerId !== owner || (window._clientAppMode && data.clientId !== window._clientId)) {
+        throw Object.assign(new Error('Document is not visible to this account'), { code: 'permission-denied' });
+      }
+      return { id: ref.id, exists: () => true, data: () => JSON.parse(JSON.stringify(data)) };
+    };
+    window.persistById = async (collection, entry) => {
+      withTrainer(entry);
+      const owner = window._clientAppMode ? window._trainerId : window._uid;
+      if (!owner || entry.trainerId !== owner || (window._clientAppMode && entry.clientId !== window._clientId)) return null;
+      const id = typeof tenantDocumentId === 'function' ? tenantDocumentId(collection, entry, owner) : (entry._fbId || entry.id);
+      const data = JSON.parse(JSON.stringify(entry));
+      delete data._fbId;
+      window.__hwGuideDocs.set(collection + '/' + id, data);
+      entry._fbId = id;
+      return entry;
+    };
     window.notify = () => {};
     const auth = document.getElementById('auth-screen');
     const app = document.getElementById('app-root');
@@ -32,7 +60,7 @@ function ok(name, cond, extra) {
     if (app) app.style.display = '';
     const loading = document.getElementById('app-loading');
     if (loading) loading.style.display = 'none';
-    window.CL = [{ id: 'c1', name: 'Piotr Urbaniak', status: 'active' }];
+    window.CL = [{ id: 'c1', trainerId: 'hw-ui-trainer', name: 'Piotr Urbaniak', status: 'active' }];
     window.TASKS = [];
     window.SE = [];
     if (typeof ensureODWorkouts === 'function') ensureODWorkouts();
@@ -81,8 +109,12 @@ function ok(name, cond, extra) {
   await page.evaluate(() => {
     if (typeof closeODPlayer === 'function') closeODPlayer();
     if (typeof assignHomeworkToClient === 'function') assignHomeworkToClient('c1', 'ow21', { notify: false });
+    window._uid = 'hw-ui-client';
+    window.tenantSessionGeneration++;
     window._clientAppMode = true;
     window._clientId = 'c1';
+    window._trainerId = 'hw-ui-trainer';
+    window._clientAccount = { uid: 'hw-ui-client', role: 'client', clientId: 'c1', trainerId: 'hw-ui-trainer' };
     window._clientLiveScreen = 'homework';
     document.body.classList.add('client-app-mode');
     document.querySelectorAll('.screen').forEach((s) => s.classList.remove('active'));
@@ -106,7 +138,7 @@ function ok(name, cond, extra) {
     if (min) min.value = '16';
     if (typeof saveHomeworkDone === 'function') saveHomeworkDone();
   });
-  await page.waitForTimeout(400);
+  await page.waitForFunction(() => (window.TASKS || []).some(t => t.kind === 'homework' && t.status === 'done'));
   const done = await page.evaluate(() => {
     const t = (window.TASKS || [])[0];
     const sess = (window.SE || []).find((s) => s && s.source === 'homework');
@@ -115,12 +147,15 @@ function ok(name, cond, extra) {
       status: t && t.status,
       rpe: t && t.rpe,
       sess: !!(sess && sess.rpe === '8' && sess.duration === 16),
+      persisted: !!(t && sess && window.__hwGuideDocs.get('tasks/' + t.id)?.status === 'done' && window.__hwGuideDocs.get('sessions/' + sess.id)?.rpe === '8'),
+      ownership: !!(t && sess && t.trainerId === 'hw-ui-trainer' && sess.trainerId === 'hw-ui-trainer' && sess.clientId === 'c1'),
       progress: /Zadania domowe/i.test(text) && /RPE 8/.test(text)
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'hw_progress_rpe.png') });
   ok('task marked done', done.status === 'done' && done.rpe === '8', JSON.stringify(done));
   ok('session in SE', done.sess);
+  ok('task and history confirmed in owned storage', done.persisted && done.ownership, JSON.stringify(done));
   ok('progress shows rpe', done.progress, JSON.stringify(done));
 
   await browser.close();
