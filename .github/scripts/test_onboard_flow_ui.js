@@ -256,11 +256,11 @@ function ok(name, cond, extra) {
   await page.waitForTimeout(200);
   const pendingForm = await page.evaluate(() => {
     const steps = (document.getElementById('client-onboard-steps') || {}).innerText || '';
-    return { waiting: /Ankieta czeka/.test(steps), profile: /Profil/.test(steps) };
+    return { waiting: /Czeka na odpowiedź klienta/.test(steps), profile: /Formularze/.test(steps) };
   });
-  ok('intake send shows profile cta', pendingForm.waiting && pendingForm.profile, JSON.stringify(pendingForm));
+  ok('intake send shows forms cta', pendingForm.waiting && pendingForm.profile, JSON.stringify(pendingForm));
 
-  await page.click('#client-onboard-steps button:has-text("Profil")');
+  await page.click('#client-onboard-steps button:has-text("Formularze")');
   await page.waitForTimeout(400);
   const profileUi = await page.evaluate(() => {
     const drawer = document.getElementById('cp-drawer');
@@ -356,7 +356,7 @@ function ok(name, cond, extra) {
   const fromOverview = await page.evaluate(() => {
     const steps = document.getElementById('client-onboard-steps');
     const t = (steps && steps.innerText) || '';
-    return { waiting: /Ankieta czeka/.test(t), send: /Wyślij ankietę/.test(t) };
+    return { waiting: /Czeka na odpowiedź klienta/.test(t), send: /Wyślij ankietę/.test(t) };
   });
   await page.screenshot({ path: path.join(shotDir, 'onboard_from_overview.png') });
   ok('overview CTA opens checklist without auto-form', fromOverview.send && !fromOverview.waiting, JSON.stringify(fromOverview));
