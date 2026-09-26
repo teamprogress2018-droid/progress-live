@@ -84,5 +84,15 @@ ok('chest note on chest day',chestHits.some(h=>h.entry.title==='Priorytet klatki
 ok('quad note not on chest day',!chestHits.some(h=>h.entry.title==='Hack squat'));
 ok('ctx tags line',sandbox.planningEvidenceContext(8000,{preferTags:['klatka']}).includes('Tagi:'));
 
+const whyCode=src03.slice(src03.indexOf('function aplPlanWhyHTML('),src03.indexOf('function aplRenderPlan('));
+const whyCtx={};vm.createContext(whyCtx);vm.runInContext(whyCode,whyCtx);
+ok('legacy plans do not invent explanations',whyCtx.aplPlanWhyHTML({})==='');
+const why=whyCtx.aplPlanWhyHTML({rationale:{clientData:['<img src=x onerror=alert(1)>'],reasoning:['Dwa dni dostępne'],sources:[]}});
+ok('why panel escapes model content',why.includes('&lt;img')&&!why.includes('<img'));
+ok('why panel identifies missing evidence',why.includes('Brak wskazanego źródła'));
+ok('why panel shows uncertainty and review',why.includes('Założenia i niepewność')&&why.includes('Kiedy ponownie ocenić plan'));
+ok('why panel guards malformed fields',whyCtx.aplPlanWhyHTML({rationale:{sources:{url:'bad'}}}).includes('Brak wskazanego źródła'));
+ok('why persists with saved plan',src03.includes('rationale:aplLastPlan.rationale||null'));
+ok('why renders in plan preview',src03.includes('${aplPlanWhyHTML(plan)}'));
 if(failed){console.error(failed+' failed');process.exit(1);}
 console.log('\nAll evidence-base tests passed');
