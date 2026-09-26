@@ -347,6 +347,11 @@ test('forum queries honor public groups and actual private membership', async ()
   }
   ok(await query('forumGroups', userA, [['trainerId', 'EQUAL', trainerA], ['privacy', 'EQUAL', 'public']]), 'public forum groups query');
   ok(await query('forumGroups', userA, [['trainerId', 'EQUAL', trainerA], ['privacy', 'EQUAL', 'private'], ['memberIds', 'ARRAY_CONTAINS', clientA]]), 'member forum groups query');
+  ok(await read('forumGroups/' + memberId, userA), 'member can read own private group');
+  denied(await query('forumGroups', userA, [['trainerId', 'EQUAL', trainerA], ['privacy', 'EQUAL', 'private'], ['memberIds', 'ARRAY_CONTAINS', clientSibling]]), 'cannot query private groups for another client');
+  const malformedId = run + '-malformed-group';
+  await seed('forumGroups/' + malformedId, {id: malformedId, trainerId: trainerA, privacy: 'private', memberIds: {[clientA]: true}});
+  denied(await read('forumGroups/' + malformedId, userA), 'a map key cannot impersonate an array membership');
   denied(await query('forumGroups', userA, [['trainerId', 'EQUAL', trainerA]]), 'all trainer forum groups');
   denied(await read('forumGroups/' + hiddenId, userA), 'hidden private group');
   const publicPost = run + '-public-post', hiddenPost = run + '-hidden-post';
