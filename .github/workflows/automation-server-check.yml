@@ -10,8 +10,19 @@ permissions:
   contents: read
 jobs:
   kolejka:
+    name: Reguły ${{ matrix.rules-stage }} i kolejka serwerowa
     runs-on: ubuntu-latest
     timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - rules-stage: standard
+            firebase-config: firebase.test.json
+          - rules-stage: stage1
+            firebase-config: firebase.stage1.test.json
+    env:
+      AUTOFLOW_RULES_STAGE: ${{ matrix.rules-stage }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -32,5 +43,5 @@ jobs:
         run: >-
           server/automation/.runtime/node_modules/.bin/firebase emulators:exec
           --only firestore --project demo-progress-autoflow
-          --config server/automation/firebase.test.json
+          --config server/automation/${{ matrix.firebase-config }}
           "node server/automation/test-emulator.cjs"
