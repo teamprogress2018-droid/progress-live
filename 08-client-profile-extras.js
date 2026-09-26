@@ -1664,7 +1664,7 @@ function cpOverviewAlertHTML(c){
     return `<div class="cp-ov-alert cp-ov-alert-soft" data-cp-alert="onboard">
       <div><div class="cp-ov-alert-title">Następny krok: ${esc(next.label)}</div>
       <div>${esc(next.why)}</div><div style="font-size:12px;color:var(--muted);margin-top:6px;">Start współpracy: ${next.done} z ${next.total} kroków</div></div>
-      <button type="button" class="btn btn-primary btn-sm" data-cp-alert-cta="onboard" onclick="${action}">${esc(next.label)}</button>
+      <button type="button" class="btn btn-ghost btn-sm" data-cp-alert-cta="onboard" onclick="${action}">${esc(next.label)}</button>
     </div>`;
   }
   const truth=cpClientStatusTruth(c);
