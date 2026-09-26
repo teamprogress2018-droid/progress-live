@@ -274,6 +274,51 @@ test('client submission actions preserve assignment, authority and other clients
   ok(await patch('odProgress/' + odId, {done: ['program-1:0:0']}, userA), 'complete on-demand day');
   denied(await patch('odProgress/' + odId, {programId: 'other-program'}, userA), 'rebind on-demand program');
 });
+test('trainer check-in transactions can read a missing ID without exposing existing foreign records', async () => {
+  const id = run + '-trainer-checkin-transaction', p = 'checkins/' + id;
+  const missing = await read(p, ownerA);
+  assert.equal(missing.status, 404, 'trainer missing check-in read is authorized and returns not-found: ' + JSON.stringify(missing.body)); count++;
+  const otherMissing = await read(p, ownerB);
+  assert.equal(otherMissing.status, 404, 'another trainer may also observe that an ID is absent'); count++;
+  denied(await read(p, null), 'anonymous missing check-in read remains denied');
+  denied(await read(p, userA), 'linked client does not inherit trainer missing-document permission');
+  const data = clientData({id, date: '2026-09-26', status: 'filled', score: 80,
+    answers: {energy: 4, sleep: 4, stress: 2, nutrition: 4, workouts: 3, weight: '', notes: 'Wpis trenera'},
+    filledBy: 'trainer', filledAt: new Date().toISOString(), createdAt: new Date().toISOString(), source: 'manual'});
+  const started = await request(':beginTransaction', ownerA, 'POST', {options: {readWrite: {}}});
+  ok(started, 'trainer begins check-in transaction');
+  const transaction = started.body.transaction;
+  assert.equal(typeof transaction, 'string', 'transaction token returned'); assert.ok(transaction.length); count++;
+  let committed = false;
+  try {
+    const reads = await request(':batchGet', ownerA, 'POST', {
+      documents: [fullName('clients/' + clientA), fullName(p)], transaction,
+    });
+    ok(reads, 'transaction reads owned client and missing check-in');
+    assert.ok(Array.isArray(reads.body), 'batch read response contains per-document results'); count++;
+    assert.ok(reads.body.some(row => row.found && row.found.name === fullName('clients/' + clientA)),
+      'owned client was read in the same transaction'); count++;
+    assert.ok(reads.body.some(row => row.missing === fullName(p)),
+      'missing check-in is observable as missing rather than permission-denied'); count++;
+    const result = await request(':commit', ownerA, 'POST', {transaction, writes: [
+      {update: {name: fullName(p), fields: fields(data)}, currentDocument: {exists: false}},
+    ]});
+    ok(result, 'trainer atomically creates filled check-in after both reads');
+    committed = true;
+  } finally {
+    if (!committed) await request(':rollback', ownerA, 'POST', {transaction}).catch(() => {});
+  }
+  assert.deepEqual((await db.doc(p).get()).data(), data, 'filled trainer check-in persisted exactly'); count++;
+  ok(await read(p, ownerA), 'owner still reads created check-in');
+  ok(await read(p, userA), 'linked client reads its trainer-filled check-in');
+  denied(await read(p, ownerB), 'missing-document exception does not expose existing foreign trainer check-in');
+  denied(await read(p, userB), 'other trainer client cannot read existing check-in');
+  denied(await read(p, sibling), 'same trainer sibling cannot read existing check-in');
+  denied(await read(p, null), 'anonymous cannot read existing check-in');
+  denied(await write(p, {...data, trainerId: trainerB, clientId: clientB}, ownerB),
+    'foreign trainer cannot claim a check-in after a successful missing read');
+  assert.deepEqual((await db.doc(p).get()).data(), data, 'denied foreign write preserves original report'); count++;
+});
 test('public profile fields reject nested structures that could carry secret configuration', async () => {
   const p = 'trainerPublicProfiles/' + trainerA;
   const previous = (await db.doc(p).get()).data();
