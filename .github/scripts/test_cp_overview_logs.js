@@ -136,7 +136,7 @@ ok('package caption',sandbox.cpOverviewPackageCaption(c)==='Pakiet: 16 sesji');
 sandbox.window.CHECKINS={};
 const miss=sandbox.cpOverviewMissingHTML(c);
 ok('missing ask all',/Poproś o wszystko/.test(miss)&&/Uzupełni klient/.test(miss)&&!/po zaproszeniu/.test(miss)&&!/>Poproś</.test(miss));
-sandbox._ob={invite:true,baseline:false,schedule:true,plan:true,calendar:true,session:true,package:true,done:5,total:6,complete:false};
+sandbox._ob={invite:true,intake:true,baseline:false,schedule:true,plan:true,calendar:true,session:true,package:true,done:6,total:7,complete:false};
 sandbox.window.METRIC_ENTRIES=[];
 const alert=sandbox.cpOverviewAlertHTML(c);
 ok('hide onboard when only measurements',alert==='',alert);
