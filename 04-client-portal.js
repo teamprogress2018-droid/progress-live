@@ -6205,6 +6205,8 @@ function dashNextAction(){
   for(const c of clients){
     const st=typeof clientOnboardStatus==='function'?clientOnboardStatus(c):null;
     if(st&&!st.complete){
+      const next=typeof clientNextStartStep==='function'?clientNextStartStep(c):null;
+      if(next)return{tone:'info',eyebrow:'Dokończ start współpracy',title:c.name||'Klient',desc:next.why+' Ukończono '+next.done+' z '+next.total+' kroków.',cta:escHtml('openClientNextStartStep('+JSON.stringify(c.id)+')'),ctaLbl:next.label};
       const step=(window.CLIENT_ONBOARD_STEPS||[]).find(x=>x.id===st.next);
       return{tone:'info',eyebrow:'Dokończ start współpracy',title:c.name||'Klient',desc:'Następny krok: '+(step?step.label:(st.missingLabels||[])[0]||'Sprawdź checklistę')+'. Ukończono '+st.done+' z '+st.total+' kroków.',cta:`openClientOnboardChecklist('${escHtml(c.id)}')`,ctaLbl:'Otwórz następny krok'};
     }
@@ -6729,4 +6731,3 @@ function renderDashTasks(){
 
   el.innerHTML=html;
 }
-

@@ -441,6 +441,41 @@ function skipClientInvite(clientId){
 }
 window.skipClientInvite=skipClientInvite;
 
+function clientNextStartStep(c){
+  if(!c||c.status==='archived'||typeof clientOnboardStatus!=='function')return null;
+  const st=clientOnboardStatus(c);
+  if(!st||st.complete)return null;
+  const intake=typeof clientIntakeFormState==='function'?clientIntakeFormState(c.id):null;
+  const steps={
+    invite:{label:'Zaproś klienta',why:'Zaproszenie daje klientowi dostęp do ankiety i przypisanych treningów.'},
+    intake:{label:intake&&intake.pending?'Sprawdź ankietę':'Przygotuj ankietę',why:intake&&intake.pending?'Ankieta czeka na odpowiedź klienta. Sprawdź jej status przed przygotowaniem planu.':'Zbierz cel, doświadczenie i ograniczenia klienta przed przygotowaniem planu.'},
+    baseline:{label:'Dodaj pomiary',why:'Pomiary początkowe pozwolą później porównać wyniki klienta.'},
+    schedule:{label:'Ustal dni treningowe',why:'Dopasuj harmonogram do czasu, którym klient rzeczywiście dysponuje.'},
+    plan:{label:'Przygotuj plan',why:'Wykorzystaj ankietę i pomiary. Przed zapisaniem sprawdź ograniczenia klienta.'},
+    calendar:{label:'Zaplanuj terminy',why:'Przypisany plan potrzebuje terminów, żeby klient wiedział, kiedy trenować.'},
+    package:{label:'Ustal rozliczenie',why:'Przypisz pakiet lub pomiń ten krok, jeśli rozliczacie się inaczej.'}
+  };
+  const step=steps[st.next];
+  return step?{...step,key:st.next,done:st.done,total:st.total}:null;
+}
+function openClientNextStartStep(clientId){
+  const c=(window.CL||[]).find(x=>x.id===clientId);
+  const step=clientNextStartStep(c);
+  if(!step)return;
+  if(step.key==='invite')return openInviteFromOnboard(clientId);
+  if(step.key==='intake'){
+    const intake=typeof clientIntakeFormState==='function'?clientIntakeFormState(clientId):null;
+    return intake&&intake.pending?openClientProfileFromOnboard(clientId,'forms'):openFormsLibraryFromOnboard(clientId);
+  }
+  if(step.key==='baseline')return openClientBaselineModal(clientId,true);
+  if(step.key==='schedule')return openClientScheduleFromOnboard(clientId);
+  if(step.key==='plan')return openAiPlanForClient(clientId,true);
+  // Calendar and billing require a choice; opening the checklist does not create entries.
+  return openClientOnboardChecklist(clientId);
+}
+window.clientNextStartStep=clientNextStartStep;
+window.openClientNextStartStep=openClientNextStartStep;
+
 function openInviteFromOnboard(clientId){
   window._onboardResumeAfterInvite=clientId;
   if(typeof closeM==='function')closeM('m-client-onboard');
@@ -451,6 +486,7 @@ window.openInviteFromOnboard=openInviteFromOnboard;
 function openFormsLibraryFromOnboard(clientId){
   window._onboardResumeAfterForms=clientId;
   if(typeof closeM==='function')closeM('m-client-onboard');
+  if(typeof closeClientProfile==='function')closeClientProfile();
   goTo('forms');
   setTimeout(()=>{
     const cf=document.getElementById('form-client-filter');
