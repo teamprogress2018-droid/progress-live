@@ -179,7 +179,11 @@ function mergeFeed(oldItems, fresh, opts) {
 function buildTerm(cat, cfg) {
   const types = cat.publicationTypes || cfg.defaultPublicationTypes;
   const pt = '(' + types.map((t) => '"' + t + '"[pt]').join(' OR ') + ')';
-  return '(' + cat.query + ') AND ' + pt + ' AND ' + cfg.humansFilter + ' AND ' + cfg.languageFilter;
+  const humans = String(cfg.humansFilter || '').trim();
+  // PubMed treats NOT as a binary operator. AND NOT can discard NOT and
+  // invert our population filter, returning animal-only studies.
+  const population = humans ? (/^NOT\s/i.test(humans) ? ' ' : ' AND ') + humans : '';
+  return '((' + cat.query + ') AND ' + pt + population + ') AND ' + cfg.languageFilter;
 }
 
 // ─────────────────────────── AI (opcjonalnie) ───────────────────────────

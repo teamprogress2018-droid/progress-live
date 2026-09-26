@@ -93,6 +93,8 @@ ok('top journal Sports Med', F.isTopJournal(a, cfg));
 ok('categories have id/label/query', cfg.categories.length >= 10 && cfg.categories.every((c) => c.id && c.label && c.query));
 ok('category ids unique', new Set(cfg.categories.map((c) => c.id)).size === cfg.categories.length);
 const term = F.buildTerm(cfg.categories[0], cfg);
+ok('PubMed exclusion uses binary NOT, never AND NOT', !/\bAND\s+NOT\b/i.test(term) && term.includes(' NOT (animals[mh] NOT humans[mh])'));
+ok('positive population filters retain AND', F.buildTerm(cfg.categories[0], { ...cfg, humansFilter: 'humans[mh]' }).includes(' AND humans[mh]'));
 ok('term has pt + humans + language filter', term.includes('"Meta-Analysis"[pt]') && term.includes('humans[mh]') && term.includes('english[la]'), term);
 const guide = cfg.categories.find((c) => c.id === 'stanowiska');
 ok('guideline category overrides pt', F.buildTerm(guide, cfg).includes('"Practice Guideline"[pt]'));
