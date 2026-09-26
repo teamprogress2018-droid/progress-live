@@ -3234,7 +3234,12 @@ async function persistCheckin(ci){
   if(!ci)return null;
   if(!ci.id)ci.id=newId('ci');
   withTrainer(ci);
-  return await persistById('checkins',ci);
+  const writes=window._ciPendingWrites=window._ciPendingWrites||{};
+  const key=ci._fbId||ci.id;
+  const job=persistById('checkins',ci);
+  if(ci.status==='pending')writes[key]=job;
+  try{return await job;}
+  finally{if(writes[key]===job)delete writes[key];}
 }
 
 function getCIStatus(clientId){
@@ -3485,6 +3490,12 @@ function renderCIDetail(id){
   const checkins=sortedCheckins(id);
   const el=document.getElementById('ci-detail');if(!el)return;
 
+  if(window._ciFillOpen===id){
+    el.innerHTML='<div class="card"><h3>Wypełnij check-in za klienta</h3>'+
+      '<p style="color:var(--muted);font-size:12px;">Wpisz odpowiedzi przekazane przez klienta.</p>'+ciFillFormHtml(id)+'</div>';
+    return;
+  }
+
   if(!checkins.length){
     el.innerHTML=`<div style="text-align:center;padding:60px;color:var(--muted);">
       <div style="font-size:40px;margin-bottom:12px;opacity:0.3;">✅</div>
@@ -3673,12 +3684,27 @@ function renderCheckinSummary(id){
 }
 
 function ciFillDraft(clientId){
+  ciFillSaveState(clientId);
   window._ciFillDraft=window._ciFillDraft||{};
   if(!window._ciFillDraft[clientId])window._ciFillDraft[clientId]={energy:3,sleep:3,stress:3,nutrition:3,workouts:3,weight:'',notes:''};
   return window._ciFillDraft[clientId];
 }
+function ciFillSessionCurrent(session){
+  return !!session&&!!session.uid&&session.uid===window._uid&&
+    session.generation===(window.tenantSessionGeneration||0)&&!window._clientAppMode&&!window._clientPreviewMode;
+}
+function ciFillSaveState(id){
+  window._ciFillSave=window._ciFillSave||{};
+  let state=window._ciFillSave[id];
+  if(!state||!ciFillSessionCurrent(state.session)){
+    if(state&&window._ciFillDraft)delete window._ciFillDraft[id];
+    state=window._ciFillSave[id]={session:{uid:window._uid,generation:window.tenantSessionGeneration||0},saving:false,error:''};
+  }
+  return state;
+}
 function ciFillFormHtml(clientId){
   const a=ciFillDraft(clientId);
+  const state=ciFillSaveState(clientId);
   const qrow=(id,label,emoji)=>`<div style="margin-bottom:12px;">
     <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">${label}</div>
     <div style="display:flex;justify-content:space-between;gap:4px;">
@@ -3686,6 +3712,7 @@ function ciFillFormHtml(clientId){
     </div>
   </div>`;
   return `<div>
+    <fieldset style="border:0;padding:0;margin:0;min-width:0;" ${state.saving||state.candidate?'disabled':''}>
     ${qrow('energy','Energia',['😴','😪','😐','😊','⚡'])}
     ${qrow('sleep','Sen',['😴','😪','😐','😊','🌟'])}
     ${qrow('stress','Stres (1=niski)',['🧘','😌','😐','😰','🤯'])}
@@ -3702,51 +3729,97 @@ function ciFillFormHtml(clientId){
     <div class="form-field"><label class="form-lbl">Komentarz</label>
       <textarea class="form-textarea" rows="2" oninput="ciFillDraft('${clientId}').notes=this.value">${escHtml(a.notes||'')}</textarea>
     </div>
-    <button class="btn btn-primary" style="width:100%;" onclick="saveCheckinFill('${clientId}')">Zapisz check-in</button>
+    </fieldset>
+    ${state.error?`<p role="alert" style="color:var(--orange);font-size:12px;">${escHtml(state.error)}</p>`:''}
+    <div style="display:flex;gap:8px;">
+      ${state.conflict?`<button type="button" class="btn btn-primary" onclick="ciFillStartNew('${clientId}')">Użyj odpowiedzi w nowym raporcie</button>`:`<button type="button" class="btn btn-primary" style="flex:1;" onclick="saveCheckinFill('${clientId}')" ${state.saving?'disabled aria-busy="true"':''}>${state.saving?'Zapisywanie…':state.candidate?'Ponów zapis':'Zapisz check-in'}</button>`}
+      <button type="button" class="btn btn-ghost" onclick="closeCIFill('${clientId}')">Zamknij</button>
+    </div>
   </div>`;
 }
 function openCIFill(id){
+  const session=ciFillSaveState(id).session;
+  if(!ciFillSessionCurrent(session)||!(window.CL||[]).some(c=>c.id===id&&c.trainerId===session.uid))return;
   window._ciFillOpen=id;
   ciFillDraft(id);
   if(ciActiveClient===id)renderCIDetail(id);
 }
 function ciFillPick(clientId,field,val){
+  const state=ciFillSaveState(clientId);
+  if(state.saving||state.candidate)return;
   ciFillDraft(clientId)[field]=val;
   if(ciActiveClient===clientId)renderCIDetail(clientId);
 }
-function applyCheckinAnswers(ci,answers,filledBy){
-  ci.answers={
-    energy:+answers.energy||3,
-    sleep:+answers.sleep||3,
-    stress:+answers.stress||3,
-    nutrition:+answers.nutrition||3,
-    workouts:answers.workouts!=null?+answers.workouts:0,
-    weight:answers.weight||'',
-    notes:answers.notes||''
-  };
-  ci.score=scoreCheckinAnswers(ci.answers);
-  ci.status='filled';
-  ci.filledBy=filledBy||'client';
-  ci.filledAt=new Date().toISOString();
-  persistCheckin(ci);
-  if(typeof syncClientFromCheckin==='function'){
-    try{syncClientFromCheckin(ci);}catch(e){console.warn('syncClientFromCheckin',e);}
+async function applyCheckinAnswers(ci,answers,filledBy,operation){
+  const state=operation||{session:{uid:window._uid,generation:window.tenantSessionGeneration||0}};
+  const session=state.session;
+  const client=(window.CL||[]).find(c=>c&&c.id===ci?.clientId);
+  if(!ciFillSessionCurrent(session)||filledBy!=='trainer'||!client||client.trainerId!==session.uid||
+    (ci.trainerId&&ci.trainerId!==session.uid))throw new Error('checkin-owner');
+  if(!window._db||typeof window._runTransaction!=='function')throw new Error('checkin-unavailable');
+  if(!state.candidate){
+    const normalized={
+      energy:+answers.energy||3,sleep:+answers.sleep||3,stress:+answers.stress||3,nutrition:+answers.nutrition||3,
+      workouts:answers.workouts!=null?+answers.workouts:0,weight:answers.weight||'',notes:answers.notes||''
+    };
+    state.candidate={...ci,trainerId:session.uid,answers:normalized,score:scoreCheckinAnswers(normalized),
+      status:'filled',filledBy:'trainer',filledAt:new Date().toISOString()};
   }
-  if(typeof fireIntEvent==='function'){
-    try{
-      const cl=(window.CL||[]).find(x=>x&&x.id===ci.clientId);
-      fireIntEvent('checkin.completed',{
-        checkin:{id:ci.id,clientId:ci.clientId,date:ci.date,score:ci.score,filledBy:ci.filledBy||filledBy||'client',weight:ci.answers&&ci.answers.weight||''},
-        client:{id:ci.clientId,name:(cl&&cl.name)||'',email:(cl&&cl.email)||''}
-      });
-    }catch(e){console.warn('fireIntEvent checkin',e);}
+  const candidate=state.candidate;
+  const docId=candidate._fbId||candidate.id;
+  const pendingWrite=window._ciPendingWrites?.[docId];
+  if(pendingWrite)await pendingWrite;
+  if(!ciFillSessionCurrent(session))return null;
+  const ref=window._doc(window._db,'checkins',docId);
+  const clientRef=window._doc(window._db,'clients',client._fbId||client.id);
+  const saved=await window._runTransaction(window._db,async tx=>{
+    if(!ciFillSessionCurrent(session))throw new Error('checkin-session-changed');
+    const clientDoc=await tx.get(clientRef);
+    const snapshot=await tx.get(ref);
+    if(!ciFillSessionCurrent(session))throw new Error('checkin-session-changed');
+    if(!clientDoc.exists()||clientDoc.data().trainerId!==session.uid)throw new Error('checkin-owner');
+    const previous=snapshot.exists()?snapshot.data():null;
+    if(previous&&(previous.trainerId!==session.uid||previous.clientId!==candidate.clientId))throw new Error('checkin-owner');
+    if(previous&&previous.status==='filled'){
+      const same=previous.filledBy==='trainer'&&previous.filledAt===candidate.filledAt&&
+        Object.keys(candidate.answers).every(key=>previous.answers?.[key]===candidate.answers[key]);
+      if(same)return {...previous,id:candidate.id,_fbId:docId};
+      const conflict=new Error('checkin-already-filled');
+      conflict.checkin={...previous,id:candidate.id,_fbId:docId};
+      throw conflict;
+    }
+    // Preserve authoritative request metadata; only its answers are completed here.
+    const payload={...(previous||candidate),id:previous?.id||candidate.id,trainerId:session.uid,
+      clientId:candidate.clientId,answers:{...candidate.answers},score:candidate.score,
+      status:'filled',filledBy:'trainer',filledAt:candidate.filledAt};
+    delete payload._fbId;
+    tx.set(ref,payload,{merge:true});
+    return {...payload,id:candidate.id,_fbId:docId};
+  });
+  if(!ciFillSessionCurrent(session))return null;
+  if(!saved)throw new Error('checkin-unconfirmed');
+  ensureCheckins(saved.clientId);
+  const records=window.CHECKINS[saved.clientId];
+  const index=records.findIndex(record=>(record._fbId||record.id)===docId);
+  if(index>=0)records[index]=saved;else records.push(saved);
+  if(!state.effectsApplied){
+    state.effectsApplied=true;
+    if(typeof syncClientFromCheckin==='function'){
+      try{syncClientFromCheckin(saved);}catch(e){console.warn('syncClientFromCheckin',e);}
+    }
+    if(typeof fireIntEvent==='function'){
+      try{Promise.resolve(fireIntEvent('checkin.completed',{
+        checkin:{id:saved.id,clientId:saved.clientId,date:saved.date,score:saved.score,filledBy:'trainer',weight:saved.answers.weight||''},
+        client:{id:saved.clientId,name:client.name||'',email:client.email||''}
+      })).catch(e=>console.warn('fireIntEvent checkin',e));}catch(e){console.warn('fireIntEvent checkin',e);}
+    }
+    if(typeof emitAppEvent==='function'){
+      try{emitAppEvent('checkin.submitted',{clientId:saved.clientId,checkinId:saved.id,score:saved.score,filledBy:'trainer'});}catch(e){}
+    }
   }
-  if(typeof emitAppEvent==='function'){
-    try{emitAppEvent('checkin.submitted',{clientId:ci.clientId,checkinId:ci.id,score:ci.score,filledBy:ci.filledBy||filledBy||'client'});}catch(e){}
-  }
+  return saved;
 }
 
-/** Po check-inie: waga → karta klienta + pomiar mg1; odśwież pipeline trenera. */
 function syncClientFromCheckin(ci){
   if(!ci||!ci.clientId||!ci.answers)return null;
   const w=parseFloat(ci.answers.weight);
@@ -3782,19 +3855,60 @@ window.syncClientFromCheckin=syncClientFromCheckin;
 
 function openSimulateCheckin(id){openCIFill(id);}
 
-function saveCheckinFill(id){
-  ensureCheckins(id);
-  let ci=pendingCheckin(id);
-  if(!ci)ci=ensurePendingCheckin(id);
-  applyCheckinAnswers(ci,ciFillDraft(id),'trainer');
-  window._ciFillOpen=null;
-  renderCIDetail(id);
-  renderCheckinSummary(id);
-  renderCheckinClientList();
-  try{if(typeof refreshDashOps==='function')refreshDashOps();}catch(e){}
-  notify('✓ Check-in zapisany za klienta');
-  const c=CL.find(x=>x.id===id);
-  addNotification('task','Check-in (wpisany przez Ciebie)',(c?c.name:'Klient'),'checkin');
+async function saveCheckinFill(id){
+  const state=ciFillSaveState(id);
+  if(state.saving||state.conflict||!window._ciFillDraft?.[id]||!ciFillSessionCurrent(state.session))return false;
+  const client=(window.CL||[]).find(c=>c&&c.id===id);
+  if(!client||client.trainerId!==state.session.uid)return false;
+  state.saving=true;state.error='';
+  try{
+    let ci=state.candidate||pendingCheckin(id);
+    if(!ci)ci={id:newId('ci'),clientId:id,trainerId:state.session.uid,
+      date:typeof dateStr==='function'?dateStr(new Date()):new Date().toISOString().slice(0,10),
+      source:'manual',createdAt:new Date().toISOString()};
+    const job=applyCheckinAnswers(ci,{...window._ciFillDraft[id]},'trainer',state);
+    try{if(ciActiveClient===id)renderCIDetail(id);}catch(e){}
+    const saved=await job;
+    if(!saved||!ciFillSessionCurrent(state.session))return false;
+    delete window._ciFillDraft[id];
+    delete window._ciFillSave[id];
+    if(window._ciFillOpen===id)window._ciFillOpen=null;
+    try{if(ciActiveClient===id)renderCIDetail(id);}catch(e){}
+    try{renderCheckinSummary(ciActiveClient);}catch(e){}
+    try{renderCheckinClientList();}catch(e){}
+    try{if(typeof refreshDashOps==='function')refreshDashOps();}catch(e){}
+    notify('✓ Check-in zapisany za klienta');
+    try{addNotification('task','Check-in (wpisany przez Ciebie)',client.name||'Klient','checkin');}catch(e){}
+    return true;
+  }catch(e){
+    if(!ciFillSessionCurrent(state.session))return false;
+    console.warn('Zapis check-inu trenera:',e);
+    state.conflict=e.message==='checkin-already-filled';
+    if(state.conflict&&e.checkin){
+      ensureCheckins(id);
+      const records=window.CHECKINS[id],key=e.checkin._fbId||e.checkin.id;
+      const index=records.findIndex(record=>(record._fbId||record.id)===key);
+      if(index>=0)records[index]=e.checkin;else records.push(e.checkin);
+    }
+    state.error=state.conflict?'Ten raport został już wypełniony. Twoje odpowiedzi zachowano; możesz użyć ich w nowym raporcie.':
+      'Nie potwierdzono zapisu. Odpowiedzi zostały zachowane. Sprawdź połączenie i ponów zapis.';
+    return false;
+  }finally{
+    if(ciFillSessionCurrent(state.session)){
+      state.saving=false;
+      try{if(ciActiveClient===id&&window._ciFillOpen===id)renderCIDetail(id);}catch(e){}
+    }
+  }
+}
+function closeCIFill(id){
+  if(window._ciFillOpen===id)window._ciFillOpen=null;
+  if(ciActiveClient===id)renderCIDetail(id);
+}
+function ciFillStartNew(id){
+  const state=ciFillSaveState(id);
+  if(state.saving||!state.conflict)return;
+  delete state.candidate;state.conflict=false;state.error='';
+  openCIFill(id);
 }
 
 function sendCheckinTo(id){

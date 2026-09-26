@@ -4256,7 +4256,7 @@ window.doPasswordReset=async function(){
 
 const TENANT_DEFAULT_SETTINGS=JSON.parse(JSON.stringify(window.SETTINGS||{}));
 const TENANT_ARRAY_KEYS=['CL','PL','SE','EX','WO','TASKS','KB','METRIC_ENTRIES','PROGRESS_PHOTOS','METRIC_GROUPS','PACKAGES','INVOICES','FORM_SENDS','REP_HISTORY','CUSTOM_FORMS','USER_PROGRAMS','TPL_CUSTOM','NOTIFICATIONS','AUTOFLOWS','FORUM_GROUPS','FORUM_POSTS','OD_WORKOUTS','OD_PROGRAMS','OD_PROGRESS','ONB_ACTIVE','CLIENT_GROUPS','USER_RESOURCES','COACH_VIDEOS','ONBOARD_HISTORY','LIVE_HISTORY','INT_EVENT_LOG','aicMsgs','aicHistorySessions','_appEvents'];
-const TENANT_MAP_KEYS=['MSGS','CHECKINS','CLIENT_NOTES','CLIENT_DOCS','CLIENT_ACTIVITY','CLIENT_TIMELINE','CLIENT_PSYCHO','CLIENT_SFR','CLIENT_FOOD','INT_CONNECTIONS','EX_GIF_REMOTE','FORUM_COMMENTS','_cliveFormAnswers','_cliveCheckin','_ciFillDraft','_cpCoopCache','_cpCoopBusy','_forumViewed','_dashListExpanded'];
+const TENANT_MAP_KEYS=['MSGS','CHECKINS','CLIENT_NOTES','CLIENT_DOCS','CLIENT_ACTIVITY','CLIENT_TIMELINE','CLIENT_PSYCHO','CLIENT_SFR','CLIENT_FOOD','INT_CONNECTIONS','EX_GIF_REMOTE','FORUM_COMMENTS','_cliveFormAnswers','_cliveCheckin','_ciFillDraft','_ciFillSave','_ciPendingWrites','_cpCoopCache','_cpCoopBusy','_forumViewed','_dashListExpanded'];
 
 onAuthStateChanged(auth,(user)=>{
   const nextUid=user?user.uid:null;
@@ -4347,7 +4347,7 @@ function resetTenantRuntimeData(){
   TENANT_MAP_KEYS.forEach(key=>tenantReplaceRuntimeValue(key,{}));
   window.SETTINGS=JSON.parse(JSON.stringify(TENANT_DEFAULT_SETTINGS));
   window.ONBOARDING_FLOW=null;
-  ['_settingsDocId','_clientId','_trainerId','_clientAccount','_cw','_odPlay','_odHwTaskId','_ppDraft','_ppCmp','_payCopy','_kbLastPlanningContext','_lastMethodRationale','_cpExerciseProgress','_onboardClientId','_onboardResumeAfterInvite','_onboardResumeAfterPackage','_onboardResumeAfterLive','_cpEditingClientId','_assignHwClientId','_assignHwWorkoutId','_assignWorkoutId','_editingClientId','_editingSessionId','_editingFormId','_editingProgId','_editingTaskId','_editingVideoId','_editingTplId','_editingODProgId','_editingKbId','_kbPendingMeta','_livePending','_liveSavedClientId','_liveSavedClientName','_liveDraftSessionId','_liveDraftCreatedAt','cpClientId','capClientId','aicClientId','repClientId','curChat','inviteClientId','plansLibClientId','tplDetailId','sendResourceId','metricActiveGroup','aplLastPlan'].forEach(key=>{window[key]=null;});
+  ['_ciFillOpen','_settingsDocId','_clientId','_trainerId','_clientAccount','_cw','_odPlay','_odHwTaskId','_ppDraft','_ppCmp','_payCopy','_kbLastPlanningContext','_lastMethodRationale','_cpExerciseProgress','_onboardClientId','_onboardResumeAfterInvite','_onboardResumeAfterPackage','_onboardResumeAfterLive','_cpEditingClientId','_assignHwClientId','_assignHwWorkoutId','_assignWorkoutId','_editingClientId','_editingSessionId','_editingFormId','_editingProgId','_editingTaskId','_editingVideoId','_editingTplId','_editingODProgId','_editingKbId','_kbPendingMeta','_livePending','_liveSavedClientId','_liveSavedClientName','_liveDraftSessionId','_liveDraftCreatedAt','cpClientId','capClientId','aicClientId','repClientId','curChat','inviteClientId','plansLibClientId','tplDetailId','sendResourceId','metricActiveGroup','aplLastPlan'].forEach(key=>{window[key]=null;});
   window._userEmail='';window._userDisplayName='';
   window._clientAppMode=false;window._clientPreviewMode=false;
   window.aplGenerating=false;window.aicLoading=false;window.repGenerating=false;
@@ -4566,7 +4566,7 @@ async function load(session=captureTenantSession()){
 <script src="01-core.js?v=126&tenant-isolation=2"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=87"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=42&client-review=1&why=1&checkin-chronology=1"></script>
-<script src="04-client-portal.js?v=55&journey=1&tenant-isolation=2&session-guidance=1&checkin-chronology=1"></script>
+<script src="04-client-portal.js?checkin-save=1&v=55&journey=1&tenant-isolation=2&session-guidance=1&checkin-chronology=1"></script>
 <script src="05-clients-builder-plans-calendar.js?v=81&journey=1"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=85"></script>
 <script src="07-forms-metrics-calculator.js?v=42"></script>
