@@ -2872,6 +2872,7 @@ function aicSharedContextSystem(query){
       const plans=PL.filter(p=>p.clientId===c.id);
       const tasks=TASKS.filter(t=>t.clientId===c.id);
       const checkins=window.CHECKINS?.[c.id]||[];
+      const lastCheckin=typeof latestFilledCheckin==='function'?latestFilledCheckin(c.id):checkins.filter(x=>x&&x.status==='filled').slice(-1)[0];
       const metrics=(window.METRIC_ENTRIES||[]).filter(e=>e.clientId===c.id);
       const metricsTxt=typeof clientMetricsContextForAI==='function'?clientMetricsContextForAI(c.id):'';
       extra+=`\n\n=== DANE KLIENTA ===
@@ -2884,7 +2885,7 @@ Wzrost: ${c.height||'—'} cm
 Liczba sesji: ${sessions.length}
 Liczba planów: ${plans.length}
 Liczba zadań: ${tasks.length}
-${checkins.length?`Ostatni check-in: ${JSON.stringify(checkins[checkins.length-1])}`:'Brak check-inów'}
+${lastCheckin?`Ostatni wypełniony check-in: ${JSON.stringify(lastCheckin)}`:'Brak wypełnionych check-inów'}
 ${metricsTxt||(metrics.length?`Ostatnie pomiary (raw): ${JSON.stringify(metrics.slice(-3))}`:'Brak pomiarów')}
 ${plans.length?`Aktualny plan: ${plans[plans.length-1].name}, metoda: ${plans[plans.length-1].method}`:'Brak planu'}
 Notatki: ${c.notes||'—'}`;
