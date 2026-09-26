@@ -7,7 +7,7 @@ const vm = require('vm');
 
 const root = path.join(__dirname, '../..');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-const live = fs.readFileSync(path.join(root, '02-workouts-onboarding-templates-live.js'), 'utf8');
+const live = fs.readFileSync(path.join(root, '02-workouts-onboarding-templates-live.js'), 'utf8').replace(/\r\n/g, '\n');
 const css = fs.readFileSync(path.join(root, 'styles.css'), 'utf8');
 const wf = fs.readFileSync(path.join(root, '.github/workflows/check.yml'), 'utf8');
 
