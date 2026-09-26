@@ -118,6 +118,10 @@ ok('max items cap', F.mergeFeed(feed, [], { maxItems: 1 }).length === 1);
 const ai = F.parseAiJson('```json\n{"tytul_pl":"Trening do upadku","streszczenie":"S.","wniosek":"W.","populacja":"P","ograniczenia":"O","istotnosc":"7"}\n```');
 ok('ai json parsed + relevance clamped', ai && ai.takeaway === 'W.' && ai.relevance === 5, ai);
 ok('ai garbage -> null', F.parseAiJson('nie wiem') === null);
+const directAi = F.aiConnection({ ANTHROPIC_API_KEY: 'test-key' });
+ok('AI prefers direct key', directAi && directAi.label === 'Anthropic' && directAi.headers['x-api-key'] === 'test-key');
+const proxyAi = F.aiConnection({});
+ok('AI translates through app proxy without a separate key', proxyAi && proxyAi.label === 'proxy aplikacji' && /workers\.dev/.test(proxyAi.url));
 
 // repo wiring
 const feedFile = path.join(root, 'research-feed.json');
