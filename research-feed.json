@@ -1,7 +1,7 @@
 {
  "version": 1,
  "generatedAt": "2026-09-26T07:49:23.251Z",
- "lookbackDays": 14,
+ "lookbackDays": 90,
  "categories": [
   {
    "id": "hipertrofia",
