@@ -11,15 +11,22 @@ const fs=require('fs'),path=require('path'),os=require('os');
   const page=await browser.newPage();
   for(const [width,height] of [[1366,768],[1024,768],[390,844]]){
    await page.setViewportSize({width,height});
+   await page.route('https://www.gstatic.com/firebasejs/**', route => route.abort());
    await page.goto('http://127.0.0.1:'+(process.env.LAYOUT_PORT||8080)+'/index.html',{waitUntil:'domcontentloaded'});
    await page.waitForFunction(()=>typeof renderLiveExercises==='function');
    await page.evaluate(()=>{
+    // Signed-in tenant fixture; no production Firebase connection.
+    window._uid = 'ui-trainer';
+    window._clientAppMode = false;
+    window.tenantSessionGeneration = 1;
+    window._tenantDataReady = true;
+    window._db = { fixture: true };
     window.persistById=async(_c,o)=>o;window.notify=()=>{};
     const auth=document.getElementById('auth-screen');if(auth)auth.style.display='none';
     const app=document.getElementById('app-root');if(app)app.style.display='';
     const loading=document.getElementById('app-loading');if(loading)loading.style.display='none';
-    window.CL=[{id:'readable',name:'Klient testowy'}];window.SE=[];
-    window.PL=[{id:'readable-plan',clientId:'readable',name:'Plan testowy',days:Array.from({length:4},(_,i)=>({day:'Dzień '+(i+1),exercises:[]}))}];
+    window.CL=[{id:'readable',trainerId:window._uid,name:'Klient testowy'}];window.SE=[];
+    window.PL=[{id:'readable-plan',trainerId:window._uid,clientId:'readable',name:'Plan testowy',days:Array.from({length:4},(_,i)=>({day:'Dzień '+(i+1),exercises:[]}))}];
     goTo('live');liveClientSetField('readable','Klient testowy',true,0);
     window.livePlanId='readable-plan';window.liveSessionActive=false;window.liveCurrentDayIdx=0;
     window.liveExercises=[4,2,6].map((count,i)=>({name:'Wyciskanie na maszynie — pełna nazwa ćwiczenia '+i,reps:'8–12',rir:'2',restSec:90,note:'Kontroluj ruch',done:false,sets:Array.from({length:count},(_,si)=>({setNo:si+1,kg:'40',reps:'10',rir:'',done:false}))}));

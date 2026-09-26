@@ -20,10 +20,17 @@ function ok(name, cond, extra) {
   const browser = await chromium.launch({ headless: process.env.LAYOUT_HEADED !== '1' });
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   page.setDefaultTimeout(20000);
+  await page.route('https://www.gstatic.com/firebasejs/**', route => route.abort());
   await page.goto('http://localhost:' + port + '/index.html', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(700);
 
   await page.evaluate(() => {
+    // Signed-in tenant fixture; no production Firebase connection.
+    window._uid = 'ui-trainer';
+    window._clientAppMode = false;
+    window.tenantSessionGeneration = 1;
+    window._tenantDataReady = true;
+    window._db = { fixture: true };
     window.persistById = async (_c, o) => o;
     const auth = document.getElementById('auth-screen');
     const app = document.getElementById('app-root');
@@ -32,7 +39,7 @@ function ok(name, cond, extra) {
     const loading = document.getElementById('app-loading');
     if (loading) loading.style.display = 'none';
     window.CL = [{
-      id: 'c-justyna', name: 'Justyna Chylińska', age: 35, weight: 68, height: 168,
+      id: 'c-justyna', trainerId: window._uid, name: 'Justyna Chylińska', age: 35, weight: 68, height: 168,
       goal: 'redukcja', level: 'początkujący', gender: 'kobieta', status: 'active'
     }];
     window.SE = [];

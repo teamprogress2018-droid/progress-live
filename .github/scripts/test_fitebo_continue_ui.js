@@ -21,10 +21,17 @@ function ok(name, cond, extra) {
   const browser = await chromium.launch({ headless: process.env.LAYOUT_HEADED !== '1' });
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   page.setDefaultTimeout(20000);
+  await page.route('https://www.gstatic.com/firebasejs/**', route => route.abort());
   await page.goto('http://' + host + ':' + port + '/index.html', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(600);
 
   await page.evaluate(() => {
+    // Signed-in tenant fixture; no production Firebase connection.
+    window._uid = 'ui-trainer';
+    window._clientAppMode = false;
+    window.tenantSessionGeneration = 1;
+    window._tenantDataReady = true;
+    window._db = { fixture: true };
     window.persistById = async (_c, o) => o;
     window.notify = () => {};
     window.aplGenerate = function () { window.__aplGenCalled = true; };
@@ -35,7 +42,7 @@ function ok(name, cond, extra) {
     const loading = document.getElementById('app-loading');
     if (loading) loading.style.display = 'none';
     window.CL = [{
-      id: 'c-rad',
+      id: 'c-rad', trainerId: window._uid,
       name: 'Radosław Jarząb',
       goal: 'masa',
       level: 'poczatkujacy',
@@ -43,7 +50,7 @@ function ok(name, cond, extra) {
       trainingFreq: 3
     }];
     window.PL = [{
-      id: 'p-fb',
+      id: 'p-fb', trainerId: window._uid,
       clientId: 'c-rad',
       name: 'Plan z Fitebo',
       method: 'PPL',
@@ -57,7 +64,7 @@ function ok(name, cond, extra) {
       ]
     }];
     window.SE = [{
-      id: 's-fb', clientId: 'c-rad', date: '2026-09-08', type: 'Push', source: 'fitebo',
+      id: 's-fb', trainerId: window._uid, clientId: 'c-rad', date: '2026-09-08', type: 'Push', source: 'fitebo',
       notes: 'Zaimportowano z Fitebo',
       exercises: [{ name: 'Wyciskanie hantli', kg: 24.5 }]
     }];

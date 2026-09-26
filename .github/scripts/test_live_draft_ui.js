@@ -21,11 +21,18 @@ function ok(name, cond, extra) {
   const browser = await chromium.launch({ headless: process.env.LAYOUT_HEADED !== '1' });
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   page.setDefaultTimeout(20000);
+  await page.route('https://www.gstatic.com/firebasejs/**', route => route.abort());
   await page.goto('http://' + host + ':' + port + '/index.html', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(700);
 
   await page.evaluate(() => {
     window.__persistLog = [];
+    // Signed-in tenant fixture; no production Firebase connection.
+    window._uid = 'ui-trainer';
+    window._clientAppMode = false;
+    window.tenantSessionGeneration = 1;
+    window._tenantDataReady = true;
+    window._db = { fixture: true };
     window.persistById = async (col, o) => { window.__persistLog.push({ col, source: o && o.source, id: o && o.id, sets: ((o && o.exercises) || []).flatMap(e => e.sets || []).filter(s => s && s.done).length }); return o; };
     window.notify = () => {};
     window.confirm = () => true;
@@ -35,7 +42,7 @@ function ok(name, cond, extra) {
     if (app) app.style.display = '';
     const loading = document.getElementById('app-loading');
     if (loading) loading.style.display = 'none';
-    const client = { id: 'c-anna', name: 'Anna Nowak', status: 'active' };
+    const client = { id: 'c-anna', trainerId: window._uid, name: 'Anna Nowak', status: 'active' };
     if (Array.isArray(window.CL)) window.CL.splice(0, window.CL.length, client);
     else window.CL = [client];
     if (Array.isArray(window.SE)) window.SE.splice(0, window.SE.length);

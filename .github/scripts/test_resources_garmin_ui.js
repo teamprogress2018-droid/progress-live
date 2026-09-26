@@ -25,11 +25,18 @@ const SAMPLE_CSV = [
   const browser = await chromium.launch({ headless: process.env.GARMIN_HEADED !== '1' });
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   page.setDefaultTimeout(20000);
+  await page.route('https://www.gstatic.com/firebasejs/**', route => route.abort());
   await page.goto('http://localhost:' + port + '/index.html', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(700);
 
   await page.evaluate((csv) => {
     window.__garminCsv = csv;
+    // Signed-in tenant fixture; importing CSV must keep its trainer owner.
+    window._uid = 'ui-trainer';
+    window._clientAppMode = false;
+    window.tenantSessionGeneration = 1;
+    window._tenantDataReady = true;
+    window._db = { fixture: true };
     window.persistById = async (_c, o) => o;
     const auth = document.getElementById('auth-screen');
     const app = document.getElementById('app-root');
@@ -37,7 +44,7 @@ const SAMPLE_CSV = [
     if (app) app.style.display = '';
     const loading = document.getElementById('app-loading');
     if (loading) loading.style.display = 'none';
-    window.CL = [{ id: 'c-anna', name: 'Anna Nowak' }];
+    window.CL = [{ id: 'c-anna', trainerId: window._uid, name: 'Anna Nowak' }];
     window.SE = [];
     window.METRIC_ENTRIES = [];
     window.USER_RESOURCES = (typeof DEMO_RESOURCES !== 'undefined' ? DEMO_RESOURCES : []).map((r) => Object.assign({}, r));
@@ -116,6 +123,7 @@ const SAMPLE_CSV = [
   await page.screenshot({ path: path.join(shotDir, 'garmin_imported.png') });
   ok('ui metric stored', after.metrics.length === 1 && after.metrics[0].values.m2 === 412);
   ok('ui session stored', after.sessions.length === 1 && after.sessions[0].duration === 32);
+  ok('Garmin records belong to this trainer and client', [...after.metrics, ...after.sessions].every(record => record.trainerId === 'ui-trainer' && record.clientId === 'c-anna'));
   ok('garmin auto-connected', after.connected);
   ok('last import shown', /1 pomiar/i.test(after.last) || /Ostatni import/i.test(after.last), after.last);
   ok('jump to metrics button', /Pomiary Garmin/i.test(await page.locator('#int-garmin-jump').innerText().catch(() => '')));

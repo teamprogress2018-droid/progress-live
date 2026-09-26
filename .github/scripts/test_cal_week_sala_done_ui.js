@@ -21,10 +21,17 @@ function ok(name, cond, extra) {
   const browser = await chromium.launch({ headless: process.env.LAYOUT_HEADED !== '1' });
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   page.setDefaultTimeout(20000);
+  await page.route('https://www.gstatic.com/firebasejs/**', route => route.abort());
   await page.goto('http://' + host + ':' + port + '/index.html', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(600);
 
   await page.evaluate(() => {
+    // Signed-in tenant fixture; no production Firebase connection.
+    window._uid = 'ui-trainer';
+    window._clientAppMode = false;
+    window.tenantSessionGeneration = 1;
+    window._tenantDataReady = true;
+    window._db = { fixture: true };
     window.persistById = async (_c, o) => o;
     window.notify = () => {};
     const auth = document.getElementById('auth-screen');
@@ -34,9 +41,9 @@ function ok(name, cond, extra) {
     const loading = document.getElementById('app-loading');
     if (loading) loading.style.display = 'none';
     const today = typeof todayYmd === 'function' ? todayYmd() : new Date().toISOString().slice(0, 10);
-    window.CL = [{ id: 'c-ad', name: 'Adrian Ciszewski', status: 'active' }];
+    window.CL = [{ id: 'c-ad', trainerId: window._uid, name: 'Adrian Ciszewski', status: 'active' }];
     window.SE = [{
-      id: 'p-ad',
+      id: 'p-ad', trainerId: window._uid,
       clientId: 'c-ad',
       date: today,
       time: '08:00',
@@ -45,13 +52,13 @@ function ok(name, cond, extra) {
       source: 'planned'
     }];
     window.PL = [{
-      id: 'pl-ad', clientId: 'c-ad', name: 'PPL',
+      id: 'pl-ad', trainerId: window._uid, clientId: 'c-ad', name: 'PPL',
       days: [{ exercises: [{ name: 'Wyciskanie sztangi leżąc' }, { name: 'Pompki' }] }]
     }];
     window.SE[0].planId = 'pl-ad';
     window.SE[0].dayIdx = 0;
     window.PACKAGES = [{
-      id: 'pk-ad', clientId: 'c-ad', title: '10 sesji', payStatus: 'paid',
+      id: 'pk-ad', trainerId: window._uid, clientId: 'c-ad', title: '10 sesji', payStatus: 'paid',
       sessions: 10, sessionsUsed: 3, expiresDate: '2027-01-01'
     }];
     window.CHECKINS = {};

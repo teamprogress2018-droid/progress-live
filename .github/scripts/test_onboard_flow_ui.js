@@ -21,11 +21,25 @@ function ok(name, cond, extra) {
   const browser = await chromium.launch({ headless: process.env.LAYOUT_HEADED !== '1' });
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   page.setDefaultTimeout(20000);
+  await page.route('https://www.gstatic.com/firebasejs/**', route => route.abort());
   await page.goto('http://' + host + ':' + port + '/index.html', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(600);
 
   await page.evaluate(() => {
+    // Signed-in tenant fixture; no production Firebase connection.
+    window._uid = 'ui-trainer';
+    window._clientAppMode = false;
+    window.tenantSessionGeneration = 1;
+    window._tenantDataReady = true;
+    window._db = { fixture: true };
     window.persistById = async (_c, o) => o;
+    window.__inviteDocs = new Map();
+    window._doc = (_db, collection, id) => ({ collection, id });
+    window._setDoc = async (ref, data) => {
+      if (ref.collection !== 'invites' || data.trainerId !== window._uid)
+        throw new Error('Unexpected invite fixture write');
+      window.__inviteDocs.set(ref.id, structuredClone(data));
+    };
     window.notify = () => {};
     const auth = document.getElementById('auth-screen');
     const app = document.getElementById('app-root');
@@ -33,7 +47,7 @@ function ok(name, cond, extra) {
     if (app) app.style.display = '';
     const loading = document.getElementById('app-loading');
     if (loading) loading.style.display = 'none';
-    const client = { id: 'c-ewelina', name: 'Ewelina Test', status: 'active', email: 'ewelina@studio.pl' };
+    const client = { id: 'c-ewelina', trainerId: window._uid, name: 'Ewelina Test', status: 'active', email: 'ewelina@studio.pl' };
     if (Array.isArray(window.CL)) window.CL.splice(0, window.CL.length, client);
     else window.CL = [client];
     window.PL = [];
@@ -73,6 +87,14 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'onboard_invite_gmail.png') });
   ok('invite opened from onboard', /Gmail/i.test(inviteUi.send) && inviteUi.emailActive, JSON.stringify(inviteUi));
   ok('invite email is default', /Gmail|e-mail/i.test(inviteUi.hint), inviteUi.hint);
+  const storedInvite = await page.evaluate(() => {
+    const client = window.CL[0];
+    const invite = window.__inviteDocs.get(client.inviteToken);
+    return !!invite && invite.trainerId === window._uid && invite.clientId === client.id
+      && invite.emailLower === client.email.toLowerCase() && invite.expiresAt instanceof Date
+      && invite.expiresAt.getTime() > Date.now() && invite.consumedBy === null;
+  });
+  ok('invite is stored for this trainer/client with expiry', storedInvite);
 
   await page.click('#m-invite .modal-footer button:has-text("Pomiń")');
   await page.waitForTimeout(700);

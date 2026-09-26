@@ -22,11 +22,24 @@ function ok(name, cond, extra) {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   page.setDefaultTimeout(20000);
   page.on('dialog', d => d.accept());
+  await page.route('https://www.gstatic.com/firebasejs/**', route => route.abort());
   await page.goto('http://' + host + ':' + port + '/index.html', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(500);
 
   await page.evaluate(() => {
+    // Signed-in tenant fixture; no production Firebase connection.
+    window._uid = 'ui-trainer';
+    window._clientAppMode = false;
+    window.tenantSessionGeneration = 1;
+    window._tenantDataReady = true;
+    window._db = { fixture: true };
     window.persistById = async (_c, o) => o;
+    window.__deletedSessions = [];
+    window._doc = (_db, collection, id) => ({ collection, id });
+    window._del = async ref => {
+      if (ref.collection !== 'sessions') throw new Error('Unexpected delete fixture collection');
+      window.__deletedSessions.push(ref.id);
+    };
     window.notify = () => {};
     try { localStorage.clear(); } catch (e) {}
     const auth = document.getElementById('auth-screen');
@@ -42,12 +55,12 @@ function ok(name, cond, extra) {
     const mon = typeof ymdAdd === 'function' ? ymdAdd(today, mondayOff) : today;
     const wed = typeof ymdAdd === 'function' ? ymdAdd(mon, 2) : today;
     const thu = typeof ymdAdd === 'function' ? ymdAdd(mon, 3) : today;
-    window.CL = [{ id: 'c-ola', name: 'Ola', goal: 'redukcja', status: 'active' }];
-    window.PL = [{ id: 'pl-ola', clientId: 'c-ola', name: 'FBW', days: [{ exercises: [{ name: 'Przysiad' }] }] }];
+    window.CL = [{ id: 'c-ola', trainerId: window._uid, name: 'Ola', goal: 'redukcja', status: 'active' }];
+    window.PL = [{ id: 'pl-ola', trainerId: window._uid, clientId: 'c-ola', name: 'FBW', days: [{ exercises: [{ name: 'Przysiad' }] }] }];
     window.SE = [
-      { id: 'p-mon', clientId: 'c-ola', date: mon, source: 'planned', type: 'PON PLAN', planId: 'pl-ola', dayIdx: 0 },
-      { id: 'p-wed', clientId: 'c-ola', date: wed, source: 'planned', type: 'ŚR PLAN', planId: 'pl-ola', dayIdx: 0 },
-      { id: 'live-keep', clientId: 'c-ola', date: thu, source: 'live', type: 'Live', exercises: [{ name: 'Przysiad', sets: [{ kg: 40, reps: 8 }] }] }
+      { id: 'p-mon', trainerId: window._uid, clientId: 'c-ola', date: mon, source: 'planned', type: 'PON PLAN', planId: 'pl-ola', dayIdx: 0 },
+      { id: 'p-wed', trainerId: window._uid, clientId: 'c-ola', date: wed, source: 'planned', type: 'ŚR PLAN', planId: 'pl-ola', dayIdx: 0 },
+      { id: 'live-keep', trainerId: window._uid, clientId: 'c-ola', date: thu, source: 'live', type: 'Live', exercises: [{ name: 'Przysiad', sets: [{ kg: 40, reps: 8 }] }] }
     ];
     window.TASKS = [];
     if (typeof openClientProfile === 'function') openClientProfile('c-ola');
@@ -79,6 +92,9 @@ function ok(name, cond, extra) {
   await page.screenshot({ path: path.join(shotDir, 'cp_cal_del_cleared.png') });
   ok('all planned gone', afterAll.planned === 0, JSON.stringify(afterAll));
   ok('live still there', afterAll.live === 1);
+  ok('storage delete targets only both planned sessions', await page.evaluate(() =>
+    window.__deletedSessions.slice().sort().join(',') === 'p-mon,p-wed'
+  ));
   ok('no plan cards left', afterAll.tiles === 0 || !/PON PLAN|ŚR PLAN/.test(afterAll.body));
 
   await browser.close();

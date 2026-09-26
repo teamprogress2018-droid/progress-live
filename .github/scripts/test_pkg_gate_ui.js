@@ -21,10 +21,17 @@ function ok(name, cond, extra) {
   const browser = await chromium.launch({ headless: process.env.LAYOUT_HEADED !== '1' });
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   page.setDefaultTimeout(20000);
+  await page.route('https://www.gstatic.com/firebasejs/**', route => route.abort());
   await page.goto('http://' + host + ':' + port + '/index.html', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(700);
 
   await page.evaluate(() => {
+    // Signed-in tenant fixture; no production Firebase connection.
+    window._uid = 'ui-trainer';
+    window._clientAppMode = false;
+    window.tenantSessionGeneration = 1;
+    window._tenantDataReady = true;
+    window._db = { fixture: true };
     window.persistById = async (_c, o) => o;
     window.notify = () => {};
     const auth = document.getElementById('auth-screen');
@@ -33,7 +40,7 @@ function ok(name, cond, extra) {
     if (app) app.style.display = '';
     const loading = document.getElementById('app-loading');
     if (loading) loading.style.display = 'none';
-    const client = { id: 'c-anna', name: 'Anna Nowak', status: 'active', goal: 'redukcja', level: 'sredni' };
+    const client = { id: 'c-anna', trainerId: window._uid, name: 'Anna Nowak', status: 'active', goal: 'redukcja', level: 'sredni' };
     if (Array.isArray(window.CL)) {
       window.CL.splice(0, window.CL.length, client);
     } else window.CL = [client];
@@ -41,11 +48,11 @@ function ok(name, cond, extra) {
     window.PACKAGES = window.PACKAGES || [];
     if (Array.isArray(window.PACKAGES)) {
       window.PACKAGES.splice(0, window.PACKAGES.length, {
-        id: 'pk-unpaid', clientId: 'c-anna', title: '10 sesji', price: 1500, payStatus: 'pending', sessions: 10, sessionsUsed: 0
+        id: 'pk-unpaid', trainerId: window._uid, clientId: 'c-anna', title: '10 sesji', price: 1500, payStatus: 'pending', sessions: 10, sessionsUsed: 0
       });
     }
     window.SE = window.SE || [];
-    window.PL = [{ id: 'pl-anna', clientId: 'c-anna', name: 'PPL', days: [{ exercises: [{ name: 'Przysiad' }] }] }];
+    window.PL = [{ id: 'pl-anna', trainerId: window._uid, clientId: 'c-anna', name: 'PPL', days: [{ exercises: [{ name: 'Przysiad' }] }] }];
     if (typeof openClientProfile === 'function') openClientProfile('c-anna');
   });
 
@@ -70,7 +77,7 @@ function ok(name, cond, extra) {
 
   const nameOnly = await page.evaluate(() => {
     (window.PACKAGES || []).push({
-      id: 'pk-name-collision', clientId: 'c-other', clientName: 'Anna Nowak',
+      id: 'pk-name-collision', trainerId: window._uid, clientId: 'c-other', clientName: 'Anna Nowak',
       title: 'Cudzy pakiet', price: 1, payStatus: 'paid', sessions: 1, sessionsUsed: 0
     });
     if (typeof renderCPPayments === 'function') renderCPPayments(window.CL[0]);

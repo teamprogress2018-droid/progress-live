@@ -21,11 +21,25 @@ function ok(name, cond, extra) {
   const browser = await chromium.launch({ headless: process.env.LAYOUT_HEADED !== '1' });
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   page.setDefaultTimeout(20000);
+  await page.route('https://www.gstatic.com/firebasejs/**', route => route.abort());
   await page.goto('http://' + host + ':' + port + '/index.html', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(500);
 
   const boot = await page.evaluate(() => {
+    // Signed-in tenant fixture; no production Firebase connection.
+    window._uid = 'ui-trainer';
+    window._clientAppMode = false;
+    window.tenantSessionGeneration = 1;
+    window._tenantDataReady = true;
+    window._db = { fixture: true };
     window.persistById = async (_c, o) => o;
+    window.__inviteDocs = new Map();
+    window._doc = (_db, collection, id) => ({ collection, id });
+    window._setDoc = async (ref, data) => {
+      if (ref.collection !== 'invites' || data.trainerId !== window._uid)
+        throw new Error('Unexpected invite fixture write');
+      window.__inviteDocs.set(ref.id, structuredClone(data));
+    };
     window.notify = () => {};
     const auth = document.getElementById('auth-screen');
     const app = document.getElementById('app-root');
@@ -33,14 +47,14 @@ function ok(name, cond, extra) {
     if (app) app.style.display = '';
     const loading = document.getElementById('app-loading');
     if (loading) loading.style.display = 'none';
-    const a = { id: 'c-aga', name: 'Aga Test', status: 'active', email: 'aga@studio.pl', phone: '500100200' };
-    const p = { id: 'c-piotr', name: 'Piotr Urbaniak', status: 'active', email: 'piotr@studio.pl', phone: '692335692' };
+    const a = { id: 'c-aga', trainerId: window._uid, name: 'Aga Test', status: 'active', email: 'aga@studio.pl', phone: '500100200' };
+    const p = { id: 'c-piotr', trainerId: window._uid, name: 'Piotr Urbaniak', status: 'active', email: 'piotr@studio.pl', phone: '692335692' };
     window.CL = [a, p];
     window.PL = [{
-      id: 'pl-piotr', clientId: 'c-piotr', name: 'FBW Siła 4×/tydzień — Piotr Urbaniak',
+      id: 'pl-piotr', trainerId: window._uid, clientId: 'c-piotr', name: 'FBW Siła 4×/tydzień — Piotr Urbaniak',
       days: [{ day: 'D1', rest: false, exercises: [{ name: 'Rozpiętki', sets: '4', reps: '10' }] }]
     }, {
-      id: 'pl-aga', clientId: 'c-aga', name: 'Plan Agi',
+      id: 'pl-aga', trainerId: window._uid, clientId: 'c-aga', name: 'Plan Agi',
       days: [{ day: 'D1', rest: false, exercises: [{ name: 'Przysiad Goblet', sets: '4', reps: '10' }] }]
     }];
     window.SE = [];
@@ -127,6 +141,12 @@ function ok(name, cond, extra) {
   });
   await page.screenshot({ path: path.join(shotDir, 'ux_whatsapp_copy.png') });
   ok('whatsapp copy is primary', /Kopiuj/.test(wa.send) && wa.extra && /schowka|wklej/i.test(wa.hint), JSON.stringify(wa));
+  ok('WhatsApp link references an owned expiring invite', await page.evaluate(() => {
+    const client = window.CL.find(c => c.id === 'c-piotr');
+    const invite = window.__inviteDocs.get(client.inviteToken);
+    return !!invite && invite.trainerId === window._uid && invite.clientId === client.id
+      && invite.expiresAt instanceof Date && invite.expiresAt.getTime() > Date.now();
+  }));
 
   await page.evaluate(() => {
     if (typeof closeM === 'function') closeM('m-invite');

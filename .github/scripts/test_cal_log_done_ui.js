@@ -22,10 +22,17 @@ function ok(name, cond, extra) {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   page.setDefaultTimeout(20000);
   page.on('dialog', d => d.accept());
+  await page.route('https://www.gstatic.com/firebasejs/**', route => route.abort());
   await page.goto('http://' + host + ':' + port + '/index.html', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(700);
 
   await page.evaluate(() => {
+    // Signed-in tenant fixture; no production Firebase connection.
+    window._uid = 'ui-trainer';
+    window._clientAppMode = false;
+    window.tenantSessionGeneration = 1;
+    window._tenantDataReady = true;
+    window._db = { fixture: true };
     window.persistById = async (_c, o) => o;
     window.notify = () => {};
     const auth = document.getElementById('auth-screen');
@@ -37,7 +44,7 @@ function ok(name, cond, extra) {
     const today = typeof todayYmd === 'function' ? todayYmd() : '';
     const yest = typeof ymdAdd === 'function' ? ymdAdd(today, -1) : today;
     window.CL = [{
-      id: 'c-justyna',
+      id: 'c-justyna', trainerId: window._uid,
       name: 'Justyna Chylińska',
       goal: 'redukcja',
       level: 'poczatkujacy',
@@ -45,17 +52,17 @@ function ok(name, cond, extra) {
       status: 'active'
     }];
     window.PL = [{
-      id: 'pl-justyna',
+      id: 'pl-justyna', trainerId: window._uid,
       clientId: 'c-justyna',
       name: 'Obwód A/B',
       days: [{ exercises: [{ name: 'Przysiad goblet' }, { name: 'Wyciskanie' }] }]
     }];
     window.SE = [
-      { id: 'p-past', clientId: 'c-justyna', date: yest, source: 'planned', type: 'PON — OBWÓD A', planId: 'pl-justyna', dayIdx: 0 },
-      { id: 'p-today', clientId: 'c-justyna', date: today, source: 'planned', type: 'ŚR — OBWÓD B', planId: 'pl-justyna', dayIdx: 0 }
+      { id: 'p-past', trainerId: window._uid, clientId: 'c-justyna', date: yest, source: 'planned', type: 'PON — OBWÓD A', planId: 'pl-justyna', dayIdx: 0 },
+      { id: 'p-today', trainerId: window._uid, clientId: 'c-justyna', date: today, source: 'planned', type: 'ŚR — OBWÓD B', planId: 'pl-justyna', dayIdx: 0 }
     ];
     window.PACKAGES = [{
-      id: 'pk-justyna', clientId: 'c-justyna', title: '10 sesji', payStatus: 'paid',
+      id: 'pk-justyna', trainerId: window._uid, clientId: 'c-justyna', title: '10 sesji', payStatus: 'paid',
       sessions: 10, sessionsUsed: 3, expiresDate: '2027-01-01'
     }];
     window.CHECKINS = {};

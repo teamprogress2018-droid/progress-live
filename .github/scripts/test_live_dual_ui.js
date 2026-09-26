@@ -20,10 +20,17 @@ function ok(name, cond, extra) {
   const browser = await chromium.launch({ headless: process.env.LAYOUT_HEADED !== '1' });
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   page.setDefaultTimeout(20000);
+  await page.route('https://www.gstatic.com/firebasejs/**', route => route.abort());
   await page.goto('http://127.0.0.1:' + port + '/index.html', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(400);
 
   await page.evaluate(() => {
+    // Signed-in tenant fixture; no production Firebase connection.
+    window._uid = 'ui-trainer';
+    window._clientAppMode = false;
+    window.tenantSessionGeneration = 1;
+    window._tenantDataReady = true;
+    window._db = { fixture: true };
     window.persistById = async (_c, o) => o;
     window.confirm = () => true;
     window.notify = () => {};
@@ -35,8 +42,8 @@ function ok(name, cond, extra) {
     const loading = document.getElementById('app-loading');
     if (loading) loading.style.display = 'none';
     window.CL = [
-      { id: 'c1', name: 'Justyna Chylińska' },
-      { id: 'c2', name: 'Anna Kowalska' }
+      { id: 'c1', trainerId: window._uid, name: 'Justyna Chylińska' },
+      { id: 'c2', trainerId: window._uid, name: 'Anna Kowalska' }
     ];
     window.SE = [];
     window.PL = [];

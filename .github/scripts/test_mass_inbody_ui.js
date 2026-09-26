@@ -21,10 +21,17 @@ function ok(name, cond, extra) {
   const browser = await chromium.launch({ headless: process.env.LAYOUT_HEADED !== '1' });
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   page.setDefaultTimeout(20000);
+  await page.route('https://www.gstatic.com/firebasejs/**', route => route.abort());
   await page.goto('http://' + host + ':' + port + '/index.html', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(700);
 
   await page.evaluate(() => {
+    // Signed-in tenant fixture; no production Firebase connection.
+    window._uid = 'ui-trainer';
+    window._clientAppMode = false;
+    window.tenantSessionGeneration = 1;
+    window._tenantDataReady = true;
+    window._db = { fixture: true };
     window.persistById = async (_c, o) => o;
     window.notify = () => {};
     const auth = document.getElementById('auth-screen');
@@ -34,7 +41,7 @@ function ok(name, cond, extra) {
     const loading = document.getElementById('app-loading');
     if (loading) loading.style.display = 'none';
     window.CL = [{
-      id: 'c-aga', name: 'Agnieszka Sakowska', age: 35, weight: 55.8, height: 168,
+      id: 'c-aga', trainerId: window._uid, name: 'Agnieszka Sakowska', age: 35, weight: 55.8, height: 168,
       goal: 'redukcja', level: 'poczatkujacy', gender: 'K', status: 'active'
     }];
     window.SE = [];
@@ -42,7 +49,7 @@ function ok(name, cond, extra) {
     window.TASKS = [];
     window.METRIC_GROUPS = [];
     window.METRIC_ENTRIES = [{
-      id: 'me-aga', clientId: 'c-aga', groupId: 'mg1', date: '2026-09-06',
+      id: 'me-aga', trainerId: window._uid, clientId: 'c-aga', groupId: 'mg1', date: '2026-09-06',
       values: { m1: 55.8, m2: 28, m3: 38.1, m4: 19.8 }
     }];
   });

@@ -19,10 +19,17 @@ function ok(name, cond, extra) {
   const browser = await chromium.launch({ headless: process.env.OD_HEADED !== '1' });
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   page.setDefaultTimeout(20000);
+  await page.route('https://www.gstatic.com/firebasejs/**', route => route.abort());
   await page.goto('http://localhost:' + port + '/index.html', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(700);
 
   await page.evaluate(() => {
+    // Signed-in tenant fixture; no production Firebase connection.
+    window._uid = 'ui-trainer';
+    window._clientAppMode = false;
+    window.tenantSessionGeneration = 1;
+    window._tenantDataReady = true;
+    window._db = { fixture: true };
     window.persistById = async (_c, o) => o;
     const auth = document.getElementById('auth-screen');
     const app = document.getElementById('app-root');
@@ -30,7 +37,7 @@ function ok(name, cond, extra) {
     if (app) app.style.display = '';
     const loading = document.getElementById('app-loading');
     if (loading) loading.style.display = 'none';
-    window.CL = [{ id: 'c-anna', name: 'Anna Nowak' }];
+    window.CL = [{ id: 'c-anna', trainerId: window._uid, name: 'Anna Nowak' }];
     window.OD_WORKOUTS = [];
     if (typeof ensureODWorkouts === 'function') ensureODWorkouts();
     if (typeof ensureODPrograms === 'function') ensureODPrograms();
@@ -117,10 +124,13 @@ function ok(name, cond, extra) {
 
   await page.evaluate(() => {
     if (typeof closeODPlayer === 'function') closeODPlayer();
+    window._uid = 'ui-client';
+    window._trainerId = 'ui-trainer';
+    window.tenantSessionGeneration++;
     window._clientAppMode = true;
     window._clientId = 'c-anna';
     window._clientLiveScreen = 'home';
-    window.CL = [{ id: 'c-anna', name: 'Anna Nowak' }];
+    window.CL = [{ id: 'c-anna', trainerId: window._trainerId, name: 'Anna Nowak' }];
     window.SETTINGS = window.SETTINGS || {};
     window.SETTINGS.clientApp = { visibleSections: { ondemand: true } };
     if (typeof ensureODWorkouts === 'function') ensureODWorkouts();
@@ -222,7 +232,7 @@ function ok(name, cond, extra) {
     rec: (window.OD_PROGRESS || [])[0] || null
   }));
   await page.screenshot({ path: path.join(shotDir, 'client_live_odprogram_progress.png') });
-  ok('live progress stored', !!(liveProgDone.rec && (liveProgDone.rec.done || []).length), JSON.stringify(liveProgDone.rec));
+  ok('live progress stored', !!(liveProgDone.rec && liveProgDone.rec.trainerId === 'ui-trainer' && liveProgDone.rec.clientId === 'c-anna' && (liveProgDone.rec.done || []).length), JSON.stringify(liveProgDone.rec));
   ok('live progress percent', /%/.test(liveProgDone.text));
 
   await page.evaluate(() => {
@@ -241,6 +251,9 @@ function ok(name, cond, extra) {
   await page.evaluate(() => {
     if (typeof closeODPlayer === 'function') closeODPlayer();
     document.body.classList.remove('client-app-mode', 'od-playing', 'cw-playing');
+    window._uid = 'ui-trainer';
+    window._trainerId = null;
+    window.tenantSessionGeneration++;
     window._clientAppMode = false;
     const clive = document.getElementById('clive-player');
     if (clive) clive.hidden = true;
