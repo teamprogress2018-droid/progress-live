@@ -20,11 +20,27 @@ function ok(name, cond, extra) {
   const browser = await chromium.launch({ headless: process.env.LAYOUT_HEADED !== '1' });
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   page.setDefaultTimeout(20000);
+  // Isolate the fixture from a real auth observer and every production write.
+  await page.route('https://www.gstatic.com/firebasejs/**', route => route.abort());
   await page.goto('http://localhost:' + port + '/index.html', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(500);
 
   await page.evaluate(() => {
-    window.persistById = async (_c, o) => o;
+    window._uid = 'live-progress-ui-trainer';
+    window._clientAppMode = false;
+    window.tenantSessionGeneration = 1;
+    window._tenantDataReady = true;
+    window._db = { fixture: 'live-progress' };
+    window.__liveProgressDocs = new Map();
+    window._doc = (_db, collection, id) => ({ collection, id });
+    window._setDoc = async (ref, data, options) => {
+      const key = ref.collection + '/' + ref.id;
+      const existing = window.__liveProgressDocs.get(key);
+      if (!window._uid || data.trainerId !== window._uid || (existing && existing.trainerId !== window._uid)) {
+        throw Object.assign(new Error('Fixture write must belong to the signed-in trainer'), { code: 'permission-denied' });
+      }
+      window.__liveProgressDocs.set(key, JSON.parse(JSON.stringify(options && options.merge ? { ...existing, ...data } : data)));
+    };
     window.confirm = () => true;
     window.notify = () => {};
     const auth = document.getElementById('auth-screen');
@@ -33,7 +49,7 @@ function ok(name, cond, extra) {
     if (app) app.style.display = '';
     const loading = document.getElementById('app-loading');
     if (loading) loading.style.display = 'none';
-    window.CL = [{ id: 'c1', name: 'Justyna Chylińska' }];
+    window.CL = [{ id: 'c1', trainerId: window._uid, name: 'Justyna Chylińska' }];
     window.SE = [];
     window.TASKS = [];
     if (typeof goTo === 'function') goTo('live');
@@ -45,12 +61,12 @@ function ok(name, cond, extra) {
     window.liveClientId = 'c1';
     window.livePlanId = 'pl-goblet';
     window.PL = [{
-      id: 'pl-goblet', clientId: 'c1', name: 'Goblet',
+      id: 'pl-goblet', trainerId: window._uid, clientId: 'c1', name: 'Goblet',
       days: [{ exercises: [{ name: 'Przysiad Goblet', sets: '4', reps: '12' }] }]
     }];
     window.SE = [
       {
-        id: 'g-old', clientId: 'c1', date: '2026-09-06', source: 'live', planId: 'pl-goblet',
+        id: 'g-old', trainerId: window._uid, clientId: 'c1', date: '2026-09-06', source: 'live', planId: 'pl-goblet',
         createdAt: '2026-09-06T19:30:00',
         exercises: [{ name: 'Przysiad Goblet', sets: [
           { setNo: 1, kg: '20', reps: '12', kind: 'work', done: true },
@@ -58,7 +74,7 @@ function ok(name, cond, extra) {
         ] }]
       },
       {
-        id: 'g-new', clientId: 'c1', date: '2026-09-13', source: 'live', planId: 'pl-goblet',
+        id: 'g-new', trainerId: window._uid, clientId: 'c1', date: '2026-09-13', source: 'live', planId: 'pl-goblet',
         createdAt: '2026-09-13T20:00:00',
         exercises: [{ name: 'Przysiad Goblet', sets: [
           { setNo: 1, kg: '20', reps: '12', kind: 'work', done: true },
@@ -231,13 +247,16 @@ function ok(name, cond, extra) {
       return n === 4;
     }) || se.find(s => s.source === 'live') || se[0] || null;
     const adh = typeof clientAdherenceStats === 'function' ? clientAdherenceStats('c1', 30) : null;
+    const stored = liveSess && window.__liveProgressDocs.get('sessions/' + (liveSess._fbId || liveSess.id));
     return {
       n: se.length,
       source: liveSess && liveSess.source,
       sets: liveSess && (liveSess.exercises || []).reduce((acc, e) => acc + ((e.sets || []).length), 0),
       volume: liveSess && liveSess.volume,
       logged: adh && adh.logged,
-      rir: liveSess && liveSess.exercises && liveSess.exercises[0] && liveSess.exercises[0].sets && liveSess.exercises[0].sets[0] && liveSess.exercises[0].sets[0].rir
+      rir: liveSess && liveSess.exercises && liveSess.exercises[0] && liveSess.exercises[0].sets && liveSess.exercises[0].sets[0] && liveSess.exercises[0].sets[0].rir,
+      stored: stored && stored.trainerId === window._uid && stored.clientId === 'c1' && stored.source === 'live'
+        && stored.volume === 288 && stored.exercises[0].sets.length === 4 && stored.exercises[0].sets[0].rir === '2'
     };
   });
   await page.screenshot({ path: path.join(shotDir, 'live_progress_saved.png') });
@@ -245,6 +264,7 @@ function ok(name, cond, extra) {
   ok('saved 4 sets / 288 kg', saved.sets === 4 && saved.volume === 288, JSON.stringify(saved));
   ok('Progress logged includes today', saved.logged >= 1, JSON.stringify(saved));
   ok('saved rir', saved.rir === '2', JSON.stringify(saved));
+  ok('real persistence stores owned live session and its completed sets', saved.stored === true, JSON.stringify(saved));
 
   await browser.close();
   if (failed) process.exit(1);
