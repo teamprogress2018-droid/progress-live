@@ -1,7 +1,7 @@
 {
  "version": 1,
- "generatedAt": "2026-09-25T19:13:07.098Z",
- "lookbackDays": 90,
+ "generatedAt": "2026-09-26T07:45:11.131Z",
+ "lookbackDays": 14,
  "categories": [
   {
    "id": "hipertrofia",
@@ -76,7 +76,15 @@
    ],
    "topJournal": false,
    "firstSeen": "2026-09-25T19:13:07.092Z",
-   "score": 3
+   "score": 1,
+   "ai": {
+    "titlePl": "Wpływ wysokiej zawartości lizyny w diecie na wzrost i skład ciała u młodych świń po okresie ograniczenia białka",
+    "summary": "Badanie na 67 prosiętkach porównało wpływ diety niskoproteinowej (LP) przez 4 tygodnie, a następnie dietę standardową lub standardową wzbogaconą w lizynę (10% lub 20%) przez kolejne 4 tygodnie. Dieta LP nie spowodowała spodziewanego spadku przyrostu dziennego (ADG), a świnie na diecie LP wykazały lepszy stosunek przyrostu do białka (P<0.01) i tendencję do większego odkładu tłuszczu.",
+    "takeaway": "Wynik nie zmienia praktyki treningowej – badanie dotyczy świń i żywienia zwierząt, nie ma bezpośredniego zastosowania u ludzi ćwiczących na siłowni.",
+    "population": "67 prosiętek (wagi weaning 200–220 g/dobę w okresie ssania)",
+    "limits": "Badanie na zwierzętach, populacja bardzo odległa od siłowni; wstępne wyniki, dieta LP nie dała spodziewanego efektu na ADG, co utrudniło główny cel badania",
+    "relevance": 1
+   }
   },
   {
    "pmid": "42599758",
@@ -100,7 +108,15 @@
    ],
    "topJournal": false,
    "firstSeen": "2026-09-25T19:13:07.092Z",
-   "score": 3
+   "score": 1,
+   "ai": {
+    "titlePl": "Ekstrakt z małża zielonego i kryla jako terapia wspomagająca przy upadku tchawicy u psów",
+    "summary": "Badanie porównywało standardowe leczenie plus ekstrakt morski EAB-277 (n=21) względem standardowego leczenia plus placebo (n=20) u 41 psów z potwierdzonym upadkiem tchawicy. Grupa otrzymująca EAB-277 wykazała istotne zwiększenie tolerancji wysiłku do dnia 14. i redukcję upadku tchawicy na poziomie szyi i klatki piersiowej, przy porównywalnym zmniejszeniu kaszlu w obu grupach.",
+    "takeaway": "Wynik nie ma zastosowania dla trenera personalnego pracującego z ludźmi na siłowni.",
+    "population": "Psy (zwierzęta) z klinicznie potwierdzoną tchawicą, n=41",
+    "limits": "Badanie na zwierzętach; brak przełożenia na człowieka; mała próba",
+    "relevance": 1
+   }
   }
  ]
 }
