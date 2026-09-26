@@ -6,10 +6,10 @@ const path = require('path');
 const vm = require('vm');
 
 const root = path.join(__dirname, '../..');
-const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-const src03 = fs.readFileSync(path.join(root, '03-ai-plangen-bizstats-aicoach.js'), 'utf8');
-const src07 = fs.readFileSync(path.join(root, '07-forms-metrics-calculator.js'), 'utf8');
-const wf = fs.readFileSync(path.join(root, '.github', 'workflows', 'check.yml'), 'utf8');
+const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8').replace(/\r\n/g, '\n');
+const src03 = fs.readFileSync(path.join(root, '03-ai-plangen-bizstats-aicoach.js'), 'utf8').replace(/\r\n/g, '\n');
+const src07 = fs.readFileSync(path.join(root, '07-forms-metrics-calculator.js'), 'utf8').replace(/\r\n/g, '\n');
+const wf = fs.readFileSync(path.join(root, '.github', 'workflows', 'check.yml'), 'utf8').replace(/\r\n/g, '\n');
 
 let failed = 0;
 function ok(name, cond) {
@@ -54,7 +54,7 @@ const ctx = {
 ctx.globalThis = ctx;
 vm.createContext(ctx);
 
-const core = fs.readFileSync(path.join(root, '01-core.js'), 'utf8');
+const core = fs.readFileSync(path.join(root, '01-core.js'), 'utf8').replace(/\r\n/g, '\n');
 const mapSlice = core.match(/function formSendAnswersMap\(send\)\{[\s\S]*?\n\}\nwindow\.formSendAnswersMap=formSendAnswersMap;/);
 const injSlice = core.match(/\/\*\* Kontuzje: preferuj dedykowane pole[\s\S]*?\n\}\nfunction clientPhysiquePriorityForAI/);
 ok('core slices', !!(mapSlice && injSlice));
