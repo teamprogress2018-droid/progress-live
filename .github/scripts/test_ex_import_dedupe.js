@@ -6,7 +6,7 @@ const path = require('path');
 const vm = require('vm');
 
 const root = path.join(__dirname, '../..');
-const six = fs.readFileSync(path.join(root, '06-inbox-exercises-ai-programs.js'), 'utf8');
+const six = fs.readFileSync(path.join(root, '06-inbox-exercises-ai-programs.js'), 'utf8').replace(/\r\n/g, '\n');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const css = fs.readFileSync(path.join(root, 'styles.css'), 'utf8');
 const wf = fs.readFileSync(path.join(root, '.github', 'workflows', 'check.yml'), 'utf8');
