@@ -6190,7 +6190,7 @@ function dashNextAction(){
   const reports=typeof dashOpsRecentReports==='function'?dashOpsRecentReports():[];
   if(reports.length){
     const r=reports[0];
-    return{tone:'watch',eyebrow:'Następny krok',title:'Sprawdź raport: '+(r.clientName||'klient'),desc:r.kind==='checkin'?'Nowy check-in czeka na ocenę i odpowiedź.':'Wypełniony formularz czeka na weryfikację.',cta:`goTo('checkin');setTimeout(()=>openCIClient('${escHtml(r.clientId)}'),200)`,ctaLbl:'Sprawdź raport'};
+    return{tone:'watch',eyebrow:'Następny krok',title:'Sprawdź raport: '+(r.clientName||'klient'),desc:r.kind==='checkin'?'Nowy check-in czeka na ocenę i odpowiedź.':'Wypełniony formularz czeka na weryfikację.',cta:r.kind==='checkin'?`goTo('checkin');setTimeout(()=>openCIClient('${escHtml(r.clientId)}'),200)`:`openClientProfile('${escHtml(r.clientId)}',{tab:'forms'})`,ctaLbl:'Sprawdź raport'};
   }
   const sessions=typeof dashTodaySessions==='function'?dashTodaySessions():[];
   if(sessions.length){
@@ -6200,6 +6200,14 @@ function dashNextAction(){
   }
   if(!(window.CL||[]).length){
     return{tone:'info',eyebrow:'Pierwszy krok',title:'Dodaj pierwszego klienta',desc:'Aplikacja przeprowadzi Cię przez ankietę, plan, kalendarz i zaproszenie.',cta:"openM('m-client')",ctaLbl:'Dodaj klienta'};
+  }
+  const clients=(window.CL||[]).filter(c=>c&&c.status!=='archived');
+  for(const c of clients){
+    const st=typeof clientOnboardStatus==='function'?clientOnboardStatus(c):null;
+    if(st&&!st.complete){
+      const step=(window.CLIENT_ONBOARD_STEPS||[]).find(x=>x.id===st.next);
+      return{tone:'info',eyebrow:'Dokończ start współpracy',title:c.name||'Klient',desc:'Następny krok: '+(step?step.label:(st.missingLabels||[])[0]||'Sprawdź checklistę')+'. Ukończono '+st.done+' z '+st.total+' kroków.',cta:`openClientOnboardChecklist('${escHtml(c.id)}')`,ctaLbl:'Otwórz następny krok'};
+    }
   }
   return{tone:'ok',eyebrow:'Plan na dziś wykonany',title:'Wszystko jest na bieżąco',desc:'Możesz rozpocząć trening albo przygotować plan dla kolejnego klienta.',cta:"goTo('live')",ctaLbl:'Trening Live'};
 }
