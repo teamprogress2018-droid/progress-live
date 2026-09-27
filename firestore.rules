@@ -169,6 +169,11 @@ service cloud.firestore {
         && resource.data.status in ['sent', 'pending'] && request.resource.data.status == 'filled'
         && request.resource.data.answers is map && request.resource.data.filledAt is string;
     }
+    // Trainer transactions may check whether their new plan ID is unused.
+    // Existing documents still use the normal owner checks.
+    match /plans/{docId} {
+      allow get: if trainer() && !exists(/databases/$(database)/documents/plans/$(docId));
+    }
     match /checkins/{docId} {
       // A trainer transaction may inspect a new ID; existing records still require ownership.
       allow get: if trainer() && !exists(/databases/$(database)/documents/checkins/$(docId));
