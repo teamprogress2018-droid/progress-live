@@ -7,9 +7,10 @@
 const fs=require('fs');
 const path=require('path');
 const vm=require('vm');
+const assert=require('node:assert/strict');
 
 const root=path.join(__dirname,'../..');
-const src=fs.readFileSync(path.join(root,'09-posture-kb-invites-private.js'),'utf8');
+const src=fs.readFileSync(path.join(root,'09-posture-kb-invites-private.js'),'utf8').replace(/\r\n?/g,'\n');
 
 const confirms=[];
 const notifies=[];
@@ -48,26 +49,18 @@ Object.defineProperty(sandbox,'CL',{
   set(v){windowObj.CL=v;}
 });
 
-// Extract only the client remove helpers from the big file via vm + eval of sliced functions is fragile.
-// Instead: load the function bodies by matching and evaluating them in sandbox.
+// These top-level helpers end at their own unindented closing brace. Do not
+// require the next declaration to immediately follow it: blank lines and mixed
+// line endings previously made the regex capture unrelated payment functions.
 const names=['archiveClient','restoreClient','deleteClientPermanently','refreshClientProfileRemoveActions'];
 for(const name of names){
-  const re=new RegExp('function '+name+'\\([\\s\\S]*?\\n\\}\\n(?=function |var |window\\.|$)');
-  const m=src.match(re);
-  if(!m){
-    // try looser: function name(...) { ... } before next function
-    const start=src.indexOf('function '+name+'(');
-    if(start<0)throw new Error('missing '+name);
-    let i=start,depth=0,started=false;
-    for(;i<src.length;i++){
-      const ch=src[i];
-      if(ch==='{'){depth++;started=true;}
-      else if(ch==='}'){depth--;if(started&&depth===0){i++;break;}}
-    }
-    vm.runInNewContext(src.slice(start,i),sandbox);
-  }else{
-    vm.runInNewContext(m[0],sandbox);
-  }
+  const re=new RegExp('^function '+name+'\\([^\\n]*\\)\\{[\\s\\S]*?^\\}', 'm');
+  const match=src.match(re);
+  assert(match, 'missing helper '+name);
+  const code=match[0];
+  const declarations=code.match(/^(?:(?:async )?function\s+[\w$]+|(?:var|let|const|class)\s+[\w$]+|window\.[\w$]+)/gm)||[];
+  assert.deepEqual(declarations,['function '+name], 'helper extraction must not include another top-level declaration');
+  vm.runInNewContext(code,sandbox,{filename:name+'-helper.js'});
 }
 
 function eq(label,a,b){
