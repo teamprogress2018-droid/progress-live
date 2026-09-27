@@ -433,6 +433,194 @@ test('the maximum twelve-week refill stays in one bounded transaction', async ()
   assert.equal(f.calls.transactions.length, 1); assert.equal(f.calls.writes.length, 24);
 });
 
+function addAlternativePlan(f, changes = {}) {
+  const plan = { ...clone(f.plan), id: 'p2', name: 'Nowszy plan', updatedAt: '2026-10-18T12:00:00.000Z', ...changes };
+  f.ctx.PL.push(clone(plan)); f.shared.records.set('plans/' + plan.id, clone(plan));
+  return plan;
+}
+
+test('explicit plan uses exactly that plan even when a newer eligible plan exists', async () => {
+  const f = fixture(); addAlternativePlan(f);
+  successful(await f.run({ planId: 'p1' }), 8);
+  assert.ok(f.sessions().every(([, session]) => session.planId === 'p1'));
+  assert.ok(f.calls.reads.includes('plans/p1')); assert.equal(f.calls.reads.includes('plans/p2'), false);
+});
+
+test('manual refill without planId continues to choose the newest eligible plan', async () => {
+  const f = fixture(); addAlternativePlan(f);
+  successful(await f.run(), 8);
+  assert.ok(f.sessions().every(([, session]) => session.planId === 'p2'));
+});
+
+for (const kind of ['absent', 'foreign-owner', 'other-client', 'archived', 'deleted', 'no-training', 'empty-id', 'null-id']) {
+  test('explicit ' + kind + ' target never falls back to another eligible plan', async () => {
+    const f = fixture();
+    const patches = {
+      'foreign-owner': { trainerId: 'trainer-b' }, 'other-client': { clientId: 'c2' },
+      archived: { status: 'archived' }, deleted: { deleted: true }, 'no-training': { days: [] }
+    };
+    if (kind in patches) addAlternativePlan(f, patches[kind]);
+    failed(await f.run({ planId: kind === 'empty-id' ? '' : kind === 'null-id' ? null : 'p2' }));
+    assert.equal(f.calls.queries.length, 0); assert.equal(f.calls.transactions.length, 0);
+    assert.equal(f.sessions().length, 0);
+  });
+}
+
+test('explicit target is revalidated from the remote plan before writing', async () => {
+  const f = fixture(); addAlternativePlan(f);
+  f.remotePlan().trainerId = 'trainer-b';
+  failed(await f.run({ planId: 'p1' }));
+  assert.equal(f.calls.writes.length, 0);
+  assert.equal(f.calls.reads.includes('plans/p2'), false);
+});
+
+test('pending manual operation rejects another explicit plan without disturbing its state', async () => {
+  const f = fixture(), entered = deferred(), release = deferred();
+  f.hooks.beforeCommit = async () => { entered.resolve(); await release.promise; };
+  const first = f.run(); await entered.promise;
+  addAlternativePlan(f);
+  const message = f.status.textContent;
+  const conflict = f.run({ planId: 'p2' });
+  assert.notEqual(conflict, first); failed(await conflict);
+  assert.equal(f.button.disabled, true); assert.equal(f.status.textContent, message);
+  assert.equal(f.calls.transactions.length, 1); assert.equal(f.calls.notices.length, 0);
+  release.resolve(); successful(await first, 8);
+  assert.ok(f.sessions().every(([, record]) => record.planId === 'p1'));
+});
+
+test('matching explicit requests share their pending promise and confirm once', async () => {
+  const f = fixture(), entered = deferred(), release = deferred();
+  addAlternativePlan(f);
+  f.hooks.beforeCommit = async () => { entered.resolve(); await release.promise; };
+  const first = f.run({ planId: 'p1', weeks: 4 }); await entered.promise;
+  const second = f.run({ planId: 'p1', weeks: '4', duration: '60', time: '08:00' });
+  assert.equal(second, first);
+  release.resolve(); successful(await second, 8);
+  assert.equal(f.calls.transactions.length, 1); assert.equal(f.calls.writes.length, 8);
+});
+
+for (const changed of [{ weeks: 8 }, { time: '19:00' }, { duration: 90 }]) {
+  test('pending explicit request rejects different scope ' + JSON.stringify(changed), async () => {
+    const f = fixture(), entered = deferred(), release = deferred();
+    f.hooks.beforeCommit = async () => { entered.resolve(); await release.promise; };
+    const first = f.run({ planId: 'p1', weeks: 4 }); await entered.promise;
+    failed(await f.run({ planId: 'p1', ...changed }));
+    assert.equal(f.calls.transactions.length, 1); assert.equal(f.button.disabled, true);
+    release.resolve(); successful(await first, 8);
+    assert.equal(f.calls.writes.length, 8);
+  });
+}
+
+test('implicit defaults on explicit request cannot inherit another pending duration or range', async () => {
+  const f = fixture(), entered = deferred(), release = deferred();
+  f.hooks.beforeCommit = async () => { entered.resolve(); await release.promise; };
+  const first = f.run({ weeks: 8 }); await entered.promise;
+  failed(await f.run({ planId: 'p1' }));
+  release.resolve(); successful(await first, 16);
+});
+
+test('pending explicit request rejects different effective weekdays', async () => {
+  const f = fixture(), entered = deferred(), release = deferred();
+  f.ctx.PL[0].days.forEach(day => delete day.weekday);
+  f.shared.records.set('plans/p1', clone(f.ctx.PL[0]));
+  f.hooks.beforeCommit = async () => { entered.resolve(); await release.promise; };
+  const first = f.run({ planId: 'p1', weekdays: [1, 3] }); await entered.promise;
+  failed(await f.run({ planId: 'p1', weekdays: [2, 4] }));
+  release.resolve(); successful(await first, 8);
+  assert.equal(f.calls.transactions.length, 1);
+});
+
+test('failed exact-plan operation retries frozen records even after a newer plan appears', async () => {
+  const f = fixture(); let firstWrites;
+  f.hooks.beforeCommit = call => { firstWrites = clone(call.writes); throw new Error('Unavailable'); };
+  failed(await f.run({ planId: 'p1', weeks: 4 }));
+  addAlternativePlan(f); f.clock.now += 8 * 86400000;
+  f.hooks.beforeCommit = null;
+  successful(await f.run({ planId: 'p1', weeks: 4 }), 8);
+  assert.deepEqual(f.calls.writes.map(x => x.data), firstWrites.map(x => x.data));
+  assert.equal(f.calls.reads.includes('plans/p2'), false);
+});
+
+test('another explicit plan cannot consume a failed operation and manual retry preserves its payload', async () => {
+  const f = fixture();
+  f.hooks.beforeCommit = () => { throw new Error('Unavailable'); };
+  failed(await f.run({ planId: 'p1' }));
+  addAlternativePlan(f);
+  const message = f.status.textContent, notices = f.calls.notices.length;
+  failed(await f.run({ planId: 'p2' }));
+  assert.equal(f.calls.transactions.length, 1); assert.equal(f.status.textContent, message);
+  assert.equal(f.calls.notices.length, notices); assert.equal(f.button.disabled, false);
+  f.hooks.beforeCommit = null;
+  successful(await f.run(), 8);
+  assert.ok(f.sessions().every(([, record]) => record.planId === 'p1'));
+});
+
+test('failed operation does not swallow an explicit request with a new range', async () => {
+  const f = fixture();
+  f.hooks.beforeCommit = () => { throw new Error('Unavailable'); };
+  failed(await f.run({ planId: 'p1', weeks: 4 }));
+  failed(await f.run({ planId: 'p1', weeks: 8 }));
+  assert.equal(f.calls.transactions.length, 1);
+  f.hooks.beforeCommit = null;
+  successful(await f.run({ planId: 'p1', weeks: 4 }), 8);
+});
+
+test('newly saved version of the same plan cannot receive the old pending success', async () => {
+  const f = fixture(), entered = deferred(), release = deferred();
+  f.hooks.beforeCommit = async () => { entered.resolve(); await release.promise; };
+  const first = f.run({ planId: 'p1' }); await entered.promise;
+  f.ctx.PL[0].days[0].exercises[0].sets = '5';
+  failed(await f.run({ planId: 'p1' }));
+  assert.equal(f.calls.transactions.length, 1);
+  release.resolve(); successful(await first, 8);
+});
+
+test('lost ACK of old plan version requires manual confirmation before an explicit newer version', async () => {
+  const f = fixture();
+  f.hooks.afterCommit = () => { throw new Error('Lost acknowledgement'); };
+  failed(await f.run({ planId: 'p1' }));
+  f.ctx.PL[0].days[0].exercises[0].sets = '5';
+  f.remotePlan().days[0].exercises[0].sets = '5';
+  failed(await f.run({ planId: 'p1' }));
+  assert.equal(f.calls.transactions.length, 1); assert.equal(f.calls.writes.length, 8);
+  f.hooks.afterCommit = null;
+  successful(await f.run(), 0);
+  successful(await f.run({ planId: 'p1' }), 0);
+  assert.equal(f.calls.writes.length, 8);
+});
+
+test('changed plan after a failed pre-commit attempt explicitly explains reload recovery', async () => {
+  const f = fixture();
+  f.hooks.beforeCommit = () => { throw new Error('Unavailable before commit'); };
+  failed(await f.run({ planId: 'p1' }));
+  f.ctx.PL[0].days[0].exercises[0].sets = '5';
+  f.remotePlan().days[0].exercises[0].sets = '5';
+  const conflict = await f.run({ planId: 'p1' });
+  failed(conflict); assert.match(conflict.error, /odśwież aplikację/i);
+  assert.match(conflict.error, /kontynuuj bez dopełnienia/i);
+  assert.doesNotMatch(conflict.error, /ponów je w kalendarzu/i);
+  assert.equal(f.calls.transactions.length, 1); assert.equal(f.calls.writes.length, 0);
+  f.hooks.beforeCommit = null;
+  failed(await f.run()); // Manual retry cannot apply an obsolete plan signature.
+  assert.equal(f.calls.writes.length, 0);
+});
+
+for (const stage of ['query', 'transaction']) {
+  test('coded ' + stage + ' failure returns the same Polish error shown by calendar UI', async () => {
+    const f = fixture();
+    const error = Object.assign(new Error('Missing or insufficient permissions.'), { code: 'permission-denied' });
+    if (stage === 'query') f.hooks.beforeQuery = () => { throw error; };
+    else f.hooks.beforeCommit = () => { throw error; };
+    const result = await f.run({ planId: 'p1' });
+    failed(result); assert.equal(result.error, f.status.textContent);
+    assert.match(result.error, /Nie udało się potwierdzić zapisu/);
+    assert.doesNotMatch(result.error, /Missing|insufficient|permission-denied/);
+    assert.equal(f.calls.writes.length, 0); assert.equal(f.ctx.SE.length, 0);
+    f.hooks.beforeQuery = null; f.hooks.beforeCommit = null;
+    successful(await f.run({ planId: 'p1' }), 8);
+  });
+}
+
 async function run() {
   let passed = 0;
   for (const { name, fn } of tests) {

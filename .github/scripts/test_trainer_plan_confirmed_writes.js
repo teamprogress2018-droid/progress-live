@@ -113,7 +113,9 @@ function fixture(options = {}) {
     notify: (...args) => effects.toast.push(clone(args)),
     builderLeaveToCaller: (...args) => effects.leave.push(clone(args)),
     goTo: (...args) => effects.navigate.push(clone(args)),
-    maybeSchedulePlanToCalendar: (...args) => { effects.schedule.push(clone(args)); return 4; },
+    confirm: () => true,
+    refillCalendarConfirmed: async (...args) => { effects.schedule.push(clone(args)); return {status:'saved',added:4}; },
+    maybeSchedulePlanToCalendar: () => { throw new Error('Legacy scheduler must not run after saving a plan'); },
     maybeResumeOnboard: (...args) => effects.onboard.push(clone(args)),
     renderOnboardBuilderBanner: (...args) => effects.banner.push(clone(args)),
     persistById: async () => { throw new Error('main builder must use confirmed transaction'); },
@@ -466,7 +468,7 @@ test('transaction callback re-execution preserves the same new plan payload', as
 
 test('calendar failure after commit does not make the plan save repeatable', async () => {
   const f = fixture();
-  f.ctx.maybeSchedulePlanToCalendar = (...args) => { f.effects.schedule.push(clone(args)); throw new Error('Calendar unavailable'); };
+  f.ctx.refillCalendarConfirmed = async (...args) => { f.effects.schedule.push(clone(args)); throw new Error('Calendar unavailable'); };
   const saved = await f.ctx.savePlan();
   assert.ok(saved);
   assert.equal(f.plans().length, 1);
