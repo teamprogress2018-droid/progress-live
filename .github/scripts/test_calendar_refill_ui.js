@@ -114,12 +114,26 @@ function ok(name, condition, detail) {
     });
     ok('no refill action for rest-only or empty training days', await button.count() === 0);
     await page.evaluate(() => {
+      window.PL = [{ ...window._calendarRefillUi.plan, status: 'archived' }];
+      renderCPTraining(window.CL[0]);
+    });
+    ok('no refill action when only an archived plan exists', await button.count() === 0);
+    await page.evaluate(() => {
+      window.PL = [{ ...window._calendarRefillUi.plan, trainerId: 'foreign-fixture-owner' }];
+      renderCPTraining(window.CL[0]);
+    });
+    ok('no refill action for a foreign plan', await button.count() === 0);
+    await page.evaluate(() => {
       const f = window._calendarRefillUi;
-      window.PL = [JSON.parse(JSON.stringify(f.plan))];
+      window.PL = [
+        { ...JSON.parse(JSON.stringify(f.plan)), id: 'fixture-newest-archived-plan', status: 'archived', updatedAt: '2026-09-29T10:00:00.000Z' },
+        JSON.parse(JSON.stringify(f.plan))
+      ];
       f.docs['plans/' + f.planId] = JSON.parse(JSON.stringify(f.plan));
       renderCPTraining(window.CL[0]);
     });
     ok('refill available when the calendar is empty', await button.isVisible() && await button.innerText() === 'Dopełnij 4 tygodnie');
+    ok('newest archived plan does not hide an older active plan refill', await button.isVisible());
     ok('refill status is an accessible live region', await status.getAttribute('role') === 'status' && await status.getAttribute('aria-live') === 'polite');
 
     const original = await page.evaluate(() => {
@@ -164,6 +178,7 @@ function ok(name, condition, detail) {
       return { sessions: window.SE, commits: f.commits, unexpectedWrites: f.unexpectedWrites, remote: Object.values(f.docs).filter(d => d.source === 'planned'), status: document.querySelector('[data-calendar-refill-status]').innerText };
     });
     ok('successful retry publishes confirmed sessions once', saved.commits === 1 && saved.sessions.length > 3 && new Set(saved.sessions.map(s => s.id)).size === saved.sessions.length, saved);
+    ok('refill writes the active plan instead of the newest archived plan', saved.sessions.filter(s => !s.id.startsWith('legacy-')).every(s => s.planId === 'calendar-refill-ui-plan'));
     const preserved = saved.sessions.filter(s => s.id.startsWith('legacy-')).map(({ _fbId, ...data }) => data);
     ok('refill preserves skipped, moved and distant session data', JSON.stringify(preserved) === original);
     ok('success is visible only after confirmed commit', /dodano|zapisano|dopełniono|uzupełniono/i.test(saved.status), saved.status);
