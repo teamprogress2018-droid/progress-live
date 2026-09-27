@@ -33,13 +33,42 @@
     });
   }
 
+  const explicitPlan=opts=>Object.prototype.hasOwnProperty.call(opts,'planId');
+  function selectPlan(cid,opts,auth){
+    const plans=(window.PL||[]).filter(p=>owned(p,auth,cid)&&active(p)&&
+      (p.days||[]).some(d=>d&&!d.rest&&(d.exercises||[]).length));
+    if(explicitPlan(opts)){
+      const plan=typeof opts.planId==='string'&&opts.planId.trim()&&plans.find(p=>p.id===opts.planId);
+      if(!plan)throw new Error('Wskazany plan jest niedostępny lub nie ma dni treningowych. Odśwież aplikację i sprawdź plan klienta.');
+      return plan;
+    }
+    const plan=plans.sort((a,b)=>String(b.updatedAt||b.createdAt||'').localeCompare(String(a.updatedAt||a.createdAt||'')))[0];
+    if(!plan)throw new Error('Przypisz klientowi plan z dniami treningowymi.');
+    return plan;
+  }
+  function assertRequestedScope(op,opts){
+    // Manual retry confirms its frozen payload. A named action must match that payload.
+    if(!explicitPlan(opts))return;
+    const plan=selectPlan(op.clientId,opts,op.auth);
+    if(plan.id!==op.plan.id)throw new Error('Poprzednie dopełnienie dotyczy innego planu. Dokończ je w kalendarzu lub kontynuuj bez dopełnienia i odśwież aplikację przed dodaniem terminów aktualnego planu.');
+    if(signature(plan)!==op.planSignature)throw new Error('Poprzednie dopełnienie dotyczy wcześniejszej wersji planu. Kontynuuj bez dopełnienia i odśwież aplikację, aby użyć aktualnego planu.');
+    const client=(window.CL||[]).find(c=>c.id===op.clientId);
+    if(!owned(client,op.auth)||!active(client))throw new Error('Klient jest niedostępny. Odśwież listę klientów.');
+    const weeks=opts.weeks===undefined?4:Number(opts.weeks);
+    const duration=opts.duration===undefined?60:Number(opts.duration);
+    const time=opts.time||window.scheduleTimeFromClient(client,'18:00');
+    if(weeks!==op.options.weeks||duration!==op.options.duration||time!==op.options.time)
+      throw new Error('Poprzednie dopełnienie ma inny zakres lub godzinę. Dokończ je w kalendarzu lub kontynuuj bez dopełnienia i odśwież aplikację przed rozpoczęciem nowego.');
+    const days=op.plan.days.filter(day=>day&&!day.rest&&(day.exercises||[]).length);
+    const preferred=opts.weekdays||client.preferredWeekdays||[];
+    const weekdays=days.map((day,index)=>window.resolvePlanDayWeekday(day,index,preferred));
+    if(signature(weekdays)!==signature(op.options.weekdays))
+      throw new Error('Poprzednie dopełnienie ma inne dni tygodnia. Dokończ je w kalendarzu lub kontynuuj bez dopełnienia i odśwież aplikację przed rozpoczęciem nowego.');
+  }
   function capture(cid,opts,auth){
     const client=(window.CL||[]).find(c=>c.id===cid);
     if(!owned(client,auth)||!active(client))throw new Error('Klient jest niedostępny. Odśwież listę klientów.');
-    const plan=(window.PL||[]).filter(p=>owned(p,auth,cid)&&active(p)&&
-      (p.days||[]).some(d=>d&&!d.rest&&(d.exercises||[]).length))
-      .sort((a,b)=>String(b.updatedAt||b.createdAt||'').localeCompare(String(a.updatedAt||a.createdAt||'')))[0];
-    if(!plan)throw new Error('Przypisz klientowi plan z dniami treningowymi.');
+    const plan=selectPlan(cid,opts,auth);
     const weeks=opts.weeks===undefined?4:Number(opts.weeks);
     const duration=opts.duration===undefined?60:Number(opts.duration);
     const time=opts.time||window.scheduleTimeFromClient(client,'18:00');
@@ -66,7 +95,7 @@
         type:label+(muscles?' — '+muscles:''),notes:'Z planu: '+(plan.name||'')+(muscles?' · '+muscles:'')});
     });
     return {auth,clientId:cid,clientDoc:client._fbId||cid,plan:clone(plan),planDoc:plan._fbId||plan.id,
-      planSignature:signature(plan),candidates};
+      planSignature:signature(plan),options:{weeks,duration,time,weekdays:clone(weekdays)},candidates};
   }
 
   function sameOccurrence(record,candidate){
@@ -146,6 +175,11 @@
     // Do not retain one account's pending payload for another authenticated session.
     for(const [k,s] of states)if(s.auth.uid!==auth.uid||s.auth.generation!==auth.generation)states.delete(k);
     let state=states.get(stateKey);
+    opts=opts||{};
+    if(state&&state.operation&&explicitPlan(opts)){
+      try{assertCurrent(auth);assertRequestedScope(state.operation,opts);}
+      catch(error){return Promise.resolve({status:'error',error:error&&error.message||'Nie można potwierdzić zakresu kalendarza.'});}
+    }
     if(state&&state.pending)return state.promise;
     if(!state){state={auth,pending:false,operation:null,message:'',error:false};states.set(stateKey,state);}
     state.pending=true;state.error=false;state.message='Sprawdzam istniejące terminy i zapisuję brakujące…';
@@ -154,7 +188,7 @@
       try{
         assertCurrent(auth);
         if(!window._db||!window._runTransaction||!window._get)throw new Error('Brak połączenia z bazą. Odśwież aplikację i spróbuj ponownie.');
-        if(!state.operation)state.operation=capture(cid,opts||{},auth);
+        if(!state.operation)state.operation=capture(cid,opts,auth);
         const result=await persist(state.operation);
         assertCurrent(auth);
         const list=window.SE||[];
@@ -171,10 +205,11 @@
         if(window.notify)window.notify(state.message);
         return {status:result.added?'saved':'unchanged',added:result.added};
       }catch(error){
-        const message=error&&error.message||'Nie udało się potwierdzić zapisu.';
+        const message=error&&error.code?'Nie udało się potwierdzić zapisu. Sprawdź połączenie i ponów dopełnienie.':
+          error&&error.message||'Nie udało się potwierdzić zapisu.';
         if(current(auth)){
           state.error=true;
-          state.message=error&&error.code?'Nie udało się potwierdzić zapisu. Sprawdź połączenie i ponów dopełnienie.':message;
+          state.message=message;
           if(window.notify)window.notify(state.message);
         }
         return {status:'error',error:message};
