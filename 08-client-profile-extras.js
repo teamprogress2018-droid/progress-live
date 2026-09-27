@@ -3437,7 +3437,6 @@ window.clearCpCoopAnalysis=clearCpCoopAnalysis;
 window.CP_COOP_GATE_MSG=CP_COOP_GATE_MSG;
 
 function renderCPOverview(c){
-  try{if(typeof ensureClientPlanWeekdays==='function')ensureClientPlanWeekdays(c.id);}catch(e){}
   const today=new Date();
   const todayStr=typeof todayYmd==='function'?todayYmd():(typeof dateStrLocal==='function'?dateStrLocal(today):today.toISOString().split('T')[0]);
   const sessions=SE.filter(s=>s.clientId===c.id);
@@ -4813,11 +4812,11 @@ function renderCPTraining(c){
   if(!c._mpView)c._mpView='1w';
   if(!c._mpTab)c._mpTab='assignment';
   if(c._mpWeekOffset==null)c._mpWeekOffset=0;
-  try{if(typeof ensureClientPlanWeekdays==='function')ensureClientPlanWeekdays(c.id);}catch(e){}
-
   const allSessions=SE.filter(s=>s.clientId===c.id);
   const assignSessions=typeof cpAssignmentSessions==='function'?cpAssignmentSessions(c.id):allSessions;
   const activePlan=typeof latestClientPlan==='function'?latestClientPlan(c.id):(typeof clientPlanForCalendar==='function'?clientPlanForCalendar(c.id):null);
+  const refillPlan=typeof clientPlanForCalendar==='function'?clientPlanForCalendar(c.id):activePlan;
+  const canRefill=c.status!=='archived'&&refillPlan&&(refillPlan.days||[]).some(d=>d&&!d.rest&&(d.exercises||[]).length);
   const activePlanName=typeof cpOverviewPlanTitle==='function'?cpOverviewPlanTitle(activePlan,c):((activePlan&&activePlan.name)||'');
   const today=new Date();
   const cellYmd=d=>typeof dateStrLocal==='function'?dateStrLocal(d):(typeof dateStr==='function'?dateStr(d):d.toISOString().split('T')[0]);
@@ -4965,6 +4964,7 @@ function renderCPTraining(c){
         <button type="button" class="cp-week-nav" onclick="cpMpShiftWeek('${c.id}',1)" aria-label="Następny tydzień">›</button>
       </div>
       <button class="btn btn-primary btn-sm" style="margin-left:auto;" onclick="openAddSessionFromCP('${c.id}','${todayStr}')">+ Sesja</button>
+      ${canRefill?`<button type="button" class="btn btn-ghost btn-sm" data-calendar-refill-client="${escHtml(c.id)}" onclick="refillClientCalendar(this.dataset.calendarRefillClient)">Dopełnij 4 tygodnie</button>`:''}
       ${plannedN?`<div class="cp-mp-more-wrap">
         <button type="button" class="btn btn-ghost btn-sm" id="cp-mp-more-btn" onclick="toggleCpMpMore(event)" aria-expanded="false" aria-haspopup="true" title="Więcej">⋯</button>
         <div class="cp-mp-more-menu" id="cp-mp-more-menu" hidden>
@@ -4977,6 +4977,7 @@ function renderCPTraining(c){
         <button type="button" onclick="cpMpView('${c.id}','4w')" class="cp-mp-span-btn${c._mpView==='4w'?' is-on':''}">4 Tygodnie</button>
       </div>
     </div>
+    ${canRefill?`<div data-calendar-refill-status="${escHtml(c.id)}" role="status" aria-live="polite" style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:12px;"></div>`:''}
 
     ${c._mpTab==='assignment'?`<div class="cp-cal-dow">
       ${dayNamesShort.map(n=>`<div>${n}</div>`).join('')}
@@ -4986,6 +4987,7 @@ function renderCPTraining(c){
     <div id="cp-mp-content">
       ${c._mpTab==='assignment'?gridRows:historyHTML}
     </div>`;
+  if(typeof window.renderCalendarRefillState==='function')window.renderCalendarRefillState(c.id);
 }
 
 function cpMpView(clientId, view){
