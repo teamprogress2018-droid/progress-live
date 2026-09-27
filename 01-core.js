@@ -593,7 +593,13 @@ window.renderAll=function(){
   safe(renderDash);safe(renderClients);safe(renderPlans);
   safe(renderCal);safe(renderLib);safe(renderInbox);
   try{document.getElementById('nb-clients').textContent=CL.length;}catch(e){}
-  try{document.getElementById('b-client').innerHTML=CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');}catch(e){}
+  try{
+    const builder=document.getElementById('screen-builder');
+    const select=document.getElementById('b-client');
+    // Refreshing other screens must not change the recipient of an open draft.
+    if(select&&!(builder&&builder.classList.contains('active')))
+      select.innerHTML='<option value="">-- Wybierz klienta --</option>'+CL.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
+  }catch(e){}
   safe(updateExDl);
   safe(generateAutoNotifs);
   safe(syncSidebarProfile);

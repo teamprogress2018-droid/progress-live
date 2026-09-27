@@ -681,14 +681,12 @@ function openBuilderForClient(clientId,fromOnboard){
   window._builderBack='clients';
   window._onboardResumeAfterBuilder=fromOnboard?clientId:null;
   goTo('builder');
-  setTimeout(()=>{
-    const sel=document.getElementById('b-client');
-    if(sel){
-      sel.value=clientId;
-      if(typeof updatePeriod==='function')updatePeriod();
-    }
-    if(typeof renderOnboardBuilderBanner==='function')renderOnboardBuilderBanner();
-  },200);
+  const sel=document.getElementById('b-client');
+  if(sel){
+    sel.value=clientId;
+    if(typeof updatePeriod==='function')updatePeriod();
+  }
+  if(typeof renderOnboardBuilderBanner==='function')renderOnboardBuilderBanner();
 }
 window.openBuilderForClient=openBuilderForClient;
 
@@ -1174,6 +1172,7 @@ function restoreBuilderSidebarState(){
 window.toggleBuilderSidebar=toggleBuilderSidebar;
 window.restoreBuilderSidebarState=restoreBuilderSidebarState;
 function initBuilder(){
+  builderResetSaveState();
   window._editingPlanId=null;
   window._builderPeriodWeek=0;
   if(!window._builderBack)window._builderBack='clients';
@@ -2049,6 +2048,7 @@ function editPlan(id){
   if(!window._builderReturnClientId)window._builderBack='plans';
   goTo('builder'); // initBuilder() czyści formularz i resetuje _editingPlanId
   window._editingPlanId=id;
+  window._builderSaveState.base=builderPlanClone(plan);
   document.getElementById('b-name').value=plan.name||'';
   const clientSel=document.getElementById('b-client');
   if(clientSel)clientSel.value=plan.clientId||'';
@@ -2143,15 +2143,102 @@ function editPlanFromProfile(planId,clientId){
 window.editPlan=editPlan;
 window.editPlanFromProfile=editPlanFromProfile;
 
+function builderPlanClone(value){
+  return JSON.parse(JSON.stringify(value));
+}
+function builderPlanSignature(value){
+  const clean=v=>Array.isArray(v)?v.map(clean):v&&typeof v==='object'?Object.keys(v).filter(k=>k!=='_fbId').sort().reduce((out,k)=>{out[k]=clean(v[k]);return out;},{}):v;
+  return JSON.stringify(clean(value));
+}
+function builderSaveSessionCurrent(session){
+  return !!session&&!!session.uid&&!window._clientAppMode&&!window._clientPreviewMode&&
+    window._uid===session.uid&&window.tenantSessionGeneration===session.generation&&
+    (typeof window.tenantSessionIsCurrent!=='function'||window.tenantSessionIsCurrent(session));
+}
+function builderSaveStatus(message,isError){
+  const el=document.getElementById('builder-save-status');
+  if(el){el.hidden=!message;el.textContent=message||'';el.style.color=isError?'var(--orange)':'var(--muted)';}
+}
+function builderSaveUnlock(state){
+  (state&&state.controls||[]).forEach(item=>{item.el.disabled=item.disabled;});
+  if(state)state.controls=[];
+}
+function builderResetSaveState(){
+  builderSaveUnlock(window._builderSaveState);
+  window._builderSaveState={session:{uid:window._uid,generation:window.tenantSessionGeneration},pending:false,candidate:null,base:null,saved:false,controls:[]};
+  const btn=document.getElementById('b-save-btn');
+  if(btn){btn.disabled=false;btn.textContent='Zapisz plan';}
+  builderSaveStatus('');
+  return window._builderSaveState;
+}
+function builderSaveLock(state){
+  if(state.controls.length)return;
+  const screen=document.getElementById('screen-builder');
+  if(!screen)return;
+  screen.querySelectorAll('input,select,textarea,button').forEach(el=>{
+    if(el.id==='b-save-btn'||(el.getAttribute('onclick')||'').includes('builderGoBack'))return;
+    state.controls.push({el,disabled:el.disabled});el.disabled=true;
+  });
+}
+function builderSaveFormCurrent(state){
+  const screen=document.getElementById('screen-builder');
+  return window._builderSaveState===state&&builderSaveSessionCurrent(state.session)&&!!screen&&screen.classList.contains('active');
+}
+async function persistBuilderPlan(candidate,base,session){
+  if(!builderSaveSessionCurrent(session))throw new Error('Sesja wygasła. Zaloguj się ponownie.');
+  if(!window._db||typeof window._runTransaction!=='function'||typeof window._doc!=='function')throw new Error('Brak połączenia z bazą. Spróbuj ponownie.');
+  if(candidate.trainerId!==session.uid||(base&&base.trainerId!==session.uid))throw new Error('Plan nie należy do bieżącego konta.');
+  const docId=candidate._fbId||candidate.id;
+  const ref=window._doc(window._db,'plans',docId);
+  const payload=builderPlanClone(candidate);delete payload._fbId;
+  const client=candidate.clientId?(window.CL||[]).find(c=>c.id===candidate.clientId):null;
+  if(candidate.clientId&&(!client||client.trainerId!==session.uid))throw new Error('Klient jest niedostępny. Otwórz jego profil ponownie.');
+  await window._runTransaction(window._db,async tx=>{
+    if(!builderSaveSessionCurrent(session))throw new Error('Sesja wygasła.');
+    if(client){
+      const clientSnap=await tx.get(window._doc(window._db,'clients',client._fbId||client.id));
+      if(!clientSnap.exists()||clientSnap.data().trainerId!==session.uid)throw new Error('Klient jest niedostępny. Otwórz jego profil ponownie.');
+    }
+    const snap=await tx.get(ref);
+    if(snap.exists()){
+      const raw=snap.data();
+      if(raw.trainerId!==session.uid)throw new Error('Nie można zapisać tego planu na bieżącym koncie.');
+      // clients/plans use the document ID, including legacy payloads without an id.
+      const remote={...raw,id:candidate.id};
+      if(!builderSaveSessionCurrent(session))throw new Error('Sesja wygasła.');
+      if(builderPlanSignature(remote)===builderPlanSignature(payload))return;
+      if(!base||builderPlanSignature(remote)!==builderPlanSignature(base))
+        throw new Error('Plan zmienił się w innym oknie. Zachowaliśmy Twoją wersję w kreatorze; otwórz aktualny plan przed kolejną edycją.');
+    }else if(base){
+      throw new Error('Ten plan został usunięty. Zachowaliśmy treść w kreatorze.');
+    }
+    if(!builderSaveSessionCurrent(session))throw new Error('Sesja wygasła.');
+    tx.set(ref,payload,{merge:true});
+  });
+  if(!builderSaveSessionCurrent(session))return null;
+  return {...candidate,_fbId:docId};
+}
 async function savePlan(){
-  if(window._saveGuard_savePlan)return;window._saveGuard_savePlan=true;setTimeout(()=>window._saveGuard_savePlan=false,1500);
+  const state=window._builderSaveState||builderResetSaveState();
+  if(state.pending||state.saved)return null;
+  if(!builderSaveSessionCurrent(state.session)){builderSaveStatus('Sesja wygasła. Otwórz kreator ponownie po zalogowaniu.',true);return null;}
+  const retry=state.candidate;
 
   const name=document.getElementById('b-name').value.trim();
   if(!name){notify('Wpisz nazwę planu!');return;}
   const cid=document.getElementById('b-client').value;
   const c=CL.find(x=>x.id===cid);
   const editingId=window._editingPlanId;
-  const prev=editingId?(window.PL||[]).find(p=>p.id===editingId):null;
+  const prev=state.base||(editingId?(window.PL||[]).find(p=>p.id===editingId):null);
+  if(editingId&&(!prev||prev.id!==editingId||prev.trainerId!==state.session.uid)){
+    builderSaveStatus('Nie można edytować tego planu. Otwórz aktualny plan z biblioteki.',true);return null;
+  }
+  if(cid&&(!c||c.trainerId!==state.session.uid)){
+    builderSaveStatus('Wybrany klient jest niedostępny. Wybierz klienta ponownie.',true);return null;
+  }
+  if(prev&&prev.clientId&&prev.clientId!==cid){
+    builderSaveStatus('To plan przypisany do klienta. Aby przygotować plan dla innej osoby, utwórz nowy plan.',true);return null;
+  }
   const dur=parseInt((document.getElementById('b-duration')||{}).value,10)||4;
   const weekMeta=builderWeekMetaForSave(prev,dur);
   const days=[];
@@ -2211,31 +2298,61 @@ async function savePlan(){
   if(!days.length){notify('Dodaj przynajmniej jeden dzień!');return;}
   const progression=typeof normalizePlanProgression==='function'?normalizePlanProgression((document.getElementById('b-progression')||{}).value):'double';
   const calWeeks=dur>=8?dur:4;
-  if(editingId){
-    const idx=PL.findIndex(p=>p.id===editingId);
-    if(idx>=0){
-      PL[idx]={...PL[idx],name,method:document.getElementById('b-method').value,duration:document.getElementById('b-duration').value,progression,clientId:cid,clientName:c?c.name:'',level:c?c.level:PL[idx].level,goal:c?c.goal:PL[idx].goal,days,updatedAt:new Date().toISOString(),...weekMeta};
-      window._editingPlanId=null;
-      notify('Plan zaktualizowany!');
-      await persistById('plans',PL[idx]);
-      if(cid&&typeof maybeSchedulePlanToCalendar==='function')maybeSchedulePlanToCalendar(PL[idx].id,{weeks:calWeeks,confirmMsg:'Zaktualizować kalendarz — dodać sesje z planu na '+calWeeks+' tyg.?'});
-      if(typeof builderLeaveToCaller==='function')builderLeaveToCaller({saved:true});
-      else goTo('plans');
-      return;
+  const candidate=retry||{
+    ...(prev?builderPlanClone(prev):{id:newId('p'),createdAt:new Date().toISOString(),trainerId:state.session.uid}),
+    name,method:document.getElementById('b-method').value,
+    duration:document.getElementById('b-duration').value,
+    progression,clientId:cid,clientName:c?c.name:'',
+    level:c?c.level:(prev?prev.level:'sredni'),goal:c?c.goal:(prev?prev.goal:'masa'),
+    days,...weekMeta,...(prev?{updatedAt:new Date().toISOString()}:{})
+  };
+  state.candidate=candidate;
+  if(prev&&!state.base)state.base=builderPlanClone(prev);
+  state.pending=true;
+  builderSaveLock(state);
+  const btn=document.getElementById('b-save-btn');
+  if(btn){btn.disabled=true;btn.textContent='Zapisywanie…';}
+  builderSaveStatus('Zapisywanie planu. Poczekaj na potwierdzenie.');
+  let saved;
+  try{
+    saved=await persistBuilderPlan(candidate,state.base,state.session);
+    if(!saved||!builderSaveSessionCurrent(state.session))return null;
+    const idx=PL.findIndex(p=>p.id===saved.id);
+    if(idx>=0)PL[idx]=saved;else PL.push(saved);
+    state.saved=true;
+  }catch(e){
+    if(builderSaveFormCurrent(state)){
+      console.warn('Zapis planu niepotwierdzony:',e);
+      builderSaveStatus((e&&e.message&&!e.code?e.message:'Nie udało się potwierdzić zapisu. Sprawdź połączenie z internetem.')+' Formularz jest zachowany. „Ponów zapis” wysyła te same dane.',true);
+    }
+    return null;
+  }finally{
+    state.pending=false;
+    if(window._builderSaveState===state){
+      if(state.saved)builderSaveUnlock(state);
+      if(btn){btn.disabled=state.saved;btn.textContent=state.saved?'Zapisano plan':'Ponów zapis';}
     }
   }
-  const plan=withTrainer({id:newId('p'),name,method:document.getElementById('b-method').value,duration:document.getElementById('b-duration').value,progression,clientId:cid,clientName:c?c.name:'',level:c?c.level:'sredni',goal:c?c.goal:'masa',days,createdAt:new Date().toISOString()});
-  PL.push(plan);goTo('plans');notify('Plan zapisany!');
-  await persistById('plans',plan);
-  if(cid&&typeof maybeSchedulePlanToCalendar==='function')maybeSchedulePlanToCalendar(plan.id,{weeks:4});
+  if(!builderSaveFormCurrent(state))return saved;
+  window._editingPlanId=null;
+  builderSaveStatus('Plan zapisany.');
+  notify(editingId?'Plan zaktualizowany!':'Plan zapisany!');
+  // Calendar/onboarding are separate effects: their failure must never retry the plan.
+  try{
+    if(cid&&typeof maybeSchedulePlanToCalendar==='function')
+      maybeSchedulePlanToCalendar(saved.id,{weeks:calWeeks,...(editingId?{confirmMsg:'Zaktualizować kalendarz — dodać sesje z planu na '+calWeeks+' tyg.?' }:{})});
+  }catch(e){console.warn('Kalendarz po zapisie planu:',e);notify('Plan zapisany. Sprawdź terminy w kalendarzu.');}
+  if(!builderSaveFormCurrent(state))return saved;
+  if(typeof builderLeaveToCaller==='function')builderLeaveToCaller({saved:true});
+  else goTo('plans');
   if(window._onboardResumeAfterBuilder===cid){
     window._onboardResumeAfterBuilder=null;
     if(typeof renderOnboardBuilderBanner==='function')renderOnboardBuilderBanner();
   }
-  maybeResumeOnboard(cid);
+  if(cid&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);
+  return saved;
 }
 
-/** Mapuje etykietę dnia planu → JS getDay() (0=Nd … 6=Sob). */
 function planDayLabelToWeekday(label,fallbackIdx){
   if(typeof parsePlanWeekdayFromText==='function'){
     const parsed=parsePlanWeekdayFromText(label);

@@ -361,8 +361,9 @@
 
 <!-- BUILDER -->
 <div class="screen" id="screen-builder">
-  <div class="topbar"><div class="topbar-title">Nowy plan treningowy</div><div class="topbar-actions"><button class="btn btn-ghost btn-sm" onclick="builderGoBack()">Anuluj</button><button class="btn btn-primary btn-sm" onclick="savePlan()">Zapisz plan</button></div></div>
-  <div id="builder-onboard-banner" style="display:none;position:relative;z-index:30;align-items:center;justify-content:flex-start;gap:10px;flex-wrap:wrap;padding:10px 16px;background:var(--adim);border-bottom:1px solid rgba(230,0,0,0.25);font-size:12px;"></div>
+  <div class="topbar"><div class="topbar-title">Nowy plan treningowy</div><div class="topbar-actions"><button class="btn btn-ghost btn-sm" onclick="builderGoBack()">Anuluj</button><button class="btn btn-primary btn-sm" id="b-save-btn" onclick="savePlan()">Zapisz plan</button></div></div>
+  <div id="builder-save-status" role="status" aria-live="polite" hidden style="margin:12px 24px;padding:12px;border:1px solid var(--border);border-radius:8px;"></div>
+    <div id="builder-onboard-banner" style="display:none;position:relative;z-index:30;align-items:center;justify-content:flex-start;gap:10px;flex-wrap:wrap;padding:10px 16px;background:var(--adim);border-bottom:1px solid rgba(230,0,0,0.25);font-size:12px;"></div>
   <div class="content builder-layout">
     <div class="builder-main">
       <div class="card builder-meta-card">
@@ -4336,6 +4337,10 @@ function tenantSessionIsCurrent(session){
 window.tenantSessionIsCurrent=tenantSessionIsCurrent;
 
 function resetTenantRuntimeData(){
+  if(typeof builderSaveUnlock==='function')builderSaveUnlock(window._builderSaveState);
+  window._builderSaveState=null;window._editingPlanId=null;
+  ['b-name','b-client'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const builderDays=document.getElementById('builder-days');if(builderDays)builderDays.innerHTML='';
   window._tenantDataReady=false;
   window._tenantBootComplete=false;
   window._tenantLoadedUid=null;
@@ -4563,11 +4568,11 @@ async function load(session=captureTenantSession()){
 
 <script src="ex-gif-manifest.js?v=34"></script>
 <script src="ex-photo-manifest.js?v=6"></script>
-<script src="01-core.js?v=126&tenant-isolation=2"></script>
+<script src="01-core.js?v=126&tenant-isolation=2&plan-save=1"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=87"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=42&client-review=1&why=1&checkin-chronology=1"></script>
 <script src="04-client-portal.js?v=55&journey=1&tenant-isolation=2&session-guidance=1&checkin-chronology=1&checkin-save=1"></script>
-<script src="05-clients-builder-plans-calendar.js?v=81&journey=1"></script>
+<script src="05-clients-builder-plans-calendar.js?v=81&journey=1&plan-save=1"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=85"></script>
 <script src="07-forms-metrics-calculator.js?v=42"></script>
 <script src="08-client-profile-extras.js?v=84&ui=2&journey=2&checkin-chronology=1"></script>
