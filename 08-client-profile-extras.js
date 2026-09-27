@@ -4815,8 +4815,9 @@ function renderCPTraining(c){
   const allSessions=SE.filter(s=>s.clientId===c.id);
   const assignSessions=typeof cpAssignmentSessions==='function'?cpAssignmentSessions(c.id):allSessions;
   const activePlan=typeof latestClientPlan==='function'?latestClientPlan(c.id):(typeof clientPlanForCalendar==='function'?clientPlanForCalendar(c.id):null);
-  const refillPlan=typeof clientPlanForCalendar==='function'?clientPlanForCalendar(c.id):activePlan;
-  const canRefill=c.status!=='archived'&&refillPlan&&(refillPlan.days||[]).some(d=>d&&!d.rest&&(d.exercises||[]).length);
+  const canRefill=c.trainerId===window._uid&&!c.archived&&c.status!=='archived'&&!c.deleted&&(window.PL||[]).some(p=>
+    p&&p.trainerId===window._uid&&p.clientId===c.id&&!p.archived&&p.status!=='archived'&&!p.deleted&&
+    (p.days||[]).some(d=>d&&!d.rest&&(d.exercises||[]).length));
   const activePlanName=typeof cpOverviewPlanTitle==='function'?cpOverviewPlanTitle(activePlan,c):((activePlan&&activePlan.name)||'');
   const today=new Date();
   const cellYmd=d=>typeof dateStrLocal==='function'?dateStrLocal(d):(typeof dateStr==='function'?dateStr(d):d.toISOString().split('T')[0]);
