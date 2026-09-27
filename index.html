@@ -4321,6 +4321,8 @@ async function bootApp(session=captureTenantSession()){
 }
 
 function clearAutoflowSessionState(){
+  window._afQueueRunning=null;window._afRetryRunning=null;window._afStateSave=null;
+  window._afDefinitionSave=null;window._afOutboxRestoredState=null;window._afPendingStorageFailed=false;
   window.AF_STATE={enrollments:{},executed:{},lastFired:{},logs:[],pending:{}};
   window._afStateDocId=null;
   window._afStateReady=false;
@@ -4576,7 +4578,7 @@ async function load(session=captureTenantSession()){
 <script src="06-inbox-exercises-ai-programs.js?v=85"></script>
 <script src="07-forms-metrics-calculator.js?v=42"></script>
 <script src="08-client-profile-extras.js?v=84&ui=2&journey=2&checkin-chronology=1"></script>
-<script src="09-posture-kb-invites-private.js?v=54&reliable-af=1&af-ownership=2&tenant-isolation=2"></script>
+<script src="09-posture-kb-invites-private.js?v=54&reliable-af=1&af-ownership=2&tenant-isolation=2&quota-pause=1"></script>
 <script src="10-client-app.js?v=42&tenant-isolation=2"></script>
 </body>
 </html>
