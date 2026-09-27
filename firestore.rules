@@ -224,6 +224,9 @@ service cloud.firestore {
         && data.feedback is number && data.feedback >= 1 && data.feedback <= 5 && data.duration > 0;
     }
     match /sessions/{docId} {
+      // A trainer may inspect a new deterministic calendar ID before an atomic create.
+      // Existing documents still require the normal owner or linked-client permission.
+      allow get: if trainer() && resource == null;
       allow create: if request.resource.data.id == docId && clientSession(request.resource.data)
         && ((request.resource.data.source == 'client'
             && ownClient(get(/databases/$(database)/documents/plans/$(request.resource.data.planId)).data))

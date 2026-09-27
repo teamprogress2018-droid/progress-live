@@ -2513,15 +2513,9 @@ window.maybeSchedulePlanToCalendar=maybeSchedulePlanToCalendar;
 
 /** Dopełnij kalendarz klienta o kolejne tygodnie z jego planu. */
 function refillClientCalendar(clientId,opts){
-  opts=opts||{};
-  const plan=typeof clientPlanForCalendar==='function'?clientPlanForCalendar(clientId):(window.PL||[]).find(p=>p&&p.clientId===clientId);
-  if(!plan){if(typeof notify==='function')notify('Brak planu z dniami treningowymi');return 0;}
-  const weeks=opts.weeks||4;
-  let n=0;
-  if(typeof maybeSchedulePlanToCalendar==='function')n=maybeSchedulePlanToCalendar(plan.id,{weeks,forceConfirm:false})||0;
-  else if(typeof schedulePlanToCalendar==='function')n=schedulePlanToCalendar(plan.id,{weeks})||0;
-  try{if(typeof renderDashCalRefillFollowup==='function')renderDashCalRefillFollowup();}catch(e){}
-  return n;
+  if(typeof window.refillCalendarConfirmed==='function')return window.refillCalendarConfirmed(clientId,opts);
+  if(typeof notify==='function')notify('Odśwież aplikację, aby dopełnić kalendarz.');
+  return Promise.resolve({status:'error',error:'Moduł kalendarza jest niedostępny'});
 }
 window.refillClientCalendar=refillClientCalendar;
 
