@@ -43,6 +43,7 @@ jobs:
           node .github/scripts/test_client_tenant_access.js
           node .github/scripts/test_client_confirmed_writes.js
           node .github/scripts/test_trainer_checkin_confirmed_writes.js
+          node .github/scripts/test_trainer_plan_confirmed_writes.js
           node .github/scripts/test_client_sala_write.js
           node .github/scripts/test_forum_reaction_persistence.js
           node .github/scripts/test_client_checkin_permissions.js
