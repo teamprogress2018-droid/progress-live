@@ -19,7 +19,10 @@ function ok(name, cond, extra) {
   const port = process.env.LAYOUT_PORT || '8080';
   const host = process.env.LAYOUT_HOST || '127.0.0.1';
   const browser = await chromium.launch({ headless: process.env.LAYOUT_HEADED !== '1' });
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, timezoneId: 'Europe/Warsaw' });
+  // Wednesday keeps yesterday, today and tomorrow inside the same displayed week.
+  // setFixedTime leaves UI timers running and applies before app initialization.
+  await page.clock.setFixedTime(new Date('2026-09-23T12:00:00.000Z'));
   page.setDefaultTimeout(20000);
   page.on('dialog', d => d.accept());
   await page.goto('http://' + host + ':' + port + '/index.html', { waitUntil: 'domcontentloaded' });
@@ -102,12 +105,11 @@ function ok(name, cond, extra) {
   const nolog = ui.tiles.filter(t => /\bis-nolog\b/.test(t.cls));
   const todayT = ui.tiles.filter(t => /\bis-today\b/.test(t.cls));
   const fut = ui.tiles.filter(t => /\bis-future\b/.test(t.cls));
-  ok('nolog orange copy', !nolog.length || (nolog.every(t => t.st === 'Niezapisany' && t.btns.includes('Odbył się') && t.btns.includes('Nie odbył się'))), JSON.stringify(nolog));
+  ok('nolog orange copy', nolog.length >= 1 && nolog.every(t => t.st === 'Niezapisany' && t.btns.includes('Odbył się') && t.btns.includes('Nie odbył się')), JSON.stringify(nolog));
   ok('today live', todayT.length >= 1 && todayT.every(t => t.btns.includes('Rozpocznij Live') && t.btns.includes('Odbył się')), JSON.stringify(todayT));
   ok('future no odbył', fut.length >= 1 && fut.every(t => t.st === 'Zaplanowany' && !t.btns.includes('Odbył się')), JSON.stringify(fut));
   ok('no red planned', [...nolog, ...fut].every(t => !/rgb\(255,\s*59,\s*48\)/.test(t.color) && !/rgb\(230,\s*0,\s*0\)/.test(t.color)), JSON.stringify(ui.tiles.map(t => t.color)));
-  if (nolog.length) ok('banner past unlogged', /bez zapisu — uzupełnij/.test(ui.banner), ui.banner);
-  else ok('no legend without nolog', !ui.legend);
+  ok('banner past unlogged', /bez zapisu — uzupełnij/.test(ui.banner), ui.banner);
   ok('stats two numbers', /Realizacja planu w wybranym tygodniu do dziś/.test(ui.stats) && /Realizacja planu · ostatnie 30 dni/.test(ui.stats), ui.stats);
   ok('more menu', ui.more);
 
@@ -125,8 +127,6 @@ function ok(name, cond, extra) {
     });
     await page.screenshot({ path: path.join(shotDir, 'cp_week_skipped.png') });
     ok('skipped status', skipped.status === 'opuszczony' && /is-skip/.test(skipped.cls), JSON.stringify(skipped));
-  } else {
-    ok('skip path not required on monday', true);
   }
 
   await browser.close();
