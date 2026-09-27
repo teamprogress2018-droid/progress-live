@@ -306,6 +306,8 @@ jobs:
         run: node .github/scripts/test_inbox_kinds.js
       - name: 1n14c. Testy Autoflow na zdarzeniach (pakiet / check-in)
         run: node .github/scripts/test_autoflow_events.js
+      - name: 1n14d. Testy przerwy automatyzacji po limicie bazy
+        run: node .github/scripts/test_autoflow_quota_pause.js
 
       - name: 1n15. Testy follow-upu nawyków / wyzwań (dashboard)
         run: node .github/scripts/test_dash_habits_followup.js
