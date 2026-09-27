@@ -356,6 +356,144 @@ test('builder plan transactions read missing IDs without exposing existing forei
   assert.deepEqual((await db.doc(collisionPath).get()).data(), foreign, 'colliding create never overwrites another trainer plan'); count++;
 });
 
+
+// Calendar refill uses the same REST transaction protocol as the browser SDK.
+// These tests exercise actual rules/commit atomicity; the app separately validates
+// calendar meaning and refuses to overwrite different records owned by the trainer.
+function calendarId(trainerId, clientId, planId, dayIdx, date) {
+  return 'calfill_' + encodeURIComponent(JSON.stringify([trainerId, clientId, planId, dayIdx, date]));
+}
+function calendarCandidate(planId, dayIdx, date, overrides = {}) {
+  const id = calendarId(trainerA, clientA, planId, dayIdx, date);
+  return clientData({id, source: 'planned', planId, dayIdx, date, time: '18:00',
+    type: 'FBW', duration: 60, exercises: [], ...overrides});
+}
+function calendarWrite(data, requireNew = false) {
+  return {update: {name: fullName('sessions/' + data.id), fields: fields(data)},
+    ...(requireNew ? {currentDocument: {exists: false}} : {})};
+}
+async function calendarTransaction(user, readPaths, writes, label, rejection) {
+  const started = await request(':beginTransaction', user, 'POST', {options: {readWrite: {}}});
+  ok(started, label + ' begins');
+  const transaction = started.body.transaction;
+  assert.ok(typeof transaction === 'string' && transaction.length, label + ' transaction token'); count++;
+  let committed = false;
+  try {
+    const reads = await request(':batchGet', user, 'POST', {documents: readPaths.map(fullName), transaction});
+    if (rejection === 'read') { denied(reads, label + ' denied read'); return; }
+    ok(reads, label + ' reads');
+    assert.ok(Array.isArray(reads.body) && readPaths.every(p => reads.body.some(row =>
+      row.missing === fullName(p) || (row.found && row.found.name === fullName(p)))),
+    label + ' every requested existing/missing document returned'); count++;
+    const result = await request(':commit', user, 'POST', {transaction, writes});
+    if (rejection === 'write') { denied(result, label + ' denied write'); return; }
+    if (rejection === 'collision') {
+      assert.ok([400, 409].includes(result.status) &&
+        ['ALREADY_EXISTS', 'FAILED_PRECONDITION'].includes(result.body.error && result.body.error.status),
+      label + ' create-only collision rejected: ' + JSON.stringify(result)); count++;
+      return;
+    }
+    ok(result, label + ' committed'); committed = true;
+  } finally {
+    if (!committed) await request(':rollback', user, 'POST', {transaction}).catch(() => {});
+  }
+}
+test('calendar missing-session GET is trainer-only and does not widen list or create permissions', async () => {
+  const data = calendarCandidate(run + '-calendar-missing', 0, '2026-10-05'), p = 'sessions/' + data.id;
+  for (const user of [ownerA, ownerB]) {
+    const result = await read(p, user);
+    assert.equal(result.status, 404, 'trainer observes a missing calendar ID, never permission-denied: ' + JSON.stringify(result.body)); count++;
+  }
+  for (const user of [userA, sibling, userB, null]) {
+    denied(await read(p, user), 'client/anonymous cannot inspect absent calendar ID');
+  }
+  denied(await query('sessions', ownerA), 'missing-ID exception grants no broad session list');
+  denied(await write(p, data, userA), 'linked client still cannot create planned sessions');
+  denied(await write(p, data, null), 'anonymous still cannot create planned sessions');
+  assert.equal((await db.doc(p).get()).exists, false, 'denied writes leave the deterministic ID absent'); count++;
+});
+test('calendar transaction reads owned client, plan and missing IDs then atomically creates all terms', async () => {
+  const planId = run + '-calendar-atomic-plan';
+  await seed('plans/' + planId, clientData({id: planId, name: 'Plan FBW', days: []}));
+  const candidates = ['2026-10-05', '2026-10-07', '2026-10-09'].map((date, i) => calendarCandidate(planId, i, date));
+  const paths = candidates.map(item => 'sessions/' + item.id);
+  await calendarTransaction(ownerA, ['clients/' + clientA, 'plans/' + planId, ...paths],
+    candidates.map(item => calendarWrite(item)), 'calendar atomic create');
+  for (const item of candidates) {
+    const p = 'sessions/' + item.id;
+    assert.deepEqual((await db.doc(p).get()).data(), item, 'each new calendar record is exact'); count++;
+    ok(await read(p, ownerA), 'trainer reads confirmed term');
+    ok(await read(p, userA), 'assigned client reads confirmed term');
+    for (const user of [ownerB, userB, sibling, null]) denied(await read(p, user), 'existing term remains private');
+  }
+  ok(await query('sessions', ownerA, [['trainerId', 'EQUAL', trainerA], ['clientId', 'EQUAL', clientA]]),
+    'refill preflight uses tenant-and-client-scoped session query');
+});
+
+test('calendar rules support an atomic twelve-week horizon with all 84 missing targets', async () => {
+  const planId = run + '-calendar-max-horizon';
+  await seed('plans/' + planId, clientData({id: planId, name: 'Twelve-week fixture', days: []}));
+  const candidates = Array.from({length: 84}, (_, i) => {
+    const date = new Date(Date.UTC(2026, 9, 5 + i)).toISOString().slice(0, 10);
+    return calendarCandidate(planId, i % 7, date);
+  });
+  await calendarTransaction(ownerA, ['clients/' + clientA, 'plans/' + planId,
+    ...candidates.map(item => 'sessions/' + item.id)], candidates.map(item => calendarWrite(item)),
+    'full calendar horizon');
+  const saved = await db.getAll(...candidates.map(item => db.doc('sessions/' + item.id)));
+  assert.equal(saved.length, 84, 'whole requested horizon returned'); count++;
+  assert.deepEqual(saved.map(snapshot => snapshot.data()), candidates, 'every horizon target persisted exactly'); count++;
+});
+
+test('foreign client, foreign plan and colliding foreign session abort calendar preflight without writes', async () => {
+  const ownPlanId = run + '-calendar-owned-plan', foreignPlanId = run + '-calendar-foreign-plan';
+  await seed('plans/' + ownPlanId, clientData({id: ownPlanId}));
+  await seed('plans/' + foreignPlanId, {id: foreignPlanId, trainerId: trainerB, clientId: clientB});
+  const next = calendarCandidate(ownPlanId, 0, '2026-10-12'), nextPath = 'sessions/' + next.id;
+  const collision = calendarCandidate(ownPlanId, 1, '2026-10-14', {trainerId: trainerB, clientId: clientB});
+  const collisionPath = 'sessions/' + collision.id;
+  await seed(collisionPath, collision);
+  for (const [label, blocked] of [['foreign client', 'clients/' + clientB], ['foreign plan', 'plans/' + foreignPlanId],
+    ['foreign target collision', collisionPath]]) {
+    await calendarTransaction(ownerA, ['clients/' + clientA, 'plans/' + ownPlanId, nextPath, blocked],
+      [calendarWrite(next)], label, 'read');
+    assert.equal((await db.doc(nextPath).get()).exists, false, label + ' creates no partial calendar entry'); count++;
+  }
+  denied(await read(collisionPath, ownerA), 'missing-session rule cannot expose an existing foreign collision');
+  denied(await write(collisionPath, {...collision, trainerId: trainerA, clientId: clientA}, ownerA),
+    'trainer cannot claim the foreign deterministic target');
+  assert.deepEqual((await db.doc(collisionPath).get()).data(), collision, 'foreign collision is unchanged'); count++;
+});
+test('one denied write rolls back all new terms in the same calendar transaction', async () => {
+  const planId = run + '-calendar-denied-batch-plan';
+  await seed('plans/' + planId, clientData({id: planId}));
+  const first = calendarCandidate(planId, 0, '2026-10-19'), second = calendarCandidate(planId, 1, '2026-10-21');
+  const foreign = calendarCandidate(planId, 2, '2026-10-23', {trainerId: trainerB, clientId: clientB, note: 'Preserve'});
+  const foreignPath = 'sessions/' + foreign.id;
+  await seed(foreignPath, foreign);
+  // Deliberately bypass the app's foreign-target read guard to test server atomicity itself.
+  await calendarTransaction(ownerA, ['clients/' + clientA, 'plans/' + planId, 'sessions/' + first.id, 'sessions/' + second.id],
+    [calendarWrite(first), calendarWrite(second), calendarWrite({...foreign, trainerId: trainerA, clientId: clientA})],
+    'mixed owned creates and foreign update', 'write');
+  for (const item of [first, second]) {
+    assert.equal((await db.doc('sessions/' + item.id).get()).exists, false, 'valid earlier write is also rolled back'); count++;
+  }
+  assert.deepEqual((await db.doc(foreignPath).get()).data(), foreign, 'denied batch preserves foreign record'); count++;
+});
+test('a create-only collision preserves the existing term and atomically rejects other creates', async () => {
+  const planId = run + '-calendar-collision-plan';
+  await seed('plans/' + planId, clientData({id: planId}));
+  const first = calendarCandidate(planId, 0, '2026-10-26');
+  const collision = calendarCandidate(planId, 1, '2026-10-28', {time: '19:30', status: 'skipped', note: 'Preserve my change'});
+  await seed('sessions/' + collision.id, collision);
+  ok(await read('sessions/' + collision.id, ownerA), 'owner may inspect its existing collision');
+  await calendarTransaction(ownerA, ['clients/' + clientA, 'plans/' + planId, 'sessions/' + first.id, 'sessions/' + collision.id],
+    [calendarWrite(first, true), calendarWrite({...collision, time: '18:00'}, true)],
+    'create-only target collision', 'collision');
+  assert.equal((await db.doc('sessions/' + first.id).get()).exists, false, 'collision rejects the whole commit'); count++;
+  assert.deepEqual((await db.doc('sessions/' + collision.id).get()).data(), collision, 'collision cannot overwrite the existing record'); count++;
+});
+
 test('trainer check-in transactions can read a missing ID without exposing existing foreign records', async () => {
   const id = run + '-trainer-checkin-transaction', p = 'checkins/' + id;
   const missing = await read(p, ownerA);
