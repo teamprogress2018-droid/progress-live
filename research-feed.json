@@ -1,6 +1,6 @@
 {
  "version": 1,
- "generatedAt": "2026-09-26T08:36:39.932Z",
+ "generatedAt": "2026-09-28T10:18:17.410Z",
  "lookbackDays": 14,
  "categories": [
   {
@@ -54,6 +54,526 @@
  ],
  "items": [
   {
+   "pmid": "42798093",
+   "doi": "10.1097/MD.0000000000050799",
+   "title": "Systematic review and meta-analysis of biomarkers of sarcopenia and sarcopenic obesity.",
+   "abstract": "OBJECTIVE: Sarcopenia and sarcopenic obesity (SO) are geriatric syndromes characterized by reduced skeletal muscle mass and impaired muscle strength, whose specific biomarkers and underlying mechanisms remain unclear. This study aimed to conduct a meta-analysis and literature review on the associations between biomarkers and sarcopenia/SO by collecting relevant publications over the past 15 years. We intended to further identify the shared and differential biomarkers of these disorders, thereby revealing their distinct pathophysiological processes and providing a basis for precise diagnosis and targeted intervention.\nMETHODS: A comprehensive literature search was performed in PubMed, Embase databases for all publications from December 2010 to December 2025. We included English articles describing the associations between serum biomarkers and sarcopenia/SO, including cross-sectional studies, prospective cohort studies, and retrospective case studies, with no restrictions on race, population, or sample size. Literature screening was conducted in accordance with predefined inclusion and exclusion criteria. Relevant study data were extracted, and the quality of included studies was assessed. The mean difference and 95% confidence interval were used to calculate the pooled effect size.\nRESULTS: A total of 43 English articles investigating the associations between biomarkers and sarcopenia/SO were finally included. Compared with non-sarcopenic patients, sarcopenic patients had elevated serum levels of C-reactive protein (CRP), interleukins, tumor necrosis factor, cystatin C, blood urea nitrogen, and high-density lipoprotein cholesterol (HDL-C). In contrast, higher serum levels of vitamin D, alanine transaminase, albumin, hemoglobin, TG, uric acid, blood glucose, and fasting insulin were associated with a lower incidence of sarcopenia. No significant differences were observed in WBC count, platelet count, aspartate transaminase, alkaline phosphatase, bilirubin, total cholesterol (TC), creatinine, erythrocyte sedimentation rate, low-density lipoprotein cholesterol (LDL-C), or thyroid-stimulating hormone levels between sarcopenic and non-sarcopenic patients. Compared with healthy individuals, SO patients had higher serum levels of CRP, LDL-C, TC, TG, WBC, creatinine, uric acid, fasting blood glucose, and fasting insulin, while higher levels of HDL-C and vitamin D were associated with a lower risk of SO. SO patients had lower TG levels than patients with simple obesity, with no significant differences in CRP, HDL-C, LDL-C, TC, vitamin D, blood glucose, or interleukin-6 levels between the 2 groups.",
+   "journal": "Medicine",
+   "journalAbbr": "Medicine (Baltimore)",
+   "year": "2026",
+   "authors": "Yang Y i in.",
+   "authorCount": 5,
+   "pubTypes": [
+    "Journal Article",
+    "Meta-Analysis",
+    "Systematic Review"
+   ],
+   "evidence": "meta",
+   "evidenceLabel": "Metaanaliza",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42798093/",
+   "topics": [
+    "suplementy"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-28T10:16:47.635Z",
+   "score": 4,
+   "ai": {
+    "titlePl": "Biomarkery sarkopenii i sarkopenii otyłości – metaanaliza i przegląd systematyczny",
+    "summary": "Metaanaliza 43 badań z ostatnich 15 lat porównała markery biochemiczne między pacjentami ze sarkopenia, sarkopenią otyłości a osobami zdrowymi. U pacjentów ze sarkopenia stwierdzono podwyższone poziomy CRP, cytokin, cystatyny C i obniżoną witaminę D; u pacjentów z sarkopenią otyłości potwierdzono wyższe markery zapalenia, lipidy i glukozę oraz obniżoną witaminę D.",
+    "takeaway": "Trener powinien rozważyć monitorowanie statusu witaminy D u starszych klientów lub tych z otyłością, gdyż jej niedobory korelują ze zwiększonym ryzykiem sarkopenii, jednak sam trening siłowy pozostaje najskuteczniejszą interwencją.",
+    "population": "Badania heterogenne – głównie osoby starsze i pacjenci z chorobami przewlekłymi, brak danych szczegółowych na liczebności",
+    "limits": "Populacja geriatryczna, przewaga obserwacyjnych badań przekrojowych, brak standaryzacji metodologicznej między badaniami, niepewna przyczynowość biomarkerów",
+    "relevance": 2
+   }
+  },
+  {
+   "pmid": "42797082",
+   "doi": "10.3390/nu18183099",
+   "title": "Effects of Carbohydrate Mouth Rinse on Human Capacity and Performance-A Systematic Review and Meta-Analysis of 90 Controlled Trials.",
+   "abstract": "Objective: The aim of the current systematic review and meta-analysis was to examine the acute effects of carbohydrate (CHO) mouth rinse on exercise capacity and performance in humans of any health and fitness status. Methods: We registered our systematic review with PROSPERO (CRD42018085308). Eligibility criteria included adult humans > 18 years old at any health and fitness status undertaking any CHO mouth rinse prior and during of any type of acute exercise session. Results: We included 90 crossover design-controlled trials. We found improvements in distance covered (Hedges' g = 0.17; 95% CI 0.03 to 0.30, p = 0.02; τ2 = 0.00; I2 = 0%; Q(14) = 9.61, p > 0.05), performance time (Hedges' g = -0.15; 95% CI -0.25 to -0.05, p < 0.01; τ2 = 0.008; I2 = 9.3%; Q(34) = 76.48, p < 0.01), speed performance (Hedges' g = 0.17; 95% CI 0.05 to 0.30, p < 0.01; τ2 ≈ 0; I2 = 0%; Q(23) = 22.73, p > 0.05), workload (Hedges' g = 0.25; 95% CI 0.08 to 0.41, p < 0.01, τ2 = 0; I2 = 0%; (Q(9) = 7.37, p > 0.05) and maximum voluntary contraction (MVC) (Hedges' g = 0.18, 95% CI 0.02 to 0.34, p = 0.03; τ2 = 0; I2 = 0%; (Q(10) = 7.73, p > 0.05). No effect of CHO mouth rinse on muscular endurance, maximum power output, or maximum oxygen consumption (VO2max) was found (p > 0.05). Conclusions: The available evidence suggests that CHO mouth rinse can produce a small, outcome-dependent ergogenic effect in distance covered, performance time and speed performance as well as small improvements in workload, with less robust evidence for MVC-evidence that mainly applies to male participants. The practical importance of these findings is likely to vary according to the exercise context and competitive context.",
+   "journal": "Nutrients",
+   "journalAbbr": "Nutrients",
+   "year": "2026",
+   "authors": "Zalagkitis C i in.",
+   "authorCount": 14,
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review",
+    "Meta-Analysis",
+    "Review"
+   ],
+   "evidence": "meta",
+   "evidenceLabel": "Metaanaliza",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42797082/",
+   "topics": [
+    "kondycja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-28T10:16:47.635Z",
+   "score": 4,
+   "ai": {
+    "titlePl": "Wpływ płukania ust węglowodanami na wydolność i wyniki – metaanaliza 90 badań kontrolowanych",
+    "summary": "Metaanaliza 90 badań krzyżowych wykazała, że płukanie ust roztworem węglowodanów podczas wysiłku fizycznego daje małe, zależne od celu polepszenia w dystansie (g=0,17), czasie wysiłku (g=-0,15), prędkości (g=0,17) i obciążeniu (g=0,25), oraz nieznaczne zwiększenie siły maksymalnej (MVC, g=0,18). Nie wykazano efektu na wydolność mięśniową, maksymalną moc ani VO2max.",
+    "takeaway": "Trener może próbować płukania ust węglowodanami podczas wysiłków aerobowych (bieg, rower), szczególnie u mężczyzn, gdy kluczowe są dystans lub prędkość, ale efekt jest marginalny i zależy od kontekstu konkurencji.",
+    "population": "Dorośli > 18 lat, różny status treningu i zdrowia",
+    "limits": "Małe rozmiary efektu (0,15–0,25), większość dowodów dotyczy mężczyzn, brak efektu na siłę maksymalną i VO2max, znacząca heterogenność metodyk badań",
+    "relevance": 2
+   }
+  },
+  {
+   "pmid": "42796953",
+   "doi": "10.3390/nu18182969",
+   "title": "Effects of Acute Caffeine Supplementation on Performance and Physiological Responses in CrossFit: A Systematic Review and Three-Level Meta-Analysis.",
+   "abstract": "Objectives: We quantified the influence of acute caffeine (CAF) supplementation on CrossFit performance and physiological outcomes and examined potential effect modifiers. Methods: Randomized crossover studies involving CAF supplementation in CrossFit were identified through systematic searches of multiple electronic databases. Performance effect sizes were expressed as Hedges' g and pooled within a three-level random-effects framework, while physiological outcomes were synthesized using conventional two-level models. Effect modification was examined across training status (recreationally active vs. trained) and CAF delivery form (capsule vs. beverage). Meta-regression was additionally used to assess whether relative CAF dose was associated with changes in CrossFit performance. Results: The final synthesis comprised seven studies with 103 participants, including 13 women. A small favorable effect of CAF was found for overall CrossFit performance (g = 0.13, 95% CI: 0.05-0.22), accompanied by a higher blood lactate concentration (g = 0.53, 95% CI: 0.23-0.82). Stratified estimates favored CAF in recreationally active participants (g = 0.20, 95% CI: 0.06-0.34) and when administered in capsule form (g = 0.17, 95% CI: 0.06-0.29); nevertheless, evidence for between-subgroup differences was absent (all p subgroup > 0.05). The relative CAF dose did not explain variation in performance effects in either the linear (β1 = 0.04, p = 0.570) or nonlinear model (β2 = -0.004, p = 0.578). Conclusions: The available evidence suggests a small ergogenic benefit of acute CAF supplementation for selected CrossFit performance outcomes, accompanied by elevated blood lactate concentrations. Subgroup analyses revealed no significant moderating effect of training status and supplementation protocols. However, the limited number of studies and predominance of male participants warrant cautious interpretation. Future research should prioritize larger randomized controlled trials, greater representation of female athletes, and more standardized CrossFit performance protocols.",
+   "journal": "Nutrients",
+   "journalAbbr": "Nutrients",
+   "year": "2026",
+   "authors": "Xiao J i in.",
+   "authorCount": 9,
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review",
+    "Meta-Analysis",
+    "Review"
+   ],
+   "evidence": "meta",
+   "evidenceLabel": "Metaanaliza",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42796953/",
+   "topics": [
+    "suplementy"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-28T10:16:47.635Z",
+   "score": 5,
+   "ai": {
+    "titlePl": "Wpływ ostrej suplementacji kofeiną na wydajność i odpowiedzi fizjologiczne w CrossFit: przegląd systematyczny i metaanaliza trójpoziomowa",
+    "summary": "Metaanaliza 7 badań (n=103, w tym 13 kobiet) wykazała małą korzystną efektywność kofeiny na ogólną wydajność CrossFit (g=0,13) wraz z wyższym stężeniem mleczanu we krwi (g=0,53). Efekt był nieco silniejszy u uczestników niewyćwiczonych (g=0,20) i przy podawaniu w kapsułkach (g=0,17), ale różnice między grupami nie były istotne statystycznie.",
+    "takeaway": "Kofeina przynosi małe, lecz potwierdzone korzyści dla wydajności CrossFit; trener może rekomendować 3–6 mg/kg mc. w formie kapsułki 30–60 min przed treningiem, szczególnie u sportowców niewyćwiczonych, choć efekt jest skromny.",
+    "population": "Uczestnicy CrossFit, zarówno niewyćwiczeni jak i wytrenowani; 103 osoby łącznie (13 kobiet), średnia wieku nie podana",
+    "limits": "Mała liczba badań (7), wyraźna przewaga mężczyzn (90 spośród 103), brak standaryzacji protokołów CrossFit, różnorodne miary wydajności",
+    "relevance": 3
+   }
+  },
+  {
+   "pmid": "42798621",
+   "doi": "10.3389/fpsyg.2026.1942447",
+   "title": "Effects of different exercise types on body image in females: a systematic review and network meta-analysis.",
+   "abstract": "BACKGROUND: Negative body image is prevalent among women and is linked to emotional disorders, low self-esteem, and reduced quality of life. Exercise is an accessible non-pharmacological strategy that may improve body image, but the comparative effectiveness of different modalities remains unclear.\nMETHODS: PubMed, Embase, Web of Science, and the Cochrane Library were searched from inception to May 2026. Randomized controlled trials (RCTs) of exercise interventions lasting at least 4 weeks were included. Two reviewers independently conducted study selection, data extraction, and risk-of-bias assessment using the Cochrane Risk of Bias 2 (RoB 2) tool. A frequentist random-effects network meta-analysis was performed, with effects expressed as standardized mean differences (SMDs) and interventions ranked using P-scores.\nRESULTS: Twenty-three trials involving 1,914 female participants and seven network nodes were included. Aerobic exercise, dance, and multimodal exercise significantly improved body image relative to usual care. Resistance training showed a favorable but imprecise effect, whereas mind-body exercise and behavioral intervention did not differ significantly from usual care. Aerobic exercise had the highest P-score, but confidence intervals for the leading interventions overlapped substantially and most active-treatment comparisons were not statistically significant. Network heterogeneity was moderate (I2 = 59%). Publication-bias assessments were discordant, and publication bias could not be excluded.\nCONCLUSION: Exercise appears to be a useful strategy for improving body image in women. Aerobic exercise and dance showed the most consistent evidence of benefit, while multimodal exercise also showed beneficial effects. However, the available evidence does not establish clear superiority of any single modality. Exercise selection should therefore consider the comparative evidence together with participant preferences, feasibility, accessibility, and the implementation setting.\nSYSTEMATIC REVIEW REGISTRATION: https://www.crd.york.ac.uk/PROSPERO/view/CRD420261359034, identifier (CRD420261359034).",
+   "journal": "Frontiers in psychology",
+   "journalAbbr": "Front Psychol",
+   "year": "2026",
+   "authors": "Luo J i in.",
+   "authorCount": 6,
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42798621/",
+   "topics": [
+    "programowanie"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-28T10:16:47.635Z",
+   "score": 4,
+   "ai": {
+    "titlePl": "Wpływ różnych typów ćwiczeń na obraz ciała u kobiet: przegląd systematyczny i metaanaliza sieci",
+    "summary": "Przegląd 23 badań z 1914 kobietami porównał efekty 7 modalności ćwiczeń na postrzeganie własnego ciała. Aerobika, taniec i ćwiczenia multimodalne istotnie poprawiały obraz ciała w stosunku do braku interwencji, podczas gdy trening siłowy wykazał obiecujący, ale niedokładny efekt.",
+    "takeaway": "Trener może proponować aerobikę, taniec lub ćwiczenia multimodalne jako skuteczne narzędzia poprawy obrazu ciała u klientek, jednak wybór powinien uwzględniać preferencje i dostępność dla klientki.",
+    "population": "Kobiety (brak specyfikacji wieku/poziomu zaawansowania), n=1914 w 23 badaniach",
+    "limits": "Heterogeniczność sieci (I²=59%), możliwe błędy publikacji, przedziały ufności badań liderujących się przecinają, większość porównań między aktywnymi interwencjami nie osiągnęła istotności statystycznej",
+    "relevance": 3
+   }
+  },
+  {
+   "pmid": "42796420",
+   "doi": "10.3390/medicina62091814",
+   "title": "Behavioral and Psychosocial Effects of Participant-Visible Continuous Glucose Monitoring in Adults Without Diabetes: A Systematic Review.",
+   "abstract": "Background and Objectives: Continuous glucose monitoring (CGM) is increasingly used beyond diabetes care, but whether participant-visible feedback changes behavior or psychosocial outcomes in adults without diabetes remains uncertain. We evaluated dietary behavior/adherence, physical activity, psychosocial outcomes, and device burden. Materials and Methods: This PROSPERO-registered systematic review (CRD420261356163) searched seven bibliographic databases and two trial registries, followed by citation searching. Randomized and nonrandomized intervention studies and qualitative/mixed-methods evidence were eligible. RoB 2, ROBINS-I, MMAT 2018, and GRADE were applied. Clinical and methodological heterogeneity precluded meta-analysis. Results: Searches yielded 6265 database/registry records; 2627 unique records were screened. Citation searching added 431 new records and two eligible studies, giving 12 studies. Two randomized dietary comparisons suggested selected improvements; one 8-week trial comparing CGM plus low-glycemic-index/load education with education alone reported between-group reductions in carbohydrate intake (-15.2 g; 95% CI -20.9 to -9.5), glycemic index (-10.0; 95% CI -13.1 to -6.9), and glycemic load (-19.9; 95% CI -29.0 to -10.7). Physical activity showed no clear difference (-28.5 MET-min/week; 95% CI -171.9 to 114.8). Psychosocial evidence was insufficient to establish benefit or exclude harm; device burden evidence was sparse. Certainty was low for dietary outcomes and very low for the other domains. Conclusions: Participant-visible CGM may support selected dietary changes as a biofeedback adjunct within structured education or lifestyle interventions, but large, durable benefits and stand-alone efficacy are not established.",
+   "journal": "Medicina (Kaunas, Lithuania)",
+   "journalAbbr": "Medicina (Kaunas)",
+   "year": "2026",
+   "authors": "Makkena HB i in.",
+   "authorCount": 7,
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review",
+    "Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42796420/",
+   "topics": [
+    "adherencja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-28T10:16:47.635Z",
+   "score": 3,
+   "ai": {
+    "titlePl": "Efekty behawioralne i psychospołeczne widocznego dla uczestnika monitorowania glukozy w ciągłym u dorosłych bez cukrzycy: przegląd systematyczny",
+    "summary": "Przegląd systematyczny 12 badań oceniających wpływ ciągłego monitorowania glukozy (CGM) na zachowania dietetyczne, aktywność fizyczną i wyniki psychospołeczne u osób bez cukrzycy. Jedno badanie wykazało, że CGM w połączeniu z edukacją o niskim indeksie glikemicznym zmniejszyło spożycie węglowodanów o 15,2 g, indeks glikemiczny o 10,0 i obciążenie glikemiczne o 19,9 w porównaniu z samą edukacją. Aktywność fizyczna nie wykazała istotnych różnic.",
+    "takeaway": "CGM może wspomagać wybrane zmiany dietetyczne jako biofeedback w strukturyzowanych programach edukacyjnych, ale nie ma dowodów na samodzielną skuteczność lub długotrwałe efekty bez dodatkowej interwencji.",
+    "population": "Dorośli bez cukrzycy (n ogółem w przeglądzie: 12 badań, szczegóły populacji w poszczególnych studiach niezawarte w abstrakcie)",
+    "limits": "Niska pewność dowodów dla wyników dietetycznych i bardzo niska dla innych domenów; heterogeniczność kliniczna i metodologiczna uniemożliwiła metaanalizę; mało dowodów na wyniki psychospołeczne i obciążenie urządzeniem",
+    "relevance": 2
+   }
+  },
+  {
+   "pmid": "42791433",
+   "doi": "10.1007/s40265-026-02380-4",
+   "title": "GLP-1 Receptor Agonists in Heart Failure: A Systematic Review and Meta-analysis with Phenotype-Specific Effects and Dual Analytical Frameworks.",
+   "abstract": "BACKGROUND: Although glucagon-like peptide-1 receptor agonists (GLP-1 RAs) reduce cardiovascular risk in patients with type 2 diabetes mellitus (T2D), evidence in heart failure (HF) has expanded across diverse trial populations and HF phenotypes but remains fragmented. We therefore performed an integrated systematic review and meta-analysis to evaluate the effects of GLP-1 RAs across the spectrum of HF using complementary trial-level and phenotype-based analyses.\nMETHODS: PubMed, Embase, and Web of Science were systematically searched for studies published from inception to August 10, 2025. To provide an integrated assessment across heterogeneous HF populations, treatment effects were evaluated using dual analytical frameworks: trial-level analyses according to study design (dedicated HF with preserved ejection fraction [HFpEF] trials, HF with reduced ejection fraction [HFrEF] trials, and HF subgroups from cardiovascular outcome trials [CVOTs]) and phenotype-based analyses according to left ventricular ejection fraction (HFpEF vs HFrEF using a pragmatic threshold of 40%). A prespecified targeted analysis was conducted to specifically assess the efficacy of semaglutide. The primary outcomes were major adverse cardiovascular events (MACE), and the secondary outcomes included hospitalization for HF (HHF), the composite of cardiovascular death or any worsening HF events, cardiovascular death alone, and all-cause mortality. Pooled hazard ratios (HRs) with 95% confidence intervals (CIs) were calculated using random‑effects models.\nRESULTS: This meta-analysis included 14 trials, with a pooled total of 15,882 patients with HF. In phenotype‑based analyses for HFpEF, GLP‑1 RAs significantly reduced MACE (HR 0.79; 95% CI 0.66-0.94; p = 0.010), HHF (HR 0.48; 95% CI 0.27-0.85; p = 0.012), the composite of cardiovascular death or worsening HF (HR 0.57; 95% CI 0.37-0.89; p = 0.013), and all‑cause mortality (HR 0.75; 95% CI 0.62-0.89; p = 0.001). In contrast, in HFrEF, no significant reductions were observed for HHF, the composite of cardiovascular death or worsening HF, all-cause mortality, or MACE, although a reduction in cardiovascular death was noted (HR 0.71; 95% CI 0.54-0.95; p = 0.019). Trial-level analyses showed that cardiovascular benefits were primarily observed in HF subgroups from CVOTs, including reductions in MACE (HR 0.82; 95% CI 0.73-0.92; p = 0.001), cardiovascular death (HR 0.88; 95% CI 0.77-1.00; p = 0.05) and myocardial infarction (MI)/non-fatal MI (HR 0.84; 95% CI 0.70-1.00; p = 0.046). Semaglutide showed benefits in HHF and the composite of cardiovascular death or worsening HF events predominantly among overweight or obese patients with HFpEF. GLP-1 RAs also improved functional capacity and quality of life in HFpEF.\nCONCLUSION: GLP-1 RAs were associated with favorable cardiovascular and HF-related outcomes in HFpEF, predominantly among overweight or obese individuals, whereas evidence of benefit in HFrEF remains limited. In trial-level analyses, benefits were primarily observed for atherosclerotic endpoints in HF subgroups from CVOTs. By integrating evidence, this study provides a unified overview of the effects of GLP-1 RAs across the spectrum of HF and supports further phenotype-specific randomized trials, particularly dedicated studies in HFrEF.\nTRIAL REGISTRATION: Protocol registration PROSPERO (CRD420251079970).",
+   "journal": "Drugs",
+   "journalAbbr": "Drugs",
+   "year": "2026",
+   "authors": "Yuan Y i in.",
+   "authorCount": 8,
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42791433/",
+   "topics": [
+    "redukcja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-28T10:16:47.635Z",
+   "score": 2,
+   "ai": {
+    "titlePl": "Agoniści receptora GLP-1 w niewydolności serca: przegląd systematyczny i meta-analiza ze zróżnicowanymi efektami zależnymi od fenotypu",
+    "summary": "Meta-analiza 14 badań obejmujących 15 882 pacjentów z niewydolnością serca wykazała, że agoniści GLP-1 istotnie redukowały poważne zdarzenia sercowo-naczyniowe (HR 0,79), hospitalizacje z powodu HF (HR 0,48) i śmiertelność (HR 0,75) u pacjentów z zachowaną frakcją wyrzutową (HFpEF), szczególnie u osób z nadwagą/otyłością. W przypadku zmniejszonej frakcji wyrzutowej (HFrEF) korzyści były ograniczone, z istotną redukcją tylko śmiertelności sercowo-naczyniowej (HR 0,71).",
+    "takeaway": "Dla klientów na siłowni badanie nie zmienia praktyki treningowej – GLP-1 RAs to leki kardiologiczne dla pacjentów z niewydolnością serca, nie interwencja treningowa; trener powinien być świadomy, że tacy pacjenci mogą być mniej wydolni.",
+    "population": "Pacjenci z niewydolnością serca (HFpEF i HFrEF), część z cukrzycą typu 2, wiele osób z nadwagą/otyłością, średni wiek nie podany",
+    "limits": "Heterogeniczna populacja pacjentów, większość badań to subgrupy z prób kardiologicznych (CVOTs), brak danych z czystych badań na HFrEF",
+    "relevance": 1
+   }
+  },
+  {
+   "pmid": "42761483",
+   "doi": "10.3389/fnut.2026.1893033",
+   "title": "Acute caffeine supplementation as a nutrition-based strategy to mitigate sleep-loss-related cognitive and operational performance impairments in military personnel: a systematic review and meta-analysis.",
+   "abstract": "BACKGROUND: Sleep loss is common in military operations and degrades vigilance, higher cognitive function, and operational performance. Whether acute caffeine meaningfully attenuates these decrements in military settings has not been quantitatively synthesized.\nMETHODS: This study systematically searched PubMed, Web of Science, Cochrane Library, MEDLINE, Embase, and SPORTDiscus from database inception to the search cutoff date. Eligible studies were randomized controlled or crossover trials that included military personnel or military-related populations, administered caffeine under conditions of sleep deprivation, sleep restriction, or sustained wakefulness, and compared caffeine with placebo or a non-caffeinated control. The primary outcomes were categorized as vigilance and response performance, complex cognitive performance, and military task performance. Risk of bias was assessed using the RoB 2 tool, and meta-analyses were conducted using StataMP 17.0.\nRESULTS: Seven randomized, double-blind, placebo-controlled studies were included. The meta-analysis showed that, compared with placebo, caffeine significantly improved vigilance and response performance under conditions of sleep deprivation or sleep restriction (SMD = 0.73, 95% CI: 0.50-0.96, I2 = 0.0%), complex cognitive performance (SMD = 0.54, 95% CI: 0.16-0.93, I2 = 0.0%), and military task performance (SMD = 0.45, 95% CI: 0.19-0.71, I2 = 29.2%). Overall, the ergogenic effects of caffeine were most consistent for vigilance and response performance, showed stable beneficial effects on complex cognitive performance, and were primarily reflected in improved task-execution speed and operational efficiency for military task performance.\nCONCLUSION: The available evidence suggests that acute caffeine supplementation improves vigilance and response performance during sleep loss in military personnel, with additional benefits for complex cognitive and military task performance. Effects were most consistent for vigilance and response speed, whereas benefits for complex cognition and military task performance were more task-dependent. These findings support caffeine as a practical short-term adjunct to fatigue management during military operations involving sleep loss, although further studies are needed to refine dose, timing, and task-specific use.\nSYSTEMATIC REVIEW REGISTRATION: https://www.crd.york.ac.uk/PROSPERO/view/CRD420261375742, identifier CRD420261375742.",
+   "journal": "Frontiers in nutrition",
+   "journalAbbr": "Front Nutr",
+   "year": "2026",
+   "authors": "Wang R i in.",
+   "authorCount": 5,
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42761483/",
+   "topics": [
+    "suplementy"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-28T10:16:47.635Z",
+   "score": 3,
+   "ai": {
+    "titlePl": "Kafeina jako strategia żywieniowa do łagodzenia zaburzeń poznawczych i operacyjnych spowodowanych brakiem snu u personelu wojskowego: przegląd systematyczny i metaanaliza",
+    "summary": "Przegląd obejmował 7 randomizowanych, podwójnie ślepych badań porównujących kofeinę z placebem u personelu wojskowego w warunkach niedostatku snu. Kofaina istotnie poprawiła czujność i szybkość reakcji (SMD = 0,73), wydajność poznawczą (SMD = 0,54) oraz wykonanie zadań militarnych (SMD = 0,45) w porównaniu z placebo.",
+    "takeaway": "Trener może rekomendować ostrą suplementację kofeiny jako krótkoterminową strategię poprawy wydajności poznawczej i operacyjnej u klientów pracujących w warunkach braku snu, choć efekty są najbardziej konsekwentne dla czujności i szybkości, a mniej przewidywalne dla złożonych zadań kognitywnych.",
+    "population": "Personel wojskowy lub populacje związane z wojskiem, n=7 badań (liczba uczestników niesprecyzowana w abstrakcie)",
+    "limits": "Badania przeprowadzono wyłącznie w populacji wojskowej; wyniki mogą być mniej stosowalne do cywilnych sportowców; brakuje szczegółów dotyczących optymalnej dawki i czasu podania kofeiny",
+    "relevance": 2
+   }
+  },
+  {
+   "pmid": "42740463",
+   "doi": "10.1002/jper.70104",
+   "title": "Autogenous grafts versus substitute scaffolds for soft tissue augmentation in implant therapy: A systematic review.",
+   "abstract": "BACKGROUND: To analyze the effect of autogenous soft tissue grafts or substitute scaffolds on the outcomes of soft tissue augmentation (STA) performed in the context of implant therapy.\nMETHODS: The protocol of this PRISMA 2020-compliant systematic review was registered in PROSPERO (CRD42024611477). Articles reporting the findings of randomized controlled trials (RCTs) that met the eligibility criteria were identified through a literature search. Following final article selection, data were extracted, including relevant clinician- and patient-reported outcomes and experiences (CROs and PROs/PREs). Risk of bias assessment was performed using the RoB2 tool. Network meta-analyses (NMA) were performed when feasible to compare the performance of different techniques.\nRESULTS: Forty RCTs were selected. Risk of bias assessment revealed that the methodological quality of the selected studies was generally high. Although CROs and PROs/PREs were inconsistently reported, it was possible to conduct five sets of NMA regarding mucosal thickness (MT) and keratinized mucosa width (KMW) changes. These analyses revealed that the use of an autogenous connective tissue graft in a bilaminar approach is the best treatment for MT augmentation regardless of the timing, while the application of a free mucosal graft over a partial-thickness vascular bed is generally the best to obtain KMW gains. Alternatively, other treatment options involving the use of specific types of substitute scaffolds were considered as viable alternatives given their similar performance, particularly in terms of MT gain. Additionally, it was found that, compared with autogenous soft tissue grafts, the use of substitute scaffolds is consistently associated with lower postoperative discomfort.\nCONCLUSIONS: Autogenous soft tissue grafts should be considered as the primary choice to achieve predictable MT and KMW gains in the context of implant therapy. The use of specific substitute scaffolds may render similar STA outcomes with lower postoperative morbidity.",
+   "journal": "Journal of periodontology",
+   "journalAbbr": "J Periodontol",
+   "year": "2026",
+   "authors": "Avila-Ortiz G i in.",
+   "authorCount": 8,
+   "pubTypes": [
+    "Journal Article",
+    "Systematic Review",
+    "Comparative Study"
+   ],
+   "evidence": "sr",
+   "evidenceLabel": "Przegląd systematyczny",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42740463/",
+   "topics": [
+    "suplementy"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-28T10:16:47.635Z",
+   "score": 2,
+   "ai": {
+    "titlePl": "Przeszczepy autologiczne versus substytuty w augmentacji tkanek miękkich wokół implantów: przegląd systematyczny",
+    "summary": "Przegląd 40 badań RCT porównujących efektywność przeszczepiania autologicznej tkanki łącznej versus substytutów sztucznych w augmentacji tkanek miękkich wokół implantów dentystycznych. Przeszczepy autologiczne w technice dwuwarstwowej wykazały najlepsze wyniki w zwiększaniu grubości śluzówki (MT), natomiast wolne przeszczepy śluzówki osiągały największe przyrosty szerokości keratynizowanej śluzówki (KMW); substytuty sztuczne wykazały porównywalne wyniki w MT przy mniejszym dyskomforcie pooperacyjnym.",
+    "takeaway": "Dla klientów wymagających implantów z wskazaniem do augmentacji tkanek miękkich: przeszczepy autologiczne pozostają najniezawodniejszym wyborem, ale substytuty sztuczne mogą być alternatywą przy mniejszym bólu pooperacyjnym i gorsze zagoją się bardziej przewidywalnie.",
+    "population": "Pacjenci wymagający implantów dentystycznych z potrzebą augmentacji tkanek miękkich (przegląd 40 RCT)",
+    "limits": "Niespójna raportacja wyników klinicznych i poddanych leczeniu; badania dotyczą procedur dentystycznych, nie bezpośrednio treningu",
+    "relevance": 1
+   }
+  },
+  {
+   "pmid": "42797063",
+   "doi": "10.3390/nu18183080",
+   "title": "Effectiveness of Nutrition and Exercise Interventions Among Community-Dwelling Older Vietnamese Adults with Sarcopenia: A Cluster-Randomized Controlled Trial.",
+   "abstract": "BACKGROUND/OBJECTIVES: Exercise and nutrition are central to sarcopenia management, but Vietnamese evidence is limited. We compared exercise intervention (Ex) alone and Ex plus nutritional support against health education.\nMETHODS: In this study, a three-arm, parallel-group cluster-randomized controlled trial, three communities in Can Gio District were randomly selected and assigned 1:1:1 (one per arm) to health-education control, Ex, or combined intervention. Before allocation, 30 adults aged 60-70 years with AWGS 2019-defined sarcopenia were randomly selected from screening lists within each community (n = 90). Both active arms underwent 24 weeks of aerobic and resistance exercise, with weekly supervised sessions during weeks 1-12 and less-supervised home exercise thereafter. The combined arm also received weekly individualized nutrition counseling and a daily multinutrient oral supplement (270 kcal; 11 g protein) during weeks 1-12. Outcomes at baseline, 12 weeks, and 24 weeks were analyzed using sex-adjusted participant-level linear mixed-effects models.\nRESULTS: At 24 weeks, adjusted differences in change (95% CIs) for Ex versus control and combined versus control were, respectively, 0.12 (0.02-0.22) and 0.01 (-0.09-0.11) kg/m2 for the skeletal muscle index; 2.49 (1.57-3.42) and 2.23 (1.30-3.15) kg for handgrip strength; and 0.206 (0.132-0.279) and 0.053 (-0.017-0.123) m/s for gait speed.\nCONCLUSIONS: Both active communities showed better handgrip strength than control; only the Ex community showed a gait-speed advantage, while muscle-mass changes were modest. With one cluster per arm, treatment and community were confounded; definitive treatment effects and the independent contribution of nutrition cannot be determined.\nTRIAL REGISTRATION: ClinicalTrials.gov NCT07761091 (retrospectively registered on 12 August 2026).",
+   "journal": "Nutrients",
+   "journalAbbr": "Nutrients",
+   "year": "2026",
+   "authors": "Doan TD i in.",
+   "authorCount": 5,
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42797063/",
+   "topics": [
+    "hipertrofia",
+    "populacje"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-28T10:16:47.635Z",
+   "score": 2,
+   "ai": {
+    "titlePl": "Efektywność ćwiczeń i interwencji żywieniowej u starszych dorosłych z sarkopenią: badanie kontrolne z randomizacją klastrową",
+    "summary": "U 90 wietnamskich dorosłych w wieku 60–70 lat z sarkopenią porównano 24-tygodniową interwencję złożoną z ćwiczeń samych oraz ćwiczeń + doradztwo żywieniowe + suplement (11 g białka dziennie) wobec edukacji zdrowotnej. Ćwiczenia zwiększyły siłę uścisku o 2,49 kg i prędkość chodu o 0,206 m/s, zaś dodanie żywienia nie dało istotnej dodatkowej korzyści na prędkością chodu (0,053 m/s) i masą mięśniową.",
+    "takeaway": "U starszych osób z sarkopenią program ćwiczeń oporowych i aerobowych jest efektywny dla siły i funkcji ruchowej, ale dodanie interwencji żywieniowej w tym kontekście nie przełożyło się na znaczące synergiczne efekty; trener powinien priorytetyzować program ćwiczeń jako fundament.",
+    "population": "Wietnamskie dorosłe osoby starsze 60–70 lat z sarkopenią (AWGS 2019), n=90 (3 klastry po 30 osób)",
+    "limits": "Tylko jeden klaster na ramię badania – nierozróżnialny efekt leczenia od efektu społeczności; mała liczba klastrów, brak możliwości wyodrębnienia wpływu samej interwencji żywieniowej",
+    "relevance": 2
+   }
+  },
+  {
+   "pmid": "42797058",
+   "doi": "10.3390/nu18183074",
+   "title": "Effects of Heat-Killed Bifidobacterium breve B-3, a Postbiotic, on Muscle Mass-Related Parameters in Patients with Sarcopenia: A Randomized, Double-Blind, Placebo-Controlled Pilot Trial.",
+   "abstract": "Background/Objectives: Sarcopenia contributes to frailty and functional decline in older adults; however, effective adjunctive strategies remain limited. Heat-killed Bifidobacterium breve B-3 (B-3HK), a postbiotic, has shown muscle-related effects in preclinical studies; however, clinical evidence in patients with established sarcopenia is scarce. This pilot trial aimed to evaluate these clinical effects. Methods: In this 24-week randomized, double-blind, placebo-controlled trial, adults aged 50-89 years with Asian Working Group for Sarcopenia (AWGS) 2019-defined sarcopenia received B-3HK (2 × 1010 cells/day) or placebo daily. The primary outcome was the change in knee extension strength at week 24. Secondary outcomes included body composition measured using bioelectrical impedance analysis (BIA), dual-energy X-ray absorptiometry (DXA), physical performance, Eating Assessment Tool-10 (EAT-10), serum biomarkers, gut microbiota, and safety. Secondary outcomes were exploratory with nominal p-values and no adjustment for multiple comparisons. Results: Fifty participants were randomized, and 49 were included in the full analysis set. Compared with placebo, B-3HK did not significantly improve knee extension strength. Exploratory analyses showed between-group differences favoring B-3HK in the BIA-derived skeletal muscle mass index, limb muscle mass, EAT-10 score, and serum insulin-like growth factor-1 and 25-hydroxyvitamin D levels. These differences were primarily driven by the attenuation of the decline in the placebo group and were not corroborated by DXA-derived indices or functional outcomes. The gut microbiota composition did not differ between groups. No serious adverse events were observed. Conclusions: B-3HK did not improve muscle strength in patients with sarcopenia. Exploratory analyses identified nominal between-group differences in body composition and endocrine outcomes; however, these findings were unadjusted for multiplicity and should be regarded as hypothesis-generating rather than confirmatory evidence of efficacy. These data may help inform the design of future adequately powered trials, but confirmation is required before any therapeutic benefit can be inferred.",
+   "journal": "Nutrients",
+   "journalAbbr": "Nutrients",
+   "year": "2026",
+   "authors": "Asaoka D i in.",
+   "authorCount": 12,
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42797058/",
+   "topics": [
+    "pomiary"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-28T10:16:47.635Z",
+   "score": 1,
+   "ai": {
+    "titlePl": "Wpływ martwych komórek Bifidobacterium breve B-3 (postbiotyk) na parametry masy mięśniowej u pacjentów z sarkopenią",
+    "summary": "Badanie RCT na 49 dorosłych 50–89 lat z sarkopenią porównało suplement postbiotykowy B-3HK (2×10¹⁰ komórek/dzień) z placebo przez 24 tygodnie. B-3HK nie poprawił istotnie siły mięśni w rozciąganiu kolana (główny wynik), choć analizy eksploracyjne wykazały nominalne różnice na korzyść B-3HK w BIA-mierzonej masy mięśniowej kończyn, wynikach EAT-10 oraz poziomach IGF-1 i witaminy D.",
+    "takeaway": "Bifidobacterium breve B-3 nie wykazało klinicznych efektów na siłę mięśni u sarkopenicznych, więc nie należy polecać jako uzupełnienie treningowego programu budowania masy mięśniowej.",
+    "population": "Osoby starsze 50–89 lat z sarkopenią (wg AWGS 2019), n=49",
+    "limits": "Badanie pilotażowe, wyniki wtórne bez korekcji na wielokrotne porównania (hipoteza generująca), brak potwierdzenia w DXA-mierzonej masy mięśniowej ani funkcjonalnych wynikach",
+    "relevance": 1
+   }
+  },
+  {
+   "pmid": "42797046",
+   "doi": "10.3390/nu18183063",
+   "title": "Individual and Additive Effects of Acute Intake of New Zealand Blackcurrant Powder and Caffeine on High-Intensity Intermittent Running Performance.",
+   "abstract": "BACKGROUND/OBJECTIVES: Consumption of New Zealand blackcurrant extract for 7 days has shown to reduce slowing of sprint speed in recreationally active males. Acute caffeine consumption has shown to improve repeated-sprint performance in a fatigued state. Thus, combined intake of New Zealand blackcurrants and caffeine may provide an additive or a synergistic effect to improve repeated-sprint performance, especially in fatigued individuals. Our study investigated the individual and additive effect of acute intake of New Zealand blackcurrant powder and caffeine on high-intensity intermittent running performance.\nMETHODS: Fourteen recreationally active males participated in a double-blind, randomised controlled crossover trial consisting of four experimental arms: placebo (PLA), New Zealand blackcurrant powder (NZBP), caffeine (CAFF), and NZBP + caffeine (NZBP + CAFF). Participants reported to the laboratory fasted and consumed a standardised breakfast with the study intervention 1 h before the exercise trial. Speed and distance covered for walking, sprinting, running, and jogging were assessed using the modified Loughborough Intermittent Shuttle Test (m-LIST). Blood lactate and free fatty acids (FFAs) levels, and perceptual measures (feeling scale, felt arousal scale and ratings of perceived exertion) were also assessed.\nRESULTS: Caffeine intake increased average sprint speed (p = 0.045, η2 = 0.345) and reduced sprint time (p = 0.030, η2 = 0.463) during the m-LIST protocol. Ratings of perceived exertion were lower with caffeine intake (p = 0.014, η2 = 0.381), while blood lactate concentration was higher (p = 0.001, η2 = 0.761). Serum free fatty acids concentrations increased over time (p < 0.001, η2 = 0.900), with a significant NZBP × time interaction (p = 0.005, η2 = 0.433). No significant effects of NZBP alone or caffeine × NZBP interactions were observed for sprint performance outcomes.\nCONCLUSIONS: Acute NZBP did not improve repeated-sprint performance, either alone or when combined with caffeine. In contrast, caffeine-containing treatments were associated with improved sprint performance and lower perceived exertion. These findings suggest that caffeine, rather than NZBP, was responsible for the observed ergogenic responses, with no evidence of an additive benefit from acute combined supplementation.",
+   "journal": "Nutrients",
+   "journalAbbr": "Nutrients",
+   "year": "2026",
+   "authors": "Nanavati K i in.",
+   "authorCount": 5,
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42797046/",
+   "topics": [
+    "suplementy"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-28T10:16:47.635Z",
+   "score": 2,
+   "ai": {
+    "titlePl": "Wpływ ostrych dawek czarnej porzeczki nowozelandzkiej i kofeiny na wydolność podczas powtarzanych sprintów",
+    "summary": "W badaniu 14 rekreacyjnie aktywnych mężczyzn testowano cztery warunki: placebo, czarną porzeczkę nowozelandzką (NZBP), kofeinę i ich połączenie, podczas testu intermittent shuttle. Kofeina zwiększyła średnią prędkość sprintu (p=0,045) i skróciła czas sprintu (p=0,030), zmniejszyła postrzegane zmęczenie, ale NZBP samodzielnie nie poprawiła wydolności ani nie wykazała efektu addytywnego z kofeiną.",
+    "takeaway": "W praktyce trenera: stosowanie kofeiny przed treningiem interwałowym jest uzasadnione, natomiast czarna porzeczka nowozelandomska w ostrych dawkach nie daje dodatkowych korzyści dla wydolności sprintowej.",
+    "population": "Rekreacyjnie aktywni mężczyźni, n=14",
+    "limits": "Mała próba (n=14), tylko mężczyźni, jedna ostra dawka NZBP (brak danych o dawkowaniu optymalnym), krótki czas suplementacji",
+    "relevance": 2
+   }
+  },
+  {
+   "pmid": "42797034",
+   "doi": "10.3390/nu18183051",
+   "title": "Dietary Behaviours Mediate Intervention Effects on Body Composition Outcomes in Children: Evidence from a Cluster-Randomised Controlled Trial.",
+   "abstract": "BACKGROUND/OBJECTIVES: Few paediatric obesity trials have examined behavioural mediators of intervention effects on detailed body composition outcomes beyond body mass index (BMI). Given the complexity of multiple correlated body composition indicators, this study aimed to employ principal component analysis (PCA) to derive a composite adiposity factor and to apply mediation analysis to identify whether changes in dietary behaviours and physical activity mediated the effects of the DECIDE-Children intervention on body composition.\nMETHODS: This study included 1180 children from a 9-month cluster-randomised controlled trial that delivered a multifaceted, digitally assisted intervention targeting children (health education, physical activity reinforcement, and app-based BMI monitoring/feedback) and their environments (school food policies and family engagement). Outcomes were changes in body composition (whole-body and trunk fat mass, fat-free mass, and muscle mass indices measured by bioelectrical impedance analysis). Potential mediators included changes in dietary behaviour, screen time, and moderate-to-vigorous physical activity (MVPA), assessed via validated questionnaires. PCA was used to reduce the dimensionality of body composition variables and to derive a composite adiposity factor (PCA_1), with higher values indicating greater adiposity and lower muscle mass. Mediation was tested using linear mixed-effects models adjusted for age, sex, and region.\nRESULTS: The intervention significantly reduced adiposity indicators (e.g., whole-body and trunk fat mass percentage decreased by 1.003%, and PCA_1 decreased by 0.942 SD) and concurrently increased fat-free mass percentage and muscle mass percentage at both whole-body and trunk levels. Dietary behaviour significantly mediated the intervention effects on all body composition outcomes (e.g., mediating 16.1% of the effect on PCA_1), whereas physical activity (both screen time and MVPA) showed no mediation. Sensitivity analyses supported the primary findings.\nCONCLUSIONS: The DECIDE-Children intervention improved body composition by reducing adiposity and increasing fat-free and muscle mass percentage, effects primarily mediated by dietary behaviour. These findings highlight dietary behaviour as a key component in paediatric obesity intervention.",
+   "journal": "Nutrients",
+   "journalAbbr": "Nutrients",
+   "year": "2026",
+   "authors": "Zhang L i in.",
+   "authorCount": 9,
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42797034/",
+   "topics": [
+    "pomiary"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-28T10:16:47.635Z",
+   "score": 1,
+   "ai": {
+    "titlePl": "Zmiany zachowań żywieniowych pośredniczą w efektach interwencji na skład ciała u dzieci",
+    "summary": "Badanie obejmowało 1180 dzieci w 9-miesięcznej interwencji skupiającej się na edukacji zdrowotnej, aktywności fizycznej i zaangażowaniu rodzin. Interwencja zmniejszyła wskaźniki adipozytości (tłuszcz całego ciała i tuniki o 1%, składnik główny o 0,942 SD) i zwiększyła procentowo masę beztłuszczową i mięśniową. Zmiany w zachowaniu żywieniowym pośredniczyły w 16,1% efektu na skład ciała, podczas gdy aktywność fizyczna nie wykazała efektu pośredniczącego.",
+    "takeaway": "W pracy z dziećmi skup się na zmianach diety jako kluczowym dla poprawy składu ciała; sama promocja aktywności fizycznej bez zmian żywieniowych może być niewystarczająca.",
+    "population": "Dzieci (n=1180) uczestniczące w programie szkolnym, różne regiony, bez szczegółowego określenia wieku lub poziomu treningu",
+    "limits": "Populacja pediatryczna (nie dotyczy dorosłych), wysoki szum w pomiarach zachowań (ankiety samoopisowe), brak informacji o adhererence do interwencji",
+    "relevance": 1
+   }
+  },
+  {
+   "pmid": "42796273",
+   "doi": "10.3390/medicina62091666",
+   "title": "The Effects of Thoracic Flexibility Exercise on Pain, Range of Motion, Spinal Alignment, Proprioception, and Neck Disability Index in Neck Pain Patients with Forward Head Posture: A Randomized Controlled Trial.",
+   "abstract": "Background and Objectives: Thoracic dysfunction may contribute to neck pain, restricted mobility, and altered spinal alignment in individuals with forward head posture (FHP). This study compared thoracic flexibility exercise (TFE) with cervical stabilization exercise (CSE) in terms of their effects on pain, range of motion (ROM), spinal alignment, proprioception, and neck-related disability in patients with chronic neck pain and FHP. Materials and Methods: Twenty-four participants were randomly assigned to either the TFE group (n = 12) or the CSE group (n = 12). Both groups performed their assigned intervention once per day, three days per week, for four weeks. The outcome measures included pain intensity, cervical and thoracic ROM, craniovertebral angle (CVA), cranio-rotation angle (CRA), thoracic kyphosis angle (TKA), proprioception, and the Neck Disability Index (NDI). Paired t-tests were used for within-group comparisons, and independent t-tests were used to compare change scores between groups. The Benjamini-Hochberg false discovery rate (FDR) procedure was applied to the between-group comparisons to account for multiple testing. Results: The TFE group showed significant improvements in all outcome measures following the intervention (p < 0.001). The CSE group showed significant improvements in pain, cervical flexion, extension, and right and left rotation, CVA, CRA, proprioception during extension and right and left rotation, and NDI (p < 0.05); however, no significant improvements were observed in thoracic ROM, TKA, or proprioception during flexion (p > 0.05). After FDR correction, between-group comparisons demonstrated significantly greater improvements in the TFE group than in the CSE group across all outcome measures (q < 0.05). Conclusions: TFE may be more effective than CSE in improving pain, ROM, spinal alignment, proprioception, and neck-related disability in patients with neck pain and FHP.",
+   "journal": "Medicina (Kaunas, Lithuania)",
+   "journalAbbr": "Medicina (Kaunas)",
+   "year": "2026",
+   "authors": "Kim C i in.",
+   "authorCount": 2,
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42796273/",
+   "topics": [
+    "prehab"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-28T10:16:47.635Z",
+   "score": 4,
+   "ai": {
+    "titlePl": "Wpływ ćwiczeń elastyczności klatki piersiowej na ból, zakres ruchu i wyrównanie kręgosłupa u pacjentów z bólem szyi i przepukliną głowy",
+    "summary": "Badanie porównało ćwiczenia elastyczności klatki piersiowej (TFE) z ćwiczeniami stabilizacyjnymi szyi (CSE) u 24 pacjentów z przewlekłym bólem szyi i nieprawidłową postawą głowy przez 4 tygodnie (3x na tydzień). Grupa TFE wykazała znaczące poprawy we wszystkich miarach wyników (p < 0,001), podczas gdy CSE poprawiła ból i zakres ruchu szyi, ale nie wpłynęła znacząco na zakres ruchu klatki piersiowej ani kątowość kifotyczną.",
+    "takeaway": "Dla pacjentów z bólem szyi i przepukliną głowy warto włączyć ćwiczenia elastyczności klatki piersiowej jako główny komponent programu, szczególnie jeśli ćwiczenia stabilizacyjne szyi nie przynoszą oczekiwanych rezultatów.",
+    "population": "Pacjenci z przewlekłym bólem szyi i przepukliną głowy, n=24 (12 w każdej grupie)",
+    "limits": "Mała próba (n=24), krótki okres obserwacji (4 tygodnie), brak grupy kontrolnej bez interwencji",
+    "relevance": 4
+   }
+  },
+  {
+   "pmid": "42797416",
+   "doi": "10.3390/ph19091370",
+   "title": "Trimetazidine in Chronic Coronary Syndrome and Coronary Artery Disease: A Narrative Review of Clinical Efficacy, Safety, and Current Guideline Position.",
+   "abstract": "Background: Chronic coronary syndrome (CCS) is a major source of morbidity and healthcare utilization, and a substantial proportion of patients continue to experience angina despite contemporary revascularization and guideline-directed medical therapy. Trimetazidine, a metabolic anti-ischemic agent that does not affect heart rate or blood pressure, has been used for decades as a non-hemodynamic add-on. Its position in international guidelines, however, has shifted. We aimed to synthesize current evidence on the clinical efficacy, safety, and guideline status of trimetazidine in CCS and coronary artery disease (CAD) and to delineate clinical circumstances in which a symptom-directed trial may be considered. Methods: We performed a structured narrative review of randomized controlled trials, network and conventional meta-analyses, and large observational studies indexed in PubMed/MEDLINE, Embase, and the Cochrane Library between January 1990 and March 2026. Reference lists of eligible articles, international clinical practice guidelines, and regulatory communications from European and national agencies were also examined. Results: Across pooled analyses, trimetazidine modestly but reproducibly improved exercise tolerance and reduced angina frequency and short-acting nitrate use, with efficacy comparable to other non-heart-rate-lowering antianginal agents. Improvements in left ventricular function were reported in small, single-center studies in ischemic cardiomyopathy and selected high-risk subgroups; however, these findings have not been validated in contemporary large-scale trials, and their clinical significance against modern guideline-directed therapy is unknown. The ATPCI trial confirmed safety but showed no reduction in major adverse cardiovascular events after percutaneous coronary intervention. Rare extrapyramidal effects prompted the 2012 European Medicines Agency referral and several prescribing restrictions. Conclusions: Trimetazidine remains a reasonable symptom-directed adjunct for residual angina in carefully selected CCS patients, particularly those in whom further hemodynamic up-titration is limited or poorly tolerated. The 2024 ESC class IIb recommendation may partly reflect a broader emphasis on prognostic benefit, although the neutral post-PCI outcome evidence and regulatory safety restrictions also support a more cautious position.",
+   "journal": "Pharmaceuticals (Basel, Switzerland)",
+   "journalAbbr": "Pharmaceuticals (Basel)",
+   "year": "2026",
+   "authors": "Brie DM i in.",
+   "authorCount": 5,
+   "pubTypes": [
+    "Journal Article",
+    "Review"
+   ],
+   "evidence": "review",
+   "evidenceLabel": "Przegląd",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42797416/",
+   "topics": [
+    "stanowiska"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-28T10:16:47.635Z",
+   "score": -1,
+   "ai": {
+    "titlePl": "Trimetazydyna w przewlekłym zespole wieńcowym: skuteczność, bezpieczeństwo i wytyczne",
+    "summary": "Przegląd badań dotyczących trimetazydyny – leku metabolicznego stosowanego u pacjentów z przewlekłym zespołem wieńcowym i chorobą wieńcową. Lek modestly poprawiał tolerancję wysiłku i zmniejszał częstość anginy porównując się z innymi lekami, jednak nie zmniejszył poważnych zdarzeń sercowo-naczyniowych po przezskórnej interwencji wieńcowej.",
+    "takeaway": "Wiedza dla trenera: trimetazydyna nie wpływa na HR/BP i może być stosowana u pacjentów z angną – nie stanowi bezpośredniego zagrożenia dla treningu, ale wymagany ostrożny nadzór kliniczny pacjenta.",
+    "population": "Pacjenci z przewlekłym zespołem wieńcowym i chorobą wieńcową, różne zaburzenia funkcji lewej komory",
+    "limits": "Przegląd narracyjny; brak zwalidowania efektów na funkcję lewej komory w dużych współczesnych badaniach; rzadkie działania niepożądane neurologiczne ograniczają stosowanie",
+    "relevance": 1
+   }
+  },
+  {
+   "pmid": "42791366",
+   "doi": "10.1038/s41581-026-01128-3",
+   "title": "Recommendations for the management of frailty in chronic kidney disease: a consensus report.",
+   "abstract": "Frailty is highly prevalent in patients with chronic kidney disease (CKD) and is associated with increased mortality, hospitalization and disability and with poorer quality of life. Despite its prognostic importance, substantial knowledge gaps remain with regard to the optimal tools for assessing frailty in CKD settings, the extent to which frailty can be reversed through targeted interventions, and how frailty should inform decision-making between conservative kidney management and kidney replacement therapy (KRT). This consensus report provides 63 consensus statements across four domains covering the assessment of frailty, interventions aimed at targeting the modifiable contributors to frailty in patients with CKD, considerations related to conservative kidney management and KRT, and the management of stage 5 CKD in the presence of frailty. Key recommendations include the need for routine frailty screening using multi-dimensional tools; the implementation of interventions to target physical activity with a focus on resistance training, adequate dietary protein intake, medication optimization and comprehensive geriatric assessment; a frailty-informed, person-centred framework for shared decision-making that emphasizes transparent communication, goal elicitation and cultural safety; and flexible KRT delivery - including less intensive dialysis schedules, assisted home dialysis and transplant eligibility assessment - guided by serial frailty measurement. The report concludes with priority research questions and a patient partner's reflections on the co-production of consensus statements.",
+   "journal": "Nature reviews. Nephrology",
+   "journalAbbr": "Nat Rev Nephrol",
+   "year": "2026",
+   "authors": "Li PK i in.",
+   "authorCount": 29,
+   "pubTypes": [
+    "Journal Article",
+    "Review"
+   ],
+   "evidence": "review",
+   "evidenceLabel": "Przegląd",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42791366/",
+   "topics": [
+    "stanowiska"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-28T10:16:47.635Z",
+   "score": 0,
+   "ai": {
+    "titlePl": "Zalecenia postępowania w kruchości u pacjentów z przewlekłą chorobą nerek",
+    "summary": "Przegląd konsensusu omawiający kruchość u pacjentów z przewlekłą chorobą nerek (CKD), która jest związana ze zwiększoną śmiertelnością, hospitalizacją i niepełnosprawnością. Raport zawiera 63 stwierdzenia konsensusu dotyczące oceny kruchości, interwencji (trening siłowy, odpowiednia ilość białka, optymalizacja leków) oraz personalizowanego podejmowania decyzji dotyczących terapii nerkozastępczej.",
+    "takeaway": "Dla pacjentów z CKD warto rutynowo screenować kruchość i wdrażać trening siłowy oraz zapewniać adekwatne spożycie białka, ale znaczenie praktyczne zależy od stopnia CKD i ogólnego stanu pacjenta.",
+    "population": "Pacjenci z przewlekłą chorobą nerek (CKD) w różnych stadiach, w tym przed i po transplantacji; przegląd obejmuje całą populację nerkową",
+    "limits": "Przegląd konsensusu – brak oryginalnych danych badawczych; zalecenia oparte na opinii ekspertów; populacja kliniczna (chorzy nerkowi), nie typowi klienci siłowni",
+    "relevance": 2
+   }
+  },
+  {
+   "pmid": "42796322",
+   "doi": "10.3390/medicina62091715",
+   "title": "Comparative Outcomes of Kirschner Wire Fixation Versus Locking Plate Osteosynthesis in Fifth Metacarpal Neck Fractures: A 20-Year Retrospective Analysis.",
+   "abstract": "Background and Objectives: Fifth metacarpal neck fractures are commonly encountered in hand surgery, yet optimal surgical fixation remains debated. This study compares Kirschner wire (K-wire) fixation and locking plate osteosynthesis in terms of radiological and functional outcomes. Materials and Methods: A retrospective cohort of 30 patients (mean age 45) from 2003-2022 was reviewed. Patients underwent either antegrade K-wire fixation or dorsal/volar locking plate fixation. Outcomes assessed included union time, angular and length deformity correction, return to work, and complication rates. Results: Both groups achieved similar final angulation correction (85%, p = 0.72). K-wire fixation achieved significantly faster radiographic union (K-wire: 3.5 months; plate: 4.5 months, p = 0. 019). K-wires allowed earlier intervention (6.0 (3.0-9.0) vs. 14.0 (9.0-22.0) days to surgery, p < 0.05) but had a 6.7% malunion rate. Plating allowed earlier return to work and avoided pin-tract issues. Functional scores (QuickDASH) and grip strength restoration (>90%) were statistically similar. Conclusions: Both K-wire fixation and locking plate osteosynthesis achieved bone union and satisfactory functional recovery in this retrospective cohort. However, given the small sample size and observational nature of the study, surgical selection should be tailored to individual patient presentation and surgeon preference until larger prospective trials are available.",
+   "journal": "Medicina (Kaunas, Lithuania)",
+   "journalAbbr": "Medicina (Kaunas)",
+   "year": "2026",
+   "authors": "Tsai SHL i in.",
+   "authorCount": 5,
+   "pubTypes": [
+    "Journal Article",
+    "Comparative Study"
+   ],
+   "evidence": "other",
+   "evidenceLabel": "Inne",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42796322/",
+   "topics": [
+    "pomiary"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-28T10:16:47.635Z",
+   "score": -2,
+   "ai": {
+    "titlePl": "Porównanie fiksacji drutem Kirschnera a osteosyntezą płytką blokowaną w złamaniach szyjki piątej kości śródręcznej – analiza retrospektywna 20-letnia",
+    "summary": "Badanie retrospektywne na grupie 30 pacjentów (średnia wiek 45 lat) z lat 2003–2022 porównało fiksację drutem Kirschnera z fiksacją płytką blokowaną w złamaniach szyjki piątej kości śródręcznej. Obie metody osiągnęły podobną korekcję kąta (85%, p=0,72), ale drut Kirschnera pozwolił na szybszą konsolidację radiologiczną (3,5 vs 4,5 miesiąca, p=0,019), podczas gdy płytka umożliwiła wcześniejszy powrót do pracy i uniknęła powikłań ze szpilką.",
+    "takeaway": "Oba sposoby leczenia dają zadowalające wyniki funkcjonalne – wybór powinien zależeć od indywidualnej sytuacji pacjenta i preferencji chirurga, jednak wynik nie zmienia praktyki trenera personalnego (urazy ręki wymagają zatrzymania treningów niezależnie od metody).",
+    "population": "Pacjenci z złamaniem szyjki piątej kości śródręcznej, średnia wiek 45 lat, n=30",
+    "limits": "Mała liczebność próby (n=30), badanie retrospektywne, brak prospektywnego randomizowanego porównania, heterogeniczna grupa wiekowa",
+    "relevance": 1
+   }
+  },
+  {
    "pmid": "42739045",
    "doi": "10.3390/nu18172876",
    "title": "Acute Caffeine Administered in Chewing Gum May Improve Functional Firefighting Balance After Gamma-Aminobutyric Acid Supplementation: A Double-Blind Crossover Trial.",
@@ -82,6 +602,38 @@
     "takeaway": "Kofeina w gucie może mieć niewielki pozytywny wpływ na równowagę, ale wynik dotyczy specyficznej populacji strażaków w ekstremalnych warunkach i zastosowania (GABA + kofeinę razem); dla typowego klienta na siłowni brak bezpośredniego wniosku praktycznego.",
     "population": "Zawodowi strażacy (n=14), 36 ± 5 lat, aktywni, BMI 25,2 ± 1,6 kg/m²",
     "limits": "Bardzo mała próba (n=14), specyficzna populacja (strażacy), specyficzny kontekst (pełne umundurowanie 25 kg), połączenie GABA+kofeina (brak izolacji wpływu kawy), brak danych o dawce kofeiny w gucie",
+    "relevance": 2
+   }
+  },
+  {
+   "pmid": "42739014",
+   "doi": "10.3390/nu18172842",
+   "title": "Does Acute Caffeine Alter the Temporal Countermovement Jump Response Following Reactive Strength Index-Individualized Drop Jumps in Chinese Han Basketball Players with Different Habitual Caffeine Exposure? A Randomized, Double-Blind, Placebo-Controlled Crossover Trial.",
+   "abstract": "Background/Objectives: Whether caffeine provides additional benefit when superimposed on individualized plyometric conditioning remains unclear. We examined whether 3 mg·kg-1 caffeine altered the temporal countermovement jump (CMJ) response following reactive strength index (RSI)-derived individualized drop-jump (DJ) conditioning and explored moderation by habitual caffeine exposure. Methods: Thirty Chinese Han male basketball players (median age, 22.0 years [IQR, 21.0-27.75]) entered a randomized, double-blind, placebo-controlled crossover trial; 17 reported no caffeine exposure and 13 reported exposure during the preceding 4 weeks. After caffeine (CAF; 3 mg·kg-1) or placebo (PLA), a 60-min absorption period, and warm-up, participants performed a post-supplement, pre-conditioning CMJ followed by 3 × 5 DJs. CMJ was assessed at 15 s, 3, 6, 9, and 12 min. The primary outcome was the Condition × Time effect on CMJ. All 30 randomized participants contributed data; three did not complete Period 2 because readiness criteria were not met, but Period 1 data were retained (57 participant-period observations). Results: CMJ varied across time (p < 0.001), but Condition × Time was not significant (p = 0.305). CAF-PLA differences at 15 s, 3, 6, 9, and 12 min were 0.89 cm (95% CI, -0.11 to 1.88), 0.39 (-0.61 to 1.38), 0.21 (-0.79 to 1.21), 0.84 (-0.15 to 1.84), and 0.71 (-0.29 to 1.71), respectively (all Holm-adjusted p ≥ 0.399). Habitual caffeine exposure showed no global moderation continuously (p = 0.158) or categorically (p = 0.116). An isolated 9-min contrast at zero reported exposure favored CAF by 1.83 cm (95% CI, 0.74-2.92; Holm-adjusted p = 0.031) but was exploratory. RPE showed no Condition × Time interaction (p = 0.253); at 15 s, CAF-PLA was -0.60 points (95% CI, -1.09 to -0.12; Holm-adjusted p = 0.088). Conclusions: This study did not obtain clear evidence that 3 mg·kg-1 caffeine provided additional CMJ improvement following this specific RSI-derived individualized DJ protocol. Habitual caffeine exposure did not systematically moderate the temporal response; the isolated signal was exploratory.",
+   "journal": "Nutrients",
+   "journalAbbr": "Nutrients",
+   "year": "2026",
+   "authors": "Sun J i in.",
+   "authorCount": 16,
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42739014/",
+   "topics": [
+    "suplementy"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-26T08:34:35.096Z",
+   "score": 2,
+   "ai": {
+    "titlePl": "Wpływ kofeiny na skok w pozycji podstawowej po zindywidualizowanych skokach ze spadku w koszykarzach",
+    "summary": "Badanie obejmowało 30 chińskich koszykarzy mężczyzn (mediana 22 lat), którzy w schemacie crossover otrzymali kofeinę (3 mg/kg) lub placebo, a następnie wykonali 3×5 skoków ze spadku zindywidualizowanych według wskaźnika siły reaktywnej. Nie stwierdzono istotnie znaczącego wpływu kofeiny na wysokość skoku w pozycji podstawowej przez 12 minut obserwacji (wszystkie p ≥ 0,399), niezależnie od wcześniejszej ekspozycji na kofeinę.",
+    "takeaway": "Trener może nie oczekiwać dodatkowej korzyści ze spożycia kofeiny (3 mg/kg) jako wsparcia dla treningów pliometrycznych opartych na indywidualizacji; protokół nie wykazał znaczącej poprawy wyskoku.",
+    "population": "Wytrenowani koszykarze mężczyźni, Chińczycy Han, n=30 (mediana wieku 22 lata), w tym 17 bez ekspozycji na kofeinę i 13 z ekspozycją w poprzedzających 4 tygodniach",
+    "limits": "Brak efektu globalnego kofeiny, tylko izolowany sygnał na 9. minucie u osób bez ekspozycji na kofeinę (rezultat poszukiwawczy); 3 uczestników nie ukończyło drugiego okresu; populacja specyficzna (koszykarze)",
     "relevance": 2
    }
   },
@@ -115,38 +667,6 @@
     "population": "Studenci-badmintonistcy, n=45, średnio wytrenowani",
     "limits": "Krótki okres interwencji (4 tygodnie), specjalistyczna populacja (badmintonistcy), HBO niedostępna w praktyce komercyjnej, brak grupy placebo dla samego likopenu",
     "relevance": 1
-   }
-  },
-  {
-   "pmid": "42739014",
-   "doi": "10.3390/nu18172842",
-   "title": "Does Acute Caffeine Alter the Temporal Countermovement Jump Response Following Reactive Strength Index-Individualized Drop Jumps in Chinese Han Basketball Players with Different Habitual Caffeine Exposure? A Randomized, Double-Blind, Placebo-Controlled Crossover Trial.",
-   "abstract": "Background/Objectives: Whether caffeine provides additional benefit when superimposed on individualized plyometric conditioning remains unclear. We examined whether 3 mg·kg-1 caffeine altered the temporal countermovement jump (CMJ) response following reactive strength index (RSI)-derived individualized drop-jump (DJ) conditioning and explored moderation by habitual caffeine exposure. Methods: Thirty Chinese Han male basketball players (median age, 22.0 years [IQR, 21.0-27.75]) entered a randomized, double-blind, placebo-controlled crossover trial; 17 reported no caffeine exposure and 13 reported exposure during the preceding 4 weeks. After caffeine (CAF; 3 mg·kg-1) or placebo (PLA), a 60-min absorption period, and warm-up, participants performed a post-supplement, pre-conditioning CMJ followed by 3 × 5 DJs. CMJ was assessed at 15 s, 3, 6, 9, and 12 min. The primary outcome was the Condition × Time effect on CMJ. All 30 randomized participants contributed data; three did not complete Period 2 because readiness criteria were not met, but Period 1 data were retained (57 participant-period observations). Results: CMJ varied across time (p < 0.001), but Condition × Time was not significant (p = 0.305). CAF-PLA differences at 15 s, 3, 6, 9, and 12 min were 0.89 cm (95% CI, -0.11 to 1.88), 0.39 (-0.61 to 1.38), 0.21 (-0.79 to 1.21), 0.84 (-0.15 to 1.84), and 0.71 (-0.29 to 1.71), respectively (all Holm-adjusted p ≥ 0.399). Habitual caffeine exposure showed no global moderation continuously (p = 0.158) or categorically (p = 0.116). An isolated 9-min contrast at zero reported exposure favored CAF by 1.83 cm (95% CI, 0.74-2.92; Holm-adjusted p = 0.031) but was exploratory. RPE showed no Condition × Time interaction (p = 0.253); at 15 s, CAF-PLA was -0.60 points (95% CI, -1.09 to -0.12; Holm-adjusted p = 0.088). Conclusions: This study did not obtain clear evidence that 3 mg·kg-1 caffeine provided additional CMJ improvement following this specific RSI-derived individualized DJ protocol. Habitual caffeine exposure did not systematically moderate the temporal response; the isolated signal was exploratory.",
-   "journal": "Nutrients",
-   "journalAbbr": "Nutrients",
-   "year": "2026",
-   "authors": "Sun J i in.",
-   "authorCount": 16,
-   "pubTypes": [
-    "Journal Article",
-    "Randomized Controlled Trial"
-   ],
-   "evidence": "rct",
-   "evidenceLabel": "RCT",
-   "url": "https://pubmed.ncbi.nlm.nih.gov/42739014/",
-   "topics": [
-    "suplementy"
-   ],
-   "topJournal": false,
-   "firstSeen": "2026-09-26T08:34:35.096Z",
-   "score": 2,
-   "ai": {
-    "titlePl": "Wpływ kofeiny na skok w pozycji podstawowej po zindywidualizowanych skokach ze spadku w koszykarzach",
-    "summary": "Badanie obejmowało 30 chińskich koszykarzy mężczyzn (mediana 22 lat), którzy w schemacie crossover otrzymali kofeinę (3 mg/kg) lub placebo, a następnie wykonali 3×5 skoków ze spadku zindywidualizowanych według wskaźnika siły reaktywnej. Nie stwierdzono istotnie znaczącego wpływu kofeiny na wysokość skoku w pozycji podstawowej przez 12 minut obserwacji (wszystkie p ≥ 0,399), niezależnie od wcześniejszej ekspozycji na kofeinę.",
-    "takeaway": "Trener może nie oczekiwać dodatkowej korzyści ze spożycia kofeiny (3 mg/kg) jako wsparcia dla treningów pliometrycznych opartych na indywidualizacji; protokół nie wykazał znaczącej poprawy wyskoku.",
-    "population": "Wytrenowani koszykarze mężczyźni, Chińczycy Han, n=30 (mediana wieku 22 lata), w tym 17 bez ekspozycji na kofeinę i 13 z ekspozycją w poprzedzających 4 tygodniach",
-    "limits": "Brak efektu globalnego kofeiny, tylko izolowany sygnał na 9. minucie u osób bez ekspozycji na kofeinę (rezultat poszukiwawczy); 3 uczestników nie ukończyło drugiego okresu; populacja specyficzna (koszykarze)",
-    "relevance": 2
    }
   },
   {
@@ -940,38 +1460,6 @@
    }
   },
   {
-   "pmid": "42788669",
-   "doi": "10.1002/pon.70616",
-   "title": "Making Interventions More Effective: Changes in Theoretical Constructs During Delivery of a Peer-Led Physical Activity Program for Breast Cancer Survivors.",
-   "abstract": "OBJECTIVE: Theory-based physical activity (PA) interventions improve moderate to vigorous physical activity (MVPA) among breast cancer survivors, yet limited research has examined when psychosocial changes occur during intervention delivery. Understanding temporal changes in theoretical constructs during PA adoption may enhance intervention delivery and outcomes. The purpose of this study is to examine longitudinal changes in self-efficacy, self-regulation and affect (intrapersonal constructs from Social Cognitive Theory) and social support (interpersonal construct) during a 12-week theory-based PA program (webMFT) and their association with participants' active minutes (measured by Fitbit) over 12 weeks and intervention engagement (receipt of 12 weekly peer coaching calls).\nMETHODS: In a randomized controlled trial with 61 participants, 30 were randomized to receive webMFT (mean age = 58.1 [SD = 8.55], 1.40 years post-diagnosis [SD = 0.5], 80% Stage 0-1 cancer, 80% White) delivered by 10 peer coaches. Only the webMFT participants were assessed; the comparison group (MVPA Tracking) was not included in the analyses. webMFT participants received a Fitbit tracker and weekly PA coaching calls tailored to Fitbit PA data. At baseline, 4, 8 and 12 weeks, they completed questionnaires assessing multidimensional self-efficacy (task, coping, scheduling), self-regulation skills, affective response and social support for PA. Mixed effects regression models examined changes in constructs and their association with Fitbit active minutes/week and intervention engagement.\nRESULTS: Increases in total self-efficacy, scheduling self-efficacy, positive affect and social support from family and friends were significantly associated with participants' PA over 12 weeks. There were no significant associations between changes in self-regulation skills, task or coping self-efficacy with PA. Improvements in total self-efficacy, scheduling self-efficacy, self-regulation, affective response and family social support were positively associated with intervention engagement.\nCONCLUSIONS: Participants' self-efficacy, specifically, for scheduling PA, positive affect and social support for PA adoption and intervention engagement merit future examination.",
-   "journal": "Psycho-oncology",
-   "journalAbbr": "Psychooncology",
-   "year": "2026",
-   "authors": "Pinto BM i in.",
-   "authorCount": 4,
-   "pubTypes": [
-    "Journal Article",
-    "Randomized Controlled Trial"
-   ],
-   "evidence": "rct",
-   "evidenceLabel": "RCT",
-   "url": "https://pubmed.ncbi.nlm.nih.gov/42788669/",
-   "topics": [
-    "adherencja"
-   ],
-   "topJournal": false,
-   "firstSeen": "2026-09-26T08:06:37.793Z",
-   "score": 2,
-   "ai": {
-    "titlePl": "Zmiany konstruktów psychologicznych podczas programu aktywności fizycznej dla pacjentek po raku piersi",
-    "summary": "Badanie RCT (n=30) oceniało zmiany w self-efficacy, samoregulacji, afekcie i wsparciu społecznym podczas 12-tygodniowego programu aktywności fizycznej (webMFT) prowadzonego przez peer coachy u pacjentek po raku piersi (średni wiek 58 lat). Wzrost całkowitego self-efficacy, szczególnie scheduling self-efficacy, pozytywnego afektu i wsparcia rodziny/przyjaciół były istotnie związane z większą aktywnością fizyczną w ciągu 12 tygodni (mierzoną Fitbitem).",
-    "takeaway": "Trener powinien w programach dla tej populacji kłaść nacisk na budowanie self-efficacy do planowania treningów i zaangażowania wsparcia społecznego (rodzina, przyjaciele), a także monitorować pozytywne doświadczenia z ćwiczeń.",
-    "population": "Pacjentki po raku piersi (80% stadium 0-1), średni wiek 58 lat, średnio 1,4 roku po diagnozie, n=30",
-    "limits": "Brak kontrolnej grupy porównania w analizach; badanie ukierunkowane na konkretny program webMFT; populacja głównie biała (80%), może ograniczać generalizację",
-    "relevance": 2
-   }
-  },
-  {
    "pmid": "42788414",
    "doi": "10.1002/jcsm.70391",
    "title": "Skeletal Muscle Transcriptomic Responses to Concurrent Training With Polyphenols in Ageing Adults: A Randomized Trial.",
@@ -1034,71 +1522,6 @@
     "population": "Pacjenci po całkowitym protezowaniu stawu (kolano/biodro), n=24 (12 w grupie eksperymentalnej, 12 w kontrolnej), okres obserwacji 3 miesiące po operacji",
     "limits": "Mała próba (n=24), pilotażowe badanie, brak znaczących różnic w jakości życia (p=0,062), rejestracja retrospektywna",
     "relevance": 3
-   }
-  },
-  {
-   "pmid": "42786131",
-   "doi": "10.1111/jns.70172",
-   "title": "Fampridine for Symptomatic Treatment in Chronic Inflammatory Demyelinating Polyneuropathy: A Randomized, Double-Blinded, Placebo-Controlled Crossover Study.",
-   "abstract": "BACKGROUND AND AIMS: Chronic Inflammatory Demyelinating Polyneuropathy (CIDP) is an immune-mediated neuropathy that may cause persistent disability despite immunoglobulin treatment. Ion channel dysfunction has been demonstrated in CIDP, but no therapies specifically target this mechanism. We investigated whether fampridine improves clinical function and electrophysiological measures in CIDP patients with residual symptoms.\nMETHODS: In this two-center, randomized, double-blind, placebo-controlled crossover trial, patients with CIDP receiving stable subcutaneous or intravenous immunoglobulin were assigned to 4 weeks of fampridine (10 mg twice daily) or placebo, separated by a washout period. Co-primary outcomes were changes in Six-Spot-Step Test (SSST) and Nine-Hole Peg Test (9-HPT). Secondary outcomes included clinical scores, patient-reported outcomes, nerve conduction studies, and nerve excitability testing.\nRESULTS: Twenty-eight patients were included in the study. No significant differences were observed between fampridine and placebo for SSST (p = 0.154) or 9-HPT (p = 0.857). Grip strength and R-ODS worsened during fampridine compared with placebo (Bonferroni-adjusted p = 0.007 for both), while other clinical outcomes showed no differences. Median nerve CMAP amplitude with proximal stimulation increased significantly during fampridine treatment (adjusted p = 0.040). No significant changes were observed in other electrophysiological variables, including nerve excitability testing. No serious adverse events occurred and adverse effects were predominantly mild.\nINTERPRETATION: Our study did not provide evidence that fampridine improves clinical function in CIDP patients with residual disability during stable immunoglobulin therapy. Targeting ion channel dysfunction in CIDP remains of interest, but alternative strategies may be required.",
-   "journal": "Journal of the peripheral nervous system : JPNS",
-   "journalAbbr": "J Peripher Nerv Syst",
-   "year": "2026",
-   "authors": "Hansen PN i in.",
-   "authorCount": 6,
-   "pubTypes": [
-    "Journal Article",
-    "Randomized Controlled Trial",
-    "Multicenter Study"
-   ],
-   "evidence": "rct",
-   "evidenceLabel": "RCT",
-   "url": "https://pubmed.ncbi.nlm.nih.gov/42786131/",
-   "topics": [
-    "pomiary"
-   ],
-   "topJournal": false,
-   "firstSeen": "2026-09-26T08:06:37.793Z",
-   "score": 1,
-   "ai": {
-    "titlePl": "Fampridyna w leczeniu objawowym przewlekłej zapalnej demielinizacyjnej polineuropatii: badanie randomizowane, podwójnie zaślepione, kontrolowane placebo",
-    "summary": "Badanie obejmowało 28 pacjentów z CIDP otrzymujących stabilną terapię immunoglobuliną, którzy w ujęciu crossover otrzymali famprydinę (10 mg 2x dziennie) lub placebo przez 4 tygodnie. Fampridyna nie poprawiła funkcjonalności mierzonej testem SSST (p=0,154) ani 9-HPT (p=0,857), a nawet pogorszyła siłę chwytu i wynik R-ODS w porównaniu z placebo (p=0,007).",
-    "takeaway": "Wynik nie ma znaczenia dla trenera personalnego, gdyż dotyczy choroby neurologicznej (CIDP) poza spektrum typowych klientów siłowni.",
-    "population": "Pacjenci z przewlekłą zapalną demielinizacyjną polineuropatią, n=28",
-    "limits": "Populacja kliniczna (choroba rzadka), krótki okres interwencji (4 tygodnie), mała liczba uczestników",
-    "relevance": 1
-   }
-  },
-  {
-   "pmid": "42784807",
-   "doi": "10.2196/89548",
-   "title": "Caregiver App Use and Child Behavioral Adherence in Relation to Obesity-Related Outcomes in an mHealth App-Assisted Childhood Obesity Intervention: Secondary Analysis of a Cluster Randomized Trial.",
-   "abstract": "BACKGROUND: Childhood obesity remains a major public health challenge. Mobile health (mHealth) interventions offer a scalable approach to support behavior change, but their effectiveness may depend on participant adherence. While both caregiver and child adherence are important, few studies have jointly examined caregiver app-use adherence and child behavioral adherence within digital obesity interventions.\nOBJECTIVE: This study aimed to evaluate the independent and joint associations of caregiver app-use adherence and child behavioral adherence with obesity-related outcomes in a school-based mHealth intervention.\nMETHODS: We conducted a secondary analysis of 684 child-caregiver dyads in the intervention arm of the diet, exercise, and cardiovascular health-children cluster-randomized trial, implemented across 3 socioeconomically diverse regions in China. Caregiver app-use adherence was measured using app-recorded app-use frequency and total usage duration. Child behavioral adherence was assessed through weekly behavior monitoring scores covering diet, screen time, and physical activity. Linear mixed models estimated associations between adherence levels and changes in anthropometric and physical fitness outcomes over 9 months.\nRESULTS: Higher caregiver app-use frequency and duration were both significantly associated with reductions in children's obesity-related indicators, such as BMI (β=-0.19; P=.005), BMI z-score (β=-0.08; P=.006), and body fat percentage (BFP) (β=-0.70; P=.005) for frequency. Greater child behavioral adherence was associated with lower BFP (β=-0.63; P=.01) and better physical fitness, including shorter shuttle run time (β=-3.63; P<.001) and longer standing long jump distance (β=2.88; P=.005). App-use frequency and duration showed a significant interaction for rope-skipping performance (P=.05). In joint adherence analyses, children in the high caregiver-high child adherence group showed the most favorable changes, including lower BMI (β=-0.22; P=.02), lower BFP (β=-1.18 percentage points; P=.001), and 7.45 additional rope-skipping repetitions (P=.003), compared with the low caregiver-low child adherence group.\nCONCLUSIONS: In this secondary analysis of an mHealth app-assisted childhood obesity intervention, higher caregiver app-use adherence and child behavioral adherence were associated with more favorable changes in weight status and physical fitness. These findings underscore the importance of coengagement in digital health programs and highlight the potential of app-supported, family-engaged strategies for childhood obesity prevention.",
-   "journal": "JMIR mHealth and uHealth",
-   "journalAbbr": "JMIR Mhealth Uhealth",
-   "year": "2026",
-   "authors": "Yan S i in.",
-   "authorCount": 6,
-   "pubTypes": [
-    "Journal Article",
-    "Randomized Controlled Trial"
-   ],
-   "evidence": "rct",
-   "evidenceLabel": "RCT",
-   "url": "https://pubmed.ncbi.nlm.nih.gov/42784807/",
-   "topics": [
-    "adherencja"
-   ],
-   "topJournal": false,
-   "firstSeen": "2026-09-26T08:06:37.793Z",
-   "score": 1,
-   "ai": {
-    "titlePl": "Adherencja rodziców w aplikacji mobilnej i zachowawcze zaangażowanie dziecka w związku z wynikami otyłości w interwencji mHealth",
-    "summary": "Badanie analizowało 684 pary rodzic-dziecko w chińskiej interwencji prozdrowotnej opartej na aplikacji mobilnej. Wykazano, że wyższa częstość i czas użytkowania aplikacji przez opiekunów oraz większa adherencja dziecka do zachowań zdrowotnych wiązały się ze zmniejszeniem BMI (β=-0,19), procentu tkanki tłuszczowej (β=-0,70) oraz poprawą wydolności fizycznej. Największe korzyści zaobserwowano w grupie z wysoką adherencją zarówno rodzica, jak i dziecka.",
-    "takeaway": "Wynik dotyczy dzieci i otyłości, nie jest stosowany do treningu siłowego dorosłych; dla trenera personalnego bez bezpośredniego zastosowania.",
-    "population": "Dzieci i opiekunowie w szkołach, n=684 par, 3 regiony w Chinach o różnym statusie socjoekonomicznym",
-    "limits": "Populacja pediatryczna, brak danych o zgodzie rodziców z rzeczywistym treningiem siłowym, analiza wtórna, specyfika chińskiego kontekstu",
-    "relevance": 1
    }
   },
   {
@@ -1167,38 +1590,6 @@
    }
   },
   {
-   "pmid": "42769148",
-   "doi": "10.3389/fpubh.2026.1824969",
-   "title": "Effects of fun games on respiratory function and compliance in children with pneumonia: a randomized controlled trial.",
-   "abstract": "BACKGROUND: Community-acquired pneumonia poses a significant threat to children's health. Traditional respiratory rehabilitation often suffers from poor adherence due to children's limited cognitive abilities. This study aimed to evaluate the effects of a fun game-based intervention on respiratory function, exercise capacity, and rehabilitation compliance in children with pneumonia.\nMETHODS: A single-center, two-arm, parallel-group randomized controlled trial was conducted. A total of 170 children recovering from pneumonia and meeting the inclusion criteria were recruited from a tertiary hospital in Shenzhen and randomly allocated to either an intervention group or a control group. Ultimately, 154 participants (77 per group) completed the study. The control group received conventional respiratory training and health education. The intervention group participated in an 8-week fun game-based program, including respiratory training games (e.g., \"Blow Out the Little Candle\"), physical activity games (e.g., \"Rhythmic Breathing Run\"), along with interactive feedback mechanisms and personalized adjustments. Pulmonary function (FEV1/FVC ratio), exercise capacity (6-min walk distance, 6MWD), and rehabilitation compliance (Frankl and Houpt scale scores) were measured in both groups before and after the intervention.\nRESULTS: No statistically significant differences were found in baseline characteristics or outcome measures between the two groups before the intervention (P > 0.05). After the 8-week intervention, the intervention group showed significantly greater improvement in pulmonary function (FEV1/FVC: 84.69 ± 2.34 vs. 74.43 ± 2.27, P < 0.001) and exercise capacity (6MWD: 593.63 ± 19.91 m vs. 556.35 ± 30.48 m, P < 0.001) compared to the control group. Regarding compliance, post-intervention Frankl scores (3.87 ± 0.34 vs. 3.10 ± 0.60) and Houpt scores (2.91 ± 0.86 vs. 3.19 ± 0.78) indicated significantly better cooperation willingness and treatment completion in the intervention group (P < 0.05).\nCONCLUSION: The fun game-based intervention significantly improves pulmonary function and exercise capacity, while effectively enhancing compliance and completion rates in the rehabilitation of children with pneumonia. This approach is economical, feasible, and effective, offering a novel strategy for clinical nursing and rehabilitation practice in pediatric pneumonia.\nCLINICAL TRIAL REGISTRATION: https://www.chictr.org.cn/showproj.html?proj=269965.",
-   "journal": "Frontiers in public health",
-   "journalAbbr": "Front Public Health",
-   "year": "2026",
-   "authors": "Chen Y i in.",
-   "authorCount": 7,
-   "pubTypes": [
-    "Journal Article",
-    "Randomized Controlled Trial"
-   ],
-   "evidence": "rct",
-   "evidenceLabel": "RCT",
-   "url": "https://pubmed.ncbi.nlm.nih.gov/42769148/",
-   "topics": [
-    "adherencja"
-   ],
-   "topJournal": false,
-   "firstSeen": "2026-09-26T08:06:37.793Z",
-   "score": 1,
-   "ai": {
-    "titlePl": "Wpływ zabawy na funkcję oddechową i adherencję w rehabilitacji dzieci z zapaleniem płuc",
-    "summary": "Badanie obejmowało 154 dzieci wyzdrawiające z zapalenia płuc, podzielone na grupę zabawy (gry oddechowe i ruchowe przez 8 tygodni) i grupę kontrolną (standardowy trening). Grupa z zabawami wykazała istotnie większą poprawę FEV1/FVC (84,69 vs 74,43, p<0,001), dystansu w 6-minutowym teście marszu (593,63 vs 556,35 m, p<0,001) oraz lepszą adherencję (Frankl 3,87 vs 3,10, p<0,05).",
-    "takeaway": "Wynik dotyczy dzieci w trakcie rehabilitacji pulmonologicznej, a nie treningu siłowego u dorosłych — ma znaczenie edukacyjne dla zabawy, ale nie zmienia praktyki trenerskiej na siłowni.",
-    "population": "Dzieci wyzdrawiające z zapalenia płuc, n=154 (77 w każdej grupie)",
-    "limits": "Populacja pediatryczna leczona z powodu choroby płucnej (poza grupą docelową trenera siłowni); brak danych na temat populacji zdrowych lub sportowców",
-    "relevance": 1
-   }
-  },
-  {
    "pmid": "42763820",
    "doi": "10.1186/s40798-026-01081-2",
    "title": "The Effects of Exergames on Fundamental Movement Skills in Childhood: A Systematic Review and Meta-analysis.",
@@ -1228,39 +1619,6 @@
     "population": "Dzieci (brak sprecyzowania wieku); badania z lat 2000–2025",
     "limits": "Przegląd skupia się na egrogach i umiejętnościach motorycznych, nie na hypertrofii ani treningach siłowych; brak danych na populacji dorosłych ćwiczących na siłowni",
     "relevance": 1
-   }
-  },
-  {
-   "pmid": "42760651",
-   "doi": "10.1097/MD.0000000000050694",
-   "title": "Cardiorespiratory adaptations to high-intensity interval training in young boxers: A randomized controlled study.",
-   "abstract": "BACKGROUND: High-intensity interval training (HIIT) has been recognized for its effectiveness in enhancing cardiorespiratory fitness. However, the application of HIIT within boxing training remains underexplored. This study aimed to investigate the physiological adaptations induced by a structured 4-week HIIT-boxing regimen, with a specific focus on pulmonary function (PF), aerobic capacity, and autonomic cardiovascular regulation, assessed by heart rate recovery (HRR).\nMETHODS: Sixteen trained young individuals were randomly assigned to either the HIIT-boxing group or the control group. Comprehensive assessments, including PF tests, peak oxygen uptake, and HRR at the 1st, 3rd, and 5th minutes postexercise, were conducted pre- and post-intervention.\nRESULTS: Significant improvements were observed in maximal voluntary ventilation, forced vital capacity (FVC), forced expiratory volume in 1 second (FEV1), and peak expiratory flow over time (P < .01), while the FEV1/FVC ratio remained unchanged (P = .244). Time-by-group interactions revealed greater improvements in maximal voluntary ventilation (ηp2 = 0.817), FVC (ηp2 = 0.618), and FEV1 (ηp2 = 0.283) in the HIIT group than in the control group. Although estimated estimated maximal oxygen uptake improved significantly over time (P < .001), no significant group effect or time-by-group interaction was observed. HRR improved significantly over time in both groups (P < .001), with no significant time-by-group interaction observed at any measured interval (P > .05).\nCONCLUSION: Supplementing conventional boxing training with HIIT may serve as a useful strategy for enhancing selected PF parameters in combat sports athletes. However, because the HIIT group performed a greater total training volume, the observed improvements cannot be definitively attributed to HIIT independently of the increased training stimulus.",
-   "journal": "Medicine",
-   "journalAbbr": "Medicine (Baltimore)",
-   "year": "2026",
-   "authors": "Cinarli S i in.",
-   "authorCount": 7,
-   "pubTypes": [
-    "Journal Article",
-    "Randomized Controlled Trial"
-   ],
-   "evidence": "rct",
-   "evidenceLabel": "RCT",
-   "url": "https://pubmed.ncbi.nlm.nih.gov/42760651/",
-   "topics": [
-    "regeneracja",
-    "kondycja"
-   ],
-   "topJournal": false,
-   "firstSeen": "2026-09-26T08:06:37.793Z",
-   "score": 2,
-   "ai": {
-    "titlePl": "Adaptacje kardiorespiratoryjna na treningu interwałowym wysokiej intensywności u młodych bokserów",
-    "summary": "Badanie porównało 4-tygodniowy trening bokserski ze zwiększonym treningiem interwałowym (HIIT) względem grupy kontrolnej na 16 wytrenowanych młodych osobach. Grupa HIIT wykazała istotnie większe poprawy w maksymalnej wentylacji dobrowolnej (ηp2=0,817), pojemności życiowej (ηp2=0,618) i objętości wydechowej w pierwszej sekundzie (ηp2=0,283), podczas gdy maksymalne pochłanianie tlenu i heart rate recovery poprawiły się w obu grupach bez różnic międzygrupowych.",
-    "takeaway": "Dodanie HIIT do treningu bokserskiego może wspomóc funkcję płuc u sportowców, ale większa objętość treningowa w grupie HIIT utrudnia stwierdzenie efektu niezależnego od zwiększonego bodźca treningowego.",
-    "population": "Wytrenowani młodzi bokserzy, n=16 (8 w grupie HIIT, 8 kontrolna)",
-    "limits": "Mała próba (n=16), krótki okres interwencji (4 tygodnie), grupa HIIT wykonała większą całkowitą objętość treningową, brak rozdzielenia efektu HIIT od zwiększonego obciążenia",
-    "relevance": 2
    }
   },
   {
@@ -1329,70 +1687,6 @@
    }
   },
   {
-   "pmid": "42753258",
-   "doi": "10.2196/84430",
-   "title": "Personalized Mobile App-Based Messaging and Step Tracking for Improving Walking Behavior in Adults: Randomized Controlled Trial.",
-   "abstract": "BACKGROUND: Walking is one of the most effective forms of physical activity; however, maintaining long-term engagement in digital step-counting interventions remains challenging.\nOBJECTIVE: This study aimed to evaluate the effects of personalized message interventions integrating the Information-Motivation-Behavioral Skills (IMB) model and regulatory focus theory (RFT) on walking behavior.\nMETHODS: Participants were recruited offline through community advertisements containing a QR code that linked to an online sign-up form and were screened using an online baseline questionnaire by research staff, while all intervention delivery and outcome assessments were conducted via the WalkOn mobile app. A 12-week randomized controlled trial targeting 174 adults in Mapo-gu, Seoul, Korea, was conducted from April 1 to June 22, 2024. Of the 174 randomized participants, 141 (67 in the intervention group and 74 in the control group) engaged in the intervention. Both groups received incentives based on goal achievement and general health information, whereas the intervention group received weekly personalized messages provided by research staff according to midweek step-count performance. Primary outcomes included weekly goal achievement rates for the 25,000-step goal, step-count patterns, and consecutive 2-week goal achievement failure events. Analyses were conducted using generalized estimating equations (GEEs), linear mixed models (LMMs), and Cox proportional hazards models.\nRESULTS: Of the 174 participants randomized, 141 (81%) engaged in the intervention and were included in the analyses (67 intervention; 74 control), while 33 participants did not participate after randomization. The overall 12-week mean goal achievement rate was 87% in the intervention group and 87% in the control group, with no significant difference between the groups (odds ratio [OR] 1.12, 95% CI 0.29-4.37; P=.87). Weekly step-count patterns also showed no significant differences (group × time interaction: estimate=-417; SE 09; P=.31). However, the risk of consecutive 2-week goal achievement failure events was significantly lower in the intervention group (hazard ratio [HR] 0.67, 95% CI 0.52-0.86; P=.002). The intervention group showed an approximately 33% lower likelihood of consecutive 2-week goal achievement failure events than the control group.\nCONCLUSIONS: Personalized message interventions did not show significant effects on overall step-count increase but were associated with a reduced risk of consecutive 2-week goal achievement failure events. These findings suggest that personalized messages may play an important role in improving behavior change sustainability and failure resilience. Incorporating personalized messaging strategies may enhance the effectiveness of digital health intervention design.\nTRIAL REGISTRATION: Clinical Research Information Service (CRIS), Republic of Korea KCT0010966; https://tinyurl.com/3jeepxve.",
-   "journal": "JMIR mHealth and uHealth",
-   "journalAbbr": "JMIR Mhealth Uhealth",
-   "year": "2026",
-   "authors": "Jang S i in.",
-   "authorCount": 2,
-   "pubTypes": [
-    "Journal Article",
-    "Randomized Controlled Trial"
-   ],
-   "evidence": "rct",
-   "evidenceLabel": "RCT",
-   "url": "https://pubmed.ncbi.nlm.nih.gov/42753258/",
-   "topics": [
-    "adherencja"
-   ],
-   "topJournal": false,
-   "firstSeen": "2026-09-26T08:06:37.793Z",
-   "score": 2,
-   "ai": {
-    "titlePl": "Spersonalizowane wiadomości w aplikacji mobilnej i licznik kroków na poprawę aktywności chodzenia u dorosłych: badanie randomizowane",
-    "summary": "Badanie oceniało wpływ spersonalizowanych wiadomości opartych na modelu IMB i teorii regulatory focus na aktywność chodzenia u 141 dorosłych (67 w grupie interwencji, 74 kontrolnej) przez 12 tygodni. Obie grupy osiągnęły 87% całkowitych celów (25 000 kroków), bez różnicy między grupami, ale grupa z wiadomościami miała 33% niższe ryzyko kolejnych dwutygodniowych porażek w osiągnięciu celu (HR 0,67; p=0,002).",
-    "takeaway": "Personalizowane wiadomości motywacyjne mogą wspierać wytrwałość w utrzymaniu aktywności fizycznej i minimalizować okresy braku zaangażowania, ale nie zwiększają ogólnego poziomu aktywności — trenер może je uwzględnić jako element redukcji \"wypadnięć\" z programu.",
-    "population": "Dorośli z Seulu (Mapo-gu), Korea, n=141 (67 interwencja, 74 kontrola), średnio zaangażowani w liczenie kroków",
-    "limits": "Wysoki wskaźnik rezygnacji (19%), populacja locjna, brak informacji o wyjściowym poziomie fitness i wieku uczestników, 12-tygodniowy okres obserwacji",
-    "relevance": 2
-   }
-  },
-  {
-   "pmid": "42750456",
-   "doi": "10.4014/jmb.2606.06054",
-   "title": "Effects of Wilac D001 (Weissella confusa WIKIM51) Supplementation on Metabolic Parameters and Central Adiposity in Overweight Adults: A 12-Week Randomized, Double-Blind, Placebo-Controlled Trial.",
-   "abstract": "Recent research has emphasized the importance of gut microbiota in regulating energy and lipid metabolism as well as gut hormone secretion, indicating that probiotics could contribute to improving metabolic parameters associated with excess adiposity. This study evaluated the metabolic effects of Weissella confusa WIKIM51 (Wilac D001) and explored the potential involvement of glucagon-like peptide-1 (GLP-1)-related mechanisms. First, GLP-1 secretory activity following Wilac D001 treatment was evaluated in vitro using STC-1 enteroendocrine cells. Male C57BL/6 mice were fed a high-fat diet to induce obesity-associated metabolic dysregulation, and Wilac D001 was orally administered for 10 weeks. Glucose tolerance was subsequently examined using an oral glucose tolerance test (OGTT). Finally, in a 12-week randomized, double-blind, placebo-controlled clinical trial, overweight adults aged 19-64 years received either Wilac D001 (1.0 × 1010 colony-forming units/day) or a placebo. Blood lipid parameters, glycated hemoglobin, abdominal fat distribution, body composition, body weight, regional anthropometric measures, and lifestyle factors were evaluated. Wilac D001 significantly increased GLP-1 secretion in STC-1 cells versus the control (p < 0.01). High-fat diet-fed mice administered Wilac D001 exhibited lower fasting blood glucose levels and more rapid glucose recovery during the OGTT (p < 0.01). In the clinical trial, Wilac D001 supplementation led to reductions in several markers, including a significant reduction in triglyceride levels, alongside improvements in total abdominal fat area, visceral fat area, and subcutaneous fat area. No serious adverse events were reported. These findings support the potential of Wilac D001 as a functional probiotic for promoting microbiome-based metabolic health management.",
-   "journal": "Journal of microbiology and biotechnology",
-   "journalAbbr": "J Microbiol Biotechnol",
-   "year": "2026",
-   "authors": "Park S i in.",
-   "authorCount": 10,
-   "pubTypes": [
-    "Journal Article",
-    "Randomized Controlled Trial"
-   ],
-   "evidence": "rct",
-   "evidenceLabel": "RCT",
-   "url": "https://pubmed.ncbi.nlm.nih.gov/42750456/",
-   "topics": [
-    "redukcja"
-   ],
-   "topJournal": false,
-   "firstSeen": "2026-09-26T08:06:37.793Z",
-   "score": 2,
-   "ai": {
-    "titlePl": "Wpływ probiotyku Weissella confusa WIKIM51 na parametry metaboliczne i otyłość brzuszną u dorosłych z nadwagą",
-    "summary": "Badanie oceniło wpływ suplementacji probiotykiem Wilac D001 na metabolizm u dorosłych z nadwagą (n=uczestnicy w 12-tygodniowym RCT, wiek 19–64 lat). Wilac D001 istotnie zmniejszył poziom trójglicerydów, całkowitą površnię tłuszczu trzewnego i podskórnego w stosunku do placebo. U myszy na diecie wysokotłuszczowej probiotyk poprawił tolerancję glukozy i zmniejszył poziom glukozy na czczo.",
-    "takeaway": "Probiotyk może być uzupełniającym narzędziem dla klientów z nadwagą o celach redukcji tłuszczu trzewnego i normalizacji lipidów, choć potrzebne są większe badania przed standardową rekomendacją.",
-    "population": "Dorosły z nadwagą, wiek 19–64 lat, n=liczba niespecyficznie podana w abstrakcie; model zwierzęcy C57BL/6 (wysokotłuszczowa dieta)",
-    "limits": "Liczba uczestników i rozkład grupy nie podany; brak informacji o diecie i aktywności fizycznej uczestników; krótki czas trwania (12 tygodni); nieznane długoterminowe efekty",
-    "relevance": 2
-   }
-  },
-  {
    "pmid": "42747539",
    "doi": "10.1007/s00484-026-03297-z",
    "title": "The effects of balneotherapy on chronic low back pain, functional status, and rowing performance in athletes.",
@@ -1422,70 +1716,6 @@
     "population": "Wioslarze konkurencyjni i rekreacyjni (wytrenowani) z chronicznym lub nawrotowym bólem dolnego kręgosłupa indukowanym obciążeniem, n=42",
     "limits": "Brak szczegółów dotyczących jednoczesnych interwencji fizjoterapeutycznych; mała próba; specyficzna populacja (wioślarze); efekt placebo możliwy przy kąpielach.",
     "relevance": 3
-   }
-  },
-  {
-   "pmid": "42744356",
-   "doi": "10.1136/bmjopen-2026-122686",
-   "title": "Patient expectations assessed before randomisation and after the first treatment session, and their associations with pain outcome at 3 months in patients with tennis elbow: a secondary analysis of a randomised controlled feasibility trial in Norwegian secondary care.",
-   "abstract": "OBJECTIVE: To evaluate patients' expectations of pain improvement before randomisation (T1) and after the first treatment (T2), and to examine how expectations at these two time points were associated with pain outcome measured at 3 months (T3).\nDESIGN: Exploratory secondary analyses of a three-arm, randomised controlled feasibility trial in patients with tennis elbow comparing heavy slow resistance training, shock wave therapy and advice (1:1:1).\nSETTING: Outpatient clinic at Oslo University Hospital.\nPARTICIPANTS: Adults with lateral epicondylalgia, commonly known as tennis elbow.\nMAIN OUTCOME MEASURES: Expected pain was rated on a Numeric Rating Scale (NRS, 0-10) at T1 and T2. Present pain (NRS, 0-10) was reported at 3 months (T3). Changes in expectations from T1 to T2 were summarised descriptively. Univariable linear regressions assessed associations between T3 pain and expectations at T1 and T2, treatment group and baseline factors. Explained variance was quantified by R2. Multivariable models including demographics and baseline pain were evaluated via adjusted R2.\nRESULTS: Fifty-four participants were included. In the shock wave group, nine (47%) came to expect greater improvement from T1 to T2; by contrast, in the advice group, seven (41%) expected less improvement. Expectations at T1 were not associated with T3 pain, whereas expectations at T2 were positively associated with T3 pain (b=0.61, 95% CI 0.33 to 0.89, p<0.01, R2=0.27), suggesting that higher expected pain at T2 was associated with higher reported pain at T3. Adding education and baseline pain increased explained variance modestly (R2 from 0.27 to 0.32).\nCONCLUSION: In this study, expectations measured after randomisation and one treatment session were associated with pain at 3 months for patients with tennis elbow. Larger, prospectively designed studies should investigate how postrandomisation expectations relate to clinical outcomes in non-blinded musculoskeletal trials.\nTRIAL REGISTRATION NUMBER: NCT04803825.",
-   "journal": "BMJ open",
-   "journalAbbr": "BMJ Open",
-   "year": "2026",
-   "authors": "Sveinall H i in.",
-   "authorCount": 7,
-   "pubTypes": [
-    "Journal Article",
-    "Randomized Controlled Trial"
-   ],
-   "evidence": "rct",
-   "evidenceLabel": "RCT",
-   "url": "https://pubmed.ncbi.nlm.nih.gov/42744356/",
-   "topics": [
-    "prehab"
-   ],
-   "topJournal": false,
-   "firstSeen": "2026-09-26T08:06:37.793Z",
-   "score": 2,
-   "ai": {
-    "titlePl": "Oczekiwania pacjentów a wynik bólu w łokciu tenisisty: analiza wtórna badania RCT",
-    "summary": "U 54 pacjentów z łokciem tenisisty badano oczekiwania dotyczące poprawy bólu przed losowaniem i po pierwszej sesji leczenia, porównując trening oporowy, terapię falą uderzeniową i poradę. Oczekiwania zmierzone po randomizacji i pierwszej sesji były istotnie związane z bólem w 3. miesiącu (b=0,61, p<0,01, R²=0,27): wyższe oczekiwane objawy wiązały się z wyższym raportowanym bólem.",
-    "takeaway": "Trener powinien być świadomy, że mierzone po rozpoczęciu treningu oczekiwania pacjenta mogą wpływać na rzeczywisty wynik bólu; wstępne edukowanie i zarządzanie oczekiwaniami w pierwszej sesji mogą być ważne dla wyniku.",
-    "population": "Dorośli pacjenci z bocznym epicondylitis (łokciem tenisisty), n=54",
-    "limits": "Małą próba (n=54), analiza wtórna (exploracyjna), brak randomizacji na poziomie oczekiwań, niedostateczna moc statystyczna",
-    "relevance": 2
-   }
-  },
-  {
-   "pmid": "42741893",
-   "doi": "10.23736/S0022-4707.26.17891-8",
-   "title": "Effects of cold-water immersion after rugby-specific training on endurance performance.",
-   "abstract": "BACKGROUND: This study investigated whether whole-body cold-water immersion (CWI) following rugby-specific training influences endurance exercise performance 24 h later.\nMETHODS: Eleven healthy male collegiate rugby players completed an incremental cycling test to determine peak oxygen uptake (V̇O<inf>2peak</inf>) and time to exhaustion at baseline (Pre). One week later, participants performed a standardized rugby-specific training session consisting of warm-up, skill-based passing, contact drills, individual training (i.e., conversion kicking and scrummaging), and a bronco endurance test (total duration: 180 min), followed by one of two recovery interventions in a randomized order: 1) whole-body CWI for 8 min at 15 °C (CWI) or 2) seated rest for 8 min (Control). Participants then performed the incremental cycling test 24 h after each intervention.\nRESULTS: Training load during the rugby-specific training, assessed using heart rate-based training load and blood lactate concentrations, did not differ between the trials. Time to exhaustion (485±72 vs. 518±77 s, P=0.107, d=0.45) and V̇O<inf>2peak</inf> did not differ between the Control and CWI trials, whereas the relative changes in these variables from Pre were greater in the CWI than in the Control trials (both P<0.05). Oxygen uptake, minute ventilation, and rating of perceived exertion during submaximal exercise were similar across the Pre, Control, and CWI trials.\nCONCLUSIONS: These results suggest that whole-body CWI following rugby-specific training may be associated with favorable changes in endurance exercise performance 24 h post-intervention compared with the control condition. However, the expectancy/placebo effect of water immersion on exercise performance could not be excluded.",
-   "journal": "The Journal of sports medicine and physical fitness",
-   "journalAbbr": "J Sports Med Phys Fitness",
-   "year": "2026",
-   "authors": "Dobashi K i in.",
-   "authorCount": 2,
-   "pubTypes": [
-    "Journal Article",
-    "Randomized Controlled Trial"
-   ],
-   "evidence": "rct",
-   "evidenceLabel": "RCT",
-   "url": "https://pubmed.ncbi.nlm.nih.gov/42741893/",
-   "topics": [
-    "regeneracja"
-   ],
-   "topJournal": false,
-   "firstSeen": "2026-09-26T08:06:37.793Z",
-   "score": 2,
-   "ai": {
-    "titlePl": "Wpływ immersji w zimnej wodzie po treningu Rugby na wydolność 24 h później",
-    "summary": "11 zawodników rugby porównało regenerację poprzez immersję w zimnej wodzie (8 min, 15°C) i siedzący odpoczynek po 180-minutowym treningu specificznym dla rugby. Czas do wyczerpania i szczytowe pobieranie tlenu nie różniły się między grupami (p=0.107), ale względne zmiany wydolności od poziomu wyjściowego były istotnie większe w grupie CWI niż kontrolnej (p<0.05).",
-    "takeaway": "Wynik sugeruje potencjalny pozytywny wpływ immersji zimnej na regenerację, ale nie ma istotnej różnicy w bezwzględnych wartościach wydolności — zmiana może być efektem placebo.",
-    "population": "Wysportowani zawodnicy rugby płci męskiej, studenci, n=11",
-    "limits": "Bardzo mała próba (n=11), brak grupy ślepej (zawodnicy wiedzieli czy przechodzą CWI), nie wykluczone efekty placebo",
-    "relevance": 2
    }
   },
   {
@@ -1553,38 +1783,6 @@
    }
   },
   {
-   "pmid": "42738995",
-   "doi": "10.3390/nu18172823",
-   "title": "Effects of Caffeine and Rhodiola rosea, Alone and Combined, on DanceSport-Specific Jive Performance: A Randomized, Blinded, Placebo-Controlled Trial.",
-   "abstract": "BACKGROUND/OBJECTIVES: Evidence on caffeine (CAF), Rhodiola rosea, and their combined use in DanceSport remains limited. This randomized, blinded, placebo-controlled trial, retrospectively registered at ClinicalTrials.gov (NCT07690085), evaluated Jive-specific performance after a four-week standardized intervention.\nMETHODS: Forty-eight male collegiate DanceSport athletes were randomly allocated by drawing lots to placebo control (CTR), CAF, RHO (Rhodiola rosea), or RHO + CAF (n = 12/group). RHO was administered using Tongrentang Brand Rhodiola Capsule (0.4 g/capsule; three capsules twice daily; 2.4 g·day-1) for four weeks, and CAF was administered at 3 mg·kg-1 body mass 30 min before Post testing. The registry lists four primary outcomes: kick-extension angle, post-kick leg-retraction angle, trunk anteroposterior sway, and 30 s valid-kick success rate. Post values were analyzed by ANCOVA using the corresponding Pre value as covariate, with Holm correction across the primary-outcome family.\nRESULTS: Training attendance was 100%. All four primary-outcome tests remained significant after Holm correction (adjusted p = 0.000768-0.006182; partial η2 = 0.248-0.386). Adjusted success rates were 84.66% (CTR), 90.69% (CAF), 84.43% (RHO), and 92.31% (RHO + CAF); CAF and RHO + CAF were higher than CTR and RHO. The CAF × RHO interaction was not significant.\nCONCLUSIONS: Group differences were outcome-specific. The combined condition showed the highest adjusted success rate, but the data did not establish a synergistic interaction. The findings apply to the Rhodiola rosea intervention used in this study.",
-   "journal": "Nutrients",
-   "journalAbbr": "Nutrients",
-   "year": "2026",
-   "authors": "Dai X i in.",
-   "authorCount": 10,
-   "pubTypes": [
-    "Journal Article",
-    "Randomized Controlled Trial"
-   ],
-   "evidence": "rct",
-   "evidenceLabel": "RCT",
-   "url": "https://pubmed.ncbi.nlm.nih.gov/42738995/",
-   "topics": [
-    "suplementy"
-   ],
-   "topJournal": false,
-   "firstSeen": "2026-09-26T08:06:37.793Z",
-   "score": 2,
-   "ai": {
-    "titlePl": "Wpływ kofeiny i Rhodioli różowatej na wydajność w tancu sportowym Jive: badanie randomizowane, zaślepione, kontrolowane placebo",
-    "summary": "48 tancerzy sportowych mężczyzn porównano w grupach otrzymujących placebo, kofeinę (3 mg/kg masy ciała), Rhodiolę (2,4 g/dzień przez 4 tygodnie) lub kombinację obu substancji. Kofeina i kombinacja kofeiny z Rhodiolą poprawiły wskaźnik powodzenia kopnięcia w 30 sekund (odpowiednio 90,69% i 92,31%) w stosunku do placebo i samej Rhodioli (84,66% i 84,43%).",
-    "takeaway": "Kofeina może poprawić wydajność w zadaniach wymagających szybkości i precyzji ruchów (sport), ale połączenie z Rhodiolą nie wykazało synergicznego efektu; praktyczne znaczenie ograniczone do taneczników zawodowych.",
-    "population": "Wytrenowani mężczyźni, tancerze sportowi, młodzież akademicka, n=48",
-    "limits": "Specyficzna populacja (tancerze), niska generalizowalność na typowe treningi siłowe, mały wkład Rhodioli, badanie nie obejmuje kobiet",
-    "relevance": 2
-   }
-  },
-  {
    "pmid": "42738981",
    "doi": "10.3390/nu18172809",
    "title": "Effect of a Defined Intake of a Soy-Based Protein-Rich Supplement on Body Composition and Eating Behaviour in Overweight Women: A Secondary Analysis of the ACOORH Trial.",
@@ -1615,102 +1813,6 @@
     "population": "Kobiety z nadwagą, średnia wieku nie podana, n=64, uczestniczki badania ACOORH z kompletnymi zapisami dietetycznymi",
     "limits": "Brak danych na temat mężczyzn; wąska populacja (tylko kobiety); nie mierzono bezpośrednio adherencji do proteiny po zaprzestaniu suplementacji",
     "relevance": 3
-   }
-  },
-  {
-   "pmid": "42738952",
-   "doi": "10.3390/nu18172780",
-   "title": "Effects of Acute Beetroot Juice Ingestion and Hypoxic Conditions on Metabolic Function, Skeletal Muscle Oxygenation, and Cardiac Function During Endurance Exercise in Healthy Young Men.",
-   "abstract": "BACKGROUND/OBJECTIVES: Exercise in hypoxic environments induces greater physiological stress than normoxic conditions, potentially limiting exercise performance through reduced skeletal muscle oxygenation and increased metabolic strain. Beetroot juice (BRJ), a dietary source of inorganic nitrate, may enhance nitric oxide (NO) bioavailability and oxygen delivery under hypoxic conditions. This study examined the acute effects of BRJ supplementation on metabolic responses, skeletal muscle oxygenation, and cardiac function during submaximal exercise at a fixed heart rate under normoxic and hypoxic conditions.\nMETHODS: Twelve healthy adult males completed four conditions in a randomized, crossover design, with double-blinding applied to the supplementation condition: normoxic condition + placebo (NPLA), normoxic condition + BRJ (NBRJ), hypoxic condition + placebo (HPLA), and hypoxic condition + BRJ (HBRJ). Participants ingested 70 mL of BRJ (400 mg NO3-) or placebo 2.5 h before 30 min of submaximal exercise at 70% HRmax under normoxic (FiO2 20.9%) or hypoxic (FiO2 14.5%) conditions. A two-way repeated-measures ANOVA was used to test the main effects of environment and treatment and their interaction for each outcome.\nRESULTS: Hypoxic conditions required a significantly lower mechanical load and induced greater physiological stress. However, a significant environment × treatment interaction was observed for Deoxy_Hb, with HBRJ statistically indistinguishable from normoxic conditions, indicating a clear attenuation of the hypoxia-induced increase in oxygen extraction. In addition, a significant main effect of treatment without a significant interaction was observed for RER, and HBRJ did not differ significantly from NBRJ.\nCONCLUSIONS: BRJ supplementation may help attenuate hypoxia-induced skeletal muscle deoxygenation, as reflected in Deoxy_Hb, potentially via NO-mediated mechanisms; however, as circulating nitrate/nitrite concentrations were not directly measured and interaction effects were not confirmed for most variables, these findings should be regarded as preliminary evidence for the potential use of BRJ as a nutritional strategy in hypoxic exercise settings.",
-   "journal": "Nutrients",
-   "journalAbbr": "Nutrients",
-   "year": "2026",
-   "authors": "Choi JH i in.",
-   "authorCount": 10,
-   "pubTypes": [
-    "Journal Article",
-    "Randomized Controlled Trial"
-   ],
-   "evidence": "rct",
-   "evidenceLabel": "RCT",
-   "url": "https://pubmed.ncbi.nlm.nih.gov/42738952/",
-   "topics": [
-    "suplementy"
-   ],
-   "topJournal": false,
-   "firstSeen": "2026-09-26T08:06:37.793Z",
-   "score": 2,
-   "ai": {
-    "titlePl": "Wpływ soku z buraka i hipoksji na funkcję metaboliczną, utlenienie mięśni i funkcję serca podczas ćwiczeń wysiłkowych",
-    "summary": "12 zdrowych mężczyzn wykonało ćwiczenia przy 70% HRmax przez 30 minut w warunkach normoxycy i hypoksji (FiO2 14,5%), z suplementacją sokiem z buraka (400 mg azotanów) lub placebem 2,5 h przed treningiem. Sok z buraka złagodził hipoksją-indukowany wzrost deoksyhemoglobiny (Deoxy_Hb) do poziomu obserwowanego w normalnych warunkach tlenowych.",
-    "takeaway": "Sok z buraka może być przydatny dla sportowców ćwiczących w hipoksji (wysokość, trening maskowy), ale badanie jest wstępne i wymaga potwierdzenia zmierzenia poziomu azotanów krwi.",
-    "population": "12 zdrowych mężczyzn, młodych dorosłych",
-    "limits": "Mała próba (n=12), brak bezpośredniego pomiaru stężenia azotanów/nitrytów w krwi, efekty interakcji nie potwierdzone dla większości zmiennych",
-    "relevance": 2
-   }
-  },
-  {
-   "pmid": "42738950",
-   "doi": "10.3390/nu18172777",
-   "title": "Effects of a Combined Vitamin D3 and Docosahexaenoic Acid Intervention on Cognitive Function and Blood Pyroptotic Biomarkers in Older Adults with Mild Cognitive Impairment: A 12-Month Randomized, Double-Blind, Placebo-Controlled Trial.",
-   "abstract": "Background: This study aimed to assess the effects of a combined vitamin D3 (VD3) and docosahexaenoic acid (DHA) intervention on cognitive function and blood pyroptotic biomarkers in older adults with mild cognitive impairment (MCI). Methods: In total, 360 participants with MCI were recruited, and randomly assigned into four groups: VD3 (800 IU/day), DHA (1 g/day), VD3+DHA (VD3 800 IU/day+DHA 1 g/day), and placebo. Cognitive function was evaluated by the Wechsler Adult Intelligence Scale-Revised in China (WAIS-RC), and blood biomarkers were measured by ELISA and Western blot at baseline, 6 months and 12 months. Linear mixed-effects models (LMMs) were employed to analyze longitudinal interaction effects on cognitive function and blood biomarkers. Structural equation modeling (SEM) was conducted to evaluate the parallel mediation effects of blood biomarkers on cognitive improvements. Results: A total of 355 participants completed the trial. Over the 12-month intervention, all intervention groups demonstrated significant improvements in cognitive function and reductions in five blood biomarkers (IL-1β, IL-18, NLRP3, Gasdermin D (GSDMD), cleaved caspase-1) compared to the placebo group (p < 0.05). Compared to each single intervention, the combined VD3 and DHA intervention yielded superior cognitive improvements in scores for full-scale IQ (FIQ), performance IQ (PIQ), verbal IQ (VIQ) and several subtests (information, comprehension, digit span, vocabulary, picture completion, block design, and picture arrangement), and significantly reduced five blood pyroptotic biomarkers (all p < 0.05). Path analysis revealed that longitudinal GSDMD reduction mediated the improvements in FIQ. Conclusions: A 12-month intervention with VD3, DHA, or their combination significantly improves cognitive function and mitigates pyroptosis, and the combined intervention showed superior benefits, potentially mediated by downregulating the protein GSDMD.",
-   "journal": "Nutrients",
-   "journalAbbr": "Nutrients",
-   "year": "2026",
-   "authors": "Yuan J i in.",
-   "authorCount": 8,
-   "pubTypes": [
-    "Journal Article",
-    "Randomized Controlled Trial"
-   ],
-   "evidence": "rct",
-   "evidenceLabel": "RCT",
-   "url": "https://pubmed.ncbi.nlm.nih.gov/42738950/",
-   "topics": [
-    "suplementy"
-   ],
-   "topJournal": false,
-   "firstSeen": "2026-09-26T08:06:37.793Z",
-   "score": 1,
-   "ai": {
-    "titlePl": "Wpływ kombinacji witaminy D3 i kwasu dokozaheksaenowego na funkcje poznawcze i biomarkery piroptozy u starszych osób ze łagodnym zaburzeniem poznawczym",
-    "summary": "Badanie RCT na 360 osobach starszych z łagodnym zaburzeniem poznawczym porównało suplementację witaminą D3 (800 IU/dzień), DHA (1 g/dzień), kombinacją D3+DHA oraz placebo przez 12 miesięcy. Grupa kombinowana wykazała istotnie lepsze ulepszenie funkcji poznawczych (IQ całkowite, mówienie, wykonanie) i większe zmniejszenie biomarkerów piroptozy (IL-1β, IL-18, NLRP3, GSDMD, kaspaza-1) w porównaniu z grupami jednowładnych interwencji (wszystko p<0,05).",
-    "takeaway": "Dla zdrowych klientów na siłowni wynik nie zmienia praktyki — badanie dotyczy osób z zaburzeniami poznawczymi, nie treningu siłowego ani typowych ćwiczących.",
-    "population": "Starsze dorosłe osoby (wiek niesprecyzowany) ze łagodnym zaburzeniem poznawczym, n=360 (355 ukończyło)",
-    "limits": "Populacja kliniczna (MCI) daleka od zdrowch ćwiczących na siłowni; brak danych o aktywności fizycznej i treningach; wyniki nieistotne dla treningu siłowego",
-    "relevance": 1
-   }
-  },
-  {
-   "pmid": "42738944",
-   "doi": "10.3390/nu18172771",
-   "title": "Effects of Acute Caffeine Ingestion on Morning Temperature, Mood, Reactive Agility and Cognitive Measures in Males: A Standardized Approach.",
-   "abstract": "Background/Objectives: We investigated whether ingestion of caffeine (~1 h before) was beneficial to subsequent morning (~07:30 h) mood, reactive agility, and cognitive measures in naïve-mild habitual caffeine consumers. Methods: A total of 150 recreationally active males were recruited, of whom 51 participated and completed six sessions as follows: (i) three familiarization sessions of all procedures at 12:00 h, and (ii) three experimental conditions. Participants completed caffeine and placebo trials under double-blind conditions, together with an open-label no-pill control trial using the stratified block randomization method based on baseline performance, which were counterbalanced in a crossover design into either caffeine (CAFF, 300 mg or 2.5-5.3 mg·kg-1 body weight), placebo (PLAC), or no-pill control (NoPill), both ingested at ~06:30 h. For each experimental session, on arrival at the laboratory, questions on sleep, mood states, and caffeine withdrawal were asked. A battery of cognitive performance tests was then administered (trail-making test, Rey's auditory verbal learning test, and Stroop word-colour interference test). At 30 min of rest and after a 5 min warm-up on a treadmill with associated stretches, rectal and mean skin temperatures (Tr and Tsk) were measured. Thereafter, two 90 s reactive agility tests (RATs) were undertaken, with average movement time(s) and contact number per light recorded. Data were analyzed using a general linear model with repeated measures, but the RAT measures were run as ANCOVA with mass used as a covariate. Results: The battery of cognitive tests showed no significant main effects for condition, whether the body mass of the participants was considered or not. There were no significant main effects of the experimental condition for RAT variables. There was a main effect for \"light position\", for mean movement time values (p < 0.001, η2p = 0.508), and cognitive-motor efficiency (contacts·s-1, p < 0.001, η2p = 0.582), where pairwise analysis showed mean movement times as higher, and cognitive-motor efficiency values indicating a lower rate of successful responses during movement for lights 1 and 5 (the furthest from the start point corresponding to light 3), rather than lights 2, 3 and 4. There were no significant interactions for condition and light for any of the variables. Conclusions: Early morning ingestion of 300 mg of caffeine had no effect on the battery of cognitive or reactive agility test measures in the population of naïve-mild habitual caffeine consumers. Caffeine ingestion had no effect on Tr, Tsk, mood, or caffeine withdrawal symptom scores, as well as tiredness or alertness, with or without consideration for body mass.",
-   "journal": "Nutrients",
-   "journalAbbr": "Nutrients",
-   "year": "2026",
-   "authors": "Edwards BJ i in.",
-   "authorCount": 9,
-   "pubTypes": [
-    "Journal Article",
-    "Randomized Controlled Trial"
-   ],
-   "evidence": "rct",
-   "evidenceLabel": "RCT",
-   "url": "https://pubmed.ncbi.nlm.nih.gov/42738944/",
-   "topics": [
-    "suplementy"
-   ],
-   "topJournal": false,
-   "firstSeen": "2026-09-26T08:06:37.793Z",
-   "score": 2,
-   "ai": {
-    "titlePl": "Wpływ kofeinę na temperaturę ciała, nastrój, zwinność reaktywną i funkcje poznawcze u mężczyzn rano",
-    "summary": "U 51 rekreacyjnie aktywnych mężczyzn (łagodnych konsumentów kofeiny) badano wpływ 300 mg kofeiny przyjętej o 6:30 na funkcje poznawcze, zwinność reaktywną i nastrój testowane o 7:30. Kofeina nie wpłynęła znacząco na żaden z testów poznawczych, testy zwinności reaktywnej, temperaturę ciała, nastrój ani objawy zmęczenia/czujności w porównaniu z placebo i grupą kontrolną.",
-    "takeaway": "Przyjęcie 300 mg kofeiny rano nie poprawia wydajności poznawczej ani szybkości ruchów u łagodnych użytkowników kofeiny – trener nie powinien liczyć na poranek na efekty ergogenne kofeiny w tej populacji.",
-    "population": "Rekreacyjnie aktywni mężczyźni, łagodni/naiwni konsumenci kofeiny, n=51",
-    "limits": "Mała próba (n=51 z 150 rekrutowanych), populacja wyłącznie mężczyzn, łagodne użycie kofeiny (wyniki mogą się różnić u regularnych użytkowników), testy o wczesnej poranku mogą nie reprezentować typowych warunków treningowych",
-    "relevance": 2
    }
   },
   {
@@ -1911,6 +2013,38 @@
    }
   },
   {
+   "pmid": "42788669",
+   "doi": "10.1002/pon.70616",
+   "title": "Making Interventions More Effective: Changes in Theoretical Constructs During Delivery of a Peer-Led Physical Activity Program for Breast Cancer Survivors.",
+   "abstract": "OBJECTIVE: Theory-based physical activity (PA) interventions improve moderate to vigorous physical activity (MVPA) among breast cancer survivors, yet limited research has examined when psychosocial changes occur during intervention delivery. Understanding temporal changes in theoretical constructs during PA adoption may enhance intervention delivery and outcomes. The purpose of this study is to examine longitudinal changes in self-efficacy, self-regulation and affect (intrapersonal constructs from Social Cognitive Theory) and social support (interpersonal construct) during a 12-week theory-based PA program (webMFT) and their association with participants' active minutes (measured by Fitbit) over 12 weeks and intervention engagement (receipt of 12 weekly peer coaching calls).\nMETHODS: In a randomized controlled trial with 61 participants, 30 were randomized to receive webMFT (mean age = 58.1 [SD = 8.55], 1.40 years post-diagnosis [SD = 0.5], 80% Stage 0-1 cancer, 80% White) delivered by 10 peer coaches. Only the webMFT participants were assessed; the comparison group (MVPA Tracking) was not included in the analyses. webMFT participants received a Fitbit tracker and weekly PA coaching calls tailored to Fitbit PA data. At baseline, 4, 8 and 12 weeks, they completed questionnaires assessing multidimensional self-efficacy (task, coping, scheduling), self-regulation skills, affective response and social support for PA. Mixed effects regression models examined changes in constructs and their association with Fitbit active minutes/week and intervention engagement.\nRESULTS: Increases in total self-efficacy, scheduling self-efficacy, positive affect and social support from family and friends were significantly associated with participants' PA over 12 weeks. There were no significant associations between changes in self-regulation skills, task or coping self-efficacy with PA. Improvements in total self-efficacy, scheduling self-efficacy, self-regulation, affective response and family social support were positively associated with intervention engagement.\nCONCLUSIONS: Participants' self-efficacy, specifically, for scheduling PA, positive affect and social support for PA adoption and intervention engagement merit future examination.",
+   "journal": "Psycho-oncology",
+   "journalAbbr": "Psychooncology",
+   "year": "2026",
+   "authors": "Pinto BM i in.",
+   "authorCount": 4,
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42788669/",
+   "topics": [
+    "adherencja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-26T08:06:37.793Z",
+   "score": 2,
+   "ai": {
+    "titlePl": "Zmiany konstruktów psychologicznych podczas programu aktywności fizycznej dla pacjentek po raku piersi",
+    "summary": "Badanie RCT (n=30) oceniało zmiany w self-efficacy, samoregulacji, afekcie i wsparciu społecznym podczas 12-tygodniowego programu aktywności fizycznej (webMFT) prowadzonego przez peer coachy u pacjentek po raku piersi (średni wiek 58 lat). Wzrost całkowitego self-efficacy, szczególnie scheduling self-efficacy, pozytywnego afektu i wsparcia rodziny/przyjaciół były istotnie związane z większą aktywnością fizyczną w ciągu 12 tygodni (mierzoną Fitbitem).",
+    "takeaway": "Trener powinien w programach dla tej populacji kłaść nacisk na budowanie self-efficacy do planowania treningów i zaangażowania wsparcia społecznego (rodzina, przyjaciele), a także monitorować pozytywne doświadczenia z ćwiczeń.",
+    "population": "Pacjentki po raku piersi (80% stadium 0-1), średni wiek 58 lat, średnio 1,4 roku po diagnozie, n=30",
+    "limits": "Brak kontrolnej grupy porównania w analizach; badanie ukierunkowane na konkretny program webMFT; populacja głównie biała (80%), może ograniczać generalizację",
+    "relevance": 2
+   }
+  },
+  {
    "pmid": "42768127",
    "doi": "10.1007/s00431-026-07416-1",
    "title": "Optimal exercise dose and training modalities for improving gross motor function in children with cerebral palsy: a systematic review and Bayesian network meta-analysis of RCTs.",
@@ -1941,6 +2075,103 @@
     "population": "Dzieci z mózgowym porażeniem dziecięcym, n=886 w 29 badaniach RCT",
     "limits": "Bardzo niska pewność dowodów, populacja pediatryczna ze schorzeniem neurologicznym, brak bezpośredniego transferu na populację dorosłych bez CP na siłowni",
     "relevance": 1
+   }
+  },
+  {
+   "pmid": "42760651",
+   "doi": "10.1097/MD.0000000000050694",
+   "title": "Cardiorespiratory adaptations to high-intensity interval training in young boxers: A randomized controlled study.",
+   "abstract": "BACKGROUND: High-intensity interval training (HIIT) has been recognized for its effectiveness in enhancing cardiorespiratory fitness. However, the application of HIIT within boxing training remains underexplored. This study aimed to investigate the physiological adaptations induced by a structured 4-week HIIT-boxing regimen, with a specific focus on pulmonary function (PF), aerobic capacity, and autonomic cardiovascular regulation, assessed by heart rate recovery (HRR).\nMETHODS: Sixteen trained young individuals were randomly assigned to either the HIIT-boxing group or the control group. Comprehensive assessments, including PF tests, peak oxygen uptake, and HRR at the 1st, 3rd, and 5th minutes postexercise, were conducted pre- and post-intervention.\nRESULTS: Significant improvements were observed in maximal voluntary ventilation, forced vital capacity (FVC), forced expiratory volume in 1 second (FEV1), and peak expiratory flow over time (P < .01), while the FEV1/FVC ratio remained unchanged (P = .244). Time-by-group interactions revealed greater improvements in maximal voluntary ventilation (ηp2 = 0.817), FVC (ηp2 = 0.618), and FEV1 (ηp2 = 0.283) in the HIIT group than in the control group. Although estimated estimated maximal oxygen uptake improved significantly over time (P < .001), no significant group effect or time-by-group interaction was observed. HRR improved significantly over time in both groups (P < .001), with no significant time-by-group interaction observed at any measured interval (P > .05).\nCONCLUSION: Supplementing conventional boxing training with HIIT may serve as a useful strategy for enhancing selected PF parameters in combat sports athletes. However, because the HIIT group performed a greater total training volume, the observed improvements cannot be definitively attributed to HIIT independently of the increased training stimulus.",
+   "journal": "Medicine",
+   "journalAbbr": "Medicine (Baltimore)",
+   "year": "2026",
+   "authors": "Cinarli S i in.",
+   "authorCount": 7,
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42760651/",
+   "topics": [
+    "regeneracja",
+    "kondycja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-26T08:06:37.793Z",
+   "score": 2,
+   "ai": {
+    "titlePl": "Adaptacje kardiorespiratoryjna na treningu interwałowym wysokiej intensywności u młodych bokserów",
+    "summary": "Badanie porównało 4-tygodniowy trening bokserski ze zwiększonym treningiem interwałowym (HIIT) względem grupy kontrolnej na 16 wytrenowanych młodych osobach. Grupa HIIT wykazała istotnie większe poprawy w maksymalnej wentylacji dobrowolnej (ηp2=0,817), pojemności życiowej (ηp2=0,618) i objętości wydechowej w pierwszej sekundzie (ηp2=0,283), podczas gdy maksymalne pochłanianie tlenu i heart rate recovery poprawiły się w obu grupach bez różnic międzygrupowych.",
+    "takeaway": "Dodanie HIIT do treningu bokserskiego może wspomóc funkcję płuc u sportowców, ale większa objętość treningowa w grupie HIIT utrudnia stwierdzenie efektu niezależnego od zwiększonego bodźca treningowego.",
+    "population": "Wytrenowani młodzi bokserzy, n=16 (8 w grupie HIIT, 8 kontrolna)",
+    "limits": "Mała próba (n=16), krótki okres interwencji (4 tygodnie), grupa HIIT wykonała większą całkowitą objętość treningową, brak rozdzielenia efektu HIIT od zwiększonego obciążenia",
+    "relevance": 2
+   }
+  },
+  {
+   "pmid": "42753258",
+   "doi": "10.2196/84430",
+   "title": "Personalized Mobile App-Based Messaging and Step Tracking for Improving Walking Behavior in Adults: Randomized Controlled Trial.",
+   "abstract": "BACKGROUND: Walking is one of the most effective forms of physical activity; however, maintaining long-term engagement in digital step-counting interventions remains challenging.\nOBJECTIVE: This study aimed to evaluate the effects of personalized message interventions integrating the Information-Motivation-Behavioral Skills (IMB) model and regulatory focus theory (RFT) on walking behavior.\nMETHODS: Participants were recruited offline through community advertisements containing a QR code that linked to an online sign-up form and were screened using an online baseline questionnaire by research staff, while all intervention delivery and outcome assessments were conducted via the WalkOn mobile app. A 12-week randomized controlled trial targeting 174 adults in Mapo-gu, Seoul, Korea, was conducted from April 1 to June 22, 2024. Of the 174 randomized participants, 141 (67 in the intervention group and 74 in the control group) engaged in the intervention. Both groups received incentives based on goal achievement and general health information, whereas the intervention group received weekly personalized messages provided by research staff according to midweek step-count performance. Primary outcomes included weekly goal achievement rates for the 25,000-step goal, step-count patterns, and consecutive 2-week goal achievement failure events. Analyses were conducted using generalized estimating equations (GEEs), linear mixed models (LMMs), and Cox proportional hazards models.\nRESULTS: Of the 174 participants randomized, 141 (81%) engaged in the intervention and were included in the analyses (67 intervention; 74 control), while 33 participants did not participate after randomization. The overall 12-week mean goal achievement rate was 87% in the intervention group and 87% in the control group, with no significant difference between the groups (odds ratio [OR] 1.12, 95% CI 0.29-4.37; P=.87). Weekly step-count patterns also showed no significant differences (group × time interaction: estimate=-417; SE 09; P=.31). However, the risk of consecutive 2-week goal achievement failure events was significantly lower in the intervention group (hazard ratio [HR] 0.67, 95% CI 0.52-0.86; P=.002). The intervention group showed an approximately 33% lower likelihood of consecutive 2-week goal achievement failure events than the control group.\nCONCLUSIONS: Personalized message interventions did not show significant effects on overall step-count increase but were associated with a reduced risk of consecutive 2-week goal achievement failure events. These findings suggest that personalized messages may play an important role in improving behavior change sustainability and failure resilience. Incorporating personalized messaging strategies may enhance the effectiveness of digital health intervention design.\nTRIAL REGISTRATION: Clinical Research Information Service (CRIS), Republic of Korea KCT0010966; https://tinyurl.com/3jeepxve.",
+   "journal": "JMIR mHealth and uHealth",
+   "journalAbbr": "JMIR Mhealth Uhealth",
+   "year": "2026",
+   "authors": "Jang S i in.",
+   "authorCount": 2,
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42753258/",
+   "topics": [
+    "adherencja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-26T08:06:37.793Z",
+   "score": 2,
+   "ai": {
+    "titlePl": "Spersonalizowane wiadomości w aplikacji mobilnej i licznik kroków na poprawę aktywności chodzenia u dorosłych: badanie randomizowane",
+    "summary": "Badanie oceniało wpływ spersonalizowanych wiadomości opartych na modelu IMB i teorii regulatory focus na aktywność chodzenia u 141 dorosłych (67 w grupie interwencji, 74 kontrolnej) przez 12 tygodni. Obie grupy osiągnęły 87% całkowitych celów (25 000 kroków), bez różnicy między grupami, ale grupa z wiadomościami miała 33% niższe ryzyko kolejnych dwutygodniowych porażek w osiągnięciu celu (HR 0,67; p=0,002).",
+    "takeaway": "Personalizowane wiadomości motywacyjne mogą wspierać wytrwałość w utrzymaniu aktywności fizycznej i minimalizować okresy braku zaangażowania, ale nie zwiększają ogólnego poziomu aktywności — trenер może je uwzględnić jako element redukcji \"wypadnięć\" z programu.",
+    "population": "Dorośli z Seulu (Mapo-gu), Korea, n=141 (67 interwencja, 74 kontrola), średnio zaangażowani w liczenie kroków",
+    "limits": "Wysoki wskaźnik rezygnacji (19%), populacja locjna, brak informacji o wyjściowym poziomie fitness i wieku uczestników, 12-tygodniowy okres obserwacji",
+    "relevance": 2
+   }
+  },
+  {
+   "pmid": "42750456",
+   "doi": "10.4014/jmb.2606.06054",
+   "title": "Effects of Wilac D001 (Weissella confusa WIKIM51) Supplementation on Metabolic Parameters and Central Adiposity in Overweight Adults: A 12-Week Randomized, Double-Blind, Placebo-Controlled Trial.",
+   "abstract": "Recent research has emphasized the importance of gut microbiota in regulating energy and lipid metabolism as well as gut hormone secretion, indicating that probiotics could contribute to improving metabolic parameters associated with excess adiposity. This study evaluated the metabolic effects of Weissella confusa WIKIM51 (Wilac D001) and explored the potential involvement of glucagon-like peptide-1 (GLP-1)-related mechanisms. First, GLP-1 secretory activity following Wilac D001 treatment was evaluated in vitro using STC-1 enteroendocrine cells. Male C57BL/6 mice were fed a high-fat diet to induce obesity-associated metabolic dysregulation, and Wilac D001 was orally administered for 10 weeks. Glucose tolerance was subsequently examined using an oral glucose tolerance test (OGTT). Finally, in a 12-week randomized, double-blind, placebo-controlled clinical trial, overweight adults aged 19-64 years received either Wilac D001 (1.0 × 1010 colony-forming units/day) or a placebo. Blood lipid parameters, glycated hemoglobin, abdominal fat distribution, body composition, body weight, regional anthropometric measures, and lifestyle factors were evaluated. Wilac D001 significantly increased GLP-1 secretion in STC-1 cells versus the control (p < 0.01). High-fat diet-fed mice administered Wilac D001 exhibited lower fasting blood glucose levels and more rapid glucose recovery during the OGTT (p < 0.01). In the clinical trial, Wilac D001 supplementation led to reductions in several markers, including a significant reduction in triglyceride levels, alongside improvements in total abdominal fat area, visceral fat area, and subcutaneous fat area. No serious adverse events were reported. These findings support the potential of Wilac D001 as a functional probiotic for promoting microbiome-based metabolic health management.",
+   "journal": "Journal of microbiology and biotechnology",
+   "journalAbbr": "J Microbiol Biotechnol",
+   "year": "2026",
+   "authors": "Park S i in.",
+   "authorCount": 10,
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42750456/",
+   "topics": [
+    "redukcja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-26T08:06:37.793Z",
+   "score": 2,
+   "ai": {
+    "titlePl": "Wpływ probiotyku Weissella confusa WIKIM51 na parametry metaboliczne i otyłość brzuszną u dorosłych z nadwagą",
+    "summary": "Badanie oceniło wpływ suplementacji probiotykiem Wilac D001 na metabolizm u dorosłych z nadwagą (n=uczestnicy w 12-tygodniowym RCT, wiek 19–64 lat). Wilac D001 istotnie zmniejszył poziom trójglicerydów, całkowitą površnię tłuszczu trzewnego i podskórnego w stosunku do placebo. U myszy na diecie wysokotłuszczowej probiotyk poprawił tolerancję glukozy i zmniejszył poziom glukozy na czczo.",
+    "takeaway": "Probiotyk może być uzupełniającym narzędziem dla klientów z nadwagą o celach redukcji tłuszczu trzewnego i normalizacji lipidów, choć potrzebne są większe badania przed standardową rekomendacją.",
+    "population": "Dorosły z nadwagą, wiek 19–64 lat, n=liczba niespecyficznie podana w abstrakcie; model zwierzęcy C57BL/6 (wysokotłuszczowa dieta)",
+    "limits": "Liczba uczestników i rozkład grupy nie podany; brak informacji o diecie i aktywności fizycznej uczestników; krótki czas trwania (12 tygodni); nieznane długoterminowe efekty",
+    "relevance": 2
    }
   },
   {
@@ -1976,6 +2207,166 @@
    }
   },
   {
+   "pmid": "42744356",
+   "doi": "10.1136/bmjopen-2026-122686",
+   "title": "Patient expectations assessed before randomisation and after the first treatment session, and their associations with pain outcome at 3 months in patients with tennis elbow: a secondary analysis of a randomised controlled feasibility trial in Norwegian secondary care.",
+   "abstract": "OBJECTIVE: To evaluate patients' expectations of pain improvement before randomisation (T1) and after the first treatment (T2), and to examine how expectations at these two time points were associated with pain outcome measured at 3 months (T3).\nDESIGN: Exploratory secondary analyses of a three-arm, randomised controlled feasibility trial in patients with tennis elbow comparing heavy slow resistance training, shock wave therapy and advice (1:1:1).\nSETTING: Outpatient clinic at Oslo University Hospital.\nPARTICIPANTS: Adults with lateral epicondylalgia, commonly known as tennis elbow.\nMAIN OUTCOME MEASURES: Expected pain was rated on a Numeric Rating Scale (NRS, 0-10) at T1 and T2. Present pain (NRS, 0-10) was reported at 3 months (T3). Changes in expectations from T1 to T2 were summarised descriptively. Univariable linear regressions assessed associations between T3 pain and expectations at T1 and T2, treatment group and baseline factors. Explained variance was quantified by R2. Multivariable models including demographics and baseline pain were evaluated via adjusted R2.\nRESULTS: Fifty-four participants were included. In the shock wave group, nine (47%) came to expect greater improvement from T1 to T2; by contrast, in the advice group, seven (41%) expected less improvement. Expectations at T1 were not associated with T3 pain, whereas expectations at T2 were positively associated with T3 pain (b=0.61, 95% CI 0.33 to 0.89, p<0.01, R2=0.27), suggesting that higher expected pain at T2 was associated with higher reported pain at T3. Adding education and baseline pain increased explained variance modestly (R2 from 0.27 to 0.32).\nCONCLUSION: In this study, expectations measured after randomisation and one treatment session were associated with pain at 3 months for patients with tennis elbow. Larger, prospectively designed studies should investigate how postrandomisation expectations relate to clinical outcomes in non-blinded musculoskeletal trials.\nTRIAL REGISTRATION NUMBER: NCT04803825.",
+   "journal": "BMJ open",
+   "journalAbbr": "BMJ Open",
+   "year": "2026",
+   "authors": "Sveinall H i in.",
+   "authorCount": 7,
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42744356/",
+   "topics": [
+    "prehab"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-26T08:06:37.793Z",
+   "score": 2,
+   "ai": {
+    "titlePl": "Oczekiwania pacjentów a wynik bólu w łokciu tenisisty: analiza wtórna badania RCT",
+    "summary": "U 54 pacjentów z łokciem tenisisty badano oczekiwania dotyczące poprawy bólu przed losowaniem i po pierwszej sesji leczenia, porównując trening oporowy, terapię falą uderzeniową i poradę. Oczekiwania zmierzone po randomizacji i pierwszej sesji były istotnie związane z bólem w 3. miesiącu (b=0,61, p<0,01, R²=0,27): wyższe oczekiwane objawy wiązały się z wyższym raportowanym bólem.",
+    "takeaway": "Trener powinien być świadomy, że mierzone po rozpoczęciu treningu oczekiwania pacjenta mogą wpływać na rzeczywisty wynik bólu; wstępne edukowanie i zarządzanie oczekiwaniami w pierwszej sesji mogą być ważne dla wyniku.",
+    "population": "Dorośli pacjenci z bocznym epicondylitis (łokciem tenisisty), n=54",
+    "limits": "Małą próba (n=54), analiza wtórna (exploracyjna), brak randomizacji na poziomie oczekiwań, niedostateczna moc statystyczna",
+    "relevance": 2
+   }
+  },
+  {
+   "pmid": "42741893",
+   "doi": "10.23736/S0022-4707.26.17891-8",
+   "title": "Effects of cold-water immersion after rugby-specific training on endurance performance.",
+   "abstract": "BACKGROUND: This study investigated whether whole-body cold-water immersion (CWI) following rugby-specific training influences endurance exercise performance 24 h later.\nMETHODS: Eleven healthy male collegiate rugby players completed an incremental cycling test to determine peak oxygen uptake (V̇O<inf>2peak</inf>) and time to exhaustion at baseline (Pre). One week later, participants performed a standardized rugby-specific training session consisting of warm-up, skill-based passing, contact drills, individual training (i.e., conversion kicking and scrummaging), and a bronco endurance test (total duration: 180 min), followed by one of two recovery interventions in a randomized order: 1) whole-body CWI for 8 min at 15 °C (CWI) or 2) seated rest for 8 min (Control). Participants then performed the incremental cycling test 24 h after each intervention.\nRESULTS: Training load during the rugby-specific training, assessed using heart rate-based training load and blood lactate concentrations, did not differ between the trials. Time to exhaustion (485±72 vs. 518±77 s, P=0.107, d=0.45) and V̇O<inf>2peak</inf> did not differ between the Control and CWI trials, whereas the relative changes in these variables from Pre were greater in the CWI than in the Control trials (both P<0.05). Oxygen uptake, minute ventilation, and rating of perceived exertion during submaximal exercise were similar across the Pre, Control, and CWI trials.\nCONCLUSIONS: These results suggest that whole-body CWI following rugby-specific training may be associated with favorable changes in endurance exercise performance 24 h post-intervention compared with the control condition. However, the expectancy/placebo effect of water immersion on exercise performance could not be excluded.",
+   "journal": "The Journal of sports medicine and physical fitness",
+   "journalAbbr": "J Sports Med Phys Fitness",
+   "year": "2026",
+   "authors": "Dobashi K i in.",
+   "authorCount": 2,
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42741893/",
+   "topics": [
+    "regeneracja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-26T08:06:37.793Z",
+   "score": 2,
+   "ai": {
+    "titlePl": "Wpływ immersji w zimnej wodzie po treningu Rugby na wydolność 24 h później",
+    "summary": "11 zawodników rugby porównało regenerację poprzez immersję w zimnej wodzie (8 min, 15°C) i siedzący odpoczynek po 180-minutowym treningu specificznym dla rugby. Czas do wyczerpania i szczytowe pobieranie tlenu nie różniły się między grupami (p=0.107), ale względne zmiany wydolności od poziomu wyjściowego były istotnie większe w grupie CWI niż kontrolnej (p<0.05).",
+    "takeaway": "Wynik sugeruje potencjalny pozytywny wpływ immersji zimnej na regenerację, ale nie ma istotnej różnicy w bezwzględnych wartościach wydolności — zmiana może być efektem placebo.",
+    "population": "Wysportowani zawodnicy rugby płci męskiej, studenci, n=11",
+    "limits": "Bardzo mała próba (n=11), brak grupy ślepej (zawodnicy wiedzieli czy przechodzą CWI), nie wykluczone efekty placebo",
+    "relevance": 2
+   }
+  },
+  {
+   "pmid": "42738995",
+   "doi": "10.3390/nu18172823",
+   "title": "Effects of Caffeine and Rhodiola rosea, Alone and Combined, on DanceSport-Specific Jive Performance: A Randomized, Blinded, Placebo-Controlled Trial.",
+   "abstract": "BACKGROUND/OBJECTIVES: Evidence on caffeine (CAF), Rhodiola rosea, and their combined use in DanceSport remains limited. This randomized, blinded, placebo-controlled trial, retrospectively registered at ClinicalTrials.gov (NCT07690085), evaluated Jive-specific performance after a four-week standardized intervention.\nMETHODS: Forty-eight male collegiate DanceSport athletes were randomly allocated by drawing lots to placebo control (CTR), CAF, RHO (Rhodiola rosea), or RHO + CAF (n = 12/group). RHO was administered using Tongrentang Brand Rhodiola Capsule (0.4 g/capsule; three capsules twice daily; 2.4 g·day-1) for four weeks, and CAF was administered at 3 mg·kg-1 body mass 30 min before Post testing. The registry lists four primary outcomes: kick-extension angle, post-kick leg-retraction angle, trunk anteroposterior sway, and 30 s valid-kick success rate. Post values were analyzed by ANCOVA using the corresponding Pre value as covariate, with Holm correction across the primary-outcome family.\nRESULTS: Training attendance was 100%. All four primary-outcome tests remained significant after Holm correction (adjusted p = 0.000768-0.006182; partial η2 = 0.248-0.386). Adjusted success rates were 84.66% (CTR), 90.69% (CAF), 84.43% (RHO), and 92.31% (RHO + CAF); CAF and RHO + CAF were higher than CTR and RHO. The CAF × RHO interaction was not significant.\nCONCLUSIONS: Group differences were outcome-specific. The combined condition showed the highest adjusted success rate, but the data did not establish a synergistic interaction. The findings apply to the Rhodiola rosea intervention used in this study.",
+   "journal": "Nutrients",
+   "journalAbbr": "Nutrients",
+   "year": "2026",
+   "authors": "Dai X i in.",
+   "authorCount": 10,
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42738995/",
+   "topics": [
+    "suplementy"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-26T08:06:37.793Z",
+   "score": 2,
+   "ai": {
+    "titlePl": "Wpływ kofeiny i Rhodioli różowatej na wydajność w tancu sportowym Jive: badanie randomizowane, zaślepione, kontrolowane placebo",
+    "summary": "48 tancerzy sportowych mężczyzn porównano w grupach otrzymujących placebo, kofeinę (3 mg/kg masy ciała), Rhodiolę (2,4 g/dzień przez 4 tygodnie) lub kombinację obu substancji. Kofeina i kombinacja kofeiny z Rhodiolą poprawiły wskaźnik powodzenia kopnięcia w 30 sekund (odpowiednio 90,69% i 92,31%) w stosunku do placebo i samej Rhodioli (84,66% i 84,43%).",
+    "takeaway": "Kofeina może poprawić wydajność w zadaniach wymagających szybkości i precyzji ruchów (sport), ale połączenie z Rhodiolą nie wykazało synergicznego efektu; praktyczne znaczenie ograniczone do taneczników zawodowych.",
+    "population": "Wytrenowani mężczyźni, tancerze sportowi, młodzież akademicka, n=48",
+    "limits": "Specyficzna populacja (tancerze), niska generalizowalność na typowe treningi siłowe, mały wkład Rhodioli, badanie nie obejmuje kobiet",
+    "relevance": 2
+   }
+  },
+  {
+   "pmid": "42738952",
+   "doi": "10.3390/nu18172780",
+   "title": "Effects of Acute Beetroot Juice Ingestion and Hypoxic Conditions on Metabolic Function, Skeletal Muscle Oxygenation, and Cardiac Function During Endurance Exercise in Healthy Young Men.",
+   "abstract": "BACKGROUND/OBJECTIVES: Exercise in hypoxic environments induces greater physiological stress than normoxic conditions, potentially limiting exercise performance through reduced skeletal muscle oxygenation and increased metabolic strain. Beetroot juice (BRJ), a dietary source of inorganic nitrate, may enhance nitric oxide (NO) bioavailability and oxygen delivery under hypoxic conditions. This study examined the acute effects of BRJ supplementation on metabolic responses, skeletal muscle oxygenation, and cardiac function during submaximal exercise at a fixed heart rate under normoxic and hypoxic conditions.\nMETHODS: Twelve healthy adult males completed four conditions in a randomized, crossover design, with double-blinding applied to the supplementation condition: normoxic condition + placebo (NPLA), normoxic condition + BRJ (NBRJ), hypoxic condition + placebo (HPLA), and hypoxic condition + BRJ (HBRJ). Participants ingested 70 mL of BRJ (400 mg NO3-) or placebo 2.5 h before 30 min of submaximal exercise at 70% HRmax under normoxic (FiO2 20.9%) or hypoxic (FiO2 14.5%) conditions. A two-way repeated-measures ANOVA was used to test the main effects of environment and treatment and their interaction for each outcome.\nRESULTS: Hypoxic conditions required a significantly lower mechanical load and induced greater physiological stress. However, a significant environment × treatment interaction was observed for Deoxy_Hb, with HBRJ statistically indistinguishable from normoxic conditions, indicating a clear attenuation of the hypoxia-induced increase in oxygen extraction. In addition, a significant main effect of treatment without a significant interaction was observed for RER, and HBRJ did not differ significantly from NBRJ.\nCONCLUSIONS: BRJ supplementation may help attenuate hypoxia-induced skeletal muscle deoxygenation, as reflected in Deoxy_Hb, potentially via NO-mediated mechanisms; however, as circulating nitrate/nitrite concentrations were not directly measured and interaction effects were not confirmed for most variables, these findings should be regarded as preliminary evidence for the potential use of BRJ as a nutritional strategy in hypoxic exercise settings.",
+   "journal": "Nutrients",
+   "journalAbbr": "Nutrients",
+   "year": "2026",
+   "authors": "Choi JH i in.",
+   "authorCount": 10,
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42738952/",
+   "topics": [
+    "suplementy"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-26T08:06:37.793Z",
+   "score": 2,
+   "ai": {
+    "titlePl": "Wpływ soku z buraka i hipoksji na funkcję metaboliczną, utlenienie mięśni i funkcję serca podczas ćwiczeń wysiłkowych",
+    "summary": "12 zdrowych mężczyzn wykonało ćwiczenia przy 70% HRmax przez 30 minut w warunkach normoxycy i hypoksji (FiO2 14,5%), z suplementacją sokiem z buraka (400 mg azotanów) lub placebem 2,5 h przed treningiem. Sok z buraka złagodził hipoksją-indukowany wzrost deoksyhemoglobiny (Deoxy_Hb) do poziomu obserwowanego w normalnych warunkach tlenowych.",
+    "takeaway": "Sok z buraka może być przydatny dla sportowców ćwiczących w hipoksji (wysokość, trening maskowy), ale badanie jest wstępne i wymaga potwierdzenia zmierzenia poziomu azotanów krwi.",
+    "population": "12 zdrowych mężczyzn, młodych dorosłych",
+    "limits": "Mała próba (n=12), brak bezpośredniego pomiaru stężenia azotanów/nitrytów w krwi, efekty interakcji nie potwierdzone dla większości zmiennych",
+    "relevance": 2
+   }
+  },
+  {
+   "pmid": "42738944",
+   "doi": "10.3390/nu18172771",
+   "title": "Effects of Acute Caffeine Ingestion on Morning Temperature, Mood, Reactive Agility and Cognitive Measures in Males: A Standardized Approach.",
+   "abstract": "Background/Objectives: We investigated whether ingestion of caffeine (~1 h before) was beneficial to subsequent morning (~07:30 h) mood, reactive agility, and cognitive measures in naïve-mild habitual caffeine consumers. Methods: A total of 150 recreationally active males were recruited, of whom 51 participated and completed six sessions as follows: (i) three familiarization sessions of all procedures at 12:00 h, and (ii) three experimental conditions. Participants completed caffeine and placebo trials under double-blind conditions, together with an open-label no-pill control trial using the stratified block randomization method based on baseline performance, which were counterbalanced in a crossover design into either caffeine (CAFF, 300 mg or 2.5-5.3 mg·kg-1 body weight), placebo (PLAC), or no-pill control (NoPill), both ingested at ~06:30 h. For each experimental session, on arrival at the laboratory, questions on sleep, mood states, and caffeine withdrawal were asked. A battery of cognitive performance tests was then administered (trail-making test, Rey's auditory verbal learning test, and Stroop word-colour interference test). At 30 min of rest and after a 5 min warm-up on a treadmill with associated stretches, rectal and mean skin temperatures (Tr and Tsk) were measured. Thereafter, two 90 s reactive agility tests (RATs) were undertaken, with average movement time(s) and contact number per light recorded. Data were analyzed using a general linear model with repeated measures, but the RAT measures were run as ANCOVA with mass used as a covariate. Results: The battery of cognitive tests showed no significant main effects for condition, whether the body mass of the participants was considered or not. There were no significant main effects of the experimental condition for RAT variables. There was a main effect for \"light position\", for mean movement time values (p < 0.001, η2p = 0.508), and cognitive-motor efficiency (contacts·s-1, p < 0.001, η2p = 0.582), where pairwise analysis showed mean movement times as higher, and cognitive-motor efficiency values indicating a lower rate of successful responses during movement for lights 1 and 5 (the furthest from the start point corresponding to light 3), rather than lights 2, 3 and 4. There were no significant interactions for condition and light for any of the variables. Conclusions: Early morning ingestion of 300 mg of caffeine had no effect on the battery of cognitive or reactive agility test measures in the population of naïve-mild habitual caffeine consumers. Caffeine ingestion had no effect on Tr, Tsk, mood, or caffeine withdrawal symptom scores, as well as tiredness or alertness, with or without consideration for body mass.",
+   "journal": "Nutrients",
+   "journalAbbr": "Nutrients",
+   "year": "2026",
+   "authors": "Edwards BJ i in.",
+   "authorCount": 9,
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42738944/",
+   "topics": [
+    "suplementy"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-26T08:06:37.793Z",
+   "score": 2,
+   "ai": {
+    "titlePl": "Wpływ kofeinę na temperaturę ciała, nastrój, zwinność reaktywną i funkcje poznawcze u mężczyzn rano",
+    "summary": "U 51 rekreacyjnie aktywnych mężczyzn (łagodnych konsumentów kofeiny) badano wpływ 300 mg kofeiny przyjętej o 6:30 na funkcje poznawcze, zwinność reaktywną i nastrój testowane o 7:30. Kofeina nie wpłynęła znacząco na żaden z testów poznawczych, testy zwinności reaktywnej, temperaturę ciała, nastrój ani objawy zmęczenia/czujności w porównaniu z placebo i grupą kontrolną.",
+    "takeaway": "Przyjęcie 300 mg kofeiny rano nie poprawia wydajności poznawczej ani szybkości ruchów u łagodnych użytkowników kofeiny – trener nie powinien liczyć na poranek na efekty ergogenne kofeiny w tej populacji.",
+    "population": "Rekreacyjnie aktywni mężczyźni, łagodni/naiwni konsumenci kofeiny, n=51",
+    "limits": "Mała próba (n=51 z 150 rekrutowanych), populacja wyłącznie mężczyzn, łagodne użycie kofeiny (wyniki mogą się różnić u regularnych użytkowników), testy o wczesnej poranku mogą nie reprezentować typowych warunków treningowych",
+    "relevance": 2
+   }
+  },
+  {
    "pmid": "42737497",
    "doi": "10.3390/ijms27177596",
    "title": "Safety and Efficacy of Mesenchymal Stem Cell Therapy in Aging Frailty: A Systematic Review.",
@@ -2005,6 +2396,167 @@
     "population": "Osoby starsze (podeszły wiek) z zespołem kruchości, n≈208 (3 RCT)",
     "limits": "Tylko 3 RCT, heterogeniczność źródła MSC, dawek, punktów końcowych i czasu obserwacji, brak meta-analizy ilościowej, ograniczone liczby badań uniemożliwiające wnioski o skuteczności",
     "relevance": 1
+   }
+  },
+  {
+   "pmid": "42786131",
+   "doi": "10.1111/jns.70172",
+   "title": "Fampridine for Symptomatic Treatment in Chronic Inflammatory Demyelinating Polyneuropathy: A Randomized, Double-Blinded, Placebo-Controlled Crossover Study.",
+   "abstract": "BACKGROUND AND AIMS: Chronic Inflammatory Demyelinating Polyneuropathy (CIDP) is an immune-mediated neuropathy that may cause persistent disability despite immunoglobulin treatment. Ion channel dysfunction has been demonstrated in CIDP, but no therapies specifically target this mechanism. We investigated whether fampridine improves clinical function and electrophysiological measures in CIDP patients with residual symptoms.\nMETHODS: In this two-center, randomized, double-blind, placebo-controlled crossover trial, patients with CIDP receiving stable subcutaneous or intravenous immunoglobulin were assigned to 4 weeks of fampridine (10 mg twice daily) or placebo, separated by a washout period. Co-primary outcomes were changes in Six-Spot-Step Test (SSST) and Nine-Hole Peg Test (9-HPT). Secondary outcomes included clinical scores, patient-reported outcomes, nerve conduction studies, and nerve excitability testing.\nRESULTS: Twenty-eight patients were included in the study. No significant differences were observed between fampridine and placebo for SSST (p = 0.154) or 9-HPT (p = 0.857). Grip strength and R-ODS worsened during fampridine compared with placebo (Bonferroni-adjusted p = 0.007 for both), while other clinical outcomes showed no differences. Median nerve CMAP amplitude with proximal stimulation increased significantly during fampridine treatment (adjusted p = 0.040). No significant changes were observed in other electrophysiological variables, including nerve excitability testing. No serious adverse events occurred and adverse effects were predominantly mild.\nINTERPRETATION: Our study did not provide evidence that fampridine improves clinical function in CIDP patients with residual disability during stable immunoglobulin therapy. Targeting ion channel dysfunction in CIDP remains of interest, but alternative strategies may be required.",
+   "journal": "Journal of the peripheral nervous system : JPNS",
+   "journalAbbr": "J Peripher Nerv Syst",
+   "year": "2026",
+   "authors": "Hansen PN i in.",
+   "authorCount": 6,
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial",
+    "Multicenter Study"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42786131/",
+   "topics": [
+    "pomiary"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-26T08:06:37.793Z",
+   "score": 1,
+   "ai": {
+    "titlePl": "Fampridyna w leczeniu objawowym przewlekłej zapalnej demielinizacyjnej polineuropatii: badanie randomizowane, podwójnie zaślepione, kontrolowane placebo",
+    "summary": "Badanie obejmowało 28 pacjentów z CIDP otrzymujących stabilną terapię immunoglobuliną, którzy w ujęciu crossover otrzymali famprydinę (10 mg 2x dziennie) lub placebo przez 4 tygodnie. Fampridyna nie poprawiła funkcjonalności mierzonej testem SSST (p=0,154) ani 9-HPT (p=0,857), a nawet pogorszyła siłę chwytu i wynik R-ODS w porównaniu z placebo (p=0,007).",
+    "takeaway": "Wynik nie ma znaczenia dla trenera personalnego, gdyż dotyczy choroby neurologicznej (CIDP) poza spektrum typowych klientów siłowni.",
+    "population": "Pacjenci z przewlekłą zapalną demielinizacyjną polineuropatią, n=28",
+    "limits": "Populacja kliniczna (choroba rzadka), krótki okres interwencji (4 tygodnie), mała liczba uczestników",
+    "relevance": 1
+   }
+  },
+  {
+   "pmid": "42784807",
+   "doi": "10.2196/89548",
+   "title": "Caregiver App Use and Child Behavioral Adherence in Relation to Obesity-Related Outcomes in an mHealth App-Assisted Childhood Obesity Intervention: Secondary Analysis of a Cluster Randomized Trial.",
+   "abstract": "BACKGROUND: Childhood obesity remains a major public health challenge. Mobile health (mHealth) interventions offer a scalable approach to support behavior change, but their effectiveness may depend on participant adherence. While both caregiver and child adherence are important, few studies have jointly examined caregiver app-use adherence and child behavioral adherence within digital obesity interventions.\nOBJECTIVE: This study aimed to evaluate the independent and joint associations of caregiver app-use adherence and child behavioral adherence with obesity-related outcomes in a school-based mHealth intervention.\nMETHODS: We conducted a secondary analysis of 684 child-caregiver dyads in the intervention arm of the diet, exercise, and cardiovascular health-children cluster-randomized trial, implemented across 3 socioeconomically diverse regions in China. Caregiver app-use adherence was measured using app-recorded app-use frequency and total usage duration. Child behavioral adherence was assessed through weekly behavior monitoring scores covering diet, screen time, and physical activity. Linear mixed models estimated associations between adherence levels and changes in anthropometric and physical fitness outcomes over 9 months.\nRESULTS: Higher caregiver app-use frequency and duration were both significantly associated with reductions in children's obesity-related indicators, such as BMI (β=-0.19; P=.005), BMI z-score (β=-0.08; P=.006), and body fat percentage (BFP) (β=-0.70; P=.005) for frequency. Greater child behavioral adherence was associated with lower BFP (β=-0.63; P=.01) and better physical fitness, including shorter shuttle run time (β=-3.63; P<.001) and longer standing long jump distance (β=2.88; P=.005). App-use frequency and duration showed a significant interaction for rope-skipping performance (P=.05). In joint adherence analyses, children in the high caregiver-high child adherence group showed the most favorable changes, including lower BMI (β=-0.22; P=.02), lower BFP (β=-1.18 percentage points; P=.001), and 7.45 additional rope-skipping repetitions (P=.003), compared with the low caregiver-low child adherence group.\nCONCLUSIONS: In this secondary analysis of an mHealth app-assisted childhood obesity intervention, higher caregiver app-use adherence and child behavioral adherence were associated with more favorable changes in weight status and physical fitness. These findings underscore the importance of coengagement in digital health programs and highlight the potential of app-supported, family-engaged strategies for childhood obesity prevention.",
+   "journal": "JMIR mHealth and uHealth",
+   "journalAbbr": "JMIR Mhealth Uhealth",
+   "year": "2026",
+   "authors": "Yan S i in.",
+   "authorCount": 6,
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42784807/",
+   "topics": [
+    "adherencja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-26T08:06:37.793Z",
+   "score": 1,
+   "ai": {
+    "titlePl": "Adherencja rodziców w aplikacji mobilnej i zachowawcze zaangażowanie dziecka w związku z wynikami otyłości w interwencji mHealth",
+    "summary": "Badanie analizowało 684 pary rodzic-dziecko w chińskiej interwencji prozdrowotnej opartej na aplikacji mobilnej. Wykazano, że wyższa częstość i czas użytkowania aplikacji przez opiekunów oraz większa adherencja dziecka do zachowań zdrowotnych wiązały się ze zmniejszeniem BMI (β=-0,19), procentu tkanki tłuszczowej (β=-0,70) oraz poprawą wydolności fizycznej. Największe korzyści zaobserwowano w grupie z wysoką adherencją zarówno rodzica, jak i dziecka.",
+    "takeaway": "Wynik dotyczy dzieci i otyłości, nie jest stosowany do treningu siłowego dorosłych; dla trenera personalnego bez bezpośredniego zastosowania.",
+    "population": "Dzieci i opiekunowie w szkołach, n=684 par, 3 regiony w Chinach o różnym statusie socjoekonomicznym",
+    "limits": "Populacja pediatryczna, brak danych o zgodzie rodziców z rzeczywistym treningiem siłowym, analiza wtórna, specyfika chińskiego kontekstu",
+    "relevance": 1
+   }
+  },
+  {
+   "pmid": "42769148",
+   "doi": "10.3389/fpubh.2026.1824969",
+   "title": "Effects of fun games on respiratory function and compliance in children with pneumonia: a randomized controlled trial.",
+   "abstract": "BACKGROUND: Community-acquired pneumonia poses a significant threat to children's health. Traditional respiratory rehabilitation often suffers from poor adherence due to children's limited cognitive abilities. This study aimed to evaluate the effects of a fun game-based intervention on respiratory function, exercise capacity, and rehabilitation compliance in children with pneumonia.\nMETHODS: A single-center, two-arm, parallel-group randomized controlled trial was conducted. A total of 170 children recovering from pneumonia and meeting the inclusion criteria were recruited from a tertiary hospital in Shenzhen and randomly allocated to either an intervention group or a control group. Ultimately, 154 participants (77 per group) completed the study. The control group received conventional respiratory training and health education. The intervention group participated in an 8-week fun game-based program, including respiratory training games (e.g., \"Blow Out the Little Candle\"), physical activity games (e.g., \"Rhythmic Breathing Run\"), along with interactive feedback mechanisms and personalized adjustments. Pulmonary function (FEV1/FVC ratio), exercise capacity (6-min walk distance, 6MWD), and rehabilitation compliance (Frankl and Houpt scale scores) were measured in both groups before and after the intervention.\nRESULTS: No statistically significant differences were found in baseline characteristics or outcome measures between the two groups before the intervention (P > 0.05). After the 8-week intervention, the intervention group showed significantly greater improvement in pulmonary function (FEV1/FVC: 84.69 ± 2.34 vs. 74.43 ± 2.27, P < 0.001) and exercise capacity (6MWD: 593.63 ± 19.91 m vs. 556.35 ± 30.48 m, P < 0.001) compared to the control group. Regarding compliance, post-intervention Frankl scores (3.87 ± 0.34 vs. 3.10 ± 0.60) and Houpt scores (2.91 ± 0.86 vs. 3.19 ± 0.78) indicated significantly better cooperation willingness and treatment completion in the intervention group (P < 0.05).\nCONCLUSION: The fun game-based intervention significantly improves pulmonary function and exercise capacity, while effectively enhancing compliance and completion rates in the rehabilitation of children with pneumonia. This approach is economical, feasible, and effective, offering a novel strategy for clinical nursing and rehabilitation practice in pediatric pneumonia.\nCLINICAL TRIAL REGISTRATION: https://www.chictr.org.cn/showproj.html?proj=269965.",
+   "journal": "Frontiers in public health",
+   "journalAbbr": "Front Public Health",
+   "year": "2026",
+   "authors": "Chen Y i in.",
+   "authorCount": 7,
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42769148/",
+   "topics": [
+    "adherencja"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-26T08:06:37.793Z",
+   "score": 1,
+   "ai": {
+    "titlePl": "Wpływ zabawy na funkcję oddechową i adherencję w rehabilitacji dzieci z zapaleniem płuc",
+    "summary": "Badanie obejmowało 154 dzieci wyzdrawiające z zapalenia płuc, podzielone na grupę zabawy (gry oddechowe i ruchowe przez 8 tygodni) i grupę kontrolną (standardowy trening). Grupa z zabawami wykazała istotnie większą poprawę FEV1/FVC (84,69 vs 74,43, p<0,001), dystansu w 6-minutowym teście marszu (593,63 vs 556,35 m, p<0,001) oraz lepszą adherencję (Frankl 3,87 vs 3,10, p<0,05).",
+    "takeaway": "Wynik dotyczy dzieci w trakcie rehabilitacji pulmonologicznej, a nie treningu siłowego u dorosłych — ma znaczenie edukacyjne dla zabawy, ale nie zmienia praktyki trenerskiej na siłowni.",
+    "population": "Dzieci wyzdrawiające z zapalenia płuc, n=154 (77 w każdej grupie)",
+    "limits": "Populacja pediatryczna leczona z powodu choroby płucnej (poza grupą docelową trenera siłowni); brak danych na temat populacji zdrowych lub sportowców",
+    "relevance": 1
+   }
+  },
+  {
+   "pmid": "42738950",
+   "doi": "10.3390/nu18172777",
+   "title": "Effects of a Combined Vitamin D3 and Docosahexaenoic Acid Intervention on Cognitive Function and Blood Pyroptotic Biomarkers in Older Adults with Mild Cognitive Impairment: A 12-Month Randomized, Double-Blind, Placebo-Controlled Trial.",
+   "abstract": "Background: This study aimed to assess the effects of a combined vitamin D3 (VD3) and docosahexaenoic acid (DHA) intervention on cognitive function and blood pyroptotic biomarkers in older adults with mild cognitive impairment (MCI). Methods: In total, 360 participants with MCI were recruited, and randomly assigned into four groups: VD3 (800 IU/day), DHA (1 g/day), VD3+DHA (VD3 800 IU/day+DHA 1 g/day), and placebo. Cognitive function was evaluated by the Wechsler Adult Intelligence Scale-Revised in China (WAIS-RC), and blood biomarkers were measured by ELISA and Western blot at baseline, 6 months and 12 months. Linear mixed-effects models (LMMs) were employed to analyze longitudinal interaction effects on cognitive function and blood biomarkers. Structural equation modeling (SEM) was conducted to evaluate the parallel mediation effects of blood biomarkers on cognitive improvements. Results: A total of 355 participants completed the trial. Over the 12-month intervention, all intervention groups demonstrated significant improvements in cognitive function and reductions in five blood biomarkers (IL-1β, IL-18, NLRP3, Gasdermin D (GSDMD), cleaved caspase-1) compared to the placebo group (p < 0.05). Compared to each single intervention, the combined VD3 and DHA intervention yielded superior cognitive improvements in scores for full-scale IQ (FIQ), performance IQ (PIQ), verbal IQ (VIQ) and several subtests (information, comprehension, digit span, vocabulary, picture completion, block design, and picture arrangement), and significantly reduced five blood pyroptotic biomarkers (all p < 0.05). Path analysis revealed that longitudinal GSDMD reduction mediated the improvements in FIQ. Conclusions: A 12-month intervention with VD3, DHA, or their combination significantly improves cognitive function and mitigates pyroptosis, and the combined intervention showed superior benefits, potentially mediated by downregulating the protein GSDMD.",
+   "journal": "Nutrients",
+   "journalAbbr": "Nutrients",
+   "year": "2026",
+   "authors": "Yuan J i in.",
+   "authorCount": 8,
+   "pubTypes": [
+    "Journal Article",
+    "Randomized Controlled Trial"
+   ],
+   "evidence": "rct",
+   "evidenceLabel": "RCT",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42738950/",
+   "topics": [
+    "suplementy"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-26T08:06:37.793Z",
+   "score": 1,
+   "ai": {
+    "titlePl": "Wpływ kombinacji witaminy D3 i kwasu dokozaheksaenowego na funkcje poznawcze i biomarkery piroptozy u starszych osób ze łagodnym zaburzeniem poznawczym",
+    "summary": "Badanie RCT na 360 osobach starszych z łagodnym zaburzeniem poznawczym porównało suplementację witaminą D3 (800 IU/dzień), DHA (1 g/dzień), kombinacją D3+DHA oraz placebo przez 12 miesięcy. Grupa kombinowana wykazała istotnie lepsze ulepszenie funkcji poznawczych (IQ całkowite, mówienie, wykonanie) i większe zmniejszenie biomarkerów piroptozy (IL-1β, IL-18, NLRP3, GSDMD, kaspaza-1) w porównaniu z grupami jednowładnych interwencji (wszystko p<0,05).",
+    "takeaway": "Dla zdrowych klientów na siłowni wynik nie zmienia praktyki — badanie dotyczy osób z zaburzeniami poznawczymi, nie treningu siłowego ani typowych ćwiczących.",
+    "population": "Starsze dorosłe osoby (wiek niesprecyzowany) ze łagodnym zaburzeniem poznawczym, n=360 (355 ukończyło)",
+    "limits": "Populacja kliniczna (MCI) daleka od zdrowch ćwiczących na siłowni; brak danych o aktywności fizycznej i treningach; wyniki nieistotne dla treningu siłowego",
+    "relevance": 1
+   }
+  },
+  {
+   "pmid": "42730319",
+   "doi": "10.7717/peerj.21714",
+   "title": "Reducing sitting time is essential for preserving sarcopenia and functional independence with aging: a comparative cross-sectional study.",
+   "abstract": "BACKGROUND: As individuals age, sitting time is increasingly recognized as a factor that undermines independence in daily living; however, the extent to which sitting time influences sarcopenia-related indicators and functional independence remains unclear.\nMETHODS: A total of 200 community-dwelling older adults aged 65-96 years were categorized into three groups based on daily sitting duration: low (<6 h/day), moderate (6-8 h/day), and high (>8 h/day) groups. Sarcopenic measures-including calf circumference, grip strength, 5-time chair stand test, and appendicular skeletal muscle mass (ASM)-were evaluated. Functional independence was examined using assessments of activities of daily living (ADL) and instrumental activities of daily living (IADL). Analysis of covariance (ANCOVA) was used to examine group differences across sitting time categories with adjustment for age and sex. Spearman's correlation analysis was performed to examine associations between sitting time and sarcopenia-related indicators and functional independence variables, and separate simple linear regression were subsequently constructed with sitting time entered as the independent variable and sarcopenia-related indicators and functional independence variables included as dependent variables.\nRESULTS: Calf girth differed significantly by sex (η2 = 0.995) and group (η2 = 0.362). Grip strength showed a significant sex-by-group interaction (η2 = 0.068), with a similar pattern observed for 5-time chair standing (η2 = 0.069). ASM was primarily influenced by age (η2 = 0.160), with no significant group or sex effects. Increasing sitting time was associated with greater functional decline in mobility-related ADL items, remaining significant after adjustment for age (η2 = 0.077) and sex (η2 = 0.286). Higher sitting time was also linked to poorer higher-level IADL functions (telephone use, housekeeping, transportation, and financial management), independent of age (η2 = 0.023) and sex (η2 = 0.243). ADL and IADL were strongly correlated (ρ = 0.812) and were significantly associated with sarcopenic indicators, including calf girth, grip strength, chair stand performance, and ASM. In regression analysis, sitting time was negatively associated with ASM (β = -0.415, p < 0.001), calf circumference (β = -0.442, p < 0.001), and grip strength (β = -0.385, p < 0.001), and positively associated with 5-time chair standing test (β = 0.465, p < 0.001), indicating poorer lower-extremity physical performance. In addition, sitting time was negatively associated with ADL sum score (β = -0.308, p < 0.001) and IADL sum score (β = -0.410, p < 0.001).\nCONCLUSION: These findings suggest that longer sitting time may be broadly related to sarcopenia-related indicators and daily functional independence. However, because this study employed a cross-sectional design, these relationships should be interpreted as associations rather than causal effects.",
+   "journal": "PeerJ",
+   "journalAbbr": "PeerJ",
+   "year": "2026",
+   "authors": "Yoon TH i in.",
+   "authorCount": 2,
+   "pubTypes": [
+    "Journal Article",
+    "Comparative Study"
+   ],
+   "evidence": "other",
+   "evidenceLabel": "Inne",
+   "url": "https://pubmed.ncbi.nlm.nih.gov/42730319/",
+   "topics": [
+    "pomiary"
+   ],
+   "topJournal": false,
+   "firstSeen": "2026-09-26T08:06:37.793Z",
+   "score": 0,
+   "ai": {
+    "titlePl": "Zmniejszenie czasu siedzenia kluczowe dla zachowania masy mięśniowej i niezależności funkcjonalnej u osób starszych",
+    "summary": "Badanie obejmowało 200 starszych dorosłych (65-96 lat) podzielonych ze względu na czas siedzenia dziennie: <6h, 6-8h i >8h. Wykazano, że dłuższy czas siedzenia wiązał się ze zmniejszeniem obwodu łydki (β=-0,442), siły uścisku (β=-0,385), masy mięśniowej (β=-0,415) oraz gorszą funkcjonalnością w testach mobilności (5-time chair stand β=0,465).",
+    "takeaway": "Trener powinien edukować klientów o znaczeniu redukacji czasu siedzenia w ciągu dnia, a nie tylko o treningach - może to wzmocnić efekty ochrony przed sarkopenią i utratą funkcjonalności, szczególnie u starszych klientów.",
+    "population": "Osoby starsze mieszkające w społeczności, 65-96 lat, n=200",
+    "limits": "Badanie przekrojowe (cross-sectional) - niemożliwe ustalenie związków przyczynowo-skutkowych; brak informacji o intensywności aktywności fizycznej w pozostałym czasie",
+    "relevance": 3
    }
   },
   {
@@ -2069,38 +2621,6 @@
     "population": "200 pacjentów z zespołem kanału nadgarstka poddanych interwencji chirurgicznej (100 w każdej grupie)",
     "limits": "Populacja chirurgiczna (nie ogólna), badanie krótkoterminowe (3 miesiące), wymaga doświadczenia i ultrasonografii – wynik trudno uogólniać na centra bez tej technologii",
     "relevance": 1
-   }
-  },
-  {
-   "pmid": "42730319",
-   "doi": "10.7717/peerj.21714",
-   "title": "Reducing sitting time is essential for preserving sarcopenia and functional independence with aging: a comparative cross-sectional study.",
-   "abstract": "BACKGROUND: As individuals age, sitting time is increasingly recognized as a factor that undermines independence in daily living; however, the extent to which sitting time influences sarcopenia-related indicators and functional independence remains unclear.\nMETHODS: A total of 200 community-dwelling older adults aged 65-96 years were categorized into three groups based on daily sitting duration: low (<6 h/day), moderate (6-8 h/day), and high (>8 h/day) groups. Sarcopenic measures-including calf circumference, grip strength, 5-time chair stand test, and appendicular skeletal muscle mass (ASM)-were evaluated. Functional independence was examined using assessments of activities of daily living (ADL) and instrumental activities of daily living (IADL). Analysis of covariance (ANCOVA) was used to examine group differences across sitting time categories with adjustment for age and sex. Spearman's correlation analysis was performed to examine associations between sitting time and sarcopenia-related indicators and functional independence variables, and separate simple linear regression were subsequently constructed with sitting time entered as the independent variable and sarcopenia-related indicators and functional independence variables included as dependent variables.\nRESULTS: Calf girth differed significantly by sex (η2 = 0.995) and group (η2 = 0.362). Grip strength showed a significant sex-by-group interaction (η2 = 0.068), with a similar pattern observed for 5-time chair standing (η2 = 0.069). ASM was primarily influenced by age (η2 = 0.160), with no significant group or sex effects. Increasing sitting time was associated with greater functional decline in mobility-related ADL items, remaining significant after adjustment for age (η2 = 0.077) and sex (η2 = 0.286). Higher sitting time was also linked to poorer higher-level IADL functions (telephone use, housekeeping, transportation, and financial management), independent of age (η2 = 0.023) and sex (η2 = 0.243). ADL and IADL were strongly correlated (ρ = 0.812) and were significantly associated with sarcopenic indicators, including calf girth, grip strength, chair stand performance, and ASM. In regression analysis, sitting time was negatively associated with ASM (β = -0.415, p < 0.001), calf circumference (β = -0.442, p < 0.001), and grip strength (β = -0.385, p < 0.001), and positively associated with 5-time chair standing test (β = 0.465, p < 0.001), indicating poorer lower-extremity physical performance. In addition, sitting time was negatively associated with ADL sum score (β = -0.308, p < 0.001) and IADL sum score (β = -0.410, p < 0.001).\nCONCLUSION: These findings suggest that longer sitting time may be broadly related to sarcopenia-related indicators and daily functional independence. However, because this study employed a cross-sectional design, these relationships should be interpreted as associations rather than causal effects.",
-   "journal": "PeerJ",
-   "journalAbbr": "PeerJ",
-   "year": "2026",
-   "authors": "Yoon TH i in.",
-   "authorCount": 2,
-   "pubTypes": [
-    "Journal Article",
-    "Comparative Study"
-   ],
-   "evidence": "other",
-   "evidenceLabel": "Inne",
-   "url": "https://pubmed.ncbi.nlm.nih.gov/42730319/",
-   "topics": [
-    "pomiary"
-   ],
-   "topJournal": false,
-   "firstSeen": "2026-09-26T08:06:37.793Z",
-   "score": 0,
-   "ai": {
-    "titlePl": "Zmniejszenie czasu siedzenia kluczowe dla zachowania masy mięśniowej i niezależności funkcjonalnej u osób starszych",
-    "summary": "Badanie obejmowało 200 starszych dorosłych (65-96 lat) podzielonych ze względu na czas siedzenia dziennie: <6h, 6-8h i >8h. Wykazano, że dłuższy czas siedzenia wiązał się ze zmniejszeniem obwodu łydki (β=-0,442), siły uścisku (β=-0,385), masy mięśniowej (β=-0,415) oraz gorszą funkcjonalnością w testach mobilności (5-time chair stand β=0,465).",
-    "takeaway": "Trener powinien edukować klientów o znaczeniu redukacji czasu siedzenia w ciągu dnia, a nie tylko o treningach - może to wzmocnić efekty ochrony przed sarkopenią i utratą funkcjonalności, szczególnie u starszych klientów.",
-    "population": "Osoby starsze mieszkające w społeczności, 65-96 lat, n=200",
-    "limits": "Badanie przekrojowe (cross-sectional) - niemożliwe ustalenie związków przyczynowo-skutkowych; brak informacji o intensywności aktywności fizycznej w pozostałym czasie",
-    "relevance": 3
    }
   }
  ]
