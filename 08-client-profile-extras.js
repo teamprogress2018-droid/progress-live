@@ -3876,7 +3876,7 @@ function renderCPMetrics(c){
       </div>
     </div>
 
-    ${activeGroup?`<div class="card-sm" style="margin-bottom:12px;">
+    ${activeGroup&&last?`<div class="card-sm" style="margin-bottom:12px;">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
         <span style="font-size:20px;">${activeGroup.icon}</span>
         <div>
@@ -3900,7 +3900,7 @@ function renderCPMetrics(c){
             ${diff!=null?`<div style="font-size:10px;color:${color};">${parseFloat(diff)>0?'+':''}${diff}</div>`:''}
           </div>`;
         }).join('')}
-      </div>`:`<div style="font-size:12px;color:var(--muted);padding:8px 0;">${activeGroup.id==='mg2'?'Brak obwodów centymetrem — dodaj szyję, klatkę, talię, biodra, ramiona, uda i łydki.':'Brak pomiarów w tej grupie — dodaj pierwszy.'}</div>`}
+      </div>`:`<div style="font-size:12px;color:var(--muted);padding:8px 0;">${activeGroup.id==='mg2'?'Brak obwodów centymetrem — dodaj szyję, klatkę, talię, biodra, ramiona, uda i łydki.':''}</div>`}
     </div>`:''}
 
     <div style="margin-top:8px;">
@@ -3909,7 +3909,7 @@ function renderCPMetrics(c){
         <span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${geAll.length} wpisów</span>
       </div>
       ${!geAll.length
-        ?`<div style="text-align:center;padding:24px;color:var(--muted);font-size:12px;">Brak historii. Dodaj pierwszy pomiar przyciskiem u góry.</div>`
+        ?`<div style="text-align:center;padding:24px;color:var(--muted);font-size:12px;">Brak pomiarów w tej kategorii. Dodaj pierwszy przyciskiem „+ Dodaj pomiar” powyżej.</div>`
         :`<div style="display:flex;flex-direction:column;gap:6px;">
           ${geAll.map(e=>{
             const vals=(activeGroup.metrics||[]).map(m=>e.values[m.id]!=null?`<span style="font-size:11px;"><span style="color:var(--muted);">${escHtml(m.name)}:</span> <strong>${e.values[m.id]}</strong>${m.unit?' '+escHtml(m.unit):''}</span>`:'').filter(Boolean).join(' · ');

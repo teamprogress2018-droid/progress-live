@@ -32,7 +32,7 @@ const progress=src08.slice(src08.indexOf('function renderCPProgress'),src08.inde
 ok('postęp screen uses one empty-training message',/Brak zapisanych treningów/.test(progress)&&/data-cp-panel="train" class="stat-card cp-progress-empty"/.test(progress));
 ok('plan realization shows no data without assignments',/adh30\.assigned\?`\$\{adh30\.pct\}%`:'Brak danych'/.test(progress)&&/Realizacja planu · 30 dni/.test(progress));
 ok('timeline heading says Historia aktywności',/class="cp-section-title">Historia aktywności<\/div>/.test(src08));
-ok('updated app script caches',/07-forms-metrics-calculator\.js\?v=43/.test(html)&&/08-client-profile-extras\.js\?v=85/.test(html));
+ok('updated app script caches',/07-forms-metrics-calculator\.js\?v=43/.test(html)&&/08-client-profile-extras\.js\?v=86/.test(html));
 ok('CI runs navigation regression test',wf.includes('test_cp_nav_terms.js'));
 
 if(failed){console.error(failed+' failed');process.exit(1);}
