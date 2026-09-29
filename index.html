@@ -3135,11 +3135,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
           <button type="button" onclick="toggleCpHdrMore(false);openClientOnboardSummary(cpClientId)">Podsumowanie start</button>
           <button type="button" onclick="toggleCpHdrMore(false);openClientMonitorSummary(cpClientId)">Monitoring progresu</button>
           <button type="button" onclick="toggleCpHdrMore(false);openReportForClient(cpClientId)">Raport szczegółowy</button>
-          <button type="button" onclick="toggleCpHdrMore(false);setCPTab('progress')">Wyniki treningowe</button>
-          <div class="cp-hdr-more-sep"></div>
-          <button type="button" id="cp-archive-btn" onclick="toggleCpHdrMore(false);archiveClient(cpClientId)">🗃 Zarchiwizuj</button>
-          <button type="button" id="cp-restore-btn" onclick="toggleCpHdrMore(false);restoreClient(cpClientId)" style="display:none;">↩ Przywróć</button>
-          <button type="button" id="cp-delete-btn" onclick="toggleCpHdrMore(false);deleteClientPermanently(cpClientId)" style="color:var(--red);">🗑 Usuń</button>
+          <button type="button" onclick="toggleCpHdrMore(false);setCPTab('progress')">Postępy</button>
         </div>
       </div>
     </div>
@@ -3153,7 +3149,7 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
         <button class="cp-tab active" id="cpt-overview" onclick="setCPTab('overview')">Przegląd</button>
         <button class="cp-tab" id="cpt-training" onclick="setCPTab('training')">Treningi</button>
         <button class="cp-tab" id="cpt-plan" onclick="setCPTab('plan')">Plan</button>
-        <button class="cp-tab" id="cpt-progress" onclick="setCPTab('progress')">Wyniki</button>
+        <button class="cp-tab" id="cpt-progress" onclick="setCPTab('progress')">Postępy</button>
         <button class="cp-tab" id="cpt-metrics" onclick="setCPTab('metrics')">Pomiary</button>
         <div class="cp-tabs-more-wrap">
           <button type="button" class="cp-tab cp-tabs-more-btn" id="cp-more-toggle" onclick="toggleCpMoreNav(event)" aria-expanded="false" aria-haspopup="true">Więcej ▾</button>
@@ -3162,16 +3158,16 @@ Zaraz dostaniesz plan treningowy. Trzymajmy się razem! 💪</textarea>
             <button class="cp-tab cp-tab-menu" id="cpt-notes" onclick="setCPTab('notes')">Notatki</button>
             <button class="cp-tab cp-tab-menu" id="cpt-photos" onclick="setCPTab('photos')">Zdjęcia</button>
             <button class="cp-tab cp-tab-menu" id="cpt-forms" onclick="setCPTab('forms')">Formularze</button>
-            <button class="cp-tab cp-tab-menu" id="cpt-documents" onclick="setCPTab('documents')">Dokumenty</button>
-            <button class="cp-tab cp-tab-menu" id="cpt-timeline" onclick="setCPTab('timeline')">Oś czasu</button>
+            <details class="cp-tabs-more-group">
+              <summary>Historia i dokumenty</summary>
+              <button class="cp-tab cp-tab-menu" id="cpt-timeline" onclick="setCPTab('timeline')">Historia aktywności</button>
+              <button class="cp-tab cp-tab-menu" id="cpt-documents" onclick="setCPTab('documents')">Lista dokumentów</button>
+            </details>
             <button class="cp-tab cp-tab-menu" id="cpt-payments" onclick="setCPTab('payments')">Płatności</button>
-            <button class="cp-tab cp-tab-menu" id="cpt-analytics" onclick="setCPTab('analytics')">Analityka</button>
+            <button class="cp-tab cp-tab-menu" id="cpt-analytics" onclick="setCPTab('analytics')">Oceny specjalistyczne</button>
             <button class="cp-tab cp-tab-menu" id="cpt-features" onclick="setCPTab('features')">Ustawienia</button>
             <!-- Żywienie ukryte: stub — wróci gdy będzie prawdziwy dziennik -->
             <button class="cp-tab cp-tab-menu" id="cpt-food" onclick="setCPTab('food')" style="display:none;" aria-hidden="true">Żywienie</button>
-            <div class="cp-tabs-more-sep"></div>
-            <button type="button" class="cp-tab-menu-danger" onclick="toggleCpMoreNav(false);archiveClient(cpClientId)">Zarchiwizuj</button>
-            <button type="button" class="cp-tab-menu-danger" onclick="toggleCpMoreNav(false);deleteClientPermanently(cpClientId)">Usuń na zawsze</button>
           </div>
         </div>
       </div>
@@ -4567,10 +4563,10 @@ async function load(session=captureTenantSession()){
 <script src="02-workouts-onboarding-templates-live.js?v=87"></script>
 <script src="03-ai-plangen-bizstats-aicoach.js?v=42&client-review=1&why=1"></script>
 <script src="04-client-portal.js?v=55&journey=1&tenant-isolation=2"></script>
-<script src="05-clients-builder-plans-calendar.js?v=81&journey=1"></script>
+<script src="05-clients-builder-plans-calendar.js?v=82&journey=1"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=85"></script>
-<script src="07-forms-metrics-calculator.js?v=42"></script>
-<script src="08-client-profile-extras.js?v=84&ui=2&journey=2"></script>
+<script src="07-forms-metrics-calculator.js?v=43"></script>
+<script src="08-client-profile-extras.js?v=85&ui=2&journey=2"></script>
 <script src="09-posture-kb-invites-private.js?v=54&reliable-af=1&af-ownership=2&tenant-isolation=2"></script>
 <script src="10-client-app.js?v=42&tenant-isolation=2"></script>
 </body>

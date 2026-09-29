@@ -1884,6 +1884,19 @@ function builderWeekMetaForSave(prev,dur){
   return out;
 }
 window.builderWeekMetaForSave=builderWeekMetaForSave;
+function builderPlanRationaleChanged(prev,next){
+  if(!prev||!next)return false;
+  const signature=plan=>JSON.stringify({
+    method:plan.method||'',
+    duration:String(plan.duration||''),
+    progression:plan.progression||'',
+    clientId:plan.clientId||'',
+    level:plan.level||'',
+    goal:plan.goal||'',
+    days:Array.isArray(plan.days)?plan.days:[]
+  });
+  return signature(prev)!==signature(next);
+}
 function builderRowWeekLoads(row){
   if(!row||!row.dataset.weekLoads)return null;
   try{return JSON.parse(row.dataset.weekLoads);}catch(e){return null;}
@@ -2214,7 +2227,9 @@ async function savePlan(){
   if(editingId){
     const idx=PL.findIndex(p=>p.id===editingId);
     if(idx>=0){
-      PL[idx]={...PL[idx],name,method:document.getElementById('b-method').value,duration:document.getElementById('b-duration').value,progression,clientId:cid,clientName:c?c.name:'',level:c?c.level:PL[idx].level,goal:c?c.goal:PL[idx].goal,days,updatedAt:new Date().toISOString(),...weekMeta};
+      const updated={...PL[idx],name,method:document.getElementById('b-method').value,duration:document.getElementById('b-duration').value,progression,clientId:cid,clientName:c?c.name:'',level:c?c.level:PL[idx].level,goal:c?c.goal:PL[idx].goal,days,updatedAt:new Date().toISOString(),...weekMeta};
+      if(builderPlanRationaleChanged(PL[idx],updated))updated.rationale=null;
+      PL[idx]=updated;
       window._editingPlanId=null;
       notify('Plan zaktualizowany!');
       await persistById('plans',PL[idx]);

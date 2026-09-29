@@ -19,7 +19,7 @@ ok('progress hides duplicated body and photos panels', /const allowed=\['all','t
 ok('progress has no CTA strip', !/Podsumowanie<\/button>/.test(progressFn) && !/setCPTab\('photos'\)/.test(progressFn));
 ok('progress uses svg charts', /cp-chart-svg|cpLineChartSVG|cpWeeklyDualChart/.test(progressFn));
 ok('progress uses stat-card layout', /stat-card/.test(progressFn));
-ok('progress analytics hub', /WYNIKI TRENINGOWE/.test(progressFn) && /Regularność 30 dni/.test(progressFn));
+ok('progress analytics hub', /POSTĘPY/.test(progressFn) && /Realizacja planu · 30 dni/.test(progressFn));
 ok('progress explains calendar-only entries', /same terminy nie są liczone jako wykonany trening/.test(progressFn));
 ok('progress has focused filters', /Podsumowanie/.test(progressFn) && /Trening/.test(progressFn) && /Check-in/.test(progressFn) && /Nawyki/.test(progressFn));
 ok('metrics is single measurement history', /Jedyne miejsce do dodawania, edycji i przeglądania historii pomiarów/.test(metricsFn));

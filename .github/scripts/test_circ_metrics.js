@@ -54,8 +54,8 @@ ok('08 empty circ copy', src08.includes('Brak obwodów centymetrem'));
 ok('08 uses circBarItems', src08.includes('circBarItems'));
 ok('04 last circ dynamic', src04.includes('circMetricDefs'));
 ok('loader does not silently rewrite stored metric groups', !html.includes('migrateEnsureCircMetrics') && html.includes("['metricGroups','METRIC_GROUPS',typeof DEMO_METRIC_GROUPS"));
-ok('cache 07', html.includes('07-forms-metrics-calculator.js?v=42'));
-ok('cache 04/05/08', html.includes('04-client-portal.js?v=55') && html.includes('05-clients-builder-plans-calendar.js?v=81') && html.includes('08-client-profile-extras.js?v=84'));
+ok('cache 07', html.includes('07-forms-metrics-calculator.js?v=43'));
+ok('cache 04/05/08', html.includes('04-client-portal.js?v=55') && html.includes('05-clients-builder-plans-calendar.js?v=82') && html.includes('08-client-profile-extras.js?v=85'));
 ok('CI unit', wf.includes('test_circ_metrics.js'));
 
 function sliceFn(src, name) {

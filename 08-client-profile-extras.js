@@ -283,8 +283,8 @@ function renderCPTimeline(c){
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s??''));
   document.getElementById('cp-body').innerHTML=`
     <div class="cp-tl-wrap">
-      <div class="cp-section-title">Oś czasu</div>
-      <div class="cp-tl-filters" role="tablist" aria-label="Filtry osi czasu">
+      <div class="cp-section-title">Historia aktywności</div>
+      <div class="cp-tl-filters" role="tablist" aria-label="Filtry historii aktywności">
         ${CP_TL_FILTERS.map(f=>`<button type="button" class="cp-tl-filter${filter===f.id?' is-on':''}" data-tl-filter="${esc(f.id)}" onclick="setCpTlFilter('${esc(f.id)}')">${esc(f.label)}</button>`).join('')}
       </div>
       <div id="cp-timeline-list" class="cp-tl-list"></div>
@@ -3623,10 +3623,10 @@ function renderCPOverview(c){
           ${typeof cpOverviewHasApp==='function'&&cpOverviewHasApp(c)&&(logged&&logged.length)&&pulse.tone!=='good'?`<div style="margin-top:10px;position:relative;z-index:1;"><button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();cpRemindClient('${c.id}','workout')">Przypomnij o treningu</button></div>`:''}
         </div>
 
-        ${metricsOn&&metricsHtml?`<div class="cp-ov-card" id="cp-ov-card-metrics" style="cursor:pointer;" onclick="setCPTab('progress')">
+        ${metricsOn&&metricsHtml?`<div class="cp-ov-card" id="cp-ov-card-metrics" style="cursor:pointer;" onclick="setCPTab('metrics')">
           <div class="cp-ov-card-hd">
             <div class="cp-ov-card-title">Pomiary ciała</div>
-            <span style="font-size:12px;color:var(--text-secondary);">Wyniki →</span>
+            <span style="font-size:12px;color:var(--text-secondary);">Pomiary →</span>
           </div>
           <div class="cp-ov-metrics-grid" onclick="event.stopPropagation()">${metricsHtml}</div>
           <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;" onclick="event.stopPropagation()">
@@ -3651,7 +3651,7 @@ function renderCPOverview(c){
         ${hasFeel||hasGarmin?`<div class="cp-ov-card" id="cp-ov-card-feel">
           <div class="cp-ov-card-hd">
             <div class="cp-ov-card-title">${hasFeel?'Samopoczucie (check-in)':'Garmin'}</div>
-            <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('progress')">Wyniki →</button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('progress')">Postępy →</button>
           </div>
           <div class="cp-ov-feel-grid">
             ${hasFeel?`<div>
@@ -3872,7 +3872,7 @@ function renderCPMetrics(c){
       <div class="cp-metrics-actions">
         <button type="button" class="btn btn-primary btn-sm" onclick="openMetricEntryForClient('${c.id}','${activeGid}')">+ Dodaj pomiar</button>
         <button type="button" class="btn btn-ghost btn-sm" onclick="typeof openClientBaselineModal==='function'&&openClientBaselineModal('${c.id}')">Pomiary początkowe</button>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('progress')">📈 Wyniki treningowe</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('progress')">📈 Postępy</button>
       </div>
     </div>
 
@@ -3928,7 +3928,7 @@ function renderCPMetrics(c){
         </div>`}
     </div>
     <div class="cp-crosslink-note">
-      Rekordy, tonaż i regularność treningów są w zakładce <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('progress')">Wyniki</button>
+      Rekordy, tonaż i regularność treningów są w zakładce <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('progress')">Postępy</button>
     </div>`;
 }
 function setCPMetricGroup(clientId,groupId){
@@ -4359,6 +4359,8 @@ function renderCPProgress(c){
   const adh7=cpClientAdherence(c.id,7);
   const adh30=cpClientAdherence(c.id,30);
   const sess30=adh30.logged;
+  const adherenceScore=adh30.assigned?`${adh30.pct}%`:'Brak danych';
+  const adherenceMeta=adh30.assigned?`${adh30.logged}/${adh30.assigned} · 7 dni ${adh7.assigned?adh7.pct+'%':'brak danych'}`:'Brak przypisanych treningów';
   const entries=(window.METRIC_ENTRIES||[]).filter(e=>e.clientId===c.id);
   const byG=(gid)=>entries.filter(e=>e.groupId===gid).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   const mass=byG('mg1');
@@ -4417,7 +4419,7 @@ function renderCPProgress(c){
 
   document.getElementById('cp-body').innerHTML=`
     <div style="margin-bottom:12px;">
-      <div class="cp-section-title" style="margin:0;">WYNIKI TRENINGOWE</div>
+      <div class="cp-section-title" style="margin:0;">POSTĘPY</div>
       <div class="cp-view-sub">Regularność, wykonana praca, check-in i nawyki. Pomiary ciała oraz zdjęcia mają własne zakładki.</div>
     </div>
 
@@ -4429,7 +4431,7 @@ function renderCPProgress(c){
     </div>
 
     <div data-cp-panel="kpi" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;">
-      <div class="cp-stat-box"><div class="cp-stat-val" style="color:${adh30.pct>=70?'var(--teal)':adh30.pct>=40?'var(--orange)':'var(--accent)'};">${adh30.pct}%</div><div class="cp-stat-lbl">Regularność 30 dni</div><div style="font-size:9px;color:var(--muted);margin-top:2px;">${adh30.logged}/${adh30.assigned||'—'} · 7d ${adh7.pct}%</div></div>
+      <div class="cp-stat-box"><div class="cp-stat-val" style="color:${adh30.assigned?(adh30.pct>=70?'var(--teal)':adh30.pct>=40?'var(--orange)':'var(--accent)'):'var(--muted)'};font-size:${adh30.assigned?22:11}px;">${adherenceScore}</div><div class="cp-stat-lbl">Realizacja planu · 30 dni</div><div style="font-size:9px;color:var(--muted);margin-top:2px;">${adherenceMeta}</div></div>
       <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--accent);">${sess30}</div><div class="cp-stat-lbl">Sesje 30 dni</div><div style="font-size:9px;color:var(--muted);margin-top:2px;">${Math.round(totalVol).toLocaleString('pl')} kg</div></div>
       <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--blue);">${ciAvg||'—'}</div><div class="cp-stat-lbl">Check-in śr.</div><div style="font-size:9px;color:var(--muted);margin-top:2px;">${ciPts.length?ciPts.length+' raportów':'brak'}</div></div>
       <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--teal);">${bestStreak||habitPct7||'—'}</div><div class="cp-stat-lbl">${bestStreak?'Dni z nawykiem':'Nawyki 7d'}</div><div style="font-size:9px;color:var(--muted);margin-top:2px;">${habits.length?habits.length+' aktywnych':(bestStreak?'dni':'brak nawyków')}${habitPct7?' · '+habitPct7+'%':''}</div></div>
@@ -5225,7 +5227,10 @@ function renderCPSettings(c){
         .map(tz=>`<option value="${tz}" ${(s.timezone||'Europe/Warsaw')===tz?'selected':''}>${tz.replace('_',' ')}</option>`).join('')}
     </select>
 
-    <button class="btn btn-danger btn-sm" style="width:100%;margin-bottom:8px;" onclick="archiveClient('${c.id}')">🗃 Zarchiwizuj klienta</button>
+    <div class="cp-section-title" style="margin-top:20px;">ZARZĄDZANIE KLIENTEM</div>
+    ${c.status==='archived'
+      ?`<button class="btn btn-primary btn-sm" style="width:100%;margin-bottom:8px;" onclick="restoreClient('${c.id}')">↩ Przywróć klienta</button>`
+      :`<button class="btn btn-danger btn-sm" style="width:100%;margin-bottom:8px;" onclick="archiveClient('${c.id}')">🗃 Zarchiwizuj klienta</button>`}
     <button class="btn btn-ghost btn-sm" style="width:100%;color:var(--red);" onclick="deleteClientPermanently('${c.id}')">🗑 Usuń klienta na zawsze</button>`;
 }
 function updateClientUnit(clientId,key,value){
