@@ -36,7 +36,7 @@ ok('withAnalyticsShell wraps specialty', /withAnalyticsShell/.test(src08) && /wi
 ok('css analytics chips', css.includes('.cp-analytics-nav') && css.includes('.cp-analytics-chip'));
 ok('CI step', wf.includes('test_cp_tabs_slim.js'));
 
-ok('cache bumps', html.includes('07-forms-metrics-calculator.js?v=43') && html.includes('08-client-profile-extras.js?v=86') && html.includes('09-posture-kb-invites-private.js?v=54') && html.includes('styles.css?v=118'));
+ok('cache bumps', html.includes('07-forms-metrics-calculator.js?v=43') && html.includes('08-client-profile-extras.js?v=87') && html.includes('09-posture-kb-invites-private.js?v=54') && html.includes('styles.css?v=118'));
 
 if (failed) {
   console.error(failed + ' failed');

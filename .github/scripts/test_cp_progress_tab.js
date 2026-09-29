@@ -16,7 +16,7 @@ ok('metrics has no training PRs block', !/Rekordy z treningów/.test(metricsFn))
 ok('progress has training PRs', /Rekordy z treningów/.test(progressFn));
 ok('progress has weekly tonnage', /Tonaż tygodniowy/.test(progressFn));
 ok('progress hides duplicated body and photos panels', /const allowed=\['all','train','checkin','habits'\]/.test(src) && !/chip\('body'/.test(progressFn) && !/chip\('photos'/.test(progressFn));
-ok('progress has no CTA strip', !/Podsumowanie<\/button>/.test(progressFn) && !/setCPTab\('photos'\)/.test(progressFn));
+ok('progress has one photo compare shortcut and no generic CTA strip', !/Podsumowanie<\/button>/.test(progressFn) && /cp-photo-summary/.test(progressFn) && /setCPTab\('photos'\)/.test(progressFn));
 ok('progress uses svg charts', /cp-chart-svg|cpLineChartSVG|cpWeeklyDualChart/.test(progressFn));
 ok('progress uses stat-card layout', /stat-card/.test(progressFn));
 ok('progress analytics hub', /POSTĘPY/.test(progressFn) && /Realizacja planu · 30 dni/.test(progressFn));

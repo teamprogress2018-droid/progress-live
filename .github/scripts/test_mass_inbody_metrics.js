@@ -34,7 +34,7 @@ ok('progress tiles', /Wiek met\./.test(src08) && /Nawodn\./.test(src08) && /Fizy
 ok('measurement empty state is shown once', /activeGroup&&last/.test(src08) && /Brak pomiarów w tej kategorii/.test(src08) && !/Brak pomiarów w tej grupie/.test(src08));
 ok('loader does not silently rewrite stored metric groups', !html.includes('migrateEnsureMetricGroups') && html.includes("['metricGroups','METRIC_GROUPS',typeof DEMO_METRIC_GROUPS"));
 ok('cache 07', html.includes('07-forms-metrics-calculator.js?v=43'));
-ok('cache 08', html.includes('08-client-profile-extras.js?v=86'));
+ok('cache 08', html.includes('08-client-profile-extras.js?v=87'));
 ok('cache 04', html.includes('04-client-portal.js?v=55'));
 ok('CI unit', wf.includes('test_mass_inbody_metrics.js'));
 ok('CI ui', wf.includes('test_mass_inbody_ui.js'));

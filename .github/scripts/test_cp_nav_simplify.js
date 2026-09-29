@@ -39,13 +39,13 @@ ok('visible Edytuj dane next to name', html.includes('id="cp-edit-data-btn"') &&
 ok('edit still in overflow', /id="cp-edit-btn"/.test(html) && html.includes('cp-hdr-more-menu'));
 ok('archive and delete only in settings', !/cp-archive-btn|cp-delete-btn/.test(html) && /archiveClient\('\$\{c\.id\}'\)/.test(src08) && /deleteClientPermanently\('\$\{c\.id\}'\)/.test(src08));
 ok('podsumowanie in overflow menu', /openReportForClient\(cpClientId\)/.test(html) && /cp-hdr-more-menu/.test(html));
-ok('progress has no CTA strip', !/Podsumowanie<\/button>/.test(progress) && !/setCPTab\('photos'\)/.test(progress));
+ok('progress has one photo compare shortcut and no generic CTA strip', !/Podsumowanie<\/button>/.test(progress) && /cp-photo-summary/.test(progress) && /setCPTab\('photos'\)/.test(progress));
 ok('progress still links metrics from cards', /setCPTab\('metrics'\)/.test(progress));
 ok('overview profile has no WhatsApp/Email CTAs', !/WhatsApp|mailto:/.test(overview));
 ok('css for header menu', css.includes('.cp-hdr-more-menu') && css.includes('.cp-hdr-actions'));
 ok('scripts not duplicated for 08', (html.match(/08-client-profile-extras\.js/g) || []).length === 1);
 
-ok('cache bump 08', html.includes('08-client-profile-extras.js?v=86'));
+ok('cache bump 08', html.includes('08-client-profile-extras.js?v=87'));
 
 if (failed) {
   console.error(failed + ' failed');

@@ -3498,18 +3498,11 @@ function renderCPOverview(c){
   const hrSpark=metricsOn&&hrEntry?cpOvSparkSVG(cpMetricSeries(c.id,hrGroup,hrKey),'var(--teal)'):'';
   const sleepSpark=sleepSeries.length>=CP_OV_SLEEP_MIN?cpOvSparkSVG(sleepSeries,'var(--blue)',true):'';
 
-  const photos=photosOn&&typeof ppListFor==='function'?ppListFor(c.id).slice().reverse().slice(0,2):[];
   const pulse=typeof cpClientPulseStatus==='function'?cpClientPulseStatus(c.id):{tone:'good',label:'',hint:''};
   const physique=photosOn&&typeof cpLatestPhysique==='function'?cpLatestPhysique(c.id):null;
   const garmin7=metricsOn&&typeof cpGarminWeekAvg==='function'?cpGarminWeekAvg(c.id):{n:0};
   const lastCheck=(((window.CHECKINS&&window.CHECKINS[c.id])||[]).filter(x=>x&&x.status==='filled').sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')))[0])||null;
   const checkScore=lastCheck&&typeof scoreCheckinAnswers==='function'?scoreCheckinAnswers(lastCheck.answers):(lastCheck&&lastCheck.score)||null;
-  const poseSrc=(p,key)=>{
-    if(!p)return'';
-    const photosObj=p.photos||{};
-    return photosObj[key]||p[key]||'';
-  };
-
   const metricCard=(title,value,unit,delta,empty,spark)=>{
     const has=value!=null&&value!==''&&value!=='—';
     if(!has)return'';
@@ -3529,7 +3522,6 @@ function renderCPOverview(c){
   const hasPhysique=!!(photosOn&&physique&&(physique.front||physique.side||physique.back));
   const hasFeel=!!lastCheck;
   const hasGarmin=!!(garmin7&&garmin7.n);
-  const hasPhotos=!!(photos&&photos.length);
 
   const railCard=(title,body,onclick)=>{
     const click=onclick?` class="cp-ov-rail-card clickable" role="button" tabindex="0" onclick="${onclick}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${onclick}}"`:` class="cp-ov-rail-card"`;
@@ -3694,14 +3686,6 @@ function renderCPOverview(c){
             <textarea id="note-text-${c.id}" class="cp-ov-note-input" rows="2" placeholder="Dodaj notatkę…"></textarea>
             <button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();saveClientNote('${c.id}')">Zapisz</button>
           </div>`)}
-
-        ${hasPhotos?railCard('Zdjęcia postępu',
-          `<div class="cp-ov-photos">${photos.map(p=>{
-            const src=poseSrc(p,'front')||poseSrc(p,'side')||poseSrc(p,'back')||'';
-            return `<div class="cp-ov-photo">${src?`<img src="${escHtml(src)}" alt="">`:`<span>📷</span>`}<div class="cp-ov-photo-d">${escHtml(typeof cpOverviewDateLabel==='function'?cpOverviewDateLabel(p.date):p.date||'')}</div></div>`;
-          }).join('')}</div>
-          <div class="cp-ov-rail-hint">Wszystkie zdjęcia w zakładce Zdjęcia</div>`,
-          `setCPTab('photos')`):''}
 
         ${cpOverviewMissingHTML(c)}
       </aside>
@@ -4413,7 +4397,7 @@ function renderCPProgress(c){
   const bestStreak=habits.length?Math.max(...habits.map(h=>typeof habitStreak==='function'?habitStreak(h,todayY):0),0):0;
   const habitPct7=habitWeeks.length?habitWeeks[habitWeeks.length-1].pct:0;
   const photosOn=typeof ppFeatureOn==='function'?ppFeatureOn(c):true;
-  const photos=photosOn&&typeof ppListFor==='function'?ppListFor(c.id).slice().sort((a,b)=>String(b.date||b.createdAt||'').localeCompare(String(a.date||a.createdAt||''))).slice(0,6):[];
+  const photoCount=photosOn&&typeof ppListFor==='function'?ppListFor(c.id).length:0;
   const panel=window._cpProgressPanel||'all';
   const chip=(id,label)=>`<button type="button" class="cp-analytics-chip${panel===id?' active':''}" data-cp-panel-chip="${id}" onclick="setCPProgressPanel('${id}')">${label}</button>`;
 
@@ -4592,23 +4576,15 @@ function renderCPProgress(c){
       </div>
     </div>
 
-    <div data-cp-panel="photos" class="stat-card" style="margin-bottom:8px;">
+    <div class="stat-card cp-photo-summary" style="margin-bottom:8px;">
       <div class="stat-card-hdr">
         <div>
           <div class="stat-card-title">📷 Zdjęcia postępów</div>
-          <div class="stat-card-sub">${photos.length?photos.length+' ostatnich':'Brak zdjęć'}</div>
+          <div class="stat-card-sub">${photoCount?photoCount+' zestawów do porównania':'Brak dodanych zdjęć'}</div>
         </div>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('photos')">Otwórz porównanie →</button>
       </div>
-      ${photos.length?`<div class="cp-analytics-photos" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;">
-        ${photos.map(ph=>{
-          const src=ph.url||ph.dataUrl||ph.thumb||'';
-          const when=escHtml(String(ph.date||ph.createdAt||'').slice(0,10));
-          return `<div style="background:var(--s3);border-radius:10px;overflow:hidden;border:1px solid var(--border);">
-            ${src?`<img src="${escHtml(src)}" alt="" style="width:100%;aspect-ratio:3/4;object-fit:cover;display:block;">`:`<div style="aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:20px;">📷</div>`}
-            <div style="padding:6px 8px;font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${when||'—'}</div>
-          </div>`;
-        }).join('')}
-      </div>`:`<div style="font-size:12px;color:var(--muted);padding:8px 0;">Klient jeszcze nie dodał zdjęć postępów.</div>`}
+      <div style="font-size:11px;color:var(--muted);">${photoCount?'Dodawanie i porównywanie zdjęć znajduje się w jednym widoku.':'Dodaj zdjęcia przód / bok / tył w widoku zdjęć klienta.'}</div>
     </div>
   `;
   setCPProgressPanel(panel);
