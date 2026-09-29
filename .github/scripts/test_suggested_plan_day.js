@@ -19,7 +19,10 @@ const ctx = {
   window: windowObj,
   document,
   console,
-  Date,
+  Date: class FixedDate extends Date {
+    constructor(...args) { super(...(args.length ? args : [2026, 8, 29, 12, 0, 0])); }
+    static now() { return new Date(2026, 8, 29, 12, 0, 0).getTime(); }
+  },
   Math,
   parseInt,
   parseFloat,
@@ -55,9 +58,9 @@ function eq(name, got, want) {
 const ppl = {
   id: 'plan-ppl',
   days: [
-    { day: 'Push', exercises: [{ name: 'Wyciskanie' }] },
-    { day: 'Pull', exercises: [{ name: 'Martwy' }] },
-    { day: 'Legs', exercises: [{ name: 'Przysiad' }] }
+    { day: 'Push', weekday: 1, exercises: [{ name: 'Wyciskanie' }] },
+    { day: 'Pull', weekday: 3, exercises: [{ name: 'Martwy' }] },
+    { day: 'Legs', weekday: 5, exercises: [{ name: 'Przysiad' }] }
   ]
 };
 
