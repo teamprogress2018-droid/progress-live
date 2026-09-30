@@ -3234,27 +3234,73 @@ async function persistCheckin(ci){
   if(!ci)return null;
   if(!ci.id)ci.id=newId('ci');
   withTrainer(ci);
-  return await persistById('checkins',ci);
+  const writes=window._ciPendingWrites=window._ciPendingWrites||{};
+  const key=ci._fbId||ci.id;
+  const job=persistById('checkins',ci);
+  if(ci.status==='pending')writes[key]=job;
+  try{return await job;}
+  finally{if(writes[key]===job)delete writes[key];}
 }
 
 function getCIStatus(clientId){
-  const checkins=window.CHECKINS[clientId]||[];
-  const latest=checkins[checkins.length-1];
-  if(!latest)return'none';
-  const daysDiff=Math.floor((new Date()-new Date(latest.date||Date.now()))/(1000*60*60*24));
-  if(latest.status==='filled'&&daysDiff<=7)return'done';
-  if(latest.status==='pending')return daysDiff>7?'overdue':'pending';
-  if(daysDiff>14)return'overdue';
-  return'none';
+  const pending=pendingCheckin(clientId);
+  if(pending){
+    const age=Date.now()-checkinActivityTime(pending);
+    return Number.isFinite(age)&&age>=0&&age<=7*86400000?'pending':'overdue';
+  }
+  if(filledThisWeek(clientId))return'done';
+  const latest=latestFilledCheckin(clientId);
+  return latest&&checkinRecordAgeDays(latest)>14?'overdue':'none';
 }
-
+/** Data odpowiedzi jest aktywnością; date pozostaje datą zaproszenia/raportu. */
+function checkinActivityTime(ci){
+  if(!ci)return NaN;
+  const values=ci.status==='filled'?[ci.filledAt,ci.date,ci.createdAt]:[ci.createdAt,ci.date];
+  for(const raw of values){
+    if(typeof raw!=='string'||!raw.trim())continue;
+    const value=raw.trim();
+    const day=value.match(/^(\d{4})-(\d{2})-(\d{2})(?:T|$)/);
+    if(!day)continue;
+    const calendar=new Date(Date.UTC(+day[1],+day[2]-1,+day[3]));
+    if(calendar.getUTCFullYear()!==+day[1]||calendar.getUTCMonth()!==+day[2]-1||calendar.getUTCDate()!==+day[3])continue;
+    const t=new Date(value.length===10?value+'T00:00:00':value).getTime();
+    if(Number.isFinite(t))return t;
+  }
+  return NaN;
+}
+function checkinActivityDate(ci){
+  const time=checkinActivityTime(ci);
+  if(!Number.isFinite(time))return'';
+  const d=new Date(time);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function sortedCheckins(clientId,status){
+  return ((window.CHECKINS&&window.CHECKINS[clientId])||[])
+    .filter(ci=>ci&&(!status||ci.status===status))
+    .slice().sort((a,b)=>{
+      const at=checkinActivityTime(a),bt=checkinActivityTime(b);
+      return (Number.isFinite(bt)?bt:0)-(Number.isFinite(at)?at:0)||String(b.id||'').localeCompare(String(a.id||''));
+    });
+}
+function latestFilledCheckin(clientId){
+  const now=Date.now();
+  return sortedCheckins(clientId,'filled').find(ci=>{
+    const t=checkinActivityTime(ci);
+    return Number.isFinite(t)&&t<=now;
+  })||null;
+}
 function pendingCheckin(clientId){
-  const list=window.CHECKINS[clientId]||[];
-  return list.filter(x=>x.status==='pending').slice(-1)[0]||null;
+  const filled=latestFilledCheckin(clientId);
+  const answeredAt=checkinActivityTime(filled);
+  return sortedCheckins(clientId,'pending').find(ci=>{
+    const sentAt=checkinActivityTime(ci);
+    // Niedatowany starszy rekord nadal można wypełnić, bez tworzenia duplikatu.
+    return !filled||!Number.isFinite(sentAt)||sentAt>answeredAt;
+  })||null;
 }
 function filledThisWeek(clientId){
-  const weekAgo=Date.now()-7*86400000;
-  return (window.CHECKINS[clientId]||[]).filter(x=>x.status==='filled'&&x.date&&new Date(x.date).getTime()>=weekAgo).slice(-1)[0]||null;
+  const latest=latestFilledCheckin(clientId);
+  return latest&&checkinActivityTime(latest)>=Date.now()-7*86400000?latest:null;
 }
 function scoreCheckinAnswers(a){
   const energy=+(a&&a.energy)||3;
@@ -3293,9 +3339,8 @@ function clientEligibleForWeeklyCheckin(c){
 }
 function checkinRecordAgeDays(ci){
   if(!ci)return 999;
-  const raw=ci.createdAt||ci.date||'';
-  const t=new Date(raw).getTime();
-  if(!t||isNaN(t))return 999;
+  const t=checkinActivityTime(ci);
+  if(!Number.isFinite(t)||t>Date.now())return 999;
   return Math.floor((Date.now()-t)/86400000);
 }
 function needsWeeklyCheckin(clientId){
@@ -3309,9 +3354,7 @@ function isWeeklyCheckinDay(now){
   return(now||new Date()).getDay()===day;
 }
 function lastCheckinActivity(clientId){
-  const list=(window.CHECKINS&&window.CHECKINS[clientId])||[];
-  if(!list.length)return null;
-  return list.slice().sort((a,b)=>String(b.createdAt||b.date||'').localeCompare(String(a.createdAt||a.date||'')))[0]||null;
+  return sortedCheckins(clientId).find(ci=>checkinActivityTime(ci)<=Date.now())||null;
 }
 /** Auto-wysyłka tygodniowego check-inu po onboardingu/planie.
  *  Wysyła gdy: setting włączony, klient ma plan, brak filled/pending w tym tygodniu,
@@ -3444,8 +3487,14 @@ function openCIClient(id){
 
 function renderCIDetail(id){
   const c=CL.find(x=>x.id===id);if(!c)return;
-  const checkins=(window.CHECKINS[id]||[]).slice().reverse();
+  const checkins=sortedCheckins(id);
   const el=document.getElementById('ci-detail');if(!el)return;
+
+  if(window._ciFillOpen===id){
+    el.innerHTML='<div class="card"><h3>Wypełnij check-in za klienta</h3>'+
+      '<p style="color:var(--muted);font-size:12px;">Wpisz odpowiedzi przekazane przez klienta.</p>'+ciFillFormHtml(id)+'</div>';
+    return;
+  }
 
   if(!checkins.length){
     el.innerHTML=`<div style="text-align:center;padding:60px;color:var(--muted);">
@@ -3455,14 +3504,18 @@ function renderCIDetail(id){
     </div>`;return;
   }
 
-  const latest=checkins[0];
+  const latest=pendingCheckin(id)||latestFilledCheckin(id);
+  if(!latest){
+    el.innerHTML='<div style="padding:30px;color:var(--muted);">Brak raportu z prawidłową datą. Sprawdź daty zapisanych check-inów.</div>';
+    return;
+  }
   const filled=checkins.filter(x=>x.status==='filled');
 
   el.innerHTML=`
     <!-- aktualny check-in -->
     <div style="margin-bottom:20px;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;color:var(--accent);margin-bottom:12px;">
-        AKTUALNY TYDZIEŃ · ${latest.date}
+        OSTATNI RAPORT · ${escHtml(checkinActivityDate(latest)||'Brak daty')}
         <span class="pill ${latest.status==='filled'?'pill-green':'pill-orange'}" style="font-size:10px;margin-left:8px;">${latest.status==='filled'?'✓ Wypełniony':'⏳ Oczekuje'}</span>
       </div>
 
@@ -3631,12 +3684,27 @@ function renderCheckinSummary(id){
 }
 
 function ciFillDraft(clientId){
+  ciFillSaveState(clientId);
   window._ciFillDraft=window._ciFillDraft||{};
   if(!window._ciFillDraft[clientId])window._ciFillDraft[clientId]={energy:3,sleep:3,stress:3,nutrition:3,workouts:3,weight:'',notes:''};
   return window._ciFillDraft[clientId];
 }
+function ciFillSessionCurrent(session){
+  return !!session&&!!session.uid&&session.uid===window._uid&&
+    session.generation===(window.tenantSessionGeneration||0)&&!window._clientAppMode&&!window._clientPreviewMode;
+}
+function ciFillSaveState(id){
+  window._ciFillSave=window._ciFillSave||{};
+  let state=window._ciFillSave[id];
+  if(!state||!ciFillSessionCurrent(state.session)){
+    if(state&&window._ciFillDraft)delete window._ciFillDraft[id];
+    state=window._ciFillSave[id]={session:{uid:window._uid,generation:window.tenantSessionGeneration||0},saving:false,error:''};
+  }
+  return state;
+}
 function ciFillFormHtml(clientId){
   const a=ciFillDraft(clientId);
+  const state=ciFillSaveState(clientId);
   const qrow=(id,label,emoji)=>`<div style="margin-bottom:12px;">
     <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">${label}</div>
     <div style="display:flex;justify-content:space-between;gap:4px;">
@@ -3644,6 +3712,7 @@ function ciFillFormHtml(clientId){
     </div>
   </div>`;
   return `<div>
+    <fieldset style="border:0;padding:0;margin:0;min-width:0;" ${state.saving||state.candidate?'disabled':''}>
     ${qrow('energy','Energia',['😴','😪','😐','😊','⚡'])}
     ${qrow('sleep','Sen',['😴','😪','😐','😊','🌟'])}
     ${qrow('stress','Stres (1=niski)',['🧘','😌','😐','😰','🤯'])}
@@ -3660,51 +3729,97 @@ function ciFillFormHtml(clientId){
     <div class="form-field"><label class="form-lbl">Komentarz</label>
       <textarea class="form-textarea" rows="2" oninput="ciFillDraft('${clientId}').notes=this.value">${escHtml(a.notes||'')}</textarea>
     </div>
-    <button class="btn btn-primary" style="width:100%;" onclick="saveCheckinFill('${clientId}')">Zapisz check-in</button>
+    </fieldset>
+    ${state.error?`<p role="alert" style="color:var(--orange);font-size:12px;">${escHtml(state.error)}</p>`:''}
+    <div style="display:flex;gap:8px;">
+      ${state.conflict?`<button type="button" class="btn btn-primary" onclick="ciFillStartNew('${clientId}')">Użyj odpowiedzi w nowym raporcie</button>`:`<button type="button" class="btn btn-primary" style="flex:1;" onclick="saveCheckinFill('${clientId}')" ${state.saving?'disabled aria-busy="true"':''}>${state.saving?'Zapisywanie…':state.candidate?'Ponów zapis':'Zapisz check-in'}</button>`}
+      <button type="button" class="btn btn-ghost" onclick="closeCIFill('${clientId}')">Zamknij</button>
+    </div>
   </div>`;
 }
 function openCIFill(id){
+  const session=ciFillSaveState(id).session;
+  if(!ciFillSessionCurrent(session)||!(window.CL||[]).some(c=>c.id===id&&c.trainerId===session.uid))return;
   window._ciFillOpen=id;
   ciFillDraft(id);
   if(ciActiveClient===id)renderCIDetail(id);
 }
 function ciFillPick(clientId,field,val){
+  const state=ciFillSaveState(clientId);
+  if(state.saving||state.candidate)return;
   ciFillDraft(clientId)[field]=val;
   if(ciActiveClient===clientId)renderCIDetail(clientId);
 }
-function applyCheckinAnswers(ci,answers,filledBy){
-  ci.answers={
-    energy:+answers.energy||3,
-    sleep:+answers.sleep||3,
-    stress:+answers.stress||3,
-    nutrition:+answers.nutrition||3,
-    workouts:answers.workouts!=null?+answers.workouts:0,
-    weight:answers.weight||'',
-    notes:answers.notes||''
-  };
-  ci.score=scoreCheckinAnswers(ci.answers);
-  ci.status='filled';
-  ci.filledBy=filledBy||'client';
-  ci.filledAt=new Date().toISOString();
-  persistCheckin(ci);
-  if(typeof syncClientFromCheckin==='function'){
-    try{syncClientFromCheckin(ci);}catch(e){console.warn('syncClientFromCheckin',e);}
+async function applyCheckinAnswers(ci,answers,filledBy,operation){
+  const state=operation||{session:{uid:window._uid,generation:window.tenantSessionGeneration||0}};
+  const session=state.session;
+  const client=(window.CL||[]).find(c=>c&&c.id===ci?.clientId);
+  if(!ciFillSessionCurrent(session)||filledBy!=='trainer'||!client||client.trainerId!==session.uid||
+    (ci.trainerId&&ci.trainerId!==session.uid))throw new Error('checkin-owner');
+  if(!window._db||typeof window._runTransaction!=='function')throw new Error('checkin-unavailable');
+  if(!state.candidate){
+    const normalized={
+      energy:+answers.energy||3,sleep:+answers.sleep||3,stress:+answers.stress||3,nutrition:+answers.nutrition||3,
+      workouts:answers.workouts!=null?+answers.workouts:0,weight:answers.weight||'',notes:answers.notes||''
+    };
+    state.candidate={...ci,trainerId:session.uid,answers:normalized,score:scoreCheckinAnswers(normalized),
+      status:'filled',filledBy:'trainer',filledAt:new Date().toISOString()};
   }
-  if(typeof fireIntEvent==='function'){
-    try{
-      const cl=(window.CL||[]).find(x=>x&&x.id===ci.clientId);
-      fireIntEvent('checkin.completed',{
-        checkin:{id:ci.id,clientId:ci.clientId,date:ci.date,score:ci.score,filledBy:ci.filledBy||filledBy||'client',weight:ci.answers&&ci.answers.weight||''},
-        client:{id:ci.clientId,name:(cl&&cl.name)||'',email:(cl&&cl.email)||''}
-      });
-    }catch(e){console.warn('fireIntEvent checkin',e);}
+  const candidate=state.candidate;
+  const docId=candidate._fbId||candidate.id;
+  const pendingWrite=window._ciPendingWrites?.[docId];
+  if(pendingWrite)await pendingWrite;
+  if(!ciFillSessionCurrent(session))return null;
+  const ref=window._doc(window._db,'checkins',docId);
+  const clientRef=window._doc(window._db,'clients',client._fbId||client.id);
+  const saved=await window._runTransaction(window._db,async tx=>{
+    if(!ciFillSessionCurrent(session))throw new Error('checkin-session-changed');
+    const clientDoc=await tx.get(clientRef);
+    const snapshot=await tx.get(ref);
+    if(!ciFillSessionCurrent(session))throw new Error('checkin-session-changed');
+    if(!clientDoc.exists()||clientDoc.data().trainerId!==session.uid)throw new Error('checkin-owner');
+    const previous=snapshot.exists()?snapshot.data():null;
+    if(previous&&(previous.trainerId!==session.uid||previous.clientId!==candidate.clientId))throw new Error('checkin-owner');
+    if(previous&&previous.status==='filled'){
+      const same=previous.filledBy==='trainer'&&previous.filledAt===candidate.filledAt&&
+        Object.keys(candidate.answers).every(key=>previous.answers?.[key]===candidate.answers[key]);
+      if(same)return {...previous,id:candidate.id,_fbId:docId};
+      const conflict=new Error('checkin-already-filled');
+      conflict.checkin={...previous,id:candidate.id,_fbId:docId};
+      throw conflict;
+    }
+    // Preserve authoritative request metadata; only its answers are completed here.
+    const payload={...(previous||candidate),id:previous?.id||candidate.id,trainerId:session.uid,
+      clientId:candidate.clientId,answers:{...candidate.answers},score:candidate.score,
+      status:'filled',filledBy:'trainer',filledAt:candidate.filledAt};
+    delete payload._fbId;
+    tx.set(ref,payload,{merge:true});
+    return {...payload,id:candidate.id,_fbId:docId};
+  });
+  if(!ciFillSessionCurrent(session))return null;
+  if(!saved)throw new Error('checkin-unconfirmed');
+  ensureCheckins(saved.clientId);
+  const records=window.CHECKINS[saved.clientId];
+  const index=records.findIndex(record=>(record._fbId||record.id)===docId);
+  if(index>=0)records[index]=saved;else records.push(saved);
+  if(!state.effectsApplied){
+    state.effectsApplied=true;
+    if(typeof syncClientFromCheckin==='function'){
+      try{syncClientFromCheckin(saved);}catch(e){console.warn('syncClientFromCheckin',e);}
+    }
+    if(typeof fireIntEvent==='function'){
+      try{Promise.resolve(fireIntEvent('checkin.completed',{
+        checkin:{id:saved.id,clientId:saved.clientId,date:saved.date,score:saved.score,filledBy:'trainer',weight:saved.answers.weight||''},
+        client:{id:saved.clientId,name:client.name||'',email:client.email||''}
+      })).catch(e=>console.warn('fireIntEvent checkin',e));}catch(e){console.warn('fireIntEvent checkin',e);}
+    }
+    if(typeof emitAppEvent==='function'){
+      try{emitAppEvent('checkin.submitted',{clientId:saved.clientId,checkinId:saved.id,score:saved.score,filledBy:'trainer'});}catch(e){}
+    }
   }
-  if(typeof emitAppEvent==='function'){
-    try{emitAppEvent('checkin.submitted',{clientId:ci.clientId,checkinId:ci.id,score:ci.score,filledBy:ci.filledBy||filledBy||'client'});}catch(e){}
-  }
+  return saved;
 }
 
-/** Po check-inie: waga → karta klienta + pomiar mg1; odśwież pipeline trenera. */
 function syncClientFromCheckin(ci){
   if(!ci||!ci.clientId||!ci.answers)return null;
   const w=parseFloat(ci.answers.weight);
@@ -3740,19 +3855,60 @@ window.syncClientFromCheckin=syncClientFromCheckin;
 
 function openSimulateCheckin(id){openCIFill(id);}
 
-function saveCheckinFill(id){
-  ensureCheckins(id);
-  let ci=pendingCheckin(id);
-  if(!ci)ci=ensurePendingCheckin(id);
-  applyCheckinAnswers(ci,ciFillDraft(id),'trainer');
-  window._ciFillOpen=null;
-  renderCIDetail(id);
-  renderCheckinSummary(id);
-  renderCheckinClientList();
-  try{if(typeof refreshDashOps==='function')refreshDashOps();}catch(e){}
-  notify('✓ Check-in zapisany za klienta');
-  const c=CL.find(x=>x.id===id);
-  addNotification('task','Check-in (wpisany przez Ciebie)',(c?c.name:'Klient'),'checkin');
+async function saveCheckinFill(id){
+  const state=ciFillSaveState(id);
+  if(state.saving||state.conflict||!window._ciFillDraft?.[id]||!ciFillSessionCurrent(state.session))return false;
+  const client=(window.CL||[]).find(c=>c&&c.id===id);
+  if(!client||client.trainerId!==state.session.uid)return false;
+  state.saving=true;state.error='';
+  try{
+    let ci=state.candidate||pendingCheckin(id);
+    if(!ci)ci={id:newId('ci'),clientId:id,trainerId:state.session.uid,
+      date:typeof dateStr==='function'?dateStr(new Date()):new Date().toISOString().slice(0,10),
+      source:'manual',createdAt:new Date().toISOString()};
+    const job=applyCheckinAnswers(ci,{...window._ciFillDraft[id]},'trainer',state);
+    try{if(ciActiveClient===id)renderCIDetail(id);}catch(e){}
+    const saved=await job;
+    if(!saved||!ciFillSessionCurrent(state.session))return false;
+    delete window._ciFillDraft[id];
+    delete window._ciFillSave[id];
+    if(window._ciFillOpen===id)window._ciFillOpen=null;
+    try{if(ciActiveClient===id)renderCIDetail(id);}catch(e){}
+    try{renderCheckinSummary(ciActiveClient);}catch(e){}
+    try{renderCheckinClientList();}catch(e){}
+    try{if(typeof refreshDashOps==='function')refreshDashOps();}catch(e){}
+    notify('✓ Check-in zapisany za klienta');
+    try{addNotification('task','Check-in (wpisany przez Ciebie)',client.name||'Klient','checkin');}catch(e){}
+    return true;
+  }catch(e){
+    if(!ciFillSessionCurrent(state.session))return false;
+    console.warn('Zapis check-inu trenera:',e);
+    state.conflict=e.message==='checkin-already-filled';
+    if(state.conflict&&e.checkin){
+      ensureCheckins(id);
+      const records=window.CHECKINS[id],key=e.checkin._fbId||e.checkin.id;
+      const index=records.findIndex(record=>(record._fbId||record.id)===key);
+      if(index>=0)records[index]=e.checkin;else records.push(e.checkin);
+    }
+    state.error=state.conflict?'Ten raport został już wypełniony. Twoje odpowiedzi zachowano; możesz użyć ich w nowym raporcie.':
+      'Nie potwierdzono zapisu. Odpowiedzi zostały zachowane. Sprawdź połączenie i ponów zapis.';
+    return false;
+  }finally{
+    if(ciFillSessionCurrent(state.session)){
+      state.saving=false;
+      try{if(ciActiveClient===id&&window._ciFillOpen===id)renderCIDetail(id);}catch(e){}
+    }
+  }
+}
+function closeCIFill(id){
+  if(window._ciFillOpen===id)window._ciFillOpen=null;
+  if(ciActiveClient===id)renderCIDetail(id);
+}
+function ciFillStartNew(id){
+  const state=ciFillSaveState(id);
+  if(state.saving||!state.conflict)return;
+  delete state.candidate;state.conflict=false;state.error='';
+  openCIFill(id);
 }
 
 function sendCheckinTo(id){
@@ -5870,10 +6026,10 @@ function dashOpsRecentReports(){
   clients.forEach(c=>{
     if(typeof ensureCheckins==='function')ensureCheckins(c.id);
     const list=(window.CHECKINS&&window.CHECKINS[c.id])||[];
-    list.filter(ci=>ci&&ci.status==='filled').forEach(ci=>{
+    list.filter(ci=>ci&&ci.status==='filled'&&Number.isFinite(checkinActivityTime(ci))&&checkinActivityTime(ci)<=Date.now()).forEach(ci=>{
       out.push({
         kind:'checkin',clientId:c.id,clientName:c.name,ci,
-        date:ci.date||ci.filledAt||ci.createdAt||'',
+        date:checkinActivityDate(ci),activityTime:checkinActivityTime(ci),
         score:ci.score,answers:ci.answers||{}
       });
     });
@@ -5886,11 +6042,12 @@ function dashOpsRecentReports(){
     if(!/post[eę]p|check|raport|miesi[eę]|tygod/.test(name)&&s.formId!=='df3')return;
     out.push({
       kind:'form',clientId:c.id,clientName:c.name,send:s,
-      date:s.filledAt||s.sentAt||'',
+      date:s.filledAt||s.sentAt||'',activityTime:new Date(s.filledAt||s.sentAt||'').getTime(),
       formName:s.formName||'Formularz'
     });
   });
-  return out.sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,12);
+  return out.filter(r=>Number.isFinite(r.activityTime)&&r.activityTime<=Date.now())
+    .sort((a,b)=>b.activityTime-a.activityTime||String((b.ci||b.send||{}).id||'').localeCompare(String((a.ci||a.send||{}).id||''))).slice(0,12);
 }
 function dashOpsAttentionItems(){
   return collectOpsEvents().filter(it=>it.channel==='attention');
@@ -6026,9 +6183,7 @@ function clientSituationSnapshot(clientId){
   const adh30=typeof clientAdherenceStats==='function'?clientAdherenceStats(id,30):{assigned:0,logged:0,pct:0};
   const logged=typeof completedWorkouts==='function'?completedWorkouts(id):(window.SE||[]).filter(s=>s&&s.clientId===id&&typeof isLoggedWorkout==='function'&&isLoggedWorkout(s));
   const lastWorkout=logged.slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')))[0]||null;
-  const filled=((window.CHECKINS&&window.CHECKINS[id])||[]).filter(x=>x&&x.status==='filled')
-    .slice().sort((a,b)=>String(b.date||b.filledAt||b.createdAt||'').localeCompare(String(a.date||a.filledAt||a.createdAt||'')));
-  const lastCheckin=filled[0]||null;
+  const lastCheckin=latestFilledCheckin(id);
   const ciStatus=typeof getCIStatus==='function'?getCIStatus(id):'none';
   const massEntry=typeof cpMetricLatest==='function'?cpMetricLatest(id,'mg1','m1'):null;
   const massVal=massEntry&&massEntry.values&&massEntry.values.m1!=null?massEntry.values.m1:(c.weight!=null?c.weight:null);
@@ -6071,8 +6226,8 @@ function clientSituationSnapshot(clientId){
       }:null,
       checkinStatus:ciStatus,
       lastCheckin:lastCheckin?{
-        date:String(lastCheckin.date||lastCheckin.filledAt||'').slice(0,10),
-        daysSince:dashDaysBetween(lastCheckin.date||lastCheckin.filledAt,today),
+        date:checkinActivityDate(lastCheckin),
+        daysSince:dashDaysBetween(checkinActivityDate(lastCheckin),today),
         score:lastCheckin.score!=null?lastCheckin.score:(typeof scoreCheckinAnswers==='function'?scoreCheckinAnswers(lastCheckin.answers||{}):null)
       }:null,
       mass:{value:massVal,deltaPct:massDelta,date:(massEntry&&massEntry.date)||''},
@@ -6095,9 +6250,33 @@ function clientSituationSnapshot(clientId){
 window.clientSituationSnapshot=clientSituationSnapshot;
 window.dashTodayYmd=dashTodayYmd;
 
+/** Calendar terms and recordings are one agenda item when their link is confirmed. */
+function dashAgendaSessions(sessions){
+  const rows=(sessions||[]).filter(s=>s&&s.source!=='live-draft');
+  const planned=rows.filter(s=>s.source==='planned'&&!(typeof sessionIsSkipped==='function'&&sessionIsSkipped(s)));
+  return rows.filter(s=>!(typeof sessionIsRecorded==='function'&&sessionIsRecorded(s)&&
+    typeof sessionMatchesPlanned==='function'&&planned.some(p=>sessionMatchesPlanned(p,s))))
+    .slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))||
+      String(a.time||'99:99').padStart(5,'0').localeCompare(String(b.time||'99:99').padStart(5,'0'))||String(a.id||'').localeCompare(String(b.id||'')));
+}
+function dashSessionState(s,now){
+  if(!s||s.source==='live-draft')return{kind:'draft'};
+  if(typeof sessionIsSkipped==='function'&&sessionIsSkipped(s))return{kind:'skipped'};
+  if(typeof sessionHappened==='function'&&sessionHappened(s,window.SE||[]))return{kind:'done'};
+  const time=String(s.time||'').match(/^(\d{1,2}):(\d{2})$/);
+  if(!time||Number(time[1])>23||Number(time[2])>59)return{kind:'unscheduled'};
+  const start=new Date(String(s.date||'').slice(0,10)+'T'+time[1].padStart(2,'0')+':'+time[2]+':00').getTime();
+  if(!Number.isFinite(start))return{kind:'unscheduled'};
+  const duration=Number(s.duration);
+  const end=start+(Number.isFinite(duration)&&duration>0?duration:60)*60000;
+  const at=now instanceof Date?now.getTime():Date.now();
+  return{kind:at<start?'upcoming':at<end?'running':'unrecorded',start,end};
+}
+window.dashAgendaSessions=dashAgendaSessions;
+window.dashSessionState=dashSessionState;
 function dashTodaySessions(){
   const today=dashTodayYmd();
-  return(window.SE||[]).filter(s=>s&&s.date===today&&s.source!=='live-draft');
+  return dashAgendaSessions(window.SE||[]).filter(s=>s.date===today);
 }
 function dashTodayFocusStats(){
   const sessions=dashTodaySessions();
@@ -6199,11 +6378,22 @@ function dashNextAction(){
     const r=reports[0];
     return{tone:'watch',eyebrow:'Następny krok',title:'Sprawdź raport: '+(r.clientName||'klient'),desc:r.kind==='checkin'?'Nowy check-in czeka na ocenę i odpowiedź.':'Wypełniony formularz czeka na weryfikację.',cta:r.kind==='checkin'?`goTo('checkin');setTimeout(()=>openCIClient('${escHtml(r.clientId)}'),200)`:`openClientProfile('${escHtml(r.clientId)}',{tab:'forms'})`,ctaLbl:'Sprawdź raport'};
   }
-  const sessions=typeof dashTodaySessions==='function'?dashTodaySessions():[];
+  const now=new Date();
+  const order={running:0,upcoming:1,unrecorded:2,unscheduled:3};
+  const sessions=(typeof dashTodaySessions==='function'?dashTodaySessions():[])
+    .map(s=>({session:s,state:dashSessionState(s,now)}))
+    .filter(x=>Object.prototype.hasOwnProperty.call(order,x.state.kind))
+    .sort((a,b)=>order[a.state.kind]-order[b.state.kind]||
+      (a.state.start||0)-(b.state.start||0)||String(a.session.id||'').localeCompare(String(b.session.id||'')));
   if(sessions.length){
-    const s=sessions[0];
+    const s=sessions[0].session,state=sessions[0].state;
     const c=(window.CL||[]).find(x=>x.id===s.clientId);
-    return{tone:'info',eyebrow:'Najbliższa sesja',title:(s.time?s.time+' · ':'')+(c?c.name:'Klient'),desc:s.type||s.name||'Zaplanowany trening',cta:`editSession('${escHtml(s.id)}')`,ctaLbl:'Otwórz sesję'};
+    const missing=state.kind==='unrecorded';
+    return{tone:missing?'watch':'info',
+      eyebrow:missing?'Uzupełnij realizację':state.kind==='running'?'Termin w kalendarzu':state.kind==='unscheduled'?'Ustal godzinę':'Najbliższa sesja',
+      title:(s.time?s.time+' · ':'')+(c?c.name:'Klient'),
+      desc:missing?'Termin minął. Sprawdź, czy trening się odbył, i uzupełnij zapis.':s.type||s.name||'Zaplanowany trening',
+      cta:"editSession('"+escHtml(s.id)+"')",ctaLbl:missing?'Sprawdź trening':'Otwórz sesję'};
   }
   if(!(window.CL||[]).length){
     return{tone:'info',eyebrow:'Pierwszy krok',title:'Dodaj pierwszego klienta',desc:'Aplikacja przeprowadzi Cię przez ankietę, plan, kalendarz i zaproszenie.',cta:"openM('m-client')",ctaLbl:'Dodaj klienta'};
@@ -6612,18 +6802,24 @@ function renderDashToday(){
   const tomorrow=dateStr(new Date(now.getFullYear(),now.getMonth(),now.getDate()+1));
 
   // Sesje dziś + jutro
-  const todaySess=SE.filter(s=>s.date===today&&s.source!=='live-draft').sort((a,b)=>(a.time||'').localeCompare(b.time||''));
-  const tomorrowSess=SE.filter(s=>s.date===tomorrow&&s.source!=='live-draft').sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  const agenda=dashAgendaSessions(SE);
+  const todaySess=agenda.filter(s=>s.date===today);
+  const tomorrowSess=agenda.filter(s=>s.date===tomorrow);
 
   function timeLabel(s){
+    const state=dashSessionState(s,now);
+    if(state.kind==='done')return{txt:'Odbył się',col:'var(--teal)'};
+    if(state.kind==='skipped')return{txt:'Nie odbył się',col:'var(--muted)'};
+    if(state.kind==='unrecorded')return{txt:'Brak zapisu',col:'var(--orange)'};
+    if(state.kind==='running')return{txt:'Trwa termin',col:'var(--blue)'};
+    if(state.kind==='unscheduled')return{txt:'Bez godziny',col:'var(--muted)'};
     if(!s.time)return null;
     const [hh,mm]=s.time.split(':').map(Number);
     const sessDate=new Date(s.date+'T'+s.time+':00');
     const diffMs=sessDate-now;
     const diffH=diffMs/3600000;
     if(s.date===today){
-      if(diffMs<0)return {txt:'Zakończona',col:'var(--muted)'};
-      if(diffH<1)return {txt:'Za '+Math.round(diffMs/60000)+' min',col:'var(--red)'};
+      if(diffH<1)return {txt:'Za '+Math.ceil(diffMs/60000)+' min',col:'var(--red)'};
       if(diffH<3)return {txt:'Za '+Math.floor(diffH)+'h',col:'var(--orange)'};
       return {txt:s.time,col:'var(--teal)'};
     }

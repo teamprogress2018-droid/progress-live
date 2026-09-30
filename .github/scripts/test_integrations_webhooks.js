@@ -45,7 +45,12 @@ windowObj.INT_CONNECTIONS={
   make:{connected:false,config:{}}
 };
 windowObj.INT_EVENT_LOG=[];
-windowObj.CL=[{id:'c1',name:'Ada',email:'a@t.pl'}];
+windowObj.CL=[{id:'c1',name:'Ada',email:'a@t.pl',trainerId:'tr1'}];
+windowObj._db={};
+windowObj._doc=(_db,col,id)=>({col,id});
+windowObj._runTransaction=async(_db,work)=>work({
+  get:async ref=>({exists:()=>ref.col==='clients',data:()=>({id:'c1',trainerId:'tr1'})}),set(){}
+});
 
 let failed=0;
 function ok(name,cond,extra){
@@ -76,7 +81,7 @@ function ok(name,cond,extra){
   windowObj.CHECKINS={c1:[]};
   const ci={id:'ci2',clientId:'c1',date:'2026-08-24',status:'pending',answers:{}};
   windowObj.CHECKINS.c1.push(ci);
-  ctx.applyCheckinAnswers(ci,{energy:4,sleep:4,stress:2,nutrition:4,workouts:3,weight:'81'},'client');
+  await ctx.applyCheckinAnswers(ci,{energy:4,sleep:4,stress:2,nutrition:4,workouts:3,weight:'81'},'trainer');
   await new Promise(r=>setTimeout(r,40));
   ok('checkin fires webhook',posts.some(p=>p.body.event==='checkin.completed'));
   ok('checkin weight in payload',posts.some(p=>p.body.checkin&&String(p.body.checkin.weight)==='81'));

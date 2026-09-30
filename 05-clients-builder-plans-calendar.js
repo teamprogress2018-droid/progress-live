@@ -681,14 +681,12 @@ function openBuilderForClient(clientId,fromOnboard){
   window._builderBack='clients';
   window._onboardResumeAfterBuilder=fromOnboard?clientId:null;
   goTo('builder');
-  setTimeout(()=>{
-    const sel=document.getElementById('b-client');
-    if(sel){
-      sel.value=clientId;
-      if(typeof updatePeriod==='function')updatePeriod();
-    }
-    if(typeof renderOnboardBuilderBanner==='function')renderOnboardBuilderBanner();
-  },200);
+  const sel=document.getElementById('b-client');
+  if(sel){
+    sel.value=clientId;
+    if(typeof updatePeriod==='function')updatePeriod();
+  }
+  if(typeof renderOnboardBuilderBanner==='function')renderOnboardBuilderBanner();
 }
 window.openBuilderForClient=openBuilderForClient;
 
@@ -1174,6 +1172,7 @@ function restoreBuilderSidebarState(){
 window.toggleBuilderSidebar=toggleBuilderSidebar;
 window.restoreBuilderSidebarState=restoreBuilderSidebarState;
 function initBuilder(){
+  builderResetSaveState();
   window._editingPlanId=null;
   window._builderPeriodWeek=0;
   if(!window._builderBack)window._builderBack='clients';
@@ -2062,6 +2061,7 @@ function editPlan(id){
   if(!window._builderReturnClientId)window._builderBack='plans';
   goTo('builder'); // initBuilder() czyści formularz i resetuje _editingPlanId
   window._editingPlanId=id;
+  window._builderSaveState.base=builderPlanClone(plan);
   document.getElementById('b-name').value=plan.name||'';
   const clientSel=document.getElementById('b-client');
   if(clientSel)clientSel.value=plan.clientId||'';
@@ -2156,15 +2156,161 @@ function editPlanFromProfile(planId,clientId){
 window.editPlan=editPlan;
 window.editPlanFromProfile=editPlanFromProfile;
 
+function builderPlanClone(value){
+  return JSON.parse(JSON.stringify(value));
+}
+function builderPlanSignature(value){
+  const clean=v=>Array.isArray(v)?v.map(clean):v&&typeof v==='object'?Object.keys(v).filter(k=>k!=='_fbId').sort().reduce((out,k)=>{out[k]=clean(v[k]);return out;},{}):v;
+  return JSON.stringify(clean(value));
+}
+function builderSaveSessionCurrent(session){
+  return !!session&&!!session.uid&&!window._clientAppMode&&!window._clientPreviewMode&&
+    window._uid===session.uid&&window.tenantSessionGeneration===session.generation&&
+    (typeof window.tenantSessionIsCurrent!=='function'||window.tenantSessionIsCurrent(session));
+}
+function builderSaveStatus(message,isError){
+  const el=document.getElementById('builder-save-status');
+  if(el){el.hidden=!message;el.textContent=message||'';el.style.color=isError?'var(--orange)':'var(--muted)';}
+}
+function builderSaveUnlock(state){
+  (state&&state.controls||[]).forEach(item=>{item.el.disabled=item.disabled;});
+  if(state)state.controls=[];
+}
+function builderResetSaveState(){
+  builderSaveUnlock(window._builderSaveState);
+  window._builderSaveState={session:{uid:window._uid,generation:window.tenantSessionGeneration},pending:false,candidate:null,base:null,saved:false,controls:[]};
+  const btn=document.getElementById('b-save-btn');
+  if(btn){btn.disabled=false;btn.textContent='Zapisz plan';}
+  builderSaveStatus('');
+  builderCalendarActions(window._builderSaveState,false);
+  return window._builderSaveState;
+}
+function builderSaveLock(state){
+  if(state.controls.length)return;
+  const screen=document.getElementById('screen-builder');
+  if(!screen)return;
+  screen.querySelectorAll('input,select,textarea,button').forEach(el=>{
+    if(el.id==='b-save-btn'||el.id==='b-calendar-retry'||el.id==='b-calendar-continue'||(el.getAttribute('onclick')||'').includes('builderGoBack'))return;
+    state.controls.push({el,disabled:el.disabled});el.disabled=true;
+  });
+}
+function builderSaveFormCurrent(state){
+  const screen=document.getElementById('screen-builder');
+  return window._builderSaveState===state&&builderSaveSessionCurrent(state.session)&&!!screen&&screen.classList.contains('active');
+}
+function builderCalendarActions(state,visible){
+  if(window._builderSaveState!==state)return;
+  const actions=document.getElementById('builder-calendar-actions');
+  if(actions)actions.hidden=!visible;
+  ['b-calendar-retry','b-calendar-continue'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.disabled=!!(state.calendar&&state.calendar.status==='pending');
+  });
+}
+function builderFinishSavedPlan(state){
+  state=state||window._builderSaveState;
+  if(!state||!state.saved||state.finished||!builderSaveFormCurrent(state)||
+    (state.calendar&&state.calendar.status==='pending'))return;
+  state.finished=true;
+  builderCalendarActions(state,false);
+  builderSaveUnlock(state);
+  window._editingPlanId=null;
+  const cid=state.savedPlan&&state.savedPlan.clientId;
+  if(typeof builderLeaveToCaller==='function')builderLeaveToCaller({saved:true});
+  else goTo('plans');
+  if(window._onboardResumeAfterBuilder===cid){
+    window._onboardResumeAfterBuilder=null;
+    if(typeof renderOnboardBuilderBanner==='function')renderOnboardBuilderBanner();
+  }
+  if(cid&&typeof maybeResumeOnboard==='function')maybeResumeOnboard(cid);
+}
+function builderRetryCalendar(state){
+  state=state||window._builderSaveState;
+  if(!state||!state.saved||state.finished||!state.calendar||!builderSaveFormCurrent(state))return Promise.resolve(null);
+  const calendar=state.calendar;
+  if(calendar.status==='pending')return calendar.promise;
+  calendar.status='pending';calendar.error='';
+  builderCalendarActions(state,false);
+  builderSaveStatus('Plan zapisany. Sprawdzam terminy i dopełniam kalendarz…');
+  calendar.promise=(async()=>{
+    try{
+      if(typeof window.refillCalendarConfirmed!=='function')throw new Error('Moduł kalendarza jest niedostępny. Odśwież aplikację i dopełnij kalendarz w profilu klienta.');
+      const result=await window.refillCalendarConfirmed(calendar.clientId,{planId:calendar.planId,weeks:calendar.weeks});
+      if(!result||!['saved','unchanged'].includes(result.status))
+        throw new Error(result&&result.error||'Nie udało się potwierdzić zapisu terminów.');
+      calendar.status='saved';
+      if(builderSaveFormCurrent(state)){
+        builderSaveStatus('Plan zapisany. Kalendarz uzupełniony; istniejące terminy zachowano.');
+        builderFinishSavedPlan(state);
+      }
+      return result;
+    }catch(error){
+      calendar.status='error';
+      calendar.error=error&&error.message||'Nie udało się potwierdzić zapisu terminów.';
+      if(builderSaveFormCurrent(state)){
+        builderSaveStatus('Plan zapisany. Dopełnienie kalendarza nie zostało potwierdzone. '+calendar.error+' Możesz ponowić samo dopełnienie; plan nie zostanie zapisany drugi raz.',true);
+        builderCalendarActions(state,true);
+      }
+      return {status:'error',error:calendar.error};
+    }
+  })();
+  return calendar.promise;
+}
+async function persistBuilderPlan(candidate,base,session){
+  if(!builderSaveSessionCurrent(session))throw new Error('Sesja wygasła. Zaloguj się ponownie.');
+  if(!window._db||typeof window._runTransaction!=='function'||typeof window._doc!=='function')throw new Error('Brak połączenia z bazą. Spróbuj ponownie.');
+  if(candidate.trainerId!==session.uid||(base&&base.trainerId!==session.uid))throw new Error('Plan nie należy do bieżącego konta.');
+  const docId=candidate._fbId||candidate.id;
+  const ref=window._doc(window._db,'plans',docId);
+  const payload=builderPlanClone(candidate);delete payload._fbId;
+  const client=candidate.clientId?(window.CL||[]).find(c=>c.id===candidate.clientId):null;
+  if(candidate.clientId&&(!client||client.trainerId!==session.uid))throw new Error('Klient jest niedostępny. Otwórz jego profil ponownie.');
+  await window._runTransaction(window._db,async tx=>{
+    if(!builderSaveSessionCurrent(session))throw new Error('Sesja wygasła.');
+    if(client){
+      const clientSnap=await tx.get(window._doc(window._db,'clients',client._fbId||client.id));
+      if(!clientSnap.exists()||clientSnap.data().trainerId!==session.uid)throw new Error('Klient jest niedostępny. Otwórz jego profil ponownie.');
+    }
+    const snap=await tx.get(ref);
+    if(snap.exists()){
+      const raw=snap.data();
+      if(raw.trainerId!==session.uid)throw new Error('Nie można zapisać tego planu na bieżącym koncie.');
+      // clients/plans use the document ID, including legacy payloads without an id.
+      const remote={...raw,id:candidate.id};
+      if(!builderSaveSessionCurrent(session))throw new Error('Sesja wygasła.');
+      if(builderPlanSignature(remote)===builderPlanSignature(payload))return;
+      if(!base||builderPlanSignature(remote)!==builderPlanSignature(base))
+        throw new Error('Plan zmienił się w innym oknie. Zachowaliśmy Twoją wersję w kreatorze; otwórz aktualny plan przed kolejną edycją.');
+    }else if(base){
+      throw new Error('Ten plan został usunięty. Zachowaliśmy treść w kreatorze.');
+    }
+    if(!builderSaveSessionCurrent(session))throw new Error('Sesja wygasła.');
+    tx.set(ref,payload,{merge:true});
+  });
+  if(!builderSaveSessionCurrent(session))return null;
+  return {...candidate,_fbId:docId};
+}
 async function savePlan(){
-  if(window._saveGuard_savePlan)return;window._saveGuard_savePlan=true;setTimeout(()=>window._saveGuard_savePlan=false,1500);
+  const state=window._builderSaveState||builderResetSaveState();
+  if(state.pending||state.saved)return null;
+  if(!builderSaveSessionCurrent(state.session)){builderSaveStatus('Sesja wygasła. Otwórz kreator ponownie po zalogowaniu.',true);return null;}
+  const retry=state.candidate;
 
   const name=document.getElementById('b-name').value.trim();
   if(!name){notify('Wpisz nazwę planu!');return;}
   const cid=document.getElementById('b-client').value;
   const c=CL.find(x=>x.id===cid);
   const editingId=window._editingPlanId;
-  const prev=editingId?(window.PL||[]).find(p=>p.id===editingId):null;
+  const prev=state.base||(editingId?(window.PL||[]).find(p=>p.id===editingId):null);
+  if(editingId&&(!prev||prev.id!==editingId||prev.trainerId!==state.session.uid)){
+    builderSaveStatus('Nie można edytować tego planu. Otwórz aktualny plan z biblioteki.',true);return null;
+  }
+  if(cid&&(!c||c.trainerId!==state.session.uid)){
+    builderSaveStatus('Wybrany klient jest niedostępny. Wybierz klienta ponownie.',true);return null;
+  }
+  if(prev&&prev.clientId&&prev.clientId!==cid){
+    builderSaveStatus('To plan przypisany do klienta. Aby przygotować plan dla innej osoby, utwórz nowy plan.',true);return null;
+  }
   const dur=parseInt((document.getElementById('b-duration')||{}).value,10)||4;
   const weekMeta=builderWeekMetaForSave(prev,dur);
   const days=[];
@@ -2223,31 +2369,61 @@ async function savePlan(){
   });
   if(!days.length){notify('Dodaj przynajmniej jeden dzień!');return;}
   const progression=typeof normalizePlanProgression==='function'?normalizePlanProgression((document.getElementById('b-progression')||{}).value):'double';
-  const calWeeks=dur>=8?dur:4;
-  if(editingId){
-    const idx=PL.findIndex(p=>p.id===editingId);
-    if(idx>=0){
-      const updated={...PL[idx],name,method:document.getElementById('b-method').value,duration:document.getElementById('b-duration').value,progression,clientId:cid,clientName:c?c.name:'',level:c?c.level:PL[idx].level,goal:c?c.goal:PL[idx].goal,days,updatedAt:new Date().toISOString(),...weekMeta};
-      if(builderPlanRationaleChanged(PL[idx],updated))updated.rationale=null;
-      PL[idx]=updated;
-      window._editingPlanId=null;
-      notify('Plan zaktualizowany!');
-      await persistById('plans',PL[idx]);
-      if(cid&&typeof maybeSchedulePlanToCalendar==='function')maybeSchedulePlanToCalendar(PL[idx].id,{weeks:calWeeks,confirmMsg:'Zaktualizować kalendarz — dodać sesje z planu na '+calWeeks+' tyg.?'});
-      if(typeof builderLeaveToCaller==='function')builderLeaveToCaller({saved:true});
-      else goTo('plans');
-      return;
+  const candidate=retry||{
+    ...(prev?builderPlanClone(prev):{id:newId('p'),createdAt:new Date().toISOString(),trainerId:state.session.uid}),
+    name,method:document.getElementById('b-method').value,
+    duration:document.getElementById('b-duration').value,
+    progression,clientId:cid,clientName:c?c.name:'',
+    level:c?c.level:(prev?prev.level:'sredni'),goal:c?c.goal:(prev?prev.goal:'masa'),
+    days,...weekMeta,...(prev?{updatedAt:new Date().toISOString()}:{})
+  };
+  if(prev&&prev.rationale&&builderPlanRationaleChanged(prev,candidate))candidate.rationale=null;
+  state.candidate=candidate;
+  if(prev&&!state.base)state.base=builderPlanClone(prev);
+  state.pending=true;
+  builderSaveLock(state);
+  const btn=document.getElementById('b-save-btn');
+  if(btn){btn.disabled=true;btn.textContent='Zapisywanie…';}
+  builderSaveStatus('Zapisywanie planu. Poczekaj na potwierdzenie.');
+  let saved;
+  try{
+    saved=await persistBuilderPlan(candidate,state.base,state.session);
+    if(!saved||!builderSaveSessionCurrent(state.session))return null;
+    const idx=PL.findIndex(p=>p.id===saved.id);
+    if(idx>=0)PL[idx]=saved;else PL.push(saved);
+    state.saved=true;
+    state.savedPlan=saved;
+  }catch(e){
+    if(builderSaveFormCurrent(state)){
+      console.warn('Zapis planu niepotwierdzony:',e);
+      builderSaveStatus((e&&e.message&&!e.code?e.message:'Nie udało się potwierdzić zapisu. Sprawdź połączenie z internetem.')+' Formularz jest zachowany. „Ponów zapis” wysyła te same dane.',true);
+    }
+    return null;
+  }finally{
+    state.pending=false;
+    if(window._builderSaveState===state){
+      // Keep the confirmed form locked until calendar completion or explicit exit.
+      if(btn){btn.disabled=state.saved;btn.textContent=state.saved?'Zapisano plan':'Ponów zapis';}
     }
   }
-  const plan=withTrainer({id:newId('p'),name,method:document.getElementById('b-method').value,duration:document.getElementById('b-duration').value,progression,clientId:cid,clientName:c?c.name:'',level:c?c.level:'sredni',goal:c?c.goal:'masa',days,createdAt:new Date().toISOString()});
-  PL.push(plan);goTo('plans');notify('Plan zapisany!');
-  await persistById('plans',plan);
-  if(cid&&typeof maybeSchedulePlanToCalendar==='function')maybeSchedulePlanToCalendar(plan.id,{weeks:4});
-  if(window._onboardResumeAfterBuilder===cid){
-    window._onboardResumeAfterBuilder=null;
-    if(typeof renderOnboardBuilderBanner==='function')renderOnboardBuilderBanner();
+  if(!builderSaveFormCurrent(state))return saved;
+  builderSaveStatus('Plan zapisany.');
+  notify(editingId?'Plan zaktualizowany!':'Plan zapisany!');
+  // A confirmed plan and its calendar have independent outcomes and retries.
+  const hasTraining=(saved.days||[]).some(day=>day&&!day.rest&&(day.exercises||[]).length);
+  if(saved.clientId&&hasTraining){
+    const weeks=Math.max(1,Math.min(12,Number(saved.duration)>=8?Number(saved.duration):4));
+    const client=(window.CL||[]).find(item=>item.id===saved.clientId);
+    const preferred=typeof normalizePreferredWeekdays==='function'
+      ?normalizePreferredWeekdays(client&&client.preferredWeekdays):((client&&client.preferredWeekdays)||[]);
+    if(preferred.length||confirm('Dopełnić kalendarz o brakujące treningi z zapisanego planu na '+weeks+' tygodni? Istniejące terminy pozostaną bez zmian.')){
+      state.calendar={planId:saved.id,clientId:saved.clientId,weeks,status:'ready',error:'',promise:null};
+      await builderRetryCalendar(state);
+      return saved;
+    }
   }
-  maybeResumeOnboard(cid);
+  builderFinishSavedPlan(state);
+  return saved;
 }
 
 /** Mapuje etykietę dnia planu → JS getDay() (0=Nd … 6=Sob). */
@@ -2411,15 +2587,9 @@ window.maybeSchedulePlanToCalendar=maybeSchedulePlanToCalendar;
 
 /** Dopełnij kalendarz klienta o kolejne tygodnie z jego planu. */
 function refillClientCalendar(clientId,opts){
-  opts=opts||{};
-  const plan=typeof clientPlanForCalendar==='function'?clientPlanForCalendar(clientId):(window.PL||[]).find(p=>p&&p.clientId===clientId);
-  if(!plan){if(typeof notify==='function')notify('Brak planu z dniami treningowymi');return 0;}
-  const weeks=opts.weeks||4;
-  let n=0;
-  if(typeof maybeSchedulePlanToCalendar==='function')n=maybeSchedulePlanToCalendar(plan.id,{weeks,forceConfirm:false})||0;
-  else if(typeof schedulePlanToCalendar==='function')n=schedulePlanToCalendar(plan.id,{weeks})||0;
-  try{if(typeof renderDashCalRefillFollowup==='function')renderDashCalRefillFollowup();}catch(e){}
-  return n;
+  if(typeof window.refillCalendarConfirmed==='function')return window.refillCalendarConfirmed(clientId,opts);
+  if(typeof notify==='function')notify('Odśwież aplikację, aby dopełnić kalendarz.');
+  return Promise.resolve({status:'error',error:'Moduł kalendarza jest niedostępny'});
 }
 window.refillClientCalendar=refillClientCalendar;
 

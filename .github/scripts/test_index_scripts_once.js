@@ -31,7 +31,16 @@ ok('07 loaded once', names.filter((n) => n === '07-forms-metrics-calculator.js')
 ok('08 loaded once', names.filter((n) => n === '08-client-profile-extras.js').length === 1);
 ok('01 loaded once', names.filter((n) => n === '01-core.js').length === 1);
 ok('06 loaded once', names.filter((n) => n === '06-inbox-exercises-ai-programs.js').length === 1);
-ok('exactly 12 app scripts', names.length === 12, 'got ' + names.length + ': ' + names.join(','));
+ok('calendar refill loaded once', names.filter((n) => n === 'calendar-refill.js').length === 1);
+ok('calendar refill follows the calendar builder', names.indexOf('calendar-refill.js') === names.indexOf('05-clients-builder-plans-calendar.js') + 1);
+const expected = [
+  'ex-gif-manifest.js', 'ex-photo-manifest.js',
+  '01-core.js', '02-workouts-onboarding-templates-live.js', '03-ai-plangen-bizstats-aicoach.js',
+  '04-client-portal.js', '05-clients-builder-plans-calendar.js', 'calendar-refill.js',
+  '06-inbox-exercises-ai-programs.js', '07-forms-metrics-calculator.js', '08-client-profile-extras.js',
+  '09-posture-kb-invites-private.js', '10-client-app.js'
+];
+ok('exactly 13 expected app scripts in dependency order', JSON.stringify(names) === JSON.stringify(expected), 'got ' + names.length + ': ' + names.join(','));
 const moreTail = html.slice(html.lastIndexOf('data-screen="settings"'), html.indexOf('id="private-bar"'));
 ok('nav-more single close before nav', (moreTail.match(/<\/div>/g) || []).length === 1, moreTail.replace(/\s+/g, ' ').slice(0, 160));
 
@@ -51,3 +60,4 @@ if (failed) {
   process.exit(1);
 }
 console.log('\nAll index-scripts-once tests passed');
+

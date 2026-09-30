@@ -361,8 +361,10 @@
 
 <!-- BUILDER -->
 <div class="screen" id="screen-builder">
-  <div class="topbar"><div class="topbar-title">Nowy plan treningowy</div><div class="topbar-actions"><button class="btn btn-ghost btn-sm" onclick="builderGoBack()">Anuluj</button><button class="btn btn-primary btn-sm" onclick="savePlan()">Zapisz plan</button></div></div>
-  <div id="builder-onboard-banner" style="display:none;position:relative;z-index:30;align-items:center;justify-content:flex-start;gap:10px;flex-wrap:wrap;padding:10px 16px;background:var(--adim);border-bottom:1px solid rgba(230,0,0,0.25);font-size:12px;"></div>
+  <div class="topbar"><div class="topbar-title">Nowy plan treningowy</div><div class="topbar-actions"><button class="btn btn-ghost btn-sm" onclick="builderGoBack()">Anuluj</button><button class="btn btn-primary btn-sm" id="b-save-btn" onclick="savePlan()">Zapisz plan</button></div></div>
+  <div id="builder-save-status" role="status" aria-live="polite" hidden style="margin:12px 24px;padding:12px;border:1px solid var(--border);border-radius:8px;"></div>
+  <div id="builder-calendar-actions" hidden style="margin:0 24px 12px;"><button type="button" class="btn btn-primary btn-sm" id="b-calendar-retry" onclick="builderRetryCalendar()">Ponów dopełnienie kalendarza</button> <button type="button" class="btn btn-ghost btn-sm" id="b-calendar-continue" onclick="builderFinishSavedPlan()">Kontynuuj bez dopełnienia</button></div>
+    <div id="builder-onboard-banner" style="display:none;position:relative;z-index:30;align-items:center;justify-content:flex-start;gap:10px;flex-wrap:wrap;padding:10px 16px;background:var(--adim);border-bottom:1px solid rgba(230,0,0,0.25);font-size:12px;"></div>
   <div class="content builder-layout">
     <div class="builder-main">
       <div class="card builder-meta-card">
@@ -4252,7 +4254,7 @@ window.doPasswordReset=async function(){
 
 const TENANT_DEFAULT_SETTINGS=JSON.parse(JSON.stringify(window.SETTINGS||{}));
 const TENANT_ARRAY_KEYS=['CL','PL','SE','EX','WO','TASKS','KB','METRIC_ENTRIES','PROGRESS_PHOTOS','METRIC_GROUPS','PACKAGES','INVOICES','FORM_SENDS','REP_HISTORY','CUSTOM_FORMS','USER_PROGRAMS','TPL_CUSTOM','NOTIFICATIONS','AUTOFLOWS','FORUM_GROUPS','FORUM_POSTS','OD_WORKOUTS','OD_PROGRAMS','OD_PROGRESS','ONB_ACTIVE','CLIENT_GROUPS','USER_RESOURCES','COACH_VIDEOS','ONBOARD_HISTORY','LIVE_HISTORY','INT_EVENT_LOG','aicMsgs','aicHistorySessions','_appEvents'];
-const TENANT_MAP_KEYS=['MSGS','CHECKINS','CLIENT_NOTES','CLIENT_DOCS','CLIENT_ACTIVITY','CLIENT_TIMELINE','CLIENT_PSYCHO','CLIENT_SFR','CLIENT_FOOD','INT_CONNECTIONS','EX_GIF_REMOTE','FORUM_COMMENTS','_cliveFormAnswers','_cliveCheckin','_ciFillDraft','_cpCoopCache','_cpCoopBusy','_forumViewed','_dashListExpanded'];
+const TENANT_MAP_KEYS=['MSGS','CHECKINS','CLIENT_NOTES','CLIENT_DOCS','CLIENT_ACTIVITY','CLIENT_TIMELINE','CLIENT_PSYCHO','CLIENT_SFR','CLIENT_FOOD','INT_CONNECTIONS','EX_GIF_REMOTE','FORUM_COMMENTS','_cliveFormAnswers','_cliveCheckin','_ciFillDraft','_ciFillSave','_ciPendingWrites','_cpCoopCache','_cpCoopBusy','_forumViewed','_dashListExpanded'];
 
 onAuthStateChanged(auth,(user)=>{
   const nextUid=user?user.uid:null;
@@ -4316,6 +4318,8 @@ async function bootApp(session=captureTenantSession()){
 }
 
 function clearAutoflowSessionState(){
+  window._afQueueRunning=null;window._afRetryRunning=null;window._afStateSave=null;
+  window._afDefinitionSave=null;window._afOutboxRestoredState=null;window._afPendingStorageFailed=false;
   window.AF_STATE={enrollments:{},executed:{},lastFired:{},logs:[],pending:{}};
   window._afStateDocId=null;
   window._afStateReady=false;
@@ -4332,6 +4336,10 @@ function tenantSessionIsCurrent(session){
 window.tenantSessionIsCurrent=tenantSessionIsCurrent;
 
 function resetTenantRuntimeData(){
+  if(typeof builderSaveUnlock==='function')builderSaveUnlock(window._builderSaveState);
+  window._builderSaveState=null;window._editingPlanId=null;
+  ['b-name','b-client'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const builderDays=document.getElementById('builder-days');if(builderDays)builderDays.innerHTML='';
   window._tenantDataReady=false;
   window._tenantBootComplete=false;
   window._tenantLoadedUid=null;
@@ -4343,7 +4351,7 @@ function resetTenantRuntimeData(){
   TENANT_MAP_KEYS.forEach(key=>tenantReplaceRuntimeValue(key,{}));
   window.SETTINGS=JSON.parse(JSON.stringify(TENANT_DEFAULT_SETTINGS));
   window.ONBOARDING_FLOW=null;
-  ['_settingsDocId','_clientId','_trainerId','_clientAccount','_cw','_odPlay','_odHwTaskId','_ppDraft','_ppCmp','_payCopy','_kbLastPlanningContext','_lastMethodRationale','_cpExerciseProgress','_onboardClientId','_onboardResumeAfterInvite','_onboardResumeAfterPackage','_onboardResumeAfterLive','_cpEditingClientId','_assignHwClientId','_assignHwWorkoutId','_assignWorkoutId','_editingClientId','_editingSessionId','_editingFormId','_editingProgId','_editingTaskId','_editingVideoId','_editingTplId','_editingODProgId','_editingKbId','_kbPendingMeta','_livePending','_liveSavedClientId','_liveSavedClientName','_liveDraftSessionId','_liveDraftCreatedAt','cpClientId','capClientId','aicClientId','repClientId','curChat','inviteClientId','plansLibClientId','tplDetailId','sendResourceId','metricActiveGroup','aplLastPlan'].forEach(key=>{window[key]=null;});
+  ['_ciFillOpen','_settingsDocId','_clientId','_trainerId','_clientAccount','_cw','_odPlay','_odHwTaskId','_ppDraft','_ppCmp','_payCopy','_kbLastPlanningContext','_lastMethodRationale','_cpExerciseProgress','_onboardClientId','_onboardResumeAfterInvite','_onboardResumeAfterPackage','_onboardResumeAfterLive','_cpEditingClientId','_assignHwClientId','_assignHwWorkoutId','_assignWorkoutId','_editingClientId','_editingSessionId','_editingFormId','_editingProgId','_editingTaskId','_editingVideoId','_editingTplId','_editingODProgId','_editingKbId','_kbPendingMeta','_livePending','_liveSavedClientId','_liveSavedClientName','_liveDraftSessionId','_liveDraftCreatedAt','cpClientId','capClientId','aicClientId','repClientId','curChat','inviteClientId','plansLibClientId','tplDetailId','sendResourceId','metricActiveGroup','aplLastPlan'].forEach(key=>{window[key]=null;});
   window._userEmail='';window._userDisplayName='';
   window._clientAppMode=false;window._clientPreviewMode=false;
   window.aplGenerating=false;window.aicLoading=false;window.repGenerating=false;
@@ -4559,15 +4567,16 @@ async function load(session=captureTenantSession()){
 
 <script src="ex-gif-manifest.js?v=34"></script>
 <script src="ex-photo-manifest.js?v=6"></script>
-<script src="01-core.js?v=126&tenant-isolation=2"></script>
+<script src="01-core.js?v=126&tenant-isolation=2&plan-save=1"></script>
 <script src="02-workouts-onboarding-templates-live.js?v=87"></script>
-<script src="03-ai-plangen-bizstats-aicoach.js?v=42&client-review=1&why=1"></script>
-<script src="04-client-portal.js?v=55&journey=1&tenant-isolation=2"></script>
-<script src="05-clients-builder-plans-calendar.js?v=82&journey=1"></script>
+<script src="03-ai-plangen-bizstats-aicoach.js?v=42&client-review=1&why=1&checkin-chronology=1"></script>
+<script src="04-client-portal.js?v=55&journey=1&tenant-isolation=2&session-guidance=1&checkin-chronology=1&checkin-save=1"></script>
+<script src="05-clients-builder-plans-calendar.js?v=82&journey=1&plan-save=1&calendar-fill=2"></script>
+<script src="calendar-refill.js?v=2"></script>
 <script src="06-inbox-exercises-ai-programs.js?v=85"></script>
 <script src="07-forms-metrics-calculator.js?v=43"></script>
-<script src="08-client-profile-extras.js?v=87&ui=2&journey=2"></script>
-<script src="09-posture-kb-invites-private.js?v=54&reliable-af=1&af-ownership=2&tenant-isolation=2"></script>
+<script src="08-client-profile-extras.js?v=87&ui=2&journey=2&checkin-chronology=1&calendar-fill=1"></script>
+<script src="09-posture-kb-invites-private.js?v=54&reliable-af=1&af-ownership=2&tenant-isolation=2&quota-pause=1"></script>
 <script src="10-client-app.js?v=42&tenant-isolation=2"></script>
 </body>
 </html>

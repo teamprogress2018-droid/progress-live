@@ -274,6 +274,271 @@ test('client submission actions preserve assignment, authority and other clients
   ok(await patch('odProgress/' + odId, {done: ['program-1:0:0']}, userA), 'complete on-demand day');
   denied(await patch('odProgress/' + odId, {programId: 'other-program'}, userA), 'rebind on-demand program');
 });
+
+test('builder plan transactions read missing IDs without exposing existing foreign plans', async () => {
+  const id = run + '-builder-assigned', p = 'plans/' + id;
+  const libraryId = run + '-builder-library', libraryPath = 'plans/' + libraryId;
+  const createdAt = new Date().toISOString();
+  const data = clientData({id, clientName: clientA, name: 'Plan kreatora', method: 'FBW', duration: '8',
+    progression: 'double', level: 'sredni', goal: 'masa', createdAt, currentWeek: 'w1',
+    weekKeys: ['w1', 'w2'], phases: [{name: 'Pierwszy etap', weeks: 2}], source: 'builder',
+    days: [{day: 'Poniedziałek', weekday: 1, rest: false, muscles: 'Całe ciało', sets: 3,
+      exercises: [{name: 'Przysiad', sets: '3', reps: '8-10', kg: '40', w1: {s: '3', r: '8-10', kg: '40'}}]}]});
+  const library = {...data, id: libraryId, clientId: '', clientName: '', name: 'Szablon w bibliotece'};
+  // Mirror tx.set(ref, payload, {merge:true}), with no create precondition.
+  const planWrite = (target, payload) => ({update: {name: fullName(target), fields: fields(payload)},
+    updateMask: {fieldPaths: Object.keys(payload)}});
+  async function planTransaction(user, readPaths, target, payload, label, rejection, missingPaths = []) {
+    const started = await request(':beginTransaction', user, 'POST', {options: {readWrite: {}}});
+    ok(started, label + ' begins transaction');
+    const transaction = started.body.transaction;
+    assert.ok(typeof transaction === 'string' && transaction.length, label + ' transaction token'); count++;
+    let committed = false;
+    try {
+      if (readPaths.length) {
+        const reads = await request(':batchGet', user, 'POST', {documents: readPaths.map(fullName), transaction});
+        if (rejection === 'read') { denied(reads, label + ' unauthorized document read'); return; }
+        ok(reads, label + ' reads required client and plan documents');
+        assert.ok(Array.isArray(reads.body) && readPaths.every(docPath =>
+          reads.body.some(row => missingPaths.includes(docPath)
+            ? row.missing === fullName(docPath)
+            : row.found && row.found.name === fullName(docPath))),
+        label + ' expected existing and missing documents are distinguished'); count++;
+      }
+      const result = await request(':commit', user, 'POST', {transaction, writes: [planWrite(target, payload)]});
+      ok(result, label + ' commits plan');
+      committed = true;
+    } finally {
+      if (!committed) await request(':rollback', user, 'POST', {transaction}).catch(() => {});
+    }
+  }
+
+  const missing = await read(p, ownerA);
+  assert.equal(missing.status, 404, 'trainer missing plan GET is authorized and returns not-found: ' + JSON.stringify(missing.body)); count++;
+  assert.equal((await read(p, ownerB)).status, 404, 'another trainer may also observe that the plan ID is absent'); count++;
+  denied(await read(p, null), 'anonymous missing plan GET remains forbidden');
+  denied(await read(p, userA), 'linked client does not inherit missing-plan permission');
+  await planTransaction(ownerA, ['clients/' + clientA, p], p, data, 'assigned plan create', null, [p]);
+  assert.deepEqual((await db.doc(p).get()).data(), data, 'assigned plan persists exactly after client and missing-plan reads'); count++;
+  ok(await read(p, ownerA), 'trainer reads assigned plan after commit');
+  ok(await read(p, userA), 'assigned client reads committed plan');
+
+  assert.equal((await read(libraryPath, ownerA)).status, 404, 'trainer may observe that the library plan ID is absent'); count++;
+  denied(await read(libraryPath, null), 'anonymous cannot inspect missing library plan');
+  denied(await read(libraryPath, userA), 'linked client cannot inspect missing library plan');
+  await planTransaction(ownerA, [libraryPath], libraryPath, library, 'library create after missing-plan read', null, [libraryPath]);
+  assert.deepEqual((await db.doc(libraryPath).get()).data(), library, 'library plan persists after reading its missing target'); count++;
+  ok(await read(libraryPath, ownerA), 'trainer reads its unassigned library plan');
+  denied(await read(libraryPath, userA), 'linked client cannot read unassigned library plan');
+
+  const edited = {...data, name: 'Plan po korekcie', updatedAt: new Date().toISOString()};
+  await planTransaction(ownerA, ['clients/' + clientA, p], p, edited, 'existing plan edit');
+  assert.deepEqual((await db.doc(p).get()).data(), edited, 'edit preserves identity, assignment, days, phases and week metadata'); count++;
+  for (const [target, payload] of [[p, edited], [libraryPath, library]]) {
+    denied(await read(target, ownerB), 'foreign trainer cannot read ' + target);
+    denied(await write(target, {...payload, trainerId: trainerB}, ownerB), 'foreign trainer cannot claim ' + target);
+    denied(await write(target, {...payload, name: 'Niedozwolona edycja'}, userA), 'client cannot edit ' + target);
+    assert.deepEqual((await db.doc(target).get()).data(), payload, 'denied writes preserve ' + target); count++;
+  }
+
+  const foreignClientPath = 'plans/' + run + '-builder-foreign-client';
+  const foreignClientCandidate = {...data, id: run + '-builder-foreign-client', clientId: clientB};
+  await planTransaction(ownerA, ['clients/' + clientB, foreignClientPath], foreignClientPath, foreignClientCandidate,
+    'assignment to foreign client', 'read');
+  assert.equal((await db.doc(foreignClientPath).get()).exists, false, 'denied client read never creates a plan'); count++;
+
+  const collisionId = run + '-builder-collision', collisionPath = 'plans/' + collisionId;
+  const foreign = {...data, id: collisionId, trainerId: trainerB, clientId: clientB, clientName: clientB};
+  await seed(collisionPath, foreign);
+  denied(await read(collisionPath, ownerA), 'existing foreign plan collision is not readable');
+  await planTransaction(ownerA, ['clients/' + clientA, collisionPath], collisionPath, {...data, id: collisionId},
+    'create colliding with foreign plan', 'read');
+  assert.deepEqual((await db.doc(collisionPath).get()).data(), foreign, 'colliding create never overwrites another trainer plan'); count++;
+});
+
+
+// Calendar refill uses the same REST transaction protocol as the browser SDK.
+// These tests exercise actual rules/commit atomicity; the app separately validates
+// calendar meaning and refuses to overwrite different records owned by the trainer.
+function calendarId(trainerId, clientId, planId, dayIdx, date) {
+  return 'calfill_' + encodeURIComponent(JSON.stringify([trainerId, clientId, planId, dayIdx, date]));
+}
+function calendarCandidate(planId, dayIdx, date, overrides = {}) {
+  const id = calendarId(trainerA, clientA, planId, dayIdx, date);
+  return clientData({id, source: 'planned', planId, dayIdx, date, time: '18:00',
+    type: 'FBW', duration: 60, exercises: [], ...overrides});
+}
+function calendarWrite(data, requireNew = false) {
+  return {update: {name: fullName('sessions/' + data.id), fields: fields(data)},
+    ...(requireNew ? {currentDocument: {exists: false}} : {})};
+}
+async function calendarTransaction(user, readPaths, writes, label, rejection) {
+  const started = await request(':beginTransaction', user, 'POST', {options: {readWrite: {}}});
+  ok(started, label + ' begins');
+  const transaction = started.body.transaction;
+  assert.ok(typeof transaction === 'string' && transaction.length, label + ' transaction token'); count++;
+  let committed = false;
+  try {
+    const reads = await request(':batchGet', user, 'POST', {documents: readPaths.map(fullName), transaction});
+    if (rejection === 'read') { denied(reads, label + ' denied read'); return; }
+    ok(reads, label + ' reads');
+    assert.ok(Array.isArray(reads.body) && readPaths.every(p => reads.body.some(row =>
+      row.missing === fullName(p) || (row.found && row.found.name === fullName(p)))),
+    label + ' every requested existing/missing document returned'); count++;
+    const result = await request(':commit', user, 'POST', {transaction, writes});
+    if (rejection === 'write') { denied(result, label + ' denied write'); return; }
+    if (rejection === 'collision') {
+      assert.ok([400, 409].includes(result.status) &&
+        ['ALREADY_EXISTS', 'FAILED_PRECONDITION'].includes(result.body.error && result.body.error.status),
+      label + ' create-only collision rejected: ' + JSON.stringify(result)); count++;
+      return;
+    }
+    ok(result, label + ' committed'); committed = true;
+  } finally {
+    if (!committed) await request(':rollback', user, 'POST', {transaction}).catch(() => {});
+  }
+}
+test('calendar missing-session GET is trainer-only and does not widen list or create permissions', async () => {
+  const data = calendarCandidate(run + '-calendar-missing', 0, '2026-10-05'), p = 'sessions/' + data.id;
+  for (const user of [ownerA, ownerB]) {
+    const result = await read(p, user);
+    assert.equal(result.status, 404, 'trainer observes a missing calendar ID, never permission-denied: ' + JSON.stringify(result.body)); count++;
+  }
+  for (const user of [userA, sibling, userB, null]) {
+    denied(await read(p, user), 'client/anonymous cannot inspect absent calendar ID');
+  }
+  denied(await query('sessions', ownerA), 'missing-ID exception grants no broad session list');
+  denied(await write(p, data, userA), 'linked client still cannot create planned sessions');
+  denied(await write(p, data, null), 'anonymous still cannot create planned sessions');
+  assert.equal((await db.doc(p).get()).exists, false, 'denied writes leave the deterministic ID absent'); count++;
+});
+test('calendar transaction reads owned client, plan and missing IDs then atomically creates all terms', async () => {
+  const planId = run + '-calendar-atomic-plan';
+  await seed('plans/' + planId, clientData({id: planId, name: 'Plan FBW', days: []}));
+  const candidates = ['2026-10-05', '2026-10-07', '2026-10-09'].map((date, i) => calendarCandidate(planId, i, date));
+  const paths = candidates.map(item => 'sessions/' + item.id);
+  await calendarTransaction(ownerA, ['clients/' + clientA, 'plans/' + planId, ...paths],
+    candidates.map(item => calendarWrite(item)), 'calendar atomic create');
+  for (const item of candidates) {
+    const p = 'sessions/' + item.id;
+    assert.deepEqual((await db.doc(p).get()).data(), item, 'each new calendar record is exact'); count++;
+    ok(await read(p, ownerA), 'trainer reads confirmed term');
+    ok(await read(p, userA), 'assigned client reads confirmed term');
+    for (const user of [ownerB, userB, sibling, null]) denied(await read(p, user), 'existing term remains private');
+  }
+  ok(await query('sessions', ownerA, [['trainerId', 'EQUAL', trainerA], ['clientId', 'EQUAL', clientA]]),
+    'refill preflight uses tenant-and-client-scoped session query');
+});
+
+test('calendar rules support an atomic twelve-week horizon with all 84 missing targets', async () => {
+  const planId = run + '-calendar-max-horizon';
+  await seed('plans/' + planId, clientData({id: planId, name: 'Twelve-week fixture', days: []}));
+  const candidates = Array.from({length: 84}, (_, i) => {
+    const date = new Date(Date.UTC(2026, 9, 5 + i)).toISOString().slice(0, 10);
+    return calendarCandidate(planId, i % 7, date);
+  });
+  await calendarTransaction(ownerA, ['clients/' + clientA, 'plans/' + planId,
+    ...candidates.map(item => 'sessions/' + item.id)], candidates.map(item => calendarWrite(item)),
+    'full calendar horizon');
+  const saved = await db.getAll(...candidates.map(item => db.doc('sessions/' + item.id)));
+  assert.equal(saved.length, 84, 'whole requested horizon returned'); count++;
+  assert.deepEqual(saved.map(snapshot => snapshot.data()), candidates, 'every horizon target persisted exactly'); count++;
+});
+
+test('foreign client, foreign plan and colliding foreign session abort calendar preflight without writes', async () => {
+  const ownPlanId = run + '-calendar-owned-plan', foreignPlanId = run + '-calendar-foreign-plan';
+  await seed('plans/' + ownPlanId, clientData({id: ownPlanId}));
+  await seed('plans/' + foreignPlanId, {id: foreignPlanId, trainerId: trainerB, clientId: clientB});
+  const next = calendarCandidate(ownPlanId, 0, '2026-10-12'), nextPath = 'sessions/' + next.id;
+  const collision = calendarCandidate(ownPlanId, 1, '2026-10-14', {trainerId: trainerB, clientId: clientB});
+  const collisionPath = 'sessions/' + collision.id;
+  await seed(collisionPath, collision);
+  for (const [label, blocked] of [['foreign client', 'clients/' + clientB], ['foreign plan', 'plans/' + foreignPlanId],
+    ['foreign target collision', collisionPath]]) {
+    await calendarTransaction(ownerA, ['clients/' + clientA, 'plans/' + ownPlanId, nextPath, blocked],
+      [calendarWrite(next)], label, 'read');
+    assert.equal((await db.doc(nextPath).get()).exists, false, label + ' creates no partial calendar entry'); count++;
+  }
+  denied(await read(collisionPath, ownerA), 'missing-session rule cannot expose an existing foreign collision');
+  denied(await write(collisionPath, {...collision, trainerId: trainerA, clientId: clientA}, ownerA),
+    'trainer cannot claim the foreign deterministic target');
+  assert.deepEqual((await db.doc(collisionPath).get()).data(), collision, 'foreign collision is unchanged'); count++;
+});
+test('one denied write rolls back all new terms in the same calendar transaction', async () => {
+  const planId = run + '-calendar-denied-batch-plan';
+  await seed('plans/' + planId, clientData({id: planId}));
+  const first = calendarCandidate(planId, 0, '2026-10-19'), second = calendarCandidate(planId, 1, '2026-10-21');
+  const foreign = calendarCandidate(planId, 2, '2026-10-23', {trainerId: trainerB, clientId: clientB, note: 'Preserve'});
+  const foreignPath = 'sessions/' + foreign.id;
+  await seed(foreignPath, foreign);
+  // Deliberately bypass the app's foreign-target read guard to test server atomicity itself.
+  await calendarTransaction(ownerA, ['clients/' + clientA, 'plans/' + planId, 'sessions/' + first.id, 'sessions/' + second.id],
+    [calendarWrite(first), calendarWrite(second), calendarWrite({...foreign, trainerId: trainerA, clientId: clientA})],
+    'mixed owned creates and foreign update', 'write');
+  for (const item of [first, second]) {
+    assert.equal((await db.doc('sessions/' + item.id).get()).exists, false, 'valid earlier write is also rolled back'); count++;
+  }
+  assert.deepEqual((await db.doc(foreignPath).get()).data(), foreign, 'denied batch preserves foreign record'); count++;
+});
+test('a create-only collision preserves the existing term and atomically rejects other creates', async () => {
+  const planId = run + '-calendar-collision-plan';
+  await seed('plans/' + planId, clientData({id: planId}));
+  const first = calendarCandidate(planId, 0, '2026-10-26');
+  const collision = calendarCandidate(planId, 1, '2026-10-28', {time: '19:30', status: 'skipped', note: 'Preserve my change'});
+  await seed('sessions/' + collision.id, collision);
+  ok(await read('sessions/' + collision.id, ownerA), 'owner may inspect its existing collision');
+  await calendarTransaction(ownerA, ['clients/' + clientA, 'plans/' + planId, 'sessions/' + first.id, 'sessions/' + collision.id],
+    [calendarWrite(first, true), calendarWrite({...collision, time: '18:00'}, true)],
+    'create-only target collision', 'collision');
+  assert.equal((await db.doc('sessions/' + first.id).get()).exists, false, 'collision rejects the whole commit'); count++;
+  assert.deepEqual((await db.doc('sessions/' + collision.id).get()).data(), collision, 'collision cannot overwrite the existing record'); count++;
+});
+
+test('trainer check-in transactions can read a missing ID without exposing existing foreign records', async () => {
+  const id = run + '-trainer-checkin-transaction', p = 'checkins/' + id;
+  const missing = await read(p, ownerA);
+  assert.equal(missing.status, 404, 'trainer missing check-in read is authorized and returns not-found: ' + JSON.stringify(missing.body)); count++;
+  const otherMissing = await read(p, ownerB);
+  assert.equal(otherMissing.status, 404, 'another trainer may also observe that an ID is absent'); count++;
+  denied(await read(p, null), 'anonymous missing check-in read remains denied');
+  denied(await read(p, userA), 'linked client does not inherit trainer missing-document permission');
+  const data = clientData({id, date: '2026-09-26', status: 'filled', score: 80,
+    answers: {energy: 4, sleep: 4, stress: 2, nutrition: 4, workouts: 3, weight: '', notes: 'Wpis trenera'},
+    filledBy: 'trainer', filledAt: new Date().toISOString(), createdAt: new Date().toISOString(), source: 'manual'});
+  const started = await request(':beginTransaction', ownerA, 'POST', {options: {readWrite: {}}});
+  ok(started, 'trainer begins check-in transaction');
+  const transaction = started.body.transaction;
+  assert.equal(typeof transaction, 'string', 'transaction token returned'); assert.ok(transaction.length); count++;
+  let committed = false;
+  try {
+    const reads = await request(':batchGet', ownerA, 'POST', {
+      documents: [fullName('clients/' + clientA), fullName(p)], transaction,
+    });
+    ok(reads, 'transaction reads owned client and missing check-in');
+    assert.ok(Array.isArray(reads.body), 'batch read response contains per-document results'); count++;
+    assert.ok(reads.body.some(row => row.found && row.found.name === fullName('clients/' + clientA)),
+      'owned client was read in the same transaction'); count++;
+    assert.ok(reads.body.some(row => row.missing === fullName(p)),
+      'missing check-in is observable as missing rather than permission-denied'); count++;
+    const result = await request(':commit', ownerA, 'POST', {transaction, writes: [
+      {update: {name: fullName(p), fields: fields(data)}, currentDocument: {exists: false}},
+    ]});
+    ok(result, 'trainer atomically creates filled check-in after both reads');
+    committed = true;
+  } finally {
+    if (!committed) await request(':rollback', ownerA, 'POST', {transaction}).catch(() => {});
+  }
+  assert.deepEqual((await db.doc(p).get()).data(), data, 'filled trainer check-in persisted exactly'); count++;
+  ok(await read(p, ownerA), 'owner still reads created check-in');
+  ok(await read(p, userA), 'linked client reads its trainer-filled check-in');
+  denied(await read(p, ownerB), 'missing-document exception does not expose existing foreign trainer check-in');
+  denied(await read(p, userB), 'other trainer client cannot read existing check-in');
+  denied(await read(p, sibling), 'same trainer sibling cannot read existing check-in');
+  denied(await read(p, null), 'anonymous cannot read existing check-in');
+  denied(await write(p, {...data, trainerId: trainerB, clientId: clientB}, ownerB),
+    'foreign trainer cannot claim a check-in after a successful missing read');
+  assert.deepEqual((await db.doc(p).get()).data(), data, 'denied foreign write preserves original report'); count++;
+});
 test('public profile fields reject nested structures that could carry secret configuration', async () => {
   const p = 'trainerPublicProfiles/' + trainerA;
   const previous = (await db.doc(p).get()).data();

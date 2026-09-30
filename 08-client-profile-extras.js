@@ -1586,11 +1586,11 @@ function cpDaysSinceYmd(raw){
 /** Zielony = wpis ≤2 dni; żółty = 3–6 dni; czerwony = ≥7 dni lub brak. */
 function cpClientPulseStatus(clientId){
   const filled=((window.CHECKINS&&window.CHECKINS[clientId])||[]).filter(x=>x&&x.status==='filled');
-  const lastFilled=filled.slice().sort((a,b)=>String(b.date||b.createdAt||'').localeCompare(String(a.date||a.createdAt||'')))[0];
+  const lastFilled=typeof latestFilledCheckin==='function'?latestFilledCheckin(clientId):filled.slice().sort((a,b)=>String(b.filledAt||b.date||b.createdAt||'').localeCompare(String(a.filledAt||a.date||a.createdAt||'')))[0];
   const logged=typeof completedWorkouts==='function'?completedWorkouts(clientId):(window.SE||[]).filter(s=>s&&s.clientId===clientId&&(s.source==='live'||s.source==='client'));
   const lastLog=logged.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0];
   const dates=[];
-  if(lastFilled)dates.push(lastFilled.date||lastFilled.createdAt);
+  if(lastFilled)dates.push(typeof checkinActivityDate==='function'?checkinActivityDate(lastFilled):(lastFilled.filledAt||lastFilled.date||lastFilled.createdAt));
   if(lastLog)dates.push(lastLog.date);
   if(!dates.length)return{tone:'bad',label:'Brak wpisów',days:null,hint:'Brak raportu i odhaczonego treningu'};
   const days=Math.min(...dates.map(cpDaysSinceYmd));
@@ -2166,10 +2166,11 @@ function cpOverviewWeightCount30(clientId){
 }
 function cpOverviewLastCheckin(clientId){
   const today=cpOverviewTodayYmd();
-  const filled=((window.CHECKINS&&window.CHECKINS[clientId])||[]).filter(x=>x&&x.status==='filled')
-    .slice().sort((a,b)=>String(b.date||b.filledAt||'').localeCompare(String(a.date||a.filledAt||'')));
-  if(!filled.length)return{days:null,ymd:null};
-  const ymd=String(filled[0].date||filled[0].filledAt||'').slice(0,10);
+  const latest=typeof latestFilledCheckin==='function'?latestFilledCheckin(clientId):
+    ((window.CHECKINS&&window.CHECKINS[clientId])||[]).filter(x=>x&&x.status==='filled')
+      .slice().sort((a,b)=>String(b.filledAt||b.date||'').localeCompare(String(a.filledAt||a.date||'')))[0];
+  if(!latest)return{days:null,ymd:null};
+  const ymd=typeof checkinActivityDate==='function'?checkinActivityDate(latest):String(latest.filledAt||latest.date||'').slice(0,10);
   return{days:cpOverviewDaysBetween(ymd,today),ymd};
 }
 function cpOverviewHasSessionToday(c){
@@ -3436,7 +3437,6 @@ window.clearCpCoopAnalysis=clearCpCoopAnalysis;
 window.CP_COOP_GATE_MSG=CP_COOP_GATE_MSG;
 
 function renderCPOverview(c){
-  try{if(typeof ensureClientPlanWeekdays==='function')ensureClientPlanWeekdays(c.id);}catch(e){}
   const today=new Date();
   const todayStr=typeof todayYmd==='function'?todayYmd():(typeof dateStrLocal==='function'?dateStrLocal(today):today.toISOString().split('T')[0]);
   const sessions=SE.filter(s=>s.clientId===c.id);
@@ -4790,11 +4790,12 @@ function renderCPTraining(c){
   if(!c._mpView)c._mpView='1w';
   if(!c._mpTab)c._mpTab='assignment';
   if(c._mpWeekOffset==null)c._mpWeekOffset=0;
-  try{if(typeof ensureClientPlanWeekdays==='function')ensureClientPlanWeekdays(c.id);}catch(e){}
-
   const allSessions=SE.filter(s=>s.clientId===c.id);
   const assignSessions=typeof cpAssignmentSessions==='function'?cpAssignmentSessions(c.id):allSessions;
   const activePlan=typeof latestClientPlan==='function'?latestClientPlan(c.id):(typeof clientPlanForCalendar==='function'?clientPlanForCalendar(c.id):null);
+  const canRefill=c.trainerId===window._uid&&!c.archived&&c.status!=='archived'&&!c.deleted&&(window.PL||[]).some(p=>
+    p&&p.trainerId===window._uid&&p.clientId===c.id&&!p.archived&&p.status!=='archived'&&!p.deleted&&
+    (p.days||[]).some(d=>d&&!d.rest&&(d.exercises||[]).length));
   const activePlanName=typeof cpOverviewPlanTitle==='function'?cpOverviewPlanTitle(activePlan,c):((activePlan&&activePlan.name)||'');
   const today=new Date();
   const cellYmd=d=>typeof dateStrLocal==='function'?dateStrLocal(d):(typeof dateStr==='function'?dateStr(d):d.toISOString().split('T')[0]);
@@ -4942,6 +4943,7 @@ function renderCPTraining(c){
         <button type="button" class="cp-week-nav" onclick="cpMpShiftWeek('${c.id}',1)" aria-label="Następny tydzień">›</button>
       </div>
       <button class="btn btn-primary btn-sm" style="margin-left:auto;" onclick="openAddSessionFromCP('${c.id}','${todayStr}')">+ Sesja</button>
+      ${canRefill?`<button type="button" class="btn btn-ghost btn-sm" data-calendar-refill-client="${escHtml(c.id)}" onclick="refillClientCalendar(this.dataset.calendarRefillClient)">Dopełnij 4 tygodnie</button>`:''}
       ${plannedN?`<div class="cp-mp-more-wrap">
         <button type="button" class="btn btn-ghost btn-sm" id="cp-mp-more-btn" onclick="toggleCpMpMore(event)" aria-expanded="false" aria-haspopup="true" title="Więcej">⋯</button>
         <div class="cp-mp-more-menu" id="cp-mp-more-menu" hidden>
@@ -4954,6 +4956,7 @@ function renderCPTraining(c){
         <button type="button" onclick="cpMpView('${c.id}','4w')" class="cp-mp-span-btn${c._mpView==='4w'?' is-on':''}">4 Tygodnie</button>
       </div>
     </div>
+    ${canRefill?`<div data-calendar-refill-status="${escHtml(c.id)}" role="status" aria-live="polite" style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:12px;"></div>`:''}
 
     ${c._mpTab==='assignment'?`<div class="cp-cal-dow">
       ${dayNamesShort.map(n=>`<div>${n}</div>`).join('')}
@@ -4963,6 +4966,7 @@ function renderCPTraining(c){
     <div id="cp-mp-content">
       ${c._mpTab==='assignment'?gridRows:historyHTML}
     </div>`;
+  if(typeof window.renderCalendarRefillState==='function')window.renderCalendarRefillState(c.id);
 }
 
 function cpMpView(clientId, view){

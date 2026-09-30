@@ -2687,6 +2687,7 @@ const DEMO_AUTOFLOWS=[
 ];
 
 function ensureReminderAutoflowsFromSettings(){
+  if(!window._uid||window._clientAppMode||window._clientPreviewMode||window._afStateReady===false||afQuotaPaused())return false;
   const S=window.SETTINGS||{};
   const N=S.notifications||{};
   window.AUTOFLOWS=window.AUTOFLOWS||[];
@@ -2734,7 +2735,7 @@ function ensureReminderAutoflowsFromSettings(){
     let af=window.AUTOFLOWS.find(x=>x&&x.systemKey===def.key);
     if(!af){
       af=withTrainer({
-        id:newId('af'),
+        id:'af_system_'+encodeURIComponent(window._uid)+'_'+def.key,
         systemKey:def.key,
         name:def.name,
         type:'trigger',
@@ -2744,6 +2745,7 @@ function ensureReminderAutoflowsFromSettings(){
         steps:def.steps
       });
       window.AUTOFLOWS.push(af);
+      afMarkDefinitionDirty(af);
       changed=true;
       return;
     }
@@ -2756,15 +2758,51 @@ function ensureReminderAutoflowsFromSettings(){
       af.steps=nextSteps;
       af.trigger=def.trigger;
       af.scope='all';
+      afMarkDefinitionDirty(af);
       changed=true;
     }
   });
-  if(changed){
-    window.AUTOFLOWS.forEach(af=>{ if(af&&af.systemKey) persistById('autoflows',af); });
-  }
+  flushAFDefinitions();
   return changed;
 }
 window.ensureReminderAutoflowsFromSettings=ensureReminderAutoflowsFromSettings;
+
+function afMarkDefinitionDirty(af){
+  const session=afQueueSession();
+  let slot=window._afDefinitionSave;
+  if(!slot||slot.owner!==session.owner||slot.generation!==session.generation||slot.state!==session.state){
+    slot={...session,dirty:{},running:null};window._afDefinitionSave=slot;
+  }
+  slot.dirty[af.id]=af;
+}
+function flushAFDefinitions(){
+  const slot=window._afDefinitionSave;
+  if(!slot||!afQueueSessionCurrent(slot)||!window._db||window._afStateReady===false||afQuotaPaused())return Promise.resolve(false);
+  if(slot.running)return slot.running;
+  const run=Promise.resolve().then(async()=>{
+    for(const af of Object.values(slot.dirty)){
+      if(!afQueueSessionCurrent(slot)||afQuotaPaused())return false;
+      // A removed definition must not be recreated by a delayed retry.
+      if(!(window.AUTOFLOWS||[]).includes(af)){delete slot.dirty[af.id];continue;}
+      const payload={...af,trainerId:slot.owner};delete payload._fbId;
+      const signature=JSON.stringify(payload),snapshot=JSON.parse(signature),docId=af._fbId||af.id;
+      try{
+        await window._setDoc(window._doc(window._db,'autoflows',docId),snapshot,{merge:true});
+        if(!afQueueSessionCurrent(slot))return false;
+        const current={...af,trainerId:slot.owner};delete current._fbId;
+        if(signature===JSON.stringify(current))delete slot.dirty[af.id];
+        af._fbId=docId;
+      }catch(e){
+        afPauseForQuota(e,slot);
+        console.warn('AF definition save:',e.code||e.message);
+        return false;
+      }
+    }
+    return true;
+  }).finally(()=>{if(slot.running===run)slot.running=null;});
+  slot.running=run;
+  return run;
+}
 
 function setAutoTab(t){
   autoTab=t;
@@ -3105,12 +3143,13 @@ function renderAutoflowLog(){
   const pending=Object.values(state.pending||{}).filter(Boolean);
   const failures=pending.filter(j=>j.status==='error'||['error','exhausted'].includes((state.serverStatus?.[j.id]||{}).status));
   const serverHtml=afServerHistoryHTML(state);
+  const quotaHtml=afQuotaStatusHTML();
   const queueHtml=pending.length?`<div style="padding:10px;border-bottom:1px solid var(--border);">Do zapisania: ${pending.length}. Błędy: ${failures.length}.<br><span style="color:var(--muted);">Ponawianie działa przy otwartej aplikacji, maksymalnie 5 prób. Wstrzymane automatyzacje czekają na włączenie.</span>${failures.length?'<br><button type="button" class="btn btn-ghost btn-sm" onclick="retryAutoflowFailures()">Ponów nieudane zapisy</button>':''}</div>`:'';
   if(!logs.length){
-    el.innerHTML=queueHtml+'<div style="text-align:center;padding:12px;">'+(serverHtml?'Brak wpisów wykonania w otwartej aplikacji.':'Brak potwierdzonych operacji. Włącz automatyzację lub kliknij „Sprawdź teraz”.')+'</div>'+serverHtml;
+    el.innerHTML=quotaHtml+queueHtml+'<div style="text-align:center;padding:12px;">'+(serverHtml?'Brak wpisów wykonania w otwartej aplikacji.':'Brak potwierdzonych operacji. Włącz automatyzację lub kliknij „Sprawdź teraz”.')+'</div>'+serverHtml;
     return;
   }
-  el.innerHTML=queueHtml+logs.slice(0,20).map(l=>`<div style="display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);">
+  el.innerHTML=quotaHtml+queueHtml+logs.slice(0,20).map(l=>`<div style="display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);">
     <span>${escHtml(l.client||'')} — ${escHtml(l.af||'')} · ${escHtml(l.text||'')}</span>
     <span style="font-family:'DM Mono',monospace;font-size:10px;">${escHtml((l.at||'').slice(0,16).replace('T',' '))}</span>
   </div>`).join('')+serverHtml;
@@ -3215,7 +3254,92 @@ function ensureAfState(){
   if(!s.lastFired)s.lastFired={};
   if(!s.logs)s.logs=[];
   if(!s.pending)s.pending={};
+  afRestorePending(s);
   return s;
+}
+
+// Keep quota recovery outside Firestore: even saving an error can exhaust quota again.
+function afQueueSession(){
+  return {owner:window._uid,generation:window.tenantSessionGeneration||0,state:window.AF_STATE};
+}
+function afQueueSessionCurrent(s){
+  return !!s&&!!s.owner&&s.owner===window._uid&&s.generation===(window.tenantSessionGeneration||0)
+    &&s.state===window.AF_STATE&&!window._clientAppMode&&!window._clientPreviewMode;
+}
+function afQuotaStorageKey(owner){return 'pl_progress_live_af_quota_v1:'+encodeURIComponent(owner||'');}
+function afQuotaPauseUntil(owner=window._uid){
+  if(!owner)return 0;
+  const memory=window._afQuotaUntil||(window._afQuotaUntil={});
+  let until=Number(memory[owner])||0;
+  try{
+    const stored=Number(window.localStorage.getItem(afQuotaStorageKey(owner)));
+    if(Number.isFinite(stored)&&stored>until)until=stored;
+  }catch(e){}
+  memory[owner]=until;
+  return until;
+}
+function afQuotaPaused(){return afQuotaPauseUntil()>Date.now();}
+function afIsQuotaError(e){return /^(firestore\/)?resource-exhausted$/.test(String(e&&e.code||''));}
+function afQuotaBlockedError(){const e=new Error('autoflow-quota-paused');e.code='autoflow-quota-paused';return e;}
+function afPauseForQuota(e,session){
+  if(!afIsQuotaError(e)||!afQueueSessionCurrent(session))return false;
+  const until=Math.max(afQuotaPauseUntil(session.owner),Date.now()+15*60000);
+  window._afQuotaUntil[session.owner]=until;
+  try{window.localStorage.setItem(afQuotaStorageKey(session.owner),String(until));}catch(ignore){}
+  try{renderAutoflowLog();}catch(ignore){}
+  return true;
+}
+function afQuotaMessage(){
+  return 'Automatyzacje wstrzymane przez limit bazy. Kolejna próba po '+new Date(afQuotaPauseUntil()).toLocaleTimeString('pl',{hour:'2-digit',minute:'2-digit'})+' przy otwartej aplikacji. Zadania oczekują; nie oznaczono ich jako wykonane.';
+}
+function afPendingStoragePrefix(owner){return 'pl_progress_live_af_pending_v1:'+encodeURIComponent(owner||'')+':';}
+function afRememberPending(job,owner=window._uid){
+  if(!job||!owner||job.owner!==owner)return;
+  try{window.localStorage.setItem(afPendingStoragePrefix(owner)+encodeURIComponent(job.id),JSON.stringify(job));}
+  catch(e){window._afPendingStorageFailed=true;}
+}
+function afForgetPending(id,owner){
+  try{window.localStorage.removeItem(afPendingStoragePrefix(owner)+encodeURIComponent(id));}catch(e){}
+}
+function afRestorePending(state){
+  const owner=window._uid;
+  if(!owner||window._clientAppMode||window._clientPreviewMode||window._afStateReady===false||window._afOutboxRestoredState===state)return;
+  window._afOutboxRestoredState=state;
+  try{
+    const storage=window.localStorage,prefix=afPendingStoragePrefix(owner),keys=[];
+    for(let i=0;i<storage.length;i++){const key=storage.key(i);if(key&&key.startsWith(prefix))keys.push(key);}
+    keys.forEach(key=>{
+      try{
+        const job=JSON.parse(storage.getItem(key));
+        if(!job||job.owner!==owner||!job.id||!job.step||!job.afId||!job.clientId||!Number.isInteger(job.si)||job.si<0)return;
+        const expected='af_'+encodeURIComponent(JSON.stringify([owner,job.afId,job.clientId,job.oneShot?String(job.si):job.mark]));
+        if(job.id!==expected||key!==prefix+encodeURIComponent(job.id))return;
+        // Server receipts and null tombstones always win over an older browser copy.
+        const done=state.executed?.[job.afId]?.[job.clientId]||{};
+        if(state.afReceipts?.[job.id]||state.pending[job.id]===null||done[job.mark]||(job.oneShot&&done[job.si])){storage.removeItem(key);return;}
+        if(!Object.prototype.hasOwnProperty.call(state.pending,job.id))state.pending[job.id]=job;
+      }catch(e){}
+    });
+  }catch(e){window._afPendingStorageFailed=true;}
+}
+function afQuotaStatusHTML(){
+  if(!afQuotaPaused())return '';
+  return '<div role="status" aria-live="polite" style="padding:12px;margin-bottom:12px;border:1px solid var(--border);border-radius:8px;">'+escHtml(afQuotaMessage())
+    +(window._afPendingStorageFailed?'<br>Nie udało się zachować kopii na tym urządzeniu. Pozostaw tę kartę otwartą.':'')+'</div>';
+}
+function afWithQueueLock(owner,callback){
+  // Web Locks coordinates tabs of this origin; receipts remain the final deduplication guard.
+  if(window.navigator?.locks?.request)return window.navigator.locks.request('progress-live-autoflow:'+owner,{ifAvailable:true},lock=>lock?callback():false);
+  return callback();
+}
+if(!window._afQuotaStorageListener&&typeof window.addEventListener==='function'){
+  window._afQuotaStorageListener=true;
+  window.addEventListener('storage',event=>{
+    if(window._uid&&event.key===afQuotaStorageKey(window._uid)){
+      afQuotaPauseUntil();
+      try{renderAutoflowLog();}catch(e){}
+    }
+  });
 }
 
 function afClientsFor(af){
@@ -3462,7 +3586,7 @@ function runAutoflowsCheck(showToast){
   if(changed)saveAutomationState();
   renderAutoflows();
   renderAutoflowLog();
-  if(showToast)notify(ran?('Dodano do kolejki: '+ran+' krok(ów). Wynik znajdziesz w historii.'): 'Sprawdzono kolejkę. Wyniki i błędy znajdziesz w historii.');
+  if(showToast)notify(afQuotaPaused()?afQuotaMessage():ran?('Dodano do kolejki: '+ran+' krok(ów). Wynik znajdziesz w historii.'): 'Sprawdzono kolejkę. Wyniki i błędy znajdziesz w historii.');
 }
 
 function queueAFStep(step,c,af,mark,si,oneShot){
@@ -3474,32 +3598,42 @@ function queueAFStep(step,c,af,mark,si,oneShot){
   if((oneShot||['inactivity','session_today'].includes(af.trigger))&&Object.values(state.pending).some(j=>j&&j.afId===af.id&&j.clientId===c.id&&j.si===si))return false;
   state.pending[id]={id,owner:window._uid,afId:af.id,clientId:c.id,afDocId:af._fbId||af.id,clientDocId:c._fbId||c.id,mark,si,oneShot:!!oneShot,
     step:JSON.parse(JSON.stringify(step)),createdAt:new Date().toISOString(),attempts:0,nextRetry:0,status:'pending'};
+  afRememberPending(state.pending[id]);
   drainAFQueue();
   return true;
 }
 
 function drainAFQueue(){
+  if(afQuotaPaused())return Promise.resolve(false);
   if(window._afRetryRunning)return window._afRetryRunning;
   if(window._afQueueRunning)return window._afQueueRunning;
   // Defer until event scanners finish updating their deduplication markers.
   const owner=window._uid;
   if(!owner||window._clientAppMode||window._afStateReady===false)return Promise.resolve();
   const state=ensureAfState();
-  const run=Promise.resolve().then(async()=>{
+  const session=afQueueSession();
+  const run=Promise.resolve().then(()=>afWithQueueLock(owner,async()=>{
+    if(!afQueueSessionCurrent(session)||afQuotaPaused())return false;
+    if(typeof flushAFDefinitions==='function')await flushAFDefinitions();
+    let processed=0;
     for(const job of Object.values(state.pending)){
       if(!job||job.owner!==owner||job.attempts>=5||job.nextRetry>Date.now())continue;
-      if(window._uid!==owner||window.AF_STATE!==state)break;
+      if(!afQueueSessionCurrent(session)||afQuotaPaused()||processed>=5)break;
       const af=(window.AUTOFLOWS||[]).find(x=>x.id===job.afId);
       const c=(window.CL||[]).find(x=>x.id===job.clientId);
       if(!af||af.status!=='active'||!c||c.status==='archived'||!afClientsFor(af).some(x=>x.id===c.id))continue;
-      job.attempts++;job.status='pending';
+      const previousAttempts=job.attempts;
+      let confirmed=false;
+      processed++;job.status='pending';
       try{
         // Persist intent before applying any client-visible effect.
         await saveAutomationState(true);
-        if(window._uid!==owner||window.AF_STATE!==state)break;
+        if(!afQueueSessionCurrent(session))break;
+        if(afQuotaPaused())throw afQuotaBlockedError();
         if(af.status!=='active'||c.status==='archived'||!afClientsFor(af).some(x=>x.id===c.id))continue;
         const result=await execAFStep(job.step,c,af,job);
-        if(window._uid!==owner||window.AF_STATE!==state)break;
+        if(!afQueueSessionCurrent(session))break;
+        confirmed=true;
         state.executed[af.id]=state.executed[af.id]||{};
         state.executed[af.id][c.id]=state.executed[af.id][c.id]||{};
         state.executed[af.id][c.id][job.mark]=true;
@@ -3508,11 +3642,21 @@ function drainAFQueue(){
         state.lastFired[af.id][c.id]=state.lastFired[af.id][c.id]||{};
         state.lastFired[af.id][c.id][job.si]=new Date().toISOString().slice(0,10);
         state.pending[job.id]=null;
+        afForgetPending(job.id,owner);
         logAF(af,c,result?'Zapisano: '+(job.step.text||''):'Potwierdzono wcześniejszy zapis');
         await saveAutomationState(true);
       }catch(e){
-        if(window._uid!==owner||window.AF_STATE!==state)break;
-        job.status='error';
+        if(!afQueueSessionCurrent(session))break;
+        if(afPauseForQuota(e,session)||e.code==='autoflow-quota-paused'||afQuotaPaused()){
+          if(!confirmed){
+            job.attempts=previousAttempts;job.status='pending';
+            job.nextRetry=afQuotaPauseUntil(owner);job.errorCode='autoflow-quota';
+            job.error='Oczekuje na wznowienie po limicie bazy.';
+            afRememberPending(job,owner);
+          }
+          break;
+        }
+        job.attempts=previousAttempts+1;job.status='error';
         job.nextRetry=Date.now()+Math.min(3600000,60000*Math.pow(2,job.attempts-1));
         const reasons={
           'autoflow-paused':'Automatyzacja jest wstrzymana.',
@@ -3528,11 +3672,15 @@ function drainAFQueue(){
         job.errorCode=reasons[e.message]?e.message:'autoflow-save-failed';
         job.error=reasons[e.message]||'Nie potwierdzono zapisu. Sprawdź połączenie i uprawnienia.';
         state.pending[job.id]=job;
+        afRememberPending(job,owner);
         logAF(af,c,job.error+' Próba '+job.attempts+'/5');
         await saveAutomationState(false);
       }
     }
-  }).finally(()=>{
+    // A committed effect may have been followed by a quota failure while saving its log.
+    // Flush that dirty state after the pause even when there are no jobs left to execute.
+    if(afQueueSessionCurrent(session)&&!afQuotaPaused()&&window._afStateSave?.state===state)await saveAutomationState(false);
+  })).finally(()=>{
     if(window._afQueueRunning===run)window._afQueueRunning=null;
     try{renderAutoflows();renderAutoflowLog();}catch(e){}
   });
@@ -3541,12 +3689,14 @@ function drainAFQueue(){
 }
 
 function retryAutoflowFailures(){
+  if(afQuotaPaused()){notify(afQuotaMessage());renderAutoflowLog();return Promise.resolve(false);}
   if(window._afRetryRunning)return window._afRetryRunning;
   const owner=window._uid,state=ensureAfState(),activeRun=window._afQueueRunning;
   if(!owner||window._clientAppMode||window._afStateReady===false)return Promise.resolve(false);
+  const session=afQueueSession();
   const run=Promise.resolve().then(async()=>{
     if(activeRun)await activeRun;
-    if(window._uid!==owner||window.AF_STATE!==state||window._clientAppMode)return false;
+    if(!afQueueSessionCurrent(session)||afQuotaPaused())return false;
     let changed=false;
     Object.values(state.pending).forEach(job=>{
       if(!job||job.owner!==owner)return;
@@ -3554,10 +3704,11 @@ function retryAutoflowFailures(){
       if(job.status!=='error'&&!serverFailed)return;
       job.attempts=0;job.nextRetry=0;changed=true;
       if(serverFailed)job.retryRequestId=typeof newId==='function'?newId('afr'):'afr_'+Date.now().toString(36)+Math.random().toString(36).slice(2);
+      afRememberPending(job,owner);
     });
     // Persist the retry generation even when this browser cannot run a paused step.
     if(changed&&!await saveAutomationState(false))return false;
-    if(window._uid!==owner||window.AF_STATE!==state||window._clientAppMode)return false;
+    if(!afQueueSessionCurrent(session)||afQuotaPaused())return false;
     if(window._afRetryRunning===run)window._afRetryRunning=null;
     return drainAFQueue();
   }).finally(()=>{
@@ -3577,8 +3728,10 @@ function afStepMatches(a,b){
 }
 
 async function execAFStep(step,c,af,job){
+  if(afQuotaPaused())throw afQuotaBlockedError();
   if(!job||job.owner!==window._uid||window._clientAppMode||window._afStateReady===false||!window._db||typeof window._runTransaction!=='function')throw new Error('autoflow-unavailable');
   const owner=job.owner;
+  const session=afQueueSession();
   const stateRef=window._doc(window._db,'automationState',window._afStateDocId||owner);
   const text=(step.text||'').replace(/\{imie\}/g,(c.name||'').split(' ')[0]);
   const now=new Date(job.createdAt);
@@ -3597,6 +3750,8 @@ async function execAFStep(step,c,af,job){
   }else preparationError='autoflow-step-unsupported';
   // The receipt and all effects commit together. Never rewrite a task or answered form on retry.
   const written=await window._runTransaction(window._db,async tx=>{
+    if(!afQueueSessionCurrent(session))throw new Error('autoflow-session-expired');
+    if(afQuotaPaused())throw afQuotaBlockedError();
     const snap=await tx.get(stateRef);
     const remote=snap.exists()?snap.data():{};
     if(remote.trainerId!==owner)throw new Error('autoflow-owner');
@@ -3625,11 +3780,13 @@ async function execAFStep(step,c,af,job){
       const existing=await tx.get(window._doc(window._db,record.collection,record.data.id));
       if(existing.exists())throw new Error('autoflow-collision');
     }
+    if(!afQueueSessionCurrent(session))throw new Error('autoflow-session-expired');
+    if(afQuotaPaused())throw afQuotaBlockedError();
     records.forEach(r=>tx.set(window._doc(window._db,r.collection,r.data.id),r.data));
     tx.set(stateRef,{afReceipts:{[job.id]:job.createdAt},pending:{[job.id]:null}},{merge:true});
     return true;
-  });
-  if(written&&window._uid===owner){
+  },{maxAttempts:1});
+  if(written&&afQueueSessionCurrent(session)){
     records.forEach(r=>{
       let list;
       if(r.collection==='messages'){
@@ -3646,17 +3803,40 @@ function saveAutomationState(strict){
   if(!window._db||!window._uid||window._clientAppMode||window._afStateReady===false){
     return strict?Promise.reject(new Error('autoflow-offline')):Promise.resolve(false);
   }
-  withTrainer(window.AF_STATE);
-  const payload={...window.AF_STATE};
-  delete payload._fbId;
-  // Only the effect transaction may write receipts; stale tabs must not erase them.
-  delete payload.afReceipts;
-  // Server-written outcomes remain authoritative when an older browser saves its queue.
-  delete payload.serverStatus;
-  const docId=window._afStateDocId||window._uid;
-  window._afStateDocId=docId;
-  return window._setDoc(window._doc(window._db,'automationState',docId),payload,{merge:true}).then(()=>true).catch(e=>{
-    console.warn('AF state save:',e);
+  const session=afQueueSession();
+  Object.values(session.state?.pending||{}).forEach(job=>afRememberPending(job,session.owner));
+  const persist=async()=>{
+    if(!afQueueSessionCurrent(session))throw new Error('autoflow-session-expired');
+    if(afQuotaPaused())throw afQuotaBlockedError();
+    let slot=window._afStateSave;
+    if(!slot||slot.state!==session.state||slot.owner!==session.owner||slot.generation!==session.generation){
+      slot={...session,running:null,saved:null};window._afStateSave=slot;
+    }
+    // Coalesce scanner writes; strict callers still wait for their current intent to be confirmed.
+    if(slot.running){await slot.running;return persist();}
+    withTrainer(session.state);
+    const payload={...session.state};
+    delete payload._fbId;
+    delete payload.afReceipts;
+    delete payload.serverStatus;
+    const signature=JSON.stringify(payload),snapshot=JSON.parse(signature);
+    if(slot.saved===signature)return true;
+    const docId=window._afStateDocId||session.owner;
+    window._afStateDocId=docId;
+    const write=Promise.resolve().then(async()=>{
+      if(!afQueueSessionCurrent(session))throw new Error('autoflow-session-expired');
+      if(afQuotaPaused())throw afQuotaBlockedError();
+      await window._setDoc(window._doc(window._db,'automationState',docId),snapshot,{merge:true});
+      if(!afQueueSessionCurrent(session))throw new Error('autoflow-session-expired');
+      slot.saved=signature;
+      return true;
+    });
+    slot.running=write;
+    try{return await write;}finally{if(slot.running===write)slot.running=null;}
+  };
+  return persist().catch(e=>{
+    afPauseForQuota(e,session);
+    if(e.code!=='autoflow-quota-paused')console.warn('AF state save:',e.code||e.message);
     if(strict)throw e;
     return false;
   });

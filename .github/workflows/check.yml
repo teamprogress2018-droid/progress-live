@@ -42,6 +42,10 @@ jobs:
           node .github/scripts/test_tenant_loader.js
           node .github/scripts/test_client_tenant_access.js
           node .github/scripts/test_client_confirmed_writes.js
+          node .github/scripts/test_trainer_checkin_confirmed_writes.js
+          node .github/scripts/test_trainer_plan_confirmed_writes.js
+          node .github/scripts/test_calendar_refill.js
+          node .github/scripts/test_builder_calendar_confirmed.js
           node .github/scripts/test_client_sala_write.js
           node .github/scripts/test_forum_reaction_persistence.js
           node .github/scripts/test_client_checkin_permissions.js
@@ -304,6 +308,8 @@ jobs:
         run: node .github/scripts/test_inbox_kinds.js
       - name: 1n14c. Testy Autoflow na zdarzeniach (pakiet / check-in)
         run: node .github/scripts/test_autoflow_events.js
+      - name: 1n14d. Testy przerwy automatyzacji po limicie bazy
+        run: node .github/scripts/test_autoflow_quota_pause.js
 
       - name: 1n15. Testy follow-upu nawyków / wyzwań (dashboard)
         run: node .github/scripts/test_dash_habits_followup.js
@@ -545,7 +551,10 @@ jobs:
           node .github/scripts/test_live_readable_ui.js
       - name: 6b3c2b. Testy UI bramy pakietu (Trial / Gość)
         if: ${{ !cancelled() }}
-        run: node .github/scripts/test_pkg_gate_ui.js
+        run: |
+          node .github/scripts/test_pkg_gate_ui.js
+          node .github/scripts/test_calendar_refill_ui.js
+          node .github/scripts/test_builder_calendar_confirmed_ui.js
       - name: 6b3c2b1. Testy UI bazy wiedzy (notatki + badania)
         if: ${{ !cancelled() }}
         run: node .github/scripts/test_kb_notes_evidence_ui.js

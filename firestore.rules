@@ -169,7 +169,14 @@ service cloud.firestore {
         && resource.data.status in ['sent', 'pending'] && request.resource.data.status == 'filled'
         && request.resource.data.answers is map && request.resource.data.filledAt is string;
     }
+    // Trainer transactions may check whether their new plan ID is unused.
+    // Existing documents still use the normal owner checks.
+    match /plans/{docId} {
+      allow get: if trainer() && !exists(/databases/$(database)/documents/plans/$(docId));
+    }
     match /checkins/{docId} {
+      // A trainer transaction may inspect a new ID; existing records still require ownership.
+      allow get: if trainer() && !exists(/databases/$(database)/documents/checkins/$(docId));
       allow create: if ownClient(request.resource.data)
         && request.resource.data.keys().hasOnly(['id', 'trainerId', 'clientId', 'date', 'status', 'score', 'answers', 'createdAt', 'filledBy', 'filledAt'])
         && request.resource.data.id == docId && request.resource.data.status in ['pending', 'filled']
@@ -217,6 +224,9 @@ service cloud.firestore {
         && data.feedback is number && data.feedback >= 1 && data.feedback <= 5 && data.duration > 0;
     }
     match /sessions/{docId} {
+      // A trainer may inspect a new deterministic calendar ID before an atomic create.
+      // Existing documents still require the normal owner or linked-client permission.
+      allow get: if trainer() && resource == null;
       allow create: if request.resource.data.id == docId && clientSession(request.resource.data)
         && ((request.resource.data.source == 'client'
             && ownClient(get(/databases/$(database)/documents/plans/$(request.resource.data.planId)).data))

@@ -30,9 +30,11 @@ const changed={...base,days:[{...base.days[0],exercises:[{...base.days[0].exerci
 ok('rename preserves rationale basis',ctx.changed&&ctx.changed(base,unchanged)===false);
 ok('exercise edit invalidates rationale basis',ctx.changed&&ctx.changed(base,changed)===true);
 ok('program change invalidates rationale basis',ctx.changed&&ctx.changed(base,{...base,progression:'linear'})===true);
-ok('saved edits clear stale rationale',/if\(builderPlanRationaleChanged\(PL\[idx\],updated\)\)updated\.rationale=null/.test(src));
-ok('manual edit keeps existing rationale when content unchanged',/const updated=\{\.\.\.PL\[idx\],name,method:/.test(src)&&/PL\[idx\]=updated/.test(src));
-ok('builder cache bumped',html.includes('05-clients-builder-plans-calendar.js?v=82'));
+ok('saved edits clear stale rationale',/if\(prev&&prev\.rationale&&builderPlanRationaleChanged\(prev,candidate\)\)candidate\.rationale=null/.test(src));
+ok('manual edit keeps existing rationale when content unchanged',/builderPlanClone\(prev\)/.test(src)&&/candidate\.rationale=null/.test(src));
+ok('confirmed plan save kept',src.includes('persistBuilderPlan(candidate,state.base,state.session)')&&src.includes('builderRetryCalendar(state)'));
+ok('builder cache bumped',html.includes('05-clients-builder-plans-calendar.js?v=82&journey=1&plan-save=1&calendar-fill=2'));
+ok('profile and calendar scripts',html.includes('08-client-profile-extras.js?v=87&ui=2&journey=2&checkin-chronology=1&calendar-fill=1')&&html.includes('calendar-refill.js?v=2'));
 ok('CI runs regression test',wf.includes('test_plan_rationale_invalidation.js'));
 
 if(failed){console.error(failed+' failed');process.exit(1);}

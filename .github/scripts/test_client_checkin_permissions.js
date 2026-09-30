@@ -35,7 +35,7 @@ function setup(clientMode){
       writes.push({collection,record:JSON.parse(JSON.stringify(record))});return record;
     }};
   ctx.window=ctx;vm.createContext(ctx);
-  for(const name of ['ensureCheckins','persistCheckin','pendingCheckin','filledThisWeek','checkinChatText','ensurePendingCheckin','clientEligibleForWeeklyCheckin','needsWeeklyCheckin','maybeSendCheckinAfterSession'])vm.runInContext(extract(name),ctx);
+  for(const name of ['ensureCheckins','persistCheckin','checkinActivityTime','checkinActivityDate','sortedCheckins','latestFilledCheckin','pendingCheckin','filledThisWeek','checkinRecordAgeDays','checkinChatText','ensurePendingCheckin','clientEligibleForWeeklyCheckin','needsWeeklyCheckin','maybeSendCheckinAfterSession'])vm.runInContext(extract(name),ctx);
   return {ctx,writes,trainerMessages,notifications};
 }
 (async()=>{

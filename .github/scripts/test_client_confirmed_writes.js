@@ -22,7 +22,7 @@ function portalFunction(name){
   const exportAt=portalSource.indexOf('\nwindow.',at);if(exportAt>=0&&exportAt<end)end=exportAt;
   return portalSource.slice(start,end);
 }
-const checkinHelpers=['ensureCheckins','persistCheckin','pendingCheckin','filledThisWeek','scoreCheckinAnswers','checkinChatText','ensurePendingCheckin','clientEligibleForWeeklyCheckin','needsWeeklyCheckin','maybeSendCheckinAfterSession'].map(portalFunction).join('\n');
+const checkinHelpers=['ensureCheckins','persistCheckin','checkinActivityTime','checkinActivityDate','sortedCheckins','latestFilledCheckin','pendingCheckin','filledThisWeek','checkinRecordAgeDays','scoreCheckinAnswers','checkinChatText','ensurePendingCheckin','clientEligibleForWeeklyCheckin','needsWeeklyCheckin','maybeSendCheckinAfterSession'].map(portalFunction).join('\n');
 const clone=x=>JSON.parse(JSON.stringify(x));
 function deferred(){let resolve;const promise=new Promise(r=>{resolve=r;});return {promise,resolve};}
 function harness(options={}){
