@@ -37,6 +37,7 @@ ok('progress has one photo summary link without duplicate thumbnails',/cp-photo-
 ok('training charts kept',/Tonaż tygodniowy/.test(progressFn)&&/Rekordy z treningów/.test(progressFn));
 ok('photo summary opens the main compare tab',/setCPTab\('photos'\)/.test(progressFn));
 ok('chip css',css.includes('.cp-analytics-chip')&&css.includes('.cp-analytics-chips'));
+ok('empty progress cards drop the red accent',css.includes('#cp-body .cp-progress-empty::after')&&css.includes('.stat-card.cp-progress-quiet::after'));
 ok('pct bar chart',src08.includes('function cpPctBarChart'));
 ok('client app adherence',/Adherencja 30d/.test(src04)&&/cpHabitAdherenceWeekly/.test(src04));
 
@@ -103,7 +104,7 @@ ok('habit weeks',hw.length===4&&hw.some(w=>w.due>0));
 const svg=sandbox.cpPctBarChart([{l:'T1',pct:50},{l:'T2',pct:80}]);
 ok('pct svg',/cp-chart-svg/.test(svg)&&/50%/.test(svg));
 
-ok('cache bumps',html.includes('08-client-profile-extras.js?v=87')&&html.includes('04-client-portal.js?v=55')&&html.includes('styles.css?v=118'));
+ok('cache bumps',html.includes('08-client-profile-extras.js?v=88')&&html.includes('04-client-portal.js?v=55')&&html.includes('styles.css?v=119'));
 
 if(failed){console.error('\n'+failed+' failed');process.exit(1);}
 console.log('\nAll cp-analytics-panel tests passed');

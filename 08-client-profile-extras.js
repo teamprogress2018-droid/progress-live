@@ -4179,7 +4179,8 @@ function setCPProgressPanel(panel){
   document.querySelectorAll('#cp-body [data-cp-panel]').forEach(el=>{
     const id=el.getAttribute('data-cp-panel');
     const belongs=allowed.includes(id)||id==='kpi';
-    const show=belongs&&(p==='all'||id==='kpi'||id===p);
+    const hideOnSummary=p==='all'&&el.getAttribute('data-cp-summary-hide')==='empty';
+    const show=belongs&&(p==='all'||id==='kpi'||id===p)&&!hideOnSummary;
     el.classList.toggle('cp-panel-hidden',!show);
   });
   document.querySelectorAll('#cp-body [data-cp-panel-chip]').forEach(btn=>{
@@ -4450,7 +4451,7 @@ function renderCPProgress(c){
 
 `:`<div data-cp-panel="train" class="stat-card cp-progress-empty"><strong>Brak zapisanych treningów</strong><p>Zakończ pierwszy trening, aby zobaczyć wyniki i wskazówki progresji.</p><button type="button" class="btn btn-primary btn-sm" onclick="cpStartLive()">Rozpocznij trening</button></div>`}
     <div data-cp-panel="body" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
-      <div class="stat-card">
+      <div class="stat-card${lastM?'':' cp-progress-quiet'}">
         <div class="stat-card-hdr">
           <div>
             <div class="stat-card-title">⚖️ Masa / skład ciała</div>
@@ -4478,7 +4479,7 @@ function renderCPProgress(c){
         :`<div style="font-size:12px;color:var(--muted);">Brak pomiarów — dodaj w <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('metrics')">Pomiary</button></div>`}
       </div>
 
-      <div class="stat-card">
+      <div class="stat-card${lastC?'':' cp-progress-quiet'}">
         <div class="stat-card-hdr">
           <div>
             <div class="stat-card-title">📏 Obwody ciała</div>
@@ -4531,8 +4532,8 @@ function renderCPProgress(c){
     ${logged.length&&typeof cpNextSessionBriefHtml==='function'?cpNextSessionBriefHtml(c.id):''}
     ${logged.length&&typeof cpExerciseProgressPanelHtml==='function'?cpExerciseProgressPanelHtml(c.id):''}
 
-    <div data-cp-panel="checkin" style="display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:14px;">
-      <div class="stat-card">
+    <div data-cp-panel="checkin"${ciPts.length?'':' data-cp-summary-hide="empty"'} style="display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:14px;">
+      <div class="stat-card${ciPts.length?'':' cp-progress-quiet'}">
         <div class="stat-card-hdr">
           <div>
             <div class="stat-card-title">📝 Samopoczucie (check-in)</div>
@@ -4545,8 +4546,8 @@ function renderCPProgress(c){
       </div>
     </div>
 
-    <div data-cp-panel="habits" style="display:grid;grid-template-columns:1.4fr 1fr;gap:14px;margin-bottom:14px;">
-      <div class="stat-card">
+    <div data-cp-panel="habits"${habits.length?'':' data-cp-summary-hide="empty"'} style="display:grid;grid-template-columns:1.4fr 1fr;gap:14px;margin-bottom:14px;">
+      <div class="stat-card${habits.length?'':' cp-progress-quiet'}">
         <div class="stat-card-hdr">
           <div>
             <div class="stat-card-title">✅ Regularność nawyków</div>
@@ -4557,7 +4558,7 @@ function renderCPProgress(c){
         ${habits.length?cpPctBarChart(habitWeeks,{color:'var(--teal)',h:120})
           :`<div style="font-size:12px;color:var(--muted);padding:16px 0;">Brak nawyków — dodaj w zakładce Zadania.</div>`}
       </div>
-      <div class="stat-card">
+      <div class="stat-card${habits.length?'':' cp-progress-quiet'}">
         <div class="stat-card-hdr">
           <div>
             <div class="stat-card-title">🔥 Dni z rzędu</div>
@@ -4576,16 +4577,16 @@ function renderCPProgress(c){
       </div>
     </div>
 
-    <div class="stat-card cp-photo-summary" style="margin-bottom:8px;">
+    ${photoCount?`<div class="stat-card cp-photo-summary" style="margin-bottom:8px;">
       <div class="stat-card-hdr">
         <div>
           <div class="stat-card-title">📷 Zdjęcia postępów</div>
-          <div class="stat-card-sub">${photoCount?photoCount+' zestawów do porównania':'Brak dodanych zdjęć'}</div>
+          <div class="stat-card-sub">${photoCount} zestawów do porównania</div>
         </div>
         <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('photos')">Otwórz porównanie →</button>
       </div>
-      <div style="font-size:11px;color:var(--muted);">${photoCount?'Dodawanie i porównywanie zdjęć znajduje się w jednym widoku.':'Dodaj zdjęcia przód / bok / tył w widoku zdjęć klienta.'}</div>
-    </div>
+      <div style="font-size:11px;color:var(--muted);">Dodawanie i porównywanie zdjęć znajduje się w jednym widoku.</div>
+    </div>`:`<div class="cp-photo-summary" style="margin-bottom:8px;font-size:12px;color:var(--muted);">Brak zdjęć. <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('photos')">Zdjęcia</button></div>`}
   `;
   setCPProgressPanel(panel);
 }
