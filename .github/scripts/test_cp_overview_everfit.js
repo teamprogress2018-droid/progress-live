@@ -35,7 +35,7 @@ ok('metric sparklines', overview.includes('cpOvSparkSVG') || /function\s+cpOvSpa
 ok('metrics link to progress', overview.includes("setCPTab('progress')") && overview.includes('Aktualizuj pomiary'));
 ok('notes rail', overview.includes("railCard('Notatka'"));
 ok('injuries rail', overview.includes('Ograniczenia'));
-ok('photos rail clickable', overview.includes('Zdjęcia postępu') && overview.includes("setCPTab('photos')"));
+ok('overview has one latest-photo preview and no duplicate photo rail', overview.includes('Aktualna sylwetka') && overview.includes('cp-ov-physique') && !overview.includes("railCard('Zdjęcia postępu'"));
 ok('pulse status', src.includes('cp-ov-pulse') && /function\s+cpClientPulseStatus/.test(src));
 ok('situation header', overview.includes('cpOverviewSituationHTML') && src.includes('cp-ov-situation') && src.includes('Wnioski'));
 ok('physique card', overview.includes('Aktualna sylwetka') && overview.includes('cp-ov-physique'));
@@ -43,7 +43,7 @@ ok('feel + garmin 7d', overview.includes('Samopoczucie (check-in)') && overview.
 ok('today strip', src.includes('cp-ov-today-row') && src.includes('Podgląd treningu'));
 ok('remind in overview', overview.includes("cpRemindClient('") && overview.includes('Przypomnij'));
 ok('no updates rail', !overview.includes('Aktualizacje') && !/function\s+cpOverviewUpdates/.test(src));
-ok('cache 08', html.includes('08-client-profile-extras.js?v=84'));
+ok('cache 08', html.includes('08-client-profile-extras.js?v=88'));
 ok('overview edit via header/profil', overview.includes("startCPEdit('${c.id}')") && !overview.includes('cp-ov-edit-cta'));
 ok('profil rail shows name', overview.includes('Imię i nazwisko'));
 ok('rail cards clickable not button spam', overview.includes('cp-ov-rail-card clickable') && !overview.includes('>Edytuj</button>'));

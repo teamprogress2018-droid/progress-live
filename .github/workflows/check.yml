@@ -342,6 +342,10 @@ jobs:
         run: node .github/scripts/test_nav_plan_entry.js
       - name: 1n27b1. Testy Edytuj plan z profilu klienta
         run: node .github/scripts/test_plan_edit_from_profile.js
+      - name: Unieważnianie nieaktualnego uzasadnienia planu
+        run: node .github/scripts/test_plan_rationale_invalidation.js
+      - name: Uporządkowanie nawigacji profilu klienta
+        run: node .github/scripts/test_cp_nav_terms.js
       - name: 1n27b1b. Testy startu Live z profilu klienta
         run: node .github/scripts/test_cp_start_live.js
       - name: 1n27b2. Testy biblioteki planów (filtry / tabela)

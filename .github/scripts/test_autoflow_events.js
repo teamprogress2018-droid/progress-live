@@ -214,7 +214,8 @@ ctx.scanAndEmitInactivity(new Date('2026-09-16T12:00:00.000Z'));
 await ctx.drainAFQueue();
 ok('idle 14 fires 21 waits', clientMsgs('c1').length === 1 && /14 dni/.test(clientMsgs('c1')[0].text), JSON.stringify(clientMsgs('c1')));
 
-const nowSess = new Date('2026-09-16T10:00:00.000Z');
+// Use local time because scheduled session times are parsed as local wall-clock time.
+const nowSess = new Date(2026, 8, 16, 10, 0, 0);
 const sessDay = nowSess.toISOString().split('T')[0];
 ctx.window.SETTINGS = { notifications: { sessionReminderTime: 60 } };
 ctx.window.AUTOFLOWS = [{

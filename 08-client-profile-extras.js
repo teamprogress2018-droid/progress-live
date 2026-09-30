@@ -283,8 +283,8 @@ function renderCPTimeline(c){
   const esc=typeof escHtml==='function'?escHtml:(s=>String(s??''));
   document.getElementById('cp-body').innerHTML=`
     <div class="cp-tl-wrap">
-      <div class="cp-section-title">Oś czasu</div>
-      <div class="cp-tl-filters" role="tablist" aria-label="Filtry osi czasu">
+      <div class="cp-section-title">Historia aktywności</div>
+      <div class="cp-tl-filters" role="tablist" aria-label="Filtry historii aktywności">
         ${CP_TL_FILTERS.map(f=>`<button type="button" class="cp-tl-filter${filter===f.id?' is-on':''}" data-tl-filter="${esc(f.id)}" onclick="setCpTlFilter('${esc(f.id)}')">${esc(f.label)}</button>`).join('')}
       </div>
       <div id="cp-timeline-list" class="cp-tl-list"></div>
@@ -3498,18 +3498,11 @@ function renderCPOverview(c){
   const hrSpark=metricsOn&&hrEntry?cpOvSparkSVG(cpMetricSeries(c.id,hrGroup,hrKey),'var(--teal)'):'';
   const sleepSpark=sleepSeries.length>=CP_OV_SLEEP_MIN?cpOvSparkSVG(sleepSeries,'var(--blue)',true):'';
 
-  const photos=photosOn&&typeof ppListFor==='function'?ppListFor(c.id).slice().reverse().slice(0,2):[];
   const pulse=typeof cpClientPulseStatus==='function'?cpClientPulseStatus(c.id):{tone:'good',label:'',hint:''};
   const physique=photosOn&&typeof cpLatestPhysique==='function'?cpLatestPhysique(c.id):null;
   const garmin7=metricsOn&&typeof cpGarminWeekAvg==='function'?cpGarminWeekAvg(c.id):{n:0};
   const lastCheck=(((window.CHECKINS&&window.CHECKINS[c.id])||[]).filter(x=>x&&x.status==='filled').sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')))[0])||null;
   const checkScore=lastCheck&&typeof scoreCheckinAnswers==='function'?scoreCheckinAnswers(lastCheck.answers):(lastCheck&&lastCheck.score)||null;
-  const poseSrc=(p,key)=>{
-    if(!p)return'';
-    const photosObj=p.photos||{};
-    return photosObj[key]||p[key]||'';
-  };
-
   const metricCard=(title,value,unit,delta,empty,spark)=>{
     const has=value!=null&&value!==''&&value!=='—';
     if(!has)return'';
@@ -3529,7 +3522,6 @@ function renderCPOverview(c){
   const hasPhysique=!!(photosOn&&physique&&(physique.front||physique.side||physique.back));
   const hasFeel=!!lastCheck;
   const hasGarmin=!!(garmin7&&garmin7.n);
-  const hasPhotos=!!(photos&&photos.length);
 
   const railCard=(title,body,onclick)=>{
     const click=onclick?` class="cp-ov-rail-card clickable" role="button" tabindex="0" onclick="${onclick}" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();${onclick}}"`:` class="cp-ov-rail-card"`;
@@ -3623,10 +3615,10 @@ function renderCPOverview(c){
           ${typeof cpOverviewHasApp==='function'&&cpOverviewHasApp(c)&&(logged&&logged.length)&&pulse.tone!=='good'?`<div style="margin-top:10px;position:relative;z-index:1;"><button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();cpRemindClient('${c.id}','workout')">Przypomnij o treningu</button></div>`:''}
         </div>
 
-        ${metricsOn&&metricsHtml?`<div class="cp-ov-card" id="cp-ov-card-metrics" style="cursor:pointer;" onclick="setCPTab('progress')">
+        ${metricsOn&&metricsHtml?`<div class="cp-ov-card" id="cp-ov-card-metrics" style="cursor:pointer;" onclick="setCPTab('metrics')">
           <div class="cp-ov-card-hd">
             <div class="cp-ov-card-title">Pomiary ciała</div>
-            <span style="font-size:12px;color:var(--text-secondary);">Wyniki →</span>
+            <span style="font-size:12px;color:var(--text-secondary);">Pomiary →</span>
           </div>
           <div class="cp-ov-metrics-grid" onclick="event.stopPropagation()">${metricsHtml}</div>
           <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;" onclick="event.stopPropagation()">
@@ -3651,7 +3643,7 @@ function renderCPOverview(c){
         ${hasFeel||hasGarmin?`<div class="cp-ov-card" id="cp-ov-card-feel">
           <div class="cp-ov-card-hd">
             <div class="cp-ov-card-title">${hasFeel?'Samopoczucie (check-in)':'Garmin'}</div>
-            <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('progress')">Wyniki →</button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('progress')">Postępy →</button>
           </div>
           <div class="cp-ov-feel-grid">
             ${hasFeel?`<div>
@@ -3694,14 +3686,6 @@ function renderCPOverview(c){
             <textarea id="note-text-${c.id}" class="cp-ov-note-input" rows="2" placeholder="Dodaj notatkę…"></textarea>
             <button type="button" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();saveClientNote('${c.id}')">Zapisz</button>
           </div>`)}
-
-        ${hasPhotos?railCard('Zdjęcia postępu',
-          `<div class="cp-ov-photos">${photos.map(p=>{
-            const src=poseSrc(p,'front')||poseSrc(p,'side')||poseSrc(p,'back')||'';
-            return `<div class="cp-ov-photo">${src?`<img src="${escHtml(src)}" alt="">`:`<span>📷</span>`}<div class="cp-ov-photo-d">${escHtml(typeof cpOverviewDateLabel==='function'?cpOverviewDateLabel(p.date):p.date||'')}</div></div>`;
-          }).join('')}</div>
-          <div class="cp-ov-rail-hint">Wszystkie zdjęcia w zakładce Zdjęcia</div>`,
-          `setCPTab('photos')`):''}
 
         ${cpOverviewMissingHTML(c)}
       </aside>
@@ -3872,11 +3856,11 @@ function renderCPMetrics(c){
       <div class="cp-metrics-actions">
         <button type="button" class="btn btn-primary btn-sm" onclick="openMetricEntryForClient('${c.id}','${activeGid}')">+ Dodaj pomiar</button>
         <button type="button" class="btn btn-ghost btn-sm" onclick="typeof openClientBaselineModal==='function'&&openClientBaselineModal('${c.id}')">Pomiary początkowe</button>
-        <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('progress')">📈 Wyniki treningowe</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('progress')">📈 Postępy</button>
       </div>
     </div>
 
-    ${activeGroup?`<div class="card-sm" style="margin-bottom:12px;">
+    ${activeGroup&&last?`<div class="card-sm" style="margin-bottom:12px;">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
         <span style="font-size:20px;">${activeGroup.icon}</span>
         <div>
@@ -3900,7 +3884,7 @@ function renderCPMetrics(c){
             ${diff!=null?`<div style="font-size:10px;color:${color};">${parseFloat(diff)>0?'+':''}${diff}</div>`:''}
           </div>`;
         }).join('')}
-      </div>`:`<div style="font-size:12px;color:var(--muted);padding:8px 0;">${activeGroup.id==='mg2'?'Brak obwodów centymetrem — dodaj szyję, klatkę, talię, biodra, ramiona, uda i łydki.':'Brak pomiarów w tej grupie — dodaj pierwszy.'}</div>`}
+      </div>`:`<div style="font-size:12px;color:var(--muted);padding:8px 0;">${activeGroup.id==='mg2'?'Brak obwodów centymetrem — dodaj szyję, klatkę, talię, biodra, ramiona, uda i łydki.':''}</div>`}
     </div>`:''}
 
     <div style="margin-top:8px;">
@@ -3909,7 +3893,7 @@ function renderCPMetrics(c){
         <span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${geAll.length} wpisów</span>
       </div>
       ${!geAll.length
-        ?`<div style="text-align:center;padding:24px;color:var(--muted);font-size:12px;">Brak historii. Dodaj pierwszy pomiar przyciskiem u góry.</div>`
+        ?`<div style="text-align:center;padding:24px;color:var(--muted);font-size:12px;">Brak pomiarów w tej kategorii. Dodaj pierwszy przyciskiem „+ Dodaj pomiar” powyżej.</div>`
         :`<div style="display:flex;flex-direction:column;gap:6px;">
           ${geAll.map(e=>{
             const vals=(activeGroup.metrics||[]).map(m=>e.values[m.id]!=null?`<span style="font-size:11px;"><span style="color:var(--muted);">${escHtml(m.name)}:</span> <strong>${e.values[m.id]}</strong>${m.unit?' '+escHtml(m.unit):''}</span>`:'').filter(Boolean).join(' · ');
@@ -3928,7 +3912,7 @@ function renderCPMetrics(c){
         </div>`}
     </div>
     <div class="cp-crosslink-note">
-      Rekordy, tonaż i regularność treningów są w zakładce <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('progress')">Wyniki</button>
+      Rekordy, tonaż i regularność treningów są w zakładce <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('progress')">Postępy</button>
     </div>`;
 }
 function setCPMetricGroup(clientId,groupId){
@@ -4195,7 +4179,8 @@ function setCPProgressPanel(panel){
   document.querySelectorAll('#cp-body [data-cp-panel]').forEach(el=>{
     const id=el.getAttribute('data-cp-panel');
     const belongs=allowed.includes(id)||id==='kpi';
-    const show=belongs&&(p==='all'||id==='kpi'||id===p);
+    const hideOnSummary=p==='all'&&el.getAttribute('data-cp-summary-hide')==='empty';
+    const show=belongs&&(p==='all'||id==='kpi'||id===p)&&!hideOnSummary;
     el.classList.toggle('cp-panel-hidden',!show);
   });
   document.querySelectorAll('#cp-body [data-cp-panel-chip]').forEach(btn=>{
@@ -4359,6 +4344,8 @@ function renderCPProgress(c){
   const adh7=cpClientAdherence(c.id,7);
   const adh30=cpClientAdherence(c.id,30);
   const sess30=adh30.logged;
+  const adherenceScore=adh30.assigned?`${adh30.pct}%`:'Brak danych';
+  const adherenceMeta=adh30.assigned?`${adh30.logged}/${adh30.assigned} · 7 dni ${adh7.assigned?adh7.pct+'%':'brak danych'}`:'Brak przypisanych treningów';
   const entries=(window.METRIC_ENTRIES||[]).filter(e=>e.clientId===c.id);
   const byG=(gid)=>entries.filter(e=>e.groupId===gid).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   const mass=byG('mg1');
@@ -4411,13 +4398,13 @@ function renderCPProgress(c){
   const bestStreak=habits.length?Math.max(...habits.map(h=>typeof habitStreak==='function'?habitStreak(h,todayY):0),0):0;
   const habitPct7=habitWeeks.length?habitWeeks[habitWeeks.length-1].pct:0;
   const photosOn=typeof ppFeatureOn==='function'?ppFeatureOn(c):true;
-  const photos=photosOn&&typeof ppListFor==='function'?ppListFor(c.id).slice().sort((a,b)=>String(b.date||b.createdAt||'').localeCompare(String(a.date||a.createdAt||''))).slice(0,6):[];
+  const photoCount=photosOn&&typeof ppListFor==='function'?ppListFor(c.id).length:0;
   const panel=window._cpProgressPanel||'all';
   const chip=(id,label)=>`<button type="button" class="cp-analytics-chip${panel===id?' active':''}" data-cp-panel-chip="${id}" onclick="setCPProgressPanel('${id}')">${label}</button>`;
 
   document.getElementById('cp-body').innerHTML=`
     <div style="margin-bottom:12px;">
-      <div class="cp-section-title" style="margin:0;">WYNIKI TRENINGOWE</div>
+      <div class="cp-section-title" style="margin:0;">POSTĘPY</div>
       <div class="cp-view-sub">Regularność, wykonana praca, check-in i nawyki. Pomiary ciała oraz zdjęcia mają własne zakładki.</div>
     </div>
 
@@ -4429,7 +4416,7 @@ function renderCPProgress(c){
     </div>
 
     <div data-cp-panel="kpi" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;">
-      <div class="cp-stat-box"><div class="cp-stat-val" style="color:${adh30.pct>=70?'var(--teal)':adh30.pct>=40?'var(--orange)':'var(--accent)'};">${adh30.pct}%</div><div class="cp-stat-lbl">Regularność 30 dni</div><div style="font-size:9px;color:var(--muted);margin-top:2px;">${adh30.logged}/${adh30.assigned||'—'} · 7d ${adh7.pct}%</div></div>
+      <div class="cp-stat-box"><div class="cp-stat-val" style="color:${adh30.assigned?(adh30.pct>=70?'var(--teal)':adh30.pct>=40?'var(--orange)':'var(--accent)'):'var(--muted)'};font-size:${adh30.assigned?22:11}px;">${adherenceScore}</div><div class="cp-stat-lbl">Realizacja planu · 30 dni</div><div style="font-size:9px;color:var(--muted);margin-top:2px;">${adherenceMeta}</div></div>
       <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--accent);">${sess30}</div><div class="cp-stat-lbl">Sesje 30 dni</div><div style="font-size:9px;color:var(--muted);margin-top:2px;">${Math.round(totalVol).toLocaleString('pl')} kg</div></div>
       <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--blue);">${ciAvg||'—'}</div><div class="cp-stat-lbl">Check-in śr.</div><div style="font-size:9px;color:var(--muted);margin-top:2px;">${ciPts.length?ciPts.length+' raportów':'brak'}</div></div>
       <div class="cp-stat-box"><div class="cp-stat-val" style="color:var(--teal);">${bestStreak||habitPct7||'—'}</div><div class="cp-stat-lbl">${bestStreak?'Dni z nawykiem':'Nawyki 7d'}</div><div style="font-size:9px;color:var(--muted);margin-top:2px;">${habits.length?habits.length+' aktywnych':(bestStreak?'dni':'brak nawyków')}${habitPct7?' · '+habitPct7+'%':''}</div></div>
@@ -4464,7 +4451,7 @@ function renderCPProgress(c){
 
 `:`<div data-cp-panel="train" class="stat-card cp-progress-empty"><strong>Brak zapisanych treningów</strong><p>Zakończ pierwszy trening, aby zobaczyć wyniki i wskazówki progresji.</p><button type="button" class="btn btn-primary btn-sm" onclick="cpStartLive()">Rozpocznij trening</button></div>`}
     <div data-cp-panel="body" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
-      <div class="stat-card">
+      <div class="stat-card${lastM?'':' cp-progress-quiet'}">
         <div class="stat-card-hdr">
           <div>
             <div class="stat-card-title">⚖️ Masa / skład ciała</div>
@@ -4492,7 +4479,7 @@ function renderCPProgress(c){
         :`<div style="font-size:12px;color:var(--muted);">Brak pomiarów — dodaj w <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('metrics')">Pomiary</button></div>`}
       </div>
 
-      <div class="stat-card">
+      <div class="stat-card${lastC?'':' cp-progress-quiet'}">
         <div class="stat-card-hdr">
           <div>
             <div class="stat-card-title">📏 Obwody ciała</div>
@@ -4545,8 +4532,8 @@ function renderCPProgress(c){
     ${logged.length&&typeof cpNextSessionBriefHtml==='function'?cpNextSessionBriefHtml(c.id):''}
     ${logged.length&&typeof cpExerciseProgressPanelHtml==='function'?cpExerciseProgressPanelHtml(c.id):''}
 
-    <div data-cp-panel="checkin" style="display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:14px;">
-      <div class="stat-card">
+    <div data-cp-panel="checkin"${ciPts.length?'':' data-cp-summary-hide="empty"'} style="display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:14px;">
+      <div class="stat-card${ciPts.length?'':' cp-progress-quiet'}">
         <div class="stat-card-hdr">
           <div>
             <div class="stat-card-title">📝 Samopoczucie (check-in)</div>
@@ -4559,8 +4546,8 @@ function renderCPProgress(c){
       </div>
     </div>
 
-    <div data-cp-panel="habits" style="display:grid;grid-template-columns:1.4fr 1fr;gap:14px;margin-bottom:14px;">
-      <div class="stat-card">
+    <div data-cp-panel="habits"${habits.length?'':' data-cp-summary-hide="empty"'} style="display:grid;grid-template-columns:1.4fr 1fr;gap:14px;margin-bottom:14px;">
+      <div class="stat-card${habits.length?'':' cp-progress-quiet'}">
         <div class="stat-card-hdr">
           <div>
             <div class="stat-card-title">✅ Regularność nawyków</div>
@@ -4571,7 +4558,7 @@ function renderCPProgress(c){
         ${habits.length?cpPctBarChart(habitWeeks,{color:'var(--teal)',h:120})
           :`<div style="font-size:12px;color:var(--muted);padding:16px 0;">Brak nawyków — dodaj w zakładce Zadania.</div>`}
       </div>
-      <div class="stat-card">
+      <div class="stat-card${habits.length?'':' cp-progress-quiet'}">
         <div class="stat-card-hdr">
           <div>
             <div class="stat-card-title">🔥 Dni z rzędu</div>
@@ -4590,24 +4577,16 @@ function renderCPProgress(c){
       </div>
     </div>
 
-    <div data-cp-panel="photos" class="stat-card" style="margin-bottom:8px;">
+    ${photoCount?`<div class="stat-card cp-photo-summary" style="margin-bottom:8px;">
       <div class="stat-card-hdr">
         <div>
           <div class="stat-card-title">📷 Zdjęcia postępów</div>
-          <div class="stat-card-sub">${photos.length?photos.length+' ostatnich':'Brak zdjęć'}</div>
+          <div class="stat-card-sub">${photoCount} zestawów do porównania</div>
         </div>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('photos')">Otwórz porównanie →</button>
       </div>
-      ${photos.length?`<div class="cp-analytics-photos" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;">
-        ${photos.map(ph=>{
-          const src=ph.url||ph.dataUrl||ph.thumb||'';
-          const when=escHtml(String(ph.date||ph.createdAt||'').slice(0,10));
-          return `<div style="background:var(--s3);border-radius:10px;overflow:hidden;border:1px solid var(--border);">
-            ${src?`<img src="${escHtml(src)}" alt="" style="width:100%;aspect-ratio:3/4;object-fit:cover;display:block;">`:`<div style="aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:20px;">📷</div>`}
-            <div style="padding:6px 8px;font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;">${when||'—'}</div>
-          </div>`;
-        }).join('')}
-      </div>`:`<div style="font-size:12px;color:var(--muted);padding:8px 0;">Klient jeszcze nie dodał zdjęć postępów.</div>`}
-    </div>
+      <div style="font-size:11px;color:var(--muted);">Dodawanie i porównywanie zdjęć znajduje się w jednym widoku.</div>
+    </div>`:`<div class="cp-photo-summary" style="margin-bottom:8px;font-size:12px;color:var(--muted);">Brak zdjęć. <button type="button" class="btn btn-ghost btn-sm" onclick="setCPTab('photos')">Zdjęcia</button></div>`}
   `;
   setCPProgressPanel(panel);
 }
@@ -5229,7 +5208,10 @@ function renderCPSettings(c){
         .map(tz=>`<option value="${tz}" ${(s.timezone||'Europe/Warsaw')===tz?'selected':''}>${tz.replace('_',' ')}</option>`).join('')}
     </select>
 
-    <button class="btn btn-danger btn-sm" style="width:100%;margin-bottom:8px;" onclick="archiveClient('${c.id}')">🗃 Zarchiwizuj klienta</button>
+    <div class="cp-section-title" style="margin-top:20px;">ZARZĄDZANIE KLIENTEM</div>
+    ${c.status==='archived'
+      ?`<button class="btn btn-primary btn-sm" style="width:100%;margin-bottom:8px;" onclick="restoreClient('${c.id}')">↩ Przywróć klienta</button>`
+      :`<button class="btn btn-danger btn-sm" style="width:100%;margin-bottom:8px;" onclick="archiveClient('${c.id}')">🗃 Zarchiwizuj klienta</button>`}
     <button class="btn btn-ghost btn-sm" style="width:100%;color:var(--red);" onclick="deleteClientPermanently('${c.id}')">🗑 Usuń klienta na zawsze</button>`;
 }
 function updateClientUnit(clientId,key,value){

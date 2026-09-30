@@ -1883,6 +1883,19 @@ function builderWeekMetaForSave(prev,dur){
   return out;
 }
 window.builderWeekMetaForSave=builderWeekMetaForSave;
+function builderPlanRationaleChanged(prev,next){
+  if(!prev||!next)return false;
+  const signature=plan=>JSON.stringify({
+    method:plan.method||'',
+    duration:String(plan.duration||''),
+    progression:plan.progression||'',
+    clientId:plan.clientId||'',
+    level:plan.level||'',
+    goal:plan.goal||'',
+    days:Array.isArray(plan.days)?plan.days:[]
+  });
+  return signature(prev)!==signature(next);
+}
 function builderRowWeekLoads(row){
   if(!row||!row.dataset.weekLoads)return null;
   try{return JSON.parse(row.dataset.weekLoads);}catch(e){return null;}
@@ -2364,6 +2377,7 @@ async function savePlan(){
     level:c?c.level:(prev?prev.level:'sredni'),goal:c?c.goal:(prev?prev.goal:'masa'),
     days,...weekMeta,...(prev?{updatedAt:new Date().toISOString()}:{})
   };
+  if(prev&&prev.rationale&&builderPlanRationaleChanged(prev,candidate))candidate.rationale=null;
   state.candidate=candidate;
   if(prev&&!state.base)state.base=builderPlanClone(prev);
   state.pending=true;
@@ -2412,6 +2426,7 @@ async function savePlan(){
   return saved;
 }
 
+/** Mapuje etykietę dnia planu → JS getDay() (0=Nd … 6=Sob). */
 function planDayLabelToWeekday(label,fallbackIdx){
   if(typeof parsePlanWeekdayFromText==='function'){
     const parsed=parsePlanWeekdayFromText(label);

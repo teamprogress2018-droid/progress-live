@@ -2261,7 +2261,7 @@ function setCPAnalyticsSub(sub){
 
 function cpAnalyticsNavHTML(){
   const subs=[['psycho','Psycho'],['sfr','SFR'],['posture','Postawa']];
-  return `<div class="cp-analytics-nav" role="tablist" aria-label="Analityka">
+  return `<div class="cp-analytics-nav" role="tablist" aria-label="Oceny specjalistyczne">
     ${subs.map(([id,label])=>`<button type="button" role="tab" class="cp-analytics-chip${cpAnalyticsSub===id?' active':''}" aria-selected="${cpAnalyticsSub===id?'true':'false'}" onclick="setCPAnalyticsSub('${id}')">${label}</button>`).join('')}
   </div>`;
 }
@@ -2273,7 +2273,7 @@ function renderCPAnalytics(c){
   else if(typeof renderCPPsycho==='function')renderCPPsycho(c);
   else{
     const body=document.getElementById('cp-body');
-    if(body)body.innerHTML=cpAnalyticsNavHTML()+'<div style="font-size:12px;color:var(--muted);padding:12px 0;">Brak modułu Analityka.</div>';
+    if(body)body.innerHTML=cpAnalyticsNavHTML()+'<div style="font-size:12px;color:var(--muted);padding:12px 0;">Brak modułu ocen specjalistycznych.</div>';
   }
 }
 

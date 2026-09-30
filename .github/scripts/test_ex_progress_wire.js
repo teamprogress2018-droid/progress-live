@@ -32,7 +32,7 @@ function eq(name, got, want) {
 
 ok('cache 01', html.includes('01-core.js?v=126'));
 ok('cache 04', html.includes('04-client-portal.js?v=55'));
-ok('cache 08', html.includes('08-client-profile-extras.js?v=84'));
+ok('cache 08', html.includes('08-client-profile-extras.js?v=88'));
 ok('CI', wf.includes('test_ex_progress_wire.js'));
 ok('mapping helpers', /function listClientProgressExercises/.test(coreSrc)
   && /function exerciseProgressClass/.test(coreSrc)
@@ -45,7 +45,7 @@ ok('progress hooks remember', /rememberClientExerciseProgress\(c\.id\)/.test(pro
 ok('progress panel from store', /cpExerciseProgressPanelHtml\(c\.id\)/.test(progressFn));
 ok('no class in client Progress markup', !/effortHarder|doseIncreased|reserveAvailable|nearLimit/.test(capFn)
   && !/cpExerciseProgressPanelHtml/.test(capFn));
-ok('html template unchanged labels', /WYNIKI TRENINGOWE/.test(progressFn) && /MOJE POSTĘPY/.test(capFn));
+ok('html template unchanged labels', /POSTĘPY/.test(progressFn) && /MOJE POSTĘPY/.test(capFn));
 
 const document = {
   querySelectorAll: () => [],

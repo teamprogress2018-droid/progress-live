@@ -62,12 +62,11 @@ function ok(name, cond, extra) {
   });
   await page.screenshot({ path: path.join(shotDir, 'cp_metrics_circ_empty.png') });
   ok('obwody tab visible', /Obwody ciała/i.test(tab), tab.slice(0, 300));
-  ok('empty circ prompt', /centymetr/i.test(tab), tab.slice(0, 400));
+  ok('empty circ prompt', /Brak pomiarów w tej kategorii/i.test(tab), tab.slice(0, 500));
+  ok('add measurement button', /\+\s*Dodaj pomiar/.test(tab), tab.slice(0, 500));
   ok('kondycja still listed', /Kondycja/.test(tab));
 
-  await page.evaluate(() => {
-    if (typeof openMetricEntryForClient === 'function') openMetricEntryForClient('c-justyna', 'mg2');
-  });
+  await page.locator('#cp-body .cp-metrics-actions button.btn-primary', { hasText: 'Dodaj pomiar' }).click();
   await page.waitForSelector('#m-metric-entry.show');
   const form = await page.evaluate(() => {
     const fields = document.getElementById('me-fields');
