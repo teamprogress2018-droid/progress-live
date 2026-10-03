@@ -340,7 +340,6 @@ function deleteClientActivity(clientId,idx){
 async function saveCPEdit(id){
   const state=window._cpEditState;
   if(!cpEditIsCurrent(state)||state.clientId!==id||state.pending||state.saved||state.conflict)return;
-  const card=state.card;
   try{
     const local=CL.find(c=>c.id===id);
     assertAssignmentSession(state.auth,local);
@@ -393,7 +392,7 @@ async function saveCPEdit(id){
     if(cpClientId===id){
       try{document.getElementById('cp-name').textContent=c.name;document.getElementById('cp-sub').textContent=typeof cpProfileSubtext==='function'?cpProfileSubtext(c):'';}catch(e){}
     }
-    if(cpEditIsCurrent(state)&&state.card===card){
+    if(cpEditIsCurrent(state)){
       window._cpEditingClientId=null;state.open=false;
       try{renderCPOverview(c);}catch(e){}
     }
@@ -405,28 +404,75 @@ async function saveCPEdit(id){
     state.message=state.saved?'Profil zapisany, ale klient jest teraz niedostępny. Odśwież listę klientów.':
       state.conflict?'Dane klienta zmieniły się podczas edycji. Wczytaj aktualne dane i nanieś zmiany ponownie.':
       'Nie potwierdzono zapisu. Dane formularza zachowano. Ponów zapis. '+(error?.message||'');
-    if(cpEditIsCurrent(state)&&state.card===card)notify(state.message);
+    if(cpEditIsCurrent(state))notify(state.message);
   }finally{
     state.pending=false;
     if(cpEditIsCurrent(state))renderCPEditSaveState(state);
   }
 }
 
-function archiveClient(id){
+const clientArchiveWrites=new Map();
+function clientArchiveWriteFor(id){
+  const auth=assignmentSession();
+  return clientArchiveWrites.get(JSON.stringify([auth.uid,auth.generation,id]));
+}
+async function archiveClient(id){
   const c=CL.find(x=>x.id===id);
   if(!c)return;
-  if(c.status==='archived'){notify('Klient jest już w archiwum');return;}
+  const auth=assignmentSession(),key=JSON.stringify([auth.uid,auth.generation,id]);
+  for(const [storedKey,state] of clientArchiveWrites)if(!assignmentSessionCurrent(state.auth))clientArchiveWrites.delete(storedKey);
+  let state=clientArchiveWrites.get(key);
+  if(state?.pending)return state.promise;
+  if(c.status==='archived'&&!state?.uncertain){notify('Klient jest już w archiwum');return;}
+  try{
+    if(!state?.uncertain)assertAssignmentSession(auth,c);
+    else if(!assignmentSessionCurrent(auth)||c.trainerId!==auth.uid||c.deleted)throw new Error('Klient jest niedostępny. Odśwież jego profil.');
+  }catch(error){notify(error.message);return;}
   if(!confirm('Zarchiwizować klienta „'+(c.name||'')+'”?\n\nZniknie z aktywnej listy (filtr „Zarchiwizowani”). Możesz go później przywrócić lub usunąć na zawsze.'))return;
-  c.status='archived';
-  persistById('clients',c);
-  try{renderClients();}catch(e){}
-  try{renderClientFilters();}catch(e){}
-  try{document.getElementById('nb-clients').textContent=CL.filter(x=>x.status!=='archived').length;}catch(e){}
-  if(typeof closeClientProfile==='function')closeClientProfile();
-  notify('✓ Klient '+c.name+' zarchiwizowany');
+  const docId=c._fbId||c.id;
+  if(state&&state.docId!==docId){notify('Identyfikator klienta zmienił się. Odśwież jego profil.');return;}
+  if(!state){state={auth,docId};clientArchiveWrites.set(key,state);}
+  state.pending=true;
+  state.promise=Promise.resolve().then(async()=>{
+    try{
+      if(!window._db||typeof window._runTransaction!=='function'||typeof window._doc!=='function')throw new Error('Brak połączenia z bazą. Spróbuj ponownie.');
+      if(typeof docId!=='string'||!docId||docId.includes('/'))throw new Error('Nieprawidłowy identyfikator klienta.');
+      const check=()=>{
+        if(!assignmentSessionCurrent(auth))throw new Error('Sesja zmieniła się. Otwórz ponownie profil klienta.');
+        const local=CL.find(x=>x.id===id);
+        if(!local||local.trainerId!==auth.uid||local.deleted||(local._fbId||local.id)!==docId)throw new Error('Klient jest niedostępny. Odśwież jego profil.');
+      };
+      check();
+      const ref=window._doc(window._db,'clients',docId);
+      const saved=await window._runTransaction(window._db,async tx=>{
+        check();const found=await tx.get(ref);check();
+        if(!found.exists())throw new Error('Klient został usunięty. Odśwież listę klientów.');
+        const remote=found.data();
+        if(!remote||remote.trainerId!==auth.uid||remote.deleted||(remote.id&&remote.id!==id))throw new Error('Klient jest niedostępny. Odśwież jego profil.');
+        // Only status changes. A pending/lost profile ACK cannot overwrite server data.
+        if(remote.status!=='archived')tx.update(ref,{status:'archived'});
+        return {...remote,id,_fbId:docId,status:'archived'};
+      });
+      check();
+      Object.assign(CL.find(x=>x.id===id),saved);state.uncertain=false;
+      try{if(typeof syncClientNameCache==='function')syncClientNameCache(id,saved.name);}catch(e){}
+      try{renderClients();}catch(e){}
+      try{renderClientFilters();}catch(e){}
+      try{document.getElementById('nb-clients').textContent=CL.filter(x=>x.status!=='archived').length;}catch(e){}
+      if(cpClientId===id&&typeof closeClientProfile==='function')closeClientProfile();
+      notify('✓ Klient '+(saved.name||c.name)+' zarchiwizowany');
+      clientArchiveWrites.delete(key);
+    }catch(error){
+      state.uncertain=true;
+      if(assignmentSessionCurrent(auth))notify('Nie potwierdzono archiwizacji. Ponów archiwizację przed przywróceniem klienta. '+(error?.message||''));
+    }finally{state.pending=false;state.promise=null;}
+  });
+  return state.promise;
 }
 
 function restoreClient(id){
+  const archive=clientArchiveWriteFor(id);
+  if(archive&&(archive.pending||archive.uncertain)){notify('Archiwizacja nie została jeszcze potwierdzona. Ponów ją przed przywróceniem klienta.');return;}
   const c=CL.find(x=>x.id===id);
   if(!c)return;
   c.status='active';
