@@ -158,7 +158,7 @@ function ok(name, condition, detail) {
       };
     });
     const cidA = 'onboarding-client-a', cidB = 'onboarding-client-b';
-    const rowDone = () => row.evaluate(el => /\bGOTOWE\b/.test(el.textContent) && el.textContent.includes('✓'));
+    const rowDone = () => row.evaluate(el => /\bGOTOWE\b/.test(el.innerText) && el.textContent.includes('✓'));
 
     ok('onboarding opens an actual client modal', await modal.isVisible() && /Klient Alfa/.test(await page.locator('#client-onboard-intro').innerText()));
     ok('first calendar action is visible before any dates exist', await button.isVisible() && /Dodaj terminy na 4 tygodnie/.test(await button.innerText()) && !(await rowDone()));
@@ -201,7 +201,7 @@ function ok(name, condition, detail) {
     await release(cidA, 'succeed');
     await page.waitForFunction(() => {
       const row = document.querySelector('[data-onboard-step="calendar"]');
-      return row && /\bGOTOWE\b/.test(row.textContent);
+      return row && /\bGOTOWE\b/.test(row.innerText);
     });
     v = await values();
     ok('only confirmed success marks the calendar step done', v.aDone && !v.bDone && v.sessions.length === 4 && v.remoteSessions.length === 4 && await rowDone(), v);
@@ -233,8 +233,10 @@ function ok(name, condition, detail) {
     v = await values();
     ok('lost-ack retry reads the original target records instead of adding duplicates', newestIds.every(id => v.transactions[3].reads.includes(id)) && v.transactions[3].ids.length === 0, v.transactions[3]);
     await release(cidA, 'succeed');
-    await page.waitForFunction(() => window.SE.length === 8);
-    await page.waitForTimeout(50);
+    await page.waitForFunction(() => {
+      const button = document.querySelector('[data-onboard-step="calendar"] button[onclick*="scheduleClientPlanToCalendar"]');
+      return window.SE.length === 8 && button && !button.disabled && /Dopełnij terminy najnowszego planu/.test(button.innerText);
+    });
     v = await values();
     ok('unchanged confirmation merges all eight dates and reenables the second action', v.sessions.length === 8 && v.remoteSessions.length === 8 && v.commits.length === 8 && await button.isEnabled() && /Dopełnij terminy najnowszego planu/.test(await button.innerText()), v);
     for (const previous of originalSessions) assert.deepEqual(v.sessions.find(s => s.id === previous.id), previous);
@@ -251,7 +253,7 @@ function ok(name, condition, detail) {
     const betaView = await page.locator('#client-onboard-body').innerHTML();
     await release(cidA, 'succeed');
     await page.waitForFunction(() => window.SE.some(s => s.clientId === window._onboardingCalendarUi.a));
-    await page.waitForTimeout(50);
+    await page.evaluate(() => getOnboardCalendarState(window._onboardingCalendarUi.a).promise);
     v = await values();
     ok('first client completion cannot complete the second client calendar', v.aDone && !v.bDone && v.modalClient === cidB && !(await rowDone()), v);
     ok('stale completion cannot replace or unlock the other client modal', await page.locator('#client-onboard-body').innerHTML() === betaView && await button.isDisabled());
@@ -268,7 +270,7 @@ function ok(name, condition, detail) {
     await release(cidB, 'succeed');
     await page.waitForFunction(() => {
       const row = document.querySelector('[data-onboard-step="calendar"]');
-      return row && /\bGOTOWE\b/.test(row.textContent);
+      return row && /\bGOTOWE\b/.test(row.innerText);
     });
     v = await values();
     ok('independent confirmations give each client four dates', v.sessions.filter(s => s.clientId === cidA).length === 4 && v.sessions.filter(s => s.clientId === cidB).length === 4 && v.aDone && v.bDone, v);
@@ -280,7 +282,7 @@ function ok(name, condition, detail) {
     ok('modal can be closed during confirmation', !(await modal.isVisible()));
     await release(cidA, 'succeed');
     await page.waitForFunction(() => window.SE.length === 4);
-    await page.waitForTimeout(50);
+    await page.evaluate(() => getOnboardCalendarState(window._onboardingCalendarUi.a).promise);
     ok('late success does not reopen a dismissed onboarding modal', !(await modal.isVisible()));
     await page.evaluate(() => openClientOnboardChecklist(window._onboardingCalendarUi.a));
     ok('reopened checklist reflects confirmed calendar data', await rowDone() && await button.isEnabled() && /Dopełnij terminy najnowszego planu/.test(await button.innerText()));
@@ -296,7 +298,7 @@ function ok(name, condition, detail) {
     await page.waitForFunction(() => {
       const row = document.querySelector('[data-onboard-step="calendar"]');
       const button = row && row.querySelector('button[onclick*="scheduleClientPlanToCalendar"]');
-      return row && /\bGOTOWE\b/.test(row.textContent) && button && !button.disabled;
+      return row && /\bGOTOWE\b/.test(row.innerText) && button && !button.disabled;
     });
     ok('confirmation refreshes and unlocks the reopened same-client checklist', await modal.isVisible() && await rowDone() && await button.isEnabled());
     ok('all persistence uses confirmed calendar transactions only', await page.evaluate(() => window._onboardingCalendarUi.unexpected.length === 0));
