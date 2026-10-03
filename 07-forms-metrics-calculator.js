@@ -2278,6 +2278,7 @@ window.resumeOnboardFromProfile=resumeOnboardFromProfile;
 window.closeClientProfileOrResumeOnboard=closeClientProfileOrResumeOnboard;
 
 function openClientProfile(id,opts){
+  if(typeof captureCPEditDraft==='function')captureCPEditDraft();
   const o=opts||{};
   const drawer=document.getElementById('cp-drawer');
   const alreadyOpen=!!(drawer&&drawer.classList.contains('open'));
@@ -2312,6 +2313,7 @@ function openClientProfile(id,opts){
 }
 
 function closeClientProfile(){
+  if(typeof captureCPEditDraft==='function')captureCPEditDraft();
   window._cpEditingClientId=null;
   document.getElementById('cp-drawer').classList.remove('open');
   document.getElementById('cp-overlay').classList.remove('show');
@@ -2325,6 +2327,7 @@ function closeClientProfile(){
 var cpAnalyticsSub='psycho';
 
 function setCPTab(t){
+  if(typeof captureCPEditDraft==='function')captureCPEditDraft();
   // Legacy deep-links Psycho/SFR/Postawa → Analityka + podsekcja
   if(t==='psycho'||t==='sfr'||t==='posture'){
     cpAnalyticsSub=t;
@@ -2392,4 +2395,3 @@ function withAnalyticsShell(html){
 window.setCPAnalyticsSub=setCPAnalyticsSub;
 window.renderCPAnalytics=renderCPAnalytics;
 window.withAnalyticsShell=withAnalyticsShell;
-

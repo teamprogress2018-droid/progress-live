@@ -31,10 +31,21 @@ if(!src07.includes('printFormPdf')){console.error('FAIL printFormPdf not wired')
 if(!src08.includes('Ankieta wstępna — tylko w Formularzach')){console.error('FAIL profile edit missing intake banner');process.exit(1);}
 if(src08.includes("id=\"cpe-goal\"")){console.error('FAIL profile edit still has cpe-goal duplicate');process.exit(1);}
 if(src08.includes("id=\"cpe-injuries\"")){console.error('FAIL profile edit still has cpe-injuries duplicate');process.exit(1);}
-if(!src09.includes('wyłącznie z Ankiety wstępnej')&&!src09.includes('cpe-goal')){
-  // saveCPEdit should guard missing fields
+// Removed intake controls must be absent from the candidate field input. The
+// confirmed-save scenarios in test_client_name_cache verify their raw values
+// survive the full save operation.
+const editFields={
+  document:{getElementById:id=>id==='cpe-name'?{value:'Anna Kowalska'}:null},
+  readPreferredWeekdaysFrom:()=>{throw new Error('Missing weekdays control was read');},
+  readSportBackgroundFrom:()=>{throw new Error('Missing sport control was read');},
+  readPhysiquePriorityFrom:()=>{throw new Error('Missing physique control was read');}
+};
+vm.runInNewContext(src08.match(/const cpEditFieldIds=[^\n]+/)[0]+'\n'+extract(src08,'cpEditFields'),editFields);
+const captured=editFields.cpEditFields();
+if(JSON.stringify(captured)!==JSON.stringify({name:'Anna Kowalska'})){
+  console.error('FAIL profile edit synthesized missing intake fields');process.exit(1);
 }
-if(!src09.includes('if(goalEl)c.goal=goalEl.value')){console.error('FAIL saveCPEdit not tolerant of removed fields');process.exit(1);}
+if(!src09.includes('const fields=cpEditFields()')){console.error('FAIL saveCPEdit does not use guarded present controls');process.exit(1);}
 if(!src07.includes('intakePendingId')||!src07.includes('listSends')){console.error('FAIL renderCPForms missing intake list dedupe');process.exit(1);}
 
 const sandbox={

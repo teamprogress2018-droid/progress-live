@@ -228,6 +228,43 @@ test('edit reads current server card and patches only fields changed from the fo
   assert.equal(saved.onboardingDone, true); assert.equal(saved.baselineDone, true); localUnchanged(f);
 });
 
+test('profile status edit persists only active or inactive and retains unrelated server changes', async () => {
+  const f = fixture();
+  f.docs.get('clients/client-a').phone = 'server-phone';
+  const saved = await f.ctx.saveClientCardConfirmed(f.edit({ status: 'inactive' }), f.op(true));
+  assert.equal(saved.status, 'inactive'); assert.equal(saved.phone, 'server-phone');
+  assert.deepEqual(Object.keys(f.calls.commits[0].value).sort(), ['clientCardWriteId', 'status']);
+  localUnchanged(f);
+  const operation = { auth: f.ctx.assignmentSession(), edit: true, base: clone(saved) };
+  const active = await f.ctx.saveClientCardConfirmed({ ...saved, status: 'active' }, operation);
+  assert.equal(active.status, 'active'); localUnchanged(f);
+});
+
+test('an unchanged form status preserves a newer server status', async () => {
+  const f = fixture();
+  f.docs.get('clients/client-a').status = 'inactive';
+  const saved = await f.ctx.saveClientCardConfirmed(f.edit({ name: 'Anna Nowa' }), f.op(true));
+  assert.equal(saved.status, 'inactive');
+  assert.equal(Object.hasOwn(f.calls.commits[0].value, 'status'), false); localUnchanged(f);
+});
+
+test('concurrent profile status change raises a conflict without overwriting it', async () => {
+  const f = fixture();
+  f.docs.get('clients/client-a').status = 'paused';
+  await assert.rejects(f.ctx.saveClientCardConfirmed(f.edit({ status: 'inactive' }), f.op(true)),
+    error => error.code === 'client-card-conflict' && error.remote.status === 'paused');
+  assert.equal(f.calls.commits.length, 0); localUnchanged(f);
+});
+
+for (const status of ['archived', 'deleted', 'unknown', null, undefined]) {
+  test('profile status save rejects unsupported transition: ' + String(status), async () => {
+    const f = fixture();
+    await assert.rejects(f.ctx.saveClientCardConfirmed(f.edit({ status }), f.op(true)),
+      error => error.code === 'client-card-status');
+    assert.equal(f.calls.transactions.length, 0); assert.equal(f.calls.commits.length, 0); localUnchanged(f);
+  });
+}
+
 test('pending edit and duplicate submit leave local and remote cards untouched', async () => {
   const f = fixture(), operation = f.op(true), hold = gate(), candidate = f.edit({ phone: '333' });
   f.modes.transaction.push({ gate: hold });

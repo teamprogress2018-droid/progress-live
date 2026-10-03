@@ -337,70 +337,142 @@ function deleteClientActivity(clientId,idx){
   setCPTab('overview');
   notify('Aktywność usunięta');
 }
-function saveCPEdit(id){
-  const c=CL.find(x=>x.id===id);if(!c)return;
-  c.name=document.getElementById('cpe-name').value.trim()||c.name;
-  c.email=document.getElementById('cpe-email').value;
-  c.phone=(document.getElementById('cpe-phone')||{}).value||'';
-  c.age=parseInt(document.getElementById('cpe-age').value)||c.age;
-  c.gender=(typeof normalizeClientGender==='function'?normalizeClientGender((document.getElementById('cpe-gender')||{}).value):((document.getElementById('cpe-gender')||{}).value))||c.gender;
-  c.weight=parseFloat(document.getElementById('cpe-weight').value)||c.weight;
-  c.height=parseInt(document.getElementById('cpe-height').value)||c.height;
-  // Cel / poziom / częstotliwość / pora / kontuzje — wyłącznie z Ankiety wstępnej (Formularze)
-  const goalEl=document.getElementById('cpe-goal');
-  if(goalEl)c.goal=goalEl.value;
-  const levelEl=document.getElementById('cpe-level');
-  if(levelEl)c.level=levelEl.value;
-  const freqEl=document.getElementById('cpe-freq');
-  if(freqEl){
-    const freq=typeof normalizeTrainingFreq==='function'?normalizeTrainingFreq(freqEl.value):parseInt(freqEl.value,10);
-    if(freq)c.trainingFreq=freq;else delete c.trainingFreq;
-  }
-  const timeEl=document.getElementById('cpe-train-time');
-  if(timeEl)c.preferredTrainTime=(timeEl.value||'').trim();
-  if(typeof readPreferredWeekdaysFrom==='function')c.preferredWeekdays=readPreferredWeekdaysFrom('cpe');
-  c.status=document.getElementById('cpe-status').value;
-  const sportBg=typeof readSportBackgroundFrom==='function'?readSportBackgroundFrom('cpe'):{priorSports:typeof readPriorSportsFrom==='function'?readPriorSportsFrom('cpe'):(c.priorSports||[]),additional_activities:[]};
-  c.priorSports=(sportBg.priorSports||c.priorSports||[]);
-  c.additional_activities=(sportBg.additional_activities||[]);
-  c.physiquePriority=typeof readPhysiquePriorityFrom==='function'?readPhysiquePriorityFrom('cpe'):(c.physiquePriority||[]);
-  c.activityLevel=document.getElementById('cpe-activity')?.value||c.activityLevel||'moderate';
-  c.sportNotes=document.getElementById('cpe-sport-notes')?.value||'';
-  const injEl=document.getElementById('cpe-injuries');
-  if(injEl)c.injuries=injEl.value;
-  c.notes=document.getElementById('cpe-notes').value;
-  window._cpEditingClientId=null;
-  persistById('clients',c);
-  try{if(typeof syncClientNameCache==='function')syncClientNameCache(c.id,c.name);}catch(e){}
-  // Odśwież sidebar bez zamykania drawera
-  try{renderClients();}catch(e){}
-  try{document.getElementById('nb-clients').textContent=CL.length;}catch(e){}
-  // Zaktualizuj nagłówek drawera
+async function saveCPEdit(id){
+  const state=window._cpEditState;
+  if(!cpEditIsCurrent(state)||state.clientId!==id||state.pending||state.saved||state.conflict)return;
   try{
-    document.getElementById('cp-name').textContent=c.name;
-    document.getElementById('cp-sub').textContent=(typeof cpProfileSubtext==='function'?cpProfileSubtext(c):((({masa:'Budowa masy',sila:'Wzrost siły',redukcja:'Redukcja',kondycja:'Kondycja'})[c.goal]||c.goal||'Brak celu')+' · '+(({poczatkujacy:'Początkujący',sredni:'Średni',zaawansowany:'Zaawansowany'})[c.level]||c.level||'')+(c.age?' · '+c.age+' lat':'')));
-  }catch(e){}
-  // Wróć do zakładki Przegląd po zapisaniu
-  try{setCPTab('overview');}catch(e){}
-  if(typeof renderDash==='function')try{renderDash();}catch(e){}
-  notify('✓ Profil "'+c.name+'" zaktualizowany!');
+    const local=CL.find(c=>c.id===id);
+    assertAssignmentSession(state.auth,local);
+    if((local._fbId||local.id)!==(state.base._fbId||state.base.id))throw new Error('Identyfikator klienta zmienił się. Otwórz ponownie profil.');
+    if(!state.candidate){
+      const fields=cpEditFields(),values={...fields};
+      if(Object.prototype.hasOwnProperty.call(fields,'name')){
+        const name=fields.name.trim();if(!name)throw new Error('Wpisz imię i nazwisko klienta.');values.name=name;
+      }
+      if(Object.prototype.hasOwnProperty.call(fields,'email')){
+        const email=typeof normalizeClientEmail==='function'?normalizeClientEmail(fields.email):fields.email.trim().toLowerCase();
+        if(fields.email!==state.displayBase.email&&email&&typeof clientEmailValid==='function'&&!clientEmailValid(email))throw new Error('Podaj prawidłowy e-mail klienta.');
+        values.email=email;
+      }
+      for(const key of ['age','weight','height'])if(Object.prototype.hasOwnProperty.call(fields,key)){
+        const value=key==='weight'?parseFloat(fields[key]):parseInt(fields[key],10);
+        values[key]=value||state.base[key]||0;
+      }
+      if(Object.prototype.hasOwnProperty.call(fields,'gender'))values.gender=(typeof normalizeClientGender==='function'?normalizeClientGender(fields.gender):fields.gender)||state.base.gender;
+      // Old optional intake controls are only written when they are actually present.
+      if(Object.prototype.hasOwnProperty.call(fields,'trainingFreq')){
+        const freq=typeof normalizeTrainingFreq==='function'?normalizeTrainingFreq(fields.trainingFreq):parseInt(fields.trainingFreq,10);
+        values.trainingFreq=freq||null;
+      }
+      if(Object.prototype.hasOwnProperty.call(fields,'preferredTrainTime'))values.preferredTrainTime=(fields.preferredTrainTime||'').trim();
+      for(const key of Object.keys(values)){
+        if(JSON.stringify(fields[key])===JSON.stringify(state.displayBase[key])){
+          if(Object.prototype.hasOwnProperty.call(state.base,key))values[key]=state.base[key];
+          else delete values[key];
+        }
+      }
+      state.fields=cpEditClone(fields);state.candidate={...state.base,...values};
+    }
+  }catch(error){state.error=true;state.message=error.message;renderCPEditSaveState(state);notify(state.message);return;}
+  state.pending=true;state.error=false;state.message='Czekamy na potwierdzenie zapisu profilu.';
+  renderCPEditSaveState(state);
+  try{
+    const saved=await saveClientCardConfirmed(state.candidate,state.operation);
+    if(!assignmentSessionCurrent(state.auth))return;
+    assertAssignmentSession(state.auth,saved);
+    state.saved=true;
+    const c=CL.find(x=>x.id===id);
+    // A confirmed late response must never recreate a removed or archived client.
+    assertAssignmentSession(state.auth,c);
+    if((c._fbId||c.id)!==(state.base._fbId||state.base.id))throw new Error('Identyfikator klienta zmienił się podczas zapisu. Odśwież listę klientów.');
+    Object.assign(c,saved);state.message='Profil '+c.name+' zapisany.';
+    try{if(typeof syncClientNameCache==='function')syncClientNameCache(c.id,c.name);}catch(e){}
+    try{renderClients();}catch(e){}
+    try{document.getElementById('nb-clients').textContent=CL.filter(x=>x.status!=='archived').length;}catch(e){}
+    if(cpClientId===id){
+      try{document.getElementById('cp-name').textContent=c.name;document.getElementById('cp-sub').textContent=typeof cpProfileSubtext==='function'?cpProfileSubtext(c):'';}catch(e){}
+    }
+    if(cpEditIsCurrent(state)){
+      window._cpEditingClientId=null;state.open=false;
+      try{renderCPOverview(c);}catch(e){}
+    }
+    notify('✓ Profil "'+c.name+'" zaktualizowany!');
+    if(typeof renderDash==='function')try{renderDash();}catch(e){}
+  }catch(error){
+    if(!assignmentSessionCurrent(state.auth))return;
+    state.error=true;state.conflict=error?.code==='client-card-conflict'&&error.remote?cpEditClone(error.remote):null;
+    state.message=state.saved?'Profil zapisany, ale klient jest teraz niedostępny. Odśwież listę klientów.':
+      state.conflict?'Dane klienta zmieniły się podczas edycji. Wczytaj aktualne dane i nanieś zmiany ponownie.':
+      'Nie potwierdzono zapisu. Dane formularza zachowano. Ponów zapis. '+(error?.message||'');
+    if(cpEditIsCurrent(state))notify(state.message);
+  }finally{
+    state.pending=false;
+    if(cpEditIsCurrent(state))renderCPEditSaveState(state);
+  }
 }
 
-function archiveClient(id){
+const clientArchiveWrites=new Map();
+function clientArchiveWriteFor(id){
+  const auth=assignmentSession();
+  return clientArchiveWrites.get(JSON.stringify([auth.uid,auth.generation,id]));
+}
+async function archiveClient(id){
   const c=CL.find(x=>x.id===id);
   if(!c)return;
-  if(c.status==='archived'){notify('Klient jest już w archiwum');return;}
+  const auth=assignmentSession(),key=JSON.stringify([auth.uid,auth.generation,id]);
+  for(const [storedKey,state] of clientArchiveWrites)if(!assignmentSessionCurrent(state.auth))clientArchiveWrites.delete(storedKey);
+  let state=clientArchiveWrites.get(key);
+  if(state?.pending)return state.promise;
+  if(c.status==='archived'&&!state?.uncertain){notify('Klient jest już w archiwum');return;}
+  try{
+    if(!state?.uncertain)assertAssignmentSession(auth,c);
+    else if(!assignmentSessionCurrent(auth)||c.trainerId!==auth.uid||c.deleted)throw new Error('Klient jest niedostępny. Odśwież jego profil.');
+  }catch(error){notify(error.message);return;}
   if(!confirm('Zarchiwizować klienta „'+(c.name||'')+'”?\n\nZniknie z aktywnej listy (filtr „Zarchiwizowani”). Możesz go później przywrócić lub usunąć na zawsze.'))return;
-  c.status='archived';
-  persistById('clients',c);
-  try{renderClients();}catch(e){}
-  try{renderClientFilters();}catch(e){}
-  try{document.getElementById('nb-clients').textContent=CL.filter(x=>x.status!=='archived').length;}catch(e){}
-  if(typeof closeClientProfile==='function')closeClientProfile();
-  notify('✓ Klient '+c.name+' zarchiwizowany');
+  const docId=c._fbId||c.id;
+  if(state&&state.docId!==docId){notify('Identyfikator klienta zmienił się. Odśwież jego profil.');return;}
+  if(!state){state={auth,docId};clientArchiveWrites.set(key,state);}
+  state.pending=true;
+  state.promise=Promise.resolve().then(async()=>{
+    try{
+      if(!window._db||typeof window._runTransaction!=='function'||typeof window._doc!=='function')throw new Error('Brak połączenia z bazą. Spróbuj ponownie.');
+      if(typeof docId!=='string'||!docId||docId.includes('/'))throw new Error('Nieprawidłowy identyfikator klienta.');
+      const check=()=>{
+        if(!assignmentSessionCurrent(auth))throw new Error('Sesja zmieniła się. Otwórz ponownie profil klienta.');
+        const local=CL.find(x=>x.id===id);
+        if(!local||local.trainerId!==auth.uid||local.deleted||(local._fbId||local.id)!==docId)throw new Error('Klient jest niedostępny. Odśwież jego profil.');
+      };
+      check();
+      const ref=window._doc(window._db,'clients',docId);
+      const saved=await window._runTransaction(window._db,async tx=>{
+        check();const found=await tx.get(ref);check();
+        if(!found.exists())throw new Error('Klient został usunięty. Odśwież listę klientów.');
+        const remote=found.data();
+        if(!remote||remote.trainerId!==auth.uid||remote.deleted||(remote.id&&remote.id!==id))throw new Error('Klient jest niedostępny. Odśwież jego profil.');
+        // Only status changes. A pending/lost profile ACK cannot overwrite server data.
+        if(remote.status!=='archived')tx.update(ref,{status:'archived'});
+        return {...remote,id,_fbId:docId,status:'archived'};
+      });
+      check();
+      Object.assign(CL.find(x=>x.id===id),saved);state.uncertain=false;
+      try{if(typeof syncClientNameCache==='function')syncClientNameCache(id,saved.name);}catch(e){}
+      try{renderClients();}catch(e){}
+      try{renderClientFilters();}catch(e){}
+      try{document.getElementById('nb-clients').textContent=CL.filter(x=>x.status!=='archived').length;}catch(e){}
+      if(cpClientId===id&&typeof closeClientProfile==='function')closeClientProfile();
+      notify('✓ Klient '+(saved.name||c.name)+' zarchiwizowany');
+      clientArchiveWrites.delete(key);
+    }catch(error){
+      state.uncertain=true;
+      if(assignmentSessionCurrent(auth))notify('Nie potwierdzono archiwizacji. Ponów archiwizację przed przywróceniem klienta. '+(error?.message||''));
+    }finally{state.pending=false;state.promise=null;}
+  });
+  return state.promise;
 }
 
 function restoreClient(id){
+  const archive=clientArchiveWriteFor(id);
+  if(archive&&(archive.pending||archive.uncertain)){notify('Archiwizacja nie została jeszcze potwierdzona. Ponów ją przed przywróceniem klienta.');return;}
   const c=CL.find(x=>x.id===id);
   if(!c)return;
   c.status='active';

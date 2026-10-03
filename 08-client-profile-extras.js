@@ -1411,7 +1411,90 @@ function buildClientInsight(c,sessions,plans,daysSince){
   return insights.slice(0,2);
 }
 
+// Inline profile drafts remain separate from the confirmed client record.
+const cpEditDrafts=new Map();
+const cpEditFieldIds={name:'cpe-name',email:'cpe-email',phone:'cpe-phone',age:'cpe-age',gender:'cpe-gender',weight:'cpe-weight',height:'cpe-height',goal:'cpe-goal',level:'cpe-level',trainingFreq:'cpe-freq',preferredTrainTime:'cpe-train-time',status:'cpe-status',activityLevel:'cpe-activity',sportNotes:'cpe-sport-notes',injuries:'cpe-injuries',notes:'cpe-notes'};
+function cpEditClone(value){
+  if(Array.isArray(value))return value.map(cpEditClone);
+  if(value&&typeof value==='object'&&value.constructor?.name==='Object')return Object.fromEntries(Object.entries(value).map(([key,item])=>[key,cpEditClone(item)]));
+  return value;
+}
+function cpEditFields(){
+  const fields={};
+  for(const [key,id] of Object.entries(cpEditFieldIds)){const el=document.getElementById(id);if(el)fields[key]=el.value;}
+  if(document.getElementById('cpe-preferred-weekdays')&&typeof readPreferredWeekdaysFrom==='function')fields.preferredWeekdays=readPreferredWeekdaysFrom('cpe');
+  if(document.getElementById('cpe-prior-sports')){
+    if(typeof readSportBackgroundFrom==='function'){
+      const bg=readSportBackgroundFrom('cpe');fields.priorSports=bg.priorSports||[];fields.additional_activities=bg.additional_activities||[];
+    }else if(typeof readPriorSportsFrom==='function')fields.priorSports=readPriorSportsFrom('cpe');
+  }
+  if(document.getElementById('cpe-physique-priority')&&typeof readPhysiquePriorityFrom==='function')fields.physiquePriority=readPhysiquePriorityFrom('cpe');
+  return fields;
+}
+function cpEditIsCurrent(state){
+  return !!state&&window._cpEditState===state&&state.open&&assignmentSessionCurrent(state.auth)&&
+    window._cpEditingClientId===state.clientId&&cpClientId===state.clientId&&cpTab==='overview'&&
+    document.getElementById('cp-drawer')?.classList.contains('open')&&
+    !!state.card&&document.getElementById('cp-edit-card')===state.card;
+}
+function captureCPEditDraft(){
+  const state=window._cpEditState;
+  if(state&&state.open){
+    if(!state.candidate&&document.getElementById('cp-edit-card')===state.card)state.fields=cpEditFields();
+    state.open=false;
+  }
+}
+function clearCPEditDrafts(){
+  cpEditDrafts.clear();window._cpEditState=null;window._cpEditingClientId=null;
+  const card=document.getElementById('cp-edit-card');if(card)card.remove();
+}
+function renderCPEditSaveState(state){
+  if(!cpEditIsCurrent(state))return;
+  state.card.querySelectorAll('input,select,textarea,button').forEach(el=>{
+    if(el.id!=='cpe-cancel-btn'&&el.id!=='cpe-reload-btn'&&el.id!=='cpe-discard-btn')el.disabled=!!state.candidate;
+  });
+  const btn=document.getElementById('cpe-save-btn');
+  if(btn){btn.disabled=!!(state.pending||state.saved||state.conflict);btn.textContent=state.pending?'Zapisuję…':state.saved?'Zapisano':state.error?'Ponów zapis':'💾 Zapisz zmiany';}
+  const status=document.getElementById('cpe-save-status');if(status){status.textContent=state.message||'';status.style.color=state.error?'var(--accent)':'var(--muted)';}
+  const reload=document.getElementById('cpe-reload-btn');if(reload){reload.hidden=!state.conflict;reload.disabled=!!state.pending;}
+  const discard=document.getElementById('cpe-discard-btn');if(discard)discard.disabled=!!(state.pending||state.saved||(state.candidate&&!state.conflict));
+}
+function mountCPEditDraft(){
+  const state=window._cpEditState;
+  if(!state||window._cpEditingClientId!==state.clientId||cpClientId!==state.clientId||!assignmentSessionCurrent(state.auth))return;
+  const card=document.getElementById('cp-edit-card');if(!card)return;
+  state.card=card;state.open=true;
+  // Capture the actual rendered defaults once; untouched legacy values are preserved.
+  if(!state.displayBase)state.displayBase=cpEditFields();
+  renderCPEditSaveState(state);
+}
+function reloadCPEditDraft(){
+  const state=window._cpEditState;
+  if(!cpEditIsCurrent(state)||!state.conflict||state.pending)return;
+  try{assertAssignmentSession(state.auth,state.conflict);assertAssignmentSession(state.auth,CL.find(c=>c.id===state.clientId));}
+  catch(error){state.message=error.message;state.error=true;renderCPEditSaveState(state);return;}
+  state.base=cpEditClone(state.conflict);state.fields=cpEditClone(state.base);
+  state.operation={auth:state.auth,edit:true,base:state.base};state.candidate=null;state.displayBase=null;state.conflict=null;state.error=false;
+  state.message='Wczytano aktualne dane. Wprowadź i zapisz swoje zmiany.';
+  state.open=false;
+  renderCPOverview(CL.find(c=>c.id===state.clientId));
+}
+function discardCPEditDraft(){
+  const state=window._cpEditState;
+  if(!cpEditIsCurrent(state)||state.pending||state.saved||(state.candidate&&!state.conflict))return;
+  cpEditDrafts.delete(state.key);state.open=false;
+  window._cpEditState=null;window._cpEditingClientId=null;
+  const c=CL.find(x=>x.id===state.clientId);if(c)renderCPOverview(c);
+}
+window.captureCPEditDraft=captureCPEditDraft;
+window.clearCPEditDrafts=clearCPEditDrafts;
+window.reloadCPEditDraft=reloadCPEditDraft;
+window.discardCPEditDraft=discardCPEditDraft;
+window.renderCPEditSaveState=renderCPEditSaveState;
+
 function cpClientDataEditHTML(c){
+  const state=window._cpEditState;
+  if(state&&state.clientId===c.id&&assignmentSessionCurrent(state.auth))c={...state.base,...state.fields};
   const field=(id,label,control)=>`<div class="form-field cp-field-below"><div class="cp-field-control">${control}</div><label class="form-lbl" for="${id}">${label}</label></div>`;
   const intake=typeof clientIntakeFormState==='function'?clientIntakeFormState(c.id):null;
   const intakeLbl=intake&&intake.filled?'Wypełniona':intake&&intake.pending?'Oczekuje na klienta':intake&&intake.sent?'Wysłana':'Nie wysłana';
@@ -1424,7 +1507,7 @@ function cpClientDataEditHTML(c){
         <div class="cp-edit-card-title">Dane osobowe</div>
         <div class="cp-edit-card-sub">Imię i nazwisko, telefon, e-mail, waga, wzrost, sport — dopisz lub popraw</div>
       </div>
-      <button type="button" class="btn btn-ghost btn-sm" onclick="cancelCPEdit()">Anuluj</button>
+      <button type="button" id="cpe-cancel-btn" class="btn btn-ghost btn-sm" onclick="cancelCPEdit()">Zamknij</button>
     </div>
     <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:14px;padding:8px 10px;background:var(--s3);border:1px solid var(--border);border-radius:8px;">
       📋 Ankieta wstępna — tylko w Formularzach.
@@ -1457,8 +1540,8 @@ function cpClientDataEditHTML(c){
     ${field('cpe-status','Status',`<select class="form-select" id="cpe-status">
         <option value="active" ${c.status==='active'?'selected':''}>Aktywny</option>
         <option value="inactive" ${c.status==='inactive'?'selected':''}>Nieaktywny</option>
-        <option value="archived" ${c.status==='archived'?'selected':''}>Zarchiwizowany</option>
       </select>`)}
+    <div class="cp-field-hint">Archiwizacja klienta jest dostępna w menu profilu.</div>
     <div class="form-field cp-field-below">
       <div class="cp-field-control">
         <div class="cp-field-hint">Zaznacz sporty i podaj ile razy w tygodniu — AI zmniejszy objętość na obciążone partie.</div>
@@ -1484,23 +1567,35 @@ function cpClientDataEditHTML(c){
       <label class="form-lbl">Priorytet sylwetkowy</label>
     </div>
     ${field('cpe-notes','Uwagi prywatne',`<textarea class="form-select" id="cpe-notes" rows="2" style="resize:none;">${escHtml(c.notes||'')}</textarea>`)}
-    <button type="button" class="btn btn-primary" style="width:100%;" onclick="saveCPEdit('${c.id}')">💾 Zapisz zmiany</button>
+    <div id="cpe-save-status" role="status" aria-live="polite" style="font-size:12px;margin:10px 0;"></div>
+    <button type="button" id="cpe-discard-btn" class="btn btn-ghost" onclick="discardCPEditDraft()">Odrzuć szkic</button>
+    <button type="button" id="cpe-reload-btn" class="btn btn-ghost" hidden onclick="reloadCPEditDraft()">Wczytaj aktualne dane</button>
+    <button type="button" id="cpe-save-btn" class="btn btn-primary" style="width:100%;" onclick="saveCPEdit('${c.id}')">💾 Zapisz zmiany</button>
   </div>`;
 }
 function startCPEdit(clientId){
   const id=clientId||(typeof cpClientId!=='undefined'?cpClientId:window.cpClientId);
   if(!id)return;
-  window._cpEditingClientId=id;
+  const c=CL.find(x=>x.id===id),auth=assignmentSession();
+  try{assertAssignmentSession(auth,c);}catch(error){notify(error.message);return;}
+  captureCPEditDraft();
+  for(const [key,draft] of cpEditDrafts)if(!assignmentSessionCurrent(draft.auth))cpEditDrafts.delete(key);
+  const key=JSON.stringify([auth.uid,auth.generation,id]);
+  let state=cpEditDrafts.get(key);
+  if(state&&state.saved&&!state.pending){cpEditDrafts.delete(key);state=null;}
+  if(!state){
+    const base=cpEditClone(c);state={auth,key,clientId:id,base,fields:cpEditClone(base),operation:{auth,edit:true,base}};
+    cpEditDrafts.set(key,state);
+  }
   const alreadyOpen=typeof cpClientId!=='undefined'&&cpClientId===id;
   if(!alreadyOpen&&typeof openClientProfile==='function'){
     openClientProfile(id);
-    window._cpEditingClientId=id;
   }
-  const c=CL.find(x=>x.id===id);
-  if(!c)return;
+  window._cpEditState=state;window._cpEditingClientId=id;
   if(typeof setCPTab==='function')setCPTab('overview');
   else if(typeof renderCPOverview==='function')renderCPOverview(c);
   requestAnimationFrame(()=>{
+    if(!cpEditIsCurrent(state))return;
     const card=document.getElementById('cp-edit-card')||document.querySelector('.cp-edit-card');
     if(card&&card.scrollIntoView)card.scrollIntoView({behavior:'smooth',block:'start'});
     const nameEl=document.getElementById('cpe-name');
@@ -1511,6 +1606,7 @@ function startCPEdit(clientId){
   });
 }
 function cancelCPEdit(){
+  captureCPEditDraft();
   window._cpEditingClientId=null;
   const c=CL.find(x=>x.id===cpClientId);
   if(c&&typeof renderCPOverview==='function')renderCPOverview(c);
@@ -3437,6 +3533,7 @@ window.clearCpCoopAnalysis=clearCpCoopAnalysis;
 window.CP_COOP_GATE_MSG=CP_COOP_GATE_MSG;
 
 function renderCPOverview(c){
+  captureCPEditDraft();
   const today=new Date();
   const todayStr=typeof todayYmd==='function'?todayYmd():(typeof dateStrLocal==='function'?dateStrLocal(today):today.toISOString().split('T')[0]);
   const sessions=SE.filter(s=>s.clientId===c.id);
@@ -3690,6 +3787,7 @@ function renderCPOverview(c){
         ${cpOverviewMissingHTML(c)}
       </aside>
     </div>`;
+  mountCPEditDraft();
 }
 
 function renderCPPlan(c){
