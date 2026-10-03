@@ -6768,6 +6768,64 @@ function emitAppEvent(type,payload){
   }catch(e){}
   return ev;
 }
+// Assignment retries retain the same plan ID until its write is acknowledged.
+const assignedClientPlanWrites=new Map();
+const assignedClientStartupEffects=new Map();
+function assignmentSession(){return {uid:window._uid,generation:window.tenantSessionGeneration||0};}
+function assignmentSessionCurrent(auth){
+  return !!auth&&!!auth.uid&&auth.uid===window._uid&&auth.generation===(window.tenantSessionGeneration||0)&&
+    window._tenantDataReady===true&&!window._clientAppMode&&!window._clientPreviewMode&&
+    (!window.tenantSessionIsCurrent||window.tenantSessionIsCurrent(auth));
+}
+function assertAssignmentSession(auth,client){
+  if(!assignmentSessionCurrent(auth))throw new Error('Sesja zmieniła się. Otwórz ponownie profil klienta.');
+  if(!client||client.trainerId!==auth.uid||client.archived||client.deleted||client.status==='archived')
+    throw new Error('Klient jest niedostępny. Odśwież jego profil.');
+}
+// Retry bookkeeping is scoped to the current authenticated session.
+function assignmentStartupState(client){
+  const auth=assignmentSession();
+  assertAssignmentSession(auth,client);
+  for(const [key,state] of assignedClientStartupEffects)if(!assignmentSessionCurrent(state.auth))assignedClientStartupEffects.delete(key);
+  const key=JSON.stringify([auth.uid,auth.generation,client.id]);
+  if(!assignedClientStartupEffects.has(key))assignedClientStartupEffects.set(key,{auth,flowParts:null,enrolled:false,notified:false,created:false});
+  return assignedClientStartupEffects.get(key);
+}
+function persistAssignedClientPlan(client,sourceKey,createCandidate){
+  const auth=assignmentSession();
+  assertAssignmentSession(auth,client);
+  for(const [key,state] of assignedClientPlanWrites)if(!assignmentSessionCurrent(state.auth))assignedClientPlanWrites.delete(key);
+  const key=JSON.stringify([auth.uid,auth.generation,client.id,sourceKey]);
+  let state=assignedClientPlanWrites.get(key);
+  if(state&&state.promise)return state.promise;
+  if(!state){state={auth,candidate:createCandidate()};assignedClientPlanWrites.set(key,state);}
+  state.promise=Promise.resolve().then(async()=>{
+    assertAssignmentSession(auth,client);
+    const saved=await persistById('plans',state.candidate);
+    assertAssignmentSession(auth,client);
+    if(!saved)throw new Error('Nie udało się potwierdzić zapisu planu. Spróbuj ponownie.');
+    const list=window.PL||(window.PL=[]),index=list.findIndex(p=>p.id===saved.id);
+    if(index<0)list.push(saved);else list[index]=saved;
+    assignedClientPlanWrites.delete(key);
+    return saved;
+  }).finally(()=>{state.promise=null;});
+  return state.promise;
+}
+async function confirmAssignedClientCalendar(client,plan,opts){
+  const auth=assignmentSession();
+  assertAssignmentSession(auth,client);
+  if(!plan||(plan.days||[]).every(d=>!d||d.rest||!(d.exercises||[]).length))return {status:'skipped',added:0};
+  // Automatic startup does not add appointments to an already used calendar.
+  // The checklist provides an explicit, confirmed fill action for missing dates.
+  if(typeof clientHasCalendarOrSession==='function'&&clientHasCalendarOrSession(client.id))return {status:'skipped',added:0};
+  if(typeof window.refillCalendarConfirmed!=='function')return {status:'error',error:'Odśwież aplikację, aby wczytać moduł kalendarza.'};
+  const weeks=opts&&opts.weeks||4;
+  const preferred=typeof normalizePreferredWeekdays==='function'?normalizePreferredWeekdays(client.preferredWeekdays):(client.preferredWeekdays||[]);
+  if(!preferred.length&&!confirm('Dopełnić kalendarz o brakujące treningi na '+weeks+' tygodnie? Istniejące terminy pozostaną bez zmian.'))return {status:'cancelled',added:0};
+  const result=await window.refillCalendarConfirmed(client.id,{planId:plan.id,weeks});
+  assertAssignmentSession(auth,client);
+  return result;
+}
 function assignTemplatePlanToClient(templateId,client,opts){
   opts=opts||{};
   if(!templateId||!client||!client.id)return null;
@@ -6779,7 +6837,7 @@ function assignTemplatePlanToClient(templateId,client,opts){
     rest:!!d.rest,
     exercises:(d.exercises||[]).map(e=>({name:e.n||e.name,sets:e.s||e.sets,reps:e.r||e.reps,rest:e.rest}))
   }));
-  const plan=withTrainer({
+  return persistAssignedClientPlan(client,'template:'+templateId,()=>withTrainer({
     id:newId('p'),
     name:t.name,
     clientId:client.id,
@@ -6791,10 +6849,7 @@ function assignTemplatePlanToClient(templateId,client,opts){
     source:'template',
     templateId:t.id,
     createdAt:new Date().toISOString()
-  });
-  (window.PL||(window.PL=[])).push(plan);
-  if(typeof persistById==='function')persistById('plans',plan);
-  return plan;
+  }));
 }
 /** Cache `clientName` na planach / pakietach / fakturach / historii onboardingu — po zmianie imienia. */
 function syncClientNameCache(clientId,name){
@@ -6837,59 +6892,67 @@ window.syncClientNameCache=syncClientNameCache;
  * }
  */
 function assignClientPipeline(client,opts){
-  opts=opts||{};
-  const out={ok:false,client:client||null,parts:[],plan:null,sessions:0,emailOk:false};
-  if(!client||!client.id)return out;
-  out.emailOk=clientEmailValid(client.email);
-  if(opts.persist!==false&&typeof persistById==='function')persistById('clients',client);
-  out.parts.push('karta');
-
-  if(opts.baseline&&typeof saveClientBaselineFromFields==='function'){
+  return (async()=>{
+    opts=opts||{};
+    const auth=assignmentSession();
+    const out={ok:false,client:client||null,parts:[],plan:null,sessions:0,emailOk:false,calendar:null};
+    if(!client||!client.id)return out;
     try{
-      saveClientBaselineFromFields(client.id,opts.baseline);
-      out.parts.push('pomiary');
-    }catch(e){console.warn('pipeline baseline',e);}
-  }
-
-  if(opts.templateId){
-    out.plan=assignTemplatePlanToClient(opts.templateId,client,{force:!!opts.forcePlan});
-    if(out.plan)out.parts.push('plan');
-  }
-  if(!out.plan&&opts.programId&&typeof assignProgramPlanToClient==='function'){
-    try{
-      out.plan=assignProgramPlanToClient(opts.programId,client);
-      if(out.plan)out.parts.push('program');
-    }catch(e){console.warn('pipeline program',e);}
-  }
-
-  if(opts.runFlow!==false&&typeof runOnboardingForClient==='function'){
-    try{
-      const skipAssign=opts.skipAssign||!!out.plan;
-      const flowRet=runOnboardingForClient(client,{skipAssign,skipSchedule:opts.schedule!==false});
-      if(Array.isArray(flowRet)&&flowRet.length){
-        flowRet.forEach(p=>{if(out.parts.indexOf(p)<0)out.parts.push(p);});
+      assertAssignmentSession(auth,client);
+      out.emailOk=clientEmailValid(client.email);
+      if(opts.persist!==false){
+        const saved=await persistById('clients',client);
+        assertAssignmentSession(auth,client);
+        if(!saved)throw new Error('Nie udało się potwierdzić zapisu klienta. Automatyczny start został wstrzymany.');
       }
-    }catch(e){console.warn('pipeline flow',e);}
-  }
-
-  if(opts.schedule!==false&&typeof clientHasCalendarOrSession==='function'&&!clientHasCalendarOrSession(client.id)){
-    const plan=out.plan||(typeof clientPlanForCalendar==='function'?clientPlanForCalendar(client.id):null);
-    if(plan&&typeof maybeSchedulePlanToCalendar==='function'){
-      try{
-        const n=maybeSchedulePlanToCalendar(plan.id,{weeks:opts.weeks||4,forceConfirm:false})||0;
-        if(n>0){out.sessions=n;out.parts.push('kalendarz');}
-      }catch(e){console.warn('pipeline calendar',e);}
+      out.parts.push('karta');
+      if(opts.baseline&&typeof saveClientBaselineFromFields==='function'){
+        // Legacy baseline persistence is separate from confirmed plan/calendar writes.
+        saveClientBaselineFromFields(client.id,opts.baseline);
+        assertAssignmentSession(auth,client);
+        out.parts.push('pomiary');
+      }
+      if(opts.templateId){
+        out.plan=await assignTemplatePlanToClient(opts.templateId,client,{force:!!opts.forcePlan});
+        assertAssignmentSession(auth,client);
+        if(out.plan)out.parts.push('plan');
+      }
+      if(!out.plan&&opts.programId&&typeof assignProgramPlanToClient==='function'){
+        out.plan=await assignProgramPlanToClient(opts.programId,client);
+        assertAssignmentSession(auth,client);
+        if(out.plan)out.parts.push('program');
+      }
+      if(opts.runFlow!==false&&typeof runOnboardingForClient==='function'){
+        // The pipeline owns scheduling. schedule:false must also disable the nested flow.
+        const flowRet=await runOnboardingForClient(client,{skipAssign:opts.skipAssign||!!out.plan,skipSchedule:true});
+        assertAssignmentSession(auth,client);
+        if(Array.isArray(flowRet))flowRet.forEach(p=>{if(!out.parts.includes(p))out.parts.push(p);});
+      }
+      if(opts.schedule!==false){
+        const plan=out.plan||(typeof clientPlanForCalendar==='function'?clientPlanForCalendar(client.id):null);
+        if(plan){
+          out.calendar=await confirmAssignedClientCalendar(client,plan,{weeks:opts.weeks||4});
+          assertAssignmentSession(auth,client);
+          if(out.calendar&&['saved','unchanged'].includes(out.calendar.status)){
+            out.sessions=out.calendar.added||0;out.parts.push('kalendarz');
+          }
+        }
+      }
+      const startup=assignmentStartupState(client);
+      if(opts.notify!==false&&!startup.notified&&typeof addNotification==='function'){
+        addNotification('system','Nowy klient!',client.name+' — '+out.parts.join(', '),'clients');
+        startup.notified=true;
+      }
+      if(opts.fireEvent!==false&&!startup.created){
+        emitAppEvent('client.created',{client:{id:client.id,name:client.name,email:client.email||'',phone:client.phone||''},parts:out.parts.slice()});
+        startup.created=true;
+      }
+      out.ok=true;
+    }catch(error){
+      out.error=error&&error.message||'Nie udało się ukończyć automatycznego startu.';
     }
-  }
-
-  if(opts.notify!==false&&typeof addNotification==='function'){
-    addNotification('system','Nowy klient!',client.name+(out.parts.length?' — '+out.parts.join(', '):' dodany'),'clients');
-  }
-  if(opts.fireEvent!==false){
-    emitAppEvent('client.created',{client:{id:client.id,name:client.name,email:client.email||'',phone:client.phone||''},parts:out.parts.slice()});
-  }
-  out.ok=true;
-  return out;
+    return out;
+  })();
 }
 /** Status startu współpracy: zaproszenie → ankieta → baseline → harmonogram → plan → kalendarz → pakiet. */
 function clientOnboardStatus(c){

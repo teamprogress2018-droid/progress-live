@@ -390,16 +390,23 @@ async function saveClient(){
     const el=document.getElementById(id);if(el)el.value='';
   });
   try{renderAll();}catch(e){try{renderClients();}catch(e2){}}
-  notify('✅ Klient '+c.name+' dodany!');
+  const creationSession=assignmentSession();
+  notify('Zapisuję klienta i uruchamiam start współpracy…');
   if(typeof assignClientPipeline==='function'){
-    assignClientPipeline(c,{persist:true,runFlow:true,schedule:true,notify:true,fireEvent:true});
+    const result=await assignClientPipeline(c,{persist:true,runFlow:true,schedule:true,notify:true,fireEvent:true});
+    if(!assignmentSessionCurrent(creationSession))return;
+    if(!result.ok)notify(result.error||'Nie udało się potwierdzić startu współpracy.');
+    else if(result.calendar&&result.calendar.status==='error')notify('Klient i plan zapisani. Kalendarz wymaga ponowienia w checkliście: '+result.calendar.error);
+    else notify('✅ Klient '+c.name+' zapisany!');
   }else{
     addNotification('system','Nowy klient!',c.name+' dodany do listy','clients');
-    if(typeof runOnboardingForClient==='function')runOnboardingForClient(c);
-    await persistById('clients',c);
+    if(!await persistById('clients',c))return;
+    if(!assignmentSessionCurrent(creationSession))return;
+    if(typeof runOnboardingForClient==='function')await runOnboardingForClient(c);
+    if(!assignmentSessionCurrent(creationSession))return;
     if(typeof fireIntEvent==='function')fireIntEvent('client.created',{client:{id:c.id,name:c.name,email:c.email||'',phone:c.phone||''}});
   }
-  setTimeout(()=>openClientOnboardChecklist(c.id),400);
+  setTimeout(()=>{if(assignmentSessionCurrent(creationSession))openClientOnboardChecklist(c.id);},400);
 }
 
 function getClientOnboard(c){
